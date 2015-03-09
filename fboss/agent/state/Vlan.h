@@ -1,0 +1,206 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+#pragma once
+
+#include <folly/IPAddressV4.h>
+#include <folly/IPAddressV6.h>
+#include <folly/MacAddress.h>
+#include "fboss/agent/types.h"
+#include "fboss/agent/state/NodeBase.h"
+
+#include <boost/container/flat_map.hpp>
+#include <set>
+#include <string>
+#include <map>
+
+namespace facebook { namespace fboss {
+
+class ArpResponseTable;
+class ArpTable;
+class NdpResponseTable;
+class NdpTable;
+class SwitchState;
+
+namespace cfg {
+class Vlan;
+}
+
+typedef boost::container::flat_map<folly::MacAddress, folly::IPAddressV4>
+    DhcpV4OverrideMap;
+typedef boost::container::flat_map<folly::MacAddress, folly::IPAddressV6>
+    DhcpV6OverrideMap;
+
+struct VlanFields {
+  struct PortInfo {
+    explicit PortInfo(bool emitTags) : tagged(emitTags) {}
+    bool operator==(const PortInfo& other) const {
+      return tagged == other.tagged;
+    }
+    bool operator!=(const PortInfo& other) const {
+      return !(*this == other);
+    }
+    folly::dynamic toFollyDynamic() const;
+    static PortInfo fromFollyDynamic(const folly::dynamic& json);
+    bool tagged;
+  };
+  typedef boost::container::flat_map<PortID, PortInfo> MemberPorts;
+
+  VlanFields(VlanID id, std::string name);
+  VlanFields(VlanID id,
+             std::string name,
+             uint32_t mtu,
+             folly::IPAddressV4 dhcpV4Relay,
+             folly::IPAddressV6 dhcpV6Relay,
+             MemberPorts&& ports);
+
+  template<typename Fn>
+  void forEachChild(Fn fn) {
+    fn(arpTable.get());
+    fn(arpResponseTable.get());
+    fn(ndpTable.get());
+    fn(ndpResponseTable.get());
+  }
+
+  folly::dynamic toFollyDynamic() const;
+  static VlanFields fromFollyDynamic(const folly::dynamic& vlanJson);
+
+  const VlanID id{0};
+  std::string name;
+  uint32_t mtu{1500};
+  folly::IPAddressV4 dhcpV4Relay;
+  folly::IPAddressV6 dhcpV6Relay;
+  DhcpV4OverrideMap dhcpRelayOverridesV4;
+  DhcpV6OverrideMap dhcpRelayOverridesV6;
+  // The list of ports in the VLAN.
+  // We only store PortIDs, and not pointers to the actual Port objects.
+  // This way VLAN objects don't need to change when a Port object is modified.
+  //
+  // (Port state is copy-on-write, so when it changes a new copy of the Port
+  // object is created.  If we pointed at the Port object here we would also
+  // have to modify the Vlan object.  By storing only the PortID the Vlan does
+  // not need to be modified.)
+  MemberPorts ports;
+  std::shared_ptr<ArpTable> arpTable;
+  std::shared_ptr<ArpResponseTable> arpResponseTable;
+  std::shared_ptr<NdpTable> ndpTable;
+  std::shared_ptr<NdpResponseTable> ndpResponseTable;
+};
+
+class Vlan : public NodeBaseT<Vlan, VlanFields> {
+ public:
+  typedef VlanFields::PortInfo PortInfo;
+  typedef VlanFields::MemberPorts MemberPorts;
+
+  Vlan(VlanID id, std::string name);
+  Vlan(const cfg::Vlan* config, uint32_t mtu, MemberPorts ports);
+
+  VlanID getID() const {
+    return getFields()->id;
+  }
+
+  const std::string& getName() const {
+    return getFields()->name;
+  }
+
+  void setName(std::string name) {
+    writableFields()->name = name;
+  }
+
+  uint32_t getMTU() const {
+    return getFields()->mtu;
+  }
+  void setMTU(uint32_t mtu) {
+    writableFields()->mtu = mtu;
+  }
+
+  const MemberPorts& getPorts() const {
+    return getFields()->ports;
+  }
+  void setPorts(MemberPorts ports) {
+    writableFields()->ports.swap(ports);
+  }
+
+  Vlan* modify(std::shared_ptr<SwitchState>* state);
+
+  void addPort(PortID id, bool tagged);
+
+  const std::shared_ptr<ArpTable> getArpTable() const {
+    return getFields()->arpTable;
+  }
+  void setArpTable(std::shared_ptr<ArpTable> table) {
+    return writableFields()->arpTable.swap(table);
+  }
+  void setNeighborTable(std::shared_ptr<ArpTable> table) {
+    return writableFields()->arpTable.swap(table);
+  }
+
+  const std::shared_ptr<ArpResponseTable> getArpResponseTable() const {
+    return getFields()->arpResponseTable;
+  }
+  void setArpResponseTable(std::shared_ptr<ArpResponseTable> table) {
+    writableFields()->arpResponseTable.swap(table);
+  }
+
+  const std::shared_ptr<NdpTable> getNdpTable() const {
+    return getFields()->ndpTable;
+  }
+  void setNdpTable(std::shared_ptr<NdpTable> table) {
+    return writableFields()->ndpTable.swap(table);
+  }
+  void setNeighborTable(std::shared_ptr<NdpTable> table) {
+    return writableFields()->ndpTable.swap(table);
+  }
+
+  const std::shared_ptr<NdpResponseTable> getNdpResponseTable() const {
+    return getFields()->ndpResponseTable;
+  }
+  void setNdpResponseTable(std::shared_ptr<NdpResponseTable> table) {
+    writableFields()->ndpResponseTable.swap(table);
+  }
+
+  // dhcp relay
+
+  folly::IPAddressV4 getDhcpV4Relay() const {
+    return getFields()->dhcpV4Relay;
+  }
+  void setDhcpV4Relay(folly::IPAddressV4 v4Relay) {
+     writableFields()->dhcpV4Relay = v4Relay;
+  }
+
+  folly::IPAddressV6 getDhcpV6Relay() const {
+    return getFields()->dhcpV6Relay;
+  }
+  void setDhcpV6Relay(folly::IPAddressV6 v6Relay) {
+     writableFields()->dhcpV6Relay = v6Relay;
+  }
+
+  // dhcp overrides
+
+  DhcpV4OverrideMap getDhcpV4RelayOverrides() const {
+    return getFields()->dhcpRelayOverridesV4;
+  }
+  void setDhcpV4RelayOverrides(DhcpV4OverrideMap map) {
+    writableFields()->dhcpRelayOverridesV4 = map;
+  }
+
+  DhcpV6OverrideMap getDhcpV6RelayOverrides() const {
+    return getFields()->dhcpRelayOverridesV6;
+  }
+  void setDhcpV6RelayOverrides(DhcpV6OverrideMap map) {
+    writableFields()->dhcpRelayOverridesV6 = map;
+  }
+
+ private:
+  // Inherit the constructors required for clone()
+  using NodeBaseT::NodeBaseT;
+  friend class CloneAllocator;
+};
+
+}} // facebook::fboss
