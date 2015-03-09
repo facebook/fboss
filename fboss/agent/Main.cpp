@@ -59,6 +59,9 @@ DEFINE_bool(tun_intf, true,
             "Create tun interfaces to allow other processes to "
             "send and receive traffic via the switch ports");
 
+DEFINE_bool(enable_lldp, true,
+            "Run LLDP protocol in agent");
+
 using facebook::fboss::SwSwitch;
 
 namespace facebook { namespace fboss {
@@ -110,7 +113,7 @@ class Initializer {
 
     // Initialize the switch.  This operation can take close to a minute
     // on some of our current platforms.
-    sw_->init(FLAGS_tun_intf);
+    sw_->init(FLAGS_tun_intf, FLAGS_enable_lldp);
 
     // Wait for the local MAC address to be available.
     ret.wait();

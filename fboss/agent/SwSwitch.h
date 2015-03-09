@@ -104,8 +104,13 @@ class SwSwitch : public HwSwitch::Callback {
    * @param enableIntfSync By default, interface sync to system is disabled,
    *                       since unittest code does not have the permission to
    *                       create/delete interface in the system.
+   *
+   * @param enableLldp     By defaul lldp is disabled since it sends packets
+   *                       periodically and this breaks tests which expect
+   *                       only a certain packets.
    */
-  void init(bool enableIntfSync = false);
+  void init(bool enableIntfSync = false,
+            bool enaleLldp = false);
 
   bool isFullyInitialized() const;
 

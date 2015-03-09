@@ -95,7 +95,9 @@ void SwSwitch::stop() {
     // thread.  Ask them to stop, before we shut down the background thread.
     ipv6_.reset();
     nUpdater_.reset();
-    lldpManager_->stop();
+    if (lldpManager_) {
+      lldpManager_->stop();
+    }
 
     // Stop tunMgr so we don't get any packets to process
     // in software that were sent to the switch ip or were
@@ -172,7 +174,7 @@ void SwSwitch::clearWarmBootCache() {
   hw_->clearWarmBootCache();
 }
 
-void SwSwitch::init(bool enableTunIntf) {
+void SwSwitch::init(bool enableTunIntf, bool enableLldp) {
   lock_guard<mutex> g(hwMutex_);
   auto start = std::chrono::steady_clock::now();
   auto stateAndBootType = hw_->init(this);
@@ -197,7 +199,9 @@ void SwSwitch::init(bool enableTunIntf) {
 
   publishBootType();
 
-  lldpManager_ = folly::make_unique<LldpManager>(this);
+  if (enableLldp) {
+      lldpManager_ = folly::make_unique<LldpManager>(this);
+  }
   setSwitchRunState(SwitchRunState::INITIALIZED);
 }
 
@@ -208,7 +212,9 @@ void SwSwitch::initialConfigApplied() {
   }
   setSwitchRunState(SwitchRunState::CONFIGURED);
   syncTunInterfaces();
-  lldpManager_->start();
+  if (lldpManager_) {
+      lldpManager_->start();
+  }
 }
 
 void SwSwitch::fibSynced() {
