@@ -60,8 +60,8 @@ void BcmStation::program(MacAddress mac, int id) {
   CHECK_EQ(INVALID, id_);
   opennsl_l2_station_t params;
   opennsl_l2_station_t_init(&params);
-  sal_memcpy(&params.dst_mac, mac.bytes(), sizeof(params.dst_mac));
-  sal_memset(&params.dst_mac_mask, 0xFF, sizeof(params.dst_mac_mask));
+  memcpy(&params.dst_mac, mac.bytes(), sizeof(params.dst_mac));
+  memset(&params.dst_mac_mask, 0xFF, sizeof(params.dst_mac_mask));
   params.flags |= OPENNSL_L2_STATION_IPV4|OPENNSL_L2_STATION_IPV6
     |OPENNSL_L2_STATION_ARP_RARP;
   if (id != INVALID) {
@@ -144,8 +144,8 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
     opennsl_l3_intf_t ifParams;
     opennsl_l3_intf_t_init(&ifParams);
     ifParams.l3a_vrf = vrf;
-    sal_memcpy(&ifParams.l3a_mac_addr, intf->getMac().bytes(),
-               sizeof(ifParams.l3a_mac_addr));
+    memcpy(&ifParams.l3a_mac_addr, intf->getMac().bytes(),
+           sizeof(ifParams.l3a_mac_addr));
     ifParams.l3a_vid = intf->getVlanID();
     ifParams.l3a_mtu = 1500;      // TODO
 

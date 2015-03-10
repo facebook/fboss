@@ -280,16 +280,7 @@ void BcmSwitch::ecmpHashSetup() {
   rv = opennsl_switch_control_set(unit_, opennslSwitchHashSelectControl, 0);
   bcmCheckError(rv, "failed to set default RTAG7 hash control");
 
-  // enable Macro flow (must)
-  // Note: If macro flow is disabled, SDK will disable
-  // ING_CONFIG_2.ECMP_HASH_16BITS, which causes HW to treat the entry in
-  // L3_ECMP_GROUP as having BASE_PTR_[0123] and COUNT_[0123] for 4 pages.
-  // However, given that Trident+ support 1k entries, SDK always progrom entries
-  // in L3_ECMP_GROUP to just have BASE_PTR and COUNT. That inconsistency breaks
-  // ECMP function.
-  // However, macro flow is only available on Trident+. For Trident only
-  // switch, this feature is not available. In this case, SDK will treat
-  // L3_ECMP_GROUP as HW consistently.
+  // Enable macro flow hash
   rv = opennsl_switch_control_set(unit_,
       opennslSwitchEcmpMacroFlowHashEnable, 1);
   if (rv == OPENNSL_E_UNAVAIL) {

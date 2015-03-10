@@ -34,8 +34,8 @@ void BcmHost::initHostCommon(opennsl_l3_host_t *host) const {
   if (addr_.isV4()) {
     host->l3a_ip_addr = addr_.asV4().toLongHBO();
   } else {
-    sal_memcpy(&host->l3a_ip6_addr, addr_.asV6().toByteArray().data(),
-               sizeof(host->l3a_ip6_addr));
+    memcpy(&host->l3a_ip6_addr, addr_.asV6().toByteArray().data(),
+           sizeof(host->l3a_ip6_addr));
     host->l3a_flags |= OPENNSL_L3_IP6;
   }
   host->l3a_vrf = vrf_;

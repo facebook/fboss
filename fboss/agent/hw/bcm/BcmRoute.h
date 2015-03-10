@@ -26,16 +26,7 @@ class BcmSwitch;
 class BcmHost;
 
 /**
- * A route in HW includes 3 parts:
- * 1) the route itself, which includes the vrf, prefix, and the ID of
- *    an egress object (BcmEgress)
- * 2) the egress object pointed by the route
- * 3) a host entry of the nexthop of the route. This host entry also
- *    points to the same egress object
- * The host entry is not needed by HW to forward packet. We use it as the
- * bridge between the route entry and the egress object. When ARP/ND resolves
- * the L2 of the host, the update to that host will directly refected in the
- * same egress objected pointed by all routes using that host as the nexthop
+ * BcmRoute represents a L3 route object.
  */
 class BcmRoute {
  public:

@@ -56,7 +56,7 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
       eObj.flags |= OPENNSL_L3_DST_DISCARD;
     }
   } else {
-    sal_memcpy(&eObj.mac_addr, mac->bytes(), sizeof(eObj.mac_addr));
+    memcpy(&eObj.mac_addr, mac->bytes(), sizeof(eObj.mac_addr));
     eObj.port = port;
   }
   eObj.intf = intfId;
