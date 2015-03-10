@@ -6,7 +6,7 @@ FBOSS is being tested on Ubuntu 14.04. To install and build the FBOSS agent, you
 * folly's own prerequisites: double-conversion, gflags, and glog
 * [fbthrift](https://github.com/facebook/fbthrift), built from source and installed
 * iproute2-3.19.0: download from [here](https://www.kernel.org/pub/linux/utils/net/iproute2/iproute2-3.19.0.tar.xz), extract, and install per instructions
-* opennsl
+* Broadcom's [OpenNSL](https://github.com/Broadcom-Switch/OpenNSL)
 
 Once the prerequisites are available, take the following steps.
 
