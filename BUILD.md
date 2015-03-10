@@ -13,7 +13,7 @@ Once the prerequisites are available, take the following steps.
 Clone the repository:
 
 ```
-git clone git@github.com:facebook/fboss-testing.git
+git clone https://github.com/facebook/fboss.git
 ```
  
 Build as follows:
