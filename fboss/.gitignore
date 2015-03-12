@@ -1,0 +1,9 @@
+*.o
+lib*.a
+/sim_agent
+/wedge_agent
+
+# Generated thrift files
+gen-cpp
+gen-cpp2
+*.MADE

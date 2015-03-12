@@ -1,3 +1,20 @@
+#
+# Makefile for building FBOSS.
+# We're planning on replacing this with a CMake-based build system soon,
+# but for now this should at least help perform an initial build.
+#
+# Settings that likely will need to be modified for your environment:
+#
+OPENNSL = /usr/local/src/OpenNSL
+IPROUTE2_INCLUDE = /usr/local/src/iproute2-3.19.0/include
+IPROUTE2_LIB=/usr/local/src/iproute2-3.19.0/lib/libnetlink.a
+THRIFT1 = /usr/local/facebook/bin/thrift1
+
+# Optional extra directories.  For instance, if you have folly or fbthrift
+# installed in non-standard locations.
+EXTRA_INCLUDE_DIRS = /usr/local/facebook/include
+EXTRA_LIB_DIRS = /usr/local/facebook/lib
+
 # Ensure OpenNSL is set and accessible
 ifeq (,$(OPENNSL))
   ifeq (,$(OPENNSL_INCLUDE))
@@ -8,8 +25,8 @@ ifeq (,$(OPENNSL))
     endif
   endif
 else
-OPENNSL_INCLUDE=$(OPENNSL)/include
-OPENNSL_LIB=$(OPENNSL)/lib/libopennsl.so.1
+  OPENNSL_INCLUDE=$(OPENNSL)/include
+  OPENNSL_LIB=$(OPENNSL)/bin/wedge-trident/libopennsl.so.1
 endif
 ifeq (,$(wildcard $(OPENNSL_LIB)))
   $(error '$(OPENNSL_LIB)' not found)
@@ -25,13 +42,18 @@ endif
 
 INCLUDE=. .. agent/if/gen-cpp2 common/fb303/if/gen-cpp2 \
   common/network/if/gen-cpp2
-ISYSTEM=$(OPENNSL_INCLUDE) ../../iproute2-3.19.0/include /usr/include
+ISYSTEM=$(OPENNSL_INCLUDE) \
+	$(IPROUTE2_INCLUDE) \
+	$(EXTRA_INCLUDE_DIRS)
+LDFLAGS=$(addprefix -L,$(EXTRA_LIB_DIRS))
 
 CXXFLAGS+=-std=gnu++11 $(addprefix -I,$(INCLUDE))\
  $(addprefix -isystem,$(ISYSTEM)) -DINCLUDE_L3 -DLONGS_ARE_64BITS
 
-THRIFTC=thrift1 -I .. -I . -gen cpp:json,templates
-THRIFTC2=python -mthrift_compiler.main -I .. -I . --gen cpp2:json
+THRIFT_CPP2_OPTS = json
+THRIFTC=$(THRIFT1) -I .. -I . -gen cpp:json,templates
+THRIFTC2=python -mthrift_compiler.main -I .. -I . \
+	 --gen cpp2:$(THRIFT_CPP2_OPTS)
 
 OBJS=\
  agent/ApplyThriftConfig.o\
@@ -146,15 +168,16 @@ WEDGE_OBJS=agent/platforms/wedge/WedgePlatform.o\
 
 SIM_OBJS=agent/platforms/sim/sim_ctrl.o
 
-THRIFT=\
-  agent/hw/sim/sim_ctrl.thrift.gen-cpp2 \
-  agent/if/ctrl.thrift.gen-cpp2\
-  agent/if/fboss.thrift.gen-cpp2\
-  agent/if/optic.thrift.gen-cpp2\
-  agent/switch_config.thrift.gen-cpp \
-  common/fb303/if/fb303.thrift.gen-cpp2 \
-  common/network/if/Address.thrift.gen-cpp \
-  common/network/if/Address.thrift.gen-cpp2
+THRIFT = \
+  agent/hw/sim/sim_ctrl.gen-cpp2 \
+  agent/if/ctrl.gen-cpp2 \
+  agent/if/fboss.gen-cpp2 \
+  agent/if/optic.gen-cpp2 \
+  agent/switch_config.gen-cpp \
+  common/fb303/if/fb303.gen-cpp2 \
+  common/network/if/Address.gen-cpp \
+  common/network/if/Address.gen-cpp2
+THRIFT_MADE_FILES = $(patsubst %,%.MADE,$(THRIFT))
 
 LIBS=boost_filesystem boost_system double-conversion folly gflags glog\
  pthread thrift thriftcpp2
@@ -167,17 +190,19 @@ all : thrift
 clean :
 	rm -rf sim_agent wedge_agent libfboss_agent.a\
 	  $(join $(dir $(THRIFT)),$(subst .,,$(suffix $(THRIFT))))\
-	  $(OBJS) $(WEDGE_OBJS) $(SIM_OBJS) $(THRIFT)
+	  $(OBJS) $(WEDGE_OBJS) $(SIM_OBJS) $(THRIFT_MADE_FILES)
 
-thrift : $(THRIFT)
+thrift : $(THRIFT_MADE_FILES)
 
 wedge_agent : libfboss_agent.a $(WEDGE_OBJS)
 	g++ -o $@ $(WEDGE_OBJS)\
+	 $(LDFLAGS)\
 	 $(addprefix -Xlinker ,$< $(IPROUTE2_LIB) $(OPENNSL_LIB))\
 	 $(addprefix -l,$(LIBS))
 
 sim_agent : libfboss_agent.a $(SIM_OBJS)
 	g++ -o $@ $(SIM_OBJS)\
+	 $(LDFLAGS)\
 	 $(addprefix -Xlinker ,$< $(IPROUTE2_LIB) $(OPENNSL_LIB))\
 	 $(addprefix -l,$(LIBS))
 
@@ -186,19 +211,17 @@ libfboss_agent.a : $(OBJS)
 	touch $@
 
 # Address is generated with special options
-common/network/if/Address.thrift.gen-cpp2 : common/network/if/Address.thrift
-	$(THRIFTC2),compatibility,include_prefix=common/network/if \
-	  -o `dirname $@` $^
-	@touch $@
+common/network/if/Address.gen-cpp2.MADE: \
+    THRIFT_CPP2_OPTS=json,compatibility,include_prefix=common/network/if
 
 .PHONY : all clean thrift
 
 # Pattern rules
 
-%.thrift.gen-cpp : %.thrift
-	$(THRIFTC) -o `dirname $@` $^ 
+%.gen-cpp.MADE: %.thrift
+	$(THRIFTC) -o $(@D) $^ 
 	@touch $@
 
-%.thrift.gen-cpp2 : %.thrift
-	$(THRIFTC2) -o `dirname $@` $^
+%.gen-cpp2.MADE: %.thrift
+	$(THRIFTC2) -o $(@D) $^
 	@touch $@
