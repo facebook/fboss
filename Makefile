@@ -49,7 +49,16 @@ ISYSTEM=$(OPENNSL_INCLUDE) \
 	$(EXTRA_INCLUDE_DIRS)
 LDFLAGS=$(addprefix -L,$(EXTRA_LIB_DIRS))
 
-CXXFLAGS += -std=gnu++11 -g \
+WARNINGS = -Wall -Werror \
+	   -Wno-sign-compare \
+	   -Wno-unused-variable \
+	   -Woverloaded-virtual \
+	   -Wnon-virtual-dtor \
+	   -Wno-maybe-uninitialized \
+	   -Wdeprecated-declarations \
+	   -Wno-error=deprecated-declarations
+
+CXXFLAGS += -std=gnu++11 -g $(WARNINGS) \
 	    $(addprefix -I,$(INCLUDE)) \
 	    $(addprefix -isystem,$(ISYSTEM)) \
 	    -DINCLUDE_L3 -DLONGS_ARE_64BITS
