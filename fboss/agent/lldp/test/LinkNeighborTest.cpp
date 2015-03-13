@@ -65,7 +65,7 @@ const uint8_t basicLldpPacket [] = {
   0x07, 0xfc, 0x00, 0x00,
 };
 
-TEST(LldpTest, parseLldp) {
+TEST(LinkNeighbor, parseLldp) {
   IOBuf iob(IOBuf::WRAP_BUFFER, basicLldpPacket, sizeof(basicLldpPacket));
   Cursor cursor(&iob);
 
@@ -115,7 +115,7 @@ const uint8_t badLldpPacket [] = {
   0x72, 0x6e, 0x32, 0x2e, 0x66, 0x61, 0x63, 0x65,
 };
 
-TEST(LldpTest, badTlvLength) {
+TEST(LinkNeighbor, badTlvLength) {
   IOBuf iob(IOBuf::WRAP_BUFFER, badLldpPacket, sizeof(badLldpPacket));
   Cursor cursor(&iob);
 
@@ -176,7 +176,7 @@ const uint8_t basicCdpPacket [] = {
   0x61, 0x74, 0x69, 0x6f, 0x6e,
 };
 
-TEST(LldpTest, parseCdp) {
+TEST(LinkNeighbor, parseCdp) {
   IOBuf iob(IOBuf::WRAP_BUFFER, basicCdpPacket, sizeof(basicCdpPacket));
   Cursor cursor(&iob);
 

@@ -168,6 +168,9 @@ struct LinkNeighbor {
   std::chrono::steady_clock::time_point getExpirationTime() const {
     return expirationTime_;
   }
+  bool isExpired(std::chrono::steady_clock::time_point now) const {
+    return now > expirationTime_;
+  }
 
   /*
    * Get a human readable representation of the chassis ID.
@@ -222,6 +225,72 @@ struct LinkNeighbor {
                    uint16_t ethertype,
                    folly::io::Cursor* cursor);
 
+  /*
+   * Functions for updating LinkNeighbor fields.
+   * These are mostly useful for testing purposes.
+   */
+  void setProtocol(LinkProtocol protocol) {
+    protocol_ = protocol;
+  }
+  void setLocalPort(PortID port) {
+    localPort_ = port;
+  }
+  void setLocalVlan(VlanID vlan) {
+    localVlan_ = vlan;
+  }
+  void setMac(folly::MacAddress mac) {
+    srcMac_ = mac;
+  }
+  void setChassisId(folly::StringPiece id, LldpChassisIdType type) {
+    chassisIdType_ = type;
+    chassisId_ = id.str();
+  }
+  void setPortId(folly::StringPiece id, LldpPortIdType type) {
+    portIdType_ = type;
+    portId_ = id.str();
+  }
+  void setCapabilities(uint16_t caps) {
+    capabilities_ = caps;
+  }
+  void setEnabledCapabilities(uint16_t caps) {
+    enabledCapabilities_ = caps;
+  }
+  void setSystemName(folly::StringPiece name) {
+    systemName_ = name.str();
+  }
+  void setPortDescription(folly::StringPiece desc) {
+    portDescription_ = desc.str();
+  }
+  void setSystemDescription(folly::StringPiece desc) {
+    systemDescription_ = desc.str();
+  }
+
+  /*
+   * Set the TTL.
+   *
+   * This also updates the expiration time to be the current time plus the TTL.
+   */
+  void setTTL(std::chrono::seconds seconds);
+
+  /*
+   * Set the TTL and also explicitly set the expiration time.
+   */
+  void setTTL(std::chrono::seconds seconds,
+              std::chrono::steady_clock::time_point expiration) {
+    receivedTTL_ = seconds;
+    expirationTime_ = expiration;
+  }
+
+  /*
+   * LinkNeighbor is a value type, and can be copied around and
+   * used directly on the stack.  Therefore we intentionally support
+   * copy and move operations.
+   */
+  LinkNeighbor& operator=(const LinkNeighbor&) = default;
+  LinkNeighbor& operator=(LinkNeighbor&&) = default;
+  LinkNeighbor(const LinkNeighbor&) = default;
+  LinkNeighbor(LinkNeighbor&&) = default;
+
  private:
   enum class LldpTlvType : uint8_t;
   enum class CdpTlvType : uint16_t;
@@ -229,8 +298,6 @@ struct LinkNeighbor {
   // Private methods
   static std::string humanReadableMac(const std::string& data);
   static std::string humanReadableNetAddr(const std::string& data);
-
-  void setTTL(std::chrono::seconds seconds);
 
   LldpTlvType parseLldpTlv(folly::io::Cursor* cursor);
   void parseLldpChassis(folly::io::Cursor* cursor, uint16_t length);
