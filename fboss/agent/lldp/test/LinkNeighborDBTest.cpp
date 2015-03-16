@@ -93,7 +93,7 @@ TEST(LinkNeighborDB, test) {
 
   // n1 has an expiration time 10 seconds in the future.
   // Expire it.
-  db.performExpiration(steady_clock::now() + seconds(11));
+  db.pruneExpiredNeighbors(steady_clock::now() + seconds(11));
 
   neighbors = db.getNeighbors();
   ASSERT_EQ(2, neighbors.size());

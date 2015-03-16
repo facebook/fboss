@@ -44,8 +44,8 @@ class LinkNeighborDB {
   /*
    * Remove expired neighbor entries from the database.
    */
-  void performExpiration();
-  void performExpiration(std::chrono::steady_clock::time_point now);
+  void pruneExpiredNeighbors();
+  void pruneExpiredNeighbors(std::chrono::steady_clock::time_point now);
 
  private:
   class NeighborKey {
@@ -66,7 +66,7 @@ class LinkNeighborDB {
   LinkNeighborDB(LinkNeighborDB const &) = delete;
   LinkNeighborDB& operator=(LinkNeighborDB const &) = delete;
 
-  void performExpirationLocked(std::chrono::steady_clock::time_point now);
+  void pruneLocked(std::chrono::steady_clock::time_point now);
 
   std::mutex mutex_;
   std::map<PortID, NeighborMap> byLocalPort_;

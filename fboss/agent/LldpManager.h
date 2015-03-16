@@ -12,9 +12,10 @@
 #include <folly/io/async/AsyncTimeout.h>
 #include <unordered_map>
 #include <memory>
+#include "fboss/agent/Platform.h"
+#include "fboss/agent/lldp/LinkNeighborDB.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
-#include "fboss/agent/Platform.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace folly { namespace io {
@@ -22,6 +23,8 @@ class Cursor;
 }}
 
 namespace facebook { namespace fboss {
+class RxPacket;
+
 class LldpManager : private folly::AsyncTimeout {
   /*
    * LldpManager is the class that manages Lldp support.
@@ -73,15 +76,26 @@ class LldpManager : private folly::AsyncTimeout {
    */
   void stop();
 
+  void handlePacket(std::unique_ptr<RxPacket> pkt,
+                    folly::MacAddress dst,
+                    folly::MacAddress src,
+                    folly::io::Cursor cursor);
+
   // This function is internal.  It is only public for use in unit tests.
   void sendLldpOnAllPorts(bool checkPortStatusFlag);
 
+  LinkNeighborDB* getDB() {
+    return &db_;
+  }
+
  private:
   void timeoutExpired() noexcept;
+  void sendLldpInfo(SwSwitch* sw, const std::shared_ptr<SwitchState>& swState,
+                    const std::shared_ptr<Port>& port);
 
   SwSwitch* sw_{nullptr};
   std::chrono::milliseconds interval_;
-  void sendLldpInfo(SwSwitch* sw, const std::shared_ptr<SwitchState>& swState,
-                    const std::shared_ptr<Port>& port);
+  LinkNeighborDB db_;
 };
+
 }} // facebook::fboss

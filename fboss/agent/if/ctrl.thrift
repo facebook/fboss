@@ -73,6 +73,26 @@ struct CaptureInfo {
   2: i32 maxPackets
 }
 
+/*
+ * Information about an LLDP neighbor
+ */
+struct LinkNeighborThrift {
+  1: i32 localPort
+  2: i32 localVlan
+  3: i32 chassisIdType
+  4: i32 portIdType
+  5: i32 originalTTL
+  6: i32 ttlSecondsLeft
+  7: string srcMac
+  8: binary chassisId
+  9: string printableChassisId
+  10: binary portId
+  11: string printablePortId
+  12: optional string systemName
+  13: optional string systemDescription
+  14: optional string portDescription
+}
+
 service FbossCtrl extends fb303.FacebookService {
   /*
    * Retrieve up-to-date counters from the hardware, and publish all
@@ -162,6 +182,12 @@ service FbossCtrl extends fb303.FacebookService {
    * Type of boot performed by the controller
    */
   BootType getBootType();
+
+  /*
+   * Get the list of neighbors discovered via LLDP
+   */
+  list<LinkNeighborThrift> getLldpNeighbors()
+    throws (1: fboss.FbossBaseError error)
 
   /*
    * Start a packet capture

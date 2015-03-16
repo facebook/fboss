@@ -14,6 +14,7 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/IPv6Handler.h"
+#include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SfpModule.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/SwSwitch.h"
@@ -38,7 +39,6 @@
 #include <folly/io/IOBuf.h>
 
 using facebook::fb303::cpp2::fb_status;
-using std::unique_ptr;
 using folly::IOBuf;
 using folly::make_unique;
 using folly::StringPiece;
@@ -46,10 +46,14 @@ using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 using folly::MacAddress;
-using std::string;
+using std::chrono::duration_cast;
+using std::chrono::seconds;
+using std::chrono::steady_clock;
 using std::map;
 using std::shared_ptr;
+using std::string;
 using std::vector;
+using std::unique_ptr;
 using namespace apache::thrift::transport;
 
 using facebook::network::toBinaryAddress;
@@ -451,18 +455,64 @@ void ThriftHandler::getIpRoute(UnicastRoute& route,
   }
 }
 
+static LinkNeighborThrift thriftLinkNeighbor(const LinkNeighbor& n,
+                                             steady_clock::time_point now) {
+  LinkNeighborThrift tn;
+  tn.localPort = n.getLocalPort();
+  tn.localVlan = n.getLocalVlan();
+  tn.srcMac = n.getMac().toString();
+  tn.chassisIdType = static_cast<int32_t>(n.getChassisIdType());
+  tn.chassisId = n.getChassisId();
+  tn.printableChassisId = n.humanReadableChassisId();
+  tn.portIdType = static_cast<int32_t>(n.getPortIdType());
+  tn.portId = n.getPortId();
+  tn.printablePortId = n.humanReadablePortId();
+  tn.originalTTL = duration_cast<seconds>(n.getTTL()).count();
+  tn.ttlSecondsLeft =
+    duration_cast<seconds>(n.getExpirationTime() - now).count();
+  if (!n.getSystemName().empty()) {
+    tn.systemName = n.getSystemName();
+    tn.__isset.systemName = true;
+  }
+  if (!n.getSystemDescription().empty()) {
+    tn.systemDescription = n.getSystemDescription();
+    tn.__isset.systemDescription = true;
+  }
+  if (!n.getPortDescription().empty()) {
+    tn.portDescription = n.getPortDescription();
+    tn.__isset.portDescription = true;
+  }
+  return tn;
+}
+
+void ThriftHandler::getLldpNeighbors(vector<LinkNeighborThrift>& results) {
+  ensureConfigured();
+  auto* db = sw_->getLldpMgr()->getDB();
+  // Do an immediate check for expired neighbors
+  db->pruneExpiredNeighbors();
+  auto neighbors = db->getNeighbors();
+  results.reserve(neighbors.size());
+  auto now = steady_clock::now();
+  for (const auto& entry : db->getNeighbors()) {
+    results.push_back(thriftLinkNeighbor(entry, now));
+  }
+}
+
 void ThriftHandler::startPktCapture(unique_ptr<CaptureInfo> info) {
+  ensureConfigured();
   auto* mgr = sw_->getCaptureMgr();
   auto capture = make_unique<PktCapture>(info->name, info->maxPackets);
   mgr->startCapture(std::move(capture));
 }
 
 void ThriftHandler::stopPktCapture(unique_ptr<std::string> name) {
+  ensureConfigured();
   auto* mgr = sw_->getCaptureMgr();
   mgr->forgetCapture(*name);
 }
 
 void ThriftHandler::stopAllPktCaptures() {
+  ensureConfigured();
   auto* mgr = sw_->getCaptureMgr();
   mgr->forgetAllCaptures();
 }

@@ -388,6 +388,13 @@ class SwSwitch : public HwSwitch::Callback {
   }
 
   /*
+   * Get the LldpManager object
+   */
+  LldpManager* getLldpMgr() {
+    return lldpManager_.get();
+  }
+
+  /*
    * Allow hardware to perform any warm boot related cleanup
    * before we exit the application.
    */

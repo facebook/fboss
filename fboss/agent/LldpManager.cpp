@@ -14,6 +14,7 @@
 #include <folly/io/Cursor.h>
 #include <folly/MacAddress.h>
 #include <folly/Range.h>
+#include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
 #include <unistd.h>
@@ -46,6 +47,26 @@ void LldpManager::stop() {
   auto f = via(sw_->getBackgroundEVB())
     .then([this] { this->cancelTimeout(); });
   f.get();
+}
+
+void LldpManager::handlePacket(std::unique_ptr<RxPacket> pkt,
+                               folly::MacAddress dst,
+                               folly::MacAddress src,
+                               folly::io::Cursor cursor) {
+  LinkNeighbor neighbor;
+  bool ret = neighbor.parseLldpPdu(pkt->getSrcPort(), pkt->getSrcVlan(),
+                                   src, ETHERTYPE_LLDP, &cursor);
+  if (!ret) {
+    // LinkNeighbor will have already logged a message about the error.
+    // Just ignore the packet.
+    return;
+  }
+
+  VLOG(4) << "got LLDP packet: local_port=" << pkt->getSrcPort() <<
+    " chassis=" << neighbor.humanReadableChassisId() <<
+    " port=" << neighbor.humanReadablePortId() <<
+    " name=" << neighbor.getSystemName();
+  db_.update(neighbor);
 }
 
 void LldpManager::timeoutExpired() noexcept {

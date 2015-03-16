@@ -89,6 +89,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   BootType getBootType() override;
 
+  void getLldpNeighbors(std::vector<LinkNeighborThrift>& results) override;
+
   void startPktCapture(std::unique_ptr<CaptureInfo> info);
   void stopPktCapture(std::unique_ptr<std::string> name);
   void stopAllPktCaptures();

@@ -524,16 +524,6 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     ethertype = c.readBE<uint16_t>();
   }
 
-  if (ethertype == 0x27 || ethertype == 0x88cc) {
-    // Ignore CDP and LLDP packets for now.
-    // This is mainly to prevent debug logs about them during development.
-    stats()->port(port)->pktUnhandled();
-    if (ethertype == 0x88cc) {
-        // log the LLDP PDU here.
-        VLOG(5) << "Received a LLDP packet with src mac " << srcMac;
-    }
-    return;
-  }
   VLOG(5) << "trapped packet: src_port=" << pkt->getSrcPort() <<
     " vlan=" << pkt->getSrcVlan() <<
     " length=" << len <<
@@ -545,6 +535,9 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   case ArpHandler::ETHERTYPE_ARP:
     arp_->handlePacket(std::move(pkt), dstMac, srcMac, c);
     return;
+  case LldpManager::ETHERTYPE_LLDP:
+    lldpManager_->handlePacket(std::move(pkt), dstMac, srcMac, c);
+    return;
   case IPv4Handler::ETHERTYPE_IPV4:
     ipv4_->handlePacket(std::move(pkt), dstMac, srcMac, c);
     return;
@@ -554,8 +547,6 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   default:
     break;
   }
-
-  // TODO: Handle other packet types.
 
   // If we are still here, we don't know what to do with this packet.
   // Increment a counter and just drop the packet on the floor.

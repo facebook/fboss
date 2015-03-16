@@ -56,8 +56,8 @@ LinkNeighborDB::LinkNeighborDB() {
 void LinkNeighborDB::update(const LinkNeighbor& neighbor) {
   lock_guard<mutex> guard(mutex_);
 
-  // Go ahead and perform expiration each time we get updated.
-  performExpirationLocked(steady_clock::now());
+  // Go ahead and prune expired neighbors each time we get updated.
+  pruneLocked(steady_clock::now());
 
   auto it = byLocalPort_.find(neighbor.getLocalPort());
   if (it == byLocalPort_.end()) {
@@ -99,17 +99,17 @@ vector<LinkNeighbor> LinkNeighborDB::getNeighbors(PortID port) {
   return results;
 }
 
-void LinkNeighborDB::performExpiration() {
+void LinkNeighborDB::pruneExpiredNeighbors() {
   lock_guard<mutex> guard(mutex_);
-  performExpirationLocked(steady_clock::now());
+  pruneLocked(steady_clock::now());
 }
 
-void LinkNeighborDB::performExpiration(steady_clock::time_point now) {
+void LinkNeighborDB::pruneExpiredNeighbors(steady_clock::time_point now) {
   lock_guard<mutex> guard(mutex_);
-  performExpirationLocked(now);
+  pruneLocked(now);
 }
 
-void LinkNeighborDB::performExpirationLocked(steady_clock::time_point now) {
+void LinkNeighborDB::pruneLocked(steady_clock::time_point now) {
   // We just do a linear scan for now.
   //
   // We could maintain a priority queue of entries by expiration time,
