@@ -160,6 +160,8 @@ service FbossCtrl extends fb303.FacebookService {
     throws (1: fboss.FbossBaseError error)
   map<i32, InterfaceDetail> getAllInterfaces()
     throws (1: fboss.FbossBaseError error)
+  void registerForPortStatusChanged()
+    throws (1: fboss.FbossBaseError error) (thread='eb')
   list<string> getInterfaceList()
     throws (1: fboss.FbossBaseError error)
   list<UnicastRoute> getRouteTable()
@@ -197,5 +199,10 @@ service FbossCtrl extends fb303.FacebookService {
   void stopPktCapture(1: string name)
     throws (1: fboss.FbossBaseError error)
   void stopAllPktCaptures()
+    throws (1: fboss.FbossBaseError error)
+}
+
+service FbossCtrlClient extends fb303.FacebookService {
+  void portStatusChanged(1: i32 id, 2: PortStatus ps)
     throws (1: fboss.FbossBaseError error)
 }

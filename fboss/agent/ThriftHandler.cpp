@@ -35,9 +35,13 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
+#include "fboss/agent/if/gen-cpp2/FbossCtrlClient.h"
 
 #include <folly/io/IOBuf.h>
+#include <folly/MoveWrapper.h>
+#include <thrift/lib/cpp2/async/DuplexChannel.h>
 
+using apache::thrift::ClientReceiveState;
 using facebook::fb303::cpp2::fb_status;
 using folly::IOBuf;
 using folly::make_unique;
@@ -55,7 +59,6 @@ using std::string;
 using std::vector;
 using std::unique_ptr;
 using namespace apache::thrift::transport;
-
 using facebook::network::toBinaryAddress;
 using facebook::network::toAddress;
 using facebook::network::toIPAddress;
@@ -88,6 +91,14 @@ class RouteUpdateStats {
 ThriftHandler::ThriftHandler(SwSwitch* sw)
   : FacebookBase2("FBOSS"),
     sw_(sw) {
+  sw->registerPortStatusListener([=](PortID id, PortStatus st){
+      for (auto& listener : listeners_.accessAllThreads()) {
+        auto listenerPtr = &listener;
+        listener.eventBase->runInEventBaseThread([=]{
+            invokePortStatusListeners(listenerPtr, id, st);
+          });
+      }
+    });
 }
 
 fb_status ThriftHandler::getStatus() {
@@ -498,6 +509,48 @@ void ThriftHandler::getLldpNeighbors(vector<LinkNeighborThrift>& results) {
   }
 }
 
+void ThriftHandler::invokePortStatusListeners(
+    ThreadLocalListener* listener,
+    PortID port,
+    PortStatus status) {
+  // Collect the iterators to avoid erasing and potentially reordering
+  // the iterators in the list.
+  std::vector<
+    std::shared_ptr<FbossCtrlClientAsyncClient>> brokenClients;
+  for (auto& client : listener->clients) {
+    auto clientDone = [&](ClientReceiveState&& state) {
+      try {
+        FbossCtrlClientAsyncClient::recv_portStatusChanged(state);
+      } catch (const std::exception& ex) {
+        LOG(ERROR) << "Exception in port listener: " << ex.what();
+        brokenClients.push_back(client);
+      }
+    };
+    client->portStatusChanged(clientDone, port, status);
+  }
+  for (const auto& client : brokenClients) {
+    listener->clients.erase(client);
+  }
+}
+
+void ThriftHandler::async_eb_registerForPortStatusChanged(
+    ThriftCallback<void> cb) {
+  auto ctx = cb->getConnectionContext()->getConnectionContext();
+  auto client = ctx->getDuplexClient<FbossCtrlClientAsyncClient>();
+  auto info = listeners_.get();
+  CHECK(cb->getEventBase()->isInEventBaseThread());
+  if (!info) {
+    info = new ThreadLocalListener(cb->getEventBase());
+    listeners_.reset(info);
+  }
+  DCHECK_EQ(info->eventBase, cb->getEventBase());
+  if (!info->eventBase) {
+    info->eventBase = cb->getEventBase();
+  }
+  info->clients.insert(client);
+  cb->done();
+}
+
 void ThriftHandler::startPktCapture(unique_ptr<CaptureInfo> info) {
   ensureConfigured();
   auto* mgr = sw_->getCaptureMgr();
@@ -631,4 +684,11 @@ void ThriftHandler::ensureFibSynced(StringPiece function) {
   }
   throw FbossError("switch is still initializing, FIB not synced yet");
 }
+
+void ThriftHandler::connectionDestroyed(TConnectionContext* ctx) {
+  auto cpp2ctx = dynamic_cast<apache::thrift::Cpp2ConnContext*>(ctx);
+  auto client = cpp2ctx->getDuplexClient<FbossCtrlClientAsyncClient>();
+  listeners_->clients.erase(client);
+}
+
 }} // facebook::fboss

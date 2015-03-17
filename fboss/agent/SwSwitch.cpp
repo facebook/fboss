@@ -165,6 +165,12 @@ bool SwSwitch::isPortUp(PortID port) const {
    return false;
 }
 
+void SwSwitch::registerPortStatusListener(
+    std::function<void(PortID, const PortStatus)> callback) {
+  lock_guard<mutex> g(portListenerMutex_);
+  portListener_ = callback;
+}
+
 void SwSwitch::exitFatal() const noexcept {
   dumpStateToFile(platform_->getCrashSwitchStateFile());
 }
@@ -560,7 +566,17 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
 }
 
 void SwSwitch::linkStateChanged(PortID port, bool up) noexcept {
-  LOG(INFO) << "link state changed on port " << port << ": status=" << up;
+  LOG(INFO) << "link state changed: " << port << " enabled = " << up;
+  lock_guard<mutex> g(portListenerMutex_);
+  if (!portListener_) {
+    return;
+  }
+  // It seems that this function can get called before the state is fully
+  // initialized. Don't do anything if we have a null state.
+  auto state = getState();
+  if (state != nullptr) {
+    portListener_(port, fillInPortStatus(*state->getPort(port), this));
+  }
 }
 
 void SwSwitch::startThreads() {

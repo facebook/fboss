@@ -12,9 +12,12 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "fboss/agent/FbossError.h"
-#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "common/fb303/cpp/FacebookBase2.h"
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/types.h"
+#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/agent/if/gen-cpp2/FbossCtrlClient.h"
+#include <thrift/lib/cpp/server/TServer.h>
 
 namespace facebook { namespace fboss {
 
@@ -22,7 +25,8 @@ class SwSwitch;
 class Vlan;
 
 class ThriftHandler : virtual public FbossCtrlSvIf,
-                      public fb303::FacebookBase2 {
+                      public fb303::FacebookBase2,
+                      public apache::thrift::server::TServerEventHandler {
  public:
   template<typename T>
   using ThriftCallback = std::unique_ptr<apache::thrift::HandlerCallback<T>>;
@@ -30,13 +34,19 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   typedef network::thrift::cpp2::Address Address;
   typedef network::thrift::cpp2::BinaryAddress BinaryAddress;
+  typedef apache::thrift::server::TConnectionContext TConnectionContext;
+  typedef folly::EventBase EventBase;
   typedef std::vector<Address> Addresses;
   typedef std::vector<BinaryAddress> BinaryAddresses;
 
   explicit ThriftHandler(SwSwitch* sw);
 
   fb303::cpp2::fb_status getStatus() override;
+
   void async_tm_getStatus(ThriftCallback<fb303::cpp2::fb_status> cb) override;
+
+  void async_eb_registerForPortStatusChanged(
+      ThriftCallback<void> callback) override;
 
   void flushCountersNow() override;
 
@@ -95,7 +105,23 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void stopPktCapture(std::unique_ptr<std::string> name);
   void stopAllPktCaptures();
 
+  // methods for TServerEventHandler
+  virtual void connectionDestroyed(TConnectionContext* ctx) override;
+
  private:
+  struct ThreadLocalListener {
+    EventBase* eventBase;
+    std::unordered_set<
+      std::shared_ptr<FbossCtrlClientAsyncClient>> clients;
+
+    explicit ThreadLocalListener(EventBase* eb) : eventBase(eb) {};
+  };
+  folly::ThreadLocalPtr<ThreadLocalListener, int> listeners_;
+
+  void onPortStatusChanged(PortID id, PortStatus st);
+  void invokePortStatusListeners(
+    ThreadLocalListener* info, PortID port, PortStatus status);
+
   Vlan* getVlan(int32_t vlanId);
   Vlan* getVlan(const std::string& vlanName);
   template<typename ADDR_TYPE, typename ADDR_CONVERTER>
@@ -140,5 +166,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
    */
   SwSwitch* sw_;
 };
+
 
 }} // facebook::fboss

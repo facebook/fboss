@@ -63,6 +63,7 @@ DEFINE_bool(enable_lldp, true,
             "Run LLDP protocol in agent");
 
 using facebook::fboss::SwSwitch;
+using facebook::fboss::ThriftHandler;
 
 namespace facebook { namespace fboss {
 
@@ -260,7 +261,8 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   SwSwitch sw(std::move(platform));
   auto platformPtr = sw.getPlatform();
   platformPtr->initSwSwitch(&sw);
-  auto handler = platformPtr->createHandler(&sw);
+  auto handler = std::shared_ptr<ThriftHandler>(
+      std::move(platformPtr->createHandler(&sw)));
 
   // Create an Initializer to initialize the switch in a background thread.
   // This allows us to start the thrift server while initialization is still in
@@ -281,11 +283,15 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
     init.stopFunctionScheduler();
   };
   SignalHandler signalHandler(&eventBase, &sw, stopServices);
-
   // Start the thrift server
   ThriftServer server;
   server.getEventBaseManager()->setEventBase(&eventBase, false);
   server.setInterface(std::move(handler));
+  server.setDuplex(true);
+
+  // When a thrift connection closes, we need to clean up the associated
+  // callbacks.
+  server.setServerEventHandler(handler);
   TSocketAddress address;
   address.setFromLocalPort(FLAGS_port);
   server.setAddress(address);
