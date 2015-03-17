@@ -325,7 +325,8 @@ void ThriftHandler::getInterfaceDetail(InterfaceDetail& interfaceDetail,
                                                         int32_t interfaceId) {
   ensureConfigured();
   const auto& intf = sw_->getState()->getInterfaces()->getInterfaceIf(
-                                                      InterfaceID(interfaceId));
+      InterfaceID(interfaceId));
+
   if (!intf) {
     throw FbossError("no such interface ", interfaceId);
   }
@@ -379,6 +380,59 @@ void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
   }
 }
 
+void ThriftHandler::fillPortStatistics(PortStatThrift& stats) {
+  auto portId = stats.portId;
+  auto statMap = fbData->getStatMap();
+
+  auto getSumStat = [&] (StringPiece prefix, StringPiece name) {
+    auto statName = folly::to<std::string>("port", portId, ".", prefix, name);
+    return statMap->getStatPtr(statName)->getSum(0);
+  };
+
+  auto fillPortCounters = [&] (PortCounters& ctr, StringPiece prefix) {
+    ctr.bytes = getSumStat(prefix, "bytes");
+    ctr.ucastPkts = getSumStat(prefix, "unicast_pkts");
+    ctr.multicastPkts = getSumStat(prefix, "multicast_pkts");
+    ctr.broadcastPkts = getSumStat(prefix, "broadcast_pkts");
+    ctr.errors.errors = getSumStat(prefix, "errors");
+    ctr.errors.discards = getSumStat(prefix, "discards");
+  };
+
+  const auto& status = sw_->getPortStatus(PortID(portId));
+  stats.adminState = PortAdminState(status.enabled);
+  stats.operState = PortOperState(status.up);
+
+  fillPortCounters(stats.output, "out_");
+  fillPortCounters(stats.input, "in_");
+}
+
+void ThriftHandler::getPortStats(PortStatThrift& portStats, int32_t portId) {
+  ensureConfigured();
+  const auto port = sw_->getState()->getPorts()->getPortIf(PortID(portId));
+
+  if (!port) {
+    throw FbossError("no such port ", portId);
+  }
+  portStats.portId = portId;
+  portStats.speedMbps = int32_t(port->getSpeed());
+  fillPortStatistics(portStats);
+}
+
+void
+ThriftHandler::getAllPortStats(map<int32_t, PortStatThrift>& portStatsMap) {
+  ensureConfigured();
+
+  for (const auto& port : (*sw_->getState()->getPorts())) {
+    auto id = port->getID();
+
+    auto& stats = portStatsMap[id];
+    stats.portId = id;
+    stats.speedMbps = int32_t(port->getSpeed());
+
+    fillPortStatistics(stats);
+  }
+}
+
 void ThriftHandler::getPortStatus(map<int32_t, PortStatus>& statusMap,
                                   unique_ptr<vector<int32_t>> ports) {
   ensureConfigured();
@@ -398,8 +452,7 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& route) {
       UnicastRoute tempRoute;
       auto ipv4 = ipv4Rib.second.get();
       auto fwdInfo = ipv4->getForwardInfo();
-      tempRoute.dest.ip = toBinaryAddress(
-                                                      ipv4->prefix().network);
+      tempRoute.dest.ip = toBinaryAddress(ipv4->prefix().network);
       tempRoute.dest.prefixLength = ipv4->prefix().mask;
       for (const auto& hop : fwdInfo.getNexthops()) {
         tempRoute.nextHopAddrs.push_back(

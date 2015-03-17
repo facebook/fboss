@@ -40,6 +40,39 @@ struct InterfaceDetail {
   6: list<IpPrefix> address,
 }
 
+struct PortErrors {
+  1: i64 errors,
+  2: i64 discards,
+}
+
+struct PortCounters {
+  1: i64 bytes,
+  2: i64 ucastPkts,
+  3: i64 multicastPkts,
+  4: i64 broadcastPkts,
+  5: PortErrors errors,
+}
+
+enum PortAdminState {
+  DISABLED = 0,
+  ENABLED = 1,
+}
+
+enum PortOperState {
+  DOWN = 0,
+  UP = 1,
+}
+
+struct PortStatThrift {
+  1: i32 portId,
+  2: i64 speedMbps,
+  3: PortAdminState adminState,
+  4: PortOperState operState,
+
+  10: PortCounters output,
+  11: PortCounters input,
+}
+
 struct NdpEntryThrift {
   1: Address.BinaryAddress ip,
   2: string mac,
@@ -58,7 +91,6 @@ struct PortStatus {
   1: bool enabled,
   2: bool up
 }
-
 struct CaptureInfo {
   // A name identifying the packet capture
   1: string name
@@ -170,6 +202,15 @@ service FbossCtrl extends fb303.FacebookService {
     throws (1: fboss.FbossBaseError error)
   InterfaceDetail getInterfaceDetail(1: i32 interfaceId)
     throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Returns all interface related stats for given interfaceId
+   */
+  PortStatThrift getPortStats(1: i32 portId)
+    throws (1: fboss.FbossBaseError error)
+  map<i32, PortStatThrift> getAllPortStats()
+    throws (1: fboss.FbossBaseError error)
+
   list<ArpEntryThrift> getArpTable()
     throws (1: fboss.FbossBaseError error)
   list<NdpEntryThrift> getNdpTable()
