@@ -10,6 +10,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include "fboss/agent/FbossError.h"
 
 extern "C" {
