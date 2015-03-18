@@ -243,7 +243,7 @@ service FbossCtrl extends fb303.FacebookService {
     throws (1: fboss.FbossBaseError error)
 }
 
-service FbossCtrlClient extends fb303.FacebookService {
+service PortStatusListenerClient extends fb303.FacebookService {
   void portStatusChanged(1: i32 id, 2: PortStatus ps)
     throws (1: fboss.FbossBaseError error)
 }

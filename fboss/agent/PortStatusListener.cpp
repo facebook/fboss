@@ -1,5 +1,5 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
-#include "fboss/agent/if/gen-cpp2/FbossCtrlClient.h"
+#include "fboss/agent/if/gen-cpp2/PortStatusListenerClient.h"
 
 #include <iostream>
 #include <string>
@@ -21,7 +21,7 @@ using namespace folly;
 DEFINE_string(host, "", "The host to connect to");
 DEFINE_int32(port, 5909, "The port to connect to");
 
-class FbossCtrlClientInterface : public FbossCtrlClientSvIf {
+class PortStatusListenerClientInterface : public PortStatusListenerClientSvIf {
  public:
    void async_tm_portStatusChanged(
        std::unique_ptr<apache::thrift::HandlerCallback<void>> cb,
@@ -40,17 +40,18 @@ int main(int argc, char **argv) {
 
   TSocketAddress addr(FLAGS_host, FLAGS_port, true);
   auto socket = TAsyncSocket::newSocket(&base, addr);
-  auto chan = std::make_shared<DuplexChannel>(
-      DuplexChannel::Who::CLIENT, socket);
+  auto chan =
+      std::make_shared<DuplexChannel>(DuplexChannel::Who::CLIENT, socket);
   ThriftServer clients_server(chan->getServerChannel());
-  clients_server.setInterface(std::make_shared<FbossCtrlClientInterface>());
+  clients_server.setInterface(
+      std::make_shared<PortStatusListenerClientInterface>());
   clients_server.serve();
 
   FbossCtrlAsyncClient client(chan->getClientChannel());
   client.registerForPortStatusChanged([](ClientReceiveState&& state) {
-      PortStatus ps;
-      FbossCtrlAsyncClient::recv_registerForPortStatusChanged(state);
-      LOG(INFO) << "registered for port status on " << FLAGS_host << "\n";
+    PortStatus ps;
+    FbossCtrlAsyncClient::recv_registerForPortStatusChanged(state);
+    LOG(INFO) << "registered for port status on " << FLAGS_host << "\n";
   });
 
   base.loopForever();

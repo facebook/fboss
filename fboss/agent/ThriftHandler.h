@@ -16,7 +16,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
-#include "fboss/agent/if/gen-cpp2/FbossCtrlClient.h"
+#include "fboss/agent/if/gen-cpp2/PortStatusListenerClient.h"
 #include <thrift/lib/cpp/server/TServer.h>
 
 namespace facebook { namespace fboss {
@@ -113,10 +113,11 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
  private:
   struct ThreadLocalListener {
     EventBase* eventBase;
-    std::unordered_set<
-      std::shared_ptr<FbossCtrlClientAsyncClient>> clients;
+    std::unordered_map<const apache::thrift::server::TConnectionContext*,
+                       std::shared_ptr<PortStatusListenerClientAsyncClient>>
+        clients;
 
-    explicit ThreadLocalListener(EventBase* eb) : eventBase(eb) {};
+    explicit ThreadLocalListener(EventBase* eb) : eventBase(eb){};
   };
   folly::ThreadLocalPtr<ThreadLocalListener, int> listeners_;
 

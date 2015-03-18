@@ -35,7 +35,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
-#include "fboss/agent/if/gen-cpp2/FbossCtrlClient.h"
+#include "fboss/agent/if/gen-cpp2/PortStatusListenerClient.h"
 
 #include <folly/io/IOBuf.h>
 #include <folly/MoveWrapper.h>
@@ -562,34 +562,32 @@ void ThriftHandler::getLldpNeighbors(vector<LinkNeighborThrift>& results) {
   }
 }
 
-void ThriftHandler::invokePortStatusListeners(
-    ThreadLocalListener* listener,
-    PortID port,
-    PortStatus status) {
+void ThriftHandler::invokePortStatusListeners(ThreadLocalListener* listener,
+                                              PortID port,
+                                              PortStatus status) {
   // Collect the iterators to avoid erasing and potentially reordering
   // the iterators in the list.
-  std::vector<
-    std::shared_ptr<FbossCtrlClientAsyncClient>> brokenClients;
+  std::vector<const TConnectionContext*> brokenClients;
   for (auto& client : listener->clients) {
     auto clientDone = [&](ClientReceiveState&& state) {
       try {
-        FbossCtrlClientAsyncClient::recv_portStatusChanged(state);
+        PortStatusListenerClientAsyncClient::recv_portStatusChanged(state);
       } catch (const std::exception& ex) {
         LOG(ERROR) << "Exception in port listener: " << ex.what();
-        brokenClients.push_back(client);
+        brokenClients.push_back(client.first);
       }
     };
-    client->portStatusChanged(clientDone, port, status);
+    client.second->portStatusChanged(clientDone, port, status);
   }
-  for (const auto& client : brokenClients) {
-    listener->clients.erase(client);
+  for (const auto& ctx : brokenClients) {
+    listener->clients.erase(ctx);
   }
 }
 
 void ThriftHandler::async_eb_registerForPortStatusChanged(
     ThriftCallback<void> cb) {
   auto ctx = cb->getConnectionContext()->getConnectionContext();
-  auto client = ctx->getDuplexClient<FbossCtrlClientAsyncClient>();
+  auto client = ctx->getDuplexClient<PortStatusListenerClientAsyncClient>();
   auto info = listeners_.get();
   CHECK(cb->getEventBase()->isInEventBaseThread());
   if (!info) {
@@ -600,7 +598,7 @@ void ThriftHandler::async_eb_registerForPortStatusChanged(
   if (!info->eventBase) {
     info->eventBase = cb->getEventBase();
   }
-  info->clients.insert(client);
+  info->clients.emplace(ctx, client);
   cb->done();
 }
 
@@ -739,9 +737,8 @@ void ThriftHandler::ensureFibSynced(StringPiece function) {
 }
 
 void ThriftHandler::connectionDestroyed(TConnectionContext* ctx) {
-  auto cpp2ctx = dynamic_cast<apache::thrift::Cpp2ConnContext*>(ctx);
-  auto client = cpp2ctx->getDuplexClient<FbossCtrlClientAsyncClient>();
-  listeners_->clients.erase(client);
+  if (listeners_) {
+    listeners_->clients.erase(ctx);
+  }
 }
-
 }} // facebook::fboss
