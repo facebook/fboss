@@ -42,6 +42,16 @@ class SfpMap;
 class SfpImpl;
 class LldpManager;
 
+enum SwitchFlags : int {
+  DEFAULT = 0,
+  ENABLE_TUN = 1,
+  ENABLE_LLDP = 2,
+  PUBLISH_BOOTTYPE = 4
+};
+inline SwitchFlags operator|=(SwitchFlags& a, const SwitchFlags b) {
+  return
+    (a = static_cast<SwitchFlags>(static_cast<int>(a) | static_cast<int>(b)));
+}
 
 /*
  * A software representation of a switch.
@@ -101,16 +111,16 @@ class SwSwitch : public HwSwitch::Callback {
    * Note that this function is generally slow, and may take many seconds to
    * complete.
    *
-   * @param enableIntfSync By default, interface sync to system is disabled,
-   *                       since unittest code does not have the permission to
-   *                       create/delete interface in the system.
+   * The function takes a SwitchFlags parameter, which has the following flags
+   * defined:
    *
-   * @param enableLldp     By defaul lldp is disabled since it sends packets
-   *                       periodically and this breaks tests which expect
-   *                       only a certain packets.
+   * ENABLE_TUN: enables interface sync to system.
+   * ENABLE_LLDP: enables periodically sending LLDP packets
+   * PUBLISH_BOOTTYPE: if set, we will publish the boot type (graceful or
+   *                   otherwise) after we initialize the hardware.
+   * DEFAULT: None of the above flags are set.
    */
-  void init(bool enableIntfSync = false,
-            bool enaleLldp = false);
+  void init(SwitchFlags flags = SwitchFlags::DEFAULT);
 
   bool isFullyInitialized() const;
 

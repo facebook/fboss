@@ -180,7 +180,7 @@ void SwSwitch::clearWarmBootCache() {
   hw_->clearWarmBootCache();
 }
 
-void SwSwitch::init(bool enableTunIntf, bool enableLldp) {
+void SwSwitch::init(SwitchFlags flags) {
   lock_guard<mutex> g(hwMutex_);
   auto start = std::chrono::steady_clock::now();
   auto stateAndBootType = hw_->init(this);
@@ -196,16 +196,18 @@ void SwSwitch::init(bool enableTunIntf, bool enableLldp) {
   initialState->publish();
   setStateInternal(initialState);
 
-  if (enableTunIntf) {
+  if (flags & SwitchFlags::ENABLE_TUN) {
     tunMgr_ = folly::make_unique<TunManager>(this, &backgroundEventBase_);
     tunMgr_->startProbe();
   }
 
   startThreads();
 
-  publishBootType();
+  if (flags & SwitchFlags::PUBLISH_BOOTTYPE) {
+    publishBootType();
+  }
 
-  if (enableLldp) {
+  if (flags & SwitchFlags::ENABLE_LLDP) {
       lldpManager_ = folly::make_unique<LldpManager>(this);
   }
   setSwitchRunState(SwitchRunState::INITIALIZED);

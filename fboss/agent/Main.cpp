@@ -62,6 +62,9 @@ DEFINE_bool(tun_intf, true,
 DEFINE_bool(enable_lldp, true,
             "Run LLDP protocol in agent");
 
+DEFINE_bool(publish_boot_type, true,
+            "Publish boot type on startup");
+
 using facebook::fboss::SwSwitch;
 using facebook::fboss::ThriftHandler;
 
@@ -104,6 +107,20 @@ class Initializer {
     }
   }
 
+  SwitchFlags setupFlags() {
+    SwitchFlags flags = SwitchFlags::DEFAULT;
+    if (FLAGS_tun_intf) {
+      flags |= SwitchFlags::ENABLE_TUN;
+    }
+    if (FLAGS_enable_lldp) {
+      flags |=  SwitchFlags::ENABLE_LLDP;
+    }
+    if (FLAGS_publish_boot_type) {
+      flags |= SwitchFlags::PUBLISH_BOOTTYPE;
+    }
+    return flags;
+  }
+
   void initImpl() {
     std::lock_guard<mutex> g(initLock_);
     // Determining the local MAC address can also take a few seconds the first
@@ -114,7 +131,7 @@ class Initializer {
 
     // Initialize the switch.  This operation can take close to a minute
     // on some of our current platforms.
-    sw_->init(FLAGS_tun_intf, FLAGS_enable_lldp);
+    sw_->init(setupFlags());
 
     // Wait for the local MAC address to be available.
     ret.wait();
