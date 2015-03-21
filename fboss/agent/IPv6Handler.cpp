@@ -709,7 +709,7 @@ void IPv6Handler::updateNeighborEntry(const RxPacket* pkt,
   if (intf->getAddressToReach(folly::IPAddress(ip))
       == intf->getAddresses().end()) {
     LOG(WARNING) << "Skip updating un-reachable neighbor entry " << ip
-      << " --> " << mac << " on interface " << intfID;
+     << " --> " << mac << " on interface " << intfID;
     sw_->portStats(pkt)->pktDropped();
     return;
   }
@@ -724,7 +724,8 @@ void IPv6Handler::updateNeighborEntry(const RxPacket* pkt,
   if (entry &&
       entry->getMac() == mac &&
       entry->getPort() == port &&
-      entry->getIntfID() == intfID) {
+      entry->getIntfID() == intfID &&
+      !entry->isPending()) {
     // The entry is up-to-date, so we have nothing to do.
     return;
   }
@@ -760,7 +761,8 @@ void IPv6Handler::updateNeighborEntry(const RxPacket* pkt,
     } else {
       if (entry->getMac() == mac &&
           entry->getPort() == port &&
-          entry->getIntfID() == intfID) {
+          entry->getIntfID() == intfID &&
+          !entry->isPending()) {
         // This entry was already updated while we were waiting on the lock.
         return shared_ptr<SwitchState>();
       }

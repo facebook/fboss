@@ -16,7 +16,7 @@
 #include <folly/json.h>
 
 namespace {
-constexpr auto kPendingEntries = "hasPendingEntries";
+constexpr auto kNPending = "numPendingEntries";
 }
 
 namespace facebook { namespace fboss {
@@ -27,17 +27,18 @@ class Vlan;
 struct NeighborTableFields {
   template<typename Fn> void forEachChild(Fn fn) {}
   bool pendingEntries{false};
+  int nPending{0};
 
   folly::dynamic toFollyDynamic() const {
     folly::dynamic ntable = folly::dynamic::object;
-    ntable[kPendingEntries] = pendingEntries;
+    ntable[kNPending] = nPending;
     return ntable;
   }
 
   static NeighborTableFields
   fromFollyDynamic(const folly::dynamic& ntableJson) {
     NeighborTableFields ntable;
-    ntable.pendingEntries = ntableJson[kPendingEntries].asBool();
+    ntable.nPending = ntableJson[kNPending].asInt();
     // TODO(aeckert): t5833509 Add a check that verifies that the pending entry
     // flag is consistent with the entries
 
@@ -99,7 +100,9 @@ class NeighborTable
   bool prunePendingEntries();
 
   bool hasPendingEntries() {
-    return this->getExtraFields().pendingEntries;
+    auto nPending = this->getExtraFields().nPending;
+    CHECK(nPending >= 0);
+    return nPending > 0;
   }
 
  private:
@@ -108,8 +111,14 @@ class NeighborTable
   using Parent::NodeMapT;
   friend class CloneAllocator;
 
-  void setPendingEntries(bool pendingEntries) {
-    this->writableExtraFields().pendingEntries = pendingEntries;
+  void incNPending() {
+    ++this->writableExtraFields().nPending;
+  }
+  void decNPending() {
+    --this->writableExtraFields().nPending;
+  }
+  void setNPending(int nPending) {
+    this->writableExtraFields().nPending = nPending;
   }
 
 };

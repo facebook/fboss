@@ -277,7 +277,9 @@ void ArpHandler::updateExistingArpEntry(const shared_ptr<Vlan>& origVlan,
     // it isn't present already.
     return;
   }
-  if (entry->getMac() == mac && entry->getPort() == port) {
+  if (entry->getMac() == mac &&
+      entry->getPort() == port &&
+      !entry->isPending()) {
     // The entry is up-to-date.
     return;
   }
@@ -354,7 +356,8 @@ void ArpHandler::updateArpEntry(const shared_ptr<Vlan>& origVlan,
   if (entry &&
       entry->getMac() == mac &&
       entry->getPort() == port &&
-      entry->getIntfID() == intfID) {
+      entry->getIntfID() == intfID &&
+      !entry->isPending()) {
     // The entry is up-to-date, so we have nothing to do.
     return;
   }
@@ -408,7 +411,8 @@ void ArpHandler::arpUpdateRequired(VlanID vlanID,
     } else {
       if (entry->getMac() == mac &&
           entry->getPort() == port &&
-          entry->getIntfID() == intfID) {
+          entry->getIntfID() == intfID &&
+          !entry->isPending()) {
         // This entry was already updated while we were waiting on the lock.
         return nullptr;
       }

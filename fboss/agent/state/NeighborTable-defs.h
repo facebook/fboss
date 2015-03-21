@@ -64,6 +64,9 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
     throw FbossError("ARP entry for ", ip, " does not exist");
   }
   auto entry = it->second->clone();
+  if (entry->isPending()) {
+    this->decNPending();
+  }
   entry->setMAC(mac);
   entry->setPort(port);
   entry->setIntfID(intfID);
@@ -78,7 +81,7 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addPendingEntry(
   CHECK(!this->isPublished());
   auto pendingEntry = std::make_shared<Entry>(ip, intfID, PENDING);
   this->addNode(pendingEntry);
-  this->setPendingEntries(true);
+  this->incNPending();
  }
 
 template<typename IPADDR, typename ENTRY, typename SUBCLASS>
@@ -97,7 +100,7 @@ bool NeighborTable<IPADDR, ENTRY, SUBCLASS>::prunePendingEntries() {
       modified = true;
     }
   }
-  this->setPendingEntries(false);
+  this->setNPending(0);
   return modified;
 }
 
