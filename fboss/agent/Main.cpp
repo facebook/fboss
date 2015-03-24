@@ -277,7 +277,6 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   // Create the SwSwitch and thrift handler
   SwSwitch sw(std::move(platform));
   auto platformPtr = sw.getPlatform();
-  platformPtr->initSwSwitch(&sw);
   auto handler = std::shared_ptr<ThriftHandler>(
       std::move(platformPtr->createHandler(&sw)));
 

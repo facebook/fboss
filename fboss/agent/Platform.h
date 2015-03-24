@@ -48,13 +48,11 @@ class Platform {
   virtual HwSwitch* getHwSwitch() const = 0;
 
   /*
-   * Perform any platform-specific configuration of the SwSwitch needed for
-   * this platform.
-   *
-   * In particular, Platform objects should generally configure the SFPs in
-   * this call.
+   * onHwInitialized() will be called once the HwSwitch object has been
+   * initialized.  Platform-specific initialization that requires access to the
+   * HwSwitch can be performed here.
    */
-  virtual void initSwSwitch(SwSwitch* sw) = 0;
+  virtual void onHwInitialized(SwSwitch* sw) = 0;
 
   /*
    * Create the ThriftHandler.

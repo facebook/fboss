@@ -196,6 +196,8 @@ void SwSwitch::init(SwitchFlags flags) {
   initialState->publish();
   setStateInternal(initialState);
 
+  platform_->onHwInitialized(this);
+
   if (flags & SwitchFlags::ENABLE_TUN) {
     tunMgr_ = folly::make_unique<TunManager>(this, &backgroundEventBase_);
     tunMgr_->startProbe();

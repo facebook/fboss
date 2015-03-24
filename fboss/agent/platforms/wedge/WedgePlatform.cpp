@@ -45,9 +45,7 @@ HwSwitch* WedgePlatform::getHwSwitch() const {
   return hw_.get();
 }
 
-void WedgePlatform::initSwSwitch(SwSwitch* sw) {
-  // TODO(5049438): Add QSFP support for wedge, and populate the QSFP data
-  // structures here.
+void WedgePlatform::onHwInitialized(SwSwitch* sw) {
 }
 
 MacAddress WedgePlatform::getLocalMac() const {

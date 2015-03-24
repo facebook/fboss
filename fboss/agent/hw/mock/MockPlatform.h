@@ -29,7 +29,7 @@ class MockPlatform : public Platform {
   std::string getPersistentStateDir() const override;
 
   MOCK_CONST_METHOD0(getLocalMac, folly::MacAddress());
-  MOCK_METHOD1(initSwSwitch, void(SwSwitch*));
+  MOCK_METHOD1(onHwInitialized, void(SwSwitch*));
 
  private:
   void createTmpDir();

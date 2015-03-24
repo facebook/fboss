@@ -21,7 +21,7 @@ class SimPlatform : public Platform {
   ~SimPlatform();
 
   HwSwitch* getHwSwitch() const override;
-  void initSwSwitch(SwSwitch* sw) override;
+  void onHwInitialized(SwSwitch* sw) override;
   std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;
 
   folly::MacAddress getLocalMac() const override {
