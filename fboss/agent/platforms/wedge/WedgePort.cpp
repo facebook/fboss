@@ -42,12 +42,10 @@ bool WedgePort::isMediaPresent() {
   return false;
 }
 
-void WedgePort::linkStatusChanged(bool up, bool adminUp) {
-}
-
 void WedgePort::statusIndication(bool enabled, bool link,
                                  bool ingress, bool egress,
                                  bool discards, bool errors) {
+  linkStatusChanged(link, enabled);
 }
 
 }} // facebook::fboss

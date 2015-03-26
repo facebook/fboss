@@ -45,9 +45,6 @@ HwSwitch* WedgePlatform::getHwSwitch() const {
   return hw_.get();
 }
 
-void WedgePlatform::onHwInitialized(SwSwitch* sw) {
-}
-
 MacAddress WedgePlatform::getLocalMac() const {
   return localMac_;
 }
@@ -61,7 +58,6 @@ string WedgePlatform::getPersistentStateDir() const {
 }
 
 void WedgePlatform::onUnitAttach() {
-  // TODO: Load the LED microprocessor code.
 }
 
 WedgePlatform::InitPortMap WedgePlatform::initPorts() {
