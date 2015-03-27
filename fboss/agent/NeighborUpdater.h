@@ -10,8 +10,7 @@
 #pragma once
 
 #include <boost/container/flat_map.hpp>
-#include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/StateObserver.h"
 
 namespace facebook { namespace fboss {
 
@@ -19,6 +18,7 @@ class NeighborUpdaterImpl;
 class SwSwitch;
 class SwitchState;
 class StateDelta;
+class Vlan;
 
 /**
  * This class handles asynchronous updates to neighbor tables that are not
@@ -28,16 +28,20 @@ class StateDelta;
  * This will be used to expire neighbor entries as well once that is
  * implemented.
  */
-class NeighborUpdater {
+class NeighborUpdater : public AutoRegisterStateObserver {
  public:
   explicit NeighborUpdater(SwSwitch* sw);
   ~NeighborUpdater();
 
-  void stateChanged(const StateDelta& delta);
+  void stateUpdated(const StateDelta& delta) override;
+
  private:
   void vlanAdded(const SwitchState* state, const Vlan* vlan);
   void vlanDeleted(const Vlan* vlan);
 
+  // Forbidden copy constructor and assignment operator
+  NeighborUpdater(NeighborUpdater const &) = delete;
+  NeighborUpdater& operator=(NeighborUpdater const &) = delete;
 
   /**
    * updaters_ should only ever be accessed from the state update thread,

@@ -143,7 +143,8 @@ void NeighborUpdaterImpl::refreshEntries() {
 }
 
 NeighborUpdater::NeighborUpdater(SwSwitch* sw)
-    : sw_(sw) {}
+    : AutoRegisterStateObserver(sw, "NeighborUpdater"),
+      sw_(sw) {}
 
 NeighborUpdater::~NeighborUpdater() {
   std::vector<Future<void>> stopTasks;
@@ -170,7 +171,7 @@ NeighborUpdater::~NeighborUpdater() {
   whenAll(stopTasks.begin(), stopTasks.end()).get();
 }
 
-void NeighborUpdater::stateChanged(const StateDelta& delta) {
+void NeighborUpdater::stateUpdated(const StateDelta& delta) {
   CHECK(sw_->getUpdateEVB()->inRunningEventBaseThread());
   for (const auto& entry : delta.getVlansDelta()) {
     auto oldEntry = entry.getOld();
@@ -181,9 +182,7 @@ void NeighborUpdater::stateChanged(const StateDelta& delta) {
       continue;
     }
 
-    // Second condition needed only for unit tests that create a state and init
-    // a MockSw from that, as stateChanged is not called for the initial state.
-    if (!oldEntry || updaters_.find(newEntry->getID()) == updaters_.end()) {
+    if (!oldEntry) {
       vlanAdded(delta.newState().get(), newEntry.get());
     }
 

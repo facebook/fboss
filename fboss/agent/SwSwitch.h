@@ -12,7 +12,6 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/types.h"
-#include "fboss/agent/NeighborUpdater.h"
 #include <folly/SpinLock.h>
 #include <folly/IntrusiveList.h>
 #include <folly/Range.h>
@@ -41,6 +40,9 @@ class SfpModule;
 class SfpMap;
 class SfpImpl;
 class LldpManager;
+class StateDelta;
+class NeighborUpdater;
+class StateObserver;
 
 enum SwitchFlags : int {
   DEFAULT = 0,
@@ -79,6 +81,8 @@ class SwSwitch : public HwSwitch::Callback {
   typedef std::function<
     std::shared_ptr<SwitchState>(const std::shared_ptr<SwitchState>&)>
     StateUpdateFn;
+
+  typedef std::function<void(const StateDelta&)> StateUpdatedCallback;
 
   explicit SwSwitch(std::unique_ptr<Platform> platform);
   virtual ~SwSwitch();
@@ -196,6 +200,18 @@ class SwSwitch : public HwSwitch::Callback {
    * completes.
    */
   void updateStateBlocking(folly::StringPiece name, StateUpdateFn fn);
+
+  /*
+   * Registers an observer of all state updates. An observer will be notifies of
+   * all state updates that occur and all classes that care about state updates
+   * should register using this api.
+   *
+   * The only required method for observers is stateUpdated and observers can
+   * count on this always being called from the update thread.
+   */
+  void registerStateObserver(StateObserver* observer, const std::string name);
+
+  void unregisterStateObserver(StateObserver* observer);
 
   /*
    * Signal to the switch that initial config is applied.
@@ -492,6 +508,11 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::string getSwitchStateFile() const;
 
+  /*
+   * Notifies all the observers that a state update occured.
+   */
+  void notifyStateObservers(const StateDelta& delta);
+
   // The HwSwitch object.  This object is owned by the Platform.
   HwSwitch* hw_;
   std::unique_ptr<Platform> platform_;
@@ -536,14 +557,6 @@ class SwSwitch : public HwSwitch::Callback {
   std::shared_ptr<SwitchState> stateDontUseDirectly_;
   mutable folly::SpinLock stateLock_;
 
-  std::unique_ptr<ArpHandler> arp_;
-  std::unique_ptr<IPv4Handler> ipv4_;
-  std::unique_ptr<IPv6Handler> ipv6_;
-  std::unique_ptr<NeighborUpdater> nUpdater_;
-  std::unique_ptr<PktCaptureManager> pcapMgr_;
-
-  std::unique_ptr<SfpMap> sfpMap_;
-
   /*
    * A thread for performing various background tasks.
    */
@@ -555,6 +568,22 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::unique_ptr<std::thread> updateThread_;
   folly::EventBase updateEventBase_;
+
+  /*
+   * The list of classes to notify on a state update. This container should only
+   * be accessed/modified from the update thread. This removes the need for
+   * locking when we access the container during a state update.
+   */
+  std::map<StateObserver*, std::string> stateObservers_;
+
+  std::unique_ptr<ArpHandler> arp_;
+  std::unique_ptr<IPv4Handler> ipv4_;
+  std::unique_ptr<IPv6Handler> ipv6_;
+  std::unique_ptr<NeighborUpdater> nUpdater_;
+  std::unique_ptr<PktCaptureManager> pcapMgr_;
+
+  std::unique_ptr<SfpMap> sfpMap_;
+
   BootType bootType_{BootType::UNINITIALIZED};
   std::unique_ptr<LldpManager> lldpManager_;
 

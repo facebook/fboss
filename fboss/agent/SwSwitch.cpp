@@ -12,6 +12,7 @@
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/IPv4Handler.h"
 #include "fboss/agent/IPv6Handler.h"
+#include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
@@ -36,6 +37,7 @@
 #include <folly/FileUtil.h>
 #include <folly/MacAddress.h>
 #include <folly/String.h>
+#include <folly/Demangle.h>
 #include <chrono>
 #include <condition_variable>
 
@@ -82,7 +84,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
 }
 
 SwSwitch::~SwSwitch() {
-    stop();
+  stop();
 }
 
 void SwSwitch::stop() {
@@ -111,7 +113,9 @@ void SwSwitch::stop() {
 }
 
 bool SwSwitch::isFullyInitialized() const {
-  return getSwitchRunState() >= SwitchRunState::INITIALIZED;
+  auto state = getSwitchRunState();
+  return state >= SwitchRunState::INITIALIZED &&
+    state != SwitchRunState::EXITING;
 }
 
 bool SwSwitch::isConfigured() const {
@@ -203,6 +207,12 @@ void SwSwitch::init(SwitchFlags flags) {
 
   platform_->onHwInitialized(this);
 
+  // Notify the state observers of the initial state
+  updateEventBase_.runInEventBaseThread([initialState, this]() {
+      notifyStateObservers(StateDelta(std::make_shared<SwitchState>(),
+                                      initialState));
+  });
+
   if (flags & SwitchFlags::ENABLE_TUN) {
     tunMgr_ = folly::make_unique<TunManager>(this, &backgroundEventBase_);
     tunMgr_->startProbe();
@@ -234,6 +244,47 @@ void SwSwitch::initialConfigApplied() {
 
 void SwSwitch::fibSynced() {
   setSwitchRunState(SwitchRunState::FIB_SYNCED);
+}
+
+void SwSwitch::registerStateObserver(StateObserver* observer,
+                                     const string name) {
+  VLOG(2) << "Registering state observer: " << name;
+  if (!updateEventBase_.isInEventBaseThread()) {
+    updateEventBase_.runInEventBaseThreadAndWait([=]() {
+      stateObservers_.emplace(observer, name);
+    });
+  } else {
+    stateObservers_.emplace(observer, name);
+  }
+}
+
+void SwSwitch::unregisterStateObserver(StateObserver* observer) {
+  if (!updateEventBase_.isInEventBaseThread()) {
+    updateEventBase_.runInEventBaseThreadAndWait([=]() {
+      stateObservers_.erase(observer);
+    });
+  } else {
+    stateObservers_.erase(observer);
+  }
+}
+
+void SwSwitch::notifyStateObservers(const StateDelta& delta) {
+  CHECK(updateEventBase_.inRunningEventBaseThread());
+  if (isExiting()) {
+    // Make sure the SwSwitch is not already being destroyed
+    return;
+  }
+
+  for (auto observerName : stateObservers_) {
+    try {
+      auto observer = observerName.first;
+      observer->stateUpdated(delta);
+    } catch (const std::exception& ex) {
+    // TODO: Figure out the best way to handle errors here.
+      LOG(FATAL) << "error notifying " << observerName.second << " of update: "
+                 << folly::exceptionStr(ex);
+    }
+  }
 }
 
 void SwSwitch::updateState(unique_ptr<StateUpdate> update) {
@@ -288,6 +339,10 @@ void SwSwitch::handlePendingUpdates() {
   if (updates.empty()) {
     return;
   }
+
+  // This function should never be called with valid updates while we are
+  // not fully initialized
+  DCHECK(isFullyInitialized());
 
   // Call all of the update functions to prepare the new SwitchState
   auto origState = getState();
@@ -380,13 +435,8 @@ void SwSwitch::applyUpdate(const shared_ptr<SwitchState>& oldState,
   // Publish the configuration as our active state.
   setStateInternal(newState);
 
-  // Inform the IPv6Handler of the change.
-  // TODO: We need a more generic mechanism for listeners to register to
-  // receive state change events.
-  ipv6_->stateChanged(delta);
-
-  // Inform the NeighborUpdater of the change.
-  nUpdater_->stateChanged(delta);
+  // Notifies all observers of the current state update.
+  notifyStateObservers(delta);
 
   // sync the new interface info to the host
   if (isConfigured()) {
@@ -515,10 +565,10 @@ void SwSwitch::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept{
 }
 
 void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
-  // If we are already exiting, don't handle any more packets
-  // since the individual handlers, h/w sdk data structures
-  // may already be (partially) destroyed
-  if (isExiting()) {
+  // If we are not fully initialized or are already exiting, don't handle
+  // packets since the individual handlers, h/w sdk data structures
+  // may not be ready or may already be (partially) destroyed
+  if (!isFullyInitialized()) {
     return;
   }
   PortID port = pkt->getSrcPort();
@@ -581,9 +631,9 @@ void SwSwitch::linkStateChanged(PortID port, bool up) noexcept {
     return;
   }
   // It seems that this function can get called before the state is fully
-  // initialized. Don't do anything if we have a null state.
-  auto state = getState();
-  if (state != nullptr) {
+  // initialized. Don't do anything if so.
+  if (isFullyInitialized()) {
+    auto state = getState();
     portListener_(port, fillInPortStatus(*state->getPort(port), this));
   }
 }

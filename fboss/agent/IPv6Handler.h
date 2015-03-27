@@ -11,6 +11,7 @@
 
 #include "fboss/agent/types.h"
 #include "fboss/agent/ndp/IPv6RouteAdvertiser.h"
+#include "fboss/agent/StateObserver.h"
 
 #include <memory>
 #include <boost/container/flat_map.hpp>
@@ -30,14 +31,14 @@ class SwSwitch;
 class SwitchState;
 class Vlan;
 
-class IPv6Handler {
+class IPv6Handler : public AutoRegisterStateObserver {
  public:
   enum : uint16_t { ETHERTYPE_IPV6 = 0x86dd };
   enum : uint32_t { IPV6_MIN_MTU = 1280 };
 
   explicit IPv6Handler(SwSwitch* sw);
 
-  void stateChanged(const StateDelta& delta);
+  void stateUpdated(const StateDelta& delta) override;
 
   void handlePacket(std::unique_ptr<RxPacket> pkt,
                     folly::MacAddress dst,
