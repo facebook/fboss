@@ -110,6 +110,10 @@ void SwitchState::setArpTimeout(std::chrono::seconds timeout) {
   writableFields()->arpTimeout = timeout;
 }
 
+void SwitchState::setNdpTimeout(std::chrono::seconds timeout) {
+  writableFields()->ndpTimeout = timeout;
+}
+
 void SwitchState::setArpAgerInterval(std::chrono::seconds interval) {
   writableFields()->arpAgerInterval = interval;
 }

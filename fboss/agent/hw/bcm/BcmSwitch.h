@@ -178,6 +178,12 @@ class BcmSwitch : public HwSwitch {
    */
   void exitFatal() const override;
 
+  /*
+   * Returns true if the neighbor entry for the passed in ip
+   * has been hit.
+   */
+  bool neighborEntryHit(RouterID vrf, folly::IPAddress& ip) const override;
+
  private:
   enum Flags : uint32_t {
     RX_REGISTERED = 0x01,

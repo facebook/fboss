@@ -99,6 +99,8 @@ class NeighborTable
 
   bool prunePendingEntries();
 
+  void removeEntry(AddressType ip);
+
   bool hasPendingEntries() {
     auto nPending = this->getExtraFields().nPending;
     CHECK(nPending >= 0);

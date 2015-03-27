@@ -213,6 +213,16 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     changed = true;
   }
 
+  std::chrono::seconds arpTimeout(cfg_->arpTimeoutSeconds);
+  if (orig_->getArpTimeout() != arpTimeout) {
+    newState->setArpTimeout(arpTimeout);
+
+    // TODO(aeckert): add ndpTimeout field to SwitchConfig. For now use the same
+    // timeout for both ARP and NDP
+    newState->setNdpTimeout(arpTimeout);
+    changed = true;
+  }
+
   if (!changed) {
     return nullptr;
   }

@@ -171,6 +171,11 @@ void SwSwitch::registerPortStatusListener(
   portListener_ = callback;
 }
 
+bool SwSwitch::neighborEntryHit(RouterID vrf, folly::IPAddress& ip) {
+  lock_guard<mutex> g(hwMutex_);
+  return hw_->neighborEntryHit(vrf, ip);
+}
+
 void SwSwitch::exitFatal() const noexcept {
   dumpStateToFile(platform_->getCrashSwitchStateFile());
 }
