@@ -50,18 +50,15 @@ using std::string;
 
 DEFINE_string(config, "", "The path to the local JSON configuration file");
 DEFINE_int32(port, 5909, "The thrift server port");
-
 DEFINE_int32(stat_publish_interval_ms, 1000,
              "How frequently to publish thread-local stats back to the "
              "global store.  This should generally be less than 1 second.");
-
+DEFINE_int32(thrift_idle_timeout, 60, "Thrift idle timeout in seconds.");
 DEFINE_bool(tun_intf, true,
             "Create tun interfaces to allow other processes to "
             "send and receive traffic via the switch ports");
-
 DEFINE_bool(enable_lldp, true,
             "Run LLDP protocol in agent");
-
 DEFINE_bool(publish_boot_type, true,
             "Publish boot type on startup");
 
@@ -289,9 +286,9 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   TEventBase eventBase;
 
   // Create a timeout to call sw->publishStats() once every second.
-  StatsPublisher statsPublisher(&eventBase, &sw,
-                                std::chrono::milliseconds(
-                                    FLAGS_stat_publish_interval_ms));
+  StatsPublisher statsPublisher(
+      &eventBase, &sw,
+      std::chrono::milliseconds(FLAGS_stat_publish_interval_ms));
   statsPublisher.start();
 
   auto stopServices = [&]() {
@@ -302,15 +299,18 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   // Start the thrift server
   ThriftServer server;
   server.getEventBaseManager()->setEventBase(&eventBase, false);
-  server.setInterface(std::move(handler));
+  server.setInterface(handler);
   server.setDuplex(true);
 
   // When a thrift connection closes, we need to clean up the associated
   // callbacks.
   server.setServerEventHandler(handler);
+
   TSocketAddress address;
   address.setFromLocalPort(FLAGS_port);
   server.setAddress(address);
+  server.setIdleTimeout(std::chrono::seconds(FLAGS_thrift_idle_timeout));
+  handler->setIdleTimeout(FLAGS_thrift_idle_timeout);
   server.setup();
   SCOPE_EXIT { server.cleanUp(); };
   LOG(INFO) << "serving on localhost on port " << FLAGS_port;

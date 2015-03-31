@@ -13,6 +13,7 @@
 #include <folly/IPAddressV6.h>
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ArpHandler.h"
+#include "fboss/agent/HighresCounterSubscriptionHandler.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SfpModule.h"
@@ -59,11 +60,19 @@ using std::string;
 using std::vector;
 using std::unique_ptr;
 using namespace apache::thrift::transport;
+using apache::thrift::server::TConnectionContext;
+
 using facebook::network::toBinaryAddress;
 using facebook::network::toAddress;
 using facebook::network::toIPAddress;
 
 namespace facebook { namespace fboss {
+
+DEFINE_int64(publication_queue_size,
+             10000000,
+             "Size of the scribe consumer queue in samples.  This queue holds "
+             "high-resolution samples from a publisher while we slowly drain "
+             "it to scribe.");
 
 class RouteUpdateStats {
  public:
@@ -88,17 +97,14 @@ class RouteUpdateStats {
   std::chrono::time_point<std::chrono::steady_clock> start_;
 };
 
-ThriftHandler::ThriftHandler(SwSwitch* sw)
-  : FacebookBase2("FBOSS"),
-    sw_(sw) {
-  sw->registerPortStatusListener([=](PortID id, PortStatus st){
-      for (auto& listener : listeners_.accessAllThreads()) {
-        auto listenerPtr = &listener;
-        listener.eventBase->runInEventBaseThread([=]{
-            invokePortStatusListeners(listenerPtr, id, st);
-          });
-      }
-    });
+ThriftHandler::ThriftHandler(SwSwitch* sw) : FacebookBase2("FBOSS"), sw_(sw) {
+  sw->registerPortStatusListener([=](PortID id, PortStatus st) {
+    for (auto& listener : listeners_.accessAllThreads()) {
+      auto listenerPtr = &listener;
+      listener.eventBase->runInEventBaseThread(
+          [=] { invokePortStatusListeners(listenerPtr, id, st); });
+    }
+  });
 }
 
 fb_status ThriftHandler::getStatus() {
@@ -736,9 +742,81 @@ void ThriftHandler::ensureFibSynced(StringPiece function) {
   throw FbossError("switch is still initializing, FIB not synced yet");
 }
 
+// If this is a premature client disconnect from a duplex connection, we need to
+// clean up state.  Failure to do so may allow the server's duplex clients to
+// use the destroyed context => segfaults.
 void ThriftHandler::connectionDestroyed(TConnectionContext* ctx) {
+  // Port status notifications
   if (listeners_) {
     listeners_->clients.erase(ctx);
   }
+
+  // If there is an ongoing high-resolution counter subscription, kill it. Don't
+  // grab a write lock if there are no active calls
+  if (!killSwitches_.asConst()->empty()) {
+    SYNCHRONIZED(killSwitches_) {
+      auto killSwitchIter = killSwitches_.find(ctx);
+
+      if (killSwitchIter != killSwitches_.end()) {
+        auto& killSwitch = *(killSwitchIter->second);
+        killSwitch->set();
+        killSwitches_.erase(killSwitchIter);
+      }
+    }
+  }
+}
+
+void ThriftHandler::async_tm_subscribeToCounters(
+    ThriftCallback<bool> callback, unique_ptr<CounterSubscribeRequest> req) {
+
+  // Grab the requested samplers from the underlying switch implementation
+  auto samplers = make_unique<HighresSamplerList>();
+  auto numCounters = sw_->getHighresSamplers(samplers.get(), req->counters);
+
+  if (numCounters > 0) {
+    // Get/create everything we need to create both producer and sender
+    auto queue =
+        std::make_shared<PublicationQueue>(FLAGS_publication_queue_size);
+
+    // Grab the connection context and create a kill switch
+    auto ctx = callback->getConnectionContext()->getConnectionContext();
+    auto killSwitch = std::make_shared<KillSwitch>();
+    SYNCHRONIZED(killSwitches_) { killSwitches_[ctx] = killSwitch; }
+
+    // Build the producer and set it on its way
+    auto producer = make_unique<SampleProducer>(
+        std::move(samplers), queue, killSwitch, *req.get(), numCounters);
+    auto wrappedProducer = folly::makeMoveWrapper(std::move(producer));
+    std::thread producerThread(
+        [wrappedProducer]() mutable { (*wrappedProducer)->produce(); });
+    producerThread.detach();
+
+    // Build the sender and set it on its way
+    auto eventBase = callback->getEventBase();
+    auto client = ctx->getDuplexClient<FbossHighresClientAsyncClient>();
+    auto sender =
+        make_unique<SampleSender>(std::move(queue), killSwitch, numCounters);
+    auto wrappedSender = folly::makeMoveWrapper(std::move(sender));
+    // We wrap the share_ptr to client because we want to explicitly give up
+    // control so that we aren't the last one holding a shared_ptr
+    auto wrappedClient = folly::makeMoveWrapper(std::move(client));
+    std::thread senderThread(
+        [eventBase, wrappedSender, wrappedClient]() mutable {
+          (*wrappedSender)->consume(eventBase, wrappedClient.move());
+        });
+    senderThread.detach();
+
+    callback->result(true);
+  } else {
+    LOG(ERROR) << "None of the requested counters were valid.";
+    callback->result(false);
+  }
+}
+
+int32_t ThriftHandler::getIdleTimeout() {
+  if (thriftIdleTimeout_ < 0) {
+    throw FbossError("Idle timeout has not been set");
+  }
+  return thriftIdleTimeout_;
 }
 }} // facebook::fboss

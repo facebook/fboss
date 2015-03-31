@@ -36,14 +36,17 @@ class SimSwitch : public HwSwitch {
   // TODO
   void updateStats(SwitchStats *switchStats) override {}
 
-  void resetTxCount() {
-    txCount_ = 0;
+  int getHighresSamplers(
+      HighresSamplerList* samplers,
+      const folly::StringPiece namespaceString,
+      const std::set<folly::StringPiece>& counterSet) override {
+    return 0;
   }
-  uint64_t getTxCount() const {
-    return txCount_;
-  }
+
+  void resetTxCount() { txCount_ = 0; }
+  uint64_t getTxCount() const { return txCount_; }
   void exitFatal() const override {
-    //TODO
+    // TODO
   }
 
   bool neighborEntryHit(RouterID vrf, folly::IPAddress& ip) const override {
@@ -56,6 +59,7 @@ class SimSwitch : public HwSwitch {
     // the port is enabled or not
     return true;
   }
+
  private:
   // Forbidden copy constructor and assignment operator
   SimSwitch(SimSwitch const &) = delete;

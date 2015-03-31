@@ -387,6 +387,55 @@ void SwSwitch::handlePendingUpdates() {
   }
 }
 
+int SwSwitch::getHighresSamplers(HighresSamplerList* samplers,
+                                 const std::set<string>& counters) {
+  int numCountersAdded = 0;
+
+  // Group the counters by namespace to make it easier to get samplers
+  std::map<folly::StringPiece, std::set<folly::StringPiece>> groupedCounters;
+  for (const auto& c : counters) {
+    StringPiece namespaceName, counterName;
+    if (folly::split("::", c, namespaceName, counterName)) {
+      groupedCounters[namespaceName].insert(counterName);
+    } else {
+      LOG(ERROR) << "Bad counter: " << c;
+    }
+  }
+
+  for (const auto& namespaceGroup : groupedCounters) {
+    const auto& namespaceString = namespaceGroup.first;
+    const auto& counterSet = namespaceGroup.second;
+    unique_ptr<HighresSampler> sampler;
+
+    // Check for cross-platform samplers
+    if (namespaceString.compare(DumbCounterSampler::kIdentifier) == 0) {
+      sampler = make_unique<DumbCounterSampler>(counterSet);
+    } else if (namespaceString.compare(InterfaceRateSampler::kIdentifier) ==
+               0) {
+      sampler = make_unique<InterfaceRateSampler>(counterSet);
+    }
+
+    if (sampler) {
+      if (sampler->numCounters() > 0) {
+        numCountersAdded += sampler->numCounters();
+        samplers->push_back(std::move(sampler));
+      } else {
+        LOG(WARNING) << "Cannot use " << namespaceString;
+      }
+    } else {
+      // Otherwise, check if the hwSwitch knows which samplers to add
+      auto n = hw_->getHighresSamplers(samplers, namespaceString, counterSet);
+      if (n > 0) {
+        numCountersAdded += n;
+      } else {
+        LOG(WARNING) << "No counters added for namespace: " << namespaceString;
+      }
+    }
+  }
+
+  return numCountersAdded;
+}
+
 void SwSwitch::syncTunInterfaces() {
   CHECK(isConfigured());
   if (!tunMgr_) {

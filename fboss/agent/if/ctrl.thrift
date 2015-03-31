@@ -7,6 +7,7 @@ include "fboss/agent/if/fboss.thrift"
 include "common/fb303/if/fb303.thrift"
 include "common/network/if/Address.thrift"
 include "fboss/agent/if/optic.thrift"
+include "fboss/agent/if/highres.thrift"
 
 typedef binary (cpp2.type = "::folly::fbstring") fbbinary
 typedef string (cpp2.type = "::std::string") fbstring
@@ -224,7 +225,7 @@ service FbossCtrl extends fb303.FacebookService {
   /*
    * Type of boot performed by the controller
    */
-  BootType getBootType();
+  BootType getBootType()
 
   /*
    * Get the list of neighbors discovered via LLDP
@@ -240,6 +241,17 @@ service FbossCtrl extends fb303.FacebookService {
   void stopPktCapture(1: string name)
     throws (1: fboss.FbossBaseError error)
   void stopAllPktCaptures()
+    throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Subscribe to a set of high-resolution counters
+   */
+  bool subscribeToCounters(1: highres.CounterSubscribeRequest req)
+    throws (1: fboss.FbossBaseError error)
+
+  void keepalive()
+
+  i32 getIdleTimeout()
     throws (1: fboss.FbossBaseError error)
 }
 

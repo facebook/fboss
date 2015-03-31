@@ -33,4 +33,11 @@ void BcmSwitch::disableLinkscan() {
   CHECK(OPENNSL_SUCCESS(rv)) << "failed to stop BcmSwitch linkscan thread "
                              << opennsl_errmsg(rv);
 }
+
+int BcmSwitch::getHighresSamplers(
+    HighresSamplerList* samplers,
+    const folly::StringPiece namespaceString,
+    const std::set<folly::StringPiece>& counterSet) {
+  return 0;
+}
 }} //facebook::fboss

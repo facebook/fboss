@@ -27,7 +27,6 @@ class IPv6Hdr;
 class Interface;
 class RxPacket;
 class StateDelta;
-class SwSwitch;
 class SwitchState;
 class Vlan;
 

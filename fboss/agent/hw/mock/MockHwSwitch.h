@@ -39,6 +39,13 @@ class MockHwSwitch : public HwSwitch {
   // TODO
   void updateStats(SwitchStats *switchStats) override {}
 
+  int getHighresSamplers(
+      HighresSamplerList* samplers,
+      const folly::StringPiece namespaceString,
+      const std::set<folly::StringPiece>& counterSet) override {
+    return 0;
+  }
+
   void gracefulExit() override {
     // TODO
   }

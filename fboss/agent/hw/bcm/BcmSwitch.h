@@ -22,8 +22,6 @@ extern "C" {
 #include <opennsl/types.h>
 }
 
-
-
 namespace facebook { namespace fboss {
 
 class ArpEntry;
@@ -159,11 +157,24 @@ class BcmSwitch : public HwSwitch {
   /*
    * Update all statistics.
    */
-  void updateStats(SwitchStats *switchStats) override;
+  void updateStats(SwitchStats* switchStats) override;
 
-  BcmHostTable* writableHostTable() const {
-    return hostTable_.get();
-  }
+  /*
+   * Get Broadcom-specific samplers.
+   *
+   * @return     The number of requested counters we can handle.
+   * @param[out] samplers         A vector of high-resolution samplers.  We will
+   *                              append new samplers to this list.
+   * @param[in]  namespaceString  A string respresentation of the current
+   *                              counter namespace.
+   * @param[in]  counterSet       The set of requested Broadcom counters.
+   */
+  int getHighresSamplers(
+      HighresSamplerList* samplers,
+      const folly::StringPiece namespaceString,
+      const std::set<folly::StringPiece>& counterSet) override;
+
+  BcmHostTable* writableHostTable() const { return hostTable_.get(); }
   BcmWarmBootCache* getWarmBootCache() const {
     return warmBootCache_.get();
   }

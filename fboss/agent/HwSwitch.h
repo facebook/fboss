@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/HighresCounterUtil.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include <folly/IPAddress.h>
@@ -129,7 +130,26 @@ class HwSwitch {
   /*
    * Allows hardware-specific code to record switch statistics.
    */
-  virtual void updateStats(SwitchStats *switchStats) = 0;
+  virtual void updateStats(SwitchStats* switchStats) = 0;
+
+  /*
+   * Returns a hardware-specific sampler based on a namespace string and list of
+   * counters within that namespace.  This assumes that a single sampler
+   * instance will never need to handle counters from different namespaces.
+   *
+   * @return     How many counters were added from this namespace.
+   * @param[out] samplers         A vector of high-resolution samplers.  We will
+   *                              append new samplers to this list.
+   * @param[in]  namespaceString  A string respresentation of the current
+   *                              counter namespace.
+   * @param[in]  counterSet       The set of requested counters within the
+   *                              current namespace.
+   */
+  virtual int getHighresSamplers(
+      HighresSamplerList* samplers,
+      const folly::StringPiece namespaceString,
+      const std::set<folly::StringPiece>& counterSet) = 0;
+
   /*
    * Allow hardware to perform any warm boot related cleanup
    * before we exit the application.
@@ -154,6 +174,7 @@ class HwSwitch {
    * to add functionality to help with debugging crashes.
    */
   virtual void exitFatal() const = 0;
+
   /*
    * Get port operational state
    */

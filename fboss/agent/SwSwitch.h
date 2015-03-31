@@ -9,9 +9,11 @@
  */
 #pragma once
 
+#include "fboss/agent/HighresCounterUtil.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/types.h"
+
 #include <folly/SpinLock.h>
 #include <folly/IntrusiveList.h>
 #include <folly/Range.h>
@@ -28,6 +30,7 @@ namespace facebook { namespace fboss {
 class ArpHandler;
 class IPv4Handler;
 class IPv6Handler;
+class LldpManager;
 class PktCaptureManager;
 class Platform;
 class Port;
@@ -35,14 +38,13 @@ class PortStats;
 class RxPacket;
 class SwitchState;
 class SwitchStats;
-class TunManager;
 class SfpModule;
 class SfpMap;
 class SfpImpl;
-class LldpManager;
 class StateDelta;
 class NeighborUpdater;
 class StateObserver;
+class TunManager;
 
 enum SwitchFlags : int {
   DEFAULT = 0,
@@ -200,6 +202,26 @@ class SwSwitch : public HwSwitch::Callback {
    * completes.
    */
   void updateStateBlocking(folly::StringPiece name, StateUpdateFn fn);
+
+  /**
+   * Get a set of high resolution samplers that we can query quickly.
+   *
+   * @return        The number of counters we've added samplers for.
+   * @param[out]    samplers    A vector of high-resolution samplers.  We will
+   *                            append new samplers to this list.
+   * @param[in]     counters    The requested counters.  We will try to return a
+   *                            set of samplers that handle all requested
+   *                            counters.
+   *
+   * Note that the set of returned samplers will not include invalid counters
+   * and may not be a 1:1 mapping with the requested counters---some samplers
+   * handle multiple counters
+   *
+   * The mapping between requested counters and returned samplers (as well as
+   * which counters are even valid) is hardware-specific.
+   */
+  int getHighresSamplers(HighresSamplerList* samplers,
+                         const std::set<std::string>& counters);
 
   /*
    * Registers an observer of all state updates. An observer will be notifies of

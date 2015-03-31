@@ -12,11 +12,15 @@
 #include <memory>
 #include <string>
 #include <vector>
+
 #include "common/fb303/cpp/FacebookBase2.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/types.h"
+#include "fboss/agent/HighresCounterSubscriptionHandler.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/PortStatusListenerClient.h"
+
+#include <folly/Synchronized.h>
 #include <thrift/lib/cpp/server/TServer.h>
 
 namespace facebook { namespace fboss {
@@ -28,13 +32,11 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
                       public fb303::FacebookBase2,
                       public apache::thrift::server::TServerEventHandler {
  public:
-  template<typename T>
+  template <typename T>
   using ThriftCallback = std::unique_ptr<apache::thrift::HandlerCallback<T>>;
-  typedef ThriftCallback<void> VoidCallback;
 
   typedef network::thrift::cpp2::Address Address;
   typedef network::thrift::cpp2::BinaryAddress BinaryAddress;
-  typedef apache::thrift::server::TConnectionContext TConnectionContext;
   typedef folly::EventBase EventBase;
   typedef std::vector<Address> Addresses;
   typedef std::vector<BinaryAddress> BinaryAddresses;
@@ -107,8 +109,57 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void stopPktCapture(std::unique_ptr<std::string> name);
   void stopAllPktCaptures();
 
-  // methods for TServerEventHandler
-  virtual void connectionDestroyed(TConnectionContext* ctx) override;
+  /*
+   * Event handler for when a connection is destroyed.  When there is an ongoing
+   * duplex connection, there may be other threads that depend on the connection
+   * state.
+   *
+   * @param[in]   ctx   A pointer to the connection context that is being
+   *                    destroyed.
+   */
+  virtual void connectionDestroyed(
+      apache::thrift::server::TConnectionContext* ctx) override;
+
+  /*
+   * Thrift handler for subscriptions to high-resolution counters.  The callback
+   * result is a boolean that designates whether or not any samplers were
+   * found.
+   *
+   * @param[in]    callback    The callback for after we finish processing the
+   *                           request.
+   * @param[in]    req         The subscription request, which specifies the
+   *                           counter names, timeouts, sampling intervals, etc.
+   */
+  void async_tm_subscribeToCounters(
+      ThriftCallback<bool> callback,
+      std::unique_ptr<CounterSubscribeRequest> req) override;
+
+  /*
+   * Thrift handler for keepalive messages.  It's a no-op, but prevents the
+   * server from hitting an idle timeout while it's still publishing samples.
+   *
+   * @param[in]    callback    The callback for after we finish processing the
+   *                           request.
+   */
+  void async_tm_keepalive(ThriftCallback<void> callback) override {
+    callback->done();
+  }
+
+  /*
+   * Thrift call to get the server's idle timeout.  Used by duplex clients to
+   * configure keepalive itnervals. -1 means unset.
+   *
+   * @return    The idle timeout in seconds.
+   */
+  void setIdleTimeout(int32_t timeout) { thriftIdleTimeout_ = timeout; }
+
+  /*
+   * Thrift call to get the server's idle timeout.  Used by duplex clients to
+   * configure keepalive itnervals. -1 means unset.
+   *
+   * @return    The idle timeout in seconds.
+   */
+  int32_t getIdleTimeout() override;
 
  private:
   struct ThreadLocalListener {
@@ -169,7 +220,13 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
    * for the lifetime of the ThriftHandler.
    */
   SwSwitch* sw_;
+
+  int thriftIdleTimeout_;
+
+  // A thread-safe data structure that helps the thrift handler map connection
+  // contexts to high resolution connection information
+  folly::Synchronized<
+      std::unordered_map<const apache::thrift::server::TConnectionContext*,
+                         std::shared_ptr<KillSwitch>>> killSwitches_;
 };
-
-
 }} // facebook::fboss
