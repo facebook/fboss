@@ -176,7 +176,11 @@ void SwSwitch::registerPortStatusListener(
 }
 
 bool SwSwitch::neighborEntryHit(RouterID vrf, folly::IPAddress& ip) {
-  lock_guard<mutex> g(hwMutex_);
+  // No locking needed here because this call should not change any hw
+  // state.
+  //
+  // TODO(aeckert): refactor locking scheme so that HWSwitch implementations
+  // take care of locking themselves
   return hw_->neighborEntryHit(vrf, ip);
 }
 
