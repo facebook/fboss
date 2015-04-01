@@ -154,8 +154,6 @@ class NodeBase {
  */
 template<typename NodeT, typename FieldsT>
 class NodeBaseT : public NodeBase {
-  GENERATE_HAS_MEMBER(toFollyDynamic);
-  GENERATE_HAS_MEMBER(fromFollyDynamic);
  public:
   typedef NodeT Node;
   typedef FieldsT Fields;
@@ -211,82 +209,20 @@ class NodeBaseT : public NodeBase {
   }
 
   /*
-   * Deserialize from JSON
-   * Generate std::shared_ptr<Node> fromFollyDynamic if
-   * a) Fields::fromFollyDynamic exists
-   * b) Node is constructible from Fields
-   * Conditional compilation necessary since we do explicit
-   * template instantiation for several classes derived from
-   * NodeBase which causes all member functions to be generated.
-  */
-  template<typename... Args>
-  static typename std::enable_if<
-    has_member_fromFollyDynamic<Fields>::value &&
-    std::is_constructible<NodeT, const Fields&, Args...>::value,
-    std::shared_ptr<Node>>::type
-      fromFollyDynamic(const folly::dynamic& json, Args&&... args) {
-        static_assert(sizeof ...(Args) == 0, "Args must be empty");
-        const auto& fields = Fields::fromFollyDynamic(json);
-        return std::make_shared<NodeT>(fields, std::forward<Args>(args)...);
-  }
-
-  /*
-   * Deserialize from JSON
-   * Generate std::shared_ptr<Node> fromJson if
-   * a) Fields::fromFollyDynamic exists
-   * b) Node is constructible from Fields
-   * Conditional compilation necessary since we do explicit
-   * template instantiation for several classes derived from
-   * NodeBase which causes all member functions to be generated.
-  */
-  template<typename... Args>
-  static typename std::enable_if<
-    has_member_fromFollyDynamic<Fields>::value &&
-    std::is_constructible<NodeT, const Fields&, Args...>::value,
-    std::shared_ptr<Node>>::type
-      fromJson(const folly::fbstring& jsonStr, Args&&... args) {
-        static_assert(sizeof ...(Args) == 0, "Args must be empty");
-        return fromFollyDynamic(folly::parseJson(jsonStr),
-            std::forward<Args>(args)...);
-  }
-  /*
    * Serialize to folly::dynamic
    * Generate folly::dynamic toFollyDynamic if
    * Fields::toFollyDynamic exists.
-   * Conditional compilation necessary since we do explicit
-   * template instantiation for several classes derived from
-   * NodeBase which causes all member functions to be generated.
    */
-  template<typename... Args>
-  typename std::enable_if<
-    has_member_toFollyDynamic<Fields, Args...>::value,
-    folly::dynamic>::type toFollyDynamic(Args&&... args) const {
-      static_assert(sizeof ...(Args) == 0, "Args must be empty");
-      return fields_.toFollyDynamic();
-  }
+  virtual folly::dynamic toFollyDynamic() const = 0;
+
   /*
    * Serialize to JSON
    * Generate folly::dynamic toFollyDynamic if
    * Fields::toFollyDynamic exists.
-   * Conditional compilation necessary since we do explicit
-   * template instantiation for several classes derived from
-   * NodeBase which causes all member functions to be generated.
    */
-  template<typename... Args>
-  typename std::enable_if<
-    has_member_toFollyDynamic<Fields, Args...>::value,
-    folly::fbstring>::type toJson(Args&&... args) const {
-      static_assert(sizeof ...(Args) == 0, "Args must be empty");
-      return folly::toJson(self()->toFollyDynamic());
+  folly::fbstring toJson() {
+    return folly::toJson(toFollyDynamic());
   }
- protected:
-  class CloneAllocator : public std::allocator<NodeT> {
-   public:
-    template<typename... Args>
-    void construct(void* p, Args&&... args) {
-      new(p) NodeT(std::forward<Args>(args)...);
-    }
-  };
 
   template<typename... Args>
   explicit NodeBaseT(Args&&... args) : fields_(std::forward<Args>(args)...) {}
@@ -296,6 +232,15 @@ class NodeBaseT : public NodeBase {
   NodeBaseT(const Node* orig, Args&&... args)
     : NodeBase(orig->getNodeID(), orig->getGeneration() + 1),
       fields_(orig->fields_, std::forward<Args>(args)...) {}
+
+ protected:
+  class CloneAllocator : public std::allocator<NodeT> {
+   public:
+    template<typename... Args>
+    void construct(void* p, Args&&... args) {
+      new(p) NodeT(std::forward<Args>(args)...);
+    }
+  };
 
  private:
   // Forbidden copy constructor and assignment operator

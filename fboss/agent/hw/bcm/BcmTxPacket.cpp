@@ -51,8 +51,7 @@ void txCallback(int unit, opennsl_pkt_t* pkt, void* cookie) {
 namespace facebook { namespace fboss {
 
 BcmTxPacket::BcmTxPacket(int unit, uint32_t size)
-    : unit_(unit),
-      queued_(std::chrono::time_point<std::chrono::steady_clock>::min()) {
+    : queued_(std::chrono::time_point<std::chrono::steady_clock>::min()) {
   int rv = opennsl_pkt_alloc(unit, size,
                              OPENNSL_TX_CRC_APPEND | OPENNSL_TX_ETHER, &pkt_);
   bcmLogError(rv, "Failed to allocate packet.");

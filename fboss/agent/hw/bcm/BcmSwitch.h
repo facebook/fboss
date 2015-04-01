@@ -120,7 +120,7 @@ class BcmSwitch : public HwSwitch {
   const BcmHostTable* getHostTable() const {
     return hostTable_.get();
   }
-  bool isPortUp(PortID port) const;
+  bool isPortUp(PortID port) const override;
 
   opennsl_if_t getDropEgressId() const;
   opennsl_if_t getToCPUEgressId() const;

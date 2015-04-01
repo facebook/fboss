@@ -65,7 +65,6 @@ class SimSwitch : public HwSwitch {
   SimSwitch(SimSwitch const &) = delete;
   SimSwitch& operator=(SimSwitch const &) = delete;
 
-  SimPlatform* platform_{nullptr};
   HwSwitch::Callback* callback_{nullptr};
   uint32_t numPorts_{0};
   uint64_t txCount_{0};

@@ -11,7 +11,6 @@
 
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeBase.h"
-#include <chrono>
 
 namespace facebook { namespace fboss {
 
@@ -96,6 +95,21 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
    */
   SwitchState();
   virtual ~SwitchState();
+
+  static std::shared_ptr<SwitchState>
+  fromFollyDynamic(const folly::dynamic& json) {
+    const auto& fields = SwitchStateFields::fromFollyDynamic(json);
+    return std::make_shared<SwitchState>(fields);
+  }
+
+  static std::shared_ptr<SwitchState>
+  fromJson(const folly::fbstring& jsonStr) {
+    return fromFollyDynamic(folly::parseJson(jsonStr));
+  }
+
+  virtual folly::dynamic toFollyDynamic() const override {
+    return getFields()->toFollyDynamic();
+  }
 
   static void modify(std::shared_ptr<SwitchState>* state);
 

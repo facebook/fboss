@@ -24,8 +24,7 @@ using std::string;
 namespace facebook { namespace fboss {
 
 SimSwitch::SimSwitch(SimPlatform* platform, uint32_t numPorts)
-  : platform_(platform),
-    numPorts_(numPorts) {
+  : numPorts_(numPorts) {
 }
 
 std::pair<std::shared_ptr<SwitchState>, BootType>

@@ -706,7 +706,7 @@ void SwSwitch::stopThreads() {
   // Alternatively, it would be nicer to update EventBase so it can notify
   // callbacks when the event loop is being stopped.
 
-  auto stopThread = [=](void* arg) {
+  auto stopThread = [](void* arg) {
     auto* evb = static_cast<folly::EventBase*>(arg);
     evb->terminateLoopSoon();
   };

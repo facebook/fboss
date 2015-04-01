@@ -74,8 +74,5 @@ class MockHwSwitch : public HwSwitch {
   // Forbidden copy constructor and assignment operator
   MockHwSwitch(MockHwSwitch const &) = delete;
   MockHwSwitch& operator=(MockHwSwitch const &) = delete;
-
-  MockPlatform* platform_{nullptr};
 };
-
 }} // facebook::fboss

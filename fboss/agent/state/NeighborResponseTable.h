@@ -88,6 +88,22 @@ class NeighborResponseTable
   NeighborResponseTable() {}
   explicit NeighborResponseTable(Table table);
 
+  static std::shared_ptr<SUBCLASS>
+  fromFollyDynamic(const folly::dynamic& json) {
+    const auto& fields =
+      NeighborResponseTableFields<IPADDR>::fromFollyDynamic(json);
+    return std::make_shared<SUBCLASS>(fields);
+  }
+
+  static std::shared_ptr<SUBCLASS>
+  fromJson(const folly::fbstring& jsonStr) {
+    return fromFollyDynamic(folly::parseJson(jsonStr));
+  }
+
+  virtual folly::dynamic toFollyDynamic() const override {
+    return this->getFields()->toFollyDynamic();
+  }
+
   folly::Optional<NeighborResponseEntry> getEntry(AddressType ip) {
     const auto& table = getTable();
     auto it = table.find(ip);
@@ -118,10 +134,9 @@ class NeighborResponseTable
   }
 
  private:
-  typedef NodeBaseT<SUBCLASS, NeighborResponseTableFields<IPADDR>> Parent;
-
   // Inherit the constructors required for clone()
-  using Parent::NodeBaseT;
+  typedef NodeBaseT<SUBCLASS, NeighborResponseTableFields<IPADDR>> Parent;
+  using Parent::Parent;
   friend class CloneAllocator;
 };
 

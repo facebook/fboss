@@ -639,7 +639,7 @@ void ThriftHandler::sendPkt(int32_t port, int32_t vlan,
 }
 
 void ThriftHandler::sendPktHex(int32_t port, int32_t vlan,
-                            std::unique_ptr<std::string> hex) {
+                            std::unique_ptr<folly::fbstring> hex) {
   ensureConfigured("sendPktHex");
   auto pkt = MockRxPacket::fromHex(StringPiece(*hex));
   pkt->setSrcPort(PortID(port));

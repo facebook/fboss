@@ -16,8 +16,7 @@ using folly::make_unique;
 
 namespace facebook { namespace fboss {
 
-MockHwSwitch::MockHwSwitch(MockPlatform *platform)
-  : platform_(platform) {
+MockHwSwitch::MockHwSwitch(MockPlatform *platform) {
 }
 
 std::unique_ptr<TxPacket> MockHwSwitch::allocatePacket(uint32_t size) {

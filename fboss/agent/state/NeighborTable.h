@@ -110,7 +110,7 @@ class NeighborTable
  private:
   typedef NodeMapT<SUBCLASS, NeighborTableTraits<IPADDR, ENTRY>> Parent;
   // Inherit the constructors required for clone()
-  using Parent::NodeMapT;
+  using Parent::Parent;
   friend class CloneAllocator;
 
   void incNPending() {

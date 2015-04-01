@@ -14,10 +14,9 @@
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/RouteTableRib.h"
 
 namespace facebook { namespace fboss {
-
-template<typename AddrT> class RouteTableRib;
 
 struct RouteTableFields {
   explicit RouteTableFields(RouterID id);
@@ -49,6 +48,21 @@ class RouteTable : public NodeBaseT<RouteTable, RouteTableFields> {
 
   explicit RouteTable(RouterID id);
   virtual ~RouteTable();
+
+  static std::shared_ptr<RouteTable>
+  fromFollyDynamic(const folly::dynamic& json) {
+    const auto& fields = RouteTableFields::fromFollyDynamic(json);
+    return std::make_shared<RouteTable>(fields);
+  }
+
+  static std::shared_ptr<RouteTable>
+  fromJson(const folly::fbstring& jsonStr) {
+    return fromFollyDynamic(folly::parseJson(jsonStr));
+  }
+
+  virtual folly::dynamic toFollyDynamic() const override {
+    return this->getFields()->toFollyDynamic();
+  }
 
   RouterID getID() const {
     return getFields()->id;

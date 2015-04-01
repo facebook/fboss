@@ -9,6 +9,15 @@
  */
 #pragma once
 
+#include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/state/VlanMap.h"
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/RouteTable.h"
+#include "fboss/agent/state/RouteTableMap.h"
+
 namespace facebook { namespace fboss {
 
 template<typename NodeT, typename FieldsT>

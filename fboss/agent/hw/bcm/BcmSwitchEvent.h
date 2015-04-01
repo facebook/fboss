@@ -48,7 +48,6 @@ class BcmSwitchEvent {
   }
 
  private:
-  BcmSwitch* hw_;
   int unit_;
   opennsl_switch_event_t eventID_;
   uint32_t alarmID_;

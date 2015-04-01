@@ -61,6 +61,21 @@ class Port : public NodeBaseT<Port, PortFields> {
 
   Port(PortID id, const std::string& name);
 
+  static std::shared_ptr<Port>
+  fromFollyDynamic(const folly::dynamic& json) {
+    const auto& fields = PortFields::fromFollyDynamic(json);
+    return std::make_shared<Port>(fields);
+  }
+
+  static std::shared_ptr<Port>
+  fromJson(const folly::fbstring& jsonStr) {
+    return fromFollyDynamic(folly::parseJson(jsonStr));
+  }
+
+  virtual folly::dynamic toFollyDynamic() const override {
+    return getFields()->toFollyDynamic();
+  }
+
   /*
    * Initialize a cfg::Port object with the default settings
    * that would be applied for this port.

@@ -139,11 +139,20 @@ class NodeMapT : public NodeBaseT<MapTypeT,
   /*
    * Serialize to folly::dynamic
    */
-  folly::dynamic toFollyDynamic() const;
+  virtual folly::dynamic toFollyDynamic() const override;
+
+  /*
+   * Serialize to json string
+   */
+  static std::shared_ptr<MapTypeT> fromJson(const folly::fbstring& jsonStr) {
+    return fromFollyDynamic(folly::parseJson(jsonStr));
+  }
+
   /*
    * Deserialize to folly::dynamic
    */
-  static std::shared_ptr<MapTypeT> fromFollyDynamic(const folly::dynamic& json);
+  static std::shared_ptr<MapTypeT>
+    fromFollyDynamic(const folly::dynamic& json);
 
   static constexpr char kExtraFields[] = "extraFields";
   static constexpr char kEntries[] = "entries";

@@ -69,7 +69,7 @@ class RouteTableRib
 
  private:
   // Inherit the constructors required for clone()
-  using Base::NodeMapT;
+  using Base::Base;
   friend class CloneAllocator;
 };
 

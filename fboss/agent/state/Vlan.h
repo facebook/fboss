@@ -14,6 +14,10 @@
 #include <folly/MacAddress.h>
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/ArpResponseTable.h"
+#include "fboss/agent/state/ArpTable.h"
+#include "fboss/agent/state/NdpResponseTable.h"
+#include "fboss/agent/state/NdpTable.h"
 
 #include <boost/container/flat_map.hpp>
 #include <set>
@@ -22,10 +26,6 @@
 
 namespace facebook { namespace fboss {
 
-class ArpResponseTable;
-class ArpTable;
-class NdpResponseTable;
-class NdpTable;
 class SwitchState;
 
 namespace cfg {
@@ -100,6 +100,21 @@ class Vlan : public NodeBaseT<Vlan, VlanFields> {
 
   Vlan(VlanID id, std::string name);
   Vlan(const cfg::Vlan* config, uint32_t mtu, MemberPorts ports);
+
+  static std::shared_ptr<Vlan>
+  fromFollyDynamic(const folly::dynamic& json) {
+    const auto& fields = VlanFields::fromFollyDynamic(json);
+    return std::make_shared<Vlan>(fields);
+  }
+
+  static std::shared_ptr<Vlan>
+  fromJson(const folly::fbstring& jsonStr) {
+    return fromFollyDynamic(folly::parseJson(jsonStr));
+  }
+
+  virtual folly::dynamic toFollyDynamic() const override {
+    return getFields()->toFollyDynamic();
+  }
 
   VlanID getID() const {
     return getFields()->id;

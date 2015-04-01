@@ -53,24 +53,26 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void flushCountersNow() override;
 
   void addUnicastRoute(
-      int16_t client, std::unique_ptr<UnicastRoute> route);
+      int16_t client, std::unique_ptr<UnicastRoute> route) override;
   void deleteUnicastRoute(
-      int16_t client, std::unique_ptr<IpPrefix> prefix);
+      int16_t client, std::unique_ptr<IpPrefix> prefix) override;
   void addUnicastRoutes(
-      int16_t client, std::unique_ptr<std::vector<UnicastRoute>> routes);
+      int16_t client,
+      std::unique_ptr<std::vector<UnicastRoute>> routes) override;
   void deleteUnicastRoutes(
-      int16_t client, std::unique_ptr<std::vector<IpPrefix>> prefixes);
+      int16_t client, std::unique_ptr<std::vector<IpPrefix>> prefixes) override;
   void syncFib(
-      int16_t client, std::unique_ptr<std::vector<UnicastRoute>> routes);
+      int16_t client,
+      std::unique_ptr<std::vector<UnicastRoute>> routes) override;
 
   SwSwitch* getSw() const {
     return sw_;
   }
 
   void sendPkt(int32_t port, int32_t vlan,
-      std::unique_ptr<folly::fbstring> data);
+      std::unique_ptr<folly::fbstring> data) override;
   void sendPktHex(int32_t port, int32_t vlan,
-      std::unique_ptr<std::string> hex);
+      std::unique_ptr<folly::fbstring> hex) override;
 
   int32_t flushNeighborEntry(std::unique_ptr<BinaryAddress> ip,
                              int32_t vlan) override;
@@ -89,7 +91,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getInterfaceList(std::vector<std::string>& interfaceList) override;
   void getRouteTable(std::vector<UnicastRoute>& routeTable) override;
   void getPortStatus(std::map<int32_t, PortStatus>& status,
-                     std::unique_ptr<std::vector<int32_t>> ports) override;
+                     std::unique_ptr<std::vector<int32_t>> ports)
+                     override;
   void getInterfaceDetail(InterfaceDetail& interfaceDetails,
                                           int32_t interfaceId) override;
   void getPortStats(PortStatThrift& portStats, int32_t portId) override;
@@ -105,9 +108,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   void getLldpNeighbors(std::vector<LinkNeighborThrift>& results) override;
 
-  void startPktCapture(std::unique_ptr<CaptureInfo> info);
-  void stopPktCapture(std::unique_ptr<std::string> name);
-  void stopAllPktCaptures();
+  void startPktCapture(std::unique_ptr<CaptureInfo> info) override;
+  void stopPktCapture(std::unique_ptr<std::string> name) override;
+  void stopAllPktCaptures() override;
 
   /*
    * Event handler for when a connection is destroyed.  When there is an ongoing

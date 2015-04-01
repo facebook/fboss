@@ -26,8 +26,6 @@ class SimHandler : virtual public SimCtrlSvIf,
   // Forbidden copy constructor and assignment operator
   SimHandler(SimHandler const &) = delete;
   SimHandler& operator=(SimHandler const &) = delete;
-
-  SimSwitch *hw_{nullptr};
 };
 
 }} // facebook::fboss

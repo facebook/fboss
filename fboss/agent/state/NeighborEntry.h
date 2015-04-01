@@ -74,6 +74,21 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
 
   NeighborEntry(AddressType ip, InterfaceID intfID, PendingEntry ignored);
 
+  static std::shared_ptr<SUBCLASS>
+  fromFollyDynamic(const folly::dynamic& json) {
+    const auto& fields = NeighborEntryFields<IPADDR>::fromFollyDynamic(json);
+    return std::make_shared<SUBCLASS>(fields);
+  }
+
+  static std::shared_ptr<SUBCLASS>
+  fromJson(const folly::fbstring& jsonStr) {
+    return fromFollyDynamic(folly::parseJson(jsonStr));
+  }
+
+  virtual folly::dynamic toFollyDynamic() const override {
+    return this->getFields()->toFollyDynamic();
+  }
+
   AddressType getIP() const {
     return this->getFields()->ip;
   }
@@ -110,7 +125,7 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
  private:
   typedef NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> Parent;
   // Inherit the constructors required for clone()
-  using Parent::NodeBaseT;
+  using Parent::Parent;
   friend class CloneAllocator;
 };
 

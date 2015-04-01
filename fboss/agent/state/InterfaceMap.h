@@ -95,12 +95,18 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
   /*
    * Serialize to a folly::dynamic object
    */
-  folly::dynamic toFollyDynamic() const;
+  folly::dynamic toFollyDynamic() const override;
   /*
    * Deserialize from a folly::dynamic object
    */
   static std::shared_ptr<InterfaceMap>
     fromFollyDynamic(const folly::dynamic& intfMapJson);
+
+  static std::shared_ptr<InterfaceMap>
+  fromJson(const folly::fbstring& jsonStr) {
+    return fromFollyDynamic(folly::parseJson(jsonStr));
+  }
+
  private:
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;

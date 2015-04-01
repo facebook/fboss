@@ -24,10 +24,8 @@ bool BcmEgress::alreadyExists(const opennsl_l3_egress_t& newEgress) const {
   opennsl_l3_egress_t existingEgress;
   auto rv = opennsl_l3_egress_get(hw_->getUnit(), id_, &existingEgress);
   bcmCheckError(rv, "Egress object ", id_, " does not exist");
-  bool sameMacs = (!newEgress.mac_addr && !existingEgress.mac_addr) ||
-    (existingEgress.mac_addr && newEgress.mac_addr &&
-     !memcmp(newEgress.mac_addr, existingEgress.mac_addr,
-       sizeof(newEgress.mac_addr)));
+  bool sameMacs = !memcmp(newEgress.mac_addr, existingEgress.mac_addr,
+        sizeof(newEgress.mac_addr));
    return sameMacs && existingEgress.intf == newEgress.intf &&
    existingEgress.port == newEgress.port &&
    existingEgress.flags == newEgress.flags;
@@ -60,7 +58,6 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
     eObj.port = port;
   }
   eObj.intf = intfId;
-  uint32_t flags;
   bool addEgress = false;
   const auto warmBootCache = hw_->getWarmBootCache();
   auto vrfAndIP2EgressCitr = warmBootCache->findEgress(vrf, ip);
@@ -111,10 +108,9 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
     if (vrfAndIP2EgressCitr == warmBootCache->vrfAndIP2Egress_end()) {
       VLOG(1) << "Adding egress object for next hop : " << ip;
     }
+    uint32_t flags = 0;
     if (id_ != INVALID) {
       flags |= OPENNSL_L3_REPLACE|OPENNSL_L3_WITH_ID;
-    } else {
-      flags = 0;
     }
     if (!alreadyExists(eObj)) {
       /*
@@ -154,11 +150,9 @@ void BcmEgress::programToCPU() {
   opennsl_l3_egress_t_init(&eObj);
   eObj.flags |= (OPENNSL_L3_L2TOCPU | OPENNSL_L3_COPY_TO_CPU);
   // BCM does not care about interface ID for punt to CPU egress object
-  uint32_t flags;
+  uint32_t flags = 0;
   if (id_ != INVALID) {
     flags |= OPENNSL_L3_REPLACE|OPENNSL_L3_WITH_ID;
-  } else {
-    flags = 0;
   }
   auto rc = opennsl_l3_egress_create(hw_->getUnit(), flags, &eObj, &id_);
   bcmCheckError(rc, "failed to program L3 egress object ", id_,

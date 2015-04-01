@@ -10,11 +10,13 @@
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/state/Interface.h"
-#include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableMap.h"
 
 #include "fboss/agent/state/NodeBase-defs.h"

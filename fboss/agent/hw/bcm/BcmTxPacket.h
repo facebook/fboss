@@ -66,7 +66,6 @@ class BcmTxPacket : public TxPacket {
   void enableHiGigHeader();
 
   opennsl_pkt_t* pkt_{nullptr};
-  const int unit_;
 
   // time point when the packet is queued to HW
   TimePoint queued_;

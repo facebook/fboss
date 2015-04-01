@@ -66,6 +66,21 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
             folly::StringPiece name, folly::MacAddress mac)
     : NodeBaseT(id, router, vlan, name, mac) {}
 
+  static std::shared_ptr<Interface>
+  fromFollyDynamic(const folly::dynamic& json) {
+    const auto& fields = InterfaceFields::fromFollyDynamic(json);
+    return std::make_shared<Interface>(fields);
+  }
+
+  static std::shared_ptr<Interface>
+  fromJson(const folly::fbstring& jsonStr) {
+    return fromFollyDynamic(folly::parseJson(jsonStr));
+  }
+
+  virtual folly::dynamic toFollyDynamic() const override {
+    return getFields()->toFollyDynamic();
+  }
+
   InterfaceID getID() const {
     return getFields()->id;
   }
@@ -138,8 +153,12 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
                            InterfaceID intfID,
                            const std::shared_ptr<SwitchState>& state);
 
+  /*
+   * Inherit the constructors required for clone().
+   * This needs to be public, as std::make_shared requires
+   * operator new() to be available.
+   */
  private:
-  // Inherit the constructors required for clone()
   using NodeBaseT::NodeBaseT;
   friend class CloneAllocator;
 };
