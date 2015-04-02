@@ -20,7 +20,7 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "common/stats/ServiceData.h"
 #include "thrift/lib/cpp/async/TAsyncTimeout.h"
-#include "thrift/lib/cpp/async/TAsyncSignalHandler.h"
+#include <folly/io/async/AsyncSignalHandler.h>
 #include "thrift/lib/cpp/async/TEventBase.h"
 #include "thrift/lib/cpp2/server/ThriftServer.h"
 #include "thrift/lib/cpp/transport/TSocketAddress.h"
@@ -37,7 +37,7 @@
 
 using folly::FunctionScheduler;
 using apache::thrift::ThriftServer;
-using apache::thrift::async::TAsyncSignalHandler;
+using folly::AsyncSignalHandler;
 using apache::thrift::async::TAsyncTimeout;
 using apache::thrift::async::TEventBase;
 using apache::thrift::transport::TSocketAddress;
@@ -226,12 +226,12 @@ class StatsPublisher : public TAsyncTimeout {
 
 /*
  */
-class SignalHandler : public TAsyncSignalHandler {
+class SignalHandler : public AsyncSignalHandler {
   typedef std::function<void()> StopServices;
  public:
   SignalHandler(TEventBase* eventBase, SwSwitch* sw,
       StopServices stopServices) :
-    TAsyncSignalHandler(eventBase), sw_(sw), stopServices_(stopServices) {
+    AsyncSignalHandler(eventBase), sw_(sw), stopServices_(stopServices) {
     registerSignalHandler(SIGINT);
     registerSignalHandler(SIGTERM);
   }
