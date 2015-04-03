@@ -11,6 +11,7 @@
 
 #include <atomic>
 #include <folly/Range.h>
+#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 
 extern "C" {
 #include <opennsl/error.h>
@@ -18,10 +19,24 @@ extern "C" {
 
 namespace facebook { namespace fboss {
 
+class BcmWarmBootHelper;
+
 class BcmUnit {
  public:
   explicit BcmUnit(int deviceIndex);
   ~BcmUnit();
+
+  /*
+   * Initialize this BcmUnit.
+   *
+   * The warmBootDir specifies the directory where switch state should be stored
+   * to allow warm booting the switch the next time it is initialized.
+   *
+   * The contents of this directory will be used by the BcmWarmBootHelper to
+   * determine if a warm boot should be performed. In order for warm boot to
+   * work properly the directory should not change between runs.
+   */
+  void attach(folly::StringPiece warmBootDir);
 
   /*
    * Initialize this BcmUnit, without warm boot support.
@@ -35,10 +50,28 @@ class BcmUnit {
    * Flush warm boot state to disk, and then detach from the hardware
    * device, without changing any hardware state.
    *
-   * Once warmBootDetach() has been called no other methods other than the
+   * Once detach() has been called no other methods other than the
    * BcmUnit destructor should be invoked.
    */
   void detach();
+
+  /*
+   * Returns the boot type used when the unit was loaded. This will be either
+   * WARM_BOOT or COLD_BOOT if the unit is attached. If the unit is not attached
+   * it should return UNINITIALIZED.
+   */
+  BootType bootType();
+
+  /**
+   * Get the WarmBootHelper object.
+   *
+   * The NeighborUpdater returned is owned by the BcmUnit, and is only valid as
+   * long as the BcmUnit object.
+   */
+  BcmWarmBootHelper* warmBootHelper() {
+    return wbHelper_.get();
+  }
+
 
   bool isAttached() const {
     return attached_.load(std::memory_order_acquire);
@@ -83,6 +116,7 @@ class BcmUnit {
                                   uint32_t arg1, uint32_t arg2, uint32_t arg3,
                                   void* userdata);
 
+  std::unique_ptr<BcmWarmBootHelper> wbHelper_;
   int deviceIndex_{-1};
   int unit_{-1};
   std::atomic<bool> attached_{false};

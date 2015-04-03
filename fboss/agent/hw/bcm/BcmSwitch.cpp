@@ -313,7 +313,7 @@ bool BcmSwitch::isPortUp(PortID port) const {
   return linkStatus == OPENNSL_PORT_LINK_STATUS_UP;
 }
 
-std::shared_ptr<SwitchState> BcmSwitch::getBootSwitchState() const {
+std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   auto bootState = make_shared<SwitchState>();
   opennsl_port_config_t pcfg;
   auto rv = opennsl_port_config_get(unit_, &pcfg);
@@ -334,6 +334,20 @@ std::shared_ptr<SwitchState> BcmSwitch::getBootSwitchState() const {
   return bootState;
 }
 
+std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
+  auto warmBootState = getColdBootSwitchState();
+  for (auto port:  *warmBootState->getPorts()) {
+    int portEnabled;
+    auto ret = opennsl_port_enable_get(unit_, port->getID(), &portEnabled);
+    bcmCheckError(ret, "Failed to get current state for port", port->getID());
+    port->setState(portEnabled == 1 ? cfg::PortState::UP: cfg::PortState::DOWN);
+    port->setSpeed(getPortSpeed(unit_, port->getID()));
+  }
+  warmBootState->resetIntfs(warmBootCache_->reconstructInterfaceMap());
+  warmBootState->resetVlans(warmBootCache_->reconstructVlanMap());
+  return warmBootState;
+}
+
 std::pair<std::shared_ptr<SwitchState>, BootType>
 BcmSwitch::init(Callback* callback) {
   // Create unitObject_ before doing anything else.
@@ -346,7 +360,7 @@ BcmSwitch::init(Callback* callback) {
 
   // Initialize the switch.
   if (!unitObject_->isAttached()) {
-    unitObject_->attach();
+    unitObject_->attach(platform_->getWarmBootDir());
   }
 
   LOG(INFO) << "Initializing BcmSwitch for unit " << unit_;
@@ -358,20 +372,25 @@ BcmSwitch::init(Callback* callback) {
   opennsl_port_config_t pcfg;
   auto rv = opennsl_port_config_get(unit_, &pcfg);
   bcmCheckError(rv, "failed to get port configuration");
-  BootType bootType = BootType::UNINITIALIZED;
 
-  LOG (INFO) << " Performing cold boot ";
-  // Cold boot - put all ports in Vlan 1
-  auto vlan = make_shared<Vlan>(VlanID(1), "InitVlan");
-  state->addVlan(vlan);
-  Vlan::MemberPorts memberPorts;
-  opennsl_port_t idx;
-  OPENNSL_PBMP_ITER(pcfg.port, idx) {
-    memberPorts.insert(make_pair(PortID(idx), false));
+  auto bootType = unitObject_->bootType();
+  CHECK(bootType != BootType::UNINITIALIZED);
+  auto warmBoot = bootType == BootType::WARM_BOOT;
+
+  if (!warmBoot) {
+    LOG (INFO) << " Performing cold boot ";
+    // Cold boot - put all ports in Vlan 1
+    auto vlan = make_shared<Vlan>(VlanID(1), "InitVlan");
+    state->addVlan(vlan);
+    Vlan::MemberPorts memberPorts;
+    opennsl_port_t idx;
+    OPENNSL_PBMP_ITER(pcfg.port, idx) {
+      memberPorts.insert(make_pair(PortID(idx), false));
+    }
+    vlan->setPorts(memberPorts);
+  } else {
+    LOG (INFO) << "Performing warm boot ";
   }
-  vlan->setPorts(memberPorts);
-  bootType = BootType::COLD_BOOT;
-
   rv = opennsl_switch_control_set(unit_, opennslSwitchL3EgressMode, 1);
   bcmCheckError(rv, "failed to set L3 egress mode");
   // Trap IPv4 Address Resolution Protocol (ARP) packets.
@@ -397,6 +416,7 @@ BcmSwitch::init(Callback* callback) {
   dropIPv6RAs();
 
   // enable IPv4 and IPv6 on CPU port
+  opennsl_port_t idx;
   OPENNSL_PBMP_ITER(pcfg.cpu, idx) {
     rv = opennsl_port_control_set(unit_, idx, opennslPortControlIP4, 1);
     bcmCheckError(rv, "failed to enable IPv4 on cpu port ", idx);
@@ -408,11 +428,18 @@ BcmSwitch::init(Callback* callback) {
   // verify the drop egress ID is really dropping
   BcmEgress::verifyDropEgress(unit_);
 
+  if (warmBoot) {
+    // This needs to be done after we have set
+    // opennslSwitchL3EgressMode else the egress ids
+    // in the host table don't show up correctly.
+    warmBootCache_->populate();
+  }
+
   // create an egress object for ToCPU
   toCPUEgress_ = make_unique<BcmEgress>(this);
   toCPUEgress_->programToCPU();
 
-  portTable_->initPorts(&pcfg, false);
+  portTable_->initPorts(&pcfg, warmBoot);
 
   // Enable linkscan
   //
@@ -421,7 +448,7 @@ BcmSwitch::init(Callback* callback) {
   // linkscan state in sync with the port state is worth any possible benefits,
   // though.)
   rv = opennsl_linkscan_mode_set_pbm(unit_, pcfg.port,
-      OPENNSL_LINKSCAN_MODE_SW);
+                                     OPENNSL_LINKSCAN_MODE_SW);
   bcmCheckError(rv, "failed to set linkscan ports");
   rv = opennsl_linkscan_register(unit_, linkscanCallback);
   bcmCheckError(rv, "failed to register for linkscan events");
@@ -440,8 +467,12 @@ BcmSwitch::init(Callback* callback) {
     rv = opennsl_stg_stp_set(unit_, stg, idx, OPENNSL_STG_STP_FORWARD);
     bcmCheckError(rv, "failed to set spanning tree state on port ", idx);
   }
-
-  return std::make_pair(getBootSwitchState(), bootType);
+  if (warmBoot) {
+    auto warmBootState = getWarmBootSwitchState();
+    stateChanged(StateDelta(make_shared<SwitchState>(), warmBootState));
+    return std::make_pair(warmBootState, bootType);
+  }
+  return std::make_pair(getColdBootSwitchState(), bootType);
 }
 
 void BcmSwitch::initialConfigApplied() {

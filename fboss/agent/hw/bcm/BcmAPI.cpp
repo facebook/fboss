@@ -51,7 +51,7 @@ void BcmAPI::init(const std::map<std::string, std::string>& config) {
     BcmAPI::initImpl(config);
 
     bcmInitialized.store(true, std::memory_order_release);
-  }
+}
 
 
 std::unique_ptr<BcmUnit> BcmAPI::initOnlyUnit() {

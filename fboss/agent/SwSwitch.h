@@ -395,8 +395,8 @@ class SwSwitch : public HwSwitch::Callback {
   }
 
   /*
-   * Allow hardware to perform any warm boot related cleanup
-   * before we exit the application.
+   * Allow hardware to perform any cleanup needed to gracefully restart the
+   * agent before we exit application.
    */
   void gracefulExit();
 

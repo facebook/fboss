@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 
 extern "C" {
 #include <opennsl/init.h>
@@ -46,7 +47,7 @@ void BcmUnit::detach() {
   bcmCheckError(rv, "failed to clean up BCM state during warm boot shutdown");
 }
 
-void BcmUnit::attach() {
+void BcmUnit::attach(StringPiece warmBootDir) {
   if (attached_.load(std::memory_order_acquire)) {
     throw FbossError("unit ", unit_, " already initialized");
   }
@@ -56,6 +57,14 @@ void BcmUnit::attach() {
                 unit_);
 
   attached_.store(true, std::memory_order_release);
+}
+
+void BcmUnit::attach() {
+  attach("");
+}
+
+BootType BcmUnit::bootType() {
+  return BootType::COLD_BOOT;
 }
 
 void BcmUnit::onSwitchEvent(opennsl_switch_event_t event,

@@ -8,6 +8,8 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmAPI.h"
+#include "fboss/agent/hw/bcm/BcmUnit.h"
+#include <folly/Memory.h>
 
 extern "C" {
 #include <sal/driver.h>

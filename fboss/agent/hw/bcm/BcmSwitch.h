@@ -192,7 +192,13 @@ class BcmSwitch : public HwSwitch {
   /*
    * Get default state switch is in on a cold boot
    */
-  std::shared_ptr<SwitchState> getBootSwitchState() const;
+  std::shared_ptr<SwitchState> getColdBootSwitchState() const;
+  /*
+   * Get state switch is in on a warm boot. This is not
+   * quite the complete state yet, t4155406 is filed for
+   * building complete state.
+   */
+  std::shared_ptr<SwitchState> getWarmBootSwitchState() const;
 
   void changePortState(const std::shared_ptr<Port>& oldPort,
                        const std::shared_ptr<Port>& newPort);
@@ -261,33 +267,6 @@ class BcmSwitch : public HwSwitch {
    * Update global statistics.
    */
   void updateGlobalStats();
-
-  /*
-   * Create warm boot file to signify that its safe to do a warm boot on
-   * controller restart.
-   */
-  void setCanWarmBoot();
-
-  /*
-   * Check to see if we can attempt a warm boot.
-   *
-   * Returns true if the last controller invocation saved warm boot state and
-   * shut down successfully, and false otherwise.  This function also clears
-   * the flag indicating that it is safe to warm boot, so that future
-   * controller instances won't attempt to warm boot until setCanWarmBoot() is
-   * called.
-   */
-  bool checkAndClearWarmBootFlag();
-
-  /*
-   * Get the path to the file indicating if we can warm boot or not.
-   */
-  std::string getCanWarmBootPath() const;
-
-  /*
-   * Get the path to the warm boot data file.
-   */
-  std::string getWarmBootDataPath() const;
 
   /**
    * ECMP hash setup
