@@ -1110,11 +1110,6 @@ opennsl_if_t BcmSwitch::getToCPUEgressId() const {
   }
 }
 
-bool BcmSwitch::neighborEntryHit(RouterID vrf, folly::IPAddress& ip) const {
-  auto host = hostTable_->getBcmHost(vrf, ip);
-  return host->getAndClearHitBit();
-}
-
 void BcmSwitch::exitFatal() const {
   dumpState();
   callback_->exitFatal();

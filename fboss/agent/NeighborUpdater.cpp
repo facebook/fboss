@@ -16,15 +16,9 @@
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/StateDelta.h"
-#include "fboss/agent/NeighborExpirer.h"
 #include <folly/futures/Future.h>
 
-#include <chrono>
-#include <boost/container/flat_map.hpp>
-
 using std::chrono::seconds;
-using std::chrono::time_point;
-using std::chrono::steady_clock;
 using std::shared_ptr;
 using boost::container::flat_map;
 using folly::Future;
@@ -43,50 +37,42 @@ class NeighborUpdaterImpl : private folly::AsyncTimeout {
   static void start(void* arg);
   static void stop(void* arg);
 
-  void stateChanged(const VlanDelta& delta);
+  void stateChanged(const StateDelta& delta);
 
  private:
   typedef std::function<
     std::shared_ptr<SwitchState>(const std::shared_ptr<SwitchState>&)>
     StateUpdateFn;
-  typedef NeighborExpirer<ArpTable> ArpExpirer;
-  typedef NeighborExpirer<NdpTable> NdpExpirer;
 
   NeighborUpdaterImpl(NeighborUpdaterImpl const &) = delete;
   NeighborUpdaterImpl& operator=(NeighborUpdaterImpl const &) = delete;
 
-  bool willUpdateTables();
-  void refreshEntries();
-
   shared_ptr<SwitchState>
-  updateTables(const shared_ptr<SwitchState>& state);
+  prunePendingEntries(const shared_ptr<SwitchState>& state);
+
+  bool pendingEntriesExist() const;
 
   virtual void timeoutExpired() noexcept {
-    refreshEntries();
-    if (willUpdateTables()) {
-      sw_->updateState("Updating neighbor tables", updateTables_);
+    if (pendingEntriesExist()) {
+      sw_->updateState("Remove pending Arp entries", prunePendingEntries_);
     }
     scheduleTimeout(interval_);
   }
 
   VlanID const vlan_;
   SwSwitch* const sw_{nullptr};
-  StateUpdateFn updateTables_;
+  StateUpdateFn prunePendingEntries_;
   seconds interval_;
-  ArpExpirer arpExpirer_;
-  NdpExpirer ndpExpirer_;
 };
 
-NeighborUpdaterImpl::NeighborUpdaterImpl(VlanID vlanID, SwSwitch* sw,
+NeighborUpdaterImpl::NeighborUpdaterImpl(VlanID vlan, SwSwitch *sw,
                                          const SwitchState* state)
   : AsyncTimeout(sw->getBackgroundEVB()),
-    vlan_(vlanID),
+    vlan_(vlan),
     sw_(sw),
-    interval_(state->getArpAgerInterval()),
-    arpExpirer_(sw, state->getArpTimeout()),
-    ndpExpirer_(sw, state->getNdpTimeout()) {
-  updateTables_ = std::bind(&NeighborUpdaterImpl::updateTables,
-                            this, std::placeholders::_1);
+    interval_(state->getArpAgerInterval()) {
+  prunePendingEntries_ = std::bind(&NeighborUpdaterImpl::prunePendingEntries,
+                                   this, std::placeholders::_1);
 }
 
 void NeighborUpdaterImpl::start(void* arg) {
@@ -99,47 +85,46 @@ void NeighborUpdaterImpl::stop(void* arg) {
   delete ntu;
 }
 
-void NeighborUpdaterImpl::stateChanged(const VlanDelta& delta) {
-  // We may want to subscribe to changes in the configured
-  // interval/timeouts here if we decide we want to be able to change these
+void NeighborUpdaterImpl::stateChanged(const StateDelta& delta) {
+  // Does nothing now. We may want to subscribe to changes in the configured
+  // interval/timeouts here if we decide  want to be able to change these
   // values on the fly
-  arpExpirer_.addNewEntries(delta.getArpDelta());
-  ndpExpirer_.addNewEntries(delta.getNdpDelta());
 }
 
 shared_ptr<SwitchState>
-NeighborUpdaterImpl::updateTables(const shared_ptr<SwitchState>& state) {
-  auto vlan = state->getVlans()->getVlanIf(vlan_).get();
-  if (!vlan) {
-    return nullptr;
-  }
-
+NeighborUpdaterImpl::prunePendingEntries(const shared_ptr<SwitchState>& state) {
   shared_ptr<SwitchState> newState{state};
-  auto arpTable = vlan->getArpTable().get();
-  auto newArpTable = arpTable->modify(&vlan, &newState);
-  newArpTable->prunePendingEntries();
-  arpExpirer_.expireEntries(newArpTable);
 
-  auto ndpTable = vlan->getNdpTable().get();
-  auto newNdpTable = ndpTable->modify(&vlan, &newState);
-  newNdpTable->prunePendingEntries();
-  ndpExpirer_.expireEntries(newNdpTable);
+  bool modified = false;
+  auto vlanIf = state->getVlans()->getVlanIf(vlan_);
+  if (vlanIf) {
+    auto vlan = vlanIf.get();
 
-  return newState;
+    auto arpTable = vlan->getArpTable().get();
+    if (arpTable->hasPendingEntries()) {
+      auto newArpTable = arpTable->modify(&vlan, &newState);
+      if (newArpTable->prunePendingEntries()) {
+        modified = true;
+      }
+    }
+
+    auto ndpTable = vlan->getNdpTable().get();
+    if (ndpTable->hasPendingEntries()) {
+      auto newNdpTable = ndpTable->modify(&vlan, &newState);
+      if (newNdpTable->prunePendingEntries()) {
+        modified = true;
+      }
+    }
+  }
+  return modified ? newState : nullptr;
 }
 
-bool NeighborUpdaterImpl::willUpdateTables() {
+bool NeighborUpdaterImpl::pendingEntriesExist() const {
   auto state = sw_->getState();
   auto vlan = state->getVlans()->getVlanIf(vlan_);
   auto arpTable = vlan->getArpTable();
   auto ndpTable = vlan->getNdpTable();
-  return arpTable->hasPendingEntries() || ndpTable->hasPendingEntries() ||
-    arpExpirer_.willExpireEntries() || ndpExpirer_.willExpireEntries();
-}
-
-void NeighborUpdaterImpl::refreshEntries() {
-  arpExpirer_.refreshEntries();
-  ndpExpirer_.refreshEntries();
+  return arpTable->hasPendingEntries() || ndpTable->hasPendingEntries();
 }
 
 NeighborUpdater::NeighborUpdater(SwSwitch* sw)
@@ -188,7 +173,7 @@ void NeighborUpdater::stateUpdated(const StateDelta& delta) {
 
     auto res = updaters_.find(newEntry->getID());
     auto updater = res->second;
-    updater->stateChanged(entry);
+    updater->stateChanged(delta);
   }
 }
 
@@ -200,6 +185,7 @@ void NeighborUpdater::vlanAdded(const SwitchState* state, const Vlan* vlan) {
     NeighborUpdaterImpl::start, updater);
   if (!ret) {
     delete updater;
+
     throw FbossError("failed to start neighbor updater");
   }
 }

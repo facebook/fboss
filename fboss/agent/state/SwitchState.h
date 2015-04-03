@@ -52,7 +52,6 @@ struct SwitchStateFields {
   // TODO(aeckert): Figure out a nicer way to store these config fields
   // in an accessible way
   std::chrono::seconds arpTimeout{60};
-  std::chrono::seconds ndpTimeout{60};
   std::chrono::seconds arpAgerInterval{5};
 };
 
@@ -139,12 +138,6 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   }
 
   void setArpTimeout(std::chrono::seconds timeout);
-
-  std::chrono::seconds getNdpTimeout() const {
-    return getFields()->ndpTimeout;
-  }
-
-  void setNdpTimeout(std::chrono::seconds timeout);
 
   std::chrono::seconds getArpAgerInterval() const {
     return getFields()->arpAgerInterval;

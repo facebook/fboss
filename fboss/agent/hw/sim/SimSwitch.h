@@ -49,11 +49,6 @@ class SimSwitch : public HwSwitch {
     // TODO
   }
 
-  bool neighborEntryHit(RouterID vrf, folly::IPAddress& ip) const override {
-    //TODO
-    return false;
-  }
-
   bool isPortUp(PortID port) const override {
     // Should be called only from SwSwitch which knows whether
     // the port is enabled or not

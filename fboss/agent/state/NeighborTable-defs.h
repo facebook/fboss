@@ -85,13 +85,6 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addPendingEntry(
  }
 
 template<typename IPADDR, typename ENTRY, typename SUBCLASS>
-void NeighborTable<IPADDR, ENTRY, SUBCLASS>::removeEntry(
-    AddressType ip) {
-  CHECK(!this->isPublished());
-  this->removeNode(ip);
-}
-
-template<typename IPADDR, typename ENTRY, typename SUBCLASS>
 bool NeighborTable<IPADDR, ENTRY, SUBCLASS>::prunePendingEntries() {
   CHECK(!this->isPublished());
 

@@ -48,8 +48,6 @@ class BcmHost {
     return program(intf, nullptr, 0, DROP);
   }
   opennsl_if_t getEgressId() const;
-
-  bool getAndClearHitBit() const;
  private:
   // no copy or assignment
   BcmHost(BcmHost const &) = delete;
