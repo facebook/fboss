@@ -58,6 +58,15 @@ struct SfpDomReadValue {
   5: double rxPwr,
 }
 
+struct SfpVendor {
+  1: string name,
+  2: string oui,
+  3: string partNumber,
+  4: string rev,
+  5: string serialNumber,
+  6: string dateCode,
+}
+
 struct SfpDom {
   1: string name,
   2: bool sfpPresent,
@@ -65,4 +74,5 @@ struct SfpDom {
   6: optional SfpDomThreshFlags flags,
   7: optional SfpDomThreshValue threshValue,
   8: optional SfpDomReadValue value,
+  9: optional SfpVendor vendor,
 }

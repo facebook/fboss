@@ -179,6 +179,13 @@ class SfpModule {
   bool domSupport_;
 
   /*
+   * This function returns a pointer to the value in the static cached
+   * data after checking the length fits. The thread needs to have the lock
+   * before calling this function.
+   */
+  const uint8_t* getSfpValuePtr(int dataAddress, int offset,
+                                int length) const;
+  /*
    * This function returns the values on the offset and length
    * from the static cached data. The thread needs to have the lock
    * before calling this function.
@@ -233,6 +240,11 @@ class SfpModule {
    */
   mutable std::mutex sfpModuleMutex_;
   /*
+   * This function returns various strings from the SFP EEPROM
+   * caller needs to check if DOM is supported or not
+   */
+  std::string getSfpString(const SfpIdpromFields flag);
+  /*
    * This function returns the status of the SFP alarm/warning flag
    * caller needs to check if DOM is supported or not
    */
@@ -253,15 +265,20 @@ class SfpModule {
    */
   bool getDomFlagsMap(SfpDomThreshFlags &domFlags);
   /*
-   * This function returns all the value of the DOM
+   * This function returns all the values of the DOM
    * Returns false when no data exists
    */
   bool getDomValuesMap(SfpDomReadValue &value);
   /*
-   * This function returns all the threshold value of the Sfp DOM
+   * This function returns all the threshold values of the Sfp DOM
    * returns false when no data exists
    */
   bool getDomThresholdValuesMap(SfpDomThreshValue &domThresh);
+  /*
+   * This function returns all the vendor values of the Sfp DOM
+   * returns false when no data exists
+   */
+  bool getVendorMap(SfpVendor &vendor);
 };
 
 }} //namespace facebook::fboss

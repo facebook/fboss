@@ -180,6 +180,31 @@ bool SfpModule::getDomValuesMap(SfpDomReadValue &value) {
   return false;
 }
 
+bool SfpModule::getVendorMap(SfpVendor &vendor) {
+  if (present_) {
+    vendor.name = getSfpString(SfpIdpromFields::VENDOR_NAME);
+    vendor.oui = getSfpString(SfpIdpromFields::VENDOR_OUI);
+    vendor.partNumber = getSfpString(SfpIdpromFields::PART_NUMBER);
+    vendor.rev = getSfpString(SfpIdpromFields::REVISION_NUMBER);
+    vendor.serialNumber = getSfpString(SfpIdpromFields::VENDOR_SERIAL_NUMBER);
+    vendor.dateCode = getSfpString(SfpIdpromFields::MFG_DATE);
+    return true;
+  }
+  return false;
+}
+
+std::string SfpModule::getSfpString(const SfpIdpromFields flag) {
+  int offset, dataAddress, length;
+  getSfpFieldAddress(flag, dataAddress,
+                      offset, length);
+  const uint8_t *data = getSfpValuePtr(dataAddress, offset, length);
+
+  while (length > 0 && data[length - 1] == ' ') {
+    --length;
+  }
+  return std::string(reinterpret_cast<const char*>(data), length);
+}
+
 bool SfpModule::getSfpThreshFlag(const SfpDomFlag flag) {
   uint8_t data[10];
   int offset, dataAddress, length;
@@ -257,10 +282,17 @@ void SfpModule::setDomSupport() {
                                  dataAddress, offset, length);
   getSfpValue(dataAddress, offset, length, &data);
   /* bit 7 and 6 needs to be checked for DOM */
-  if (((data & (1 << 7)) == 0) && (data & (1 << 6))) {
-    domSupport_ = true;
-  } else {
+  if ((data & (1 << 7)) || (data & (1 << 6)) == 0) {
     domSupport_ = false;
+  } else if (data & (1 << 2)) {
+    /* TODO(klahey):  bit 2 indicates that we need an address change
+     * operation, which we have not yet implemented.
+     */
+    domSupport_ = false;
+    LOG(ERROR) << "Port: " << folly::to<std::string>(sfpImpl_->getName()) <<
+      " could not read SFP DOM info, need address change support";
+  } else {
+    domSupport_ = true;
   }
 }
 
@@ -269,23 +301,30 @@ bool SfpModule::isDomSupported() const {
   return domSupport_;
 }
 
-void SfpModule::getSfpValue(int dataAddress,
-                            int offset, int length, uint8_t* data) const {
+const uint8_t* SfpModule::getSfpValuePtr(int dataAddress, int offset,
+                                         int length) const {
   /* if the cached values are not correct */
-  if (dirty_ && (!present_)) {
+  if (dirty_ || (!present_)) {
     throw FbossError("Sfp is either not present or the data is not read");
   }
   if (dataAddress == 0x50) {
     CHECK_LE(offset + length, sizeof(sfpIdprom_));
     /* Copy data from the cache */
-    memcpy(data, (sfpIdprom_ + offset), length);
+    return(sfpIdprom_ + offset);
   } else if (dataAddress == 0x51) {
     CHECK_LE(offset + length, sizeof(sfpDom_));
     /* Copy data from the cache */
-    memcpy(data, (sfpDom_ + offset), length);
+    return(sfpDom_ + offset);
   } else {
     throw FbossError("Invalid Data Address 0x%d", dataAddress);
   }
+}
+
+void SfpModule::getSfpValue(int dataAddress,
+                            int offset, int length, uint8_t* data) const {
+  const uint8_t *ptr = getSfpValuePtr(dataAddress, offset, length);
+
+  memcpy(data, ptr, length);
 }
 
 bool SfpModule::isSfpPresent() const {
@@ -335,6 +374,9 @@ void SfpModule::getSfpDom(SfpDom &dom) {
   }
   if (getDomValuesMap(dom.value)) {
     dom.__isset.value = true;
+  }
+  if (getVendorMap(dom.vendor)) {
+    dom.__isset.vendor = true;
   }
 }
 
