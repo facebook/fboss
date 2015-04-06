@@ -149,16 +149,20 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   }
 
   /*
-   * Thrift call to get the server's idle timeout.  Used by duplex clients to
-   * configure keepalive itnervals. -1 means unset.
+   * Indicate a change in the parent ThriftServer's idle timeout.  NOT a thrift
+   * call.  This must be called before any client calls the getIdleTimeout()
+   * Thrift function or it will throw an FbossError.  It is not always set
+   * because sometimes we want to create a ThriftHandler without a ThriftServer
+   * (e.g., during unit tests).
    *
-   * @return    The idle timeout in seconds.
+   * @param[in]   timeout      The idle timeout in seconds.
    */
-  void setIdleTimeout(int32_t timeout) { thriftIdleTimeout_ = timeout; }
+  void setIdleTimeout(const int32_t timeout) { thriftIdleTimeout_ = timeout; }
 
   /*
    * Thrift call to get the server's idle timeout.  Used by duplex clients to
-   * configure keepalive itnervals. -1 means unset.
+   * configure keepalive intervals. If the timeout is unset of <0 (invalid) this
+   * call throws an FbossError.
    *
    * @return    The idle timeout in seconds.
    */
