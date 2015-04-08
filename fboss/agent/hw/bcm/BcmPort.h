@@ -90,6 +90,9 @@ class BcmPort {
                         const std::vector<opennsl_stat_val_t>& stats);
   std::string statName(folly::StringPiece name) const;
 
+  void disableRxPause();
+  void setAdditionalStats(std::chrono::seconds now);
+
   BcmSwitch* const hw_{nullptr};
   const opennsl_port_t port_;    // Broadcom physical port number
   opennsl_gport_t gport_;  // Broadcom global port number
@@ -101,6 +104,7 @@ class BcmPort {
   MonotonicCounter inBroadcastPkts_{statName("in_broadcast_pkts")};
   MonotonicCounter inDiscards_{statName("in_discards")};
   MonotonicCounter inErrors_{statName("in_errors")};
+  MonotonicCounter inPause_{statName("in_pause_frames")};
 
   MonotonicCounter outBytes_{statName("out_bytes")};
   MonotonicCounter outUnicastPkts_{statName("out_unicast_pkts")};
@@ -108,6 +112,7 @@ class BcmPort {
   MonotonicCounter outBroadcastPkts_{statName("out_broadcast_pkts")};
   MonotonicCounter outDiscards_{statName("out_discards")};
   MonotonicCounter outErrors_{statName("out_errors")};
+  MonotonicCounter outPause_{statName("out_pause_frames")};
 
   stats::ExportedStatMap::LockAndStatItem outQueueLen_;
   stats::ExportedHistogramMap::LockAndHistogram inPktLengths_;

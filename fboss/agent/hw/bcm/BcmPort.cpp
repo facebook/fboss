@@ -68,6 +68,8 @@ BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
   int rv = opennsl_port_gport_get(unit, port_, &gport_);
   bcmCheckError(rv, "Failed to get gport for BCM port ", port_);
 
+  disableRxPause();
+
   // Initialize our stats data structures
   auto statMap = fbData->getStatMap();
   const auto expType = stats::AVG;
@@ -141,6 +143,8 @@ void BcmPort::updateStats() {
   updateStat(now, &outBroadcastPkts_, opennsl_spl_snmpIfHCOutBroadcastPckts);
   updateStat(now, &outDiscards_, opennsl_spl_snmpIfOutDiscards);
   updateStat(now, &outErrors_, opennsl_spl_snmpIfOutErrors);
+
+  setAdditionalStats(now);
 
   // Update the queue length stat
   uint32_t qlength;
