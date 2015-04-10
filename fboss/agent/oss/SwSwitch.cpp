@@ -8,8 +8,20 @@
  *
  */
 #include "fboss/agent/SwSwitch.h"
+#include <folly/Range.h>
 
 namespace facebook { namespace fboss {
+
+void SwSwitch::initThread(folly::StringPiece name) {
+  // We need a null-terminated string to pass to pthread_setname_np().
+  // The pthread name can be at most 15 bytes long, so truncate it if necessary
+  // when creating the string.
+  size_t pthreadLength = std::min(name.size(), (size_t)15);
+  char pthreadName[pthreadLength + 1];
+  memcpy(pthreadName, name.begin(), pthreadLength);
+  pthreadName[pthreadLength] = '\0';
+  pthread_setname_np(pthread_self(), pthreadName);
+}
 
 void SwSwitch::publishStats() {}
 
