@@ -35,9 +35,9 @@ class TxPacket;
  * HwSwitch is a pure virtual interface, and separate implementations must be
  * provided for each different switch topology that we support.  For instance,
  * we may have different implementations for single-chip Broadcom platforms,
- * single-chip Intel platforms, multi-chip Broadcom platforms, etc.  A mock,
- * software only implementation may also be provided for testing on development
- * servers with no actual hardware switching ASIC.
+ * multi-chip Broadcom platforms, etc.  A mock, software only implementation
+ * may also be provided for testing on development servers with no actual
+ * hardware switching ASIC.
  *
  * At a minimum, a HwSwitch implementation must provides access to the switch
  * ports, and provides methods for sending and receiving packets via these
