@@ -12,6 +12,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <map>
 
 #include "common/fb303/cpp/FacebookBase2.h"
 #include "fboss/agent/FbossError.h"
@@ -21,6 +22,7 @@
 #include "fboss/agent/if/gen-cpp2/PortStatusListenerClient.h"
 
 #include <folly/Synchronized.h>
+#include <folly/String.h>
 #include <thrift/lib/cpp/server/TServer.h>
 
 namespace facebook { namespace fboss {
@@ -73,7 +75,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::unique_ptr<folly::fbstring> data) override;
   void sendPktHex(int32_t port, int32_t vlan,
       std::unique_ptr<folly::fbstring> hex) override;
-
   int32_t flushNeighborEntry(std::unique_ptr<BinaryAddress> ip,
                              int32_t vlan) override;
 
@@ -96,7 +97,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getInterfaceDetail(InterfaceDetail& interfaceDetails,
                                           int32_t interfaceId) override;
   void getPortStats(PortStatThrift& portStats, int32_t portId) override;
-  void getAllPortStats(map<int32_t, PortStatThrift>& portStatsMap) override;
+  void getAllPortStats(std::map<int32_t, PortStatThrift>& portStats) override;
   void getArpTable(std::vector<ArpEntryThrift>& arpTable) override;
   void getNdpTable(std::vector<NdpEntryThrift>& arpTable) override;
 

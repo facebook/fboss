@@ -11,6 +11,7 @@
 
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
+#include "common/stats/ServiceData.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/HighresCounterSubscriptionHandler.h"
