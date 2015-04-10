@@ -51,5 +51,14 @@ folly::IPAddressV4 getSwitchVlanIP(const std::shared_ptr<SwitchState>& state,
  */
 folly::IPAddressV6 getSwitchVlanIPv6(const std::shared_ptr<SwitchState>& state,
                                      VlanID vlan);
-
-}}
+/*
+ * Increases the nice value of the calling thread by increment. Note that this
+ * code relies on the fact that Linux is not POSIX compliant. Otherwise, there
+ * is no way to set per-thread priorities without root priviledges.
+ *
+ * @param[in]    increment       How much to add to the current nice value. Must
+ *                               be positive because we don't have the
+ *                               priviledges to decrease our niceness.
+ */
+void incNiceValue(const uint32_t increment);
+}} // facebook::fboss

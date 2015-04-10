@@ -7,9 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
- #pragma once
-
-#include <folly/ProducerConsumerQueue.h>
+#pragma once
 
 #include "fboss/agent/if/gen-cpp2/FbossHighresClient.h"
 #include "fboss/agent/HighresCounterUtil.h"
@@ -18,10 +16,6 @@ namespace facebook { namespace fboss {
 
 // How often to print out load warnings
 const int kOverloadWarningEveryN = 1000;
-const int kQueueFullWarningEveryN = 10000;
-// How to sleep (i.e., using nanosleep() or asm ("pause"))
-enum class SleepMethod { NANOSLEEP, PAUSE };
-const enum SleepMethod kSleepMethod = SleepMethod::PAUSE;
 
 /*
  * A simple, atomic flag that starts unset, but can later be set.  Wrapped in a
@@ -42,107 +36,77 @@ class Signal {
   std::atomic<bool> s_;
 };
 
-typedef folly::Synchronized<Signal> KillSwitch;
-
 /*
- * A single-producer-single-consumer queue to store publications before they
- * are sent.  It is implemented with a lock-free folly::ProducerConsumerQueue
- * with a few wrapper functions to add blocking reads/writes and error messages.
- */
-class PublicationQueue {
- public:
-  explicit PublicationQueue(uint32_t size) : queue_(size) {}
-
-  void blockingRead(std::unique_ptr<CounterPublication>& pub) {
-    while (!queue_.read(pub)) {
-      sched_yield();
-    }
-  }
-
-  void bestEffortWrite(std::unique_ptr<CounterPublication> pub) {
-    if (!queue_.write(std::move(pub))) {
-      LOG_EVERY_N(ERROR, kQueueFullWarningEveryN)
-          << "PublicationQueue is full.  SampleProducer is dropping samples.";
-    }
-  }
-
-  void blockingWrite(std::unique_ptr<CounterPublication> pub) {
-    while (!queue_.write(std::move(pub))) {
-      sched_yield();
-    }
-  }
-
- private:
-  // Non-copyable
-  PublicationQueue(const PublicationQueue&) = delete;
-  PublicationQueue& operator=(const PublicationQueue&) = delete;
-
-  folly::ProducerConsumerQueue<std::unique_ptr<CounterPublication>> queue_;
-};
-
-/*
- * The class that consumes publications from a shared queue and sends them
- * back to the subscribed client. When a thrift handler gets a subscription
- * request, it spawns a producer and sender and (mostly) forgets about them. The
- * sender continues until it receives a signal from the producer that there are
- * no more values (in the form of a nullptr in the queue) or a signal from the
- * thrift handler that the connection is about to be destroyed.
+ * A helper class that sends publications back to the subscribed client.
  */
 class SampleSender {
  public:
   /*
    * Constructor.  It sets up a bunch of internal state.
    *
-   * @param[in,out] queue        The MPMC queue that will hold publications.
-   *                             This should be shared with the SampleProducer.
+   * @param[in]     client       The duplex client. We will share this with
+   *                             thrift callbacks so that it doesn't get
+   *                             destroyed while the calls are queued up.
    * @param[in,out] killSwitch   A shared kill switch that lets different
    *                             threads signal errors and closed connections.
    *                             We will share this switch with thrift callbacks
    *                             so they can inform us of errors.
+   * @param[in,out] eventBase    The event base. We need this because the client
+   *                             needs to be destroyed in the event base thread.
    * @param[in]     numCounters  The total number of counters that we are
    *                             sampling. Used for rate calculations.
    */
-  SampleSender(std::shared_ptr<PublicationQueue> queue,
-               std::shared_ptr<KillSwitch> killSwitch,
+  SampleSender(std::shared_ptr<FbossHighresClientAsyncClient> client,
+               std::shared_ptr<Signal> killSwitch,
+               apache::thrift::async::TEventBase* const eventBase,
                const int numCounters)
-      : queue_(std::move(queue)),
+      : client_(std::move(client)),
         killSwitch_(std::move(killSwitch)),
+        eventBase_(eventBase),
         rateCalc_("SampleSender"),
         numCounters_(numCounters) {}
 
   /*
-   * Function where we actually consume publications.  Does so recursively until
-   * we get a nullptr or kill signal.
-   *
-   * @param[in,out]  eventBase   The event base. We need this because the client
-   *                             needs to be destroyed in the event base thread,
-   *                             and this function runs in a separate thread.
-   * @param[in,out]  client      The duplex client. We will share this with
-   *                             thrift callbacks so that it doesn't get
-   *                             destroyed while the calls are queued up.
+   * Destructor that ensures that the client is destroyed in the event base
+   * thread.
    */
-  void consume(apache::thrift::async::TEventBase* eventBase,
-               std::shared_ptr<FbossHighresClientAsyncClient> client);
+  ~SampleSender() {
+    auto wrappedClient = folly::makeMoveWrapper(std::move(client_));
+    eventBase_->runInEventBaseThread(
+        [wrappedClient]() mutable { (*wrappedClient).reset(); });
+  }
+
+  /*
+   * Initializes the rate calculator
+   */
+  void initialize() { rateCalc_.initialize(); }
+
+  /*
+   * Publish the counters back to the duplex client.  This should be called from
+   * the event base thread where client_ came from.
+   *
+   * @param[in]   pub    The finished publication to send. It will be destroyed
+   *                     after this function returns.
+   */
+  void publish(std::unique_ptr<CounterPublication> pub);
 
  private:
   // Non-copyable
   SampleSender(const SampleSender&) = delete;
   SampleSender& operator=(const SampleSender&) = delete;
 
-  inline bool tryPublish(std::shared_ptr<FbossHighresClientAsyncClient>& client,
-                         CounterPublication* pub);
-
-  std::shared_ptr<PublicationQueue> queue_;
-  std::shared_ptr<KillSwitch> killSwitch_;
-  SingleThreadRateCalculator rateCalc_;
+  std::shared_ptr<FbossHighresClientAsyncClient> client_;
+  std::shared_ptr<Signal> killSwitch_;
+  apache::thrift::async::TEventBase* const eventBase_;
+  SharedRateCalculator rateCalc_;
   const int numCounters_;
 };
 
 /*
  * The class that builds updates for the subscribed client. When a thrift
- * server gets a subscription request, it spawns a Producer and Sender and
- * (mostly) forgets about them. The producer will then continue on its own for a
- * preset amount of time or until a kill signal is received.
+ * server gets a subscription request, it spawns a Producer and (mostly) forgets
+ * about it. The producer will then continue on its own for a preset amount of
+ * time or until a kill signal is received.
  */
 class SampleProducer {
  public:
@@ -152,10 +116,12 @@ class SampleProducer {
    *
    * @param[in]     samplers    The entire set of samplers to query in each
    *                            round.
-   * @param[in,out] queue       The MPMC queue that will hold publications. This
-   *                            should be shared with the SampleSender.
+   * @param[out]    sender      The SampleSender that we call to publish data
+   *                            back to the client.
    * @param[in]     killSwitch  A shared kill switch that lets different
    *                            threads signal errors and closed connections.
+   * @param[in,out] eventBase   The event base. We use it to schedule publish
+   *                            calls.
    * @param[in]     req         The subscription request, which specifies the
    *                            counter names, timeouts, sampling intervals,
    *                            etc.
@@ -163,8 +129,9 @@ class SampleProducer {
    *                            sampling. Used for rate calculations.
    */
   SampleProducer(std::unique_ptr<HighresSamplerList> samplers,
-                 std::shared_ptr<PublicationQueue> queue,
-                 std::shared_ptr<KillSwitch> killSwitch,
+                 std::shared_ptr<SampleSender> sender,
+                 std::shared_ptr<Signal> killSwitch,
+                 apache::thrift::async::TEventBase* const eventBase,
                  const CounterSubscribeRequest& req,
                  const int numCounters);
 
@@ -179,32 +146,40 @@ class SampleProducer {
   SampleProducer(const SampleProducer&) = delete;
   SampleProducer& operator=(const SampleProducer&) = delete;
 
+  // A wrapper for nanosleep that takes std::chrono::nanoseconds
+  inline void nanosleepHelper(const std::chrono::nanoseconds& timeLeft);
+
   // Sleep until we are ready to take another sample.  We will try to sleep
   // until start + interval_.  It takes a start time so we can account for the
-  // time that has already elapsed while taking samples.
-  inline void sleepNs(
-      const std::chrono::high_resolution_clock::time_point& start);
+  // time that has already elapsed while taking samples.  After this function
+  // executes, start >= start + interval.
+  inline void sleepNs(std::chrono::high_resolution_clock::time_point* start);
 
   // Iteratively build the publication by querying all the samplers once
   inline void buildPublication(
       CounterPublication* pub,
       const std::chrono::high_resolution_clock::time_point& time);
 
-  // Helper classes to poll counters
-  std::unique_ptr<HighresSamplerList> samplers_;
+  // Schedule the SampleSender in a tm thread
+  inline void publish(std::unique_ptr<CounterPublication> pub);
 
-  // Variables storing information about the subscription
+  // For the normal polling loop
+  std::unique_ptr<HighresSamplerList> samplers_;
+  std::shared_ptr<Signal> killSwitch_;
+
+  // For sending the publications
+  std::shared_ptr<SampleSender> sender_;
+  apache::thrift::async::TEventBase* const eventBase_;
+
+  // For storing information about the subscription
   const std::string hostname_;
   const std::chrono::seconds maxTime_;
   const int64_t maxCount_;
   const std::chrono::nanoseconds interval_;
   const int32_t batchSize_;
+  const SleepMethod sleepMethod_;
 
-  // Shared state between the sender and producer
-  std::shared_ptr<PublicationQueue> queue_;
-  std::shared_ptr<KillSwitch> killSwitch_;
-
-  // Variables to keep track of the rate at which we are processing updates
+  // For keeping track of the rate at which we are processing updates
   SingleThreadRateCalculator rateCalc_;
   const int numCounters_;
   int numSamples_;

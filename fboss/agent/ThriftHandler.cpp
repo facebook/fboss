@@ -20,6 +20,7 @@
 #include "fboss/agent/SfpModule.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/capture/PktCapture.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
@@ -68,12 +69,6 @@ using facebook::network::toAddress;
 using facebook::network::toIPAddress;
 
 namespace facebook { namespace fboss {
-
-DEFINE_int64(publication_queue_size,
-             10000000,
-             "Size of the scribe consumer queue in samples.  This queue holds "
-             "high-resolution samples from a publisher while we slowly drain "
-             "it to scribe.");
 
 class RouteUpdateStats {
  public:
@@ -754,14 +749,13 @@ void ThriftHandler::connectionDestroyed(TConnectionContext* ctx) {
 
   // If there is an ongoing high-resolution counter subscription, kill it. Don't
   // grab a write lock if there are no active calls
-  if (!killSwitches_.asConst()->empty()) {
-    SYNCHRONIZED(killSwitches_) {
-      auto killSwitchIter = killSwitches_.find(ctx);
+  if (!highresKillSwitches_.asConst()->empty()) {
+    SYNCHRONIZED(highresKillSwitches_) {
+      auto killSwitchIter = highresKillSwitches_.find(ctx);
 
-      if (killSwitchIter != killSwitches_.end()) {
-        auto& killSwitch = *(killSwitchIter->second);
-        killSwitch->set();
-        killSwitches_.erase(killSwitchIter);
+      if (killSwitchIter != highresKillSwitches_.end()) {
+        killSwitchIter->second->set();
+        highresKillSwitches_.erase(killSwitchIter);
       }
     }
   }
@@ -775,37 +769,32 @@ void ThriftHandler::async_tm_subscribeToCounters(
   auto numCounters = sw_->getHighresSamplers(samplers.get(), req->counters);
 
   if (numCounters > 0) {
-    // Get/create everything we need to create both producer and sender
-    auto queue =
-        std::make_shared<PublicationQueue>(FLAGS_publication_queue_size);
-
     // Grab the connection context and create a kill switch
     auto ctx = callback->getConnectionContext()->getConnectionContext();
-    auto killSwitch = std::make_shared<KillSwitch>();
-    SYNCHRONIZED(killSwitches_) { killSwitches_[ctx] = killSwitch; }
+    auto killSwitch = std::make_shared<Signal>();
+    SYNCHRONIZED(highresKillSwitches_) {
+      highresKillSwitches_[ctx] = killSwitch;
+    }
 
-    // Build the producer and set it on its way
-    auto producer = make_unique<SampleProducer>(
-        std::move(samplers), queue, killSwitch, *req.get(), numCounters);
-    auto wrappedProducer = folly::makeMoveWrapper(std::move(producer));
-    std::thread producerThread(
-        [wrappedProducer]() mutable { (*wrappedProducer)->produce(); });
-    producerThread.detach();
-
-    // Build the sender and set it on its way
-    auto eventBase = callback->getEventBase();
+    // Create the sender
     auto client = ctx->getDuplexClient<FbossHighresClientAsyncClient>();
-    auto sender =
-        make_unique<SampleSender>(std::move(queue), killSwitch, numCounters);
-    auto wrappedSender = folly::makeMoveWrapper(std::move(sender));
-    // We wrap the share_ptr to client because we want to explicitly give up
-    // control so that we aren't the last one holding a shared_ptr
-    auto wrappedClient = folly::makeMoveWrapper(std::move(client));
-    std::thread senderThread(
-        [eventBase, wrappedSender, wrappedClient]() mutable {
-          (*wrappedSender)->consume(eventBase, wrappedClient.move());
-        });
-    senderThread.detach();
+    auto eventBase = callback->getEventBase();
+    auto sender = std::make_shared<SampleSender>(std::move(client), killSwitch,
+                                                 eventBase, numCounters);
+
+    // Create the sample producer and send it on its way
+    auto producer = make_unique<SampleProducer>(
+        std::move(samplers), std::move(sender), std::move(killSwitch),
+        eventBase, *req.get(), numCounters);
+    auto wrappedProducer = folly::makeMoveWrapper(std::move(producer));
+    auto veryNice = req->veryNice;
+    std::thread producerThread([wrappedProducer, veryNice]() mutable {
+      if (veryNice) {
+        incNiceValue(20);
+      }
+      (*wrappedProducer)->produce();
+    });
+    producerThread.detach();
 
     callback->result(true);
   } else {

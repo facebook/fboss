@@ -235,6 +235,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   // contexts to high resolution connection information
   folly::Synchronized<
       std::unordered_map<const apache::thrift::server::TConnectionContext*,
-                         std::shared_ptr<KillSwitch>>> killSwitches_;
+                         std::shared_ptr<Signal>>> highresKillSwitches_;
 };
 }} // facebook::fboss
