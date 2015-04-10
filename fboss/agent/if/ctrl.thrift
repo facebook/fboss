@@ -10,7 +10,7 @@ include "fboss/agent/if/optic.thrift"
 include "fboss/agent/if/highres.thrift"
 
 typedef binary (cpp2.type = "::folly::fbstring") fbbinary
-typedef string (cpp2.type = "::std::string") fbstring
+typedef string (cpp2.type = "::folly::fbstring") fbstring
 
 const i32 DEFAULT_CTRL_PORT = 5909
 
