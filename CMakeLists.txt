@@ -26,6 +26,7 @@ include_directories(${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2)
 find_library(GLOG glog)
 find_library(BOOSTFS boost_filesystem)
 find_library(BOOSTSYS boost_system)
+find_library(BOOSTTHREAD boost_thread)
 find_library(DOUBLECONV double-conversion)
 find_library(GFLAGS gflags)
 find_library(GLOG glog)
@@ -48,6 +49,8 @@ add_executable(wedge_agent
     fboss/agent/platforms/wedge/WedgePlatform.cpp
     fboss/agent/platforms/wedge/WedgePort.cpp
     fboss/agent/platforms/wedge/wedge_ctrl.cpp
+    fboss/agent/platforms/wedge/oss/WedgePort.cpp
+    fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
 )
 target_link_libraries(wedge_agent fboss_agent)
 
@@ -88,6 +91,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/sim/SimHandler.cpp
     fboss/agent/hw/sim/SimPlatform.cpp
     fboss/agent/hw/sim/SimSwitch.cpp
+    fboss/agent/HighresCounterSubscriptionHandler.cpp
     fboss/agent/HwSwitch.cpp
     fboss/agent/IPHeaderV4.cpp
     fboss/agent/IPv4Handler.cpp
@@ -96,12 +100,15 @@ add_library(fboss_agent STATIC
     fboss/agent/Main.cpp
     fboss/agent/ndp/IPv6RouteAdvertiser.cpp
     fboss/agent/NeighborUpdater.cpp
+    fboss/agent/lldp/LinkNeighborDB.cpp
+    fboss/agent/lldp/LinkNeighbor.cpp
     fboss/agent/oss/ApplyThriftConfig.cpp
     fboss/agent/oss/hw/bcm/BcmAPI.cpp
     fboss/agent/oss/hw/bcm/BcmSwitch.cpp
     fboss/agent/oss/hw/bcm/BcmUnit.cpp
+    fboss/agent/oss/hw/bcm/BcmPort.cpp
+    fboss/agent/oss/hw/bcm/BcmWarmBootHelper.cpp
     fboss/agent/oss/Main.cpp
-    fboss/agent/oss/platforms/wedge/WedgePlatform.cpp
     fboss/agent/oss/SwSwitch.cpp
     fboss/agent/packet/ArpHdr.cpp
     fboss/agent/packet/DHCPv4Packet.cpp
@@ -147,41 +154,30 @@ add_library(fboss_agent STATIC
     fboss/agent/ThriftHandler.cpp
     fboss/agent/TunIntf.cpp
     fboss/agent/TunManager.cpp
+    fboss/agent/HighresCounterUtil.cpp
     fboss/agent/UDPHeader.cpp
     fboss/agent/Utils.cpp
     # generated sources
     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/FacebookService.cpp
-    ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/FacebookService.h
+    ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/FacebookService_client.cpp
     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/fb303_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/fb303_types.h
     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_types.h
     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_reflection.cpp
-    ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_reflection.h
     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_types.h
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp/switch_config_reflection.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp/switch_config_reflection.h
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp/switch_config_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp/switch_config_types.h
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/SimCtrl.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/SimCtrl.h
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_types.h
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/ctrl_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/ctrl_types.h
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/FbossCtrl.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/FbossCtrl.h
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/PortStatusListenerClient_client.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/FbossHighresClient_client.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/fboss_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/fboss_types.h
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/optic_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/optic_types.h
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/highres_types.cpp
 )
 target_link_libraries(fboss_agent
     ${GLOG}
-    ${BOOSTFS}
-    ${BOOSTSYS}
-    ${DOUBLECONV}
     ${FOLLY}
     ${GFLAGS}
     ${GLOG}
@@ -190,6 +186,10 @@ target_link_libraries(fboss_agent
     ${THRIFTCPP2}
     ${OPENNSL}
     ${IPROUTE2}
+    ${BOOSTFS}
+    ${BOOSTSYS}
+    ${BOOSTTHREAD}
+    ${DOUBLECONV}
 )
 
 find_program(THRIFT1 thrift1)
@@ -208,6 +208,7 @@ function(fboss_add_thrift)
     foreach(srv ${arg_SERVICES})
         set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${srv}.cpp)
         set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${srv}.h)
+        set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}_client.cpp)
         set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}.cpp)
         set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}.h)
     endforeach(srv)
@@ -240,6 +241,9 @@ fboss_add_thrift(THRIFTSRC common/fb303/if/fb303.thrift SERVICES FacebookService
 fboss_add_thrift(THRIFTSRC common/network/if/Address.thrift OPTIONS json,compatibility,include_prefix=common/network/if)
 fboss_add_thrift(THRIFTSRC fboss/agent/switch_config.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/hw/sim/sim_ctrl.thrift SERVICES SimCtrl)
-fboss_add_thrift(THRIFTSRC fboss/agent/if/ctrl.thrift SERVICES FbossCtrl)
+fboss_add_thrift(THRIFTSRC fboss/agent/if/ctrl.thrift 
+    SERVICES FbossCtrl PortStatusListenerClient)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/fboss.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/optic.thrift)
+fboss_add_thrift(THRIFTSRC fboss/agent/if/highres.thrift SERVICES FbossHighresClient)
+
