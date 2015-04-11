@@ -15,11 +15,10 @@ from argparse import ArgumentParser, ArgumentError
 from contextlib import contextmanager
 from thrift.transport import TSocket
 from thrift.protocol import TBinaryProtocol
-from neteng.fboss.ctrl import FbossCtrl
-from neteng.fboss.ctrl.ttypes import IpPrefix
-from neteng.fboss.ctrl.ttypes import UnicastRoute
+from fboss.agent import FbossCtrl
+from fboss.agent.ttypes import IpPrefix
+from fboss.agent.ttypes import UnicastRoute
 from facebook.network.Address.ttypes import BinaryAddress
-from libfb.py.net import SSHTunnel
 
 DEFAULT_CLIENTID = 1
 
@@ -55,15 +54,14 @@ def del_route(args):
 
 @contextlib.contextmanager
 def get_client(args, timeout=5.0):
-    with SSHTunnel(args.host, args.port) as local_port:
-        sock = TSocket.TSocket('localhost', local_port)
-        sock.setTimeout(timeout * 1000)  # thrift timeout is in ms
-        protocol = TBinaryProtocol.TBinaryProtocol(sock)
-        transport = protocol.trans
-        transport.open()
-        client = FbossCtrl.Client(protocol)
-        yield client
-        transport.close()
+    sock = TSocket.TSocket('localhost', args.port)
+    sock.setTimeout(timeout * 1000)  # thrift timeout is in ms
+    protocol = TBinaryProtocol.TBinaryProtocol(sock)
+    transport = protocol.trans
+    transport.open()
+    client = FbossCtrl.Client(protocol)
+    yield client
+    transport.close()
 
 
 if __name__ == '__main__':
