@@ -59,9 +59,6 @@ to allow manual invocation of the agent's various thrift interfaces.
 
 See the BUILD.md document for instructions on how to build FBOSS.
 
-The current build system uses a monolithic Makefile, but we are looking to
-replace this with CMake in the future.
-
 ## Future Development
 
 FBOSS has been designed specifically to handle the needs of Facebook's data
