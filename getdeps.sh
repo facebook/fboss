@@ -11,7 +11,8 @@ function update() {
 }
 
 function update_branch() {
-    if [ ! git branch | grep "^${branch}\$" > /dev/null ]; then
+    branch="$1"
+    if [ "$(git symbolic-ref -q --short HEAD)" != "OpenNSL_6.3" ]; then
         git checkout -tb "$branch" "origin/$branch"
     fi
 }

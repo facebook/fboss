@@ -37,4 +37,4 @@ cmake ..
 make
 ```
 
-The produced executables are `sim_agent` and `wedge_agent` in the current directory.
+The produced executables are `sim_agent` and `wedge_agent` in the build directory.
