@@ -1,0 +1,42 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+#pragma once
+
+#include <string>
+#include <folly/IPAddress.h>
+
+namespace facebook { namespace fboss {
+
+class RestClient {
+ public:
+  RestClient(std::string hostname, int port);
+  RestClient(folly::IPAddress ipAddress, int port);
+  RestClient(folly::IPAddress ipAddress, int port, std::string interface);
+  /*
+   * Calls the particular Rest api
+   */
+  std::string request(std::string path);
+
+ private:
+  // Forbidden copy contructor and assignment operator
+  RestClient(RestClient const &) = delete;
+  RestClient& operator=(RestClient const &) = delete;
+
+  static size_t writer(char *buffer, size_t size,
+                        size_t entries, std::stringbuf *writer_buffer);
+  void createEndpoint();
+  std::string hostname_;
+  folly::IPAddress ipAddress_;
+  std::string interface_;
+  int port_;
+  std::string endpoint_;
+};
+
+}} // namespace facebook::fboss
