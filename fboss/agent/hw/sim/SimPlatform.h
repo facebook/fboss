@@ -14,7 +14,6 @@
 namespace facebook { namespace fboss {
 
 class SimSwitch;
-class SpromImpl;
 
 class SimPlatform : public Platform {
  public:
@@ -30,10 +29,6 @@ class SimPlatform : public Platform {
   }
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
-
-  SpromImpl* getSprom() const override {
-    return nullptr;
-  }
 
  private:
   // Forbidden copy constructor and assignment operator

@@ -17,7 +17,6 @@ namespace facebook { namespace fboss {
 class HwSwitch;
 class SwSwitch;
 class ThriftHandler;
-class SpromImpl;
 
 /*
  * Platform represents a specific switch/router platform.
@@ -88,11 +87,6 @@ class Platform {
    * empties the directory on reboot.
    */
   virtual std::string getVolatileStateDir() const = 0;
-
-  /*
-   * Get the sprom pointer to access Sprom info using thrift
-   */
-  virtual SpromImpl* getSprom() const = 0;
 
   /*
    * Get filename where switch state JSON maybe stored

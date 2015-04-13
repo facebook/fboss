@@ -187,10 +187,6 @@ void ThriftHandler::deleteUnicastRoute(
   sw_->updateStateBlocking("delete unicast route", updateFn);
 }
 
-void ThriftHandler::getProductInfo(ProductInfo& productInfo) {
-  sw_->getProductInfo(productInfo);
-}
-
 void ThriftHandler::addUnicastRoutes(
     int16_t client, std::unique_ptr<std::vector<UnicastRoute>> routes) {
   ensureConfigured("addUnicastRoutes");
