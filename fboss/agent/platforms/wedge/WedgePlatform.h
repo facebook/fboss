@@ -35,6 +35,10 @@ class WedgePlatform : public BcmPlatform {
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
 
+  SpromImpl* getSprom() const override {
+    return nullptr;
+  }
+
   void onUnitAttach() override;
   InitPortMap initPorts() override;
 

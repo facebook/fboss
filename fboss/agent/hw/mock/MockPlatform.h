@@ -17,6 +17,7 @@
 namespace facebook { namespace fboss {
 
 class MockHwSwitch;
+class SpromImpl;
 
 class MockPlatform : public Platform {
  public:
@@ -27,6 +28,10 @@ class MockPlatform : public Platform {
   std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
+
+  SpromImpl* getSprom() const override {
+    return nullptr;
+  }
 
   MOCK_CONST_METHOD0(getLocalMac, folly::MacAddress());
   MOCK_METHOD1(onHwInitialized, void(SwSwitch*));

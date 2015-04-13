@@ -41,6 +41,18 @@ struct InterfaceDetail {
   6: list<IpPrefix> address,
 }
 
+struct ProductInfo {
+  1: string oem,
+  2: string product,
+  3: string serial,
+  4: string backplaneOem,
+  5: string backplaneProduct,
+  6: string backplaneSerial,
+  7: string macBase,
+  8: i16 cardIndex,
+  9: string mgmtInterface,
+}
+
 struct PortErrors {
   1: i64 errors,
   2: i64 discards,
@@ -220,6 +232,12 @@ service FbossCtrl extends fb303.FacebookService {
    * Returns all the DOM information
    */
   map<i32, optic.SfpDom> getSfpDomInfo(1: list<i32> port)
+    throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Return product information
+   */
+  ProductInfo getProductInfo()
     throws (1: fboss.FbossBaseError error)
 
   /*

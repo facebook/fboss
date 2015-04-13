@@ -300,6 +300,11 @@ class SwSwitch : public HwSwitch::Callback {
   std::map<int32_t, SfpDom> getSfpDoms() const;
 
   /*
+   * Get Product Information.
+   */
+  void getProductInfo(ProductInfo& productInfo) const;
+
+  /*
    * Get SfpDom of the specified port.
    */
   SfpDom getSfpDom(PortID port) const;

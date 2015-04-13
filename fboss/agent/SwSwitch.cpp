@@ -32,6 +32,7 @@
 #include "fboss/agent/SfpMap.h"
 #include "fboss/agent/SfpModule.h"
 #include "fboss/agent/SfpImpl.h"
+#include "fboss/agent/SpromImpl.h"
 #include "fboss/agent/LldpManager.h"
 #include "common/stats/ServiceData.h"
 #include <folly/FileUtil.h>
@@ -570,6 +571,10 @@ SfpDom SwSwitch::getSfpDom(PortID port) const {
   SfpDom domInfo;
   getSfp(port)->getSfpDom(domInfo);
   return domInfo;
+}
+
+void SwSwitch::getProductInfo(ProductInfo& productInfo) const {
+  platform_->getSprom()->getInfo(productInfo);
 }
 
 void SwSwitch::createSfp(PortID portID, std::unique_ptr<SfpImpl>& sfpImpl) {
