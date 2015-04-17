@@ -81,6 +81,11 @@ class BcmEgress : public BcmEgressBase {
    */
   static void verifyDropEgress(int unit);
 
+  // Returns if the egress object is programmed to drop
+  static bool programmedToDrop(const opennsl_l3_egress_t& egr) {
+    return egr.flags & OPENNSL_L3_DST_DISCARD;
+  }
+
  private:
   bool alreadyExists(const  opennsl_l3_egress_t& newEgress) const;
   void program(opennsl_if_t intfId, opennsl_vrf_t vrf,
