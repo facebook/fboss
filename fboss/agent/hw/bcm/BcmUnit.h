@@ -36,7 +36,7 @@ class BcmUnit {
    * determine if a warm boot should be performed. In order for warm boot to
    * work properly the directory should not change between runs.
    */
-  void attach(folly::StringPiece warmBootDir);
+  void attach(std::string warmBootDir);
 
   /*
    * Initialize this BcmUnit, without warm boot support.

@@ -47,7 +47,7 @@ void BcmUnit::detach() {
   bcmCheckError(rv, "failed to clean up BCM state during warm boot shutdown");
 }
 
-void BcmUnit::attach(StringPiece warmBootDir) {
+void BcmUnit::attach(std::string warmBootDir) {
   if (attached_.load(std::memory_order_acquire)) {
     throw FbossError("unit ", unit_, " already initialized");
   }

@@ -15,7 +15,7 @@ namespace facebook { namespace fboss {
  */
 class BcmWarmBootHelper {
 public:
-  explicit BcmWarmBootHelper(int unit, folly::StringPiece warmBootDir="");
+  explicit BcmWarmBootHelper(int unit, std::string warmBootDir="");
   ~BcmWarmBootHelper();
 
   bool canWarmBoot();
@@ -61,7 +61,7 @@ private:
 
   int unit_{-1};
   bool canWarmBoot_{false};
-  folly::StringPiece warmBootDir_;
+  std::string warmBootDir_;
   int warmBootFd_{-1};
 };
 
