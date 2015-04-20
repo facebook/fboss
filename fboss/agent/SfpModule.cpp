@@ -114,7 +114,7 @@ int getSfpDomBit(const SfpDomFlag flag) {
 }
 
 bool SfpModule::getDomFlagsMap(SfpDomThreshFlags &domFlags) {
-  if (present_ && domSupport_) {
+  if (cacheIsValid() && domSupport_) {
     domFlags.tempAlarmHigh = getSfpThreshFlag(SfpDomFlag::TEMP_ALARM_HIGH);
     domFlags.tempAlarmLow = getSfpThreshFlag(SfpDomFlag::TEMP_ALARM_LOW);
     domFlags.tempWarnHigh = getSfpThreshFlag(SfpDomFlag::TEMP_WARN_HIGH);
@@ -141,7 +141,7 @@ bool SfpModule::getDomFlagsMap(SfpDomThreshFlags &domFlags) {
 }
 
 bool SfpModule::getDomThresholdValuesMap(SfpDomThreshValue &domThresh) {
-  if (present_ && domSupport_) {
+  if (cacheIsValid() && domSupport_) {
     domThresh.tempAlarmHigh = getSfpThreshValue(SfpDomFlag::TEMP_ALARM_HIGH);
     domThresh.tempAlarmLow = getSfpThreshValue(SfpDomFlag::TEMP_ALARM_LOW);
     domThresh.tempWarnHigh = getSfpThreshValue(SfpDomFlag::TEMP_WARN_HIGH);
@@ -169,7 +169,7 @@ bool SfpModule::getDomThresholdValuesMap(SfpDomThreshValue &domThresh) {
 }
 
 bool SfpModule::getDomValuesMap(SfpDomReadValue &value) {
-  if (present_ && domSupport_) {
+  if (cacheIsValid() && domSupport_) {
     value.temp = getSfpDomValue(SfpDomValue::TEMP);
     value.vcc = getSfpDomValue(SfpDomValue::VCC);
     value.txBias = getSfpDomValue(SfpDomValue::TX_BIAS);
@@ -181,7 +181,7 @@ bool SfpModule::getDomValuesMap(SfpDomReadValue &value) {
 }
 
 bool SfpModule::getVendorMap(SfpVendor &vendor) {
-  if (present_) {
+  if (cacheIsValid()) {
     vendor.name = getSfpString(SfpIdpromFields::VENDOR_NAME);
     vendor.oui = getSfpString(SfpIdpromFields::VENDOR_OUI);
     vendor.partNumber = getSfpString(SfpIdpromFields::PART_NUMBER);
@@ -270,7 +270,6 @@ void SfpModule::setSfpIdprom(const uint8_t* data) {
     throw FbossError("Sfp IDProm set failed as SFP is not present");
   }
   memcpy(sfpIdprom_, data, sizeof(sfpIdprom_));
-  dirty_ = false;
   /* set the DOM supported flag */
   setDomSupport();
 }
@@ -325,6 +324,12 @@ void SfpModule::getSfpValue(int dataAddress,
   const uint8_t *ptr = getSfpValuePtr(dataAddress, offset, length);
 
   memcpy(data, ptr, length);
+}
+
+// Note that this needs to be called while holding the
+// sfpModuleMutex_
+bool SfpModule::cacheIsValid() {
+  return present_ && !dirty_;
 }
 
 bool SfpModule::isSfpPresent() const {
@@ -453,6 +458,7 @@ void SfpModule::detectSfp() {
         sfpImpl_->readSfpEeprom(0x51, 0x0, MAX_SFP_EEPROM_SIZE, value);
         setSfpDom(value);
       }
+      dirty_ = false;
     }
   }
 }
@@ -462,7 +468,7 @@ int SfpModule::getSfpFieldValue(SfpIdpromFields fieldName,
   lock_guard<std::mutex> g(sfpModuleMutex_);
   int dataAddress, offset, length, rc;
   /* Determine if SFP is present */
-  if (present_) {
+  if (cacheIsValid()) {
     try {
       getSfpFieldAddress(fieldName, dataAddress, offset, length);
       getSfpValue(dataAddress, offset, length, fieldValue);
@@ -477,7 +483,7 @@ int SfpModule::getSfpFieldValue(SfpIdpromFields fieldName,
 void SfpModule::updateSfpDomFields() {
   lock_guard<std::mutex> g(sfpModuleMutex_);
   uint8_t value[MAX_SFP_EEPROM_SIZE];
-  if (present_ && domSupport_) {
+  if (cacheIsValid() && domSupport_) {
     sfpImpl_->readSfpEeprom(0x51, 0x0, MAX_SFP_EEPROM_SIZE, value);
     setSfpDom(value);
   }
