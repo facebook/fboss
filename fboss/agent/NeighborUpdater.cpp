@@ -22,7 +22,7 @@ using std::chrono::seconds;
 using std::shared_ptr;
 using boost::container::flat_map;
 using folly::Future;
-using folly::whenAll;
+using folly::collectAll;
 
 namespace facebook { namespace fboss {
 
@@ -153,7 +153,7 @@ NeighborUpdater::~NeighborUpdater() {
   }
 
   // Ensure that all of the updaters have been stopped before we return
-  whenAll(stopTasks.begin(), stopTasks.end()).get();
+  collectAll(stopTasks.begin(), stopTasks.end()).get();
 }
 
 void NeighborUpdater::stateUpdated(const StateDelta& delta) {
