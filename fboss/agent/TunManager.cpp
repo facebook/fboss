@@ -22,6 +22,7 @@ extern "C" {
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/TunIntf.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "thrift/lib/cpp/async/TEventBase.h"
@@ -39,6 +40,10 @@ TunManager::TunManager(SwSwitch *sw, TEventBase *evb) : sw_(sw), evb_(evb) {
 }
 
 TunManager::~TunManager() {
+  if (observingState_) {
+    sw_->unregisterStateObserver(this);
+  }
+
   stop();
   rtnl_close(&rth_);
 }
@@ -389,11 +394,12 @@ void TunManager::probe() {
   start();
 }
 
-void TunManager::sync(std::shared_ptr<InterfaceMap> map) {
+void TunManager::sync(std::shared_ptr<SwitchState> state) {
   // prepare the existing and new addresses
   typedef Interface::Addresses Addresses;
   typedef boost::container::flat_map<RouterID, Addresses> AddrMap;
   AddrMap newAddrs;
+  auto map = state->getInterfaces();
   for (const auto& intf : map->getAllNodes()) {
     const auto& addrs = intf.second->getAddresses();
     newAddrs[intf.second->getRouterID()].insert(addrs.begin(), addrs.end());
@@ -460,9 +466,24 @@ void TunManager::startProbe() {
     });
 }
 
-void TunManager::startSync(const std::shared_ptr<InterfaceMap>& map) {
-  evb_->runInEventBaseThread([this, map]() {
-      this->sync(map);
+void TunManager::startObservingUpdates() {
+  sw_->registerStateObserver(this, "TunManager");
+  observingState_ = true;
+}
+
+void TunManager::stateUpdated(const StateDelta& delta) {
+  // TODO(aeckert): We currently compare the entire interface map instead
+  // of using the iterator in this delta because some of the interfaces may get
+  // get probed from hardware, before they are in the SwitchState. It would be
+  // nicer if we did a little more work at startup to sync the state, perhaps
+  // updating the SwitchState with the probed interfaces. This would allow us
+  // to reuse the iterator in the delta for more readable code and also not
+  // have to worry about waiting to listen to updates until the SwSwitch is in
+  // the configured state. t4155406 should also help with that.
+
+  auto state = delta.newState();
+  evb_->runInEventBaseThread([this, state]() {
+      this->sync(state);
     });
 }
 
@@ -478,6 +499,9 @@ bool TunManager::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
   return iter->second->sendPacketToHost(std::move(pkt));
 }
 
+
+// TODO(aeckert): Find a way to reuse the iterator from NodeMapDelta here as
+// this basically duplicates that code.
 template<typename MAPNAME, typename CHANGEFN, typename ADDFN, typename REMOVEFN>
 void TunManager::applyChanges(const MAPNAME& oldMap,
                               const MAPNAME& newMap,

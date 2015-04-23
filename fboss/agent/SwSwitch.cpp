@@ -232,7 +232,24 @@ void SwSwitch::initialConfigApplied() {
     hw_->initialConfigApplied();
   }
   setSwitchRunState(SwitchRunState::CONFIGURED);
-  syncTunInterfaces();
+
+  if (tunMgr_) {
+    // We check for syncing tun interface only on state changes after the
+    // initial configuration is applied. This is really a hack to get around
+    // 2 issues
+    // a) On warm boot the initial state constructed from warm boot cache
+    // does not know of interface addresses. This means if we sync tun interface
+    // on applying initial boot up state we would blow away tunnel interferace
+    // addresses, causing connectivity disruption. Once t4155406 is fixed we
+    // should be able to remove this check.
+    // b) Even if we were willing to live with the above, the TunManager code
+    // does not properly track deleting of interface addresses, viz. when we
+    // delete a interface's primary address, secondary addresses get blown away
+    // as well. TunManager does not track this and tries to delete the
+    // secondaries as well leading to errors, t4746261 is tracking this.
+    tunMgr_->startObservingUpdates();
+  }
+
   if (lldpManager_) {
       lldpManager_->start();
   }
@@ -247,21 +264,42 @@ void SwSwitch::registerStateObserver(StateObserver* observer,
   VLOG(2) << "Registering state observer: " << name;
   if (!updateEventBase_.isInEventBaseThread()) {
     updateEventBase_.runInEventBaseThreadAndWait([=]() {
-      stateObservers_.emplace(observer, name);
+        addStateObserver(observer, name);
     });
   } else {
-    stateObservers_.emplace(observer, name);
+    addStateObserver(observer, name);
   }
 }
 
 void SwSwitch::unregisterStateObserver(StateObserver* observer) {
   if (!updateEventBase_.isInEventBaseThread()) {
     updateEventBase_.runInEventBaseThreadAndWait([=]() {
-      stateObservers_.erase(observer);
+      removeStateObserver(observer);
     });
   } else {
-    stateObservers_.erase(observer);
+    removeStateObserver(observer);
   }
+}
+
+bool SwSwitch::stateObserverRegistered(StateObserver* observer) {
+  DCHECK(updateEventBase_.isInEventBaseThread());
+  return stateObservers_.find(observer) != stateObservers_.end();
+}
+
+void SwSwitch::removeStateObserver(StateObserver* observer) {
+  DCHECK(updateEventBase_.isInEventBaseThread());
+  auto nErased = stateObservers_.erase(observer);
+  if (!nErased) {
+    throw FbossError("State observer remove failed: observer does not exist");
+  }
+}
+
+void SwSwitch::addStateObserver(StateObserver* observer, const string& name) {
+  DCHECK(updateEventBase_.isInEventBaseThread());
+  if (stateObserverRegistered(observer)) {
+    throw FbossError("State observer add failed: ", name, " already exists");
+  }
+  stateObservers_.emplace(observer, name);
 }
 
 void SwSwitch::notifyStateObservers(const StateDelta& delta) {
@@ -432,21 +470,6 @@ int SwSwitch::getHighresSamplers(HighresSamplerList* samplers,
   return numCountersAdded;
 }
 
-void SwSwitch::syncTunInterfaces() {
-  CHECK(isConfigured());
-  if (!tunMgr_) {
-    return;
-  }
-
-  try {
-    tunMgr_->startSync(getState()->getInterfaces());
-  } catch (const std::exception& ex) {
-    // TODO: Figure out the best way to handle errors here.
-    LOG(FATAL) << "error applying interfaces change to system: " <<
-      folly::exceptionStr(ex);
-  }
-}
-
 void SwSwitch::setStateInternal(std::shared_ptr<SwitchState> newState) {
   // This is one of the only two places that should ever directly access
   // stateDontUseDirectly_.  (getState() being the other one.)
@@ -482,25 +505,6 @@ void SwSwitch::applyUpdate(const shared_ptr<SwitchState>& oldState,
 
   // Notifies all observers of the current state update.
   notifyStateObservers(delta);
-
-  // sync the new interface info to the host
-  if (isConfigured()) {
-    // We check for syncing tun interface only on state changes after the
-    // initial configuration is applied. This is really a hack to get around
-    // 2 issues
-    // a) On warm boot the initial state constructed from warm boot cache
-    // does not know of interface addresses. This means if we sync tun interface
-    // on applying initial boot up state we would blow away tunnel interferace
-    // addresses, causing connectivity disruption. Once t4155406 is fixed we
-    // should be able to remove this check.
-    // b) Even if we were willing to live with the above, the TunManager code
-    // does not properly track deleting of interface addresses, viz. when we
-    // delete a interface's primary address, secondary addresses get blown away
-    // as well. TunManager does not track this and tries to delete the
-    // secondaries as well leading to errors, t4746261 is tracking this.
-    syncTunInterfaces();
-  }
-
   // Inform the HwSwitch of the change.
   //
   // Note that at this point we have already updated the state pointer and

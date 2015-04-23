@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/types.h"
+#include "fboss/agent/StateObserver.h"
 #include "fboss/agent/state/Interface.h"
 #include "thrift/lib/cpp/async/TEventBase.h"
 
@@ -26,7 +27,7 @@ class RxPacket;
 class SwSwitch;
 class TunIntf;
 
-class TunManager : public boost::noncopyable {
+class TunManager : public StateObserver {
  public:
   TunManager(SwSwitch *sw, apache::thrift::async::TEventBase *evb);
   virtual ~TunManager();
@@ -37,11 +38,13 @@ class TunManager : public boost::noncopyable {
    */
   void startProbe();
   /**
-   * Start sync all TUN interfaces with the interfaces defined in the map.
-   * This function can be called from any thread.
-   * The probe function will happen in the thread serving 'evb_'
+   * Update the intfs_ map based on the given state update. This
+   * overrides the StateObserver stateUpdated api, which is always
+   * guaranteed to be called from the update thread.
    */
-  void startSync(const std::shared_ptr<InterfaceMap>& map);
+  void stateUpdated(const StateDelta& delta) override;
+
+  void startObservingUpdates();
   /**
    * Send a packet to host.
    * This function can be called from any thread.
@@ -68,6 +71,10 @@ class TunManager : public boost::noncopyable {
    */
   std::mutex mutex_;
 
+  // Whether the manager has registered itself to listen for state updates
+  // from sw_
+  bool observingState_{false};
+
   enum : uint8_t {
     /**
      * The protocol value used to add the source routing IP rule and the
@@ -82,7 +89,9 @@ class TunManager : public boost::noncopyable {
   void addIntf(RouterID rid, const Interface::Addresses& addrs);
   /// Remove an existing TUN interface
   void removeIntf(RouterID rid);
-  /// Add an address to a TUN interface during probe process.
+  /// A tun interface was changed, update the addresses accordingly
+  void updateIntf(RouterID rid, const Interface::Addresses& addrs);
+ /// Add an address to a TUN interface during probe process.
   void addProbedAddr(int ifIndex, const folly::IPAddress& addr, uint8_t mask);
   /// Bring up the interface on the host
   void bringupIntf(const std::string& name, int ifIndex);
@@ -96,6 +105,7 @@ class TunManager : public boost::noncopyable {
   void removeRouteTable(int ifIdx, RouterID rid) {
     addRemoveTable(ifIdx, rid, false);
   }
+
   /**
    * Add/remove an IP rule for source routing based on a given address
    *
@@ -125,11 +135,10 @@ class TunManager : public boost::noncopyable {
   void applyChanges(const MAPNAME& oldMap, const MAPNAME& newMap,
                     CHANGEFN changeFn, ADDFN addFn, REMOVEFN removeFn);
 
+  void sync(std::shared_ptr<SwitchState> state);
   void probe();
-  void sync(std::shared_ptr<InterfaceMap> map);
   /*
-   * start/stop packet forwarding on a TUN interface,
-   * or all if the parameter is null.
+   * start/stop packet forwarding on all TUN interfaces
    */
   void stop() const;
   void start() const;

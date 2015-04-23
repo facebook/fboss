@@ -232,7 +232,6 @@ class SwSwitch : public HwSwitch::Callback {
    * count on this always being called from the update thread.
    */
   void registerStateObserver(StateObserver* observer, const std::string name);
-
   void unregisterStateObserver(StateObserver* observer);
 
   /*
@@ -503,7 +502,6 @@ class SwSwitch : public HwSwitch::Callback {
    */
   void publishSfpInfo();
   void publishRouteStats();
-  void syncTunInterfaces();
   void publishBootType();
   SwitchRunState getSwitchRunState() const;
   void setSwitchRunState(SwitchRunState desiredState);
@@ -520,6 +518,14 @@ class SwSwitch : public HwSwitch::Callback {
   void stop();
   void initThread(folly::StringPiece name);
   void threadLoop(folly::StringPiece name, folly::EventBase* eventBase);
+
+  /*
+   * Helpers to add/remove state observers. These should only be
+   * called from the update thread, if the update thread is running.
+   */
+  bool stateObserverRegistered(StateObserver* observer);
+  void addStateObserver(StateObserver* observer, const std::string& name);
+  void removeStateObserver(StateObserver* observer);
 
   /*
    * File where switch state gets dumped on exit
