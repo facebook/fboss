@@ -89,24 +89,30 @@ SwSwitch::~SwSwitch() {
 }
 
 void SwSwitch::stop() {
-  {
-    lock_guard<mutex> g(hwMutex_);
+  setSwitchRunState(SwitchRunState::EXITING);
 
-    setSwitchRunState(SwitchRunState::EXITING);
-
-    // Several member variables are performing operations in the background
-    // thread.  Ask them to stop, before we shut down the background thread.
-    ipv6_.reset();
-    nUpdater_.reset();
-    if (lldpManager_) {
-      lldpManager_->stop();
-    }
-
-    // Stop tunMgr so we don't get any packets to process
-    // in software that were sent to the switch ip or were
-    // routed from kernel to the front panel tunnel interface.
-    tunMgr_.reset();
+  // Several member variables are performing operations in the background
+  // thread.  Ask them to stop, before we shut down the background thread.
+  //
+  // It should be safe to destroy a StateObserver object without locking
+  // if they are only ever accessed from the update thread. The destructor
+  // of a class that extends AutoRegisterStateObserver will unregister
+  // itself on the update thread so there should be no race. Unfortunately,
+  // this is not the case for ipv6_ and tunMgr_, which may be accessed in a
+  // packet handling callback as well while stopping the switch.
+  //
+  // TODO(aeckert): t6862022 is there to come up with a more stable concurrency
+  // model for classes that observe state and/or handle packets.
+  ipv6_.reset();
+  nUpdater_.reset();
+  if (lldpManager_) {
+    lldpManager_->stop();
   }
+
+  // Stop tunMgr so we don't get any packets to process
+  // in software that were sent to the switch ip or were
+  // routed from kernel to the front panel tunnel interface.
+  tunMgr_.reset();
 
   // This needs to be run without holding hwMutex_ because the update
   // thread may be waiting on the mutex in applyUpdate
@@ -117,6 +123,10 @@ bool SwSwitch::isFullyInitialized() const {
   auto state = getSwitchRunState();
   return state >= SwitchRunState::INITIALIZED &&
     state != SwitchRunState::EXITING;
+}
+
+bool SwSwitch::isInitialized() const {
+  return getSwitchRunState() >= SwitchRunState::INITIALIZED;
 }
 
 bool SwSwitch::isConfigured() const {
@@ -375,8 +385,8 @@ void SwSwitch::handlePendingUpdates() {
   }
 
   // This function should never be called with valid updates while we are
-  // not fully initialized
-  DCHECK(isFullyInitialized());
+  // not initialized yet
+  DCHECK(isInitialized());
 
   // Call all of the update functions to prepare the new SwitchState
   auto origState = getState();
@@ -488,13 +498,6 @@ void SwSwitch::applyUpdate(const shared_ptr<SwitchState>& oldState,
 
   StateDelta delta(oldState, newState);
 
-  // Hold the hwMutex_ wihle applying the updates.
-  // We are currently holding this for a bit longer than necessary, just to
-  // be conservative.  It should be possible to only hold this around
-  // HwSwitch::stateChanged()  (or eventually just make
-  // HwSwitch::stateChanged() responsible for providing its own locking).
-  lock_guard<mutex> hwGuard(hwMutex_);
-
   // If we are already exiting, abort the update
   if (isExiting()) {
     return;
@@ -503,8 +506,6 @@ void SwSwitch::applyUpdate(const shared_ptr<SwitchState>& oldState,
   // Publish the configuration as our active state.
   setStateInternal(newState);
 
-  // Notifies all observers of the current state update.
-  notifyStateObservers(delta);
   // Inform the HwSwitch of the change.
   //
   // Note that at this point we have already updated the state pointer and
@@ -518,6 +519,8 @@ void SwSwitch::applyUpdate(const shared_ptr<SwitchState>& oldState,
   // undesirable.  So far I don't think this brief discrepancy should cause
   // major issues.
   try {
+    // Hold the hwMutex_ while applying the updates.
+    lock_guard<mutex> hwGuard(hwMutex_);
     hw_->stateChanged(delta);
   } catch (const std::exception& ex) {
     // Notify the hw_ of the crash so it can execute any device specific
@@ -528,6 +531,9 @@ void SwSwitch::applyUpdate(const shared_ptr<SwitchState>& oldState,
     LOG(FATAL) << "error applying state change to hardware: " <<
       folly::exceptionStr(ex);
   }
+
+  // Notifies all observers of the current state update.
+  notifyStateObservers(delta);
 
   auto end = std::chrono::steady_clock::now();
   auto duration =

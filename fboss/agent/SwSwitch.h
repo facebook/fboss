@@ -130,6 +130,8 @@ class SwSwitch : public HwSwitch::Callback {
 
   bool isFullyInitialized() const;
 
+  bool isInitialized() const;
+
   bool isConfigured() const;
 
   bool isFibSynced() const;
