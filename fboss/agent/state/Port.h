@@ -93,6 +93,10 @@ class Port : public NodeBaseT<Port, PortFields> {
     return getFields()->name;
   }
 
+  void setName(const std::string& name) {
+    writableFields()->name = name;
+  }
+
   cfg::PortState getState() const {
     return getFields()->state;
   }

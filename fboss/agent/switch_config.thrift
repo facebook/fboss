@@ -90,6 +90,12 @@ struct Port {
    * Value 0 means default setting based on the HW and port type.
    */
   8: PortSpeed speed = DEFAULT;
+
+  /**
+   * A configurable string describing the name of the port. If this
+   * is not set, it will default to 'port-logicalID'
+   */
+  9: optional string name
 }
 
 /**

@@ -337,7 +337,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
   if (cfg->state == orig->getState() &&
       VlanID(cfg->ingressVlan) == orig->getIngressVlan() &&
       vlans == orig->getVlans() &&
-      cfg->speed == orig->getSpeed()) {
+      cfg->speed == orig->getSpeed() &&
+      (cfg->name.empty() || cfg->name == orig->getName())) {
     return nullptr;
   }
 
@@ -346,6 +347,11 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
   newPort->setIngressVlan(VlanID(cfg->ingressVlan));
   newPort->setVlans(vlans);
   newPort->setSpeed(cfg->speed);
+  // If the port name isn't set in the config (it's optional),
+  // leave it with the default value.
+  if (!cfg->name.empty()) {
+    newPort->setName(cfg->name);
+  }
   return newPort;
 }
 
