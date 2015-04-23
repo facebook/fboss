@@ -41,6 +41,29 @@ struct InterfaceDetail {
   6: list<IpPrefix> address,
 }
 
+struct ProductInfo {
+  1: string oem,
+  2: string product,
+  3: string serial,
+  4: string macRangeStart,
+  5: i16 macRangeSize,
+  6: string mfgDate,
+  7: string systemPartNumber,
+  8: string assembledAt,
+  9: string pcbManufacturer,
+  10: string assetTag,
+  11: string partNumber,
+  12: string odmPcbPartNumber,
+  13: string odmPcbSerial,
+  14: string fbPcbPartNumber,
+  15: i16 version,
+  16: i16 subVersion,
+  17: i16 productionState,
+  18: i16 productVersion,
+  19: string bmcMac,
+  20: string mgmtMac,
+}
+
 struct PortErrors {
   1: i64 errors,
   2: i64 discards,
@@ -252,6 +275,12 @@ service FbossCtrl extends fb303.FacebookService {
   void keepalive()
 
   i32 getIdleTimeout()
+    throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Return product information
+   */
+  ProductInfo getProductInfo()
     throws (1: fboss.FbossBaseError error)
 }
 

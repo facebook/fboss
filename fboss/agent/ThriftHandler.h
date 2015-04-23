@@ -101,6 +101,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getArpTable(std::vector<ArpEntryThrift>& arpTable) override;
   void getNdpTable(std::vector<NdpEntryThrift>& arpTable) override;
 
+  /* returns the product information */
+  void getProductInfo(ProductInfo& productInfo) override;
+
   /* Returns the SFP Dom information */
   void getSfpDomInfo(std::map<int32_t, SfpDom>& domInfos,
                      std::unique_ptr<std::vector<int32_t>> ports) override;

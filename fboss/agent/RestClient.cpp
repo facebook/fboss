@@ -12,7 +12,6 @@
 
 #include <curl/curl.h>
 
-
 namespace facebook { namespace fboss {
 
 RestClient::RestClient(std::string hostname, int port)
@@ -47,6 +46,10 @@ void RestClient::createEndpoint() {
   }
 }
 
+void RestClient::setTimeout(std::chrono::milliseconds timeout) {
+  timeout_ = timeout;
+}
+
 std::string RestClient::request(std::string path) {
   CURL* curl;
   CURLcode resp;
@@ -61,6 +64,7 @@ std::string RestClient::request(std::string path) {
     curl_easy_setopt(curl, CURLOPT_URL, endpoint_.c_str());
     curl_easy_setopt(curl, CURLOPT_PROTOCOLS,CURLPROTO_HTTP);
     curl_easy_setopt(curl, CURLOPT_PORT, port_);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, timeout_.count());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, RestClient::writer);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &write_buffer);
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, error);

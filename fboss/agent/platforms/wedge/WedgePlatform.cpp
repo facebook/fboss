@@ -17,12 +17,16 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 
+#include <future>
+
 DEFINE_string(volatile_state_dir, "/dev/shm/fboss",
               "Directory for storing volatile state");
 DEFINE_string(persistent_state_dir, "/var/facebook/fboss",
               "Directory for storing persistent state");
 DEFINE_string(mac, "",
               "The local MAC address for this switch");
+DEFINE_string(fruid_filepath, "/dev/shm/fboss/fruid.json",
+              "File for storing the fruid data");
 
 using folly::MacAddress;
 using folly::make_unique;
@@ -31,11 +35,13 @@ using std::string;
 
 namespace facebook { namespace fboss {
 
-WedgePlatform::WedgePlatform() {
+WedgePlatform::WedgePlatform()
+  : productInfo_(FLAGS_fruid_filepath) {
   auto config = loadConfig();
   BcmAPI::init(config);
   initLocalMac();
   hw_.reset(new BcmSwitch(this));
+  productInfo_.initialize();
 }
 
 WedgePlatform::~WedgePlatform() {
@@ -58,6 +64,10 @@ string WedgePlatform::getPersistentStateDir() const {
 }
 
 void WedgePlatform::onUnitAttach() {
+}
+
+void WedgePlatform::getProductInfo(ProductInfo& info) {
+  productInfo_.getInfo(info);
 }
 
 WedgePlatform::InitPortMap WedgePlatform::initPorts() {

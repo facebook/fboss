@@ -23,6 +23,7 @@ class RestClient {
    * Calls the particular Rest api
    */
   std::string request(std::string path);
+  void setTimeout(std::chrono::milliseconds timeout);
 
  private:
   // Forbidden copy contructor and assignment operator
@@ -36,6 +37,7 @@ class RestClient {
   folly::IPAddress ipAddress_;
   std::string interface_;
   int port_;
+  std::chrono::milliseconds timeout_{1000};
   std::string endpoint_;
 };
 

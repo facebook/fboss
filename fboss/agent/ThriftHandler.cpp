@@ -221,6 +221,10 @@ void ThriftHandler::addUnicastRoutes(
   sw_->updateStateBlocking("add unicast route", updateFn);
 }
 
+void ThriftHandler::getProductInfo(ProductInfo& productInfo) {
+  sw_->getProductInfo(productInfo);
+}
+
 void ThriftHandler::deleteUnicastRoutes(
     int16_t client, std::unique_ptr<std::vector<IpPrefix>> prefixes) {
   ensureConfigured("deleteUnicastRoutes");

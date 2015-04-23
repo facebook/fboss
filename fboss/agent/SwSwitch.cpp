@@ -163,6 +163,10 @@ void SwSwitch::gracefulExit() {
   exit(0);
 }
 
+void SwSwitch::getProductInfo(ProductInfo& productInfo) const {
+  platform_->getProductInfo(productInfo);
+}
+
 void SwSwitch::dumpStateToFile(const string& filename) const {
   bool success = folly::writeFile(
     toPrettyJson(getState()->toFollyDynamic()).toStdString(),

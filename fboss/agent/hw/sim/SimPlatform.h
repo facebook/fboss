@@ -29,6 +29,9 @@ class SimPlatform : public Platform {
   }
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
+  void getProductInfo(ProductInfo& info) override {
+    // Nothing to do
+  };
 
  private:
   // Forbidden copy constructor and assignment operator

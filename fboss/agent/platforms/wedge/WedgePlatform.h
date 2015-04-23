@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/types.h"
+#include "fboss/agent/platforms/wedge/WedgeProductInfo.h"
 
 #include <folly/MacAddress.h>
 #include <boost/container/flat_map.hpp>
@@ -37,6 +38,7 @@ class WedgePlatform : public BcmPlatform {
 
   void onUnitAttach() override;
   InitPortMap initPorts() override;
+  void getProductInfo(ProductInfo& info) override;
 
  private:
   typedef boost::container::flat_map<PortID, std::unique_ptr<WedgePort>>
@@ -52,6 +54,7 @@ class WedgePlatform : public BcmPlatform {
   folly::MacAddress localMac_;
   std::unique_ptr<BcmSwitch> hw_;
   WedgePortMap ports_;
+  WedgeProductInfo productInfo_;
 };
 
 }} // namespace facebook::fboss
