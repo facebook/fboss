@@ -95,6 +95,7 @@ struct PortStatThrift {
 
   10: PortCounters output,
   11: PortCounters input,
+  12: string name
 }
 
 struct NdpEntryThrift {

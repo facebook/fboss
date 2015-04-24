@@ -391,7 +391,11 @@ void ThriftHandler::fillPortStatistics(PortStatThrift& stats) {
   auto statMap = fbData->getStatMap();
 
   auto getSumStat = [&] (StringPiece prefix, StringPiece name) {
-    auto statName = folly::to<std::string>("port", portId, ".", prefix, name);
+    auto portName = stats.name;
+    if (name.empty()) {
+      portName = folly::to<std::string>("port", portId);
+    }
+    auto statName = folly::to<std::string>(portName, ".", prefix, name);
     return statMap->getStatPtr(statName)->getSum(0);
   };
 
@@ -420,6 +424,7 @@ void ThriftHandler::getPortStats(PortStatThrift& portStats, int32_t portId) {
     throw FbossError("no such port ", portId);
   }
   portStats.portId = portId;
+  portStats.name = port->getName();
   portStats.speedMbps = int32_t(port->getSpeed());
   fillPortStatistics(portStats);
 }
