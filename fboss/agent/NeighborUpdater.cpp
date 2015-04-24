@@ -153,7 +153,7 @@ NeighborUpdater::~NeighborUpdater() {
   }
 
   // Ensure that all of the updaters have been stopped before we return
-  collectAll(stopTasks.begin(), stopTasks.end()).get();
+  collectAll(stopTasks).get();
 }
 
 void NeighborUpdater::stateUpdated(const StateDelta& delta) {
