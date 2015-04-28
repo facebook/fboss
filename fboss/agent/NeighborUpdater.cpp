@@ -122,6 +122,9 @@ NeighborUpdaterImpl::prunePendingEntries(const shared_ptr<SwitchState>& state) {
 bool NeighborUpdaterImpl::pendingEntriesExist() const {
   auto state = sw_->getState();
   auto vlan = state->getVlans()->getVlanIf(vlan_);
+  if (!vlan) {
+    return false;
+  }
   auto arpTable = vlan->getArpTable();
   auto ndpTable = vlan->getNdpTable();
   return arpTable->hasPendingEntries() || ndpTable->hasPendingEntries();
