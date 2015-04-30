@@ -116,7 +116,20 @@ facebook::fboss::cfg::PortSpeed getPortSpeed(int unit, int port) {
   }
   LOG(FATAL) << "Invalid port speed : " << portSpeed << " for port: " << port;
 }
-
+/*
+ * Dump map containing switch h/w config as a key, value pair
+ * to a file. Create parent directories of file if needed.
+ * The actual format of config in the file is JSON for easy
+ * serialization/desrialization
+ */
+void dumpConfigMap(const facebook::fboss::BcmAPI::HwConfigMap& config,
+    const std::string& filename) {
+  folly::dynamic json = folly::dynamic::object;
+  for (const auto& kv : config) {
+    json[kv.first] = kv.second;
+  }
+  folly::writeFile(toPrettyJson(json), filename.c_str());
+}
 }
 
 namespace facebook { namespace fboss {
@@ -136,6 +149,7 @@ BcmSwitch::BcmSwitch(BcmPlatform *platform)
   switchEventManager_->registerSwitchEventCallback(
     OPENNSL_SWITCH_EVENT_PARITY_ERROR,
     make_shared<BcmSwitchEventParityErrorCallback>());
+  dumpConfigMap(BcmAPI::getHwConfig(), platform->getHwConfigDumpFile());
 }
 
 BcmSwitch::BcmSwitch(BcmPlatform *platform, unique_ptr<BcmUnit> unit)

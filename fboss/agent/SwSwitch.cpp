@@ -56,15 +56,15 @@ using std::unique_lock;
 using std::unique_ptr;
 
 namespace {
-  facebook::fboss::PortStatus fillInPortStatus(
-      const facebook::fboss::Port& port,
-      const facebook::fboss::SwSwitch* sw) {
-    facebook::fboss::PortStatus status;
-    status.enabled = (port.getState() ==
-        facebook::fboss::cfg::PortState::UP ? true : false);
-    status.up = sw->isPortUp(port.getID());
-    return status;
-  }
+facebook::fboss::PortStatus fillInPortStatus(
+    const facebook::fboss::Port& port,
+    const facebook::fboss::SwSwitch* sw) {
+  facebook::fboss::PortStatus status;
+  status.enabled = (port.getState() ==
+      facebook::fboss::cfg::PortState::UP ? true : false);
+  status.up = sw->isPortUp(port.getID());
+  return status;
+}
 }
 
 namespace facebook { namespace fboss {

@@ -51,4 +51,10 @@ std::string BcmAPI::getThreadName() {
   return "";
 }
 
+/*
+ * Get hw config
+ */
+BcmAPI::HwConfigMap BcmAPI::getHwConfig() {
+  return HwConfigMap();
+}
 }}
