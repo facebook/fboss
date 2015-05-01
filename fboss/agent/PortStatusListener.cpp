@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <chrono>
 #include <gflags/gflags.h>
 #include <thrift/lib/cpp2/async/DuplexChannel.h>
 #include <thrift/lib/cpp/transport/TSocketAddress.h>
@@ -43,6 +44,7 @@ int main(int argc, char **argv) {
   auto chan =
       std::make_shared<DuplexChannel>(DuplexChannel::Who::CLIENT, socket);
   ThriftServer clients_server(chan->getServerChannel());
+  clients_server.setIdleTimeout(std::chrono::milliseconds(0));
   clients_server.setInterface(
       std::make_shared<PortStatusListenerClientInterface>());
   clients_server.serve();
