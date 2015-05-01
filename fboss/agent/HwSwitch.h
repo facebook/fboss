@@ -12,6 +12,7 @@
 #include "fboss/agent/HighresCounterUtil.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include <folly/IPAddress.h>
 
 #include <memory>
 #include <utility>
@@ -178,6 +179,13 @@ class HwSwitch {
    * Get port operational state
    */
   virtual bool isPortUp(PortID port) const = 0;
+
+  /*
+   * Returns true if the arp/ndp entry for the passed in ip/intf has been hit
+   * since the last call to getAndClearNeighborHit.
+   */
+  virtual bool getAndClearNeighborHit(RouterID vrf,
+                                      folly::IPAddress& ip) const = 0;
 
  private:
   // Forbidden copy constructor and assignment operator

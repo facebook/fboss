@@ -487,6 +487,11 @@ class SwSwitch : public HwSwitch::Callback {
   void registerPortStatusListener(
       std::function<void(PortID, const PortStatus)> callback);
 
+  /*
+   * Returns true if the arp/ndp entry for the passed in ip has been hit.
+   */
+  bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress ip);
+
  private:
   typedef folly::IntrusiveList<StateUpdate, &StateUpdate::listHook_>
     StateUpdateList;
