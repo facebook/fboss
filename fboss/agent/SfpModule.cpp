@@ -303,7 +303,7 @@ bool SfpModule::isDomSupported() const {
 const uint8_t* SfpModule::getSfpValuePtr(int dataAddress, int offset,
                                          int length) const {
   /* if the cached values are not correct */
-  if (dirty_ || (!present_)) {
+  if (!cacheIsValid()) {
     throw FbossError("Sfp is either not present or the data is not read");
   }
   if (dataAddress == 0x50) {
@@ -328,7 +328,7 @@ void SfpModule::getSfpValue(int dataAddress,
 
 // Note that this needs to be called while holding the
 // sfpModuleMutex_
-bool SfpModule::cacheIsValid() {
+bool SfpModule::cacheIsValid() const {
   return present_ && !dirty_;
 }
 
@@ -452,13 +452,19 @@ void SfpModule::detectSfp() {
                   " SFP status changed to " << currentSfpStatus;
     setSfpPresent(currentSfpStatus);
     if (currentSfpStatus) {
-      sfpImpl_->readSfpEeprom(0x50, 0x0, MAX_SFP_EEPROM_SIZE, value);
-      setSfpIdprom(value);
-      if (domSupport_) {
-        sfpImpl_->readSfpEeprom(0x51, 0x0, MAX_SFP_EEPROM_SIZE, value);
-        setSfpDom(value);
+      try {
+        sfpImpl_->readSfpEeprom(0x50, 0x0, MAX_SFP_EEPROM_SIZE, value);
+        dirty_ = false;
+        setSfpIdprom(value);
+        if (domSupport_) {
+          sfpImpl_->readSfpEeprom(0x51, 0x0, MAX_SFP_EEPROM_SIZE, value);
+          setSfpDom(value);
+        }
+      } catch (const std::exception& ex) {
+        dirty_ = true;
+        LOG(ERROR) << "Error parsing or reading SFP data for port: " <<
+             folly::to<std::string>(sfpImpl_->getName());
       }
-      dirty_ = false;
     }
   }
 }

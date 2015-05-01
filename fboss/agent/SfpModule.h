@@ -284,7 +284,7 @@ class SfpModule {
    * cache data is not stale. This should be checked before any
    * function that reads cache data is called
    */
-  bool cacheIsValid();
+  bool cacheIsValid() const;
 };
 
 }} //namespace facebook::fboss
