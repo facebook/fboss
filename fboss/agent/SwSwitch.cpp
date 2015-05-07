@@ -129,6 +129,12 @@ bool SwSwitch::isInitialized() const {
   return getSwitchRunState() >= SwitchRunState::INITIALIZED;
 }
 
+bool SwSwitch::isFullyConfigured() const {
+  auto state = getSwitchRunState();
+  return state >= SwitchRunState::CONFIGURED &&
+    state != SwitchRunState::EXITING;
+}
+
 bool SwSwitch::isConfigured() const {
   return getSwitchRunState() >= SwitchRunState::CONFIGURED;
 }

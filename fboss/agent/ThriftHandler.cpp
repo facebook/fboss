@@ -725,15 +725,15 @@ BootType ThriftHandler::getBootType() {
 }
 
 void ThriftHandler::ensureConfigured(StringPiece function) {
-  if (sw_->isConfigured()) {
+  if (sw_->isFullyConfigured()) {
     return;
   }
 
   if (!function.empty()) {
     VLOG(1) << "failing thrift prior to switch configuration: " << function;
   }
-  throw FbossError("switch is still initializing and is not fully "
-                   "configured yet");
+  throw FbossError("switch is still initializing or is exiting and is not"
+                   "fully configured yet");
 }
 
 void ThriftHandler::ensureFibSynced(StringPiece function) {
