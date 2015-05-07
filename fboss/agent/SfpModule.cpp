@@ -180,7 +180,7 @@ bool SfpModule::getDomValuesMap(SfpDomReadValue &value) {
   return false;
 }
 
-bool SfpModule::getVendorMap(SfpVendor &vendor) {
+bool SfpModule::getVendorMap(Vendor &vendor) {
   if (cacheIsValid()) {
     vendor.name = getSfpString(SfpIdpromFields::VENDOR_NAME);
     vendor.oui = getSfpString(SfpIdpromFields::VENDOR_OUI);

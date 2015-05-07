@@ -278,7 +278,7 @@ class SfpModule {
    * This function returns all the vendor values of the Sfp DOM
    * returns false when no data exists
    */
-  bool getVendorMap(SfpVendor &vendor);
+  bool getVendorMap(Vendor &vendor);
   /*
    * This function returns true if both the sfp is present and the
    * cache data is not stale. This should be checked before any
