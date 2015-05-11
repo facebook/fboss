@@ -91,6 +91,11 @@ SwSwitch::~SwSwitch() {
 void SwSwitch::stop() {
   setSwitchRunState(SwitchRunState::EXITING);
 
+  // First tell the hw to stop sending us events by unregistering the callback
+  // After this we should no longer receive packets or link state changed events
+  // while we are destroying ourselves
+  hw_->unregisterCallbacks();
+
   // Several member variables are performing operations in the background
   // thread.  Ask them to stop, before we shut down the background thread.
   //

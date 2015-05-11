@@ -98,6 +98,14 @@ class HwSwitch {
 
 
   /*
+   * Tells the hw switch to unregister the callback and to stop calling
+   * packetReceived and linkStateChanged. This is mainly used during exit
+   * as once the SwSwitch starts exiting, it can no longer guarantee that
+   * it can handle packets or link state changed events correctly.
+   */
+  virtual void unregisterCallbacks() = 0;
+
+  /*
    * Apply a state change to the hardware.
    *
    * stateChanged() is called whenever the switch state changes.

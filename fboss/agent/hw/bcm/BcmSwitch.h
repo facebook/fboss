@@ -82,6 +82,8 @@ class BcmSwitch : public HwSwitch {
   std::pair<std::shared_ptr<SwitchState>, BootType>
     init(Callback* callback) override;
 
+  void unregisterCallbacks() override;
+
   BcmPlatform* getPlatform() const {
     return platform_;
   }

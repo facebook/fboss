@@ -185,6 +185,10 @@ unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
 }
 
 void BcmSwitch::unregisterCallbacks() {
+  unregisterCallbacks();
+}
+
+void BcmSwitch::unregisterCallbacks() {
   if (flags_ & RX_REGISTERED) {
     opennsl_rx_stop(unit_, nullptr);
     auto rv = opennsl_rx_unregister(unit_, packetRxCallback,
