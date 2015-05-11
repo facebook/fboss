@@ -207,8 +207,6 @@ class BcmSwitch : public HwSwitch {
   BcmSwitch(BcmSwitch const &) = delete;
   BcmSwitch& operator=(BcmSwitch const &) = delete;
 
-  void unregisterCallbacks();
-
   /*
    * Get default state switch is in on a cold boot
    */
