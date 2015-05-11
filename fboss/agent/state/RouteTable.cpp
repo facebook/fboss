@@ -10,6 +10,7 @@
 // Copyright 2004-present Facebook.  All rights reserved.
 #include "RouteTable.h"
 
+#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/FbossError.h"
