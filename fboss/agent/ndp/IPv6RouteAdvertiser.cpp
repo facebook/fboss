@@ -127,6 +127,12 @@ void IPv6RAImpl::initPacket(const SwitchState* state, const Interface* intf) {
       continue;
     }
     uint8_t mask = addr.second;
+    // For IPs that are configured with a 128-bit mask, don't bother including
+    // them in the advertisement, since no-one else besides us can belong to
+    // this subnet.
+    if (mask == 128) {
+      continue;
+    }
     prefixes.emplace(addr.first.asV6().mask(mask), mask);
   }
 

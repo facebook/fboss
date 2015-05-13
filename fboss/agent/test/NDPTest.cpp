@@ -52,8 +52,7 @@ namespace {
 
 const MacAddress kPlatformMac("02:01:02:03:04:05");
 
-unique_ptr<SwSwitch> setupSwitch(seconds raInterval,
-                                 seconds ndpInterval) {
+cfg::SwitchConfig createSwitchConfig(seconds raInterval, seconds ndpInterval) {
   // Create a thrift config to use
   cfg::SwitchConfig config;
   config.supportedMTUs.resize(1);
@@ -97,6 +96,12 @@ unique_ptr<SwSwitch> setupSwitch(seconds raInterval,
     config.arpAgerInterval = ndpInterval.count();
   }
 
+  return config;
+}
+
+unique_ptr<SwSwitch> setupSwitch(seconds raInterval,
+                                 seconds ndpInterval) {
+  auto config = createSwitchConfig(raInterval, ndpInterval);
   auto sw = createMockSw(&config, kPlatformMac);
   sw->initialConfigApplied();
   return sw;
@@ -520,7 +525,12 @@ TEST(NDP, TriggerSolicitation) {
 
 TEST(NDP, RouterAdvertisement) {
   seconds raInterval(1);
-  auto sw = setupSwitchWithRAInterval(raInterval);
+  auto config = createSwitchConfig(raInterval, seconds(0));
+  // Add an interface with a /128 mask, to make sure it isn't included
+  // in the generated RA packets.
+  config.interfaces[0].ipAddresses.push_back("2401:db00:2000:1234:1::/128");
+  auto sw = createMockSw(&config, kPlatformMac);
+  sw->initialConfigApplied();
 
   auto state = sw->getState();
   auto intfConfig = state->getInterfaces()->getInterface(InterfaceID(1234));
