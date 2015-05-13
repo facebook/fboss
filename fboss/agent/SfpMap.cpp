@@ -27,7 +27,7 @@ SfpModule* SfpMap::sfpModule(PortID portID) const{
   return it->second.get();
 }
 
-void SfpMap::createSfp(PortID portID, std::unique_ptr<SfpModule>& sfpModule) {
+void SfpMap::createSfp(PortID portID, std::unique_ptr<SfpModule> sfpModule) {
   auto rv = sfpMap_.emplace(std::make_pair(portID, std::move(sfpModule)));
   const auto& it = rv.first;
   DCHECK(rv.second);

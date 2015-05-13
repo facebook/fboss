@@ -29,9 +29,9 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUpdateHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/SfpImpl.h"
 #include "fboss/agent/SfpMap.h"
 #include "fboss/agent/SfpModule.h"
-#include "fboss/agent/SfpImpl.h"
 #include "fboss/agent/LldpManager.h"
 #include "common/stats/ServiceData.h"
 #include <folly/FileUtil.h>
@@ -602,10 +602,9 @@ SfpDom SwSwitch::getSfpDom(PortID port) const {
   return domInfo;
 }
 
-void SwSwitch::createSfp(PortID portID, std::unique_ptr<SfpImpl>& sfpImpl) {
-  std::unique_ptr<SfpModule> sfpModule =
-                            folly::make_unique<SfpModule>(sfpImpl);
-  sfpMap_->createSfp(portID, sfpModule);
+void SwSwitch::createSfp(PortID portID, std::unique_ptr<SfpImpl> sfpImpl) {
+  auto sfpModule = make_unique<SfpModule>(std::move(sfpImpl));
+  sfpMap_->createSfp(portID, std::move(sfpModule));
 }
 
 void SwSwitch::detectSfp() {

@@ -258,7 +258,7 @@ float SfpModule::getSfpDomValue(const SfpDomValue field) {
   }
 }
 
-SfpModule::SfpModule(std::unique_ptr<SfpImpl>& sfpImpl)
+SfpModule::SfpModule(std::unique_ptr<SfpImpl> sfpImpl)
   : sfpImpl_(std::move(sfpImpl)) {
   present_ = false;
   dirty_ = true;

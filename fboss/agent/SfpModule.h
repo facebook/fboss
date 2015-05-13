@@ -134,7 +134,7 @@ const int MAX_SFP_EEPROM_SIZE = 256;
  */
 class SfpModule {
  public:
-  explicit SfpModule(std::unique_ptr<SfpImpl>& sfpImpl);
+  explicit SfpModule(std::unique_ptr<SfpImpl> sfpImpl);
   /*
    * Returns if the SFP is present or not
    */

@@ -315,7 +315,7 @@ class SwSwitch : public HwSwitch::Callback {
   /*
    * Create Sfp mapping for the port in the SFP map.
    */
-  void createSfp(PortID portID, std::unique_ptr<SfpImpl>& sfpImpl);
+  void createSfp(PortID portID, std::unique_ptr<SfpImpl> sfpImpl);
 
   /*
    * This function is used to detect all the SFPs in the SFP Map

@@ -48,7 +48,7 @@ class SfpMap {
    * This function is used to create the SFP mapping. Port
    * and Sfp Module object Map.
    */
-  void createSfp(PortID portID, std::unique_ptr<SfpModule>& sfpModule);
+  void createSfp(PortID portID, std::unique_ptr<SfpModule> sfpModule);
 
   /*
    * This function returns the beginning of the Port to Sfp Module
