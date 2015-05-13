@@ -311,7 +311,6 @@ void BcmSwitch::ecmpHashSetup() {
 
 void BcmSwitch::gracefulExit() {
   std::lock_guard<std::mutex> g(lock_);
-  unregisterCallbacks();
   unitObject_->detach();
   unitObject_.reset();
 }
