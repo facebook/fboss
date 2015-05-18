@@ -427,6 +427,7 @@ BcmSwitch::init(Callback* callback) {
 
   dropDhcpPackets();
   dropIPv6RAs();
+  configureRxRateLimiting();
 
   // enable IPv4 and IPv6 on CPU port
   opennsl_port_t idx;

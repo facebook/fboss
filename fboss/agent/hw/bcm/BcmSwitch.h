@@ -302,6 +302,11 @@ class BcmSwitch : public HwSwitch {
   void dropDhcpPackets();
 
   /*
+   * Configure rate limiting of packets sent to the CPU.
+   */
+  void configureRxRateLimiting();
+
+  /*
    * Configures any additional ecmp hash sets if applicable.
    */
   void configureAdditionalEcmpHashSets();
