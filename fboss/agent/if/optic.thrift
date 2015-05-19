@@ -90,9 +90,9 @@ struct ThresholdLevels {
 struct AlarmThreshold {
   1: ThresholdLevels temp,
   2: ThresholdLevels vcc,
-  3: ThresholdLevels RxPwr,
-  4: ThresholdLevels TxBias,
-  5: optional ThresholdLevels TxPwr,
+  3: ThresholdLevels rxPwr,
+  4: ThresholdLevels txBias,
+  5: optional ThresholdLevels txPwr,
 }
 
 struct Flags {
@@ -131,7 +131,8 @@ struct ChannelSensors {
  */
 
 struct Cable {
-  1: optional i32 singleMode,
+  1: optional i32 singleModeKm,
+  2: optional i32 singleMode,
   3: optional i32 om3,
   4: optional i32 om2,
   5: optional i32 om1,
