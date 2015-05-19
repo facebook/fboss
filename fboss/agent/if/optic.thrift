@@ -1,7 +1,8 @@
 namespace cpp facebook.fboss
 namespace cpp2 facebook.fboss
-namespace py neteng.fboss.optic
 namespace d neteng.fboss.optic
+namespace php fboss
+namespace py neteng.fboss.optic
 
 struct SfpDomThreshFlags {
   1: bool tempAlarmHigh,
