@@ -11,7 +11,8 @@
 #include <cstdint>
 #include <mutex>
 #include <boost/container/flat_map.hpp>
-#include "fboss/agent/SfpImpl.h"
+#include "fboss/agent/TransceiverImpl.h"
+#include "fboss/agent/Transceiver.h"
 #include "fboss/agent/if/gen-cpp2/optic_types.h"
 
 namespace facebook { namespace fboss {
@@ -132,17 +133,23 @@ const int MAX_SFP_EEPROM_SIZE = 256;
  * Note: The public functions need to take the lock before calling
  * the private functions.
  */
-class SfpModule {
+class SfpModule : public Transceiver {
  public:
-  explicit SfpModule(std::unique_ptr<SfpImpl> sfpImpl);
+  explicit SfpModule(std::unique_ptr<TransceiverImpl> sfpImpl);
   /*
    * Returns if the SFP is present or not
    */
-  bool isSfpPresent() const;
+  bool isPresent() const override;
+  /*
+   * Return a valid type.
+   */
+  TransceiverType type() const override{
+    return TransceiverType::SFP;
+  }
   /*
    * This function will check if the SFP is present or not
    */
-  void detectSfp();
+  void detectTransceiver() override;
   /*
    * This function returns if the SFP supports DOM
    */
@@ -150,20 +157,28 @@ class SfpModule {
   /*
    * Get the SFP EEPROM Field
    */
-  int getSfpFieldValue(SfpIdpromFields fieldName, uint8_t* fieldValue);
-  /*
-   * This function will update the SFP Dom Fields in the cache
-   */
-  void updateSfpDomFields();
+  int getFieldValue(SfpIdpromFields fieldName, uint8_t* fieldValue);
   /*
    * This function returns the entire SFP Dom information
    */
-  void getSfpDom(SfpDom &dom);
+  void getSfpDom(SfpDom &dom) override;
+  /*
+   * This function will update the SFP Dom Fields in the cache
+   */
+  void updateTransceiverInfoFields() override;
+  /*
+   * This function returns the entire SFP Dom information
+   */
+  void getTransceiverInfo(TransceiverInfo &info) override;
+
+
 
  private:
   // no copy or assignment
   SfpModule(SfpModule const &) = delete;
   SfpModule& operator=(SfpModule const &) = delete;
+
+  const int CABLE_MAX_LEN = 255;
 
   // Cached 0xA0 SFP eeprom value
   uint8_t sfpIdprom_[256];
@@ -174,7 +189,7 @@ class SfpModule {
   // Denotes if the cache value is valid or stale
   bool dirty_;
   /* Sfp Internal Implementation */
-  std::unique_ptr<SfpImpl> sfpImpl_;
+  std::unique_ptr<TransceiverImpl> sfpImpl_;
   // Does the Optic support DOM
   bool domSupport_;
 
@@ -203,7 +218,7 @@ class SfpModule {
    * status based on the HW read.
    * The thread needs to have the lock before calling the function.
    */
-  void setSfpPresent(bool present);
+  void setPresent(bool present);
   /*
    * Sets the Dom Supported bit as per the IDPROM
    * The thread needs to have the lock before calling the function.
@@ -275,10 +290,10 @@ class SfpModule {
    */
   bool getDomThresholdValuesMap(SfpDomThreshValue &domThresh);
   /*
-   * This function returns all the vendor values of the Sfp DOM
+   * This function returns all the vendor values of the SFP
    * returns false when no data exists
    */
-  bool getVendorMap(Vendor &vendor);
+  bool getVendorInfo(Vendor &vendor);
   /*
    * This function returns true if both the sfp is present and the
    * cache data is not stale. This should be checked before any

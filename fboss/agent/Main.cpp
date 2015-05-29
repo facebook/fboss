@@ -162,17 +162,17 @@ class Initializer {
     fs_->addFunction(flushWarmbootFunc, seconds(1), flushWarmboot,
         seconds(30)/*initial delay*/);
 
-    // Sfp Detection Thread
-    const string sfpDetect = "SfpDetection";
+    // Transceiver Module Detection Thread
+    const string sfpDetect = "DetectTransceiver";
     auto sfpDetectFunc = [=]() {
-      sw_->detectSfp();
+      sw_->detectTransceiver();
     };
     fs_->addFunction(sfpDetectFunc, seconds(1), sfpDetect);
 
-    // Sfp Detection Thread
-    const string sfpDomCacheUpdate = "SfpDomCacheUpdate";
+    // Transceiver Module Detection Thread
+    const string sfpDomCacheUpdate = "CacheUpdateTransceiver";
     auto sfpDomCacheUpdateFunc = [=]() {
-      sw_->updateSfpDomFields();
+      sw_->updateTransceiverInfoFields();
     };
     // Call sfpDomCacheUpdate 15 seconds to get SFP monitor the
     // DOM values

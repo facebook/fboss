@@ -13,6 +13,8 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/types.h"
+#include "fboss/agent/Transceiver.h"
+#include "fboss/agent/TransceiverMap.h"
 
 #include <folly/SpinLock.h>
 #include <folly/IntrusiveList.h>
@@ -39,8 +41,9 @@ class RxPacket;
 class SwitchState;
 class SwitchStats;
 class SfpModule;
-class SfpMap;
-class SfpImpl;
+class QsfpModule;
+class TransceiverMap;
+class TransceiverImpl;
 class StateDelta;
 class NeighborUpdater;
 class StateObserver;
@@ -313,19 +316,36 @@ class SwSwitch : public HwSwitch::Callback {
   SfpDom getSfpDom(PortID port) const;
 
   /*
-   * Create Sfp mapping for the port in the SFP map.
+   * Get the transceiver info for the specified module ID.
    */
-  void createSfp(PortID portID, std::unique_ptr<SfpImpl> sfpImpl);
+  TransceiverIdx getTransceiverMapping(PortID port) const;
+  Transceiver* getTransceiver(TransceiverID idx) const;
 
   /*
-   * This function is used to detect all the SFPs in the SFP Map
+   * Get a list of transceivers.
    */
-  void detectSfp();
+  std::map<TransceiverID, TransceiverInfo> getTransceiversInfo() const;
 
   /*
-   * This function is update the SFP Dom realtime cache values
+   * Get TransceiverInfo of the specified port.
    */
-  void updateSfpDomFields();
+  TransceiverInfo getTransceiverInfo(TransceiverID idx) const;
+
+  /*
+   * Create Transceiver mapping to a TransceiverID
+   */
+  void addTransceiver(TransceiverID, std::unique_ptr<Transceiver> trans);
+  void addTransceiverMapping(PortID portID, ChannelID channelID,
+                             TransceiverID module);
+  /*
+   * Check all possible transceiver modules for presence
+   */
+  void detectTransceiver();
+
+  /*
+   * This function is update the transceiver information cache values
+   */
+  void updateTransceiverInfoFields();
 
   /*
    * Get the PortStats for the ingress port of this packet.
@@ -620,7 +640,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<NeighborUpdater> nUpdater_;
   std::unique_ptr<PktCaptureManager> pcapMgr_;
 
-  std::unique_ptr<SfpMap> sfpMap_;
+  std::unique_ptr<TransceiverMap> transceiverMap_;
 
   BootType bootType_{BootType::UNINITIALIZED};
   std::unique_ptr<LldpManager> lldpManager_;

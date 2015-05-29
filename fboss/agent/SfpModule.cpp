@@ -180,7 +180,7 @@ bool SfpModule::getDomValuesMap(SfpDomReadValue &value) {
   return false;
 }
 
-bool SfpModule::getVendorMap(Vendor &vendor) {
+bool SfpModule::getVendorInfo(Vendor &vendor) {
   if (cacheIsValid()) {
     vendor.name = getSfpString(SfpIdpromFields::VENDOR_NAME);
     vendor.oui = getSfpString(SfpIdpromFields::VENDOR_OUI);
@@ -258,7 +258,7 @@ float SfpModule::getSfpDomValue(const SfpDomValue field) {
   }
 }
 
-SfpModule::SfpModule(std::unique_ptr<SfpImpl> sfpImpl)
+SfpModule::SfpModule(std::unique_ptr<TransceiverImpl> sfpImpl)
   : sfpImpl_(std::move(sfpImpl)) {
   present_ = false;
   dirty_ = true;
@@ -332,12 +332,12 @@ bool SfpModule::cacheIsValid() const {
   return present_ && !dirty_;
 }
 
-bool SfpModule::isSfpPresent() const {
+bool SfpModule::isPresent() const {
   lock_guard<std::mutex> g(sfpModuleMutex_);
   return present_;
 }
 
-void SfpModule::setSfpPresent(bool present) {
+void SfpModule::setPresent(bool present) {
   present_ = present;
   /* Set the dirty bit as the SFP was removed and
    * the cached data is no longer valid until next
@@ -380,9 +380,12 @@ void SfpModule::getSfpDom(SfpDom &dom) {
   if (getDomValuesMap(dom.value)) {
     dom.__isset.value = true;
   }
-  if (getVendorMap(dom.vendor)) {
+  if (getVendorInfo(dom.vendor)) {
     dom.__isset.vendor = true;
   }
+}
+
+void SfpModule::getTransceiverInfo(TransceiverInfo &info) {
 }
 
 float SfpModule::getValueFromRaw(const SfpDomFlag key, uint16_t value) {
@@ -443,21 +446,21 @@ float SfpModule::getPwr(const uint16_t temp) {
   return data;
 }
 
-void SfpModule::detectSfp() {
+void SfpModule::detectTransceiver() {
   lock_guard<std::mutex> g(sfpModuleMutex_);
   uint8_t value[MAX_SFP_EEPROM_SIZE];
-  auto currentSfpStatus = sfpImpl_->detectSfp();
+  auto currentSfpStatus = sfpImpl_->detectTransceiver();
   if (currentSfpStatus != present_) {
     LOG(INFO) << "Port: " << folly::to<std::string>(sfpImpl_->getName()) <<
                   " SFP status changed to " << currentSfpStatus;
-    setSfpPresent(currentSfpStatus);
+    setPresent(currentSfpStatus);
     if (currentSfpStatus) {
       try {
-        sfpImpl_->readSfpEeprom(0x50, 0x0, MAX_SFP_EEPROM_SIZE, value);
+        sfpImpl_->readTransceiver(0x50, 0x0, MAX_SFP_EEPROM_SIZE, value);
         dirty_ = false;
         setSfpIdprom(value);
         if (domSupport_) {
-          sfpImpl_->readSfpEeprom(0x51, 0x0, MAX_SFP_EEPROM_SIZE, value);
+          sfpImpl_->readTransceiver(0x51, 0x0, MAX_SFP_EEPROM_SIZE, value);
           setSfpDom(value);
         }
       } catch (const std::exception& ex) {
@@ -469,8 +472,8 @@ void SfpModule::detectSfp() {
   }
 }
 
-int SfpModule::getSfpFieldValue(SfpIdpromFields fieldName,
-                                                uint8_t* fieldValue) {
+int SfpModule::getFieldValue(SfpIdpromFields fieldName,
+                             uint8_t* fieldValue) {
   lock_guard<std::mutex> g(sfpModuleMutex_);
   int dataAddress, offset, length, rc;
   /* Determine if SFP is present */
@@ -486,11 +489,11 @@ int SfpModule::getSfpFieldValue(SfpIdpromFields fieldName,
   return -1;
 }
 
-void SfpModule::updateSfpDomFields() {
+void SfpModule::updateTransceiverInfoFields() {
   lock_guard<std::mutex> g(sfpModuleMutex_);
   uint8_t value[MAX_SFP_EEPROM_SIZE];
   if (cacheIsValid() && domSupport_) {
-    sfpImpl_->readSfpEeprom(0x51, 0x0, MAX_SFP_EEPROM_SIZE, value);
+    sfpImpl_->readTransceiver(0x51, 0x0, MAX_SFP_EEPROM_SIZE, value);
     setSfpDom(value);
   }
 }

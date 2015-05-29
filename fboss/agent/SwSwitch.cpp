@@ -29,8 +29,9 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUpdateHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/SfpImpl.h"
-#include "fboss/agent/SfpMap.h"
+#include "fboss/agent/TransceiverMap.h"
+#include "fboss/agent/Transceiver.h"
+#include "fboss/agent/TransceiverImpl.h"
 #include "fboss/agent/SfpModule.h"
 #include "fboss/agent/LldpManager.h"
 #include "common/stats/ServiceData.h"
@@ -77,7 +78,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
     ipv6_(new IPv6Handler(this)),
     nUpdater_(new NeighborUpdater(this)),
     pcapMgr_(new PktCaptureManager(this)),
-    sfpMap_(new SfpMap()) {
+    transceiverMap_(new TransceiverMap()) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
@@ -582,40 +583,81 @@ PortStatus SwSwitch::getPortStatus(PortID port) {
   return fillInPortStatus(*getState()->getPort(port), this);
 }
 
-SfpModule* SwSwitch::getSfp(PortID portID) const {
-  return sfpMap_->sfpModule(portID);
+TransceiverIdx SwSwitch::getTransceiverMapping(PortID portID) const {
+  return transceiverMap_->transceiverMapping(portID);
+}
+
+Transceiver* SwSwitch::getTransceiver(TransceiverID id) const {
+  return transceiverMap_->transceiver(id);
+}
+
+map<TransceiverID, TransceiverInfo> SwSwitch::getTransceiversInfo() const {
+  map<TransceiverID, TransceiverInfo> infos;
+  int i = -1;
+  for (const auto& it : *transceiverMap_) {
+    TransceiverInfo info;
+    it.second->getTransceiverInfo(info);
+    infos[it.first] = info;
+  }
+  return infos;
+}
+
+TransceiverInfo SwSwitch::getTransceiverInfo(TransceiverID idx) const {
+  TransceiverInfo info;
+  Transceiver *t = getTransceiver(idx);
+  if (!t) {
+    throw FbossError("no such Transceiver ID", idx);
+  }
+  t->getTransceiverInfo(info);
+  return info;
 }
 
 map<int32_t, SfpDom> SwSwitch::getSfpDoms() const {
   map<int32_t, SfpDom> domInfos;
-  for (const auto& sfp : *sfpMap_) {
-    SfpDom domInfo;
-    sfp.second->getSfpDom(domInfo);
-    domInfos[sfp.first] = domInfo;
+  for (const auto& it : *transceiverMap_) {
+    if (it.second->type() == TransceiverType::SFP) {
+      SfpDom domInfo;
+      it.second->getSfpDom(domInfo);
+      domInfos[it.first] = domInfo;
+    }
   }
   return domInfos;
 }
 
+// TODO(7154694):  Remove getSfpDom() support once getTranceiverInfo()
+// is supported everywhere.
+
 SfpDom SwSwitch::getSfpDom(PortID port) const {
+  TransceiverIdx idx = getTransceiverMapping(port);
   SfpDom domInfo;
-  getSfp(port)->getSfpDom(domInfo);
+  Transceiver *t = getTransceiver(idx.second);
+  if (t->type() == TransceiverType::SFP) {
+    t->getSfpDom(domInfo);
+  } else {
+    memset(&domInfo, 0, sizeof(domInfo));
+  }
   return domInfo;
 }
 
-void SwSwitch::createSfp(PortID portID, std::unique_ptr<SfpImpl> sfpImpl) {
-  auto sfpModule = make_unique<SfpModule>(std::move(sfpImpl));
-  sfpMap_->createSfp(portID, std::move(sfpModule));
+void SwSwitch::addTransceiver(TransceiverID idx,
+                              std::unique_ptr<Transceiver> trans) {
+  transceiverMap_->addTransceiver(idx, std::move(trans));
 }
 
-void SwSwitch::detectSfp() {
-  for (auto it = sfpMap_->begin(); it != sfpMap_->end(); ++it) {
-    it->second.get()->detectSfp();
+void SwSwitch::addTransceiverMapping(PortID portID, ChannelID channelID,
+                                     TransceiverID transceiverID) {
+  transceiverMap_->addTransceiverMapping(portID, channelID, transceiverID);
+}
+
+void SwSwitch::detectTransceiver() {
+  for (const auto& t : *transceiverMap_) {
+    t.second.get()->detectTransceiver();
   }
 }
 
-void SwSwitch::updateSfpDomFields() {
-  for (auto it = sfpMap_->begin(); it != sfpMap_->end(); it++) {
-    it->second.get()->updateSfpDomFields();
+void SwSwitch::updateTransceiverInfoFields() {
+  for (const auto& t : *transceiverMap_) {
+    t.second.get()->updateTransceiverInfoFields();
   }
 }
 
