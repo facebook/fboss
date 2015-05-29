@@ -248,6 +248,13 @@ service FbossCtrl extends fb303.FacebookService {
     throws (1: fboss.FbossBaseError error)
 
   /*
+   * Returns all transceiver info (both QSFP and SFP, and hopefully
+   * future devices)
+   */
+  map<i32, optic.TransceiverInfo> getTransceiverInfo(1: list<i32> idx)
+    throws (1: fboss.FbossBaseError error)
+
+  /*
    * Type of boot performed by the controller
    */
   BootType getBootType()

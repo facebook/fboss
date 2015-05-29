@@ -30,12 +30,12 @@ enum class SfpIdpromFields {
   ENCODING_CODE, // High speed Serial encoding algo code
   SIGNALLING_RATE, // nominal signalling rate
   RATE_IDENTIFIER, // type of rate select functionality
-  SINGLE_MODE_LENGTH_KM, // link length supported in single mode (unit: km)
-  SINGLE_MODE_LENGTH, // link length supported in single mode (unit: 100m)
-  SFP_50_UM_MODE_LENGTH, // link length supported in 50um (unit: 10m)
-  SFP_62_5_UM_MODE_LENGTH, // link length supported in 62.5 um (unit: 10m)
-  CU_OM4_SUPPORTED_LENGTH, // link length supported in cu or om4 mode (unit: m)
-  OM3_SUPPORTED_LENGTH, // link length supported in om3 mode (unit: 10m)
+  LENGTH_SM_KM, // link length supported in single mode (unit: km)
+  LENGTH_SM, // link length supported in single mode (unit: 100m)
+  LENGTH_OM2, // link length supported in 50um (unit: 10m)
+  LENGTH_OM1, // link length supported in 62.5 um (unit: 10m)
+  LENGTH_COPPER, // link length supported in cu or om4 mode (unit: m)
+  LENGTH_OM3, // link length supported in om3 mode (unit: 10m)
   VENDOR_NAME, // SFP Vendor Name (ASCII)
   TRANCEIVER_CAPABILITY, // Code for Electronic or optical capability
   VENDOR_OUI, // SFP Vendor IEEE company ID
@@ -294,6 +294,23 @@ class SfpModule : public Transceiver {
    * returns false when no data exists
    */
   bool getVendorInfo(Vendor &vendor);
+  /*
+   * Get temperature and Vcc info
+   */
+  bool getSensorInfo(GlobalSensors& info);
+  /*
+   * Get cable length info, in meters
+   */
+  bool getCableInfo(Cable &cable);
+  int getSfpCableLength(const SfpIdpromFields field, int multiplier);
+  /*
+   * Get per-channel data, including sensor value and alarm flags
+   */
+  bool getSensorsPerChanInfo(std::vector<Channel>& channels);
+  /*
+   * Get alarm and warning thresholds
+   */
+  bool getThresholdInfo(AlarmThreshold &threshold);
   /*
    * This function returns true if both the sfp is present and the
    * cache data is not stale. This should be checked before any

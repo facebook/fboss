@@ -706,6 +706,21 @@ void ThriftHandler::getSfpDomInfo(map<int32_t, SfpDom>& domInfos,
   }
 }
 
+void ThriftHandler::getTransceiverInfo(map<int32_t, TransceiverInfo>& info,
+                                  unique_ptr<vector<int32_t>> ids) {
+  ensureConfigured();
+  if (ids->empty()) {
+    auto transceivers = sw_->getTransceiversInfo();
+    for (auto& it : transceivers) {
+      info[it.first] = it.second;
+    }
+  } else {
+    for (auto id : *ids) {
+      info[id] = sw_->getTransceiverInfo(TransceiverID(id));
+    }
+  }
+}
+
 template<typename ADDR_TYPE, typename ADDR_CONVERTER>
 void ThriftHandler::getVlanAddresses(const Vlan* vlan,
     std::vector<ADDR_TYPE>& addrs, ADDR_CONVERTER& converter) {

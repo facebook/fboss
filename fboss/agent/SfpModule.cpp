@@ -33,12 +33,12 @@ static std::map<SfpIdpromFields, SfpIdpromFieldInfo> sfpFields = {
   {SfpIdpromFields::ENCODING_CODE, {0x50, 0xB, 1} },
   {SfpIdpromFields::SIGNALLING_RATE, {0x50, 0xC, 1} },
   {SfpIdpromFields::RATE_IDENTIFIER, {0x50, 0xD, 1} },
-  {SfpIdpromFields::SINGLE_MODE_LENGTH_KM, {0x50, 0xE, 1} },
-  {SfpIdpromFields::SINGLE_MODE_LENGTH, {0x50, 0xF, 1} },
-  {SfpIdpromFields::SFP_50_UM_MODE_LENGTH, {0x50, 0x10, 1} },
-  {SfpIdpromFields::SFP_62_5_UM_MODE_LENGTH, {0x50, 0x11, 1} },
-  {SfpIdpromFields::CU_OM4_SUPPORTED_LENGTH, {0x50, 0x12, 1} },
-  {SfpIdpromFields::OM3_SUPPORTED_LENGTH, {0x50, 0x13, 1} },
+  {SfpIdpromFields::LENGTH_SM_KM, {0x50, 0xE, 1} },
+  {SfpIdpromFields::LENGTH_SM, {0x50, 0xF, 1} },
+  {SfpIdpromFields::LENGTH_OM2, {0x50, 0x10, 1} },
+  {SfpIdpromFields::LENGTH_OM1, {0x50, 0x11, 1} },
+  {SfpIdpromFields::LENGTH_COPPER, {0x50, 0x12, 1} },
+  {SfpIdpromFields::LENGTH_OM3, {0x50, 0x13, 1} },
   {SfpIdpromFields::VENDOR_NAME, {0x50, 0x14, 16} },
   {SfpIdpromFields::TRANCEIVER_CAPABILITY, {0x50, 0x24, 1} },
   {SfpIdpromFields::VENDOR_OUI, {0x50, 0x25, 3} },
@@ -168,6 +168,49 @@ bool SfpModule::getDomThresholdValuesMap(SfpDomThreshValue &domThresh) {
   return false;
 }
 
+// Note that this is doing the same thing as getDomThresholdValuesMap()
+// above, but putting the results into different data structures.
+
+bool SfpModule::getThresholdInfo(AlarmThreshold &threshold) {
+  if (!domSupport_) {
+    return false;
+  }
+  threshold.temp.alarm.high = getSfpThreshValue(SfpDomFlag::TEMP_ALARM_HIGH);
+  threshold.temp.alarm.low = getSfpThreshValue(SfpDomFlag::TEMP_ALARM_LOW);
+  threshold.temp.warn.high = getSfpThreshValue(SfpDomFlag::TEMP_WARN_HIGH);
+  threshold.temp.warn.low = getSfpThreshValue(SfpDomFlag::TEMP_WARN_LOW);
+  threshold.vcc.alarm.high = getSfpThreshValue(SfpDomFlag::VCC_ALARM_HIGH);
+  threshold.vcc.alarm.low = getSfpThreshValue(SfpDomFlag::VCC_ALARM_LOW);
+  threshold.vcc.warn.high = getSfpThreshValue(SfpDomFlag::VCC_WARN_HIGH);
+  threshold.vcc.warn.low = getSfpThreshValue(SfpDomFlag::VCC_WARN_LOW);
+  threshold.txBias.alarm.high =
+    getSfpThreshValue( SfpDomFlag::TX_BIAS_ALARM_HIGH);
+  threshold.txBias.alarm.low =
+    getSfpThreshValue(SfpDomFlag::TX_BIAS_ALARM_LOW);
+  threshold.txBias.warn.high =
+    getSfpThreshValue(SfpDomFlag::TX_BIAS_WARN_HIGH);
+  threshold.txBias.warn.low =
+    getSfpThreshValue(SfpDomFlag::TX_BIAS_WARN_LOW);
+  threshold.txPwr.alarm.high =
+    getSfpThreshValue(SfpDomFlag::TX_PWR_ALARM_HIGH);
+  threshold.txPwr.alarm.low =
+    getSfpThreshValue(SfpDomFlag::TX_PWR_ALARM_LOW);
+  threshold.txPwr.warn.high =
+    getSfpThreshValue(SfpDomFlag::TX_PWR_WARN_HIGH);
+  threshold.txPwr.warn.low =
+    getSfpThreshValue(SfpDomFlag::TX_PWR_WARN_LOW);
+  threshold.__isset.txPwr = true;
+  threshold.rxPwr.alarm.high =
+    getSfpThreshValue(SfpDomFlag::RX_PWR_ALARM_HIGH);
+  threshold.rxPwr.alarm.low =
+    getSfpThreshValue(SfpDomFlag::RX_PWR_ALARM_LOW);
+  threshold.rxPwr.warn.high =
+    getSfpThreshValue(SfpDomFlag::RX_PWR_WARN_HIGH);
+  threshold.rxPwr.warn.low =
+    getSfpThreshValue(SfpDomFlag::RX_PWR_WARN_LOW);
+  return true;
+}
+
 bool SfpModule::getDomValuesMap(SfpDomReadValue &value) {
   if (cacheIsValid() && domSupport_) {
     value.temp = getSfpDomValue(SfpDomValue::TEMP);
@@ -180,6 +223,67 @@ bool SfpModule::getDomValuesMap(SfpDomReadValue &value) {
   return false;
 }
 
+bool SfpModule::getSensorInfo(GlobalSensors& info) {
+  if (!domSupport_) {
+    return false;
+  }
+  info.temp.value = getSfpDomValue(SfpDomValue::TEMP);
+  info.temp.flags.alarm.high = getSfpThreshFlag(SfpDomFlag::TEMP_ALARM_HIGH);
+  info.temp.flags.alarm.low = getSfpThreshFlag(SfpDomFlag::TEMP_ALARM_LOW);
+  info.temp.flags.warn.high = getSfpThreshFlag(SfpDomFlag::TEMP_WARN_HIGH);
+  info.temp.flags.warn.low = getSfpThreshFlag(SfpDomFlag::TEMP_WARN_LOW);
+  info.temp.__isset.flags = true;
+  info.vcc.value = getSfpDomValue(SfpDomValue::VCC);
+  info.vcc.flags.alarm.high = getSfpThreshFlag(SfpDomFlag::VCC_ALARM_HIGH);
+  info.vcc.flags.alarm.low = getSfpThreshFlag(SfpDomFlag::VCC_ALARM_LOW);
+  info.vcc.flags.warn.high = getSfpThreshFlag(SfpDomFlag::VCC_WARN_HIGH);
+  info.vcc.flags.warn.low = getSfpThreshFlag(SfpDomFlag::VCC_WARN_LOW);
+  info.vcc.__isset.flags = true;
+  return true;
+}
+
+bool SfpModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
+  if (!domSupport_) {
+    return false;
+  }
+
+  CHECK(channels.size() == 1);
+  channels[0].sensors.txBias.value = getSfpDomValue(SfpDomValue::TX_BIAS);
+  channels[0].sensors.txPwr.value = getSfpDomValue(SfpDomValue::TX_PWR);
+  channels[0].sensors.__isset.txPwr = true;
+  channels[0].sensors.rxPwr.value = getSfpDomValue(SfpDomValue::RX_PWR);
+
+  channels[0].sensors.txBias.flags.alarm.high =
+      getSfpThreshFlag(SfpDomFlag::TX_BIAS_ALARM_HIGH);
+  channels[0].sensors.txBias.flags.alarm.low =
+      getSfpThreshFlag(SfpDomFlag::TX_BIAS_ALARM_LOW);
+  channels[0].sensors.txBias.flags.warn.high =
+      getSfpThreshFlag(SfpDomFlag::TX_BIAS_WARN_HIGH);
+  channels[0].sensors.txBias.flags.warn.low =
+      getSfpThreshFlag(SfpDomFlag::TX_BIAS_WARN_LOW);
+  channels[0].sensors.txBias.__isset.flags = true;
+  channels[0].sensors.txPwr.flags.alarm.high =
+      getSfpThreshFlag(SfpDomFlag::TX_PWR_ALARM_HIGH);
+  channels[0].sensors.txPwr.flags.alarm.low =
+      getSfpThreshFlag(SfpDomFlag::TX_PWR_ALARM_LOW);
+  channels[0].sensors.txPwr.flags.warn.high =
+      getSfpThreshFlag(SfpDomFlag::TX_PWR_WARN_HIGH);
+  channels[0].sensors.txPwr.flags.warn.low =
+      getSfpThreshFlag(SfpDomFlag::TX_PWR_WARN_LOW);
+  channels[0].sensors.txPwr.__isset.flags = true;
+  channels[0].sensors.rxPwr.flags.alarm.high =
+      getSfpThreshFlag(SfpDomFlag::RX_PWR_ALARM_HIGH);
+  channels[0].sensors.rxPwr.flags.alarm.low =
+      getSfpThreshFlag(SfpDomFlag::RX_PWR_ALARM_LOW);
+  channels[0].sensors.rxPwr.flags.warn.high =
+      getSfpThreshFlag(SfpDomFlag::RX_PWR_WARN_HIGH);
+  channels[0].sensors.rxPwr.flags.warn.low =
+      getSfpThreshFlag(SfpDomFlag::RX_PWR_WARN_LOW);
+  channels[0].sensors.rxPwr.__isset.flags = true;
+  return true;
+}
+
+
 bool SfpModule::getVendorInfo(Vendor &vendor) {
   if (cacheIsValid()) {
     vendor.name = getSfpString(SfpIdpromFields::VENDOR_NAME);
@@ -191,6 +295,54 @@ bool SfpModule::getVendorInfo(Vendor &vendor) {
     return true;
   }
   return false;
+}
+
+bool SfpModule::getCableInfo(Cable &cable) {
+  cable.singleModeKm = getSfpCableLength(SfpIdpromFields::LENGTH_SM_KM, 1000);
+  cable.__isset.singleMode = (cable.singleModeKm != 0);
+  cable.singleMode = getSfpCableLength(SfpIdpromFields::LENGTH_SM, 100);
+  cable.__isset.singleMode = (cable.singleMode != 0);
+  cable.om3 = getSfpCableLength(SfpIdpromFields::LENGTH_OM3, 10);
+  cable.__isset.om3 = (cable.om3 != 0);
+  cable.om2 = getSfpCableLength(SfpIdpromFields::LENGTH_OM2, 10);
+  cable.__isset.om2 = (cable.om2 != 0);
+  cable.om1 = getSfpCableLength(SfpIdpromFields::LENGTH_OM1, 10);
+  cable.__isset.om1 = (cable.om1 != 0);
+  // XXX:  Note that copper and OM4 use different multipliers, but
+  //       it isn't clear how we distinguish them.  Need to dive further
+  //       into the SFP spec.
+  cable.copper = getSfpCableLength(SfpIdpromFields::LENGTH_COPPER, 1);
+  cable.__isset.copper = (cable.copper != 0);
+  return (cable.__isset.copper || cable.__isset.om1 || cable.__isset.om2 ||
+          cable.__isset.om3 || cable.__isset.singleMode ||
+          cable.__isset.singleModeKm);
+}
+
+/*
+ * Cable length is report as a single byte;  each field has a
+ * specific multiplier to use to get the true length.  For instance,
+ * single mode fiber length is specified in km, so the multiplier
+ * is 1000.  In addition, the raw value of 255 indicates that the
+ * cable is longer than can be represented.  We use a negative
+ * value of the appropriate magnitude to communicate that to thrift
+ * clients.
+ */
+
+int SfpModule::getSfpCableLength(const SfpIdpromFields field,
+                                  int multiplier) {
+  int length;
+  auto sfpFieldInfo = sfpFields.find(field);
+  if (sfpFieldInfo == sfpFields.end()) {
+    throw FbossError("Invalid SFP Field ID");
+  }
+  auto info = sfpFieldInfo->second;
+  const uint8_t *data = getSfpValuePtr(info.dataAddress,
+                                       info.offset, info.length);
+  length = *data * multiplier;
+  if (*data == CABLE_MAX_LEN) {
+    length = -(CABLE_MAX_LEN - 1) * multiplier;
+  }
+  return length;
 }
 
 std::string SfpModule::getSfpString(const SfpIdpromFields flag) {
@@ -386,6 +538,33 @@ void SfpModule::getSfpDom(SfpDom &dom) {
 }
 
 void SfpModule::getTransceiverInfo(TransceiverInfo &info) {
+  lock_guard<std::mutex> g(sfpModuleMutex_);
+
+  info.present = present_;
+  info.transceiver = type();
+  info.port = sfpImpl_->getNum();
+  if (!cacheIsValid()) {
+    return;
+  }
+  if (getSensorInfo(info.sensor)) {
+    info.__isset.sensor = true;
+  }
+  if (getVendorInfo(info.vendor)) {
+    info.__isset.vendor = true;
+  }
+  if (getCableInfo(info.cable)) {
+    info.__isset.cable = true;
+  }
+  if (getThresholdInfo(info.thresholds)) {
+    info.__isset.thresholds = true;
+  }
+
+  Channel chan;
+  chan.channel = 0;
+  info.channels.push_back(chan);
+  if (!getSensorsPerChanInfo(info.channels)) {
+    info.channels.clear();
+  }
 }
 
 float SfpModule::getValueFromRaw(const SfpDomFlag key, uint16_t value) {
