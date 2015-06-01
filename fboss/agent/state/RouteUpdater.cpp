@@ -121,14 +121,20 @@ void RouteUpdater::addRoute(RouterID id, InterfaceID intf,
                             const folly::IPAddress& intfAddr, uint8_t len) {
   if (intfAddr.isV4()) {
     PrefixV4 prefix{intfAddr.asV4().mask(len), len};
-    return addRoute(prefix, getRibV4(id), intf, intfAddr);
+    if (prefix.network.isLinkLocal()) {
+      VLOG(3) << "link local route for link local address "
+              << folly::to<std::string>(prefix);
+      return;
+    }
+    addRoute(prefix, getRibV4(id), intf, intfAddr);
   } else {
     PrefixV6 prefix{intfAddr.asV6().mask(len), len};
     if (prefix.network.isLinkLocal()) {
-      throw FbossError("Unexpected v6 interface route for link local address ",
-                       prefix);
+      VLOG(3) << "link local route for link local address "
+              << folly::to<std::string>(prefix);
+      return;
     }
-    return addRoute(prefix, getRibV6(id), intf, intfAddr);
+    addRoute(prefix, getRibV6(id), intf, intfAddr);
   }
 }
 
