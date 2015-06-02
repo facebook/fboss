@@ -589,19 +589,6 @@ class SwSwitch : public HwSwitch::Callback {
   StateUpdateList pendingUpdates_;
 
   /*
-   * hwMutex_ is held around all modifying calls that we make to hw_.
-   *
-   * This is primarily provided as a convenience so that the individual
-   * HwSwitch implementations do not need to provide their own internal
-   * locking.
-   *
-   * TODO: It might be better in the future to just move the locking to the
-   * HwSwitch, so that the HwSwitch only needs to hold a lock when really
-   * necessary.
-   */
-  std::mutex hwMutex_;
-
-  /*
    * The current switch state.
    *
    * BEWARE: You generally shouldn't access this directly, even internally

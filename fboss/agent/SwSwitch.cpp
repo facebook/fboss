@@ -120,8 +120,7 @@ void SwSwitch::stop() {
   // routed from kernel to the front panel tunnel interface.
   tunMgr_.reset();
 
-  // This needs to be run without holding hwMutex_ because the update
-  // thread may be waiting on the mutex in applyUpdate
+  // stops the background and update threads.
   stopThreads();
 }
 
@@ -203,7 +202,6 @@ void SwSwitch::registerPortStatusListener(
 }
 
 bool SwSwitch::getAndClearNeighborHit(RouterID vrf, folly::IPAddress ip) {
-  lock_guard<mutex> g(hwMutex_);
   return hw_->getAndClearNeighborHit(vrf, ip);
 }
 
@@ -212,12 +210,10 @@ void SwSwitch::exitFatal() const noexcept {
 }
 
 void SwSwitch::clearWarmBootCache() {
-  lock_guard<mutex> g(hwMutex_);
   hw_->clearWarmBootCache();
 }
 
 void SwSwitch::init(SwitchFlags flags) {
-  lock_guard<mutex> g(hwMutex_);
   auto start = std::chrono::steady_clock::now();
   auto stateAndBootType = hw_->init(this);
   auto initialState = stateAndBootType.first;
@@ -258,10 +254,8 @@ void SwSwitch::init(SwitchFlags flags) {
 }
 
 void SwSwitch::initialConfigApplied() {
-  {
-    lock_guard<mutex> g(hwMutex_);
-    hw_->initialConfigApplied();
-  }
+  // notify the hw
+  hw_->initialConfigApplied();
   setSwitchRunState(SwitchRunState::CONFIGURED);
 
   if (tunMgr_) {
@@ -540,8 +534,6 @@ void SwSwitch::applyUpdate(const shared_ptr<SwitchState>& oldState,
   // undesirable.  So far I don't think this brief discrepancy should cause
   // major issues.
   try {
-    // Hold the hwMutex_ while applying the updates.
-    lock_guard<mutex> hwGuard(hwMutex_);
     hw_->stateChanged(delta);
   } catch (const std::exception& ex) {
     // Notify the hw_ of the crash so it can execute any device specific

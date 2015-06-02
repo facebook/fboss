@@ -363,6 +363,8 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
 
 std::pair<std::shared_ptr<SwitchState>, BootType>
 BcmSwitch::init(Callback* callback) {
+  std::lock_guard<std::mutex> g(lock_);
+
   // Create unitObject_ before doing anything else.
   if (!unitObject_) {
     unitObject_ = BcmAPI::initOnlyUnit();
@@ -483,13 +485,14 @@ BcmSwitch::init(Callback* callback) {
   }
   if (warmBoot) {
     auto warmBootState = getWarmBootSwitchState();
-    stateChanged(StateDelta(make_shared<SwitchState>(), warmBootState));
+    stateChangedImpl(StateDelta(make_shared<SwitchState>(), warmBootState));
     return std::make_pair(warmBootState, bootType);
   }
   return std::make_pair(getColdBootSwitchState(), bootType);
 }
 
 void BcmSwitch::initialConfigApplied() {
+  std::lock_guard<std::mutex> g(lock_);
   // Register our packet handler callback function.
   uint32_t rxFlags = OPENNSL_RCO_F_ALL_COS;
   auto rv = opennsl_rx_register(
@@ -510,13 +513,17 @@ void BcmSwitch::initialConfigApplied() {
 }
 
 void BcmSwitch::stateChanged(const StateDelta& delta) {
+  // Take the lock before modifying any objects
+  std::lock_guard<std::mutex> g(lock_);
+  stateChangedImpl(delta);
+}
+
+void BcmSwitch::stateChangedImpl(const StateDelta& delta) {
   // TODO: This function contains high-level logic for how to apply the
   // StateDelta, and isn't particularly hardware-specific.  I plan to refactor
   // it, and move it out into a common helper class that can be shared by
   // many different HwSwitch implementations.
 
-  // Take the lock before modifying any objects
-  std::lock_guard<std::mutex> g(lock_);
   // As the first step, disable ports that are now disabled.
   // This ensures that we immediately stop forwarding traffic on these ports.
   forEachChanged(delta.getPortsDelta(),
@@ -1125,7 +1132,8 @@ opennsl_if_t BcmSwitch::getToCPUEgressId() const {
 }
 
 bool BcmSwitch::getAndClearNeighborHit(RouterID vrf,
-                                       folly::IPAddress& ip) const {
+                                       folly::IPAddress& ip) {
+  std::lock_guard<std::mutex> g(lock_);
   auto host = hostTable_->getBcmHostIf(vrf, ip);
   if (!host) {
     return false;

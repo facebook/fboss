@@ -196,7 +196,7 @@ class BcmSwitch : public HwSwitch {
    * has been hit.
    */
   bool getAndClearNeighborHit(RouterID vrf,
-                              folly::IPAddress& ip) const override;
+                              folly::IPAddress& ip) override;
 
  private:
   enum Flags : uint32_t {
@@ -253,6 +253,8 @@ class BcmSwitch : public HwSwitch {
       const RouterID id, const std::shared_ptr<RouteT>& route);
   void processRemovedRoutes(const StateDelta& delta);
   void processAddedChangedRoutes(const StateDelta& delta);
+
+  void stateChangedImpl(const StateDelta& delta);
 
   static void linkscanCallback(int unit,
                                opennsl_port_t port,

@@ -54,7 +54,7 @@ class SimSwitch : public HwSwitch {
   }
 
   bool getAndClearNeighborHit(RouterID vrf,
-                              folly::IPAddress& ip) const override {
+                              folly::IPAddress& ip) override {
     //TODO
     return false;
   }
