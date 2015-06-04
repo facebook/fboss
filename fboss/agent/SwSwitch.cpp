@@ -623,11 +623,10 @@ SfpDom SwSwitch::getSfpDom(PortID port) const {
   TransceiverIdx idx = getTransceiverMapping(port);
   SfpDom domInfo;
   Transceiver *t = getTransceiver(idx.second);
-  if (t->type() == TransceiverType::SFP) {
-    t->getSfpDom(domInfo);
-  } else {
-    memset(&domInfo, 0, sizeof(domInfo));
+  if (t->type() != TransceiverType::SFP) {
+    throw FbossError("Transceiver not SFP");
   }
+  t->getSfpDom(domInfo);
   return domInfo;
 }
 
