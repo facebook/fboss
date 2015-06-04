@@ -833,4 +833,9 @@ int32_t ThriftHandler::getIdleTimeout() {
   }
   return thriftIdleTimeout_;
 }
+
+void ThriftHandler::reloadConfig() {
+  return sw_->applyConfig("reload config initiated by thrift call");
+}
+
 }} // facebook::fboss

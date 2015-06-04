@@ -48,7 +48,6 @@ using std::chrono::seconds;
 using std::condition_variable;
 using std::string;
 
-DEFINE_string(config, "", "The path to the local JSON configuration file");
 DEFINE_int32(port, 5909, "The thrift server port");
 DEFINE_int32(stat_publish_interval_ms, 1000,
              "How frequently to publish thread-local stats back to the "
@@ -135,10 +134,7 @@ class Initializer {
     auto localMac = ret.get();
     LOG(INFO) << "local MAC is " << localMac;
 
-    sw_->updateStateBlocking("apply initial config",
-                             [this](const shared_ptr<SwitchState>& state) {
-                               return this->applyConfig(state, FLAGS_config);
-                             });
+    sw_->applyConfig("apply initial config");
     sw_->initialConfigApplied();
 
     // Start the UpdateSwitchStatsThread
@@ -182,17 +178,6 @@ class Initializer {
     fs_->start();
     LOG(INFO) << "Started background thread: UpdateStatsThread";
     initCondition_.notify_all();
-  }
-
-  shared_ptr<SwitchState> applyConfig(
-      const shared_ptr<SwitchState>& state,
-      folly::StringPiece config) {
-    if (!config.empty()) {
-      LOG(INFO) << "Loading config from local config file " << config;
-      return applyThriftConfigFile(state, config, platform_);
-    }
-
-    return applyThriftConfigDefault(state, platform_);
   }
 
   SwSwitch *sw_;

@@ -111,12 +111,14 @@ void checkField(const ExpectedType& expected, const ActualType& actual,
  *     - IPs:
  *       10.0.0.1/24
  *       192.168.0.1/24
+ *       2401:db00:2110:3001::0001/64
  *   - Interface 55:
  *     - VLAN 55
  *     - MAC 00:02:00:00:00:55
  *     - IPs:
  *       10.0.55.1/24
  *       192.168.55.1/24
+ *       2401:db00:2110:3055::0001/64
  */
 std::shared_ptr<SwitchState> testStateA();
 

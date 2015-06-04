@@ -291,6 +291,12 @@ service FbossCtrl extends fb303.FacebookService {
    */
   ProductInfo getProductInfo()
     throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Force reload configurations from the config file. Useful when config file
+   * has changed since the agent started.
+   */
+  void reloadConfig()
 }
 
 service PortStatusListenerClient extends fb303.FacebookService {

@@ -176,6 +176,13 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
    */
   int32_t getIdleTimeout() override;
 
+  /**
+   * Thrift call to force reload the config from config file flag. This is
+   * useful if we change the config file while the agent is running, and wish
+   * to update its config to most recent version.
+   */
+  void reloadConfig() override;
+
  private:
   struct ThreadLocalListener {
     EventBase* eventBase;

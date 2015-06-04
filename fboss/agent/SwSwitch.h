@@ -143,8 +143,6 @@ class SwSwitch : public HwSwitch::Callback {
 
   bool isExiting() const;
 
-  void applyConfig(const std::string& configPath);
-
   /*
    * Get a pointer to the current switch state.
    *
@@ -209,6 +207,15 @@ class SwSwitch : public HwSwitch::Callback {
    * completes.
    */
   void updateStateBlocking(folly::StringPiece name, StateUpdateFn fn);
+
+  /**
+   * Apply config from the config file (specified in 'config' flag).
+   *
+   *  @param  reason
+   *          What is the reson for applying config. This will be printed for
+   *          logging purposes.
+   */
+  void applyConfig(const std::string& reason);
 
   /**
    * Get a set of high resolution samplers that we can query quickly.

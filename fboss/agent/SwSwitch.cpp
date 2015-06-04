@@ -32,6 +32,7 @@
 #include "fboss/agent/TransceiverMap.h"
 #include "fboss/agent/Transceiver.h"
 #include "fboss/agent/TransceiverImpl.h"
+#include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/SfpModule.h"
 #include "fboss/agent/LldpManager.h"
 #include "common/stats/ServiceData.h"
@@ -55,6 +56,8 @@ using std::shared_ptr;
 using std::string;
 using std::unique_lock;
 using std::unique_ptr;
+
+DEFINE_string(config, "", "The path to the local JSON configuration file");
 
 namespace {
 facebook::fboss::PortStatus fillInPortStatus(
@@ -894,6 +897,24 @@ bool SwSwitch::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
   } else {
     return false;
   }
+}
+
+void SwSwitch::applyConfig(const std::string& reason) {
+  // We don't need to hold a lock here. updateStateBlocking() does that for us.
+  updateStateBlocking(
+      reason,
+      [&](const shared_ptr<SwitchState>& state) {
+        std::string configFilename = FLAGS_config;
+        if (!configFilename.empty()) {
+          LOG(INFO) << "Loading config from local config file "
+                    << configFilename;
+          return applyThriftConfigFile(state, configFilename, platform_.get());
+        }
+        // Loading config from default location. The message will be printed
+        // there.
+        return applyThriftConfigDefault(state, platform_.get());
+      });
+  return;
 }
 
 }} // facebook::fboss
