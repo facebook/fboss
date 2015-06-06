@@ -53,6 +53,13 @@ class TunManager : public StateObserver {
    *         false The packet is dropped due to errors
    */
   bool sendPacketToHost(std::unique_ptr<RxPacket> pkt);
+  /*
+   * Sync to SwitchState
+   * This should really be only called externally
+   * once, after config is applied. After that all
+   * updates should come via the stateUpdated calls
+   */
+  void sync(std::shared_ptr<SwitchState> state);
 
  private:
   // no copy to assign
@@ -135,7 +142,6 @@ class TunManager : public StateObserver {
   void applyChanges(const MAPNAME& oldMap, const MAPNAME& newMap,
                     CHANGEFN changeFn, ADDFN addFn, REMOVEFN removeFn);
 
-  void sync(std::shared_ptr<SwitchState> state);
   void probe();
   /*
    * start/stop packet forwarding on all TUN interfaces

@@ -262,6 +262,8 @@ void SwSwitch::initialConfigApplied() {
   setSwitchRunState(SwitchRunState::CONFIGURED);
 
   if (tunMgr_) {
+    // Perform initial sync of interfaces
+    tunMgr_->sync(getState());
     // We check for syncing tun interface only on state changes after the
     // initial configuration is applied. This is really a hack to get around
     // 2 issues
