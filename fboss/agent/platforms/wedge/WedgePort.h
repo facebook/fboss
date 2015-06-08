@@ -17,9 +17,7 @@ class WedgePort : public BcmPlatformPort {
  public:
   explicit WedgePort(PortID id);
 
-  virtual PortID getPortID() const override {
-    return id_;
-  }
+  PortID getPortID() const override { return id_; }
 
   void setBcmPort(BcmPort* port) override;
   BcmPort* getBcmPort() const override {

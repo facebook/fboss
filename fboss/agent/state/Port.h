@@ -72,7 +72,7 @@ class Port : public NodeBaseT<Port, PortFields> {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
-  virtual folly::dynamic toFollyDynamic() const override {
+  folly::dynamic toFollyDynamic() const override {
     return getFields()->toFollyDynamic();
   }
 

@@ -128,7 +128,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
    * @param[in]   ctx   A pointer to the connection context that is being
    *                    destroyed.
    */
-  virtual void connectionDestroyed(
+  void connectionDestroyed(
       apache::thrift::server::TConnectionContext* ctx) override;
 
   /*

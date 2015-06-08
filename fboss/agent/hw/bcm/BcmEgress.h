@@ -43,7 +43,7 @@ class BcmEgressBase : public boost::noncopyable {
 class BcmEgress : public BcmEgressBase {
  public:
   explicit BcmEgress(const BcmSwitch* hw) : BcmEgressBase(hw) {}
-  virtual ~BcmEgress();
+  ~BcmEgress() override;
   void program(opennsl_if_t intfId, opennsl_vrf_t vrf,
       const folly::IPAddress& ip, folly::MacAddress mac,
                opennsl_port_t port) {
@@ -96,7 +96,7 @@ class BcmEgress : public BcmEgressBase {
 class BcmEcmpEgress : public BcmEgressBase {
  public:
   explicit BcmEcmpEgress(const BcmSwitch* hw) : BcmEgressBase(hw) {}
-  virtual ~BcmEcmpEgress();
+  ~BcmEcmpEgress() override;
   void program(opennsl_if_t paths[], int n_path);
 };
 

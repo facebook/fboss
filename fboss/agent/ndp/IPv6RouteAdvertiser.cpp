@@ -56,7 +56,7 @@ class IPv6RAImpl : private apache::thrift::async::TAsyncTimeout {
   IPv6RAImpl(IPv6RAImpl const &) = delete;
   IPv6RAImpl& operator=(IPv6RAImpl const &) = delete;
 
-  virtual void timeoutExpired() noexcept {
+  void timeoutExpired() noexcept override {
     sendRouteAdvertisement();
     scheduleTimeout(interval_);
   }

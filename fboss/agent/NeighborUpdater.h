@@ -30,7 +30,7 @@ class Vlan;
 class NeighborUpdater : public AutoRegisterStateObserver {
  public:
   explicit NeighborUpdater(SwSwitch* sw);
-  ~NeighborUpdater();
+  ~NeighborUpdater() override;
 
   void stateUpdated(const StateDelta& delta) override;
 

@@ -25,7 +25,7 @@ class TunIntf : private apache::thrift::async::TEventHandler {
           const std::string& name, RouterID rid, int idx);
   TunIntf(SwSwitch *sw, apache::thrift::async::TEventBase *evb,
           RouterID rid, const Interface::Addresses& addrs);
-  virtual ~TunIntf();
+  ~TunIntf() override;
 
   // some utility functions
   static bool isTunIntf(const char *name);

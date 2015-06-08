@@ -47,7 +47,7 @@ class RouteTable : public NodeBaseT<RouteTable, RouteTableFields> {
   typedef RouteTableFields::RibTypeV6 RibTypeV6;
 
   explicit RouteTable(RouterID id);
-  virtual ~RouteTable();
+  ~RouteTable() override;
 
   static std::shared_ptr<RouteTable>
   fromFollyDynamic(const folly::dynamic& json) {
@@ -60,7 +60,7 @@ class RouteTable : public NodeBaseT<RouteTable, RouteTableFields> {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
-  virtual folly::dynamic toFollyDynamic() const override {
+  folly::dynamic toFollyDynamic() const override {
     return this->getFields()->toFollyDynamic();
   }
 

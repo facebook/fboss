@@ -26,7 +26,7 @@ class WedgePort;
 class WedgePlatform : public BcmPlatform {
  public:
   WedgePlatform();
-  ~WedgePlatform();
+  ~WedgePlatform() override;
 
   HwSwitch* getHwSwitch() const override;
   void onHwInitialized(SwSwitch* sw) override;

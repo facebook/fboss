@@ -93,7 +93,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
    * Create a new, empty state.
    */
   SwitchState();
-  virtual ~SwitchState();
+  ~SwitchState() override;
 
   static std::shared_ptr<SwitchState>
   fromFollyDynamic(const folly::dynamic& json) {
@@ -106,7 +106,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
-  virtual folly::dynamic toFollyDynamic() const override {
+  folly::dynamic toFollyDynamic() const override {
     return getFields()->toFollyDynamic();
   }
 

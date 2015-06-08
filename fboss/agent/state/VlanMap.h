@@ -25,7 +25,7 @@ typedef NodeMapTraits<VlanID, Vlan> VlanMapTraits;
 class VlanMap : public NodeMapT<VlanMap, VlanMapTraits> {
  public:
   VlanMap();
-  virtual ~VlanMap();
+  ~VlanMap() override;
 
   VlanMap* modify(std::shared_ptr<SwitchState>* state);
 

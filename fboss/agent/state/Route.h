@@ -73,7 +73,7 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   // Constructor for a route with special forwarding action
   Route(const Prefix& prefix, Action action);
 
-  virtual ~Route();
+  ~Route() override;
 
   static std::shared_ptr<Route<AddrT>>
   fromFollyDynamic(const folly::dynamic& json) {
@@ -86,7 +86,7 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
-  virtual folly::dynamic toFollyDynamic() const override {
+  folly::dynamic toFollyDynamic() const override {
     return this->getFields()->toFollyDynamic();
   }
 

@@ -32,7 +32,7 @@ class FbossError : public thrift::FbossBaseError {
     message = folly::to<std::string>(std::forward<Args>(args)...);
   }
 
-  ~FbossError() throw() {}
+  ~FbossError() throw() override {}
 };
 
 }} // facebook::fboss

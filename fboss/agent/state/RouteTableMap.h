@@ -23,7 +23,7 @@ typedef NodeMapTraits<RouterID, RouteTable> RouteTableMapTraits;
 class RouteTableMap : public NodeMapT<RouteTableMap, RouteTableMapTraits> {
  public:
   RouteTableMap();
-  virtual ~RouteTableMap();
+  ~RouteTableMap() override;
 
   /*
    * Get the specified RouteTable.

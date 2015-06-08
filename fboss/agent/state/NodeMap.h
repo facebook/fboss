@@ -139,7 +139,7 @@ class NodeMapT : public NodeBaseT<MapTypeT,
   /*
    * Serialize to folly::dynamic
    */
-  virtual folly::dynamic toFollyDynamic() const override;
+  folly::dynamic toFollyDynamic() const override;
 
   /*
    * Serialize to json string

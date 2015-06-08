@@ -29,7 +29,7 @@ class RouteTableRib
     : public NodeMapT<RouteTableRib<AddrT>, RouteTableRibTraits<AddrT>> {
  public:
   RouteTableRib();
-  virtual ~RouteTableRib();
+  ~RouteTableRib() override;
 
   typedef NodeMapT<RouteTableRib<AddrT>, RouteTableRibTraits<AddrT>> Base;
   typedef RoutePrefix<AddrT> Prefix;

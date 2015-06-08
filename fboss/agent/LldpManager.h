@@ -58,7 +58,7 @@ class LldpManager : private folly::AsyncTimeout {
                     PDU_END_TLV_TYPE = 0,
                     PDU_END_TLV_LENGTH = 0};
   explicit LldpManager(SwSwitch* sw);
-  ~LldpManager();
+  ~LldpManager() override;
   static const folly::MacAddress LLDP_DEST_MAC;
 
   /*
@@ -89,7 +89,7 @@ class LldpManager : private folly::AsyncTimeout {
   }
 
  private:
-  void timeoutExpired() noexcept;
+  void timeoutExpired() noexcept override;
   void sendLldpInfo(SwSwitch* sw, const std::shared_ptr<SwitchState>& swState,
                     const std::shared_ptr<Port>& port);
 

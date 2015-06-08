@@ -64,7 +64,7 @@ class BcmSwitch : public HwSwitch {
    */
   BcmSwitch(BcmPlatform *platform, std::unique_ptr<BcmUnit> unit);
 
-  virtual ~BcmSwitch();
+  ~BcmSwitch() override;
 
   /*
    * Release the BcmUnit used by this BcmSwitch.

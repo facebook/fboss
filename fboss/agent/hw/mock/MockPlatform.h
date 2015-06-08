@@ -21,7 +21,7 @@ class MockHwSwitch;
 class MockPlatform : public Platform {
  public:
   MockPlatform();
-  ~MockPlatform();
+  ~MockPlatform() override;
 
   HwSwitch* getHwSwitch() const override;
   std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;

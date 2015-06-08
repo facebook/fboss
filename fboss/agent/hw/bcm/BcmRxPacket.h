@@ -27,7 +27,7 @@ class BcmRxPacket : public RxPacket {
    */
   explicit BcmRxPacket(const opennsl_pkt_t* pkt);
 
-  virtual ~BcmRxPacket();
+  ~BcmRxPacket() override;
 
  private:
   int unit_{-1};

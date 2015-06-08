@@ -52,7 +52,7 @@ class NeighborUpdaterImpl : private folly::AsyncTimeout {
 
   bool pendingEntriesExist() const;
 
-  virtual void timeoutExpired() noexcept {
+  void timeoutExpired() noexcept override {
     if (pendingEntriesExist()) {
       sw_->updateState("Remove pending Arp entries", prunePendingEntries_);
     }

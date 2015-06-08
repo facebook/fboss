@@ -30,7 +30,7 @@ class TunIntf;
 class TunManager : public StateObserver {
  public:
   TunManager(SwSwitch *sw, apache::thrift::async::TEventBase *evb);
-  virtual ~TunManager();
+  ~TunManager() override;
   /**
    * Start probe procedure to read TUN interface info from the host.
    * This function can be called from any thread.

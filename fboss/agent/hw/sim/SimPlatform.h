@@ -18,7 +18,7 @@ class SimSwitch;
 class SimPlatform : public Platform {
  public:
   SimPlatform(folly::MacAddress mac, uint32_t numPorts);
-  ~SimPlatform();
+  ~SimPlatform() override;
 
   HwSwitch* getHwSwitch() const override;
   void onHwInitialized(SwSwitch* sw) override;
