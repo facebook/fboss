@@ -120,21 +120,27 @@ void RouteUpdater::addRoute(const PrefixT& prefix, RibT *ribCloned,
 void RouteUpdater::addRoute(RouterID id, InterfaceID intf,
                             const folly::IPAddress& intfAddr, uint8_t len) {
   if (intfAddr.isV4()) {
-    PrefixV4 prefix{intfAddr.asV4().mask(len), len};
-    if (prefix.network.isLinkLocal()) {
-      VLOG(3) << "link local route for link local address "
-              << folly::to<std::string>(prefix);
-      return;
+    PrefixV4 ifSubnetPrefix{intfAddr.asV4().mask(len), len};
+    if (ifSubnetPrefix.network.isLinkLocal()) {
+      VLOG(3) << "Adding route for link local address "
+              << folly::to<std::string>(ifSubnetPrefix);
+      // Don't return here. We still need to add routes. Otherwise, packets to
+      // hosts advertising routes via link local addresses are not routed
+      // properly.
+      //
+      // Ideally, we would not add these routes (and return early here), but
+      // keep track of link local addresses and which VLANs they are associated
+      // with. See t7365038 for more details.
     }
-    addRoute(prefix, getRibV4(id), intf, intfAddr);
+    addRoute(ifSubnetPrefix, getRibV4(id), intf, intfAddr);
   } else {
-    PrefixV6 prefix{intfAddr.asV6().mask(len), len};
-    if (prefix.network.isLinkLocal()) {
-      VLOG(3) << "link local route for link local address "
-              << folly::to<std::string>(prefix);
+    PrefixV6 ifSubnetPrefix{intfAddr.asV6().mask(len), len};
+    if (ifSubnetPrefix.network.isLinkLocal()) {
+      VLOG(3) << "Ignoring route for link local address "
+              << folly::to<std::string>(ifSubnetPrefix);
       return;
     }
-    addRoute(prefix, getRibV6(id), intf, intfAddr);
+    addRoute(ifSubnetPrefix, getRibV6(id), intf, intfAddr);
   }
 }
 
