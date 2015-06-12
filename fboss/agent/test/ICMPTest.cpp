@@ -283,6 +283,86 @@ TEST(ICMPTest, TTLExceededV4) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.ttl_exceeded.sum", 1);
 }
 
+// Force ICMP TTL expiration to test that serialize(unserialize(x)) = x
+// even if we have extra IPv4 options
+TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
+  auto sw = setupSwitch();
+  PortID portID(1);
+  VlanID vlanID(1);
+
+  // TODO: If actual parsing of IPv4 options is implemented at some point
+  //       the bogus option bytes will need to be replaced with valid options
+
+  // create an IPv4 packet with TTL = 1 and ihl != 5
+  auto pkt = MockRxPacket::fromHex(
+    // dst mac, src mac
+    "00 02 00 00 00 01  02 00 02 01 02 03"
+    // 802.1q, VLAN 1
+    "81 00 00 01"
+    // IPv4
+    "08 00"
+    // Version(4), IHL(15), DSCP(7), ECN(1), Total Length(60) <------ N.B. IHL
+    "4f 1d 00 3c"
+    // Identification(0x3456), Flags(0x1), Fragment offset(0x1345)
+    "34 56 53 45"
+    // TTL(1), Protocol(11), Checksum (0x1234, fake)
+    "01 11 12 34"
+    // Source IP (1.2.3.4)
+    "01 02 03 04"
+    // Destination IP (10.1.0.10)
+    "0a 01 00 0a"
+    // Maximum amount of options, bogus values here
+    "11 22 33 44 11 22 33 44 11 22 33 44 11 22 33 44 11 22 33 44"
+    "aa bb cc dd aa bb cc dd aa bb cc dd aa bb cc dd aa bb cc dd"
+    // Source port (69), destination port (70)
+    "00 45 00 46"
+    // Length (8), checksum (0x1234, faked)
+    "00 08 12 34"
+  );
+
+  // a copy of origin packet to comparison (only IP packet included)
+  auto icmpPayload = MockRxPacket::fromHex(
+    // icmp padding for unused field
+    "00 00 00 00"
+    // Version(4), IHL(15), DSCP(7), ECN(1), Total Length(60) <------ N.B. IHL
+    "4f 1d 00 3c"
+    // Identification(0x3456), Flags(0x1), Fragment offset(0x1345)
+    "34 56 53 45"
+    // TTL(1), Protocol(11), Checksum (0x1234, fake)
+    "01 11 12 34"
+    // Source IP (1.2.3.4)
+    "01 02 03 04"
+    // Destination IP (10.1.0.10)
+    "0a 01 00 0a"
+    // Maximum amount of options, bogus values here
+    "11 22 33 44 11 22 33 44 11 22 33 44 11 22 33 44 11 22 33 44"
+    "aa bb cc dd aa bb cc dd aa bb cc dd aa bb cc dd aa bb cc dd"
+    // Source port (69), destination port (70)
+    "00 45 00 46"
+    // Length (8), checksum (0x1234, faked)
+    "00 08 12 34"
+
+  );
+
+  pkt->padToLength(108);
+  pkt->setSrcPort(portID);
+  pkt->setSrcVlan(vlanID);
+
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_PLATFORM_CALL(sw, getLocalMac()).
+    WillRepeatedly(Return(kPlatformMac));
+
+  // We should get a ICMPv4 TTL exceeded back
+  EXPECT_PKT(sw, "ICMP TTL Exceeded",
+             checkICMPv4TTLExceeded(kPlatformMac,
+                                 IPAddressV4("10.0.0.1"),
+                                 kPlatformMac,
+                                 IPAddressV4("1.2.3.4"),
+                                 VlanID(1), icmpPayload->buf()->data(), 72));
+
+  sw->packetReceived(pkt->clone());
+}
+
 TEST(ICMPTest, TTLExceededV6) {
   auto sw = setupSwitch();
   PortID portID(1);

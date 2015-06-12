@@ -212,6 +212,9 @@ class IPv4Hdr {
    */
   folly::IPAddressV4 dstAddr{"0.0.0.0"};
 
+  // There might be up to (15 - 5) * 4 = 40 extra option bytes
+  uint8_t optionBuf[40] = {};
+
  private:
   static uint32_t addrPartialCsum(const folly::IPAddressV4& addr);
 };
@@ -252,6 +255,12 @@ void IPv4Hdr::write(CursorType* cursor) const {
   cursor->template writeBE<uint16_t>(csum);
   cursor->template write<uint32_t>(srcAddr.toLong());
   cursor->template write<uint32_t>(dstAddr.toLong());
+
+  // If extra options are present, serialize them back blindly
+  if (UNLIKELY(ihl > 5)) {
+    CHECK_LE(ihl, 15) << "Corrupted ihl value";
+    cursor->template push(optionBuf, (ihl - 5) * 4);
+  }
 }
 
 
