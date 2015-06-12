@@ -108,4 +108,37 @@ TEST(LldpManagerTest, LldpSend) {
   LldpManager lldpManager(swPtr);
   lldpManager.sendLldpOnAllPorts(false);
 }
+
+TEST(LldpManagerTest, NotEnabledTest) {
+  // Setup switch without flags enabling LLDP, and
+  // send an LLDP frame nevertheless. Used to segfault
+  // because of NULL dereference.
+  auto sw = setupSwitch();
+
+  PortID portID(1);
+  VlanID vlanID(1);
+
+  // Cache the current stats
+  CounterCache counters(sw.get());
+
+  // Random parseable LLDP packet found using the fuzzer
+  auto pkt = MockRxPacket::fromHex(
+  "02 00 01 00 00 01 02 00 02 01 02 03"
+  "81 00 00 01 88 cc 02 0d 00 14 34 56"
+  "53 0c 1f 06 12 34 01 02 03 04 0a 32"
+  "00 73 21 21 21 4a 21 02 02 06 02 02"
+  "00 00 00 00 f2 00 00 0d 0d 0d 0d 0d"
+  "00 00 00 00 00 94 94 94 94 00 00 3b"
+  "3b de 00 00");
+  pkt->setSrcPort(portID);
+  pkt->setSrcVlan(vlanID);
+
+  sw->packetReceived(pkt->clone());
+
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.unhandled.sum", 1);
+
+}
+
+
 } // unnamed namespace

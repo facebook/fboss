@@ -719,8 +719,11 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     arp_->handlePacket(std::move(pkt), dstMac, srcMac, c);
     return;
   case LldpManager::ETHERTYPE_LLDP:
-    lldpManager_->handlePacket(std::move(pkt), dstMac, srcMac, c);
-    return;
+    if (lldpManager_) {
+      lldpManager_->handlePacket(std::move(pkt), dstMac, srcMac, c);
+      return;
+    }
+    break;
   case IPv4Handler::ETHERTYPE_IPV4:
     ipv4_->handlePacket(std::move(pkt), dstMac, srcMac, c);
     return;
