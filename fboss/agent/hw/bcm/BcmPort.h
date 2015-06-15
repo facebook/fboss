@@ -90,7 +90,7 @@ class BcmPort {
                         const std::vector<opennsl_stat_val_t>& stats);
   std::string statName(folly::StringPiece name) const;
 
-  void disableRxPause();
+  void disablePause();
   void setAdditionalStats(std::chrono::seconds now);
 
   BcmSwitch* const hw_{nullptr};

@@ -12,7 +12,7 @@
 namespace facebook { namespace fboss {
 
 // stubbed out
-void BcmPort::disableRxPause() {}
+void BcmPort::disablePause() {}
 void BcmPort::setAdditionalStats(std::chrono::seconds now) {}
 
 }} // namespace facebook::fboss

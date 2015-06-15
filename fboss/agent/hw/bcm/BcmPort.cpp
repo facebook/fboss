@@ -68,7 +68,7 @@ BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
   int rv = opennsl_port_gport_get(unit, port_, &gport_);
   bcmCheckError(rv, "Failed to get gport for BCM port ", port_);
 
-  disableRxPause();
+  disablePause();
 
   // Initialize our stats data structures
   auto statMap = fbData->getStatMap();
