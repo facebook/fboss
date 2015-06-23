@@ -61,4 +61,5 @@ folly::IPAddressV6 getSwitchVlanIPv6(const std::shared_ptr<SwitchState>& state,
  *                               priviledges to decrease our niceness.
  */
 void incNiceValue(const uint32_t increment);
+
 }} // facebook::fboss

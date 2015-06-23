@@ -663,7 +663,7 @@ SwitchStats* SwSwitch::createSwitchStats() {
   return s;
 }
 
-void SwSwitch::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept{
+void SwSwitch::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {
   PortID port = pkt->getSrcPort();
   try {
     handlePacket(std::move(pkt));
@@ -674,6 +674,11 @@ void SwSwitch::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept{
     // Return normally, without letting the exception propagate to our caller.
     return;
   }
+}
+
+void SwSwitch::packetReceivedThrowExceptionOnError(
+    std::unique_ptr<RxPacket> pkt) {
+  handlePacket(std::move(pkt));
 }
 
 void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {

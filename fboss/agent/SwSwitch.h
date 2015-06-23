@@ -376,6 +376,15 @@ class SwSwitch : public HwSwitch::Callback {
     return &updateEventBase_;
   }
 
+  /**
+   * Do the packet received callback, and throw exception if there is an error
+   * in the handling of packet.
+   *
+   * This is usually not called for regular packets. Useful for testing. For
+   * normal calls, see packetReceived() callback from HwSwitch.
+   */
+  void packetReceivedThrowExceptionOnError(std::unique_ptr<RxPacket> pkt);
+
   // HwSwitch::Callback methods
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
   void linkStateChanged(PortID port, bool up) noexcept override;

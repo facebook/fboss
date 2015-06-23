@@ -363,6 +363,56 @@ TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
   sw->packetReceived(pkt->clone());
 }
 
+TEST(ICMPTest, ExtraFrameCheckSequenceAtEnd) {
+  auto sw = setupSwitch();
+  PortID portID(1);
+  VlanID vlanID(1);
+
+  std::string msg =
+      // Destination mac
+      "00 02 c9 bc 26 f0"
+      // Source mac
+      "00 02 c9 bb 5e 0e"
+      // VLAN type
+      "81 00"
+      // Unused
+      "07 dd"
+      // Ethertype
+      "86 dd"
+      // Version, Traffic class, Flow label
+      "60 00 00 00"
+      // Payload length (2), next header (1), hop limit (1)
+      "00 18 3a ff"
+      // Src IPv6 address
+      "fe 80 00 00 00 00 00 00 02 02 c9 ff fe bb 5e 0e"
+      // Dst IPv6 address
+      "fe 80 00 00 00 00 00 00 02 02 c9 ff fe bc 26 f0"
+      // ICMPv6 type (1) / code (1) / checksum (2).
+      // 0x88 = Neighbor Advertisement
+      "88 00 f8 e2"
+      // flags for ICMPv6 (4)
+      "40 00 00 00"
+      // IPv6 address of the source
+      "fe 80 00 00 00 00 00 00 02 02 c9 ff fe bb 5e 0e";
+  std::string checksum =
+      // Ethernet frame check sequence
+      "45 5f 16 58";
+  auto pktWithoutChecksum = MockRxPacket::fromHex(msg);
+  auto pktWithChecksum = MockRxPacket::fromHex(msg + checksum);
+
+  pktWithoutChecksum->setSrcPort(portID);
+  pktWithoutChecksum->setSrcVlan(vlanID);
+
+  pktWithChecksum->setSrcPort(portID);
+  pktWithChecksum->setSrcVlan(vlanID);
+
+  EXPECT_THROW(
+      sw->packetReceivedThrowExceptionOnError(pktWithChecksum->clone()),
+      std::out_of_range);
+  EXPECT_NO_THROW(
+      sw->packetReceivedThrowExceptionOnError(pktWithoutChecksum->clone()));
+}
+
 TEST(ICMPTest, TTLExceededV6) {
   auto sw = setupSwitch();
   PortID portID(1);
