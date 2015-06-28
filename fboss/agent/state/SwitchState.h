@@ -9,6 +9,12 @@
  */
 #pragma once
 
+#include <chrono>
+#include <memory>
+
+#include <folly/FBString.h>
+#include <folly/dynamic.h>
+
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeBase.h"
 
