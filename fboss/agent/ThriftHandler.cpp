@@ -747,7 +747,7 @@ void ThriftHandler::ensureConfigured(StringPiece function) {
   if (!function.empty()) {
     VLOG(1) << "failing thrift prior to switch configuration: " << function;
   }
-  throw FbossError("switch is still initializing or is exiting and is not"
+  throw FbossError("switch is still initializing or is exiting and is not "
                    "fully configured yet");
 }
 
