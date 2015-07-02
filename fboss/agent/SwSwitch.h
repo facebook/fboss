@@ -253,7 +253,7 @@ class SwSwitch : public HwSwitch::Callback {
    * The switch may then use this to start certain functions
    * which make sense only after the initial config has been
    * applied. As an example it makes sense to start the packet
-   * receieve only after applying the initial config, else in
+   * receive only after applying the initial config, else in
    * case of a warm boot this causes us to receive packets tagged
    * with a vlan which software switch state does not even know
    * about. OTOH in case of a cold boot it causes host entries

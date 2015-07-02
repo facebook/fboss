@@ -269,7 +269,7 @@ class SwitchStats : public boost::noncopyable {
   // UDP packets dropped due to smaller packet size
   TLTimeseries udpTooSmall_;
 
-  // Total DHCP packets receieved
+  // Total DHCP packets received
   TLTimeseries dhcpV4Pkt_;
   /*
    *  Consolidate DHCP v4 drops under 2 heads
