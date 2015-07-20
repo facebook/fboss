@@ -374,10 +374,10 @@ void SwSwitch::updateState(StringPiece name, StateUpdateFn fn) {
 }
 
 void SwSwitch::updateStateBlocking(folly::StringPiece name, StateUpdateFn fn) {
-  BlockingUpdateResult result;
-  auto update = make_unique<BlockingStateUpdate>(name, std::move(fn), &result);
+  auto result = std::make_shared<BlockingUpdateResult>();
+  auto update = make_unique<BlockingStateUpdate>(name, std::move(fn), result);
   updateState(std::move(update));
-  result.wait();
+  result->wait();
 }
 
 void SwSwitch::handlePendingUpdatesHelper(SwSwitch* sw) {
