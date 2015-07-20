@@ -105,6 +105,13 @@ ThriftHandler::ThriftHandler(SwSwitch* sw) : FacebookBase2("FBOSS"), sw_(sw) {
 
 fb_status ThriftHandler::getStatus() {
   if (sw_->isFullyInitialized()) {
+    // We schedule a lightweight task on the update eventbase
+    // so we can catch deadlocks in that thread
+    auto healthcheckFn = [=] {
+      //arbitrary code, could be changed if the log message is annoying
+      VLOG(2) << "Healthcheck passed.";
+    };
+    sw_->getUpdateEVB()->runInEventBaseThreadAndWait(healthcheckFn);
     return fb_status::ALIVE;
   } else {
     return fb_status::STARTING;
