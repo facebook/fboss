@@ -26,6 +26,8 @@ enum ParserType {
 
 /**
  * The spanning tree state for a VlanPort.
+ *
+ * This maps to the FocalPoint API's FM_STP_STATE_* constants.
  */
 enum SpanningTreeState {
   BLOCKING = 0,   // Receive BPDUs only, no traffic
@@ -92,6 +94,10 @@ struct Port {
 
 /**
  * Configuration for a VLAN.
+ *
+ * For simplicity, we use a single list of VLANs for the entire controller
+ * process.  The FocalPoint API has an independent list of VLANs for each
+ * switch.  The controller will create each VLAN on each configured switch.
  */
 struct Vlan {
   1: string name

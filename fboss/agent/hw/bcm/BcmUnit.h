@@ -72,7 +72,6 @@ class BcmUnit {
     return wbHelper_.get();
   }
 
-
   bool isAttached() const {
     return attached_.load(std::memory_order_acquire);
   }
