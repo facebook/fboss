@@ -532,7 +532,7 @@ void IPv6Handler::sendNeighborSolicitations(
   }
 
   auto route = routeTable->getRibV6()->longestMatch(targetIP);
-  if (!route) {
+  if (!route || !route->isResolved()) {
     // No way to reach targetIP
     return;
   }
