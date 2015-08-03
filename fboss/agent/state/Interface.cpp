@@ -28,15 +28,20 @@ constexpr auto kName = "name";
 constexpr auto kMac = "mac";
 constexpr auto kAddresses = "addresses";
 constexpr auto kNdpConfig = "ndpConfig";
+constexpr auto kMtu = "mtu";
 }
 
 namespace facebook { namespace fboss {
 
 InterfaceFields InterfaceFields::fromFollyDynamic(const folly::dynamic& json) {
   auto intfFields =
-    InterfaceFields(InterfaceID(json[kIntfId].asInt()),
-      RouterID(json[kRouterId].asInt()), VlanID(json[kVlanId].asInt()),
-      json[kName].asString(), MacAddress(json[kMac].asString()));
+    InterfaceFields(
+        InterfaceID(json[kIntfId].asInt()),
+        RouterID(json[kRouterId].asInt()),
+        VlanID(json[kVlanId].asInt()),
+        json[kName].asString(),
+        MacAddress(json[kMac].asString()),
+        json[kMtu].asInt());
   ThriftSerializerJson<cfg::NdpConfig> serializer;
   for (const auto& addr: json[kAddresses]) {
     auto cidr = IPAddress::createNetwork(addr.asString(),
@@ -56,6 +61,7 @@ folly::dynamic InterfaceFields::toFollyDynamic() const {
   intf[kVlanId] = static_cast<uint16_t>(vlanID);
   intf[kName] = name;
   intf[kMac] = to<string>(mac);
+  intf[kMtu] = to<string>(mtu);
   std::vector<folly::dynamic> addresses;
   for (auto const& addrAndMask: addrs) {
     addresses.emplace_back(to<string>(addrAndMask.first) + "/" +

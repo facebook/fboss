@@ -34,8 +34,8 @@ using std::string;
 
 namespace {
 constexpr auto kVlanId = "vlanId";
-constexpr auto kVlanName = "vlanName";
 constexpr auto kVlanMtu = "vlanMTU";
+constexpr auto kVlanName = "vlanName";
 constexpr auto kDhcpV4Relay = "dhcpV4Relay";
 constexpr auto kDhcpV4RelayOverrides = "dhcpRelayOverridesV4";
 constexpr auto kDhcpV6Relay = "dhcpV6Relay";
@@ -72,13 +72,11 @@ VlanFields::VlanFields(VlanID _id, string _name)
 
 VlanFields::VlanFields(VlanID _id,
                        string _name,
-                       uint32_t mtu,
                        IPAddressV4 v4Relay,
                        IPAddressV6 v6Relay,
                        MemberPorts&& ports)
   : id(_id),
     name(std::move(_name)),
-    mtu(mtu),
     dhcpV4Relay(v4Relay),
     dhcpV6Relay(v6Relay),
     ports(std::move(ports)),
@@ -92,7 +90,6 @@ folly::dynamic VlanFields::toFollyDynamic() const {
   folly::dynamic vlan = folly::dynamic::object;
   vlan[kVlanId] = static_cast<uint16_t>(id);
   vlan[kVlanName] = name;
-  vlan[kVlanMtu] = mtu;
   vlan[kDhcpV4Relay] = dhcpV4Relay.str();
   vlan[kDhcpV6Relay] = dhcpV6Relay.str();
   vlan[kDhcpV4RelayOverrides] = folly::dynamic::object;
@@ -120,7 +117,6 @@ folly::dynamic VlanFields::toFollyDynamic() const {
 VlanFields VlanFields::fromFollyDynamic(const folly::dynamic& vlanJson) {
   VlanFields vlan(VlanID(vlanJson[kVlanId].asInt()),
       vlanJson[kVlanName].asString().toStdString());
-  vlan.mtu = vlanJson[kVlanMtu].asInt();
   vlan.dhcpV4Relay = folly::IPAddressV4(
       vlanJson[kDhcpV4Relay].stringPiece());
   vlan.dhcpV6Relay = folly::IPAddressV6(
@@ -150,10 +146,9 @@ Vlan::Vlan(VlanID id, string name)
   : NodeBaseT(id, std::move(name)) {
 }
 
-Vlan::Vlan(const cfg::Vlan* config, uint32_t mtu, MemberPorts ports)
+Vlan::Vlan(const cfg::Vlan* config, MemberPorts ports)
   : NodeBaseT(VlanID(config->id),
               config->name,
-              mtu,
               (config->__isset.dhcpRelayAddressV4 ?
                IPAddressV4(config->dhcpRelayAddressV4) : IPAddressV4()),
               (config->__isset.dhcpRelayAddressV6 ?

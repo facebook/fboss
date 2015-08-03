@@ -48,6 +48,15 @@ TunManager::~TunManager() {
   rtnl_close(&rth_);
 }
 
+int TunManager::getMinMtu(std::shared_ptr<SwitchState> state) {
+  int minMtu = INT_MAX;
+  auto intfMap = state->getInterfaces();
+  for (const auto& intf : intfMap->getAllNodes()) {
+    minMtu = std::min(intf.second->getMtu(), minMtu);
+  }
+  return minMtu == INT_MAX ? 1500 : minMtu;
+}
+
 void TunManager::addIntf(RouterID rid, const std::string& name, int ifIdx) {
   auto ret = intfs_.emplace(rid, nullptr);
   if (!ret.second) {
@@ -56,7 +65,8 @@ void TunManager::addIntf(RouterID rid, const std::string& name, int ifIdx) {
   SCOPE_FAIL {
     intfs_.erase(ret.first);
   };
-  ret.first->second.reset(new TunIntf(sw_, evb_, name, rid, ifIdx));
+  ret.first->second.reset(
+      new TunIntf(sw_, evb_, name, rid, ifIdx, getMinMtu(sw_->getState())));
 }
 
 void TunManager::addIntf(RouterID rid, const Interface::Addresses& addrs) {
@@ -67,7 +77,8 @@ void TunManager::addIntf(RouterID rid, const Interface::Addresses& addrs) {
   SCOPE_FAIL {
     intfs_.erase(ret.first);
   };
-  auto intf = folly::make_unique<TunIntf>(sw_, evb_, rid, addrs);
+  auto intf = folly::make_unique<TunIntf>(
+      sw_, evb_, rid, addrs, getMinMtu(sw_->getState()));
   SCOPE_FAIL {
     intf->setDelete();
   };
@@ -405,9 +416,13 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
     newAddrs[intf.second->getRouterID()].insert(addrs.begin(), addrs.end());
   }
   AddrMap oldAddrs;
+  auto newMinMtu = getMinMtu(state);
   for (const auto& intf : intfs_) {
     const auto& addrs = intf.second->getAddresses();
     oldAddrs[intf.first].insert(addrs.begin(), addrs.end());
+    if (intf.second->getMtu() != newMinMtu) {
+      intf.second->setMtu(newMinMtu);
+    }
   }
   // now, lock all interfaces and apply changes. Interfaces will be stopped
   // if there is some change to the interface

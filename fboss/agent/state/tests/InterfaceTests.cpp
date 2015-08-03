@@ -390,4 +390,15 @@ TEST(InterfaceMap, applyConfig) {
   EXPECT_EQ(nullptr, intfsV3->getInterfaceIf(InterfaceID(1)));
 
   checkChangedIntfs(intfsV2, intfsV3, {}, {3}, {1});
+
+  // change the MTU
+  config.interfaces[0].mtu = 1337;
+  config.interfaces[0].__isset.mtu = true;
+  EXPECT_EQ(9000, intfsV3->getInterface(InterfaceID(3))->getMtu());
+  auto stateV4 = publishAndApplyConfig(stateV3, &config, &platform);
+  ASSERT_NE(nullptr, stateV4);
+  auto intfsV4 = stateV4->getInterfaces();
+  EXPECT_NE(intfsV3, intfsV4);
+  EXPECT_EQ(4, intfsV4->getGeneration());
+  EXPECT_EQ(1337, intfsV4->getInterface(InterfaceID(3))->getMtu());
 }

@@ -61,9 +61,13 @@ shared_ptr<InterfaceMap> BcmWarmBootCache::reconstructInterfaceMap() const {
     const auto& bcmIntf = vlanMacAndIntf.second;
     // Note : missing addresses and inteface name. This should be
     // fixed with t4155406
-    intfMap->addInterface(make_shared<Interface>(InterfaceID(bcmIntf.l3a_vid),
-            RouterID(bcmIntf.l3a_vrf), VlanID(bcmIntf.l3a_vid), "",
-            vlanMacAndIntf.first.second));
+    intfMap->addInterface(make_shared<Interface>(
+            InterfaceID(bcmIntf.l3a_vid),
+            RouterID(bcmIntf.l3a_vrf),
+            VlanID(bcmIntf.l3a_vid),
+            "",
+            vlanMacAndIntf.first.second,
+            bcmIntf.l3a_mtu));
   }
   return intfMap;
 }

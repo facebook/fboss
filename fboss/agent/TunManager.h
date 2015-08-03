@@ -106,12 +106,16 @@ class TunManager : public StateObserver {
   int getTableId(RouterID rid) const;
   /// Add/remove a route table
   void addRemoveTable(int ifIdx, RouterID rid, bool add);
+
   void addRouteTable(int ifIdx, RouterID rid) {
     addRemoveTable(ifIdx, rid, true);
   }
   void removeRouteTable(int ifIdx, RouterID rid) {
     addRemoveTable(ifIdx, rid, false);
   }
+
+  /// Get the smallest MTU accross all interfaces.
+  int getMinMtu(std::shared_ptr<SwitchState> state);
 
   /**
    * Add/remove an IP rule for source routing based on a given address

@@ -40,6 +40,7 @@ using folly::StringPiece;
 using std::make_shared;
 using std::shared_ptr;
 
+
 namespace facebook { namespace fboss {
 
 /*
@@ -111,15 +112,6 @@ class ThriftConfigApplier {
   std::string getInterfaceName(const cfg::Interface* config);
   folly::MacAddress getInterfaceMac(const cfg::Interface* config);
   Interface::Addresses getInterfaceAddresses(const cfg::Interface* config);
-
-  uint32_t getVlanMTU(const cfg::Vlan* vlanConfig) {
-    if (vlanConfig->mtuIndex == 0 && cfg_->supportedMTUs.empty()) {
-      // For older configs that do not specify supportedMTUs,
-      // default to 9000
-      return 9000;
-    }
-    return cfg_->supportedMTUs.at(vlanConfig->mtuIndex);
-  }
 
   std::shared_ptr<SwitchState> orig_;
   const cfg::SwitchConfig* cfg_{nullptr};
@@ -390,8 +382,7 @@ shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
 
 shared_ptr<Vlan> ThriftConfigApplier::createVlan(const cfg::Vlan* config) {
   const auto& ports = vlanPorts_[VlanID(config->id)];
-  auto mtu = getVlanMTU(config);
-  auto vlan = make_shared<Vlan>(config, mtu, ports);
+  auto vlan = make_shared<Vlan>(config, ports);
   updateNeighborResponseTables(vlan.get(), config);
   updateDhcpOverrides(vlan.get(), config);
   return vlan;
@@ -414,18 +405,17 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(const shared_ptr<Vlan>& orig,
   auto newDhcpV6Relay = config->__isset.dhcpRelayAddressV6 ?
     IPAddressV6(config->dhcpRelayAddressV6) : IPAddressV6("::");
 
-  auto mtu = getVlanMTU(config);
 
-  if (orig->getName() == config->name && orig->getPorts() == ports &&
-      orig->getMTU() == mtu && oldDhcpV4Relay == newDhcpV4Relay &&
-      oldDhcpV6Relay == newDhcpV6Relay && !changed_neighbor_table &&
-      !changed_dhcp_overrides) {
+  if (orig->getName() == config->name &&
+      orig->getPorts() == ports &&
+      oldDhcpV4Relay == newDhcpV4Relay &&
+      oldDhcpV6Relay == newDhcpV6Relay &&
+      !changed_neighbor_table && !changed_dhcp_overrides) {
     return nullptr;
   }
 
   newVlan->setName(config->name);
   newVlan->setPorts(ports);
-  newVlan->setMTU(mtu);
   newVlan->setDhcpV4Relay(newDhcpV4Relay);
   newVlan->setDhcpV6Relay(newDhcpV6Relay);
   return newVlan;
@@ -567,6 +557,7 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
 
   // Process all supplied interface configs
   size_t numExistingProcessed = 0;
+
   for (const auto& interfaceCfg : cfg_->interfaces) {
     InterfaceID id(interfaceCfg.intfID);
     auto origIntf = origIntfs->getInterfaceIf(id);
@@ -600,10 +591,13 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
     const Interface::Addresses& addrs) {
   auto name = getInterfaceName(config);
   auto mac = getInterfaceMac(config);
+  auto mtu = config->__isset.mtu ? config->mtu : Interface::kDefaultMtu;
   auto intf = make_shared<Interface>(InterfaceID(config->intfID),
                                      RouterID(config->routerID),
                                      VlanID(config->vlanID),
-                                     name, mac);
+                                     name,
+                                     mac,
+                                     mtu);
   intf->setAddresses(addrs);
   if (config->__isset.ndp) {
     intf->setNdpConfig(config->ndp);
@@ -623,12 +617,14 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   }
   auto name = getInterfaceName(config);
   auto mac = getInterfaceMac(config);
+  auto mtu = config->__isset.mtu ? config->mtu : Interface::kDefaultMtu;
   if (orig->getRouterID() == RouterID(config->routerID) &&
       orig->getVlanID() == VlanID(config->vlanID) &&
       orig->getName() == name &&
       orig->getMac() == mac &&
       orig->getAddresses() == addrs &&
-      orig->getNdpConfig() == ndp) {
+      orig->getNdpConfig() == ndp &&
+      orig->getMtu() == mtu) {
     // No change
     return nullptr;
   }
@@ -640,6 +636,7 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   newIntf->setMac(mac);
   newIntf->setAddresses(addrs);
   newIntf->setNdpConfig(ndp);
+  newIntf->setMtu(mtu);
   return newIntf;
 }
 

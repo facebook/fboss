@@ -115,12 +115,12 @@ void IPv6RAImpl::initPacket(const SwitchState* state, const Interface* intf) {
   std::chrono::seconds lifetime(ndpConfig->routerLifetime);
   std::chrono::seconds reachableTimer(0);
   std::chrono::seconds retransTimer(0);
-  uint32_t mtu = vlan->getMTU();
   uint32_t prefixValidLifetime = ndpConfig->prefixValidLifetimeSeconds;
   uint32_t prefixPreferredLifetime = ndpConfig->prefixPreferredLifetimeSeconds;
 
   // Build the list of prefixes to advertise
   typedef std::pair<IPAddressV6, uint8_t> Prefix;
+  uint32_t mtu = intf->getMtu();
   std::set<Prefix> prefixes;
   for (const auto& addr : intf->getAddresses()) {
     if (!addr.first.isV6()) {

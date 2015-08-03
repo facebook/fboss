@@ -54,7 +54,7 @@ unique_ptr<SwSwitch> setupSwitch() {
     // Add Interface 1 to VLAN 1
     auto intf1 = make_shared<Interface>
       (InterfaceID(1), RouterID(0), VlanID(1),
-       "interface1", MacAddress("02:00:01:00:00:01"));
+       "interface1", MacAddress("02:00:01:00:00:01"), 9000);
     Interface::Addresses addrs1;
     addrs1.emplace(IPAddress("10.0.0.1"), 24);
     addrs1.emplace(IPAddress("192.168.0.1"), 24);

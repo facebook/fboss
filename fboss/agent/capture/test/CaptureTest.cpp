@@ -45,12 +45,10 @@ unique_ptr<SwSwitch> setupSwitch() {
   cfg::Vlan thriftVlan;
   thriftVlan.name = "Vlan1";
   thriftVlan.id = 1;
-  thriftVlan.mtuIndex = 0;
   thriftVlan.routable = true;
   thriftVlan.ipAddresses = {"10.0.0.1"};
   thriftVlan.dhcpRelayAddressV4 = "10.1.2.3";
   thriftCfg.vlans.push_back(thriftVlan);
-  thriftCfg.supportedMTUs = {15};
 
   cfg::Interface thriftIface;
   thriftIface.intfID = 1;

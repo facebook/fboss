@@ -22,9 +22,9 @@ class RxPacket;
 class TunIntf : private apache::thrift::async::TEventHandler {
  public:
   TunIntf(SwSwitch *sw, apache::thrift::async::TEventBase *evb,
-          const std::string& name, RouterID rid, int idx);
+          const std::string& name, RouterID rid, int idx, int mtu);
   TunIntf(SwSwitch *sw, apache::thrift::async::TEventBase *evb,
-          RouterID rid, const Interface::Addresses& addrs);
+          RouterID rid, const Interface::Addresses& addrs, int mtu);
   ~TunIntf() override;
 
   // some utility functions
@@ -76,6 +76,12 @@ class TunIntf : private apache::thrift::async::TEventHandler {
    *         false The packet is dropped due to errors
    */
   bool sendPacketToHost(std::unique_ptr<RxPacket> pkt);
+
+  /// Set the maximum MTU
+  void setMtu(int mtu);
+  int getMtu(int mtu) {
+    return mtu_;
+  }
  private:
   SwSwitch *sw_;
   RouterID rid_;         ///< The router ID of the interface belonging to
@@ -83,11 +89,13 @@ class TunIntf : private apache::thrift::async::TEventHandler {
   int ifIndex_{-1};     ///< The ifindex of the interface.
   bool toDelete_{false}; ///< Is the interface to be deleted from system
   Interface::Addresses addrs_; ///< The IP addresses assigned to this intf
+  int mtu_;
   /**
    * File descriptor for this interface through which packets can
    * be received from or sent to.
    */
   int fd_{-1};
+  int mtu_{-1};
 
   std::string makeIntfName(RouterID rid);
   void openFD();

@@ -55,12 +55,9 @@ const MacAddress kPlatformMac("02:01:02:03:04:05");
 cfg::SwitchConfig createSwitchConfig(seconds raInterval, seconds ndpInterval) {
   // Create a thrift config to use
   cfg::SwitchConfig config;
-  config.supportedMTUs.resize(1);
-  config.supportedMTUs[0] = 9000;
   config.vlans.resize(2);
   config.vlans[0].name = "PrimaryVlan";
   config.vlans[0].id = 5;
-  config.vlans[0].mtuIndex = 0;
   config.vlans[0].routable = true;
 
   config.vlanPorts.resize(10);
@@ -83,6 +80,8 @@ cfg::SwitchConfig createSwitchConfig(seconds raInterval, seconds ndpInterval) {
   config.interfaces[0].intfID = 1234;
   config.interfaces[0].vlanID = 5;
   config.interfaces[0].name = "PrimaryInterface";
+  config.interfaces[0].mtu = 9000;
+  config.interfaces[0].__isset.mtu = true;
   config.interfaces[0].ipAddresses.resize(5);
   config.interfaces[0].ipAddresses[0] = "10.164.4.10/24";
   config.interfaces[0].ipAddresses[1] = "10.164.4.1/24";

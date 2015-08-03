@@ -38,8 +38,9 @@ using apache::thrift::async::TEventBase;
 using apache::thrift::async::TEventHandler;
 
 TunIntf::TunIntf(SwSwitch *sw, TEventBase *evb,
-                 const std::string& name, RouterID rid, int idx)
-    : TEventHandler(evb), sw_(sw), rid_(rid), name_(name), ifIndex_(idx) {
+                 const std::string& name, RouterID rid, int idx, int mtu)
+    : TEventHandler(evb), sw_(sw), rid_(rid), name_(name), ifIndex_(idx),
+    mtu_(mtu) {
   openFD();
   SCOPE_FAIL {
     closeFD();
@@ -49,8 +50,8 @@ TunIntf::TunIntf(SwSwitch *sw, TEventBase *evb,
 }
 
 TunIntf::TunIntf(SwSwitch *sw, TEventBase *evb,
-                 RouterID rid, const Interface::Addresses& addr)
-    : TEventHandler(evb), sw_(sw), rid_(rid), addrs_(addr) {
+                 RouterID rid, const Interface::Addresses& addr, int mtu)
+    : TEventHandler(evb), sw_(sw), rid_(rid), addrs_(addr), mtu_(mtu) {
   name_ = folly::to<std::string>(intfPrefix, rid);
   openFD();
   SCOPE_FAIL {
@@ -88,9 +89,15 @@ void TunIntf::openFD() {
   // Flags: IFF_TUN   - TUN device (no Ethernet headers)
   //        IFF_NO_PI - Do not provide packet information
   ifr.ifr_flags = IFF_TUN|IFF_NO_PI;
-  strncpy(ifr.ifr_name, name_.c_str(), sizeof(ifr.ifr_name));
+  bzero(ifr.ifr_name, sizeof(ifr.ifr_name));
+  size_t len = std::min(name_.size(), sizeof(ifr.ifr_name));
+  memmove(ifr.ifr_name, name_.c_str(), len);
   auto ret = ioctl(fd_, TUNSETIFF, (void *) &ifr);
   sysCheckError(ret, "Failed to create/attach interface ", name_);
+
+  // Set configured MTU
+  setMtu(mtu_);
+
   // make fd non-blocking
   auto flags = fcntl(fd_, F_GETFL);
   sysCheckError(flags, "Failed to get flags from fd ", fd_);
@@ -104,6 +111,7 @@ void TunIntf::openFD() {
   ret = fcntl(fd_, F_SETFD, flags);
   sysCheckError(ret, "Failed to set close-on-exec flags ", flags,
                 " to fd ", fd_);
+
   LOG(INFO) << "Create/attach to tun interface " << name_ << " @ fd " << fd_;
 }
 
@@ -128,13 +136,28 @@ void TunIntf::addAddress(const IPAddress& addr, uint8_t mask) {
           << " @ index " << ifIndex_;
 }
 
+void TunIntf::setMtu(int mtu) {
+  mtu_ = mtu;
+  auto sock = socket(PF_INET, SOCK_DGRAM, 0);
+  sysCheckError(sock, "Failed to open socket");
+
+  struct ifreq ifr;
+  size_t len = std::min(name_.size(), sizeof(ifr.ifr_name));
+  memset(&ifr, 0, sizeof(ifr));
+  memmove(ifr.ifr_name, name_.c_str(), len);
+  ifr.ifr_mtu = mtu_;
+  auto ret = ioctl(sock, SIOCSIFMTU, (void*)&ifr);
+  close(sock);
+  sysCheckError(ret, "Failed to set MTU ", ifr.ifr_mtu,
+                " to fd ", fd_, " errno = ", errno);
+  VLOG(3) << "Set tun " << name_ << " MTU to " << mtu;
+}
+
 void TunIntf::handlerReady(uint16_t events) noexcept {
   CHECK(fd_ != -1);
   const int MaxSentOneTime = 16;
-  // TODO: The packet size should be as same as MTU (hard code 1500 for now).
   // Since this is L3 packet size, we should also reserve some space for L2
   // header, which is 18 bytes (including one vlan tag)
-  const int l3Len = 1500;
   int sent = 0;
   int dropped = 0;
   uint64_t bytes = 0;
@@ -142,7 +165,7 @@ void TunIntf::handlerReady(uint16_t events) noexcept {
   try {
     while (sent + dropped < MaxSentOneTime) {
       std::unique_ptr<TxPacket> pkt;
-      pkt = sw_->allocateL3TxPacket(l3Len);
+      pkt = sw_->allocateL3TxPacket(mtu_);
       auto buf = pkt->buf();
       int ret = 0;
       do {

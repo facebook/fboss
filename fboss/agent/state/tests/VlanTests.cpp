@@ -41,7 +41,6 @@ TEST(Vlan, applyConfig) {
   MockPlatform platform;
   auto stateV0 = make_shared<SwitchState>();
   auto vlanV0 = make_shared<Vlan>(VlanID(1234), kVlan1234);
-  vlanV0->setMTU(9000);
   stateV0->addVlan(vlanV0);
   stateV0->registerPort(PortID(1), "port1");
   stateV0->registerPort(PortID(99), "port99");
@@ -52,7 +51,6 @@ TEST(Vlan, applyConfig) {
   EXPECT_EQ(VlanID(1234), vlanV0->getID());
   Vlan::MemberPorts emptyPorts;
   EXPECT_EQ(emptyPorts, vlanV0->getPorts());
-  EXPECT_EQ(9000, vlanV0->getMTU());
 
   vlanV0->publish();
   EXPECT_TRUE(vlanV0->isPublished());
@@ -184,13 +182,9 @@ TEST(Vlan, applyConfig) {
 
   // Add a new VLAN with an ArpResponseTable that needs to be set up
   // when the VLAN is first created
-  config.supportedMTUs.resize(2);
-  config.supportedMTUs[0] = 9000;
-  config.supportedMTUs[1] = 1500;
   config.vlans.resize(2);
   config.vlans[1].id = 99;
   config.vlans[1].name = kVlan99;
-  config.vlans[1].mtuIndex = 1;
   config.interfaces.resize(3);
   config.interfaces[2].intfID = 3;
   config.interfaces[2].routerID = 1;
@@ -207,7 +201,6 @@ TEST(Vlan, applyConfig) {
   ASSERT_NE(nullptr, vlan99);
   EXPECT_EQ(vlan99, vlan99_byName);
   EXPECT_EQ(0, vlan99->getGeneration());
-  EXPECT_EQ(1500, vlan99->getMTU());
   ArpResponseTable expectedTable99;
   expectedTable99.setEntry(IPAddressV4("1.2.3.4"), platformMac,
                            InterfaceID(3));
@@ -215,19 +208,6 @@ TEST(Vlan, applyConfig) {
                            InterfaceID(3));
   EXPECT_EQ(expectedTable99.getTable(),
             vlan99->getArpResponseTable()->getTable());
-
-  // Change vlan99's MTU
-  config.vlans[1].mtuIndex = 0;
-  auto stateV5 = publishAndApplyConfig(stateV4, &config, &platform);
-  ASSERT_NE(nullptr, stateV5);
-  // VLAN 1234 should be unchanged
-  EXPECT_EQ(vlanV3, stateV5->getVlans()->getVlan(VlanID(1234)));
-  auto vlan99v1 = stateV5->getVlans()->getVlan(VlanID(99));
-  EXPECT_NE(vlan99, vlan99v1);
-  EXPECT_EQ(1, vlan99v1->getGeneration());
-  EXPECT_EQ(9000, vlan99v1->getMTU());
-  EXPECT_EQ(vlan99->getDhcpV4Relay(), vlan99v1->getDhcpV4Relay());
-  EXPECT_EQ(vlan99->getArpResponseTable(), vlan99v1->getArpResponseTable());
 }
 
 /*
