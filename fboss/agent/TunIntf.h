@@ -79,7 +79,7 @@ class TunIntf : private apache::thrift::async::TEventHandler {
 
   /// Set the maximum MTU
   void setMtu(int mtu);
-  int getMtu(int mtu) {
+  int getMtu() {
     return mtu_;
   }
  private:
@@ -89,7 +89,7 @@ class TunIntf : private apache::thrift::async::TEventHandler {
   int ifIndex_{-1};     ///< The ifindex of the interface.
   bool toDelete_{false}; ///< Is the interface to be deleted from system
   Interface::Addresses addrs_; ///< The IP addresses assigned to this intf
-  int mtu_;
+
   /**
    * File descriptor for this interface through which packets can
    * be received from or sent to.

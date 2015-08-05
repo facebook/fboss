@@ -394,7 +394,7 @@ TEST(InterfaceMap, applyConfig) {
   // change the MTU
   config.interfaces[0].mtu = 1337;
   config.interfaces[0].__isset.mtu = true;
-  EXPECT_EQ(9000, intfsV3->getInterface(InterfaceID(3))->getMtu());
+  EXPECT_EQ(1500, intfsV3->getInterface(InterfaceID(3))->getMtu());
   auto stateV4 = publishAndApplyConfig(stateV3, &config, &platform);
   ASSERT_NE(nullptr, stateV4);
   auto intfsV4 = stateV4->getInterfaces();
