@@ -47,6 +47,7 @@ include_directories(${CMAKE_SOURCE_DIR}/external/fbthrift)
 
 add_executable(wedge_agent
     fboss/agent/platforms/wedge/WedgePlatform.cpp
+    fboss/agent/platforms/wedge/WedgeProductInfo.cpp
     fboss/agent/platforms/wedge/WedgePort.cpp
     fboss/agent/platforms/wedge/wedge_ctrl.cpp
     fboss/agent/platforms/wedge/oss/WedgePort.cpp
@@ -63,14 +64,37 @@ add_library(fboss_agent STATIC
     common/stats/ServiceData.cpp
     fboss/agent/ApplyThriftConfig.cpp
     fboss/agent/ArpHandler.cpp
+    fboss/agent/DHCPv4Handler.cpp
+    fboss/agent/DHCPv6Handler.cpp
+    fboss/agent/HighresCounterSubscriptionHandler.cpp
+    fboss/agent/HighresCounterUtil.cpp
+    fboss/agent/HwSwitch.cpp
+    fboss/agent/I2c.cpp
+    fboss/agent/IPHeaderV4.cpp
+    fboss/agent/IPv4Handler.cpp
+    fboss/agent/IPv6Handler.cpp
+    fboss/agent/LldpManager.cpp
+    fboss/agent/Main.cpp
+    fboss/agent/NeighborUpdater.cpp
+    fboss/agent/Platform.cpp
+    fboss/agent/PortStats.cpp
+    fboss/agent/PortStatusListener.cpp
+    fboss/agent/RestClient.cpp
+    fboss/agent/SfpModule.cpp
+    fboss/agent/SwitchStats.cpp
+    fboss/agent/SwSwitch.cpp
+    fboss/agent/ThriftHandler.cpp
+    fboss/agent/TransceiverMap.cpp
+    fboss/agent/TunIntf.cpp
+    fboss/agent/TunManager.cpp
+    fboss/agent/UDPHeader.cpp
+    fboss/agent/Utils.cpp
     fboss/agent/capture/PcapFile.cpp
     fboss/agent/capture/PcapPkt.cpp
     fboss/agent/capture/PcapQueue.cpp
     fboss/agent/capture/PcapWriter.cpp
     fboss/agent/capture/PktCapture.cpp
     fboss/agent/capture/PktCaptureManager.cpp
-    fboss/agent/DHCPv4Handler.cpp
-    fboss/agent/DHCPv6Handler.cpp
     fboss/agent/hw/bcm/BcmAPI.cpp
     fboss/agent/hw/bcm/BcmEgress.cpp
     fboss/agent/hw/bcm/BcmHost.cpp
@@ -79,10 +103,11 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmPortTable.cpp
     fboss/agent/hw/bcm/BcmRoute.cpp
     fboss/agent/hw/bcm/BcmRxPacket.cpp
+    fboss/agent/hw/bcm/BcmPlatform.cpp
     fboss/agent/hw/bcm/BcmStats.cpp
     fboss/agent/hw/bcm/BcmSwitch.cpp
-    fboss/agent/hw/bcm/BcmSwitchEventCallback.cpp
     fboss/agent/hw/bcm/BcmSwitchEvent.cpp
+    fboss/agent/hw/bcm/BcmSwitchEventCallback.cpp
     fboss/agent/hw/bcm/BcmSwitchEventManager.cpp
     fboss/agent/hw/bcm/BcmTxPacket.cpp
     fboss/agent/hw/bcm/BcmWarmBootCache.cpp
@@ -91,25 +116,18 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/sim/SimHandler.cpp
     fboss/agent/hw/sim/SimPlatform.cpp
     fboss/agent/hw/sim/SimSwitch.cpp
-    fboss/agent/HighresCounterSubscriptionHandler.cpp
-    fboss/agent/HwSwitch.cpp
-    fboss/agent/IPHeaderV4.cpp
-    fboss/agent/IPv4Handler.cpp
-    fboss/agent/IPv6Handler.cpp
-    fboss/agent/LldpManager.cpp
-    fboss/agent/Main.cpp
-    fboss/agent/ndp/IPv6RouteAdvertiser.cpp
-    fboss/agent/NeighborUpdater.cpp
-    fboss/agent/lldp/LinkNeighborDB.cpp
     fboss/agent/lldp/LinkNeighbor.cpp
+    fboss/agent/lldp/LinkNeighborDB.cpp
+    fboss/agent/ndp/IPv6RouteAdvertiser.cpp
     fboss/agent/oss/ApplyThriftConfig.cpp
-    fboss/agent/oss/hw/bcm/BcmAPI.cpp
-    fboss/agent/oss/hw/bcm/BcmSwitch.cpp
-    fboss/agent/oss/hw/bcm/BcmUnit.cpp
-    fboss/agent/oss/hw/bcm/BcmPort.cpp
-    fboss/agent/oss/hw/bcm/BcmWarmBootHelper.cpp
     fboss/agent/oss/Main.cpp
     fboss/agent/oss/SwSwitch.cpp
+    fboss/agent/hw/bcm/oss/BcmAPI.cpp
+    fboss/agent/hw/bcm/oss/BcmHost.cpp
+    fboss/agent/hw/bcm/oss/BcmPort.cpp
+    fboss/agent/hw/bcm/oss/BcmSwitch.cpp
+    fboss/agent/hw/bcm/oss/BcmUnit.cpp
+    fboss/agent/hw/bcm/oss/BcmWarmBootHelper.cpp
     fboss/agent/packet/ArpHdr.cpp
     fboss/agent/packet/DHCPv4Packet.cpp
     fboss/agent/packet/DHCPv6Packet.cpp
@@ -120,10 +138,6 @@ add_library(fboss_agent STATIC
     fboss/agent/packet/LlcHdr.cpp
     fboss/agent/packet/NDPRouterAdvertisement.cpp
     fboss/agent/packet/PktUtil.cpp
-    fboss/agent/Platform.cpp
-    fboss/agent/PortStats.cpp
-    fboss/agent/SfpMap.cpp
-    fboss/agent/SfpModule.cpp
     fboss/agent/state/ArpEntry.cpp
     fboss/agent/state/ArpResponseTable.cpp
     fboss/agent/state/ArpTable.cpp
@@ -149,21 +163,13 @@ add_library(fboss_agent STATIC
     fboss/agent/state/Vlan.cpp
     fboss/agent/state/VlanMap.cpp
     fboss/agent/state/VlanMapDelta.cpp
-    fboss/agent/SwitchStats.cpp
-    fboss/agent/SwSwitch.cpp
-    fboss/agent/ThriftHandler.cpp
-    fboss/agent/TunIntf.cpp
-    fboss/agent/TunManager.cpp
-    fboss/agent/HighresCounterUtil.cpp
-    fboss/agent/UDPHeader.cpp
-    fboss/agent/Utils.cpp
     # generated sources
     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/FacebookService.cpp
     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/FacebookService_client.cpp
     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/fb303_types.cpp
     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_reflection.cpp
     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_reflection.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp/switch_config_reflection.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp/switch_config_types.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/SimCtrl.cpp
@@ -213,7 +219,12 @@ function(fboss_add_thrift)
         set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}.h)
     endforeach(srv)
     foreach(gen cpp cpp2)
-        foreach(output constants types reflection)
+        foreach(reflect ${arg_REFLECT})
+            set(outputs ${outputs} 
+                ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${reflect}_reflect.h
+                ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${reflect}_reflect.cpp)
+        endforeach(reflect)
+        foreach(output constants types)
             set(outputs ${outputs} 
                 ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${basename}_${output}.h
                 ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${basename}_${output}.cpp)
@@ -238,8 +249,11 @@ function(fboss_add_thrift)
 endfunction(fboss_add_thrift)
 
 fboss_add_thrift(THRIFTSRC common/fb303/if/fb303.thrift SERVICES FacebookService)
-fboss_add_thrift(THRIFTSRC common/network/if/Address.thrift OPTIONS json,compatibility,include_prefix=common/network/if)
-fboss_add_thrift(THRIFTSRC fboss/agent/switch_config.thrift)
+fboss_add_thrift(THRIFTSRC common/network/if/Address.thrift 
+    OPTIONS json,compatibility,include_prefix=common/network/if
+    REFLECT Address)
+fboss_add_thrift(THRIFTSRC fboss/agent/switch_config.thrift
+    REFLECT switch_config)
 fboss_add_thrift(THRIFTSRC fboss/agent/hw/sim/sim_ctrl.thrift SERVICES SimCtrl)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/ctrl.thrift 
     SERVICES FbossCtrl PortStatusListenerClient)
