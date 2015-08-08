@@ -9,7 +9,7 @@
  */
 #include "fboss/agent/platforms/wedge/WedgeProductInfo.h"
 #include "fboss/agent/FbossError.h"
-#include "common/files/FileUtil.h"
+#include <folly/FileUtil.h>
 #include <folly/json.h>
 #include <folly/dynamic.h>
 #include <folly/MacAddress.h>
@@ -51,7 +51,7 @@ WedgeProductInfo::WedgeProductInfo(StringPiece path)
 
 void WedgeProductInfo::initialize() {
   std::string data;
-  files::FileUtil::readFileToString(path_.str(), &data);
+  folly::readFile(path_.str().c_str(), data);
   parse(data);
 }
 

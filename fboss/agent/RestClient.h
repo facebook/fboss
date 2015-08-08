@@ -10,6 +10,7 @@
 #pragma once
 
 #include <string>
+#include <chrono>
 #include <folly/IPAddress.h>
 
 namespace facebook { namespace fboss {
