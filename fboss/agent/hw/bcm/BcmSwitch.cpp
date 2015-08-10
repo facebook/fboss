@@ -112,7 +112,7 @@ cfg::PortSpeed BcmSwitch::getPortSpeed(PortID port) const {
   int portSpeed;
   auto ret = opennsl_port_speed_get(unit_, port, &portSpeed);
   bcmCheckError(ret, "failed to get current speed for port", port);
-  return Portspeed(portSpeed);
+  return cfg::PortSpeed(portSpeed);
 }
 
 BcmSwitch::BcmSwitch(BcmPlatform *platform)
@@ -343,7 +343,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
     if (speed == cfg::PortSpeed(maxPortSpeed)) {
       speed = cfg::PortSpeed::DEFAULT;
     } else if (speed > cfg::PortSpeed(maxPortSpeed)) {
-      LOG(FATAL) << "Invalid port speed : " << portSpeed
+      LOG(FATAL) << "Invalid port speed : " << (int)speed
         << " for port: " << port;
     }
     port->setSpeed(speed);
