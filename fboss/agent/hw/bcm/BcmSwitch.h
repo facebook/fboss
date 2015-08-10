@@ -11,6 +11,7 @@
 
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/types.h"
+#include "fboss/agent/gen-cpp/switch_config_types.h"
 
 #include <memory>
 #include <mutex>
@@ -197,6 +198,8 @@ class BcmSwitch : public HwSwitch {
    */
   bool getAndClearNeighborHit(RouterID vrf,
                               folly::IPAddress& ip) override;
+
+  cfg::PortSpeed getPortSpeed(PortID port) const override;
 
  private:
   enum Flags : uint32_t {

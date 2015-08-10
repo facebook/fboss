@@ -293,6 +293,11 @@ class SwSwitch : public HwSwitch::Callback {
   PortStats* portStats(PortID port);
 
   /*
+   * Get the port speed for the specified port
+   */
+  cfg::PortSpeed getPortSpeed(PortID port) const;
+
+  /*
    * Get PortStatus for all the ports.
    */
   std::map<int32_t, PortStatus> getPortStatus();
@@ -551,6 +556,7 @@ class SwSwitch : public HwSwitch::Callback {
    * on the Monitoring configuration.
    */
   void publishSfpInfo();
+  void publishPortInfo();
   void publishRouteStats();
   void publishBootType();
   SwitchRunState getSwitchRunState() const;

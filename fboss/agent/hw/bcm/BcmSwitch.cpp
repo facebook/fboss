@@ -87,35 +87,6 @@ enum : uint8_t {
 };
 
 namespace {
-
-/*
- * Get current port speed from BCM SDK and convert to
- * cfg::PortSpeed
- */
-facebook::fboss::cfg::PortSpeed getPortSpeed(int unit, int port) {
-  int portSpeed, maxPortSpeed;
-  using facebook::fboss::cfg::PortSpeed;
-  using facebook::fboss::bcmCheckError;
-  auto ret = opennsl_port_speed_get(unit, port, &portSpeed);
-  bcmCheckError(ret, "failed to get current speed for port", port);
-  ret = opennsl_port_speed_max(unit, port, &maxPortSpeed);
-  bcmCheckError(ret, "failed to get max speed for port", port);
-  if (portSpeed == maxPortSpeed) {
-    return PortSpeed::DEFAULT;
-  } else {
-    // We could just return PortSpeed(portSpeed) here,
-    // but the following switch validates if the value
-    // returned from SDK is sane
-    switch (PortSpeed(portSpeed)) {
-      case PortSpeed::GIGE: return PortSpeed::GIGE;
-      case PortSpeed::XG: return PortSpeed::XG;
-      case PortSpeed::FORTYG: return PortSpeed::FORTYG;
-      case PortSpeed::HUNDREDG: return PortSpeed::HUNDREDG;
-      case PortSpeed::DEFAULT: break;
-    }
-  }
-  LOG(FATAL) << "Invalid port speed : " << portSpeed << " for port: " << port;
-}
 /*
  * Dump map containing switch h/w config as a key, value pair
  * to a file. Create parent directories of file if needed.
@@ -133,6 +104,16 @@ void dumpConfigMap(const facebook::fboss::BcmAPI::HwConfigMap& config,
 }
 
 namespace facebook { namespace fboss {
+/*
+ * Get current port speed from BCM SDK and convert to
+ * cfg::PortSpeed
+ */
+cfg::PortSpeed BcmSwitch::getPortSpeed(PortID port) const {
+  int portSpeed;
+  auto ret = opennsl_port_speed_get(unit_, port, &portSpeed);
+  bcmCheckError(ret, "failed to get current speed for port", port);
+  return Portspeed(portSpeed);
+}
 
 BcmSwitch::BcmSwitch(BcmPlatform *platform)
   : platform_(platform),
@@ -354,7 +335,18 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
     auto ret = opennsl_port_enable_get(unit_, port->getID(), &portEnabled);
     bcmCheckError(ret, "Failed to get current state for port", port->getID());
     port->setState(portEnabled == 1 ? cfg::PortState::UP: cfg::PortState::DOWN);
-    port->setSpeed(getPortSpeed(unit_, port->getID()));
+
+    auto speed = getPortSpeed(port->getID());
+    int maxPortSpeed;
+    ret = opennsl_port_speed_max(unit_, port->getID(), &maxPortSpeed);
+    bcmCheckError(ret, "failed to get max speed for port", port->getID());
+    if (speed == cfg::PortSpeed(maxPortSpeed)) {
+      speed = cfg::PortSpeed::DEFAULT;
+    } else if (speed > cfg::PortSpeed(maxPortSpeed)) {
+      LOG(FATAL) << "Invalid port speed : " << portSpeed
+        << " for port: " << port;
+    }
+    port->setSpeed(speed);
   }
   warmBootState->resetIntfs(warmBootCache_->reconstructInterfaceMap());
   warmBootState->resetVlans(warmBootCache_->reconstructVlanMap());

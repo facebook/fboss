@@ -576,6 +576,10 @@ map<int32_t, PortStatus> SwSwitch::getPortStatus() {
   return statusMap;
 }
 
+cfg::PortSpeed SwSwitch::getPortSpeed(PortID port) const {
+  return hw_->getPortSpeed(port);
+}
+
 PortStatus SwSwitch::getPortStatus(PortID port) {
   return fillInPortStatus(*getState()->getPort(port), this);
 }

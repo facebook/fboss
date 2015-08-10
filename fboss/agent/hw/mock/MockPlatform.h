@@ -11,6 +11,8 @@
 
 #include <folly/experimental/TestUtil.h>
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/types.h"
+#include "fboss/agent/gen-cpp/switch_config_types.h"
 
 #include <gmock/gmock.h>
 
@@ -27,6 +29,7 @@ class MockPlatform : public Platform {
   std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
+  cfg::PortSpeed getPortSpeed(PortID port) const;
   void getProductInfo(ProductInfo& info) override {
     // Nothing to do
   };

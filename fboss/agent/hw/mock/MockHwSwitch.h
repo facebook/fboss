@@ -11,6 +11,7 @@
 
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/gen-cpp/switch_config_types.h"
 
 #include <gmock/gmock.h>
 
@@ -45,6 +46,11 @@ class MockHwSwitch : public HwSwitch {
       const std::set<folly::StringPiece>& counterSet) override {
     return 0;
   }
+
+  cfg::PortSpeed getPortSpeed(PortID port) const override {
+    return cfg::PortSpeed::GIGE;
+  }
+
 
   void gracefulExit() override {
     // TODO
