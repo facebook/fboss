@@ -7,7 +7,6 @@ function update() {
         (cd $repo && git pull)
     else
         git clone $1
-        git checkout $2
     fi
 }
 
@@ -22,6 +21,7 @@ function build() {
     (
         echo "building $1..."
         cd $1
+        git checkout $2
         if [ ! -x ./configure ]; then
             autoreconf --install
             ./configure
@@ -31,10 +31,11 @@ function build() {
 }
 
 echo "installing packages"
+sudo apt-get -qq update
 sudo apt-get install -yq autoconf automake libdouble-conversion-dev \
-    libssl-dev make zip git autoconf libtool g++ libboost-all-dev \
+    libssl-dev make cmake zip git autoconf libtool g++ libboost-all-dev \
     libevent-dev flex bison libgoogle-glog-dev scons libkrb5-dev \
-    libsnappy-dev libsasl2-dev libnuma-dev libi2c-dev libcurl4-nss-dev
+    libsnappy-dev libsasl2-dev libnuma-dev libi2c-dev libcurl4-nss-dev libdb-dev
 
 echo "creating external..."
 mkdir -p external
