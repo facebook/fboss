@@ -6,7 +6,7 @@
 #include <chrono>
 #include <gflags/gflags.h>
 #include <thrift/lib/cpp2/async/DuplexChannel.h>
-#include <thrift/lib/cpp/transport/TSocketAddress.h>
+#include <folly/SocketAddress.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <thrift/lib/cpp/util/ScopedServerThread.h>
 #include <thrift/lib/cpp/async/TEventBase.h>
@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
   google::InitGoogleLogging(argv[0]);
   google::InstallFailureSignalHandler();
 
-  TSocketAddress addr(FLAGS_host, FLAGS_port, true);
+  SocketAddress addr(FLAGS_host, FLAGS_port, true);
   auto socket = TAsyncSocket::newSocket(&base, addr);
   auto chan =
       std::make_shared<DuplexChannel>(DuplexChannel::Who::CLIENT, socket);

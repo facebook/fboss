@@ -23,7 +23,7 @@
 #include <folly/io/async/AsyncSignalHandler.h>
 #include "thrift/lib/cpp/async/TEventBase.h"
 #include "thrift/lib/cpp2/server/ThriftServer.h"
-#include "thrift/lib/cpp/transport/TSocketAddress.h"
+#include <folly/SocketAddress.h>
 
 #include <chrono>
 #include <condition_variable>
@@ -40,7 +40,7 @@ using apache::thrift::ThriftServer;
 using folly::AsyncSignalHandler;
 using apache::thrift::async::TAsyncTimeout;
 using apache::thrift::async::TEventBase;
-using apache::thrift::transport::TSocketAddress;
+using folly::SocketAddress;
 using std::shared_ptr;
 using std::unique_ptr;
 using std::mutex;
@@ -291,7 +291,7 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   // callbacks.
   server.setServerEventHandler(handler);
 
-  TSocketAddress address;
+  SocketAddress address;
   address.setFromLocalPort(FLAGS_port);
   server.setAddress(address);
   server.setIdleTimeout(std::chrono::seconds(FLAGS_thrift_idle_timeout));
