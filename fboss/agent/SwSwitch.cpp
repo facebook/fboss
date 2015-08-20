@@ -174,7 +174,6 @@ void SwSwitch::gracefulExit() {
     // Cleanup if we ever initialized
     hw_->gracefulExit();
   }
-  exit(0);
 }
 
 void SwSwitch::getProductInfo(ProductInfo& productInfo) const {
