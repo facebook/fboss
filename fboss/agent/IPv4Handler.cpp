@@ -229,7 +229,6 @@ bool IPv4Handler::resolveMac(SwitchState* state, IPAddressV4 dest) {
       auto target = route->isConnected() ? dest : nh.nexthop.asV4();
       if (source == target) {
         // This packet is for us.  Don't send ARP requess for our own IP.
-        // TODO(aeckert): #5478027 make sure we don't arp any local address.
         continue;
       }
 
