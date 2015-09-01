@@ -11,8 +11,8 @@
 
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/Interface.h"
-#include "thrift/lib/cpp/async/TEventBase.h"
-#include "thrift/lib/cpp/async/TEventHandler.h"
+#include <thrift/lib/cpp/async/TEventBase.h>
+#include <thrift/lib/cpp/async/TEventHandler.h>
 
 namespace facebook { namespace fboss {
 

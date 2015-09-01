@@ -25,7 +25,7 @@ extern "C" {
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/Interface.h"
-#include "thrift/lib/cpp/async/TEventBase.h"
+#include <thrift/lib/cpp/async/TEventBase.h>
 
 #include <boost/container/flat_set.hpp>
 

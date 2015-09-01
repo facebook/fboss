@@ -19,10 +19,10 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "common/stats/ServiceData.h"
-#include "thrift/lib/cpp/async/TAsyncTimeout.h"
+#include <thrift/lib/cpp/async/TAsyncTimeout.h>
 #include <folly/io/async/AsyncSignalHandler.h>
-#include "thrift/lib/cpp/async/TEventBase.h"
-#include "thrift/lib/cpp2/server/ThriftServer.h"
+#include <thrift/lib/cpp/async/TEventBase.h>
+#include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <folly/SocketAddress.h>
 
 #include <chrono>

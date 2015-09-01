@@ -12,7 +12,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/state/Interface.h"
-#include "thrift/lib/cpp/async/TEventBase.h"
+#include <thrift/lib/cpp/async/TEventBase.h>
 
 #include <boost/container/flat_map.hpp>
 

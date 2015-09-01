@@ -24,8 +24,8 @@ extern "C" {
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/EthHdr.h"
-#include "thrift/lib/cpp/async/TEventBase.h"
-#include "thrift/lib/cpp/async/TEventHandler.h"
+#include <thrift/lib/cpp/async/TEventBase.h>
+#include <thrift/lib/cpp/async/TEventHandler.h>
 
 namespace facebook { namespace fboss {
 
