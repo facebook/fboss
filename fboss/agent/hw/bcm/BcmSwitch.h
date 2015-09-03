@@ -47,6 +47,10 @@ class VlanMap;
  */
 class BcmSwitch : public HwSwitch {
  public:
+   enum HashMode {
+     FULL_HASH, // Full hash - use src IP, dst IP, src port, dst port
+     HALF_HASH  // Half hash - user src IP, dst IP
+   };
   /*
    * Construct a new BcmSwitch.
    *
@@ -54,7 +58,7 @@ class BcmSwitch : public HwSwitch {
    * When init() is called, it will initialize the SDK, then find and
    * initialize the first switching ASIC.
    */
-  explicit BcmSwitch(BcmPlatform* platform);
+  explicit BcmSwitch(BcmPlatform* platform, HashMode hashMode=FULL_HASH);
 
   /*
    * Construct a new BcmSwitch for an existing BCM unit.
@@ -335,6 +339,7 @@ class BcmSwitch : public HwSwitch {
   std::unique_ptr<BcmUnit> unitObject_;
   int unit_{-1};
   uint32_t flags_{0};
+  HashMode hashMode_;
   std::unique_ptr<BcmPortTable> portTable_;
   std::unique_ptr<BcmEgress> toCPUEgress_;
   std::unique_ptr<BcmIntfTable> intfTable_;

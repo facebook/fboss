@@ -115,8 +115,9 @@ cfg::PortSpeed BcmSwitch::getPortSpeed(PortID port) const {
   return cfg::PortSpeed(portSpeed);
 }
 
-BcmSwitch::BcmSwitch(BcmPlatform *platform)
+BcmSwitch::BcmSwitch(BcmPlatform *platform, HashMode hashMode)
   : platform_(platform),
+    hashMode_(hashMode),
     portTable_(new BcmPortTable(this)),
     intfTable_(new BcmIntfTable(this)),
     hostTable_(new BcmHostTable(this)),
@@ -213,11 +214,19 @@ void BcmSwitch::ecmpHashSetup() {
   bcmCheckError(rv, "failed to set hash seed 1");
 
   // First, field selection:
-  // For both IPv4 and IPv6, select src IP, dst IP, src port, and dst port as
-  // the keys to hash.
-  arg = OPENNSL_HASH_FIELD_SRCL4 | OPENNSL_HASH_FIELD_DSTL4
-    | OPENNSL_HASH_FIELD_IP4SRC_LO | OPENNSL_HASH_FIELD_IP4SRC_HI
+  // For both IPv4 and IPv6, depending on whether this is full mode
+  // or half mode hash we use for hashing either
+  // a) src IP, dst IP, src port, and dst port - full mode
+  // b) src IP and dst IP - half mode
+  // We alternate b/w full and half modes in layers of n/w tiers
+  // So if tier n uses full mode, tier n + 1 would use half mode and
+  // so on. This is done to avoid hash polarization
+  arg = OPENNSL_HASH_FIELD_IP4SRC_LO | OPENNSL_HASH_FIELD_IP4SRC_HI
     | OPENNSL_HASH_FIELD_IP4DST_LO | OPENNSL_HASH_FIELD_IP4DST_HI;
+  if (hashMode_ == FULL_HASH) {
+    // We are using full mode hash, add src, dst ports
+    arg |= OPENNSL_HASH_FIELD_SRCL4 | OPENNSL_HASH_FIELD_DSTL4;
+  }
   rv = opennsl_switch_control_set(unit_, opennslSwitchHashIP4Field0, arg);
   bcmCheckError(rv, "failed to config field selection");
   rv = opennsl_switch_control_set(unit_, opennslSwitchHashIP4Field1, arg);
@@ -233,9 +242,12 @@ void BcmSwitch::ecmpHashSetup() {
       unit_, opennslSwitchHashIP4TcpUdpPortsEqualField1, arg);
   bcmCheckError(rv, "failed to config field selection");
   // v6
-  arg = OPENNSL_HASH_FIELD_SRCL4 | OPENNSL_HASH_FIELD_DSTL4
-    | OPENNSL_HASH_FIELD_IP6SRC_LO | OPENNSL_HASH_FIELD_IP6SRC_HI
+  arg = OPENNSL_HASH_FIELD_IP6SRC_LO | OPENNSL_HASH_FIELD_IP6SRC_HI
     | OPENNSL_HASH_FIELD_IP6DST_LO | OPENNSL_HASH_FIELD_IP6DST_HI;
+  if (hashMode_ == FULL_HASH) {
+    // We are using full mode hash, add src, dst ports
+    arg |= OPENNSL_HASH_FIELD_SRCL4 | OPENNSL_HASH_FIELD_DSTL4;
+  }
   rv = opennsl_switch_control_set(unit_, opennslSwitchHashIP6Field0, arg);
   bcmCheckError(rv, "failed to config field selection");
   rv = opennsl_switch_control_set(unit_, opennslSwitchHashIP6Field1, arg);

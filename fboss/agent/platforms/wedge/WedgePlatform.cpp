@@ -34,15 +34,35 @@ using folly::MacAddress;
 using folly::make_unique;
 using folly::Subprocess;
 using std::string;
+namespace {
+enum Mode {
+  WEDGE,
+  LC,
+  FC
+};
+
+Mode getMode() {
+  if (FLAGS_mode == "wedge") {
+    return WEDGE;
+  } else if (FLAGS_mode == "lc") {
+    return LC;
+  } else if (FLAGS_mode == "fc") {
+   return FC;
+  }
+  throw std::runtime_error("invalide mode " + FLAGS_mode);
+}
+}
 
 namespace facebook { namespace fboss {
+
 
 WedgePlatform::WedgePlatform()
   : productInfo_(FLAGS_fruid_filepath) {
   auto config = loadConfig();
   BcmAPI::init(config);
   initLocalMac();
-  hw_.reset(new BcmSwitch(this));
+  hw_.reset(new BcmSwitch(this, getMode() == LC ?
+        BcmSwitch::HALF_HASH : BcmSwitch::FULL_HASH));
   productInfo_.initialize();
 }
 
@@ -74,21 +94,8 @@ void WedgePlatform::getProductInfo(ProductInfo& info) {
 
 WedgePlatform::InitPortMap WedgePlatform::initPorts() {
   InitPortMap ports;
-  enum {
-    WEDGE,
-    LC,
-    FC,
-  } mode;
+  auto mode = getMode();
 
-  if (FLAGS_mode == "wedge") {
-    mode = WEDGE;
-  } else if (FLAGS_mode == "lc") {
-    mode = LC;
-  } else if (FLAGS_mode == "fc") {
-    mode = FC;
-  } else {
-    throw std::runtime_error("invalide mode " + FLAGS_mode);
-  }
   // Wedge has 16 QSFPs, each mapping to 4 physical ports.
   int portNum = 0;
 
