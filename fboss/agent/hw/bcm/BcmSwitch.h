@@ -331,6 +331,11 @@ class BcmSwitch : public HwSwitch {
    */
   void printDiagCmd(const std::string& cmd) const;
 
+  /**
+   * Exports the sdk version we build against.
+   */
+  void exportSdkVersion() const;
+
   /*
    * Member variables
    */

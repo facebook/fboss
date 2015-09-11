@@ -45,4 +45,7 @@ int BcmSwitch::getHighresSamplers(
     const std::set<folly::StringPiece>& counterSet) {
   return 0;
 }
+
+void BcmSwitch::exportSdkVersion() const {}
+
 }} //facebook::fboss

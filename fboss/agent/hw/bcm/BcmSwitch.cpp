@@ -132,6 +132,8 @@ BcmSwitch::BcmSwitch(BcmPlatform *platform, HashMode hashMode)
     OPENNSL_SWITCH_EVENT_PARITY_ERROR,
     make_shared<BcmSwitchEventParityErrorCallback>());
   dumpConfigMap(BcmAPI::getHwConfig(), platform->getHwConfigDumpFile());
+
+  exportSdkVersion();
 }
 
 BcmSwitch::BcmSwitch(BcmPlatform *platform, unique_ptr<BcmUnit> unit)
