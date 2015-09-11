@@ -99,6 +99,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getPortStats(PortStatThrift& portStats, int32_t portId) override;
   void getAllPortStats(std::map<int32_t, PortStatThrift>& portStats) override;
   void getArpTable(std::vector<ArpEntryThrift>& arpTable) override;
+  void getL2Table(std::vector<L2EntryThrift>& l2Table) override;
   void getNdpTable(std::vector<NdpEntryThrift>& arpTable) override;
 
   /* returns the product information */

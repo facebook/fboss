@@ -33,6 +33,12 @@ struct ArpEntryThrift {
   5: i32 vlanID,
 }
 
+struct L2EntryThrift {
+  1: string mac,
+  2: i32 port,
+  3: i32 vlanID,
+}
+
 struct InterfaceDetail {
   1: string interfaceName,
   2: i32 interfaceId,
@@ -240,6 +246,8 @@ service FbossCtrl extends fb303.FacebookService {
   list<ArpEntryThrift> getArpTable()
     throws (1: fboss.FbossBaseError error)
   list<NdpEntryThrift> getNdpTable()
+    throws (1: fboss.FbossBaseError error)
+  list<L2EntryThrift> getL2Table()
     throws (1: fboss.FbossBaseError error)
   /*
    * Returns all the DOM information

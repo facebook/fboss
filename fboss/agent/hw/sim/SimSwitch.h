@@ -46,6 +46,10 @@ class SimSwitch : public HwSwitch {
     return 0;
   }
 
+  void fetchL2Table(std::vector<L2EntryThrift> *l2Table) override {
+    return;
+  }
+
   void resetTxCount() { txCount_ = 0; }
   uint64_t getTxCount() const { return txCount_; }
   void exitFatal() const override {

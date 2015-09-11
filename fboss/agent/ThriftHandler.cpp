@@ -393,6 +393,12 @@ void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
   }
 }
 
+void ThriftHandler::getL2Table(std::vector<L2EntryThrift>& l2Table) {
+  ensureConfigured();
+  sw_->getHw()->fetchL2Table(&l2Table);
+  VLOG(6) << "L2 Table size:" << l2Table.size();
+}
+
 void ThriftHandler::fillPortStatistics(PortStatThrift& stats) {
   auto portId = stats.portId;
   auto statMap = fbData->getStatMap();

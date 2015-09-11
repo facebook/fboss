@@ -48,4 +48,8 @@ int BcmSwitch::getHighresSamplers(
 
 void BcmSwitch::exportSdkVersion() const {}
 
+void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift> *l2Table) {
+  return;
+}
+
 }} //facebook::fboss

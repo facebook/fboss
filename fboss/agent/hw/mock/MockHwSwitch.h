@@ -47,6 +47,10 @@ class MockHwSwitch : public HwSwitch {
     return 0;
   }
 
+  void fetchL2Table(std::vector<L2EntryThrift> *l2Table) override {
+    return;
+  }
+
   cfg::PortSpeed getPortSpeed(PortID port) const override {
     return cfg::PortSpeed::GIGE;
   }

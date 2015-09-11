@@ -160,6 +160,8 @@ class HwSwitch {
       const folly::StringPiece namespaceString,
       const std::set<folly::StringPiece>& counterSet) = 0;
 
+  virtual void fetchL2Table(std::vector<L2EntryThrift> *l2Table) = 0;
+
   /*
    * Allow hardware to perform any warm boot related cleanup
    * before we exit the application.

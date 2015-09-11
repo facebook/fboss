@@ -181,6 +181,8 @@ class BcmSwitch : public HwSwitch {
       const folly::StringPiece namespaceString,
       const std::set<folly::StringPiece>& counterSet) override;
 
+  void fetchL2Table(std::vector<L2EntryThrift> *l2Table) override;
+
   BcmHostTable* writableHostTable() const { return hostTable_.get(); }
   BcmWarmBootCache* getWarmBootCache() const {
     return warmBootCache_.get();
