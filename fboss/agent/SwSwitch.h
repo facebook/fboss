@@ -656,6 +656,7 @@ class SwSwitch : public HwSwitch::Callback {
 
   std::mutex portListenerMutex_;
   std::function<void(PortID, const PortStatus)> portListener_;
+  std::string scribeCategory_ = "fboss_events";
 };
 
 }} // facebook::fboss

@@ -35,7 +35,10 @@
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/SfpModule.h"
 #include "fboss/agent/LldpManager.h"
+#include "common/fbwhoami/FbWhoAmI.h"
 #include "common/stats/ServiceData.h"
+#include "common/time/TimeUtil.h"
+#include "scribe/client/ScribeClient.h"
 #include <folly/FileUtil.h>
 #include <folly/MacAddress.h>
 #include <folly/String.h>
@@ -749,6 +752,13 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
 
 void SwSwitch::linkStateChanged(PortID port, bool up) noexcept {
   LOG(INFO) << "link state changed: " << port << " enabled = " << up;
+  string timeBuf;
+  stringFormatTimestamp(time(0), "%Y-%m-%d %X", &timeBuf);
+  string scribeBuf = folly::sformat("{0}: {1} LinkState: Port {2} {3}", timeBuf,
+                                    FbWhoAmI::getName(), (uint16_t) port,
+                                    (up? "Up": "Down"));
+  auto scribeClient = scribe::ScribeClient::get();
+  scribeClient->offer(scribeCategory_, scribeBuf);
   lock_guard<mutex> g(portListenerMutex_);
   if (!portListener_) {
     return;
