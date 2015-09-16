@@ -23,7 +23,7 @@ typedef NodeMapTraits<PortID, Port> PortMapTraits;
 class PortMap : public NodeMapT<PortMap, PortMapTraits> {
  public:
   PortMap();
-  virtual ~PortMap();
+  ~PortMap() override;
 
   const std::shared_ptr<Port>& getPort(PortID id) const {
     return getNode(id);

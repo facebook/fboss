@@ -40,9 +40,9 @@ class BcmSwitchEventCallback : public boost::noncopyable {
 class BcmSwitchEventParityErrorCallback : public BcmSwitchEventCallback {
  public:
   BcmSwitchEventParityErrorCallback() {}
-  virtual ~BcmSwitchEventParityErrorCallback() {}
+  ~BcmSwitchEventParityErrorCallback() override {}
 
-  virtual void callback(const BcmSwitchEvent& event) override;
+  void callback(const BcmSwitchEvent& event) override;
 };
 
 }} // facebook::fboss

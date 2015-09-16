@@ -14,6 +14,7 @@
 #include <string>
 
 #include <folly/Range.h>
+#include <folly/experimental/StringKeyedUnorderedMap.h>
 
 namespace facebook { namespace fboss {
 
@@ -93,6 +94,12 @@ class BcmAPI {
    * Get the thread name defined for this thread by the Broadcom SDK.
    */
   static std::string getThreadName();
+
+  /*
+   * Get hw config
+   */
+  typedef folly::StringKeyedUnorderedMap<std::string> HwConfigMap;
+  static HwConfigMap getHwConfig();
 
  private:
   // Forbidden copy constructor and assignment operator

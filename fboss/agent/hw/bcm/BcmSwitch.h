@@ -64,7 +64,7 @@ class BcmSwitch : public HwSwitch {
    */
   BcmSwitch(BcmPlatform *platform, std::unique_ptr<BcmUnit> unit);
 
-  virtual ~BcmSwitch();
+  ~BcmSwitch() override;
 
   /*
    * Release the BcmUnit used by this BcmSwitch.
@@ -81,6 +81,8 @@ class BcmSwitch : public HwSwitch {
    */
   std::pair<std::shared_ptr<SwitchState>, BootType>
     init(Callback* callback) override;
+
+  void unregisterCallbacks() override;
 
   BcmPlatform* getPlatform() const {
     return platform_;
@@ -189,6 +191,13 @@ class BcmSwitch : public HwSwitch {
    */
   void exitFatal() const override;
 
+  /*
+   * Returns true if the neighbor entry for the passed in ip
+   * has been hit.
+   */
+  bool getAndClearNeighborHit(RouterID vrf,
+                              folly::IPAddress& ip) override;
+
  private:
   enum Flags : uint32_t {
     RX_REGISTERED = 0x01,
@@ -197,8 +206,6 @@ class BcmSwitch : public HwSwitch {
   // Forbidden copy constructor and assignment operator
   BcmSwitch(BcmSwitch const &) = delete;
   BcmSwitch& operator=(BcmSwitch const &) = delete;
-
-  void unregisterCallbacks();
 
   /*
    * Get default state switch is in on a cold boot
@@ -247,6 +254,8 @@ class BcmSwitch : public HwSwitch {
   void processRemovedRoutes(const StateDelta& delta);
   void processAddedChangedRoutes(const StateDelta& delta);
 
+  void stateChangedImpl(const StateDelta& delta);
+
   static void linkscanCallback(int unit,
                                opennsl_port_t port,
                                opennsl_port_info_t* info);
@@ -293,6 +302,11 @@ class BcmSwitch : public HwSwitch {
    * Drop DHCP packets that are sent to us.
    */
   void dropDhcpPackets();
+
+  /*
+   * Configure rate limiting of packets sent to the CPU.
+   */
+  void configureRxRateLimiting();
 
   /*
    * Configures any additional ecmp hash sets if applicable.

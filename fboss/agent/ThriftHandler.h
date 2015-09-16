@@ -101,8 +101,15 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getArpTable(std::vector<ArpEntryThrift>& arpTable) override;
   void getNdpTable(std::vector<NdpEntryThrift>& arpTable) override;
 
+  /* returns the product information */
+  void getProductInfo(ProductInfo& productInfo) override;
+
   /* Returns the SFP Dom information */
   void getSfpDomInfo(std::map<int32_t, SfpDom>& domInfos,
+                     std::unique_ptr<std::vector<int32_t>> ports) override;
+
+  /* Returns generic transceiver information */
+  void getTransceiverInfo(std::map<int32_t, TransceiverInfo>& info,
                      std::unique_ptr<std::vector<int32_t>> ports) override;
 
   BootType getBootType() override;
@@ -121,7 +128,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
    * @param[in]   ctx   A pointer to the connection context that is being
    *                    destroyed.
    */
-  virtual void connectionDestroyed(
+  void connectionDestroyed(
       apache::thrift::server::TConnectionContext* ctx) override;
 
   /*
@@ -168,6 +175,13 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
    * @return    The idle timeout in seconds.
    */
   int32_t getIdleTimeout() override;
+
+  /**
+   * Thrift call to force reload the config from config file flag. This is
+   * useful if we change the config file while the agent is running, and wish
+   * to update its config to most recent version.
+   */
+  void reloadConfig() override;
 
  private:
   struct ThreadLocalListener {

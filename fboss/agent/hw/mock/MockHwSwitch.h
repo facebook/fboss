@@ -62,6 +62,12 @@ class MockHwSwitch : public HwSwitch {
     //TODO
   }
 
+  void unregisterCallbacks() override {
+    // TODO
+  }
+
+  MOCK_METHOD2(getAndClearNeighborHit, bool(RouterID, folly::IPAddress&));
+
   bool isPortUp(PortID port) const override {
     // Should be called only from SwSwitch which knows whether
     // the port is enabled or not

@@ -48,7 +48,6 @@ using std::chrono::seconds;
 using std::condition_variable;
 using std::string;
 
-DEFINE_string(config, "", "The path to the local JSON configuration file");
 DEFINE_int32(port, 5909, "The thrift server port");
 DEFINE_int32(stat_publish_interval_ms, 1000,
              "How frequently to publish thread-local stats back to the "
@@ -135,10 +134,7 @@ class Initializer {
     auto localMac = ret.get();
     LOG(INFO) << "local MAC is " << localMac;
 
-    sw_->updateStateBlocking("apply initial config",
-                             [this](const shared_ptr<SwitchState>& state) {
-                               return this->applyConfig(state, FLAGS_config);
-                             });
+    sw_->applyConfig("apply initial config");
     sw_->initialConfigApplied();
 
     // Start the UpdateSwitchStatsThread
@@ -162,17 +158,17 @@ class Initializer {
     fs_->addFunction(flushWarmbootFunc, seconds(1), flushWarmboot,
         seconds(30)/*initial delay*/);
 
-    // Sfp Detection Thread
-    const string sfpDetect = "SfpDetection";
+    // Transceiver Module Detection Thread
+    const string sfpDetect = "DetectTransceiver";
     auto sfpDetectFunc = [=]() {
-      sw_->detectSfp();
+      sw_->detectTransceiver();
     };
     fs_->addFunction(sfpDetectFunc, seconds(1), sfpDetect);
 
-    // Sfp Detection Thread
-    const string sfpDomCacheUpdate = "SfpDomCacheUpdate";
+    // Transceiver Module Detection Thread
+    const string sfpDomCacheUpdate = "CacheUpdateTransceiver";
     auto sfpDomCacheUpdateFunc = [=]() {
-      sw_->updateSfpDomFields();
+      sw_->updateTransceiverInfoFields();
     };
     // Call sfpDomCacheUpdate 15 seconds to get SFP monitor the
     // DOM values
@@ -182,17 +178,6 @@ class Initializer {
     fs_->start();
     LOG(INFO) << "Started background thread: UpdateStatsThread";
     initCondition_.notify_all();
-  }
-
-  shared_ptr<SwitchState> applyConfig(
-      const shared_ptr<SwitchState>& state,
-      folly::StringPiece config) {
-    if (!config.empty()) {
-      LOG(INFO) << "Loading config from local config file " << config;
-      return applyThriftConfigFile(state, config, platform_);
-    }
-
-    return applyThriftConfigDefault(state, platform_);
   }
 
   SwSwitch *sw_;
@@ -235,7 +220,7 @@ class SignalHandler : public AsyncSignalHandler {
     registerSignalHandler(SIGINT);
     registerSignalHandler(SIGTERM);
   }
-  virtual void signalReceived(int signum) noexcept override {
+  void signalReceived(int signum) noexcept override {
     stopServices_();
     sw_->gracefulExit();
     exit(0);

@@ -186,9 +186,11 @@ void LldpManager::sendLldpInfo(SwSwitch* sw,
   memset(cursor.writableData(), 0, cursor.length());
   // this LLDP packet HAS to exit out of the port specified here.
   sw->sendPacketOutOfPort(std::move(pkt), thisPortID);
-  VLOG(4) << "sent LLDP " << " on port " << port->getID() <<
-    " with CPU MAC " << cpuMac.toString() << " and vlan "
-    << port->getIngressVlan();
+  VLOG(4) << "sent LLDP "
+    << " on port " << port->getID()
+    << " with CPU MAC " << cpuMac.toString()
+    << " port id " << port->getName()
+    << " and vlan " << port->getIngressVlan();
 }
 
 }} // facebook::fboss

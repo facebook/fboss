@@ -1,7 +1,8 @@
 namespace cpp facebook.fboss
 namespace cpp2 facebook.fboss
-namespace py neteng.fboss.optic
 namespace d neteng.fboss.optic
+namespace php fboss
+namespace py neteng.fboss.optic
 
 struct SfpDomThreshFlags {
   1: bool tempAlarmHigh,
@@ -58,7 +59,7 @@ struct SfpDomReadValue {
   5: double rxPwr,
 }
 
-struct SfpVendor {
+struct Vendor {
   1: string name,
   2: string oui,
   3: string partNumber,
@@ -74,5 +75,88 @@ struct SfpDom {
   6: optional SfpDomThreshFlags flags,
   7: optional SfpDomThreshValue threshValue,
   8: optional SfpDomReadValue value,
-  9: optional SfpVendor vendor,
+  9: optional Vendor vendor,
+}
+
+struct Thresholds {
+  1: double low,
+  2: double high
+}
+
+struct ThresholdLevels {
+  1: Thresholds alarm,
+  2: Thresholds warn
+}
+
+struct AlarmThreshold {
+  1: ThresholdLevels temp,
+  2: ThresholdLevels vcc,
+  3: ThresholdLevels rxPwr,
+  4: ThresholdLevels txBias,
+  5: optional ThresholdLevels txPwr,
+}
+
+struct Flags {
+  1: bool high,
+  2: bool low,
+}
+
+struct FlagLevels {
+  1: Flags alarm,
+  2: Flags warn,
+}
+
+struct Sensor {
+  1: double value,
+  2: optional FlagLevels flags,
+}
+
+struct GlobalSensors {
+  1: Sensor temp,
+  2: Sensor vcc,
+}
+
+struct ChannelSensors {
+  1: Sensor rxPwr,
+  2: Sensor txBias,
+  3: optional Sensor txPwr,
+}
+
+/*
+ * QSFP and SFP units specify length as a byte;  a value of 255 indicates
+ * that the cable is longer than can be represented.  Each has a different
+ * scaling factor for different lengths.  We represent "longer than
+ * can be represented" with a negative integer value of the appropriate
+ * "max length" size -- i.e. -255000 for more than 255 km on a single
+ * mode fiber.
+ */
+
+struct Cable {
+  1: optional i32 singleModeKm,
+  2: optional i32 singleMode,
+  3: optional i32 om3,
+  4: optional i32 om2,
+  5: optional i32 om1,
+  6: optional i32 copper,
+}
+
+struct Channel {
+  1: i32 channel,
+  6: ChannelSensors sensors,
+}
+
+enum TransceiverType {
+  SFP,
+  QSFP,
+}
+
+struct TransceiverInfo {
+  1: bool present,
+  2: TransceiverType transceiver,
+  3: i32 port,  // physical port number
+  4: optional GlobalSensors sensor,
+  5: optional AlarmThreshold thresholds,
+  9: optional Vendor vendor,
+  10: optional Cable cable,
+  12: list<Channel> channels,
 }

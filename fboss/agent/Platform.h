@@ -17,6 +17,7 @@ namespace facebook { namespace fboss {
 class HwSwitch;
 class SwSwitch;
 class ThriftHandler;
+struct ProductInfo;
 
 /*
  * Platform represents a specific switch/router platform.
@@ -75,6 +76,11 @@ class Platform {
    * Files written to this directory should be preserved across system reboots.
    */
   virtual std::string getPersistentStateDir() const = 0;
+
+  /*
+   * Get the product information
+   */
+  virtual void getProductInfo(ProductInfo& info) = 0;
 
   /*
    * Get the path to a directory where volatile state can be stored.

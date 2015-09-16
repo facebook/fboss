@@ -12,6 +12,7 @@
 #include "fboss/agent/HighresCounterUtil.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include <folly/IPAddress.h>
 
 #include <memory>
 #include <utility>
@@ -35,9 +36,9 @@ class TxPacket;
  * HwSwitch is a pure virtual interface, and separate implementations must be
  * provided for each different switch topology that we support.  For instance,
  * we may have different implementations for single-chip Broadcom platforms,
- * single-chip Intel platforms, multi-chip Broadcom platforms, etc.  A mock,
- * software only implementation may also be provided for testing on development
- * servers with no actual hardware switching ASIC.
+ * multi-chip Broadcom platforms, etc.  A mock, software only implementation
+ * may also be provided for testing on development servers with no actual
+ * hardware switching ASIC.
  *
  * At a minimum, a HwSwitch implementation must provides access to the switch
  * ports, and provides methods for sending and receiving packets via these
@@ -95,6 +96,14 @@ class HwSwitch {
   virtual std::pair<std::shared_ptr<SwitchState>, BootType>
     init(Callback* callback) = 0;
 
+
+  /*
+   * Tells the hw switch to unregister the callback and to stop calling
+   * packetReceived and linkStateChanged. This is mainly used during exit
+   * as once the SwSwitch starts exiting, it can no longer guarantee that
+   * it can handle packets or link state changed events correctly.
+   */
+  virtual void unregisterCallbacks() = 0;
 
   /*
    * Apply a state change to the hardware.
@@ -178,6 +187,13 @@ class HwSwitch {
    * Get port operational state
    */
   virtual bool isPortUp(PortID port) const = 0;
+
+  /*
+   * Returns true if the arp/ndp entry for the passed in ip/intf has been hit
+   * since the last call to getAndClearNeighborHit.
+   */
+  virtual bool getAndClearNeighborHit(RouterID vrf,
+                                      folly::IPAddress& ip) = 0;
 
  private:
   // Forbidden copy constructor and assignment operator

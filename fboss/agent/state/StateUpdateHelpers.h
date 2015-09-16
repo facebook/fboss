@@ -99,7 +99,7 @@ class BlockingStateUpdate : public StateUpdate {
 
   BlockingStateUpdate(folly::StringPiece name,
                       StateUpdateFn fn,
-                      BlockingUpdateResult* result)
+                      std::shared_ptr<BlockingUpdateResult> result)
     : StateUpdate(name),
       function_(fn),
       result_(result) {}
@@ -124,7 +124,7 @@ class BlockingStateUpdate : public StateUpdate {
 
  private:
   StateUpdateFn function_;
-  BlockingUpdateResult* result_{nullptr};
+  std::shared_ptr<BlockingUpdateResult> result_;
 };
 
 }} // facebook::fboss

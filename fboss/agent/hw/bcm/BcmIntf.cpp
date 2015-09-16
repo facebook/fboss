@@ -147,7 +147,7 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
     memcpy(&ifParams.l3a_mac_addr, intf->getMac().bytes(),
            sizeof(ifParams.l3a_mac_addr));
     ifParams.l3a_vid = intf->getVlanID();
-    ifParams.l3a_mtu = 1500;      // TODO
+    ifParams.l3a_mtu = intf->getMtu();
 
     bool addInterface = false;
     const auto warmBootCache = hw_->getWarmBootCache();

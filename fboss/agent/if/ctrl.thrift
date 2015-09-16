@@ -1,7 +1,8 @@
 namespace cpp facebook.fboss
 namespace cpp2 facebook.fboss
-namespace py neteng.fboss.ctrl
 namespace d neteng.fboss.ctrl
+namespace php fboss
+namespace py neteng.fboss.ctrl
 
 include "fboss/agent/if/fboss.thrift"
 include "common/fb303/if/fb303.thrift"
@@ -41,6 +42,29 @@ struct InterfaceDetail {
   6: list<IpPrefix> address,
 }
 
+struct ProductInfo {
+  1: string oem,
+  2: string product,
+  3: string serial,
+  4: string macRangeStart,
+  5: i16 macRangeSize,
+  6: string mfgDate,
+  7: string systemPartNumber,
+  8: string assembledAt,
+  9: string pcbManufacturer,
+  10: string assetTag,
+  11: string partNumber,
+  12: string odmPcbPartNumber,
+  13: string odmPcbSerial,
+  14: string fbPcbPartNumber,
+  15: i16 version,
+  16: i16 subVersion,
+  17: i16 productionState,
+  18: i16 productVersion,
+  19: string bmcMac,
+  20: string mgmtMac,
+}
+
 struct PortErrors {
   1: i64 errors,
   2: i64 discards,
@@ -72,6 +96,7 @@ struct PortStatThrift {
 
   10: PortCounters output,
   11: PortCounters input,
+  12: string name
 }
 
 struct NdpEntryThrift {
@@ -223,6 +248,13 @@ service FbossCtrl extends fb303.FacebookService {
     throws (1: fboss.FbossBaseError error)
 
   /*
+   * Returns all transceiver info (both QSFP and SFP, and hopefully
+   * future devices)
+   */
+  map<i32, optic.TransceiverInfo> getTransceiverInfo(1: list<i32> idx)
+    throws (1: fboss.FbossBaseError error)
+
+  /*
    * Type of boot performed by the controller
    */
   BootType getBootType()
@@ -253,6 +285,18 @@ service FbossCtrl extends fb303.FacebookService {
 
   i32 getIdleTimeout()
     throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Return product information
+   */
+  ProductInfo getProductInfo()
+    throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Force reload configurations from the config file. Useful when config file
+   * has changed since the agent started.
+   */
+  void reloadConfig()
 }
 
 service PortStatusListenerClient extends fb303.FacebookService {

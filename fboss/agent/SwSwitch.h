@@ -13,6 +13,8 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/types.h"
+#include "fboss/agent/Transceiver.h"
+#include "fboss/agent/TransceiverMap.h"
 
 #include <folly/SpinLock.h>
 #include <folly/IntrusiveList.h>
@@ -39,8 +41,9 @@ class RxPacket;
 class SwitchState;
 class SwitchStats;
 class SfpModule;
-class SfpMap;
-class SfpImpl;
+class QsfpModule;
+class TransceiverMap;
+class TransceiverImpl;
 class StateDelta;
 class NeighborUpdater;
 class StateObserver;
@@ -87,7 +90,7 @@ class SwSwitch : public HwSwitch::Callback {
   typedef std::function<void(const StateDelta&)> StateUpdatedCallback;
 
   explicit SwSwitch(std::unique_ptr<Platform> platform);
-  virtual ~SwSwitch();
+  ~SwSwitch() override;
 
   HwSwitch* getHw() const {
     return hw_;
@@ -130,13 +133,15 @@ class SwSwitch : public HwSwitch::Callback {
 
   bool isFullyInitialized() const;
 
+  bool isInitialized() const;
+
+  bool isFullyConfigured() const;
+
   bool isConfigured() const;
 
   bool isFibSynced() const;
 
   bool isExiting() const;
-
-  void applyConfig(const std::string& configPath);
 
   /*
    * Get a pointer to the current switch state.
@@ -204,6 +209,15 @@ class SwSwitch : public HwSwitch::Callback {
   void updateStateBlocking(folly::StringPiece name, StateUpdateFn fn);
 
   /**
+   * Apply config from the config file (specified in 'config' flag).
+   *
+   *  @param  reason
+   *          What is the reson for applying config. This will be printed for
+   *          logging purposes.
+   */
+  void applyConfig(const std::string& reason);
+
+  /**
    * Get a set of high resolution samplers that we can query quickly.
    *
    * @return        The number of counters we've added samplers for.
@@ -232,7 +246,6 @@ class SwSwitch : public HwSwitch::Callback {
    * count on this always being called from the update thread.
    */
   void registerStateObserver(StateObserver* observer, const std::string name);
-
   void unregisterStateObserver(StateObserver* observer);
 
   /*
@@ -240,7 +253,7 @@ class SwSwitch : public HwSwitch::Callback {
    * The switch may then use this to start certain functions
    * which make sense only after the initial config has been
    * applied. As an example it makes sense to start the packet
-   * receieve only after applying the initial config, else in
+   * receive only after applying the initial config, else in
    * case of a warm boot this causes us to receive packets tagged
    * with a vlan which software switch state does not even know
    * about. OTOH in case of a cold boot it causes host entries
@@ -300,24 +313,46 @@ class SwSwitch : public HwSwitch::Callback {
   std::map<int32_t, SfpDom> getSfpDoms() const;
 
   /*
+   * Get Product Information.
+   */
+  void getProductInfo(ProductInfo& productInfo) const;
+
+  /*
    * Get SfpDom of the specified port.
    */
   SfpDom getSfpDom(PortID port) const;
 
   /*
-   * Create Sfp mapping for the port in the SFP map.
+   * Get the transceiver info for the specified module ID.
    */
-  void createSfp(PortID portID, std::unique_ptr<SfpImpl>& sfpImpl);
+  TransceiverIdx getTransceiverMapping(PortID port) const;
+  Transceiver* getTransceiver(TransceiverID idx) const;
 
   /*
-   * This function is used to detect all the SFPs in the SFP Map
+   * Get a list of transceivers.
    */
-  void detectSfp();
+  std::map<TransceiverID, TransceiverInfo> getTransceiversInfo() const;
 
   /*
-   * This function is update the SFP Dom realtime cache values
+   * Get TransceiverInfo of the specified port.
    */
-  void updateSfpDomFields();
+  TransceiverInfo getTransceiverInfo(TransceiverID idx) const;
+
+  /*
+   * Create Transceiver mapping to a TransceiverID
+   */
+  void addTransceiver(TransceiverID, std::unique_ptr<Transceiver> trans);
+  void addTransceiverMapping(PortID portID, ChannelID channelID,
+                             TransceiverID module);
+  /*
+   * Check all possible transceiver modules for presence
+   */
+  void detectTransceiver();
+
+  /*
+   * This function is update the transceiver information cache values
+   */
+  void updateTransceiverInfoFields();
 
   /*
    * Get the PortStats for the ingress port of this packet.
@@ -340,6 +375,15 @@ class SwSwitch : public HwSwitch::Callback {
   folly::EventBase* getUpdateEVB() {
     return &updateEventBase_;
   }
+
+  /**
+   * Do the packet received callback, and throw exception if there is an error
+   * in the handling of packet.
+   *
+   * This is usually not called for regular packets. Useful for testing. For
+   * normal calls, see packetReceived() callback from HwSwitch.
+   */
+  void packetReceivedThrowExceptionOnError(std::unique_ptr<RxPacket> pkt);
 
   // HwSwitch::Callback methods
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
@@ -481,6 +525,11 @@ class SwSwitch : public HwSwitch::Callback {
   void registerPortStatusListener(
       std::function<void(PortID, const PortStatus)> callback);
 
+  /*
+   * Returns true if the arp/ndp entry for the passed in ip has been hit.
+   */
+  bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress ip);
+
  private:
   typedef folly::IntrusiveList<StateUpdate, &StateUpdate::listHook_>
     StateUpdateList;
@@ -503,7 +552,6 @@ class SwSwitch : public HwSwitch::Callback {
    */
   void publishSfpInfo();
   void publishRouteStats();
-  void syncTunInterfaces();
   void publishBootType();
   SwitchRunState getSwitchRunState() const;
   void setSwitchRunState(SwitchRunState desiredState);
@@ -520,6 +568,14 @@ class SwSwitch : public HwSwitch::Callback {
   void stop();
   void initThread(folly::StringPiece name);
   void threadLoop(folly::StringPiece name, folly::EventBase* eventBase);
+
+  /*
+   * Helpers to add/remove state observers. These should only be
+   * called from the update thread, if the update thread is running.
+   */
+  bool stateObserverRegistered(StateObserver* observer);
+  void addStateObserver(StateObserver* observer, const std::string& name);
+  void removeStateObserver(StateObserver* observer);
 
   /*
    * File where switch state gets dumped on exit
@@ -547,19 +603,6 @@ class SwSwitch : public HwSwitch::Callback {
    */
   folly::SpinLock pendingUpdatesLock_;
   StateUpdateList pendingUpdates_;
-
-  /*
-   * hwMutex_ is held around all modifying calls that we make to hw_.
-   *
-   * This is primarily provided as a convenience so that the individual
-   * HwSwitch implementations do not need to provide their own internal
-   * locking.
-   *
-   * TODO: It might be better in the future to just move the locking to the
-   * HwSwitch, so that the HwSwitch only needs to hold a lock when really
-   * necessary.
-   */
-  std::mutex hwMutex_;
 
   /*
    * The current switch state.
@@ -600,7 +643,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<NeighborUpdater> nUpdater_;
   std::unique_ptr<PktCaptureManager> pcapMgr_;
 
-  std::unique_ptr<SfpMap> sfpMap_;
+  std::unique_ptr<TransceiverMap> transceiverMap_;
 
   BootType bootType_{BootType::UNINITIALIZED};
   std::unique_ptr<LldpManager> lldpManager_;

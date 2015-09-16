@@ -11,6 +11,7 @@
 
 #include "fboss/agent/Platform.h"
 #include <map>
+#include <string>
 
 extern "C" {
 #include <opennsl/types.h>
@@ -45,6 +46,12 @@ class BcmPlatform : public Platform {
    * long as the BcmSwitch exists.
    */
   virtual InitPortMap initPorts() = 0;
+
+  /*
+   * Get filename for where we dump the HW config that
+   * the switch was initialized with.
+   */
+  std::string getHwConfigDumpFile() const;
 
  private:
   // Forbidden copy constructor and assignment operator

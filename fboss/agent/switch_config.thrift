@@ -26,6 +26,8 @@ enum ParserType {
 
 /**
  * The spanning tree state for a VlanPort.
+ *
+ * This maps to the FocalPoint API's FM_STP_STATE_* constants.
  */
 enum SpanningTreeState {
   BLOCKING = 0,   // Receive BPDUs only, no traffic
@@ -88,10 +90,26 @@ struct Port {
    * Value 0 means default setting based on the HW and port type.
    */
   8: PortSpeed speed = DEFAULT;
+
+  /**
+   * A configurable string describing the name of the port. If this
+   * is not set, it will default to 'port-logicalID'
+   */
+  9: optional string name
+
+   /**
+    * DEPRECATED: Old versions of the switch didn't support multiple
+    * MTUs. Since this field is non-optional, we keep it for compatibility.
+    */
+   12: list<i32> _DEPRECATED_supportedMTUs
 }
 
 /**
  * Configuration for a VLAN.
+ *
+ * For simplicity, we use a single list of VLANs for the entire controller
+ * process.  The FocalPoint API has an independent list of VLANs for each
+ * switch.  The controller will create each VLAN on each configured switch.
  */
 struct Vlan {
   1: string name
@@ -101,13 +119,6 @@ struct Vlan {
    * (The hardware is only able to collect stats on a limited number of VLANs.)
    */
   3: bool recordStats = 1
-  /**
-   * An index into the SwitchConfig's supportedMTUs list.
-   *
-   * This specifies the MTU to use for this VLAN.
-   * Note that this is not a direct MTU value!
-   */
-  4: i32 mtuIndex
   /**
    * Whether packets ingressing on this VLAN should be routed.
    * When this is false, ingressing traffic will only be switched at layer 2.
@@ -131,6 +142,7 @@ struct Vlan {
   /* Override DHCPv4/6 relayer on a per host basis */
   9: optional map<string, string> dhcpRelayOverridesV4
   10: optional map<string, string> dhcpRelayOverridesV6
+
 }
 
 /**
@@ -229,6 +241,11 @@ struct Interface {
    * IPv6 NDP configuration
    */
   7: optional NdpConfig ndp
+
+  /**
+   * MTU size
+   */
+  8: optional i32 mtu
 }
 
 /**
@@ -257,9 +274,4 @@ struct SwitchConfig {
   10: bool proactiveArp = 0
   // The MAC address to use for the switch CPU.
   11: optional string cpuMAC
-  /**
-   * The list of supported MTUs.
-   * The switch hardware only supports a limited number of distinct MTUs.
-   */
-  12: list<i32> supportedMTUs
 }

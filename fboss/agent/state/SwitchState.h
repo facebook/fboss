@@ -9,6 +9,12 @@
  */
 #pragma once
 
+#include <chrono>
+#include <memory>
+
+#include <folly/FBString.h>
+#include <folly/dynamic.h>
+
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeBase.h"
 
@@ -93,7 +99,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
    * Create a new, empty state.
    */
   SwitchState();
-  virtual ~SwitchState();
+  ~SwitchState() override;
 
   static std::shared_ptr<SwitchState>
   fromFollyDynamic(const folly::dynamic& json) {
@@ -106,7 +112,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
-  virtual folly::dynamic toFollyDynamic() const override {
+  folly::dynamic toFollyDynamic() const override {
     return getFields()->toFollyDynamic();
   }
 

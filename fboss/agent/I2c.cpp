@@ -10,6 +10,8 @@
 #include "I2c.h"
 
 #include "fboss/agent/SysError.h"
+#include <folly/File.h>
+#include <folly/Format.h>
 
 extern "C" {
 #include <sys/ioctl.h>
@@ -19,33 +21,25 @@ extern "C" {
 
 namespace facebook { namespace fboss {
 
-I2cDevice::I2cDevice(int i2cBus, uint32_t address, bool slaveForce) {
-  /* set the i2c bus name */
-  i2cBus_ = i2cBus;
-  /* Open the i2c Bus file */
-  char filename[15];
-  snprintf(filename, sizeof(filename), "/dev/i2c/%d", i2cBus_);
-  file_ = open(filename, O_RDWR);
-  if (file_ < 0 && errno == ENOENT) {
-    snprintf(filename, sizeof(filename), "/dev/i2c-%d", i2cBus_);
-    file_ = open(filename, O_RDWR);
-  }
-  if (file_ < 0) {
-    throw SysError(errno, "Error opening i2c device: ", i2cBus_);
-  }
+I2cDevice::I2cDevice(int i2cBus, uint32_t address, bool slaveForce) :
+    i2cBus_(i2cBus),
+    devName(folly::sformat("/dev/i2c-{0}", i2cBus)),
+    file_(devName.c_str(), O_RDWR) {
+  // Will throw a std::system_error if it can't find any valid device node
+
   /* Set the slave address */
-  if (ioctl(file_, slaveForce ? I2C_SLAVE_FORCE : I2C_SLAVE, address) < 0) {
-    close(file_);
+  auto req = slaveForce ? I2C_SLAVE_FORCE : I2C_SLAVE;
+  if (ioctl(fd(), req, address) < 0) {
     throw SysError(errno, "Error setting slave address: ", address);
   }
 }
 
-I2cDevice::~I2cDevice() {
-  close(file_);
+int I2cDevice::fd() {
+  return file_.fd();
 }
 
 int I2cDevice::readBlock(int offset, uint8_t fieldValue[]) {
-  auto rc = i2c_smbus_read_i2c_block_data(file_, offset, I2C_BLOCK_SIZE,
+  auto rc = i2c_smbus_read_i2c_block_data(fd(), offset, I2C_BLOCK_SIZE,
                                           fieldValue);
   if (rc < 0) {
     throw SysError(-rc, "Error reading i2c bus block data i2c bus: ", i2cBus_);
@@ -54,7 +48,7 @@ int I2cDevice::readBlock(int offset, uint8_t fieldValue[]) {
 }
 
 uint16_t I2cDevice::readWord(int offset) {
-  auto data = i2c_smbus_read_word_data(file_, offset);
+  auto data = i2c_smbus_read_word_data(fd(), offset);
   if (data < 0) {
     throw SysError(-data, "Error reading word data: ", i2cBus_);
   }
@@ -62,7 +56,7 @@ uint16_t I2cDevice::readWord(int offset) {
 }
 
 uint8_t I2cDevice::readByte(int offset) {
-  auto data = i2c_smbus_read_byte_data(file_, offset);
+  auto data = i2c_smbus_read_byte_data(fd(), offset);
   if (data < 0) {
     throw SysError(-data, "Error reading word data: ", i2cBus_);
   }
@@ -74,7 +68,7 @@ void I2cDevice::read(int offset, int length, uint8_t fieldValue[]) {
   int i = 0;
   int rc = 0;
   while (temp_len > 0) {
-    rc = i2c_smbus_read_i2c_block_data(file_, offset + i,
+    rc = i2c_smbus_read_i2c_block_data(fd(), offset + i,
                                        std::min(temp_len, (int) I2C_BLOCK_SIZE),
                                        (fieldValue + i));
     if (rc < 0) {

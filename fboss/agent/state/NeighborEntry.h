@@ -38,7 +38,7 @@ struct NeighborEntryFields {
     : ip(ip),
       mac(MacAddress::BROADCAST),
       port(PortID(0)),
-      interfaceID(InterfaceID(interfaceID)),
+      interfaceID(interfaceID),
       pending(true) {}
 
   template<typename Fn>
@@ -85,7 +85,7 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
-  virtual folly::dynamic toFollyDynamic() const override {
+  folly::dynamic toFollyDynamic() const override {
     return this->getFields()->toFollyDynamic();
   }
 

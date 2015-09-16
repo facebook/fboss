@@ -17,12 +17,18 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 
+#include <future>
+
 DEFINE_string(volatile_state_dir, "/dev/shm/fboss",
               "Directory for storing volatile state");
 DEFINE_string(persistent_state_dir, "/var/facebook/fboss",
               "Directory for storing persistent state");
 DEFINE_string(mac, "",
               "The local MAC address for this switch");
+DEFINE_string(fruid_filepath, "/dev/shm/fboss/fruid.json",
+              "File for storing the fruid data");
+DEFINE_string(mode, "wedge",
+              "The mode the FBOSS controller is running as, wedge, lc, or fc");
 
 using folly::MacAddress;
 using folly::make_unique;
@@ -31,11 +37,13 @@ using std::string;
 
 namespace facebook { namespace fboss {
 
-WedgePlatform::WedgePlatform() {
+WedgePlatform::WedgePlatform()
+  : productInfo_(FLAGS_fruid_filepath) {
   auto config = loadConfig();
   BcmAPI::init(config);
   initLocalMac();
   hw_.reset(new BcmSwitch(this));
+  productInfo_.initialize();
 }
 
 WedgePlatform::~WedgePlatform() {
@@ -60,14 +68,32 @@ string WedgePlatform::getPersistentStateDir() const {
 void WedgePlatform::onUnitAttach() {
 }
 
+void WedgePlatform::getProductInfo(ProductInfo& info) {
+  productInfo_.getInfo(info);
+}
+
 WedgePlatform::InitPortMap WedgePlatform::initPorts() {
   InitPortMap ports;
+  enum {
+    WEDGE,
+    LC,
+    FC,
+  } mode;
 
+  if (FLAGS_mode == "wedge") {
+    mode = WEDGE;
+  } else if (FLAGS_mode == "lc") {
+    mode = LC;
+  } else if (FLAGS_mode == "fc") {
+    mode = FC;
+  } else {
+    throw std::runtime_error("invalide mode " + FLAGS_mode);
+  }
   // Wedge has 16 QSFPs, each mapping to 4 physical ports.
   int portNum = 0;
-  for (int mod = 0; mod < 16; ++mod) {
-    // Eventually we should define objects for each of the QSFPs here.
-    for (int channel = 0; channel < 4; ++channel) {
+
+  auto add_ports = [&](int n_ports) {
+    while (n_ports--) {
       ++portNum;
       PortID portID(portNum);
       opennsl_port_t bcmPortNum = portNum;
@@ -76,6 +102,18 @@ WedgePlatform::InitPortMap WedgePlatform::initPorts() {
       ports.emplace(bcmPortNum, port.get());
       ports_.emplace(portID, std::move(port));
     }
+  };
+
+  if (mode == WEDGE || mode == LC) {
+    // Front panel are 16 4x10G ports
+    add_ports(16 * 4);
+    if (mode == LC) {
+      // On LC, another 16 ports for back plane ports
+      add_ports(16);
+    }
+  } else {
+    // On FC, 32 40G ports
+    add_ports(32);
   }
 
   return ports;

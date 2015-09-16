@@ -28,6 +28,8 @@ namespace facebook { namespace fboss {
     folly::toAppend(static_cast<primitive>(value), result); \
   }
 
+FBOSS_STRONG_TYPE(uint8_t, ChannelID)
+FBOSS_STRONG_TYPE(uint16_t, TransceiverID)
 FBOSS_STRONG_TYPE(uint16_t, PortID)
 FBOSS_STRONG_TYPE(uint16_t, VlanID)
 FBOSS_STRONG_TYPE(uint32_t, RouterID)

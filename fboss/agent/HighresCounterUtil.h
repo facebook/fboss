@@ -62,7 +62,7 @@ class DumbCounterSampler : public HighresSampler {
       : counter_(0) {
     numCounters_ = counters.count(kDumbCounterName);
   }
-  ~DumbCounterSampler() {}
+  ~DumbCounterSampler() override {}
   void sample(CounterPublication* pub) override;
   int numCounters() const override {return numCounters_;}
 
@@ -83,7 +83,7 @@ class DumbCounterSampler : public HighresSampler {
 class InterfaceRateSampler : public HighresSampler {
  public:
   explicit InterfaceRateSampler(const std::set<folly::StringPiece>& counters);
-  ~InterfaceRateSampler() {}
+  ~InterfaceRateSampler() override {}
   void sample(CounterPublication* pub) override;
 
   int numCounters() const override { return numCounters_; }

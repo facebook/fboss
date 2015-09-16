@@ -22,6 +22,7 @@ using std::chrono::seconds;
 using std::shared_ptr;
 using boost::container::flat_map;
 using folly::Future;
+using folly::Unit;
 using folly::collectAll;
 
 namespace facebook { namespace fboss {
@@ -52,7 +53,7 @@ class NeighborUpdaterImpl : private folly::AsyncTimeout {
 
   bool pendingEntriesExist() const;
 
-  virtual void timeoutExpired() noexcept {
+  void timeoutExpired() noexcept override {
     if (pendingEntriesExist()) {
       sw_->updateState("Remove pending Arp entries", prunePendingEntries_);
     }
@@ -122,6 +123,9 @@ NeighborUpdaterImpl::prunePendingEntries(const shared_ptr<SwitchState>& state) {
 bool NeighborUpdaterImpl::pendingEntriesExist() const {
   auto state = sw_->getState();
   auto vlan = state->getVlans()->getVlanIf(vlan_);
+  if (!vlan) {
+    return false;
+  }
   auto arpTable = vlan->getArpTable();
   auto ndpTable = vlan->getNdpTable();
   return arpTable->hasPendingEntries() || ndpTable->hasPendingEntries();
@@ -132,7 +136,7 @@ NeighborUpdater::NeighborUpdater(SwSwitch* sw)
       sw_(sw) {}
 
 NeighborUpdater::~NeighborUpdater() {
-  std::vector<Future<void>> stopTasks;
+  std::vector<Future<Unit>> stopTasks;
 
   for (auto entry : updaters_) {
     auto vlan = entry.first;
@@ -153,7 +157,7 @@ NeighborUpdater::~NeighborUpdater() {
   }
 
   // Ensure that all of the updaters have been stopped before we return
-  collectAll(stopTasks.begin(), stopTasks.end()).get();
+  collectAll(stopTasks).get();
 }
 
 void NeighborUpdater::stateUpdated(const StateDelta& delta) {

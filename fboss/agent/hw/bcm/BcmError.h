@@ -35,7 +35,7 @@ class BcmError : public FbossError {
     : FbossError(std::forward<Args>(args)..., ": ", opennsl_errmsg(err)),
       err_(err) {}
 
-  ~BcmError() throw() {}
+  ~BcmError() throw() override {}
 
   opennsl_error_t getBcmError() const {
     return err_;

@@ -215,7 +215,7 @@ bool IPv4Handler::resolveMac(SwitchState* state, IPAddressV4 dest) {
   }
 
   auto route = routeTable->getRibV4()->longestMatch(dest);
-  if (!route) {
+  if (!route || !route->isResolved()) {
     // No way to reach dest
     return false;
   }

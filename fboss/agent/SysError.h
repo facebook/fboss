@@ -29,7 +29,7 @@ class SysError : public FbossError {
                    strerror_r(err, buf_, sizeof(buf_))),
         err_(err) {}
 
-  ~SysError() throw() {}
+  ~SysError() throw() override {}
 
   int getSysError() const {
     return err_;

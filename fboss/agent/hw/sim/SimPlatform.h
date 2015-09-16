@@ -18,7 +18,7 @@ class SimSwitch;
 class SimPlatform : public Platform {
  public:
   SimPlatform(folly::MacAddress mac, uint32_t numPorts);
-  ~SimPlatform();
+  ~SimPlatform() override;
 
   HwSwitch* getHwSwitch() const override;
   void onHwInitialized(SwSwitch* sw) override;
@@ -29,6 +29,9 @@ class SimPlatform : public Platform {
   }
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
+  void getProductInfo(ProductInfo& info) override {
+    // Nothing to do
+  };
 
  private:
   // Forbidden copy constructor and assignment operator

@@ -52,16 +52,12 @@ namespace {
 
 const MacAddress kPlatformMac("02:01:02:03:04:05");
 
-unique_ptr<SwSwitch> setupSwitch(seconds raInterval,
-                                 seconds ndpInterval) {
+cfg::SwitchConfig createSwitchConfig(seconds raInterval, seconds ndpInterval) {
   // Create a thrift config to use
   cfg::SwitchConfig config;
-  config.supportedMTUs.resize(1);
-  config.supportedMTUs[0] = 9000;
   config.vlans.resize(2);
   config.vlans[0].name = "PrimaryVlan";
   config.vlans[0].id = 5;
-  config.vlans[0].mtuIndex = 0;
   config.vlans[0].routable = true;
 
   config.vlanPorts.resize(10);
@@ -84,6 +80,8 @@ unique_ptr<SwSwitch> setupSwitch(seconds raInterval,
   config.interfaces[0].intfID = 1234;
   config.interfaces[0].vlanID = 5;
   config.interfaces[0].name = "PrimaryInterface";
+  config.interfaces[0].mtu = 9000;
+  config.interfaces[0].__isset.mtu = true;
   config.interfaces[0].ipAddresses.resize(5);
   config.interfaces[0].ipAddresses[0] = "10.164.4.10/24";
   config.interfaces[0].ipAddresses[1] = "10.164.4.1/24";
@@ -97,6 +95,12 @@ unique_ptr<SwSwitch> setupSwitch(seconds raInterval,
     config.arpAgerInterval = ndpInterval.count();
   }
 
+  return config;
+}
+
+unique_ptr<SwSwitch> setupSwitch(seconds raInterval,
+                                 seconds ndpInterval) {
+  auto config = createSwitchConfig(raInterval, ndpInterval);
   auto sw = createMockSw(&config, kPlatformMac);
   sw->initialConfigApplied();
   return sw;
@@ -520,7 +524,12 @@ TEST(NDP, TriggerSolicitation) {
 
 TEST(NDP, RouterAdvertisement) {
   seconds raInterval(1);
-  auto sw = setupSwitchWithRAInterval(raInterval);
+  auto config = createSwitchConfig(raInterval, seconds(0));
+  // Add an interface with a /128 mask, to make sure it isn't included
+  // in the generated RA packets.
+  config.interfaces[0].ipAddresses.push_back("2401:db00:2000:1234:1::/128");
+  auto sw = createMockSw(&config, kPlatformMac);
+  sw->initialConfigApplied();
 
   auto state = sw->getState();
   auto intfConfig = state->getInterfaces()->getInterface(InterfaceID(1234));

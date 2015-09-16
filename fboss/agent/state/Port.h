@@ -72,7 +72,7 @@ class Port : public NodeBaseT<Port, PortFields> {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
-  virtual folly::dynamic toFollyDynamic() const override {
+  folly::dynamic toFollyDynamic() const override {
     return getFields()->toFollyDynamic();
   }
 
@@ -91,6 +91,10 @@ class Port : public NodeBaseT<Port, PortFields> {
 
   const std::string& getName() const {
     return getFields()->name;
+  }
+
+  void setName(const std::string& name) {
+    writableFields()->name = name;
   }
 
   cfg::PortState getState() const {

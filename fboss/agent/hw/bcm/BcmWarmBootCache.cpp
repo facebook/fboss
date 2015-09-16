@@ -61,9 +61,13 @@ shared_ptr<InterfaceMap> BcmWarmBootCache::reconstructInterfaceMap() const {
     const auto& bcmIntf = vlanMacAndIntf.second;
     // Note : missing addresses and inteface name. This should be
     // fixed with t4155406
-    intfMap->addInterface(make_shared<Interface>(InterfaceID(bcmIntf.l3a_vid),
-            RouterID(bcmIntf.l3a_vrf), VlanID(bcmIntf.l3a_vid), "",
-            vlanMacAndIntf.first.second));
+    intfMap->addInterface(make_shared<Interface>(
+            InterfaceID(bcmIntf.l3a_vid),
+            RouterID(bcmIntf.l3a_vrf),
+            VlanID(bcmIntf.l3a_vid),
+            "",
+            vlanMacAndIntf.first.second,
+            bcmIntf.l3a_mtu));
   }
   return intfMap;
 }
@@ -105,12 +109,25 @@ shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
       titr = vlan2AddrTables.insert(make_pair(VlanID(bcmEgress.vlan),
           AddrTables())).first;
     }
+
+    // If we have a drop entry programmed for an existing host, it is a
+    // pending entry
     if (ip.isV4()) {
-      titr->second.arpTable->addEntry(ip.asV4(), macFromBcm(bcmEgress.mac_addr),
-            PortID(bcmEgress.port), InterfaceID(bcmEgress.vlan));
+      auto arpTable = titr->second.arpTable;
+      if (BcmEgress::programmedToDrop(bcmEgress)) {
+        arpTable->addPendingEntry(ip.asV4(), InterfaceID(bcmEgress.vlan));
+      } else {
+        arpTable->addEntry(ip.asV4(), macFromBcm(bcmEgress.mac_addr),
+                           PortID(bcmEgress.port), InterfaceID(bcmEgress.vlan));
+      }
     } else {
-      titr->second.ndpTable->addEntry(ip.asV6(), macFromBcm(bcmEgress.mac_addr),
-            PortID(bcmEgress.port), InterfaceID(bcmEgress.vlan));
+      auto ndpTable = titr->second.ndpTable;
+      if (BcmEgress::programmedToDrop(bcmEgress)) {
+        ndpTable->addPendingEntry(ip.asV6(), InterfaceID(bcmEgress.vlan));
+      } else {
+        ndpTable->addEntry(ip.asV6(), macFromBcm(bcmEgress.mac_addr),
+                           PortID(bcmEgress.port), InterfaceID(bcmEgress.vlan));
+      }
     }
   }
   for (auto vlanAndAddrTable: vlan2AddrTables) {

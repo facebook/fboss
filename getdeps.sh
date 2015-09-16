@@ -7,6 +7,7 @@ function update() {
         (cd $repo && git pull)
     else
         git clone $1
+        git checkout $2
     fi
 }
 
@@ -33,7 +34,8 @@ echo "installing packages"
 sudo apt-get install -yq autoconf automake libdouble-conversion-dev \
     libssl-dev make zip git autoconf libtool g++ libboost-all-dev \
     libevent-dev flex bison libgoogle-glog-dev scons libkrb5-dev \
-    libsnappy-dev libsasl2-dev libnuma-dev
+    libsnappy-dev libsasl2-dev libnuma-dev libi2c-dev libcurl4-nss-dev
+
 echo "creating external..."
 mkdir -p external
 (
@@ -44,8 +46,8 @@ mkdir -p external
         git://git.kernel.org/pub/scm/linux/kernel/git/shemminger/iproute2.git
     update https://github.com/facebook/folly.git
     update https://github.com/facebook/fbthrift.git
-    build iproute2
-    build folly/folly
+    build iproute2 v3.12.0
+    build folly/folly v0.48.0
     export CPPFLAGS=" -I`pwd`/folly/" LDFLAGS="-L`pwd`/folly/folly/.libs/"
-    build fbthrift/thrift
+    build fbthrift/thrift v0.28.0
 )

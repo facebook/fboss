@@ -41,8 +41,8 @@ IPv4Hdr::IPv4Hdr(Cursor& cursor) {
     ecn = buf[1] & 0x03;
     length = (static_cast<uint16_t>(buf[2]) << 8)
            |  static_cast<uint16_t>(buf[3]);
-    if (length < 20) {
-      throw HdrParseError("IPv4: total length < 20");
+    if (length < size()) {
+      throw HdrParseError("IPv4: total length < ihl * 4");
     }
     id = (static_cast<uint16_t>(buf[4]) << 8)
        |  static_cast<uint16_t>(buf[5]);
@@ -62,6 +62,11 @@ IPv4Hdr::IPv4Hdr(Cursor& cursor) {
     uint32_t dstAddrRaw = cursor.readBE<uint32_t>();
     srcAddr = IPAddressV4::fromLongHBO(srcAddrRaw);
     dstAddr = IPAddressV4::fromLongHBO(dstAddrRaw);
+
+    if (UNLIKELY(ihl > 5)) {
+      cursor.pull(optionBuf, (ihl - 5) * sizeof(uint32_t));
+    }
+
   } catch (const std::out_of_range& e) {
     throw HdrParseError("IPv4 header too small");
   }

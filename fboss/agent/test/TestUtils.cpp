@@ -137,21 +137,21 @@ shared_ptr<SwitchState> testStateA() {
   // Add VLAN 1, and ports 1-9 which belong to it.
   auto vlan1 = make_shared<Vlan>(VlanID(1), "Vlan1");
   state->addVlan(vlan1);
-  for (int idx = 1; idx < 10; ++idx) {
+  for (int idx = 1; idx <= 10; ++idx) {
     state->registerPort(PortID(idx), folly::to<string>("port", idx));
     vlan1->addPort(PortID(idx), false);
   }
   // Add VLAN 55, and ports 10-19 which belong to it.
   auto vlan55 = make_shared<Vlan>(VlanID(55), "Vlan55");
   state->addVlan(vlan55);
-  for (int idx = 10; idx < 20; ++idx) {
+  for (int idx = 11; idx <= 20; ++idx) {
     state->registerPort(PortID(idx), folly::to<string>("port", idx));
     vlan55->addPort(PortID(idx), false);
   }
   // Add Interface 1 to VLAN 1
   auto intf1 = make_shared<Interface>
     (InterfaceID(1), RouterID(0), VlanID(1),
-     "interface1", MacAddress("00:02:00:00:00:01"));
+     "interface1", MacAddress("00:02:00:00:00:01"), 9000);
   Interface::Addresses addrs1;
   addrs1.emplace(IPAddress("10.0.0.1"), 24);
   addrs1.emplace(IPAddress("192.168.0.1"), 24);
@@ -161,7 +161,7 @@ shared_ptr<SwitchState> testStateA() {
   // Add Interface 55 to VLAN 55
   auto intf55 = make_shared<Interface>
     (InterfaceID(55), RouterID(0), VlanID(55),
-     "interface55", MacAddress("00:02:00:00:00:55"));
+     "interface55", MacAddress("00:02:00:00:00:55"), 9000);
   Interface::Addresses addrs55;
   addrs55.emplace(IPAddress("10.0.55.1"), 24);
   addrs55.emplace(IPAddress("192.168.55.1"), 24);

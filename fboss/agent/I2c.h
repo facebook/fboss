@@ -10,6 +10,7 @@
 #pragma once
 
 #include <cstdint>
+#include <folly/File.h>
 
 namespace facebook { namespace fboss {
 
@@ -20,14 +21,17 @@ class I2cDevice {
     I2C_WORD_SIZE = 2,
   };
   I2cDevice(int i2cBus, uint32_t address, bool slaveForce);
-  ~I2cDevice();
+
   void read(int offset, int length, uint8_t fieldValue[]);
   uint8_t readByte(int offset);
   uint16_t readWord(int offset);
   int readBlock(int offset, uint8_t fieldValue[]);
  private:
-  int file_;
-  int i2cBus_;
+  int fd();
+
+  int i2cBus_{0};
+  std::string devName;
+  folly::File file_;
   // Forbidden copy contructor and assignment operator
   I2cDevice(I2cDevice const &) = delete;
   I2cDevice& operator=(I2cDevice const &) = delete;

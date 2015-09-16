@@ -43,7 +43,7 @@ class BcmEgressBase : public boost::noncopyable {
 class BcmEgress : public BcmEgressBase {
  public:
   explicit BcmEgress(const BcmSwitch* hw) : BcmEgressBase(hw) {}
-  virtual ~BcmEgress();
+  ~BcmEgress() override;
   void program(opennsl_if_t intfId, opennsl_vrf_t vrf,
       const folly::IPAddress& ip, folly::MacAddress mac,
                opennsl_port_t port) {
@@ -81,6 +81,11 @@ class BcmEgress : public BcmEgressBase {
    */
   static void verifyDropEgress(int unit);
 
+  // Returns if the egress object is programmed to drop
+  static bool programmedToDrop(const opennsl_l3_egress_t& egr) {
+    return egr.flags & OPENNSL_L3_DST_DISCARD;
+  }
+
  private:
   bool alreadyExists(const  opennsl_l3_egress_t& newEgress) const;
   void program(opennsl_if_t intfId, opennsl_vrf_t vrf,
@@ -91,7 +96,7 @@ class BcmEgress : public BcmEgressBase {
 class BcmEcmpEgress : public BcmEgressBase {
  public:
   explicit BcmEcmpEgress(const BcmSwitch* hw) : BcmEgressBase(hw) {}
-  virtual ~BcmEcmpEgress();
+  ~BcmEcmpEgress() override;
   void program(opennsl_if_t paths[], int n_path);
 };
 

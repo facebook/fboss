@@ -27,12 +27,14 @@ struct InterfaceFields {
   typedef boost::container::flat_map<folly::IPAddress, uint8_t> Addresses;
 
   InterfaceFields(InterfaceID id, RouterID router, VlanID vlan,
-                  folly::StringPiece name, folly::MacAddress mac)
+                  folly::StringPiece name, folly::MacAddress mac,
+                  int mtu)
     : id(id),
       routerID(router),
       vlanID(vlan),
       name(name.data(), name.size()),
-      mac(mac) {}
+      mac(mac),
+      mtu(mtu) {}
 
   /*
    * Deserialize from a folly::dynamic object
@@ -53,6 +55,7 @@ struct InterfaceFields {
   folly::MacAddress mac;
   Addresses addrs;
   cfg::NdpConfig ndp;
+  int mtu;
 };
 
 /*
@@ -63,8 +66,9 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
   typedef InterfaceFields::Addresses Addresses;
 
   Interface(InterfaceID id, RouterID router, VlanID vlan,
-            folly::StringPiece name, folly::MacAddress mac)
-    : NodeBaseT(id, router, vlan, name, mac) {}
+            folly::StringPiece name, folly::MacAddress mac,
+            int mtu)
+    : NodeBaseT(id, router, vlan, name, mac, mtu) {}
 
   static std::shared_ptr<Interface>
   fromFollyDynamic(const folly::dynamic& json) {
@@ -77,7 +81,7 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
-  virtual folly::dynamic toFollyDynamic() const override {
+  folly::dynamic toFollyDynamic() const override {
     return getFields()->toFollyDynamic();
   }
 
@@ -97,6 +101,13 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
   }
   void setVlanID(VlanID id) {
     writableFields()->vlanID = id;
+  }
+
+  int getMtu() const {
+    return getFields()->mtu;
+  }
+  void setMtu(int mtu) {
+    writableFields()->mtu = mtu;
   }
 
   const std::string& getName() const {
@@ -158,6 +169,7 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
    * This needs to be public, as std::make_shared requires
    * operator new() to be available.
    */
+  static const int kDefaultMtu{1500};
  private:
   using NodeBaseT::NodeBaseT;
   friend class CloneAllocator;

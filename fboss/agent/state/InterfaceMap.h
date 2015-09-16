@@ -23,7 +23,7 @@ typedef NodeMapTraits<InterfaceID, Interface> InterfaceMapTraits;
 class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
  public:
   InterfaceMap();
-  virtual ~InterfaceMap();
+  ~InterfaceMap() override;
 
   /*
    * Get the specified Interface.

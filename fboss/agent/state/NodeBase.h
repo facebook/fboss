@@ -158,7 +158,7 @@ class NodeBaseT : public NodeBase {
   typedef NodeT Node;
   typedef FieldsT Fields;
 
-  virtual ~NodeBaseT() {}
+  ~NodeBaseT() override {}
 
   /*
    * Create a new version of the node, cloned from this one.
@@ -198,7 +198,7 @@ class NodeBaseT : public NodeBase {
                                        std::forward<Args>(args)...);
   }
 
-  virtual void publish() override;
+  void publish() override;
 
   const Fields* getFields() const {
     return &fields_;

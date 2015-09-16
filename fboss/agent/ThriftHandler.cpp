@@ -105,6 +105,13 @@ ThriftHandler::ThriftHandler(SwSwitch* sw) : FacebookBase2("FBOSS"), sw_(sw) {
 
 fb_status ThriftHandler::getStatus() {
   if (sw_->isFullyInitialized()) {
+    // We schedule a lightweight task on the update eventbase
+    // so we can catch deadlocks in that thread
+    auto healthcheckFn = [=] {
+      //arbitrary code, could be changed if the log message is annoying
+      VLOG(2) << "Healthcheck passed.";
+    };
+    sw_->getUpdateEVB()->runInEventBaseThreadAndWait(healthcheckFn);
     return fb_status::ALIVE;
   } else {
     return fb_status::STARTING;
@@ -219,6 +226,10 @@ void ThriftHandler::addUnicastRoutes(
     return newState;
   };
   sw_->updateStateBlocking("add unicast route", updateFn);
+}
+
+void ThriftHandler::getProductInfo(ProductInfo& productInfo) {
+  sw_->getProductInfo(productInfo);
 }
 
 void ThriftHandler::deleteUnicastRoutes(
@@ -387,7 +398,11 @@ void ThriftHandler::fillPortStatistics(PortStatThrift& stats) {
   auto statMap = fbData->getStatMap();
 
   auto getSumStat = [&] (StringPiece prefix, StringPiece name) {
-    auto statName = folly::to<std::string>("port", portId, ".", prefix, name);
+    auto portName = stats.name;
+    if (name.empty()) {
+      portName = folly::to<std::string>("port", portId);
+    }
+    auto statName = folly::to<std::string>(portName, ".", prefix, name);
     return statMap->getStatPtr(statName)->getSum(0);
   };
 
@@ -416,6 +431,7 @@ void ThriftHandler::getPortStats(PortStatThrift& portStats, int32_t portId) {
     throw FbossError("no such port ", portId);
   }
   portStats.portId = portId;
+  portStats.name = port->getName();
   portStats.speedMbps = int32_t(port->getSpeed());
   fillPortStatistics(portStats);
 }
@@ -697,6 +713,21 @@ void ThriftHandler::getSfpDomInfo(map<int32_t, SfpDom>& domInfos,
   }
 }
 
+void ThriftHandler::getTransceiverInfo(map<int32_t, TransceiverInfo>& info,
+                                  unique_ptr<vector<int32_t>> ids) {
+  ensureConfigured();
+  if (ids->empty()) {
+    auto transceivers = sw_->getTransceiversInfo();
+    for (auto& it : transceivers) {
+      info[it.first] = it.second;
+    }
+  } else {
+    for (auto id : *ids) {
+      info[id] = sw_->getTransceiverInfo(TransceiverID(id));
+    }
+  }
+}
+
 template<typename ADDR_TYPE, typename ADDR_CONVERTER>
 void ThriftHandler::getVlanAddresses(const Vlan* vlan,
     std::vector<ADDR_TYPE>& addrs, ADDR_CONVERTER& converter) {
@@ -716,15 +747,15 @@ BootType ThriftHandler::getBootType() {
 }
 
 void ThriftHandler::ensureConfigured(StringPiece function) {
-  if (sw_->isConfigured()) {
+  if (sw_->isFullyConfigured()) {
     return;
   }
 
   if (!function.empty()) {
     VLOG(1) << "failing thrift prior to switch configuration: " << function;
   }
-  throw FbossError("switch is still initializing and is not fully "
-                   "configured yet");
+  throw FbossError("switch is still initializing or is exiting and is not "
+                   "fully configured yet");
 }
 
 void ThriftHandler::ensureFibSynced(StringPiece function) {
@@ -809,4 +840,9 @@ int32_t ThriftHandler::getIdleTimeout() {
   }
   return thriftIdleTimeout_;
 }
+
+void ThriftHandler::reloadConfig() {
+  return sw_->applyConfig("reload config initiated by thrift call");
+}
+
 }} // facebook::fboss

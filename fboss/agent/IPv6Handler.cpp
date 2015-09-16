@@ -532,7 +532,7 @@ void IPv6Handler::sendNeighborSolicitations(
   }
 
   auto route = routeTable->getRibV6()->longestMatch(targetIP);
-  if (!route) {
+  if (!route || !route->isResolved()) {
     // No way to reach targetIP
     return;
   }
@@ -666,7 +666,6 @@ void IPv6Handler::setPendingNdpEntry(InterfaceID intfID,
   sw_->updateState("add pending ndp entry", updateFn);
 }
 
-
 void IPv6Handler::updateNeighborEntry(const RxPacket* pkt,
                                       folly::IPAddressV6 ip,
                                       folly::MacAddress mac,
@@ -674,7 +673,7 @@ void IPv6Handler::updateNeighborEntry(const RxPacket* pkt,
   PortID port = pkt->getSrcPort();
   VlanID vlanID = pkt->getSrcVlan();
 
-  // Look up the Vlan state
+  // Look up the Vlan in the state
   auto state = sw_->getState();
   auto vlan = state->getVlans()->getVlanIf(vlanID);
   if (!vlan) {

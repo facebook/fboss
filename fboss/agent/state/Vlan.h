@@ -55,7 +55,6 @@ struct VlanFields {
   VlanFields(VlanID id, std::string name);
   VlanFields(VlanID id,
              std::string name,
-             uint32_t mtu,
              folly::IPAddressV4 dhcpV4Relay,
              folly::IPAddressV6 dhcpV6Relay,
              MemberPorts&& ports);
@@ -73,7 +72,6 @@ struct VlanFields {
 
   const VlanID id{0};
   std::string name;
-  uint32_t mtu{1500};
   folly::IPAddressV4 dhcpV4Relay;
   folly::IPAddressV6 dhcpV6Relay;
   DhcpV4OverrideMap dhcpRelayOverridesV4;
@@ -99,7 +97,7 @@ class Vlan : public NodeBaseT<Vlan, VlanFields> {
   typedef VlanFields::MemberPorts MemberPorts;
 
   Vlan(VlanID id, std::string name);
-  Vlan(const cfg::Vlan* config, uint32_t mtu, MemberPorts ports);
+  Vlan(const cfg::Vlan* config, MemberPorts ports);
 
   static std::shared_ptr<Vlan>
   fromFollyDynamic(const folly::dynamic& json) {
@@ -112,7 +110,7 @@ class Vlan : public NodeBaseT<Vlan, VlanFields> {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
-  virtual folly::dynamic toFollyDynamic() const override {
+  folly::dynamic toFollyDynamic() const override {
     return getFields()->toFollyDynamic();
   }
 
@@ -126,13 +124,6 @@ class Vlan : public NodeBaseT<Vlan, VlanFields> {
 
   void setName(std::string name) {
     writableFields()->name = name;
-  }
-
-  uint32_t getMTU() const {
-    return getFields()->mtu;
-  }
-  void setMTU(uint32_t mtu) {
-    writableFields()->mtu = mtu;
   }
 
   const MemberPorts& getPorts() const {

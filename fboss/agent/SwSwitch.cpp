@@ -29,9 +29,11 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUpdateHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/SfpMap.h"
+#include "fboss/agent/TransceiverMap.h"
+#include "fboss/agent/Transceiver.h"
+#include "fboss/agent/TransceiverImpl.h"
+#include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/SfpModule.h"
-#include "fboss/agent/SfpImpl.h"
 #include "fboss/agent/LldpManager.h"
 #include "common/stats/ServiceData.h"
 #include <folly/FileUtil.h>
@@ -55,16 +57,18 @@ using std::string;
 using std::unique_lock;
 using std::unique_ptr;
 
+DEFINE_string(config, "", "The path to the local JSON configuration file");
+
 namespace {
-  facebook::fboss::PortStatus fillInPortStatus(
-      const facebook::fboss::Port& port,
-      const facebook::fboss::SwSwitch* sw) {
-    facebook::fboss::PortStatus status;
-    status.enabled = (port.getState() ==
-        facebook::fboss::cfg::PortState::UP ? true : false);
-    status.up = sw->isPortUp(port.getID());
-    return status;
-  }
+facebook::fboss::PortStatus fillInPortStatus(
+    const facebook::fboss::Port& port,
+    const facebook::fboss::SwSwitch* sw) {
+  facebook::fboss::PortStatus status;
+  status.enabled = (port.getState() ==
+      facebook::fboss::cfg::PortState::UP ? true : false);
+  status.up = sw->isPortUp(port.getID());
+  return status;
+}
 }
 
 namespace facebook { namespace fboss {
@@ -77,7 +81,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
     ipv6_(new IPv6Handler(this)),
     nUpdater_(new NeighborUpdater(this)),
     pcapMgr_(new PktCaptureManager(this)),
-    sfpMap_(new SfpMap()) {
+    transceiverMap_(new TransceiverMap()) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
@@ -89,33 +93,53 @@ SwSwitch::~SwSwitch() {
 }
 
 void SwSwitch::stop() {
-  {
-    lock_guard<mutex> g(hwMutex_);
+  setSwitchRunState(SwitchRunState::EXITING);
 
-    setSwitchRunState(SwitchRunState::EXITING);
+  // First tell the hw to stop sending us events by unregistering the callback
+  // After this we should no longer receive packets or link state changed events
+  // while we are destroying ourselves
+  hw_->unregisterCallbacks();
 
-    // Several member variables are performing operations in the background
-    // thread.  Ask them to stop, before we shut down the background thread.
-    ipv6_.reset();
-    nUpdater_.reset();
-    if (lldpManager_) {
-      lldpManager_->stop();
-    }
-
-    // Stop tunMgr so we don't get any packets to process
-    // in software that were sent to the switch ip or were
-    // routed from kernel to the front panel tunnel interface.
-    tunMgr_.reset();
+  // Several member variables are performing operations in the background
+  // thread.  Ask them to stop, before we shut down the background thread.
+  //
+  // It should be safe to destroy a StateObserver object without locking
+  // if they are only ever accessed from the update thread. The destructor
+  // of a class that extends AutoRegisterStateObserver will unregister
+  // itself on the update thread so there should be no race. Unfortunately,
+  // this is not the case for ipv6_ and tunMgr_, which may be accessed in a
+  // packet handling callback as well while stopping the switch.
+  //
+  // TODO(aeckert): t6862022 is there to come up with a more stable concurrency
+  // model for classes that observe state and/or handle packets.
+  ipv6_.reset();
+  nUpdater_.reset();
+  if (lldpManager_) {
+    lldpManager_->stop();
   }
 
-  // This needs to be run without holding hwMutex_ because the update
-  // thread may be waiting on the mutex in applyUpdate
+  // Stop tunMgr so we don't get any packets to process
+  // in software that were sent to the switch ip or were
+  // routed from kernel to the front panel tunnel interface.
+  tunMgr_.reset();
+
+  // stops the background and update threads.
   stopThreads();
 }
 
 bool SwSwitch::isFullyInitialized() const {
   auto state = getSwitchRunState();
   return state >= SwitchRunState::INITIALIZED &&
+    state != SwitchRunState::EXITING;
+}
+
+bool SwSwitch::isInitialized() const {
+  return getSwitchRunState() >= SwitchRunState::INITIALIZED;
+}
+
+bool SwSwitch::isFullyConfigured() const {
+  auto state = getSwitchRunState();
+  return state >= SwitchRunState::CONFIGURED &&
     state != SwitchRunState::EXITING;
 }
 
@@ -153,6 +177,10 @@ void SwSwitch::gracefulExit() {
   exit(0);
 }
 
+void SwSwitch::getProductInfo(ProductInfo& productInfo) const {
+  platform_->getProductInfo(productInfo);
+}
+
 void SwSwitch::dumpStateToFile(const string& filename) const {
   bool success = folly::writeFile(
     toPrettyJson(getState()->toFollyDynamic()).toStdString(),
@@ -176,17 +204,19 @@ void SwSwitch::registerPortStatusListener(
   portListener_ = callback;
 }
 
+bool SwSwitch::getAndClearNeighborHit(RouterID vrf, folly::IPAddress ip) {
+  return hw_->getAndClearNeighborHit(vrf, ip);
+}
+
 void SwSwitch::exitFatal() const noexcept {
   dumpStateToFile(platform_->getCrashSwitchStateFile());
 }
 
 void SwSwitch::clearWarmBootCache() {
-  lock_guard<mutex> g(hwMutex_);
   hw_->clearWarmBootCache();
 }
 
 void SwSwitch::init(SwitchFlags flags) {
-  lock_guard<mutex> g(hwMutex_);
   auto start = std::chrono::steady_clock::now();
   auto stateAndBootType = hw_->init(this);
   auto initialState = stateAndBootType.first;
@@ -227,12 +257,29 @@ void SwSwitch::init(SwitchFlags flags) {
 }
 
 void SwSwitch::initialConfigApplied() {
-  {
-    lock_guard<mutex> g(hwMutex_);
-    hw_->initialConfigApplied();
-  }
+  // notify the hw
+  hw_->initialConfigApplied();
   setSwitchRunState(SwitchRunState::CONFIGURED);
-  syncTunInterfaces();
+
+  if (tunMgr_) {
+    // Perform initial sync of interfaces
+    tunMgr_->sync(getState());
+    // We check for syncing tun interface only on state changes after the
+    // initial configuration is applied. This is really a hack to get around
+    // 2 issues
+    // a) On warm boot the initial state constructed from warm boot cache
+    // does not know of interface addresses. This means if we sync tun interface
+    // on applying initial boot up state we would blow away tunnel interferace
+    // addresses, causing connectivity disruption. Once t4155406 is fixed we
+    // should be able to remove this check.
+    // b) Even if we were willing to live with the above, the TunManager code
+    // does not properly track deleting of interface addresses, viz. when we
+    // delete a interface's primary address, secondary addresses get blown away
+    // as well. TunManager does not track this and tries to delete the
+    // secondaries as well leading to errors, t4746261 is tracking this.
+    tunMgr_->startObservingUpdates();
+  }
+
   if (lldpManager_) {
       lldpManager_->start();
   }
@@ -247,21 +294,42 @@ void SwSwitch::registerStateObserver(StateObserver* observer,
   VLOG(2) << "Registering state observer: " << name;
   if (!updateEventBase_.isInEventBaseThread()) {
     updateEventBase_.runInEventBaseThreadAndWait([=]() {
-      stateObservers_.emplace(observer, name);
+        addStateObserver(observer, name);
     });
   } else {
-    stateObservers_.emplace(observer, name);
+    addStateObserver(observer, name);
   }
 }
 
 void SwSwitch::unregisterStateObserver(StateObserver* observer) {
   if (!updateEventBase_.isInEventBaseThread()) {
     updateEventBase_.runInEventBaseThreadAndWait([=]() {
-      stateObservers_.erase(observer);
+      removeStateObserver(observer);
     });
   } else {
-    stateObservers_.erase(observer);
+    removeStateObserver(observer);
   }
+}
+
+bool SwSwitch::stateObserverRegistered(StateObserver* observer) {
+  DCHECK(updateEventBase_.isInEventBaseThread());
+  return stateObservers_.find(observer) != stateObservers_.end();
+}
+
+void SwSwitch::removeStateObserver(StateObserver* observer) {
+  DCHECK(updateEventBase_.isInEventBaseThread());
+  auto nErased = stateObservers_.erase(observer);
+  if (!nErased) {
+    throw FbossError("State observer remove failed: observer does not exist");
+  }
+}
+
+void SwSwitch::addStateObserver(StateObserver* observer, const string& name) {
+  DCHECK(updateEventBase_.isInEventBaseThread());
+  if (stateObserverRegistered(observer)) {
+    throw FbossError("State observer add failed: ", name, " already exists");
+  }
+  stateObservers_.emplace(observer, name);
 }
 
 void SwSwitch::notifyStateObservers(const StateDelta& delta) {
@@ -306,10 +374,10 @@ void SwSwitch::updateState(StringPiece name, StateUpdateFn fn) {
 }
 
 void SwSwitch::updateStateBlocking(folly::StringPiece name, StateUpdateFn fn) {
-  BlockingUpdateResult result;
-  auto update = make_unique<BlockingStateUpdate>(name, std::move(fn), &result);
+  auto result = std::make_shared<BlockingUpdateResult>();
+  auto update = make_unique<BlockingStateUpdate>(name, std::move(fn), result);
   updateState(std::move(update));
-  result.wait();
+  result->wait();
 }
 
 void SwSwitch::handlePendingUpdatesHelper(SwSwitch* sw) {
@@ -337,8 +405,8 @@ void SwSwitch::handlePendingUpdates() {
   }
 
   // This function should never be called with valid updates while we are
-  // not fully initialized
-  DCHECK(isFullyInitialized());
+  // not initialized yet
+  DCHECK(isInitialized());
 
   // Call all of the update functions to prepare the new SwitchState
   auto origState = getState();
@@ -432,21 +500,6 @@ int SwSwitch::getHighresSamplers(HighresSamplerList* samplers,
   return numCountersAdded;
 }
 
-void SwSwitch::syncTunInterfaces() {
-  CHECK(isConfigured());
-  if (!tunMgr_) {
-    return;
-  }
-
-  try {
-    tunMgr_->startSync(getState()->getInterfaces());
-  } catch (const std::exception& ex) {
-    // TODO: Figure out the best way to handle errors here.
-    LOG(FATAL) << "error applying interfaces change to system: " <<
-      folly::exceptionStr(ex);
-  }
-}
-
 void SwSwitch::setStateInternal(std::shared_ptr<SwitchState> newState) {
   // This is one of the only two places that should ever directly access
   // stateDontUseDirectly_.  (getState() being the other one.)
@@ -465,13 +518,6 @@ void SwSwitch::applyUpdate(const shared_ptr<SwitchState>& oldState,
 
   StateDelta delta(oldState, newState);
 
-  // Hold the hwMutex_ wihle applying the updates.
-  // We are currently holding this for a bit longer than necessary, just to
-  // be conservative.  It should be possible to only hold this around
-  // HwSwitch::stateChanged()  (or eventually just make
-  // HwSwitch::stateChanged() responsible for providing its own locking).
-  lock_guard<mutex> hwGuard(hwMutex_);
-
   // If we are already exiting, abort the update
   if (isExiting()) {
     return;
@@ -479,27 +525,6 @@ void SwSwitch::applyUpdate(const shared_ptr<SwitchState>& oldState,
 
   // Publish the configuration as our active state.
   setStateInternal(newState);
-
-  // Notifies all observers of the current state update.
-  notifyStateObservers(delta);
-
-  // sync the new interface info to the host
-  if (isConfigured()) {
-    // We check for syncing tun interface only on state changes after the
-    // initial configuration is applied. This is really a hack to get around
-    // 2 issues
-    // a) On warm boot the initial state constructed from warm boot cache
-    // does not know of interface addresses. This means if we sync tun interface
-    // on applying initial boot up state we would blow away tunnel interferace
-    // addresses, causing connectivity disruption. Once t4155406 is fixed we
-    // should be able to remove this check.
-    // b) Even if we were willing to live with the above, the TunManager code
-    // does not properly track deleting of interface addresses, viz. when we
-    // delete a interface's primary address, secondary addresses get blown away
-    // as well. TunManager does not track this and tries to delete the
-    // secondaries as well leading to errors, t4746261 is tracking this.
-    syncTunInterfaces();
-  }
 
   // Inform the HwSwitch of the change.
   //
@@ -524,6 +549,9 @@ void SwSwitch::applyUpdate(const shared_ptr<SwitchState>& oldState,
     LOG(FATAL) << "error applying state change to hardware: " <<
       folly::exceptionStr(ex);
   }
+
+  // Notifies all observers of the current state update.
+  notifyStateObservers(delta);
 
   auto end = std::chrono::steady_clock::now();
   auto duration =
@@ -552,41 +580,80 @@ PortStatus SwSwitch::getPortStatus(PortID port) {
   return fillInPortStatus(*getState()->getPort(port), this);
 }
 
-SfpModule* SwSwitch::getSfp(PortID portID) const {
-  return sfpMap_->sfpModule(portID);
+TransceiverIdx SwSwitch::getTransceiverMapping(PortID portID) const {
+  return transceiverMap_->transceiverMapping(portID);
+}
+
+Transceiver* SwSwitch::getTransceiver(TransceiverID id) const {
+  return transceiverMap_->transceiver(id);
+}
+
+map<TransceiverID, TransceiverInfo> SwSwitch::getTransceiversInfo() const {
+  map<TransceiverID, TransceiverInfo> infos;
+  int i = -1;
+  for (const auto& it : *transceiverMap_) {
+    TransceiverInfo info;
+    it.second->getTransceiverInfo(info);
+    infos[it.first] = info;
+  }
+  return infos;
+}
+
+TransceiverInfo SwSwitch::getTransceiverInfo(TransceiverID idx) const {
+  TransceiverInfo info;
+  Transceiver *t = getTransceiver(idx);
+  if (!t) {
+    throw FbossError("no such Transceiver ID", idx);
+  }
+  t->getTransceiverInfo(info);
+  return info;
 }
 
 map<int32_t, SfpDom> SwSwitch::getSfpDoms() const {
   map<int32_t, SfpDom> domInfos;
-  for (const auto& sfp : *sfpMap_) {
-    SfpDom domInfo;
-    sfp.second->getSfpDom(domInfo);
-    domInfos[sfp.first] = domInfo;
+  for (const auto& it : *transceiverMap_) {
+    if (it.second->type() == TransceiverType::SFP) {
+      SfpDom domInfo;
+      it.second->getSfpDom(domInfo);
+      domInfos[it.first] = domInfo;
+    }
   }
   return domInfos;
 }
 
+// TODO(7154694):  Remove getSfpDom() support once getTranceiverInfo()
+// is supported everywhere.
+
 SfpDom SwSwitch::getSfpDom(PortID port) const {
+  TransceiverIdx idx = getTransceiverMapping(port);
   SfpDom domInfo;
-  getSfp(port)->getSfpDom(domInfo);
+  Transceiver *t = getTransceiver(idx.second);
+  if (t->type() != TransceiverType::SFP) {
+    throw FbossError("Transceiver not SFP");
+  }
+  t->getSfpDom(domInfo);
   return domInfo;
 }
 
-void SwSwitch::createSfp(PortID portID, std::unique_ptr<SfpImpl>& sfpImpl) {
-  std::unique_ptr<SfpModule> sfpModule =
-                            folly::make_unique<SfpModule>(sfpImpl);
-  sfpMap_->createSfp(portID, sfpModule);
+void SwSwitch::addTransceiver(TransceiverID idx,
+                              std::unique_ptr<Transceiver> trans) {
+  transceiverMap_->addTransceiver(idx, std::move(trans));
 }
 
-void SwSwitch::detectSfp() {
-  for (auto it = sfpMap_->begin(); it != sfpMap_->end(); ++it) {
-    it->second.get()->detectSfp();
+void SwSwitch::addTransceiverMapping(PortID portID, ChannelID channelID,
+                                     TransceiverID transceiverID) {
+  transceiverMap_->addTransceiverMapping(portID, channelID, transceiverID);
+}
+
+void SwSwitch::detectTransceiver() {
+  for (const auto& t : *transceiverMap_) {
+    t.second.get()->detectTransceiver();
   }
 }
 
-void SwSwitch::updateSfpDomFields() {
-  for (auto it = sfpMap_->begin(); it != sfpMap_->end(); it++) {
-    it->second.get()->updateSfpDomFields();
+void SwSwitch::updateTransceiverInfoFields() {
+  for (const auto& t : *transceiverMap_) {
+    t.second.get()->updateTransceiverInfoFields();
   }
 }
 
@@ -596,7 +663,7 @@ SwitchStats* SwSwitch::createSwitchStats() {
   return s;
 }
 
-void SwSwitch::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept{
+void SwSwitch::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {
   PortID port = pkt->getSrcPort();
   try {
     handlePacket(std::move(pkt));
@@ -607,6 +674,11 @@ void SwSwitch::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept{
     // Return normally, without letting the exception propagate to our caller.
     return;
   }
+}
+
+void SwSwitch::packetReceivedThrowExceptionOnError(
+    std::unique_ptr<RxPacket> pkt) {
+  handlePacket(std::move(pkt));
 }
 
 void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
@@ -652,8 +724,11 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     arp_->handlePacket(std::move(pkt), dstMac, srcMac, c);
     return;
   case LldpManager::ETHERTYPE_LLDP:
-    lldpManager_->handlePacket(std::move(pkt), dstMac, srcMac, c);
-    return;
+    if (lldpManager_) {
+      lldpManager_->handlePacket(std::move(pkt), dstMac, srcMac, c);
+      return;
+    }
+    break;
   case IPv4Handler::ETHERTYPE_IPV4:
     ipv4_->handlePacket(std::move(pkt), dstMac, srcMac, c);
     return;
@@ -832,6 +907,24 @@ bool SwSwitch::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
   } else {
     return false;
   }
+}
+
+void SwSwitch::applyConfig(const std::string& reason) {
+  // We don't need to hold a lock here. updateStateBlocking() does that for us.
+  updateStateBlocking(
+      reason,
+      [&](const shared_ptr<SwitchState>& state) {
+        std::string configFilename = FLAGS_config;
+        if (!configFilename.empty()) {
+          LOG(INFO) << "Loading config from local config file "
+                    << configFilename;
+          return applyThriftConfigFile(state, configFilename, platform_.get());
+        }
+        // Loading config from default location. The message will be printed
+        // there.
+        return applyThriftConfigDefault(state, platform_.get());
+      });
+  return;
 }
 
 }} // facebook::fboss
