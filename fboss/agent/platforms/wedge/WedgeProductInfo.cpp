@@ -14,7 +14,6 @@
 #include <folly/dynamic.h>
 #include <folly/MacAddress.h>
 
-
 namespace {
 constexpr auto kInfo = "Information";
 constexpr auto kSysMfgDate = "System Manufacturing Date";
@@ -36,6 +35,7 @@ constexpr auto kExtMacSize = "Extended MAC Address Size";
 constexpr auto kExtMacBase = "Extended MAC Base";
 constexpr auto kLocalMac = "Local MAC";
 constexpr auto kVersion = "Version";
+constexpr auto kFabricLocation = "Location on Fabric";
 }
 
 namespace facebook { namespace fboss {
@@ -57,6 +57,14 @@ void WedgeProductInfo::initialize() {
 
 void WedgeProductInfo::getInfo(ProductInfo& info) {
   info = productInfo_;
+}
+
+std::string WedgeProductInfo::getFabricLocation() {
+  return productInfo_.fabricLocation;
+}
+
+std::string WedgeProductInfo::getProductName() {
+  return productInfo_.product;
 }
 
 void WedgeProductInfo::parse(std::string data) {
@@ -81,6 +89,8 @@ void WedgeProductInfo::parse(std::string data) {
                                   (info[kOdmPcbSerialNum].asString());
     productInfo_.fbPcbPartNumber = folly::to<std::string>
                                     (info[kFbPcbPartNum].asString());
+    productInfo_.fabricLocation = folly::to<std::string>
+                                    (info[kFabricLocation].asString());
     productInfo_.version = info[kVersion].asInt();
     productInfo_.subVersion = info[kSubVersion].asInt();
     productInfo_.productionState = info[kProductionState].asInt();

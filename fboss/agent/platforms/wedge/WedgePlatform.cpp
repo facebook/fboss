@@ -27,43 +27,23 @@ DEFINE_string(mac, "",
               "The local MAC address for this switch");
 DEFINE_string(fruid_filepath, "/dev/shm/fboss/fruid.json",
               "File for storing the fruid data");
-DEFINE_string(mode, "wedge",
-              "The mode the FBOSS controller is running as, wedge, lc, or fc");
 
 using folly::MacAddress;
 using folly::make_unique;
 using folly::Subprocess;
 using std::string;
-namespace {
-enum Mode {
-  WEDGE,
-  LC,
-  FC
-};
-
-Mode getMode() {
-  if (FLAGS_mode == "wedge") {
-    return WEDGE;
-  } else if (FLAGS_mode == "lc") {
-    return LC;
-  } else if (FLAGS_mode == "fc") {
-   return FC;
-  }
-  throw std::runtime_error("invalide mode " + FLAGS_mode);
-}
-}
 
 namespace facebook { namespace fboss {
 
-
 WedgePlatform::WedgePlatform()
   : productInfo_(FLAGS_fruid_filepath) {
+  productInfo_.initialize();
+  initMode();
   auto config = loadConfig();
   BcmAPI::init(config);
   initLocalMac();
-  hw_.reset(new BcmSwitch(this, getMode() == LC ?
+  hw_.reset(new BcmSwitch(this, mode_ == LC ?
         BcmSwitch::HALF_HASH : BcmSwitch::FULL_HASH));
-  productInfo_.initialize();
 }
 
 WedgePlatform::~WedgePlatform() {
@@ -94,7 +74,6 @@ void WedgePlatform::getProductInfo(ProductInfo& info) {
 
 WedgePlatform::InitPortMap WedgePlatform::initPorts() {
   InitPortMap ports;
-  auto mode = getMode();
 
   // Wedge has 16 QSFPs, each mapping to 4 physical ports.
   int portNum = 0;
@@ -111,10 +90,10 @@ WedgePlatform::InitPortMap WedgePlatform::initPorts() {
     }
   };
 
-  if (mode == WEDGE || mode == LC) {
+  if (mode_ == WEDGE || mode_ == LC) {
     // Front panel are 16 4x10G ports
     add_ports(16 * 4);
-    if (mode == LC) {
+    if (mode_ == LC) {
       // On LC, another 16 ports for back plane ports
       add_ports(16);
     }

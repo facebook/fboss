@@ -23,8 +23,15 @@ namespace facebook { namespace fboss {
 class BcmSwitch;
 class WedgePort;
 
+
 class WedgePlatform : public BcmPlatform {
  public:
+  enum Mode {
+    WEDGE,
+    LC,
+    FC
+  };
+
   WedgePlatform();
   ~WedgePlatform() override;
 
@@ -50,7 +57,9 @@ class WedgePlatform : public BcmPlatform {
 
   void initLocalMac();
   std::map<std::string, std::string> loadConfig();
+  void initMode();
 
+  Mode mode_;
   folly::MacAddress localMac_;
   std::unique_ptr<BcmSwitch> hw_;
   WedgePortMap ports_;

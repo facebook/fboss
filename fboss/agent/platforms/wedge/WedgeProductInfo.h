@@ -20,6 +20,8 @@ class WedgeProductInfo {
 
   void getInfo(ProductInfo& info);
   void initialize();
+  std::string getFabricLocation();
+  std::string getProductName();
 
  private:
   // Forbidden copy constructor and assignment operator

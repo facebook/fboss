@@ -69,6 +69,7 @@ struct ProductInfo {
   18: i16 productVersion,
   19: string bmcMac,
   20: string mgmtMac,
+  21: string fabricLocation,
 }
 
 struct PortErrors {
