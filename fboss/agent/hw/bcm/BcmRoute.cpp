@@ -117,7 +117,7 @@ void BcmRoute::program(const RouteForwardInfo& fwd) {
   }
   if (addRoute) {
     if (vrfAndPfx2RouteCitr == warmBootCache->vrfAndPrefix2Route_end()) {
-      VLOG (1) << "Adding route for : " << prefix_ << "/"
+      VLOG (3) << "Adding route for : " << prefix_ << "/"
         << static_cast<int>(len_) << " in vrf : " << vrf_;
     }
     if (added_) {

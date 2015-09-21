@@ -299,7 +299,7 @@ int BcmWarmBootCache::routeTraversalCallback(int unit, int index,
     IPAddress::fromBinary(ByteRange(route->l3a_ip6_mask,
           sizeof(route->l3a_ip6_mask))) :
     IPAddress::fromLongHBO(route->l3a_ip_mask);
-  VLOG (1) << "In vrf : " << route->l3a_vrf << " adding route for : "
+  VLOG(3) << "In vrf : " << route->l3a_vrf << " adding route for : "
     << ip << " mask: " << mask;
   cache->vrfPrefix2Route_[make_tuple(route->l3a_vrf, ip, mask)] = *route;
   return 0;
