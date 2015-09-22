@@ -28,6 +28,7 @@ class WedgeProductInfo {
   WedgeProductInfo(WedgeProductInfo const &) = delete;
   WedgeProductInfo& operator=(WedgeProductInfo const &) = delete;
 
+  void initFromHostname();
   void parse(std::string data);
   ProductInfo productInfo_;
   folly::StringPiece path_;

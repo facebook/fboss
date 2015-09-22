@@ -50,9 +50,15 @@ WedgeProductInfo::WedgeProductInfo(StringPiece path)
 }
 
 void WedgeProductInfo::initialize() {
-  std::string data;
-  folly::readFile(path_.str().c_str(), data);
-  parse(data);
+  try {
+    std::string data;
+    folly::readFile(path_.str().c_str(), data);
+    parse(data);
+  } catch (const std::exception& err) {
+    LOG(ERROR) << err.what();
+    // if fruid info fails fall back to hostname
+    initFromHostname();
+  }
 }
 
 void WedgeProductInfo::getInfo(ProductInfo& info) {
@@ -68,41 +74,37 @@ std::string WedgeProductInfo::getProductName() {
 }
 
 void WedgeProductInfo::parse(std::string data) {
-  try {
-    dynamic info = parseJson(data)[kInfo];
-    productInfo_.oem = folly::to<std::string>(info[kSysMfg].asString());
-    productInfo_.product = folly::to<std::string>(info[kProdName].asString());
-    productInfo_.serial = folly::to<std::string>(info[kSerialNum].asString());
-    productInfo_.mfgDate = folly::to<std::string>(info[kSysMfgDate].asString());
-    productInfo_.systemPartNumber =
+  dynamic info = parseJson(data)[kInfo];
+  productInfo_.oem = folly::to<std::string>(info[kSysMfg].asString());
+  productInfo_.product = folly::to<std::string>(info[kProdName].asString());
+  productInfo_.serial = folly::to<std::string>(info[kSerialNum].asString());
+  productInfo_.mfgDate = folly::to<std::string>(info[kSysMfgDate].asString());
+  productInfo_.systemPartNumber =
                       folly::to<std::string>(info[kSysAmbPartNum].asString());
-    productInfo_.assembledAt = folly::to<std::string>(info[kAmbAt].asString());
-    productInfo_.pcbManufacturer =
+  productInfo_.assembledAt = folly::to<std::string>(info[kAmbAt].asString());
+  productInfo_.pcbManufacturer =
                               folly::to<std::string>(info[kPcbMfg].asString());
-    productInfo_.assetTag =
+  productInfo_.assetTag =
                         folly::to<std::string>(info[kProdAssetTag].asString());
-    productInfo_.partNumber =
+  productInfo_.partNumber =
                           folly::to<std::string>(info[kProdPartNum].asString());
-    productInfo_.odmPcbPartNumber = folly::to<std::string>
+  productInfo_.odmPcbPartNumber = folly::to<std::string>
                                     (info[kOdmPcbPartNum].asString());
-    productInfo_.odmPcbSerial = folly::to<std::string>
+  productInfo_.odmPcbSerial = folly::to<std::string>
                                   (info[kOdmPcbSerialNum].asString());
-    productInfo_.fbPcbPartNumber = folly::to<std::string>
+  productInfo_.fbPcbPartNumber = folly::to<std::string>
                                     (info[kFbPcbPartNum].asString());
-    productInfo_.fabricLocation = folly::to<std::string>
+  productInfo_.fabricLocation = folly::to<std::string>
                                     (info[kFabricLocation].asString());
-    productInfo_.version = info[kVersion].asInt();
-    productInfo_.subVersion = info[kSubVersion].asInt();
-    productInfo_.productionState = info[kProductionState].asInt();
-    productInfo_.productVersion = info[kProdVersion].asInt();
-    productInfo_.bmcMac = folly::to<std::string>(info[kLocalMac].asString());
-    productInfo_.mgmtMac = folly::to<std::string>(info[kExtMacBase].asString());
-    auto macBase = MacAddress(info[kExtMacBase].asString()).u64HBO() + 1;
-    productInfo_.macRangeStart = MacAddress::fromHBO(macBase).toString();
-    productInfo_.macRangeSize = info[kExtMacSize].asInt() - 1;
-  } catch (const std::exception& err) {
-    LOG(ERROR) << err.what();
-  }
+  productInfo_.version = info[kVersion].asInt();
+  productInfo_.subVersion = info[kSubVersion].asInt();
+  productInfo_.productionState = info[kProductionState].asInt();
+  productInfo_.productVersion = info[kProdVersion].asInt();
+  productInfo_.bmcMac = folly::to<std::string>(info[kLocalMac].asString());
+  productInfo_.mgmtMac = folly::to<std::string>(info[kExtMacBase].asString());
+  auto macBase = MacAddress(info[kExtMacBase].asString()).u64HBO() + 1;
+  productInfo_.macRangeStart = MacAddress::fromHBO(macBase).toString();
+  productInfo_.macRangeSize = info[kExtMacSize].asInt() - 1;
 }
 
 }} // facebook::fboss
