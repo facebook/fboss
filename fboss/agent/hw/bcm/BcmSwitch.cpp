@@ -115,6 +115,13 @@ cfg::PortSpeed BcmSwitch::getPortSpeed(PortID port) const {
   return cfg::PortSpeed(portSpeed);
 }
 
+cfg::PortSpeed BcmSwitch::getMaxPortSpeed(PortID port) const {
+  int maxPortSpeed = 0;
+  auto ret = opennsl_port_speed_max(unit_, port, &maxPortSpeed);
+  bcmCheckError(ret, "failed to get max speed for port", port);
+  return cfg::PortSpeed(maxPortSpeed);
+}
+
 BcmSwitch::BcmSwitch(BcmPlatform *platform, HashMode hashMode)
   : platform_(platform),
     hashMode_(hashMode),
@@ -351,16 +358,15 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
     port->setState(portEnabled == 1 ? cfg::PortState::UP: cfg::PortState::DOWN);
 
     auto speed = getPortSpeed(port->getID());
-    int maxPortSpeed;
-    ret = opennsl_port_speed_max(unit_, port->getID(), &maxPortSpeed);
-    bcmCheckError(ret, "failed to get max speed for port", port->getID());
-    if (speed == cfg::PortSpeed(maxPortSpeed)) {
+    auto maxSpeed = getMaxPortSpeed(port->getID());
+    if (speed == maxSpeed) {
       speed = cfg::PortSpeed::DEFAULT;
-    } else if (speed > cfg::PortSpeed(maxPortSpeed)) {
-      LOG(FATAL) << "Invalid port speed : " << (int)speed
-        << " for port: " << port;
+    } else if (speed > maxSpeed) {
+      LOG(FATAL) << "Invalid port speed:" << (int) speed << " for port:" << port
+                 << " max:" << (int) maxSpeed;
     }
     port->setSpeed(speed);
+    port->setMaxSpeed(maxSpeed);
   }
   warmBootState->resetIntfs(warmBootCache_->reconstructInterfaceMap());
   warmBootState->resetVlans(warmBootCache_->reconstructVlanMap());

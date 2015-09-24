@@ -96,8 +96,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
                      override;
   void getInterfaceDetail(InterfaceDetail& interfaceDetails,
                                           int32_t interfaceId) override;
-  void getPortStats(PortStatThrift& portStats, int32_t portId) override;
-  void getAllPortStats(std::map<int32_t, PortStatThrift>& portStats) override;
+  void getPortInfo(PortInfoThrift& portInfo, int32_t portId) override;
+  void getAllPortInfo(std::map<int32_t, PortInfoThrift>& portInfo) override;
   void getArpTable(std::vector<ArpEntryThrift>& arpTable) override;
   void getL2Table(std::vector<L2EntryThrift>& l2Table) override;
   void getNdpTable(std::vector<NdpEntryThrift>& arpTable) override;
@@ -199,7 +199,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void invokePortStatusListeners(
     ThreadLocalListener* info, PortID port, PortStatus status);
 
-  void fillPortStatistics(PortStatThrift& stats);
+  void fillPortStats(PortInfoThrift& portInfo);
   Vlan* getVlan(int32_t vlanId);
   Vlan* getVlan(const std::string& vlanName);
   template<typename ADDR_TYPE, typename ADDR_CONVERTER>

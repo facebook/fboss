@@ -45,9 +45,11 @@ struct PortFields {
 
   const PortID id{0};
   std::string name;
+  std::string description;
   cfg::PortState state{cfg::PortState::DOWN};
   VlanID ingressVlan{0};
   cfg::PortSpeed speed{cfg::PortSpeed::DEFAULT};
+  cfg::PortSpeed maxSpeed{cfg::PortSpeed::DEFAULT};
   VlanMembership vlans;
 };
 
@@ -97,6 +99,14 @@ class Port : public NodeBaseT<Port, PortFields> {
     writableFields()->name = name;
   }
 
+  const std::string& getDescription() const {
+    return getFields()->description;
+  }
+
+  void setDescription(const std::string& description) {
+    writableFields()->description = description;
+  }
+
   cfg::PortState getState() const {
     return getFields()->state;
   }
@@ -124,6 +134,13 @@ class Port : public NodeBaseT<Port, PortFields> {
   }
   void setSpeed(cfg::PortSpeed speed) {
     writableFields()->speed = speed;
+  }
+
+  cfg::PortSpeed getMaxSpeed() const {
+    return getFields()->maxSpeed;
+  }
+  void setMaxSpeed(cfg::PortSpeed maxSpeed) {
+    writableFields()->maxSpeed = maxSpeed;
   }
 
  private:

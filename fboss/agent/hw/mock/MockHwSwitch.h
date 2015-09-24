@@ -55,6 +55,9 @@ class MockHwSwitch : public HwSwitch {
     return cfg::PortSpeed::GIGE;
   }
 
+  cfg::PortSpeed getMaxPortSpeed(PortID port) const override {
+    return cfg::PortSpeed::GIGE;
+  }
 
   void gracefulExit() override {
     // TODO

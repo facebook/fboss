@@ -200,6 +200,11 @@ class HwSwitch {
   virtual cfg::PortSpeed getPortSpeed(PortID port) const = 0;
 
   /*
+   * Get max port speed.
+   */
+  virtual cfg::PortSpeed getMaxPortSpeed(PortID port) const = 0;
+
+  /*
    * Returns true if the arp/ndp entry for the passed in ip/intf has been hit
    * since the last call to getAndClearNeighborHit.
    */

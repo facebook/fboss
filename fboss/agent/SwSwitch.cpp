@@ -229,6 +229,11 @@ void SwSwitch::init(SwitchFlags flags) {
   VLOG(0) << "hardware initialized in " <<
     (initDuration.count() / 1000.0) << " seconds; applying initial config";
 
+  for (const auto& port : (*initialState->getPorts())) {
+    auto maxSpeed = getMaxPortSpeed(port->getID());
+    port->setMaxSpeed(maxSpeed);
+  }
+
   // Store the initial state
   initialState->publish();
   setStateInternal(initialState);
@@ -580,6 +585,10 @@ map<int32_t, PortStatus> SwSwitch::getPortStatus() {
 
 cfg::PortSpeed SwSwitch::getPortSpeed(PortID port) const {
   return hw_->getPortSpeed(port);
+}
+
+cfg::PortSpeed SwSwitch::getMaxPortSpeed(PortID port) const {
+  return hw_->getMaxPortSpeed(port);
 }
 
 PortStatus SwSwitch::getPortStatus(PortID port) {

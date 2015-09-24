@@ -35,6 +35,9 @@ class SimSwitch : public HwSwitch {
   cfg::PortSpeed getPortSpeed(PortID port) const override {
     return cfg::PortSpeed::GIGE;
   }
+  cfg::PortSpeed getMaxPortSpeed(PortID port) const override {
+    return cfg::PortSpeed::GIGE;
+  }
 
   // TODO
   void updateStats(SwitchStats *switchStats) override {}

@@ -97,6 +97,11 @@ struct Port {
    */
   9: optional string name
 
+  /**
+   * An optional configurable string describing the port.
+   */
+  10: optional string description
+
    /**
     * DEPRECATED: Old versions of the switch didn't support multiple
     * MTUs. Since this field is non-optional, we keep it for compatibility.

@@ -18,9 +18,11 @@ using std::string;
 namespace {
 constexpr auto kPortId = "portId";
 constexpr auto kPortName = "portName";
+constexpr auto kPortDescription = "portDescription";
 constexpr auto kPortState = "portState";
 constexpr auto kIngressVlan = "ingressVlan";
 constexpr auto kPortSpeed = "portSpeed";
+constexpr auto kPortMaxSpeed = "portMaxSpeed";
 constexpr auto kVlanMemberships = "vlanMemberShips";
 constexpr auto kVlanId = "vlanId";
 constexpr auto kVlanInfo = "vlanInfo";
@@ -44,6 +46,7 @@ folly::dynamic PortFields::toFollyDynamic() const {
   folly::dynamic port = folly::dynamic::object;
   port[kPortId] = static_cast<uint16_t>(id);
   port[kPortName] = name;
+  port[kPortDescription] = description;
   auto itr_state  = cfg::_PortState_VALUES_TO_NAMES.find(state);
   CHECK(itr_state != cfg::_PortState_VALUES_TO_NAMES.end());
   port[kPortState] = itr_state->second;
@@ -51,6 +54,9 @@ folly::dynamic PortFields::toFollyDynamic() const {
   auto itr_speed  = cfg::_PortSpeed_VALUES_TO_NAMES.find(speed);
   CHECK(itr_speed != cfg::_PortSpeed_VALUES_TO_NAMES.end());
   port[kPortSpeed] = itr_speed->second;
+  auto itr_max_speed  = cfg::_PortSpeed_VALUES_TO_NAMES.find(maxSpeed);
+  CHECK(itr_max_speed != cfg::_PortSpeed_VALUES_TO_NAMES.end());
+  port[kPortMaxSpeed] = itr_max_speed->second;
   port[kVlanMemberships] = folly::dynamic::object;
   for (const auto& vlan: vlans) {
     port[kVlanMemberships][to<string>(vlan.first)] =
@@ -62,6 +68,7 @@ folly::dynamic PortFields::toFollyDynamic() const {
 PortFields PortFields::fromFollyDynamic(const folly::dynamic& portJson) {
   PortFields port(PortID(portJson[kPortId].asInt()),
       portJson[kPortName].asString().toStdString());
+  port.description = portJson[kPortDescription].asString().toStdString();
   auto itr_state  = cfg::_PortState_NAMES_TO_VALUES.find(
       portJson[kPortState].asString().c_str());
   CHECK(itr_state != cfg::_PortState_NAMES_TO_VALUES.end());
@@ -71,6 +78,10 @@ PortFields PortFields::fromFollyDynamic(const folly::dynamic& portJson) {
       portJson[kPortSpeed].asString().c_str());
   CHECK(itr_speed != cfg::_PortSpeed_NAMES_TO_VALUES.end());
   port.speed = cfg::PortSpeed(itr_speed->second);
+  auto itr_max_speed  = cfg::_PortSpeed_NAMES_TO_VALUES.find(
+      portJson[kPortMaxSpeed].asString().c_str());
+  CHECK(itr_max_speed != cfg::_PortSpeed_NAMES_TO_VALUES.end());
+  port.maxSpeed = cfg::PortSpeed(itr_max_speed->second);
   for (const auto& vlanInfo: portJson[kVlanMemberships].items()) {
     port.vlans.emplace(VlanID(to<uint32_t>(vlanInfo.first.asString())),
       VlanInfo::fromFollyDynamic(vlanInfo.second));

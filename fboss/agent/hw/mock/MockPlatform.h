@@ -30,6 +30,7 @@ class MockPlatform : public Platform {
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
   cfg::PortSpeed getPortSpeed(PortID port) const;
+  cfg::PortSpeed getMaxPortSpeed(PortID port) const;
   void getProductInfo(ProductInfo& info) override {
     // Nothing to do
   };

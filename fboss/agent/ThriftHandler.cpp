@@ -399,15 +399,14 @@ void ThriftHandler::getL2Table(std::vector<L2EntryThrift>& l2Table) {
   VLOG(6) << "L2 Table size:" << l2Table.size();
 }
 
-void ThriftHandler::fillPortStatistics(PortStatThrift& stats) {
-  auto portId = stats.portId;
+void ThriftHandler::fillPortStats(PortInfoThrift& portInfo) {
+  auto portId = portInfo.portId;
   auto statMap = fbData->getStatMap();
 
   auto getSumStat = [&] (StringPiece prefix, StringPiece name) {
-    auto portName = stats.name;
-    if (name.empty()) {
-      portName = folly::to<std::string>("port", portId);
-    }
+    // Currently, the internal name of the port is "port<n>", even though
+    // `the external name is "eth<a>/<b>/<c>"
+    auto portName = folly::to<std::string>("port", portId);
     auto statName = folly::to<std::string>(portName, ".", prefix, name);
     return statMap->getStatPtr(statName)->getSum(0);
   };
@@ -422,38 +421,42 @@ void ThriftHandler::fillPortStatistics(PortStatThrift& stats) {
   };
 
   const auto& status = sw_->getPortStatus(PortID(portId));
-  stats.adminState = PortAdminState(status.enabled);
-  stats.operState = PortOperState(status.up);
+  portInfo.adminState = PortAdminState(status.enabled);
+  portInfo.operState = PortOperState(status.up);
 
-  fillPortCounters(stats.output, "out_");
-  fillPortCounters(stats.input, "in_");
+  fillPortCounters(portInfo.output, "out_");
+  fillPortCounters(portInfo.input, "in_");
 }
 
-void ThriftHandler::getPortStats(PortStatThrift& portStats, int32_t portId) {
+void ThriftHandler::getPortInfo(PortInfoThrift& portInfo, int32_t portId) {
   ensureConfigured();
   const auto port = sw_->getState()->getPorts()->getPortIf(PortID(portId));
 
   if (!port) {
     throw FbossError("no such port ", portId);
   }
-  portStats.portId = portId;
-  portStats.name = port->getName();
-  portStats.speedMbps = int32_t(port->getSpeed());
-  fillPortStatistics(portStats);
+  portInfo.portId = portId;
+  portInfo.name = port->getName();
+  portInfo.description = port->getDescription();
+  if (port->getSpeed() == cfg::PortSpeed::DEFAULT) {
+    portInfo.speedMbps = (int) port->getMaxSpeed();
+  } else {
+    portInfo.speedMbps = (int) port->getSpeed();
+  }
+  for (auto entry : port->getVlans()) {
+    portInfo.vlans.push_back(entry.first);
+  }
+  fillPortStats(portInfo);
 }
 
 void
-ThriftHandler::getAllPortStats(map<int32_t, PortStatThrift>& portStatsMap) {
+ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
   ensureConfigured();
 
   for (const auto& port : (*sw_->getState()->getPorts())) {
-    auto id = port->getID();
-
-    auto& stats = portStatsMap[id];
-    stats.portId = id;
-    stats.speedMbps = int32_t(port->getSpeed());
-
-    fillPortStatistics(stats);
+    auto portId = port->getID();
+    auto& portInfo = portInfoMap[portId];
+    getPortInfo(portInfo, portId);
   }
 }
 

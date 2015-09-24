@@ -95,15 +95,17 @@ enum PortOperState {
   UP = 1,
 }
 
-struct PortStatThrift {
+struct PortInfoThrift {
   1: i32 portId,
   2: i64 speedMbps,
   3: PortAdminState adminState,
   4: PortOperState operState,
+  5: list<i32> vlans,
 
   10: PortCounters output,
   11: PortCounters input,
-  12: string name
+  12: string name,
+  13: string description,
 }
 
 struct NdpEntryThrift {
@@ -239,9 +241,9 @@ service FbossCtrl extends fb303.FacebookService {
   /*
    * Returns all interface related stats for given interfaceId
    */
-  PortStatThrift getPortStats(1: i32 portId)
+  PortInfoThrift getPortInfo(1: i32 portId)
     throws (1: fboss.FbossBaseError error)
-  map<i32, PortStatThrift> getAllPortStats()
+  map<i32, PortInfoThrift> getAllPortInfo()
     throws (1: fboss.FbossBaseError error)
 
   list<ArpEntryThrift> getArpTable()

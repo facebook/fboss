@@ -206,6 +206,7 @@ class BcmSwitch : public HwSwitch {
                               folly::IPAddress& ip) override;
 
   cfg::PortSpeed getPortSpeed(PortID port) const override;
+  cfg::PortSpeed getMaxPortSpeed(PortID port) const override;
 
  private:
   enum Flags : uint32_t {
