@@ -2,13 +2,12 @@ FBOSS Python Tools
 =========================
 
 Requirements:
+
 	apt-get install python-ipaddr python-thrift
-
-Need all of the thrift files:
-
-export FBOSS= path to base of code
+	export FBOSS=/path/to/base/of/code
 
 Generate the python bindings from the thrift files:
+
 	cd $FBOSS/fboss/agent/if
 	for p in *.thrift; do 
 		thrift -I $FBOSS -r --gen py highres.thrift 
