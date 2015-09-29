@@ -3,7 +3,7 @@ FBOSS Python Tools
 
 Requirements:
 
-	apt-get install python-ipaddr python-thrift
+	apt-get install python-ipaddr python-thrift thrift-compiler
 	export FBOSS=/path/to/base/of/code
 
 Generate the python bindings from the thrift files:
@@ -20,7 +20,7 @@ Generate the python bindings from the thrift files:
 
 Dodge the "can't find generator 'cpp2' error"
 
-	sed -i -e '^namespace cpp2 facebook.fboss/#namespace cpp2 facebook.fboss/ \
+	sed -i -e '^namespace cpp2 facebook.fboss/#namespace cpp2 facebook.fboss/' \
 		$FBOSS/fboss/agent/if/*.thrift
 fboss.agent doesn't exist, but fboss.ctrl does
 
