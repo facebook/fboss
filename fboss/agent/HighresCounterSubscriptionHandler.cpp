@@ -9,7 +9,7 @@
  */
 #include "fboss/agent/HighresCounterSubscriptionHandler.h"
 
-using apache::thrift::async::TEventBase;
+using folly::EventBase;
 using folly::make_unique;
 using std::shared_ptr;
 using std::string;
@@ -64,7 +64,7 @@ string getLocalHostname() {
 SampleProducer::SampleProducer(unique_ptr<HighresSamplerList> samplers,
                                shared_ptr<SampleSender> sender,
                                shared_ptr<Signal> killSwitch,
-                               TEventBase* const eventBase,
+                               EventBase* const eventBase,
                                const CounterSubscribeRequest& req,
                                const int numCounters)
     : samplers_(std::move(samplers)),

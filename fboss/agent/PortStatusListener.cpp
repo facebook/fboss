@@ -9,7 +9,7 @@
 #include <folly/SocketAddress.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <thrift/lib/cpp/util/ScopedServerThread.h>
-#include <thrift/lib/cpp/async/TEventBase.h>
+#include <folly/io/async/EventBase.h>
 #include <thrift/lib/cpp/async/TAsyncSocket.h>
 
 using namespace apache::thrift;
@@ -33,7 +33,7 @@ class PortStatusListenerClientInterface : public PortStatusListenerClientSvIf {
 };
 
 int main(int argc, char **argv) {
-  TEventBase base;
+  EventBase base;
 
   google::ParseCommandLineFlags(&argc, &argv, true);
   google::InitGoogleLogging(argv[0]);

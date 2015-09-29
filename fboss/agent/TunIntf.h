@@ -11,19 +11,19 @@
 
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/Interface.h"
-#include <thrift/lib/cpp/async/TEventBase.h>
-#include <thrift/lib/cpp/async/TEventHandler.h>
+#include <folly/io/async/EventBase.h>
+#include <folly/io/async/EventHandler.h>
 
 namespace facebook { namespace fboss {
 
 class SwSwitch;
 class RxPacket;
 
-class TunIntf : private apache::thrift::async::TEventHandler {
+class TunIntf : private folly::EventHandler {
  public:
-  TunIntf(SwSwitch *sw, apache::thrift::async::TEventBase *evb,
+  TunIntf(SwSwitch *sw, folly::EventBase *evb,
           const std::string& name, RouterID rid, int idx, int mtu);
-  TunIntf(SwSwitch *sw, apache::thrift::async::TEventBase *evb,
+  TunIntf(SwSwitch *sw, folly::EventBase *evb,
           RouterID rid, const Interface::Addresses& addrs, int mtu);
   ~TunIntf() override;
 

@@ -24,8 +24,8 @@ extern "C" {
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/EthHdr.h"
-#include <thrift/lib/cpp/async/TEventBase.h>
-#include <thrift/lib/cpp/async/TEventHandler.h>
+#include <folly/io/async/EventBase.h>
+#include <folly/io/async/EventHandler.h>
 
 namespace facebook { namespace fboss {
 
@@ -34,12 +34,12 @@ static const int prefixLen = strlen(intfPrefix);
 static const char* tunDev = "/dev/net/tun";
 
 using folly::IPAddress;
-using apache::thrift::async::TEventBase;
-using apache::thrift::async::TEventHandler;
+using folly::EventBase;
+using folly::EventHandler;
 
-TunIntf::TunIntf(SwSwitch *sw, TEventBase *evb,
+TunIntf::TunIntf(SwSwitch *sw, EventBase *evb,
                  const std::string& name, RouterID rid, int idx, int mtu)
-    : TEventHandler(evb), sw_(sw), rid_(rid), name_(name), ifIndex_(idx),
+    : EventHandler(evb), sw_(sw), rid_(rid), name_(name), ifIndex_(idx),
     mtu_(mtu) {
   openFD();
   SCOPE_FAIL {
@@ -49,9 +49,9 @@ TunIntf::TunIntf(SwSwitch *sw, TEventBase *evb,
             << " from rid " << rid_ << " @ index " << ifIndex_;
 }
 
-TunIntf::TunIntf(SwSwitch *sw, TEventBase *evb,
+TunIntf::TunIntf(SwSwitch *sw, EventBase *evb,
                  RouterID rid, const Interface::Addresses& addr, int mtu)
-    : TEventHandler(evb), sw_(sw), rid_(rid), addrs_(addr), mtu_(mtu) {
+    : EventHandler(evb), sw_(sw), rid_(rid), addrs_(addr), mtu_(mtu) {
   name_ = folly::to<std::string>(intfPrefix, rid);
   openFD();
   SCOPE_FAIL {
@@ -241,7 +241,7 @@ void TunIntf::stop() {
 void TunIntf::start() {
   if (fd_ != -1 && !isHandlerRegistered()) {
     changeHandlerFD(fd_);
-    registerHandler(TEventHandler::READ|TEventHandler::PERSIST);
+    registerHandler(EventHandler::READ|EventHandler::PERSIST);
   }
 }
 

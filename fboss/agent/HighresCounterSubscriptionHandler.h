@@ -58,7 +58,7 @@ class SampleSender {
    */
   SampleSender(std::shared_ptr<FbossHighresClientAsyncClient> client,
                std::shared_ptr<Signal> killSwitch,
-               apache::thrift::async::TEventBase* const eventBase,
+               folly::EventBase* const eventBase,
                const int numCounters)
       : client_(std::move(client)),
         killSwitch_(std::move(killSwitch)),
@@ -97,7 +97,7 @@ class SampleSender {
 
   std::shared_ptr<FbossHighresClientAsyncClient> client_;
   std::shared_ptr<Signal> killSwitch_;
-  apache::thrift::async::TEventBase* const eventBase_;
+  folly::EventBase* const eventBase_;
   SharedRateCalculator rateCalc_;
   const int numCounters_;
 };
@@ -131,7 +131,7 @@ class SampleProducer {
   SampleProducer(std::unique_ptr<HighresSamplerList> samplers,
                  std::shared_ptr<SampleSender> sender,
                  std::shared_ptr<Signal> killSwitch,
-                 apache::thrift::async::TEventBase* const eventBase,
+                 folly::EventBase* const eventBase,
                  const CounterSubscribeRequest& req,
                  const int numCounters);
 
@@ -169,7 +169,7 @@ class SampleProducer {
 
   // For sending the publications
   std::shared_ptr<SampleSender> sender_;
-  apache::thrift::async::TEventBase* const eventBase_;
+  folly::EventBase* const eventBase_;
 
   // For storing information about the subscription
   const std::string hostname_;

@@ -544,7 +544,7 @@ TEST(NDP, RouterAdvertisement) {
 
   // The RA packet will be sent in the background even thread after the RA
   // interval.  Schedule a timeout to wake us up after the interval has
-  // expired.  Using the background TEventBase to run the timeout ensures that
+  // expired.  Using the background EventBase to run the timeout ensures that
   // it will always run after the RA timeout has fired.
   std::promise<bool> done;
   auto* evb = sw->getBackgroundEVB();

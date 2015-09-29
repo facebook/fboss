@@ -19,9 +19,9 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "common/stats/ServiceData.h"
-#include <thrift/lib/cpp/async/TAsyncTimeout.h>
+#include <folly/io/async/AsyncTimeout.h>
 #include <folly/io/async/AsyncSignalHandler.h>
-#include <thrift/lib/cpp/async/TEventBase.h>
+#include <folly/io/async/EventBase.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <folly/SocketAddress.h>
 
@@ -38,8 +38,8 @@
 using folly::FunctionScheduler;
 using apache::thrift::ThriftServer;
 using folly::AsyncSignalHandler;
-using apache::thrift::async::TAsyncTimeout;
-using apache::thrift::async::TEventBase;
+using folly::AsyncTimeout;
+using folly::EventBase;
 using folly::SocketAddress;
 using std::shared_ptr;
 using std::unique_ptr;
@@ -187,11 +187,11 @@ class Initializer {
   condition_variable initCondition_;
 };
 
-class StatsPublisher : public TAsyncTimeout {
+class StatsPublisher : public AsyncTimeout {
  public:
-  StatsPublisher(TEventBase* eventBase, SwSwitch* sw,
+  StatsPublisher(EventBase* eventBase, SwSwitch* sw,
                  std::chrono::milliseconds interval)
-    : TAsyncTimeout(eventBase),
+    : AsyncTimeout(eventBase),
       sw_(sw),
       interval_(interval) {}
 
@@ -214,7 +214,7 @@ class StatsPublisher : public TAsyncTimeout {
 class SignalHandler : public AsyncSignalHandler {
   typedef std::function<void()> StopServices;
  public:
-  SignalHandler(TEventBase* eventBase, SwSwitch* sw,
+  SignalHandler(EventBase* eventBase, SwSwitch* sw,
       StopServices stopServices) :
     AsyncSignalHandler(eventBase), sw_(sw), stopServices_(stopServices) {
     registerSignalHandler(SIGINT);
@@ -268,7 +268,7 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   Initializer init(&sw, platformPtr);
   init.start();
 
-  TEventBase eventBase;
+  EventBase eventBase;
 
   // Create a timeout to call sw->publishStats() once every second.
   StatsPublisher statsPublisher(
@@ -300,7 +300,7 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   SCOPE_EXIT { server.cleanUp(); };
   LOG(INFO) << "serving on localhost on port " << FLAGS_port;
 
-  // Run the TEventBase main loop
+  // Run the EventBase main loop
   eventBase.loopForever();
 
   return 0;

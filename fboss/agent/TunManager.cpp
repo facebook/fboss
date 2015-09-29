@@ -25,16 +25,16 @@ extern "C" {
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/Interface.h"
-#include <thrift/lib/cpp/async/TEventBase.h>
+#include <folly/io/async/EventBase.h>
 
 #include <boost/container/flat_set.hpp>
 
 namespace facebook { namespace fboss {
 
 using folly::IPAddress;
-using apache::thrift::async::TEventBase;
+using folly::EventBase;
 
-TunManager::TunManager(SwSwitch *sw, TEventBase *evb) : sw_(sw), evb_(evb) {
+TunManager::TunManager(SwSwitch *sw, EventBase *evb) : sw_(sw), evb_(evb) {
   auto ret = rtnl_open(&rth_, 0);
   sysCheckError(ret, "Failed to open rtnl");
 }

@@ -12,7 +12,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/state/Interface.h"
-#include <thrift/lib/cpp/async/TEventBase.h>
+#include <folly/io/async/EventBase.h>
 
 #include <boost/container/flat_map.hpp>
 
@@ -29,7 +29,7 @@ class TunIntf;
 
 class TunManager : public StateObserver {
  public:
-  TunManager(SwSwitch *sw, apache::thrift::async::TEventBase *evb);
+  TunManager(SwSwitch *sw, folly::EventBase *evb);
   ~TunManager() override;
   /**
    * Start probe procedure to read TUN interface info from the host.
@@ -67,7 +67,7 @@ class TunManager : public StateObserver {
   TunManager& operator=(const TunManager &) = delete;
 
   SwSwitch *sw_;
-  apache::thrift::async::TEventBase *evb_;
+  folly::EventBase *evb_;
   boost::container::flat_map<RouterID, std::unique_ptr<TunIntf>> intfs_;
   rtnl_handle rth_;
   /**

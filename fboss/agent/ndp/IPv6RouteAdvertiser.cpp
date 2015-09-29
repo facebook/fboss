@@ -35,10 +35,10 @@ namespace facebook { namespace fboss {
 /*
  * IPv6RAImpl is the class that actually handles sending out the RA packets.
  *
- * This uses TAsyncTimeout to receive timeout notifications in the SwSwitch's
+ * This uses AsyncTimeout to receive timeout notifications in the SwSwitch's
  * background event thread, and send out RA packets every time the timer fires.
  */
-class IPv6RAImpl : private apache::thrift::async::TAsyncTimeout {
+class IPv6RAImpl : private folly::AsyncTimeout {
  public:
   IPv6RAImpl(SwSwitch* sw,
              const SwitchState* state,

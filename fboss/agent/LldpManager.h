@@ -32,7 +32,7 @@ class LldpManager : private folly::AsyncTimeout {
    * LLDP neighbors table.
    * Also, responsible for periodically sending LLDP frames on all the ports
    * to inform of this switch's presence to its neighbors. Hence inheriting
-   * the TAsyncTimeout class for that purpose.
+   * the AsyncTimeout class for that purpose.
    */
  public:
   enum : uint16_t { ETHERTYPE_LLDP = 0x88CC,

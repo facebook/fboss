@@ -10,7 +10,7 @@
 #pragma once
 
 #include <folly/io/IOBuf.h>
-#include <thrift/lib/cpp/async/TAsyncTimeout.h>
+#include <folly/io/async/AsyncTimeout.h>
 
 namespace facebook { namespace fboss {
 
