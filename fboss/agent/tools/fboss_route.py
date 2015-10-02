@@ -69,8 +69,16 @@ def list_routes(args):
 def list_optics(args):
     details = args.details
     with get_client(args) as client:
-        for key,val in client.getTransceiverInfo([3]):
+        for key,val in client.getTransceiverInfo([1]).iteritems():
             print ("Optic %d: %s" %  (key, str(val)))
+
+def list_ports(args):
+    details = args.details
+    with get_client(args) as client:
+        #for intf in client.getInterfaceList():
+        for idx, intf in client.getPortStatus(range(1,64)).iteritems():
+            print ("Port %d: %s" %  (idx, str(intf)))
+
 
 @contextlib.contextmanager
 def get_client(args, timeout=5.0):
@@ -121,18 +129,25 @@ if __name__ == '__main__':
         help='List all information about the interface', default=False)
 
     list_route_parser = subparsers.add_parser(
-        'list_route', help='list switch routes')
+        'list_routes', help='list switch routes')
     list_route_parser.set_defaults(func=list_routes)
     list_route_parser.add_argument(
         '--details', action='store_true',
         help='List all information about the routes', default=False)
 
     list_optic_parser = subparsers.add_parser(
-        'list_optic', help='list switch optics')
+        'list_optics', help='list switch optics')
     list_optic_parser.set_defaults(func=list_optics)
     list_optic_parser.add_argument(
         '--details', action='store_true',
         help='List all information about the optics', default=False)
+
+    list_port_parser = subparsers.add_parser(
+        'list_ports', help='list switch ports')
+    list_port_parser.set_defaults(func=list_ports)
+    list_port_parser.add_argument(
+        '--details', action='store_true',
+        help='List all information about the ports', default=False)
 
     args = ap.parse_args()
     args.func(args)
