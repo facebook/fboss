@@ -28,4 +28,6 @@ void SwSwitch::publishStats() {}
 
 void SwSwitch::publishBootType() {}
 
+void SwSwitch::logLinkStateEvent(PortID port, bool up) {}
+
 }} // facebook::fboss

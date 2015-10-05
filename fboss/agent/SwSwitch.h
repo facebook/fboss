@@ -599,6 +599,8 @@ class SwSwitch : public HwSwitch::Callback {
    */
   void notifyStateObservers(const StateDelta& delta);
 
+  void logLinkStateEvent(PortID port, bool up);
+
   // The HwSwitch object.  This object is owned by the Platform.
   HwSwitch* hw_;
   std::unique_ptr<Platform> platform_;
