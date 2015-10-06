@@ -227,7 +227,7 @@ service FbossCtrl extends fb303.FacebookService {
     throws (1: fboss.FbossBaseError error)
   map<i32, InterfaceDetail> getAllInterfaces()
     throws (1: fboss.FbossBaseError error)
-  void registerForPortStatusChanged()
+  void registerForNeighborChanged()
     throws (1: fboss.FbossBaseError error) (thread='eb')
   list<string> getInterfaceList()
     throws (1: fboss.FbossBaseError error)
@@ -310,7 +310,14 @@ service FbossCtrl extends fb303.FacebookService {
   void reloadConfig()
 }
 
-service PortStatusListenerClient extends fb303.FacebookService {
-  void portStatusChanged(1: i32 id, 2: PortStatus ps)
+service NeighborListenerClient extends fb303.FacebookService {
+  /*
+   * Sends list of neighbors that have changed to the subscriber.
+   *
+   * These come in the form of ip address strings which have been added
+   * since the last notification. Changes are not queued between
+   * subscriptions.
+   */
+  void neighborsChanged(1: list<string> added, 2: list<string> removed)
     throws (1: fboss.FbossBaseError error)
 }

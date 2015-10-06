@@ -197,10 +197,21 @@ bool SwSwitch::isPortUp(PortID port) const {
    return false;
 }
 
-void SwSwitch::registerPortStatusListener(
-    std::function<void(PortID, const PortStatus)> callback) {
-  lock_guard<mutex> g(portListenerMutex_);
-  portListener_ = callback;
+void SwSwitch::registerNeighborListener(
+    std::function<void(const std::vector<std::string>& added,
+                       const std::vector<std::string>& deleted)> callback) {
+  VLOG(2) << "Registering neighbor listener";
+  lock_guard<mutex> g(neighborListenerMutex_);
+  neighborListener_ = std::move(callback);
+}
+
+void SwSwitch::invokeNeighborListener(
+    const std::vector<std::string>& added,
+    const std::vector<std::string>& removed) {
+  lock_guard<mutex> g(neighborListenerMutex_);
+  if (neighborListener_) {
+    neighborListener_(added, removed);
+  }
 }
 
 bool SwSwitch::getAndClearNeighborHit(RouterID vrf, folly::IPAddress ip) {
@@ -759,15 +770,27 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
 void SwSwitch::linkStateChanged(PortID port, bool up) noexcept {
   LOG(INFO) << "link state changed: " << port << " enabled = " << up;
   logLinkStateEvent(port, up);
-  lock_guard<mutex> g(portListenerMutex_);
-  if (!portListener_) {
-    return;
-  }
   // It seems that this function can get called before the state is fully
   // initialized. Don't do anything if so.
-  if (isFullyInitialized()) {
-    auto state = getState();
-    portListener_(port, fillInPortStatus(*state->getPort(port), this));
+  if (!isFullyInitialized() || up) {
+    return;
+  }
+
+  auto state = getState();
+  for (const auto& vlanAutoPtr : *state->getVlans()) {
+    auto vlan = vlanAutoPtr.get();
+    std::vector<std::string> deleted;
+    auto arpTable = vlan->getArpTable().get();
+    auto v4ips = arpTable->getIpsForPort(port);
+    for (const auto& ip : v4ips) {
+      deleted.push_back(folly::to<std::string>(ip));
+    }
+    auto ndpTable = vlan->getNdpTable().get();
+    auto v6ips = ndpTable->getIpsForPort(port);
+    for (const auto& ip : v4ips) {
+      deleted.push_back(folly::to<std::string>(ip));
+    }
+    invokeNeighborListener(std::vector<std::string>(), deleted);
   }
 }
 

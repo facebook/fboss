@@ -38,7 +38,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
-#include "fboss/agent/if/gen-cpp2/PortStatusListenerClient.h"
+#include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
 
 #include <folly/io/IOBuf.h>
 #include <folly/MoveWrapper.h>
@@ -94,12 +94,17 @@ class RouteUpdateStats {
 };
 
 ThriftHandler::ThriftHandler(SwSwitch* sw) : FacebookBase2("FBOSS"), sw_(sw) {
-  sw->registerPortStatusListener([=](PortID id, PortStatus st) {
-    for (auto& listener : listeners_.accessAllThreads()) {
-      auto listenerPtr = &listener;
-      listener.eventBase->runInEventBaseThread(
-          [=] { invokePortStatusListeners(listenerPtr, id, st); });
-    }
+  sw->registerNeighborListener(
+    [=](const std::vector<std::string>& added,
+        const std::vector<std::string>& deleted) {
+      for (auto& listener : listeners_.accessAllThreads()) {
+        LOG(INFO) << "Sending notification to bgpD";
+        auto listenerPtr = &listener;
+        listener.eventBase->runInEventBaseThread(
+            [=] {
+              LOG(INFO) << "firing off notification";
+              invokeNeighborListeners(listenerPtr, added, deleted); });
+      }
   });
 }
 
@@ -589,32 +594,32 @@ void ThriftHandler::getLldpNeighbors(vector<LinkNeighborThrift>& results) {
   }
 }
 
-void ThriftHandler::invokePortStatusListeners(ThreadLocalListener* listener,
-                                              PortID port,
-                                              PortStatus status) {
+void ThriftHandler::invokeNeighborListeners(ThreadLocalListener* listener,
+                                             std::vector<std::string> added,
+                                             std::vector<std::string> removed) {
   // Collect the iterators to avoid erasing and potentially reordering
   // the iterators in the list.
   std::vector<const TConnectionContext*> brokenClients;
   for (auto& client : listener->clients) {
     auto clientDone = [&](ClientReceiveState&& state) {
       try {
-        PortStatusListenerClientAsyncClient::recv_portStatusChanged(state);
+        NeighborListenerClientAsyncClient::recv_neighborsChanged(state);
       } catch (const std::exception& ex) {
-        LOG(ERROR) << "Exception in port listener: " << ex.what();
+        LOG(ERROR) << "Exception in neighbor listener: " << ex.what();
         brokenClients.push_back(client.first);
       }
     };
-    client.second->portStatusChanged(clientDone, port, status);
+    client.second->neighborsChanged(clientDone, added, removed);
   }
   for (const auto& ctx : brokenClients) {
     listener->clients.erase(ctx);
   }
 }
 
-void ThriftHandler::async_eb_registerForPortStatusChanged(
+void ThriftHandler::async_eb_registerForNeighborChanged(
     ThriftCallback<void> cb) {
   auto ctx = cb->getConnectionContext()->getConnectionContext();
-  auto client = ctx->getDuplexClient<PortStatusListenerClientAsyncClient>();
+  auto client = ctx->getDuplexClient<NeighborListenerClientAsyncClient>();
   auto info = listeners_.get();
   CHECK(cb->getEventBase()->isInEventBaseThread());
   if (!info) {

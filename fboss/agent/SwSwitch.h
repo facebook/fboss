@@ -533,8 +533,12 @@ class SwSwitch : public HwSwitch::Callback {
    * Only one port status listener is supported, and calling this multiple
    * times will overwrite the current listener.
    */
-  void registerPortStatusListener(
-      std::function<void(PortID, const PortStatus)> callback);
+  void registerNeighborListener(
+      std::function<void(const std::vector<std::string>& added,
+                         const std::vector<std::string>& deleted)> callback);
+
+  void invokeNeighborListener(const std::vector<std::string>& added,
+                               const std::vector<std::string>& deleted);
 
   /*
    * Returns true if the arp/ndp entry for the passed in ip has been hit.
@@ -645,6 +649,14 @@ class SwSwitch : public HwSwitch::Callback {
   folly::EventBase updateEventBase_;
 
   /*
+   * A callback for listening to neighbors coming and going.
+   */
+  std::mutex neighborListenerMutex_;
+  std::function<void(const std::vector<std::string>& added,
+                       const std::vector<std::string>& deleted)>
+    neighborListener_{nullptr};
+
+  /*
    * The list of classes to notify on a state update. This container should only
    * be accessed/modified from the update thread. This removes the need for
    * locking when we access the container during a state update.
@@ -662,8 +674,6 @@ class SwSwitch : public HwSwitch::Callback {
   BootType bootType_{BootType::UNINITIALIZED};
   std::unique_ptr<LldpManager> lldpManager_;
 
-  std::mutex portListenerMutex_;
-  std::function<void(PortID, const PortStatus)> portListener_;
   std::string scribeCategory_ = "fboss_events";
 };
 

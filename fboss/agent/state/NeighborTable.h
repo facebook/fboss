@@ -98,6 +98,7 @@ class NeighborTable
                        InterfaceID intfID);
 
   bool prunePendingEntries();
+  std::vector<IPADDR> getIpsForPort(PortID port) const;
 
   bool hasPendingEntries() {
     auto nPending = this->getExtraFields().nPending;

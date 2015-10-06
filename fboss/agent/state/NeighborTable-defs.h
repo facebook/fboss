@@ -85,6 +85,21 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addPendingEntry(
  }
 
 template<typename IPADDR, typename ENTRY, typename SUBCLASS>
+std::vector<IPADDR> NeighborTable<IPADDR, ENTRY, SUBCLASS>::
+    getIpsForPort(PortID port) const {
+  // Need a reverse iterator because removing an element from a flat_map
+  // invalidates all iterators after the element removed
+  std::vector<IPADDR> ips;
+  for (auto it = this->begin(); it != this->end(); ++it) {
+    auto entry = *it;
+    if (entry->getPort() == port) {
+      ips.push_back(entry->getIP());
+    }
+  }
+  return ips;
+}
+
+template<typename IPADDR, typename ENTRY, typename SUBCLASS>
 bool NeighborTable<IPADDR, ENTRY, SUBCLASS>::prunePendingEntries() {
   CHECK(!this->isPublished());
 

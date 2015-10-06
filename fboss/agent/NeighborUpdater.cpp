@@ -48,6 +48,7 @@ class NeighborUpdaterImpl : private folly::AsyncTimeout {
   NeighborUpdaterImpl(NeighborUpdaterImpl const &) = delete;
   NeighborUpdaterImpl& operator=(NeighborUpdaterImpl const &) = delete;
 
+  // Remove entries that have been pending for too long.
   shared_ptr<SwitchState>
   prunePendingEntries(const shared_ptr<SwitchState>& state);
 
@@ -163,6 +164,7 @@ NeighborUpdater::~NeighborUpdater() {
 void NeighborUpdater::stateUpdated(const StateDelta& delta) {
   CHECK(sw_->getUpdateEVB()->inRunningEventBaseThread());
   for (const auto& entry : delta.getVlansDelta()) {
+    sendNeighborUpdates(entry);
     auto oldEntry = entry.getOld();
     auto newEntry = entry.getNew();
 
@@ -179,6 +181,30 @@ void NeighborUpdater::stateUpdated(const StateDelta& delta) {
     auto updater = res->second;
     updater->stateChanged(delta);
   }
+}
+
+template<typename T>
+void collectPresenceChange(const T& delta,
+                          std::vector<std::string>* added,
+                          std::vector<std::string>* deleted) {
+  for (const auto& entry : delta) {
+    auto oldEntry = entry.getOld();
+    auto newEntry = entry.getNew();
+    if (oldEntry && !newEntry) {
+      deleted->push_back(folly::to<std::string>(oldEntry->getIP()));
+    } else if (newEntry && !oldEntry) {
+      added->push_back(folly::to<std::string>(newEntry->getIP()));
+    }
+  }
+}
+
+void NeighborUpdater::sendNeighborUpdates(const VlanDelta& delta) {
+  std::vector<std::string> added;
+  std::vector<std::string> deleted;
+  collectPresenceChange(delta.getArpDelta(), &added, &deleted);
+  collectPresenceChange(delta.getNdpDelta(), &added, &deleted);
+  LOG(INFO) << "Got neighbor update";
+  sw_->invokeNeighborListener(added, deleted);
 }
 
 void NeighborUpdater::vlanAdded(const SwitchState* state, const Vlan* vlan) {

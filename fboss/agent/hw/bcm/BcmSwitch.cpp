@@ -943,7 +943,7 @@ void BcmSwitch::processNeighborEntryDelta(const DELTA& delta) {
     getIntfAndVrf(newEntry->getIntfID());
     auto host = hostTable_->getBcmHost(vrf, IPAddress(newEntry->getIP()));
     host->program(intf->getBcmIfId(), newEntry->getMac(),
-                  getPortTable()->getBcmPortId(newEntry->getPort()));
+        getPortTable()->getBcmPortId(newEntry->getPort()));
   }
 }
 

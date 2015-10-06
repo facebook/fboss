@@ -19,7 +19,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/agent/HighresCounterSubscriptionHandler.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
-#include "fboss/agent/if/gen-cpp2/PortStatusListenerClient.h"
+#include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
 
 #include <folly/Synchronized.h>
 #include <folly/String.h>
@@ -49,7 +49,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   void async_tm_getStatus(ThriftCallback<fb303::cpp2::fb_status> cb) override;
 
-  void async_eb_registerForPortStatusChanged(
+  void async_eb_registerForNeighborChanged(
       ThriftCallback<void> callback) override;
 
   void flushCountersNow() override;
@@ -188,7 +188,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   struct ThreadLocalListener {
     EventBase* eventBase;
     std::unordered_map<const apache::thrift::server::TConnectionContext*,
-                       std::shared_ptr<PortStatusListenerClientAsyncClient>>
+                       std::shared_ptr<NeighborListenerClientAsyncClient>>
         clients;
 
     explicit ThreadLocalListener(EventBase* eb) : eventBase(eb){};
@@ -196,8 +196,10 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   folly::ThreadLocalPtr<ThreadLocalListener, int> listeners_;
 
   void onPortStatusChanged(PortID id, PortStatus st);
-  void invokePortStatusListeners(
-    ThreadLocalListener* info, PortID port, PortStatus status);
+
+  void invokeNeighborListeners(ThreadLocalListener* info,
+                                std::vector<std::string> added,
+                                std::vector<std::string> deleted);
 
   void fillPortStats(PortInfoThrift& portInfo);
   Vlan* getVlan(int32_t vlanId);
