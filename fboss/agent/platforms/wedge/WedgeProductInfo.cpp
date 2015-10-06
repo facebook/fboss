@@ -36,6 +36,8 @@ constexpr auto kExtMacBase = "Extended MAC Base";
 constexpr auto kLocalMac = "Local MAC";
 constexpr auto kVersion = "Version";
 constexpr auto kFabricLocation = "Location on Fabric";
+constexpr auto kFabricLocationLeft = "LEFT";
+constexpr auto kFabricLocationRight = "RIGHT";
 }
 
 namespace facebook { namespace fboss {
@@ -96,6 +98,12 @@ void WedgeProductInfo::parse(std::string data) {
                                     (info[kFbPcbPartNum].asString());
   productInfo_.fabricLocation = folly::to<std::string>
                                     (info[kFabricLocation].asString());
+  // Append L/R to the serial number based on the fabricLocation
+  if (productInfo_.fabricLocation == kFabricLocationLeft) {
+    productInfo_.serial = productInfo_.serial + "L";
+  } else if (productInfo_.fabricLocation == kFabricLocationRight) {
+    productInfo_.serial = productInfo_.serial + "R";
+  }
   productInfo_.version = info[kVersion].asInt();
   productInfo_.subVersion = info[kSubVersion].asInt();
   productInfo_.productionState = info[kProductionState].asInt();
