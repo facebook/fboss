@@ -122,10 +122,18 @@ enum BootType {
   WARM_BOOT = 2
 }
 
+struct TransceiverIdxThrift {
+  1: i32 transceiverId,
+  2: i32 channelId,
+}
+
 struct PortStatus {
   1: bool enabled,
-  2: bool up
+  2: bool up,
+  3: optional bool present,
+  4: optional TransceiverIdxThrift transceiverIdx,
 }
+
 struct CaptureInfo {
   // A name identifying the packet capture
   1: string name

@@ -67,6 +67,17 @@ facebook::fboss::PortStatus fillInPortStatus(
   status.enabled = (port.getState() ==
       facebook::fboss::cfg::PortState::UP ? true : false);
   status.up = sw->isPortUp(port.getID());
+
+  try {
+    auto tm = sw->getTransceiverMapping(port.getID());
+    status.transceiverIdx.channelId = tm.first;
+    status.transceiverIdx.transceiverId = tm.second;
+    status.__isset.transceiverIdx = true;
+    status.present = sw->getTransceiver(tm.second)->isPresent();
+    status.__isset.present = true;
+  } catch (const facebook::fboss::FbossError& err) {
+    // No problem, we just don't set the other info
+  }
   return status;
 }
 }
