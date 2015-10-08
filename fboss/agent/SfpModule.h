@@ -11,7 +11,6 @@
 #include <cstdint>
 #include <mutex>
 #include <boost/container/flat_map.hpp>
-#include "fboss/agent/TransceiverImpl.h"
 #include "fboss/agent/Transceiver.h"
 #include "fboss/agent/if/gen-cpp2/optic_types.h"
 
@@ -21,57 +20,6 @@ namespace facebook { namespace fboss {
  *              Diagnostic Monitoring Interface for Optical Transceivers
  * Document Number: SFF-8472 (Rev 11.3) June 11, 2013.
  */
-enum class SfpIdpromFields {
-  /* 0xA0 Address Fields */
-  IDENTIFIER, // Type of Transceiver
-  EXT_IDENTIFIER, // Extended type of transceiver
-  CONNECTOR_TYPE, // Code for Connector Type
-  TRANSCEIVER_CODE, // Code for Electronic or optical capability
-  ENCODING_CODE, // High speed Serial encoding algo code
-  SIGNALLING_RATE, // nominal signalling rate
-  RATE_IDENTIFIER, // type of rate select functionality
-  LENGTH_SM_KM, // link length supported in single mode (unit: km)
-  LENGTH_SM, // link length supported in single mode (unit: 100m)
-  LENGTH_OM2, // link length supported in 50um (unit: 10m)
-  LENGTH_OM1, // link length supported in 62.5 um (unit: 10m)
-  LENGTH_COPPER, // link length supported in cu or om4 mode (unit: m)
-  LENGTH_OM3, // link length supported in om3 mode (unit: 10m)
-  VENDOR_NAME, // SFP Vendor Name (ASCII)
-  TRANCEIVER_CAPABILITY, // Code for Electronic or optical capability
-  VENDOR_OUI, // SFP Vendor IEEE company ID
-  PART_NUMBER, // Part NUmber provided by SFP vendor (ASCII)
-  REVISION_NUMBER, // Revision number
-  WAVELENGTH, // laser wavelength
-  CHECK_CODE_BASEID, // Check code for the above fields
-  // Extended options
-  ENABLED_OPTIONS, // Indicates the optional transceiver signals enabled
-  UPPER_BIT_RATE_MARGIN, // upper bit rate margin
-  LOWER_BIT_RATE_MARGIN, // lower but rate margin
-  VENDOR_SERIAL_NUMBER, // Vendor Serial Number (ASCII)
-  MFG_DATE, // Manufacturing date code
-  DIAGNOSTIC_MONITORING_TYPE, // Diagnostic monitoring implemented
-  ENHANCED_OPTIONS, // Enhanced options implemented
-  SFF_COMPLIANCE, // revision number of SFF compliance
-  CHECK_CODE_EXTENDED_OPT, // check code for the extended options
-  // Vendor Specific Fields
-  VENDOR_EEPROM, // Vendor specific EEPROM
-  RESERVED_FIELD, // Reserved
-
-  /* 0xA2 address Fields */
-  /* Diagnostics */
-  ALARM_THRESHOLD_VALUES, // diagnostic flag alarm and warning thresh values
-  EXTERNAL_CALIBRATION, // diagnostic calibration constants
-  CHECK_CODE_DMI, // Check code for base Diagnostic Fields
-  DIAGNOSTICS, // Diagnostic Monitor Data
-  STATUS_CONTROL, // Optional Status and Control bits
-  RESERVED, // Reserved for SFF-8079
-  ALARM_WARN_FLAGS, // Diagnostic alarm and warning flag
-  EXTENDED_STATUS_CONTROL, // Extended status and control bytes
-  /* General Purpose */
-  VENDOR_MEM_ADDRESS, // Vendor Specific memory address
-  USER_EEPROM, // User Writable NVM
-  VENDOR_CONTROL, // Vendor Specific Control
-};
 
 /* SFP DOM Alarms and Warning Flags */
 enum class SfpDomFlag {
@@ -107,22 +55,11 @@ enum class SfpDomValue {
   RX_PWR,
   LAST,
 };
-/*
- * This function takes the SfpIDPromField name and returns
- * the dataAddress, offset and the length as per the SFP DOM
- * Document mentioned above.
- */
-void getSfpFieldAddress(SfpIdpromFields field, int &dataAddress,
-                        int &offset, int &length);
-
-/*
- * This function takes the SfpDomFlag name and returns
- * the bit to be checked for the flag as per the SFP DOM
- * Document mentioned above.
- */
-int getSfpDomBit(const SfpDomFlag flag);
 
 const int MAX_SFP_EEPROM_SIZE = 256;
+
+enum class SffField;
+class TransceiverImpl;
 
 /*
  * This is the SFP class which will be storing the SFP EEPROM
@@ -157,7 +94,7 @@ class SfpModule : public Transceiver {
   /*
    * Get the SFP EEPROM Field
    */
-  int getFieldValue(SfpIdpromFields fieldName, uint8_t* fieldValue);
+  int getFieldValue(SffField fieldName, uint8_t* fieldValue);
   /*
    * This function returns the entire SFP Dom information
    */
@@ -224,14 +161,6 @@ class SfpModule : public Transceiver {
    * The thread needs to have the lock before calling the function.
    */
   void setDomSupport();
-  /* Get the Temperature value in degree Celcius from the raw value */
-  float getTemp(const uint16_t temp);
-  /* Get the Vcc value in Volts from the raw value */
-  float getVcc(const uint16_t temp);
-  /* Get the Power value in mW from the raw value */
-  float getPwr(const uint16_t temp);
-  /* Get the Power value in mA from the raw value */
-  float getTxBias(const uint16_t temp);
   /*
    * returns the value of the flag from the raw IDProm data
    * The thread needs to have the lock before calling the function.
@@ -258,7 +187,7 @@ class SfpModule : public Transceiver {
    * This function returns various strings from the SFP EEPROM
    * caller needs to check if DOM is supported or not
    */
-  std::string getSfpString(const SfpIdpromFields flag);
+  std::string getSfpString(const SffField flag);
   /*
    * This function returns the status of the SFP alarm/warning flag
    * caller needs to check if DOM is supported or not
@@ -302,7 +231,7 @@ class SfpModule : public Transceiver {
    * Get cable length info, in meters
    */
   bool getCableInfo(Cable &cable);
-  int getSfpCableLength(const SfpIdpromFields field, int multiplier);
+  int getSfpCableLength(const SffField field, int multiplier);
   /*
    * Get per-channel data, including sensor value and alarm flags
    */

@@ -9,66 +9,60 @@
  */
 #include "SfpModule.h"
 
-#include "fboss/agent/FbossError.h"
 #include <boost/assign.hpp>
 #include <string>
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/TransceiverImpl.h"
+#include "fboss/agent/SffFieldInfo.h"
 
 namespace facebook { namespace fboss {
   using std::memcpy;
   using std::mutex;
   using std::lock_guard;
 
-struct SfpIdpromFieldInfo {
-  std::uint32_t dataAddress;
-  std::uint32_t offset;
-  std::uint32_t length;
-};
-
-static std::map<SfpIdpromFields, SfpIdpromFieldInfo> sfpFields = {
+static SffFieldInfo::SffFieldMap sfpFields = {
   /* 0xA0 EEPROM Field Values */
-  {SfpIdpromFields::IDENTIFIER, {0x50, 0x0, 1} },
-  {SfpIdpromFields::EXT_IDENTIFIER, {0x50, 0x1, 1} },
-  {SfpIdpromFields::CONNECTOR_TYPE, {0x50, 0x2, 1} },
-  {SfpIdpromFields::TRANSCEIVER_CODE, {0x50, 0x3, 8} },
-  {SfpIdpromFields::ENCODING_CODE, {0x50, 0xB, 1} },
-  {SfpIdpromFields::SIGNALLING_RATE, {0x50, 0xC, 1} },
-  {SfpIdpromFields::RATE_IDENTIFIER, {0x50, 0xD, 1} },
-  {SfpIdpromFields::LENGTH_SM_KM, {0x50, 0xE, 1} },
-  {SfpIdpromFields::LENGTH_SM, {0x50, 0xF, 1} },
-  {SfpIdpromFields::LENGTH_OM2, {0x50, 0x10, 1} },
-  {SfpIdpromFields::LENGTH_OM1, {0x50, 0x11, 1} },
-  {SfpIdpromFields::LENGTH_COPPER, {0x50, 0x12, 1} },
-  {SfpIdpromFields::LENGTH_OM3, {0x50, 0x13, 1} },
-  {SfpIdpromFields::VENDOR_NAME, {0x50, 0x14, 16} },
-  {SfpIdpromFields::TRANCEIVER_CAPABILITY, {0x50, 0x24, 1} },
-  {SfpIdpromFields::VENDOR_OUI, {0x50, 0x25, 3} },
-  {SfpIdpromFields::PART_NUMBER, {0x50, 0x28, 16} },
-  {SfpIdpromFields::REVISION_NUMBER, {0x50, 0x38, 4} },
-  {SfpIdpromFields::WAVELENGTH, {0x50, 0x3C, 2} },
-  {SfpIdpromFields::CHECK_CODE_BASEID, {0x50, 0x3F, 1} },
-  {SfpIdpromFields::ENABLED_OPTIONS, {0x50, 0x40, 2} },
-  {SfpIdpromFields::UPPER_BIT_RATE_MARGIN, {0x50, 0x42, 1} },
-  {SfpIdpromFields::LOWER_BIT_RATE_MARGIN, {0x50, 0x43, 1} },
-  {SfpIdpromFields::VENDOR_SERIAL_NUMBER, {0x50, 0x44, 16} },
-  {SfpIdpromFields::MFG_DATE, {0x50, 0x54, 8} },
-  {SfpIdpromFields::DIAGNOSTIC_MONITORING_TYPE, {0x50, 0x5C, 1} },
-  {SfpIdpromFields::ENHANCED_OPTIONS, {0x50, 0x5D, 1} },
-  {SfpIdpromFields::SFF_COMPLIANCE, {0x50, 0x5E, 1} },
-  {SfpIdpromFields::CHECK_CODE_EXTENDED_OPT, {0x50, 0x5F, 1} },
-  {SfpIdpromFields::VENDOR_EEPROM, {0x50, 0x60, 32} },
-  {SfpIdpromFields::RESERVED_FIELD, {0x50, 0x80, 128} },
+  {SffField::IDENTIFIER, {0x50, 0x0, 1} },
+  {SffField::EXT_IDENTIFIER, {0x50, 0x1, 1} },
+  {SffField::CONNECTOR_TYPE, {0x50, 0x2, 1} },
+  {SffField::TRANSCEIVER_CODE, {0x50, 0x3, 8} },
+  {SffField::ENCODING_CODE, {0x50, 0xB, 1} },
+  {SffField::SIGNALLING_RATE, {0x50, 0xC, 1} },
+  {SffField::RATE_IDENTIFIER, {0x50, 0xD, 1} },
+  {SffField::LENGTH_SM_KM, {0x50, 0xE, 1} },
+  {SffField::LENGTH_SM, {0x50, 0xF, 1} },
+  {SffField::LENGTH_OM2, {0x50, 0x10, 1} },
+  {SffField::LENGTH_OM1, {0x50, 0x11, 1} },
+  {SffField::LENGTH_COPPER, {0x50, 0x12, 1} },
+  {SffField::LENGTH_OM3, {0x50, 0x13, 1} },
+  {SffField::VENDOR_NAME, {0x50, 0x14, 16} },
+  {SffField::TRANCEIVER_CAPABILITY, {0x50, 0x24, 1} },
+  {SffField::VENDOR_OUI, {0x50, 0x25, 3} },
+  {SffField::PART_NUMBER, {0x50, 0x28, 16} },
+  {SffField::REVISION_NUMBER, {0x50, 0x38, 4} },
+  {SffField::WAVELENGTH, {0x50, 0x3C, 2} },
+  {SffField::CHECK_CODE_BASEID, {0x50, 0x3F, 1} },
+  {SffField::ENABLED_OPTIONS, {0x50, 0x40, 2} },
+  {SffField::UPPER_BIT_RATE_MARGIN, {0x50, 0x42, 1} },
+  {SffField::LOWER_BIT_RATE_MARGIN, {0x50, 0x43, 1} },
+  {SffField::VENDOR_SERIAL_NUMBER, {0x50, 0x44, 16} },
+  {SffField::MFG_DATE, {0x50, 0x54, 8} },
+  {SffField::DIAGNOSTIC_MONITORING_TYPE, {0x50, 0x5C, 1} },
+  {SffField::ENHANCED_OPTIONS, {0x50, 0x5D, 1} },
+  {SffField::SFF_COMPLIANCE, {0x50, 0x5E, 1} },
+  {SffField::CHECK_CODE_EXTENDED_OPT, {0x50, 0x5F, 1} },
+  {SffField::VENDOR_EEPROM, {0x50, 0x60, 32} },
    /* 0xA2 EEPROM Field Values */
-  {SfpIdpromFields::ALARM_THRESHOLD_VALUES, {0x51, 0x0, 40} },
-  {SfpIdpromFields::EXTERNAL_CALIBRATION, {0x51, 0x38, 36} },
-  {SfpIdpromFields::CHECK_CODE_DMI, {0x51, 0x5F, 1} },
-  {SfpIdpromFields::DIAGNOSTICS, {0x51, 0x60, 10} },
-  {SfpIdpromFields::STATUS_CONTROL, {0x51, 0x6E, 1} },
-  {SfpIdpromFields::RESERVED, {0x51, 0x6F, 1} },
-  {SfpIdpromFields::ALARM_WARN_FLAGS, {0x51, 0x70, 6} },
-  {SfpIdpromFields::EXTENDED_STATUS_CONTROL, {0x51, 0x76, 2} },
-  {SfpIdpromFields::VENDOR_MEM_ADDRESS, {0x51, 0x78, 8} },
-  {SfpIdpromFields::USER_EEPROM, {0x51, 0x80, 120} },
-  {SfpIdpromFields::VENDOR_CONTROL, {0x51, 0xF8, 8} },
+  {SffField::ALARM_THRESHOLD_VALUES, {0x51, 0x0, 40} },
+  {SffField::EXTERNAL_CALIBRATION, {0x51, 0x38, 36} },
+  {SffField::CHECK_CODE_DMI, {0x51, 0x5F, 1} },
+  {SffField::DIAGNOSTICS, {0x51, 0x60, 10} },
+  {SffField::STATUS_CONTROL, {0x51, 0x6E, 1} },
+  {SffField::ALARM_WARN_FLAGS, {0x51, 0x70, 6} },
+  {SffField::EXTENDED_STATUS_CONTROL, {0x51, 0x76, 2} },
+  {SffField::VENDOR_MEM_ADDRESS, {0x51, 0x78, 8} },
+  {SffField::USER_EEPROM, {0x51, 0x80, 120} },
+  {SffField::VENDOR_CONTROL, {0x51, 0xF8, 8} },
 };
 
 static std::map<SfpDomFlag, int> sfpDomFlag = {
@@ -94,8 +88,8 @@ static std::map<SfpDomFlag, int> sfpDomFlag = {
   {SfpDomFlag::RX_PWR_WARN_LOW,     6},
 };
 
-void getSfpFieldAddress(SfpIdpromFields field, int &dataAddress,
-                                    int &offset, int &length) {
+static void getSfpFieldAddress(SffField field, int &dataAddress,
+                               int &offset, int &length) {
   auto sfpFieldInfo = sfpFields.find(field);
   if (sfpFieldInfo == sfpFields.end()) {
     throw FbossError("Invalid SFP Field ID");
@@ -105,7 +99,7 @@ void getSfpFieldAddress(SfpIdpromFields field, int &dataAddress,
   length = sfpFieldInfo->second.length;
 }
 
-int getSfpDomBit(const SfpDomFlag flag) {
+static int getSfpDomBit(const SfpDomFlag flag) {
   auto domFlag = sfpDomFlag.find(flag);
   if (domFlag == sfpDomFlag.end()) {
     throw FbossError("Invalid SFP Field ID");
@@ -286,32 +280,32 @@ bool SfpModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
 
 bool SfpModule::getVendorInfo(Vendor &vendor) {
   if (cacheIsValid()) {
-    vendor.name = getSfpString(SfpIdpromFields::VENDOR_NAME);
-    vendor.oui = getSfpString(SfpIdpromFields::VENDOR_OUI);
-    vendor.partNumber = getSfpString(SfpIdpromFields::PART_NUMBER);
-    vendor.rev = getSfpString(SfpIdpromFields::REVISION_NUMBER);
-    vendor.serialNumber = getSfpString(SfpIdpromFields::VENDOR_SERIAL_NUMBER);
-    vendor.dateCode = getSfpString(SfpIdpromFields::MFG_DATE);
+    vendor.name = getSfpString(SffField::VENDOR_NAME);
+    vendor.oui = getSfpString(SffField::VENDOR_OUI);
+    vendor.partNumber = getSfpString(SffField::PART_NUMBER);
+    vendor.rev = getSfpString(SffField::REVISION_NUMBER);
+    vendor.serialNumber = getSfpString(SffField::VENDOR_SERIAL_NUMBER);
+    vendor.dateCode = getSfpString(SffField::MFG_DATE);
     return true;
   }
   return false;
 }
 
 bool SfpModule::getCableInfo(Cable &cable) {
-  cable.singleModeKm = getSfpCableLength(SfpIdpromFields::LENGTH_SM_KM, 1000);
+  cable.singleModeKm = getSfpCableLength(SffField::LENGTH_SM_KM, 1000);
   cable.__isset.singleMode = (cable.singleModeKm != 0);
-  cable.singleMode = getSfpCableLength(SfpIdpromFields::LENGTH_SM, 100);
+  cable.singleMode = getSfpCableLength(SffField::LENGTH_SM, 100);
   cable.__isset.singleMode = (cable.singleMode != 0);
-  cable.om3 = getSfpCableLength(SfpIdpromFields::LENGTH_OM3, 10);
+  cable.om3 = getSfpCableLength(SffField::LENGTH_OM3, 10);
   cable.__isset.om3 = (cable.om3 != 0);
-  cable.om2 = getSfpCableLength(SfpIdpromFields::LENGTH_OM2, 10);
+  cable.om2 = getSfpCableLength(SffField::LENGTH_OM2, 10);
   cable.__isset.om2 = (cable.om2 != 0);
-  cable.om1 = getSfpCableLength(SfpIdpromFields::LENGTH_OM1, 10);
+  cable.om1 = getSfpCableLength(SffField::LENGTH_OM1, 10);
   cable.__isset.om1 = (cable.om1 != 0);
   // XXX:  Note that copper and OM4 use different multipliers, but
   //       it isn't clear how we distinguish them.  Need to dive further
   //       into the SFP spec.
-  cable.copper = getSfpCableLength(SfpIdpromFields::LENGTH_COPPER, 1);
+  cable.copper = getSfpCableLength(SffField::LENGTH_COPPER, 1);
   cable.__isset.copper = (cable.copper != 0);
   return (cable.__isset.copper || cable.__isset.om1 || cable.__isset.om2 ||
           cable.__isset.om3 || cable.__isset.singleMode ||
@@ -328,7 +322,7 @@ bool SfpModule::getCableInfo(Cable &cable) {
  * clients.
  */
 
-int SfpModule::getSfpCableLength(const SfpIdpromFields field,
+int SfpModule::getSfpCableLength(const SffField field,
                                   int multiplier) {
   int length;
   auto sfpFieldInfo = sfpFields.find(field);
@@ -345,7 +339,7 @@ int SfpModule::getSfpCableLength(const SfpIdpromFields field,
   return length;
 }
 
-std::string SfpModule::getSfpString(const SfpIdpromFields flag) {
+std::string SfpModule::getSfpString(const SffField flag) {
   int offset, dataAddress, length;
   getSfpFieldAddress(flag, dataAddress,
                       offset, length);
@@ -360,7 +354,7 @@ std::string SfpModule::getSfpString(const SfpIdpromFields flag) {
 bool SfpModule::getSfpThreshFlag(const SfpDomFlag flag) {
   uint8_t data[10];
   int offset, dataAddress, length;
-  getSfpFieldAddress(SfpIdpromFields::ALARM_WARN_FLAGS, dataAddress,
+  getSfpFieldAddress(SffField::ALARM_WARN_FLAGS, dataAddress,
                       offset, length);
   getSfpValue(dataAddress, offset, length, data);
   return getSfpFlagIdProm(flag, data);
@@ -373,7 +367,7 @@ float SfpModule::getSfpThreshValue(const SfpDomFlag flag) {
   int idx = (static_cast<int>(flag) -
                             static_cast<int>(SfpDomFlag::TEMP_ALARM_HIGH)) * 2;
   uint16_t rawValue;
-  getSfpFieldAddress(SfpIdpromFields::ALARM_THRESHOLD_VALUES, dataAddress,
+  getSfpFieldAddress(SffField::ALARM_THRESHOLD_VALUES, dataAddress,
                       offset, length);
   getSfpValue(dataAddress, offset, length, data);
   msb = data[idx];
@@ -386,25 +380,25 @@ float SfpModule::getSfpDomValue(const SfpDomValue field) {
   uint16_t temp;
   uint8_t data[10];
   int offset, dataAddress, length;
-  getSfpFieldAddress(SfpIdpromFields::DIAGNOSTICS, dataAddress,
+  getSfpFieldAddress(SffField::DIAGNOSTICS, dataAddress,
                       offset, length);
   getSfpValue(dataAddress, offset, length, data);
   switch (field) {
     case SfpDomValue::TEMP:
       temp = (data[0] << 8) | data[1];
-      return getTemp(temp);
+      return SffFieldInfo::getTemp(temp);
     case SfpDomValue::VCC:
       temp = (data[2] << 8) | data[3];
-      return getVcc(temp);
+      return SffFieldInfo::getVcc(temp);
     case SfpDomValue::TX_BIAS:
       temp = (data[4] << 8) | data[5];
-      return getTxBias(temp);
+      return SffFieldInfo::getTxBias(temp);
     case SfpDomValue::TX_PWR:
       temp = (data[6] << 8) | data[7];
-      return getPwr(temp);
+      return SffFieldInfo::getPwr(temp);
     case SfpDomValue::RX_PWR:
       temp = (data[8] << 8) | data[9];
-      return getPwr(temp);
+      return SffFieldInfo::getPwr(temp);
     default:
       throw FbossError("Unknown DOM value field");
   }
@@ -429,7 +423,7 @@ void SfpModule::setSfpIdprom(const uint8_t* data) {
 void SfpModule::setDomSupport() {
   uint8_t data;
   int offset, dataAddress, length;
-  getSfpFieldAddress(SfpIdpromFields::DIAGNOSTIC_MONITORING_TYPE,
+  getSfpFieldAddress(SffField::DIAGNOSTIC_MONITORING_TYPE,
                                  dataAddress, offset, length);
   getSfpValue(dataAddress, offset, length, &data);
   /* bit 7 and 6 needs to be checked for DOM */
@@ -573,17 +567,17 @@ float SfpModule::getValueFromRaw(const SfpDomFlag key, uint16_t value) {
     case SfpDomFlag::TEMP_ALARM_LOW:
     case SfpDomFlag::TEMP_WARN_HIGH:
     case SfpDomFlag::TEMP_WARN_LOW:
-      return getTemp(value);
+      return SffFieldInfo::getTemp(value);
     case SfpDomFlag::VCC_ALARM_HIGH:
     case SfpDomFlag::VCC_ALARM_LOW:
     case SfpDomFlag::VCC_WARN_HIGH:
     case SfpDomFlag::VCC_WARN_LOW:
-      return getVcc(value);
+      return SffFieldInfo::getVcc(value);
     case SfpDomFlag::TX_BIAS_ALARM_HIGH:
     case SfpDomFlag::TX_BIAS_ALARM_LOW:
     case SfpDomFlag::TX_BIAS_WARN_HIGH:
     case SfpDomFlag::TX_BIAS_WARN_LOW:
-      return getTxBias(value);
+      return SffFieldInfo::getTxBias(value);
     case SfpDomFlag::TX_PWR_ALARM_HIGH:
     case SfpDomFlag::TX_PWR_ALARM_LOW:
     case SfpDomFlag::TX_PWR_WARN_HIGH:
@@ -592,37 +586,10 @@ float SfpModule::getValueFromRaw(const SfpDomFlag key, uint16_t value) {
     case SfpDomFlag::RX_PWR_ALARM_LOW:
     case SfpDomFlag::RX_PWR_WARN_HIGH:
     case SfpDomFlag::RX_PWR_WARN_LOW:
-      return getPwr(value);
+      return SffFieldInfo::getPwr(value);
     default:
       return 0.0;
   }
-}
-
-float SfpModule::getTemp(const uint16_t temp) {
-  float data;
-  data = temp / 256;
-  if (data > 128) {
-    data = data - 256;
-  }
-  return data;
-}
-
-float SfpModule::getVcc(const uint16_t temp) {
-  float data;
-  data = temp / 10000;
-  return data;
-}
-
-float SfpModule::getTxBias(const uint16_t temp) {
-  float data;
-  data = temp * 2 / 1000;
-  return data;
-}
-
-float SfpModule::getPwr(const uint16_t temp) {
-  float data;
-  data = temp * 0.1 / 1000;
-  return data;
 }
 
 void SfpModule::detectTransceiver() {
@@ -651,7 +618,7 @@ void SfpModule::detectTransceiver() {
   }
 }
 
-int SfpModule::getFieldValue(SfpIdpromFields fieldName,
+int SfpModule::getFieldValue(SffField fieldName,
                              uint8_t* fieldValue) {
   lock_guard<std::mutex> g(sfpModuleMutex_);
   int dataAddress, offset, length, rc;
