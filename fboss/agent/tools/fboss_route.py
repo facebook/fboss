@@ -80,6 +80,13 @@ def list_ports(args):
             stats = client.getPortStats(idx) if details else ""
             print ("Port %d: %s: %s" %  (idx, str(intf), stats))
 
+def list_arps(args):
+    details = args.details
+    with get_client(args) as client:
+        #for intf in client.getInterfaceList(): 
+        for arp in client.getArpTable():
+            print ("Arp: %s" %  (str(arp)))
+
 
 def list_vlans(args):
     details = args.details
@@ -164,6 +171,12 @@ if __name__ == '__main__':
     list_vlan_parser.set_defaults(func=list_vlans)
     list_vlan_parser.add_argument(
         '--details', action='store_true', help='List all information about the vlans', default=False)
+
+    list_arp_parser = subparsers.add_parser(
+        'list_arps', help='list switch arps')
+    list_arp_parser.set_defaults(func=list_arps)
+    list_arp_parser.add_argument(
+        '--details', action='store_true', help='List all information about the arps', default=False)
 
 
     args = ap.parse_args()
