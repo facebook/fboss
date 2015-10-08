@@ -81,6 +81,19 @@ def list_ports(args):
             print ("Port %d: %s: %s" %  (idx, str(intf), stats))
 
 
+def list_vlans(args):
+    details = args.details
+    with get_client(args) as client:
+        #for intf in client.getInterfaceList():
+        vlans = dict()
+        for idx, intf in  client.getAllInterfaces().iteritems():
+            vlans[intf.vlanId] = True
+        for vlan in vlans:
+            print("===== Vlan %d ==== " % vlan)
+            for address in client.getVlanAddresses(vlan):
+                print(address)
+
+
 @contextlib.contextmanager
 def get_client(args, timeout=5.0):
     sock = TSocket.TSocket(args.host, args.port)
@@ -149,6 +162,13 @@ if __name__ == '__main__':
     list_port_parser.add_argument(
         '--details', action='store_true',
         help='List all information about the ports', default=False)
+
+    list_vlan_parser = subparsers.add_parser(
+        'list_vlans', help='list switch vlans')
+    list_vlan_parser.set_defaults(func=list_vlans)
+    list_vlan_parser.add_argument(
+        '--details', action='store_true',
+        help='List all information about the vlans', default=False)
 
     args = ap.parse_args()
     args.func(args)
