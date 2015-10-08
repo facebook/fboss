@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright (C) 2004-present Facebook. All Rights Reserved
 
 from __future__ import division
@@ -10,14 +11,15 @@ from __future__ import absolute_import
 
 import contextlib
 import ipaddr
+import pdb
 
 from argparse import ArgumentParser, ArgumentError
 from contextlib import contextmanager
 from thrift.transport import TSocket
 from thrift.protocol import TBinaryProtocol
-from fboss.agent import FbossCtrl
-from fboss.agent.ttypes import IpPrefix
-from fboss.agent.ttypes import UnicastRoute
+from fboss.ctrl import FbossCtrl
+from fboss.ctrl.ttypes import IpPrefix
+from fboss.ctrl.ttypes import UnicastRoute
 from facebook.network.Address.ttypes import BinaryAddress
 
 DEFAULT_CLIENTID = 1
@@ -51,10 +53,57 @@ def del_route(args):
     with get_client(args) as client:
         client.deleteUnicastRoutes(args.client, [prefix])
 
+def list_intf(args):
+    details = args.details
+    with get_client(args) as client:
+        #for intf in client.getInterfaceList(): 
+        for idx, intf in client.getAllInterfaces().iteritems(): 
+            print ("L3 Interface %d: %s" %  (idx, str(intf)))
+
+def list_routes(args):
+    details = args.details
+    with get_client(args) as client:
+        for route in client.getRouteTable(): 
+            print ("Route %s" %  route)
+
+def list_optics(args):
+    details = args.details
+    with get_client(args) as client:
+        for key,val in client.getTransceiverInfo(range(1,64)).iteritems(): 
+            print ("Optic %d: %s" %  (key, str(val)))
+
+def list_ports(args):
+    details = args.details
+    with get_client(args) as client:
+        #for intf in client.getInterfaceList(): 
+        for idx, intf in client.getPortStatus(range(1,64)).iteritems(): 
+            stats = client.getPortStats(idx) if details else ""
+            print ("Port %d: %s: %s" %  (idx, str(intf), stats))
+
+def list_arps(args):
+    details = args.details
+    with get_client(args) as client:
+        #for intf in client.getInterfaceList(): 
+        for arp in client.getArpTable():
+            print ("Arp: %s" %  (str(arp)))
+
+
+def list_vlans(args):
+    details = args.details
+    with get_client(args) as client:
+        #for intf in client.getInterfaceList(): 
+        vlans = dict()
+        for idx, intf in  client.getAllInterfaces().iteritems():
+            vlans[intf.vlanId] = True
+        for vlan in vlans:
+            print("===== Vlan %d ==== " % vlan)
+            for address in client.getVlanAddresses(vlan):
+                print(address)
+
 
 @contextlib.contextmanager
 def get_client(args, timeout=5.0):
-    sock = TSocket.TSocket('localhost', args.port)
+    sock = TSocket.TSocket(args.host, args.port)
     sock.setTimeout(timeout * 1000)  # thrift timeout is in ms
     protocol = TBinaryProtocol.TBinaryProtocol(sock)
     transport = protocol.trans
@@ -70,8 +119,8 @@ if __name__ == '__main__':
                     help='the controller thrift port')
     ap.add_argument('--client', '-c', type=int, default=DEFAULT_CLIENTID,
                     help='the client ID used to manipulate the routes')
-    ap.add_argument('host',
-                    help='the controller hostname')
+    ap.add_argument('--host',
+                    help='the controller hostname', default='localhost')
     subparsers = ap.add_subparsers()
 
     flush_parser = subparsers.add_parser(
@@ -92,6 +141,43 @@ if __name__ == '__main__':
     del_parser.set_defaults(func=del_route)
     del_parser.add_argument(
         'prefix', help='The route prefix, i.e. "1.1.1.0/24" or "2001::0/64"')
+
+    list_parser = subparsers.add_parser(
+        'list_intf', help='list switch interfaces')
+    list_parser.set_defaults(func=list_intf)
+    list_parser.add_argument(
+        '--details', action='store_true', help='List all information about the interface', default=False)
+
+    list_route_parser = subparsers.add_parser(
+        'list_routes', help='list switch routes')
+    list_route_parser.set_defaults(func=list_routes)
+    list_route_parser.add_argument(
+        '--details', action='store_true', help='List all information about the routes', default=False)
+
+    list_optic_parser = subparsers.add_parser(
+        'list_optics', help='list switch optics')
+    list_optic_parser.set_defaults(func=list_optics)
+    list_optic_parser.add_argument(
+        '--details', action='store_true', help='List all information about the optics', default=False)
+
+    list_port_parser = subparsers.add_parser(
+        'list_ports', help='list switch ports')
+    list_port_parser.set_defaults(func=list_ports)
+    list_port_parser.add_argument(
+        '--details', action='store_true', help='List all information about the ports', default=False)
+
+    list_vlan_parser = subparsers.add_parser(
+        'list_vlans', help='list switch vlans')
+    list_vlan_parser.set_defaults(func=list_vlans)
+    list_vlan_parser.add_argument(
+        '--details', action='store_true', help='List all information about the vlans', default=False)
+
+    list_arp_parser = subparsers.add_parser(
+        'list_arps', help='list switch arps')
+    list_arp_parser.set_defaults(func=list_arps)
+    list_arp_parser.add_argument(
+        '--details', action='store_true', help='List all information about the arps', default=False)
+
 
     args = ap.parse_args()
     args.func(args)
