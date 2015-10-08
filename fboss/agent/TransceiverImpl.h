@@ -46,10 +46,7 @@ class TransceiverImpl {
    * a port on the switch.  Provide a way to set and query them.
    */
   void setChannelPort(ChannelID chan, PortID port) {
-    if (chan >= ChannelID(kMaxChannels)) {
-      throw FbossError("Tried to add invalid channel number, ", chan,
-                       " to module");
-    }
+    DCHECK(chan < ChannelID(kMaxChannels));
     chanToPort_[chan] = port;
     portName_[chan] = folly::to<std::string>(port);
   }

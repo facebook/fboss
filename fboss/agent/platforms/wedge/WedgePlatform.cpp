@@ -11,11 +11,15 @@
 
 #include <folly/Memory.h>
 #include <folly/Subprocess.h>
+#include <glog/logging.h>
+#include "fboss/lib/usb/UsbError.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/QsfpModule.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
+#include "fboss/agent/platforms/wedge/WedgeQsfp.h"
 
 #include <future>
 
@@ -126,6 +130,41 @@ void WedgePlatform::initLocalMac() {
   }
   MacAddress eth0Mac(out.first.substr(idx + 11, 17));
   localMac_ = MacAddress::fromHBO(eth0Mac.u64HBO() | 0x0000020000000000);
+}
+
+void WedgePlatform::initTransceiverMap(SwSwitch* sw) {
+  const int MAX_WEDGE_MODULES = 16;
+
+  // If we can't get access to the USB devices, don't bother to
+  // create the QSFP objects;  this is likely to be a permanent
+  // error.
+
+  try {
+    wedgeI2CBusLock_ = make_unique<WedgeI2CBusLock>();
+  } catch (const LibusbError& ex) {
+    LOG(ERROR) << "failed to initialize USB to I2C interface";
+    return;
+  }
+
+  // Wedge port 0 is the CPU port, so the first port associated with
+  // a QSFP+ is port 1.  We start the transceiver IDs with 0, though.
+
+  for (int idx = 0; idx < MAX_WEDGE_MODULES; idx++) {
+    std::unique_ptr<WedgeQsfp> qsfpImpl =
+      make_unique<WedgeQsfp>(idx, wedgeI2CBusLock_.get());
+    for (int channel = 0; channel < QsfpModule::CHANNEL_COUNT; ++channel) {
+      qsfpImpl->setChannelPort(ChannelID(channel),
+          PortID(idx * QsfpModule::CHANNEL_COUNT + channel + 1));
+    }
+    std::unique_ptr<QsfpModule> qsfp =
+      make_unique<QsfpModule>(std::move(qsfpImpl));
+    sw->addTransceiver(TransceiverID(idx), std::move(qsfp));
+    LOG(INFO) << "making QSFP for " << idx;
+    for (int channel = 0; channel < QsfpModule::CHANNEL_COUNT; ++channel) {
+      sw->addTransceiverMapping(PortID(idx * QsfpModule::CHANNEL_COUNT +
+          channel + 1), ChannelID(channel), TransceiverID(idx));
+    }
+  }
 }
 
 }} // facebook::fboss

@@ -26,6 +26,7 @@ void WedgePlatform::initMode() {
 }
 
 void WedgePlatform::onHwInitialized(SwSwitch* sw) {
+  initTransceiverMap(sw);
   // TODO: Initialize the LEDs.  The LED handling code isn't open source yet,
   // but should be soon once we get approval for the required OpenNSL APIs.
 }

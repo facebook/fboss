@@ -87,7 +87,12 @@ class QsfpModule : public Transceiver {
    * how they are laid out.  This needs to be publicly accessible for
    * testing.
    */
-  enum : unsigned int { MAX_QSFP_PAGE_SIZE = 128 };
+  enum : unsigned int {
+    // Size of page read from QSFP via I2C
+    MAX_QSFP_PAGE_SIZE = 128,
+    // Number of channels per module
+    CHANNEL_COUNT = 4,
+  };
 
  private:
   // no copy or assignment
@@ -97,8 +102,6 @@ class QsfpModule : public Transceiver {
   enum : unsigned int {
     // Maximum cable length reported
     MAX_CABLE_LEN = 255,
-    // Number of channels per module
-    CHANNEL_COUNT = 4
   };
   // QSFP+ requires a bottom 128 byte page describing important monitoring
   // information, and then an upper 128 byte page with less frequently
