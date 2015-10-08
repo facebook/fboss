@@ -106,8 +106,9 @@ void ArpHandler::handlePacket(unique_ptr<RxPacket> pkt,
   // Check to see if this IP address is in our ARP response table.
   auto entry = vlan->getArpResponseTable()->getEntry(targetIP);
   if (!entry) {
-    // The target IP does not refer to us.
-    VLOG(5) << "ignoring ARP message for " << targetIP.str()
+    // The target IP does not refer to us.  This is common
+    // if there is a port/vlan mismatch, so log somewhat verbosely.
+    VLOG(2) << "ignoring ARP message for " << targetIP.str()
             << " on vlan " << pkt->getSrcVlan();
     stats->port(port)->arpNotMine();
     // Update the sender IP --> sender MAC entry in our ARP table
