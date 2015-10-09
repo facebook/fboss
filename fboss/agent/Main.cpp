@@ -262,25 +262,8 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   auto handler = std::shared_ptr<ThriftHandler>(
       std::move(platformPtr->createHandler(&sw)));
 
-  // Create an Initializer to initialize the switch in a background thread.
-  // This allows us to start the thrift server while initialization is still in
-  // progress.
-  Initializer init(&sw, platformPtr);
-  init.start();
-
   EventBase eventBase;
 
-  // Create a timeout to call sw->publishStats() once every second.
-  StatsPublisher statsPublisher(
-      &eventBase, &sw,
-      std::chrono::milliseconds(FLAGS_stat_publish_interval_ms));
-  statsPublisher.start();
-
-  auto stopServices = [&]() {
-    statsPublisher.cancelTimeout();
-    init.stopFunctionScheduler();
-  };
-  SignalHandler signalHandler(&eventBase, &sw, stopServices);
   // Start the thrift server
   ThriftServer server;
   server.getEventBaseManager()->setEventBase(&eventBase, false);
@@ -297,6 +280,27 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   server.setIdleTimeout(std::chrono::seconds(FLAGS_thrift_idle_timeout));
   handler->setIdleTimeout(FLAGS_thrift_idle_timeout);
   server.setup();
+
+  // Create an Initializer to initialize the switch in a background thread.
+  Initializer init(&sw, platformPtr);
+
+  // At this point, we are guaranteed no other agent process will initialize the
+  // ASIC because such a process would have crashed attempting to bind to the
+  // Thrift port 5909
+  init.start();
+
+  // Create a timeout to call sw->publishStats() once every second.
+  StatsPublisher statsPublisher(
+      &eventBase, &sw,
+      std::chrono::milliseconds(FLAGS_stat_publish_interval_ms));
+  statsPublisher.start();
+
+  auto stopServices = [&]() {
+    statsPublisher.cancelTimeout();
+    init.stopFunctionScheduler();
+  };
+  SignalHandler signalHandler(&eventBase, &sw, stopServices);
+
   SCOPE_EXIT { server.cleanUp(); };
   LOG(INFO) << "serving on localhost on port " << FLAGS_port;
 
