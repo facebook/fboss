@@ -26,7 +26,7 @@ void SwSwitch::initThread(folly::StringPiece name) {
 
 void SwSwitch::publishStats() {}
 
-void SwSwitch::publishBootType() {}
+void SwSwitch::publishBootInfo() {}
 
 void SwSwitch::logLinkStateEvent(PortID port, bool up) {}
 

@@ -273,7 +273,7 @@ void SwSwitch::init(SwitchFlags flags) {
   startThreads();
 
   if (flags & SwitchFlags::PUBLISH_BOOTTYPE) {
-    publishBootType();
+    publishBootInfo();
   }
 
   if (flags & SwitchFlags::ENABLE_LLDP) {
