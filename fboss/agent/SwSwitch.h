@@ -545,6 +545,8 @@ class SwSwitch : public HwSwitch::Callback {
    */
   bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress ip);
 
+  const std::string& getConfig() { return configStr_; }
+
  private:
   typedef folly::IntrusiveList<StateUpdate, &StateUpdate::listHook_>
     StateUpdateList;
@@ -604,6 +606,8 @@ class SwSwitch : public HwSwitch::Callback {
   void notifyStateObservers(const StateDelta& delta);
 
   void logLinkStateEvent(PortID port, bool up);
+
+  std::string configStr_;
 
   // The HwSwitch object.  This object is owned by the Platform.
   HwSwitch* hw_;

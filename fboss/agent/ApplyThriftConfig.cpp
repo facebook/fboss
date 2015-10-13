@@ -686,7 +686,7 @@ shared_ptr<SwitchState> applyThriftConfig(
   return ThriftConfigApplier(state, config, platform).run();
 }
 
-shared_ptr<SwitchState> applyThriftConfigFile(
+std::pair<std::shared_ptr<SwitchState>, std::string> applyThriftConfigFile(
     const shared_ptr<SwitchState>& state,
     StringPiece path,
     const Platform* platform) {
@@ -697,13 +697,14 @@ shared_ptr<SwitchState> applyThriftConfigFile(
   // We may not be able to rely on the configerator infrastructure for
   // distributing the config files.
   cfg::SwitchConfig config;
-  std::string contents;
-  if (!folly::readFile(path.toString().c_str(), contents)) {
+  std::string configStr;
+  if (!folly::readFile(path.toString().c_str(), configStr)) {
     throw FbossError("unable to read ", path);
   }
-  config.readFromJson(contents.c_str());
+  config.readFromJson(configStr.c_str());
 
-  return ThriftConfigApplier(state, &config, platform).run();
+  return std::make_pair(ThriftConfigApplier(state, &config, platform).run(),
+                        configStr);
 }
 
 }} // facebook::fboss

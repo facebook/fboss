@@ -465,6 +465,11 @@ ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
   }
 }
 
+void ThriftHandler::getRunningConfig(std::string& configStr) {
+  ensureConfigured();
+  configStr = sw_->getConfig();
+}
+
 void ThriftHandler::getPortStatus(map<int32_t, PortStatus>& statusMap,
                                   unique_ptr<vector<int32_t>> ports) {
   ensureConfigured();

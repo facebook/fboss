@@ -254,12 +254,17 @@ service FbossCtrl extends fb303.FacebookService {
   map<i32, PortInfoThrift> getAllPortInfo()
     throws (1: fboss.FbossBaseError error)
 
+  /* Return running config */
+  string getRunningConfig()
+    throws (1: fboss.FbossBaseError error)
+
   list<ArpEntryThrift> getArpTable()
     throws (1: fboss.FbossBaseError error)
   list<NdpEntryThrift> getNdpTable()
     throws (1: fboss.FbossBaseError error)
   list<L2EntryThrift> getL2Table()
     throws (1: fboss.FbossBaseError error)
+
   /*
    * Returns all the DOM information
    */

@@ -53,7 +53,7 @@ shared_ptr<SwitchState> publishAndApplyConfigFile(
     StringPiece path,
     const Platform* platform) {
   state->publish();
-  return applyThriftConfigFile(state, path, platform);
+  return applyThriftConfigFile(state, path, platform).first;
 }
 
 unique_ptr<SwSwitch> createMockSw(const shared_ptr<SwitchState>& state) {

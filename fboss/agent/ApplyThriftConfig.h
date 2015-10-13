@@ -28,15 +28,15 @@ class SwitchState;
  * the config file results in no changes.
  */
 std::shared_ptr<SwitchState> applyThriftConfig(
-    const std::shared_ptr<SwitchState>& state,
-    const cfg::SwitchConfig* config,
-    const Platform* platform);
-std::shared_ptr<SwitchState> applyThriftConfigFile(
-    const std::shared_ptr<SwitchState>& state,
-    folly::StringPiece path,
-    const Platform* platform);
-std::shared_ptr<SwitchState> applyThriftConfigDefault(
-    std::shared_ptr<SwitchState> state,
-    const Platform* platform);
+  const std::shared_ptr<SwitchState>& state,
+  const cfg::SwitchConfig* config,
+  const Platform* platform);
+std::pair<std::shared_ptr<SwitchState>, std::string> applyThriftConfigFile(
+  const std::shared_ptr<SwitchState>& state,
+  const folly::StringPiece path,
+  const Platform* platform);
+std::pair<std::shared_ptr<SwitchState>, std::string> applyThriftConfigDefault(
+  const std::shared_ptr<SwitchState> state,
+  const Platform* platform);
 
 }} // facebook::fboss
