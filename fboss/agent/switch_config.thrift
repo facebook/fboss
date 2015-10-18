@@ -44,7 +44,10 @@ enum PortSpeed {
   DEFAULT = 0;                  // Default for that port defined by HW
   GIGE = 1000;                  // Gig Ethernet
   XG = 10000;                   // 10G
+  TWENTYG = 20000;              // 20G
+  TWENTYFIVEG = 25000;          // 25G
   FORTYG = 40000;               // 40G
+  FIFTYG = 50000;               // 50G
   HUNDREDG = 100000;            // 100G
 }
 

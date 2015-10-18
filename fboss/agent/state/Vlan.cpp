@@ -182,7 +182,7 @@ Vlan* Vlan::modify(std::shared_ptr<SwitchState>* state) {
 }
 
 void Vlan::addPort(PortID id, bool tagged) {
-  writableFields()->ports.insert(make_pair(id, PortID(tagged)));
+  writableFields()->ports.insert(make_pair(id, PortInfo(tagged)));
 }
 
 template class NodeBaseT<Vlan, VlanFields>;

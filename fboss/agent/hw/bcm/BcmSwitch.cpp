@@ -706,14 +706,14 @@ void BcmSwitch::updatePortSpeed(const std::shared_ptr<Port>& oldPort,
     ret = opennsl_port_speed_max(unit_, bcmPort, &speed);
     bcmCheckError(ret, "failed to get max speed for port", newPort->getID());
     break;
+  case cfg::PortSpeed::HUNDREDG:
+  case cfg::PortSpeed::FIFTYG:
   case cfg::PortSpeed::FORTYG:
-    speed = 40000;
-    break;
+  case cfg::PortSpeed::TWENTYFIVEG:
+  case cfg::PortSpeed::TWENTYG:
   case cfg::PortSpeed::XG:
-    speed = 10000;
-    break;
   case cfg::PortSpeed::GIGE:
-    speed = 1000;
+    speed = static_cast<int>(newPort->getSpeed());
     break;
   default:
     throw FbossError("Unsupported speed (", newPort->getSpeed(),
