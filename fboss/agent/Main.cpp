@@ -270,7 +270,7 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   // Start the thrift server
   ThriftServer server;
   server.setTaskExpireTime(std::chrono::milliseconds(
-        thrift_task_expire_timeout * 1000));
+        FLAGS_thrift_task_expire_timeout * 1000));
   server.getEventBaseManager()->setEventBase(&eventBase, false);
   server.setInterface(handler);
   server.setDuplex(true);
