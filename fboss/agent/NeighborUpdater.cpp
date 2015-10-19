@@ -10,12 +10,15 @@
 #include "NeighborUpdater.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/ArpHandler.h"
+#include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/Interface.h"
 #include <folly/futures/Future.h>
 
 using std::chrono::seconds;
@@ -48,22 +51,20 @@ class NeighborUpdaterImpl : private folly::AsyncTimeout {
   NeighborUpdaterImpl(NeighborUpdaterImpl const &) = delete;
   NeighborUpdaterImpl& operator=(NeighborUpdaterImpl const &) = delete;
 
-  // Remove entries that have been pending for too long.
-  shared_ptr<SwitchState>
-  prunePendingEntries(const shared_ptr<SwitchState>& state);
+  template<typename TABLE, typename FUNC>
+  void sendNeighborRequestHelper(const TABLE& table,
+      const shared_ptr<Interface>& intf, const shared_ptr<Vlan>& vlan,
+      FUNC& sendNeighborReq) const;
 
-  bool pendingEntriesExist() const;
+  void sendNeighborRequestForPendingEntriesHit() const;
 
   void timeoutExpired() noexcept override {
-    if (pendingEntriesExist()) {
-      sw_->updateState("Remove pending Arp entries", prunePendingEntries_);
-    }
+    sendNeighborRequestForPendingEntriesHit();
     scheduleTimeout(interval_);
   }
 
   VlanID const vlan_;
   SwSwitch* const sw_{nullptr};
-  StateUpdateFn prunePendingEntries_;
   seconds interval_;
 };
 
@@ -72,9 +73,8 @@ NeighborUpdaterImpl::NeighborUpdaterImpl(VlanID vlan, SwSwitch *sw,
   : AsyncTimeout(sw->getBackgroundEVB()),
     vlan_(vlan),
     sw_(sw),
-    interval_(state->getArpAgerInterval()) {
-  prunePendingEntries_ = std::bind(&NeighborUpdaterImpl::prunePendingEntries,
-                                   this, std::placeholders::_1);
+    // Check for hit pending entries every 1 sec
+    interval_(1) {
 }
 
 void NeighborUpdaterImpl::start(void* arg) {
@@ -93,43 +93,45 @@ void NeighborUpdaterImpl::stateChanged(const StateDelta& delta) {
   // values on the fly
 }
 
-shared_ptr<SwitchState>
-NeighborUpdaterImpl::prunePendingEntries(const shared_ptr<SwitchState>& state) {
-  shared_ptr<SwitchState> newState{state};
+template<typename TABLE, typename FUNC>
+void NeighborUpdaterImpl::sendNeighborRequestHelper(
+    const TABLE& table, const shared_ptr<Interface>& intf,
+    const shared_ptr<Vlan>& vlan, FUNC& sendNeighborReq) const {
 
-  bool modified = false;
-  auto vlanIf = state->getVlans()->getVlanIf(vlan_);
-  if (vlanIf) {
-    auto vlan = vlanIf.get();
-
-    auto arpTable = vlan->getArpTable().get();
-    if (arpTable->hasPendingEntries()) {
-      auto newArpTable = arpTable->modify(&vlan, &newState);
-      if (newArpTable->prunePendingEntries()) {
-        modified = true;
-      }
-    }
-
-    auto ndpTable = vlan->getNdpTable().get();
-    if (ndpTable->hasPendingEntries()) {
-      auto newNdpTable = ndpTable->modify(&vlan, &newState);
-      if (newNdpTable->prunePendingEntries()) {
-        modified = true;
-      }
+  for (const auto& entry : table) {
+    if (entry->isPending() &&
+      sw_->getAndClearNeighborHit(intf->getRouterID(),
+        folly::IPAddress(entry->getIP()))) {
+      VLOG (4) << " Pending neighbor entry for " << entry->getIP()
+        << " was hit, sending neighbor request ";
+      sendNeighborReq(intf, vlan, entry.get(), sw_);
     }
   }
-  return modified ? newState : nullptr;
 }
 
-bool NeighborUpdaterImpl::pendingEntriesExist() const {
+void NeighborUpdaterImpl::sendNeighborRequestForPendingEntriesHit() const {
+  static auto sendArpReq = [=] (const shared_ptr<Interface>& intf,
+      const shared_ptr<Vlan>& vlan, const ArpEntry* entry, SwSwitch* sw) {
+      auto source = intf->getAddressToReach(entry->getIP())->first.asV4();
+      sw->getArpHandler()->sendArpRequest(vlan, intf, source,
+          entry->getIP());
+  };
+  static auto sendNdpReq = [=] (const shared_ptr<Interface>& intf,
+      const shared_ptr<Vlan>& vlan, const NdpEntry* entry, SwSwitch* sw) {
+      sw->getIPv6Handler()->sendNeighborSolicitation(entry->getIP(),
+          intf, vlan);
+  };
   auto state = sw_->getState();
-  auto vlan = state->getVlans()->getVlanIf(vlan_);
-  if (!vlan) {
-    return false;
+  const auto&  vlanMap = state->getVlans();
+  for (auto& intf: *state->getInterfaces()) {
+    auto vlan = vlanMap->getVlan(intf->getVlanID());
+    // all interfaces must have a valid vlan
+    CHECK(vlan);
+    // Send arp for pending ARP entries that were hit
+    sendNeighborRequestHelper(*vlan->getArpTable(), intf, vlan, sendArpReq);
+    // Send ndp for pending NDP entries that were hit
+    sendNeighborRequestHelper(*vlan->getNdpTable(), intf, vlan, sendNdpReq);
   }
-  auto arpTable = vlan->getArpTable();
-  auto ndpTable = vlan->getNdpTable();
-  return arpTable->hasPendingEntries() || ndpTable->hasPendingEntries();
 }
 
 NeighborUpdater::NeighborUpdater(SwSwitch* sw)

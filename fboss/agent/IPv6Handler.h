@@ -46,6 +46,9 @@ class IPv6Handler : public AutoRegisterStateObserver {
 
   uint32_t flushNdpEntryBlocking(folly::IPAddressV6, VlanID vlan);
   void floodNeighborAdvertisements();
+  void sendNeighborSolicitation(const folly::IPAddressV6& targetIP,
+                                const std::shared_ptr<Interface> intf,
+                                const std::shared_ptr<Vlan> vlan);
 
  private:
   struct ICMPHeaders;
@@ -98,9 +101,6 @@ class IPv6Handler : public AutoRegisterStateObserver {
                       const RxPacket* pkt) const;
 
   void sendNeighborSolicitations(const folly::IPAddressV6& targetIP);
-  void sendNeighborSolicitation(const folly::IPAddressV6& targetIP,
-                                const std::shared_ptr<Interface> intf,
-                                const std::shared_ptr<Vlan> vlan);
   void sendNeighborAdvertisement(VlanID vlan,
                                  folly::MacAddress srcMac,
                                  folly::IPAddressV6 srcIP,
