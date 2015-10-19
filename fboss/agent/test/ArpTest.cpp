@@ -1045,25 +1045,6 @@ TEST(ArpTest, PendingArpCleanup) {
     ->getEntryIf(targetIP2);
   EXPECT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), true);
-
- // Wait for pending entries to expire
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(testing::AtLeast(1));
-  std::promise<bool> done;
-  auto* evb = sw->getBackgroundEVB();
-  evb->runInEventBaseThread([&]() {
-      evb->tryRunAfterDelay([&]() {
-        done.set_value(true);
-      }, 1050);
-    });
-  done.get_future().wait();
-
-  // Entries should be removed
-  entry = sw->getState()->getVlans()->getVlanIf(vlanID)->getArpTable()
-    ->getEntryIf(targetIP);
-  auto entry2 = sw->getState()->getVlans()->getVlanIf(vlanID)->getArpTable()
-    ->getEntryIf(targetIP2);
-  EXPECT_EQ(entry, nullptr);
-  EXPECT_EQ(entry2, nullptr);
 }
 
 TEST(ArpTest, ArpTableSerialization) {

@@ -871,25 +871,4 @@ TEST(NDP, PendingNdpCleanup) {
   EXPECT_EQ(entry->isPending(), true);
   EXPECT_NE(entry2, nullptr);
   EXPECT_EQ(entry2->isPending(), true);
-
- // Wait for pending entries to expire
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
-  std::promise<bool> done;
-  auto* evb = sw->getBackgroundEVB();
-  evb->runInEventBaseThread([&]() {
-      evb->tryRunAfterDelay([&]() {
-        done.set_value(true);
-      }, 1050);
-    });
-  done.get_future().wait();
-
-  // Entries should be removed
-  auto ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
-  entry = ndpTable->getEntryIf(IPAddressV6("2401:db00:2110:3004::1:0"));
-  entry2 = ndpTable->getEntryIf(IPAddressV6("2401:db00:2110:3004::1"));
-  auto entry3 = ndpTable->getEntryIf(IPAddressV6("2401:db00:2110:3004::2"));
-  EXPECT_EQ(entry, nullptr);
-  EXPECT_EQ(entry2, nullptr);
-  EXPECT_EQ(entry3, nullptr);
-  EXPECT_NE(sw, nullptr);
 };
