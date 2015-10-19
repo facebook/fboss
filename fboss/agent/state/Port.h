@@ -18,6 +18,8 @@
 
 namespace facebook { namespace fboss {
 
+class SwitchState;
+
 struct PortFields {
   struct VlanInfo {
     explicit VlanInfo(bool emitTags) : tagged(emitTags) {}
@@ -142,6 +144,8 @@ class Port : public NodeBaseT<Port, PortFields> {
   void setMaxSpeed(cfg::PortSpeed maxSpeed) {
     writableFields()->maxSpeed = maxSpeed;
   }
+
+  Port* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()

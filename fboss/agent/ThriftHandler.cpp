@@ -482,6 +482,31 @@ void ThriftHandler::getPortStatus(map<int32_t, PortStatus>& statusMap,
   }
 }
 
+void ThriftHandler::setPortState(int32_t portNum, bool enable) {
+  ensureConfigured();
+  PortID portId = PortID(portNum);
+  const auto port = sw_->getState()->getPorts()->getPortIf(portId);
+  if (!port) {
+    throw FbossError("no such port ", portNum);
+  }
+
+  cfg::PortState newPortState =
+    enable? cfg::PortState::UP: cfg::PortState::DOWN;
+
+  if (port->getState() == newPortState) {
+    VLOG(2) << "setPortState: port already in state " << (enable? "UP": "DOWN");
+    return;
+  }
+
+  auto updateFn = [=](const shared_ptr<SwitchState>& state) {
+    shared_ptr<SwitchState> newState{state};
+    auto newPort = port->modify(&newState);
+    newPort->setState(newPortState);
+    return newState;
+  };
+  sw_->updateStateBlocking("set port state", updateFn);
+}
+
 void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& route) {
   ensureConfigured();
   for (const auto& routeTable : (*sw_->getState()->getRouteTables())) {

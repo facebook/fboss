@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/state/PortMap.h"
 
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/NodeMap-defs.h"
 
@@ -22,6 +23,19 @@ PortMap::~PortMap() {
 
 void PortMap::registerPort(PortID id, const std::string& name) {
   addNode(std::make_shared<Port>(id, name));
+}
+
+PortMap* PortMap::modify(std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  SwitchState::modify(state);
+  auto newPorts = clone();
+  auto* ptr = newPorts.get();
+  (*state)->resetPorts(std::move(newPorts));
+  return ptr;
 }
 
 FBOSS_INSTANTIATE_NODE_MAP(PortMap, PortMapTraits);

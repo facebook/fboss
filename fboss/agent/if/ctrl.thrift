@@ -241,13 +241,28 @@ service FbossCtrl extends fb303.FacebookService {
     throws (1: fboss.FbossBaseError error)
   list<UnicastRoute> getRouteTable()
     throws (1: fboss.FbossBaseError error)
-  map<i32, PortStatus> getPortStatus(1: list<i32> ports)
-    throws (1: fboss.FbossBaseError error)
   InterfaceDetail getInterfaceDetail(1: i32 interfaceId)
     throws (1: fboss.FbossBaseError error)
 
   /*
-   * Returns all interface related stats for given interfaceId
+   * Return the admin and oper state of ports in the list (all ports
+   * if list is empty).
+   */
+  map<i32, PortStatus> getPortStatus(1: list<i32> ports)
+    throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Administratively enable/disable a port.  Useful to temporarily change
+   * the admin state of a port, for example to simulate a link flap.  This
+   * does not affect the configuraton, so the port will return to configured
+   * state after, for example, restart.
+   */
+  void setPortState(1: i32 portId, 2: bool enable)
+    throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Return info related to the port including name, description, speed,
+   * counters, ...
    */
   PortInfoThrift getPortInfo(1: i32 portId)
     throws (1: fboss.FbossBaseError error)

@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/SwitchState.h"
 #include <folly/Conv.h>
 
 #include "fboss/agent/state/NodeBase-defs.h"
@@ -96,6 +97,19 @@ Port::Port(PortID id, const std::string& name)
 void Port::initDefaultConfig(cfg::Port* config) const {
   config->logicalID = getID();
   config->state = cfg::PortState::DOWN;
+}
+
+Port* Port::modify(std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  PortMap* ports = (*state)->getPorts()->modify(state);
+  auto newPort = clone();
+  auto* ptr = newPort.get();
+  ports->updatePort(std::move(newPort));
+  return ptr;
 }
 
 template class NodeBaseT<Port, PortFields>;

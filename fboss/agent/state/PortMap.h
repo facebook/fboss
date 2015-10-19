@@ -14,6 +14,7 @@
 
 namespace facebook { namespace fboss {
 
+class SwitchState;
 class Port;
 typedef NodeMapTraits<PortID, Port> PortMapTraits;
 
@@ -47,6 +48,13 @@ class PortMap : public NodeMapT<PortMap, PortMapTraits> {
   void addPort(const std::shared_ptr<Port>& port) {
     addNode(port);
   }
+
+  void updatePort(const std::shared_ptr<Port>& port) {
+    updateNode(port);
+  }
+
+  PortMap* modify(std::shared_ptr<SwitchState>* state);
+
 
  private:
   // Inherit the constructors required for clone()

@@ -94,6 +94,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getPortStatus(std::map<int32_t, PortStatus>& status,
                      std::unique_ptr<std::vector<int32_t>> ports)
                      override;
+  void setPortState(int32_t portId, bool enable) override;
   void getInterfaceDetail(InterfaceDetail& interfaceDetails,
                                           int32_t interfaceId) override;
   void getPortInfo(PortInfoThrift& portInfo, int32_t portId) override;
