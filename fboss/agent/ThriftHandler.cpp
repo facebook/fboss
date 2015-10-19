@@ -485,9 +485,9 @@ void ThriftHandler::getPortStatus(map<int32_t, PortStatus>& statusMap,
 void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& route) {
   ensureConfigured();
   for (const auto& routeTable : (*sw_->getState()->getRouteTables())) {
-    for (const auto& ipv4Rib : routeTable->getRibV4()->getAllNodes()) {
+    for (const auto& ipv4Rib : routeTable->getRibV4()->routes()) {
       UnicastRoute tempRoute;
-      auto ipv4 = ipv4Rib.second.get();
+      auto ipv4 = ipv4Rib.value().get();
       auto fwdInfo = ipv4->getForwardInfo();
       tempRoute.dest.ip = toBinaryAddress(ipv4->prefix().network);
       tempRoute.dest.prefixLength = ipv4->prefix().mask;
@@ -497,9 +497,9 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& route) {
       }
       route.push_back(tempRoute);
     }
-    for (const auto& ipv6Rib : routeTable->getRibV6()->getAllNodes()) {
+    for (const auto& ipv6Rib : routeTable->getRibV6()->routes()) {
       UnicastRoute tempRoute;
-      auto ipv6 = ipv6Rib.second.get();
+      auto ipv6 = ipv6Rib.value().get();
       auto fwdInfo = ipv6->getForwardInfo();
       tempRoute.dest.ip = toBinaryAddress(
                                                      ipv6->prefix().network);

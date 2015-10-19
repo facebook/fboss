@@ -14,20 +14,45 @@
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableMap.h"
 
+
 namespace facebook { namespace fboss {
 
 class RouteTablesDelta : public DeltaValue<RouteTable> {
  public:
-  typedef NodeMapDelta<RouteTableRib<folly::IPAddressV4>> RoutesV4Delta;
-  typedef NodeMapDelta<RouteTableRib<folly::IPAddressV6>> RoutesV6Delta;
+  using NodeMapRibV4 = RouteTableRibNodeMap<folly::IPAddressV4>;
+  using NodeMapRibV6 = RouteTableRibNodeMap<folly::IPAddressV6>;
+  using RoutesV4Delta = NodeMapDelta<NodeMapRibV4,
+        DeltaValue<NodeMapRibV4::Node>,
+        MapUniquePointerTraits<NodeMapRibV4>>;
+  using RoutesV6Delta = NodeMapDelta<NodeMapRibV6,
+        DeltaValue<NodeMapRibV6::Node>,
+        MapUniquePointerTraits<NodeMapRibV6>>;
+
   using DeltaValue<RouteTable>::DeltaValue;
+
   RoutesV4Delta getRoutesV4Delta() const {
-    return RoutesV4Delta(getOld() ? getOld()->getRibV4().get() : nullptr,
-                         getNew() ? getNew()->getRibV4().get() : nullptr);
+    std::unique_ptr<NodeMapRibV4> oldRib, newRib;
+    if (getOld()) {
+      oldRib.reset(new NodeMapRibV4());
+      oldRib->addRoutes(*(getOld()->getRibV4()));
+    }
+    if (getNew()) {
+      newRib.reset(new NodeMapRibV4());
+      newRib->addRoutes(*(getNew()->getRibV4()));
+    }
+    return RoutesV4Delta(std::move(oldRib), std::move(newRib));
   }
-  RoutesV6Delta getRoutesV6Delta() const {
-    return RoutesV6Delta(getOld() ? getOld()->getRibV6().get() : nullptr,
-                         getNew() ? getNew()->getRibV6().get() : nullptr);
+  RoutesV6Delta getRoutesV6Delta()  const {
+    std::unique_ptr<NodeMapRibV6> oldRib, newRib;
+    if (getOld()) {
+      oldRib.reset(new NodeMapRibV6());
+      oldRib->addRoutes(*(getOld()->getRibV6()));
+    }
+    if (getNew()) {
+      newRib.reset(new NodeMapRibV6());
+      newRib->addRoutes(*(getNew()->getRibV6()));
+    }
+    return RoutesV6Delta(std::move(oldRib), std::move(newRib));
   }
 };
 

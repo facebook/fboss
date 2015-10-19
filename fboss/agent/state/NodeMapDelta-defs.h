@@ -13,15 +13,16 @@
 
 namespace facebook { namespace fboss {
 
-template<typename MAP, typename VALUE>
+template<typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
 std::shared_ptr<typename MAP::Node>
-  NodeMapDelta<MAP, VALUE>::Iterator::nullNode_;
+  NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator::nullNode_;
 
-template<typename MAP, typename VALUE>
-NodeMapDelta<MAP, VALUE>::Iterator::Iterator(const MapType* oldMap,
-                                             typename MapType::Iterator oldIt,
-                                             const MapType* newMap,
-                                             typename MapType::Iterator newIt)
+template<typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
+NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator::Iterator(
+    const MapType* oldMap,
+    typename MapType::Iterator oldIt,
+    const MapType* newMap,
+    typename MapType::Iterator newIt)
   : oldIt_(oldIt),
     newIt_(newIt),
     oldMap_(oldMap),
@@ -37,8 +38,8 @@ NodeMapDelta<MAP, VALUE>::Iterator::Iterator(const MapType* oldMap,
   updateValue();
 }
 
-template<typename MAP, typename VALUE>
-NodeMapDelta<MAP, VALUE>::Iterator::Iterator()
+template<typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
+NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator::Iterator()
   : oldIt_(),
     newIt_(),
     oldMap_(nullptr),
@@ -46,8 +47,8 @@ NodeMapDelta<MAP, VALUE>::Iterator::Iterator()
     value_(nullNode_, nullNode_) {
 }
 
-template<typename MAP, typename VALUE>
-void NodeMapDelta<MAP, VALUE>::Iterator::updateValue() {
+template<typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
+void NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator::updateValue() {
   if (oldIt_ == oldMap_->end()) {
     if (newIt_ == newMap_->end()) {
       value_.reset(nullNode_, nullNode_);
@@ -71,8 +72,8 @@ void NodeMapDelta<MAP, VALUE>::Iterator::updateValue() {
   }
 }
 
-template<typename MAP, typename VALUE>
-void NodeMapDelta<MAP, VALUE>::Iterator::advance() {
+template<typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
+void NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator::advance() {
   // If we have already hit the end of one side, advance the other.
   // We are immediately done after this.
   if (oldIt_ == oldMap_->end()) {

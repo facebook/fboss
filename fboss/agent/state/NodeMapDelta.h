@@ -21,6 +21,34 @@ namespace facebook { namespace fboss {
 template<typename NODE>
 class DeltaValue;
 
+template<typename MAP>
+class MapPointerTraits {
+ public:
+   using RawConstPointerType = const MAP*;
+   // Embed const in MapPointerType for raw pointers.
+   // Since we want to use both raw and unique_ptr,
+   // we don't want to add const to the Map pointer type
+   // in function declarations, where we will want to move
+   // from unique_ptr (moving from const unique_ptr is not
+   // permitted since its a modifying operation).
+   using MapPointerType = const MAP*;
+   static RawConstPointerType getRawPointer(MapPointerType map) {
+      return map;
+   }
+};
+
+template <typename MAP>
+class MapUniquePointerTraits {
+ public:
+   using RawConstPointerType = const MAP*;
+   // Non const MapPointer type, const unique_ptr is
+   // severly restrictive when received as a function
+   // argument, since it can't be moved from.
+   using MapPointerType = std::unique_ptr<MAP>;
+   static RawConstPointerType getRawPointer(const MapPointerType& map) {
+      return map.get();
+   }
+};
 /*
  * NodeMapDelta contains code for examining the differences between two NodeMap
  * objects.
@@ -28,22 +56,25 @@ class DeltaValue;
  * The main function of this class is the Iterator that it provides.  This
  * allows caller to walk over the changed, added, and removed nodes.
  */
-template<typename MAP, typename VALUE = DeltaValue<typename MAP::Node>>
+template<typename MAP,
+  typename VALUE = DeltaValue<typename MAP::Node>,
+  typename MAPPOINTERTRAITS = MapPointerTraits<MAP>>
 class NodeMapDelta {
  public:
-  typedef MAP MapType;
-  typedef typename MAP::Node Node;
+  using MapPointerType = typename MAPPOINTERTRAITS::MapPointerType;
+  using RawConstPointerType = typename MAPPOINTERTRAITS::RawConstPointerType;
+  using Node = typename MAP::Node;
   class Iterator;
 
-  NodeMapDelta(const MapType* oldMap, const MapType* newMap)
-    : old_(oldMap),
-      new_(newMap) {}
+  NodeMapDelta(MapPointerType&& oldMap, MapPointerType&& newMap)
+    : old_(std::move(oldMap)),
+      new_(std::move(newMap)) {}
 
-  const MapType* getOld() const {
-    return old_;
+  RawConstPointerType getOld() const {
+    return MAPPOINTERTRAITS::getRawPointer(old_);
   }
-  const MapType* getNew() const {
-    return new_;
+  RawConstPointerType getNew() const {
+    return MAPPOINTERTRAITS::getRawPointer(new_);
   }
 
   /*
@@ -58,12 +89,17 @@ class NodeMapDelta {
 
  private:
   /*
-   * Note that we assume NodeMapDelta is always used by StateDelta.  StateDelta
-   * holds a shared_ptr to the old and new SwitchState objects, so that we can
-   * use raw pointers here, rather than shared_ptrs.
+   * NodeMapDelta is used by StateDelta.  StateDelta holds a shared_ptr to
+   * the old and new SwitchState objects, which in turn holds
+   * shared_ptrs to NodeMaps, hence in the common case use raw pointers here
+   * and don't bother with ownership. However there are cases where collections
+   * are not easily mapped to a NodeMap structure, but we still want to box
+   * them into a NodeMap while computing delta. In this case NodeMap is created
+   * on the fly and we pass ownership to NodeMapDelta object via a unique_ptr.
+   * See MapPointerTraits and MapUniquePointerTraits classes for details.
    */
-  const MapType* old_;
-  const MapType* new_;
+  MapPointerType old_;
+  MapPointerType new_;
 };
 
 template<typename NODE>
@@ -102,8 +138,8 @@ class DeltaValue {
  * An iterator for walking over the Nodes that changed between the two
  * NodeMaps.
  */
-template<typename MAP, typename VALUE>
-class NodeMapDelta<MAP, VALUE>::Iterator {
+template<typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
+class NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator {
  public:
   typedef MAP MapType;
   typedef typename MAP::Node Node;
@@ -161,9 +197,9 @@ class NodeMapDelta<MAP, VALUE>::Iterator {
   static std::shared_ptr<Node> nullNode_;
 };
 
-template<typename MAP, typename VALUE>
-typename NodeMapDelta<MAP, VALUE>::Iterator
-NodeMapDelta<MAP, VALUE>::begin() const {
+template<typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
+typename NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator
+NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::begin() const {
   if (old_ == new_) {
     return end();
   }
@@ -171,25 +207,25 @@ NodeMapDelta<MAP, VALUE>::begin() const {
   // nodes), point the old side of the iterator at the new node, but start it
   // at the end of the map.
   if (!old_) {
-    return Iterator(new_, new_->end(), new_, new_->begin());
+    return Iterator(getNew(), new_->end(), getNew(), new_->begin());
   }
   // And vice-versa for the new node being null (to represent removed nodes).
   if (!new_) {
-    return Iterator(old_, old_->begin(), old_, old_->end());
+    return Iterator(getOld(), old_->begin(), getOld(), old_->end());
   }
-  return Iterator(old_, old_->begin(), new_, new_->begin());
+  return Iterator(getOld(), old_->begin(), getNew(), new_->begin());
 }
 
-template<typename MAP, typename VALUE>
-typename NodeMapDelta<MAP, VALUE>::Iterator
-NodeMapDelta<MAP, VALUE>::end() const {
+template<typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
+typename NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator
+NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::end() const {
   if (!old_) {
-    return Iterator(new_, new_->end(), new_, new_->end());
+    return Iterator(getNew(), new_->end(), getNew(), new_->end());
   }
   if (!new_) {
-    return Iterator(old_, old_->end(), old_, old_->end());
+    return Iterator(getOld(), old_->end(), getOld(), old_->end());
   }
-  return Iterator(old_, old_->end(), new_, new_->end());
+  return Iterator(getOld(), old_->end(), getNew(), new_->end());
 }
 
 }} // facebook::fboss

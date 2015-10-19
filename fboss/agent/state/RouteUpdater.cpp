@@ -314,8 +314,8 @@ void RouteUpdater::resolve(RouteT* route, RtRibT* rib, ClonedRib* ribCloned) {
 
 template<typename RibT>
 void RouteUpdater::setRoutesWithNhopsForResolution(RibT* rib) {
-  for (auto& rt : rib->getAllNodes()) {
-    auto route = rt.second.get();
+  for (auto& rt : rib->routes()) {
+    auto route = rt.value().get();
     if (route->isWithNexthops()) {
       if (route->isPublished()) {
         auto newRoute = route->clone(RibT::RouteType::Fields::COPY_ONLY_PREFIX);
@@ -331,8 +331,8 @@ void RouteUpdater::setRoutesWithNhopsForResolution(RibT* rib) {
 namespace {
 template<typename RibT>
 bool allRouteFlagsCleared(const RibT* rib) {
-  for (const auto& rt : rib->getAllNodes()) {
-    const auto route = rt.second.get();
+  for (const auto& rt : rib->routes()) {
+    const auto& route = rt.value();
     if (route->isWithNexthops() && !route->flagsCleared()) {
       return false;
     }
@@ -359,9 +359,9 @@ void RouteUpdater::resolve() {
       } else {
         DCHECK(allRouteFlagsCleared(rib));
       }
-      for (auto& rt : rib->getAllNodes()) {
-        if (rt.second->needResolve()) {
-          resolve(rt.second.get(), rib, &ribCloned.second);
+      for (auto& rt : rib->routes()) {
+        if (rt.value()->needResolve()) {
+          resolve(rt.value().get(), rib, &ribCloned.second);
         }
       }
     }
@@ -375,9 +375,9 @@ void RouteUpdater::resolve() {
       } else {
         DCHECK(allRouteFlagsCleared(rib));
       }
-      for (auto& rt : rib->getAllNodes()) {
-        if (rt.second->needResolve()) {
-          resolve(rt.second.get(), rib, &ribCloned.second);
+      for (auto& rt : rib->routes()) {
+        if (rt.value()->needResolve()) {
+          resolve(rt.value().get(), rib, &ribCloned.second);
         }
       }
     }
@@ -453,38 +453,35 @@ bool RouteUpdater::dedupRoutes(const RibT* oldRib, RibT* newRib) {
   if (oldRib == newRib) {
     return isSame;
   }
-  const auto& oldRoutes = oldRib->getAllNodes();
-  auto& newRoutes = newRib->writableNodes();
-  auto oldIter = oldRoutes.begin();
-  auto newIter = newRoutes.begin();
-  while (oldIter != oldRoutes.end() && newIter != newRoutes.end()) {
-    const auto& oldPrefix = oldIter->first;
-    const auto& newPrefix = newIter->first;
-    if (oldPrefix < newPrefix) {
+  const auto& oldRoutes = oldRib->routes();
+  auto& newRoutes = newRib->writableRoutes();
+  // Copy routes from old route table if they are
+  // same. For matching prefixes, which don't have
+  // same attributes inherit the generation number
+  for (auto oldIter : oldRoutes) {
+    const auto& oldRt = oldIter->value();
+    auto newIter = newRoutes.exactMatch(oldIter->ipAddress(),
+        oldIter->masklen());
+    if (newIter == newRoutes.end()) {
       isSame = false;
-      oldIter++;
       continue;
     }
-    if (oldPrefix > newPrefix) {
-      isSame = false;
-      newIter++;
-      continue;
-    }
-    const auto& oldRt = oldIter->second;
-    auto& newRt = newIter->second;
+    auto& newRt = newIter->value();
     if (oldRt->isSame(newRt.get())) {
-      // both routes are complete same, instead of using the new route,
+      // both routes are completely same, instead of using the new route,
       // we re-use the old route.
-      newIter->second = oldRt;
+      newIter->value() = oldRt;
     } else {
       isSame = false;
       newRt->inheritGeneration(*oldRt);
     }
-    oldIter++;
-    newIter++;
   }
-  if (oldIter != oldRoutes.end() || newIter != newRoutes.end()) {
+  if (newRoutes.size() != oldRoutes.size()) {
     isSame = false;
+  } else {
+    // If sizes are same we would have already caught any
+    // difference while looking up all routes from oldRoutes
+    // in newRoutes, so do nothing
   }
   return isSame;
 }

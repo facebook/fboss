@@ -53,6 +53,9 @@ DEFINE_int32(stat_publish_interval_ms, 1000,
              "How frequently to publish thread-local stats back to the "
              "global store.  This should generally be less than 1 second.");
 DEFINE_int32(thrift_idle_timeout, 60, "Thrift idle timeout in seconds.");
+// Programming 16K routes can take 20+ seconds
+DEFINE_int32(thrift_task_expire_timeout, 30,
+    "Thrift task expire timeout in seconds.");
 DEFINE_bool(tun_intf, true,
             "Create tun interfaces to allow other processes to "
             "send and receive traffic via the switch ports");
@@ -266,6 +269,8 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
 
   // Start the thrift server
   ThriftServer server;
+  server.setTaskExpireTime(std::chrono::milliseconds(
+        thrift_task_expire_timeout * 1000));
   server.getEventBaseManager()->setEventBase(&eventBase, false);
   server.setInterface(handler);
   server.setDuplex(true);

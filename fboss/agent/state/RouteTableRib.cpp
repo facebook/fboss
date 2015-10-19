@@ -12,36 +12,39 @@
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/Route.h"
 
+namespace {
+constexpr auto kRoutes = "routes";
+}
+
 namespace facebook { namespace fboss {
 
-template<typename AddrT>
-RouteTableRib<AddrT>::RouteTableRib() {
-}
+FBOSS_INSTANTIATE_NODE_MAP(RouteTableRibNodeMap<folly::IPAddressV4>,
+                           RouteTableRibNodeMapTraits<folly::IPAddressV4>);
+FBOSS_INSTANTIATE_NODE_MAP(RouteTableRibNodeMap<folly::IPAddressV6>,
+                           RouteTableRibNodeMapTraits<folly::IPAddressV6>);
 
 template<typename AddrT>
-RouteTableRib<AddrT>::~RouteTableRib() {
-}
-
-template<typename AddrT>
-std::shared_ptr<Route<AddrT>> RouteTableRib<AddrT>::longestMatch(
-    const AddrT& nexthop) const {
-  std::shared_ptr<Route<AddrT>> bestMatch;
-  int bestMatchMask = -1;
-  for (const auto& rt : Base::getAllNodes()) {
-    const auto& prefix = rt.first;
-    if (prefix.mask > bestMatchMask
-        && nexthop.inSubnet(prefix.network, prefix.mask)) {
-      bestMatch = rt.second;
-      bestMatchMask = prefix.mask;
-    }
+folly::dynamic RouteTableRib<AddrT>::toFollyDynamic() const {
+  std::vector<folly::dynamic> routesJson;
+  for (const auto& route: rib_) {
+    routesJson.emplace_back(route->value()->toFollyDynamic());
   }
-  return bestMatch;
+  folly::dynamic routes = folly::dynamic::object;
+  routes[kRoutes] = routesJson;
+  return routes;
 }
 
-FBOSS_INSTANTIATE_NODE_MAP(RouteTableRib<folly::IPAddressV4>,
-                           RouteTableRibTraits<folly::IPAddressV4>);
-FBOSS_INSTANTIATE_NODE_MAP(RouteTableRib<folly::IPAddressV6>,
-                           RouteTableRibTraits<folly::IPAddressV6>);
+template<typename AddrT>
+std::shared_ptr<RouteTableRib<AddrT>>
+RouteTableRib<AddrT>::fromFollyDynamic(const folly::dynamic& routes) {
+  auto rib = std::make_shared<RouteTableRib<AddrT>>();
+  auto routesJson = routes[kRoutes];
+  for (const auto& routeJson: routesJson) {
+    rib->addRoute(Route<AddrT>::fromFollyDynamic(routeJson));
+  }
+  return rib;
+}
+
 template class RouteTableRib<folly::IPAddressV4>;
 template class RouteTableRib<folly::IPAddressV6>;
 

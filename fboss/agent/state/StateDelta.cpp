@@ -58,7 +58,7 @@ RTMapDelta StateDelta::getRouteTablesDelta() const {
 template class NodeMapDelta<InterfaceMap>;
 template class NodeMapDelta<PortMap>;
 template class NodeMapDelta<RouteTableMap>;
-template class NodeMapDelta<RouteTableRib<folly::IPAddressV4>>;
-template class NodeMapDelta<RouteTableRib<folly::IPAddressV6>>;
+template class NodeMapDelta<RouteTableRibNodeMap<folly::IPAddressV4>>;
+template class NodeMapDelta<RouteTableRibNodeMap<folly::IPAddressV6>>;
 
 }} // facebook::fboss
