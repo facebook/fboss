@@ -786,23 +786,25 @@ void SwSwitch::linkStateChanged(PortID port, bool up) noexcept {
   if (!isFullyInitialized() || up) {
     return;
   }
-
-  auto state = getState();
-  for (const auto& vlanAutoPtr : *state->getVlans()) {
-    auto vlan = vlanAutoPtr.get();
-    std::vector<std::string> deleted;
-    auto arpTable = vlan->getArpTable().get();
-    auto v4ips = arpTable->getIpsForPort(port);
-    for (const auto& ip : v4ips) {
-      deleted.push_back(folly::to<std::string>(ip));
+  updateState("port down",
+              [=](const std::shared_ptr<SwitchState>& state) {
+    bool modified = false;
+    shared_ptr<SwitchState> newState{state};
+    for (const auto& vlanAutoPtr : *state->getVlans()) {
+      auto vlan = vlanAutoPtr.get();
+      auto arpTable = vlan->getArpTable().get();
+      auto newArpTable = arpTable->modify(&vlan, &newState);
+      if (newArpTable->setEntriesPendingForPort(port)) {
+        modified = true;
+      }
+      auto ndpTable = vlan->getNdpTable().get();
+      auto newNdpTable = ndpTable->modify(&vlan, &newState);
+      if (newNdpTable->setEntriesPendingForPort(port)) {
+        modified = true;
+      }
     }
-    auto ndpTable = vlan->getNdpTable().get();
-    auto v6ips = ndpTable->getIpsForPort(port);
-    for (const auto& ip : v4ips) {
-      deleted.push_back(folly::to<std::string>(ip));
-    }
-    invokeNeighborListener(std::vector<std::string>(), deleted);
-  }
+    return modified ? newState : nullptr;
+  });
 }
 
 void SwSwitch::startThreads() {

@@ -16,5 +16,4 @@ namespace facebook { namespace fboss {
 bool BcmHost::getAndClearHitBit() const {
   return true;
 }
-
 }} // facebook::fboss

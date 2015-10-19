@@ -210,7 +210,6 @@ class HwSwitch {
    */
   virtual bool getAndClearNeighborHit(RouterID vrf,
                                       folly::IPAddress& ip) = 0;
-
  private:
   // Forbidden copy constructor and assignment operator
   HwSwitch(HwSwitch const &) = delete;

@@ -34,8 +34,6 @@ class NeighborUpdater : public AutoRegisterStateObserver {
 
   void stateUpdated(const StateDelta& delta) override;
 
-  void removePortEntries(const SwitchState *state, PortID port);
-
  private:
   void vlanAdded(const SwitchState* state, const Vlan* vlan);
   void vlanDeleted(const Vlan* vlan);

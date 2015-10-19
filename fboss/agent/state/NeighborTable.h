@@ -98,7 +98,11 @@ class NeighborTable
                        InterfaceID intfID);
 
   bool prunePendingEntries();
-  std::vector<IPADDR> getIpsForPort(PortID port) const;
+  /*
+   * Set entries as pending for a given port.
+   * Returns true if any entries were actually changed.
+   */
+  bool setEntriesPendingForPort(PortID port);
 
   bool hasPendingEntries() {
     auto nPending = this->getExtraFields().nPending;
