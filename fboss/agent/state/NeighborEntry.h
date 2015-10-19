@@ -103,6 +103,14 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
   PortID getPort() const {
     return this->getFields()->port;
   }
+
+  bool nonZeroPort() const {
+    return getPort() != PortID(0);
+  }
+  bool zeroPort() const {
+    return !nonZeroPort();
+  }
+
   void setPort(PortID port) {
     this->writableFields()->port = port;
   }

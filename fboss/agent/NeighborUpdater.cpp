@@ -196,6 +196,14 @@ void collectPresenceChange(const T& delta,
       deleted->push_back(folly::to<std::string>(oldEntry->getIP()));
     } else if (newEntry && !oldEntry) {
       added->push_back(folly::to<std::string>(newEntry->getIP()));
+    } else {
+      if (oldEntry->zeroPort() && newEntry->nonZeroPort()) {
+        // Entry was resolved, add it
+        added->push_back(folly::to<std::string>(newEntry->getIP()));
+      } else if (oldEntry->nonZeroPort() && newEntry->zeroPort()) {
+        // Entry became unresolved, prune it
+        deleted->push_back(folly::to<std::string>(oldEntry->getIP()));
+      }
     }
   }
 }
