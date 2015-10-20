@@ -113,13 +113,11 @@ void NeighborUpdaterImpl::sendNeighborRequestForPendingEntriesHit() const {
   static auto sendArpReq = [=] (const shared_ptr<Interface>& intf,
       const shared_ptr<Vlan>& vlan, const ArpEntry* entry, SwSwitch* sw) {
       auto source = intf->getAddressToReach(entry->getIP())->first.asV4();
-      sw->getArpHandler()->sendArpRequest(vlan, intf, source,
-          entry->getIP());
+      sw->getArpHandler()->sendArpRequest(vlan, source, entry->getIP());
   };
   static auto sendNdpReq = [=] (const shared_ptr<Interface>& intf,
       const shared_ptr<Vlan>& vlan, const NdpEntry* entry, SwSwitch* sw) {
-      sw->getIPv6Handler()->sendNeighborSolicitation(entry->getIP(),
-          intf, vlan);
+      sw->getIPv6Handler()->sendNeighborSolicitation(entry->getIP(), vlan);
   };
   auto state = sw_->getState();
   const auto&  vlanMap = state->getVlans();
