@@ -56,6 +56,15 @@ TEST(Port, applyConfig) {
   config.vlanPorts[1].logicalPort = 1;
   config.vlanPorts[1].vlanID = 5;
   config.vlanPorts[1].emitTags = true;
+  config.interfaces.resize(2);
+  config.interfaces[0].intfID = 2;
+  config.interfaces[0].vlanID = 2;
+  config.interfaces[0].__isset.mac = true;
+  config.interfaces[0].mac = "00:00:00:00:00:22";
+  config.interfaces[1].intfID = 5;
+  config.interfaces[1].vlanID = 5;
+  config.interfaces[1].__isset.mac = true;
+  config.interfaces[1].mac = "00:00:00:00:00:55";
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
   auto portV1 = stateV1->getPort(PortID(1));

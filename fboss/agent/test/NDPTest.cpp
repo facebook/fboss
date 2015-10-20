@@ -55,10 +55,11 @@ const MacAddress kPlatformMac("02:01:02:03:04:05");
 cfg::SwitchConfig createSwitchConfig(seconds raInterval, seconds ndpInterval) {
   // Create a thrift config to use
   cfg::SwitchConfig config;
-  config.vlans.resize(2);
+  config.vlans.resize(1);
   config.vlans[0].name = "PrimaryVlan";
   config.vlans[0].id = 5;
   config.vlans[0].routable = true;
+  config.vlans[0].intfID = 1234;
 
   config.vlanPorts.resize(10);
   config.ports.resize(10);

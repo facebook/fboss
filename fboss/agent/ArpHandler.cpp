@@ -119,8 +119,7 @@ void ArpHandler::handlePacket(unique_ptr<RxPacket> pkt,
 
   // This ARP packet is destined to us.
   // Update the sender IP --> sender MAC entry in the ARP table.
-  updateArpEntry(vlan, senderIP, senderMac, pkt->getSrcPort(),
-                 entry.value().interfaceID);
+  updateArpEntry(vlan, senderIP, senderMac, pkt->getSrcPort());
 
   // Send a reply if this is an ARP request.
   if (op == ARP_OP_REQUEST) {
@@ -255,13 +254,15 @@ void ArpHandler::sendArpReply(VlanID vlan,
 }
 
 void ArpHandler::sendArpRequest(shared_ptr<Vlan> vlan,
-                                shared_ptr<Interface> intf,
                                 IPAddressV4 senderIP,
                                 IPAddressV4 targetIP) {
   sw_->stats()->arpRequestTx();
+  auto intf = sw_->getState()->getInterfaces()
+              ->getInterfaceInVlan(vlan->getID());
+
   sendArp(sw_, vlan->getID(), ARP_OP_REQUEST, intf->getMac(), senderIP,
           MacAddress::BROADCAST, targetIP);
-  setPendingArpEntry(intf->getID(), vlan, targetIP);
+  setPendingArpEntry(vlan, targetIP);
 }
 
 void ArpHandler::updateExistingArpEntry(const shared_ptr<Vlan>& origVlan,
@@ -288,9 +289,10 @@ void ArpHandler::updateExistingArpEntry(const shared_ptr<Vlan>& origVlan,
                     entry->getIntfID(), false);
 }
 
-void ArpHandler::setPendingArpEntry(InterfaceID intfID, shared_ptr<Vlan> vlan,
+void ArpHandler::setPendingArpEntry(shared_ptr<Vlan> vlan,
                                     IPAddressV4 ip) {
   auto vlanID = vlan->getID();
+  auto intfID = vlan->getInterfaceID();
   VLOG(4) << "setting pending entry on vlan " << vlanID << " with ip "
           << ip.str() << " and intf " << intfID;
 
@@ -346,13 +348,14 @@ void ArpHandler::setPendingArpEntry(InterfaceID intfID, shared_ptr<Vlan> vlan,
 void ArpHandler::updateArpEntry(const shared_ptr<Vlan>& origVlan,
                                 IPAddressV4 ip,
                                 MacAddress mac,
-                                PortID port,
-                                InterfaceID intfID) {
+                                PortID port) {
   // Perform an initial check to see if we need to do anything.
   // In the common case the entry will already be up-to-date and we don't need
   // to do anything.
   auto arpTable = origVlan->getArpTable();
   auto entry = arpTable->getNodeIf(ip);
+  auto intfID = origVlan->getInterfaceID();
+
   if (entry &&
       entry->getMac() == mac &&
       entry->getPort() == port &&

@@ -55,6 +55,7 @@ struct VlanFields {
   VlanFields(VlanID id, std::string name);
   VlanFields(VlanID id,
              std::string name,
+             InterfaceID intfID,
              folly::IPAddressV4 dhcpV4Relay,
              folly::IPAddressV6 dhcpV6Relay,
              MemberPorts&& ports);
@@ -72,6 +73,7 @@ struct VlanFields {
 
   const VlanID id{0};
   std::string name;
+  InterfaceID intfID{0};
   folly::IPAddressV4 dhcpV4Relay;
   folly::IPAddressV6 dhcpV6Relay;
   DhcpV4OverrideMap dhcpRelayOverridesV4;
@@ -120,6 +122,14 @@ class Vlan : public NodeBaseT<Vlan, VlanFields> {
 
   const std::string& getName() const {
     return getFields()->name;
+  }
+
+  InterfaceID getInterfaceID() const {
+    return getFields()->intfID;
+  }
+
+  void setInterfaceID(InterfaceID intfID ) {
+    writableFields()->intfID = intfID;
   }
 
   void setName(std::string name) {

@@ -41,7 +41,6 @@ class ArpHandler {
                     folly::MacAddress src,
                     folly::io::Cursor cursor);
   void sendArpRequest(std::shared_ptr<Vlan> vlan,
-                      std::shared_ptr<Interface> intf,
                       folly::IPAddressV4 senderIP,
                       folly::IPAddressV4 targetIP);
 
@@ -68,9 +67,8 @@ class ArpHandler {
   void updateArpEntry(const std::shared_ptr<Vlan>& vlan,
                       folly::IPAddressV4 ip,
                       folly::MacAddress mac,
-                      PortID port,
-                      InterfaceID intfID);
-  void setPendingArpEntry(InterfaceID intf, std::shared_ptr<Vlan> vlan,
+                      PortID port);
+  void setPendingArpEntry(std::shared_ptr<Vlan> vlan,
                           folly::IPAddressV4 ip);
   void arpUpdateRequired(VlanID vlanID,
                          folly::IPAddressV4 ip,

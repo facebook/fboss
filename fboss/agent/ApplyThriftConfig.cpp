@@ -179,17 +179,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       changed = true;
     }
   }
-
-  // Make sure all interfaces refer to valid VLANs.
   auto newVlans = newState->getVlans();
-  for (const auto& vlanInfo : vlanInterfaces_) {
-    if (newVlans->getVlanIf(vlanInfo.first) == nullptr) {
-      throw FbossError("Interface ",
-                       *(vlanInfo.second.interfaces.begin()),
-                       " refers to non-existent VLAN ", vlanInfo.first);
-    }
-  }
-
   VlanID dfltVlan(cfg_->defaultVlan);
   if (orig_->getDefaultVlan() != dfltVlan) {
     if (newVlans->getVlanIf(dfltVlan) == nullptr) {
@@ -197,6 +187,25 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
     newState->setDefaultVlan(dfltVlan);
     changed = true;
+  }
+
+  // Make sure all interfaces refer to valid VLANs.
+  for (const auto& vlanInfo : vlanInterfaces_) {
+    if (newVlans->getVlanIf(vlanInfo.first) == nullptr) {
+      throw FbossError("Interface ",
+                       *(vlanInfo.second.interfaces.begin()),
+                       " refers to non-existent VLAN ", vlanInfo.first);
+    }
+    // Make sure there is a one-to-one map between vlan and interface
+    // Remove this sanity check if multiple interfaces are allowed per vlans
+    auto& entry = vlanInterfaces_[vlanInfo.first];
+    if (entry.interfaces.size() != 1) {
+      auto cpu_vlan = newState->getDefaultVlan();
+      if (vlanInfo.first != cpu_vlan) {
+        throw FbossError("Vlan ", vlanInfo.first, " refers to ",
+                       entry.interfaces.size(), " interfaces ");
+      }
+   }
   }
 
   std::chrono::seconds arpAgerInterval(cfg_->arpAgerInterval);
@@ -383,6 +392,17 @@ shared_ptr<Vlan> ThriftConfigApplier::createVlan(const cfg::Vlan* config) {
   auto vlan = make_shared<Vlan>(config, ports);
   updateNeighborResponseTables(vlan.get(), config);
   updateDhcpOverrides(vlan.get(), config);
+
+  /* TODO t7153326: Following code is added for backward compatibility
+  Remove it once coop generates config with */
+  if (config->__isset.intfID) {
+    vlan->setInterfaceID(InterfaceID(config->intfID));
+  } else {
+    auto& entry = vlanInterfaces_[VlanID(config->id)];
+    if (!entry.interfaces.empty()) {
+      vlan->setInterfaceID(*(entry.interfaces.begin()));
+    }
+  }
   return vlan;
 }
 
@@ -403,8 +423,21 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(const shared_ptr<Vlan>& orig,
   auto newDhcpV6Relay = config->__isset.dhcpRelayAddressV6 ?
     IPAddressV6(config->dhcpRelayAddressV6) : IPAddressV6("::");
 
+  /* TODO t7153326: Following code is added for backward compatibility
+  Remove it once coop generates config with intfID */
+  auto oldIntfID = orig->getInterfaceID();
+  auto newIntfID = InterfaceID(0);
+  if (config->__isset.intfID) {
+    newIntfID = InterfaceID(config->intfID);
+  } else {
+    auto& entry = vlanInterfaces_[VlanID(config->id)];
+    if (!entry.interfaces.empty()) {
+      newIntfID = *(entry.interfaces.begin());
+    }
+  }
 
   if (orig->getName() == config->name &&
+      oldIntfID == newIntfID &&
       orig->getPorts() == ports &&
       oldDhcpV4Relay == newDhcpV4Relay &&
       oldDhcpV6Relay == newDhcpV6Relay &&
@@ -413,6 +446,7 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(const shared_ptr<Vlan>& orig,
   }
 
   newVlan->setName(config->name);
+  newVlan->setInterfaceID(newIntfID);
   newVlan->setPorts(ports);
   newVlan->setDhcpV4Relay(newDhcpV4Relay);
   newVlan->setDhcpV6Relay(newDhcpV6Relay);

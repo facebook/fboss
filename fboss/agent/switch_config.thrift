@@ -151,6 +151,8 @@ struct Vlan {
   9: optional map<string, string> dhcpRelayOverridesV4
   10: optional map<string, string> dhcpRelayOverridesV6
 
+  /* Interface ID associated with the vlan */
+  11: optional i32 intfID
 }
 
 /**

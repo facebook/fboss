@@ -36,14 +36,12 @@ void utilCreateDir(folly::StringPiece path) {
 IPAddressV4 getSwitchVlanIP(const std::shared_ptr<SwitchState>& state,
                             VlanID vlan) {
   IPAddressV4 switchIp;
-  auto vlanInterfaces = state->getInterfaces()->getInterfacesInVlanIf(vlan);
-  for (const auto& vlanIntf: vlanInterfaces) {
-    auto& addresses = vlanIntf->getAddresses();
-    for (const auto& address: addresses) {
-      if (address.first.isV4()) {
-        switchIp = address.first.asV4();
-        return switchIp;
-      }
+  auto vlanInterface = state->getInterfaces()->getInterfaceInVlanIf(vlan);
+  auto& addresses = vlanInterface->getAddresses();
+  for (const auto& address: addresses) {
+    if (address.first.isV4()) {
+      switchIp = address.first.asV4();
+      return switchIp;
     }
   }
   throw FbossError("Cannot find IP address for vlan", vlan);
@@ -52,14 +50,12 @@ IPAddressV4 getSwitchVlanIP(const std::shared_ptr<SwitchState>& state,
 IPAddressV6 getSwitchVlanIPv6(const std::shared_ptr<SwitchState>& state,
                               VlanID vlan) {
   IPAddressV6 switchIp;
-  auto vlanInterfaces = state->getInterfaces()->getInterfacesInVlanIf(vlan);
-  for (const auto& vlanIntf: vlanInterfaces) {
-    auto& addresses = vlanIntf->getAddresses();
-    for (const auto& address: addresses) {
-      if (address.first.isV6()) {
-        switchIp = address.first.asV6();
-        return switchIp;
-      }
+  auto vlanInterface = state->getInterfaces()->getInterfaceInVlanIf(vlan);
+  auto& addresses = vlanInterface->getAddresses();
+  for (const auto& address: addresses) {
+    if (address.first.isV6()) {
+      switchIp = address.first.asV6();
+      return switchIp;
     }
   }
   throw FbossError("Cannot find IPv6 address for vlan ", vlan);

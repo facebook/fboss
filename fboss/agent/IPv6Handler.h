@@ -47,7 +47,6 @@ class IPv6Handler : public AutoRegisterStateObserver {
   uint32_t flushNdpEntryBlocking(folly::IPAddressV6, VlanID vlan);
   void floodNeighborAdvertisements();
   void sendNeighborSolicitation(const folly::IPAddressV6& targetIP,
-                                const std::shared_ptr<Interface> intf,
                                 const std::shared_ptr<Vlan> vlan);
 
  private:
@@ -110,7 +109,7 @@ class IPv6Handler : public AutoRegisterStateObserver {
                            folly::IPAddressV6 ip,
                            folly::MacAddress mac,
                            uint32_t flags);
-  void setPendingNdpEntry(InterfaceID intfID, std::shared_ptr<Vlan> vlan,
+  void setPendingNdpEntry(std::shared_ptr<Vlan> vlan,
                           const folly::IPAddressV6 &ip);
 
   std::shared_ptr<SwitchState> performNeighborFlush(

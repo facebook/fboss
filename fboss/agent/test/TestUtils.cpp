@@ -158,6 +158,8 @@ shared_ptr<SwitchState> testStateA() {
   addrs1.emplace(IPAddress("2401:db00:2110:3001::0001"), 64);
   intf1->setAddresses(addrs1);
   state->addIntf(intf1);
+  vlan1->setInterfaceID(InterfaceID(1));
+
   // Add Interface 55 to VLAN 55
   auto intf55 = make_shared<Interface>
     (InterfaceID(55), RouterID(0), VlanID(55),
@@ -168,6 +170,8 @@ shared_ptr<SwitchState> testStateA() {
   addrs55.emplace(IPAddress("2401:db00:2110:3055::0001"), 64);
   intf55->setAddresses(addrs55);
   state->addIntf(intf55);
+  vlan55->setInterfaceID(InterfaceID(55));
+
 
   RouteUpdater updater(state->getRouteTables());
   updater.addInterfaceAndLinkLocalRoutes(state->getInterfaces());

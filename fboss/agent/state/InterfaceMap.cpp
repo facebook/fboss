@@ -44,24 +44,23 @@ InterfaceMap::getInterface(RouterID router, const IPAddress& ip) const {
   throw FbossError("No interface with ip : ", ip);
 }
 
-InterfaceMap::Interfaces
-InterfaceMap::getInterfacesInVlanIf(VlanID vlan) const {
-  Interfaces interfaces;
+std::shared_ptr<Interface>
+InterfaceMap::getInterfaceInVlanIf(VlanID vlan) const {
   for (auto itr = begin(); itr != end(); ++itr) {
-    if ((*itr)->getVlanID() == vlan) {
-      interfaces.push_back(*itr);
+    if ((*itr)->getVlanID() == vlan ) {
+      return *itr;
     }
   }
-  return interfaces;
+  return nullptr;
 }
 
-InterfaceMap::Interfaces
-InterfaceMap::getInterfacesInVlan(VlanID vlan) const {
-  auto interfaces = getInterfacesInVlanIf(vlan);
-  if (interfaces.empty()) {
+const std::shared_ptr<Interface>
+InterfaceMap::getInterfaceInVlan(VlanID vlan) const {
+  auto interface = getInterfaceInVlanIf(vlan);
+  if (!interface) {
     throw FbossError("No interface in vlan : ", vlan);
   }
-  return interfaces;
+  return interface;
 }
 
 InterfaceMap::IntfAddrToReach InterfaceMap::getIntfAddrToReach(

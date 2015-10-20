@@ -239,7 +239,7 @@ bool IPv4Handler::resolveMac(SwitchState* state, IPAddressV4 dest) {
         if (entry == nullptr) {
           // No entry in ARP table, send ARP request
           auto* arp = sw_->getArpHandler();
-          arp->sendArpRequest(vlan, intf, source, target);
+          arp->sendArpRequest(vlan, source, target);
         } else {
           VLOG(4) << "not sending arp for " << target.str() << ", "
                   << ((entry->isPending()) ? "pending " : "")

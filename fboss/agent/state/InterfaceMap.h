@@ -59,14 +59,20 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
       RouterID router, const folly::IPAddress& ip) const;
 
   typedef std::vector<std::shared_ptr<Interface>> Interfaces;
+
   /*
-   * Get interfaces in a vlan
+   *  Get interface which has the given vlan. If multiple
+   *  interfaces exist, this will return the default interface.
    */
-  Interfaces getInterfacesInVlan(VlanID vlan) const;
+  std::shared_ptr<Interface> getInterfaceInVlanIf(
+      VlanID vlan) const;
+
   /*
-   * Get interfaces in a vlan. Throw a exception if no interface is found
+   * Same as getInterfaceInVlanIf but throws a execption
+   * instead of returning null
    */
-  Interfaces getInterfacesInVlanIf(VlanID vlan) const;
+  const std::shared_ptr<Interface> getInterfaceInVlan(
+      VlanID vlan) const;
 
   struct IntfAddrToReach {
     IntfAddrToReach(const Interface* intf, const folly::IPAddress *addr,
@@ -75,7 +81,8 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
     const folly::IPAddress *addr{nullptr};
     uint8_t mask{0};
   };
-  /**
+
+  /*
    * Find an interface with its address to reach the given destination
    */
   IntfAddrToReach getIntfAddrToReach(

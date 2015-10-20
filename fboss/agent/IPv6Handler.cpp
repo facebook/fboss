@@ -487,9 +487,11 @@ bool IPv6Handler::checkNdpPacket(const ICMPHeaders& hdr,
 
 void IPv6Handler::sendNeighborSolicitation(
     const folly::IPAddressV6& targetIP,
-    const shared_ptr<Interface> intf,
     const shared_ptr<Vlan> vlan) {
   uint32_t bodyLength = 4 + 16 + 8;
+  auto intf = sw_->getState()->getInterfaces()
+                 ->getInterfaceInVlan(vlan->getID());
+
   auto serializeBody = [&](RWPrivateCursor* cursor) {
     cursor->writeBE<uint32_t>(0); // reserved
     cursor->push(targetIP.bytes(), 16);
@@ -508,7 +510,7 @@ void IPv6Handler::sendNeighborSolicitation(
                              ICMPV6_CODE_NDP_MESSAGE_CODE,
                              bodyLength, serializeBody);
   VLOG(4) << "adding pending NDP entry for " << targetIP;
-  setPendingNdpEntry(intf->getID(), vlan, targetIP);
+  setPendingNdpEntry(vlan, targetIP);
 
 
   VLOG(4) << "sending neighbor solicitation for " << targetIP <<
@@ -555,7 +557,7 @@ void IPv6Handler::sendNeighborSolicitations(
         auto entry = vlan->getNdpTable()->getEntryIf(target);
         if (entry == nullptr) {
           // No entry in NDP table, create a neighbor solicitation packet
-          sendNeighborSolicitation(target, intf, vlan);
+          sendNeighborSolicitation(target,vlan);
         } else {
           VLOG(5) << "not sending neighbor solicitation for " << target.str()
                   << ", " << ((entry->isPending()) ? "pending" : "")
@@ -612,10 +614,11 @@ void IPv6Handler::sendNeighborAdvertisement(VlanID vlan,
   sw_->sendPacketSwitched(std::move(pkt));
 }
 
-void IPv6Handler::setPendingNdpEntry(InterfaceID intfID,
-                                     shared_ptr<Vlan> vlan,
+void IPv6Handler::setPendingNdpEntry(shared_ptr<Vlan> vlan,
                                      const folly::IPAddressV6 &ip) {
   auto vlanID = vlan->getID();
+  auto intfID = vlan->getInterfaceID();
+
   VLOG(4) << "setting pending entry on vlan " << vlanID << " with ip "
           << ip.str();
 
@@ -682,20 +685,9 @@ void IPv6Handler::updateNeighborEntry(const RxPacket* pkt,
     return;
   }
 
-  // FIXME: Look up the correct interface based on the subnet for this IP.
-  // For now we use the first interface for this VLAN.
-  // We will probably just change the code to only allow a single interface
-  // per VLAN.
-  InterfaceID intfID(0);
-  const auto& intfs = state->getInterfaces();
-  const Interface* intf = nullptr;
-  for (const auto& curIntf : *intfs) {
-    if (curIntf->getVlanID() == vlanID) {
-      intfID = curIntf->getID();
-      intf = curIntf.get();
-      break;
-    }
-  }
+  auto intf = state->getInterfaces()->getInterfaceInVlan(vlan->getID());
+  auto intfID = vlan->getInterfaceID();
+
   if (!intf) {
     // The interface no longer exists. Just ignore the entry update.
     VLOG(1) << "Interface for vlan " << vlanID << " deleted before NDP entry "

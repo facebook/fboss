@@ -36,6 +36,7 @@ using testing::Return;
 
 static const string kVlan1234("Vlan1234");
 static const string kVlan99("Vlan99");
+static const string kVlan1299("Vlan1299");
 
 TEST(Vlan, applyConfig) {
   MockPlatform platform;
@@ -67,6 +68,8 @@ TEST(Vlan, applyConfig) {
   config.vlans[0].dhcpRelayOverridesV4["02:00:00:00:00:02"] = "1.2.3.4";
   config.vlans[0].dhcpRelayOverridesV6["02:00:00:00:00:02"] =
     "2a03:2880:10:1f07:face:b00c:0:0";
+  config.vlans[0].intfID = 1;
+  config.vlans[0].__isset.intfID = true;
   config.vlanPorts.resize(2);
   config.vlanPorts[0].logicalPort = 1;
   config.vlanPorts[0].vlanID = 1234;
@@ -91,6 +94,7 @@ TEST(Vlan, applyConfig) {
   EXPECT_EQ(kVlan1234, vlanV1->getName());
   EXPECT_EQ(expectedPorts, vlanV1->getPorts());
   EXPECT_EQ(0, vlanV1->getArpResponseTable()->getTable().size());
+  EXPECT_EQ(InterfaceID(1), vlanV1->getInterfaceID());
 
   auto map4 = vlanV1->getDhcpV4RelayOverrides();
   EXPECT_EQ(IPAddressV4("1.2.3.4"),
@@ -121,6 +125,7 @@ TEST(Vlan, applyConfig) {
   EXPECT_EQ(VlanID(1234), vlanV2->getID());
   EXPECT_EQ(kVlan1234, vlanV2->getName());
   EXPECT_EQ(expectedPorts, vlanV2->getPorts());
+  EXPECT_EQ(InterfaceID(1), vlanV2->getInterfaceID());
   // Check the ArpResponseTable
   auto arpRespTable = vlanV2->getArpResponseTable();
   ArpResponseTable expectedArpResp;
@@ -138,11 +143,15 @@ TEST(Vlan, applyConfig) {
                            platformMac, InterfaceID(1));
   EXPECT_EQ(expectedNdpResp.getTable(), ndpRespTable->getTable());
 
-  // Add another interface
+  // Add another vlan and interface
+  config.vlans.resize(2);
+  config.vlans[1].id = 1299;
+  config.vlans[1].name = kVlan1299;
+  config.vlans[1].intfID = 2;
   config.interfaces.resize(2);
   config.interfaces[1].intfID = 2;
   config.interfaces[1].routerID = 0;
-  config.interfaces[1].vlanID = 1234;
+  config.interfaces[1].vlanID = 1299;
   config.interfaces[1].ipAddresses.resize(2);
   config.interfaces[1].ipAddresses[0] = "10.1.10.1/24";
   config.interfaces[1].ipAddresses[1] = "192.168.0.1/31";
@@ -150,18 +159,16 @@ TEST(Vlan, applyConfig) {
   config.interfaces[1].mac = intf2Mac.toString();
   config.interfaces[1].__isset.mac = true;
   auto stateV3 = publishAndApplyConfig(stateV2, &config, &platform);
-  auto vlanV3 = stateV3->getVlans()->getVlan(VlanID(1234));
-  EXPECT_EQ(nodeID, vlanV3->getNodeID());
-  EXPECT_EQ(3, vlanV3->getGeneration());
+  auto vlanV3 = stateV3->getVlans()->getVlan(VlanID(1299));
+  EXPECT_EQ(0, vlanV3->getGeneration());
   EXPECT_FALSE(vlanV3->isPublished());
-  EXPECT_EQ(VlanID(1234), vlanV3->getID());
-  EXPECT_EQ(kVlan1234, vlanV2->getName());
-  EXPECT_EQ(expectedPorts, vlanV3->getPorts());
+  EXPECT_EQ(VlanID(1299), vlanV3->getID());
+  EXPECT_EQ(kVlan1299, vlanV3->getName());
+  EXPECT_EQ(InterfaceID(2), vlanV3->getInterfaceID());
+
   // Check the ArpResponseTable
   arpRespTable = vlanV3->getArpResponseTable();
   ArpResponseTable expectedTable2;
-  expectedTable2.setEntry(IPAddressV4("10.1.1.1"), platformMac,
-                          InterfaceID(1));
   expectedTable2.setEntry(IPAddressV4("10.1.10.1"), intf2Mac,
                           InterfaceID(2));
   expectedTable2.setEntry(IPAddressV4("192.168.0.1"), intf2Mac,
@@ -169,22 +176,18 @@ TEST(Vlan, applyConfig) {
   EXPECT_EQ(expectedTable2.getTable(), arpRespTable->getTable());
   // The new interface has no IPv6 address, but the NDP table should still
   // be updated with the link-local address.
-  expectedNdpResp.setEntry(IPAddressV6("fe80::1:02ff:feab:cd78"),
+  NdpResponseTable expectedNdpResp2;
+  expectedNdpResp2.setEntry(IPAddressV6("fe80::1:02ff:feab:cd78"),
                            intf2Mac, InterfaceID(2));
-  EXPECT_EQ(expectedNdpResp.getTable(),
+  EXPECT_EQ(expectedNdpResp2.getTable(),
             vlanV3->getNdpResponseTable()->getTable());
-
-  // Configuration should fail if there the VLAN is used by multiple
-  // different routers
-  config.interfaces[1].routerID = 1;
-  EXPECT_THROW(publishAndApplyConfig(stateV3, &config, &platform), FbossError);
-  config.interfaces[1].routerID = 0;
 
   // Add a new VLAN with an ArpResponseTable that needs to be set up
   // when the VLAN is first created
-  config.vlans.resize(2);
-  config.vlans[1].id = 99;
-  config.vlans[1].name = kVlan99;
+  config.vlans.resize(3);
+  config.vlans[2].id = 99;
+  config.vlans[2].name = kVlan99;
+  config.vlans[2].intfID = 3;
   config.interfaces.resize(3);
   config.interfaces[2].intfID = 3;
   config.interfaces[2].routerID = 1;
@@ -195,12 +198,14 @@ TEST(Vlan, applyConfig) {
   auto stateV4 = publishAndApplyConfig(stateV3, &config, &platform);
   ASSERT_NE(nullptr, stateV4);
   // VLAN 1234 should be unchanged
-  EXPECT_EQ(vlanV3, stateV4->getVlans()->getVlan(VlanID(1234)));
+  EXPECT_EQ(vlanV2, stateV4->getVlans()->getVlan(VlanID(1234)));
   auto vlan99 = stateV4->getVlans()->getVlan(VlanID(99));
   auto vlan99_byName = stateV4->getVlans()->getVlanSlow(kVlan99);
   ASSERT_NE(nullptr, vlan99);
   EXPECT_EQ(vlan99, vlan99_byName);
   EXPECT_EQ(0, vlan99->getGeneration());
+  EXPECT_EQ(InterfaceID(3), vlan99->getInterfaceID());
+
   ArpResponseTable expectedTable99;
   expectedTable99.setEntry(IPAddressV4("1.2.3.4"), platformMac,
                            InterfaceID(3));
@@ -208,6 +213,22 @@ TEST(Vlan, applyConfig) {
                            InterfaceID(3));
   EXPECT_EQ(expectedTable99.getTable(),
             vlan99->getArpResponseTable()->getTable());
+
+  // Check vlan congfig with no intfID set
+  config.vlans.resize(4);
+  config.vlans[3].id = 100;
+  config.vlans[3].__isset.intfID = false;
+  config.interfaces.resize(4);
+  config.interfaces[3].intfID = 4;
+  config.interfaces[3].routerID = 0;
+  config.interfaces[3].vlanID = 100;
+  config.interfaces[3].ipAddresses.resize(2);
+  config.interfaces[3].ipAddresses[0] = "10.50.3.7/24";
+  config.interfaces[3].ipAddresses[1] = "10.50.0.3/9";
+  auto stateV5 = publishAndApplyConfig(stateV4, &config, &platform);
+  ASSERT_NE(nullptr, stateV5);
+  auto vlan100 = stateV5->getVlans()->getVlan(VlanID(100));
+  EXPECT_EQ(InterfaceID(4), vlan100->getInterfaceID());
 }
 
 /*
@@ -285,6 +306,14 @@ TEST(VlanMap, applyConfig) {
   config.vlanPorts[5].logicalPort = 19;
   config.vlanPorts[6].vlanID = 99;
   config.vlanPorts[6].logicalPort = 29;
+
+  config.interfaces.resize(2);
+  config.interfaces[0].intfID = 1;
+  config.interfaces[0].vlanID = 1234;
+  config.interfaces[0].routerID = 0;
+  config.interfaces[1].intfID = 2;
+  config.interfaces[1].vlanID = 99;
+  config.interfaces[1].routerID = 0;
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
   auto vlansV1 = stateV1->getVlans();
@@ -370,6 +399,8 @@ TEST(VlanMap, applyConfig) {
   config.vlanPorts[1].logicalPort = 3;
   config.vlanPorts[2].vlanID = 1234;
   config.vlanPorts[2].logicalPort = 4;
+  config.interfaces.resize(1);
+  config.interfaces[0].intfID = 1;
 
   auto stateV3 = publishAndApplyConfig(stateV2, &config, &platform);
   auto vlansV3 = stateV3->getVlans();

@@ -211,15 +211,13 @@ void DHCPv4Handler::processRequest(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
   }
 
   IPAddressV4 switchIp;
-  auto vlanInterfaces = sw->getState()->getInterfaces()->getInterfacesInVlanIf(
+  auto vlanInterface = sw->getState()->getInterfaces()->getInterfaceInVlanIf(
       pkt->getSrcVlan());
-  for (auto vlanIntf: vlanInterfaces) {
-    auto& addresses = vlanIntf->getAddresses();
-    for (auto address: addresses) {
-      if (address.first.isV4()) {
-        switchIp = address.first.asV4();
-        break;
-      }
+  auto& addresses = vlanInterface->getAddresses();
+  for (auto address: addresses) {
+    if (address.first.isV4()) {
+      switchIp = address.first.asV4();
+      break;
     }
   }
 

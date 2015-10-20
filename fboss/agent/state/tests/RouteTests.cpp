@@ -42,8 +42,9 @@ TEST(RouteUpdater, dedup) {
   auto tablesV0 = stateV0->getRouteTables();
 
   cfg::SwitchConfig config;
-  config.vlans.resize(1);
+  config.vlans.resize(2);
   config.vlans[0].id = 1;
+  config.vlans[1].id = 2;
 
   config.interfaces.resize(2);
   config.interfaces[0].intfID = 1;
@@ -55,7 +56,7 @@ TEST(RouteUpdater, dedup) {
   config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
   config.interfaces[0].ipAddresses[1] = "1::1/48";
   config.interfaces[1].intfID = 2;
-  config.interfaces[1].vlanID = 1;
+  config.interfaces[1].vlanID = 2;
   config.interfaces[1].routerID = 0;
   config.interfaces[1].__isset.mac = true;
   config.interfaces[1].mac = "00:00:00:00:00:22";
@@ -155,8 +156,9 @@ TEST(Route, resolve) {
   auto tablesV0 = stateV0->getRouteTables();
 
   cfg::SwitchConfig config;
-  config.vlans.resize(1);
+  config.vlans.resize(2);
   config.vlans[0].id = 1;
+  config.vlans[1].id = 2;
 
   config.interfaces.resize(2);
   config.interfaces[0].intfID = 1;
@@ -168,7 +170,7 @@ TEST(Route, resolve) {
   config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
   config.interfaces[0].ipAddresses[1] = "1::1/48";
   config.interfaces[1].intfID = 2;
-  config.interfaces[1].vlanID = 1;
+  config.interfaces[1].vlanID = 2;
   config.interfaces[1].routerID = 0;
   config.interfaces[1].__isset.mac = true;
   config.interfaces[1].mac = "00:00:00:00:00:22";
@@ -325,8 +327,9 @@ TEST(Route, addDel) {
   auto tablesV0 = stateV0->getRouteTables();
 
   cfg::SwitchConfig config;
-  config.vlans.resize(1);
+  config.vlans.resize(2);
   config.vlans[0].id = 1;
+  config.vlans[1].id = 2;
 
   config.interfaces.resize(2);
   config.interfaces[0].intfID = 1;
@@ -338,7 +341,7 @@ TEST(Route, addDel) {
   config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
   config.interfaces[0].ipAddresses[1] = "1::1/48";
   config.interfaces[1].intfID = 2;
-  config.interfaces[1].vlanID = 1;
+  config.interfaces[1].vlanID = 2;
   config.interfaces[1].routerID = 0;
   config.interfaces[1].__isset.mac = true;
   config.interfaces[1].mac = "00:00:00:00:00:22";
@@ -474,8 +477,9 @@ TEST(Route, Interface) {
   auto tablesV0 = stateV0->getRouteTables();
 
   cfg::SwitchConfig config;
-  config.vlans.resize(1);
+  config.vlans.resize(2);
   config.vlans[0].id = 1;
+  config.vlans[1].id = 2;
 
   config.interfaces.resize(2);
   config.interfaces[0].intfID = 1;
@@ -487,7 +491,7 @@ TEST(Route, Interface) {
   config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
   config.interfaces[0].ipAddresses[1] = "1::1/48";
   config.interfaces[1].intfID = 2;
-  config.interfaces[1].vlanID = 1;
+  config.interfaces[1].vlanID = 2;
   config.interfaces[1].routerID = 0;
   config.interfaces[1].__isset.mac = true;
   config.interfaces[1].mac = "00:00:00:00:00:22";
@@ -758,10 +762,9 @@ TEST(RouteTableMap, applyConfig) {
   auto tablesV0 = stateV0->getRouteTables();
 
   cfg::SwitchConfig config;
-  config.vlans.resize(3);
+  config.vlans.resize(2);
   config.vlans[0].id = 1;
   config.vlans[1].id = 2;
-  config.vlans[2].id = 3;
   config.interfaces.resize(2);
   config.interfaces[0].intfID = 1;
   config.interfaces[0].vlanID = 1;
@@ -835,6 +838,8 @@ TEST(RouteTableMap, applyConfig) {
   EXPECT_THROW(publishAndApplyConfig(stateV3, &config, &platform), FbossError);
 
   // add a new interface in a new VRF
+  config.vlans.resize(3);
+  config.vlans[2].id = 3;
   config.interfaces.resize(3);
   config.interfaces[2].intfID = 3;
   config.interfaces[2].vlanID = 3;
