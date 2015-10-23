@@ -57,6 +57,12 @@ class BcmPortTable {
    */
   void updatePortStats();
 
+  bool portExists(PortID port) const {
+    return getBcmPortIf(port) != nullptr;
+  }
+  bool portExists(opennsl_port_t port) const {
+    return getBcmPortIf(port) != nullptr;
+  }
  private:
   typedef boost::container::flat_map<opennsl_port_t, std::unique_ptr<BcmPort>>
     BcmPortMap;
