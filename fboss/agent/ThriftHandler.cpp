@@ -454,8 +454,7 @@ void ThriftHandler::getPortInfo(PortInfoThrift& portInfo, int32_t portId) {
   fillPortStats(portInfo);
 }
 
-void
-ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
+void ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
   ensureConfigured();
 
   for (const auto& port : (*sw_->getState()->getPorts())) {
@@ -463,6 +462,14 @@ ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
     auto& portInfo = portInfoMap[portId];
     getPortInfo(portInfo, portId);
   }
+}
+
+void ThriftHandler::getPortStats(PortInfoThrift& portInfo, int32_t portId) {
+  getPortInfo(portInfo, portId);
+}
+
+void ThriftHandler::getAllPortStats(map<int32_t, PortInfoThrift>& portInfoMap) {
+  getAllPortInfo(portInfoMap);
 }
 
 void ThriftHandler::getRunningConfig(std::string& configStr) {
