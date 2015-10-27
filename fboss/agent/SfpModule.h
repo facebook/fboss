@@ -104,10 +104,13 @@ class SfpModule : public Transceiver {
    */
   void updateTransceiverInfoFields() override;
   /*
+   * This function will update the SFP Dom Fields in the cache
+   */
+  void customizeTransceiver() override {}
+  /*
    * This function returns the entire SFP Dom information
    */
   void getTransceiverInfo(TransceiverInfo &info) override;
-
 
 
  private:

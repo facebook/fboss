@@ -28,6 +28,9 @@ enum class SffField {
   VCC,  // Voltage
   CHANNEL_RX_PWR,
   CHANNEL_TX_BIAS,
+  POWER_CONTROL,
+  ETHERNET_COMPLIANCE,
+  EXTENDED_IDENTIFIER,
   PAGE_SELECT_BYTE,
   LENGTH_SM_KM,  // Single mode, in km
   LENGTH_SM,  // Single mode in 100m (not in QSFP)
@@ -80,6 +83,28 @@ enum class SffField {
   VENDOR_MEM_ADDRESS, // Vendor Specific memory address
   USER_EEPROM, // User Writable NVM
   VENDOR_CONTROL, // Vendor Specific Control
+};
+
+enum PowerControl : uint8_t {
+  POWER_OVERRIDE =      1 << 0,
+  POWER_SET =           1 << 1,
+  HIGH_POWER_OVERRIDE = 1 << 2,
+};
+
+enum ExternalIdentifer : uint8_t {
+  EXT_ID_SHIFT= 6,
+  EXT_ID_MASK = 0xc0,
+  EXT_ID_HI_POWER_MASK = 0x03,
+};
+
+enum EthernetCompliance : uint8_t {
+  ACTIVE_CABLE = 1 << 0,
+  LR4_40GBASE =  1 << 1,
+  SR4_40GBASE =  1 << 2,
+  CR4_40GBASE =  1 << 3,
+  SR_10GBASE =   1 << 4,
+  LR_10GBASE =   1 << 5,
+  LRM_40GBASE =  1 << 6,
 };
 
 class SffFieldInfo {

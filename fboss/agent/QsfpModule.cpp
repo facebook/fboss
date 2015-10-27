@@ -12,6 +12,7 @@
 #include <boost/assign.hpp>
 #include <string>
 #include <limits>
+#include <iomanip>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/TransceiverImpl.h"
 #include "fboss/agent/SffFieldInfo.h"
@@ -35,9 +36,12 @@ static SffFieldInfo::SffFieldMap qsfpFields = {
   {SffField::VCC, {QsfpPages::LOWER, 26, 2} },
   {SffField::CHANNEL_RX_PWR, {QsfpPages::LOWER, 34, 8} },
   {SffField::CHANNEL_TX_BIAS, {QsfpPages::LOWER, 42, 8} },
+  {SffField::POWER_CONTROL, {QsfpPages::LOWER, 93, 1} },
   {SffField::PAGE_SELECT_BYTE, {QsfpPages::LOWER, 127, 1} },
 
   // Page 0 values, including vendor info:
+  {SffField::EXTENDED_IDENTIFIER, {QsfpPages::PAGE0, 129, 1} },
+  {SffField::ETHERNET_COMPLIANCE, {QsfpPages::PAGE0, 131, 1} },
   {SffField::LENGTH_SM_KM, {QsfpPages::PAGE0, 142, 1} },
   {SffField::LENGTH_OM3, {QsfpPages::PAGE0, 143, 1} },
   {SffField::LENGTH_OM2, {QsfpPages::PAGE0, 144, 1} },
@@ -430,6 +434,7 @@ void QsfpModule::detectTransceiver() {
     setPresent(currentQsfpStatus);
     if (currentQsfpStatus) {
       updateQsfpData();
+      customizeTransceiver();
     }
   }
 }
@@ -488,6 +493,78 @@ void QsfpModule::updateQsfpData() {
       LOG(WARNING) << "Error reading data for transceiver:" <<
            folly::to<std::string>(qsfpImpl_->getName()) << " " << ex.what();
     }
+  }
+}
+
+void QsfpModule::customizeTransceiver() {
+  /*
+   * Determine whether we need to customize any of the QSFP registers.
+   * Wedge forces Low Power mode via a pin;  we have to reset this
+   * to force High Power mode on LR4s.
+   *
+   * Note that this function expects to be called with qsfpModuleMutex_
+   * held.
+   */
+
+  if (dirty_ == true) {
+    return;
+  }
+
+  int offset;
+  int length;
+  int dataAddress;
+
+  getQsfpFieldAddress(SffField::EXTENDED_IDENTIFIER, dataAddress,
+                      offset, length);
+  const uint8_t *extId = getQsfpValuePtr(dataAddress, offset, length);
+  getQsfpFieldAddress(SffField::ETHERNET_COMPLIANCE, dataAddress,
+                      offset, length);
+  const uint8_t *ethCompliance = getQsfpValuePtr(dataAddress, offset, length);
+
+  int pwrCtrlAddress;
+  int pwrCtrlOffset;
+  int pwrCtrlLength;
+  getQsfpFieldAddress(SffField::POWER_CONTROL, pwrCtrlAddress,
+                      pwrCtrlOffset, pwrCtrlLength);
+  const uint8_t *pwrCtrl = getQsfpValuePtr(pwrCtrlAddress,
+                                           pwrCtrlOffset, pwrCtrlLength);
+
+  /*
+   * It is not clear whether we'll have to use some of these values
+   * in future to determine whether or not to set the high power override.
+   * Leave the logging in until this is fully debugged -- this should
+   * only trigger on QSFP insertion.
+   */
+
+  VLOG(1) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
+             " QSFP Ext ID " << std::hex << (int) *extId <<
+             " Ether Compliance " << std::hex << (int) *ethCompliance <<
+             " Power Control " << std::hex << (int) *pwrCtrl;
+
+  int highPowerLevel = (*extId & EXT_ID_HI_POWER_MASK);
+  int powerLevel = (*extId & EXT_ID_MASK) >> EXT_ID_SHIFT;
+
+  if (highPowerLevel > 0 || powerLevel > 0) {
+      uint8_t power = POWER_OVERRIDE;
+      if (highPowerLevel > 0) {
+        power |= HIGH_POWER_OVERRIDE;
+      }
+
+      // Note that we don't have to set the page here, but there should
+      // probably be a setQsfpValue() function to handle pages, etc.
+
+      if (pwrCtrlAddress != QsfpPages::LOWER) {
+         throw FbossError("QSFP failed to set POWER_CONTROL for LR4 "
+                          "due to incorrect page number");
+      }
+      if (pwrCtrlLength != sizeof(power)) {
+         throw FbossError("QSFP failed to set POWER_CONTROL for LR4 "
+                          "due to incorrect length");
+      }
+
+      qsfpImpl_->writeTransceiver(0x50, pwrCtrlOffset, sizeof(power), &power);
+      LOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
+                " QSFP set to override low power";
   }
 }
 

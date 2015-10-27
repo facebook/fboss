@@ -58,15 +58,15 @@ class QsfpModule : public Transceiver {
     return TransceiverType::QSFP;
   }
   /*
-   * This function will check if the QSFP is present or not
+   * Check if the QSFP is present or not
    */
   void detectTransceiver() override;
   /*
-   * This function returns if the QSFP supports DOM
+   * Returns if the QSFP supports DOM
    */
   bool isDomSupported() const;
   /*
-   * This function returns the entire QSFP Dom information
+   * Returns the entire QSFP Dom information
    */
   void getSfpDom(SfpDom &dom) override;
   /*
@@ -74,11 +74,15 @@ class QsfpModule : public Transceiver {
    */
   int getFieldValue(SffField fieldName, uint8_t* fieldValue);
   /*
-   * This function will update the QSFP Dom Fields in the cache
+   * Update the QSFP Fields in the cache
    */
   void updateTransceiverInfoFields() override;
   /*
-   * This function returns the entire QSFP Dom information
+   * Customize QSPF fields as necessary
+   */
+  void customizeTransceiver() override;
+  /*
+   * Returns the entire QSFP information
    */
   void getTransceiverInfo(TransceiverInfo &info) override;
 

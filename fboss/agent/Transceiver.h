@@ -31,15 +31,19 @@ class Transceiver {
    */
   virtual bool isPresent() const = 0;
   /*
-   * This function will check if the transceiver is present or not
+   * Check if the transceiver is present or not
    */
   virtual void detectTransceiver() = 0;
   /*
-   * This function will update the transceiver information in the cache
+   * Update the transceiver information in the cache
    */
   virtual void updateTransceiverInfoFields() = 0;
   /*
-   * This function returns all of the transceiver information
+   * Tweak fields as necessary on transceiver
+   */
+  virtual void customizeTransceiver() = 0;
+  /*
+   * Return all of the transceiver information
    */
   virtual void getTransceiverInfo(TransceiverInfo &info) = 0;
   /*
