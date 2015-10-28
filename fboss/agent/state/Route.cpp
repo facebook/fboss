@@ -35,8 +35,8 @@ RouteFields<AddrT>::RouteFields(const RouteFields& rf,
   switch(copyBehavior) {
   case COPY_ALL_MEMBERS:
     nexthops = rf.nexthops;
-    fwd = fwd;
-    flags = flags;
+    fwd = rf.fwd;
+    flags = rf.flags;
     break;
   case COPY_ONLY_PREFIX:
     break;

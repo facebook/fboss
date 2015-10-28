@@ -126,10 +126,6 @@ unique_ptr<SwSwitch> setupSwitch() {
   return setupSwitch(seconds(0), seconds(0));
 }
 
-unique_ptr<SwSwitch> setupSwitchWithRAInterval(seconds raInterval) {
-  return setupSwitch(raInterval, seconds(0));
-}
-
 unique_ptr<SwSwitch> setupSwitchWithNdpInterval(seconds ndpInterval) {
   return setupSwitch(seconds(0), ndpInterval);
 }
