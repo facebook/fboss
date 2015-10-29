@@ -258,6 +258,22 @@ struct Interface {
   8: optional i32 mtu
 }
 
+struct StaticRouteWithNextHops {
+  /** The VRF where the static route belongs to */
+  1: i32 routerID = 0
+  /* Prefix in the format like 10.0.0.0/8 */
+  2: string prefix
+  /* IP Address next hops like 1.1.1.1 */
+  3: list<string> nexthops
+}
+
+struct StaticRouteNoNextHops {
+  /** The VRF where the static route belongs to */
+  1: i32 routerID = 0
+  /* Prefix in the format like 10.0.0.0/8 */
+  2: string prefix
+}
+
 /**
  * The configuration for a switch.
  *
@@ -284,4 +300,10 @@ struct SwitchConfig {
   10: bool proactiveArp = 0
   // The MAC address to use for the switch CPU.
   11: optional string cpuMAC
+  // Static routes with next hops
+  12: optional list<StaticRouteWithNextHops> staticRoutesWithNhops;
+  // Prefixes for which to drop traffic
+  13: optional list<StaticRouteNoNextHops> staticRoutesToNull;
+  // Prefixes for which to send traffic to CPU
+  14: optional list<StaticRouteNoNextHops> staticRoutesToCPU;
 }
