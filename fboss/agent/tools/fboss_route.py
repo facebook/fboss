@@ -133,7 +133,7 @@ if __name__ == '__main__':
     add_parser.add_argument(
         'prefix', help='the route prefix, i.e. "1.1.1.0/24" or "2001::0/64"')
     add_parser.add_argument(
-        'nexthop', nargs='+',
+        'nexthop', nargs='*',
         help='the nexthops of the route, i.e "10.1.1.1" or "2002::1"')
 
     del_parser = subparsers.add_parser(

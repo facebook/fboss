@@ -158,7 +158,11 @@ void ThriftHandler::addUnicastRoute(
   // Perform the update
   auto updateFn = [=](const shared_ptr<SwitchState>& state) {
     RouteUpdater updater(state->getRouteTables());
-    updater.addRoute(routerId, network, mask, std::move(nexthops));
+    if (nexthops.size()) {
+      updater.addRoute(routerId, network, mask, std::move(nexthops));
+    } else {
+      updater.addRoute(routerId, network, mask, RouteForwardAction::DROP);
+    }
     auto newRt = updater.updateDone();
     if (!newRt) {
       return shared_ptr<SwitchState>();
@@ -215,7 +219,11 @@ void ThriftHandler::addUnicastRoutes(
       for (const auto& nh : route.nextHopAddrs) {
         nexthops.emplace(toIPAddress(nh));
       }
-      updater.addRoute(routerId, network, mask, std::move(nexthops));
+      if (nexthops.size()) {
+        updater.addRoute(routerId, network, mask, std::move(nexthops));
+      } else {
+        updater.addRoute(routerId, network, mask, RouteForwardAction::DROP);
+      }
       if (network.isV4()) {
         sw_->stats()->addRouteV4();
       } else {
