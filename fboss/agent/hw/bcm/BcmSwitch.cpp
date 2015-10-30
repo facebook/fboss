@@ -1076,7 +1076,7 @@ opennsl_rx_t BcmSwitch::packetRxCallback(int unit, opennsl_pkt_t* pkt,
 opennsl_rx_t BcmSwitch::packetReceived(opennsl_pkt_t* pkt) noexcept {
   unique_ptr<BcmRxPacket> bcmPkt;
   try {
-    bcmPkt = make_unique<BcmRxPacket>(pkt);
+    bcmPkt = createRxPacket(pkt);
   } catch (const std::exception& ex) {
     LOG(ERROR) << "failed to allocated BcmRxPacket for receive handling: " <<
       folly::exceptionStr(ex);

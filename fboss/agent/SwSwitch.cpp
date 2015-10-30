@@ -751,7 +751,8 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     " length=" << len <<
     " src=" << srcMac <<
     " dst=" << dstMac <<
-    " ethertype=0x" << std::hex << ethertype;
+    " ethertype=0x" << std::hex << ethertype <<
+    " :: " << pkt->describeDetails();
 
   switch (ethertype) {
   case ArpHandler::ETHERTYPE_ARP:

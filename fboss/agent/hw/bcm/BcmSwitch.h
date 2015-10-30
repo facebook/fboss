@@ -32,6 +32,7 @@ class BcmIntfTable;
 class BcmPlatform;
 class BcmPortTable;
 class BcmRouteTable;
+class BcmRxPacket;
 class BcmSwitchEventManager;
 class BcmUnit;
 class BcmWarmBootCache;
@@ -228,6 +229,7 @@ class BcmSwitch : public HwSwitch {
    */
   std::shared_ptr<SwitchState> getWarmBootSwitchState() const;
 
+  std::unique_ptr<BcmRxPacket> createRxPacket(opennsl_pkt_t* pkt);
   void changePortState(const std::shared_ptr<Port>& oldPort,
                        const std::shared_ptr<Port>& newPort);
   void updateIngressVlan(const std::shared_ptr<Port>& oldPort,

@@ -12,6 +12,8 @@
 #include "fboss/agent/Packet.h"
 #include "fboss/agent/types.h"
 
+#include <string>
+
 namespace facebook { namespace fboss {
 
 /*
@@ -44,6 +46,18 @@ class RxPacket : public Packet {
     // TODO: only vrf 0 now
     return RouterID(0);
   }
+
+  /*
+   * Return a human-readable string describing additional detailed information
+   * about the packet.
+   *
+   * This allows hardware-specific packet details to be included in log
+   * messages.
+   */
+  virtual std::string describeDetails() const {
+    return "";
+  }
+
  protected:
   PortID srcPort_{0};
   VlanID srcVlan_{0};

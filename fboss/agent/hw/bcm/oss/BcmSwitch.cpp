@@ -9,6 +9,10 @@
  */
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
+#include "fboss/agent/hw/bcm/BcmRxPacket.h"
+
+#include <folly/Memory.h>
+
 extern "C" {
 #include <opennsl/link.h>
 #include <opennsl/error.h>
@@ -18,6 +22,10 @@ extern "C" {
  * Stubbed out.
  */
 namespace facebook { namespace fboss {
+
+std::unique_ptr<BcmRxPacket> BcmSwitch::createRxPacket(opennsl_pkt_t* pkt) {
+  return folly::make_unique<BcmRxPacket>(pkt);
+}
 
 void BcmSwitch::configureAdditionalEcmpHashSets() {}
 
