@@ -943,8 +943,12 @@ void BcmSwitch::processNeighborEntryDelta(const DELTA& delta) {
             << " to " << newEntry->getMac().toString();
     getIntfAndVrf(newEntry->getIntfID());
     auto host = hostTable_->getBcmHost(vrf, IPAddress(newEntry->getIP()));
-    host->program(intf->getBcmIfId(), newEntry->getMac(),
-        getPortTable()->getBcmPortId(newEntry->getPort()));
+    if (newEntry->isPending()) {
+      host->programToDrop(intf->getBcmIfId());
+    } else {
+      host->program(intf->getBcmIfId(), newEntry->getMac(),
+          getPortTable()->getBcmPortId(newEntry->getPort()));
+    }
   }
 }
 
