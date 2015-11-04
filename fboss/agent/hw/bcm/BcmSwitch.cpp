@@ -440,6 +440,7 @@ BcmSwitch::init(Callback* callback) {
   // Setup hash functions for ECMP
   ecmpHashSetup();
 
+  initFieldProcessor(warmBoot);
   dropDhcpPackets();
   dropIPv6RAs();
   configureRxRateLimiting();
@@ -598,6 +599,8 @@ void BcmSwitch::stateChangedImpl(const StateDelta& delta) {
 
   // Add all new interfaces
   forEachAdded(delta.getIntfsDelta(), &BcmSwitch::processAddedIntf, this);
+
+  configureCosQMappingForLocalInterfaces(delta);
 
   // Any ARP changes
   processArpChanges(delta);

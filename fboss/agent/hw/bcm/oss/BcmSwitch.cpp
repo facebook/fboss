@@ -60,4 +60,12 @@ void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift> *l2Table) {
   return;
 }
 
+void BcmSwitch::initFieldProcessor(bool isWarmBoot) const {
+  // API not available in opennsl
+}
+void BcmSwitch::configureCosQMappingForLocalInterfaces(
+    const StateDelta& delta) const {
+  // API not available in opennsl
+}
+
 }} //facebook::fboss

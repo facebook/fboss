@@ -341,6 +341,17 @@ class BcmSwitch : public HwSwitch {
    */
   void exportSdkVersion() const;
 
+  void initFieldProcessor(bool isWarmBoot) const;
+  /*
+   * Cos Q mapping for packets destined to us.
+   * Most often these are matched by next hop self
+   * as the RX reason and we put it into the right
+   * Cos Queue. However if these packets have their
+   * TTL set to 1, that gets precedence and such packets
+   * destined to us get put in low pri cos queue. Fix that.
+   */
+   void configureCosQMappingForLocalInterfaces(const StateDelta& delta) const;
+
   /*
    * Member variables
    */
