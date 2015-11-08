@@ -91,7 +91,7 @@ unique_ptr<SwSwitch> setupSwitch() {
       });
   sw->initialConfigApplied();
 
-  return std::move(sw);
+  return sw;
 }
 
 } // unnamed namespace

@@ -297,7 +297,7 @@ unique_ptr<RxPacket> IPv6Handler::handleICMPv6Packet(
       break;
   }
 
-  return std::move(pkt);
+  return pkt;
 }
 
 void IPv6Handler::handleRouterSolicitation(unique_ptr<RxPacket> pkt,

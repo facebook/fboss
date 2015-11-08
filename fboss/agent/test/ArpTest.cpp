@@ -83,7 +83,7 @@ unique_ptr<SwSwitch> setupSwitch(std::chrono::seconds arpTimeout,
 
   auto sw = createMockSw(state);
   sw->initialConfigApplied();
-  return std::move(sw);
+  return sw;
 }
 
 unique_ptr<SwSwitch> setupSwitch() {

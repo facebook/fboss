@@ -40,7 +40,7 @@ std::unique_ptr<BcmUnit> BcmAPI::initUnit(int deviceIndex) {
                                               std::memory_order_acq_rel)) {
     throw FbossError("a BcmUnit already exists for unit number ", unit);
   }
-  return std::move(unitObj);
+  return unitObj;
 }
 
 void BcmAPI::init(const std::map<std::string, std::string>& config) {

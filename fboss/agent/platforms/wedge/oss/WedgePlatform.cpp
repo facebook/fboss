@@ -18,7 +18,7 @@ std::unique_ptr<ThriftHandler> WedgePlatform::createHandler(SwSwitch* sw) {
 
 std::map<std::string, std::string> WedgePlatform::loadConfig() {
   std::map<std::string, std::string> config;
-  return std::move(config);
+  return config;
 }
 
 void WedgePlatform::initMode() {

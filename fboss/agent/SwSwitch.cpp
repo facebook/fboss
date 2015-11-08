@@ -862,7 +862,7 @@ std::unique_ptr<TxPacket> SwSwitch::allocateL3TxPacket(uint32_t l3Len) {
   buf->clear();
   // reserve for l2 header
   buf->advance(l2Len);
-  return std::move(pkt);
+  return pkt;
 }
 
 void SwSwitch::sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
