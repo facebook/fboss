@@ -106,7 +106,6 @@ class BcmAPI {
   BcmAPI(BcmAPI const &) = delete;
   BcmAPI& operator=(BcmAPI const &) = delete;
 
-  static int debugOutput(uint32_t flags, const char* fmt, va_list args);
   static void initImpl(const std::map<std::string, std::string>& config);
 
   static std::unique_ptr<BcmAPI> singleton_;
