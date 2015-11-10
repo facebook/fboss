@@ -30,7 +30,8 @@ class WedgePlatform : public BcmPlatform {
   enum Mode {
     WEDGE,
     LC,
-    FC
+    FC,
+    WEDGE100
   };
 
   WedgePlatform();

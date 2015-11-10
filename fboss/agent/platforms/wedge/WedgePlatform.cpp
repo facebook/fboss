@@ -79,18 +79,30 @@ void WedgePlatform::getProductInfo(ProductInfo& info) {
 WedgePlatform::InitPortMap WedgePlatform::initPorts() {
   InitPortMap ports;
 
+  auto add_port = [&](int num) {
+      PortID portID(num);
+      opennsl_port_t bcmPortNum = num;
+
+      auto port = make_unique<WedgePort>(portID);
+      ports.emplace(bcmPortNum, port.get());
+      ports_.emplace(portID, std::move(port));
+  };
+
   // Wedge has 16 QSFPs, each mapping to 4 physical ports.
   int portNum = 0;
 
   auto add_ports = [&](int n_ports) {
     while (n_ports--) {
       ++portNum;
-      PortID portID(portNum);
-      opennsl_port_t bcmPortNum = portNum;
+      add_port(portNum);
+    }
+  };
 
-      auto port = make_unique<WedgePort>(portID);
-      ports.emplace(bcmPortNum, port.get());
-      ports_.emplace(portID, std::move(port));
+  auto add_ports_stride = [&](int n_ports, int start, int stride) {
+    int curr = start;
+    while (n_ports--) {
+      add_port(curr);
+      curr += stride;
     }
   };
 
@@ -101,9 +113,14 @@ WedgePlatform::InitPortMap WedgePlatform::initPorts() {
       // On LC, another 16 ports for back plane ports
       add_ports(16);
     }
-  } else {
+  } else if (mode_ == FC) {
     // On FC, 32 40G ports
     add_ports(32);
+  } else {
+    add_ports_stride(8 * 4, 1, 1);
+    add_ports_stride(8 * 4, 34, 1);
+    add_ports_stride(8 * 4, 68, 1);
+    add_ports_stride(8 * 4, 102, 1);
   }
 
   return ports;
