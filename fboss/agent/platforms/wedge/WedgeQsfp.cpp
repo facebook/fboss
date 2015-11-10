@@ -36,8 +36,8 @@ WedgeQsfp::~WedgeQsfp() {
 bool WedgeQsfp::detectTransceiver() {
   uint8_t buf[1];
   try {
-    wedgeI2CBusLock_->moduleRead(module_ + 1, WedgeI2CBus::WEDGE_ADDR_QSFP,
-                                  0, sizeof(buf), buf);
+    wedgeI2CBusLock_->moduleRead(module_ + 1, TransceiverI2CApi::ADDR_QSFP,
+                                 0, sizeof(buf), buf);
   } catch (const UsbError& ex) {
     /*
      * This can either mean that we failed to open the USB device
