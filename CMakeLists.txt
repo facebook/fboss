@@ -219,13 +219,8 @@ function(fboss_add_thrift)
         set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}.h)
     endforeach(srv)
     foreach(gen cpp cpp2)
-        foreach(reflect ${arg_REFLECT})
-            set(outputs ${outputs} 
-                ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${reflect}_reflect.h
-                ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${reflect}_reflect.cpp)
-        endforeach(reflect)
-        foreach(output constants types)
-            set(outputs ${outputs} 
+        foreach(output constants types reflection)
+            set(outputs ${outputs}
                 ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${basename}_${output}.h
                 ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${basename}_${output}.cpp)
         endforeach(output)
@@ -249,11 +244,9 @@ function(fboss_add_thrift)
 endfunction(fboss_add_thrift)
 
 fboss_add_thrift(THRIFTSRC common/fb303/if/fb303.thrift SERVICES FacebookService)
-fboss_add_thrift(THRIFTSRC common/network/if/Address.thrift 
-    OPTIONS json,compatibility,include_prefix=common/network/if
-    REFLECT Address)
-fboss_add_thrift(THRIFTSRC fboss/agent/switch_config.thrift
-    REFLECT switch_config)
+fboss_add_thrift(THRIFTSRC common/network/if/Address.thrift
+    OPTIONS json,compatibility,include_prefix=common/network/if)
+fboss_add_thrift(THRIFTSRC fboss/agent/switch_config.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/hw/sim/sim_ctrl.thrift SERVICES SimCtrl)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/ctrl.thrift 
     SERVICES FbossCtrl PortStatusListenerClient)
