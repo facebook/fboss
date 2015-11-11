@@ -43,17 +43,19 @@ namespace facebook { namespace fboss {
 shared_ptr<SwitchState> publishAndApplyConfig(
     shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
-    const Platform* platform) {
+    const Platform* platform,
+    const cfg::SwitchConfig* prevCfg) {
   state->publish();
-  return applyThriftConfig(state, config, platform);
+  return applyThriftConfig(state, config, platform, prevCfg);
 }
 
 shared_ptr<SwitchState> publishAndApplyConfigFile(
     shared_ptr<SwitchState>& state,
     StringPiece path,
-    const Platform* platform) {
+    const Platform* platform,
+    std::string prevCfgStr) {
   state->publish();
-  return applyThriftConfigFile(state, path, platform).first;
+  return applyThriftConfigFile(state, path, platform, prevCfgStr).first;
 }
 
 unique_ptr<SwSwitch> createMockSw(const shared_ptr<SwitchState>& state) {

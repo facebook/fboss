@@ -639,6 +639,7 @@ std::shared_ptr<RouteTableMap> ThriftConfigApplier::updateStaticRoutes(
     }
   };
 
+
   if (cfg_->__isset.staticRoutesToNull) {
     processStaticRoutesNoNhops(cfg_->staticRoutesToNull, DROP);
   }
