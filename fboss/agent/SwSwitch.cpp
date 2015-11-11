@@ -969,13 +969,14 @@ void SwSwitch::applyConfig(const std::string& reason) {
           LOG(INFO) << "Loading config from local config file "
                     << configFilename;
           auto rval = applyThriftConfigFile(state, configFilename,
-                                            platform_.get());
+                                            platform_.get(), configStr_);
           configStr_ = rval.second;
           return rval.first;
         }
         // Loading config from default location. The message will be printed
         // there.
-        auto rval = applyThriftConfigDefault(state, platform_.get());
+        auto rval = applyThriftConfigDefault(state, platform_.get(),
+            configStr_);
         configStr_ = rval.second;
         return rval.first;
       });

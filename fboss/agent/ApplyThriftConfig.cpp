@@ -18,6 +18,7 @@
 #include "fboss/agent/state/NdpResponseTable.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
@@ -37,6 +38,7 @@ using folly::IPAddressV4;
 using folly::IPAddressFormatException;
 using folly::MacAddress;
 using folly::StringPiece;
+using folly::CIDRNetwork;
 using std::make_shared;
 using std::shared_ptr;
 
@@ -54,10 +56,12 @@ class ThriftConfigApplier {
  public:
   ThriftConfigApplier(const std::shared_ptr<SwitchState>& orig,
                       const cfg::SwitchConfig* config,
-                      const Platform* platform)
+                      const Platform* platform,
+                      const cfg::SwitchConfig* prevCfg)
     : orig_(orig),
       cfg_(config),
-      platform_(platform) {}
+      platform_(platform),
+      prevCfg_(prevCfg) {}
 
   std::shared_ptr<SwitchState> run();
 
@@ -103,7 +107,13 @@ class ThriftConfigApplier {
   bool updateNeighborResponseTables(Vlan* vlan, const cfg::Vlan* config);
   bool updateDhcpOverrides(Vlan* vlan, const cfg::Vlan* config);
   std::shared_ptr<InterfaceMap> updateInterfaces();
-  std::shared_ptr<RouteTableMap> updateRouteTables();
+  std::shared_ptr<RouteTableMap> updateInterfaceRoutes();
+  template<typename StaticRouteType>
+  void staticRouteDelHelper(const std::vector<StaticRouteType>& oldRoutes,
+      const flat_map<RouterID, flat_set<CIDRNetwork>>& newRoutes,
+      RouteUpdater& updater);
+  std::shared_ptr<RouteTableMap> updateStaticRoutes(
+      const std::shared_ptr<RouteTableMap>& curRoutingTables);
   shared_ptr<Interface> createInterface(const cfg::Interface* config,
                                         const Interface::Addresses& addrs);
   shared_ptr<Interface> updateInterface(const shared_ptr<Interface>& orig,
@@ -116,6 +126,7 @@ class ThriftConfigApplier {
   std::shared_ptr<SwitchState> orig_;
   const cfg::SwitchConfig* cfg_{nullptr};
   const Platform* platform_{nullptr};
+  const cfg::SwitchConfig* prevCfg_{nullptr};
 
   struct VlanIpInfo {
     VlanIpInfo(uint8_t mask, MacAddress mac, InterfaceID intf)
@@ -170,15 +181,22 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
   }
 
-  // Note: updateInterfaces() must be called before updateRouteTables(),
+  // Note: updateInterfaces() must be called before updateInterfaceRoutes(),
   // as updateInterfaces() populates the intfRouteTables_ data structure.
   {
-    auto newTables = updateRouteTables();
+    auto newTables = updateInterfaceRoutes();
     if (newTables) {
-      newState->resetRouteTables(std::move(newTables));
+      newState->resetRouteTables(newTables);
+      changed = true;
+    }
+    auto newerTables = updateStaticRoutes(newTables ? newTables :
+        orig_->getRouteTables());
+    if (newerTables) {
+      newState->resetRouteTables(std::move(newerTables));
       changed = true;
     }
   }
+
   auto newVlans = newState->getVlans();
   VlanID dfltVlan(cfg_->defaultVlan);
   if (orig_->getDefaultVlan() != dfltVlan) {
@@ -523,7 +541,7 @@ bool ThriftConfigApplier::updateNeighborResponseTables(
   return changed;
 }
 
-shared_ptr<RouteTableMap> ThriftConfigApplier::updateRouteTables() {
+shared_ptr<RouteTableMap> ThriftConfigApplier::updateInterfaceRoutes() {
   flat_set<RouterID> newToAddTables;
   flat_set<RouterID> oldToDeleteTables;
   RouteUpdater updater(orig_->getRouteTables());
@@ -578,6 +596,86 @@ shared_ptr<RouteTableMap> ThriftConfigApplier::updateRouteTables() {
   // add v6 link route to the new router
   for (auto id : newToAddTables) {
     updater.addLinkLocalRoutes(id);
+  }
+  return updater.updateDone();
+}
+
+template<typename StaticRouteType>
+void ThriftConfigApplier::staticRouteDelHelper(
+    const std::vector<StaticRouteType>& oldRoutes,
+    const flat_map<RouterID, flat_set<CIDRNetwork>>& newRoutes,
+    RouteUpdater& updater) {
+  for (const auto& oldRoute : oldRoutes) {
+    RouterID rid(oldRoute.routerID);
+    auto network = IPAddress::createNetwork(oldRoute.prefix);
+    auto itr = newRoutes.find(rid);
+    if (itr == newRoutes.end() || itr->second.find(network) ==
+        itr->second.end()) {
+      updater.delRoute(rid, network.first, network.second);
+      VLOG(1) << "Unconfigured static route : " << network.first
+        << "/" << (int)network.second;
+    }
+  }
+}
+
+std::shared_ptr<RouteTableMap> ThriftConfigApplier::updateStaticRoutes(
+    const std::shared_ptr<RouteTableMap>& curRoutingTables) {
+  RouteUpdater updater(curRoutingTables);
+  flat_map<RouterID, flat_set<CIDRNetwork>> newCfgVrf2StaticPfxs;
+  auto processStaticRoutesNoNhops = [&](
+      const std::vector<cfg::StaticRouteNoNextHops>& routes,
+      RouteForwardAction action) {
+    for (const auto& route : routes) {
+      RouterID rid(route.routerID) ;
+      auto network = IPAddress::createNetwork(route.prefix);
+      if (newCfgVrf2StaticPfxs[rid].find(network)
+          != newCfgVrf2StaticPfxs[rid].end()) {
+        throw FbossError("Prefix : ",  network.first, "/",
+            (int)network.second, " in multiple static routes");
+      }
+      updater.addRoute(rid, network.first, network.second, action);
+      // Note down prefix for comparing with old static routes
+      newCfgVrf2StaticPfxs[rid].emplace(network);
+    }
+  };
+
+  if (cfg_->__isset.staticRoutesToNull) {
+    processStaticRoutesNoNhops(cfg_->staticRoutesToNull, DROP);
+  }
+  if (cfg_->__isset.staticRoutesToCPU) {
+    processStaticRoutesNoNhops(cfg_->staticRoutesToCPU, TO_CPU);
+  }
+
+  if (cfg_->__isset.staticRoutesWithNhops) {
+    for (const auto& route : cfg_->staticRoutesWithNhops) {
+      RouterID rid(route.routerID) ;
+      auto network = IPAddress::createNetwork(route.prefix);
+      RouteNextHops nhops;
+      for (auto& nhopStr : route.nexthops) {
+        nhops.emplace(folly::IPAddress(nhopStr));
+      }
+      updater.addRoute(rid, network.first, network.second, nhops);
+      // Note down prefix for comparing with old static routes
+      newCfgVrf2StaticPfxs[rid].emplace(network);
+    }
+  }
+  // Now blow away any static routes that are not in the config
+  // Ideally after this we should replay the routes from lower
+  // precedence route announcers (e.g. BGP) for deleted prefixes.
+  // The static route may have overridden a existing protocol
+  // route and in that case rather than blowing away the route we
+  // should just replace it - t8910011
+  if (prevCfg_->__isset.staticRoutesWithNhops) {
+    staticRouteDelHelper(prevCfg_->staticRoutesWithNhops, newCfgVrf2StaticPfxs,
+        updater);
+  }
+  if (prevCfg_->__isset.staticRoutesToCPU) {
+    staticRouteDelHelper(prevCfg_->staticRoutesToCPU, newCfgVrf2StaticPfxs,
+        updater);
+  }
+  if (prevCfg_->__isset.staticRoutesToNull) {
+    staticRouteDelHelper(prevCfg_->staticRoutesToNull, newCfgVrf2StaticPfxs,
+        updater);
   }
   return updater.updateDone();
 }
@@ -716,14 +814,18 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
 shared_ptr<SwitchState> applyThriftConfig(
     const shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
-    const Platform* platform) {
-  return ThriftConfigApplier(state, config, platform).run();
+    const Platform* platform,
+    const cfg::SwitchConfig* prevConfig) {
+  cfg::SwitchConfig emptyConfig;
+  return ThriftConfigApplier(state, config, platform,
+      prevConfig ? prevConfig : &emptyConfig).run();
 }
 
 std::pair<std::shared_ptr<SwitchState>, std::string> applyThriftConfigFile(
     const shared_ptr<SwitchState>& state,
     StringPiece path,
-    const Platform* platform) {
+    const Platform* platform,
+    const std::string& prevConfigStr) {
   // Parse the JSON config.
   //
   // This is basically what configerator's getConfigAndParse() code does,
@@ -737,8 +839,13 @@ std::pair<std::shared_ptr<SwitchState>, std::string> applyThriftConfigFile(
   }
   config.readFromJson(configStr.c_str());
 
-  return std::make_pair(ThriftConfigApplier(state, &config, platform).run(),
-                        configStr);
+  cfg::SwitchConfig prevConfig;
+  if (prevConfigStr.size()) {
+    prevConfig.readFromJson(prevConfigStr.c_str());
+  }
+
+  return std::make_pair(ThriftConfigApplier(state, &config, platform,
+        &prevConfig).run(), configStr);
 }
 
 }} // facebook::fboss
