@@ -89,6 +89,11 @@ class RouteForwardInfo {
     action_ = Action::TO_CPU;
   }
 
+  void setAction(Action action) {
+    CHECK(action == Action::TO_CPU || action == Action::DROP);
+    action_ = action;
+  }
+
   // Set one nexthop, a simple version for non-ECMP case
   void setNexthops(InterfaceID intf, const folly::IPAddress& nhop) {
     nexthops_.clear();

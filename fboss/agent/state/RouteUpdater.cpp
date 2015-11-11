@@ -228,6 +228,38 @@ void RouteUpdater::delRoute(RouterID id, const folly::IPAddress& network,
   }
 }
 
+template<typename RtRibT, typename AddrT>
+void RouteUpdater::getFwdInfoFromNhop(RtRibT* nRib,
+    ClonedRib* ribCloned, const AddrT& nh, bool* hasToCpuNhops,
+    bool* hasDropNhops, RouteForwardNexthops* fwd) {
+  auto rt = nRib->longestMatch(nh);
+  if (rt == nullptr) {
+    VLOG (3) <<" Could not find route for nhop :  "<< nh;
+    // Un resolvable next hop
+    return;
+  }
+  if (rt->needResolve()) {
+    resolve(rt.get(), nRib, ribCloned);
+  }
+  if (rt->isResolved()) {
+    const auto& fwdInfo = rt->getForwardInfo();
+    if (fwdInfo.isToCPU()) {
+      *hasToCpuNhops = true;
+    } else if (fwdInfo.isDrop()) {
+      *hasDropNhops = true;
+    } else {
+      const auto& nhops = fwdInfo.getNexthops();
+      // if the route used to resolve the nexthop is directly connected
+      if (rt->isConnected()) {
+        const auto& rtNh = *nhops.begin();
+        fwd->emplace(rtNh.intf, nh);
+      } else {
+        fwd->insert(nhops.begin(), nhops.end());
+      }
+    }
+  }
+}
+
 template<typename RouteT, typename RtRibT>
 void RouteUpdater::resolve(RouteT* route, RtRibT* rib, ClonedRib* ribCloned) {
   CHECK(!route->isConnected());
@@ -257,57 +289,35 @@ void RouteUpdater::resolve(RouteT* route, RtRibT* rib, ClonedRib* ribCloned) {
   // mark this route is in processing. This processing bit shall be cleared
   // in setUnresolvable() or setResolved()
   route->setFlagsProcessing();
+  bool hasToCpuNhops{false};
+  bool hasDropNhops{false};
   // loop through all nexthops to find out the forward info
   for (const auto& nh : route->nexthops()) {
     if (nh.isV4()) {
       auto nRib = ribCloned->v4.rib.get();
-      auto rt = nRib->longestMatch(nh.asV4());
-      if (rt == nullptr) {
-        VLOG (3) <<" Could not find route for nhop :  "<< nh.asV4();
-        // try next nexthop
-        continue;
-      }
-      if (rt->needResolve()) {
-        resolve(rt.get(), nRib, ribCloned);
-      }
-      if (rt->isResolved()) {
-        // if the route used to resolve the nexthop is directly connected
-        const auto nhops = rt->getForwardInfo().getNexthops();
-        if (rt->isConnected()) {
-          const auto& rtNh = *nhops.begin();
-          fwd.emplace(rtNh.intf, nh);
-        } else {
-          fwd.insert(nhops.begin(), nhops.end());
-        }
-      }
+      getFwdInfoFromNhop(nRib, ribCloned, nh.asV4(), &hasToCpuNhops,
+          &hasDropNhops, &fwd);
     } else {
       auto nRib = ribCloned->v6.rib.get();
-      auto rt = nRib->longestMatch(nh.asV6());
-      if (rt == nullptr) {
-        // try next nexthop
-        continue;
-      }
-      if (rt->needResolve()) {
-        resolve(rt.get(), nRib, ribCloned);
-      }
-      if (rt->isResolved()) {
-        // if the route used to resolve the nexthop is directly connected
-        const auto nhops = rt->getForwardInfo().getNexthops();
-        if (rt->isConnected()) {
-          const auto& rtNh = *nhops.begin();
-          fwd.emplace(rtNh.intf, nh);
-        } else {
-          fwd.insert(nhops.begin(), nhops.end());
-        }
-      }
+      getFwdInfoFromNhop(nRib, ribCloned, nh.asV6(), &hasToCpuNhops,
+          &hasDropNhops, &fwd);
     }
   }
-  if (fwd.empty()) {
-    route->setUnresolvable();
+  if (hasToCpuNhops || hasDropNhops || fwd.size()) {
+    VLOG(3) << "Resolved route " << route->str();
+  } else {
     VLOG(3) << "Cannot resolve route " << route->str();
+  }
+  if (fwd.empty()) {
+    if (hasToCpuNhops) {
+      route->setResolved(RouteForwardAction::TO_CPU);
+    } else if (hasDropNhops) {
+      route->setResolved(RouteForwardAction::DROP);
+    } else {
+      route->setUnresolvable();
+    }
   } else {
     route->setResolved(std::move(fwd));
-    VLOG(3) << "Resolved route " << route->str();
   }
 }
 

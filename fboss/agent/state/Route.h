@@ -154,6 +154,10 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
     RouteBase::writableFields()->fwd.setNexthops(fwd);
     setFlagsResolved();
   }
+  void setResolved(Action action) {
+    RouteBase::writableFields()->fwd.setAction(action);
+    setFlagsResolved();
+  }
   void clearFlags() {
     auto& flags = RouteBase::writableFields()->flags;
     flags = 0x0;

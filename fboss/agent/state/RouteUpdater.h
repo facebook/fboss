@@ -12,6 +12,7 @@
 
 #include "fboss/agent/types.h"
 #include <folly/IPAddress.h>
+#include "fboss/agent/state/RouteForwardInfo.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/RouteTableMap.h"
 
@@ -118,7 +119,10 @@ class RouteUpdater {
   void resolve();
   template<typename RouteT, typename RtRibT>
   void resolve(RouteT* rt, RtRibT* rib, ClonedRib* clonedRib);
-
+  template<typename RtRibT, typename AddrT>
+  void getFwdInfoFromNhop(RtRibT* nRib, ClonedRib* ribCloned,
+      const AddrT& nh, bool* hasToCpuNhops, bool* hasDropNhops,
+      RouteForwardNexthops* fwd);
   // Functions to deduplicate routing tables during sync mode
   template<typename RibT>
   bool dedupRoutes(const RibT* origRib, RibT* newRib);
