@@ -21,6 +21,10 @@
 
 namespace facebook { namespace fboss {
 
+namespace cfg {
+class SwitchConfig;
+}
+
 class InterfaceMap;
 template<typename Addr> class RouteTableRib;
 
@@ -78,7 +82,14 @@ class RouteUpdater {
   void addLinkLocalRoutes(RouterID id);
   void delLinkLocalRoutes(RouterID id);
 
+  void updateStaticRoutes(const cfg::SwitchConfig& curCfg,
+      const cfg::SwitchConfig& prevCfg);
+
  private:
+  template<typename StaticRouteType>
+  void staticRouteDelHelper(const std::vector<StaticRouteType>& oldRoutes,
+      const boost::container::flat_map<RouterID,
+      boost::container::flat_set<folly::CIDRNetwork>>& newRoutes);
   // Forbidden copy constructor and assignment operator
   RouteUpdater(RouteUpdater const &) = delete;
   RouteUpdater& operator=(RouteUpdater const &) = delete;

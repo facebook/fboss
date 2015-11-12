@@ -53,9 +53,14 @@ shared_ptr<SwitchState> publishAndApplyConfigFile(
     shared_ptr<SwitchState>& state,
     StringPiece path,
     const Platform* platform,
-    std::string prevCfgStr) {
+    std::string prevConfigStr) {
   state->publish();
-  return applyThriftConfigFile(state, path, platform, prevCfgStr).first;
+  // Parse the prev JSON config.
+  cfg::SwitchConfig prevConfig;
+  if (prevConfigStr.size()) {
+    prevConfig.readFromJson(prevConfigStr.c_str());
+  }
+  return applyThriftConfigFile(state, path, platform, &prevConfig).first;
 }
 
 unique_ptr<SwSwitch> createMockSw(const shared_ptr<SwitchState>& state) {

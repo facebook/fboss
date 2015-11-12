@@ -20,6 +20,11 @@
 #include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/FbossError.h"
 
+using folly::IPAddress;
+using boost::container::flat_map;
+using boost::container::flat_set;
+using folly::CIDRNetwork;
+
 namespace facebook { namespace fboss {
 
 using std::make_shared;
@@ -454,6 +459,81 @@ void RouteUpdater::addInterfaceAndLinkLocalRoutes(
   }
   for (auto id : routers) {
     addLinkLocalRoutes(id);
+  }
+}
+
+template<typename StaticRouteType>
+void RouteUpdater::staticRouteDelHelper(
+    const std::vector<StaticRouteType>& oldRoutes,
+    const flat_map<RouterID, flat_set<CIDRNetwork>>& newRoutes) {
+  for (const auto& oldRoute : oldRoutes) {
+    RouterID rid(oldRoute.routerID);
+    auto network = IPAddress::createNetwork(oldRoute.prefix);
+    auto itr = newRoutes.find(rid);
+    if (itr == newRoutes.end() || itr->second.find(network) ==
+        itr->second.end()) {
+      delRoute(rid, network.first, network.second);
+      VLOG(1) << "Unconfigured static route : " << network.first
+        << "/" << (int)network.second;
+    }
+  }
+}
+
+void RouteUpdater::updateStaticRoutes(const cfg::SwitchConfig& curCfg,
+    const cfg::SwitchConfig& prevCfg) {
+  flat_map<RouterID, flat_set<CIDRNetwork>> newCfgVrf2StaticPfxs;
+  auto processStaticRoutesNoNhops = [&](
+      const std::vector<cfg::StaticRouteNoNextHops>& routes,
+      RouteForwardAction action) {
+    for (const auto& route : routes) {
+      RouterID rid(route.routerID) ;
+      auto network = IPAddress::createNetwork(route.prefix);
+      if (newCfgVrf2StaticPfxs[rid].find(network)
+          != newCfgVrf2StaticPfxs[rid].end()) {
+        throw FbossError("Prefix : ",  network.first, "/",
+            (int)network.second, " in multiple static routes");
+      }
+      addRoute(rid, network.first, network.second, action);
+      // Note down prefix for comparing with old static routes
+      newCfgVrf2StaticPfxs[rid].emplace(network);
+    }
+  };
+
+
+  if (curCfg.__isset.staticRoutesToNull) {
+    processStaticRoutesNoNhops(curCfg.staticRoutesToNull, DROP);
+  }
+  if (curCfg.__isset.staticRoutesToCPU) {
+    processStaticRoutesNoNhops(curCfg.staticRoutesToCPU, TO_CPU);
+  }
+
+  if (curCfg.__isset.staticRoutesWithNhops) {
+    for (const auto& route : curCfg.staticRoutesWithNhops) {
+      RouterID rid(route.routerID) ;
+      auto network = IPAddress::createNetwork(route.prefix);
+      RouteNextHops nhops;
+      for (auto& nhopStr : route.nexthops) {
+        nhops.emplace(folly::IPAddress(nhopStr));
+      }
+      addRoute(rid, network.first, network.second, nhops);
+      // Note down prefix for comparing with old static routes
+      newCfgVrf2StaticPfxs[rid].emplace(network);
+    }
+  }
+  // Now blow away any static routes that are not in the config
+  // Ideally after this we should replay the routes from lower
+  // precedence route announcers (e.g. BGP) for deleted prefixes.
+  // The static route may have overridden a existing protocol
+  // route and in that case rather than blowing away the route we
+  // should just replace it - t8910011
+  if (prevCfg.__isset.staticRoutesWithNhops) {
+    staticRouteDelHelper(prevCfg.staticRoutesWithNhops, newCfgVrf2StaticPfxs);
+  }
+  if (prevCfg.__isset.staticRoutesToCPU) {
+    staticRouteDelHelper(prevCfg.staticRoutesToCPU, newCfgVrf2StaticPfxs);
+  }
+  if (prevCfg.__isset.staticRoutesToNull) {
+    staticRouteDelHelper(prevCfg.staticRoutesToNull, newCfgVrf2StaticPfxs);
   }
 }
 

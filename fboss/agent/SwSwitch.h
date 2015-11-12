@@ -15,6 +15,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/agent/Transceiver.h"
 #include "fboss/agent/TransceiverMap.h"
+#include "fboss/agent/gen-cpp/switch_config_types.h"
 
 #include <folly/SpinLock.h>
 #include <folly/IntrusiveList.h>
@@ -545,7 +546,8 @@ class SwSwitch : public HwSwitch::Callback {
    */
   bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress ip);
 
-  const std::string& getConfig() { return configStr_; }
+  const std::string& getConfigStr() const { return curConfigStr_; }
+  const cfg::SwitchConfig& getConfig() const { return curConfig_; }
 
  private:
   typedef folly::IntrusiveList<StateUpdate, &StateUpdate::listHook_>
@@ -607,7 +609,8 @@ class SwSwitch : public HwSwitch::Callback {
 
   void logLinkStateEvent(PortID port, bool up);
 
-  std::string configStr_;
+  std::string curConfigStr_;
+  cfg::SwitchConfig curConfig_;
 
   // The HwSwitch object.  This object is owned by the Platform.
   HwSwitch* hw_;

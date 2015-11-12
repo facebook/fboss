@@ -287,6 +287,9 @@ void ThriftHandler::syncFib(
   auto updateFn = [&](const shared_ptr<SwitchState>& state) {
     // create an update object starting from empty
     RouteUpdater updater(state->getRouteTables(), true);
+    cfg::SwitchConfig emptyPrevConfig;
+    // Add static routes from config
+    updater.updateStaticRoutes(sw_->getConfig(), emptyPrevConfig);
     // add all interface routes
     updater.addInterfaceAndLinkLocalRoutes(state->getInterfaces());
     RouterID routerId = RouterID(0); // TODO, default vrf for now
@@ -482,7 +485,7 @@ void ThriftHandler::getAllPortStats(map<int32_t, PortInfoThrift>& portInfoMap) {
 
 void ThriftHandler::getRunningConfig(std::string& configStr) {
   ensureConfigured();
-  configStr = sw_->getConfig();
+  configStr = sw_->getConfigStr();
 }
 
 void ThriftHandler::getPortStatus(map<int32_t, PortStatus>& statusMap,

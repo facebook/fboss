@@ -965,19 +965,20 @@ void SwSwitch::applyConfig(const std::string& reason) {
       reason,
       [&](const shared_ptr<SwitchState>& state) {
         std::string configFilename = FLAGS_config;
+        std::pair<shared_ptr<SwitchState>, std::string> rval;
         if (!configFilename.empty()) {
           LOG(INFO) << "Loading config from local config file "
                     << configFilename;
-          auto rval = applyThriftConfigFile(state, configFilename,
-                                            platform_.get(), configStr_);
-          configStr_ = rval.second;
-          return rval.first;
+          rval = applyThriftConfigFile(state, configFilename, platform_.get(),
+              &curConfig_);
+        } else {
+          // Loading config from default location. The message will be printed
+          // there.
+          rval = applyThriftConfigDefault(state, platform_.get(),
+              &curConfig_);
         }
-        // Loading config from default location. The message will be printed
-        // there.
-        auto rval = applyThriftConfigDefault(state, platform_.get(),
-            configStr_);
-        configStr_ = rval.second;
+        curConfigStr_ = rval.second;
+        curConfig_.readFromJson(curConfigStr_.c_str());
         return rval.first;
       });
   return;

@@ -37,10 +37,11 @@ std::pair<std::shared_ptr<SwitchState>, std::string> applyThriftConfigFile(
   const std::shared_ptr<SwitchState>& state,
   const folly::StringPiece path,
   const Platform* platform,
-  const std::string& prevConfigStr = "");
+  const cfg::SwitchConfig* prevConfig);
+
 std::pair<std::shared_ptr<SwitchState>, std::string> applyThriftConfigDefault(
   const std::shared_ptr<SwitchState> state,
   const Platform* platform,
-  const std::string& prevConfigStr = "");
+  const cfg::SwitchConfig* prevConfig);
 
 }} // facebook::fboss
