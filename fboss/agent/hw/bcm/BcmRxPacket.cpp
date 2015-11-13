@@ -46,7 +46,12 @@ BcmRxPacket::BcmRxPacket(const opennsl_pkt_t* pkt)
       length,
       freeRxBuf,                       // FreeFunction freeFn
       reinterpret_cast<void*>(unit_)); // void* userData
-  srcPort_ = PortID(pkt->src_port);
+
+  // TODO(aeckert): fix sdk bug where the src_port is a signed 8-bit
+  // int.  This causes issues when the logical port numbers exceed
+  // 127. For now we work around the issue by casting to an 8-bit
+  // unsigned port id, but we should fix this in the sdk.
+  srcPort_ = PortID(static_cast<uint8_t>(pkt->src_port));
   srcVlan_ = VlanID(pkt->vlan);
   len_ = length;
 }

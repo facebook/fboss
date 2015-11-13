@@ -123,7 +123,8 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
        */
       auto rc = opennsl_l3_egress_create(hw_->getUnit(), flags, &eObj, &id_);
       bcmCheckError(rc, "failed to program L3 egress object ", id_,
-          (mac) ? mac->toString() : "ToCPU",
+          " ", (mac) ? mac->toString() : "ToCPU",
+          " on port ", port,
           " on unit ", hw_->getUnit());
       VLOG(3) << "programmed L3 egress object " << id_ << " for "
         << ((mac) ? mac->toString() : "to CPU")
