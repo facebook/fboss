@@ -20,6 +20,7 @@
 #include "fboss/agent/SfpModule.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/capture/PktCapture.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
@@ -40,12 +41,15 @@
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
 
+#include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 #include <folly/MoveWrapper.h>
+#include <folly/Range.h>
 #include <thrift/lib/cpp2/async/DuplexChannel.h>
 
 using apache::thrift::ClientReceiveState;
 using facebook::fb303::cpp2::fb_status;
+using folly::fbstring;
 using folly::IOBuf;
 using folly::make_unique;
 using folly::StringPiece;
@@ -53,6 +57,7 @@ using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 using folly::MacAddress;
+using folly::io::RWPrivateCursor;
 using std::chrono::duration_cast;
 using std::chrono::seconds;
 using std::chrono::steady_clock;
@@ -702,7 +707,7 @@ void ThriftHandler::stopAllPktCaptures() {
 }
 
 void ThriftHandler::sendPkt(int32_t port, int32_t vlan,
-                         unique_ptr<folly::fbstring> data) {
+                            unique_ptr<fbstring> data) {
   ensureConfigured("sendPkt");
   auto buf = IOBuf::copyBuffer(reinterpret_cast<const uint8_t*>(data->data()),
                                data->size());
@@ -713,12 +718,42 @@ void ThriftHandler::sendPkt(int32_t port, int32_t vlan,
 }
 
 void ThriftHandler::sendPktHex(int32_t port, int32_t vlan,
-                            std::unique_ptr<folly::fbstring> hex) {
+                               unique_ptr<fbstring> hex) {
   ensureConfigured("sendPktHex");
   auto pkt = MockRxPacket::fromHex(StringPiece(*hex));
   pkt->setSrcPort(PortID(port));
   pkt->setSrcVlan(VlanID(vlan));
   sw_->packetReceived(std::move(pkt));
+}
+
+void ThriftHandler::txPkt(int32_t port, unique_ptr<fbstring> data) {
+  ensureConfigured("txPkt");
+
+  unique_ptr<TxPacket> pkt = sw_->allocatePacket(data->size());
+  RWPrivateCursor cursor(pkt->buf());
+  cursor.push(StringPiece(*data));
+
+  sw_->sendPacketOutOfPort(std::move(pkt), PortID(port));
+}
+
+void ThriftHandler::txPktL2(unique_ptr<fbstring> data) {
+  ensureConfigured("txPktL2");
+
+  unique_ptr<TxPacket> pkt = sw_->allocatePacket(data->size());
+  RWPrivateCursor cursor(pkt->buf());
+  cursor.push(StringPiece(*data));
+
+  sw_->sendPacketSwitched(std::move(pkt));
+}
+
+void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
+  ensureConfigured("txPktL3");
+
+  unique_ptr<TxPacket> pkt = sw_->allocateL3TxPacket(payload->size());
+  RWPrivateCursor cursor(pkt->buf());
+  cursor.push(StringPiece(*payload));
+
+  sw_->sendL3Packet(RouterID(0), std::move(pkt));
 }
 
 Vlan* ThriftHandler::getVlan(int32_t vlanId) {

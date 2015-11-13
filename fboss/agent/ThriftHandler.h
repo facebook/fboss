@@ -75,6 +75,10 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::unique_ptr<folly::fbstring> data) override;
   void sendPktHex(int32_t port, int32_t vlan,
       std::unique_ptr<folly::fbstring> hex) override;
+  void txPkt(int32_t port, std::unique_ptr<folly::fbstring> data) override;
+  void txPktL2(std::unique_ptr<folly::fbstring> data) override;
+  void txPktL3(std::unique_ptr<folly::fbstring> payload) override;
+
   int32_t flushNeighborEntry(std::unique_ptr<BinaryAddress> ip,
                              int32_t vlan) override;
 
