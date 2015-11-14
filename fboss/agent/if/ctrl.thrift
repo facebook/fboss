@@ -72,11 +72,19 @@ struct ProductInfo {
   21: string fabricLocation,
 }
 
+/*
+ * Values in these counters are cumulative since the last time the agent
+ * started.
+ */
 struct PortErrors {
   1: i64 errors,
   2: i64 discards,
 }
 
+/*
+ * Values in these counters are cumulative since the last time the agent
+ * started.
+ */
 struct PortCounters {
   1: i64 bytes,
   2: i64 ucastPkts,
