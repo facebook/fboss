@@ -12,6 +12,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/IPv6Handler.h"
+#include "fboss/agent/NexthopToRouteCount.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/state/Vlan.h"
@@ -19,7 +20,10 @@
 #include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/RouteForwardInfo.h"
 #include <folly/futures/Future.h>
+
+#include <mutex>
 
 using std::chrono::seconds;
 using std::shared_ptr;
@@ -30,6 +34,85 @@ using folly::collectAll;
 
 namespace facebook { namespace fboss {
 
+class UnresolvedNhopsProber : private folly::AsyncTimeout {
+ public:
+  explicit UnresolvedNhopsProber(SwSwitch *sw) :
+    AsyncTimeout(sw->getBackgroundEVB()),
+    sw_(sw),
+    // Probe every 5 secs (make it faster ?)
+    interval_(5) {}
+
+  static void start(void* arg) {
+    auto me = static_cast<UnresolvedNhopsProber*>(arg);
+    me->scheduleTimeout(me->interval_);
+  }
+  static void stop(void* arg) {
+    auto me = static_cast<UnresolvedNhopsProber*>(arg);
+    delete me;
+  }
+
+  void stateChanged(const StateDelta& delta) {
+    std::lock_guard<std::mutex> g(lock_);
+    nhops2RouteCount_.stateChanged(delta);
+  }
+
+  void timeoutExpired() noexcept override;
+
+ private:
+  // Need lock since we may get called from both the update
+  // thread (stateChanged) and background thread (timeoutExpired)
+  std::mutex lock_;
+  SwSwitch *sw_{nullptr};
+  NexthopToRouteCount nhops2RouteCount_;
+  seconds interval_;
+};
+
+void UnresolvedNhopsProber::timeoutExpired() noexcept {
+  std::lock_guard<std::mutex> g(lock_);
+  auto state = sw_->getState();
+  for (const auto& ridAndNhopsRefCounts : nhops2RouteCount_) {
+    for (const auto& nhopAndRefCount : ridAndNhopsRefCounts.second) {
+      const auto& nhop = nhopAndRefCount.first;
+      auto intf = state->getInterfaces()->getInterfaceIf(nhop.intf);
+      if (!intf) {
+        continue; // interface got unconfigured
+      }
+      // Probe all nexthops for which either don't have a L2 entry
+      // or the entry is not resolved (port == 0). Note that we do
+      // not exclude pending entries here since in case of recursive
+      // routes we might get packets with destination set to prefix
+      // that needs to be resolved recursively. In ARP and NDP code
+      // we do not do route lookup when deciding to send ARP/NDP requests.
+      // So we would only try to ARP/NDP for the destination if it
+      // is in one of the interface subnets (which it won't be else
+      // we won't have needed recursive resolution). So ARP/NDP for
+      // all unresolved next hops. We could also consider doing route
+      // lookups in ARP/NDP code, but by probing all unresolved next
+      // hops we effectively do the same thing, since the next hops
+      // probed come from after the route was (recursively) resolved.
+      auto vlan = state->getVlans()->getVlanIf(intf->getVlanID());
+      CHECK(vlan); // must have vlan for configrued inteface
+      if (nhop.nexthop.isV4()) {
+        auto nhop4 = nhop.nexthop.asV4();
+        auto arpEntry = vlan->getArpTable()->getEntryIf(nhop4);
+        if (!arpEntry || arpEntry->getPort() == 0) {
+          VLOG(2) <<" Sending probe for unresolved next hop: " << nhop4;
+          auto source = intf->getAddressToReach(nhop.nexthop)->first.asV4();
+          sw_->getArpHandler()->sendArpRequest(vlan, source, nhop4);
+        }
+      } else {
+        auto nhop6 = nhop.nexthop.asV6();
+        auto ndpEntry = vlan->getNdpTable()->getEntryIf(nhop6);
+        if (!ndpEntry || ndpEntry->getPort() == 0) {
+          VLOG(2) <<" Sending probe for unresolved next hop: " << nhop6;
+          sw_->getIPv6Handler()->sendNeighborSolicitation(nhop6, vlan);
+        }
+      }
+    }
+  }
+  scheduleTimeout(interval_);
+
+}
 class NeighborUpdaterImpl : private folly::AsyncTimeout {
  public:
   NeighborUpdaterImpl(VlanID vlan, SwSwitch *sw, const SwitchState* state);
@@ -56,7 +139,7 @@ class NeighborUpdaterImpl : private folly::AsyncTimeout {
       const shared_ptr<Interface>& intf, const shared_ptr<Vlan>& vlan,
       FUNC& sendNeighborReq) const;
 
-  void sendNeighborRequestForPendingEntriesHit() const;
+ void sendNeighborRequestForPendingEntriesHit() const;
 
   void timeoutExpired() noexcept override {
     sendNeighborRequestForPendingEntriesHit();
@@ -122,6 +205,9 @@ void NeighborUpdaterImpl::sendNeighborRequestForPendingEntriesHit() const {
   auto state = sw_->getState();
   const auto&  vlanMap = state->getVlans();
   for (auto& intf: *state->getInterfaces()) {
+    if (vlan_ != intf->getVlanID()) {
+      continue;
+    }
     auto vlan = vlanMap->getVlan(intf->getVlanID());
     // all interfaces must have a valid vlan
     CHECK(vlan);
@@ -134,7 +220,16 @@ void NeighborUpdaterImpl::sendNeighborRequestForPendingEntriesHit() const {
 
 NeighborUpdater::NeighborUpdater(SwSwitch* sw)
     : AutoRegisterStateObserver(sw, "NeighborUpdater"),
-      sw_(sw) {}
+      sw_(sw),
+      unresolvedNhopsProber_(new UnresolvedNhopsProber(sw)) {
+
+  bool ret = sw_->getBackgroundEVB()->runInEventBaseThread(
+    UnresolvedNhopsProber::start, unresolvedNhopsProber_);
+  if (!ret) {
+    delete unresolvedNhopsProber_;
+    throw FbossError("failed to start unresolved next hops prober");
+  }
+}
 
 NeighborUpdater::~NeighborUpdater() {
   std::vector<Future<Unit>> stopTasks;
@@ -156,7 +251,16 @@ NeighborUpdater::~NeighborUpdater() {
       });
     stopTasks.push_back(std::move(f));
   }
-
+  // Stop the prober now
+  std::function<void()> stopProber = [=]() {
+    UnresolvedNhopsProber::stop(unresolvedNhopsProber_);
+  };
+  auto f = via(sw_->getBackgroundEVB())
+    .then(stopProber)
+    .onError([=] (const std::exception& e) {
+          LOG (FATAL) << "Failed to stop unresolved next hops prober ";
+        });
+  stopTasks.push_back(std::move(f));
   // Ensure that all of the updaters have been stopped before we return
   collectAll(stopTasks).get();
 }
@@ -181,6 +285,7 @@ void NeighborUpdater::stateUpdated(const StateDelta& delta) {
     auto updater = res->second;
     updater->stateChanged(delta);
   }
+  unresolvedNhopsProber_->stateChanged(delta);
 }
 
 template<typename T>
