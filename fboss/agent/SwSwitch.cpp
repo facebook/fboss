@@ -784,7 +784,16 @@ void SwSwitch::linkStateChanged(PortID port, bool up) noexcept {
   logLinkStateEvent(port, up);
   // It seems that this function can get called before the state is fully
   // initialized. Don't do anything if so.
-  if (!isFullyInitialized() || up) {
+  //
+  // With some server NICs we see link flaps on warm boot (task #9062918).
+  // We need to track down the root cause of these flaps.  As a hack until the
+  // root cause is fixed, don't drop neighbor entries on link flaps that occur
+  // before the FIB is synced.  This minimizes the traffic disruption caused by
+  // these warm boot link flaps.
+  // Once the link flaps issue is fixed, we can replace !isFibSynced() with
+  // !isFullyInitialized() again.
+  //
+  if (!isFibSynced() || up) {
     return;
   }
   updateState("port down",
