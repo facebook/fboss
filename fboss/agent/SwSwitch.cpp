@@ -80,6 +80,33 @@ facebook::fboss::PortStatus fillInPortStatus(
   }
   return status;
 }
+
+string getPortUpName(const shared_ptr<facebook::fboss::Port>& port) {
+  return port->getName().empty()
+    ? folly::to<string>("port", port->getID(), ".up")
+    : port->getName() + ".up";
+}
+
+inline void updatePortNames(const facebook::fboss::StateDelta& delta) {
+  facebook::fboss::DeltaFunctions::forEachChanged(
+    delta.getPortsDelta(),
+    [&] (const shared_ptr<facebook::fboss::Port>& oldPort,
+         const shared_ptr<facebook::fboss::Port>& newPort) {
+      if (oldPort->getName() == newPort->getName()) {
+        return;
+      }
+      long val = facebook::fbData->getCounter(getPortUpName(oldPort));
+      facebook::fbData->clearCounter(getPortUpName(oldPort));
+      facebook::fbData->setCounter(getPortUpName(newPort), val);
+    },
+    [&] (const shared_ptr<facebook::fboss::Port>& newPort) {
+      facebook::fbData->setCounter(getPortUpName(newPort), 0);
+    },
+    [&] (const shared_ptr<facebook::fboss::Port>& oldPort) {
+      facebook::fbData->clearCounter(getPortUpName(oldPort));
+    }
+  );
+}
 }
 
 namespace facebook { namespace fboss {
@@ -250,6 +277,7 @@ void SwSwitch::init(SwitchFlags flags) {
 
   for (const auto& port : (*initialState->getPorts())) {
     auto maxSpeed = getMaxPortSpeed(port->getID());
+    fbData->setCounter(getPortUpName(port), 0);
     port->setMaxSpeed(maxSpeed);
   }
 
@@ -364,7 +392,7 @@ void SwSwitch::notifyStateObservers(const StateDelta& delta) {
     // Make sure the SwSwitch is not already being destroyed
     return;
   }
-
+  updatePortNames(delta);
   for (auto observerName : stateObservers_) {
     try {
       auto observer = observerName.first;
@@ -782,6 +810,7 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
 void SwSwitch::linkStateChanged(PortID port, bool up) noexcept {
   LOG(INFO) << "link state changed: " << port << " enabled = " << up;
   logLinkStateEvent(port, up);
+  fbData->setCounter(getPortUpName(getState()->getPort(port)), int(up));
   // It seems that this function can get called before the state is fully
   // initialized. Don't do anything if so.
   //
