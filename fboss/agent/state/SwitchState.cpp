@@ -18,6 +18,8 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableMap.h"
+#include "fboss/agent/state/AclEntry.h"
+#include "fboss/agent/state/AclMap.h"
 
 #include "fboss/agent/state/NodeBase-defs.h"
 
@@ -30,6 +32,7 @@ constexpr auto kPorts = "ports";
 constexpr auto kVlans = "vlans";
 constexpr auto kRouteTables = "routeTables";
 constexpr auto kDefaultVlan = "defaultVlan";
+constexpr auto kAcls = "acls";
 }
 
 namespace facebook { namespace fboss {
@@ -38,7 +41,8 @@ SwitchStateFields::SwitchStateFields()
   : ports(make_shared<PortMap>()),
     vlans(make_shared<VlanMap>()),
     interfaces(make_shared<InterfaceMap>()),
-    routeTables(make_shared<RouteTableMap>()) {
+    routeTables(make_shared<RouteTableMap>()),
+    acls(make_shared<AclMap>()) {
 }
 
 folly::dynamic SwitchStateFields::toFollyDynamic() const {
@@ -47,6 +51,7 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kPorts] = ports->toFollyDynamic();
   switchState[kVlans] = vlans->toFollyDynamic();
   switchState[kRouteTables] = routeTables->toFollyDynamic();
+  switchState[kAcls] = acls->toFollyDynamic();
   switchState[kDefaultVlan] = static_cast<uint32_t>(defaultVlan);
   return switchState;
 }
@@ -60,6 +65,7 @@ SwitchStateFields::fromFollyDynamic(const folly::dynamic& swJson) {
   switchState.vlans = VlanMap::fromFollyDynamic(swJson[kVlans]);
   switchState.routeTables = RouteTableMap::fromFollyDynamic(
       swJson[kRouteTables]);
+  switchState.acls = AclMap::fromFollyDynamic(swJson[kAcls]);
   switchState.defaultVlan = VlanID(swJson[kDefaultVlan].asInt());
   //TODO verify that created state here is internally consistent t4155406
   return switchState;
@@ -136,6 +142,24 @@ void SwitchState::addRouteTable(const std::shared_ptr<RouteTable>& rt) {
 
 void SwitchState::resetRouteTables(std::shared_ptr<RouteTableMap> rts) {
   writableFields()->routeTables.swap(rts);
+}
+
+void SwitchState::addAcl(const std::shared_ptr<AclEntry>& acl) {
+  auto* fields = writableFields();
+  // For ease-of-use, automatically clone the AclMap if we are still
+  // pointing to a published map.
+  if (fields->acls->isPublished()) {
+    fields->acls = fields->acls->clone();
+  }
+  fields->acls->addEntry(acl);
+}
+
+std::shared_ptr<AclEntry> SwitchState::getAcl(AclEntryID id) const {
+  return getFields()->acls->getEntryIf(id);
+}
+
+void SwitchState::resetAcls(std::shared_ptr<AclMap> acls) {
+  writableFields()->acls.swap(acls);
 }
 
 template class NodeBaseT<SwitchState, SwitchStateFields>;

@@ -12,6 +12,8 @@
 #include <folly/FileUtil.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/state/AclEntry.h"
+#include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -104,6 +106,10 @@ class ThriftConfigApplier {
   std::shared_ptr<Vlan> createVlan(const cfg::Vlan* config);
   std::shared_ptr<Vlan> updateVlan(const std::shared_ptr<Vlan>& orig,
                                    const cfg::Vlan* config);
+  std::shared_ptr<AclMap> updateAcls();
+  std::shared_ptr<AclEntry> createAcl(const cfg::AclEntry* config);
+  std::shared_ptr<AclEntry> updateAcl(const std::shared_ptr<AclEntry>& orig,
+                                      const cfg::AclEntry* config);
   bool updateNeighborResponseTables(Vlan* vlan, const cfg::Vlan* config);
   bool updateDhcpOverrides(Vlan* vlan, const cfg::Vlan* config);
   std::shared_ptr<InterfaceMap> updateInterfaces();
@@ -220,6 +226,14 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
                        entry.interfaces.size(), " interfaces ");
       }
    }
+  }
+
+  {
+    auto newAcls = updateAcls();
+    if (newAcls) {
+      newState->resetAcls(std::move(newAcls));
+      changed = true;
+    }
   }
 
   std::chrono::seconds arpAgerInterval(cfg_->arpAgerInterval);
@@ -465,6 +479,89 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(const shared_ptr<Vlan>& orig,
   newVlan->setDhcpV4Relay(newDhcpV4Relay);
   newVlan->setDhcpV6Relay(newDhcpV6Relay);
   return newVlan;
+}
+
+shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
+  auto origAcls = orig_->getAcls();
+  AclMap::NodeContainer newAcls;
+  bool changed = false;
+
+  // Process all supplied ACLs
+  size_t numExistingProcessed = 0;
+  for (int i = 0; i < cfg_->acls.size(); ++i) {
+    const auto& acl = cfg_->acls[i];
+    auto origAcl = origAcls->getEntryIf(AclEntryID(acl.id));
+    shared_ptr<AclEntry> newAcl;
+    if (origAcl) {
+      newAcl = updateAcl(origAcl, &acl);
+      ++numExistingProcessed;
+    } else {
+      newAcl = createAcl(&acl);
+    }
+    changed |= updateMap(&newAcls, origAcl, newAcl);
+  }
+
+  if (numExistingProcessed != origAcls->size()) {
+    // Some existing ACLs were removed.
+    CHECK_LT(numExistingProcessed, origAcls->size());
+    changed = true;
+  }
+
+  if (!changed) {
+    return nullptr;
+  }
+
+  return origAcls->clone(std::move(newAcls));
+}
+
+shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
+    const cfg::AclEntry* config) {
+  auto newAcl = make_shared<AclEntry>(AclEntryID(config->id));
+  newAcl->setAction(config->action);
+  if (config->__isset.srcIp) {
+    newAcl->setSrcIp(IPAddress::createNetwork(config->srcIp));
+  }
+  if (config->__isset.dstIp) {
+    newAcl->setDstIp(IPAddress::createNetwork(config->dstIp));
+  }
+  if (config->__isset.l4SrcPort) {
+    newAcl->setL4SrcPort(config->l4SrcPort);
+  }
+  if (config->__isset.l4DstPort) {
+    newAcl->setL4DstPort(config->l4DstPort);
+  }
+  if (config->__isset.proto) {
+    newAcl->setProto(config->proto);
+  }
+  if (config->__isset.tcpFlags) {
+    newAcl->setTcpFlags(config->tcpFlags);
+  }
+  if (config->__isset.tcpFlagsMask) {
+    newAcl->setTcpFlagsMask(config->tcpFlagsMask);
+  }
+  return newAcl;
+}
+
+
+shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
+    const shared_ptr<AclEntry>& orig,
+    const cfg::AclEntry* config) {
+
+  auto newAcl = createAcl(config);
+
+  if (orig->getID() == newAcl->getID() &&
+      orig->getAction() == newAcl->getAction() &&
+      orig->getSrcIp() == newAcl->getSrcIp() &&
+      orig->getDstIp() == newAcl->getDstIp() &&
+      orig->getL4SrcPort() == newAcl->getL4SrcPort() &&
+      orig->getL4DstPort() == newAcl->getL4DstPort() &&
+      orig->getProto() == newAcl->getProto() &&
+      orig->getTcpFlags() == newAcl->getTcpFlags() &&
+      orig->getTcpFlagsMask() == newAcl->getTcpFlagsMask()) {
+    return nullptr;
+  }
+
+  return newAcl;
 }
 
 bool ThriftConfigApplier::updateDhcpOverrides(Vlan* vlan,

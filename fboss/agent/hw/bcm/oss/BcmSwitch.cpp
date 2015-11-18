@@ -68,4 +68,14 @@ void BcmSwitch::configureCosQMappingForLocalInterfaces(
   // API not available in opennsl
 }
 
+void BcmSwitch::createAclGroup() {
+  // API not available in opennsl
+}
+
+// Bcm's ContentAware Processing engine API is not open sourced yet
+void BcmSwitch::processChangedAcl(
+  const std::shared_ptr<AclEntry>& oldAcl,
+  const std::shared_ptr<AclEntry>& newAcl) {}
+void BcmSwitch::processAddedAcl(const std::shared_ptr<AclEntry>& acl) {}
+void BcmSwitch::processRemovedAcl(const std::shared_ptr<AclEntry>& acl) {}
 }} //facebook::fboss

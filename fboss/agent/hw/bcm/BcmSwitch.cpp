@@ -38,6 +38,7 @@
 #include "fboss/agent/hw/bcm/BcmTxPacket.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
+#include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Interface.h"
@@ -130,6 +131,7 @@ BcmSwitch::BcmSwitch(BcmPlatform *platform, HashMode hashMode)
     intfTable_(new BcmIntfTable(this)),
     hostTable_(new BcmHostTable(this)),
     routeTable_(new BcmRouteTable(this)),
+    aclTable_(new BcmAclTable()),
     warmBootCache_(new BcmWarmBootCache(this)) {
 
   // Start switch event manager so critical events will be handled.
@@ -441,6 +443,8 @@ BcmSwitch::init(Callback* callback) {
   ecmpHashSetup();
 
   initFieldProcessor(warmBoot);
+
+  createAclGroup();
   dropDhcpPackets();
   dropIPv6RAs();
   configureRxRateLimiting();
@@ -604,6 +608,9 @@ void BcmSwitch::stateChangedImpl(const StateDelta& delta) {
 
   // Any ARP changes
   processArpChanges(delta);
+
+  // Any ACL changes
+  processAclChanges(delta);
 
   // Process any new routes or route changes
   processAddedChangedRoutes(delta);
@@ -905,6 +912,15 @@ void BcmSwitch::processAddedIntf(const shared_ptr<Interface>& intf) {
 void BcmSwitch::processRemovedIntf(const shared_ptr<Interface>& intf) {
   VLOG(2) << "deleting interface " << intf->getID();
   intfTable_->deleteIntf(intf);
+}
+
+void BcmSwitch::processAclChanges(const StateDelta& delta) {
+  forEachChanged(
+    delta.getAclsDelta(),
+    &BcmSwitch::processChangedAcl,
+    &BcmSwitch::processAddedAcl,
+    &BcmSwitch::processRemovedAcl,
+    this);
 }
 
 template<typename DELTA>

@@ -28,6 +28,8 @@ class Interface;
 class InterfaceMap;
 class RouteTable;
 class RouteTableMap;
+class AclEntry;
+class AclMap;
 
 struct SwitchStateFields {
   SwitchStateFields();
@@ -38,6 +40,7 @@ struct SwitchStateFields {
     fn(vlans.get());
     fn(interfaces.get());
     fn(routeTables.get());
+    fn(acls.get());
   }
   /*
    * Serialize to folly::dynamic
@@ -52,6 +55,7 @@ struct SwitchStateFields {
   std::shared_ptr<VlanMap> vlans;
   std::shared_ptr<InterfaceMap> interfaces;
   std::shared_ptr<RouteTableMap> routeTables;
+  std::shared_ptr<AclMap> acls;
   VlanID defaultVlan{0};
 
   // Timeout settings
@@ -139,6 +143,12 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return getFields()->routeTables;
   }
 
+  std::shared_ptr<AclEntry> getAcl(AclEntryID id) const;
+
+  const std::shared_ptr<AclMap>& getAcls() const {
+    return getFields()->acls;
+  }
+
   std::chrono::seconds getArpTimeout() const {
     return getFields()->arpTimeout;
   }
@@ -166,6 +176,8 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void resetIntfs(std::shared_ptr<InterfaceMap> intfs);
   void addRouteTable(const std::shared_ptr<RouteTable>& rt);
   void resetRouteTables(std::shared_ptr<RouteTableMap> rts);
+  void addAcl(const std::shared_ptr<AclEntry>& acl);
+  void resetAcls(std::shared_ptr<AclMap> acls);
 
  private:
   // Inherit the constructor required for clone()

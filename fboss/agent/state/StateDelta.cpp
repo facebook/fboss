@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/state/StateDelta.h"
 
+#include "fboss/agent/state/AclEntry.h"
+#include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
@@ -52,12 +54,17 @@ RTMapDelta StateDelta::getRouteTablesDelta() const {
                     new_->getRouteTables().get());
 }
 
+NodeMapDelta<AclMap> StateDelta::getAclsDelta() const {
+  return NodeMapDelta<AclMap>(old_->getAcls().get(), new_->getAcls().get());
+}
+
 // Explicit instantiations of NodeMapDelta that are used by StateDelta.
 // This prevents users of StateDelta from needing to include
 // NodeMapDelta-defs.h
 template class NodeMapDelta<InterfaceMap>;
 template class NodeMapDelta<PortMap>;
 template class NodeMapDelta<RouteTableMap>;
+template class NodeMapDelta<AclMap>;
 template class NodeMapDelta<RouteTableRibNodeMap<folly::IPAddressV4>>;
 template class NodeMapDelta<RouteTableRibNodeMap<folly::IPAddressV6>>;
 

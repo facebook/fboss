@@ -25,6 +25,8 @@ extern "C" {
 
 namespace facebook { namespace fboss {
 
+struct AclEntryID;
+class AclEntry;
 class ArpEntry;
 class BcmEgress;
 class BcmHostTable;
@@ -41,6 +43,12 @@ class Port;
 class PortStats;
 class Vlan;
 class VlanMap;
+/*
+ * Map AclEntryId to opennsl_field_entry_t
+ * opennsl_field_entry_t is not opensourced. Using int for now.
+ */
+using BcmAclTable =
+  boost::container::flat_map<AclEntryID, int>;
 
 /*
  * BcmSwitch is a HwSwitch implementation for systems that use a single
@@ -266,6 +274,12 @@ class BcmSwitch : public HwSwitch {
   void processRemovedRoutes(const StateDelta& delta);
   void processAddedChangedRoutes(const StateDelta& delta);
 
+  void processAclChanges(const StateDelta& delta);
+  void processChangedAcl(const std::shared_ptr<AclEntry>& oldAcl,
+                          const std::shared_ptr<AclEntry>& newAcl);
+  void processAddedAcl(const std::shared_ptr<AclEntry>& acl);
+  void processRemovedAcl(const std::shared_ptr<AclEntry>& acl);
+
   void stateChangedImpl(const StateDelta& delta);
 
   static void linkscanCallback(int unit,
@@ -314,6 +328,11 @@ class BcmSwitch : public HwSwitch {
    * Drop DHCP packets that are sent to us.
    */
   void dropDhcpPackets();
+
+  /*
+   * Create ACL group
+   */
+  void createAclGroup();
 
   /*
    * Configure rate limiting of packets sent to the CPU.
@@ -366,6 +385,7 @@ class BcmSwitch : public HwSwitch {
   std::unique_ptr<BcmIntfTable> intfTable_;
   std::unique_ptr<BcmHostTable> hostTable_;
   std::unique_ptr<BcmRouteTable> routeTable_;
+  std::unique_ptr<BcmAclTable> aclTable_;
   std::unique_ptr<BcmWarmBootCache> warmBootCache_;
   std::unique_ptr<BcmSwitchEventManager> switchEventManager_;
   std::mutex lock_;

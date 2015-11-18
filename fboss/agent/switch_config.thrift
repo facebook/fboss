@@ -52,6 +52,14 @@ enum PortSpeed {
 }
 
 /**
+ * The action for an access control entry
+ */
+enum AclAction {
+  DENY = 0,
+  PERMIT = 1,
+}
+
+/**
  * Configuration for a single logical port
  */
 struct Port {
@@ -275,6 +283,49 @@ struct StaticRouteNoNextHops {
 }
 
 /**
+ * An access control entry
+ */
+struct AclEntry {
+  /**
+   * Unique identifier of an AclEntry. Entries with smaller ID will have
+   * higher priority (matched first). Please make sure all AclEntry has a unique
+   * ID so that they can be totally ordered.
+   */
+  1: i32 id
+
+  /**
+   * Actions to take
+   */
+  2: AclAction action
+
+  /**
+   * IP addresses with mask. e.g. 192.168.0.0/16. Can be either V4 or V6
+   */
+  3: optional string srcIp
+  4: optional string dstIp
+
+  /**
+   * L4 ports (TCP/UDP). Note that this is NOT the switch port.
+   */
+  5: optional i16 l4SrcPort
+  6: optional i16 l4DstPort
+
+  /**
+   * IP Protocol. e.g, 6 for TCP
+   */
+  7: optional i16 proto
+
+  /**
+   * TCP flags and mask (to support "don't care" bits). As in IP address,
+   * mask = 1 means we _care_ about this bit position.
+   * Example: tcpFlags = 16, tcpFlagsMask = 16 means ACK set, while ignoring
+   * all other bits
+   */
+  8: optional i16 tcpFlags
+  9: optional i16 tcpFlagsMask
+}
+
+/**
  * The configuration for a switch.
  *
  * This contains all of the hardware-independent configuration for a
@@ -306,4 +357,7 @@ struct SwitchConfig {
   13: optional list<StaticRouteNoNextHops> staticRoutesToNull;
   // Prefixes for which to send traffic to CPU
   14: optional list<StaticRouteNoNextHops> staticRoutesToCPU;
+  // The order of AclEntry does _not_ determine its priority.
+  // Highest priority entry comes with smallest ID.
+  15: optional list<AclEntry> acls = []
 }
