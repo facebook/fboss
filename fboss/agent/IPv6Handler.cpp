@@ -308,8 +308,56 @@ void IPv6Handler::handleRouterSolicitation(unique_ptr<RxPacket> pkt,
     return;
   }
 
-  // TODO: process the packet
-  sw_->portStats(pkt)->pktDropped();
+  cursor.skip(4); // 4 reserved bytes
+
+  auto state = sw_->getState();
+  auto vlan = state->getVlans()->getVlanIf(pkt->getSrcVlan());
+  if (!vlan) {
+    sw_->portStats(pkt)->pktDropped();
+    return;
+  }
+
+  auto intf = state->getInterfaces()->getInterfaceIf(vlan->getInterfaceID());
+  if (!intf) {
+    sw_->portStats(pkt)->pktDropped();
+    return;
+  }
+
+  MacAddress dstMac = hdr.src;
+  while (cursor.totalLength() != 0) {
+    auto optionType = cursor.read<uint8_t>();
+    auto optionLength = cursor.read<uint8_t>();
+    if (optionType == NDPOptionType::SRC_LL_ADDRESS) {
+      // target mac address
+      if (optionLength != NDPOptionLength::SRC_LL_ADDRESS_IEEE802) {
+        VLOG(3) << "bad option length " <<
+          static_cast<unsigned int>(optionLength) <<
+          " for source MAC address in IPv6 router solicitation";
+        sw_->portStats(pkt)->pktDropped();
+        return;
+      }
+      dstMac = PktUtil::readMac(&cursor);
+    } else {
+      // Unknown option.  Just skip over it.
+      cursor.skip(optionLength * 8);
+    }
+  }
+
+  // Send the response
+  IPAddressV6 dstIP = hdr.ipv6->srcAddr;
+  if (dstIP.isZero()) {
+    dstIP = IPAddressV6("ff01::1");
+  }
+
+  VLOG(3) << "sending router advertisement in response to solicitation from "
+    << dstIP.str() << " (" << dstMac << ")";
+
+  uint32_t pktLen = IPv6RouteAdvertiser::getPacketSize(intf.get());
+  auto resp = sw_->allocatePacket(pktLen);
+  RWPrivateCursor respCursor(resp->buf());
+  IPv6RouteAdvertiser::createAdvertisementPacket(
+    intf.get(), &respCursor, dstMac, dstIP);
+  sw_->sendPacketSwitched(std::move(resp));
 }
 
 void IPv6Handler::handleRouterAdvertisement(unique_ptr<RxPacket> pkt,
@@ -394,7 +442,7 @@ void IPv6Handler::handleNeighborAdvertisement(unique_ptr<RxPacket> pkt,
   // Check for options fields.  The target MAC address may be specified here.
   // If it isn't, we use the source MAC from the ethernet header.
   MacAddress targetMac = hdr.src;
-  if (cursor.totalLength() != 0) {
+  while (cursor.totalLength() != 0) {
     auto optionType = cursor.read<uint8_t>();
     auto optionLength = cursor.read<uint8_t>();
     if (optionType == NDPOptionType::TARGET_LL_ADDRESS) {

@@ -222,6 +222,7 @@ TxMatchFn checkNeighborSolicitation(MacAddress srcMac, IPAddressV6 srcIP,
 
 typedef std::vector<std::pair<IPAddressV6, uint8_t>> PrefixVector;
 TxMatchFn checkRouterAdvert(MacAddress srcMac, IPAddressV6 srcIP,
+                            MacAddress dstMac, IPAddressV6 dstIP,
                             VlanID vlan, const cfg::NdpConfig& ndp,
                             uint32_t mtu,
                             PrefixVector expectedPrefixes) {
@@ -308,11 +309,8 @@ TxMatchFn checkRouterAdvert(MacAddress srcMac, IPAddressV6 srcIP,
       throw FbossError("mismatching advertised prefixes");
     }
   };
-  return checkIMCPv6Pkt(srcMac, srcIP,
-                        MacAddress("33:33:00:00:00:01"),
-                        IPAddressV6("ff02::1"),
-                        vlan, ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT,
-                        checkPayload);
+  return checkIMCPv6Pkt(srcMac, srcIP, dstMac, dstIP, vlan,
+                        ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT, checkPayload);
 }
 
 void sendNeighborAdvertisement(SwSwitch* sw, StringPiece ipStr,
@@ -536,8 +534,96 @@ TEST(NDP, RouterAdvertisement) {
   EXPECT_PKT(sw, "router advertisement",
              checkRouterAdvert(kPlatformMac,
                                IPAddressV6("fe80::1:02ff:fe03:0405"),
+                               MacAddress("33:33:00:00:00:01"),
+                               IPAddressV6("ff02::1"),
                                VlanID(5), intfConfig->getNdpConfig(),
                                9000, expectedPrefixes));
+
+  // Send the router solicitation packet
+  EXPECT_PKT(sw, "router advertisement",
+             checkRouterAdvert(kPlatformMac,
+                               IPAddressV6("fe80::1:02ff:fe03:0405"),
+                               MacAddress("02:05:73:f9:46:fc"),
+                               IPAddressV6("2401:db00:2110:1234::1:0"),
+                               VlanID(5), intfConfig->getNdpConfig(),
+                               9000, expectedPrefixes));
+
+  auto pkt = MockRxPacket::fromHex(
+    // dst mac, src mac
+    "33 33 00 00 00 02  02 05 73 f9 46 fc"
+    // 802.1q, VLAN 5
+    "81 00 00 05"
+    // IPv6
+    "86 dd"
+    // Version 6, traffic class, flow label
+    "6e 00 00 00"
+    // Payload length: 8
+    "00 08"
+    // Next Header: 58 (ICMPv6), Hop Limit (255)
+    "3a ff"
+    // src addr (2401:db00:2110:1234::1:0)
+    "24 01 db 00 21 10 12 34 00 00 00 00 00 01 00 00"
+    // dst addr (ff02::2)
+    "ff 02 00 00 00 00 00 00 00 00 00 00 00 00 00 02"
+    // type: router solicitation
+    "85"
+    // code
+    "00"
+    // checksum
+    "49 71"
+    // reserved
+    "00 00 00 00"
+  );
+  pkt->setSrcPort(PortID(1));
+  pkt->setSrcVlan(VlanID(5));
+  sw->packetReceived(std::move(pkt));
+
+
+  // Now send the packet with specified source MAC address as ICMPv6 option
+  // which differs from MAC address in ethernet header. The switch should use
+  // the MAC address in options field.
+
+  EXPECT_PKT(sw, "router advertisement",
+             checkRouterAdvert(kPlatformMac,
+                               IPAddressV6("fe80::1:02ff:fe03:0405"),
+                               MacAddress("02:ab:73:f9:46:fc"),
+                               IPAddressV6("2401:db00:2110:1234::1:0"),
+                               VlanID(5), intfConfig->getNdpConfig(),
+                               9000, expectedPrefixes));
+
+  auto pkt2 = MockRxPacket::fromHex(
+    // dst mac, src mac
+    "33 33 00 00 00 02  02 05 73 f9 46 fc"
+    // 802.1q, VLAN 5
+    "81 00 00 05"
+    // IPv6
+    "86 dd"
+    // Version 6, traffic class, flow label
+    "6e 00 00 00"
+    // Payload length: 16
+    "00 10"
+    // Next Header: 58 (ICMPv6), Hop Limit (255)
+    "3a ff"
+    // src addr (2401:db00:2110:1234::1:0)
+    "24 01 db 00 21 10 12 34 00 00 00 00 00 01 00 00"
+    // dst addr (ff02::2)
+    "ff 02 00 00 00 00 00 00 00 00 00 00 00 00 00 02"
+    // type: router solicitation
+    "85"
+    // code
+    "00"
+    // checksum
+    "8a c7"
+    // reserved
+    "00 00 00 00"
+    // option type: Source Link-Layer Address, length
+    "01 01"
+    // source mac
+    "02 ab 73 f9 46 fc"
+  );
+  pkt2->setSrcPort(PortID(1));
+  pkt2->setSrcVlan(VlanID(5));
+  sw->packetReceived(std::move(pkt2));
 
   // The RA packet will be sent in the background even thread after the RA
   // interval.  Schedule a timeout to wake us up after the interval has
@@ -556,6 +642,8 @@ TEST(NDP, RouterAdvertisement) {
   EXPECT_PKT(sw, "router advertisement",
              checkRouterAdvert(kPlatformMac,
                                IPAddressV6("fe80::1:02ff:fe03:0405"),
+                               MacAddress("33:33:00:00:00:01"),
+                               IPAddressV6("ff02::1"),
                                VlanID(5), intfConfig->getNdpConfig(),
                                9000, expectedPrefixes));
 }

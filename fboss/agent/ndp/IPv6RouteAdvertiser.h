@@ -10,7 +10,15 @@
 #pragma once
 
 #include <folly/io/IOBuf.h>
+#include <folly/io/Cursor.h>
 #include <folly/io/async/AsyncTimeout.h>
+
+namespace folly {
+
+class MacAddress;
+class IPAddressV6;
+
+}
 
 namespace facebook { namespace fboss {
 
@@ -36,6 +44,12 @@ class IPv6RouteAdvertiser {
   // IPv6RouteAdvertiser objects are movable
   IPv6RouteAdvertiser(IPv6RouteAdvertiser&& other) noexcept;
   IPv6RouteAdvertiser& operator=(IPv6RouteAdvertiser&& other) noexcept;
+
+  static uint32_t getPacketSize(const Interface* intf);
+  static void createAdvertisementPacket(const Interface* intf,
+                                        folly::io::RWPrivateCursor* cursor,
+                                        folly::MacAddress dstMac,
+                                        const folly::IPAddressV6& dstIP);
 
  private:
   /*

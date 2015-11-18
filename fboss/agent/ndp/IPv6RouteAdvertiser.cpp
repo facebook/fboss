@@ -30,6 +30,39 @@ using folly::io::Cursor;
 using folly::IOBuf;
 using folly::io::RWPrivateCursor;
 
+namespace {
+
+uint32_t getAdvertisementPacketBodySize(uint32_t items_count)  {
+  uint32_t bodyLength =
+    4 + // hop limit, flags, lifetime
+    4 + // reachable timer
+    4 + // retrans timer
+    8 + // src MAC option
+    8 + // MTU option
+    (32 * items_count); // prefix options
+
+  return bodyLength;
+}
+
+template<typename F>
+void foreachAddrToAdvertise(const facebook::fboss::Interface* intf, F f) {
+  for (const auto& addr : intf->getAddresses()) {
+    if (!addr.first.isV6()) {
+      continue;
+    }
+    uint8_t mask = addr.second;
+    // For IPs that are configured with a 128-bit mask, don't bother including
+    // them in the advertisement, since no-one else besides us can belong to
+    // this subnet.
+    if (mask == 128) {
+      continue;
+    }
+    f(addr);
+  }
+}
+
+}
+
 namespace facebook { namespace fboss {
 
 /*
@@ -61,7 +94,7 @@ class IPv6RAImpl : private folly::AsyncTimeout {
     scheduleTimeout(interval_);
   }
 
-  void initPacket(const SwitchState* state, const Interface* intf);
+  void initPacket(const Interface* intf);
   void sendRouteAdvertisement();
 
   std::chrono::milliseconds interval_;
@@ -77,7 +110,7 @@ IPv6RAImpl::IPv6RAImpl(SwSwitch* sw,
   std::chrono::seconds raInterval(
       intf->getNdpConfig().routerAdvertisementSeconds);
   interval_ = raInterval;
-  initPacket(state, intf);
+  initPacket(intf);
 }
 
 void IPv6RAImpl::start(void* arg) {
@@ -96,102 +129,13 @@ void IPv6RAImpl::stop(void* arg) {
   delete ra;
 }
 
-void IPv6RAImpl::initPacket(const SwitchState* state, const Interface* intf) {
-  const auto* ndpConfig = &intf->getNdpConfig();
-  const Vlan* vlan = state->getVlans()->getVlan(intf->getVlanID()).get();
-
-  // Settings
-  uint8_t hopLimit = ndpConfig->curHopLimit;
-  // Set managed and other bits in router advertisements.
-  // These bits control whether address and other information
-  // (e.g. where to grab the image) is available via DHCP.
-  uint8_t flags = 0;
-  if (ndpConfig->routerAdvertisementManagedBit) {
-    flags |= ND_RA_FLAG_MANAGED;
-  }
-  if (ndpConfig->routerAdvertisementOtherBit) {
-    flags |= ND_RA_FLAG_OTHER;
-  }
-  std::chrono::seconds lifetime(ndpConfig->routerLifetime);
-  std::chrono::seconds reachableTimer(0);
-  std::chrono::seconds retransTimer(0);
-  uint32_t prefixValidLifetime = ndpConfig->prefixValidLifetimeSeconds;
-  uint32_t prefixPreferredLifetime = ndpConfig->prefixPreferredLifetimeSeconds;
-
-  // Build the list of prefixes to advertise
-  typedef std::pair<IPAddressV6, uint8_t> Prefix;
-  uint32_t mtu = intf->getMtu();
-  std::set<Prefix> prefixes;
-  for (const auto& addr : intf->getAddresses()) {
-    if (!addr.first.isV6()) {
-      continue;
-    }
-    uint8_t mask = addr.second;
-    // For IPs that are configured with a 128-bit mask, don't bother including
-    // them in the advertisement, since no-one else besides us can belong to
-    // this subnet.
-    if (mask == 128) {
-      continue;
-    }
-    prefixes.emplace(addr.first.asV6().mask(mask), mask);
-  }
-
-  uint32_t bodyLength =
-    4 + // hop limit, flags, lifetime
-    4 + // reachable timer
-    4 + // retrans timer
-    8 + // src MAC option
-    8 + // MTU option
-    (32 * prefixes.size()); // prefix options
-
-  auto serializeBody = [&](RWPrivateCursor* cursor) {
-    cursor->writeBE<uint8_t>(hopLimit);
-    cursor->writeBE<uint8_t>(flags);
-    cursor->writeBE<uint16_t>(lifetime.count());
-    cursor->writeBE<uint32_t>(reachableTimer.count());
-    cursor->writeBE<uint32_t>(retransTimer.count());
-
-    // Source MAC option
-    cursor->writeBE<uint8_t>(1); // Option type (src link-layer address)
-    cursor->writeBE<uint8_t>(1); // Option length = 1 (x8)
-    cursor->push(intf->getMac().bytes(), MacAddress::SIZE);
-
-    // Prefix options
-    for (const auto& prefix : prefixes) {
-      cursor->writeBE<uint8_t>(3); // Option type (prefix information)
-      cursor->writeBE<uint8_t>(4); // Option length = 4 (x8)
-      cursor->writeBE<uint8_t>(prefix.second);
-      uint8_t prefixFlags = 0xc0; // on link, autonomous address configuration
-      cursor->writeBE<uint8_t>(prefixFlags);
-      cursor->writeBE<uint32_t>(prefixValidLifetime);
-      cursor->writeBE<uint32_t>(prefixPreferredLifetime);
-      cursor->writeBE<uint32_t>(0); // reserved
-      cursor->push(prefix.first.bytes(), IPAddressV6::byteCount());
-    }
-
-    // MTU option
-    cursor->writeBE<uint8_t>(5); // Option type (MTU)
-    cursor->writeBE<uint8_t>(1); // Option length = 1 (x8)
-    cursor->writeBE<uint16_t>(0); // Reserved
-    cursor->writeBE<uint32_t>(mtu);
-  };
-
-  IPAddressV6 srcIP(IPAddressV6::LINK_LOCAL, intf->getMac());
-  IPv6Hdr ipv6(srcIP, IPAddressV6("ff02::1"));
-  ipv6.trafficClass = 0xe0; // CS7 precedence (network control)
-  ipv6.payloadLength = ICMPHdr::SIZE + bodyLength;
-  ipv6.nextHeader = IP_PROTO_IPV6_ICMP;
-  ipv6.hopLimit = 255;
-
-  ICMPHdr icmp6(ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT, 0, 0);
-
-  auto totalLength = icmp6.computeTotalLengthV6(bodyLength);
+void IPv6RAImpl::initPacket(const Interface* intf) {
+  auto totalLength = IPv6RouteAdvertiser::getPacketSize(intf);
   buf_ = IOBuf(IOBuf::CREATE, totalLength);
   buf_.append(totalLength);
   RWPrivateCursor cursor(&buf_);
-  icmp6.serializeFullPacket(&cursor, MacAddress("33:33:00:00:00:01"),
-                            intf->getMac(), intf->getVlanID(),
-                            ipv6, bodyLength, serializeBody);
+  IPv6RouteAdvertiser::createAdvertisementPacket(
+    intf, &cursor, MacAddress("33:33:00:00:00:01"), IPAddressV6("ff02::1"));
 }
 
 void IPv6RAImpl::sendRouteAdvertisement() {
@@ -251,6 +195,101 @@ IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
   adv_ = other.adv_;
   other.adv_ = nullptr;
   return *this;
+}
+
+/* static */ uint32_t IPv6RouteAdvertiser::getPacketSize(
+    const Interface* intf) {
+  uint32_t count = 0;
+  foreachAddrToAdvertise(intf, [&](
+    const std::pair<folly::IPAddress, uint8_t> &) {
+      ++count;
+    });
+
+  auto bodyLength = getAdvertisementPacketBodySize(count);
+
+  return ICMPHdr::computeTotalLengthV6(bodyLength);
+}
+
+/* static */ void IPv6RouteAdvertiser::createAdvertisementPacket(
+    const Interface* intf,
+    folly::io::RWPrivateCursor* cursor,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV6& dstIP) {
+  const auto* ndpConfig = &intf->getNdpConfig();
+
+  // Settings
+  uint8_t hopLimit = ndpConfig->curHopLimit;
+  // Set managed and other bits in router advertisements.
+  // These bits control whether address and other information
+  // (e.g. where to grab the image) is available via DHCP.
+  uint8_t flags = 0;
+  if (ndpConfig->routerAdvertisementManagedBit) {
+    flags |= ND_RA_FLAG_MANAGED;
+  }
+  if (ndpConfig->routerAdvertisementOtherBit) {
+    flags |= ND_RA_FLAG_OTHER;
+  }
+  std::chrono::seconds lifetime(ndpConfig->routerLifetime);
+  std::chrono::seconds reachableTimer(0);
+  std::chrono::seconds retransTimer(0);
+  uint32_t prefixValidLifetime = ndpConfig->prefixValidLifetimeSeconds;
+  uint32_t prefixPreferredLifetime = ndpConfig->prefixPreferredLifetimeSeconds;
+
+  // Build the list of prefixes to advertise
+  typedef std::pair<IPAddressV6, uint8_t> Prefix;
+  uint32_t mtu = intf->getMtu();
+  std::set<Prefix> prefixes;
+  foreachAddrToAdvertise(intf, [&](
+    const std::pair<folly::IPAddress, uint8_t> & addr) {
+      uint8_t mask = addr.second;
+      prefixes.emplace(addr.first.asV6().mask(mask), mask);
+    });
+
+  auto serializeBody = [&](RWPrivateCursor* cursor) {
+    cursor->writeBE<uint8_t>(hopLimit);
+    cursor->writeBE<uint8_t>(flags);
+    cursor->writeBE<uint16_t>(lifetime.count());
+    cursor->writeBE<uint32_t>(reachableTimer.count());
+    cursor->writeBE<uint32_t>(retransTimer.count());
+
+    // Source MAC option
+    cursor->writeBE<uint8_t>(1); // Option type (src link-layer address)
+    cursor->writeBE<uint8_t>(1); // Option length = 1 (x8)
+    cursor->push(intf->getMac().bytes(), MacAddress::SIZE);
+
+    // Prefix options
+    for (const auto& prefix : prefixes) {
+      cursor->writeBE<uint8_t>(3); // Option type (prefix information)
+      cursor->writeBE<uint8_t>(4); // Option length = 4 (x8)
+      cursor->writeBE<uint8_t>(prefix.second);
+      uint8_t prefixFlags = 0xc0; // on link, autonomous address configuration
+      cursor->writeBE<uint8_t>(prefixFlags);
+      cursor->writeBE<uint32_t>(prefixValidLifetime);
+      cursor->writeBE<uint32_t>(prefixPreferredLifetime);
+      cursor->writeBE<uint32_t>(0); // reserved
+      cursor->push(prefix.first.bytes(), IPAddressV6::byteCount());
+    }
+
+    // MTU option
+    cursor->writeBE<uint8_t>(5); // Option type (MTU)
+    cursor->writeBE<uint8_t>(1); // Option length = 1 (x8)
+    cursor->writeBE<uint16_t>(0); // Reserved
+    cursor->writeBE<uint32_t>(mtu);
+  };
+
+  auto bodyLength = getAdvertisementPacketBodySize(prefixes.size());
+
+  IPAddressV6 srcIP(IPAddressV6::LINK_LOCAL, intf->getMac());
+  IPv6Hdr ipv6(srcIP, dstIP);
+  ipv6.trafficClass = 0xe0; // CS7 precedence (network control)
+  ipv6.payloadLength = ICMPHdr::SIZE + bodyLength;
+  ipv6.nextHeader = IP_PROTO_IPV6_ICMP;
+  ipv6.hopLimit = 255;
+
+  ICMPHdr icmp6(ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT, 0, 0);
+
+  icmp6.serializeFullPacket(cursor, dstMac, intf->getMac(), intf->getVlanID(),
+                            ipv6, bodyLength, serializeBody);
 }
 
 }} // facebook::fboss
