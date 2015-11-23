@@ -132,7 +132,8 @@ enum BootType {
 
 struct TransceiverIdxThrift {
   1: i32 transceiverId,
-  2: i32 channelId,
+  2: optional i32 channelId,  # deprecated
+  3: optional list<i32> channels,
 }
 
 struct PortStatus {
