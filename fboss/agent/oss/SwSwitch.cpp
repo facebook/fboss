@@ -28,6 +28,10 @@ void SwSwitch::publishStats() {}
 
 void SwSwitch::publishBootInfo() {}
 
-void SwSwitch::logLinkStateEvent(PortID port, bool up) {}
+void SwSwitch::logLinkStateEvent(PortID port, bool up) {
+  std::string logMsg = folly::sformat("LinkState: Port {0} {1}",
+                                      (uint16_t)port, (up ? "Up" : "Down"));
+  VLOG(2) << logMsg;
+}
 
 }} // facebook::fboss

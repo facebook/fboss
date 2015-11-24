@@ -680,8 +680,6 @@ class SwSwitch : public HwSwitch::Callback {
 
   BootType bootType_{BootType::UNINITIALIZED};
   std::unique_ptr<LldpManager> lldpManager_;
-
-  std::string scribeCategory_ = "fboss_events";
 };
 
 }} // facebook::fboss

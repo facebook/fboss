@@ -808,9 +808,9 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
 }
 
 void SwSwitch::linkStateChanged(PortID port, bool up) noexcept {
-  LOG(INFO) << "link state changed: " << port << " enabled = " << up;
   logLinkStateEvent(port, up);
   fbData->setCounter(getPortUpName(getState()->getPort(port)), int(up));
+
   // It seems that this function can get called before the state is fully
   // initialized. Don't do anything if so.
   //
