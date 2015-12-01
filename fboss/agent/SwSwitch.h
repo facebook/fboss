@@ -609,6 +609,9 @@ class SwSwitch : public HwSwitch::Callback {
 
   void logLinkStateEvent(PortID port, bool up);
 
+  // Sets the counter that tracks port status
+  void setPortStatusCounter(PortID port, bool up);
+
   std::string curConfigStr_;
   cfg::SwitchConfig curConfig_;
 

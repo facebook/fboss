@@ -87,7 +87,7 @@ string getPortUpName(const shared_ptr<facebook::fboss::Port>& port) {
     : port->getName() + ".up";
 }
 
-inline void updatePortNames(const facebook::fboss::StateDelta& delta) {
+inline void updatePortStatusCounters(const facebook::fboss::StateDelta& delta) {
   facebook::fboss::DeltaFunctions::forEachChanged(
     delta.getPortsDelta(),
     [&] (const shared_ptr<facebook::fboss::Port>& oldPort,
@@ -392,7 +392,7 @@ void SwSwitch::notifyStateObservers(const StateDelta& delta) {
     // Make sure the SwSwitch is not already being destroyed
     return;
   }
-  updatePortNames(delta);
+  updatePortStatusCounters(delta);
   for (auto observerName : stateObservers_) {
     try {
       auto observer = observerName.first;
@@ -725,6 +725,16 @@ SwitchStats* SwSwitch::createSwitchStats() {
   return s;
 }
 
+void SwSwitch::setPortStatusCounter(PortID port, bool up) {
+  auto state = getState();
+  if (!state) {
+    // Make sure the state actually exists, this could be an issue if
+    // called during initialization
+    return;
+  }
+  fbData->setCounter(getPortUpName(state->getPort(port)), int(up));
+}
+
 void SwSwitch::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {
   PortID port = pkt->getSrcPort();
   try {
@@ -809,7 +819,7 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
 
 void SwSwitch::linkStateChanged(PortID port, bool up) noexcept {
   logLinkStateEvent(port, up);
-  fbData->setCounter(getPortUpName(getState()->getPort(port)), int(up));
+  setPortStatusCounter(port, up);
 
   // It seems that this function can get called before the state is fully
   // initialized. Don't do anything if so.
