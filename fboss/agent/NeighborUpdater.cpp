@@ -29,7 +29,6 @@ using std::chrono::seconds;
 using std::shared_ptr;
 using boost::container::flat_map;
 using folly::Future;
-using folly::Unit;
 using folly::collectAll;
 
 namespace facebook { namespace fboss {
@@ -232,7 +231,7 @@ NeighborUpdater::NeighborUpdater(SwSwitch* sw)
 }
 
 NeighborUpdater::~NeighborUpdater() {
-  std::vector<Future<Unit>> stopTasks;
+  std::vector<Future<void>> stopTasks;
 
   for (auto entry : updaters_) {
     auto vlan = entry.first;
