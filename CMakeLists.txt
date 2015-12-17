@@ -206,7 +206,7 @@ set(THRIFTC2
     ${PYTHON} -mthrift_compiler.main -I ${CMAKE_SOURCE_DIR} --gen cpp2:)
 
 function(fboss_add_thrift)
-    cmake_parse_arguments("arg" "" "OPTIONS;THRIFTSRC" "SERVICES" ${ARGN})
+    cmake_parse_arguments("arg" "" "OPTIONS;THRIFTSRC;REFLECT" "SERVICES" ${ARGN})
     get_cmake_property(_variableNames VARIABLES)
     get_filename_component(dirname "${arg_THRIFTSRC}" PATH)
     # NAME_WE = name without extension.
@@ -221,8 +221,8 @@ function(fboss_add_thrift)
     foreach(gen cpp cpp2)
         foreach(reflect ${arg_REFLECT})
             set(outputs ${outputs} 
-                ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${reflect}_reflect.h
-                ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${reflect}_reflect.cpp)
+                ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${reflect}_reflection.h
+                ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${reflect}_reflection.cpp)
         endforeach(reflect)
         foreach(output constants types)
             set(outputs ${outputs} 

@@ -7,7 +7,6 @@ function update() {
         (cd $repo && git pull)
     else
         git clone $1
-        git checkout $2
     fi
 }
 
@@ -22,6 +21,7 @@ function build() {
     (
         echo "building $1..."
         cd $1
+        git checkout $2
         if [ ! -x ./configure ]; then
             autoreconf --install
             ./configure
