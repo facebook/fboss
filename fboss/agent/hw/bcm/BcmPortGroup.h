@@ -36,6 +36,19 @@ class SwitchState;
  */
 class BcmPortGroup {
  public:
+  /*
+   * These are the different lane configurations supported for a port group.
+   *
+   * Note that the sdk actually supports asymmetric 3-port
+   * configurations as well. We can add those in the future should a
+   * need arise.
+   */
+  enum LaneMode : uint8_t {
+    SINGLE = 1,
+    DUAL = 2,
+    QUAD = 4
+  };
+
   BcmPortGroup(BcmSwitch *hw,
                BcmPort* controllingPort,
                std::vector<BcmPort*> allPorts);
@@ -57,20 +70,10 @@ class BcmPortGroup {
 
   bool validConfiguration(const std::shared_ptr<SwitchState>& state) const;
 
- private:
-  /*
-   * These are the different lane configurations supported for a port group.
-   *
-   * Note that the sdk actually supports asymmetric 3-port
-   * configurations as well. We can add those in the future should a
-   * need arise.
-   */
-  enum LaneMode : uint8_t {
-    SINGLE = 1,
-    DUAL = 2,
-    QUAD = 4
-  };
+  static BcmPortGroup::LaneMode calculateDesiredLaneMode(
+    const std::vector<Port*>& ports, cfg::PortSpeed maxLaneSpeed);
 
+ private:
   LaneMode getDesiredLaneMode(
     const std::shared_ptr<SwitchState>& state) const;
   LaneMode neededLaneMode(uint8_t lane, cfg::PortSpeed speed) const;

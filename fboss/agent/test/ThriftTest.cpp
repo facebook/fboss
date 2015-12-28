@@ -21,6 +21,7 @@ using folly::StringPiece;
 using std::unique_ptr;
 using testing::UnorderedElementsAreArray;
 using facebook::network::toBinaryAddress;
+using cfg::PortSpeed;
 
 namespace {
 
@@ -75,4 +76,17 @@ TEST(ThriftTest, getInterfaceDetail) {
   // Calling getInterfaceDetail() on an unknown
   // interface should throw an FbossError.
   EXPECT_THROW(handler.getInterfaceDetail(info, 123), FbossError);
+}
+
+
+TEST(ThriftTest, assertPortSpeeds) {
+  // We rely on the exact value of the port speeds for some
+  // logic, so we want to ensure that these values don't change.
+  EXPECT_EQ(static_cast<int>(PortSpeed::GIGE), 1000);
+  EXPECT_EQ(static_cast<int>(PortSpeed::XG), 10000);
+  EXPECT_EQ(static_cast<int>(PortSpeed::TWENTYG), 20000);
+  EXPECT_EQ(static_cast<int>(PortSpeed::TWENTYFIVEG), 25000);
+  EXPECT_EQ(static_cast<int>(PortSpeed::FORTYG), 40000);
+  EXPECT_EQ(static_cast<int>(PortSpeed::FIFTYG), 50000);
+  EXPECT_EQ(static_cast<int>(PortSpeed::HUNDREDG), 100000);
 }

@@ -19,6 +19,30 @@ extern "C" {
 #include <opennsl/port.h>
 }
 
+namespace {
+using facebook::fboss::BcmPortGroup;
+using facebook::fboss::cfg::PortSpeed;
+using facebook::fboss::FbossError;
+BcmPortGroup::LaneMode neededLaneModeForSpeed(
+    PortSpeed speed, PortSpeed maxLaneSpeed) {
+  if (speed == PortSpeed::DEFAULT) {
+    throw FbossError("Speed cannot be DEFAULT");
+  }
+  auto neededLanes =
+    static_cast<uint32_t>(speed) / static_cast<uint32_t>(maxLaneSpeed);
+  if (neededLanes == 1) {
+    return BcmPortGroup::LaneMode::QUAD;
+  } else if (neededLanes == 2) {
+    return BcmPortGroup::LaneMode::DUAL;
+  } else if (neededLanes > 2 && neededLanes <= 4) {
+    return BcmPortGroup::LaneMode::SINGLE;
+  } else {
+    throw FbossError("Cannot support speed ", speed);
+  }
+}
+
+}
+
 namespace facebook { namespace fboss {
 
 BcmPortGroup::BcmPortGroup(BcmSwitch* hw,
@@ -27,8 +51,16 @@ BcmPortGroup::BcmPortGroup(BcmSwitch* hw,
     : hw_(hw),
       controllingPort_(controllingPort),
       allPorts_(std::move(allPorts)) {
-  // The number of ports in a group should always be 4.
-  CHECK(allPorts_.size() == 4);
+
+  if (allPorts_.size() != 4) {
+    throw FbossError("Port groups must have exactly four members");
+  }
+
+  for (int i = 0; i < allPorts_.size(); ++i) {
+    if (getLane(allPorts_[i]) != i) {
+      throw FbossError("Ports passed in are not ordered by lane");
+    }
+  }
 
   // get the number of active lanes
   auto activeLanes = retrieveActiveLanes();
@@ -51,57 +83,53 @@ BcmPortGroup::BcmPortGroup(BcmSwitch* hw,
 
 BcmPortGroup::~BcmPortGroup() {}
 
+BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
+    const std::vector<Port*>& ports, cfg::PortSpeed maxLaneSpeed) {
+  auto desiredMode = LaneMode::QUAD;
+  for (int lane = 0; lane < ports.size(); ++lane) {
+    auto port = ports[lane];
+    if (!port->isDisabled()) {
+      auto neededMode = neededLaneModeForSpeed(port->getSpeed(), maxLaneSpeed);
+      if (neededMode < desiredMode) {
+        desiredMode = neededMode;
+      }
+
+      // Check that the lane is expected for SINGLE/DUAL modes
+      if (desiredMode == LaneMode::SINGLE) {
+        if (lane != 0) {
+          throw FbossError("Only lane 0 can be enabled in SINGLE mode");
+        }
+      } else if (desiredMode == LaneMode::DUAL) {
+        if (lane != 0 && lane != 2) {
+          throw FbossError("Only lanes 0 or 2 can be enabled in DUAL mode");
+        }
+      }
+
+      VLOG(3) << "Port " << port->getID() << " enabled with speed " <<
+        static_cast<int>(port->getSpeed());
+    }
+  }
+  return desiredMode;
+}
+
 BcmPortGroup::LaneMode BcmPortGroup::getDesiredLaneMode(
     const std::shared_ptr<SwitchState>& state) const {
-  auto desiredMode = LaneMode::QUAD;
+  std::vector<Port*> ports;
   for (auto bcmPort : allPorts_) {
-    auto lane = getLane(bcmPort);
-    auto swPort = bcmPort->getSwitchStatePort(state);
-
+    auto swPort = bcmPort->getSwitchStatePort(state).get();
     // Make sure the ports support the configured speed.
     // We check this even if the port is disabled.
     if (!bcmPort->supportsSpeed(swPort->getSpeed())) {
       throw FbossError("Port ", swPort->getID(), " does not support speed ",
                        static_cast<int>(swPort->getSpeed()));
     }
-
-    if (!swPort->isDisabled()) {
-      auto neededMode = neededLaneMode(lane, swPort->getSpeed());
-
-      if (neededMode != desiredMode) {
-        desiredMode = neededMode;
-      }
-      VLOG(3) << "Port " << swPort->getID() << " enabled with speed " <<
-        static_cast<int>(swPort->getSpeed());
-    }
+    ports.push_back(swPort);
   }
-  return desiredMode;
+  return calculateDesiredLaneMode(ports, controllingPort_->maxLaneSpeed());
 }
 
 uint8_t BcmPortGroup::getLane(const BcmPort* bcmPort) const {
   return bcmPort->getBcmPortId() - controllingPort_->getBcmPortId();
-}
-
-BcmPortGroup::LaneMode BcmPortGroup::neededLaneMode(
-    uint8_t lane, cfg::PortSpeed speed) const {
-  auto speedPerLane = controllingPort_->maxLaneSpeed();
-  auto neededLanes =
-    static_cast<uint32_t>(speed) / static_cast<uint32_t>(speedPerLane);
-  if (neededLanes == 1) {
-    return LaneMode::QUAD;
-  } else if (neededLanes == 2) {
-    if (lane != 0 && lane != 2) {
-      throw FbossError("Only lanes 0 or 2 can be enabled in DUAL mode");
-    }
-    return LaneMode::DUAL;
-  } else if (neededLanes > 2 && neededLanes <= 4) {
-    if (lane != 0) {
-      throw FbossError("Only lane 0 can be enabled in SINGLE mode");
-    }
-    return LaneMode::SINGLE;
-  } else {
-    throw FbossError("Cannot support speed ", speed);
-  }
 }
 
 bool BcmPortGroup::validConfiguration(
