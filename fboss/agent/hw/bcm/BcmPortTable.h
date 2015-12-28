@@ -23,6 +23,7 @@ extern "C" {
 namespace facebook { namespace fboss {
 
 class BcmSwitch;
+class BcmPortGroup;
 
 class BcmPortTable {
  public:
@@ -64,9 +65,16 @@ class BcmPortTable {
     return getBcmPortIf(port) != nullptr;
   }
  private:
+  /* Initialize all the port groups that exist. A port group is a set of ports
+   * that can act as either a single port or multiple ports.
+   */
+  void initPortGroups();
+
   typedef boost::container::flat_map<opennsl_port_t, std::unique_ptr<BcmPort>>
     BcmPortMap;
   typedef boost::container::flat_map<PortID, BcmPort*> FbossPortMap;
+
+  typedef std::vector<std::unique_ptr<BcmPortGroup>> BcmPortGroupList;
 
   // throw an error if not found
   BcmPort* getBcmPort(PortID id) const;
@@ -89,6 +97,12 @@ class BcmPortTable {
   BcmPortMap bcmPhysicalPorts_;
   // A mapping from FBOSS PortID to BcmPort.
   FbossPortMap fbossPhysicalPorts_;
+
+  // A list of all the port groups. We can change this data structure to be
+  // two maps (like the portmaps) if we ever have the need to access these
+  // outside of the BcmPort objects. This is mainly here to keep a simple
+  // ownership model for the port group objects
+  BcmPortGroupList bcmPortGroups_;
 };
 
 }} // namespace facebook::fboss

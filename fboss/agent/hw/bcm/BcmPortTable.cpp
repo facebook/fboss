@@ -15,6 +15,8 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
+#include "fboss/agent/hw/bcm/BcmPort.h"
+#include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 #include <folly/Memory.h>
@@ -68,6 +70,8 @@ void BcmPortTable::initPorts(const opennsl_port_config_t* portConfig,
     fbossPhysicalPorts_.emplace(fbossPortID, bcmPort.get());
     bcmPhysicalPorts_.emplace(bcmPortNum, std::move(bcmPort));
   }
+
+  initPortGroups();
 }
 
 BcmPort* BcmPortTable::getBcmPort(opennsl_port_t id) const {

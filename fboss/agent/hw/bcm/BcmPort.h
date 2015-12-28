@@ -24,6 +24,7 @@ namespace facebook { namespace fboss {
 
 class BcmPlatformPort;
 class BcmSwitch;
+class BcmPortGroup;
 
 /**
  * BcmPort is the class to abstract the physical port in BcmSwitch.
@@ -56,10 +57,16 @@ class BcmPort {
   opennsl_gport_t getBcmGport() const {
     return gport_;
   }
+  BcmPortGroup* getPortGroup() const {
+    return portGroup_;
+  }
+
+  PortID getPortID() const;
 
   /*
    * Setters.
    */
+  void registerInPortGroup(BcmPortGroup* portGroup);
   void setPortStatus(int status);
 
   /*
@@ -97,6 +104,9 @@ class BcmPort {
   const opennsl_port_t port_;    // Broadcom physical port number
   opennsl_gport_t gport_;  // Broadcom global port number
   BcmPlatformPort* const platformPort_{nullptr};
+
+  // The port group this port is a part of
+  BcmPortGroup* portGroup_{nullptr};
 
   MonotonicCounter inBytes_{statName("in_bytes")};
   MonotonicCounter inUnicastPkts_{statName("in_unicast_pkts")};

@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmPortGroup.h"
 
 extern "C" {
 #include <opennsl/port.h>
@@ -110,6 +111,10 @@ void BcmPort::init(bool warmBoot) {
   }
 }
 
+PortID BcmPort::getPortID() const {
+  return platformPort_->getPortID();
+}
+
 void BcmPort::setPortStatus(int linkstatus) {
   bool up = (linkstatus == OPENNSL_PORT_LINK_STATUS_UP);
 
@@ -120,6 +125,13 @@ void BcmPort::setPortStatus(int linkstatus) {
 
   platformPort_->linkStatusChanged(up, enabled);
 }
+
+void BcmPort::registerInPortGroup(BcmPortGroup* portGroup) {
+  portGroup_ = portGroup;
+  VLOG(2) << "Port " << getPortID() << " registered in PortGroup with "
+          << "controlling port " << portGroup->controllingPort()->getPortID();
+}
+
 
 std::string BcmPort::statName(folly::StringPiece name) const {
   return folly::to<string>("port", platformPort_->getPortID(), ".", name);
