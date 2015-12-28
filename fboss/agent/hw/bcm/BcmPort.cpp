@@ -125,23 +125,20 @@ opennsl_pbmp_t BcmPort::getPbmp() {
 }
 
 void BcmPort::disable(const std::shared_ptr<Port>& swPort) {
-  int enabled;
-  auto rv = opennsl_port_enable_get(unit_, port_, &enabled);
-  bcmCheckError(rv, "Failed to determine if port is already disabled");
-  if (!enabled) {
+  if (!isEnabled()) {
     // Already disabled
     return;
   }
 
   auto pbmp = getPbmp();
   for (auto entry : swPort->getVlans()) {
-    rv = opennsl_vlan_port_remove(unit_, entry.first, pbmp);
+    auto rv = opennsl_vlan_port_remove(unit_, entry.first, pbmp);
     bcmCheckError(rv, "failed to remove disabled port ",
                   swPort->getID(), " from VLAN ", entry.first);
   }
 
   // Disable packet and byte counter statistic collection.
-  rv = opennsl_port_stat_enable_set(unit_, gport_, false);
+  auto rv = opennsl_port_stat_enable_set(unit_, gport_, false);
   bcmCheckError(rv, "Unexpected error disabling counter DMA on port ",
                 swPort->getID());
 
@@ -153,12 +150,15 @@ void BcmPort::disable(const std::shared_ptr<Port>& swPort) {
   bcmCheckError(rv, "failed to disable port ", swPort->getID());
 }
 
-
-void BcmPort::enable(const std::shared_ptr<Port>& swPort) {
+bool BcmPort::isEnabled() {
   int enabled;
   auto rv = opennsl_port_enable_get(unit_, port_, &enabled);
   bcmCheckError(rv, "Failed to determine if port is already disabled");
-  if (enabled) {
+  return static_cast<bool>(enabled);
+}
+
+void BcmPort::enable(const std::shared_ptr<Port>& swPort) {
+  if (isEnabled()) {
     // Port is already enabled, don't need to do anything
     return;
   }
@@ -166,6 +166,7 @@ void BcmPort::enable(const std::shared_ptr<Port>& swPort) {
   auto pbmp = getPbmp();
   opennsl_pbmp_t emptyPortList;
   OPENNSL_PBMP_CLEAR(emptyPortList);
+  int rv;
   for (auto entry : swPort->getVlans()) {
     if (!entry.second.tagged) {
       rv = opennsl_vlan_port_add(unit_, entry.first, pbmp, pbmp);
@@ -222,55 +223,65 @@ void BcmPort::setIngressVlan(const shared_ptr<Port>& swPort) {
   }
 }
 
-void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
-  int speed;
-  int ret;
-  switch (swPort->getSpeed()) {
-  case cfg::PortSpeed::DEFAULT:
-    ret = opennsl_port_speed_max(unit_, port_, &speed);
-    bcmCheckError(ret, "failed to get max speed for port", swPort->getID());
-    break;
+opennsl_port_if_t BcmPort::getDesiredInterfaceMode(cfg::PortSpeed speed,
+                                                   PortID id) {
+  switch (speed) {
   case cfg::PortSpeed::HUNDREDG:
+    return OPENNSL_PORT_IF_CR4;
   case cfg::PortSpeed::FIFTYG:
+    // TODO(aeckert): CR2 does not exist in opennsl 6.3.6.
+    // Remove this ifdef once fully on 6.4.6
+#if defined(OPENNSL_PORT_IF_CR2)
+    return OPENNSL_PORT_IF_CR2;
+#else
+    throw FbossError("Unsupported speed (", speed,
+                     ") setting on port ", id);
+#endif
   case cfg::PortSpeed::FORTYG:
+    return OPENNSL_PORT_IF_SR4;
   case cfg::PortSpeed::TWENTYFIVEG:
+    return OPENNSL_PORT_IF_CR;
   case cfg::PortSpeed::TWENTYG:
   case cfg::PortSpeed::XG:
+    return OPENNSL_PORT_IF_SFI;
   case cfg::PortSpeed::GIGE:
-    speed = static_cast<int>(swPort->getSpeed());
-    break;
+    return OPENNSL_PORT_IF_GMII;
   default:
-    throw FbossError("Unsupported speed (", swPort->getSpeed(),
-                     ") setting on port ", swPort->getID());
-    break;
+    throw FbossError("Unsupported speed (", speed,
+                     ") setting on port ", id);
   }
-  // We always want to put 10G ports in SFI mode.
-  // Note that this call must be made before opennsl_port_speed_set().
+}
+
+void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
+  int ret;
+  cfg::PortSpeed desiredSpeed;
+  if (swPort->getSpeed() == cfg::PortSpeed::DEFAULT) {
+    int speed;
+    ret = opennsl_port_speed_max(unit_, port_, &speed);
+    bcmCheckError(ret, "failed to get max speed for port", swPort->getID());
+    desiredSpeed = cfg::PortSpeed(speed);
+  } else {
+    desiredSpeed = swPort->getSpeed();
+  }
+
+  opennsl_port_if_t desiredMode = getDesiredInterfaceMode(desiredSpeed,
+                                                          swPort->getID());
+
   bool updateSpeed = false;
-  if (speed == 10000) {
-    opennsl_port_if_t curMode;
-    ret = opennsl_port_interface_get(unit_, port_, &curMode);
-    if (curMode != OPENNSL_PORT_IF_SFI) {
-      // Changes to the interface setting only seem to take effect on the next
-      // call to opennsl_port_speed_set().  Therefore make sure we update the
-      // speed below, even if the speed is already at the desired setting.
-      updateSpeed = true;
-      ret = opennsl_port_interface_set(unit_, port_, OPENNSL_PORT_IF_SFI);
-      bcmCheckError(ret, "failed to set interface type for port ",
-                    swPort->getID());
-    }
+  opennsl_port_if_t curMode;
+  ret = opennsl_port_interface_get(unit_, port_, &curMode);
+
+  if (curMode != desiredMode && !isEnabled()) {
+    // Changes to the interface setting only seem to take effect on the next
+    // call to opennsl_port_speed_set().  Therefore make sure we update the
+    // speed below, even if the speed is already at the desired setting.
+    updateSpeed = true;
+    ret = opennsl_port_interface_set(unit_, port_, desiredMode);
+    bcmCheckError(ret, "failed to set interface type for port ",
+                  swPort->getID());
   }
 
-  if (speed == 40000) {
-    opennsl_port_if_t curMode;
-    ret = opennsl_port_interface_get(unit_, port_, &curMode);
-    if (curMode != OPENNSL_PORT_IF_XLAUI) {
-      ret = opennsl_port_interface_set(unit_, port_, OPENNSL_PORT_IF_XLAUI);
-      bcmCheckError(ret, "failed to set interface type for port ",
-                    swPort->getID());
-    }
-  }
-
+  int speed = static_cast<int>(desiredSpeed);
   if (!updateSpeed) {
     // Unnecessarily updating BCM port speed actually causes
     // the port to flap, even if this should be a noop, so check current
@@ -282,6 +293,7 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
                   swPort->getID());
     updateSpeed = (curSpeed != speed);
   }
+
   if (updateSpeed) {
     ret = opennsl_port_speed_set(unit_, port_, speed);
     bcmCheckError(ret, "failed to set speed, ", speed,

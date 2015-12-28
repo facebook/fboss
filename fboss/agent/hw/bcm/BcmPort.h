@@ -12,6 +12,7 @@
 extern "C" {
 #include <opennsl/types.h>
 #include <opennsl/stat.h>
+#include <opennsl/port.h>
 }
 
 #include "common/stats/MonotonicCounter.h"
@@ -48,6 +49,7 @@ class BcmPort {
   void enable(const std::shared_ptr<Port>& swPort);
   void disable(const std::shared_ptr<Port>& swPort);
   void program(const std::shared_ptr<Port>& swPort);
+  bool isEnabled();
 
   /*
    * Getters.
@@ -121,6 +123,7 @@ class BcmPort {
   void disablePause();
   void setAdditionalStats(std::chrono::seconds now);
   void setConfiguredMaxSpeed();
+  opennsl_port_if_t getDesiredInterfaceMode(cfg::PortSpeed speed, PortID id);
 
   opennsl_pbmp_t getPbmp();
 
