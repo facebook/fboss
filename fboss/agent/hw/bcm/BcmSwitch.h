@@ -238,12 +238,6 @@ class BcmSwitch : public HwSwitch {
   std::shared_ptr<SwitchState> getWarmBootSwitchState() const;
 
   std::unique_ptr<BcmRxPacket> createRxPacket(opennsl_pkt_t* pkt);
-  void changePortState(const std::shared_ptr<Port>& oldPort,
-                       const std::shared_ptr<Port>& newPort);
-  void updateIngressVlan(const std::shared_ptr<Port>& oldPort,
-                         const std::shared_ptr<Port>& newPort);
-  void updatePortSpeed(const std::shared_ptr<Port>& oldPort,
-                       const std::shared_ptr<Port>& newPort);
   void changeDefaultVlan(VlanID id);
 
   void processChangedVlan(const std::shared_ptr<Vlan>& oldVlan,
@@ -260,6 +254,11 @@ class BcmSwitch : public HwSwitch {
   template<typename DELTA>
   void processNeighborEntryDelta(const DELTA& delta);
   void processArpChanges(const StateDelta& delta);
+
+  void processDisabledPorts(const StateDelta& delta);
+  void processEnabledPorts(const StateDelta& delta);
+  void processChangedPorts(const StateDelta& delta);
+  void reconfigurePortGroups(const StateDelta& delta);
 
   template <typename RouteT>
   void processChangedRoute(

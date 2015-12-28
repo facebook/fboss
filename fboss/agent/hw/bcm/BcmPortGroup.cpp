@@ -21,7 +21,7 @@ extern "C" {
 
 namespace facebook { namespace fboss {
 
-BcmPortGroup::BcmPortGroup(BcmSwitch *hw,
+BcmPortGroup::BcmPortGroup(BcmSwitch* hw,
                            BcmPort* controllingPort,
                            std::vector<BcmPort*> allPorts)
     : hw_(hw),
@@ -115,8 +115,7 @@ bool BcmPortGroup::validConfiguration(
 }
 
 void BcmPortGroup::reconfigureIfNeeded(
-  const std::shared_ptr<SwitchState>& state
-) {
+  const std::shared_ptr<SwitchState>& state) {
   // This logic is a bit messy. We could encode some notion of port
   // groups into the swith state somehow so it is easy to generate
   // deltas for these. For now, we need pass around the SwitchState
@@ -138,15 +137,28 @@ void BcmPortGroup::reconfigure(
           << " from " << laneMode_ << " active ports to " << newLaneMode
           << " active ports";
 
-  // disable all group members
+  // 1. disable all group members
+  for (auto& bcmPort : allPorts_) {
+    auto swPort = bcmPort->getSwitchStatePort(state);
+    bcmPort->disable(swPort);
+  }
 
-  // remove all ports from the counter DMA and linkscan bitmaps
+  // 2. remove all ports from the counter DMA and linkscan bitmaps
+  // This is done in BcmPort::disable()
 
-  // set the opennslPortControlLanes setting
+  // 3. set the opennslPortControlLanes setting
+  setActiveLanes(newLaneMode);
 
-  // enable ports
+  // 4. enable ports
+  for (auto& bcmPort : allPorts_) {
+    auto swPort = bcmPort->getSwitchStatePort(state);
+    if (!swPort->isDisabled()) {
+      bcmPort->enable(swPort);
+    }
+  }
 
-  // add ports to the counter DMA + linkscan
+  // 5. add ports to the counter DMA + linkscan
+  // This is done in BcmPort::enable()
 }
 
 }} // namespace facebook::fboss

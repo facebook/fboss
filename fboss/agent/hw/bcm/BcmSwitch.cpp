@@ -29,6 +29,7 @@
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
+#include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmRoute.h"
@@ -83,6 +84,8 @@ using folly::IPAddress;
 
 DEFINE_int32(linkscan_interval_us, 250000,
              "The Broadcom linkscan interval");
+DEFINE_bool(flexports, false,
+            "Load the agent with flexport support enabled");
 
 enum : uint8_t {
   kRxCallbackPriority = 1,
@@ -477,12 +480,10 @@ BcmSwitch::init(Callback* callback) {
 
   // Enable linkscan
   //
-  // (For now we enable linkscan on all ports.  We could disable linkscan
-  // on disabled ports.  I'm not sure if the extra complexity of keeping the
-  // linkscan state in sync with the port state is worth any possible benefits,
-  // though.)
+  // On start up we disable linkscan on all ports. Linkscan is enabled on ports
+  // when the ports are enabled in BcmPort::enable
   rv = opennsl_linkscan_mode_set_pbm(unit_, pcfg.port,
-                                     OPENNSL_LINKSCAN_MODE_SW);
+                                     OPENNSL_LINKSCAN_MODE_NONE);
   bcmCheckError(rv, "failed to set linkscan ports");
   rv = opennsl_linkscan_register(unit_, linkscanCallback);
   bcmCheckError(rv, "failed to register for linkscan events");
@@ -544,16 +545,7 @@ void BcmSwitch::stateChangedImpl(const StateDelta& delta) {
 
   // As the first step, disable ports that are now disabled.
   // This ensures that we immediately stop forwarding traffic on these ports.
-  forEachChanged(delta.getPortsDelta(),
-    [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-      if (oldPort->getState() == newPort->getState()) {
-        return;
-      }
-      if (newPort->getState() == cfg::PortState::DOWN ||
-          newPort->getState() == cfg::PortState::POWER_DOWN) {
-        changePortState(oldPort, newPort);
-      }
-    });
+  processDisabledPorts(delta);
 
   // remove all routes to be deleted
   processRemovedRoutes(delta);
@@ -572,17 +564,6 @@ void BcmSwitch::stateChangedImpl(const StateDelta& delta) {
                  &BcmSwitch::processAddedVlan,
                  &BcmSwitch::preprocessRemovedVlan,
                  this);
-
-  // Edit port ingress VLAN and speed settings
-  forEachChanged(delta.getPortsDelta(),
-    [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-      if (oldPort->getIngressVlan() != newPort->getIngressVlan()) {
-        updateIngressVlan(oldPort, newPort);
-      }
-      if (oldPort->getSpeed() != newPort->getSpeed()) {
-        updatePortSpeed(oldPort, newPort);
-      }
-    });
 
   // Broadcom requires a default VLAN to always exist.
   // This VLAN is used as the default ingress VLAN for ports that don't have a
@@ -615,19 +596,19 @@ void BcmSwitch::stateChangedImpl(const StateDelta& delta) {
   // Process any new routes or route changes
   processAddedChangedRoutes(delta);
 
+  // Reconfigure port groups in case we are changing between using a port as
+  // 1, 2 or 4 ports. Only do this if flexports are enabled
+  if (FLAGS_flexports) {
+    reconfigurePortGroups(delta);
+  }
+
+  // Update speed and ingressVlan of ports if needed.
+  processChangedPorts(delta);
+
   // As the last step, enable newly enabled ports.
   // Doing this as the last step ensures that we only start forwarding traffic
   // once the ports are correctly configured.
-  forEachChanged(delta.getPortsDelta(),
-    [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-      if (oldPort->getState() == newPort->getState()) {
-        return;
-      }
-      if (newPort->getState() != cfg::PortState::DOWN &&
-          newPort->getState() != cfg::PortState::POWER_DOWN) {
-        changePortState(oldPort, newPort);
-      }
-    });
+  processEnabledPorts(delta);
 }
 
 unique_ptr<TxPacket> BcmSwitch::allocatePacket(uint32_t size) {
@@ -644,136 +625,78 @@ unique_ptr<TxPacket> BcmSwitch::allocatePacket(uint32_t size) {
   return make_unique<BcmTxPacket>(unit_, size);
 }
 
-void BcmSwitch::changePortState(const shared_ptr<Port>& oldPort,
-                                const shared_ptr<Port>& newPort) {
-  DCHECK_NE((int)oldPort->getState(), (int)newPort->getState());
-
-  opennsl_port_t bcmPort = portTable_->getBcmPortId(newPort->getID());
-  int enable = newPort->getState() == cfg::PortState::UP ? 1 : 0;
-  VLOG(2) << "Changing state of port " << newPort->getID() <<
-    " to " << enable;
-
-  // If we are disabling the port, remove it from any VLANs it belongs to.  If
-  // we are enabling a port, add it back to the VLANs it belongs to.
-  //
-  // The BCM docs state "The chip should not be configured so as to switch any
-  // packets to a disabled port because the packets may build up in the MMU."
-  opennsl_pbmp_t pbmp;
-  OPENNSL_PBMP_PORT_SET(pbmp, bcmPort);
-
-  int rv;
-  if (!enable) {
-    for (auto entry : oldPort->getVlans()) {
-      rv = opennsl_vlan_port_remove(unit_, entry.first, pbmp);
-      bcmCheckError(rv, "failed to remove disabled port ",
-                    newPort->getID(), " from VLAN ", entry.first);
-    }
-  } else {
-    opennsl_pbmp_t emptyPortList;
-    OPENNSL_PBMP_CLEAR(emptyPortList);
-    for (auto entry : newPort->getVlans()) {
-      if (!entry.second.tagged) {
-        rv = opennsl_vlan_port_add(unit_, entry.first, pbmp, pbmp);
-      } else {
-        rv = opennsl_vlan_port_add(unit_, entry.first, pbmp, emptyPortList);
+void BcmSwitch::processDisabledPorts(const StateDelta& delta) {
+  forEachChanged(delta.getPortsDelta(),
+    [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+      if (!oldPort->isDisabled() && newPort->isDisabled()) {
+        auto bcmPort = portTable_->getBcmPort(newPort->getID());
+        bcmPort->disable(newPort);
       }
-      bcmCheckError(rv, "failed to remove disabled port ",
-                    newPort->getID(), " from VLAN ", entry.first);
-    }
-
-    // Drop packets to/from this port that are tagged with a VLAN that this
-    // port isn't a member of.
-    rv = opennsl_port_vlan_member_set(unit_, bcmPort,
-                                  OPENNSL_PORT_VLAN_MEMBER_INGRESS |
-                                  OPENNSL_PORT_VLAN_MEMBER_EGRESS);
-    bcmCheckError(rv, "failed to set VLAN filtering on port ",
-                  newPort->getID());
-
-    // Set the correct port speed before enabling the port.
-    updatePortSpeed(oldPort, newPort);
-  }
-
-  rv = opennsl_port_enable_set(unit_, bcmPort, enable);
-  bcmCheckError(rv, "failed to change state of port ", newPort->getID(),
-                " to ", enable);
+    });
 }
 
-void BcmSwitch::updateIngressVlan(const std::shared_ptr<Port>& oldPort,
-                                  const std::shared_ptr<Port>& newPort) {
-  opennsl_port_t bcmPort = portTable_->getBcmPortId(newPort->getID());
-  opennsl_vlan_t bcmVlan = newPort->getIngressVlan();
-  auto rv = opennsl_port_untagged_vlan_set(unit_, bcmPort, bcmVlan);
-  bcmCheckError(rv, "failed to set ingress VLAN for port ",
-                newPort->getID(), " to ", newPort->getIngressVlan());
+void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
+  forEachChanged(delta.getPortsDelta(),
+    [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+      if (oldPort->isDisabled() && !newPort->isDisabled()) {
+        auto bcmPort = portTable_->getBcmPort(newPort->getID());
+        bcmPort->enable(newPort);
+      }
+    });
 }
 
-void BcmSwitch::updatePortSpeed(const std::shared_ptr<Port>& oldPort,
-                                const std::shared_ptr<Port>& newPort) {
-  opennsl_port_t bcmPort = portTable_->getBcmPortId(newPort->getID());
-  int speed;
-  int ret;
-  switch (newPort->getSpeed()) {
-  case cfg::PortSpeed::DEFAULT:
-    ret = opennsl_port_speed_max(unit_, bcmPort, &speed);
-    bcmCheckError(ret, "failed to get max speed for port", newPort->getID());
-    break;
-  case cfg::PortSpeed::HUNDREDG:
-  case cfg::PortSpeed::FIFTYG:
-  case cfg::PortSpeed::FORTYG:
-  case cfg::PortSpeed::TWENTYFIVEG:
-  case cfg::PortSpeed::TWENTYG:
-  case cfg::PortSpeed::XG:
-  case cfg::PortSpeed::GIGE:
-    speed = static_cast<int>(newPort->getSpeed());
-    break;
-  default:
-    throw FbossError("Unsupported speed (", newPort->getSpeed(),
-                     ") setting on port ", newPort->getID());
-    break;
-  }
-  // We always want to put 10G ports in SFI mode.
-  // Note that this call must be made before opennsl_port_speed_set().
-  bool updateSpeed = false;
-  if (speed == 10000) {
-    opennsl_port_if_t curMode;
-    ret = opennsl_port_interface_get(unit_, bcmPort, &curMode);
-    if (curMode != OPENNSL_PORT_IF_SFI) {
-      // Changes to the interface setting only seem to take effect on the next
-      // call to opennsl_port_speed_set().  Therefore make sure we update the
-      // speed below, even if the speed is already at the desired setting.
-      updateSpeed = true;
-      ret = opennsl_port_interface_set(unit_, bcmPort, OPENNSL_PORT_IF_SFI);
-      bcmCheckError(ret, "failed to set interface type for port ",
-                    newPort->getID());
-    }
-  }
+void BcmSwitch::processChangedPorts(const StateDelta& delta) {
+  forEachChanged(delta.getPortsDelta(),
+    [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+      auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
+      auto vlanChanged = oldPort->getIngressVlan() != newPort->getIngressVlan();
 
-  if (speed == 40000) {
-    opennsl_port_if_t curMode;
-    ret = opennsl_port_interface_get(unit_, bcmPort, &curMode);
-    if (curMode != OPENNSL_PORT_IF_XLAUI) {
-      ret = opennsl_port_interface_set(unit_, bcmPort, OPENNSL_PORT_IF_XLAUI);
-      bcmCheckError(ret, "failed to set interface type for port ",
-                    newPort->getID());
-    }
-  }
+      if (speedChanged || vlanChanged) {
+        auto bcmPort = portTable_->getBcmPort(newPort->getID());
+        bcmPort->program(newPort);
+      }
+    });
+}
 
-  if (!updateSpeed) {
-    // Unnecessarily updating BCM port speed actually causes
-    // the port to flap, even if this should be a noop, so check current
-    // speed before making speed related changes. Doing so fixes
-    // the interface flaps we were seeing during warm boots
-    int curSpeed;
-    ret = opennsl_port_speed_get(unit_, bcmPort, &curSpeed);
-    bcmCheckError(ret, "Failed to get current speed for port",
-                  newPort->getID());
-    updateSpeed = (curSpeed != speed);
-  }
-  if (updateSpeed) {
-    ret = opennsl_port_speed_set(unit_, bcmPort, speed);
-    bcmCheckError(ret, "failed to set speed, ", speed,
-                  ", to port ", newPort->getID());
-  }
+void BcmSwitch::reconfigurePortGroups(const StateDelta& delta) {
+  // This logic is a bit messy. We could encode some notion of port
+  // groups into the swith state somehow so it is easy to generate
+  // deltas for these. For now, we need pass around the SwitchState
+  // object and get the relevant ports manually.
+
+  // Note that reconfigurePortGroups will program the speed and enable
+  // newly enabled ports in its group. This means it can overlap a bit
+  // with the work done in processEnabledPorts and processChangedPorts.
+  // Both BcmPort::program and BcmPort::enable should be no-ops if already
+  // programmed or already enabled. However, this MUST BE called before
+  // those methods as enabling or changing the speed of a port may require
+  // changing the configuration of a port group.
+
+  auto newState = delta.newState();
+
+  forEachChanged(delta.getPortsDelta(),
+    [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+      auto enabled = oldPort->isDisabled() && !newPort->isDisabled();
+      auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
+
+      if (speedChanged || enabled) {
+        // this may require reconfiguring lanes. First we check if
+        // this is a valid configuration. We could be smarter here
+        // and only check once per port group instead of once per
+        // changed port in a port group, but keeping it simple for now.
+        auto bcmPort = portTable_->getBcmPort(newPort->getID());
+        auto portGroup = bcmPort->getPortGroup();
+        if (!portGroup) {
+          // no port group for this port.
+          return;
+        } else if (!portGroup->validConfiguration(newState)) {
+          // Fail hard for now. We should add this to a pre-update
+          // check instead in the future.
+          throw FbossError("Invalid port configuration passed in");
+        }
+        portGroup->reconfigureIfNeeded(newState);
+      }
+    });
 }
 
 void BcmSwitch::changeDefaultVlan(VlanID id) {

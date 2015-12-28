@@ -48,6 +48,14 @@ class BcmPortTable {
     return PortID(port);
   }
 
+  // throw an error if not found
+  BcmPort* getBcmPort(PortID id) const;
+  BcmPort* getBcmPort(opennsl_port_t id) const;
+
+  // return nullptr if not found
+  BcmPort* getBcmPortIf(PortID id) const;
+  BcmPort* getBcmPortIf(opennsl_port_t id) const;
+
   /*
    * Indicate that a port's link status has changed.
    */
@@ -75,14 +83,6 @@ class BcmPortTable {
   typedef boost::container::flat_map<PortID, BcmPort*> FbossPortMap;
 
   typedef std::vector<std::unique_ptr<BcmPortGroup>> BcmPortGroupList;
-
-  // throw an error if not found
-  BcmPort* getBcmPort(PortID id) const;
-  BcmPort* getBcmPort(opennsl_port_t id) const;
-
-  // return nullptr if not found
-  BcmPort* getBcmPortIf(PortID id) const;
-  BcmPort* getBcmPortIf(opennsl_port_t id) const;
 
   BcmSwitch *hw_{nullptr};
 

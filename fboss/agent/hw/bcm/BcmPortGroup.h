@@ -77,6 +77,7 @@ class BcmPortGroup {
 
   uint8_t getLane(const BcmPort* bcmPort) const;
   int retrieveActiveLanes() const;
+  void setActiveLanes(LaneMode desiredLaneMode);
   void reconfigure(const std::shared_ptr<SwitchState>& state,
                    LaneMode newLaneMode);
 

@@ -45,6 +45,10 @@ class BcmPort {
 
   void init(bool warmBoot);
 
+  void enable(const std::shared_ptr<Port>& swPort);
+  void disable(const std::shared_ptr<Port>& swPort);
+  void program(const std::shared_ptr<Port>& swPort);
+
   /*
    * Getters.
    */
@@ -83,6 +87,8 @@ class BcmPort {
    */
   void registerInPortGroup(BcmPortGroup* portGroup);
   void setPortStatus(int status);
+  void setIngressVlan(const std::shared_ptr<Port>& swPort);
+  void setSpeed(const std::shared_ptr<Port>& swPort);
 
   /*
    * Update this port's statistics.
@@ -116,11 +122,14 @@ class BcmPort {
   void setAdditionalStats(std::chrono::seconds now);
   void setConfiguredMaxSpeed();
 
+  opennsl_pbmp_t getPbmp();
+
   BcmSwitch* const hw_{nullptr};
   const opennsl_port_t port_;    // Broadcom physical port number
   opennsl_gport_t gport_;  // Broadcom global port number
   cfg::PortSpeed configuredMaxSpeed_;
   BcmPlatformPort* const platformPort_{nullptr};
+  int unit_{-1};
 
   // The port group this port is a part of
   BcmPortGroup* portGroup_{nullptr};
