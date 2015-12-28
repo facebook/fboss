@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
+#include "fboss/agent/gen-cpp/switch_config_types.h"
 
 namespace facebook { namespace fboss {
 
@@ -22,6 +23,10 @@ class WedgePort : public BcmPlatformPort {
   void setBcmPort(BcmPort* port) override;
   BcmPort* getBcmPort() const override {
     return bcmPort_;
+  }
+
+  cfg::PortSpeed maxLaneSpeed() const override {
+    return cfg::PortSpeed::XG;
   }
 
   void preDisable(bool temporary) override;

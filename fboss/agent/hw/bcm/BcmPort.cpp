@@ -17,6 +17,8 @@
 #include <folly/Conv.h>
 
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
@@ -83,6 +85,8 @@ BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
   outPktLengths_ = histMap->getOrCreateUnlocked(statName("out_pkt_lengths"),
                                                 &pktLenHist);
 
+  setConfiguredMaxSpeed();
+
   VLOG(2) << "created BCM port:" << port_ << ", gport:" << gport_
           << ", FBOSS PortID:" << platformPort_->getPortID();
 }
@@ -111,8 +115,34 @@ void BcmPort::init(bool warmBoot) {
   }
 }
 
+bool BcmPort::supportsSpeed(cfg::PortSpeed speed) {
+  // It would be nice if we could use the port_ability api here, but
+  // that struct changes based on how many lanes are active. So does
+  // opennsl_port_speed_max.
+  //
+  // Instead, we store the speed set in the bcm config file. This will
+  // not work correctly if we performed a warm boot and the config
+  // file changed port speeds. However, this is not supported by
+  // broadcom for warm boot so this approach should be alright.
+  return speed <= configuredMaxSpeed_;
+}
+
 PortID BcmPort::getPortID() const {
   return platformPort_->getPortID();
+}
+
+cfg::PortSpeed BcmPort::maxLaneSpeed() const {
+  return platformPort_->maxLaneSpeed();
+}
+
+std::shared_ptr<Port> BcmPort::getSwitchStatePort(
+    const std::shared_ptr<SwitchState>& state) const {
+  return state->getPort(getPortID());
+}
+
+std::shared_ptr<Port> BcmPort::getSwitchStatePortIf(
+    const std::shared_ptr<SwitchState>& state) const {
+  return state->getPorts()->getPortIf(getPortID());
 }
 
 void BcmPort::setPortStatus(int linkstatus) {
@@ -131,7 +161,6 @@ void BcmPort::registerInPortGroup(BcmPortGroup* portGroup) {
   VLOG(2) << "Port " << getPortID() << " registered in PortGroup with "
           << "controlling port " << portGroup->controllingPort()->getPortID();
 }
-
 
 std::string BcmPort::statName(folly::StringPiece name) const {
   return folly::to<string>("port", platformPort_->getPortID(), ".", name);

@@ -71,6 +71,11 @@ class BcmPortGroup {
     QUAD = 4
   };
 
+  LaneMode getDesiredLaneMode(
+    const std::shared_ptr<SwitchState>& state) const;
+  LaneMode neededLaneMode(uint8_t lane, cfg::PortSpeed speed) const;
+
+  uint8_t getLane(const BcmPort* bcmPort) const;
   int retrieveActiveLanes() const;
   void reconfigure(const std::shared_ptr<SwitchState>& state,
                    LaneMode newLaneMode);

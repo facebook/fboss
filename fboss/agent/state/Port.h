@@ -117,6 +117,11 @@ class Port : public NodeBaseT<Port, PortFields> {
     writableFields()->state = state;
   }
 
+  bool isDisabled() const {
+    auto state = getFields()->state;
+    return state == cfg::PortState::DOWN || state == cfg::PortState::POWER_DOWN;
+  }
+
   const VlanMembership& getVlans() const {
     return getFields()->vlans;
   }

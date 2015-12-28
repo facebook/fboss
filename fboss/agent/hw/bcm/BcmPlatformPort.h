@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/PlatformPort.h"
+#include "fboss/agent/gen-cpp/switch_config_types.h"
 
 namespace facebook { namespace fboss {
 
@@ -27,6 +28,12 @@ class BcmPlatformPort : public PlatformPort {
    */
   virtual void setBcmPort(BcmPort* port) = 0;
   virtual BcmPort* getBcmPort() const = 0;
+
+  /*
+   * maxLaneSpeed() returns the maximum speed per lane on
+   * this platform.
+   */
+  virtual cfg::PortSpeed maxLaneSpeed() const = 0;
 
  private:
   // Forbidden copy constructor and assignment operator

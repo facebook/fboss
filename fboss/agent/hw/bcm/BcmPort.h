@@ -17,6 +17,7 @@ extern "C" {
 #include "common/stats/MonotonicCounter.h"
 #include "common/stats/ExportedHistogram.h"
 #include "fboss/agent/types.h"
+#include "fboss/agent/gen-cpp/switch_config_types.h"
 
 #include <mutex>
 
@@ -25,6 +26,8 @@ namespace facebook { namespace fboss {
 class BcmPlatformPort;
 class BcmSwitch;
 class BcmPortGroup;
+class SwitchState;
+class Port;
 
 /**
  * BcmPort is the class to abstract the physical port in BcmSwitch.
@@ -61,7 +64,19 @@ class BcmPort {
     return portGroup_;
   }
 
+  /*
+   * Helpers for retreiving the SwitchState node for a given
+   * port. There is no great place for this so I am putting it in here
+   * for now.
+   */
+  std::shared_ptr<Port> getSwitchStatePort(
+    const std::shared_ptr<SwitchState>& state) const;
+  std::shared_ptr<Port> getSwitchStatePortIf(
+    const std::shared_ptr<SwitchState>& state) const;
+
   PortID getPortID() const;
+  cfg::PortSpeed maxLaneSpeed() const;
+  bool supportsSpeed(cfg::PortSpeed speed);
 
   /*
    * Setters.
@@ -99,10 +114,12 @@ class BcmPort {
 
   void disablePause();
   void setAdditionalStats(std::chrono::seconds now);
+  void setConfiguredMaxSpeed();
 
   BcmSwitch* const hw_{nullptr};
   const opennsl_port_t port_;    // Broadcom physical port number
   opennsl_gport_t gport_;  // Broadcom global port number
+  cfg::PortSpeed configuredMaxSpeed_;
   BcmPlatformPort* const platformPort_{nullptr};
 
   // The port group this port is a part of
