@@ -17,5 +17,5 @@ void BcmPort::setAdditionalStats(std::chrono::seconds now) {}
 void BcmPort::setConfiguredMaxSpeed() {
   configuredMaxSpeed_ = cfg::PortSpeed::XG;
 }
-
+void BcmPort::setKR4Ability() {}
 }} // namespace facebook::fboss

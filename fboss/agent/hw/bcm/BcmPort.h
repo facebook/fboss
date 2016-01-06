@@ -123,9 +123,13 @@ class BcmPort {
   void disablePause();
   void setAdditionalStats(std::chrono::seconds now);
   void setConfiguredMaxSpeed();
-  opennsl_port_if_t getDesiredInterfaceMode(cfg::PortSpeed speed, PortID id);
+  opennsl_port_if_t getDesiredInterfaceMode(cfg::PortSpeed speed,
+                                            PortID id,
+                                            std::string name);
 
   opennsl_pbmp_t getPbmp();
+
+  void setKR4Ability();
 
   BcmSwitch* const hw_{nullptr};
   const opennsl_port_t port_;    // Broadcom physical port number

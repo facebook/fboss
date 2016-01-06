@@ -224,7 +224,9 @@ void BcmPort::setIngressVlan(const shared_ptr<Port>& swPort) {
 }
 
 opennsl_port_if_t BcmPort::getDesiredInterfaceMode(cfg::PortSpeed speed,
-                                                   PortID id) {
+                                                   PortID id,
+                                                   std::string name) {
+  static constexpr const char* sixPackLCFabricPortPrefix = "fab";
   switch (speed) {
   case cfg::PortSpeed::HUNDREDG:
     return OPENNSL_PORT_IF_CR4;
@@ -238,7 +240,14 @@ opennsl_port_if_t BcmPort::getDesiredInterfaceMode(cfg::PortSpeed speed,
                      ") setting on port ", id);
 #endif
   case cfg::PortSpeed::FORTYG:
-    return OPENNSL_PORT_IF_SR4;
+    // TODO: Currently, we are finding if the port is backplane port or not by
+    // its name. A better way is to include this information in the config:
+    // t9112164.
+    if (name.find(sixPackLCFabricPortPrefix) == 0) {
+      return OPENNSL_PORT_IF_KR4;
+    } else {
+      return OPENNSL_PORT_IF_SR4;
+    }
   case cfg::PortSpeed::TWENTYFIVEG:
     return OPENNSL_PORT_IF_CR;
   case cfg::PortSpeed::TWENTYG:
@@ -253,53 +262,71 @@ opennsl_port_if_t BcmPort::getDesiredInterfaceMode(cfg::PortSpeed speed,
 }
 
 void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
+  if (isEnabled()) {
+    LOG(ERROR) << "Cannot set port speed while the port is enabled. Port: "
+               << swPort->getName() << " id: " << swPort->getID();
+    return;
+  }
   int ret;
-  cfg::PortSpeed desiredSpeed;
+  cfg::PortSpeed desiredPortSpeed;
   if (swPort->getSpeed() == cfg::PortSpeed::DEFAULT) {
     int speed;
     ret = opennsl_port_speed_max(unit_, port_, &speed);
     bcmCheckError(ret, "failed to get max speed for port", swPort->getID());
-    desiredSpeed = cfg::PortSpeed(speed);
+    desiredPortSpeed = cfg::PortSpeed(speed);
   } else {
-    desiredSpeed = swPort->getSpeed();
+    desiredPortSpeed = swPort->getSpeed();
   }
 
-  opennsl_port_if_t desiredMode = getDesiredInterfaceMode(desiredSpeed,
-                                                          swPort->getID());
+  opennsl_port_if_t desiredMode = getDesiredInterfaceMode(desiredPortSpeed,
+                                                          swPort->getID(),
+                                                          swPort->getName());
 
-  bool updateSpeed = false;
   opennsl_port_if_t curMode;
   ret = opennsl_port_interface_get(unit_, port_, &curMode);
+  bcmCheckError(ret,
+                "Failed to get current interface setting for port ",
+                swPort->getID());
 
-  if (curMode != desiredMode && !isEnabled()) {
+  bool updateSpeed = false;
+
+  if (curMode != desiredMode) {
+    ret = opennsl_port_interface_set(unit_, port_, desiredMode);
+    bcmCheckError(
+        ret, "failed to set interface type for port ", swPort->getID());
     // Changes to the interface setting only seem to take effect on the next
     // call to opennsl_port_speed_set().  Therefore make sure we update the
     // speed below, even if the speed is already at the desired setting.
     updateSpeed = true;
-    ret = opennsl_port_interface_set(unit_, port_, desiredMode);
-    bcmCheckError(ret, "failed to set interface type for port ",
-                  swPort->getID());
   }
 
-  int speed = static_cast<int>(desiredSpeed);
-  if (!updateSpeed) {
-    // Unnecessarily updating BCM port speed actually causes
-    // the port to flap, even if this should be a noop, so check current
-    // speed before making speed related changes. Doing so fixes
-    // the interface flaps we were seeing during warm boots
+  int desiredSpeed = static_cast<int>(desiredPortSpeed);
+  // Unnecessarily updating BCM port speed actually causes
+  // the port to flap, even if this should be a noop, so check current
+  // speed before making speed related changes. Doing so fixes
+  // the interface flaps we were seeing during warm boots
+  if (!updateSpeed && desiredMode != OPENNSL_PORT_IF_KR4) {
     int curSpeed;
     ret = opennsl_port_speed_get(unit_, port_, &curSpeed);
-    bcmCheckError(ret, "Failed to get current speed for port",
-                  swPort->getID());
-    updateSpeed = (curSpeed != speed);
+    bcmCheckError(
+        ret, "Failed to get current speed for port ", swPort->getID());
+    updateSpeed |= (curSpeed != desiredSpeed);
   }
 
   if (updateSpeed) {
-    ret = opennsl_port_speed_set(unit_, port_, speed);
-    bcmCheckError(ret, "failed to set speed, ", speed,
-                  ", to port ", swPort->getID());
+    if (desiredMode == OPENNSL_PORT_IF_KR4) {
+      // We don't need to set speed when mode is KR4, since ports in KR4 mode
+      // do autonegotiation to figure out the speed.
+      setKR4Ability();
+    } else {
+      ret = opennsl_port_speed_set(unit_, port_, desiredSpeed);
+      bcmCheckError(ret,
+                    "failed to set speed, ",
+                    desiredSpeed,
+                    ", to port ",
+                    swPort->getID());
+    }
   }
-
 }
 
 PortID BcmPort::getPortID() const {
