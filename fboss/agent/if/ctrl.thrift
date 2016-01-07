@@ -60,8 +60,8 @@ struct ProductInfo {
   9: string pcbManufacturer,
   10: string assetTag,
   11: string partNumber,
-  12: string odmPcbPartNumber,
-  13: string odmPcbSerial,
+  12: string odmPcbaPartNumber,
+  13: string odmPcbaSerial,
   14: string fbPcbPartNumber,
   15: i16 version,
   16: i16 subVersion,
@@ -70,6 +70,8 @@ struct ProductInfo {
   19: string bmcMac,
   20: string mgmtMac,
   21: string fabricLocation,
+  22: string fbPcbaPartNumber,
+
 }
 
 /*

@@ -28,8 +28,9 @@ constexpr auto kProductionState = "Product Production State";
 constexpr auto kProdPartNum = "Product Part Number";
 constexpr auto kSerialNum = "Product Serial Number";
 constexpr auto kSubVersion = "Product Sub-Version";
-constexpr auto kOdmPcbPartNum = "ODM PCB Part Number";
-constexpr auto kOdmPcbSerialNum = "ODM PCB Serial Number";
+constexpr auto kOdmPcbaPartNum = "ODM PCBA Part Number";
+constexpr auto kOdmPcbaSerialNum = "ODM PCBA Serial Number";
+constexpr auto kFbPcbaPartNum = "Facebook PCBA Part Number";
 constexpr auto kFbPcbPartNum = "Facebook PCB Part Number";
 constexpr auto kExtMacSize = "Extended MAC Address Size";
 constexpr auto kExtMacBase = "Extended MAC Base";
@@ -90,12 +91,15 @@ void WedgeProductInfo::parse(std::string data) {
                         folly::to<std::string>(info[kProdAssetTag].asString());
   productInfo_.partNumber =
                           folly::to<std::string>(info[kProdPartNum].asString());
-  productInfo_.odmPcbPartNumber = folly::to<std::string>
-                                    (info[kOdmPcbPartNum].asString());
-  productInfo_.odmPcbSerial = folly::to<std::string>
-                                  (info[kOdmPcbSerialNum].asString());
+  productInfo_.odmPcbaPartNumber = folly::to<std::string>
+                                    (info[kOdmPcbaPartNum].asString());
+  productInfo_.odmPcbaSerial = folly::to<std::string>
+                                  (info[kOdmPcbaSerialNum].asString());
+  productInfo_.fbPcbaPartNumber = folly::to<std::string>
+                                    (info[kFbPcbaPartNum].asString());
   productInfo_.fbPcbPartNumber = folly::to<std::string>
                                     (info[kFbPcbPartNum].asString());
+
   productInfo_.fabricLocation = folly::to<std::string>
                                     (info[kFabricLocation].asString());
   // Append L/R to the serial number based on the fabricLocation
