@@ -75,10 +75,10 @@ add_library(fboss_agent STATIC
     fboss/agent/IPv6Handler.cpp
     fboss/agent/LldpManager.cpp
     fboss/agent/Main.cpp
+    fboss/agent/NeighborListenerClient.cpp
     fboss/agent/NeighborUpdater.cpp
     fboss/agent/Platform.cpp
     fboss/agent/PortStats.cpp
-    fboss/agent/PortStatusListener.cpp
     fboss/agent/RestClient.cpp
     fboss/agent/SfpModule.cpp
     fboss/agent/SwitchStats.cpp
@@ -176,7 +176,7 @@ add_library(fboss_agent STATIC
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_types.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/ctrl_types.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/FbossCtrl.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/PortStatusListenerClient_client.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/NeighborListenerClient_client.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/FbossHighresClient_client.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/fboss_types.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/optic_types.cpp
@@ -206,7 +206,7 @@ set(THRIFTC2
     ${PYTHON} -mthrift_compiler.main -I ${CMAKE_SOURCE_DIR} --gen cpp2:)
 
 function(fboss_add_thrift)
-    cmake_parse_arguments("arg" "" "OPTIONS;THRIFTSRC" "SERVICES" ${ARGN})
+    cmake_parse_arguments("arg" "" "OPTIONS;THRIFTSRC;REFLECT" "SERVICES" ${ARGN})
     get_cmake_property(_variableNames VARIABLES)
     get_filename_component(dirname "${arg_THRIFTSRC}" PATH)
     # NAME_WE = name without extension.
@@ -221,8 +221,8 @@ function(fboss_add_thrift)
     foreach(gen cpp cpp2)
         foreach(reflect ${arg_REFLECT})
             set(outputs ${outputs} 
-                ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${reflect}_reflect.h
-                ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${reflect}_reflect.cpp)
+                ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${reflect}_reflection.h
+                ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${reflect}_reflection.cpp)
         endforeach(reflect)
         foreach(output constants types)
             set(outputs ${outputs} 
@@ -256,7 +256,7 @@ fboss_add_thrift(THRIFTSRC fboss/agent/switch_config.thrift
     REFLECT switch_config)
 fboss_add_thrift(THRIFTSRC fboss/agent/hw/sim/sim_ctrl.thrift SERVICES SimCtrl)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/ctrl.thrift 
-    SERVICES FbossCtrl PortStatusListenerClient)
+    SERVICES FbossCtrl NeighborListenerClient)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/fboss.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/optic.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/highres.thrift SERVICES FbossHighresClient)
