@@ -14,7 +14,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/RouteTypes.h"
-#include "neteng/fboss/lib/RadixTree.h"
+#include "fboss/lib/RadixTree.h"
 
 namespace facebook { namespace fboss {
 
