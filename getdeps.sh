@@ -22,9 +22,13 @@ function build() {
     (
         echo "building $1..."
         cd $1
-        if [ ! -x ./configure ]; then
-            autoreconf --install
-            ./configure
+        if [ ! -x ./configure ] ; then
+            if [ -f ./configure.ac ] || [ -f ./configure.in ]; then
+                autoreconf --install
+                ./configure
+            else
+                cmake $3 .
+            fi
         fi
         make -j8
     )
@@ -45,9 +49,11 @@ mkdir -p external
     update \
         git://git.kernel.org/pub/scm/linux/kernel/git/shemminger/iproute2.git
     update https://github.com/facebook/folly.git
+    update https://github.com/facebook/wangle.git
     update https://github.com/facebook/fbthrift.git
     build iproute2 v3.12.0
     build folly/folly v0.48.0
-    export CPPFLAGS=" -I`pwd`/folly/" LDFLAGS="-L`pwd`/folly/folly/.libs/"
+    build wangle/wangle v0.13.0 "-D FOLLY_INCLUDE_DIR:PATH=`pwd`/folly/ -D FOLLY_LIBRARIES:PATH=`pwd`/folly/folly/.libs/ -D FOLLY_LIBRARY:FILEPATH=`pwd`/folly/folly/.libs/libfolly.so"
+    export CPPFLAGS=" -I`pwd`/folly/ -I`pwd`/wangle/ " LDFLAGS="-L`pwd`/folly/folly/.libs/ -L`pwd`/wangle/wangle/lib/"
     build fbthrift/thrift v0.28.0
 )
