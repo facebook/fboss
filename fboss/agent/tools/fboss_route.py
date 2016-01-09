@@ -98,10 +98,13 @@ def list_ports(args):
 
 def list_arps(args):
     with get_client(args) as client:
-        #for intf in client.getInterfaceList():
         for arp in client.getArpTable():
             print ("Arp: %s" % (format_arp(arp)))
 
+def list_ndps(args):
+    with get_client(args) as client:
+        for ndp in client.getNdpTable():
+            print ("NDP: %s" %  (format_arp(ndp)))
 
 def list_vlans(args):
     with get_client(args) as client:
@@ -197,6 +200,13 @@ if __name__ == '__main__':
     list_arp_parser.add_argument(
         '--details', action='store_true',
         help='List all information about the arps', default=False)
+
+    list_ndp_parser = subparsers.add_parser(
+        'list_ndps', help='list switch ndps')
+    list_ndp_parser.set_defaults(func=list_ndps)
+    list_ndp_parser.add_argument(
+        '--details', action='store_true',
+        help='List all information about the ndps', default=False)
 
     args = ap.parse_args()
     args.func(args)
