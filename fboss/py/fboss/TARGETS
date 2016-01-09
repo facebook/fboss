@@ -1,0 +1,10 @@
+python_library(
+  name = 'thrift_clients',
+  base_module = 'fboss',
+  srcs = [
+    'thrift_clients.py',
+  ],
+  deps = [
+    '@/fboss/agent/if:ctrl-py',
+  ],
+)

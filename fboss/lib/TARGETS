@@ -1,0 +1,4 @@
+# TODO(#7315608): Header only rule to support Buck.
+cpp_library(
+    name = 'headers',
+)

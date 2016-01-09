@@ -1,0 +1,37 @@
+cpp_binary(
+  name = 'lldp_tool',
+  split_symbols = True,
+  srcs = [
+    'lldp_tool.cpp',
+  ],
+  deps = [
+    '@/folly:folly',
+    '@/fboss/agent/packet:pktutil',
+    '@/fboss/agent/lldp:lldp',
+    '@/fboss/agent/hw/bcm:bcm',
+  ],
+  external_deps = [
+    ('broadcom-xgs-robo', None, 'xgs_robo'),
+    ('opennsl', None),
+  ],
+)
+
+cpp_binary(
+  name = 'cp2112_util',
+  srcs = [
+    'cp2112_util.cpp',
+  ],
+  deps = [
+    '@/fboss/lib/usb:cp2112',
+  ],
+)
+
+cpp_binary(
+  name = 'wedge_qsfp_util',
+  srcs = [
+    'wedge_qsfp_util.cpp',
+  ],
+  deps = [
+    '@/fboss/lib/usb:wedge_i2c',
+  ],
+)

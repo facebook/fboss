@@ -1,0 +1,37 @@
+cpp_unittest (
+  name = 'test-radixtree',
+  srcs = [
+    'RadixTreeTest.cpp',
+  ],
+  deps = [
+    '@/common/network:address',
+    '@/common/base:base',
+  ],
+external_deps=[
+    ("py-radix", any, "radix"),
+  ],
+)
+
+cpp_benchmark(
+    name = "radixtree-benchmark",
+    srcs = [ "RadixTreeBenchmark.cpp" ],
+    deps = [
+        '@/common/base:base',
+        '@/common/init:init',
+        '@/common/network:address',
+        '@/folly:benchmark',
+    ],
+external_deps=[
+    ("py-radix", any, "radix"),
+  ],
+)
+
+cpp_binary(
+    name = "radixtree-profile",
+    srcs = [ "RadixTreeProfile.cpp" ],
+    deps = [
+        '@/common/base:base',
+        '@/common/init:init',
+        '@/common/network:address',
+    ],
+)

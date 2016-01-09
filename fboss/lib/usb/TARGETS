@@ -1,0 +1,36 @@
+cpp_library(
+  name = 'usb',
+  srcs = [
+    'UsbDevice.cpp',
+    'UsbHandle.cpp',
+  ],
+  deps = [
+    '@/folly:folly',
+  ],
+  external_deps = [
+    'libusb',
+    'glog',
+  ],
+)
+
+cpp_library(
+  name = 'cp2112',
+  srcs = [
+    'CP2112.cpp',
+  ],
+  deps = [
+    ':usb',
+  ],
+)
+
+cpp_library(
+  name = 'wedge_i2c',
+  srcs = [
+    'WedgeI2CBus.cpp',
+    'Wedge100I2CBus.cpp',
+    'BaseWedgeI2CBus.cpp',
+  ],
+  deps = [
+    ':cp2112',
+  ],
+)
