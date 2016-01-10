@@ -24,6 +24,7 @@ include_directories(${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2)
 
 # System libraries
 find_library(GLOG glog)
+find_library(BOOSTSER boost_serialization)
 find_library(BOOSTFS boost_filesystem)
 find_library(BOOSTSYS boost_system)
 find_library(BOOSTTHREAD boost_thread)
@@ -193,6 +194,7 @@ target_link_libraries(fboss_agent
     ${OPENNSL}
     ${IPROUTE2}
     ${BOOSTFS}
+    ${BOOSTSER}
     ${BOOSTSYS}
     ${BOOSTTHREAD}
     ${DOUBLECONV}
