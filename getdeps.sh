@@ -42,7 +42,8 @@ echo "installing packages"
 sudo apt-get install -yq autoconf automake libdouble-conversion-dev \
     libssl-dev make zip git autoconf libtool g++ libboost-all-dev \
     libevent-dev flex bison libgoogle-glog-dev scons libkrb5-dev \
-    libsnappy-dev libsasl2-dev libnuma-dev libi2c-dev libcurl4-nss-dev
+    libsnappy-dev libsasl2-dev libnuma-dev libi2c-dev libcurl4-nss-dev \
+    libusb-1.0-0-dev libpcap-dev
 
 echo "creating external..."
 mkdir -p external
@@ -55,7 +56,7 @@ mkdir -p external
     update https://github.com/facebook/folly.git
     update https://github.com/facebook/wangle.git
     update https://github.com/facebook/fbthrift.git
-    build iproute2
+    build iproute2 v3.19.0
     build folly/folly
     export CMAKEFLAGS=-D"FOLLY_INCLUDE_DIR=`pwd`/folly"\ -D"FOLLY_LIBRARY=`pwd`/folly/folly/.libs/libfolly.a"\ -D"BUILD_TESTS=OFF"
     build wangle/wangle

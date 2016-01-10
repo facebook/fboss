@@ -17,6 +17,8 @@ class ExportedHistogram {
 public:
   ExportedHistogram(int, int, size_t) {}
   void addValue(std::chrono::seconds, int, int64_t) {}
+  int numLevels() {return 1;}
+  int sum(int numLevels) {return 0;}
 };
 
 class ExportedHistogramMap {

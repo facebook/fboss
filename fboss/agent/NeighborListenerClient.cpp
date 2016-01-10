@@ -7,9 +7,9 @@
 #include <gflags/gflags.h>
 #include <thrift/lib/cpp2/async/DuplexChannel.h>
 #include <folly/SocketAddress.h>
+#include <folly/io/async/EventBase.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <thrift/lib/cpp/util/ScopedServerThread.h>
-#include <thrift/lib/cpp/async/TEventBase.h>
 #include <thrift/lib/cpp/async/TAsyncSocket.h>
 
 using namespace apache::thrift;
@@ -38,7 +38,7 @@ class NeighborListenerClientInterface : public NeighborListenerClientSvIf {
 };
 
 int main(int argc, char **argv) {
-  TEventBase base;
+  folly::EventBase base;
 
   google::ParseCommandLineFlags(&argc, &argv, true);
   google::InitGoogleLogging(argv[0]);
