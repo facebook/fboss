@@ -7,7 +7,7 @@ function update() {
         (cd $repo && git pull)
     else
         git clone $1
-        [ -z "$2"] || git checkout $2
+        [ -z "$2" ] || (cd $repo && git checkout $2)
     fi
 }
 
@@ -49,13 +49,13 @@ echo "creating external..."
 mkdir -p external
 (
     cd external
-    update https://github.com/Broadcom-Switch/OpenNSL.git
+    update https://github.com/Broadcom-Switch/OpenNSL.git cf6dc4100bcfc1ffe82da3ba090b504e09e39216
     update \
-        git://git.kernel.org/pub/scm/linux/kernel/git/shemminger/iproute2.git
+        git://git.kernel.org/pub/scm/linux/kernel/git/shemminger/iproute2.git v3.19.0
     update https://github.com/facebook/folly.git
     update https://github.com/facebook/wangle.git
     update https://github.com/facebook/fbthrift.git
-    build iproute2 v3.19.0
+    build iproute2
     build folly/folly
     export CMAKEFLAGS=-D"FOLLY_INCLUDE_DIR=`pwd`/folly"\ -D"FOLLY_LIBRARY=`pwd`/folly/folly/.libs/libfolly.a"\ -D"BUILD_TESTS=OFF"
     build wangle/wangle
