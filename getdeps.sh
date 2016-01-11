@@ -50,7 +50,6 @@ mkdir -p external
 (
     cd external
     update https://github.com/Broadcom-Switch/OpenNSL.git
-    (cd OpenNSL && update_branch OpenNSL_6.3)
     update \
         git://git.kernel.org/pub/scm/linux/kernel/git/shemminger/iproute2.git
     update https://github.com/facebook/folly.git
