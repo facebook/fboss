@@ -53,6 +53,12 @@ class BcmPlatform : public Platform {
    */
   std::string getHwConfigDumpFile() const;
 
+  /*
+   * Based on the chip we may or may not be able to
+   * use the host table for host routes (/128 or /32).
+   */
+  virtual bool canUseHostTableForHostRoutes() const = 0;
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmPlatform(BcmPlatform const &) = delete;

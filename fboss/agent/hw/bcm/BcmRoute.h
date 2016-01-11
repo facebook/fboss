@@ -35,6 +35,16 @@ class BcmRoute {
   ~BcmRoute();
   void program(const RouteForwardInfo& fwd);
  private:
+  void programHostRoute(opennsl_if_t egressId, const RouteForwardInfo& fwd);
+  void programLpmRoute(opennsl_if_t egressId, const RouteForwardInfo& fwd);
+  void deleteHostRoute();
+  void deleteLpmRoute();
+  /*
+   * Check whether we can use the host route table. BCM platforms
+   * support this from TD2 onwards
+   */
+  bool isHostRoute() const;
+  bool canUseHostTable() const;
   // no copy or assign
   BcmRoute(const BcmRoute &) = delete;
   BcmRoute& operator=(const BcmRoute &) = delete;

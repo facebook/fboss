@@ -32,11 +32,21 @@ class BcmSwitch;
 class BcmHost {
  public:
   BcmHost(
-      const BcmSwitch* hw, opennsl_vrf_t vrf, const folly::IPAddress& addr);
+      const BcmSwitch* hw, opennsl_vrf_t vrf, const folly::IPAddress& addr,
+      opennsl_if_t referenced_egress = BcmEgressBase::INVALID);
   virtual ~BcmHost();
   bool isProgrammed() const {
     return added_;
   }
+  /*
+   * program* apis get called only when for non host
+   * route entries (which provide a L2 mapping for
+   * a IP). Here we need to do 2 things
+   * a) Add egress entry.
+   * b) Add a host entry.
+   * For host routes, we only need to do b) since we use
+   * a already created egress entry
+   */
   void program(opennsl_if_t intf, folly::MacAddress mac,
       opennsl_port_t port) {
     return program(intf, &mac, port, NEXTHOPS);
@@ -47,9 +57,12 @@ class BcmHost {
   void programToDrop(opennsl_if_t intf) {
     return program(intf, nullptr, 0, DROP);
   }
-  opennsl_if_t getEgressId() const;
+  opennsl_if_t getEgressId() const {
+    return egressId_;
+  }
 
   bool getAndClearHitBit() const;
+  void addBcmHost(bool isMultipath = false);
  private:
   // no copy or assignment
   BcmHost(BcmHost const &) = delete;
@@ -60,16 +73,20 @@ class BcmHost {
   const BcmSwitch* hw_;
   opennsl_vrf_t vrf_;
   folly::IPAddress addr_;
-  std::unique_ptr<BcmEgress> egress_;
+  opennsl_if_t egressId_{BcmEgressBase::INVALID};
   bool added_{false}; // if added to the HW host(ARP) table or not
 };
 
 /**
  * Class to abstract ECMP path
  *
- * Unlike BcmHost, BcmEcmpHost does not have its own HW programming. It is
- * a SW class which refers to one or multiple BcmHost objects, and a unique
- * pointer to BcmEcmpEgress object if there are more than one path.
+ * There are 2 use cases for BCM Ecmp host
+ * a) As a collection of BcmHost entries - Unlike BcmHost, in this case
+ * BcmEcmpHost does not have its own HW programming. It functions as
+ * a SW object which refers to one or multiple BcmHost objects.
+ * b) As a object representing a host route. In this case the BcmEcmpHost
+ * simply references another egress entry (which maybe either BcmEgress
+ * or BcmEcmpEgress).
  */
 class BcmEcmpHost {
  public:
@@ -83,24 +100,17 @@ class BcmEcmpHost {
   const BcmSwitch* hw_;
   opennsl_vrf_t vrf_;
   /**
-   * Unique pointer to the BcmEcmpEgress object
-   *
-   * If there is only one entry in 'fwd', there is no need to create a ECMP
-   * egress object that just contains one egress object. This pointer
-   * is nullptr.
-   * If there are more than one entry in 'fwd', 'egress_' points to the
-   * BcmEcmpEgress object created.
-   */
-  std::unique_ptr<BcmEcmpEgress> egress_;
-  /**
    * The egress ID for this ECMP host
    *
    * If there is only one entry in 'fwd', there will be one BcmHost object
    * created. The egress ID is that host's egress ID.
    * Otherwise, one BcmEcmpEgress object is created. The egress ID is the one
-   * from this ECMP egress object.
+   * from this ECMP egress object. In the latter case, ecmpEgressId_ will also
+   * be set and both egressId_ and ecmpEgressId_ will be that of the ecmp egress
+   * object.
    */
   opennsl_if_t egressId_{BcmEgressBase::INVALID};
+  opennsl_if_t ecmpEgressId_{BcmEgressBase::INVALID};
   RouteForwardNexthops fwd_;
 };
 
@@ -135,6 +145,8 @@ class BcmHostTable {
    */
   BcmHost* incRefOrCreateBcmHost(
       opennsl_vrf_t vrf, const folly::IPAddress& addr);
+  BcmHost* incRefOrCreateBcmHost(
+      opennsl_vrf_t vrf, const folly::IPAddress& addr, opennsl_if_t egressId);
   BcmEcmpHost* incRefOrCreateBcmEcmpHost(
       opennsl_vrf_t vrf, const RouteForwardNexthops& fwd);
 
@@ -152,6 +164,20 @@ class BcmHostTable {
       opennsl_vrf_t vrf, const folly::IPAddress& addr) noexcept;
   BcmEcmpHost* derefBcmEcmpHost(opennsl_vrf_t vrf,
                                 const RouteForwardNexthops& fwd) noexcept;
+
+  /*
+   * APIs to manage egress objects. Multiple host entries can point
+   * to a egress object. Lifetime of these egress objects is thus
+   * managed via a reference count of hosts pointing to these
+   * egress objects. Once the last host pointing to a egress object
+   * goes away, the egress object is deleted.
+   */
+  void insertBcmEgress(std::unique_ptr<BcmEgressBase> egress);
+  BcmEgressBase* incEgressReference(opennsl_if_t egressId);
+  BcmEgressBase* derefEgress(opennsl_if_t egressId);
+  const BcmEgressBase*  getEgressObjectIf(opennsl_if_t egress) const;
+  BcmEgressBase* getEgressObjectIf(opennsl_if_t egress);
+
  private:
   const BcmSwitch* hw_;
 
@@ -165,11 +191,15 @@ class BcmHostTable {
   HostMap<EcmpKey, BcmEcmpHost> ecmpHosts_;
 
   template<typename KeyT, typename HostT, typename... Args>
-  HostT* incRefOrCreateBcmHost(HostMap<KeyT, HostT>* map, Args... args);
+  HostT* incRefOrCreateBcmHost(HostMap<KeyT, HostT>* map, const KeyT& key,
+      Args... args);
   template<typename KeyT, typename HostT, typename... Args>
   HostT* getBcmHostIf(const HostMap<KeyT, HostT> *map, Args... args) const;
   template<typename KeyT, typename HostT, typename... Args>
   HostT* derefBcmHost(HostMap<KeyT, HostT>* map, Args... args) noexcept;
+
+  boost::container::flat_map<opennsl_if_t,
+    std::pair<std::unique_ptr<BcmEgressBase>, uint32_t>> egressMap_;
 };
 
 }}

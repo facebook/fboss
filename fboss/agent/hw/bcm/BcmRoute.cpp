@@ -21,6 +21,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
+#include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
 namespace facebook { namespace fboss {
@@ -47,6 +48,14 @@ void BcmRoute::initL3RouteT(opennsl_l3_route_t* rt) const {
   }
 }
 
+bool BcmRoute::isHostRoute() const {
+  return prefix_.isV6() ? len_ == 128 : len_ == 32;
+}
+
+bool BcmRoute::canUseHostTable() const {
+  return isHostRoute() && hw_->getPlatform()->canUseHostTableForHostRoutes();
+}
+
 void BcmRoute::program(const RouteForwardInfo& fwd) {
 
   // if the route has been programmed to the HW, check if the forward info is
@@ -63,8 +72,6 @@ void BcmRoute::program(const RouteForwardInfo& fwd) {
   };
 
   auto action = fwd.getAction();
-  opennsl_l3_route_t rt;
-  initL3RouteT(&rt);
   // find out the egress object ID
   opennsl_if_t egressId;
   if (action == RouteForwardAction::DROP) {
@@ -76,17 +83,61 @@ void BcmRoute::program(const RouteForwardInfo& fwd) {
     // need to get an entry from the host table for the forward info
     const RouteForwardNexthops& nhops = fwd.getNexthops();
     CHECK_GT(nhops.size(), 0);
-    if (nhops.size() > 1) {         // multipath
-      rt.l3a_flags |= OPENNSL_L3_MULTIPATH;
-    }
     auto host = hw_->writableHostTable()->incRefOrCreateBcmEcmpHost(
         vrf_, nhops);
     egressId = host->getEgressId();
   }
+
+  // At this point host and egress objects for next hops have been
+  // created, what remains to be done is to program route into the
+  // route table or host table (if this is a host route and use of
+  // host table for host routes is allowed by the chip).
   SCOPE_FAIL {
     cleanupHost(fwd.getNexthops());
   };
+  if (canUseHostTable()) {
+    if (added_) {
+      auto host = hw_->getHostTable()->getBcmHostIf(vrf_, prefix_);
+      CHECK(host);
+      VLOG(3) <<" Derefrencing host prefix for : " << prefix_
+        <<" /" << len_ <<" host egress Id : " << host->getEgressId();
+      hw_->writableHostTable()->derefBcmHost(vrf_, prefix_);
+    }
+    programHostRoute(egressId, fwd);
+  } else {
+    programLpmRoute(egressId, fwd);
+  }
+  if (added_) {
+    // the route was added before, need to free the old nexthop(s)
+    cleanupHost(fwd_.getNexthops());
+  }
+  fwd_ = fwd;
+  // new nexthop has been stored in fwd_. From now on, it is up to
+  // ~BcmRoute() to clean up such nexthop.
+  added_ = true;
+}
+
+void BcmRoute::programHostRoute(opennsl_if_t egressId,
+    const RouteForwardInfo& fwd) {
+  auto hostRouteHost = hw_->writableHostTable()->incRefOrCreateBcmHost(
+      vrf_, prefix_, egressId);
+  auto cleanupHostRoute = [=]() noexcept {
+    hw_->writableHostTable()->derefBcmHost(vrf_, prefix_);
+  };
+  SCOPE_FAIL {
+    cleanupHostRoute();
+  };
+  hostRouteHost->addBcmHost(fwd.getNexthops().size() > 1);
+}
+
+void BcmRoute::programLpmRoute(opennsl_if_t egressId,
+    const RouteForwardInfo& fwd) {
+  opennsl_l3_route_t rt;
+  initL3RouteT(&rt);
   rt.l3a_intf = egressId;
+  if (fwd.getNexthops().size() > 1) {         // multipath
+    rt.l3a_flags |= OPENNSL_L3_MULTIPATH;
+  }
 
   bool addRoute = false;
   const auto warmBootCache = hw_->getWarmBootCache();
@@ -103,13 +154,13 @@ void BcmRoute::program(const RouteForwardInfo& fwd) {
       existingRoute.l3a_intf == newRoute.l3a_intf;
     };
     if (!equivalent(rt, vrfAndPfx2RouteCitr->second)) {
-      VLOG (1) << "Updating route for : " << prefix_ << "/"
+      VLOG (3) << "Updating route for : " << prefix_ << "/"
         << static_cast<int>(len_) << " in vrf : " << vrf_;
       // This is a change
       rt.l3a_flags |= OPENNSL_L3_REPLACE;
       addRoute = true;
     } else {
-      VLOG(1) << " Route for : " << prefix_ << "/" << static_cast<int>(len_)
+      VLOG(3) << " Route for : " << prefix_ << "/" << static_cast<int>(len_)
         << " in vrf : " << vrf_ << " already exists";
     }
   } else {
@@ -133,32 +184,32 @@ void BcmRoute::program(const RouteForwardInfo& fwd) {
   if (vrfAndPfx2RouteCitr != warmBootCache->vrfAndPrefix2Route_end()) {
     warmBootCache->programmed(vrfAndPfx2RouteCitr);
   }
-  if (added_) {
-    // the route was added before, need to free the old nexthop
-    cleanupHost(fwd_.getNexthops());
-  }
-  fwd_ = fwd;
-  // new nexthop has been stored in fwd_. From now on, it is up to
-  // ~BcmRoute() to clean up such nexthop.
-  added_ = true;
 }
 
 BcmRoute::~BcmRoute() {
   if (!added_) {
     return;
   }
-  opennsl_l3_route_t rt;
-  opennsl_l3_route_t_init(&rt);
-  initL3RouteT(&rt);
-  auto rc = opennsl_l3_route_delete(hw_->getUnit(), &rt);
-  if (OPENNSL_FAILURE(rc)) {
-    LOG(ERROR) << "Failed to delete a route entry for " << prefix_ << "/"
-               << static_cast<int>(len_) << " Error: " << opennsl_errmsg(rc);
+  if (canUseHostTable()) {
+    auto host = hw_->getHostTable()->getBcmHostIf(vrf_, prefix_);
+    CHECK(host);
+    VLOG(3) <<" Derefrencing host prefix for : " << prefix_
+      <<" /" << len_ << " host: " << host;
+    hw_->writableHostTable()->derefBcmHost(vrf_, prefix_);
   } else {
-    VLOG(3) << "deleted a route entry for " << prefix_.str() << "/"
-            << static_cast<int>(len_);
+    opennsl_l3_route_t rt;
+    opennsl_l3_route_t_init(&rt);
+    initL3RouteT(&rt);
+    auto rc = opennsl_l3_route_delete(hw_->getUnit(), &rt);
+    if (OPENNSL_FAILURE(rc)) {
+      LOG(ERROR) << "Failed to delete a route entry for " << prefix_ << "/"
+                 << static_cast<int>(len_) << " Error: " << opennsl_errmsg(rc);
+    } else {
+      VLOG(3) << "deleted a route entry for " << prefix_.str() << "/"
+              << static_cast<int>(len_);
+    }
   }
-  // decrease reference counter of the host entry
+  // decrease reference counter of the host entry for next hops
   const auto& nhops = fwd_.getNexthops();
   if (nhops.size()) {
     hw_->writableHostTable()->derefBcmEcmpHost(vrf_, nhops);

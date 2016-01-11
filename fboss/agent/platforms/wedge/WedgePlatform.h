@@ -49,6 +49,11 @@ class WedgePlatform : public BcmPlatform {
   InitPortMap initPorts() override;
   void getProductInfo(ProductInfo& info) override;
 
+  bool canUseHostTableForHostRoutes() const override {
+    // Making this false till we can warm boot across this
+    // change - t8067423
+    return false;
+  }
  private:
   typedef boost::container::flat_map<PortID, std::unique_ptr<WedgePort>>
     WedgePortMap;

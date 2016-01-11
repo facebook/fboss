@@ -33,9 +33,9 @@ class BcmEgressBase : public boost::noncopyable {
   opennsl_if_t getID() const {
     return id_;
   }
+  virtual ~BcmEgressBase() {}
  protected:
   explicit BcmEgressBase(const BcmSwitch* hw) : hw_(hw) {}
-  virtual ~BcmEgressBase() {};
   const BcmSwitch* hw_;
   opennsl_if_t id_{INVALID};
 };
