@@ -88,7 +88,7 @@ class BcmPort {
    * Setters.
    */
   void registerInPortGroup(BcmPortGroup* portGroup);
-  void setPortStatus(int status);
+  void setPortStatus(bool up);
   void setIngressVlan(const std::shared_ptr<Port>& swPort);
   void setSpeed(const std::shared_ptr<Port>& swPort);
 

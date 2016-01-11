@@ -478,12 +478,6 @@ BcmSwitch::init(Callback* callback) {
 
   portTable_->initPorts(&pcfg, warmBoot);
 
-  // Enable linkscan
-  //
-  // On start up we disable linkscan on all ports. Linkscan is enabled on ports
-  // when the ports are enabled in BcmPort::enable
-  rv = opennsl_linkscan_mode_set_pbm(unit_, pcfg.port,
-                                     OPENNSL_LINKSCAN_MODE_NONE);
   bcmCheckError(rv, "failed to set linkscan ports");
   rv = opennsl_linkscan_register(unit_, linkscanCallback);
   bcmCheckError(rv, "failed to register for linkscan events");

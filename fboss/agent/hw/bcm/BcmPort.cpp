@@ -95,15 +95,22 @@ BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
 }
 
 void BcmPort::init(bool warmBoot) {
+  bool up = false;
   if (warmBoot) {
-    // Get port status from HW
+    // Get port status from HW on warm boot.
+    // All ports are initially down on a cold boot.
     int linkStatus;
     opennsl_port_link_status_get(unit_, port_, &linkStatus);
-    setPortStatus(linkStatus);
-  } else {
-    // All ports are initially down on a cold boot.
-    setPortStatus(false);
+    up = (linkStatus == OPENNSL_PORT_LINK_STATUS_UP);
   }
+
+  setPortStatus(up);
+
+  // Linkscan should be enabled if the port is enabled already
+  auto linkscan = isEnabled() ? OPENNSL_LINKSCAN_MODE_SW :
+    OPENNSL_LINKSCAN_MODE_NONE;
+  auto rv = opennsl_linkscan_mode_set(unit_, port_, linkscan);
+  bcmCheckError(rv, "failed to set initial linkscan mode on port ", port_);
 }
 
 bool BcmPort::supportsSpeed(cfg::PortSpeed speed) {
@@ -347,9 +354,7 @@ std::shared_ptr<Port> BcmPort::getSwitchStatePortIf(
   return state->getPorts()->getPortIf(getPortID());
 }
 
-void BcmPort::setPortStatus(int linkstatus) {
-  bool up = (linkstatus == OPENNSL_PORT_LINK_STATUS_UP);
-
+void BcmPort::setPortStatus(bool up) {
   int enabled = 1;
   int rv = opennsl_port_enable_get(unit_, port_, &enabled);
   // We ignore the return value.  If we fail to get the port status
