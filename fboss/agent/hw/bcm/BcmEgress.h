@@ -20,6 +20,7 @@ extern "C" {
 #include "fboss/agent/state/RouteTypes.h"
 
 #include <boost/noncopyable.hpp>
+#include <boost/container/flat_set.hpp>
 
 namespace facebook { namespace fboss {
 
@@ -95,9 +96,19 @@ class BcmEgress : public BcmEgressBase {
 
 class BcmEcmpEgress : public BcmEgressBase {
  public:
+  using EgressId = opennsl_if_t;
+  using Paths = boost::container::flat_set<opennsl_if_t>;
+
   explicit BcmEcmpEgress(const BcmSwitch* hw) : BcmEgressBase(hw) {}
   ~BcmEcmpEgress() override;
+  bool pathUnreachable(opennsl_if_t path);
+  bool pathReachable(opennsl_if_t path);
   void program(opennsl_if_t paths[], int n_path);
+  const Paths& paths() const {
+    return paths_;
+  }
+ private:
+  Paths paths_;
 };
 
 }}

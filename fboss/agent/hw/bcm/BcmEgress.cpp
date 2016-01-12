@@ -174,6 +174,10 @@ BcmEgress::~BcmEgress() {
 }
 
 void BcmEcmpEgress::program(opennsl_if_t paths[], int n_path) {
+  paths_.clear();
+  for (auto i = 0; i < n_path; ++i) {
+    paths_.insert(paths[i]);
+  }
   opennsl_l3_egress_ecmp_t obj;
   opennsl_l3_egress_ecmp_t_init(&obj);
   obj.max_paths = ((n_path + 3) >> 2) << 2; // multiple of 4

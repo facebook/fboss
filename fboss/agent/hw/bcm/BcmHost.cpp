@@ -120,6 +120,13 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
   if (!added_) {
     addBcmHost();
   }
+  // Update port mapping, for entries marked to DROP or to CPU port gets
+  // set to 0, which implies no ports are associated with this entry now.
+  hw_->writableHostTable()->updatePortEgressMapping(egress->getID(),
+      port_, port);
+  port_ = port;
+  VLOG(1) << "Updated port for : " << egress->getID() << " from " << oldPort
+    << " to " << port;
 }
 
 
@@ -315,6 +322,23 @@ BcmEgressBase* BcmHostTable::derefEgress(opennsl_if_t egressId) {
   return it->second.first.get();
 }
 
+void BcmHostTable::updatePortEgressMapping(opennsl_if_t egressId,
+    opennsl_if_t oldPort, opennsl_if_t newPort) {
+  if (oldPort) {
+    port2EgressIds_[oldPort].erase(egressId);
+  }
+  if (newPort) {
+    port2EgressIds_[newPort].insert(egressId);
+  }
+}
+
+const boost::container::flat_set<opennsl_if_t>&
+BcmHostTable::getEgressIdsForPort(opennsl_port_t port) const {
+  static const boost::container::flat_set<opennsl_if_t> EMPTY;
+  auto citr = port2EgressIds_.find(port);
+  return citr != port2EgressIds_.end() ? citr->second : EMPTY;
+}
+
 const BcmEgressBase* BcmHostTable::getEgressObjectIf(opennsl_if_t egress) const {
   auto it = egressMap_.find(egress);
   return it == egressMap_.end() ? nullptr : it->second.first.get();
@@ -330,5 +354,28 @@ void BcmHostTable::insertBcmEgress(
   auto id = egress->getID();
   auto ret = egressMap_.emplace(id, std::make_pair(std::move(egress), 1));
   CHECK(ret.second);
+}
+
+void BcmHostTable::linkStateChanged(opennsl_port_t port, bool up) {
+  const auto& affectedPaths = getEgressIdsForPort(port);
+  if (affectedPaths.empty()) {
+    return;
+  }
+  for (const auto& nextHopsAndEcmpHostInfo : ecmpHosts_) {
+    auto ecmpId = nextHopsAndEcmpHostInfo.second.first->getEcmpEgressId();
+    if (ecmpId == BcmEgressBase::INVALID) {
+      continue;
+    }
+    auto ecmpEgress = static_cast<BcmEcmpEgress*>(getEgressObject(ecmpId));
+    // Must find the egress object, we could have done a slower
+    // dynamic cast check to ensure that this is the right type
+    // our map should be pointing to valid Ecmp egress object for
+    // a ecmp egress Id anyways
+    CHECK(ecmpEgress);
+    for (auto path: affectedPaths) {
+     auto updated = up ? ecmpEgress->pathReachable(path) :
+       ecmpEgress->pathUnreachable(path);
+    }
+  }
 }
 }}

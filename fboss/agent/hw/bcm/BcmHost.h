@@ -22,12 +22,14 @@ extern "C" {
 #include "fboss/agent/state/NeighborEntry.h"
 
 #include <boost/container/flat_map.hpp>
+#include <boost/container/flat_set.hpp>
 
 namespace facebook { namespace fboss {
 
 class BcmEcmpEgress;
 class BcmEgress;
 class BcmSwitch;
+class BcmHostTable;
 
 class BcmHost {
  public:
@@ -73,6 +75,11 @@ class BcmHost {
   const BcmSwitch* hw_;
   opennsl_vrf_t vrf_;
   folly::IPAddress addr_;
+  // Port that the corresponding egress object references.
+  // Only set for actual host entries that point a non
+  // drop/CPU egress object. Set to 0 for host routes as
+  // well
+  opennsl_if_t port_{0};
   opennsl_if_t egressId_{BcmEgressBase::INVALID};
   bool added_{false}; // if added to the HW host(ARP) table or not
 };
@@ -95,6 +102,9 @@ class BcmEcmpHost {
   virtual ~BcmEcmpHost();
   opennsl_if_t getEgressId() const {
     return egressId_;
+  }
+  opennsl_if_t getEcmpEgressId() const {
+    return ecmpEgressId_;
   }
  private:
   const BcmSwitch* hw_;
@@ -164,7 +174,6 @@ class BcmHostTable {
       opennsl_vrf_t vrf, const folly::IPAddress& addr) noexcept;
   BcmEcmpHost* derefBcmEcmpHost(opennsl_vrf_t vrf,
                                 const RouteForwardNexthops& fwd) noexcept;
-
   /*
    * APIs to manage egress objects. Multiple host entries can point
    * to a egress object. Lifetime of these egress objects is thus
@@ -178,6 +187,22 @@ class BcmHostTable {
   const BcmEgressBase*  getEgressObjectIf(opennsl_if_t egress) const;
   BcmEgressBase* getEgressObjectIf(opennsl_if_t egress);
 
+  /*
+   * Port up/down handling
+   * Look up egress entries going over this port and
+   * then remove these from ecmp entries.
+   */
+  void linkStateChanged(opennsl_port_t port, bool up);
+  /*
+   * Update port to egressIds mapping
+   */
+  void updatePortEgressMapping(opennsl_if_t egressId, opennsl_port_t oldPort,
+      opennsl_port_t newPort);
+  /*
+   * Get egressIds that go over a port
+   */
+  const boost::container::flat_set<opennsl_if_t>&
+    getEgressIdsForPort(opennsl_port_t port) const;
  private:
   const BcmSwitch* hw_;
 
@@ -200,6 +225,8 @@ class BcmHostTable {
 
   boost::container::flat_map<opennsl_if_t,
     std::pair<std::unique_ptr<BcmEgressBase>, uint32_t>> egressMap_;
+  boost::container::flat_map<opennsl_port_t,
+    boost::container::flat_set<opennsl_if_t>> port2EgressIds_;
 };
 
 }}
