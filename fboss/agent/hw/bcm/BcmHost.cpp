@@ -131,12 +131,14 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
   if (!added_) {
     addBcmHost();
   }
+  auto oldPort = port_;
+  port_ = port;
+  VLOG(1) << "Updated port for : " << egress->getID() << "from " << oldPort
+    << " to " << port;
   // Update port mapping, for entries marked to DROP or to CPU port gets
   // set to 0, which implies no ports are associated with this entry now.
-  LOG(INFO) << "Updating port for : " << egress->getID() << " to " << port;
   hw_->writableHostTable()->updatePortEgressMapping(egress->getID(),
-      port_, port);
-  port_ = port;
+      oldPort, port_);
 }
 
 
@@ -366,6 +368,35 @@ void BcmHostTable::updatePortEgressMapping(opennsl_if_t egressId,
   // Publish and replace with the updated mapping
   newMapping->publish();
   setPort2EgressIdsInternal(newMapping);
+  if (!oldPort && newPort) {
+    // If ARP/NDP just resolved for this host, we need to inform
+    // ecmp egress objects about this egress Id becoming reachable.
+    // Consider the case where a port went down, neighbor entry expires
+    // and then the port came back up. When the neighbor entry expired,
+    // we would have taken it out of the port->egressId mapping. Now even
+    // when the port comes back up, we won;t have that egress Id mapping
+    // there and won't signal ecmp objects to add this back. So when
+    // a egress object gets resolved, for all the ecmp objects that
+    // have this egress Id, ask them to add it back if they don't
+    // already have this egress Id. We do a checked add because if
+    // the neighbor entry just expired w/o the port going down we
+    // would have never removed it from ecmp egress object.
+
+    BcmEcmpEgress::Paths affectedPaths;
+    affectedPaths.insert(egressId);
+    for (const auto& nextHopsAndEcmpHostInfo: ecmpHosts_) {
+      auto ecmpId = nextHopsAndEcmpHostInfo.second.first->getEcmpEgressId();
+      if (ecmpId == BcmEgressBase::INVALID) {
+        continue;
+      }
+      const auto& ecmpEgressPaths =
+        static_cast<BcmEcmpEgress*>(getEgressObject(ecmpId))->paths();
+      if (ecmpEgressPaths.find(egressId) != ecmpEgressPaths.end()) {
+        BcmEcmpEgress::addRemoveEgressIdInHwChecked(hw_->getUnit(), ecmpId,
+            ecmpEgressPaths, affectedPaths, true /*add*/);
+      }
+    }
+  }
 }
 
 void BcmHostTable::setPort2EgressIdsInternal(
