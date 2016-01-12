@@ -9,6 +9,7 @@
  */
 #include "BcmHost.h"
 
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
@@ -23,11 +24,8 @@ constexpr auto kIp = "ip";
 constexpr auto kPort = "port";
 constexpr auto kNextHops = "nexthops";
 constexpr auto kEgress = "egress";
-constexpr auto kEcmpEgress = "ecmpEgress";
 constexpr auto kEgressId = "egressId";
-constexpr auto kEcmpEgressId = "ecmpEgressId";
-constexpr auto kHosts = "host";
-constexpr auto kEcmpHosts = "ecmpHosts";
+constexpr auto kHosts = "hosts";
 }
 
 namespace facebook { namespace fboss {
@@ -135,11 +133,10 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
   }
   // Update port mapping, for entries marked to DROP or to CPU port gets
   // set to 0, which implies no ports are associated with this entry now.
+  LOG(INFO) << "Updating port for : " << egress->getID() << " to " << port;
   hw_->writableHostTable()->updatePortEgressMapping(egress->getID(),
       port_, port);
   port_ = port;
-  VLOG(1) << "Updated port for : " << egress->getID() << " from " << oldPort
-    << " to " << port;
 }
 
 
@@ -369,26 +366,26 @@ void BcmHostTable::insertBcmEgress(
   CHECK(ret.second);
 }
 
-void BcmHostTable::linkStateChanged(opennsl_port_t port, bool up) {
-  const auto& affectedPaths = getEgressIdsForPort(port);
-  if (affectedPaths.empty()) {
-    return;
-  }
-  for (const auto& nextHopsAndEcmpHostInfo : ecmpHosts_) {
-    auto ecmpId = nextHopsAndEcmpHostInfo.second.first->getEcmpEgressId();
-    if (ecmpId == BcmEgressBase::INVALID) {
-      continue;
-    }
-    auto ecmpEgress = static_cast<BcmEcmpEgress*>(getEgressObject(ecmpId));
-    // Must find the egress object, we could have done a slower
-    // dynamic cast check to ensure that this is the right type
-    // our map should be pointing to valid Ecmp egress object for
-    // a ecmp egress Id anyways
-    CHECK(ecmpEgress);
-    for (auto path: affectedPaths) {
-     auto updated = up ? ecmpEgress->pathReachable(path) :
-       ecmpEgress->pathUnreachable(path);
-    }
+void BcmHostTable::warmBootHostEntriesSynced() {
+  opennsl_port_config_t pcfg;
+  auto rv = opennsl_port_config_get(hw_->getUnit(), &pcfg);
+  bcmCheckError(rv, "failed to get port configuration");
+  // Ideally we should call this only for ports which were
+  // down when we went down, but since we don't record that
+  // signal up for all up ports.
+  VLOG(1) << "Warm boot host entries synced, signalling link "
+    "up for all up ports";
+  opennsl_port_t idx;
+  OPENNSL_PBMP_ITER(pcfg.port, idx) {
+    if (hw_->isPortUp(PortID(idx))) {
+        // Some ports might have come up on warm boot
+        // so call linkStateChanged for these. We could
+        // track this better by just calling linkStateChanged
+        // for ports that actually changed state, but thats
+        // a minor optimization and atleast for now calling
+        // this for ports which were also up before is safe
+        linkStateChanged(idx, true);
+      }
   }
 }
 

@@ -11,12 +11,8 @@
 
 namespace facebook { namespace fboss {
 
-bool BcmEcmpEgress::pathUnreachable(opennsl_if_t path) {
-  return false;
-}
-
-bool BcmEcmpEgress::pathReachable(opennsl_if_t path) {
-  return false;
+bool BcmEcmpEgress::addRemoveEgressId(opennsl_if_t path, bool add) {
+  return false; // Not supported in opennsl;
 }
 
 }}

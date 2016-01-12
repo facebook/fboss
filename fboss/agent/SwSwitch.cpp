@@ -10,6 +10,7 @@
 #include "fboss/agent/SwSwitch.h"
 
 #include "fboss/agent/ArpHandler.h"
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/IPv4Handler.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/NeighborUpdater.h"
@@ -61,7 +62,6 @@ DEFINE_string(config, "", "The path to the local JSON configuration file");
 
 namespace {
 constexpr auto kSwSwitch = "swSwitch";
-constexpr auto kHwSwitch = "hwSwitch";
 
 facebook::fboss::PortStatus fillInPortStatus(
     const facebook::fboss::Port& port,

@@ -49,6 +49,7 @@ class BcmWarmBootCache {
   typedef opennsl_if_t EcmpEgressId;
   typedef opennsl_if_t EgressId;
   typedef boost::container::flat_set<EgressId> EgressIds;
+  typedef boost::container::flat_map<EgressId, EgressIds> Ecmp2EgressIds;
   static EgressIds toEgressIds(EgressId* egress, int count) {
     EgressIds egressIds;
     std::for_each(egress, egress + count,
@@ -64,6 +65,12 @@ class BcmWarmBootCache {
    * Reconstruct vlan map from contents of warm boot cache
    */
   std::shared_ptr<VlanMap> reconstructVlanMap() const;
+  /*
+   * Get all cached ecmp egress Ids
+   */
+  const Ecmp2EgressIds&  ecmp2EgressIds() const {
+    return hwSwitchEcmp2EgressIds_;
+  }
  private:
   typedef std::pair<EgressId, opennsl_l3_egress_t> EgressIdAndEgress;
   typedef std::pair<EcmpEgressId, opennsl_l3_egress_ecmp_t>
@@ -241,6 +248,9 @@ class BcmWarmBootCache {
     VLOG(1) << "Programmed ecmp egress: " << eeitr->second.ecmp_intf
       << " removing from warm boot cache";
     egressIds2Ecmp_.erase(eeitr);
+    // Remove from ecmp->egressId mapping since now a BcmEcmpEgress
+    // object exists which has the egress id info.
+    hwSwitchEcmp2EgressIds_.erase(eeitr->second.ecmp_intf);
   }
   /*
    * owner is done programming its entries remove any entries
@@ -249,6 +259,13 @@ class BcmWarmBootCache {
   void clear();
   bool fillVlanPortInfo(Vlan* vlan);
  private:
+  /*
+   * Get egress ids for a ECMP Id. Will throw FbossError
+   * if ecmp id is not found in hwSwitchEcmp2EgressIds_
+   * map
+   */
+  const EgressIds& getPathsForEcmp(EgressId ecmp) const;
+  void populateStateFromWarmbootFile();
   // No copy or assignment.
   BcmWarmBootCache(const BcmWarmBootCache&) = delete;
   BcmWarmBootCache& operator=(const BcmWarmBootCache&) = delete;
@@ -263,5 +280,32 @@ class BcmWarmBootCache {
   EgressIds2Ecmp egressIds2Ecmp_;
   opennsl_if_t dropEgressId_;
   opennsl_if_t toCPUEgressId_;
+  // hwSwitchEcmp2EgressIds_ represents what the mapping
+  // from ecmp -> set<egressId> in the in memory BcmEcmpEgress
+  // entries (and related host tables).
+  // This may be distinct from the state in actual h/w since on
+  // port down events we immediately remove the corresponding
+  // egress ids from the ECMP entry in HW, but not from the BcmEcmpEgress
+  // entry in memory. This minimizes the packets lost by quickly
+  // shrinking the ECMP group and letting the traffic flow over
+  // other up ports.
+  // 2 alternate approaches were considered and rejected
+  // a) Wait for routing protocols (BGP for e.g.) to notice the port
+  // down and time out its peerings. The routing protocol would then
+  // update all the routes that have a next hop that is reached over this
+  // down port. Fboss agent would then be told about the updated routes,
+  // at which point Fboss agent would update the relevant routes and ECMP
+  // entries. This is *too slow*
+  // b) On noticing the port down update all the routes and ECMP entries
+  // etc in FBOSS agent itself. There problems with this is that we may
+  // have a lot of routes. So each port down would create a big update.
+  // Now if we get back to back port down events, the updates for the
+  // second port would be queued behind the updates for the downed port.
+  // The delay can be multiple seconds.
+  Ecmp2EgressIds hwSwitchEcmp2EgressIds_;
+  // When going from version where this table was not dumped to
+  // one where we do, the table wont exist in the warm boot file.
+  // So don't look for egressIds in this table.
+  bool hwSwitchEcmp2EgressIdsPopulated_{false};
 };
 }} // facebook::fboss

@@ -8,13 +8,14 @@
  *
  */
 #include "BcmEgress.h"
+
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
 namespace {
 constexpr auto kEgressId = "egressId";
-constexpr auto kPaths = "paths";
 }
 
 namespace facebook { namespace fboss {

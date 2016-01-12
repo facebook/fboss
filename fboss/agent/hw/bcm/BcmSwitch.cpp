@@ -509,6 +509,7 @@ BcmSwitch::init(Callback* callback) {
   if (warmBoot) {
     auto warmBootState = getWarmBootSwitchState();
     stateChangedImpl(StateDelta(make_shared<SwitchState>(), warmBootState));
+    hostTable_->warmBootHostEntriesSynced();
     return std::make_pair(warmBootState, bootType);
   }
   return std::make_pair(getColdBootSwitchState(), bootType);

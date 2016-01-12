@@ -211,6 +211,10 @@ class BcmHostTable {
    * Serialize toFollyDynamic
    */
   folly::dynamic toFollyDynamic() const;
+  /*
+   * Host entries from warm boot cache synced
+   */
+  void warmBootHostEntriesSynced();
  private:
   const BcmSwitch* hw_;
 

@@ -106,8 +106,12 @@ class BcmEcmpEgress : public BcmEgressBase {
 
   explicit BcmEcmpEgress(const BcmSwitch* hw) : BcmEgressBase(hw) {}
   ~BcmEcmpEgress() override;
-  bool pathUnreachable(opennsl_if_t path);
-  bool pathReachable(opennsl_if_t path);
+  bool pathUnreachable(opennsl_if_t path) {
+    return addRemoveEgressId(path, false);
+  }
+  bool pathReachable(opennsl_if_t path) {
+    return addRemoveEgressId(path, true);
+  }
   void program(opennsl_if_t paths[], int n_path);
   const Paths& paths() const {
     return paths_;
@@ -116,7 +120,17 @@ class BcmEcmpEgress : public BcmEgressBase {
    * Serialize to folly::dynamic
    */
   folly::dynamic toFollyDynamic() const override;
+  /*
+   * Add/Del to/from h/w but check h/w state before
+   * doing so. There are situations which we need
+   * to do this, look at comments on call sites to
+   * check what these are
+   */
+  static void addRemoveEgressIdInHwChecked(int unit, opennsl_if_t ecmpId,
+      const Paths& egressIdInSw, const Paths& affectedPaths,
+      bool add);
  private:
+  bool addRemoveEgressId(opennsl_if_t path, bool add);
   Paths paths_;
 };
 

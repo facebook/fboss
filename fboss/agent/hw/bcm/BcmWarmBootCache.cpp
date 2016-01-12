@@ -11,7 +11,15 @@
 #include <limits>
 #include <string>
 #include <utility>
+
+#include <folly/Conv.h>
+#include <folly/FileUtil.h>
+#include <folly/dynamic.h>
+#include <folly/json.h>
+
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/hw/bcm/BcmEgress.h"
+#include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/Utils.h"
@@ -20,6 +28,7 @@
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/SysError.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 
@@ -141,7 +150,58 @@ shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
   return vlans;
 }
 
+
+const BcmWarmBootCache::EgressIds&
+BcmWarmBootCache::getPathsForEcmp(EgressId ecmp) const {
+  CHECK(hwSwitchEcmp2EgressIdsPopulated_);
+  static const EgressIds kEmptyEgressIds;
+  if (hwSwitchEcmp2EgressIds_.empty()) {
+    // We may have empty hwSwitchEcmp2EgressIds_ when
+    // we exited with no ECMP entries.
+    return kEmptyEgressIds;
+  }
+  auto itr = hwSwitchEcmp2EgressIds_.find(ecmp);
+  if (itr == hwSwitchEcmp2EgressIds_.end()) {
+    throw FbossError("Could not find ecmp ID : ", ecmp);
+  }
+  return itr->second;
+}
+
+void BcmWarmBootCache::populateStateFromWarmbootFile() {
+  string warmBootJson;
+  const auto& warmBootFile = hw_->getPlatform()->getWarmBootSwitchStateFile();
+  auto ret = folly::readFile(warmBootFile.c_str(), warmBootJson);
+  sysCheckError(ret, "Unable to read switch state from : ", warmBootFile);
+  auto switchState = folly::parseJson(warmBootJson);
+  if (switchState.find(kHwSwitch) == switchState.items().end()) {
+    // hwSwitch state does not exist no need to reconstruct
+    // ecmp -> egressId map. We only started dumping this
+    // when we added fast handling of updating ecmp entries
+    // on link down. So on update from a version which does
+    // not have this fast handling its expected that this
+    // JSON wont exist.
+    return;
+  }
+  hwSwitchEcmp2EgressIdsPopulated_ = true;
+  auto hostTable = folly::parseJson(warmBootJson)[kHwSwitch][kHostTable];
+  for (const auto& ecmpEntry : hostTable[kEcmpHosts]) {
+    auto ecmpEgressId = ecmpEntry[kEcmpEgressId].asInt();
+    if (ecmpEgressId == BcmEgressBase::INVALID) {
+      continue;
+    }
+    for (auto path: ecmpEntry[kEcmpEgress][kPaths]) {
+      hwSwitchEcmp2EgressIds_[ecmpEgressId].insert(path.asInt());
+    }
+  }
+  VLOG (1) << "Reconstructed following ecmp path map ";
+  for (auto& ecmpIdAndEgress : hwSwitchEcmp2EgressIds_) {
+    VLOG(1) << ecmpIdAndEgress.first << " ==> " <<
+      toEgressIdsStr(ecmpIdAndEgress.second);
+  }
+}
+
 void BcmWarmBootCache::populate() {
+  populateStateFromWarmbootFile();
   opennsl_vlan_data_t* vlanList = nullptr;
   int vlanCount = 0;
   SCOPE_EXIT {
@@ -313,7 +373,16 @@ int BcmWarmBootCache::ecmpEgressTraversalCallback(int unit,
     return 0;
   }
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
-  EgressIds egressIds = cache->toEgressIds(intfArray, intfCount);;
+  EgressIds egressIds;
+  if (cache->hwSwitchEcmp2EgressIdsPopulated_) {
+    // Rather than using the egressId in the intfArray we use the
+    // egressIds that we dumped as part of the warm boot state. IntfArray
+    // does not include any egressIds that go over the ports that may be
+    // down while the warm boot state we dumped does
+    egressIds = cache->getPathsForEcmp(ecmp->ecmp_intf);
+  } else {
+    egressIds = cache->toEgressIds(intfArray, intfCount);
+  }
   CHECK(cache->egressIds2Ecmp_.find(egressIds) ==
       cache->egressIds2Ecmp_.end());
   cache->egressIds2Ecmp_[egressIds] = *ecmp;
@@ -337,6 +406,7 @@ void BcmWarmBootCache::clear() {
   // since we want to delete entries only after there are no more
   // references to them.
   VLOG(1) << "Warm boot : removing unreferenced entries";
+  hwSwitchEcmp2EgressIds_.clear();
   // Nothing references routes, but routes reference ecmp egress
   // and egress entries which are deleted later
   for (auto vrfPfxAndRoute : vrfPrefix2Route_) {

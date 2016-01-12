@@ -16,4 +16,13 @@ namespace facebook { namespace fboss {
 bool BcmHost::getAndClearHitBit() const {
   return true;
 }
+
+void BcmHost::linkStateChanged(opennsl_port_t port, bool up) {
+}
+
+void BcmEcmpEgress::addRemoveEgressIdInHwChecked(int unit, opennsl_if_t ecmpId,
+    const Paths& egressIdsInSw, const Paths& affectedPaths,
+    bool add) {
+}
+
 }} // facebook::fboss
