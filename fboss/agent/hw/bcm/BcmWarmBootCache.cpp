@@ -48,6 +48,8 @@ using boost::container::flat_set;
 using namespace facebook::fboss;
 
 namespace {
+auto constexpr kEcmpObjects = "ecmpObjects";
+
 struct AddrTables {
   AddrTables() : arpTable(make_shared<ArpTable>()),
       ndpTable(make_shared<NdpTable>()) {}
@@ -167,6 +169,26 @@ BcmWarmBootCache::getPathsForEcmp(EgressId ecmp) const {
   return itr->second;
 }
 
+folly::dynamic BcmWarmBootCache::toFollyDynamic() const {
+  folly::dynamic warmBootCache = folly::dynamic::object;
+  // For now we serialize only the hwSwitchEcmp2EgressIds_ table.
+  // This is the only thing we need and may not be able to get
+  // from HW in the case where we shut down before doing a FIB sync.
+  std::vector<folly::dynamic> ecmps;
+  for (auto& ecmpAndEgressIds : hwSwitchEcmp2EgressIds_) {
+    folly::dynamic ecmp = folly::dynamic::object;
+    ecmp[kEcmpEgressId] = ecmpAndEgressIds.first;
+    std::vector<folly::dynamic> paths;
+    for (auto path : ecmpAndEgressIds.second) {
+      paths.emplace_back(path);
+    }
+    ecmp[kPaths] = std::move(paths);
+    ecmps.emplace_back(std::move(ecmp));
+  }
+  warmBootCache[kEcmpObjects] = std::move(ecmps);
+  return warmBootCache;
+}
+
 void BcmWarmBootCache::populateStateFromWarmbootFile() {
   string warmBootJson;
   const auto& warmBootFile = hw_->getPlatform()->getWarmBootSwitchStateFile();
@@ -180,17 +202,30 @@ void BcmWarmBootCache::populateStateFromWarmbootFile() {
     // on link down. So on update from a version which does
     // not have this fast handling its expected that this
     // JSON wont exist.
+    VLOG (1) << "Hw switch state does not exist, skipped reconstructing "
+      << "ECMP -> egressIds map ";
     return;
   }
   hwSwitchEcmp2EgressIdsPopulated_ = true;
-  auto hostTable = folly::parseJson(warmBootJson)[kHwSwitch][kHostTable];
+  // Extract ecmps for dumped host table
+  auto hostTable = switchState[kHwSwitch][kHostTable];
   for (const auto& ecmpEntry : hostTable[kEcmpHosts]) {
     auto ecmpEgressId = ecmpEntry[kEcmpEgressId].asInt();
     if (ecmpEgressId == BcmEgressBase::INVALID) {
       continue;
     }
-    for (auto path: ecmpEntry[kEcmpEgress][kPaths]) {
+    for (auto path : ecmpEntry[kEcmpEgress][kPaths]) {
       hwSwitchEcmp2EgressIds_[ecmpEgressId].insert(path.asInt());
+    }
+  }
+  // Extract ecmps from dumped warm boot cache. We
+  // may have shut down before a FIB sync
+  auto ecmpObjects = switchState[kHwSwitch][kWarmBootCache][kEcmpObjects];
+  for (const auto& ecmpEntry : ecmpObjects) {
+    auto ecmpEgressId = ecmpEntry[kEcmpEgressId].asInt();
+    CHECK(ecmpEgressId != BcmEgressBase::INVALID);
+    for (auto path : ecmpEntry[kPaths]) {
+      hwSwitchEcmp2EgressIds_[ecmpEgressId].emplace(path.asInt());
     }
   }
   VLOG (1) << "Reconstructed following ecmp path map ";

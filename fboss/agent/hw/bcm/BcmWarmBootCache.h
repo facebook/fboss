@@ -21,6 +21,7 @@ extern "C" {
 #include <vector>
 #include <boost/container/flat_map.hpp>
 #include <boost/container/flat_set.hpp>
+#include <folly/dynamic.h>
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
 #include "fboss/agent/types.h"
@@ -258,6 +259,10 @@ class BcmWarmBootCache {
    */
   void clear();
   bool fillVlanPortInfo(Vlan* vlan);
+  /*
+   * Serialize to folly::dynamic
+   */
+  folly::dynamic toFollyDynamic() const;
  private:
   /*
    * Get egress ids for a ECMP Id. Will throw FbossError

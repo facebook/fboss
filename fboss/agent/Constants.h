@@ -18,5 +18,6 @@ auto constexpr kEcmpEgressId = "ecmpEgressId";
 auto constexpr kEcmpEgress = "ecmpEgress";
 auto constexpr kEcmpHosts = "ecmpHosts";
 auto constexpr kPaths = "paths";
+auto constexpr kWarmBootCache = "warmBootCache";
 
 }}

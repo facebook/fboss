@@ -20,6 +20,7 @@
 #include <folly/ScopeGuard.h>
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/SwSwitch.h"
@@ -330,6 +331,7 @@ folly::dynamic BcmSwitch::toFollyDynamic() const {
   folly::dynamic hwSwitch = folly::dynamic::object;
   // For now we only serialize Host table
   hwSwitch[kHostTable] = hostTable_->toFollyDynamic();
+  hwSwitch[kWarmBootCache] = warmBootCache_->toFollyDynamic();
   return hwSwitch;
 }
 
