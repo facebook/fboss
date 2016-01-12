@@ -39,9 +39,7 @@ BcmHost::BcmHost(const BcmSwitch* hw, opennsl_vrf_t vrf, const IPAddress& addr,
     opennsl_if_t referenced_egress)
       : hw_(hw), vrf_(vrf), addr_(addr),
       egressId_(referenced_egress) {
-  if (referenced_egress != BcmEgressBase::INVALID) {
-    hw_->writableHostTable()->incEgressReference(egressId_);
-  }
+  hw_->writableHostTable()->incEgressReference(egressId_);
 }
 
 void BcmHost::initHostCommon(opennsl_l3_host_t *host) const {
@@ -203,10 +201,8 @@ BcmEcmpHost::BcmEcmpHost(const BcmSwitch *hw, opennsl_vrf_t vrf,
 BcmEcmpHost::~BcmEcmpHost() {
   // Deref ECMP egress first since the ECMP egress entry holds references
   // to egress entries.
-  if (ecmpEgressId_ != BcmEgressBase::INVALID) {
-    VLOG(3) << "Decremented reference for egress object for " << fwd_;
-    hw_->writableHostTable()->derefEgress(ecmpEgressId_);
-  }
+  VLOG(3) << "Decremented reference for egress object for " << fwd_;
+  hw_->writableHostTable()->derefEgress(ecmpEgressId_);
   BcmHostTable *table = hw_->writableHostTable();
   for (const auto& nhop : fwd_) {
     table->derefBcmHost(vrf_, nhop.nexthop);
@@ -323,6 +319,10 @@ BcmEcmpHost* BcmHostTable::derefBcmEcmpHost(
 }
 
 BcmEgressBase* BcmHostTable::incEgressReference(opennsl_if_t egressId) {
+  if (egressId == BcmEcmpEgress::INVALID ||
+      egressId == hw_->getDropEgressId()) {
+    return nullptr;
+  }
   auto it = egressMap_.find(egressId);
   CHECK(it != egressMap_.end());
   it->second.second++;
@@ -330,6 +330,10 @@ BcmEgressBase* BcmHostTable::incEgressReference(opennsl_if_t egressId) {
 }
 
 BcmEgressBase* BcmHostTable::derefEgress(opennsl_if_t egressId) {
+  if (egressId == BcmEcmpEgress::INVALID ||
+      egressId == hw_->getDropEgressId()) {
+    return nullptr;
+  }
   auto it = egressMap_.find(egressId);
   CHECK(it != egressMap_.end());
   CHECK_GT(it->second.second, 0);
