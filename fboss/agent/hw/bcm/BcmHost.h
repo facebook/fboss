@@ -251,6 +251,7 @@ class BcmHostTable {
     ecmpHosts_.clear();
     hosts_.clear();
   }
+  opennsl_port_t egressIdPort(opennsl_if_t egressId) const;
  private:
   /*
    * Called both while holding and not holding the hw lock.
@@ -282,9 +283,6 @@ class BcmHostTable {
   template<typename KeyT, typename HostT, typename... Args>
   HostT* derefBcmHost(HostMap<KeyT, HostT>* map, Args... args) noexcept;
 
-  boost::container::flat_map<opennsl_port_t,
-        boost::container::flat_set<opennsl_if_t>> port2EgressIds_;
-
   /*
    * The current port -> egressIds map.
    *
@@ -298,7 +296,9 @@ class BcmHostTable {
    * directly access this pointer.
    */
   std::shared_ptr<PortAndEgressIdsMap> portAndEgressIdsDontUseDirectly_;
-  mutable folly::SpinLock portAndEgressIdsLock_;;
+  mutable folly::SpinLock portAndEgressIdsLock_;
+  // egressId -> port
+  boost::container::flat_map<opennsl_if_t, opennsl_port_t> egressId2Port_;
 };
 
 }}

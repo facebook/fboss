@@ -11,6 +11,7 @@
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
@@ -211,9 +212,14 @@ void BcmEcmpEgress::program() {
     opennsl_if_t pathsArray[paths_.size()];
     auto index = 0;
     for (auto path: paths_) {
-      pathsArray[index++] = path;
+      if (hw_->getHostTable()->egressIdPort(path)) {
+        pathsArray[index++] = path;
+      } else {
+        VLOG(1) << "Skipping unresolved egress : " << path << " while "
+          << "programming ECMP group ";
+      }
     }
-    auto ret = opennsl_l3_egress_ecmp_create(hw_->getUnit(), &obj, n_path,
+    auto ret = opennsl_l3_egress_ecmp_create(hw_->getUnit(), &obj, index,
                                              pathsArray);
     bcmCheckError(ret, "failed to program L3 ECMP egress object ", id_,
                 " with ", n_path, " paths");
