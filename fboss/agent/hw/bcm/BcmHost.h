@@ -17,8 +17,10 @@ extern "C" {
 #include <folly/dynamic.h>
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
+#include <folly/SpinLock.h>
 #include "fboss/agent/types.h"
 #include "fboss/agent/hw/bcm/BcmEgress.h"
+#include "fboss/agent/hw/bcm/PortAndEgressIdsMap.h"
 #include "fboss/agent/state/RouteForwardInfo.h"
 #include "fboss/agent/state/NeighborEntry.h"
 
@@ -194,19 +196,46 @@ class BcmHostTable {
    * Port up/down handling
    * Look up egress entries going over this port and
    * then remove these from ecmp entries.
+   * This is called from the linkscan callback and
+   * we don't acquire BcmSwitch::lock_ here. See note above
+   * declaration of BcmSwitch::linkStateChangedNoHwLock which
+   * explains why we can't hold this lock here.
    */
-  void linkStateChanged(opennsl_port_t port, bool up);
+  void linkStateChangedNoHwLock(opennsl_port_t port, bool up) {
+    if (!up) {
+      linkStateChangedMaybeLocked(port, up);
+    }
+  }
+  /*
+   * We punt port up event in linkStateChanged method as adding
+   * the newly up port back into ECMP egress objects in the call
+   * back causes packet loss. Wating a few seconds before adding this
+   * back causes 0 packet loss. Ideally we should expire the ARP/NDP
+   * entries corresponding to the downed port and then when the port
+   * comes up, re resolve ARP/NDP and only then add egress entries
+   * back. However this means that when the port comes back up, we
+   * could have a flood of packets going to the CPU and  not all
+   * platforms have CPU rate limiting. Once we get CPU rate limiting
+   * on all platforms, we should remove the delay/port up handling
+   * from here.
+   */
+  void linkStateChanged(opennsl_port_t port, bool up) {
+    if (up) {
+      linkStateChangedMaybeLocked(port, up);
+    }
+  }
   /*
    * Update port to egressIds mapping
    */
   void updatePortEgressMapping(opennsl_if_t egressId, opennsl_port_t oldPort,
       opennsl_port_t newPort);
   /*
-   * Get egressIds that go over a port
+   * Get port -> egressIds map
    */
-  const boost::container::flat_set<opennsl_if_t>&
-    getEgressIdsForPort(opennsl_port_t port) const;
-
+  std::shared_ptr<PortAndEgressIdsMap> getPortAndEgressIdsMap() const {
+    folly::SpinLockGuard guard(portAndEgressIdsLock_);
+    return portAndEgressIdsDontUseDirectly_;
+  }
   /*
    * Serialize toFollyDynamic
    */
@@ -216,6 +245,13 @@ class BcmHostTable {
    */
   void warmBootHostEntriesSynced();
  private:
+  /*
+   * Called both while holding and not holding the hw lock.
+   * Only sane choice here is to assume no lock and call only
+   * the methods which don't need the hw lock.
+   */
+  void linkStateChangedMaybeLocked(opennsl_port_t port, bool up);
+  void setPort2EgressIdsInternal(std::shared_ptr<PortAndEgressIdsMap> newMap);
   const BcmSwitch* hw_;
 
   template<typename KeyT, typename HostT>
@@ -238,7 +274,22 @@ class BcmHostTable {
   boost::container::flat_map<opennsl_if_t,
     std::pair<std::unique_ptr<BcmEgressBase>, uint32_t>> egressMap_;
   boost::container::flat_map<opennsl_port_t,
-    boost::container::flat_set<opennsl_if_t>> port2EgressIds_;
+        boost::container::flat_set<opennsl_if_t>> port2EgressIds_;
+
+  /*
+   * The current port -> egressIds map.
+   *
+   * BEWARE: You generally shouldn't access this directly, even internally
+   * within this class's private methods.  This should only be accessed while
+   * holding port2EgressIdsLock_.  You almost certainly should call
+   * getPort2EgressIds() or setPort2EgressIdsInternal() instead of directly
+   * accessing this.
+   *
+   * This intentionally has an awkward name so people won't forget and try to
+   * directly access this pointer.
+   */
+  std::shared_ptr<PortAndEgressIdsMap> portAndEgressIdsDontUseDirectly_;
+  mutable folly::SpinLock portAndEgressIdsLock_;;
 };
 
 }}

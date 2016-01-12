@@ -157,7 +157,7 @@ BcmEcmpHost::BcmEcmpHost(const BcmSwitch *hw, opennsl_vrf_t vrf,
     : hw_(hw), vrf_(vrf) {
   CHECK_GT(fwd.size(), 0);
   BcmHostTable *table = hw_->writableHostTable();
-  opennsl_if_t paths[fwd.size()];
+  BcmEcmpEgress::Paths paths;
   RouteForwardNexthops prog;
   prog.reserve(fwd.size());
   SCOPE_FAIL {
@@ -180,14 +180,14 @@ BcmEcmpHost::BcmEcmpHost(const BcmSwitch *hw, opennsl_vrf_t vrf,
       const auto intf = hw->getIntfTable()->getBcmIntf(nhop.intf);
       host->programToCPU(intf->getBcmIfId());
     }
-    paths[total++] = host->getEgressId();
+    paths.insert(host->getEgressId());
   }
-  if (total == 1) {
+  if (paths.size() == 1) {
     // just one path. No BcmEcmpEgress object this case.
-    egressId_ = paths[0];
+    egressId_ = *paths.begin();
   } else {
-    auto ecmp = folly::make_unique<BcmEcmpEgress>(hw);
-    ecmp->program(paths, fwd.size());
+    auto ecmp = folly::make_unique<BcmEcmpEgress>(hw, std::move(paths));
+    //ecmp->program(paths, fwd.size());
     egressId_ = ecmp->getID();
     ecmpEgressId_ = egressId_;
     hw_->writableHostTable()->insertBcmEgress(std::move(ecmp));
@@ -209,6 +209,9 @@ BcmEcmpHost::~BcmEcmpHost() {
 }
 
 BcmHostTable::BcmHostTable(const BcmSwitch *hw) : hw_(hw) {
+  auto port2EgressIds = std::make_shared<PortAndEgressIdsMap>();
+  port2EgressIds->publish();
+  setPort2EgressIdsInternal(port2EgressIds);
 }
 
 BcmHostTable::~BcmHostTable() {
@@ -333,20 +336,46 @@ BcmEgressBase* BcmHostTable::derefEgress(opennsl_if_t egressId) {
 }
 
 void BcmHostTable::updatePortEgressMapping(opennsl_if_t egressId,
-    opennsl_if_t oldPort, opennsl_if_t newPort) {
+    opennsl_port_t oldPort, opennsl_port_t newPort) {
+  auto newMapping = getPortAndEgressIdsMap()->clone();
+
   if (oldPort) {
-    port2EgressIds_[oldPort].erase(egressId);
+    auto old = newMapping->getPortAndEgressIdsIf(oldPort);
+    CHECK(old);
+    auto oldCloned = old->clone();
+    oldCloned->removeEgressId(egressId);
+    if (oldCloned->empty()) {
+      newMapping->removePort(oldPort);
+    } else {
+      newMapping->updatePortAndEgressIds(oldCloned);
+    }
   }
   if (newPort) {
-    port2EgressIds_[newPort].insert(egressId);
+    auto existing = newMapping->getPortAndEgressIdsIf(newPort);
+    if (existing) {
+      auto existingCloned = existing->clone();
+      existingCloned->addEgressId(egressId);
+      newMapping->updatePortAndEgressIds(existingCloned);
+    } else {
+      PortAndEgressIdsFields::EgressIds egressIds;
+      egressIds.insert(egressId);
+      auto toAdd = std::make_shared<PortAndEgressIds>(newPort, egressIds);
+      newMapping->addPortAndEgressIds(toAdd);
+    }
   }
+  // Publish and replace with the updated mapping
+  newMapping->publish();
+  setPort2EgressIdsInternal(newMapping);
 }
 
-const boost::container::flat_set<opennsl_if_t>&
-BcmHostTable::getEgressIdsForPort(opennsl_port_t port) const {
-  static const boost::container::flat_set<opennsl_if_t> EMPTY;
-  auto citr = port2EgressIds_.find(port);
-  return citr != port2EgressIds_.end() ? citr->second : EMPTY;
+void BcmHostTable::setPort2EgressIdsInternal(
+    std::shared_ptr<PortAndEgressIdsMap> newMap) {
+  // This is one of the only two places that should ever directly access
+  // portAndEgressIdsDontUseDirectly_.  (getPortAndEgressIdsMap() being the
+  // other one.)
+  CHECK(newMap->isPublished());
+  folly::SpinLockGuard guard(portAndEgressIdsLock_);
+  portAndEgressIdsDontUseDirectly_.swap(newMap);
 }
 
 const BcmEgressBase* BcmHostTable::getEgressObjectIf(opennsl_if_t egress) const {
@@ -379,16 +408,15 @@ void BcmHostTable::warmBootHostEntriesSynced() {
   OPENNSL_PBMP_ITER(pcfg.port, idx) {
     if (hw_->isPortUp(PortID(idx))) {
         // Some ports might have come up on warm boot
-        // so call linkStateChanged for these. We could
-        // track this better by just calling linkStateChanged
+        // so call linkStateChangedNoHwLock for these. We could
+        // track this better by just calling linkStateChangedNoHwLock
         // for ports that actually changed state, but thats
         // a minor optimization and atleast for now calling
         // this for ports which were also up before is safe
-        linkStateChanged(idx, true);
+        linkStateChangedNoHwLock(idx, true);
       }
   }
 }
-
 
 folly::dynamic BcmHost::toFollyDynamic() const {
   folly::dynamic host = folly::dynamic::object;

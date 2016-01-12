@@ -296,7 +296,7 @@ class BcmSwitch : public HwSwitch {
                                opennsl_port_t port,
                                opennsl_port_info_t* info);
   /*
-   * linkStateChangedCantLock is in the call chain started by link scan
+   * linkStateChangedNoHwLock is in the call chain started by link scan
    * thread while invoking our link state handler. Link scan thread
    * holds its internal lock for this unit here (LC_LOCK(unit) - BcmUnitLock
    * from here on), while calling this. This in turn means we can't acquire
@@ -310,16 +310,21 @@ class BcmSwitch : public HwSwitch {
    * try to acquire BcmUnitLock and block since the link scan thread is
    * holding that lock.
    * Back traces from deadlocked process here https://phabricator.fb.com/P20042479
-   * So for any changes that require locking do them, which gets called
-   * from the update thread, via a update scheduled by SwSwitch.
    */
-  void linkStateChangedCantLock(opennsl_port_t port, opennsl_port_info_t* info);
+  void linkStateChangedNoHwLock(opennsl_port_t port, opennsl_port_info_t* info);
 
   /*
-   * linkStateChange called from the update thread.
-   * Safe to acquire BcmSwitch::lock_ here
+   * For any actions that require a lock or might need to
+   * be delayed, we do not perform those in linkStateChanged.
+   * Acquiring locks in the link scan call back call chain
+   * can lead to deadlocks (see comments above linkStateChangedNoHwLock).
+   * While waiting in the link scan call back can cause subsequent
+   * link up/down notifications to be delayed, leading to packet
+   * loss in case of back to back port up/down events.
+   *
    */
-  void linkStateChanged(PortID port, bool up) override;
+  void linkStateChanged(PortID port, bool up);
+
   /*
    * Private callback called by the Broadcom API. Dispatches to
    * BcmSwitch::packetReceived.
@@ -421,6 +426,9 @@ class BcmSwitch : public HwSwitch {
   std::unique_ptr<BcmAclTable> aclTable_;
   std::unique_ptr<BcmWarmBootCache> warmBootCache_;
   std::unique_ptr<BcmSwitchEventManager> switchEventManager_;
+  /*
+   * Lock to synchronize access to all BCM* data structures
+   */
   std::mutex lock_;
 };
 

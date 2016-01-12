@@ -218,9 +218,8 @@ class HwSwitch {
    */
   virtual bool getAndClearNeighborHit(RouterID vrf,
                                       folly::IPAddress& ip) = 0;
-
   /*
-   * Notify hw of link state changes
+   * link state changed handling
    */
   virtual void linkStateChanged(PortID port, bool up) = 0;
  private:

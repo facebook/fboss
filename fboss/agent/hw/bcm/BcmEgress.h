@@ -104,15 +104,24 @@ class BcmEcmpEgress : public BcmEgressBase {
   using EgressId = opennsl_if_t;
   using Paths = boost::container::flat_set<opennsl_if_t>;
 
-  explicit BcmEcmpEgress(const BcmSwitch* hw) : BcmEgressBase(hw) {}
+  explicit BcmEcmpEgress(const BcmSwitch* hw,
+      Paths paths) : BcmEgressBase(hw), paths_(paths) {
+    program();
+  }
   ~BcmEcmpEgress() override;
-  bool pathUnreachable(opennsl_if_t path) {
-    return addRemoveEgressId(path, false);
+  /*
+   * The following 2 methods are called from the linkscan
+   * callback and we don't acquire BcmSwitch::lock_ here.
+   * See note above
+   * declaration of BcmSwitch::linkStateChangedNoHwLock which
+   * explains why we can't hold this lock here.
+   */
+  bool pathUnreachableNoHwLock(opennsl_if_t path) {
+    return addRemoveEgressIdInHw(path, false);
   }
-  bool pathReachable(opennsl_if_t path) {
-    return addRemoveEgressId(path, true);
+  bool pathReachableNoHwLock(opennsl_if_t path) {
+    return addRemoveEgressIdInHw(path, true);
   }
-  void program(opennsl_if_t paths[], int n_path);
   const Paths& paths() const {
     return paths_;
   }
@@ -130,8 +139,12 @@ class BcmEcmpEgress : public BcmEgressBase {
       const Paths& egressIdInSw, const Paths& affectedPaths,
       bool add);
  private:
-  bool addRemoveEgressId(opennsl_if_t path, bool add);
-  Paths paths_;
+  void program();
+  /*
+   * Add/remove a egressId in h/w, s/w state is unchanged
+   */
+  bool addRemoveEgressIdInHw(opennsl_if_t path, bool add);
+  const Paths paths_;
 };
 
 }}

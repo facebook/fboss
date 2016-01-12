@@ -179,18 +179,14 @@ BcmEgress::~BcmEgress() {
           << " on unit " << hw_->getUnit();
 }
 
-void BcmEcmpEgress::program(opennsl_if_t paths[], int n_path) {
-  paths_.clear();
-  for (auto i = 0; i < n_path; ++i) {
-    paths_.insert(paths[i]);
-  }
+void BcmEcmpEgress::program() {
   opennsl_l3_egress_ecmp_t obj;
   opennsl_l3_egress_ecmp_t_init(&obj);
+  auto n_path = paths_.size();
   obj.max_paths = ((n_path + 3) >> 2) << 2; // multiple of 4
 
   const auto warmBootCache = hw_->getWarmBootCache();
-  const auto egressIds = BcmWarmBootCache::toEgressIds(paths, n_path);
-  auto egressIds2EcmpCItr = warmBootCache->findEcmp(egressIds);
+  auto egressIds2EcmpCItr = warmBootCache->findEcmp(paths_);
   if (egressIds2EcmpCItr != warmBootCache->egressIds2Ecmp_end()) {
     const auto& existing = egressIds2EcmpCItr->second;
     // TODO figure out why the following check fails
@@ -202,18 +198,23 @@ void BcmEcmpEgress::program(opennsl_if_t paths[], int n_path) {
     // CHECK(obj.max_paths == existing.max_paths);
     id_ = existing.ecmp_intf;
     VLOG(1) << "Ecmp egress object for egress : " <<
-      BcmWarmBootCache::toEgressIdsStr(egressIds)
+      BcmWarmBootCache::toEgressIdsStr(paths_)
       << " already exists ";
     warmBootCache->programmed(egressIds2EcmpCItr);
   } else {
     VLOG(1) << "Adding ecmp egress with egress : " <<
-      BcmWarmBootCache::toEgressIdsStr(egressIds);
+      BcmWarmBootCache::toEgressIdsStr(paths_);
     if (id_ != INVALID) {
       obj.flags |= OPENNSL_L3_REPLACE|OPENNSL_L3_WITH_ID;
       obj.ecmp_intf = id_;
     }
+    opennsl_if_t pathsArray[paths_.size()];
+    auto index = 0;
+    for (auto path: paths_) {
+      pathsArray[index++] = path;
+    }
     auto ret = opennsl_l3_egress_ecmp_create(hw_->getUnit(), &obj, n_path,
-                                             paths);
+                                             pathsArray);
     bcmCheckError(ret, "failed to program L3 ECMP egress object ", id_,
                 " with ", n_path, " paths");
     id_ = obj.ecmp_intf;

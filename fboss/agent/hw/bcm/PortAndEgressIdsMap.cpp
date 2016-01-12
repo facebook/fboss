@@ -7,12 +7,21 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/BcmEgress.h"
+
+#include "PortAndEgressIdsMap.h"
+#include "fboss/agent/state/NodeMap-defs.h"
 
 namespace facebook { namespace fboss {
 
-bool BcmEcmpEgress::addRemoveEgressIdInHw(opennsl_if_t path, bool add) {
-  return false; // Not supported in opennsl;
+PortAndEgressIdsMap::PortAndEgressIdsMap() {
 }
+
+PortAndEgressIdsMap::~PortAndEgressIdsMap() {
+}
+
+template class NodeBaseT<PortAndEgressIds, PortAndEgressIdsFields>;
+
+FBOSS_INSTANTIATE_NODE_MAP(PortAndEgressIdsMap,
+    PortAndEgressIdsMapTraits);
 
 }}

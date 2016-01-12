@@ -1000,7 +1000,7 @@ void BcmSwitch::linkscanCallback(int unit,
   try {
     BcmUnit* unitObj = BcmAPI::getUnit(unit);
     BcmSwitch* sw = static_cast<BcmSwitch*>(unitObj->getCookie());
-    sw->linkStateChangedCantLock(bcmPort, info);
+    sw->linkStateChangedNoHwLock(bcmPort, info);
   } catch (const std::exception& ex) {
     LOG(ERROR) << "unhandled exception while processing linkscan callback "
       << "for unit " << unit << " port " << bcmPort << ": "
@@ -1008,19 +1008,21 @@ void BcmSwitch::linkscanCallback(int unit,
   }
 }
 
-void BcmSwitch::linkStateChangedCantLock(opennsl_port_t bcmPortId,
+void BcmSwitch::linkStateChangedNoHwLock(opennsl_port_t bcmPortId,
     opennsl_port_info_t* info) {
   portTable_->setPortStatus(bcmPortId, info->linkstatus);
   // TODO: We should eventually define a more robust hardware independent
   // LinkStatus enum, so we can expose more detailed information to to the
   // callback about why the link is down.
   bool up = info->linkstatus == OPENNSL_PORT_LINK_STATUS_UP;
+  // up events are handled in linksStateChanged method.
+  // See note above its declaration explaining why.
+  hostTable_->linkStateChangedNoHwLock(bcmPortId, up);
   callback_->linkStateChanged(portTable_->getPortId(bcmPortId), up);
 }
 
 void BcmSwitch::linkStateChanged(PortID port, bool up) {
-  opennsl_port_t bcmPortId(port);
-  std::lock_guard<std::mutex> guard(lock_);
+  opennsl_port_t bcmPortId{port};
   hostTable_->linkStateChanged(bcmPortId, up);
 }
 
