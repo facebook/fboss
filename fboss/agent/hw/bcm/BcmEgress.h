@@ -109,10 +109,10 @@ class BcmEcmpEgress : public BcmEgressBase {
     program();
   }
   ~BcmEcmpEgress() override;
-  bool pathUnreachableHwNotLocked(opennsl_if_t path);
-  bool pathUnreachableHwLocked(opennsl_if_t path);
-  bool pathReachableNoHWLock(opennsl_if_t path);
-  bool pathReachableHwLocked(opennsl_if_t path);
+  bool pathUnreachableHwNotLocked(EgressId path);
+  bool pathUnreachableHwLocked(EgressId path);
+  bool pathReachableNoHWLock(EgressId path);
+  bool pathReachableHwLocked(EgressId path);
   const Paths& paths() const {
     return paths_;
   }
@@ -124,19 +124,15 @@ class BcmEcmpEgress : public BcmEgressBase {
    * Update ecmp egress entries in HW
    */
   static bool addEgressIdHwNotLocked(int unit,
-      opennsl_if_t ecmpId, const Paths& egressIdInSw, opennsl_if_t toAdd);
-  static bool addEgressIdHwLocked(int unit, opennsl_if_t ecmpId,
-      const Paths& egressIdInSw, opennsl_if_t toAdd);
-  static bool removeEgressIdHwNotLocked(int unit, opennsl_if_t ecmpId,
-      const Paths& paths, opennsl_if_t path);
-  static bool removeEgressIdHwLocked(int unit, opennsl_if_t ecmpId,
-      const Paths& paths, opennsl_if_t path);
+      EgressId ecmpId, const Paths& egressIdInSw, EgressId toAdd);
+  static bool addEgressIdHwLocked(int unit, EgressId ecmpId,
+      const Paths& egressIdInSw, EgressId toAdd);
+  static bool removeEgressIdHwNotLocked(int unit, EgressId ecmpId,
+      const Paths& paths, EgressId path);
+  static bool removeEgressIdHwLocked(int unit, EgressId ecmpId,
+      const Paths& paths, EgressId path);
  private:
   void program();
-  /*
-   * Add/remove a egressId in h/w, s/w state is unchanged
-   */
-  bool addRemoveEgressIdInHw(opennsl_if_t path, bool add);
   const Paths paths_;
 };
 

@@ -261,36 +261,36 @@ folly::dynamic BcmEcmpEgress::toFollyDynamic() const {
   return ecmpEgress;
 }
 
-bool BcmEcmpEgress::pathUnreachableHwNotLocked(opennsl_if_t path) {
+bool BcmEcmpEgress::pathUnreachableHwNotLocked(EgressId path) {
   return removeEgressIdHwNotLocked(hw_->getUnit(), getID(), paths_, path);
 }
 
-bool BcmEcmpEgress::pathUnreachableHwLocked(opennsl_if_t path) {
+bool BcmEcmpEgress::pathUnreachableHwLocked(EgressId path) {
   // We don't really need the lock here so safe to call the
   // stricter non locked version.
   return pathUnreachableHwNotLocked(path);
 }
 
-bool BcmEcmpEgress::pathReachableNoHWLock(opennsl_if_t path) {
+bool BcmEcmpEgress::pathReachableNoHWLock(EgressId path) {
   LOG(FATAL) << " Unexpected call, addition of egress entries should always"
     "be done while holding the hw lock";
   return false;
 }
 
-bool BcmEcmpEgress::pathReachableHwLocked(opennsl_if_t path) {
+bool BcmEcmpEgress::pathReachableHwLocked(EgressId path) {
   return addEgressIdHwLocked(hw_->getUnit(), getID(), paths_,
       path);
 }
 
-bool BcmEcmpEgress::addEgressIdHwNotLocked(int unit, opennsl_if_t ecmpId,
-    const Paths& egressIdInSw, opennsl_if_t toAdd) {
+bool BcmEcmpEgress::addEgressIdHwNotLocked(int unit, EgressId ecmpId,
+    const Paths& egressIdInSw, EgressId toAdd) {
   LOG(FATAL) << " Unexpected call, addition of egress entries should always"
     "be done while holding the hw lock";
   return false;
 }
 
-bool BcmEcmpEgress::removeEgressIdHwLocked(int unit, opennsl_if_t ecmpId,
-    const Paths& egressIdsInSw, opennsl_if_t toRemove) {
+bool BcmEcmpEgress::removeEgressIdHwLocked(int unit, EgressId ecmpId,
+    const Paths& egressIdsInSw, EgressId toRemove) {
   // We don't really need the lock here so safe to call the
   // stricter non locked version.
   return removeEgressIdHwNotLocked(unit, ecmpId, egressIdsInSw, toRemove);
