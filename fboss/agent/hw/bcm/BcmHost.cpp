@@ -532,7 +532,7 @@ void BcmHostTable::egressResolutionChangedMaybeLocked(
         ecmpEgress->pathReachableHwLocked(path);
       } else {
         auto updated = locked ? ecmpEgress->pathUnreachableHwLocked(path) :
-          ecmpEgress->pathUnreachableNoHwLock(path);
+          ecmpEgress->pathUnreachableHwNotLocked(path);
       }
     }
   }
@@ -556,7 +556,7 @@ void BcmHostTable::egressResolutionChangedMaybeLocked(
            BcmEcmpEgress::removeEgressIdHwLocked(hw_->getUnit(),
                ecmpAndEgressIds.first, ecmpAndEgressIds.second, path);
          } else {
-           BcmEcmpEgress::removeEgressIdNoHwLock(hw_->getUnit(),
+           BcmEcmpEgress::removeEgressIdHwNotLocked(hw_->getUnit(),
                ecmpAndEgressIds.first, ecmpAndEgressIds.second, path);
          }
       }

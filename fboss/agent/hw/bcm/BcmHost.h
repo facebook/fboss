@@ -199,10 +199,10 @@ class BcmHostTable {
    * then remove these from ecmp entries.
    * This is called from the linkscan callback and
    * we don't acquire BcmSwitch::lock_ here. See note above
-   * declaration of BcmSwitch::linkStateChangedNoHwLock which
+   * declaration of BcmSwitch::linkStateChangedHwNotLocked which
    * explains why we can't hold this lock here.
    */
-  void linkDownNoHwLock(opennsl_port_t port) {
+  void linkDownHwNotLocked(opennsl_port_t port) {
     linkStateChangedMaybeLocked(port, false /*down*/,
         false/*not locked*/);
   }
@@ -210,7 +210,7 @@ class BcmHostTable {
     // Just call the non locked counterpart here.
     // We don't really need the lock for link down
     // handling
-    linkDownNoHwLock(port);
+    linkDownHwNotLocked(port);
   }
   /*
    * link up handling. Only ever called

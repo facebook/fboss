@@ -109,7 +109,7 @@ class BcmEcmpEgress : public BcmEgressBase {
     program();
   }
   ~BcmEcmpEgress() override;
-  bool pathUnreachableNoHwLock(opennsl_if_t path);
+  bool pathUnreachableHwNotLocked(opennsl_if_t path);
   bool pathUnreachableHwLocked(opennsl_if_t path);
   bool pathReachableNoHWLock(opennsl_if_t path);
   bool pathReachableHwLocked(opennsl_if_t path);
@@ -123,11 +123,11 @@ class BcmEcmpEgress : public BcmEgressBase {
   /*
    * Update ecmp egress entries in HW
    */
-  static bool addEgressIdNoHwLock(int unit,
+  static bool addEgressIdHwNotLocked(int unit,
       opennsl_if_t ecmpId, const Paths& egressIdInSw, opennsl_if_t toAdd);
   static bool addEgressIdHwLocked(int unit, opennsl_if_t ecmpId,
       const Paths& egressIdInSw, opennsl_if_t toAdd);
-  static bool removeEgressIdNoHwLock(int unit, opennsl_if_t ecmpId,
+  static bool removeEgressIdHwNotLocked(int unit, opennsl_if_t ecmpId,
       const Paths& paths, opennsl_if_t path);
   static bool removeEgressIdHwLocked(int unit, opennsl_if_t ecmpId,
       const Paths& paths, opennsl_if_t path);

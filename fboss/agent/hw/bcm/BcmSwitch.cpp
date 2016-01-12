@@ -1005,7 +1005,7 @@ void BcmSwitch::linkscanCallback(int unit,
   try {
     BcmUnit* unitObj = BcmAPI::getUnit(unit);
     BcmSwitch* sw = static_cast<BcmSwitch*>(unitObj->getCookie());
-    sw->linkStateChangedNoHwLock(bcmPort, info);
+    sw->linkStateChangedHwNotLocked(bcmPort, info);
   } catch (const std::exception& ex) {
     LOG(ERROR) << "unhandled exception while processing linkscan callback "
       << "for unit " << unit << " port " << bcmPort << ": "
@@ -1013,7 +1013,7 @@ void BcmSwitch::linkscanCallback(int unit,
   }
 }
 
-void BcmSwitch::linkStateChangedNoHwLock(opennsl_port_t bcmPortId,
+void BcmSwitch::linkStateChangedHwNotLocked(opennsl_port_t bcmPortId,
     opennsl_port_info_t* info) {
   portTable_->setPortStatus(bcmPortId, info->linkstatus);
   // TODO: We should eventually define a more robust hardware independent
@@ -1024,7 +1024,7 @@ void BcmSwitch::linkStateChangedNoHwLock(opennsl_port_t bcmPortId,
     // For port up events we wait till ARP/NDP entries
     // are re resolved after port up before adding them
     // back. Adding them earlier leads to packet loss.
-    hostTable_->linkDownNoHwLock(bcmPortId);
+    hostTable_->linkDownHwNotLocked(bcmPortId);
   }
   callback_->linkStateChanged(portTable_->getPortId(bcmPortId), up);
 }

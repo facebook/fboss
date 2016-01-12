@@ -296,7 +296,7 @@ class BcmSwitch : public HwSwitch {
                                opennsl_port_t port,
                                opennsl_port_info_t* info);
   /*
-   * linkStateChangedNoHwLock is in the call chain started by link scan
+   * linkStateChangedHwNotLocked is in the call chain started by link scan
    * thread while invoking our link state handler. Link scan thread
    * holds its internal lock for this unit here (LC_LOCK(unit) - BcmUnitLock
    * from here on), while calling this. This in turn means we can't acquire
@@ -311,13 +311,14 @@ class BcmSwitch : public HwSwitch {
    * holding that lock.
    * Back traces from deadlocked process here https://phabricator.fb.com/P20042479
    */
-  void linkStateChangedNoHwLock(opennsl_port_t port, opennsl_port_info_t* info);
+  void linkStateChangedHwNotLocked(opennsl_port_t port,
+      opennsl_port_info_t* info);
 
   /*
    * For any actions that require a lock or might need to
    * be delayed, we do not perform those in linkStateChanged.
    * Acquiring locks in the link scan call back call chain
-   * can lead to deadlocks (see comments above linkStateChangedNoHwLock).
+   * can lead to deadlocks (see comments above linkStateChangedHwNotLocked).
    * While waiting in the link scan call back can cause subsequent
    * link up/down notifications to be delayed, leading to packet
    * loss in case of back to back port up/down events.
