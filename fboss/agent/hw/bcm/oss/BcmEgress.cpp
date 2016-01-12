@@ -11,8 +11,14 @@
 
 namespace facebook { namespace fboss {
 
-bool BcmEcmpEgress::addRemoveEgressIdInHw(opennsl_if_t path, bool add) {
+bool BcmEcmpEgress::removeEgressIdNoHwLock(int unit, opennsl_if_t ecmpId,
+    const Paths& egressIdInSw, opennsl_if_t toRemove) {
   return false; // Not supported in opennsl;
+}
+
+bool BcmEcmpEgress::addEgressIdHwLocked(int unit, opennsl_if_t ecmpId,
+      const Paths& egressIdInSw, opennsl_if_t toAdd) {
+  return false; // Not supported in opennsl
 }
 
 }}

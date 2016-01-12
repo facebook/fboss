@@ -1015,15 +1015,13 @@ void BcmSwitch::linkStateChangedNoHwLock(opennsl_port_t bcmPortId,
   // LinkStatus enum, so we can expose more detailed information to to the
   // callback about why the link is down.
   bool up = info->linkstatus == OPENNSL_PORT_LINK_STATUS_UP;
-  // up events are handled in linksStateChanged method.
-  // See note above its declaration explaining why.
-  hostTable_->linkStateChangedNoHwLock(bcmPortId, up);
+  if (!up) {
+    // For port up events we wait till ARP/NDP entries
+    // are re resolved after port up before adding them
+    // back. Adding them earlier leads to packet loss.
+    hostTable_->linkDownNoHwLock(bcmPortId);
+  }
   callback_->linkStateChanged(portTable_->getPortId(bcmPortId), up);
-}
-
-void BcmSwitch::linkStateChanged(PortID port, bool up) {
-  opennsl_port_t bcmPortId{port};
-  hostTable_->linkStateChanged(bcmPortId, up);
 }
 
 opennsl_rx_t BcmSwitch::packetRxCallback(int unit, opennsl_pkt_t* pkt,

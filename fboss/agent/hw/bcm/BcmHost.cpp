@@ -100,6 +100,7 @@ void BcmHost::addBcmHost(bool isMultipath) {
   }
   added_ = true;
 }
+
 void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
                       opennsl_port_t port, RouteForwardAction action) {
   unique_ptr<BcmEgress> createdEgress{nullptr};
@@ -133,7 +134,7 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
   }
   auto oldPort = port_;
   port_ = port;
-  VLOG(1) << "Updated port for : " << egress->getID() << "from " << oldPort
+  VLOG(1) << "Updated port for : " << egress->getID() << " from " << oldPort
     << " to " << port;
   // Update port mapping, for entries marked to DROP or to CPU port gets
   // set to 0, which implies no ports are associated with this entry now.
@@ -151,6 +152,8 @@ BcmHost::~BcmHost() {
   auto rc = opennsl_l3_host_delete(hw_->getUnit(), &host);
   bcmLogFatal(rc, hw_, "failed to delete L3 host object for ", addr_.str());
   VLOG(3) << "deleted L3 host object for " << addr_.str();
+  // This host mapping just went away, update the port -> egress id mapping
+  hw_->writableHostTable()->updatePortEgressMapping(egressId_, port_, 0);
   hw_->writableHostTable()->derefEgress(egressId_);
 }
 
@@ -368,34 +371,25 @@ void BcmHostTable::updatePortEgressMapping(opennsl_if_t egressId,
   // Publish and replace with the updated mapping
   newMapping->publish();
   setPort2EgressIdsInternal(newMapping);
-  if (!oldPort && newPort) {
+  bool cameUp = !oldPort && newPort;
+  bool wentDown = oldPort && !newPort;
+  if (cameUp || wentDown) {
     // If ARP/NDP just resolved for this host, we need to inform
     // ecmp egress objects about this egress Id becoming reachable.
     // Consider the case where a port went down, neighbor entry expires
     // and then the port came back up. When the neighbor entry expired,
     // we would have taken it out of the port->egressId mapping. Now even
-    // when the port comes back up, we won;t have that egress Id mapping
+    // when the port comes back up, we won't have that egress Id mapping
     // there and won't signal ecmp objects to add this back. So when
     // a egress object gets resolved, for all the ecmp objects that
     // have this egress Id, ask them to add it back if they don't
     // already have this egress Id. We do a checked add because if
     // the neighbor entry just expired w/o the port going down we
     // would have never removed it from ecmp egress object.
-
     BcmEcmpEgress::Paths affectedPaths;
     affectedPaths.insert(egressId);
-    for (const auto& nextHopsAndEcmpHostInfo: ecmpHosts_) {
-      auto ecmpId = nextHopsAndEcmpHostInfo.second.first->getEcmpEgressId();
-      if (ecmpId == BcmEgressBase::INVALID) {
-        continue;
-      }
-      const auto& ecmpEgressPaths =
-        static_cast<BcmEcmpEgress*>(getEgressObject(ecmpId))->paths();
-      if (ecmpEgressPaths.find(egressId) != ecmpEgressPaths.end()) {
-        BcmEcmpEgress::addRemoveEgressIdInHwChecked(hw_->getUnit(), ecmpId,
-            ecmpEgressPaths, affectedPaths, true /*add*/);
-      }
-    }
+    egressResolutionChangedMaybeLocked(affectedPaths, cameUp ? true /*up*/ :
+        false /*went away*/, true /* hw locked*/);
   }
 }
 
@@ -437,15 +431,16 @@ void BcmHostTable::warmBootHostEntriesSynced() {
     "up for all up ports";
   opennsl_port_t idx;
   OPENNSL_PBMP_ITER(pcfg.port, idx) {
+    // Some ports might have come up or gone down during
+    // the time controller was down. So call linkUp/DownHwLocked
+    // for these. We could track this better by just calling
+    // linkUp/DownHwLocked only for ports that actually changed
+    // state, but thats a minor optimization.
     if (hw_->isPortUp(PortID(idx))) {
-        // Some ports might have come up on warm boot
-        // so call linkStateChangedNoHwLock for these. We could
-        // track this better by just calling linkStateChangedNoHwLock
-        // for ports that actually changed state, but thats
-        // a minor optimization and atleast for now calling
-        // this for ports which were also up before is safe
-        linkStateChangedNoHwLock(idx, true);
-      }
+      linkUpHwLocked(idx);
+    } else {
+      linkDownHwLocked(idx);
+    }
   }
 }
 
@@ -494,4 +489,68 @@ folly::dynamic BcmHostTable::toFollyDynamic() const {
   hostTable[kEcmpHosts] = std::move(ecmpHostsJson);
   return hostTable;
 }
+
+void BcmHostTable::linkStateChangedMaybeLocked(opennsl_port_t port, bool up,
+    bool locked) {
+  auto portAndEgressIdMapping = getPortAndEgressIdsMap();
+  const auto portAndEgressIds = portAndEgressIdMapping->getPortAndEgressIdsIf(
+      port);
+  if (!portAndEgressIds) {
+    return;
+  }
+  egressResolutionChangedMaybeLocked(portAndEgressIds->getEgressIds(), up,
+      locked);
+}
+
+void BcmHostTable::egressResolutionChangedMaybeLocked(
+    const Paths& affectedPaths, bool up, bool locked) {
+  for (const auto& nextHopsAndEcmpHostInfo : ecmpHosts_) {
+    auto ecmpId = nextHopsAndEcmpHostInfo.second.first->getEcmpEgressId();
+    if (ecmpId == BcmEgressBase::INVALID) {
+      continue;
+    }
+    auto ecmpEgress = static_cast<BcmEcmpEgress*>(getEgressObjectIf(ecmpId));
+    // Must find the egress object, we could have done a slower
+    // dynamic cast check to ensure that this is the right type
+    // our map should be pointing to valid Ecmp egress object for
+    // a ecmp egress Id anyways
+    CHECK(ecmpEgress);
+    for (auto path: affectedPaths) {
+      if (up) {
+        CHECK(locked);
+        ecmpEgress->pathReachableHwLocked(path);
+      } else {
+        auto updated = locked ? ecmpEgress->pathUnreachableHwLocked(path) :
+          ecmpEgress->pathUnreachableNoHwLock(path);
+      }
+    }
+  }
+  /*
+   * We may not have done a FIB sync before ports start coming
+   * up or ARP/NDP start getting resolved/unresolved. In this case
+   * we won't have BcmEcmpHost entries, so we
+   * look through the warm boot cache for ecmp egress entries.
+   * Conversely post a FIB sync we won't have any ecmp egress IDs
+   * in the warm boot cache
+   */
+  for (const auto& ecmpAndEgressIds:
+      hw_->getWarmBootCache()->ecmp2EgressIds()) {
+    for (auto path: affectedPaths) {
+      if (up) {
+        CHECK(locked);
+        BcmEcmpEgress::addEgressIdHwLocked(hw_->getUnit(),
+            ecmpAndEgressIds.first, ecmpAndEgressIds.second, path);
+      } else {
+         if (locked) {
+           BcmEcmpEgress::removeEgressIdHwLocked(hw_->getUnit(),
+               ecmpAndEgressIds.first, ecmpAndEgressIds.second, path);
+         } else {
+           BcmEcmpEgress::removeEgressIdNoHwLock(hw_->getUnit(),
+               ecmpAndEgressIds.first, ecmpAndEgressIds.second, path);
+         }
+      }
+    }
+  }
+}
+
 }}

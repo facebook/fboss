@@ -69,6 +69,7 @@ class BcmHost {
   bool getAndClearHitBit() const;
   void addBcmHost(bool isMultipath = false);
   folly::dynamic toFollyDynamic() const;
+  opennsl_port_t getPort() const { return port_; }
  private:
   // no copy or assignment
   BcmHost(BcmHost const &) = delete;
@@ -193,7 +194,7 @@ class BcmHostTable {
   BcmEgressBase* getEgressObjectIf(opennsl_if_t egress);
 
   /*
-   * Port up/down handling
+   * Port down handling
    * Look up egress entries going over this port and
    * then remove these from ecmp entries.
    * This is called from the linkscan callback and
@@ -201,28 +202,23 @@ class BcmHostTable {
    * declaration of BcmSwitch::linkStateChangedNoHwLock which
    * explains why we can't hold this lock here.
    */
-  void linkStateChangedNoHwLock(opennsl_port_t port, bool up) {
-    if (!up) {
-      linkStateChangedMaybeLocked(port, up);
-    }
+  void linkDownNoHwLock(opennsl_port_t port) {
+    linkStateChangedMaybeLocked(port, false /*down*/,
+        false/*not locked*/);
+  }
+  void linkDownHwLocked(opennsl_port_t port) {
+    // Just call the non locked counterpart here.
+    // We don't really need the lock for link down
+    // handling
+    linkDownNoHwLock(port);
   }
   /*
-   * We punt port up event in linkStateChanged method as adding
-   * the newly up port back into ECMP egress objects in the call
-   * back causes packet loss. Wating a few seconds before adding this
-   * back causes 0 packet loss. Ideally we should expire the ARP/NDP
-   * entries corresponding to the downed port and then when the port
-   * comes up, re resolve ARP/NDP and only then add egress entries
-   * back. However this means that when the port comes back up, we
-   * could have a flood of packets going to the CPU and  not all
-   * platforms have CPU rate limiting. Once we get CPU rate limiting
-   * on all platforms, we should remove the delay/port up handling
-   * from here.
+   * link up handling. Only ever called
+   * while holding hw lock.
    */
-  void linkStateChanged(opennsl_port_t port, bool up) {
-    if (up) {
-      linkStateChangedMaybeLocked(port, up);
-    }
+  void linkUpHwLocked(opennsl_port_t port) {
+    linkStateChangedMaybeLocked(port, true /*up*/,
+        true /*locked*/);
   }
   /*
    * Update port to egressIds mapping
@@ -244,13 +240,15 @@ class BcmHostTable {
    * Host entries from warm boot cache synced
    */
   void warmBootHostEntriesSynced();
+  using Paths = BcmEcmpEgress::Paths;
  private:
   /*
    * Called both while holding and not holding the hw lock.
-   * Only sane choice here is to assume no lock and call only
-   * the methods which don't need the hw lock.
    */
-  void linkStateChangedMaybeLocked(opennsl_port_t port, bool up);
+  void linkStateChangedMaybeLocked(opennsl_port_t port, bool up,
+      bool locked);
+  void egressResolutionChangedMaybeLocked(const Paths& affectedPaths, bool up,
+      bool locked);
   void setPort2EgressIdsInternal(std::shared_ptr<PortAndEgressIdsMap> newMap);
   const BcmSwitch* hw_;
 

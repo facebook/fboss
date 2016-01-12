@@ -109,19 +109,10 @@ class BcmEcmpEgress : public BcmEgressBase {
     program();
   }
   ~BcmEcmpEgress() override;
-  /*
-   * The following 2 methods are called from the linkscan
-   * callback and we don't acquire BcmSwitch::lock_ here.
-   * See note above
-   * declaration of BcmSwitch::linkStateChangedNoHwLock which
-   * explains why we can't hold this lock here.
-   */
-  bool pathUnreachableNoHwLock(opennsl_if_t path) {
-    return addRemoveEgressIdInHw(path, false);
-  }
-  bool pathReachableNoHwLock(opennsl_if_t path) {
-    return addRemoveEgressIdInHw(path, true);
-  }
+  bool pathUnreachableNoHwLock(opennsl_if_t path);
+  bool pathUnreachableHwLocked(opennsl_if_t path);
+  bool pathReachableNoHWLock(opennsl_if_t path);
+  bool pathReachableHwLocked(opennsl_if_t path);
   const Paths& paths() const {
     return paths_;
   }
@@ -130,14 +121,16 @@ class BcmEcmpEgress : public BcmEgressBase {
    */
   folly::dynamic toFollyDynamic() const override;
   /*
-   * Add/Del to/from h/w but check h/w state before
-   * doing so. There are situations which we need
-   * to do this, look at comments on call sites to
-   * check what these are
+   * Update ecmp egress entries in HW
    */
-  static void addRemoveEgressIdInHwChecked(int unit, opennsl_if_t ecmpId,
-      const Paths& egressIdInSw, const Paths& affectedPaths,
-      bool add);
+  static bool addEgressIdNoHwLock(int unit,
+      opennsl_if_t ecmpId, const Paths& egressIdInSw, opennsl_if_t toAdd);
+  static bool addEgressIdHwLocked(int unit, opennsl_if_t ecmpId,
+      const Paths& egressIdInSw, opennsl_if_t toAdd);
+  static bool removeEgressIdNoHwLock(int unit, opennsl_if_t ecmpId,
+      const Paths& paths, opennsl_if_t path);
+  static bool removeEgressIdHwLocked(int unit, opennsl_if_t ecmpId,
+      const Paths& paths, opennsl_if_t path);
  private:
   void program();
   /*

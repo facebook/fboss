@@ -218,10 +218,6 @@ class HwSwitch {
    */
   virtual bool getAndClearNeighborHit(RouterID vrf,
                                       folly::IPAddress& ip) = 0;
-  /*
-   * link state changed handling
-   */
-  virtual void linkStateChanged(PortID port, bool up) = 0;
  private:
   // Forbidden copy constructor and assignment operator
   HwSwitch(HwSwitch const &) = delete;
