@@ -80,6 +80,10 @@ class SimSwitch : public HwSwitch {
     return true;
   }
 
+  void linkStateChanged(PortID port, bool up) {
+    // TODO
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   SimSwitch(SimSwitch const &) = delete;

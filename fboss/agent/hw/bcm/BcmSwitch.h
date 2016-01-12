@@ -289,11 +289,37 @@ class BcmSwitch : public HwSwitch {
 
   void stateChangedImpl(const StateDelta& delta);
 
+  /*
+   * Calls linkStateChanged below
+   */
   static void linkscanCallback(int unit,
                                opennsl_port_t port,
                                opennsl_port_info_t* info);
-  void linkStateChanged(opennsl_port_t port, opennsl_port_info_t* info);
+  /*
+   * linkStateChangedCantLock is in the call chain started by link scan
+   * thread while invoking our link state handler. Link scan thread
+   * holds its internal lock for this unit here (LC_LOCK(unit) - BcmUnitLock
+   * from here on), while calling this. This in turn means we can't acquire
+   * BcmSwitch::lock_ in this call back else we risk getting into a deadlock.
+   * Consider, we want to apply a change to h/w and BcmSwitch::stateChanged
+   * function gets called. stateChanged then acquires BcmSwitch::lock_ and calls
+   * into Bcm code. At this point imagine a port comes up and linkscan
+   * handler notices this and acquires BcmUnitLock and invokes our handler.
+   * We would now try to acquire BcmSwitch::lock_ but block since update
+   * thread holds that. Meanwhile BCM function called from update thread would
+   * try to acquire BcmUnitLock and block since the link scan thread is
+   * holding that lock.
+   * Back traces from deadlocked process here https://phabricator.fb.com/P20042479
+   * So for any changes that require locking do them, which gets called
+   * from the update thread, via a update scheduled by SwSwitch.
+   */
+  void linkStateChangedCantLock(opennsl_port_t port, opennsl_port_info_t* info);
 
+  /*
+   * linkStateChange called from the update thread.
+   * Safe to acquire BcmSwitch::lock_ here
+   */
+  void linkStateChanged(PortID port, bool up) override;
   /*
    * Private callback called by the Broadcom API. Dispatches to
    * BcmSwitch::packetReceived.

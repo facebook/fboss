@@ -1000,7 +1000,7 @@ void BcmSwitch::linkscanCallback(int unit,
   try {
     BcmUnit* unitObj = BcmAPI::getUnit(unit);
     BcmSwitch* sw = static_cast<BcmSwitch*>(unitObj->getCookie());
-    sw->linkStateChanged(bcmPort, info);
+    sw->linkStateChangedCantLock(bcmPort, info);
   } catch (const std::exception& ex) {
     LOG(ERROR) << "unhandled exception while processing linkscan callback "
       << "for unit " << unit << " port " << bcmPort << ": "
@@ -1008,21 +1008,20 @@ void BcmSwitch::linkscanCallback(int unit,
   }
 }
 
-void BcmSwitch::linkStateChanged(opennsl_port_t bcmPortId,
+void BcmSwitch::linkStateChangedCantLock(opennsl_port_t bcmPortId,
     opennsl_port_info_t* info) {
   portTable_->setPortStatus(bcmPortId, info->linkstatus);
   // TODO: We should eventually define a more robust hardware independent
   // LinkStatus enum, so we can expose more detailed information to to the
   // callback about why the link is down.
   bool up = info->linkstatus == OPENNSL_PORT_LINK_STATUS_UP;
-  {
-    //  FIXME
-    // Locking can cause deadlocks here since this may be called
-    // as soon as we register the handler in init,
-    //std::lock_guard<std::mutex> guard(lock_);
-    hostTable_->linkStateChanged(bcmPortId, up);
-  }
   callback_->linkStateChanged(portTable_->getPortId(bcmPortId), up);
+}
+
+void BcmSwitch::linkStateChanged(PortID port, bool up) {
+  opennsl_port_t bcmPortId(port);
+  std::lock_guard<std::mutex> guard(lock_);
+  hostTable_->linkStateChanged(bcmPortId, up);
 }
 
 opennsl_rx_t BcmSwitch::packetRxCallback(int unit, opennsl_pkt_t* pkt,

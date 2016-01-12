@@ -827,6 +827,16 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
 }
 
 void SwSwitch::linkStateChanged(PortID port, bool up) noexcept {
+  updateState("Port state changed",
+      [=] (const shared_ptr<SwitchState>& state) {
+        hw_->linkStateChanged(port, up);
+        // If and when we start maintaining egress objects
+        // in SwitchState we should update those here and
+        // return a new switch state object.
+        return nullptr;
+      });
+
+  LOG(INFO) << "link state changed: " << port << " enabled = " << up;
   logLinkStateEvent(port, up);
   setPortStatusCounter(port, up);
 
