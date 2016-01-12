@@ -13,6 +13,8 @@
 #include "fboss/agent/types.h"
 #include "fboss/agent/gen-cpp/switch_config_types.h"
 
+#include <folly/dynamic.h>
+
 #include <memory>
 #include <mutex>
 #include <boost/container/flat_map.hpp>
@@ -155,7 +157,13 @@ class BcmSwitch : public HwSwitch {
    * state changes while we are calling cleanup
    * shutdown apis in the BCM sdk.
    */
-  void gracefulExit() override;
+  folly::dynamic gracefulExit() override;
+
+  /*
+   * BcmSwitch state as folly::dynamic
+   * For now we only dump Host table.
+   */
+  folly::dynamic toFollyDynamic() const override;
 
   /*
    * Start any services that make sense only

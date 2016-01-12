@@ -92,6 +92,7 @@ enum : uint8_t {
 };
 
 namespace {
+constexpr auto kHostTable = "hostTable";
 /*
  * Dump map containing switch h/w config as a key, value pair
  * to a file. Create parent directories of file if needed.
@@ -317,10 +318,19 @@ void BcmSwitch::ecmpHashSetup() {
   bcmCheckError(rv, "failed to enable RTAG7");
 }
 
-void BcmSwitch::gracefulExit() {
+folly::dynamic BcmSwitch::gracefulExit() {
   std::lock_guard<std::mutex> g(lock_);
+  folly::dynamic hwSwitch = toFollyDynamic();
   unitObject_->detach();
   unitObject_.reset();
+  return hwSwitch;
+}
+
+folly::dynamic BcmSwitch::toFollyDynamic() const {
+  folly::dynamic hwSwitch = folly::dynamic::object;
+  // For now we only serialize Host table
+  hwSwitch[kHostTable] = hostTable_->toFollyDynamic();
+  return hwSwitch;
 }
 
 void BcmSwitch::clearWarmBootCache() {

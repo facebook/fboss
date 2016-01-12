@@ -15,6 +15,7 @@
 #include "fboss/agent/gen-cpp/switch_config_types.h"
 
 #include <folly/IPAddress.h>
+#include <folly/dynamic.h>
 
 #include <memory>
 #include <utility>
@@ -166,7 +167,14 @@ class HwSwitch {
    * Allow hardware to perform any warm boot related cleanup
    * before we exit the application.
    */
-  virtual void gracefulExit() = 0;
+  virtual folly::dynamic gracefulExit() = 0;
+
+  /*
+   * Get Hw Switch state in a folly::dynamic
+   * object. Needed in warm boots and useful during
+   * debugging fatal exits.
+   */
+  virtual folly::dynamic toFollyDynamic() const = 0;
 
   /*
    * Allow hardware to start any services that can only be

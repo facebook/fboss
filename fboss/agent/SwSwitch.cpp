@@ -60,6 +60,9 @@ using std::unique_ptr;
 DEFINE_string(config, "", "The path to the local JSON configuration file");
 
 namespace {
+constexpr auto kSwSwitch = "swSwitch";
+constexpr auto kHwSwitch = "hwSwitch";
+
 facebook::fboss::PortStatus fillInPortStatus(
     const facebook::fboss::Port& port,
     const facebook::fboss::SwSwitch* sw) {
@@ -204,13 +207,16 @@ SwSwitch::SwitchRunState SwSwitch::getSwitchRunState() const {
 
 void SwSwitch::gracefulExit() {
   if (isFullyInitialized()) {
-    dumpStateToFile(platform_->getWarmBootSwitchStateFile());
+    folly::dynamic switchState = folly::dynamic::object;
+    switchState[kSwSwitch] =  getState()->toFollyDynamic();
     ipv6_->floodNeighborAdvertisements();
     arp_->floodGratuituousArp();
     // Stop handlers and threads before uninitializing h/w
     stop();
     // Cleanup if we ever initialized
-    hw_->gracefulExit();
+    switchState[kHwSwitch] = hw_->gracefulExit();
+    dumpStateToFile(platform_->getWarmBootSwitchStateFile(),
+        switchState);
   }
 }
 
@@ -218,10 +224,10 @@ void SwSwitch::getProductInfo(ProductInfo& productInfo) const {
   platform_->getProductInfo(productInfo);
 }
 
-void SwSwitch::dumpStateToFile(const string& filename) const {
+void SwSwitch::dumpStateToFile(const string& filename,
+    const folly::dynamic& switchState) const {
   bool success = folly::writeFile(
-    toPrettyJson(getState()->toFollyDynamic()).toStdString(),
-    filename.c_str());
+    toPrettyJson(switchState).toStdString(), filename.c_str());
   if (!success) {
     LOG(ERROR) << "Unable to dump switch state to " << filename;
   }
@@ -257,7 +263,10 @@ bool SwSwitch::getAndClearNeighborHit(RouterID vrf, folly::IPAddress ip) {
 }
 
 void SwSwitch::exitFatal() const noexcept {
-  dumpStateToFile(platform_->getCrashSwitchStateFile());
+  folly::dynamic switchState = folly::dynamic::object;
+  switchState[kSwSwitch] =  getState()->toFollyDynamic();
+  switchState[kHwSwitch] = hw_->toFollyDynamic();
+  dumpStateToFile(platform_->getCrashSwitchStateFile(), switchState);
 }
 
 void SwSwitch::clearWarmBootCache() {

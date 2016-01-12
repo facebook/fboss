@@ -14,6 +14,7 @@ extern "C" {
 #include <opennsl/l3.h>
 }
 
+#include <folly/dynamic.h>
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
 #include "fboss/agent/types.h"
@@ -65,6 +66,7 @@ class BcmHost {
 
   bool getAndClearHitBit() const;
   void addBcmHost(bool isMultipath = false);
+  folly::dynamic toFollyDynamic() const;
  private:
   // no copy or assignment
   BcmHost(BcmHost const &) = delete;
@@ -106,6 +108,7 @@ class BcmEcmpHost {
   opennsl_if_t getEcmpEgressId() const {
     return ecmpEgressId_;
   }
+  folly::dynamic toFollyDynamic() const;
  private:
   const BcmSwitch* hw_;
   opennsl_vrf_t vrf_;
@@ -203,6 +206,11 @@ class BcmHostTable {
    */
   const boost::container::flat_set<opennsl_if_t>&
     getEgressIdsForPort(opennsl_port_t port) const;
+
+  /*
+   * Serialize toFollyDynamic
+   */
+  folly::dynamic toFollyDynamic() const;
  private:
   const BcmSwitch* hw_;
 

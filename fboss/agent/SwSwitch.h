@@ -522,7 +522,13 @@ class SwSwitch : public HwSwitch::Callback {
   /*
    * Serializes the switch and dumps the result into the given file.
    */
-  void dumpStateToFile(const std::string& filename) const;
+  void dumpStateToFile(const std::string& filename,
+      const folly::dynamic& switchState) const;
+  /*
+   * Get combined Sw and Hw switch states
+   * as a folly::dynamic object
+   */
+  folly::dynamic getSwAndHwSwitchState() const;
 
   /*
    * Get port operational state

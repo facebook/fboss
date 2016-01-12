@@ -14,6 +14,7 @@ extern "C" {
 #include <opennsl/l3.h>
 }
 
+#include <folly/dynamic.h>
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
 #include "fboss/agent/types.h"
@@ -35,6 +36,7 @@ class BcmEgressBase : public boost::noncopyable {
     return id_;
   }
   virtual ~BcmEgressBase() {}
+  virtual folly::dynamic toFollyDynamic() const = 0;
  protected:
   explicit BcmEgressBase(const BcmSwitch* hw) : hw_(hw) {}
   const BcmSwitch* hw_;
@@ -58,7 +60,10 @@ class BcmEgress : public BcmEgressBase {
       const folly::IPAddress& ip) {
     return program(intfId, vrf, ip, nullptr, 0, DROP);
   }
-
+  /*
+   * Serialize to folly::dynamic
+   */
+  folly::dynamic toFollyDynamic() const override;
   /**
    * Create a TO CPU egress object without any specific interface or address
    *
@@ -107,6 +112,10 @@ class BcmEcmpEgress : public BcmEgressBase {
   const Paths& paths() const {
     return paths_;
   }
+  /*
+   * Serialize to folly::dynamic
+   */
+  folly::dynamic toFollyDynamic() const override;
  private:
   Paths paths_;
 };

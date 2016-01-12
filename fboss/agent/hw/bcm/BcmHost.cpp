@@ -17,6 +17,19 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
+namespace {
+constexpr auto kVrf = "vrf";
+constexpr auto kIp = "ip";
+constexpr auto kPort = "port";
+constexpr auto kNextHops = "nexthops";
+constexpr auto kEgress = "egress";
+constexpr auto kEcmpEgress = "ecmpEgress";
+constexpr auto kEgressId = "egressId";
+constexpr auto kEcmpEgressId = "ecmpEgressId";
+constexpr auto kHosts = "host";
+constexpr auto kEcmpHosts = "ecmpHosts";
+}
+
 namespace facebook { namespace fboss {
 
 using std::unique_ptr;
@@ -377,5 +390,52 @@ void BcmHostTable::linkStateChanged(opennsl_port_t port, bool up) {
        ecmpEgress->pathUnreachable(path);
     }
   }
+}
+
+
+folly::dynamic BcmHost::toFollyDynamic() const {
+  folly::dynamic host = folly::dynamic::object;
+  host[kVrf] = vrf_;
+  host[kIp] = addr_.str();
+  host[kPort] = port_;
+  host[kEgressId] = egressId_;
+  if (egressId_ != BcmEgressBase::INVALID &&
+      egressId_ != hw_->getDropEgressId()) {
+    host[kEgress] = hw_->getHostTable()
+      ->getEgressObjectIf(egressId_)->toFollyDynamic();
+  }
+  return host;
+}
+
+folly::dynamic BcmEcmpHost::toFollyDynamic() const {
+  folly::dynamic ecmpHost = folly::dynamic::object;
+  ecmpHost[kVrf] = vrf_;
+  std::vector<folly::dynamic> nhops;
+  for (auto& nhop: fwd_) {
+    nhops.emplace_back(nhop.toFollyDynamic());
+  }
+  ecmpHost[kNextHops] = std::move(nhops);
+  ecmpHost[kEgressId] = egressId_;
+  ecmpHost[kEcmpEgressId] = ecmpEgressId_;
+  if (ecmpEgressId_ != BcmEgressBase::INVALID) {
+    ecmpHost[kEcmpEgress] = hw_->getHostTable()
+      ->getEgressObjectIf(ecmpEgressId_)->toFollyDynamic();
+  }
+  return ecmpHost;
+}
+
+folly::dynamic BcmHostTable::toFollyDynamic() const {
+  std::vector<folly::dynamic> hostsJson;
+  for (const auto& vrfIpAndHost: hosts_) {
+    hostsJson.emplace_back(vrfIpAndHost.second.first->toFollyDynamic());
+  }
+  std::vector<folly::dynamic> ecmpHostsJson;
+  for (const auto& vrfNhopsAndHost: ecmpHosts_) {
+    ecmpHostsJson.emplace_back(vrfNhopsAndHost.second.first->toFollyDynamic());
+  }
+  folly::dynamic hostTable = folly::dynamic::object;
+  hostTable[kHosts] = std::move(hostsJson);
+  hostTable[kEcmpHosts] = std::move(ecmpHostsJson);
+  return hostTable;
 }
 }}

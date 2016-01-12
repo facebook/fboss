@@ -12,6 +12,11 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
+namespace {
+constexpr auto kEgressId = "egressId";
+constexpr auto kPaths = "paths";
+}
+
 namespace facebook { namespace fboss {
 
 using folly::IPAddress;
@@ -230,5 +235,23 @@ BcmEcmpEgress::~BcmEcmpEgress() {
   VLOG(3) << "Destroyed L3 ECMP egress object " << id_
           << " on unit " << hw_->getUnit();
 }
+
+folly::dynamic BcmEgress::toFollyDynamic() const {
+  folly::dynamic egress = folly::dynamic::object;
+  egress[kEgressId] = getID();
+  return egress;
+}
+
+folly::dynamic BcmEcmpEgress::toFollyDynamic() const {
+  folly::dynamic ecmpEgress = folly::dynamic::object;
+  ecmpEgress[kEgressId] = getID();
+  std::vector<folly::dynamic> paths;
+  for (auto path: paths_) {
+    paths.emplace_back(path);
+  }
+  ecmpEgress[kPaths] = std::move(paths);
+  return ecmpEgress;
+}
+
 
 }}
