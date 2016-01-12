@@ -173,6 +173,11 @@ unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
   switchEventManager_.reset();
   warmBootCache_.reset();
   routeTable_.reset();
+  // Release host entries before reseting switch's host table
+  // entries so that if host try to refer to look up host table
+  // via the BCM switch during their destruction the pointer
+  // access is still valid.
+  hostTable_->releaseHosts();
   hostTable_.reset();
   intfTable_.reset();
   toCPUEgress_.reset();

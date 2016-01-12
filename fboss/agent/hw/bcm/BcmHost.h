@@ -241,6 +241,16 @@ class BcmHostTable {
    */
   void warmBootHostEntriesSynced();
   using Paths = BcmEcmpEgress::Paths;
+
+  /*
+   * Release all host entries. Should only
+   * be called when we are about to reset/destroy
+   * the host table
+   */
+  void releaseHosts() {
+    ecmpHosts_.clear();
+    hosts_.clear();
+  }
  private:
   /*
    * Called both while holding and not holding the hw lock.
@@ -256,6 +266,9 @@ class BcmHostTable {
   using HostMap = boost::container::flat_map<
     KeyT, std::pair<std::unique_ptr<HostT>, uint32_t>>;
 
+  boost::container::flat_map<opennsl_if_t,
+    std::pair<std::unique_ptr<BcmEgressBase>, uint32_t>> egressMap_;
+
   typedef std::pair<opennsl_vrf_t, folly::IPAddress> Key;
   HostMap<Key, BcmHost> hosts_;
   typedef std::pair<opennsl_vrf_t, RouteForwardNexthops> EcmpKey;
@@ -269,8 +282,6 @@ class BcmHostTable {
   template<typename KeyT, typename HostT, typename... Args>
   HostT* derefBcmHost(HostMap<KeyT, HostT>* map, Args... args) noexcept;
 
-  boost::container::flat_map<opennsl_if_t,
-    std::pair<std::unique_ptr<BcmEgressBase>, uint32_t>> egressMap_;
   boost::container::flat_map<opennsl_port_t,
         boost::container::flat_set<opennsl_if_t>> port2EgressIds_;
 
