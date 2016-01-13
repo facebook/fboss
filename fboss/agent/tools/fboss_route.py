@@ -85,7 +85,7 @@ def list_routes(args):
 
 def list_optics(args):
     with get_client(args) as client:
-        info = client.getTransceiverInfo(range(1, 64))
+        info = client.getTransceiverInfo(range(1, 65))
         for key, val in info.iteritems():
             print ("Optic %d: %s" % (key, str(val)))
 
@@ -93,7 +93,7 @@ def list_ports(args):
     details = args.details
     with get_client(args) as client:
         #for intf in client.getInterfaceList():
-        for idx, intf in client.getPortStatus(range(1, 64)).iteritems():
+        for idx, intf in client.getPortStatus(range(1, 65)).iteritems():
             stats = client.getPortStats(idx) if details else ""
             print ("Port %d: %s: %s" % (idx, str(intf), stats))
 
