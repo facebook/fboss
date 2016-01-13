@@ -35,7 +35,9 @@ enum ExportType {
 
 struct ExportedStat {
   void addValue(std::chrono::seconds, int64_t) {}
+  int numLevels() {return 1;}
   int getSum(int level) {return 0;}
+  int sum(int level) {return 0;}
 };
 
 class ExportedStatMap {

@@ -7,7 +7,7 @@ function update() {
         (cd $repo && git pull)
     else
         git clone $1
-        git checkout $2
+        [ -z "$2" ] || (cd $repo && git checkout $2)
     fi
 }
 
@@ -22,11 +22,19 @@ function build() {
     (
         echo "building $1..."
         cd $1
-        if [ ! -x ./configure ]; then
-            autoreconf --install
+        if [ -e ./CMakeLists.txt ]; then
+            mkdir -p build
+            cd build
+            echo cmake .. $CMAKEFLAGS
+            cmake .. $CMAKEFLAGS
+            make
+        else
+            if [ ! -e ./configure ]; then
+                autoreconf --install
+            fi
             ./configure
+            make -j8
         fi
-        make -j8
     )
 }
 
@@ -34,20 +42,23 @@ echo "installing packages"
 sudo apt-get install -yq autoconf automake libdouble-conversion-dev \
     libssl-dev make zip git autoconf libtool g++ libboost-all-dev \
     libevent-dev flex bison libgoogle-glog-dev scons libkrb5-dev \
-    libsnappy-dev libsasl2-dev libnuma-dev libi2c-dev libcurl4-nss-dev
+    libsnappy-dev libsasl2-dev libnuma-dev libi2c-dev libcurl4-nss-dev \
+    libusb-1.0-0-dev libpcap-dev
 
 echo "creating external..."
 mkdir -p external
 (
     cd external
-    update https://github.com/Broadcom-Switch/OpenNSL.git
-    (cd OpenNSL && update_branch OpenNSL_6.3)
+    update https://github.com/Broadcom-Switch/OpenNSL.git cf6dc4100bcfc1ffe82da3ba090b504e09e39216
     update \
-        git://git.kernel.org/pub/scm/linux/kernel/git/shemminger/iproute2.git
+        git://git.kernel.org/pub/scm/linux/kernel/git/shemminger/iproute2.git v3.19.0
     update https://github.com/facebook/folly.git
+    update https://github.com/facebook/wangle.git
     update https://github.com/facebook/fbthrift.git
-    build iproute2 v3.12.0
-    build folly/folly v0.48.0
-    export CPPFLAGS=" -I`pwd`/folly/" LDFLAGS="-L`pwd`/folly/folly/.libs/"
-    build fbthrift/thrift v0.28.0
+    build iproute2
+    build folly/folly
+    export CMAKEFLAGS=-D"FOLLY_INCLUDE_DIR=`pwd`/folly"\ -D"FOLLY_LIBRARY=`pwd`/folly/folly/.libs/libfolly.a"\ -D"BUILD_TESTS=OFF"
+    build wangle/wangle
+    export CPPFLAGS=" -I`pwd`/folly -I`pwd`/wangle" LDFLAGS="-L`pwd`/folly/folly/.libs/ -L`pwd`/wangle/wangle/build/lib"
+    build fbthrift/thrift
 )

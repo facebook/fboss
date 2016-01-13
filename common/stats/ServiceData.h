@@ -26,6 +26,8 @@ public:
     return &it;
   }
   void getCounters(std::map<std::string, int64_t>&) {}
+  long getCounter(std::string) {return 0;};
+  long clearCounter(std::string) {return 0;};
   void setUseOptionsAsFlags(bool) {}
   void setCounter(folly::StringPiece, uint32_t) {}
 };
