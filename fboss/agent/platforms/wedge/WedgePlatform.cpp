@@ -31,6 +31,8 @@ DEFINE_string(mac, "",
               "The local MAC address for this switch");
 DEFINE_string(fruid_filepath, "/dev/shm/fboss/fruid.json",
               "File for storing the fruid data");
+DEFINE_string(mgmt_if, "eth0",
+              "name of management interface");
 
 using folly::MacAddress;
 using folly::make_unique;
@@ -137,7 +139,7 @@ void WedgePlatform::initLocalMac() {
   // For now, we take the MAC address from eth0, and enable the
   // "locally administered" bit.  This MAC should be unique, and it's fine for
   // us to use a locally administered address for now.
-  std::vector<std::string> cmd{"/sbin/ip", "address", "ls", "eth0"};
+  std::vector<std::string> cmd{"/sbin/ip", "address", "ls", FLAGS_mgmt_if};
   Subprocess p(cmd, Subprocess::pipeStdout());
   auto out = p.communicate();
   p.waitChecked();
