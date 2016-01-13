@@ -109,6 +109,8 @@ class BcmSwitch : public HwSwitch {
   bool sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
                            PortID portID) noexcept override;
 
+  bool isRxActive();
+
   int getUnit() const {
     return unit_;
   }

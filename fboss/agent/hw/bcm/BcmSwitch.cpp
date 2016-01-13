@@ -524,6 +524,9 @@ BcmSwitch::init(Callback* callback) {
 
 void BcmSwitch::initialConfigApplied() {
   std::lock_guard<std::mutex> g(lock_);
+  if (isRxActive()) {
+    return;
+  }
   // Register our packet handler callback function.
   uint32_t rxFlags = OPENNSL_RCO_F_ALL_COS;
   auto rv = opennsl_rx_register(
