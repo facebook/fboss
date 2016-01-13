@@ -38,12 +38,14 @@ find_library(SNAPPY snappy)
 find_library(ZLIB z)
 find_library(SSL ssl)
 find_library(CRYPTO crypto)
+find_library(DL dl)
+find_library(EVENT event)
 
 # External libraries that are not generally available. Look in external/
 # for these. This is where getdeps.sh will toss them.
 find_library(FOLLY folly PATHS ${CMAKE_SOURCE_DIR}/external/folly/folly/.libs)
 find_library(WANGLE wangle PATHS ${CMAKE_SOURCE_DIR}/external/wangle/wangle/build/lib)
-find_library(THRIFT libthrift.a PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp/.libs)
+find_library(THRIFT thrift PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp/.libs)
 find_library(THRIFTPROTO thriftprotocol PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs)
 find_library(THRIFTCPP2 thriftcpp2 PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs)
 find_library(OPENNSL opennsl PATHS ${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge-trident)
@@ -98,7 +100,9 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmTxPacket.cpp
     fboss/agent/hw/bcm/BcmWarmBootCache.cpp
     fboss/agent/hw/bcm/BcmWarmBootHelper.cpp
+    fboss/agent/hw/bcm/PortAndEgressIdsMap.cpp
     fboss/agent/hw/bcm/oss/BcmAPI.cpp
+    fboss/agent/hw/bcm/oss/BcmEgress.cpp
     fboss/agent/hw/bcm/oss/BcmHost.cpp
     fboss/agent/hw/bcm/oss/BcmPort.cpp
     fboss/agent/hw/bcm/oss/BcmPortGroup.cpp
@@ -258,6 +262,8 @@ target_link_libraries(fboss_agent
     ${BOOSTSYS}
     ${BOOSTTHREAD}
     ${DOUBLECONV}
+    ${DL}
+    ${EVENT}
 )
 
 find_program(THRIFT1 thrift1)
