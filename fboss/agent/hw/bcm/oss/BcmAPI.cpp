@@ -18,11 +18,6 @@ extern "C" {
 #include <sal/driver.h>
 } // extern "C"
 
-namespace {
-constexpr auto wbEnvVar = "SOC_BOOT_FLAGS";
-constexpr auto wbFlag = "0x200000";
-}
-
 namespace facebook { namespace fboss {
 
 #define NUM_UNITS 1
@@ -35,18 +30,6 @@ std::atomic<BcmUnit*> bcmUnits[NUM_UNITS];
  * This must be called before using any other Broadcom SDK functions.
  */
 void BcmAPI::initImpl(const std::map<std::string, std::string>& config){
-  /*
-   * FIXME(aeckert): unsetenv and setenv are not thread safe. This will
-   * be called after the thrift thread has already started so this is
-   * not safe to do. We need to fix this once broadcom provides a better
-   * API for setting the boot flags.
-   */
-  unsetenv(wbEnvVar);
-  if(bcmUnits[0].load()->warmBootHelper()->canWarmBoot()) {
-    setenv(wbEnvVar, wbFlag, 1);
-  }
-
-  opennsl_driver_init();
 }
 
 /*

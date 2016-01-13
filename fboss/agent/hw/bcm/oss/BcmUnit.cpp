@@ -16,12 +16,19 @@
 extern "C" {
 #include <opennsl/init.h>
 #include <opennsl/switch.h>
+#include <sal/driver.h>
 } // extern "C"
 
 using folly::StringPiece;
 using facebook::fboss::BcmAPI;
 
 namespace facebook { namespace fboss {
+
+namespace {
+constexpr auto wbEnvVar = "SOC_BOOT_FLAGS";
+constexpr auto wbFlag = "0x200000";
+}
+
 
 BcmUnit::BcmUnit(int deviceIndex) {
   // For now we assume that the unit number is 0. This will be changed once
@@ -52,6 +59,22 @@ void BcmUnit::attach(std::string warmBootDir) {
     throw FbossError("unit ", unit_, " already initialized");
   }
 
+  /*
+   * FIXME(aeckert): unsetenv and setenv are not thread safe. This will
+   * be called after the thrift thread has already started so this is
+   * not safe to do. We need to fix this once broadcom provides a better
+   * API for setting the boot flags.
+   *
+   * FIXME(orib): This assumes that we only ever have one unit set up,
+   * and that as a result, opennsl_driver_init() will only be called once.
+   */
+  wbHelper_ = folly::make_unique<BcmWarmBootHelper>(unit_, warmBootDir);
+  unsetenv(wbEnvVar);
+  if(warmBootHelper()->canWarmBoot()) {
+    setenv(wbEnvVar, wbFlag, 1);
+  }
+
+  opennsl_driver_init();
   auto rv = opennsl_switch_event_register(unit_, switchEventCallback, this);
   bcmCheckError(rv, "unable to register switch event callback for unit ",
                 unit_);
