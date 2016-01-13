@@ -14,10 +14,6 @@
 
 #include <stdlib.h>
 
-extern "C" {
-#include <sal/driver.h>
-} // extern "C"
-
 namespace facebook { namespace fboss {
 
 #define NUM_UNITS 1
