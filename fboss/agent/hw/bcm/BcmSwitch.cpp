@@ -524,9 +524,6 @@ BcmSwitch::init(Callback* callback) {
 
 void BcmSwitch::initialConfigApplied() {
   std::lock_guard<std::mutex> g(lock_);
-  if (isRxActive()) {
-    return;
-  }
   // Register our packet handler callback function.
   uint32_t rxFlags = OPENNSL_RCO_F_ALL_COS;
   auto rv = opennsl_rx_register(
@@ -542,7 +539,9 @@ void BcmSwitch::initialConfigApplied() {
   // TODO: Configure rate limiting for packets sent to the CPU
   //
   // Start the Broadcom packet RX API.
-  rv = opennsl_rx_start(unit_, nullptr);
+  if (isRxThreadRunning()) {
+    rv = opennsl_rx_start(unit_, nullptr);
+  }
   bcmCheckError(rv, "failed to start broadcom packet rx API");
 }
 
