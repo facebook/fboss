@@ -49,7 +49,9 @@ echo "creating external..."
 mkdir -p external
 (
     cd external
-    update https://github.com/Broadcom-Switch/OpenNSL.git cf6dc4100bcfc1ffe82da3ba090b504e09e39216
+    # We hard code OpenNSL to OpenNSL-6.4.6.6 release, later releases seem to
+    # SIGSEV in opennsl_pkt_alloc()
+    update https://github.com/Broadcom-Switch/OpenNSL.git 8e0b499f02dcef751a3703c9a18600901374b28a
     update \
         git://git.kernel.org/pub/scm/linux/kernel/git/shemminger/iproute2.git v3.19.0
     update https://github.com/facebook/folly.git
