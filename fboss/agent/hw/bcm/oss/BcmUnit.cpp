@@ -52,6 +52,8 @@ void BcmUnit::detach() {
   // Clean up SDK state, without touching the hardware
   auto rv = _opennsl_shutdown(unit_);
   bcmCheckError(rv, "failed to clean up BCM state during warm boot shutdown");
+
+  wbHelper_->setCanWarmBoot();
 }
 
 void BcmUnit::attach(std::string warmBootDir) {
@@ -87,7 +89,12 @@ void BcmUnit::attach() {
 }
 
 BootType BcmUnit::bootType() {
-  return BootType::COLD_BOOT;
+  // TODO(aeckert): Move this function into fboss/agent/hw/bcm/BcmUnit.cpp
+  if (!attached_.load(std::memory_order_acquire)) {
+    return BootType::UNINITIALIZED;
+  }
+
+  return wbHelper_->canWarmBoot() ? BootType::WARM_BOOT : BootType::COLD_BOOT;
 }
 
 void BcmUnit::onSwitchEvent(opennsl_switch_event_t event,
