@@ -539,7 +539,7 @@ void BcmSwitch::initialConfigApplied() {
   // TODO: Configure rate limiting for packets sent to the CPU
   //
   // Start the Broadcom packet RX API.
-  if (isRxThreadRunning()) {
+  if (!isRxThreadRunning()) {
     rv = opennsl_rx_start(unit_, nullptr);
   }
   bcmCheckError(rv, "failed to start broadcom packet rx API");
