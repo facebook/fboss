@@ -102,6 +102,15 @@ void BcmPort::init(bool warmBoot) {
     int linkStatus;
     opennsl_port_link_status_get(unit_, port_, &linkStatus);
     up = (linkStatus == OPENNSL_PORT_LINK_STATUS_UP);
+  } else {
+    // In open source code, we don't have any guarantees for the
+    // state of the port at startup. Bringing them down guarantees
+    // that things are in a known state.
+    //
+    // We should only be doing this on cold boot, since warm booting
+    // should be initializing the state for us.
+    auto rv = opennsl_port_enable_set(unit_, port_, false);
+    bcmCheckError(rv, "failed to set port to known state: ", port_);
   }
 
   setPortStatus(up);
