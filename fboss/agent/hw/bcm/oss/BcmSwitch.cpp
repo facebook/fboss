@@ -38,7 +38,7 @@ void BcmSwitch::configureRxRateLimiting() {
   // so rate limiting settings must be baked into the binary driver.
 }
 
-bool BcmSwitch::isRxActive() {
+bool BcmSwitch::isRxThreadRunning() {
   // FIXME(orib): Right now, the BCM calls to figure out if rx is active are not
   // exported. Since initializing the driver sets up the rx thread, it should
   // be safe to just return true here.
