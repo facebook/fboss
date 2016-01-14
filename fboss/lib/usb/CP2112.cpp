@@ -612,7 +612,7 @@ void CP2112::processReadResponse(MutableByteRange buf, milliseconds timeout) {
 
     uint8_t status = usbBuf[1];
     uint8_t length = usbBuf[2];
-    VLOG(3) << "SMBus read response: status=" << (int)status
+    VLOG(5) << "SMBus read response: status=" << (int)status
       << ", length=" << (int)length;
 
     memcpy(buf.begin() + bytesRead, usbBuf + 3, length);
