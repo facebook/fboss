@@ -124,14 +124,14 @@ def enable_port(args):
     port = args.en_port
     with get_client(args) as client:
         portnum = int(port)
-        client.setPortState(5, True)
+        client.setPortState(portnum, True)
         print("Port %d enabled" % portnum)
 
 def disable_port(args):
     port = args.dis_port
     with get_client(args) as client:
         portnum = int(port)
-        client.setPortState(5, False)
+        client.setPortState(portnum, False)
         print("Port %d disabled" % portnum)
 
 
