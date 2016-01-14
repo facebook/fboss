@@ -269,7 +269,7 @@ target_link_libraries(fboss_agent
 find_program(THRIFT1 thrift1)
 find_program(PYTHON python)
 set(THRIFTC2OPTS json)
-set(THRIFTC ${THRIFT1} -I ${CMAKE_SOURCE_DIR} -gen cpp:json,templates)
+set(THRIFTC ${THRIFT1} -I ${CMAKE_SOURCE_DIR} -gen cpp:json,templates -gen py:)
 set(THRIFTC2 
     ${PYTHON} -mthrift_compiler.main -I ${CMAKE_SOURCE_DIR} --gen cpp2:)
 
