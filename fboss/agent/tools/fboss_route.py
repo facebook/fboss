@@ -16,9 +16,9 @@ import socket
 from argparse import ArgumentParser
 from thrift.transport import TSocket
 from thrift.protocol import TBinaryProtocol
-from fboss.ctrl import FbossCtrl
-from fboss.ctrl.ttypes import IpPrefix
-from fboss.ctrl.ttypes import UnicastRoute
+from neteng.fboss.ctrl import FbossCtrl
+from neteng.fboss.ctrl.ttypes import IpPrefix
+from neteng.fboss.ctrl.ttypes import UnicastRoute
 from facebook.network.Address.ttypes import BinaryAddress
 
 DEFAULT_CLIENTID = 1
@@ -92,10 +92,12 @@ def list_optics(args):
 def list_ports(args):
     details = args.details
     with get_client(args) as client:
-        #for intf in client.getInterfaceList():
         for idx, intf in client.getPortStatus(range(1, 64)).iteritems():
-            stats = client.getPortStats(idx) if details else ""
-            print ("Port %d: %s: %s" % (idx, str(intf), stats))
+            stats = ""
+            if details:
+                stats = " (%s)" % client.getPortStats(idx)
+            print ("Port %d: [enabled=%s, up=%s, present=%s]%s" %
+                    (idx, intf.enabled, intf.up, intf.present, stats))
 
 def list_arps(args):
     with get_client(args) as client:
@@ -117,6 +119,20 @@ def list_vlans(args):
             print("===== Vlan %d ==== " % vlan)
             for address in client.getVlanAddresses(vlan):
                 print(address.addr)
+
+def enable_port(args):
+    port = args.en_port
+    with get_client(args) as client:
+        portnum = int(port)
+        client.setPortState(5, True)
+        print("Port %d enabled" % portnum)
+
+def disable_port(args):
+    port = args.dis_port
+    with get_client(args) as client:
+        portnum = int(port)
+        client.setPortState(5, False)
+        print("Port %d disabled" % portnum)
 
 
 @contextlib.contextmanager
@@ -208,6 +224,18 @@ if __name__ == '__main__':
     list_ndp_parser.add_argument(
         '--details', action='store_true',
         help='List all information about the ndps', default=False)
+
+    enable_port_parser = subparsers.add_parser(
+        'enable_port', help='Enable port')
+    enable_port_parser.set_defaults(func=enable_port)
+    enable_port_parser.add_argument(
+        'en_port', help='Port to enable')
+
+    disable_port_parser = subparsers.add_parser(
+        'disable_port', help='Enable port')
+    disable_port_parser.set_defaults(func=disable_port)
+    disable_port_parser.add_argument(
+        'dis_port', action='store', help='Port to disable')
 
     args = ap.parse_args()
     args.func(args)
