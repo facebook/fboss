@@ -20,7 +20,7 @@ Generate the python bindings from the thrift files:
 
 Dodge the "can't find generator 'cpp2' error"
 
-	sed -i -e '^namespace cpp2 facebook.fboss/#namespace cpp2 facebook.fboss/' \
+ sed -i -e 's/^namespace cpp2 facebook.fboss/#namespace cpp2 facebook.fboss/' \
 		$FBOSS/fboss/agent/if/*.thrift
 fboss.agent doesn't exist, but fboss.ctrl does
 
