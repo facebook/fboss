@@ -43,13 +43,13 @@ find_library(EVENT event)
 
 # External libraries that are not generally available. Look in external/
 # for these. This is where getdeps.sh will toss them.
-find_library(FOLLY folly PATHS ${CMAKE_SOURCE_DIR}/external/folly/folly/.libs)
-find_library(WANGLE wangle PATHS ${CMAKE_SOURCE_DIR}/external/wangle/wangle/build/lib)
-find_library(THRIFT thrift PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp/.libs)
-find_library(THRIFTPROTO thriftprotocol PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs)
-find_library(THRIFTCPP2 thriftcpp2 PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs)
-find_library(OPENNSL opennsl PATHS ${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge-trident)
-find_library(IPROUTE2 netlink PATHS ${CMAKE_SOURCE_DIR}/external/iproute2/lib)
+find_library(FOLLY folly PATHS ${CMAKE_SOURCE_DIR}/external/folly/folly/.libs NO_DEFAULT_PATH)
+find_library(WANGLE wangle PATHS ${CMAKE_SOURCE_DIR}/external/wangle/wangle/build/lib NO_DEFAULT_PATH)
+find_library(THRIFT thrift PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp/.libs NO_DEFAULT_PATH)
+find_library(THRIFTPROTO thriftprotocol PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs NO_DEFAULT_PATH)
+find_library(THRIFTCPP2 thriftcpp2 PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs NO_DEFAULT_PATH)
+find_library(OPENNSL opennsl PATHS ${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge-trident NO_DEFAULT_PATH)
+find_library(IPROUTE2 netlink PATHS ${CMAKE_SOURCE_DIR}/external/iproute2/lib NO_DEFAULT_PATH)
 
 include_directories(${CMAKE_SOURCE_DIR}/external/OpenNSL/include)
 include_directories(${CMAKE_SOURCE_DIR}/external/iproute2/include)
