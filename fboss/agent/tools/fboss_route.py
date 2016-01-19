@@ -66,7 +66,7 @@ def format_ip(ip):
 
 def format_route(route):
     next_hops = ', '.join(format_ip(ip) for ip in route.nextHopAddrs)
-    return '%s --> %s' % (format_prefix(route.dest), next_hops)
+    return '%s via %s' % (format_prefix(route.dest), next_hops)
 
 def format_prefix(prefix):
     return '%s/%d' % (format_ip(prefix.ip), prefix.prefixLength)
