@@ -150,6 +150,14 @@ class Port : public NodeBaseT<Port, PortFields> {
     writableFields()->maxSpeed = maxSpeed;
   }
 
+  cfg::PortSpeed getWorkingSpeed() const {
+    if (getFields()->speed == cfg::PortSpeed::DEFAULT) {
+      return getFields()->maxSpeed;
+    } else {
+      return getFields()->speed;
+    }
+  }
+
   Port* modify(std::shared_ptr<SwitchState>* state);
 
  private:

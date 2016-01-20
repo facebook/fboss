@@ -143,6 +143,7 @@ struct PortStatus {
   2: bool up,
   3: optional bool present,
   4: optional TransceiverIdxThrift transceiverIdx,
+  5: i64 speedMbps,
 }
 
 struct CaptureInfo {

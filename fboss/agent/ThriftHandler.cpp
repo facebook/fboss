@@ -462,11 +462,7 @@ void ThriftHandler::getPortInfo(PortInfoThrift& portInfo, int32_t portId) {
   portInfo.portId = portId;
   portInfo.name = port->getName();
   portInfo.description = port->getDescription();
-  if (port->getSpeed() == cfg::PortSpeed::DEFAULT) {
-    portInfo.speedMbps = (int) port->getMaxSpeed();
-  } else {
-    portInfo.speedMbps = (int) port->getSpeed();
-  }
+  portInfo.speedMbps = (int) port->getWorkingSpeed();
   for (auto entry : port->getVlans()) {
     portInfo.vlans.push_back(entry.first);
   }
