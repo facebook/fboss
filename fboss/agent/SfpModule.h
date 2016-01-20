@@ -22,6 +22,7 @@ namespace facebook { namespace fboss {
  */
 
 /* SFP DOM Alarms and Warning Flags */
+
 enum class SfpDomFlag {
   TEMP_ALARM_HIGH,
   TEMP_ALARM_LOW,
@@ -138,46 +139,48 @@ class SfpModule : public Transceiver {
    * data after checking the length fits. The thread needs to have the lock
    * before calling this function.
    */
-  const uint8_t* getSfpValuePtr(int dataAddress, int offset,
-                                int length) const;
+  const uint8_t* getSfpValuePtr(std::lock_guard<std::mutex>& lg,
+                                int dataAddress, int offset, int length) const;
   /*
    * This function returns the values on the offset and length
    * from the static cached data. The thread needs to have the lock
    * before calling this function.
    */
-  void getSfpValue(int dataAddress,
+  void getSfpValue(std::lock_guard<std::mutex>& lg, int dataAddress,
                     int offset, int length, uint8_t* data) const;
   /*
    * Sets the IDProm cache data for the port
    * The data should be 256 bytes.
    * The thread needs to have the lock before calling the function.
    */
-  void setSfpIdprom(const uint8_t* data);
+  void setSfpIdprom(std::lock_guard<std::mutex>& lg, const uint8_t* data);
   /*
    * This is used by the detection thread to set the SFP presence
    * status based on the HW read.
    * The thread needs to have the lock before calling the function.
    */
-  void setPresent(bool present);
+  void setPresent(std::lock_guard<std::mutex>& lg, bool present);
   /*
    * Sets the Dom Supported bit as per the IDPROM
    * The thread needs to have the lock before calling the function.
    */
-  void setDomSupport();
+  void setDomSupport(std::lock_guard<std::mutex>& lg);
   /*
    * returns the value of the flag from the raw IDProm data
    * The thread needs to have the lock before calling the function.
    */
-  bool getSfpFlagIdProm(const SfpDomFlag flag, const uint8_t* data);
+  bool getSfpFlagIdProm(std::lock_guard<std::mutex>& lg, const SfpDomFlag flag,
+                        const uint8_t* data);
   /* returns the value of for the threshold from the raw data */
-  float getValueFromRaw(const SfpDomFlag key, uint16_t value);
+  float getValueFromRaw(std::lock_guard<std::mutex>& lg, const SfpDomFlag key,
+                        uint16_t value);
   /*
    * This function sets the Dynamic SFP fields
    * Check for DOM support before calling this
    * function.
    * The thread needs to have the lock before calling the function.
    */
-  void setSfpDom(const uint8_t* data);
+  void setSfpDom(std::lock_guard<std::mutex>& lg, const uint8_t* data);
   /*
    * sfpModuleMutex_ is held around all the read and writes to the sfpModule
    *
@@ -190,65 +193,75 @@ class SfpModule : public Transceiver {
    * This function returns various strings from the SFP EEPROM
    * caller needs to check if DOM is supported or not
    */
-  std::string getSfpString(const SffField flag);
+  std::string getSfpString(std::lock_guard<std::mutex>& lg,
+                            const SffField flag);
   /*
    * This function returns the status of the SFP alarm/warning flag
    * caller needs to check if DOM is supported or not
    */
-  bool getSfpThreshFlag(const SfpDomFlag flag);
+  bool getSfpThreshFlag(std::lock_guard<std::mutex>& lg,
+                        const SfpDomFlag flag);
   /*
    * This function returns the current value of the DOM field
    * caller needs to check if DOM is supported or not
    */
-  float getSfpDomValue(const SfpDomValue field);
+  float getSfpDomValue(std::lock_guard<std::mutex>& lg,
+      const SfpDomValue field);
   /*
    * This function returns the threshold value of the Sfp DOM Flag
    * caller needs to check if DOM is supported or not
    */
-  float getSfpThreshValue(const SfpDomFlag flag);
+  float getSfpThreshValue(std::lock_guard<std::mutex>& lg,
+                          const SfpDomFlag flag);
   /*
    * This function returns all the status flags
    * Returns false when no data exists
    */
-  bool getDomFlagsMap(SfpDomThreshFlags &domFlags);
+  bool getDomFlagsMap(std::lock_guard<std::mutex>& lg,
+                      SfpDomThreshFlags &domFlags);
   /*
    * This function returns all the values of the DOM
    * Returns false when no data exists
    */
-  bool getDomValuesMap(SfpDomReadValue &value);
+  bool getDomValuesMap(std::lock_guard<std::mutex>& lg,
+                      SfpDomReadValue &value);
   /*
    * This function returns all the threshold values of the Sfp DOM
    * returns false when no data exists
    */
-  bool getDomThresholdValuesMap(SfpDomThreshValue &domThresh);
+  bool getDomThresholdValuesMap(std::lock_guard<std::mutex>& lg,
+                                SfpDomThreshValue &domThresh);
   /*
    * This function returns all the vendor values of the SFP
    * returns false when no data exists
    */
-  bool getVendorInfo(Vendor &vendor);
+  bool getVendorInfo(std::lock_guard<std::mutex>& lg, Vendor &vendor);
   /*
    * Get temperature and Vcc info
    */
-  bool getSensorInfo(GlobalSensors& info);
+  bool getSensorInfo(std::lock_guard<std::mutex>& lg, GlobalSensors& info);
   /*
    * Get cable length info, in meters
    */
-  bool getCableInfo(Cable &cable);
-  int getSfpCableLength(const SffField field, int multiplier);
+  bool getCableInfo(std::lock_guard<std::mutex>& lg, Cable &cable);
+  int getSfpCableLength(std::lock_guard<std::mutex>& lg, const SffField field,
+                        int multiplier);
   /*
    * Get per-channel data, including sensor value and alarm flags
    */
-  bool getSensorsPerChanInfo(std::vector<Channel>& channels);
+  bool getSensorsPerChanInfo(std::lock_guard<std::mutex>& lg,
+                              std::vector<Channel>& channels);
   /*
    * Get alarm and warning thresholds
    */
-  bool getThresholdInfo(AlarmThreshold &threshold);
+  bool getThresholdInfo(std::lock_guard<std::mutex>& lg,
+                        AlarmThreshold &threshold);
   /*
    * This function returns true if both the sfp is present and the
    * cache data is not stale. This should be checked before any
    * function that reads cache data is called
    */
-  bool cacheIsValid() const;
+  bool cacheIsValid(std::lock_guard<std::mutex>& lg) const;
 };
 
 }} //namespace facebook::fboss
