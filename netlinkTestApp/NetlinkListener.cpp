@@ -153,31 +153,61 @@ void NetlinkListener::init_ifaces(const char * prefix, int qty)
 		init();
 	}
 
-	/* create links/ifaces */
+	/* (delete existing if present and) create links/ifaces */
 	for (int i = 0; i < qty; i++)
 	{
-		struct rtnl_link * new_link = NULL;
 		int rc;
-
+		struct rtnl_link * new_link = NULL;
+			
 		if ((new_link = rtnl_link_alloc()) == NULL)
 		{
 			log_and_die("Could not allocate link");
 		}
 
-		printf("Adding link %s%d\r\n", prefix, i);
-		//rtnl_link_set_name(new_link, prefix);
+		std::string name(prefix);
+		std::ostringstream iface;
+		iface << name << i;
+		name = iface.str().c_str();
+
+		rtnl_link_set_name(new_link, name.c_str());
 		//rtnl_link_set_ifindex(new_link, i);
 		//rtnl_link_set_family(new_link, AF_UNSPEC);
 		rtnl_link_set_flags(new_link, IFF_TAP | IFF_NO_PI);	
 		//rtnl_link_set_group(new_link, 18); /* random for now */
 		//rtnl_link_set_mtu(new_link, 1500);
-		//rtnl_link_set_txqlen(new_link, 1000);
-		rtnl_link_set_type(new_link, "tap");	
+		rtnl_link_set_txqlen(new_link, 1000);
+		rtnl_link_set_type(new_link, "dummy");
+
+		/* delete it first, if it exists */
+		if ((rc = rtnl_link_delete(sock, new_link)) < 0)
+		{
+			if (rc == -NLE_NODEV)
+			{
+				std::cout << "Link " << name << " was not present." << std::endl;
+			}
+			else if (rc == -NLE_PERM || rc == -NLE_NOACCESS)
+			{
+				log_and_die("Insufficient permissions to add/remove tap interfaces. Perhaps you should run as sudo?");
+			}
+			else
+			{
+				std::cout << "Link " << name << " was already present. Deleted." << std::endl;
+			}
+		}
 		if ((rc = rtnl_link_add(sock, new_link, NLM_F_CREATE)) < 0)
 		{
-			log_and_die_rc("Unable to create interface", rc);
+			if (rc == -NLE_PERM || rc == -NLE_NOACCESS)
+			{
+				log_and_die("Insufficient permissions to add/remove tap interfaces. Perhaps you should run as sudo?");
+			}
+			else 
+			{
+				log_and_die_rc("Unable to create interface", rc);
+			}
 		}
-
+		
+		std::cout << "Link " << name << " added." << std::endl;
+		
 		/* clean up */
 		rtnl_link_put(new_link);
 	}

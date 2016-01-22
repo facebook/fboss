@@ -1,7 +1,7 @@
+/* C headers */
 extern "C" {
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <sys/socket.h>
 #include <linux/if_tun.h>
 #include <libnl3/netlink/netlink.h>
@@ -10,7 +10,9 @@ extern "C" {
 #include <libnl3/netlink/route/link.h>
 #include <libnl3/netlink/route/route.h>
 }
-
+/* C++ headers */
+#include <string>
+#include <iostream>
 #include <boost/thread.hpp>
 
 class NetlinkListener
