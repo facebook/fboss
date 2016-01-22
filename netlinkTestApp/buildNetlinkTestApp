@@ -1,0 +1,3 @@
+#!/bin/bash
+g++ NetlinkListener.h NetlinkListener.cpp main.cpp -o netlinkTestApp $(pkg-config --cflags --libs libnl-3.0 libnl-genl-3.0 libnl-route-3.0) -lboost_thread -lboost_system
+exit 0
