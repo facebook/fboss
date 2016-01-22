@@ -8,7 +8,10 @@
  *
  */
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
+#include "fboss/agent/platforms/wedge/WedgePort.h"
 #include "fboss/agent/ThriftHandler.h"
+
+#include <folly/Memory.h>
 
 namespace facebook { namespace fboss {
 
@@ -19,10 +22,6 @@ std::unique_ptr<ThriftHandler> WedgePlatform::createHandler(SwSwitch* sw) {
 std::map<std::string, std::string> WedgePlatform::loadConfig() {
   std::map<std::string, std::string> config;
   return config;
-}
-
-void WedgePlatform::initMode() {
-  mode_ = WEDGE;
 }
 
 void WedgePlatform::onHwInitialized(SwSwitch* sw) {

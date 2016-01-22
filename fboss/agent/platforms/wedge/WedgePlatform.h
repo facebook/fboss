@@ -27,15 +27,10 @@ class WedgePort;
 
 class WedgePlatform : public BcmPlatform {
  public:
-  enum Mode {
-    WEDGE,
-    LC,
-    FC,
-    WEDGE100
-  };
-
-  WedgePlatform();
+  explicit WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo);
   ~WedgePlatform() override;
+
+  void init();
 
   HwSwitch* getHwSwitch() const override;
   void onHwInitialized(SwSwitch* sw) override;
@@ -54,24 +49,26 @@ class WedgePlatform : public BcmPlatform {
     // change - t8067423
     return false;
   }
- private:
+
+ protected:
   typedef boost::container::flat_map<PortID, std::unique_ptr<WedgePort>>
     WedgePortMap;
 
+  WedgePortMap ports_;
+
+ private:
   // Forbidden copy constructor and assignment operator
   WedgePlatform(WedgePlatform const &) = delete;
   WedgePlatform& operator=(WedgePlatform const &) = delete;
 
   void initLocalMac();
-  std::map<std::string, std::string> loadConfig();
-  void initMode();
+  WedgePlatformMode getMode();
+  virtual std::map<std::string, std::string> loadConfig();
   void initTransceiverMap(SwSwitch* sw);
 
-  Mode mode_;
   folly::MacAddress localMac_;
   std::unique_ptr<BcmSwitch> hw_;
-  WedgePortMap ports_;
-  WedgeProductInfo productInfo_;
+  const std::unique_ptr<WedgeProductInfo> productInfo_;
   std::unique_ptr<WedgeI2CBusLock> wedgeI2CBusLock_;
 };
 

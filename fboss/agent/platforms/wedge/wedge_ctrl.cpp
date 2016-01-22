@@ -10,15 +10,30 @@
 #include <folly/Memory.h>
 #include "fboss/agent/Main.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
+#include "fboss/agent/platforms/wedge/Wedge100Platform.h"
 
 using namespace facebook::fboss;
 using folly::make_unique;
 using std::unique_ptr;
 
+DEFINE_string(fruid_filepath, "/dev/shm/fboss/fruid.json",
+              "File for storing the fruid data");
+
 namespace facebook { namespace fboss {
 
+unique_ptr<WedgePlatform> createPlatform() {
+  auto productInfo = folly::make_unique<WedgeProductInfo>(FLAGS_fruid_filepath);
+  productInfo->initialize();
+  if (productInfo->getMode() == WedgePlatformMode::WEDGE100) {
+    return folly::make_unique<Wedge100Platform>(std::move(productInfo));
+  }
+  return folly::make_unique<WedgePlatform>(std::move(productInfo));
+}
+
 unique_ptr<Platform> initWedgePlatform() {
-  return make_unique<facebook::fboss::WedgePlatform>();
+  auto platform = createPlatform();
+  platform->init();
+  return std::move(platform);
 }
 
 }}

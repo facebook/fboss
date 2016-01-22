@@ -29,8 +29,6 @@ DEFINE_string(persistent_state_dir, "/var/facebook/fboss",
               "Directory for storing persistent state");
 DEFINE_string(mac, "",
               "The local MAC address for this switch");
-DEFINE_string(fruid_filepath, "/dev/shm/fboss/fruid.json",
-              "File for storing the fruid data");
 DEFINE_string(mgmt_if, "eth0",
               "name of management interface");
 
@@ -41,14 +39,14 @@ using std::string;
 
 namespace facebook { namespace fboss {
 
-WedgePlatform::WedgePlatform()
-  : productInfo_(FLAGS_fruid_filepath) {
-  productInfo_.initialize();
-  initMode();
+WedgePlatform::WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo)
+    : productInfo_(std::move(productInfo)) {}
+
+void WedgePlatform::init() {
   auto config = loadConfig();
   BcmAPI::init(config);
   initLocalMac();
-  hw_.reset(new BcmSwitch(this, mode_ == LC ?
+  hw_.reset(new BcmSwitch(this, getMode() == WedgePlatformMode::LC ?
         BcmSwitch::HALF_HASH : BcmSwitch::FULL_HASH));
 }
 
@@ -75,7 +73,11 @@ void WedgePlatform::onUnitAttach() {
 }
 
 void WedgePlatform::getProductInfo(ProductInfo& info) {
-  productInfo_.getInfo(info);
+  productInfo_->getInfo(info);
+}
+
+WedgePlatformMode WedgePlatform::getMode() {
+  return productInfo_->getMode();
 }
 
 WedgePlatform::InitPortMap WedgePlatform::initPorts() {
@@ -85,7 +87,7 @@ WedgePlatform::InitPortMap WedgePlatform::initPorts() {
       PortID portID(num);
       opennsl_port_t bcmPortNum = num;
 
-      auto port = make_unique<WedgePort>(portID);
+      auto port = folly::make_unique<WedgePort>(portID);;
       ports.emplace(bcmPortNum, port.get());
       ports_.emplace(portID, std::move(port));
   };
@@ -100,29 +102,17 @@ WedgePlatform::InitPortMap WedgePlatform::initPorts() {
     }
   };
 
-  auto add_ports_stride = [&](int n_ports, int start, int stride) {
-    int curr = start;
-    while (n_ports--) {
-      add_port(curr);
-      curr += stride;
-    }
-  };
-
-  if (mode_ == WEDGE || mode_ == LC) {
+  auto mode = getMode();
+  if (mode == WedgePlatformMode::WEDGE || mode == WedgePlatformMode::LC) {
     // Front panel are 16 4x10G ports
     add_ports(16 * 4);
-    if (mode_ == LC) {
+    if (mode == WedgePlatformMode::LC) {
       // On LC, another 16 ports for back plane ports
       add_ports(16);
     }
-  } else if (mode_ == FC) {
+  } else {
     // On FC, 32 40G ports
     add_ports(32);
-  } else {
-    add_ports_stride(8 * 4, 1, 1);
-    add_ports_stride(8 * 4, 34, 1);
-    add_ports_stride(8 * 4, 68, 1);
-    add_ports_stride(8 * 4, 102, 1);
   }
 
   return ports;

@@ -41,6 +41,9 @@ constexpr auto kFabricLocationLeft = "LEFT";
 constexpr auto kFabricLocationRight = "RIGHT";
 }
 
+DEFINE_string(mode, "",
+              "The mode the FBOSS controller is running as, wedge, lc, or fc");
+
 namespace facebook { namespace fboss {
 
 using folly::MacAddress;
@@ -62,10 +65,15 @@ void WedgeProductInfo::initialize() {
     // if fruid info fails fall back to hostname
     initFromHostname();
   }
+  initMode();
 }
 
 void WedgeProductInfo::getInfo(ProductInfo& info) {
   info = productInfo_;
+}
+
+WedgePlatformMode WedgeProductInfo::getMode() {
+  return mode_;
 }
 
 std::string WedgeProductInfo::getFabricLocation() {
@@ -74,6 +82,35 @@ std::string WedgeProductInfo::getFabricLocation() {
 
 std::string WedgeProductInfo::getProductName() {
   return productInfo_.product;
+}
+
+void WedgeProductInfo::initMode() {
+  if (FLAGS_mode.empty()) {
+    auto modelName = getProductName();
+    if (modelName == "Fabric-Card") {
+      mode_ = WedgePlatformMode::FC;
+    } else if (modelName == "Line-Card") {
+      mode_ = WedgePlatformMode::LC;
+    } else if (modelName.find("Wedge100") == 0) {
+      mode_ = WedgePlatformMode::WEDGE100;
+    } else if (modelName.find("Wedge") == 0) {
+      mode_ = WedgePlatformMode::WEDGE;
+    } else {
+      throw std::runtime_error("invalid model name " + modelName);
+    }
+  } else {
+    if (FLAGS_mode == "wedge") {
+      mode_ = WedgePlatformMode::WEDGE;
+    } else if (FLAGS_mode == "lc") {
+      mode_ = WedgePlatformMode::LC;
+    } else if (FLAGS_mode == "fc") {
+      mode_ = WedgePlatformMode::FC;
+    } else if (FLAGS_mode == "wedge100") {
+      mode_ = WedgePlatformMode::WEDGE100;
+    } else {
+      throw std::runtime_error("invalid mode " + FLAGS_mode);
+    }
+  }
 }
 
 void WedgeProductInfo::parse(std::string data) {

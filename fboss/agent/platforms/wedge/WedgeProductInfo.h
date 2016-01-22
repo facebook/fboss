@@ -14,11 +14,19 @@
 
 namespace facebook { namespace fboss {
 
+enum class WedgePlatformMode {
+  WEDGE,
+  LC,
+  FC,
+  WEDGE100
+};
+
 class WedgeProductInfo {
  public:
   explicit WedgeProductInfo(folly::StringPiece path);
 
   void getInfo(ProductInfo& info);
+  WedgePlatformMode getMode();
   void initialize();
   std::string getFabricLocation();
   std::string getProductName();
@@ -29,9 +37,11 @@ class WedgeProductInfo {
   WedgeProductInfo& operator=(WedgeProductInfo const &) = delete;
 
   void initFromHostname();
+  void initMode();
   void parse(std::string data);
   ProductInfo productInfo_;
   folly::StringPiece path_;
+  WedgePlatformMode mode_;
 };
 
 }} // facebook::fboss
