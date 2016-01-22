@@ -170,11 +170,8 @@ void NetlinkListener::init_ifaces(const char * prefix, int qty)
 		name = iface.str().c_str();
 
 		rtnl_link_set_name(new_link, name.c_str());
-		//rtnl_link_set_ifindex(new_link, i);
-		//rtnl_link_set_family(new_link, AF_UNSPEC);
 		rtnl_link_set_flags(new_link, IFF_TAP | IFF_NO_PI);	
-		//rtnl_link_set_group(new_link, 18); /* random for now */
-		//rtnl_link_set_mtu(new_link, 1500);
+		rtnl_link_set_mtu(new_link, 1526);
 		rtnl_link_set_txqlen(new_link, 1000);
 		rtnl_link_set_type(new_link, "dummy");
 
