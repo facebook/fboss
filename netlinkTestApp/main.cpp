@@ -3,9 +3,11 @@ extern "C" {
 }
 #include "NetlinkListener.h"
 
+NetlinkListener * nll = NULL;
+
 int main(void)
 {
-	NetlinkListener * nll = new NetlinkListener();
+	nll = new NetlinkListener(std::string("wedgetap"), 3);
 
 	nll->startListening(5000);
 

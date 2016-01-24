@@ -13,12 +13,16 @@ extern "C" {
 /* C++ headers */
 #include <string>
 #include <iostream>
+#include <memory> /* std::unique_ptr */
 #include <boost/thread.hpp>
+#include <boost/ptr_container/ptr_list.hpp>
+#include "TapIntf.h"
 
 class NetlinkListener
 {
 	public:
-	NetlinkListener(); /* add SwSwitch * */
+	NetlinkListener(const std::string &iface_prefix, const int iface_qty); /* add SwSwitch */
+	~NetlinkListener();
 
 	void startListening(int pollIntervalMillis);
 	void stopListening();
@@ -26,12 +30,14 @@ class NetlinkListener
 	private:
 
 	/* variables */
-	struct nl_dump_params dump_params;		/* format and verbosity of netlink cache dumps */
-	struct nl_sock * sock; 				/* pipe to RX/TX netlink messages */
-	struct nl_cache * link_cache;			/* our copy of the system link state */
-	struct nl_cache * route_cache;			/* our copy of the system route state */
-	struct nl_cache_mngr * manager;			/* wraps caches and notifies us upon a change */
-	boost::thread * netlink_listener_thread;	/* polls cache manager for updates */
+	struct nl_dump_params dump_params_;		/* format and verbosity of netlink cache dumps */
+	struct nl_sock * sock_; 			/* pipe to RX/TX netlink messages */
+	struct nl_cache * link_cache_;			/* our copy of the system link state */
+	struct nl_cache * route_cache_;			/* our copy of the system route state */
+	struct nl_cache_mngr * manager_;		/* wraps caches and notifies us upon a change */
+	boost::ptr_list<TapIntf> interfaces_;
+	boost::thread * netlink_listener_thread_;	/* polls cache manager for updates */
+	boost::thread * host_forwarding_thread_;	/* polls host iface FDs for packets en route to the dataplane */
 
 	/* no copy or assign */
 	NetlinkListener(const NetlinkListener &);
@@ -47,7 +53,9 @@ class NetlinkListener
 	struct nl_dump_params * get_dump_params();
 
 	/* virtual interfaces */
-	void init_ifaces(const char * prefix, int qty);
+	void init_ifaces(const std::string &prefix, const int qty);
+	void delete_ifaces(const std::string &prefix, const int qty);
+	void init_packet_forwarding();
 
 	/* netlink callbacks */
 	static void netlink_link_updated(struct nl_cache * cache, struct nl_object * obj, int idk, void * data);
@@ -55,4 +63,5 @@ class NetlinkListener
 
 	/* cache manager polling thread */
 	static void netlink_listener(int pollIntervalMillis, NetlinkListener * nll);
+	static void host_packet_listener( );
 };
