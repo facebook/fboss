@@ -11,6 +11,7 @@ extern "C" {
 #include <linux/if.h>
 #include <linux/if_tun.h>
 #include <string.h>
+#include <errno.h>
 }
 /* C++ headers */
 #include <string>
@@ -35,8 +36,8 @@ class TapIntf {
 		return index_;
 	};
 
-	int openIfaceFD();
-	int closeIfaceFD();
+	int bringUpIface();
+	int takeDownIface();
 
 	private:
 	/* class-local variables */

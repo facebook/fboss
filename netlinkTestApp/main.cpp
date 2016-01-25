@@ -9,7 +9,7 @@ int main(void)
 {
 	nll = new NetlinkListener(std::string("wedgetap"), 3);
 
-	nll->startListening(5000);
+	nll->startNetlinkListener(5000);
 
 	while (1)
 	{

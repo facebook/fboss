@@ -2,17 +2,17 @@
 
 NetlinkListener::NetlinkListener(const std::string &iface_prefix, const int iface_qty): sock_(0), 
 	link_cache_(0), route_cache_(0), manager_(0), 
-	netlink_listener_thread_(NULL), host_forwarding_thread_(NULL)
+	netlink_listener_thread_(NULL), host_packet_rx_thread_(NULL)
 {
-	printf("Constructor of NetlinkListener\r\n");
-	init();
-	init_ifaces(iface_prefix.c_str(), iface_qty);
+	std::cout << "Constructor of NetlinkListener" << std::endl;
+	register_w_netlink();
+	add_ifaces(iface_prefix.c_str(), iface_qty);
 }
 
 NetlinkListener::~NetlinkListener()
 {
-	stopListening();
-	delete_ifaces(std::string("wedgetap"), 3);
+	stopNetlinkListener();
+	delete_ifaces();
 }
 
 void NetlinkListener::init_dump_params()
@@ -29,13 +29,13 @@ struct nl_dump_params * NetlinkListener::get_dump_params()
 
 void NetlinkListener::log_and_die_rc(const char * msg, int rc)
 {
-	printf("%s. RC=%d\r\n", msg, rc);
+	std::cout << std::string(msg) << ". RC=" << std::to_string(rc) << std::endl;
  	exit(1);
 }
 
 void NetlinkListener::log_and_die(const char * msg)
 {
-	printf("%s\r\n", msg);
+	std::cout << std::string(msg) << std::endl;
 	exit(1);
 }
 
@@ -44,7 +44,7 @@ void NetlinkListener::netlink_link_updated(struct nl_cache * cache, struct nl_ob
 	struct rtnl_link * link = (struct rtnl_link *) obj;
 	NetlinkListener * nll = (NetlinkListener *) data;
 	rtnl_link_get_name(link);
- 	printf("Link cache callback was triggered for link: %s\r\n", rtnl_link_get_name(link));
+	std::cout << "Link cache callback was triggered for link: " << rtnl_link_get_name(link) << std::endl;
 
         //nl_cache_dump(cache, nll->get_dump_params());
 }
@@ -53,12 +53,12 @@ void NetlinkListener::netlink_route_updated(struct nl_cache * cache, struct nl_o
 {
 	struct rtnl_route * route = (struct rtnl_route *) obj;
 	NetlinkListener * nll = (NetlinkListener *) data;
-	printf("Route cache callback was triggered for route: %s\r\n", "");
+	std::cout << "Route cache callback was triggered:" << std::endl;
 
 	//nl_cache_dump(cache, nll->get_dump_params());
 }
 
-void NetlinkListener::init()
+void NetlinkListener::register_w_netlink()
 {
 	int rc = 0; /* track errors; defined in libnl3/netlinks/errno.h */
 
@@ -155,36 +155,45 @@ void NetlinkListener::init()
   	}
 }
 
-void NetlinkListener::init_ifaces(const std::string &prefix, const int qty)
+void NetlinkListener::unregister_w_netlink()
+{
+	nl_cache_mngr_free(manager_);
+	nl_cache_free(link_cache_);
+    	nl_cache_free(route_cache_);
+    	nl_socket_free(sock_);
+	std::cout << "Unregistered with netlink" << std::endl;
+}
+
+void NetlinkListener::add_ifaces(const std::string &prefix, const int qty)
 {
 	if (sock_ == 0)
 	{
 		printf("Netlink listener socket not initialized. Initializing...\r\n");
-		init();
+		register_w_netlink();
 	}
 
 	/* (delete existing if present and) create links/ifaces */
 	for (int i = 0; i < qty; i++)
 	{
 		int rc;
-		struct rtnl_link * new_link = NULL;
+		/*struct rtnl_link * new_link = NULL;
 			
 		if ((new_link = rtnl_link_alloc()) == NULL)
 		{
 			log_and_die("Could not allocate link");
 		}
-
+		*/
 		std::ostringstream iface;
 		iface << prefix << i;
-		std::string name = iface.str().c_str();
+		std::string name = iface.str();
 
-		rtnl_link_set_name(new_link, name.c_str());
+		/*rtnl_link_set_name(new_link, name.c_str());
 		rtnl_link_set_flags(new_link, IFF_TAP | IFF_NO_PI);	
 		rtnl_link_set_mtu(new_link, 1500);
 		rtnl_link_set_txqlen(new_link, 1000);
 		rtnl_link_set_type(new_link, "dummy");
 
-		/* delete it first, if it exists */
+		// delete it first, if it exists/
 		if ((rc = rtnl_link_delete(sock_, new_link)) < 0)
 		{
 			if (rc == -NLE_NODEV)
@@ -212,63 +221,28 @@ void NetlinkListener::init_ifaces(const std::string &prefix, const int qty)
 			}
 		}
 		
-		/* clean up */
+		// clean up 
 		rtnl_link_put(new_link);
-
+		*/
 		TapIntf * tapiface = new TapIntf(name, 0 /* TODO */);
-		tapiface->openIfaceFD();
 		interfaces_.push_back(tapiface);
 
 		std::cout << "Link " << name << " added." << std::endl;
 	}
 }
 
-void NetlinkListener::delete_ifaces(const std::string &prefix, const int qty)
+void NetlinkListener::delete_ifaces()
 {
-	/* (delete existing if present and) create links/ifaces */
-	for (int i = 0; i < qty; i++)
+	while (!interfaces_.empty())
 	{
-		int rc;
-		struct rtnl_link * new_link = NULL;
-			
-		if ((new_link = rtnl_link_alloc()) == NULL)
-		{
-			log_and_die("Could not allocate link");
-		}
-
-		std::ostringstream iface;
-		iface << prefix << i;
-		std::string name = iface.str().c_str();
-
-		rtnl_link_set_name(new_link, name.c_str());
-		rtnl_link_set_flags(new_link, IFF_TAP | IFF_NO_PI);	
-		rtnl_link_set_mtu(new_link, 1526);
-		rtnl_link_set_txqlen(new_link, 1000);
-		rtnl_link_set_type(new_link, "dummy");
-
-		/* delete it first, if it exists */
-		if ((rc = rtnl_link_delete(sock_, new_link)) < 0)
-		{
-			if (rc == -NLE_NODEV)
-			{
-				std::cout << "Link " << name << " was not present." << std::endl;
-			}
-			else if (rc == -NLE_PERM || rc == -NLE_NOACCESS)
-			{
-				log_and_die("Insufficient permissions to add/remove tap interfaces. Perhaps you should run as sudo?");
-			}
-			else
-			{
-				std::cout << "Link " << name << " deleted." << std::endl;
-			}
-		}
-		
-		/* clean up */
-		rtnl_link_put(new_link);
-	}	
+		std::cout << "Deleting interface " << interfaces_.back()->getIfaceName() << std::endl;
+		delete interfaces_.back();
+		interfaces_.pop_back();
+	}
+	std::cout << "Deleted all interfaces" << std::endl;
 }
 
-void NetlinkListener::startListening(int pollIntervalMillis)
+void NetlinkListener::startNetlinkListener(int pollIntervalMillis)
 {
 	if (netlink_listener_thread_ == NULL)
 	{
@@ -277,20 +251,28 @@ void NetlinkListener::startListening(int pollIntervalMillis)
 		{
 			log_and_die("Netlink listener thread creation failed");
 		}
-		printf("Started netlink listener thread\r\n");
+		std::cout << "Started netlink listener thread" << std::endl;
 	}
 	else
 	{
-		printf("Tried to start netlink listener thread, but thread was already started\r\n");
+		std::cout << "Tried to start netlink listener thread, but thread was already started" << std::endl;
 	}
 }
 
-void NetlinkListener::stopListening()
+void NetlinkListener::stopNetlinkListener()
 {
 	netlink_listener_thread_->interrupt();
 	delete netlink_listener_thread_;
 	netlink_listener_thread_ = NULL;
-	printf("Stopped netlink listener thread\r\n");
+	std::cout << "Stopped netlink listener thread" << std::endl;
+
+	host_packet_rx_thread_->interrupt();
+	delete host_packet_rx_thread_;
+	host_packet_rx_thread_ = NULL;
+	std::cout << "Stopped packet RX thread" << std::endl;
+
+	delete_ifaces();
+	unregister_w_netlink();
 }
 
 void NetlinkListener::netlink_listener(int pollIntervalMillis, NetlinkListener * nll)

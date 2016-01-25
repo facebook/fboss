@@ -24,8 +24,8 @@ class NetlinkListener
 	NetlinkListener(const std::string &iface_prefix, const int iface_qty); /* add SwSwitch */
 	~NetlinkListener();
 
-	void startListening(int pollIntervalMillis);
-	void stopListening();
+	void startNetlinkListener(int pollIntervalMillis);
+	void stopNetlinkListener();
 
 	private:
 
@@ -35,9 +35,9 @@ class NetlinkListener
 	struct nl_cache * link_cache_;			/* our copy of the system link state */
 	struct nl_cache * route_cache_;			/* our copy of the system route state */
 	struct nl_cache_mngr * manager_;		/* wraps caches and notifies us upon a change */
-	boost::ptr_list<TapIntf> interfaces_;
+	std::list<TapIntf *> interfaces_;
 	boost::thread * netlink_listener_thread_;	/* polls cache manager for updates */
-	boost::thread * host_forwarding_thread_;	/* polls host iface FDs for packets en route to the dataplane */
+	boost::thread * host_packet_rx_thread_;		/* polls host iface FDs for packets en route to the dataplane */
 
 	/* no copy or assign */
 	NetlinkListener(const NetlinkListener &);
@@ -48,14 +48,15 @@ class NetlinkListener
 	void log_and_die_rc(const char * msg, int rc);
 
 	/* initialize data structures */
-	void init();
+	void register_w_netlink();
+	void unregister_w_netlink();
 	void init_dump_params();
 	struct nl_dump_params * get_dump_params();
 
 	/* virtual interfaces */
-	void init_ifaces(const std::string &prefix, const int qty);
-	void delete_ifaces(const std::string &prefix, const int qty);
-	void init_packet_forwarding();
+	void add_ifaces(const std::string &prefix, const int qty);
+	void delete_ifaces();
+	void init_host_packet_rx();
 
 	/* netlink callbacks */
 	static void netlink_link_updated(struct nl_cache * cache, struct nl_object * obj, int idk, void * data);
@@ -63,5 +64,5 @@ class NetlinkListener
 
 	/* cache manager polling thread */
 	static void netlink_listener(int pollIntervalMillis, NetlinkListener * nll);
-	static void host_packet_listener( );
+	static void host_packet_rx_listener();
 };
