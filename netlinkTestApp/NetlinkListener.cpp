@@ -70,7 +70,7 @@ void NetlinkListener::register_w_netlink()
   	}
   	else
   	{
-    		printf("Opened netlink socket\r\n");
+		std::cout << "Opened netlink socket" << std::endl;
   	}
     
   	if ((rc = nl_connect(sock_, NETLINK_ROUTE)) < 0)
@@ -80,7 +80,7 @@ void NetlinkListener::register_w_netlink()
   	}
   	else
   	{
-  	  	printf("Connected to netlink socket\r\n");
+		std::cout << "Connected to netlink socket" << std::endl;
   	}
 
   	if ((rc = rtnl_link_alloc_cache(sock_, AF_UNSPEC, &link_cache_)) < 0)
@@ -90,7 +90,7 @@ void NetlinkListener::register_w_netlink()
   	}
   	else
   	{
-    		printf("Allocated link cache\r\n");
+		std::cout << "Allocated link cache" << std::endl;
   	}
 
   	if ((rc = rtnl_route_alloc_cache(sock_, AF_UNSPEC, 0, &route_cache_)) < 0)
@@ -101,7 +101,7 @@ void NetlinkListener::register_w_netlink()
   	}
   	else
   	{
-    		printf("Allocated route cache\r\n");
+		std::cout << "Allocated route cache" << std::endl;
   	}
 
   	if ((rc = nl_cache_mngr_alloc(NULL, AF_UNSPEC, 0, &manager_)) < 0)
@@ -113,7 +113,7 @@ void NetlinkListener::register_w_netlink()
   	}
   	else
   	{
-    		printf("Allocated cache manager\r\n");
+		std::cout << "Allocated cache manager" << std::endl;
   	}
 
   	nl_cache_mngt_provide(link_cache_);
@@ -138,7 +138,7 @@ void NetlinkListener::register_w_netlink()
   	}
   	else
   	{
-    		printf("Added route cache to cache manager\r\n");
+		std::cout << "Added route cache to cache manager" << std::endl;
   	}
 
   	if ((rc = nl_cache_mngr_add_cache(manager_, link_cache_, netlink_link_updated, this)) < 0)
@@ -151,7 +151,7 @@ void NetlinkListener::register_w_netlink()
   	}
   	else
   	{	
-    		printf("Added link cache to cache manager\r\n");
+		std::cout << "Added link cache to cache manager" << std::endl;
   	}
 }
 
@@ -168,7 +168,6 @@ void NetlinkListener::add_ifaces(const std::string &prefix, const int qty)
 {
 	if (sock_ == 0)
 	{
-		printf("Netlink listener socket not initialized. Initializing...\r\n");
 		register_w_netlink();
 	}
 
@@ -293,11 +292,11 @@ void NetlinkListener::netlink_listener(int pollIntervalMillis, NetlinkListener *
     		{
       			if (rc > 0)
       			{
-				printf("Processed %d updates from netlink\r\n", rc);	
+				std::cout << "Processed " << std::to_string(rc) << " updates from netlink" << std::endl;	
       			}
 			else
 			{
-      				printf("No news from netlink (%d updates to process). Polling...\r\n", rc);
+				std::cout << "No news from netlink (" << std::to_string(rc) << " updates to process). Polling..." << std::endl;
 			}
     		}
   	}
