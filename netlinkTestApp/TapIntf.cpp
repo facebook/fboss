@@ -1,7 +1,7 @@
 #include "TapIntf.h"
 
-TapIntf::TapIntf(const std::string &iface_name, const unsigned short iface_index) : 
-	name_(iface_name), fd_(0), index_(iface_index)
+TapIntf::TapIntf(const std::string &iface_name) : 
+	name_(iface_name), fd_(0), index_(0)
 {
 	bringUpIface();
 }
@@ -73,7 +73,18 @@ int TapIntf::bringUpIface()
 		fd_ = 0;
 		return rc;
 	}
-	
+
+	int sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if ((rc = ioctl(sock, SIOCGIFINDEX, &ifr)) < 0)
+	{
+		std::cout << "Could not fetch index of interface " << name_ << ", errno=" << std::to_string(errno) << ", " << strerror(errno) << std::endl;
+		close(fd_);
+		fd_ = 0;
+		return rc;
+	}
+	index_ = ifr.ifr_ifindex;
+	close(sock);
+
 	if ((flags = fcntl(fd_, F_GETFL, 0)) < 0)
 	{
 		std::cout << "Could not get flags for interface " << name_ << ". fcntl() returned " << flags << std::endl;
@@ -91,6 +102,8 @@ int TapIntf::bringUpIface()
 		fd_ = 0;
 		return rc;
 	}
+
+	std::cout << "Created interface " << name_ << " (index=" << std::to_string(index_) << ")" << std::endl; 
 
 	return 0;
 }

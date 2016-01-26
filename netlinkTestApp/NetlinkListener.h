@@ -9,6 +9,7 @@ extern "C" {
 #include <libnl3/netlink/cache.h>
 #include <libnl3/netlink/route/link.h>
 #include <libnl3/netlink/route/route.h>
+#include <sys/epoll.h>
 }
 /* C++ headers */
 #include <string>
@@ -17,6 +18,9 @@ extern "C" {
 #include <boost/thread.hpp>
 #include <boost/ptr_container/ptr_list.hpp>
 #include "TapIntf.h"
+
+/* Buffer used to read in packets from host */
+#define BUFLEN 65536
 
 class NetlinkListener
 {
@@ -43,6 +47,11 @@ class NetlinkListener
 	NetlinkListener(const NetlinkListener &);
 	NetlinkListener& operator=(const NetlinkListener &);
 
+	inline const std::list<TapIntf *>& get_interfaces()
+	{
+		return interfaces_;
+	};
+
 	/* logging */
 	void log_and_die(const char * msg);
 	void log_and_die_rc(const char * msg, int rc);
@@ -53,16 +62,18 @@ class NetlinkListener
 	void init_dump_params();
 	struct nl_dump_params * get_dump_params();
 
-	/* virtual interfaces */
+	/* interfaces */
 	void add_ifaces(const std::string &prefix, const int qty);
 	void delete_ifaces();
 	void init_host_packet_rx();
+	int read_packet_from_port(NetlinkListener * nll, TapIntf * iface);
+
 
 	/* netlink callbacks */
 	static void netlink_link_updated(struct nl_cache * cache, struct nl_object * obj, int idk, void * data);
 	static void netlink_route_updated(struct nl_cache * cache, struct nl_object * obj, int idk, void * data);
 
 	/* cache manager polling thread */
-	static void netlink_listener(int pollIntervalMillis, NetlinkListener * nll);
-	static void host_packet_rx_listener();
+	static void netlink_listener(const int pollIntervalMillis, NetlinkListener * nll);
+	static void host_packet_rx_listener(NetlinkListener * nll);
 };

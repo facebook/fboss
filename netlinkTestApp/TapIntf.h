@@ -20,7 +20,7 @@ extern "C" {
 
 class TapIntf {
 	public:
-	TapIntf(const std::string &name, const unsigned short index);
+	TapIntf(const std::string &name);
 	~TapIntf();
 
 	inline std::string& getIfaceName()

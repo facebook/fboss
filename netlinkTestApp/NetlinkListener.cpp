@@ -223,7 +223,7 @@ void NetlinkListener::add_ifaces(const std::string &prefix, const int qty)
 		// clean up 
 		rtnl_link_put(new_link);
 		*/
-		TapIntf * tapiface = new TapIntf(name, 0 /* TODO */);
+		TapIntf * tapiface = new TapIntf(name);
 		interfaces_.push_back(tapiface);
 
 		std::cout << "Link " << name << " added." << std::endl;
@@ -256,6 +256,20 @@ void NetlinkListener::startNetlinkListener(int pollIntervalMillis)
 	{
 		std::cout << "Tried to start netlink listener thread, but thread was already started" << std::endl;
 	}
+
+	if (host_packet_rx_thread_ == NULL)
+	{
+		host_packet_rx_thread_ = new boost::thread(host_packet_rx_listener, this);
+		if (host_packet_rx_thread_ == NULL)
+		{
+			log_and_die("Host packet RX thread creation failed");
+		}
+		std::cout << "Started host packet RX thread" << std::endl;
+	}
+	else
+	{
+		std::cout << "Tried to start host packet RX thread, but thread was already started" << std::endl;
+	}
 }
 
 void NetlinkListener::stopNetlinkListener()
@@ -274,7 +288,7 @@ void NetlinkListener::stopNetlinkListener()
 	unregister_w_netlink();
 }
 
-void NetlinkListener::netlink_listener(int pollIntervalMillis, NetlinkListener * nll)
+void NetlinkListener::netlink_listener(const int pollIntervalMillis, NetlinkListener * nll)
 {
 	int rc;
   	while(1)
@@ -301,3 +315,98 @@ void NetlinkListener::netlink_listener(int pollIntervalMillis, NetlinkListener *
     		}
   	}
 }
+
+int NetlinkListener::read_packet_from_port(NetlinkListener * nll, TapIntf * iface)
+{
+	unsigned char buf[BUFLEN];
+	int len;
+
+	/* read one packet per call; assumes level-triggered epoll() */
+	if ((len = read(iface->getIfaceFD(), buf, BUFLEN)) < 0)
+	{
+		if ((errno == EWOULDBLOCK) || (errno == EAGAIN))
+		{
+			return 0;
+		}
+		else
+		{
+			std::cout << "read() failed on iface " << iface->getIfaceName() << ", " << strerror(errno) << std::endl;
+			return -1;
+		}
+	}
+	else if (len > 0)
+	{
+		/* send packet to FBOSS for output on port */
+		std::cout << "Got packet on iface " << iface->getIfaceName() << ". Sending to FBOSS..." << std::endl;
+		return 0;
+	}
+	else /* len == 0 */
+	{
+		std::cout << "Read from iface " << iface->getIfaceName() << " returned EOF (!?) -- ignoring" << std::endl;
+		return 0;
+	}
+}
+
+void NetlinkListener::host_packet_rx_listener(NetlinkListener * nll)
+{
+	int epoll_fd;
+	struct epoll_event * events;
+	struct epoll_event ev;
+	int num_ifaces;
+
+	num_ifaces = nll->get_interfaces().size();
+
+	if ((epoll_fd = epoll_create(num_ifaces)) < 0)
+	{
+		std::cout << "epoll_create() failed: " << strerror(errno) << std::endl;
+		exit(-1);
+	}
+
+	if ((events = (struct epoll_event *) malloc(num_ifaces * sizeof(struct epoll_event))) == NULL)
+	{
+		std::cout << "malloc() failed: " << strerror(errno) << std::endl;
+		exit(-1);
+	}
+
+	for (std::list<TapIntf *>::const_iterator itr = nll->get_interfaces().begin(), 
+			end = nll->get_interfaces().end();
+			itr != end; itr++)
+	{
+		ev.events = EPOLLIN;
+		ev.data.ptr = *itr; /* itr points to a TapIntf */
+		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, (*itr)->getIfaceFD(), &ev) < 0)
+		{
+			std::cout << "epoll_ctl() failed: " << strerror(errno) << std::endl;
+			exit(-1);
+		}
+	}
+
+	std::cout << "Going into epoll() loop" << std::endl;
+
+	int err = 0;
+	int nfds;
+	while (!err)
+	{
+		if ((nfds = epoll_wait(epoll_fd, events, num_ifaces, -1)) < 0)
+		{
+			if (errno == EINTR || errno == EAGAIN)
+			{
+				continue;
+			}
+			else
+			{
+				std::cout << "epoll_wait() failed: " << strerror(errno) << std::endl;
+				exit(-1);
+			}
+		}
+		for (int i = 0; i < nfds; i++)
+		{
+			TapIntf * iface = (TapIntf *) events[i].data.ptr;
+			std::cout << "Got packet on iface " << iface->getIfaceName() << std::endl;
+			err = nll->read_packet_from_port(nll, iface);
+		}
+	}
+
+	std::cout << "Exiting epoll() loop" << std::endl;
+}
+
