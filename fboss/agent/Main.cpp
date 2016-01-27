@@ -59,6 +59,10 @@ DEFINE_int32(thrift_task_expire_timeout, 30,
 DEFINE_bool(tun_intf, true,
             "Create tun interfaces to allow other processes to "
             "send and receive traffic via the switch ports");
+DEFINE_bool(netlink_listener, false,
+            "Create tap interfaces to allow other processes to "
+	    "send and receive traffic via switch ports. The system "
+	    "will be used to define interface IPs and routes.");
 DEFINE_bool(enable_lldp, true,
             "Run LLDP protocol in agent");
 DEFINE_bool(publish_boot_type, true,
@@ -110,6 +114,9 @@ class Initializer {
     SwitchFlags flags = SwitchFlags::DEFAULT;
     if (FLAGS_tun_intf) {
       flags |= SwitchFlags::ENABLE_TUN;
+    }
+    if (FLAGS_netlink_listener) {
+      flags |= SwitchFlags::ENABLE_NETLINK_LISTENER;
     }
     if (FLAGS_enable_lldp) {
       flags |=  SwitchFlags::ENABLE_LLDP;

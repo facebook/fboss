@@ -1,3 +1,5 @@
+#pragma once
+
 /* C headers */
 extern "C" {
 #include <stdlib.h>
@@ -19,16 +21,26 @@ extern "C" {
 #include <boost/ptr_container/ptr_list.hpp>
 #include "TapIntf.h"
 
+#include <folly/io/async/EventBase.h>
+
+#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/PortMap.h"
+
 /* Buffer used to read in packets from host */
 #define BUFLEN 65536
+
+namespace facebook { namespace fboss {
+
+class SwSwitch;
 
 class NetlinkListener
 {
 	public:
-	NetlinkListener(const std::string &iface_prefix, const int iface_qty); /* add SwSwitch */
+	NetlinkListener(SwSwitch * sw, folly::EventBase * evb, std::string &iface_prefix);
 	~NetlinkListener();
 
-	void startNetlinkListener(int pollIntervalMillis);
+	void startNetlinkListener(const int pollIntervalMillis, std::shared_ptr<SwitchState> swState);
 	void stopNetlinkListener();
 
 	private:
@@ -39,9 +51,12 @@ class NetlinkListener
 	struct nl_cache * link_cache_;			/* our copy of the system link state */
 	struct nl_cache * route_cache_;			/* our copy of the system route state */
 	struct nl_cache_mngr * manager_;		/* wraps caches and notifies us upon a change */
+	std::string prefix_;
 	std::list<TapIntf *> interfaces_;
 	boost::thread * netlink_listener_thread_;	/* polls cache manager for updates */
 	boost::thread * host_packet_rx_thread_;		/* polls host iface FDs for packets en route to the dataplane */
+	SwSwitch * sw_;
+	folly::EventBase * evb_;
 
 	/* no copy or assign */
 	NetlinkListener(const NetlinkListener &);
@@ -54,7 +69,7 @@ class NetlinkListener
 
 	/* logging */
 	void log_and_die(const char * msg);
-	void log_and_die_rc(const char * msg, int rc);
+	void log_and_die_rc(const char * msg, const int rc);
 
 	/* initialize data structures */
 	void register_w_netlink();
@@ -77,3 +92,5 @@ class NetlinkListener
 	static void netlink_listener(const int pollIntervalMillis, NetlinkListener * nll);
 	static void host_packet_rx_listener(NetlinkListener * nll);
 };
+
+}} /* facebook::fboss */

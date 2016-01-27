@@ -1,12 +1,17 @@
 #include "NetlinkListener.h"
 
-NetlinkListener::NetlinkListener(const std::string &iface_prefix, const int iface_qty): sock_(0), 
-	link_cache_(0), route_cache_(0), manager_(0), 
-	netlink_listener_thread_(NULL), host_packet_rx_thread_(NULL)
+namespace facebook { namespace fboss {
+
+using folly::EventBase;
+using folly::make_unique;
+
+NetlinkListener::NetlinkListener(SwSwitch * sw, EventBase * evb, std::string &iface_prefix): 
+	sock_(0), link_cache_(0), route_cache_(0), manager_(0), prefix_(iface_prefix),
+	netlink_listener_thread_(NULL), host_packet_rx_thread_(NULL),
+	sw_(sw), evb_(evb)
 {
 	std::cout << "Constructor of NetlinkListener" << std::endl;
 	register_w_netlink();
-	add_ifaces(iface_prefix.c_str(), iface_qty);
 }
 
 NetlinkListener::~NetlinkListener()
@@ -27,7 +32,7 @@ struct nl_dump_params * NetlinkListener::get_dump_params()
 	return &dump_params_;
 }
 
-void NetlinkListener::log_and_die_rc(const char * msg, int rc)
+void NetlinkListener::log_and_die_rc(const char * msg, const int rc)
 {
 	std::cout << std::string(msg) << ". RC=" << std::to_string(rc) << std::endl;
  	exit(1);
@@ -241,8 +246,17 @@ void NetlinkListener::delete_ifaces()
 	std::cout << "Deleted all interfaces" << std::endl;
 }
 
-void NetlinkListener::startNetlinkListener(int pollIntervalMillis)
+void NetlinkListener::startNetlinkListener(const int pollIntervalMillis, std::shared_ptr<SwitchState> swState)
 {
+	if (interfaces_.size() == 0)
+	{
+		add_ifaces(prefix_.c_str(), swState->getPorts()->numPorts());
+	}
+	else
+	{
+		std::cout << "Not creating tap interfaces upon possible listener restart" << std::endl;
+	}
+
 	if (netlink_listener_thread_ == NULL)
 	{
 		netlink_listener_thread_ = new boost::thread(netlink_listener, pollIntervalMillis /* args to function ptr */, this);
@@ -410,3 +424,4 @@ void NetlinkListener::host_packet_rx_listener(NetlinkListener * nll)
 	std::cout << "Exiting epoll() loop" << std::endl;
 }
 
+}} /* facebook::fboss */

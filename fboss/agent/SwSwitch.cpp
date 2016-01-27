@@ -59,7 +59,8 @@ using std::unique_lock;
 using std::unique_ptr;
 
 DEFINE_string(config, "", "The path to the local JSON configuration file");
-
+DEFINE_int32(netlink_listener_poll_seconds, 5, "How often the netlink listener thread will poll for updates");
+DEFINE_string(netlink_listener_tap_prefix, "wedgetap", "The name to give tap interfaces. Index will be appended");
 namespace {
 constexpr auto kSwSwitch = "swSwitch";
 
@@ -302,9 +303,14 @@ void SwSwitch::init(SwitchFlags flags) {
                                       initialState));
   });
 
-  if (flags & SwitchFlags::ENABLE_TUN) {
+  if ((flags & SwitchFlags::ENABLE_TUN) && (flags & SwitchFlags::ENABLE_NETLINK_LISTENER)) {
+    VLOG(0) << "Both tun interfaces and netlink listener cannot be enabled simultaneously. Using tunnel interfaces";
+  }
+  if (flags & SwitchFlags::ENABLE_TUN ) {
     tunMgr_ = folly::make_unique<TunManager>(this, &backgroundEventBase_);
     tunMgr_->startProbe();
+  } else if (flags & SwitchFlags::ENABLE_NETLINK_LISTENER) {
+    netlinkListener_ = folly::make_unique<NetlinkListener>(this, &backgroundEventBase_, FLAGS_netlink_listener_tap_prefix);
   }
 
   startThreads();
@@ -342,6 +348,9 @@ void SwSwitch::initialConfigApplied() {
     // secondaries as well leading to errors, t4746261 is tracking this.
     tunMgr_->startObservingUpdates();
   }
+  if (netlinkListener_) {
+    netlinkListener_->startNetlinkListener(FLAGS_netlink_listener_poll_seconds * 1000, getState()); /* need sec --> ms */
+  } 
 
   if (lldpManager_) {
       lldpManager_->start();

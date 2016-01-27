@@ -16,6 +16,7 @@
 #include "fboss/agent/Transceiver.h"
 #include "fboss/agent/TransceiverMap.h"
 #include "fboss/agent/gen-cpp/switch_config_types.h"
+#include "fboss/agent/NetlinkListener.h"
 
 #include <folly/SpinLock.h>
 #include <folly/IntrusiveList.h>
@@ -49,12 +50,14 @@ class StateDelta;
 class NeighborUpdater;
 class StateObserver;
 class TunManager;
+class NetlinkListener;
 
 enum SwitchFlags : int {
   DEFAULT = 0,
   ENABLE_TUN = 1,
   ENABLE_LLDP = 2,
-  PUBLISH_BOOTTYPE = 4
+  PUBLISH_BOOTTYPE = 4,
+  ENABLE_NETLINK_LISTENER = 8
 };
 inline SwitchFlags operator|=(SwitchFlags& a, const SwitchFlags b) {
   return
@@ -626,11 +629,20 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<Platform> platform_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
   folly::ThreadLocalPtr<SwitchStats, SwSwitch> stats_;
+  
   /**
    * The object to sync the interfaces to the system. This pointer could
    * be nullptr if interface sync is not enabled during init()
    */
   std::unique_ptr<TunManager> tunMgr_;
+  
+  /**
+   * The object that lets the system control the switch. Any routes
+   * or interface configurations set on the system e.g. via ifconfig
+   * or ip link/addr will be monitored and updated in the SwSwitch
+   * to create a new SwitchState.
+   */
+  std::unique_ptr<NetlinkListener> netlinkListener_;
 
   /*
    * A list of pending state updates to be applied.
