@@ -108,18 +108,16 @@ int TapIntf::bring_up_iface()
 	return 0;
 }
 
-int TapIntf::take_down_iface()
+void TapIntf::take_down_iface()
 {
 	int rc;
-
 	if (fd_ == 0)
 	{
 		std::cout << "Interface " << name_ << " already removed" << std::endl;
-		return -1;
 	}
 	else if ((rc = close(fd_)) < 0)
 	{
-		std::cout << "Error closing file descriptor for interface " << name_ << std::endl;
+		std::cout << "Error closing file descriptor for interface " << name_ << ", " << strerror(errno) << std::endl;
 	}
 	else
 	{

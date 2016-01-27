@@ -21,6 +21,7 @@ include_directories(${CMAKE_BINARY_DIR}/gen)
 include_directories(${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2)
 include_directories(${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2)
 include_directories(${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2)
+include_directories(/usr/include/libnl3)
 
 # System libraries
 find_library(GLOG glog)
@@ -40,6 +41,9 @@ find_library(SSL ssl)
 find_library(CRYPTO crypto)
 find_library(DL dl)
 find_library(EVENT event)
+find_library(NETLINK nl-3)
+find_library(NETLINKGENL nl-genl-3)
+find_library(NETLINKROUTE nl-route-3)
 
 # External libraries that are not generally available. Look in external/
 # for these. This is where getdeps.sh will toss them.
@@ -198,6 +202,8 @@ add_library(fboss_agent STATIC
     fboss/agent/TunManager.cpp
     fboss/agent/UDPHeader.cpp
     fboss/agent/Utils.cpp
+    fboss/agent/NetlinkListener.cpp
+    fboss/agent/TapIntf.cpp
 
     fboss/lib/usb/BaseWedgeI2CBus.cpp
     fboss/lib/usb/BaseWedgeI2CBus.h
@@ -264,6 +270,9 @@ target_link_libraries(fboss_agent
     ${DOUBLECONV}
     ${DL}
     ${EVENT}
+    ${NETLINK}
+    ${NETLINKGENL}
+    ${NETLINKROUTE}
 )
 
 find_program(THRIFT1 thrift1)

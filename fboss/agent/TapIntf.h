@@ -45,7 +45,7 @@ class TapIntf {
 	unsigned short index_;
 
 	int bring_up_iface();
-	int take_down_iface();
+	void take_down_iface();
 
 	/* Disallow copy */
 	TapIntf(const TapIntf &);
