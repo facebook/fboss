@@ -59,9 +59,47 @@ void NetlinkListener::netlink_route_updated(struct nl_cache * cache, struct nl_o
 	struct rtnl_route * route = (struct rtnl_route *) obj;
 	NetlinkListener * nll = (NetlinkListener *) data;
 	std::cout << "Route cache callback was triggered:" << std::endl;
-
-	
 	//nl_cache_dump(cache, nll->get_dump_params());
+	
+	const uint8_t family = rtnl_route_get_family(route);
+	bool is_ipv4 = true;
+	switch (family)
+	{
+		case AF_INET:
+			is_ipv4 = true;
+			break;
+		case AF_INET6:
+			is_ipv4 = false;
+			break;
+		default:
+			std::cout << "Unknown address family " << std::to_string(family) << std::endl;
+			return;
+	}
+
+	const uint8_t str_len = is_ipv4 ? INET_ADDRSTRLEN : INET6_ADDRSTRLEN;
+	char tmp[str_len];
+	folly::IPAddress network(nl_addr2str(rtnl_route_get_dst(route), tmp, str_len));
+	const uint8_t mask = nl_addr_get_prefixlen(rtnl_route_get_dst(route));
+
+	RouteNextHops fbossNextHops;
+	fbossNextHops.reserve(1); // TODO
+
+	const struct nl_list_head * nhl = rtnl_route_get_nexthops(route);
+	if (nhl == NULL || nhl->next == NULL || rtnl_route_nh_get_gateway((rtnl_nexthop *) nhl->next) == NULL) {
+		std::cout << "Could not find next hop for route: " << std::endl;
+		nl_object_dump((nl_object *) route, nll->get_dump_params());
+		return;
+	}
+	else
+	{
+		const int ifindex = rtnl_route_nh_get_ifindex((rtnl_nexthop *) nhl->next);
+		struct nl_addr * addr = rtnl_route_nh_get_gateway((rtnl_nexthop *) nhl->next);
+		folly::IPAddress nextHop(nl_addr2str(addr, tmp, str_len));
+		fbossNextHops.emplace(nextHop);
+	}
+
+	is_ipv4 ? nll->sw_->stats()->addRouteV4() : nll->sw_->stats()->addRouteV6();
+
 }
 
 void NetlinkListener::register_w_netlink()

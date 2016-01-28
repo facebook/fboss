@@ -27,6 +27,11 @@ extern "C" {
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/Route.h"
+#include "fboss/agent/state/RouteTable.h"
+#include "fboss/agent/state/RouteTableRib.h"
+#include "fboss/agent/state/RouteUpdater.h"
+#include "fboss/agent/SwitchStats.h"
 
 /* Buffer used to read in packets from host */
 #define BUFLEN 65536
