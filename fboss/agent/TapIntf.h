@@ -18,9 +18,12 @@ extern "C" {
 #include <sstream>
 #include <iostream>
 
+#include "fboss/agent/types.h"
+namespace facebook { namespace fboss {
+
 class TapIntf {
 	public:
-	TapIntf(const std::string &name);
+	TapIntf(const std::string &name, RouterID rid);
 	~TapIntf();
 
 	inline std::string& getIfaceName()
@@ -35,6 +38,10 @@ class TapIntf {
 	{
 		return index_;
 	};
+	inline RouterID getIfaceRouterID()
+	{
+		return rid_;
+	};
 
 	bool sendPacketToHost(const unsigned char * data, int size);
 
@@ -43,6 +50,7 @@ class TapIntf {
 	std::string name_;
 	int fd_;
 	unsigned short index_;
+	RouterID rid_;
 
 	int bring_up_iface();
 	void take_down_iface();
@@ -51,3 +59,5 @@ class TapIntf {
 	TapIntf(const TapIntf &);
 	TapIntf& operator=(const TapIntf &);
 };
+
+}} /* facebook::fboss */

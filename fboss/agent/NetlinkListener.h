@@ -18,11 +18,12 @@ extern "C" {
 #include <iostream>
 #include <memory> /* std::unique_ptr */
 #include <boost/thread.hpp>
-#include <boost/ptr_container/ptr_list.hpp>
+#include <boost/ptr_container/ptr_map.hpp>
 #include "TapIntf.h"
 
 #include <folly/io/async/EventBase.h>
 
+#include "fboss/agent/types.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/PortMap.h"
@@ -52,7 +53,7 @@ class NetlinkListener
 	struct nl_cache * route_cache_;			/* our copy of the system route state */
 	struct nl_cache_mngr * manager_;		/* wraps caches and notifies us upon a change */
 	std::string prefix_;
-	std::list<TapIntf *> interfaces_;
+	std::map<int, TapIntf *> interfaces_by_ifindex_;
 	boost::thread * netlink_listener_thread_;	/* polls cache manager for updates */
 	boost::thread * host_packet_rx_thread_;		/* polls host iface FDs for packets en route to the dataplane */
 	SwSwitch * sw_;
@@ -62,9 +63,9 @@ class NetlinkListener
 	NetlinkListener(const NetlinkListener &);
 	NetlinkListener& operator=(const NetlinkListener &);
 
-	inline const std::list<TapIntf *>& get_interfaces()
+	inline const std::map<int, TapIntf *>& get_interfaces()
 	{
-		return interfaces_;
+		return interfaces_by_ifindex_;
 	};
 
 	/* logging */

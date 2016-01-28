@@ -60,6 +60,7 @@ void NetlinkListener::netlink_route_updated(struct nl_cache * cache, struct nl_o
 	NetlinkListener * nll = (NetlinkListener *) data;
 	std::cout << "Route cache callback was triggered:" << std::endl;
 
+	
 	//nl_cache_dump(cache, nll->get_dump_params());
 }
 
@@ -176,79 +177,39 @@ void NetlinkListener::add_ifaces(const std::string &prefix, const int qty)
 		register_w_netlink();
 	}
 
-	/* (delete existing if present and) create links/ifaces */
 	for (int i = 0; i < qty; i++)
 	{
-		int rc;
-		/*struct rtnl_link * new_link = NULL;
-			
-		if ((new_link = rtnl_link_alloc()) == NULL)
-		{
-			log_and_die("Could not allocate link");
-		}
-		*/
 		std::ostringstream iface;
 		iface << prefix << i;
-		std::string name = iface.str();
 
-		/*rtnl_link_set_name(new_link, name.c_str());
-		rtnl_link_set_flags(new_link, IFF_TAP | IFF_NO_PI);	
-		rtnl_link_set_mtu(new_link, 1500);
-		rtnl_link_set_txqlen(new_link, 1000);
-		rtnl_link_set_type(new_link, "dummy");
+		TapIntf * tapiface = new TapIntf(iface.str(), (RouterID) i); 
+		interfaces_by_ifindex_[tapiface->getIfaceIndex()] = tapiface;
 
-		// delete it first, if it exists/
-		if ((rc = rtnl_link_delete(sock_, new_link)) < 0)
-		{
-			if (rc == -NLE_NODEV)
-			{
-				std::cout << "Link " << name << " was not present." << std::endl;
-			}
-			else if (rc == -NLE_PERM || rc == -NLE_NOACCESS)
-			{
-				log_and_die("Insufficient permissions to add/remove tap interfaces. Perhaps you should run as sudo?");
-			}
-			else
-			{
-				std::cout << "Link " << name << " was already present. Deleted." << std::endl;
-			}
-		}
-		if ((rc = rtnl_link_add(sock_, new_link, NLM_F_CREATE)) < 0)
-		{
-			if (rc == -NLE_PERM || rc == -NLE_NOACCESS)
-			{
-				log_and_die("Insufficient permissions to add/remove tap interfaces. Perhaps you should run as sudo?");
-			}
-			else 
-			{
-				log_and_die_rc("Unable to create interface", rc);
-			}
-		}
-		
-		// clean up 
-		rtnl_link_put(new_link);
-		*/
-		TapIntf * tapiface = new TapIntf(name);
-		interfaces_.push_back(tapiface);
-
-		std::cout << "Link " << name << " added." << std::endl;
+		std::cout << "Link " << iface.str() << " added." << std::endl;
 	}
 }
 
 void NetlinkListener::delete_ifaces()
 {
-	while (!interfaces_.empty())
+
+	while (!interfaces_by_ifindex_.empty())
 	{
-		std::cout << "Deleting interface " << interfaces_.back()->getIfaceName() << std::endl;
-		delete interfaces_.back();
-		interfaces_.pop_back();
+		TapIntf * iface = interfaces_by_ifindex_.end()->second; 
+		std::cout << "Deleting interface " << iface->getIfaceName() << std::endl;
+		interfaces_by_ifindex_.erase(iface->getIfaceIndex());
+		delete iface;
+	}
+	if (!interfaces_by_ifindex_.empty())
+	{
+		std::cout << "Should have no interfaces left. Bug? Clearing..." << std::endl;
+		interfaces_by_ifindex_.clear();
 	}
 	std::cout << "Deleted all interfaces" << std::endl;
 }
 
 void NetlinkListener::startNetlinkListener(const int pollIntervalMillis, std::shared_ptr<SwitchState> swState)
 {
-	if (interfaces_.size() == 0)
+	if (interfaces_by_ifindex_.size() == 0)
 	{
 		add_ifaces(prefix_.c_str(), swState->getPorts()->numPorts());
 	}
@@ -382,13 +343,13 @@ void NetlinkListener::host_packet_rx_listener(NetlinkListener * nll)
 		exit(-1);
 	}
 
-	for (std::list<TapIntf *>::const_iterator itr = nll->get_interfaces().begin(), 
+	for (std::map<int, TapIntf *>::const_iterator itr = nll->get_interfaces().begin(), 
 			end = nll->get_interfaces().end();
 			itr != end; itr++)
 	{
 		ev.events = EPOLLIN;
-		ev.data.ptr = *itr; /* itr points to a TapIntf */
-		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, (*itr)->getIfaceFD(), &ev) < 0)
+		ev.data.ptr = itr->second; /* itr points to a TapIntf */
+		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, (itr->second)->getIfaceFD(), &ev) < 0)
 		{
 			std::cout << "epoll_ctl() failed: " << strerror(errno) << std::endl;
 			exit(-1);

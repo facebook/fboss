@@ -1,7 +1,9 @@
 #include "TapIntf.h"
 
-TapIntf::TapIntf(const std::string &iface_name) : 
-	name_(iface_name), fd_(0), index_(0)
+namespace facebook { namespace fboss {
+
+TapIntf::TapIntf(const std::string &iface_name, RouterID rid) : 
+	name_(iface_name), fd_(0), index_(0), rid_(rid)
 {
 	bring_up_iface();
 }
@@ -151,3 +153,5 @@ bool TapIntf::sendPacketToHost(const unsigned char * data, int size)
 		return true;
 	}
 }
+
+}} /* facebook::fboss */
