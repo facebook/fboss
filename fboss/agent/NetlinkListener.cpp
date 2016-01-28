@@ -44,7 +44,7 @@ void NetlinkListener::log_and_die(const char * msg)
 	exit(1);
 }
 
-void NetlinkListener::netlink_link_updated(struct nl_cache * cache, struct nl_object * obj, int idk, void * data)
+void NetlinkListener::netlink_link_updated(struct nl_cache * cache, struct nl_object * obj, int nl_operation, void * data)
 {
 	struct rtnl_link * link = (struct rtnl_link *) obj;
 	NetlinkListener * nll = (NetlinkListener *) data;
@@ -54,7 +54,7 @@ void NetlinkListener::netlink_link_updated(struct nl_cache * cache, struct nl_ob
         //nl_cache_dump(cache, nll->get_dump_params());
 }
 
-void NetlinkListener::netlink_route_updated(struct nl_cache * cache, struct nl_object * obj, int idk, void * data)
+void NetlinkListener::netlink_route_updated(struct nl_cache * cache, struct nl_object * obj, int nl_operation, void * data)
 {
 	struct rtnl_route * route = (struct rtnl_route *) obj;
 	NetlinkListener * nll = (NetlinkListener *) data;
@@ -110,38 +110,83 @@ void NetlinkListener::netlink_route_updated(struct nl_cache * cache, struct nl_o
 		folly::IPAddress nextHop(nl_addr2str(addr, tmp, str_len));
 		fbossNextHops.emplace(nextHop);
 	}
+	
+	switch (nl_operation)
+	{
+		case NL_ACT_NEW:
+			{
+			is_ipv4 ? nll->sw_->stats()->addRouteV4() : nll->sw_->stats()->addRouteV6();
 
-	is_ipv4 ? nll->sw_->stats()->addRouteV4() : nll->sw_->stats()->addRouteV6();
+			/* Perform the update */
+			auto addFn = [=](const std::shared_ptr<SwitchState>& state)
+			{
+				RouteUpdater updater(state->getRouteTables());
+				if (fbossNextHops.size())
+				{
+					updater.addRoute(routerId, network, mask, std::move(fbossNextHops));
+				}
+				else
+				{
+					updater.addRoute(routerId, network, mask, RouteForwardAction::DROP);
+				}
+				auto newRt = updater.updateDone();
+				if (!newRt)
+				{
+					return std::shared_ptr<SwitchState>();
+				}
+				auto newState = state->clone();
+				newState->resetRouteTables(std::move(newRt));
+				return newState;
+			};
 
-	/* Perform the update */
-	auto updateFn = [=](const std::shared_ptr<SwitchState>& state) {
-		RouteUpdater updater(state->getRouteTables());
-		if (fbossNextHops.size())
-		{
-			updater.addRoute(routerId, network, mask, std::move(fbossNextHops));
-		}
-		else
-		{
-			updater.addRoute(routerId, network, mask, RouteForwardAction::DROP);
-		}
-		auto newRt = updater.updateDone();
-		if (!newRt)
-		{
-			return std::shared_ptr<SwitchState>();
-		}
-		auto newState = state->clone();
-		newState->resetRouteTables(std::move(newRt));
-		return newState;
-	};
-	nll->sw_->updateStateBlocking("add route", updateFn);
+			nll->sw_->updateStateBlocking("add route", addFn);
+			}
+			break; /* NL_ACT_NEW */
+		case NL_ACT_DEL:
+			{
+			is_ipv4 ? nll->sw_->stats()->delRouteV4() : nll->sw_->stats()->delRouteV6();
+			
+			/* Perform the update */
+			auto delFn = [=](const std::shared_ptr<SwitchState>& state) 
+			{
+				RouteUpdater updater(state->getRouteTables());
+				updater.delRoute(routerId, network, mask);
+				auto newRt = updater.updateDone();
+				if (!newRt)
+				{
+					return std::shared_ptr<SwitchState>();
+				}
+				auto newState = state->clone();
+				newState->resetRouteTables(std::move(newRt));
+				return newState;
+			};
+
+			nll->sw_->updateStateBlocking("delete route", delFn);
+			}
+			break; /* NL_ACT_DEL */
+		case NL_ACT_CHANGE:
+			std::cout << "Not updating state due to unimplemented NL_ACT_CHANGE netlink operation" << std::endl;
+			break; /* NL_ACT_CHANGE */
+		default:
+			std::cout << "Not updating state due to unknown netlink operation " << std::to_string(nl_operation) << std::endl;
+			break; /* NL_ACT_??? */
+	}
 	return;
 }
 
-void NetlinkListener::netlink_neighbor_updated(struct nl_cache * cache, struct nl_object * obj, int idk, void * data)
+void NetlinkListener::netlink_neighbor_updated(struct nl_cache * cache, struct nl_object * obj, int nl_operation, void * data)
 {
 	struct rtnl_neigh * neigh = (struct rtnl_neigh *) obj;
 	NetlinkListener * nll = (NetlinkListener *) data;
 	std::cout << "Neighbor cache callback was triggered:" << std::endl;
+	//nl_cache_dump(cache, nll->get_dump_params());
+}
+
+void NetlinkListener::netlink_address_updated(struct nl_cache * cache, struct nl_object * obj, int nl_operation, void * data)
+{
+	struct rtnl_addr * addr = (struct rtnl_addr *) obj;
+	NetlinkListener * nll = (NetlinkListener *) data;
+	std::cout << "Address cache callback was triggered:" << std::endl;
 	//nl_cache_dump(cache, nll->get_dump_params());
 }
 
@@ -189,7 +234,6 @@ void NetlinkListener::register_w_netlink()
   	{
 		std::cout << "Allocated route cache" << std::endl;
   	}
-
 	
   	if ((rc = rtnl_neigh_alloc_cache(sock_, &neigh_cache_)) < 0)
   	{
@@ -200,7 +244,16 @@ void NetlinkListener::register_w_netlink()
   	{
 		std::cout << "Allocated neighbor cache" << std::endl;
   	}
-
+  	
+	if ((rc = rtnl_addr_alloc_cache(sock_, &addr_cache_)) < 0)
+  	{
+    		unregister_w_netlink();
+		log_and_die_rc("Allocating address cache failed", rc);
+  	}
+  	else
+  	{
+		std::cout << "Allocated address cache" << std::endl;
+  	}
 	
   	if ((rc = nl_cache_mngr_alloc(NULL, AF_UNSPEC, 0, &manager_)) < 0)
   	{
@@ -215,6 +268,7 @@ void NetlinkListener::register_w_netlink()
   	nl_cache_mngt_provide(link_cache_);
 	nl_cache_mngt_provide(route_cache_);
 	nl_cache_mngt_provide(neigh_cache_);
+	nl_cache_mngt_provide(addr_cache_);
 
 	/*
 	printf("Initial Cache Manager:\r\n");
@@ -255,6 +309,15 @@ void NetlinkListener::register_w_netlink()
 		std::cout << "Added neighbor cache to cache manager" << std::endl;
   	}
 
+  	if ((rc = nl_cache_mngr_add_cache(manager_, addr_cache_, netlink_address_updated, this)) < 0)
+  	{
+    		unregister_w_netlink();
+    		log_and_die_rc("Failed to add address cache to cache manager", rc);
+  	}
+  	else
+  	{	
+		std::cout << "Added address cache to cache manager" << std::endl;
+  	}
 }
 
 void NetlinkListener::unregister_w_netlink()
@@ -264,6 +327,7 @@ void NetlinkListener::unregister_w_netlink()
 	nl_cache_free(link_cache_);
     	nl_cache_free(route_cache_);
     	nl_cache_free(neigh_cache_);
+	nl_cache_free(addr_cache_);
 	nl_socket_free(sock_);
 	std::cout << "Unregistered with netlink" << std::endl;
 }
