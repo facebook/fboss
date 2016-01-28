@@ -42,12 +42,10 @@ class UnresolvedNhopsProber : private folly::AsyncTimeout {
     // Probe every 5 secs (make it faster ?)
     interval_(5) {}
 
-  static void start(void* arg) {
-    auto me = static_cast<UnresolvedNhopsProber*>(arg);
+  static void start(UnresolvedNhopsProber* me) {
     me->scheduleTimeout(me->interval_);
   }
-  static void stop(void* arg) {
-    auto me = static_cast<UnresolvedNhopsProber*>(arg);
+  static void stop(UnresolvedNhopsProber* me) {
     delete me;
   }
 
@@ -121,8 +119,8 @@ class NeighborUpdaterImpl : private folly::AsyncTimeout {
     return sw_;
   }
 
-  static void start(void* arg);
-  static void stop(void* arg);
+  static void start(NeighborUpdaterImpl* me);
+  static void stop(NeighborUpdaterImpl* me);
 
   void stateChanged(const StateDelta& delta);
 
@@ -160,13 +158,11 @@ NeighborUpdaterImpl::NeighborUpdaterImpl(VlanID vlan, SwSwitch *sw,
     interval_(1) {
 }
 
-void NeighborUpdaterImpl::start(void* arg) {
-  auto* ntu = static_cast<NeighborUpdaterImpl*>(arg);
+void NeighborUpdaterImpl::start(NeighborUpdaterImpl* ntu) {
   ntu->scheduleTimeout(ntu->interval_);
 }
 
-void NeighborUpdaterImpl::stop(void* arg) {
-  auto* ntu = static_cast<NeighborUpdaterImpl*>(arg);
+void NeighborUpdaterImpl::stop(NeighborUpdaterImpl* ntu) {
   delete ntu;
 }
 

@@ -81,8 +81,8 @@ class IPv6RAImpl : private folly::AsyncTimeout {
     return sw_;
   }
 
-  static void start(void* arg);
-  static void stop(void* arg);
+  static void start(IPv6RAImpl* ra);
+  static void stop(IPv6RAImpl* ra);
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -113,13 +113,11 @@ IPv6RAImpl::IPv6RAImpl(SwSwitch* sw,
   initPacket(intf);
 }
 
-void IPv6RAImpl::start(void* arg) {
-  auto* ra = static_cast<IPv6RAImpl*>(arg);
+void IPv6RAImpl::start(IPv6RAImpl* ra) {
   ra->scheduleTimeout(ra->interval_);
 }
 
-void IPv6RAImpl::stop(void* arg) {
-  auto* ra = static_cast<IPv6RAImpl*>(arg);
+void IPv6RAImpl::stop(IPv6RAImpl* ra) {
   /*
    * Just before going down we send one last route
    * advertisement to avoid RA's timing out while
