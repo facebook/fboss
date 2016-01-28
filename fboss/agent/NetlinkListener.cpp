@@ -84,6 +84,8 @@ void NetlinkListener::netlink_route_updated(struct nl_cache * cache, struct nl_o
 	RouteNextHops fbossNextHops;
 	fbossNextHops.reserve(1); // TODO
 
+	RouterID routerId;
+
 	const struct nl_list_head * nhl = rtnl_route_get_nexthops(route);
 	if (nhl == NULL || nhl->next == NULL || rtnl_route_nh_get_gateway((rtnl_nexthop *) nhl->next) == NULL) {
 		std::cout << "Could not find next hop for route: " << std::endl;
@@ -93,6 +95,17 @@ void NetlinkListener::netlink_route_updated(struct nl_cache * cache, struct nl_o
 	else
 	{
 		const int ifindex = rtnl_route_nh_get_ifindex((rtnl_nexthop *) nhl->next);
+		std::map<int, TapIntf *>::const_iterator itr = nll->get_interfaces().find(ifindex);
+		if (itr == nll->get_interfaces().end())
+		{
+			std::cout << "Interface index " << std::to_string(ifindex) << " not found" << std::endl;
+			return;
+		}
+		
+		routerId = itr->second->getIfaceRouterID();
+		std::cout << "Interface index " << std::to_string(ifindex) << " located on RouterID " 
+			<< std::to_string(routerId) << ", iface name " << itr->second->getIfaceName() << std::endl;
+
 		struct nl_addr * addr = rtnl_route_nh_get_gateway((rtnl_nexthop *) nhl->next);
 		folly::IPAddress nextHop(nl_addr2str(addr, tmp, str_len));
 		fbossNextHops.emplace(nextHop);
@@ -100,6 +113,36 @@ void NetlinkListener::netlink_route_updated(struct nl_cache * cache, struct nl_o
 
 	is_ipv4 ? nll->sw_->stats()->addRouteV4() : nll->sw_->stats()->addRouteV6();
 
+	/* Perform the update */
+	auto updateFn = [=](const std::shared_ptr<SwitchState>& state) {
+		RouteUpdater updater(state->getRouteTables());
+		if (fbossNextHops.size())
+		{
+			updater.addRoute(routerId, network, mask, std::move(fbossNextHops));
+		}
+		else
+		{
+			updater.addRoute(routerId, network, mask, RouteForwardAction::DROP);
+		}
+		auto newRt = updater.updateDone();
+		if (!newRt)
+		{
+			return std::shared_ptr<SwitchState>();
+		}
+		auto newState = state->clone();
+		newState->resetRouteTables(std::move(newRt));
+		return newState;
+	};
+	nll->sw_->updateStateBlocking("add route", updateFn);
+	return;
+}
+
+void NetlinkListener::netlink_neighbor_updated(struct nl_cache * cache, struct nl_object * obj, int idk, void * data)
+{
+	struct rtnl_neigh * neigh = (struct rtnl_neigh *) obj;
+	NetlinkListener * nll = (NetlinkListener *) data;
+	std::cout << "Neighbor cache callback was triggered:" << std::endl;
+	//nl_cache_dump(cache, nll->get_dump_params());
 }
 
 void NetlinkListener::register_w_netlink()
@@ -119,7 +162,7 @@ void NetlinkListener::register_w_netlink()
     
   	if ((rc = nl_connect(sock_, NETLINK_ROUTE)) < 0)
   	{
-   		nl_socket_free(sock_);
+   		unregister_w_netlink();
     		log_and_die_rc("Connecting to netlink socket failed", rc);
   	}
   	else
@@ -129,7 +172,7 @@ void NetlinkListener::register_w_netlink()
 
   	if ((rc = rtnl_link_alloc_cache(sock_, AF_UNSPEC, &link_cache_)) < 0)
   	{
-    		nl_socket_free(sock_);
+    		unregister_w_netlink();
     		log_and_die_rc("Allocating link cache failed", rc);
   	}
   	else
@@ -139,21 +182,30 @@ void NetlinkListener::register_w_netlink()
 
   	if ((rc = rtnl_route_alloc_cache(sock_, AF_UNSPEC, 0, &route_cache_)) < 0)
   	{
-    		nl_cache_free(link_cache_);
-    		nl_socket_free(sock_);
-    		log_and_die_rc("Allocating route cache failed", rc);
+    		unregister_w_netlink();
+		log_and_die_rc("Allocating route cache failed", rc);
   	}
   	else
   	{
 		std::cout << "Allocated route cache" << std::endl;
   	}
 
+	
+  	if ((rc = rtnl_neigh_alloc_cache(sock_, &neigh_cache_)) < 0)
+  	{
+    		unregister_w_netlink();
+		log_and_die_rc("Allocating neighbor cache failed", rc);
+  	}
+  	else
+  	{
+		std::cout << "Allocated neighbor cache" << std::endl;
+  	}
+
+	
   	if ((rc = nl_cache_mngr_alloc(NULL, AF_UNSPEC, 0, &manager_)) < 0)
   	{
-    		nl_cache_free(link_cache_);
-    		nl_cache_free(route_cache_);
-    		nl_socket_free(sock_);
-    		log_and_die_rc("Failed to allocate cache manager", rc);
+    		unregister_w_netlink();
+		log_and_die_rc("Failed to allocate cache manager", rc);
   	}
   	else
   	{
@@ -162,7 +214,8 @@ void NetlinkListener::register_w_netlink()
 
   	nl_cache_mngt_provide(link_cache_);
 	nl_cache_mngt_provide(route_cache_);
-	
+	nl_cache_mngt_provide(neigh_cache_);
+
 	/*
 	printf("Initial Cache Manager:\r\n");
   	nl_cache_mngr_info(manager_, get_dump_params());
@@ -174,11 +227,8 @@ void NetlinkListener::register_w_netlink()
 
   	if ((rc = nl_cache_mngr_add_cache(manager_, route_cache_, netlink_route_updated, this)) < 0)
   	{
-    		nl_cache_mngr_free(manager_);
-    		nl_cache_free(link_cache_);
-    		nl_cache_free(route_cache_);
-    		nl_socket_free(sock_);
-    		log_and_die_rc("Failed to add route cache to cache manager", rc);
+    		unregister_w_netlink();
+		log_and_die_rc("Failed to add route cache to cache manager", rc);
   	}
   	else
   	{
@@ -187,24 +237,34 @@ void NetlinkListener::register_w_netlink()
 
   	if ((rc = nl_cache_mngr_add_cache(manager_, link_cache_, netlink_link_updated, this)) < 0)
   	{
-    	nl_cache_mngr_free(manager_);
-    	nl_cache_free(link_cache_);
-    	nl_cache_free(route_cache_);
-    	nl_socket_free(sock_);
-    	log_and_die_rc("Failed to add link cache to cache manager", rc);
+    		unregister_w_netlink();
+    		log_and_die_rc("Failed to add link cache to cache manager", rc);
   	}
   	else
   	{	
 		std::cout << "Added link cache to cache manager" << std::endl;
   	}
+
+  	if ((rc = nl_cache_mngr_add_cache(manager_, neigh_cache_, netlink_neighbor_updated, this)) < 0)
+  	{
+    		unregister_w_netlink();
+    		log_and_die_rc("Failed to add neighbor cache to cache manager", rc);
+  	}
+  	else
+  	{	
+		std::cout << "Added neighbor cache to cache manager" << std::endl;
+  	}
+
 }
 
 void NetlinkListener::unregister_w_netlink()
 {
+	/* these will fail silently/will log error (which is okay) if it's not allocated in the first place */
 	nl_cache_mngr_free(manager_);
 	nl_cache_free(link_cache_);
     	nl_cache_free(route_cache_);
-    	nl_socket_free(sock_);
+    	nl_cache_free(neigh_cache_);
+	nl_socket_free(sock_);
 	std::cout << "Unregistered with netlink" << std::endl;
 }
 

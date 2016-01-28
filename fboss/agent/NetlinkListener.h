@@ -11,6 +11,7 @@ extern "C" {
 #include <libnl3/netlink/cache.h>
 #include <libnl3/netlink/route/link.h>
 #include <libnl3/netlink/route/route.h>
+#include <libnl3/netlink/route/neighbour.h>
 #include <sys/epoll.h>
 }
 /* C++ headers */
@@ -49,6 +50,11 @@ class NetlinkListener
 	void startNetlinkListener(const int pollIntervalMillis, std::shared_ptr<SwitchState> swState);
 	void stopNetlinkListener();
 
+	inline const std::map<int, TapIntf *>& get_interfaces()
+	{
+		return interfaces_by_ifindex_;
+	};
+
 	private:
 
 	/* variables */
@@ -56,6 +62,7 @@ class NetlinkListener
 	struct nl_sock * sock_; 			/* pipe to RX/TX netlink messages */
 	struct nl_cache * link_cache_;			/* our copy of the system link state */
 	struct nl_cache * route_cache_;			/* our copy of the system route state */
+	struct nl_cache * neigh_cache_;			/* our copy of the system ARP table */
 	struct nl_cache_mngr * manager_;		/* wraps caches and notifies us upon a change */
 	std::string prefix_;
 	std::map<int, TapIntf *> interfaces_by_ifindex_;
@@ -67,11 +74,6 @@ class NetlinkListener
 	/* no copy or assign */
 	NetlinkListener(const NetlinkListener &);
 	NetlinkListener& operator=(const NetlinkListener &);
-
-	inline const std::map<int, TapIntf *>& get_interfaces()
-	{
-		return interfaces_by_ifindex_;
-	};
 
 	/* logging */
 	void log_and_die(const char * msg);
@@ -93,6 +95,7 @@ class NetlinkListener
 	/* netlink callbacks */
 	static void netlink_link_updated(struct nl_cache * cache, struct nl_object * obj, int idk, void * data);
 	static void netlink_route_updated(struct nl_cache * cache, struct nl_object * obj, int idk, void * data);
+	static void netlink_neighbor_updated(struct nl_cache * cache, struct nl_object * obj, int idk, void * data);
 
 	/* cache manager polling thread */
 	static void netlink_listener(const int pollIntervalMillis, NetlinkListener * nll);
