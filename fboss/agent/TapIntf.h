@@ -23,7 +23,7 @@ namespace facebook { namespace fboss {
 
 class TapIntf {
 	public:
-	TapIntf(const std::string &name, RouterID rid);
+	TapIntf(const std::string &name, RouterID rid, InterfaceID iid);
 	~TapIntf();
 
 	inline std::string& getIfaceName()
@@ -42,6 +42,10 @@ class TapIntf {
 	{
 		return rid_;
 	};
+	inline InterfaceID getInterfaceID()
+	{
+		return iid_;
+	};
 
 	bool sendPacketToHost(const unsigned char * data, int size);
 
@@ -51,6 +55,7 @@ class TapIntf {
 	int fd_;
 	unsigned short index_;
 	RouterID rid_;
+	InterfaceID iid_;
 
 	int bring_up_iface();
 	void take_down_iface();

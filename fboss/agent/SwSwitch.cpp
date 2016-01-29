@@ -326,6 +326,16 @@ void SwSwitch::init(SwitchFlags flags) {
 }
 
 void SwSwitch::initialConfigApplied() {
+  /* First create the interfaces (before notifying anyone) */
+  if (netlinkListener_) {
+    /* This will cause the NetlinkListener to get a copy of
+     * the current state, examine the VLANs, and install a
+     * single Interface per VLAN. Any existing Interfaces
+     * will be removed (invalidating any prior JSON config).
+     */
+    netlinkListener_->addInterfacesAndUpdateState(getState());
+  }
+
   // notify the hw
   hw_->initialConfigApplied();
   setSwitchRunState(SwitchRunState::CONFIGURED);
@@ -349,7 +359,7 @@ void SwSwitch::initialConfigApplied() {
     tunMgr_->startObservingUpdates();
   }
   if (netlinkListener_) {
-    netlinkListener_->startNetlinkListener(FLAGS_netlink_listener_poll_seconds * 1000, getState()); /* need sec --> ms */
+    netlinkListener_->startNetlinkListener(FLAGS_netlink_listener_poll_seconds * 1000); /* need sec --> ms */
   } 
 
   if (lldpManager_) {

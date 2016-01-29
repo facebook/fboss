@@ -95,8 +95,8 @@ void NetlinkListener::netlink_route_updated(struct nl_cache * cache, struct nl_o
 	else
 	{
 		const int ifindex = rtnl_route_nh_get_ifindex((rtnl_nexthop *) nhl->next);
-		std::map<int, TapIntf *>::const_iterator itr = nll->get_interfaces().find(ifindex);
-		if (itr == nll->get_interfaces().end())
+		std::map<int, TapIntf *>::const_iterator itr = nll->getInterfacesByIfindex().find(ifindex);
+		if (itr == nll->getInterfacesByIfindex().end()) /* shallow ptr cmp */
 		{
 			std::cout << "Interface index " << std::to_string(ifindex) << " not found" << std::endl;
 			return;
@@ -187,6 +187,18 @@ void NetlinkListener::netlink_address_updated(struct nl_cache * cache, struct nl
 	struct rtnl_addr * addr = (struct rtnl_addr *) obj;
 	NetlinkListener * nll = (NetlinkListener *) data;
 	std::cout << "Address cache callback was triggered:" << std::endl;
+
+	/* Verify this update is for one of our taps */
+	int ifindex = rtnl_addr_get_ifindex(addr);
+	const std::map<int, TapIntf *>::const_iterator itr = nll->getInterfacesByIfindex().find(ifindex);
+	if (itr == nll->getInterfacesByIfindex().end()) /* shallow ptr cmp */
+	{
+		std::cout << "Not changing IP for interface index " << std::to_string(ifindex) << " not found" << std::endl;
+		return;
+	}
+	
+
+
 	//nl_cache_dump(cache, nll->get_dump_params());
 }
 
@@ -329,24 +341,63 @@ void NetlinkListener::unregister_w_netlink()
     	nl_cache_free(neigh_cache_);
 	nl_cache_free(addr_cache_);
 	nl_socket_free(sock_);
+	sock_ = 0;
 	std::cout << "Unregistered with netlink" << std::endl;
 }
 
-void NetlinkListener::add_ifaces(const std::string &prefix, const int qty)
+void NetlinkListener::add_ifaces(const std::string &prefix, std::shared_ptr<SwitchState> state)
 {
 	if (sock_ == 0)
 	{
 		register_w_netlink();
 	}
 
-	for (int i = 0; i < qty; i++)
+	/* allocate one interface per VLAN */
+
+	/* First add the interfaces. We will use netlink to set the specifics later. */
+	std::shared_ptr<InterfaceMap> interfaces = std::make_shared<InterfaceMap>();
+	for (const auto& vlan : state->getVlans()->getAllNodes()) /* const VlanMap::NodeContainer& vlans */
+	{
+		std::string name = prefix + std::to_string((int) vlan.second->getID());
+
+		std::shared_ptr<Interface> interface = std::make_shared<Interface>(
+			(InterfaceID) vlan.second->getID(), /* TODO why not? */
+			(RouterID) 0, /* TODO assume single router */
+			vlan.second->getID(),
+			name,
+			MacAddress::ZERO,
+			static_cast<int>(Interface::kDefaultMtu)
+			);
+		interfaces->addInterface(std::move(interface));
+	}
+
+	/* Update the SwitchState with the new interfaces */
+	auto addIfacesFn = [=](const std::shared_ptr<SwitchState>& state)
+	{
+		std::shared_ptr<SwitchState> newState = state->clone();	
+		newState->resetIntfs(std::move(interfaces));
+		return newState;
+	};
+	
+	sw_->updateStateBlocking("add initial interfaces", addIfacesFn);
+
+	/* 
+	 * Now add the tap interfaces. This will trigger lots of netlink
+	 * messages that we'll handle and update our Interfaces with based on
+	 * the MAC address, MTU, and (eventually) the IP address(es) detected.
+	 */
+	for (const auto& vlan : state->getVlans()->getAllNodes())
 	{
 		std::ostringstream iface;
-		iface << prefix << i;
+		iface << prefix << (int) vlan.second->getID(); /* name w/same VLAN ID for transparency */
 
-		TapIntf * tapiface = new TapIntf(iface.str(), (RouterID) i); 
+		TapIntf * tapiface = new TapIntf(
+				iface.str(), 
+				(RouterID) 0, /* TODO assume single router */
+				(InterfaceID) vlan.second->getID() /* TODO why not? */
+				); 
 		interfaces_by_ifindex_[tapiface->getIfaceIndex()] = tapiface;
-
+		interfaces_by_vlan_[vlan.second->getID()] = tapiface;
 		std::cout << "Link " << iface.str() << " added." << std::endl;
 	}
 }
@@ -366,20 +417,24 @@ void NetlinkListener::delete_ifaces()
 		std::cout << "Should have no interfaces left. Bug? Clearing..." << std::endl;
 		interfaces_by_ifindex_.clear();
 	}
+	interfaces_by_vlan_.clear();
 	std::cout << "Deleted all interfaces" << std::endl;
 }
 
-void NetlinkListener::startNetlinkListener(const int pollIntervalMillis, std::shared_ptr<SwitchState> swState)
+void NetlinkListener::addInterfacesAndUpdateState(std::shared_ptr<SwitchState> state)
 {
 	if (interfaces_by_ifindex_.size() == 0)
 	{
-		add_ifaces(prefix_.c_str(), swState->getPorts()->numPorts());
+		add_ifaces(prefix_.c_str(), state);
 	}
 	else
 	{
 		std::cout << "Not creating tap interfaces upon possible listener restart" << std::endl;
 	}
+}
 
+void NetlinkListener::startNetlinkListener(const int pollIntervalMillis)
+{
 	if (netlink_listener_thread_ == NULL)
 	{
 		netlink_listener_thread_ = new boost::thread(netlink_listener, pollIntervalMillis /* args to function ptr */, this);
@@ -491,7 +546,7 @@ void NetlinkListener::host_packet_rx_listener(NetlinkListener * nll)
 	struct epoll_event ev;
 	int num_ifaces;
 
-	num_ifaces = nll->get_interfaces().size();
+	num_ifaces = nll->getInterfacesByIfindex().size();
 
 	if ((epoll_fd = epoll_create(num_ifaces)) < 0)
 	{
@@ -505,8 +560,8 @@ void NetlinkListener::host_packet_rx_listener(NetlinkListener * nll)
 		exit(-1);
 	}
 
-	for (std::map<int, TapIntf *>::const_iterator itr = nll->get_interfaces().begin(), 
-			end = nll->get_interfaces().end();
+	for (std::map<int, TapIntf *>::const_iterator itr = nll->getInterfacesByIfindex().begin(), 
+			end = nll->getInterfacesByIfindex().end();
 			itr != end; itr++)
 	{
 		ev.events = EPOLLIN;
