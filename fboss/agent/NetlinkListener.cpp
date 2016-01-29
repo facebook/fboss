@@ -56,13 +56,13 @@ void NetlinkListener::netlink_link_updated(struct nl_cache * cache, struct nl_ob
 
 	/* Is this update for one of our tap interfaces? */
 	const int ifindex = rtnl_link_get_ifindex(link);
-	std::map<int, TapIntf *>::const_iterator itr = nll->getInterfacesByIfindex().find(ifindex);
-	TapIntf * tapIface = itr->second;
+	const std::map<int, TapIntf *>::const_iterator itr = nll->getInterfacesByIfindex().find(ifindex);
 	if (itr == nll->getInterfacesByIfindex().end()) /* shallow ptr cmp */
 	{
 		std::cout << "Ignoring netlink Link update for interface " << name << ", ifindex=" << std::to_string(ifindex) << std::endl;
 		return;
 	}
+	TapIntf * tapIface = itr->second;
 
 	/* 
 	 * Things we need to consider when updating: 
@@ -91,7 +91,7 @@ void NetlinkListener::netlink_link_updated(struct nl_cache * cache, struct nl_ob
 	/* Did the MAC get updated? */
 	bool updateMac = false;
 	char macStr[MAC_ADDRSTRLEN];
-	MacAddress nlMac(nl_addr2str(rtnl_link_get_addr(link), macStr, MAC_ADDRSTRLEN));
+	const MacAddress nlMac(nl_addr2str(rtnl_link_get_addr(link), macStr, MAC_ADDRSTRLEN));
 	if (nlMac != interface->getMac())
 	{
 		std::cout << "Updating interface " << name << " MAC from " << interface->getMac() << " to " << nlMac << std::endl;
@@ -100,7 +100,7 @@ void NetlinkListener::netlink_link_updated(struct nl_cache * cache, struct nl_ob
 
 	/* Did the MTU get updated? */
 	bool updateMtu = false;
-	unsigned int nlMtu = rtnl_link_get_mtu(link);
+	const unsigned int nlMtu = rtnl_link_get_mtu(link);
 	if (nlMtu != interface->getMtu()) /* unsigned vs signed comparison...shouldn't be an issue though since MTU typically < ~9000 */
 	{
 		std::cout << "Updating interface " << name << " MTU from " << std::to_string(interface->getMtu()) << " to " << std::to_string(nlMtu) << std::endl;
@@ -111,7 +111,7 @@ void NetlinkListener::netlink_link_updated(struct nl_cache * cache, struct nl_ob
 	{
 		auto updateLinkFn = [=](const std::shared_ptr<SwitchState>& state)
 		{
-			std::shared_ptr<SwitchState> newState = state->clone();
+			const std::shared_ptr<SwitchState> newState = state->clone();
 			std::shared_ptr<Interface> newInterface = newState->getInterfaces()->getInterface(tapIface->getInterfaceID());	
 			if (updateMac)
 			{
@@ -260,21 +260,121 @@ void NetlinkListener::netlink_neighbor_updated(struct nl_cache * cache, struct n
 void NetlinkListener::netlink_address_updated(struct nl_cache * cache, struct nl_object * obj, int nl_operation, void * data)
 {
 	struct rtnl_addr * addr = (struct rtnl_addr *) obj;
+	struct rtnl_link * link = rtnl_addr_get_link(addr);
 	NetlinkListener * nll = (NetlinkListener *) data;
-	std::cout << "Address cache callback was triggered:" << std::endl;
+	//nl_cache_dump(cache, nll->get_dump_params());
+
+	const std::string name(rtnl_link_get_name(link));
+	std::cout << "Address cache callback was triggered for link: " << name << std::endl;
 
 	/* Verify this update is for one of our taps */
-	int ifindex = rtnl_addr_get_ifindex(addr);
+	const int ifindex = rtnl_addr_get_ifindex(addr);
 	const std::map<int, TapIntf *>::const_iterator itr = nll->getInterfacesByIfindex().find(ifindex);
 	if (itr == nll->getInterfacesByIfindex().end()) /* shallow ptr cmp */
 	{
-		std::cout << "Not changing IP for interface index " << std::to_string(ifindex) << " not found" << std::endl;
+		std::cout << "Not changing IP for interface " << name << ", ifindex=" << std::to_string(ifindex) << std::endl;
 		return;
 	}
-	
+	TapIntf * tapIface = itr->second;
+	const std::shared_ptr<SwitchState> state = nll->sw_->getState();
+	const std::shared_ptr<Interface> interface = state->getInterfaces()->getInterface(tapIface->getInterfaceID());
 
+	bool is_ipv4 = true;
+	switch (rtnl_addr_get_family(addr))
+	{
+		case AF_INET:
+			is_ipv4 = true;
+			break;
+		case AF_INET6:
+			is_ipv4 = false;
+			break;
+		default:
+			std::cout << "Unknown address family " << std::to_string(rtnl_addr_get_family(addr)) << std::endl;
+			return;
+	}
 
-	//nl_cache_dump(cache, nll->get_dump_params());
+	const uint8_t str_len = is_ipv4 ? INET_ADDRSTRLEN : INET6_ADDRSTRLEN;
+	char tmp[str_len];
+	const folly::IPAddress nlAddress(nl_addr2str(rtnl_addr_get_local(addr), tmp, str_len)); /* libnl3 puts IPv4 and IPv6 addresses in local */
+
+	switch (nl_operation)
+	{
+		case NL_ACT_NEW:
+		{
+			/* Ignore if we have this IP address already */
+			if (interface->hasAddress(nlAddress))
+			{
+				std::cout << "Ignoring duplicate address add of " << nlAddress << " on interface " << name << std::endl;
+				break;
+			}
+
+			/* Perform the update */
+			auto addFn = [=](const std::shared_ptr<SwitchState>& state) 
+			{
+				std::shared_ptr<SwitchState> newState = state->clone();
+				std::shared_ptr<Interface> newInterface = newState->getInterfaces()->getInterface(tapIface->getInterfaceID());
+				const Interface::Addresses oldAddresses = state->getInterfaces()->getInterface(tapIface->getInterfaceID())->getAddresses();
+				Interface::Addresses newAddresses; /* boost::flat_map<IPAddress, uint8_t */
+				for (auto itr = oldAddresses.begin();
+					       	itr != oldAddresses.end();
+						itr++)
+				{
+					newAddresses.insert(folly::IPAddress::createNetwork(itr->first.str(), -1, false)); /* std::pair<IPAddress, uint8_t> */
+				}
+				/* Now add our new one */
+				newAddresses.insert(folly::IPAddress::createNetwork(nlAddress.str(), -1, false));
+				newInterface->setAddresses(newAddresses);
+
+				return newState;
+			};
+			
+			nll->sw_->updateStateBlocking("Adding new IP address", addFn);
+			break; /* NL_ACT_NEW */
+		}
+		case NL_ACT_DEL:
+		{
+			/* Ignore if we don't have this IP address already */
+			if (!interface->hasAddress(nlAddress))
+			{
+				std::cout << "Ignoring address delete for unknown address " << nlAddress << " on interface " << name << std::endl;
+				break;
+			}
+			auto delFn = [=](const std::shared_ptr<SwitchState>& state)
+			{
+				std::shared_ptr<SwitchState> newState = state->clone();
+				std::shared_ptr<Interface> newInterface = newState->getInterfaces()->getInterface(tapIface->getInterfaceID());
+				const Interface::Addresses oldAddresses = state->getInterfaces()->getInterface(tapIface->getInterfaceID())->getAddresses();
+				Interface::Addresses newAddresses; /* boost::flat_map<IPAddress, uint8_t */
+				for (auto itr = oldAddresses.begin();
+					       	itr != oldAddresses.end();
+						itr++)
+				{
+					if (itr->first != nlAddress)
+					{
+						newAddresses.insert(*itr);
+					}
+					else
+					{
+						std::cout << "Deleting address " << nlAddress << " on interface " << name << std::endl;
+					}
+				}
+				/* Replace with -1 addresses */
+				newInterface->setAddresses(newAddresses);
+
+				return newState;
+			};
+
+			nll->sw_->updateStateBlocking("Deleting old IP address", delFn);
+			break; /* NL_ACT_DEL */
+		}
+		case NL_ACT_CHANGE:
+			std::cout << "Not updating state due to unimplemented NL_ACT_CHANGE netlink operation" << std::endl;
+			break; /* NL_ACT_CHANGE */
+		default:
+			std::cout << "Not updating state due to unknown netlink operation " << std::to_string(nl_operation) << std::endl;
+			break; /* NL_ACT_??? */
+	}
+	return;
 }
 
 void NetlinkListener::register_w_netlink()
