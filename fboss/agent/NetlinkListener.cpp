@@ -352,40 +352,60 @@ void NetlinkListener::add_ifaces(const std::string &prefix, std::shared_ptr<Swit
 		register_w_netlink();
 	}
 
-	/* allocate one interface per VLAN */
-
-	/* First add the interfaces. We will use netlink to set the specifics later. */
+	/* 
+	 * Must update both Interfaces and Vlans, since they "reference" each other
+	 * by keeping track of each others' VlanID and InterfaceID, respectively.
+	 */
 	std::shared_ptr<InterfaceMap> interfaces = std::make_shared<InterfaceMap>();
-	for (const auto& vlan : state->getVlans()->getAllNodes()) /* const VlanMap::NodeContainer& vlans */
+	std::shared_ptr<VlanMap> newVlans = std::make_shared<VlanMap>();
+	for (const auto& oldVlan : state->getVlans()->getAllNodes()) /* const VlanMap::NodeContainer& vlans */
 	{
-		std::string name = prefix + std::to_string((int) vlan.second->getID());
+		std::string interfaceName = prefix + std::to_string((int) oldVlan.second->getID()); /* stick with the original VlanIDs as given in JSON config */
+		std::string vlanName = "vlan" + std::to_string((int) oldVlan.second->getID());
 
 		std::shared_ptr<Interface> interface = std::make_shared<Interface>(
-			(InterfaceID) vlan.second->getID(), /* TODO why not? */
+			(InterfaceID) oldVlan.second->getID(), /* TODO why not? */
 			(RouterID) 0, /* TODO assume single router */
-			vlan.second->getID(),
-			name,
+			oldVlan.second->getID(),
+			interfaceName,
 			MacAddress::ZERO,
-			static_cast<int>(Interface::kDefaultMtu)
+			/* TODO why static_cast here? It works in ApplyThriftConfig and is static const and already initialized to 1500 in the declaration */
+			static_cast<int>(Interface::kDefaultMtu) 
 			);
 		interfaces->addInterface(std::move(interface));
+
+		/*
+		 * Swap out the Vlan purposefully omitting any DHCP or other config.
+		 * All that's needed is the VlanID, its name, and the Ports that are
+		 * on that Vlan.
+		 */
+		std::shared_ptr<Vlan> newVlan = std::make_shared<Vlan>(
+				oldVlan.second->getID(),
+				vlanName
+				);
+		newVlan->setInterfaceID((InterfaceID) oldVlan.second->getID());	/* TODO why not? */
+		newVlan->setPorts(oldVlan.second->getPorts());
+		newVlans->addVlan(std::move(newVlan));
 	}
 
-	/* Update the SwitchState with the new interfaces */
-	auto addIfacesFn = [=](const std::shared_ptr<SwitchState>& state)
+	/* Update the SwitchState with the new Interfaces and Vlans */
+	auto addIfacesAndVlansFn = [=](const std::shared_ptr<SwitchState>& state)
 	{
 		std::shared_ptr<SwitchState> newState = state->clone();	
 		newState->resetIntfs(std::move(interfaces));
+		newState->resetVlans(std::move(newVlans));
 		return newState;
 	};
 	
-	sw_->updateStateBlocking("add initial interfaces", addIfacesFn);
+	sw_->updateStateBlocking("Add NetlinkListener initial Interfaces and Vlans", addIfacesAndVlansFn);
 
 	/* 
 	 * Now add the tap interfaces. This will trigger lots of netlink
 	 * messages that we'll handle and update our Interfaces with based on
 	 * the MAC address, MTU, and (eventually) the IP address(es) detected.
 	 */
+
+	/* It's okay if we use the stale SwitchState here */
 	for (const auto& vlan : state->getVlans()->getAllNodes())
 	{
 		std::ostringstream iface;
