@@ -99,6 +99,10 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
     addNode(interface);
   }
 
+  void removeInterface(const std::shared_ptr<Interface>& interface) {
+    removeNode(interface);
+  }
+
   /*
    * Serialize to a folly::dynamic object
    */

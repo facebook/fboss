@@ -44,14 +44,89 @@ void NetlinkListener::log_and_die(const char * msg)
 	exit(1);
 }
 
+#define MAC_ADDRSTRLEN 18
 void NetlinkListener::netlink_link_updated(struct nl_cache * cache, struct nl_object * obj, int nl_operation, void * data)
 {
 	struct rtnl_link * link = (struct rtnl_link *) obj;
 	NetlinkListener * nll = (NetlinkListener *) data;
-	rtnl_link_get_name(link);
-	std::cout << "Link cache callback was triggered for link: " << rtnl_link_get_name(link) << std::endl;
+	const std::string name(rtnl_link_get_name(link));
+	std::cout << "Link cache callback was triggered for link: " << name << std::endl;
 
         //nl_cache_dump(cache, nll->get_dump_params());
+
+	/* Is this update for one of our tap interfaces? */
+	const int ifindex = rtnl_link_get_ifindex(link);
+	std::map<int, TapIntf *>::const_iterator itr = nll->getInterfacesByIfindex().find(ifindex);
+	TapIntf * tapIface = itr->second;
+	if (itr == nll->getInterfacesByIfindex().end()) /* shallow ptr cmp */
+	{
+		std::cout << "Ignoring netlink Link update for interface " << name << ", ifindex=" << std::to_string(ifindex) << std::endl;
+		return;
+	}
+
+	/* 
+	 * Things we need to consider when updating: 
+	 * (1) MAC
+	 * (2) MTU
+	 * (3) State (UP/DOWN)
+	 *
+	 * We really don't care about the state, since any packets
+	 * to be transmitted by the host will have no route and any
+	 * packets to be received will have no active IP to go to.
+	 */
+
+	/* 
+	 * We'll handle add and change for updates. del for our 
+	 * taps will/should only occur when we're exiting.
+	 */
+	if (nl_operation == NL_ACT_DEL)
+	{
+		std::cout << "Ignoring netlink link remove for interface " << name << ", ifindex" << std::to_string(ifindex) << std::endl;
+		return;
+	}
+
+	const std::shared_ptr<SwitchState> state = nll->sw_->getState();
+	const std::shared_ptr<Interface> interface = state->getInterfaces()->getInterface(tapIface->getInterfaceID());
+	
+	/* Did the MAC get updated? */
+	bool updateMac = false;
+	char macStr[MAC_ADDRSTRLEN];
+	MacAddress nlMac(nl_addr2str(rtnl_link_get_addr(link), macStr, MAC_ADDRSTRLEN));
+	if (nlMac != interface->getMac())
+	{
+		std::cout << "Updating interface " << name << " MAC from " << interface->getMac() << " to " << nlMac << std::endl;
+		updateMac = true;
+	}
+
+	/* Did the MTU get updated? */
+	bool updateMtu = false;
+	unsigned int nlMtu = rtnl_link_get_mtu(link);
+	if (nlMtu != interface->getMtu()) /* unsigned vs signed comparison...shouldn't be an issue though since MTU typically < ~9000 */
+	{
+		std::cout << "Updating interface " << name << " MTU from " << std::to_string(interface->getMtu()) << " to " << std::to_string(nlMtu) << std::endl;
+		updateMtu = true;
+	}
+	
+	if (updateMac || updateMtu)
+	{
+		auto updateLinkFn = [=](const std::shared_ptr<SwitchState>& state)
+		{
+			std::shared_ptr<SwitchState> newState = state->clone();
+			std::shared_ptr<Interface> newInterface = newState->getInterfaces()->getInterface(tapIface->getInterfaceID());	
+			if (updateMac)
+			{
+				newInterface->setMac(MacAddress::fromNBO(nlMac.u64NBO()));
+			}
+			if (updateMtu)
+			{
+				newInterface->setMtu(nlMtu);
+			}
+			return newState;
+		};
+
+		nll->sw_->updateStateBlocking("NetlinkListener update Interface " + name, updateLinkFn);
+	}
+	return;
 }
 
 void NetlinkListener::netlink_route_updated(struct nl_cache * cache, struct nl_object * obj, int nl_operation, void * data)
@@ -405,20 +480,19 @@ void NetlinkListener::add_ifaces(const std::string &prefix, std::shared_ptr<Swit
 	 * the MAC address, MTU, and (eventually) the IP address(es) detected.
 	 */
 
-	/* It's okay if we use the stale SwitchState here */
+	/* It's okay if we use the stale SwitchState here; only getting VlanID */
 	for (const auto& vlan : state->getVlans()->getAllNodes())
 	{
-		std::ostringstream iface;
-		iface << prefix << (int) vlan.second->getID(); /* name w/same VLAN ID for transparency */
+		std::string name = prefix + std::to_string((int) vlan.second->getID()); /* name w/same VLAN ID for transparency */
 
 		TapIntf * tapiface = new TapIntf(
-				iface.str(), 
+				name, 
 				(RouterID) 0, /* TODO assume single router */
 				(InterfaceID) vlan.second->getID() /* TODO why not? */
 				); 
 		interfaces_by_ifindex_[tapiface->getIfaceIndex()] = tapiface;
 		interfaces_by_vlan_[vlan.second->getID()] = tapiface;
-		std::cout << "Link " << iface.str() << " added." << std::endl;
+		std::cout << "Link " << name << " added." << std::endl;
 	}
 }
 
