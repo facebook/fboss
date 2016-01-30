@@ -945,11 +945,15 @@ std::unique_ptr<TxPacket> SwSwitch::allocateL3TxPacket(uint32_t l3Len) {
 
 std::unique_ptr<TxPacket> SwSwitch::allocateL2TxPacket(uint32_t l2Len) {
   const uint32_t minLen = 68;
-  auto len = std::max(l2Len, minLen);
+  const uint32_t vlanLen = 4;
+  const uint32_t pktLen = l2Len + vlanLen; /* add in VLAN */
+  auto len = std::max(pktLen, minLen);
   auto pkt = hw_->allocatePacket(len);
   auto buf = pkt->buf();
   // make sure the whole buffer is available
   buf->clear();
+  // reserve 4 bytes for the VLAN tag if we need it
+  buf->advance(vlanLen);
   return pkt;
 }
 
@@ -1038,9 +1042,52 @@ void SwSwitch::sendL3Packet(
   }
 }
 
+/*
+ * We have reserved 4 bytes of space for a VLAN tag in the headroom in alloateL2TxPacket.
+ * Although we might have to shift the dst and src MAC addresses to use it, we'll take
+ * this approach for now. If it turns out to be a performance issue, we can skip the 4
+ * bytes when the raw bytes are read into the folly::IOBuf in the first place in NetlinkListener.
+ */
 void SwSwitch::sendL2Packet(InterfaceID iid, std::unique_ptr<TxPacket> pkt) noexcept {
+	folly::IOBuf * buf = pkt->buf();
+	CHECK(!buf->isShared());
+	const uint32_t dstSrcMacLen = 12;
+	const uint32_t vlanLen = 4;
+	if (buf->headroom() != vlanLen)
+	{
+		LOG(ERROR) << "Packet does not have the correct headroom to insert VLAN tag. "
+			<< "headroom=" << buf->headroom()
+			<< ", required=" << vlanLen;
+		return;
+	}
+	
+	/* Figure out what VLAN to use */
+	std::shared_ptr<Interface> interface = getState()->getInterfaces()->getInterfaceIf(iid);
+	if (!interface) 
+	{
+		LOG(ERROR) << "Could not lookup Interface for InterfaceID " << iid 
+			<< " when sending L2 packet. Dropping packet";
+		return;
+	}
 
+	/* 
+	 * Now just need to figure out how to chain three IOBufs together:
+	 * [ dst MAC (6)]+[src MAC (6)]+[ethtype (2=0x8100)]+[vlan (2)]+[ethtype (2)]+[rest of packet (X)]
+	 *
+	 * IOBuf chaining would be cool, but a simple memcpy of the dst and src MAC -4 bytes to the head
+	 * of the buffer (guaranteed -4 bytes away) will do the trick.
+	 */
+	memcpy(buf->writableBuffer(), buf->data(), dstSrcMacLen);	
+	buf->prepend(vlanLen); /* adjust data to point to new start of -4 bytes and add +4 to length */
+	
+	/* Now, add in the VLAN ethtype and the tag, which is 12 bytes in */
+    	RWPrivateCursor cursor(buf);
+	TxPacket::writeEthHeaderVlanTag(&cursor, interface->getVlanID());
 
+	const uint32_t pktLenWithVlan = buf->length() + vlanLen; /* need to record, since we're forfeiting our TxPacket */
+    	pcapMgr_->packetSent(pkt.get());
+    	hw_->sendPacketSwitched(std::move(pkt));
+    	stats()->pktFromHost(pktLenWithVlan);
 }
 
 bool SwSwitch::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
