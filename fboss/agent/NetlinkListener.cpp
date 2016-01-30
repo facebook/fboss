@@ -704,11 +704,22 @@ void NetlinkListener::netlink_listener(const int pollIntervalMillis, NetlinkList
 
 int NetlinkListener::read_packet_from_port(NetlinkListener * nll, TapIntf * iface)
 {
-	unsigned char buf[BUFLEN];
+	/* Parse into TxPacket */
 	int len;
+	std::unique_ptr<TxPacket> pkt;
+	
+	std::shared_ptr<Interface> interface = nll->sw_->getState()->getInterfaces()->getInterfaceIf(iface->getInterfaceID());
+	if (!interface)
+	{
+		std::cout << "Could not find FBOSS interface ID for " << iface->getIfaceName() << ". Dropping packet from host" << std::endl;
+		return 0; /* silently fail */
+	}
+
+	pkt = nll->sw_->allocateL2TxPacket(interface->getMtu());
+	auto buf = pkt->buf();
 
 	/* read one packet per call; assumes level-triggered epoll() */
-	if ((len = read(iface->getIfaceFD(), buf, BUFLEN)) < 0)
+	if ((len = read(iface->getIfaceFD(), buf->writableTail(), buf->tailroom())) < 0)
 	{
 		if ((errno == EWOULDBLOCK) || (errno == EAGAIN))
 		{
@@ -720,17 +731,22 @@ int NetlinkListener::read_packet_from_port(NetlinkListener * nll, TapIntf * ifac
 			return -1;
 		}
 	}
+	else if (len > 0 && len > buf->tailroom())
+	{
+		std::cout << "Too large packet (" << std::to_string(len) << " > " << buf->tailroom() << ") received from host. Dropping packet" << std::endl;
+	}
 	else if (len > 0)
 	{
-		/* send packet to FBOSS for output on port */
-		std::cout << "Got packet on iface " << iface->getIfaceName() << ". Sending to FBOSS..." << std::endl;
-		return 0;
+		/* Send packet to FBOSS for output on port */
+		std::cout << "Got packet of " << std::to_string(len) << " bytes on iface " << iface->getIfaceName() << ". Sending to FBOSS..." << std::endl;
+		buf->append(len);
+		nll->sw_->sendL2Packet(interface->getID(), std::move(pkt));
 	}
 	else /* len == 0 */
 	{
 		std::cout << "Read from iface " << iface->getIfaceName() << " returned EOF (!?) -- ignoring" << std::endl;
-		return 0;
 	}
+	return 0;
 }
 
 void NetlinkListener::host_packet_rx_listener(NetlinkListener * nll)
@@ -796,4 +812,15 @@ void NetlinkListener::host_packet_rx_listener(NetlinkListener * nll)
 	std::cout << "Exiting epoll() loop" << std::endl;
 }
 
+bool NetlinkListener::sendPacketToHost(std::unique_ptr<RxPacket> pkt)
+{
+	const VlanID vlan = pkt->getSrcVlan();
+	std::map<VlanID, TapIntf *>::const_iterator itr = interfaces_by_vlan_.find(vlan);
+	if (itr == interfaces_by_vlan_.end())
+	{
+		VLOG(4) << "Dropping packet for unknown tap interface on VLAN " << std::to_string(vlan);
+		return false;
+	}
+	return itr->second->sendPacketToHost(std::move(pkt));
+}
 }} /* facebook::fboss */

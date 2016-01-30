@@ -128,9 +128,9 @@ void TapIntf::take_down_iface()
 	}
 }
 
-bool TapIntf::sendPacketToHost(const unsigned char * data, int size)
+bool TapIntf::sendPacketToHost(std::unique_ptr<RxPacket> pkt)
 {
-	int rc = 0;
+	/*int rc = 0;
 	do
 	{
 		rc = write(fd_, data, size);
@@ -151,7 +151,8 @@ bool TapIntf::sendPacketToHost(const unsigned char * data, int size)
 	{
 		std::cout << "Sent packet of size " << std::to_string(rc) << " bytes to interface " << name_ << std::endl;
 		return true;
-	}
+	}*/
+	return false;
 }
 
 }} /* facebook::fboss */

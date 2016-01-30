@@ -38,6 +38,8 @@ extern "C" {
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
+#include "fboss/agent/RxPacket.h"
+#include "fboss/agent/TxPacket.h"
 
 /* Buffer used to read in packets from host */
 #define BUFLEN 65536
@@ -68,6 +70,8 @@ class NetlinkListener
 	{
 		return interfaces_by_vlan_;
 	};
+
+	bool sendPacketToHost(std::unique_ptr<RxPacket> pkt);
 
 	private:
 

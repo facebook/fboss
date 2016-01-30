@@ -19,6 +19,9 @@ extern "C" {
 #include <iostream>
 
 #include "fboss/agent/types.h"
+#include "fboss/agent/RxPacket.h"
+#include "fboss/agent/TxPacket.h"
+
 namespace facebook { namespace fboss {
 
 class TapIntf {
@@ -47,7 +50,7 @@ class TapIntf {
 		return iid_;
 	};
 
-	bool sendPacketToHost(const unsigned char * data, int size);
+	bool sendPacketToHost(std::unique_ptr<RxPacket> pkt);
 
 	private:
 	/* class-local variables */
@@ -56,6 +59,7 @@ class TapIntf {
 	unsigned short index_;
 	RouterID rid_;
 	InterfaceID iid_;
+	//TODO std::mutex mutex_;
 
 	int bring_up_iface();
 	void take_down_iface();

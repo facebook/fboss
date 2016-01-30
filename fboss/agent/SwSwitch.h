@@ -426,6 +426,16 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::unique_ptr<TxPacket> allocateL3TxPacket(uint32_t l3Len);
 
+  /**
+   * Same as allocateL3TxPacket above, except it does not automatically
+   * advance the buffer past the L2 header. The caller is expected to
+   * write the L2 and L3 and up contents starting from writableTail().
+   *
+   * @param l2Len L2 packet size
+   * @return The unique pointer to a Tx packet
+   */
+  std::unique_ptr<TxPacket> allocateL2TxPacket(uint32_t l3Len);
+
   void sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
                            PortID portID) noexcept;
 
@@ -453,6 +463,12 @@ class SwSwitch : public HwSwitch::Callback {
    * @param pkt The packet that has L3 packet stored to send out
    */
   void sendL3Packet(RouterID rid, std::unique_ptr<TxPacket> pkt) noexcept;
+
+  /*
+   * Same as sendL3Packet, except the L2 header is expected to be there already
+   * minus the VLAN tag, which can be appended as necessary.
+   */
+  void sendL2Packet(InterfaceID iid, std::unique_ptr<TxPacket> pkt) noexcept;
 
   /**
    * method to send out a packet from HW to host.

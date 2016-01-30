@@ -943,6 +943,16 @@ std::unique_ptr<TxPacket> SwSwitch::allocateL3TxPacket(uint32_t l3Len) {
   return pkt;
 }
 
+std::unique_ptr<TxPacket> SwSwitch::allocateL2TxPacket(uint32_t l2Len) {
+  const uint32_t minLen = 68;
+  auto len = std::max(l2Len, minLen);
+  auto pkt = hw_->allocatePacket(len);
+  auto buf = pkt->buf();
+  // make sure the whole buffer is available
+  buf->clear();
+  return pkt;
+}
+
 void SwSwitch::sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
                                    PortID portID) noexcept {
   pcapMgr_->packetSent(pkt.get());
@@ -1028,10 +1038,19 @@ void SwSwitch::sendL3Packet(
   }
 }
 
+void SwSwitch::sendL2Packet(InterfaceID iid, std::unique_ptr<TxPacket> pkt) noexcept {
+
+
+}
+
 bool SwSwitch::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
   pcapMgr_->packetSentToHost(pkt.get());
+
+  /* Only one or the other (XOR) is used to handle to host packets */
   if (tunMgr_) {
     return tunMgr_->sendPacketToHost(std::move(pkt));
+  } else if (netlinkListener_) {
+    return netlinkListener_->sendPacketToHost(std::move(pkt));
   } else {
     return false;
   }
