@@ -130,10 +130,25 @@ void TapIntf::take_down_iface()
 
 bool TapIntf::sendPacketToHost(std::unique_ptr<RxPacket> pkt)
 {
-	/*int rc = 0;
+	const int l2len = EthHdr::SIZE;
+
+	if (pkt->buf()->length() <= l2len)
+	{
+		std::cout << "Received too small packet (size of " << std::to_string(pkt->buf()->length()) << " bytes) from FBOSS to host. Dropping packet" << std::endl;
+		return false;
+	}
+
+	/* Sanity check */
+	if (!fd_)
+	{
+		std::cout << "File descriptor for interface " << name_ << " was not set (?!). Exiting now" << std::endl;
+		exit(1);
+	}
+
+	int rc = 0;
 	do
 	{
-		rc = write(fd_, data, size);
+		rc = write(fd_, pkt->buf()->data(), pkt->buf()->length());
 	}
 	while (rc == -1 && errno == EINTR);
 
@@ -142,16 +157,17 @@ bool TapIntf::sendPacketToHost(std::unique_ptr<RxPacket> pkt)
 		std::cout << "Failed to send packet to interface " << name_ << std::endl;
 		return false;
 	}
-	else if (rc < size)
+	else if (rc < pkt->buf()->length())
 	{
-		std::cout << "Failed to send full packet to interface " << name_ << ". Sent " << std::to_string(rc) << " bytes instead of " << std::to_string(size) << std::endl;
+		std::cout << "Failed to send full packet to interface " << name_ << ". Sent " << std::to_string(rc) << " bytes instead of " 
+			<< std::to_string(pkt->buf()->length()) << " bytes" << std::endl;
 		return false;
 	}
 	else
 	{
 		std::cout << "Sent packet of size " << std::to_string(rc) << " bytes to interface " << name_ << std::endl;
 		return true;
-	}*/
+	}
 	return false;
 }
 

@@ -21,6 +21,7 @@ extern "C" {
 #include "fboss/agent/types.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/packet/EthHdr.h"
 
 namespace facebook { namespace fboss {
 
