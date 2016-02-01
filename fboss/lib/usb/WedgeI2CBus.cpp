@@ -85,8 +85,6 @@ void WedgeI2CBus::selectQsfpImpl(unsigned int port) {
 
 std::pair<uint8_t, uint8_t>
 WedgeI2CBus::getSwitchValues(unsigned int port) const {
-  // We swapped the top and bottom port numbering after the board was
-  // taped out, so each pair has to be swapped here.
   static const std::pair<uint8_t, uint8_t> map[] = {
     {0x00, 0x00}, // NO_PORT
     {0x01, 0x00}, // Module 1 (left-most bottom module)
