@@ -89,22 +89,22 @@ WedgeI2CBus::getSwitchValues(unsigned int port) const {
   // taped out, so each pair has to be swapped here.
   static const std::pair<uint8_t, uint8_t> map[] = {
     {0x00, 0x00}, // NO_PORT
-    {0x02, 0x00}, // Module 1 (left-most top module)
-    {0x01, 0x00}, // Module 2 (left-most bottom module)
-    {0x08, 0x00}, // Module 3
-    {0x04, 0x00}, // Module 4
-    {0x20, 0x00}, // Module 5
-    {0x10, 0x00}, // Module 6
-    {0x80, 0x00}, // Module 7
-    {0x40, 0x00}, // Module 8
-    {0x00, 0x02}, // Module 9
-    {0x00, 0x01}, // Module 10
-    {0x00, 0x08}, // Module 11
-    {0x00, 0x04}, // Module 12
-    {0x00, 0x20}, // Module 13
-    {0x00, 0x10}, // Module 14
-    {0x00, 0x80}, // Module 15 (right-most top module)
-    {0x00, 0x40}, // Module 16 (right-most bottom module)
+    {0x01, 0x00}, // Module 1 (left-most bottom module)
+    {0x02, 0x00}, // Module 2 (left-most top module)
+    {0x04, 0x00}, // Module 3
+    {0x08, 0x00}, // Module 4
+    {0x10, 0x00}, // Module 5
+    {0x20, 0x00}, // Module 6
+    {0x40, 0x00}, // Module 7
+    {0x80, 0x00}, // Module 8
+    {0x00, 0x01}, // Module 9
+    {0x00, 0x02}, // Module 10
+    {0x00, 0x04}, // Module 11
+    {0x00, 0x08}, // Module 12
+    {0x00, 0x10}, // Module 13
+    {0x00, 0x20}, // Module 14
+    {0x00, 0x40}, // Module 15 (right-most bottom module)
+    {0x00, 0x80}, // Module 16 (right-most top module)
   };
 
   CHECK_LE(port, 16);
