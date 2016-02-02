@@ -40,12 +40,12 @@ void Wedge100I2CBus::selectQsfpImpl(unsigned int port) {
   // all to zero to clear them, then setting the one that needs to be set.
   // If any of these writes throws, we'll be in an invalid state.
 
-  VLOG(2) << "setting port to " << port << " from " << selectedPort_;
+  VLOG(5) << "setting port to " << port << " from " << selectedPort_;
   CHECK_LE(port, 32);
   if (port == NO_PORT) {
     DCHECK_NE(selectedPort_, NO_PORT);  // Checked in BaseWedgeI2CBus
     int offset = ((selectedPort_ - 1) / 8) * 2;
-    VLOG(3) << "unsetting " << selectedPort_ << " via " << offset;
+    VLOG(4) << "unsetting " << selectedPort_ << " via " << offset;
     dev_.writeByte(ADDR_SWITCH_32 + offset, 0);
   } else {
     // Ports are reversed on 32-port hardware, just like 16-port hardware.
@@ -57,12 +57,12 @@ void Wedge100I2CBus::selectQsfpImpl(unsigned int port) {
     if (selectedPort_ != NO_PORT) {
       int oldOffset = ((selectedPort_ - 1) / 8) * 2;
       if (offset != oldOffset) {
-        VLOG(3) << "clearing " << selectedPort_ << " via " << oldOffset;
+        VLOG(4) << "clearing " << selectedPort_ << " via " << oldOffset;
         dev_.writeByte(ADDR_SWITCH_32 + oldOffset, 0);
         selectedPort_ = NO_PORT;  // In case the next write throws
       }
     }
-    VLOG(3) << "setting " << port << " via " << offset << " bit " << bit;
+    VLOG(4) << "setting " << port << " via " << offset << " bit " << bit;
     dev_.writeByte(ADDR_SWITCH_32 + offset, bit);
   }
 

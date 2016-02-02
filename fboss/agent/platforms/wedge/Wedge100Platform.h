@@ -33,6 +33,7 @@ class Wedge100Platform : public WedgePlatform {
   Wedge100Platform& operator=(Wedge100Platform const &) = delete;
 
   std::map<std::string, std::string> loadConfig() override;
+  std::unique_ptr<BaseWedgeI2CBus> getI2CBus() override;
 };
 
 }} // namespace facebook::fboss

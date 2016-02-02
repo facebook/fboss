@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/lib/usb/WedgeI2CBus.h"
+#include "fboss/lib/usb/BaseWedgeI2CBus.h"
 
 #include <mutex>
 #include <folly/Range.h>
@@ -22,7 +22,7 @@ namespace facebook { namespace fboss {
  */
 class WedgeI2CBusLock {
  public:
-  WedgeI2CBusLock();
+  explicit WedgeI2CBusLock(std::unique_ptr<BaseWedgeI2CBus> wedgeI2CBus);
   void open();
   void close();
   void moduleRead(unsigned int module, uint8_t i2cAddress,
@@ -39,7 +39,7 @@ class WedgeI2CBusLock {
   void openLocked();
   void closeLocked();
 
-  WedgeI2CBus wedgeI2CBus_;
+  std::unique_ptr<BaseWedgeI2CBus> wedgeI2CBus_{nullptr};
   mutable std::mutex busMutex_;
   bool opened_{false};
 };

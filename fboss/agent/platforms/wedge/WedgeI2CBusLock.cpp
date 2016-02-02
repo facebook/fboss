@@ -15,11 +15,11 @@ using std::lock_guard;
 
 namespace facebook { namespace fboss {
 
-WedgeI2CBusLock::WedgeI2CBusLock() {
-}
+WedgeI2CBusLock::WedgeI2CBusLock(std::unique_ptr<BaseWedgeI2CBus> wedgeI2CBus)
+    : wedgeI2CBus_(std::move(wedgeI2CBus)) {}
 
 void WedgeI2CBusLock::openLocked() {
-  wedgeI2CBus_.open();
+  wedgeI2CBus_->open();
   opened_ = true;
 }
 
@@ -29,7 +29,7 @@ void WedgeI2CBusLock::open() {
 }
 
 void WedgeI2CBusLock::closeLocked() {
-  wedgeI2CBus_.close();
+  wedgeI2CBus_->close();
   opened_ = false;
 }
 
@@ -58,7 +58,7 @@ void WedgeI2CBusLock::moduleRead(unsigned int module, uint8_t address,
     opened = true;
   }
 
-  wedgeI2CBus_.moduleRead(module, address, offset, len, buf);
+  wedgeI2CBus_->moduleRead(module, address, offset, len, buf);
 }
 
 void WedgeI2CBusLock::moduleWrite(unsigned int module, uint8_t address,
@@ -81,7 +81,7 @@ void WedgeI2CBusLock::moduleWrite(unsigned int module, uint8_t address,
     opened = true;
   }
 
-  wedgeI2CBus_.moduleWrite(module, address, offset, len, buf);
+  wedgeI2CBus_->moduleWrite(module, address, offset, len, buf);
 }
 
 }} // facebook::fboss

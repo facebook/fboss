@@ -12,14 +12,19 @@
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 #include "fboss/agent/platforms/wedge/WedgeProductInfo.h"
 #include "fboss/agent/platforms/wedge/Wedge100Port.h"
+#include "fboss/lib/usb/Wedge100I2CBus.h"
 
 #include <folly/Memory.h>
+
+namespace {
+constexpr auto kNumWedge100QsfpModules = 32;
+}
 
 namespace facebook { namespace fboss {
 
 Wedge100Platform::Wedge100Platform(
   std::unique_ptr<WedgeProductInfo> productInfo
-) : WedgePlatform(std::move(productInfo)) {}
+) : WedgePlatform(std::move(productInfo), kNumWedge100QsfpModules) {}
 
 Wedge100Platform::~Wedge100Platform() {}
 
@@ -49,6 +54,10 @@ Wedge100Platform::InitPortMap Wedge100Platform::initPorts() {
   add_ports_stride(8 * 4, 102, 1);
 
   return ports;
+}
+
+std::unique_ptr<BaseWedgeI2CBus> Wedge100Platform::getI2CBus() {
+  return folly::make_unique<Wedge100I2CBus>();
 }
 
 }} // facebook::fboss

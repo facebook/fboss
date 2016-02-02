@@ -24,10 +24,11 @@ namespace facebook { namespace fboss {
 class BcmSwitch;
 class WedgePort;
 
-
 class WedgePlatform : public BcmPlatform {
  public:
   explicit WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo);
+  WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo,
+                uint8_t numQsfps);
   ~WedgePlatform() override;
 
   void init();
@@ -64,11 +65,14 @@ class WedgePlatform : public BcmPlatform {
   void initLocalMac();
   WedgePlatformMode getMode();
   virtual std::map<std::string, std::string> loadConfig();
+  virtual std::unique_ptr<BaseWedgeI2CBus> getI2CBus();
   void initTransceiverMap(SwSwitch* sw);
 
   folly::MacAddress localMac_;
   std::unique_ptr<BcmSwitch> hw_;
+
   const std::unique_ptr<WedgeProductInfo> productInfo_;
+  uint8_t numQsfpModules_{0};
   std::unique_ptr<WedgeI2CBusLock> wedgeI2CBusLock_;
 };
 

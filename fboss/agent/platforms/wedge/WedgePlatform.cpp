@@ -13,6 +13,7 @@
 #include <folly/Subprocess.h>
 #include <glog/logging.h>
 #include "fboss/lib/usb/UsbError.h"
+#include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/QsfpModule.h"
 #include "fboss/agent/SysError.h"
@@ -37,10 +38,23 @@ using folly::make_unique;
 using folly::Subprocess;
 using std::string;
 
+namespace {
+constexpr auto kNumWedge40Qsfps = 16;
+}
+
 namespace facebook { namespace fboss {
 
+WedgePlatform::WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo,
+                             uint8_t numQsfps)
+    : productInfo_(std::move(productInfo)),
+      numQsfpModules_(numQsfps) {
+  // Make sure we actually set the number of qsfp modules
+  CHECK(numQsfpModules_ > 0);
+}
+
+// default to kNumWedge40Qsfps if numQsfps not specified
 WedgePlatform::WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo)
-    : productInfo_(std::move(productInfo)) {}
+    : WedgePlatform(std::move(productInfo), kNumWedge40Qsfps) {}
 
 void WedgePlatform::init() {
   auto config = loadConfig();
@@ -141,15 +155,17 @@ void WedgePlatform::initLocalMac() {
   localMac_ = MacAddress::fromHBO(eth0Mac.u64HBO() | 0x0000020000000000);
 }
 
-void WedgePlatform::initTransceiverMap(SwSwitch* sw) {
-  const int MAX_WEDGE_MODULES = 16;
+std::unique_ptr<BaseWedgeI2CBus> WedgePlatform::getI2CBus() {
+  return make_unique<WedgeI2CBus>();
+}
 
+void WedgePlatform::initTransceiverMap(SwSwitch* sw) {
   // If we can't get access to the USB devices, don't bother to
   // create the QSFP objects;  this is likely to be a permanent
   // error.
 
   try {
-    wedgeI2CBusLock_ = make_unique<WedgeI2CBusLock>();
+    wedgeI2CBusLock_ = make_unique<WedgeI2CBusLock>(getI2CBus());
   } catch (const LibusbError& ex) {
     LOG(ERROR) << "failed to initialize USB to I2C interface";
     return;
@@ -158,7 +174,7 @@ void WedgePlatform::initTransceiverMap(SwSwitch* sw) {
   // Wedge port 0 is the CPU port, so the first port associated with
   // a QSFP+ is port 1.  We start the transceiver IDs with 0, though.
 
-  for (int idx = 0; idx < MAX_WEDGE_MODULES; idx++) {
+  for (int idx = 0; idx < numQsfpModules_; idx++) {
     std::unique_ptr<WedgeQsfp> qsfpImpl =
       make_unique<WedgeQsfp>(idx, wedgeI2CBusLock_.get());
     for (int channel = 0; channel < QsfpModule::CHANNEL_COUNT; ++channel) {
