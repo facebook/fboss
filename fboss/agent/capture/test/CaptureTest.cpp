@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/test/TestUtils.h"
 
 #include <folly/Memory.h>
@@ -34,14 +35,14 @@ using ::testing::AtLeast;
 
 namespace {
 
+
+const MacAddress kPlatformMac("02:01:02:03:04:05");
+
 unique_ptr<SwSwitch> setupSwitch() {
   // Setup the initial state object
-  auto initState = make_shared<SwitchState>();
   cfg::SwitchConfig thriftCfg;
 
   // Add VLAN 1, and ports 1-39 which belong to it.
-  auto vlan1 = make_shared<Vlan>(VlanID(1), "Vlan1");
-  initState->addVlan(vlan1);
   cfg::Vlan thriftVlan;
   thriftVlan.name = "Vlan1";
   thriftVlan.id = 1;
@@ -74,21 +75,9 @@ unique_ptr<SwSwitch> setupSwitch() {
     thriftVlanPort.spanningTreeState = cfg::SpanningTreeState::FORWARDING;
     thriftVlanPort.emitTags = false;
     thriftCfg.vlanPorts.push_back(thriftVlanPort);
-
-    initState->registerPort(PortID(idx), folly::to<string>("port", idx));
-    vlan1->addPort(PortID(idx), false);
   }
 
-  auto sw = createMockSw(initState);
-  // Use applyThriftConfig() to apply the remaining configuration.
-  // This will take care of setting up ARP response tables and other state we
-  // need.
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
-  sw->updateStateBlocking(
-      "apply initial config",
-      [&thriftCfg, &sw](const shared_ptr<SwitchState>& state) {
-        return applyThriftConfig(state, &thriftCfg, sw->getPlatform());
-      });
+  auto sw = createMockSw(&thriftCfg, kPlatformMac);
   sw->initialConfigApplied();
 
   return sw;

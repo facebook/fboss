@@ -119,13 +119,6 @@ class IPv6Handler : public AutoRegisterStateObserver {
                                  folly::IPAddressV6 srcIP,
                                  folly::MacAddress dstMac,
                                  folly::IPAddressV6 dstIP);
-  void updateNeighborEntry(const RxPacket* pkt,
-                           folly::IPAddressV6 ip,
-                           folly::MacAddress mac,
-                           uint32_t flags);
-  void setPendingNdpEntry(std::shared_ptr<Vlan> vlan,
-                          const folly::IPAddressV6 &ip);
-
   SwSwitch* sw_{nullptr};
   RAMap routeAdvertisers_;
 };

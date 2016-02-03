@@ -138,6 +138,8 @@ SwSwitch::~SwSwitch() {
 void SwSwitch::stop() {
   setSwitchRunState(SwitchRunState::EXITING);
 
+  LOG(INFO) << "Stopping SwSwitch...";
+
   // First tell the hw to stop sending us events by unregistering the callback
   // After this we should no longer receive packets or link state changed events
   // while we are destroying ourselves
@@ -482,7 +484,7 @@ void SwSwitch::handlePendingUpdates() {
     ++iter;
 
     shared_ptr<SwitchState> newState;
-    VLOG(3) << "preparing state update " << update->getName();
+    LOG(INFO) << "preparing state update " << update->getName();
     try {
       newState = update->applyUpdate(state);
     } catch (const std::exception& ex) {

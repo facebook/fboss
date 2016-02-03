@@ -144,6 +144,10 @@ NeighborUpdater::~NeighborUpdater() {
 
   // wait for prober to stop
   f.get();
+
+  // reset the map of caches. This should call the destructors of
+  // each NeighborCache and block until everything is stopped.
+  caches_.clear();
 }
 
 shared_ptr<ArpCache> NeighborUpdater::getArpCacheFor(VlanID vlan) {
@@ -158,14 +162,14 @@ shared_ptr<NdpCache> NeighborUpdater::getNdpCacheFor(VlanID vlan) {
 shared_ptr<ArpCache> NeighborUpdater::getArpCacheInternal(VlanID vlan) {
   auto res = caches_.find(vlan);
   if (res == caches_.end()) {
-    throw FbossError("Tried to get Arp cache non-existent vlan", vlan);
+    throw FbossError("Tried to get Arp cache non-existent vlan ", vlan);
   }
   return res->second->arpCache;
 }
 shared_ptr<NdpCache> NeighborUpdater::getNdpCacheInternal(VlanID vlan) {
   auto res = caches_.find(vlan);
   if (res == caches_.end()) {
-    throw FbossError("Tried to get Ndp cache non-existent vlan", vlan);
+    throw FbossError("Tried to get Ndp cache non-existent vlan ", vlan);
   }
   return res->second->ndpCache;
 }
@@ -301,7 +305,6 @@ void NeighborUpdater::sendNeighborUpdates(const VlanDelta& delta) {
   std::vector<std::string> deleted;
   collectPresenceChange(delta.getArpDelta(), &added, &deleted);
   collectPresenceChange(delta.getNdpDelta(), &added, &deleted);
-  LOG(INFO) << "Got neighbor update";
   sw_->invokeNeighborListener(added, deleted);
 }
 
@@ -326,7 +329,6 @@ void NeighborUpdater::vlanAdded(const SwitchState* state, const Vlan* vlan) {
 
 void NeighborUpdater::vlanDeleted(const Vlan* vlan) {
   CHECK(sw_->getUpdateEVB()->inRunningEventBaseThread());
-
   std::shared_ptr<NeighborCaches> removedEntry;
   {
     std::lock_guard<std::mutex> g(cachesMutex_);

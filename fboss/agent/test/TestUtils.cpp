@@ -23,6 +23,7 @@
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/gen-cpp/switch_config_types.h"
 #include <folly/Memory.h>
+#include <folly/json.h>
 
 using folly::MacAddress;
 using folly::IPAddress;
@@ -68,6 +69,7 @@ unique_ptr<SwSwitch> createMockSw(const shared_ptr<SwitchState>& state) {
   auto stateAndBootType = std::make_pair(state, BootType::COLD_BOOT);
   EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(stateAndBootType));
   sw->init();
+  waitForStateUpdates(sw.get());
   return sw;
 }
 
@@ -79,6 +81,7 @@ unique_ptr<SwSwitch> createMockSw(const shared_ptr<SwitchState>& state,
   auto stateAndBootType = std::make_pair(state, BootType::COLD_BOOT);
   EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(stateAndBootType));
   sw->init();
+  waitForStateUpdates(sw.get());
   return sw;
 }
 

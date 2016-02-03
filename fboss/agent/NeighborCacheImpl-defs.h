@@ -25,12 +25,115 @@
 
 namespace facebook { namespace fboss {
 
+namespace ncachehelpers {
+
+/*
+ * Helper that we can run to check that the interface and vlan
+ * for an entry still exist and are valid.
+ */
 template <typename NTable>
-void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {}
+bool checkVlanAndIntf(
+    const std::shared_ptr<SwitchState>& state,
+    const typename NeighborCacheEntry<NTable>::EntryFields& fields,
+    VlanID vlanID) {
+  // Make sure vlan exists
+  auto* vlan = state->getVlans()->getVlanIf(vlanID).get();
+  if (!vlan) {
+    // This VLAN no longer exists.  Just ignore the entry update.
+    VLOG(3) << "VLAN " << vlanID << " deleted before entry " <<
+      fields.ip << " --> " << fields.mac << " could be updated";
+    return false;
+  }
+
+  // In case the interface subnets have changed, make sure the IP address
+  // is still on a locally attached subnet
+  if (!Interface::isIpAttached(fields.ip, fields.interfaceID, state)) {
+    VLOG(3) << "interface subnets changed before entry " <<
+      fields.ip << " --> " << fields.mac << " could be updated";
+    return false;
+  }
+
+  return true;
+}
+
+}
+
+template <typename NTable>
+void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
+  CHECK(!entry->isPending());
+
+  auto fields = entry->getFields();
+  auto vlanID = vlanID_;
+  auto updateFn = [fields, vlanID](const std::shared_ptr<SwitchState>& state)
+      -> std::shared_ptr<SwitchState> {
+    if (!ncachehelpers::checkVlanAndIntf<NTable>(state, fields, vlanID)) {
+      // Either the vlan or intf is no longer valid.
+      return nullptr;
+    }
+
+    auto vlan = state->getVlans()->getVlanIf(vlanID).get();
+    std::shared_ptr<SwitchState> newState{state};
+    auto* table = vlan->template getNeighborTable<NTable>().get();
+    auto node = table->getNodeIf(fields.ip);
+
+    if (!node) {
+      table = table->modify(&vlan, &newState);
+      table->addEntry(fields);
+      VLOG(2) << "Adding entry for " << fields.ip << " --> " << fields.mac;
+    } else {
+      if (node->getMac() == fields.mac &&
+          node->getPort() == fields.port &&
+          node->getIntfID() == fields.interfaceID &&
+          !node->isPending()) {
+        // This entry was already updated while we were waiting on the lock.
+        return nullptr;
+      }
+      table = table->modify(&vlan, &newState);
+      table->updateEntry(fields);
+      VLOG(2) << "Converting pending entry for " << fields.ip << " --> "
+                << fields.mac;
+    }
+    return newState;
+  };
+
+  sw_->updateState(folly::to<std::string>("add neighbor ", fields.ip),
+                   std::move(updateFn));
+}
 
 
 template <typename NTable>
-void NeighborCacheImpl<NTable>::programPendingEntry(Entry* entry) {}
+void NeighborCacheImpl<NTable>::programPendingEntry(Entry* entry) {
+  CHECK(entry->isPending());
+
+  auto fields = entry->getFields();
+  auto vlanID = vlanID_;
+  auto updateFn = [fields, vlanID](const std::shared_ptr<SwitchState>& state)
+      -> std::shared_ptr<SwitchState> {
+    if (!ncachehelpers::checkVlanAndIntf<NTable>(state, fields, vlanID)) {
+      // Either the vlan or intf is no longer valid.
+      return nullptr;
+    }
+
+    auto vlan = state->getVlans()->getVlanIf(vlanID).get();
+    std::shared_ptr<SwitchState> newState{state};
+    auto* table = vlan->template getNeighborTable<NTable>().get();
+    auto node = table->getNodeIf(fields.ip);
+    if (!node) {
+      // only set a pending entry when we have no entry
+      table = table->modify(&vlan, &newState);
+      table->addPendingEntry(fields.ip, fields.interfaceID);
+    } else {
+      return nullptr;
+    }
+
+    VLOG(4) << "Adding pending entry for " << fields.ip
+            << " on interface " << fields.interfaceID;
+    return newState;
+  };
+
+  sw_->updateState(folly::to<std::string>("add pending entry ", fields.ip),
+                   std::move(updateFn));
+}
 
 template <typename NTable>
 NeighborCacheImpl<NTable>::~NeighborCacheImpl() {
@@ -191,7 +294,7 @@ bool NeighborCacheImpl<NTable>::flushEntryFromSwitchState(
   // flushed from the SwitchState
   DCHECK(!getCacheEntry(ip));
 
-  auto* table = vlan->getNeighborTable<NTable>().get();
+  auto* table = vlan->template getNeighborTable<NTable>().get();
   const auto& entry = table->getNodeIf(ip);
   if (!entry) {
     return false;
