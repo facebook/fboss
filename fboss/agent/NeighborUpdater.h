@@ -80,6 +80,7 @@ class NeighborUpdater : public AutoRegisterStateObserver {
  private:
   void vlanAdded(const SwitchState* state, const Vlan* vlan);
   void vlanDeleted(const Vlan* vlan);
+  void vlanChanged(const Vlan* oldVlan, const Vlan* newVlan);
 
   void sendNeighborUpdates(const VlanDelta& delta);
 

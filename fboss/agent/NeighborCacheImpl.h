@@ -83,6 +83,10 @@ class NeighborCacheImpl {
     return intfID_;
   }
 
+  void setIntfID(const InterfaceID intfID) {
+    intfID_ = intfID;
+  }
+
   VlanID getVlanID() const {
     return vlanID_;
   }

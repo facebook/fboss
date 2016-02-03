@@ -38,14 +38,25 @@ class BcmWarmBootCache {
   explicit BcmWarmBootCache(const BcmSwitch* hw);
   void populate();
   struct VlanInfo {
-    VlanInfo(VlanID _vlan, opennsl_pbmp_t _untagged, opennsl_pbmp_t _allPorts):
-    vlan(_vlan) {
+    VlanInfo(VlanID _vlan, opennsl_pbmp_t _untagged, opennsl_pbmp_t _allPorts,
+             InterfaceID _intfID):
+        vlan(_vlan),
+        intfID(_intfID) {
       OPENNSL_PBMP_ASSIGN(untagged, _untagged);
       OPENNSL_PBMP_ASSIGN(allPorts, _allPorts);
     }
+
+    // This constructor defaults to setting the interfaceID to be the same
+    // as the vlan ID. This is our current behavior. If we want to support
+    // interface IDs that are different than their corresponding vlan ID
+    // the various call-sites need to use the other constructor.
+    VlanInfo(VlanID _vlan, opennsl_pbmp_t _untagged, opennsl_pbmp_t _allPorts):
+        VlanInfo(_vlan, _untagged, _allPorts, InterfaceID(_vlan)) {}
+
     VlanID vlan;
     opennsl_pbmp_t untagged;
     opennsl_pbmp_t allPorts;
+    InterfaceID intfID;
   };
   typedef opennsl_if_t EcmpEgressId;
   typedef opennsl_if_t EgressId;

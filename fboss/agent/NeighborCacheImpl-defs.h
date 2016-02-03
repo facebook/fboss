@@ -340,7 +340,6 @@ bool NeighborCacheImpl<NTable>::flushEntry(AddressType ip,
   return true;
 }
 
-
 template <typename NTable>
 bool NeighborCacheImpl<NTable>::isSolicited(AddressType ip) {
   // For now we assume that all entries that are either INCOMPLETE or PROBE

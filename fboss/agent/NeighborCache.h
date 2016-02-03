@@ -48,6 +48,9 @@ class NeighborCache {
     std::lock_guard<std::mutex> g(cacheLock_);
     impl_->repopulate(table);
   }
+  void setIntfID(const InterfaceID intfID) {
+    impl_->setIntfID(intfID);
+  }
 
  protected:
   // protected constructor since this is only meant to be inherited from

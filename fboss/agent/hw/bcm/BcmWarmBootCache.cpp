@@ -103,6 +103,7 @@ shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
       }
       vlan->addPort(PortID(idx), true);
     }
+    vlan->setInterfaceID(vlanAndInfo.second.intfID);
     vlans->addVlan(vlan);
   }
   flat_map<VlanID, AddrTables> vlan2AddrTables;

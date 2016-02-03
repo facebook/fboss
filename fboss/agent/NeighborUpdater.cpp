@@ -264,15 +264,11 @@ void NeighborUpdater::stateUpdated(const StateDelta& delta) {
 
     if (!newEntry) {
       vlanDeleted(oldEntry.get());
-      continue;
-    }
-
-    if (!oldEntry) {
+    } else if (!oldEntry) {
       vlanAdded(delta.newState().get(), newEntry.get());
+    } else {
+      vlanChanged(oldEntry.get(), newEntry.get());
     }
-
-    // Do nothing on changed vlans, since all neighbor related changes originate
-    // in the updater now and are already reflected in the NeighborCache
   }
   unresolvedNhopsProber_->stateChanged(delta);
 }
@@ -343,6 +339,29 @@ void NeighborUpdater::vlanDeleted(const Vlan* vlan) {
       // specific vlan. Need to make sure that caches are correctly created for
       // the initial SwitchState to avoid false positives
       VLOG(0) << "Deleted Vlan with no corresponding NeighborCaches";
+    }
+  }
+}
+
+void NeighborUpdater::vlanChanged(const Vlan* oldVlan, const Vlan* newVlan) {
+  if (newVlan->getInterfaceID() == oldVlan->getInterfaceID()) {
+    // For now we only care about changes to the interfaceID
+    return;
+  }
+
+  CHECK(sw_->getUpdateEVB()->inRunningEventBaseThread());
+  {
+    std::lock_guard<std::mutex> g(cachesMutex_);
+    auto iter = caches_.find(newVlan->getID());
+    if (iter != caches_.end()) {
+      auto intfID = newVlan->getInterfaceID();
+      iter->second->arpCache->setIntfID(intfID);
+      iter->second->ndpCache->setIntfID(intfID);
+    } else {
+      // TODO(aeckert): May want to fatal here when a cache doesn't exist for a
+      // specific vlan. Need to make sure that caches are correctly created for
+      // the initial SwitchState to avoid false positives
+      VLOG(0) << "Changed Vlan with no corresponding NeighborCaches";
     }
   }
 }
