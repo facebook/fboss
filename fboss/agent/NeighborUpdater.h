@@ -11,6 +11,8 @@
 
 #include <boost/container/flat_map.hpp>
 #include "fboss/agent/StateObserver.h"
+#include "fboss/agent/types.h"
+#include <mutex>
 
 namespace facebook { namespace fboss {
 
@@ -20,20 +22,62 @@ class StateDelta;
 class Vlan;
 class UnresolvedNhopsProber;
 
+enum ArpOpCode : uint16_t;
+enum ICMPv6Type : uint8_t;
+
 /**
- * This class handles asynchronous updates to neighbor tables that are not
- * in response to handling a specific packet. For now this is only used to
- * remove pending entries from the tables after they timeout.
+ * This class handles all updates to neighbor entries. Whenever we perform an
+ * action or receive a packet that should update the Arp or Ndp tables in the
+ * SwitchState, it goes through this class first. This class stores Arp and NDP
+ * caches for each vlan and those are the source of truth for neighbor entries.
  *
- * This will be used to expire neighbor entries as well once that is
- * implemented.
+ * Those caches are self-managing and manage all changes to the Neighbor Tables
+ * due to expiration or failed resolution.
+ *
+ * This class implements the StateObserver API and listens for all vlan added or
+ * deleted events. It ignores all changes it receives related to arp/ndp tables,
+ * as all those changes should originate from the caches stored in this class.
  */
 class NeighborUpdater : public AutoRegisterStateObserver {
  public:
+  // Placeholder for subsequent diff
+  typedef int ArpCache;
+  typedef int NdpCache;
+
   explicit NeighborUpdater(SwSwitch* sw);
-  ~NeighborUpdater() override;
+  ~NeighborUpdater();
 
   void stateUpdated(const StateDelta& delta) override;
+
+  uint32_t flushEntry (VlanID vlan, folly::IPAddress ip);
+
+  // Ndp events
+  void sentNeighborSolicitation(VlanID vlan,
+                                folly::IPAddressV6 ip);
+  void receivedNdpMine(VlanID vlan,
+                       folly::IPAddressV6 ip,
+                       folly::MacAddress mac,
+                       PortID port,
+                       ICMPv6Type type);
+  void receivedNdpNotMine(VlanID vlan,
+                          folly::IPAddressV6 ip,
+                          folly::MacAddress mac,
+                          PortID port,
+                          ICMPv6Type type);
+
+  // Arp events
+  void sentArpRequest(VlanID vlan,
+                      folly::IPAddressV4 ip);
+  void receivedArpMine(VlanID vlan,
+                       folly::IPAddressV4 ip,
+                       folly::MacAddress mac,
+                       PortID port,
+                       ArpOpCode op);
+  void receivedArpNotMine(VlanID vlan,
+                          folly::IPAddressV4 ip,
+                          folly::MacAddress mac,
+                          PortID port,
+                          ArpOpCode op);
 
  private:
   void vlanAdded(const SwitchState* state, const Vlan* vlan);
@@ -41,15 +85,33 @@ class NeighborUpdater : public AutoRegisterStateObserver {
 
   void sendNeighborUpdates(const VlanDelta& delta);
 
+  std::shared_ptr<ArpCache> getArpCacheFor(VlanID vlan);
+  std::shared_ptr<ArpCache> getArpCacheInternal(VlanID vlan);
+  std::shared_ptr<NdpCache> getNdpCacheFor(VlanID vlan);
+  std::shared_ptr<NdpCache> getNdpCacheInternal(VlanID vlan);
+
+  bool flushEntryImpl (VlanID vlan, folly::IPAddress ip);
+
   // Forbidden copy constructor and assignment operator
   NeighborUpdater(NeighborUpdater const &) = delete;
   NeighborUpdater& operator=(NeighborUpdater const &) = delete;
 
+  struct NeighborCaches {
+    std::shared_ptr<ArpCache> arpCache;
+    std::shared_ptr<NdpCache> ndpCache;
+
+    NeighborCaches(SwSwitch* sw, const SwitchState* state,
+                   VlanID vlanID, InterfaceID intfID) :
+        arpCache(std::make_shared<ArpCache>()),
+        ndpCache(std::make_shared<NdpCache>()) {}
+  };
+
   /**
-   * updaters_ should only ever be accessed from the state update thread,
-   * so we don't need to lock accesses.
+   * caches_ can be accessed from multiple threads, so we need to lock accesses
+   * with cachesMutex_;
    */
-  boost::container::flat_map<VlanID, NeighborUpdaterImpl*> updaters_;
+  boost::container::flat_map<VlanID, std::unique_ptr<NeighborCaches>> caches_;
+  std::mutex cachesMutex_;
   SwSwitch* sw_{nullptr};
   UnresolvedNhopsProber* unresolvedNhopsProber_;
 };

@@ -15,6 +15,7 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/DHCPv6Handler.h"
@@ -213,52 +214,6 @@ void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
   sw_->portStats(pkt)->pktDropped();
 }
 
-uint32_t IPv6Handler::flushNdpEntryBlocking(IPAddressV6 ip, VlanID vlan) {
-  uint32_t count{0};
-  auto updateFn = [&](const shared_ptr<SwitchState>& state) {
-    return performNeighborFlush(state, vlan, ip, &count);
-  };
-  sw_->updateStateBlocking("flush NDP entry", updateFn);
-  return count;
-}
-
-shared_ptr<SwitchState> IPv6Handler::performNeighborFlush(
-    const shared_ptr<SwitchState>& state,
-    VlanID vlanID,
-    folly::IPAddressV6 ip,
-    uint32_t* countFlushed) {
-  *countFlushed = 0;
-  shared_ptr<SwitchState> newState{state};
-  if (vlanID == VlanID(0)) {
-    // Flush this IP from every VLAN that contains an entry for it.
-    for (const auto& vlan : *newState->getVlans()) {
-      if (performNeighborFlush(&newState, vlan.get(), ip)) {
-        ++(*countFlushed);
-      }
-    }
-  } else {
-    auto* vlan = state->getVlans()->getVlan(vlanID).get();
-    if (performNeighborFlush(&newState, vlan, ip)) {
-      ++(*countFlushed);
-    }
-  }
-  return newState;
-}
-
-bool IPv6Handler::performNeighborFlush(shared_ptr<SwitchState>* state,
-                                      Vlan* vlan,
-                                      folly::IPAddressV6 ip) {
-  auto* ndpTable = vlan->getNdpTable().get();
-  const auto& entry = ndpTable->getNodeIf(ip);
-  if (!entry) {
-    return false;
-  }
-
-  ndpTable = ndpTable->modify(&vlan, state);
-  ndpTable->removeNode(ip);
-  return true;
-}
-
 unique_ptr<RxPacket> IPv6Handler::handleICMPv6Packet(
     unique_ptr<RxPacket> pkt,
     MacAddress dst,
@@ -406,18 +361,19 @@ void IPv6Handler::handleNeighborSolicitation(unique_ptr<RxPacket> pkt,
     return;
   }
 
+  auto updater = sw_->getNeighborUpdater();
+  auto type = ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION;
+
   // Check to see if this IP address is in our NDP response table.
   auto entry = vlan->getNdpResponseTable()->getEntry(targetIP);
   if (!entry) {
-    // The target IP does not refer to us.
-    VLOG(4) << "ignoring neighbor solicitation for " << targetIP.str();
-    sw_->portStats(pkt)->pktDropped();
-    // Note that ARP updates the forward entry mapping here if necessary.
-    // We could potentially do the same here, although the IPv6 NDP RFC
-    // doesn't appear to recommend this--it states that we MUST silently
-    // discard the packet if the target IP isn't ours.
+    updater->receivedNdpNotMine(vlan->getID(), hdr.ipv6->srcAddr, hdr.src,
+                                pkt->getSrcPort(), type);
     return;
   }
+
+  updater->receivedNdpMine(vlan->getID(), hdr.ipv6->srcAddr, hdr.src,
+                           pkt->getSrcPort(), type);
 
   // TODO: It might be nice to support duplicate address detection, and track
   // whether our IP is tentative or not.
@@ -468,10 +424,31 @@ void IPv6Handler::handleNeighborAdvertisement(unique_ptr<RxPacket> pkt,
     return;
   }
 
+  auto state = sw_->getState();
+  auto vlan = state->getVlans()->getVlanIf(pkt->getSrcVlan());
+  if (!vlan) {
+    // Hmm, we don't actually have this VLAN configured.
+    // Perhaps the state has changed since we received the packet.
+    sw_->portStats(pkt)->pktDropped();
+    return;
+  }
+
   VLOG(4) << "got neighbor advertisement for " << targetIP <<
     " (" << targetMac << ")";
 
-  updateNeighborEntry(pkt.get(), targetIP, targetMac, flags);
+  auto updater = sw_->getNeighborUpdater();
+  auto type = ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT;
+
+  // Check to see if this IP address is in our NDP response table.
+  auto entry = vlan->getNdpResponseTable()->getEntry(hdr.ipv6->dstAddr);
+  if (!entry) {
+    updater->receivedNdpNotMine(vlan->getID(), targetIP, hdr.src,
+                                pkt->getSrcPort(), type);
+    return;
+  }
+
+  updater->receivedNdpMine(vlan->getID(), targetIP, hdr.src,
+                           pkt->getSrcPort(), type);
 }
 
 
@@ -533,38 +510,55 @@ bool IPv6Handler::checkNdpPacket(const ICMPHeaders& hdr,
   return true;
 }
 
-void IPv6Handler::sendNeighborSolicitation(
-    const folly::IPAddressV6& targetIP,
-    const shared_ptr<Vlan> vlan) {
+void IPv6Handler::sendNeighborSolicitation(SwSwitch* sw,
+                                           const IPAddressV6& targetIP,
+                                           const MacAddress& srcMac,
+                                           const VlanID vlanID) {
   uint32_t bodyLength = 4 + 16 + 8;
-  auto intf = sw_->getState()->getInterfaces()
-                 ->getInterfaceInVlan(vlan->getID());
 
   auto serializeBody = [&](RWPrivateCursor* cursor) {
     cursor->writeBE<uint32_t>(0); // reserved
     cursor->push(targetIP.bytes(), 16);
     cursor->write<uint8_t>(1); // Source link layer address option
-    cursor->write<uint8_t>(1); // Option length = 1 (x8)
-    cursor->push(intf->getMac().bytes(), MacAddress::SIZE);
+    cursor->write<uint8_t>(1); // Option l5ength = 1 (x8)
+    cursor->push(srcMac.bytes(), MacAddress::SIZE);
   };
 
   IPAddressV6 solicitedNodeAddr = targetIP.getSolicitedNodeAddress();
   MacAddress dstMac = MacAddress::createMulticast(solicitedNodeAddr);
   // For now, we always use our link local IP as the source.
-  IPAddressV6 srcIP(IPAddressV6::LINK_LOCAL, intf->getMac());
-  auto pkt = createICMPv6Pkt(sw_, dstMac, intf->getMac(), intf->getVlanID(),
+  IPAddressV6 srcIP(IPAddressV6::LINK_LOCAL, srcMac);
+  auto pkt = createICMPv6Pkt(sw, dstMac, srcMac, vlanID,
                              solicitedNodeAddr, srcIP,
                              ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
                              ICMPV6_CODE_NDP_MESSAGE_CODE,
                              bodyLength, serializeBody);
-  VLOG(4) << "adding pending NDP entry for " << targetIP;
-  setPendingNdpEntry(vlan, targetIP);
-
 
   VLOG(4) << "sending neighbor solicitation for " << targetIP <<
-    " on interface " << intf->getID();
-  sw_->sendPacketSwitched(std::move(pkt));
+    " on vlan " << vlanID;
+  sw->sendPacketSwitched(std::move(pkt));
 }
+
+void IPv6Handler::sendNeighborSolicitation(SwSwitch* sw,
+                                           const IPAddressV6& targetIP,
+                                           const shared_ptr<Vlan>& vlan) {
+  auto state = sw->getState();
+  auto intfID = vlan->getInterfaceID();
+
+  if (!Interface::isIpAttached(targetIP, intfID, state)) {
+    VLOG(0) << "Cannot reach " << targetIP << " on interface " << intfID;
+    return;
+  }
+
+  auto intf = state->getInterfaces()->getInterfaceIf(intfID);
+  if (!intf) {
+    VLOG(0) << "Cannot find interface " << intfID;
+    return;
+  }
+
+  sendNeighborSolicitation(sw, targetIP, intf->getMac(), vlan->getID());
+}
+
 
 void IPv6Handler::sendNeighborSolicitations(
     const folly::IPAddressV6& targetIP) {
@@ -605,7 +599,10 @@ void IPv6Handler::sendNeighborSolicitations(
         auto entry = vlan->getNdpTable()->getEntryIf(target);
         if (entry == nullptr) {
           // No entry in NDP table, create a neighbor solicitation packet
-          sendNeighborSolicitation(target,vlan);
+          sendNeighborSolicitation(sw_, target, intf->getMac(), vlan->getID());
+
+          // Notify the updater that we sent a solicitation out
+          sw_->getNeighborUpdater()->sentNeighborSolicitation(vlanID, target);
         } else {
           VLOG(5) << "not sending neighbor solicitation for " << target.str()
                   << ", " << ((entry->isPending()) ? "pending" : "")
@@ -696,7 +693,7 @@ void IPv6Handler::setPendingNdpEntry(shared_ptr<Vlan> vlan,
     }
     if (!intf->canReachAddress(ip)) {
       VLOG(4) << ip << " deleted from interface " << intfID <<
-        " before pending ndp entry could be added";
+      " before pending ndp entry could be added";
       return nullptr;
     }
 
@@ -739,7 +736,7 @@ void IPv6Handler::updateNeighborEntry(const RxPacket* pkt,
   if (!intf) {
     // The interface no longer exists. Just ignore the entry update.
     VLOG(1) << "Interface for vlan " << vlanID << " deleted before NDP entry "
-      << ip << " --> " << mac << " could be updated";
+            << ip << " --> " << mac << " could be updated";
     sw_->portStats(pkt)->pktDropped();
     return;
   }
@@ -748,7 +745,7 @@ void IPv6Handler::updateNeighborEntry(const RxPacket* pkt,
   if (intf->getAddressToReach(folly::IPAddress(ip))
       == intf->getAddresses().end()) {
     LOG(WARNING) << "Skip updating un-reachable neighbor entry " << ip
-     << " --> " << mac << " on interface " << intfID;
+                 << " --> " << mac << " on interface " << intfID;
     sw_->portStats(pkt)->pktDropped();
     return;
   }
@@ -771,7 +768,7 @@ void IPv6Handler::updateNeighborEntry(const RxPacket* pkt,
 
   // We do have to update the entry now.
   auto updateFn = [vlanID, port, intfID, ip, mac]
-                  (const shared_ptr<SwitchState>& state) {
+    (const shared_ptr<SwitchState>& state) {
     // The state has changed, we need to
     // Re-validate vlan and entry, in case the state has changed
     auto* vlan = state->getVlans()->getVlanIf(vlanID).get();
@@ -786,7 +783,7 @@ void IPv6Handler::updateNeighborEntry(const RxPacket* pkt,
     // is still on a locally attached subnet
     if (!Interface::isIpAttached(ip, intfID, state)) {
       VLOG(3) << "interface subnets changed before NDP entry " <<
-        ip << " --> " << mac << " could be updated";
+      ip << " --> " << mac << " could be updated";
       return shared_ptr<SwitchState>();
     }
 

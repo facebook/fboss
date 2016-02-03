@@ -44,10 +44,24 @@ class IPv6Handler : public AutoRegisterStateObserver {
                     folly::MacAddress src,
                     folly::io::Cursor cursor);
 
-  uint32_t flushNdpEntryBlocking(folly::IPAddressV6, VlanID vlan);
   void floodNeighborAdvertisements();
   void sendNeighborSolicitation(const folly::IPAddressV6& targetIP,
                                 const std::shared_ptr<Vlan> vlan);
+
+  /*
+   * These two static methods are for sending out an NDP solicitation.
+   * The second version actually calls the first and is there
+   * for the convenience of the caller. The first version
+   * does not access the SwitchState so should be preferred where
+   * possible.
+   */
+  static void sendNeighborSolicitation(SwSwitch* sw,
+                                       const folly::IPAddressV6& targetIP,
+                                       const folly::MacAddress& srcMac,
+                                       const VlanID vlanID);
+  static void sendNeighborSolicitation(SwSwitch* sw,
+                                       const folly::IPAddressV6& targetIP,
+                                       const std::shared_ptr<Vlan>& vlan);
 
  private:
   struct ICMPHeaders;
@@ -111,15 +125,6 @@ class IPv6Handler : public AutoRegisterStateObserver {
                            uint32_t flags);
   void setPendingNdpEntry(std::shared_ptr<Vlan> vlan,
                           const folly::IPAddressV6 &ip);
-
-  std::shared_ptr<SwitchState> performNeighborFlush(
-      const std::shared_ptr<SwitchState>& state,
-      VlanID vlan,
-      folly::IPAddressV6 ip,
-      uint32_t* countFlushed);
-  bool performNeighborFlush(std::shared_ptr<SwitchState>* state,
-                            Vlan* vlan,
-                            folly::IPAddressV6 ip);
 
   SwSwitch* sw_{nullptr};
   RAMap routeAdvertisers_;

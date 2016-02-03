@@ -30,6 +30,11 @@ class SwSwitch;
 class SwitchState;
 class Vlan;
 
+enum ArpOpCode : uint16_t {
+  ARP_OP_REQUEST = 1,
+  ARP_OP_REPLY = 2,
+};
+
 class ArpHandler {
  public:
   enum : uint16_t { ETHERTYPE_ARP = 0x0806 };
@@ -40,15 +45,27 @@ class ArpHandler {
                     folly::MacAddress dst,
                     folly::MacAddress src,
                     folly::io::Cursor cursor);
-  void sendArpRequest(std::shared_ptr<Vlan> vlan,
-                      folly::IPAddressV4 senderIP,
-                      folly::IPAddressV4 targetIP);
+
+  /*
+   * These two static methods are for sending out ARP requests.
+   * The second version actually calls the first and is there
+   * for the convenience of the caller. The first version
+   * does not access the SwitchState so should be preferred where
+   * possible.
+   */
+  static void sendArpRequest(SwSwitch* sw,
+                             const VlanID vlan,
+                             const folly::MacAddress& srcMac,
+                             const folly::IPAddressV4& senderIP,
+                             const folly::IPAddressV4& targetIP);
+  static void sendArpRequest(SwSwitch* sw,
+                             const std::shared_ptr<Vlan>& vlan,
+                             const folly::IPAddressV4& targetIP);
 
   /*
    * Send gratuitous arp on all vlans
    * */
   void floodGratuituousArp();
-  uint32_t flushArpEntryBlocking(folly::IPAddressV4, VlanID vlan);
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -76,15 +93,6 @@ class ArpHandler {
                          PortID port,
                          InterfaceID intfID,
                          bool addNewEntry);
-
-  std::shared_ptr<SwitchState> performNeighborFlush(
-      const std::shared_ptr<SwitchState>& state,
-      VlanID vlan,
-      folly::IPAddressV4 ip,
-      uint32_t* countFlushed);
-  bool performNeighborFlush(std::shared_ptr<SwitchState>* state,
-                            Vlan* vlan,
-                            folly::IPAddressV4 ip);
 
   SwSwitch* sw_{nullptr};
 };

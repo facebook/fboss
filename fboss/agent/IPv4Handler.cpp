@@ -21,6 +21,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/ArpHandler.h"
+#include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/IPHeaderV4.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -238,8 +239,11 @@ bool IPv4Handler::resolveMac(SwitchState* state, IPAddressV4 dest) {
         auto entry = vlan->getArpTable()->getEntryIf(target);
         if (entry == nullptr) {
           // No entry in ARP table, send ARP request
-          auto* arp = sw_->getArpHandler();
-          arp->sendArpRequest(vlan, source, target);
+          auto mac = intf->getMac();
+          ArpHandler::sendArpRequest(sw_, vlanID, mac, source, target);
+
+          // Notify the updater that we sent an arp request
+          sw_->getNeighborUpdater()->sentArpRequest(vlanID, target);
         } else {
           VLOG(4) << "not sending arp for " << target.str() << ", "
                   << ((entry->isPending()) ? "pending " : "")

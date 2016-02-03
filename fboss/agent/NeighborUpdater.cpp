@@ -22,15 +22,18 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/RouteForwardInfo.h"
 #include <folly/futures/Future.h>
-
 #include <mutex>
+#include <boost/container/flat_map.hpp>
 
 using std::chrono::seconds;
 using std::shared_ptr;
 using boost::container::flat_map;
 using folly::Future;
 using folly::Unit;
-using folly::collectAll;
+using folly::IPAddress;
+using folly::MacAddress;
+using folly::IPAddressV4;
+using folly::IPAddressV6;
 
 namespace facebook { namespace fboss {
 
@@ -95,123 +98,20 @@ void UnresolvedNhopsProber::timeoutExpired() noexcept {
         auto arpEntry = vlan->getArpTable()->getEntryIf(nhop4);
         if (!arpEntry || arpEntry->getPort() == 0) {
           VLOG(2) <<" Sending probe for unresolved next hop: " << nhop4;
-          auto source = intf->getAddressToReach(nhop.nexthop)->first.asV4();
-          sw_->getArpHandler()->sendArpRequest(vlan, source, nhop4);
+          ArpHandler::sendArpRequest(sw_, vlan, nhop4);
         }
       } else {
         auto nhop6 = nhop.nexthop.asV6();
         auto ndpEntry = vlan->getNdpTable()->getEntryIf(nhop6);
         if (!ndpEntry || ndpEntry->getPort() == 0) {
           VLOG(2) <<" Sending probe for unresolved next hop: " << nhop6;
-          sw_->getIPv6Handler()->sendNeighborSolicitation(nhop6, vlan);
+          IPv6Handler::sendNeighborSolicitation(sw_, nhop6, vlan);
         }
       }
     }
   }
   scheduleTimeout(interval_);
 
-}
-class NeighborUpdaterImpl : private folly::AsyncTimeout {
- public:
-  NeighborUpdaterImpl(VlanID vlan, SwSwitch *sw, const SwitchState* state);
-
-  SwSwitch* getSw() const {
-    return sw_;
-  }
-
-  static void start(NeighborUpdaterImpl* me);
-  static void stop(NeighborUpdaterImpl* me);
-
-  void stateChanged(const StateDelta& delta);
-
- private:
-  typedef std::function<
-    std::shared_ptr<SwitchState>(const std::shared_ptr<SwitchState>&)>
-    StateUpdateFn;
-
-  NeighborUpdaterImpl(NeighborUpdaterImpl const &) = delete;
-  NeighborUpdaterImpl& operator=(NeighborUpdaterImpl const &) = delete;
-
-  template<typename TABLE, typename FUNC>
-  void sendNeighborRequestHelper(const TABLE& table,
-      const shared_ptr<Interface>& intf, const shared_ptr<Vlan>& vlan,
-      FUNC& sendNeighborReq) const;
-
- void sendNeighborRequestForPendingEntriesHit() const;
-
-  void timeoutExpired() noexcept override {
-    sendNeighborRequestForPendingEntriesHit();
-    scheduleTimeout(interval_);
-  }
-
-  VlanID const vlan_;
-  SwSwitch* const sw_{nullptr};
-  seconds interval_;
-};
-
-NeighborUpdaterImpl::NeighborUpdaterImpl(VlanID vlan, SwSwitch *sw,
-                                         const SwitchState* state)
-  : AsyncTimeout(sw->getBackgroundEVB()),
-    vlan_(vlan),
-    sw_(sw),
-    // Check for hit pending entries every 1 sec
-    interval_(1) {
-}
-
-void NeighborUpdaterImpl::start(NeighborUpdaterImpl* ntu) {
-  ntu->scheduleTimeout(ntu->interval_);
-}
-
-void NeighborUpdaterImpl::stop(NeighborUpdaterImpl* ntu) {
-  delete ntu;
-}
-
-void NeighborUpdaterImpl::stateChanged(const StateDelta& delta) {
-  // Does nothing now. We may want to subscribe to changes in the configured
-  // interval/timeouts here if we decide  want to be able to change these
-  // values on the fly
-}
-
-template<typename TABLE, typename FUNC>
-void NeighborUpdaterImpl::sendNeighborRequestHelper(
-    const TABLE& table, const shared_ptr<Interface>& intf,
-    const shared_ptr<Vlan>& vlan, FUNC& sendNeighborReq) const {
-
-  for (const auto& entry : table) {
-    if (entry->isPending() &&
-      sw_->getAndClearNeighborHit(intf->getRouterID(),
-        folly::IPAddress(entry->getIP()))) {
-      VLOG (4) << " Pending neighbor entry for " << entry->getIP()
-        << " was hit, sending neighbor request ";
-      sendNeighborReq(intf, vlan, entry.get(), sw_);
-    }
-  }
-}
-
-void NeighborUpdaterImpl::sendNeighborRequestForPendingEntriesHit() const {
-  static auto sendArpReq = [=] (const shared_ptr<Interface>& intf,
-      const shared_ptr<Vlan>& vlan, const ArpEntry* entry, SwSwitch* sw) {
-      auto source = intf->getAddressToReach(entry->getIP())->first.asV4();
-      sw->getArpHandler()->sendArpRequest(vlan, source, entry->getIP());
-  };
-  static auto sendNdpReq = [=] (const shared_ptr<Interface>& intf,
-      const shared_ptr<Vlan>& vlan, const NdpEntry* entry, SwSwitch* sw) {
-      sw->getIPv6Handler()->sendNeighborSolicitation(entry->getIP(), vlan);
-  };
-  auto state = sw_->getState();
-  const auto&  vlanMap = state->getVlans();
-  for (auto& intf: *state->getInterfaces()) {
-    if (vlan_ != intf->getVlanID()) {
-      continue;
-    }
-    auto vlan = vlanMap->getVlan(intf->getVlanID());
-    // all interfaces must have a valid vlan
-    CHECK(vlan);
-    // Send arp for pending ARP entries that were hit
-    sendNeighborRequestHelper(*vlan->getArpTable(), intf, vlan, sendArpReq);
-    // Send ndp for pending NDP entries that were hit
-    sendNeighborRequestHelper(*vlan->getNdpTable(), intf, vlan, sendNdpReq);
-  }
 }
 
 NeighborUpdater::NeighborUpdater(SwSwitch* sw)
@@ -228,37 +128,85 @@ NeighborUpdater::NeighborUpdater(SwSwitch* sw)
 }
 
 NeighborUpdater::~NeighborUpdater() {
-  std::vector<Future<Unit>> stopTasks;
-
-  for (auto entry : updaters_) {
-    auto vlan = entry.first;
-    auto updater = entry.second;
-
-    std::function<void()> stopUpdater = [updater]() {
-      NeighborUpdaterImpl::stop(updater);
-    };
-
-    // Run the stop function in the background thread to
-    // ensure it can be safely run
-    auto f = via(sw_->getBackgroundEVB())
-      .then(stopUpdater)
-      .onError([=](const std::exception& e) {
-        LOG(FATAL) << "failed to stop neighbor updater w/ vlan " << vlan;
-      });
-    stopTasks.push_back(std::move(f));
-  }
   // Stop the prober now
   std::function<void()> stopProber = [=]() {
     UnresolvedNhopsProber::stop(unresolvedNhopsProber_);
   };
-  auto f = via(sw_->getBackgroundEVB())
+
+  Future<Unit> f = via(sw_->getBackgroundEVB())
     .then(stopProber)
     .onError([=] (const std::exception& e) {
           LOG (FATAL) << "Failed to stop unresolved next hops prober ";
         });
-  stopTasks.push_back(std::move(f));
-  // Ensure that all of the updaters have been stopped before we return
-  collectAll(stopTasks).get();
+
+  // wait for prober to stop
+  f.get();
+}
+
+shared_ptr<typename NeighborUpdater::ArpCache>
+NeighborUpdater::getArpCacheFor(VlanID vlan) {
+  std::lock_guard<std::mutex> g(cachesMutex_);
+  return getArpCacheInternal(vlan);
+}
+shared_ptr<typename NeighborUpdater::NdpCache>
+ NeighborUpdater::getNdpCacheFor(VlanID vlan) {
+  std::lock_guard<std::mutex> g(cachesMutex_);
+  return getNdpCacheInternal(vlan);
+}
+
+shared_ptr<typename NeighborUpdater::ArpCache>
+NeighborUpdater::getArpCacheInternal(VlanID vlan) {
+  auto res = caches_.find(vlan);
+  if (res == caches_.end()) {
+    throw FbossError("Tried to get Arp cache non-existent vlan", vlan);
+  }
+  return res->second->arpCache;
+}
+shared_ptr<typename NeighborUpdater::NdpCache>
+NeighborUpdater::getNdpCacheInternal(VlanID vlan) {
+  auto res = caches_.find(vlan);
+  if (res == caches_.end()) {
+    throw FbossError("Tried to get Ndp cache non-existent vlan", vlan);
+  }
+  return res->second->ndpCache;
+}
+
+void NeighborUpdater::sentNeighborSolicitation(VlanID vlan,
+                                               IPAddressV6 ip) {}
+
+void NeighborUpdater::receivedNdpMine(VlanID vlan,
+                                      IPAddressV6 ip,
+                                      MacAddress mac,
+                                      PortID port,
+                                      ICMPv6Type type) {}
+
+void NeighborUpdater::receivedNdpNotMine(VlanID vlan,
+                                         IPAddressV6 ip,
+                                         MacAddress mac,
+                                         PortID port,
+                                         ICMPv6Type type) {}
+
+void NeighborUpdater::sentArpRequest(VlanID vlan,
+                                     IPAddressV4 ip) {}
+
+void NeighborUpdater::receivedArpMine(VlanID vlan,
+                                      IPAddressV4 ip,
+                                      MacAddress mac,
+                                      PortID port,
+                                      ArpOpCode op) {}
+
+void NeighborUpdater::receivedArpNotMine(VlanID vlan,
+                                         IPAddressV4 ip,
+                                         MacAddress mac,
+                                         PortID port,
+                                         ArpOpCode op) {}
+
+bool NeighborUpdater::flushEntryImpl(VlanID vlan, IPAddress ip) {
+  return false;
+}
+
+uint32_t NeighborUpdater::flushEntry(VlanID vlan, IPAddress ip) {
+  return 0;
 }
 
 void NeighborUpdater::stateUpdated(const StateDelta& delta) {
@@ -277,9 +225,8 @@ void NeighborUpdater::stateUpdated(const StateDelta& delta) {
       vlanAdded(delta.newState().get(), newEntry.get());
     }
 
-    auto res = updaters_.find(newEntry->getID());
-    auto updater = res->second;
-    updater->stateChanged(delta);
+    // Do nothing on changed vlans, since all neighbor related changes originate
+    // in the updater now and are already reflected in the NeighborCache
   }
   unresolvedNhopsProber_->stateChanged(delta);
 }
@@ -318,30 +265,30 @@ void NeighborUpdater::sendNeighborUpdates(const VlanDelta& delta) {
 
 void NeighborUpdater::vlanAdded(const SwitchState* state, const Vlan* vlan) {
   CHECK(sw_->getUpdateEVB()->inRunningEventBaseThread());
-  auto updater = new NeighborUpdaterImpl(vlan->getID(), sw_, state);
-  updaters_.emplace(vlan->getID(), updater);
-  bool ret = sw_->getBackgroundEVB()->runInEventBaseThread(
-    NeighborUpdaterImpl::start, updater);
-  if (!ret) {
-    delete updater;
 
-    throw FbossError("failed to start neighbor updater");
-  }
+  std::lock_guard<std::mutex> g(cachesMutex_);
+  auto vlanID = vlan->getID();
+
+  auto intfID = vlan->getInterfaceID();
+  auto caches = folly::make_unique<NeighborCaches>(sw_, state, vlanID, intfID);
+
+  caches_.emplace(vlan->getID(), std::move(caches));
+
+  // TODO(aeckert): We need to populate the caches from the SwitchState when a
+  // vlan is added. After this, we no longer process Arp or Ndp deltas for this
+  // vlan.
 }
 
 void NeighborUpdater::vlanDeleted(const Vlan* vlan) {
   CHECK(sw_->getUpdateEVB()->inRunningEventBaseThread());
-  auto updater = updaters_.find(vlan->getID());
-  if (updater != updaters_.end()) {
-    updaters_.erase(updater);
-    bool ret = sw_->getBackgroundEVB()->runInEventBaseThread(
-      NeighborUpdaterImpl::stop, (*updater).second);
-    if (!ret) {
-      LOG(ERROR) << "failed to stop neighbor updater";
-    }
+
+  std::lock_guard<std::mutex> g(cachesMutex_);
+  auto caches = caches_.find(vlan->getID());
+  if (caches != caches_.end()) {
+    caches_.erase(caches);
   } else {
-    // TODO(aeckert): May want to fatal here when an updater doesn't exist for a
-    // specific vlan. Need to make sure that updaters are correctly created for
+    // TODO(aeckert): May want to fatal here when a cache doesn't exist for a
+    // specific vlan. Need to make sure that caches are correctly created for
     // the initial SwitchState to avoid false positives
   }
 }

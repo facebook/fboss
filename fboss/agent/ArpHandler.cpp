@@ -18,6 +18,7 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/ArpEntry.h"
@@ -39,11 +40,6 @@ using std::shared_ptr;
 enum : uint16_t {
   ARP_HTYPE_ETHERNET = 1,
   ARP_PTYPE_IPV4 = 0x0800,
-};
-
-enum ArpOpCode : uint16_t {
-  ARP_OP_REQUEST = 1,
-  ARP_OP_REPLY = 2,
 };
 
 enum : uint8_t {
@@ -97,12 +93,20 @@ void ArpHandler::handlePacket(unique_ptr<RxPacket> pkt,
   }
 
   // Parse the remaining data in the packet
-  auto op = cursor.readBE<uint16_t>();
+  auto readOp = cursor.readBE<uint16_t>();
   auto senderMac = PktUtil::readMac(&cursor);
   auto senderIP = PktUtil::readIPv4(&cursor);
   auto targetMac = PktUtil::readMac(&cursor);
   auto targetIP = PktUtil::readIPv4(&cursor);
 
+  if (readOp != ARP_OP_REQUEST && readOp != ARP_OP_REPLY) {
+    stats->port(port)->arpBadOp();
+    return;
+  }
+
+  auto op = ArpOpCode(readOp);
+
+  auto updater = sw_->getNeighborUpdater();
   // Check to see if this IP address is in our ARP response table.
   auto entry = vlan->getArpResponseTable()->getEntry(targetIP);
   if (!entry) {
@@ -110,16 +114,14 @@ void ArpHandler::handlePacket(unique_ptr<RxPacket> pkt,
     VLOG(5) << "ignoring ARP message for " << targetIP.str()
             << " on vlan " << pkt->getSrcVlan();
     stats->port(port)->arpNotMine();
-    // Update the sender IP --> sender MAC entry in our ARP table
-    // only if it already exists.
-    // (This behavior follows RFC 826.)
-    updateExistingArpEntry(vlan, senderIP, senderMac, pkt->getSrcPort());
+
+    updater->receivedArpNotMine(vlan->getID(), senderIP, senderMac, port, op);
     return;
   }
 
   // This ARP packet is destined to us.
   // Update the sender IP --> sender MAC entry in the ARP table.
-  updateArpEntry(vlan, senderIP, senderMac, pkt->getSrcPort());
+  updater->receivedArpMine(vlan->getID(), senderIP, senderMac, port, op);
 
   // Send a reply if this is an ARP request.
   if (op == ARP_OP_REQUEST) {
@@ -128,11 +130,8 @@ void ArpHandler::handlePacket(unique_ptr<RxPacket> pkt,
                  entry.value().mac, targetIP,
                  senderMac, senderIP);
     return;
-  } else if (op == ARP_OP_REPLY) {
-    stats->port(port)->arpReplyRx();
-    return;
   } else {
-    stats->port(port)->arpBadOp();
+    stats->port(port)->arpReplyRx();
     return;
   }
 
@@ -197,52 +196,6 @@ void ArpHandler::floodGratuituousArp() {
 
 }
 
-uint32_t ArpHandler::flushArpEntryBlocking(IPAddressV4 ip, VlanID vlan) {
-  uint32_t count{0};
-  auto updateFn = [&](const std::shared_ptr<SwitchState>& state) {
-    return performNeighborFlush(state, vlan, ip, &count);
-  };
-  sw_->updateStateBlocking("flush ARP entry", updateFn);
-  return count;
-}
-
-std::shared_ptr<SwitchState> ArpHandler::performNeighborFlush(
-    const std::shared_ptr<SwitchState>& state,
-    VlanID vlanID,
-    folly::IPAddressV4 ip,
-    uint32_t* countFlushed) {
-  *countFlushed = 0;
-  shared_ptr<SwitchState> newState{state};
-  if (vlanID == VlanID(0)) {
-    // Flush this IP from every VLAN that contains an entry for it.
-    for (const auto& vlan : *newState->getVlans()) {
-      if (performNeighborFlush(&newState, vlan.get(), ip)) {
-        ++(*countFlushed);
-      }
-    }
-  } else {
-    auto* vlan = state->getVlans()->getVlan(vlanID).get();
-    if (performNeighborFlush(&newState, vlan, ip)) {
-      ++(*countFlushed);
-    }
-  }
-  return newState;
-}
-
-bool ArpHandler::performNeighborFlush(std::shared_ptr<SwitchState>* state,
-                                      Vlan* vlan,
-                                      folly::IPAddressV4 ip) {
-  auto* arpTable = vlan->getArpTable().get();
-  const auto& entry = arpTable->getNodeIf(ip);
-  if (!entry) {
-    return false;
-  }
-
-  arpTable = arpTable->modify(&vlan, state);
-  arpTable->removeNode(ip);
-  return true;
-}
-
 void ArpHandler::sendArpReply(VlanID vlan,
                               PortID port,
                               MacAddress senderMac,
@@ -253,16 +206,37 @@ void ArpHandler::sendArpReply(VlanID vlan,
   sendArp(sw_, vlan, ARP_OP_REPLY, senderMac, senderIP, targetMac, targetIP);
 }
 
-void ArpHandler::sendArpRequest(shared_ptr<Vlan> vlan,
-                                IPAddressV4 senderIP,
-                                IPAddressV4 targetIP) {
-  sw_->stats()->arpRequestTx();
-  auto intf = sw_->getState()->getInterfaces()
-              ->getInterfaceInVlan(vlan->getID());
-
-  sendArp(sw_, vlan->getID(), ARP_OP_REQUEST, intf->getMac(), senderIP,
+void ArpHandler::sendArpRequest(SwSwitch* sw,
+                                const VlanID vlanID,
+                                const MacAddress& srcMac,
+                                const IPAddressV4& senderIP,
+                                const IPAddressV4& targetIP) {
+  sw->stats()->arpRequestTx();
+  sendArp(sw, vlanID, ARP_OP_REQUEST, srcMac, senderIP,
           MacAddress::BROADCAST, targetIP);
-  setPendingArpEntry(vlan, targetIP);
+}
+
+
+void ArpHandler::sendArpRequest(SwSwitch* sw,
+                                const shared_ptr<Vlan>& vlan,
+                                const IPAddressV4& targetIP) {
+  auto state = sw->getState();
+  auto intfID = vlan->getInterfaceID();
+
+  if (!Interface::isIpAttached(targetIP, intfID, state)) {
+    VLOG(0) << "Cannot reach " << targetIP << " on interface " << intfID;
+    return;
+  }
+
+  auto intf = state->getInterfaces()->getInterfaceIf(intfID);
+  if (!intf) {
+    VLOG(0) << "Cannot find interface " << intfID;
+    return;
+  }
+  auto addrToReach = intf->getAddressToReach(targetIP);
+
+  sendArpRequest(sw, vlan->getID(), intf->getMac(),
+                 addrToReach->first.asV4(), targetIP);
 }
 
 void ArpHandler::updateExistingArpEntry(const shared_ptr<Vlan>& origVlan,
@@ -324,7 +298,7 @@ void ArpHandler::setPendingArpEntry(shared_ptr<Vlan> vlan,
     }
     if (!intf->canReachAddress(ip)) {
       VLOG(4) << ip << " deleted from interface " << intfID <<
-        " before pending ARP entry could be added";
+      " before pending ARP entry could be added";
       return nullptr;
     }
 
@@ -338,7 +312,7 @@ void ArpHandler::setPendingArpEntry(shared_ptr<Vlan> vlan,
     }
 
     VLOG(4) << "Adding pending ARP entry for " << ip.str() <<
-      " on interface " << intfID;
+    " on interface " << intfID;
     return newState;
   };
 
@@ -378,12 +352,12 @@ void ArpHandler::arpUpdateRequired(VlanID vlanID,
   // Ignore the entry if the IP isn't locally reachable on this interface
   if (!Interface::isIpAttached(ip, intfID, sw_->getState())) {
     LOG(WARNING) << "Skip updating un-reachable ARP entry " << ip << " --> "
-      << mac << " on interface " << intfID;
+                 << mac << " on interface " << intfID;
     return;
   }
 
   auto updateFn = [=](const shared_ptr<SwitchState>& state)
-      -> shared_ptr<SwitchState> {
+    -> shared_ptr<SwitchState> {
     auto* vlan = state->getVlans()->getVlanIf(vlanID).get();
     if (!vlan) {
       // This VLAN no longer exists.  Just ignore the ARP entry update.
@@ -395,8 +369,8 @@ void ArpHandler::arpUpdateRequired(VlanID vlanID,
     // The interfaces may be different now, so re-verify the address
     if (!Interface::isIpAttached(ip, intfID, state)) {
       LOG(WARNING) << "ARP entry " << ip << " --> "
-        << mac << " on interface " << intfID << " became unreachable before "
-        "it could be updated";
+      << mac << " on interface " << intfID << " became unreachable before "
+      "it could be updated";
       return nullptr;
     }
 

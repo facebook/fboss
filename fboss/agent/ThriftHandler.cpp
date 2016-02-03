@@ -22,6 +22,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/capture/PktCapture.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
@@ -771,11 +772,7 @@ int32_t ThriftHandler::flushNeighborEntry(unique_ptr<BinaryAddress> ip,
 
   auto parsedIP = toIPAddress(*ip);
   VlanID vlanID(vlan);
-  if (parsedIP.isV4()) {
-    return sw_->getArpHandler()->flushArpEntryBlocking(parsedIP.asV4(),
-                                                       vlanID);
-  }
-  return sw_->getIPv6Handler()->flushNdpEntryBlocking(parsedIP.asV6(), vlanID);
+  return sw_->getNeighborUpdater()->flushEntry(vlanID, parsedIP);
 }
 
 void ThriftHandler::getVlanAddresses(Addresses& addrs, int32_t vlan) {

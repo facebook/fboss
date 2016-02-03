@@ -208,7 +208,8 @@ void testSendArpRequest(unique_ptr<SwSwitch>& sw, VlanID vlanID,
   EXPECT_PKT(sw, "ARP request",
              checkArpRequest(senderIP, intf->getMac(), targetIP, vlanID));
 
-  sw->getArpHandler()->sendArpRequest(vlan, senderIP, targetIP);
+  ArpHandler::sendArpRequest(sw.get(), vlan->getID(), intf->getMac(),
+                             senderIP, targetIP);
 }
 
 } // unnamed namespace
