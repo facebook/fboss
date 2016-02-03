@@ -62,7 +62,12 @@ struct SwitchStateFields {
   // TODO(aeckert): Figure out a nicer way to store these config fields
   // in an accessible way
   std::chrono::seconds arpTimeout{60};
+  std::chrono::seconds ndpTimeout{60};
   std::chrono::seconds arpAgerInterval{5};
+
+  // NeighborCache configuration values
+  uint32_t maxNeighborProbes{3};
+  std::chrono::seconds staleEntryInterval{10};
 };
 
 /*
@@ -155,11 +160,29 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
 
   void setArpTimeout(std::chrono::seconds timeout);
 
+  std::chrono::seconds getNdpTimeout() const {
+    return getFields()->ndpTimeout;
+  }
+
+  void setNdpTimeout(std::chrono::seconds timeout);
+
   std::chrono::seconds getArpAgerInterval() const {
     return getFields()->arpAgerInterval;
   }
 
   void setArpAgerInterval(std::chrono::seconds interval);
+
+  uint32_t getMaxNeighborProbes() const {
+    return getFields()->maxNeighborProbes;
+  }
+  void setMaxNeighborProbes(uint32_t maxNeighborProbes);
+
+  std::chrono::seconds getStaleEntryInterval() const {
+    return getFields()->staleEntryInterval;
+  }
+
+  void setStaleEntryInterval(std::chrono::seconds interval);
+
 
   /*
    * The following functions modify the static state.

@@ -12,6 +12,8 @@
 #include <boost/container/flat_map.hpp>
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/types.h"
+#include "fboss/agent/ArpCache.h"
+#include "fboss/agent/NdpCache.h"
 #include <mutex>
 
 namespace facebook { namespace fboss {
@@ -40,10 +42,6 @@ enum ICMPv6Type : uint8_t;
  */
 class NeighborUpdater : public AutoRegisterStateObserver {
  public:
-  // Placeholder for subsequent diff
-  typedef int ArpCache;
-  typedef int NdpCache;
-
   explicit NeighborUpdater(SwSwitch* sw);
   ~NeighborUpdater();
 
@@ -97,20 +95,25 @@ class NeighborUpdater : public AutoRegisterStateObserver {
   NeighborUpdater& operator=(NeighborUpdater const &) = delete;
 
   struct NeighborCaches {
+    /* These are shared_ptrs for safety reasons as it lets callers
+     * safely use the results of getArpCacheFor or getNdpCacheFor
+     * even if the vlan is deleted in another thread. */
     std::shared_ptr<ArpCache> arpCache;
     std::shared_ptr<NdpCache> ndpCache;
 
     NeighborCaches(SwSwitch* sw, const SwitchState* state,
                    VlanID vlanID, InterfaceID intfID) :
-        arpCache(std::make_shared<ArpCache>()),
-        ndpCache(std::make_shared<NdpCache>()) {}
+        arpCache(std::make_shared<ArpCache>(sw, state, vlanID, intfID)),
+        ndpCache(std::make_shared<NdpCache>(sw, state, vlanID, intfID)) {}
   };
 
   /**
    * caches_ can be accessed from multiple threads, so we need to lock accesses
-   * with cachesMutex_;
+   * with cachesMutex_. Note that this means that the cache implmentation cade
+   * should NOT ever call back into NeighborUpdater because of this, as it would
+   * likely be a lock ordering issue.
    */
-  boost::container::flat_map<VlanID, std::unique_ptr<NeighborCaches>> caches_;
+  boost::container::flat_map<VlanID, std::shared_ptr<NeighborCaches>> caches_;
   std::mutex cachesMutex_;
   SwSwitch* sw_{nullptr};
   UnresolvedNhopsProber* unresolvedNhopsProber_;

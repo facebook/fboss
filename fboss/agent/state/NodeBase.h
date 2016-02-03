@@ -227,6 +227,9 @@ class NodeBaseT : public NodeBase {
   template<typename... Args>
   explicit NodeBaseT(Args&&... args) : fields_(std::forward<Args>(args)...) {}
 
+  // Create node from fields
+  explicit NodeBaseT(const FieldsT& fields) : fields_(fields) {}
+
   // Constructors used by clone()
   template<typename... Args>
   NodeBaseT(const Node* orig, Args&&... args)

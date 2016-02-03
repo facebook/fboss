@@ -25,6 +25,7 @@
 
 using std::make_shared;
 using std::shared_ptr;
+using std::chrono::seconds;
 
 namespace {
 constexpr auto kInterfaces = "interfaces";
@@ -33,6 +34,11 @@ constexpr auto kVlans = "vlans";
 constexpr auto kRouteTables = "routeTables";
 constexpr auto kDefaultVlan = "defaultVlan";
 constexpr auto kAcls = "acls";
+constexpr auto kArpTimeout = "arpTimeout";
+constexpr auto kNdpTimeout = "ndpTimeout";
+constexpr auto kArpAgerInterval = "arpAgerInterval";
+constexpr auto kMaxNeighborProbes = "maxNeighborProbes";
+constexpr auto kStaleEntryInterval = "staleEntryInterval";
 }
 
 namespace facebook { namespace fboss {
@@ -53,6 +59,13 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kRouteTables] = routeTables->toFollyDynamic();
   switchState[kAcls] = acls->toFollyDynamic();
   switchState[kDefaultVlan] = static_cast<uint32_t>(defaultVlan);
+  switchState[kArpTimeout] = static_cast<uint32_t>(arpTimeout.count());
+  switchState[kNdpTimeout] = static_cast<uint32_t>(ndpTimeout.count());
+  switchState[kArpAgerInterval] =
+    static_cast<uint32_t>(arpAgerInterval.count());
+  switchState[kMaxNeighborProbes] = static_cast<uint32_t>(maxNeighborProbes);
+  switchState[kStaleEntryInterval] =
+    static_cast<uint32_t>(staleEntryInterval.count());
   return switchState;
 }
 
@@ -67,6 +80,12 @@ SwitchStateFields::fromFollyDynamic(const folly::dynamic& swJson) {
       swJson[kRouteTables]);
   switchState.acls = AclMap::fromFollyDynamic(swJson[kAcls]);
   switchState.defaultVlan = VlanID(swJson[kDefaultVlan].asInt());
+  switchState.arpTimeout = seconds(swJson[kArpTimeout].asInt());
+  switchState.ndpTimeout = seconds(swJson[kNdpTimeout].asInt());
+  switchState.arpAgerInterval = seconds(swJson[kArpAgerInterval].asInt());
+  switchState.maxNeighborProbes = swJson[kMaxNeighborProbes].asInt();
+  switchState.staleEntryInterval = seconds(swJson[kStaleEntryInterval].asInt());
+
   //TODO verify that created state here is internally consistent t4155406
   return switchState;
 }
@@ -114,12 +133,24 @@ void SwitchState::setDefaultVlan(VlanID id) {
   writableFields()->defaultVlan = id;
 }
 
-void SwitchState::setArpTimeout(std::chrono::seconds timeout) {
+void SwitchState::setArpTimeout(seconds timeout) {
   writableFields()->arpTimeout = timeout;
 }
 
-void SwitchState::setArpAgerInterval(std::chrono::seconds interval) {
+void SwitchState::setNdpTimeout(seconds timeout) {
+  writableFields()->ndpTimeout = timeout;
+}
+
+void SwitchState::setArpAgerInterval(seconds interval) {
   writableFields()->arpAgerInterval = interval;
+}
+
+void SwitchState::setMaxNeighborProbes(uint32_t maxNeighborProbes) {
+  writableFields()->maxNeighborProbes = maxNeighborProbes;
+}
+
+void SwitchState::setStaleEntryInterval(seconds interval) {
+  writableFields()->staleEntryInterval = interval;
 }
 
 void SwitchState::addIntf(const std::shared_ptr<Interface>& intf) {

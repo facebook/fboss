@@ -21,6 +21,9 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/RouteForwardInfo.h"
+#include "fboss/agent/ArpCache.h"
+#include "fboss/agent/NdpCache.h"
+
 #include <folly/futures/Future.h>
 #include <mutex>
 #include <boost/container/flat_map.hpp>
@@ -143,27 +146,23 @@ NeighborUpdater::~NeighborUpdater() {
   f.get();
 }
 
-shared_ptr<typename NeighborUpdater::ArpCache>
-NeighborUpdater::getArpCacheFor(VlanID vlan) {
+shared_ptr<ArpCache> NeighborUpdater::getArpCacheFor(VlanID vlan) {
   std::lock_guard<std::mutex> g(cachesMutex_);
   return getArpCacheInternal(vlan);
 }
-shared_ptr<typename NeighborUpdater::NdpCache>
- NeighborUpdater::getNdpCacheFor(VlanID vlan) {
+shared_ptr<NdpCache> NeighborUpdater::getNdpCacheFor(VlanID vlan) {
   std::lock_guard<std::mutex> g(cachesMutex_);
   return getNdpCacheInternal(vlan);
 }
 
-shared_ptr<typename NeighborUpdater::ArpCache>
-NeighborUpdater::getArpCacheInternal(VlanID vlan) {
+shared_ptr<ArpCache> NeighborUpdater::getArpCacheInternal(VlanID vlan) {
   auto res = caches_.find(vlan);
   if (res == caches_.end()) {
     throw FbossError("Tried to get Arp cache non-existent vlan", vlan);
   }
   return res->second->arpCache;
 }
-shared_ptr<typename NeighborUpdater::NdpCache>
-NeighborUpdater::getNdpCacheInternal(VlanID vlan) {
+shared_ptr<NdpCache> NeighborUpdater::getNdpCacheInternal(VlanID vlan) {
   auto res = caches_.find(vlan);
   if (res == caches_.end()) {
     throw FbossError("Tried to get Ndp cache non-existent vlan", vlan);
@@ -172,41 +171,84 @@ NeighborUpdater::getNdpCacheInternal(VlanID vlan) {
 }
 
 void NeighborUpdater::sentNeighborSolicitation(VlanID vlan,
-                                               IPAddressV6 ip) {}
+                                               IPAddressV6 ip) {
+  auto cache = getNdpCacheFor(vlan);
+  cache->sentNeighborSolicitation(ip);
+}
 
 void NeighborUpdater::receivedNdpMine(VlanID vlan,
                                       IPAddressV6 ip,
                                       MacAddress mac,
                                       PortID port,
-                                      ICMPv6Type type) {}
+                                      ICMPv6Type type) {
+  auto cache = getNdpCacheFor(vlan);
+  cache->receivedNdpMine(ip, mac, port, type);
+}
 
 void NeighborUpdater::receivedNdpNotMine(VlanID vlan,
                                          IPAddressV6 ip,
                                          MacAddress mac,
                                          PortID port,
-                                         ICMPv6Type type) {}
+                                         ICMPv6Type type) {
+  auto cache = getNdpCacheFor(vlan);
+  cache->receivedNdpNotMine(ip, mac, port, type);
+}
 
 void NeighborUpdater::sentArpRequest(VlanID vlan,
-                                     IPAddressV4 ip) {}
+                                     IPAddressV4 ip) {
+  auto cache = getArpCacheFor(vlan);
+  cache->sentArpRequest(ip);
+}
 
 void NeighborUpdater::receivedArpMine(VlanID vlan,
                                       IPAddressV4 ip,
                                       MacAddress mac,
                                       PortID port,
-                                      ArpOpCode op) {}
+                                      ArpOpCode op) {
+  auto cache = getArpCacheFor(vlan);
+  cache->receivedArpMine(ip, mac, port, op);
+}
 
 void NeighborUpdater::receivedArpNotMine(VlanID vlan,
                                          IPAddressV4 ip,
                                          MacAddress mac,
                                          PortID port,
-                                         ArpOpCode op) {}
+                                         ArpOpCode op) {
+  auto cache = getArpCacheFor(vlan);
+  cache->receivedArpNotMine(ip, mac, port, op);
+}
 
+// expects the cachesMutex_ to be held
 bool NeighborUpdater::flushEntryImpl(VlanID vlan, IPAddress ip) {
-  return false;
+  if (ip.isV4()) {
+    auto cache = getArpCacheInternal(vlan);
+    return cache->flushEntryBlocking(ip.asV4());
+  }
+  auto cache = getNdpCacheInternal(vlan);
+  return cache->flushEntryBlocking(ip.asV6());
 }
 
 uint32_t NeighborUpdater::flushEntry(VlanID vlan, IPAddress ip) {
-  return 0;
+  // clone caches_ so we don't need to hold the lock while flushing entries
+  boost::container::flat_map<VlanID, std::shared_ptr<NeighborCaches>> caches;
+  {
+    std::lock_guard<std::mutex> g(cachesMutex_);
+    caches = caches_;
+  }
+
+  uint32_t count{0};
+  if (vlan == VlanID(0)) {
+    for (auto it = caches.begin(); it != caches.end(); ++it) {
+      if (flushEntryImpl(it->first, ip)) {
+        ++count;
+      }
+    }
+  } else {
+    if (flushEntryImpl(vlan, ip)) {
+      ++count;
+    }
+  }
+  return count;
 }
 
 void NeighborUpdater::stateUpdated(const StateDelta& delta) {
@@ -266,30 +308,40 @@ void NeighborUpdater::sendNeighborUpdates(const VlanDelta& delta) {
 void NeighborUpdater::vlanAdded(const SwitchState* state, const Vlan* vlan) {
   CHECK(sw_->getUpdateEVB()->inRunningEventBaseThread());
 
-  std::lock_guard<std::mutex> g(cachesMutex_);
   auto vlanID = vlan->getID();
 
   auto intfID = vlan->getInterfaceID();
-  auto caches = folly::make_unique<NeighborCaches>(sw_, state, vlanID, intfID);
+  auto caches = std::make_shared<NeighborCaches>(sw_, state, vlanID, intfID);
 
-  caches_.emplace(vlan->getID(), std::move(caches));
+  // We need to populate the caches from the SwitchState when a vlan is added
+  // After this, we no longer process Arp or Ndp deltas for this vlan.
+  caches->arpCache->repopulate(vlan->getArpTable());
+  caches->ndpCache->repopulate(vlan->getNdpTable());
 
-  // TODO(aeckert): We need to populate the caches from the SwitchState when a
-  // vlan is added. After this, we no longer process Arp or Ndp deltas for this
-  // vlan.
+  {
+    std::lock_guard<std::mutex> g(cachesMutex_);
+    caches_.emplace(vlan->getID(), std::move(caches));
+  }
 }
 
 void NeighborUpdater::vlanDeleted(const Vlan* vlan) {
   CHECK(sw_->getUpdateEVB()->inRunningEventBaseThread());
 
-  std::lock_guard<std::mutex> g(cachesMutex_);
-  auto caches = caches_.find(vlan->getID());
-  if (caches != caches_.end()) {
-    caches_.erase(caches);
-  } else {
-    // TODO(aeckert): May want to fatal here when a cache doesn't exist for a
-    // specific vlan. Need to make sure that caches are correctly created for
-    // the initial SwitchState to avoid false positives
+  std::shared_ptr<NeighborCaches> removedEntry;
+  {
+    std::lock_guard<std::mutex> g(cachesMutex_);
+    auto iter = caches_.find(vlan->getID());
+    if (iter != caches_.end()) {
+      // we copy the entry over so we don't destroy the
+      // caches while holding the lock.
+      removedEntry = std::move(iter->second);
+      caches_.erase(iter);
+    } else {
+      // TODO(aeckert): May want to fatal here when a cache doesn't exist for a
+      // specific vlan. Need to make sure that caches are correctly created for
+      // the initial SwitchState to avoid false positives
+      VLOG(0) << "Deleted Vlan with no corresponding NeighborCaches";
+    }
   }
 }
 

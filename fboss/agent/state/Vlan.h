@@ -147,6 +147,9 @@ class Vlan : public NodeBaseT<Vlan, VlanFields> {
 
   void addPort(PortID id, bool tagged);
 
+  template <typename NTABLE>
+  const std::shared_ptr<NTABLE> getNeighborTable() const;
+
   const std::shared_ptr<ArpTable> getArpTable() const {
     return getFields()->arpTable;
   }
@@ -218,5 +221,14 @@ class Vlan : public NodeBaseT<Vlan, VlanFields> {
   using NodeBaseT::NodeBaseT;
   friend class CloneAllocator;
 };
+
+template <>
+inline const std::shared_ptr<ArpTable> Vlan::getNeighborTable() const {
+  return getArpTable();
+}
+template <>
+inline const std::shared_ptr<NdpTable> Vlan::getNeighborTable() const {
+  return getNdpTable();
+}
 
 }} // facebook::fboss

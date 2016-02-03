@@ -242,6 +242,29 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     changed = true;
   }
 
+  std::chrono::seconds arpTimeout(cfg_->arpTimeoutSeconds);
+  if (orig_->getArpTimeout() != arpTimeout) {
+    newState->setArpTimeout(arpTimeout);
+
+    // TODO(aeckert): add ndpTimeout field to SwitchConfig. For now use the same
+    // timeout for both ARP and NDP
+    newState->setNdpTimeout(arpTimeout);
+    changed = true;
+  }
+
+  uint32_t maxNeighborProbes(cfg_->maxNeighborProbes);
+  if (orig_->getMaxNeighborProbes() != maxNeighborProbes) {
+    newState->setMaxNeighborProbes(maxNeighborProbes);
+    changed = true;
+  }
+
+  std::chrono::seconds staleEntryInterval(cfg_->staleEntryInterval);
+  if (orig_->getStaleEntryInterval() != staleEntryInterval) {
+    newState->setStaleEntryInterval(staleEntryInterval);
+    changed = true;
+  }
+
+
   if (!changed) {
     return nullptr;
   }

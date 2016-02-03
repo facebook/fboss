@@ -90,10 +90,12 @@ class NeighborTable
                 folly::MacAddress mac,
                 PortID port,
                 InterfaceID intfID);
+  void addEntry(const NeighborEntryFields<AddressType>& fields);
   void updateEntry(AddressType ip,
                    folly::MacAddress mac,
                    PortID port,
                    InterfaceID intfID);
+  void updateEntry(const NeighborEntryFields<AddressType>& fields);
   void addPendingEntry(AddressType ip,
                        InterfaceID intfID);
 
@@ -103,6 +105,8 @@ class NeighborTable
    * Returns true if any entries were actually changed.
    */
   bool setEntriesPendingForPort(PortID port);
+
+  void removeEntry(AddressType ip);
 
   bool hasPendingEntries() {
     auto nPending = this->getExtraFields().nPending;

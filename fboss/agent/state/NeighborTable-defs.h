@@ -52,6 +52,13 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
 }
 
 template<typename IPADDR, typename ENTRY, typename SUBCLASS>
+void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
+    const NeighborEntryFields<AddressType>& fields) {
+  addEntry(fields.ip, fields.mac, fields.port, fields.interfaceID);
+}
+
+
+template<typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
     AddressType ip,
     folly::MacAddress mac,
@@ -61,7 +68,7 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
   auto& nodes = this->writableNodes();
   auto it = nodes.find(ip);
   if (it == nodes.end()) {
-    throw FbossError("ARP entry for ", ip, " does not exist");
+    throw FbossError("Neighbor entry for ", ip, " does not exist");
   }
   auto entry = it->second->clone();
   if (entry->isPending()) {
@@ -73,6 +80,13 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
   entry->setPending(false);
   it->second = entry;
 }
+
+template<typename IPADDR, typename ENTRY, typename SUBCLASS>
+void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
+    const NeighborEntryFields<AddressType>& fields) {
+  updateEntry(fields.ip, fields.mac, fields.port, fields.interfaceID);
+}
+
 
 template<typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addPendingEntry(
@@ -105,6 +119,13 @@ setEntriesPendingForPort(PortID port) {
     }
   }
   return modified;
+}
+
+template<typename IPADDR, typename ENTRY, typename SUBCLASS>
+void NeighborTable<IPADDR, ENTRY, SUBCLASS>::removeEntry(
+    AddressType ip) {
+  CHECK(!this->isPublished());
+  this->removeNode(ip);
 }
 
 template<typename IPADDR, typename ENTRY, typename SUBCLASS>

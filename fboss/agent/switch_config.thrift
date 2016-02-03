@@ -360,4 +360,6 @@ struct SwitchConfig {
   // The order of AclEntry does _not_ determine its priority.
   // Highest priority entry comes with smallest ID.
   15: optional list<AclEntry> acls = []
+  16: i32 maxNeighborProbes = 3
+  17: i32 staleEntryInterval = 10
 }
