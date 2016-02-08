@@ -24,34 +24,11 @@ namespace facebook { namespace fboss {
 class SwitchState;
 class Vlan;
 
-struct NeighborTableFields {
-  template<typename Fn> void forEachChild(Fn fn) {}
-  bool pendingEntries{false};
-  int nPending{0};
-
-  folly::dynamic toFollyDynamic() const {
-    folly::dynamic ntable = folly::dynamic::object;
-    ntable[kNPending] = nPending;
-    return ntable;
-  }
-
-  static NeighborTableFields
-  fromFollyDynamic(const folly::dynamic& ntableJson) {
-    NeighborTableFields ntable;
-    ntable.nPending = ntableJson[kNPending].asInt();
-    // TODO(aeckert): t5833509 Add a check that verifies that the pending entry
-    // flag is consistent with the entries
-
-    return ntable;
-  }
-
-};
-
 template<typename IPADDR, typename ENTRY>
 struct NeighborTableTraits {
   typedef IPADDR KeyType;
   typedef ENTRY Node;
-  typedef NeighborTableFields ExtraFields;
+  typedef NodeMapNoExtraFields ExtraFields;
 
   static KeyType getKey(const std::shared_ptr<Node>& entry) {
     return entry->getIP();
@@ -99,36 +76,13 @@ class NeighborTable
   void addPendingEntry(AddressType ip,
                        InterfaceID intfID);
 
-  bool prunePendingEntries();
-  /*
-   * Set entries as pending for a given port.
-   * Returns true if any entries were actually changed.
-   */
-  bool setEntriesPendingForPort(PortID port);
-
   void removeEntry(AddressType ip);
-
-  bool hasPendingEntries() {
-    auto nPending = this->getExtraFields().nPending;
-    CHECK(nPending >= 0);
-    return nPending > 0;
-  }
 
  private:
   typedef NodeMapT<SUBCLASS, NeighborTableTraits<IPADDR, ENTRY>> Parent;
   // Inherit the constructors required for clone()
   using Parent::Parent;
   friend class CloneAllocator;
-
-  void incNPending() {
-    ++this->writableExtraFields().nPending;
-  }
-  void decNPending() {
-    --this->writableExtraFields().nPending;
-  }
-  void setNPending(int nPending) {
-    this->writableExtraFields().nPending = nPending;
-  }
 
 };
 

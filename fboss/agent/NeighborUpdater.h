@@ -77,6 +77,8 @@ class NeighborUpdater : public AutoRegisterStateObserver {
                           PortID port,
                           ArpOpCode op);
 
+  void portDown(PortID port);
+
  private:
   void vlanAdded(const SwitchState* state, const Vlan* vlan);
   void vlanDeleted(const Vlan* vlan);

@@ -1083,10 +1083,8 @@ TEST(ArpTest, ArpTableSerialization) {
   EXPECT_NE(vlan, nullptr);
   auto arpTable = vlan->getArpTable();
   EXPECT_NE(arpTable, nullptr);
-  EXPECT_EQ(arpTable->hasPendingEntries(), false);
   auto serializedArpTable = arpTable->toFollyDynamic();
   auto unserializedArpTable = arpTable->fromFollyDynamic(serializedArpTable);
-  EXPECT_EQ(unserializedArpTable->hasPendingEntries(), false);
 
   testSendArpRequest(sw, vlanID, senderIP, targetIP);
 
@@ -1094,12 +1092,8 @@ TEST(ArpTest, ArpTableSerialization) {
   EXPECT_NE(vlan, nullptr);
   arpTable = vlan->getArpTable();
   EXPECT_NE(arpTable, nullptr);
-  EXPECT_EQ(arpTable->hasPendingEntries(), true);
   serializedArpTable = arpTable->toFollyDynamic();
   unserializedArpTable = arpTable->fromFollyDynamic(serializedArpTable);
-
-  // Pending flag should still be set
-  EXPECT_EQ(unserializedArpTable->hasPendingEntries(), true);
 
   // Should also see a pending entry
   auto entry = sw->getState()->getVlans()->getVlanIf(vlanID)->getArpTable()
@@ -1225,4 +1219,121 @@ TEST(ArpTest, ArpExpiration) {
   entry = sw->getState()->getVlans()->getVlanIf(vlanID)->getArpTable()
     ->getEntryIf(targetIP);
   EXPECT_EQ(entry, nullptr);
+}
+
+TEST(ArpTest, PortFlapRecover) {
+  std::chrono::seconds arpTimeout(1);
+  auto sw = setupSwitch(arpTimeout);
+
+  // We only have special port down handling after the fib is
+  // synced, so we set that here.
+  sw->fibSynced();
+
+  VlanID vlanID(1);
+  IPAddressV4 senderIP = IPAddressV4("10.0.0.1");
+  IPAddressV4 targetIP = IPAddressV4("10.0.0.2");
+
+  // Cache the current stats
+  CounterCache counters(sw.get());
+
+  testSendArpRequest(sw, vlanID, senderIP, targetIP);
+
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.tx.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.rx.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.tx.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.rx.sum", 0);
+
+  // Should see a pending entry now
+  auto entry = sw->getState()->getVlans()->getVlanIf(vlanID)->getArpTable()
+    ->getEntryIf(targetIP);
+  EXPECT_NE(entry, nullptr);
+  EXPECT_EQ(entry->isPending(), true);
+
+  // Send an Arp request for two different neighbors
+  IPAddressV4 targetIP2 = IPAddressV4("10.0.0.3");
+  IPAddressV4 targetIP3 = IPAddressV4("10.0.0.4");
+
+  testSendArpRequest(sw, vlanID, senderIP, targetIP2);
+  testSendArpRequest(sw, vlanID, senderIP, targetIP3);
+
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.tx.sum", 2);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.rx.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.tx.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.rx.sum", 0);
+
+  // Should see two more pending entries now
+  waitForStateUpdates(sw.get());
+  auto entry2 = sw->getState()->getVlans()->getVlanIf(vlanID)->getArpTable()
+    ->getEntryIf(targetIP2);
+  auto entry3 = sw->getState()->getVlans()->getVlanIf(vlanID)->getArpTable()
+    ->getEntryIf(targetIP3);
+  EXPECT_NE(entry2, nullptr);
+  EXPECT_EQ(entry2->isPending(), true);
+  EXPECT_NE(entry3, nullptr);
+  EXPECT_EQ(entry3->isPending(), true);
+
+  // Receive arp replies for our pending entries
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(testing::AtLeast(1));
+  sendArpReply(sw.get(), "10.0.0.2", "02:10:20:30:40:22", 1);
+  sendArpReply(sw.get(), "10.0.0.3", "02:10:20:30:40:23", 1);
+  sendArpReply(sw.get(), "10.0.0.4", "02:10:20:30:40:24", 2);
+
+  // The entries should now be valid instead of pending
+  waitForStateUpdates(sw.get());
+  entry = sw->getState()->getVlans()->getVlanIf(vlanID)->getArpTable()
+    ->getEntryIf(targetIP);
+  entry2 = sw->getState()->getVlans()->getVlanIf(vlanID)->getArpTable()
+    ->getEntryIf(targetIP2);
+  entry3 = sw->getState()->getVlans()->getVlanIf(vlanID)->getArpTable()
+    ->getEntryIf(targetIP3);
+  EXPECT_NE(entry, nullptr);
+  EXPECT_NE(entry2, nullptr);
+  EXPECT_NE(entry3, nullptr);
+  EXPECT_EQ(entry->isPending(), false);
+  EXPECT_EQ(entry2->isPending(), false);
+  EXPECT_EQ(entry3->isPending(), false);
+
+  // send a port down event to the switch for port 1
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(testing::AtLeast(1));
+  sw->linkStateChanged(PortID(1), false);
+  waitForStateUpdates(sw.get());
+
+  // both entries should now be pending
+  entry = sw->getState()->getVlans()->getVlanIf(vlanID)->getArpTable()
+    ->getEntryIf(targetIP);
+  entry2 = sw->getState()->getVlans()->getVlanIf(vlanID)->getArpTable()
+    ->getEntryIf(targetIP2);
+  entry3 = sw->getState()->getVlans()->getVlanIf(vlanID)->getArpTable()
+    ->getEntryIf(targetIP3);
+  EXPECT_NE(entry, nullptr);
+  EXPECT_NE(entry2, nullptr);
+  EXPECT_NE(entry3, nullptr);
+  EXPECT_EQ(entry->isPending(), true);
+  EXPECT_EQ(entry2->isPending(), true);
+  EXPECT_EQ(entry3->isPending(), false);
+
+  // send a port up event to the switch for port 1
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(testing::AtLeast(1));
+  sw->linkStateChanged(PortID(1), true);
+
+  // Receive arp replies for our pending entries
+  sendArpReply(sw.get(), "10.0.0.2", "02:10:20:30:40:22", 1);
+  sendArpReply(sw.get(), "10.0.0.3", "02:10:20:30:40:23", 1);
+
+  // The entries should now be valid again
+  waitForStateUpdates(sw.get());
+  entry = sw->getState()->getVlans()->getVlanIf(vlanID)->getArpTable()
+    ->getEntryIf(targetIP);
+  entry2 = sw->getState()->getVlans()->getVlanIf(vlanID)->getArpTable()
+    ->getEntryIf(targetIP2);
+  entry3 = sw->getState()->getVlans()->getVlanIf(vlanID)->getArpTable()
+    ->getEntryIf(targetIP3);
+  EXPECT_NE(entry, nullptr);
+  EXPECT_NE(entry2, nullptr);
+  EXPECT_NE(entry3, nullptr);
+  EXPECT_EQ(entry->isPending(), false);
+  EXPECT_EQ(entry2->isPending(), false);
+  EXPECT_EQ(entry3->isPending(), false);
 }

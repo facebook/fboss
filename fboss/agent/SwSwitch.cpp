@@ -850,25 +850,7 @@ void SwSwitch::linkStateChanged(PortID port, bool up) noexcept {
   if (!isFibSynced() || up) {
     return;
   }
-  updateState("port down",
-              [=](const std::shared_ptr<SwitchState>& state) {
-    bool modified = false;
-    shared_ptr<SwitchState> newState{state};
-    for (const auto& vlanAutoPtr : *state->getVlans()) {
-      auto vlan = vlanAutoPtr.get();
-      auto arpTable = vlan->getArpTable().get();
-      auto newArpTable = arpTable->modify(&vlan, &newState);
-      if (newArpTable->setEntriesPendingForPort(port)) {
-        modified = true;
-      }
-      auto ndpTable = vlan->getNdpTable().get();
-      auto newNdpTable = ndpTable->modify(&vlan, &newState);
-      if (newNdpTable->setEntriesPendingForPort(port)) {
-        modified = true;
-      }
-    }
-    return modified ? newState : nullptr;
-  });
+  nUpdater_->portDown(port);
 }
 
 void SwSwitch::startThreads() {

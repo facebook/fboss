@@ -44,12 +44,19 @@ class NeighborCache {
     std::lock_guard<std::mutex> g(cacheLock_);
     return impl_->flushEntryBlocking(ip);
   }
+
   void repopulate(std::shared_ptr<NTable> table) {
     std::lock_guard<std::mutex> g(cacheLock_);
     impl_->repopulate(table);
   }
+
   void setIntfID(const InterfaceID intfID) {
     impl_->setIntfID(intfID);
+  }
+
+  void portDown(PortID port) {
+    std::lock_guard<std::mutex> g(cacheLock_);
+    impl_->portDown(port);
   }
 
  protected:
@@ -68,9 +75,9 @@ class NeighborCache {
                                                             vlanID, intfID)) {}
 
   // Methods useful for subclasses
-  void setPendingEntry(AddressType ip, bool program = true) {
+  void setPendingEntry(AddressType ip) {
     std::lock_guard<std::mutex> g(cacheLock_);
-    impl_->setPendingEntry(ip, program);
+    impl_->setPendingEntry(ip);
   }
 
   void setExistingEntry(AddressType ip,

@@ -144,14 +144,14 @@ shared_ptr<SwitchState> testStateA() {
   // Setup a default state object
   auto state = make_shared<SwitchState>();
 
-  // Add VLAN 1, and ports 1-9 which belong to it.
+  // Add VLAN 1, and ports 1-10 which belong to it.
   auto vlan1 = make_shared<Vlan>(VlanID(1), "Vlan1");
   state->addVlan(vlan1);
   for (int idx = 1; idx <= 10; ++idx) {
     state->registerPort(PortID(idx), folly::to<string>("port", idx));
     vlan1->addPort(PortID(idx), false);
   }
-  // Add VLAN 55, and ports 10-19 which belong to it.
+  // Add VLAN 55, and ports 11-20 which belong to it.
   auto vlan55 = make_shared<Vlan>(VlanID(55), "Vlan55");
   state->addVlan(vlan55);
   for (int idx = 11; idx <= 20; ++idx) {

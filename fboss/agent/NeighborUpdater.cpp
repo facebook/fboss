@@ -222,6 +222,16 @@ void NeighborUpdater::receivedArpNotMine(VlanID vlan,
   cache->receivedArpNotMine(ip, mac, port, op);
 }
 
+void NeighborUpdater::portDown(PortID port) {
+  for (auto vlanCaches : caches_) {
+    auto arpCache = vlanCaches.second->arpCache;
+    arpCache->portDown(port);
+
+    auto ndpCache = vlanCaches.second->ndpCache;
+    ndpCache->portDown(port);
+  }
+}
+
 // expects the cachesMutex_ to be held
 bool NeighborUpdater::flushEntryImpl(VlanID vlan, IPAddress ip) {
   if (ip.isV4()) {

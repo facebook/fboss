@@ -182,13 +182,11 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
   }
 
   void updateState(NeighborEntryState state) {
-    if (state >= state_) {
-      // This is treated as another entry point to the state machine,
-      // But we should never update to a state with a lower
-      // precedence.  The precedence of different states is encoded in
-      // the NeighborEntryState enum.
-      enter(state);
-    }
+    enter(state);
+  }
+
+  void setPending() {
+    enter(NeighborEntryState::STALE);
   }
 
   bool isProbing() const {
@@ -331,8 +329,8 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
     }
   }
 
-  std::string getStateName() {
-    switch(state_) {
+  std::string getStateName(NeighborEntryState state) {
+    switch(state) {
       case NeighborEntryState::REACHABLE:
         return "REACHABLE";
       case NeighborEntryState::STALE:
@@ -352,6 +350,9 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
     }
   }
 
+  std::string getStateName() {
+    return getStateName(state_);
+  }
 
   // Fields needed to program the SwitchState
   EntryFields fields_;

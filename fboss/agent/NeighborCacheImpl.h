@@ -60,7 +60,7 @@ class NeighborCacheImpl {
 
   // Methods useful for subclasses
   void setPendingEntry(AddressType ip,
-                       bool program = true);
+                       bool force = false);
 
   void setExistingEntry(AddressType ip,
                         folly::MacAddress mac,
@@ -74,6 +74,7 @@ class NeighborCacheImpl {
 
   bool isSolicited(AddressType ip);
 
+  void portDown(PortID port);
 
   SwSwitch* getSw() const {
     return sw_;
@@ -97,7 +98,7 @@ class NeighborCacheImpl {
  private:
   // These are used to program entries into the SwitchState
   void programEntry(Entry* entry);
-  void programPendingEntry(Entry* entry);
+  void programPendingEntry(Entry* entry, bool force = false);
 
   void processEntry(AddressType ip);
   bool flushEntry (AddressType ip, bool blocking = false);
@@ -109,10 +110,9 @@ class NeighborCacheImpl {
   void setCacheEntry(std::shared_ptr<Entry> entry);
   bool removeEntry(AddressType ip);
 
-  void setEntryInternal(const EntryFields& fields,
+  Entry* setEntryInternal(const EntryFields& fields,
                         NeighborEntryState state,
-                        bool add = true,
-                        bool program = true);
+                        bool add = true);
 
   // Forbidden copy constructor and assignment operator
   NeighborCacheImpl(NeighborCacheImpl const &) = delete;

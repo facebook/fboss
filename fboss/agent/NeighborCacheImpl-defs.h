@@ -102,12 +102,13 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
 
 
 template <typename NTable>
-void NeighborCacheImpl<NTable>::programPendingEntry(Entry* entry) {
+void NeighborCacheImpl<NTable>::programPendingEntry(Entry* entry, bool force) {
   CHECK(entry->isPending());
 
   auto fields = entry->getFields();
   auto vlanID = vlanID_;
-  auto updateFn = [fields, vlanID](const std::shared_ptr<SwitchState>& state)
+  auto updateFn = [fields, vlanID, force](
+    const std::shared_ptr<SwitchState>& state)
       -> std::shared_ptr<SwitchState> {
     if (!ncachehelpers::checkVlanAndIntf<NTable>(state, fields, vlanID)) {
       // Either the vlan or intf is no longer valid.
@@ -118,13 +119,17 @@ void NeighborCacheImpl<NTable>::programPendingEntry(Entry* entry) {
     std::shared_ptr<SwitchState> newState{state};
     auto* table = vlan->template getNeighborTable<NTable>().get();
     auto node = table->getNodeIf(fields.ip);
-    if (!node) {
-      // only set a pending entry when we have no entry
-      table = table->modify(&vlan, &newState);
-      table->addPendingEntry(fields.ip, fields.interfaceID);
-    } else {
-      return nullptr;
+    table = table->modify(&vlan, &newState);
+
+    if (node) {
+      if (!force) {
+        // don't replace an existing entry with a pending one unless
+        // explicitly allowed
+        return nullptr;
+      }
+      table->removeEntry(fields.ip);
     }
+    table->addPendingEntry(fields.ip, fields.interfaceID);
 
     VLOG(4) << "Adding pending entry for " << fields.ip
             << " on interface " << fields.interfaceID;
@@ -173,7 +178,7 @@ void NeighborCacheImpl<NTable>::repopulate(std::shared_ptr<NTable> table) {
     auto entry = *it;
     auto state = entry->isPending() ? NeighborEntryState::INCOMPLETE :
       NeighborEntryState::STALE;
-    setEntryInternal(*entry->getFields(), state, true, false);
+    setEntryInternal(*entry->getFields(), state, true);
   }
 }
 
@@ -182,7 +187,8 @@ void NeighborCacheImpl<NTable>::setEntry(AddressType ip,
                                          folly::MacAddress mac,
                                          PortID portID,
                                          NeighborEntryState state) {
-  setEntryInternal(EntryFields(ip, mac, portID, intfID_), state);
+  auto entry = setEntryInternal(EntryFields(ip, mac, portID, intfID_), state);
+  programEntry(entry);
 }
 
 template <typename NTable>
@@ -190,54 +196,46 @@ void NeighborCacheImpl<NTable>::setExistingEntry(AddressType ip,
                                                  folly::MacAddress mac,
                                                  PortID portID,
                                                  NeighborEntryState state) {
-  setEntryInternal(EntryFields(ip, mac, portID, intfID_), state, false);
+  auto entry = setEntryInternal(
+    EntryFields(ip, mac, portID, intfID_), state, false);
+  if (entry) {
+    // only program an entry if one exists
+    programEntry(entry);
+  }
 }
 
 template <typename NTable>
-void NeighborCacheImpl<NTable>::setEntryInternal(const EntryFields& fields,
-                                             NeighborEntryState state,
-                                             bool add,
-                                             bool program) {
+NeighborCacheEntry<NTable>* NeighborCacheImpl<NTable>::setEntryInternal(
+    const EntryFields& fields,
+    NeighborEntryState state,
+    bool add) {
   auto entry = getCacheEntry(fields.ip);
   if (entry) {
-    if (entry->fieldsMatch(fields)) {
-      // Entry is up to date so no hw programming is needed.
-      // However, we should update it's state
-      entry->updateState(state);
-      return;
+    if (!entry->fieldsMatch(fields)) {
+      entry->updateFields(fields);
     }
-    entry->updateFields(fields);
     entry->updateState(state);
   } else if (add) {
     auto evb = sw_->getBackgroundEVB();
-    setCacheEntry(
-      std::make_shared<Entry>(fields, evb, cache_, state));
-  } else {
-    // no entry should exist
-    return;
+    auto to_store = std::make_shared<Entry>(fields, evb, cache_, state);
+    entry = to_store.get();
+    setCacheEntry(std::move(to_store));
   }
-
-  if (program) {
-    programEntry(getCacheEntry(fields.ip));
-  }
+  return entry;
 }
 
 template <typename NTable>
 void NeighborCacheImpl<NTable>::setPendingEntry(AddressType ip,
-                                                bool program) {
-  auto entry = getCacheEntry(ip);
-  if (entry) {
-    // Never overwrite an existing entry with a pending entry
+                                                bool force) {
+  if (!force && getCacheEntry(ip)) {
+    // only overwrite an existing entry with a pending entry if we say it is
+    // ok with the 'force' parameter
     return;
   }
 
-  // Add entry to cache
-  auto evb = sw_->getBackgroundEVB();
-  setCacheEntry(
-    std::make_shared<Entry>(ip, intfID_, PENDING, evb, cache_));
-  if (program) {
-    programPendingEntry(getCacheEntry(ip));
-  }
+  auto newEntry = setEntryInternal(
+    EntryFields(ip, intfID_, PENDING), NeighborEntryState::INCOMPLETE, true);
+  programPendingEntry(newEntry, force);
 }
 
 template <typename NTable>
@@ -347,6 +345,25 @@ bool NeighborCacheImpl<NTable>::isSolicited(AddressType ip) {
   // and are actively waiting for a reply so this is a reasonable assumption.
   auto entry = getCacheEntry(ip);
   return entry && entry->isProbing();
+}
+
+template <typename NTable>
+void NeighborCacheImpl<NTable>::portDown(PortID port) {
+  for (auto item : entries_) {
+    if (item.second->getPortID() != port) {
+      continue;
+    }
+
+    // TODO(aeckert): It would be nicer if we could just mark this
+    // entry stale on port down so we don't need to unprogram the
+    // entry (for fast port flaps).  However, we have seen packet
+    // losses if we start forwarding packets on a port up event before
+    // we receive a neighbor reply so it may not be worth leaving it
+    // programmed. Also we need to notify the HwSwitch for ECMP expand
+    // when the port comes back up and changing an entry from pending
+    // to reachable is how we currently do this.
+    setPendingEntry(item.second->getIP(), true);
+  }
 }
 
 }} // facebook::fboss
