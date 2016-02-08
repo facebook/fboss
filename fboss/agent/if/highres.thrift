@@ -1,4 +1,3 @@
-namespace cpp facebook.fboss
 namespace cpp2 facebook.fboss
 namespace d neteng.fboss.highres
 namespace php fboss
