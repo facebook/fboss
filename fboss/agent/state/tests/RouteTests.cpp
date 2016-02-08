@@ -807,10 +807,13 @@ TEST(RouteTableMap, applyConfig) {
   checkChangedRouteTable(tablesV1, tablesV2, {}, {0,1}, {});
   checkChangedRoute(tablesV1, tablesV2,
                     {},
-                    { TEMP::Route{0, IPAddress("1.1.1.0"), 24},
+                    {
+                      TEMP::Route{0, IPAddress("1.1.1.0"), 24},
                       TEMP::Route{0, IPAddress("::0"), 48},
+                      TEMP::Route{0, IPAddress("fe80::"), 64},
                       TEMP::Route{1, IPAddress("1.1.1.0"), 24},
                       TEMP::Route{1, IPAddress("::0"), 48},
+                      TEMP::Route{1, IPAddress("fe80::"), 64},
                     },
                     {});
 
@@ -878,7 +881,8 @@ TEST(RouteTableMap, applyConfig) {
                     },
                     {
                       TEMP::Route{1, IPAddress("1.1.1.0"), 24},
-                      TEMP::Route{1, IPAddress("::0"), 48}
+                      TEMP::Route{1, IPAddress("::0"), 48},
+                      TEMP::Route{1, IPAddress("fe80::"), 64},
                     });
 
   // re-apply the same configure generates no change

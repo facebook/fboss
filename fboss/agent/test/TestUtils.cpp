@@ -139,7 +139,6 @@ void waitForStateUpdates(SwSwitch* sw) {
   sw->updateStateBlocking("waitForStateUpdates", noopUpdate);
 }
 
-
 shared_ptr<SwitchState> testStateA() {
   // Setup a default state object
   auto state = make_shared<SwitchState>();
@@ -196,6 +195,36 @@ shared_ptr<SwitchState> testStateA() {
   auto newRt = updater.updateDone();
   state->resetRouteTables(newRt);
 
+  return state;
+}
+
+shared_ptr<SwitchState> testStateB() {
+  // Setup a default state object
+  auto state = make_shared<SwitchState>();
+
+  // Add VLAN 1, and ports 1-9 which belong to it.
+  auto vlan1 = make_shared<Vlan>(VlanID(1), "Vlan1");
+  state->addVlan(vlan1);
+  for (int idx = 1; idx <= 10; ++idx) {
+    state->registerPort(PortID(idx), folly::to<string>("port", idx));
+    vlan1->addPort(PortID(idx), false);
+  }
+
+  // Add Interface 1 to VLAN 1
+  auto intf1 = make_shared<Interface>
+    (InterfaceID(1), RouterID(0), VlanID(1),
+     "interface1", MacAddress("00:02:00:00:00:01"), 9000);
+  Interface::Addresses addrs1;
+  addrs1.emplace(IPAddress("10.0.0.1"), 24);
+  addrs1.emplace(IPAddress("192.168.0.1"), 24);
+  addrs1.emplace(IPAddress("2401:db00:2110:3001::0001"), 64);
+  intf1->setAddresses(addrs1);
+  state->addIntf(intf1);
+  vlan1->setInterfaceID(InterfaceID(1));
+  RouteUpdater updater(state->getRouteTables());
+  updater.addInterfaceAndLinkLocalRoutes(state->getInterfaces());
+  auto newRt = updater.updateDone();
+  state->resetRouteTables(newRt);
   return state;
 }
 

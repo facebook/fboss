@@ -680,15 +680,6 @@ shared_ptr<RouteTableMap> ThriftConfigApplier::updateInterfaceRoutes() {
       // if the old router ID does not exist any more, need to remove the
       // v6 link local route from it.
       oldToDeleteTables.insert(id);
-    } else {
-      // otherwise, we have such router ID exsiting already, no need to re-add
-      // v6 link local route.
-      // The erase will succeed when processing the first interface belonging
-      // to the already existing router. The other interfaces belonging
-      // to the same existing router won't have successful erase, as such router
-      // ID has been erased. That is OK given we just want to maintain the
-      // newToAddTabels set.
-      newToAddTables.erase(id);
     }
     for (const auto& addr : intf.second->getAddresses()) {
       auto prefix = std::make_pair(addr.first.mask(addr.second), addr.second);
