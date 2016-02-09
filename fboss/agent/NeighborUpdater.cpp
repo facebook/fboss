@@ -291,9 +291,13 @@ void collectPresenceChange(const T& delta,
     auto oldEntry = entry.getOld();
     auto newEntry = entry.getNew();
     if (oldEntry && !newEntry) {
-      deleted->push_back(folly::to<std::string>(oldEntry->getIP()));
+      if (oldEntry->nonZeroPort()) {
+        deleted->push_back(folly::to<std::string>(oldEntry->getIP()));
+      }
     } else if (newEntry && !oldEntry) {
-      added->push_back(folly::to<std::string>(newEntry->getIP()));
+      if (newEntry->nonZeroPort()) {
+        added->push_back(folly::to<std::string>(newEntry->getIP()));
+      }
     } else {
       if (oldEntry->zeroPort() && newEntry->nonZeroPort()) {
         // Entry was resolved, add it
