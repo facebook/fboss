@@ -188,7 +188,9 @@ void NeighborCacheImpl<NTable>::setEntry(AddressType ip,
                                          PortID portID,
                                          NeighborEntryState state) {
   auto entry = setEntryInternal(EntryFields(ip, mac, portID, intfID_), state);
-  programEntry(entry);
+  if (entry) {
+    programEntry(entry);
+  }
 }
 
 template <typename NTable>
@@ -211,10 +213,12 @@ NeighborCacheEntry<NTable>* NeighborCacheImpl<NTable>::setEntryInternal(
     bool add) {
   auto entry = getCacheEntry(fields.ip);
   if (entry) {
-    if (!entry->fieldsMatch(fields)) {
+    auto changed = !entry->fieldsMatch(fields);
+    if (changed) {
       entry->updateFields(fields);
     }
     entry->updateState(state);
+    return changed ? entry : nullptr;
   } else if (add) {
     auto evb = sw_->getBackgroundEVB();
     auto to_store = std::make_shared<Entry>(fields, evb, cache_, state);
@@ -233,9 +237,11 @@ void NeighborCacheImpl<NTable>::setPendingEntry(AddressType ip,
     return;
   }
 
-  auto newEntry = setEntryInternal(
+  auto entry = setEntryInternal(
     EntryFields(ip, intfID_, PENDING), NeighborEntryState::INCOMPLETE, true);
-  programPendingEntry(newEntry, force);
+  if (entry) {
+    programPendingEntry(entry, force);
+  }
 }
 
 template <typename NTable>
