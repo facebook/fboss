@@ -440,6 +440,11 @@ void SwSwitch::updateState(StringPiece name, StateUpdateFn fn) {
   updateState(std::move(update));
 }
 
+void SwSwitch::updateStateNoCoalescing(StringPiece name, StateUpdateFn fn) {
+  auto update = make_unique<FunctionStateUpdate>(name, std::move(fn), false);
+  updateState(std::move(update));
+}
+
 void SwSwitch::updateStateBlocking(folly::StringPiece name, StateUpdateFn fn) {
   auto result = std::make_shared<BlockingUpdateResult>();
   auto update = make_unique<BlockingStateUpdate>(name, std::move(fn), result);
@@ -461,7 +466,21 @@ void SwSwitch::handlePendingUpdates() {
   StateUpdateList updates;
   {
     folly::SpinLockGuard guard(pendingUpdatesLock_);
-    pendingUpdates_.swap(updates);
+
+    // When deciding how many elements to pull off the pendingUpdates_
+    // list, we pull as many as we can, while making sure we don't
+    // include any updates after an update that does not allow
+    // coalescing.
+    auto iter = pendingUpdates_.begin();
+    while (iter != pendingUpdates_.end()) {
+      StateUpdate* update = &(*iter);
+      ++iter;
+      if (!update->allowsCoalescing()) {
+        break;
+      }
+    }
+    updates.splice(updates.begin(), pendingUpdates_,
+                   pendingUpdates_.begin(), iter);
   }
 
   // handlePendingUpdates() is invoked once for each update, but a previous

@@ -28,8 +28,9 @@ class FunctionStateUpdate : public StateUpdate {
     std::shared_ptr<SwitchState>(const std::shared_ptr<SwitchState>&)>
     StateUpdateFn;
 
-  FunctionStateUpdate(folly::StringPiece name, StateUpdateFn fn)
-    : StateUpdate(name),
+  FunctionStateUpdate(folly::StringPiece name, StateUpdateFn fn,
+                      bool allowCoalesce = true)
+    : StateUpdate(name, allowCoalesce),
       function_(fn) {}
 
   std::shared_ptr<SwitchState> applyUpdate(
@@ -99,8 +100,9 @@ class BlockingStateUpdate : public StateUpdate {
 
   BlockingStateUpdate(folly::StringPiece name,
                       StateUpdateFn fn,
-                      std::shared_ptr<BlockingUpdateResult> result)
-    : StateUpdate(name),
+                      std::shared_ptr<BlockingUpdateResult> result,
+                      bool allowCoalesce = true)
+    : StateUpdate(name, allowCoalesce),
       function_(fn),
       result_(result) {}
 

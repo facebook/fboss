@@ -136,8 +136,9 @@ void NeighborCacheImpl<NTable>::programPendingEntry(Entry* entry, bool force) {
     return newState;
   };
 
-  sw_->updateState(folly::to<std::string>("add pending entry ", fields.ip),
-                   std::move(updateFn));
+  sw_->updateStateNoCoalescing(
+    folly::to<std::string>("add pending entry ", fields.ip),
+    std::move(updateFn));
 }
 
 template <typename NTable>

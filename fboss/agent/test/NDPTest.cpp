@@ -764,7 +764,7 @@ TEST(NDP, PendingNdp) {
 
   // We should get a neighbor solicitation back and the state should change once
   // to add the pending entry
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(testing::AtLeast(1));
   EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),

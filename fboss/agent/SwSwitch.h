@@ -193,6 +193,21 @@ class SwSwitch : public HwSwitch::Callback {
    */
   void updateState(folly::StringPiece name, StateUpdateFn fn);
 
+  /**
+   * Schedule an update to the switch state.
+   *
+   * @param name  A name to identify the source of this update.  This is
+   *              primarily used for logging and debugging purposes.
+   * @param fn    The function that will prepare the new SwitchState.
+   *
+   * A version of updateState that prevents the update handling queue from
+   * coalescing this update with later updates. This should rarely be used,
+   * but can be used when there is an update that MUST be seen by the hw
+   * implementation, even if the inverse update is immediately applied.
+   */
+  void updateStateNoCoalescing(folly::StringPiece name, StateUpdateFn fn);
+
+
   /*
    * A version of updateState() that doesn't return until the update has been
    * applied.

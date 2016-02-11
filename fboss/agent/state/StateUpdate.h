@@ -32,12 +32,17 @@ class SwitchState;
  */
 class StateUpdate {
  public:
-  explicit StateUpdate(folly::StringPiece name)
-    : name_(name.str()) {}
+  explicit StateUpdate(folly::StringPiece name, bool allowCoalesce = true)
+      : name_(name.str()),
+        allowCoalesce_(allowCoalesce) {}
   virtual ~StateUpdate() {}
 
   const std::string& getName() const {
     return name_;
+  }
+
+  bool allowsCoalescing() const {
+    return allowCoalesce_;
   }
 
   /*
@@ -73,6 +78,7 @@ class StateUpdate {
   StateUpdate& operator=(StateUpdate const &) = delete;
 
   std::string name_;
+  bool allowCoalesce_;
 
   // An intrusive list hook for maintaining the list of pending updates.
   folly::IntrusiveListHook listHook_;
