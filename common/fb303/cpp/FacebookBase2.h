@@ -9,11 +9,17 @@
  */
 #pragma once
 
+namespace folly {
+class EventBaseManager;
+}
+
 namespace facebook { namespace fb303 {
 
 class FacebookBase2 {
 public:
   explicit FacebookBase2(const char*) {}
+
+  void setEventBaseManager(folly::EventBaseManager*) {}
 };
 
 }}
