@@ -14,6 +14,7 @@
 #include "fboss/agent/state/NodeBase.h"
 
 #include <string>
+#include <utility>
 #include <folly/IPAddress.h>
 
 namespace facebook { namespace fboss {
@@ -28,13 +29,13 @@ struct AclEntryFields {
   static AclEntryFields fromFollyDynamic(const folly::dynamic& json);
 
   const AclEntryID id{0};
-  folly::CIDRNetwork srcIp;
-  folly::CIDRNetwork dstIp;
-  uint16_t l4SrcPort;
-  uint16_t l4DstPort;
-  uint8_t proto;
-  uint8_t tcpFlags;
-  uint8_t tcpFlagsMask;
+  folly::CIDRNetwork srcIp{std::make_pair(folly::IPAddress(), 0)};
+  folly::CIDRNetwork dstIp{std::make_pair(folly::IPAddress(), 0)};
+  uint16_t l4SrcPort{0};
+  uint16_t l4DstPort{0};
+  uint8_t proto{0};
+  uint8_t tcpFlags{0};
+  uint8_t tcpFlagsMask{0};
   cfg::AclAction action{cfg::AclAction::PERMIT};
 };
 
