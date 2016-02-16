@@ -101,7 +101,7 @@ class NeighborCacheImpl {
   void programPendingEntry(Entry* entry, bool force = false);
 
   void processEntry(AddressType ip);
-  bool flushEntry (AddressType ip, bool blocking = false);
+  bool flushEntry (AddressType ip);
 
   bool flushEntryFromSwitchState(std::shared_ptr<SwitchState>* state,
                                  Vlan* vlan, AddressType ip);

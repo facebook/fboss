@@ -311,13 +311,30 @@ bool NeighborCacheImpl<NTable>::flushEntryFromSwitchState(
 }
 
 template <typename NTable>
-bool NeighborCacheImpl<NTable>::flushEntryBlocking(AddressType ip) {
-  return flushEntry(ip, true);
+bool NeighborCacheImpl<NTable>::flushEntry(AddressType ip) {
+  // remove from cache
+  if (!removeEntry(ip)) {
+    return false;
+  }
+
+  // flush from SwitchState
+  auto updateFn =
+    [this, ip](const std::shared_ptr<SwitchState>& state)
+        -> std::shared_ptr<SwitchState> {
+      std::shared_ptr<SwitchState> newState{state};
+      auto* vlan = state->getVlans()->getVlan(vlanID_).get();
+      if (flushEntryFromSwitchState(&newState, vlan, ip)) {
+        return newState;
+      }
+      return nullptr;
+  };
+
+  sw_->updateState("remove neighbor entry", std::move(updateFn));
+  return true;
 }
 
 template <typename NTable>
-bool NeighborCacheImpl<NTable>::flushEntry(AddressType ip,
-                                           bool blocking) {
+bool NeighborCacheImpl<NTable>::flushEntryBlocking(AddressType ip) {
   // remove from cache
   if (!removeEntry(ip)) {
     return false;
@@ -336,13 +353,9 @@ bool NeighborCacheImpl<NTable>::flushEntry(AddressType ip,
       }
       return nullptr;
   };
-  if (blocking) {
-    sw_->updateStateBlocking("flush neighbor entry", std::move(updateFn));
-    return flushed;
-  }
 
-  sw_->updateState("remove neighbor entry", std::move(updateFn));
-  return true;
+  sw_->updateStateBlocking("flush neighbor entry", std::move(updateFn));
+  return flushed;
 }
 
 template <typename NTable>
