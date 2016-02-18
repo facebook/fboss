@@ -137,6 +137,7 @@ bool BcmPortGroup::validConfiguration(
   try {
     getDesiredLaneMode(state);
   } catch (const std::exception& ex) {
+    VLOG(1) << "Received exception determining lane mode: " << ex.what();
     return false;
   }
   return true;
