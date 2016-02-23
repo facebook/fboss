@@ -101,18 +101,21 @@ class NeighborCacheImpl {
   void programPendingEntry(Entry* entry, bool force = false);
 
   void processEntry(AddressType ip);
-  bool flushEntry (AddressType ip);
+
+  // Pass in a non-null flushed if you care whether an entry
+  // was actually flushed from the switch state
+  void flushEntry (AddressType ip, bool* flushed = nullptr);
 
   bool flushEntryFromSwitchState(std::shared_ptr<SwitchState>* state,
-                                 Vlan* vlan, AddressType ip);
+                                 AddressType ip);
 
   Entry* getCacheEntry(AddressType ip) const;
   void setCacheEntry(std::shared_ptr<Entry> entry);
   bool removeEntry(AddressType ip);
 
   Entry* setEntryInternal(const EntryFields& fields,
-                        NeighborEntryState state,
-                        bool add = true);
+                          NeighborEntryState state,
+                          bool add = true);
 
   // Forbidden copy constructor and assignment operator
   NeighborCacheImpl(NeighborCacheImpl const &) = delete;
