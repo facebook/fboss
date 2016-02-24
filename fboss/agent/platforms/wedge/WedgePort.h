@@ -38,6 +38,8 @@ class WedgePort : public BcmPlatformPort {
   void statusIndication(bool enabled, bool link,
                         bool ingress, bool egress,
                         bool discards, bool errors) override;
+  void remedy() override;
+  void prepareForWarmboot() override;
 
  private:
   // Forbidden copy constructor and assignment operator

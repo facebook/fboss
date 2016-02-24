@@ -100,6 +100,8 @@ class BcmSwitch : public HwSwitch {
 
   void unregisterCallbacks() override;
 
+  void remedyPorts() override;
+
   BcmPlatform* getPlatform() const {
     return platform_;
   }

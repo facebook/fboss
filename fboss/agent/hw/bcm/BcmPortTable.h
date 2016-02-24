@@ -72,6 +72,16 @@ class BcmPortTable {
   bool portExists(opennsl_port_t port) const {
     return getBcmPortIf(port) != nullptr;
   }
+  void remedyPorts() {
+    for (auto& portIdAndBcmPort : bcmPhysicalPorts_) {
+      portIdAndBcmPort.second->remedy();
+    }
+  }
+  void preparePortsForWarmboot() {
+    for (auto& portIdAndBcmPort : bcmPhysicalPorts_) {
+      portIdAndBcmPort.second->prepareForWarmboot();
+    }
+  }
  private:
   /* Initialize all the port groups that exist. A port group is a set of ports
    * that can act as either a single port or multiple ports.

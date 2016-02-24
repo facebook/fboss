@@ -18,4 +18,6 @@ void BcmPort::setConfiguredMaxSpeed() {
   configuredMaxSpeed_ = cfg::PortSpeed::XG;
 }
 void BcmPort::setKR4Ability() {}
+void BcmPort::remedy() {}
+void BcmPort::prepareForWarmboot() {}
 }} // namespace facebook::fboss

@@ -49,6 +49,7 @@ class StateDelta;
 class NeighborUpdater;
 class StateObserver;
 class TunManager;
+class PortRemediator;
 
 enum SwitchFlags : int {
   DEFAULT = 0,
@@ -693,6 +694,8 @@ class SwSwitch : public HwSwitch::Callback {
    * locking when we access the container during a state update.
    */
   std::map<StateObserver*, std::string> stateObservers_;
+
+  std::unique_ptr<PortRemediator> portRemediator_;
 
   std::unique_ptr<ArpHandler> arp_;
   std::unique_ptr<IPv4Handler> ipv4_;

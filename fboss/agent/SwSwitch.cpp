@@ -36,6 +36,7 @@
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/SfpModule.h"
 #include "fboss/agent/LldpManager.h"
+#include "fboss/agent/PortRemediator.h"
 #include "common/stats/ServiceData.h"
 #include <folly/FileUtil.h>
 #include <folly/MacAddress.h>
@@ -119,6 +120,7 @@ namespace facebook { namespace fboss {
 SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
   : hw_(platform->getHwSwitch()),
     platform_(std::move(platform)),
+    portRemediator_(new PortRemediator(this)),
     arp_(new ArpHandler(this)),
     ipv4_(new IPv4Handler(this)),
     ipv6_(new IPv6Handler(this)),
@@ -157,6 +159,7 @@ void SwSwitch::stop() {
   //
   // TODO(aeckert): t6862022 is there to come up with a more stable concurrency
   // model for classes that observe state and/or handle packets.
+  portRemediator_.reset();
   ipv6_.reset();
   nUpdater_.reset();
   if (lldpManager_) {

@@ -97,6 +97,23 @@ class BcmPort {
    */
   void updateStats();
 
+  /**
+   * Get the state of the port. If there is an error in finding the port state,
+   * then an BcmError() exception is thrown.
+   */
+  cfg::PortState getState();
+
+  /**
+   * Try to remedy this port if this is down.
+   */
+  void remedy();
+
+  /**
+   * Take actions on this port (especially if it is up), so that it will not
+   * flap on warm boot.
+   */
+  void prepareForWarmboot();
+
  private:
   class MonotonicCounter : public stats::MonotonicCounter {
    public:
@@ -133,6 +150,8 @@ class BcmPort {
 
   BcmSwitch* const hw_{nullptr};
   const opennsl_port_t port_;    // Broadcom physical port number
+  // The gport_ is logically a const, but needs to be initialized as a parameter
+  // to SDK call.
   opennsl_gport_t gport_;  // Broadcom global port number
   cfg::PortSpeed configuredMaxSpeed_;
   BcmPlatformPort* const platformPort_{nullptr};

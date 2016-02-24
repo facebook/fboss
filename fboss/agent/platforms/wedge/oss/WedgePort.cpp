@@ -16,4 +16,8 @@ void WedgePort::linkStatusChanged(bool up, bool adminUp) {
   // once we get approval for the required OpenNSL APIs.
 }
 
+void WedgePort::remedy() {}
+
+void WedgePort::prepareForWarmboot() {}
+
 }} // facebook::fboss

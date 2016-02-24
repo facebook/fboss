@@ -464,4 +464,22 @@ void BcmPort::updatePktLenHist(
   }
 }
 
+cfg::PortState BcmPort::getState() {
+  int rv;
+  int enabled;
+  int linkStatus;
+  rv = opennsl_port_enable_get(hw_->getUnit(), port_, &enabled);
+  bcmCheckError(rv, "could not find if port ", port_, " is enabled or not...");
+  if (!enabled) {
+    return cfg::PortState::POWER_DOWN;
+  }
+  rv = opennsl_port_link_status_get(hw_->getUnit(), port_, &linkStatus);
+  bcmCheckError(rv, "could not find if the port ", port_, " is up or down...");
+  if (linkStatus == OPENNSL_PORT_LINK_STATUS_UP) {
+    return cfg::PortState::UP;
+  } else {
+    return cfg::PortState::DOWN;
+  }
+}
+
 }} // namespace facebook::fboss

@@ -97,6 +97,15 @@ class PlatformPort {
   virtual void statusIndication(bool enabled, bool link,
                                 bool ingress, bool egress,
                                 bool discards, bool errors) = 0;
+  /**
+   * Do platform specific actions to remedy a port that is down.
+   */
+  virtual void remedy() = 0;
+
+  /**
+   * Do platform specific actions for the port before we are warm booting.
+   */
+  virtual void prepareForWarmboot() = 0;
 
  private:
   // Forbidden copy constructor and assignment operator

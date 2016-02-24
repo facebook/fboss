@@ -84,6 +84,10 @@ class MockHwSwitch : public HwSwitch {
     // TODO
   }
 
+  void remedyPorts() override {
+    // TODO
+  }
+
   MOCK_METHOD2(getAndClearNeighborHit, bool(RouterID, folly::IPAddress&));
 
   bool isPortUp(PortID port) const override {
