@@ -34,6 +34,7 @@ class Wedge100Platform : public WedgePlatform {
 
   std::map<std::string, std::string> loadConfig() override;
   std::unique_ptr<BaseWedgeI2CBus> getI2CBus() override;
+  PortID fbossPortForQsfpChannel(int transceiver, int channel) override;
 };
 
 }} // namespace facebook::fboss

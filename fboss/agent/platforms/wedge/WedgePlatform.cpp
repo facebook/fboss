@@ -186,10 +186,14 @@ void WedgePlatform::initTransceiverMap(SwSwitch* sw) {
     sw->addTransceiver(TransceiverID(idx), std::move(qsfp));
     LOG(INFO) << "making QSFP for " << idx;
     for (int channel = 0; channel < QsfpModule::CHANNEL_COUNT; ++channel) {
-      sw->addTransceiverMapping(PortID(idx * QsfpModule::CHANNEL_COUNT +
-          channel + 1), ChannelID(channel), TransceiverID(idx));
+      sw->addTransceiverMapping(fbossPortForQsfpChannel(idx, channel),
+          ChannelID(channel), TransceiverID(idx));
     }
   }
+}
+
+PortID WedgePlatform::fbossPortForQsfpChannel(int transceiver, int channel) {
+  return PortID(transceiver * QsfpModule::CHANNEL_COUNT + channel + 1);
 }
 
 }} // facebook::fboss
