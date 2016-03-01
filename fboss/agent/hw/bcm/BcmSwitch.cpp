@@ -13,7 +13,6 @@
 #include <sys/types.h>
 
 #include <boost/cast.hpp>
-#include <boost/foreach.hpp>
 
 #include <folly/Hash.h>
 #include <folly/Memory.h>
@@ -1085,7 +1084,7 @@ void BcmSwitch::updateStats(SwitchStats *switchStats) {
   updateThreadLocalSwitchStats(switchStats);
   // Update thread-local per-port statistics.
   PortStatsMap* portStatsMap = switchStats->getPortStats();
-  BOOST_FOREACH(auto& it, *portStatsMap) {
+  for (auto& it : *portStatsMap) {
     PortID portID = it.first;
     PortStats *portStats = it.second.get();
     updateThreadLocalPortStats(portID, portStats);

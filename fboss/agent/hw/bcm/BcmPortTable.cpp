@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 
-#include <boost/foreach.hpp>
 
 #include "common/stats/MonotonicCounter.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
