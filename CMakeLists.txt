@@ -21,6 +21,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=deprecated-declarations")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DINCLUDE_L3 -DLONGS_ARE_64BITS")
 set(CMAKE_PROGRAM_PATH "${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/compiler/;${CMAKE_PROGRAM_PATH}")
 
+if(WITH_SAI)
+set(SAIADAPTER libSaiAdapter)
+endif()
+
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_BINARY_DIR}/gen)
 include_directories(${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2)
@@ -89,9 +93,7 @@ add_executable(sai_agent_test
     fboss/agent/platforms/sai/oss/SaiPort.cpp
 )
 
-target_link_libraries(sai_agent_test
-    fboss_sai_agent
-)
+target_link_libraries(sai_agent_test fboss_sai_agent)
 
 add_library(fboss_sai_agent STATIC
     fboss/agent/hw/sai/SaiError.cpp
