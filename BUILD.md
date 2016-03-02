@@ -48,5 +48,5 @@ cmake .. -DWITH_SAI:BOOL=ON
 make
 ```
 
-The produced executables are `sim_agent` and `wedge_agent` or 'sai_agent' (when
+The produced executables are `sim_agent` and `wedge_agent` or `sai_agent` (when
 building with SAI) in the build directory.
