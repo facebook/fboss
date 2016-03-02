@@ -68,12 +68,12 @@ using facebook::fboss::DeltaFunctions::forEachAdded;
 using facebook::fboss::DeltaFunctions::forEachRemoved;
 
 
-extern "C" {
-// Forward declaration for sai_service_method_table_initialize function which is not
-// currently added to some SAI header like saiplatform.h(will propagate this to SAI community) 
-// so has to be defined here. A customer's SAI adapter must provide its implementation.
-sai_status_t sai_service_method_table_initialize(service_method_table_t* services);
-}
+//extern "C" {
+//// Forward declaration for sai_service_method_table_initialize function which is not
+//// currently added to some SAI header like saiplatform.h(will propagate this to SAI community) 
+//// so has to be defined here. A customer's SAI adapter must provide its implementation.
+//sai_status_t sai_service_method_table_initialize(service_method_table_t* services);
+//}
 
 namespace facebook { namespace fboss {
 
@@ -98,10 +98,10 @@ SaiSwitch::SaiSwitch(SaiPlatformBase *platform)
   , lockFd(-1) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  sai_status_t status = sai_service_method_table_initialize(&service_);
-  if (status != SAI_STATUS_SUCCESS) {
-    throw SaiFatal("Failed to initialize service method table. Error: ", status);
-  }
+  //sai_status_t status = sai_service_method_table_initialize(&service_);
+  //if (status != SAI_STATUS_SUCCESS) {
+  //  throw SaiFatal("Failed to initialize service method table. Error: ", status);
+  //}
 
   sai_api_initialize(0, &service_);
 

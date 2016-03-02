@@ -28,9 +28,10 @@ git clone https://github.com/facebook/fboss.git
 If you installed dependencies manually, CMAKE_INCLUDE_PATH and
 CMAKE_LIBRARY_PATH must be modified to include the paths to the dependencies.
 If you use `getdeps.sh`, then this should work out of the box. 
-If you build with a specific SAI adapter, copy the SAI adapter shared library
-(libSaiAdapter.so) to external/SAI/lib/ directory or modify path to the library
-file in CMakeList.txt.
+
+If you build with SAI there are two additional steps: (1) copy and rename the 
+SAI adapter library as external/SAI/lib/libSaiAdapter.so (2) copy and rename
+./fboss/github/CMakeLists_SAI.txt as ./CMakeLists_SAI.txt.
 
 Build as follows:
 
@@ -40,5 +41,4 @@ cd fboss/build
 cmake ..
 make
 ```
-NOTE: use "cmake .. -DWITH_SAI:BOOL=ON" to build sai_agent.
 The produced executables are `sim_agent` and `wedge_agent` (or `sai_agent`) in the build directory.
