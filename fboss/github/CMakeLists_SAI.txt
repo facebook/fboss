@@ -1,0 +1,318 @@
+cmake_minimum_required(VERSION 2.8)
+project(FBOSS)
+include(CMakeParseArguments)
+
+SET(WITH_SAI OFF CACHE BOOL "Optionally build with SAI adapter")
+
+# Ideally, we would use
+#    set_property(TARGET fboss_agent PROPERTY CXX_STANDARD 11)
+# to define the C++ version, but we don't want to depend on
+# cmake 3.1, as it's not currently widely available. We only support
+# building on Linux under GCC right now, so we might as well just hard
+# code the flags.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-sign-compare -Wno-bool-compare")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized -Wdeprecated-declarations")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=deprecated-declarations")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DINCLUDE_L3 -DLONGS_ARE_64BITS")
+set(CMAKE_PROGRAM_PATH "${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/compiler/;${CMAKE_PROGRAM_PATH}")
+
+include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_BINARY_DIR}/gen)
+include_directories(${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2)
+include_directories(${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2)
+include_directories(${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2)
+
+# System libraries
+find_library(GLOG glog)
+find_library(BOOSTSER boost_serialization)
+find_library(BOOSTFS boost_filesystem)
+find_library(BOOSTSYS boost_system)
+find_library(BOOSTTHREAD boost_thread)
+find_library(DOUBLECONV double-conversion)
+find_library(GFLAGS gflags)
+find_library(GLOG glog)
+find_library(PTHREAD pthread)
+find_library(USB usb-1.0)
+find_library(PCAP pcap)
+find_library(SNAPPY snappy)
+find_library(ZLIB z)
+find_library(SSL ssl)
+find_library(CRYPTO crypto)
+find_library(DL dl)
+find_library(EVENT event)
+
+# External libraries that are not generally available. Look in external/
+# for these. This is where getdeps.sh will toss them.
+find_library(FOLLY folly PATHS ${CMAKE_SOURCE_DIR}/external/folly/folly/.libs)
+find_library(WANGLE wangle PATHS ${CMAKE_SOURCE_DIR}/external/wangle/wangle/build/lib)
+find_library(THRIFT thrift PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp/.libs)
+find_library(THRIFTPROTO thriftprotocol PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs)
+find_library(THRIFTCPP2 thriftcpp2 PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs)
+find_library(SAIADAPTER SaiAdapter PATHS ${CMAKE_SOURCE_DIR}/external/SAI/lib)
+find_library(IPROUTE2 netlink PATHS ${CMAKE_SOURCE_DIR}/external/iproute2/lib)
+
+include_directories(${CMAKE_SOURCE_DIR}/external/iproute2/include)
+include_directories(${CMAKE_SOURCE_DIR}/external/folly)
+include_directories(${CMAKE_SOURCE_DIR}/external/fbthrift)
+include_directories(${CMAKE_SOURCE_DIR}/external/wangle)
+include_directories(${CMAKE_SOURCE_DIR}/external/SAI/inc)
+
+add_executable(sai_agent
+    fboss/agent/platforms/sai/SaiPlatform.cpp
+    fboss/agent/platforms/sai/SaiPort.cpp
+    fboss/agent/platforms/sai/Sai_ctrl.cpp
+    fboss/agent/platforms/sai/oss/SaiPort.cpp
+    fboss/agent/platforms/sai/oss/SaiPlatform.cpp
+)
+target_link_libraries(sai_agent fboss_sai_agent)
+
+add_library(fboss_sai_agent STATIC
+    fboss/agent/hw/sai/SaiError.cpp
+    fboss/agent/hw/sai/SaiSwitch.cpp
+    fboss/agent/hw/sai/SaiPortBase.cpp
+    fboss/agent/hw/sai/SaiPortTable.cpp
+    fboss/agent/hw/sai/SaiStation.cpp
+    fboss/agent/hw/sai/SaiIntf.cpp
+    fboss/agent/hw/sai/SaiIntfTable.cpp
+    fboss/agent/hw/sai/SaiRoute.cpp
+    fboss/agent/hw/sai/SaiRouteTable.cpp
+    fboss/agent/hw/sai/SaiHost.cpp
+    fboss/agent/hw/sai/SaiHostTable.cpp
+    fboss/agent/hw/sai/SaiWarmBootCache.cpp
+    fboss/agent/hw/sai/SaiVrf.cpp
+    fboss/agent/hw/sai/SaiVrfTable.cpp
+    fboss/agent/hw/sai/SaiNextHop.cpp
+    fboss/agent/hw/sai/SaiNextHopTable.cpp
+    fboss/agent/hw/sai/SaiRxPacket.cpp
+    fboss/agent/hw/sai/SaiTxPacket.cpp
+    common/stats/ServiceData.cpp
+    fboss/agent/ApplyThriftConfig.cpp
+    fboss/agent/ArpCache.cpp
+    fboss/agent/ArpHandler.cpp
+    fboss/agent/capture/PcapFile.cpp
+    fboss/agent/capture/PcapPkt.cpp
+    fboss/agent/capture/PcapQueue.cpp
+    fboss/agent/capture/PcapWriter.cpp
+    fboss/agent/capture/PktCapture.cpp
+    fboss/agent/capture/PktCaptureManager.cpp
+    fboss/agent/DHCPv4Handler.cpp
+    fboss/agent/DHCPv6Handler.cpp
+    fboss/agent/HighresCounterSubscriptionHandler.cpp
+    fboss/agent/HighresCounterUtil.cpp
+    fboss/agent/lldp/LinkNeighbor.cpp
+    fboss/agent/lldp/LinkNeighborDB.cpp
+    fboss/agent/ndp/IPv6RouteAdvertiser.cpp
+    fboss/agent/oss/ApplyThriftConfig.cpp
+    fboss/agent/oss/Main.cpp
+    fboss/agent/oss/SwSwitch.cpp
+    fboss/agent/HwSwitch.cpp
+    fboss/agent/I2c.cpp
+    fboss/agent/IPHeaderV4.cpp
+    fboss/agent/IPv4Handler.cpp
+    fboss/agent/IPv6Handler.cpp
+    fboss/agent/lldp/LinkNeighbor.cpp
+    fboss/agent/lldp/LinkNeighborDB.cpp
+    fboss/agent/LldpManager.cpp
+    fboss/agent/Main.cpp
+    fboss/agent/ndp/IPv6RouteAdvertiser.cpp
+    fboss/agent/NdpCache.cpp
+    fboss/agent/NeighborListenerClient.cpp
+    fboss/agent/NeighborUpdater.cpp
+    fboss/agent/NexthopToRouteCount.cpp
+    fboss/agent/oss/ApplyThriftConfig.cpp
+    fboss/agent/oss/Main.cpp
+    fboss/agent/oss/SwSwitch.cpp
+    fboss/agent/packet/ArpHdr.cpp
+    fboss/agent/packet/DHCPv4Packet.cpp
+    fboss/agent/packet/DHCPv6Packet.cpp
+    fboss/agent/packet/EthHdr.cpp
+    fboss/agent/packet/ICMPHdr.cpp
+    fboss/agent/packet/IPv4Hdr.cpp
+    fboss/agent/packet/IPv6Hdr.cpp
+    fboss/agent/packet/LlcHdr.cpp
+    fboss/agent/packet/NDPRouterAdvertisement.cpp
+    fboss/agent/packet/PktUtil.cpp
+    fboss/agent/Platform.cpp
+    fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
+    fboss/agent/platforms/wedge/oss/Wedge100Platform.cpp
+    fboss/agent/platforms/wedge/oss/WedgePort.cpp
+    fboss/agent/platforms/wedge/oss/WedgeProductInfo.cpp
+    fboss/agent/platforms/wedge/wedge_ctrl.cpp
+    fboss/agent/platforms/wedge/WedgeI2CBusLock.cpp
+    fboss/agent/platforms/wedge/WedgePlatform.cpp
+    fboss/agent/platforms/wedge/Wedge100Platform.cpp
+    fboss/agent/platforms/wedge/WedgePort.cpp
+    fboss/agent/platforms/wedge/WedgeProductInfo.cpp
+    fboss/agent/platforms/wedge/WedgeQsfp.cpp
+    fboss/agent/PortStats.cpp
+    fboss/agent/QsfpModule.cpp
+    fboss/agent/RestClient.cpp
+    fboss/agent/SffFieldInfo.cpp
+    fboss/agent/SfpModule.cpp
+    fboss/agent/state/AclEntry.cpp
+    fboss/agent/state/AclMap.cpp
+    fboss/agent/state/ArpEntry.cpp
+    fboss/agent/state/ArpResponseTable.cpp
+    fboss/agent/state/ArpTable.cpp
+    fboss/agent/state/Interface.cpp
+    fboss/agent/state/InterfaceMap.cpp
+    fboss/agent/state/NdpEntry.cpp
+    fboss/agent/state/NdpResponseTable.cpp
+    fboss/agent/state/NdpTable.cpp
+    fboss/agent/state/NeighborResponseTable.cpp
+    fboss/agent/state/NodeBase.cpp
+    fboss/agent/state/Port.cpp
+    fboss/agent/state/PortMap.cpp
+    fboss/agent/state/Route.cpp
+    fboss/agent/state/RouteDelta.cpp
+    fboss/agent/state/RouteForwardInfo.cpp
+    fboss/agent/state/RouteTable.cpp
+    fboss/agent/state/RouteTableMap.cpp
+    fboss/agent/state/RouteTableRib.cpp
+    fboss/agent/state/RouteTypes.cpp
+    fboss/agent/state/RouteUpdater.cpp
+    fboss/agent/state/StateDelta.cpp
+    fboss/agent/state/SwitchState.cpp
+    fboss/agent/state/Vlan.cpp
+    fboss/agent/state/VlanMap.cpp
+    fboss/agent/state/VlanMapDelta.cpp
+    fboss/agent/SwitchStats.cpp
+    fboss/agent/SwSwitch.cpp
+    fboss/agent/ThriftHandler.cpp
+    fboss/agent/TransceiverMap.cpp
+    fboss/agent/TunIntf.cpp
+    fboss/agent/TunManager.cpp
+    fboss/agent/UDPHeader.cpp
+    fboss/agent/Utils.cpp
+
+    fboss/lib/usb/BaseWedgeI2CBus.cpp
+    fboss/lib/usb/BaseWedgeI2CBus.h
+    fboss/lib/usb/CP2112.cpp
+    fboss/lib/usb/CP2112.h
+    fboss/lib/usb/TARGETS
+    fboss/lib/usb/TransceiverI2CApi.h
+    fboss/lib/usb/UsbDevice.cpp
+    fboss/lib/usb/UsbDevice.h
+    fboss/lib/usb/UsbError.h
+    fboss/lib/usb/UsbHandle.cpp
+    fboss/lib/usb/UsbHandle.h
+    fboss/lib/usb/Wedge100I2CBus.cpp
+    fboss/lib/usb/Wedge100I2CBus.h
+    fboss/lib/usb/WedgeI2CBus.cpp
+    fboss/lib/usb/WedgeI2CBus.h
+
+    # generated sources
+    ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/FacebookService.cpp
+    ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/FacebookService_client.cpp
+    ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/fb303_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_constants.cpp
+    ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_reflection.cpp
+    ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_constants.cpp
+    ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp/switch_config_reflection.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp/switch_config_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp/switch_config_constants.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/SimCtrl.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_constants.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/ctrl_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/FbossCtrl.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/NeighborListenerClient_client.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/FbossHighresClient_client.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/fboss_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/optic_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/optic_constants.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/highres_types.cpp
+)
+target_link_libraries(fboss_sai_agent
+    ${GLOG}
+    ${SSL}
+    ${PCAP}
+    ${USB}
+    ${ZLIB}
+    ${SNAPPY}
+    ${CRYPTO}
+    ${FOLLY}
+    ${WANGLE}
+    ${GFLAGS}
+    ${GLOG}
+    ${PTHREAD}
+    ${THRIFT}
+    ${THRIFTPROTO}
+    ${THRIFTCPP2}
+    ${SAIADAPTER}
+    ${IPROUTE2}
+    ${BOOSTFS}
+    ${BOOSTSER}
+    ${BOOSTSYS}
+    ${BOOSTTHREAD}
+    ${DOUBLECONV}
+    ${DL}
+    ${EVENT}
+)
+
+find_program(THRIFT1 thrift1)
+find_program(PYTHON python)
+set(THRIFTC2OPTS json)
+set(THRIFTC ${THRIFT1} -I ${CMAKE_SOURCE_DIR} -gen cpp:json,templates -gen py:)
+set(THRIFTC2
+    ${PYTHON} -mthrift_compiler.main -I ${CMAKE_SOURCE_DIR} --gen cpp2:)
+
+function(fboss_add_thrift)
+    cmake_parse_arguments("arg" "" "OPTIONS;THRIFTSRC;REFLECT" "SERVICES" ${ARGN})
+    get_cmake_property(_variableNames VARIABLES)
+    get_filename_component(dirname "${arg_THRIFTSRC}" PATH)
+    # NAME_WE = name without extension.
+    get_filename_component(basename "${arg_THRIFTSRC}" NAME_WE)
+    foreach(srv ${arg_SERVICES})
+        set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${srv}.cpp)
+        set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${srv}.h)
+        set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}_client.cpp)
+        set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}.cpp)
+        set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}.h)
+    endforeach(srv)
+    foreach(reflect ${arg_REFLECT})
+        set(outputs ${outputs}
+            ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${reflect}_reflection.h
+            ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${reflect}_reflection.cpp)
+    endforeach(reflect)
+    foreach(gen cpp cpp2)
+        foreach(output constants types)
+            set(outputs ${outputs}
+                ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${basename}_${output}.h
+                ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${basename}_${output}.cpp)
+        endforeach(output)
+    endforeach(gen)
+    if (${arg_OPTIONS})
+        set(THRIFTOPT ${arg_OPTIONS})
+    else()
+        set(THRIFTOPT ${THRIFTC2OPTIONS})
+    endif()
+    add_custom_command(
+        OUTPUT
+            ${outputs}
+            ${services}
+        COMMAND
+            export PYTHONPATH=${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/.python-local/lib/python/\;
+            mkdir -p ${CMAKE_BINARY_DIR}/gen/${dirname}\;
+            ${THRIFTC} -o ${CMAKE_BINARY_DIR}/gen/${dirname} ${CMAKE_SOURCE_DIR}/${arg_THRIFTSRC}\;
+            ${THRIFTC2}${arg_OPTIONS} -o ${CMAKE_BINARY_DIR}/gen/${dirname} ${CMAKE_SOURCE_DIR}/${arg_THRIFTSRC};
+    )
+
+endfunction(fboss_add_thrift)
+
+fboss_add_thrift(THRIFTSRC common/fb303/if/fb303.thrift SERVICES FacebookService)
+fboss_add_thrift(THRIFTSRC common/network/if/Address.thrift
+    OPTIONS json,compatibility,include_prefix=common/network/if
+    REFLECT Address)
+fboss_add_thrift(THRIFTSRC fboss/agent/switch_config.thrift
+    REFLECT switch_config)
+fboss_add_thrift(THRIFTSRC fboss/agent/hw/sim/sim_ctrl.thrift SERVICES SimCtrl)
+fboss_add_thrift(THRIFTSRC fboss/agent/if/ctrl.thrift
+    SERVICES FbossCtrl NeighborListenerClient)
+fboss_add_thrift(THRIFTSRC fboss/agent/if/fboss.thrift)
+fboss_add_thrift(THRIFTSRC fboss/agent/if/optic.thrift)
+fboss_add_thrift(THRIFTSRC fboss/agent/if/highres.thrift SERVICES FbossHighresClient)
