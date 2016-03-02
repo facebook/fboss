@@ -77,7 +77,7 @@ include_directories(${CMAKE_SOURCE_DIR}/external/wangle)
 
 if(WITH_SAI)
 add_executable(sai_agent
-    fboss/agent/platforms/sai/SaiPlatforms.cpp
+    fboss/agent/platforms/sai/SaiPlatform.cpp
     fboss/agent/platforms/sai/SaiPort.cpp
     fboss/agent/platforms/sai/Sai_ctrl.cpp
     fboss/agent/platforms/sai/oss/SaiPlatform.cpp
