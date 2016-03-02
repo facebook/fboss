@@ -18,6 +18,19 @@ function update_branch() {
     fi
 }
 
+function update_SAI() {
+    repo="SAI"
+    echo "updating $repo..."
+    if [ -d $repo ]; then
+        (cd $repo && git pull)
+    else 
+        git clone https://github.com/opencomputeproject/SAI.git $repo
+    fi
+    (cd $repo && git checkout v0.9.3.0)
+    (cd $repo && mkdir -p lib)
+    (cd $repo && ln -s sai/inc inc)
+}
+
 function build() {
     (
         echo "building $1..."
@@ -57,6 +70,7 @@ mkdir -p external
     update https://github.com/facebook/folly.git
     update https://github.com/facebook/wangle.git
     update https://github.com/facebook/fbthrift.git
+    update_SAI 
     build iproute2
     build folly/folly
     export CMAKEFLAGS=-D"FOLLY_INCLUDE_DIR=`pwd`/folly"\ -D"FOLLY_LIBRARY=`pwd`/folly/folly/.libs/libfolly.a"\ -D"BUILD_TESTS=OFF"

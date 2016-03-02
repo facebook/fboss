@@ -2,12 +2,17 @@ cmake_minimum_required(VERSION 2.8)
 project(FBOSS)
 include(CMakeParseArguments)
 
+SET(WITH_SAI OFF CACHE BOOL "Build with or without sai_agent (default is without)")
+
 # Ideally, we would use
 #    set_property(TARGET fboss_agent PROPERTY CXX_STANDARD 11)
 # to define the C++ version, but we don't want to depend on
 # cmake 3.1, as it's not currently widely available. We only support
 # building on Linux under GCC right now, so we might as well just hard
 # code the flags.
+SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache) 
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-sign-compare -Wno-bool-compare")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor")
@@ -48,14 +53,72 @@ find_library(WANGLE wangle PATHS ${CMAKE_SOURCE_DIR}/external/wangle/wangle/buil
 find_library(THRIFT thrift PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp/.libs)
 find_library(THRIFTPROTO thriftprotocol PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs)
 find_library(THRIFTCPP2 thriftcpp2 PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs)
+if(WITH_SAI)
+find_library(SAIADAPTER SaiAdapter PATHS ${CMAKE_SOURCE_DIR}/external/SAI/lib/)
+else()
 find_library(OPENNSL opennsl PATHS ${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge-trident)
+endif()
 find_library(IPROUTE2 netlink PATHS ${CMAKE_SOURCE_DIR}/external/iproute2/lib)
 
+if(WITH_SAI)
+include_directories(${CMAKE_SOURCE_DIR/external/SAI/inc})
+else()
 include_directories(${CMAKE_SOURCE_DIR}/external/OpenNSL/include)
+endif()
 include_directories(${CMAKE_SOURCE_DIR}/external/iproute2/include)
 include_directories(${CMAKE_SOURCE_DIR}/external/folly)
 include_directories(${CMAKE_SOURCE_DIR}/external/fbthrift)
 include_directories(${CMAKE_SOURCE_DIR}/external/wangle)
+
+
+if(WITH_SAI)
+add_executable(sai_agent
+    fboss/agent/platforms/sai/SaiPlatforms.cpp
+    fboss/agent/platforms/sai/SaiPort.cpp
+    fboss/agent/platforms/sai/Sai_ctrl.cpp
+    fboss/agent/platforms/sai/oss/SaiPlatform.cpp
+    fboss/agent/platforms/sai/oss/SaiPort.cpp
+)
+target_link_libraries(sai_agent fboss_sai_agent)
+
+add_executable(sai_agent_test
+    fboss/agent/platforms/sai/SaiPlatform.cpp
+    fboss/agent/platforms/sai/SaiPort.cpp
+    fboss/agent/platforms/sai/Sai_ctrl.cpp
+    fboss/agent/platforms/sai/oss/SaiPlatform.cpp
+    fboss/agent/platforms/sai/oss/SaiPort.cpp
+)
+
+target_link_libraries(sai_agent_test
+    fboss_sai_agent
+)
+
+add_library(fboss_sai_agent STATIC
+    fboss/agent/hw/sai/SaiError.cpp
+    fboss/agent/hw/sai/SaiSwitch.cpp
+    fboss/agent/hw/sai/SaiPortBase.cpp
+    fboss/agent/hw/sai/SaiPortTable.cpp
+    fboss/agent/hw/sai/SaiStation.cpp
+    fboss/agent/hw/sai/SaiIntf.cpp
+    fboss/agent/hw/sai/SaiIntfTable.cpp
+    fboss/agent/hw/sai/SaiRoute.cpp
+    fboss/agent/hw/sai/SaiRouteTable.cpp
+    fboss/agent/hw/sai/SaiHost.cpp
+    fboss/agent/hw/sai/SaiHostTable.cpp
+    fboss/agent/hw/sai/SaiWarmBootCache.cpp
+    fboss/agent/hw/sai/SaiVrf.cpp
+    fboss/agent/hw/sai/SaiVrfTable.cpp
+    fboss/agent/hw/sai/SaiNextHop.cpp
+    fboss/agent/hw/sai/SaiNextHopTable.cpp
+    fboss/agent/hw/sai/SaiRxPacket.cpp
+    fboss/agent/hw/sai/SaiTxPacket.cpp
+)
+
+target_link_libraries(fboss_sai_agent
+    fboss_agent
+    ${SAIADAPTER}
+)
+else() #WEDGE_AGENT 
 
 add_executable(wedge_agent
     fboss/agent/platforms/wedge/WedgePlatform.cpp
@@ -66,7 +129,11 @@ add_executable(wedge_agent
     fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
 )
 target_link_libraries(wedge_agent fboss_agent)
+endif()
 
+
+
+## TODO: THIS NEEDS TO SEPRATE INTO WEDGE VS SAI 
 add_library(fboss_agent STATIC
     common/stats/ServiceData.cpp
 
