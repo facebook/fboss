@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 2.8)
 project(FBOSS)
 include(CMakeParseArguments)
 
-SET(WITH_SAI OFF CACHE BOOL "Optionally build with SAI adapter")
-
 # Ideally, we would use
 #    set_property(TARGET fboss_agent PROPERTY CXX_STANDARD 11)
 # to define the C++ version, but we don't want to depend on
