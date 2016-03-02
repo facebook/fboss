@@ -6,10 +6,33 @@ extern "C" {
 #include "radix.h"
 }
 #include <memory>
+#include <folly/IPAddressV4.h>
+#include <folly/IPAddressV6.h>
+
 #include "common/logging/logging.h"
-#include "common/network/IPAddressV4.h"
-#include "common/network/IPAddressV6.h"
 #include "Utils.h"
+
+// Not implemented. Only exists so we can specialize
+// for v4 and v6
+template <typename IPAddrType>
+struct PyRadixRootAdapter;
+
+template <>
+struct PyRadixRootAdapter<folly::IPAddressV4> {
+  template <typename PyTree>
+  static const radix_node_t* getRoot(const PyTree& treePtr) {
+    return treePtr->head_ipv4;
+  }
+};
+
+template <>
+struct PyRadixRootAdapter<folly::IPAddressV6> {
+  template <typename PyTree>
+  static const radix_node_t* getRoot(const PyTree& treePtr) {
+      return treePtr->head_ipv6;
+  }
+};
+
 /*
  * Quick and dirty PyRadixWrapper.
  * Sole purpose of this is to enable us to test by comparing against a widely
@@ -78,7 +101,9 @@ class PyRadixWrapper {
       : nullptr;
   }
 
-  const radix_node_t* root() const { return tree_->head; }
+  const radix_node_t* root() const {
+    return PyRadixRootAdapter<IPAddrType>::getRoot(tree_);
+  }
  private:
    // Deleter for radix tree.
   class RadixDelete {
