@@ -259,10 +259,12 @@ class BcmWarmBootCache {
   void programmed(EgressIds2EcmpCItr eeitr) {
     VLOG(1) << "Programmed ecmp egress: " << eeitr->second.ecmp_intf
       << " removing from warm boot cache";
-    egressIds2Ecmp_.erase(eeitr);
-    // Remove from ecmp->egressId mapping since now a BcmEcmpEgress
-    // object exists which has the egress id info.
+    // Remove from ecmp->egressId mapping since now a BcmEcmpEgress object
+    // exists which has the egress id info.
+    //
+    // Note: This should be done before erasing the iterator.
     hwSwitchEcmp2EgressIds_.erase(eeitr->second.ecmp_intf);
+    egressIds2Ecmp_.erase(eeitr);
   }
   /*
    * owner is done programming its entries remove any entries

@@ -215,6 +215,7 @@ void BcmWarmBootCache::populateStateFromWarmbootFile() {
     if (ecmpEgressId == BcmEgressBase::INVALID) {
       continue;
     }
+    // If the entry is valid, then there must be paths associated with it.
     for (auto path : ecmpEntry[kEcmpEgress][kPaths]) {
       hwSwitchEcmp2EgressIds_[ecmpEgressId].insert(path.asInt());
     }
@@ -231,8 +232,8 @@ void BcmWarmBootCache::populateStateFromWarmbootFile() {
   }
   VLOG (1) << "Reconstructed following ecmp path map ";
   for (auto& ecmpIdAndEgress : hwSwitchEcmp2EgressIds_) {
-    VLOG(1) << ecmpIdAndEgress.first << " ==> " <<
-      toEgressIdsStr(ecmpIdAndEgress.second);
+    VLOG(1) << ecmpIdAndEgress.first << " (from warmboot file) ==> "
+            << toEgressIdsStr(ecmpIdAndEgress.second);
   }
 }
 
@@ -404,10 +405,6 @@ int BcmWarmBootCache::routeTraversalCallback(int unit, int index,
 int BcmWarmBootCache::ecmpEgressTraversalCallback(int unit,
     opennsl_l3_egress_ecmp_t *ecmp, int intfCount, opennsl_if_t *intfArray,
     void *userData) {
-  if (intfCount == 0) {
-    // ecmp egress table on BCM has holes, ignore these entries
-    return 0;
-  }
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
   EgressIds egressIds;
   if (cache->hwSwitchEcmp2EgressIdsPopulated_) {
@@ -415,15 +412,40 @@ int BcmWarmBootCache::ecmpEgressTraversalCallback(int unit,
     // egressIds that we dumped as part of the warm boot state. IntfArray
     // does not include any egressIds that go over the ports that may be
     // down while the warm boot state we dumped does
-    egressIds = cache->getPathsForEcmp(ecmp->ecmp_intf);
+    try {
+      egressIds = cache->getPathsForEcmp(ecmp->ecmp_intf);
+    } catch (const FbossError& ex) {
+      // There was a bug in SDK where sometimes we got callback with invalid
+      // ecmp id with zero number of interfaces. This happened for double wide
+      // ECMP entries (when two "words" are used to represent one ECMP entry).
+      // For example, if the entries were 200256 and 200258, we got callback
+      // for 200257 also with zero interfaces associated with it. If this is
+      // the case, we skip this entry.
+      //
+      // We can also get intfCount of zero with valid ecmp entry (when all the
+      // links associated with egress of the ecmp are down. But in this case,
+      // cache->getPathsForEcmp() call above should return a valid set of
+      // egressIds.
+      if (intfCount == 0) {
+        return 0;
+      }
+      throw ex;
+    }
   } else {
+    if (intfCount == 0) {
+      return 0;
+    }
     egressIds = cache->toEgressIds(intfArray, intfCount);
   }
-  CHECK(cache->egressIds2Ecmp_.find(egressIds) ==
-      cache->egressIds2Ecmp_.end());
+  CHECK(egressIds.size() > 0)
+      << "There must be at least one egress pointed to by the ecmp egress id: "
+      << ecmp->ecmp_intf;
+  CHECK(cache->egressIds2Ecmp_.find(egressIds) == cache->egressIds2Ecmp_.end())
+      << "Got a duplicated call for ecmp id: " << ecmp->ecmp_intf
+      << " referencing: " << toEgressIdsStr(egressIds);
   cache->egressIds2Ecmp_[egressIds] = *ecmp;
-  VLOG(1) << "Added ecmp egress id : " << ecmp->ecmp_intf <<
-    " pointing to : " << toEgressIdsStr(egressIds) << " egress ids";
+  VLOG(1) << "Added ecmp egress id : " << ecmp->ecmp_intf
+          << " pointing to : " << toEgressIdsStr(egressIds) << " egress ids";
   return 0;
 }
 

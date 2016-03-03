@@ -224,7 +224,7 @@ void BcmEcmpEgress::program() {
     bcmCheckError(ret, "failed to program L3 ECMP egress object ", id_,
                 " with ", n_path, " paths");
     id_ = obj.ecmp_intf;
-    VLOG(3) << "Programmed L3 ECMP egress object " << id_ << " for "
+    VLOG(2) << "Programmed L3 ECMP egress object " << id_ << " for "
           << n_path << " paths";
   }
   CHECK_NE(id_, INVALID);
