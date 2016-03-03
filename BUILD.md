@@ -15,7 +15,6 @@ If you want to build them manually, the dependencies are as follows:
 * iproute2-3.19.0: download from
   [here](https://www.kernel.org/pub/linux/utils/net/iproute2/iproute2-3.19.0.tar.xz)
 * Broadcom's [OpenNSL](https://github.com/Broadcom-Switch/OpenNSL)
-* OCP SAI [SAI-0.9.3](https://github.com/opencomputeproject/SAI/tree/v0.9.3.0)
 
 Once the prerequisites are available, take the following steps. 
 
@@ -27,9 +26,7 @@ git clone https://github.com/facebook/fboss.git
  
 If you installed dependencies manually, CMAKE_INCLUDE_PATH and
 CMAKE_LIBRARY_PATH must be modified to include the paths to the dependencies.
-If you use `getdeps.sh`, then this should work out of the box. If you build with 
-SAI copy your platform specific libSaiAdapter.so to external/SAI/lib directory 
-or modify path to the library file.
+If you use `getdeps.sh`, then this should work out of the box.
 
 Build as follows:
 
@@ -40,13 +37,4 @@ cmake ..
 make
 ```
 
-Build as follows (for SAI Agent)
-```
-mkdir fboss/build
-cd fboss/build
-cmake .. -DWITH_SAI:BOOL=ON
-make
-```
-
-The produced executables are `sim_agent` and `wedge_agent` or `sai_agent` (when
-building with SAI) in the build directory.
+The produced executables are `sim_agent` and `wedge_agent` in the build directory.
