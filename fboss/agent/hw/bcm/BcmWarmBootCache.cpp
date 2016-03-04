@@ -214,11 +214,11 @@ void BcmWarmBootCache::populateStateFromWarmbootFile() {
   sysCheckError(ret, "Unable to read switch state from : ", warmBootFile);
   auto switchStateJson = folly::parseJson(warmBootJson);
   if (switchStateJson.find(kSwSwitch) != switchStateJson.items().end()) {
-    dumpedSwSwitchState_ = std::move(
-        SwitchState::uniquePtrFromFollyDyanmic(switchStateJson[kSwSwitch]));
+    dumpedSwSwitchState_ =
+        SwitchState::uniquePtrFromFollyDyanmic(switchStateJson[kSwSwitch]);
   } else {
     dumpedSwSwitchState_ =
-        std::move(SwitchState::uniquePtrFromFollyDyanmic(switchStateJson));
+        SwitchState::uniquePtrFromFollyDyanmic(switchStateJson);
   }
   CHECK(dumpedSwSwitchState_)
       << "Was not able to recover software state after warmboot from state "
