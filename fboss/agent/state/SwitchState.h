@@ -122,7 +122,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
-  static std::unique_ptr<SwitchState> uniquePtrFromFollyDyanmic(
+  static std::unique_ptr<SwitchState> uniquePtrFromFollyDynamic(
       const folly::dynamic& json) {
     const auto& fields = SwitchStateFields::fromFollyDynamic(json);
     return folly::make_unique<SwitchState>(fields);
@@ -130,7 +130,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
 
   static std::unique_ptr<SwitchState> uniquePtrFromJson(
       const folly::fbstring& jsonStr) {
-    return uniquePtrFromFollyDyanmic(folly::parseJson(jsonStr));
+    return uniquePtrFromFollyDynamic(folly::parseJson(jsonStr));
   }
 
   folly::dynamic toFollyDynamic() const override {

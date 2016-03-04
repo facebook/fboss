@@ -215,10 +215,10 @@ void BcmWarmBootCache::populateStateFromWarmbootFile() {
   auto switchStateJson = folly::parseJson(warmBootJson);
   if (switchStateJson.find(kSwSwitch) != switchStateJson.items().end()) {
     dumpedSwSwitchState_ =
-        SwitchState::uniquePtrFromFollyDyanmic(switchStateJson[kSwSwitch]);
+        SwitchState::uniquePtrFromFollyDynamic(switchStateJson[kSwSwitch]);
   } else {
     dumpedSwSwitchState_ =
-        SwitchState::uniquePtrFromFollyDyanmic(switchStateJson);
+        SwitchState::uniquePtrFromFollyDynamic(switchStateJson);
   }
   CHECK(dumpedSwSwitchState_)
       << "Was not able to recover software state after warmboot from state "
