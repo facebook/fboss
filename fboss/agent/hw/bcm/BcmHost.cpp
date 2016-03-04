@@ -55,7 +55,7 @@ void BcmHost::initHostCommon(opennsl_l3_host_t *host) const {
   host->l3a_intf = getEgressId();
 }
 
-void BcmHost::addBcmHost(bool isMultipath) {
+void BcmHost::addBcmHost(bool isMultipath, bool replace) {
   if (added_) {
     return;
   }
@@ -63,6 +63,9 @@ void BcmHost::addBcmHost(bool isMultipath) {
   initHostCommon(&host);
   if (isMultipath) {
     host.l3a_flags |= OPENNSL_L3_MULTIPATH;
+  }
+  if (replace) {
+    host.l3a_flags |= OPENNSL_L3_REPLACE;
   }
   const auto warmBootCache = hw_->getWarmBootCache();
   auto vrfIp2HostCitr = warmBootCache->findHost(vrf_, addr_);

@@ -85,11 +85,12 @@ class BcmWarmBootCache {
     return hwSwitchEcmp2EgressIds_;
   }
  private:
-  typedef std::pair<EgressId, opennsl_l3_egress_t> EgressIdAndEgress;
-  typedef std::pair<EcmpEgressId, opennsl_l3_egress_ecmp_t>
-      EcmpEgressIdAndEgress;
-  typedef std::pair<VlanID, folly::MacAddress> VlanAndMac;
-  typedef std::pair<opennsl_if_t, folly::MacAddress> IntfIdAndMac;
+  using Egress = opennsl_l3_egress_t;
+  using EcmpEgress = opennsl_l3_egress_ecmp_t;
+  using IntfId = opennsl_if_t;
+  using EgressIdAndEgress = std::pair<EgressId, Egress>;
+  using VlanAndMac = std::pair<VlanID, folly::MacAddress>;
+  using IntfIdAndMac = std::pair<IntfId, folly::MacAddress>;
   /*
    * VRF, IP, Mask
    * TODO - Convert mask to mask len for efficient storage/lookup
@@ -106,13 +107,17 @@ class BcmWarmBootCache {
     VlanAndMac2Intf;
   typedef boost::container::flat_map<VrfAndIP,
           opennsl_l3_host_t> VrfAndIP2Host;
-  typedef boost::container::flat_map<VrfAndIP,
-          EgressIdAndEgress> VrfAndIP2Egress;
+  typedef boost::container::flat_map<VrfAndIP, EgressId> VrfAndIP2EgressId;
   typedef boost::container::flat_map<EgressId, VrfAndIP> EgressId2VrfAndIP;
   typedef boost::container::flat_map<VrfAndPrefix, opennsl_l3_route_t>
     VrfAndPrefix2Route;
-  typedef boost::container::flat_map<EgressIds,
-          opennsl_l3_egress_ecmp_t> EgressIds2Ecmp;
+  typedef boost::container::flat_map<EgressIds, EcmpEgress> EgressIds2Ecmp;
+  using VrfAndIP2Route =
+      boost::container::flat_map<VrfAndIP, opennsl_l3_route_t>;
+  using EgressAndBool = std::pair<Egress, bool>;
+  using EgressId2EgressAndBool =
+      boost::container::flat_map<EgressId, EgressAndBool>;
+
   /*
    * Callbacks for traversing entries in BCM h/w tables
    */
@@ -178,28 +183,38 @@ class BcmWarmBootCache {
   /*
    * Iterators and find functions for finding opennsl_l3_egress_t
    */
-  typedef VrfAndIP2Egress::const_iterator VrfAndIP2EgressCitr;
-  VrfAndIP2EgressCitr vrfAndIP2Egress_beg() const {
-    return vrfIp2Egress_.begin();
-  }
-  VrfAndIP2EgressCitr vrfAndIP2Egress_end() const {
-    return vrfIp2Egress_.end();
-  }
-  VrfAndIP2EgressCitr findEgress(opennsl_vrf_t vrf,
-    const folly::IPAddress& nhopIp) const {
-    return vrfIp2Egress_.find(VrfAndIP(vrf, nhopIp));
-  }
-  void programmed(VrfAndIP2EgressCitr vrecitr) {
-    VLOG(1) << "Programmed vrf : " << vrecitr->first.first << " ip : "
-      << vrecitr->first.second <<" and egress id : " << vrecitr->second.first
-      << " removing from warm boot cache ";
-    vrfIp2Egress_.erase(vrecitr);
-  }
-  opennsl_if_t getDropEgressId() const {
+  EgressId getDropEgressId() const {
     return dropEgressId_;
   }
-  opennsl_if_t getToCPUEgressId() const {
+  EgressId getToCPUEgressId() const {
     return toCPUEgressId_;
+  }
+  /**
+   * Iterators and find functions for finding egress objects.
+   */
+  using EgressId2EgressAndBoolCitr = EgressId2EgressAndBool::const_iterator;
+  EgressId2EgressAndBoolCitr egressId2EgressAndBool_begin() const {
+    return egressId2EgressAndBool_.begin();
+  }
+  EgressId2EgressAndBoolCitr egressId2EgressAndBool_end() const {
+    return egressId2EgressAndBool_.end();
+  }
+  EgressId2EgressAndBoolCitr findEgress(EgressId id) const {
+    return egressId2EgressAndBool_.find(id);
+  }
+  EgressId2EgressAndBoolCitr findEgress(opennsl_vrf_t vrf,
+                                        const folly::IPAddress& nhopIp) const {
+    const auto& vrfIpAndHost = vrfIp2Host_.find(VrfAndIP(vrf, nhopIp));
+    if (vrfIpAndHost == vrfIp2Host_.end()) {
+      return egressId2EgressAndBool_.end();
+    }
+    return findEgress(vrfIpAndHost->second.l3a_intf);
+  }
+  void programmed(EgressId2EgressAndBoolCitr citr) {
+    VLOG(1) << "Programmed egress entry: " << citr->first
+            << ". Marking at used in warmboot cache.";
+    auto itr = egressId2EgressAndBool_.find(citr->first);
+    itr->second.second = true;
   }
   /*
    * Iterators and find functions for finding opennsl_l3_host_t
@@ -244,6 +259,28 @@ class BcmWarmBootCache {
       <<  std::get<2>(vrpitr->first) << " removing from warm boot cache ";
     vrfPrefix2Route_.erase(vrpitr);
   }
+
+  /**
+   * Iterators and find functions for fully qualified routes in the route table.
+   */
+  using VrfAndIP2RouteCitr = VrfAndIP2Route::const_iterator;
+  VrfAndIP2RouteCitr vrfAndIP2Route_begin() const {
+    return vrfAndIP2Route_.begin();
+  }
+  VrfAndIP2RouteCitr vrfAndIP2Route_end() const {
+    return vrfAndIP2Route_.end();
+  }
+  VrfAndIP2RouteCitr findHostRouteFromRouteTable(
+      opennsl_vrf_t vrf, const folly::IPAddress& ip) const {
+    return vrfAndIP2Route_.find(VrfAndIP(vrf, ip));
+  }
+  void programmed(VrfAndIP2RouteCitr citr) {
+    VLOG(1) << "Programmed host route, removing from warm boot cache. "
+            << "vrf: " << citr->first.first << " "
+            << "ip: " << citr->first.second;
+    vrfAndIP2Route_.erase(citr);
+  }
+
   /*
    * Iterators and find functions for opennsl_l3_egress_ecmp_t
    */
@@ -277,6 +314,11 @@ class BcmWarmBootCache {
    * Serialize to folly::dynamic
    */
   folly::dynamic toFollyDynamic() const;
+
+  const BcmSwitch* getHw() const {
+    return hw_;
+  }
+
  private:
   /*
    * Get egress ids for a ECMP Id. Will throw FbossError
@@ -292,10 +334,22 @@ class BcmWarmBootCache {
   Vlan2VlanInfo vlan2VlanInfo_;
   Vlan2Station vlan2Station_;
   VlanAndMac2Intf vlanAndMac2Intf_;
-  EgressId2VrfAndIP egressId2VrfIp_;
+  // This is the set of egress ids read from the hardware on warm boot.
+  //
+  // Future: Make this ref count how many host and route entries are pointing
+  // to it.
+  //
+  // Future: Make it exhaustive in counting egress entries from routes too.
+  // Currently, we only put entries from host table.
+  EgressIds egressOrEcmpIdsFromHostTable_;
   VrfAndIP2Host vrfIp2Host_;
-  VrfAndIP2Egress vrfIp2Egress_;
+  // These are routes from defip table that are not fully qualified (not /32 or
+  // /128).
   VrfAndPrefix2Route vrfPrefix2Route_;
+  // These are the fully qualified routes stored in defip table (/32 and /128
+  // routes).
+  VrfAndIP2Route vrfAndIP2Route_;
+  EgressId2EgressAndBool egressId2EgressAndBool_;
   EgressIds2Ecmp egressIds2Ecmp_;
   opennsl_if_t dropEgressId_;
   opennsl_if_t toCPUEgressId_;

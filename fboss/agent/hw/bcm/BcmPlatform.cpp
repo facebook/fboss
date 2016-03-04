@@ -12,6 +12,10 @@
 
 DEFINE_string(hw_config_file, "hw_config",
               "File for dumping HW config on startup");
+DEFINE_bool(enable_routes_in_host_table,
+            false,
+            "Whether to program host routes in host table. If false, all "
+            "routes are programmed in route table");
 
 namespace facebook { namespace fboss {
 

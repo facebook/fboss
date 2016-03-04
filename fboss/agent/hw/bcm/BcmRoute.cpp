@@ -31,21 +31,30 @@ BcmRoute::BcmRoute(const BcmSwitch* hw, opennsl_vrf_t vrf,
     : hw_(hw), vrf_(vrf), prefix_(addr), len_(len) {
 }
 
-void BcmRoute::initL3RouteT(opennsl_l3_route_t* rt) const {
+void BcmRoute::initL3RouteFromArgs(opennsl_l3_route_t* rt,
+                                   opennsl_vrf_t vrf,
+                                   const folly::IPAddress& prefix,
+                                   uint8_t prefixLength) {
   opennsl_l3_route_t_init(rt);
-  rt->l3a_vrf = vrf_;
-  if (prefix_.isV4()) {
+  rt->l3a_vrf = vrf;
+  if (prefix.isV4()) {
     // both l3a_subnet and l3a_ip_mask for IPv4 are in host order
-    rt->l3a_subnet = prefix_.asV4().toLongHBO();
-    rt->l3a_ip_mask = folly::IPAddressV4(
-        folly::IPAddressV4::fetchMask(len_)).toLongHBO();
+    rt->l3a_subnet = prefix.asV4().toLongHBO();
+    rt->l3a_ip_mask =
+        folly::IPAddressV4(folly::IPAddressV4::fetchMask(prefixLength))
+            .toLongHBO();
   } else {
-    memcpy(&rt->l3a_ip6_net, prefix_.asV6().toByteArray().data(),
+    memcpy(&rt->l3a_ip6_net, prefix.asV6().toByteArray().data(),
            sizeof(rt->l3a_ip6_net));
-    memcpy(&rt->l3a_ip6_mask, folly::IPAddressV6::fetchMask(len_).data(),
+    memcpy(&rt->l3a_ip6_mask,
+           folly::IPAddressV6::fetchMask(prefixLength).data(),
            sizeof(rt->l3a_ip6_mask));
     rt->l3a_flags |= OPENNSL_L3_IP6;
   }
+}
+
+void BcmRoute::initL3RouteT(opennsl_l3_route_t* rt) const {
+  initL3RouteFromArgs(rt, vrf_, prefix_, len_);
 }
 
 bool BcmRoute::isHostRoute() const {
@@ -57,7 +66,6 @@ bool BcmRoute::canUseHostTable() const {
 }
 
 void BcmRoute::program(const RouteForwardInfo& fwd) {
-
   // if the route has been programmed to the HW, check if the forward info is
   // changed or not. If not, nothing to do.
   if (added_ && fwd == fwd_) {
@@ -97,13 +105,26 @@ void BcmRoute::program(const RouteForwardInfo& fwd) {
   };
   if (canUseHostTable()) {
     if (added_) {
+      // Delete the already existing host table entry, because we cannot change
+      // host entries.
       auto host = hw_->getHostTable()->getBcmHostIf(vrf_, prefix_);
       CHECK(host);
-      VLOG(3) <<" Derefrencing host prefix for : " << prefix_
-        <<" /" << len_ <<" host egress Id : " << host->getEgressId();
+      VLOG(3) << "Derefrencing host prefix for " << prefix_ << "/" << len_
+              << " host egress Id : " << host->getEgressId();
       hw_->writableHostTable()->derefBcmHost(vrf_, prefix_);
     }
-    programHostRoute(egressId, fwd);
+    auto warmBootCache = hw_->getWarmBootCache();
+    auto vrfAndIP2RouteCitr =
+        warmBootCache->findHostRouteFromRouteTable(vrf_, prefix_);
+    bool entryExistsInRouteTable =
+        vrfAndIP2RouteCitr != warmBootCache->vrfAndIP2Route_end();
+    programHostRoute(egressId, fwd, entryExistsInRouteTable);
+    if (entryExistsInRouteTable) {
+      // If the entry already exists in the route table, programHostRoute()
+      // removes it as well.
+      DCHECK(!BcmRoute::deleteLpmRoute(hw_->getUnit(), vrf_, prefix_, len_));
+      warmBootCache->programmed(vrfAndIP2RouteCitr);
+    }
   } else {
     programLpmRoute(egressId, fwd);
   }
@@ -118,7 +139,7 @@ void BcmRoute::program(const RouteForwardInfo& fwd) {
 }
 
 void BcmRoute::programHostRoute(opennsl_if_t egressId,
-    const RouteForwardInfo& fwd) {
+    const RouteForwardInfo& fwd, bool replace) {
   auto hostRouteHost = hw_->writableHostTable()->incRefOrCreateBcmHost(
       vrf_, prefix_, egressId);
   auto cleanupHostRoute = [=]() noexcept {
@@ -127,7 +148,7 @@ void BcmRoute::programHostRoute(opennsl_if_t egressId,
   SCOPE_FAIL {
     cleanupHostRoute();
   };
-  hostRouteHost->addBcmHost(fwd.getNexthops().size() > 1);
+  hostRouteHost->addBcmHost(fwd.getNexthops().size() > 1, replace);
 }
 
 void BcmRoute::programLpmRoute(opennsl_if_t egressId,
@@ -186,6 +207,25 @@ void BcmRoute::programLpmRoute(opennsl_if_t egressId,
   }
 }
 
+bool BcmRoute::deleteLpmRoute(int unitNumber,
+                              opennsl_vrf_t vrf,
+                              const folly::IPAddress& prefix,
+                              uint8_t prefixLength) {
+  opennsl_l3_route_t rt;
+  initL3RouteFromArgs(&rt, vrf, prefix, prefixLength);
+  auto rc = opennsl_l3_route_delete(unitNumber, &rt);
+  if (OPENNSL_FAILURE(rc)) {
+    LOG(ERROR) << "Failed to delete a route entry for " << prefix << "/"
+               << static_cast<int>(prefixLength)
+               << " Error: " << opennsl_errmsg(rc);
+    return false;
+  } else {
+    VLOG(3) << "deleted a route entry for " << prefix.str() << "/"
+            << static_cast<int>(prefixLength);
+  }
+  return true;
+}
+
 BcmRoute::~BcmRoute() {
   if (!added_) {
     return;
@@ -193,21 +233,11 @@ BcmRoute::~BcmRoute() {
   if (canUseHostTable()) {
     auto host = hw_->getHostTable()->getBcmHostIf(vrf_, prefix_);
     CHECK(host);
-    VLOG(3) <<" Derefrencing host prefix for : " << prefix_
-      <<" /" << len_ << " host: " << host;
+    VLOG(3) << "Derefrencing host prefix for : " << prefix_ << "/" << len_
+            << " host: " << host;
     hw_->writableHostTable()->derefBcmHost(vrf_, prefix_);
   } else {
-    opennsl_l3_route_t rt;
-    opennsl_l3_route_t_init(&rt);
-    initL3RouteT(&rt);
-    auto rc = opennsl_l3_route_delete(hw_->getUnit(), &rt);
-    if (OPENNSL_FAILURE(rc)) {
-      LOG(ERROR) << "Failed to delete a route entry for " << prefix_ << "/"
-                 << static_cast<int>(len_) << " Error: " << opennsl_errmsg(rc);
-    } else {
-      VLOG(3) << "deleted a route entry for " << prefix_.str() << "/"
-              << static_cast<int>(len_);
-    }
+    deleteLpmRoute(hw_->getUnit(), vrf_, prefix_, len_);
   }
   // decrease reference counter of the host entry for next hops
   const auto& nhops = fwd_.getNexthops();

@@ -67,7 +67,7 @@ class BcmHost {
   }
 
   bool getAndClearHitBit() const;
-  void addBcmHost(bool isMultipath = false);
+  void addBcmHost(bool isMultipath = false, bool replace = false);
   folly::dynamic toFollyDynamic() const;
   opennsl_port_t getPort() const { return port_; }
  private:

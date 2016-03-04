@@ -34,11 +34,20 @@ class BcmRoute {
            const folly::IPAddress& addr, uint8_t len);
   ~BcmRoute();
   void program(const RouteForwardInfo& fwd);
+  static bool deleteLpmRoute(int unit,
+                             opennsl_vrf_t vrf,
+                             const folly::IPAddress& prefix,
+                             uint8_t prefixLength);
+  static void initL3RouteFromArgs(opennsl_l3_route_t* rt,
+                                  opennsl_vrf_t vrf,
+                                  const folly::IPAddress& prefix,
+                                  uint8_t prefixLength);
+
  private:
-  void programHostRoute(opennsl_if_t egressId, const RouteForwardInfo& fwd);
+  void programHostRoute(opennsl_if_t egressId,
+                        const RouteForwardInfo& fwd,
+                        bool replace);
   void programLpmRoute(opennsl_if_t egressId, const RouteForwardInfo& fwd);
-  void deleteHostRoute();
-  void deleteLpmRoute();
   /*
    * Check whether we can use the host route table. BCM platforms
    * support this from TD2 onwards

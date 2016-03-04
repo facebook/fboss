@@ -58,6 +58,16 @@ struct AddrTables {
   shared_ptr<facebook::fboss::ArpTable> arpTable;
   shared_ptr<facebook::fboss::NdpTable> ndpTable;
 };
+
+folly::IPAddress getFullMaskIPv4Address() {
+  return folly::IPAddress(folly::IPAddressV4(
+      folly::IPAddressV4::fetchMask(folly::IPAddressV4::bitCount())));
+}
+
+folly::IPAddress getFullMaskIPv6Address() {
+  return folly::IPAddress(folly::IPAddressV6(
+      folly::IPAddressV6::fetchMask(folly::IPAddressV6::bitCount())));
+}
 }
 
 namespace facebook { namespace fboss {
@@ -65,8 +75,7 @@ namespace facebook { namespace fboss {
 BcmWarmBootCache::BcmWarmBootCache(const BcmSwitch* hw)
     : hw_(hw),
       dropEgressId_(BcmEgressBase::INVALID),
-      toCPUEgressId_(BcmEgressBase::INVALID) {
-}
+      toCPUEgressId_(BcmEgressBase::INVALID) {}
 
 shared_ptr<InterfaceMap> BcmWarmBootCache::reconstructInterfaceMap() const {
   std::shared_ptr<InterfaceMap> dumpedInterfaceMap =
@@ -115,13 +124,19 @@ shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
   }
   flat_map<VlanID, AddrTables> vlan2AddrTables;
   // Populate ARP and NDP tables of VLANs using egress entries
-  for (auto vrfIpAndEgress : vrfIp2Egress_) {
-    const auto& bcmEgress = vrfIpAndEgress.second.second;
+  for (auto vrfIpAndHost : vrfIp2Host_) {
+    const auto& vrf = vrfIpAndHost.first.first;
+    const auto& ip = vrfIpAndHost.first.second;
+    const auto egressIdAndEgressBool = findEgress(vrf, ip);
+    if (egressIdAndEgressBool == egressId2EgressAndBool_.end()) {
+      // The host entry might be an ECMP egress entry.
+      continue;
+    }
+    const auto& bcmEgress = egressIdAndEgressBool->second.first;
     if (bcmEgress.vlan == kVlanForCPUEgressEntries) {
       // Ignore to CPU egress entries which get mapped to vlan 0
       continue;
     }
-    const auto& ip = vrfIpAndEgress.first.second;
     const auto& vlanId = VlanID(bcmEgress.vlan);
     // Is this ip a route or interface? If this is an entry for a route, then we
     // don't want to add this to the warm boot state.
@@ -328,8 +343,6 @@ void BcmWarmBootCache::populate() {
       // Diag shell uses this for getting # of v6 host entries
       l3Info.l3info_max_host / 2,
       hostTraversalCallback, this);
-  // Get egress entries
-  opennsl_l3_egress_traverse(hw_->getUnit(), egressTraversalCallback, this);
   // Traverse V4 routes
   opennsl_l3_route_traverse(hw_->getUnit(), 0, 0, l3Info.l3info_max_route,
       routeTraversalCallback, this);
@@ -338,12 +351,16 @@ void BcmWarmBootCache::populate() {
       // Diag shell uses this for getting # of v6 route entries
       l3Info.l3info_max_route / 2,
       routeTraversalCallback, this);
+  // Get egress entries. This is done after we have traversed through host and
+  // route entries, so we have populated egressOrEcmpIdsFromHostTable_.
+  opennsl_l3_egress_traverse(hw_->getUnit(), egressTraversalCallback, this);
   // Traverse ecmp egress entries
   opennsl_l3_egress_ecmp_traverse(hw_->getUnit(), ecmpEgressTraversalCallback,
       this);
-  // Clear internal egress id table which just gets used while populating
-  // warm boot cache
-  egressId2VrfIp_.clear();
+
+  // Clear the egresses that were collected during populate() to find out
+  // egress ids corresponding to drop egress and cpu egress.
+  egressOrEcmpIdsFromHostTable_.clear();
 }
 
 bool BcmWarmBootCache::fillVlanPortInfo(Vlan* vlan) {
@@ -374,19 +391,28 @@ int BcmWarmBootCache::hostTraversalCallback(int unit, int index,
     IPAddress::fromLongHBO(host->l3a_ip_addr);
   cache->vrfIp2Host_[make_pair(host->l3a_vrf, ip)] = *host;
   VLOG(1) << "Adding egress id: " << host->l3a_intf << " to " << ip
-    <<" mapping";
-  cache->egressId2VrfIp_[host->l3a_intf] = make_pair(host->l3a_vrf, ip);
+          << " mapping";
+  cache->egressOrEcmpIdsFromHostTable_.insert(host->l3a_intf);
   return 0;
 }
 
-int BcmWarmBootCache::egressTraversalCallback(int unit, EgressId egressId,
-    opennsl_l3_egress_t *egress, void *userData) {
+int BcmWarmBootCache::egressTraversalCallback(int unit,
+                                              EgressId egressId,
+                                              opennsl_l3_egress_t* egress,
+                                              void* userData) {
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
-  auto itr = cache->egressId2VrfIp_.find(egressId);
-  if (itr != cache->egressId2VrfIp_.end()) {
-    VLOG(1) << "Adding bcm egress entry for : " << itr->second.second
-      << " in VRF : " << itr->second.first;
-    cache->vrfIp2Egress_[itr->second] = make_pair(egressId, *egress);
+  CHECK(cache->egressId2EgressAndBool_.find(egressId) ==
+        cache->egressId2EgressAndBool_.end())
+      << "Double callback for egress id: " << egressId;
+  // Look up egressId in egressOrEcmpIdsFromHostTable_ and populate either
+  // dropEgressId_ or toCPUEgressId_.
+  auto egressIdItr = cache->egressOrEcmpIdsFromHostTable_.find(egressId);
+  if (egressIdItr != cache->egressOrEcmpIdsFromHostTable_.end()) {
+    // May be: Add information to figure out how many host or route entry
+    // reference it.
+    VLOG(1) << "Adding bcm egress entry for: " << *egressIdItr
+            << " which is referenced by at least one host or route entry.";
+    cache->egressId2EgressAndBool_[egressId] = std::make_pair(*egress, false);
   } else {
     // found egress ID that is not used by any host entry, we shall
     // only have two of them. One is for drop and the other one is for TO CPU.
@@ -397,7 +423,8 @@ int BcmWarmBootCache::egressTraversalCallback(int unit, EgressId egressId,
       }
       VLOG(1) << "Found drop egress id " << egressId;
       cache->dropEgressId_ = egressId;
-    } else if ((egress->flags & (OPENNSL_L3_L2TOCPU|OPENNSL_L3_COPY_TO_CPU))) {
+    } else if ((egress->flags &
+                (OPENNSL_L3_L2TOCPU | OPENNSL_L3_COPY_TO_CPU))) {
       if (cache->toCPUEgressId_ != BcmEgressBase::INVALID) {
         LOG(FATAL) << "duplicated generic TO_CPU egress found in HW. "
                    << egressId << " and " << cache->toCPUEgressId_;
@@ -405,28 +432,38 @@ int BcmWarmBootCache::egressTraversalCallback(int unit, EgressId egressId,
       VLOG(1) << "Found generic TO CPU egress id " << egressId;
       cache->toCPUEgressId_ = egressId;
     } else {
-      LOG (FATAL) << " vrf and ip not found for egress : " << egressId;
+      LOG(FATAL) << "The egress: " << egressId
+                 << " is not referenced by any host entry. vlan: "
+                 << egress->vlan << " interface: " << egress->intf
+                 << " flags: " << std::hex << egress->flags << std::dec;
     }
   }
-
   return 0;
 }
-
 
 int BcmWarmBootCache::routeTraversalCallback(int unit, int index,
     opennsl_l3_route_t* route, void* userData) {
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
-  auto ip = route->l3a_flags & OPENNSL_L3_IP6 ?
-    IPAddress::fromBinary(ByteRange(route->l3a_ip6_net,
-          sizeof(route->l3a_ip6_net))) :
-    IPAddress::fromLongHBO(route->l3a_subnet);
-  auto mask = route->l3a_flags & OPENNSL_L3_IP6 ?
-    IPAddress::fromBinary(ByteRange(route->l3a_ip6_mask,
-          sizeof(route->l3a_ip6_mask))) :
-    IPAddress::fromLongHBO(route->l3a_ip_mask);
-  VLOG(3) << "In vrf : " << route->l3a_vrf << " adding route for : "
-    << ip << " mask: " << mask;
-  cache->vrfPrefix2Route_[make_tuple(route->l3a_vrf, ip, mask)] = *route;
+  bool isIPv6 = route->l3a_flags & OPENNSL_L3_IP6;
+  auto ip = isIPv6 ? IPAddress::fromBinary(ByteRange(
+                         route->l3a_ip6_net, sizeof(route->l3a_ip6_net)))
+                   : IPAddress::fromLongHBO(route->l3a_subnet);
+  auto mask = isIPv6 ? IPAddress::fromBinary(ByteRange(
+                           route->l3a_ip6_mask, sizeof(route->l3a_ip6_mask)))
+                     : IPAddress::fromLongHBO(route->l3a_ip_mask);
+  if (cache->getHw()->getPlatform()->canUseHostTableForHostRoutes() &&
+      ((isIPv6 && mask == getFullMaskIPv6Address()) ||
+       (!isIPv6 && mask == getFullMaskIPv4Address()))) {
+    // This is a host route.
+    cache->vrfAndIP2Route_[make_pair(route->l3a_vrf, ip)] = *route;
+    VLOG(3) << "Adding host route found in route table. vrf: "
+            << route->l3a_vrf << " ip: " << ip << " mask: " << mask;
+  } else {
+    // Other routes that cannot be put into host table / CAM.
+    cache->vrfPrefix2Route_[make_tuple(route->l3a_vrf, ip, mask)] = *route;
+    VLOG(3) << "In vrf : " << route->l3a_vrf << " adding route for : " << ip
+            << " mask: " << mask;
+  }
   return 0;
 }
 
@@ -498,8 +535,10 @@ void BcmWarmBootCache::clear() {
   VLOG(1) << "Warm boot: removing unreferenced entries";
   dumpedSwSwitchState_.reset();
   hwSwitchEcmp2EgressIds_.clear();
-  // Nothing references routes, but routes reference ecmp egress
-  // and egress entries which are deleted later
+  // First delete routes (fully qualified and others).
+  //
+  // Nothing references routes, but routes reference ecmp egress and egress
+  // entries which are deleted later
   for (auto vrfPfxAndRoute : vrfPrefix2Route_) {
     VLOG(1) << "Deleting unreferenced route in vrf:" <<
         std::get<0>(vrfPfxAndRoute.first) << " for prefix : " <<
@@ -512,8 +551,34 @@ void BcmWarmBootCache::clear() {
         std::get<2>(vrfPfxAndRoute.first));
   }
   vrfPrefix2Route_.clear();
-  // Only routes refer ecmp egress objects. Ecmp egress objects in turn
-  // refer to egress objects which we delete later
+  for (auto vrfIPAndRoute: vrfAndIP2Route_) {
+    VLOG(1) << "Deleting fully qualified unreferenced route in vrf: "
+            << vrfIPAndRoute.first.first
+            << " prefix: " << vrfIPAndRoute.first.second;
+    auto rv = opennsl_l3_route_delete(hw_->getUnit(), &(vrfIPAndRoute.second));
+    bcmLogFatal(rv,
+                hw_,
+                "failed to delete fully qualified unreferenced route in vrf: ",
+                vrfIPAndRoute.first.first,
+                " prefix: ",
+                vrfIPAndRoute.first.second);
+  }
+  vrfAndIP2Route_.clear();
+
+  // Delete bcm host entries. Nobody references bcm hosts, but
+  // hosts reference egress objects
+  for (auto vrfIpAndHost : vrfIp2Host_) {
+    VLOG(1) << "Deleting host entry in vrf: " <<
+        vrfIpAndHost.first.first << " for : " << vrfIpAndHost.first.second;
+    auto rv = opennsl_l3_host_delete(hw_->getUnit(), &vrfIpAndHost.second);
+    bcmLogFatal(rv, hw_, "failed to delete host entry in vrf: ",
+        vrfIpAndHost.first.first, " for : ", vrfIpAndHost.first.second);
+  }
+  vrfIp2Host_.clear();
+
+  // Both routes and host entries (which have been deleted earlier) can refer
+  // to ecmp egress objects.  Ecmp egress objects in turn refer to egress
+  // objects which we delete later
   for (auto idsAndEcmp : egressIds2Ecmp_) {
     auto& ecmp = idsAndEcmp.second;
     VLOG(1) << "Deleting ecmp egress object  " << ecmp.ecmp_intf
@@ -525,28 +590,23 @@ void BcmWarmBootCache::clear() {
   }
   egressIds2Ecmp_.clear();
 
-  // Delete bcm host entries. Nobody references bcm hosts, but
-  // hosts reference egress objects
-  for (auto vrfIpAndHost : vrfIp2Host_) {
-    VLOG(1)<< "Deleting host entry in vrf: " <<
-        vrfIpAndHost.first.first << " for : " << vrfIpAndHost.first.second;
-    auto rv = opennsl_l3_host_delete(hw_->getUnit(), &vrfIpAndHost.second);
-    bcmLogFatal(rv, hw_, "failed to delete host entry in vrf: ",
-        vrfIpAndHost.first.first, " for : ", vrfIpAndHost.first.second);
-  }
-  vrfIp2Host_.clear();
   // Delete bcm egress entries. These are referenced by routes, ecmp egress
   // and host objects all of which we deleted above. Egress objects in turn
   // my point to a interface which we delete later
-  for (auto vrfIpAndEgress : vrfIp2Egress_) {
-
-    VLOG(1) << "Deleting egress object  " << vrfIpAndEgress.second.first;
-    auto rv = opennsl_l3_egress_destroy(hw_->getUnit(),
-        vrfIpAndEgress.second.first);
-    bcmLogFatal(rv, hw_, "failed to destroy egress object ",
-        vrfIpAndEgress.second.first);
+  for (auto egressIdAndEgressBool : egressId2EgressAndBool_) {
+    if (!egressIdAndEgressBool.second.second) {
+      // This is not used yet
+      VLOG(1) << "Deleting egress object: " << egressIdAndEgressBool.first;
+      auto rv = opennsl_l3_egress_destroy(hw_->getUnit(),
+                                          egressIdAndEgressBool.first);
+      bcmLogFatal(rv,
+                  hw_,
+                  "failed to destroy egress object ",
+                  egressIdAndEgressBool.first);
+    }
   }
-  vrfIp2Egress_.clear();
+  egressId2EgressAndBool_.clear();
+
   // Delete interfaces
   for (auto vlanMacAndIntf : vlanAndMac2Intf_) {
     VLOG(1) <<"Deletingl3 interface for vlan: " << vlanMacAndIntf.first.first

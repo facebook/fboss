@@ -65,10 +65,11 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
     eObj.port = port;
   }
   eObj.intf = intfId;
-  bool addEgress = false;
+  bool addOrUpdateEgress = false;
   const auto warmBootCache = hw_->getWarmBootCache();
-  auto vrfAndIP2EgressCitr = warmBootCache->findEgress(vrf, ip);
-  if (vrfAndIP2EgressCitr != warmBootCache->vrfAndIP2Egress_end()) {
+  auto egressId2EgressAndBoolCitr = warmBootCache->findEgress(vrf, ip);
+  if (egressId2EgressAndBoolCitr !=
+      warmBootCache->egressId2EgressAndBool_end()) {
     // Lambda to compare with existing egress to know if should reprogram
     auto equivalent = [] (const opennsl_l3_egress_t& newEgress,
         const opennsl_l3_egress_t& existingEgress) {
@@ -79,8 +80,8 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
         return (egress.flags & kCPUFlags) == kCPUFlags;
       };
       if (!puntToCPU(newEgress) && !puntToCPU(existingEgress)) {
-         // Both new and existing egress point to a valid nexthop
-         // Compare mac, port and interface of egress objects
+        // Both new and existing egress point to a valid nexthop
+        // Compare mac, port and interface of egress objects
         return !memcmp(newEgress.mac_addr, existingEgress.mac_addr,
           sizeof(newEgress.mac_addr)) &&
           existingEgress.intf == newEgress.intf &&
@@ -99,20 +100,22 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
       }
       return false;
     };
-    const auto& existingEgressIdAndEgress = vrfAndIP2EgressCitr->second;
+    const auto& existingEgressId = egressId2EgressAndBoolCitr->first;
     // Cache existing egress id
-    id_ = existingEgressIdAndEgress.first;
-    if (!equivalent(eObj, existingEgressIdAndEgress.second)) {
+    id_ = existingEgressId;
+    auto existingEgressObject = egressId2EgressAndBoolCitr->second.first;
+    if (!equivalent(eObj, existingEgressObject)) {
       VLOG(1) << "Updating egress object for next hop : " << ip;
-      addEgress = true;
+      addOrUpdateEgress = true;
     } else {
       VLOG(1) << "Egress object for : " << ip << " already exists";
     }
   } else {
-    addEgress = true;
+    addOrUpdateEgress = true;
   }
-  if (addEgress) {
-    if (vrfAndIP2EgressCitr == warmBootCache->vrfAndIP2Egress_end()) {
+  if (addOrUpdateEgress) {
+    if (egressId2EgressAndBoolCitr ==
+        warmBootCache->egressId2EgressAndBool_end()) {
       VLOG(1) << "Adding egress object for next hop : " << ip;
     }
     uint32_t flags = 0;
@@ -134,16 +137,21 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
           " on port ", port,
           " on unit ", hw_->getUnit());
       VLOG(3) << "programmed L3 egress object " << id_ << " for "
-        << ((mac) ? mac->toString() : "to CPU")
-        << " on unit " << hw_->getUnit();
+              << ((mac) ? mac->toString() : "to CPU") << " on unit "
+              << hw_->getUnit() << " for ip: " << ip;
     } else {
+      // TODO(t10268453): How can we get here? The entries were not equivalent
+      // when we entered this ' if (addOrUpdateEgress) ' condition. Is the
+      // difference between what is in BcmWarmBootCache and what is in the
+      // hardware?
       VLOG(1) << "Identical egress object for : " << ip << " pointing to "
         << (mac ? mac->toString() : "CPU ") << " already exists "
         << "skipping egress programming ";
     }
   }
-  if (vrfAndIP2EgressCitr != warmBootCache->vrfAndIP2Egress_end()) {
-    warmBootCache->programmed(vrfAndIP2EgressCitr);
+  if (egressId2EgressAndBoolCitr !=
+      warmBootCache->egressId2EgressAndBool_end()) {
+    warmBootCache->programmed(egressId2EgressAndBoolCitr);
   }
   CHECK_NE(id_, INVALID);
 }

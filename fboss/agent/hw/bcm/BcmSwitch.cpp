@@ -496,7 +496,6 @@ BcmSwitch::init(Callback* callback) {
     // in the host table don't show up correctly.
     warmBootCache_->populate();
   }
-
   // create an egress object for ToCPU
   toCPUEgress_ = make_unique<BcmEgress>(this);
   toCPUEgress_->programToCPU();
