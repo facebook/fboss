@@ -62,8 +62,6 @@ using std::unique_ptr;
 DEFINE_string(config, "", "The path to the local JSON configuration file");
 
 namespace {
-constexpr auto kSwSwitch = "swSwitch";
-
 facebook::fboss::PortStatus fillInPortStatus(
     const facebook::fboss::Port& port,
     const facebook::fboss::SwSwitch* sw) {

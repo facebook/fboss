@@ -31,6 +31,7 @@
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
+#include "fboss/agent/state/SwitchState.h"
 
 using std::make_pair;
 using std::make_tuple;
@@ -49,6 +50,7 @@ using namespace facebook::fboss;
 
 namespace {
 auto constexpr kEcmpObjects = "ecmpObjects";
+auto constexpr kVlanForCPUEgressEntries = 0;
 
 struct AddrTables {
   AddrTables() : arpTable(make_shared<ArpTable>()),
@@ -67,23 +69,28 @@ BcmWarmBootCache::BcmWarmBootCache(const BcmSwitch* hw)
 }
 
 shared_ptr<InterfaceMap> BcmWarmBootCache::reconstructInterfaceMap() const {
+  std::shared_ptr<InterfaceMap> dumpedInterfaceMap =
+      dumpedSwSwitchState_->getInterfaces();
   auto intfMap = make_shared<InterfaceMap>();
   for (const auto& vlanMacAndIntf: vlanAndMac2Intf_) {
     const auto& bcmIntf = vlanMacAndIntf.second;
-    // Note : missing addresses and inteface name. This should be
-    // fixed with t4155406
-    intfMap->addInterface(make_shared<Interface>(
-            InterfaceID(bcmIntf.l3a_vid),
-            RouterID(bcmIntf.l3a_vrf),
-            VlanID(bcmIntf.l3a_vid),
-            "",
-            vlanMacAndIntf.first.second,
-            bcmIntf.l3a_mtu));
+    std::shared_ptr<Interface> dumpedInterface =
+        dumpedInterfaceMap->getInterfaceIf(InterfaceID(bcmIntf.l3a_vid));
+    std::string dumpedInterfaceName = dumpedInterface->getName();
+    auto newInterface = make_shared<Interface>(InterfaceID(bcmIntf.l3a_vid),
+                                               RouterID(bcmIntf.l3a_vrf),
+                                               VlanID(bcmIntf.l3a_vid),
+                                               dumpedInterfaceName,
+                                               vlanMacAndIntf.first.second,
+                                               bcmIntf.l3a_mtu);
+    newInterface->setAddresses(dumpedInterface->getAddresses());
+    intfMap->addInterface(newInterface);
   }
   return intfMap;
 }
 
 shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
+  std::shared_ptr<VlanMap> dumpedVlans = dumpedSwSwitchState_->getVlans();
   auto vlans = make_shared<VlanMap>();
   flat_map<VlanID, VlanFields> vlan2VlanFields;
   // Get vlan and port mapping
@@ -107,19 +114,29 @@ shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
     vlans->addVlan(vlan);
   }
   flat_map<VlanID, AddrTables> vlan2AddrTables;
-  // Populate ARP and NDP tables of VLANs using egress
-  // entries
+  // Populate ARP and NDP tables of VLANs using egress entries
   for (auto vrfIpAndEgress : vrfIp2Egress_) {
     const auto& bcmEgress = vrfIpAndEgress.second.second;
-    if (bcmEgress.vlan == 0) {
+    if (bcmEgress.vlan == kVlanForCPUEgressEntries) {
       // Ignore to CPU egress entries which get mapped to vlan 0
       continue;
     }
     const auto& ip = vrfIpAndEgress.first.second;
-    auto titr = vlan2AddrTables.find(VlanID(bcmEgress.vlan));
+    const auto& vlanId = VlanID(bcmEgress.vlan);
+    // Is this ip a route or interface? If this is an entry for a route, then we
+    // don't want to add this to the warm boot state.
+    if (dumpedVlans) {
+      const auto& dumpedVlan = dumpedVlans->getVlan(vlanId);
+      if (ip.isV4() && !dumpedVlan->getArpTable()->getEntryIf(ip.asV4())) {
+        continue;     // to next host entry
+      }
+      if (ip.isV6() && !dumpedVlan->getNdpTable()->getEntryIf(ip.asV6())) {
+        continue;     // to next host entry
+      }
+    }
+    auto titr = vlan2AddrTables.find(vlanId);
     if (titr == vlan2AddrTables.end()) {
-      titr = vlan2AddrTables.insert(make_pair(VlanID(bcmEgress.vlan),
-          AddrTables())).first;
+      titr = vlan2AddrTables.insert(make_pair(vlanId, AddrTables())).first;
     }
 
     // If we have a drop entry programmed for an existing host, it is a
@@ -195,8 +212,19 @@ void BcmWarmBootCache::populateStateFromWarmbootFile() {
   const auto& warmBootFile = hw_->getPlatform()->getWarmBootSwitchStateFile();
   auto ret = folly::readFile(warmBootFile.c_str(), warmBootJson);
   sysCheckError(ret, "Unable to read switch state from : ", warmBootFile);
-  auto switchState = folly::parseJson(warmBootJson);
-  if (switchState.find(kHwSwitch) == switchState.items().end()) {
+  auto switchStateJson = folly::parseJson(warmBootJson);
+  if (switchStateJson.find(kSwSwitch) != switchStateJson.items().end()) {
+    dumpedSwSwitchState_ = std::move(
+        SwitchState::uniquePtrFromFollyDyanmic(switchStateJson[kSwSwitch]));
+  } else {
+    dumpedSwSwitchState_ =
+        std::move(SwitchState::uniquePtrFromFollyDyanmic(switchStateJson));
+  }
+  CHECK(dumpedSwSwitchState_)
+      << "Was not able to recover software state after warmboot from state "
+         "file: " << hw_->getPlatform()->getWarmBootSwitchStateFile();
+
+  if (switchStateJson.find(kHwSwitch) == switchStateJson.items().end()) {
     // hwSwitch state does not exist no need to reconstruct
     // ecmp -> egressId map. We only started dumping this
     // when we added fast handling of updating ecmp entries
@@ -209,7 +237,7 @@ void BcmWarmBootCache::populateStateFromWarmbootFile() {
   }
   hwSwitchEcmp2EgressIdsPopulated_ = true;
   // Extract ecmps for dumped host table
-  auto hostTable = switchState[kHwSwitch][kHostTable];
+  auto hostTable = switchStateJson[kHwSwitch][kHostTable];
   for (const auto& ecmpEntry : hostTable[kEcmpHosts]) {
     auto ecmpEgressId = ecmpEntry[kEcmpEgressId].asInt();
     if (ecmpEgressId == BcmEgressBase::INVALID) {
@@ -222,7 +250,7 @@ void BcmWarmBootCache::populateStateFromWarmbootFile() {
   }
   // Extract ecmps from dumped warm boot cache. We
   // may have shut down before a FIB sync
-  auto ecmpObjects = switchState[kHwSwitch][kWarmBootCache][kEcmpObjects];
+  auto ecmpObjects = switchStateJson[kHwSwitch][kWarmBootCache][kEcmpObjects];
   for (const auto& ecmpEntry : ecmpObjects) {
     auto ecmpEgressId = ecmpEntry[kEcmpEgressId].asInt();
     CHECK(ecmpEgressId != BcmEgressBase::INVALID);
@@ -431,6 +459,10 @@ int BcmWarmBootCache::ecmpEgressTraversalCallback(int unit,
       }
       throw ex;
     }
+    EgressIds egressIdsInHw;
+    egressIdsInHw = cache->toEgressIds(intfArray, intfCount);
+    VLOG(1) << "ignoring paths for ecmp egress " << ecmp->ecmp_intf
+            << " gotten from hardware: " << toEgressIdsStr(egressIdsInHw);
   } else {
     if (intfCount == 0) {
       return 0;
@@ -463,7 +495,8 @@ void BcmWarmBootCache::clear() {
   // Get rid of all unclaimed entries. The order is important here
   // since we want to delete entries only after there are no more
   // references to them.
-  VLOG(1) << "Warm boot : removing unreferenced entries";
+  VLOG(1) << "Warm boot: removing unreferenced entries";
+  dumpedSwSwitchState_.reset();
   hwSwitchEcmp2EgressIds_.clear();
   // Nothing references routes, but routes reference ecmp egress
   // and egress entries which are deleted later

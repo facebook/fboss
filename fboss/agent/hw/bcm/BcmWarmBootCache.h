@@ -32,6 +32,7 @@ class BcmSwitch;
 class InterfaceMap;
 class Vlan;
 class VlanMap;
+class SwitchState;
 
 class BcmWarmBootCache {
  public:
@@ -325,5 +326,6 @@ class BcmWarmBootCache {
   // one where we do, the table wont exist in the warm boot file.
   // So don't look for egressIds in this table.
   bool hwSwitchEcmp2EgressIdsPopulated_{false};
+  std::unique_ptr<SwitchState> dumpedSwSwitchState_;
 };
 }} // facebook::fboss

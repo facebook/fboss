@@ -14,6 +14,7 @@
 
 #include <folly/FBString.h>
 #include <folly/dynamic.h>
+#include <folly/Memory.h>
 
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeBase.h"
@@ -119,6 +120,17 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   static std::shared_ptr<SwitchState>
   fromJson(const folly::fbstring& jsonStr) {
     return fromFollyDynamic(folly::parseJson(jsonStr));
+  }
+
+  static std::unique_ptr<SwitchState> uniquePtrFromFollyDyanmic(
+      const folly::dynamic& json) {
+    const auto& fields = SwitchStateFields::fromFollyDynamic(json);
+    return folly::make_unique<SwitchState>(fields);
+  }
+
+  static std::unique_ptr<SwitchState> uniquePtrFromJson(
+      const folly::fbstring& jsonStr) {
+    return uniquePtrFromFollyDyanmic(folly::parseJson(jsonStr));
   }
 
   folly::dynamic toFollyDynamic() const override {
