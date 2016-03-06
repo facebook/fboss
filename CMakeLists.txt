@@ -71,6 +71,7 @@ add_library(fboss_agent STATIC
     common/stats/ServiceData.cpp
 
     fboss/agent/ApplyThriftConfig.cpp
+    fboss/agent/ArpCache.cpp
     fboss/agent/ArpHandler.cpp
     fboss/agent/capture/PcapFile.cpp
     fboss/agent/capture/PcapPkt.cpp
@@ -132,6 +133,7 @@ add_library(fboss_agent STATIC
     fboss/agent/LldpManager.cpp
     fboss/agent/Main.cpp
     fboss/agent/ndp/IPv6RouteAdvertiser.cpp
+    fboss/agent/NdpCache.cpp
     fboss/agent/NeighborListenerClient.cpp
     fboss/agent/NeighborUpdater.cpp
     fboss/agent/NexthopToRouteCount.cpp
@@ -150,11 +152,13 @@ add_library(fboss_agent STATIC
     fboss/agent/packet/PktUtil.cpp
     fboss/agent/Platform.cpp
     fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
+    fboss/agent/platforms/wedge/oss/Wedge100Platform.cpp
     fboss/agent/platforms/wedge/oss/WedgePort.cpp
     fboss/agent/platforms/wedge/oss/WedgeProductInfo.cpp
     fboss/agent/platforms/wedge/wedge_ctrl.cpp
     fboss/agent/platforms/wedge/WedgeI2CBusLock.cpp
     fboss/agent/platforms/wedge/WedgePlatform.cpp
+    fboss/agent/platforms/wedge/Wedge100Platform.cpp
     fboss/agent/platforms/wedge/WedgePort.cpp
     fboss/agent/platforms/wedge/WedgeProductInfo.cpp
     fboss/agent/platforms/wedge/WedgeQsfp.cpp
@@ -270,7 +274,7 @@ find_program(THRIFT1 thrift1)
 find_program(PYTHON python)
 set(THRIFTC2OPTS json)
 set(THRIFTC ${THRIFT1} -I ${CMAKE_SOURCE_DIR} -gen cpp:json,templates -gen py:)
-set(THRIFTC2 
+set(THRIFTC2
     ${PYTHON} -mthrift_compiler.main -I ${CMAKE_SOURCE_DIR} --gen cpp2:)
 
 function(fboss_add_thrift)
@@ -287,13 +291,13 @@ function(fboss_add_thrift)
         set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}.h)
     endforeach(srv)
     foreach(reflect ${arg_REFLECT})
-        set(outputs ${outputs} 
+        set(outputs ${outputs}
             ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${reflect}_reflection.h
             ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${reflect}_reflection.cpp)
     endforeach(reflect)
     foreach(gen cpp cpp2)
         foreach(output constants types)
-            set(outputs ${outputs} 
+            set(outputs ${outputs}
                 ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${basename}_${output}.h
                 ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${basename}_${output}.cpp)
         endforeach(output)
@@ -317,15 +321,14 @@ function(fboss_add_thrift)
 endfunction(fboss_add_thrift)
 
 fboss_add_thrift(THRIFTSRC common/fb303/if/fb303.thrift SERVICES FacebookService)
-fboss_add_thrift(THRIFTSRC common/network/if/Address.thrift 
+fboss_add_thrift(THRIFTSRC common/network/if/Address.thrift
     OPTIONS json,compatibility,include_prefix=common/network/if
     REFLECT Address)
 fboss_add_thrift(THRIFTSRC fboss/agent/switch_config.thrift
     REFLECT switch_config)
 fboss_add_thrift(THRIFTSRC fboss/agent/hw/sim/sim_ctrl.thrift SERVICES SimCtrl)
-fboss_add_thrift(THRIFTSRC fboss/agent/if/ctrl.thrift 
+fboss_add_thrift(THRIFTSRC fboss/agent/if/ctrl.thrift
     SERVICES FbossCtrl NeighborListenerClient)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/fboss.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/optic.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/highres.thrift SERVICES FbossHighresClient)
-
