@@ -694,30 +694,51 @@ void BcmSwitch::reconfigurePortGroups(const StateDelta& delta) {
   // changing the configuration of a port group.
 
   auto newState = delta.newState();
-
   forEachChanged(delta.getPortsDelta(),
     [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
       auto enabled = oldPort->isDisabled() && !newPort->isDisabled();
       auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
 
       if (speedChanged || enabled) {
-        // this may require reconfiguring lanes. First we check if
-        // this is a valid configuration. We could be smarter here
-        // and only check once per port group instead of once per
-        // changed port in a port group, but keeping it simple for now.
+        if (!isValidPortUpdate(oldPort, newPort, newState)) {
+          // Fail hard
+          throw FbossError("Invalid port configuration passed in ");
+        }
         auto bcmPort = portTable_->getBcmPort(newPort->getID());
         auto portGroup = bcmPort->getPortGroup();
-        if (!portGroup) {
-          // no port group for this port.
-          return;
-        } else if (!portGroup->validConfiguration(newState)) {
-          // Fail hard for now. We should add this to a pre-update
-          // check instead in the future.
-          throw FbossError("Invalid port configuration passed in");
+        if (portGroup) {
+          portGroup->reconfigureIfNeeded(newState);
         }
-        portGroup->reconfigureIfNeeded(newState);
       }
     });
+}
+
+bool BcmSwitch::isValidPortUpdate(const shared_ptr<Port>& oldPort,
+    const shared_ptr<Port>& newPort,
+    const shared_ptr<SwitchState>& newState) const {
+  auto enabled = oldPort->isDisabled() && !newPort->isDisabled();
+  auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
+
+  if (speedChanged || enabled) {
+    auto bcmPort = portTable_->getBcmPort(newPort->getID());
+    auto portGroup = bcmPort->getPortGroup();
+    LOG(INFO) << "Verifying port group config for : " << newPort->getID();
+    return !portGroup || portGroup->validConfiguration(newState);
+  }
+  return true;
+}
+
+bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
+  auto newState = delta.newState();
+  auto isValid = true;
+
+  forEachChanged(delta.getPortsDelta(),
+      [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+      if (isValid && !isValidPortUpdate(oldPort, newPort, newState)) {
+          isValid = false;
+      }
+  });
+  return isValid;
 }
 
 void BcmSwitch::changeDefaultVlan(VlanID id) {

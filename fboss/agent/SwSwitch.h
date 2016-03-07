@@ -302,6 +302,14 @@ class SwSwitch : public HwSwitch::Callback {
   }
 
   /*
+   * Check if the passed in state is valid.
+   * For now we just check for the new port speeds being valid.
+   * This could be extended as needed
+   */
+  bool isValidStateUpdate(const StateDelta& delta) const;
+
+
+  /*
    * Get the PortStats for the specified port.
    *
    * Note that this returns a thread-local object specific to the current

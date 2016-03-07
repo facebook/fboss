@@ -88,6 +88,10 @@ class MockHwSwitch : public HwSwitch {
     // TODO
   }
 
+  bool isValidStateUpdate(const StateDelta& delta) const override {
+    return true;
+  }
+
   MOCK_METHOD2(getAndClearNeighborHit, bool(RouterID, folly::IPAddress&));
 
   bool isPortUp(PortID port) const override {

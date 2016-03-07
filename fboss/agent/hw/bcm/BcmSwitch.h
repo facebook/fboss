@@ -229,6 +229,8 @@ class BcmSwitch : public HwSwitch {
   cfg::PortSpeed getPortSpeed(PortID port) const override;
   cfg::PortSpeed getMaxPortSpeed(PortID port) const override;
 
+  bool isValidStateUpdate(const StateDelta& delta) const override;
+
  private:
   enum Flags : uint32_t {
     RX_REGISTERED = 0x01,
@@ -413,6 +415,17 @@ class BcmSwitch : public HwSwitch {
    * destined to us get put in low pri cos queue. Fix that.
    */
    void configureCosQMappingForLocalInterfaces(const StateDelta& delta) const;
+
+   /*
+    * Check if state, speed update for this port port would
+    * be permissible in the hardware.
+    * Right now we check for valid speed and port state update
+    * given the constraints of lanes on the physical
+    * port group/QSFP. More checks can be added as needed.
+    */
+  bool isValidPortUpdate(const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort,
+    const std::shared_ptr<SwitchState>& newState) const;
 
   /*
    * Member variables

@@ -117,6 +117,11 @@ class HwSwitch {
    * This is called immediately after updating the state variable in SwSwitch.
    */
   virtual void stateChanged(const StateDelta& delta) = 0;
+  /*
+   * Check if a state update would be permissible on the HW,
+   * without making any actual changes on the HW.
+   */
+  virtual bool isValidStateUpdate(const StateDelta& delta) const = 0;
 
   /*
    * Allocate a new TxPacket.

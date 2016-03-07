@@ -1044,4 +1044,9 @@ void SwSwitch::applyConfig(const std::string& reason) {
   return;
 }
 
+bool SwSwitch::isValidStateUpdate(
+    const StateDelta& delta) const {
+  return hw_->isValidStateUpdate(delta);
+}
+
 }} // facebook::fboss

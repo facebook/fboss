@@ -85,6 +85,10 @@ class SimSwitch : public HwSwitch {
     return true;
   }
 
+  bool isValidStateUpdate(const StateDelta& delta) const override {
+    return true;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   SimSwitch(SimSwitch const &) = delete;
