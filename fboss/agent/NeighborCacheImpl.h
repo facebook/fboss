@@ -19,6 +19,8 @@
 #include <folly/MacAddress.h>
 #include <folly/IPAddress.h>
 #include <folly/Random.h>
+#include <list>
+#include <string>
 
 namespace facebook { namespace fboss {
 
@@ -52,10 +54,12 @@ class NeighborCacheImpl {
   NeighborCacheImpl(NeighborCache<NTable>* cache,
                     SwSwitch* sw,
                     VlanID vlanID,
+                    std::string vlanName,
                     InterfaceID intfID)
       : cache_(cache),
         sw_(sw),
         vlanID_(vlanID),
+        vlanName_(vlanName),
         intfID_(intfID) {}
 
   // Methods useful for subclasses
@@ -88,12 +92,23 @@ class NeighborCacheImpl {
     intfID_ = intfID;
   }
 
+  void setVlanName(const std::string& vlanName) {
+    vlanName_ = vlanName;
+  }
+
   VlanID getVlanID() const {
     return vlanID_;
   }
 
+  std::string getVlanName() const {
+    return vlanName_;
+  }
+
   // Has the entry corresponding to ip has been hit in hw
   bool isHit(AddressType ip);
+
+  template <typename NeighborEntryThrift>
+  std::list<NeighborEntryThrift> getCacheData() const;
 
  private:
   // These are used to program entries into the SwitchState
@@ -124,6 +139,7 @@ class NeighborCacheImpl {
   NeighborCache<NTable>* cache_;
   SwSwitch* sw_;
   VlanID vlanID_;
+  std::string vlanName_;
   InterfaceID intfID_;
 
   // Map of all entries

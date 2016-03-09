@@ -839,8 +839,14 @@ TEST(ArpTest, FlushEntry) {
   std::vector<ArpEntryThrift> arpTable;
   thriftHandler.getArpTable(arpTable);
   ASSERT_EQ(arpTable.size(), 4);
-  // The results should always be sorted first by VLAN and then by IP,
-  // so we can check the exact ordering here.
+  // Sort the results so we can check the exact ordering here.
+  std::sort(
+    arpTable.begin(),
+    arpTable.end(),
+    [](const ArpEntryThrift& a, const ArpEntryThrift& b) {
+      return a.port < b.port;
+    }
+  );
   auto checkEntry = [&](int idx, StringPiece ip, StringPiece mac, int port) {
     SCOPED_TRACE(folly::to<string>("index ", idx));
     EXPECT_EQ(arpTable[idx].vlanID, 1);
@@ -865,6 +871,14 @@ TEST(ArpTest, FlushEntry) {
   arpTable.clear();
   thriftHandler.getArpTable(arpTable);
   ASSERT_EQ(arpTable.size(), 3);
+  // Sort the results so we can check the exact ordering here.
+  std::sort(
+    arpTable.begin(),
+    arpTable.end(),
+    [](const ArpEntryThrift& a, const ArpEntryThrift& b) {
+      return a.port < b.port;
+    }
+  );
   checkEntry(0, "10.0.0.7", "02:10:20:30:40:07", 1);
   checkEntry(1, "10.0.0.15", "02:10:20:30:40:15", 3);
   checkEntry(2, "10.0.0.22", "02:10:20:30:40:22", 4);

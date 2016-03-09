@@ -22,6 +22,7 @@
 #include <folly/IPAddress.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/futures/Future.h>
+#include <list>
 
 namespace facebook { namespace fboss {
 
@@ -372,6 +373,18 @@ void NeighborCacheImpl<NTable>::portDown(PortID port) {
     // to reachable is how we currently do this.
     setPendingEntry(item.second->getIP(), true);
   }
+}
+
+template <typename NTable>
+template <typename NeighborEntryThrift>
+std::list<NeighborEntryThrift> NeighborCacheImpl<NTable>::getCacheData() const {
+  std::list<NeighborEntryThrift> thriftEntries;
+  for (const auto& item : entries_) {
+    NeighborEntryThrift thriftEntry;
+    item.second->populateThriftEntry(thriftEntry);
+    thriftEntries.push_back(thriftEntry);
+  }
+  return thriftEntries;
 }
 
 }} // facebook::fboss

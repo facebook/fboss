@@ -383,36 +383,12 @@ void ThriftHandler::getInterfaceDetail(InterfaceDetail& interfaceDetail,
 
 void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
   ensureConfigured();
-  shared_ptr<SwitchState> state = sw_->getState();
-  for (const auto& vlan : *state->getVlans()) {
-    const auto& ndpTab = vlan->getNdpTable();
-    for (const auto& entry : ndpTab->getAllNodes()) {
-      NdpEntryThrift temp;
-      temp.ip = toBinaryAddress(entry.second->getIP());
-      temp.mac = entry.second->getMac().toString();
-      temp.port = entry.second->getPort();
-      temp.vlanName = vlan->getName();
-      temp.vlanID = vlan->getID();
-      ndpTable.push_back(temp);
-    }
-  }
+  sw_->getNeighborUpdater()->getNdpCacheData(ndpTable);
 }
 
 void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
   ensureConfigured();
-  shared_ptr<SwitchState> state = sw_->getState();
-  for (const auto& vlan : *state->getVlans()) {
-    const auto& arpTab = vlan->getArpTable();
-    for (const auto& entry : arpTab->getAllNodes()) {
-      ArpEntryThrift temp;
-      temp.ip = toBinaryAddress(entry.second->getIP());
-      temp.mac = folly::to<string>(entry.second->getMac());
-      temp.port = entry.second->getPort();
-      temp.vlanName = vlan->getName();
-      temp.vlanID = vlan->getID();
-      arpTable.push_back(temp);
-    }
-  }
+  sw_->getNeighborUpdater()->getArpCacheData(arpTable);
 }
 
 void ThriftHandler::getL2Table(std::vector<L2EntryThrift>& l2Table) {

@@ -18,8 +18,9 @@
 namespace facebook { namespace fboss {
 
 NdpCache::NdpCache(SwSwitch* sw, const SwitchState* state,
-                   VlanID vlanID, InterfaceID intfID)
-    : NeighborCache<NdpTable>(sw, vlanID, intfID, state->getNdpTimeout(),
+                   VlanID vlanID, std::string vlanName, InterfaceID intfID)
+    : NeighborCache<NdpTable>(sw, vlanID, vlanName, intfID,
+                              state->getNdpTimeout(),
                               state->getMaxNeighborProbes(),
                               state->getStaleEntryInterval()) {}
 
@@ -55,6 +56,10 @@ inline void NdpCache::probeFor(folly::IPAddressV6 ip) const {
     return;
   }
   IPv6Handler::sendNeighborSolicitation(getSw(), ip, vlan);
+}
+
+std::list<NdpEntryThrift> NdpCache::getNdpCacheData() {
+  return getCacheData<NdpEntryThrift>();
 }
 
 }} // facebook::fboss

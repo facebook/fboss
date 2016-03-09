@@ -18,6 +18,8 @@
 #include <folly/MacAddress.h>
 #include <folly/IPAddress.h>
 #include <folly/io/async/EventBase.h>
+#include <list>
+#include <string>
 
 namespace facebook { namespace fboss {
 
@@ -54,15 +56,26 @@ class NeighborCache {
     impl_->setIntfID(intfID);
   }
 
+  void setVlanName(const std::string& vlanName) {
+    impl_->setVlanName(vlanName);
+  }
+
   void portDown(PortID port) {
     std::lock_guard<std::mutex> g(cacheLock_);
     impl_->portDown(port);
+  }
+
+  template <typename NeighborEntryThrift>
+  std::list<NeighborEntryThrift> getCacheData() {
+    std::lock_guard<std::mutex> g(cacheLock_);
+    return impl_->getCacheData<NeighborEntryThrift>();
   }
 
  protected:
   // protected constructor since this is only meant to be inherited from
   NeighborCache(SwSwitch* sw,
                 VlanID vlanID,
+                std::string vlanName,
                 InterfaceID intfID,
                 std::chrono::seconds timeout,
                 uint32_t maxNeighborProbes,
@@ -71,8 +84,8 @@ class NeighborCache {
         timeout_(timeout),
         maxNeighborProbes_(maxNeighborProbes),
         staleEntryInterval_(staleEntryInterval),
-        impl_(folly::make_unique<NeighborCacheImpl<NTable>>(this, sw,
-                                                            vlanID, intfID)) {}
+        impl_(folly::make_unique<NeighborCacheImpl<NTable>>(
+            this, sw, vlanID, vlanName, intfID)) {}
 
   // Methods useful for subclasses
   void setPendingEntry(AddressType ip) {
@@ -111,6 +124,10 @@ class NeighborCache {
 
   VlanID getVlanID() const {
     return impl_->getVlanID();
+  }
+
+  std::string getVlanName() const {
+    return impl_->getVlanName();
   }
 
   std::chrono::seconds getBaseTimeout() const {

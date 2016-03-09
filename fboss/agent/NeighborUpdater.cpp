@@ -25,7 +25,10 @@
 #include "fboss/agent/NdpCache.h"
 
 #include <folly/futures/Future.h>
+#include <list>
 #include <mutex>
+#include <string>
+#include <vector>
 #include <boost/container/flat_map.hpp>
 
 using std::chrono::seconds;
@@ -154,9 +157,38 @@ shared_ptr<ArpCache> NeighborUpdater::getArpCacheFor(VlanID vlan) {
   std::lock_guard<std::mutex> g(cachesMutex_);
   return getArpCacheInternal(vlan);
 }
+
 shared_ptr<NdpCache> NeighborUpdater::getNdpCacheFor(VlanID vlan) {
   std::lock_guard<std::mutex> g(cachesMutex_);
   return getNdpCacheInternal(vlan);
+}
+
+void NeighborUpdater::getArpCacheData(std::vector<ArpEntryThrift>& arpTable) {
+  std::list<ArpEntryThrift> entries;
+  {
+    std::lock_guard<std::mutex> g(cachesMutex_);
+    for (auto it = caches_.begin(); it != caches_.end(); ++it) {
+      entries.splice(entries.end(), it->second->arpCache->getArpCacheData());
+    }
+  }
+  arpTable.reserve(entries.size());
+  arpTable.insert(arpTable.begin(),
+                  std::make_move_iterator(std::begin(entries)),
+                  std::make_move_iterator(std::end(entries)));
+}
+
+void NeighborUpdater::getNdpCacheData(std::vector<NdpEntryThrift>& ndpTable) {
+  std::list<NdpEntryThrift> entries;
+  {
+    std::lock_guard<std::mutex> g(cachesMutex_);
+    for (auto it = caches_.begin(); it != caches_.end(); ++it) {
+      entries.splice(entries.end(), it->second->ndpCache->getNdpCacheData());
+    }
+  }
+  ndpTable.reserve(entries.size());
+  ndpTable.insert(ndpTable.begin(),
+                  std::make_move_iterator(std::begin(entries)),
+                  std::make_move_iterator(std::end(entries)));
 }
 
 shared_ptr<ArpCache> NeighborUpdater::getArpCacheInternal(VlanID vlan) {
@@ -322,9 +354,11 @@ void NeighborUpdater::vlanAdded(const SwitchState* state, const Vlan* vlan) {
   CHECK(sw_->getUpdateEVB()->inRunningEventBaseThread());
 
   auto vlanID = vlan->getID();
+  auto vlanName = vlan->getName();
 
   auto intfID = vlan->getInterfaceID();
-  auto caches = std::make_shared<NeighborCaches>(sw_, state, vlanID, intfID);
+  auto caches
+      = std::make_shared<NeighborCaches>(sw_, state, vlanID, vlanName, intfID);
 
   // We need to populate the caches from the SwitchState when a vlan is added
   // After this, we no longer process Arp or Ndp deltas for this vlan.
@@ -358,8 +392,9 @@ void NeighborUpdater::vlanDeleted(const Vlan* vlan) {
 }
 
 void NeighborUpdater::vlanChanged(const Vlan* oldVlan, const Vlan* newVlan) {
-  if (newVlan->getInterfaceID() == oldVlan->getInterfaceID()) {
-    // For now we only care about changes to the interfaceID
+  if (newVlan->getInterfaceID() == oldVlan->getInterfaceID()
+      && newVlan->getName().compare(oldVlan->getName()) == 0) {
+    // For now we only care about changes to the interfaceID and VlanName
     return;
   }
 
@@ -371,6 +406,9 @@ void NeighborUpdater::vlanChanged(const Vlan* oldVlan, const Vlan* newVlan) {
       auto intfID = newVlan->getInterfaceID();
       iter->second->arpCache->setIntfID(intfID);
       iter->second->ndpCache->setIntfID(intfID);
+      auto vlanName = newVlan->getName();
+      iter->second->arpCache->setVlanName(vlanName);
+      iter->second->ndpCache->setVlanName(vlanName);
     } else {
       // TODO(aeckert): May want to fatal here when a cache doesn't exist for a
       // specific vlan. Need to make sure that caches are correctly created for

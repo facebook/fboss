@@ -15,6 +15,8 @@
 
 #include <folly/MacAddress.h>
 #include <folly/IPAddressV6.h>
+#include <list>
+#include <string>
 
 namespace facebook { namespace fboss {
 
@@ -23,7 +25,7 @@ enum ICMPv6Type : uint8_t;
 class NdpCache : public NeighborCache<NdpTable> {
  public:
   NdpCache(SwSwitch* sw, const SwitchState* state,
-           VlanID vlanID, InterfaceID intfID);
+           VlanID vlanID, std::string vlanName, InterfaceID intfID);
 
   void sentNeighborSolicitation(folly::IPAddressV6 ip);
   void receivedNdpMine(folly::IPAddressV6 ip,
@@ -36,6 +38,8 @@ class NdpCache : public NeighborCache<NdpTable> {
                           ICMPv6Type type);
 
   void probeFor(folly::IPAddressV6 ip) const override;
+
+  std::list<NdpEntryThrift> getNdpCacheData();
 
 };
 

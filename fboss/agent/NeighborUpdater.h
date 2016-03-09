@@ -14,7 +14,9 @@
 #include "fboss/agent/types.h"
 #include "fboss/agent/ArpCache.h"
 #include "fboss/agent/NdpCache.h"
+#include <list>
 #include <mutex>
+#include <string>
 
 namespace facebook { namespace fboss {
 
@@ -79,6 +81,10 @@ class NeighborUpdater : public AutoRegisterStateObserver {
 
   void portDown(PortID port);
 
+  void getArpCacheData(std::vector<ArpEntryThrift>& arpTable);
+
+  void getNdpCacheData(std::vector<NdpEntryThrift>& ndpTable);
+
  private:
   void vlanAdded(const SwitchState* state, const Vlan* vlan);
   void vlanDeleted(const Vlan* vlan);
@@ -105,9 +111,11 @@ class NeighborUpdater : public AutoRegisterStateObserver {
     std::shared_ptr<NdpCache> ndpCache;
 
     NeighborCaches(SwSwitch* sw, const SwitchState* state,
-                   VlanID vlanID, InterfaceID intfID) :
-        arpCache(std::make_shared<ArpCache>(sw, state, vlanID, intfID)),
-        ndpCache(std::make_shared<NdpCache>(sw, state, vlanID, intfID)) {}
+                   VlanID vlanID, std::string vlanName, InterfaceID intfID) :
+        arpCache(
+            std::make_shared<ArpCache>(sw, state, vlanID, vlanName, intfID)),
+        ndpCache(
+            std::make_shared<NdpCache>(sw, state, vlanID, vlanName, intfID)) {}
   };
 
   /**

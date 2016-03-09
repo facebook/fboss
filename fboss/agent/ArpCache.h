@@ -15,6 +15,8 @@
 
 #include <folly/MacAddress.h>
 #include <folly/IPAddressV4.h>
+#include <list>
+#include <string>
 
 namespace facebook { namespace fboss {
 
@@ -23,7 +25,7 @@ enum ArpOpCode : uint16_t;
 class ArpCache : public NeighborCache<ArpTable> {
  public:
   ArpCache(SwSwitch* sw, const SwitchState* state,
-           VlanID vlanID, InterfaceID intfID);
+           VlanID vlanID, std::string vlanName, InterfaceID intfID);
 
   void sentArpRequest(folly::IPAddressV4 ip);
   void receivedArpMine(folly::IPAddressV4 ip,
@@ -36,6 +38,8 @@ class ArpCache : public NeighborCache<ArpTable> {
                           ArpOpCode op);
 
   void probeFor(folly::IPAddressV4 ip) const override;
+
+  std::list<ArpEntryThrift> getArpCacheData();
 
 };
 

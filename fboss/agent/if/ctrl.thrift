@@ -30,6 +30,8 @@ struct ArpEntryThrift {
   3: string vlanName,
   4: Address.BinaryAddress ip,
   5: i32 vlanID,
+  6: string state,
+  7: i32 ttl,
 }
 
 struct L2EntryThrift {
@@ -123,6 +125,8 @@ struct NdpEntryThrift {
   3: i32 port,
   4: string vlanName,
   5: i32 vlanID,
+  6: string state,
+  7: i32 ttl,
 }
 
 enum BootType {

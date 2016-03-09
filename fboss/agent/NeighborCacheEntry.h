@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/types.h"
@@ -194,6 +195,17 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
       state_ == NeighborEntryState::INCOMPLETE;
   }
 
+  template <typename NeighborEntryThrift>
+  void populateThriftEntry(NeighborEntryThrift& entry) const {
+    entry.ip = facebook::network::toBinaryAddress(getIP());
+    entry.mac = getMac().toString();
+    entry.port = getPortID();
+    entry.vlanName = cache_->getVlanName();
+    entry.vlanID = cache_->getVlanID();
+    entry.state = getStateName();
+    entry.ttl = getTtl();
+  }
+
  private:
   /*
    * We tell the cache that this entry needs to be processed. The cache is
@@ -211,9 +223,12 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
    */
   void scheduleNextUpdate() {
     CHECK(evb_->inRunningEventBaseThread());
+    std::chrono::milliseconds lifetime;
     switch (state_) {
       case NeighborEntryState::REACHABLE:
-        scheduleTimeout(calculateLifetime());
+        lifetime = calculateLifetime();
+        expireTime_ = std::chrono::steady_clock::now() + lifetime;
+        scheduleTimeout(lifetime);
         break;
       case NeighborEntryState::STALE:
         scheduleTimeout(std::chrono::seconds(cache_->getStaleEntryInterval()));
@@ -329,7 +344,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
     }
   }
 
-  std::string getStateName(NeighborEntryState state) {
+  std::string getStateName(NeighborEntryState state) const {
     switch(state) {
       case NeighborEntryState::REACHABLE:
         return "REACHABLE";
@@ -350,8 +365,18 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
     }
   }
 
-  std::string getStateName() {
+  std::string getStateName() const {
     return getStateName(state_);
+  }
+
+  uint32_t getTtl() const {
+    if (state_ == NeighborEntryState::REACHABLE) {
+      std::chrono::milliseconds ttl =
+          std::chrono::duration_cast<std::chrono::milliseconds>(
+              expireTime_ - std::chrono::steady_clock::now());
+      return ttl.count();
+    }
+    return 0;
   }
 
   // Fields needed to program the SwitchState
@@ -362,6 +387,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
   folly::EventBase* evb_;
   NeighborEntryState state_{NeighborEntryState::UNINITIALIZED};
   uint8_t probesLeft_{0};
+  std::chrono::time_point<std::chrono::steady_clock> expireTime_;
 };
 
 }} // facebook::fboss

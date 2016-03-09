@@ -18,8 +18,9 @@
 namespace facebook { namespace fboss {
 
 ArpCache::ArpCache(SwSwitch* sw, const SwitchState* state,
-                   VlanID vlanID, InterfaceID intfID)
-    : NeighborCache<ArpTable>(sw, vlanID, intfID, state->getArpTimeout(),
+                   VlanID vlanID, std::string vlanName, InterfaceID intfID)
+    : NeighborCache<ArpTable>(sw, vlanID, vlanName, intfID,
+                              state->getArpTimeout(),
                               state->getMaxNeighborProbes(),
                               state->getStaleEntryInterval()) {}
 
@@ -52,6 +53,10 @@ inline void ArpCache::probeFor(folly::IPAddressV4 ip) const {
     return;
   }
   ArpHandler::sendArpRequest(getSw(), vlan, ip);
+}
+
+std::list<ArpEntryThrift> ArpCache::getArpCacheData() {
+  return getCacheData<ArpEntryThrift>();
 }
 
 }} // facebook::fboss

@@ -679,6 +679,14 @@ TEST(NDP, FlushEntry) {
   // Check there are 2 entries
   thriftHandler.getNdpTable(ndpTable);
   ASSERT_EQ(ndpTable.size(), 2);
+  // Sort the results so we can check the exact ordering here.
+  std::sort(
+    ndpTable.begin(),
+    ndpTable.end(),
+    [](const NdpEntryThrift& a, const NdpEntryThrift& b) {
+      return a.mac < b.mac;
+    }
+  );
   checkEntry(0, "2401:db00:2110:3004::b", "02:05:73:f9:46:fb", 1);
   checkEntry(1, "2401:db00:2110:3004::c", "02:05:73:f9:46:fc", 1);
 
