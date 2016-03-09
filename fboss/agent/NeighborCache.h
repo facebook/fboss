@@ -68,7 +68,7 @@ class NeighborCache {
   template <typename NeighborEntryThrift>
   std::list<NeighborEntryThrift> getCacheData() {
     std::lock_guard<std::mutex> g(cacheLock_);
-    return impl_->getCacheData<NeighborEntryThrift>();
+    return impl_->template getCacheData<NeighborEntryThrift>();
   }
 
  protected:
