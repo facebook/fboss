@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #
 #  Copyright (c) 2004-present, Facebook, Inc.
 #  All rights reserved.
@@ -6,8 +7,6 @@
 #  LICENSE file in the root directory of this source tree. An additional grant
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
-# @lint-avoid-pyflakes2
-# @lint-avoid-python-3-compatibility-imports
 
 from fboss.cli import utils
 from fboss.thrift_clients import FbossAgentClient
@@ -41,3 +40,15 @@ class NeighborFlushCmd(FbossCmd):
         client = self._create_ctrl_client()
         num_entries = client.flushNeighborEntry(bin_ip, vlan_id)
         print('Flushed {} entries'.format(num_entries))
+
+def print_neighbor_table(resp, name, width):
+    if not resp:
+        print("No {} Entries Found".format(name))
+        return
+
+    tmpl = "{:" + str(width) + "} {:18} {:>4}  {}"
+    print(tmpl.format("IP Address", "MAC Address", "Port", "VLAN"))
+    for entry in resp:
+        ip = utils.ip_ntop(entry.ip.addr)
+        vlan_field = '{} ({})'.format(entry.vlanName, entry.vlanID)
+        print(tmpl.format(ip, entry.mac, entry.port, vlan_field))

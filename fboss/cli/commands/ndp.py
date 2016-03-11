@@ -10,18 +10,10 @@
 
 from fboss.cli.commands import commands as cmds
 
-
-class L2TableCmd(cmds.FbossCmd):
+class NdpTableCmd(cmds.FbossCmd):
     def run(self):
         self._client = self._create_ctrl_client()
-        resp = self._client.getL2Table()
-
-        if not resp:
-            print("No L2 Entries Found")
-            return
-        resp = sorted(resp, key=lambda x: (x.port, x.vlanID, x.mac))
-        tmpl = "{:18} {:>4}  {}"
-
-        print(tmpl.format("MAC Address", "Port", "VLAN"))
-        for entry in resp:
-            print(tmpl.format(entry.mac, entry.port, entry.vlanID))
+        resp = self._client.getNdpTable()
+        name = 'NDP'
+        width = 40
+        cmds.print_neighbor_table(resp, name, width)

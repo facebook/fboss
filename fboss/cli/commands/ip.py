@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #
 #  Copyright (c) 2004-present, Facebook, Inc.
 #  All rights reserved.
@@ -6,8 +7,6 @@
 #  LICENSE file in the root directory of this source tree. An additional grant
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
-# @lint-avoid-pyflakes2
-# @lint-avoid-python-3-compatibility-imports
 
 from fboss.cli import utils
 from fboss.cli.commands import commands as cmds
