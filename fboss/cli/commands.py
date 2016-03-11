@@ -2,19 +2,17 @@
 # @lint-avoid-python-3-compatibility-imports
 
 import binascii
+import collections
 import json
 import string
 import time
 
 
-from collections import defaultdict
 # TODO: Are these thrift structs open-sourced?
 from facebook.network.Address.ttypes import Address, AddressType
 # TODO: Can we use click to get the colored output here?
 # TODO: This is a duplicate of neteng/fboss/tools/cli/utils
 from fboss.cli import utils
-# TODO: move code into this module
-from fboss.cli import cli_common
 from fboss.thrift_clients import FbossAgentClient
 from neteng.fboss.optic import ttypes as optic_ttypes
 from neteng.fboss.ttypes import FbossBaseError
@@ -279,24 +277,169 @@ class PortDetailsCmd(FbossCmd):
     def run(self, ports):
         try:
             self._client = self._create_ctrl_client()
-            if not ports:
-                self.all_port_details(ports)
+            if ports:
+                self._port_details(ports)
             else:
-                for port in ports:
-                    cli_common.print_port_details(self._client, port)
+                self._all_port_details()
         except FbossBaseError as e:
             raise SystemExit('Fboss Error: ' + e)
         except Exception as e:
             raise Exception('Error: ' + e)
 
-    def all_port_details(self, ports):
+    def _port_details(self, ports):
+        ''' Print details only for ports given
+
+            :var ports list: of ports to print details for '''
+
+        for port in ports:
+            print('\nDetails for {}'.format(port))
+            self._print_port_details(port)
+
+    def _all_port_details(self):
+        ''' Print all details for every port on the switch '''
+
         resp = self._client.getAllPortInfo()
         if not resp:
             print("No Ports Found")
             return
         for port, entry in resp.items():
             if entry.operState == 1:
-                cli_common.print_port_details(self._client, port, entry)
+                self._print_port_details(port, entry)
+
+    def _convert_bps(self, bps):
+        ''' convert bps to human readable form
+
+            :var bps int: port speed in bps
+            :return bps_per_unit float: bps divided by factor of the unit found
+            :return suffix string: human readable format
+        '''
+
+        bps_per_unit = suffix = None
+        value = bps
+        # expand to 'T' and beyond by adding in the proper unit
+        for factor, unit in [(1, ''), (3, 'K'), (6, 'M'), (9, 'G')]:
+            if value < 1000:
+                bps_per_unit = bps / 10 ** factor
+                suffix = '{}bps'.format(unit)
+                break
+            value /= 1000
+
+        assert bps_per_unit and suffix, (
+                'Unable to convert bps to human readable format')
+
+        return bps_per_unit, suffix
+
+    def _get_port_counters(self, counters, port_id):
+        ''' get 1min, 5min and 1hr port counters
+
+            :var counters list: of counter names to get from switch
+            :var port_id int: port id
+            :return port_counters
+        '''
+
+        full_counter_list = []
+        for name in counters:
+            for suffix in ('60', '600', '3600'):
+                full_counter_list.append('port{}.{}.{}'.format(
+                                            port_id, name, suffix))
+
+        return self._client.getSelectedCounters(full_counter_list)
+
+    def _bps(self, interval, bytes_per_minute):
+        value, suffix = self._convert_bps((bytes_per_minute * 8) / interval)
+        return None, '{:.02f}{}'.format(value, suffix)
+
+    def _error_ctr(self, interval, value):
+        color = utils.COLOR_RED if value > 0 else utils.COLOR_GREEN
+        return color, value
+
+    def _fmt_args(self, values, name, transform):
+        ''' format argments for printing
+
+            :var values zip obj: { interval, value_at_interval }
+            :var name string: Counter Name
+            :var transform func_obj: function to be used as transform
+            :return list: list of the argument values
+        '''
+        fmt_args = [name]
+        for interval, value in values:
+            color, value_str = transform(interval, value)
+            color_start = color_end = ''
+            if color:
+                color_start = color
+                color_end = utils.COLOR_RESET
+            fmt_args.extend([color_start, value_str, color_end])
+
+        return fmt_args
+
+    def _print_port_counters(self, port_id):
+        ''' Display port counters with errors
+
+            :var port_id int: port id
+        '''
+
+        counters = collections.OrderedDict()
+        counters['in_bytes.sum'] = {'name': 'Ingress', 'transform': self._bps}
+        counters['out_bytes.sum'] = {'name': 'Egress', 'transform': self._bps}
+        counters['in_errors.sum'] = {
+                        'name': 'In Errors', 'transform': self._error_ctr}
+        counters['in_discards.sum'] = {
+                        'name': 'In Discards', 'transform': self._error_ctr}
+        counters['out_errors.sum'] = {
+                        'name': 'Out Errors', 'transform': self._error_ctr}
+        counters['out_discards.sum'] = {
+                        'name': 'Out Discards', 'transform': self._error_ctr}
+
+        port_counters = self._get_port_counters(counters.keys(), port_id)
+
+        # extra arguments are for the ASCII color codes
+        fmt = '    {:<20} {}{:>12}{} {}{:>14}{} {}{:>12}{}'
+        print(fmt.format('Time Interval:',
+                         '', '1 minute', '',
+                         '', '10 minutes', '',
+                         '', '1 hour', ''))
+
+        for counter, attrs in counters.items():
+            # get all counter values (1min, 5min and 1hr) for 'counter'
+            # using tuples to avoid muatation of the data
+            intervals = (60, 600, 3600)
+            counter_values = tuple(port_counters['port{}.{}.{}'.format(
+                        port_id, counter, interval)] for interval in intervals)
+            values = zip(intervals, counter_values)
+            data = self._fmt_args(values, attrs['name'], attrs['transform'])
+            print(fmt.format(*data))
+
+    def _print_port_details(self, port_id, port_info=None):
+        ''' Print out port details
+
+            :var port_id int: port identifier
+            :var port_info PortInfoThrift: port information
+        '''
+
+        if not port_info:
+            port_info = self._client.getPortInfo(port_id)
+
+        admin_status = "ENABLED" if port_info.adminState else "DISABLED"
+        oper_status = "UP" if port_info.operState else "DOWN"
+
+        speed, suffix = self._convert_bps(port_info.speedMbps * (10 ** 6))
+        vlans = ' '.join(str(vlan) for vlan in port_info.vlans)
+
+        fmt = '{:.<50}{}'
+        lines = [
+            ('Interface', port_info.name.strip()),
+            ('Port ID', str(port_info.portId)),
+            ('Admin State', admin_status),
+            ('Link State', oper_status),
+            ('Speed', '{:.0f} {}'.format(speed, suffix)),
+            ('VLANs', vlans)
+        ]
+
+        print()
+        print('\n'.join(fmt.format(*l) for l in lines))
+        print('Description'.ljust(20, '.') + port_info.description)
+
+        self._print_port_counters(port_id)
 
 
 class PortFlapCmd(FbossCmd):
@@ -392,7 +535,7 @@ class PortStatusDetailCmd(object):
         self._info_resp = None
         self._status_resp = self._client.getPortStatus(ports)
         # map of { transceiver_id -> { channel_id -> port } }
-        self._t_to_p = defaultdict(dict)
+        self._t_to_p = collections.defaultdict(dict)
         self._transceiver = []
         self._verbose = verbose
 
