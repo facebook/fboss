@@ -1,4 +1,11 @@
-# TODO: Opensource jargon here
+#
+#  Copyright (c) 2004-present, Facebook, Inc.
+#  All rights reserved.
+#
+#  This source code is licensed under the BSD-style license found in the
+#  LICENSE file in the root directory of this source tree. An additional grant
+#  of patent rights can be found in the PATENTS file in the same directory.
+#
 # @lint-avoid-python-3-compatibility-imports
 
 import binascii
@@ -10,8 +17,6 @@ import time
 
 # TODO: Are these thrift structs open-sourced?
 from facebook.network.Address.ttypes import Address, AddressType
-# TODO: Can we use click to get the colored output here?
-# TODO: This is a duplicate of neteng/fboss/tools/cli/utils
 from fboss.cli import utils
 from fboss.thrift_clients import FbossAgentClient
 from neteng.fboss.optic import ttypes as optic_ttypes
@@ -576,6 +581,12 @@ class PortStatusDetailCmd(object):
         if tid not in self._transceiver:
             self._transceiver.append(tid)
 
+    def _mw_to_dbm(self, mw):
+        if mw == 0:
+            return 0.0
+        else:
+            return (10 * log10(mw))
+
     def _print_port_details_sfpdom(self, port, dom):
         status = self._status_resp[port]
         print("Port %d: %s" % (port, dom.name))
@@ -606,9 +617,9 @@ class PortStatusDetailCmd(object):
         print("      {:<15} {:0.4}".format("Vcc", dom.value.vcc))
         print("      {:<15} {:0.4}".format("Tx Bias", dom.value.txBias))
         print("      {:<15} {:0.4}".format("Tx Power(dBm)",
-                utils.mw_to_dbm(dom.value.txPwr)))
+                self._mw_to_dbm(dom.value.txPwr)))
         print("      {:<15} {:0.4}".format("Rx Power(dBm)",
-                utils.mw_to_dbm(dom.value.rxPwr)))
+                self._mw_to_dbm(dom.value.rxPwr)))
 
         print("    {:<14}   {:>15} {:>15} {:>15} {:>15}".format(
                 'Flags:',
@@ -627,16 +638,16 @@ class PortStatusDetailCmd(object):
                 dom.flags.txBiasWarnHigh, dom.flags.txBiasAlarmHigh))
         print("      {:<14} {:>15} {:>15} {:>15} {:>15}".format(
                 'Tx Power(dBm):',
-                utils.mw_to_dbm(dom.flags.txPwrAlarmLow),
-                utils.mw_to_dbm(dom.flags.txPwrWarnLow),
-                utils.mw_to_dbm(dom.flags.txPwrWarnHigh),
-                utils.mw_to_dbm(dom.flags.txPwrAlarmHigh)))
+                self._mw_to_dbm(dom.flags.txPwrAlarmLow),
+                self._mw_to_dbm(dom.flags.txPwrWarnLow),
+                self._mw_to_dbm(dom.flags.txPwrWarnHigh),
+                self._mw_to_dbm(dom.flags.txPwrAlarmHigh)))
         print("      {:<14} {:>15} {:>15} {:>15} {:>15}".format(
                 'Rx Power(dBm):',
-                utils.mw_to_dbm(dom.flags.rxPwrAlarmLow),
-                utils.mw_to_dbm(dom.flags.rxPwrWarnLow),
-                utils.mw_to_dbm(dom.flags.rxPwrWarnHigh),
-                utils.mw_to_dbm(dom.flags.rxPwrAlarmHigh)))
+                self._mw_to_dbm(dom.flags.rxPwrAlarmLow),
+                self._mw_to_dbm(dom.flags.rxPwrWarnLow),
+                self._mw_to_dbm(dom.flags.rxPwrWarnHigh),
+                self._mw_to_dbm(dom.flags.rxPwrAlarmHigh)))
 
         thresh = dom.threshValue
         print("  {:<16}   {:>15} {:>15} {:>15} {:>15}".format(
@@ -656,16 +667,16 @@ class PortStatusDetailCmd(object):
                 thresh.txBiasWarnHigh, thresh.txBiasAlarmHigh))
         print("      {:<14} {:>15.4} {:>15.4} {:>15.4} {:>15.4}".format(
                 'Tx Power(dBm):',
-                utils.mw_to_dbm(thresh.txPwrAlarmLow),
-                utils.mw_to_dbm(thresh.txPwrWarnLow),
-                utils.mw_to_dbm(thresh.txPwrWarnHigh),
-                utils.mw_to_dbm(thresh.txPwrAlarmHigh)))
+                self._mw_to_dbm(thresh.txPwrAlarmLow),
+                self._mw_to_dbm(thresh.txPwrWarnLow),
+                self._mw_to_dbm(thresh.txPwrWarnHigh),
+                self._mw_to_dbm(thresh.txPwrAlarmHigh)))
         print("      {:<14} {:>15.4} {:>15.4} {:>15.4} {:>15.4}".format(
                 'Rx Power(dBm):',
-                utils.mw_to_dbm(thresh.rxPwrAlarmLow),
-                utils.mw_to_dbm(thresh.rxPwrWarnLow),
-                utils.mw_to_dbm(thresh.rxPwrWarnHigh),
-                utils.mw_to_dbm(thresh.rxPwrAlarmHigh)))
+                self._mw_to_dbm(thresh.rxPwrAlarmLow),
+                self._mw_to_dbm(thresh.rxPwrWarnLow),
+                self._mw_to_dbm(thresh.rxPwrWarnHigh),
+                self._mw_to_dbm(thresh.rxPwrAlarmHigh)))
 
     def _list_ports_detail_sfpdom(self):
         ''' Print ports detail based on Sfp DOM info '''
@@ -752,16 +763,16 @@ class PortStatusDetailCmd(object):
         if thresh.txPwr:
             print("    {:<14} {:>10.4} {:>15.4} {:>15.4} {:>10.4}".format(
                     'Tx Power(dBm):',
-                    utils.mw_to_dbm(thresh.txPwr.alarm.low),
-                    utils.mw_to_dbm(thresh.txPwr.warn.low),
-                    utils.mw_to_dbm(thresh.txPwr.warn.high),
-                    utils.mw_to_dbm(thresh.txPwr.alarm.high)))
+                    self._mw_to_dbm(thresh.txPwr.alarm.low),
+                    self._mw_to_dbm(thresh.txPwr.warn.low),
+                    self._mw_to_dbm(thresh.txPwr.warn.high),
+                    self._mw_to_dbm(thresh.txPwr.alarm.high)))
         print("    {:<14} {:>10.4} {:>15.4} {:>15.4} {:>10.4}".format(
                 'Rx Power(dBm):',
-                utils.mw_to_dbm(thresh.rxPwr.alarm.low),
-                utils.mw_to_dbm(thresh.rxPwr.warn.low),
-                utils.mw_to_dbm(thresh.rxPwr.warn.high),
-                utils.mw_to_dbm(thresh.rxPwr.alarm.high)))
+                self._mw_to_dbm(thresh.rxPwr.alarm.low),
+                self._mw_to_dbm(thresh.rxPwr.warn.low),
+                self._mw_to_dbm(thresh.rxPwr.warn.high),
+                self._mw_to_dbm(thresh.rxPwr.alarm.high)))
 
     def _print_sensor_flags(self, sensor):
         ''' print details about sensor flags '''
@@ -791,9 +802,9 @@ class PortStatusDetailCmd(object):
               channel.sensors.txBias.value), end="")
         if channel.sensors.txPwr:
             print("  {:<15} {:0.4}  ".format("Tx Power(dBm)",
-                  utils.mw_to_dbm(channel.sensors.txPwr.value)), end="")
+                  self._mw_to_dbm(channel.sensors.txPwr.value)), end="")
         print("  {:<15} {:0.4}  ".format("Rx Power(dBm)",
-              utils.mw_to_dbm(channel.sensors.rxPwr.value)))
+              self._mw_to_dbm(channel.sensors.rxPwr.value)))
 
         if not self._verbose:
             return
@@ -812,17 +823,17 @@ class PortStatusDetailCmd(object):
         if channel.sensors.txPwr:
             print("    {:<14} {:>10} {:>15} {:>15} {:>10}".format(
                     'Tx Power(dBm):',
-                    utils.mw_to_dbm(channel.sensors.txPwr.flags.alarm.low),
-                    utils.mw_to_dbm(channel.sensors.txPwr.flags.warn.low),
-                    utils.mw_to_dbm(channel.sensors.txPwr.flags.warn.high),
-                    utils.mw_to_dbm(channel.sensors.txPwr.flags.alarm.high)))
+                    self._mw_to_dbm(channel.sensors.txPwr.flags.alarm.low),
+                    self._mw_to_dbm(channel.sensors.txPwr.flags.warn.low),
+                    self._mw_to_dbm(channel.sensors.txPwr.flags.warn.high),
+                    self._mw_to_dbm(channel.sensors.txPwr.flags.alarm.high)))
 
         print("    {:<14} {:>10} {:>15} {:>15} {:>10}".format(
                 'Rx Power(dBm):',
-                utils.mw_to_dbm(channel.sensors.rxPwr.flags.alarm.low),
-                utils.mw_to_dbm(channel.sensors.rxPwr.flags.warn.low),
-                utils.mw_to_dbm(channel.sensors.rxPwr.flags.warn.high),
-                utils.mw_to_dbm(channel.sensors.rxPwr.flags.alarm.high)))
+                self._mw_to_dbm(channel.sensors.rxPwr.flags.alarm.low),
+                self._mw_to_dbm(channel.sensors.rxPwr.flags.warn.low),
+                self._mw_to_dbm(channel.sensors.rxPwr.flags.warn.high),
+                self._mw_to_dbm(channel.sensors.rxPwr.flags.alarm.high)))
 
     def _print_transceiver_details(self, tid):
         ''' Print details about transceiver '''
