@@ -6,11 +6,21 @@
 #  LICENSE file in the root directory of this source tree. An additional grant
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
+# @lint-avoid-pyflakes2
 # @lint-avoid-python-3-compatibility-imports
 
 import click
 
-from fboss.cli import commands as cmds
+from fboss.cli.commands import arp
+from fboss.cli.commands import config
+from fboss.cli.commands import commands as cmds
+from fboss.cli.commands import interface
+from fboss.cli.commands import info
+from fboss.cli.commands import ip
+from fboss.cli.commands import l2
+from fboss.cli.commands import lldp
+from fboss.cli.commands import port
+from fboss.cli.commands import route
 from thrift.Thrift import TApplicationException
 from thrift.transport.TTransport import TTransportException
 from neteng.fboss.ttypes import FbossBaseError
@@ -40,7 +50,7 @@ class ArpCli(object):
     @click.pass_obj
     def _table(cli_opts):
         ''' Show the ARP table '''
-        cmds.ArpTableCmd(cli_opts).run()
+        arp.ArpTableCmd(cli_opts).run()
 
     @click.command()
     @click.option('-V', '--vlan', type=int, default=0,
@@ -67,18 +77,18 @@ class GetConfigCli(object):
     @click.pass_obj
     def _ctrl(cli_opts):
         ''' Show controller running config '''
-        cmds.GetConfigCmd(cli_opts).run('ctrl')
+        config.GetConfigCmd(cli_opts).run('ctrl')
 
 
 class IpCli(object):
     ''' IP sub-commands '''
     @click.command()
-    @click.option("-i", "--interface", type=int,
+    @click.option("-i", "--interface", type=int, required=True,
             help='Show Ip address of the interface')
     @click.pass_obj
     def ip(cli_opts, interface):
         ''' Show IP information for an interface '''
-        cmds.IpCmd(cli_opts).run(interface)
+        ip.IpCmd(cli_opts).run(interface)
 
 
 class InterfaceCli(object):
@@ -89,7 +99,7 @@ class InterfaceCli(object):
     def interface(cli_opts, interfaces):
         ''' Show interface information for Interface(s); Outputs a list of
             interfaces on host if no interfaces are specified '''
-        cmds.InterfaceCmd(cli_opts).run(interfaces)
+        interface.InterfaceCmd(cli_opts).run(interfaces)
 
 
 class L2Cli(object):
@@ -108,7 +118,7 @@ class L2Cli(object):
     @click.pass_obj
     def _table(cli_opts):
         ''' Show the L2 table '''
-        cmds.L2TableCmd(cli_opts).run()
+        l2.L2TableCmd(cli_opts).run()
 
     @click.command()
     @click.option('-V', '--vlan', type=int, default=0,
@@ -131,7 +141,7 @@ class LldpCli(object):
     @click.pass_obj
     def lldp(cli_opts, port, verbose):
         ''' Show LLDP neighbors '''
-        cmds.LldpCmd(cli_opts).run(port, verbose)
+        lldp.LldpCmd(cli_opts).run(port, verbose)
 
 
 class NdpCli(object):
@@ -180,14 +190,14 @@ class PortCli(object):
     @click.pass_obj
     def _details(cli_opts, ports):
         ''' Show port details for given [port(s)] '''
-        cmds.PortDetailsCmd(cli_opts).run(ports)
+        port.PortDetailsCmd(cli_opts).run(ports)
 
     @click.command()
     @click.argument('ports', nargs=-1, required=True, type=int)
     @click.pass_obj
     def _flap(cli_opts, ports):
         ''' Flap given [port(s)] '''
-        cmds.PortFlapCmd(cli_opts).run(ports)
+        port.PortFlapCmd(cli_opts).run(ports)
 
     @click.command()
     @click.argument('ports', nargs=-1, type=int)
@@ -197,7 +207,7 @@ class PortCli(object):
     @click.pass_obj
     def _status(cli_opts, detail, ports, verbose):
         ''' Show port status '''
-        cmds.PortStatusCmd(cli_opts).run(detail, ports, verbose)
+        port.PortStatusCmd(cli_opts).run(detail, ports, verbose)
 
 
 class ProductInfoCli(object):
@@ -209,7 +219,7 @@ class ProductInfoCli(object):
     @click.pass_obj
     def product(cli_opts, detail):
         ''' Show product information '''
-        cmds.ProductInfoCmd(cli_opts).run(detail)
+        info.ProductInfoCmd(cli_opts).run(detail)
 
 
 class ReloadConfigCli(object):
@@ -219,7 +229,7 @@ class ReloadConfigCli(object):
     @click.pass_obj
     def reloadconfig(cli_opts):
         ''' Reload agent configuration file  '''
-        cmds.ReloadConfigCmd(cli_opts).run()
+        config.ReloadConfigCmd(cli_opts).run()
 
 
 class RouteCli(object):
@@ -241,13 +251,13 @@ class RouteCli(object):
     @click.pass_obj
     def _ip(cli_opts, ip, vrf):
         ''' Show the route to a specific IP '''
-        cmds.RouteIpCmd(cli_opts).run(ip, vrf)
+        route.RouteIpCmd(cli_opts).run(ip, vrf)
 
     @click.command()
     @click.pass_obj
     def _table(cli_opts):
         ''' Show the route table '''
-        cmds.RouteTableCmd(cli_opts).run()
+        route.RouteTableCmd(cli_opts).run()
 
 
 class VersionCli(object):
@@ -265,7 +275,7 @@ class VersionCli(object):
     @click.pass_obj
     def _ctrl(cli_opts):
         ''' Show the agent version information '''
-        cmds.VersionCmd(cli_opts).run('ctrl')
+        info.VersionCmd(cli_opts).run('ctrl')
 
 
 # -- Main Command Group -- #
@@ -307,7 +317,7 @@ if __name__ == '__main__':
     try:
         main()
     except FbossBaseError as e:
-        raise SystemExit('Fboss Error: ' + e.message)
+        raise SystemExit('Fboss Error: {}'.format(e))
     except TApplicationException:
         raise SystemExit("Command not available on host")
     except TTransportException:

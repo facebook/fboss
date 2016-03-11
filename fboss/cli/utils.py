@@ -39,7 +39,3 @@ def ip_ntop(addr):
         return socket.inet_ntop(socket.AF_INET6, addr)
     else:
         raise ValueError('bad binary address %r' % (addr,))
-
-
-
-

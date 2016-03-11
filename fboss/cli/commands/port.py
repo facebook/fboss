@@ -6,279 +6,21 @@
 #  LICENSE file in the root directory of this source tree. An additional grant
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
+# @lint-avoid-pyflakes2
 # @lint-avoid-python-3-compatibility-imports
 
-import binascii
 import collections
-import json
-import string
 import time
 
-
-# TODO: Are these thrift structs open-sourced?
-from facebook.network.Address.ttypes import Address, AddressType
 from fboss.cli import utils
-from fboss.thrift_clients import FbossAgentClient
+from fboss.cli.commands import commands as cmds
+from math import log10
 from neteng.fboss.optic import ttypes as optic_ttypes
 from neteng.fboss.ttypes import FbossBaseError
 from thrift.Thrift import TApplicationException
 
 
-class FbossCmd(object):
-    def __init__(self, cli_opts):
-        ''' initialize; client will be created in subclasses with the specific
-            client they need '''
-
-        self._hostname = cli_opts.hostname
-        self._port = cli_opts.port
-        self._timeout = cli_opts.timeout
-        self._client = None
-
-    def _create_ctrl_client(self):
-        args = [self._hostname, self._port]
-        if self._timeout:
-            args.append(self._timeout)
-
-        return FbossAgentClient(*args)
-
-
-class InterfaceCmd(FbossCmd):
-    ''' Show interface information '''
-    def run(self, interfaces):
-        try:
-            self._client = self._create_ctrl_client()
-            if not interfaces:
-                self._all_interface_info()
-            else:
-                for interface in interfaces:
-                    self._interface_details(interface)
-        except FbossBaseError as e:
-            raise SystemExit('Fboss Error: ' + e)
-
-    def _all_interface_info(self):
-        resp = self._client.getInterfaceList()
-        if not resp:
-            print("No Interfaces Found")
-            return
-        for entry in resp:
-            print(entry)
-
-    def _interface_details(self, interface):
-        resp = self._client.getInterfaceDetail(interface)
-        if not resp:
-            print("No interface details found for interface")
-            return
-
-        print("%s\tInterface ID: %d" %
-                            (resp.interfaceName, resp.interfaceId))
-        print("  Vlan: %d\t\t\tRouter Id: %d" % (resp.vlanId, resp.routerId))
-        print("  Mac Address: %s" % resp.mac)
-        print("  IP Address:")
-        for addr in resp.address:
-            print("\t%s/%d" % (utils.ip_ntop(addr.ip.addr), addr.prefixLength))
-
-
-class IpCmd(FbossCmd):
-    def run(self, interface):
-        self._client = self._create_ctrl_client()
-        resp = self._client.getInterfaceDetail(interface)
-        if not resp:
-            print("No interface details found for interface")
-            return
-        print("\nAddress:")
-        for addr in resp.address:
-            print("\t%s/%d" % (utils.ip_ntop(addr.ip.addr), addr.prefixLength))
-
-
-class LldpCmd(FbossCmd):
-    def run(self, lldp_port, verbosity):
-        self._client = self._create_ctrl_client()
-        resp = self._client.getLldpNeighbors()
-        if not resp:
-            print("No neighbors found")
-            return
-
-        headers = {
-            'local_port': 'Local Port',
-            'local_vlan': 'Local VLAN',
-            'mac': 'MAC',
-            'chassis': 'Chassis ID',
-            'raw_chassis': 'Raw Chassis ID',
-            'chassis_id_type': 'Chassis ID Type',
-            'name': 'Name',
-            'system': 'System Name',
-            'port': 'Port',
-            'raw_port': 'Raw Port ID',
-            'port_id_type': 'Port ID Type',
-            'system_desc': 'System Description',
-            'port_desc': 'Port Description',
-            'ttl': 'TTL',
-            'ttl_left': 'TTL Left',
-        }
-        max_widths = dict((key, len(value) + 1)
-                          for key, value in headers.items())
-
-        entries = []
-        for neighbor in resp:
-            if (lldp_port and not neighbor.localPort == lldp_port):
-                continue
-
-            fields = self._get_fields(neighbor)
-            for key, value in fields.items():
-                if len(str(value)) > max_widths[key]:
-                    max_widths[key] = len(value)
-            entries.append(fields)
-
-        if not verbosity:
-            selected = ['local_port', 'name', 'port']
-            self._print_fields(selected, entries, headers, max_widths)
-        elif verbosity == 1:
-            selected = ['local_port', 'chassis', 'system', 'port', 'ttl',
-                        'ttl_left']
-            self._print_fields(selected, entries, headers, max_widths)
-        else:
-            self._print_verbose(entries, headers)
-
-    def _print_fields(self, selected, fields, headers, max_widths):
-        fmt = ' '.join('{{{}:<{}}}'.format(key, max_widths[key])
-                       for key in selected)
-
-        header = fmt.format(**headers)
-        print(header)
-        print('-' * len(header))
-
-        for entry in fields:
-            line = fmt.format(**entry)
-            print(line)
-
-    def _print_verbose(self, entries, headers):
-        for entry in entries:
-            print('Neighbor:')
-            print('  Local Port: {}'.format(entry['local_port']))
-            print('  Local VLAN: {}'.format(entry['local_vlan']))
-            print('  Original TTL: {}'.format(entry['ttl']))
-            print('  TTL Left: {}'.format(entry['ttl_left']))
-            print('  Source MAC: {}'.format(entry['mac']))
-            print('  Chassis ID Type: {}'.format(entry['chassis_id_type']))
-
-            raw_chassis = entry['raw_chassis']
-            if self.is_printable(raw_chassis):
-                print('  Chassis ID: {}'.format(raw_chassis))
-            else:
-                rc = binascii.hexlify(raw_chassis)
-                print('  Raw Chassis ID: hex({})'.format(rc))
-                print('  Chassis ID: {}'.format(entry['chassis']))
-
-            raw_port = entry['raw_port']
-            if self.is_printable(raw_port):
-                print('  Port ID: {}'.format(raw_port))
-            else:
-                rc = binascii.hexlify(raw_port)
-                print('  Raw Port ID: hex({})'.format(rc))
-                print('  Port ID: {}'.format(entry['port']))
-
-            print('  System Name: {}'.format(entry['system']))
-
-            desc = entry['system_desc']
-            if '\n' in desc:
-                desc = '\n    '.join(desc.splitlines())
-                print('  System Description:\n    {}'.format(desc))
-            else:
-                print('  System Description: {}'.format(desc))
-            print('  Port Description: {}'.format(entry['port_desc']))
-            print()
-
-    def is_printable(self, value):
-        return all(c in string.printable for c in value)
-
-    def _get_fields(self, neighbor):
-        fields = {}
-        fields['local_port'] = neighbor.localPort
-        fields['local_vlan'] = neighbor.localVlan
-        fields['mac'] = neighbor.srcMac
-        fields['chassis'] = neighbor.printableChassisId
-        fields['raw_chassis'] = neighbor.chassisId
-        fields['chassis_id_type'] = neighbor.chassisIdType
-        fields['system'] = neighbor.systemName
-        fields['port'] = neighbor.printablePortId
-        fields['raw_port'] = neighbor.portId
-        fields['port_id_type'] = neighbor.portIdType
-        if neighbor.systemName is None:
-            fields['name'] = neighbor.printableChassisId
-        else:
-            fields['name'] = neighbor.systemName
-        fields['system_desc'] = neighbor.systemDescription or ''
-        fields['port_desc'] = neighbor.portDescription or ''
-        fields['ttl'] = neighbor.originalTTL
-        fields['ttl_left'] = neighbor.ttlSecondsLeft
-        return fields
-
-
-class RouteIpCmd(FbossCmd):
-    def run(self, ip, vrf):
-        addr = Address(addr=ip, type=AddressType.V4)
-        if not addr.addr:
-            print('No ip address provided')
-            return
-        self._client = self._create_ctrl_client()
-        resp = self._client.getIpRoute(addr, vrf)
-        print('Route to ' + addr.addr + ', Vrf: %d' % vrf)
-        netAddr = utils.ip_ntop(resp.dest.ip.addr)
-        prefix = resp.dest.prefixLength
-        if netAddr == '0.0.0.0' or netAddr == '::':
-            print('No Route to destination')
-        else:
-            print('N/w: %s/%d' % (netAddr, prefix))
-            for nexthops in resp.nextHopAddrs:
-                print('\t\tvia: ' + utils.ip_ntop(nexthops.addr))
-
-
-class RouteTableCmd(FbossCmd):
-    def run(self):
-        self._client = self._create_ctrl_client()
-        resp = self._client.getRouteTable()
-        if not resp:
-            print("No Route Table Entries Found")
-            return
-        for entry in resp:
-            print("Network Address: %s/%d" %
-                                (utils.ip_ntop(entry.dest.ip.addr),
-                                            entry.dest.prefixLength))
-            # Need to check the nextHopAddresses
-            for nhop in entry.nextHopAddrs:
-                print("\tvia %s" % utils.ip_ntop(nhop.addr))
-
-
-class ArpTableCmd(FbossCmd):
-    def run(self):
-        self._client = self._create_ctrl_client()
-        resp = self._client.getArpTable()
-        _print_neighbor_table(resp, 'ARP', 16)
-
-
-def _print_neighbor_table(resp, name, width):
-    if not resp:
-        print("No {} Entries Found".format(name))
-        return
-
-    tmpl = "{:" + str(width) + "} {:18} {:>4}  {}"
-    print(tmpl.format("IP Address", "MAC Address", "Port", "VLAN"))
-    for entry in resp:
-        ip = utils.ip_ntop(entry.ip.addr)
-        vlan_field = '{} ({})'.format(entry.vlanName, entry.vlanID)
-        print(tmpl.format(ip, entry.mac, entry.port, vlan_field))
-
-
-class NeighborFlushCmd(FbossCmd):
-    def run(self, ip, vlan):
-        bin_ip = utils.ip_to_binary(ip)
-        vlan_id = vlan
-        client = self._create_ctrl_client()
-        num_entries = client.flushNeighborEntry(bin_ip, vlan_id)
-        print('Flushed {} entries'.format(num_entries))
-
-
-class PortDetailsCmd(FbossCmd):
+class PortDetailsCmd(cmds.FbossCmd):
     def run(self, ports):
         try:
             self._client = self._create_ctrl_client()
@@ -447,11 +189,11 @@ class PortDetailsCmd(FbossCmd):
         self._print_port_counters(port_id)
 
 
-class PortFlapCmd(FbossCmd):
+class PortFlapCmd(cmds.FbossCmd):
     def run(self, ports):
         try:
             if not ports:
-                raise FbossBaseError()
+                print("Hmm, how did we get here?")
             else:
                 self.flap_ports(ports)
         except FbossBaseError as e:
@@ -474,7 +216,7 @@ class PortFlapCmd(FbossCmd):
                 self._client.setPortState(port, True)
 
 
-class PortStatusCmd(FbossCmd):
+class PortStatusCmd(cmds.FbossCmd):
     def run(self, detail, ports, verbose):
         if detail or verbose:
             self._client = self._create_ctrl_client()
@@ -928,118 +670,3 @@ class PortStatusDetailCmd(object):
 
         self._get_dummy_status()
         self._print_port_detail()
-
-
-class ProductInfoCmd(FbossCmd):
-    def _print_product_info(self, productInfo):
-        print("Product: %s" % (productInfo.product))
-        print("OEM: %s" % (productInfo.oem))
-        print("Serial: %s" % (productInfo.serial))
-
-    def _print_product_details(self, productInfo):
-        print("Product: %s" % (productInfo.product))
-        print("OEM: %s" % (productInfo.oem))
-        print("Serial: %s" % (productInfo.serial))
-        print("Management MAC Address: %s" % (productInfo.mgmtMac))
-        print("BMC MAC Address: %s" % (productInfo.bmcMac))
-        print("Extended MAC Start: %s" % (productInfo.macRangeStart))
-        print("Extended MAC Size: %s" % (productInfo.macRangeSize))
-        print("Assembled At: %s" % (productInfo.assembledAt))
-        print("Product Asset Tag: %s" % (productInfo.assetTag))
-        print("Product Part Number: %s" % (productInfo.partNumber))
-        print("Product Production State: %s" % (productInfo.productionState))
-        print("Product Sub-Version: %s" % (productInfo.subVersion))
-        print("Product Version: %s" % (productInfo.productVersion))
-        print("System Assembly Part Number: %s" %
-                                            (productInfo.systemPartNumber))
-        print("System Manufacturing Date: %s" % (productInfo.mfgDate))
-        print("PCB Manufacturer: %s" % (productInfo.pcbManufacturer))
-        print("Facebook PCBA Part Number: %s" % (productInfo.fbPcbaPartNumber))
-        print("Facebook PCB Part Number: %s" % (productInfo.fbPcbPartNumber))
-        print("ODM PCBA Part Number: %s" % (productInfo.odmPcbaPartNumber))
-        print("ODM PCBA Serial Number: %s" % (productInfo.odmPcbaSerial))
-        print("Version: %s" % (productInfo.version))
-
-    def run(self, detail):
-        self._client = self._create_ctrl_client()
-        resp = self._client.getProductInfo()
-        if detail:
-            self._print_product_details(resp)
-        else:
-            self._print_product_info(resp)
-
-
-class VersionCmd(FbossCmd):
-    def run(self, config_type):
-        if config_type == 'ctrl':
-            self._client = self._create_ctrl_client()
-        resp = self._client.getExportedValues()
-        _print_build_info(resp)
-
-
-def _print_build_info(resp):
-    if not resp:
-        print("No Build Info Found")
-        return
-    print("Package Name: %s" % resp['build_package_name'])
-    print("Package Info: %s" % resp['build_package_info'])
-    print("Package Version: %s" % resp['build_package_version'])
-    print("Build Details:\n")
-    print("\tHost: %s" % resp['build_host'])
-    print("\tTime: %s" % resp['build_time'])
-    print("\tUser: %s" % resp['build_user'])
-    print("\tPath: %s" % resp['build_path'])
-    print("\tPlatform: %s" % resp['build_platform'])
-    print("\tRevision: %s" % resp['build_revision'])
-
-
-class ReloadConfigCmd(FbossCmd):
-    """
-    Command to instruct agent to reload its own config, as if it is restarting,
-    but without restarting.
-    """
-    def run(self):
-        try:
-            self._client = self._create_ctrl_client()
-            self._client.reloadConfig()
-            print("Config reloaded")
-            return
-        except FbossBaseError as e:
-            print('Fboss Error: ' + e)
-            return 2
-
-
-def _l2_table_print(resp):
-    if not resp:
-        print("No L2 Entries Found")
-        return
-    resp = sorted(resp, key=lambda x: (x.port, x.vlanID, x.mac))
-    tmpl = "{:18} {:>4}  {}"
-    print(tmpl.format("MAC Address", "Port", "VLAN"))
-    for entry in resp:
-        print(tmpl.format(entry.mac, entry.port, entry.vlanID))
-
-
-class L2TableCmd(FbossCmd):
-    def run(self):
-        self._client = self._create_ctrl_client()
-        resp = self._client.getL2Table()
-        _l2_table_print(resp)
-
-
-def _print_config_info(resp):
-    if not resp:
-        print("No Config Info Found")
-        return
-    parsed = json.loads(resp)
-    print(json.dumps(parsed, indent=4, sort_keys=True,
-                     separators=(',', ': ')))
-
-
-class GetConfigCmd(FbossCmd):
-    def run(self, config_type):
-        if config_type == 'ctrl':
-            self._client = self._create_ctrl_client()
-
-        resp = self._client.getRunningConfig()
-        _print_config_info(resp)
