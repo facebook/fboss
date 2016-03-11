@@ -94,7 +94,20 @@ void printChannelMonitor(unsigned int index,
 void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
   uint8_t buf[256];
   try {
+    // Read the lower 128 bytes.
     bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 0, 128, buf);
+
+    // Read page 0 from the upper 128 bytes.
+    // First see if we need to select page 0.
+    if ((buf[2] & (1 << 2)) == 0) {
+      // This QSFP supports paging.
+      // Set the page select byte to page 0 if necessary.
+      uint8_t page0 = 0;
+      if (buf[127] != page0) {
+        bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP,
+                         127, 1, &page0);
+      }
+    }
     bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 128,
                     128, buf + 128);
   } catch (const UsbError& ex) {
