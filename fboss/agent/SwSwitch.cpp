@@ -1013,7 +1013,7 @@ void SwSwitch::applyConfig(const std::string& reason) {
   // We don't need to hold a lock here. updateStateBlocking() does that for us.
   updateStateBlocking(
       reason,
-      [&](const shared_ptr<SwitchState>& state) {
+      [&](const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
         std::string configFilename = FLAGS_config;
         std::pair<shared_ptr<SwitchState>, std::string> rval;
         if (!configFilename.empty()) {
@@ -1027,11 +1027,13 @@ void SwSwitch::applyConfig(const std::string& reason) {
           rval = applyThriftConfigDefault(state, platform_.get(),
               &curConfig_);
         }
+        if (!isValidStateUpdate(StateDelta(state, rval.first))) {
+          throw FbossError("Invalid config passed in, skipping");
+        }
         curConfigStr_ = rval.second;
         curConfig_.readFromJson(curConfigStr_.c_str());
         return rval.first;
       });
-  return;
 }
 
 bool SwSwitch::isValidStateUpdate(
