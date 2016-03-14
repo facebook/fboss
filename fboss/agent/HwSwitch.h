@@ -14,6 +14,7 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/gen-cpp/switch_config_types.h"
 
+
 #include <folly/IPAddress.h>
 #include <folly/dynamic.h>
 
@@ -22,11 +23,19 @@
 
 namespace facebook { namespace fboss {
 
+
 class SwitchState;
 class SwitchStats;
 class StateDelta;
 class RxPacket;
 class TxPacket;
+
+struct HwInitResult {
+  std::shared_ptr<SwitchState> switchState;
+  BootType bootType_{BootType::UNINITIALIZED};
+  float initializedTime{0.0};
+  float bootTime{0.0};
+};
 
 /*
  * HwSwitch contains the hardware-specific switching logic.
@@ -96,8 +105,7 @@ class HwSwitch {
    * reload, the SwitchState should reflect the base configuration after the
    * hardware has been reinitialized.
    */
-  virtual std::pair<std::shared_ptr<SwitchState>, BootType>
-    init(Callback* callback) = 0;
+  virtual HwInitResult init(Callback* callback) = 0;
 
 
   /*

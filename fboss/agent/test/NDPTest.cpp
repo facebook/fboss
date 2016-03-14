@@ -107,7 +107,7 @@ unique_ptr<SwSwitch> setupSwitch(seconds raInterval,
   config.staleEntryInterval = 1;
 
   auto sw = createMockSw(&config, kPlatformMac);
-  sw->initialConfigApplied();
+  sw->initialConfigApplied(std::chrono::steady_clock::now());
   return sw;
 }
 
@@ -528,7 +528,7 @@ TEST(NDP, RouterAdvertisement) {
   // in the generated RA packets.
   config.interfaces[0].ipAddresses.push_back("2401:db00:2000:1234:1::/128");
   auto sw = createMockSw(&config, kPlatformMac);
-  sw->initialConfigApplied();
+  sw->initialConfigApplied(std::chrono::steady_clock::now());
 
   auto state = sw->getState();
   auto intfConfig = state->getInterfaces()->getInterface(InterfaceID(1234));

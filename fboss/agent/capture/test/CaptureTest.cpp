@@ -78,7 +78,7 @@ unique_ptr<SwSwitch> setupSwitch() {
   }
 
   auto sw = createMockSw(&thriftCfg, kPlatformMac);
-  sw->initialConfigApplied();
+  sw->initialConfigApplied(std::chrono::steady_clock::now());
 
   return sw;
 }

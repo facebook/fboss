@@ -47,6 +47,7 @@ using std::mutex;
 using std::chrono::seconds;
 using std::condition_variable;
 using std::string;
+using namespace std::chrono;
 
 DEFINE_int32(port, 5909, "The thrift server port");
 DEFINE_int32(stat_publish_interval_ms, 1000,
@@ -121,6 +122,7 @@ class Initializer {
   }
 
   void initImpl() {
+    auto startTime = steady_clock::now();
     std::lock_guard<mutex> g(initLock_);
     // Determining the local MAC address can also take a few seconds the first
     // time it is called, so perform this operation asynchronously, in parallel
@@ -138,7 +140,7 @@ class Initializer {
     LOG(INFO) << "local MAC is " << localMac;
 
     sw_->applyConfig("apply initial config");
-    sw_->initialConfigApplied();
+    sw_->initialConfigApplied(startTime);
 
     // Start the UpdateSwitchStatsThread
     fs_ = new FunctionScheduler();

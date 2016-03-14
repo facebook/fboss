@@ -27,8 +27,8 @@ SimSwitch::SimSwitch(SimPlatform* platform, uint32_t numPorts)
   : numPorts_(numPorts) {
 }
 
-std::pair<std::shared_ptr<SwitchState>, BootType>
-SimSwitch::init(HwSwitch::Callback* callback) {
+HwInitResult SimSwitch::init(HwSwitch::Callback* callback) {
+  HwInitResult ret;
   callback_ = callback;
 
   auto state = make_shared<SwitchState>();
@@ -36,7 +36,9 @@ SimSwitch::init(HwSwitch::Callback* callback) {
     auto name = folly::to<string>("Port", idx);
     state->registerPort(PortID(idx), name);
   }
-  return std::make_pair(state, BootType::COLD_BOOT);
+  ret.bootType_ = BootType::COLD_BOOT;
+  ret.switchState = state;
+  return ret;
 }
 
 void SimSwitch::stateChanged(const StateDelta& delta) {

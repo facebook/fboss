@@ -19,8 +19,7 @@ class SimSwitch : public HwSwitch {
  public:
   SimSwitch(SimPlatform* platform, uint32_t numPorts);
 
-  std::pair<std::shared_ptr<SwitchState>, BootType>
-    init(Callback* callback) override;
+  HwInitResult init(Callback* callback) override;
   void stateChanged(const StateDelta& delta) override;
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
   bool sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept override;

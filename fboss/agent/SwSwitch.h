@@ -57,6 +57,7 @@ enum SwitchFlags : int {
   ENABLE_LLDP = 2,
   PUBLISH_BOOTTYPE = 4
 };
+
 inline SwitchFlags operator|=(SwitchFlags& a, const SwitchFlags b) {
   return
     (a = static_cast<SwitchFlags>(static_cast<int>(a) | static_cast<int>(b)));
@@ -97,6 +98,7 @@ class SwSwitch : public HwSwitch::Callback {
   HwSwitch* getHw() const {
     return hw_;
   }
+
 
   const Platform* getPlatform() const { return platform_.get(); }
   Platform* getPlatform() { return platform_.get(); }
@@ -276,7 +278,8 @@ class SwSwitch : public HwSwitch::Callback {
    * about. OTOH in case of a cold boot it causes host entries
    * to be created in the wrong (default VLAN).
    */
-  void initialConfigApplied();
+  void initialConfigApplied(
+      const std::chrono::steady_clock::time_point& startTime);
   void fibSynced();
   /*
    * Publish all thread-local stats to the main fbData singleton,
@@ -599,6 +602,7 @@ class SwSwitch : public HwSwitch::Callback {
    * These values are published by the fbagent to the ODS based
    * on the Monitoring configuration.
    */
+  void publishInitTimes(std::string name, const float& time);
   void publishSfpInfo();
   void publishPortInfo();
   void publishRouteStats();

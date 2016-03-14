@@ -84,7 +84,7 @@ unique_ptr<SwSwitch> setupSwitch(std::chrono::seconds arpTimeout) {
   state->setStaleEntryInterval(std::chrono::seconds(1));
 
   auto sw = createMockSw(state);
-  sw->initialConfigApplied();
+  sw->initialConfigApplied(std::chrono::steady_clock::now());
   waitForStateUpdates(sw.get());
 
   return sw;

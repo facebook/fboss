@@ -24,6 +24,8 @@ void SwSwitch::initThread(folly::StringPiece name) {
   folly::setThreadName(pthread_self(), pthreadName);
 }
 
+void SwSwitch::publishInitTimes(std::string name, const float& time) {}
+
 void SwSwitch::publishStats() {}
 
 void SwSwitch::publishBootInfo() {}

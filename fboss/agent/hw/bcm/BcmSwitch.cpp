@@ -11,6 +11,7 @@
 
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <ctime>
 
 #include <boost/cast.hpp>
 
@@ -81,6 +82,8 @@ using facebook::fboss::DeltaFunctions::forEachChanged;
 using facebook::fboss::DeltaFunctions::forEachAdded;
 using facebook::fboss::DeltaFunctions::forEachRemoved;
 using folly::IPAddress;
+
+using namespace std::chrono;
 
 DEFINE_int32(linkscan_interval_us, 250000,
              "The Broadcom linkscan interval");
@@ -404,8 +407,9 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
   return warmBootState;
 }
 
-std::pair<std::shared_ptr<SwitchState>, BootType>
-BcmSwitch::init(Callback* callback) {
+HwInitResult BcmSwitch::init(Callback* callback) {
+  HwInitResult ret;
+
   std::lock_guard<std::mutex> g(lock_);
 
   // Create unitObject_ before doing anything else.
@@ -416,10 +420,15 @@ BcmSwitch::init(Callback* callback) {
   unitObject_->setCookie(this);
   callback_ = callback;
 
+  steady_clock::time_point begin = steady_clock::now();
+
   // Initialize the switch.
   if (!unitObject_->isAttached()) {
     unitObject_->attach(platform_->getWarmBootDir());
   }
+
+  ret.initializedTime =
+    duration_cast<duration<float>>(steady_clock::now() - begin).count();
 
   LOG(INFO) << "Initializing BcmSwitch for unit " << unit_;
 
@@ -435,6 +444,7 @@ BcmSwitch::init(Callback* callback) {
   CHECK(bootType != BootType::UNINITIALIZED);
   auto warmBoot = bootType == BootType::WARM_BOOT;
 
+
   if (!warmBoot) {
     LOG (INFO) << " Performing cold boot ";
     // Cold boot - put all ports in Vlan 1
@@ -449,6 +459,7 @@ BcmSwitch::init(Callback* callback) {
   } else {
     LOG (INFO) << "Performing warm boot ";
   }
+
   rv = opennsl_switch_control_set(unit_, opennslSwitchL3EgressMode, 1);
   bcmCheckError(rv, "failed to set L3 egress mode");
   // Trap IPv4 Address Resolution Protocol (ARP) packets.
@@ -520,13 +531,21 @@ BcmSwitch::init(Callback* callback) {
     rv = opennsl_stg_stp_set(unit_, stg, idx, OPENNSL_STG_STP_FORWARD);
     bcmCheckError(rv, "failed to set spanning tree state on port ", idx);
   }
+
+  ret.bootType_ = bootType;
+
   if (warmBoot) {
     auto warmBootState = getWarmBootSwitchState();
     stateChangedImpl(StateDelta(make_shared<SwitchState>(), warmBootState));
     hostTable_->warmBootHostEntriesSynced();
-    return std::make_pair(warmBootState, bootType);
+    ret.switchState = warmBootState;
+  } else {
+    ret.switchState = getColdBootSwitchState();
   }
-  return std::make_pair(getColdBootSwitchState(), bootType);
+
+  ret.bootTime =
+    duration_cast<duration<float>>(steady_clock::now() - begin).count();
+  return ret;
 }
 
 void BcmSwitch::initialConfigApplied() {

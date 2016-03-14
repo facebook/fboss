@@ -35,7 +35,7 @@ namespace {
 unique_ptr<SwSwitch> setupSwitch() {
   auto state = testStateA();
   auto sw = createMockSw(state);
-  sw->initialConfigApplied();
+  sw->initialConfigApplied(std::chrono::steady_clock::now());
   return sw;
 }
 

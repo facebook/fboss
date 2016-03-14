@@ -67,7 +67,10 @@ shared_ptr<SwitchState> publishAndApplyConfigFile(
 unique_ptr<SwSwitch> createMockSw(const shared_ptr<SwitchState>& state) {
   auto sw = make_unique<SwSwitch>(make_unique<MockPlatform>());
   auto stateAndBootType = std::make_pair(state, BootType::COLD_BOOT);
-  EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(stateAndBootType));
+  HwInitResult ret;
+  ret.switchState = state;
+  ret.bootType_ = BootType::COLD_BOOT;
+  EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(ret));
   sw->init();
   waitForStateUpdates(sw.get());
   return sw;
@@ -79,7 +82,10 @@ unique_ptr<SwSwitch> createMockSw(const shared_ptr<SwitchState>& state,
   EXPECT_CALL(*platform.get(), getLocalMac()).WillRepeatedly(Return(mac));
   auto sw = make_unique<SwSwitch>(std::move(platform));
   auto stateAndBootType = std::make_pair(state, BootType::COLD_BOOT);
-  EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(stateAndBootType));
+  HwInitResult ret;
+  ret.switchState = state;
+  ret.bootType_ = BootType::COLD_BOOT;
+  EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(ret));
   sw->init();
   waitForStateUpdates(sw.get());
   return sw;
@@ -104,7 +110,10 @@ unique_ptr<SwSwitch> createMockSw(cfg::SwitchConfig* config,
   EXPECT_CALL(*platform.get(), getLocalMac()).WillRepeatedly(Return(mac));
   auto sw = make_unique<SwSwitch>(std::move(platform));
   auto stateAndBootType = std::make_pair(initialState, BootType::COLD_BOOT);
-  EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(stateAndBootType));
+  HwInitResult ret;
+  ret.switchState = initialState;
+  ret.bootType_ = BootType::COLD_BOOT;
+  EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(ret));
   sw->init();
 
   // Apply the thrift config

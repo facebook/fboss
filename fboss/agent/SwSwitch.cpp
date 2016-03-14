@@ -59,6 +59,8 @@ using std::string;
 using std::unique_lock;
 using std::unique_ptr;
 
+using namespace std::chrono;
+
 DEFINE_string(config, "", "The path to the local JSON configuration file");
 
 namespace {
@@ -279,15 +281,20 @@ void SwSwitch::clearWarmBootCache() {
 }
 
 void SwSwitch::init(SwitchFlags flags) {
-  auto start = std::chrono::steady_clock::now();
-  auto stateAndBootType = hw_->init(this);
-  auto initialState = stateAndBootType.first;
-  bootType_ = stateAndBootType.second;
-  auto end = std::chrono::steady_clock::now();
-  auto initDuration =
-    std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+  auto hwInitRet = hw_->init(this);
+  auto initialState = hwInitRet.switchState;
+  bootType_ = hwInitRet.bootType_;
+
+  publishInitTimes("fboss.ctrl.hw_initialized_time", hwInitRet.initializedTime);
+
+  if (hwInitRet.bootType_ == BootType::COLD_BOOT) {
+    publishInitTimes("fboss.ctrl.hw_bcm_cold_boot", hwInitRet.bootTime);
+  } else {
+    publishInitTimes("fboss.ctrl.hw_bcm_warm_boot", hwInitRet.bootTime);
+  }
+
   VLOG(0) << "hardware initialized in " <<
-    (initDuration.count() / 1000.0) << " seconds; applying initial config";
+    hwInitRet.bootTime << " seconds; applying initial config";
 
   for (const auto& port : (*initialState->getPorts())) {
     auto maxSpeed = getMaxPortSpeed(port->getID());
@@ -324,7 +331,7 @@ void SwSwitch::init(SwitchFlags flags) {
   setSwitchRunState(SwitchRunState::INITIALIZED);
 }
 
-void SwSwitch::initialConfigApplied() {
+void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
   // notify the hw
   hw_->initialConfigApplied();
   setSwitchRunState(SwitchRunState::CONFIGURED);
@@ -351,6 +358,9 @@ void SwSwitch::initialConfigApplied() {
   if (lldpManager_) {
       lldpManager_->start();
   }
+
+  publishInitTimes("fboss.ctrl.switch_configured",
+      duration_cast<duration<float>>(steady_clock::now() - startTime).count());
 }
 
 void SwSwitch::fibSynced() {

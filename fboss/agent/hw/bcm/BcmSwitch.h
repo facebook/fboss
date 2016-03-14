@@ -12,7 +12,6 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/gen-cpp/switch_config_types.h"
-
 #include <folly/dynamic.h>
 
 #include <memory>
@@ -95,8 +94,7 @@ class BcmSwitch : public HwSwitch {
   /*
    * Initialize the BcmSwitch.
    */
-  std::pair<std::shared_ptr<SwitchState>, BootType>
-    init(Callback* callback) override;
+  HwInitResult init(Callback* callback) override;
 
   void unregisterCallbacks() override;
 

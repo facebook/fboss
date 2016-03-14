@@ -23,7 +23,7 @@ class MockHwSwitch : public HwSwitch {
  public:
   explicit MockHwSwitch(MockPlatform* platform);
   typedef std::pair<std::shared_ptr<SwitchState>, BootType> StateAndBootType;
-  MOCK_METHOD1(init, StateAndBootType(Callback*));
+  MOCK_METHOD1(init, HwInitResult(Callback*));
   MOCK_METHOD1(stateChanged, void(const StateDelta&));
 
   // gmock currently doesn't support move-only types, so we have to
