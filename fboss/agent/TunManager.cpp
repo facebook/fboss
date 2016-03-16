@@ -10,17 +10,14 @@
 #include "TunManager.h"
 
 extern "C" {
-#include <sys/ioctl.h>
-#include <libnetlink.h>
-#include <ll_map.h>
-#include <linux/rtnetlink.h>
-#include <linux/if.h>
-#include <linux/if_tun.h>
-#include <linux/fib_rules.h>
+#include <netlink/route/link.h>
+#include <netlink/route/addr.h>
+#include <netlink/route/route.h>
+#include <netlink/route/rule.h>
 }
 
 #include "fboss/agent/RxPacket.h"
-#include "fboss/agent/SysError.h"
+#include "fboss/agent/NlError.h"
 #include "fboss/agent/TunIntf.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -35,8 +32,12 @@ using folly::IPAddress;
 using folly::EventBase;
 
 TunManager::TunManager(SwSwitch *sw, EventBase *evb) : sw_(sw), evb_(evb) {
-  auto ret = rtnl_open(&rth_, 0);
-  sysCheckError(ret, "Failed to open rtnl");
+  sock_ = nl_socket_alloc();
+  if (!sock_) {
+    throw FbossError("failed to allocate libnl socket");
+  }
+  auto error = nl_connect(sock_, NETLINK_ROUTE);
+  nlCheckError(error, "failed to connect netlink socket to NETLINK_ROUTE");
 }
 
 TunManager::~TunManager() {
@@ -45,7 +46,8 @@ TunManager::~TunManager() {
   }
 
   stop();
-  rtnl_close(&rth_);
+  nl_close(sock_);
+  nl_socket_free(sock_);
 }
 
 int TunManager::getMinMtu(std::shared_ptr<SwitchState> state) {
@@ -126,21 +128,16 @@ void TunManager::addProbedAddr(int ifIndex, const IPAddress& addr,
 void TunManager::bringupIntf(const std::string& name, int ifIndex) {
   // TODO: We need to change the interface status based on real HW
   // interface status (up/down). Make them up all the time for now.
-  struct {
-    struct nlmsghdr n;
-    struct ifinfomsg ifi;
-    char buf[256];
-  } req;
-  memset(&req, 0, sizeof(req));
-  req.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
-  req.n.nlmsg_type = RTM_NEWLINK;
-  req.n.nlmsg_flags = NLM_F_REQUEST;
-  req.ifi.ifi_family = AF_UNSPEC;
-  req.ifi.ifi_change |= IFF_UP;
-  req.ifi.ifi_flags |= IFF_UP;
-  req.ifi.ifi_index = ifIndex;
-  auto ret = rtnl_talk(&rth_, &req.n, 0, 0, nullptr);
-  sysCheckError(ret, "Failed to bring up interface ", name,
+  auto link = rtnl_link_alloc();
+  SCOPE_EXIT { rtnl_link_put(link); };
+  if (!link) {
+    throw FbossError("Failed to allocate link to bring up");
+  }
+  rtnl_link_set_ifindex(link, ifIndex);
+  rtnl_link_set_family(link, AF_UNSPEC);
+  rtnl_link_set_flags(link, IFF_UP);
+  auto error = rtnl_link_change(sock_, link, link, 0);
+  nlCheckError(error, "Failed to bring up interface ", name,
                 " @ index ", ifIndex);
   LOG(INFO) << "Brought up interface " << name << " @ index " << ifIndex;
 }
@@ -156,37 +153,43 @@ inline int TunManager::getTableId(RouterID rid) const {
 void TunManager::addRemoveTable(int ifIdx, RouterID rid, bool add) {
   // We just store default routes (one for IPv4 and one for IPv6) in each route
   // table.
-  struct {
-    struct nlmsghdr n;
-    struct rtmsg r;
-    char buf[256];
-  } req;
   const folly::IPAddress addrs[] = {
     IPAddress{"0.0.0.0"},       // v4 default
     IPAddress{"::0"},           // v6 default
   };
 
   for (const auto& addr : addrs) {
-    memset(&req, 0, sizeof(req));
-    req.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct rtmsg));
-    req.n.nlmsg_flags = NLM_F_REQUEST;
-    if (add) {
-      req.n.nlmsg_type = RTM_NEWROUTE;
-      req.n.nlmsg_flags |= NLM_F_CREATE|NLM_F_REPLACE;
-    } else {
-      req.n.nlmsg_type = RTM_DELROUTE;
+    auto route = rtnl_route_alloc();
+    SCOPE_EXIT { rtnl_route_put(route); };
+
+    auto error = rtnl_route_set_family(route, addr.family());
+    nlCheckError(error, "Failed to set family to", addr.family());
+    rtnl_route_set_table(route, getTableId(rid));
+    rtnl_route_set_scope(route, RT_SCOPE_UNIVERSE);
+    rtnl_route_set_protocol(route, RTPROT_FBOSS);
+    error = rtnl_route_set_type(route, RTN_UNICAST);
+    nlCheckError(error, "Failed to set type to ", RTN_UNICAST);
+    auto destaddr = nl_addr_build(addr.family(),
+       const_cast<unsigned char *>(addr.bytes()), addr.byteCount());
+    if (!destaddr) {
+      throw FbossError("Failed to build destination address for ",  addr);
     }
-    req.r.rtm_family = addr.family();
-    req.r.rtm_table = getTableId(rid);
-    req.r.rtm_scope = RT_SCOPE_NOWHERE;
-    req.r.rtm_protocol = RTPROT_FBOSS;
-    req.r.rtm_scope = RT_SCOPE_UNIVERSE;
-    req.r.rtm_type = RTN_UNICAST;
-    req.r.rtm_dst_len = 0;       // default route, /0
-    addattr_l(&req.n, sizeof(req), RTA_DST, addr.bytes(), addr.byteCount());
-    addattr32(&req.n, sizeof(req), RTA_OIF, ifIdx);
-    auto ret = rtnl_talk(&rth_, &req.n, 0, 0, nullptr);
-    sysCheckError(ret, "Failed to ", add ? "add" : "remove",
+    SCOPE_EXIT { nl_addr_put(destaddr); };
+    nl_addr_set_prefixlen(destaddr, 0);
+    error = rtnl_route_set_dst(route, destaddr);
+    nlCheckError(error, "Failed to set destination route to ", addr);
+    auto nexthop = rtnl_route_nh_alloc();
+    if (!nexthop) {
+      throw FbossError("Failed to allocate nexthop");
+    }
+    rtnl_route_nh_set_ifindex(nexthop, ifIdx);
+    rtnl_route_add_nexthop(route, nexthop);
+    if (add) {
+      error = rtnl_route_add(sock_, route, NLM_F_REPLACE);
+    } else {
+      error = rtnl_route_delete(sock_, route, 0);
+    }
+    nlCheckError(error, "Failed to ", add ? "add" : "remove",
                   " default route ", addr, " @ index ", ifIdx,
                   " in table ", getTableId(rid), " for router ", rid);
     LOG(INFO) << (add ? "Added" : "Removed") << " default route " << addr
@@ -197,33 +200,27 @@ void TunManager::addRemoveTable(int ifIdx, RouterID rid, bool add) {
 
 void TunManager::addRemoveSourceRouteRule(
     RouterID rid, folly::IPAddress addr, bool add) {
-  struct {
-    struct nlmsghdr n;
-    struct rtmsg r;
-    char buf[256];
-  } req;
-
-  memset(&req, 0, sizeof(req));
-  req.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct rtmsg));
-  req.n.nlmsg_flags = NLM_F_REQUEST;
-  if (add) {
-    req.n.nlmsg_type = RTM_NEWRULE;
-    req.n.nlmsg_flags |= NLM_F_CREATE|NLM_F_REPLACE;
-  } else {
-    req.n.nlmsg_type = RTM_DELRULE;
+  auto rule = rtnl_rule_alloc();
+  SCOPE_EXIT { rtnl_rule_put(rule); };
+  rtnl_rule_set_family(rule, addr.family());
+  rtnl_rule_set_table(rule, getTableId(rid));
+  rtnl_rule_set_action(rule, FR_ACT_TO_TBL);
+  auto sourceaddr = nl_addr_build(addr.family(),
+    const_cast<unsigned char *>(addr.bytes()), addr.byteCount());
+  if (!sourceaddr) {
+    throw FbossError("Failed to build destination address for ",  addr);
   }
-  req.r.rtm_family = addr.family();
-  req.r.rtm_protocol = RTPROT_FBOSS;
-  req.r.rtm_scope = RT_SCOPE_UNIVERSE;
-  req.r.rtm_type = RTN_UNICAST;
-  req.r.rtm_flags = 0;
-  // from addr
-  addattr_l(&req.n, sizeof(req), FRA_SRC, addr.bytes(), addr.byteCount());
-  req.r.rtm_src_len = addr.bitCount(); // match the exact address
-  // table rid
-  req.r.rtm_table = getTableId(rid);
-  auto ret = rtnl_talk(&rth_, &req.n, 0, 0, nullptr);
-  sysCheckError(ret, "Failed to ", add ? "add" : "remove",
+  SCOPE_EXIT { nl_addr_put(sourceaddr); };
+  nl_addr_set_prefixlen(sourceaddr, addr.bitCount());
+  auto error = rtnl_rule_set_src(rule, sourceaddr);
+  nlCheckError(error, "Failed to set destination route to ", addr);
+
+  if (add) {
+    error = rtnl_rule_add(sock_, rule, NLM_F_REPLACE);
+  } else {
+    error = rtnl_rule_delete(sock_, rule, 0);
+  }
+  nlCheckError(error, "Failed to ", add ? "add" : "remove",
                 " rule for address ", addr,
                 " to lookup table ", getTableId(rid),
                 " for router ", rid);
@@ -234,33 +231,28 @@ void TunManager::addRemoveSourceRouteRule(
 void TunManager::addRemoveTunAddress(
     const std::string& name, uint32_t ifIndex,
     folly::IPAddress addr, uint8_t mask, bool add) {
-  struct {
-    struct nlmsghdr n;
-    struct ifaddrmsg ifa;
-    char buf[256];
-  } req;
-  memset(&req, 0, sizeof(req));
-  req.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifaddrmsg));
+  auto tunaddr = rtnl_addr_alloc();
+  SCOPE_EXIT { rtnl_addr_put(tunaddr); };
+  if (!tunaddr) {
+    throw FbossError("Failed to allocate address");
+  }
+  rtnl_addr_set_family(tunaddr, addr.family());
+  auto localaddr = nl_addr_build(addr.family(),
+    const_cast<unsigned char *>(addr.bytes()), addr.byteCount());
+  if (!localaddr) {
+    throw FbossError("Failed to build destination address for ",  addr);
+  }
+  SCOPE_EXIT { nl_addr_put(localaddr); };
+  auto error = rtnl_addr_set_local(tunaddr, localaddr);
+  nlCheckError(error, "Failed to set local address to ", addr);
+  rtnl_addr_set_prefixlen(tunaddr, mask);
+  rtnl_addr_set_ifindex(tunaddr, ifIndex);
   if (add) {
-    req.n.nlmsg_flags = NLM_F_REQUEST|NLM_F_CREATE|NLM_F_EXCL;
-    req.n.nlmsg_type = RTM_NEWADDR;
+    error = rtnl_addr_add(sock_, tunaddr, NLM_F_EXCL);
   } else {
-    req.n.nlmsg_flags = NLM_F_REQUEST;
-    req.n.nlmsg_type = RTM_DELADDR;
+    error = rtnl_addr_delete(sock_, tunaddr, 0);
   }
-  if (addr.isV4()) {
-    req.ifa.ifa_family = AF_INET;
-    addattr_l(&req.n, sizeof(req), IFA_LOCAL, addr.asV4().bytes(),
-              folly::IPAddressV4::byteCount());
-  } else {
-    req.ifa.ifa_family = AF_INET6;
-    addattr_l(&req.n, sizeof(req), IFA_LOCAL, addr.asV6().bytes(),
-              folly::IPAddressV6::byteCount());
-  }
-  req.ifa.ifa_prefixlen = mask;
-  req.ifa.ifa_index = ifIndex;
-  auto ret = rtnl_talk(&rth_, &req.n, 0, 0, nullptr);
-  sysCheckError(ret, "Failed to ", add ? "add" : "remove",
+  nlCheckError(error, "Failed to ", add ? "add" : "remove",
                 " address ", addr, "/", static_cast<int>(mask),
                 " to interface ", name, " @ index ", ifIndex);
   LOG(INFO) << (add ? "Added" : "Removed") << " address " << addr.str() << "/"
@@ -294,86 +286,6 @@ void TunManager::removeTunAddress(
   addRemoveTunAddress(name, ifIndex, addr, mask, false);
 }
 
-int TunManager::getLinkRespParser(const struct sockaddr_nl *who,
-                                  struct nlmsghdr *n,
-                                  void *arg) {
-  // only cares about RTM_NEWLINK
-  if (n->nlmsg_type != RTM_NEWLINK) {
-    return 0;
-  }
-
-  struct ifinfomsg *ifi = static_cast<struct ifinfomsg *>(NLMSG_DATA(n));
-  struct rtattr *tb[IFLA_MAX + 1];
-  int len = n->nlmsg_len;
-  len -= NLMSG_LENGTH(sizeof(*ifi));
-  if (len < 0) {
-    throw FbossError("Wrong length for RTM_GETLINK response ", len, " vs ",
-                     NLMSG_LENGTH(sizeof(*ifi)));
-  }
-  parse_rtattr(tb, IFLA_MAX, IFLA_RTA(ifi), len);
-  if (tb[IFLA_IFNAME] == nullptr) {
-    throw FbossError("Device @ index ", static_cast<int>(ifi->ifi_index),
-                     " does not have a nmae");
-  }
-  const auto name = rta_getattr_str(tb[IFLA_IFNAME]);
-  // match the interface name against intfPrefix
-  if (!TunIntf::isTunIntf(name)) {
-    VLOG(3) << "Ignore interface " << name
-            << " because it is not a tun interface";
-    return 0;
-  }
-  // base on the name, get the router ID
-  auto rid = TunIntf::getRidFromName(name);
-
-  TunManager *mgr = static_cast<TunManager *>(arg);
-  mgr->addIntf(rid, std::string(name), ifi->ifi_index);
-  return 0;
-}
-
-int TunManager::getAddrRespParser(const struct sockaddr_nl *who,
-                                  struct nlmsghdr *n,
-                                  void *arg) {
-  // only cares about RTM_NEWADDR
-  if (n->nlmsg_type != RTM_NEWADDR) {
-    return 0;
-  }
-  struct ifaddrmsg *ifa = static_cast<struct ifaddrmsg *>(NLMSG_DATA(n));
-  struct rtattr *tb[IFA_MAX + 1];
-  int len = n->nlmsg_len;
-  len -= NLMSG_LENGTH(sizeof(*ifa));
-  if (len < 0) {
-    throw FbossError("Wrong length for RTM_GETADDR response ", len, " vs ",
-                     NLMSG_LENGTH(sizeof(*ifa)));
-  }
-  // only care about v4 and v6 address
-  if (ifa->ifa_family != AF_INET && ifa->ifa_family != AF_INET6) {
-    VLOG(3) << "Skip address from device @ index "
-            << static_cast<int>(ifa->ifa_index)
-            << " because of its address family "
-            << static_cast<int>(ifa->ifa_family);
-    return 0;
-  }
-
-  parse_rtattr(tb, IFA_MAX, IFA_RTA(ifa), len);
-  if (tb[IFA_ADDRESS] == nullptr) {
-    VLOG(3) << "Device @ index " << static_cast<int>(ifa->ifa_index)
-            << " does not have address at family "
-            << static_cast<int>(ifa->ifa_family);
-    return 0;
-  }
-  IPAddress addr;
-  const void *data = RTA_DATA(tb[IFA_ADDRESS]);
-  if (ifa->ifa_family == AF_INET) {
-    addr = IPAddress(*static_cast<const in_addr *>(data));
-  } else {
-    addr = IPAddress(*static_cast<const in6_addr *>(data));
-  }
-
-  TunManager *mgr = static_cast<TunManager *>(arg);
-  mgr->addProbedAddr(ifa->ifa_index, addr, ifa->ifa_prefixlen);
-  return 0;
-}
-
 void TunManager::start() const {
   for (const auto& intf : intfs_) {
     intf.second->start();
@@ -386,18 +298,68 @@ void TunManager::stop() const {
   }
 }
 
+void TunManager::linkProcessor(struct nl_object *obj, void *data) {
+  struct rtnl_link * link = reinterpret_cast<struct rtnl_link *>(obj);
+  const auto name = rtnl_link_get_name(link);
+  if (!name) {
+    throw FbossError(" Device @ index ",
+                       rtnl_link_get_ifindex(link), " does not have a name");
+  }
+  if (!TunIntf::isTunIntf(name)) {
+    VLOG(3) << "Ignore interface " << name
+                << " because it is not a tun interface";
+    return;
+  }
+  static_cast<TunManager*>(data)->addIntf(TunIntf::getRidFromName(name),
+          std::string(name), rtnl_link_get_ifindex(link));
+}
+
+void TunManager::addressProcessor(struct nl_object *obj, void *data) {
+  struct rtnl_addr *addr = reinterpret_cast<struct rtnl_addr *>(obj);
+  auto family = rtnl_addr_get_family(addr);
+  if (family != AF_INET && family != AF_INET6) {
+    VLOG(3) << "Skip address from device @ index "
+              << rtnl_addr_get_ifindex(addr)
+              << " because of its address family " << family;
+    return;
+  }
+  auto localaddr = rtnl_addr_get_local(addr);
+  if (!localaddr) {
+   VLOG(3) << "Skip address from device @ index "
+              << rtnl_addr_get_ifindex(addr)
+              << " because of it does not have a local address ";
+   return;
+  }
+  char buf[INET6_ADDRSTRLEN];
+  nl_addr2str(localaddr, buf, sizeof(buf));
+  if (!*buf) {
+    VLOG(3) << "Device @ index " << rtnl_addr_get_ifindex(addr)
+            << " does not have an address at family " << family;
+  }
+  auto ipaddr  = IPAddress::createNetwork(buf, -1, false).first;
+  static_cast<TunManager *>(data)->addProbedAddr(
+    rtnl_addr_get_ifindex(addr),
+    ipaddr,
+    nl_addr_get_prefixlen(localaddr)
+  );
+}
+
 void TunManager::probe() {
   std::lock_guard<std::mutex> lock(mutex_);
   stop();                       // stop all interfaces
   intfs_.clear();               // clear all interface info
-  auto ret = rtnl_wilddump_request(&rth_, AF_UNSPEC, RTM_GETLINK);
-  sysCheckError(ret, "Cannot send RTM_GETLINK request");
-  ret = rtnl_dump_filter(&rth_, getLinkRespParser, this);
-  sysCheckError(ret, "Cannot process RTM_GETLINK response");
-  ret = rtnl_wilddump_request(&rth_, AF_UNSPEC, RTM_GETADDR);
-  sysCheckError(ret, "Cannot send RTM_GETADDR request");
-  ret = rtnl_dump_filter(&rth_, getAddrRespParser, this);
-  sysCheckError(ret, "Cannot process RTM_GETADDR response");
+  //get links
+  struct nl_cache *cache;
+  auto error = rtnl_link_alloc_cache(sock_, AF_UNSPEC, &cache);
+  nlCheckError(error, "Cannot get links from Kernel");
+  SCOPE_EXIT { nl_cache_free(cache); };
+  nl_cache_foreach(cache, &TunManager::linkProcessor, this);
+  //get addresses
+  struct nl_cache *addressCache;
+  error = rtnl_addr_alloc_cache(sock_, &addressCache);
+  nlCheckError(error, "Cannot get addresses from Kernel");
+  SCOPE_EXIT { nl_cache_free(addressCache); };
+  nl_cache_foreach(addressCache, &TunManager::addressProcessor, this);
   // Bring up all interfaces. Interfaces could be already up.
   for (const auto& intf : intfs_) {
     bringupIntf(intf.second->getName(), intf.second->getIfIndex());

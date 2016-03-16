@@ -17,7 +17,8 @@
 #include <boost/container/flat_map.hpp>
 
 extern "C" {
-#include <libnetlink.h>
+#include <netlink/socket.h>
+#include <netlink/object.h>
 }
 
 namespace facebook { namespace fboss {
@@ -69,7 +70,7 @@ class TunManager : public StateObserver {
   SwSwitch *sw_;
   folly::EventBase *evb_;
   boost::container::flat_map<RouterID, std::unique_ptr<TunIntf>> intfs_;
-  rtnl_handle rth_;
+  nl_sock *sock_;
   /**
    * The mutex used to protect intfs_.
    * probe() and sync() could manipulate intfs_. They both run on the same
@@ -134,12 +135,11 @@ class TunManager : public StateObserver {
                      folly::IPAddress addr, uint8_t mask);
   void removeTunAddress(const std::string& name, RouterID rid, uint32_t ifIndex,
                         folly::IPAddress addr, uint8_t mask);
-  /// The callback function to parse the RTM_GETADDRrequest
-  static int getAddrRespParser(const struct sockaddr_nl *who,
-                               struct nlmsghdr *n, void *arg);
-  /// The callback function to parse the RTM_GETLINK request
-  static int getLinkRespParser(const struct sockaddr_nl *who,
-                               struct nlmsghdr *n, void *arg);
+
+  //callback for processing and storing links
+  static void linkProcessor(struct nl_object *obj, void *data);
+  //callback for processing and storing addresses
+  static void addressProcessor(struct nl_object *obj, void *data);
 
   template<typename MAPNAME,
            typename CHANGEFN, typename ADDFN, typename REMOVEFN>

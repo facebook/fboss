@@ -16,7 +16,7 @@ extern "C" {
 #include <fcntl.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
-#include <ll_map.h>
+#include <netlink/route/link.h>
 }
 
 #include "fboss/agent/RxPacket.h"
@@ -62,7 +62,21 @@ TunIntf::TunIntf(SwSwitch *sw, EventBase *evb,
   auto ret = ioctl(fd_, TUNSETPERSIST, 1);
   sysCheckError(ret, "Failed to set persist interface ", name_);
   // TODO: if needed, we can adjust send buffer size, TUNSETSNDBUF
-  ifIndex_ = ll_name_to_index(name_.c_str());
+  auto sock = nl_socket_alloc();
+  if (!sock) {
+    throw SysError(errno, "failed to open libnl socket");
+  }
+  SCOPE_EXIT { nl_socket_free(sock); };
+  ret = nl_connect(sock, NETLINK_ROUTE);
+  sysCheckError(ret, "failed to connect", nl_geterror(ret));
+  {
+    SCOPE_EXIT { nl_close(sock); };
+    nl_cache *cache = nullptr;
+    ret = rtnl_link_alloc_cache(sock, AF_UNSPEC, &cache);
+    sysCheckError(ret, "failed to get all links: error: ", nl_geterror(ret));
+    SCOPE_EXIT { nl_cache_free(cache); };
+    ifIndex_ = rtnl_link_name2i(cache, name_.c_str());
+  }
   LOG(INFO) << "Created interface " << name_ << " with fd " << fd_
             << " from router " << rid_ << " @ index " << ifIndex_;
 }
