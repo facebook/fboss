@@ -294,11 +294,64 @@ void NetlinkListener::netlink_neighbor_updated(struct nl_cache * cache, struct n
 	switch (nl_operation)
 	{
 		case NL_ACT_NEW:
+		{
+			/* Perform the update */
+			auto addFn = [=](const std::shared_ptr<SwitchState>& state) 
+			{
+				std::shared_ptr<SwitchState> newState = state->clone();
+				Vlan * vlan = newState->getVlans()->getVlan(interface->getVlanID()).get();
+				const PortID port = vlan->getPorts().begin()->first; /* TODO what if we have multiple ports? */
+				auto * arpTable = vlan->getArpTable().get();
+				auto arpEntry = arpTable->getNodeIf(nlIpAddress.asV4());
+				if (!arpEntry)
+				{
+					arpTable = arpTable->modify(&vlan, &newState);
+					arpTable->addEntry(nlIpAddress.asV4(), nlMacAddress, port, interface->getID());
+				}
+				else
+				{
+					if (arpEntry->getMac() == nlMacAddress &&
+						arpEntry->getPort() == port &&
+						arpEntry->getIntfID() == interface->getID() &&
+						!arpEntry->isPending())
+					{
+						return std::shared_ptr<SwitchState>(); /* updated by another thread while waiting for lock */
+					}
+					arpTable = arpTable->modify(&vlan, &newState);
+					arpTable->addEntry(nlIpAddress.asV4(), nlMacAddress, port, interface->getID());
+				}
 
+				return newState;
+			};
+
+			nll->sw_->updateStateBlocking("Adding new ARP entry", addFn);
 			break; /* NL_ACL_NEW */
+		}
 		case NL_ACT_DEL:
+		{
+			/* Perform the update */
+			auto delFn = [=](const std::shared_ptr<SwitchState>& state) 
+			{
+				std::shared_ptr<SwitchState> newState = state->clone();
+				Vlan * vlan = newState->getVlans()->getVlan(interface->getVlanID()).get();
+				ArpTable * arpTable = vlan->getArpTable().get();
+				std::shared_ptr<ArpEntry> arpEntry = arpTable->getNodeIf(nlIpAddress.asV4());
+				if (arpEntry)
+				{
+					arpTable = arpTable->modify(&vlan, &newState);
+					arpTable->removeNode(arpEntry);
+				}
+				else
+				{
+					return std::shared_ptr<SwitchState>();
+				}
 
+				return newState;
+			};
+
+			nll->sw_->updateStateBlocking("Removing expired ARP entry", delFn);
 			break; /* NL_ACT_DEL */
+		}
 		case NL_ACT_CHANGE:
 			std::cout << "Not updating state due to unimplemented NL_ACT_CHANGE netlink operation" << std::endl;
 			break; /* NL_ACT_CHANGE */
