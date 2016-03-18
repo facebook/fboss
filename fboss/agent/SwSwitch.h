@@ -75,17 +75,18 @@ inline SwitchFlags operator|=(SwitchFlags& a, const SwitchFlags b) {
  * interface to the switch hardware.
  */
 class SwSwitch : public HwSwitch::Callback {
- // Ordered set of run states for SwSwitch,
- // SwSwitch can only move forward from a
- // lower numbered state to the next
- enum class SwitchRunState: int {
-   UNINITIALIZED,
-   INITIALIZED,
-   CONFIGURED,
-   FIB_SYNCED,
-   EXITING
- };
  public:
+  // Ordered set of run states for SwSwitch,
+  // SwSwitch can only move forward from a
+  // lower numbered state to the next
+  enum class SwitchRunState: int {
+    UNINITIALIZED,
+    INITIALIZED,
+    CONFIGURED,
+    FIB_SYNCED,
+    EXITING
+  };
+
   typedef std::function<
     std::shared_ptr<SwitchState>(const std::shared_ptr<SwitchState>&)>
     StateUpdateFn;

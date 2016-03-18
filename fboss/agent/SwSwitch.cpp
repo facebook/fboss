@@ -64,6 +64,25 @@ using namespace std::chrono;
 DEFINE_string(config, "", "The path to the local JSON configuration file");
 
 namespace {
+
+std::string switchRunStateStr(
+  facebook::fboss::SwSwitch::SwitchRunState runstate) {
+  switch (runstate) {
+    case facebook::fboss::SwSwitch::SwitchRunState::UNINITIALIZED:
+      return "UNINITIALIZED";
+    case facebook::fboss::SwSwitch::SwitchRunState::INITIALIZED:
+      return "INITIALIZED";
+    case facebook::fboss::SwSwitch::SwitchRunState::CONFIGURED:
+      return "CONFIGURED";
+    case facebook::fboss::SwSwitch::SwitchRunState::FIB_SYNCED:
+      return "FIB_SYNCED";
+    case facebook::fboss::SwSwitch::SwitchRunState::EXITING:
+      return "EXITING";
+    default:
+      return "Unknown";
+  }
+}
+
 facebook::fboss::PortStatus fillInPortStatus(
     const facebook::fboss::Port& port,
     const facebook::fboss::SwSwitch* sw) {
@@ -206,6 +225,8 @@ bool SwSwitch::isExiting() const {
 void SwSwitch::setSwitchRunState(SwitchRunState runState) {
   auto oldState = runState_.exchange(runState, std::memory_order_acq_rel);
   CHECK(oldState <= runState);
+  VLOG(2) << "SwitchRunState changed from " << switchRunStateStr(oldState) <<
+    " to " << switchRunStateStr(runState);
 }
 
 SwSwitch::SwitchRunState SwSwitch::getSwitchRunState() const {
