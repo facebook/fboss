@@ -27,7 +27,7 @@ function build() {
             cd build
             echo cmake .. $CMAKEFLAGS
             cmake .. $CMAKEFLAGS
-            make
+	    make
         else
             if [ ! -e ./configure ]; then
                 autoreconf --install

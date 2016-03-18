@@ -58,6 +58,12 @@ void NetlinkListener::netlink_route_updated(struct nl_cache * cache, struct nl_o
 	//nl_cache_dump(cache, nll->get_dump_params());
 }
 
+void NetlinkListener::netlink_neighbor_updated(struct nl_cache * cache, struct nl_object * obj, int idk, void * data)
+{
+	std::cout << "Neighbor cache callback triggered:" << std::endl;
+	nl_cache_dump(cache, ((NetlinkListener *) data)->get_dump_params());
+}
+
 void NetlinkListener::register_w_netlink()
 {
 	int rc = 0; /* track errors; defined in libnl3/netlinks/errno.h */
@@ -104,9 +110,22 @@ void NetlinkListener::register_w_netlink()
 		std::cout << "Allocated route cache" << std::endl;
   	}
 
+  	if ((rc = rtnl_neigh_alloc_cache(sock_, &neigh_cache_)) < 0)
+  	{
+    		nl_cache_free(route_cache_);
+		nl_cache_free(link_cache_);
+    		nl_socket_free(sock_);
+    		log_and_die_rc("Allocating neighbor cache failed", rc);
+  	}
+  	else
+  	{
+		std::cout << "Allocated neighbor cache" << std::endl;
+  	}
+
   	if ((rc = nl_cache_mngr_alloc(NULL, AF_UNSPEC, 0, &manager_)) < 0)
   	{
-    		nl_cache_free(link_cache_);
+    		nl_cache_free(neigh_cache_);
+		nl_cache_free(link_cache_);
     		nl_cache_free(route_cache_);
     		nl_socket_free(sock_);
     		log_and_die_rc("Failed to allocate cache manager", rc);
@@ -118,7 +137,8 @@ void NetlinkListener::register_w_netlink()
 
   	nl_cache_mngt_provide(link_cache_);
 	nl_cache_mngt_provide(route_cache_);
-	
+	nl_cache_mngt_provide(neigh_cache_);
+
 	/*
 	printf("Initial Cache Manager:\r\n");
   	nl_cache_mngr_info(manager_, get_dump_params());
@@ -143,15 +163,29 @@ void NetlinkListener::register_w_netlink()
 
   	if ((rc = nl_cache_mngr_add_cache(manager_, link_cache_, netlink_link_updated, this)) < 0)
   	{
-    	nl_cache_mngr_free(manager_);
-    	nl_cache_free(link_cache_);
-    	nl_cache_free(route_cache_);
-    	nl_socket_free(sock_);
-    	log_and_die_rc("Failed to add link cache to cache manager", rc);
+    		nl_cache_mngr_free(manager_);
+	    	nl_cache_free(link_cache_);
+	    	nl_cache_free(route_cache_);
+	    	nl_socket_free(sock_);
+	    	log_and_die_rc("Failed to add link cache to cache manager", rc);
   	}
   	else
   	{	
 		std::cout << "Added link cache to cache manager" << std::endl;
+  	}
+
+  	if ((rc = nl_cache_mngr_add_cache(manager_, neigh_cache_, netlink_neighbor_updated, this)) < 0)
+  	{
+    		nl_cache_mngr_free(manager_);
+	    	nl_cache_free(neigh_cache_);
+		nl_cache_free(link_cache_);
+	    	nl_cache_free(route_cache_);
+	    	nl_socket_free(sock_);
+	    	log_and_die_rc("Failed to add neighbor cache to cache manager", rc);
+  	}
+  	else
+  	{	
+		std::cout << "Added neighbor cache to cache manager" << std::endl;
   	}
 }
 
