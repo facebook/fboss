@@ -311,6 +311,9 @@ void SwSwitch::init(SwitchFlags flags) {
     tunMgr_->startProbe();
   } else if (flags & SwitchFlags::ENABLE_NETLINK_LISTENER) {
     netlinkListener_ = folly::make_unique<NetlinkListener>(this, &backgroundEventBase_, FLAGS_netlink_listener_tap_prefix);
+    if (nUpdater_) { /* disable; unique_ptr cleans everything up */
+      nUpdater_.reset(); /* TODO need a good way to detect on instatiation of SwSwitch that we're not using this... */
+    }
   }
 
   startThreads();
