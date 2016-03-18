@@ -118,6 +118,7 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
   PortID port = pkt->getSrcPort();
 
   const uint32_t l3Len = pkt->getLength() - (cursor - Cursor(pkt->buf()));
+  const uint32_t l2Len = pkt->getLength();
   stats->port(port)->ipv4Rx();
   IPv4Hdr v4Hdr(cursor);
   VLOG(4) << "Rx IPv4 packet (" << l3Len << " bytes) " << v4Hdr.srcAddr.str()
@@ -131,6 +132,25 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
   auto vlan = state->getVlans()->getVlanIf(pkt->getSrcVlan());
   if (!vlan) {
     stats->port(port)->pktDropped();
+    return;
+  }
+
+  /* 
+   * Short circuit remaining logic if we're letting the host OS handle the 
+   * packet. TODO Should probably filter by MAC address here first:
+   * -- if Interface's MAC
+   * -- if broadcast MAC
+   * -- if multicast MAC
+   */
+  if (sw_->runningInNetlinkMode())
+  {
+    if (sw_->sendPacketToHost(std::move(pkt)))
+    {
+      stats->port(port)->pktToHost(l2Len);
+    }
+    else {
+      stats->port(port)->pktDropped();
+    }
     return;
   }
 

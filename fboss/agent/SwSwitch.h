@@ -523,6 +523,13 @@ class SwSwitch : public HwSwitch::Callback {
   }
 
   /*
+   *
+   */
+  const bool runningInNetlinkMode() {
+    return netlinkListener_ ? false : true;
+  }
+
+  /*
    * Allow hardware to perform any cleanup needed to gracefully restart the
    * agent before we exit application.
    */

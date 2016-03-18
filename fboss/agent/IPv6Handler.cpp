@@ -128,6 +128,7 @@ void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
                                MacAddress src,
                                Cursor cursor) {
   const uint32_t l3Len = pkt->getLength() - (cursor - Cursor(pkt->buf()));
+  const uint32_t l2Len = pkt->getLength();
   IPv6Hdr ipv6(cursor);  // note: advances our cursor object
   VLOG(4) << "IPv6 (" << l3Len << " bytes)"
     " port: " << pkt->getSrcPort() <<
@@ -141,6 +142,20 @@ void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
   // retrieve the current switch state
   auto state = sw_->getState();
   PortID port = pkt->getSrcPort();
+
+  if (sw_->runningInNetlinkMode())
+  {
+    if (sw_->sendPacketToHost(std::move(pkt)))
+    {
+      sw_->stats()->port(port)->pktToHost(l2Len);
+    }
+    else
+    {
+      sw_->stats()->port(port)->pktDropped();
+    }
+    return;
+  }
+
 
   // NOTE: DHCPv6 solicit pacekt from client has hoplimit set to 1,
   // we need to handle it before send the ICMPv6 TTL exceeded
