@@ -253,8 +253,60 @@ void NetlinkListener::netlink_neighbor_updated(struct nl_cache * cache, struct n
 {
 	struct rtnl_neigh * neigh = (struct rtnl_neigh *) obj;
 	NetlinkListener * nll = (NetlinkListener *) data;
-	std::cout << "Neighbor cache callback was triggered:" << std::endl;
 	//nl_cache_dump(cache, nll->get_dump_params());
+
+	const int ifindex = rtnl_neigh_get_ifindex(neigh);
+	char nameTmp[IFNAMSIZ];
+	rtnl_link_i2name(cache, ifindex, nameTmp, IFNAMSIZ);
+	const std::string name(nameTmp);
+	std::cout << "Neighbor cache callback was triggered for link: " << name << std::endl;
+
+	const std::map<int, TapIntf *>::const_iterator itr = nll->getInterfacesByIfindex().find(ifindex);
+	if (itr == nll->getInterfacesByIfindex().end()) /* shallow ptr cmp */
+	{
+		std::cout << "Not updating neighbor entry for interface " << name << ", ifindex=" << std::to_string(ifindex) << std::endl;
+		return;
+	}
+	TapIntf * tapIface = itr->second;
+	const std::shared_ptr<SwitchState> state = nll->sw_->getState();
+	const std::shared_ptr<Interface> interface = state->getInterfaces()->getInterface(tapIface->getInterfaceID());
+
+	bool is_ipv4 = true;
+	const int family = rtnl_neigh_get_family(neigh);
+	switch (family)
+	{
+		case AF_INET:
+			is_ipv4 = true;
+			break;
+		case AF_INET6:
+			is_ipv4 = false;
+			break;
+		default:
+			std::cout << "Unknown address family " << std::to_string(family) << std::endl;
+			return;
+	}
+
+	const uint8_t str_len = is_ipv4 ? INET_ADDRSTRLEN : INET6_ADDRSTRLEN;
+	char tmp[str_len];
+	const folly::IPAddress nlIpAddress(nl_addr2str(rtnl_neigh_get_dst(neigh), tmp, str_len));
+	const folly::MacAddress nlMacAddress(nl_addr2str(rtnl_neigh_get_lladdr(neigh), tmp, str_len)); /* buffer is plenty long enough */
+
+	switch (nl_operation)
+	{
+		case NL_ACT_NEW:
+
+			break; /* NL_ACL_NEW */
+		case NL_ACT_DEL:
+
+			break; /* NL_ACT_DEL */
+		case NL_ACT_CHANGE:
+			std::cout << "Not updating state due to unimplemented NL_ACT_CHANGE netlink operation" << std::endl;
+			break; /* NL_ACT_CHANGE */
+		default:
+			std::cout << "Not updating state due to unknown netlink operation " << std::to_string(nl_operation) << std::endl;
+			break; /* NL_ACT_??? */
+	}
+	return;
 }
 
 void NetlinkListener::netlink_address_updated(struct nl_cache * cache, struct nl_object * obj, int nl_operation, void * data)
@@ -280,7 +332,8 @@ void NetlinkListener::netlink_address_updated(struct nl_cache * cache, struct nl
 	const std::shared_ptr<Interface> interface = state->getInterfaces()->getInterface(tapIface->getInterfaceID());
 
 	bool is_ipv4 = true;
-	switch (rtnl_addr_get_family(addr))
+	const int family = rtnl_addr_get_family(addr);
+	switch (family)
 	{
 		case AF_INET:
 			is_ipv4 = true;
@@ -289,7 +342,7 @@ void NetlinkListener::netlink_address_updated(struct nl_cache * cache, struct nl
 			is_ipv4 = false;
 			break;
 		default:
-			std::cout << "Unknown address family " << std::to_string(rtnl_addr_get_family(addr)) << std::endl;
+			std::cout << "Unknown address family " << std::to_string(family) << std::endl;
 			return;
 	}
 
