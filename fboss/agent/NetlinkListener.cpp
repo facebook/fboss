@@ -295,61 +295,123 @@ void NetlinkListener::netlink_neighbor_updated(struct nl_cache * cache, struct n
 	{
 		case NL_ACT_NEW:
 		{
-			/* Perform the update */
-			auto addFn = [=](const std::shared_ptr<SwitchState>& state) 
+			if (is_ipv4)
 			{
-				std::shared_ptr<SwitchState> newState = state->clone();
-				Vlan * vlan = newState->getVlans()->getVlan(interface->getVlanID()).get();
-				const PortID port = vlan->getPorts().begin()->first; /* TODO what if we have multiple ports? */
-				auto * arpTable = vlan->getArpTable().get();
-				auto arpEntry = arpTable->getNodeIf(nlIpAddress.asV4());
-				if (!arpEntry)
+				/* Perform the update */
+				auto addFn = [=](const std::shared_ptr<SwitchState>& state) 
 				{
-					arpTable = arpTable->modify(&vlan, &newState);
-					arpTable->addEntry(nlIpAddress.asV4(), nlMacAddress, port, interface->getID());
-				}
-				else
-				{
-					if (arpEntry->getMac() == nlMacAddress &&
-						arpEntry->getPort() == port &&
-						arpEntry->getIntfID() == interface->getID() &&
-						!arpEntry->isPending())
+					std::shared_ptr<SwitchState> newState = state->clone();
+					Vlan * vlan = newState->getVlans()->getVlan(interface->getVlanID()).get();
+					const PortID port = vlan->getPorts().begin()->first; /* TODO what if we have multiple ports? */
+					ArpTable * arpTable = vlan->getArpTable().get();
+					std::shared_ptr<ArpEntry> arpEntry = arpTable->getNodeIf(nlIpAddress.asV4());
+					if (!arpEntry)
 					{
-						return std::shared_ptr<SwitchState>(); /* updated by another thread while waiting for lock */
+						arpTable = arpTable->modify(&vlan, &newState);
+						arpTable->addEntry(nlIpAddress.asV4(), nlMacAddress, port, interface->getID());
 					}
-					arpTable = arpTable->modify(&vlan, &newState);
-					arpTable->addEntry(nlIpAddress.asV4(), nlMacAddress, port, interface->getID());
-				}
+					else
+					{
+						if (arpEntry->getMac() == nlMacAddress &&
+							arpEntry->getPort() == port &&
+							arpEntry->getIntfID() == interface->getID() &&
+							!arpEntry->isPending())
+						{
+							return std::shared_ptr<SwitchState>(); /* already there */
+						}
+						arpTable = arpTable->modify(&vlan, &newState);
+						arpTable->addEntry(nlIpAddress.asV4(), nlMacAddress, port, interface->getID());
+					}
 
-				return newState;
-			};
+					return newState;
+				};
 
-			nll->sw_->updateStateBlocking("Adding new ARP entry", addFn);
+				nll->sw_->updateStateBlocking("Adding new ARP entry", addFn);
+			}
+			else
+			{
+				auto addFn = [=](const std::shared_ptr<SwitchState>& state)
+				{
+					std::shared_ptr<SwitchState> newState = state->clone();
+					Vlan * vlan = newState->getVlans()->getVlan(interface->getVlanID()).get();
+					const PortID port = vlan->getPorts().begin()->first; /* TODO what if we have multiple ports? */
+					NdpTable * ndpTable = vlan->getNdpTable().get();
+					std::shared_ptr<NdpEntry> ndpEntry = ndpTable->getNodeIf(nlIpAddress.asV6());
+					if (!ndpEntry)
+					{
+						ndpTable = ndpTable->modify(&vlan, &newState);
+						ndpTable->addEntry(nlIpAddress.asV6(), nlMacAddress, port, interface->getID());
+					}
+					else
+					{
+						if (ndpEntry->getMac() == nlMacAddress &&
+							ndpEntry->getPort() == port &&
+							ndpEntry->getIntfID() == interface->getID() &&
+							!ndpEntry->isPending())
+						{
+							return std::shared_ptr<SwitchState>(); /* already there */
+						}
+						ndpTable = ndpTable->modify(&vlan, &newState);
+						ndpTable->addEntry(nlIpAddress.asV6(), nlMacAddress, port, interface->getID());
+					}
+
+					return newState;
+				};
+
+				nll->sw_->updateStateBlocking("Adding new NDP entry", addFn);
+			}
 			break; /* NL_ACL_NEW */
 		}
 		case NL_ACT_DEL:
 		{
-			/* Perform the update */
-			auto delFn = [=](const std::shared_ptr<SwitchState>& state) 
+			if (is_ipv4)
 			{
-				std::shared_ptr<SwitchState> newState = state->clone();
-				Vlan * vlan = newState->getVlans()->getVlan(interface->getVlanID()).get();
-				ArpTable * arpTable = vlan->getArpTable().get();
-				std::shared_ptr<ArpEntry> arpEntry = arpTable->getNodeIf(nlIpAddress.asV4());
-				if (arpEntry)
+				/* Perform the update */
+				auto delFn = [=](const std::shared_ptr<SwitchState>& state) 
 				{
-					arpTable = arpTable->modify(&vlan, &newState);
-					arpTable->removeNode(arpEntry);
-				}
-				else
+					std::shared_ptr<SwitchState> newState = state->clone();
+					Vlan * vlan = newState->getVlans()->getVlan(interface->getVlanID()).get();
+					ArpTable * arpTable = vlan->getArpTable().get();
+					std::shared_ptr<ArpEntry> arpEntry = arpTable->getNodeIf(nlIpAddress.asV4());
+					if (arpEntry)
+					{
+						arpTable = arpTable->modify(&vlan, &newState);
+						arpTable->removeNode(arpEntry);
+					}
+					else
+					{
+						return std::shared_ptr<SwitchState>();
+					}
+
+					return newState;
+				};
+
+				nll->sw_->updateStateBlocking("Removing expired ARP entry", delFn);
+			}
+			else
+			{
+				/* Perform the update */
+				auto delFn = [=](const std::shared_ptr<SwitchState>& state) 
 				{
-					return std::shared_ptr<SwitchState>();
-				}
+					std::shared_ptr<SwitchState> newState = state->clone();
+					Vlan * vlan = newState->getVlans()->getVlan(interface->getVlanID()).get();
+					NdpTable * ndpTable = vlan->getNdpTable().get();
+					std::shared_ptr<NdpEntry> ndpEntry = ndpTable->getNodeIf(nlIpAddress.asV6());
+					if (ndpEntry)
+					{
+						ndpTable = ndpTable->modify(&vlan, &newState);
+						ndpTable->removeNode(ndpEntry);
+					}
+					else
+					{
+						return std::shared_ptr<SwitchState>();
+					}
 
-				return newState;
-			};
+					return newState;
+				};
 
-			nll->sw_->updateStateBlocking("Removing expired ARP entry", delFn);
+				nll->sw_->updateStateBlocking("Removing expired NDP entry", delFn);
+			}
 			break; /* NL_ACT_DEL */
 		}
 		case NL_ACT_CHANGE:
