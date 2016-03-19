@@ -115,17 +115,19 @@ inline void updatePortStatusCounters(const facebook::fboss::StateDelta& delta) {
 
 namespace facebook { namespace fboss {
 
-SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
+SwSwitch::SwSwitch(std::unique_ptr<Platform> platform, bool initNeighborUpdater)
   : hw_(platform->getHwSwitch()),
     platform_(std::move(platform)),
     arp_(new ArpHandler(this)),
     ipv4_(new IPv4Handler(this)),
     ipv6_(new IPv6Handler(this)),
-    nUpdater_(new NeighborUpdater(this)),
     pcapMgr_(new PktCaptureManager(this)),
     transceiverMap_(new TransceiverMap()) {
   // Create the platform-specific state directories if they
   // don't exist already.
+  if (initNeighborUpdater) {
+    nUpdater_.reset(new NeighborUpdater(this));
+  }
   utilCreateDir(platform_->getVolatileStateDir());
   utilCreateDir(platform_->getPersistentStateDir());
 }
@@ -309,10 +311,13 @@ void SwSwitch::init(SwitchFlags flags) {
   if (flags & SwitchFlags::ENABLE_TUN ) {
     tunMgr_ = folly::make_unique<TunManager>(this, &backgroundEventBase_);
     tunMgr_->startProbe();
-  } else if (flags & SwitchFlags::ENABLE_NETLINK_LISTENER) {
+  } else if (flags & SwitchFlags::ENABLE_NETLINK_LISTENER) { 
+    VLOG(1) << "Enabling netlink listener";
     netlinkListener_ = folly::make_unique<NetlinkListener>(this, &backgroundEventBase_, FLAGS_netlink_listener_tap_prefix);
     if (nUpdater_) { /* disable; unique_ptr cleans everything up */
+      VLOG(0) << "Netlink listener initialized. Disabling neighbor updater";
       nUpdater_.reset(); /* TODO need a good way to detect on instatiation of SwSwitch that we're not using this... */
+      VLOG(0) << "Neighbor updater disabled";
     }
   }
 
@@ -336,6 +341,7 @@ void SwSwitch::initialConfigApplied() {
      * single Interface per VLAN. Any existing Interfaces
      * will be removed (invalidating any prior JSON config).
      */
+    VLOG(1) << "Creating tap interfaces for netlink";
     netlinkListener_->addInterfacesAndUpdateState(getState());
   }
 
@@ -362,7 +368,9 @@ void SwSwitch::initialConfigApplied() {
     tunMgr_->startObservingUpdates();
   }
   if (netlinkListener_) {
+    VLOG(0) << "Starting netlink listener";
     netlinkListener_->startNetlinkListener(FLAGS_netlink_listener_poll_seconds * 1000); /* need sec --> ms */
+    VLOG(0) << "Netlink listener started";
   } 
 
   if (lldpManager_) {

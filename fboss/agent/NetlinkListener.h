@@ -27,6 +27,7 @@ extern "C" {
 
 #include "fboss/agent/types.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/Platform.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/Route.h"

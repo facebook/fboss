@@ -111,16 +111,30 @@ void NetlinkListener::netlink_link_updated(struct nl_cache * cache, struct nl_ob
 	{
 		auto updateLinkFn = [=](const std::shared_ptr<SwitchState>& state)
 		{
-			const std::shared_ptr<SwitchState> newState = state->clone();
-			std::shared_ptr<Interface> newInterface = newState->getInterfaces()->getInterface(tapIface->getInterfaceID());	
-			if (updateMac)
+			std::shared_ptr<SwitchState> newState = state->clone();
+			std::shared_ptr<InterfaceMap> newInterfaces = std::make_shared<InterfaceMap>();
+			std::shared_ptr<Interface> newInterface = newInterfaces->getInterface(tapIface->getInterfaceID())->clone();	
+			
+			for (const auto& itr : *newState->getInterfaces())
 			{
-				newInterface->setMac(MacAddress::fromNBO(nlMac.u64NBO()));
+				if (newInterface->getID() == itr->getID() && updateMac)
+				{
+					newInterface->setMac(MacAddress::fromNBO(nlMac.u64NBO()));
+				}
+				if (newInterface->getID() == itr->getID() && updateMtu)
+				{
+					newInterface->setMtu(nlMtu);
+				}
+				if (newInterface->getID() == itr->getID())
+				{
+					newInterfaces->addInterface(std::move(newInterface));
+				}
+				else
+				{
+					newInterfaces->addInterface(std::move(itr));
+				}
 			}
-			if (updateMtu)
-			{
-				newInterface->setMtu(nlMtu);
-			}
+			newState->resetIntfs(std::move(newInterfaces));
 			return newState;
 		};
 
@@ -701,6 +715,11 @@ void NetlinkListener::add_ifaces(const std::string &prefix, std::shared_ptr<Swit
 	 */
 	std::shared_ptr<InterfaceMap> interfaces = std::make_shared<InterfaceMap>();
 	std::shared_ptr<VlanMap> newVlans = std::make_shared<VlanMap>();
+	
+	/* Get default VLAN to use temporarily */
+	std::shared_ptr<Vlan> defaultVlan = state->getVlans()->getVlan(state->getDefaultVlan());
+
+	VLOG(0) << "Adding " << state->getVlans()->size() << " Interfaces to FBOSS";
 	for (const auto& oldVlan : state->getVlans()->getAllNodes()) /* const VlanMap::NodeContainer& vlans */
 	{
 		std::string interfaceName = prefix + std::to_string((int) oldVlan.second->getID()); /* stick with the original VlanIDs as given in JSON config */
@@ -711,7 +730,7 @@ void NetlinkListener::add_ifaces(const std::string &prefix, std::shared_ptr<Swit
 			(RouterID) 0, /* TODO assume single router */
 			oldVlan.second->getID(),
 			interfaceName,
-			MacAddress::ZERO,
+			sw_->getPlatform()->getLocalMac(), /* Temporarily use CPU MAC until netlink tells us our MAC */
 			/* TODO why static_cast here? It works in ApplyThriftConfig and is static const and already initialized to 1500 in the declaration */
 			static_cast<int>(Interface::kDefaultMtu) 
 			);
@@ -729,6 +748,7 @@ void NetlinkListener::add_ifaces(const std::string &prefix, std::shared_ptr<Swit
 		newVlan->setInterfaceID((InterfaceID) oldVlan.second->getID());	/* TODO why not? */
 		newVlan->setPorts(oldVlan.second->getPorts());
 		newVlans->addVlan(std::move(newVlan));
+		VLOG(4) << "Updating VLAN " << newVlan->getID() << " with new Interface ID";
 	}
 
 	/* Update the SwitchState with the new Interfaces and Vlans */
@@ -739,7 +759,20 @@ void NetlinkListener::add_ifaces(const std::string &prefix, std::shared_ptr<Swit
 		newState->resetVlans(std::move(newVlans));
 		return newState;
 	};
+
+	auto clearIfacesAndVlansFn = [=](const std::shared_ptr<SwitchState>& state)
+	{
+		std::shared_ptr<SwitchState> newState = state->clone();
+		std::shared_ptr<InterfaceMap> delIfaces = std::make_shared<InterfaceMap>();
+		std::shared_ptr<VlanMap> delVlans = std::make_shared<VlanMap>();
+		delVlans->addVlan(std::move(defaultVlan));	
+		newState->resetIntfs(std::move(delIfaces));
+		newState->resetVlans(std::move(delVlans));
+		return newState;
+	};
 	
+	VLOG(3) << "About to update state blocking with new VLANs";
+	sw_->updateStateBlocking("Purge existing Interfaces and Vlans", clearIfacesAndVlansFn);
 	sw_->updateStateBlocking("Add NetlinkListener initial Interfaces and Vlans", addIfacesAndVlansFn);
 
 	/* 
@@ -749,6 +782,7 @@ void NetlinkListener::add_ifaces(const std::string &prefix, std::shared_ptr<Swit
 	 */
 
 	/* It's okay if we use the stale SwitchState here; only getting VlanID */
+	VLOG(0) << "Adding " << state->getVlans()->size() << " tap interfaces to host";
 	for (const auto& vlan : state->getVlans()->getAllNodes())
 	{
 		std::string name = prefix + std::to_string((int) vlan.second->getID()); /* name w/same VLAN ID for transparency */
@@ -760,7 +794,7 @@ void NetlinkListener::add_ifaces(const std::string &prefix, std::shared_ptr<Swit
 				); 
 		interfaces_by_ifindex_[tapiface->getIfaceIndex()] = tapiface;
 		interfaces_by_vlan_[vlan.second->getID()] = tapiface;
-		std::cout << "Link " << name << " added." << std::endl;
+		VLOG(4) << "Tap interface " << name << " added";
 	}
 }
 

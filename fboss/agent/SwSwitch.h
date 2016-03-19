@@ -93,7 +93,7 @@ class SwSwitch : public HwSwitch::Callback {
 
   typedef std::function<void(const StateDelta&)> StateUpdatedCallback;
 
-  explicit SwSwitch(std::unique_ptr<Platform> platform);
+  explicit SwSwitch(std::unique_ptr<Platform> platform, bool initNeighborUpdater);
   ~SwSwitch() override;
 
   HwSwitch* getHw() const {

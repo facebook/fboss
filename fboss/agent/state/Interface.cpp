@@ -33,6 +33,19 @@ constexpr auto kMtu = "mtu";
 
 namespace facebook { namespace fboss {
 
+Interface * Interface::modify(std::shared_ptr<SwitchState> * state) {
+	if (!isPublished()) {
+		CHECK(!(*state)->isPublished());
+		return this;
+	}
+
+	InterfaceMap * interfaces = (*state)->getInterfaces()->modify(state);
+	std::shared_ptr<Interface> newInterface = clone();
+	Interface * ptr = newInterface.get();
+	interfaces->updateInterface(std::move(newInterface));
+	return ptr;
+}
+
 InterfaceFields InterfaceFields::fromFollyDynamic(const folly::dynamic& json) {
   auto intfFields =
     InterfaceFields(

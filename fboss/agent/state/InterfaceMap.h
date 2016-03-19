@@ -10,6 +10,7 @@
 #pragma once
 #include <vector>
 #include <folly/IPAddress.h>
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeMap.h"
 namespace facebook { namespace fboss {
@@ -102,6 +103,12 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
   void removeInterface(const std::shared_ptr<Interface>& interface) {
     removeNode(interface);
   }
+
+	void updateInterface(const std::shared_ptr<Interface>& interface) {
+		updateNode(interface);
+	}
+
+	InterfaceMap * modify(std::shared_ptr<SwitchState> * state);
 
   /*
    * Serialize to a folly::dynamic object
