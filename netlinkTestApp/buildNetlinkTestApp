@@ -1,5 +1,0 @@
-#!/bin/bash
-g++ -std=c++11 TapIntf.cpp NetlinkListener.cpp main.cpp -o netlinkTestApp $(pkg-config --cflags --libs libnl-3.0 libnl-genl-3.0 libnl-route-3.0) -lboost_thread -lboost_system
-
-export NLDBG=1
-exit 0
