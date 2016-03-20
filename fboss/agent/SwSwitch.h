@@ -523,10 +523,10 @@ class SwSwitch : public HwSwitch::Callback {
   }
 
   /*
-   *
+   * Are we operating in FBOSS-managed or netlink-managed mode?
    */
   const bool runningInNetlinkMode() {
-    return netlinkListener_ ? false : true;
+    return netlinkListener_ ? true : false;
   }
 
   /*

@@ -126,6 +126,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform, bool initNeighborUpdater)
   // Create the platform-specific state directories if they
   // don't exist already.
   if (initNeighborUpdater) {
+		VLOG(3) << "Creating NeighborUpdater";
     nUpdater_.reset(new NeighborUpdater(this));
   }
   utilCreateDir(platform_->getVolatileStateDir());
@@ -1092,7 +1093,7 @@ void SwSwitch::sendL2Packet(InterfaceID iid, std::unique_ptr<TxPacket> pkt) noex
 	buf->prepend(vlanLen); /* adjust data to point to new start of -4 bytes and add +4 to length */
 	
 	/* Now, add in the VLAN ethtype and the tag, which is 12 bytes in */
-    	RWPrivateCursor cursor(buf);
+  RWPrivateCursor cursor(buf);
 	TxPacket::writeEthHeaderVlanTag(&cursor, interface->getVlanID());
 
 	const uint32_t pktLenWithVlan = buf->length() + vlanLen; /* need to record, since we're forfeiting our TxPacket */
@@ -1108,6 +1109,16 @@ bool SwSwitch::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
   if (tunMgr_) {
     return tunMgr_->sendPacketToHost(std::move(pkt));
   } else if (netlinkListener_) {
+		/* pop VLAN tag; will (err...should) always be present */
+		folly::IOBuf * buf = pkt->buf();
+		CHECK(!buf->isShared());
+		const uint32_t dstSrcMacLen = 12;
+		const uint32_t vlanLen = 4;
+
+		/* Remove VLAN tag and shift prior L2 header towards payload */
+		memmove(buf->writableData() + vlanLen, buf->data(), dstSrcMacLen);
+		buf->trimStart(vlanLen); /* +4 bytes to start of buffer */
+		 
     return netlinkListener_->sendPacketToHost(std::move(pkt));
   } else {
     return false;
