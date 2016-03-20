@@ -24,6 +24,7 @@ extern "C" {
 #include "TapIntf.h"
 
 #include <folly/io/async/EventBase.h>
+#include <folly/IPAddress.h>
 
 #include "fboss/agent/types.h"
 #include "fboss/agent/SwSwitch.h"
