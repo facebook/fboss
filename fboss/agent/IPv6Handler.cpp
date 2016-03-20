@@ -153,6 +153,7 @@ void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
     {
       sw_->stats()->port(port)->pktDropped();
     }
+		VLOG(2) << "Sent IPv6 packet to host";
     return;
   }
 

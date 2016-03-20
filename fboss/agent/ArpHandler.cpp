@@ -86,6 +86,7 @@ void ArpHandler::handlePacket(unique_ptr<RxPacket> pkt,
     {
       stats->port(port)->pktDropped();
     }
+		VLOG(2) << "Sent ARP packet to host";
     return;
   } 
 

@@ -261,7 +261,7 @@ void NetlinkListener::netlink_neighbor_updated(struct nl_cache * cache, struct n
 
 	const int ifindex = rtnl_neigh_get_ifindex(neigh);
 	char nameTmp[IFNAMSIZ];
-	rtnl_link_i2name(cache, ifindex, nameTmp, IFNAMSIZ);
+	rtnl_link_i2name(nll->link_cache_, ifindex, nameTmp, IFNAMSIZ);
 	const std::string name(nameTmp);
 	std::cout << "Neighbor cache callback was triggered for link: " << name << std::endl;
 
@@ -290,10 +290,20 @@ void NetlinkListener::netlink_neighbor_updated(struct nl_cache * cache, struct n
 			return;
 	}
 
-	const uint8_t str_len = is_ipv4 ? INET_ADDRSTRLEN : INET6_ADDRSTRLEN;
-	char tmp[str_len];
-	const folly::IPAddress nlIpAddress(nl_addr2str(rtnl_neigh_get_dst(neigh), tmp, str_len));
-	const folly::MacAddress nlMacAddress(nl_addr2str(rtnl_neigh_get_lladdr(neigh), tmp, str_len)); /* buffer is plenty long enough */
+	const uint8_t ipLen = is_ipv4 ? INET_ADDRSTRLEN : INET6_ADDRSTRLEN;
+	char ipBuf[ipLen];
+	char macBuf[MAC_ADDRSTRLEN];
+	folly::IPAddress nlIpAddress;
+	folly::MacAddress nlMacAddress;
+	nl_addr2str(rtnl_neigh_get_dst(neigh), ipBuf, ipLen);
+	nl_addr2str(rtnl_neigh_get_lladdr(neigh), macBuf, MAC_ADDRSTRLEN);
+	try {
+		nlIpAddress = folly::IPAddress(ipBuf);
+		nlMacAddress = folly::MacAddress(macBuf);
+	} catch (const std::invalid_argument& ex) {
+		VLOG(1) << "Could not parse MAC '" << macBuf << "' or IP '" << ipBuf << "' in neighbor update for ifindex " << ifindex;
+		return;
+	}
 
 	switch (nl_operation)
 	{

@@ -151,6 +151,7 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
     else {
       stats->port(port)->pktDropped();
     }
+		VLOG(2) << "Sent IPv4 packet to host";
     return;
   }
 
