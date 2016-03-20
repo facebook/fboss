@@ -112,29 +112,16 @@ void NetlinkListener::netlink_link_updated(struct nl_cache * cache, struct nl_ob
 		auto updateLinkFn = [=](const std::shared_ptr<SwitchState>& state)
 		{
 			std::shared_ptr<SwitchState> newState = state->clone();
-			std::shared_ptr<InterfaceMap> newInterfaces = std::make_shared<InterfaceMap>();
-			std::shared_ptr<Interface> newInterface = newInterfaces->getInterface(tapIface->getInterfaceID())->clone();	
-			
-			for (const auto& itr : *newState->getInterfaces())
+			Interface * newInterface = state->getInterfaces()->getInterface(tapIface->getInterfaceID())->modify(&newState);	
+
+		  if (updateMac)
 			{
-				if (newInterface->getID() == itr->getID() && updateMac)
-				{
-					newInterface->setMac(MacAddress::fromNBO(nlMac.u64NBO()));
-				}
-				if (newInterface->getID() == itr->getID() && updateMtu)
-				{
-					newInterface->setMtu(nlMtu);
-				}
-				if (newInterface->getID() == itr->getID())
-				{
-					newInterfaces->addInterface(std::move(newInterface));
-				}
-				else
-				{
-					newInterfaces->addInterface(std::move(itr));
-				}
+				newInterface->setMac(MacAddress::fromNBO(nlMac.u64NBO()));
 			}
-			newState->resetIntfs(std::move(newInterfaces));
+			if (updateMtu)
+			{
+				newInterface->setMtu(nlMtu);
+			}
 			return newState;
 		};
 
