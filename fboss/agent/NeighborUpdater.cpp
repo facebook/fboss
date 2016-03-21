@@ -347,7 +347,9 @@ void NeighborUpdater::sendNeighborUpdates(const VlanDelta& delta) {
   std::vector<std::string> deleted;
   collectPresenceChange(delta.getArpDelta(), &added, &deleted);
   collectPresenceChange(delta.getNdpDelta(), &added, &deleted);
-  sw_->invokeNeighborListener(added, deleted);
+  if (!(added.empty() && deleted.empty())) {
+    sw_->invokeNeighborListener(added, deleted);
+  }
 }
 
 void NeighborUpdater::vlanAdded(const SwitchState* state, const Vlan* vlan) {
