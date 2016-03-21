@@ -31,23 +31,23 @@ NeighborEntryFields<IPADDR>::fromFollyDynamic(
   folly::MacAddress mac(entryJson[kMac].stringPiece());
   PortID port(entryJson[kPort].asInt());
   InterfaceID intf(entryJson[kInterface].asInt());
-  return NeighborEntryFields(ip, mac, port, intf);
+  // Any entry we deserialize should come back in the UNVERIFIED state
+  return NeighborEntryFields(ip, mac, port, intf, NeighborState::UNVERIFIED);
 }
 
 template<typename IPADDR, typename SUBCLASS>
 NeighborEntry<IPADDR, SUBCLASS>::NeighborEntry(AddressType ip,
                                      folly::MacAddress mac,
                                      PortID port,
-                                     InterfaceID interfaceID)
-  : Parent(ip, mac, port, interfaceID) {
-}
+                                     InterfaceID interfaceID,
+                                     NeighborState state)
+  : Parent(ip, mac, port, interfaceID, state) {}
 
 template<typename IPADDR, typename SUBCLASS>
 NeighborEntry<IPADDR, SUBCLASS>::NeighborEntry(AddressType ip,
                                      InterfaceID intfID,
-                                     PendingEntry ignored)
-  : Parent(ip, intfID, ignored) {
-}
+                                     NeighborState ignored)
+  : Parent(ip, intfID, ignored) {}
 
 
 }} // facebook::fboss

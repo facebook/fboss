@@ -16,7 +16,7 @@ namespace facebook { namespace fboss {
 
 using folly::MacAddress;
 
-enum PendingEntry { PENDING };
+enum class NeighborState { UNVERIFIED, PENDING, REACHABLE };
 
 template<typename IPADDR>
 struct NeighborEntryFields {
@@ -25,21 +25,22 @@ struct NeighborEntryFields {
   NeighborEntryFields(AddressType ip,
                       folly::MacAddress mac,
                       PortID port,
-                      InterfaceID interfaceID)
+                      InterfaceID interfaceID,
+                      NeighborState state = NeighborState::REACHABLE)
     : ip(ip),
       mac(mac),
       port(port),
       interfaceID(interfaceID),
-      pending(false) {}
+      state(state) {}
 
   NeighborEntryFields(AddressType ip,
                       InterfaceID interfaceID,
-                      PendingEntry ignored)
-    : ip(ip),
-      mac(MacAddress::BROADCAST),
-      port(PortID(0)),
-      interfaceID(interfaceID),
-      pending(true) {}
+                      NeighborState pending)
+      : NeighborEntryFields(
+          ip, MacAddress::BROADCAST, PortID(0), interfaceID, pending) {
+    // This constructor should only be used for PENDING entries
+    CHECK(pending == NeighborState::PENDING);
+  }
 
   template<typename Fn>
   void forEachChild(Fn fn) {}
@@ -61,7 +62,7 @@ struct NeighborEntryFields {
   folly::MacAddress mac;
   PortID port;
   InterfaceID interfaceID;
-  bool pending;
+  NeighborState state;
 };
 
 template<typename IPADDR, typename SUBCLASS>
@@ -70,9 +71,10 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
   typedef IPADDR AddressType;
 
   NeighborEntry(AddressType ip, folly::MacAddress mac,
-                PortID port, InterfaceID interfaceID);
+                PortID port, InterfaceID interfaceID,
+                NeighborState state = NeighborState::REACHABLE);
 
-  NeighborEntry(AddressType ip, InterfaceID intfID, PendingEntry ignored);
+  NeighborEntry(AddressType ip, InterfaceID intfID, NeighborState ignored);
 
   static std::shared_ptr<SUBCLASS>
   fromFollyDynamic(const folly::dynamic& json) {
@@ -104,6 +106,10 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
     return this->getFields()->port;
   }
 
+  NeighborState getState() const {
+    return this->getFields()->state;
+  }
+
   bool nonZeroPort() const {
     return getPort() != PortID(0);
   }
@@ -122,12 +128,16 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
     this->writableFields()->interfaceID = id;
   }
 
-  bool isPending() const {
-    return this->getFields()->pending;
+  NeighborState setState(NeighborState state) {
+    return this->writableFields()->state = state;
   }
 
-  void setPending(bool pending) {
-    this->writableFields()->pending = pending;
+  bool isPending() const {
+    return this->getFields()->state == NeighborState::PENDING;
+  }
+
+  void setPending() {
+    this->writableFields()->state = NeighborState::PENDING;
   }
 
  private:

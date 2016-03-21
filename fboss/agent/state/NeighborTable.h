@@ -66,7 +66,8 @@ class NeighborTable
   void addEntry(AddressType ip,
                 folly::MacAddress mac,
                 PortID port,
-                InterfaceID intfID);
+                InterfaceID intfID,
+                NeighborState state = NeighborState::REACHABLE);
   void addEntry(const NeighborEntryFields<AddressType>& fields);
   void updateEntry(AddressType ip,
                    folly::MacAddress mac,

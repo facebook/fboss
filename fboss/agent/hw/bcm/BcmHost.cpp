@@ -385,9 +385,21 @@ void BcmHostTable::updatePortEgressMapping(opennsl_if_t egressId,
   // Publish and replace with the updated mapping
   newMapping->publish();
   setPort2EgressIdsInternal(newMapping);
-  bool cameUp = !oldPort && newPort;
+  // Note that we notify the ecmp group of the paths whenever we get
+  // to this point with a nonzero port to associate with an egress
+  // mapping. This handles the case where we hit the ecmp shrink code
+  // during the initialization process and the port down event is not
+  // processed by the SwSwitch correctly.  The SwSwitch is responsible
+  // for generating an update for each NeighborEntry after it is
+  // initialized to ensure the hw is programmed correctly. By trying
+  // to always expand ECMP whenever we get a valid port mapping for a
+  // egress ID, we would also signal for ECMP expand when port mapping
+  // of a egress ID changes (e.g. on IP Address renumbering). This is
+  // however safe since we ECMP expand code handles the case where we
+  // try to add a already present egress ID in a ECMP group.
+  bool isUp = newPort;
   bool wentDown = oldPort && !newPort;
-  if (cameUp || wentDown) {
+  if (isUp || wentDown) {
     // If ARP/NDP just resolved for this host, we need to inform
     // ecmp egress objects about this egress Id becoming reachable.
     // Consider the case where a port went down, neighbor entry expires
@@ -402,7 +414,7 @@ void BcmHostTable::updatePortEgressMapping(opennsl_if_t egressId,
     // would have never removed it from ecmp egress object.
     BcmEcmpEgress::Paths affectedPaths;
     affectedPaths.insert(egressId);
-    egressResolutionChangedMaybeLocked(affectedPaths, cameUp ? true /*up*/ :
+    egressResolutionChangedMaybeLocked(affectedPaths, isUp ? true /*up*/ :
         false /*went away*/, true /* hw locked*/);
   }
 }

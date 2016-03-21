@@ -45,16 +45,18 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
     AddressType ip,
     folly::MacAddress mac,
     PortID port,
-    InterfaceID intfID) {
+    InterfaceID intfID,
+    NeighborState state) {
   CHECK(!this->isPublished());
-  auto entry = std::make_shared<Entry>(ip, mac, port, intfID);
+  auto entry = std::make_shared<Entry>(ip, mac, port, intfID, state);
   this->addNode(entry);
 }
 
 template<typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
     const NeighborEntryFields<AddressType>& fields) {
-  addEntry(fields.ip, fields.mac, fields.port, fields.interfaceID);
+  addEntry(
+    fields.ip, fields.mac, fields.port, fields.interfaceID, fields.state);
 }
 
 
@@ -74,7 +76,7 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
   entry->setMAC(mac);
   entry->setPort(port);
   entry->setIntfID(intfID);
-  entry->setPending(false);
+  entry->setState(NeighborState::REACHABLE);
   it->second = entry;
 }
 
@@ -89,7 +91,8 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addPendingEntry(
     IPADDR ip,
     InterfaceID intfID) {
   CHECK(!this->isPublished());
-  auto pendingEntry = std::make_shared<Entry>(ip, intfID, PENDING);
+  auto pendingEntry = std::make_shared<Entry>(
+    ip, intfID, NeighborState::PENDING);
   this->addNode(pendingEntry);
  }
 

@@ -27,6 +27,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/NdpTable.h"
+#include "fboss/agent/state/NeighborEntry.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/state/Vlan.h"
@@ -162,7 +163,8 @@ shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
         arpTable->addPendingEntry(ip.asV4(), InterfaceID(bcmEgress.vlan));
       } else {
         arpTable->addEntry(ip.asV4(), macFromBcm(bcmEgress.mac_addr),
-                           PortID(bcmEgress.port), InterfaceID(bcmEgress.vlan));
+                           PortID(bcmEgress.port), InterfaceID(bcmEgress.vlan),
+                           NeighborState::UNVERIFIED);
       }
     } else {
       auto ndpTable = titr->second.ndpTable;
@@ -170,7 +172,8 @@ shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
         ndpTable->addPendingEntry(ip.asV6(), InterfaceID(bcmEgress.vlan));
       } else {
         ndpTable->addEntry(ip.asV6(), macFromBcm(bcmEgress.mac_addr),
-                           PortID(bcmEgress.port), InterfaceID(bcmEgress.vlan));
+                           PortID(bcmEgress.port), InterfaceID(bcmEgress.vlan),
+                           NeighborState::UNVERIFIED);
       }
     }
   }

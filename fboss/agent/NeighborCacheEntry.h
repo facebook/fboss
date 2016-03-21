@@ -107,7 +107,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
 
   NeighborCacheEntry(AddressType ip,
                      InterfaceID intf,
-                     PendingEntry ignored,
+                     NeighborState ignored,
                      folly::EventBase* evb,
                      Cache* cache)
       : NeighborCacheEntry(EntryFields(ip, intf, ignored),
@@ -159,11 +159,15 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
   }
 
   bool isPending() const {
-    return fields_.pending;
+    return fields_.state == NeighborState::PENDING;
   }
 
   const EntryFields& getFields() {
     return fields_;
+  }
+
+  NeighborState getProgrammedState() const {
+    return fields_.state;
   }
 
   void updateFields(const EntryFields& fields) {
@@ -175,7 +179,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
       getMac() == fields.mac &&
       getIntfID() == fields.interfaceID &&
       getPortID() == fields.port &&
-      isPending() == fields.pending;
+      getProgrammedState() == fields.state;
   }
 
   NeighborEntryState getState() const {

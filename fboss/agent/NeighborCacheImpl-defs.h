@@ -85,6 +85,7 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
       if (node->getMac() == fields.mac &&
           node->getPort() == fields.port &&
           node->getIntfID() == fields.interfaceID &&
+          node->getState() == fields.state &&
           !node->isPending()) {
         // This entry was already updated while we were waiting on the lock.
         return nullptr;
@@ -240,7 +241,8 @@ void NeighborCacheImpl<NTable>::setPendingEntry(AddressType ip,
   }
 
   auto entry = setEntryInternal(
-    EntryFields(ip, intfID_, PENDING), NeighborEntryState::INCOMPLETE, true);
+    EntryFields(ip, intfID_, NeighborState::PENDING),
+    NeighborEntryState::INCOMPLETE, true);
   if (entry) {
     programPendingEntry(entry, force);
   }
