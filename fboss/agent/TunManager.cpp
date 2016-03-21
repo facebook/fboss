@@ -346,6 +346,13 @@ void TunManager::addressProcessor(struct nl_object *obj, void *data) {
 
 void TunManager::probe() {
   std::lock_guard<std::mutex> lock(mutex_);
+  if (!probeDone_) {
+    doProbe(lock);
+  }
+}
+
+void TunManager::doProbe(std::lock_guard<std::mutex>& lock) {
+  CHECK(!probeDone_);  // Callers must check for probeDone before calling
   stop();                       // stop all interfaces
   intfs_.clear();               // clear all interface info
   //get links
@@ -365,6 +372,7 @@ void TunManager::probe() {
     bringupIntf(intf.second->getName(), intf.second->getIfIndex());
   }
   start();
+  probeDone_ = true;
 }
 
 void TunManager::sync(std::shared_ptr<SwitchState> state) {
@@ -377,6 +385,12 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
     const auto& addrs = intf.second->getAddresses();
     newAddrs[intf.second->getRouterID()].insert(addrs.begin(), addrs.end());
   }
+  // Hold mutex while changing interfaces
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (!probeDone_) {
+    doProbe(lock);
+  }
+
   AddrMap oldAddrs;
   auto newMinMtu = getMinMtu(state);
   for (const auto& intf : intfs_) {
@@ -386,9 +400,6 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
       intf.second->setMtu(newMinMtu);
     }
   }
-  // now, lock all interfaces and apply changes. Interfaces will be stopped
-  // if there is some change to the interface
-  std::lock_guard<std::mutex> lock(mutex_);
 
   auto applyAddrChanges =
     [&](const std::string& name, RouterID rid, int ifIndex,

@@ -56,7 +56,6 @@ using std::map;
 using std::mutex;
 using std::shared_ptr;
 using std::string;
-using std::unique_lock;
 using std::unique_ptr;
 
 using namespace std::chrono;
@@ -306,14 +305,6 @@ void SwSwitch::init(SwitchFlags flags) {
   auto initialState = hwInitRet.switchState;
   bootType_ = hwInitRet.bootType_;
 
-  publishInitTimes("fboss.ctrl.hw_initialized_time", hwInitRet.initializedTime);
-
-  if (hwInitRet.bootType_ == BootType::COLD_BOOT) {
-    publishInitTimes("fboss.ctrl.hw_bcm_cold_boot", hwInitRet.bootTime);
-  } else {
-    publishInitTimes("fboss.ctrl.hw_bcm_warm_boot", hwInitRet.bootTime);
-  }
-
   VLOG(0) << "hardware initialized in " <<
     hwInitRet.bootTime << " seconds; applying initial config";
 
@@ -342,6 +333,19 @@ void SwSwitch::init(SwitchFlags flags) {
 
   startThreads();
 
+  // Publish timers after we aked TunManager to do a probe. This
+  // is not required but since both stats publishing and tunnel
+  // interface probing happens on backgroundEventBase_ its somewhat
+  // nicer to have tun inteface probing finish faster since then
+  // we don't have to wait for the initial probe to complete before
+  // applying initial config.
+  publishInitTimes("fboss.ctrl.hw_initialized_time", hwInitRet.initializedTime);
+
+  if (hwInitRet.bootType_ == BootType::COLD_BOOT) {
+    publishInitTimes("fboss.ctrl.hw_bcm_cold_boot", hwInitRet.bootTime);
+  } else {
+    publishInitTimes("fboss.ctrl.hw_bcm_warm_boot", hwInitRet.bootTime);
+  }
   if (flags & SwitchFlags::PUBLISH_BOOTTYPE) {
     publishBootInfo();
   }

@@ -82,6 +82,8 @@ class TunManager : public StateObserver {
   // Whether the manager has registered itself to listen for state updates
   // from sw_
   bool observingState_{false};
+  // Initial probe done
+  bool probeDone_{false};
 
   enum : uint8_t {
     /**
@@ -147,6 +149,8 @@ class TunManager : public StateObserver {
                     CHANGEFN changeFn, ADDFN addFn, REMOVEFN removeFn);
 
   void probe();
+  void doProbe(std::lock_guard<std::mutex>& mutex);
+
   /*
    * start/stop packet forwarding on all TUN interfaces
    */
