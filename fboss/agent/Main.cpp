@@ -116,7 +116,7 @@ class Initializer {
       flags |=  SwitchFlags::ENABLE_LLDP;
     }
     if (FLAGS_publish_boot_type) {
-      flags |= SwitchFlags::PUBLISH_BOOTTYPE;
+      flags |= SwitchFlags::PUBLISH_STATS;
     }
     return flags;
   }

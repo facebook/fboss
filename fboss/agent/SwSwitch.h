@@ -129,7 +129,7 @@ class SwSwitch : public HwSwitch::Callback {
    *
    * ENABLE_TUN: enables interface sync to system.
    * ENABLE_LLDP: enables periodically sending LLDP packets
-   * PUBLISH_BOOTTYPE: if set, we will publish the boot type (graceful or
+   * PUBLISH_STATS: if set, we will publish the boot type (graceful or
    *                   otherwise) after we initialize the hardware.
    * DEFAULT: None of the above flags are set.
    */

@@ -340,7 +340,7 @@ void SwSwitch::init(SwitchFlags flags) {
   // nicer to have tun inteface probing finish faster since then
   // we don't have to wait for the initial probe to complete before
   // applying initial config.
-  if (flags & SwitchFlags::PUBLISH_BOOTTYPE) {
+  if (flags & SwitchFlags::PUBLISH_STATS) {
     publishInitTimes(
       "fboss.ctrl.hw_initialized_time", hwInitRet.initializedTime);
     if (hwInitRet.bootType == BootType::COLD_BOOT) {
@@ -350,7 +350,7 @@ void SwSwitch::init(SwitchFlags flags) {
     }
   }
 
-  if (flags & SwitchFlags::PUBLISH_BOOTTYPE) {
+  if (flags & SwitchFlags::PUBLISH_STATS) {
     publishBootInfo();
   }
 
@@ -388,7 +388,7 @@ void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
       lldpManager_->start();
   }
 
-  if (flags_ & SwitchFlags::PUBLISH_BOOTTYPE) {
+  if (flags_ & SwitchFlags::PUBLISH_STATS) {
     publishInitTimes("fboss.ctrl.switch_configured",
        duration_cast<duration<float>>(steady_clock::now() - startTime).count());
   }
