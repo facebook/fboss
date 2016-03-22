@@ -301,9 +301,10 @@ void SwSwitch::clearWarmBootCache() {
 }
 
 void SwSwitch::init(SwitchFlags flags) {
+  flags_ = flags;
   auto hwInitRet = hw_->init(this);
   auto initialState = hwInitRet.switchState;
-  bootType_ = hwInitRet.bootType_;
+  bootType_ = hwInitRet.bootType;
 
   VLOG(0) << "hardware initialized in " <<
     hwInitRet.bootTime << " seconds; applying initial config";
@@ -339,13 +340,16 @@ void SwSwitch::init(SwitchFlags flags) {
   // nicer to have tun inteface probing finish faster since then
   // we don't have to wait for the initial probe to complete before
   // applying initial config.
-  publishInitTimes("fboss.ctrl.hw_initialized_time", hwInitRet.initializedTime);
-
-  if (hwInitRet.bootType_ == BootType::COLD_BOOT) {
-    publishInitTimes("fboss.ctrl.hw_bcm_cold_boot", hwInitRet.bootTime);
-  } else {
-    publishInitTimes("fboss.ctrl.hw_bcm_warm_boot", hwInitRet.bootTime);
+  if (flags & SwitchFlags::PUBLISH_BOOTTYPE) {
+    publishInitTimes(
+      "fboss.ctrl.hw_initialized_time", hwInitRet.initializedTime);
+    if (hwInitRet.bootType == BootType::COLD_BOOT) {
+      publishInitTimes("fboss.ctrl.hw_bcm_cold_boot", hwInitRet.bootTime);
+    } else {
+      publishInitTimes("fboss.ctrl.hw_bcm_warm_boot", hwInitRet.bootTime);
+    }
   }
+
   if (flags & SwitchFlags::PUBLISH_BOOTTYPE) {
     publishBootInfo();
   }
@@ -384,8 +388,10 @@ void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
       lldpManager_->start();
   }
 
-  publishInitTimes("fboss.ctrl.switch_configured",
-      duration_cast<duration<float>>(steady_clock::now() - startTime).count());
+  if (flags_ & SwitchFlags::PUBLISH_BOOTTYPE) {
+    publishInitTimes("fboss.ctrl.switch_configured",
+       duration_cast<duration<float>>(steady_clock::now() - startTime).count());
+  }
 }
 
 void SwSwitch::fibSynced() {

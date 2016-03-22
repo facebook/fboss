@@ -55,7 +55,7 @@ enum SwitchFlags : int {
   DEFAULT = 0,
   ENABLE_TUN = 1,
   ENABLE_LLDP = 2,
-  PUBLISH_BOOTTYPE = 4
+  PUBLISH_STATS = 4
 };
 
 inline SwitchFlags operator|=(SwitchFlags& a, const SwitchFlags b) {
@@ -99,7 +99,6 @@ class SwSwitch : public HwSwitch::Callback {
   HwSwitch* getHw() const {
     return hw_;
   }
-
 
   const Platform* getPlatform() const { return platform_.get(); }
   Platform* getPlatform() { return platform_.get(); }
@@ -532,6 +531,13 @@ class SwSwitch : public HwSwitch::Callback {
   }
 
   /*
+   * Gets the flags the SwSwitch was initialized with.
+   */
+  SwitchFlags getFlags() {
+    return flags_;
+  }
+
+  /*
    * Allow hardware to perform any cleanup needed to gracefully restart the
    * agent before we exit application.
    */
@@ -720,6 +726,7 @@ class SwSwitch : public HwSwitch::Callback {
 
   BootType bootType_{BootType::UNINITIALIZED};
   std::unique_ptr<LldpManager> lldpManager_;
+  SwitchFlags flags_{SwitchFlags::DEFAULT};
 };
 
 }} // facebook::fboss

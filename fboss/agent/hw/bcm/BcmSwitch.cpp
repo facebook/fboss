@@ -532,7 +532,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
     bcmCheckError(rv, "failed to set spanning tree state on port ", idx);
   }
 
-  ret.bootType_ = bootType;
+  ret.bootType = bootType;
 
   if (warmBoot) {
     auto warmBootState = getWarmBootSwitchState();

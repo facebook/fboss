@@ -358,7 +358,7 @@ void sendNeighborAdvertisement(SwSwitch* sw, StringPiece ipStr,
 
 } // unnamed namespace
 
-TEST(NDP, UnsolicitedRequest) {
+TEST(NdpTest, UnsolicitedRequest) {
   auto sw = setupSwitch();
 
   // Create an neighbor solicitation request
@@ -413,7 +413,7 @@ TEST(NDP, UnsolicitedRequest) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ndp.sum", 1);
 }
 
-TEST(NDP, TriggerSolicitation) {
+TEST(NdpTest, TriggerSolicitation) {
   auto sw = setupSwitch();
   sw->updateStateBlocking("add test route table", addMockRouteTable);
 
@@ -521,7 +521,7 @@ TEST(NDP, TriggerSolicitation) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 }
 
-TEST(NDP, RouterAdvertisement) {
+TEST(NdpTest, RouterAdvertisement) {
   seconds raInterval(1);
   auto config = createSwitchConfig(raInterval, seconds(0));
   // Add an interface with a /128 mask, to make sure it isn't included
@@ -652,7 +652,7 @@ TEST(NDP, RouterAdvertisement) {
                                9000, expectedPrefixes));
 }
 
-TEST(NDP, FlushEntry) {
+TEST(NdpTest, FlushEntry) {
   auto sw = setupSwitch();
   ThriftHandler thriftHandler(sw.get());
   std::vector<NdpEntryThrift> ndpTable;
@@ -732,7 +732,7 @@ TEST(NDP, FlushEntry) {
   ASSERT_EQ(ndpTable.size(), 0);
 }
 
-TEST(NDP, PendingNdp) {
+TEST(NdpTest, PendingNdp) {
   auto sw = setupSwitch();
 
   auto vlanID = VlanID(5);
@@ -838,7 +838,7 @@ TEST(NDP, PendingNdp) {
 };
 
 
-TEST(NDP, PendingNdpCleanup) {
+TEST(NdpTest, PendingNdpCleanup) {
   seconds ndpTimeout(1);
   auto sw = setupSwitchWithNdpTimeout(ndpTimeout);
   sw->updateStateBlocking("add test route table", addMockRouteTable);
@@ -1131,9 +1131,9 @@ TEST(NdpTest, NdpExpiration) {
   sendNeighborAdvertisement(sw.get(), targetIP.str(),
                             "02:10:20:30:40:22", 1, vlanID);
   sendNeighborAdvertisement(sw.get(), targetIP2.str(),
-                            "02:10:20:30:40:22", 1, vlanID);
-  sendNeighborAdvertisement(sw.get(), targetIP3.str(),
                             "02:10:20:30:40:23", 1, vlanID);
+  sendNeighborAdvertisement(sw.get(), targetIP3.str(),
+                            "02:10:20:30:40:24", 1, vlanID);
 
   // Have getAndClearNeighborHit return false for the first entry,
   // but true for the others. This should result in the first

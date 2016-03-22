@@ -69,7 +69,7 @@ unique_ptr<SwSwitch> createMockSw(const shared_ptr<SwitchState>& state) {
   auto stateAndBootType = std::make_pair(state, BootType::COLD_BOOT);
   HwInitResult ret;
   ret.switchState = state;
-  ret.bootType_ = BootType::COLD_BOOT;
+  ret.bootType = BootType::COLD_BOOT;
   EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(ret));
   sw->init();
   waitForStateUpdates(sw.get());
@@ -84,7 +84,7 @@ unique_ptr<SwSwitch> createMockSw(const shared_ptr<SwitchState>& state,
   auto stateAndBootType = std::make_pair(state, BootType::COLD_BOOT);
   HwInitResult ret;
   ret.switchState = state;
-  ret.bootType_ = BootType::COLD_BOOT;
+  ret.bootType = BootType::COLD_BOOT;
   EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(ret));
   sw->init();
   waitForStateUpdates(sw.get());
@@ -112,7 +112,7 @@ unique_ptr<SwSwitch> createMockSw(cfg::SwitchConfig* config,
   auto stateAndBootType = std::make_pair(initialState, BootType::COLD_BOOT);
   HwInitResult ret;
   ret.switchState = initialState;
-  ret.bootType_ = BootType::COLD_BOOT;
+  ret.bootType = BootType::COLD_BOOT;
   EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(ret));
   sw->init();
 
