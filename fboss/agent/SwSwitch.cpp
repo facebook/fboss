@@ -888,13 +888,13 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
 void SwSwitch::linkStateChanged(PortID port, bool up) noexcept {
 
   LOG(INFO) << "link state changed: " << port << " enabled = " << up;
-  logLinkStateEvent(port, up);
-  setPortStatusCounter(port, up);
   // Start noticing port downs only after
   // our state has been initialized.
   if (!isFullyInitialized() || up) {
     return;
   }
+  logLinkStateEvent(port, up);
+  setPortStatusCounter(port, up);
   nUpdater_->portDown(port);
 }
 
