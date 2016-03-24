@@ -105,7 +105,7 @@ class PlatformPort {
   /**
    * Do platform specific actions for the port before we are warm booting.
    */
-  virtual void prepareForWarmboot() = 0;
+  virtual void prepareForGracefulExit() = 0;
 
  private:
   // Forbidden copy constructor and assignment operator

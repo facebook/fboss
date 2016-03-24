@@ -94,43 +94,6 @@ WedgePlatformMode WedgePlatform::getMode() {
   return productInfo_->getMode();
 }
 
-WedgePlatform::InitPortMap WedgePlatform::initPorts() {
-  InitPortMap ports;
-
-  auto add_port = [&](int num) {
-      PortID portID(num);
-      opennsl_port_t bcmPortNum = num;
-
-      auto port = folly::make_unique<WedgePort>(portID);;
-      ports.emplace(bcmPortNum, port.get());
-      ports_.emplace(portID, std::move(port));
-  };
-
-  // Wedge has 16 QSFPs, each mapping to 4 physical ports.
-  int portNum = 0;
-
-  auto add_ports = [&](int n_ports) {
-    while (n_ports--) {
-      ++portNum;
-      add_port(portNum);
-    }
-  };
-
-  auto mode = getMode();
-  if (mode == WedgePlatformMode::WEDGE || mode == WedgePlatformMode::LC) {
-    // Front panel are 16 4x10G ports
-    add_ports(16 * 4);
-    if (mode == WedgePlatformMode::LC) {
-      // On LC, another 16 ports for back plane ports
-      add_ports(16);
-    }
-  } else {
-    // On FC, 32 40G ports
-    add_ports(32);
-  }
-
-  return ports;
-}
 
 void WedgePlatform::initLocalMac() {
   if (!FLAGS_mac.empty()) {

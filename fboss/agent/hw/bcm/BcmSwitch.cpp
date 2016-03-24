@@ -331,10 +331,10 @@ void BcmSwitch::ecmpHashSetup() {
 }
 
 folly::dynamic BcmSwitch::gracefulExit() {
-  // Ideally, preparePortsForWarmboot() would run in update EVB of the SwSwitch,
-  // but it does not really matter at the graceful exit time. If this is a
-  // concern, this can be moved to the updateEventBase_ of SwSwitch.
-  portTable_->preparePortsForWarmboot();
+  // Ideally, preparePortsForGracefulExit() would run in update EVB of the
+  // SwSwitch, but it does not really matter at the graceful exit time. If
+  // this is a concern, this can be moved to the updateEventBase_ of SwSwitch.
+  portTable_->preparePortsForGracefulExit();
 
   std::lock_guard<std::mutex> g(lock_);
   folly::dynamic hwSwitch = toFollyDynamic();

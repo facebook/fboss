@@ -19,5 +19,5 @@ void BcmPort::setConfiguredMaxSpeed() {
 }
 void BcmPort::setKR4Ability() {}
 void BcmPort::remedy() {}
-void BcmPort::prepareForWarmboot() {}
+void BcmPort::prepareForGracefulExit() {}
 }} // namespace facebook::fboss

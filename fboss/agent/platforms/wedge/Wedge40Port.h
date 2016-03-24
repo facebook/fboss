@@ -10,19 +10,15 @@
 #pragma once
 
 #include "fboss/agent/platforms/wedge/WedgePort.h"
-#include "fboss/agent/gen-cpp/switch_config_types.h"
 
 namespace facebook { namespace fboss {
 
-class Wedge100Port : public WedgePort {
+class Wedge40Port : public WedgePort {
  public:
-  explicit Wedge100Port(PortID id) : WedgePort(id) {}
+  explicit Wedge40Port(PortID id) : WedgePort(id) {}
 
-  cfg::PortSpeed maxLaneSpeed() const override {
-    return cfg::PortSpeed::TWENTYFIVEG;
-  }
-  void remedy() override {}
-  void prepareForGracefulExit() override {}
+  void remedy() override;
+  void prepareForGracefulExit() override;
 };
 
 }} // facebook::fboss

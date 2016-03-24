@@ -9,7 +9,7 @@
  */
 #include <folly/Memory.h>
 #include "fboss/agent/Main.h"
-#include "fboss/agent/platforms/wedge/WedgePlatform.h"
+#include "fboss/agent/platforms/wedge/Wedge40Platform.h"
 #include "fboss/agent/platforms/wedge/Wedge100Platform.h"
 
 using namespace facebook::fboss;
@@ -27,7 +27,7 @@ unique_ptr<WedgePlatform> createPlatform() {
   if (productInfo->getMode() == WedgePlatformMode::WEDGE100) {
     return folly::make_unique<Wedge100Platform>(std::move(productInfo));
   }
-  return folly::make_unique<WedgePlatform>(std::move(productInfo));
+  return folly::make_unique<Wedge40Platform>(std::move(productInfo));
 }
 
 unique_ptr<Platform> initWedgePlatform() {

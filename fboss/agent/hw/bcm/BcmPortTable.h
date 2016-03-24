@@ -77,9 +77,9 @@ class BcmPortTable {
       portIdAndBcmPort.second->remedy();
     }
   }
-  void preparePortsForWarmboot() {
+  void preparePortsForGracefulExit() {
     for (auto& portIdAndBcmPort : bcmPhysicalPorts_) {
-      portIdAndBcmPort.second->prepareForWarmboot();
+      portIdAndBcmPort.second->prepareForGracefulExit();
     }
   }
  private:

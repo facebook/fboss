@@ -28,9 +28,6 @@ class WedgePort;
 
 class WedgePlatform : public BcmPlatform {
  public:
-  explicit WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo);
-  WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo,
-                uint8_t numQsfps);
   ~WedgePlatform() override;
 
   void init();
@@ -44,7 +41,6 @@ class WedgePlatform : public BcmPlatform {
   std::string getPersistentStateDir() const override;
 
   void onUnitAttach() override;
-  InitPortMap initPorts() override;
   void getProductInfo(ProductInfo& info) override;
 
   bool canUseHostTableForHostRoutes() const override {
@@ -54,8 +50,13 @@ class WedgePlatform : public BcmPlatform {
   }
 
  protected:
+  explicit WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo);
+  WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo,
+                uint8_t numQsfps);
   typedef boost::container::flat_map<PortID, std::unique_ptr<WedgePort>>
     WedgePortMap;
+
+  WedgePlatformMode getMode();
 
   WedgePortMap ports_;
 
@@ -65,7 +66,6 @@ class WedgePlatform : public BcmPlatform {
   WedgePlatform& operator=(WedgePlatform const &) = delete;
 
   void initLocalMac();
-  WedgePlatformMode getMode();
   virtual std::map<std::string, std::string> loadConfig();
   virtual std::unique_ptr<BaseWedgeI2CBus> getI2CBus();
   virtual PortID fbossPortForQsfpChannel(int transceiver, int channel);

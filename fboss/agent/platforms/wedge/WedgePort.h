@@ -15,9 +15,10 @@
 namespace facebook { namespace fboss {
 
 class WedgePort : public BcmPlatformPort {
- public:
+ protected:
   explicit WedgePort(PortID id);
 
+ public:
   PortID getPortID() const override { return id_; }
 
   void setBcmPort(BcmPort* port) override;
@@ -38,14 +39,13 @@ class WedgePort : public BcmPlatformPort {
   void statusIndication(bool enabled, bool link,
                         bool ingress, bool egress,
                         bool discards, bool errors) override;
-  void remedy() override;
-  void prepareForWarmboot() override;
 
  private:
   // Forbidden copy constructor and assignment operator
   WedgePort(WedgePort const &) = delete;
   WedgePort& operator=(WedgePort const &) = delete;
 
+ protected:
   PortID id_{0};
   BcmPort* bcmPort_{nullptr};
 };

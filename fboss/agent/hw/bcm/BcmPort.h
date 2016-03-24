@@ -112,7 +112,7 @@ class BcmPort {
    * Take actions on this port (especially if it is up), so that it will not
    * flap on warm boot.
    */
-  void prepareForWarmboot();
+  void prepareForGracefulExit();
 
  private:
   class MonotonicCounter : public stats::MonotonicCounter {
