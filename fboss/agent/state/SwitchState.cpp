@@ -59,13 +59,6 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kRouteTables] = routeTables->toFollyDynamic();
   switchState[kAcls] = acls->toFollyDynamic();
   switchState[kDefaultVlan] = static_cast<uint32_t>(defaultVlan);
-  switchState[kArpTimeout] = static_cast<uint32_t>(arpTimeout.count());
-  switchState[kNdpTimeout] = static_cast<uint32_t>(ndpTimeout.count());
-  switchState[kArpAgerInterval] =
-    static_cast<uint32_t>(arpAgerInterval.count());
-  switchState[kMaxNeighborProbes] = static_cast<uint32_t>(maxNeighborProbes);
-  switchState[kStaleEntryInterval] =
-    static_cast<uint32_t>(staleEntryInterval.count());
   return switchState;
 }
 
@@ -80,12 +73,6 @@ SwitchStateFields::fromFollyDynamic(const folly::dynamic& swJson) {
       swJson[kRouteTables]);
   switchState.acls = AclMap::fromFollyDynamic(swJson[kAcls]);
   switchState.defaultVlan = VlanID(swJson[kDefaultVlan].asInt());
-  switchState.arpTimeout = seconds(swJson[kArpTimeout].asInt());
-  switchState.ndpTimeout = seconds(swJson[kNdpTimeout].asInt());
-  switchState.arpAgerInterval = seconds(swJson[kArpAgerInterval].asInt());
-  switchState.maxNeighborProbes = swJson[kMaxNeighborProbes].asInt();
-  switchState.staleEntryInterval = seconds(swJson[kStaleEntryInterval].asInt());
-
   //TODO verify that created state here is internally consistent t4155406
   return switchState;
 }
