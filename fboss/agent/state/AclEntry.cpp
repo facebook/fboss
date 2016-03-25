@@ -24,6 +24,8 @@ constexpr auto kL4DstPort = "l4DstPort";
 constexpr auto kProto = "proto";
 constexpr auto kTcpFlags = "tcpFlags";
 constexpr auto kTcpFlagsMask = "tcpFlagsMask";
+constexpr auto kSrcPort = "srcPort";
+constexpr auto kDstPort = "dstPort";
 }
 
 namespace facebook { namespace fboss {
@@ -50,6 +52,12 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   }
   if (tcpFlagsMask) {
     aclEntry[kTcpFlagsMask] = static_cast<uint16_t>(tcpFlagsMask);
+  }
+  if (srcPort) {
+    aclEntry[kSrcPort] = static_cast<uint16_t>(srcPort);
+  }
+  if (dstPort) {
+    aclEntry[kDstPort] = static_cast<uint16_t>(dstPort);
   }
   auto itr_action = cfg::_AclAction_VALUES_TO_NAMES.find(action);
   CHECK(itr_action != cfg::_AclAction_VALUES_TO_NAMES.end());
@@ -92,6 +100,12 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   }
   if (aclEntryJson.find(kTcpFlagsMask) != aclEntryJson.items().end()) {
     aclEntry.tcpFlagsMask = aclEntryJson[kTcpFlagsMask].asInt();
+  }
+  if (aclEntryJson.find(kSrcPort) != aclEntryJson.items().end()) {
+    aclEntry.srcPort = aclEntryJson[kSrcPort].asInt();
+  }
+  if (aclEntryJson.find(kDstPort) != aclEntryJson.items().end()) {
+    aclEntry.dstPort = aclEntryJson[kDstPort].asInt();
   }
   auto itr_action = cfg::_AclAction_NAMES_TO_VALUES.find(
     aclEntryJson[kAction].asString().c_str());

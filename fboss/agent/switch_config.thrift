@@ -317,6 +317,12 @@ struct AclEntry {
    */
   8: optional i16 tcpFlags
   9: optional i16 tcpFlagsMask
+
+  /**
+   * Physical switch ports.
+   */
+  10: optional i16 srcPort
+  11: optional i16 dstPort
 }
 
 /**

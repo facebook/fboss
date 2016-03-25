@@ -42,6 +42,10 @@ TEST(Acl, applyConfig) {
   config.acls[0].__isset.dstIp = true;
   config.acls[0].srcIp = "192.168.0.1";
   config.acls[0].dstIp = "192.168.0.0/24";
+  config.acls[0].__isset.srcPort = true;
+  config.acls[0].srcPort = 5;
+  config.acls[0].__isset.dstPort = true;
+  config.acls[0].dstPort = 8;
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
   EXPECT_NE(nullptr, stateV1);
@@ -51,6 +55,8 @@ TEST(Acl, applyConfig) {
 
   EXPECT_EQ(AclEntryID(100), aclV1->getID());
   EXPECT_EQ(cfg::AclAction::DENY, aclV1->getAction());
+  EXPECT_EQ(5, aclV1->getSrcPort());
+  EXPECT_EQ(8, aclV1->getDstPort());
   EXPECT_FALSE(aclV1->isPublished());
 
   config.acls[0].dstIp = "invalid address";
@@ -91,6 +97,10 @@ TEST(Acl, stateDelta) {
   config.acls[2].srcIp = "192.168.0.3";
   config.acls[2].__isset.l4SrcPort = true;
   config.acls[2].l4SrcPort = 80;
+  config.acls[2].__isset.srcPort = true;
+  config.acls[2].srcPort = 5;
+  config.acls[2].__isset.dstPort = true;
+  config.acls[2].dstPort = 8;
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
   auto stateV2 = publishAndApplyConfig(stateV1, &config, &platform);
@@ -114,6 +124,8 @@ TEST(Acl, stateDelta) {
   auto aclDelta34 = delta34.getAclsDelta();
   iter = aclDelta34.begin();
   EXPECT_EQ(iter->getOld()->getL4SrcPort(), 80);
+  EXPECT_EQ(iter->getOld()->getSrcPort(), 5);
+  EXPECT_EQ(iter->getOld()->getDstPort(), 8);
   EXPECT_EQ(iter->getNew(), nullptr);
   ++iter;
   EXPECT_EQ(iter, aclDelta34.end());

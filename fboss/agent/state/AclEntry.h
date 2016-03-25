@@ -20,6 +20,9 @@
 namespace facebook { namespace fboss {
 
 struct AclEntryFields {
+  // Invalid physical port for initialization
+  static const uint16_t kInvalidPhysicalPort = 9999;
+
   explicit AclEntryFields(AclEntryID id) : id(id) {}
 
   template<typename Fn>
@@ -36,6 +39,8 @@ struct AclEntryFields {
   uint8_t proto{0};
   uint8_t tcpFlags{0};
   uint8_t tcpFlagsMask{0};
+  uint16_t srcPort{kInvalidPhysicalPort};
+  uint16_t dstPort{kInvalidPhysicalPort};
   cfg::AclAction action{cfg::AclAction::PERMIT};
 };
 
@@ -94,7 +99,7 @@ class AclEntry :
     return getFields()->l4SrcPort;
   }
 
-  void setL4SrcPort(const uint16_t& port) {
+  void setL4SrcPort(const uint16_t port) {
     writableFields()->l4SrcPort = port;
   }
 
@@ -102,7 +107,7 @@ class AclEntry :
     return getFields()->l4DstPort;
   }
 
-  void setL4DstPort(const uint16_t& port) {
+  void setL4DstPort(const uint16_t port) {
     writableFields()->l4DstPort = port;
   }
 
@@ -110,7 +115,7 @@ class AclEntry :
     return getFields()->proto;
   }
 
-  void setProto(const uint16_t& proto) {
+  void setProto(const uint16_t proto) {
     writableFields()->proto = proto;
   }
 
@@ -118,7 +123,7 @@ class AclEntry :
     return getFields()->tcpFlags;
   }
 
-  void setTcpFlags(const uint16_t& flags) {
+  void setTcpFlags(const uint16_t flags) {
     writableFields()->tcpFlags = flags;
   }
 
@@ -126,8 +131,24 @@ class AclEntry :
     return getFields()->tcpFlagsMask;
   }
 
-  void setTcpFlagsMask(const uint16_t& flagsMask) {
+  void setTcpFlagsMask(const uint16_t flagsMask) {
     writableFields()->tcpFlagsMask = flagsMask;
+  }
+
+  uint16_t getSrcPort() const {
+    return getFields()->srcPort;
+  }
+
+  void setSrcPort(const uint16_t port) {
+    writableFields()->srcPort = port;
+  }
+
+  uint16_t getDstPort() const {
+    return getFields()->dstPort;
+  }
+
+  void setDstPort(const uint16_t port) {
+    writableFields()->dstPort = port;
   }
 
  private:
