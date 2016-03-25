@@ -57,9 +57,35 @@ void ArpHandler::handlePacket(unique_ptr<RxPacket> pkt,
                               MacAddress dst,
                               MacAddress src,
                               Cursor cursor) {
+  const uint32_t l2Len = pkt->getLength();
   PortID port = pkt->getSrcPort();
   auto stats = sw_->stats();
   stats->port(port)->arpPkt();
+
+  // Look up the Vlan state.
+  auto state = sw_->getState();
+  auto vlan = state->getVlans()->getVlanIf(pkt->getSrcVlan());
+  if (!vlan) {
+    // Hmm, we don't actually have this VLAN configured.
+    // Perhaps the state has changed since we received the packet.
+    stats->port(port)->pktDropped();
+    return;
+  }
+ 
+  if (sw_->runningInNetlinkMode())
+  {
+    if (sw_->sendPacketToHost(std::move(pkt)))
+    {
+      stats->port(port)->pktToHost(l2Len);
+    }
+    else
+    {
+      stats->port(port)->pktDropped();
+    }
+		VLOG(2) << "Sent ARP packet to host";
+    return;
+  } 
+
   // Read htype, ptype, hlen, and plen
   auto htype = cursor.readBE<uint16_t>();
   if (htype != ARP_HTYPE_ETHERNET) {
@@ -79,16 +105,6 @@ void ArpHandler::handlePacket(unique_ptr<RxPacket> pkt,
   auto plen = cursor.readBE<uint8_t>();
   if (plen != ARP_PLEN_IPV4) {
     stats->port(port)->arpUnsupported();
-    return;
-  }
-
-  // Look up the Vlan state.
-  auto state = sw_->getState();
-  auto vlan = state->getVlans()->getVlanIf(pkt->getSrcVlan());
-  if (!vlan) {
-    // Hmm, we don't actually have this VLAN configured.
-    // Perhaps the state has changed since we received the packet.
-    stats->port(port)->pktDropped();
     return;
   }
 

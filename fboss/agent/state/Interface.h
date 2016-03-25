@@ -135,6 +135,8 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
     return addrs.find(ip) != addrs.end();
   }
 
+  Interface * modify(std::shared_ptr<SwitchState> * state);
+
   /**
    * Find the interface IP address to reach the given destination
    */

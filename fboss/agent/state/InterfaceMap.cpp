@@ -24,6 +24,19 @@ InterfaceMap::InterfaceMap() {
 InterfaceMap::~InterfaceMap() {
 }
 
+InterfaceMap * InterfaceMap::modify(std::shared_ptr<SwitchState> * state) {
+	if (!isPublished()) {
+		CHECK(!(*state)->isPublished());
+		return this;
+	}
+
+	SwitchState::modify(state);
+	std::shared_ptr<InterfaceMap> newInterfaces = clone();
+	InterfaceMap * ptr = newInterfaces.get();
+	(*state)->resetIntfs(std::move(newInterfaces));
+	return ptr;
+}
+
 std::shared_ptr<Interface>
 InterfaceMap::getInterfaceIf(RouterID router, const IPAddress& ip) const {
   for (auto itr = begin(); itr != end(); ++itr) {
