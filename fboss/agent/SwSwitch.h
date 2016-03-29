@@ -50,12 +50,14 @@ class NeighborUpdater;
 class StateObserver;
 class TunManager;
 class PortRemediator;
+class UnresolvedNhopsProber;
 
 enum SwitchFlags : int {
   DEFAULT = 0,
   ENABLE_TUN = 1,
   ENABLE_LLDP = 2,
   PUBLISH_STATS = 4
+  ENABLE_NHOPS_PROBER = 8
 };
 
 inline SwitchFlags operator|=(SwitchFlags& a, const SwitchFlags b) {
@@ -721,6 +723,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<IPv6Handler> ipv6_;
   std::unique_ptr<NeighborUpdater> nUpdater_;
   std::unique_ptr<PktCaptureManager> pcapMgr_;
+  std::unique_ptr<UnresolvedNhopsProber> unresolvedNhopsProber_;
 
   std::unique_ptr<TransceiverMap> transceiverMap_;
 

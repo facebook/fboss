@@ -14,6 +14,7 @@
 #include "fboss/agent/IPv4Handler.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/NeighborUpdater.h"
+#include "fboss/agent/UnresolvedNhopsProber.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
@@ -182,6 +183,9 @@ void SwSwitch::stop() {
   nUpdater_.reset();
   if (lldpManager_) {
     lldpManager_->stop();
+  }
+  if (unresolvedNhopsProber_) {
+    unresolvedNhopsProber_.reset();
   }
 
   // Stop tunMgr so we don't get any packets to process
@@ -357,7 +361,11 @@ void SwSwitch::init(SwitchFlags flags) {
   if (flags & SwitchFlags::ENABLE_LLDP) {
       lldpManager_ = folly::make_unique<LldpManager>(this);
   }
-  setSwitchRunState(SwitchRunState::INITIALIZED);
+
+  if (flags & SwitchFlags::ENABLE_NHOPS_PROBER) {
+      unresolvedNhopsProber_ = folly::make_unique<UnresolvedNhopsProber>(this);
+  }
+setSwitchRunState(SwitchRunState::INITIALIZED);
 }
 
 void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {

@@ -127,7 +127,6 @@ class NeighborUpdater : public AutoRegisterStateObserver {
   boost::container::flat_map<VlanID, std::shared_ptr<NeighborCaches>> caches_;
   std::mutex cachesMutex_;
   SwSwitch* sw_{nullptr};
-  UnresolvedNhopsProber* unresolvedNhopsProber_;
 };
 
 }} // facebook::fboss
