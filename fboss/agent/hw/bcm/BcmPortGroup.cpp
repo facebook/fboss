@@ -30,7 +30,7 @@ BcmPortGroup::LaneMode neededLaneModeForSpeed(
   }
   auto neededLanes =
     static_cast<uint32_t>(speed) / static_cast<uint32_t>(maxLaneSpeed);
-  if (neededLanes == 1) {
+  if (neededLanes <= 1) {
     return BcmPortGroup::LaneMode::QUAD;
   } else if (neededLanes == 2) {
     return BcmPortGroup::LaneMode::DUAL;
