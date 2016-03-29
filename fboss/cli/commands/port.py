@@ -19,6 +19,13 @@ from neteng.fboss.ttypes import FbossBaseError
 from thrift.Thrift import TApplicationException
 
 
+def port_sort_fn(port):
+    # Sorts by port name if exists, falls back to portid if not
+    if not port.name:
+        return port.portId
+    return port.name.split('/')
+
+
 class PortDetailsCmd(cmds.FbossCmd):
     def run(self, ports):
         try:
@@ -48,9 +55,9 @@ class PortDetailsCmd(cmds.FbossCmd):
         if not resp:
             print("No Ports Found")
             return
-        for port, entry in resp.items():
+        for entry in sorted(resp.values(), key=port_sort_fn):
             if entry.operState == 1:
-                self._print_port_details(port, entry)
+                self._print_port_details(entry.portId, entry)
 
     def _convert_bps(self, bps):
         ''' convert bps to human readable form
@@ -226,15 +233,24 @@ class PortStatusCmd(cmds.FbossCmd):
 
     def list_ports(self, ports):
         self._client = self._create_ctrl_client()
-        field_fmt = '{:>6}  {:<15} {:<12}{} {:<12}'
-        print(field_fmt.format('Port', 'Admin Status', 'Link Status', '',
-              'Transceiver Present'))
-        print('-' * 56)
+        field_fmt = '{:>10}  {:>12}  {}{:>10}  {:>12}  {:>6}'
+        print(field_fmt.format('Port', 'Admin State', '', 'Link State',
+                               'Transceiver', 'Speed'))
+        print('-' * 59)
         resp = self._client.getPortStatus(ports)
-        for port, status in sorted(resp.items()):
+        port_info = self._client.getAllPortInfo()
+
+        for port_data in sorted(port_info.values(), key=port_sort_fn):
+            port = port_data.portId
+            if port not in resp:
+                continue
+            status = resp[port]
             attrs = self._get_status_strs(status)
-            print(field_fmt.format(port, attrs['admin_status'],
-                attrs['link_status'], attrs['color_align'], attrs['present']))
+            if status.enabled:
+                name = port_data.name if port_data.name else port
+                print(field_fmt.format(
+                    name, attrs['admin_status'], attrs['color_align'],
+                    attrs['link_status'], attrs['present'], attrs['speed']))
 
     @staticmethod
     def _get_status_strs(status):
@@ -244,11 +260,16 @@ class PortStatusCmd(cmds.FbossCmd):
         admin_status = "Enabled"
         link_status = "Up"
         present = "Present"
+        speed = ""
+        if status.speedMbps:
+            speed = "{}G".format(status.speedMbps // 1000)
+        padding = 0
 
         color_start = utils.COLOR_GREEN
         color_end = utils.COLOR_RESET
         if not status.enabled:
             admin_status = "Disabled"
+            speed = ""
         if not status.up:
             link_status = "Down"
             if status.enabled and status.present:
@@ -259,14 +280,19 @@ class PortStatusCmd(cmds.FbossCmd):
         if status.present is None:
             present = "Unknown"
         elif not status.present:
-            present = "Not Present"
+            present = ""
+
+        if color_start:
+            padding = 10 - len(link_status)
+        color_align = ' ' * padding
+
         link_status = color_start + link_status + color_end
-        color_align = ' ' * (len(color_start) + len(color_end))
 
         attrs['admin_status'] = admin_status
         attrs['link_status'] = link_status
         attrs['color_align'] = color_align
         attrs['present'] = present
+        attrs['speed'] = speed
 
         return attrs
 
