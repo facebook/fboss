@@ -56,7 +56,7 @@ enum SwitchFlags : int {
   DEFAULT = 0,
   ENABLE_TUN = 1,
   ENABLE_LLDP = 2,
-  PUBLISH_STATS = 4
+  PUBLISH_STATS = 4,
   ENABLE_NHOPS_PROBER = 8
 };
 
