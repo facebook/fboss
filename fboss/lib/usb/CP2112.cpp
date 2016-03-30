@@ -27,6 +27,7 @@
  */
 #include "fboss/lib/usb/CP2112.h"
 #include "fboss/lib/usb/UsbError.h"
+#include "fboss/agent/BmcRestClient.h"
 
 #include <folly/Bits.h>
 #include <libusb-1.0/libusb.h>
@@ -36,7 +37,6 @@ using folly::Endian;
 using folly::StringPiece;
 using folly::MutableByteRange;
 using std::chrono::duration_cast;
-using std::chrono::microseconds;
 using std::chrono::milliseconds;
 using std::chrono::steady_clock;
 
@@ -133,9 +133,19 @@ void CP2112::open(bool setSmbusConfig) {
     close();
   };
 
-  openDevice();
-  if (setSmbusConfig) {
-    initSettings();
+  try {
+    openDevice();
+    // Call getVersion() to make sure the device is really working.
+    // Immediately after the reset starts we can still open the device
+    // but getVersion() and all other calls will fail.
+    getVersion();
+    // If we are still here the device has reset and is working properly.
+    // Initialize our settings as desired.
+    if (setSmbusConfig) {
+      initSettings();
+    }
+  } catch (const LibusbError& ex) {
+    resetDevice();
   }
   // Just in case the device had a transfer in progress or anything
   // when we attached to it, call flushTransfers to cancel any outstanding
@@ -148,7 +158,7 @@ void CP2112::close() {
   dev_.reset();
 }
 
-void CP2112::resetDevice() {
+void CP2112::resetFromUserver() {
   try {
     uint8_t buf[2]{ReportID::RESET_DEVICE, 1};
     featureReportOut(ReportID::RESET_DEVICE, buf, sizeof(buf));
@@ -159,7 +169,33 @@ void CP2112::resetDevice() {
       throw;
     }
   }
+}
 
+bool CP2112::resetFromRestEndpoint() {
+  BmcRestClient bmcClient;
+  bmcClient.setTimeout(std::chrono::milliseconds(2000));
+  try {
+    auto ret = bmcClient.resetCP2112();
+    if (ret) {
+      VLOG(1) << "Reset CP2112 via REST endpoint passed.";
+      return true;
+    } else {
+      VLOG(1) << "Reset CP2112 via REST endpoint failed..returned error ";
+      return false;
+    }
+  } catch (const std::exception& ex) {
+    VLOG(2) << "Reset CP2112 via REST endpoint failed..fall back.";
+    return false;
+  }
+}
+
+void CP2112::resetDevice() {
+  bool success = false;
+
+  success = resetFromRestEndpoint();
+  if (!success) {
+    resetFromUserver();
+  }
   // Close and re-open the device.
   //
   // Retry until this succeeds.  It will take several tens of milliseconds for

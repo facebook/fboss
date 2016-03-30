@@ -229,6 +229,8 @@ class CP2112 {
    * This function will wait for the device to reinitialize and then will
    * re-connect to it before returning.
    */
+  void resetFromUserver();
+  bool resetFromRestEndpoint();
   void resetDevice();
 
   VersionInfo getVersion();

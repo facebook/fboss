@@ -50,7 +50,7 @@ void RestClient::setTimeout(std::chrono::milliseconds timeout) {
   timeout_ = timeout;
 }
 
-std::string RestClient::request(std::string path) {
+std::string RestClient::requestWithOutput(std::string path) {
   CURL* curl;
   CURLcode resp;
   std::stringbuf write_buffer;
@@ -83,6 +83,15 @@ std::string RestClient::request(std::string path) {
     }
   }
   throw FbossError("Error initializing curl interface");
+}
+
+bool RestClient::request(std::string path) {
+  auto ret = requestWithOutput(path);
+  std::size_t status = ret.find("done");
+  if (status != std::string::npos) {
+    return true;
+  }
+  return false;
 }
 
 size_t RestClient::writer(char *buffer, size_t size,
