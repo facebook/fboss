@@ -10,6 +10,7 @@
 
 import collections
 import time
+import re
 
 from fboss.cli import utils
 from fboss.cli.commands import commands as cmds
@@ -23,7 +24,10 @@ def port_sort_fn(port):
     # Sorts by port name if exists, falls back to portid if not
     if not port.name:
         return port.portId
-    return port.name.split('/')
+    m = re.match('([a-z][a-z][a-z])(\d+)/(\d+)/(\d)', port.name)
+    if not m:
+        return '', 0, 0, 0
+    return m.group(1), int(m.group(2)), int(m.group(3)), int(m.group(4))
 
 
 class PortDetailsCmd(cmds.FbossCmd):
