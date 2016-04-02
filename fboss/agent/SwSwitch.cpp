@@ -1080,6 +1080,7 @@ void SwSwitch::sendL2Packet(InterfaceID iid, std::unique_ptr<TxPacket> pkt) noex
 						 	
 	/* Now, add in the VLAN ethtype and the tag, which is 12 bytes in */
 	RWPrivateCursor cursor(buf);
+	cursor.skip(dstSrcMacLen);
 	TxPacket::writeEthHeaderVlanTag(&cursor, interface->getVlanID());
 							 
 	const uint32_t pktLenWithVlan = buf->length() + vlanLen; /* need to record, since we're forfeiting our TxPacket */
