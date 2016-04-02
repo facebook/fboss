@@ -1072,10 +1072,10 @@ void SwSwitch::sendL2Packet(InterfaceID iid, std::unique_ptr<TxPacket> pkt) noex
 	 * Now just need to figure out how to chain three IOBufs together:
 	 * [ dst MAC (6)]+[src MAC (6)]+[ethtype (2=0x8100)]+[vlan (2)]+[ethtype (2)]+[rest of packet (X)]
 	 *
-	 * IOBuf chaining would be cool, but a simple memcpy of the dst and src MAC -4 bytes to the head
+	 * IOBuf chaining would be cool, but a simple *memmove* of the dst and src MAC -4 bytes to the head
 	 * of the buffer (guaranteed -4 bytes away) will do the trick.
 	 */
-	memcpy(buf->writableBuffer(), buf->data(), dstSrcMacLen);	
+	memmove(buf->writableBuffer(), buf->data(), dstSrcMacLen);	
 	buf->prepend(vlanLen); /* adjust data to point to new start of -4 bytes and add +4 to length */
 						 	
 	/* Now, add in the VLAN ethtype and the tag, which is 12 bytes in */
