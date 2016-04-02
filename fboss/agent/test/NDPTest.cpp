@@ -9,11 +9,6 @@
  */
 #include <gtest/gtest.h>
 
-#include <future>
-
-#include <folly/IPAddressV6.h>
-#include <folly/MacAddress.h>
-#include <folly/io/Cursor.h>
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
@@ -33,6 +28,12 @@
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/gen-cpp/switch_config_types.h"
+
+#include <future>
+#include <netinet/icmp6.h>
+#include <folly/IPAddressV6.h>
+#include <folly/MacAddress.h>
+#include <folly/io/Cursor.h>
 
 using namespace facebook::fboss;
 using facebook::network::toIPAddress;
@@ -340,7 +341,7 @@ void sendNeighborAdvertisement(SwSwitch* sw, StringPiece ipStr,
   folly::io::RWPrivateCursor cursor(buf.get());
 
   auto bodyFn = [&] (folly::io::RWPrivateCursor *c) {
-    c->writeBE<uint32_t>(0);
+    c->write<uint32_t>(ND_NA_FLAG_OVERRIDE | ND_NA_FLAG_SOLICITED);
     c->push(srcIP.bytes(), IPAddressV6::byteCount());
   };
 

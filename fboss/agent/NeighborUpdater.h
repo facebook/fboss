@@ -58,12 +58,14 @@ class NeighborUpdater : public AutoRegisterStateObserver {
                        folly::IPAddressV6 ip,
                        folly::MacAddress mac,
                        PortID port,
-                       ICMPv6Type type);
+                       ICMPv6Type type,
+                       uint32_t flags);
   void receivedNdpNotMine(VlanID vlan,
                           folly::IPAddressV6 ip,
                           folly::MacAddress mac,
                           PortID port,
-                          ICMPv6Type type);
+                          ICMPv6Type type,
+                          uint32_t flags);
 
   // Arp events
   void sentArpRequest(VlanID vlan,

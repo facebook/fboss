@@ -181,7 +181,7 @@ void NeighborCacheImpl<NTable>::repopulate(std::shared_ptr<NTable> table) {
     auto entry = *it;
     auto state = entry->isPending() ? NeighborEntryState::INCOMPLETE :
       NeighborEntryState::STALE;
-    setEntryInternal(*entry->getFields(), state, true);
+    setEntryInternal(*entry->getFields(), state);
   }
 }
 
@@ -190,7 +190,8 @@ void NeighborCacheImpl<NTable>::setEntry(AddressType ip,
                                          folly::MacAddress mac,
                                          PortID portID,
                                          NeighborEntryState state) {
-  auto entry = setEntryInternal(EntryFields(ip, mac, portID, intfID_), state);
+  auto entry = setEntryInternal(
+    EntryFields(ip, mac, portID, intfID_), state);
   if (entry) {
     programEntry(entry);
   }
@@ -210,10 +211,19 @@ void NeighborCacheImpl<NTable>::setExistingEntry(AddressType ip,
 }
 
 template <typename NTable>
+void NeighborCacheImpl<NTable>::updateEntryState(AddressType ip,
+                                                 NeighborEntryState state) {
+  auto entry = getCacheEntry(ip);
+  if (entry) {
+    entry->updateState(state);
+  }
+}
+
+template <typename NTable>
 NeighborCacheEntry<NTable>* NeighborCacheImpl<NTable>::setEntryInternal(
-    const EntryFields& fields,
-    NeighborEntryState state,
-    bool add) {
+  const EntryFields& fields,
+  NeighborEntryState state,
+  bool add) {
   auto entry = getCacheEntry(fields.ip);
   if (entry) {
     auto changed = !entry->fieldsMatch(fields);
@@ -350,12 +360,13 @@ void NeighborCacheImpl<NTable>::flushEntry(AddressType ip, bool* flushed) {
 }
 
 template <typename NTable>
-bool NeighborCacheImpl<NTable>::isSolicited(AddressType ip) {
-  // For now we assume that all entries that are either INCOMPLETE or PROBE
-  // were solicited. We are sending out a request for these states every second
-  // and are actively waiting for a reply so this is a reasonable assumption.
+std::unique_ptr<typename NeighborCacheImpl<NTable>::EntryFields>
+NeighborCacheImpl<NTable>::cloneEntryFields(AddressType ip) {
   auto entry = getCacheEntry(ip);
-  return entry && entry->isProbing();
+  if (entry) {
+    return folly::make_unique<EntryFields>(entry->getFields());
+  }
+  return nullptr;
 }
 
 template <typename NTable>

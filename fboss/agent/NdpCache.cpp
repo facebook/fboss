@@ -11,7 +11,9 @@
 #include "fboss/agent/NdpCache.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/types.h"
+#include "fboss/agent/packet/ICMPHdr.h"
 
+#include <netinet/icmp6.h>
 #include <folly/MacAddress.h>
 #include <folly/IPAddressV6.h>
 
@@ -31,18 +33,48 @@ void NdpCache::sentNeighborSolicitation(folly::IPAddressV6 ip) {
 void NdpCache::receivedNdpMine(folly::IPAddressV6 ip,
                                folly::MacAddress mac,
                                PortID port,
-                               ICMPv6Type type) {
-  if (isSolicited(ip)) {
-    setEntry(ip, mac, port, NeighborEntryState::REACHABLE);
+                               ICMPv6Type type,
+                               uint32_t flags) {
+  bool override = flags & ND_NA_FLAG_OVERRIDE;
+  bool solicited = flags & ND_NA_FLAG_SOLICITED;
+
+  auto fields = cloneEntryFields(ip);
+  bool fieldsMatch = fields && fields->mac == mac && fields->port == port;
+  bool isIncomplete = fields && fields->state == NeighborState::PENDING;
+
+  if (type == ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT) {
+    if (!fields || isIncomplete || override) {
+      if (solicited) {
+        setEntry(ip, mac, port, NeighborEntryState::REACHABLE);
+      } else {
+        setEntry(ip, mac, port, NeighborEntryState::STALE);
+      }
+    } else if (!override) {
+      if (solicited) {
+        if (fieldsMatch) {
+          updateEntryState(ip, NeighborEntryState::REACHABLE);
+        } else {
+          updateEntryState(ip, NeighborEntryState::STALE);
+        }
+      }
+    }
+  } else if (type == ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION) {
+    // if we receive a neighbor solicitation that has different
+    // fields, replace the entry with a new STALE entry with the
+    // new fields
+    if (!fields || !fieldsMatch) {
+      setEntry(ip, mac, port, NeighborEntryState::STALE);
+    }
   } else {
-    setEntry(ip, mac, port, NeighborEntryState::STALE);
+    throw FbossError("Unexpected NDP packet type ", type);
   }
 }
 
 void NdpCache::receivedNdpNotMine(folly::IPAddressV6 ip,
                                   folly::MacAddress mac,
                                   PortID port,
-                                  ICMPv6Type type) {
+                                  ICMPv6Type type,
+                                  uint32_t flags) {
   // Note that ARP updates the forward entry mapping here if necessary.
   // We could potentially do the same here, although the IPv6 NDP RFC
   // doesn't appear to recommend this--it states that we MUST silently

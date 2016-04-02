@@ -109,10 +109,20 @@ class NeighborCache {
     impl_->setEntry(ip, mac, port, state);
   }
 
-  bool isSolicited(AddressType ip) {
+  void updateEntryState(AddressType ip,
+                         NeighborEntryState state) {
     std::lock_guard<std::mutex> g(cacheLock_);
-    return impl_->isSolicited(ip);
+    impl_->updateEntryState(ip, state);
   }
+
+  std::unique_ptr<typename NeighborCacheImpl<NTable>::EntryFields>
+  cloneEntryFields(AddressType ip) {
+    std::lock_guard<std::mutex> g(cacheLock_);
+    // this intentionally makes a copy so that callers do not have a
+    // reference to memory that could be deleted.
+    return impl_->cloneEntryFields(ip);
+  }
+
 
   SwSwitch* getSw() const {
     return sw_;

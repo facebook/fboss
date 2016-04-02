@@ -31,11 +31,13 @@ class NdpCache : public NeighborCache<NdpTable> {
   void receivedNdpMine(folly::IPAddressV6 ip,
                        folly::MacAddress mac,
                        PortID port,
-                       ICMPv6Type type);
+                       ICMPv6Type type,
+                       uint32_t flags);
   void receivedNdpNotMine(folly::IPAddressV6 ip,
                           folly::MacAddress mac,
                           PortID port,
-                          ICMPv6Type type);
+                          ICMPv6Type type,
+                          uint32_t flags);
 
   void probeFor(folly::IPAddressV6 ip) const override;
 

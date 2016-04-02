@@ -372,12 +372,12 @@ void IPv6Handler::handleNeighborSolicitation(unique_ptr<RxPacket> pkt,
   auto entry = vlan->getNdpResponseTable()->getEntry(targetIP);
   if (!entry) {
     updater->receivedNdpNotMine(vlan->getID(), hdr.ipv6->srcAddr, hdr.src,
-                                pkt->getSrcPort(), type);
+                                pkt->getSrcPort(), type, 0);
     return;
   }
 
   updater->receivedNdpMine(vlan->getID(), hdr.ipv6->srcAddr, hdr.src,
-                           pkt->getSrcPort(), type);
+                           pkt->getSrcPort(), type, 0);
 
   // TODO: It might be nice to support duplicate address detection, and track
   // whether our IP is tentative or not.
@@ -396,7 +396,7 @@ void IPv6Handler::handleNeighborAdvertisement(unique_ptr<RxPacket> pkt,
     return;
   }
 
-  auto flags = cursor.readBE<uint32_t>();
+  auto flags = cursor.read<uint32_t>();
   IPAddressV6 targetIP = PktUtil::readIPv6(&cursor);
 
   // Check for options fields.  The target MAC address may be specified here.
@@ -447,12 +447,12 @@ void IPv6Handler::handleNeighborAdvertisement(unique_ptr<RxPacket> pkt,
   auto entry = vlan->getNdpResponseTable()->getEntry(hdr.ipv6->dstAddr);
   if (!entry) {
     updater->receivedNdpNotMine(vlan->getID(), targetIP, hdr.src,
-                                pkt->getSrcPort(), type);
+                                pkt->getSrcPort(), type, flags);
     return;
   }
 
   updater->receivedNdpMine(vlan->getID(), targetIP, hdr.src,
-                           pkt->getSrcPort(), type);
+                           pkt->getSrcPort(), type, flags);
 }
 
 

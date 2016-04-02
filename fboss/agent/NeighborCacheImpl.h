@@ -76,7 +76,10 @@ class NeighborCacheImpl {
                 PortID port,
                 NeighborEntryState state);
 
-  bool isSolicited(AddressType ip);
+  void updateEntryState(AddressType ip,
+                        NeighborEntryState state);
+
+  std::unique_ptr<EntryFields> cloneEntryFields(AddressType ip);
 
   void portDown(PortID port);
 
