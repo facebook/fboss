@@ -7,8 +7,7 @@ using folly::make_unique;
 
 NetlinkManager::NetlinkManager(SwSwitch * sw, EventBase * evb, std::string &iface_prefix): 
 	sock_(0), link_cache_(0), route_cache_(0), manager_(0), prefix_(iface_prefix),
-	netlink_listener_thread_(NULL), host_packet_rx_thread_(NULL),
-	sw_(sw), evb_(evb) {
+	netlink_and_tap_listener_thread_(NULL), sw_(sw), evb_(evb) {
 	VLOG(4) << "Constructor of NetlinkManager";
 	register_w_netlink();
 }
@@ -621,8 +620,8 @@ void NetlinkManager::unregister_w_netlink() {
 	/* these will fail silently/will log error (which is okay) if it's not allocated in the first place */
 	nl_cache_mngr_free(manager_);
 	nl_cache_free(link_cache_);
-    	nl_cache_free(route_cache_);
-    	nl_cache_free(neigh_cache_);
+  nl_cache_free(route_cache_);
+  nl_cache_free(neigh_cache_);
 	nl_cache_free(addr_cache_);
 	nl_socket_free(sock_);
 	sock_ = 0;
@@ -744,43 +743,28 @@ void NetlinkManager::addInterfacesAndUpdateState(std::shared_ptr<SwitchState> st
 }
 
 void NetlinkManager::startNetlinkManager(const int pollIntervalMillis) {
-	if (netlink_listener_thread_ == NULL) {
-		netlink_listener_thread_ = new boost::thread(netlink_listener, pollIntervalMillis /* args to function ptr */, this);
-		if (netlink_listener_thread_ == NULL) {
+	if (netlink_and_tap_listener_thread_ == NULL) {
+		netlink_and_tap_listener_thread_ = new boost::thread(netlink_and_tap_listener, this, pollIntervalMillis /* args to function ptr */);
+		if (netlink_and_tap_listener_thread_ == NULL) {
 			log_and_die("Netlink listener thread creation failed");
 		}
 		VLOG(0) << "Started netlink listener thread";
 	} else {
 		VLOG(0) << "Tried to start netlink listener thread, but thread was already started" << std::endl;
 	}
-
-	if (host_packet_rx_thread_ == NULL) {
-		host_packet_rx_thread_ = new boost::thread(host_packet_rx_listener, this);
-		if (host_packet_rx_thread_ == NULL) {
-			log_and_die("Host packet RX thread creation failed");
-		}
-		VLOG(0) << "Started host packet RX thread";
-	} else {
-		VLOG(0) << "Tried to start host packet RX thread, but thread was already started";
-	}
 }
 
 void NetlinkManager::stopNetlinkManager() {
-	netlink_listener_thread_->interrupt();
-	delete netlink_listener_thread_;
-	netlink_listener_thread_ = NULL;
+	netlink_and_tap_listener_thread_->interrupt();
+	delete netlink_and_tap_listener_thread_;
+	netlink_and_tap_listener_thread_ = NULL;
 	VLOG(0) << "Stopped netlink listener thread";
-
-	host_packet_rx_thread_->interrupt();
-	delete host_packet_rx_thread_;
-	host_packet_rx_thread_ = NULL;
-	VLOG(0) << "Stopped packet RX thread";
 
 	delete_ifaces();
 	unregister_w_netlink();
 }
 
-void NetlinkManager::netlink_listener(const int pollIntervalMillis, NetlinkManager * nlm) {
+/*void NetlinkManager::netlink_listener(const int pollIntervalMillis, NetlinkManager * nlm) {
 	int rc;
   while(1) {
 		boost::this_thread::interruption_point();
@@ -798,9 +782,9 @@ void NetlinkManager::netlink_listener(const int pollIntervalMillis, NetlinkManag
 			}
     }
   }
-}
+}*/
 
-int NetlinkManager::read_packet_from_port(NetlinkManager * nlm, TapIntf * iface) {
+int NetlinkManager::read_packet_from_tap(NetlinkManager * nlm, TapIntf * iface) {
 	/* Parse into TxPacket */
 	int len;
 	std::unique_ptr<TxPacket> pkt;
@@ -835,11 +819,13 @@ int NetlinkManager::read_packet_from_port(NetlinkManager * nlm, TapIntf * iface)
 	return 0;
 }
 
-void NetlinkManager::host_packet_rx_listener(NetlinkManager * nlm) {
+void NetlinkManager::netlink_and_tap_listener(NetlinkManager * nlm, const int nlPollIntervalMillis) {
 	int epoll_fd;
 	struct epoll_event * events;
 	struct epoll_event ev;
 	int num_ifaces;
+	int rc;
+	const int nlm_fd = nl_cache_mngr_get_fd(nlm->manager_);
 
 	num_ifaces = nlm->getInterfacesByIfindex().size();
 
@@ -857,11 +843,18 @@ void NetlinkManager::host_packet_rx_listener(NetlinkManager * nlm) {
 			end = nlm->getInterfacesByIfindex().end();
 			itr != end; itr++) {
 		ev.events = EPOLLIN;
-		ev.data.ptr = itr->second; /* itr points to a TapIntf */
+		ev.data.ptr = itr->second; /* itr->second points to a TapIntf */
 		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, (itr->second)->getIfaceFD(), &ev) < 0) {
 			VLOG(0) << "epoll_ctl() failed: " << strerror(errno);
 			exit(-1);
 		}
+	}
+
+	ev.events = EPOLLIN;
+	ev.data.fd = nlm_fd;
+	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, nlm_fd, &ev) < 0) {
+		VLOG(0) << "epoll_ctl() failed: " << strerror(errno);
+		exit(-1);
 	}
 
 	VLOG(0) << "Going into epoll() loop";
@@ -877,10 +870,31 @@ void NetlinkManager::host_packet_rx_listener(NetlinkManager * nlm) {
 				exit(-1);
 			}
 		}
+		
+		boost::this_thread::interruption_point();
 		for (int i = 0; i < nfds; i++) {
-			TapIntf * iface = (TapIntf *) events[i].data.ptr;
-			VLOG(2) << "Got packet on iface " << iface->getIfaceName();
-			err = nlm->read_packet_from_port(nlm, iface);
+			if (nlm_fd == events[i].data.fd) {
+				VLOG(2) << "Got update from netlink";
+    		if ((rc = nl_cache_mngr_poll(nlm->manager_, nlPollIntervalMillis)) < 0) {
+    			nl_cache_mngr_free(nlm->manager_);
+      		nl_cache_free(nlm->link_cache_);
+					nl_cache_free(nlm->addr_cache_);
+					nl_cache_free(nlm->neigh_cache_);
+      		nl_cache_free(nlm->route_cache_);
+      		nl_socket_free(nlm->sock_);
+      		nlm->log_and_die_rc("Failed to set poll for cache manager", rc);
+    		} else {
+      		if (rc > 0) {
+						VLOG(1) << "Processed " << std::to_string(rc) << " updates from netlink";	
+      		} else {
+						VLOG(2) << "No news from netlink (" << std::to_string(rc) << " updates to process)";
+					}
+    		}
+			} else {
+				TapIntf * iface = (TapIntf *) events[i].data.ptr;
+				VLOG(2) << "Got packet on iface " << iface->getIfaceName();
+				err = nlm->read_packet_from_tap(nlm, iface);
+			}
 		}
 	}
 

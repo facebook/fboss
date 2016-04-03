@@ -75,19 +75,18 @@ class NetlinkManager {
 
 	/* Our variables */
 	struct nl_dump_params dump_params_;		/* format and verbosity of netlink cache dumps */
-	struct nl_sock * sock_; 			/* pipe to RX/TX netlink messages */
-	struct nl_cache * link_cache_;			/* our copy of the system link state */
-	struct nl_cache * route_cache_;			/* our copy of the system route state */
-	struct nl_cache * neigh_cache_;			/* our copy of the system ARP table */
-	struct nl_cache * addr_cache_;			/* our copy of the system L3 addresses */
-	struct nl_cache_mngr * manager_;		/* wraps caches and notifies us upon a change */
-	std::string prefix_;				/* name we'll use for our host tap interfaces */
+	struct nl_sock * sock_; 							/* pipe to RX/TX netlink messages */
+	struct nl_cache * link_cache_;				/* our copy of the system link state */
+	struct nl_cache * route_cache_;				/* our copy of the system route state */
+	struct nl_cache * neigh_cache_;				/* our copy of the system ARP table */
+	struct nl_cache * addr_cache_;				/* our copy of the system L3 addresses */
+	struct nl_cache_mngr * manager_;			/* wraps caches and notifies us upon a change */
+	std::string prefix_;									/* name we'll use for our host tap interfaces */
 	std::map<int, TapIntf *> interfaces_by_ifindex_;
 	std::map<VlanID, TapIntf *> interfaces_by_vlan_;
-	boost::thread * netlink_listener_thread_;	/* polls cache manager for updates */
-	boost::thread * host_packet_rx_thread_;		/* polls host iface FDs for packets en route to the dataplane */
-	SwSwitch * sw_;					/* use to update state and (TODO) receive updates */
-	folly::EventBase * evb_;			/* TODO consider removing this. I don't think we need it */
+	boost::thread * netlink_and_tap_listener_thread_;	/* polls host iface FDs for packets en route to the dataplane */
+	SwSwitch * sw_;																		/* use to update state */
+	folly::EventBase * evb_;													/* TODO consider removing this. I don't think we need it */
 
 	/* No copy or assign */
 	NetlinkManager(const NetlinkManager &);
@@ -137,15 +136,9 @@ class NetlinkManager {
 	static void netlink_neighbor_updated(struct nl_cache * cache, struct nl_object * obj, int nl_operation, void * data);
 	static void netlink_address_updated(struct nl_cache * cache, struct nl_object * obj, int nl_operation, void * data);
 
-	/* Cache manager polling thread */
-	static void netlink_listener(const int pollIntervalMillis, NetlinkManager * nlm);
-
-	/* Get ready to receive packets from the host on a tap interface */
-	void init_host_packet_rx();
-
-	/* Handle packets received from host on a tap interface */
-	static void host_packet_rx_listener(NetlinkManager * nlm);
-	int read_packet_from_port(NetlinkManager * nlm, TapIntf * iface);
+	/* Handle packets received from a tap interface and netlink updates */
+	int read_packet_from_tap(NetlinkManager * nlm, TapIntf * iface);
+	static void netlink_and_tap_listener(NetlinkManager * nlm, const int nlPollIntervalMillis);
 
 };
 

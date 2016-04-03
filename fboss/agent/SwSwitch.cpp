@@ -59,7 +59,7 @@ using std::unique_lock;
 using std::unique_ptr;
 
 DEFINE_string(config, "", "The path to the local JSON configuration file");
-DEFINE_int32(netlink_manager_poll_seconds, 5, "How often the netlink listener thread will poll for updates");
+DEFINE_int32(netlink_manager_wait_ms, 300, "How long (in ms) the netlink listener thread will wait to fetch updates after an update occurs");
 DEFINE_string(netlink_manager_tap_prefix, "fboss", "The name to give tap interfaces. VLAN will be appended");
 
 namespace {
@@ -378,7 +378,7 @@ void SwSwitch::initialConfigApplied() {
 
 	if (netlinkManager_) {
 		VLOG(0) << "Starting manager listener";
-		netlinkManager_->startNetlinkManager(FLAGS_netlink_manager_poll_seconds * 1000); /* need sec --> ms */
+		netlinkManager_->startNetlinkManager(FLAGS_netlink_manager_wait_ms);
 		VLOG(0) << "Netlink manager started";
 	} 
 
