@@ -10,6 +10,7 @@
 
 import socket
 import sys
+import re
 
 from facebook.network.Address.ttypes import BinaryAddress
 
@@ -31,7 +32,6 @@ def ip_to_binary(ip):
         return BinaryAddress(addr=data)
     raise socket.error('illegal IP address string: {}'.format(ip))
 
-
 def ip_ntop(addr):
     if len(addr) == 4:
         return socket.inet_ntop(socket.AF_INET, addr)
@@ -39,3 +39,11 @@ def ip_ntop(addr):
         return socket.inet_ntop(socket.AF_INET6, addr)
     else:
         raise ValueError('bad binary address %r' % (addr,))
+
+def port_sort_fn(port):
+    if not port.name:
+        return port.portId
+    m = re.match('([a-z][a-z][a-z])(\d+)/(\d+)/(\d)', port.name)
+    if not m:
+        return '', 0, 0, 0
+    return m.group(1), int(m.group(2)), int(m.group(3)), int(m.group(4))

@@ -19,17 +19,6 @@ from neteng.fboss.optic import ttypes as optic_ttypes
 from neteng.fboss.ttypes import FbossBaseError
 from thrift.Thrift import TApplicationException
 
-
-def port_sort_fn(port):
-    # Sorts by port name if exists, falls back to portid if not
-    if not port.name:
-        return port.portId
-    m = re.match('([a-z][a-z][a-z])(\d+)/(\d+)/(\d)', port.name)
-    if not m:
-        return '', 0, 0, 0
-    return m.group(1), int(m.group(2)), int(m.group(3)), int(m.group(4))
-
-
 class PortDetailsCmd(cmds.FbossCmd):
     def run(self, ports):
         try:
@@ -59,7 +48,7 @@ class PortDetailsCmd(cmds.FbossCmd):
         if not resp:
             print("No Ports Found")
             return
-        for entry in sorted(resp.values(), key=port_sort_fn):
+        for entry in sorted(resp.values(), key=utils.port_sort_fn):
             if entry.operState == 1:
                 self._print_port_details(entry.portId, entry)
 
@@ -184,7 +173,7 @@ class PortDetailsCmd(cmds.FbossCmd):
 
         fmt = '{:.<50}{}'
         lines = [
-            ('Interface', port_info.name.strip()),
+            ('Name', port_info.name.strip()),
             ('Port ID', str(port_info.portId)),
             ('Admin State', admin_status),
             ('Link State', oper_status),
@@ -228,33 +217,36 @@ class PortFlapCmd(cmds.FbossCmd):
 
 class PortStatusCmd(cmds.FbossCmd):
     def run(self, detail, ports, verbose):
+        self._client = self._create_ctrl_client()
         if detail or verbose:
-            self._client = self._create_ctrl_client()
             PortStatusDetailCmd(
                     self._client, ports, verbose).get_detail_status()
         else:
             self.list_ports(ports)
 
     def list_ports(self, ports):
-        self._client = self._create_ctrl_client()
-        field_fmt = '{:>10}  {:>12}  {}{:>10}  {:>12}  {:>6}'
-        print(field_fmt.format('Port', 'Admin State', '', 'Link State',
-                               'Transceiver', 'Speed'))
-        print('-' * 59)
-        resp = self._client.getPortStatus(ports)
-        port_info = self._client.getAllPortInfo()
+        try:
+            field_fmt = '{:>10}  {:>12}  {}{:>10}  {:>12}  {:>6}'
+            print(field_fmt.format('Port', 'Admin State', '', 'Link State',
+                                   'Transceiver', 'Speed'))
+            print('-' * 59)
+            resp = self._client.getPortStatus(ports)
+            port_info = self._client.getAllPortInfo()
 
-        for port_data in sorted(port_info.values(), key=port_sort_fn):
-            port = port_data.portId
-            if port not in resp:
-                continue
-            status = resp[port]
-            attrs = self._get_status_strs(status)
-            if status.enabled:
-                name = port_data.name if port_data.name else port
-                print(field_fmt.format(
-                    name, attrs['admin_status'], attrs['color_align'],
-                    attrs['link_status'], attrs['present'], attrs['speed']))
+            for port_data in sorted(port_info.values(), key=utils.port_sort_fn):
+                port = port_data.portId
+                if port not in resp:
+                    continue
+                status = resp[port]
+                attrs = self._get_status_strs(status)
+                if status.enabled:
+                    name = port_data.name if port_data.name else port
+                    print(field_fmt.format(
+                        name, attrs['admin_status'], attrs['color_align'],
+                        attrs['link_status'], attrs['present'], attrs['speed']))
+
+        except KeyError as e:
+            print("Invalid port", e)
 
     @staticmethod
     def _get_status_strs(status):

@@ -10,10 +10,10 @@
 
 from fboss.cli.commands import commands as cmds
 
-class NdpTableCmd(cmds.FbossCmd):
+class NdpTableCmd(cmds.PrintNeighborTableCmd):
     def run(self):
         self._client = self._create_ctrl_client()
         resp = self._client.getNdpTable()
         name = 'NDP'
         width = 40
-        cmds.print_neighbor_table(resp, name, width)
+        self.print_table(resp, name, width, self._client)

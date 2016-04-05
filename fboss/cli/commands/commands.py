@@ -41,14 +41,20 @@ class NeighborFlushCmd(FbossCmd):
         num_entries = client.flushNeighborEntry(bin_ip, vlan_id)
         print('Flushed {} entries'.format(num_entries))
 
-def print_neighbor_table(resp, name, width):
-    if not resp:
-        print("No {} Entries Found".format(name))
-        return
+class PrintNeighborTableCmd(FbossCmd):
+    def print_table(self, entries, name, width, client=None):
+        if client is None:
+            client = self._create_ctrl_client()
+        tmpl = "{:" + str(width) + "} {:18} {:>4}  {}"
+        port_list = client.getAllPortInfo()
+        print(tmpl.format("IP Address", "MAC Address", "Port", "VLAN"))
 
-    tmpl = "{:" + str(width) + "} {:18} {:>4}  {}"
-    print(tmpl.format("IP Address", "MAC Address", "Port", "VLAN"))
-    for entry in resp:
-        ip = utils.ip_ntop(entry.ip.addr)
-        vlan_field = '{} ({})'.format(entry.vlanName, entry.vlanID)
-        print(tmpl.format(ip, entry.mac, entry.port, vlan_field))
+        for port_info in sorted(port_list.values(), key=utils.port_sort_fn):
+            port_data = port_info.portId
+            for entry in entries:
+                if port_data == entry.port:
+                    ip = utils.ip_ntop(entry.ip.addr)
+                    vlan_field = '{} ({})'.format(entry.vlanName, entry.vlanID)
+                    if port_info.name:
+                        port_data = port_info.name
+                    print(tmpl.format(ip, entry.mac, port_data, vlan_field))

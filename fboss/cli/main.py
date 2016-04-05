@@ -24,6 +24,7 @@ from fboss.cli.commands import route
 from thrift.Thrift import TApplicationException
 from thrift.transport.TTransport import TTransportException
 from neteng.fboss.ttypes import FbossBaseError
+from fboss.thrift_clients import FbossAgentClient
 
 
 class CliOptions(object):
@@ -171,6 +172,23 @@ class NdpCli(object):
         ''' Flush an NDP entry '''
         cmds.NeighborFlushCmd(cli_opts).run(ip, vlan)
 
+class PortType(click.ParamType):
+    port_info_map = None
+
+    def convert(self, value, param, ctx):
+        try:
+            if value.isdigit():
+                return int(value)
+            if self.port_info_map is None:
+                client = FbossAgentClient(ctx.obj.hostname)
+                self.port_info_map = client.getAllPortInfo()
+            for port_id, port_info in self.port_info_map.items():
+                if port_info.name == value:
+                    return port_id
+            raise ValueError("No port found with that name")
+
+        except ValueError:
+            self.fail('%s is not a valid Port' % value, param, ctx)
 
 class PortCli(object):
     ''' Port sub-commands '''
@@ -186,21 +204,21 @@ class PortCli(object):
         pass
 
     @click.command()
-    @click.argument('ports', nargs=-1, type=int)
+    @click.argument('ports', nargs=-1, type=PortType())
     @click.pass_obj
     def _details(cli_opts, ports):
         ''' Show port details for given [port(s)] '''
         port.PortDetailsCmd(cli_opts).run(ports)
 
     @click.command()
-    @click.argument('ports', nargs=-1, required=True, type=int)
+    @click.argument('ports', nargs=-1, required=True, type=PortType())
     @click.pass_obj
     def _flap(cli_opts, ports):
         ''' Flap given [port(s)] '''
         port.PortFlapCmd(cli_opts).run(ports)
 
     @click.command()
-    @click.argument('ports', nargs=-1, type=int)
+    @click.argument('ports', nargs=-1, type=PortType())
     @click.option('--detail', is_flag=True, help='Display detailed port status')
     @click.option('-v', '--verbose', is_flag=True,
                     help='Show flags and thresholds as well as details')

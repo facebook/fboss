@@ -9,12 +9,14 @@
 #
 
 from fboss.cli.commands import commands as cmds
+from fboss.cli import utils
 
 
 class L2TableCmd(cmds.FbossCmd):
     def run(self):
         self._client = self._create_ctrl_client()
         resp = self._client.getL2Table()
+        port_map = self._client.getAllPortInfo()
 
         if not resp:
             print("No L2 Entries Found")
@@ -23,5 +25,10 @@ class L2TableCmd(cmds.FbossCmd):
         tmpl = "{:18} {:>4}  {}"
 
         print(tmpl.format("MAC Address", "Port", "VLAN"))
-        for entry in resp:
-            print(tmpl.format(entry.mac, entry.port, entry.vlanID))
+        for port_info in sorted(port_map.values(), key=utils.port_sort_fn):
+            for entry in resp:
+                port_data = port_info.portId
+                if port_data == entry.port:
+                    if port_info.name:
+                        port_data = port_info.name
+                    print(tmpl.format(entry.mac, port_data, entry.vlanID))
