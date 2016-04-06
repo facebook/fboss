@@ -177,17 +177,18 @@ class PortType(click.ParamType):
 
     def convert(self, value, param, ctx):
         try:
-            if value.isdigit():
-                return int(value)
             if self.port_info_map is None:
                 client = FbossAgentClient(ctx.obj.hostname)
                 self.port_info_map = client.getAllPortInfo()
+            if value.isdigit():
+                port = self.port_info_map[int(value)]
+                return port.portId
             for port_id, port_info in self.port_info_map.items():
                 if port_info.name == value:
                     return port_id
             raise ValueError("No port found with that name")
 
-        except ValueError:
+        except (ValueError, KeyError):
             self.fail('%s is not a valid Port' % value, param, ctx)
 
 class PortCli(object):
