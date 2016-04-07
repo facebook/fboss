@@ -76,6 +76,7 @@ std::string RestClient::requestWithOutput(std::string path) {
     }
 
     resp = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
     if (resp == CURLE_OK) {
       return write_buffer.str();
     } else {
