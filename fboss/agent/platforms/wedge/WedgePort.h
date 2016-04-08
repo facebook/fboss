@@ -35,7 +35,6 @@ class WedgePort : public BcmPlatformPort {
   void preEnable() override;
   void postEnable() override;
   bool isMediaPresent() override;
-  void linkStatusChanged(bool up, bool adminUp) override;
   void statusIndication(bool enabled, bool link,
                         bool ingress, bool egress,
                         bool discards, bool errors) override;

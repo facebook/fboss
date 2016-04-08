@@ -27,6 +27,9 @@ class Wedge40Platform : public WedgePlatform {
 
   InitPortMap initPorts() override;
 
+  folly::ByteRange defaultLedCode() override;
+
+
  private:
   Wedge40Platform(Wedge40Platform const &) = delete;
   Wedge40Platform& operator=(Wedge40Platform const &) = delete;

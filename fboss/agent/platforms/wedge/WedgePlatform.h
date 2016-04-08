@@ -15,6 +15,7 @@
 #include "fboss/agent/platforms/wedge/WedgeI2CBusLock.h"
 
 #include <folly/MacAddress.h>
+#include <folly/Range.h>
 #include <boost/container/flat_map.hpp>
 #include <memory>
 #include <unordered_map>
@@ -71,6 +72,7 @@ class WedgePlatform : public BcmPlatform {
   virtual PortID fbossPortForQsfpChannel(int transceiver, int channel);
 
   void initTransceiverMap(SwSwitch* sw);
+  virtual folly::ByteRange defaultLedCode() = 0;
 
   folly::MacAddress localMac_;
   std::unique_ptr<BcmSwitch> hw_;

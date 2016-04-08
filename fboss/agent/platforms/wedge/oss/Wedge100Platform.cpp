@@ -9,11 +9,17 @@
  */
 #include "fboss/agent/platforms/wedge/Wedge100Platform.h"
 
+#include <folly/Range.h>
+
 namespace facebook { namespace fboss {
 
 std::map<std::string, std::string> Wedge100Platform::loadConfig() {
   std::map<std::string, std::string> config;
   return config;
+}
+
+folly::ByteRange Wedge100Platform::defaultLedCode() {
+  return folly::ByteRange();
 }
 
 }} // facebook::fboss

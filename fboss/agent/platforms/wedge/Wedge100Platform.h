@@ -12,6 +12,7 @@
 #include "fboss/agent/platforms/wedge/WedgeProductInfo.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 
+#include <folly/Range.h>
 #include <boost/container/flat_map.hpp>
 #include <memory>
 #include <unordered_map>
@@ -35,6 +36,7 @@ class Wedge100Platform : public WedgePlatform {
   std::map<std::string, std::string> loadConfig() override;
   std::unique_ptr<BaseWedgeI2CBus> getI2CBus() override;
   PortID fbossPortForQsfpChannel(int transceiver, int channel) override;
+  folly::ByteRange defaultLedCode() override;
 };
 
 }} // namespace facebook::fboss

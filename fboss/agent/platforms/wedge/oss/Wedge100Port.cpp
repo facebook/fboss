@@ -7,14 +7,15 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/wedge/Wedge40Port.h"
+#include "fboss/agent/platforms/wedge/Wedge100Port.h"
 
 namespace facebook { namespace fboss {
 
-void Wedge40Port::remedy() {}
+// stubbed out
+void Wedge100Port::linkStatusChanged(bool up, bool adminUp) {}
 
-void Wedge40Port::prepareForGracefulExit() {}
+void Wedge100Port::remedy() {}
 
-void Wedge40Port::linkStatusChanged(bool up, bool adminUp) {}
+void Wedge100Port::prepareForGracefulExit() {}
 
 }} // facebook::fboss

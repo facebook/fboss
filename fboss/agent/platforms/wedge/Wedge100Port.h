@@ -21,8 +21,10 @@ class Wedge100Port : public WedgePort {
   cfg::PortSpeed maxLaneSpeed() const override {
     return cfg::PortSpeed::TWENTYFIVEG;
   }
-  void remedy() override {}
-  void prepareForGracefulExit() override {}
+
+  void remedy() override;
+  void prepareForGracefulExit() override;
+  void linkStatusChanged(bool up, bool adminUp);
 };
 
 }} // facebook::fboss
