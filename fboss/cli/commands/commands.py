@@ -45,9 +45,10 @@ class PrintNeighborTableCmd(FbossCmd):
     def print_table(self, entries, name, width, client=None):
         if client is None:
             client = self._create_ctrl_client()
-        tmpl = "{:" + str(width) + "} {:18} {:>4}  {}"
+        tmpl = "{:" + str(width) + "} {:18} {:>4}  {:18} {!s:12} {}"
+        print(tmpl.format(
+            "IP Address", "MAC Address", "Port", "VLAN", "State", "TTL"))
         port_list = client.getAllPortInfo()
-        print(tmpl.format("IP Address", "MAC Address", "Port", "VLAN"))
 
         for port_info in sorted(port_list.values(), key=utils.port_sort_fn):
             port_data = port_info.portId
@@ -57,4 +58,5 @@ class PrintNeighborTableCmd(FbossCmd):
                     vlan_field = '{} ({})'.format(entry.vlanName, entry.vlanID)
                     if port_info.name:
                         port_data = port_info.name
-                    print(tmpl.format(ip, entry.mac, port_data, vlan_field))
+                    print(tmpl.format(ip, entry.mac, entry.port, vlan_field,
+                            entry.state, '{}s'.format(entry.ttl // 1000)))
