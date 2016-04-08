@@ -49,6 +49,7 @@ class WedgePlatform : public BcmPlatform {
     // wedge_agent, and not with wedge_ctrl).
     return FLAGS_enable_routes_in_host_table;
   }
+  WedgePort* getPort(PortID port);
 
  protected:
   explicit WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo);

@@ -20,7 +20,7 @@
 namespace facebook { namespace fboss {
 
 class BcmSwitch;
-class WedgePort;
+class Wedge100Port;
 
 class Wedge100Platform : public WedgePlatform {
  public:
@@ -28,15 +28,20 @@ class Wedge100Platform : public WedgePlatform {
   ~Wedge100Platform() override;
 
   InitPortMap initPorts() override;
-
+  Wedge100Port* getPortFromFrontPanelNum(TransceiverID fpPort);
  private:
   Wedge100Platform(Wedge100Platform const &) = delete;
   Wedge100Platform& operator=(Wedge100Platform const &) = delete;
 
+  typedef std::map<TransceiverID, PortID> FrontPanelMapping;
+
   std::map<std::string, std::string> loadConfig() override;
   std::unique_ptr<BaseWedgeI2CBus> getI2CBus() override;
   PortID fbossPortForQsfpChannel(int transceiver, int channel) override;
+  FrontPanelMapping getFrontPanelMapping();
   folly::ByteRange defaultLedCode() override;
+
+  FrontPanelMapping frontPanelMapping_;
 };
 
 }} // namespace facebook::fboss

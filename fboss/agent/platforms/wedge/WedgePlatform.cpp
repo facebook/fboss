@@ -159,4 +159,12 @@ PortID WedgePlatform::fbossPortForQsfpChannel(int transceiver, int channel) {
   return PortID(transceiver * QsfpModule::CHANNEL_COUNT + channel + 1);
 }
 
+WedgePort* WedgePlatform::getPort(PortID id) {
+  auto iter = ports_.find(id);
+  if (iter == ports_.end()) {
+    throw FbossError("Cannot find the Wedge port object for BCM port ", id);
+  }
+  return iter->second.get();
+}
+
 }} // facebook::fboss

@@ -73,6 +73,10 @@ class BcmPortGroup {
   static BcmPortGroup::LaneMode calculateDesiredLaneMode(
     const std::vector<Port*>& ports, cfg::PortSpeed maxLaneSpeed);
 
+  LaneMode laneMode() {
+    return laneMode_;
+  }
+
  private:
   LaneMode getDesiredLaneMode(
     const std::shared_ptr<SwitchState>& state) const;
