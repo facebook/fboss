@@ -70,7 +70,7 @@ Advantages
     `SwSwitch`, but once retrieved it can be accessed with no locking.  Note
     that after the current `SwitchState` is retrieved, the `SwSwitch` may be
     updated to point to a newer `SwitchState`.
-    
+
     Callers that wish to avoid this can also hold the update lock if they wish
     to prevent the state from being updated while performing a particular
     operation.  However, it is expected that most callers won't need to do
@@ -137,7 +137,7 @@ Advantages
     should make it easy to store a copy of the state on each change (or on
     every Nth change, or at periodic intervals).  This would provide a detailed
     transition log, allowing us to debug problems after the fact and
-    reconstruct exactly how a switch arrived at is current configuration.
+    reconstruct exactly how a switch arrived at its current configuration.
 
     This mechanism may be too expensive to enable all of the time, but it could
     be enabled on a handful of switches, or it could be enabled on demand when
@@ -154,7 +154,7 @@ Disadvantages
 
     We aim to provide helper functions that can be shared by many `HwSwitch`
     implementations.  However, the process of applying a StateDelta to hardware
-    may end up being a fairly tricky peice of code, with many subtle corner
+    may end up being a fairly tricky piece of code, with many subtle corner
     cases and ordering issues.
 
 * Performance
@@ -230,8 +230,8 @@ Ownership & Conflict Resolution
 
 Several different parts of the code modify the SwitchState tree.  Therefore
 different portions of tree are owned and maintained by different parts of the
-code.  Currently, all of the following different mechanisms can are used to
-update different portions of the tree:
+code.  Currently, all of the following different mechanisms are used to update
+different portions of the tree:
 
 * Configuration file
 
@@ -298,7 +298,7 @@ it is no longer current and is no longer pointed to by the main `SwSwitch`
 object.
 
 The same process works for internal nodes.  Each node stores `shared_ptr`s to
-its children nodes.  Multiple generations of `SwitchState` objects objects may
-all share the same child node.  `shared_ptr` will serve as a reference count
+its children nodes.  Multiple generations of `SwitchState` objects may all
+share the same child node.  `shared_ptr` will serve as a reference count
 for the child node, and will ensure that the child node is deleted when it is
 no longer used by any of the remaining `SwitchState` objects.
