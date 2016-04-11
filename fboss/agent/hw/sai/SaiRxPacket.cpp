@@ -37,6 +37,8 @@ SaiRxPacket::SaiRxPacket(const void* buf,
     throw SaiError("Invalid input data.");
   }
 
+  const uint8_t PKT_MIN_LEN = 64;
+
   for (uint32_t i = 0; i < attr_count; i++) {
 
     if (attr_list[i].id == SAI_HOSTIF_PACKET_INGRESS_PORT) {
@@ -44,13 +46,15 @@ SaiRxPacket::SaiRxPacket(const void* buf,
     }
   }
   
-  len_ = buf_size;
+  // Append ingress packet to 64 bytes.
+  len_ = (buf_size < PKT_MIN_LEN) ? PKT_MIN_LEN : buf_size;
 
-  void *pkt_buf = new uint8_t[buf_size];
+  uint8_t *pkt_buf = new uint8_t[len_];
+  memset(pkt_buf, 0, len_);
   memcpy(pkt_buf, buf, buf_size);
 
   buf_ = IOBuf::takeOwnership(pkt_buf,           // void* buf
-                              buf_size,          // uint32_t capacity
+                              len_,              // uint32_t capacity
                               freeRxBufCallback, // Free Function freeFn
                               NULL);             // void* userData
 
