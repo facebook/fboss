@@ -25,12 +25,12 @@ class RouteIpCmd(cmds.FbossCmd):
         print('Route to ' + addr.addr + ', Vrf: %d' % vrf)
         netAddr = utils.ip_ntop(resp.dest.ip.addr)
         prefix = resp.dest.prefixLength
-        if netAddr == '0.0.0.0' or netAddr == '::':
-            print('No Route to destination')
-        else:
+        if netAddr and resp.nextHopAddrs:
             print('N/w: %s/%d' % (netAddr, prefix))
             for nexthops in resp.nextHopAddrs:
                 print('\t\tvia: ' + utils.ip_ntop(nexthops.addr))
+        else:
+            print('No Route to destination')
 
 
 class RouteTableCmd(cmds.FbossCmd):
