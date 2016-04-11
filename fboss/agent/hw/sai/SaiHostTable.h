@@ -40,11 +40,6 @@ public:
 
   /**
    * Remove an existing SaiHost entry
-   *
-   * @return nullptr, if the SaiHost entry is deleted
-   * @retrun the SaiHost object that has reference counter
-   *         decreased by 1, but the object is still valid as it is
-   *         still referred in somewhere else
    */
    void removeSaiHost(InterfaceID intf,
                       const folly::IPAddress &ip) noexcept;
