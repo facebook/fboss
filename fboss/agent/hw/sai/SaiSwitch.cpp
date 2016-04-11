@@ -686,7 +686,11 @@ void SaiSwitch::ProcessChangedRoute(const RouterID id,
     VLOG(2) << "Non-resolved route HW programming is skipped";
     ProcessRemovedRoute(id, oldRoute);
   } else {
-    routeTable_->AddRoute(id, newRoute.get());
+    try {
+      routeTable_->AddRoute(id, newRoute.get());
+    } catch (const SaiError &e) {
+      LOG(ERROR) << e.what();
+    }
   }
 }
 
@@ -703,7 +707,11 @@ void SaiSwitch::ProcessAddedRoute(const RouterID id,
     return;
   }
 
-  routeTable_->AddRoute(id, route.get());
+  try {
+    routeTable_->AddRoute(id, route.get());
+  } catch (const SaiError &e) {
+    LOG(ERROR) << e.what();
+  }
 }
 
 template <typename RouteT>
@@ -718,7 +726,11 @@ void SaiSwitch::ProcessRemovedRoute(const RouterID id,
     return;
   }
 
-  routeTable_->DeleteRoute(id, route.get());
+  try {
+    routeTable_->DeleteRoute(id, route.get());
+  } catch (const SaiError &e) {
+    LOG(ERROR) << e.what();
+  }
 }
 
 void SaiSwitch::ProcessRemovedRoutes(const StateDelta &delta) {
@@ -783,54 +795,49 @@ void SaiSwitch::ProcessChangedVlan(const shared_ptr<Vlan> &oldVlan,
   std::vector<sai_vlan_port_t> removedPorts;
   const auto &oldPorts = oldVlan->getPorts();
   const auto &newPorts = newVlan->getPorts();
-  auto oldIter = oldPorts.begin();
-  auto newIter = newPorts.begin();
 
-  while ((oldIter != oldPorts.end()) &&
-         (newIter != newPorts.end())) {
-
-    if ((oldIter == oldPorts.end()) ||
-        ((newIter != newPorts.end()) && (newIter->first < oldIter->first))) {
+  // Populate the list of removed ports
+  for (auto entry : oldPorts) {
+    if (newPorts.find(entry.first) == newPorts.end()) {
 
       sai_vlan_port_t vlanPort;
 
       try {
-        vlanPort.port_id = portTable_->GetSaiPortId(newIter->first);
+        vlanPort.port_id = portTable_->GetSaiPortId(entry.first);
       } catch (const SaiError &e) {
         LOG(ERROR) << e.what();
-        ++newIter;
         continue;
       }
 
-      vlanPort.tagging_mode = newIter->second.tagged ? SAI_VLAN_PORT_TAGGED :
-                                                       SAI_VLAN_PORT_UNTAGGED;
-      addedPorts.push_back(vlanPort);
-      ++newIter;
-    } else if (newIter == newPorts.end() ||
-               (oldIter != oldPorts.end() && (oldIter->first < newIter->first))) {
-
-      sai_vlan_port_t vlanPort;
-
-      try {
-        vlanPort.port_id = portTable_->GetSaiPortId(oldIter->first);
-      } catch (const SaiError &e) {
-        LOG(ERROR) << e.what();
-        ++oldIter;
-        continue;
-      }
-
+      vlanPort.tagging_mode = entry.second.tagged ? SAI_VLAN_PORT_TAGGED :
+                                                    SAI_VLAN_PORT_UNTAGGED;
       removedPorts.push_back(vlanPort);
-
-    } else {
-      ++oldIter;
-      ++newIter;
     }
   }
 
-  VLOG(2) << "updating VLAN " << newVlan->getID() << ": " << addedPorts.size()
-          << " ports added, " << removedPorts.size() << " ports removed";
+  // Populate the list of added ports
+  for (auto entry : newPorts) {
+    if (oldPorts.find(entry.first) == oldPorts.end()) {
+
+      sai_vlan_port_t vlanPort;
+
+      try {
+        vlanPort.port_id = portTable_->GetSaiPortId(entry.first);
+      } catch (const SaiError &e) {
+        LOG(ERROR) << e.what();
+        continue;
+      }
+
+      vlanPort.tagging_mode = entry.second.tagged ? SAI_VLAN_PORT_TAGGED :
+                                                    SAI_VLAN_PORT_UNTAGGED;
+      addedPorts.push_back(vlanPort);
+    }
+  }
 
   if (removedPorts.size() > 0) {
+
+    VLOG(2) << "updating VLAN " << newVlan->getID() << ": "  << removedPorts.size() << " ports removed";
+
     saiStatus = pSaiVlanApi_->remove_ports_from_vlan(vlanId, removedPorts.size(),
                                                      removedPorts.data());
     if (saiStatus != SAI_STATUS_SUCCESS) {
@@ -839,19 +846,14 @@ void SaiSwitch::ProcessChangedVlan(const shared_ptr<Vlan> &oldVlan,
   }
 
   if (addedPorts.size() > 0) {
+
+    VLOG(2) << "updating VLAN " << newVlan->getID() << ": "  << addedPorts.size() << " ports added";
+
     saiStatus = pSaiVlanApi_->add_ports_to_vlan(vlanId, addedPorts.size(),
                                                 addedPorts.data());
-
     if (saiStatus != SAI_STATUS_SUCCESS) {
       LOG(ERROR) << "Failed to add ports to VLAN " << vlanId;
     }
-  }
-
-  if ((addedPorts.size() == 0) &&
-      (removedPorts.size() == 0))
-  {
-     // Nothing changed means that it's new VLAN
-     ProcessAddedVlan(newVlan);
   }
 }
 
