@@ -319,17 +319,7 @@ void SaiSwitch::stateChanged(const StateDelta &delta) {
     std::lock_guard<std::mutex> g(lock_);
     // As the first step, disable ports that are now disabled.
     // This ensures that we immediately stop forwarding traffic on these ports.
-    forEachChanged(delta.getPortsDelta(),
-    [&] (const shared_ptr<Port> &oldPort, const shared_ptr<Port> &newPort) {
-      if (oldPort->getState() == newPort->getState()) {
-        return;
-      }
-
-      if (newPort->getState() == cfg::PortState::DOWN ||
-          newPort->getState() == cfg::PortState::POWER_DOWN) {
-        ChangePortState(oldPort, newPort);
-      }
-    });
+    processDisabledPorts(delta);
 
     // remove all routes to be deleted
     ProcessRemovedRoutes(delta);
@@ -379,17 +369,8 @@ void SaiSwitch::stateChanged(const StateDelta &delta) {
     // As the last step, enable newly enabled ports.
     // Doing this as the last step ensures that we only start forwarding traffic
     // once the ports are correctly configured.
-    forEachChanged(delta.getPortsDelta(),
-    [&] (const shared_ptr<Port> &oldPort, const shared_ptr<Port> &newPort) {
-      if (oldPort->getState() == newPort->getState()) {
-        return;
-      }
+    processEnabledPorts(delta);
 
-      if (newPort->getState() != cfg::PortState::DOWN &&
-          newPort->getState() != cfg::PortState::POWER_DOWN) {
-        ChangePortState(oldPort, newPort);
-      }
-    });
   } catch(SaiError &e) {
     LOG(ERROR) << e.what();
   } catch(SaiFatal &e) {
@@ -463,19 +444,6 @@ bool SaiSwitch::sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt, PortID portID
   return true;
 }
 
-void SaiSwitch::ChangePortState(const shared_ptr<Port> &oldPort,
-                                const shared_ptr<Port> &newPort) {
-  VLOG(4) << "Entering " << __FUNCTION__;
-
-  try {
-    uint16_t o = portTable_->GetSaiPortId(oldPort->getID());
-    uint16_t n = portTable_->GetSaiPortId(newPort->getID());
-    VLOG(3) << "changePortState(" << o << ", " << n << ")";
-  } catch (SaiError &e) {
-    LOG(ERROR) << e.what();
-  }
-}
-
 void SaiSwitch::UpdateIngressVlan(const std::shared_ptr<Port> &oldPort,
                                   const std::shared_ptr<Port> &newPort) {
   VLOG(4) << "Entering " << __FUNCTION__;
@@ -490,6 +458,40 @@ void SaiSwitch::UpdateIngressVlan(const std::shared_ptr<Port> &oldPort,
 void SaiSwitch::UpdatePortSpeed(const std::shared_ptr<Port> &oldPort,
                                 const std::shared_ptr<Port> &newPort) {
   VLOG(4) << "Entering " << __FUNCTION__;
+}
+
+void SaiSwitch::processDisabledPorts(const StateDelta& delta) {
+  VLOG(4) << "Entering " << __FUNCTION__;
+
+  forEachChanged(delta.getPortsDelta(),
+    [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+      if (!oldPort->isDisabled() && newPort->isDisabled()) {
+
+        try {
+          portTable_->GetSaiPort(newPort->getID())->disable();
+        } catch (const SaiError &e) {
+          LOG(ERROR) << e.what();
+        }
+      }
+    });
+}
+
+void SaiSwitch::processEnabledPorts(const StateDelta& delta) {
+  VLOG(4) << "Entering " << __FUNCTION__;
+
+  forEachChanged(delta.getPortsDelta(),
+    [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+
+      if (oldPort->isDisabled() && !newPort->isDisabled()) {
+
+        try {
+          portTable_->GetSaiPort(newPort->getID())->enable();
+        } catch (const SaiError &e) {
+          LOG(ERROR) << e.what();
+        }
+      }
+
+    });
 }
 
 void SaiSwitch::clearWarmBootCache() {

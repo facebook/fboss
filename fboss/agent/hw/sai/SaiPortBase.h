@@ -65,10 +65,16 @@ public:
   VlanID GetIngressVlan() {
     return pvId_;
   }
+
+  bool isEnabled() {
+    return adminMode_;
+  }
   /*
   * Setters.
   */
-  void SetPortStatus(bool linkStatus);
+  void enable();
+  void disable();
+  void setPortStatus(bool linkStatus);
 
   void SetIngressVlan(VlanID vlan);
 
@@ -95,6 +101,7 @@ private:
   sai_object_id_t saiPortId_ {0}; 
   PortID fbossPortId_ {0};
   VlanID pvId_ {0};
+  bool adminMode_ {false};
   bool linkStatus_ {true};
   bool initDone_ {false};
 

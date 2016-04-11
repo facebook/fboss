@@ -234,8 +234,9 @@ private:
 
   void UpdatePortSpeed(const std::shared_ptr<Port> &oldPort,
                        const std::shared_ptr<Port> &newPort);
-  void ChangePortState(const std::shared_ptr<Port> &oldPort,
-                       const std::shared_ptr<Port> &newPort);
+  void processDisabledPorts(const StateDelta& delta);
+  void processEnabledPorts(const StateDelta& delta);
+
   /*
    * Private callback called by the SAI API. Dispatches to
    * SaiSwitch::OnPacketReceived.

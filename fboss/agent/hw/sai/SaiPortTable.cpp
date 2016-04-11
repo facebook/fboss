@@ -87,7 +87,7 @@ void SaiPortTable::SetPortStatus(sai_object_id_t portId, int status) {
   VLOG(6) << "Entering " << __FUNCTION__;
 
   auto port = GetSaiPort(portId);
-  port->SetPortStatus(status);
+  port->setPortStatus(status);
 }
 
 void SaiPortTable::UpdatePortStats() {

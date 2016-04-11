@@ -42,31 +42,23 @@ void SaiPortBase::Init(bool warmBoot) {
     LOG(ERROR) << e.what();
   }
 
-  SetPortStatus(true);
+  disable();
 
   initDone_ = true;
 }
 
-void SaiPortBase::SetPortStatus(bool linkStatus) {
+void SaiPortBase::setPortStatus(bool linkStatus) {
   VLOG(6) << "Entering " << __FUNCTION__;
 
   if (initDone_ && (linkStatus_ == linkStatus)) {
     return;
   }
 
-  sai_attribute_t attr {0};
-  attr.id = SAI_PORT_ATTR_ADMIN_STATE;
-  attr.value.booldata = linkStatus;
-  
-  sai_status_t saiStatus = pSaiPortApi_->set_port_attribute(saiPortId_, &attr);
-  if(SAI_STATUS_SUCCESS != saiStatus) {
-    LOG(ERROR) << "failed to set port status: " << linkStatus << "error: " << saiStatus;
-  }
-
   VLOG(6) << "Set port: " << fbossPortId_.t << " status to: " << linkStatus;
   // We ignore the return value.  If we fail to get the port status
   // we just tell the platformPort_ that it is enabled.
-  pPlatformPort_->linkStatusChanged(linkStatus, true);
+  pPlatformPort_->linkStatusChanged(linkStatus, adminMode_);
+  linkStatus_ = linkStatus;
 }
 
 void SaiPortBase::SetIngressVlan(VlanID vlan) {
@@ -90,6 +82,48 @@ void SaiPortBase::SetIngressVlan(VlanID vlan) {
   VLOG(6) << "Set port: " << fbossPortId_.t << " ingress VLAN to: " << vlan.t;
 
   pvId_ = vlan;
+}
+
+void SaiPortBase::enable() {
+  if (isEnabled()) {
+    // Port is already enabled, don't need to do anything
+    return;
+  }
+
+  sai_attribute_t attr {0};
+  attr.id = SAI_PORT_ATTR_ADMIN_STATE;
+  attr.value.booldata = true;
+  
+  sai_status_t saiStatus = pSaiPortApi_->set_port_attribute(saiPortId_, &attr);
+  if(SAI_STATUS_SUCCESS != saiStatus) {
+    LOG(ERROR) << "Failed to enable port admin mode. Error: " << saiStatus;
+  }
+
+  adminMode_ = true;
+  VLOG(3) << "Enabled port: " << fbossPortId_;
+  // TODO: Temporary solution. Will need to get operational status from HW.
+  setPortStatus(adminMode_);
+}
+
+void SaiPortBase::disable() {
+  if (initDone_ && !isEnabled()) {
+    // Port is already disabled, don't need to do anything
+    return;
+  }
+
+  sai_attribute_t attr {0};
+  attr.id = SAI_PORT_ATTR_ADMIN_STATE;
+  attr.value.booldata = false;
+  
+  sai_status_t saiStatus = pSaiPortApi_->set_port_attribute(saiPortId_, &attr);
+  if(SAI_STATUS_SUCCESS != saiStatus) {
+    LOG(ERROR) << "Failed to disable port admin mode. Error: " << saiStatus;
+  }
+
+  adminMode_ = false;
+  VLOG(3) << "Disabled port: " << fbossPortId_;
+  // TODO: Temporary solution. Will need to get operational status from HW.
+  setPortStatus(adminMode_);
 }
 
 std::string SaiPortBase::StatName(folly::StringPiece name) const {
