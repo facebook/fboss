@@ -75,7 +75,9 @@ SaiPortBase *SaiPortTable::GetSaiPort(sai_object_id_t id) const {
   auto iter = saiPhysicalPorts_.find(id);
 
   if (iter == saiPhysicalPorts_.end()) {
-    throw SaiError("Cannot find the SAI port object for SAI port ", id);
+    std::stringstream stream;
+    stream << "0x" << std::hex << id;
+    throw SaiError("Cannot find the SAI port object for SAI port ", stream.str());
   }
 
   return iter->second.get();
