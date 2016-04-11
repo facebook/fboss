@@ -58,5 +58,7 @@ class PrintNeighborTableCmd(FbossCmd):
                     vlan_field = '{} ({})'.format(entry.vlanName, entry.vlanID)
                     if port_info.name:
                         port_data = port_info.name
+                    ttl = entry.ttl // 1000 if entry.ttl else '?'
+                    state = entry.state if entry.state else 'NA'
                     print(tmpl.format(ip, entry.mac, entry.port, vlan_field,
-                            entry.state, '{}s'.format(entry.ttl // 1000)))
+                                      state, '{}s'.format(ttl)))
