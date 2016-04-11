@@ -101,6 +101,7 @@ void SaiRoute::Program(const RouteForwardInfo &fwd) {
       // derefernce old next hop
       hw_->WritableNextHopTable()->DerefSaiNextHop(fwd_);
     }
+
   } else {
     // vrf as well as the route itself has to be referenced/created only
     // for the first time
@@ -167,8 +168,8 @@ void SaiRoute::Program(const RouteForwardInfo &fwd) {
     sai_status_t saiRetVal = pSaiRouteApi_->create_route(&routeEntry_, 0, NULL);
     if (saiRetVal != SAI_STATUS_SUCCESS) {
        throw SaiError("Could not create route with addr: ", ipAddr_,
-                        " netmask length: ", prefixLen_, " vrf: ", vrf_,
-                        " Error: ", saiRetVal);
+                      " netmask length: ", prefixLen_, " vrf: ", vrf_,
+                      " Error: ", saiRetVal);
     }
 
     added_ = true;
@@ -183,10 +184,12 @@ void SaiRoute::Program(const RouteForwardInfo &fwd) {
   switch (newAction) {
 
   case RouteForwardAction::DROP:
+    resolved_ = true;
     routeAttr.value.u32 = SAI_PACKET_ACTION_DROP;
     break;
 
   case RouteForwardAction::TO_CPU:
+    resolved_ = true;
     routeAttr.value.u32 = SAI_PACKET_ACTION_TRAP;
     break;
 
@@ -202,8 +205,8 @@ void SaiRoute::Program(const RouteForwardInfo &fwd) {
   sai_status_t saiRetVal = pSaiRouteApi_->set_route_attribute(&routeEntry_, &routeAttr);
   if (saiRetVal != SAI_STATUS_SUCCESS) {
     throw SaiError("Could not set packet action attribute for route with addr: ", ipAddr_,
-                     " netmask length: ", prefixLen_, " vrf: ", vrf_,
-                     " Error: ", saiRetVal);
+                   " netmask length: ", prefixLen_, " vrf: ", vrf_,
+                   " Error: ", saiRetVal);
   }
 
   if (newAction == RouteForwardAction::NEXTHOPS) {
@@ -211,16 +214,52 @@ void SaiRoute::Program(const RouteForwardInfo &fwd) {
     routeAttr.id = SAI_ROUTE_ATTR_NEXT_HOP_ID;
     routeAttr.value.oid = hw_->WritableNextHopTable()->IncRefOrCreateSaiNextHop(fwd)->GetSaiNextHopId();
 
-    // Set next hop ID route attribute in SAI
-    saiRetVal = pSaiRouteApi_->set_route_attribute(&routeEntry_, &routeAttr);
-    if (saiRetVal != SAI_STATUS_SUCCESS) {
-      throw SaiError("Could not set next hop ID attribute for route with addr: ", ipAddr_,
+    if (routeAttr.value.oid != SAI_NULL_OBJECT_ID) {
+      // Set next hop ID route attribute in SAI
+      saiRetVal = pSaiRouteApi_->set_route_attribute(&routeEntry_, &routeAttr);
+      if (saiRetVal != SAI_STATUS_SUCCESS) {
+        throw SaiError("Could not set next hop ID attribute for route with addr: ", ipAddr_,
                        " netmask length: ", prefixLen_, " vrf: ", vrf_,
                        " Error: ", saiRetVal);
+      }
     }
+
+    resolved_ = (routeAttr.value.oid != SAI_NULL_OBJECT_ID) ? true : false;
   }
 
   fwd_ = fwd;
+}
+
+void SaiRoute::onResolved(InterfaceID intf, const folly::IPAddress &ip) {
+
+  sai_status_t saiRetVal {SAI_STATUS_FAILURE};
+
+  RouteForwardInfo::Nexthop nh(intf, ip);
+
+  // Check if this next hop is in the list of unresolved ones.
+  auto iter = fwd_.getNexthops().find(nh);
+  if (iter == fwd_.getNexthops().end()) {
+    return;
+  }
+
+  VLOG(3) << __FUNCTION__ << " Resolving route: " << ipAddr_ << "=>" << fwd_ << " with NH: " << ip << "/" << intf;
+
+  sai_attribute_t routeAttr {0, 0};
+  routeAttr.id = SAI_ROUTE_ATTR_NEXT_HOP_ID;
+  routeAttr.value.oid = hw_->GetNextHopTable()->GetSaiNextHopId(fwd_);
+
+  if (routeAttr.value.oid != SAI_NULL_OBJECT_ID) {
+
+    // Set next hop ID route attribute in SAI
+    saiRetVal = pSaiRouteApi_->set_route_attribute(&routeEntry_, &routeAttr);
+    if (saiRetVal != SAI_STATUS_SUCCESS) {
+      LOG(ERROR) << "Could not set next hop ID attribute for route with addr: " << ipAddr_
+                 << " netmask length: " << prefixLen_ << " vrf: " << vrf_ << " Error: " << saiRetVal;
+      return;
+    }
+  }
+
+  resolved_ = (routeAttr.value.oid != SAI_NULL_OBJECT_ID) ? true : false;
 }
 
 }} // facebook::fboss

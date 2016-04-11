@@ -27,49 +27,39 @@ public:
   virtual ~SaiHostTable();
 
   // return nullptr if not found
-  SaiHost *GetSaiHost(InterfaceID intf,
-                      const folly::IPAddress &ip,
-                      const folly::MacAddress &mac) const;
-
+  SaiHost *getSaiHost(InterfaceID intf, const folly::IPAddress &ip) const;
   /**
-   * Allocates a new SaiHost if no such one exists. 
-   * For the existing entry, incRefOrCreateSaiHost() will increase 
-   * the reference counter by 1.
+   * Allocates a new SaiHost if no such one exists or  
+   * updates an existing one. 
    *
    * @return The SaiHost pointer just created or found.
    */
-  SaiHost *IncRefOrCreateSaiHost(InterfaceID intf,
+  SaiHost *createOrUpdateSaiHost(InterfaceID intf,
                                  const folly::IPAddress &ip,
                                  const folly::MacAddress &mac);
 
   /**
-   * Decrease an existing SaiHost entry's reference counter by 1.
-   * Only until the reference counter is 0, the SaiHost entry
-   * is deleted.
+   * Remove an existing SaiHost entry
    *
    * @return nullptr, if the SaiHost entry is deleted
    * @retrun the SaiHost object that has reference counter
    *         decreased by 1, but the object is still valid as it is
    *         still referred in somewhere else
    */
-  SaiHost *DerefSaiHost(InterfaceID intf,
-                        const folly::IPAddress &ip,
-                        const folly::MacAddress &mac) noexcept;
+   void removeSaiHost(InterfaceID intf,
+                      const folly::IPAddress &ip) noexcept;
 
 private:
   struct Key {
     Key(InterfaceID intf, 
-        const folly::IPAddress &ip,
-        const folly::MacAddress &mac);
+        const folly::IPAddress &ip);
     bool operator<(const Key &k) const;
 
     InterfaceID intf_;
     folly::IPAddress ip_;
-    folly::MacAddress mac_;
   };
 
-  typedef std::pair<std::unique_ptr<SaiHost>, uint32_t> HostMapNode;
-  typedef boost::container::flat_map<Key, HostMapNode> HostMap;
+  typedef boost::container::flat_map<Key, std::unique_ptr<SaiHost>> HostMap;
 
   const SaiSwitch *hw_;
   HostMap hosts_;

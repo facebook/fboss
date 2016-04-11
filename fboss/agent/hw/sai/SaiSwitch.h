@@ -252,9 +252,6 @@ private:
                         sai_size_t buf_size,
                         uint32_t attr_count,
                         const sai_attribute_t *attr_list) noexcept;
-
-  void AddHostsForDemo();
-
   enum {
     SAI_SWITCH_DEFAULT_PROFILE_ID = 0
   };

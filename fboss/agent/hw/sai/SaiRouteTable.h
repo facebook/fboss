@@ -40,6 +40,16 @@ public:
   void AddRoute(RouterID vrf, const RouteT *route);
   template<typename RouteT>
   void DeleteRoute(RouterID vrf, const RouteT *route);
+
+  /**
+   * Loops trough all the unresolved Routes and resolves those which have 
+   * Next Hops with 'intf' and 'ip'
+   *
+   * @return none
+   */
+  void onResolved(InterfaceID intf, const folly::IPAddress &ip);
+
+
 private:
   struct Key {
     folly::IPAddress network;
@@ -49,7 +59,7 @@ private:
   };
   const SaiSwitch *hw_;
   boost::container::flat_map<Key, std::unique_ptr<SaiRoute>> fib_;
-
+  boost::container::flat_set<SaiRoute*> unresolvedRoutes_;
 };
 
 }} // facebook::fboss

@@ -46,6 +46,15 @@ public:
   virtual ~SaiHost();
 
   /**
+   * Gets Sai Host action. 
+   *  
+   * @return Host action of sai_packet_action_t type.
+   */
+  sai_packet_action_t getSaiAction() const {
+      return action_;
+  }
+
+  /**
    * Programs host in HW and stores sai_neighbor_entry_t instance
    * which holds SAI host data needed. 
    *  
@@ -53,21 +62,17 @@ public:
    *  
    * @return none
    */
-  void Program(sai_packet_action_t action);
+  void Program(sai_packet_action_t action, const folly::MacAddress &mac);
 
 private:
   // no copy or assignment
   SaiHost(SaiHost const &) = delete;
   SaiHost &operator=(SaiHost const &) = delete;
-
-  enum {
-    SAI_NEIGHBOR_ATTR_COUNT = 2
-  };
      
   const SaiSwitch *hw_;
   const InterfaceID intf_;
   const folly::IPAddress ip_;
-  const folly::MacAddress mac_;
+  folly::MacAddress mac_;
   sai_packet_action_t action_ {SAI_PACKET_ACTION_DROP};
   bool added_ {false}; // if added to the HW host table or not
 

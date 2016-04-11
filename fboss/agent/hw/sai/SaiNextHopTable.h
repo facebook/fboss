@@ -30,9 +30,9 @@ public:
 
   /**
    * Given fwdInfo gets Sai Next Hop ID of sai_object_id_t type. 
-   * Throws an exception if there is no such Next Hop found.
    *  
-   * @return Sai Vrf ID of sai_object_id_t type
+   * @return Sai Next Hop ID of sai_object_id_t type if found, 
+   *         otherwise SAI_NULL_OBJECT_ID 
    */
   sai_object_id_t GetSaiNextHopId(const RouteForwardInfo &fwdInfo) const;
 
@@ -63,6 +63,14 @@ public:
    *         still referred in somewhere else
    */
   SaiNextHop *DerefSaiNextHop(const RouteForwardInfo &fwdInfo) noexcept;
+
+  /**
+   * Loops trough all the Next Hops and resolves(if not resolved yet) 
+   * those with 'intf' and 'ip'
+   *
+   * @return none
+   */
+  void onResolved(InterfaceID intf, const folly::IPAddress &ip);
 
 private:
   typedef std::pair<std::unique_ptr<SaiNextHop>, uint32_t> NextHopMapNode; 

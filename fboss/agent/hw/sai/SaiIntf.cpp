@@ -155,14 +155,14 @@ void SaiIntf::Program(const shared_ptr<Interface> &intf) {
   }
 
   auto createHost = [&](const IPAddress& addr) {
-    auto host = hw_->WritableHostTable()->IncRefOrCreateSaiHost(intf->getID(),
-                                                    addr,
-                                                    intf->getMac());
+    auto host = hw_->WritableHostTable()->createOrUpdateSaiHost(intf->getID(),
+                                                                addr,
+                                                                intf->getMac());
 
     try {
-      host->Program(SAI_PACKET_ACTION_TRAP);
+      host->Program(SAI_PACKET_ACTION_TRAP, intf->getMac());
     } catch (const FbossError &e) {
-      hw_->WritableHostTable()->DerefSaiHost(intf->getID(), addr, intf->getMac());
+      hw_->WritableHostTable()->removeSaiHost(intf->getID(), addr);
       // let handle this in the caller.
       throw;
     }
@@ -170,7 +170,7 @@ void SaiIntf::Program(const shared_ptr<Interface> &intf) {
     auto ret = hosts_.insert(addr);
     CHECK(ret.second);
     SCOPE_FAIL {
-      hw_->WritableHostTable()->DerefSaiHost(intf->getID(), addr, intf->getMac());
+      hw_->WritableHostTable()->removeSaiHost(intf->getID(), addr);
       hosts_.erase(ret.first);
     };
   };
@@ -227,7 +227,7 @@ void SaiIntf::removeHost(const folly::IPAddress& addr) {
     return;
   }
 
-  hw_->WritableHostTable()->DerefSaiHost(intf_->getID(), addr, intf_->getMac());
+  hw_->WritableHostTable()->removeSaiHost(intf_->getID(), addr);
   hosts_.erase(iter);
 }
 

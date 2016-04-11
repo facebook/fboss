@@ -370,8 +370,6 @@ void SaiSwitch::stateChanged(const StateDelta &delta) {
     // Add all new interfaces
     forEachAdded(delta.getIntfsDelta(), &SaiSwitch::ProcessAddedIntf, this);
 
-    AddHostsForDemo();
-
     // Any ARP changes
     ProcessArpChanges(delta);
 
@@ -415,7 +413,7 @@ bool SaiSwitch::sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept {
   attr.id = SAI_HOSTIF_PACKET_TX_TYPE;
   attr.value.s32 = SAI_HOSTIF_TX_TYPE_PIPELINE_LOOKUP;
   attrList.push_back(attr);
-#if 0
+
   sai_status_t status = pSaiHostIntfApi_->send_packet(hostIfFdId_,
                                                       pkt->buf()->writableData(), 
                                                       pkt->buf()->length(),
@@ -425,7 +423,7 @@ bool SaiSwitch::sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept {
     LOG(ERROR) << "Failed to send switched packet. Error: " << status;
     return false;
   }
-#endif
+
   return true;
 }
 
@@ -451,7 +449,7 @@ bool SaiSwitch::sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt, PortID portID
   attr.id = SAI_HOSTIF_PACKET_EGRESS_PORT_OR_LAG;
   attr.value.oid = portId;
   attrList.push_back(attr);
-#if 0
+
   sai_status_t status = pSaiHostIntfApi_->send_packet(hostIfFdId_,
                                                       pkt->buf()->writableData(), 
                                                       pkt->buf()->length(),
@@ -461,7 +459,7 @@ bool SaiSwitch::sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt, PortID portID
     LOG(ERROR) << "Failed to send packet out of port: " << portID.t << " Error: " << status;
     return false;
   }
-#endif
+
   return true;
 }
 
@@ -605,50 +603,58 @@ void SaiSwitch::ProcessNeighborEntryDelta(const DELTA &delta) {
   const auto *oldEntry = delta.getOld().get();
   const auto *newEntry = delta.getNew().get();
 
-  auto refNewEntry = [&]() {
+  auto updateCreateNewEntry = [&]() {
     sai_packet_action_t action = newEntry->isPending() ?
                                    SAI_PACKET_ACTION_DROP :
                                    SAI_PACKET_ACTION_FORWARD;
 
     VLOG(3) << "Adding neighbor entry witch action: " << action;
-    auto host = hostTable_->IncRefOrCreateSaiHost(newEntry->getIntfID(),
+    auto host = hostTable_->createOrUpdateSaiHost(newEntry->getIntfID(),
                                                   IPAddress(newEntry->getIP()),
                                                   newEntry->getMac());
     try {
-      host->Program(action);
+      auto oldAction = host->getSaiAction();
+
+      host->Program(action, newEntry->getMac());
+
+      if ((oldAction != action) &&
+          (action == SAI_PACKET_ACTION_FORWARD)) {
+
+        // The host has been just resolved so update 
+        // dependant Next Hops and Routes correspondingly 
+        nextHopTable_->onResolved(newEntry->getIntfID(), newEntry->getIP());
+        routeTable_->onResolved(newEntry->getIntfID(), newEntry->getIP());
+      }
     } catch (const SaiError &e) {
-       hostTable_->DerefSaiHost(newEntry->getIntfID(),
-                                IPAddress(newEntry->getIP()),
-                                newEntry->getMac());
+      hostTable_->removeSaiHost(newEntry->getIntfID(),
+                                IPAddress(newEntry->getIP()));
       LOG(ERROR) << e.what();
       return;
     }
+
   };
 
-  auto unrefOldEntry = [&]() {
-    VLOG(3) << "Deleting neighbor entry";
-    auto host = hostTable_->DerefSaiHost(oldEntry->getIntfID(),
-                                         IPAddress(oldEntry->getIP()),
-                                         oldEntry->getMac());
-    if (host) {
-      try {
-        host->Program(SAI_PACKET_ACTION_TRAP);
-      } catch (const SaiError &e) {
-        LOG(ERROR) << e.what();
-        return;
-      }
-    }
+  auto removeOldEntry = [&]() {
+    hostTable_->removeSaiHost(oldEntry->getIntfID(),
+                              IPAddress(oldEntry->getIP()));
   };
 
   if (!oldEntry) {
-    refNewEntry();
+    updateCreateNewEntry();
+
   } else if (!newEntry) {
-    unrefOldEntry();
+
+    removeOldEntry();
+
   } else if ((oldEntry->getIntfID() != newEntry->getIntfID()) ||
-             (oldEntry->getIP() != newEntry->getIP()) ||
-             (oldEntry->getMac() != newEntry->getMac())) {
-    refNewEntry();
-    unrefOldEntry(); 
+             (oldEntry->getIP() != newEntry->getIP())) {
+
+    updateCreateNewEntry();
+    removeOldEntry();
+
+  } else if (oldEntry->getMac() != newEntry->getMac()) {
+
+    updateCreateNewEntry();
   }
 }
 
@@ -927,12 +933,14 @@ void SaiSwitch::ProcessAddedVlan(const shared_ptr<Vlan> &vlan) {
 
     saiStatus = pSaiVlanApi_->create_vlan(vlanId);
     if (saiStatus != SAI_STATUS_SUCCESS) {
-      throw SaiError("Failed to create VLAN ", vlanId);
+      LOG(ERROR) << "Failed to create VLAN " << vlanId;
+      return;
     }
 
     saiStatus = pSaiVlanApi_->add_ports_to_vlan(vlanId, portList.size(), portList.data());
     if (saiStatus != SAI_STATUS_SUCCESS) {
-      throw SaiError("Failed to add ports to VLAN ", vlanId);
+      LOG(ERROR) << "Failed to add ports to VLAN " << vlanId;
+      return;
     }
 
     warmBootCache_->AddVlanInfo(vlan->getID(), portList);
@@ -1061,8 +1069,8 @@ void SaiSwitch::OnPacketReceived(const void *buf,
 
   } catch (const std::exception &ex) {
 
-    LOG(ERROR) << __FUNCTION__ << " Could not allocate SaiRxPacket. Reason: " <<
-      folly::exceptionStr(ex);
+    LOG(ERROR) << __FUNCTION__ << " Could not allocate SaiRxPacket. Reason: "
+               << folly::exceptionStr(ex);
     return;
   }
 
@@ -1077,128 +1085,6 @@ void SaiSwitch::ReleaseLock()
     return;
   remove(lockPath);
   close(lockFd);
-}
-
-
-void SaiSwitch::AddHostsForDemo() {
-  VLOG(4) << "Entering " << __FUNCTION__;
-
-  static bool added {false};
-
-  if (added) {
-    return;
-  }
-
-  sai_fdb_api_t *pSaiFdbApi {nullptr};
-  sai_api_query(SAI_API_FDB, (void **) &pSaiFdbApi);
-
-  // iterate trough all L3 interfaces and create 
-  // static FDB entries for neighbor hosts and the 
-  // neighbor hosts themselves which will be used in demo
-  auto intfPtr = GetIntfTable()->GetFirstIntfIf();
-  while (intfPtr != nullptr) {
-
-    auto mac = intfPtr->GetInterface()->getMac();
-    // host mac will be intf mac + 1
-    const_cast<uint8_t*>(mac.bytes())[5] += 1;
-
-    // Pick the same port number as interface ID.
-    auto egressPortId = PortID(intfPtr->GetInterface()->getID().t);
-    sai_object_id_t saiEgressPortId {SAI_NULL_OBJECT_ID};
-
-    try {
-      saiEgressPortId = GetPortTable()->GetSaiPortId(egressPortId);
-    } catch (const SaiError &e) {
-      LOG(ERROR) << e.what();
-      intfPtr = GetIntfTable()->GetNextIntfIf(intfPtr);
-      continue;
-    }
-
-    // Add static FDB entry for a host
-    sai_fdb_entry_t fdb_entry;
-
-    memcpy(fdb_entry.mac_address, mac.bytes(), sizeof(fdb_entry.mac_address));
-    fdb_entry.vlan_id = intfPtr->GetInterface()->getVlanID().t;
-
-    // FDB attributes
-    std::vector<sai_attribute_t> attr_list;
-    sai_attribute_t attr;
-
-    // entry type
-    attr.id = SAI_FDB_ENTRY_ATTR_TYPE;
-    attr.value.u32 = SAI_FDB_ENTRY_STATIC;
-    attr_list.push_back(attr);
-
-    // port id
-    attr.id = SAI_FDB_ENTRY_ATTR_PORT_ID;
-    attr.value.oid = saiEgressPortId;
-    attr_list.push_back(attr);
-
-    // packet action
-    attr.id = SAI_FDB_ENTRY_ATTR_PACKET_ACTION;
-    attr.value.oid = SAI_PACKET_ACTION_FORWARD;
-    attr_list.push_back(attr);
-
-    // create fdb entry
-    sai_status_t saiRetVal = pSaiFdbApi->create_fdb_entry(&fdb_entry, attr_list.size(), attr_list.data());
-    if (saiRetVal != SAI_STATUS_SUCCESS) {
-      LOG(ERROR) << "Could not create static fdb entry with VLAN: " << fdb_entry.vlan_id
-                 << ", MAC: " << mac.toString() << ", port: " << egressPortId.t
-                 << ". Error: " << saiRetVal;
-
-      intfPtr = GetIntfTable()->GetNextIntfIf(intfPtr);
-      continue;
-    }
-
-     VLOG(2) << "Created static fdb entry with VLAN: " << fdb_entry.vlan_id << ", MAC: "
-             << mac << ", port: " << egressPortId.t;
-
-    // create hosts 
-    for (const auto& addrPair : intfPtr->GetInterface()->getAddresses()) {
-      // host IP will be intf IP + 1
-      auto addr = addrPair.first;
-      const_cast<uint8_t*>(addr.bytes())[3] += 1;
-
-      // Compose ARP reply
-      uint32_t pktLen = 64;
-      auto pkt = allocatePacket(pktLen);
-      folly::io::RWPrivateCursor cursor(pkt->buf());
-
-      pkt->writeEthHeader(&cursor, intfPtr->GetInterface()->getMac(),
-                          mac, ArpHandler::ETHERTYPE_ARP);
-      cursor.writeBE<uint16_t>(ARP_HTYPE_ETHERNET);
-      cursor.writeBE<uint16_t>(ARP_PTYPE_IPV4);
-      cursor.writeBE<uint8_t>(ARP_HLEN_ETHERNET);
-      cursor.writeBE<uint8_t>(ARP_PLEN_IPV4);
-      cursor.writeBE<uint16_t>(ARP_OPER_REPLY);
-      // sender MAC/IP
-      cursor.push(mac.bytes(), MacAddress::SIZE);
-      cursor.write<uint32_t>(addr.asV4().toLong());
-      // target MAC/IP
-      cursor.push(intfPtr->GetInterface()->getMac().bytes(), MacAddress::SIZE);
-      cursor.write<uint32_t>(addrPair.first.asV4().toLong());
-      // Fill the padding with 0s
-      memset(cursor.writableData(), 0, cursor.length());
-
-      // Pkt attributes
-      std::vector<sai_attribute_t> pkt_attr_list;
-      sai_attribute_t pkt_attr;
-
-      // entry type
-      pkt_attr.id = SAI_HOSTIF_PACKET_INGRESS_PORT;
-      pkt_attr.value.oid = saiEgressPortId;
-      pkt_attr_list.push_back(pkt_attr);
-
-      // Simulate ARP replay received in order to install neighbour hosts
-      PacketRxCallback(pkt->buf()->data(), pktLen, pkt_attr_list.size(), pkt_attr_list.data());
-
-      VLOG(2) << "Created host with Intf: " << intfPtr->GetInterface()->getID().t
-              << ", IP: " << addr << ", MAC: " << mac;
-    }
-    intfPtr = GetIntfTable()->GetNextIntfIf(intfPtr);
-  } // while (intfPtr != nullptr) 
-
-  added = true;
 }
 
 }} // facebook::fboss

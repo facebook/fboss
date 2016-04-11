@@ -31,7 +31,7 @@ sai_object_id_t SaiNextHopTable::GetSaiNextHopId(const RouteForwardInfo &fwdInfo
   auto iter = nextHops_.find(fwdInfo.getNexthops());
 
   if (iter == nextHops_.end()) {
-    throw SaiError("Cannot find SaiNextHop object for forwarding info: ", fwdInfo);
+    return SAI_NULL_OBJECT_ID;
   }
 
   return iter->second.first->GetSaiNextHopId();
@@ -79,6 +79,17 @@ SaiNextHop* SaiNextHopTable::DerefSaiNextHop(const RouteForwardInfo &fwdInfo) no
   }
 
   return entry.first.get();
+}
+
+void SaiNextHopTable::onResolved(InterfaceID intf, const folly::IPAddress &ip) {
+
+  for (auto iter = nextHops_.begin(); iter != nextHops_.end(); ++iter) {
+    try {
+      iter->second.first->onResolved(intf, ip);
+    } catch (const SaiError &e) {
+      LOG(ERROR) << e.what();
+    }
+  }
 }
 
 }} // facebook::fboss

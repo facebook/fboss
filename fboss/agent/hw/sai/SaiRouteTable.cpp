@@ -91,7 +91,12 @@ void SaiRouteTable::AddRoute(RouterID vrf, const RouteT *route) {
                                          prefix.mask));
   }
 
-  ret.first->second->Program(route->getForwardInfo());
+  auto pRoute = ret.first->second.get();
+  pRoute->Program(route->getForwardInfo());
+
+  if (!pRoute->isResolved()) {
+    unresolvedRoutes_.insert(ret.first->second.get());
+  }
 }
 
 template<typename RouteT>
@@ -106,7 +111,35 @@ void SaiRouteTable::DeleteRoute(RouterID vrf, const RouteT *route) {
     throw SaiError("Failed to delete a non-existing route ", route->str());
   }
 
+  auto unresIter = unresolvedRoutes_.find(iter->second.get());
+  if (unresIter != unresolvedRoutes_.end()) {
+    unresolvedRoutes_.erase(unresIter);
+  }
+
   fib_.erase(iter);
+}
+
+void SaiRouteTable::onResolved(InterfaceID intf, const folly::IPAddress &ip) {
+
+  VLOG(4) << "Entering " << __FUNCTION__;
+
+  auto iter = unresolvedRoutes_.begin();
+
+  while (iter != unresolvedRoutes_.end()) {
+    try {
+      (*iter)->onResolved(intf, ip);
+
+      if ((*iter)->isResolved()) {
+        iter = unresolvedRoutes_.erase(iter);
+        continue;
+      }
+
+    } catch (const SaiError &e) {
+      LOG(ERROR) << e.what();
+    }
+
+    ++iter;
+  }
 }
 
 template void SaiRouteTable::AddRoute(RouterID, const RouteV4 *);
