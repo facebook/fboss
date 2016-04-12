@@ -42,7 +42,7 @@ def ip_ntop(addr):
 
 def port_sort_fn(port):
     if not port.name:
-        return port.portId
+        return '', port.portId, 0, 0
     m = re.match('([a-z][a-z][a-z])(\d+)/(\d+)/(\d)', port.name)
     if not m:
         return '', 0, 0, 0
