@@ -46,20 +46,20 @@ SaiNextHop::~SaiNextHop() {
   sai_status_t saiRetVal = SAI_STATUS_FAILURE;
 
   // Remove all next hops and group(if it was created) from the HW.
-  for (auto iter : hwNextHops_) {
+  for (auto& nhPair : hwNextHops_) {
 
     if (nhGroupId_ != SAI_NULL_OBJECT_ID) {
 
-      saiRetVal = pSaiNextHopGroupApi_->remove_next_hop_from_group(nhGroupId_, 1, &iter.first);
+      saiRetVal = pSaiNextHopGroupApi_->remove_next_hop_from_group(nhGroupId_, 1, &nhPair.first);
       if (saiRetVal != SAI_STATUS_SUCCESS) {
-        LOG(ERROR) << "Could not remove next hop " << iter.second.str() << " from next hop group: "
+        LOG(ERROR) << "Could not remove next hop " << nhPair.second.str() << " from next hop group: "
                    << nhGroupId_ << " of next hops: " << fwdInfo_.str() <<  "Error: " << saiRetVal;
       }
     }
 
-    saiRetVal = pSaiNextHopApi_->remove_next_hop(iter.first);
+    saiRetVal = pSaiNextHopApi_->remove_next_hop(nhPair.first);
     if (saiRetVal != SAI_STATUS_SUCCESS) {
-      LOG(ERROR) << "Could not remove next hop " << iter.second.str() 
+      LOG(ERROR) << "Could not remove next hop " << nhPair.second.str() 
                  << " from HW. Error: " << saiRetVal;
     }
   }
@@ -154,12 +154,12 @@ void SaiNextHop::Program() {
   std::vector<sai_object_id_t> nextHopIds;
 
   // Create all next hops and fill the hwNextHops_ map and nextHopIds array
-  for (auto iter : resolvedNextHops_) {
+  for (auto& nhPair : resolvedNextHops_) {
 
-    sai_object_id_t nhId = programNh(iter.intf, iter.nexthop);
+    sai_object_id_t nhId = programNh(nhPair.intf, nhPair.nexthop);
 
     if (nhId != SAI_NULL_OBJECT_ID) {
-      hwNextHops_.emplace(nhId, iter);
+      hwNextHops_.emplace(nhId, nhPair);
       nextHopIds.push_back(nhId);
     }
   }
@@ -174,15 +174,15 @@ void SaiNextHop::Program() {
   sai_object_id_t nhGroupId = programNhGroup(nextHopIds.size(), nextHopIds.data());
   if (nhGroupId == SAI_NULL_OBJECT_ID) {
     // Cleanup hosts
-    for (auto iter : hwNextHops_) {
+    for (auto& nhPair : hwNextHops_) {
 
-      saiRetVal = pSaiNextHopApi_->remove_next_hop(iter.first);
+      saiRetVal = pSaiNextHopApi_->remove_next_hop(nhPair.first);
       if (saiRetVal != SAI_STATUS_SUCCESS) {
-        LOG(ERROR) << "Could not remove next hop " << iter.second.str() 
+        LOG(ERROR) << "Could not remove next hop " << nhPair.second.str() 
                    << " from HW. Error: " << saiRetVal;
       }
 
-      unresolvedNextHops_.emplace(iter.second);
+      unresolvedNextHops_.emplace(nhPair.second);
     }
 
     resolvedNextHops_.clear();

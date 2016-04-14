@@ -545,9 +545,9 @@ void SaiSwitch::updateStats(SwitchStats *switchStats) {
   // Update thread-local per-port statistics.
   PortStatsMap *portStatsMap = switchStats->getPortStats();
 
-  BOOST_FOREACH(auto& it, *portStatsMap) {
-    PortID portId = it.first;
-    PortStats *portStats = it.second.get();
+  for (auto& entry : *portStatsMap) {
+    PortID portId = entry.first;
+    PortStats *portStats = entry.second.get();
     UpdatePortStats(portId, portStats);
   }
 
@@ -799,39 +799,39 @@ void SaiSwitch::ProcessChangedVlan(const shared_ptr<Vlan> &oldVlan,
   const auto &newPorts = newVlan->getPorts();
 
   // Populate the list of removed ports
-  for (auto entry : oldPorts) {
-    if (newPorts.find(entry.first) == newPorts.end()) {
+  for (auto& oldPortPair : oldPorts) {
+    if (newPorts.find(oldPortPair.first) == newPorts.end()) {
 
       sai_vlan_port_t vlanPort;
 
       try {
-        vlanPort.port_id = portTable_->GetSaiPortId(entry.first);
+        vlanPort.port_id = portTable_->GetSaiPortId(oldPortPair.first);
       } catch (const SaiError &e) {
         LOG(ERROR) << e.what();
         continue;
       }
 
-      vlanPort.tagging_mode = entry.second.tagged ? SAI_VLAN_PORT_TAGGED :
-                                                    SAI_VLAN_PORT_UNTAGGED;
+      vlanPort.tagging_mode = oldPortPair.second.tagged ? SAI_VLAN_PORT_TAGGED :
+                                                          SAI_VLAN_PORT_UNTAGGED;
       removedPorts.push_back(vlanPort);
     }
   }
 
   // Populate the list of added ports
-  for (auto entry : newPorts) {
-    if (oldPorts.find(entry.first) == oldPorts.end()) {
+  for (auto& newPortPair : newPorts) {
+    if (oldPorts.find(newPortPair.first) == oldPorts.end()) {
 
       sai_vlan_port_t vlanPort;
 
       try {
-        vlanPort.port_id = portTable_->GetSaiPortId(entry.first);
+        vlanPort.port_id = portTable_->GetSaiPortId(newPortPair.first);
       } catch (const SaiError &e) {
         LOG(ERROR) << e.what();
         continue;
       }
 
-      vlanPort.tagging_mode = entry.second.tagged ? SAI_VLAN_PORT_TAGGED :
-                                                    SAI_VLAN_PORT_UNTAGGED;
+      vlanPort.tagging_mode = newPortPair.second.tagged ? SAI_VLAN_PORT_TAGGED :
+                                                          SAI_VLAN_PORT_UNTAGGED;
       addedPorts.push_back(vlanPort);
     }
   }

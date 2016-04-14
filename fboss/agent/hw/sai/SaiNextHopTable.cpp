@@ -83,9 +83,9 @@ SaiNextHop* SaiNextHopTable::DerefSaiNextHop(const RouteForwardInfo &fwdInfo) no
 
 void SaiNextHopTable::onResolved(InterfaceID intf, const folly::IPAddress &ip) {
 
-  for (auto iter = nextHops_.begin(); iter != nextHops_.end(); ++iter) {
+  for (auto& entry : nextHops_) {
     try {
-      iter->second.first->onResolved(intf, ip);
+      entry.second.first->onResolved(intf, ip);
     } catch (const SaiError &e) {
       LOG(ERROR) << e.what();
     }
