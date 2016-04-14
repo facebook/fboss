@@ -147,47 +147,47 @@ public:
 
   /* SAI API lists */
   sai_switch_api_t *GetSaiSwitchApi() const {
-    return pSaiSwitchApi_;
+    return saiSwitchApi_;
   }
 
   sai_vlan_api_t *GetSaiVlanApi() const {
-    return pSaiVlanApi_;
+    return saiVlanApi_;
   }
 
   sai_port_api_t *GetSaiPortApi() const {
-    return pSaiPortApi_;
+    return saiPortApi_;
   }
 
   sai_virtual_router_api_t *GetSaiVrfApi() const {
-    return pSaiVrfApi_;
+    return saiVrfApi_;
   }
 
   sai_route_api_t *GetSaiRouteApi() const {
-    return pSaiRouteApi_;
+    return saiRouteApi_;
   }
 
   sai_router_interface_api_t *GetSaiRouterIntfApi() const {
-    return pSaiRouterIntfApi_;
+    return saiRouterIntfApi_;
   }
 
   sai_neighbor_api_t *GetSaiNeighborApi() const {
-    return pSaiNeighborApi_;
+    return saiNeighborApi_;
   }
 
   sai_hostif_api_t *GetSaiHostInterfaceApi() const {
-    return pSaiHostInterfaceApi_;
+    return saiHostInterfaceApi_;
   }
 
   sai_acl_api_t *GetSaiAclApi() const {
-    return pSaiAclApi_;
+    return saiAclApi_;
   }
   
   sai_next_hop_api_t *GetSaiNextHopApi() const {
-    return pSaiNextHopApi_;
+    return saiNextHopApi_;
   }
 
   sai_next_hop_group_api_t *GetSaiNextHopGroupApi() const {
-    return pSaiNextHopGroupApi_;
+    return saiNextHopGroupApi_;
   }
 
 private:
@@ -273,18 +273,18 @@ private:
   sai_object_list_t saiPortList_;
   sai_object_id_t hostIfFdId_ {SAI_NULL_OBJECT_ID};
 
-  sai_switch_api_t *pSaiSwitchApi_ {nullptr};
-  sai_vlan_api_t *pSaiVlanApi_ {nullptr};
-  sai_port_api_t *pSaiPortApi_ {nullptr};
-  sai_virtual_router_api_t *pSaiVrfApi_ {nullptr};
-  sai_route_api_t *pSaiRouteApi_ {nullptr};
-  sai_router_interface_api_t *pSaiRouterIntfApi_ {nullptr};
-  sai_neighbor_api_t *pSaiNeighborApi_ {nullptr};
-  sai_hostif_api_t *pSaiHostInterfaceApi_ {nullptr};
-  sai_acl_api_t *pSaiAclApi_ {nullptr};
-  sai_next_hop_api_t *pSaiNextHopApi_ {nullptr};
-  sai_next_hop_group_api_t *pSaiNextHopGroupApi_ {nullptr};
-  sai_hostif_api_t *pSaiHostIntfApi_ {nullptr};
+  sai_switch_api_t *saiSwitchApi_ {nullptr};
+  sai_vlan_api_t *saiVlanApi_ {nullptr};
+  sai_port_api_t *saiPortApi_ {nullptr};
+  sai_virtual_router_api_t *saiVrfApi_ {nullptr};
+  sai_route_api_t *saiRouteApi_ {nullptr};
+  sai_router_interface_api_t *saiRouterIntfApi_ {nullptr};
+  sai_neighbor_api_t *saiNeighborApi_ {nullptr};
+  sai_hostif_api_t *saiHostInterfaceApi_ {nullptr};
+  sai_acl_api_t *saiAclApi_ {nullptr};
+  sai_next_hop_api_t *saiNextHopApi_ {nullptr};
+  sai_next_hop_group_api_t *saiNextHopGroupApi_ {nullptr};
+  sai_hostif_api_t *saiHostIntfApi_ {nullptr};
 
   // Temporarry storage for SaiSwitch instance while SAI callbacks 
   // don't provide a pointer to user data.

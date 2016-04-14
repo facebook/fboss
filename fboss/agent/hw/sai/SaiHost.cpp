@@ -30,7 +30,7 @@ SaiHost::SaiHost(const SaiSwitch *hw, InterfaceID intf,
 
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  pSaiNeighborApi_ = hw_->GetSaiNeighborApi();
+  saiNeighborApi_ = hw_->GetSaiNeighborApi();
 }
 
 SaiHost::~SaiHost() {
@@ -40,7 +40,7 @@ SaiHost::~SaiHost() {
     return;
   }
 
-  pSaiNeighborApi_->remove_neighbor_entry(&neighborEntry_);
+  saiNeighborApi_->remove_neighbor_entry(&neighborEntry_);
   VLOG(3) << "Deleted L3 host object for " << ip_;
 }
 
@@ -85,7 +85,7 @@ void SaiHost::Program(sai_packet_action_t action, const folly::MacAddress &mac) 
     attrList.push_back(attr);
 
     // create neighbor
-    sai_status_t saiRetVal = pSaiNeighborApi_->create_neighbor_entry(&neighborEntry_,
+    sai_status_t saiRetVal = saiNeighborApi_->create_neighbor_entry(&neighborEntry_,
                                                                      attrList.size(),
                                                                      attrList.data());
     if (saiRetVal != SAI_STATUS_SUCCESS) {
@@ -107,7 +107,7 @@ void SaiHost::Program(sai_packet_action_t action, const folly::MacAddress &mac) 
     memcpy(macAttr.value.mac, mac.bytes(), sizeof(macAttr.value.mac));
 
     // set action attribute
-    sai_status_t saiRetVal = pSaiNeighborApi_->set_neighbor_attribute(&neighborEntry_,
+    sai_status_t saiRetVal = saiNeighborApi_->set_neighbor_attribute(&neighborEntry_,
                                                                       &macAttr);
     if (saiRetVal != SAI_STATUS_SUCCESS) {
       throw SaiError("Could not set MAC: ", mac,
@@ -127,7 +127,7 @@ void SaiHost::Program(sai_packet_action_t action, const folly::MacAddress &mac) 
     actionAttr.value.u32 = action;
 
     // set action attribute
-    sai_status_t saiRetVal = pSaiNeighborApi_->set_neighbor_attribute(&neighborEntry_,
+    sai_status_t saiRetVal = saiNeighborApi_->set_neighbor_attribute(&neighborEntry_,
                                                                       &actionAttr);
     if (saiRetVal != SAI_STATUS_SUCCESS) {
       throw SaiError("Could not set packet action attribute: ", action,

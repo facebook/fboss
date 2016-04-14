@@ -44,7 +44,7 @@ SaiRoute::SaiRoute(const SaiSwitch *hw,
     intfPtr = hw_->GetIntfTable()->GetNextIntfIf(intfPtr);
   }
 
-  pSaiRouteApi_ = hw->GetSaiRouteApi();
+  saiRouteApi_ = hw->GetSaiRouteApi();
 }
 
 SaiRoute::~SaiRoute() {
@@ -54,7 +54,7 @@ SaiRoute::~SaiRoute() {
     return;
   }
 
-  sai_status_t saiRetVal = pSaiRouteApi_->remove_route(&routeEntry_);
+  sai_status_t saiRetVal = saiRouteApi_->remove_route(&routeEntry_);
   if (saiRetVal != SAI_STATUS_SUCCESS) {
     LOG(ERROR) << "SAI remove_route() failed for route with address: "
                << ipAddr_.str() << "/" << prefixLen_ << " Error: " << saiRetVal;
@@ -165,7 +165,7 @@ void SaiRoute::Program(const RouteForwardInfo &fwd) {
     }
 
     // create route
-    sai_status_t saiRetVal = pSaiRouteApi_->create_route(&routeEntry_, 0, NULL);
+    sai_status_t saiRetVal = saiRouteApi_->create_route(&routeEntry_, 0, NULL);
     if (saiRetVal != SAI_STATUS_SUCCESS) {
        throw SaiError("Could not create route with addr: ", ipAddr_,
                       " netmask length: ", prefixLen_, " vrf: ", vrf_,
@@ -202,7 +202,7 @@ void SaiRoute::Program(const RouteForwardInfo &fwd) {
   }
 
   // Set packet action route attribute in SAI
-  sai_status_t saiRetVal = pSaiRouteApi_->set_route_attribute(&routeEntry_, &routeAttr);
+  sai_status_t saiRetVal = saiRouteApi_->set_route_attribute(&routeEntry_, &routeAttr);
   if (saiRetVal != SAI_STATUS_SUCCESS) {
     throw SaiError("Could not set packet action attribute for route with addr: ", ipAddr_,
                    " netmask length: ", prefixLen_, " vrf: ", vrf_,
@@ -216,7 +216,7 @@ void SaiRoute::Program(const RouteForwardInfo &fwd) {
 
     if (routeAttr.value.oid != SAI_NULL_OBJECT_ID) {
       // Set next hop ID route attribute in SAI
-      saiRetVal = pSaiRouteApi_->set_route_attribute(&routeEntry_, &routeAttr);
+      saiRetVal = saiRouteApi_->set_route_attribute(&routeEntry_, &routeAttr);
       if (saiRetVal != SAI_STATUS_SUCCESS) {
         throw SaiError("Could not set next hop ID attribute for route with addr: ", ipAddr_,
                        " netmask length: ", prefixLen_, " vrf: ", vrf_,
@@ -251,7 +251,7 @@ void SaiRoute::onResolved(InterfaceID intf, const folly::IPAddress &ip) {
   if (routeAttr.value.oid != SAI_NULL_OBJECT_ID) {
 
     // Set next hop ID route attribute in SAI
-    saiRetVal = pSaiRouteApi_->set_route_attribute(&routeEntry_, &routeAttr);
+    saiRetVal = saiRouteApi_->set_route_attribute(&routeEntry_, &routeAttr);
     if (saiRetVal != SAI_STATUS_SUCCESS) {
       LOG(ERROR) << "Could not set next hop ID attribute for route with addr: " << ipAddr_
                  << " netmask length: " << prefixLen_ << " vrf: " << vrf_ << " Error: " << saiRetVal;

@@ -105,17 +105,17 @@ SaiSwitch::SaiSwitch(SaiPlatformBase *platform)
 
   sai_api_initialize(0, &service_);
 
-  sai_api_query(SAI_API_SWITCH, (void **) &pSaiSwitchApi_);
-  sai_api_query(SAI_API_VLAN, (void **) &pSaiVlanApi_);
-  //sai_api_query(SAI_API_PORT, (void **) &pSaiPortApi_);
-  sai_api_query(SAI_API_ROUTER_INTERFACE, (void **) &pSaiRouterIntfApi_);
-  sai_api_query(SAI_API_ROUTE, (void **) &pSaiRouteApi_);
-  //sai_api_query(SAI_API_ACL, (void **) &pSaiAclApi_);
-  sai_api_query(SAI_API_VIRTUAL_ROUTER, (void **) &pSaiVrfApi_);
-  sai_api_query(SAI_API_NEIGHBOR, (void **) &pSaiNeighborApi_);
-  sai_api_query(SAI_API_NEXT_HOP, (void **) &pSaiNextHopApi_);
-  sai_api_query(SAI_API_NEXT_HOP_GROUP, (void **) &pSaiNextHopGroupApi_);
-  sai_api_query(SAI_API_HOST_INTERFACE, (void **) &pSaiHostIntfApi_);
+  sai_api_query(SAI_API_SWITCH, (void **) &saiSwitchApi_);
+  sai_api_query(SAI_API_VLAN, (void **) &saiVlanApi_);
+  //sai_api_query(SAI_API_PORT, (void **) &saiPortApi_);
+  sai_api_query(SAI_API_ROUTER_INTERFACE, (void **) &saiRouterIntfApi_);
+  sai_api_query(SAI_API_ROUTE, (void **) &saiRouteApi_);
+  //sai_api_query(SAI_API_ACL, (void **) &saiAclApi_);
+  sai_api_query(SAI_API_VIRTUAL_ROUTER, (void **) &saiVrfApi_);
+  sai_api_query(SAI_API_NEIGHBOR, (void **) &saiNeighborApi_);
+  sai_api_query(SAI_API_NEXT_HOP, (void **) &saiNextHopApi_);
+  sai_api_query(SAI_API_NEXT_HOP_GROUP, (void **) &saiNextHopGroupApi_);
+  sai_api_query(SAI_API_HOST_INTERFACE, (void **) &saiHostIntfApi_);
 
   // TODO: remove this when SAI callbacks support pointer to user data storage.
   SaiSwitch::instance_ = this;
@@ -124,17 +124,17 @@ SaiSwitch::SaiSwitch(SaiPlatformBase *platform)
 SaiSwitch::~SaiSwitch() {
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  pSaiNextHopApi_ = nullptr;
-  pSaiAclApi_ = nullptr;
-  pSaiHostInterfaceApi_ = nullptr;
-  pSaiNeighborApi_  = nullptr;
-  pSaiRouterIntfApi_ = nullptr;
-  pSaiRouteApi_ = nullptr;
-  pSaiVrfApi_ = nullptr;
-  pSaiPortApi_ = nullptr;
-  pSaiVlanApi_ = nullptr;
-  pSaiSwitchApi_ = nullptr;
-  pSaiHostIntfApi_ = nullptr;
+  saiNextHopApi_ = nullptr;
+  saiAclApi_ = nullptr;
+  saiHostInterfaceApi_ = nullptr;
+  saiNeighborApi_  = nullptr;
+  saiRouterIntfApi_ = nullptr;
+  saiRouteApi_ = nullptr;
+  saiVrfApi_ = nullptr;
+  saiPortApi_ = nullptr;
+  saiVlanApi_ = nullptr;
+  saiSwitchApi_ = nullptr;
+  saiHostIntfApi_ = nullptr;
 
   sai_api_uninitialize();
 
@@ -211,7 +211,7 @@ SaiSwitch::init(HwSwitch::Callback *callback) {
   sai_switch_notification_t swNotif = {NULL, NULL, NULL, NULL, NULL, NULL};
   swNotif.on_packet_event = PacketRxCallback;
 
-  sai_status_t saiStatus = pSaiSwitchApi_->initialize_switch(profileId,
+  sai_status_t saiStatus = saiSwitchApi_->initialize_switch(profileId,
                                                              const_cast<char*>(hwId_.c_str()),
                                                              NULL, &swNotif);
   if(SAI_STATUS_SUCCESS != saiStatus) {
@@ -226,7 +226,7 @@ SaiSwitch::init(HwSwitch::Callback *callback) {
   attr.value.s32 = SAI_HOSTIF_TYPE_FD;
   hostIfAttrList.push_back(attr);
 
-  saiStatus = pSaiHostIntfApi_->create_hostif(&hostIfFdId_,
+  saiStatus = saiHostIntfApi_->create_hostif(&hostIfFdId_,
                                               hostIfAttrList.size(),
                                               hostIfAttrList.data());
   if(SAI_STATUS_SUCCESS != saiStatus) {
@@ -236,12 +236,12 @@ SaiSwitch::init(HwSwitch::Callback *callback) {
   attr.id = SAI_HOSTIF_TRAP_ATTR_PACKET_ACTION;
   attr.value.s32 = SAI_PACKET_ACTION_TRAP;
 
-  saiStatus = pSaiHostIntfApi_->set_trap_attribute(SAI_HOSTIF_TRAP_ID_ARP_REQUEST, &attr);
+  saiStatus = saiHostIntfApi_->set_trap_attribute(SAI_HOSTIF_TRAP_ID_ARP_REQUEST, &attr);
   if(SAI_STATUS_SUCCESS != saiStatus) {
     throw SaiFatal("Could not set ARP_REQUEST trap action to LOG. Error: ", saiStatus);
   }
 
-  saiStatus = pSaiHostIntfApi_->set_trap_attribute(SAI_HOSTIF_TRAP_ID_ARP_RESPONSE, &attr);
+  saiStatus = saiHostIntfApi_->set_trap_attribute(SAI_HOSTIF_TRAP_ID_ARP_RESPONSE, &attr);
   if(SAI_STATUS_SUCCESS != saiStatus) {
     throw SaiFatal("Could not set ARP_RESPONSE trap action to LOG. Error: ", saiStatus);
   }
@@ -395,7 +395,7 @@ bool SaiSwitch::sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept {
   attr.value.s32 = SAI_HOSTIF_TX_TYPE_PIPELINE_LOOKUP;
   attrList.push_back(attr);
 
-  sai_status_t status = pSaiHostIntfApi_->send_packet(hostIfFdId_,
+  sai_status_t status = saiHostIntfApi_->send_packet(hostIfFdId_,
                                                       pkt->buf()->writableData(), 
                                                       pkt->buf()->length(),
                                                       attrList.size(),
@@ -431,7 +431,7 @@ bool SaiSwitch::sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt, PortID portID
   attr.value.oid = portId;
   attrList.push_back(attr);
 
-  sai_status_t status = pSaiHostIntfApi_->send_packet(hostIfFdId_,
+  sai_status_t status = saiHostIntfApi_->send_packet(hostIfFdId_,
                                                       pkt->buf()->writableData(), 
                                                       pkt->buf()->length(),
                                                       attrList.size(),
@@ -840,7 +840,7 @@ void SaiSwitch::ProcessChangedVlan(const shared_ptr<Vlan> &oldVlan,
 
     VLOG(2) << "updating VLAN " << newVlan->getID() << ": "  << removedPorts.size() << " ports removed";
 
-    saiStatus = pSaiVlanApi_->remove_ports_from_vlan(vlanId, removedPorts.size(),
+    saiStatus = saiVlanApi_->remove_ports_from_vlan(vlanId, removedPorts.size(),
                                                      removedPorts.data());
     if (saiStatus != SAI_STATUS_SUCCESS) {
       LOG(ERROR) << "Failed to remove ports from VLAN " << vlanId;
@@ -851,7 +851,7 @@ void SaiSwitch::ProcessChangedVlan(const shared_ptr<Vlan> &oldVlan,
 
     VLOG(2) << "updating VLAN " << newVlan->getID() << ": "  << addedPorts.size() << " ports added";
 
-    saiStatus = pSaiVlanApi_->add_ports_to_vlan(vlanId, addedPorts.size(),
+    saiStatus = saiVlanApi_->add_ports_to_vlan(vlanId, addedPorts.size(),
                                                 addedPorts.data());
     if (saiStatus != SAI_STATUS_SUCCESS) {
       LOG(ERROR) << "Failed to add ports to VLAN " << vlanId;
@@ -935,13 +935,13 @@ void SaiSwitch::ProcessAddedVlan(const shared_ptr<Vlan> &vlan) {
     VLOG(3) << "Creating VLAN " << (uint16_t)vlan->getID() << " with "
             << vlan->getPorts().size() << " ports.";
 
-    saiStatus = pSaiVlanApi_->create_vlan(vlanId);
+    saiStatus = saiVlanApi_->create_vlan(vlanId);
     if (saiStatus != SAI_STATUS_SUCCESS) {
       LOG(ERROR) << "Failed to create VLAN " << vlanId;
       return;
     }
 
-    saiStatus = pSaiVlanApi_->add_ports_to_vlan(vlanId, portList.size(), portList.data());
+    saiStatus = saiVlanApi_->add_ports_to_vlan(vlanId, portList.size(), portList.data());
     if (saiStatus != SAI_STATUS_SUCCESS) {
       LOG(ERROR) << "Failed to add ports to VLAN " << vlanId;
       return;
@@ -973,12 +973,12 @@ void SaiSwitch::PreprocessRemovedVlan(const shared_ptr<Vlan> &vlan) {
     portList.push_back(vlanPort);
   }
 
-  saiStatus = pSaiVlanApi_->remove_ports_from_vlan(vlanId, portList.size(), portList.data());
+  saiStatus = saiVlanApi_->remove_ports_from_vlan(vlanId, portList.size(), portList.data());
   if (saiStatus != SAI_STATUS_SUCCESS) {
     LOG(ERROR) << "Failed to remove VLAN " << vlanId;
   }
 
-  saiStatus = pSaiVlanApi_->remove_vlan(vlanId);
+  saiStatus = saiVlanApi_->remove_vlan(vlanId);
   if (saiStatus != SAI_STATUS_SUCCESS) {
     LOG(ERROR) << "Failed to remove VLAN " << vlanId;
   }
@@ -991,7 +991,7 @@ void SaiSwitch::ProcessRemovedVlan(const shared_ptr<Vlan> &vlan) {
 
   VLOG(2) << "removing VLAN " << vlan->getID();
 
-  //saiStatus = pSaiVlanApi_->remove_vlan(vlan->getID());
+  //saiStatus = saiVlanApi_->remove_vlan(vlan->getID());
 
   if (saiStatus != SAI_STATUS_SUCCESS)
     throw SaiError("Failed to remove VLAN ", vlan->getID());

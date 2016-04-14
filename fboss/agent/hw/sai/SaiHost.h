@@ -77,7 +77,7 @@ private:
   bool added_ {false}; // if added to the HW host table or not
 
   sai_neighbor_entry_t neighborEntry_;
-  sai_neighbor_api_t *pSaiNeighborApi_ { nullptr };
+  sai_neighbor_api_t *saiNeighborApi_ { nullptr };
 };
 
 }} // facebook::fboss

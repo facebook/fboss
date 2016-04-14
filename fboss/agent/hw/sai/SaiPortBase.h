@@ -29,12 +29,12 @@ class SaiPortBase {
 public:
   /**
    * @brief Constructor. All initialization steps should be done through init
-   * @param pSwitch, pointer to SaiSwitch object
+   * @param hw, pointer to SaiSwitch object
    * @param saiPortId, sai_port_id_t port ID 
    * @param fbossPortId, fboss port ID 
-   * @param pPlatform, pointer to SaiPlatformPort object
+   * @param platformPort, pointer to SaiPlatformPort object
    */
-  SaiPortBase(SaiSwitch *pSwitch, sai_object_id_t saiPortId, PortID fbossPortId, SaiPlatformPort *pPlatformPort);
+  SaiPortBase(SaiSwitch *hw, sai_object_id_t saiPortId, PortID fbossPortId, SaiPlatformPort *platformPort);
   virtual ~SaiPortBase();
 
   /**
@@ -47,11 +47,11 @@ public:
   * Getters.
   */
   SaiPlatformPort *GetPlatformPort() const {
-    return pPlatformPort_;
+    return platformPort_;
   }
 
   SaiSwitch *GetHwSwitch() const {
-    return pHw_;
+    return hw_;
   }
 
   sai_object_id_t GetSaiPortId() const {
@@ -90,13 +90,8 @@ private:
 
   std::string StatName(folly::StringPiece name) const;
 
-  SaiSwitch *const pHw_ {
-    nullptr
-  };         // Pointer to HW Switch
-
-  SaiPlatformPort *const pPlatformPort_ {
-    nullptr
-  }; // Pointer to Platform port
+  SaiSwitch *const hw_ { nullptr };   // Pointer to HW Switch
+  SaiPlatformPort *const platformPort_ { nullptr }; // Pointer to Platform port
 
   sai_object_id_t saiPortId_ {0}; 
   PortID fbossPortId_ {0};
@@ -105,7 +100,7 @@ private:
   bool linkStatus_ {true};
   bool initDone_ {false};
 
-  sai_port_api_t *pSaiPortApi_ { nullptr };
+  sai_port_api_t *saiPortApi_ { nullptr };
 
 private:
   class MonotonicCounter : public stats::MonotonicCounter {

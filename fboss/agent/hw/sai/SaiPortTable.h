@@ -25,7 +25,7 @@ class SaiSwitch;
 
 class SaiPortTable {
 public:
-  explicit SaiPortTable(SaiSwitch *pSwitch);
+  explicit SaiPortTable(SaiSwitch *hw);
   virtual ~SaiPortTable();
 
   /*
@@ -60,7 +60,7 @@ private:
   typedef boost::container::flat_map<sai_object_id_t, std::unique_ptr<SaiPortBase>> SaiPortMap;
   typedef boost::container::flat_map<PortID, SaiPortBase *> FbossPortMap;
 
-  SaiSwitch *pHw_ {nullptr};
+  SaiSwitch *hw_ {nullptr};
 
   // Mappings for the physical ports.
   // The set of physical ports is defined in initPorts(), and is read-only

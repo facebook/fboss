@@ -21,8 +21,8 @@ using std::make_pair;
 
 namespace facebook { namespace fboss {
 
-SaiPortTable::SaiPortTable(SaiSwitch *pSwitch)
-  :pHw_(pSwitch) {
+SaiPortTable::SaiPortTable(SaiSwitch *hw)
+  :hw_(hw) {
   VLOG(4) << "Entering " << __FUNCTION__;
 }
 
@@ -33,14 +33,14 @@ SaiPortTable::~SaiPortTable() {
 void SaiPortTable::InitPorts(bool warmBoot) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  auto platformPorts = pHw_->GetPlatform()->initPorts();
+  auto platformPorts = hw_->GetPlatform()->initPorts();
 
   for (const auto& entry : platformPorts) {
       sai_object_id_t saiPortId = entry.first;
       SaiPlatformPort *platformPort = entry.second;
 
       PortID fbossPortID = platformPort->getPortID();
-      auto saiPortBase = make_unique<SaiPortBase>(pHw_, saiPortId, fbossPortID, platformPort);
+      auto saiPortBase = make_unique<SaiPortBase>(hw_, saiPortId, fbossPortID, platformPort);
       platformPort->SetPort(saiPortBase.get());
       saiPortBase->Init(warmBoot);
 

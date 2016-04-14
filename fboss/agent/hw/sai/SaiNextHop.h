@@ -110,8 +110,8 @@ private:
   std::map<sai_object_id_t, RouteForwardInfo::Nexthop> hwNextHops_;
   sai_object_id_t nhGroupId_ {SAI_NULL_OBJECT_ID};
 
-  sai_next_hop_api_t *pSaiNextHopApi_ {nullptr};
-  sai_next_hop_group_api_t *pSaiNextHopGroupApi_ {nullptr};
+  sai_next_hop_api_t *saiNextHopApi_ {nullptr};
+  sai_next_hop_group_api_t *saiNextHopGroupApi_ {nullptr};
 };
 
 }} // facebook::fboss

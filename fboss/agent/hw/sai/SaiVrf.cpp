@@ -20,14 +20,14 @@ SaiVrf::SaiVrf(const SaiSwitch *hw, RouterID fbossVrfId)
 
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  pSaiVirtualRouterApi_ = hw->GetSaiVrfApi();
+  saiVirtualRouterApi_ = hw->GetSaiVrfApi();
 }
 
 SaiVrf::~SaiVrf() {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   if (saiVrfId_ != SAI_NULL_OBJECT_ID) {
-    pSaiVirtualRouterApi_->remove_virtual_router(saiVrfId_);
+    saiVirtualRouterApi_->remove_virtual_router(saiVrfId_);
   }
 }
 
@@ -62,7 +62,7 @@ void SaiVrf::Program() {
 
     VLOG(2) << "Create virtual router " << fbossVrfId_.t << " through SAI";
 
-    saiRetVal = pSaiVirtualRouterApi_->create_virtual_router(&vrf_id, SAI_VRF_ATTR_COUNT, attr_list);
+    saiRetVal = saiVirtualRouterApi_->create_virtual_router(&vrf_id, SAI_VRF_ATTR_COUNT, attr_list);
     if (saiRetVal != SAI_STATUS_SUCCESS) {
         throw SaiError("SAI create_virtual_router() failed : retVal: ", saiRetVal);
     }

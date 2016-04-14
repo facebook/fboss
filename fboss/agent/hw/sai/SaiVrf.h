@@ -75,7 +75,7 @@ private:
   RouterID fbossVrfId_ {0};
   sai_object_id_t saiVrfId_ {SAI_NULL_OBJECT_ID};
 
-  sai_virtual_router_api_t *pSaiVirtualRouterApi_ {nullptr};
+  sai_virtual_router_api_t *saiVirtualRouterApi_ {nullptr};
 };
 
 }} // facebook::fboss

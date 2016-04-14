@@ -19,14 +19,14 @@ extern "C" {
 
 namespace facebook { namespace fboss {
 
-SaiPortBase::SaiPortBase(SaiSwitch *pSwitch, sai_object_id_t saiPortId, PortID fbossPortId, SaiPlatformPort *pPlatformPort)
-  : pHw_(pSwitch),
-    pPlatformPort_(pPlatformPort),
+SaiPortBase::SaiPortBase(SaiSwitch *hw, sai_object_id_t saiPortId, PortID fbossPortId, SaiPlatformPort *platformPort)
+  : hw_(hw),
+    platformPort_(platformPort),
     saiPortId_(saiPortId),
     fbossPortId_(fbossPortId) {
   VLOG(6) << "Entering " << __FUNCTION__;
 
-  sai_api_query(SAI_API_PORT, (void **) &pSaiPortApi_);
+  sai_api_query(SAI_API_PORT, (void **) &saiPortApi_);
 }
 
 SaiPortBase::~SaiPortBase() {
@@ -57,7 +57,7 @@ void SaiPortBase::setPortStatus(bool linkStatus) {
   VLOG(6) << "Set port: " << fbossPortId_.t << " status to: " << linkStatus;
   // We ignore the return value.  If we fail to get the port status
   // we just tell the platformPort_ that it is enabled.
-  pPlatformPort_->linkStatusChanged(linkStatus, adminMode_);
+  platformPort_->linkStatusChanged(linkStatus, adminMode_);
   linkStatus_ = linkStatus;
 }
 
@@ -74,7 +74,7 @@ void SaiPortBase::SetIngressVlan(VlanID vlan) {
   attr.id = SAI_PORT_ATTR_PORT_VLAN_ID;
   attr.value.u16 = vlan.t;
 
-  saiStatus = pSaiPortApi_->set_port_attribute(saiPortId_, &attr);
+  saiStatus = saiPortApi_->set_port_attribute(saiPortId_, &attr);
   if(SAI_STATUS_SUCCESS != saiStatus) {
     throw SaiError("Failed to update ingress VLAN for port ", fbossPortId_.t);
   }
@@ -94,7 +94,7 @@ void SaiPortBase::enable() {
   attr.id = SAI_PORT_ATTR_ADMIN_STATE;
   attr.value.booldata = true;
   
-  sai_status_t saiStatus = pSaiPortApi_->set_port_attribute(saiPortId_, &attr);
+  sai_status_t saiStatus = saiPortApi_->set_port_attribute(saiPortId_, &attr);
   if(SAI_STATUS_SUCCESS != saiStatus) {
     LOG(ERROR) << "Failed to enable port admin mode. Error: " << saiStatus;
   }
@@ -115,7 +115,7 @@ void SaiPortBase::disable() {
   attr.id = SAI_PORT_ATTR_ADMIN_STATE;
   attr.value.booldata = false;
   
-  sai_status_t saiStatus = pSaiPortApi_->set_port_attribute(saiPortId_, &attr);
+  sai_status_t saiStatus = saiPortApi_->set_port_attribute(saiPortId_, &attr);
   if(SAI_STATUS_SUCCESS != saiStatus) {
     LOG(ERROR) << "Failed to disable port admin mode. Error: " << saiStatus;
   }
@@ -129,7 +129,7 @@ void SaiPortBase::disable() {
 std::string SaiPortBase::StatName(folly::StringPiece name) const {
   VLOG(6) << "Entering " << __FUNCTION__;
 
-  return folly::to<std::string>("port", pPlatformPort_->getPortID(), ".", name);
+  return folly::to<std::string>("port", platformPort_->getPortID(), ".", name);
 }
 
 void SaiPortBase::UpdateStats() {

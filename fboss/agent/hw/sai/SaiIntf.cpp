@@ -28,7 +28,7 @@ SaiIntf::SaiIntf(const SaiSwitch *hw)
   : hw_(hw) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  pSaiRouterInterfaceApi_ = hw->GetSaiRouterIntfApi();
+  saiRouterInterfaceApi_ = hw->GetSaiRouterIntfApi();
 }
 
 SaiIntf::~SaiIntf() {
@@ -43,7 +43,7 @@ SaiIntf::~SaiIntf() {
       iter = hosts_.begin();
     }
 
-    pSaiRouterInterfaceApi_->remove_router_interface(saiIfId_);
+    saiRouterInterfaceApi_->remove_router_interface(saiIfId_);
   }
 
   hw_->WritableVrfTable()->DerefSaiVrf(intf_->getRouterID());
@@ -114,7 +114,7 @@ void SaiIntf::Program(const shared_ptr<Interface> &intf) {
     attr_count++;
 
     sai_object_id_t rif_id = 0;
-    sai_status_t saiRetVal = pSaiRouterInterfaceApi_->create_router_interface(&rif_id, attr_count, attr_list);
+    sai_status_t saiRetVal = saiRouterInterfaceApi_->create_router_interface(&rif_id, attr_count, attr_list);
 
     if (saiRetVal != SAI_STATUS_SUCCESS) {
       throw SaiError("SAI create_router_interface() failed. Error: ", saiRetVal);
@@ -128,7 +128,7 @@ void SaiIntf::Program(const shared_ptr<Interface> &intf) {
     sai_attribute_t attr {0};
     attr.id = SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS;
     memcpy(&attr.value.mac, intf->getMac().bytes(), sizeof(attr.value.mac));
-    saiRetVal = pSaiRouterInterfaceApi_->set_router_interface_attribute(saiIfId_, &attr);
+    saiRetVal = saiRouterInterfaceApi_->set_router_interface_attribute(saiIfId_, &attr);
     if (saiRetVal != SAI_STATUS_SUCCESS) {
       throw SaiError("set_router_interface_attribute() failed while setting MAC: ",
                      intf->getMac(), " retVal ", saiRetVal);
@@ -139,7 +139,7 @@ void SaiIntf::Program(const shared_ptr<Interface> &intf) {
   attr.id = SAI_ROUTER_INTERFACE_ATTR_MTU;
   //TODO verify what MTU should be set here
   attr.value.u32 = 1500; //ifParams.l3a_mtu = 1500;
-  saiRetVal = pSaiRouterInterfaceApi_->set_router_interface_attribute(rif_id, &attr);
+  saiRetVal = saiRouterInterfaceApi_->set_router_interface_attribute(rif_id, &attr);
   if (saiRetVal != SAI_STATUS_SUCCESS) {
     throw SaiError("SAI create_router_interface() failed : retVal ", saiRetVal);
   }

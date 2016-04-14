@@ -36,8 +36,8 @@ SaiNextHop::SaiNextHop(const SaiSwitch *hw, const RouteForwardInfo &fwdInfo)
 
   isGroup_ = (fwdInfo_.getNexthops().size() > 1);
 
-  pSaiNextHopApi_ = hw->GetSaiNextHopApi();
-  pSaiNextHopGroupApi_ = hw->GetSaiNextHopGroupApi();
+  saiNextHopApi_ = hw->GetSaiNextHopApi();
+  saiNextHopGroupApi_ = hw->GetSaiNextHopGroupApi();
 }
 
 SaiNextHop::~SaiNextHop() {
@@ -50,14 +50,14 @@ SaiNextHop::~SaiNextHop() {
 
     if (nhGroupId_ != SAI_NULL_OBJECT_ID) {
 
-      saiRetVal = pSaiNextHopGroupApi_->remove_next_hop_from_group(nhGroupId_, 1, &nhPair.first);
+      saiRetVal = saiNextHopGroupApi_->remove_next_hop_from_group(nhGroupId_, 1, &nhPair.first);
       if (saiRetVal != SAI_STATUS_SUCCESS) {
         LOG(ERROR) << "Could not remove next hop " << nhPair.second.str() << " from next hop group: "
                    << nhGroupId_ << " of next hops: " << fwdInfo_.str() <<  "Error: " << saiRetVal;
       }
     }
 
-    saiRetVal = pSaiNextHopApi_->remove_next_hop(nhPair.first);
+    saiRetVal = saiNextHopApi_->remove_next_hop(nhPair.first);
     if (saiRetVal != SAI_STATUS_SUCCESS) {
       LOG(ERROR) << "Could not remove next hop " << nhPair.second.str() 
                  << " from HW. Error: " << saiRetVal;
@@ -65,7 +65,7 @@ SaiNextHop::~SaiNextHop() {
   }
 
   if (nhGroupId_ != SAI_NULL_OBJECT_ID) {
-    saiRetVal = pSaiNextHopGroupApi_->remove_next_hop_group(nhGroupId_);
+    saiRetVal = saiNextHopGroupApi_->remove_next_hop_group(nhGroupId_);
     if (saiRetVal != SAI_STATUS_SUCCESS) {
       LOG(ERROR) << "Could not remove next hop group: " << nhGroupId_ 
                  << " of next hops: " << fwdInfo_.str() <<  " from HW. Error: " << saiRetVal;
@@ -111,10 +111,10 @@ void SaiNextHop::onResolved(InterfaceID intf, const folly::IPAddress &ip) {
   if (isGroup_) {
     if (nhGroupId_ != SAI_NULL_OBJECT_ID) {
       // NH Group already exists, so just add NH to it
-      saiRetVal = pSaiNextHopGroupApi_->add_next_hop_to_group(nhGroupId_, 1, &nhId);
+      saiRetVal = saiNextHopGroupApi_->add_next_hop_to_group(nhGroupId_, 1, &nhId);
       if (saiRetVal != SAI_STATUS_SUCCESS) {
          LOG(ERROR) << "Could not create next hop group" << nh.str() << " on HW. Error: " << saiRetVal;
-         pSaiNextHopApi_->remove_next_hop(nhId);
+         saiNextHopApi_->remove_next_hop(nhId);
          return;
       }
 
@@ -122,7 +122,7 @@ void SaiNextHop::onResolved(InterfaceID intf, const folly::IPAddress &ip) {
        // No group existing. Create it with the next hop just resolved.
        sai_object_id_t nhGroupId = programNhGroup(1, &nhId);
        if (nhGroupId == SAI_NULL_OBJECT_ID) {
-         pSaiNextHopApi_->remove_next_hop(nhId);
+         saiNextHopApi_->remove_next_hop(nhId);
          return;
        }
     }
@@ -176,7 +176,7 @@ void SaiNextHop::Program() {
     // Cleanup hosts
     for (auto& nhPair : hwNextHops_) {
 
-      saiRetVal = pSaiNextHopApi_->remove_next_hop(nhPair.first);
+      saiRetVal = saiNextHopApi_->remove_next_hop(nhPair.first);
       if (saiRetVal != SAI_STATUS_SUCCESS) {
         LOG(ERROR) << "Could not remove next hop " << nhPair.second.str() 
                    << " from HW. Error: " << saiRetVal;
@@ -225,7 +225,7 @@ sai_object_id_t SaiNextHop::programNh(InterfaceID intf, const folly::IPAddress &
   attrList.push_back(attr);
 
   // Create NH in SAI
-  saiRetVal = pSaiNextHopApi_->create_next_hop(&nhId, attrList.size(), attrList.data());
+  saiRetVal = saiNextHopApi_->create_next_hop(&nhId, attrList.size(), attrList.data());
   if (saiRetVal != SAI_STATUS_SUCCESS) {
      LOG(ERROR) << "Could not create next hop" << ip << " on HW. Error: " << saiRetVal;
   }
@@ -258,7 +258,7 @@ sai_object_id_t SaiNextHop::programNhGroup(uint32_t nhCount, sai_object_id_t *nh
     groupAttrList.push_back(attr);
 
     // Create NH group in SAI
-    saiRetVal = pSaiNextHopGroupApi_->create_next_hop_group(&nhGroupId, groupAttrList.size(), groupAttrList.data());
+    saiRetVal = saiNextHopGroupApi_->create_next_hop_group(&nhGroupId, groupAttrList.size(), groupAttrList.data());
     if (saiRetVal != SAI_STATUS_SUCCESS) {
        LOG(ERROR) << "Could not create next hop group" << fwdInfo_.str() << " on HW. Error: " << saiRetVal;
        return SAI_NULL_OBJECT_ID;
@@ -268,7 +268,7 @@ sai_object_id_t SaiNextHop::programNhGroup(uint32_t nhCount, sai_object_id_t *nh
 
   } else {
     // Add NH to group in SAI
-    saiRetVal = pSaiNextHopGroupApi_->add_next_hop_to_group(nhGroupId_, nhCount, nhIds);
+    saiRetVal = saiNextHopGroupApi_->add_next_hop_to_group(nhGroupId_, nhCount, nhIds);
     if (saiRetVal != SAI_STATUS_SUCCESS) {
        LOG(ERROR) << "Could not add next hop to group " << fwdInfo_.str() << " on HW. Error: " << saiRetVal;
        return SAI_NULL_OBJECT_ID;

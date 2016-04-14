@@ -87,7 +87,7 @@ private:
   bool added_ {false};
   bool isLocal_ {false};
 
-  sai_route_api_t *pSaiRouteApi_ { nullptr };
+  sai_route_api_t *saiRouteApi_ { nullptr };
 };
 
 }} // facebook::fboss

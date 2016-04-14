@@ -57,7 +57,7 @@ private:
   // The interface addresses that have SaiHost object created
   std::set<folly::IPAddress> hosts_;
 
-  sai_router_interface_api_t *pSaiRouterInterfaceApi_ { nullptr };
+  sai_router_interface_api_t *saiRouterInterfaceApi_ { nullptr };
   
 
   // TODO: we now generate one station entry per interface, even if all
