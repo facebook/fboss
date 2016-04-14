@@ -34,7 +34,7 @@ public:
    * @return Sai Next Hop ID of sai_object_id_t type if found, 
    *         otherwise SAI_NULL_OBJECT_ID 
    */
-  sai_object_id_t GetSaiNextHopId(const RouteForwardInfo &fwdInfo) const;
+  sai_object_id_t getSaiNextHopId(const RouteForwardInfo &fwdInfo) const;
 
   /*
    * The following functions will modify the object. They rely on the global
@@ -50,7 +50,7 @@ public:
    *  
    * @return The SaiNextHop pointer just created or found.
    */
-  SaiNextHop* IncRefOrCreateSaiNextHop(const RouteForwardInfo &fwdInfo);
+  SaiNextHop* incRefOrCreateSaiNextHop(const RouteForwardInfo &fwdInfo);
 
   /**
    * Decreases an existing SaiNextHop entry's reference counter by 1.
@@ -62,7 +62,7 @@ public:
    *         decreased by 1, but the object is still valid as it is
    *         still referred in somewhere else
    */
-  SaiNextHop *DerefSaiNextHop(const RouteForwardInfo &fwdInfo) noexcept;
+  SaiNextHop *derefSaiNextHop(const RouteForwardInfo &fwdInfo) noexcept;
 
   /**
    * Loops trough all the Next Hops and resolves(if not resolved yet) 

@@ -34,27 +34,27 @@ public:
    * No other SaiPortTable methods should be accessed before initPorts()
    * completes.
    */
-  void InitPorts(bool warmBoot);
+  void initPorts(bool warmBoot);
 
   /*
   * Getters.
   */
-  sai_object_id_t GetSaiPortId(PortID id) const; 
-  PortID GetPortId(sai_object_id_t portId) const;
+  sai_object_id_t getSaiPortId(PortID id) const; 
+  PortID getPortId(sai_object_id_t portId) const;
 
   // Throw an error if not found
-  SaiPortBase *GetSaiPort(PortID id) const;
-  SaiPortBase *GetSaiPort(sai_object_id_t id) const;
+  SaiPortBase *getSaiPort(PortID id) const;
+  SaiPortBase *getSaiPort(sai_object_id_t id) const;
 
   /*
    * Indicate that a port's link status has changed.
    */
-  void SetPortStatus(sai_object_id_t portId, int status);
+  void setPortStatus(sai_object_id_t portId, int status);
 
   /*
    * Update all ports' statistics.
    */
-  void UpdatePortStats();
+  void updatePortStats();
 
 private:
   typedef boost::container::flat_map<sai_object_id_t, std::unique_ptr<SaiPortBase>> SaiPortMap;

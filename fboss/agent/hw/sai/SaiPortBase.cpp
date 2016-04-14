@@ -33,11 +33,11 @@ SaiPortBase::~SaiPortBase() {
   VLOG(4) << "Entering " << __FUNCTION__;
 }
 
-void SaiPortBase::Init(bool warmBoot) {
+void SaiPortBase::init(bool warmBoot) {
   VLOG(6) << "Entering " << __FUNCTION__;
 
   try {
-    SetIngressVlan(pvId_);
+    setIngressVlan(pvId_);
   } catch (const SaiError &e) {
     LOG(ERROR) << e.what();
   }
@@ -61,7 +61,7 @@ void SaiPortBase::setPortStatus(bool linkStatus) {
   linkStatus_ = linkStatus;
 }
 
-void SaiPortBase::SetIngressVlan(VlanID vlan) {
+void SaiPortBase::setIngressVlan(VlanID vlan) {
   VLOG(6) << "Entering " << __FUNCTION__;
 
   if (initDone_ && (pvId_ == vlan)) {
@@ -126,13 +126,13 @@ void SaiPortBase::disable() {
   setPortStatus(adminMode_);
 }
 
-std::string SaiPortBase::StatName(folly::StringPiece name) const {
+std::string SaiPortBase::statName(folly::StringPiece name) const {
   VLOG(6) << "Entering " << __FUNCTION__;
 
   return folly::to<std::string>("port", platformPort_->getPortID(), ".", name);
 }
 
-void SaiPortBase::UpdateStats() {
+void SaiPortBase::updateStats() {
   VLOG(6) << "Entering " << __FUNCTION__;
 }
 

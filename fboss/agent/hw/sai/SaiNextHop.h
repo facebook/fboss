@@ -32,7 +32,7 @@ public:
    * Constructs the SaiNextHop object.
    *
    * This method doesn't make any calls to the SAI to program next hop there.
-   * Program() will be called soon after construction, and any
+   * program() will be called soon after construction, and any
    * actual initialization logic is be performed there.
    */
   explicit SaiNextHop(const SaiSwitch *hw, const RouteForwardInfo &fwdInfo);
@@ -50,7 +50,7 @@ public:
    * @return ID of Next Hop if it's already programmed 
    *         to HW, otherwise SAI_NULL_OBJECT_ID.
    */
-  sai_object_id_t GetSaiNextHopId() const;
+  sai_object_id_t getSaiNextHopId() const;
 
   /**
    * Checks whether the Next Hop is resolved.  
@@ -78,7 +78,7 @@ public:
    *  
    * @return none
    */
-  void Program();
+  void program();
 
 private:
   // no copy or assignment
@@ -93,7 +93,7 @@ private:
    */
   sai_object_id_t programNh(InterfaceID intf, const folly::IPAddress &ip);
   /**
-   * Programs Next Hop group with Next Hops IDs "nhIds" on HW.
+   * programs Next Hop group with Next Hops IDs "nhIds" on HW.
    *  
    * @return ID of the Next Hop Group programmed or SAI_NULL_OBJECT_ID in 
    *         case of fail. 

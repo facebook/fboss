@@ -25,7 +25,7 @@ SaiNextHopTable::~SaiNextHopTable() {
   VLOG(4) << "Entering " << __FUNCTION__;
 }
 
-sai_object_id_t SaiNextHopTable::GetSaiNextHopId(const RouteForwardInfo &fwdInfo) const {
+sai_object_id_t SaiNextHopTable::getSaiNextHopId(const RouteForwardInfo &fwdInfo) const {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   auto iter = nextHops_.find(fwdInfo.getNexthops());
@@ -34,10 +34,10 @@ sai_object_id_t SaiNextHopTable::GetSaiNextHopId(const RouteForwardInfo &fwdInfo
     return SAI_NULL_OBJECT_ID;
   }
 
-  return iter->second.first->GetSaiNextHopId();
+  return iter->second.first->getSaiNextHopId();
 }
 
-SaiNextHop* SaiNextHopTable::IncRefOrCreateSaiNextHop(const RouteForwardInfo &fwdInfo) {
+SaiNextHop* SaiNextHopTable::incRefOrCreateSaiNextHop(const RouteForwardInfo &fwdInfo) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   auto ret = nextHops_.emplace(fwdInfo.getNexthops(), std::make_pair(nullptr, 1));
@@ -54,14 +54,14 @@ SaiNextHop* SaiNextHopTable::IncRefOrCreateSaiNextHop(const RouteForwardInfo &fw
   };
 
   auto newNextHop = folly::make_unique<SaiNextHop>(hw_, fwdInfo);
-  newNextHop->Program();
+  newNextHop->program();
   auto nextHopPtr = newNextHop.get();
   iter->second.first = std::move(newNextHop);
 
   return nextHopPtr;
 }
 
-SaiNextHop* SaiNextHopTable::DerefSaiNextHop(const RouteForwardInfo &fwdInfo) noexcept {
+SaiNextHop* SaiNextHopTable::derefSaiNextHop(const RouteForwardInfo &fwdInfo) noexcept {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   auto iter = nextHops_.find(fwdInfo.getNexthops());

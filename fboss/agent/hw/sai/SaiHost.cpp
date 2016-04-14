@@ -30,7 +30,7 @@ SaiHost::SaiHost(const SaiSwitch *hw, InterfaceID intf,
 
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  saiNeighborApi_ = hw_->GetSaiNeighborApi();
+  saiNeighborApi_ = hw_->getSaiNeighborApi();
 }
 
 SaiHost::~SaiHost() {
@@ -44,7 +44,7 @@ SaiHost::~SaiHost() {
   VLOG(3) << "Deleted L3 host object for " << ip_;
 }
 
-void SaiHost::Program(sai_packet_action_t action, const folly::MacAddress &mac) {
+void SaiHost::program(sai_packet_action_t action, const folly::MacAddress &mac) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   if (!added_) {
@@ -54,7 +54,7 @@ void SaiHost::Program(sai_packet_action_t action, const folly::MacAddress &mac) 
     }
 
     // fill neighborEntry_
-    neighborEntry_.rif_id = hw_->GetIntfTable()->GetIntf(intf_)->GetIfId();
+    neighborEntry_.rif_id = hw_->getIntfTable()->getIntf(intf_)->getIfId();
 
     if (ip_.isV4()) {
       // IPv4

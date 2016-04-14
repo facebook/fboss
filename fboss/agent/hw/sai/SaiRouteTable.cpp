@@ -43,7 +43,7 @@ SaiRouteTable::~SaiRouteTable() {
   VLOG(4) << "Entering " << __FUNCTION__;
 }
 
-SaiRoute *SaiRouteTable::GetRouteIf(
+SaiRoute *SaiRouteTable::getRouteIf(
   RouterID vrf,
   const folly::IPAddress &network,
   uint8_t mask) const {
@@ -59,13 +59,13 @@ SaiRoute *SaiRouteTable::GetRouteIf(
   return iter->second.get();
 }
 
-SaiRoute *SaiRouteTable::GetRoute(
+SaiRoute *SaiRouteTable::getRoute(
   RouterID vrf,
   const folly::IPAddress &network,
   uint8_t mask) const {
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  auto rt = GetRouteIf(vrf, network, mask);
+  auto rt = getRouteIf(vrf, network, mask);
   if (!rt) {
     throw SaiError("Cannot find route for ",
                    network, "/", mask, ", vrf ", vrf.t);
@@ -75,7 +75,7 @@ SaiRoute *SaiRouteTable::GetRoute(
 }
 
 template<typename RouteT>
-void SaiRouteTable::AddRoute(RouterID vrf, const RouteT *route) {
+void SaiRouteTable::addRoute(RouterID vrf, const RouteT *route) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   const auto &prefix = route->prefix();
@@ -92,7 +92,7 @@ void SaiRouteTable::AddRoute(RouterID vrf, const RouteT *route) {
   }
 
   auto pRoute = ret.first->second.get();
-  pRoute->Program(route->getForwardInfo());
+  pRoute->program(route->getForwardInfo());
 
   if (!pRoute->isResolved()) {
     unresolvedRoutes_.insert(ret.first->second.get());
@@ -100,7 +100,7 @@ void SaiRouteTable::AddRoute(RouterID vrf, const RouteT *route) {
 }
 
 template<typename RouteT>
-void SaiRouteTable::DeleteRoute(RouterID vrf, const RouteT *route) {
+void SaiRouteTable::deleteRoute(RouterID vrf, const RouteT *route) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   const auto &prefix = route->prefix();
@@ -142,9 +142,9 @@ void SaiRouteTable::onResolved(InterfaceID intf, const folly::IPAddress &ip) {
   }
 }
 
-template void SaiRouteTable::AddRoute(RouterID, const RouteV4 *);
-template void SaiRouteTable::AddRoute(RouterID, const RouteV6 *);
-template void SaiRouteTable::DeleteRoute(RouterID, const RouteV4 *);
-template void SaiRouteTable::DeleteRoute(RouterID, const RouteV6 *);
+template void SaiRouteTable::addRoute(RouterID, const RouteV4 *);
+template void SaiRouteTable::addRoute(RouterID, const RouteV6 *);
+template void SaiRouteTable::deleteRoute(RouterID, const RouteV4 *);
+template void SaiRouteTable::deleteRoute(RouterID, const RouteV6 *);
 
 }} // facebook::fboss

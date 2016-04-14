@@ -17,7 +17,7 @@ SaiPort::SaiPort(PortID id)
   : id_(id) {
 }
 
-void SaiPort::SetPort(SaiPortBase *port) {
+void SaiPort::setPort(SaiPortBase *port) {
   port_ = port;
 }
 

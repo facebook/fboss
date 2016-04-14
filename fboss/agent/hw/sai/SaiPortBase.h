@@ -38,31 +38,31 @@ public:
   virtual ~SaiPortBase();
 
   /**
-   * @brief Initialize port
+   * @brief initialize port
    * @param warmBoot, switch boot type
    */
-  void Init(bool warmBoot);
+  void init(bool warmBoot);
 
   /*
   * Getters.
   */
-  SaiPlatformPort *GetPlatformPort() const {
+  SaiPlatformPort *getPlatformPort() const {
     return platformPort_;
   }
 
-  SaiSwitch *GetHwSwitch() const {
+  SaiSwitch *getHwSwitch() const {
     return hw_;
   }
 
-  sai_object_id_t GetSaiPortId() const {
+  sai_object_id_t getSaiPortId() const {
     return saiPortId_;
   }
 
-  PortID GetFbossPortId() const {
+  PortID getFbossPortId() const {
     return fbossPortId_;
   }
 
-  VlanID GetIngressVlan() {
+  VlanID getIngressVlan() {
     return pvId_;
   }
 
@@ -76,19 +76,19 @@ public:
   void disable();
   void setPortStatus(bool linkStatus);
 
-  void SetIngressVlan(VlanID vlan);
+  void setIngressVlan(VlanID vlan);
 
   /*
   * Update this port's statistics.
   */
-  void UpdateStats();
+  void updateStats();
 
 private:
   // Forbidden copy constructor and assignment operator
   SaiPortBase(SaiPortBase const &) = delete;
   SaiPortBase &operator=(SaiPortBase const &) = delete;
 
-  std::string StatName(folly::StringPiece name) const;
+  std::string statName(folly::StringPiece name) const;
 
   SaiSwitch *const hw_ { nullptr };   // Pointer to HW Switch
   SaiPlatformPort *const platformPort_ { nullptr }; // Pointer to Platform port
@@ -113,11 +113,11 @@ private:
       : stats::MonotonicCounter(name, stats::SUM, stats::RATE) {}
   };
 
-  MonotonicCounter inBytes_ { StatName("in_bytes") };
-  MonotonicCounter inMulticastPkts_ { StatName("in_multicast_pkts") };
-  MonotonicCounter inBroadcastPkts_ { StatName("in_broadcast_pkts") };
+  MonotonicCounter inBytes_ { statName("in_bytes") };
+  MonotonicCounter inMulticastPkts_ { statName("in_multicast_pkts") };
+  MonotonicCounter inBroadcastPkts_ { statName("in_broadcast_pkts") };
 
-  MonotonicCounter outBytes_ { StatName("out_bytes") };
+  MonotonicCounter outBytes_ { statName("out_bytes") };
 };
 
 }} // facebook::fboss

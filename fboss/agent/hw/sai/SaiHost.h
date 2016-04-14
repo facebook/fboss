@@ -31,7 +31,7 @@ public:
    * Constructs the SaiHost object.
    *
    * This method doesn't make any calls to the SAI to program host there.
-   * Program() will be called soon after construction, and any
+   * program() will be called soon after construction, and any
    * actual initialization logic will be performed there.
    */
   SaiHost(const SaiSwitch *hw,
@@ -62,7 +62,7 @@ public:
    *  
    * @return none
    */
-  void Program(sai_packet_action_t action, const folly::MacAddress &mac);
+  void program(sai_packet_action_t action, const folly::MacAddress &mac);
 
 private:
   // no copy or assignment

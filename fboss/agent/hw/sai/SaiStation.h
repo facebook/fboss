@@ -29,7 +29,7 @@ public:
   explicit SaiStation(const SaiSwitch *hw);
   ~SaiStation();
 
-  void Program(folly::MacAddress mac, sai_object_id_t aclTableId);
+  void program(folly::MacAddress mac, sai_object_id_t aclTableId);
 
 private:
   // no copy or assignment

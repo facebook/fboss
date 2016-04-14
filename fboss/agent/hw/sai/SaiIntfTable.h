@@ -30,19 +30,20 @@ public:
   virtual ~SaiIntfTable();
 
   // throw an error if not found
-  SaiIntf *GetIntf(InterfaceID id) const;
-  SaiIntf *GetIntf(sai_object_id_t id) const;
+  SaiIntf *getIntf(InterfaceID id) const;
+  SaiIntf *getIntf(sai_object_id_t id) const;
 
   // return nullptr if not found
-  SaiIntf *GetIntfIf(InterfaceID id) const;
-  SaiIntf *GetIntfIf(sai_object_id_t id) const;
-  SaiIntf *GetFirstIntfIf() const;
-  SaiIntf *GetNextIntfIf(const SaiIntf *intf) const;
+  SaiIntf *getIntfIf(InterfaceID id) const;
+  SaiIntf *getIntfIf(sai_object_id_t id) const;
+  SaiIntf *getFirstIntfIf() const;
+  SaiIntf *getNextIntfIf(const SaiIntf *intf) const;
 
   // The following functions will modify the object. They rely on the global
-  void AddIntf(const std::shared_ptr<Interface> &intf);
-  void ProgramIntf(const std::shared_ptr<Interface> &intf);
-  void DeleteIntf(const std::shared_ptr<Interface> &intf);
+  // HW update lock in SaiSwitch::lock_ for the protection.
+  void addIntf(const std::shared_ptr<Interface> &intf);
+  void programIntf(const std::shared_ptr<Interface> &intf);
+  void deleteIntf(const std::shared_ptr<Interface> &intf);
 
 private:
   const SaiSwitch *hw_;

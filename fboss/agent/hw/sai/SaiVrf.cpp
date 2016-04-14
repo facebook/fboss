@@ -20,7 +20,7 @@ SaiVrf::SaiVrf(const SaiSwitch *hw, RouterID fbossVrfId)
 
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  saiVirtualRouterApi_ = hw->GetSaiVrfApi();
+  saiVirtualRouterApi_ = hw->getSaiVrfApi();
 }
 
 SaiVrf::~SaiVrf() {
@@ -31,7 +31,7 @@ SaiVrf::~SaiVrf() {
   }
 }
 
-sai_object_id_t SaiVrf::GetSaiVrfId() const {
+sai_object_id_t SaiVrf::getSaiVrfId() const {
 
   if (saiVrfId_ == SAI_NULL_OBJECT_ID) {
     throw SaiError("Attempt to get SAI ID of the VRF ", fbossVrfId_, 
@@ -41,7 +41,7 @@ sai_object_id_t SaiVrf::GetSaiVrfId() const {
   return saiVrfId_;
 }
 
-void SaiVrf::Program() {
+void SaiVrf::program() {
 
   VLOG(4) << "Entering " << __FUNCTION__;
 

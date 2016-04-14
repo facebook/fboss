@@ -42,7 +42,7 @@ SaiRxPacket::SaiRxPacket(const void* buf,
   for (uint32_t i = 0; i < attr_count; i++) {
 
     if (attr_list[i].id == SAI_HOSTIF_PACKET_INGRESS_PORT) {
-      srcPort_ = hw->GetPortTable()->GetPortId(attr_list[i].value.oid);
+      srcPort_ = hw->getPortTable()->getPortId(attr_list[i].value.oid);
     }
   }
   
@@ -68,7 +68,7 @@ SaiRxPacket::SaiRxPacket(const void* buf,
     srcVlan_ = VlanID(c.readBE<uint16_t>());
   } else {
     // In case of untagged packet we just take the ingress VLAN of the source port.
-    srcVlan_ = hw->GetPortTable()->GetSaiPort(srcPort_)->GetIngressVlan();                                      
+    srcVlan_ = hw->getPortTable()->getSaiPort(srcPort_)->getIngressVlan();                                      
   }
 }
 

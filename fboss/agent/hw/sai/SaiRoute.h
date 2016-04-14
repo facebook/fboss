@@ -31,7 +31,7 @@ public:
    * Constructs the SaiRoute object.
    *
    * This method doesn't make any calls to the SAI to program route there.
-   * Program() will be called soon after construction, and any
+   * program() will be called soon after construction, and any
    * actual initialization logic is be performed there.
    */
   SaiRoute(const SaiSwitch *hw,
@@ -53,7 +53,7 @@ public:
    *  
    * @return none
    */
-  void Program(const RouteForwardInfo &fwd);
+  void program(const RouteForwardInfo &fwd);
 
   /**
    * Checks whether the Route is resolved.  

@@ -23,10 +23,10 @@ public:
   SaiPlatformPort &operator=(SaiPlatformPort&&) = default;
 
   /*
-   * SetPort() should be called once during port initialization.
+   * setPort() should be called once during port initialization.
    */
-  virtual void SetPort(SaiPortBase *port) = 0;
-  virtual SaiPortBase *GetPort() const = 0;
+  virtual void setPort(SaiPortBase *port) = 0;
+  virtual SaiPortBase *getPort() const = 0;
 
 private:
   // Forbidden copy constructor and assignment operator

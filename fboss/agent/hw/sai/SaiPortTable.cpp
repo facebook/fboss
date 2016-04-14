@@ -30,10 +30,10 @@ SaiPortTable::~SaiPortTable() {
   VLOG(4) << "Entering " << __FUNCTION__;
 }
 
-void SaiPortTable::InitPorts(bool warmBoot) {
+void SaiPortTable::initPorts(bool warmBoot) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  auto platformPorts = hw_->GetPlatform()->initPorts();
+  auto platformPorts = hw_->getPlatform()->initPorts();
 
   for (const auto& entry : platformPorts) {
       sai_object_id_t saiPortId = entry.first;
@@ -41,23 +41,23 @@ void SaiPortTable::InitPorts(bool warmBoot) {
 
       PortID fbossPortID = platformPort->getPortID();
       auto saiPortBase = make_unique<SaiPortBase>(hw_, saiPortId, fbossPortID, platformPort);
-      platformPort->SetPort(saiPortBase.get());
-      saiPortBase->Init(warmBoot);
+      platformPort->setPort(saiPortBase.get());
+      saiPortBase->init(warmBoot);
 
       fbossPhysicalPorts_.emplace(fbossPortID, saiPortBase.get());
       saiPhysicalPorts_.emplace(saiPortId, std::move(saiPortBase));
   }
 }
 
-sai_object_id_t SaiPortTable::GetSaiPortId(PortID id) const {
-    return GetSaiPort(id)->GetSaiPortId();
+sai_object_id_t SaiPortTable::getSaiPortId(PortID id) const {
+    return getSaiPort(id)->getSaiPortId();
 }
 
-PortID SaiPortTable::GetPortId(sai_object_id_t portId) const {
-    return GetSaiPort(portId)->GetFbossPortId();
+PortID SaiPortTable::getPortId(sai_object_id_t portId) const {
+    return getSaiPort(portId)->getFbossPortId();
 }
 
-SaiPortBase *SaiPortTable::GetSaiPort(PortID id) const {
+SaiPortBase *SaiPortTable::getSaiPort(PortID id) const {
   VLOG(6) << "Entering " << __FUNCTION__;
 
   auto iter = fbossPhysicalPorts_.find(id);
@@ -69,7 +69,7 @@ SaiPortBase *SaiPortTable::GetSaiPort(PortID id) const {
   return iter->second;
 }
 
-SaiPortBase *SaiPortTable::GetSaiPort(sai_object_id_t id) const {
+SaiPortBase *SaiPortTable::getSaiPort(sai_object_id_t id) const {
   VLOG(6) << "Entering " << __FUNCTION__;
 
   auto iter = saiPhysicalPorts_.find(id);
@@ -83,19 +83,19 @@ SaiPortBase *SaiPortTable::GetSaiPort(sai_object_id_t id) const {
   return iter->second.get();
 }
 
-void SaiPortTable::SetPortStatus(sai_object_id_t portId, int status) {
+void SaiPortTable::setPortStatus(sai_object_id_t portId, int status) {
   VLOG(6) << "Entering " << __FUNCTION__;
 
-  auto port = GetSaiPort(portId);
+  auto port = getSaiPort(portId);
   port->setPortStatus(status);
 }
 
-void SaiPortTable::UpdatePortStats() {
+void SaiPortTable::updatePortStats() {
   VLOG(6) << "Entering " << __FUNCTION__;
 
   for (const auto& entry : saiPhysicalPorts_) {
     SaiPortBase *saiPort = entry.second.get();
-    saiPort->UpdateStats();
+    saiPort->updateStats();
   }
 }
 

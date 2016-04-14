@@ -24,8 +24,8 @@ public:
     return id_;
   }
 
-  void SetPort(SaiPortBase *port) override;
-  SaiPortBase *GetPort() const override {
+  void setPort(SaiPortBase *port) override;
+  SaiPortBase *getPort() const override {
     return port_;
   }
 

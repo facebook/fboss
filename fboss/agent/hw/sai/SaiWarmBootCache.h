@@ -33,7 +33,7 @@ class SaiWarmBootCache {
 public:
   explicit SaiWarmBootCache(const SaiSwitch *hw);
 
-  void Populate();
+  void populate();
   
   struct VlanInfo {
     VlanInfo(VlanID vlan, const std::vector<sai_vlan_port_t> &ports):
@@ -48,7 +48,7 @@ public:
     std::vector<sai_vlan_port_t> ports_;
   };
   
-  void AddVlanInfo(VlanID vlan, const std::vector<sai_vlan_port_t> &ports);
+  void addVlanInfo(VlanID vlan, const std::vector<sai_vlan_port_t> &ports);
   
   typedef sai_object_id_t EcmpEgressId;
   typedef sai_object_id_t EgressId;

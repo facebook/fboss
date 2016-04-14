@@ -27,7 +27,7 @@ SaiNextHop::SaiNextHop(const SaiSwitch *hw, const RouteForwardInfo &fwdInfo)
 
   for(auto nh : fwdInfo_.getNexthops()) {
 
-    if (hw_->GetHostTable()->getSaiHost(nh.intf, nh.nexthop)) {
+    if (hw_->getHostTable()->getSaiHost(nh.intf, nh.nexthop)) {
       resolvedNextHops_.emplace(nh);
     } else {
       unresolvedNextHops_.emplace(nh);
@@ -36,8 +36,8 @@ SaiNextHop::SaiNextHop(const SaiSwitch *hw, const RouteForwardInfo &fwdInfo)
 
   isGroup_ = (fwdInfo_.getNexthops().size() > 1);
 
-  saiNextHopApi_ = hw->GetSaiNextHopApi();
-  saiNextHopGroupApi_ = hw->GetSaiNextHopGroupApi();
+  saiNextHopApi_ = hw->getSaiNextHopApi();
+  saiNextHopGroupApi_ = hw->getSaiNextHopGroupApi();
 }
 
 SaiNextHop::~SaiNextHop() {
@@ -73,7 +73,7 @@ SaiNextHop::~SaiNextHop() {
   }
 }
 
-sai_object_id_t SaiNextHop::GetSaiNextHopId() const {
+sai_object_id_t SaiNextHop::getSaiNextHopId() const {
 
   if (isGroup_) {
     return nhGroupId_;
@@ -135,7 +135,7 @@ void SaiNextHop::onResolved(InterfaceID intf, const folly::IPAddress &ip) {
   resolved_ = true;
 }
 
-void SaiNextHop::Program() {
+void SaiNextHop::program() {
 
   VLOG(4) << "Entering " << __FUNCTION__;
 
@@ -221,7 +221,7 @@ sai_object_id_t SaiNextHop::programNh(InterfaceID intf, const folly::IPAddress &
 
   // Router interface ID
   attr.id = SAI_NEXT_HOP_ATTR_ROUTER_INTERFACE_ID;
-  attr.value.oid = hw_->GetIntfTable()->GetIntfIf(intf)->GetIfId();
+  attr.value.oid = hw_->getIntfTable()->getIntfIf(intf)->getIfId();
   attrList.push_back(attr);
 
   // Create NH in SAI

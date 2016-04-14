@@ -27,7 +27,7 @@ public:
    * Constructs the SaiVrf object.
    *
    * This method doesn't make any calls to the SAI to program vrf there.
-   * Program() will be called soon after construction, and any
+   * program() will be called soon after construction, and any
    * actual initialization logic has to be performed there.
    */
   explicit SaiVrf(const SaiSwitch *hw, RouterID fbossVrfId);
@@ -39,18 +39,18 @@ public:
   virtual ~SaiVrf();
   /**
    * Gets Sai Vrf ID of sai_object_id_t type. 
-   * Should be called after Program() call. 
+   * Should be called after program() call. 
    * Till that moment will always throw an exception; 
    *  
    * @return Sai Next Hop of sai_object_id_t type
    */
-  sai_object_id_t GetSaiVrfId() const;
+  sai_object_id_t getSaiVrfId() const;
   /**
    * Gets FBOSS Vrf ID of RouterID type. 
    *  
    * @return FBOSS Vrf ID of RouterID type
    */
-  RouterID GetFbossVrfId() const {
+  RouterID getFbossVrfId() const {
     return fbossVrfId_;
   }
 
@@ -60,7 +60,7 @@ public:
    *  
    * @return none
    */
-  void Program();
+  void program();
 
 private:
   // no copy or assignment

@@ -29,12 +29,12 @@ SaiStation::~SaiStation() {
     return;
   }
 
-  hw_->GetSaiAclApi()->delete_acl_table(id_);
+  hw_->getSaiAclApi()->delete_acl_table(id_);
 
   VLOG(3) << "deleted SAI station entry " << id_;
 }
 
-void SaiStation::Program(folly::MacAddress mac, sai_object_id_t aclTableId) {
+void SaiStation::program(folly::MacAddress mac, sai_object_id_t aclTableId) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   CHECK_EQ(INVALID, id_);
@@ -51,7 +51,7 @@ void SaiStation::Program(folly::MacAddress mac, sai_object_id_t aclTableId) {
   attrList[2].id = SAI_ACL_TABLE_ATTR_FIELD_IP_TYPE;
   attrList[2].value.u32 = SAI_ACL_IP_TYPE_ANY;
 
-  hw_->GetSaiAclApi()->create_acl_table(&tableId, 3, attrList);
+  hw_->getSaiAclApi()->create_acl_table(&tableId, 3, attrList);
   id_ = aclTableId;
   
   VLOG (1) << "Adding SAI station with Mac : " << mac <<" and " << aclTableId;

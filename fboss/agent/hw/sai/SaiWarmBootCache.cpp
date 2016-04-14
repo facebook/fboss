@@ -65,7 +65,7 @@ shared_ptr<InterfaceMap> SaiWarmBootCache::reconstructInterfaceMap() const {
     saiAttr[2].id = SAI_ROUTER_INTERFACE_TYPE_PORT;
     
     
-    hw_->GetSaiRouterIntfApi()->get_router_interface_attribute(saiIntf, 
+    hw_->getSaiRouterIntfApi()->get_router_interface_attribute(saiIntf, 
     sizeof(saiAttr)/sizeof(sai_attribute_t), saiAttr);
 
     /*
@@ -96,7 +96,7 @@ shared_ptr<VlanMap> SaiWarmBootCache::reconstructVlanMap() const {
       PortID portId {0}; 
 
       try {
-        portId = hw_->GetPortTable()->GetPortId(port.port_id);
+        portId = hw_->getPortTable()->getPortId(port.port_id);
       } catch (const SaiError &e) {
         LOG(ERROR) << e.what();
         continue;
@@ -124,10 +124,10 @@ shared_ptr<VlanMap> SaiWarmBootCache::reconstructVlanMap() const {
   return vlans;
 }
 
-void SaiWarmBootCache::Populate() {
+void SaiWarmBootCache::populate() {
 }
 
-void SaiWarmBootCache::AddVlanInfo(VlanID vlan, 
+void SaiWarmBootCache::addVlanInfo(VlanID vlan, 
                                    const vector<sai_vlan_port_t> &ports) {
     
   vlan2VlanInfo_.insert(make_pair(vlan, VlanInfo(vlan, ports)));
@@ -147,7 +147,7 @@ bool SaiWarmBootCache::fillVlanPortInfo(Vlan *vlan) {
       PortID portId {0}; 
 
       try {
-        portId = hw_->GetPortTable()->GetPortId(port.port_id);
+        portId = hw_->getPortTable()->getPortId(port.port_id);
       } catch (const SaiError &e) {
         LOG(ERROR) << e.what();
         continue;
@@ -186,14 +186,14 @@ void SaiWarmBootCache::clear() {
             std::get<1>(vrfPfxAndRoute.first) << "/" <<
             std::get<2>(vrfPfxAndRoute.first);
 
-    hw_->GetSaiRouteApi()->remove_route(&vrfPfxAndRoute.second);
+    hw_->getSaiRouteApi()->remove_route(&vrfPfxAndRoute.second);
 
     // Delete sai host entries.
     for (auto vrfIpAndHost : vrfIp2Host_) {
       VLOG(1)<< "Deleting host entry in vrf: " <<
              vrfIpAndHost.first.first << " for : " << vrfIpAndHost.first.second;
 
-      hw_->GetSaiNeighborApi()->remove_neighbor_entry(&vrfIpAndHost.second);
+      hw_->getSaiNeighborApi()->remove_neighbor_entry(&vrfIpAndHost.second);
     }
 
     vrfIp2Host_.clear();
@@ -203,7 +203,7 @@ void SaiWarmBootCache::clear() {
       VLOG(1) <<"Deletingl3 interface for vlan: " << vlanMacAndIntf.first.first
               <<" and mac : " << vlanMacAndIntf.first.second;
 
-      hw_->GetSaiRouterIntfApi()->remove_router_interface(vlanMacAndIntf.second);
+      hw_->getSaiRouterIntfApi()->remove_router_interface(vlanMacAndIntf.second);
     }
 
     vlanAndMac2Intf_.clear();
@@ -213,7 +213,7 @@ void SaiWarmBootCache::clear() {
          vlanItr != vlan2VlanInfo_.end();) {
       VLOG(1) << "Deleting vlan : " << vlanItr->first;
 
-      hw_->GetSaiVlanApi()->remove_vlan(vlanItr->first);
+      hw_->getSaiVlanApi()->remove_vlan(vlanItr->first);
       vlanItr = vlan2VlanInfo_.erase(vlanItr);
     }
   }

@@ -28,7 +28,7 @@ SaiIntf::SaiIntf(const SaiSwitch *hw)
   : hw_(hw) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  saiRouterInterfaceApi_ = hw->GetSaiRouterIntfApi();
+  saiRouterInterfaceApi_ = hw->getSaiRouterIntfApi();
 }
 
 SaiIntf::~SaiIntf() {
@@ -46,10 +46,10 @@ SaiIntf::~SaiIntf() {
     saiRouterInterfaceApi_->remove_router_interface(saiIfId_);
   }
 
-  hw_->WritableVrfTable()->DerefSaiVrf(intf_->getRouterID());
+  hw_->writableVrfTable()->derefSaiVrf(intf_->getRouterID());
 }
 
-void SaiIntf::Program(const shared_ptr<Interface> &intf) {
+void SaiIntf::program(const shared_ptr<Interface> &intf) {
   VLOG(4) << "Entering " << __FUNCTION__;
   sai_status_t saiRetVal = SAI_STATUS_FAILURE;
 
@@ -68,12 +68,12 @@ void SaiIntf::Program(const shared_ptr<Interface> &intf) {
                        " ) is changed during programming"); 
     }
   } else {
-    auto vrf = hw_->WritableVrfTable()->IncRefOrCreateSaiVrf(intf->getRouterID());
+    auto vrf = hw_->writableVrfTable()->incRefOrCreateSaiVrf(intf->getRouterID());
 
     try {
-      vrf->Program();
+      vrf->program();
     } catch (const FbossError &e) {
-      hw_->WritableVrfTable()->DerefSaiVrf(intf->getRouterID());
+      hw_->writableVrfTable()->derefSaiVrf(intf->getRouterID());
       // let handle this in the caller.
       throw;
     }
@@ -95,7 +95,7 @@ void SaiIntf::Program(const shared_ptr<Interface> &intf) {
 
     //Router ID
     attr_list[2].id = SAI_ROUTER_INTERFACE_ATTR_VIRTUAL_ROUTER_ID;
-    attr_list[2].value.oid = hw_->WritableVrfTable()->GetSaiVrfId(intf->getRouterID());
+    attr_list[2].value.oid = hw_->writableVrfTable()->getSaiVrfId(intf->getRouterID());
     attr_count++;
 
     //Admin V4 state
@@ -155,14 +155,14 @@ void SaiIntf::Program(const shared_ptr<Interface> &intf) {
   }
 
   auto createHost = [&](const IPAddress& addr) {
-    auto host = hw_->WritableHostTable()->createOrUpdateSaiHost(intf->getID(),
+    auto host = hw_->writableHostTable()->createOrUpdateSaiHost(intf->getID(),
                                                                 addr,
                                                                 intf->getMac());
 
     try {
-      host->Program(SAI_PACKET_ACTION_TRAP, intf->getMac());
+      host->program(SAI_PACKET_ACTION_TRAP, intf->getMac());
     } catch (const FbossError &e) {
-      hw_->WritableHostTable()->removeSaiHost(intf->getID(), addr);
+      hw_->writableHostTable()->removeSaiHost(intf->getID(), addr);
       // let handle this in the caller.
       throw;
     }
@@ -170,7 +170,7 @@ void SaiIntf::Program(const shared_ptr<Interface> &intf) {
     auto ret = hosts_.insert(addr);
     CHECK(ret.second);
     SCOPE_FAIL {
-      hw_->WritableHostTable()->removeSaiHost(intf->getID(), addr);
+      hw_->writableHostTable()->removeSaiHost(intf->getID(), addr);
       hosts_.erase(ret.first);
     };
   };
@@ -227,7 +227,7 @@ void SaiIntf::removeHost(const folly::IPAddress& addr) {
     return;
   }
 
-  hw_->WritableHostTable()->removeSaiHost(intf_->getID(), addr);
+  hw_->writableHostTable()->removeSaiHost(intf_->getID(), addr);
   hosts_.erase(iter);
 }
 

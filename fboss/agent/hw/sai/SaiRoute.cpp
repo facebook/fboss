@@ -31,9 +31,9 @@ SaiRoute::SaiRoute(const SaiSwitch *hw,
 
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  auto intfPtr = hw_->GetIntfTable()->GetFirstIntfIf();
+  auto intfPtr = hw_->getIntfTable()->getFirstIntfIf();
   while (intfPtr != nullptr) {
-    for (const auto& addrPair : intfPtr->GetInterface()->getAddresses()) {
+    for (const auto& addrPair : intfPtr->getInterface()->getAddresses()) {
       // If route IP adress is in the same subnet as an IP of one of the L3 interfaces
       // then we deal with local route
       if (addrPair.first.inSubnet(addr, prefixLen)) {
@@ -41,10 +41,10 @@ SaiRoute::SaiRoute(const SaiSwitch *hw,
           break;
       }
     }
-    intfPtr = hw_->GetIntfTable()->GetNextIntfIf(intfPtr);
+    intfPtr = hw_->getIntfTable()->getNextIntfIf(intfPtr);
   }
 
-  saiRouteApi_ = hw->GetSaiRouteApi();
+  saiRouteApi_ = hw->getSaiRouteApi();
 }
 
 SaiRoute::~SaiRoute() {
@@ -62,14 +62,14 @@ SaiRoute::~SaiRoute() {
 
   if (fwd_.getAction() == RouteForwardAction::NEXTHOPS) {
     // derefernce next hop
-    hw_->WritableNextHopTable()->DerefSaiNextHop(fwd_);
+    hw_->writableNextHopTable()->derefSaiNextHop(fwd_);
   }
 
   // dereference vrf_
-  hw_->WritableVrfTable()->DerefSaiVrf(vrf_);
+  hw_->writableVrfTable()->derefSaiVrf(vrf_);
 }
 
-void SaiRoute::Program(const RouteForwardInfo &fwd) {
+void SaiRoute::program(const RouteForwardInfo &fwd) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   if (isLocal_) {
@@ -99,23 +99,23 @@ void SaiRoute::Program(const RouteForwardInfo &fwd) {
 
     if (fwd_.getAction() == RouteForwardAction::NEXTHOPS) {
       // derefernce old next hop
-      hw_->WritableNextHopTable()->DerefSaiNextHop(fwd_);
+      hw_->writableNextHopTable()->derefSaiNextHop(fwd_);
     }
 
   } else {
     // vrf as well as the route itself has to be referenced/created only
     // for the first time
-    auto vrf = hw_->WritableVrfTable()->IncRefOrCreateSaiVrf(vrf_);
+    auto vrf = hw_->writableVrfTable()->incRefOrCreateSaiVrf(vrf_);
 
     try {
-      vrf->Program();
+      vrf->program();
     } catch (const SaiError &e) {
-      hw_->WritableVrfTable()->DerefSaiVrf(vrf_);
+      hw_->writableVrfTable()->derefSaiVrf(vrf_);
       // let handle this in the caller.
       throw;
     }
 
-    routeEntry_.vr_id = vrf->GetSaiVrfId();
+    routeEntry_.vr_id = vrf->getSaiVrfId();
 
     if (ipAddr_.empty()) {
       throw SaiError("Could not program route with empty subnet IP address");
@@ -212,7 +212,7 @@ void SaiRoute::Program(const RouteForwardInfo &fwd) {
   if (newAction == RouteForwardAction::NEXTHOPS) {
     // fill Next Hop ID
     routeAttr.id = SAI_ROUTE_ATTR_NEXT_HOP_ID;
-    routeAttr.value.oid = hw_->WritableNextHopTable()->IncRefOrCreateSaiNextHop(fwd)->GetSaiNextHopId();
+    routeAttr.value.oid = hw_->writableNextHopTable()->incRefOrCreateSaiNextHop(fwd)->getSaiNextHopId();
 
     if (routeAttr.value.oid != SAI_NULL_OBJECT_ID) {
       // Set next hop ID route attribute in SAI
@@ -246,7 +246,7 @@ void SaiRoute::onResolved(InterfaceID intf, const folly::IPAddress &ip) {
 
   sai_attribute_t routeAttr {0, 0};
   routeAttr.id = SAI_ROUTE_ATTR_NEXT_HOP_ID;
-  routeAttr.value.oid = hw_->GetNextHopTable()->GetSaiNextHopId(fwd_);
+  routeAttr.value.oid = hw_->getNextHopTable()->getSaiNextHopId(fwd_);
 
   if (routeAttr.value.oid != SAI_NULL_OBJECT_ID) {
 

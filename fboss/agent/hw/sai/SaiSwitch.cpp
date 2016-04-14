@@ -80,7 +80,7 @@ namespace facebook { namespace fboss {
 // TODO: remove this when SAI callbacks support pointer to user data storage.
 SaiSwitch* SaiSwitch::instance_ = nullptr;
 
-facebook::fboss::cfg::PortSpeed GetPortSpeed(int port) {
+facebook::fboss::cfg::PortSpeed getPortSpeed(int port) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   return facebook::fboss::cfg::PortSpeed::XG;
@@ -140,21 +140,21 @@ SaiSwitch::~SaiSwitch() {
 
   service_ = {nullptr, nullptr};
   
-  ReleaseLock();
+  releaseLock();
 }
 
-std::shared_ptr<SwitchState> SaiSwitch::GetColdBootSwitchState() const {
+std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() const {
   auto bootState = make_shared<SwitchState>();
   
   // On cold boot all ports are in Vlan 1
   auto vlanMap = make_shared<VlanMap>();
-  auto vlan = make_shared<Vlan>(VlanID(1), "InitVlan");
+  auto vlan = make_shared<Vlan>(VlanID(1), "initVlan");
   Vlan::MemberPorts memberPorts;
 
   // Cold boot - put all ports in Vlan 1
   for(uint32_t nPort = 0; nPort < saiPortList_.count; ++nPort) {
     sai_object_id_t saiPort = saiPortList_.list[nPort];
-    PortID portID = portTable_->GetPortId(saiPort);
+    PortID portID = portTable_->getPortId(saiPort);
 
     string name = folly::to<string>("port", portID);
     bootState->registerPort(portID, name);
@@ -166,13 +166,13 @@ std::shared_ptr<SwitchState> SaiSwitch::GetColdBootSwitchState() const {
   return bootState;
 }
 
-std::shared_ptr<SwitchState> SaiSwitch::GetWarmBootSwitchState() const {
-  auto warmBootState = GetColdBootSwitchState();
+std::shared_ptr<SwitchState> SaiSwitch::getWarmBootSwitchState() const {
+  auto warmBootState = getColdBootSwitchState();
   for (auto port : *warmBootState->getPorts()) {
     int portEnabled;
     
     port->setState(portEnabled == 1 ? cfg::PortState::UP: cfg::PortState::DOWN);
-    port->setSpeed(GetPortSpeed(port->getID()));
+    port->setSpeed(getPortSpeed(port->getID()));
   }
   warmBootState->resetIntfs(warmBootCache_->reconstructInterfaceMap());
   warmBootState->resetVlans(warmBootCache_->reconstructVlanMap());
@@ -209,7 +209,7 @@ SaiSwitch::init(HwSwitch::Callback *callback) {
   }
 
   sai_switch_notification_t swNotif = {NULL, NULL, NULL, NULL, NULL, NULL};
-  swNotif.on_packet_event = PacketRxCallback;
+  swNotif.on_packet_event = packetRxCallback;
 
   sai_status_t saiStatus = saiSwitchApi_->initialize_switch(profileId,
                                                              const_cast<char*>(hwId_.c_str()),
@@ -250,7 +250,7 @@ SaiSwitch::init(HwSwitch::Callback *callback) {
     bootType = BootType::COLD_BOOT;
 
     attr.id = SAI_SWITCH_ATTR_PORT_NUMBER;
-    saiStatus = GetSaiSwitchApi()->get_switch_attribute(1, &attr);
+    saiStatus = getSaiSwitchApi()->get_switch_attribute(1, &attr);
 
     if(SAI_STATUS_SUCCESS != saiStatus)
       throw SaiFatal("Retrieve port number error.");
@@ -260,7 +260,7 @@ SaiSwitch::init(HwSwitch::Callback *callback) {
     attr.value.objlist = saiPortList_;
 
     attr.id = SAI_SWITCH_ATTR_PORT_LIST;
-    saiStatus = GetSaiSwitchApi()->get_switch_attribute(1, &attr);
+    saiStatus = getSaiSwitchApi()->get_switch_attribute(1, &attr);
 
     if(SAI_STATUS_SUCCESS != saiStatus)
       throw SaiFatal("Retrieve port list error.");
@@ -270,7 +270,7 @@ SaiSwitch::init(HwSwitch::Callback *callback) {
   else {
      VLOG(2) << "Performing warm boot";
   }
-  portTable_->InitPorts(false);
+  portTable_->initPorts(false);
   // Set the spanning tree state of all ports to forwarding.
   // TODO: Eventually the spanning tree state should be part of the Port
   // state, and this should be handled in applyConfig().
@@ -285,19 +285,19 @@ SaiSwitch::init(HwSwitch::Callback *callback) {
   attr.value.mac[3] = 3;
   attr.value.mac[4] = 4;
   attr.value.mac[5] = 5;
-  saiStatus = GetSaiSwitchApi()->set_switch_attribute(&attr);
+  saiStatus = getSaiSwitchApi()->set_switch_attribute(&attr);
 
   if(SAI_STATUS_SUCCESS != saiStatus)
     throw SaiFatal("Set switch MAC address error.");
     
   //TODO: Create file to indicate init state
-  TryGetLock();
+  tryGetLock();
   if (warmBoot) {
-    state = GetWarmBootSwitchState();
+    state = getWarmBootSwitchState();
     stateChanged(StateDelta(make_shared<SwitchState>(), state));
   }
   else
-    state = GetColdBootSwitchState();
+    state = getColdBootSwitchState();
 
   return std::make_pair(state, bootType);
 }
@@ -306,7 +306,7 @@ void SaiSwitch::unregisterCallbacks() {
   VLOG(4) << "Entering " << __FUNCTION__;
 }
 
-void SaiSwitch::EcmpHashSetup() {
+void SaiSwitch::ecmpHashSetup() {
   VLOG(4) << "Entering " << __FUNCTION__;
 }
 
@@ -322,11 +322,11 @@ void SaiSwitch::stateChanged(const StateDelta &delta) {
     processDisabledPorts(delta);
 
     // remove all routes to be deleted
-    ProcessRemovedRoutes(delta);
+    processRemovedRoutes(delta);
 
     // delete all interface not existing anymore. that should stop
     // all traffic on that interface now
-    forEachRemoved(delta.getIntfsDelta(), &SaiSwitch::ProcessRemovedIntf, this);
+    forEachRemoved(delta.getIntfsDelta(), &SaiSwitch::processRemovedIntf, this);
 
     // Add all new VLANs, and modify VLAN port memberships.
     // We don't actually delete removed VLANs at this point, we simply remove
@@ -334,37 +334,37 @@ void SaiSwitch::stateChanged(const StateDelta &delta) {
     // VLAN will still switch use this VLAN until we get the new VLAN fully
     // configured.
     forEachChanged(delta.getVlansDelta(),
-                   &SaiSwitch::ProcessChangedVlan,
-                   &SaiSwitch::ProcessAddedVlan,
-                   &SaiSwitch::PreprocessRemovedVlan,
+                   &SaiSwitch::processChangedVlan,
+                   &SaiSwitch::processAddedVlan,
+                   &SaiSwitch::preprocessRemovedVlan,
                    this);
 
     // Edit port ingress VLAN and speed settings
     forEachChanged(delta.getPortsDelta(),
     [&] (const shared_ptr<Port> &oldPort, const shared_ptr<Port> &newPort) {
       if (oldPort->getIngressVlan() != newPort->getIngressVlan()) {
-        UpdateIngressVlan(oldPort, newPort);
+        updateIngressVlan(oldPort, newPort);
       }
 
       if (oldPort->getSpeed() != newPort->getSpeed()) {
-        UpdatePortSpeed(oldPort, newPort);
+        updatePortSpeed(oldPort, newPort);
       }
     });
 
     // Update changed interfaces
-    forEachChanged(delta.getIntfsDelta(), &SaiSwitch::ProcessChangedIntf, this);
+    forEachChanged(delta.getIntfsDelta(), &SaiSwitch::processChangedIntf, this);
 
     // Remove deleted VLANs
-    forEachRemoved(delta.getVlansDelta(), &SaiSwitch::ProcessRemovedVlan, this);
+    forEachRemoved(delta.getVlansDelta(), &SaiSwitch::processRemovedVlan, this);
 
     // Add all new interfaces
-    forEachAdded(delta.getIntfsDelta(), &SaiSwitch::ProcessAddedIntf, this);
+    forEachAdded(delta.getIntfsDelta(), &SaiSwitch::processAddedIntf, this);
 
     // Any ARP changes
-    ProcessArpChanges(delta);
+    processArpChanges(delta);
 
     // Process any new routes or route changes
-    ProcessAddedChangedRoutes(delta);
+    processAddedChangedRoutes(delta);
 
     // As the last step, enable newly enabled ports.
     // Doing this as the last step ensures that we only start forwarding traffic
@@ -413,7 +413,7 @@ bool SaiSwitch::sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt, PortID portID
   sai_object_id_t portId {SAI_NULL_OBJECT_ID};
 
   try {
-    portId = GetPortTable()->GetSaiPortId(portID);
+    portId = getPortTable()->getSaiPortId(portID);
   } catch (const SaiError &e) {
     LOG(ERROR) << "Could not sent packet out of port:" << portID.t 
                << " Reason: " << e.what();
@@ -444,18 +444,18 @@ bool SaiSwitch::sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt, PortID portID
   return true;
 }
 
-void SaiSwitch::UpdateIngressVlan(const std::shared_ptr<Port> &oldPort,
+void SaiSwitch::updateIngressVlan(const std::shared_ptr<Port> &oldPort,
                                   const std::shared_ptr<Port> &newPort) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   try {
-    portTable_->GetSaiPort(newPort->getID())->SetIngressVlan(newPort->getIngressVlan());
+    portTable_->getSaiPort(newPort->getID())->setIngressVlan(newPort->getIngressVlan());
   } catch (const SaiError &e) {
     LOG(ERROR) << e.what();
   }
 }
 
-void SaiSwitch::UpdatePortSpeed(const std::shared_ptr<Port> &oldPort,
+void SaiSwitch::updatePortSpeed(const std::shared_ptr<Port> &oldPort,
                                 const std::shared_ptr<Port> &newPort) {
   VLOG(4) << "Entering " << __FUNCTION__;
 }
@@ -468,7 +468,7 @@ void SaiSwitch::processDisabledPorts(const StateDelta& delta) {
       if (!oldPort->isDisabled() && newPort->isDisabled()) {
 
         try {
-          portTable_->GetSaiPort(newPort->getID())->disable();
+          portTable_->getSaiPort(newPort->getID())->disable();
         } catch (const SaiError &e) {
           LOG(ERROR) << e.what();
         }
@@ -485,7 +485,7 @@ void SaiSwitch::processEnabledPorts(const StateDelta& delta) {
       if (oldPort->isDisabled() && !newPort->isDisabled()) {
 
         try {
-          portTable_->GetSaiPort(newPort->getID())->enable();
+          portTable_->getSaiPort(newPort->getID())->enable();
         } catch (const SaiError &e) {
           LOG(ERROR) << e.what();
         }
@@ -514,7 +514,7 @@ folly::dynamic SaiSwitch::gracefulExit() {
   LOG(WARNING) << "Exit graceful";
   folly::dynamic hwSwitch = toFollyDynamic();
   // TODO: Save cache for next warm boot
-  GetSaiSwitchApi()->disconnect_switch();
+  getSaiSwitchApi()->disconnect_switch();
   return hwSwitch;
 }
 
@@ -540,7 +540,7 @@ bool SaiSwitch::isPortUp(PortID port) const {
 void SaiSwitch::updateStats(SwitchStats *switchStats) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  UpdateSwitchStats(switchStats);
+  updateSwitchStats(switchStats);
 
   // Update thread-local per-port statistics.
   PortStatsMap *portStatsMap = switchStats->getPortStats();
@@ -548,11 +548,11 @@ void SaiSwitch::updateStats(SwitchStats *switchStats) {
   for (auto& entry : *portStatsMap) {
     PortID portId = entry.first;
     PortStats *portStats = entry.second.get();
-    UpdatePortStats(portId, portStats);
+    updatePortStats(portId, portStats);
   }
 
   // Update global statistics.
-  portTable_->UpdatePortStats();
+  portTable_->updatePortStats();
 }
 
 int SaiSwitch::getHighresSamplers(
@@ -582,24 +582,24 @@ cfg::PortSpeed SaiSwitch::getMaxPortSpeed(PortID port) const {
   return cfg::PortSpeed(10000);
 }
 
-void SaiSwitch::UpdateSwitchStats(SwitchStats *switchStats) {
+void SaiSwitch::updateSwitchStats(SwitchStats *switchStats) {
   VLOG(4) << "Entering " << __FUNCTION__;
   // TODO
 }
 
-void SaiSwitch::UpdatePortStats(PortID portID, PortStats *portStats) {
+void SaiSwitch::updatePortStats(PortID portID, PortStats *portStats) {
   VLOG(4) << "Entering " << __FUNCTION__;
   // TODO
 }
 
-SaiPlatformBase *SaiSwitch::GetPlatform() const {
+SaiPlatformBase *SaiSwitch::getPlatform() const {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   return platform_;
 }
 
 template<typename DELTA>
-void SaiSwitch::ProcessNeighborEntryDelta(const DELTA &delta) {
+void SaiSwitch::processNeighborEntryDelta(const DELTA &delta) {
   VLOG(4) << "Entering " << __FUNCTION__;
       
   const auto *oldEntry = delta.getOld().get();
@@ -617,7 +617,7 @@ void SaiSwitch::ProcessNeighborEntryDelta(const DELTA &delta) {
     try {
       auto oldAction = host->getSaiAction();
 
-      host->Program(action, newEntry->getMac());
+      host->program(action, newEntry->getMac());
 
       if ((oldAction != action) &&
           (action == SAI_PACKET_ACTION_FORWARD)) {
@@ -660,22 +660,22 @@ void SaiSwitch::ProcessNeighborEntryDelta(const DELTA &delta) {
   }
 }
 
-void SaiSwitch::ProcessArpChanges(const StateDelta &delta) {
+void SaiSwitch::processArpChanges(const StateDelta &delta) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   for (const auto& vlanDelta : delta.getVlansDelta()) {
     for (const auto& arpDelta : vlanDelta.getArpDelta()) {
-      ProcessNeighborEntryDelta(arpDelta);
+      processNeighborEntryDelta(arpDelta);
     }
 
     for (const auto& ndpDelta : vlanDelta.getNdpDelta()) {
-      ProcessNeighborEntryDelta(ndpDelta);
+      processNeighborEntryDelta(ndpDelta);
     }
   }
 }
 
 template <typename RouteT>
-void SaiSwitch::ProcessChangedRoute(const RouterID id,
+void SaiSwitch::processChangedRoute(const RouterID id,
                                     const shared_ptr<RouteT> &oldRoute,
                                     const shared_ptr<RouteT> &newRoute) {
   VLOG(4) << "Entering " << __FUNCTION__;
@@ -686,10 +686,10 @@ void SaiSwitch::ProcessChangedRoute(const RouterID id,
   // if the new route is not resolved, delete it instead of changing it
   if (!newRoute->isResolved()) {
     VLOG(2) << "Non-resolved route HW programming is skipped";
-    ProcessRemovedRoute(id, oldRoute);
+    processRemovedRoute(id, oldRoute);
   } else {
     try {
-      routeTable_->AddRoute(id, newRoute.get());
+      routeTable_->addRoute(id, newRoute.get());
     } catch (const SaiError &e) {
       LOG(ERROR) << e.what();
     }
@@ -697,7 +697,7 @@ void SaiSwitch::ProcessChangedRoute(const RouterID id,
 }
 
 template <typename RouteT>
-void SaiSwitch::ProcessAddedRoute(const RouterID id,
+void SaiSwitch::processAddedRoute(const RouterID id,
                                   const shared_ptr<RouteT> &route) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
@@ -710,14 +710,14 @@ void SaiSwitch::ProcessAddedRoute(const RouterID id,
   }
 
   try {
-    routeTable_->AddRoute(id, route.get());
+    routeTable_->addRoute(id, route.get());
   } catch (const SaiError &e) {
     LOG(ERROR) << e.what();
   }
 }
 
 template <typename RouteT>
-void SaiSwitch::ProcessRemovedRoute(const RouterID id,
+void SaiSwitch::processRemovedRoute(const RouterID id,
                                     const shared_ptr<RouteT> &route) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
@@ -729,13 +729,13 @@ void SaiSwitch::ProcessRemovedRoute(const RouterID id,
   }
 
   try {
-    routeTable_->DeleteRoute(id, route.get());
+    routeTable_->deleteRoute(id, route.get());
   } catch (const SaiError &e) {
     LOG(ERROR) << e.what();
   }
 }
 
-void SaiSwitch::ProcessRemovedRoutes(const StateDelta &delta) {
+void SaiSwitch::processRemovedRoutes(const StateDelta &delta) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   for (auto const& rtDelta : delta.getRouteTablesDelta()) {
@@ -747,18 +747,18 @@ void SaiSwitch::ProcessRemovedRoutes(const StateDelta &delta) {
     RouterID id = rtDelta.getOld()->getID();
     forEachRemoved(
       rtDelta.getRoutesV4Delta(),
-      &SaiSwitch::ProcessRemovedRoute<RouteV4>,
+      &SaiSwitch::processRemovedRoute<RouteV4>,
       this,
       id);
     forEachRemoved(
       rtDelta.getRoutesV6Delta(),
-      &SaiSwitch::ProcessRemovedRoute<RouteV6>,
+      &SaiSwitch::processRemovedRoute<RouteV6>,
       this,
       id);
   }
 }
 
-void SaiSwitch::ProcessAddedChangedRoutes(const StateDelta &delta) {
+void SaiSwitch::processAddedChangedRoutes(const StateDelta &delta) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   for (auto const& rtDelta : delta.getRouteTablesDelta()) {
@@ -771,23 +771,23 @@ void SaiSwitch::ProcessAddedChangedRoutes(const StateDelta &delta) {
     
     forEachChanged(
       rtDelta.getRoutesV4Delta(),
-      &SaiSwitch::ProcessChangedRoute<RouteV4>,
-      &SaiSwitch::ProcessAddedRoute<RouteV4>,
+      &SaiSwitch::processChangedRoute<RouteV4>,
+      &SaiSwitch::processAddedRoute<RouteV4>,
       [&](SaiSwitch *, RouterID, const shared_ptr<RouteV4> &) {},
       this,
       id);
     
     forEachChanged(
       rtDelta.getRoutesV6Delta(),
-      &SaiSwitch::ProcessChangedRoute<RouteV6>,
-      &SaiSwitch::ProcessAddedRoute<RouteV6>,
+      &SaiSwitch::processChangedRoute<RouteV6>,
+      &SaiSwitch::processAddedRoute<RouteV6>,
       [&](SaiSwitch *, RouterID, const shared_ptr<RouteV6> &) {},
       this,
       id);
   }
 }
 
-void SaiSwitch::ProcessChangedVlan(const shared_ptr<Vlan> &oldVlan,
+void SaiSwitch::processChangedVlan(const shared_ptr<Vlan> &oldVlan,
                                    const shared_ptr<Vlan> &newVlan) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
@@ -805,7 +805,7 @@ void SaiSwitch::ProcessChangedVlan(const shared_ptr<Vlan> &oldVlan,
       sai_vlan_port_t vlanPort;
 
       try {
-        vlanPort.port_id = portTable_->GetSaiPortId(oldPortPair.first);
+        vlanPort.port_id = portTable_->getSaiPortId(oldPortPair.first);
       } catch (const SaiError &e) {
         LOG(ERROR) << e.what();
         continue;
@@ -824,7 +824,7 @@ void SaiSwitch::ProcessChangedVlan(const shared_ptr<Vlan> &oldVlan,
       sai_vlan_port_t vlanPort;
 
       try {
-        vlanPort.port_id = portTable_->GetSaiPortId(newPortPair.first);
+        vlanPort.port_id = portTable_->getSaiPortId(newPortPair.first);
       } catch (const SaiError &e) {
         LOG(ERROR) << e.what();
         continue;
@@ -859,7 +859,7 @@ void SaiSwitch::ProcessChangedVlan(const shared_ptr<Vlan> &oldVlan,
   }
 }
 
-void SaiSwitch::ProcessAddedVlan(const shared_ptr<Vlan> &vlan) {
+void SaiSwitch::processAddedVlan(const shared_ptr<Vlan> &vlan) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   VLOG(3) << "Creating VLAN " << (uint16_t)vlan->getID() << " with "
@@ -873,7 +873,7 @@ void SaiSwitch::ProcessAddedVlan(const shared_ptr<Vlan> &vlan) {
     sai_vlan_port_t vlanPort;
 
     try {
-      vlanPort.port_id = portTable_->GetSaiPortId(entry.first);
+      vlanPort.port_id = portTable_->getSaiPortId(entry.first);
     } catch (const SaiError &e) {
       LOG(ERROR) << e.what();
       continue;
@@ -924,7 +924,7 @@ void SaiSwitch::ProcessAddedVlan(const shared_ptr<Vlan> &vlan) {
       
       auto oldVlan = vlan->clone();
       warmBootCache_->fillVlanPortInfo(oldVlan.get());
-      ProcessChangedVlan(oldVlan, vlan);
+      processChangedVlan(oldVlan, vlan);
     } else {
       LOG(WARNING) << "Vlan " << vlan->getID() << " already exists.";
     }
@@ -947,11 +947,11 @@ void SaiSwitch::ProcessAddedVlan(const shared_ptr<Vlan> &vlan) {
       return;
     }
 
-    warmBootCache_->AddVlanInfo(vlan->getID(), portList);
+    warmBootCache_->addVlanInfo(vlan->getID(), portList);
   }
 }
 
-void SaiSwitch::PreprocessRemovedVlan(const shared_ptr<Vlan> &vlan) {
+void SaiSwitch::preprocessRemovedVlan(const shared_ptr<Vlan> &vlan) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   sai_status_t saiStatus = SAI_STATUS_SUCCESS;
@@ -962,7 +962,7 @@ void SaiSwitch::PreprocessRemovedVlan(const shared_ptr<Vlan> &vlan) {
     sai_vlan_port_t vlanPort;
 
     try {
-      vlanPort.port_id = portTable_->GetSaiPortId(entry.first);
+      vlanPort.port_id = portTable_->getSaiPortId(entry.first);
     } catch (const SaiError &e) {
       LOG(ERROR) << e.what();
       continue;
@@ -984,7 +984,7 @@ void SaiSwitch::PreprocessRemovedVlan(const shared_ptr<Vlan> &vlan) {
   }
 }
 
-void SaiSwitch::ProcessRemovedVlan(const shared_ptr<Vlan> &vlan) {
+void SaiSwitch::processRemovedVlan(const shared_ptr<Vlan> &vlan) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   sai_status_t saiStatus = SAI_STATUS_SUCCESS;
@@ -997,36 +997,36 @@ void SaiSwitch::ProcessRemovedVlan(const shared_ptr<Vlan> &vlan) {
     throw SaiError("Failed to remove VLAN ", vlan->getID());
 }
 
-void SaiSwitch::ProcessChangedIntf(const shared_ptr<Interface> &oldIntf,
+void SaiSwitch::processChangedIntf(const shared_ptr<Interface> &oldIntf,
                                    const shared_ptr<Interface> &newIntf) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   CHECK_EQ(oldIntf->getID(), newIntf->getID());
   VLOG(2) << "changing interface " << oldIntf->getID();
-  intfTable_->ProgramIntf(newIntf);
+  intfTable_->programIntf(newIntf);
 }
 
-void SaiSwitch::ProcessAddedIntf(const shared_ptr<Interface> &intf) {
+void SaiSwitch::processAddedIntf(const shared_ptr<Interface> &intf) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   VLOG(2) << "adding interface " << intf->getID();
   try {
-    intfTable_->AddIntf(intf);
+    intfTable_->addIntf(intf);
   } catch (const SaiError &e) {
     LOG(ERROR) << e.what();
     return;
   }
 }
 
-void SaiSwitch::ProcessRemovedIntf(const shared_ptr<Interface> &intf) {
+void SaiSwitch::processRemovedIntf(const shared_ptr<Interface> &intf) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   VLOG(2) << "deleting interface " << intf->getID();
-  intfTable_->DeleteIntf(intf);
+  intfTable_->deleteIntf(intf);
 }
 
 #define lockPath  "sai_agent.lock"
-int SaiSwitch::TryGetLock(){
+int SaiSwitch::tryGetLock(){
   VLOG(4) << "Entering " << __FUNCTION__;
 
   if(lockFd != -1)
@@ -1045,7 +1045,7 @@ int SaiSwitch::TryGetLock(){
   return lockFd;
 }
 
-void SaiSwitch::PacketRxCallback(const void *buf,
+void SaiSwitch::packetRxCallback(const void *buf,
                                  sai_size_t buf_size,
                                  uint32_t attr_count,
                                  const sai_attribute_t *attr_list) {
@@ -1054,10 +1054,10 @@ void SaiSwitch::PacketRxCallback(const void *buf,
   // when this is supported in SAI.  
   auto* sw = SaiSwitch::instance_;
 
-  return sw->OnPacketReceived(buf, buf_size, attr_count, attr_list);
+  return sw->onPacketReceived(buf, buf_size, attr_count, attr_list);
 }
 
-void SaiSwitch::OnPacketReceived(const void *buf,
+void SaiSwitch::onPacketReceived(const void *buf,
                                  sai_size_t buf_size,
                                  uint32_t attr_count,
                                  const sai_attribute_t *attr_list) noexcept{
@@ -1081,7 +1081,7 @@ void SaiSwitch::OnPacketReceived(const void *buf,
   callback_->packetReceived(std::move(pkt));
 }
 
-void SaiSwitch::ReleaseLock()
+void SaiSwitch::releaseLock()
 {
   VLOG(4) << "Entering " << __FUNCTION__;
   

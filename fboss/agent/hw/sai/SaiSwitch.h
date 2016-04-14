@@ -42,11 +42,11 @@ public:
   /*
    * Get default state switch is in on a cold boot
    */
-  std::shared_ptr<SwitchState> GetColdBootSwitchState() const;
+  std::shared_ptr<SwitchState> getColdBootSwitchState() const;
   /*
    * Get state switch is in on a warm boot.
    */
-  std::shared_ptr<SwitchState> GetWarmBootSwitchState() const;
+  std::shared_ptr<SwitchState> getWarmBootSwitchState() const;
 
   std::pair<std::shared_ptr<SwitchState>, BootType> init(Callback *callback) override;
 
@@ -71,7 +71,7 @@ public:
 
   void initialConfigApplied() override;
 
-  SaiPlatformBase *GetPlatform() const;
+  SaiPlatformBase *getPlatform() const;
 
   // TODO
   void updateStats(SwitchStats *switchStats) override;
@@ -102,33 +102,33 @@ public:
   cfg::PortSpeed getPortSpeed(PortID port) const override;
   cfg::PortSpeed getMaxPortSpeed(PortID port) const override;
 
-  SaiHostTable *WritableHostTable() const {
+  SaiHostTable *writableHostTable() const {
     return hostTable_.get();
   }
 
-  SaiVrfTable *WritableVrfTable() const {
+  SaiVrfTable *writableVrfTable() const {
     return vrfTable_.get();
   }
 
-  SaiNextHopTable *WritableNextHopTable() const {
+  SaiNextHopTable *writableNextHopTable() const {
     return nextHopTable_.get();
   }
 
-  const SaiPortTable *GetPortTable() const {
+  const SaiPortTable *getPortTable() const {
     return portTable_.get();
   }
-  const SaiIntfTable *GetIntfTable() const {
+  const SaiIntfTable *getIntfTable() const {
     return intfTable_.get();
   }
-  const SaiHostTable *GetHostTable() const {
+  const SaiHostTable *getHostTable() const {
     return hostTable_.get();
   }
 
-  const SaiVrfTable *GetVrfTable() const {
+  const SaiVrfTable *getVrfTable() const {
     return vrfTable_.get();
   }
 
-  const SaiNextHopTable *GetNextHopTable() const {
+  const SaiNextHopTable *getNextHopTable() const {
     return nextHopTable_.get();
   }
 
@@ -141,52 +141,52 @@ public:
   //This function should be called from Switch which know what port and where is located
   bool isPortUp(PortID port) const override;
 
-  const sai_object_list_t &GetSaiPortList() const {
+  const sai_object_list_t &getSaiPortList() const {
     return saiPortList_;
   }
 
   /* SAI API lists */
-  sai_switch_api_t *GetSaiSwitchApi() const {
+  sai_switch_api_t *getSaiSwitchApi() const {
     return saiSwitchApi_;
   }
 
-  sai_vlan_api_t *GetSaiVlanApi() const {
+  sai_vlan_api_t *getSaiVlanApi() const {
     return saiVlanApi_;
   }
 
-  sai_port_api_t *GetSaiPortApi() const {
+  sai_port_api_t *getSaiPortApi() const {
     return saiPortApi_;
   }
 
-  sai_virtual_router_api_t *GetSaiVrfApi() const {
+  sai_virtual_router_api_t *getSaiVrfApi() const {
     return saiVrfApi_;
   }
 
-  sai_route_api_t *GetSaiRouteApi() const {
+  sai_route_api_t *getSaiRouteApi() const {
     return saiRouteApi_;
   }
 
-  sai_router_interface_api_t *GetSaiRouterIntfApi() const {
+  sai_router_interface_api_t *getSaiRouterIntfApi() const {
     return saiRouterIntfApi_;
   }
 
-  sai_neighbor_api_t *GetSaiNeighborApi() const {
+  sai_neighbor_api_t *getSaiNeighborApi() const {
     return saiNeighborApi_;
   }
 
-  sai_hostif_api_t *GetSaiHostInterfaceApi() const {
+  sai_hostif_api_t *getSaiHostInterfaceApi() const {
     return saiHostInterfaceApi_;
   }
 
-  sai_acl_api_t *GetSaiAclApi() const {
+  sai_acl_api_t *getSaiAclApi() const {
     return saiAclApi_;
   }
   
-  sai_next_hop_api_t *GetSaiNextHopApi() const {
+  sai_next_hop_api_t *getSaiNextHopApi() const {
     return saiNextHopApi_;
   }
 
-  sai_next_hop_group_api_t *GetSaiNextHopGroupApi() const {
+  sai_next_hop_group_api_t *getSaiNextHopGroupApi() const {
     return saiNextHopGroupApi_;
   }
 
@@ -195,53 +195,53 @@ private:
   SaiSwitch(SaiSwitch const &) = delete;
   SaiSwitch &operator=(SaiSwitch const &) = delete;
 
-  void UpdateSwitchStats(SwitchStats *switchStats);
-  void UpdatePortStats(PortID portID, PortStats *portStats);
+  void updateSwitchStats(SwitchStats *switchStats);
+  void updatePortStats(PortID portID, PortStats *portStats);
 
-  void UpdateIngressVlan(const std::shared_ptr<Port> &oldPort,
+  void updateIngressVlan(const std::shared_ptr<Port> &oldPort,
                          const std::shared_ptr<Port> &newPort);
-  void ProcessChangedVlan(const std::shared_ptr<Vlan> &oldVlan,
+  void processChangedVlan(const std::shared_ptr<Vlan> &oldVlan,
                           const std::shared_ptr<Vlan> &newVlan);
-  void ProcessAddedVlan(const std::shared_ptr<Vlan> &vlan);
-  void PreprocessRemovedVlan(const std::shared_ptr<Vlan> &vlan);
-  void ProcessRemovedVlan(const std::shared_ptr<Vlan> &vlan);
+  void processAddedVlan(const std::shared_ptr<Vlan> &vlan);
+  void preprocessRemovedVlan(const std::shared_ptr<Vlan> &vlan);
+  void processRemovedVlan(const std::shared_ptr<Vlan> &vlan);
 
-  void ProcessChangedIntf(const std::shared_ptr<Interface> &oldIntf,
+  void processChangedIntf(const std::shared_ptr<Interface> &oldIntf,
                           const std::shared_ptr<Interface> &newIntf);
-  void ProcessAddedIntf(const std::shared_ptr<Interface> &intf);
-  void ProcessRemovedIntf(const std::shared_ptr<Interface> &intf);
+  void processAddedIntf(const std::shared_ptr<Interface> &intf);
+  void processRemovedIntf(const std::shared_ptr<Interface> &intf);
 
-  void Deinit(bool warm = true) const;
+  void deinit(bool warm = true) const;
 
-  void EcmpHashSetup();
+  void ecmpHashSetup();
 
   template<typename DELTA>
-  void ProcessNeighborEntryDelta(const DELTA &delta);
-  void ProcessArpChanges(const StateDelta &delta);
+  void processNeighborEntryDelta(const DELTA &delta);
+  void processArpChanges(const StateDelta &delta);
 
   template <typename RouteT>
-  void ProcessChangedRoute(
+  void processChangedRoute(
     const RouterID id, const std::shared_ptr<RouteT> &oldRoute,
     const std::shared_ptr<RouteT> &newRoute);
   template <typename RouteT>
-  void ProcessAddedRoute(
+  void processAddedRoute(
     const RouterID id, const std::shared_ptr<RouteT> &route);
   template <typename RouteT>
-  void ProcessRemovedRoute(
+  void processRemovedRoute(
     const RouterID id, const std::shared_ptr<RouteT> &route);
-  void ProcessRemovedRoutes(const StateDelta &delta);
-  void ProcessAddedChangedRoutes(const StateDelta &delta);
+  void processRemovedRoutes(const StateDelta &delta);
+  void processAddedChangedRoutes(const StateDelta &delta);
 
-  void UpdatePortSpeed(const std::shared_ptr<Port> &oldPort,
+  void updatePortSpeed(const std::shared_ptr<Port> &oldPort,
                        const std::shared_ptr<Port> &newPort);
   void processDisabledPorts(const StateDelta& delta);
   void processEnabledPorts(const StateDelta& delta);
 
   /*
    * Private callback called by the SAI API. Dispatches to
-   * SaiSwitch::OnPacketReceived.
+   * SaiSwitch::onPacketReceived.
    */
-  static void PacketRxCallback(const void *buf,
+  static void packetRxCallback(const void *buf,
                                sai_size_t buf_size,
                                uint32_t attr_count,
                                const sai_attribute_t *attr_list);
@@ -249,7 +249,7 @@ private:
    * Private callback called by SaiSwitch::packetRxCallback. Dispatches to
    * callback_->packetReceived.
    */
-  void OnPacketReceived(const void *buf,
+  void onPacketReceived(const void *buf,
                         sai_size_t buf_size,
                         uint32_t attr_count,
                         const sai_attribute_t *attr_list) noexcept;
@@ -294,8 +294,8 @@ private:
   std::mutex lock_;
   
   int lockFd;
-  int TryGetLock();
-  void ReleaseLock();
+  int tryGetLock();
+  void releaseLock();
 };
 
 }} // facebook::fboss
