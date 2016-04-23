@@ -51,6 +51,9 @@ class TxPacket : public Packet {
                              folly::MacAddress dst,
                              folly::MacAddress src,
                              uint16_t protocol);
+	template<typename CursorType>
+	static void writeEthHeaderVlanTag(CursorType* cursor, 
+														 VlanID vlan);
 
  protected:
   TxPacket() {}
@@ -69,8 +72,7 @@ void TxPacket::writeEthHeader(CursorType* cursor,
                               uint16_t protocol) {
   cursor->push(dst.bytes(), folly::MacAddress::SIZE);
   cursor->push(src.bytes(), folly::MacAddress::SIZE);
-  cursor->template writeBE<uint16_t>(0x8100); // 802.1Q
-  cursor->template writeBE<uint16_t>(vlan);
+	TxPacket::writeEthHeaderVlanTag(cursor, vlan);
   cursor->template writeBE<uint16_t>(protocol);
 }
 
@@ -82,6 +84,13 @@ void TxPacket::writeEthHeader(CursorType* cursor,
   cursor->push(dst.bytes(), folly::MacAddress::SIZE);
   cursor->push(src.bytes(), folly::MacAddress::SIZE);
   cursor->template writeBE<uint16_t>(protocol);
+}
+
+template<typename CursorType>
+void TxPacket::writeEthHeaderVlanTag(CursorType* cursor,
+		                          VlanID vlan) {
+	cursor->template writeBE<uint16_t>(0x8100); // 802.1Q
+	cursor->template writeBE<uint16_t>(vlan);
 }
 
 }} // facebook::fboss

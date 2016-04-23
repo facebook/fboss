@@ -21,6 +21,7 @@ include_directories(${CMAKE_BINARY_DIR}/gen)
 include_directories(${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2)
 include_directories(${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2)
 include_directories(${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2)
+include_directories(/usr/include/libnl3)
 
 # System libraries
 find_library(GLOG glog)
@@ -40,16 +41,26 @@ find_library(SSL ssl)
 find_library(CRYPTO crypto)
 find_library(DL dl)
 find_library(EVENT event)
+find_library(NETLINK nl-3)
+find_library(NETLINKGENL nl-genl-3)
+find_library(NETLINKROUTE nl-route-3)
 
 # External libraries that are not generally available. Look in external/
 # for these. This is where getdeps.sh will toss them.
-find_library(FOLLY folly PATHS ${CMAKE_SOURCE_DIR}/external/folly/folly/.libs)
-find_library(WANGLE wangle PATHS ${CMAKE_SOURCE_DIR}/external/wangle/wangle/build/lib)
-find_library(THRIFT thrift PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp/.libs)
-find_library(THRIFTPROTO thriftprotocol PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs)
-find_library(THRIFTCPP2 thriftcpp2 PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs)
-find_library(OPENNSL opennsl PATHS ${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge-trident)
-find_library(IPROUTE2 netlink PATHS ${CMAKE_SOURCE_DIR}/external/iproute2/lib)
+find_library(FOLLY folly PATHS ${CMAKE_SOURCE_DIR}/external/folly/folly/.libs
+	NO_DEFAULT_PATH)
+find_library(WANGLE wangle PATHS
+	${CMAKE_SOURCE_DIR}/external/wangle/wangle/build/lib NO_DEFAULT_PATH)
+find_library(THRIFT thrift PATHS
+	${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp/.libs NO_DEFAULT_PATH)
+find_library(THRIFTPROTO thriftprotocol PATHS
+	${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs NO_DEFAULT_PATH)
+find_library(THRIFTCPP2 thriftcpp2 PATHS
+	${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs NO_DEFAULT_PATH)
+find_library(OPENNSL opennsl PATHS
+	${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge-trident NO_DEFAULT_PATH)
+find_library(IPROUTE2 netlink PATHS
+	${CMAKE_SOURCE_DIR}/external/iproute2/lib NO_DEFAULT_PATH)
 
 include_directories(${CMAKE_SOURCE_DIR}/external/OpenNSL/include)
 include_directories(${CMAKE_SOURCE_DIR}/external/iproute2/include)
@@ -58,6 +69,7 @@ include_directories(${CMAKE_SOURCE_DIR}/external/fbthrift)
 include_directories(${CMAKE_SOURCE_DIR}/external/wangle)
 
 add_executable(wedge_agent
+		fboss/agent/platforms/wedge/Wedge100Platform.cpp
     fboss/agent/platforms/wedge/WedgePlatform.cpp
     fboss/agent/platforms/wedge/WedgeProductInfo.cpp
     fboss/agent/platforms/wedge/WedgePort.cpp
@@ -133,7 +145,9 @@ add_library(fboss_agent STATIC
     fboss/agent/Main.cpp
     fboss/agent/ndp/IPv6RouteAdvertiser.cpp
     fboss/agent/NeighborListenerClient.cpp
-    fboss/agent/NeighborUpdater.cpp
+		fboss/agent/ArpCache.cpp
+		fboss/agent/NdpCache.cpp
+		fboss/agent/NeighborUpdater.cpp
     fboss/agent/NexthopToRouteCount.cpp
     fboss/agent/oss/ApplyThriftConfig.cpp
     fboss/agent/oss/Main.cpp
@@ -150,6 +164,7 @@ add_library(fboss_agent STATIC
     fboss/agent/packet/PktUtil.cpp
     fboss/agent/Platform.cpp
     fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
+		fboss/agent/platforms/wedge/oss/Wedge100Platform.cpp
     fboss/agent/platforms/wedge/oss/WedgePort.cpp
     fboss/agent/platforms/wedge/oss/WedgeProductInfo.cpp
     fboss/agent/platforms/wedge/wedge_ctrl.cpp
@@ -198,6 +213,8 @@ add_library(fboss_agent STATIC
     fboss/agent/TunManager.cpp
     fboss/agent/UDPHeader.cpp
     fboss/agent/Utils.cpp
+		fboss/agent/NetlinkManager.cpp
+		fboss/agent/TapIntf.cpp
 
     fboss/lib/usb/BaseWedgeI2CBus.cpp
     fboss/lib/usb/BaseWedgeI2CBus.h
@@ -264,6 +281,9 @@ target_link_libraries(fboss_agent
     ${DOUBLECONV}
     ${DL}
     ${EVENT}
+		${NETLINK}
+		${NETLINKGENL}
+		${NETLINKROUTE}
 )
 
 find_program(THRIFT1 thrift1)

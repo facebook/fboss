@@ -16,6 +16,7 @@
 #include "fboss/agent/Transceiver.h"
 #include "fboss/agent/TransceiverMap.h"
 #include "fboss/agent/gen-cpp/switch_config_types.h"
+#include "fboss/agent/NetlinkManager.h"
 
 #include <folly/SpinLock.h>
 #include <folly/IntrusiveList.h>
@@ -49,12 +50,14 @@ class StateDelta;
 class NeighborUpdater;
 class StateObserver;
 class TunManager;
+class NetlinkManager;
 
 enum SwitchFlags : int {
   DEFAULT = 0,
   ENABLE_TUN = 1,
   ENABLE_LLDP = 2,
-  PUBLISH_BOOTTYPE = 4
+  PUBLISH_BOOTTYPE = 4,
+	ENABLE_NETLINK_MANAGER = 8
 };
 inline SwitchFlags operator|=(SwitchFlags& a, const SwitchFlags b) {
   return
@@ -90,7 +93,7 @@ class SwSwitch : public HwSwitch::Callback {
 
   typedef std::function<void(const StateDelta&)> StateUpdatedCallback;
 
-  explicit SwSwitch(std::unique_ptr<Platform> platform);
+  explicit SwSwitch(std::unique_ptr<Platform> platformi, bool netlinkManaged);
   ~SwSwitch() override;
 
   HwSwitch* getHw() const {
@@ -423,6 +426,16 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::unique_ptr<TxPacket> allocateL3TxPacket(uint32_t l3Len);
 
+	/**
+ 	 * Same as allocateL3TxPacket above, except it does not automatically
+   * advance the buffer past the L2 header. The caller is expected to
+   * write the L2 and L3 and up contents starting from writableTail().
+   * 
+   * @param l2Len L2 packet size
+   * @return The unique pointer to a Tx packet
+   */
+	std::unique_ptr<TxPacket> allocateL2TxPacket(uint32_t l2Len);
+
   void sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
                            PortID portID) noexcept;
 
@@ -450,6 +463,12 @@ class SwSwitch : public HwSwitch::Callback {
    * @param pkt The packet that has L3 packet stored to send out
    */
   void sendL3Packet(RouterID rid, std::unique_ptr<TxPacket> pkt) noexcept;
+
+	/*
+   *  Same as sendL3Packet, except the L2 header is expected to be there
+   *  already minus the VLAN tag, which can be appended as necessary.
+   */
+	void sendL2Packet(InterfaceID iid, std::unique_ptr<TxPacket> pkt) noexcept;
 
   /**
    * method to send out a packet from HW to host.
@@ -502,6 +521,13 @@ class SwSwitch : public HwSwitch::Callback {
   LldpManager* getLldpMgr() {
     return lldpManager_.get();
   }
+
+	/*
+	 * Are we operating in FBOSS-managed or netlink-managed mode?
+	 */
+	const bool runningInNetlinkMode() {
+		return netlinkManager_ ? true : false;
+	}
 
   /*
    * Allow hardware to perform any cleanup needed to gracefully restart the
@@ -626,11 +652,19 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<Platform> platform_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
   folly::ThreadLocalPtr<SwitchStats, SwSwitch> stats_;
-  /**
+  /*
    * The object to sync the interfaces to the system. This pointer could
    * be nullptr if interface sync is not enabled during init()
    */
   std::unique_ptr<TunManager> tunMgr_;
+
+  /*
+   * The object that lets the system control the switch. Any routes
+   * or interface configurations set on the system e.g. via ifconfig
+   * or ip link/addr will be monitored and updated in the SwSwitch
+   * to create a new SwitchState.
+   */
+	std::unique_ptr<NetlinkManager> netlinkManager_;
 
   /*
    * A list of pending state updates to be applied.

@@ -143,6 +143,17 @@ void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
   auto state = sw_->getState();
   PortID port = pkt->getSrcPort();
 
+	const uint32_t l2Len = pkt->getLength();
+	if (sw_->runningInNetlinkMode()) {
+		if (sw_->sendPacketToHost(std::move(pkt))) {
+			sw_->stats()->port(port)->pktToHost(l2Len);
+		} else {
+			sw_->stats()->port(port)->pktDropped();
+		}
+		VLOG(2) << "Sent IPv6 packet to host";
+		return;
+	}
+
   // NOTE: DHCPv6 solicit pacekt from client has hoplimit set to 1,
   // we need to handle it before send the ICMPv6 TTL exceeded
   if (ipv6.nextHeader == IP_PROTO_UDP) {

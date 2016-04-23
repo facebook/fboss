@@ -59,6 +59,8 @@ using std::unique_lock;
 using std::unique_ptr;
 
 DEFINE_string(config, "", "The path to the local JSON configuration file");
+DEFINE_int32(netlink_manager_wait_ms, 300, "How long (in ms) the netlink listener thread will wait to fetch updates after an update occurs");
+DEFINE_string(netlink_manager_tap_prefix, "fboss", "The name to give tap interfaces. VLAN will be appended");
 
 namespace {
 constexpr auto kSwSwitch = "swSwitch";
@@ -116,17 +118,20 @@ inline void updatePortStatusCounters(const facebook::fboss::StateDelta& delta) {
 
 namespace facebook { namespace fboss {
 
-SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
+SwSwitch::SwSwitch(std::unique_ptr<Platform> platform, bool netlinkManaged)
   : hw_(platform->getHwSwitch()),
     platform_(std::move(platform)),
     arp_(new ArpHandler(this)),
     ipv4_(new IPv4Handler(this)),
     ipv6_(new IPv6Handler(this)),
-    nUpdater_(new NeighborUpdater(this)),
     pcapMgr_(new PktCaptureManager(this)),
     transceiverMap_(new TransceiverMap()) {
   // Create the platform-specific state directories if they
   // don't exist already.
+	if (!netlinkManaged) {
+		VLOG(3) << "Creating NeighborUpdater";
+		nUpdater_.reset(new NeighborUpdater(this));
+	}
   utilCreateDir(platform_->getVolatileStateDir());
   utilCreateDir(platform_->getPersistentStateDir());
 }
@@ -213,8 +218,10 @@ void SwSwitch::gracefulExit() {
   if (isFullyInitialized()) {
     folly::dynamic switchState = folly::dynamic::object;
     switchState[kSwSwitch] =  getState()->toFollyDynamic();
-    ipv6_->floodNeighborAdvertisements();
-    arp_->floodGratuituousArp();
+		if (!runningInNetlinkMode()) {
+    	ipv6_->floodNeighborAdvertisements();
+    	arp_->floodGratuituousArp();
+		}
     // Stop handlers and threads before uninitializing h/w
     stop();
     // Cleanup if we ever initialized
@@ -306,10 +313,21 @@ void SwSwitch::init(SwitchFlags flags) {
                                       initialState));
   });
 
+	if ((flags & SwitchFlags::ENABLE_TUN) && (flags & SwitchFlags::ENABLE_NETLINK_MANAGER)) {
+		VLOG(0) << "Both tun interfaces and netlink listener cannot be enabled simultaneously. Using tunnel interfaces";
+	}
   if (flags & SwitchFlags::ENABLE_TUN) {
     tunMgr_ = folly::make_unique<TunManager>(this, &backgroundEventBase_);
     tunMgr_->startProbe();
-  }
+	} else if (flags & SwitchFlags::ENABLE_NETLINK_MANAGER) { 
+		VLOG(1) << "Enabling netlink listener";
+		netlinkManager_ = folly::make_unique<NetlinkManager>(this, &backgroundEventBase_, FLAGS_netlink_manager_tap_prefix);
+	  if (nUpdater_) { /* disable; unique_ptr cleans everything up */
+			VLOG(0) << "Netlink listener initialized. Disabling neighbor updater";
+			nUpdater_.reset();
+			VLOG(0) << "Neighbor updater disabled";
+		}
+	}
 
   startThreads();
 
@@ -324,6 +342,17 @@ void SwSwitch::init(SwitchFlags flags) {
 }
 
 void SwSwitch::initialConfigApplied() {
+	/* First create the interfaces (before notifying anyone) */
+	if (netlinkManager_) {
+		/* This will cause the NetlinkManager to get a copy of
+		 * the current state, examine the VLANs, and install a
+		 * single Interface per VLAN. Any existing Interfaces
+		 * will be removed (invalidating any prior JSON config).
+		 */
+		VLOG(1) << "Creating tap interfaces for netlink";
+		netlinkManager_->addInterfacesAndUpdateState(getState());
+	}
+
   // notify the hw
   hw_->initialConfigApplied();
   setSwitchRunState(SwitchRunState::CONFIGURED);
@@ -346,6 +375,12 @@ void SwSwitch::initialConfigApplied() {
     // secondaries as well leading to errors, t4746261 is tracking this.
     tunMgr_->startObservingUpdates();
   }
+
+	if (netlinkManager_) {
+		VLOG(0) << "Starting manager listener";
+		netlinkManager_->startNetlinkManager(FLAGS_netlink_manager_wait_ms);
+		VLOG(0) << "Netlink manager started";
+	} 
 
   if (lldpManager_) {
       lldpManager_->start();
@@ -905,6 +940,20 @@ std::unique_ptr<TxPacket> SwSwitch::allocateL3TxPacket(uint32_t l3Len) {
   return pkt;
 }
 
+std::unique_ptr<TxPacket> SwSwitch::allocateL2TxPacket(uint32_t l2Len) {
+	const uint32_t minLen = 68;
+	const uint32_t vlanLen = 4;
+	const uint32_t pktLen = l2Len + vlanLen; /* add in VLAN */
+	auto len = std::max(pktLen, minLen);
+	auto pkt = hw_->allocatePacket(len);
+	auto buf = pkt->buf();
+	// make sure the whole buffer is available
+	buf->clear();
+	// reserve 4 bytes for the VLAN tag if we need it
+	buf->advance(vlanLen);
+	return pkt;
+}
+
 void SwSwitch::sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
                                    PortID portID) noexcept {
   pcapMgr_->packetSent(pkt.get());
@@ -990,11 +1039,74 @@ void SwSwitch::sendL3Packet(
   }
 }
 
+/*
+ * We have reserved 4 bytes of space for a VLAN tag in the headroom in alloateL2TxPacket.
+ * Although we might have to shift the dst and src MAC addresses to use it, we'll take
+ * this approach for now. If it turns out to be a performance issue, we can skip the 4
+ * bytes when the raw bytes are read into the folly::IOBuf in the first place in NetlinkManager.
+ */
+void SwSwitch::sendL2Packet(InterfaceID iid, std::unique_ptr<TxPacket> pkt) noexcept {
+	folly::IOBuf * buf = pkt->buf();
+	CHECK(!buf->isShared());
+	const uint32_t dstSrcMacLen = 12;
+	const uint32_t vlanLen = 4;
+	if (buf->headroom() != vlanLen) {
+		LOG(ERROR) << "Packet does not have the correct headroom to insert VLAN tag. "
+						   << "headroom=" << buf->headroom()
+							 << ", required=" << vlanLen;
+		return;
+	}
+				 
+	/* Figure out what VLAN to use */
+	std::shared_ptr<Interface> interface = getState()->getInterfaces()->getInterfaceIf(iid);
+	if (!interface) {
+		LOG(ERROR) << "Could not lookup Interface for InterfaceID " << iid 
+							 << " when sending L2 packet. Dropping packet";
+		return;
+	} else {
+		VLOG(2) << "Packet will be sent out Interface " << interface->getName() 
+						<< "on VLAN " << std::to_string(interface->getVlanID());
+	}
+					 
+	/* 
+	 * Now just need to figure out how to chain three IOBufs together:
+	 * [ dst MAC (6)]+[src MAC (6)]+[ethtype (2=0x8100)]+[vlan (2)]+[ethtype (2)]+[rest of packet (X)]
+	 *
+	 * IOBuf chaining would be cool, but a simple *memmove* of the dst and src MAC -4 bytes to the head
+	 * of the buffer (guaranteed -4 bytes away) will do the trick.
+	 */
+	memmove(buf->writableBuffer(), buf->data(), dstSrcMacLen);	
+	buf->prepend(vlanLen); /* adjust data to point to new start of -4 bytes and add +4 to length */
+						 	
+	/* Now, add in the VLAN ethtype and the tag, which is 12 bytes in */
+	RWPrivateCursor cursor(buf);
+	cursor.skip(dstSrcMacLen);
+	TxPacket::writeEthHeaderVlanTag(&cursor, interface->getVlanID());
+							 
+	const uint32_t pktLenWithVlan = buf->length() + vlanLen; /* need to record, since we're forfeiting our TxPacket */
+	sendPacketOutOfPort(std::move(pkt), getState()->getVlans()->getVlan(interface->getVlanID())->getPorts().begin()->first);
+	stats()->pktFromHost(pktLenWithVlan);
+}
+
 bool SwSwitch::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
   pcapMgr_->packetSentToHost(pkt.get());
+
+	/* Only one or the other (XOR) is used to handle to host packets */
   if (tunMgr_) {
     return tunMgr_->sendPacketToHost(std::move(pkt));
-  } else {
+	} else if (netlinkManager_) {
+		/* pop VLAN tag; will (err...should) always be present */
+	  folly::IOBuf * buf = pkt->buf();
+	  CHECK(!buf->isShared());
+	  const uint32_t dstSrcMacLen = 12;
+	  const uint32_t vlanLen = 4;
+	 
+	  /* Remove VLAN tag and shift prior L2 header towards payload */
+	  memmove(buf->writableData() + vlanLen, buf->data(), dstSrcMacLen);
+	  buf->trimStart(vlanLen); /* +4 bytes to start of buffer */
+	 		 
+	  return netlinkManager_->sendPacketToHost(std::move(pkt));
+	} else {
     return false;
   }
 }

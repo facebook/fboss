@@ -56,9 +56,13 @@ DEFINE_int32(thrift_idle_timeout, 60, "Thrift idle timeout in seconds.");
 // Programming 16K routes can take 20+ seconds
 DEFINE_int32(thrift_task_expire_timeout, 30,
     "Thrift task expire timeout in seconds.");
-DEFINE_bool(tun_intf, true,
+DEFINE_bool(tun_intf, false,
             "Create tun interfaces to allow other processes to "
             "send and receive traffic via the switch ports");
+DEFINE_bool(netlink_manager, false,
+						"Create tap interfaces to allow other processes to "
+						"send and receive traffic via switch ports. The system "
+						"will be used to define interface IPs and routes.");
 DEFINE_bool(enable_lldp, true,
             "Run LLDP protocol in agent");
 DEFINE_bool(publish_boot_type, true,
@@ -111,6 +115,12 @@ class Initializer {
     if (FLAGS_tun_intf) {
       flags |= SwitchFlags::ENABLE_TUN;
     }
+		if (FLAGS_netlink_manager) {
+			flags |= SwitchFlags::ENABLE_NETLINK_MANAGER;
+		}
+		if (!FLAGS_tun_intf && !FLAGS_netlink_manager) {
+			flags |= SwitchFlags::ENABLE_TUN; /* default to TUN */
+		}
     if (FLAGS_enable_lldp) {
       flags |=  SwitchFlags::ENABLE_LLDP;
     }
@@ -260,7 +270,7 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   unique_ptr<Platform> platform = initPlatform();
 
   // Create the SwSwitch and thrift handler
-  SwSwitch sw(std::move(platform));
+  SwSwitch sw(std::move(platform), !(FLAGS_tun_intf || !FLAGS_netlink_manager));
   auto platformPtr = sw.getPlatform();
   auto handler =
       std::shared_ptr<ThriftHandler>(platformPtr->createHandler(&sw));

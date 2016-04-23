@@ -118,12 +118,30 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
   SwitchStats* stats = sw_->stats();
   PortID port = pkt->getSrcPort();
 
+	const uint32_t l2Len = pkt->getLength();
   const uint32_t l3Len = pkt->getLength() - (cursor - Cursor(pkt->buf()));
   stats->port(port)->ipv4Rx();
   IPv4Hdr v4Hdr(cursor);
   VLOG(4) << "Rx IPv4 packet (" << l3Len << " bytes) " << v4Hdr.srcAddr.str()
           << " --> " << v4Hdr.dstAddr.str()
           << " proto: 0x" << std::hex << static_cast<int>(v4Hdr.protocol);
+
+	/*
+ 	 * Short circuit remaining logic if we're letting the host OS handle the
+   * packet. TODO Should probably filter by MAC address here first:
+   * -- if Interface's MAC
+   * -- if broadcast MAC
+   * -- if multicast MAC
+ 	 */
+	if (sw_->runningInNetlinkMode()) {
+		if (sw_->sendPacketToHost(std::move(pkt))) {
+			stats->port(port)->pktToHost(l2Len);
+		} else {
+			stats->port(port)->pktDropped();
+		}
+		VLOG(2) << "Sent IPv4 packet to host";
+		return;
+	}
 
   // retrieve the current switch state
   auto state = sw_->getState();

@@ -57,7 +57,7 @@ BcmStation::~BcmStation() {
 }
 
 void BcmStation::program(MacAddress mac, int id) {
-  CHECK_EQ(INVALID, id_);
+  // not true for an update CHECK_EQ(INVALID, id_);
   opennsl_l2_station_t params;
   opennsl_l2_station_t_init(&params);
   memcpy(&params.dst_mac, mac.bytes(), sizeof(params.dst_mac));
@@ -71,8 +71,9 @@ void BcmStation::program(MacAddress mac, int id) {
   bool addStation = false;
   const auto warmBootCache = hw_->getWarmBootCache();
   auto vlanStationItr = warmBootCache->findVlanStation(VlanID(id));
-  if (vlanStationItr != warmBootCache->vlan2Station_end()) {
-    // Lambda to compare with existing entry to check if we need to reprogram
+  const bool warmBoot = (vlanStationItr != warmBootCache->vlan2Station_end());
+	if (warmBoot || INVALID != id_ /* exists already */) {
+		// Lambda to compare with existing entry to check if we need to reprogram
     auto equivalent =
       [=] (const opennsl_l2_station_t& newStation,
           const opennsl_l2_station_t& oldStation) {
@@ -80,9 +81,10 @@ void BcmStation::program(MacAddress mac, int id) {
         macFromBcm(oldStation.dst_mac_mask) ==
         macFromBcm(newStation.dst_mac_mask);
     };
-    const auto& existingStation = vlanStationItr->second;
-    if (!equivalent(params, existingStation)) {
-      // Delete old station end and set addStation to true
+    const opennsl_l2_station_t& existingWarmBootStation = vlanStationItr->second;
+		/* Assume MAC update if not a warm boot */
+		if (!warmBoot || !equivalent(params, existingWarmBootStation)) {
+		  // Delete old station end and set addStation to true
       VLOG (1) << "Updating BCM station with Mac : " << mac <<" and " << id;
       rc = opennsl_l2_station_delete(hw_->getUnit(), id);
       bcmCheckError(rc, "failed to delete station entry ", id);
