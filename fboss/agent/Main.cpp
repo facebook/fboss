@@ -66,7 +66,8 @@ DEFINE_bool(publish_boot_type, true,
             "Publish boot type on startup");
 DEFINE_bool(enable_nhops_prober, true,
             "Enables prober for unresolved next hops");
-
+DEFINE_int32(flush_warmboot_cache_secs, 60,
+    "Seconds to wait before flushing warm boot cache");
 using facebook::fboss::SwSwitch;
 using facebook::fboss::ThriftHandler;
 
@@ -166,7 +167,7 @@ class Initializer {
     };
     // Call flushWarmBootFunc 30 seconds after applying config
     fs_->addFunction(flushWarmbootFunc, seconds(1), flushWarmboot,
-        seconds(30)/*initial delay*/);
+        seconds(FLAGS_flush_warmboot_cache_secs)/*initial delay*/);
 
     // Transceiver Module Detection Thread
     const string sfpDetect = "DetectTransceiver";
