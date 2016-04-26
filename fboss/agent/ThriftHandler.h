@@ -129,6 +129,15 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void stopPktCapture(std::unique_ptr<std::string> name) override;
   void stopAllPktCaptures() override;
 
+  void startLoggingRouteUpdates(
+      std::unique_ptr<RouteUpdateLoggingInfo> info) override;
+  void stopLoggingRouteUpdates(
+      std::unique_ptr<IpPrefix> prefix,
+      std::unique_ptr<std::string> identifier) override;
+  void stopLoggingAnyRouteUpdates(
+      std::unique_ptr<std::string> identifier) override;
+  void getRouteUpdateLoggingTrackedPrefixes(
+      std::vector<RouteUpdateLoggingInfo>& infos) override;
   /*
    * Event handler for when a connection is destroyed.  When there is an ongoing
    * duplex connection, there may be other threads that depend on the connection

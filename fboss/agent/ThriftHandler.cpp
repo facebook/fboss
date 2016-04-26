@@ -23,6 +23,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/NeighborUpdater.h"
+#include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/capture/PktCapture.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
@@ -680,6 +681,46 @@ void ThriftHandler::stopAllPktCaptures() {
   ensureConfigured();
   auto* mgr = sw_->getCaptureMgr();
   mgr->forgetAllCaptures();
+}
+
+void ThriftHandler::startLoggingRouteUpdates(
+    std::unique_ptr<RouteUpdateLoggingInfo> info) {
+  auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
+  folly::IPAddress addr = toIPAddress(info->prefix.ip);
+  uint8_t mask = static_cast<uint8_t>(info->prefix.prefixLength);
+  RouteUpdateLoggingInstance loggingInstance{
+      RoutePrefix<folly::IPAddress>{addr, mask}, info->identifier, info->exact};
+  routeUpdateLogger->startLoggingForPrefix(loggingInstance);
+}
+
+void ThriftHandler::stopLoggingRouteUpdates(
+    std::unique_ptr<IpPrefix> prefix,
+    std::unique_ptr<std::string> identifier) {
+  auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
+  folly::IPAddress addr = toIPAddress(prefix->ip);
+  uint8_t mask = static_cast<uint8_t>(prefix->prefixLength);
+  routeUpdateLogger->stopLoggingForPrefix(addr, mask, *identifier);
+}
+
+void ThriftHandler::stopLoggingAnyRouteUpdates(
+    std::unique_ptr<std::string> identifier) {
+  auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
+  routeUpdateLogger->stopLoggingForIdentifier(*identifier);
+}
+
+void ThriftHandler::getRouteUpdateLoggingTrackedPrefixes(
+    std::vector<RouteUpdateLoggingInfo>& infos) {
+  auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
+  for (const auto& tracked : routeUpdateLogger->getTrackedPrefixes()) {
+    RouteUpdateLoggingInfo info;
+    IpPrefix prefix;
+    prefix.ip = toBinaryAddress(tracked.prefix.network);
+    prefix.prefixLength = tracked.prefix.mask;
+    info.prefix = prefix;
+    info.identifier = tracked.identifier;
+    info.exact = tracked.exact;
+    infos.push_back(info);
+  }
 }
 
 void ThriftHandler::sendPkt(int32_t port, int32_t vlan,

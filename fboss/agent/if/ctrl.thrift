@@ -163,6 +163,19 @@ struct CaptureInfo {
   2: i32 maxPackets
 }
 
+struct RouteUpdateLoggingInfo {
+  // The prefix to log route updates for
+  1: IpPrefix prefix
+  /*
+   * A name to split up requests for logging. Allows two different clients
+   * to separately request starting/stopping logging for the same prefixes
+   * without affecting each other.
+   */
+  2: string identifier
+  // Should we log an update to a route to a more specific prefix than "prefix"
+  3: bool exact
+}
+
 /*
  * Information about an LLDP neighbor
  */
@@ -378,6 +391,15 @@ service FbossCtrl extends fb303.FacebookService {
    */
   bool subscribeToCounters(1: highres.CounterSubscribeRequest req)
     throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Log all updates to routes that match this prefix, or are more
+   * specific.
+   */
+  void startLoggingRouteUpdates(1: RouteUpdateLoggingInfo info)
+  void stopLoggingRouteUpdates(1: IpPrefix prefix, 2: string identifier)
+  void stopLoggingAnyRouteUpdates(1: string identifier)
+  list<RouteUpdateLoggingInfo> getRouteUpdateLoggingTrackedPrefixes()
 
   void keepalive()
 

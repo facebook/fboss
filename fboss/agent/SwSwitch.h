@@ -534,6 +534,13 @@ class SwSwitch : public HwSwitch::Callback {
   }
 
   /*
+   * Get the RouteUpdateLogger object
+   */
+  RouteUpdateLogger* getRouteUpdateLogger() {
+    return routeUpdateLogger_.get();
+  }
+
+  /*
    * Gets the flags the SwSwitch was initialized with.
    */
   SwitchFlags getFlags() {
