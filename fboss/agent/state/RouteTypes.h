@@ -43,7 +43,9 @@ template<typename AddrT>
 struct RoutePrefix {
   AddrT network;
   uint8_t mask;
-  std::string str() const;
+  std::string str() const {
+    return folly::to<std::string>(network, "/", static_cast<uint32_t>(mask));
+  }
 
   /*
    * Serialize to folly::dynamic
@@ -57,7 +59,9 @@ struct RoutePrefix {
 
   bool operator<(const RoutePrefix&) const;
   bool operator>(const RoutePrefix&) const;
-  bool operator==(const RoutePrefix&) const;
+  bool operator==(const RoutePrefix& p2) const {
+    return mask == p2.mask && network == p2.network;
+  }
   bool operator!=(const RoutePrefix& p2) const {
     return !operator==(p2);
   }

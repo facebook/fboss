@@ -47,6 +47,7 @@ class TransceiverMap;
 class TransceiverImpl;
 class StateDelta;
 class NeighborUpdater;
+class RouteUpdateLogger;
 class StateObserver;
 class TunManager;
 class PortRemediator;
@@ -723,6 +724,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<IPv6Handler> ipv6_;
   std::unique_ptr<NeighborUpdater> nUpdater_;
   std::unique_ptr<PktCaptureManager> pcapMgr_;
+  std::unique_ptr<RouteUpdateLogger> routeUpdateLogger_;
   std::unique_ptr<UnresolvedNhopsProber> unresolvedNhopsProber_;
 
   std::unique_ptr<TransceiverMap> transceiverMap_;

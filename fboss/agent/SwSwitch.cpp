@@ -13,6 +13,7 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/IPv4Handler.h"
 #include "fboss/agent/IPv6Handler.h"
+#include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/UnresolvedNhopsProber.h"
 #include "fboss/agent/FbossError.h"
@@ -145,6 +146,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
     ipv6_(new IPv6Handler(this)),
     nUpdater_(new NeighborUpdater(this)),
     pcapMgr_(new PktCaptureManager(this)),
+    routeUpdateLogger_(new RouteUpdateLogger(this)),
     transceiverMap_(new TransceiverMap()) {
   // Create the platform-specific state directories if they
   // don't exist already.

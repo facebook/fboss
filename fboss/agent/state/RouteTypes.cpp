@@ -42,10 +42,6 @@ RouteForwardAction str2ForwardAction(const folly::fbstring& action) {
 }
 
 // RoutePrefix<> Class
-template<typename AddrT>
-std::string RoutePrefix<AddrT>::str() const {
-  return folly::to<string>(network, "/", static_cast<uint32_t>(mask));
-}
 
 template<typename AddrT>
 bool RoutePrefix<AddrT>::operator<(const RoutePrefix& p2) const {
@@ -65,11 +61,6 @@ bool RoutePrefix<AddrT>::operator>(const RoutePrefix& p2) const {
     return false;
   }
   return network > p2.network;
-}
-
-template<typename AddrT>
-bool RoutePrefix<AddrT>::operator==(const RoutePrefix& p2) const {
-  return mask == p2.mask && network == p2.network;
 }
 
 template<typename AddrT>
