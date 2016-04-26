@@ -21,7 +21,7 @@ namespace facebook { namespace fboss {
 
 using std::string;
 
-folly::fbstring forwardActionStr(RouteForwardAction action) {
+std::string forwardActionStr(RouteForwardAction action) {
   switch (action) {
   case DROP: return kDrop;
   case TO_CPU: return kToCpu;
@@ -30,7 +30,7 @@ folly::fbstring forwardActionStr(RouteForwardAction action) {
   CHECK(0);
 }
 
-RouteForwardAction str2ForwardAction(const folly::fbstring& action) {
+RouteForwardAction str2ForwardAction(const std::string& action) {
   if (action == kDrop) {
     return DROP;
   } else if (action == kToCpu) {

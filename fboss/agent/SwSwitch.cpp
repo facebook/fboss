@@ -259,8 +259,7 @@ void SwSwitch::getProductInfo(ProductInfo& productInfo) const {
 
 void SwSwitch::dumpStateToFile(const string& filename,
     const folly::dynamic& switchState) const {
-  bool success = folly::writeFile(
-    toPrettyJson(switchState).toStdString(), filename.c_str());
+  bool success = folly::writeFile(toPrettyJson(switchState), filename.c_str());
   if (!success) {
     LOG(ERROR) << "Unable to dump switch state to " << filename;
   }

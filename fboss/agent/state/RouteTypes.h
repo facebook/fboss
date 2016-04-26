@@ -33,8 +33,8 @@ enum RouteForwardAction {
   NEXTHOPS,         // Forward the packets to one or multiple nexthops
 };
 
-folly::fbstring forwardActionStr(RouteForwardAction action);
-RouteForwardAction str2ForwardAction(const folly::fbstring& action);
+std::string forwardActionStr(RouteForwardAction action);
+RouteForwardAction str2ForwardAction(const std::string& action);
 
 /**
  * Route prefix

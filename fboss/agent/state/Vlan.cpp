@@ -120,18 +120,18 @@ folly::dynamic VlanFields::toFollyDynamic() const {
 
 VlanFields VlanFields::fromFollyDynamic(const folly::dynamic& vlanJson) {
   VlanFields vlan(VlanID(vlanJson[kVlanId].asInt()),
-      vlanJson[kVlanName].asString().toStdString());
+      vlanJson[kVlanName].asString());
   vlan.intfID = InterfaceID(vlanJson[kIntfID].asInt());
   vlan.dhcpV4Relay = folly::IPAddressV4(
       vlanJson[kDhcpV4Relay].stringPiece());
   vlan.dhcpV6Relay = folly::IPAddressV6(
       vlanJson[kDhcpV6Relay].stringPiece());
   for (const auto& o: vlanJson[kDhcpV4RelayOverrides].items()) {
-    vlan.dhcpRelayOverridesV4[MacAddress(o.first.asString().toStdString())] =
+    vlan.dhcpRelayOverridesV4[MacAddress(o.first.asString())] =
         folly::IPAddressV4(o.second.stringPiece());
   }
   for (const auto& o: vlanJson[kDhcpV6RelayOverrides].items()) {
-    vlan.dhcpRelayOverridesV6[MacAddress(o.first.asString().toStdString())] =
+    vlan.dhcpRelayOverridesV6[MacAddress(o.first.asString())] =
         folly::IPAddressV6(o.second.stringPiece());
   }
   for (const auto& portInfo: vlanJson[kMemberPorts].items()) {

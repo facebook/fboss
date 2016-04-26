@@ -68,8 +68,8 @@ folly::dynamic PortFields::toFollyDynamic() const {
 
 PortFields PortFields::fromFollyDynamic(const folly::dynamic& portJson) {
   PortFields port(PortID(portJson[kPortId].asInt()),
-      portJson[kPortName].asString().toStdString());
-  port.description = portJson[kPortDescription].asString().toStdString();
+      portJson[kPortName].asString());
+  port.description = portJson[kPortDescription].asString();
   auto itr_state  = cfg::_PortState_NAMES_TO_VALUES.find(
       portJson[kPortState].asString().c_str());
   CHECK(itr_state != cfg::_PortState_NAMES_TO_VALUES.end());
