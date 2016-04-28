@@ -10,7 +10,7 @@
 
 # TODO: Are these thrift structs open-sourced?
 from facebook.network.Address.ttypes import Address, AddressType
-from fboss.py.cli import utils
+from fboss.py.cli.utils import utils
 from fboss.py.cli.commands import commands as cmds
 
 

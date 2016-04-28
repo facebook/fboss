@@ -8,7 +8,7 @@
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
 
-from fboss.py.cli import utils
+from fboss.py.cli.utils import utils
 from fboss.thrift_clients import FbossAgentClient
 
 

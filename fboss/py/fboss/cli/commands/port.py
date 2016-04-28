@@ -12,7 +12,7 @@ import collections
 import time
 import re
 
-from fboss.py.cli import utils
+from fboss.py.cli.utils import utils
 from fboss.py.cli.commands import commands as cmds
 from math import log10
 from neteng.fboss.optic import ttypes as optic_ttypes

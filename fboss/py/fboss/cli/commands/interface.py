@@ -9,7 +9,7 @@
 #
 
 from fboss.py.cli.commands import commands as cmds
-from fboss.py.cli import utils
+from fboss.py.cli.utils import utils
 
 from neteng.fboss.ttypes import FbossBaseError
 

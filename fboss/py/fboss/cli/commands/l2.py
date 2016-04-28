@@ -9,7 +9,7 @@
 #
 
 from fboss.py.cli.commands import commands as cmds
-from fboss.py.cli import utils
+from fboss.py.cli.utils import utils
 
 
 class L2TableCmd(cmds.FbossCmd):
