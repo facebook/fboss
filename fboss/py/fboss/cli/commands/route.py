@@ -8,10 +8,9 @@
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
 
-# TODO: Are these thrift structs open-sourced?
 from facebook.network.Address.ttypes import Address, AddressType
-from fboss.py.cli.utils import utils
-from fboss.py.cli.commands import commands as cmds
+from fboss.cli.utils import utils
+from fboss.cli.commands import commands as cmds
 
 
 class RouteIpCmd(cmds.FbossCmd):

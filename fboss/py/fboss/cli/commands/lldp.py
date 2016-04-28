@@ -11,7 +11,7 @@
 import binascii
 import string
 
-from fboss.py.cli.commands import commands as cmds
+from fboss.cli.commands import commands as cmds
 
 
 class LldpCmd(cmds.FbossCmd):

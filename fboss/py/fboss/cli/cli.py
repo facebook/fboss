@@ -7,20 +7,26 @@
 #  LICENSE file in the root directory of this source tree. An additional grant
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
+import sys
+# Main Fboss py dir
+sys.path.insert(1, '../../')
+
+# Common dirs
+sys.path.insert(2, '../../../agent/if/gen-py')
 
 import click
 
-from fboss.py.cli.commands import arp
-from fboss.py.cli.commands import config
-from fboss.py.cli.commands import commands as cmds
-from fboss.py.cli.commands import interface
-from fboss.py.cli.commands import info
-from fboss.py.cli.commands import ip
-from fboss.py.cli.commands import l2
-from fboss.py.cli.commands import lldp
-from fboss.py.cli.commands import ndp
-from fboss.py.cli.commands import port
-from fboss.py.cli.commands import route
+from fboss.cli.commands import arp
+from fboss.cli.commands import config
+from fboss.cli.commands import commands as cmds
+from fboss.cli.commands import interface
+from fboss.cli.commands import info
+from fboss.cli.commands import ip
+from fboss.cli.commands import l2
+from fboss.cli.commands import lldp
+from fboss.cli.commands import ndp
+from fboss.cli.commands import port
+from fboss.cli.commands import route
 from thrift.Thrift import TApplicationException
 from thrift.transport.TTransport import TTransportException
 from neteng.fboss.ttypes import FbossBaseError
@@ -279,24 +285,6 @@ class RouteCli(object):
         route.RouteTableCmd(cli_opts).run()
 
 
-class VersionCli(object):
-    ''' Check Version sub-commands '''
-
-    def __init__(self):
-        self.version.add_command(self._ctrl, name='ctrl')
-
-    @click.group()
-    def version():
-        ''' Show version information '''
-        pass
-
-    @click.command()
-    @click.pass_obj
-    def _ctrl(cli_opts):
-        ''' Show the agent version information '''
-        info.VersionCmd(cli_opts).run('ctrl')
-
-
 # -- Main Command Group -- #
 @click.group()
 @click.option('--hostname', '-H', default='::1',
@@ -326,7 +314,6 @@ def add_modules(main_func):
     main_func.add_command(ProductInfoCli().product)
     main_func.add_command(ReloadConfigCli().reloadconfig)
     main_func.add_command(RouteCli().route)
-    main_func.add_command(VersionCli().version)
 
 if __name__ == '__main__':
 

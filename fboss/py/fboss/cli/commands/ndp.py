@@ -8,7 +8,7 @@
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
 
-from fboss.py.cli.commands import commands as cmds
+from fboss.cli.commands import commands as cmds
 
 class NdpTableCmd(cmds.PrintNeighborTableCmd):
     def run(self):

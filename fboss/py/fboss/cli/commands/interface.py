@@ -8,8 +8,8 @@
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
 
-from fboss.py.cli.commands import commands as cmds
-from fboss.py.cli.utils import utils
+from fboss.cli.commands import commands as cmds
+from fboss.cli.utils import utils
 
 from neteng.fboss.ttypes import FbossBaseError
 

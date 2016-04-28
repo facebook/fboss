@@ -8,7 +8,7 @@
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
 
-from fboss.py.cli.commands import commands as cmds
+from fboss.cli.commands import commands as cmds
 
 
 class ProductInfoCmd(cmds.FbossCmd):
@@ -48,25 +48,3 @@ class ProductInfoCmd(cmds.FbossCmd):
         print("ODM PCBA Part Number: %s" % (productInfo.odmPcbaPartNumber))
         print("ODM PCBA Serial Number: %s" % (productInfo.odmPcbaSerial))
         print("Version: %s" % (productInfo.version))
-
-
-class VersionCmd(cmds.FbossCmd):
-    def run(self, config_type):
-        if config_type == 'ctrl':
-            self._client = self._create_ctrl_client()
-        resp = self._client.getExportedValues()
-
-        if not resp:
-            print("No Build Info Found")
-            return
-
-        print("Package Name: %s" % resp['build_package_name'])
-        print("Package Info: %s" % resp['build_package_info'])
-        print("Package Version: %s" % resp['build_package_version'])
-        print("Build Details:\n")
-        print("\tHost: %s" % resp['build_host'])
-        print("\tTime: %s" % resp['build_time'])
-        print("\tUser: %s" % resp['build_user'])
-        print("\tPath: %s" % resp['build_path'])
-        print("\tPlatform: %s" % resp['build_platform'])
-        print("\tRevision: %s" % resp['build_revision'])

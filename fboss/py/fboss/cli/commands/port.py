@@ -10,10 +10,9 @@
 
 import collections
 import time
-import re
 
-from fboss.py.cli.utils import utils
-from fboss.py.cli.commands import commands as cmds
+from fboss.cli.utils import utils
+from fboss.cli.commands import commands as cmds
 from math import log10
 from neteng.fboss.optic import ttypes as optic_ttypes
 from neteng.fboss.ttypes import FbossBaseError
@@ -23,34 +22,26 @@ class PortDetailsCmd(cmds.FbossCmd):
     def run(self, ports):
         try:
             self._client = self._create_ctrl_client()
-            if ports:
-                self._port_details(ports)
-            else:
-                self._all_port_details()
+            # No ports specified, get all ports
+            if not ports:
+                resp = self._client.getAllPortInfo()
+
         except FbossBaseError as e:
             raise SystemExit('Fboss Error: ' + e)
+
         except Exception as e:
             raise Exception('Error: ' + e)
 
-    def _port_details(self, ports):
-        ''' Print details only for ports given
-
-            :var ports list: of ports to print details for '''
-
-        for port in ports:
-            print('\nDetails for {}'.format(port))
-            self._print_port_details(port)
-
-    def _all_port_details(self):
-        ''' Print all details for every port on the switch '''
-
-        resp = self._client.getAllPortInfo()
-        if not resp:
+        if ports:
+            for port in ports:
+                self._print_port_details(port)
+        elif resp:
+            all_ports = sorted(resp.values(), key=utils.port_sort_fn)
+            all_ports = [port for port in all_ports if port.operState == 1]
+            for port in all_ports:
+                self._print_port_details(port.portId, port)
+        else:
             print("No Ports Found")
-            return
-        for entry in sorted(resp.values(), key=utils.port_sort_fn):
-            if entry.operState == 1:
-                self._print_port_details(entry.portId, entry)
 
     def _convert_bps(self, bps):
         ''' convert bps to human readable form
@@ -74,86 +65,6 @@ class PortDetailsCmd(cmds.FbossCmd):
                 'Unable to convert bps to human readable format')
 
         return bps_per_unit, suffix
-
-    def _get_port_counters(self, counters, port_id):
-        ''' get 1min, 5min and 1hr port counters
-
-            :var counters list: of counter names to get from switch
-            :var port_id int: port id
-            :return port_counters
-        '''
-
-        full_counter_list = []
-        for name in counters:
-            for suffix in ('60', '600', '3600'):
-                full_counter_list.append('port{}.{}.{}'.format(
-                                            port_id, name, suffix))
-
-        return self._client.getSelectedCounters(full_counter_list)
-
-    def _bps(self, interval, bytes_per_minute):
-        value, suffix = self._convert_bps((bytes_per_minute * 8) / interval)
-        return None, '{:.02f}{}'.format(value, suffix)
-
-    def _error_ctr(self, interval, value):
-        color = utils.COLOR_RED if value > 0 else utils.COLOR_GREEN
-        return color, value
-
-    def _fmt_args(self, values, name, transform):
-        ''' format argments for printing
-
-            :var values zip obj: { interval, value_at_interval }
-            :var name string: Counter Name
-            :var transform func_obj: function to be used as transform
-            :return list: list of the argument values
-        '''
-        fmt_args = [name]
-        for interval, value in values:
-            color, value_str = transform(interval, value)
-            color_start = color_end = ''
-            if color:
-                color_start = color
-                color_end = utils.COLOR_RESET
-            fmt_args.extend([color_start, value_str, color_end])
-
-        return fmt_args
-
-    def _print_port_counters(self, port_id):
-        ''' Display port counters with errors
-
-            :var port_id int: port id
-        '''
-
-        counters = collections.OrderedDict()
-        counters['in_bytes.sum'] = {'name': 'Ingress', 'transform': self._bps}
-        counters['out_bytes.sum'] = {'name': 'Egress', 'transform': self._bps}
-        counters['in_errors.sum'] = {
-                        'name': 'In Errors', 'transform': self._error_ctr}
-        counters['in_discards.sum'] = {
-                        'name': 'In Discards', 'transform': self._error_ctr}
-        counters['out_errors.sum'] = {
-                        'name': 'Out Errors', 'transform': self._error_ctr}
-        counters['out_discards.sum'] = {
-                        'name': 'Out Discards', 'transform': self._error_ctr}
-
-        port_counters = self._get_port_counters(counters.keys(), port_id)
-
-        # extra arguments are for the ASCII color codes
-        fmt = '    {:<20} {}{:>12}{} {}{:>14}{} {}{:>12}{}'
-        print(fmt.format('Time Interval:',
-                         '', '1 minute', '',
-                         '', '10 minutes', '',
-                         '', '1 hour', ''))
-
-        for counter, attrs in counters.items():
-            # get all counter values (1min, 5min and 1hr) for 'counter'
-            # using tuples to avoid muatation of the data
-            intervals = (60, 600, 3600)
-            counter_values = tuple(port_counters['port{}.{}.{}'.format(
-                        port_id, counter, interval)] for interval in intervals)
-            values = zip(intervals, counter_values)
-            data = self._fmt_args(values, attrs['name'], attrs['transform'])
-            print(fmt.format(*data))
 
     def _print_port_details(self, port_id, port_info=None):
         ''' Print out port details
@@ -184,8 +95,6 @@ class PortDetailsCmd(cmds.FbossCmd):
         print()
         print('\n'.join(fmt.format(*l) for l in lines))
         print('Description'.ljust(20, '.') + port_info.description)
-
-        self._print_port_counters(port_id)
 
 
 class PortFlapCmd(cmds.FbossCmd):
@@ -675,14 +584,10 @@ class PortStatusDetailCmd(object):
             if status.transceiverIdx:
                 self._get_channel_detail(port, status)
 
-        # TODO: Until the updated getPortStatus is deployed for all platforms,
-        # we need cleanly handle getting no mappings at all:
         if not self._transceiver:
             self._list_ports_detail_sfpdom()
             return
 
-        # TODO: Until getTransceiverInfo is deployed for all platforms,
-        # automatically revert to using getSfpDom on failure:
         try:
             self._info_resp = self._client.getTransceiverInfo(self._transceiver)
         except TApplicationException:
