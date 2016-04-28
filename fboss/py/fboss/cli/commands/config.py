@@ -10,7 +10,7 @@
 
 import json
 
-from fboss.cli.commands import commands as cmds
+from fboss.py.cli.commands import commands as cmds
 from neteng.fboss.ttypes import FbossBaseError
 
 class GetConfigCmd(cmds.FbossCmd):

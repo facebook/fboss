@@ -8,7 +8,7 @@
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
 
-from fboss.cli.commands import commands as cmds
+from fboss.py.cli.commands import commands as cmds
 
 
 class ProductInfoCmd(cmds.FbossCmd):

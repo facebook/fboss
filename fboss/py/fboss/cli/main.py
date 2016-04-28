@@ -10,17 +10,17 @@
 
 import click
 
-from fboss.cli.commands import arp
-from fboss.cli.commands import config
-from fboss.cli.commands import commands as cmds
-from fboss.cli.commands import interface
-from fboss.cli.commands import info
-from fboss.cli.commands import ip
-from fboss.cli.commands import l2
-from fboss.cli.commands import lldp
-from fboss.cli.commands import ndp
-from fboss.cli.commands import port
-from fboss.cli.commands import route
+from fboss.py.cli.commands import arp
+from fboss.py.cli.commands import config
+from fboss.py.cli.commands import commands as cmds
+from fboss.py.cli.commands import interface
+from fboss.py.cli.commands import info
+from fboss.py.cli.commands import ip
+from fboss.py.cli.commands import l2
+from fboss.py.cli.commands import lldp
+from fboss.py.cli.commands import ndp
+from fboss.py.cli.commands import port
+from fboss.py.cli.commands import route
 from thrift.Thrift import TApplicationException
 from thrift.transport.TTransport import TTransportException
 from neteng.fboss.ttypes import FbossBaseError
