@@ -42,7 +42,7 @@ test@host:# thrift -r -I ~/fboss -v --gen py ctrl.thrift
 test@host:# cd /<dir_to_fboss>/fboss/external/fbthrift/thrift/lib/py
 test@host:# python3 setup.py install
 ```
-# Run FBOSS cli and test!
+### Run FBOSS cli and test!
 ```
 test@host:/<dir_to_fboss>/fboss/fboss/py/fboss/cli$ ./cli.py --help
 Usage: cli.py [OPTIONS] COMMAND [ARGS]...
