@@ -53,7 +53,8 @@ BcmPortGroup::BcmPortGroup(BcmSwitch* hw,
       allPorts_(std::move(allPorts)) {
 
   if (allPorts_.size() != 4) {
-    throw FbossError("Port groups must have exactly four members");
+    throw FbossError("Port groups must have exactly four members. Found ",
+                     allPorts_.size());
   }
 
   for (int i = 0; i < allPorts_.size(); ++i) {
