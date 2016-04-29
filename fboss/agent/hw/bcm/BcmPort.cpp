@@ -224,6 +224,7 @@ void BcmPort::enable(const std::shared_ptr<Port>& swPort) {
 void BcmPort::program(const shared_ptr<Port>& port) {
   setIngressVlan(port);
   setSpeed(port);
+  setFEC(port);
 }
 
 void BcmPort::setIngressVlan(const shared_ptr<Port>& swPort) {

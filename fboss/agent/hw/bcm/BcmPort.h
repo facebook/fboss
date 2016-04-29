@@ -148,6 +148,7 @@ class BcmPort {
   opennsl_pbmp_t getPbmp();
 
   void setKR4Ability();
+  void setFEC(const std::shared_ptr<Port>& swPort);
 
   BcmSwitch* const hw_{nullptr};
   const opennsl_port_t port_;    // Broadcom physical port number
