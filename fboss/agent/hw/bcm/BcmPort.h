@@ -18,13 +18,13 @@ extern "C" {
 #include "common/stats/MonotonicCounter.h"
 #include "common/stats/ExportedHistogram.h"
 #include "fboss/agent/types.h"
+#include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/gen-cpp/switch_config_types.h"
 
 #include <mutex>
 
 namespace facebook { namespace fboss {
 
-class BcmPlatformPort;
 class BcmSwitch;
 class BcmPortGroup;
 class SwitchState;
@@ -81,7 +81,8 @@ class BcmPort {
     const std::shared_ptr<SwitchState>& state) const;
 
   PortID getPortID() const;
-  cfg::PortSpeed maxLaneSpeed() const;
+  LaneSpeeds supportedLaneSpeeds() const;
+
   bool supportsSpeed(cfg::PortSpeed speed);
 
   /*

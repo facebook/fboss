@@ -17,6 +17,10 @@ class Wedge40Port : public WedgePort {
  public:
   explicit Wedge40Port(PortID id) : WedgePort(id) {}
 
+  LaneSpeeds supportedLaneSpeeds() const override {
+    return {cfg::PortSpeed::GIGE, cfg::PortSpeed::XG};
+  }
+
   void remedy() override;
   void prepareForGracefulExit() override;
   void linkStatusChanged(bool up, bool adminUp) override;

@@ -23,22 +23,31 @@ namespace {
 using facebook::fboss::BcmPortGroup;
 using facebook::fboss::cfg::PortSpeed;
 using facebook::fboss::FbossError;
+using facebook::fboss::LaneSpeeds;
 BcmPortGroup::LaneMode neededLaneModeForSpeed(
-    PortSpeed speed, PortSpeed maxLaneSpeed) {
+    PortSpeed speed, LaneSpeeds laneSpeeds) {
   if (speed == PortSpeed::DEFAULT) {
-    throw FbossError("Speed cannot be DEFAULT");
+    throw FbossError("Speed cannot be DEFAULT if flexports are enabled");
   }
-  auto neededLanes =
-    static_cast<uint32_t>(speed) / static_cast<uint32_t>(maxLaneSpeed);
-  if (neededLanes <= 1) {
-    return BcmPortGroup::LaneMode::QUAD;
-  } else if (neededLanes == 2) {
-    return BcmPortGroup::LaneMode::DUAL;
-  } else if (neededLanes > 2 && neededLanes <= 4) {
-    return BcmPortGroup::LaneMode::SINGLE;
-  } else {
-    throw FbossError("Cannot support speed ", speed);
+
+  for (auto& laneSpeed : laneSpeeds) {
+    auto dv = std::div(static_cast<int>(speed), static_cast<int>(laneSpeed));
+    if (dv.rem) {
+      // skip if this requires an unsupported lane speed
+      continue;
+    }
+
+    auto neededLanes = dv.quot;
+    if (neededLanes == 1) {
+      return BcmPortGroup::LaneMode::QUAD;
+    } else if (neededLanes == 2) {
+      return BcmPortGroup::LaneMode::DUAL;
+    } else if (neededLanes > 2 && neededLanes <= 4) {
+      return BcmPortGroup::LaneMode::SINGLE;
+    }
   }
+
+  throw FbossError("Cannot support speed ", speed);
 }
 
 }
@@ -85,12 +94,12 @@ BcmPortGroup::BcmPortGroup(BcmSwitch* hw,
 BcmPortGroup::~BcmPortGroup() {}
 
 BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
-    const std::vector<Port*>& ports, cfg::PortSpeed maxLaneSpeed) {
+    const std::vector<Port*>& ports, LaneSpeeds laneSpeeds) {
   auto desiredMode = LaneMode::QUAD;
   for (int lane = 0; lane < ports.size(); ++lane) {
     auto port = ports[lane];
     if (!port->isDisabled()) {
-      auto neededMode = neededLaneModeForSpeed(port->getSpeed(), maxLaneSpeed);
+      auto neededMode = neededLaneModeForSpeed(port->getSpeed(), laneSpeeds);
       if (neededMode < desiredMode) {
         desiredMode = neededMode;
       }
@@ -126,7 +135,8 @@ BcmPortGroup::LaneMode BcmPortGroup::getDesiredLaneMode(
     }
     ports.push_back(swPort);
   }
-  return calculateDesiredLaneMode(ports, controllingPort_->maxLaneSpeed());
+  return calculateDesiredLaneMode(
+    ports, controllingPort_->supportedLaneSpeeds());
 }
 
 uint8_t BcmPortGroup::getLane(const BcmPort* bcmPort) const {

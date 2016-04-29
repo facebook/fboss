@@ -642,12 +642,10 @@ void BcmSwitch::stateChangedImpl(const StateDelta& delta) {
     reconfigurePortGroups(delta);
   }
 
-  // Update speed and ingressVlan of ports if needed.
-  processChangedPorts(delta);
-
-  // As the last step, enable newly enabled ports.
-  // Doing this as the last step ensures that we only start forwarding traffic
-  // once the ports are correctly configured.
+  // As the last step, enable newly enabled ports.  Doing this as the
+  // last step ensures that we only start forwarding traffic once the
+  // ports are correctly configured. Note that this will also set the
+  // ingressVlan and speed correctly before enabling.
   processEnabledPorts(delta);
 }
 

@@ -9,12 +9,16 @@
  */
 #pragma once
 
+#include <boost/container/flat_set.hpp>
+
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/gen-cpp/switch_config_types.h"
 
 namespace facebook { namespace fboss {
 
 class BcmPort;
+
+typedef boost::container::flat_set<cfg::PortSpeed> LaneSpeeds;
 
 class BcmPlatformPort : public PlatformPort {
  public:
@@ -30,10 +34,10 @@ class BcmPlatformPort : public PlatformPort {
   virtual BcmPort* getBcmPort() const = 0;
 
   /*
-   * maxLaneSpeed() returns the maximum speed per lane on
+   * supportedLaneSpeeds() returns the all lane speeds supported on
    * this platform.
    */
-  virtual cfg::PortSpeed maxLaneSpeed() const = 0;
+  virtual LaneSpeeds supportedLaneSpeeds() const = 0;
 
  private:
   // Forbidden copy constructor and assignment operator

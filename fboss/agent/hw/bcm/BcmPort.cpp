@@ -260,7 +260,7 @@ opennsl_port_if_t BcmPort::getDesiredInterfaceMode(cfg::PortSpeed speed,
     // its name. A better way is to include this information in the config:
     // t9112164.
     if (name.find(sixPackLCFabricPortPrefix) == 0) {
-      return OPENNSL_PORT_IF_CR4;
+      return OPENNSL_PORT_IF_KR4;
     } else {
       return OPENNSL_PORT_IF_SR4;
     }
@@ -321,11 +321,13 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
   // the port to flap, even if this should be a noop, so check current
   // speed before making speed related changes. Doing so fixes
   // the interface flaps we were seeing during warm boots
+
+  int curSpeed{0};
+  ret = opennsl_port_speed_get(unit_, port_, &curSpeed);
+  bcmCheckError(
+    ret, "Failed to get current speed for port ", swPort->getID());
+
   if (!updateSpeed && desiredMode != OPENNSL_PORT_IF_KR4) {
-    int curSpeed;
-    ret = opennsl_port_speed_get(unit_, port_, &curSpeed);
-    bcmCheckError(
-        ret, "Failed to get current speed for port ", swPort->getID());
     updateSpeed |= (curSpeed != desiredSpeed);
   }
 
@@ -337,9 +339,9 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
     } else {
       ret = opennsl_port_speed_set(unit_, port_, desiredSpeed);
       bcmCheckError(ret,
-                    "failed to set speed, ",
-                    desiredSpeed,
-                    ", to port ",
+                    "failed to set speed to ",
+                    desiredSpeed, " from ", curSpeed,
+                    ", on port ",
                     swPort->getID());
     }
   }
@@ -349,8 +351,8 @@ PortID BcmPort::getPortID() const {
   return platformPort_->getPortID();
 }
 
-cfg::PortSpeed BcmPort::maxLaneSpeed() const {
-  return platformPort_->maxLaneSpeed();
+LaneSpeeds BcmPort::supportedLaneSpeeds() const {
+  return platformPort_->supportedLaneSpeeds();
 }
 
 std::shared_ptr<Port> BcmPort::getSwitchStatePort(

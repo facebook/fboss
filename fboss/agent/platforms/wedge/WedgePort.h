@@ -26,10 +26,6 @@ class WedgePort : public BcmPlatformPort {
     return bcmPort_;
   }
 
-  cfg::PortSpeed maxLaneSpeed() const override {
-    return cfg::PortSpeed::XG;
-  }
-
   void preDisable(bool temporary) override;
   void postDisable(bool temporary) override;
   void preEnable() override;

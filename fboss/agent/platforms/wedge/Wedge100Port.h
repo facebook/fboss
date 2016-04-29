@@ -38,8 +38,12 @@ class Wedge100Port : public WedgePort {
         frontPanelPort_(frontPanelPort),
         channel_(channel) {}
 
-  cfg::PortSpeed maxLaneSpeed() const override {
-    return cfg::PortSpeed::TWENTYFIVEG;
+  LaneSpeeds supportedLaneSpeeds() const override {
+    return {
+      cfg::PortSpeed::GIGE,
+      cfg::PortSpeed::XG,
+      cfg::PortSpeed::TWENTYFIVEG
+    };
   }
 
   void remedy() override;
