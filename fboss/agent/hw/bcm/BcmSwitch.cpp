@@ -396,8 +396,8 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
     if (speed == maxSpeed) {
       speed = cfg::PortSpeed::DEFAULT;
     } else if (speed > maxSpeed) {
-      LOG(FATAL) << "Invalid port speed:" << (int) speed << " for port:" << port
-                 << " max:" << (int) maxSpeed;
+      LOG(FATAL) << "Invalid port speed:" << (int) speed << " for port:"
+        << port->getID()<< " max:" << (int) maxSpeed;
     }
     port->setSpeed(speed);
     port->setMaxSpeed(maxSpeed);
