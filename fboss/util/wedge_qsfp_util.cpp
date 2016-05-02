@@ -30,6 +30,8 @@ DEFINE_bool(clear_low_power, false,
             "Allow the QSFP to use higher power; needed for LR4 optics");
 DEFINE_bool(tx_disable, false, "Set the TX disable bits");
 DEFINE_bool(tx_enable, false, "Clear the TX disable bits");
+DEFINE_bool(set_40g, false, "Rate select 40G");
+DEFINE_bool(set_100g, false, "Rate select 100G");
 
 bool overrideLowPower(TransceiverI2CApi* bus, unsigned int port) {
   // 0x01 overrides low power mode
@@ -37,6 +39,21 @@ bool overrideLowPower(TransceiverI2CApi* bus, unsigned int port) {
   uint8_t buf[1] = {5};
   try {
     bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 93, 1, buf);
+  } catch (const UsbError& ex) {
+    // This generally means the QSFP module is not present.
+    fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
+    return false;
+  }
+  return true;
+}
+
+bool rateSelect(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
+  // 0b11 - 25G channels
+  // 0b10 - 10G channels
+  uint8_t buf[1] = {value};
+  try {
+    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 87, 1, buf);
+    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 88, 1, buf);
   } catch (const UsbError& ex) {
     // This generally means the QSFP module is not present.
     fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
@@ -150,7 +167,9 @@ void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
          "Ethernet Compliance:  0x%02x\n",
          buf[93], buf[129], buf[131]);
   printf("  TX disable bits: 0x%02x\n", buf[86]);
+  printf("  RX rate select bits: 0x%02x\n", buf[87]);
   printf("  TX rate select bits: 0x%02x\n", buf[88]);
+  printf("  CDR bits: 0x%02x\n", buf[98]);
 
   auto vendor = sfpString(buf, 148, 16);
   auto vendorPN = sfpString(buf, 168, 16);
@@ -166,7 +185,7 @@ void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
          buf[135], buf[136], buf[137], buf[138]);
   printf("  Encoding: 0x%02x\n", buf[139]);
   printf("  Nominal Bit Rate: %d MBps\n", buf[140] * 100);
-  printf("  Ext rate select compliance: 0x%#02x\n", buf[141]);
+  printf("  Ext rate select compliance: 0x%02x\n", buf[141]);
   printf("  Length (SMF): %d km\n", buf[142]);
   printf("  Length (OM3): %d m\n", buf[143] * 2);
   printf("  Length (OM2): %d m\n", buf[144]);
@@ -223,6 +242,11 @@ int main(int argc, char* argv[]) {
   google::SetCommandLineOptionWithMode("minloglevel", "0",
                                        google::SET_FLAGS_DEFAULT);
 
+  if (FLAGS_set_100g && FLAGS_set_40g) {
+    fprintf(stderr, "Cannot set both 40g and 100g\n");
+    return EX_USAGE;
+  }
+
   std::vector<unsigned int> ports;
   bool good = true;
   for (int n = 1; n < argc; ++n) {
@@ -269,7 +293,7 @@ int main(int argc, char* argv[]) {
   }
 
   bool printInfo = !(FLAGS_clear_low_power || FLAGS_tx_disable ||
-                     FLAGS_tx_enable);
+                     FLAGS_tx_enable || FLAGS_set_100g || FLAGS_set_40g);
   int retcode = EX_OK;
   for (unsigned int portNum : ports) {
     if (FLAGS_clear_low_power) {
@@ -289,6 +313,21 @@ int main(int argc, char* argv[]) {
     if (FLAGS_tx_enable) {
       if (setTxDisable(bus.get(), portNum, 0x00)) {
         printf("QSFP %d: enabled TX on all channels\n", portNum);
+      } else {
+        retcode = EX_SOFTWARE;
+      }
+    }
+
+    if (FLAGS_set_40g) {
+      if (rateSelect(bus.get(), portNum, 0xaa)) {
+        printf("QSFP %d: set to optimize for 10G channels\n", portNum);
+      } else {
+        retcode = EX_SOFTWARE;
+      }
+    }
+    if (FLAGS_set_100g) {
+      if (rateSelect(bus.get(), portNum, 0xff)) {
+        printf("QSFP %d: set to optimize for 25G channels\n", portNum);
       } else {
         retcode = EX_SOFTWARE;
       }
