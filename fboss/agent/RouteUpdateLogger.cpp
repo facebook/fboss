@@ -55,9 +55,7 @@ void handleAddedRoute(
 
 RouteUpdateLogger::RouteUpdateLogger(SwSwitch* sw)
     : RouteUpdateLogger(
-          sw,
-          folly::make_unique<GlogRouteLogger<folly::IPAddressV4>>(),
-          folly::make_unique<GlogRouteLogger<folly::IPAddressV6>>()) {}
+          sw, getDefaultV4RouteLogger(), getDefaultV6RouteLogger()) {}
 
 RouteUpdateLogger::RouteUpdateLogger(
     SwSwitch* sw,

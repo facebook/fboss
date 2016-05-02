@@ -105,6 +105,10 @@ class RouteUpdateLogger : public AutoRegisterStateObserver {
   }
 
  private:
+  static std::unique_ptr<RouteLogger<folly::IPAddressV4>>
+    getDefaultV4RouteLogger();
+  static std::unique_ptr<RouteLogger<folly::IPAddressV6>>
+    getDefaultV6RouteLogger();
   RouteUpdateLoggingPrefixTracker prefixTracker_;
   std::unique_ptr<RouteLogger<folly::IPAddressV4>> routeLoggerV4_;
   std::unique_ptr<RouteLogger<folly::IPAddressV6>> routeLoggerV6_;
