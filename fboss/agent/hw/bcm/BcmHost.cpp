@@ -8,6 +8,8 @@
  *
  */
 #include "BcmHost.h"
+#include <string>
+#include <iostream>
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/state/Interface.h"
@@ -26,6 +28,15 @@ constexpr auto kNextHops = "nexthops";
 constexpr auto kEgress = "egress";
 constexpr auto kEgressId = "egressId";
 constexpr auto kHosts = "hosts";
+
+std::string hostStr(const opennsl_l3_host_t& host) {
+  std::ostringstream os;
+  os << "is v6: " << (host.l3a_flags & OPENNSL_L3_IP6 ? "yes" : "no")
+    << " is multipath: "
+    << (host.l3a_flags & OPENNSL_L3_MULTIPATH ? "yes": "no")
+    << " vrf: " << host.l3a_vrf << " intf: " << host.l3a_intf;
+  return os.str();
+}
 }
 
 namespace facebook { namespace fboss {
@@ -85,7 +96,9 @@ void BcmHost::addBcmHost(bool isMultipath, bool replace) {
         existingHost.l3a_intf == newHost.l3a_intf;
     };
     if (!equivalent(host, vrfIp2HostCitr->second)) {
-      LOG (FATAL) << "Host entries should never change ";
+      LOG (FATAL) << "Host entries should never change, addr: " << addr_
+        <<" existing: " << hostStr(vrfIp2HostCitr->second)
+        <<" new: " << hostStr(host);
     } else {
       VLOG(1) << "Host entry for : " << addr_ << " already exists";
     }

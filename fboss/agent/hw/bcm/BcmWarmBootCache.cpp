@@ -188,6 +188,18 @@ shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
   return vlans;
 }
 
+std::shared_ptr<RouteTableMap>
+BcmWarmBootCache::reconstructRouteTables() const {
+  // This reconstruction is done from dumped state
+  // rather than the HW tables as the host routes
+  // are programmed into host tables on some platforms.
+  // In the SwState (dumpedSwitchState_) these rightly
+  // show up as routes, but in the HW host table there
+  // is no way to distinguish a host entry from a host
+  // route. Since we want to get all routes here (host
+  // and LPM) we just get it from the dumped switch state.
+  return dumpedSwSwitchState_->getRouteTables();
+}
 
 const BcmWarmBootCache::EgressIds&
 BcmWarmBootCache::getPathsForEcmp(EgressId ecmp) const {

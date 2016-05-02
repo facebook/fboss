@@ -365,8 +365,11 @@ void SwSwitch::init(SwitchFlags flags) {
 
   if (flags & SwitchFlags::ENABLE_NHOPS_PROBER) {
       unresolvedNhopsProber_ = folly::make_unique<UnresolvedNhopsProber>(this);
+      // Feed initial state.
+      unresolvedNhopsProber_->stateUpdated(
+          StateDelta(std::make_shared<SwitchState>(), getState()));
   }
-setSwitchRunState(SwitchRunState::INITIALIZED);
+  setSwitchRunState(SwitchRunState::INITIALIZED);
 }
 
 void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {

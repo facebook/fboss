@@ -404,6 +404,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
   }
   warmBootState->resetIntfs(warmBootCache_->reconstructInterfaceMap());
   warmBootState->resetVlans(warmBootCache_->reconstructVlanMap());
+  warmBootState->resetRouteTables(warmBootCache_->reconstructRouteTables());
   return warmBootState;
 }
 

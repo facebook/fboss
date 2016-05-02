@@ -30,6 +30,7 @@ extern "C" {
 namespace facebook { namespace fboss {
 class BcmSwitch;
 class InterfaceMap;
+class RouteTableMap;
 class Vlan;
 class VlanMap;
 class SwitchState;
@@ -78,6 +79,10 @@ class BcmWarmBootCache {
    * Reconstruct vlan map from contents of warm boot cache
    */
   std::shared_ptr<VlanMap> reconstructVlanMap() const;
+  /*
+   * Reconstruct route table map
+   */
+  std::shared_ptr<RouteTableMap> reconstructRouteTables() const;
   /*
    * Get all cached ecmp egress Ids
    */
