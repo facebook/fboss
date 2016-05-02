@@ -26,7 +26,7 @@ class TransceiverI2CApi {
   virtual void moduleRead(unsigned int module, uint8_t i2cAddress,
                           int offset, int len, uint8_t* buf) = 0;
   virtual void moduleWrite(unsigned int module, uint8_t i2cAddress,
-                           int offset, int len, uint8_t* buf) = 0;
+                           int offset, int len, const uint8_t* buf) = 0;
 
   // Addresses to be queried by external callers:
   enum : uint8_t {

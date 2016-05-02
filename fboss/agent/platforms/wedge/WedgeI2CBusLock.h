@@ -28,10 +28,11 @@ class WedgeI2CBusLock {
   void moduleRead(unsigned int module, uint8_t i2cAddress,
                   int offset, int len, uint8_t* buf);
   void moduleWrite(unsigned int module, uint8_t i2cAddress,
-                  int offset, int len, uint8_t* buf);
+                  int offset, int len, const uint8_t* buf);
+  void read(uint8_t i2cAddress, int offset, int len, uint8_t* buf);
+  void write(uint8_t i2cAddress, int offset, int len, const uint8_t* buf);
 
  private:
-
   // Forbidden copy constructor and assignment operator
   WedgeI2CBusLock(WedgeI2CBusLock const &) = delete;
   WedgeI2CBusLock& operator=(WedgeI2CBusLock const &) = delete;
@@ -42,6 +43,38 @@ class WedgeI2CBusLock {
   std::unique_ptr<BaseWedgeI2CBus> wedgeI2CBus_{nullptr};
   mutable std::mutex busMutex_;
   bool opened_{false};
+
+  class BusGuard {
+    /* This class is a simple guard that:
+       1. locks access to the device
+       2. opens/closes the device if it is not already open
+
+       This makes sure that only one person is accessing the device,
+       but allows us to only open the device once in the case of batch
+       read/writes.
+    */
+   public:
+    explicit BusGuard(WedgeI2CBusLock* busLock) :
+        busLock_(busLock),
+        lock_(busLock->busMutex_)
+      {
+        if (!busLock_->opened_) {
+          busLock_->openLocked();
+          performedOpen_ = true;
+        }
+      }
+
+    ~BusGuard() {
+      if (performedOpen_) {
+        busLock_->closeLocked();
+      }
+    }
+
+   private:
+    WedgeI2CBusLock* busLock_{nullptr};
+    bool performedOpen_{false};
+    std::lock_guard<std::mutex> lock_;
+  };
 };
 
 }} // facebook::fboss

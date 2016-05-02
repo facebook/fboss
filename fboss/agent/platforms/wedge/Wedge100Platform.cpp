@@ -138,5 +138,14 @@ Wedge100Port* Wedge100Platform::getPortFromFrontPanelNum(TransceiverID fpPort) {
   return static_cast<Wedge100Port*>(getPort(iter->second));
 }
 
+void Wedge100Platform::enableLedMode() {
+  uint8_t mode = TWELVE_BIT_MODE;
+  wedgeI2CBusLock_->write(ADDR_SYSCPLD, LED_MODE_REG, 1, &mode);
+}
+
+void Wedge100Platform::onHwInitialized(SwSwitch* sw) {
+  WedgePlatform::onHwInitialized(sw);
+  enableLedMode();
+}
 
 }} // facebook::fboss

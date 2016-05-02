@@ -34,7 +34,7 @@ class WedgePlatform : public BcmPlatform {
   void init();
 
   HwSwitch* getHwSwitch() const override;
-  void onHwInitialized(SwSwitch* sw) override;
+  virtual void onHwInitialized(SwSwitch* sw) override;
   std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;
 
   folly::MacAddress getLocalMac() const override;
@@ -61,6 +61,7 @@ class WedgePlatform : public BcmPlatform {
   WedgePlatformMode getMode();
 
   WedgePortMap ports_;
+  std::unique_ptr<WedgeI2CBusLock> wedgeI2CBusLock_;
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -80,7 +81,6 @@ class WedgePlatform : public BcmPlatform {
 
   const std::unique_ptr<WedgeProductInfo> productInfo_;
   uint8_t numQsfpModules_{0};
-  std::unique_ptr<WedgeI2CBusLock> wedgeI2CBusLock_;
 };
 
 }} // namespace facebook::fboss

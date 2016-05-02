@@ -40,48 +40,26 @@ void WedgeI2CBusLock::close() {
 
 void WedgeI2CBusLock::moduleRead(unsigned int module, uint8_t address,
                              int offset, int len, uint8_t *buf) {
-  lock_guard<std::mutex> g(busMutex_);
-
-  // If no one has opened the device, open it, and close it when we
-  // leave.  If it has already been opened (say, when we batch a big
-  // set of reads), then don't bother to open it.
-  bool opened = false;
-
-  SCOPE_EXIT {
-    if (opened) {
-      closeLocked();
-    }
-  };
-
-  if (!opened_) {
-    openLocked();
-    opened = true;
-  }
-
+  BusGuard g(this);
   wedgeI2CBus_->moduleRead(module, address, offset, len, buf);
 }
 
 void WedgeI2CBusLock::moduleWrite(unsigned int module, uint8_t address,
-                              int offset, int len, uint8_t *buf) {
-  lock_guard<std::mutex> g(busMutex_);
-
-  // If no one has opened the device, open it, and close it when we
-  // leave.  If it has already been opened (say, when we batch a big
-  // set of reads), then don't bother to open it.
-  bool opened = false;
-
-  SCOPE_EXIT {
-    if (opened) {
-      closeLocked();
-    }
-  };
-
-  if (!opened_) {
-    openLocked();
-    opened = true;
-  }
-
+                              int offset, int len, const uint8_t *buf) {
+  BusGuard g(this);
   wedgeI2CBus_->moduleWrite(module, address, offset, len, buf);
+}
+
+void WedgeI2CBusLock::read(uint8_t address, int offset,
+                           int len, uint8_t *buf) {
+  BusGuard g(this);
+  wedgeI2CBus_->read(address, offset, len, buf);
+}
+
+void WedgeI2CBusLock::write(uint8_t address, int offset,
+                            int len, const uint8_t *buf) {
+  BusGuard g(this);
+  wedgeI2CBus_->write(address, offset, len, buf);
 }
 
 }} // facebook::fboss
