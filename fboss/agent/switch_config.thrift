@@ -352,11 +352,11 @@ struct SwitchConfig {
   // The MAC address to use for the switch CPU.
   11: optional string cpuMAC
   // Static routes with next hops
-  12: optional list<StaticRouteWithNextHops> staticRoutesWithNhops;
+  12: optional list<StaticRouteWithNextHops> staticRoutesWithNhops = [];
   // Prefixes for which to drop traffic
-  13: optional list<StaticRouteNoNextHops> staticRoutesToNull;
+  13: optional list<StaticRouteNoNextHops> staticRoutesToNull = [];
   // Prefixes for which to send traffic to CPU
-  14: optional list<StaticRouteNoNextHops> staticRoutesToCPU;
+  14: optional list<StaticRouteNoNextHops> staticRoutesToCPU = [];
   // The order of AclEntry does _not_ determine its priority.
   // Highest priority entry comes with smallest ID.
   15: optional list<AclEntry> acls = []
