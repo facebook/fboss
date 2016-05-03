@@ -195,6 +195,7 @@ void SwSwitch::stop() {
   // routed from kernel to the front panel tunnel interface.
   tunMgr_.reset();
 
+  routeUpdateLogger_.reset();
   // stops the background and update threads.
   stopThreads();
 }
