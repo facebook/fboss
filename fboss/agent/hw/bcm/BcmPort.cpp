@@ -261,7 +261,7 @@ opennsl_port_if_t BcmPort::getDesiredInterfaceMode(cfg::PortSpeed speed,
     // its name. A better way is to include this information in the config:
     // t9112164.
     if (name.find(sixPackLCFabricPortPrefix) == 0) {
-      return OPENNSL_PORT_IF_KR4;
+      return OPENNSL_PORT_IF_CR4;
     } else {
       return OPENNSL_PORT_IF_SR4;
     }
