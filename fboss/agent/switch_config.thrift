@@ -360,6 +360,9 @@ struct SwitchConfig {
   // The order of AclEntry does _not_ determine its priority.
   // Highest priority entry comes with smallest ID.
   15: optional list<AclEntry> acls = []
-  16: i32 maxNeighborProbes = 3
+  // Set max number of probes to a sufficiently high value
+  // to allow for the case where we are probing and the
+  // agent on other end is restarting.
+  16: i32 maxNeighborProbes = 30
   17: i32 staleEntryInterval = 10
 }
