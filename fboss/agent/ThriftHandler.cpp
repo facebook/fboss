@@ -629,20 +629,20 @@ void ThriftHandler::invokeNeighborListeners(ThreadLocalListener* listener,
                                              std::vector<std::string> removed) {
   // Collect the iterators to avoid erasing and potentially reordering
   // the iterators in the list.
-  std::vector<const TConnectionContext*> brokenClients;
+  for (const auto& ctx : brokenClients_) {
+    listener->clients.erase(ctx);
+  }
+  brokenClients_.clear();
   for (auto& client : listener->clients) {
     auto clientDone = [&](ClientReceiveState&& state) {
       try {
         NeighborListenerClientAsyncClient::recv_neighborsChanged(state);
       } catch (const std::exception& ex) {
         LOG(ERROR) << "Exception in neighbor listener: " << ex.what();
-        brokenClients.push_back(client.first);
+        brokenClients_.push_back(client.first);
       }
     };
     client.second->neighborsChanged(clientDone, added, removed);
-  }
-  for (const auto& ctx : brokenClients) {
-    listener->clients.erase(ctx);
   }
 }
 

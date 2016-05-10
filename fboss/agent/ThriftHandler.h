@@ -24,6 +24,7 @@
 #include <folly/Synchronized.h>
 #include <folly/String.h>
 #include <thrift/lib/cpp/server/TServer.h>
+#include <thrift/lib/cpp2/async/DuplexChannel.h>
 
 namespace facebook { namespace fboss {
 
@@ -36,6 +37,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
  public:
   template <typename T>
   using ThriftCallback = std::unique_ptr<apache::thrift::HandlerCallback<T>>;
+  using TConnectionContext = apache::thrift::server::TConnectionContext;
 
   typedef network::thrift::cpp2::Address Address;
   typedef network::thrift::cpp2::BinaryAddress BinaryAddress;
@@ -264,6 +266,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   SwSwitch* sw_;
 
   int thriftIdleTimeout_;
+  std::vector<const TConnectionContext*> brokenClients_;
 
   // A thread-safe data structure that helps the thrift handler map connection
   // contexts to high resolution connection information
