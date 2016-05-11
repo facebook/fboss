@@ -145,6 +145,11 @@ void NeighborCacheImpl<NTable>::programPendingEntry(Entry* entry, bool force) {
 
 template <typename NTable>
 NeighborCacheImpl<NTable>::~NeighborCacheImpl() {
+  clearEntries();
+}
+
+template <typename NTable>
+void NeighborCacheImpl<NTable>::clearEntries() {
   /* All the NeighborCacheEntries need to be destroyed on
    * the background thread. Because we do not want to exit
    * the destructor until all of the entries have stopped
@@ -170,6 +175,15 @@ NeighborCacheImpl<NTable>::~NeighborCacheImpl() {
         });
     stopTasks.push_back(std::move(f));
   }
+
+  // Schedule entries_.clear on Background event base
+  // post entry stop. Sine this is added to event base
+  // after Entry::destroy its guranteed to run after
+  // all entries have been stopped
+  auto f = via(sw_->getBackgroundEVB())
+    .then([this]() { entries_.clear(); });
+
+  stopTasks.push_back(std::move(f));
 
   // Ensure that all of the updaters have been stopped before we return
   folly::collectAll(stopTasks).get();

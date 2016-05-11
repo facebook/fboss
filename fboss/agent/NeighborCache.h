@@ -82,6 +82,10 @@ class NeighborCache {
   void setStaleEntryInterval(std::chrono::seconds staleEntryInterval) {
     staleEntryInterval_ = staleEntryInterval;
   }
+
+  void clearEntries() {
+    impl_->clearEntries();
+  }
  protected:
   // protected constructor since this is only meant to be inherited from
   NeighborCache(SwSwitch* sw,
@@ -163,9 +167,12 @@ class NeighborCache {
     return maxNeighborProbes_;
   }
 
+
  private:
   // This should only be called by a NeighborCacheEntry
-  virtual void probeFor(AddressType ip) const = 0;
+  virtual void probeFor(AddressType ip) const {
+    LOG(DFATAL) << " Only derived class probeFor should ever be called";
+  }
 
   void flushEntry(AddressType ip) {
     std::lock_guard<std::mutex> g(cacheLock_);

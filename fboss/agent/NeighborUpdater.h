@@ -118,6 +118,10 @@ class NeighborUpdater : public AutoRegisterStateObserver {
             std::make_shared<ArpCache>(sw, state, vlanID, vlanName, intfID)),
         ndpCache(
             std::make_shared<NdpCache>(sw, state, vlanID, vlanName, intfID)) {}
+    void clearEntries() {
+      arpCache->clearEntries();
+      ndpCache->clearEntries();
+    }
   };
 
   /**

@@ -136,6 +136,8 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
     }
   }
 
+  // Schedule entry destruction/cancelling of timeouts on the
+  // event base thread.
   static void destroy(std::shared_ptr<Entry> entry, folly::EventBase* evb) {
     evb->runInEventBaseThread([entry]() {
         entry->cancelTimeout();

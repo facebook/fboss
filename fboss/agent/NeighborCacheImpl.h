@@ -113,6 +113,7 @@ class NeighborCacheImpl {
   template <typename NeighborEntryThrift>
   std::list<NeighborEntryThrift> getCacheData() const;
 
+  void clearEntries();
  private:
   // These are used to program entries into the SwitchState
   void programEntry(Entry* entry);
