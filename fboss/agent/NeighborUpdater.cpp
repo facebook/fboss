@@ -207,6 +207,25 @@ void NeighborUpdater::stateUpdated(const StateDelta& delta) {
       vlanChanged(oldEntry.get(), newEntry.get());
     }
   }
+
+  const auto& oldState = delta.oldState();
+  const auto& newState = delta.newState();
+  if (oldState->getArpTimeout() != newState->getArpTimeout() ||
+      oldState->getNdpTimeout() != newState->getNdpTimeout() ||
+      oldState->getMaxNeighborProbes() != newState->getMaxNeighborProbes() ||
+      oldState->getStaleEntryInterval() != newState->getStaleEntryInterval()) {
+    std::lock_guard<std::mutex> g(cachesMutex_);
+    for (auto& vlanAndCaches : caches_) {
+      auto& arpCache = vlanAndCaches.second->arpCache;
+      auto& ndpCache = vlanAndCaches.second->ndpCache;
+      arpCache->setTimeout(newState->getArpTimeout());
+      arpCache->setMaxNeighborProbes(newState->getMaxNeighborProbes());
+      arpCache->setStaleEntryInterval(newState->getStaleEntryInterval());
+      ndpCache->setTimeout(newState->getNdpTimeout());
+      ndpCache->setMaxNeighborProbes(newState->getMaxNeighborProbes());
+      ndpCache->setStaleEntryInterval(newState->getStaleEntryInterval());
+    }
+  }
 }
 
 template<typename T>

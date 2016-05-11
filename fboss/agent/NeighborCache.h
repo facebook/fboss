@@ -71,6 +71,17 @@ class NeighborCache {
     return impl_->template getCacheData<NeighborEntryThrift>();
   }
 
+  void setTimeout(std::chrono::seconds timeout) {
+    timeout_ = timeout;
+  }
+
+  void setMaxNeighborProbes(uint32_t maxNeighborProbes) {
+    maxNeighborProbes_ = maxNeighborProbes;
+  }
+
+  void setStaleEntryInterval(std::chrono::seconds staleEntryInterval) {
+    staleEntryInterval_ = staleEntryInterval;
+  }
  protected:
   // protected constructor since this is only meant to be inherited from
   NeighborCache(SwSwitch* sw,
@@ -176,9 +187,9 @@ class NeighborCache {
   NeighborCache& operator=(NeighborCache const &) = delete;
 
   SwSwitch* sw_;
-  const std::chrono::seconds timeout_;
-  const uint32_t maxNeighborProbes_{0};
-  const std::chrono::seconds staleEntryInterval_;
+  std::chrono::seconds timeout_;
+  uint32_t maxNeighborProbes_{0};
+  std::chrono::seconds staleEntryInterval_;
   std::unique_ptr<NeighborCacheImpl<NTable>> impl_;
   std::mutex cacheLock_;
 };
