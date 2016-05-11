@@ -9,8 +9,10 @@
  */
 #pragma once
 
-#include "fboss/agent/if/gen-cpp2/FbossHighresClient.h"
+#include <folly/MoveWrapper.h>
+
 #include "fboss/agent/HighresCounterUtil.h"
+#include "fboss/agent/if/gen-cpp2/FbossHighresClient.h"
 
 namespace facebook { namespace fboss {
 

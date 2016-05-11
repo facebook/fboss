@@ -7,7 +7,9 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/HighresCounterSubscriptionHandler.h"
+#include "HighresCounterSubscriptionHandler.h"
+
+#include <folly/MoveWrapper.h>
 
 using folly::EventBase;
 using folly::make_unique;
