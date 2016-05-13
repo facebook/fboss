@@ -27,12 +27,10 @@ class SimSwitch : public HwSwitch {
       std::unique_ptr<TxPacket> pkt,
       PortID portID) noexcept override;
 
-  folly::dynamic gracefulExit() override {
-    return toFollyDynamic();
-  }
-  folly::dynamic toFollyDynamic() const override {
-    return folly::dynamic::object;
-  }
+  void gracefulExit(folly::dynamic& switchState) override {}
+
+  folly::dynamic toFollyDynamic() const override;
+
   void clearWarmBootCache() override {}
   void injectPacket(std::unique_ptr<RxPacket> pkt);
   void initialConfigApplied() override {}

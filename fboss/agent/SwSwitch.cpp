@@ -241,29 +241,19 @@ SwSwitch::SwitchRunState SwSwitch::getSwitchRunState() const {
 
 void SwSwitch::gracefulExit() {
   if (isFullyInitialized()) {
-    folly::dynamic switchState = folly::dynamic::object;
-    switchState[kSwSwitch] =  getState()->toFollyDynamic();
     ipv6_->floodNeighborAdvertisements();
     arp_->floodGratuituousArp();
     // Stop handlers and threads before uninitializing h/w
     stop();
+    folly::dynamic switchState = folly::dynamic::object;
+    switchState[kSwSwitch] =  getState()->toFollyDynamic();
     // Cleanup if we ever initialized
-    switchState[kHwSwitch] = hw_->gracefulExit();
-    dumpStateToFile(platform_->getWarmBootSwitchStateFile(),
-        switchState);
+    hw_->gracefulExit(switchState);
   }
 }
 
 void SwSwitch::getProductInfo(ProductInfo& productInfo) const {
   platform_->getProductInfo(productInfo);
-}
-
-void SwSwitch::dumpStateToFile(const string& filename,
-    const folly::dynamic& switchState) const {
-  bool success = folly::writeFile(toPrettyJson(switchState), filename.c_str());
-  if (!success) {
-    LOG(ERROR) << "Unable to dump switch state to " << filename;
-  }
 }
 
 bool SwSwitch::isPortUp(PortID port) const {
@@ -299,7 +289,9 @@ void SwSwitch::exitFatal() const noexcept {
   folly::dynamic switchState = folly::dynamic::object;
   switchState[kSwSwitch] =  getState()->toFollyDynamic();
   switchState[kHwSwitch] = hw_->toFollyDynamic();
-  dumpStateToFile(platform_->getCrashSwitchStateFile(), switchState);
+  if (!dumpStateToFile(platform_->getCrashSwitchStateFile(), switchState)) {
+    LOG(ERROR) << "Unable to write switch state JSON to file";
+  }
 }
 
 void SwSwitch::clearWarmBootCache() {

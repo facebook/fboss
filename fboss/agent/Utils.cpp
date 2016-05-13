@@ -18,6 +18,10 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 
+#include <folly/dynamic.h>
+#include <folly/FileUtil.h>
+#include <folly/json.h>
+
 #include <boost/filesystem/operations.hpp>
 
 using folly::IPAddressV4;
@@ -82,4 +86,10 @@ void incNiceValue(const uint32_t increment) {
 
   errno = oldErrno;
 }
+
+bool dumpStateToFile(const std::string& filename,
+    const folly::dynamic& json) {
+  return folly::writeFile(folly::toPrettyJson(json), filename.c_str());
+}
+
 }} // facebook::fboss

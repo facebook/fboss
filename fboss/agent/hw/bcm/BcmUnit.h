@@ -17,6 +17,10 @@ extern "C" {
 #include <opennsl/error.h>
 }
 
+namespace folly {
+struct dynamic;
+}
+
 namespace facebook { namespace fboss {
 
 class BcmWarmBootHelper;
@@ -53,7 +57,8 @@ class BcmUnit {
    * Once detach() has been called no other methods other than the
    * BcmUnit destructor should be invoked.
    */
-  void detach();
+  void detach(const std::string& switchStateFile,
+      folly::dynamic& switchState);
 
   /*
    * Returns the boot type used when the unit was loaded. This will be either

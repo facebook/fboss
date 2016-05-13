@@ -14,7 +14,13 @@
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/Range.h>
+
 #include "fboss/agent/types.h"
+#include <string>
+
+namespace folly {
+struct dynamic;
+}
 
 namespace facebook { namespace fboss {
 
@@ -61,5 +67,10 @@ folly::IPAddressV6 getSwitchVlanIPv6(const std::shared_ptr<SwitchState>& state,
  *                               priviledges to decrease our niceness.
  */
 void incNiceValue(const uint32_t increment);
+
+/*
+ * Serialize folly dynamic to JSON and write to file
+ */
+bool dumpStateToFile(const std::string& filename, const folly::dynamic& json);
 
 }} // facebook::fboss

@@ -159,7 +159,7 @@ class BcmSwitch : public HwSwitch {
    * state changes while we are calling cleanup
    * shutdown apis in the BCM sdk.
    */
-  folly::dynamic gracefulExit() override;
+  void gracefulExit(folly::dynamic& switchState) override;
 
   /*
    * BcmSwitch state as folly::dynamic

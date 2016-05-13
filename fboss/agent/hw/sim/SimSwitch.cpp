@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/mock/MockTxPacket.h"
 
 #include <folly/Conv.h>
+#include <folly/dynamic.h>
 #include <folly/Memory.h>
 
 using folly::make_unique;
@@ -64,6 +65,10 @@ bool SimSwitch::sendPacketOutOfPort(
 }
 void SimSwitch::injectPacket(std::unique_ptr<RxPacket> pkt) {
   callback_->packetReceived(std::move(pkt));
+}
+
+folly::dynamic SimSwitch::toFollyDynamic() const {
+  return folly::dynamic::object;
 }
 
 }} // facebook::fboss

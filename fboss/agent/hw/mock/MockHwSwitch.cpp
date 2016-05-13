@@ -10,6 +10,8 @@
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 
 #include <folly/Memory.h>
+#include <folly/dynamic.h>
+
 #include "fboss/agent/hw/mock/MockTxPacket.h"
 
 using folly::make_unique;
@@ -36,4 +38,9 @@ bool MockHwSwitch::sendPacketOutOfPort(
   sendPacketOutOfPort_(sp);
   return true;
 }
+
+folly::dynamic MockHwSwitch::toFollyDynamic() const {
+  return folly::dynamic::object;
+}
+
 }} // facebook::fboss

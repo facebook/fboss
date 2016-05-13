@@ -330,17 +330,17 @@ void BcmSwitch::ecmpHashSetup() {
   bcmCheckError(rv, "failed to enable RTAG7");
 }
 
-folly::dynamic BcmSwitch::gracefulExit() {
+void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
   // Ideally, preparePortsForGracefulExit() would run in update EVB of the
   // SwSwitch, but it does not really matter at the graceful exit time. If
   // this is a concern, this can be moved to the updateEventBase_ of SwSwitch.
   portTable_->preparePortsForGracefulExit();
 
   std::lock_guard<std::mutex> g(lock_);
-  folly::dynamic hwSwitch = toFollyDynamic();
-  unitObject_->detach();
+  switchState[kHwSwitch] = toFollyDynamic();
+  unitObject_->detach(platform_->getWarmBootSwitchStateFile(),
+      switchState);
   unitObject_.reset();
-  return hwSwitch;
 }
 
 folly::dynamic BcmSwitch::toFollyDynamic() const {

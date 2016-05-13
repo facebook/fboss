@@ -59,14 +59,11 @@ class MockHwSwitch : public HwSwitch {
     return cfg::PortSpeed::GIGE;
   }
 
-  folly::dynamic gracefulExit() override {
+  void gracefulExit(folly::dynamic& switchState) override {
     // TODO
-    return toFollyDynamic();
   }
-  folly::dynamic toFollyDynamic() const override {
-    // TODO
-    return folly::dynamic::object();
-  }
+
+  folly::dynamic toFollyDynamic() const override;
 
   void initialConfigApplied() override {
     // TODO

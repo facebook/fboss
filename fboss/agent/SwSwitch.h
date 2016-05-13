@@ -16,6 +16,7 @@
 #include "fboss/agent/Transceiver.h"
 #include "fboss/agent/TransceiverMap.h"
 #include "fboss/agent/gen-cpp/switch_config_types.h"
+#include "fboss/agent/Utils.h"
 
 #include <folly/SpinLock.h>
 #include <folly/IntrusiveList.h>
@@ -562,17 +563,6 @@ class SwSwitch : public HwSwitch::Callback {
   void clearWarmBootCache();
 
   BootType getBootType() const { return bootType_; }
-
-  /*
-   * Serializes the switch and dumps the result into the given file.
-   */
-  void dumpStateToFile(const std::string& filename,
-      const folly::dynamic& switchState) const;
-  /*
-   * Get combined Sw and Hw switch states
-   * as a folly::dynamic object
-   */
-  folly::dynamic getSwAndHwSwitchState() const;
 
   /*
    * Get port operational state

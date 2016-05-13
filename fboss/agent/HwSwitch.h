@@ -15,10 +15,13 @@
 #include "fboss/agent/gen-cpp/switch_config_types.h"
 
 #include <folly/IPAddress.h>
-#include <folly/dynamic.h>
 
 #include <memory>
 #include <utility>
+
+namespace folly{
+struct dynamic;
+}
 
 namespace facebook { namespace fboss {
 
@@ -180,7 +183,7 @@ class HwSwitch {
    * Allow hardware to perform any warm boot related cleanup
    * before we exit the application.
    */
-  virtual folly::dynamic gracefulExit() = 0;
+  virtual void gracefulExit(folly::dynamic& switchState) = 0;
 
   /*
    * Get Hw Switch state in a folly::dynamic
