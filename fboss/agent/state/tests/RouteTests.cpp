@@ -591,7 +591,7 @@ TEST(Route, Interface) {
   EXPECT_NE(rib6, rib6V2);
   EXPECT_FALSE(rib4V2->empty());
   EXPECT_FALSE(rib6V2->empty());
-  EXPECT_FALSE(table1->empty());
+  EXPECT_FALSE(table2->empty());
   EXPECT_EQ(2, rib4V2->size());
   EXPECT_EQ(3, rib6V2->size());
   // verify the ipv4 route
@@ -615,6 +615,86 @@ TEST(Route, Interface) {
     const auto& fwd = *fwds.begin();
     EXPECT_EQ(InterfaceID(1), fwd.intf);
     EXPECT_EQ(IPAddress("2::1"), fwd.nexthop);
+  }
+}
+
+// Test interface routes when we have more than one address per
+// address family in an interface
+TEST(Route, MultipleAddressInterface) {
+  MockPlatform platform;
+  auto stateV0 = make_shared<SwitchState>();
+  auto tablesV0 = stateV0->getRouteTables();
+
+  cfg::SwitchConfig config;
+  config.vlans.resize(1);
+  config.vlans[0].id = 1;
+
+  config.interfaces.resize(1);
+  config.interfaces[0].intfID = 1;
+  config.interfaces[0].vlanID = 1;
+  config.interfaces[0].routerID = 0;
+  config.interfaces[0].__isset.mac = true;
+  config.interfaces[0].mac = "00:00:00:00:00:11";
+  config.interfaces[0].ipAddresses.resize(4);
+  config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
+  config.interfaces[0].ipAddresses[1] = "1.1.1.2/24";
+  config.interfaces[0].ipAddresses[2] = "1::1/48";
+  config.interfaces[0].ipAddresses[3] = "1::2/48";
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  ASSERT_NE(nullptr, stateV1);
+  stateV1->publish();
+  auto tablesV1 = stateV1->getRouteTables();
+  EXPECT_NE(tablesV0, tablesV1);
+  EXPECT_EQ(1, tablesV1->getGeneration());
+  EXPECT_EQ(1, tablesV1->size());
+
+  auto table1 = tablesV1->getRouteTableIf(RouterID(0));
+  ASSERT_NE(nullptr, table1);
+  auto rib4 = table1->getRibV4();
+  auto rib6 = table1->getRibV6();
+  ASSERT_NE(nullptr, rib4);
+  ASSERT_NE(nullptr, rib6);
+  EXPECT_FALSE(rib4->empty());
+  EXPECT_FALSE(rib6->empty());
+  EXPECT_FALSE(table1->empty());
+  EXPECT_EQ(1, rib4->size());
+  EXPECT_EQ(2, rib6->size());
+  // verify the ipv4 route
+  {
+    auto rt = rib4->exactMatch(RoutePrefixV4{IPAddressV4("1.1.1.0"), 24});
+    ASSERT_NE(nullptr, rt);
+    EXPECT_EQ(0, rt->getGeneration());
+    EXPECT_TRUE(rt->isResolved());
+    EXPECT_TRUE(rt->isConnected());
+    EXPECT_FALSE(rt->isWithNexthops());
+    EXPECT_FALSE(rt->isToCPU());
+    EXPECT_FALSE(rt->isDrop());
+    EXPECT_EQ(RouteForwardAction::NEXTHOPS, rt->getForwardInfo().getAction());
+    const auto& fwds = rt->getForwardInfo().getNexthops();
+    EXPECT_EQ(1, fwds.size());
+    const auto& fwd = *fwds.begin();
+    EXPECT_EQ(InterfaceID(1), fwd.intf);
+    // expect the last configured address to be the next hop
+    EXPECT_EQ(IPAddress("1.1.1.2"), fwd.nexthop);
+  }
+  // verify the ipv6 route
+  {
+    auto rt = rib6->exactMatch(RoutePrefixV6{IPAddressV6("1::0"), 48});
+    ASSERT_NE(nullptr, rt);
+    EXPECT_EQ(0, rt->getGeneration());
+    EXPECT_TRUE(rt->isResolved());
+    EXPECT_TRUE(rt->isConnected());
+    EXPECT_FALSE(rt->isWithNexthops());
+    EXPECT_FALSE(rt->isToCPU());
+    EXPECT_FALSE(rt->isDrop());
+    EXPECT_EQ(RouteForwardAction::NEXTHOPS, rt->getForwardInfo().getAction());
+    const auto& fwds = rt->getForwardInfo().getNexthops();
+    EXPECT_EQ(1, fwds.size());
+    const auto& fwd = *fwds.begin();
+    EXPECT_EQ(InterfaceID(1), fwd.intf);
+    // expect the last configured address to be the next hop
+    EXPECT_EQ(IPAddress("1::2"), fwd.nexthop);
   }
 }
 

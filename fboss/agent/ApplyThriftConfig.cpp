@@ -847,6 +847,12 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
                          config->intfID, " as interface ", other,
                          " in VRF ", config->routerID);
       }
+      // For consistency with interface routes as added by RouteUpdater,
+      // use the last address we see rather than the first. Otherwise,
+      // we see pointless route updates on syncFib()
+      *ret2.first = std::make_pair(
+          IPAddress::createNetwork(addr),
+          std::make_pair(InterfaceID(config->intfID), intfAddr.first));
     }
   }
   return addrs;
