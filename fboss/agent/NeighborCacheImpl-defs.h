@@ -157,36 +157,18 @@ void NeighborCacheImpl<NTable>::clearEntries() {
    * to destroy themselves.
    */
   std::vector<folly::Future<folly::Unit>> stopTasks;
-
   for (auto item : entries_) {
     auto addr = item.first;
     auto entry = item.second;
-
-    std::function<void()> stopEntry = [this, entry]() {
-      Entry::destroy(std::move(entry), sw_->getBackgroundEVB());
-    };
-
-    // Run the stop function in the background thread to
-    // ensure it can be safely run
-    auto f = via(sw_->getBackgroundEVB())
-      .then(stopEntry)
-      .onError([=](const std::exception& e) {
-          LOG(FATAL) << "failed to stop NeighborCacheEntry w/ addr " << addr;
-        });
-    stopTasks.push_back(std::move(f));
+    stopTasks.push_back(
+        Entry::destroy(std::move(entry), sw_->getBackgroundEVB())
+            .onError([=](const std::exception& e) {
+              LOG(FATAL) << "failed to stop NeighborCacheEntry w/ addr "
+                         << addr;
+            }));
   }
-
-  // Schedule entries_.clear on Background event base
-  // post entry stop. Sine this is added to event base
-  // after Entry::destroy its guranteed to run after
-  // all entries have been stopped
-  auto f = via(sw_->getBackgroundEVB())
-    .then([this]() { entries_.clear(); });
-
-  stopTasks.push_back(std::move(f));
-
-  // Ensure that all of the updaters have been stopped before we return
   folly::collectAll(stopTasks).get();
+  entries_.clear();
 }
 
 template <typename NTable>
