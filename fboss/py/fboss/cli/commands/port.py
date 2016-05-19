@@ -80,7 +80,7 @@ class PortDetailsCmd(cmds.FbossCmd):
         oper_status = "UP" if port_info.operState else "DOWN"
 
         speed, suffix = self._convert_bps(port_info.speedMbps * (10 ** 6))
-        vlans = ' '.join(str(vlan) for vlan in port_info.vlans)
+        vlans = ' '.join(str(vlan) for vlan in (port_info.vlans or []))
 
         fmt = '{:.<50}{}'
         lines = [
@@ -94,7 +94,7 @@ class PortDetailsCmd(cmds.FbossCmd):
 
         print()
         print('\n'.join(fmt.format(*l) for l in lines))
-        print('Description'.ljust(20, '.') + port_info.description)
+        print('Description'.ljust(20, '.') + (port_info.description or ""))
 
 
 class PortFlapCmd(cmds.FbossCmd):
