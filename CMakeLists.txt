@@ -21,6 +21,7 @@ include_directories(${CMAKE_BINARY_DIR}/gen)
 include_directories(${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2)
 include_directories(${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2)
 include_directories(${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2)
+include_directories(/usr/include/libnl3)
 
 # System libraries
 find_library(GLOG glog)
@@ -40,6 +41,9 @@ find_library(SSL ssl)
 find_library(CRYPTO crypto)
 find_library(DL dl)
 find_library(EVENT event)
+find_library(CURL curl)
+find_library(NETLINK nl-3)
+find_library(NETLINKROUTE nl-route-3)
 
 # External libraries that are not generally available. Look in external/
 # for these. This is where getdeps.sh will toss them.
@@ -71,7 +75,9 @@ add_library(fboss_agent STATIC
     common/stats/ServiceData.cpp
 
     fboss/agent/ApplyThriftConfig.cpp
+    fboss/agent/ArpCache.cpp
     fboss/agent/ArpHandler.cpp
+    fboss/agent/BmcRestClient.cpp    
     fboss/agent/capture/PcapFile.cpp
     fboss/agent/capture/PcapPkt.cpp
     fboss/agent/capture/PcapQueue.cpp
@@ -132,6 +138,7 @@ add_library(fboss_agent STATIC
     fboss/agent/LldpManager.cpp
     fboss/agent/Main.cpp
     fboss/agent/ndp/IPv6RouteAdvertiser.cpp
+    fboss/agent/NdpCache.cpp
     fboss/agent/NeighborListenerClient.cpp
     fboss/agent/NeighborUpdater.cpp
     fboss/agent/NexthopToRouteCount.cpp
@@ -149,18 +156,27 @@ add_library(fboss_agent STATIC
     fboss/agent/packet/NDPRouterAdvertisement.cpp
     fboss/agent/packet/PktUtil.cpp
     fboss/agent/Platform.cpp
+    fboss/agent/platforms/wedge/oss/Wedge100Platform.cpp
+    fboss/agent/platforms/wedge/oss/Wedge100Port.cpp
+    fboss/agent/platforms/wedge/oss/Wedge40Platform.cpp
+    fboss/agent/platforms/wedge/oss/Wedge40Port.cpp
     fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
     fboss/agent/platforms/wedge/oss/WedgePort.cpp
     fboss/agent/platforms/wedge/oss/WedgeProductInfo.cpp
     fboss/agent/platforms/wedge/wedge_ctrl.cpp
+    fboss/agent/platforms/wedge/Wedge100Platform.cpp
+    fboss/agent/platforms/wedge/Wedge40Platform.cpp 
     fboss/agent/platforms/wedge/WedgeI2CBusLock.cpp
     fboss/agent/platforms/wedge/WedgePlatform.cpp
     fboss/agent/platforms/wedge/WedgePort.cpp
     fboss/agent/platforms/wedge/WedgeProductInfo.cpp
     fboss/agent/platforms/wedge/WedgeQsfp.cpp
+    fboss/agent/PortRemediator.cpp
     fboss/agent/PortStats.cpp
     fboss/agent/QsfpModule.cpp
     fboss/agent/RestClient.cpp
+    fboss/agent/RouteUpdateLogger.cpp
+    fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
     fboss/agent/SffFieldInfo.cpp
     fboss/agent/SfpModule.cpp
     fboss/agent/state/AclEntry.cpp
@@ -197,6 +213,7 @@ add_library(fboss_agent STATIC
     fboss/agent/TunIntf.cpp
     fboss/agent/TunManager.cpp
     fboss/agent/UDPHeader.cpp
+    fboss/agent/UnresolvedNhopsProber.cpp
     fboss/agent/Utils.cpp
 
     fboss/lib/usb/BaseWedgeI2CBus.cpp
@@ -264,6 +281,9 @@ target_link_libraries(fboss_agent
     ${DOUBLECONV}
     ${DL}
     ${EVENT}
+    ${NETLINK}
+    ${NETLINKROUTE}
+    ${CURL}
 )
 
 find_program(THRIFT1 thrift1)

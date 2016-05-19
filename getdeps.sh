@@ -43,7 +43,8 @@ sudo apt-get install -yq autoconf automake libdouble-conversion-dev \
     libssl-dev make zip git autoconf libtool g++ libboost-all-dev \
     libevent-dev flex bison libgoogle-glog-dev scons libkrb5-dev \
     libsnappy-dev libsasl2-dev libnuma-dev libi2c-dev libcurl4-nss-dev \
-    libusb-1.0-0-dev libpcap-dev libdb5.3-dev cmake
+    libusb-1.0-0-dev libpcap-dev libdb5.3-dev cmake \
+    libnl-3-200 libnl-3-dev libnl-route-3-200 libnl-route-3-dev
 
 echo "creating external..."
 mkdir -p external
