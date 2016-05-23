@@ -11,9 +11,4 @@
 
 namespace facebook { namespace fboss {
 
-void WedgePort::linkStatusChanged(bool up, bool adminUp) {
-  // TODO: The LED handling code isn't open source yet, but should be soon
-  // once we get approval for the required OpenNSL APIs.
-}
-
 }} // facebook::fboss
