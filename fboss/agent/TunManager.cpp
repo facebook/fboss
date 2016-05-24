@@ -14,7 +14,7 @@ extern "C" {
 #include <netlink/route/addr.h>
 #include <netlink/route/route.h>
 #include <netlink/route/rule.h>
-#include <net/if.h>
+#include <linux/if.h>
 }
 
 #include "fboss/agent/RxPacket.h"
