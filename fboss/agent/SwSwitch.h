@@ -565,8 +565,16 @@ class SwSwitch : public HwSwitch::Callback {
   BootType getBootType() const { return bootType_; }
 
   /*
-   * Get port operational state
+   * Helper function for enabling route update logging
    */
+  void logRouteUpdates(
+      const std::string& addr,
+      uint8_t mask,
+      const std::string& identifier);
+
+  /*
+  * Get port operational state
+  */
   bool isPortUp(PortID port) const;
 
   /*

@@ -325,8 +325,9 @@ void ThriftHandler::syncFib(
   };
   sw_->updateStateBlocking("sync fib", updateFn);
 
-  sw_->clearWarmBootCache();
-  sw_->fibSynced();
+  if (!sw_->isFibSynced()) {
+    sw_->fibSynced();
+  }
 }
 
 void ThriftHandler::getAllInterfaces(

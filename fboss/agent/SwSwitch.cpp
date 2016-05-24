@@ -399,7 +399,22 @@ void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
   }
 }
 
+void SwSwitch::logRouteUpdates(
+    const std::string& addr,
+    uint8_t mask,
+    const std::string& identifier) {
+  RouteUpdateLoggingInstance r{
+      RoutePrefix<folly::IPAddress>{folly::IPAddress{addr}, mask},
+      identifier,
+      false};
+  routeUpdateLogger_->startLoggingForPrefix(r);
+}
+
 void SwSwitch::fibSynced() {
+  if (getBootType() == BootType::WARM_BOOT) {
+    clearWarmBootCache();
+    routeUpdateLogger_->stopLoggingForIdentifier("fboss-agent-warmboot");
+  }
   setSwitchRunState(SwitchRunState::FIB_SYNCED);
 }
 

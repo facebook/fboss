@@ -146,6 +146,14 @@ class Initializer {
     LOG(INFO) << "local MAC is " << localMac;
 
     sw_->applyConfig("apply initial config");
+    // Enable route update logging for all routes so that when we are told
+    // the first set of routes after a warm boot, we can log any changes
+    // from what was programmed before the warm boot.
+    // e.g. any routes that were removed while the agent was restarting
+    if (sw_->getBootType() == BootType::WARM_BOOT) {
+      sw_->logRouteUpdates("::", 0, "fboss-agent-warmboot");
+      sw_->logRouteUpdates("0.0.0.0", 0, "fboss-agent-warmboot");
+    }
     sw_->initialConfigApplied(startTime);
 
     // Start the UpdateSwitchStatsThread
