@@ -147,7 +147,7 @@ class PortStatusCmd(cmds.FbossCmd):
                 if port not in resp:
                     continue
                 status = resp[port]
-                attrs = self._get_status_strs(status)
+                attrs = utils.get_status_strs(status)
                 if status.enabled:
                     name = port_data.name if port_data.name else port
                     print(field_fmt.format(
@@ -156,51 +156,6 @@ class PortStatusCmd(cmds.FbossCmd):
 
         except KeyError as e:
             print("Invalid port", e)
-
-    @staticmethod
-    def _get_status_strs(status):
-        ''' Get port status attributes '''
-
-        attrs = {}
-        admin_status = "Enabled"
-        link_status = "Up"
-        present = "Present"
-        speed = ""
-        if status.speedMbps:
-            speed = "{}G".format(status.speedMbps // 1000)
-        padding = 0
-
-        color_start = utils.COLOR_GREEN
-        color_end = utils.COLOR_RESET
-        if not status.enabled:
-            admin_status = "Disabled"
-            speed = ""
-        if not status.up:
-            link_status = "Down"
-            if status.enabled and status.present:
-                color_start = utils.COLOR_RED
-            else:
-                color_start = ''
-                color_end = ''
-        if status.present is None:
-            present = "Unknown"
-        elif not status.present:
-            present = ""
-
-        if color_start:
-            padding = 10 - len(link_status)
-        color_align = ' ' * padding
-
-        link_status = color_start + link_status + color_end
-
-        attrs['admin_status'] = admin_status
-        attrs['link_status'] = link_status
-        attrs['color_align'] = color_align
-        attrs['present'] = present
-        attrs['speed'] = speed
-
-        return attrs
-
 
 class PortStatusDetailCmd(object):
     ''' Print detailed/verbose port status '''
@@ -263,7 +218,7 @@ class PortStatusDetailCmd(object):
         status = self._status_resp[port]
         print("Port %d: %s" % (port, dom.name))
 
-        attrs = PortStatusCmd._get_status_strs(status)
+        attrs = utils.get_status_strs(status)
         admin_status = attrs['admin_status']
         link_status = attrs['link_status']
 
@@ -380,7 +335,7 @@ class PortStatusDetailCmd(object):
     def _print_transceiver_ports(self, ch_to_port, info):
         # Print port info if the transceiver doesn't have any
         for port in ch_to_port.values():
-            attrs = PortStatusCmd._get_status_strs(self._status_resp[port])
+            attrs = utils.get_status_strs(self._status_resp[port])
             print("Port: {:>2}  Status: {:<8}  Link: {:<4}  Transceiver: {}"
               .format(port, attrs['admin_status'], attrs['link_status'],
                         attrs['present']))
@@ -540,7 +495,7 @@ class PortStatusDetailCmd(object):
         for channel in info.channels:
             port = ch_to_port.get(channel.channel, None)
             if port:
-                attrs = PortStatusCmd._get_status_strs(self._status_resp[port])
+                attrs = utils.get_status_strs(self._status_resp[port])
                 print("  Channel: {}  Port: {:>2}  Status: {:<8}  Link: {:<4}"
                         .format(channel.channel, port, attrs['admin_status'],
                                 attrs['link_status']))
@@ -572,7 +527,7 @@ class PortStatusDetailCmd(object):
                     self._print_transceiver_details(tid)
                 transceiver_printed.append(tid)
             else:
-                attrs = PortStatusCmd._get_status_strs(self._status_resp[port])
+                attrs = utils.get_status_strs(self._status_resp[port])
                 print("Port: {:>2}  Status: {:<8}  Link: {:<4}  Transceiver: {}"
                       .format(port, attrs['admin_status'], attrs['link_status'],
                                 attrs['present']))
