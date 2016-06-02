@@ -60,7 +60,7 @@ struct SfpDomReadValue {
 
 struct Vendor {
   1: string name,
-  2: string oui,
+  2: binary oui,
   3: string partNumber,
   4: string rev,
   5: string serialNumber,
