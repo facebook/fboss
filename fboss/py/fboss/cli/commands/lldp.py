@@ -18,6 +18,7 @@ class LldpCmd(cmds.FbossCmd):
     def run(self, lldp_port, verbosity):
         self._client = self._create_ctrl_client()
         resp = self._client.getLldpNeighbors()
+        self._AllPortsInfo = self._client.getAllPortInfo()
         if not resp:
             print("No neighbors found")
             return
@@ -117,7 +118,7 @@ class LldpCmd(cmds.FbossCmd):
 
     def _get_fields(self, neighbor):
         fields = {}
-        fields['local_port'] = neighbor.localPort
+        fields['local_port'] = self._AllPortsInfo[neighbor.localPort].name
         fields['local_vlan'] = neighbor.localVlan
         fields['mac'] = neighbor.srcMac
         fields['chassis'] = neighbor.printableChassisId
