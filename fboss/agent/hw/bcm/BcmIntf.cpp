@@ -89,6 +89,7 @@ void BcmStation::program(MacAddress mac, int id) {
       addStation = true;
     } else {
       VLOG(1) << " station entry " << id << " already exists ";
+      id_ = id;
     }
 
   } else {
@@ -103,7 +104,7 @@ void BcmStation::program(MacAddress mac, int id) {
     bcmCheckError(rc, "failed to program station entry ", id,
         " to ", mac.toString());
     id_ = id;
-      VLOG(1) << "updated station entry " << id_ << " to " << mac.toString();
+    VLOG(1) << "updated station entry " << id_ << " to " << mac.toString();
   }
   if (vlanStationItr != warmBootCache->vlan2Station_end()) {
     warmBootCache->programmed(vlanStationItr);

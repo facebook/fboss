@@ -342,7 +342,6 @@ void BcmWarmBootCache::populate() {
         VLOG (1) << " Found l2 station with id : " << l3Intf.l3a_vid;
         vlan2Station_[VlanID(vlanData.vlan_tag)] = l2Station;
       } else {
-        // FIXME Why are we unable to find l2 stations on a warm boot ?.
         VLOG(1) << "Could not get l2 station for vlan : " << vlanData.vlan_tag;
       }
     }
