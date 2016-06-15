@@ -45,20 +45,18 @@ class PrintNeighborTableCmd(FbossCmd):
     def print_table(self, entries, name, width, client=None):
         if client is None:
             client = self._create_ctrl_client()
-        tmpl = "{:" + str(width) + "} {:18} {:>4}  {:18} {!s:12} {}"
+        tmpl = "{:" + str(width) + "} {:18} {:<10}  {:18} {!s:12} {}"
         print(tmpl.format(
             "IP Address", "MAC Address", "Port", "VLAN", "State", "TTL"))
-        port_list = client.getAllPortInfo()
+        ports = client.getAllPortInfo()
 
-        for port_info in sorted(port_list.values(), key=utils.port_sort_fn):
-            port_data = port_info.portId
-            for entry in entries:
-                if port_data == entry.port:
-                    ip = utils.ip_ntop(entry.ip.addr)
-                    vlan_field = '{} ({})'.format(entry.vlanName, entry.vlanID)
-                    if port_info.name:
-                        port_data = port_info.name
-                    ttl = entry.ttl // 1000 if entry.ttl else '?'
-                    state = entry.state if entry.state else 'NA'
-                    print(tmpl.format(ip, entry.mac, entry.port, vlan_field,
-                                      state, '{}s'.format(ttl)))
+        for entry in sorted(entries, key=lambda e: e.ip.addr):
+            port_identifier = entry.port
+            if entry.port in ports and ports[entry.port].name:
+                port_identifier = ports[entry.port].name
+            ip = utils.ip_ntop(entry.ip.addr)
+            vlan_field = '{} ({})'.format(entry.vlanName, entry.vlanID)
+            ttl = '{}s'.format(entry.ttl // 1000) if entry.ttl else '?'
+            state = entry.state if entry.state else 'NA'
+            print(tmpl.format(ip, entry.mac, port_identifier, vlan_field,
+                              state, ttl))
