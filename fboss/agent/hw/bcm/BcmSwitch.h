@@ -12,6 +12,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/gen-cpp/switch_config_types.h"
+#include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 #include <folly/dynamic.h>
 
 #include <memory>
@@ -39,6 +40,7 @@ class BcmRxPacket;
 class BcmSwitchEventManager;
 class BcmUnit;
 class BcmWarmBootCache;
+class MockRxPacket;
 class Interface;
 class Port;
 class PortStats;
@@ -108,6 +110,8 @@ class BcmSwitch : public HwSwitch {
   bool sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept override;
   bool sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
                            PortID portID) noexcept override;
+  std::unique_ptr<PacketTraceInfo> getPacketTrace(
+      std::unique_ptr<MockRxPacket> pkt);
 
   bool isRxThreadRunning();
 

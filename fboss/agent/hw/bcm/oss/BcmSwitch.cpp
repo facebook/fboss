@@ -54,6 +54,12 @@ void BcmSwitch::disableLinkscan() {
                              << opennsl_errmsg(rv);
 }
 
+
+std::unique_ptr<PacketTraceInfo> BcmSwitch::getPacketTrace(
+    std::unique_ptr<MockRxPacket> pkt) {
+  return nullptr;
+}
+
 int BcmSwitch::getHighresSamplers(
     HighresSamplerList* samplers,
     const folly::StringPiece namespaceString,
