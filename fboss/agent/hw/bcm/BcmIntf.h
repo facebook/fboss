@@ -14,6 +14,7 @@ extern "C" {
 #include <opennsl/l3.h>
 }
 
+#include <folly/dynamic.h>
 #include <folly/IPAddress.h>
 #include "fboss/agent/types.h"
 
@@ -41,6 +42,7 @@ class BcmIntf {
     return intf_;
   }
   void program(const std::shared_ptr<Interface>& intf);
+  folly::dynamic toFollyDynamic() const;
 
  private:
   // no copy or assignment
@@ -79,6 +81,9 @@ class BcmIntfTable {
   void addIntf(const std::shared_ptr<Interface>& intf);
   void programIntf(const std::shared_ptr<Interface>& intf);
   void deleteIntf(const std::shared_ptr<Interface>& intf);
+
+  // Serialize to folly::dynamic
+  folly::dynamic toFollyDynamic() const;
  private:
   const BcmSwitch* hw_;
   // There are two mapping tables with different index types.

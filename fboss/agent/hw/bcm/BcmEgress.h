@@ -97,6 +97,8 @@ class BcmEgress : public BcmEgressBase {
   void program(opennsl_if_t intfId, opennsl_vrf_t vrf,
       const folly::IPAddress& ip, const folly::MacAddress* mac,
       opennsl_port_t port, RouteForwardAction action);
+  folly::MacAddress mac_;
+  opennsl_if_t intfId_{INVALID};
 };
 
 class BcmEcmpEgress : public BcmEgressBase {

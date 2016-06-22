@@ -15,10 +15,6 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
-namespace {
-constexpr auto kEgressId = "egressId";
-}
-
 namespace facebook { namespace fboss {
 
 using folly::IPAddress;
@@ -139,6 +135,10 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
       VLOG(3) << "programmed L3 egress object " << id_ << " for "
               << ((mac) ? mac->toString() : "to CPU") << " on unit "
               << hw_->getUnit() << " for ip: " << ip;
+      if (mac != nullptr) {
+        mac_ = *mac;
+      }
+      intfId_ = intfId;
     } else {
       // TODO(t10268453): How can we get here? The entries were not equivalent
       // when we entered this ' if (addOrUpdateEgress) ' condition. Is the
@@ -255,6 +255,8 @@ BcmEcmpEgress::~BcmEcmpEgress() {
 folly::dynamic BcmEgress::toFollyDynamic() const {
   folly::dynamic egress = folly::dynamic::object;
   egress[kEgressId] = getID();
+  egress[kMac] = mac_.toString();
+  egress[kIntfId] = intfId_;
   return egress;
 }
 

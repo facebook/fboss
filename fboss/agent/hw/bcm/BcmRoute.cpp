@@ -16,7 +16,9 @@ extern "C" {
 #include <folly/IPAddress.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/state/Route.h"
+#include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
@@ -25,6 +27,15 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
 namespace facebook { namespace fboss {
+
+namespace {
+auto constexpr kAction = "action";
+auto constexpr kEcmp = "ecmp";
+auto constexpr kForwardInfo = "forwardInfo";
+auto constexpr kMaskLen = "maskLen";
+auto constexpr kNetwork = "network";
+auto constexpr kRoutes = "routes";
+}
 
 BcmRoute::BcmRoute(const BcmSwitch* hw, opennsl_vrf_t vrf,
                    const folly::IPAddress& addr, uint8_t len)
@@ -132,6 +143,7 @@ void BcmRoute::program(const RouteForwardInfo& fwd) {
     // the route was added before, need to free the old nexthop(s)
     cleanupHost(fwd_.getNexthops());
   }
+  egressId_ = egressId;
   fwd_ = fwd;
   // new nexthop has been stored in fwd_. From now on, it is up to
   // ~BcmRoute() to clean up such nexthop.
@@ -226,6 +238,23 @@ bool BcmRoute::deleteLpmRoute(int unitNumber,
   return true;
 }
 
+folly::dynamic BcmRoute::toFollyDynamic() const {
+  folly::dynamic route = folly::dynamic::object;
+  route[kNetwork] = prefix_.str();
+  route[kMaskLen] = len_;
+  route[kAction] = forwardActionStr(fwd_.getAction());
+  // if many next hops, put ecmpEgressId = egressId
+  // else put egressId = egressId
+  if (fwd_.getNexthops().size() > 1) {
+    route[kEcmp] = true;
+    route[kEcmpEgressId] = egressId_;
+  } else {
+    route[kEcmp] = false;
+    route[kEgressId] = egressId_;
+  }
+  return route;
+}
+
 BcmRoute::~BcmRoute() {
   if (!added_) {
     return;
@@ -311,6 +340,16 @@ void BcmRouteTable::deleteRoute(opennsl_vrf_t vrf, const RouteT *route) {
     throw FbossError("Failed to delete a non-existing route ", route->str());
   }
   fib_.erase(iter);
+}
+
+folly::dynamic BcmRouteTable::toFollyDynamic() const {
+  std::vector<folly::dynamic> routesJson;
+  for (const auto& route : fib_) {
+    routesJson.emplace_back(route.second->toFollyDynamic());
+  }
+  folly::dynamic routeTable = folly::dynamic::object;
+  routeTable[kRoutes] = std::move(routesJson);
+  return routeTable;
 }
 
 template void BcmRouteTable::addRoute(opennsl_vrf_t, const RouteV4 *);

@@ -14,6 +14,7 @@ extern "C" {
 }
 
 #include <folly/IPAddress.h>
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
@@ -110,6 +111,12 @@ void BcmStation::program(MacAddress mac, int id) {
     warmBootCache->programmed(vlanStationItr);
   }
   CHECK_NE(id_, INVALID);
+}
+
+namespace {
+auto constexpr kMtu = "mtu";
+auto constexpr kIntfs = "intfs";
+auto constexpr kVlan = "vlan";
 }
 
 BcmIntf::BcmIntf(const BcmSwitch *hw) : hw_(hw) {
@@ -283,6 +290,17 @@ BcmIntf::~BcmIntf() {
   VLOG(3) << "deleted L3 interface " << bcmIfId_;
 }
 
+folly::dynamic BcmIntf::toFollyDynamic() const {
+  folly::dynamic intf = folly::dynamic::object;
+  if (intf_ != nullptr) {
+    intf[kVlan] = static_cast<uint16_t>(intf_->getVlanID());
+    intf[kMac] = intf_->getMac().toString();
+    intf[kMtu] = intf_->getMtu();
+  }
+  intf[kIntfId] = getBcmIfId();
+  return intf;
+}
+
 BcmIntfTable::BcmIntfTable(const BcmSwitch *hw) : hw_(hw) {
 }
 
@@ -347,6 +365,16 @@ void BcmIntfTable::deleteIntf(const std::shared_ptr<Interface>& intf) {
   auto bcmIfId = iter->second->getBcmIfId();
   intfs_.erase(iter);
   bcmIntfs_.erase(bcmIfId);
+}
+
+folly::dynamic BcmIntfTable::toFollyDynamic() const {
+  std::vector<folly::dynamic> intfsJson;
+  for (const auto& intf: intfs_) {
+    intfsJson.emplace_back(intf.second->toFollyDynamic());
+  }
+  folly::dynamic intfTable = folly::dynamic::object;
+  return intfTable[kIntfs] = std::move(intfsJson);
+  return intfTable;
 }
 
 }} // namespace facebook::fboss

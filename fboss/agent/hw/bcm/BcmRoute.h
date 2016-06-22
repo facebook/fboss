@@ -14,6 +14,7 @@ extern "C" {
 #include <opennsl/l3.h>
 }
 
+#include <folly/dynamic.h>
 #include <folly/IPAddress.h>
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/RouteForwardInfo.h"
@@ -42,6 +43,7 @@ class BcmRoute {
                                   opennsl_vrf_t vrf,
                                   const folly::IPAddress& prefix,
                                   uint8_t prefixLength);
+  folly::dynamic toFollyDynamic() const;
 
  private:
   void programHostRoute(opennsl_if_t egressId,
@@ -63,6 +65,7 @@ class BcmRoute {
   uint8_t len_;
   RouteForwardInfo fwd_;
   bool added_{false};           // if the route added to HW or not
+  opennsl_if_t egressId_{-1};
   void initL3RouteT(opennsl_l3_route_t* rt) const;
 };
 
@@ -85,6 +88,7 @@ class BcmRouteTable {
   void addRoute(opennsl_vrf_t vrf, const RouteT *route);
   template<typename RouteT>
   void deleteRoute(opennsl_vrf_t vrf, const RouteT *route);
+  folly::dynamic toFollyDynamic() const;
  private:
   struct Key {
     folly::IPAddress network;

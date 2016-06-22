@@ -14,9 +14,14 @@ namespace facebook { namespace fboss {
 
 auto constexpr kHwSwitch = "hwSwitch";
 auto constexpr kHostTable = "hostTable";
+auto constexpr kIntfTable = "intfTable";
+auto constexpr kRouteTable = "routeTable";
 auto constexpr kEcmpEgressId = "ecmpEgressId";
+auto constexpr kEgressId = "egressId";
 auto constexpr kEcmpEgress = "ecmpEgress";
 auto constexpr kEcmpHosts = "ecmpHosts";
+auto constexpr kMac = "mac";
+auto constexpr kIntfId = "intfId";
 auto constexpr kPaths = "paths";
 auto constexpr kWarmBootCache = "warmBootCache";
 auto constexpr kSwSwitch = "swSwitch";
