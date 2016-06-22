@@ -79,8 +79,8 @@ BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
   // Initialize our stats data structures
   auto statMap = fbData->getStatMap();
   const auto expType = stats::AVG;
-  outQueueLen_ = statMap->getLockAndStatItem(statName("out_queue_length"),
-                                             &expType);
+  outQueueLen_ = statMap->getLockableStat(statName("out_queue_length"),
+                                          &expType);
   auto histMap = fbData->getHistogramMap();
   stats::ExportedHistogram pktLenHist(1, 0, kInPktLengthStats.size());
   inPktLengths_ = histMap->getOrCreateUnlocked(statName("in_pkt_lengths"),
@@ -413,8 +413,7 @@ void BcmPort::updateStats() {
     LOG(ERROR) << "Failed to get queue length for port " << port_
                << " :" << opennsl_errmsg(ret);
   } else {
-    SpinLockHolder guard(outQueueLen_.first.get());
-    outQueueLen_.second->addValue(now, qlength);
+    outQueueLen_.addValue(now.count(), qlength);
     // TODO: outQueueLen_ only exports the average queue length over the last
     // 60 seconds, 10 minutes, etc.
     // We should also export the current value.  We could use a simple counter
