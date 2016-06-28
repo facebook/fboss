@@ -40,6 +40,7 @@
 #include "fboss/agent/hw/bcm/BcmTxPacket.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
+#include "fboss/agent/hw/bcm/BcmCosManager.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/DeltaFunctions.h"
@@ -489,6 +490,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   createAclGroup();
   dropDhcpPackets();
   dropIPv6RAs();
+  setupCos();
   configureRxRateLimiting();
 
   // enable IPv4 and IPv6 on CPU port

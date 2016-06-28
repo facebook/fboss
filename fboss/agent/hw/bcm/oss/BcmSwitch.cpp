@@ -33,6 +33,8 @@ void BcmSwitch::dropDhcpPackets() {}
 
 void BcmSwitch::dropIPv6RAs() {}
 
+void BcmSwitch::setupCos() {}
+
 void BcmSwitch::configureRxRateLimiting() {
   // OpenNSL doesn't yet provide functions for configuring rate-limiting,
   // so rate limiting settings must be baked into the binary driver.

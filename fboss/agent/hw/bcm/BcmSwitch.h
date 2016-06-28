@@ -30,6 +30,7 @@ namespace facebook { namespace fboss {
 struct AclEntryID;
 class AclEntry;
 class ArpEntry;
+class BcmCosManager;
 class BcmEgress;
 class BcmHostTable;
 class BcmIntfTable;
@@ -203,6 +204,10 @@ class BcmSwitch : public HwSwitch {
       HighresSamplerList* samplers,
       const folly::StringPiece namespaceString,
       const std::set<folly::StringPiece>& counterSet) override;
+
+  BcmCosManager* getCosMgr() const {
+    return cosManager_.get();
+  };
 
   void fetchL2Table(std::vector<L2EntryThrift> *l2Table) override;
 
@@ -408,6 +413,12 @@ class BcmSwitch : public HwSwitch {
   void exportSdkVersion() const;
 
   void initFieldProcessor(bool isWarmBoot) const;
+
+  /**
+   * Setup COS manager
+   */
+  void setupCos();
+
   /*
    * Cos Q mapping for packets destined to us.
    * Most often these are matched by next hop self
@@ -446,6 +457,7 @@ class BcmSwitch : public HwSwitch {
   std::unique_ptr<BcmAclTable> aclTable_;
   std::unique_ptr<BcmWarmBootCache> warmBootCache_;
   std::unique_ptr<BcmSwitchEventManager> switchEventManager_;
+  std::unique_ptr<BcmCosManager> cosManager_;
   /*
    * Lock to synchronize access to all BCM* data structures
    */
