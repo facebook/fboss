@@ -22,19 +22,32 @@ SaiHostTable::~SaiHostTable() {
   VLOG(4) << "Entering " << __FUNCTION__;
 }
 
-SaiHost* SaiHostTable::IncRefOrCreateSaiHost(InterfaceID intf,
+SaiHost *SaiHostTable::getSaiHost(InterfaceID intf,
+                                  const folly::IPAddress &ip) const {
+  VLOG(4) << "Entering " << __FUNCTION__;
+
+  Key key(intf, ip);
+  auto iter = hosts_.find(key);
+
+  if (iter == hosts_.end()) {
+    return nullptr;
+  }
+
+  return iter->second.get();
+}
+
+SaiHost* SaiHostTable::createOrUpdateSaiHost(InterfaceID intf,
                                              const folly::IPAddress &ip,
                                              const folly::MacAddress &mac) {
   VLOG(4) << "Entering " << __FUNCTION__;
   
-  Key key(intf, ip, mac);
-  auto ret = hosts_.emplace(key, std::make_pair(nullptr, 1));
+  Key key(intf, ip);
+  auto ret = hosts_.emplace(key, nullptr);
   auto &iter = ret.first;
 
   if (!ret.second) {
     // there was an entry already there
-    iter->second.second++;  // increase the reference counter
-    return iter->second.first.get();
+    return iter->second.get();
   }
 
   SCOPE_FAIL {
@@ -44,55 +57,27 @@ SaiHost* SaiHostTable::IncRefOrCreateSaiHost(InterfaceID intf,
   auto newHost = folly::make_unique<SaiHost>(hw_, intf, ip, mac);
   auto hostPtr = newHost.get();
 
-  iter->second.first = std::move(newHost);
+  iter->second = std::move(newHost);
 
   return hostPtr;
 }
 
-SaiHost *SaiHostTable::GetSaiHost(InterfaceID intf,
-                                  const folly::IPAddress &ip,
-                                  const folly::MacAddress &mac) const {
+void SaiHostTable::removeSaiHost(InterfaceID intf,
+                                 const folly::IPAddress &ip) noexcept {
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  Key key(intf, ip, mac);
+  Key key(intf, ip);
   auto iter = hosts_.find(key);
 
-  if (iter == hosts_.end()) {
-    return nullptr;
-  }
-
-  return iter->second.first.get();
-}
-
-SaiHost *SaiHostTable::DerefSaiHost(InterfaceID intf,
-                                    const folly::IPAddress &ip,
-                                    const folly::MacAddress &mac) noexcept {
-  VLOG(4) << "Entering " << __FUNCTION__;
-
-  Key key(intf, ip, mac);
-  auto iter = hosts_.find(key);
-
-  if (iter == hosts_.end()) {
-    return nullptr;
-  }
-
-  auto &entry = iter->second;
-  CHECK_GT(entry.second, 0);
-
-  if (--entry.second == 0) {
+  if (iter != hosts_.end()) {
     hosts_.erase(iter);
-    return nullptr;
   }
-
-  return entry.first.get();
 }
 
 SaiHostTable::Key::Key(InterfaceID intf, 
-                       const folly::IPAddress &ip,
-                       const folly::MacAddress &mac) 
+                       const folly::IPAddress &ip) 
   : intf_(intf)
-  , ip_(ip)
-  , mac_(mac) {
+  , ip_(ip) {
 }
 
 bool SaiHostTable::Key::operator<(const Key &k) const{
@@ -104,15 +89,7 @@ bool SaiHostTable::Key::operator<(const Key &k) const{
     return false;
   }
 
-  if (ip_ < k.ip_) {
-    return true;
-  }
-
-  if (ip_ > k.ip_) {
-    return false;
-  }
-
-  return (mac_ < k.mac_);
+  return (ip_ < k.ip_);
 }
 
 }} // facebook::fboss

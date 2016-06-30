@@ -29,76 +29,78 @@ class SaiPortBase {
 public:
   /**
    * @brief Constructor. All initialization steps should be done through init
-   * @param pSwitch, pointer to SaiSwitch object
+   * @param hw, pointer to SaiSwitch object
    * @param saiPortId, sai_port_id_t port ID 
    * @param fbossPortId, fboss port ID 
-   * @param pPlatform, pointer to SaiPlatformPort object
+   * @param platformPort, pointer to SaiPlatformPort object
    */
-  SaiPortBase(SaiSwitch *pSwitch, sai_object_id_t saiPortId, PortID fbossPortId, SaiPlatformPort *pPlatformPort);
+  SaiPortBase(SaiSwitch *hw, sai_object_id_t saiPortId, PortID fbossPortId, SaiPlatformPort *platformPort);
   virtual ~SaiPortBase();
 
   /**
-   * @brief Initialize port
+   * @brief initialize port
    * @param warmBoot, switch boot type
    */
-  void Init(bool warmBoot);
+  void init(bool warmBoot);
 
   /*
   * Getters.
   */
-  SaiPlatformPort *GetPlatformPort() const {
-    return pPlatformPort_;
+  SaiPlatformPort *getPlatformPort() const {
+    return platformPort_;
   }
 
-  SaiSwitch *GetHwSwitch() const {
-    return pHw_;
+  SaiSwitch *getHwSwitch() const {
+    return hw_;
   }
 
-  sai_object_id_t GetSaiPortId() const {
+  sai_object_id_t getSaiPortId() const {
     return saiPortId_;
   }
 
-  PortID GetFbossPortId() const {
+  PortID getFbossPortId() const {
     return fbossPortId_;
   }
 
-  VlanID GetIngressVlan() {
+  VlanID getIngressVlan() {
     return pvId_;
+  }
+
+  bool isEnabled() {
+    return adminMode_;
   }
   /*
   * Setters.
   */
-  void SetPortStatus(bool linkStatus);
+  void enable();
+  void disable();
+  void setPortStatus(bool linkStatus);
 
-  void SetIngressVlan(VlanID vlan);
+  void setIngressVlan(VlanID vlan);
 
   /*
   * Update this port's statistics.
   */
-  void UpdateStats();
+  void updateStats();
 
 private:
   // Forbidden copy constructor and assignment operator
   SaiPortBase(SaiPortBase const &) = delete;
   SaiPortBase &operator=(SaiPortBase const &) = delete;
 
-  std::string StatName(folly::StringPiece name) const;
+  std::string statName(folly::StringPiece name) const;
 
-  SaiSwitch *const pHw_ {
-    nullptr
-  };         // Pointer to HW Switch
-
-  SaiPlatformPort *const pPlatformPort_ {
-    nullptr
-  }; // Pointer to Platform port
+  SaiSwitch *const hw_ { nullptr };   // Pointer to HW Switch
+  SaiPlatformPort *const platformPort_ { nullptr }; // Pointer to Platform port
 
   sai_object_id_t saiPortId_ {0}; 
   PortID fbossPortId_ {0};
   VlanID pvId_ {0};
+  bool adminMode_ {false};
   bool linkStatus_ {true};
   bool initDone_ {false};
 
-  sai_port_api_t *pSaiPortApi_ { nullptr };
+  sai_port_api_t *saiPortApi_ { nullptr };
 
 private:
   class MonotonicCounter : public stats::MonotonicCounter {
@@ -111,11 +113,11 @@ private:
       : stats::MonotonicCounter(name, stats::SUM, stats::RATE) {}
   };
 
-  MonotonicCounter inBytes_ { StatName("in_bytes") };
-  MonotonicCounter inMulticastPkts_ { StatName("in_multicast_pkts") };
-  MonotonicCounter inBroadcastPkts_ { StatName("in_broadcast_pkts") };
+  MonotonicCounter inBytes_ { statName("in_bytes") };
+  MonotonicCounter inMulticastPkts_ { statName("in_multicast_pkts") };
+  MonotonicCounter inBroadcastPkts_ { statName("in_broadcast_pkts") };
 
-  MonotonicCounter outBytes_ { StatName("out_bytes") };
+  MonotonicCounter outBytes_ { statName("out_bytes") };
 };
 
 }} // facebook::fboss

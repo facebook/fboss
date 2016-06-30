@@ -27,7 +27,7 @@ SaiIntfTable::~SaiIntfTable() {
   VLOG(4) << "Entering " << __FUNCTION__;
 }
 
-SaiIntf *SaiIntfTable::GetIntfIf(sai_object_id_t id) const {
+SaiIntf *SaiIntfTable::getIntfIf(sai_object_id_t id) const {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   auto iter = saiIntfs_.find(id);
@@ -39,9 +39,9 @@ SaiIntf *SaiIntfTable::GetIntfIf(sai_object_id_t id) const {
   return iter->second;
 }
 
-SaiIntf *SaiIntfTable::GetIntf(sai_object_id_t id) const {
+SaiIntf *SaiIntfTable::getIntf(sai_object_id_t id) const {
   VLOG(4) << "Entering " << __FUNCTION__;
-  auto ptr = GetIntfIf(id);
+  auto ptr = getIntfIf(id);
 
   if (ptr == nullptr) {
     throw SaiError("Cannot find interface ", id);
@@ -50,7 +50,7 @@ SaiIntf *SaiIntfTable::GetIntf(sai_object_id_t id) const {
   return ptr;
 }
 
-SaiIntf *SaiIntfTable::GetIntfIf(InterfaceID id) const {
+SaiIntf *SaiIntfTable::getIntfIf(InterfaceID id) const {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   auto iter = intfs_.find(id);
@@ -62,10 +62,10 @@ SaiIntf *SaiIntfTable::GetIntfIf(InterfaceID id) const {
   return iter->second.get();
 }
 
-SaiIntf *SaiIntfTable::GetIntf(InterfaceID id) const {
+SaiIntf *SaiIntfTable::getIntf(InterfaceID id) const {
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  auto ptr = GetIntfIf(id);
+  auto ptr = getIntfIf(id);
 
   if (ptr == nullptr) {
     throw SaiError("Cannot find interface ", id);
@@ -74,7 +74,7 @@ SaiIntf *SaiIntfTable::GetIntf(InterfaceID id) const {
   return ptr;
 }
 
-SaiIntf* SaiIntfTable::GetFirstIntfIf() const {
+SaiIntf* SaiIntfTable::getFirstIntfIf() const {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   auto iter = intfs_.begin();
@@ -86,13 +86,13 @@ SaiIntf* SaiIntfTable::GetFirstIntfIf() const {
   return iter->second.get();
 }
 
-SaiIntf* SaiIntfTable::GetNextIntfIf(const SaiIntf *intf) const {
+SaiIntf* SaiIntfTable::getNextIntfIf(const SaiIntf *intf) const {
 
   if (intf == nullptr) {
     return nullptr;
   }
 
-  auto iter = intfs_.find(intf->GetInterface()->getID());
+  auto iter = intfs_.find(intf->getInterface()->getID());
 
   if (iter != intfs_.end()) {
     if(++iter != intfs_.end()) {
@@ -103,7 +103,7 @@ SaiIntf* SaiIntfTable::GetNextIntfIf(const SaiIntf *intf) const {
   return nullptr;
 }
 
-void SaiIntfTable::AddIntf(const shared_ptr<Interface> &intf) {
+void SaiIntfTable::addIntf(const shared_ptr<Interface> &intf) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   auto newIntf = unique_ptr<SaiIntf>(new SaiIntf(hw_));
@@ -114,19 +114,19 @@ void SaiIntfTable::AddIntf(const shared_ptr<Interface> &intf) {
     throw SaiError("Adding an existing interface ", intf->getID());
   }
 
-  intfPtr->Program(intf);
-  auto ret2 = saiIntfs_.insert(std::make_pair(intfPtr->GetIfId(), intfPtr));
+  intfPtr->program(intf);
+  auto ret2 = saiIntfs_.insert(std::make_pair(intfPtr->getIfId(), intfPtr));
   CHECK_EQ(ret2.second, true);
 }
 
-void SaiIntfTable::ProgramIntf(const shared_ptr<Interface> &intf) {
+void SaiIntfTable::programIntf(const shared_ptr<Interface> &intf) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  auto intfPtr = GetIntf(intf->getID());
-  intfPtr->Program(intf);
+  auto intfPtr = getIntf(intf->getID());
+  intfPtr->program(intf);
 }
 
-void SaiIntfTable::DeleteIntf(const std::shared_ptr<Interface> &intf) {
+void SaiIntfTable::deleteIntf(const std::shared_ptr<Interface> &intf) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   auto iter = intfs_.find(intf->getID());
@@ -136,7 +136,7 @@ void SaiIntfTable::DeleteIntf(const std::shared_ptr<Interface> &intf) {
                      intf->getID());
   }
 
-  auto saiIfId = iter->second->GetIfId();
+  auto saiIfId = iter->second->getIfId();
   intfs_.erase(iter);
   saiIntfs_.erase(saiIfId);
 }

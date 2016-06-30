@@ -29,7 +29,7 @@ public:
   SaiPlatformBase() {}
 
   /*
-   * InitPorts() will be called during port initialization.
+   * initPorts() will be called during port initialization.
    *
    * The SaiPlatformBase should return a map of SAI port ID to SaiPlatformPort
    * objects.  The SaiPlatformBase object will retain ownership of all the

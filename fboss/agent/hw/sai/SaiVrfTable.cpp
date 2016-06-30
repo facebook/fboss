@@ -23,7 +23,7 @@ SaiVrfTable::~SaiVrfTable() {
   VLOG(4) << "Entering " << __FUNCTION__;
 }
 
-sai_object_id_t SaiVrfTable::GetSaiVrfId(RouterID fbossVrfId) const {
+sai_object_id_t SaiVrfTable::getSaiVrfId(RouterID fbossVrfId) const {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   auto iter = vrfs_.find(fbossVrfId);
@@ -32,10 +32,10 @@ sai_object_id_t SaiVrfTable::GetSaiVrfId(RouterID fbossVrfId) const {
     throw SaiError("Cannot find SaiVrf object for vrf: ", fbossVrfId);
   }
 
-  return iter->second.first->GetSaiVrfId();
+  return iter->second.first->getSaiVrfId();
 }
 
-SaiVrf* SaiVrfTable::IncRefOrCreateSaiVrf(RouterID fbossVrfId) {
+SaiVrf* SaiVrfTable::incRefOrCreateSaiVrf(RouterID fbossVrfId) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   auto ret = vrfs_.emplace(fbossVrfId, std::make_pair(nullptr, 1));
@@ -58,7 +58,7 @@ SaiVrf* SaiVrfTable::IncRefOrCreateSaiVrf(RouterID fbossVrfId) {
   return vrfPtr;
 }
 
-SaiVrf* SaiVrfTable::DerefSaiVrf(RouterID fbossVrfId) noexcept {
+SaiVrf* SaiVrfTable::derefSaiVrf(RouterID fbossVrfId) noexcept {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   auto iter = vrfs_.find(fbossVrfId);

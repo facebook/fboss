@@ -69,7 +69,7 @@ SaiPlatform::InitPortMap SaiPlatform::initPorts() {
 
   InitPortMap ports;
 
-  const sai_object_list_t &pl = hw_->GetSaiPortList();
+  const sai_object_list_t &pl = hw_->getSaiPortList();
 
   for (uint32_t nPort = 0; nPort < pl.count; ++nPort) {
     PortID portID(nPort);

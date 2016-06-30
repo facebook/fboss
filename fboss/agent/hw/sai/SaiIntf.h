@@ -31,14 +31,14 @@ public:
   explicit SaiIntf(const SaiSwitch *hw);
   virtual ~SaiIntf();
 
-  sai_object_id_t GetIfId() const {
+  sai_object_id_t getIfId() const {
     return saiIfId_;
   }
 
-  const std::shared_ptr<Interface> &GetInterface() const {
+  const std::shared_ptr<Interface> &getInterface() const {
     return intf_;
   }
-  void Program(const std::shared_ptr<Interface> &intf);
+  void program(const std::shared_ptr<Interface> &intf);
 
 private:
   // no copy or assignment
@@ -57,7 +57,7 @@ private:
   // The interface addresses that have SaiHost object created
   std::set<folly::IPAddress> hosts_;
 
-  sai_router_interface_api_t *pSaiRouterInterfaceApi_ { nullptr };
+  sai_router_interface_api_t *saiRouterInterfaceApi_ { nullptr };
   
 
   // TODO: we now generate one station entry per interface, even if all

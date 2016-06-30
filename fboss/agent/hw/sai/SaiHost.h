@@ -31,7 +31,7 @@ public:
    * Constructs the SaiHost object.
    *
    * This method doesn't make any calls to the SAI to program host there.
-   * Program() will be called soon after construction, and any
+   * program() will be called soon after construction, and any
    * actual initialization logic will be performed there.
    */
   SaiHost(const SaiSwitch *hw,
@@ -46,6 +46,15 @@ public:
   virtual ~SaiHost();
 
   /**
+   * Gets Sai Host action. 
+   *  
+   * @return Host action of sai_packet_action_t type.
+   */
+  sai_packet_action_t getSaiAction() const {
+      return action_;
+  }
+
+  /**
    * Programs host in HW and stores sai_neighbor_entry_t instance
    * which holds SAI host data needed. 
    *  
@@ -53,26 +62,22 @@ public:
    *  
    * @return none
    */
-  void Program(sai_packet_action_t action);
+  void program(sai_packet_action_t action, const folly::MacAddress &mac);
 
 private:
   // no copy or assignment
   SaiHost(SaiHost const &) = delete;
   SaiHost &operator=(SaiHost const &) = delete;
-
-  enum {
-    SAI_NEIGHBOR_ATTR_COUNT = 2
-  };
      
   const SaiSwitch *hw_;
   const InterfaceID intf_;
   const folly::IPAddress ip_;
-  const folly::MacAddress mac_;
+  folly::MacAddress mac_;
   sai_packet_action_t action_ {SAI_PACKET_ACTION_DROP};
   bool added_ {false}; // if added to the HW host table or not
 
   sai_neighbor_entry_t neighborEntry_;
-  sai_neighbor_api_t *pSaiNeighborApi_ { nullptr };
+  sai_neighbor_api_t *saiNeighborApi_ { nullptr };
 };
 
 }} // facebook::fboss

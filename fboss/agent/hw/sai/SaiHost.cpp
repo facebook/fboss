@@ -30,7 +30,7 @@ SaiHost::SaiHost(const SaiSwitch *hw, InterfaceID intf,
 
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  pSaiNeighborApi_ = hw_->GetSaiNeighborApi();
+  saiNeighborApi_ = hw_->getSaiNeighborApi();
 }
 
 SaiHost::~SaiHost() {
@@ -40,11 +40,11 @@ SaiHost::~SaiHost() {
     return;
   }
 
-  pSaiNeighborApi_->remove_neighbor_entry(&neighborEntry_);
-  VLOG(3) << "deleted L3 host object for " << ip_;
+  saiNeighborApi_->remove_neighbor_entry(&neighborEntry_);
+  VLOG(3) << "Deleted L3 host object for " << ip_;
 }
 
-void SaiHost::Program(sai_packet_action_t action) {
+void SaiHost::program(sai_packet_action_t action, const folly::MacAddress &mac) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
   if (!added_) {
@@ -54,7 +54,7 @@ void SaiHost::Program(sai_packet_action_t action) {
     }
 
     // fill neighborEntry_
-    neighborEntry_.rif_id = hw_->GetIntfTable()->GetIntf(intf_)->GetIfId();
+    neighborEntry_.rif_id = hw_->getIntfTable()->getIntf(intf_)->getIfId();
 
     if (ip_.isV4()) {
       // IPv4
@@ -71,52 +71,73 @@ void SaiHost::Program(sai_packet_action_t action) {
     }
 
     // fill neighbor attributes
-    sai_attribute_t attr_list[SAI_NEIGHBOR_ATTR_COUNT] = {0};
+    std::vector<sai_attribute_t> attrList;
+    sai_attribute_t attr {0};
 
     // MAC
-    attr_list[0].id = SAI_NEIGHBOR_ATTR_DST_MAC_ADDRESS;
-    memcpy(attr_list[0].value.mac, mac_.bytes(), sizeof(attr_list[0].value.mac));
+    attr.id = SAI_NEIGHBOR_ATTR_DST_MAC_ADDRESS;
+    memcpy(attr.value.mac, mac_.bytes(), sizeof(attr.value.mac));
+    attrList.push_back(attr);
 
     // packet action
-    attr_list[1].id = SAI_NEIGHBOR_ATTR_PACKET_ACTION;
-    attr_list[1].value.u32 = action;
+    attr.id = SAI_NEIGHBOR_ATTR_PACKET_ACTION;
+    attr.value.u32 = action;
+    attrList.push_back(attr);
 
     // create neighbor
-    sai_status_t saiRetVal = pSaiNeighborApi_->create_neighbor_entry(&neighborEntry_,
-                                                                     SAI_NEIGHBOR_ATTR_COUNT,
-                                                                     attr_list);
+    sai_status_t saiRetVal = saiNeighborApi_->create_neighbor_entry(&neighborEntry_,
+                                                                     attrList.size(),
+                                                                     attrList.data());
     if (saiRetVal != SAI_STATUS_SUCCESS) {
        throw SaiError("Could not create SAI neighbor with IP addr: ", ip_,
-                        " MAC: ", mac_, " router interface ID: ", intf_,
-                        " Error: ", saiRetVal);
+                       " MAC: ", mac_, " router interface ID: ", intf_,
+                       " Error: ", saiRetVal);
     }
 
     added_ = true;
     action_ = action;
 
     return;
-
-  } else if (action == action_) {
-    // nothing to do more
-    return;
   }
 
-  // fill neighbor packet action attribute
-  sai_attribute_t action_attr = {0};
-  action_attr.id = SAI_NEIGHBOR_ATTR_PACKET_ACTION;
-  action_attr.value.u32 = action;
+  if (mac != mac_) {
+    // fill neighbor MAC attribute
+    sai_attribute_t macAttr {0};
+    macAttr.id = SAI_NEIGHBOR_ATTR_DST_MAC_ADDRESS;
+    memcpy(macAttr.value.mac, mac.bytes(), sizeof(macAttr.value.mac));
 
-  // set action attribute
-  sai_status_t saiRetVal = pSaiNeighborApi_->set_neighbor_attribute(&neighborEntry_,
-                                                                    &action_attr);
-  if (saiRetVal != SAI_STATUS_SUCCESS) {
-    throw SaiError("Could not set packet action attribute: ", action,
+    // set action attribute
+    sai_status_t saiRetVal = saiNeighborApi_->set_neighbor_attribute(&neighborEntry_,
+                                                                      &macAttr);
+    if (saiRetVal != SAI_STATUS_SUCCESS) {
+      throw SaiError("Could not set MAC: ", mac,
                      "to SAI neighbor with IP addr: ", ip_,
+                     " router interface ID: ", intf_,
+                     " Error: ", saiRetVal);
+    }
+
+    mac_ = mac;
+  }
+
+  if (action != action_) {
+
+    // fill neighbor packet action attribute
+    sai_attribute_t actionAttr {0};
+    actionAttr.id = SAI_NEIGHBOR_ATTR_PACKET_ACTION;
+    actionAttr.value.u32 = action;
+
+    // set action attribute
+    sai_status_t saiRetVal = saiNeighborApi_->set_neighbor_attribute(&neighborEntry_,
+                                                                      &actionAttr);
+    if (saiRetVal != SAI_STATUS_SUCCESS) {
+      throw SaiError("Could not set packet action attribute: ", action,
+                     " to SAI neighbor with IP addr: ", ip_,
                      " MAC: ", mac_, " router interface ID: ", intf_,
                      " Error: ", saiRetVal);
-  }
+    }
 
-  action_ = action;
+    action_ = action;
+  }
 }
 
 }} // facebook::fboss

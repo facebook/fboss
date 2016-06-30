@@ -39,7 +39,7 @@ public:
   std::string getPersistentStateDir() const override;
 
   InitPortMap initPorts() override;
-  SaiPortMap &GetPortMap() {
+  SaiPortMap &getPortMap() {
     return ports_;
   }
 

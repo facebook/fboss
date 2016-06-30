@@ -26,10 +26,10 @@ public:
   explicit SaiRouteTable(const SaiSwitch *hw);
   ~SaiRouteTable();
   // throw an error if not found
-  SaiRoute *GetRoute(
+  SaiRoute *getRoute(
     RouterID vrf, const folly::IPAddress &prefix, uint8_t len) const;
   // return nullptr if not found
-  SaiRoute *GetRouteIf(
+  SaiRoute *getRouteIf(
     RouterID vrf, const folly::IPAddress &prefix, uint8_t len) const;
 
   /*
@@ -37,9 +37,19 @@ public:
    * HW update lock for the protection.
    */
   template<typename RouteT>
-  void AddRoute(RouterID vrf, const RouteT *route);
+  void addRoute(RouterID vrf, const RouteT *route);
   template<typename RouteT>
-  void DeleteRoute(RouterID vrf, const RouteT *route);
+  void deleteRoute(RouterID vrf, const RouteT *route);
+
+  /**
+   * Loops trough all the unresolved Routes and resolves those which have 
+   * Next Hops with 'intf' and 'ip'
+   *
+   * @return none
+   */
+  void onResolved(InterfaceID intf, const folly::IPAddress &ip);
+
+
 private:
   struct Key {
     folly::IPAddress network;
@@ -49,7 +59,7 @@ private:
   };
   const SaiSwitch *hw_;
   boost::container::flat_map<Key, std::unique_ptr<SaiRoute>> fib_;
-
+  boost::container::flat_set<SaiRoute*> unresolvedRoutes_;
 };
 
 }} // facebook::fboss

@@ -15,6 +15,7 @@
 #include "SaiError.h"
 #include "SaiIntfTable.h"
 #include "SaiIntf.h"
+#include "SaiHostTable.h"
 
 namespace facebook { namespace fboss {
 
@@ -24,8 +25,19 @@ SaiNextHop::SaiNextHop(const SaiSwitch *hw, const RouteForwardInfo &fwdInfo)
 
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  pSaiNextHopApi_ = hw->GetSaiNextHopApi();
-  pSaiNextHopGroupApi_ = hw->GetSaiNextHopGroupApi();
+  for(auto nh : fwdInfo_.getNexthops()) {
+
+    if (hw_->getHostTable()->getSaiHost(nh.intf, nh.nexthop)) {
+      resolvedNextHops_.emplace(nh);
+    } else {
+      unresolvedNextHops_.emplace(nh);
+    }
+  }
+
+  isGroup_ = (fwdInfo_.getNexthops().size() > 1);
+
+  saiNextHopApi_ = hw->getSaiNextHopApi();
+  saiNextHopGroupApi_ = hw->getSaiNextHopGroupApi();
 }
 
 SaiNextHop::~SaiNextHop() {
@@ -34,26 +46,26 @@ SaiNextHop::~SaiNextHop() {
   sai_status_t saiRetVal = SAI_STATUS_FAILURE;
 
   // Remove all next hops and group(if it was created) from the HW.
-  for (auto iter = nextHops_.begin(); iter != nextHops_.end(); ++iter) {
+  for (auto& nhPair : hwNextHops_) {
 
     if (nhGroupId_ != SAI_NULL_OBJECT_ID) {
 
-      saiRetVal = pSaiNextHopGroupApi_->remove_next_hop_from_group(nhGroupId_, 1, &iter->first);
+      saiRetVal = saiNextHopGroupApi_->remove_next_hop_from_group(nhGroupId_, 1, &nhPair.first);
       if (saiRetVal != SAI_STATUS_SUCCESS) {
-        LOG(ERROR) << "Could not remove next hop " << iter->second.str() << " from next hop group: "
+        LOG(ERROR) << "Could not remove next hop " << nhPair.second.str() << " from next hop group: "
                    << nhGroupId_ << " of next hops: " << fwdInfo_.str() <<  "Error: " << saiRetVal;
       }
     }
 
-    saiRetVal = pSaiNextHopApi_->remove_next_hop(iter->first);
+    saiRetVal = saiNextHopApi_->remove_next_hop(nhPair.first);
     if (saiRetVal != SAI_STATUS_SUCCESS) {
-      LOG(ERROR) << "Could not remove next hop " << iter->second.str() 
+      LOG(ERROR) << "Could not remove next hop " << nhPair.second.str() 
                  << " from HW. Error: " << saiRetVal;
     }
   }
 
   if (nhGroupId_ != SAI_NULL_OBJECT_ID) {
-    saiRetVal = pSaiNextHopGroupApi_->remove_next_hop_group(nhGroupId_);
+    saiRetVal = saiNextHopGroupApi_->remove_next_hop_group(nhGroupId_);
     if (saiRetVal != SAI_STATUS_SUCCESS) {
       LOG(ERROR) << "Could not remove next hop group: " << nhGroupId_ 
                  << " of next hops: " << fwdInfo_.str() <<  " from HW. Error: " << saiRetVal;
@@ -61,107 +73,209 @@ SaiNextHop::~SaiNextHop() {
   }
 }
 
-sai_object_id_t SaiNextHop::GetSaiNextHopId() const {
+sai_object_id_t SaiNextHop::getSaiNextHopId() const {
 
-  if (nhGroupId_ != SAI_NULL_OBJECT_ID) {
+  if (isGroup_) {
     return nhGroupId_;
   }
 
-  auto iter = nextHops_.begin();
-  if (iter == nextHops_.end()) {
-    throw SaiError("Attempt to get SAI ID of the next hop: ",
-                     fwdInfo_, "which is not programmed on hardware");
+  auto iter = hwNextHops_.begin();
+  if (iter == hwNextHops_.end()) {
+    return SAI_NULL_OBJECT_ID; 
   }
 
   return iter->first;
 }
 
-void SaiNextHop::Program() {
-
+void SaiNextHop::onResolved(InterfaceID intf, const folly::IPAddress &ip) {
   VLOG(4) << "Entering " << __FUNCTION__;
 
-  sai_status_t saiRetVal = SAI_STATUS_FAILURE;
-  RouteForwardInfo::Nexthops nextHops = fwdInfo_.getNexthops();
+  sai_status_t saiRetVal {SAI_STATUS_FAILURE};
 
-  if (nextHops.empty()) {
-    throw SaiError("Next hop list to be programmed on HW is empty");
-  }
+  RouteForwardInfo::Nexthop nh(intf, ip);
 
-  if ((nhGroupId_ != SAI_NULL_OBJECT_ID) ||
-      (nextHops_.size() != 0)) {
-
-    throw SaiError("Attempt to configure for the second time the next hop ",
-                     fwdInfo_.str().c_str(), "which was already programmed in HW");
-  }
-
-  uint8_t nh_count = nextHops.size();
-
-  // an array of object IDs passed to create_next_hop_group()
-  std::unique_ptr<sai_object_id_t[]> nextHopIds(new sai_object_id_t[nh_count]);
-
-  // Create all next hops and fill the nextHops_ map and nextHopIds array
-  uint8_t i = 0;
-  for (auto iter = nextHops.begin(); iter != nextHops.end(); ++iter, ++i) {
-
-    sai_object_id_t nhId = SAI_NULL_OBJECT_ID;
-    sai_attribute_t attr_list[SAI_NH_ATTR_COUNT] = {0};
-
-    // Fill atributes
-    // NH type
-    attr_list[0].id = SAI_NEXT_HOP_ATTR_TYPE;
-    attr_list[0].value.u32 = SAI_NEXT_HOP_IP;
-
-    // IP address
-    attr_list[1].id = SAI_NEXT_HOP_ATTR_IP;
-
-    if (iter->nexthop.isV4()) {
-      attr_list[1].value.ipaddr.addr_family = SAI_IP_ADDR_FAMILY_IPV4;
-      memcpy(&attr_list[1].value.ipaddr.addr.ip4, iter->nexthop.bytes(), sizeof(attr_list[1].value.ip4));
-    } else {
-      attr_list[1].value.ipaddr.addr_family = SAI_IP_ADDR_FAMILY_IPV6;
-      memcpy(attr_list[1].value.ipaddr.addr.ip6, iter->nexthop.bytes(), sizeof(attr_list[1].value.ip6));
-    }
-
-    // Router interface ID
-    attr_list[2].id = SAI_NEXT_HOP_ATTR_ROUTER_INTERFACE_ID;
-    attr_list[2].value.oid = hw_->GetIntfTable()->GetIntfIf(iter->intf)->GetIfId();
-
-    // Create NH in SAI
-    saiRetVal = pSaiNextHopApi_->create_next_hop(&nhId, SAI_NH_ATTR_COUNT, attr_list);
-    if (saiRetVal != SAI_STATUS_SUCCESS) {
-       throw SaiError("Could not create next hop ", iter->str().c_str(), " on HW. Error: ", saiRetVal);
-    }
-
-    nextHops_.emplace(nhId, *iter);
-    nextHopIds[i] = nhId;
-  }
-
-  if (nh_count == 1) {
-    // Nothing more to do for a single host.
+  // Check if this next hop is in the list of unresolved ones.
+  auto iter = unresolvedNextHops_.find(nh);
+  if (iter == unresolvedNextHops_.end()) {
     return;
   }
 
-  // Now we will create NH group with the next hops previously created
-  sai_attribute_t attr_list[SAI_NH_GROUP_ATTR_COUNT] = {0};
-  sai_object_list_t nhList = {nh_count, nextHopIds.get()};
-  sai_object_id_t nhGroupId = SAI_NULL_OBJECT_ID;
+  VLOG(3) << __FUNCTION__ << " Resolving NH: " << ip << "/" << intf;
 
-  // Fill atributes
-  // NH group type
-  attr_list[0].id = SAI_NEXT_HOP_GROUP_ATTR_TYPE;
-  attr_list[0].value.u32 = SAI_NEXT_HOP_GROUP_ECMP;
-
-  // NH list
-  attr_list[1].id = SAI_NEXT_HOP_ATTR_IP;
-  attr_list[1].value.objlist = nhList;
-
-  // Create NH group in SAI
-  saiRetVal = pSaiNextHopGroupApi_->create_next_hop_group(&nhGroupId, SAI_NH_GROUP_ATTR_COUNT, attr_list);
-  if (saiRetVal != SAI_STATUS_SUCCESS) {
-     throw SaiError("Could not create next hop group", fwdInfo_.str().c_str(), " on HW. Error: ", saiRetVal);
+  // Program the next hop on HW.
+  sai_object_id_t nhId = programNh(iter->intf, iter->nexthop);
+  if (nhId == SAI_NULL_OBJECT_ID) {
+    return;
   }
 
-  nhGroupId_ = nhGroupId;
+  if (isGroup_) {
+    if (nhGroupId_ != SAI_NULL_OBJECT_ID) {
+      // NH Group already exists, so just add NH to it
+      saiRetVal = saiNextHopGroupApi_->add_next_hop_to_group(nhGroupId_, 1, &nhId);
+      if (saiRetVal != SAI_STATUS_SUCCESS) {
+         LOG(ERROR) << "Could not create next hop group" << nh.str() << " on HW. Error: " << saiRetVal;
+         saiNextHopApi_->remove_next_hop(nhId);
+         return;
+      }
+
+    } else {
+       // No group existing. Create it with the next hop just resolved.
+       sai_object_id_t nhGroupId = programNhGroup(1, &nhId);
+       if (nhGroupId == SAI_NULL_OBJECT_ID) {
+         saiNextHopApi_->remove_next_hop(nhId);
+         return;
+       }
+    }
+  }
+
+  hwNextHops_.emplace(std::make_pair(nhId, (*iter)));
+  resolvedNextHops_.emplace(*iter);
+  unresolvedNextHops_.erase(iter);
+
+  resolved_ = true;
+}
+
+void SaiNextHop::program() {
+
+  VLOG(4) << "Entering " << __FUNCTION__;
+
+  sai_status_t saiRetVal {SAI_STATUS_FAILURE};
+
+  if (fwdInfo_.getNexthops().empty()) {
+    throw SaiError("Next hop list to be programmed on HW is empty");
+  }
+
+  if ((nhGroupId_ != SAI_NULL_OBJECT_ID) || !hwNextHops_.empty()) {
+    // Already configured. Nothing to do more here.
+    return;
+  }
+
+  // an array of object IDs passed to create_next_hop_group()
+  std::vector<sai_object_id_t> nextHopIds;
+
+  // Create all next hops and fill the hwNextHops_ map and nextHopIds array
+  for (auto& nhPair : resolvedNextHops_) {
+
+    sai_object_id_t nhId = programNh(nhPair.intf, nhPair.nexthop);
+
+    if (nhId != SAI_NULL_OBJECT_ID) {
+      hwNextHops_.emplace(nhId, nhPair);
+      nextHopIds.push_back(nhId);
+    }
+  }
+
+  if (!isGroup_ || nextHopIds.empty()) {
+    // Nothing more to do for a single next hop or a group 
+    // with empty NH list.
+    return;
+  }
+
+  // Add group with the Next Hops configured above on HW
+  sai_object_id_t nhGroupId = programNhGroup(nextHopIds.size(), nextHopIds.data());
+  if (nhGroupId == SAI_NULL_OBJECT_ID) {
+    // Cleanup hosts
+    for (auto& nhPair : hwNextHops_) {
+
+      saiRetVal = saiNextHopApi_->remove_next_hop(nhPair.first);
+      if (saiRetVal != SAI_STATUS_SUCCESS) {
+        LOG(ERROR) << "Could not remove next hop " << nhPair.second.str() 
+                   << " from HW. Error: " << saiRetVal;
+      }
+
+      unresolvedNextHops_.emplace(nhPair.second);
+    }
+
+    resolvedNextHops_.clear();
+    hwNextHops_.clear();
+  }
+
+  resolved_ = true;
+}
+
+sai_object_id_t SaiNextHop::programNh(InterfaceID intf, const folly::IPAddress &ip) {
+
+  VLOG(4) << "Entering " << __FUNCTION__;
+
+  sai_status_t saiRetVal {SAI_STATUS_FAILURE};
+  std::vector<sai_attribute_t> attrList;
+  sai_object_id_t nhId {SAI_NULL_OBJECT_ID};
+  sai_attribute_t attr;
+
+  // Fill atributes
+  // NH type
+  attr.id = SAI_NEXT_HOP_ATTR_TYPE;
+  attr.value.u32 = SAI_NEXT_HOP_IP;
+  attrList.push_back(attr);
+
+  // IP address
+  attr.id = SAI_NEXT_HOP_ATTR_IP;
+
+  if (ip.isV4()) {
+    attr.value.ipaddr.addr_family = SAI_IP_ADDR_FAMILY_IPV4;
+    memcpy(&attr.value.ipaddr.addr.ip4, ip.bytes(), sizeof(attr.value.ip4));
+  } else {
+    attr.value.ipaddr.addr_family = SAI_IP_ADDR_FAMILY_IPV6;
+    memcpy(attr.value.ipaddr.addr.ip6, ip.bytes(), sizeof(attr.value.ip6));
+  }
+  attrList.push_back(attr);
+
+  // Router interface ID
+  attr.id = SAI_NEXT_HOP_ATTR_ROUTER_INTERFACE_ID;
+  attr.value.oid = hw_->getIntfTable()->getIntfIf(intf)->getIfId();
+  attrList.push_back(attr);
+
+  // Create NH in SAI
+  saiRetVal = saiNextHopApi_->create_next_hop(&nhId, attrList.size(), attrList.data());
+  if (saiRetVal != SAI_STATUS_SUCCESS) {
+     LOG(ERROR) << "Could not create next hop" << ip << " on HW. Error: " << saiRetVal;
+  }
+
+  return nhId;
+}
+
+sai_object_id_t SaiNextHop::programNhGroup(uint32_t nhCount, sai_object_id_t *nhIds) {
+
+  VLOG(4) << "Entering " << __FUNCTION__;
+
+  sai_status_t saiRetVal {SAI_STATUS_FAILURE};
+
+  if (nhGroupId_ == SAI_NULL_OBJECT_ID) {
+    // Now we will create NH group with the next hops list
+    std::vector<sai_attribute_t> groupAttrList;
+    sai_attribute_t attr;
+    sai_object_id_t nhGroupId = SAI_NULL_OBJECT_ID;
+    sai_object_list_t nhList = {nhCount, nhIds};
+
+    // Fill atributes
+    // NH group type
+    attr.id = SAI_NEXT_HOP_GROUP_ATTR_TYPE;
+    attr.value.u32 = SAI_NEXT_HOP_GROUP_ECMP;
+    groupAttrList.push_back(attr);
+
+    // NH list
+    attr.id = SAI_NEXT_HOP_GROUP_ATTR_NEXT_HOP_LIST;
+    attr.value.objlist = nhList;
+    groupAttrList.push_back(attr);
+
+    // Create NH group in SAI
+    saiRetVal = saiNextHopGroupApi_->create_next_hop_group(&nhGroupId, groupAttrList.size(), groupAttrList.data());
+    if (saiRetVal != SAI_STATUS_SUCCESS) {
+       LOG(ERROR) << "Could not create next hop group" << fwdInfo_.str() << " on HW. Error: " << saiRetVal;
+       return SAI_NULL_OBJECT_ID;
+    }
+
+    nhGroupId_ = nhGroupId;
+
+  } else {
+    // Add NH to group in SAI
+    saiRetVal = saiNextHopGroupApi_->add_next_hop_to_group(nhGroupId_, nhCount, nhIds);
+    if (saiRetVal != SAI_STATUS_SUCCESS) {
+       LOG(ERROR) << "Could not add next hop to group " << fwdInfo_.str() << " on HW. Error: " << saiRetVal;
+       return SAI_NULL_OBJECT_ID;
+    }
+  }
+
+  return nhGroupId_;
 }
 
 }} // facebook::fboss

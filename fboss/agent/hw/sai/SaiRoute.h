@@ -31,7 +31,7 @@ public:
    * Constructs the SaiRoute object.
    *
    * This method doesn't make any calls to the SAI to program route there.
-   * Program() will be called soon after construction, and any
+   * program() will be called soon after construction, and any
    * actual initialization logic is be performed there.
    */
   SaiRoute(const SaiSwitch *hw,
@@ -53,7 +53,24 @@ public:
    *  
    * @return none
    */
-  void Program(const RouteForwardInfo &fwd);
+  void program(const RouteForwardInfo &fwd);
+
+  /**
+   * Checks whether the Route is resolved.  
+   *  
+   * @return 'true' if Route is resolved otherwise 'false'
+   */
+  bool isResolved() const {
+    return resolved_;
+  }
+
+  /**
+   * Adds Next Hop to Route on HW in case the unresolved 
+   * Next Hop with "ip" is resolved.
+   *  
+   * @return none
+   */
+  void onResolved(InterfaceID intf, const folly::IPAddress &ip);
 
 private:
   SaiRoute(const SaiRoute &rhs);
@@ -64,12 +81,13 @@ private:
   folly::IPAddress ipAddr_;
   uint8_t prefixLen_;
   RouteForwardInfo fwd_;
+  bool resolved_ {false};
 
   sai_unicast_route_entry_t routeEntry_;
   bool added_ {false};
   bool isLocal_ {false};
 
-  sai_route_api_t *pSaiRouteApi_ { nullptr };
+  sai_route_api_t *saiRouteApi_ { nullptr };
 };
 
 }} // facebook::fboss

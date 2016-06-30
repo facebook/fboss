@@ -33,7 +33,7 @@ public:
    *  
    * @return Sai Vrf ID of sai_object_id_t type
    */
-  sai_object_id_t GetSaiVrfId(RouterID fbossVrfId) const;
+  sai_object_id_t getSaiVrfId(RouterID fbossVrfId) const;
 
   /*
    * The following functions will modify the object. They rely on the global
@@ -49,7 +49,7 @@ public:
    *  
    * @return The SaiVrf pointer just created or found.
    */
-  SaiVrf* IncRefOrCreateSaiVrf(RouterID fbossVrfId);
+  SaiVrf* incRefOrCreateSaiVrf(RouterID fbossVrfId);
 
   /**
    * Decrease an existing SaiVrf entry's reference counter by 1.
@@ -61,7 +61,7 @@ public:
    *         decreased by 1, but the object is still valid as it is
    *         still referred in somewhere else
    */
-  SaiVrf *DerefSaiVrf(RouterID fbossVrfId) noexcept;
+  SaiVrf *derefSaiVrf(RouterID fbossVrfId) noexcept;
 
 private:
   typedef std::pair<std::unique_ptr<SaiVrf>, uint32_t> VrfMapNode; 
