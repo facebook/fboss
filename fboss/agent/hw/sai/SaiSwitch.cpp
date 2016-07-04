@@ -77,6 +77,20 @@ using facebook::fboss::DeltaFunctions::forEachRemoved;
 
 namespace facebook { namespace fboss {
 
+// Default service method table getters 
+static const char* saiProfileValueGet(sai_switch_profile_id_t profile_id,
+                                      const char* var_name)
+{
+  return NULL;
+}
+
+static int saiProfileValueGetNext(sai_switch_profile_id_t profile_id,
+                                  const char** variable,
+                                  const char** value)
+{
+  return -1;
+}
+
 // TODO: remove this when SAI callbacks support pointer to user data storage.
 SaiSwitch* SaiSwitch::instance_ = nullptr;
 
@@ -97,6 +111,9 @@ SaiSwitch::SaiSwitch(SaiPlatformBase *platform)
   , warmBootCache_(new SaiWarmBootCache(this))
   , lockFd(-1) {
   VLOG(4) << "Entering " << __FUNCTION__;
+
+  service_.profile_get_value = saiProfileValueGet;
+  service_.profile_get_next_value = saiProfileValueGetNext;
 
   //sai_status_t status = sai_service_method_table_initialize(&service_);
   //if (status != SAI_STATUS_SUCCESS) {
