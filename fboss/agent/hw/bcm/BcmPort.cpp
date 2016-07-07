@@ -83,10 +83,10 @@ BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
                                           &expType);
   auto histMap = fbData->getHistogramMap();
   stats::ExportedHistogram pktLenHist(1, 0, kInPktLengthStats.size());
-  inPktLengths_ = histMap->getOrCreateUnlocked(statName("in_pkt_lengths"),
-                                               &pktLenHist);
-  outPktLengths_ = histMap->getOrCreateUnlocked(statName("out_pkt_lengths"),
-                                                &pktLenHist);
+  inPktLengths_ = histMap->getOrCreateLockableHistogram(
+      statName("in_pkt_lengths"), &pktLenHist);
+  outPktLengths_ = histMap->getOrCreateLockableHistogram(
+      statName("out_pkt_lengths"), &pktLenHist);
 
   setConfiguredMaxSpeed();
 
@@ -443,7 +443,7 @@ void BcmPort::updateStat(std::chrono::seconds now,
 
 void BcmPort::updatePktLenHist(
     std::chrono::seconds now,
-    stats::ExportedHistogramMap::LockAndHistogram* hist,
+    stats::ExportedHistogramMap::LockableHistogram* hist,
     const std::vector<opennsl_stat_val_t>& stats) {
   // Get the counter values
   uint64_t counters[10];
@@ -460,9 +460,9 @@ void BcmPort::updatePktLenHist(
   }
 
   // Update the histogram
-  SpinLockHolder guard(hist->first.get());
+  auto guard = hist->makeLockGuard();
   for (int idx = 0; idx < stats.size(); ++idx) {
-    hist->second->addValue(now, idx, counters[idx]);
+    hist->addValueLocked(guard, now.count(), idx, counters[idx]);
   }
 }
 

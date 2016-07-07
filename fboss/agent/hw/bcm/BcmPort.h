@@ -134,7 +134,7 @@ class BcmPort {
                   stats::MonotonicCounter* stat,
                   opennsl_stat_val_t type);
   void updatePktLenHist(std::chrono::seconds now,
-                        stats::ExportedHistogramMap::LockAndHistogram* hist,
+                        stats::ExportedHistogramMap::LockableHistogram* hist,
                         const std::vector<opennsl_stat_val_t>& stats);
   std::string statName(folly::StringPiece name) const;
 
@@ -179,8 +179,8 @@ class BcmPort {
   MonotonicCounter outPause_{statName("out_pause_frames")};
 
   stats::ExportedStatMap::LockableStat outQueueLen_;
-  stats::ExportedHistogramMap::LockAndHistogram inPktLengths_;
-  stats::ExportedHistogramMap::LockAndHistogram outPktLengths_;
+  stats::ExportedHistogramMap::LockableHistogram inPktLengths_;
+  stats::ExportedHistogramMap::LockableHistogram outPktLengths_;
 };
 
 }} // namespace facebook::fboss
