@@ -10,6 +10,7 @@
 #pragma once
 #include <array>
 #include <memory>
+#include <unordered_set>
 #include <vector>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>

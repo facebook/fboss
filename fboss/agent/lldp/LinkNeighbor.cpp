@@ -4,6 +4,7 @@
 #include <folly/Conv.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
+#include <folly/String.h>
 #include <folly/io/Cursor.h>
 #include <glog/logging.h>
 

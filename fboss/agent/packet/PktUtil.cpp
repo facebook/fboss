@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/packet/PktUtil.h"
 
+#include <folly/Format.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
