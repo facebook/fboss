@@ -35,6 +35,8 @@ enum ExportType {
 
 struct ExportedStat {
   void addValue(std::chrono::seconds, int64_t) {}
+  void addValue(std::chrono::seconds::rep, uint64_t) {}
+  void addValueLocked(std::chrono::seconds::rep, uint64_t) {}
   int numLevels() {return 1;}
   int getSum(int level) {return 0;}
   int sum(int level) {return 0;}
@@ -54,6 +56,16 @@ public:
     };
     return it;
   }
+
+  class LockableStat : public ExportedStat {
+  };
+
+  LockableStat getLockableStat(folly::StringPiece,
+                               const ExportType* = nullptr) {
+    static LockableStat stat;
+    return stat;
+  }
+
 
   std::shared_ptr<ExportedStat> getStatPtr(folly::StringPiece name) {
       return std::make_shared<ExportedStat>();
