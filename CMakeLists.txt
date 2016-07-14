@@ -8,7 +8,7 @@ include(CMakeParseArguments)
 # cmake 3.1, as it's not currently widely available. We only support
 # building on Linux under GCC right now, so we might as well just hard
 # code the flags.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++1y")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/include/libnl3")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-sign-compare -Wno-bool-compare")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor")
@@ -233,6 +233,7 @@ add_library(fboss_agent STATIC
     fboss/lib/usb/WedgeI2CBus.h
 
     # generated sources
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/packettrace_types.cpp
     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/FacebookService.cpp
     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/FacebookService_client.cpp
     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/fb303_types.cpp
@@ -348,3 +349,5 @@ fboss_add_thrift(THRIFTSRC fboss/agent/if/ctrl.thrift
 fboss_add_thrift(THRIFTSRC fboss/agent/if/fboss.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/optic.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/highres.thrift SERVICES FbossHighresClient)
+fboss_add_thrift(THRIFTSRC fboss/agent/if/highres.thrift SERVICES FbossHighresClient)
+fboss_add_thrift(THRIFTSRC fboss/agent/hw/bcm/packettrace.thrift)
