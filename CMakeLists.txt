@@ -43,6 +43,7 @@ find_library(DL dl)
 find_library(EVENT event)
 find_library(NETLINK3 nl-3)
 find_library(NETLINKROUTE3 nl-route-3)
+find_library(NUMA numa)
 find_library(CURL curl)
 
 # External libraries that are not generally available. Look in external/
@@ -285,6 +286,7 @@ target_link_libraries(fboss_agent
     ${NETLINK3}
     ${NETLINKROUTE3}
     ${CURL}
+    ${NUMA}
 )
 
 find_program(THRIFT1 thrift1)
