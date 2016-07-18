@@ -15,6 +15,7 @@ namespace facebook { namespace stats {
 
 class ExportedHistogram {
 public:
+  ExportedHistogram() {}
   ExportedHistogram(int, int, size_t) {}
   void addValue(std::chrono::seconds, int, int64_t) {}
   int numLevels() {return 1;}
@@ -23,15 +24,34 @@ public:
 
 class ExportedHistogramMap {
 public:
+  class SpinLockGuard {
+      /* no op */
+  };
+
   struct LockAndHistogram {
     std::shared_ptr<SpinLock> first;
     std::shared_ptr<ExportedHistogram> second;
   };
-  LockAndHistogram getOrCreateUnlocked(folly::StringPiece,
-                                       const ExportedHistogram*,
-                                       bool* createdPtr = nullptr) {
+
+  LockAndHistogram getOrCreateLockAndHistogram(folly::StringPiece,
+                                                const ExportedHistogram*,
+                                                bool* createdPtr = nullptr) {
     if (createdPtr) *createdPtr = true;
     return LockAndHistogram();
+  }
+
+  struct LockableHistogram : public ExportedHistogram {
+    SpinLockGuard makeLockGuard() {return SpinLockGuard();}
+    void addValueLocked(SpinLockGuard&, std::chrono::seconds::rep, int, uint64_t) {}
+  };
+
+  LockableHistogram getOrCreateLockableHistogram(folly::StringPiece,
+                                                const ExportedHistogram*,
+                                                bool* createdPtr = nullptr) {
+    if (createdPtr) {
+        *createdPtr = true;
+    }
+    return LockableHistogram();
   }
 };
 
