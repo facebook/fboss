@@ -8,7 +8,7 @@ include(CMakeParseArguments)
 # cmake 3.1, as it's not currently widely available. We only support
 # building on Linux under GCC right now, so we might as well just hard
 # code the flags.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++1y")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/include/libnl3")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-sign-compare -Wno-bool-compare")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor")
@@ -43,6 +43,7 @@ find_library(DL dl)
 find_library(EVENT event)
 find_library(NETLINK3 nl-3)
 find_library(NETLINKROUTE3 nl-route-3)
+find_library(NUMA numa)
 find_library(CURL curl)
 
 # External libraries that are not generally available. Look in external/
@@ -127,6 +128,7 @@ add_library(fboss_agent STATIC
     fboss/agent/ndp/IPv6RouteAdvertiser.cpp
     fboss/agent/oss/ApplyThriftConfig.cpp
     fboss/agent/oss/Main.cpp
+    fboss/agent/oss/RouteUpdateLogger.cpp
     fboss/agent/oss/SwSwitch.cpp
     fboss/agent/HwSwitch.cpp
     fboss/agent/I2c.cpp
@@ -233,6 +235,7 @@ add_library(fboss_agent STATIC
     fboss/lib/usb/WedgeI2CBus.h
 
     # generated sources
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/packettrace_types.cpp
     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/FacebookService.cpp
     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/FacebookService_client.cpp
     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/fb303_types.cpp
@@ -284,6 +287,7 @@ target_link_libraries(fboss_agent
     ${NETLINK3}
     ${NETLINKROUTE3}
     ${CURL}
+    ${NUMA}
 )
 
 find_program(THRIFT1 thrift1)
@@ -348,3 +352,5 @@ fboss_add_thrift(THRIFTSRC fboss/agent/if/ctrl.thrift
 fboss_add_thrift(THRIFTSRC fboss/agent/if/fboss.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/optic.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/highres.thrift SERVICES FbossHighresClient)
+fboss_add_thrift(THRIFTSRC fboss/agent/if/highres.thrift SERVICES FbossHighresClient)
+fboss_add_thrift(THRIFTSRC fboss/agent/hw/bcm/packettrace.thrift)
