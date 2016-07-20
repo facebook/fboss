@@ -1116,13 +1116,13 @@ TEST(RadixTree, CombinedV4AndV6) {
   v4Tree.erase(ip0_0_0_0, 1);
 
   // Delete a v4 prefix randomly and compare trees
-  auto v4Delete = random32(v4Prefixes.size() - 1);
+  auto v4Delete = folly::Random::rand32(v4Prefixes.size() - 1);
   ipTree.erase(IPAddress(v4Prefixes[v4Delete].ip),
       v4Prefixes[v4Delete].mask);
   v4Tree.erase(v4Prefixes[v4Delete].ip, v4Prefixes[v4Delete].mask);
 
   // Delete a v6 prefix randomly and compare trees
-  auto v6Delete = random32(v6Prefixes.size() - 1);
+  auto v6Delete = folly::Random::rand32(v6Prefixes.size() - 1);
   ipTree.erase(IPAddress(v6Prefixes[v6Delete].ip),
       v6Prefixes[v6Delete].mask);
   v6Tree.erase(v6Prefixes[v6Delete].ip, v6Prefixes[v6Delete].mask);
@@ -1229,8 +1229,8 @@ TEST(RadixTree, MoveConstructible) {
   set<Prefix4> prefixesSeen;
   // Insert a kInsertCount random prefixes
   for (auto i = 0; i < kInsertCount; ) {
-    auto mask = random32(32);
-    auto ip = IPAddressV4::fromLongHBO(random32());
+    auto mask = folly::Random::rand32(32);
+    auto ip = IPAddressV4::fromLongHBO(folly::Random::rand32());
     ip = ip.mask(mask);
     if (prefixesSeen.find(Prefix4(ip, mask)) != prefixesSeen.end()) {
       continue;
@@ -1254,7 +1254,7 @@ TEST(RadixTree, MoveConstructible) {
   auto const kEraseCount = 20;
   // Delete kEraseCount (randomly selected) prefixes
   for (auto i = 0; i < kEraseCount;) {
-    auto erase = random32(inserted.size());
+    auto erase = folly::Random::rand32(inserted.size());
     if (rtree.exactMatch(inserted[erase].first, inserted[erase].second)
         != rtree.end()) {
       rtree.erase(inserted[erase].first, inserted[erase].second);
@@ -1328,8 +1328,8 @@ TEST(RadixTree, PyRadixCompare) {
   set<Prefix4> prefixesSeen;
   // Insert a kInsertCount random prefixes
   for (auto i = 0; i < kInsertCount; ) {
-    auto mask = random32(32);
-    auto ip = IPAddressV4::fromLongHBO(random32());
+    auto mask = folly::Random::rand32(32);
+    auto ip = IPAddressV4::fromLongHBO(folly::Random::rand32());
     ip = ip.mask(mask);
     if (prefixesSeen.find(Prefix4(ip, mask)) != prefixesSeen.end()) {
       continue;
@@ -1355,7 +1355,7 @@ TEST(RadixTree, PyRadixCompare) {
   auto const kEraseCount = 200;
   // Delete kEraseCount (randomly selected) prefixes
   for (auto i = 0; i < kEraseCount;) {
-    auto erase = random32(inserted.size());
+    auto erase = folly::Random::rand32(inserted.size());
     if (rtree.exactMatch(inserted[erase].first, inserted[erase].second)
         != rtree.end()) {
       rtree.erase(inserted[erase].first, inserted[erase].second);

@@ -196,8 +196,8 @@ BENCHMARK_RELATIVE(RadixTreeLongestMatch6) {
 int main (int argc, char *argv[]) {
   vector<Prefix4> inserted4;
   while (insertSet4.size() < FLAGS_insert_count) {
-    auto mask = random32(32);
-    auto ip = IPAddressV4::fromLongHBO(random32());
+    auto mask = folly::Random::rand32(32);
+    auto ip = IPAddressV4::fromLongHBO(folly::Random::rand32());
     ip = ip.mask(mask);
     if (insertSet4.insert(Prefix4(ip, mask)).second) {
       valueSet.push_back(ip.toLong());
@@ -205,16 +205,16 @@ int main (int argc, char *argv[]) {
     }
   }
   while (eraseSet4.size() < FLAGS_erase_count) {
-    auto index = random32(FLAGS_insert_count - 1);
+    auto index = folly::Random::rand32(FLAGS_insert_count - 1);
     eraseSet4.insert(inserted4[index]);
   }
   while (exactMatchSet4.size() < FLAGS_lookup_count) {
-    auto index = random32(FLAGS_insert_count - 1);
+    auto index = folly::Random::rand32(FLAGS_insert_count - 1);
     CHECK(index < FLAGS_insert_count);
     exactMatchSet4.insert(inserted4[index]);
   }
   for (auto pfx: exactMatchSet4) {
-    auto newMask = pfx.mask ? random32(pfx.mask) : pfx.mask;
+    auto newMask = pfx.mask ? folly::Random::rand32(pfx.mask) : pfx.mask;
     auto newIp = pfx.ip.mask(newMask);
     longestMatchSet4.insert(Prefix4(newIp, newMask));
   }
@@ -222,10 +222,10 @@ int main (int argc, char *argv[]) {
   // Generate random V6 prefixes
   vector<Prefix6> inserted6;
   while (insertSet6.size() < FLAGS_insert_count) {
-    auto mask = random32(128);
+    auto mask = folly::Random::rand32(128);
     ByteArray16 ba;
-    *(uint64_t*)(&ba[0]) = random64();
-    *(uint64_t*)(&ba[8]) = random64();
+    *(uint64_t*)(&ba[0]) = folly::Random::rand64();
+    *(uint64_t*)(&ba[8]) = folly::Random::rand64();
     auto ip = IPAddressV6(ba);
     ip = ip.mask(mask);
     if (insertSet6.insert(Prefix6(ip, mask)).second) {
@@ -233,16 +233,16 @@ int main (int argc, char *argv[]) {
     }
   }
   while (eraseSet6.size() < FLAGS_erase_count) {
-    auto index = random32(FLAGS_insert_count - 1);
+    auto index = folly::Random::rand32(FLAGS_insert_count - 1);
     eraseSet6.insert(inserted6[index]);
   }
   while (exactMatchSet6.size() < FLAGS_lookup_count) {
-    auto index = random32(FLAGS_insert_count - 1);
+    auto index = folly::Random::rand32(FLAGS_insert_count - 1);
     CHECK(index < FLAGS_insert_count);
     exactMatchSet6.insert(inserted6[index]);
   }
   for (auto pfx: exactMatchSet6) {
-    auto newMask = pfx.mask ? random32(pfx.mask) : pfx.mask;
+    auto newMask = pfx.mask ? folly::Random::rand32(pfx.mask) : pfx.mask;
     auto newIp = pfx.ip.mask(newMask);
     longestMatchSet6.insert(Prefix6(newIp, newMask));
   }

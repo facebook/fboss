@@ -71,7 +71,7 @@ void radixTreeExactMatch4() {
     for (auto pfx: matchVec4) {
       auto itr = rtree.exactMatch(pfx.ip, pfx.mask);
       if (!itr.atEnd()) {
-          itr->setValue(random32());
+        itr->setValue(folly::Random::rand32());
       }
     }
   }
@@ -85,7 +85,7 @@ void radixTreeLongestMatch4() {
       rtree.longestMatch(pfx.ip, pfx.mask);
       auto itr = rtree.longestMatch(pfx.ip, pfx.mask);
       if (!itr.atEnd()) {
-          itr->setValue(random32());
+        itr->setValue(folly::Random::rand32());
       }
     }
   }
@@ -122,7 +122,7 @@ void radixTreeExactMatch6() {
     for (auto pfx: matchVec6) {
       auto itr = rtree.exactMatch(pfx.ip, pfx.mask);
       if (!itr.atEnd()) {
-        itr->setValue(random32());
+        itr->setValue(folly::Random::rand32());
       }
     }
   }
@@ -135,7 +135,7 @@ void radixTreeLongestMatch6() {
     for (auto pfx: matchVec6) {
       auto itr = rtree.longestMatch(pfx.ip, pfx.mask);
       if (!itr.atEnd()) {
-        itr->setValue(random32());
+        itr->setValue(folly::Random::rand32());
       }
     }
   }
@@ -147,7 +147,7 @@ void fillV4MatchVec() {
   }
   set<Prefix4> matchSet;
   while (matchSet.size() < kMatchCount) {
-    auto index = random32(kInsertCount - 1);
+    auto index = folly::Random::rand32(kInsertCount - 1);
     matchSet.insert(insertVec4[index]);
   }
   matchVec4 = {matchSet.begin(), matchSet.end()};
@@ -159,7 +159,7 @@ void fillV6MatchVec() {
   }
   set<Prefix6> matchSet;
   while (matchSet.size() < kMatchCount) {
-    auto index = random32(kInsertCount - 1);
+    auto index = folly::Random::rand32(kInsertCount - 1);
     matchSet.insert(insertVec6[index]);
   }
   matchVec6 = {matchSet.begin(), matchSet.end()};
@@ -172,8 +172,8 @@ int main (int argc, char *argv[]) {
       FLAGS_v4Exact || FLAGS_v4Longest) {
     set<Prefix4> inserted4;
     while (inserted4.size() < kInsertCount) {
-      auto mask = random32(32);
-      auto ip = IPAddressV4::fromLongHBO(random32());
+      auto mask = folly::Random::rand32(32);
+      auto ip = IPAddressV4::fromLongHBO(folly::Random::rand32());
       ip = ip.mask(mask);
       if (inserted4.insert(Prefix4(ip, mask)).second) {
         valueSet.push_back(mask);
@@ -202,10 +202,10 @@ int main (int argc, char *argv[]) {
       FLAGS_v6Exact || FLAGS_v6Longest) {
     set<Prefix6> inserted6;
     while (inserted6.size() < kInsertCount) {
-      auto mask = random32(128);
+      auto mask = folly::Random::rand32(128);
       ByteArray16 ba;
-      *(uint64_t*)(&ba[0]) = random64();
-      *(uint64_t*)(&ba[8]) = random64();
+      *(uint64_t*)(&ba[0]) = folly::Random::rand64();
+      *(uint64_t*)(&ba[8]) = folly::Random::rand64();
       auto ip = IPAddressV6(ba);
       ip = ip.mask(mask);
       if (inserted6.insert(Prefix6(ip, mask)).second) {
