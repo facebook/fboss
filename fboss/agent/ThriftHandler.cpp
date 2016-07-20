@@ -408,7 +408,7 @@ void ThriftHandler::fillPortStats(PortInfoThrift& portInfo) {
     // `the external name is "eth<a>/<b>/<c>"
     auto portName = folly::to<std::string>("port", portId);
     auto statName = folly::to<std::string>(portName, ".", prefix, name);
-    auto statPtr = statMap->getStatPtr(statName);
+    auto statPtr = statMap->getLockedStatPtr(statName);
     auto numLevels = statPtr->numLevels();
     // Cumulative (ALLTIME) counters are at (numLevels - 1)
     return statPtr->sum(numLevels - 1);
