@@ -32,6 +32,9 @@ DEFINE_bool(tx_disable, false, "Set the TX disable bits");
 DEFINE_bool(tx_enable, false, "Clear the TX disable bits");
 DEFINE_bool(set_40g, false, "Rate select 40G");
 DEFINE_bool(set_100g, false, "Rate select 100G");
+DEFINE_bool(cdr_enable, false, "Set the CDR bits if transceiver supports it");
+DEFINE_bool(cdr_disable, false,
+    "Clear the CDR bits if transceiver supports it");
 
 bool overrideLowPower(TransceiverI2CApi* bus, unsigned int port) {
   // 0x01 overrides low power mode
@@ -42,6 +45,38 @@ bool overrideLowPower(TransceiverI2CApi* bus, unsigned int port) {
   } catch (const UsbError& ex) {
     // This generally means the QSFP module is not present.
     fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
+    return false;
+  }
+  return true;
+}
+
+bool setCdr(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
+  // 0xff to enable
+  // 0x00 to disable
+
+  // Check if CDR is supported
+  uint8_t supported[1];
+  try {
+    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 129,
+                      1, supported);
+  } catch (const UsbError& ex) {
+    fprintf(stderr, "Port %d: Unable to determine whether CDR supported\n",
+        port);
+    return false;
+  }
+  // If 2nd and 3rd bits are set, CDR is supported
+  if (!(supported[0] & 0xC)) {
+    fprintf(stderr, "CDR unsupported by this device, doing nothing");
+    return false;
+  }
+
+  // Even if CDR isn't supported for one of RX and TX, set the whole
+  // byte anyway
+  uint8_t buf[1] = {value};
+  try {
+    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 98, 1, buf);
+  } catch (const UsbError& ex) {
+    fprintf(stderr, "QSFP %d: Failed to set CDR\n", port);
     return false;
   }
   return true;
@@ -117,8 +152,6 @@ void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
     // Read page 0 from the upper 128 bytes.
     // First see if we need to select page 0.
     if ((buf[2] & (1 << 2)) == 0) {
-      // This QSFP supports paging.
-      // Set the page select byte to page 0 if necessary.
       uint8_t page0 = 0;
       if (buf[127] != page0) {
         bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP,
@@ -169,6 +202,9 @@ void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
   printf("  TX disable bits: 0x%02x\n", buf[86]);
   printf("  RX rate select bits: 0x%02x\n", buf[87]);
   printf("  TX rate select bits: 0x%02x\n", buf[88]);
+  printf("  CDR supported:  TX: %s\tRX: %s\n",
+      (buf[129] & (1 << 3)) ? "supported" : "unsupported",
+      (buf[129] & (1 << 2)) ? "supported" : "unsupported");
   printf("  CDR bits: 0x%02x\n", buf[98]);
 
   auto vendor = sfpString(buf, 148, 16);
@@ -246,6 +282,10 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "Cannot set both 40g and 100g\n");
     return EX_USAGE;
   }
+  if (FLAGS_cdr_enable && FLAGS_cdr_disable) {
+    fprintf(stderr, "Cannot set and clear the CDR bits\n");
+    return EX_USAGE;
+  }
 
   std::vector<unsigned int> ports;
   bool good = true;
@@ -293,7 +333,8 @@ int main(int argc, char* argv[]) {
   }
 
   bool printInfo = !(FLAGS_clear_low_power || FLAGS_tx_disable ||
-                     FLAGS_tx_enable || FLAGS_set_100g || FLAGS_set_40g);
+                     FLAGS_tx_enable || FLAGS_set_100g || FLAGS_set_40g ||
+                     FLAGS_cdr_enable || FLAGS_cdr_disable);
   int retcode = EX_OK;
   for (unsigned int portNum : ports) {
     if (FLAGS_clear_low_power) {
@@ -328,6 +369,20 @@ int main(int argc, char* argv[]) {
     if (FLAGS_set_100g) {
       if (rateSelect(bus.get(), portNum, 0xff)) {
         printf("QSFP %d: set to optimize for 25G channels\n", portNum);
+      } else {
+        retcode = EX_SOFTWARE;
+      }
+    }
+
+    if (FLAGS_cdr_enable) {
+      if (setCdr(bus.get(), portNum, 0xff)) {
+        printf("QSFP %d: CDR enabled\n", portNum);
+      } else {
+        retcode = EX_SOFTWARE;
+      }
+    } else if (FLAGS_cdr_disable) {
+      if (setCdr(bus.get(), portNum, 0x00)) {
+        printf("QSFP %d: CDR disabled\n", portNum);
       } else {
         retcode = EX_SOFTWARE;
       }
