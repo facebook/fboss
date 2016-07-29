@@ -66,6 +66,9 @@ public:
     return stat;
   }
 
+  std::shared_ptr<ExportedStat> getLockedStatPtr(folly::StringPiece name) {
+      return std::make_shared<ExportedStat>();
+  }
 
   std::shared_ptr<ExportedStat> getStatPtr(folly::StringPiece name) {
       return std::make_shared<ExportedStat>();
