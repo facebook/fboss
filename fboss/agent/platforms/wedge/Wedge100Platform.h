@@ -30,6 +30,7 @@ class Wedge100Platform : public WedgePlatform {
   InitPortMap initPorts() override;
   Wedge100Port* getPortFromFrontPanelNum(TransceiverID fpPort);
   void onHwInitialized(SwSwitch* sw) override;
+  void onUnitAttach(int unit) override;
 
  private:
   Wedge100Platform(Wedge100Platform const &) = delete;
@@ -49,6 +50,7 @@ class Wedge100Platform : public WedgePlatform {
   FrontPanelMapping getFrontPanelMapping();
   folly::ByteRange defaultLedCode() override;
   void enableLedMode();
+  void setPciPreemphasis(int unit) const;
 
   FrontPanelMapping frontPanelMapping_;
 };

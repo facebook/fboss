@@ -22,4 +22,8 @@ folly::ByteRange Wedge100Platform::defaultLedCode() {
   return folly::ByteRange();
 }
 
+void Wedge100Platform::setPciPreemphasis(int unit) const {
+  //stubbed out
+}
+
 }} // facebook::fboss

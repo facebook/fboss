@@ -35,7 +35,7 @@ class BcmPlatform : public Platform {
    * onUnitAttach() will be called by the BcmSwitch code immediately after
    * attaching to the switch unit.
    */
-  virtual void onUnitAttach() = 0;
+  virtual void onUnitAttach(int unit) = 0;
 
   /*
    * initPorts() will be called during port initialization.

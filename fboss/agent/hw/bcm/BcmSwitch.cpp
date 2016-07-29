@@ -436,7 +436,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   LOG(INFO) << "Initializing BcmSwitch for unit " << unit_;
 
-  platform_->onUnitAttach();
+  platform_->onUnitAttach(unit_);
 
   // Additional switch configuration
   auto state = make_shared<SwitchState>();

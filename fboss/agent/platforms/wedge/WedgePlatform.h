@@ -41,7 +41,7 @@ class WedgePlatform : public BcmPlatform {
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
 
-  void onUnitAttach() override;
+  void onUnitAttach(int unit) override;
   void getProductInfo(ProductInfo& info) override;
 
   bool canUseHostTableForHostRoutes() const override {

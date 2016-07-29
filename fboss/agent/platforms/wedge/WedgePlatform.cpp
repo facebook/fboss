@@ -83,8 +83,7 @@ string WedgePlatform::getPersistentStateDir() const {
   return FLAGS_persistent_state_dir;
 }
 
-void WedgePlatform::onUnitAttach() {
-}
+void WedgePlatform::onUnitAttach(int unit) {}
 
 void WedgePlatform::getProductInfo(ProductInfo& info) {
   productInfo_->getInfo(info);

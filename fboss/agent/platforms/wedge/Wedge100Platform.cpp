@@ -148,4 +148,8 @@ void Wedge100Platform::onHwInitialized(SwSwitch* sw) {
   enableLedMode();
 }
 
+void Wedge100Platform::onUnitAttach(int unit) {
+  setPciPreemphasis(unit);
+}
+
 }} // facebook::fboss

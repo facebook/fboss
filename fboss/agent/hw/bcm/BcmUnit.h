@@ -85,6 +85,8 @@ class BcmUnit {
     return unit_;
   }
 
+  void rawRegisterWrite(uint16_t phyID, uint8_t reg, uint16_t data);
+
   /*
    * Set a caller-defined cookie that can be retrieved with getCookie().
    *

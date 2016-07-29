@@ -128,4 +128,10 @@ void BcmUnit::switchEventCallback(int unitNumber,
   }
 }
 
+void BcmUnit::rawRegisterWrite(uint16_t phyID,
+                               uint8_t reg,
+                               uint16_t data) {
+  // stubbed out
+}
+
 }} // facebook::fboss
