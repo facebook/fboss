@@ -193,6 +193,8 @@ void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
   printChannelMonitor(2, buf, 36, 37, 44, 45);
   printChannelMonitor(3, buf, 38, 39, 46, 47);
   printChannelMonitor(4, buf, 40, 41, 48, 49);
+  printf("    Power measurement is %s\n",
+         (buf[220] & 0x04) ? "supported" : "unsupported");
   printf("    Reported RX Power is %s\n",
          (buf[220] & 0x08) ? "average power" : "OMA");
 
@@ -200,9 +202,11 @@ void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
          "Ethernet Compliance:  0x%02x\n",
          buf[93], buf[129], buf[131]);
   printf("  TX disable bits: 0x%02x\n", buf[86]);
+  printf("  Rate select is %s\n",
+      (buf[221] & 0x0c) ? "supported" : "unsupported");
   printf("  RX rate select bits: 0x%02x\n", buf[87]);
   printf("  TX rate select bits: 0x%02x\n", buf[88]);
-  printf("  CDR supported:  TX: %s\tRX: %s\n",
+  printf("  CDR support:  TX: %s\tRX: %s\n",
       (buf[129] & (1 << 3)) ? "supported" : "unsupported",
       (buf[129] & (1 << 2)) ? "supported" : "unsupported");
   printf("  CDR bits: 0x%02x\n", buf[98]);
