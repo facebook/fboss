@@ -11,7 +11,7 @@
 
 #include <folly/Conv.h>
 
-#include <boost/strong_typedef.hpp>
+#include <boost/serialization/strong_typedef.hpp>
 #include <cstdint>
 #include <type_traits>
 
