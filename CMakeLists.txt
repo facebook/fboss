@@ -178,6 +178,7 @@ add_library(fboss_agent STATIC
     fboss/agent/QsfpModule.cpp
     fboss/agent/RestClient.cpp
     fboss/agent/RouteUpdateLogger.cpp
+    fboss/agent/oss/RouteUpdateLogger.cpp
     fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
     fboss/agent/SffFieldInfo.cpp
     fboss/agent/SfpModule.cpp

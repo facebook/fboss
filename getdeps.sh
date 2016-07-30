@@ -44,7 +44,7 @@ function get_packages() {
         libssl-dev make zip git autoconf libtool g++ libboost-all-dev \
         libevent-dev flex bison libgoogle-glog-dev scons libkrb5-dev \
         libsnappy-dev libsasl2-dev libnuma-dev libi2c-dev libcurl4-nss-dev \
-        libusb-1.0-0-dev libpcap-dev libdb5.3-dev cmake libnl-3-dev
+        libusb-1.0-0-dev libpcap-dev libdb5.3-dev cmake libnl-3-dev libnl3-
 }
 
 if [ "$1" = 'pkg' ]; then
