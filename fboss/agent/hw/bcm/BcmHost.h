@@ -256,29 +256,43 @@ class BcmHostTable {
    */
   void linkStateChangedMaybeLocked(opennsl_port_t port, bool up,
       bool locked);
-  void egressResolutionChangedMaybeLocked(const Paths& affectedPaths, bool up,
-      bool locked);
+  void egressResolutionChangedHwLocked(const Paths& affectedPaths, bool up);
+  static void egressResolutionChangedHwNotLocked(
+      int unit,
+      const Paths& affectedPaths,
+      bool up);
+  // Callback for traversal in egressResolutionChangedHwNotLocked
+  static int removeAllEgressesFromEcmpCallback(
+      int unit,
+      opennsl_l3_egress_ecmp_t* ecmp,
+      int intfCount,
+      opennsl_if_t* intfArray,
+      void* userData);
   void setPort2EgressIdsInternal(std::shared_ptr<PortAndEgressIdsMap> newMap);
   const BcmSwitch* hw_;
 
-  template<typename KeyT, typename HostT>
-  using HostMap = boost::container::flat_map<
-    KeyT, std::pair<std::unique_ptr<HostT>, uint32_t>>;
+  template <typename KeyT, typename HostT>
+  using HostMap = boost::container::
+      flat_map<KeyT, std::pair<std::unique_ptr<HostT>, uint32_t>>;
 
-  boost::container::flat_map<opennsl_if_t,
-    std::pair<std::unique_ptr<BcmEgressBase>, uint32_t>> egressMap_;
+  boost::container::flat_map<
+      opennsl_if_t,
+      std::pair<std::unique_ptr<BcmEgressBase>, uint32_t>>
+      egressMap_;
 
   typedef std::pair<opennsl_vrf_t, folly::IPAddress> Key;
   HostMap<Key, BcmHost> hosts_;
   typedef std::pair<opennsl_vrf_t, RouteForwardNexthops> EcmpKey;
   HostMap<EcmpKey, BcmEcmpHost> ecmpHosts_;
 
-  template<typename KeyT, typename HostT, typename... Args>
-  HostT* incRefOrCreateBcmHost(HostMap<KeyT, HostT>* map, const KeyT& key,
+  template <typename KeyT, typename HostT, typename... Args>
+  HostT* incRefOrCreateBcmHost(
+      HostMap<KeyT, HostT>* map,
+      const KeyT& key,
       Args... args);
-  template<typename KeyT, typename HostT, typename... Args>
-  HostT* getBcmHostIf(const HostMap<KeyT, HostT> *map, Args... args) const;
-  template<typename KeyT, typename HostT, typename... Args>
+  template <typename KeyT, typename HostT, typename... Args>
+  HostT* getBcmHostIf(const HostMap<KeyT, HostT>* map, Args... args) const;
+  template <typename KeyT, typename HostT, typename... Args>
   HostT* derefBcmHost(HostMap<KeyT, HostT>* map, Args... args) noexcept;
 
   /*

@@ -426,8 +426,8 @@ void BcmHostTable::updatePortEgressMapping(opennsl_if_t egressId,
     // would have never removed it from ecmp egress object.
     BcmEcmpEgress::Paths affectedPaths;
     affectedPaths.insert(egressId);
-    egressResolutionChangedMaybeLocked(affectedPaths, isUp ? true /*up*/ :
-        false /*went away*/, true /* hw locked*/);
+    egressResolutionChangedHwLocked(
+        affectedPaths, isUp ? true /*up*/ : false /*went away*/);
   }
 }
 
@@ -536,12 +536,42 @@ void BcmHostTable::linkStateChangedMaybeLocked(opennsl_port_t port, bool up,
   if (!portAndEgressIds) {
     return;
   }
-  egressResolutionChangedMaybeLocked(portAndEgressIds->getEgressIds(), up,
-      locked);
+  if (locked) {
+    egressResolutionChangedHwLocked(
+        portAndEgressIds->getEgressIds(), up);
+  } else {
+    CHECK(!up);
+    egressResolutionChangedHwNotLocked(
+        hw_->getUnit(), portAndEgressIds->getEgressIds(), up);
+  }
 }
 
-void BcmHostTable::egressResolutionChangedMaybeLocked(
-    const Paths& affectedPaths, bool up, bool locked) {
+int BcmHostTable::removeAllEgressesFromEcmpCallback(
+    int unit,
+    opennsl_l3_egress_ecmp_t *ecmp,
+    int intfCount,
+    opennsl_if_t *intfArray,
+    void *userData) {
+  Paths* paths = static_cast<Paths*>(userData);
+  for (const auto& egrId : *paths) {
+    BcmEcmpEgress::removeEgressIdHwNotLocked(unit, ecmp->ecmp_intf, egrId);
+  }
+  return 0;
+}
+
+void BcmHostTable::egressResolutionChangedHwNotLocked(
+    int unit,
+    const Paths& affectedPaths,
+    bool up) {
+  CHECK(!up);
+  Paths tmpPaths(affectedPaths);
+  opennsl_l3_egress_ecmp_traverse(
+      unit, removeAllEgressesFromEcmpCallback, &tmpPaths);
+}
+
+void BcmHostTable::egressResolutionChangedHwLocked(
+    const Paths& affectedPaths,
+    bool up) {
   for (const auto& nextHopsAndEcmpHostInfo : ecmpHosts_) {
     auto ecmpId = nextHopsAndEcmpHostInfo.second.first->getEcmpEgressId();
     if (ecmpId == BcmEgressBase::INVALID) {
@@ -553,13 +583,11 @@ void BcmHostTable::egressResolutionChangedMaybeLocked(
     // our map should be pointing to valid Ecmp egress object for
     // a ecmp egress Id anyways
     CHECK(ecmpEgress);
-    for (auto path: affectedPaths) {
+    for (auto path : affectedPaths) {
       if (up) {
-        CHECK(locked);
         ecmpEgress->pathReachableHwLocked(path);
       } else {
-        auto updated = locked ? ecmpEgress->pathUnreachableHwLocked(path) :
-          ecmpEgress->pathUnreachableHwNotLocked(path);
+        ecmpEgress->pathUnreachableHwLocked(path);
       }
     }
   }
@@ -571,21 +599,20 @@ void BcmHostTable::egressResolutionChangedMaybeLocked(
    * Conversely post a FIB sync we won't have any ecmp egress IDs
    * in the warm boot cache
    */
-  for (const auto& ecmpAndEgressIds:
-      hw_->getWarmBootCache()->ecmp2EgressIds()) {
-    for (auto path: affectedPaths) {
+  for (const auto& ecmpAndEgressIds :
+       hw_->getWarmBootCache()->ecmp2EgressIds()) {
+    for (auto path : affectedPaths) {
       if (up) {
-        CHECK(locked);
-        BcmEcmpEgress::addEgressIdHwLocked(hw_->getUnit(),
-            ecmpAndEgressIds.first, ecmpAndEgressIds.second, path);
+        BcmEcmpEgress::addEgressIdHwLocked(
+            hw_->getUnit(),
+            ecmpAndEgressIds.first,
+            ecmpAndEgressIds.second,
+            path);
       } else {
-         if (locked) {
-           BcmEcmpEgress::removeEgressIdHwLocked(hw_->getUnit(),
-               ecmpAndEgressIds.first, ecmpAndEgressIds.second, path);
-         } else {
-           BcmEcmpEgress::removeEgressIdHwNotLocked(hw_->getUnit(),
-               ecmpAndEgressIds.first, ecmpAndEgressIds.second, path);
-         }
+        BcmEcmpEgress::removeEgressIdHwLocked(
+            hw_->getUnit(),
+            ecmpAndEgressIds.first,
+            path);
       }
     }
   }

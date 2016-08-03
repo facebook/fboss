@@ -11,8 +11,10 @@
 
 namespace facebook { namespace fboss {
 
-bool BcmEcmpEgress::removeEgressIdHwNotLocked(int unit, opennsl_if_t ecmpId,
-    const Paths& egressIdInSw, opennsl_if_t toRemove) {
+bool BcmEcmpEgress::removeEgressIdHwNotLocked(
+    int unit,
+    opennsl_if_t ecmpId,
+    opennsl_if_t toRemove) {
   return false; // Not supported in opennsl;
 }
 

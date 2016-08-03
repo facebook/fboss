@@ -111,9 +111,7 @@ class BcmEcmpEgress : public BcmEgressBase {
     program();
   }
   ~BcmEcmpEgress() override;
-  bool pathUnreachableHwNotLocked(EgressId path);
   bool pathUnreachableHwLocked(EgressId path);
-  bool pathReachableNoHWLock(EgressId path);
   bool pathReachableHwLocked(EgressId path);
   const Paths& paths() const {
     return paths_;
@@ -125,14 +123,16 @@ class BcmEcmpEgress : public BcmEgressBase {
   /*
    * Update ecmp egress entries in HW
    */
-  static bool addEgressIdHwNotLocked(int unit,
-      EgressId ecmpId, const Paths& egressIdInSw, EgressId toAdd);
-  static bool addEgressIdHwLocked(int unit, EgressId ecmpId,
-      const Paths& egressIdInSw, EgressId toAdd);
-  static bool removeEgressIdHwNotLocked(int unit, EgressId ecmpId,
-      const Paths& paths, EgressId path);
-  static bool removeEgressIdHwLocked(int unit, EgressId ecmpId,
-      const Paths& paths, EgressId path);
+  static bool addEgressIdHwLocked(
+      int unit,
+      EgressId ecmpId,
+      const Paths& egressIdInSw,
+      EgressId toAdd);
+  static bool
+  removeEgressIdHwNotLocked(int unit, EgressId ecmpId, EgressId toRemove);
+  static bool
+  removeEgressIdHwLocked(int unit, EgressId ecmpId, EgressId toRemove);
+
  private:
   void program();
   const Paths paths_;
