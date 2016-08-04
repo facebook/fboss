@@ -11,7 +11,7 @@
 
 #include <cstdint>
 #include <folly/Range.h>
-#include "common/stats/ExportedTimeseries.h"
+#include "common/stats/ExportedStatMapImpl.h"
 
 namespace facebook { namespace stats {
 

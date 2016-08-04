@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "common/stats/ExportedTimeseries.h"
+#include "common/stats/ExportedStatMapImpl.h"
 #include "common/stats/ExportedHistogram.h"
 #include <map>
 
@@ -17,8 +17,8 @@ namespace facebook { namespace stats {
 
 class ServiceData {
 public:
-  ExportedStatMap* getStatMap() {
-    static ExportedStatMap it;
+  ExportedStatMapImpl* getStatMap() {
+    static ExportedStatMapImpl it;
     return &it;
   }
   ExportedHistogramMap* getHistogramMap() {

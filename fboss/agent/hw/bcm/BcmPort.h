@@ -178,7 +178,7 @@ class BcmPort {
   MonotonicCounter outErrors_{statName("out_errors")};
   MonotonicCounter outPause_{statName("out_pause_frames")};
 
-  stats::ExportedStatMap::LockableStat outQueueLen_;
+  stats::ExportedStatMapImpl::LockableStat outQueueLen_;
   stats::ExportedHistogramMap::LockableHistogram inPktLengths_;
   stats::ExportedHistogramMap::LockableHistogram outPktLengths_;
 };

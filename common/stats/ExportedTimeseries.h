@@ -42,7 +42,7 @@ struct ExportedStat {
   int sum(int level) {return 0;}
 };
 
-class ExportedStatMap {
+class ExportedStatMapImpl {
 public:
   class LockAndStatItem {
   public:
