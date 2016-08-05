@@ -87,6 +87,12 @@ MockPlatform* getMockPlatform(SwSwitch* sw);
  */
 void waitForStateUpdates(SwSwitch* sw);
 
+/*
+ * Wait until all pending actions on the background thread
+ * have been processed
+ */
+void waitForBackgroundThread(SwSwitch* sw);
+
 /**
  * check the field value
  */

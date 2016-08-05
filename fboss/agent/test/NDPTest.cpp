@@ -1404,6 +1404,9 @@ TEST(NdpTest, PortFlapRecover) {
   // send a port down event to the switch for port 2
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(testing::AtLeast(1));
   sw->linkStateChanged(PortID(1), false);
+  // port down handling is async on the bg evb, so
+  // block on something coming off of that
+  waitForBackgroundThread(sw.get());
   waitForStateUpdates(sw.get());
 
   // The first two entries should be pending now, but not the third

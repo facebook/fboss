@@ -148,6 +148,11 @@ void waitForStateUpdates(SwSwitch* sw) {
   sw->updateStateBlocking("waitForStateUpdates", noopUpdate);
 }
 
+void waitForBackgroundThread(SwSwitch* sw) {
+  auto* evb = sw->getBackgroundEVB();
+  evb->runInEventBaseThreadAndWait([]() { return; });
+}
+
 shared_ptr<SwitchState> testStateA() {
   // Setup a default state object
   auto state = make_shared<SwitchState>();

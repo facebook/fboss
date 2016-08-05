@@ -80,7 +80,7 @@ class HwSwitch {
      * linkStateChanged() is invoked by the HwSwitch whenever the link
      * status changes on a port.
      */
-    virtual void linkStateChanged(PortID port, bool up) noexcept = 0;
+    virtual void linkStateChanged(PortID port, bool up) = 0;
 
     /*
      * Used to notify the SwSwitch of a fatal error so the implementation can

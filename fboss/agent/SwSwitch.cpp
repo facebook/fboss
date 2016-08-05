@@ -911,17 +911,27 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   stats()->port(port)->pktUnhandled();
 }
 
-void SwSwitch::linkStateChanged(PortID port, bool up) noexcept {
+void SwSwitch::linkStateChanged(PortID portId, bool up) {
 
-  LOG(INFO) << "link state changed: " << port << " enabled = " << up;
-  // Start noticing port downs only after
-  // our state has been initialized.
-  if (!isFullyInitialized() || up) {
-    return;
+  LOG(INFO) << "link state changed: " << portId << " enabled = " << up;
+  auto updateFn = [portId, up](const std::shared_ptr<SwitchState>& state)
+      -> std::shared_ptr<SwitchState> {
+    std::shared_ptr<SwitchState> newState{state};
+    auto newPort = state->getPorts()->getPortIf(portId)->modify(&newState);
+    auto newPortState = up ? cfg::PortState::UP : cfg::PortState::DOWN;
+    newPort->setState(newPortState);
+    return newState;
+  };
+  updateState(
+      folly::sformat("Mark port {} up={}", static_cast<uint16_t>(portId), up),
+      updateFn);
+
+  if (isFullyInitialized() && !up) {
+    logLinkStateEvent(portId, up);
+    setPortStatusCounter(portId, up);
+    backgroundEventBase_.runInEventBaseThread(
+        [this, portId]() { nUpdater_->portDown(portId); });
   }
-  logLinkStateEvent(port, up);
-  setPortStatusCounter(port, up);
-  nUpdater_->portDown(port);
 }
 
 void SwSwitch::startThreads() {
