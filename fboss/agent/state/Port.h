@@ -118,7 +118,8 @@ class Port : public NodeBaseT<Port, PortFields> {
   }
 
   bool isDisabled() const {
-    return getFields()->state == cfg::PortState::POWER_DOWN;
+    auto state = getFields()->state;
+    return state == cfg::PortState::POWER_DOWN || state == cfg::PortState::DOWN;
   }
 
   const VlanMembership& getVlans() const {

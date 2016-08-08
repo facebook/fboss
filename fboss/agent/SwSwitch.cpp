@@ -912,20 +912,7 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
 }
 
 void SwSwitch::linkStateChanged(PortID portId, bool up) {
-
   LOG(INFO) << "link state changed: " << portId << " enabled = " << up;
-  auto updateFn = [portId, up](const std::shared_ptr<SwitchState>& state)
-      -> std::shared_ptr<SwitchState> {
-    std::shared_ptr<SwitchState> newState{state};
-    auto newPort = state->getPorts()->getPortIf(portId)->modify(&newState);
-    auto newPortState = up ? cfg::PortState::UP : cfg::PortState::DOWN;
-    newPort->setState(newPortState);
-    return newState;
-  };
-  updateState(
-      folly::sformat("Mark port {} up={}", static_cast<uint16_t>(portId), up),
-      updateFn);
-
   if (isFullyInitialized() && !up) {
     logLinkStateEvent(portId, up);
     setPortStatusCounter(portId, up);
