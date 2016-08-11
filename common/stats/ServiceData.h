@@ -9,16 +9,16 @@
  */
 #pragma once
 
-#include "common/stats/ExportedStatMapImpl.h"
-#include "common/stats/ExportedHistogram.h"
+#include "common/stats/ExportedStatMap.h"
+#include "common/stats/ExportedHistogramMap.h"
 #include <map>
 
 namespace facebook { namespace stats {
 
 class ServiceData {
 public:
-  ExportedStatMapImpl* getStatMap() {
-    static ExportedStatMapImpl it;
+  ExportedStatMap* getStatMap() {
+    static ExportedStatMap it;
     return &it;
   }
   ExportedHistogramMap* getHistogramMap() {
