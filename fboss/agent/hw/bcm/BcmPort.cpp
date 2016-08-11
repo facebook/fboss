@@ -443,7 +443,7 @@ void BcmPort::updateStat(std::chrono::seconds now,
 
 void BcmPort::updatePktLenHist(
     std::chrono::seconds now,
-    stats::ExportedHistogramMap::LockableHistogram* hist,
+    stats::ExportedHistogramMapImpl::LockableHistogram* hist,
     const std::vector<opennsl_stat_val_t>& stats) {
   // Get the counter values
   uint64_t counters[10];

@@ -16,7 +16,7 @@ extern "C" {
 }
 
 #include "common/stats/MonotonicCounter.h"
-#include "common/stats/ExportedHistogram.h"
+#include "common/stats/ExportedHistogramMapImpl.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/gen-cpp/switch_config_types.h"
@@ -134,7 +134,7 @@ class BcmPort {
                   stats::MonotonicCounter* stat,
                   opennsl_stat_val_t type);
   void updatePktLenHist(std::chrono::seconds now,
-                        stats::ExportedHistogramMap::LockableHistogram* hist,
+                        stats::ExportedHistogramMapImpl::LockableHistogram* hist,
                         const std::vector<opennsl_stat_val_t>& stats);
   std::string statName(folly::StringPiece name) const;
 
@@ -179,8 +179,8 @@ class BcmPort {
   MonotonicCounter outPause_{statName("out_pause_frames")};
 
   stats::ExportedStatMapImpl::LockableStat outQueueLen_;
-  stats::ExportedHistogramMap::LockableHistogram inPktLengths_;
-  stats::ExportedHistogramMap::LockableHistogram outPktLengths_;
+  stats::ExportedHistogramMapImpl::LockableHistogram inPktLengths_;
+  stats::ExportedHistogramMapImpl::LockableHistogram outPktLengths_;
 };
 
 }} // namespace facebook::fboss
