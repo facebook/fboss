@@ -621,7 +621,7 @@ class SwSwitch : public HwSwitch::Callback {
   void publishSfpInfo();
   void publishPortInfo();
   void publishRouteStats();
-  void publishBootInfo();
+  void publishSwitchInfo(struct HwInitResult hwInitRet);
   SwitchRunState getSwitchRunState() const;
   void setSwitchRunState(SwitchRunState desiredState);
   SwitchStats* createSwitchStats();

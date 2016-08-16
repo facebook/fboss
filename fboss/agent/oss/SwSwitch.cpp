@@ -28,7 +28,7 @@ void SwSwitch::publishInitTimes(std::string name, const float& time) {}
 
 void SwSwitch::publishStats() {}
 
-void SwSwitch::publishBootInfo() {}
+void SwSwitch::publishSwitchInfo(struct HwInitResult hwInitRet) {}
 
 void SwSwitch::logLinkStateEvent(PortID port, bool up) {
   std::string logMsg = folly::sformat("LinkState: Port {0} {1}",

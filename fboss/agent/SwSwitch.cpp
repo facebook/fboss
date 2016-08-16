@@ -339,17 +339,7 @@ void SwSwitch::init(SwitchFlags flags) {
   // we don't have to wait for the initial probe to complete before
   // applying initial config.
   if (flags & SwitchFlags::PUBLISH_STATS) {
-    publishInitTimes(
-      "fboss.ctrl.hw_initialized_time", hwInitRet.initializedTime);
-    if (hwInitRet.bootType == BootType::COLD_BOOT) {
-      publishInitTimes("fboss.ctrl.hw_bcm_cold_boot", hwInitRet.bootTime);
-    } else {
-      publishInitTimes("fboss.ctrl.hw_bcm_warm_boot", hwInitRet.bootTime);
-    }
-  }
-
-  if (flags & SwitchFlags::PUBLISH_STATS) {
-    publishBootInfo();
+    publishSwitchInfo(hwInitRet);
   }
 
   if (flags & SwitchFlags::ENABLE_LLDP) {
