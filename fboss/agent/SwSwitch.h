@@ -214,7 +214,6 @@ class SwSwitch : public HwSwitch::Callback {
    */
   void updateStateNoCoalescing(folly::StringPiece name, StateUpdateFn fn);
 
-
   /*
    * A version of updateState() that doesn't return until the update has been
    * applied.
@@ -261,7 +260,7 @@ class SwSwitch : public HwSwitch::Callback {
                          const std::set<std::string>& counters);
 
   /*
-   * Registers an observer of all state updates. An observer will be notifies of
+   * Registers an observer of all state updates. An observer will be notified of
    * all state updates that occur and all classes that care about state updates
    * should register using this api.
    *

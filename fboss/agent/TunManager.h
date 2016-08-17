@@ -32,12 +32,14 @@ class TunManager : public StateObserver {
  public:
   TunManager(SwSwitch *sw, folly::EventBase *evb);
   ~TunManager() override;
+
   /**
-   * Start probe procedure to read TUN interface info from the host.
-   * This function can be called from any thread.
-   * The probe function will happen in the thread serving 'evb_'
+   * Start probe procedure to read existing TUN interface info from the host.
+   * This function can be called from any thread and probe function will happen
+   * in the thread serving 'evb_'
    */
   void startProbe();
+
   /**
    * Update the intfs_ map based on the given state update. This
    * overrides the StateObserver stateUpdated api, which is always
@@ -45,7 +47,6 @@ class TunManager : public StateObserver {
    */
   void stateUpdated(const StateDelta& delta) override;
 
-  void startObservingUpdates();
   /**
    * Send a packet to host.
    * This function can be called from any thread.
@@ -54,13 +55,25 @@ class TunManager : public StateObserver {
    *         false The packet is dropped due to errors
    */
   bool sendPacketToHost(std::unique_ptr<RxPacket> pkt);
-  /*
-   * Sync to SwitchState
-   * This should really be only called externally
-   * once, after config is applied. After that all
-   * updates should come via the stateUpdated calls
+
+  /**
+   * Sync the new SwitchState
+   * This should really be only called externally once, after config is applied.
+   * After that all updates should come via the stateUpdated calls.
+   *
+   * SwSwitch calls this API when initial configuration is applied on agent
+   * restart.
    */
   void sync(std::shared_ptr<SwitchState> state);
+
+  /**
+   * This should be called externally only after initial sync has been
+   * performed.
+   *
+   * SwSwitch calls this API after calling initial sync when initial
+   * configuration is applied.
+   */
+  void startObservingUpdates();
 
  private:
   // no copy to assign
@@ -82,6 +95,7 @@ class TunManager : public StateObserver {
   // Whether the manager has registered itself to listen for state updates
   // from sw_
   bool observingState_{false};
+
   // Initial probe done
   bool probeDone_{false};
 
@@ -93,23 +107,32 @@ class TunManager : public StateObserver {
      */
     RTPROT_FBOSS = 80,
   };
-  /// Add a TUN interface. It is called during probe process.
+
+  /**
+   * Add a TUN interface. It can happen two ways
+   * 1. During probe process when we discover existing Tun interface on linux
+   * 2. When we want to create a new TUN interface in linux
+   */
   void addIntf(RouterID rid, const std::string& name, int IfIdx);
-  /// Add a TUN interface. It is called to create a new TUN interface.
   void addIntf(RouterID rid, const Interface::Addresses& addrs);
+
   /// Remove an existing TUN interface
   void removeIntf(RouterID rid);
+
   /// A tun interface was changed, update the addresses accordingly
   void updateIntf(RouterID rid, const Interface::Addresses& addrs);
- /// Add an address to a TUN interface during probe process.
+
+  /// Add an address to a TUN interface during probe process.
   void addProbedAddr(int ifIndex, const folly::IPAddress& addr, uint8_t mask);
+
   /// Bring up the interface on the host
   void bringupIntf(const std::string& name, int ifIndex);
+
   /// Retrieve the route table ID based on the router ID
   int getTableId(RouterID rid) const;
+
   /// Add/remove a route table
   void addRemoveTable(int ifIdx, RouterID rid, bool add);
-
   void addRouteTable(int ifIdx, RouterID rid) {
     addRemoveTable(ifIdx, rid, true);
   }
@@ -130,6 +153,7 @@ class TunManager : public StateObserver {
    */
   void addRemoveSourceRouteRule(RouterID rid, folly::IPAddress addr,
                                 bool add);
+
   /// Add/remove an address to/from a TUN interface on the host
   void addRemoveTunAddress(const std::string& name, uint32_t ifIndex,
                            folly::IPAddress addr, uint8_t mask, bool add);
@@ -138,9 +162,9 @@ class TunManager : public StateObserver {
   void removeTunAddress(const std::string& name, RouterID rid, uint32_t ifIndex,
                         folly::IPAddress addr, uint8_t mask);
 
-  //callback for processing and storing links
+  // callback for processing and storing links
   static void linkProcessor(struct nl_object *obj, void *data);
-  //callback for processing and storing addresses
+  // callback for processing and storing addresses
   static void addressProcessor(struct nl_object *obj, void *data);
 
   template<typename MAPNAME,
