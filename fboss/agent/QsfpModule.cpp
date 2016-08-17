@@ -37,11 +37,13 @@ static SffFieldInfo::SffFieldMap qsfpFields = {
   {SffField::CHANNEL_RX_PWR, {QsfpPages::LOWER, 34, 8} },
   {SffField::CHANNEL_TX_BIAS, {QsfpPages::LOWER, 42, 8} },
   {SffField::POWER_CONTROL, {QsfpPages::LOWER, 93, 1} },
+  {SffField::CDR_CONTROL, {QsfpPages::LOWER, 98, 1} },
   {SffField::PAGE_SELECT_BYTE, {QsfpPages::LOWER, 127, 1} },
 
   // Page 0 values, including vendor info:
   {SffField::EXTENDED_IDENTIFIER, {QsfpPages::PAGE0, 129, 1} },
   {SffField::ETHERNET_COMPLIANCE, {QsfpPages::PAGE0, 131, 1} },
+  {SffField::EXTENDED_RATE_COMPLIANCE, {QsfpPages::PAGE0, 141, 1} },
   {SffField::LENGTH_SM_KM, {QsfpPages::PAGE0, 142, 1} },
   {SffField::LENGTH_OM3, {QsfpPages::PAGE0, 143, 1} },
   {SffField::LENGTH_OM2, {QsfpPages::PAGE0, 144, 1} },
@@ -51,9 +53,12 @@ static SffFieldInfo::SffFieldMap qsfpFields = {
   {SffField::VENDOR_OUI, {QsfpPages::PAGE0, 165, 3} },
   {SffField::PART_NUMBER, {QsfpPages::PAGE0, 168, 16} },
   {SffField::REVISION_NUMBER, {QsfpPages::PAGE0, 184, 2} },
+  {SffField::OPTIONS, {QsfpPages::PAGE0, 195, 1} },
   {SffField::VENDOR_SERIAL_NUMBER, {QsfpPages::PAGE0, 196, 16} },
   {SffField::MFG_DATE, {QsfpPages::PAGE0, 212, 8} },
   {SffField::DIAGNOSTIC_MONITORING_TYPE, {QsfpPages::PAGE0, 220, 1} },
+  {SffField::ENHANCED_OPTIONS, {QsfpPages::PAGE0, 221, 1} },
+
 
   // Page 3 values, including alarm and warning threshold values:
   {SffField::TEMPERATURE_THRESH, {QsfpPages::PAGE3, 128, 8} },
@@ -186,6 +191,76 @@ bool QsfpModule::getThresholdInfo(AlarmThreshold &threshold) {
   threshold.txBias = getThresholdValues(SffField::TX_BIAS_THRESH,
                                         SffFieldInfo::getTxBias);
   return true;
+}
+
+uint8_t QsfpModule::getSettingsValue(SffField field, uint8_t mask) {
+  int offset;
+  int length;
+  int dataAddress;
+
+  getQsfpFieldAddress(field, dataAddress, offset, length);
+  const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
+
+  return data[0] & mask;
+}
+
+bool QsfpModule::getTransceiverSettingsInfo(TransceiverSettings &settings) {
+  settings.cdrTx = SffFieldInfo::getFeatureState(
+      getSettingsValue(SffField::EXTENDED_IDENTIFIER, EXT_ID_CDR_TX_MASK),
+      getSettingsValue(SffField::CDR_CONTROL, CDR_CONTROL_TX_MASK));
+  settings.cdrRx = SffFieldInfo::getFeatureState(
+      getSettingsValue(SffField::EXTENDED_IDENTIFIER, EXT_ID_CDR_RX_MASK),
+      getSettingsValue(SffField::CDR_CONTROL, CDR_CONTROL_RX_MASK));
+
+  settings.powerMeasurement = SffFieldInfo::getFeatureState(
+      getSettingsValue(SffField::DIAGNOSTIC_MONITORING_TYPE,
+                       POWER_MEASUREMENT_MASK));
+
+  settings.powerControl = getPowerControlValue();
+  settings.rateSelect = getRateSelectValue();
+
+  return true;
+}
+
+RateSelectState QsfpModule::getRateSelectValue() {
+  /* Rate select can be in one of 3 states:
+   * 1. Not supported
+   * 2. Rate selection using extended rate select
+   * 3. Rate selection with application select tables
+   *
+   * We currently only support 1 and 2
+   * The spec: ftp://ftp.seagate.com/sff/SFF-8636.PDF has a thorough
+   * discussion of this on page 36.
+   */
+  uint8_t enhancedOptions =
+    getSettingsValue(SffField::ENHANCED_OPTIONS, ENH_OPT_RATE_SELECT_MASK);
+  uint8_t options = getSettingsValue(SffField::OPTIONS, OPT_RATE_SELECT_MASK);
+
+  if (!enhancedOptions && !options) {
+    return RateSelectState::UNSUPPORTED;
+  }
+
+  uint8_t extendedRateCompliance = getSettingsValue(
+      SffField::EXTENDED_RATE_COMPLIANCE);
+  if (enhancedOptions == 0b10 && extendedRateCompliance) {
+    return RateSelectState::EXTENDED_RATE_SELECT;
+  } else if (enhancedOptions == 0b01) {
+    return RateSelectState::APPLICATION_RATE_SELECT;
+  }
+
+  return RateSelectState::UNKNOWN;
+}
+
+PowerControlState QsfpModule::getPowerControlValue() {
+  switch (getSettingsValue(SffField::POWER_CONTROL, POWER_CONTROL_MASK)) {
+    case POWER_SET:
+      return PowerControlState::POWER_SET;
+    case HIGH_POWER_OVERRIDE:
+      return PowerControlState::HIGH_POWER_OVERRIDE;
+    case POWER_OVERRIDE:
+    default:
+      return PowerControlState::POWER_OVERRIDE;
+  }
 }
 
 /*
@@ -412,6 +487,9 @@ void QsfpModule::getTransceiverInfo(TransceiverInfo &info) {
   if (getThresholdInfo(info.thresholds)) {
     info.__isset.thresholds = true;
   }
+  if (getTransceiverSettingsInfo(info.settings)) {
+    info.__isset.settings = true;
+  }
   for (int i = 0; i < CHANNEL_COUNT; i++) {
     Channel chan;
     chan.channel = i;
@@ -542,7 +620,7 @@ void QsfpModule::customizeTransceiver() {
              " Power Control " << std::hex << (int) *pwrCtrl;
 
   int highPowerLevel = (*extId & EXT_ID_HI_POWER_MASK);
-  int powerLevel = (*extId & EXT_ID_MASK) >> EXT_ID_SHIFT;
+  int powerLevel = (*extId & EXT_ID_POWER_MASK) >> EXT_ID_POWER_SHIFT;
 
   if (highPowerLevel > 0 || powerLevel > 0) {
       uint8_t power = POWER_OVERRIDE;

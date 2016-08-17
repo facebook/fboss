@@ -208,6 +208,23 @@ class QsfpModule : public Transceiver {
    */
   bool getCableInfo(Cable &cable);
   /*
+   * Retrieves the values of settings based on field name and bit placement
+   * Default mask is a noop
+   */
+  uint8_t getSettingsValue(SffField field, uint8_t mask=0xff);
+  /*
+   * Gather info on what features are enabled and supported
+   */
+  virtual bool getTransceiverSettingsInfo(TransceiverSettings &settings);
+  /*
+   * Return which rate select capability is being used, if any
+   */
+  RateSelectState getRateSelectValue();
+  /*
+   * Return what power control capability is currently enabled
+   */
+  PowerControlState getPowerControlValue();
+  /*
    * This function returns true if both the sfp is present and the
    * cache data is not stale. This should be checked before any
    * function that reads cache data is called

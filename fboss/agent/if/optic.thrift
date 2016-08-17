@@ -149,6 +149,33 @@ enum TransceiverType {
   QSFP,
 }
 
+enum FeatureState {
+  UNSUPPORTED,
+  ENABLED,
+  DISABLED,
+}
+
+enum PowerControlState {
+  POWER_OVERRIDE,
+  POWER_SET,
+  HIGH_POWER_OVERRIDE,
+}
+
+enum RateSelectState {
+  UNSUPPORTED,
+  EXTENDED_RATE_SELECT,
+  APPLICATION_RATE_SELECT,
+  UNKNOWN,
+}
+
+struct TransceiverSettings {
+  1: FeatureState cdrTx,
+  2: FeatureState cdrRx,
+  3: RateSelectState rateSelect,
+  4: FeatureState powerMeasurement,
+  5: PowerControlState powerControl,
+}
+
 struct TransceiverInfo {
   1: bool present,
   2: TransceiverType transceiver,
@@ -158,4 +185,5 @@ struct TransceiverInfo {
   9: optional Vendor vendor,
   10: optional Cable cable,
   12: list<Channel> channels,
+  13: optional TransceiverSettings settings,
 }

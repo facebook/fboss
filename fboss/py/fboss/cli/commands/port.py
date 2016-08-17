@@ -349,6 +349,21 @@ class PortStatusDetailCmd(object):
         print("Date Code:  {:<8}  Revision: {:<2}".format(
               info.vendor.dateCode, info.vendor.rev))
 
+    def _print_settings_details(self, info):
+        ''' print setting details'''
+        print("CDR Tx: {}\tCDR Rx: {}".format(
+            optic_ttypes.FeatureState._VALUES_TO_NAMES[info.settings.cdrTx],
+            optic_ttypes.FeatureState._VALUES_TO_NAMES[info.settings.cdrRx]))
+        print("Rate select: {}".format(
+            optic_ttypes.RateSelectState._VALUES_TO_NAMES[
+                info.settings.rateSelect]))
+        print("Power measurement: {}".format(
+            optic_ttypes.FeatureState._VALUES_TO_NAMES[
+                info.settings.powerMeasurement]))
+        print("Power control: {}".format(
+            optic_ttypes.PowerControlState._VALUES_TO_NAMES[
+                info.settings.powerControl]))
+
     def _print_cable_details(self, info):
         ''' print cable details '''
 
@@ -477,6 +492,9 @@ class PortStatusDetailCmd(object):
 
         if info.cable:
             self._print_cable_details(info)
+
+        if info.settings:
+            self._print_settings_details(info)
 
         if info.sensor or (info.thresholds and self._verbose) or info.channels:
             print("Monitoring Information:")

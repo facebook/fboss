@@ -45,6 +45,14 @@ double SffFieldInfo::getPwr(const uint16_t temp) {
   return data;
 }
 
+FeatureState SffFieldInfo::getFeatureState(const uint8_t support,
+                                           const uint8_t enabled) {
+  if (!support) {
+    return FeatureState::UNSUPPORTED;
+  }
+  return enabled ? FeatureState::ENABLED : FeatureState::DISABLED;
+}
+
 SffFieldInfo SffFieldInfo::getSffFieldAddress(const SffFieldMap& map,
                                               const SffField field) {
   auto info = map.find(field);

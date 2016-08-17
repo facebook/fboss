@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <map>
 
+#include "fboss/agent/if/gen-cpp2/optic_types.h"
+
 /*
  * Parse transceiver data fields, as outlined in various documents
  * by the Small Form Factor (SFF) committee, including SFP and QSFP+
@@ -29,6 +31,7 @@ enum class SffField {
   CHANNEL_RX_PWR,
   CHANNEL_TX_BIAS,
   POWER_CONTROL,
+  CDR_CONTROL, // Whether CDR is enabled
   ETHERNET_COMPLIANCE,
   EXTENDED_IDENTIFIER,
   PAGE_SELECT_BYTE,
@@ -38,6 +41,7 @@ enum class SffField {
   LENGTH_OM2,
   LENGTH_OM1,
   LENGTH_COPPER,
+  OPTIONS, // Variety of options, including rate select support
   VENDOR_NAME, // QSFP Vendor Name (ASCII)
   VENDOR_OUI, // QSFP Vendor IEEE company ID
   PART_NUMBER, // Part NUmber provided by QSFP vendor (ASCII)
@@ -49,6 +53,7 @@ enum class SffField {
   VCC_THRESH,
   RX_PWR_THRESH,
   TX_BIAS_THRESH,
+  EXTENDED_RATE_COMPLIANCE,
 
   // SFP-specific Fields
   /* 0xA0 Address Fields */
@@ -89,12 +94,16 @@ enum PowerControl : uint8_t {
   POWER_OVERRIDE =      1 << 0,
   POWER_SET =           1 << 1,
   HIGH_POWER_OVERRIDE = 1 << 2,
+  POWER_CONTROL_MASK = 0b111,
 };
 
+// This should be called ExtendedIdentifier
 enum ExternalIdentifer : uint8_t {
-  EXT_ID_SHIFT= 6,
-  EXT_ID_MASK = 0xc0,
+  EXT_ID_POWER_SHIFT= 6,
+  EXT_ID_POWER_MASK = 0xc0,
   EXT_ID_HI_POWER_MASK = 0x03,
+  EXT_ID_CDR_RX_MASK = 0x04,
+  EXT_ID_CDR_TX_MASK = 0x08,
 };
 
 enum EthernetCompliance : uint8_t {
@@ -105,6 +114,23 @@ enum EthernetCompliance : uint8_t {
   SR_10GBASE =   1 << 4,
   LR_10GBASE =   1 << 5,
   LRM_40GBASE =  1 << 6,
+};
+
+enum DiagnosticMonitoringType {
+  POWER_MEASUREMENT_MASK = 0x04,
+};
+
+enum EnhancedOptions : uint8_t {
+  ENH_OPT_RATE_SELECT_MASK = 0x0c,
+};
+
+enum Options : uint8_t {
+  OPT_RATE_SELECT_MASK = 1 << 5,
+};
+
+enum CdrControl : uint8_t {
+  CDR_CONTROL_RX_MASK = 0x0f,
+  CDR_CONTROL_TX_MASK = 0xf0,
 };
 
 class SffFieldInfo {
@@ -126,6 +152,9 @@ class SffFieldInfo {
 
   // Render power in mW from fixed-point value
   static double getPwr(uint16_t temp);
+
+  // Render result as a member of FeatureState enum
+  static FeatureState getFeatureState(uint8_t support, uint8_t enabled = 1);
 
   typedef std::map<SffField, SffFieldInfo> SffFieldMap;
 
