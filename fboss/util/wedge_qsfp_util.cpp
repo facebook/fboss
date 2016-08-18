@@ -341,62 +341,36 @@ int main(int argc, char* argv[]) {
                      FLAGS_cdr_enable || FLAGS_cdr_disable);
   int retcode = EX_OK;
   for (unsigned int portNum : ports) {
-    if (FLAGS_clear_low_power) {
-      if (overrideLowPower(bus.get(), portNum)) {
-        printf("QSFP %d: cleared low power flags\n", portNum);
-      } else {
-        retcode = EX_SOFTWARE;
-      }
+    if (FLAGS_clear_low_power && overrideLowPower(bus.get(), portNum)) {
+      printf("QSFP %d: cleared low power flags\n", portNum);
     }
-    if (FLAGS_tx_disable) {
-      if (setTxDisable(bus.get(), portNum, 0x0f)) {
-        printf("QSFP %d: disabled TX on all channels\n", portNum);
-      } else {
-        retcode = EX_SOFTWARE;
-      }
+    if (FLAGS_tx_disable && setTxDisable(bus.get(), portNum, 0x0f)) {
+      printf("QSFP %d: disabled TX on all channels\n", portNum);
     }
-    if (FLAGS_tx_enable) {
-      if (setTxDisable(bus.get(), portNum, 0x00)) {
-        printf("QSFP %d: enabled TX on all channels\n", portNum);
-      } else {
-        retcode = EX_SOFTWARE;
-      }
+    if (FLAGS_tx_enable && setTxDisable(bus.get(), portNum, 0x00)) {
+      printf("QSFP %d: enabled TX on all channels\n", portNum);
     }
 
-    if (FLAGS_set_40g) {
-      if (rateSelect(bus.get(), portNum, 0xaa)) {
-        printf("QSFP %d: set to optimize for 10G channels\n", portNum);
-      } else {
-        retcode = EX_SOFTWARE;
-      }
+    if (FLAGS_set_40g && rateSelect(bus.get(), portNum, 0xaa)) {
+      printf("QSFP %d: set to optimize for 10G channels\n", portNum);
     }
-    if (FLAGS_set_100g) {
-      if (rateSelect(bus.get(), portNum, 0xff)) {
-        printf("QSFP %d: set to optimize for 25G channels\n", portNum);
-      } else {
-        retcode = EX_SOFTWARE;
-      }
+    if (FLAGS_set_100g && rateSelect(bus.get(), portNum, 0xff)) {
+      printf("QSFP %d: set to optimize for 25G channels\n", portNum);
     }
 
-    if (FLAGS_cdr_enable) {
-      if (setCdr(bus.get(), portNum, 0xff)) {
-        printf("QSFP %d: CDR enabled\n", portNum);
-      } else {
-        retcode = EX_SOFTWARE;
-      }
-    } else if (FLAGS_cdr_disable) {
-      if (setCdr(bus.get(), portNum, 0x00)) {
-        printf("QSFP %d: CDR disabled\n", portNum);
-      } else {
-        retcode = EX_SOFTWARE;
-      }
+    if (FLAGS_cdr_enable && setCdr(bus.get(), portNum, 0xff)) {
+      printf("QSFP %d: CDR enabled\n", portNum);
+    }
+
+    if (FLAGS_cdr_disable && setCdr(bus.get(), portNum, 0x00)) {
+      printf("QSFP %d: CDR disabled\n", portNum);
     }
 
     if (printInfo) {
       try {
         printPortDetail(bus.get(), portNum);
       } catch (const std::exception& ex) {
-        fprintf(stderr, "error querying QSFP %u: %s\n", portNum, ex.what());
+        fprintf(stderr, "error parsing QSFP data %u: %s\n", portNum, ex.what());
         retcode = EX_SOFTWARE;
       }
     }
