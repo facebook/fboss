@@ -647,6 +647,8 @@ void BcmSwitch::stateChangedImpl(const StateDelta& delta) {
     reconfigurePortGroups(delta);
   }
 
+  processChangedPorts(delta);
+
   // As the last step, enable newly enabled ports.  Doing this as the
   // last step ensures that we only start forwarding traffic once the
   // ports are correctly configured. Note that this will also set the
@@ -694,16 +696,24 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
       auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
       auto vlanChanged = oldPort->getIngressVlan() != newPort->getIngressVlan();
 
-      if (speedChanged || vlanChanged) {
-        auto bcmPort = portTable_->getBcmPort(newPort->getID());
-        bcmPort->program(newPort);
+      if (!speedChanged && !vlanChanged) {
+        return;
       }
+
+      if (speedChanged) {
+        // Changing the port speed causes traffic disruptions, but not doing
+        // it would cause inconsistency.  Warn the user.
+        LOG(WARNING) << "Changing port speed.  This will disrupt traffic.";
+      }
+
+      auto bcmPort = portTable_->getBcmPort(newPort->getID());
+      bcmPort->program(newPort);
     });
 }
 
 void BcmSwitch::reconfigurePortGroups(const StateDelta& delta) {
   // This logic is a bit messy. We could encode some notion of port
-  // groups into the swith state somehow so it is easy to generate
+  // groups into the switch state somehow so it is easy to generate
   // deltas for these. For now, we need pass around the SwitchState
   // object and get the relevant ports manually.
 
