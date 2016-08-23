@@ -700,10 +700,11 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
         return;
       }
 
-      if (speedChanged) {
+      if (speedChanged && !oldPort->isDisabled() && !newPort->isDisabled()) {
         // Changing the port speed causes traffic disruptions, but not doing
         // it would cause inconsistency.  Warn the user.
-        LOG(WARNING) << "Changing port speed.  This will disrupt traffic.";
+        LOG(WARNING) << "Changing port speed on enabled port. This will "
+                     << "disrupt traffic.";
       }
 
       auto bcmPort = portTable_->getBcmPort(newPort->getID());
