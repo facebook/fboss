@@ -29,75 +29,144 @@ extern "C" {
 
 namespace facebook { namespace fboss {
 
-static const char *intfPrefix = "front";
-static const int prefixLen = strlen(intfPrefix);
-static const char* tunDev = "/dev/net/tun";
+namespace {
 
-using folly::IPAddress;
-using folly::EventBase;
-using folly::EventHandler;
+const std::string kTunIntfPrefix = "front";
+const std::string kTunDev = "/dev/net/tun";
 
-TunIntf::TunIntf(SwSwitch *sw, EventBase *evb,
-                 const std::string& name, RouterID rid, int idx, int mtu)
-    : EventHandler(evb), sw_(sw), rid_(rid), name_(name), ifIndex_(idx),
-    mtu_(mtu) {
+// Max packets to be processed which are received from host
+const int kMaxSentOneTime = 16;
+
+} // anonymous namespace
+
+TunIntf::TunIntf(
+    SwSwitch *sw,
+    folly::EventBase *evb,
+    InterfaceID ifID,
+    int ifIndex,
+    int mtu)
+    : folly::EventHandler(evb),
+      sw_(sw),
+      name_(createTunIntfName(ifID)),
+      ifID_(ifID),
+      ifIndex_(ifIndex),
+      mtu_(mtu) {
+  DCHECK(sw) << "NULL pointer to SwSwitch.";
+  DCHECK(evb) << "NULL pointer to EventBase";
+
   openFD();
   SCOPE_FAIL {
     closeFD();
   };
+
   LOG(INFO) << "Added interface " << name_ << " with fd " << fd_
-            << " from rid " << rid_ << " @ index " << ifIndex_;
+            << " @ index " << ifIndex_;
 }
 
-TunIntf::TunIntf(SwSwitch *sw, EventBase *evb,
-                 RouterID rid, const Interface::Addresses& addr, int mtu)
-    : EventHandler(evb), sw_(sw), rid_(rid), addrs_(addr), mtu_(mtu) {
-  name_ = folly::to<std::string>(intfPrefix, rid);
+TunIntf::TunIntf(
+    SwSwitch *sw,
+    folly::EventBase *evb,
+    InterfaceID ifID,
+    const Interface::Addresses& addr,
+    int mtu)
+    : folly::EventHandler(evb),
+      sw_(sw),
+      name_(createTunIntfName(ifID)),
+      ifID_(ifID),
+      addrs_(addr),
+      mtu_(mtu) {
+  DCHECK(sw) << "NULL pointer to SwSwitch.";
+  DCHECK(evb) << "NULL pointer to EventBase";
+
+  // Open Tun interface FD for socket-IO
   openFD();
   SCOPE_FAIL {
     closeFD();
   };
-  // make the interface persistent, so that the network sessions
-  // from the application (i.e. BGP)  will not be reset if controller restarts
+
+  // Make the Tun interface persistent, so that the network sessions from the
+  // application (i.e. BGP)  will not be reset if controller restarts
   auto ret = ioctl(fd_, TUNSETPERSIST, 1);
   sysCheckError(ret, "Failed to set persist interface ", name_);
+
   // TODO: if needed, we can adjust send buffer size, TUNSETSNDBUF
   auto sock = nl_socket_alloc();
   if (!sock) {
     throw SysError(errno, "failed to open libnl socket");
   }
   SCOPE_EXIT { nl_socket_free(sock); };
+
+  // Connect netlink socket.
   ret = nl_connect(sock, NETLINK_ROUTE);
   sysCheckError(ret, "failed to connect", nl_geterror(ret));
-  {
-    SCOPE_EXIT { nl_close(sock); };
-    nl_cache *cache = nullptr;
-    ret = rtnl_link_alloc_cache(sock, AF_UNSPEC, &cache);
-    sysCheckError(ret, "failed to get all links: error: ", nl_geterror(ret));
-    SCOPE_EXIT { nl_cache_free(cache); };
-    ifIndex_ = rtnl_link_name2i(cache, name_.c_str());
+  SCOPE_EXIT { nl_close(sock); };
+
+  // Allocate cache
+  nl_cache *cache = nullptr;
+  ret = rtnl_link_alloc_cache(sock, AF_UNSPEC, &cache);
+  sysCheckError(ret, "failed to get all links: error: ", nl_geterror(ret));
+  SCOPE_EXIT { nl_cache_free(cache); };
+
+  // Extract ifIndex
+  ifIndex_ = rtnl_link_name2i(cache, name_.c_str());
+  if (ifIndex_ <= 0) {
+    FbossError("Got invalid value ", ifIndex_, " for Tun interface ", name_);
   }
+
   LOG(INFO) << "Created interface " << name_ << " with fd " << fd_
-            << " from router " << rid_ << " @ index " << ifIndex_;
+            << " @ index " << ifIndex_;
 }
 
 TunIntf::~TunIntf() {
   stop();
+
+  // We must have a valid fd to TunIntf
   CHECK_NE(fd_, -1);
+
+  // Delete interface if need be
   if (toDelete_) {
     auto ret = ioctl(fd_, TUNSETPERSIST, 0);
     sysLogError(ret, "Failed to unset persist interface ", name_);
   }
+
+  // Close FD. This will delete the interface if TUNSETPERSIST is not on
   closeFD();
-  LOG(INFO) << ((toDelete_) ? "Delete" : "Detach") << " interface " << name_;
+  LOG(INFO) << (toDelete_ ? "Delete" : "Detach") << " interface " << name_;
+}
+
+bool TunIntf::isTunIntfName(std::string const& ifName) {
+  return ifName.find(kTunIntfPrefix) == 0;
+}
+
+std::string TunIntf::createTunIntfName(InterfaceID ifID) {
+  return folly::sformat("{}{}", kTunIntfPrefix, folly::to<std::string>(ifID));
+}
+
+InterfaceID TunIntf::getIDFromTunIntfName(std::string const& ifName) {
+  if (not isTunIntfName(ifName)) {
+    throw FbossError(ifName, " is not a valid tun interface");
+  }
+  return InterfaceID(atoi(ifName.substr(kTunIntfPrefix.size()).c_str()));
+}
+
+void TunIntf::stop() {
+  unregisterHandler();
+}
+
+void TunIntf::start() {
+  if (fd_ != -1 && !isHandlerRegistered()) {
+    changeHandlerFD(fd_);
+    registerHandler(folly::EventHandler::READ | folly::EventHandler::PERSIST);
+  }
 }
 
 void TunIntf::openFD() {
-  fd_ = open(tunDev, O_RDWR);
-  sysCheckError(fd_, "Cannot open ", tunDev);
+  fd_ = open(kTunDev.c_str(), O_RDWR);
+  sysCheckError(fd_, "Cannot open ", kTunDev.c_str());
   SCOPE_FAIL {
     closeFD();
   };
+
   struct ifreq ifr;
   memset(&ifr, 0, sizeof(ifr));
   // Flags: IFF_TUN   - TUN device (no Ethernet headers)
@@ -138,7 +207,7 @@ void TunIntf::closeFD() noexcept {
   }
 }
 
-void TunIntf::addAddress(const IPAddress& addr, uint8_t mask) {
+void TunIntf::addAddress(const folly::IPAddress& addr, uint8_t mask) {
   auto ret = addrs_.emplace(addr, mask);
   if (!ret.second) {
     throw FbossError("Duplication interface address ", addr, "/",
@@ -169,7 +238,7 @@ void TunIntf::setMtu(int mtu) {
 
 void TunIntf::handlerReady(uint16_t events) noexcept {
   CHECK(fd_ != -1);
-  const int MaxSentOneTime = 16;
+
   // Since this is L3 packet size, we should also reserve some space for L2
   // header, which is 18 bytes (including one vlan tag)
   int sent = 0;
@@ -177,7 +246,7 @@ void TunIntf::handlerReady(uint16_t events) noexcept {
   uint64_t bytes = 0;
   bool fdFail = false;
   try {
-    while (sent + dropped < MaxSentOneTime) {
+    while (sent + dropped < kMaxSentOneTime) {
       std::unique_ptr<TxPacket> pkt;
       pkt = sw_->allocateL3TxPacket(mtu_);
       auto buf = pkt->buf();
@@ -194,80 +263,66 @@ void TunIntf::handlerReady(uint16_t events) noexcept {
         break;
       } else if (ret == 0) {
         // Nothing to read. It shall not happen as the fd is non-blocking.
-        // Just add this case to be safe.
+        // Just add this case to be safe. Adding DCHECK for sanity checking
+        // in debug mode.
+        DCHECK(false) << "Unexpected event. Nothing to read.";
         break;
       } else if (ret > buf->tailroom()) {
         // The pkt is larger than the buffer. We don't have complete packet.
         // It shall not happen unless the MTU is mis-match. Drop the packet.
         LOG(ERROR) << "Too large packet (" << ret << " > " << buf->tailroom()
                    << ") received from host. Drop the packet.";
-        dropped++;
+        ++dropped;
       } else {
         bytes += ret;
         buf->append(ret);
-        sw_->sendL3Packet(rid_, std::move(pkt));
-        sent++;
+        sw_->sendL3Packet(RouterID(0), std::move(pkt));
+        ++sent;
       }
-    }
+    } // while
   } catch (const std::exception& ex) {
     LOG(ERROR) << "Hit some error when forwarding packets :"
                << folly::exceptionStr(ex);
   }
+
   if (fdFail) {
     unregisterHandler();
   }
+
   VLOG(4) << "Forwarded " << sent << " packets (" << bytes
-          << " bytes) from host @ fd " << fd_ << " for router " << rid_
+          << " bytes) from host @ fd " << fd_ << " for interface " << name_
           << " dropped:" << dropped;
 }
 
 bool TunIntf::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
   CHECK(fd_ != -1);
   const int l2Len = EthHdr::SIZE;
+
   auto buf = pkt->buf();
   if (buf->length() <= l2Len) {
     LOG(ERROR) << "Received a too small packet with length " << buf->length();
     return false;
   }
+
   // skip L2 header
   buf->trimStart(l2Len);
+
   int ret = 0;
   do {
     ret = write(fd_, buf->data(), buf->length());
   } while (ret == -1 && errno == EINTR);
   if (ret < 0) {
-    sysLogError(ret, "Failed to send packet to the host from router ", rid_);
+    sysLogError(ret, "Failed to send packet to host from Interface ", ifID_);
     return false;
   } else if (ret < buf->length()) {
-    LOG(ERROR) << "Failed to send full packet to host from router " << rid_
-               << ret << " bytes sent instead of " << buf->length();
-  } else {
-    VLOG(4) << "Send packet (" << ret << " bytes) to host from router "
-            << rid_;
+    LOG(ERROR) << "Failed to send full packet to host from Interface " << ifID_
+               << ". " << ret << " bytes sent instead of " << buf->length();
+    return false;
   }
+
+  VLOG(4) << "Send packet (" << ret << " bytes) to host from Interface "
+          << ifID_;
   return true;
 }
 
-void TunIntf::stop() {
-  unregisterHandler();
-}
-
-void TunIntf::start() {
-  if (fd_ != -1 && !isHandlerRegistered()) {
-    changeHandlerFD(fd_);
-    registerHandler(EventHandler::READ|EventHandler::PERSIST);
-  }
-}
-
-bool TunIntf::isTunIntf(const char *name) {
-  return strstr(name, intfPrefix) == name;
-}
-
-RouterID TunIntf::getRidFromName(const char *name) {
-  if (!isTunIntf(name)) {
-    throw FbossError(name, " is not a valid tun interface");
-  }
-  return RouterID(atoi(name + prefixLen));
-}
-
-}}
+}}  // namespace facebook::fboss

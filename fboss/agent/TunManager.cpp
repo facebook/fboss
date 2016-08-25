@@ -37,6 +37,9 @@ using folly::IPAddress;
 using folly::EventBase;
 
 TunManager::TunManager(SwSwitch *sw, EventBase *evb) : sw_(sw), evb_(evb) {
+  DCHECK(sw) << "NULL pointer to SwSwitch.";
+  DCHECK(evb) << "NULL pointer to EventBase";
+
   sock_ = nl_socket_alloc();
   if (!sock_) {
     throw FbossError("failed to allocate libnl socket");
@@ -55,76 +58,117 @@ TunManager::~TunManager() {
   nl_socket_free(sock_);
 }
 
-int TunManager::getMinMtu(std::shared_ptr<SwitchState> state) {
-  int minMtu = INT_MAX;
-  auto intfMap = state->getInterfaces();
-  for (const auto& intf : intfMap->getAllNodes()) {
-    minMtu = std::min(intf.second->getMtu(), minMtu);
-  }
-  return minMtu == INT_MAX ? kDefaultMtu : minMtu;
+void TunManager::startProbe() {
+  evb_->runInEventBaseThread([this]() {
+    this->probe();
+  });
 }
 
-void TunManager::addIntf(RouterID rid, const std::string& name, int ifIdx) {
-  auto ret = intfs_.emplace(rid, nullptr);
+void TunManager::startObservingUpdates() {
+  sw_->registerStateObserver(this, "TunManager");
+  observingState_ = true;
+}
+
+void TunManager::stateUpdated(const StateDelta& delta) {
+  // TODO(aeckert): We currently compare the entire interface map instead
+  // of using the iterator in this delta because some of the interfaces may get
+  // get probed from hardware, before they are in the SwitchState. It would be
+  // nicer if we did a little more work at startup to sync the state, perhaps
+  // updating the SwitchState with the probed interfaces. This would allow us
+  // to reuse the iterator in the delta for more readable code and also not
+  // have to worry about waiting to listen to updates until the SwSwitch is in
+  // the configured state. t4155406 should also help with that.
+
+  auto state = delta.newState();
+  evb_->runInEventBaseThread([this, state]() {
+    this->sync(state);
+  });
+}
+
+bool TunManager::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
+  auto ifID = InterfaceID(pkt->getSrcVlan());
+  std::lock_guard<std::mutex> lock(mutex_);
+  auto iter = intfs_.find(ifID);
+  if (iter == intfs_.end()) {
+    // the Interface ID has been deleted, make a log, and skip the pkt
+    VLOG(4) << "Dropping a packet for unknown unknwon " << ifID;
+    return false;
+  }
+  return iter->second->sendPacketToHost(std::move(pkt));
+}
+
+void TunManager::addIntf(const std::string& ifName, int ifIndex) {
+  InterfaceID ifID = TunIntf::getIDFromTunIntfName(ifName);
+  auto ret = intfs_.emplace(ifID, nullptr);
   if (!ret.second) {
-    throw FbossError("Duplicate interface ", name, " in router ", rid);
+    throw FbossError("Duplicate interface ", ifName);
   }
 
   SCOPE_FAIL {
     intfs_.erase(ret.first);
   };
   ret.first->second.reset(
-      new TunIntf(sw_, evb_, name, rid, ifIdx, getMinMtu(sw_->getState())));
+      new TunIntf(sw_, evb_, ifID, ifIndex, getInterfaceMtu(ifID)));
 }
 
-void TunManager::addIntf(RouterID rid, const Interface::Addresses& addrs) {
-  auto ret = intfs_.emplace(rid, nullptr);
+void TunManager::addIntf(InterfaceID ifID, const Interface::Addresses& addrs) {
+  auto ret = intfs_.emplace(ifID, nullptr);
   if (!ret.second) {
-    throw FbossError("Duplicate interface for router ", rid);
+    throw FbossError("Duplicate interface for interface ", ifID);
   }
 
   SCOPE_FAIL {
     intfs_.erase(ret.first);
   };
-  auto intf = folly::make_unique<TunIntf>(
-      sw_, evb_, rid, addrs, getMinMtu(sw_->getState()));
+  auto intf = std::make_unique<TunIntf>(
+      sw_, evb_, ifID, addrs, getInterfaceMtu(ifID));
 
   SCOPE_FAIL {
     intf->setDelete();
   };
-  const auto& name = intf->getName();
+  const auto ifName = intf->getName();
   auto ifIndex = intf->getIfIndex();
 
   // bring up the interface so that we can add the default route next step
-  bringupIntf(name, ifIndex);
+  bringUpIntf(ifName, ifIndex);
 
-  // create a new route table for this rid
-  addRouteTable(ifIndex, rid);
+  // create a new route table for this InterfaceID
+  addRouteTable(ifID, ifIndex);
 
   // add all addresses
   for (const auto& addr : addrs) {
-    addTunAddress(name, rid, ifIndex, addr.first, addr.second);
+    addTunAddress(ifID, ifName, ifIndex, addr.first, addr.second);
   }
 
   // Store it in local map on success
   ret.first->second = std::move(intf);
 }
 
-void TunManager::removeIntf(RouterID rid) {
-  auto iter = intfs_.find(rid);
+void TunManager::removeIntf(InterfaceID ifID) {
+  auto iter = intfs_.find(ifID);
   if (iter == intfs_.end()) {
-    throw FbossError("Cannot find to be delete interface for router ", rid);
+    throw FbossError("Cannot find interface ", ifID, " for deleting.");
   }
 
-  // remove the route table
+  // Remove all addresses attached on this interface
   auto& intf = iter->second;
-  removeRouteTable(intf->getIfIndex(), intf->getRouterId());
+  for (auto const& addr : intf->getAddresses()) {
+    removeTunAddress(
+        ifID,
+        intf->getName(),
+        intf->getIfIndex(),
+        addr.first  /* ip */,
+        addr.second /* mask */);
+  }
+
+  // Remove the route table and associated rule
+  removeRouteTable(ifID, intf->getIfIndex());
   intf->setDelete();
   intfs_.erase(iter);
 }
 
-void TunManager::addProbedAddr(int ifIndex, const IPAddress& addr,
-                               uint8_t mask) {
+void TunManager::addProbedAddr(
+    int ifIndex, const IPAddress& addr, uint8_t mask) {
   for (auto& intf : intfs_) {
     if (intf.second->getIfIndex() == ifIndex) {
       intf.second->addAddress(addr, mask);
@@ -139,14 +183,14 @@ void TunManager::addProbedAddr(int ifIndex, const IPAddress& addr,
           << static_cast<int>(mask);
 }
 
-void TunManager::bringupIntf(const std::string& name, int ifIndex) {
+void TunManager::bringUpIntf(const std::string& ifName, int ifIndex) {
   // TODO: We need to change the interface status based on real HW
   // interface status (up/down). Make them up all the time for now.
   auto link = rtnl_link_alloc();
-  SCOPE_EXIT { rtnl_link_put(link); };
   if (!link) {
     throw FbossError("Failed to allocate link to bring up");
   }
+  SCOPE_EXIT { rtnl_link_put(link); };
 
   rtnl_link_set_ifindex(link, ifIndex);
   rtnl_link_set_family(link, AF_UNSPEC);
@@ -154,20 +198,45 @@ void TunManager::bringupIntf(const std::string& name, int ifIndex) {
 
   auto error = rtnl_link_change(sock_, link, link, 0);
   nlCheckError(
-      error, "Failed to bring up interface ", name, " @ index ", ifIndex);
+      error, "Failed to bring up interface ", ifName, " @ index ", ifIndex);
 
-  LOG(INFO) << "Brought up interface " << name << " @ index " << ifIndex;
+  LOG(INFO) << "Brought up interface " << ifName << " @ index " << ifIndex;
 }
 
-inline int TunManager::getTableId(RouterID rid) const {
+int TunManager::getTableId(InterfaceID ifID) const {
   // Kernel only supports up to 256 tables. The last few are used by kernel
-  // as main, default, and local. We start with table base (100) downwards.
-  const int tidBase = 100;
-  CHECK_GT(tidBase - rid, 0);
-  return tidBase - rid;
+  // as main, default, and local. IDs 0, 254 and 255 are not available. So we
+  // use range 1-253 for our usecase.
+
+  // Special case to handle old front0 interfaces.
+  // XXX: Delete this case after 6 months (atleast one full rollout). 08-22-2016
+  if (ifID == InterfaceID(0)) {
+    return 100;   // This was the old-ID used for creating front0
+  }
+
+  // Hacky. Need better solution but works for now. Our InterfaceID are
+  // Type-1: 2000, 2001, 2002, 2003 ...
+  // Type-2: 4000, 4001, 4002, 4003, 4004, ...
+  int tableId = static_cast<int>(ifID);
+  if (ifID >= InterfaceID(4000)) {   // 4000, 4001, 4002, 4003 ...
+    tableId = ifID - 4000 + 201;  // 201, 202, 203, ... [201-253]
+  } else {  // 2000, 2001, ...
+    tableId = ifID - 2000 + 1;    // 1, 2, 3, .... [1-200]
+  }
+
+  // Sanity checks. Generated ID must be in range [1-253]
+  CHECK_GE(tableId, 1);
+  CHECK_LE(tableId, 253);
+
+  return tableId;
 }
 
-void TunManager::addRemoveTable(int ifIdx, RouterID rid, bool add) {
+int TunManager::getInterfaceMtu(InterfaceID ifID) const {
+  auto interface = sw_->getState()->getInterfaces()->getInterfaceIf(ifID);
+  return interface ? interface->getMtu() : kDefaultMtu;
+}
+
+void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {
   // We just store default routes (one for IPv4 and one for IPv6) in each route
   // table.
   const folly::IPAddress addrs[] = {
@@ -182,7 +251,7 @@ void TunManager::addRemoveTable(int ifIdx, RouterID rid, bool add) {
     auto error = rtnl_route_set_family(route, addr.family());
     nlCheckError(error, "Failed to set family to", addr.family());
 
-    rtnl_route_set_table(route, getTableId(rid));
+    rtnl_route_set_table(route, getTableId(ifID));
     rtnl_route_set_scope(route, RT_SCOPE_UNIVERSE);
     rtnl_route_set_protocol(route, RTPROT_FBOSS);
 
@@ -205,7 +274,7 @@ void TunManager::addRemoveTable(int ifIdx, RouterID rid, bool add) {
       throw FbossError("Failed to allocate nexthop");
     }
 
-    rtnl_route_nh_set_ifindex(nexthop, ifIdx);
+    rtnl_route_nh_set_ifindex(nexthop, ifIndex);
     rtnl_route_add_nexthop(route, nexthop);
 
     if (add) {
@@ -213,22 +282,33 @@ void TunManager::addRemoveTable(int ifIdx, RouterID rid, bool add) {
     } else {
       error = rtnl_route_delete(sock_, route, 0);
     }
+    /**
+     * Disable: Because of some weird reason this CHECK fails while deleting
+     * v4 default route. However route actually gets wiped off from Linux
+     * routing table.
     nlCheckError(error, "Failed to ", add ? "add" : "remove",
-                  " default route ", addr, " @ index ", ifIdx,
-                  " in table ", getTableId(rid), " for router ", rid);
+                  " default route ", addr, " @ index ", ifIndex,
+                  " in table ", getTableId(ifID), " for interface ", ifID,
+                  ". ErrorCode: ", error);
+      */
+    if (error < 0) {
+      LOG(WARNING) << "Failed to " << (add ? "add" : "remove")
+                   << " default route " << addr << " @index " << ifIndex
+                   << ". ErrorCode: " << error;
+    }
     LOG(INFO) << (add ? "Added" : "Removed") << " default route " << addr
-              << " @ index " << ifIdx << " in table " << getTableId(rid)
-              << " for router " << rid;
+              << " @ index " << ifIndex << " in table " << getTableId(ifID)
+              << " for interface " << ifID;
   }
 }
 
 void TunManager::addRemoveSourceRouteRule(
-    RouterID rid, folly::IPAddress addr, bool add) {
+    InterfaceID ifID, const folly::IPAddress& addr, bool add) {
   auto rule = rtnl_rule_alloc();
   SCOPE_EXIT { rtnl_rule_put(rule); };
 
   rtnl_rule_set_family(rule, addr.family());
-  rtnl_rule_set_table(rule, getTableId(rid));
+  rtnl_rule_set_table(rule, getTableId(ifID));
   rtnl_rule_set_action(rule, FR_ACT_TO_TBL);
 
   auto sourceaddr = nl_addr_build(addr.family(),
@@ -249,15 +329,19 @@ void TunManager::addRemoveSourceRouteRule(
   }
   nlCheckError(error, "Failed to ", add ? "add" : "remove",
                 " rule for address ", addr,
-                " to lookup table ", getTableId(rid),
-                " for router ", rid);
+                " to lookup table ", getTableId(ifID),
+                " for interface ", ifID);
   LOG(INFO) << (add ? "Added" : "Removed") << " rule for address " << addr
-            << " to lookup table " << getTableId(rid) << " for router " << rid;
+            << " to lookup table " << getTableId(ifID)
+            << " for interface " << ifID;
 }
 
 void TunManager::addRemoveTunAddress(
-    const std::string& name, uint32_t ifIndex,
-    folly::IPAddress addr, uint8_t mask, bool add) {
+    const std::string& ifName,
+    uint32_t ifIndex,
+    const folly::IPAddress& addr,
+    uint8_t mask,
+    bool add) {
   auto tunaddr = rtnl_addr_alloc();
   if (!tunaddr) {
     throw FbossError("Failed to allocate address");
@@ -285,36 +369,46 @@ void TunManager::addRemoveTunAddress(
   }
   nlCheckError(error, "Failed to ", add ? "add" : "remove",
                 " address ", addr, "/", static_cast<int>(mask),
-                " to interface ", name, " @ index ", ifIndex);
+                " to interface ", ifName, " @ index ", ifIndex);
   LOG(INFO) << (add ? "Added" : "Removed") << " address " << addr.str() << "/"
-            << static_cast<int>(mask) << " on interface " << name
+            << static_cast<int>(mask) << " on interface " << ifName
             << " @ index " << ifIndex;
 }
 
 void TunManager::addTunAddress(
-    const std::string& name, RouterID rid, uint32_t ifIndex,
-    folly::IPAddress addr, uint8_t mask) {
-  addRemoveSourceRouteRule(rid, addr, true);
+    InterfaceID ifID,
+    const std::string& ifName,
+    uint32_t ifIndex,
+    folly::IPAddress addr,
+    uint8_t mask) {
+  addRemoveSourceRouteRule(ifID, addr, true);
   SCOPE_FAIL {
     try {
-      addRemoveSourceRouteRule(rid, addr, false);
+      addRemoveSourceRouteRule(ifID, addr, false);
     } catch (const std::exception& ex) {
+      LOG(ERROR) << "Failed to removed partially added source rule on "
+                 << "interface " << ifName;
     }
   };
-  addRemoveTunAddress(name, ifIndex, addr, mask, true);
+  addRemoveTunAddress(ifName, ifIndex, addr, mask, true);
 }
 
 void TunManager::removeTunAddress(
-    const std::string& name, RouterID rid, uint32_t ifIndex,
-    folly::IPAddress addr, uint8_t mask) {
-  addRemoveSourceRouteRule(rid, addr, false);
+    InterfaceID ifID,
+    const std::string& ifName,
+    uint32_t ifIndex,
+    folly::IPAddress addr,
+    uint8_t mask) {
+  addRemoveSourceRouteRule(ifID, addr, false);
   SCOPE_FAIL {
     try {
-      addRemoveSourceRouteRule(rid, addr, true);
+      addRemoveSourceRouteRule(ifID, addr, true);
     } catch (const std::exception& ex) {
+      LOG(ERROR) << "Failed to add partially added source rule on "
+                 << "interface " << ifName;
     }
   };
-  addRemoveTunAddress(name, ifIndex, addr, mask, false);
+  addRemoveTunAddress(ifName, ifIndex, addr, mask, false);
 }
 
 void TunManager::start() const {
@@ -338,14 +432,13 @@ void TunManager::linkProcessor(struct nl_object *obj, void *data) {
   }
 
   // Only add interface if it is a Tun interface
-  if (!TunIntf::isTunIntf(name)) {
+  if (!TunIntf::isTunIntfName(name)) {
     VLOG(3) << "Ignore interface " << name
             << " because it is not a tun interface";
     return;
   }
 
   static_cast<TunManager*>(data)->addIntf(
-      TunIntf::getRidFromName(name),
       std::string(name),
       rtnl_link_get_ifindex(link));
 }
@@ -415,7 +508,7 @@ void TunManager::doProbe(std::lock_guard<std::mutex>& /* lock */) {
 
   // Bring up all interfaces. Interfaces could be already up.
   for (const auto& intf : intfs_) {
-    bringupIntf(intf.second->getName(), intf.second->getIfIndex());
+    bringUpIntf(intf.second->getName(), intf.second->getIfIndex());
   }
 
   start();
@@ -425,7 +518,7 @@ void TunManager::doProbe(std::lock_guard<std::mutex>& /* lock */) {
 void TunManager::sync(std::shared_ptr<SwitchState> state) {
   using Addresses = Interface::Addresses;
   using ConstAddressesIter = Addresses::const_iterator;
-  using IntfToAddrsMap = boost::container::flat_map<RouterID, Addresses>;
+  using IntfToAddrsMap = boost::container::flat_map<InterfaceID, Addresses>;
   using ConstIntfToAddrsMapIter = IntfToAddrsMap::const_iterator;
 
   // prepare new addresses
@@ -433,8 +526,7 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
   auto intfMap = state->getInterfaces();
   for (const auto& intf : intfMap->getAllNodes()) {
     const auto& addrs = intf.second->getAddresses();
-    const auto& routerID = intf.second->getRouterID();
-    newIntfToAddrs[routerID].insert(addrs.begin(), addrs.end());
+    newIntfToAddrs[intf.first].insert(addrs.begin(), addrs.end());
   }
 
   // Hold mutex while changing interfaces
@@ -445,18 +537,20 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
 
   // prepare old addresses
   IntfToAddrsMap oldIntfToAddrs;
-  auto newMinMtu = getMinMtu(state);
   for (const auto& intf : intfs_) {
     const auto& addrs = intf.second->getAddresses();
     oldIntfToAddrs[intf.first].insert(addrs.begin(), addrs.end());
-    if (intf.second->getMtu() != newMinMtu) {
-      intf.second->setMtu(newMinMtu);
+
+    // Change MTU if it has altered
+    auto interface = intfMap->getInterfaceIf(intf.first);
+    if (interface && interface->getMtu() != intf.second->getMtu()) {
+      intf.second->setMtu(interface->getMtu());
     }
   }
 
   // Callback function for updating addresses for a particular interface
   auto applyInterfaceAddrChanges =
-    [this](const std::string& name, RouterID rid, int ifIndex,
+    [this](InterfaceID ifID, const std::string& ifName, int ifIndex,
            const Addresses& oldAddrs, const Addresses& newAddrs) {
     applyChanges(
         oldAddrs, newAddrs,
@@ -465,14 +559,16 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
             // addresses and masks are both same
             return;
           }
-          removeTunAddress(name, rid, ifIndex, oldIter->first, oldIter->second);
-          addTunAddress(name, rid, ifIndex, newIter->first, newIter->second);
+          removeTunAddress(
+              ifID, ifName, ifIndex, oldIter->first, oldIter->second);
+          addTunAddress(ifID, ifName, ifIndex, newIter->first, newIter->second);
         },
         [&](ConstAddressesIter& newIter) {
-          addTunAddress(name, rid, ifIndex, newIter->first, newIter->second);
+          addTunAddress(ifID, ifName, ifIndex, newIter->first, newIter->second);
         },
         [&](ConstAddressesIter& oldIter) {
-          removeTunAddress(name, rid, ifIndex, oldIter->first, oldIter->second);
+          removeTunAddress(
+              ifID, ifName, ifIndex, oldIter->first, oldIter->second);
         });
   };
 
@@ -485,10 +581,10 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
         auto iter = intfs_.find(oldIter->first);
         CHECK(iter != intfs_.end());
         const auto& intf = iter->second;
+        auto ifID = intf->getInterfaceID();
         int ifIndex = intf->getIfIndex();
-        auto rid = intf->getRouterId();
-        const auto& name = intf->getName();
-        applyInterfaceAddrChanges(name, rid, ifIndex, oldAddrs, newAddrs);
+        const auto& ifName = intf->getName();
+        applyInterfaceAddrChanges(ifID, ifName, ifIndex, oldAddrs, newAddrs);
         iter->second->setAddresses(newAddrs);
       },
       [&](ConstIntfToAddrsMapIter& newIter) {
@@ -500,46 +596,6 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
 
   start();
 }
-
-void TunManager::startProbe() {
-  evb_->runInEventBaseThread([this]() {
-    this->probe();
-  });
-}
-
-void TunManager::startObservingUpdates() {
-  sw_->registerStateObserver(this, "TunManager");
-  observingState_ = true;
-}
-
-void TunManager::stateUpdated(const StateDelta& delta) {
-  // TODO(aeckert): We currently compare the entire interface map instead
-  // of using the iterator in this delta because some of the interfaces may get
-  // get probed from hardware, before they are in the SwitchState. It would be
-  // nicer if we did a little more work at startup to sync the state, perhaps
-  // updating the SwitchState with the probed interfaces. This would allow us
-  // to reuse the iterator in the delta for more readable code and also not
-  // have to worry about waiting to listen to updates until the SwSwitch is in
-  // the configured state. t4155406 should also help with that.
-
-  auto state = delta.newState();
-  evb_->runInEventBaseThread([this, state]() {
-    this->sync(state);
-  });
-}
-
-bool TunManager::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
-  auto rid = pkt->getRouterID();
-  std::lock_guard<std::mutex> lock(mutex_);
-  auto iter = intfs_.find(rid);
-  if (iter == intfs_.end()) {
-    // the router ID has been deleted, make a log, and skip the pkt
-    VLOG(4) << "Dropping a packet for unknown router " << rid;
-    return false;
-  }
-  return iter->second->sendPacketToHost(std::move(pkt));
-}
-
 
 // TODO(aeckert): Find a way to reuse the iterator from NodeMapDelta here as
 // this basically duplicates that code.
@@ -572,4 +628,4 @@ void TunManager::applyChanges(const MAPNAME& oldMap,
   }
 }
 
-}}
+}}  // namespace facebook::fboss

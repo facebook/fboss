@@ -80,16 +80,133 @@ class TunManager : public StateObserver {
   TunManager(const TunManager &) = delete;
   TunManager& operator=(const TunManager &) = delete;
 
-  SwSwitch *sw_;
-  folly::EventBase *evb_;
-  boost::container::flat_map<RouterID, std::unique_ptr<TunIntf>> intfs_;
-  nl_sock *sock_;
+  /**
+   * start/stop packet forwarding on all TUN interfaces
+   */
+  void stop() const;
+  void start() const;
+
+  /**
+   * Add a TUN interface. It can happen two ways
+   * 1. During probe process when we discover existing Tun interface on linux
+   * 2. When we want to create a new TUN interface in linux
+   */
+  void addIntf(const std::string& name, int ifIndex);
+  void addIntf(InterfaceID ifID, const Interface::Addresses& addrs);
+
+  // Remove an existing TUN interface
+  void removeIntf(InterfaceID ifID);
+
+  // A tun interface was changed, update the addresses accordingly
+  void updateIntf(InterfaceID ifID, const Interface::Addresses& addrs);
+
+  // Bring up the interface on the host
+  void bringUpIntf(const std::string& ifName, int ifIndex);
+
+  /**
+   * Add/remove a route table.
+   *
+   * On Host we create a routing table for every switch interface which has
+   * v4/v6 default route with corresponding Tun interface as nexthop. Everything
+   * Forwarded to that routing table will comes out of Tun interface and it
+   * will eventually go out of corresponding switch interface.
+   */
+  void addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add);
+  void addRouteTable(InterfaceID ifID, int ifIndex) {
+    addRemoveRouteTable(ifID, ifIndex, true);
+  }
+  void removeRouteTable(InterfaceID ifID, int ifIndex) {
+    addRemoveRouteTable(ifID, ifIndex, false);
+  }
+
+  /**
+   * Creates a tableId for given interface.
+   */
+  int getTableId(InterfaceID ifID) const;
+
+  /**
+   * Add/remove an IP rule for source routing based on a given address
+   *
+   * The default route uses the management interface as the egress interface.
+   * Source routing is used to force the packets with source IP address matching
+   * one the front panel port IP addresses to be sent through the corresponding
+   * front panel ports instead of the management interface.
+   */
+  void addRemoveSourceRouteRule(
+      InterfaceID ifID,
+      const folly::IPAddress& addr,
+      bool add);
+
+  /**
+   * Add/Remove an address to/from a TUN interface on the host
+   */
+  void addRemoveTunAddress(
+      const std::string& ifName,
+      uint32_t ifIndex,
+      const folly::IPAddress& addr,
+      uint8_t mask,
+      bool add);
+
+  /**
+   * Add/Remove address as well source-routing-rule for TUN interface on host.
+   */
+  void addTunAddress(
+      InterfaceID ifID,
+      const std::string& ifName,
+      uint32_t ifIndex,
+      folly::IPAddress addr,
+      uint8_t mask);
+  void removeTunAddress(
+      InterfaceID ifID,
+      const std::string& ifName,
+      uint32_t ifIndex,
+      folly::IPAddress addr,
+      uint8_t mask);
+
+  /**
+   * Netlink callback for processing and storing links
+   */
+  static void linkProcessor(struct nl_object *obj, void *data);
+
+  /**
+   * Netlink callback for processing and storing addresses
+   */
+  static void addressProcessor(struct nl_object *obj, void *data);
+
+  /**
+   * Lookup host for existing Tun interfaces and their addresses.
+   */
+  void probe();
+  void doProbe(std::lock_guard<std::mutex>& mutex);
+
+  /**
+   * Add an address to a TUN interface during probe process.
+   */
+  void addProbedAddr(int ifIndex, const folly::IPAddress& addr, uint8_t mask);
+
+  /**
+   * Get MTU of switch interface
+   */
+  int getInterfaceMtu(InterfaceID ifID) const;
+
+  template<typename MAPNAME,
+           typename CHANGEFN, typename ADDFN, typename REMOVEFN>
+  void applyChanges(const MAPNAME& oldMap, const MAPNAME& newMap,
+                    CHANGEFN changeFn, ADDFN addFn, REMOVEFN removeFn);
+
+  SwSwitch *sw_{nullptr};
+  folly::EventBase *evb_{nullptr};
+
+  // Netlink socket for managing interface/addresses in Host/Linux
+  nl_sock *sock_{nullptr};
+
   /**
    * The mutex used to protect intfs_.
    * probe() and sync() could manipulate intfs_. They both run on the same
    * thread that serves evb_.
    * sendPacketToHost() uses intfs_, it can be called from any thread.
    */
+  boost::container::flat_map<InterfaceID, std::unique_ptr<TunIntf>> intfs_;
   std::mutex mutex_;
 
   // Whether the manager has registered itself to listen for state updates
@@ -107,79 +224,6 @@ class TunManager : public StateObserver {
      */
     RTPROT_FBOSS = 80,
   };
-
-  /**
-   * Add a TUN interface. It can happen two ways
-   * 1. During probe process when we discover existing Tun interface on linux
-   * 2. When we want to create a new TUN interface in linux
-   */
-  void addIntf(RouterID rid, const std::string& name, int IfIdx);
-  void addIntf(RouterID rid, const Interface::Addresses& addrs);
-
-  /// Remove an existing TUN interface
-  void removeIntf(RouterID rid);
-
-  /// A tun interface was changed, update the addresses accordingly
-  void updateIntf(RouterID rid, const Interface::Addresses& addrs);
-
-  /// Add an address to a TUN interface during probe process.
-  void addProbedAddr(int ifIndex, const folly::IPAddress& addr, uint8_t mask);
-
-  /// Bring up the interface on the host
-  void bringupIntf(const std::string& name, int ifIndex);
-
-  /// Retrieve the route table ID based on the router ID
-  int getTableId(RouterID rid) const;
-
-  /// Add/remove a route table
-  void addRemoveTable(int ifIdx, RouterID rid, bool add);
-  void addRouteTable(int ifIdx, RouterID rid) {
-    addRemoveTable(ifIdx, rid, true);
-  }
-  void removeRouteTable(int ifIdx, RouterID rid) {
-    addRemoveTable(ifIdx, rid, false);
-  }
-
-  /// Get the smallest MTU accross all interfaces.
-  int getMinMtu(std::shared_ptr<SwitchState> state);
-
-  /**
-   * Add/remove an IP rule for source routing based on a given address
-   *
-   * The default route uses the management interface as the egress interface.
-   * Source routing is used to force the packets with source IP address matching
-   * one the front panel port IP addresses to be sent through the front panel
-   * ports instead of the management interface.
-   */
-  void addRemoveSourceRouteRule(RouterID rid, folly::IPAddress addr,
-                                bool add);
-
-  /// Add/remove an address to/from a TUN interface on the host
-  void addRemoveTunAddress(const std::string& name, uint32_t ifIndex,
-                           folly::IPAddress addr, uint8_t mask, bool add);
-  void addTunAddress(const std::string& name, RouterID rid, uint32_t ifIndex,
-                     folly::IPAddress addr, uint8_t mask);
-  void removeTunAddress(const std::string& name, RouterID rid, uint32_t ifIndex,
-                        folly::IPAddress addr, uint8_t mask);
-
-  // callback for processing and storing links
-  static void linkProcessor(struct nl_object *obj, void *data);
-  // callback for processing and storing addresses
-  static void addressProcessor(struct nl_object *obj, void *data);
-
-  template<typename MAPNAME,
-           typename CHANGEFN, typename ADDFN, typename REMOVEFN>
-  void applyChanges(const MAPNAME& oldMap, const MAPNAME& newMap,
-                    CHANGEFN changeFn, ADDFN addFn, REMOVEFN removeFn);
-
-  void probe();
-  void doProbe(std::lock_guard<std::mutex>& mutex);
-
-  /*
-   * start/stop packet forwarding on all TUN interfaces
-   */
-  void stop() const;
-  void start() const;
 };
 
-}}
+}}  // namespace facebook::fboss
