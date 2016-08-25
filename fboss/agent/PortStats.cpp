@@ -118,4 +118,8 @@ void PortStats::dhcpV6DropPkt() {
   switchStats_->dhcpV6DropPkt();
 }
 
+void PortStats::linkStateChange() {
+  switchStats_->linkStateChange();
+}
+
 }} // facebook::fboss

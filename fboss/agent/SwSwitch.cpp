@@ -906,6 +906,7 @@ void SwSwitch::linkStateChanged(PortID portId, bool up) {
   if (isFullyInitialized() && !up) {
     logLinkStateEvent(portId, up);
     setPortStatusCounter(portId, up);
+    stats()->port(portId)->linkStateChange();
     backgroundEventBase_.runInEventBaseThread(
         [this, portId]() { nUpdater_->portDown(portId); });
   }

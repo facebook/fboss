@@ -65,7 +65,8 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap *map)
       delRouteV4_(map, kCounterPrefix + "route.v4.delete", RATE),
       delRouteV6_(map, kCounterPrefix + "route.v6.delete", RATE),
       updateState_(map, kCounterPrefix + "state_update.us", 50000, 0, 1000000),
-      routeUpdate_(map,  kCounterPrefix + "route_update.us", 50, 0, 500) {
+      routeUpdate_(map,  kCounterPrefix + "route_update.us", 50, 0, 500),
+      linkStateChange_(map, kCounterPrefix + "link_state.down", SUM) {
 }
 
 PortStats* SwitchStats::port(PortID portID) {

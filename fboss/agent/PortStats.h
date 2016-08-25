@@ -56,6 +56,8 @@ class PortStats {
   void dhcpV6BadPkt();
   void dhcpV6DropPkt();
 
+  void linkStateChange();
+
  private:
   // Forbidden copy constructor and assignment operator
   PortStats(PortStats const &) = delete;

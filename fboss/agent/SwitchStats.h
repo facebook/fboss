@@ -195,6 +195,10 @@ class SwitchStats : public boost::noncopyable {
     routeUpdate_.addRepeatedValue(us.count() / routes, routes);
   }
 
+  void linkStateChange() {
+    linkStateChange_.addValue(1);
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   SwitchStats(SwitchStats const &) = delete;
@@ -305,6 +309,11 @@ class SwitchStats : public boost::noncopyable {
    * Histogram for time used for route update (in microsecond)
    */
   TLHistogram routeUpdate_;
+
+  /**
+   * Link state up/down change count
+   */
+  TLTimeseries linkStateChange_;
 
   // Create a PortStats object for the given PortID
   PortStats* createPortStats(PortID portID);
