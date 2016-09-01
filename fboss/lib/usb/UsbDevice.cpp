@@ -9,10 +9,12 @@
  */
 #include "fboss/lib/usb/UsbDevice.h"
 
-#include "fboss/lib/usb/UsbError.h"
-#include "fboss/lib/usb/UsbHandle.h"
+#include <folly/ScopeGuard.h>
 
 #include <libusb-1.0/libusb.h>
+
+#include "fboss/lib/usb/UsbError.h"
+#include "fboss/lib/usb/UsbHandle.h"
 
 namespace facebook { namespace fboss {
 
