@@ -16,6 +16,7 @@ extern "C" {
 
 #include "fboss/agent/types.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
+#include "fboss/agent/gen-cpp/switch_config_types.h"
 
 #include <mutex>
 #include <boost/container/flat_map.hpp>
@@ -78,20 +79,21 @@ class BcmPortGroup {
   }
 
  private:
-  LaneMode getDesiredLaneMode(
+  std::vector<Port*> getSwPorts(
     const std::shared_ptr<SwitchState>& state) const;
   LaneMode neededLaneMode(uint8_t lane, cfg::PortSpeed speed) const;
 
   uint8_t getLane(const BcmPort* bcmPort) const;
   int retrieveActiveLanes() const;
   void setActiveLanes(LaneMode desiredLaneMode);
-  void reconfigure(const std::shared_ptr<SwitchState>& state,
+  void reconfigureLaneMode(const std::shared_ptr<SwitchState>& state,
                    LaneMode newLaneMode);
 
   BcmSwitch* hw_;
   BcmPort* controllingPort_{nullptr};
   std::vector<BcmPort*> allPorts_;
   LaneMode laneMode_;
+  cfg::PortSpeed portSpeed_;
 };
 
 }} // namespace facebook::fboss

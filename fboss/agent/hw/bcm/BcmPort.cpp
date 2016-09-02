@@ -345,6 +345,7 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
                     ", on port ",
                     swPort->getID());
     }
+    getPlatformPort()->linkSpeedChanged(desiredPortSpeed);
   }
 }
 

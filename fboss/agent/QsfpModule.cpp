@@ -633,9 +633,11 @@ void QsfpModule::setCdrIfSupported(cfg::PortSpeed speed,
 
   // If one of rx and tx need a change, set the whole byte - whichever
   // isn't supported will be ignored anyway
+  FeatureState newState = FeatureState::DISABLED;
   uint8_t value = 0x0;
   if (speed == cfg::PortSpeed::HUNDREDG) {
     value = 0xFF;
+    newState = FeatureState::ENABLED;
   }
   int dataLength, dataAddress, dataOffset;
   getQsfpFieldAddress(SffField::CDR_CONTROL, dataAddress,
@@ -643,6 +645,8 @@ void QsfpModule::setCdrIfSupported(cfg::PortSpeed speed,
 
   qsfpImpl_->writeTransceiver(TransceiverI2CApi::ADDR_QSFP, dataOffset,
       sizeof(value), &value);
+  LOG(INFO) << folly::to<std::string>("Setting CDR to state: ",
+        _FeatureState_VALUES_TO_NAMES.find(newState)->second);
 }
 
 void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {

@@ -39,7 +39,7 @@ class WedgePort : public BcmPlatformPort {
   void statusIndication(bool enabled, bool link,
                         bool ingress, bool egress,
                         bool discards, bool errors) override;
-
+  void linkSpeedChanged(const cfg::PortSpeed& speed) override;
  private:
   // Forbidden copy constructor and assignment operator
   WedgePort(WedgePort const &) = delete;

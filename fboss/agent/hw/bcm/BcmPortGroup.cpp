@@ -88,7 +88,9 @@ BcmPortGroup::BcmPortGroup(BcmSwitch* hw,
       throw FbossError("Unexpected number of lanes retrieved for bcm port ",
                        controllingPort_->getBcmPortId());
   }
-
+  // We expect all ports to run at the same speed, so just retrieve the
+  // controlling port's speed.
+  portSpeed_ = hw_->getPortSpeed(PortID(controllingPort_->getBcmPortId()));
 }
 
 BcmPortGroup::~BcmPortGroup() {}
@@ -122,7 +124,7 @@ BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
   return desiredMode;
 }
 
-BcmPortGroup::LaneMode BcmPortGroup::getDesiredLaneMode(
+std::vector<Port*> BcmPortGroup::getSwPorts(
     const std::shared_ptr<SwitchState>& state) const {
   std::vector<Port*> ports;
   for (auto bcmPort : allPorts_) {
@@ -135,8 +137,7 @@ BcmPortGroup::LaneMode BcmPortGroup::getDesiredLaneMode(
     }
     ports.push_back(swPort);
   }
-  return calculateDesiredLaneMode(
-    ports, controllingPort_->supportedLaneSpeeds());
+  return ports;
 }
 
 uint8_t BcmPortGroup::getLane(const BcmPort* bcmPort) const {
@@ -146,7 +147,8 @@ uint8_t BcmPortGroup::getLane(const BcmPort* bcmPort) const {
 bool BcmPortGroup::validConfiguration(
     const std::shared_ptr<SwitchState>& state) const {
   try {
-    getDesiredLaneMode(state);
+    calculateDesiredLaneMode(
+      getSwPorts(state), controllingPort_->supportedLaneSpeeds());
   } catch (const std::exception& ex) {
     VLOG(1) << "Received exception determining lane mode: " << ex.what();
     return false;
@@ -160,14 +162,20 @@ void BcmPortGroup::reconfigureIfNeeded(
   // groups into the swith state somehow so it is easy to generate
   // deltas for these. For now, we need pass around the SwitchState
   // object and get the relevant ports manually.
-  auto desiredLaneMode = getDesiredLaneMode(state);
-
+  auto ports = getSwPorts(state);
+  // ports is guaranteed to be the same size as allPorts_
+  auto speedChanged = ports[0]->getSpeed() != portSpeed_;
+  auto desiredLaneMode = calculateDesiredLaneMode(
+    ports, controllingPort_->supportedLaneSpeeds());
+  if (speedChanged) {
+    controllingPort_->getPlatformPort()->linkSpeedChanged(ports[0]->getSpeed());
+  }
   if (desiredLaneMode != laneMode_) {
-    reconfigure(state, desiredLaneMode);
+    reconfigureLaneMode(state, desiredLaneMode);
   }
 }
 
-void BcmPortGroup::reconfigure(
+void BcmPortGroup::reconfigureLaneMode(
   const std::shared_ptr<SwitchState>& state,
   LaneMode newLaneMode
 ) {

@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/types.h"
+#include "fboss/agent/gen-cpp/switch_config_types.h"
 
 namespace facebook { namespace fboss {
 
@@ -79,6 +80,14 @@ class PlatformPort {
    * adminUp indicates if the port is enabled or disabled.
    */
   virtual void linkStatusChanged(bool up, bool adminUp) = 0;
+
+  /*
+   * Will be called by the hardware code whenever the port speed
+   * changes.
+   *
+   * speed indicates the new speed that the port is running at
+   */
+  virtual void linkSpeedChanged(const cfg::PortSpeed& speed) = 0;
 
   /*
    * statusIndication() will be called by the hardware code once a second.

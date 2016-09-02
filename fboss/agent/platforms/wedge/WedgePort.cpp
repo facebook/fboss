@@ -48,4 +48,16 @@ void WedgePort::statusIndication(bool enabled, bool link,
   linkStatusChanged(link, enabled);
 }
 
+void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
+  // This should be resolved in BcmPort before calling
+  if (speed == cfg::PortSpeed::DEFAULT) {
+    LOG(ERROR) << "Unresolved speed: Unable to determine what qsfp settings " <<
+      "are needed for port " << id_;
+    return;
+  } else if (!qsfp_) {
+    LOG(ERROR) << "Undefined transceiver: Unable to set speed specific qsfp " <<
+      "setting for port " << id_;
+  }
+  qsfp_->customizeTransceiver(speed);
+}
 }} // facebook::fboss
