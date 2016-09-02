@@ -153,15 +153,6 @@ void PktCaptureManager::packetSentImpl(const TxPacket* pkt) {
   });
 }
 
-void PktCaptureManager::packetSentToHostImpl(const RxPacket* pkt) {
-  // TODO(t5096236): For now we are just using the packetReceived() call.
-  // Once we support writing new-style pcap files with interface information
-  // we should correctly record that this packet was sent to the host.
-  invokeCaptures([&] (PktCapture* capture) {
-    return capture->packetReceived(pkt);
-  });
-}
-
 void PktCaptureManager::checkCaptureName(folly::StringPiece name) {
   // We use the capture name for the on-disk filename, so don't allow
   // directory separator characters or nul bytes.

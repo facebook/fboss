@@ -1050,7 +1050,6 @@ void SwSwitch::sendL3Packet(
 }
 
 bool SwSwitch::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
-  pcapMgr_->packetSentToHost(pkt.get());
   if (tunMgr_) {
     return tunMgr_->sendPacketToHost(std::move(pkt));
   } else {

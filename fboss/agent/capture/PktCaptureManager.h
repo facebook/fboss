@@ -71,22 +71,6 @@ class PktCaptureManager {
     packetSentImpl(pkt);
   }
 
-  /*
-   * packetSentToHost() is called by the SwSwitch whenever it transmits
-   * a packet to the local host's operating system networking stack.
-   *
-   * This method is safe to call from any thread.
-   */
-  void packetSentToHost(const RxPacket* pkt) {
-    // We expect that in the common case there will be no active captures
-    // running.  Just do a fast check to handle that case.
-    if (!capturesRunning_.load(std::memory_order_acquire)) {
-      return;
-    }
-
-    packetSentToHostImpl(pkt);
-  }
-
   const std::string& getCaptureDir() const {
     return captureDir_;
   }
@@ -102,7 +86,6 @@ class PktCaptureManager {
   void invokeCaptures(const Fn& fn);
   void packetReceivedImpl(const RxPacket* pkt);
   void packetSentImpl(const TxPacket* pkt);
-  void packetSentToHostImpl(const RxPacket* pkt);
 
   std::atomic<bool> capturesRunning_{false};
 
