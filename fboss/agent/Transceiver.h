@@ -39,10 +39,6 @@ class Transceiver {
    */
   virtual void updateTransceiverInfoFields() = 0;
   /*
-   * Tweak fields as necessary on transceiver
-   */
-  virtual void customizeTransceiver() = 0;
-  /*
    * Return all of the transceiver information
    */
   virtual void getTransceiverInfo(TransceiverInfo &info) = 0;

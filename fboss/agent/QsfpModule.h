@@ -10,8 +10,8 @@
 #pragma once
 #include <cstdint>
 #include <mutex>
-#include <boost/container/flat_map.hpp>
 #include "fboss/agent/Transceiver.h"
+#include "fboss/agent/gen-cpp/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/optic_types.h"
 
 namespace facebook { namespace fboss {
@@ -23,6 +23,7 @@ enum QsfpPages {
   PAGE0,
   PAGE3,
 };
+
 
 enum class SffField;
 class TransceiverImpl;
@@ -47,6 +48,7 @@ void getQsfpFieldAddress(SffField field, int &dataAddress,
 class QsfpModule : public Transceiver {
  public:
   explicit QsfpModule(std::unique_ptr<TransceiverImpl> qsfpImpl);
+
   /*
    * Returns if the QSFP is present or not
    */
@@ -79,8 +81,11 @@ class QsfpModule : public Transceiver {
   void updateTransceiverInfoFields() override;
   /*
    * Customize QSPF fields as necessary
+   *
+   * speed - the speed the port is running at - this will allow setting
+   * different qsfp settings based on speed
    */
-  void customizeTransceiver() override;
+  void customizeTransceiver(const cfg::PortSpeed& speed);
   /*
    * Returns the entire QSFP information
    */
@@ -98,7 +103,7 @@ class QsfpModule : public Transceiver {
     CHANNEL_COUNT = 4,
   };
 
- private:
+ protected:
   // no copy or assignment
   QsfpModule(QsfpModule const &) = delete;
   QsfpModule& operator=(QsfpModule const &) = delete;
@@ -135,6 +140,15 @@ class QsfpModule : public Transceiver {
   mutable std::mutex qsfpModuleMutex_;
 
   /*
+   * Perform transceiver customization
+   * This must be called with a lock held on qsfpModuleMutex_
+   *
+   * Default speed is set to DEFAULT - this will prevent any speed specific
+   * settings from being applied
+   */
+  void customizeTransceiverLocked(
+      const cfg::PortSpeed& speed=cfg::PortSpeed::DEFAULT);
+  /*
    * This function returns a pointer to the value in the static cached
    * data after checking the length fits. The thread needs to have the lock
    * before calling this function.
@@ -160,6 +174,18 @@ class QsfpModule : public Transceiver {
    * The thread needs to have the lock before calling the function.
    */
   void setPresent(bool present);
+  /*
+   * Set power mode
+   * Wedge forces Low Power mode via a pin;  we have to reset this
+   * to force High Power mode on LR4s.
+   */
+  virtual void setPowerOverrideIfSupported(PowerControlState currentState);
+  /*
+   * Enable or disable CDR
+   * Which action to take is determined by the port speed
+   */
+  void setCdrIfSupported(cfg::PortSpeed speed,
+      FeatureState currentStateTx, FeatureState currentStateRx);
   /*
    * returns individual sensor values after scaling
    */
@@ -229,7 +255,7 @@ class QsfpModule : public Transceiver {
    * cache data is not stale. This should be checked before any
    * function that reads cache data is called
    */
-  bool cacheIsValid() const;
+  virtual bool cacheIsValid() const;
   /*
    * Update the cached data with the information from the physical QSFP.
    */

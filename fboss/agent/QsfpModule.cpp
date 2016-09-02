@@ -16,6 +16,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/TransceiverImpl.h"
 #include "fboss/agent/SffFieldInfo.h"
+#include "fboss/lib/usb/TransceiverI2CApi.h"
 
 namespace facebook { namespace fboss {
   using std::memcpy;
@@ -512,7 +513,7 @@ void QsfpModule::detectTransceiver() {
     setPresent(currentQsfpStatus);
     if (currentQsfpStatus) {
       updateQsfpData();
-      customizeTransceiver();
+      customizeTransceiverLocked();
     }
   }
 }
@@ -574,17 +575,85 @@ void QsfpModule::updateQsfpData() {
   }
 }
 
-void QsfpModule::customizeTransceiver() {
+void QsfpModule::customizeTransceiver(const cfg::PortSpeed& speed) {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
+  customizeTransceiverLocked(speed);
+}
+
+void QsfpModule::customizeTransceiverLocked(const cfg::PortSpeed& speed) {
   /*
-   * Determine whether we need to customize any of the QSFP registers.
-   * Wedge forces Low Power mode via a pin;  we have to reset this
+   * This must be called with a lock held on qsfpModuleMutex_
+   */
+  if (dirty_ == true) {
+    return;
+  }
+  TransceiverSettings settings;
+  getTransceiverSettingsInfo(settings);
+
+  // We want this on regardless of speed
+  setPowerOverrideIfSupported(settings.powerControl);
+  if (speed == cfg::PortSpeed::DEFAULT) {
+    VLOG(1) << "Not customising qsfp transceiver based on speed.";
+    return;
+  }
+
+  setCdrIfSupported(speed, settings.cdrTx, settings.cdrRx);
+}
+
+void QsfpModule::setCdrIfSupported(cfg::PortSpeed speed,
+                                   FeatureState currentStateTx,
+                                   FeatureState currentStateRx) {
+  /*
+   * Note that this function expects to be called with qsfpModuleMutex_
+   * held.
+   */
+
+  if (currentStateTx == FeatureState::UNSUPPORTED &&
+      currentStateRx == FeatureState::UNSUPPORTED) {
+    LOG(INFO) << "CDR unsupported by this device";
+    return;
+  }
+
+  // If only one of Rx or Tx is supported, it doesn't matter what
+  // we set the value to, so in that case, treat is as if
+  // no change is needed
+  auto toChange = [speed](FeatureState state) {
+    return
+      state != FeatureState::UNSUPPORTED &&
+      ((speed == cfg::PortSpeed::HUNDREDG && state != FeatureState::ENABLED) ||
+      (speed != cfg::PortSpeed::HUNDREDG && state != FeatureState::DISABLED));
+  };
+
+  bool changeRx = toChange(currentStateRx);
+  bool changeTx = toChange(currentStateTx);
+  if (!changeRx && !changeTx) {
+    LOG(INFO) << "Not changing CDR setting, already correctly set";
+    return;
+  }
+
+  // If one of rx and tx need a change, set the whole byte - whichever
+  // isn't supported will be ignored anyway
+  uint8_t value = 0x0;
+  if (speed == cfg::PortSpeed::HUNDREDG) {
+    value = 0xFF;
+  }
+  int dataLength, dataAddress, dataOffset;
+  getQsfpFieldAddress(SffField::CDR_CONTROL, dataAddress,
+                      dataOffset, dataLength);
+
+  qsfpImpl_->writeTransceiver(TransceiverI2CApi::ADDR_QSFP, dataOffset,
+      sizeof(value), &value);
+}
+
+void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
+  /* Wedge forces Low Power mode via a pin;  we have to reset this
    * to force High Power mode on LR4s.
    *
    * Note that this function expects to be called with qsfpModuleMutex_
    * held.
    */
-
-  if (dirty_ == true) {
+  if (currentState != PowerControlState::POWER_SET) {
+    VLOG(1) << "Power override already set, doing nothing";
     return;
   }
 
