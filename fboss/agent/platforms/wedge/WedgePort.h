@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/gen-cpp/switch_config_types.h"
+#include "fboss/agent/QsfpModule.h"
 
 namespace facebook { namespace fboss {
 
@@ -24,6 +25,10 @@ class WedgePort : public BcmPlatformPort {
   void setBcmPort(BcmPort* port) override;
   BcmPort* getBcmPort() const override {
     return bcmPort_;
+  }
+
+  void setQsfp(QsfpModule* qsfp) {
+    qsfp_= qsfp;
   }
 
   void preDisable(bool temporary) override;
@@ -43,6 +48,8 @@ class WedgePort : public BcmPlatformPort {
  protected:
   PortID id_{0};
   BcmPort* bcmPort_{nullptr};
+  // This is owned by SwSwitch
+  QsfpModule* qsfp_{nullptr};
 };
 
 }} // facebook::fboss

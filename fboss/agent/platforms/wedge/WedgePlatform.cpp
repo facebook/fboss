@@ -148,11 +148,14 @@ void WedgePlatform::initTransceiverMap(SwSwitch* sw) {
     }
     std::unique_ptr<QsfpModule> qsfp =
       make_unique<QsfpModule>(std::move(qsfpImpl));
-    sw->addTransceiver(TransceiverID(idx), std::move(qsfp));
+    auto qsfpPtr = qsfp.get();
+    sw->addTransceiver(TransceiverID(idx), move(qsfp));
     LOG(INFO) << "making QSFP for " << idx;
     for (int channel = 0; channel < QsfpModule::CHANNEL_COUNT; ++channel) {
-      sw->addTransceiverMapping(fbossPortForQsfpChannel(idx, channel),
+      PortID portId = fbossPortForQsfpChannel(idx, channel);
+      sw->addTransceiverMapping(portId,
           ChannelID(channel), TransceiverID(idx));
+      (getPort(portId))->setQsfp(qsfpPtr);
     }
   }
 }
