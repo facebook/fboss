@@ -18,7 +18,9 @@ enum class WedgePlatformMode {
   WEDGE,
   LC,
   FC,
-  WEDGE100
+  WEDGE100,
+  GALAXY_LC,
+  GALAXY_FC,
 };
 
 class WedgeProductInfo {
@@ -26,7 +28,7 @@ class WedgeProductInfo {
   explicit WedgeProductInfo(folly::StringPiece path);
 
   void getInfo(ProductInfo& info);
-  WedgePlatformMode getMode();
+  WedgePlatformMode getMode() const;
   void initialize();
   std::string getFabricLocation();
   std::string getProductName();

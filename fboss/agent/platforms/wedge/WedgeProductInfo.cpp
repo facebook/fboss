@@ -72,7 +72,7 @@ void WedgeProductInfo::getInfo(ProductInfo& info) {
   info = productInfo_;
 }
 
-WedgePlatformMode WedgeProductInfo::getMode() {
+WedgePlatformMode WedgeProductInfo::getMode() const {
   return mode_;
 }
 
@@ -95,6 +95,12 @@ void WedgeProductInfo::initMode() {
       mode_ = WedgePlatformMode::WEDGE100;
     } else if (modelName.find("Wedge") == 0) {
       mode_ = WedgePlatformMode::WEDGE;
+    } else if (modelName.find("SCM-LC") == 0 || modelName.find("LC") == 0) {
+       // TODO remove LC once fruid.json is fixed on Galaxy Linecards
+       mode_ = WedgePlatformMode::GALAXY_LC;
+    } else if (modelName.find("SCM-FC") == 0 || modelName.find("FAB") == 0) {
+       // TODO remove FAB once fruid.json is fixed on Galaxy fabric cards
+       mode_ = WedgePlatformMode::GALAXY_FC;
     } else {
       throw std::runtime_error("invalid model name " + modelName);
     }
@@ -107,6 +113,10 @@ void WedgeProductInfo::initMode() {
       mode_ = WedgePlatformMode::FC;
     } else if (FLAGS_mode == "wedge100") {
       mode_ = WedgePlatformMode::WEDGE100;
+    } else if (FLAGS_mode == "galaxy_lc") {
+      mode_ = WedgePlatformMode::GALAXY_LC;
+    } else if (FLAGS_mode == "galaxy_fc") {
+      mode_ = WedgePlatformMode::GALAXY_FC;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }

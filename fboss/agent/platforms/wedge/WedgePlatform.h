@@ -58,7 +58,7 @@ class WedgePlatform : public BcmPlatform {
   typedef boost::container::flat_map<PortID, std::unique_ptr<WedgePort>>
     WedgePortMap;
 
-  WedgePlatformMode getMode();
+  WedgePlatformMode getMode() const;
 
   WedgePortMap ports_;
   std::unique_ptr<WedgeI2CBusLock> wedgeI2CBusLock_;
