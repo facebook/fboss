@@ -17,4 +17,12 @@ std::map<std::string, std::string> GalaxyPlatform::loadConfig() {
   return config;
 }
 
+folly::ByteRange GalaxyPlatform::defaultLed0Code() {
+  return folly::ByteRange();
+}
+
+folly::ByteRange GalaxyPlatform::defaultLed1Code() {
+  return defaultLed0Code();
+}
+
 }} // facebook::fboss

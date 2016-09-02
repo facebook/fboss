@@ -7,18 +7,11 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/wedge/Wedge40Platform.h"
 
-#include <folly/Range.h>
+#include "fboss/agent/platforms/wedge/GalaxyPort.h"
 
 namespace facebook { namespace fboss {
 
-folly::ByteRange Wedge40Platform::defaultLed0Code() {
-  return folly::ByteRange();
-}
+void GalaxyPort::linkStatusChanged(bool up, bool adminUp) {}
 
-folly::ByteRange Wedge40Platform::defaultLed1Code() {
-  return defaultLed0Code();
-}
-
-}} // facebook::fboss
+}}

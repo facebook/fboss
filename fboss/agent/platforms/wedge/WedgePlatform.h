@@ -74,7 +74,8 @@ class WedgePlatform : public BcmPlatform {
   virtual PortID fbossPortForQsfpChannel(int transceiver, int channel);
 
   void initTransceiverMap(SwSwitch* sw);
-  virtual folly::ByteRange defaultLedCode() = 0;
+  virtual folly::ByteRange defaultLed0Code() = 0;
+  virtual folly::ByteRange defaultLed1Code() = 0;
 
   folly::MacAddress localMac_;
   std::unique_ptr<BcmSwitch> hw_;

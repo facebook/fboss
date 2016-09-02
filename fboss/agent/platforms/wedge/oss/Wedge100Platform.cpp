@@ -18,8 +18,12 @@ std::map<std::string, std::string> Wedge100Platform::loadConfig() {
   return config;
 }
 
-folly::ByteRange Wedge100Platform::defaultLedCode() {
+folly::ByteRange Wedge100Platform::defaultLed0Code() {
   return folly::ByteRange();
+}
+
+folly::ByteRange Wedge100Platform::defaultLed1Code() {
+  return defaultLed0Code();
 }
 
 void Wedge100Platform::setPciPreemphasis(int unit) const {

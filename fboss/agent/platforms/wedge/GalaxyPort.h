@@ -29,7 +29,7 @@ class GalaxyPort : public WedgePort {
 
   void remedy() override {}
   void prepareForGracefulExit() override {}
-  void linkStatusChanged(bool up, bool adminUp) override {}
+  void linkStatusChanged(bool up, bool adminUp) override;
 };
 
 }} // facebook::fboss

@@ -27,7 +27,8 @@ class Wedge40Platform : public WedgePlatform {
 
   InitPortMap initPorts() override;
 
-  folly::ByteRange defaultLedCode() override;
+  folly::ByteRange defaultLed0Code() override;
+  folly::ByteRange defaultLed1Code() override;
 
 
  private:
