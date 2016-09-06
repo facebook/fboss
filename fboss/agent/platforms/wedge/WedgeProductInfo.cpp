@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/platforms/wedge/WedgeProductInfo.h"
 #include "fboss/agent/FbossError.h"
+
+#include <boost/algorithm/string.hpp>
 #include <folly/FileUtil.h>
 #include <folly/json.h>
 #include <folly/dynamic.h>
@@ -150,9 +152,10 @@ void WedgeProductInfo::parse(std::string data) {
   productInfo_.fabricLocation = folly::to<std::string>
                                     (info[kFabricLocation].asString());
   // Append L/R to the serial number based on the fabricLocation
-  if (productInfo_.fabricLocation == kFabricLocationLeft) {
+  if (boost::iequals(productInfo_.fabricLocation, kFabricLocationLeft)) {
     productInfo_.serial = productInfo_.serial + "L";
-  } else if (productInfo_.fabricLocation == kFabricLocationRight) {
+  } else if (boost::iequals(productInfo_.fabricLocation,
+        kFabricLocationRight)) {
     productInfo_.serial = productInfo_.serial + "R";
   }
   productInfo_.version = info[kVersion].asInt();
