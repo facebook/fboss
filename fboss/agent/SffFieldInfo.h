@@ -30,6 +30,8 @@ enum class SffField {
   VCC,  // Voltage
   CHANNEL_RX_PWR,
   CHANNEL_TX_BIAS,
+  RATE_SELECT_RX,
+  RATE_SELECT_TX,
   POWER_CONTROL,
   CDR_CONTROL, // Whether CDR is enabled
   ETHERNET_COMPLIANCE,

@@ -355,8 +355,11 @@ class PortStatusDetailCmd(object):
             optic_ttypes.FeatureState._VALUES_TO_NAMES[info.settings.cdrTx],
             optic_ttypes.FeatureState._VALUES_TO_NAMES[info.settings.cdrRx]))
         print("Rate select: {}".format(
-            optic_ttypes.RateSelectState._VALUES_TO_NAMES[
-                info.settings.rateSelect]))
+              optic_ttypes.RateSelectState._VALUES_TO_NAMES[
+                  info.settings.rateSelect]))
+        print("\tOptimised for: {}".format(
+              optic_ttypes.RateSelectSetting._VALUES_TO_NAMES[
+                  info.settings.rateSelectSetting]))
         print("Power measurement: {}".format(
             optic_ttypes.FeatureState._VALUES_TO_NAMES[
                 info.settings.powerMeasurement]))

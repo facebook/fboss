@@ -37,6 +37,8 @@ static SffFieldInfo::SffFieldMap qsfpFields = {
   {SffField::VCC, {QsfpPages::LOWER, 26, 2} },
   {SffField::CHANNEL_RX_PWR, {QsfpPages::LOWER, 34, 8} },
   {SffField::CHANNEL_TX_BIAS, {QsfpPages::LOWER, 42, 8} },
+  {SffField::RATE_SELECT_RX, {QsfpPages::LOWER, 87, 1} },
+  {SffField::RATE_SELECT_TX, {QsfpPages::LOWER, 88, 1} },
   {SffField::POWER_CONTROL, {QsfpPages::LOWER, 93, 1} },
   {SffField::CDR_CONTROL, {QsfpPages::LOWER, 98, 1} },
   {SffField::PAGE_SELECT_BYTE, {QsfpPages::LOWER, 127, 1} },
@@ -219,8 +221,38 @@ bool QsfpModule::getTransceiverSettingsInfo(TransceiverSettings &settings) {
 
   settings.powerControl = getPowerControlValue();
   settings.rateSelect = getRateSelectValue();
+  settings.rateSelectSetting = getRateSelectSettingValue(settings.rateSelect);
 
   return true;
+}
+
+RateSelectSetting QsfpModule::getRateSelectSettingValue(RateSelectState state) {
+  /* This refers to the optimised bit rate
+   * The various values here are listed in the spec:
+   * ftp://ftp.seagate.com/sff/SFF-8636.PDF - page 36
+   */
+  if (state != RateSelectState::EXTENDED_RATE_SELECT_V1 &&
+      state != RateSelectState::EXTENDED_RATE_SELECT_V2) {
+    return RateSelectSetting::UNSUPPORTED;
+  }
+
+  // Each byte has settings for 4 different channels
+  // Currently we only support setting them all to the same value
+  // We also expect rx and tx to have the same setting
+  uint8_t rateRx = getSettingsValue(SffField::RATE_SELECT_RX);
+  uint8_t rateTx = getSettingsValue(SffField::RATE_SELECT_TX);
+  if (rateRx != rateTx) {
+    LOG(ERROR) << "Unable to retrieve rate select setting: rx(" << std::hex <<
+      rateRx << " and tx(" << rateTx << ") are not equal";
+    return RateSelectSetting::UNSUPPORTED;
+  }
+
+  int channelRate = rateRx & 0b11;
+  if (state == RateSelectState::EXTENDED_RATE_SELECT_V2) {
+    // Offset so that we can correctly index into the enum
+    channelRate += 3;
+  }
+  return (RateSelectSetting) channelRate;
 }
 
 RateSelectState QsfpModule::getRateSelectValue() {
@@ -243,13 +275,15 @@ RateSelectState QsfpModule::getRateSelectValue() {
 
   uint8_t extendedRateCompliance = getSettingsValue(
       SffField::EXTENDED_RATE_COMPLIANCE);
-  if (enhancedOptions == 0b10 && extendedRateCompliance) {
-    return RateSelectState::EXTENDED_RATE_SELECT;
+  if (enhancedOptions == 0b10 && (extendedRateCompliance & 0b01)) {
+    return RateSelectState::EXTENDED_RATE_SELECT_V1;
+  } else if (enhancedOptions == 0b10 && (extendedRateCompliance & 0b10)) {
+    return RateSelectState::EXTENDED_RATE_SELECT_V2;
   } else if (enhancedOptions == 0b01) {
     return RateSelectState::APPLICATION_RATE_SELECT;
   }
 
-  return RateSelectState::UNKNOWN;
+  return RateSelectState::UNSUPPORTED;
 }
 
 PowerControlState QsfpModule::getPowerControlValue() {
@@ -576,15 +610,20 @@ void QsfpModule::updateQsfpData() {
 }
 
 void QsfpModule::customizeTransceiver(const cfg::PortSpeed& speed) {
-  lock_guard<std::mutex> g(qsfpModuleMutex_);
-  customizeTransceiverLocked(speed);
+  if (!present_) {
+    // Detect the transceiver if not already present
+    detectTransceiver();
+  } else {
+    lock_guard<std::mutex> g(qsfpModuleMutex_);
+    customizeTransceiverLocked(speed);
+  }
 }
 
 void QsfpModule::customizeTransceiverLocked(const cfg::PortSpeed& speed) {
   /*
    * This must be called with a lock held on qsfpModuleMutex_
    */
-  if (dirty_ == true) {
+  if (dirty_) {
     return;
   }
   TransceiverSettings settings;
@@ -593,11 +632,12 @@ void QsfpModule::customizeTransceiverLocked(const cfg::PortSpeed& speed) {
   // We want this on regardless of speed
   setPowerOverrideIfSupported(settings.powerControl);
   if (speed == cfg::PortSpeed::DEFAULT) {
-    VLOG(1) << "Not customising qsfp transceiver based on speed.";
     return;
   }
 
   setCdrIfSupported(speed, settings.cdrTx, settings.cdrRx);
+  setRateSelectIfSupported(speed, settings.rateSelect,
+      settings.rateSelectSetting);
 }
 
 void QsfpModule::setCdrIfSupported(cfg::PortSpeed speed,
@@ -610,7 +650,6 @@ void QsfpModule::setCdrIfSupported(cfg::PortSpeed speed,
 
   if (currentStateTx == FeatureState::UNSUPPORTED &&
       currentStateRx == FeatureState::UNSUPPORTED) {
-    LOG(INFO) << "CDR unsupported by this device";
     return;
   }
 
@@ -627,7 +666,8 @@ void QsfpModule::setCdrIfSupported(cfg::PortSpeed speed,
   bool changeRx = toChange(currentStateRx);
   bool changeTx = toChange(currentStateTx);
   if (!changeRx && !changeTx) {
-    LOG(INFO) << "Not changing CDR setting, already correctly set";
+    LOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
+      " Not changing CDR setting, already correctly set";
     return;
   }
 
@@ -645,8 +685,75 @@ void QsfpModule::setCdrIfSupported(cfg::PortSpeed speed,
 
   qsfpImpl_->writeTransceiver(TransceiverI2CApi::ADDR_QSFP, dataOffset,
       sizeof(value), &value);
-  LOG(INFO) << folly::to<std::string>("Setting CDR to state: ",
-        _FeatureState_VALUES_TO_NAMES.find(newState)->second);
+  LOG(INFO) << folly::to<std::string>("Port: ", qsfpImpl_->getName(),
+     " Setting CDR to state: ",
+     _FeatureState_VALUES_TO_NAMES.find(newState)->second);
+}
+
+void QsfpModule::setRateSelectIfSupported(cfg::PortSpeed speed,
+    RateSelectState currentState, RateSelectSetting currentSetting) {
+  if (currentState == RateSelectState::UNSUPPORTED) {
+    return;
+  } else if (currentState == RateSelectState::APPLICATION_RATE_SELECT) {
+    // Currently only support extended rate select, so treat application
+    // rate select as an invalid option
+    LOG(ERROR) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
+      " Rate select in unknown state, treating as unsupported: " <<
+      _RateSelectState_VALUES_TO_NAMES.find(currentState)->second;
+    return;
+  }
+
+  uint8_t value;
+  RateSelectSetting newSetting;
+  bool alreadySet = false;
+  auto translateEnum = [currentSetting, &value, &newSetting] (
+      RateSelectSetting desired,
+      uint8_t newValue) {
+    if (currentSetting == desired) {
+      return true;
+    }
+    newSetting = desired;
+    value = newValue;
+    return false;
+  };
+
+  if (currentState == RateSelectState::EXTENDED_RATE_SELECT_V1) {
+    // Use the highest possible speed in this version
+    alreadySet = translateEnum(RateSelectSetting::FROM_6_6GB_AND_ABOVE,
+        0b10101010);
+  } else if (speed == cfg::PortSpeed::FORTYG) {
+    // Optimised for 10G channels
+    alreadySet = translateEnum(RateSelectSetting::LESS_THAN_12GB,
+      0b00000000);
+  } else if (speed == cfg::PortSpeed::HUNDREDG) {
+    // Optimised for 25GB channels
+    alreadySet = translateEnum(RateSelectSetting::FROM_24GB_to_26GB,
+        0b10101010);
+  } else {
+    LOG(ERROR) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
+      " Unable to set rate select for port speed: " <<
+      cfg::_PortSpeed_VALUES_TO_NAMES.find(speed)->second;
+    return;
+  }
+
+  if (alreadySet) {
+    return;
+  }
+
+  int dataLength, dataAddress, dataOffset;
+
+  getQsfpFieldAddress(SffField::RATE_SELECT_RX, dataAddress,
+                      dataOffset, dataLength);
+  qsfpImpl_->writeTransceiver(TransceiverI2CApi::ADDR_QSFP,
+      dataOffset, sizeof(value), &value);
+
+  getQsfpFieldAddress(SffField::RATE_SELECT_RX, dataAddress,
+                      dataOffset, dataLength);
+  qsfpImpl_->writeTransceiver(TransceiverI2CApi::ADDR_QSFP,
+      dataOffset, sizeof(value), &value);
+  LOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
+    " set rate select to " <<
+    _RateSelectSetting_VALUES_TO_NAMES.find(newSetting)->second;
 }
 
 void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
@@ -657,7 +764,8 @@ void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
    * held.
    */
   if (currentState != PowerControlState::POWER_SET) {
-    VLOG(1) << "Power override already set, doing nothing";
+    LOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
+      "Power override already set, doing nothing";
     return;
   }
 

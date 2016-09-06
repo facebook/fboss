@@ -184,8 +184,13 @@ class QsfpModule : public Transceiver {
    * Enable or disable CDR
    * Which action to take is determined by the port speed
    */
-  void setCdrIfSupported(cfg::PortSpeed speed,
+  virtual void setCdrIfSupported(cfg::PortSpeed speed,
       FeatureState currentStateTx, FeatureState currentStateRx);
+  /*
+   * Set appropriate rate select value for PortSpeed, if supported
+   */
+  virtual void setRateSelectIfSupported(cfg::PortSpeed speed,
+      RateSelectState currentState, RateSelectSetting currentSetting);
   /*
    * returns individual sensor values after scaling
    */
@@ -237,7 +242,7 @@ class QsfpModule : public Transceiver {
    * Retrieves the values of settings based on field name and bit placement
    * Default mask is a noop
    */
-  uint8_t getSettingsValue(SffField field, uint8_t mask=0xff);
+  virtual uint8_t getSettingsValue(SffField field, uint8_t mask=0xff);
   /*
    * Gather info on what features are enabled and supported
    */
@@ -246,6 +251,11 @@ class QsfpModule : public Transceiver {
    * Return which rate select capability is being used, if any
    */
   RateSelectState getRateSelectValue();
+  /*
+   * Return the rate select optimised bit rates for each channel
+   */
+  RateSelectSetting getRateSelectSettingValue(
+      RateSelectState state);
   /*
    * Return what power control capability is currently enabled
    */
@@ -259,7 +269,7 @@ class QsfpModule : public Transceiver {
   /*
    * Update the cached data with the information from the physical QSFP.
    */
-  void updateQsfpData();
+  virtual void updateQsfpData();
 };
 
 }} //namespace facebook::fboss

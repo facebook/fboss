@@ -163,8 +163,23 @@ enum PowerControlState {
 
 enum RateSelectState {
   UNSUPPORTED,
-  EXTENDED_RATE_SELECT,
+  // Depending on which of the rate selects are set, the Extended Rate
+  // Compliance bits are read differently:
+  // ftp://ftp.seagate.com/sff/SFF-8636.PDF page 36
+  EXTENDED_RATE_SELECT_V1,
+  EXTENDED_RATE_SELECT_V2,
   APPLICATION_RATE_SELECT,
+}
+
+enum RateSelectSetting {
+  LESS_THAN_2_2GB = 0,
+  FROM_2_2GB_TO_6_6GB = 1,
+  FROM_6_6GB_AND_ABOVE = 2,
+  LESS_THAN_12GB = 3,
+  FROM_12GB_TO_24GB = 4,
+  FROM_24GB_to_26GB = 5,
+  FROM_26GB_AND_ABOVE = 6,
+  UNSUPPORTED,
   UNKNOWN,
 }
 
@@ -174,6 +189,7 @@ struct TransceiverSettings {
   3: RateSelectState rateSelect,
   4: FeatureState powerMeasurement,
   5: PowerControlState powerControl,
+  6: RateSelectSetting rateSelectSetting,
 }
 
 struct TransceiverInfo {
