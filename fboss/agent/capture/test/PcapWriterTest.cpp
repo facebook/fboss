@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 
 #include <folly/Exception.h>
+#include <folly/ScopeGuard.h>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
