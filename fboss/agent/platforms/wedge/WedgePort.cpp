@@ -49,14 +49,16 @@ void WedgePort::statusIndication(bool enabled, bool link,
 }
 
 void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
+  if (!qsfp_) {
+    LOG (INFO) << " No QSFP set for : " << id_ << " skip updating QSFP "
+      <<" settings ";
+    return;
+  }
   // This should be resolved in BcmPort before calling
   if (speed == cfg::PortSpeed::DEFAULT) {
     LOG(ERROR) << "Unresolved speed: Unable to determine what qsfp settings " <<
       "are needed for port " << id_;
     return;
-  } else if (!qsfp_) {
-    LOG(ERROR) << "Undefined transceiver: Unable to set speed specific qsfp " <<
-      "setting for port " << id_;
   }
   qsfp_->customizeTransceiver(speed);
 }
