@@ -279,11 +279,6 @@ opennsl_port_if_t BcmPort::getDesiredInterfaceMode(cfg::PortSpeed speed,
 }
 
 void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
-  if (isEnabled()) {
-    LOG(ERROR) << "Cannot set port speed while the port is enabled. Port: "
-               << swPort->getName() << " id: " << swPort->getID();
-    return;
-  }
   int ret;
   cfg::PortSpeed desiredPortSpeed;
   if (swPort->getSpeed() == cfg::PortSpeed::DEFAULT) {
@@ -333,6 +328,14 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
   }
 
   if (updateSpeed) {
+    if (isEnabled()) {
+      // Changing the port speed causes traffic disruptions, but not doing
+      // it would cause inconsistency.  Warn the user.
+      LOG(WARNING) << "Changing port speed on enabled port. This will "
+                   << "disrupt traffic. Port: " << swPort->getName()
+                   << " id: " << swPort->getID();
+    }
+
     if (desiredMode == OPENNSL_PORT_IF_KR4) {
       // We don't need to set speed when mode is KR4, since ports in KR4 mode
       // do autonegotiation to figure out the speed.
