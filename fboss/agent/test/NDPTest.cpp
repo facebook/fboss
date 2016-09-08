@@ -137,7 +137,7 @@ unique_ptr<SwSwitch> setupSwitchWithNdpTimeout(seconds ndpTimeout) {
 
 typedef std::function<void(Cursor* cursor, uint32_t length)> PayloadCheckFn;
 
-TxMatchFn checkIMCPv6Pkt(MacAddress srcMac, IPAddressV6 srcIP,
+TxMatchFn checkICMPv6Pkt(MacAddress srcMac, IPAddressV6 srcIP,
                          MacAddress dstMac, IPAddressV6 dstIP,
                          VlanID vlan, ICMPv6Type type,
                          const PayloadCheckFn& checkPayload) {
@@ -199,7 +199,7 @@ TxMatchFn checkNeighborAdvert(MacAddress srcMac, IPAddressV6 srcIP,
     // This is a match
     return;
   };
-  return checkIMCPv6Pkt(srcMac, srcIP, dstMac, dstIP, vlan,
+  return checkICMPv6Pkt(srcMac, srcIP, dstMac, dstIP, vlan,
                         ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
                         checkPayload);
 }
@@ -220,7 +220,7 @@ TxMatchFn checkNeighborSolicitation(MacAddress srcMac, IPAddressV6 srcIP,
     auto srcMacOption = PktUtil::readMac(cursor);
     checkField(srcMac, srcMacOption, "source MAC option value");
   };
-  return checkIMCPv6Pkt(srcMac, srcIP, dstMac, dstIP, vlan,
+  return checkICMPv6Pkt(srcMac, srcIP, dstMac, dstIP, vlan,
                         ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
                         checkPayload);
 }
@@ -314,7 +314,7 @@ TxMatchFn checkRouterAdvert(MacAddress srcMac, IPAddressV6 srcIP,
       throw FbossError("mismatching advertised prefixes");
     }
   };
-  return checkIMCPv6Pkt(srcMac, srcIP, dstMac, dstIP, vlan,
+  return checkICMPv6Pkt(srcMac, srcIP, dstMac, dstIP, vlan,
                         ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT, checkPayload);
 }
 
