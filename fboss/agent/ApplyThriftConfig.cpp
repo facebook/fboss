@@ -110,6 +110,8 @@ class ThriftConfigApplier {
   std::shared_ptr<AclEntry> createAcl(const cfg::AclEntry* config);
   std::shared_ptr<AclEntry> updateAcl(const std::shared_ptr<AclEntry>& orig,
                                       const cfg::AclEntry* config);
+  // check the acl provided by config is valid
+  void checkAcl(const cfg::AclEntry* config) const;
   bool updateNeighborResponseTables(Vlan* vlan, const cfg::Vlan* config);
   bool updateDhcpOverrides(Vlan* vlan, const cfg::Vlan* config);
   std::shared_ptr<InterfaceMap> updateInterfaces();
@@ -537,8 +539,39 @@ shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
   return origAcls->clone(std::move(newAcls));
 }
 
+void ThriftConfigApplier::checkAcl(const cfg::AclEntry *config) const {
+  // check l4 port range
+  if (config->__isset.srcL4PortRange &&
+      (config->srcL4PortRange.min > AclL4PortRange::kMaxPort)) {
+    throw FbossError("src's L4 port range has a min value larger than 65535");
+  }
+  if (config->__isset.srcL4PortRange &&
+      (config->srcL4PortRange.max > AclL4PortRange::kMaxPort)) {
+    throw FbossError("src's L4 port range has a max value larger than 65535");
+  }
+  if (config->__isset.srcL4PortRange &&
+      (config->srcL4PortRange.min > config->srcL4PortRange.max)) {
+    throw FbossError("src's L4 port range has a min value larger than ",
+      "its max value");
+  }
+  if (config->__isset.dstL4PortRange &&
+      (config->dstL4PortRange.min > AclL4PortRange::kMaxPort)) {
+    throw FbossError("dst's L4 port range has a min value larger than 65535");
+  }
+  if (config->__isset.dstL4PortRange &&
+      (config->dstL4PortRange.max > AclL4PortRange::kMaxPort)) {
+    throw FbossError("dst's L4 port range has a max value larger than 65535");
+  }
+  if (config->__isset.dstL4PortRange &&
+      (config->dstL4PortRange.min > config->dstL4PortRange.max)) {
+    throw FbossError("dst's L4 port range has a min value larger than ",
+      "its max value");
+  }
+}
+
 shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
     const cfg::AclEntry* config) {
+  checkAcl(config);
   auto newAcl = make_shared<AclEntry>(AclEntryID(config->id));
   newAcl->setAction(config->action);
   if (config->__isset.srcIp) {
@@ -546,12 +579,6 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   }
   if (config->__isset.dstIp) {
     newAcl->setDstIp(IPAddress::createNetwork(config->dstIp));
-  }
-  if (config->__isset.l4SrcPort) {
-    newAcl->setL4SrcPort(config->l4SrcPort);
-  }
-  if (config->__isset.l4DstPort) {
-    newAcl->setL4DstPort(config->l4DstPort);
   }
   if (config->__isset.proto) {
     newAcl->setProto(config->proto);
@@ -568,9 +595,16 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (config->__isset.dstPort) {
     newAcl->setDstPort(config->dstPort);
   }
+  if (config->__isset.srcL4PortRange) {
+    newAcl->setSrcL4PortRange(AclL4PortRange(config->srcL4PortRange.min,
+      config->srcL4PortRange.max));
+  }
+  if (config->__isset.dstL4PortRange) {
+    newAcl->setDstL4PortRange(AclL4PortRange(config->dstL4PortRange.min,
+      config->dstL4PortRange.max));
+  }
   return newAcl;
 }
-
 
 shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
     const shared_ptr<AclEntry>& orig,
@@ -578,15 +612,7 @@ shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
 
   auto newAcl = createAcl(config);
 
-  if (orig->getID() == newAcl->getID() &&
-      orig->getAction() == newAcl->getAction() &&
-      orig->getSrcIp() == newAcl->getSrcIp() &&
-      orig->getDstIp() == newAcl->getDstIp() &&
-      orig->getL4SrcPort() == newAcl->getL4SrcPort() &&
-      orig->getL4DstPort() == newAcl->getL4DstPort() &&
-      orig->getProto() == newAcl->getProto() &&
-      orig->getTcpFlags() == newAcl->getTcpFlags() &&
-      orig->getTcpFlagsMask() == newAcl->getTcpFlagsMask()) {
+  if (*orig == *newAcl) {
     return nullptr;
   }
 

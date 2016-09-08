@@ -12,6 +12,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/gen-cpp/switch_config_types.h"
+#include "fboss/agent/hw/bcm/BcmAclTable.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 #include <folly/dynamic.h>
 
@@ -47,12 +48,6 @@ class Port;
 class PortStats;
 class Vlan;
 class VlanMap;
-/*
- * Map AclEntryId to opennsl_field_entry_t
- * opennsl_field_entry_t is not opensourced. Using int for now.
- */
-using BcmAclTable =
-  boost::container::flat_map<AclEntryID, int>;
 
 /*
  * BcmSwitch is a HwSwitch implementation for systems that use a single
@@ -144,6 +139,9 @@ class BcmSwitch : public HwSwitch {
   }
   const BcmHostTable* getHostTable() const {
     return hostTable_.get();
+  }
+  const BcmAclTable* getAclTable() const {
+    return aclTable_.get();
   }
   bool isPortUp(PortID port) const override;
 

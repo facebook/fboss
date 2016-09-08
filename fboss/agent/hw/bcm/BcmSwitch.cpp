@@ -139,7 +139,7 @@ BcmSwitch::BcmSwitch(BcmPlatform *platform, HashMode hashMode)
     intfTable_(new BcmIntfTable(this)),
     hostTable_(new BcmHostTable(this)),
     routeTable_(new BcmRouteTable(this)),
-    aclTable_(new BcmAclTable()),
+    aclTable_(new BcmAclTable(this)),
     warmBootCache_(new BcmWarmBootCache(this)) {
 
   // Start switch event manager so critical events will be handled.
@@ -185,6 +185,7 @@ unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
   intfTable_.reset();
   toCPUEgress_.reset();
   portTable_.reset();
+  aclTable_.reset();
 
   unit_ = -1;
   unitObject_->setCookie(nullptr);

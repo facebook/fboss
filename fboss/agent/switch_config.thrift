@@ -277,6 +277,15 @@ struct StaticRouteNoNextHops {
 }
 
 /**
+ *  A Range for L4 port range checker
+ *  Define a range bewteen [min, max]
+ */
+struct L4PortRange {
+  1: i32 min
+  2: i32 max
+}
+
+/**
  * An access control entry
  */
 struct AclEntry {
@@ -299,10 +308,10 @@ struct AclEntry {
   4: optional string dstIp
 
   /**
-   * L4 ports (TCP/UDP). Note that this is NOT the switch port.
+   * L4 port ranges (TCP/UDP)
    */
-  5: optional i16 l4SrcPort
-  6: optional i16 l4DstPort
+  5: optional L4PortRange srcL4PortRange
+  6: optional L4PortRange dstL4PortRange
 
   /**
    * IP Protocol. e.g, 6 for TCP

@@ -8,9 +8,8 @@
  *
  */
 #include "fboss/agent/state/AclEntry.h"
-#include <folly/Conv.h>
-
 #include "fboss/agent/state/NodeBase-defs.h"
+#include <folly/Conv.h>
 
 using folly::IPAddress;
 
@@ -26,9 +25,47 @@ constexpr auto kTcpFlags = "tcpFlags";
 constexpr auto kTcpFlagsMask = "tcpFlagsMask";
 constexpr auto kSrcPort = "srcPort";
 constexpr auto kDstPort = "dstPort";
+constexpr auto kSrcL4PortRange = "srcL4PortRange";
+constexpr auto kDstL4PortRange = "dstL4PortRange";
+constexpr auto kL4PortRangeMin = "min";
+constexpr auto kL4PortRangeMax = "max";
+constexpr auto kL4PortMax = 65535;
 }
 
 namespace facebook { namespace fboss {
+
+folly::dynamic AclL4PortRange::toFollyDynamic() const {
+  folly::dynamic range = folly::dynamic::object;
+  range[kL4PortRangeMin] = static_cast<uint16_t>(min_);
+  range[kL4PortRangeMax] = static_cast<uint16_t>(max_);
+  return range;
+}
+
+AclL4PortRange AclL4PortRange::fromFollyDynamic(
+  const folly::dynamic& rangeJson) {
+  checkFollyDynamic(rangeJson);
+  uint16_t min = rangeJson[kL4PortRangeMin].asInt();
+  uint16_t max = rangeJson[kL4PortRangeMax].asInt();
+  return AclL4PortRange(min, max);
+}
+
+void AclL4PortRange::checkFollyDynamic(const folly::dynamic& rangeJson) {
+  if (rangeJson.find(kL4PortRangeMin) == rangeJson.items().end()) {
+    throw FbossError("a L4 port range should have min value set");
+  }
+  if (rangeJson.find(kL4PortRangeMax) == rangeJson.items().end()) {
+    throw FbossError("a L4 port range should have max value set");
+  }
+  uint16_t pMin = rangeJson[kL4PortRangeMin].asInt();
+  uint16_t pMax = rangeJson[kL4PortRangeMax].asInt();
+  if (pMin > kL4PortMax || pMax > kL4PortMax){
+        throw FbossError("Range value exceeds ", std::to_string(kL4PortMax));
+  }
+  if (pMin > pMax) {
+    throw FbossError("Min. port value is larger than ",
+                     "max. port value");
+  }
+}
 
 folly::dynamic AclEntryFields::toFollyDynamic() const {
   folly::dynamic aclEntry = folly::dynamic::object;
@@ -37,12 +74,6 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   }
   if (dstIp.first) {
     aclEntry[kDstIp] = IPAddress::networkToString(dstIp);
-  }
-  if (l4SrcPort) {
-    aclEntry[kL4SrcPort] = static_cast<uint16_t>(l4SrcPort);
-  }
-  if (l4DstPort) {
-    aclEntry[kL4DstPort] = static_cast<uint16_t>(l4DstPort);
   }
   if (proto) {
     aclEntry[kProto] = static_cast<uint16_t>(proto);
@@ -58,6 +89,12 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   }
   if (dstPort) {
     aclEntry[kDstPort] = static_cast<uint16_t>(dstPort);
+  }
+  if (srcL4PortRange) {
+    aclEntry[kSrcL4PortRange] = srcL4PortRange.value().toFollyDynamic();
+  }
+  if (dstL4PortRange) {
+    aclEntry[kDstL4PortRange] = dstL4PortRange.value().toFollyDynamic();
   }
   auto itr_action = cfg::_AclAction_VALUES_TO_NAMES.find(action);
   CHECK(itr_action != cfg::_AclAction_VALUES_TO_NAMES.end());
@@ -86,12 +123,6 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
       aclEntryJson[kDstIp].asString()
     );
   }
-  if (aclEntryJson.find(kL4SrcPort) != aclEntryJson.items().end()) {
-    aclEntry.l4SrcPort = aclEntryJson[kL4SrcPort].asInt();
-  }
-  if (aclEntryJson.find(kL4DstPort) != aclEntryJson.items().end()) {
-    aclEntry.l4DstPort = aclEntryJson[kL4DstPort].asInt();
-  }
   if (aclEntryJson.find(kProto) != aclEntryJson.items().end()) {
     aclEntry.proto = aclEntryJson[kProto].asInt();
   }
@@ -107,14 +138,43 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   if (aclEntryJson.find(kDstPort) != aclEntryJson.items().end()) {
     aclEntry.dstPort = aclEntryJson[kDstPort].asInt();
   }
+  if (aclEntryJson.find(kSrcL4PortRange) != aclEntryJson.items().end()) {
+    aclEntry.srcL4PortRange = AclL4PortRange::fromFollyDynamic(
+      aclEntryJson[kSrcL4PortRange]);
+  }
+  if (aclEntryJson.find(kDstL4PortRange) != aclEntryJson.items().end()) {
+    aclEntry.dstL4PortRange = AclL4PortRange::fromFollyDynamic(
+      aclEntryJson[kDstL4PortRange]);
+  }
   auto itr_action = cfg::_AclAction_NAMES_TO_VALUES.find(
     aclEntryJson[kAction].asString().c_str());
-  if (itr_action == cfg::_AclAction_NAMES_TO_VALUES.end()) {
+  aclEntry.action = cfg::AclAction(itr_action->second);
+  return aclEntry;
+}
+
+void AclEntryFields::checkFollyDynamic(const folly::dynamic& aclEntryJson) {
+  // check src ip and dst ip are of the same type
+  if(aclEntryJson.find(kSrcIp) != aclEntryJson.items().end() &&
+     aclEntryJson.find(kDstIp) != aclEntryJson.items().end()) {
+    auto src = IPAddress::createNetwork(aclEntryJson[kSrcIp].asString());
+    auto dst = IPAddress::createNetwork(aclEntryJson[kDstIp].asString());
+    if (src.first.isV4() != dst.first.isV4()) {
+      throw FbossError(
+        "Unmatched ACL IP versions ",
+        aclEntryJson[kSrcIp].asString(),
+        " vs ",
+        aclEntryJson[kDstIp].asString(),
+        "; source and destination IPs must be of the same type"
+      );
+    }
+  }
+  // check action is valid
+  if (cfg::_AclAction_NAMES_TO_VALUES.find(
+      aclEntryJson[kAction].asString().c_str()) ==
+      cfg::_AclAction_NAMES_TO_VALUES.end()) {
     throw FbossError(
       "Unsupported ACL action ", aclEntryJson[kAction].asString());
   }
-  aclEntry.action = cfg::AclAction(itr_action->second);
-  return aclEntry;
 }
 
 AclEntry::AclEntry(AclEntryID id)

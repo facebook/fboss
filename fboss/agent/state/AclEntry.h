@@ -10,14 +10,73 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp/switch_config_types.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeBase.h"
 
 #include <string>
 #include <utility>
 #include <folly/IPAddress.h>
+#include <folly/Optional.h>
 
 namespace facebook { namespace fboss {
+
+class AclL4PortRange {
+public:
+  AclL4PortRange(const AclL4PortRange& range) {
+    min_ = range.min_;
+    max_ = range.max_;
+  }
+
+  AclL4PortRange(const uint16_t min, const uint16_t max) {
+    min_ = min;
+    max_ = max;
+  }
+
+  uint16_t getMin() const {
+    return min_;
+  }
+
+  void setMin(const uint16_t min) {
+    min_ = min;
+  }
+
+  uint16_t getMax() const {
+    return max_;
+  }
+
+  void setMax(const uint16_t max) {
+    max_ = max;
+  }
+
+  bool isExactMatch() const {
+    return min_ == max_;
+  }
+
+  bool operator<(const AclL4PortRange& r) const {
+    return std::tie(min_, max_) < std::tie(r.min_, r.max_);
+  }
+
+  bool operator==(const AclL4PortRange& r) const {
+    return std::tie(min_, max_) == std::tie(r.min_, r.max_);
+  }
+
+  AclL4PortRange& operator=(const AclL4PortRange& r) {
+    min_ = r.min_;
+    max_ = r.max_;
+    return *this;
+  }
+
+  folly::dynamic toFollyDynamic() const;
+  static AclL4PortRange fromFollyDynamic(const folly::dynamic& rangeJson);
+  static void checkFollyDynamic(const folly::dynamic& rangeJson);
+
+  const static uint32_t kMaxPort = 65535;
+
+private:
+  uint16_t min_;
+  uint16_t max_;
+};
 
 struct AclEntryFields {
   // Invalid physical port for initialization
@@ -30,17 +89,18 @@ struct AclEntryFields {
 
   folly::dynamic toFollyDynamic() const;
   static AclEntryFields fromFollyDynamic(const folly::dynamic& json);
-
+  static void checkFollyDynamic(const folly::dynamic& json);
+  static void checkFollyDynamicPortRange(const folly::dynamic& json);
   const AclEntryID id{0};
   folly::CIDRNetwork srcIp{std::make_pair(folly::IPAddress(), 0)};
   folly::CIDRNetwork dstIp{std::make_pair(folly::IPAddress(), 0)};
-  uint16_t l4SrcPort{0};
-  uint16_t l4DstPort{0};
   uint8_t proto{0};
   uint8_t tcpFlags{0};
   uint8_t tcpFlagsMask{0};
   uint16_t srcPort{kInvalidPhysicalPort};
   uint16_t dstPort{kInvalidPhysicalPort};
+  folly::Optional<AclL4PortRange> srcL4PortRange{folly::none};
+  folly::Optional<AclL4PortRange> dstL4PortRange{folly::none};
   cfg::AclAction action{cfg::AclAction::PERMIT};
 };
 
@@ -65,6 +125,20 @@ class AclEntry :
 
   folly::dynamic toFollyDynamic() const override {
     return getFields()->toFollyDynamic();
+  }
+
+  bool operator==(const AclEntry& acl) {
+    return getFields()->id == acl.getID() &&
+           getFields()->action == acl.getAction() &&
+           getFields()->srcIp == acl.getSrcIp() &&
+           getFields()->dstIp == acl.getDstIp() &&
+           getFields()->proto == acl.getProto() &&
+           getFields()->tcpFlags == acl.getTcpFlags() &&
+           getFields()->tcpFlagsMask == acl.getTcpFlagsMask() &&
+           getFields()->srcPort == acl.getSrcPort() &&
+           getFields()->dstPort == acl.getDstPort() &&
+           getFields()->srcL4PortRange == acl.getSrcL4PortRange() &&
+           getFields()->dstL4PortRange == acl.getDstL4PortRange();
   }
 
   AclEntryID getID() const {
@@ -93,22 +167,6 @@ class AclEntry :
 
   void setDstIp(const folly::CIDRNetwork& ip) {
     writableFields()->dstIp = ip;
-  }
-
-  uint16_t getL4SrcPort() const {
-    return getFields()->l4SrcPort;
-  }
-
-  void setL4SrcPort(const uint16_t port) {
-    writableFields()->l4SrcPort = port;
-  }
-
-  uint16_t getL4DstPort() const {
-    return getFields()->l4DstPort;
-  }
-
-  void setL4DstPort(const uint16_t port) {
-    writableFields()->l4DstPort = port;
   }
 
   uint16_t getProto() const {
@@ -149,6 +207,22 @@ class AclEntry :
 
   void setDstPort(const uint16_t port) {
     writableFields()->dstPort = port;
+  }
+
+  void setSrcL4PortRange(const AclL4PortRange& r) {
+    writableFields()->srcL4PortRange = r;
+  }
+
+  folly::Optional<AclL4PortRange> getSrcL4PortRange() const {
+    return getFields()->srcL4PortRange;
+  }
+
+  void setDstL4PortRange(const AclL4PortRange& r) {
+    writableFields()->dstL4PortRange = r;
+  }
+
+  folly::Optional<AclL4PortRange> getDstL4PortRange() const {
+    return getFields()->dstL4PortRange;
   }
 
  private:

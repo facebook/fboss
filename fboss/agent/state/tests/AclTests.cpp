@@ -75,6 +75,42 @@ TEST(Acl, applyConfig) {
   // Non-existent entry
   auto acl2V2 = stateV2->getAcl(AclEntryID(100));
   ASSERT_EQ(nullptr, acl2V2);
+
+  cfg::SwitchConfig configV1;
+  configV1.acls.resize(1);
+  configV1.acls[0].id = 101;
+  configV1.acls[0].action = cfg::AclAction::PERMIT;
+
+  // set ranges
+  configV1.acls[0].srcL4PortRange.min = 1;
+  configV1.acls[0].srcL4PortRange.max = 2;
+  configV1.acls[0].__isset.srcL4PortRange = true;
+  configV1.acls[0].dstL4PortRange.min = 3;
+  configV1.acls[0].dstL4PortRange.max = 4;
+  configV1.acls[0].__isset.dstL4PortRange = true;
+
+  auto stateV3 = publishAndApplyConfig(stateV2, &configV1, &platform);
+  EXPECT_NE(nullptr, stateV3);
+  auto aclV3 = stateV3->getAcl(AclEntryID(101));
+  ASSERT_NE(nullptr, aclV3);
+  EXPECT_NE(aclV0, aclV3);
+  EXPECT_EQ(AclEntryID(101), aclV3->getID());
+  EXPECT_EQ(cfg::AclAction::PERMIT, aclV3->getAction());
+  EXPECT_FALSE(!aclV3->getSrcL4PortRange());
+  EXPECT_EQ(aclV3->getSrcL4PortRange().value().getMin(), 1);
+  EXPECT_EQ(aclV3->getSrcL4PortRange().value().getMax(), 2);
+  EXPECT_FALSE(!aclV3->getDstL4PortRange());
+  EXPECT_EQ(aclV3->getDstL4PortRange().value().getMin(), 3);
+  EXPECT_EQ(aclV3->getDstL4PortRange().value().getMax(), 4);
+
+  // test min > max case
+  configV1.acls[0].srcL4PortRange.min = 3;
+  EXPECT_THROW(publishAndApplyConfig(stateV3, &configV1, &platform),
+    FbossError);
+  // test max > 65535 case
+  configV1.acls[0].srcL4PortRange.max = 65536;
+  EXPECT_THROW(publishAndApplyConfig(stateV3, &configV1, &platform),
+    FbossError);
 }
 
 TEST(Acl, stateDelta) {
@@ -95,8 +131,6 @@ TEST(Acl, stateDelta) {
   config.acls[2].action = cfg::AclAction::DENY;
   config.acls[2].__isset.srcIp = true;
   config.acls[2].srcIp = "192.168.0.3";
-  config.acls[2].__isset.l4SrcPort = true;
-  config.acls[2].l4SrcPort = 80;
   config.acls[2].__isset.srcPort = true;
   config.acls[2].srcPort = 5;
   config.acls[2].__isset.dstPort = true;
@@ -123,7 +157,6 @@ TEST(Acl, stateDelta) {
   StateDelta delta34(stateV3, stateV4);
   auto aclDelta34 = delta34.getAclsDelta();
   iter = aclDelta34.begin();
-  EXPECT_EQ(iter->getOld()->getL4SrcPort(), 80);
   EXPECT_EQ(iter->getOld()->getSrcPort(), 5);
   EXPECT_EQ(iter->getOld()->getDstPort(), 8);
   EXPECT_EQ(iter->getNew(), nullptr);
