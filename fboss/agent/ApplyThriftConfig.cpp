@@ -567,6 +567,11 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry *config) const {
     throw FbossError("dst's L4 port range has a min value larger than ",
       "its max value");
   }
+  if (config->__isset.pktLenRange &&
+      (config->pktLenRange.min > config->pktLenRange.max)) {
+    throw FbossError("the min. packet length cannot exceed"
+      " the max. packet length");
+  }
 }
 
 shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
@@ -602,6 +607,10 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (config->__isset.dstL4PortRange) {
     newAcl->setDstL4PortRange(AclL4PortRange(config->dstL4PortRange.min,
       config->dstL4PortRange.max));
+  }
+  if (config->__isset.pktLenRange) {
+    newAcl->setPktLenRange(AclPktLenRange(config->pktLenRange.min,
+      config->pktLenRange.max));
   }
   return newAcl;
 }

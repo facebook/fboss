@@ -37,6 +37,13 @@ void BcmAclTable::processAddedAcl(
     bcmRanges.push_back(bcmRange);
   }
 
+  if (acl->getPktLenRange()) {
+    AclPktLenRange r = acl->getPktLenRange().value();
+    AclRange range(AclRange::PKT_LEN, r.getMin(), r.getMax());
+    BcmAclRange* bcmRange = incRefOrCreateBcmAclRange(range);
+    bcmRanges.push_back(bcmRange);
+  }
+
   // create the new bcm acl entry and add it to the table
   std::unique_ptr<BcmAclEntry> bcmAcl = std::make_unique<BcmAclEntry>(
     hw_, groupId, acl, bcmRanges);

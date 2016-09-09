@@ -30,6 +30,9 @@ constexpr auto kDstL4PortRange = "dstL4PortRange";
 constexpr auto kL4PortRangeMin = "min";
 constexpr auto kL4PortRangeMax = "max";
 constexpr auto kL4PortMax = 65535;
+constexpr auto kPktLenRange = "pktLenRange";
+constexpr auto kPktLenRangeMin = "min";
+constexpr auto kPktLenRangeMax = "max";
 }
 
 namespace facebook { namespace fboss {
@@ -67,6 +70,36 @@ void AclL4PortRange::checkFollyDynamic(const folly::dynamic& rangeJson) {
   }
 }
 
+folly::dynamic AclPktLenRange::toFollyDynamic() const {
+  folly::dynamic range = folly::dynamic::object;
+  range[kPktLenRangeMin] = static_cast<uint16_t>(min_);
+  range[kPktLenRangeMax] = static_cast<uint16_t>(max_);
+  return range;
+}
+
+AclPktLenRange AclPktLenRange::fromFollyDynamic(
+  const folly::dynamic& rangeJson) {
+  checkFollyDynamic(rangeJson);
+  uint16_t min = rangeJson[kPktLenRangeMin].asInt();
+  uint16_t max = rangeJson[kPktLenRangeMax].asInt();
+  return AclPktLenRange(min, max);
+}
+
+void AclPktLenRange::checkFollyDynamic(const folly::dynamic& rangeJson) {
+  if (rangeJson.find(kPktLenRangeMin) == rangeJson.items().end()) {
+    throw FbossError("a packet length range should have min value set");
+  }
+  if (rangeJson.find(kPktLenRangeMax) == rangeJson.items().end()) {
+    throw FbossError("a packet length range should have max value set");
+  }
+  uint16_t pMin = rangeJson[kPktLenRangeMin].asInt();
+  uint16_t pMax = rangeJson[kPktLenRangeMax].asInt();
+  if (pMin > pMax) {
+    throw FbossError("Min. packet length value is larger than ",
+                     "max. packet length value");
+  }
+}
+
 folly::dynamic AclEntryFields::toFollyDynamic() const {
   folly::dynamic aclEntry = folly::dynamic::object;
   if (srcIp.first) {
@@ -95,6 +128,9 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   }
   if (dstL4PortRange) {
     aclEntry[kDstL4PortRange] = dstL4PortRange.value().toFollyDynamic();
+  }
+  if(pktLenRange) {
+    aclEntry[kPktLenRange] = pktLenRange.value().toFollyDynamic();
   }
   auto itr_action = cfg::_AclAction_VALUES_TO_NAMES.find(action);
   CHECK(itr_action != cfg::_AclAction_VALUES_TO_NAMES.end());
@@ -145,6 +181,10 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   if (aclEntryJson.find(kDstL4PortRange) != aclEntryJson.items().end()) {
     aclEntry.dstL4PortRange = AclL4PortRange::fromFollyDynamic(
       aclEntryJson[kDstL4PortRange]);
+  }
+  if (aclEntryJson.find(kPktLenRange) != aclEntryJson.items().end()) {
+    aclEntry.pktLenRange = AclPktLenRange::fromFollyDynamic(
+      aclEntryJson[kPktLenRange]);
   }
   auto itr_action = cfg::_AclAction_NAMES_TO_VALUES.find(
     aclEntryJson[kAction].asString().c_str());

@@ -286,6 +286,15 @@ struct L4PortRange {
 }
 
 /**
+ *  A Range for packet length
+ *  Define a packet length range [min, max]
+ */
+struct PktLenRange {
+  1: i16 min
+  2: i16 max
+}
+
+/**
  * An access control entry
  */
 struct AclEntry {
@@ -332,6 +341,11 @@ struct AclEntry {
    */
   10: optional i16 srcPort
   11: optional i16 dstPort
+
+  /**
+   * Packet length range
+   */
+  12: optional PktLenRange pktLenRange;
 }
 
 /**

@@ -78,6 +78,56 @@ private:
   uint16_t max_;
 };
 
+class AclPktLenRange {
+public:
+  AclPktLenRange(const AclPktLenRange& range) {
+    min_ = range.min_;
+    max_ = range.max_;
+  }
+
+  AclPktLenRange(const uint16_t min, const uint16_t max) {
+    min_ = min;
+    max_ = max;
+  }
+
+  uint16_t getMin() const {
+    return min_;
+  }
+
+  void setMin(const uint16_t min) {
+    min_ = min;
+  }
+
+  uint16_t getMax() const {
+    return max_;
+  }
+
+  void setMax(const uint16_t max) {
+    max_ = max;
+  }
+
+  bool operator<(const AclPktLenRange& r) const {
+    return std::tie(min_, max_) < std::tie(r.min_, r.max_);
+  }
+
+  bool operator==(const AclPktLenRange& r) const {
+    return std::tie(min_, max_) == std::tie(r.min_, r.max_);
+  }
+
+  AclPktLenRange& operator=(const AclPktLenRange& r) {
+    min_ = r.min_;
+    max_ = r.max_;
+    return *this;
+  }
+
+  folly::dynamic toFollyDynamic() const;
+  static AclPktLenRange fromFollyDynamic(const folly::dynamic& rangeJson);
+  static void checkFollyDynamic(const folly::dynamic& rangeJson);
+private:
+  uint16_t min_;
+  uint16_t max_;
+};
+
 struct AclEntryFields {
   // Invalid physical port for initialization
   static const uint16_t kInvalidPhysicalPort = 9999;
@@ -101,6 +151,7 @@ struct AclEntryFields {
   uint16_t dstPort{kInvalidPhysicalPort};
   folly::Optional<AclL4PortRange> srcL4PortRange{folly::none};
   folly::Optional<AclL4PortRange> dstL4PortRange{folly::none};
+  folly::Optional<AclPktLenRange> pktLenRange{folly::none};
   cfg::AclAction action{cfg::AclAction::PERMIT};
 };
 
@@ -138,7 +189,8 @@ class AclEntry :
            getFields()->srcPort == acl.getSrcPort() &&
            getFields()->dstPort == acl.getDstPort() &&
            getFields()->srcL4PortRange == acl.getSrcL4PortRange() &&
-           getFields()->dstL4PortRange == acl.getDstL4PortRange();
+           getFields()->dstL4PortRange == acl.getDstL4PortRange() &&
+           getFields()->pktLenRange == acl.getPktLenRange();
   }
 
   AclEntryID getID() const {
@@ -223,6 +275,14 @@ class AclEntry :
 
   folly::Optional<AclL4PortRange> getDstL4PortRange() const {
     return getFields()->dstL4PortRange;
+  }
+
+  folly::Optional<AclPktLenRange> getPktLenRange() const {
+    return getFields()->pktLenRange;
+  }
+
+  void setPktLenRange(const AclPktLenRange& r) {
+    writableFields()->pktLenRange = r;
   }
 
  private:

@@ -43,6 +43,7 @@ public:
   enum AclRangeFlags {
     SRC_L4_PORT = 0,
     DST_L4_PORT = 1,
+    PKT_LEN     = 2,
   };
 
   bool operator<(const AclRange& r) const {
