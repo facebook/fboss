@@ -47,10 +47,7 @@ namespace facebook { namespace fboss {
 WedgePlatform::WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo,
                              uint8_t numQsfps)
     : productInfo_(std::move(productInfo)),
-      numQsfpModules_(numQsfps) {
-  // Make sure we actually set the number of qsfp modules
-  CHECK(numQsfpModules_ > 0);
-}
+      numQsfpModules_(numQsfps) {}
 
 // default to kNumWedge40Qsfps if numQsfps not specified
 WedgePlatform::WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo)

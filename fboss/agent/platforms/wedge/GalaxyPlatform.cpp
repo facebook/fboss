@@ -13,9 +13,17 @@
 
 namespace facebook { namespace fboss {
 
-GalaxyPlatform::GalaxyPlatform(std::unique_ptr<WedgeProductInfo> productInfo)
-    : WedgePlatform(std::move(productInfo), kNumFrontPanelPorts),
-    frontPanelMapping_(getFrontPanelMapping()) {}
+GalaxyPlatform::GalaxyPlatform(
+    std::unique_ptr<WedgeProductInfo> productInfo,
+    WedgePlatformMode mode)
+    : WedgePlatform(
+          std::move(productInfo),
+          mode == WedgePlatformMode::GALAXY_LC ? kNumFrontPanelPorts : 0),
+      frontPanelMapping_(getFrontPanelMapping()) {
+  CHECK(
+      mode == WedgePlatformMode::GALAXY_LC ||
+      mode == WedgePlatformMode::GALAXY_FC);
+}
 
 GalaxyPlatform::InitPortMap GalaxyPlatform::initPorts() {
   InitPortMap ports;

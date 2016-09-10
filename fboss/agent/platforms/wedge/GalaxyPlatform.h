@@ -23,7 +23,9 @@ class Wedge100Port;
 
 class GalaxyPlatform : public WedgePlatform {
  public:
-  explicit GalaxyPlatform(std::unique_ptr<WedgeProductInfo> productInfo);
+  GalaxyPlatform(
+      std::unique_ptr<WedgeProductInfo> productInfo,
+      WedgePlatformMode mode);
 
   InitPortMap initPorts() override;
  private:
@@ -35,8 +37,8 @@ class GalaxyPlatform : public WedgePlatform {
   using FrontPanelMapping = std::map<TransceiverID, PortID>;
   using BackplanePorts = std::vector<PortID>;
 
-  bool isLC() const { return getMode() == WedgePlatformMode::LC; }
-  bool isFC() const { return getMode() == WedgePlatformMode::FC; }
+  bool isLC() const { return getMode() == WedgePlatformMode::GALAXY_LC; }
+  bool isFC() const { return getMode() == WedgePlatformMode::GALAXY_FC; }
   FrontPanelMapping getFrontPanelMapping() const;
   FrontPanelMapping getLCFrontPanelMapping() const;
   FrontPanelMapping getFCFrontPanelMapping() const;

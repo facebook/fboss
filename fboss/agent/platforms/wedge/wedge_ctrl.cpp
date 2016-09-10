@@ -30,9 +30,10 @@ unique_ptr<WedgePlatform> createPlatform() {
   auto mode = productInfo->getMode();
   if (mode == WedgePlatformMode::WEDGE100) {
     return folly::make_unique<Wedge100Platform>(std::move(productInfo));
-  } else if (mode == WedgePlatformMode::GALAXY_LC ||
+  } else if (
+      mode == WedgePlatformMode::GALAXY_LC ||
       mode == WedgePlatformMode::GALAXY_FC) {
-    return make_unique<GalaxyPlatform>(std::move(productInfo));
+    return make_unique<GalaxyPlatform>(std::move(productInfo), mode);
   }
   return folly::make_unique<Wedge40Platform>(std::move(productInfo));
 }

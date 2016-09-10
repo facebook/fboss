@@ -21,9 +21,6 @@ class Wedge40Platform : public WedgePlatform {
  public:
   explicit Wedge40Platform(std::unique_ptr<WedgeProductInfo> productInfo) :
     WedgePlatform(std::move(productInfo)) {}
-  Wedge40Platform(std::unique_ptr<WedgeProductInfo> productInfo,
-                uint8_t numQsfps) : WedgePlatform(std::move(productInfo),
-                  numQsfps) {}
 
   InitPortMap initPorts() override;
 
