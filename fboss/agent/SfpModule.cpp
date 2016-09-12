@@ -14,6 +14,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/TransceiverImpl.h"
 #include "fboss/agent/SffFieldInfo.h"
+#include "fboss/lib/usb/TransceiverI2CApi.h"
 
 namespace facebook { namespace fboss {
   using std::memcpy;
@@ -22,36 +23,37 @@ namespace facebook { namespace fboss {
 
 static SffFieldInfo::SffFieldMap sfpFields = {
   /* 0xA0 EEPROM Field Values */
-  {SffField::IDENTIFIER, {0x50, 0x0, 1} },
-  {SffField::EXT_IDENTIFIER, {0x50, 0x1, 1} },
-  {SffField::CONNECTOR_TYPE, {0x50, 0x2, 1} },
-  {SffField::TRANSCEIVER_CODE, {0x50, 0x3, 8} },
-  {SffField::ENCODING_CODE, {0x50, 0xB, 1} },
-  {SffField::SIGNALLING_RATE, {0x50, 0xC, 1} },
-  {SffField::RATE_IDENTIFIER, {0x50, 0xD, 1} },
-  {SffField::LENGTH_SM_KM, {0x50, 0xE, 1} },
-  {SffField::LENGTH_SM, {0x50, 0xF, 1} },
-  {SffField::LENGTH_OM2, {0x50, 0x10, 1} },
-  {SffField::LENGTH_OM1, {0x50, 0x11, 1} },
-  {SffField::LENGTH_COPPER, {0x50, 0x12, 1} },
-  {SffField::LENGTH_OM3, {0x50, 0x13, 1} },
-  {SffField::VENDOR_NAME, {0x50, 0x14, 16} },
-  {SffField::TRANCEIVER_CAPABILITY, {0x50, 0x24, 1} },
-  {SffField::VENDOR_OUI, {0x50, 0x25, 3} },
-  {SffField::PART_NUMBER, {0x50, 0x28, 16} },
-  {SffField::REVISION_NUMBER, {0x50, 0x38, 4} },
-  {SffField::WAVELENGTH, {0x50, 0x3C, 2} },
-  {SffField::CHECK_CODE_BASEID, {0x50, 0x3F, 1} },
-  {SffField::ENABLED_OPTIONS, {0x50, 0x40, 2} },
-  {SffField::UPPER_BIT_RATE_MARGIN, {0x50, 0x42, 1} },
-  {SffField::LOWER_BIT_RATE_MARGIN, {0x50, 0x43, 1} },
-  {SffField::VENDOR_SERIAL_NUMBER, {0x50, 0x44, 16} },
-  {SffField::MFG_DATE, {0x50, 0x54, 8} },
-  {SffField::DIAGNOSTIC_MONITORING_TYPE, {0x50, 0x5C, 1} },
-  {SffField::ENHANCED_OPTIONS, {0x50, 0x5D, 1} },
-  {SffField::SFF_COMPLIANCE, {0x50, 0x5E, 1} },
-  {SffField::CHECK_CODE_EXTENDED_OPT, {0x50, 0x5F, 1} },
-  {SffField::VENDOR_EEPROM, {0x50, 0x60, 32} },
+  {SffField::IDENTIFIER, {TransceiverI2CApi::ADDR_QSFP, 0x0, 1} },
+  {SffField::EXT_IDENTIFIER, {TransceiverI2CApi::ADDR_QSFP, 0x1, 1} },
+  {SffField::CONNECTOR_TYPE, {TransceiverI2CApi::ADDR_QSFP, 0x2, 1} },
+  {SffField::TRANSCEIVER_CODE, {TransceiverI2CApi::ADDR_QSFP, 0x3, 8} },
+  {SffField::ENCODING_CODE, {TransceiverI2CApi::ADDR_QSFP, 0xB, 1} },
+  {SffField::SIGNALLING_RATE, {TransceiverI2CApi::ADDR_QSFP, 0xC, 1} },
+  {SffField::RATE_IDENTIFIER, {TransceiverI2CApi::ADDR_QSFP, 0xD, 1} },
+  {SffField::LENGTH_SM_KM, {TransceiverI2CApi::ADDR_QSFP, 0xE, 1} },
+  {SffField::LENGTH_SM, {TransceiverI2CApi::ADDR_QSFP, 0xF, 1} },
+  {SffField::LENGTH_OM2, {TransceiverI2CApi::ADDR_QSFP, 0x10, 1} },
+  {SffField::LENGTH_OM1, {TransceiverI2CApi::ADDR_QSFP, 0x11, 1} },
+  {SffField::LENGTH_COPPER, {TransceiverI2CApi::ADDR_QSFP, 0x12, 1} },
+  {SffField::LENGTH_OM3, {TransceiverI2CApi::ADDR_QSFP, 0x13, 1} },
+  {SffField::VENDOR_NAME, {TransceiverI2CApi::ADDR_QSFP, 0x14, 16} },
+  {SffField::TRANCEIVER_CAPABILITY, {TransceiverI2CApi::ADDR_QSFP, 0x24, 1} },
+  {SffField::VENDOR_OUI, {TransceiverI2CApi::ADDR_QSFP, 0x25, 3} },
+  {SffField::PART_NUMBER, {TransceiverI2CApi::ADDR_QSFP, 0x28, 16} },
+  {SffField::REVISION_NUMBER, {TransceiverI2CApi::ADDR_QSFP, 0x38, 4} },
+  {SffField::WAVELENGTH, {TransceiverI2CApi::ADDR_QSFP, 0x3C, 2} },
+  {SffField::CHECK_CODE_BASEID, {TransceiverI2CApi::ADDR_QSFP, 0x3F, 1} },
+  {SffField::ENABLED_OPTIONS, {TransceiverI2CApi::ADDR_QSFP, 0x40, 2} },
+  {SffField::UPPER_BIT_RATE_MARGIN, {TransceiverI2CApi::ADDR_QSFP, 0x42, 1} },
+  {SffField::LOWER_BIT_RATE_MARGIN, {TransceiverI2CApi::ADDR_QSFP, 0x43, 1} },
+  {SffField::VENDOR_SERIAL_NUMBER, {TransceiverI2CApi::ADDR_QSFP, 0x44, 16} },
+  {SffField::MFG_DATE, {TransceiverI2CApi::ADDR_QSFP, 0x54, 8} },
+  {SffField::DIAGNOSTIC_MONITORING_TYPE,
+    {TransceiverI2CApi::ADDR_QSFP, 0x5C, 1} },
+  {SffField::ENHANCED_OPTIONS, {TransceiverI2CApi::ADDR_QSFP, 0x5D, 1} },
+  {SffField::SFF_COMPLIANCE, {TransceiverI2CApi::ADDR_QSFP, 0x5E, 1} },
+  {SffField::CHECK_CODE_EXTENDED_OPT, {TransceiverI2CApi::ADDR_QSFP, 0x5F, 1} },
+  {SffField::VENDOR_EEPROM, {TransceiverI2CApi::ADDR_QSFP, 0x60, 32} },
    /* 0xA2 EEPROM Field Values */
   {SffField::ALARM_THRESHOLD_VALUES, {0x51, 0x0, 40} },
   {SffField::EXTERNAL_CALIBRATION, {0x51, 0x38, 36} },
@@ -484,7 +486,7 @@ const uint8_t* SfpModule::getSfpValuePtr(lock_guard<std::mutex>& lg,
   if (!cacheIsValid(lg)) {
     throw FbossError("Sfp is either not present or the data is not read");
   }
-  if (dataAddress == 0x50) {
+  if (dataAddress == TransceiverI2CApi::ADDR_QSFP) {
     CHECK_LE(offset + length, sizeof(sfpIdprom_));
     /* Copy data from the cache */
     return(sfpIdprom_ + offset);
@@ -636,7 +638,8 @@ void SfpModule::detectTransceiver() {
     setPresent(g, currentSfpStatus);
     if (currentSfpStatus) {
       try {
-        sfpImpl_->readTransceiver(0x50, 0x0, MAX_SFP_EEPROM_SIZE, value);
+        sfpImpl_->readTransceiver(TransceiverI2CApi::ADDR_QSFP,
+            0x0, MAX_SFP_EEPROM_SIZE, value);
         dirty_ = false;
         setSfpIdprom(g, value);
         if (domSupport_) {

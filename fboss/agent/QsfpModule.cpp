@@ -580,7 +580,8 @@ void QsfpModule::updateTransceiverInfoFields() {
 void QsfpModule::updateQsfpData() {
   if (present_) {
     try {
-      qsfpImpl_->readTransceiver(0x50, 0, sizeof(qsfpIdprom_), qsfpIdprom_);
+      qsfpImpl_->readTransceiver(TransceiverI2CApi::ADDR_QSFP, 0,
+          sizeof(qsfpIdprom_), qsfpIdprom_);
       dirty_ = false;
       setQsfpIdprom();
       /*
@@ -593,13 +594,17 @@ void QsfpModule::updateQsfpData() {
       // If we have flat memory, we don't have to set the page
       if (!flatMem_) {
         uint8_t page = 0;
-        qsfpImpl_->writeTransceiver(0x50, 127, sizeof(page), &page);
+        qsfpImpl_->writeTransceiver(TransceiverI2CApi::ADDR_QSFP, 127,
+            sizeof(page), &page);
       }
-      qsfpImpl_->readTransceiver(0x50, 128, sizeof(qsfpPage0_), qsfpPage0_);
+      qsfpImpl_->readTransceiver(TransceiverI2CApi::ADDR_QSFP, 128,
+          sizeof(qsfpPage0_), qsfpPage0_);
       if (!flatMem_) {
         uint8_t page = 3;
-        qsfpImpl_->writeTransceiver(0x50, 127, sizeof(page), &page);
-        qsfpImpl_->readTransceiver(0x50, 128, sizeof(qsfpPage3_), qsfpPage3_);
+        qsfpImpl_->writeTransceiver(TransceiverI2CApi::ADDR_QSFP, 127,
+            sizeof(page), &page);
+        qsfpImpl_->readTransceiver(TransceiverI2CApi::ADDR_QSFP, 128,
+            sizeof(qsfpPage3_), qsfpPage3_);
       }
     } catch (const std::exception& ex) {
       dirty_ = true;
@@ -821,7 +826,8 @@ void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
                           "due to incorrect length");
       }
 
-      qsfpImpl_->writeTransceiver(0x50, pwrCtrlOffset, sizeof(power), &power);
+      qsfpImpl_->writeTransceiver(TransceiverI2CApi::ADDR_QSFP, pwrCtrlOffset,
+          sizeof(power), &power);
       LOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
                 " QSFP set to override low power";
   }
