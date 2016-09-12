@@ -612,6 +612,9 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
     newAcl->setPktLenRange(AclPktLenRange(config->pktLenRange.min,
       config->pktLenRange.max));
   }
+  if (config->__isset.ipFrag) {
+    newAcl->setIpFrag(config->ipFrag);
+  }
   return newAcl;
 }
 

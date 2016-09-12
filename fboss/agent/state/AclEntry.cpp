@@ -33,6 +33,7 @@ constexpr auto kL4PortMax = 65535;
 constexpr auto kPktLenRange = "pktLenRange";
 constexpr auto kPktLenRangeMin = "min";
 constexpr auto kPktLenRangeMax = "max";
+constexpr auto kIpFrag = "ipFrag";
 }
 
 namespace facebook { namespace fboss {
@@ -129,8 +130,13 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   if (dstL4PortRange) {
     aclEntry[kDstL4PortRange] = dstL4PortRange.value().toFollyDynamic();
   }
-  if(pktLenRange) {
+  if (pktLenRange) {
     aclEntry[kPktLenRange] = pktLenRange.value().toFollyDynamic();
+  }
+  if (ipFrag) {
+    auto itr_ipFrag = cfg::_IpFragMatch_VALUES_TO_NAMES.find(ipFrag.value());
+    CHECK(itr_ipFrag != cfg::_IpFragMatch_VALUES_TO_NAMES.end());
+    aclEntry[kIpFrag] = itr_ipFrag->second;
   }
   auto itr_action = cfg::_AclAction_VALUES_TO_NAMES.find(action);
   CHECK(itr_action != cfg::_AclAction_VALUES_TO_NAMES.end());
@@ -186,6 +192,11 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
     aclEntry.pktLenRange = AclPktLenRange::fromFollyDynamic(
       aclEntryJson[kPktLenRange]);
   }
+  if (aclEntryJson.find(kIpFrag) != aclEntryJson.items().end()) {
+    auto itr_ipFrag = cfg::_IpFragMatch_NAMES_TO_VALUES.find(
+      aclEntryJson[kIpFrag].asString().c_str());
+    aclEntry.ipFrag = cfg::IpFragMatch(itr_ipFrag->second);
+  }
   auto itr_action = cfg::_AclAction_NAMES_TO_VALUES.find(
     aclEntryJson[kAction].asString().c_str());
   aclEntry.action = cfg::AclAction(itr_action->second);
@@ -207,6 +218,14 @@ void AclEntryFields::checkFollyDynamic(const folly::dynamic& aclEntryJson) {
         "; source and destination IPs must be of the same type"
       );
     }
+  }
+  // check ipFrag is valid
+  if (aclEntryJson.find(kIpFrag) != aclEntryJson.items().end() &&
+      cfg::_IpFragMatch_NAMES_TO_VALUES.find(
+        aclEntryJson[kIpFrag].asString().c_str()) ==
+      cfg::_IpFragMatch_NAMES_TO_VALUES.end()) {
+    throw FbossError("Unsupported ACL IP fragmentation option ",
+      aclEntryJson[kIpFrag].asString());
   }
   // check action is valid
   if (cfg::_AclAction_NAMES_TO_VALUES.find(

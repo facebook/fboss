@@ -294,6 +294,19 @@ struct PktLenRange {
   2: i16 max
 }
 
+enum IpFragMatch {
+  // not fragment
+  MATCH_NOT_FRAGMENTED = 0
+  // first fragment
+  MATCH_FIRST_FRAGMENT = 1
+  // not fragment or the first fragment
+  MATCH_NOT_FRAGMENTED_OR_FIRST_FRAGMENT = 2
+  // fragment but not the first frament
+  MATCH_NOT_FIRST_FRAGMENT = 3
+  // any fragment
+  MATCH_ANY_FRAGMENT = 4
+}
+
 /**
  * An access control entry
  */
@@ -345,7 +358,12 @@ struct AclEntry {
   /**
    * Packet length range
    */
-  12: optional PktLenRange pktLenRange;
+  12: optional PktLenRange pktLenRange
+
+  /**
+   * Ip fragment
+   */
+  13: optional IpFragMatch ipFrag
 }
 
 /**

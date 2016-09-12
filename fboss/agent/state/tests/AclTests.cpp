@@ -111,6 +111,34 @@ TEST(Acl, applyConfig) {
   configV1.acls[0].srcL4PortRange.max = 65536;
   EXPECT_THROW(publishAndApplyConfig(stateV3, &configV1, &platform),
     FbossError);
+  // set packet length rangeJson
+  cfg::SwitchConfig configV2;
+  configV2.acls.resize(1);
+  configV2.acls[0].id = 101;
+  configV2.acls[0].action = cfg::AclAction::PERMIT;
+
+  // set pkt length range
+  configV2.acls[0].pktLenRange.min = 34;
+  configV2.acls[0].pktLenRange.max = 1500;
+  configV2.acls[0].__isset.pktLenRange = true;
+
+  auto stateV4 = publishAndApplyConfig(stateV3, &configV2, &platform);
+  EXPECT_NE(nullptr, stateV4);
+  auto aclV4 = stateV4->getAcl(AclEntryID(101));
+  ASSERT_NE(nullptr, aclV4);
+  EXPECT_TRUE(aclV4->getPktLenRange());
+  EXPECT_EQ(aclV4->getPktLenRange().value().getMin(), 34);
+  EXPECT_EQ(aclV4->getPktLenRange().value().getMax(), 1500);
+
+  // set the ip frag option
+  configV2.acls[0].ipFrag = cfg::IpFragMatch::MATCH_NOT_FRAGMENTED;
+  configV2.acls[0].__isset.ipFrag = true;
+
+  auto stateV5 = publishAndApplyConfig(stateV4, &configV2, &platform);
+  EXPECT_NE(nullptr, stateV5);
+  auto aclV5 = stateV5->getAcl(AclEntryID(101));
+  EXPECT_NE(nullptr, aclV5);
+  EXPECT_EQ(aclV5->getIpFrag().value(), cfg::IpFragMatch::MATCH_NOT_FRAGMENTED);
 }
 
 TEST(Acl, stateDelta) {

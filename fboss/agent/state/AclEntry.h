@@ -152,6 +152,7 @@ struct AclEntryFields {
   folly::Optional<AclL4PortRange> srcL4PortRange{folly::none};
   folly::Optional<AclL4PortRange> dstL4PortRange{folly::none};
   folly::Optional<AclPktLenRange> pktLenRange{folly::none};
+  folly::Optional<cfg::IpFragMatch> ipFrag{folly::none};
   cfg::AclAction action{cfg::AclAction::PERMIT};
 };
 
@@ -190,7 +191,8 @@ class AclEntry :
            getFields()->dstPort == acl.getDstPort() &&
            getFields()->srcL4PortRange == acl.getSrcL4PortRange() &&
            getFields()->dstL4PortRange == acl.getDstL4PortRange() &&
-           getFields()->pktLenRange == acl.getPktLenRange();
+           getFields()->pktLenRange == acl.getPktLenRange() &&
+           getFields()->ipFrag == acl.getIpFrag();
   }
 
   AclEntryID getID() const {
@@ -283,6 +285,14 @@ class AclEntry :
 
   void setPktLenRange(const AclPktLenRange& r) {
     writableFields()->pktLenRange = r;
+  }
+
+  folly::Optional<cfg::IpFragMatch> getIpFrag() const {
+    return getFields()->ipFrag;
+  }
+
+  void setIpFrag(const cfg::IpFragMatch& frag) {
+    writableFields()->ipFrag = frag;
   }
 
  private:
