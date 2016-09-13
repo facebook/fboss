@@ -48,7 +48,8 @@ struct PortFields {
   const PortID id{0};
   std::string name;
   std::string description;
-  cfg::PortState state{cfg::PortState::DOWN};
+  cfg::PortState state{cfg::PortState::DOWN};   // Administrative state
+  bool operState{false};    // Operational state of port. UP(true), DOWN(false)
   VlanID ingressVlan{0};
   cfg::PortSpeed speed{cfg::PortSpeed::DEFAULT};
   cfg::PortSpeed maxSpeed{cfg::PortSpeed::DEFAULT};
@@ -117,9 +118,26 @@ class Port : public NodeBaseT<Port, PortFields> {
     writableFields()->state = state;
   }
 
+  bool getOperState() const {
+    return getFields()->operState;
+  }
+
+  void setOperState(bool isUp) {
+    writableFields()->operState = isUp;
+  }
+
   bool isDisabled() const {
     auto state = getFields()->state;
     return state == cfg::PortState::POWER_DOWN || state == cfg::PortState::DOWN;
+  }
+
+  /**
+   * Tells you Oper+Admin state of port. Will be UP only if both admin and
+   * oper state is UP.
+   */
+  bool isPortUp() const {
+    auto const& fields = getFields();
+    return fields->state == cfg::PortState::UP && fields->operState;
   }
 
   const VlanMembership& getVlans() const {

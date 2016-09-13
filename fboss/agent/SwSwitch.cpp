@@ -902,11 +902,33 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
 }
 
 void SwSwitch::linkStateChanged(PortID portId, bool up) {
-  LOG(INFO) << "link state changed: " << portId << " enabled = " << up;
-  if (isFullyInitialized() && !up) {
-    logLinkStateEvent(portId, up);
-    setPortStatusCounter(portId, up);
-    stats()->port(portId)->linkStateChange();
+  LOG(INFO) << "Link state changed: " << portId << "->" << (up ? "UP" : "DOWN");
+  if (not isFullyInitialized()) {
+    return;
+  }
+
+  // Schedule an update for port's operational status
+  auto updateFn = [=] (const std::shared_ptr<SwitchState>& state) {
+    std::shared_ptr<SwitchState> newState(state);
+    auto* port = newState->getPorts()->getPortIf(portId).get();
+    if (not port) {
+      throw FbossError("Port ", portId, " doesn't exists in SwitchState.");
+    }
+
+    port = port->modify(&newState);
+    port->setOperState(up);
+
+    return newState;
+  };
+  updateState("Port OperState Update", std::move(updateFn));
+
+  // Log event and update counters
+  logLinkStateEvent(portId, up);
+  setPortStatusCounter(portId, up);
+  stats()->port(portId)->linkStateChange();
+
+  // Fire explicit callback for purging neighbor entries.
+  if (not up) {
     backgroundEventBase_.runInEventBaseThread(
         [this, portId]() { nUpdater_->portDown(portId); });
   }
@@ -1080,7 +1102,14 @@ void SwSwitch::applyConfig(const std::string& reason) {
         }
         curConfigStr_ = rval.second;
         curConfig_.readFromJson(curConfigStr_.c_str());
-        return rval.first;
+
+        // Set oper status of interfaces in SwitchState
+        auto& newState = rval.first;
+        for (auto const& port : *newState->getPorts()) {
+          port->setOperState(hw_->isPortUp(port->getID()));
+        }
+
+        return newState;
       });
 }
 

@@ -21,6 +21,7 @@ constexpr auto kPortId = "portId";
 constexpr auto kPortName = "portName";
 constexpr auto kPortDescription = "portDescription";
 constexpr auto kPortState = "portState";
+constexpr auto kPortOperState = "portOperState";
 constexpr auto kIngressVlan = "ingressVlan";
 constexpr auto kPortSpeed = "portSpeed";
 constexpr auto kPortMaxSpeed = "portMaxSpeed";
@@ -51,6 +52,7 @@ folly::dynamic PortFields::toFollyDynamic() const {
   auto itr_state  = cfg::_PortState_VALUES_TO_NAMES.find(state);
   CHECK(itr_state != cfg::_PortState_VALUES_TO_NAMES.end());
   port[kPortState] = itr_state->second;
+  port[kPortOperState] = operState;
   port[kIngressVlan] = static_cast<uint16_t>(ingressVlan);
   auto itr_speed  = cfg::_PortSpeed_VALUES_TO_NAMES.find(speed);
   CHECK(itr_speed != cfg::_PortSpeed_VALUES_TO_NAMES.end());
@@ -74,6 +76,7 @@ PortFields PortFields::fromFollyDynamic(const folly::dynamic& portJson) {
       portJson[kPortState].asString().c_str());
   CHECK(itr_state != cfg::_PortState_NAMES_TO_VALUES.end());
   port.state = cfg::PortState(itr_state->second);
+  port.operState = portJson[kPortOperState].asBool();
   port.ingressVlan = VlanID(portJson[kIngressVlan].asInt());
   auto itr_speed  = cfg::_PortSpeed_NAMES_TO_VALUES.find(
       portJson[kPortSpeed].asString().c_str());
