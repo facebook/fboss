@@ -674,7 +674,7 @@ unique_ptr<TxPacket> BcmSwitch::allocatePacket(uint32_t size) {
 void BcmSwitch::processDisabledPorts(const StateDelta& delta) {
   forEachChanged(delta.getPortsDelta(),
     [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-      if (!oldPort->isDisabled() && newPort->isDisabled()) {
+      if (!oldPort->isAdminDisabled() && newPort->isAdminDisabled()) {
         auto bcmPort = portTable_->getBcmPort(newPort->getID());
         bcmPort->disable(newPort);
       }
@@ -684,7 +684,7 @@ void BcmSwitch::processDisabledPorts(const StateDelta& delta) {
 void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
   forEachChanged(delta.getPortsDelta(),
     [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-      if (oldPort->isDisabled() && !newPort->isDisabled()) {
+      if (oldPort->isAdminDisabled() && !newPort->isAdminDisabled()) {
         auto bcmPort = portTable_->getBcmPort(newPort->getID());
         bcmPort->enable(newPort);
       }
@@ -723,7 +723,7 @@ void BcmSwitch::reconfigurePortGroups(const StateDelta& delta) {
   auto newState = delta.newState();
   forEachChanged(delta.getPortsDelta(),
     [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-      auto enabled = oldPort->isDisabled() && !newPort->isDisabled();
+      auto enabled = oldPort->isAdminDisabled() && !newPort->isAdminDisabled();
       auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
 
       if (speedChanged || enabled) {
@@ -743,7 +743,7 @@ void BcmSwitch::reconfigurePortGroups(const StateDelta& delta) {
 bool BcmSwitch::isValidPortUpdate(const shared_ptr<Port>& oldPort,
     const shared_ptr<Port>& newPort,
     const shared_ptr<SwitchState>& newState) const {
-  auto enabled = oldPort->isDisabled() && !newPort->isDisabled();
+  auto enabled = oldPort->isAdminDisabled() && !newPort->isAdminDisabled();
   auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
 
   if (speedChanged || enabled) {

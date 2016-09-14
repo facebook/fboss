@@ -126,7 +126,7 @@ class Port : public NodeBaseT<Port, PortFields> {
     writableFields()->operState = isUp;
   }
 
-  bool isDisabled() const {
+  bool isAdminDisabled() const {
     auto state = getFields()->state;
     return state == cfg::PortState::POWER_DOWN || state == cfg::PortState::DOWN;
   }
