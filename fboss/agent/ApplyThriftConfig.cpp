@@ -572,6 +572,28 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry *config) const {
     throw FbossError("the min. packet length cannot exceed"
       " the max. packet length");
   }
+  if (config->__isset.icmpCode && !config->__isset.icmpType) {
+    throw FbossError("icmp type must be set when icmp code is set");
+  }
+  if (config->__isset.icmpType &&
+      (config->icmpType < 0 ||
+        config->icmpType > AclEntryFields::kMaxIcmpType)) {
+    throw FbossError("icmp type value must be between 0 and ",
+      std::to_string(AclEntryFields::kMaxIcmpType));
+  }
+  if (config->__isset.icmpCode &&
+      (config->icmpCode < 0 ||
+        config->icmpCode > AclEntryFields::kMaxIcmpCode)) {
+    throw FbossError("icmp type value must be between 0 and ",
+      std::to_string(AclEntryFields::kMaxIcmpCode));
+  }
+  if (config->__isset.icmpType &&
+      (!config->__isset.proto ||
+        !(config->proto == AclEntryFields::kProtoIcmp ||
+          config->proto == AclEntryFields::kProtoIcmpv6))) {
+    throw FbossError("proto must be either icmp or icmpv6 ",
+      "if icmp type is set");
+  }
 }
 
 shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
@@ -614,6 +636,12 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   }
   if (config->__isset.ipFrag) {
     newAcl->setIpFrag(config->ipFrag);
+  }
+  if (config->__isset.icmpType) {
+    newAcl->setIcmpType(config->icmpType);
+  }
+  if (config->__isset.icmpCode) {
+    newAcl->setIcmpCode(config->icmpCode);
   }
   return newAcl;
 }

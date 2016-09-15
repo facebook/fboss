@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AclEntry.h"
@@ -190,4 +191,39 @@ TEST(Acl, stateDelta) {
   EXPECT_EQ(iter->getNew(), nullptr);
   ++iter;
   EXPECT_EQ(iter, aclDelta34.end());
+}
+
+TEST(Acl, Icmp) {
+  MockPlatform platform;
+  auto stateV0 = make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  config.acls.resize(1);
+  config.acls[0].id = 100;
+  config.acls[0].action = cfg::AclAction::DENY;
+  config.acls[0].proto = 58;
+  config.acls[0].__isset.proto = true;
+  config.acls[0].icmpType = 128;
+  config.acls[0].__isset.icmpType = true;
+  config.acls[0].icmpCode = 0;
+  config.acls[0].__isset.icmpCode = true;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  EXPECT_NE(nullptr, stateV1);
+  auto aclV1 = stateV1->getAcl(AclEntryID(100));
+  ASSERT_NE(nullptr, aclV1);
+  EXPECT_EQ(AclEntryID(100), aclV1->getID());
+  EXPECT_EQ(cfg::AclAction::DENY, aclV1->getAction());
+  EXPECT_EQ(128, aclV1->getIcmpType().value());
+  EXPECT_EQ(0, aclV1->getIcmpCode().value());
+
+  // test config exceptions
+  config.acls[0].proto = 4;
+  EXPECT_THROW(publishAndApplyConfig(stateV1, &config, &platform), FbossError);
+  config.acls[0].__isset.proto = false;
+  EXPECT_THROW(publishAndApplyConfig(stateV1, &config, &platform), FbossError);
+  config.acls[0].proto = 58;
+  config.acls[0].__isset.proto = true;
+  config.acls[0].__isset.icmpType = false;
+  EXPECT_THROW(publishAndApplyConfig(stateV1, &config, &platform), FbossError);
 }

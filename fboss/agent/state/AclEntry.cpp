@@ -34,6 +34,8 @@ constexpr auto kPktLenRange = "pktLenRange";
 constexpr auto kPktLenRangeMin = "min";
 constexpr auto kPktLenRangeMax = "max";
 constexpr auto kIpFrag = "ipFrag";
+constexpr auto kIcmpCode = "icmpCode";
+constexpr auto kIcmpType = "icmpType";
 }
 
 namespace facebook { namespace fboss {
@@ -138,6 +140,12 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
     CHECK(itr_ipFrag != cfg::_IpFragMatch_VALUES_TO_NAMES.end());
     aclEntry[kIpFrag] = itr_ipFrag->second;
   }
+  if (icmpCode) {
+    aclEntry[kIcmpCode] = static_cast<uint8_t>(icmpCode.value());
+  }
+  if (icmpType) {
+    aclEntry[kIcmpType] = static_cast<uint8_t>(icmpType.value());
+  }
   auto itr_action = cfg::_AclAction_VALUES_TO_NAMES.find(action);
   CHECK(itr_action != cfg::_AclAction_VALUES_TO_NAMES.end());
   aclEntry[kAction] = itr_action->second;
@@ -197,6 +205,12 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
       aclEntryJson[kIpFrag].asString().c_str());
     aclEntry.ipFrag = cfg::IpFragMatch(itr_ipFrag->second);
   }
+  if (aclEntryJson.find(kIcmpType) != aclEntryJson.items().end()) {
+    aclEntry.icmpType = aclEntryJson[kIcmpType].asInt();
+  }
+  if (aclEntryJson.find(kIcmpCode) != aclEntryJson.items().end()) {
+    aclEntry.icmpCode = aclEntryJson[kIcmpCode].asInt();
+  }
   auto itr_action = cfg::_AclAction_NAMES_TO_VALUES.find(
     aclEntryJson[kAction].asString().c_str());
   aclEntry.action = cfg::AclAction(itr_action->second);
@@ -233,6 +247,33 @@ void AclEntryFields::checkFollyDynamic(const folly::dynamic& aclEntryJson) {
       cfg::_AclAction_NAMES_TO_VALUES.end()) {
     throw FbossError(
       "Unsupported ACL action ", aclEntryJson[kAction].asString());
+  }
+  // check icmp type exists when icmp code exist
+  if (aclEntryJson.find(kIcmpCode) != aclEntryJson.items().end() &&
+      aclEntryJson.find(kIcmpType) == aclEntryJson.items().end()) {
+    throw FbossError("icmp type must be set when icmp code is set");
+  }
+  // the value of icmp type must be 0~255
+  if (aclEntryJson.find(kIcmpType) != aclEntryJson.items().end() &&
+      (aclEntryJson[kIcmpType].asInt() < 0 ||
+       aclEntryJson[kIcmpType].asInt() > kMaxIcmpType)) {
+    throw FbossError("icmp type value must be between 0 and ",
+      std::to_string(kMaxIcmpType));
+  }
+  // the value of icmp code must be 0~255
+  if (aclEntryJson.find(kIcmpCode) != aclEntryJson.items().end() &&
+      (aclEntryJson[kIcmpCode].asInt() < 0 ||
+       aclEntryJson[kIcmpCode].asInt() > kMaxIcmpCode)) {
+    throw FbossError("icmp code value must be between 0 and ",
+      std::to_string(kMaxIcmpCode));
+  }
+  // check the "proto" is either "icmp" or "icmpv6" when icmptype is set
+  if (aclEntryJson.find(kIcmpType) != aclEntryJson.items().end() &&
+      (aclEntryJson.find(kProto) == aclEntryJson.items().end() ||
+       !(aclEntryJson[kProto] == kProtoIcmp ||
+         aclEntryJson[kProto] == kProtoIcmpv6))) {
+    throw FbossError("proto must be either icmp or icmpv6 ",
+      "if icmp type is set");
   }
 }
 

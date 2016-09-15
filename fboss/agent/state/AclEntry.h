@@ -131,7 +131,10 @@ private:
 struct AclEntryFields {
   // Invalid physical port for initialization
   static const uint16_t kInvalidPhysicalPort = 9999;
-
+  static const uint8_t kProtoIcmp = 1;
+  static const uint8_t kProtoIcmpv6 = 58;
+  static const uint8_t kMaxIcmpType = 0xFF;
+  static const uint8_t kMaxIcmpCode = 0xFF;
   explicit AclEntryFields(AclEntryID id) : id(id) {}
 
   template<typename Fn>
@@ -153,6 +156,8 @@ struct AclEntryFields {
   folly::Optional<AclL4PortRange> dstL4PortRange{folly::none};
   folly::Optional<AclPktLenRange> pktLenRange{folly::none};
   folly::Optional<cfg::IpFragMatch> ipFrag{folly::none};
+  folly::Optional<uint8_t> icmpType{folly::none};
+  folly::Optional<uint8_t> icmpCode{folly::none};
   cfg::AclAction action{cfg::AclAction::PERMIT};
 };
 
@@ -192,7 +197,9 @@ class AclEntry :
            getFields()->srcL4PortRange == acl.getSrcL4PortRange() &&
            getFields()->dstL4PortRange == acl.getDstL4PortRange() &&
            getFields()->pktLenRange == acl.getPktLenRange() &&
-           getFields()->ipFrag == acl.getIpFrag();
+           getFields()->ipFrag == acl.getIpFrag() &&
+           getFields()->icmpType == acl.getIcmpType() &&
+           getFields()->icmpCode == acl.getIcmpCode();
   }
 
   AclEntryID getID() const {
@@ -293,6 +300,22 @@ class AclEntry :
 
   void setIpFrag(const cfg::IpFragMatch& frag) {
     writableFields()->ipFrag = frag;
+  }
+
+  folly::Optional<uint8_t> getIcmpCode() const {
+    return getFields()->icmpCode;
+  }
+
+  void setIcmpCode(const uint8_t code) {
+    writableFields()->icmpCode = code;
+  }
+
+  folly::Optional<uint8_t> getIcmpType() const {
+    return getFields()->icmpType;
+  }
+
+  void setIcmpType(const uint8_t type) {
+    writableFields()->icmpType = type;
   }
 
  private:

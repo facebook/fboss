@@ -364,6 +364,14 @@ struct AclEntry {
    * Ip fragment
    */
   13: optional IpFragMatch ipFrag
+
+  /**
+   * Icmp type and code
+   * Code can only be set if type is set.
+   * "proto" field must be 1 (icmpv4) or 58 (icmpv6)
+   */
+  14: optional i16 icmpType
+  15: optional i16 icmpCode
 }
 
 /**
