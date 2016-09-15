@@ -15,14 +15,18 @@ extern "C" {
 #include <netlink/route/route.h>
 #include <netlink/route/rule.h>
 #include <linux/if.h>
+#include <sys/ioctl.h>
 }
 
-#include "fboss/agent/RxPacket.h"
 #include "fboss/agent/NlError.h"
+#include "fboss/agent/RxPacket.h"
+#include "fboss/agent/SysError.h"
 #include "fboss/agent/TunIntf.h"
-#include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/SwitchState.h"
+#include <folly/Demangle.h>
 #include <folly/io/async/EventBase.h>
 
 #include <boost/container/flat_set.hpp>
@@ -97,7 +101,9 @@ bool TunManager::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
   return iter->second->sendPacketToHost(std::move(pkt));
 }
 
-void TunManager::addIntf(const std::string& ifName, int ifIndex) {
+void TunManager::addExistingIntf(
+    const std::string& ifName,
+    int ifIndex) {
   InterfaceID ifID = TunIntf::getIDFromTunIntfName(ifName);
   auto ret = intfs_.emplace(ifID, nullptr);
   if (!ret.second) {
@@ -107,11 +113,15 @@ void TunManager::addIntf(const std::string& ifName, int ifIndex) {
   SCOPE_FAIL {
     intfs_.erase(ret.first);
   };
+  setIntfStatus(ifName, ifIndex, false);
   ret.first->second.reset(
       new TunIntf(sw_, evb_, ifID, ifIndex, getInterfaceMtu(ifID)));
 }
 
-void TunManager::addIntf(InterfaceID ifID, const Interface::Addresses& addrs) {
+void TunManager::addNewIntf(
+    InterfaceID ifID,
+    bool isUp,
+    const Interface::Addresses& addrs) {
   auto ret = intfs_.emplace(ifID, nullptr);
   if (!ret.second) {
     throw FbossError("Duplicate interface for interface ", ifID);
@@ -121,7 +131,7 @@ void TunManager::addIntf(InterfaceID ifID, const Interface::Addresses& addrs) {
     intfs_.erase(ret.first);
   };
   auto intf = std::make_unique<TunIntf>(
-      sw_, evb_, ifID, addrs, getInterfaceMtu(ifID));
+      sw_, evb_, ifID, isUp, addrs, getInterfaceMtu(ifID));
 
   SCOPE_FAIL {
     intf->setDelete();
@@ -129,8 +139,8 @@ void TunManager::addIntf(InterfaceID ifID, const Interface::Addresses& addrs) {
   const auto ifName = intf->getName();
   auto ifIndex = intf->getIfIndex();
 
-  // bring up the interface so that we can add the default route next step
-  bringUpIntf(ifName, ifIndex);
+  // bring up the interface so that we can add the default route in next step
+  setIntfStatus(ifName, ifIndex, isUp);
 
   // create a new route table for this InterfaceID
   addRouteTable(ifID, ifIndex);
@@ -183,24 +193,44 @@ void TunManager::addProbedAddr(
           << static_cast<int>(mask);
 }
 
-void TunManager::bringUpIntf(const std::string& ifName, int ifIndex) {
-  // TODO: We need to change the interface status based on real HW
-  // interface status (up/down). Make them up all the time for now.
-  auto link = rtnl_link_alloc();
-  if (!link) {
-    throw FbossError("Failed to allocate link to bring up");
+void TunManager::setIntfStatus(
+    const std::string& ifName,
+    int ifIndex,
+    bool status) {
+  /**
+   * NOTE: Why use `ioctl` instead of `netlink` ?
+   *
+   * netlink's `rtnl_link_change` API was in-effective. Internally netlink
+   * tries to pass a message with RTM_NEWLINK which some old kernel couldn't
+   * process. After messing my head around with netlink for few hours I decided
+   * to use `ioctl` which was much easy and straight-forward operation.
+   */
+
+  // Prepare socket
+  auto sockFd = socket(PF_INET, SOCK_DGRAM, 0);
+  sysCheckError(sockFd, "Failed to open socket");
+
+  // Prepare request
+  struct ifreq ifr;
+  memset(&ifr, 0, sizeof(ifr));
+  folly::strlcpy(ifr.ifr_name, ifName.c_str(), IFNAMSIZ);
+
+  // Get existing flags
+  int error = ioctl(sockFd, SIOCGIFFLAGS, static_cast<void*>(&ifr));
+  sysCheckError(error, "Failed to get existing interface flags of ", ifName);
+
+  // Mutate flags
+  if (status) {
+    ifr.ifr_flags |= IFF_UP;
+  } else {
+    ifr.ifr_flags &= ~IFF_UP;
   }
-  SCOPE_EXIT { rtnl_link_put(link); };
 
-  rtnl_link_set_ifindex(link, ifIndex);
-  rtnl_link_set_family(link, AF_UNSPEC);
-  rtnl_link_set_flags(link, IFF_UP);
-
-  auto error = rtnl_link_change(sock_, link, link, 0);
-  nlCheckError(
-      error, "Failed to bring up interface ", ifName, " @ index ", ifIndex);
-
-  LOG(INFO) << "Brought up interface " << ifName << " @ index " << ifIndex;
+  // Set flags
+  error = ioctl(sockFd, SIOCSIFFLAGS, static_cast<void*>(&ifr));
+  sysCheckError(error, "Failed to set interface flags on ", ifName);
+  LOG(INFO) << "Brought " << (status ? "up" : "down") << " interface "
+            << ifName << " @ index " << ifIndex;
 }
 
 int TunManager::getTableId(InterfaceID ifID) const {
@@ -363,7 +393,14 @@ void TunManager::addRemoveTunAddress(
   rtnl_addr_set_ifindex(tunaddr, ifIndex);
 
   if (add) {
-    error = rtnl_addr_add(sock_, tunaddr, NLM_F_EXCL);
+    /**
+     * When you bring down interface some routes are purged but some still stay
+     * there (I tested from command line and v6 routes were gone but v4 were
+     * there). To be on safe side, when we bring up interface we always add
+     * addresses and routes for that interface with REPLACE flag overriding
+     * existing ones if any.
+     */
+    error = rtnl_addr_add(sock_, tunaddr, NLM_F_REPLACE);
   } else {
     error = rtnl_addr_delete(sock_, tunaddr, 0);
   }
@@ -425,6 +462,8 @@ void TunManager::stop() const {
 
 void TunManager::linkProcessor(struct nl_object *obj, void *data) {
   struct rtnl_link * link = reinterpret_cast<struct rtnl_link *>(obj);
+
+  // Get name of an interface
   const auto name = rtnl_link_get_name(link);
   if (!name) {
     throw FbossError("Device @ index ",
@@ -438,7 +477,7 @@ void TunManager::linkProcessor(struct nl_object *obj, void *data) {
     return;
   }
 
-  static_cast<TunManager*>(data)->addIntf(
+  static_cast<TunManager*>(data)->addExistingIntf(
       std::string(name),
       rtnl_link_get_ifindex(link));
 }
@@ -506,27 +545,44 @@ void TunManager::doProbe(std::lock_guard<std::mutex>& /* lock */) {
   SCOPE_EXIT { nl_cache_free(addressCache); };
   nl_cache_foreach(addressCache, &TunManager::addressProcessor, this);
 
-  // Bring up all interfaces. Interfaces could be already up.
-  for (const auto& intf : intfs_) {
-    bringUpIntf(intf.second->getName(), intf.second->getIfIndex());
-  }
-
   start();
   probeDone_ = true;
+}
+
+boost::container::flat_map<InterfaceID, bool>
+TunManager::getInterfaceStatus(std::shared_ptr<SwitchState> state) {
+  boost::container::flat_map<InterfaceID, bool> statusMap;
+
+  // Derive all ports
+  auto portMap = state->getPorts();
+  for (const auto& portIDToObj : portMap->getAllNodes()) {
+    const auto& port = portIDToObj.second;
+    bool isPortUp = port->isPortUp();
+    for (const auto& vlanIDToInfo : port->getVlans()) {
+      auto intfID = InterfaceID(vlanIDToInfo.first);
+      statusMap[intfID] |= isPortUp;  // NOTE: We are applying `OR` operator
+    } // for vlanIDToInfo
+  } // for portIDToObj
+
+  return statusMap;
 }
 
 void TunManager::sync(std::shared_ptr<SwitchState> state) {
   using Addresses = Interface::Addresses;
   using ConstAddressesIter = Addresses::const_iterator;
-  using IntfToAddrsMap = boost::container::flat_map<InterfaceID, Addresses>;
+  using IntfInfo = std::pair<bool /* status */, Addresses>;
+  using IntfToAddrsMap = boost::container::flat_map<InterfaceID, IntfInfo>;
   using ConstIntfToAddrsMapIter = IntfToAddrsMap::const_iterator;
 
+  // Get interface status.
+  auto intfStatusMap = getInterfaceStatus(state);
+
   // prepare new addresses
-  IntfToAddrsMap newIntfToAddrs;
+  IntfToAddrsMap newIntfToInfo;
   auto intfMap = state->getInterfaces();
   for (const auto& intf : intfMap->getAllNodes()) {
     const auto& addrs = intf.second->getAddresses();
-    newIntfToAddrs[intf.first].insert(addrs.begin(), addrs.end());
+    newIntfToInfo[intf.first] = {intfStatusMap[intf.first], addrs};
   }
 
   // Hold mutex while changing interfaces
@@ -536,10 +592,11 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
   }
 
   // prepare old addresses
-  IntfToAddrsMap oldIntfToAddrs;
+  IntfToAddrsMap oldIntfToInfo;
   for (const auto& intf : intfs_) {
     const auto& addrs = intf.second->getAddresses();
-    oldIntfToAddrs[intf.first].insert(addrs.begin(), addrs.end());
+    bool status = intf.second->getStatus();
+    oldIntfToInfo[intf.first] = {status, addrs};
 
     // Change MTU if it has altered
     auto interface = intfMap->getInterfaceIf(intf.first);
@@ -574,21 +631,46 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
 
   // Apply changes for all interfaces
   applyChanges(
-      oldIntfToAddrs, newIntfToAddrs,
+      oldIntfToInfo, newIntfToInfo,
       [&](ConstIntfToAddrsMapIter& oldIter, ConstIntfToAddrsMapIter& newIter) {
-        const auto& oldAddrs = oldIter->second;
-        const auto& newAddrs = newIter->second;
-        auto iter = intfs_.find(oldIter->first);
-        CHECK(iter != intfs_.end());
-        const auto& intf = iter->second;
+        auto oldStatus = oldIter->second.first;
+        auto newStatus = newIter->second.first;
+        const auto& oldAddrs = oldIter->second.second;
+        const auto& newAddrs = newIter->second.second;
+
+        // Interface must exists
+        const auto& intf = intfs_.at(oldIter->first);
         auto ifID = intf->getInterfaceID();
         int ifIndex = intf->getIfIndex();
         const auto& ifName = intf->getName();
-        applyInterfaceAddrChanges(ifID, ifName, ifIndex, oldAddrs, newAddrs);
-        iter->second->setAddresses(newAddrs);
+
+        // mutate intf status and addresses
+        intf->setStatus(newStatus);
+        intf->setAddresses(newAddrs);
+
+        // Update interface status
+        if (oldStatus ^ newStatus) {  // old and new status is different
+          setIntfStatus(ifName, ifIndex, newStatus);
+        }
+
+        // We need to add route-table and tun-addresses if interface is brought
+        // up recently.
+        if (!oldStatus and newStatus) {
+          addRouteTable(ifID, ifIndex);
+          for (const auto& addr : newAddrs) {
+            addTunAddress(ifID, ifName, ifIndex, addr.first, addr.second);
+          }
+        }
+
+        // Update interface addresses only if interface was up before as well
+        // as now
+        if (oldStatus && newStatus) {
+          applyInterfaceAddrChanges(ifID, ifName, ifIndex, oldAddrs, newAddrs);
+        }
       },
       [&](ConstIntfToAddrsMapIter& newIter) {
-        addIntf(newIter->first, newIter->second);
+        auto& statusAddr = newIter->second;
+        addNewIntf(newIter->first, statusAddr.first, statusAddr.second);
       },
       [&](ConstIntfToAddrsMapIter& oldIter) {
         removeIntf(oldIter->first);

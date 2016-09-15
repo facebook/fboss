@@ -60,19 +60,21 @@ TunIntf::TunIntf(
   };
 
   LOG(INFO) << "Added interface " << name_ << " with fd " << fd_
-            << " @ index " << ifIndex_;
+            << " @ index " << ifIndex_ << ", " << "DOWN";
 }
 
 TunIntf::TunIntf(
     SwSwitch *sw,
     folly::EventBase *evb,
     InterfaceID ifID,
+    bool status,
     const Interface::Addresses& addr,
     int mtu)
     : folly::EventHandler(evb),
       sw_(sw),
       name_(createTunIntfName(ifID)),
       ifID_(ifID),
+      status_(status),
       addrs_(addr),
       mtu_(mtu) {
   DCHECK(sw) << "NULL pointer to SwSwitch.";
@@ -114,7 +116,7 @@ TunIntf::TunIntf(
   }
 
   LOG(INFO) << "Created interface " << name_ << " with fd " << fd_
-            << " @ index " << ifIndex_;
+            << " @ index " << ifIndex_ << ", " << (status ? "UP" : "DOWN");
 }
 
 TunIntf::~TunIntf() {
@@ -190,7 +192,7 @@ void TunIntf::openFD() {
   memset(&ifr, 0, sizeof(ifr));
   // Flags: IFF_TUN   - TUN device (no Ethernet headers)
   //        IFF_NO_PI - Do not provide packet information
-  ifr.ifr_flags = IFF_TUN|IFF_NO_PI;
+  ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
   bzero(ifr.ifr_name, sizeof(ifr.ifr_name));
   size_t len = std::min(name_.size(), sizeof(ifr.ifr_name));
   memmove(ifr.ifr_name, name_.c_str(), len);

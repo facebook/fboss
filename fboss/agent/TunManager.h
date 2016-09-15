@@ -91,8 +91,9 @@ class TunManager : public StateObserver {
    * 1. During probe process when we discover existing Tun interface on linux
    * 2. When we want to create a new TUN interface in linux
    */
-  void addIntf(const std::string& name, int ifIndex);
-  void addIntf(InterfaceID ifID, const Interface::Addresses& addrs);
+  void addExistingIntf(const std::string& name, int ifIndex);
+  void addNewIntf(
+      InterfaceID ifID, bool isUp, const Interface::Addresses& addrs);
 
   // Remove an existing TUN interface
   void removeIntf(InterfaceID ifID);
@@ -100,8 +101,10 @@ class TunManager : public StateObserver {
   // A tun interface was changed, update the addresses accordingly
   void updateIntf(InterfaceID ifID, const Interface::Addresses& addrs);
 
-  // Bring up the interface on the host
-  void bringUpIntf(const std::string& ifName, int ifIndex);
+  /**
+   * Bring UP/DOWN interfaces by mutating admin status in Linux
+   */
+  void setIntfStatus(const std::string& ifName, int ifIndex, bool status);
 
   /**
    * Add/remove a route table.
@@ -188,6 +191,14 @@ class TunManager : public StateObserver {
    * Get MTU of switch interface
    */
   int getInterfaceMtu(InterfaceID ifID) const;
+
+  /**
+   * Get Interface statuses map from a given SwitchState. In switch each
+   * Interface/VLAN consists of multiple Ports. We derive state of Interface
+   * to be UP if alteast one of the port belonging to that interface is UP.
+   */
+  static boost::container::flat_map<InterfaceID, bool> getInterfaceStatus(
+      std::shared_ptr<SwitchState> state);
 
   template<typename MAPNAME,
            typename CHANGEFN, typename ADDFN, typename REMOVEFN>
