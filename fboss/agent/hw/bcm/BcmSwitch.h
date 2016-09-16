@@ -379,6 +379,11 @@ class BcmSwitch : public HwSwitch {
    */
   void dropDhcpPackets();
 
+  /**
+   * Copy IPv6 link local multicast packets to CPU
+   */
+  void copyIPv6LinkLocalMcastPackets();
+
   /*
    * Create ACL group
    */
