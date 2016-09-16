@@ -771,7 +771,7 @@ void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
   RWPrivateCursor cursor(pkt->buf());
   cursor.push(StringPiece(*payload));
 
-  sw_->sendL3Packet(RouterID(0), std::move(pkt));
+  sw_->sendL3Packet(std::move(pkt));
 }
 
 Vlan* ThriftHandler::getVlan(int32_t vlanId) {

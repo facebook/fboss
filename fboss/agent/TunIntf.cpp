@@ -297,7 +297,7 @@ void TunIntf::handlerReady(uint16_t events) noexcept {
       } else {
         bytes += ret;
         buf->append(ret);
-        sw_->sendL3Packet(RouterID(0), std::move(pkt));
+        sw_->sendL3Packet(std::move(pkt), ifID_);
         ++sent;
       }
     } // while

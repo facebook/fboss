@@ -28,6 +28,8 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/packet/EthHdr.h"
+#include "fboss/agent/packet/IPv4Hdr.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUpdateHelpers.h"
@@ -84,6 +86,28 @@ std::string switchRunStateStr(
   }
 }
 
+/**
+ * Transforms the IPAddressV6 to MacAddress. RFC 2464
+ * 33:33:xx:xx:xx:xx (lower 32 bits are copied from addr)
+ */
+folly::MacAddress getMulticastMacAddr(folly::IPAddressV6 addr) {
+  return folly::MacAddress::createMulticast(addr);
+}
+
+/**
+ * Transforms IPAddressV4 to MacAddress. RFC 1112
+ * 01:00:5E:0x:xx:xx - 01:00:5E:7x:xx:xx (lower 23 bits are copied from addr)
+ */
+folly::MacAddress getMulticastMacAddr(folly::IPAddressV4 addr) {
+  std::array<uint8_t, 6> bytes = {{0x01, 0x00, 0x5E, 0x00, 0x00, 0x00}};
+  auto addrBytes = addr.toBinary();
+  bytes[3] = addrBytes[1] & 0x7f;   // Take only 7 bits
+  bytes[4] = addrBytes[2];
+  bytes[5] = addrBytes[3];
+  return folly::MacAddress::fromBinary(folly::ByteRange(
+      bytes.begin(), bytes.end()));
+}
+
 facebook::fboss::PortStatus fillInPortStatus(
     const facebook::fboss::Port& port,
     const facebook::fboss::SwSwitch* sw) {
@@ -133,7 +157,8 @@ inline void updatePortStatusCounters(const facebook::fboss::StateDelta& delta) {
     }
   );
 }
-}
+
+} // anonymous namespace
 
 namespace facebook { namespace fboss {
 
@@ -1010,9 +1035,14 @@ void SwSwitch::sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept {
 }
 
 void SwSwitch::sendL3Packet(
-    RouterID rid, std::unique_ptr<TxPacket> pkt) noexcept {
+    std::unique_ptr<TxPacket> pkt,
+    folly::Optional<InterfaceID> maybeIfID) noexcept {
+
+  // Buffer should not be shared.
   folly::IOBuf *buf = pkt->buf();
   CHECK(!buf->isShared());
+
+  // Add L2 header to L3 packet. Information doesn't need to be complete
   // make sure the packet has enough headroom for L2 header and large enough
   // for the minimum size packet.
   const uint32_t l2Len = EthHdr::SIZE;
@@ -1026,35 +1056,104 @@ void SwSwitch::sendL3Packet(
                << " required=" << tailRoom;
     return;
   }
-  uint16_t protocol;
-  // we just need to read the first byte so that we know if it is v4 or v6
-  try {
-    RWPrivateCursor cursor(buf);
-    uint8_t version = cursor.read<uint8_t>() >> 4;
-    if (version == 4) {
-      protocol = IPv4Handler::ETHERTYPE_IPV4;
-    } else if (version == 6) {
-      protocol = IPv6Handler::ETHERTYPE_IPV6;
-    } else {
-      throw FbossError("Wrong version number ", static_cast<int>(version),
-                       " in the L3 packet to sent");
+
+  // Get VlanID associated with interface
+  VlanID vlanID = getCPUVlan();
+  if (maybeIfID.hasValue()) {
+    auto intf = getState()->getInterfaces()->getInterfaceIf(*maybeIfID);
+    if (!intf) {
+      LOG(ERROR) << "Interface " << *maybeIfID << " doesn't exists in state.";
+      return;
     }
-    // TODO: Use the default platform MAC for now. That's the MAC used currently
-    // by default on interfaces and gets programmed in HW. That MAC will
-    // trigger L3 processing on the packet so that the correct source and
-    // destination MAC will be set correctly by HW.
-    // If a new HW does not use the same mechanism to trigger L3 processing, we
-    // will need to revisit this code. In the worst case, we will do SW l3
-    // lookup to find out the L2 info.
-    folly::MacAddress cpuMac = platform_->getLocalMac();
+
+    // Extract primary Vlan associated with this interface
+    vlanID = intf->getVlanID();
+  }
+
+  try {
+    uint16_t protocol{0};
+    folly::IPAddress dstAddr;
+
+    // Parse L3 header to identify IP-Protocol and dstAddr
+    folly::io::Cursor cursor(buf);
+    uint8_t protoVersion = cursor.read<uint8_t>() >> 4;
+    cursor.reset(buf);  // Make cursor point to beginning again
+    if (protoVersion == 4) {
+      protocol = IPv4Handler::ETHERTYPE_IPV4;
+      IPv4Hdr ipHdr(cursor);
+      dstAddr = ipHdr.dstAddr;
+    } else if (protoVersion == 6) {
+      protocol = IPv6Handler::ETHERTYPE_IPV6;
+      IPv6Hdr ipHdr(cursor);
+      dstAddr = ipHdr.dstAddr;
+    } else {
+      throw FbossError("Wrong version number ", static_cast<int>(protoVersion),
+                       " in the L3 packet to send.");
+    }
+
+    // Extend IOBuf to make room for L2 header and satisfy minimum packet size
     buf->prepend(l2Len);
-    cursor.reset(buf);
-    TxPacket::writeEthHeader(&cursor, cpuMac, cpuMac, getCPUVlan(), protocol);
     if (tailRoom) {
       // padding with 0
       memset(buf->writableTail(), 0, tailRoom);
       buf->append(tailRoom);
     }
+
+    // We always use our CPU's mac-address as source mac-address
+    const folly::MacAddress srcMac = getPlatform()->getLocalMac();
+
+    // Derrive destination mac address
+    folly::MacAddress dstMac{};
+    if (dstAddr.isMulticast()) {
+      // Multicast Case:
+      // Derive destination mac-address based on destination ip-address
+      if (dstAddr.isV4()) {
+        dstMac = getMulticastMacAddr(dstAddr.asV4());
+      } else {
+        dstMac = getMulticastMacAddr(dstAddr.asV6());
+      }
+    } else if (dstAddr.isLinkLocal()) {
+      // LinkLocal Case:
+      // Resolve neighbor mac address for given destination address. If address
+      // doesn't exists in NDP table then request neighbor solicitation for it.
+      CHECK(dstAddr.isLinkLocal());
+      auto vlan = getState()->getVlans()->getVlan(vlanID);
+      if (dstAddr.isV4()) {
+        try {
+          auto entry = vlan->getArpTable()->getEntry(dstAddr.asV4());
+          dstMac = entry->getMac();
+        } catch (...) {
+          // We don't have dstAddr in our ARP table. Send ARP request for
+          // resolving address.
+          ArpHandler::sendArpRequest(this, vlan, dstAddr.asV4());
+          throw;
+        } // try
+      } else {
+        const auto dstAddrV6 = dstAddr.asV6();
+        try {
+          auto entry = vlan->getNdpTable()->getEntry(dstAddrV6);
+          dstMac = entry->getMac();
+        } catch (...) {
+          // We don't have dstAddr in our NDP table. Request solicitation for
+          // it and let this packet be dropped.
+          IPv6Handler::sendNeighborSolicitation(
+              this, dstAddrV6, srcMac, vlanID);
+          throw;
+        } // try
+      }
+    } else {
+      // Unicast Packet:
+      // Ideally we can do routing in SW but it can consume some good ammount of
+      // CPU. To avoid this we prefer to perform routing in hardware. Using
+      // our CPU MacAddr as DestAddr we will trigger L3 lookup in hardware :)
+      dstMac = srcMac;
+    }
+
+    // Write L2 header. NOTE that we pass specific VLAN and a dstMac on which
+    // packet should be forwarded to.
+    folly::io::RWPrivateCursor rwCursor(buf);
+    TxPacket::writeEthHeader(&rwCursor, dstMac, srcMac, vlanID, protocol);
+
     // We can look up the vlan to make sure it exists. However, the vlan can
     // be just deleted after the lookup. So, in order to do it correctly, we
     // will need to lock the state update. Even with that, this still cannot
@@ -1062,9 +1161,8 @@ void SwSwitch::sendL3Packet(
     // originated from the host. Because of that, we are just going to send
     // the packet out to the HW. The HW will drop the packet if the vlan is
     // deleted.
-    pcapMgr_->packetSent(pkt.get());
-    hw_->sendPacketSwitched(std::move(pkt));
     stats()->pktFromHost(l3Len);
+    sendPacketSwitched(std::move(pkt));
   } catch (const std::exception& ex) {
     LOG(ERROR) << "Failed to send out L3 packet :"
                << folly::exceptionStr(ex);

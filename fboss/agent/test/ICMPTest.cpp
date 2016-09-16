@@ -434,8 +434,8 @@ TEST(ICMPTest, TTLExceededV6) {
       "3a 01"
       // src addr (2401:db00:2110:3004::a)
       "24 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a"
-      // dst addr (ff02::1:ff00:000a)
-      "ff 02 00 00 00 00 00 00 00 00 00 01 ff 00 00 0a"
+      // dst addr (fe02::1:ff00:000a) (Non multicast address)
+      "fe 02 00 00 00 00 00 00 00 00 00 01 ff 00 00 0a"
       // type: neighbor solicitation
       "87"
       // code
@@ -460,7 +460,7 @@ TEST(ICMPTest, TTLExceededV6) {
       // src addr (2401:db00:2110:3004::a)
       "24 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a"
       // dst addr (ff02::1:ff00:000a)
-      "ff 02 00 00 00 00 00 00 00 00 00 01 ff 00 00 0a"
+      "fe 02 00 00 00 00 00 00 00 00 00 01 ff 00 00 0a"
       // type: neighbor solicitation
       "87"
       // code

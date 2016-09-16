@@ -334,6 +334,14 @@ void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {
 
 void TunManager::addRemoveSourceRouteRule(
     InterfaceID ifID, const folly::IPAddress& addr, bool add) {
+  // We should not add source routing rule for link-local addresses because
+  // they can be re-used across interfaces.
+  if (addr.isLinkLocal()) {
+    VLOG(2) << "Ignoring source routing rule for V6 link-local address "
+            << addr;
+    return;
+  }
+
   auto rule = rtnl_rule_alloc();
   SCOPE_EXIT { rtnl_rule_put(rule); };
 
@@ -555,11 +563,18 @@ TunManager::getInterfaceStatus(std::shared_ptr<SwitchState> state) {
 
   // Derive all ports
   auto portMap = state->getPorts();
+  auto vlanMap = state->getVlans();
   for (const auto& portIDToObj : portMap->getAllNodes()) {
     const auto& port = portIDToObj.second;
     bool isPortUp = port->isPortUp();
     for (const auto& vlanIDToInfo : port->getVlans()) {
-      auto intfID = InterfaceID(vlanIDToInfo.first);
+      auto vlan = vlanMap->getVlanIf(vlanIDToInfo.first);
+      if (!vlan) {
+        LOG(ERROR) << "Vlan " << vlanIDToInfo.first << " not found in state.";
+        continue;
+      }
+
+      auto intfID = vlan->getInterfaceID();
       statusMap[intfID] |= isPortUp;  // NOTE: We are applying `OR` operator
     } // for vlanIDToInfo
   } // for portIDToObj

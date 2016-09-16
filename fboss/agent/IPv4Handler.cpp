@@ -148,10 +148,27 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
     }
   }
 
-  auto dstIP = v4Hdr.dstAddr;
   // Handle packets destined for us
+  // Get the Interface to which this packet should be forwarded in host
   // TODO: assume vrf 0 now
-  if (state->getInterfaces()->getInterfaceIf(RouterID(0), IPAddress(dstIP))) {
+  std::shared_ptr<Interface> intf{nullptr};
+  auto interfaceMap = state->getInterfaces();
+  if (v4Hdr.dstAddr.isMulticast()) {
+    // Forward multicast packet directly to corresponding host interface
+    intf = interfaceMap->getInterfaceInVlanIf(pkt->getSrcVlan());
+  } else if (v4Hdr.dstAddr.isLinkLocal()) {
+    // Forward link-local packet directly to corresponding host interface
+    // provided desAddr is assigned to that interface.
+    intf = interfaceMap->getInterfaceInVlanIf(pkt->getSrcVlan());
+    if (not intf->hasAddress(v4Hdr.dstAddr)) {
+      intf = nullptr;
+    }
+  } else {
+    // Else loopup host interface based on destAddr
+    intf = interfaceMap->getInterfaceIf(RouterID(0), v4Hdr.dstAddr);
+  }
+
+  if (intf) {
     // TODO: Also check to see if this is the broadcast address for one of the
     // interfaces on this VLAN.  We should probably build up a more efficient
     // data structure to look up this information.
@@ -183,7 +200,7 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
   // TODO: Also check to see if this is the broadcast address for one of the
   // interfaces on this VLAN. We should probably build up a more efficient
   // data structure to look up this information.
-  if (dstIP.isLinkLocalBroadcast()) {
+  if (v4Hdr.dstAddr.isLinkLocalBroadcast()) {
     stats->port(port)->pktDropped();
     return;
   }
@@ -193,10 +210,10 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
   // We will need to manage the rate somehow. Either from HW
   // or a SW control here
   stats->port(port)->ipv4Nexthop();
-  if (!resolveMac(state.get(), dstIP)) {
+  if (!resolveMac(state.get(), v4Hdr.dstAddr)) {
     stats->port(port)->ipv4NoArp();
     VLOG(3) << "Cannot find the interface to send out ARP request for "
-      << dstIP.str();
+      << v4Hdr.dstAddr.str();
   }
   // TODO: ideally, we need to store this packet until the ARP is done and
   // then send this pkt out. For now, just drop it.

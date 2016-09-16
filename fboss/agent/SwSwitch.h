@@ -119,6 +119,7 @@ class SwSwitch : public HwSwitch::Callback {
   VlanID getCPUVlan() const {
     return VlanID(4095);
   }
+
   /*
    * Initialize the switch.
    *
@@ -475,11 +476,16 @@ class SwSwitch : public HwSwitch::Callback {
    * If any of the above reuqirements is not met, the packet will be dropped.
    *
    * The function will prepend the L2 header to the L3 packet before it is
-   * sent out.
+   * sent out. All (ipv6) link-local unicast and multicast packets are forwarded
+   * onto VLAN corresponding to Host interface from which it is received.
+   * Link-local communication doesn't go through L3 table lookups, hence it will
+   * work regardless of L3 lookup tables state.
    *
    * @param pkt The packet that has L3 packet stored to send out
    */
-  void sendL3Packet(RouterID rid, std::unique_ptr<TxPacket> pkt) noexcept;
+  void sendL3Packet(
+      std::unique_ptr<TxPacket> pkt,
+      folly::Optional<InterfaceID> ifID = folly::none) noexcept;
 
   /**
    * method to send out a packet from HW to host.
