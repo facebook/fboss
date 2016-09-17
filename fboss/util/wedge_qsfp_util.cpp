@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/lib/usb/Wedge100I2CBus.h"
+#include "fboss/lib/usb/GalaxyI2CBus.h"
 #include "fboss/lib/usb/UsbError.h"
 
 #include <folly/Conv.h>
@@ -16,10 +17,13 @@
 #include <sysexits.h>
 
 #include <vector>
+#include <utility>
 
 using namespace facebook::fboss;
 using folly::MutableByteRange;
 using folly::StringPiece;
+using std::pair;
+using std::make_pair;
 
 // We can check on the hardware type:
 
@@ -35,6 +39,8 @@ DEFINE_bool(set_100g, false, "Rate select 100G");
 DEFINE_bool(cdr_enable, false, "Set the CDR bits if transceiver supports it");
 DEFINE_bool(cdr_disable, false,
     "Clear the CDR bits if transceiver supports it");
+DEFINE_string(platform, "", "Platform on which we are running."
+             " One of (galaxy, wedge100, wedge)");
 
 bool overrideLowPower(TransceiverI2CApi* bus, unsigned int port) {
   // 0x01 overrides low power mode
@@ -265,7 +271,7 @@ void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
   printf("  Date Code: %s\n", vendorDate.str().c_str());
 }
 
-bool isWedge() {
+bool isTrident2() {
   std::string contents;
   if (!folly::readFile(chipCheckPath, contents)) {
     if (errno == ENOENT) {
@@ -274,6 +280,26 @@ bool isWedge() {
     folly::throwSystemError("error reading ", chipCheckPath);
   }
   return (contents == trident2);
+}
+
+std::pair<std::unique_ptr<TransceiverI2CApi>, int>  getTransceiverAPI() {
+  if (FLAGS_platform.size()) {
+     if (FLAGS_platform == "galaxy") {
+        return make_pair(folly::make_unique<GalaxyI2CBus>(), 0);
+     } else if (FLAGS_platform == "wedge100") {
+        return make_pair(folly::make_unique<Wedge100I2CBus>(), 0);
+     } else if (FLAGS_platform == "wedge") {
+        return make_pair(folly::make_unique<WedgeI2CBus>(), 0);
+     } else {
+       fprintf(stderr, "Unknown platform %s\n", FLAGS_platform.c_str());
+       return make_pair(nullptr, EX_USAGE);
+     }
+   }
+  // TODO(klahey):  Should probably verify the other chip architecture.
+  if (isTrident2()) {
+     return make_pair(folly::make_unique<WedgeI2CBus>(), 0);
+  }
+  return make_pair(folly::make_unique<Wedge100I2CBus>(), 0);
 }
 
 int main(int argc, char* argv[]) {
@@ -311,14 +337,12 @@ int main(int argc, char* argv[]) {
   if (!good) {
     return EX_USAGE;
   }
-
-  // TODO(klahey):  Should probably verify the other chip architecture.
-  std::unique_ptr<TransceiverI2CApi> bus;
-  if (isWedge()) {
-    bus = folly::make_unique<WedgeI2CBus>();
-  } else {
-    bus = folly::make_unique<Wedge100I2CBus>();
+  auto busAndError = getTransceiverAPI();
+  if (busAndError.second) {
+      return busAndError.second;
   }
+  auto bus = std::move(busAndError.first);
+
   try {
     bus->open();
   } catch (const std::exception& ex) {
