@@ -9,7 +9,10 @@
  */
 #include "fboss/agent/platforms/wedge/GalaxyPlatform.h"
 
+#include "fboss/lib/usb/GalaxyI2CBus.h"
 #include "fboss/agent/platforms/wedge/GalaxyPort.h"
+
+using std::make_unique;
 
 namespace facebook { namespace fboss {
 
@@ -34,7 +37,7 @@ GalaxyPlatform::InitPortMap GalaxyPlatform::initPorts() {
       PortID portID(num);
       opennsl_port_t bcmPortNum = num;
 
-      auto port = folly::make_unique<GalaxyPort>(portID);
+      auto port = make_unique<GalaxyPort>(portID);
 
       ports.emplace(bcmPortNum, port.get());
       ports_.emplace(portID, std::move(port));
@@ -53,6 +56,10 @@ GalaxyPlatform::InitPortMap GalaxyPlatform::initPorts() {
     add_quad(portNum);
   }
   return ports;
+}
+
+std::unique_ptr<BaseWedgeI2CBus> GalaxyPlatform::getI2CBus() {
+  return make_unique<GalaxyI2CBus>();
 }
 
 PortID GalaxyPlatform::fbossPortForQsfpChannel(int transceiver, int channel) {

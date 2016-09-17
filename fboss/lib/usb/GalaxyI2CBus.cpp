@@ -7,11 +7,11 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/lib/usb/Wedge100I2CBus.h"
+#include "fboss/lib/usb/GalaxyI2CBus.h"
 
 namespace facebook {
 namespace fboss {
 
-constexpr Wedge100I2CBus::QsfpAddressMap_t Wedge100I2CBus::QSFP_ADDR_MAP;
+constexpr GalaxyI2CBus::QsfpAddressMap_t GalaxyI2CBus::QSFP_ADDR_MAP;
 }
 } // facebook::fboss
