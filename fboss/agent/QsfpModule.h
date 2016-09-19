@@ -102,6 +102,12 @@ class QsfpModule : public Transceiver {
     // Number of channels per module
     CHANNEL_COUNT = 4,
   };
+  /*
+   * Convenience method to retrieve the free side transceiver technology
+   * This method is used instead of calling getTransceiverInfo, as this
+   * would lock up the USB device for much longer
+   */
+  TransmitterTechnology getTransmitterTech();
 
  protected:
   // no copy or assignment
@@ -201,6 +207,10 @@ class QsfpModule : public Transceiver {
    */
   int getQsfpCableLength(SffField field);
   /*
+   * returns the freeside transceiver technology type
+   */
+  TransmitterTechnology getQsfpTransmitterTechnology();
+  /*
    * Parse out flag values from bitfields
    */
   static FlagLevels getQsfpFlags(const uint8_t* data, int offset);
@@ -237,7 +247,7 @@ class QsfpModule : public Transceiver {
   /*
    * Gather the cable info for thrift queries
    */
-  bool getCableInfo(Cable &cable);
+  void getCableInfo(Cable &cable);
   /*
    * Retrieves the values of settings based on field name and bit placement
    * Default mask is a noop

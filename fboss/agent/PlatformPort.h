@@ -11,6 +11,7 @@
 
 #include "fboss/agent/types.h"
 #include "fboss/agent/gen-cpp/switch_config_types.h"
+#include "fboss/agent/if/gen-cpp2/optic_types.h"
 
 namespace facebook { namespace fboss {
 
@@ -88,6 +89,8 @@ class PlatformPort {
    * speed indicates the new speed that the port is running at
    */
   virtual void linkSpeedChanged(const cfg::PortSpeed& speed) = 0;
+
+  virtual TransmitterTechnology getTransmitterTech() const = 0;
 
   /*
    * statusIndication() will be called by the hardware code once a second.

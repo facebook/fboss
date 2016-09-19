@@ -42,6 +42,14 @@ bool WedgePort::isMediaPresent() {
   return false;
 }
 
+TransmitterTechnology WedgePort::getTransmitterTech() const {
+  if (!qsfp_) {
+    // This is for sixpack backplane ports
+    return TransmitterTechnology::COPPER;
+  }
+  return qsfp_->getTransmitterTech();
+}
+
 void WedgePort::statusIndication(bool enabled, bool link,
                                  bool ingress, bool egress,
                                  bool discards, bool errors) {

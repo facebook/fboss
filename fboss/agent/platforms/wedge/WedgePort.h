@@ -40,6 +40,8 @@ class WedgePort : public BcmPlatformPort {
                         bool ingress, bool egress,
                         bool discards, bool errors) override;
   void linkSpeedChanged(const cfg::PortSpeed& speed) override;
+
+  TransmitterTechnology getTransmitterTech() const override;
  private:
   // Forbidden copy constructor and assignment operator
   WedgePort(WedgePort const &) = delete;
@@ -50,6 +52,7 @@ class WedgePort : public BcmPlatformPort {
   BcmPort* bcmPort_{nullptr};
   // This is owned by SwSwitch
   QsfpModule* qsfp_{nullptr};
+  TransmitterTechnology transmitterTech_{TransmitterTechnology::UNKNOWN};
 };
 
 }} // facebook::fboss

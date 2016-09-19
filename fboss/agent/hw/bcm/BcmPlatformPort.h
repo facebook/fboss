@@ -39,6 +39,8 @@ class BcmPlatformPort : public PlatformPort {
    */
   virtual LaneSpeeds supportedLaneSpeeds() const = 0;
 
+  virtual TransmitterTechnology getTransmitterTech() const = 0;
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmPlatformPort(BcmPlatformPort const &) = delete;

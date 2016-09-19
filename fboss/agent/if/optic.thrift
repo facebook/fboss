@@ -121,6 +121,11 @@ struct ChannelSensors {
   3: optional Sensor txPwr,
 }
 
+enum TransmitterTechnology {
+  UNKNOWN,
+  COPPER,
+  OPTICAL,
+}
 /*
  * QSFP and SFP units specify length as a byte;  a value of 255 indicates
  * that the cable is longer than can be represented.  Each has a different
@@ -129,7 +134,6 @@ struct ChannelSensors {
  * "max length" size -- i.e. -255000 for more than 255 km on a single
  * mode fiber.
  */
-
 struct Cable {
   1: optional i32 singleModeKm,
   2: optional i32 singleMode,
@@ -137,6 +141,7 @@ struct Cable {
   4: optional i32 om2,
   5: optional i32 om1,
   6: optional i32 copper,
+  7: TransmitterTechnology transmitterTech,
 }
 
 struct Channel {

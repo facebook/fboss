@@ -145,6 +145,7 @@ void WedgePlatform::initTransceiverMap(SwSwitch* sw) {
     }
     std::unique_ptr<QsfpModule> qsfp =
       make_unique<QsfpModule>(std::move(qsfpImpl));
+    qsfp->detectTransceiver();
     auto qsfpPtr = qsfp.get();
     sw->addTransceiver(TransceiverID(idx), move(qsfp));
     LOG(INFO) << "making QSFP for " << idx;

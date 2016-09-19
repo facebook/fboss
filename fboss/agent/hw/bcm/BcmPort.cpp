@@ -11,6 +11,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <map>
 
 #include "common/stats/MonotonicCounter.h"
 #include "common/stats/ServiceData.h"
@@ -62,6 +63,44 @@ static const std::vector<opennsl_stat_val_t> kOutPktLengthStats = {
   snmpOpenNSLTransmittedPkts2048to4095Octets,
   snmpOpenNSLTransmittedPkts4095to9216Octets,
   snmpOpenNSLTransmittedPkts9217to16383Octets,
+};
+
+// This allows mapping from a speed and port transmission technology
+// to a broadcom supported interface
+static const std::map<cfg::PortSpeed,
+  std::map<TransmitterTechnology, opennsl_port_if_t> > kPortTypeMapping = {
+    {cfg::PortSpeed::HUNDREDG, {
+      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR4},
+      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI}
+    }},
+    {cfg::PortSpeed::FIFTYG, {
+      // TODO(aeckert): CR2 does not exist in opennsl 6.3.6.
+      // Remove this ifdef once fully on 6.4.6
+#if defined(OPENNSL_PORT_IF_CR2)
+      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR2},
+#endif
+      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI},
+    }},
+    {cfg::PortSpeed::FORTYG, {
+      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR4},
+      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_XLAUI}
+    }},
+    {cfg::PortSpeed::TWENTYFIVEG, {
+      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR},
+      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI}
+    }},
+    {cfg::PortSpeed::TWENTYG, {
+      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR}
+      // We don't expect 20G optics
+    }},
+    {cfg::PortSpeed::XG, {
+      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR},
+      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_SFI}
+    }},
+    {cfg::PortSpeed::GIGE, {
+      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_GMII}
+      // We don't expect 1G optics
+    }}
 };
 
 BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
@@ -243,37 +282,22 @@ void BcmPort::setIngressVlan(const shared_ptr<Port>& swPort) {
 opennsl_port_if_t BcmPort::getDesiredInterfaceMode(cfg::PortSpeed speed,
                                                    PortID id,
                                                    std::string name) {
-  static constexpr const char* sixPackLCFabricPortPrefix = "fab";
-  switch (speed) {
-  case cfg::PortSpeed::HUNDREDG:
-    return OPENNSL_PORT_IF_CR4;
-  case cfg::PortSpeed::FIFTYG:
-    // TODO(aeckert): CR2 does not exist in opennsl 6.3.6.
-    // Remove this ifdef once fully on 6.4.6
-#if defined(OPENNSL_PORT_IF_CR2)
-    return OPENNSL_PORT_IF_CR2;
-#else
+  TransmitterTechnology transmitterTech =
+    getPlatformPort()->getTransmitterTech();
+  // If we don't know what tech we have, default to copper
+  // This covers the case of sixpack backplane ports where we
+  // are unable to determine this information (but where copper is used).
+  // Since copper is still by far the default, this is also a fair default
+  if (transmitterTech == TransmitterTechnology::UNKNOWN) {
+    transmitterTech = TransmitterTechnology::COPPER;
+  }
+
+  // If speed or transmitter type isn't in map
+  try {
+    return kPortTypeMapping.at(speed).at(transmitterTech);
+  } catch (const std::out_of_range& ex) {
     throw FbossError("Unsupported speed (", speed,
-                     ") setting on port ", id);
-#endif
-  case cfg::PortSpeed::FORTYG:
-    // TODO: Currently, we are finding if the port is backplane port or not by
-    // its name. A better way is to include this information in the config:
-    // t9112164.
-    if (name.find(sixPackLCFabricPortPrefix) == 0) {
-      return OPENNSL_PORT_IF_CR4;
-    } else {
-      return OPENNSL_PORT_IF_SR4;
-    }
-  case cfg::PortSpeed::TWENTYFIVEG:
-    return OPENNSL_PORT_IF_CR;
-  case cfg::PortSpeed::TWENTYG:
-  case cfg::PortSpeed::XG:
-    return OPENNSL_PORT_IF_SFI;
-  case cfg::PortSpeed::GIGE:
-    return OPENNSL_PORT_IF_GMII;
-  default:
-    throw FbossError("Unsupported speed (", speed,
+                     ") or transmitter technology (", transmitterTech,
                      ") setting on port ", id);
   }
 }

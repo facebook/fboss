@@ -52,6 +52,7 @@ static SffFieldInfo::SffFieldMap qsfpFields = {
   {SffField::LENGTH_OM2, {QsfpPages::PAGE0, 144, 1} },
   {SffField::LENGTH_OM1, {QsfpPages::PAGE0, 145, 1} },
   {SffField::LENGTH_COPPER, {QsfpPages::PAGE0, 146, 1} },
+  {SffField::DEVICE_TECHNOLOGY, {QsfpPages::PAGE0, 147, 1} },
   {SffField::VENDOR_NAME, {QsfpPages::PAGE0, 148, 16} },
   {SffField::VENDOR_OUI, {QsfpPages::PAGE0, 165, 3} },
   {SffField::PART_NUMBER, {QsfpPages::PAGE0, 168, 16} },
@@ -139,7 +140,10 @@ bool QsfpModule::getVendorInfo(Vendor &vendor) {
   return true;
 }
 
-bool QsfpModule::getCableInfo(Cable &cable) {
+void QsfpModule::getCableInfo(Cable &cable) {
+  cable.transmitterTech = getQsfpTransmitterTechnology();
+  cable.__isset.transmitterTech = true;
+
   cable.singleMode = getQsfpCableLength(SffField::LENGTH_SM_KM);
   cable.__isset.singleMode = (cable.singleMode != 0);
   cable.om3 = getQsfpCableLength(SffField::LENGTH_OM3);
@@ -150,8 +154,6 @@ bool QsfpModule::getCableInfo(Cable &cable) {
   cable.__isset.om1 = (cable.om1 != 0);
   cable.copper = getQsfpCableLength(SffField::LENGTH_COPPER);
   cable.__isset.copper = (cable.copper != 0);
-  return (cable.__isset.copper || cable.__isset.om1 || cable.__isset.om2 ||
-          cable.__isset.om3 || cable.__isset.singleMode);
 }
 
 /*
@@ -399,7 +401,6 @@ double QsfpModule::getQsfpSensor(SffField field,
  * value of the appropriate magnitude to communicate that to thrift
  * clients.
  */
-
 int QsfpModule::getQsfpCableLength(SffField field) {
   int length;
   auto info = SffFieldInfo::getSffFieldAddress(qsfpFields, field);
@@ -411,6 +412,21 @@ int QsfpModule::getQsfpCableLength(SffField field) {
     length = -(MAX_CABLE_LEN - 1) * multiplier;
   }
   return length;
+}
+
+TransmitterTechnology QsfpModule::getQsfpTransmitterTechnology() {
+  auto info = SffFieldInfo::getSffFieldAddress(qsfpFields,
+      SffField::DEVICE_TECHNOLOGY);
+  const uint8_t *data = getQsfpValuePtr(info.dataAddress,
+                                        info.offset, info.length);
+  uint8_t transTech = *data >> DeviceTechnology::TRANSMITTER_TECH_SHIFT;
+  if (transTech == DeviceTechnology::UNKNOWN_VALUE) {
+    return TransmitterTechnology:: UNKNOWN;
+  } else if (transTech <= DeviceTechnology::OPTICAL_MAX_VALUE) {
+    return TransmitterTechnology::OPTICAL;
+  } else {
+    return TransmitterTechnology::COPPER;
+  }
 }
 
 QsfpModule::QsfpModule(std::unique_ptr<TransceiverImpl> qsfpImpl)
@@ -516,9 +532,8 @@ void QsfpModule::getTransceiverInfo(TransceiverInfo &info) {
   if (getVendorInfo(info.vendor)) {
     info.__isset.vendor = true;
   }
-  if (getCableInfo(info.cable)) {
-    info.__isset.cable = true;
-  }
+  getCableInfo(info.cable);
+  info.__isset.cable = true;
   if (getThresholdInfo(info.thresholds)) {
     info.__isset.thresholds = true;
   }
@@ -535,6 +550,15 @@ void QsfpModule::getTransceiverInfo(TransceiverInfo &info) {
     info.__isset.channels = true;
   } else {
     info.channels.clear();
+  }
+}
+
+TransmitterTechnology QsfpModule::getTransmitterTech() {
+  if (present_) {
+    lock_guard<std::mutex> g(qsfpModuleMutex_);
+    return getQsfpTransmitterTechnology();
+  } else {
+    return TransmitterTechnology::UNKNOWN;
   }
 }
 

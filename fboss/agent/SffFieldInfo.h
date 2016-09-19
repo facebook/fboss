@@ -43,6 +43,7 @@ enum class SffField {
   LENGTH_OM2,
   LENGTH_OM1,
   LENGTH_COPPER,
+  DEVICE_TECHNOLOGY, // Device or cable technology of free side device
   OPTIONS, // Variety of options, including rate select support
   VENDOR_NAME, // QSFP Vendor Name (ASCII)
   VENDOR_OUI, // QSFP Vendor IEEE company ID
@@ -90,6 +91,12 @@ enum class SffField {
   VENDOR_MEM_ADDRESS, // Vendor Specific memory address
   USER_EEPROM, // User Writable NVM
   VENDOR_CONTROL, // Vendor Specific Control
+};
+
+enum DeviceTechnology : uint8_t {
+  TRANSMITTER_TECH_SHIFT = 4,
+  OPTICAL_MAX_VALUE = 0b1001,
+  UNKNOWN_VALUE = 0b1000,
 };
 
 enum PowerControl : uint8_t {
