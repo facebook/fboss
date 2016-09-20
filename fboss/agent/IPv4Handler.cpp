@@ -157,12 +157,17 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
     // Forward multicast packet directly to corresponding host interface
     intf = interfaceMap->getInterfaceInVlanIf(pkt->getSrcVlan());
   } else if (v4Hdr.dstAddr.isLinkLocal()) {
+    // XXX: Ideally we should scope the limit to Link only. However we are
+    // using v4 link locals in a special way on Galaxy/6pack which needs because
+    // of which we do not limit the scope.
+    //
     // Forward link-local packet directly to corresponding host interface
     // provided desAddr is assigned to that interface.
-    intf = interfaceMap->getInterfaceInVlanIf(pkt->getSrcVlan());
-    if (not intf->hasAddress(v4Hdr.dstAddr)) {
-      intf = nullptr;
-    }
+    // intf = interfaceMap->getInterfaceInVlanIf(pkt->getSrcVlan());
+    // if (not intf->hasAddress(v4Hdr.dstAddr)) {
+    //   intf = nullptr;
+    // }
+    intf = interfaceMap->getInterfaceIf(RouterID(0), v4Hdr.dstAddr);
   } else {
     // Else loopup host interface based on destAddr
     intf = interfaceMap->getInterfaceIf(RouterID(0), v4Hdr.dstAddr);

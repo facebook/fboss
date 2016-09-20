@@ -1119,15 +1119,15 @@ void SwSwitch::sendL3Packet(
       CHECK(dstAddr.isLinkLocal());
       auto vlan = getState()->getVlans()->getVlan(vlanID);
       if (dstAddr.isV4()) {
-        try {
-          auto entry = vlan->getArpTable()->getEntry(dstAddr.asV4());
-          dstMac = entry->getMac();
-        } catch (...) {
-          // We don't have dstAddr in our ARP table. Send ARP request for
-          // resolving address.
-          ArpHandler::sendArpRequest(this, vlan, dstAddr.asV4());
-          throw;
-        } // try
+        // We do not consult ARP table to forward v4 link local addresses.
+        // Reason explained below.
+        //
+        // XXX: In 6Pack/Galaxy ipv4 link-local addresses are routed
+        // internally within FCs/LCs so they might not be reachable directly.
+        //
+        // For now let's make use of L3 table to forward these packets by
+        // using dstMac as srcMac
+        dstMac = srcMac;
       } else {
         const auto dstAddrV6 = dstAddr.asV6();
         try {
