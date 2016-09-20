@@ -337,8 +337,7 @@ void TunManager::addRemoveSourceRouteRule(
   // We should not add source routing rule for link-local addresses because
   // they can be re-used across interfaces.
   if (addr.isLinkLocal()) {
-    VLOG(2) << "Ignoring source routing rule for V6 link-local address "
-            << addr;
+    VLOG(2) << "Ignoring source routing rule for link-local address " << addr;
     return;
   }
 
@@ -670,10 +669,12 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
 
         // We need to add route-table and tun-addresses if interface is brought
         // up recently.
+        // NOTE: Do not add source routing rules because kernel doesn't handle
+        // NLM_F_REPLACE flags and they just keep piling up :/
         if (!oldStatus and newStatus) {
           addRouteTable(ifID, ifIndex);
           for (const auto& addr : newAddrs) {
-            addTunAddress(ifID, ifName, ifIndex, addr.first, addr.second);
+            addRemoveTunAddress(ifName, ifIndex, addr.first, addr.second, true);
           }
         }
 
