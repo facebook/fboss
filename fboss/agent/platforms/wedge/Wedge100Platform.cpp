@@ -140,7 +140,12 @@ Wedge100Port* Wedge100Platform::getPortFromFrontPanelNum(TransceiverID fpPort) {
 
 void Wedge100Platform::enableLedMode() {
   uint8_t mode = TWELVE_BIT_MODE;
-  wedgeI2CBusLock_->write(ADDR_SYSCPLD, LED_MODE_REG, 1, &mode);
+  try {
+    wedgeI2CBusLock_->write(ADDR_SYSCPLD, LED_MODE_REG, 1, &mode);
+  } catch (const std::exception& ex) {
+    LOG(ERROR) << __func__ << ": failed to change LED mode: "
+               << folly::exceptionStr(ex);
+  }
 }
 
 void Wedge100Platform::onHwInitialized(SwSwitch* sw) {
