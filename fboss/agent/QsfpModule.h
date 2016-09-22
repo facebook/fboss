@@ -60,7 +60,7 @@ class QsfpModule : public Transceiver {
     return TransceiverType::QSFP;
   }
   /*
-   * Check if the QSFP is present or not
+   * Takes a lock on qsfpModuleMutex_ before calling detectTransceiverLocked
    */
   void detectTransceiver() override;
   /*
@@ -154,6 +154,24 @@ class QsfpModule : public Transceiver {
    */
   void customizeTransceiverLocked(
       const cfg::PortSpeed& speed=cfg::PortSpeed::DEFAULT);
+
+  /*
+   * Check if the QSFP is present or not
+   *
+   * This must be called with a lock held on qsfpModuleMutex_
+   */
+  void detectTransceiverLocked();
+
+  /*
+   * Checks whether the cache is valid
+   * If it isn't it either refreshes the cache (if the transceiver is present)
+   * or tries to redetect the transceiver (which will refresh the cache if
+   * it is now present
+   *
+   * This must be called with a lock held on qsfpModuleMutex_
+   */
+  virtual void refreshCacheIfPossibleLocked();
+
   /*
    * This function returns a pointer to the value in the static cached
    * data after checking the length fits. The thread needs to have the lock

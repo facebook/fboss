@@ -553,17 +553,34 @@ void QsfpModule::getTransceiverInfo(TransceiverInfo &info) {
   }
 }
 
-TransmitterTechnology QsfpModule::getTransmitterTech() {
-  if (present_) {
-    lock_guard<std::mutex> g(qsfpModuleMutex_);
-    return getQsfpTransmitterTechnology();
-  } else {
-    return TransmitterTechnology::UNKNOWN;
+// Must be called with lock held on qsfpModuleMutex_
+void QsfpModule::refreshCacheIfPossibleLocked() {
+  if (!cacheIsValid()) {
+    if (present_) {
+      // Cache is dirty, refresh
+      updateQsfpData();
+    } else {
+      // Check again
+      detectTransceiverLocked();
+    }
   }
+}
+
+TransmitterTechnology QsfpModule::getTransmitterTech() {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
+  refreshCacheIfPossibleLocked();
+  if (present_) {
+    return getQsfpTransmitterTechnology();
+  }
+  return TransmitterTechnology::UNKNOWN;
 }
 
 void QsfpModule::detectTransceiver() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
+  detectTransceiverLocked();
+}
+
+void QsfpModule::detectTransceiverLocked() {
   auto currentQsfpStatus = qsfpImpl_->detectTransceiver();
   if (currentQsfpStatus != present_) {
     LOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
@@ -639,11 +656,9 @@ void QsfpModule::updateQsfpData() {
 }
 
 void QsfpModule::customizeTransceiver(const cfg::PortSpeed& speed) {
-  if (!present_) {
-    // Detect the transceiver if not already present
-    detectTransceiver();
-  } else {
-    lock_guard<std::mutex> g(qsfpModuleMutex_);
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
+  refreshCacheIfPossibleLocked();
+  if (present_) {
     customizeTransceiverLocked(speed);
   }
 }
@@ -652,9 +667,6 @@ void QsfpModule::customizeTransceiverLocked(const cfg::PortSpeed& speed) {
   /*
    * This must be called with a lock held on qsfpModuleMutex_
    */
-  if (dirty_) {
-    return;
-  }
   TransceiverSettings settings;
   getTransceiverSettingsInfo(settings);
 

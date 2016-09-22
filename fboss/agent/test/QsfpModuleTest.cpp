@@ -31,6 +31,7 @@ class MockQsfpModule : public QsfpModule {
   MOCK_CONST_METHOD0(cacheIsValid, bool());
   MOCK_METHOD0(updateQsfpData, void());
   MOCK_METHOD2(getSettingsValue, uint8_t(SffField, uint8_t));
+  MOCK_METHOD0(refreshCacheIfPossibleLocked, void());
 
   MOCK_METHOD3(setCdrIfSupported, void(cfg::PortSpeed, FeatureState,
         FeatureState));
@@ -48,6 +49,7 @@ class MockQsfpModule : public QsfpModule {
 
   void customizeTransceiver(cfg::PortSpeed speed) {
     dirty_ = false;
+    present_ = true;
     QsfpModule::customizeTransceiver(speed);
   }
 
@@ -111,6 +113,7 @@ TEST_F(QsfpModuleTest, setRateSelect) {
           &MockQsfpModule::actualSetRateSelectIfSupported));
   EXPECT_CALL(*qsfp_, setPowerOverrideIfSupported(_)).Times(AtLeast(1));
   EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(AtLeast(1));
+  EXPECT_CALL(*qsfp_, refreshCacheIfPossibleLocked()).Times(AtLeast(1));
 
   {
     InSequence a;
@@ -169,6 +172,7 @@ TEST_F(QsfpModuleTest, setCdr) {
 
   EXPECT_CALL(*qsfp_, setPowerOverrideIfSupported(_)).Times(AtLeast(1));
   EXPECT_CALL(*qsfp_, setRateSelectIfSupported(_, _, _)).Times(AtLeast(1));
+  EXPECT_CALL(*qsfp_, refreshCacheIfPossibleLocked()).Times(AtLeast(1));
 
   {
     InSequence a;
