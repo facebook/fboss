@@ -65,6 +65,7 @@ using std::unique_ptr;
 using namespace std::chrono;
 
 DEFINE_string(config, "", "The path to the local JSON configuration file");
+DEFINE_int32(thread_heartbeat_ms, 5000, "Thread hearbeat interval (ms)");
 
 namespace {
 
@@ -221,6 +222,10 @@ void SwSwitch::stop() {
   tunMgr_.reset();
 
   routeUpdateLogger_.reset();
+
+  bgThreadHeartbeat_.reset();
+  updThreadHeartbeat_.reset();
+
   // stops the background and update threads.
   stopThreads();
 }
@@ -377,6 +382,23 @@ void SwSwitch::init(SwitchFlags flags) {
       unresolvedNhopsProber_->stateUpdated(
           StateDelta(std::make_shared<SwitchState>(), getState()));
   }
+
+  auto bgHeartbeatStatsFunc = [this] (int delay, int backLog) {
+    stats()->bgHeartbeatDelay(delay);
+    stats()->bgEventBacklog(backLog);
+  };
+  bgThreadHeartbeat_ = folly::make_unique<ThreadHeartbeat>(
+    &backgroundEventBase_, "fbossBgThread", FLAGS_thread_heartbeat_ms,
+    bgHeartbeatStatsFunc);
+
+  auto updHeartbeatStatsFunc = [this] (int delay, int backLog) {
+    stats()->updHeartbeatDelay(delay);
+    stats()->updEventBacklog(backLog);
+  };
+  updThreadHeartbeat_ = folly::make_unique<ThreadHeartbeat>(
+    &updateEventBase_, "fbossUpdateThread", FLAGS_thread_heartbeat_ms,
+    updHeartbeatStatsFunc);
+
   setSwitchRunState(SwitchRunState::INITIALIZED);
 }
 

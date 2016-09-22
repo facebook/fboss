@@ -14,6 +14,7 @@
 #include <folly/Memory.h>
 
 using facebook::stats::SUM;
+using facebook::stats::AVG;
 using facebook::stats::RATE;
 
 namespace facebook { namespace fboss {
@@ -66,6 +67,16 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap *map)
       delRouteV6_(map, kCounterPrefix + "route.v6.delete", RATE),
       updateState_(map, kCounterPrefix + "state_update.us", 50000, 0, 1000000),
       routeUpdate_(map,  kCounterPrefix + "route_update.us", 50, 0, 500),
+
+      bgHeartbeatDelay_(map, kCounterPrefix + "bg_heartbeat_delay.ms",
+                        100, 0, 20000, AVG, 50, 100),
+      updHeartbeatDelay_(map, kCounterPrefix + "upd_heartbeat_delay.ms",
+                         100, 0, 20000, AVG, 50, 100),
+      bgEventBacklog_(map, kCounterPrefix + "bg_event_backlog",
+                      1, 0, 200, AVG, 50, 100),
+      updEventBacklog_(map, kCounterPrefix + "upd_event_backlog",
+                       1, 0, 200, AVG, 50, 100),
+
       linkStateChange_(map, kCounterPrefix + "link_state.down", SUM) {
 }
 

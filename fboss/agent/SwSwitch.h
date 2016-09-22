@@ -13,6 +13,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/types.h"
+#include "fboss/agent/ThreadHeartbeat.h"
 #include "fboss/agent/Transceiver.h"
 #include "fboss/agent/TransceiverMap.h"
 #include "fboss/agent/gen-cpp/switch_config_types.h"
@@ -741,6 +742,8 @@ class SwSwitch : public HwSwitch::Callback {
 
   BootType bootType_{BootType::UNINITIALIZED};
   std::unique_ptr<LldpManager> lldpManager_;
+  std::unique_ptr<ThreadHeartbeat> bgThreadHeartbeat_;
+  std::unique_ptr<ThreadHeartbeat> updThreadHeartbeat_;
   SwitchFlags flags_{SwitchFlags::DEFAULT};
 };
 

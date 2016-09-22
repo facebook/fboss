@@ -195,6 +195,22 @@ class SwitchStats : public boost::noncopyable {
     routeUpdate_.addRepeatedValue(us.count() / routes, routes);
   }
 
+  void bgHeartbeatDelay(int delay) {
+    bgHeartbeatDelay_.addValue(delay);
+  }
+
+  void updHeartbeatDelay(int delay) {
+    updHeartbeatDelay_.addValue(delay);
+  }
+
+  void bgEventBacklog(int value) {
+    bgEventBacklog_.addValue(value);
+  }
+
+  void updEventBacklog(int value) {
+    updEventBacklog_.addValue(value);
+  }
+
   void linkStateChange() {
     linkStateChange_.addValue(1);
   }
@@ -309,6 +325,26 @@ class SwitchStats : public boost::noncopyable {
    * Histogram for time used for route update (in microsecond)
    */
   TLHistogram routeUpdate_;
+
+  /**
+   * Background thread heartbeat delay (ms)
+   */
+  TLHistogram bgHeartbeatDelay_;
+
+  /**
+   * Update thread heartbeat delay (ms)
+   */
+  TLHistogram updHeartbeatDelay_;
+
+  /**
+   * Number of events queued in background thread
+   */
+  TLHistogram bgEventBacklog_;
+
+  /**
+   * Number of events queued in update thread
+   */
+  TLHistogram updEventBacklog_;
 
   /**
    * Link state up/down change count
