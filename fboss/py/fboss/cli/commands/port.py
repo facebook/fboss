@@ -247,8 +247,12 @@ class PortStatusDetailCmd(object):
         print("      {:<15} {:0.4}".format("Tx Bias", dom.value.txBias))
         print("      {:<15} {:0.4}".format("Tx Power(dBm)",
                                             self._mw_to_dbm(dom.value.txPwr)))
+        print("      {:<15} {:0.4}".format("Tx Power(mW)",
+                                            dom.value.txPwr))
         print("      {:<15} {:0.4}".format("Rx Power(dBm)",
                                             self._mw_to_dbm(dom.value.rxPwr)))
+        print("      {:<15} {:0.4}".format("Rx Power(mW)",
+                                            dom.value.rxPwr))
 
         print("    {:<14}   {:>15} {:>15} {:>15} {:>15}".format(
             'Flags:', 'Alarm Low', 'Warning Low', 'Warning High', 'Alarm High'))
@@ -268,11 +272,23 @@ class PortStatusDetailCmd(object):
             self._mw_to_dbm(dom.flags.txPwrWarnHigh),
             self._mw_to_dbm(dom.flags.txPwrAlarmHigh)))
         print("      {:<14} {:>15} {:>15} {:>15} {:>15}".format(
+            'Tx Power(mW):',
+            dom.flags.txPwrAlarmLow,
+            dom.flags.txPwrWarnLow,
+            dom.flags.txPwrWarnHigh,
+            dom.flags.txPwrAlarmHigh))
+        print("      {:<14} {:>15} {:>15} {:>15} {:>15}".format(
             'Rx Power(dBm):',
             self._mw_to_dbm(dom.flags.rxPwrAlarmLow),
             self._mw_to_dbm(dom.flags.rxPwrWarnLow),
             self._mw_to_dbm(dom.flags.rxPwrWarnHigh),
             self._mw_to_dbm(dom.flags.rxPwrAlarmHigh)))
+        print("      {:<14} {:>15} {:>15} {:>15} {:>15}".format(
+            'Rx Power(mW):',
+            dom.flags.rxPwrAlarmLow,
+            dom.flags.rxPwrWarnLow,
+            dom.flags.rxPwrWarnHigh,
+            dom.flags.rxPwrAlarmHigh))
 
         thresh = dom.threshValue
         print("  {:<16}   {:>15} {:>15} {:>15} {:>15}".format(
@@ -294,11 +310,23 @@ class PortStatusDetailCmd(object):
             self._mw_to_dbm(thresh.txPwrWarnHigh),
             self._mw_to_dbm(thresh.txPwrAlarmHigh)))
         print("      {:<14} {:>15.4} {:>15.4} {:>15.4} {:>15.4}".format(
+            'Tx Power(mW):',
+            thresh.txPwrAlarmLow,
+            thresh.txPwrWarnLow,
+            thresh.txPwrWarnHigh,
+            thresh.txPwrAlarmHigh))
+        print("      {:<14} {:>15.4} {:>15.4} {:>15.4} {:>15.4}".format(
             'Rx Power(dBm):',
             self._mw_to_dbm(thresh.rxPwrAlarmLow),
             self._mw_to_dbm(thresh.rxPwrWarnLow),
             self._mw_to_dbm(thresh.rxPwrWarnHigh),
             self._mw_to_dbm(thresh.rxPwrAlarmHigh)))
+        print("      {:<14} {:>15.4} {:>15.4} {:>15.4} {:>15.4}".format(
+            'Rx Power(mW):',
+            thresh.rxPwrAlarmLow,
+            thresh.rxPwrWarnLow,
+            thresh.rxPwrWarnHigh,
+            thresh.rxPwrAlarmHigh))
 
     def _list_ports_detail_sfpdom(self):
         ''' Print ports detail based on Sfp DOM info '''
@@ -407,12 +435,24 @@ class PortStatusDetailCmd(object):
                 self._mw_to_dbm(thresh.txPwr.warn.low),
                 self._mw_to_dbm(thresh.txPwr.warn.high),
                 self._mw_to_dbm(thresh.txPwr.alarm.high)))
+            print("    {:<14} {:>10.4} {:>15.4} {:>15.4} {:>10.4}".format(
+                'Tx Power(mW):',
+                thresh.txPwr.alarm.low,
+                thresh.txPwr.warn.low,
+                thresh.txPwr.warn.high,
+                thresh.txPwr.alarm.high))
         print("    {:<14} {:>10.4} {:>15.4} {:>15.4} {:>10.4}".format(
             'Rx Power(dBm):',
             self._mw_to_dbm(thresh.rxPwr.alarm.low),
             self._mw_to_dbm(thresh.rxPwr.warn.low),
             self._mw_to_dbm(thresh.rxPwr.warn.high),
             self._mw_to_dbm(thresh.rxPwr.alarm.high)))
+        print("    {:<14} {:>10.4} {:>15.4} {:>15.4} {:>10.4}".format(
+            'Rx Power(mW):',
+            thresh.rxPwr.alarm.low,
+            thresh.rxPwr.warn.low,
+            thresh.rxPwr.warn.high,
+            thresh.rxPwr.alarm.high))
 
     def _print_sensor_flags(self, sensor):
         ''' print details about sensor flags '''
@@ -443,8 +483,12 @@ class PortStatusDetailCmd(object):
         if channel.sensors.txPwr:
             print("  {:<15} {:0.4}  ".format("Tx Power(dBm)",
                   self._mw_to_dbm(channel.sensors.txPwr.value)), end="")
+            print("  {:<15} {:0.4}  ".format("Tx Power(mW)",
+                  channel.sensors.txPwr.value), end="")
         print("  {:<15} {:0.4}  ".format("Rx Power(dBm)",
               self._mw_to_dbm(channel.sensors.rxPwr.value)))
+        print("  {:<15} {:0.4}  ".format("Rx Power(mW)",
+              channel.sensors.rxPwr.value))
 
         if not self._verbose:
             return
@@ -466,13 +510,24 @@ class PortStatusDetailCmd(object):
                 self._mw_to_dbm(channel.sensors.txPwr.flags.warn.low),
                 self._mw_to_dbm(channel.sensors.txPwr.flags.warn.high),
                 self._mw_to_dbm(channel.sensors.txPwr.flags.alarm.high)))
-
+            print("    {:<14} {:>10} {:>15} {:>15} {:>10}".format(
+                'Tx Power(mW):',
+                channel.sensors.txPwr.flags.alarm.low,
+                channel.sensors.txPwr.flags.warn.low,
+                channel.sensors.txPwr.flags.warn.high,
+                channel.sensors.txPwr.flags.alarm.high))
         print("    {:<14} {:>10} {:>15} {:>15} {:>10}".format(
             'Rx Power(dBm):',
             self._mw_to_dbm(channel.sensors.rxPwr.flags.alarm.low),
             self._mw_to_dbm(channel.sensors.rxPwr.flags.warn.low),
             self._mw_to_dbm(channel.sensors.rxPwr.flags.warn.high),
             self._mw_to_dbm(channel.sensors.rxPwr.flags.alarm.high)))
+        print("    {:<14} {:>10} {:>15} {:>15} {:>10}".format(
+            'Rx Power(mW):',
+            channel.sensors.rxPwr.flags.alarm.low,
+            channel.sensors.rxPwr.flags.warn.low,
+            channel.sensors.rxPwr.flags.warn.high,
+            channel.sensors.rxPwr.flags.alarm.high))
 
     def _print_transceiver_details(self, tid):  # noqa
         ''' Print details about transceiver '''
