@@ -71,7 +71,7 @@ bool setCdr(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
     return false;
   }
   // If 2nd and 3rd bits are set, CDR is supported
-  if (!(supported[0] & 0xC)) {
+  if (supported[0] & 0xC) {
     fprintf(stderr, "CDR unsupported by this device, doing nothing");
     return false;
   }
@@ -89,9 +89,28 @@ bool setCdr(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
 }
 
 bool rateSelect(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
-  // 0b11 - 25G channels
-  // 0b10 - 10G channels
-  uint8_t buf[1] = {value};
+  // If v1 is used, both at 10, if v2
+  // 0b10 - 25G channels
+  // 0b00 - 10G channels
+  uint8_t version[1];
+  try {
+    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 141,
+                      1, version);
+  } catch (const UsbError& ex) {
+    fprintf(stderr,
+        "Port %d: Unable to determine rate select version in use, defaulting \
+        to V1\n",
+        port);
+    version[0] = 0b01;
+  }
+
+  uint8_t buf[1];
+  if (version[0] & 1) {
+    buf[0] = 0b10;
+  } else {
+    buf[0] = value;
+  }
+
   try {
     bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 87, 1, buf);
     bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 88, 1, buf);
@@ -375,10 +394,10 @@ int main(int argc, char* argv[]) {
       printf("QSFP %d: enabled TX on all channels\n", portNum);
     }
 
-    if (FLAGS_set_40g && rateSelect(bus.get(), portNum, 0xaa)) {
+    if (FLAGS_set_40g && rateSelect(bus.get(), portNum, 0x0)) {
       printf("QSFP %d: set to optimize for 10G channels\n", portNum);
     }
-    if (FLAGS_set_100g && rateSelect(bus.get(), portNum, 0xff)) {
+    if (FLAGS_set_100g && rateSelect(bus.get(), portNum, 0xaa)) {
       printf("QSFP %d: set to optimize for 25G channels\n", portNum);
     }
 
