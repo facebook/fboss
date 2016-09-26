@@ -193,7 +193,9 @@ bool CP2112::resetFromRestEndpoint() {
 void CP2112::resetDevice() {
   bool success = false;
 
-  success = resetFromRestEndpoint();
+   /* TODO: Until we root cause t12163277 for CP2112 alerts, lets
+   disable using rest endpoint to BMC */
+  //success = resetFromRestEndpoint();
   if (!success) {
     resetFromUserver();
   }
