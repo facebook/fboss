@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
+#include "fboss/agent/platforms/wedge/WedgeProductInfo.h"
 
 namespace facebook { namespace fboss {
 
@@ -19,8 +20,9 @@ class WedgeProductInfo;
 
 class Wedge40Platform : public WedgePlatform {
  public:
-  explicit Wedge40Platform(std::unique_ptr<WedgeProductInfo> productInfo) :
-    WedgePlatform(std::move(productInfo)) {}
+  Wedge40Platform(
+      std::unique_ptr<WedgeProductInfo> productInfo,
+      WedgePlatformMode mode);
 
   InitPortMap initPorts() override;
 

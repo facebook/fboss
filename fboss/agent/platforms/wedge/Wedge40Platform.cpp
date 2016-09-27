@@ -10,8 +10,24 @@
 #include "fboss/agent/platforms/wedge/Wedge40Platform.h"
 #include "fboss/agent/platforms/wedge/Wedge40Port.h"
 
+namespace {
+
+constexpr int kWedge40FrontPanelPorts = 16;
+
+}
 
 namespace facebook { namespace fboss {
+
+Wedge40Platform::Wedge40Platform(
+    std::unique_ptr<WedgeProductInfo> productInfo,
+    WedgePlatformMode mode)
+    : WedgePlatform(
+          std::move(productInfo),
+          mode == WedgePlatformMode::FC ? 0 : kWedge40FrontPanelPorts) {
+  CHECK(
+      mode == WedgePlatformMode::FC || mode == WedgePlatformMode::LC ||
+      mode == WedgePlatformMode::WEDGE);
+}
 
 Wedge40Platform::InitPortMap Wedge40Platform::initPorts() {
 
