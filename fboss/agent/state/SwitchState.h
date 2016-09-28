@@ -70,7 +70,7 @@ struct SwitchStateFields {
   // Keep maxNeighborProbes sufficiently large
   // so we don't expire arp/ndp entries during
   // agent restart on our neighbors
-  uint32_t maxNeighborProbes{30};
+  uint32_t maxNeighborProbes{300};
   std::chrono::seconds staleEntryInterval{10};
 };
 

@@ -410,8 +410,18 @@ struct SwitchConfig {
   // Highest priority entry comes with smallest ID.
   15: optional list<AclEntry> acls = []
   // Set max number of probes to a sufficiently high value
-  // to allow for the case where we are probing and the
-  // agent on other end is restarting.
-  16: i32 maxNeighborProbes = 30
+  // to allow for the cases where
+  // a) We are probing and the agent on other end is restarting.
+  // b) The other end is having a hard time and responses to ARP/NDP
+  // packets are delayed. This is more of a protection mechanism. We
+  // saw a case where upstream switches were not able to respond to ARP
+  // in time. The underlying cause was that the upstream switch was getting
+  // flooded with control plane traffic while ARP traffic was set to goto a low
+  // priority queue. This lead to ARP responses to be delayed by upto 50
+  // seconds. We have since fixed the issues, but it was decided to add an extra
+  // safety measure here to avoid catastrophic failure if such a situation
+  // arises again.On vendor devices we set ARP expiry to be as high as 1500
+  // seconds.
+  16: i32 maxNeighborProbes = 300
   17: i32 staleEntryInterval = 10
 }
