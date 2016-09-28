@@ -89,13 +89,14 @@ void TunManager::stateUpdated(const StateDelta& delta) {
   });
 }
 
-bool TunManager::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
-  auto ifID = InterfaceID(pkt->getSrcVlan());
+bool TunManager::sendPacketToHost(
+    InterfaceID dstIfID,
+    std::unique_ptr<RxPacket> pkt) {
   std::lock_guard<std::mutex> lock(mutex_);
-  auto iter = intfs_.find(ifID);
+  auto iter = intfs_.find(dstIfID);
   if (iter == intfs_.end()) {
     // the Interface ID has been deleted, make a log, and skip the pkt
-    VLOG(4) << "Dropping a packet for unknown unknwon " << ifID;
+    VLOG(4) << "Dropping a packet for unknown interface " << dstIfID;
     return false;
   }
   return iter->second->sendPacketToHost(std::move(pkt));

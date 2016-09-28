@@ -494,7 +494,7 @@ class SwSwitch : public HwSwitch::Callback {
    * @return true The packet is sent to host
    *         false The packet is dropped due to errors
    */
-  bool sendPacketToHost(std::unique_ptr<RxPacket> pkt);
+  bool sendPacketToHost(InterfaceID dstIfID, std::unique_ptr<RxPacket> pkt);
 
   /**
    * Get the ArpHandler object.

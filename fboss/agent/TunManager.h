@@ -54,7 +54,7 @@ class TunManager : public StateObserver {
    * @return true The packet is sent to host
    *         false The packet is dropped due to errors
    */
-  bool sendPacketToHost(std::unique_ptr<RxPacket> pkt);
+  bool sendPacketToHost(InterfaceID dstIfID, std::unique_ptr<RxPacket> pkt);
 
   /**
    * Sync the new SwitchState

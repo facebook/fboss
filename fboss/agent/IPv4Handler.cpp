@@ -182,7 +182,7 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
     // i.e. ping, ssh, bgp...
     // FixME: will do another diff to set length in RxPacket, so that it
     // can be reused here.
-    if (sw_->sendPacketToHost(std::move(pkt))) {
+    if (sw_->sendPacketToHost(intf->getID(), std::move(pkt))) {
       stats->port(port)->pktToHost(l3Len);
     } else {
       stats->port(port)->pktDropped();

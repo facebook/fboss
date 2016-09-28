@@ -1191,9 +1191,11 @@ void SwSwitch::sendL3Packet(
   }
 }
 
-bool SwSwitch::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
+bool SwSwitch::sendPacketToHost(
+    InterfaceID dstIfID,
+    std::unique_ptr<RxPacket> pkt) {
   if (tunMgr_) {
-    return tunMgr_->sendPacketToHost(std::move(pkt));
+    return tunMgr_->sendPacketToHost(dstIfID, std::move(pkt));
   } else {
     return false;
   }
