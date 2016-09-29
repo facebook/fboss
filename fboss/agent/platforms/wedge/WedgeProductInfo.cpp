@@ -64,8 +64,8 @@ void WedgeProductInfo::initialize() {
     parse(data);
   } catch (const std::exception& err) {
     LOG(ERROR) << err.what();
-    // if fruid info fails fall back to hostname
-    initFromHostname();
+    // if fruid info fails fall back to fbwhoami
+    initFromFbWhoAmI();
   }
   initMode();
 }
@@ -93,9 +93,13 @@ void WedgeProductInfo::initMode() {
       mode_ = WedgePlatformMode::FC;
     } else if (modelName == "Line-Card") {
       mode_ = WedgePlatformMode::LC;
-    } else if (modelName.find("Wedge100") == 0) {
+    } else if (modelName.find("Wedge100") == 0 ||
+               modelName.find("WEDGE100") == 0) {
+      // Wedge100 comes from fruid.json, WEDGE100 comes from fbwhoami
       mode_ = WedgePlatformMode::WEDGE100;
-    } else if (modelName.find("Wedge") == 0) {
+    } else if (modelName.find("Wedge") == 0 ||
+               modelName.find("WEDGE") == 0) {
+      // Wedge100 comes from fruid.json, WEDGE comes from fbwhoami
       mode_ = WedgePlatformMode::WEDGE;
     } else if (modelName.find("SCM-LC") == 0 || modelName.find("LC") == 0) {
        // TODO remove LC once fruid.json is fixed on Galaxy Linecards
@@ -152,12 +156,7 @@ void WedgeProductInfo::parse(std::string data) {
   productInfo_.fabricLocation = folly::to<std::string>
                                     (info[kFabricLocation].asString());
   // Append L/R to the serial number based on the fabricLocation
-  if (boost::iequals(productInfo_.fabricLocation, kFabricLocationLeft)) {
-    productInfo_.serial = productInfo_.serial + "L";
-  } else if (boost::iequals(productInfo_.fabricLocation,
-        kFabricLocationRight)) {
-    productInfo_.serial = productInfo_.serial + "R";
-  }
+  updateSerial();
   productInfo_.version = info[kVersion].asInt();
   productInfo_.subVersion = info[kSubVersion].asInt();
   productInfo_.productionState = info[kProductionState].asInt();
@@ -167,6 +166,15 @@ void WedgeProductInfo::parse(std::string data) {
   auto macBase = MacAddress(info[kExtMacBase].asString()).u64HBO() + 1;
   productInfo_.macRangeStart = MacAddress::fromHBO(macBase).toString();
   productInfo_.macRangeSize = info[kExtMacSize].asInt() - 1;
+}
+
+void WedgeProductInfo::updateSerial() {
+  if (boost::iequals(productInfo_.fabricLocation, kFabricLocationLeft)) {
+    productInfo_.serial += "L";
+  } else if (boost::iequals(productInfo_.fabricLocation,
+    kFabricLocationRight)) {
+    productInfo_.serial += "R";
+  }
 }
 
 }} // facebook::fboss

@@ -11,7 +11,7 @@
 
 namespace facebook { namespace fboss {
 
-void WedgeProductInfo::initFromHostname() {
+void WedgeProductInfo::initFromFbWhoAmI() {
 }
 
 }} // facebook::fboss

@@ -38,9 +38,11 @@ class WedgeProductInfo {
   WedgeProductInfo(WedgeProductInfo const &) = delete;
   WedgeProductInfo& operator=(WedgeProductInfo const &) = delete;
 
-  void initFromHostname();
+  void initFromFbWhoAmI();
   void initMode();
   void parse(std::string data);
+  // update product serial number based on fabricLocation
+  void updateSerial();
   ProductInfo productInfo_;
   folly::StringPiece path_;
   WedgePlatformMode mode_;
