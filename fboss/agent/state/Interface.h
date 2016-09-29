@@ -26,15 +26,21 @@ class SwitchState;
 struct InterfaceFields {
   typedef boost::container::flat_map<folly::IPAddress, uint8_t> Addresses;
 
-  InterfaceFields(InterfaceID id, RouterID router, VlanID vlan,
-                  folly::StringPiece name, folly::MacAddress mac,
-                  int mtu)
-    : id(id),
-      routerID(router),
-      vlanID(vlan),
-      name(name.data(), name.size()),
-      mac(mac),
-      mtu(mtu) {}
+  InterfaceFields(
+      InterfaceID id,
+      RouterID router,
+      VlanID vlan,
+      folly::StringPiece name,
+      folly::MacAddress mac,
+      int mtu,
+      bool isVirtual)
+      : id(id),
+        routerID(router),
+        vlanID(vlan),
+        name(name.data(), name.size()),
+        mac(mac),
+        mtu(mtu),
+        isVirtual(isVirtual) {}
 
   /*
    * Deserialize from a folly::dynamic object
@@ -56,6 +62,7 @@ struct InterfaceFields {
   Addresses addrs;
   cfg::NdpConfig ndp;
   int mtu;
+  bool isVirtual{false};
 };
 
 /*
@@ -65,10 +72,15 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
  public:
   typedef InterfaceFields::Addresses Addresses;
 
-  Interface(InterfaceID id, RouterID router, VlanID vlan,
-            folly::StringPiece name, folly::MacAddress mac,
-            int mtu)
-    : NodeBaseT(id, router, vlan, name, mac, mtu) {}
+  Interface(
+      InterfaceID id,
+      RouterID router,
+      VlanID vlan,
+      folly::StringPiece name,
+      folly::MacAddress mac,
+      int mtu,
+      bool isVirtual)
+      : NodeBaseT(id, router, vlan, name, mac, mtu, isVirtual) {}
 
   static std::shared_ptr<Interface>
   fromFollyDynamic(const folly::dynamic& json) {
@@ -122,6 +134,13 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
   }
   void setMac(folly::MacAddress mac) {
     writableFields()->mac = mac;
+  }
+
+  bool isVirtual() const {
+    return getFields()->isVirtual;
+  }
+  void setIsVirtual(bool isVirtual) {
+    writableFields()->isVirtual = isVirtual;
   }
 
   const Addresses& getAddresses() const {

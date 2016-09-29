@@ -92,7 +92,8 @@ shared_ptr<InterfaceMap> BcmWarmBootCache::reconstructInterfaceMap() const {
                                                VlanID(bcmIntf.l3a_vid),
                                                dumpedInterfaceName,
                                                vlanMacAndIntf.first.second,
-                                               bcmIntf.l3a_mtu);
+                                               bcmIntf.l3a_mtu,
+                                               false /* is virtual intf */);
     newInterface->setAddresses(dumpedInterface->getAddresses());
     intfMap->addInterface(newInterface);
   }

@@ -834,7 +834,8 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
                                      VlanID(config->vlanID),
                                      name,
                                      mac,
-                                     mtu);
+                                     mtu,
+                                     config->isVirtual);
   intf->setAddresses(addrs);
   if (config->__isset.ndp) {
     intf->setNdpConfig(config->ndp);
@@ -861,7 +862,8 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
       orig->getMac() == mac &&
       orig->getAddresses() == addrs &&
       orig->getNdpConfig() == ndp &&
-      orig->getMtu() == mtu) {
+      orig->getMtu() == mtu &&
+      orig->isVirtual() == config->isVirtual) {
     // No change
     return nullptr;
   }
@@ -874,6 +876,7 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   newIntf->setAddresses(addrs);
   newIntf->setNdpConfig(ndp);
   newIntf->setMtu(mtu);
+  newIntf->setIsVirtual(config->isVirtual);
   return newIntf;
 }
 

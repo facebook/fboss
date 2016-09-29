@@ -27,6 +27,7 @@ extern "C" {
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 #include <folly/Demangle.h>
+#include <folly/MapUtil.h>
 #include <folly/io/async/EventBase.h>
 
 #include <boost/container/flat_set.hpp>
@@ -248,11 +249,14 @@ int TunManager::getTableId(InterfaceID ifID) const {
   // Hacky. Need better solution but works for now. Our InterfaceID are
   // Type-1: 2000, 2001, 2002, 2003 ...
   // Type-2: 4000, 4001, 4002, 4003, 4004, ...
+  // Type-3: 10, 11, 12, 13 (Virtual Interfaces)
   int tableId = static_cast<int>(ifID);
   if (ifID >= InterfaceID(4000)) {   // 4000, 4001, 4002, 4003 ...
-    tableId = ifID - 4000 + 201;  // 201, 202, 203, ... [201-253]
-  } else {  // 2000, 2001, ...
-    tableId = ifID - 2000 + 1;    // 1, 2, 3, .... [1-200]
+    tableId = ifID - 4000 + 201;  // 201, 202, 203, ...
+  } else if (ifID >= InterfaceID(2000)) {  // 2000, 2001, ...
+    tableId = ifID - 2000 + 1;    // 1, 2, 3, ....
+  } else {  // 10, 11, 12, 13 ...
+    tableId = 250 - (ifID - 10);  // 250, 249, 248, ...
   }
 
   // Sanity checks. Generated ID must be in range [1-253]
@@ -561,7 +565,14 @@ boost::container::flat_map<InterfaceID, bool>
 TunManager::getInterfaceStatus(std::shared_ptr<SwitchState> state) {
   boost::container::flat_map<InterfaceID, bool> statusMap;
 
-  // Derive all ports
+  // Declare all virtual interfaces as up
+  for (const auto& intfIDToObj : state->getInterfaces()->getAllNodes()) {
+    if (intfIDToObj.second->isVirtual()) {
+      statusMap.emplace(intfIDToObj.first, true);
+    }
+  }
+
+  // Derive interface status from all ports
   auto portMap = state->getPorts();
   auto vlanMap = state->getVlans();
   for (const auto& portIDToObj : portMap->getAllNodes()) {
@@ -597,7 +608,14 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
   auto intfMap = state->getInterfaces();
   for (const auto& intf : intfMap->getAllNodes()) {
     const auto& addrs = intf.second->getAddresses();
-    newIntfToInfo[intf.first] = {intfStatusMap[intf.first], addrs};
+
+    // Ideally all interfaces should be present in intfStatusMap as either
+    // interface will be virtual or will have atleast one port. Keeping default
+    // status of interface to be DOWN incase if interface is not virtual and is
+    // not assocaited with any physical port
+    const auto status = folly::get_default(intfStatusMap, intf.first, false);
+
+    newIntfToInfo[intf.first] = {status, addrs};
   }
 
   // Hold mutex while changing interfaces

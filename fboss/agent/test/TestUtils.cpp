@@ -172,9 +172,14 @@ shared_ptr<SwitchState> testStateA() {
     vlan55->addPort(PortID(idx), false);
   }
   // Add Interface 1 to VLAN 1
-  auto intf1 = make_shared<Interface>
-    (InterfaceID(1), RouterID(0), VlanID(1),
-     "interface1", MacAddress("00:02:00:00:00:01"), 9000);
+  auto intf1 = make_shared<Interface>(
+      InterfaceID(1),
+      RouterID(0),
+      VlanID(1),
+      "interface1",
+      MacAddress("00:02:00:00:00:01"),
+      9000,
+      false /* is virtual */);
   Interface::Addresses addrs1;
   addrs1.emplace(IPAddress("10.0.0.1"), 24);
   addrs1.emplace(IPAddress("192.168.0.1"), 24);
@@ -184,9 +189,14 @@ shared_ptr<SwitchState> testStateA() {
   vlan1->setInterfaceID(InterfaceID(1));
 
   // Add Interface 55 to VLAN 55
-  auto intf55 = make_shared<Interface>
-    (InterfaceID(55), RouterID(0), VlanID(55),
-     "interface55", MacAddress("00:02:00:00:00:55"), 9000);
+  auto intf55 = make_shared<Interface>(
+      InterfaceID(55),
+      RouterID(0),
+      VlanID(55),
+      "interface55",
+      MacAddress("00:02:00:00:00:55"),
+      9000,
+      false /* is virtual */);
   Interface::Addresses addrs55;
   addrs55.emplace(IPAddress("10.0.55.1"), 24);
   addrs55.emplace(IPAddress("192.168.55.1"), 24);
@@ -225,9 +235,14 @@ shared_ptr<SwitchState> testStateB() {
   }
 
   // Add Interface 1 to VLAN 1
-  auto intf1 = make_shared<Interface>
-    (InterfaceID(1), RouterID(0), VlanID(1),
-     "interface1", MacAddress("00:02:00:00:00:01"), 9000);
+  auto intf1 = make_shared<Interface>(
+      InterfaceID(1),
+      RouterID(0),
+      VlanID(1),
+      "interface1",
+      MacAddress("00:02:00:00:00:01"),
+      9000,
+      false /* is virtual */);
   Interface::Addresses addrs1;
   addrs1.emplace(IPAddress("10.0.0.1"), 24);
   addrs1.emplace(IPAddress("192.168.0.1"), 24);
