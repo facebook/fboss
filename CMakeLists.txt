@@ -55,6 +55,7 @@ find_library(THRIFTPROTO thriftprotocol PATHS ${CMAKE_SOURCE_DIR}/external/fbthr
 find_library(THRIFTCPP2 thriftcpp2 PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs)
 find_library(OPENNSL opennsl PATHS ${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge-trident)
 find_library(IPROUTE2 netlink PATHS ${CMAKE_SOURCE_DIR}/external/iproute2/lib)
+find_library(ZSTD zstd PATHS ${CMAKE_SOURCE_DIR}/external/zstd/lib)
 
 include_directories(${CMAKE_SOURCE_DIR}/external/OpenNSL/include)
 include_directories(${CMAKE_SOURCE_DIR}/external/iproute2/include)
@@ -89,6 +90,7 @@ add_library(fboss_agent STATIC
     fboss/agent/DHCPv6Handler.cpp
     fboss/agent/HighresCounterSubscriptionHandler.cpp
     fboss/agent/HighresCounterUtil.cpp
+    fboss/agent/hw/bcm/BcmAclTable.cpp
     fboss/agent/hw/bcm/BcmAPI.cpp
     fboss/agent/hw/bcm/BcmEgress.cpp
     fboss/agent/hw/bcm/BcmHost.cpp
@@ -108,6 +110,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmWarmBootCache.cpp
     fboss/agent/hw/bcm/BcmWarmBootHelper.cpp
     fboss/agent/hw/bcm/PortAndEgressIdsMap.cpp
+    fboss/agent/hw/bcm/oss/BcmAclEntry.cpp
     fboss/agent/hw/bcm/oss/BcmAPI.cpp
     fboss/agent/hw/bcm/oss/BcmEgress.cpp
     fboss/agent/hw/bcm/oss/BcmHost.cpp
@@ -158,6 +161,8 @@ add_library(fboss_agent STATIC
     fboss/agent/packet/NDPRouterAdvertisement.cpp
     fboss/agent/packet/PktUtil.cpp
     fboss/agent/Platform.cpp
+    fboss/agent/platforms/wedge/oss/GalaxyPlatform.cpp
+    fboss/agent/platforms/wedge/oss/GalaxyPort.cpp
     fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
     fboss/agent/platforms/wedge/oss/Wedge40Platform.cpp
     fboss/agent/platforms/wedge/oss/Wedge100Platform.cpp
@@ -165,6 +170,7 @@ add_library(fboss_agent STATIC
     fboss/agent/platforms/wedge/oss/Wedge40Port.cpp
     fboss/agent/platforms/wedge/oss/Wedge100Port.cpp
     fboss/agent/platforms/wedge/oss/WedgeProductInfo.cpp
+    fboss/agent/platforms/wedge/GalaxyPlatform.cpp
     fboss/agent/platforms/wedge/wedge_ctrl.cpp
     fboss/agent/platforms/wedge/WedgeI2CBusLock.cpp
     fboss/agent/platforms/wedge/WedgePlatform.cpp
@@ -211,6 +217,7 @@ add_library(fboss_agent STATIC
     fboss/agent/SwitchStats.cpp
     fboss/agent/SwSwitch.cpp
     fboss/agent/ThriftHandler.cpp
+    fboss/agent/ThreadHeartbeat.cpp
     fboss/agent/TransceiverMap.cpp
     fboss/agent/TunIntf.cpp
     fboss/agent/TunManager.cpp
@@ -218,10 +225,12 @@ add_library(fboss_agent STATIC
     fboss/agent/UnresolvedNhopsProber.cpp
     fboss/agent/Utils.cpp
 
+    fboss/lib/usb/GalaxyI2CBus.cpp
     fboss/lib/usb/BaseWedgeI2CBus.cpp
     fboss/lib/usb/BaseWedgeI2CBus.h
     fboss/lib/usb/CP2112.cpp
     fboss/lib/usb/CP2112.h
+    fboss/lib/usb/PCA9548MultiplexedBus.cpp
     fboss/lib/usb/TARGETS
     fboss/lib/usb/TransceiverI2CApi.h
     fboss/lib/usb/UsbDevice.cpp
@@ -288,6 +297,7 @@ target_link_libraries(fboss_agent
     ${NETLINKROUTE3}
     ${CURL}
     ${NUMA}
+    ${ZSTD}
 )
 
 find_program(THRIFT1 thrift1)
