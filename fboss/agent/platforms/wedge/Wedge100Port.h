@@ -49,6 +49,9 @@ class Wedge100Port : public WedgePort {
   void remedy() override;
   void prepareForGracefulExit() override;
   void linkStatusChanged(bool up, bool adminUp) override;
+  bool shouldDisableFEC() const override {
+    return false;
+  }
 
  private:
   bool isTop() {

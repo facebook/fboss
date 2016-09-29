@@ -119,6 +119,17 @@ class PlatformPort {
    */
   virtual void prepareForGracefulExit() = 0;
 
+  /*
+   * There are situations (e.g. backplane ports on some platforms)
+   * where we don't need to enable FEC for ports even on 100G speeds.
+   * Not enabling FEC on these means that we don't incur the (very)
+   * minor latency (100ns) that enabling FEC entails.
+   * So, provide derived class platform ports a hook to override
+   * decision to enable FEC.
+   *
+   */
+  virtual bool shouldDisableFEC() const = 0;
+
  private:
   // Forbidden copy constructor and assignment operator
   PlatformPort(PlatformPort const &) = delete;

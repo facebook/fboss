@@ -24,6 +24,9 @@ class Wedge40Port : public WedgePort {
   void remedy() override;
   void prepareForGracefulExit() override;
   void linkStatusChanged(bool up, bool adminUp) override;
+  bool shouldDisableFEC() const override {
+    return false;
+  }
 };
 
 }} // facebook::fboss

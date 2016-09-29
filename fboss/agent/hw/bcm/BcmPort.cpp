@@ -372,6 +372,8 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
                     ", on port ",
                     swPort->getID());
     }
+    // Update FEC settings if needed for new speed
+    setFEC(swPort);
     getPlatformPort()->linkSpeedChanged(desiredPortSpeed);
   }
 }
