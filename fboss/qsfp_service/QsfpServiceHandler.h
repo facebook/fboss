@@ -1,15 +1,19 @@
 #pragma once
 
-#include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
+#include <folly/futures/Future.h>
 
 #include "common/fb303/cpp/FacebookBase2.h"
+
+#include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
+#include "fboss/qsfp_service/TransceiverManager.h"
 
 namespace facebook { namespace fboss {
 class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
                    public facebook::fb303::FacebookBase2 {
  public:
-  QsfpServiceHandler();
+  explicit QsfpServiceHandler(std::unique_ptr<TransceiverManager> manager);
   ~QsfpServiceHandler(){}
+  void init();
   facebook::fb303::cpp2::fb_status getStatus() override;
   TransceiverType type(int16_t idx) override;
   /*
@@ -33,5 +37,6 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
   // Forbidden copy constructor and assignment operator
   QsfpServiceHandler(QsfpServiceHandler const &) = delete;
   QsfpServiceHandler& operator=(QsfpServiceHandler const &) = delete;
+  std::unique_ptr<TransceiverManager> manager_;
 };
 }} // facebook::fboss

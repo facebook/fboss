@@ -9,11 +9,10 @@
  */
 
 #include <folly/Memory.h>
-#include "fboss/agent/TransceiverImpl.h"
-#include "fboss/agent/QsfpModule.h"
-#include "fboss/agent/SffFieldInfo.h"
-#include "fboss/agent/test/TestUtils.h"
-#include "fboss/agent/gen-cpp/switch_config_types.h"
+#include "fboss/qsfp_service/sff/TransceiverImpl.h"
+#include "fboss/qsfp_service/sff/QsfpModule.h"
+#include "fboss/qsfp_service/sff/SffFieldInfo.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/optic_types.h"
 
 #include <gtest/gtest.h>
@@ -33,21 +32,21 @@ class MockQsfpModule : public QsfpModule {
   MOCK_METHOD2(getSettingsValue, uint8_t(SffField, uint8_t));
   MOCK_METHOD0(refreshCacheIfPossibleLocked, void());
 
-  MOCK_METHOD3(setCdrIfSupported, void(cfg::PortSpeed, FeatureState,
+  MOCK_METHOD3(setCdrIfSupported, void(cfg::cpp2::PortSpeed, FeatureState,
         FeatureState));
-  MOCK_METHOD3(setRateSelectIfSupported, void(cfg::PortSpeed, RateSelectState,
-        RateSelectSetting));
+  MOCK_METHOD3(setRateSelectIfSupported, void(cfg::cpp2::PortSpeed,
+        RateSelectState, RateSelectSetting));
   // Provide way to call parent
-  void actualSetCdrIfSupported(cfg::PortSpeed speed, FeatureState tx,
+  void actualSetCdrIfSupported(cfg::cpp2::PortSpeed speed, FeatureState tx,
       FeatureState rx) {
     QsfpModule::setCdrIfSupported(speed, tx, rx);
   }
-  void actualSetRateSelectIfSupported(cfg::PortSpeed speed,
+  void actualSetRateSelectIfSupported(cfg::cpp2::PortSpeed speed,
       RateSelectState currentState, RateSelectSetting currentSetting) {
     QsfpModule::setRateSelectIfSupported(speed, currentState, currentSetting);
   }
 
-  void customizeTransceiver(cfg::PortSpeed speed) {
+  void customizeTransceiver(cfg::cpp2::PortSpeed speed) {
     dirty_ = false;
     present_ = true;
     QsfpModule::customizeTransceiver(speed);
@@ -119,30 +118,30 @@ TEST_F(QsfpModuleTest, setRateSelect) {
     InSequence a;
     // Unsupported
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(0);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
+    qsfp_->customizeTransceiver(cfg::cpp2::PortSpeed::FORTYG);
+    qsfp_->customizeTransceiver(cfg::cpp2::PortSpeed::HUNDREDG);
 
     // Using V1
     qsfp_->setRateSelect(RateSelectState::EXTENDED_RATE_SELECT_V1,
         RateSelectSetting::FROM_6_6GB_AND_ABOVE);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
+    qsfp_->customizeTransceiver(cfg::cpp2::PortSpeed::FORTYG);
 
     qsfp_->setRateSelect(RateSelectState::EXTENDED_RATE_SELECT_V2,
         RateSelectSetting::LESS_THAN_12GB);
     // 40G + LESS_THAN_12GB -> no change
-    qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
+    qsfp_->customizeTransceiver(cfg::cpp2::PortSpeed::FORTYG);
     // 100G + LESS_THAN_12GB -> needs change
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(2);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
+    qsfp_->customizeTransceiver(cfg::cpp2::PortSpeed::HUNDREDG);
 
     qsfp_->setRateSelect(RateSelectState::EXTENDED_RATE_SELECT_V2,
         RateSelectSetting::FROM_24GB_to_26GB);
     // 40G + FROM_24GB_to_26GB -> needs change
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(2);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
+    qsfp_->customizeTransceiver(cfg::cpp2::PortSpeed::FORTYG);
     // 100G + FROM_24GB_to_26GB -> no change
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(0);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
+    qsfp_->customizeTransceiver(cfg::cpp2::PortSpeed::HUNDREDG);
   }
 }
 
@@ -178,32 +177,32 @@ TEST_F(QsfpModuleTest, setCdr) {
     InSequence a;
     // Unsupported
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(0);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
+    qsfp_->customizeTransceiver(cfg::cpp2::PortSpeed::FORTYG);
+    qsfp_->customizeTransceiver(cfg::cpp2::PortSpeed::HUNDREDG);
 
     qsfp_->setCdrState(FeatureState::DISABLED, FeatureState::DISABLED);
     // Disabled + 40G
-    qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
+    qsfp_->customizeTransceiver(cfg::cpp2::PortSpeed::FORTYG);
     // Disabled + 100G
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(1);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
+    qsfp_->customizeTransceiver(cfg::cpp2::PortSpeed::HUNDREDG);
 
     qsfp_->setCdrState(FeatureState::ENABLED, FeatureState::ENABLED);
     // Enabled + 40G
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(1);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
+    qsfp_->customizeTransceiver(cfg::cpp2::PortSpeed::FORTYG);
     // Enabled + 100G
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(0);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
+    qsfp_->customizeTransceiver(cfg::cpp2::PortSpeed::HUNDREDG);
 
     // One of rx an tx enabled with the other disabled
     qsfp_->setCdrState(FeatureState::DISABLED, FeatureState::ENABLED);
     // 40G
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(1);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
+    qsfp_->customizeTransceiver(cfg::cpp2::PortSpeed::FORTYG);
     // 100G
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(1);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
+    qsfp_->customizeTransceiver(cfg::cpp2::PortSpeed::HUNDREDG);
   }
 }
 

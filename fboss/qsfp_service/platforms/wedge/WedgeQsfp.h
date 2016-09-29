@@ -10,7 +10,7 @@
 #pragma once
 
 #include <cstdint>
-#include "fboss/qsfp_service/sfp/TransceiverImpl.h"
+#include "fboss/qsfp_service/sff/TransceiverImpl.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
 namespace facebook { namespace fboss {

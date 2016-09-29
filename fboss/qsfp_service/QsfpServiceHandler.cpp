@@ -2,8 +2,14 @@
 
 namespace facebook { namespace fboss {
 
-QsfpServiceHandler::QsfpServiceHandler() :
-    FacebookBase2("QsfpService") {
+QsfpServiceHandler::QsfpServiceHandler(
+    std::unique_ptr<TransceiverManager> manager) :
+    FacebookBase2("QsfpService"),
+    manager_(std::move(manager)) {
+}
+
+void QsfpServiceHandler::init() {
+  manager_->initTransceiverMap();
 }
 
 facebook::fb303::cpp2::fb_status QsfpServiceHandler::getStatus() {

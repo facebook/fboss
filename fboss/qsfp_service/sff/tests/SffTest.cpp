@@ -13,9 +13,8 @@
 #include <folly/Memory.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
-#include "fboss/agent/TransceiverImpl.h"
-#include "fboss/agent/QsfpModule.h"
-#include "fboss/agent/test/TestUtils.h"
+#include "fboss/qsfp_service/sff/TransceiverImpl.h"
+#include "fboss/qsfp_service/sff/QsfpModule.h"
 
 #include <gtest/gtest.h>
 

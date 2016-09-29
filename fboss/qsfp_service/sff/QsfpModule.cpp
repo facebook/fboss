@@ -14,7 +14,7 @@
 #include <limits>
 #include <iomanip>
 #include "fboss/agent/FbossError.h"
-#include "fboss/qsfp_service/TransceiverImpl.h"
+#include "fboss/qsfp_service/sff/TransceiverImpl.h"
 #include "fboss/qsfp_service/sff/SffFieldInfo.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 
@@ -773,7 +773,7 @@ void QsfpModule::setRateSelectIfSupported(cfg::cpp2::PortSpeed speed,
   } else {
     LOG(ERROR) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
       " Unable to set rate select for port speed: " <<
-      cfg::_PortSpeed_VALUES_TO_NAMES.find(speed)->second;
+      cfg::cpp2::_PortSpeed_VALUES_TO_NAMES.find(speed)->second;
     return;
   }
 

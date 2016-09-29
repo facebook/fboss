@@ -10,8 +10,8 @@
 #pragma once
 #include <cstdint>
 #include <mutex>
-#include "fboss/qsfp_service/Transceiver.h"
-#include "fboss/agent/gen-cpp/switch_config_types.h"
+#include "fboss/qsfp_service/sff/Transceiver.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/optic_types.h"
 
 namespace facebook { namespace fboss {
