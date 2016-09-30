@@ -19,7 +19,8 @@ using folly::make_unique;
 using std::unique_ptr;
 using std::make_unique;
 
-DEFINE_string(fruid_filepath, "/dev/shm/fboss/fruid.json",
+DEFINE_string(fruid_filepath,
+              "/var/facebook/fboss/fruid.json",
               "File for storing the fruid data");
 
 namespace facebook { namespace fboss {
