@@ -33,10 +33,12 @@ static SffFieldInfo::SffFieldMap qsfpFields = {
   {SffField::VCC_ALARMS, {QsfpPages::LOWER, 7, 1} },
   {SffField::CHANNEL_RX_PWR_ALARMS, {QsfpPages::LOWER, 9, 2} },
   {SffField::CHANNEL_TX_BIAS_ALARMS, {QsfpPages::LOWER, 11, 2} },
+  {SffField::CHANNEL_TX_PWR_ALARMS, {QsfpPages::LOWER, 13, 2} },
   {SffField::TEMPERATURE, {QsfpPages::LOWER, 22, 2} },
   {SffField::VCC, {QsfpPages::LOWER, 26, 2} },
   {SffField::CHANNEL_RX_PWR, {QsfpPages::LOWER, 34, 8} },
   {SffField::CHANNEL_TX_BIAS, {QsfpPages::LOWER, 42, 8} },
+  {SffField::CHANNEL_TX_PWR, {QsfpPages::LOWER, 50, 8} },
   {SffField::RATE_SELECT_RX, {QsfpPages::LOWER, 87, 1} },
   {SffField::RATE_SELECT_TX, {QsfpPages::LOWER, 88, 1} },
   {SffField::POWER_CONTROL, {QsfpPages::LOWER, 93, 1} },
@@ -343,6 +345,17 @@ bool QsfpModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
     channels[channel].sensors.txBias.__isset.flags = true;
   }
 
+  getQsfpFieldAddress(SffField::CHANNEL_TX_PWR_ALARMS, dataAddress,
+                      offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+
+  for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
+    channels[channel].sensors.txPwr.flags =
+      getQsfpFlags(data + byteOffset[channel], bitOffset[channel]);
+    channels[channel].sensors.txPwr.__isset.flags = true;
+  }
+
+
   getQsfpFieldAddress(SffField::CHANNEL_RX_PWR, dataAddress,
                       offset, length);
   data = getQsfpValuePtr(dataAddress, offset, length);
@@ -365,7 +378,19 @@ bool QsfpModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
     length--;
   }
   CHECK_GE(length, 0);
-  // QSFP doesn't report Tx power, so we can't try to report that.
+
+  getQsfpFieldAddress(SffField::CHANNEL_TX_PWR, dataAddress,
+                      offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+
+  for (auto& channel : channels) {
+    uint16_t value = data[0] << 8 | data[1];
+    channel.sensors.txPwr.value = SffFieldInfo::getPwr(value);
+    data += 2;
+    length--;
+  }
+  CHECK_GE(length, 0);
+
   return true;
 }
 

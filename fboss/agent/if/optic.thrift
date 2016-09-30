@@ -92,7 +92,7 @@ struct AlarmThreshold {
   2: ThresholdLevels vcc,
   3: ThresholdLevels rxPwr,
   4: ThresholdLevels txBias,
-  5: optional ThresholdLevels txPwr,
+  5: ThresholdLevels txPwr,
 }
 
 struct Flags {
@@ -118,7 +118,7 @@ struct GlobalSensors {
 struct ChannelSensors {
   1: Sensor rxPwr,
   2: Sensor txBias,
-  3: optional Sensor txPwr,
+  3: Sensor txPwr,
 }
 
 enum TransmitterTechnology {
