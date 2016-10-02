@@ -134,19 +134,9 @@ void CP2112::open(bool setSmbusConfig) {
     close();
   };
 
-  try {
-    openDevice();
-    // Call getVersion() to make sure the device is really working.
-    // Immediately after the reset starts we can still open the device
-    // but getVersion() and all other calls will fail.
-    getVersion();
-    // If we are still here the device has reset and is working properly.
-    // Initialize our settings as desired.
-    if (setSmbusConfig) {
-      initSettings();
-    }
-  } catch (const LibusbError& ex) {
-    resetDevice();
+  openDevice();
+  if (setSmbusConfig) {
+    initSettings();
   }
   // Just in case the device had a transfer in progress or anything
   // when we attached to it, call flushTransfers to cancel any outstanding
