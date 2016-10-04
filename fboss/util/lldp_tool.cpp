@@ -253,6 +253,7 @@ class BcmProcessor {
 
   static opennsl_rx_t lldpPktHandler(int unit, opennsl_pkt_t* nslPkt,
                                      void* cookie);
+  void setFEC(opennsl_port_t port, bool disableFEC);
 
   cfg::LldpConfig lldpConfig_;
   int unit_{-1};
@@ -337,33 +338,59 @@ void BcmProcessor::configurePort(opennsl_port_t port, opennsl_vlan_t vlan) {
   rv = opennsl_stg_stp_set(unit_, stg, port, OPENNSL_STG_STP_FORWARD);
   bcmCheckError(rv, "failed to set spanning tree state on port ", port);
 
+  // We enable FEC for all 100G ports unless told otherwise by config
+  bool disableFEC = false;
   const auto itr = lldpConfig_.portConfigMap.find(port);
   if (itr != lldpConfig_.portConfigMap.end()) {
     opennsl_port_if_t currentPortInterface;
     rv = opennsl_port_interface_get(unit_, port, &currentPortInterface);
     bcmCheckError(rv, "failed to get interface for port ", port);
-    if (itr->second.portMode == cfg::PortMode::KR4) {
-      // For now, we only make sure that the KR4 mode is working
-      opennsl_port_if_t desiredMode = OPENNSL_PORT_IF_KR4;
+    opennsl_port_if_t desiredMode = OPENNSL_PORT_IF_NULL;
+    switch (itr->second.portMode) {
+      case  cfg::PortMode::CR4:
+        desiredMode = OPENNSL_PORT_IF_CR4;
+        break;
+      case  cfg::PortMode::CAUI:
+        desiredMode = OPENNSL_PORT_IF_CAUI;
+        break;
+      case cfg::PortMode::DEFAULT:
+        LOG(INFO) << "Using default port mode " << currentPortInterface
+                  << " for port " << port;
+        break;
+    }
+    if (desiredMode != OPENNSL_PORT_IF_NULL) {
       rv = opennsl_port_interface_set(unit_, port, desiredMode);
+      bcmCheckError(rv, "failed to set desired mode for port: ", port);
+    }
 
-      bcm_port_ability_t bpa;
-      bpa.speed_full_duplex = BCM_PORT_ABILITY_40GB;
-      rv = bcm_port_ability_advert_set(unit_, port, &bpa);
-      bcmCheckError(rv, "failed to set ability advert for port: ", port);
-      rv = bcm_port_autoneg_set(unit_, port, true);
-      bcmCheckError(rv, "failed to set autonegotiation mode for port: ", port);
-    } else {
-      LOG(INFO) << "port interface " << (int)itr->second.portMode
-                << " for port " << port
-                << " is not supported. using default interface "
-                << currentPortInterface << ".";
+    if (itr->second.__isset.portSpeedMbps) {
+      auto desiredSpeed = static_cast<int>(itr->second.portSpeedMbps);
+      rv = opennsl_port_speed_set(unit_, port, desiredSpeed);
+      bcmCheckError(rv, "failed to set desired speed for port: ", port);
+    }
+    if (itr->second.__isset.disableFEC) {
+      disableFEC = itr->second.disableFEC;
     }
   }
   // Enable the port
   int enable = 1;
   rv = opennsl_port_enable_set(unit_, port, enable);
   bcmCheckError(rv, "failed to enable port ", port);
+  setFEC(port, disableFEC);
+
+}
+
+void BcmProcessor::setFEC(opennsl_port_t port, bool disableFEC) {
+  int curSpeed{0};
+  auto rv = opennsl_port_speed_get(unit_, port, &curSpeed);
+  bcmCheckError(rv, "Failed to get current speed for port ", port);
+  // Bcm takes port speeds in mb/s
+  constexpr int HUNDREDG = 100000;
+  auto desiredFEC =
+      ((curSpeed == HUNDREDG && !disableFEC) ? BCM_PORT_PHY_CONTROL_FEC_ON
+                                            : BCM_PORT_PHY_CONTROL_FEC_OFF);
+  bcm_port_phy_control_set(
+      unit_, port, BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION, desiredFEC);
 }
 
 opennsl_rx_t BcmProcessor::lldpPktHandler(int unit, opennsl_pkt_t* nslPkt,
