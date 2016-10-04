@@ -177,6 +177,7 @@ class Initializer {
     fs_->addFunction(flushWarmbootFunc, seconds(1), flushWarmboot,
         seconds(FLAGS_flush_warmboot_cache_secs)/*initial delay*/);
 
+    // TODO(ninasc): Remove when qsfp service is live
     // Transceiver Module Detection Thread
     const string sfpDetect = "DetectTransceiver";
     auto sfpDetectFunc = [=]() {
@@ -184,6 +185,7 @@ class Initializer {
     };
     fs_->addFunction(sfpDetectFunc, seconds(1), sfpDetect);
 
+    // TODO(ninasc): Remove when qsfp service is live
     // Transceiver Module Detection Thread
     const string sfpDomCacheUpdate = "CacheUpdateTransceiver";
     auto sfpDomCacheUpdateFunc = [=]() {

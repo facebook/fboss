@@ -1,5 +1,7 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
+#include <folly/gen/Base.h>
+
 #include "fboss/lib/usb/UsbError.h"
 #include "fboss/qsfp_service/sff/QsfpModule.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
@@ -28,6 +30,20 @@ void WedgeManager::initTransceiverMap(){
       folly::make_unique<QsfpModule>(std::move(qsfpImpl));
     transceivers_.emplace(TransceiverID(idx), move(qsfp));
     LOG(INFO) << "making QSFP for " << idx;
+  }
+}
+
+void WedgeManager::getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
+    std::unique_ptr<std::vector<int32_t>> ids) {
+  if (ids->empty()) {
+    folly::gen::range(0, getNumQsfpModules()) |
+      folly::gen::appendTo(*ids);
+  }
+
+  for (const auto& i : *ids) {
+    TransceiverInfo transInfo;
+    transceivers_[TransceiverID(i)]->getTransceiverInfo(transInfo);
+    info[i] = transInfo;
   }
 }
 

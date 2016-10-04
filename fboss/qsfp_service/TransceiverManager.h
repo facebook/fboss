@@ -11,6 +11,8 @@ class TransceiverManager {
   TransceiverManager() {};
   virtual ~TransceiverManager() {};
   virtual void initTransceiverMap() = 0;
+  virtual void getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
+    std::unique_ptr<std::vector<int32_t>> ids) = 0;
  private:
   // Forbidden copy constructor and assignment operator
   TransceiverManager(TransceiverManager const &) = delete;

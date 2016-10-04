@@ -12,6 +12,8 @@ class WedgeManager : public TransceiverManager {
   WedgeManager();
   virtual ~WedgeManager() override {}
   void initTransceiverMap() override;
+  void getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
+    std::unique_ptr<std::vector<int32_t>> ids) override;
  private:
   // Forbidden copy constructor and assignment operator
   WedgeManager(WedgeManager const &) = delete;

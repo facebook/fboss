@@ -826,6 +826,7 @@ void ThriftHandler::getSfpDomInfo(map<int32_t, SfpDom>& domInfos,
 
 void ThriftHandler::getTransceiverInfo(map<int32_t, TransceiverInfo>& info,
                                   unique_ptr<vector<int32_t>> ids) {
+  // TODO(ninasc): Remove - straight call to the qsfp service
   ensureConfigured();
   if (ids->empty()) {
     auto transceivers = sw_->getTransceiversInfo();

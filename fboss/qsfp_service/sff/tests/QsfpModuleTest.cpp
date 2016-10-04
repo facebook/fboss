@@ -8,6 +8,9 @@
  *
  */
 
+#include "fboss/qsfp_service/sff/tests/MockQsfpModule.h"
+#include "fboss/qsfp_service/sff/tests/MockTransceiverImpl.h"
+
 #include <folly/Memory.h>
 #include "fboss/qsfp_service/sff/TransceiverImpl.h"
 #include "fboss/qsfp_service/sff/QsfpModule.h"
@@ -21,73 +24,6 @@
 using namespace facebook::fboss;
 using namespace ::testing;
 namespace {
-
-class MockQsfpModule : public QsfpModule {
- public:
-  explicit MockQsfpModule(std::unique_ptr<TransceiverImpl> qsfpImpl) :
-    QsfpModule(std::move(qsfpImpl)) {}
-  MOCK_METHOD1(setPowerOverrideIfSupported, void(PowerControlState));
-  MOCK_CONST_METHOD0(cacheIsValid, bool());
-  MOCK_METHOD0(updateQsfpData, void());
-  MOCK_METHOD2(getSettingsValue, uint8_t(SffField, uint8_t));
-  MOCK_METHOD0(refreshCacheIfPossibleLocked, void());
-
-  MOCK_METHOD3(setCdrIfSupported, void(cfg::cpp2::PortSpeed, FeatureState,
-        FeatureState));
-  MOCK_METHOD3(setRateSelectIfSupported, void(cfg::cpp2::PortSpeed,
-        RateSelectState, RateSelectSetting));
-  // Provide way to call parent
-  void actualSetCdrIfSupported(cfg::cpp2::PortSpeed speed, FeatureState tx,
-      FeatureState rx) {
-    QsfpModule::setCdrIfSupported(speed, tx, rx);
-  }
-  void actualSetRateSelectIfSupported(cfg::cpp2::PortSpeed speed,
-      RateSelectState currentState, RateSelectSetting currentSetting) {
-    QsfpModule::setRateSelectIfSupported(speed, currentState, currentSetting);
-  }
-
-  void customizeTransceiver(cfg::cpp2::PortSpeed speed) {
-    dirty_ = false;
-    present_ = true;
-    QsfpModule::customizeTransceiver(speed);
-  }
-
-  bool getTransceiverSettingsInfo(TransceiverSettings &settings) {
-    settings.cdrTx = cdrTx_;
-    settings.cdrRx = cdrRx_;
-    settings.rateSelect = state_;
-    settings.rateSelectSetting = setting_;
-    return true;
-  }
-
-  void setRateSelect(RateSelectState state, RateSelectSetting setting) {
-    state_ = state;
-    setting_ = setting;
-  }
-
-  void setCdrState(FeatureState tx, FeatureState rx) {
-    cdrTx_ = tx;
-    cdrRx_ = rx;
-  }
-  RateSelectSetting getRateSelectSettingValue(RateSelectState state) {
-    return QsfpModule::getRateSelectSettingValue(state);
-  }
-
- private:
-  FeatureState cdrTx_ = FeatureState::UNSUPPORTED;
-  FeatureState cdrRx_ = FeatureState::UNSUPPORTED;
-  RateSelectState state_ = RateSelectState::UNSUPPORTED;
-  RateSelectSetting setting_ = RateSelectSetting::UNSUPPORTED;
-};
-
-class MockTransceiverImpl : public TransceiverImpl {
- public:
-  MOCK_METHOD4(readTransceiver, int(int,int,int,uint8_t*));
-  MOCK_METHOD4(writeTransceiver, int(int,int,int,uint8_t*));
-  MOCK_METHOD0(detectTransceiver, bool());
-  MOCK_METHOD0(getName, folly::StringPiece());
-  MOCK_METHOD0(getNum, int());
-};
 
 class QsfpModuleTest : public ::testing::Test {
  public:

@@ -781,6 +781,7 @@ Transceiver* SwSwitch::getTransceiver(TransceiverID id) const {
   return transceiverMap_->transceiver(id);
 }
 
+// TODO(ninasc): Remove for qsfp service
 map<TransceiverID, TransceiverInfo> SwSwitch::getTransceiversInfo() const {
   map<TransceiverID, TransceiverInfo> infos;
   int i = -1;
@@ -792,6 +793,7 @@ map<TransceiverID, TransceiverInfo> SwSwitch::getTransceiversInfo() const {
   return infos;
 }
 
+// TODO(ninasc): Remove for qsfp service
 TransceiverInfo SwSwitch::getTransceiverInfo(TransceiverID idx) const {
   TransceiverInfo info;
   Transceiver *t = getTransceiver(idx);
@@ -828,6 +830,7 @@ SfpDom SwSwitch::getSfpDom(PortID port) const {
   return domInfo;
 }
 
+// TODO(ninasc): Remove when qsfp service is live
 void SwSwitch::addTransceiver(TransceiverID idx,
                               std::unique_ptr<Transceiver> trans) {
   transceiverMap_->addTransceiver(idx, std::move(trans));
@@ -838,12 +841,14 @@ void SwSwitch::addTransceiverMapping(PortID portID, ChannelID channelID,
   transceiverMap_->addTransceiverMapping(portID, channelID, transceiverID);
 }
 
+// TODO(ninasc): Remove when qsfp service is live
 void SwSwitch::detectTransceiver() {
   for (const auto& t : *transceiverMap_) {
     t.second.get()->detectTransceiver();
   }
 }
 
+// TODO(ninasc): Remove when qsfp service is live
 void SwSwitch::updateTransceiverInfoFields() {
   for (const auto& t : *transceiverMap_) {
     t.second.get()->updateTransceiverInfoFields();

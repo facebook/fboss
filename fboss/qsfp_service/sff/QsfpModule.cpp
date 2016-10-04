@@ -544,6 +544,8 @@ void QsfpModule::getSfpDom(SfpDom &) {
 
 void QsfpModule::getTransceiverInfo(TransceiverInfo &info) {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
+  refreshCacheIfPossibleLocked();
+
   info.present = present_;
   info.transceiver = type();
   info.port = qsfpImpl_->getNum();

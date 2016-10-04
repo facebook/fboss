@@ -12,7 +12,7 @@ service QsfpService extends fb303.FacebookService {
   /*
    * Get all information about a transceiver
    */
-  optic.TransceiverInfo getTransceiverInfo(1: i16 idx)
+  map<i32, optic.TransceiverInfo> getTransceiverInfo(1: list<i32> idx)
     throws (1: fboss.FbossBaseError error)
   /*
    * Whether there is a a transceiver plugged into a port

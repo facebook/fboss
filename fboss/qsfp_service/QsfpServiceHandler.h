@@ -19,7 +19,8 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
   /*
    * Returns all qsfp information for the transceiver
    */
-  void getTransceiverInfo(TransceiverInfo& info, int16_t idx) override;
+  void getTransceiverInfo(std::map<int32_t, TransceiverInfo>& info,
+      std::unique_ptr<std::vector<int32_t>> ids) override;
   /*
    * Whether or not the qsfp is present for that transceiver
    */
@@ -37,6 +38,7 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
   // Forbidden copy constructor and assignment operator
   QsfpServiceHandler(QsfpServiceHandler const &) = delete;
   QsfpServiceHandler& operator=(QsfpServiceHandler const &) = delete;
+
   std::unique_ptr<TransceiverManager> manager_;
 };
 }} // facebook::fboss

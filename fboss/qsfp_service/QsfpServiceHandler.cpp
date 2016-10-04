@@ -20,8 +20,9 @@ TransceiverType QsfpServiceHandler::type(int16_t idx) {
   return TransceiverType::QSFP;
 }
 
-void QsfpServiceHandler::getTransceiverInfo(TransceiverInfo& info,
-    int16_t idx) {
+void QsfpServiceHandler::getTransceiverInfo(std::map<int32_t,
+    TransceiverInfo>& info, std::unique_ptr<std::vector<int32_t>> ids) {
+  manager_->getTransceiversInfo(info, std::move(ids));
 }
 
 bool QsfpServiceHandler::isTransceiverPresent(int16_t idx) {
