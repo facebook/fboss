@@ -41,29 +41,12 @@ class TransceiverImpl {
   virtual folly::StringPiece getName() = 0;
   virtual int getNum() = 0;
 
-  /*
-   * QSFPs have four channels, each of which can be associated with
-   * a port on the switch.  Provide a way to set and query them.
-   */
-  void setChannelPort(ChannelID chan, PortID port) {
-    DCHECK(chan < ChannelID(kMaxChannels));
-    chanToPort_[chan] = port;
-    portName_[chan] = folly::to<std::string>(port);
-  }
-
-  folly::StringPiece getChannelName(ChannelID chan) const {
-    return portName_[chan];
-  }
-
  private:
   // Forbidden copy contructor and assignment operator
   TransceiverImpl(TransceiverImpl const &) = delete;
   TransceiverImpl& operator=(TransceiverImpl const &) = delete;
 
   enum : unsigned int { kMaxChannels = 4 };
-
-  PortID chanToPort_[kMaxChannels];
-  std::string portName_[kMaxChannels];
 };
 
 }} // namespace facebook::fboss

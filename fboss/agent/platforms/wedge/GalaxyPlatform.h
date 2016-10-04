@@ -37,7 +37,9 @@ class GalaxyPlatform : public WedgePlatform {
   using FrontPanelMapping = std::map<TransceiverID, PortID>;
   using BackplanePorts = std::vector<PortID>;
 
+  // TODO(ninasc): Delete when running qsfp service
   std::unique_ptr<BaseWedgeI2CBus> getI2CBus() override;
+
   bool isLC() const { return getMode() == WedgePlatformMode::GALAXY_LC; }
   bool isFC() const { return getMode() == WedgePlatformMode::GALAXY_FC; }
   FrontPanelMapping getFrontPanelMapping() const;

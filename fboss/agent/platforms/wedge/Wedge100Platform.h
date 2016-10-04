@@ -45,7 +45,9 @@ class Wedge100Platform : public WedgePlatform {
   typedef std::map<TransceiverID, PortID> FrontPanelMapping;
 
   std::map<std::string, std::string> loadConfig() override;
+  // TODO(ninasc): Delete when running qsfp service
   std::unique_ptr<BaseWedgeI2CBus> getI2CBus() override;
+
   PortID fbossPortForQsfpChannel(int transceiver, int channel) override;
   FrontPanelMapping getFrontPanelMapping();
   folly::ByteRange defaultLed0Code() override;

@@ -4,7 +4,6 @@
 
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
-#include "fboss/qsfp_service/sff/Transceiver.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 
 namespace facebook { namespace fboss {
@@ -21,8 +20,6 @@ class WedgeManager : public TransceiverManager {
   virtual std::unique_ptr<BaseWedgeI2CBus> getI2CBus();
   virtual int getNumQsfpModules() { return 16; }
 
-  boost::container::flat_map<int16_t,
-    std::unique_ptr<Transceiver>> transceivers_;
   std::unique_ptr<WedgeI2CBusLock> wedgeI2CBusLock_;
 };
 }} // facebook::fboss

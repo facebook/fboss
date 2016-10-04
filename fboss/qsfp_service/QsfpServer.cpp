@@ -5,7 +5,9 @@
 
 #include "fboss/agent/platforms/wedge/WedgeProductInfo.h"
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
-#include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
+#include "fboss/qsfp_service/platforms/wedge/GalaxyManager.h"
+#include "fboss/qsfp_service/platforms/wedge/Wedge40Manager.h"
+#include "fboss/qsfp_service/platforms/wedge/Wedge100Manager.h"
 
 using namespace facebook;
 using namespace facebook::fboss;
@@ -19,13 +21,13 @@ std::unique_ptr<TransceiverManager> getManager() {
   productInfo->initialize();
   auto mode = productInfo->getMode();
   if (mode == WedgePlatformMode::WEDGE100) {
-    return folly::make_unique<WedgeManager>();
+    return folly::make_unique<Wedge100Manager>();
   } else if (
       mode == WedgePlatformMode::GALAXY_LC ||
       mode == WedgePlatformMode::GALAXY_FC) {
-    return folly::make_unique<WedgeManager>();
+    return folly::make_unique<GalaxyManager>();
   }
-  return folly::make_unique<WedgeManager>();
+  return folly::make_unique<Wedge40Manager>();
 }
 
 int main(int argc, char **argv) {

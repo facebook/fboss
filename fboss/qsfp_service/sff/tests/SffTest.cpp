@@ -165,10 +165,6 @@ TEST(SffTest, simpleRead) {
   int idx = 1;
   std::unique_ptr<SffTransceiver> qsfpImpl =
     folly::make_unique<SffTransceiver>(idx);
-  for (int channel = 0; channel < 4; ++channel) {
-    qsfpImpl->setChannelPort(ChannelID(channel),
-                             PortID(idx * 4 - 4 + channel));
-  }
   std::unique_ptr<QsfpModule> qsfp =
     folly::make_unique<QsfpModule>(std::move(qsfpImpl));
 

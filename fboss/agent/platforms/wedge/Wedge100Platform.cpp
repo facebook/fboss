@@ -54,6 +54,7 @@ Wedge100Platform::InitPortMap Wedge100Platform::initPorts() {
   return ports;
 }
 
+// TODO(ninasc): Delete when running qsfp service
 std::unique_ptr<BaseWedgeI2CBus> Wedge100Platform::getI2CBus() {
   return folly::make_unique<Wedge100I2CBus>();
 }

@@ -117,10 +117,12 @@ void WedgePlatform::initLocalMac() {
   localMac_ = MacAddress::fromHBO(eth0Mac.u64HBO() | 0x0000020000000000);
 }
 
+// TODO(ninasc): delete when running qsfp service
 std::unique_ptr<BaseWedgeI2CBus> WedgePlatform::getI2CBus() {
   return make_unique<WedgeI2CBus>();
 }
 
+// TODO(ninasc): delete when running qsfp service
 void WedgePlatform::initTransceiverMap(SwSwitch* sw) {
   // If we can't get access to the USB devices, don't bother to
   // create the QSFP objects;  this is likely to be a permanent
@@ -149,6 +151,9 @@ void WedgePlatform::initTransceiverMap(SwSwitch* sw) {
     auto qsfpPtr = qsfp.get();
     sw->addTransceiver(TransceiverID(idx), move(qsfp));
     LOG(INFO) << "making QSFP for " << idx;
+
+    // TODO(ninasc): Only this part is necessary - mapping of PortID to
+    // transceiver ID - and this could potentially be done on the fly
     for (int channel = 0; channel < QsfpModule::CHANNEL_COUNT; ++channel) {
       PortID portId = fbossPortForQsfpChannel(idx, channel);
       sw->addTransceiverMapping(portId,

@@ -61,6 +61,7 @@ class WedgePlatform : public BcmPlatform {
   WedgePlatformMode getMode() const;
 
   WedgePortMap ports_;
+  // TODO(ninasc): Delete when running qsfp service
   std::unique_ptr<WedgeI2CBusLock> wedgeI2CBusLock_;
 
  private:
@@ -70,10 +71,12 @@ class WedgePlatform : public BcmPlatform {
 
   void initLocalMac();
   virtual std::map<std::string, std::string> loadConfig();
-  virtual std::unique_ptr<BaseWedgeI2CBus> getI2CBus();
   virtual PortID fbossPortForQsfpChannel(int transceiver, int channel);
 
+  // TODO(ninasc): Delete when running qsfp service
+  virtual std::unique_ptr<BaseWedgeI2CBus> getI2CBus();
   void initTransceiverMap(SwSwitch* sw);
+
   virtual folly::ByteRange defaultLed0Code() = 0;
   virtual folly::ByteRange defaultLed1Code() = 0;
 
