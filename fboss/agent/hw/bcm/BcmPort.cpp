@@ -71,35 +71,49 @@ static const std::map<cfg::PortSpeed,
   std::map<TransmitterTechnology, opennsl_port_if_t> > kPortTypeMapping = {
     {cfg::PortSpeed::HUNDREDG, {
       {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR4},
-      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI}
+      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI},
+      // What to default to
+      {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CAUI}
     }},
     {cfg::PortSpeed::FIFTYG, {
       // TODO(aeckert): CR2 does not exist in opennsl 6.3.6.
       // Remove this ifdef once fully on 6.4.6
 #if defined(OPENNSL_PORT_IF_CR2)
       {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR2},
+      // What to default to
+      {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR2},
 #endif
-      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI},
+      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI}
     }},
     {cfg::PortSpeed::FORTYG, {
       {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR4},
-      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_XLAUI}
+      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_XLAUI},
+      // What to default to
+      {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_XLAUI}
     }},
     {cfg::PortSpeed::TWENTYFIVEG, {
       {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR},
-      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI}
+      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI},
+      // What to default to
+      {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR}
     }},
     {cfg::PortSpeed::TWENTYG, {
-      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR}
+      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR},
       // We don't expect 20G optics
+      // What to default to
+      {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR}
     }},
     {cfg::PortSpeed::XG, {
       {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR},
-      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_SFI}
+      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_SFI},
+      // What to default to
+      {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR}
     }},
     {cfg::PortSpeed::GIGE, {
-      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_GMII}
+      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_GMII},
       // We don't expect 1G optics
+      // What to default to
+      {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_GMII}
     }}
 };
 
@@ -284,11 +298,10 @@ opennsl_port_if_t BcmPort::getDesiredInterfaceMode(cfg::PortSpeed speed,
                                                    std::string name) {
   TransmitterTechnology transmitterTech =
     getPlatformPort()->getTransmitterTech();
-  // If we don't know what tech we have, default to copper
-  // This covers the case of sixpack backplane ports where we
-  // are unable to determine this information (but where copper is used).
-  // Since copper is still by far the default, this is also a fair default
-  if (transmitterTech == TransmitterTechnology::UNKNOWN) {
+  // 6pack backplane ports will report tech as unknown because this
+  // information can't be retrieved via qsfp. These are actually copper,
+  // and so should use that instead of any potential default value
+  if (name.find("fab") == 0) {
     transmitterTech = TransmitterTechnology::COPPER;
   }
 
