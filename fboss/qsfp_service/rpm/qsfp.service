@@ -1,0 +1,12 @@
+[Unit]
+Description=QSFP Service
+
+[Service]
+LimitNOFILE=10000000
+LimitCORE=32G
+ExecStart=/usr/local/bin/qsfp_server
+StandardOutput=syslog
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

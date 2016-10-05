@@ -1,0 +1,13 @@
+packages:
+  fb-qsfp-service: 
+    summary: Controls qsfp settings for transceivers on a switch
+    rules:
+      buck:fboss/qsfp_service:qsfp_server:
+        fboss/qsfp_service/qsfp_server: 
+          path: /usr/local/bin/qsfp_server
+    static:
+      fboss/qsfp_service/rpm/sv:
+        path: /etc/runit-sv/qsfp_server
+      fboss/qsfp_service/rpm/qsfp.service:
+        path: /usr/lib/systemd/system/qsfp.service
+    unit: qsfp.service
