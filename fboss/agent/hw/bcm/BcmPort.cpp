@@ -327,28 +327,6 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
     desiredPortSpeed = swPort->getSpeed();
   }
 
-  opennsl_port_if_t desiredMode = getDesiredInterfaceMode(desiredPortSpeed,
-                                                          swPort->getID(),
-                                                          swPort->getName());
-
-  opennsl_port_if_t curMode;
-  ret = opennsl_port_interface_get(unit_, port_, &curMode);
-  bcmCheckError(ret,
-                "Failed to get current interface setting for port ",
-                swPort->getID());
-
-  bool updateSpeed = false;
-
-  if (curMode != desiredMode) {
-    ret = opennsl_port_interface_set(unit_, port_, desiredMode);
-    bcmCheckError(
-        ret, "failed to set interface type for port ", swPort->getID());
-    // Changes to the interface setting only seem to take effect on the next
-    // call to opennsl_port_speed_set().  Therefore make sure we update the
-    // speed below, even if the speed is already at the desired setting.
-    updateSpeed = true;
-  }
-
   int desiredSpeed = static_cast<int>(desiredPortSpeed);
   // Unnecessarily updating BCM port speed actually causes
   // the port to flap, even if this should be a noop, so check current
@@ -360,11 +338,32 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
   bcmCheckError(
     ret, "Failed to get current speed for port ", swPort->getID());
 
-  if (!updateSpeed && desiredMode != OPENNSL_PORT_IF_KR4) {
-    updateSpeed |= (curSpeed != desiredSpeed);
-  }
+  // If a speed change is needed, or the port is down or disabled
+  bool changeSettings = !isEnabled() || getState() == cfg::PortState::DOWN ||
+    curSpeed != desiredSpeed;
 
-  if (updateSpeed) {
+  // Set the new interface mode if the port is disabled (so it comes up with
+  // correct mode when enabled), or if the speed is changing
+  if (changeSettings) {
+    opennsl_port_if_t desiredMode = getDesiredInterfaceMode(desiredPortSpeed,
+                                                        swPort->getID(),
+                                                        swPort->getName());
+
+    // Check whether we have the correct interface set
+    opennsl_port_if_t curMode;
+    ret = opennsl_port_interface_get(unit_, port_, &curMode);
+    bcmCheckError(ret,
+                  "Failed to get current interface setting for port ",
+                  swPort->getID());
+
+    if (curMode != desiredMode) {
+      // Changes to the interface setting only seem to take effect on the next
+      // call to opennsl_port_speed_set()
+      ret = opennsl_port_interface_set(unit_, port_, desiredMode);
+      bcmCheckError(
+          ret, "failed to set interface type for port ", swPort->getID());
+    }
+
     if (isEnabled()) {
       // Changing the port speed causes traffic disruptions, but not doing
       // it would cause inconsistency.  Warn the user.
@@ -373,18 +372,12 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
                    << " id: " << swPort->getID();
     }
 
-    if (desiredMode == OPENNSL_PORT_IF_KR4) {
-      // We don't need to set speed when mode is KR4, since ports in KR4 mode
-      // do autonegotiation to figure out the speed.
-      setKR4Ability();
-    } else {
-      ret = opennsl_port_speed_set(unit_, port_, desiredSpeed);
-      bcmCheckError(ret,
-                    "failed to set speed to ",
-                    desiredSpeed, " from ", curSpeed,
-                    ", on port ",
-                    swPort->getID());
-    }
+    ret = opennsl_port_speed_set(unit_, port_, desiredSpeed);
+    bcmCheckError(ret,
+                  "failed to set speed to ",
+                  desiredSpeed, " from ", curSpeed,
+                  ", on port ",
+                  swPort->getID());
     // Update FEC settings if needed for new speed
     setFEC(swPort);
     getPlatformPort()->linkSpeedChanged(desiredPortSpeed);
