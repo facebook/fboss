@@ -63,12 +63,6 @@ TunManager::~TunManager() {
   nl_socket_free(sock_);
 }
 
-void TunManager::startProbe() {
-  evb_->runInEventBaseThread([this]() {
-    this->probe();
-  });
-}
-
 void TunManager::startObservingUpdates() {
   sw_->registerStateObserver(this, "TunManager");
   observingState_ = true;
@@ -115,7 +109,6 @@ void TunManager::addExistingIntf(
   SCOPE_FAIL {
     intfs_.erase(ret.first);
   };
-  setIntfStatus(ifName, ifIndex, false);
   ret.first->second.reset(
       new TunIntf(sw_, evb_, ifID, ifIndex, getInterfaceMtu(ifID)));
 }
@@ -162,15 +155,11 @@ void TunManager::removeIntf(InterfaceID ifID) {
     throw FbossError("Cannot find interface ", ifID, " for deleting.");
   }
 
-  // Remove all addresses attached on this interface
+  // Remove all source routing rules attached to this interface. Addresses
+  // and routes are automatically removed once interface is deteled.
   auto& intf = iter->second;
   for (auto const& addr : intf->getAddresses()) {
-    removeTunAddress(
-        ifID,
-        intf->getName(),
-        intf->getIfIndex(),
-        addr.first  /* ip */,
-        addr.second /* mask */);
+    addRemoveSourceRouteRule(ifID, addr.first, false);
   }
 
   // Remove the route table and associated rule
@@ -531,14 +520,15 @@ void TunManager::addressProcessor(struct nl_object *obj, void *data) {
   );
 }
 
-void TunManager::probe() {
-  std::lock_guard<std::mutex> lock(mutex_);
-  if (!probeDone_) {
-    doProbe(lock);
-  }
-}
-
 void TunManager::doProbe(std::lock_guard<std::mutex>& /* lock */) {
+  const auto startTs = std::chrono::steady_clock::now();
+  SCOPE_EXIT {
+    const auto endTs = std::chrono::steady_clock::now();
+    auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        endTs - startTs);
+    LOG(INFO) << "Probing of linux state took " << elapsedMs.count() << "ms.";
+  };
+
   CHECK(!probeDone_);  // Callers must check for probeDone before calling
   stop();              // stop all interfaces
   intfs_.clear();      // clear all interface info

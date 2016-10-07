@@ -34,13 +34,6 @@ class TunManager : public StateObserver {
   ~TunManager() override;
 
   /**
-   * Start probe procedure to read existing TUN interface info from the host.
-   * This function can be called from any thread and probe function will happen
-   * in the thread serving 'evb_'
-   */
-  void startProbe();
-
-  /**
    * Update the intfs_ map based on the given state update. This
    * overrides the StateObserver stateUpdated api, which is always
    * guaranteed to be called from the update thread.
@@ -57,7 +50,9 @@ class TunManager : public StateObserver {
   bool sendPacketToHost(InterfaceID dstIfID, std::unique_ptr<RxPacket> pkt);
 
   /**
-   * Sync the new SwitchState
+   * Performs probe procedure to read existing TUN interface info from the host
+   * and sync the new SwitchState
+   *
    * This should really be only called externally once, after config is applied.
    * After that all updates should come via the stateUpdated calls.
    *
@@ -179,7 +174,6 @@ class TunManager : public StateObserver {
   /**
    * Lookup host for existing Tun interfaces and their addresses.
    */
-  void probe();
   void doProbe(std::lock_guard<std::mutex>& mutex);
 
   /**
@@ -212,9 +206,8 @@ class TunManager : public StateObserver {
   nl_sock *sock_{nullptr};
 
   /**
-   * The mutex used to protect intfs_.
-   * probe() and sync() could manipulate intfs_. They both run on the same
-   * thread that serves evb_.
+   * The mutex used to protect `intfs_` which can be used by
+   * sync() could manipulate intfs_. Called on the thread that serves evb_.
    * sendPacketToHost() uses intfs_, it can be called from any thread.
    */
   boost::container::flat_map<InterfaceID, std::unique_ptr<TunIntf>> intfs_;
