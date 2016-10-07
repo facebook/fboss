@@ -617,14 +617,14 @@ class SwSwitch : public HwSwitch::Callback {
   void setStateInternal(std::shared_ptr<SwitchState> newState);
 
   /*
-   * This function publishes the SFP Dom data (real time values
+   * This function publishes the QSFP Dom data (real time values
    * and thresholds to the local in-memory ServiceData Structure
    * along with the presence and dom supported status flags.
    * These values are published by the fbagent to the ODS based
    * on the Monitoring configuration.
    */
   void publishInitTimes(std::string name, const float& time);
-  void publishSfpInfo();
+  void publishQsfpInfo();
   void publishPortInfo();
   void publishRouteStats();
   void publishSwitchInfo(struct HwInitResult hwInitRet);
