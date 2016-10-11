@@ -338,13 +338,25 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
   bcmCheckError(
     ret, "Failed to get current speed for port ", swPort->getID());
 
-  // If a speed change is needed, or the port is down or disabled
-  bool changeSettings = !isEnabled() || getState() == cfg::PortState::DOWN ||
-    curSpeed != desiredSpeed;
+  // If the port is down or disabled its safe to update mode and speed to
+  // desired values
+  bool portDown = !isEnabled() || getState() == cfg::PortState::DOWN;
 
-  // Set the new interface mode if the port is disabled (so it comes up with
-  // correct mode when enabled), or if the speed is changing
-  if (changeSettings) {
+  // Update to correct mode and speed settings if the port is down/disabled
+  // or if the speed changed. Ideally we would like to always update to the
+  // desired mode and speed. However these changes are disruptive, in that
+  // they cause a port flap. So to avoid that, we don't update to desired
+  // mode if the port is UP and running at the desired speed. Speed changes
+  // though are applied to UP ports as well, since running at wrong (lower than
+  // desired) speed is pretty dangerous, and can trigger non obvious outages.
+  //
+  // Another practical reason for not updating to the desired mode on ports that
+  // are UP is that there is at least one bug whereby SDK thinks that the ports
+  // are in a different mode than they actually are. We are tracking that
+  // separately. Once that is resolved, we can do a audit to see that if all
+  // ports are in desired mode settings, we can make mode changes a first
+  // class citizen as well.
+  if (portDown || curSpeed != desiredSpeed) {
     opennsl_port_if_t desiredMode = getDesiredInterfaceMode(desiredPortSpeed,
                                                         swPort->getID(),
                                                         swPort->getName());
@@ -364,23 +376,34 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
           ret, "failed to set interface type for port ", swPort->getID());
     }
 
-    if (isEnabled()) {
-      // Changing the port speed causes traffic disruptions, but not doing
-      // it would cause inconsistency.  Warn the user.
-      LOG(WARNING) << "Changing port speed on enabled port. This will "
-                   << "disrupt traffic. Port: " << swPort->getName()
-                   << " id: " << swPort->getID();
+    if (curMode != desiredMode || curSpeed != desiredSpeed) {
+      // Set speed if mode changed OR speed changed. Setting speed
+      // on just mode change is DELIBERATE. We have seen cases where
+      // mode change did not get picked up until speed was updated
+      // as well.
+      if (isEnabled()) {
+        // Changing the port speed causes traffic disruptions, but not doing
+        // it would cause inconsistency.  Warn the user.
+        LOG(WARNING) << "Changing port speed on enabled port. This will "
+                     << "disrupt traffic. Port: " << swPort->getName()
+                     << " id: " << swPort->getID();
+      }
+      ret = opennsl_port_speed_set(unit_, port_, desiredSpeed);
+      bcmCheckError(
+          ret,
+          "failed to set speed to ",
+          desiredSpeed,
+          " from ",
+          curSpeed,
+          ", on port ",
+          swPort->getID());
+      getPlatformPort()->linkSpeedChanged(desiredPortSpeed);
     }
-
-    ret = opennsl_port_speed_set(unit_, port_, desiredSpeed);
-    bcmCheckError(ret,
-                  "failed to set speed to ",
-                  desiredSpeed, " from ", curSpeed,
-                  ", on port ",
-                  swPort->getID());
-    // Update FEC settings if needed for new speed
+    // Update FEC settings if needed. Note this is not only
+    // on speed change as the port's default speed (say on a
+    // cold boot) maybe what is desired by the config. But we
+    // may still need to enable FEC
     setFEC(swPort);
-    getPlatformPort()->linkSpeedChanged(desiredPortSpeed);
   }
 }
 
