@@ -40,6 +40,7 @@ class BcmPortTable;
 class BcmRouteTable;
 class BcmRxPacket;
 class BcmSwitchEventManager;
+class BcmTableStats;
 class BcmUnit;
 class BcmWarmBootCache;
 class MockRxPacket;
@@ -461,6 +462,7 @@ class BcmSwitch : public HwSwitch {
   std::unique_ptr<BcmWarmBootCache> warmBootCache_;
   std::unique_ptr<BcmSwitchEventManager> switchEventManager_;
   std::unique_ptr<BcmCosManager> cosManager_;
+  std::unique_ptr<BcmTableStats> bcmTableStats_;
   /*
    * Lock to synchronize access to all BCM* data structures
    */

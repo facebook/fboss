@@ -120,6 +120,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmSwitch.cpp
     fboss/agent/hw/bcm/oss/BcmUnit.cpp
     fboss/agent/hw/bcm/oss/BcmWarmBootHelper.cpp
+    fboss/agent/hw/bcm/oss/BcmTableStats.cpp
     fboss/agent/hw/bcm/Utils.cpp
     fboss/agent/hw/mock/MockRxPacket.cpp
     fboss/agent/hw/mock/MockTxPacket.cpp
@@ -267,6 +268,7 @@ add_library(fboss_agent STATIC
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/optic_types.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/optic_constants.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/highres_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/bcmswitch_types.cpp
 )
 target_link_libraries(fboss_agent
     ${GLOG}
@@ -364,3 +366,4 @@ fboss_add_thrift(THRIFTSRC fboss/agent/if/optic.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/highres.thrift SERVICES FbossHighresClient)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/highres.thrift SERVICES FbossHighresClient)
 fboss_add_thrift(THRIFTSRC fboss/agent/hw/bcm/packettrace.thrift)
+fboss_add_thrift(THRIFTSRC fboss/agent/hw/bcm/bcmswitch.thrift)

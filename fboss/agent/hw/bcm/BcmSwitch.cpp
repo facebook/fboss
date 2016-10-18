@@ -37,6 +37,7 @@
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventManager.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
+#include "fboss/agent/hw/bcm/BcmTableStats.h"
 #include "fboss/agent/hw/bcm/BcmTxPacket.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
@@ -140,7 +141,8 @@ BcmSwitch::BcmSwitch(BcmPlatform *platform, HashMode hashMode)
     hostTable_(new BcmHostTable(this)),
     routeTable_(new BcmRouteTable(this)),
     aclTable_(new BcmAclTable(this)),
-    warmBootCache_(new BcmWarmBootCache(this)) {
+    warmBootCache_(new BcmWarmBootCache(this)),
+    bcmTableStats_(new BcmTableStats(this)) {
 
   // Start switch event manager so critical events will be handled.
   switchEventManager_.reset(new BcmSwitchEventManager(this));
@@ -186,6 +188,7 @@ unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
   toCPUEgress_.reset();
   portTable_.reset();
   aclTable_.reset();
+  bcmTableStats_.reset();
 
   unit_ = -1;
   unitObject_->setCookie(nullptr);
@@ -582,6 +585,7 @@ void BcmSwitch::stateChanged(const StateDelta& delta) {
   // Take the lock before modifying any objects
   std::lock_guard<std::mutex> g(lock_);
   stateChangedImpl(delta);
+  bcmTableStats_->refresh();
 }
 
 void BcmSwitch::stateChangedImpl(const StateDelta& delta) {
@@ -1152,6 +1156,7 @@ void BcmSwitch::updateThreadLocalPortStats(PortID portID,
 
 void BcmSwitch::updateGlobalStats() {
   portTable_->updatePortStats();
+  bcmTableStats_->publish();
 }
 
 opennsl_if_t BcmSwitch::getDropEgressId() const {
