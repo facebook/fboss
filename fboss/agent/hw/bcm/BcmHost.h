@@ -250,6 +250,10 @@ class BcmHostTable {
     hosts_.clear();
   }
   opennsl_port_t egressIdPort(opennsl_if_t egressId) const;
+
+  uint32_t numEcmpEgress() const {
+    return numEcmpEgressProgrammed_;
+  }
  private:
   /*
    * Called both while holding and not holding the hw lock.
@@ -311,6 +315,7 @@ class BcmHostTable {
   mutable folly::SpinLock portAndEgressIdsLock_;
   // egressId -> port
   boost::container::flat_map<opennsl_if_t, opennsl_port_t> egressId2Port_;
+  uint32_t numEcmpEgressProgrammed_{0};
 };
 
 }}

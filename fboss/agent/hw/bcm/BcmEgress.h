@@ -37,6 +37,7 @@ class BcmEgressBase : public boost::noncopyable {
   }
   virtual ~BcmEgressBase() {}
   virtual folly::dynamic toFollyDynamic() const = 0;
+  virtual bool isEcmp() const = 0;
  protected:
   explicit BcmEgressBase(const BcmSwitch* hw) : hw_(hw) {}
   const BcmSwitch* hw_;
@@ -64,6 +65,10 @@ class BcmEgress : public BcmEgressBase {
    * Serialize to folly::dynamic
    */
   folly::dynamic toFollyDynamic() const override;
+
+  bool isEcmp() const override {
+    return false;
+  }
   /**
    * Create a TO CPU egress object without any specific interface or address
    *
@@ -115,6 +120,9 @@ class BcmEcmpEgress : public BcmEgressBase {
   bool pathReachableHwLocked(EgressId path);
   const Paths& paths() const {
     return paths_;
+  }
+  bool isEcmp() const override {
+    return true;
   }
   /*
    * Serialize to folly::dynamic

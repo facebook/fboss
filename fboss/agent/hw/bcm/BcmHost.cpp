@@ -353,6 +353,10 @@ BcmEgressBase* BcmHostTable::derefEgress(opennsl_if_t egressId) {
   CHECK(it != egressMap_.end());
   CHECK_GT(it->second.second, 0);
   if (--it->second.second == 0) {
+    if (it->second.first->isEcmp()) {
+      CHECK(numEcmpEgressProgrammed_ > 0);
+      numEcmpEgressProgrammed_--;
+    }
     egressMap_.erase(egressId);
     return nullptr;
   }
@@ -454,6 +458,9 @@ BcmEgressBase* BcmHostTable::getEgressObjectIf(opennsl_if_t egress) {
 void BcmHostTable::insertBcmEgress(
     std::unique_ptr<BcmEgressBase> egress) {
   auto id = egress->getID();
+  if (egress->isEcmp()) {
+    numEcmpEgressProgrammed_++;
+  }
   auto ret = egressMap_.emplace(id, std::make_pair(std::move(egress), 1));
   CHECK(ret.second);
 }
