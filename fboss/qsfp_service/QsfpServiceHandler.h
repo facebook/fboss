@@ -33,7 +33,7 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
    * Customise the transceiver based on the speed at which it has
    * been configured to operate at
    */
-  void customizeTransceiver(int16_t idx, cfg::cpp2::PortSpeed speed) override;
+  void customizeTransceiver(int16_t idx, cfg::PortSpeed speed) override;
  private:
   // Forbidden copy constructor and assignment operator
   QsfpServiceHandler(QsfpServiceHandler const &) = delete;

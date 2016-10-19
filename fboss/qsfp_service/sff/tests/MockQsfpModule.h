@@ -33,21 +33,21 @@ class MockQsfpModule : public QsfpModule {
   MOCK_METHOD0(refreshCacheIfPossibleLocked, void());
   MOCK_METHOD1(getTransceiverInfo, void(TransceiverInfo&));
 
-  MOCK_METHOD3(setCdrIfSupported, void(cfg::cpp2::PortSpeed, FeatureState,
+  MOCK_METHOD3(setCdrIfSupported, void(cfg::PortSpeed, FeatureState,
         FeatureState));
-  MOCK_METHOD3(setRateSelectIfSupported, void(cfg::cpp2::PortSpeed,
+  MOCK_METHOD3(setRateSelectIfSupported, void(cfg::PortSpeed,
         RateSelectState, RateSelectSetting));
   // Provide way to call parent
-  void actualSetCdrIfSupported(cfg::cpp2::PortSpeed speed, FeatureState tx,
+  void actualSetCdrIfSupported(cfg::PortSpeed speed, FeatureState tx,
       FeatureState rx) {
     QsfpModule::setCdrIfSupported(speed, tx, rx);
   }
-  void actualSetRateSelectIfSupported(cfg::cpp2::PortSpeed speed,
+  void actualSetRateSelectIfSupported(cfg::PortSpeed speed,
       RateSelectState currentState, RateSelectSetting currentSetting) {
     QsfpModule::setRateSelectIfSupported(speed, currentState, currentSetting);
   }
 
-  void customizeTransceiver(cfg::cpp2::PortSpeed speed) {
+  void customizeTransceiver(cfg::PortSpeed speed) {
     dirty_ = false;
     present_ = true;
     QsfpModule::customizeTransceiver(speed);

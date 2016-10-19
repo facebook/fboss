@@ -12,7 +12,7 @@
 #include <boost/container/flat_set.hpp>
 
 #include "fboss/agent/PlatformPort.h"
-#include "fboss/agent/gen-cpp/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 namespace facebook { namespace fboss {
 

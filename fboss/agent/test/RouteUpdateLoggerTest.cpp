@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/gen-cpp/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/StateDelta.h"

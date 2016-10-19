@@ -19,7 +19,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
-#include "fboss/agent/gen-cpp/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 #include <gtest/gtest.h>
 #include <string>
