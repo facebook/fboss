@@ -12,7 +12,7 @@
 #include <folly/experimental/TestUtil.h>
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/types.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp/switch_config_types.h"
 
 #include <gmock/gmock.h>
 

@@ -10,7 +10,6 @@
 #include "fboss/agent/test/TestUtils.h"
 
 #include <boost/cast.hpp>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/SwSwitch.h"
@@ -22,7 +21,7 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/RouteUpdater.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp/switch_config_types.h"
 #include <folly/Memory.h>
 #include <folly/json.h>
 
@@ -60,8 +59,7 @@ shared_ptr<SwitchState> publishAndApplyConfigFile(
   // Parse the prev JSON config.
   cfg::SwitchConfig prevConfig;
   if (prevConfigStr.size()) {
-    apache::thrift::SimpleJSONSerializer::deserialize<cfg::SwitchConfig>(
-        prevConfigStr.c_str(), prevConfig);
+    prevConfig.readFromJson(prevConfigStr.c_str());
   }
   return applyThriftConfigFile(state, path, platform, &prevConfig).first;
 }

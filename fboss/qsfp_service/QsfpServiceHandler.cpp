@@ -33,6 +33,6 @@ void QsfpServiceHandler::updateTransceiverInfoFields(int16_t idx) {
 }
 
 void QsfpServiceHandler::customizeTransceiver(int16_t idx,
-    cfg::PortSpeed speed) {
+    cfg::cpp2::PortSpeed speed) {
 }
 }} // facebook::fboss

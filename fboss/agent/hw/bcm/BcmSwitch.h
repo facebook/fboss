@@ -11,7 +11,7 @@
 
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/types.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 #include <folly/dynamic.h>

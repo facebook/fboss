@@ -85,7 +85,7 @@ class QsfpModule : public Transceiver {
    * speed - the speed the port is running at - this will allow setting
    * different qsfp settings based on speed
    */
-  void customizeTransceiver(const cfg::PortSpeed& speed);
+  void customizeTransceiver(const cfg::cpp2::PortSpeed& speed);
   /*
    * Returns the entire QSFP information
    */
@@ -153,7 +153,7 @@ class QsfpModule : public Transceiver {
    * settings from being applied
    */
   void customizeTransceiverLocked(
-      const cfg::PortSpeed& speed=cfg::PortSpeed::DEFAULT);
+      const cfg::cpp2::PortSpeed& speed=cfg::cpp2::PortSpeed::DEFAULT);
 
   /*
    * Check if the QSFP is present or not
@@ -208,12 +208,12 @@ class QsfpModule : public Transceiver {
    * Enable or disable CDR
    * Which action to take is determined by the port speed
    */
-  virtual void setCdrIfSupported(cfg::PortSpeed speed,
+  virtual void setCdrIfSupported(cfg::cpp2::PortSpeed speed,
       FeatureState currentStateTx, FeatureState currentStateRx);
   /*
    * Set appropriate rate select value for PortSpeed, if supported
    */
-  virtual void setRateSelectIfSupported(cfg::PortSpeed speed,
+  virtual void setRateSelectIfSupported(cfg::cpp2::PortSpeed speed,
       RateSelectState currentState, RateSelectSetting currentSetting);
   /*
    * returns individual sensor values after scaling

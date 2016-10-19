@@ -27,7 +27,7 @@
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/TestUtils.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp/switch_config_types.h"
 
 #include <future>
 #include <netinet/icmp6.h>

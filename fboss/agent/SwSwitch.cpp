@@ -9,8 +9,6 @@
  */
 #include "fboss/agent/SwSwitch.h"
 
-#include <thrift/lib/cpp2/protocol/Serializer.h>
-
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/IPv4Handler.h"
@@ -43,7 +41,6 @@
 #include "fboss/agent/SfpModule.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/PortRemediator.h"
-#include "fboss/agent/gen-cpp2/switch_config_types_custom_protocol.h"
 #include "common/stats/ServiceData.h"
 #include <folly/FileUtil.h>
 #include <folly/MacAddress.h>
@@ -1230,8 +1227,7 @@ void SwSwitch::applyConfig(const std::string& reason) {
           throw FbossError("Invalid config passed in, skipping");
         }
         curConfigStr_ = rval.second;
-        apache::thrift::SimpleJSONSerializer::deserialize<cfg::SwitchConfig>(
-            curConfigStr_.c_str(), curConfig_);
+        curConfig_.readFromJson(curConfigStr_.c_str());
 
         // Set oper status of interfaces in SwitchState
         auto& newState = rval.first;

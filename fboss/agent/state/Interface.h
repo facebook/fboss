@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp/switch_config_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeBase.h"
 #include <folly/MacAddress.h>

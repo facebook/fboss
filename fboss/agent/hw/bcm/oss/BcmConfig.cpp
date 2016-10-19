@@ -9,7 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmConfig.h"
 
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp/switch_config_types.h"
 #include "fboss/agent/gen-cpp/bcm_config_types.h"
 #include "fboss/agent/FbossError.h"
 

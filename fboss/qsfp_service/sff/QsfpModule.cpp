@@ -682,7 +682,7 @@ void QsfpModule::updateQsfpData() {
   }
 }
 
-void QsfpModule::customizeTransceiver(const cfg::PortSpeed& speed) {
+void QsfpModule::customizeTransceiver(const cfg::cpp2::PortSpeed& speed) {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   refreshCacheIfPossibleLocked();
   if (present_) {
@@ -690,7 +690,7 @@ void QsfpModule::customizeTransceiver(const cfg::PortSpeed& speed) {
   }
 }
 
-void QsfpModule::customizeTransceiverLocked(const cfg::PortSpeed& speed) {
+void QsfpModule::customizeTransceiverLocked(const cfg::cpp2::PortSpeed& speed) {
   /*
    * This must be called with a lock held on qsfpModuleMutex_
    */
@@ -699,7 +699,7 @@ void QsfpModule::customizeTransceiverLocked(const cfg::PortSpeed& speed) {
 
   // We want this on regardless of speed
   setPowerOverrideIfSupported(settings.powerControl);
-  if (speed == cfg::PortSpeed::DEFAULT) {
+  if (speed == cfg::cpp2::PortSpeed::DEFAULT) {
     return;
   }
 
@@ -708,7 +708,7 @@ void QsfpModule::customizeTransceiverLocked(const cfg::PortSpeed& speed) {
       settings.rateSelectSetting);
 }
 
-void QsfpModule::setCdrIfSupported(cfg::PortSpeed speed,
+void QsfpModule::setCdrIfSupported(cfg::cpp2::PortSpeed speed,
                                    FeatureState currentStateTx,
                                    FeatureState currentStateRx) {
   /*
@@ -727,8 +727,8 @@ void QsfpModule::setCdrIfSupported(cfg::PortSpeed speed,
   auto toChange = [speed](FeatureState state) {
     return
       state != FeatureState::UNSUPPORTED &&
-      ((speed == cfg::PortSpeed::HUNDREDG && state != FeatureState::ENABLED) ||
-      (speed != cfg::PortSpeed::HUNDREDG && state != FeatureState::DISABLED));
+      ((speed == cfg::cpp2::PortSpeed::HUNDREDG && state != FeatureState::ENABLED) ||
+      (speed != cfg::cpp2::PortSpeed::HUNDREDG && state != FeatureState::DISABLED));
   };
 
   bool changeRx = toChange(currentStateRx);
@@ -743,7 +743,7 @@ void QsfpModule::setCdrIfSupported(cfg::PortSpeed speed,
   // isn't supported will be ignored anyway
   FeatureState newState = FeatureState::DISABLED;
   uint8_t value = 0x0;
-  if (speed == cfg::PortSpeed::HUNDREDG) {
+  if (speed == cfg::cpp2::PortSpeed::HUNDREDG) {
     value = 0xFF;
     newState = FeatureState::ENABLED;
   }
@@ -758,7 +758,7 @@ void QsfpModule::setCdrIfSupported(cfg::PortSpeed speed,
      _FeatureState_VALUES_TO_NAMES.find(newState)->second);
 }
 
-void QsfpModule::setRateSelectIfSupported(cfg::PortSpeed speed,
+void QsfpModule::setRateSelectIfSupported(cfg::cpp2::PortSpeed speed,
     RateSelectState currentState, RateSelectSetting currentSetting) {
   if (currentState == RateSelectState::UNSUPPORTED) {
     return;
@@ -789,18 +789,18 @@ void QsfpModule::setRateSelectIfSupported(cfg::PortSpeed speed,
     // Use the highest possible speed in this version
     alreadySet = translateEnum(RateSelectSetting::FROM_6_6GB_AND_ABOVE,
         0b10101010);
-  } else if (speed == cfg::PortSpeed::FORTYG) {
+  } else if (speed == cfg::cpp2::PortSpeed::FORTYG) {
     // Optimised for 10G channels
     alreadySet = translateEnum(RateSelectSetting::LESS_THAN_12GB,
       0b00000000);
-  } else if (speed == cfg::PortSpeed::HUNDREDG) {
+  } else if (speed == cfg::cpp2::PortSpeed::HUNDREDG) {
     // Optimised for 25GB channels
     alreadySet = translateEnum(RateSelectSetting::FROM_24GB_to_26GB,
         0b10101010);
   } else {
     LOG(ERROR) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
       " Unable to set rate select for port speed: " <<
-      cfg::_PortSpeed_VALUES_TO_NAMES.find(speed)->second;
+      cfg::cpp2::_PortSpeed_VALUES_TO_NAMES.find(speed)->second;
     return;
   }
 
