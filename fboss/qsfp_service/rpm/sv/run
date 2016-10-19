@@ -1,5 +1,5 @@
 #!/bin/bash
 
-exec chpst -uroot -o10000000 /usr/local/bin/qsfp_server 2>&1
+exec chpst -uroot -o10000000 /usr/local/bin/qsfp_service 2>&1
 ~
 ~
