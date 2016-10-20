@@ -254,9 +254,9 @@ add_library(fboss_agent STATIC
     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_types.cpp
     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_constants.cpp
     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp/switch_config_reflection.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp/switch_config_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp/switch_config_constants.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2/switch_config_reflection.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2/switch_config_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2/switch_config_constants.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/SimCtrl.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_types.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_constants.cpp

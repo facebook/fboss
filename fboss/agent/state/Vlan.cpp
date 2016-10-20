@@ -10,7 +10,7 @@
 #include "fboss/agent/state/Vlan.h"
 
 #include <folly/String.h>
-#include "fboss/agent/gen-cpp/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/NdpResponseTable.h"

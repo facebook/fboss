@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/gen-cpp/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/capture/PktCapture.h"

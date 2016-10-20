@@ -10,6 +10,8 @@
 #include "fboss/agent/ApplyThriftConfig.h"
 
 #include <folly/FileUtil.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
+
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/state/AclEntry.h"
@@ -952,7 +954,8 @@ std::pair<std::shared_ptr<SwitchState>, std::string> applyThriftConfigFile(
   if (!folly::readFile(path.toString().c_str(), configStr)) {
     throw FbossError("unable to read ", path);
   }
-  config.readFromJson(configStr.c_str());
+  apache::thrift::SimpleJSONSerializer::deserialize<cfg::SwitchConfig>(
+      configStr.c_str(), config);
 
   return std::make_pair(
       applyThriftConfig(state, &config, platform, prevConfig), configStr);

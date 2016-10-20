@@ -9,7 +9,7 @@
  */
 #include "fboss/agent/state/Interface.h"
 
-#include <thrift/lib/cpp/util/ThriftSerializer.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -18,7 +18,6 @@ using folly::IPAddress;
 using folly::MacAddress;
 using folly::to;
 using std::string;
-using apache::thrift::util::ThriftSerializerJson;
 
 namespace {
 constexpr auto kIntfId = "interfaceId";
@@ -44,15 +43,14 @@ InterfaceFields InterfaceFields::fromFollyDynamic(const folly::dynamic& json) {
         MacAddress(json[kMac].asString()),
         json[kMtu].asInt(),
         json.getDefault(kIsVirtual, false).asBool());
-  ThriftSerializerJson<cfg::NdpConfig> serializer;
   for (const auto& addr: json[kAddresses]) {
     auto cidr = IPAddress::createNetwork(addr.asString(),
           -1 /*use /32 for v4 and /128 for v6*/,
         false /*don't apply mask*/);
     intfFields.addrs[cidr.first] = cidr.second;
   }
-  serializer.deserialize(toJson(json[kNdpConfig]),
-      &intfFields.ndp);
+  apache::thrift::SimpleJSONSerializer::deserialize<cfg::NdpConfig>(
+      toJson(json[kNdpConfig]), intfFields.ndp);
   return intfFields;
 }
 
@@ -71,9 +69,8 @@ folly::dynamic InterfaceFields::toFollyDynamic() const {
           to<string>(addrAndMask.second));
   }
   intf[kAddresses] = folly::dynamic(addresses.begin(), addresses.end());
-  ThriftSerializerJson<cfg::NdpConfig> serializer;
   string ndpCfgJson;
-  serializer.serialize(ndp, &ndpCfgJson);
+  apache::thrift::SimpleJSONSerializer::serialize(ndp, &ndpCfgJson);
   intf[kNdpConfig] = folly::parseJson(ndpCfgJson);
   return intf;
 }

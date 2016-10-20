@@ -11,7 +11,7 @@
 
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
-#include "fboss/agent/gen-cpp/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 namespace facebook { namespace fboss {
 
