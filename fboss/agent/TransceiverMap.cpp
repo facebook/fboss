@@ -8,7 +8,7 @@
  *
  */
 #include "fboss/agent/TransceiverMap.h"
-#include "fboss/agent/Transceiver.h"
+#include "fboss/qsfp_service/sff/Transceiver.h"
 #include <folly/Memory.h>
 #include "fboss/agent/FbossError.h"
 

@@ -14,7 +14,7 @@
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/ThreadHeartbeat.h"
-#include "fboss/agent/Transceiver.h"
+#include "fboss/qsfp_service/sff/Transceiver.h"
 #include "fboss/agent/TransceiverMap.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/Utils.h"

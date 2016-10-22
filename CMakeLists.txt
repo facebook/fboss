@@ -182,7 +182,6 @@ add_library(fboss_agent STATIC
     fboss/agent/platforms/wedge/WedgeQsfp.cpp
     fboss/agent/PortStats.cpp
     fboss/agent/PortRemediator.cpp
-    fboss/agent/QsfpModule.cpp
     fboss/agent/RestClient.cpp
     fboss/agent/RouteUpdateLogger.cpp
     fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
@@ -243,6 +242,8 @@ add_library(fboss_agent STATIC
     fboss/lib/usb/Wedge100I2CBus.h
     fboss/lib/usb/WedgeI2CBus.cpp
     fboss/lib/usb/WedgeI2CBus.h
+
+    fboss/qsfp_service/sff/QsfpModule.cpp
 
     # generated sources
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/packettrace_types.cpp

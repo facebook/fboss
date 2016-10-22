@@ -11,7 +11,7 @@
 #include <cstdint>
 #include <mutex>
 #include <boost/container/flat_map.hpp>
-#include "fboss/agent/Transceiver.h"
+#include "fboss/qsfp_service/sff/Transceiver.h"
 #include "fboss/agent/if/gen-cpp2/optic_types.h"
 
 namespace facebook { namespace fboss {

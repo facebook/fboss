@@ -12,7 +12,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/platforms/wedge/WedgeProductInfo.h"
-#include "fboss/agent/platforms/wedge/WedgeI2CBusLock.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
 #include <folly/MacAddress.h>
 #include <folly/Range.h>

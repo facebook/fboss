@@ -14,7 +14,7 @@
 #include "fboss/agent/platforms/wedge/Wedge100Port.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/usb/Wedge100I2CBus.h"
-#include "fboss/agent/QsfpModule.h"
+#include "fboss/qsfp_service/sff/QsfpModule.h"
 
 #include <folly/Memory.h>
 

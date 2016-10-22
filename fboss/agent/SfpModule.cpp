@@ -12,8 +12,8 @@
 #include <boost/assign.hpp>
 #include <string>
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/TransceiverImpl.h"
-#include "fboss/agent/SffFieldInfo.h"
+#include "fboss/qsfp_service/sff/TransceiverImpl.h"
+#include "fboss/qsfp_service/sff/SffFieldInfo.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 
 namespace facebook { namespace fboss {

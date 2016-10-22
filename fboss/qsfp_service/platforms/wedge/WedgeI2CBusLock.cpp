@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/wedge/WedgeI2CBusLock.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 #include "fboss/lib/usb/UsbError.h"
 
 using folly::MutableByteRange;

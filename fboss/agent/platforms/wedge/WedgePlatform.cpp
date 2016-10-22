@@ -15,12 +15,12 @@
 #include "fboss/lib/usb/UsbError.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/QsfpModule.h"
+#include "fboss/qsfp_service/sff/QsfpModule.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
-#include "fboss/agent/platforms/wedge/WedgeQsfp.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
 
 #include <future>
 
@@ -141,10 +141,6 @@ void WedgePlatform::initTransceiverMap(SwSwitch* sw) {
   for (int idx = 0; idx < numQsfpModules_; idx++) {
     std::unique_ptr<WedgeQsfp> qsfpImpl =
       make_unique<WedgeQsfp>(idx, wedgeI2CBusLock_.get());
-    for (int channel = 0; channel < QsfpModule::CHANNEL_COUNT; ++channel) {
-      qsfpImpl->setChannelPort(ChannelID(channel),
-          PortID(idx * QsfpModule::CHANNEL_COUNT + channel + 1));
-    }
     std::unique_ptr<QsfpModule> qsfp =
       make_unique<QsfpModule>(std::move(qsfpImpl));
     qsfp->detectTransceiver();

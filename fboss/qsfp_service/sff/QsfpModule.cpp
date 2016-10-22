@@ -442,16 +442,22 @@ int QsfpModule::getQsfpCableLength(SffField field) {
 TransmitterTechnology QsfpModule::getQsfpTransmitterTechnology() {
   auto info = SffFieldInfo::getSffFieldAddress(qsfpFields,
       SffField::DEVICE_TECHNOLOGY);
-  const uint8_t *data = getQsfpValuePtr(info.dataAddress,
-                                        info.offset, info.length);
-  uint8_t transTech = *data >> DeviceTechnology::TRANSMITTER_TECH_SHIFT;
-  if (transTech == DeviceTechnology::UNKNOWN_VALUE) {
-    return TransmitterTechnology:: UNKNOWN;
-  } else if (transTech <= DeviceTechnology::OPTICAL_MAX_VALUE) {
-    return TransmitterTechnology::OPTICAL;
-  } else {
-    return TransmitterTechnology::COPPER;
+  try {
+    const uint8_t* data =
+        getQsfpValuePtr(info.dataAddress, info.offset, info.length);
+    uint8_t transTech = *data >> DeviceTechnology::TRANSMITTER_TECH_SHIFT;
+    if (transTech == DeviceTechnology::UNKNOWN_VALUE) {
+      return TransmitterTechnology::UNKNOWN;
+    } else if (transTech <= DeviceTechnology::OPTICAL_MAX_VALUE) {
+      return TransmitterTechnology::OPTICAL;
+    } else {
+      return TransmitterTechnology::COPPER;
+    }
+  } catch (const std::exception& e) {
+    LOG(INFO) << " Unable to get transmitter technology for QSFP: "
+              << qsfpImpl_->getName();
   }
+  return TransmitterTechnology::UNKNOWN;
 }
 
 QsfpModule::QsfpModule(std::unique_ptr<TransceiverImpl> qsfpImpl)
@@ -694,18 +700,24 @@ void QsfpModule::customizeTransceiverLocked(const cfg::PortSpeed& speed) {
   /*
    * This must be called with a lock held on qsfpModuleMutex_
    */
-  TransceiverSettings settings;
-  getTransceiverSettingsInfo(settings);
+  try {
+    TransceiverSettings settings;
+    getTransceiverSettingsInfo(settings);
 
-  // We want this on regardless of speed
-  setPowerOverrideIfSupported(settings.powerControl);
-  if (speed == cfg::PortSpeed::DEFAULT) {
-    return;
+    // We want this on regardless of speed
+    setPowerOverrideIfSupported(settings.powerControl);
+    if (speed == cfg::PortSpeed::DEFAULT) {
+      return;
+    }
+
+    setCdrIfSupported(speed, settings.cdrTx, settings.cdrRx);
+    setRateSelectIfSupported(
+      speed, settings.rateSelect, settings.rateSelectSetting);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << " Unable to customize transceiver: "
+               << folly::to<std::string>(qsfpImpl_->getName()) << " "
+               << e.what();
   }
-
-  setCdrIfSupported(speed, settings.cdrTx, settings.cdrRx);
-  setRateSelectIfSupported(speed, settings.rateSelect,
-      settings.rateSelectSetting);
 }
 
 void QsfpModule::setCdrIfSupported(cfg::PortSpeed speed,
