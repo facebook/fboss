@@ -4,7 +4,7 @@ Description=QSFP Service
 [Service]
 LimitNOFILE=10000000
 LimitCORE=32G
-ExecStart=/usr/local/bin/qsfp_server
+ExecStart=/usr/local/bin/qsfp_service
 StandardOutput=syslog
 Restart=always
 
