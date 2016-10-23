@@ -8,7 +8,7 @@
  *
  */
 #pragma once
-#include "common/network/if/gen-cpp/Address_types.h"
+#include "common/network/if/gen-cpp2/Address_types.h"
 #include <folly/IPAddress.h>
 
 namespace facebook { namespace network {
@@ -16,10 +16,10 @@ namespace facebook { namespace network {
 // Trait for V4 vs V6
 template <typename T> struct IPVersion;
 template <> struct IPVersion<folly::IPAddressV4> {
-  static const thrift::AddressType value = thrift::V4;
+  static const thrift::AddressType value = thrift::AddressType::V4;
 };
 template <> struct IPVersion<folly::IPAddressV6> {
-  static const thrift::AddressType value = thrift::V6;
+  static const thrift::AddressType value = thrift::AddressType::V6;
 };
 
 template <class T>

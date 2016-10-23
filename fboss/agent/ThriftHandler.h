@@ -39,8 +39,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   using ThriftCallback = std::unique_ptr<apache::thrift::HandlerCallback<T>>;
   using TConnectionContext = apache::thrift::server::TConnectionContext;
 
-  typedef network::thrift::cpp2::Address Address;
-  typedef network::thrift::cpp2::BinaryAddress BinaryAddress;
+  typedef network::thrift::Address Address;
+  typedef network::thrift::BinaryAddress BinaryAddress;
   typedef folly::EventBase EventBase;
   typedef std::vector<Address> Addresses;
   typedef std::vector<BinaryAddress> BinaryAddresses;
