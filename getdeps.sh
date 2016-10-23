@@ -44,7 +44,8 @@ function get_packages() {
         libssl-dev make zip git autoconf libtool g++ libboost-all-dev \
         libevent-dev flex bison libgoogle-glog-dev scons libkrb5-dev \
         libsnappy-dev libsasl2-dev libnuma-dev libi2c-dev libcurl4-nss-dev \
-        libusb-1.0-0-dev libpcap-dev libdb5.3-dev cmake libnl-3-dev libnl-route-3-dev
+        libusb-1.0-0-dev libpcap-dev libdb5.3-dev cmake libnl-3-dev \
+        libnl-route-3-dev iptables-dev
 }
 
 if [ "$1" = 'pkg' ]; then
@@ -58,11 +59,14 @@ mkdir -p external
     # We hard code OpenNSL to OpenNSL-6.4.6.6 release, later releases seem to
     # SIGSEV in opennsl_pkt_alloc()
     update https://github.com/Broadcom-Switch/OpenNSL.git 8e0b499f02dcef751a3703c9a18600901374b28a
-    update \
-        git://git.kernel.org/pub/scm/linux/kernel/git/shemminger/iproute2.git v3.19.0
+    update git://git.kernel.org/pub/scm/linux/kernel/git/shemminger/iproute2.git v3.19.0
     update https://github.com/facebook/folly.git
     update https://github.com/facebook/wangle.git
     update https://github.com/facebook/fbthrift.git
+    update https://github.com/no1msd/mstch.git
+    update https://github.com/facebook/zstd.git
+    build mstch
+    build zstd
     build iproute2
     build folly/folly
     export CMAKEFLAGS=-D"FOLLY_INCLUDE_DIR=`pwd`/folly"\ -D"FOLLY_LIBRARY=`pwd`/folly/folly/.libs/libfolly.a"\ -D"BUILD_TESTS=OFF"

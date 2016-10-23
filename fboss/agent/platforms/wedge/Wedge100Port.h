@@ -39,11 +39,11 @@ class Wedge100Port : public WedgePort {
         channel_(channel) {}
 
   LaneSpeeds supportedLaneSpeeds() const override {
-    return {
-      cfg::PortSpeed::GIGE,
-      cfg::PortSpeed::XG,
-      cfg::PortSpeed::TWENTYFIVEG
-    };
+    LaneSpeeds speeds;
+    speeds.insert(cfg::PortSpeed::GIGE);
+    speeds.insert(cfg::PortSpeed::XG);
+    speeds.insert(cfg::PortSpeed::TWENTYFIVEG);
+    return speeds;
   }
 
   void remedy() override;

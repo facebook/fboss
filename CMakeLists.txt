@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 2.8)
 project(FBOSS)
+include(CheckCXXCompilerFlag)
 include(CMakeParseArguments)
+
+# Check the version
+CHECK_CXX_COMPILER_FLAG("-std=gnu++1y" COMPILER_SUPPORTS_CXX14)
+if(NOT COMPILER_SUPPORTS_CXX14)
+  message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++14 support.")
+endif()
 
 # Ideally, we would use
 #    set_property(TARGET fboss_agent PROPERTY CXX_STANDARD 11)
@@ -173,19 +180,16 @@ add_library(fboss_agent STATIC
     fboss/agent/platforms/wedge/oss/WedgeProductInfo.cpp
     fboss/agent/platforms/wedge/GalaxyPlatform.cpp
     fboss/agent/platforms/wedge/wedge_ctrl.cpp
-    fboss/agent/platforms/wedge/WedgeI2CBusLock.cpp
     fboss/agent/platforms/wedge/WedgePlatform.cpp
     fboss/agent/platforms/wedge/Wedge40Platform.cpp
     fboss/agent/platforms/wedge/Wedge100Platform.cpp
     fboss/agent/platforms/wedge/WedgePort.cpp
     fboss/agent/platforms/wedge/WedgeProductInfo.cpp
-    fboss/agent/platforms/wedge/WedgeQsfp.cpp
     fboss/agent/PortStats.cpp
     fboss/agent/PortRemediator.cpp
     fboss/agent/RestClient.cpp
     fboss/agent/RouteUpdateLogger.cpp
     fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
-    fboss/agent/SffFieldInfo.cpp
     fboss/agent/SfpModule.cpp
     fboss/agent/state/AclEntry.cpp
     fboss/agent/state/AclMap.cpp
@@ -243,6 +247,9 @@ add_library(fboss_agent STATIC
     fboss/lib/usb/WedgeI2CBus.cpp
     fboss/lib/usb/WedgeI2CBus.h
 
+    fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
+    fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
+    fboss/qsfp_service/sff/SffFieldInfo.cpp
     fboss/qsfp_service/sff/QsfpModule.cpp
 
     # generated sources
@@ -255,9 +262,11 @@ add_library(fboss_agent STATIC
     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_types.cpp
     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_constants.cpp
     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2/switch_config_reflection.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2/switch_config_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp/switch_config_constants.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp/switch_config_reflection.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp/switch_config_types.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2/switch_config_constants.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2/switch_config_types.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/SimCtrl.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_types.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_constants.cpp
@@ -358,6 +367,7 @@ fboss_add_thrift(THRIFTSRC common/network/if/Address.thrift
     OPTIONS json,compatibility,include_prefix=common/network/if
     REFLECT Address)
 fboss_add_thrift(THRIFTSRC fboss/agent/switch_config.thrift
+    OPTIONS json
     REFLECT switch_config)
 fboss_add_thrift(THRIFTSRC fboss/agent/hw/sim/sim_ctrl.thrift SERVICES SimCtrl)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/ctrl.thrift
