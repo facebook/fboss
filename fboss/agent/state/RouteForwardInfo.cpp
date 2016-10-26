@@ -64,7 +64,7 @@ std::string RouteForwardInfo::str() const {
 folly::dynamic RouteForwardInfo::toFollyDynamic() const {
   folly::dynamic fwdInfo = folly::dynamic::object;
   fwdInfo[kAction] = forwardActionStr(action_);
-  vector<folly::dynamic> nhops;
+  folly::dynamic nhops = folly::dynamic::array;
   for (const auto& nhop: nexthops_) {
     nhops.push_back(nhop.toFollyDynamic());
   }

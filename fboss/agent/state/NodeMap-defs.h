@@ -107,12 +107,12 @@ NodeMapT<MapTypeT, TraitsT>::removeNodeIf(const KeyType& key) {
 
 template <typename MapTypeT, typename TraitsT>
 folly::dynamic NodeMapT<MapTypeT, TraitsT>::toFollyDynamic() const {
-  std::vector<folly::dynamic> nodesJson;
+  folly::dynamic nodesJson = folly::dynamic::array;
   for (const auto& node: *this) {
-    nodesJson.emplace_back(node->toFollyDynamic());
+    nodesJson.push_back(node->toFollyDynamic());
   }
   folly::dynamic json = folly::dynamic::object;
-  json[kEntries] = nodesJson;
+  json[kEntries] = std::move(nodesJson);
   json[kExtraFields] = getExtraFields().toFollyDynamic();
   return json;
 }

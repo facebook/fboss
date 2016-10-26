@@ -25,12 +25,12 @@ FBOSS_INSTANTIATE_NODE_MAP(RouteTableRibNodeMap<folly::IPAddressV6>,
 
 template<typename AddrT>
 folly::dynamic RouteTableRib<AddrT>::toFollyDynamic() const {
-  std::vector<folly::dynamic> routesJson;
+  folly::dynamic routesJson = folly::dynamic::array;
   for (const auto& route: rib_) {
-    routesJson.emplace_back(route->value()->toFollyDynamic());
+    routesJson.push_back(route->value()->toFollyDynamic());
   }
   folly::dynamic routes = folly::dynamic::object;
-  routes[kRoutes] = routesJson;
+  routes[kRoutes] = std::move(routesJson);
   return routes;
 }
 

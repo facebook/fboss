@@ -55,11 +55,11 @@ template<typename AddrT>
 folly::dynamic RouteFields<AddrT>::toFollyDynamic() const {
   folly::dynamic routeFields = folly::dynamic::object;
   routeFields[kPrefix] = prefix.toFollyDynamic();
-  std::vector<folly::dynamic> nhopsList;
+  folly::dynamic nhopsList = folly::dynamic::array;
   for (const auto& nhop: nexthops) {
-    nhopsList.emplace_back(nhop.str());
+    nhopsList.push_back(nhop.str());
   }
-  routeFields[kNextHops] = nhopsList;
+  routeFields[kNextHops] = std::move(nhopsList);
   routeFields[kFwdInfo] = fwd.toFollyDynamic();
   routeFields[kFlags] = flags;
   return routeFields;
