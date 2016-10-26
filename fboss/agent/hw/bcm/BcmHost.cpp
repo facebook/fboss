@@ -506,9 +506,9 @@ folly::dynamic BcmHost::toFollyDynamic() const {
 folly::dynamic BcmEcmpHost::toFollyDynamic() const {
   folly::dynamic ecmpHost = folly::dynamic::object;
   ecmpHost[kVrf] = vrf_;
-  std::vector<folly::dynamic> nhops;
+  folly::dynamic nhops = folly::dynamic::array;
   for (auto& nhop: fwd_) {
-    nhops.emplace_back(nhop.toFollyDynamic());
+    nhops.push_back(nhop.toFollyDynamic());
   }
   ecmpHost[kNextHops] = std::move(nhops);
   ecmpHost[kEgressId] = egressId_;
@@ -521,13 +521,13 @@ folly::dynamic BcmEcmpHost::toFollyDynamic() const {
 }
 
 folly::dynamic BcmHostTable::toFollyDynamic() const {
-  std::vector<folly::dynamic> hostsJson;
+  folly::dynamic hostsJson = folly::dynamic::array;
   for (const auto& vrfIpAndHost: hosts_) {
-    hostsJson.emplace_back(vrfIpAndHost.second.first->toFollyDynamic());
+    hostsJson.push_back(vrfIpAndHost.second.first->toFollyDynamic());
   }
-  std::vector<folly::dynamic> ecmpHostsJson;
+  folly::dynamic ecmpHostsJson = folly::dynamic::array;
   for (const auto& vrfNhopsAndHost: ecmpHosts_) {
-    ecmpHostsJson.emplace_back(vrfNhopsAndHost.second.first->toFollyDynamic());
+    ecmpHostsJson.push_back(vrfNhopsAndHost.second.first->toFollyDynamic());
   }
   folly::dynamic hostTable = folly::dynamic::object;
   hostTable[kHosts] = std::move(hostsJson);

@@ -343,9 +343,9 @@ void BcmRouteTable::deleteRoute(opennsl_vrf_t vrf, const RouteT *route) {
 }
 
 folly::dynamic BcmRouteTable::toFollyDynamic() const {
-  std::vector<folly::dynamic> routesJson;
+  folly::dynamic routesJson = folly::dynamic::array;
   for (const auto& route : fib_) {
-    routesJson.emplace_back(route.second->toFollyDynamic());
+    routesJson.push_back(route.second->toFollyDynamic());
   }
   folly::dynamic routeTable = folly::dynamic::object;
   routeTable[kRoutes] = std::move(routesJson);

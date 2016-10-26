@@ -263,9 +263,9 @@ folly::dynamic BcmEgress::toFollyDynamic() const {
 folly::dynamic BcmEcmpEgress::toFollyDynamic() const {
   folly::dynamic ecmpEgress = folly::dynamic::object;
   ecmpEgress[kEgressId] = getID();
-  std::vector<folly::dynamic> paths;
+  folly::dynamic paths = folly::dynamic::array;
   for (auto path: paths_) {
-    paths.emplace_back(path);
+    paths.push_back(path);
   }
   ecmpEgress[kPaths] = std::move(paths);
   return ecmpEgress;

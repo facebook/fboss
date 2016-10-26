@@ -368,9 +368,9 @@ void BcmIntfTable::deleteIntf(const std::shared_ptr<Interface>& intf) {
 }
 
 folly::dynamic BcmIntfTable::toFollyDynamic() const {
-  std::vector<folly::dynamic> intfsJson;
+  folly::dynamic intfsJson = folly::dynamic::array;
   for (const auto& intf: intfs_) {
-    intfsJson.emplace_back(intf.second->toFollyDynamic());
+    intfsJson.push_back(intf.second->toFollyDynamic());
   }
   folly::dynamic intfTable = folly::dynamic::object;
   return intfTable[kIntfs] = std::move(intfsJson);

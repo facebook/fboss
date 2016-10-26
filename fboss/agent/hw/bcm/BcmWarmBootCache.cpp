@@ -223,16 +223,16 @@ folly::dynamic BcmWarmBootCache::toFollyDynamic() const {
   // For now we serialize only the hwSwitchEcmp2EgressIds_ table.
   // This is the only thing we need and may not be able to get
   // from HW in the case where we shut down before doing a FIB sync.
-  std::vector<folly::dynamic> ecmps;
+  folly::dynamic ecmps = folly::dynamic::array;
   for (auto& ecmpAndEgressIds : hwSwitchEcmp2EgressIds_) {
     folly::dynamic ecmp = folly::dynamic::object;
     ecmp[kEcmpEgressId] = ecmpAndEgressIds.first;
-    std::vector<folly::dynamic> paths;
+    folly::dynamic paths = folly::dynamic::array;
     for (auto path : ecmpAndEgressIds.second) {
-      paths.emplace_back(path);
+      paths.push_back(path);
     }
     ecmp[kPaths] = std::move(paths);
-    ecmps.emplace_back(std::move(ecmp));
+    ecmps.push_back(std::move(ecmp));
   }
   warmBootCache[kEcmpObjects] = std::move(ecmps);
   return warmBootCache;
