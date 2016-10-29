@@ -78,7 +78,7 @@ InterfaceMap::IntfAddrToReach InterfaceMap::getIntfAddrToReach(
 }
 
 folly::dynamic InterfaceMap::toFollyDynamic() const {
-  folly::dynamic intfs;
+  folly::dynamic intfs = folly::dynamic::array;
   for (const auto& intf: *this) {
     intfs.push_back(intf->toFollyDynamic());
   }

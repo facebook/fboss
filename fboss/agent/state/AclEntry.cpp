@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/state/StateUtils.h"
 #include <folly/Conv.h>
 
 using folly::IPAddress;
@@ -202,7 +203,7 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   }
   if (aclEntryJson.find(kIpFrag) != aclEntryJson.items().end()) {
     auto itr_ipFrag = cfg::_IpFragMatch_NAMES_TO_VALUES.find(
-      aclEntryJson[kIpFrag].asString().c_str());
+      StateUtils::getCpp2EnumName(aclEntryJson[kIpFrag].asString()).c_str());
     aclEntry.ipFrag = cfg::IpFragMatch(itr_ipFrag->second);
   }
   if (aclEntryJson.find(kIcmpType) != aclEntryJson.items().end()) {
@@ -212,7 +213,7 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
     aclEntry.icmpCode = aclEntryJson[kIcmpCode].asInt();
   }
   auto itr_action = cfg::_AclAction_NAMES_TO_VALUES.find(
-    aclEntryJson[kAction].asString().c_str());
+    StateUtils::getCpp2EnumName(aclEntryJson[kAction].asString()).c_str());
   aclEntry.action = cfg::AclAction(itr_action->second);
   return aclEntry;
 }
@@ -234,19 +235,24 @@ void AclEntryFields::checkFollyDynamic(const folly::dynamic& aclEntryJson) {
     }
   }
   // check ipFrag is valid
-  if (aclEntryJson.find(kIpFrag) != aclEntryJson.items().end() &&
-      cfg::_IpFragMatch_NAMES_TO_VALUES.find(
-        aclEntryJson[kIpFrag].asString().c_str()) ==
-      cfg::_IpFragMatch_NAMES_TO_VALUES.end()) {
-    throw FbossError("Unsupported ACL IP fragmentation option ",
-      aclEntryJson[kIpFrag].asString());
+  if (aclEntryJson.find(kIpFrag) != aclEntryJson.items().end()) {
+    const auto ipFragName = StateUtils::getCpp2EnumName(
+        aclEntryJson[kIpFrag].asString());
+    if (cfg::_IpFragMatch_NAMES_TO_VALUES.find(ipFragName.c_str()) ==
+        cfg::_IpFragMatch_NAMES_TO_VALUES.end()) {
+      throw FbossError("Unsupported ACL IP fragmentation option ",
+          aclEntryJson[kIpFrag].asString());
+    }
   }
   // check action is valid
-  if (cfg::_AclAction_NAMES_TO_VALUES.find(
-      aclEntryJson[kAction].asString().c_str()) ==
-      cfg::_AclAction_NAMES_TO_VALUES.end()) {
-    throw FbossError(
-      "Unsupported ACL action ", aclEntryJson[kAction].asString());
+  if (aclEntryJson.find(kAction) != aclEntryJson.items().end()) {
+    const auto actionName = StateUtils::getCpp2EnumName(
+        aclEntryJson[kAction].asString());
+    if (cfg::_AclAction_NAMES_TO_VALUES.find(actionName.c_str()) ==
+        cfg::_AclAction_NAMES_TO_VALUES.end()) {
+      throw FbossError(
+          "Unsupported ACL action ", aclEntryJson[kAction].asString());
+    }
   }
   // check icmp type exists when icmp code exist
   if (aclEntryJson.find(kIcmpCode) != aclEntryJson.items().end() &&
