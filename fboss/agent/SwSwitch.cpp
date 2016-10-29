@@ -786,11 +786,12 @@ Transceiver* SwSwitch::getTransceiver(TransceiverID id) const {
 map<TransceiverID, TransceiverInfo> SwSwitch::getTransceiversInfo() const {
   map<TransceiverID, TransceiverInfo> infos;
   int i = -1;
-  for (const auto& it : *transceiverMap_) {
-    TransceiverInfo info;
-    it.second->getTransceiverInfo(info);
-    infos[it.first] = info;
-  }
+  transceiverMap_->iterateTransceivers(
+      [&](TransceiverID idx, Transceiver* qsfp) {
+        TransceiverInfo info;
+        qsfp->getTransceiverInfo(info);
+        infos[idx] = info;
+      });
   return infos;
 }
 
@@ -807,13 +808,15 @@ TransceiverInfo SwSwitch::getTransceiverInfo(TransceiverID idx) const {
 
 map<int32_t, SfpDom> SwSwitch::getSfpDoms() const {
   map<int32_t, SfpDom> domInfos;
-  for (const auto& it : *transceiverMap_) {
-    if (it.second->type() == TransceiverType::SFP) {
-      SfpDom domInfo;
-      it.second->getSfpDom(domInfo);
-      domInfos[it.first] = domInfo;
-    }
-  }
+  transceiverMap_->iterateTransceivers(
+      [&](TransceiverID idx, Transceiver* qsfp) {
+        if (qsfp->type() != TransceiverType::SFP) {
+          return;
+        }
+        SfpDom domInfo;
+        qsfp->getSfpDom(domInfo);
+        domInfos[idx] = domInfo;
+      });
   return domInfos;
 }
 
@@ -844,16 +847,16 @@ void SwSwitch::addTransceiverMapping(PortID portID, ChannelID channelID,
 
 // TODO(ninasc): Remove when qsfp service is live
 void SwSwitch::detectTransceiver() {
-  for (const auto& t : *transceiverMap_) {
-    t.second.get()->detectTransceiver();
-  }
+  transceiverMap_->iterateTransceivers([&](TransceiverID, Transceiver* qsfp) {
+    qsfp->detectTransceiver();
+  });
 }
 
 // TODO(ninasc): Remove when qsfp service is live
 void SwSwitch::updateTransceiverInfoFields() {
-  for (const auto& t : *transceiverMap_) {
-    t.second.get()->updateTransceiverInfoFields();
-  }
+  transceiverMap_->iterateTransceivers([&](TransceiverID, Transceiver* qsfp) {
+    qsfp->updateTransceiverInfoFields();
+  });
 }
 
 SwitchStats* SwSwitch::createSwitchStats() {

@@ -9,9 +9,12 @@
  */
 #pragma once
 
+#include <mutex>
 #include <utility>
-#include "fboss/agent/types.h"
+
 #include <boost/container/flat_map.hpp>
+
+#include "fboss/agent/types.h"
 
 namespace facebook { namespace fboss {
 
@@ -29,16 +32,15 @@ class Transceiver;
  * objects are updated by the transceiver detection thread.
  */
 
-typedef std::pair<ChannelID, TransceiverID> TransceiverIdx;
-typedef boost::container::flat_map<PortID, TransceiverIdx>
-        PortTransceiverMap;
-typedef boost::container::flat_map<TransceiverID,
-                                   std::unique_ptr<Transceiver>> Transceivers;
+using TransceiverIdx = std::pair<ChannelID, TransceiverID>;
+using PortTransceiverMap = boost::container::flat_map<PortID, TransceiverIdx>;
+using Transceivers = boost::container::flat_map<
+  TransceiverID, std::unique_ptr<Transceiver>>;
 
 class TransceiverMap {
  public:
-  TransceiverMap();
-  ~TransceiverMap();
+  TransceiverMap() = default;
+  ~TransceiverMap() = default;
 
   /*
    * This function returns a pair with the channel number and
@@ -48,36 +50,40 @@ class TransceiverMap {
    *          and needs to be checked by the caller.
    */
   TransceiverIdx transceiverMapping(PortID portID) const;
+
   /*
    * Return a pointer to the transceiver
    */
   Transceiver* transceiver(TransceiverID id) const;
+
   /*
-   * Add the transceiver to the list of devices, returning the ID
-   * for later use.
+   * Add the transceiver to the list of devices
    */
-  void addTransceiver(TransceiverID idx, std::unique_ptr<Transceiver> module) {
-    transceivers_.emplace(std::make_pair(idx, std::move(module)));
-  }
+  void addTransceiver(TransceiverID idx, std::unique_ptr<Transceiver> module);
+
   /*
    * This function is used to create the transceiver mapping. Port
    * and Transceiver Module object Map.
    */
-  void addTransceiverMapping(PortID portID, ChannelID channel,
-                             TransceiverID transceiver);
+  void addTransceiverMapping(
+      PortID portID, ChannelID channel, TransceiverID transceiver);
+
   /*
-   * This function returns an iterator traversing the list of transceivers.
+   * Thread safe method to iterate over exsting transceivers.
+   *
+   * NOTE: Do not call other APIs of this class inside of the callback as it
+   * can cause deadlock.
    */
-  Transceivers::const_iterator begin() const;
-  /*
-   * This function returns the end of the list of transceivers iterator.
-   */
-  Transceivers::const_iterator end() const;
+  void iterateTransceivers(
+      std::function<void(TransceiverID, Transceiver*)> callback) const;
 
  private:
   // Forbidden copy constructor and assignment operator
   TransceiverMap(TransceiverMap const &) = delete;
   TransceiverMap& operator=(TransceiverMap const &) = delete;
+
+  // Mutex to protect transceiverMap_ and transceivers_
+  mutable std::mutex mutex_;
 
   PortTransceiverMap transceiverMap_;
   Transceivers transceivers_;

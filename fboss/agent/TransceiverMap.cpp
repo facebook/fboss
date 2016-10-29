@@ -14,13 +14,8 @@
 
 namespace facebook { namespace fboss {
 
-TransceiverMap::TransceiverMap() {
-}
-
-TransceiverMap::~TransceiverMap() {
-}
-
 TransceiverIdx TransceiverMap::transceiverMapping(PortID portID) const {
+  std::lock_guard<std::mutex> guard(mutex_);
   auto it = transceiverMap_.find(portID);
   if (it == transceiverMap_.end()) {
     throw FbossError("No transceiver entry found for port ", portID);
@@ -29,21 +24,36 @@ TransceiverIdx TransceiverMap::transceiverMapping(PortID portID) const {
 }
 
 Transceiver* TransceiverMap::transceiver(TransceiverID idx) const {
+  std::lock_guard<std::mutex> guard(mutex_);
   return transceivers_.at(idx).get();
 }
 
-void TransceiverMap::addTransceiverMapping(PortID portID, ChannelID channel,
-                                           TransceiverID module) {
-  transceiverMap_.emplace(std::make_pair(portID,
-                          std::make_pair(channel, module)));
+void TransceiverMap::addTransceiverMapping(
+    PortID portID, ChannelID channel, TransceiverID module) {
+  std::lock_guard<std::mutex> guard(mutex_);
+  transceiverMap_.emplace(portID, std::make_pair(channel, module));
 }
 
-Transceivers::const_iterator TransceiverMap::begin() const {
-  return transceivers_.begin();
+void TransceiverMap::addTransceiver(
+    TransceiverID idx,
+    std::unique_ptr<Transceiver> module) {
+  CHECK(module) << "Got nullptr to transceiver module.";
+
+  std::lock_guard<std::mutex> guard(mutex_);
+
+  // Try emplacing. If one already exists then throw an error
+  auto ret = transceivers_.emplace(idx, std::move(module));
+  if (not ret.second) {
+    throw FbossError("Duplicate transceivers found for id ", idx);
+  }
 }
 
-Transceivers::const_iterator TransceiverMap::end() const {
-  return transceivers_.end();
+void TransceiverMap::iterateTransceivers(
+    std::function<void(TransceiverID, Transceiver*)> callback) const {
+  std::lock_guard<std::mutex> guard(mutex_);
+  for (auto const& iter : transceivers_) {
+    callback(iter.first, iter.second.get());
+  }
 }
 
 }} // facebook::fboss
