@@ -227,12 +227,14 @@ class PortCli(object):
     @click.command()
     @click.argument('ports', nargs=-1, type=PortType())
     @click.option('--detail', is_flag=True, help='Display detailed port status')
+    @click.option('--internal', is_flag=True,
+                  help='Display all ports info with internal ID')
     @click.option('-v', '--verbose', is_flag=True,
                     help='Show flags and thresholds as well as details')
     @click.pass_obj
-    def _status(cli_opts, detail, ports, verbose):
+    def _status(cli_opts, detail, ports, verbose, internal):
         ''' Show port status '''
-        port.PortStatusCmd(cli_opts).run(detail, ports, verbose)
+        port.PortStatusCmd(cli_opts).run(detail, ports, verbose, internal)
 
 
 class ProductInfoCli(object):

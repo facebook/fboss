@@ -126,20 +126,32 @@ class PortFlapCmd(cmds.FbossCmd):
 
 
 class PortStatusCmd(cmds.FbossCmd):
-    def run(self, detail, ports, verbose):
+    def run(self, detail, ports, verbose, internal):
         self._client = self._create_ctrl_client()
         if detail or verbose:
             PortStatusDetailCmd(
                 self._client, ports, verbose).get_detail_status()
+        elif internal:
+            self.list_ports(ports, internal_port=True)
         else:
             self.list_ports(ports)
 
-    def list_ports(self, ports):
-        try:
+    def _get_field_format(self, internal_port):
+        if internal_port:
+            field_fmt = '{:>6} {:>10}  {:>12}  {}{:>10}  {:>12}  {:>6}'
+            print(field_fmt.format('port ID', 'Port Name', 'Admin State', '',
+                                   'Link State', 'Transceiver', 'Speed'))
+            print('-' * 68)
+        else:
             field_fmt = '{:>10}  {:>12}  {}{:>10}  {:>12}  {:>6}'
             print(field_fmt.format('Port', 'Admin State', '', 'Link State',
                                    'Transceiver', 'Speed'))
             print('-' * 59)
+        return field_fmt
+
+    def list_ports(self, ports, internal_port=False):
+        try:
+            field_fmt = self._get_field_format(internal_port)
             resp = self._client.getPortStatus(ports)
             port_info = self._client.getAllPortInfo()
 
@@ -149,11 +161,28 @@ class PortStatusCmd(cmds.FbossCmd):
                     continue
                 status = resp[port]
                 attrs = utils.get_status_strs(status)
-                if status.enabled:
+                if internal_port:
+                    speed = attrs['speed']
+                    if not speed:
+                        speed = '-'
+                    print(field_fmt.format(
+                          port,
+                          port_data.name,
+                          attrs['admin_status'],
+                          attrs['color_align'],
+                          attrs['link_status'],
+                          attrs['present'],
+                          speed))
+
+                if not internal_port and status.enabled:
                     name = port_data.name if port_data.name else port
                     print(field_fmt.format(
-                        name, attrs['admin_status'], attrs['color_align'],
-                        attrs['link_status'], attrs['present'], attrs['speed']))
+                          name,
+                          attrs['admin_status'],
+                          attrs['color_align'],
+                          attrs['link_status'],
+                          attrs['present'],
+                          attrs['speed']))
 
         except KeyError as e:
             print("Invalid port", e)
