@@ -11,6 +11,7 @@
 import binascii
 import string
 
+from fboss.cli.utils import utils
 from fboss.cli.commands import commands as cmds
 
 
@@ -44,10 +45,9 @@ class LldpCmd(cmds.FbossCmd):
                           for key, value in headers.items())
 
         entries = []
-        for neighbor in resp:
+        for neighbor in sorted(resp, key=self._port_sort_fn):
             if (lldp_port and not neighbor.localPort == lldp_port):
                 continue
-
             fields = self._get_fields(neighbor)
             for key, value in fields.items():
                 if len(str(value)) > max_widths[key]:
@@ -63,6 +63,10 @@ class LldpCmd(cmds.FbossCmd):
             self._print_fields(selected, entries, headers, max_widths)
         else:
             self._print_verbose(entries, headers)
+
+    def _port_sort_fn(self, neighbor):
+        port_name = self._AllPortsInfo[neighbor.localPort].name
+        return utils.port_name_sort_fn(port_name)
 
     def _print_fields(self, selected, fields, headers, max_widths):
         fmt = ' '.join('{{{}:<{}}}'.format(key, max_widths[key])
