@@ -46,4 +46,11 @@ class LibusbError : public UsbError {
   int error_;
 };
 
+class UsbDeviceResetError : public UsbError {
+ public:
+  template<typename... Args>
+  explicit UsbDeviceResetError(const Args&... args)
+    : UsbError(args...) {}
+};
+
 }} // facebook::fboss

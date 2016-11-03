@@ -111,6 +111,7 @@ namespace facebook { namespace fboss {
 
 CP2112::CP2112()
   : ownCtx_(true) {
+  lastResetTime_ =  std::chrono::steady_clock::now();
   int rc = libusb_init(&ctx_);
   if (rc != 0) {
     throw LibusbError(rc, "failed to initialize libusb");
@@ -180,53 +181,22 @@ bool CP2112::resetFromRestEndpoint() {
   }
 }
 
+/*
+ * Don't reset the device if it was last reset less than minResetInterval_
+ * milliseconds ago.  Throw UsbDeviceResetError if we don't attempt the
+ * reset because insufficient time has elapsed.
+ */
 void CP2112::resetDevice() {
-  bool success = false;
-
-   /* TODO: Until we root cause t12163277 for CP2112 alerts, lets
-   disable using rest endpoint to BMC */
-  //success = resetFromRestEndpoint();
-  if (!success) {
-    resetFromUserver();
+  auto nowTime = std::chrono::steady_clock::now();
+  if ((nowTime - lastResetTime_) < minResetInterval_) {
+    std::chrono::duration<double> elapsed = nowTime - lastResetTime_;
+    throw UsbDeviceResetError("CP2112: insufficient time since last reset " +
+                              folly::to<std::string>(elapsed.count()) +
+                              " seconds ago");
   }
-  // Close and re-open the device.
-  //
-  // Retry until this succeeds.  It will take several tens of milliseconds for
-  // the device to reset and disappear from the bus.  In the meantime we will
-  // receive errors when trying to access it.  (Generally LIBUSB_ERROR_PIPE,
-  // but LIBUSB_ERROR_NO_DEVICE can occur as the device is being removed).  It
-  // then takes a few hundred milliseconds for the device to be re-enumerated
-  // and to re-appear.
-  unsigned int attempt = 0;
-  unsigned int maxRetries = 100;
-  while (true) {
-    ++attempt;
-    close();
-    try {
-      openDevice();
-      // Call getVersion() to make sure the device is really working.
-      // Immediately after the reset starts we can still open the device
-      // but getVersion() and all other calls will fail.
-      getVersion();
-      // If we are still here the device has reset and is working properly.
-      // Initialize our settings as desired.
-      initSettings();
-      return;
-    } catch (const LibusbError& ex) {
-      if (attempt >= maxRetries) {
-        throw LibusbError(ex.errorCode(),
-                          "failed to re-open USB-to-I2C bridge after reset");
-      }
-    } catch (const UsbError& ex) {
-      // We get an UsbError if the device isn't found at all
-      if (attempt >= maxRetries) {
-        throw UsbError("failed to re-open USB-to-I2C bridge after reset: ",
-                       ex.what());
-      }
-    }
-    // Wait 10ms between each retry
-    usleep(10000);
-  }
+  VLOG(1) << "resetting CP2112 device";
+  lastResetTime_ = nowTime;
+  resetFromUserver();
 }
 
 CP2112::VersionInfo CP2112::getVersion() {

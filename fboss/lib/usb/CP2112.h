@@ -395,6 +395,8 @@ class CP2112 {
   bool ownCtx_{false};
   bool busGood_{true};
   std::chrono::milliseconds defaultTimeout_{500};
+  std::chrono::time_point<std::chrono::steady_clock> lastResetTime_;
+  std::chrono::milliseconds minResetInterval_{10000}; /* 10 seconds */
 };
 
 }} // facebook::fboss

@@ -47,9 +47,10 @@ void WedgeI2CBus::verifyBus(bool autoReset) {
     // If the bus is in this state resetting the chip will make it completely
     // inaccessible.
     if (autoReset) {
-      VLOG(1) << "initial read from CP2112 failed; resetting device";
-      dev_.resetDevice();
-      dev_.read(ADDR_EEPROM, MutableByteRange(tmpBuf, sizeof(tmpBuf)));
+      try {
+        dev_.resetDevice();
+      } catch (const UsbDeviceResetError& ex) {
+      }
     } else {
       VLOG(1) << "initial read from CP2112 failed; I2C bus appears hung";
       throw;
