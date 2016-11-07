@@ -127,7 +127,7 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(RouterID(0), interface->getRouterID());
   EXPECT_EQ("Interface 1", interface->getName());
   EXPECT_EQ(MacAddress("00:02:00:11:22:33"), interface->getMac());
-  EXPECT_EQ(Interface::Addresses{}, interface->getAddresses());
+  EXPECT_EQ(1, interface->getAddresses().size()); // 1 ipv6 link local address
   EXPECT_EQ(0, interface->getNdpConfig().routerAdvertisementSeconds);
   auto vlan1 = state->getVlans()->getVlanIf(VlanID(1));
   EXPECT_EQ(InterfaceID(1),vlan1->getInterfaceID());
@@ -193,7 +193,8 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(oldInterface->getRouterID(), interface->getRouterID());
   EXPECT_EQ(oldInterface->getName(), interface->getName());
   EXPECT_EQ(platformMac, interface->getMac());
-  EXPECT_EQ(oldInterface->getAddresses(), interface->getAddresses());
+  // Interface will be updated based on new MAC Address
+  EXPECT_NE(oldInterface->getAddresses(), interface->getAddresses());
 
   // IP addresses change
   config.interfaces[0].ipAddresses.resize(4);
@@ -208,7 +209,8 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(RouterID(1), interface->getRouterID());
   EXPECT_EQ(oldInterface->getName(), interface->getName());
   EXPECT_EQ(oldInterface->getMac(), interface->getMac());
-  EXPECT_EQ(4, interface->getAddresses().size());
+  // Link-local addrs will be added automatically
+  EXPECT_EQ(5, interface->getAddresses().size());
 
   // change the order of IP address shall not change the interface
   config.interfaces[0].ipAddresses[0] = "10.1.1.1/24";
@@ -388,7 +390,7 @@ TEST(InterfaceMap, applyConfig) {
   EXPECT_EQ(2, intfsV2->getGeneration());
   EXPECT_EQ(2, intfsV2->size());
   auto intf2 = intfsV2->getInterface(InterfaceID(2));
-  EXPECT_EQ(2, intf2->getAddresses().size());
+  EXPECT_EQ(3, intf2->getAddresses().size());   // v6 link-local is added
 
   checkChangedIntfs(intfsV1, intfsV2, {2}, {}, {});
 
@@ -414,7 +416,7 @@ TEST(InterfaceMap, applyConfig) {
   EXPECT_EQ(3, intfsV3->getGeneration());
   EXPECT_EQ(3, intfsV3->size());
   auto intf3 = intfsV3->getInterface(InterfaceID(3));
-  EXPECT_EQ(0, intf3->getAddresses().size());
+  EXPECT_EQ(1, intf3->getAddresses().size());
   EXPECT_EQ(config.interfaces[0].mac, intf3->getMac().toString());
   // intf 1 should not be there anymroe
   EXPECT_EQ(nullptr, intfsV3->getInterfaceIf(InterfaceID(1)));

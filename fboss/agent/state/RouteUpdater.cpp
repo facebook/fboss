@@ -25,6 +25,12 @@ using boost::container::flat_map;
 using boost::container::flat_set;
 using folly::CIDRNetwork;
 
+namespace {
+
+const auto kIPv6LinkLocalPrefix = IPAddress::createNetwork("fe80::/64");
+
+} // anonymous namespace
+
 namespace facebook { namespace fboss {
 
 using std::make_shared;
@@ -192,17 +198,20 @@ void RouteUpdater::addRoute(RouterID id, const folly::IPAddress& network,
 }
 
 void RouteUpdater::addLinkLocalRoutes(RouterID id) {
-  // only one v6 link local route
-  const auto linkLocal = folly::IPAddress("fe80::");
-  const uint8_t mask = 64;
-  addRoute(id, linkLocal, mask, RouteForwardAction::TO_CPU);
+  // NOTE: v4 link-local route is not added because currently fboss handles
+  // v4 link-locals as normal routes.
+
+  // Add v6 link-local route
+  addRoute(
+      id,
+      kIPv6LinkLocalPrefix.first,
+      kIPv6LinkLocalPrefix.second,
+      RouteForwardAction::TO_CPU);
 }
 
 void RouteUpdater::delLinkLocalRoutes(RouterID id) {
-  // only one v6 link local route
-  const auto linkLocal = folly::IPAddress("fe80::");
-  const uint8_t mask = 64;
-  delRoute(id, linkLocal, mask);
+  // Delete v6 link-local route
+  delRoute(id, kIPv6LinkLocalPrefix.first, kIPv6LinkLocalPrefix.second);
 }
 
 template<typename PrefixT, typename RibT>
@@ -454,6 +463,14 @@ void RouteUpdater::addInterfaceAndLinkLocalRoutes(
     auto routerId = intf->getRouterID();
     routers.insert(routerId);
     for (auto const& addr : intf->getAddresses()) {
+      // TODO: v4 LL addresses are used in Galaxy. Once BGP sessions are moved
+      // to non LL addresses we should remove the special check for
+      // `addr.first.isV6()` in following condition
+      if (addr.first.isV6() and addr.first.isLinkLocal()) {
+        LOG(WARNING) << "Skipping unexpected v6 link-local interface address "
+                     << addr.first << " for interface " << intf->getName();
+        continue;
+      }
       addRoute(routerId, intf->getID(), addr.first, addr.second);
     }
   }

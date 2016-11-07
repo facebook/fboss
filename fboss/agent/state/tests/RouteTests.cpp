@@ -554,7 +554,7 @@ TEST(Route, Interface) {
   }
 
   {
-    // verify the link local route
+    // verify v6 link local route
     auto rt = rib6->exactMatch(RoutePrefixV6{IPAddressV6("fe80::"), 64});
     ASSERT_NE(nullptr, rt);
     EXPECT_EQ(0, rt->getGeneration());

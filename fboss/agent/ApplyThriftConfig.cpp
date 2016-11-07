@@ -46,6 +46,11 @@ using folly::CIDRNetwork;
 using std::make_shared;
 using std::shared_ptr;
 
+namespace {
+
+const uint8_t kV6LinkLocalAddrMask{64};
+
+} // anonymous namespace
 
 namespace facebook { namespace fboss {
 
@@ -741,10 +746,20 @@ shared_ptr<RouteTableMap> ThriftConfigApplier::updateInterfaceRoutes() {
       auto intf = entry.second.first;
       auto& addr = entry.second.second;
       auto len = entry.first.second;
+
+      // TODO: For now we are allowing v4 LLs to be programmed because they are
+      // used within Galaxy for LL routing. This hack should go away once we
+      // move BGP sessions over non LL addresses
+      if (addr.isV6() and addr.isLinkLocal()) {
+        LOG(WARNING) << "Skipping route for v6 link-local address " << addr;
+        continue;
+      }
+
       updater.addRoute(table.first, intf, addr, len);
     }
     newToAddTables.insert(table.first);
   }
+
   // need to go through all existing connected routes and delete those
   // not there anymore
   for (const auto& intf : orig_->getInterfaces()->getAllNodes()) {
@@ -900,12 +915,28 @@ MacAddress ThriftConfigApplier::getInterfaceMac(const cfg::Interface* config) {
 Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
     const cfg::Interface* config) {
   Interface::Addresses addrs;
+
+  // Assign auto-generate v6 link-local address to interface. Config can
+  // have more link-local addresses if needed.
+  const auto macAddr = platform_->getLocalMac();
+  const folly::IPAddressV6 v6llAddr(folly::IPAddressV6::LINK_LOCAL, macAddr);
+  addrs.emplace(v6llAddr, kV6LinkLocalAddrMask);
+
+  // Add all interface addresses from config
   for (const auto& addr : config->ipAddresses) {
     auto intfAddr = IPAddress::createNetwork(addr, -1, false);
     auto ret = addrs.insert(intfAddr);
     if (!ret.second) {
       throw FbossError("Duplicate network IP address ", addr,
                        " in interface ", config->intfID);
+    }
+
+    // NOTE: We do not want to leak link-local address into intfRouteTables_
+    // TODO: For now we are allowing v4 LLs to be programmed because they are
+    // used within Galaxy for LL routing. This hack should go away once we
+    // move BGP sessions over non LL addresses
+    if (intfAddr.first.isV6() and intfAddr.first.isLinkLocal()) {
+      continue;
     }
     auto ret2 = intfRouteTables_[RouterID(config->routerID)].emplace(
         IPAddress::createNetwork(addr),
@@ -926,6 +957,7 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
           std::make_pair(InterfaceID(config->intfID), intfAddr.first));
     }
   }
+
   return addrs;
 }
 

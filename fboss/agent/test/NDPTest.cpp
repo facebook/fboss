@@ -535,6 +535,7 @@ TEST(NdpTest, RouterAdvertisement) {
   auto intfConfig = state->getInterfaces()->getInterface(InterfaceID(1234));
   PrefixVector expectedPrefixes{
     { IPAddressV6("2401:db00:2110:3004::"), 64 },
+    { IPAddressV6("fe80::"), 64 },
   };
   EXPECT_PKT(sw, "router advertisement",
              checkRouterAdvert(kPlatformMac,
