@@ -38,7 +38,7 @@ class TunManager : public StateObserver {
    * overrides the StateObserver stateUpdated api, which is always
    * guaranteed to be called from the update thread.
    */
-  void stateUpdated(const StateDelta& delta) override;
+  virtual void stateUpdated(const StateDelta& delta) override;
 
   /**
    * Send a packet to host.
@@ -47,7 +47,8 @@ class TunManager : public StateObserver {
    * @return true The packet is sent to host
    *         false The packet is dropped due to errors
    */
-  bool sendPacketToHost(InterfaceID dstIfID, std::unique_ptr<RxPacket> pkt);
+  virtual bool sendPacketToHost(
+      InterfaceID dstIfID, std::unique_ptr<RxPacket> pkt);
 
   /**
    * Performs probe procedure to read existing TUN interface info from the host
@@ -59,7 +60,7 @@ class TunManager : public StateObserver {
    * SwSwitch calls this API when initial configuration is applied on agent
    * restart.
    */
-  void sync(std::shared_ptr<SwitchState> state);
+  virtual void sync(std::shared_ptr<SwitchState> state);
 
   /**
    * This should be called externally only after initial sync has been
@@ -68,7 +69,7 @@ class TunManager : public StateObserver {
    * SwSwitch calls this API after calling initial sync when initial
    * configuration is applied.
    */
-  void startObservingUpdates();
+  virtual void startObservingUpdates();
 
  private:
   // no copy to assign

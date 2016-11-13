@@ -17,10 +17,7 @@ class MockTxPacket : public TxPacket {
  public:
   explicit MockTxPacket(uint32_t size);
 
- private:
-  // Forbidden copy constructor and assignment operator
-  MockTxPacket(MockTxPacket const &) = delete;
-  MockTxPacket& operator=(MockTxPacket const &) = delete;
+  std::unique_ptr<MockTxPacket> clone() const;
 };
 
 }} // facebook::fboss

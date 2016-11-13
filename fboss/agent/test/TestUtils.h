@@ -17,12 +17,15 @@
 #include <folly/Range.h>
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/SwSwitch.h"
 
 namespace facebook { namespace fboss {
 
 class MockHwSwitch;
 class MockPlatform;
+class MockTunManager;
 class Platform;
+class RxPacket;
 class SwitchState;
 class SwSwitch;
 class TxPacket;
@@ -66,11 +69,15 @@ std::unique_ptr<SwSwitch> createMockSw(const std::shared_ptr<SwitchState>&);
 std::unique_ptr<SwSwitch> createMockSw(const std::shared_ptr<SwitchState>&,
                                        const folly::MacAddress&);
 
-std::unique_ptr<SwSwitch> createMockSw(cfg::SwitchConfig* cfg,
-                                       folly::MacAddress mac,
-                                       uint32_t maxPorts = 0);
-std::unique_ptr<SwSwitch> createMockSw(cfg::SwitchConfig* cfg,
-                                       uint32_t maxPorts = 0);
+std::unique_ptr<SwSwitch> createMockSw(
+    cfg::SwitchConfig* cfg,
+    folly::MacAddress mac,
+    uint32_t maxPorts = 0,
+    SwitchFlags flags = DEFAULT);
+std::unique_ptr<SwSwitch> createMockSw(
+    cfg::SwitchConfig* cfg,
+    uint32_t maxPorts = 0,
+    SwitchFlags flags = DEFAULT);
 
 /*
  * Get the MockHwSwitch from a SwSwitch.
@@ -192,15 +199,32 @@ std::string fbossHexDump(const std::string& buf);
  */
 #define EXPECT_PKT(sw, name, matchFn) \
   EXPECT_HW_CALL(sw, sendPacketSwitched_( \
-                 TxPacketMatcher::createMatcher(name, matchFn)));
+                 TxPacketMatcher::createMatcher(name, matchFn)))
 
-typedef std::function<void(const TxPacket* pkt)> TxMatchFn;
+/**
+ * Convenience macro for expecting RxPacket to be transmitted by TunManager.
+ * usage:
+ *  EXPECT_TUN_PKT(tunMgr, "Unicast Packet", packetChecker).Times(1)
+ */
+#define EXPECT_TUN_PKT(tun, name, dstIfID, matchFn) \
+  EXPECT_CALL( \
+    *tun, \
+    sendPacketToHost_( \
+      RxPacketMatcher::createMatcher(name, dstIfID, matchFn)))
+
+/**
+ * Templatized version of Matching function for Tx/Rx packet.
+ */
+template <typename T>
+using MatchFn = std::function<void(const T* pkt)>;
+using RxMatchFn = MatchFn<RxPacket>;
+using TxMatchFn = MatchFn<TxPacket>;
 
 /*
  * A gmock MatcherInterface for matching TxPacket objects.
  */
-class TxPacketMatcher :
-  public ::testing::MatcherInterface<std::shared_ptr<TxPacket>> {
+class TxPacketMatcher
+  : public ::testing::MatcherInterface<std::shared_ptr<TxPacket>> {
  public:
   TxPacketMatcher(folly::StringPiece name, TxMatchFn fn);
 
@@ -208,15 +232,42 @@ class TxPacketMatcher :
       folly::StringPiece name,
       TxMatchFn&& fn);
 
-  bool MatchAndExplain(std::shared_ptr<TxPacket> pkt,
-                       ::testing::MatchResultListener* l) const override;
+  bool MatchAndExplain(
+      std::shared_ptr<TxPacket> pkt,
+      ::testing::MatchResultListener* l) const override;
 
   void DescribeTo(std::ostream* os) const override;
   void DescribeNegationTo(std::ostream* os) const override;
 
  private:
-  std::string name_;
-  TxMatchFn fn_;
+  const std::string name_;
+  const TxMatchFn fn_;
+};
+
+/*
+ * A gmock MatcherInterface for matching RxPacket objects.
+ */
+using RxMatchFnArgs = std::tuple<InterfaceID, std::shared_ptr<RxPacket>>;
+class RxPacketMatcher : public ::testing::MatcherInterface<RxMatchFnArgs> {
+ public:
+  RxPacketMatcher(folly::StringPiece name, InterfaceID dstIfID, RxMatchFn fn);
+
+  static ::testing::Matcher<RxMatchFnArgs> createMatcher(
+      folly::StringPiece name,
+      InterfaceID dstIfID,
+      RxMatchFn&& fn);
+
+  bool MatchAndExplain(
+      RxMatchFnArgs args,
+      ::testing::MatchResultListener* l) const override;
+
+  void DescribeTo(std::ostream* os) const override;
+  void DescribeNegationTo(std::ostream* os) const override;
+
+ private:
+  const std::string name_;
+  const InterfaceID dstIfID_;
+  const RxMatchFn fn_;
 };
 
 }} // facebook::fboss

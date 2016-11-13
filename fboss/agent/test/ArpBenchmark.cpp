@@ -12,6 +12,7 @@
 #include <folly/Benchmark.h>
 #include <folly/Memory.h>
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/TunManager.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/hw/sim/SimPlatform.h"
 #include "fboss/agent/hw/sim/SimSwitch.h"
@@ -40,7 +41,7 @@ unique_ptr<MockRxPacket> arpRequest_10_0_0_5;
 unique_ptr<SwSwitch> setupSwitch() {
   MacAddress localMac("02:00:01:00:00:01");
   auto sw = make_unique<SwSwitch>(make_unique<SimPlatform>(localMac, 10));
-  sw->init();
+  sw->init(nullptr /* No custom TunManager */);
 
   auto updateFn = [&](const shared_ptr<SwitchState>& oldState) {
     auto state = oldState->clone();

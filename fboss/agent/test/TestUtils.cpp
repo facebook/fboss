@@ -13,7 +13,9 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/agent/ApplyThriftConfig.h"
-#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/RxPacket.h"
+#include "fboss/agent/TunManager.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -22,7 +24,7 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/RouteUpdater.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/test/MockTunManager.h"
 #include <folly/Memory.h>
 #include <folly/json.h>
 
@@ -73,7 +75,8 @@ unique_ptr<SwSwitch> createMockSw(const shared_ptr<SwitchState>& state) {
   ret.switchState = state;
   ret.bootType = BootType::COLD_BOOT;
   EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(ret));
-  sw->init();
+  EXPECT_PLATFORM_CALL(sw, onHwInitialized(_)).Times(1);
+  sw->init(nullptr);
   waitForStateUpdates(sw.get());
   return sw;
 }
@@ -88,14 +91,16 @@ unique_ptr<SwSwitch> createMockSw(const shared_ptr<SwitchState>& state,
   ret.switchState = state;
   ret.bootType = BootType::COLD_BOOT;
   EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(ret));
-  sw->init();
+  EXPECT_PLATFORM_CALL(sw, onHwInitialized(_)).Times(1);
+  sw->init(nullptr);
   waitForStateUpdates(sw.get());
   return sw;
 }
 
 unique_ptr<SwSwitch> createMockSw(cfg::SwitchConfig* config,
                                   MacAddress mac,
-                                  uint32_t maxPort) {
+                                  uint32_t maxPort,
+                                  SwitchFlags flags) {
   // Create the initial state, which only has ports
   auto initialState = make_shared<SwitchState>();
   if (maxPort == 0) {
@@ -112,11 +117,20 @@ unique_ptr<SwSwitch> createMockSw(cfg::SwitchConfig* config,
   EXPECT_CALL(*platform.get(), getLocalMac()).WillRepeatedly(Return(mac));
   auto sw = make_unique<SwSwitch>(std::move(platform));
   auto stateAndBootType = std::make_pair(initialState, BootType::COLD_BOOT);
+
   HwInitResult ret;
   ret.switchState = initialState;
   ret.bootType = BootType::COLD_BOOT;
   EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(ret));
-  sw->init();
+  EXPECT_PLATFORM_CALL(sw, onHwInitialized(_)).Times(1);
+
+  if (flags & ENABLE_TUN) {
+    auto mockTunMgr = new MockTunManager(sw.get(), sw->getBackgroundEVB());
+    std::unique_ptr<TunManager> tunMgr(mockTunMgr);
+    sw->init(std::move(tunMgr), flags);
+  } else {
+    sw->init(nullptr, flags);
+  }
 
   // Apply the thrift config
   auto updateFn = [&](const shared_ptr<SwitchState>& state) {
@@ -127,8 +141,9 @@ unique_ptr<SwSwitch> createMockSw(cfg::SwitchConfig* config,
 }
 
 unique_ptr<SwSwitch> createMockSw(cfg::SwitchConfig* config,
-                                  uint32_t maxPort) {
-  return createMockSw(config, MacAddress("02:00:00:00:00:01"), maxPort);
+                                  uint32_t maxPort,
+                                  SwitchFlags flags) {
+  return createMockSw(config, MacAddress("02:00:00:00:00:01"), maxPort, flags);
 }
 
 MockHwSwitch* getMockHw(SwSwitch* sw) {
@@ -296,19 +311,16 @@ std::string fbossHexDump(const string& buf) {
 }
 
 TxPacketMatcher::TxPacketMatcher(StringPiece name, TxMatchFn fn)
-  : name_(name.str()),
-    fn_(std::move(fn)) {
-}
+  : name_(name.str()), fn_(std::move(fn)) {}
 
 ::testing::Matcher<shared_ptr<TxPacket>> TxPacketMatcher::createMatcher(
     folly::StringPiece name,
     TxMatchFn&& fn) {
-  return ::testing::MakeMatcher(new TxPacketMatcher(name, fn));
+  return ::testing::MakeMatcher(new TxPacketMatcher(name, std::move(fn)));
 }
 
 bool TxPacketMatcher::MatchAndExplain(
-    shared_ptr<TxPacket> pkt,
-    ::testing::MatchResultListener* l) const {
+    shared_ptr<TxPacket> pkt, ::testing::MatchResultListener* l) const {
   try {
     fn_(pkt.get());
     return true;
@@ -326,4 +338,46 @@ void TxPacketMatcher::DescribeNegationTo(std::ostream* os) const {
   *os << "not " << name_;
 }
 
-}} // facebook::fboss
+RxPacketMatcher::RxPacketMatcher(
+    StringPiece name, InterfaceID dstIfID, RxMatchFn fn)
+    : name_(name.str()), dstIfID_(dstIfID), fn_(std::move(fn)) {}
+
+::testing::Matcher<RxMatchFnArgs>
+RxPacketMatcher::createMatcher(
+    folly::StringPiece name,
+    InterfaceID dstIfID,
+    RxMatchFn&& fn) {
+  return ::testing::MakeMatcher(
+      new RxPacketMatcher(name, dstIfID, std::move(fn)));
+}
+
+bool RxPacketMatcher::MatchAndExplain(
+    RxMatchFnArgs args,
+    ::testing::MatchResultListener* l) const {
+  auto dstIfID = std::get<0>(args);
+  auto pkt = std::get<1>(args);
+
+  try {
+    if (dstIfID != dstIfID_) {
+      throw FbossError(
+          "Mismatching dstIfID. Expected ", dstIfID_,
+          " but received ", dstIfID);
+    }
+
+    fn_(pkt.get());
+    return true;
+  } catch (const std::exception& ex) {
+    *l << ex.what();
+    return false;
+  }
+}
+
+void RxPacketMatcher::DescribeTo(std::ostream* os) const {
+  *os << name_;
+}
+
+void RxPacketMatcher::DescribeNegationTo(std::ostream* os) const {
+  *os << "not " << name_;
+}
+
+}} // namespace facebook::fboss

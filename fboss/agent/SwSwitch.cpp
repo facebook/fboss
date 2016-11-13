@@ -330,7 +330,7 @@ void SwSwitch::clearWarmBootCache() {
   hw_->clearWarmBootCache();
 }
 
-void SwSwitch::init(SwitchFlags flags) {
+void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   flags_ = flags;
   auto hwInitRet = hw_->init(this);
   auto initialState = hwInitRet.switchState;
@@ -358,7 +358,11 @@ void SwSwitch::init(SwitchFlags flags) {
   });
 
   if (flags & SwitchFlags::ENABLE_TUN) {
-    tunMgr_ = folly::make_unique<TunManager>(this, &backgroundEventBase_);
+    if (tunMgr) {
+      tunMgr_ = std::move(tunMgr);
+    } else {
+      tunMgr_ = std::make_unique<TunManager>(this, &backgroundEventBase_);
+    }
   }
 
   startThreads();
@@ -374,14 +378,14 @@ void SwSwitch::init(SwitchFlags flags) {
   }
 
   if (flags & SwitchFlags::ENABLE_LLDP) {
-      lldpManager_ = folly::make_unique<LldpManager>(this);
+    lldpManager_ = folly::make_unique<LldpManager>(this);
   }
 
   if (flags & SwitchFlags::ENABLE_NHOPS_PROBER) {
-      unresolvedNhopsProber_ = folly::make_unique<UnresolvedNhopsProber>(this);
-      // Feed initial state.
-      unresolvedNhopsProber_->stateUpdated(
-          StateDelta(std::make_shared<SwitchState>(), getState()));
+    unresolvedNhopsProber_ = folly::make_unique<UnresolvedNhopsProber>(this);
+    // Feed initial state.
+    unresolvedNhopsProber_->stateUpdated(
+        StateDelta(std::make_shared<SwitchState>(), getState()));
   }
 
   auto bgHeartbeatStatsFunc = [this] (int delay, int backLog) {

@@ -103,7 +103,9 @@ TEST(LldpManagerTest, LldpSend) {
   auto sw = setupSwitch();
   //setAllPortsUp(sw->getState());
   SwSwitch* swPtr = sw.get();
-  EXPECT_HW_CALL(sw, sendPacketOutOfPort_(TxPacketMatcher::createMatcher(
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPort_(TxPacketMatcher::createMatcher(
                   "Lldp PDU", checkLldpPDU()))).Times(AtLeast(1));
   LldpManager lldpManager(swPtr);
   lldpManager.sendLldpOnAllPorts(false);

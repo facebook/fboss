@@ -108,6 +108,10 @@ class SwSwitch : public HwSwitch::Callback {
   const Platform* getPlatform() const { return platform_.get(); }
   Platform* getPlatform() { return platform_.get(); }
 
+  TunManager* getTunManager() {
+    return tunMgr_.get();
+  }
+
   /**
    * Return the vlan where the CPU sits
    *
@@ -130,16 +134,24 @@ class SwSwitch : public HwSwitch::Callback {
    * Note that this function is generally slow, and may take many seconds to
    * complete.
    *
-   * The function takes a SwitchFlags parameter, which has the following flags
-   * defined:
+   * Param TunManager can be passed to init method. It allows
+   * using any custom TunManager instead of default (useful in testing). This
+   * will be used only when ENABLE_TUN is present in flags param. Pass nullptr
+   * if you don't want custom behaviour for TunManager (default one will be
+   * created).
+   *
+   * Param optional SwitchFlags has has the following flags defined:
    *
    * ENABLE_TUN: enables interface sync to system.
    * ENABLE_LLDP: enables periodically sending LLDP packets
    * PUBLISH_STATS: if set, we will publish the boot type (graceful or
    *                   otherwise) after we initialize the hardware.
    * DEFAULT: None of the above flags are set.
+   *
    */
-  void init(SwitchFlags flags = SwitchFlags::DEFAULT);
+  void init(
+      std::unique_ptr<TunManager> tunMgr,
+      SwitchFlags flags = SwitchFlags::DEFAULT);
 
   bool isFullyInitialized() const;
 

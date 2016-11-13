@@ -18,6 +18,7 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/ThriftHandler.h"
+#include "fboss/agent/TunManager.h"
 #include "common/stats/ServiceData.h"
 #include <folly/io/async/AsyncTimeout.h>
 #include <folly/io/async/AsyncSignalHandler.h>
@@ -138,7 +139,7 @@ class Initializer {
 
     // Initialize the switch.  This operation can take close to a minute
     // on some of our current platforms.
-    sw_->init(setupFlags());
+    sw_->init(nullptr, setupFlags());
 
     // Wait for the local MAC address to be available.
     ret.wait();
