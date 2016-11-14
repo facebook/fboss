@@ -8,6 +8,6 @@ packages:
     static:
       fboss/qsfp_service/rpm/sv:
         path: /etc/runit-sv/qsfp_service
-      fboss/qsfp_service/rpm/qsfp.service:
-        path: /usr/lib/systemd/system/qsfp.service
-    unit: qsfp.service
+      fboss/qsfp_service/rpm/qsfp_service.service:
+        path: /usr/lib/systemd/system/qsfp_service.service
+    unit: qsfp_service.service
