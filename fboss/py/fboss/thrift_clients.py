@@ -21,7 +21,7 @@ from thrift.Thrift import TApplicationException
 class FbossAgentClient(FbossCtrl.Client):
     DEFAULT_PORT = 5909
 
-    def __init__(self, host, port=None, timeout=2.0):
+    def __init__(self, host, port=None, timeout=5.0):
         self.host = host
         if port is None:
             port = self.DEFAULT_PORT
