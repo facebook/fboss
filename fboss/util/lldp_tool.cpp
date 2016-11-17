@@ -13,6 +13,7 @@
 #include "fboss/agent/lldp/LinkNeighbor.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/util/thrift/gen-cpp/LldpConfig_types.h"
 
 #include <folly/Exception.h>
 #include <folly/FileUtil.h>
@@ -40,6 +41,7 @@ extern "C" {
 #include <bcm/l2.h>
 #include <opennsl/link.h>
 #include <opennsl/port.h>
+#include <bcm/port.h>
 #include <opennsl/rx.h>
 #include <opennsl/stg.h>
 }
@@ -66,6 +68,9 @@ DEFINE_string(if_name, "eth0", "The local interface to listen on");
 DEFINE_int32(mtu, 9000, "The maximum packet size to expect");
 DEFINE_bool(verbose, false,
              "Print more verbose information about each neighbor packet");
+DEFINE_string(lldp_ports_config,
+              "",
+              "The location of the config file for port's interface configs");
 
 static const MacAddress MAC_LLDP_NEAREST_BRIDGE("01:80:c2:00:00:0e");
 static const MacAddress MAC_CDP("01:00:0c:cc:cc:cc");
@@ -86,6 +91,27 @@ void initBcmAPI() {
   bcm::BcmConfig cfg;
   cfg.readFromJson(contents.c_str());
   BcmAPI::init(cfg.config);
+}
+
+std::map<int32_t, cfg::OnePortConfig> readLldpPortConfig() {
+  using RetType = std::map<int32_t, cfg::OnePortConfig>;
+  if (FLAGS_lldp_ports_config.empty()) {
+    return RetType();
+  }
+  string contents;
+  if (!folly::readFile(FLAGS_lldp_ports_config.c_str(), contents)) {
+    throw FbossError("unable to read the config file ",
+                     FLAGS_lldp_ports_config);
+  }
+  cfg::LldpConfig lldpConfig;
+  try {
+    lldpConfig.readFromJson(contents.c_str());
+  } catch (const std::exception& jsonEx) {
+    LOG(ERROR) << "unable to parse " << FLAGS_lldp_ports_config
+               << " as a JSON file: " << folly::exceptionStr(jsonEx);
+    return RetType();
+  }
+  return lldpConfig.portConfigMap;
 }
 
 std::string formatNeighborInfoVerbose(LinkNeighbor* neighbor,
@@ -228,6 +254,7 @@ class BcmProcessor {
   static opennsl_rx_t lldpPktHandler(int unit, opennsl_pkt_t* nslPkt,
                                      void* cookie);
 
+  cfg::LldpConfig lldpConfig_;
   int unit_{-1};
   std::unique_ptr<BcmUnit> bcmUnit_;
 };
@@ -248,6 +275,8 @@ void BcmProcessor::prepare() {
   bcmCheckError(rv, "failed to set linkscan ports");
   rv = opennsl_linkscan_enable_set(unit_, FLAGS_linkscan_interval_us);
   bcmCheckError(rv, "failed to enable linkscan");
+
+  lldpConfig_.portConfigMap = readLldpPortConfig();
 
   // Enable all ports, with each port in a separate VLAN.
   int idx;
@@ -308,6 +337,29 @@ void BcmProcessor::configurePort(opennsl_port_t port, opennsl_vlan_t vlan) {
   rv = opennsl_stg_stp_set(unit_, stg, port, OPENNSL_STG_STP_FORWARD);
   bcmCheckError(rv, "failed to set spanning tree state on port ", port);
 
+  const auto itr = lldpConfig_.portConfigMap.find(port);
+  if (itr != lldpConfig_.portConfigMap.end()) {
+    opennsl_port_if_t currentPortInterface;
+    rv = opennsl_port_interface_get(unit_, port, &currentPortInterface);
+    bcmCheckError(rv, "failed to get interface for port ", port);
+    if (itr->second.portMode == cfg::PortMode::KR4) {
+      // For now, we only make sure that the KR4 mode is working
+      opennsl_port_if_t desiredMode = OPENNSL_PORT_IF_KR4;
+      rv = opennsl_port_interface_set(unit_, port, desiredMode);
+
+      bcm_port_ability_t bpa;
+      bpa.speed_full_duplex = BCM_PORT_ABILITY_40GB;
+      rv = bcm_port_ability_advert_set(unit_, port, &bpa);
+      bcmCheckError(rv, "failed to set ability advert for port: ", port);
+      rv = bcm_port_autoneg_set(unit_, port, true);
+      bcmCheckError(rv, "failed to set autonegotiation mode for port: ", port);
+    } else {
+      LOG(INFO) << "port interface " << (int)itr->second.portMode
+                << " for port " << port
+                << " is not supported. using default interface "
+                << currentPortInterface << ".";
+    }
+  }
   // Enable the port
   int enable = 1;
   rv = opennsl_port_enable_set(unit_, port, enable);

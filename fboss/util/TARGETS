@@ -9,6 +9,7 @@ cpp_binary(
     '@/fboss/agent/packet:pktutil',
     '@/fboss/agent/lldp:lldp',
     '@/fboss/agent/hw/bcm:bcm',
+    '@/fboss/util/thrift:lldp_config-cpp',
   ],
   external_deps = [
     ('broadcom-xgs-robo', None, 'xgs_robo'),
