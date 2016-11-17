@@ -28,6 +28,7 @@
 
 namespace facebook { namespace fboss {
 
+class Port;
 class SwSwitch;
 class Vlan;
 
@@ -220,7 +221,11 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
                                 std::vector<std::string> added,
                                 std::vector<std::string> deleted);
 
+  void getPortInfoHelper(
+      PortInfoThrift& portInfo,
+      const std::shared_ptr<Port> port);
   void fillPortStats(PortInfoThrift& portInfo);
+
   Vlan* getVlan(int32_t vlanId);
   Vlan* getVlan(const std::string& vlanName);
   template<typename ADDR_TYPE, typename ADDR_CONVERTER>

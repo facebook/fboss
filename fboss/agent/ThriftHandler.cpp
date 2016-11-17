@@ -423,38 +423,48 @@ void ThriftHandler::fillPortStats(PortInfoThrift& portInfo) {
     ctr.errors.discards = getSumStat(prefix, "discards");
   };
 
-  const auto& status = sw_->getPortStatus(PortID(portId));
-  portInfo.adminState = PortAdminState(status.enabled);
-  portInfo.operState = PortOperState(status.up);
-
   fillPortCounters(portInfo.output, "out_");
   fillPortCounters(portInfo.input, "in_");
 }
 
-void ThriftHandler::getPortInfo(PortInfoThrift& portInfo, int32_t portId) {
-  ensureConfigured();
-  const auto port = sw_->getState()->getPorts()->getPortIf(PortID(portId));
-
-  if (!port) {
-    throw FbossError("no such port ", portId);
-  }
-  portInfo.portId = portId;
+void ThriftHandler::getPortInfoHelper(
+    PortInfoThrift& portInfo,
+    const std::shared_ptr<Port> port) {
+  portInfo.portId = port->getID();
   portInfo.name = port->getName();
   portInfo.description = port->getDescription();
   portInfo.speedMbps = (int) port->getWorkingSpeed();
   for (auto entry : port->getVlans()) {
     portInfo.vlans.push_back(entry.first);
   }
+
+  portInfo.adminState = PortAdminState(port->getState() == cfg::PortState::UP);
+  portInfo.operState = PortOperState(port->getOperState());
+
   fillPortStats(portInfo);
+}
+
+void ThriftHandler::getPortInfo(PortInfoThrift &portInfo, int32_t portId) {
+  ensureConfigured();
+
+  const auto port = sw_->getState()->getPorts()->getPortIf(PortID(portId));
+  if (!port) {
+    throw FbossError("no such port ", portId);
+  }
+
+  getPortInfoHelper(portInfo, port);
 }
 
 void ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
   ensureConfigured();
 
-  for (const auto& port : (*sw_->getState()->getPorts())) {
+  // NOTE: important to take pointer to switch state before iterating over
+  // list of ports
+  std::shared_ptr<SwitchState> swState = sw_->getState();
+  for (const auto& port : *(swState->getPorts())) {
     auto portId = port->getID();
     auto& portInfo = portInfoMap[portId];
-    getPortInfo(portInfo, portId);
+    getPortInfoHelper(portInfo, port);
   }
 }
 
