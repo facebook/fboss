@@ -1,0 +1,6 @@
+thrift_library(
+  name = "lldp_config",
+  languages = ["cpp2", "py"],
+  thrift_srcs = { "LldpConfig.thrift" : [] },
+  thrift_cpp_options = 'json,enum_strict',
+)
