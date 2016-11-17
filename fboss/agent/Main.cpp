@@ -184,7 +184,7 @@ class Initializer {
     auto sfpDetectFunc = [=]() {
       sw_->detectTransceiver();
     };
-    fs_->addFunction(sfpDetectFunc, seconds(1), sfpDetect);
+    fs_->addFunction(sfpDetectFunc, seconds(5), sfpDetect);
 
     // TODO(ninasc): Remove when qsfp service is live
     // Transceiver Module Detection Thread

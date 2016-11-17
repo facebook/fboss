@@ -760,7 +760,8 @@ PortStats* SwSwitch::portStats(const RxPacket* pkt) {
 
 map<int32_t, PortStatus> SwSwitch::getPortStatus() {
   map<int32_t, PortStatus> statusMap;
-  for (const auto& p : *getState()->getPorts()) {
+  std::shared_ptr<PortMap> portMap = getState()->getPorts();
+  for (const auto& p : *portMap) {
     statusMap[p->getID()] = fillInPortStatus(*p, this);
   }
   return statusMap;
@@ -774,8 +775,9 @@ cfg::PortSpeed SwSwitch::getMaxPortSpeed(PortID port) const {
   return hw_->getMaxPortSpeed(port);
 }
 
-PortStatus SwSwitch::getPortStatus(PortID port) {
-  return fillInPortStatus(*getState()->getPort(port), this);
+PortStatus SwSwitch::getPortStatus(PortID portID) {
+  std::shared_ptr<Port> port = getState()->getPort(portID);
+  return fillInPortStatus(*port, this);
 }
 
 TransceiverIdx SwSwitch::getTransceiverMapping(PortID portID) const {
@@ -851,16 +853,26 @@ void SwSwitch::addTransceiverMapping(PortID portID, ChannelID channelID,
 
 // TODO(ninasc): Remove when qsfp service is live
 void SwSwitch::detectTransceiver() {
+  std::vector<Transceiver*> transceivers;
   transceiverMap_->iterateTransceivers([&](TransceiverID, Transceiver* qsfp) {
-    qsfp->detectTransceiver();
+    transceivers.push_back(qsfp);
   });
+
+  for (auto transceiver : transceivers) {
+    transceiver->detectTransceiver();
+  }
 }
 
 // TODO(ninasc): Remove when qsfp service is live
 void SwSwitch::updateTransceiverInfoFields() {
+  std::vector<Transceiver*> transceivers;
   transceiverMap_->iterateTransceivers([&](TransceiverID, Transceiver* qsfp) {
-    qsfp->updateTransceiverInfoFields();
+    transceivers.push_back(qsfp);
   });
+
+  for (auto transceiver : transceivers) {
+    transceiver->updateTransceiverInfoFields();
+  }
 }
 
 SwitchStats* SwSwitch::createSwitchStats() {
