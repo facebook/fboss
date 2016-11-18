@@ -292,13 +292,16 @@ RateSelectState QsfpModule::getRateSelectValue() {
 
 PowerControlState QsfpModule::getPowerControlValue() {
   switch (getSettingsValue(SffField::POWER_CONTROL, POWER_CONTROL_MASK)) {
+    case POWER_LPMODE:
+      return PowerControlState::POWER_LPMODE;
     case POWER_SET:
       return PowerControlState::POWER_SET;
     case HIGH_POWER_OVERRIDE:
       return PowerControlState::HIGH_POWER_OVERRIDE;
     case POWER_OVERRIDE:
-    default:
       return PowerControlState::POWER_OVERRIDE;
+    default:
+      return PowerControlState::POWER_LPMODE;
   }
 }
 
@@ -843,9 +846,9 @@ void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
    * Note that this function expects to be called with qsfpModuleMutex_
    * held.
    */
-  if (currentState != PowerControlState::POWER_SET) {
+  if (currentState != PowerControlState::POWER_LPMODE) {
     LOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
-      "Power override already set, doing nothing";
+      " Power override already set, doing nothing";
     return;
   }
 

@@ -161,6 +161,7 @@ enum FeatureState {
 }
 
 enum PowerControlState {
+  POWER_LPMODE,
   POWER_OVERRIDE,
   POWER_SET,
   HIGH_POWER_OVERRIDE,

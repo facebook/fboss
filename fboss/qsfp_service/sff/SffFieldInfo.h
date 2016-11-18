@@ -102,6 +102,7 @@ enum DeviceTechnology : uint8_t {
 };
 
 enum PowerControl : uint8_t {
+  POWER_LPMODE = 0,
   POWER_OVERRIDE =      1 << 0,
   POWER_SET =           1 << 1,
   HIGH_POWER_OVERRIDE = 1 << 2,
