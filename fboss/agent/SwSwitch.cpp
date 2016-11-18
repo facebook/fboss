@@ -39,7 +39,6 @@
 #include "fboss/agent/TransceiverMap.h"
 #include "fboss/qsfp_service/sff/TransceiverImpl.h"
 #include "fboss/agent/ApplyThriftConfig.h"
-#include "fboss/agent/SfpModule.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/PortRemediator.h"
 #include "fboss/agent/gen-cpp2/switch_config_types_custom_protocol.h"
@@ -810,34 +809,6 @@ TransceiverInfo SwSwitch::getTransceiverInfo(TransceiverID idx) const {
   }
   t->getTransceiverInfo(info);
   return info;
-}
-
-map<int32_t, SfpDom> SwSwitch::getSfpDoms() const {
-  map<int32_t, SfpDom> domInfos;
-  transceiverMap_->iterateTransceivers(
-      [&](TransceiverID idx, Transceiver* qsfp) {
-        if (qsfp->type() != TransceiverType::SFP) {
-          return;
-        }
-        SfpDom domInfo;
-        qsfp->getSfpDom(domInfo);
-        domInfos[idx] = domInfo;
-      });
-  return domInfos;
-}
-
-// TODO(7154694):  Remove getSfpDom() support once getTranceiverInfo()
-// is supported everywhere.
-
-SfpDom SwSwitch::getSfpDom(PortID port) const {
-  TransceiverIdx idx = getTransceiverMapping(port);
-  SfpDom domInfo;
-  Transceiver *t = getTransceiver(idx.second);
-  if (t->type() != TransceiverType::SFP) {
-    throw FbossError("Transceiver not SFP");
-  }
-  t->getSfpDom(domInfo);
-  return domInfo;
 }
 
 // TODO(ninasc): Remove when qsfp service is live

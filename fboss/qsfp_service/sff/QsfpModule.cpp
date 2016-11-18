@@ -548,9 +548,6 @@ bool QsfpModule::cacheIsValid() const {
   return present_ && !dirty_;
 }
 
-void QsfpModule::getSfpDom(SfpDom &) {
-}
-
 void QsfpModule::getTransceiverInfo(TransceiverInfo &info) {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   refreshCacheIfPossibleLocked();

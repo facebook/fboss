@@ -42,10 +42,6 @@ class Transceiver {
    * Return all of the transceiver information
    */
   virtual void getTransceiverInfo(TransceiverInfo &info) = 0;
-  /*
-   * Return SFP-specific information
-   */
-  virtual void getSfpDom(SfpDom &dom) = 0;
 
  private:
   // no copy or assignment

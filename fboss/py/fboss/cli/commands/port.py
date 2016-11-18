@@ -245,133 +245,6 @@ class PortStatusDetailCmd(object):
         else:
             return (10 * log10(mw))
 
-    def _print_port_details_sfpdom(self, port, dom):
-        status = self._status_resp[port]
-        print("Port %d: %s" % (port, dom.name))
-
-        attrs = utils.get_status_strs(status)
-        admin_status = attrs['admin_status']
-        link_status = attrs['link_status']
-
-        print("  Admin Status: %s" % admin_status)
-        print("  Oper Status: %s" % link_status)
-
-        print("  Module Present: %s" % dom.sfpPresent)
-
-        if dom.sfpPresent and dom.vendor is not None:
-            print("  Vendor Name: %s" % dom.vendor.name)
-            print("  Part Number: %s" % dom.vendor.partNumber)
-            print("  Revision: %s" % dom.vendor.rev)
-            print("  Serial Number: %s" % dom.vendor.serialNumber)
-            print("  Date Code: %s" % dom.vendor.dateCode)
-
-        print("  Monitoring Information:")
-        if not dom.domSupported:
-            print("    DOM Not Supported")
-            return
-
-        print("    Values:")
-        print("      {:<15} {:0.4}".format("Temperature", dom.value.temp))
-        print("      {:<15} {:0.4}".format("Vcc", dom.value.vcc))
-        print("      {:<15} {:0.4}".format("Tx Bias", dom.value.txBias))
-        print("      {:<15} {:0.4}".format("Tx Power(dBm)",
-                                            self._mw_to_dbm(dom.value.txPwr)))
-        print("      {:<15} {:0.4}".format("Tx Power(mW)",
-                                            dom.value.txPwr))
-        print("      {:<15} {:0.4}".format("Rx Power(dBm)",
-                                            self._mw_to_dbm(dom.value.rxPwr)))
-        print("      {:<15} {:0.4}".format("Rx Power(mW)",
-                                            dom.value.rxPwr))
-
-        print("    {:<14}   {:>15} {:>15} {:>15} {:>15}".format(
-            'Flags:', 'Alarm Low', 'Warning Low', 'Warning High', 'Alarm High'))
-        print("      {:<14} {:>15} {:>15} {:>15} {:>15}".format(
-            'Temperature:', dom.flags.tempAlarmLow, dom.flags.tempWarnLow,
-            dom.flags.tempWarnHigh, dom.flags.tempAlarmHigh))
-        print("      {:<14} {:>15} {:>15} {:>15} {:>15}".format(
-            'Vcc:', dom.flags.vccAlarmLow, dom.flags.vccWarnLow,
-            dom.flags.vccWarnHigh, dom.flags.vccAlarmHigh))
-        print("      {:<14} {:>15} {:>15} {:>15} {:>15}".format(
-            'Tx Bias:', dom.flags.txBiasAlarmLow, dom.flags.txBiasWarnLow,
-            dom.flags.txBiasWarnHigh, dom.flags.txBiasAlarmHigh))
-        print("      {:<14} {:>15} {:>15} {:>15} {:>15}".format(
-            'Tx Power(dBm):',
-            self._mw_to_dbm(dom.flags.txPwrAlarmLow),
-            self._mw_to_dbm(dom.flags.txPwrWarnLow),
-            self._mw_to_dbm(dom.flags.txPwrWarnHigh),
-            self._mw_to_dbm(dom.flags.txPwrAlarmHigh)))
-        print("      {:<14} {:>15} {:>15} {:>15} {:>15}".format(
-            'Tx Power(mW):',
-            dom.flags.txPwrAlarmLow,
-            dom.flags.txPwrWarnLow,
-            dom.flags.txPwrWarnHigh,
-            dom.flags.txPwrAlarmHigh))
-        print("      {:<14} {:>15} {:>15} {:>15} {:>15}".format(
-            'Rx Power(dBm):',
-            self._mw_to_dbm(dom.flags.rxPwrAlarmLow),
-            self._mw_to_dbm(dom.flags.rxPwrWarnLow),
-            self._mw_to_dbm(dom.flags.rxPwrWarnHigh),
-            self._mw_to_dbm(dom.flags.rxPwrAlarmHigh)))
-        print("      {:<14} {:>15} {:>15} {:>15} {:>15}".format(
-            'Rx Power(mW):',
-            dom.flags.rxPwrAlarmLow,
-            dom.flags.rxPwrWarnLow,
-            dom.flags.rxPwrWarnHigh,
-            dom.flags.rxPwrAlarmHigh))
-
-        thresh = dom.threshValue
-        print("  {:<16}   {:>15} {:>15} {:>15} {:>15}".format(
-            'Thresholds:', 'Alarm Low', 'Warning Low', 'Warning High',
-            'Alarm High'))
-        print("      {:<14} {:>15.4} {:>15.4} {:>15.4} {:>15.4}".format(
-            'Temperature:', thresh.tempAlarmLow, thresh.tempWarnLow,
-            thresh.tempWarnHigh, thresh.tempAlarmHigh))
-        print("      {:<14} {:>15.4} {:>15.4} {:>15.4} {:>15.4}".format(
-            'Vcc:', thresh.vccAlarmLow,
-            thresh.vccWarnLow, thresh.vccWarnHigh, thresh.vccAlarmHigh))
-        print("      {:<14} {:>15.4} {:>15.4} {:>15.4} {:>15.4}".format(
-            'Tx Bias:', thresh.txBiasAlarmLow, thresh.txBiasWarnLow,
-            thresh.txBiasWarnHigh, thresh.txBiasAlarmHigh))
-        print("      {:<14} {:>15.4} {:>15.4} {:>15.4} {:>15.4}".format(
-            'Tx Power(dBm):',
-            self._mw_to_dbm(thresh.txPwrAlarmLow),
-            self._mw_to_dbm(thresh.txPwrWarnLow),
-            self._mw_to_dbm(thresh.txPwrWarnHigh),
-            self._mw_to_dbm(thresh.txPwrAlarmHigh)))
-        print("      {:<14} {:>15.4} {:>15.4} {:>15.4} {:>15.4}".format(
-            'Tx Power(mW):',
-            thresh.txPwrAlarmLow,
-            thresh.txPwrWarnLow,
-            thresh.txPwrWarnHigh,
-            thresh.txPwrAlarmHigh))
-        print("      {:<14} {:>15.4} {:>15.4} {:>15.4} {:>15.4}".format(
-            'Rx Power(dBm):',
-            self._mw_to_dbm(thresh.rxPwrAlarmLow),
-            self._mw_to_dbm(thresh.rxPwrWarnLow),
-            self._mw_to_dbm(thresh.rxPwrWarnHigh),
-            self._mw_to_dbm(thresh.rxPwrAlarmHigh)))
-        print("      {:<14} {:>15.4} {:>15.4} {:>15.4} {:>15.4}".format(
-            'Rx Power(mW):',
-            thresh.rxPwrAlarmLow,
-            thresh.rxPwrWarnLow,
-            thresh.rxPwrWarnHigh,
-            thresh.rxPwrAlarmHigh))
-
-    def _list_ports_detail_sfpdom(self):
-        ''' Print ports detail based on Sfp DOM info '''
-
-        dom_resp = self._client.getSfpDomInfo(self._ports)
-        for port in self._status_resp.keys():
-            if port not in dom_resp:
-                sfp_dom = optic_ttypes.SfpDom()
-                sfp_dom.name = 'Ethernet%d' % port
-                sfp_dom.sfpPresent = False
-                sfp_dom.domSupported = False
-                dom_resp[port] = sfp_dom
-
-        for port in self._status_resp.keys():
-            self._print_port_details_sfpdom(port, dom_resp[port])
-
     def _get_dummy_status(self):
         ''' Get dummy status for ports without data '''
 
@@ -640,13 +513,11 @@ class PortStatusDetailCmd(object):
                 self._get_channel_detail(port, status)
 
         if not self._transceiver:
-            self._list_ports_detail_sfpdom()
             return
 
         try:
             self._info_resp = self._client.getTransceiverInfo(self._transceiver)
         except TApplicationException:
-            self._list_ports_detail_sfpdom()
             return
 
         self._get_dummy_status()

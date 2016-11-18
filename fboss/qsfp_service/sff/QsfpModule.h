@@ -68,10 +68,6 @@ class QsfpModule : public Transceiver {
    */
   bool isDomSupported() const;
   /*
-   * Returns the entire QSFP Dom information
-   */
-  void getSfpDom(SfpDom &dom) override;
-  /*
    * Get the QSFP EEPROM Field
    */
   int getFieldValue(SffField fieldName, uint8_t* fieldValue);

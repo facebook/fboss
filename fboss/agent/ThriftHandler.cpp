@@ -17,7 +17,6 @@
 #include "fboss/agent/HighresCounterSubscriptionHandler.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/LldpManager.h"
-#include "fboss/agent/SfpModule.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
@@ -824,14 +823,8 @@ void ThriftHandler::getVlanBinaryAddressesByName(BinaryAddresses& addrs,
 
 void ThriftHandler::getSfpDomInfo(map<int32_t, SfpDom>& domInfos,
                                   unique_ptr<vector<int32_t>> ports) {
-  ensureConfigured();
-  if (ports->empty()) {
-    domInfos = sw_->getSfpDoms();
-  } else {
-    for (auto port : *ports) {
-      domInfos[port] = sw_->getSfpDom(PortID(port));
-    }
-  }
+  throw FbossError(folly::to<std::string>("This call is no longer supported, ",
+      "use getTransceiverInfo instead"));
 }
 
 void ThriftHandler::getTransceiverInfo(map<int32_t, TransceiverInfo>& info,

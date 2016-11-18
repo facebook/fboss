@@ -43,7 +43,6 @@ class PortStats;
 class RxPacket;
 class SwitchState;
 class SwitchStats;
-class SfpModule;
 class QsfpModule;
 class TransceiverMap;
 class TransceiverImpl;
@@ -359,24 +358,9 @@ class SwSwitch : public HwSwitch::Callback {
   PortStatus getPortStatus(PortID port);
 
   /*
-   * Get the Sfp for the specified port.
-   */
-  SfpModule* getSfp(PortID port) const;
-
-  /*
-   * Get SfpDoms for all the ports.
-   */
-  std::map<int32_t, SfpDom> getSfpDoms() const;
-
-  /*
    * Get Product Information.
    */
   void getProductInfo(ProductInfo& productInfo) const;
-
-  /*
-   * Get SfpDom of the specified port.
-   */
-  SfpDom getSfpDom(PortID port) const;
 
   /*
    * Get the transceiver info for the specified module ID.

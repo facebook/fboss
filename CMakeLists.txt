@@ -190,7 +190,6 @@ add_library(fboss_agent STATIC
     fboss/agent/RestClient.cpp
     fboss/agent/RouteUpdateLogger.cpp
     fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
-    fboss/agent/SfpModule.cpp
     fboss/agent/state/AclEntry.cpp
     fboss/agent/state/AclMap.cpp
     fboss/agent/state/ArpEntry.cpp
