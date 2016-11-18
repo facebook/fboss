@@ -14,7 +14,7 @@ import time
 from fboss.cli.utils import utils
 from fboss.cli.commands import commands as cmds
 from math import log10
-from neteng.fboss.optic import ttypes as optic_ttypes
+from neteng.fboss.transceiver import ttypes as transceiver_ttypes
 from neteng.fboss.ttypes import FbossBaseError
 from thrift.Thrift import TApplicationException
 
@@ -252,7 +252,7 @@ class PortStatusDetailCmd(object):
             if status.transceiverIdx:
                 tid = status.transceiverIdx.transceiverId
                 if tid not in self._info_resp.keys():
-                    info = optic_ttypes.TransceiverInfo()
+                    info = transceiver_ttypes.TransceiverInfo()
                     info.port = port
                     info.present = False
                     self._info_resp[port] = info
@@ -277,20 +277,21 @@ class PortStatusDetailCmd(object):
     def _print_settings_details(self, info):
         ''' print setting details'''
         print("CDR Tx: {}\tCDR Rx: {}".format(
-            optic_ttypes.FeatureState._VALUES_TO_NAMES[info.settings.cdrTx],
-            optic_ttypes.FeatureState._VALUES_TO_NAMES[info.settings.cdrRx]))
-        if info.settings.rateSelect:
-            print("Rate select: {}".format(
-                  optic_ttypes.RateSelectState._VALUES_TO_NAMES[
-                      info.settings.rateSelect]))
-            print("\tOptimised for: {}".format(
-                  optic_ttypes.RateSelectSetting._VALUES_TO_NAMES[
-                      info.settings.rateSelectSetting]))
+            transceiver_ttypes.FeatureState._VALUES_TO_NAMES[
+                info.settings.cdrTx],
+            transceiver_ttypes.FeatureState._VALUES_TO_NAMES[
+                info.settings.cdrRx]))
+        print("Rate select: {}".format(
+              transceiver_ttypes.RateSelectState._VALUES_TO_NAMES[
+                  info.settings.rateSelect]))
+        print("\tOptimised for: {}".format(
+              transceiver_ttypes.RateSelectSetting._VALUES_TO_NAMES[
+                  info.settings.rateSelectSetting]))
         print("Power measurement: {}".format(
-            optic_ttypes.FeatureState._VALUES_TO_NAMES[
+            transceiver_ttypes.FeatureState._VALUES_TO_NAMES[
                 info.settings.powerMeasurement]))
         print("Power control: {}".format(
-            optic_ttypes.PowerControlState._VALUES_TO_NAMES[
+            transceiver_ttypes.PowerControlState._VALUES_TO_NAMES[
                 info.settings.powerControl]))
 
     def _print_cable_details(self, info):

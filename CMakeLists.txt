@@ -275,10 +275,10 @@ add_library(fboss_agent STATIC
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/NeighborListenerClient_client.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/FbossHighresClient_client.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/fboss_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/optic_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/optic_constants.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/highres_types.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/bcmswitch_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/transceiver_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/transceiver_constants.cpp
 )
 target_link_libraries(fboss_agent
     ${GLOG}

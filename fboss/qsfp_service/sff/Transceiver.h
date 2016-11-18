@@ -9,7 +9,7 @@
  */
 #pragma once
 #include <cstdint>
-#include "fboss/agent/if/gen-cpp2/optic_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 namespace facebook { namespace fboss {
 

@@ -8,6 +8,7 @@ include "common/fb303/if/fb303.thrift"
 include "common/network/if/Address.thrift"
 include "fboss/agent/if/optic.thrift"
 include "fboss/agent/if/highres.thrift"
+include "fboss/qsfp_service/if/transceiver.thrift"
 
 typedef binary (cpp2.type = "::folly::fbstring") fbbinary
 typedef string (cpp2.type = "::folly::fbstring") fbstring
@@ -362,7 +363,7 @@ service FbossCtrl extends fb303.FacebookService {
    * Returns all transceiver info (both QSFP and SFP, and hopefully
    * future devices)
    */
-  map<i32, optic.TransceiverInfo> getTransceiverInfo(1: list<i32> idx)
+  map<i32, transceiver.TransceiverInfo> getTransceiverInfo(1: list<i32> idx)
     throws (1: fboss.FbossBaseError error)
 
   /*

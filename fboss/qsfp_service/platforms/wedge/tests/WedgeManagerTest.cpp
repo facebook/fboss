@@ -10,7 +10,7 @@
 
 #include <folly/Memory.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/if/gen-cpp2/optic_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/sff/tests/MockQsfpModule.h"
 #include "fboss/qsfp_service/sff/tests/MockTransceiverImpl.h"

@@ -15,7 +15,7 @@
 #include "fboss/qsfp_service/sff/QsfpModule.h"
 #include "fboss/qsfp_service/sff/SffFieldInfo.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/if/gen-cpp2/optic_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
