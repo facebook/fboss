@@ -32,6 +32,8 @@ const char *trident2 = "0xb850\n";  // Note expected carriage return
 
 DEFINE_bool(clear_low_power, false,
             "Allow the QSFP to use higher power; needed for LR4 optics");
+DEFINE_bool(set_low_power, false,
+            "Force the QSFP to limit power usage; Only useful for testing");
 DEFINE_bool(tx_disable, false, "Set the TX disable bits");
 DEFINE_bool(tx_enable, false, "Clear the TX disable bits");
 DEFINE_bool(set_40g, false, "Rate select 40G");
@@ -42,10 +44,13 @@ DEFINE_bool(cdr_disable, false,
 DEFINE_string(platform, "", "Platform on which we are running."
              " One of (galaxy, wedge100, wedge)");
 
-bool overrideLowPower(TransceiverI2CApi* bus, unsigned int port) {
+bool overrideLowPower(
+    TransceiverI2CApi* bus,
+    unsigned int port,
+    uint8_t value) {
   // 0x01 overrides low power mode
   // 0x04 is an LR4-specific bit that is otherwise reserved
-  uint8_t buf[1] = {5};
+  uint8_t buf[1] = {value};
   try {
     bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 93, 1, buf);
   } catch (const UsbError& ex) {
@@ -335,6 +340,10 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "Cannot set and clear the CDR bits\n");
     return EX_USAGE;
   }
+  if (FLAGS_clear_low_power && FLAGS_set_low_power) {
+    fprintf(stderr, "Cannot set and clear lp mode\n");
+    return EX_USAGE;
+  }
 
   std::vector<unsigned int> ports;
   bool good = true;
@@ -381,10 +390,14 @@ int main(int argc, char* argv[]) {
 
   bool printInfo = !(FLAGS_clear_low_power || FLAGS_tx_disable ||
                      FLAGS_tx_enable || FLAGS_set_100g || FLAGS_set_40g ||
-                     FLAGS_cdr_enable || FLAGS_cdr_disable);
+                     FLAGS_cdr_enable || FLAGS_cdr_disable ||
+                     FLAGS_set_low_power);
   int retcode = EX_OK;
   for (unsigned int portNum : ports) {
-    if (FLAGS_clear_low_power && overrideLowPower(bus.get(), portNum)) {
+    if (FLAGS_clear_low_power && overrideLowPower(bus.get(), portNum, 0x5)) {
+      printf("QSFP %d: cleared low power flags\n", portNum);
+    }
+    if (FLAGS_set_low_power && overrideLowPower(bus.get(), portNum, 0x0)) {
       printf("QSFP %d: cleared low power flags\n", portNum);
     }
     if (FLAGS_tx_disable && setTxDisable(bus.get(), portNum, 0x0f)) {
