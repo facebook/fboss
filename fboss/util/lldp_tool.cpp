@@ -5,7 +5,7 @@
 //
 // It can listen on both front-panel ports and local linux interfaces.
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/hw/bcm/facebook/gen-cpp/bcm_config_types.h"
+#include "fboss/agent/hw/bcm/facebook/gen-cpp2/bcm_config_types.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
@@ -20,6 +20,7 @@
 #include <folly/MacAddress.h>
 #include <folly/String.h>
 #include <gflags/gflags.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include <mutex>
 #include <sys/types.h>
@@ -88,8 +89,8 @@ void initBcmAPI() {
     throw FbossError("unable to read Broadcom config file ",
                      FLAGS_bcm_config);
   }
-  bcm::BcmConfig cfg;
-  cfg.readFromJson(contents.c_str());
+  auto cfg = apache::thrift::SimpleJSONSerializer::deserialize<bcm::BcmConfig>(
+      contents);
   BcmAPI::init(cfg.config);
 }
 
