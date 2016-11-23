@@ -127,7 +127,6 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   std::string str() const;
   // Return the forwarding info for this route
   const RouteForwardInfo& getForwardInfo() const {
-    CHECK(isResolved());
     return RouteBase::getFields()->fwd;
   }
   const RouteNextHops& nexthops() const {

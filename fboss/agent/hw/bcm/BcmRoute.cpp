@@ -328,6 +328,7 @@ void BcmRouteTable::addRoute(opennsl_vrf_t vrf, const RouteT *route) {
                                         folly::IPAddress(prefix.network),
                                         prefix.mask));
   }
+  CHECK(route->isResolved());
   ret.first->second->program(route->getForwardInfo());
 }
 

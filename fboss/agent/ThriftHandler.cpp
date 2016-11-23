@@ -523,6 +523,10 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& route) {
     for (const auto& ipv4Rib : routeTable->getRibV4()->routes()) {
       UnicastRoute tempRoute;
       auto ipv4 = ipv4Rib.value().get();
+      if (!ipv4->isResolved()) {
+        LOG(INFO) << "Skipping unresolved route: " << ipv4->toFollyDynamic();
+        continue;
+      }
       auto fwdInfo = ipv4->getForwardInfo();
       tempRoute.dest.ip = toBinaryAddress(ipv4->prefix().network);
       tempRoute.dest.prefixLength = ipv4->prefix().mask;
@@ -535,9 +539,12 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& route) {
     for (const auto& ipv6Rib : routeTable->getRibV6()->routes()) {
       UnicastRoute tempRoute;
       auto ipv6 = ipv6Rib.value().get();
+      if (!ipv6->isResolved()) {
+        LOG(INFO) << "Skipping unresolved route: " << ipv6->toFollyDynamic();
+        continue;
+      }
       auto fwdInfo = ipv6->getForwardInfo();
-      tempRoute.dest.ip = toBinaryAddress(
-                                                     ipv6->prefix().network);
+      tempRoute.dest.ip = toBinaryAddress(ipv6->prefix().network);
       tempRoute.dest.prefixLength = ipv6->prefix().mask;
       for (const auto& hop : fwdInfo.getNexthops()) {
         tempRoute.nextHopAddrs.push_back(
@@ -561,7 +568,7 @@ void ThriftHandler::getIpRoute(UnicastRoute& route,
   if (ipAddr.isV4()) {
     auto ripV4Rib = routeTable->getRibV4();
     auto match = ripV4Rib->longestMatch(ipAddr.asV4());
-    if (!match) {
+    if (!match || !match->isResolved()) {
       route.dest.ip = toBinaryAddress(IPAddressV4("0.0.0.0"));
       route.dest.prefixLength = 0;
       return;
@@ -576,7 +583,7 @@ void ThriftHandler::getIpRoute(UnicastRoute& route,
   } else {
     auto ripV6Rib = routeTable->getRibV6();
     auto match = ripV6Rib->longestMatch(ipAddr.asV6());
-    if (!match) {
+    if (!match || !match->isResolved()) {
       route.dest.ip = toBinaryAddress(IPAddressV6("::0"));
       route.dest.prefixLength = 0;
       return;
