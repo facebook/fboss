@@ -15,7 +15,7 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
   ~QsfpServiceHandler(){}
   void init();
   facebook::fb303::cpp2::fb_status getStatus() override;
-  TransceiverType type(int16_t idx) override;
+  TransceiverType type(int32_t idx) override;
   /*
    * Returns all qsfp information for the transceiver
    */
@@ -33,7 +33,7 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
    * Customise the transceiver based on the speed at which it has
    * been configured to operate at
    */
-  void customizeTransceiver(int16_t idx, cfg::PortSpeed speed) override;
+  void customizeTransceiver(int32_t idx, cfg::PortSpeed speed) override;
  private:
   // Forbidden copy constructor and assignment operator
   QsfpServiceHandler(QsfpServiceHandler const &) = delete;

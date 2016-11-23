@@ -697,7 +697,7 @@ void QsfpModule::updateQsfpData() {
   }
 }
 
-void QsfpModule::customizeTransceiver(const cfg::PortSpeed& speed) {
+void QsfpModule::customizeTransceiver(cfg::PortSpeed speed) {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   refreshCacheIfPossibleLocked();
   if (present_) {
@@ -705,7 +705,7 @@ void QsfpModule::customizeTransceiver(const cfg::PortSpeed& speed) {
   }
 }
 
-void QsfpModule::customizeTransceiverLocked(const cfg::PortSpeed& speed) {
+void QsfpModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
   /*
    * This must be called with a lock held on qsfpModuleMutex_
    */
@@ -786,10 +786,9 @@ void QsfpModule::setRateSelectIfSupported(cfg::PortSpeed speed,
   } else if (currentState == RateSelectState::APPLICATION_RATE_SELECT) {
     // Currently only support extended rate select, so treat application
     // rate select as an invalid option
-    LOG(ERROR) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
-      " Rate select in unknown state, treating as unsupported: " <<
-      _RateSelectState_VALUES_TO_NAMES.find(currentState)->second;
-    return;
+    throw FbossError(folly::to<std::string>("Port: ", qsfpImpl_->getName(),
+      " Rate select in unknown state, treating as unsupported: ",
+      _RateSelectState_VALUES_TO_NAMES.find(currentState)->second));
   }
 
   uint8_t value;
@@ -819,10 +818,9 @@ void QsfpModule::setRateSelectIfSupported(cfg::PortSpeed speed,
     alreadySet = translateEnum(RateSelectSetting::FROM_24GB_to_26GB,
         0b10101010);
   } else {
-    LOG(ERROR) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
-      " Unable to set rate select for port speed: " <<
-      cfg::_PortSpeed_VALUES_TO_NAMES.find(speed)->second;
-    return;
+    throw FbossError(folly::to<std::string>("Port: ", qsfpImpl_->getName(),
+      " Unable to set rate select for port speed: ",
+      cfg::_PortSpeed_VALUES_TO_NAMES.find(speed)->second));
   }
 
   if (alreadySet) {

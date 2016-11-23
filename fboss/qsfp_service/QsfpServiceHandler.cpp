@@ -16,7 +16,7 @@ facebook::fb303::cpp2::fb_status QsfpServiceHandler::getStatus() {
   return facebook::fb303::cpp2::fb_status::ALIVE;
 }
 
-TransceiverType QsfpServiceHandler::type(int16_t idx) {
+TransceiverType QsfpServiceHandler::type(int32_t /* unused */) {
   return TransceiverType::QSFP;
 }
 
@@ -32,7 +32,8 @@ bool QsfpServiceHandler::isTransceiverPresent(int16_t idx) {
 void QsfpServiceHandler::updateTransceiverInfoFields(int16_t idx) {
 }
 
-void QsfpServiceHandler::customizeTransceiver(int16_t idx,
+void QsfpServiceHandler::customizeTransceiver(int32_t idx,
     cfg::PortSpeed speed) {
+  manager_->customizeTransceiver(idx, speed);
 }
 }} // facebook::fboss

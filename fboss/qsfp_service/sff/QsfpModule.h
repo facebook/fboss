@@ -81,7 +81,7 @@ class QsfpModule : public Transceiver {
    * speed - the speed the port is running at - this will allow setting
    * different qsfp settings based on speed
    */
-  void customizeTransceiver(const cfg::PortSpeed& speed);
+  void customizeTransceiver(cfg::PortSpeed speed) override;
   /*
    * Returns the entire QSFP information
    */
@@ -157,7 +157,7 @@ class QsfpModule : public Transceiver {
    * settings from being applied
    */
   void customizeTransceiverLocked(
-      const cfg::PortSpeed& speed=cfg::PortSpeed::DEFAULT);
+      cfg::PortSpeed speed=cfg::PortSpeed::DEFAULT);
 
   /*
    * Check if the QSFP is present or not

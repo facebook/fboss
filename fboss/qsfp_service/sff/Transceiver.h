@@ -9,6 +9,8 @@
  */
 #pragma once
 #include <cstdint>
+
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 namespace facebook { namespace fboss {
@@ -42,6 +44,10 @@ class Transceiver {
    * Return all of the transceiver information
    */
   virtual void getTransceiverInfo(TransceiverInfo &info) = 0;
+  /*
+   * Set speed specific settings for the transceiver
+   */
+  virtual void customizeTransceiver(cfg::PortSpeed speed) = 0;
 
  private:
   // no copy or assignment

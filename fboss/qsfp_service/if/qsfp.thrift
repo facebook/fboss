@@ -7,7 +7,7 @@ include "fboss/qsfp_service/if/transceiver.thrift"
 include "fboss/agent/switch_config.thrift"
 
 service QsfpService extends fb303.FacebookService {
-  transceiver.TransceiverType type(1: i16 idx)
+  transceiver.TransceiverType type(1: i32 idx)
 
   /*
    * Get all information about a transceiver
@@ -27,7 +27,7 @@ service QsfpService extends fb303.FacebookService {
   /*
    * Customise the transceiver based on the speed at which it should run
    */
-  void customizeTransceiver(1: i16 idx,
+  void customizeTransceiver(1: i32 idx,
       2: switch_config.PortSpeed speed)
     throws (1: fboss.FbossBaseError error)
 }
