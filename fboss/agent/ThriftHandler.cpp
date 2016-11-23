@@ -836,18 +836,8 @@ void ThriftHandler::getSfpDomInfo(map<int32_t, SfpDom>& domInfos,
 
 void ThriftHandler::getTransceiverInfo(map<int32_t, TransceiverInfo>& info,
                                   unique_ptr<vector<int32_t>> ids) {
-  // TODO(ninasc): Remove - straight call to the qsfp service
-  ensureConfigured();
-  if (ids->empty()) {
-    auto transceivers = sw_->getTransceiversInfo();
-    for (auto& it : transceivers) {
-      info[it.first] = it.second;
-    }
-  } else {
-    for (auto id : *ids) {
-      info[id] = sw_->getTransceiverInfo(TransceiverID(id));
-    }
-  }
+  throw FbossError(folly::to<std::string>("This call is no longer supported, ",
+      "please call the QsfpService instead"));
 }
 
 template<typename ADDR_TYPE, typename ADDR_CONVERTER>

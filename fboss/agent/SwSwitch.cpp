@@ -787,30 +787,6 @@ Transceiver* SwSwitch::getTransceiver(TransceiverID id) const {
   return transceiverMap_->transceiver(id);
 }
 
-// TODO(ninasc): Remove for qsfp service
-map<TransceiverID, TransceiverInfo> SwSwitch::getTransceiversInfo() const {
-  map<TransceiverID, TransceiverInfo> infos;
-  int i = -1;
-  transceiverMap_->iterateTransceivers(
-      [&](TransceiverID idx, Transceiver* qsfp) {
-        TransceiverInfo info;
-        qsfp->getTransceiverInfo(info);
-        infos[idx] = info;
-      });
-  return infos;
-}
-
-// TODO(ninasc): Remove for qsfp service
-TransceiverInfo SwSwitch::getTransceiverInfo(TransceiverID idx) const {
-  TransceiverInfo info;
-  Transceiver *t = getTransceiver(idx);
-  if (!t) {
-    throw FbossError("no such Transceiver ID", idx);
-  }
-  t->getTransceiverInfo(info);
-  return info;
-}
-
 // TODO(ninasc): Remove when qsfp service is live
 void SwSwitch::addTransceiver(TransceiverID idx,
                               std::unique_ptr<Transceiver> trans) {

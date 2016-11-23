@@ -369,16 +369,6 @@ class SwSwitch : public HwSwitch::Callback {
   Transceiver* getTransceiver(TransceiverID idx) const;
 
   /*
-   * Get a list of transceivers.
-   */
-  std::map<TransceiverID, TransceiverInfo> getTransceiversInfo() const;
-
-  /*
-   * Get TransceiverInfo of the specified port.
-   */
-  TransceiverInfo getTransceiverInfo(TransceiverID idx) const;
-
-  /*
    * Create Transceiver mapping to a TransceiverID
    */
   void addTransceiver(TransceiverID, std::unique_ptr<Transceiver> trans);
