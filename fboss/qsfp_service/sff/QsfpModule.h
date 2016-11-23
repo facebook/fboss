@@ -123,14 +123,14 @@ class QsfpModule : public Transceiver {
   uint8_t qsfpPage0_[MAX_QSFP_PAGE_SIZE];
   uint8_t qsfpPage3_[MAX_QSFP_PAGE_SIZE];
 
+  /* Qsfp Internal Implementation */
+  std::unique_ptr<TransceiverImpl> qsfpImpl_;
   // QSFP Presence status
   bool present_{false};
   // Denotes if the cache value is valid or stale
   bool dirty_{false};
   // Flat memory systems don't support paged access to extra data
   bool flatMem_{false};
-  /* Qsfp Internal Implementation */
-  std::unique_ptr<TransceiverImpl> qsfpImpl_;
 
   /*
    * qsfpModuleMutex_ is held around all the read and writes to the qsfpModule
@@ -140,6 +140,14 @@ class QsfpModule : public Transceiver {
    * the information.
    */
   mutable std::mutex qsfpModuleMutex_;
+
+  /*
+   * We don't want to read from the qsfps excessively as there's a single lock
+   * held to read from all of them.
+   * Instead, only refresh data if it hasn't been updated in
+   * kQsfpMinReadIntervalMs.
+   */
+  std::atomic<time_t> lastReadTime_;
 
   /*
    * Perform transceiver customization

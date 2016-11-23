@@ -11,7 +11,6 @@
 
 #include <boost/assign.hpp>
 #include <string>
-#include <limits>
 #include <iomanip>
 #include "fboss/agent/FbossError.h"
 #include "fboss/qsfp_service/sff/TransceiverImpl.h"
@@ -22,6 +21,8 @@ namespace facebook { namespace fboss {
   using std::memcpy;
   using std::mutex;
   using std::lock_guard;
+
+static const time_t kQsfpMinReadIntervalMs = 1000 * 5;
 
 // As per SFF-8436, QSFP+ 10 Gbs 4X PLUGGABLE TRANSCEIVER spec
 
@@ -464,9 +465,10 @@ TransmitterTechnology QsfpModule::getQsfpTransmitterTechnology() {
 }
 
 QsfpModule::QsfpModule(std::unique_ptr<TransceiverImpl> qsfpImpl)
-  : qsfpImpl_(std::move(qsfpImpl)) {
-  present_ = false;
-  dirty_ = true;
+  : qsfpImpl_(std::move(qsfpImpl)),
+    present_(false),
+    dirty_(true),
+    lastReadTime_(0) {
 }
 
 void QsfpModule::setQsfpIdprom() {
@@ -588,6 +590,10 @@ void QsfpModule::getTransceiverInfo(TransceiverInfo &info) {
 
 // Must be called with lock held on qsfpModuleMutex_
 void QsfpModule::refreshCacheIfPossibleLocked() {
+  // Check whether we should refresh data
+  if (std::time(nullptr) - lastReadTime_.load() > kQsfpMinReadIntervalMs) {
+    dirty_ = true;
+  }
   if (!cacheIsValid()) {
     if (present_) {
       // Cache is dirty, refresh
@@ -658,6 +664,7 @@ void QsfpModule::updateQsfpData() {
         folly::to<std::string>(qsfpImpl_->getName());
       qsfpImpl_->readTransceiver(TransceiverI2CApi::ADDR_QSFP, 0,
           sizeof(qsfpIdprom_), qsfpIdprom_);
+      lastReadTime_ = std::time(nullptr);
       dirty_ = false;
       setQsfpIdprom();
       /*
