@@ -76,7 +76,7 @@ class QsfpServiceClient(QsfpService.Client):
     DEFAULT_PORT = 5910
 
     # we ignore the value of port
-    def __init__(self, host, port, timeout=2.0):
+    def __init__(self, host, port=None, timeout=2.0):
         self.host = host
 
         self._socket = TSocket(host, self.DEFAULT_PORT)
