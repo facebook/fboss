@@ -114,9 +114,8 @@ facebook::fboss::PortStatus fillInPortStatus(
     const facebook::fboss::Port& port,
     const facebook::fboss::SwSwitch* sw) {
   facebook::fboss::PortStatus status;
-  status.enabled = (port.getState() ==
-      facebook::fboss::cfg::PortState::UP ? true : false);
-  status.up = sw->isPortUp(port.getID());
+  status.enabled = (port.getState() == facebook::fboss::cfg::PortState::UP);
+  status.up = port.getOperState();
   status.speedMbps = (int) port.getWorkingSpeed();
 
   try {
@@ -285,14 +284,6 @@ void SwSwitch::gracefulExit() {
 
 void SwSwitch::getProductInfo(ProductInfo& productInfo) const {
   platform_->getProductInfo(productInfo);
-}
-
-bool SwSwitch::isPortUp(PortID port) const {
-   if (getState()->getPort(port)->getState() == cfg::PortState::UP) {
-     return hw_->isPortUp(port);
-   }
-   // Port not enabled
-   return false;
 }
 
 void SwSwitch::registerNeighborListener(

@@ -565,11 +565,6 @@ class SwSwitch : public HwSwitch::Callback {
       const std::string& identifier);
 
   /*
-  * Get port operational state
-  */
-  bool isPortUp(PortID port) const;
-
-  /*
    * Register a function that will send notifications about the port status.
    * Only one port status listener is supported, and calling this multiple
    * times will overwrite the current listener.
