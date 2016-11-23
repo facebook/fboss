@@ -21,8 +21,7 @@ GalaxyPlatform::GalaxyPlatform(
     WedgePlatformMode mode)
     : WedgePlatform(
           std::move(productInfo),
-          mode == WedgePlatformMode::GALAXY_LC ? kNumFrontPanelPorts : 0),
-      frontPanelMapping_(getFrontPanelMapping()) {
+          mode == WedgePlatformMode::GALAXY_LC ? kNumFrontPanelPorts : 0) {
   CHECK(
       mode == WedgePlatformMode::GALAXY_LC ||
       mode == WedgePlatformMode::GALAXY_FC);
@@ -31,13 +30,17 @@ GalaxyPlatform::GalaxyPlatform(
 GalaxyPlatform::InitPortMap GalaxyPlatform::initPorts() {
   InitPortMap ports;
 
-  auto add_quad = [&](int start, bool isBackplane) {
+  auto add_quad = [&](int start,
+      TransceiverID frontPanelPort=TransceiverID(-1)) {
     for (int i = 0; i < 4; i++) {
       int num = start + i;
       PortID portID(num);
       opennsl_port_t bcmPortNum = num;
 
-      auto port = make_unique<GalaxyPort>(portID, isBackplane);
+      auto port = make_unique<GalaxyPort>(portID,
+          frontPanelPort,
+          ChannelID(i),
+          frontPanelPort == TransceiverID(-1));
 
       ports.emplace(bcmPortNum, port.get());
       ports_.emplace(portID, std::move(port));
@@ -45,7 +48,7 @@ GalaxyPlatform::InitPortMap GalaxyPlatform::initPorts() {
   };
 
   for (auto mapping : frontPanelMapping_) {
-    add_quad(mapping.second, false);
+    add_quad(mapping.second, mapping.first);
   }
 
   for (auto portNum : getBackplanePorts()) {
@@ -53,7 +56,7 @@ GalaxyPlatform::InitPortMap GalaxyPlatform::initPorts() {
     // Even though its unlikely we will ever
     // use them in anything except all 4 lanes
     // being used by single port.
-    add_quad(portNum, true);
+    add_quad(portNum);
   }
   return ports;
 }
@@ -70,7 +73,7 @@ PortID GalaxyPlatform::fbossPortForQsfpChannel(int transceiver, int channel) {
   return PortID(basePort + channel);
 }
 
-GalaxyPlatform::FrontPanelMapping GalaxyPlatform::getFrontPanelMapping() const {
+GalaxyPlatform::FrontPanelMapping GalaxyPlatform::getFrontPanelMapping() {
   if (isFC()) {
     return getFCFrontPanelMapping();
   } else if (isLC()) {

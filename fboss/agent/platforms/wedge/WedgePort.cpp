@@ -11,8 +11,10 @@
 
 namespace facebook { namespace fboss {
 
-WedgePort::WedgePort(PortID id)
-  : id_(id) {
+WedgePort::WedgePort(PortID id, TransceiverID frontPanelPort, ChannelID channel)
+  : id_(id),
+    frontPanelPort_(frontPanelPort),
+    channel_(channel) {
 }
 
 void WedgePort::setBcmPort(BcmPort* port) {

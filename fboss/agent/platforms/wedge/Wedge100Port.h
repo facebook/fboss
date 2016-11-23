@@ -33,10 +33,8 @@ class Wedge100Port : public WedgePort {
   explicit Wedge100Port(PortID id, Wedge100Platform* platform,
                         TransceiverID frontPanelPort,
                         ChannelID channel)
-      : WedgePort(id),
-        platform_(platform),
-        frontPanelPort_(frontPanelPort),
-        channel_(channel) {}
+      : WedgePort(id, frontPanelPort, channel),
+        platform_(platform) {}
 
   LaneSpeeds supportedLaneSpeeds() const override {
     LaneSpeeds speeds;
@@ -63,8 +61,6 @@ class Wedge100Port : public WedgePort {
   LedColor getLedColor(bool up, bool adminUp);
 
   Wedge100Platform* platform_{nullptr};
-  TransceiverID frontPanelPort_{0};
-  ChannelID channel_{0};
 };
 
 }} // facebook::fboss

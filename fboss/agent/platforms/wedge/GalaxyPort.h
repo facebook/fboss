@@ -17,8 +17,10 @@ namespace facebook { namespace fboss {
 
 class GalaxyPort : public WedgePort {
  public:
-  GalaxyPort(PortID id, bool isBackplanePort)
-      : WedgePort(id), isBackplanePort_(isBackplanePort) {}
+  GalaxyPort(PortID id, TransceiverID frontPanelPort, ChannelID channel,
+      bool isBackplanePort)
+      : WedgePort(id, frontPanelPort, channel),
+        isBackplanePort_(isBackplanePort) {}
 
   LaneSpeeds supportedLaneSpeeds() const override {
     LaneSpeeds speeds;

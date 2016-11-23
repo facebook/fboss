@@ -26,8 +26,7 @@ namespace facebook { namespace fboss {
 
 Wedge100Platform::Wedge100Platform(
   std::unique_ptr<WedgeProductInfo> productInfo
-) : WedgePlatform(std::move(productInfo), kNumWedge100QsfpModules),
-    frontPanelMapping_(getFrontPanelMapping()) {}
+) : WedgePlatform(std::move(productInfo), kNumWedge100QsfpModules) {}
 
 Wedge100Platform::~Wedge100Platform() {}
 

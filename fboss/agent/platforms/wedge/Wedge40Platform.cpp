@@ -32,12 +32,13 @@ Wedge40Platform::Wedge40Platform(
 Wedge40Platform::InitPortMap Wedge40Platform::initPorts() {
 
   InitPortMap ports;
-
-  auto add_port = [&](int num) {
+  auto add_port = [&](int num, TransceiverID frontPanel=TransceiverID(-1),
+        ChannelID channel=ChannelID(-1)) {
       PortID portID(num);
       opennsl_port_t bcmPortNum = num;
 
-      auto port = folly::make_unique<Wedge40Port>(portID);;
+      auto port = folly::make_unique<Wedge40Port>(portID, frontPanel, channel);
+
       ports.emplace(bcmPortNum, port.get());
       ports_.emplace(portID, std::move(port));
   };
@@ -55,9 +56,15 @@ Wedge40Platform::InitPortMap Wedge40Platform::initPorts() {
   auto mode = getMode();
   if (mode == WedgePlatformMode::WEDGE || mode == WedgePlatformMode::LC) {
     // Front panel are 16 4x10G ports
-    add_ports(16 * 4);
+    for (const auto& mapping : frontPanelMapping_) {
+      for (int i = 0; i < 4; i++) {
+        add_port(mapping.second + i, mapping.first, ChannelID(i));
+      }
+    }
     if (mode == WedgePlatformMode::LC) {
+      portNum = frontPanelMapping_.size() * 4;
       // On LC, another 16 ports for back plane ports
+      // No transceivers or channels
       add_ports(16);
     }
   } else {

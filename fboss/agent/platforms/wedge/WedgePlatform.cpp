@@ -46,7 +46,8 @@ namespace facebook { namespace fboss {
 
 WedgePlatform::WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo,
                              uint8_t numQsfps)
-    : productInfo_(std::move(productInfo)),
+    : frontPanelMapping_(getFrontPanelMapping()),
+      productInfo_(std::move(productInfo)),
       numQsfpModules_(numQsfps) {}
 
 // default to kNumWedge40Qsfps if numQsfps not specified
@@ -92,7 +93,6 @@ void WedgePlatform::getProductInfo(ProductInfo& info) {
 WedgePlatformMode WedgePlatform::getMode() const {
   return productInfo_->getMode();
 }
-
 
 void WedgePlatform::initLocalMac() {
   if (!FLAGS_mac.empty()) {
@@ -161,6 +161,27 @@ void WedgePlatform::initTransceiverMap(SwSwitch* sw) {
 
 PortID WedgePlatform::fbossPortForQsfpChannel(int transceiver, int channel) {
   return PortID(transceiver * QsfpModule::CHANNEL_COUNT + channel + 1);
+}
+
+WedgePlatform::FrontPanelMapping WedgePlatform::getFrontPanelMapping() {
+  return {
+    {TransceiverID(0), PortID(1)},
+    {TransceiverID(1), PortID(5)},
+    {TransceiverID(2), PortID(9)},
+    {TransceiverID(3), PortID(13)},
+    {TransceiverID(4), PortID(17)},
+    {TransceiverID(5), PortID(21)},
+    {TransceiverID(6), PortID(25)},
+    {TransceiverID(7), PortID(29)},
+    {TransceiverID(8), PortID(33)},
+    {TransceiverID(9), PortID(37)},
+    {TransceiverID(10), PortID(41)},
+    {TransceiverID(11), PortID(45)},
+    {TransceiverID(12), PortID(49)},
+    {TransceiverID(13), PortID(53)},
+    {TransceiverID(14), PortID(57)},
+    {TransceiverID(15), PortID(61)}
+  };
 }
 
 WedgePort* WedgePlatform::getPort(PortID id) {

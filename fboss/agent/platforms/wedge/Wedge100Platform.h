@@ -42,20 +42,16 @@ class Wedge100Platform : public WedgePlatform {
     TWELVE_BIT_MODE = 0x6,
   };
 
-  typedef std::map<TransceiverID, PortID> FrontPanelMapping;
-
   std::map<std::string, std::string> loadConfig() override;
   // TODO(ninasc): Delete when running qsfp service
   std::unique_ptr<BaseWedgeI2CBus> getI2CBus() override;
 
   PortID fbossPortForQsfpChannel(int transceiver, int channel) override;
-  FrontPanelMapping getFrontPanelMapping();
+  FrontPanelMapping getFrontPanelMapping() override;
   folly::ByteRange defaultLed0Code() override;
   folly::ByteRange defaultLed1Code() override;
   void enableLedMode();
   void setPciPreemphasis(int unit) const;
-
-  FrontPanelMapping frontPanelMapping_;
 };
 
 }} // namespace facebook::fboss

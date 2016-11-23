@@ -52,6 +52,9 @@ class WedgePlatform : public BcmPlatform {
   WedgePort* getPort(PortID port);
 
  protected:
+  using FrontPanelMapping = std::map<TransceiverID, PortID>;
+  virtual FrontPanelMapping getFrontPanelMapping();
+
   explicit WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo);
   WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo,
                 uint8_t numQsfps);
@@ -63,6 +66,8 @@ class WedgePlatform : public BcmPlatform {
   WedgePortMap ports_;
   // TODO(ninasc): Delete when running qsfp service
   std::unique_ptr<WedgeI2CBusLock> wedgeI2CBusLock_;
+
+  FrontPanelMapping frontPanelMapping_;
 
  private:
   // Forbidden copy constructor and assignment operator

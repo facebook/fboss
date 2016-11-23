@@ -17,7 +17,9 @@ namespace facebook { namespace fboss {
 
 class WedgePort : public BcmPlatformPort {
  protected:
-  explicit WedgePort(PortID id);
+  explicit WedgePort(PortID id,
+                     TransceiverID frontPanelPort,
+                     ChannelID channel);
 
  public:
   PortID getPortID() const override { return id_; }
@@ -49,10 +51,11 @@ class WedgePort : public BcmPlatformPort {
 
  protected:
   PortID id_{0};
+  TransceiverID frontPanelPort_{0};
+  ChannelID channel_{0};
   BcmPort* bcmPort_{nullptr};
   // This is owned by SwSwitch
   QsfpModule* qsfp_{nullptr};
-  TransmitterTechnology transmitterTech_{TransmitterTechnology::UNKNOWN};
 };
 
 }} // facebook::fboss
