@@ -27,13 +27,6 @@ void QsfpServiceHandler::getTransceiverInfo(std::map<int32_t,
   manager_->getTransceiversInfo(info, std::move(ids));
 }
 
-bool QsfpServiceHandler::isTransceiverPresent(int16_t idx) {
-  return true;
-}
-
-void QsfpServiceHandler::updateTransceiverInfoFields(int16_t idx) {
-}
-
 void QsfpServiceHandler::customizeTransceiver(int32_t idx,
     cfg::PortSpeed speed) {
   manager_->customizeTransceiver(idx, speed);

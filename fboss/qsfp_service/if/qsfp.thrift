@@ -15,16 +15,6 @@ service QsfpService extends fb303.FacebookService {
   map<i32, transceiver.TransceiverInfo> getTransceiverInfo(1: list<i32> idx)
     throws (1: fboss.FbossBaseError error)
   /*
-   * Whether there is a a transceiver plugged into a port
-   */
-  bool isTransceiverPresent(1: i16 idx)
-    throws (1: fboss.FbossBaseError error)
-  /*
-   * Force an update of the transceiver information in the cache
-   */
-  void updateTransceiverInfoFields(1: i16 idx)
-    throws (1: fboss.FbossBaseError error)
-  /*
    * Customise the transceiver based on the speed at which it should run
    */
   void customizeTransceiver(1: i32 idx,

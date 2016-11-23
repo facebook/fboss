@@ -22,14 +22,6 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
   void getTransceiverInfo(std::map<int32_t, TransceiverInfo>& info,
       std::unique_ptr<std::vector<int32_t>> ids) override;
   /*
-   * Whether or not the qsfp is present for that transceiver
-   */
-  bool isTransceiverPresent(int16_t idx) override;
-  /*
-   * Force a refresh of the cache for a transceiver
-   */
-  void updateTransceiverInfoFields(int16_t idx) override;
-  /*
    * Customise the transceiver based on the speed at which it has
    * been configured to operate at
    */
