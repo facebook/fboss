@@ -19,6 +19,7 @@ from thrift.protocol import TBinaryProtocol
 from neteng.fboss.ctrl import FbossCtrl
 from neteng.fboss.ctrl.ttypes import IpPrefix
 from neteng.fboss.ctrl.ttypes import UnicastRoute
+from neteng.fboss.qsfp import QsfpService
 from facebook.network.Address.ttypes import BinaryAddress
 
 DEFAULT_CLIENTID = 1
@@ -84,8 +85,8 @@ def list_routes(args):
             print ("Route %s" % format_route(route))
 
 def list_optics(args):
-    with get_client(args) as client:
-        info = client.getTransceiverInfo(range(1, 65))
+    with get_qsfp_client(args) as client:
+        info = client.getTransceiverInfo()
         for key, val in info.iteritems():
             print ("Optic %d: %s" % (key, str(val)))
 
@@ -143,6 +144,18 @@ def get_client(args, timeout=5.0):
     transport = protocol.trans
     transport.open()
     client = FbossCtrl.Client(protocol)
+    yield client
+    transport.close()
+
+
+@contextlib.contextmanager
+def get_qsfp_client(args, timeout=5.0):
+    sock = TSocket.TSocket(args.host, args.port)
+    sock.setTimeout(timeout * 1000)  # thrift timeout is in ms
+    protocol = TBinaryProtocol.TBinaryProtocol(sock)
+    transport = protocol.trans
+    transport.open()
+    client = QsfpService.Client(protocol)
     yield client
     transport.close()
 
