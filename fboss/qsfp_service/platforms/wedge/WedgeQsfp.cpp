@@ -13,6 +13,8 @@
 #include <folly/Conv.h>
 #include <folly/Memory.h>
 
+#include "fboss/qsfp_service/StatsPublisher.h"
+
 using namespace facebook::fboss;
 using folly::MutableByteRange;
 using folly::make_unique;
@@ -56,6 +58,9 @@ int WedgeQsfp::readTransceiver(int dataAddress, int offset,
     wedgeI2CBusLock_->moduleRead(module_ + 1, dataAddress, offset, len,
                                   fieldValue);
   } catch (const UsbError& ex) {
+    LOG(ERROR) << "Read from transceiver " << module_ << " at offset " <<
+      offset << " with length " << len << " failed: " << ex.what();
+    StatsPublisher::bumpReadFailure();
     return -1;
   }
   return len;
@@ -67,6 +72,9 @@ int WedgeQsfp::writeTransceiver(int dataAddress, int offset,
     wedgeI2CBusLock_->moduleWrite(module_ + 1, dataAddress, offset, len,
                                    fieldValue);
   } catch (const UsbError& ex) {
+    LOG(ERROR) << "Write to transceiver " << module_ << " at offset " <<
+      offset << " with length " << len << " failed: " << ex.what();
+    StatsPublisher::bumpWriteFailure();
     return -1;
   }
   return len;

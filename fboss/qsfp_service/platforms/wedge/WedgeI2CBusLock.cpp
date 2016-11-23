@@ -10,6 +10,8 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 #include "fboss/lib/usb/UsbError.h"
 
+#include "fboss/qsfp_service/StatsPublisher.h"
+
 using folly::MutableByteRange;
 using std::lock_guard;
 
@@ -24,6 +26,7 @@ void WedgeI2CBusLock::openLocked() {
 }
 
 void WedgeI2CBusLock::open() {
+  StatsPublisher::bumpPciLockHeld();
   lock_guard<std::mutex> g(busMutex_);
   openLocked();
 }

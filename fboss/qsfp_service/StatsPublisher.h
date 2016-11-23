@@ -19,6 +19,9 @@ class StatsPublisher {
     : transceiverManager_(transceiverManager) {};
   void init();
   void publishStats();
+  static void bumpPciLockHeld();
+  static void bumpReadFailure();
+  static void bumpWriteFailure();
 
  private:
   TransceiverManager* transceiverManager_{nullptr};

@@ -654,6 +654,8 @@ void QsfpModule::updateTransceiverInfoFields() {
 void QsfpModule::updateQsfpData() {
   if (present_) {
     try {
+      LOG(INFO) << "Performing qsfp data cache refresh for transceiver " <<
+        folly::to<std::string>(qsfpImpl_->getName());
       qsfpImpl_->readTransceiver(TransceiverI2CApi::ADDR_QSFP, 0,
           sizeof(qsfpIdprom_), qsfpIdprom_);
       dirty_ = false;

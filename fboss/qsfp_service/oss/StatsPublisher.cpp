@@ -16,4 +16,13 @@ void StatsPublisher::init() {
 
 void StatsPublisher::publishStats() {
 }
+//static
+void StatsPublisher::bumpPciLockHeld(){
+}
+// static
+void StatsPublisher::bumpReadFailure() {
+}
+// static
+void StatsPublisher::bumpWriteFailure() {
+}
 }}
