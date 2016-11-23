@@ -18,22 +18,22 @@ static constexpr int kQsfpServicePort = 11111;
 static constexpr int kQsfpConnTimeoutMs = 2000;
 static constexpr int kQsfpSendTimeoutMs = 5000;
 static constexpr int kQsfpRecvTimeoutMs = 5000;
-QsfpClient::QsfpClient(folly::EventBase* eb) :
-  eb_(eb) {
-}
 
-std::unique_ptr<QsfpServiceAsyncClient> QsfpClient::createClient() {
+// static
+std::unique_ptr<QsfpServiceAsyncClient> QsfpClient::createClient(
+    folly::EventBase* eb) {
   // SR relies on both configerator and smcc being up
   // use raw thrift instead
   folly::SocketAddress addr(network::NetworkUtil::getLocalAddress(),
       kQsfpServicePort);
   auto socket = apache::thrift::async::TAsyncSocket::newSocket(
-      eb_, addr, kQsfpConnTimeoutMs);
+      eb, addr, kQsfpConnTimeoutMs);
   socket->setSendTimeout(kQsfpSendTimeoutMs);
   auto channel = apache::thrift::HeaderClientChannel::newChannel(socket);
   return std::make_unique<QsfpServiceAsyncClient>(std::move(channel));
 }
 
+// static
 apache::thrift::RpcOptions QsfpClient::getRpcOptions(){
   apache::thrift::RpcOptions opts;
   opts.setTimeout(

@@ -28,6 +28,7 @@ void WedgeManager::initTransceiverMap(){
       folly::make_unique<WedgeQsfp>(idx, wedgeI2CBusLock_.get());
     std::unique_ptr<QsfpModule> qsfp =
       folly::make_unique<QsfpModule>(std::move(qsfpImpl));
+    qsfp->detectTransceiver();
     transceivers_.emplace(TransceiverID(idx), move(qsfp));
     LOG(INFO) << "making QSFP for " << idx;
   }

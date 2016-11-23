@@ -53,7 +53,7 @@ def port_name_sort_fn(port_name):
     return m.group(1), int(m.group(2)), int(m.group(3)), int(m.group(4))
 
 
-def get_status_strs(status):
+def get_status_strs(status, is_present):
     ''' Get port status attributes '''
 
     attrs = {}
@@ -72,14 +72,14 @@ def get_status_strs(status):
         speed = ""
     if not status.up:
         link_status = "Down"
-        if status.enabled and status.present:
+        if status.enabled and is_present:
             color_start = COLOR_RED
         else:
             color_start = ''
             color_end = ''
-    if status.present is None:
+    if is_present is None:
         present = "Unknown"
-    elif not status.present:
+    elif not is_present:
         present = ""
 
     if color_start:

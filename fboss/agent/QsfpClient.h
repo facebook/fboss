@@ -30,13 +30,12 @@ namespace facebook { namespace fboss {
 // TODO(ninasc): t13719924
 class QsfpClient {
  public:
-  explicit QsfpClient(folly::EventBase* eb);
+   QsfpClient(){}
   ~QsfpClient(){}
- private:
   // This may throw an exception
-  std::unique_ptr<QsfpServiceAsyncClient> createClient();
-  apache::thrift::RpcOptions getRpcOptions();
-  folly::EventBase* eb_;
+  static std::unique_ptr<QsfpServiceAsyncClient> createClient(
+      folly::EventBase* eb);
+  static apache::thrift::RpcOptions getRpcOptions();
 };
 
 }} // namespace facebook::fboss

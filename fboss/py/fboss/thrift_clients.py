@@ -12,6 +12,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from neteng.fboss.ctrl import FbossCtrl
+from neteng.fboss.qsfp import QsfpService
 from thrift.protocol.THeaderProtocol import THeaderProtocol
 from thrift.transport.THeaderTransport import THeaderTransport
 from thrift.transport.TSocket import TSocket
@@ -69,3 +70,26 @@ class FbossAgentClient(FbossCtrl.Client):
             if 'Method name getAllPortInfo not found' in ex.message:
                 return FbossCtrl.Client.getAllPortStats(self, *args, **kwargs)
             raise
+
+
+class QsfpServiceClient(QsfpService.Client):
+    DEFAULT_PORT = 5910
+
+    # we ignore the value of port
+    def __init__(self, host, port, timeout=2.0):
+        self.host = host
+
+        self._socket = TSocket(host, self.DEFAULT_PORT)
+        # TSocket.setTimeout() takes a value in milliseconds
+        self._socket.setTimeout(timeout * 1000)
+        self._transport = THeaderTransport(self._socket)
+        self._protocol = THeaderProtocol(self._transport)
+
+        self._transport.open()
+        QsfpService.Client.__init__(self, self._protocol)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self._transport.close()

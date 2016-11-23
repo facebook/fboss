@@ -128,9 +128,11 @@ class PortFlapCmd(cmds.FbossCmd):
 class PortStatusCmd(cmds.FbossCmd):
     def run(self, detail, ports, verbose, internal):
         self._client = self._create_ctrl_client()
+        self._qsfp_client = self._create_qsfp_client()
         if detail or verbose:
             PortStatusDetailCmd(
-                self._client, ports, verbose).get_detail_status()
+                self._client, ports, self._qsfp_client, verbose
+            ).get_detail_status()
         elif internal:
             self.list_ports(ports, internal_port=True)
         else:
@@ -153,6 +155,7 @@ class PortStatusCmd(cmds.FbossCmd):
         try:
             field_fmt = self._get_field_format(internal_port)
             resp = self._client.getPortStatus(ports)
+            presence = self._qsfp_client.getTransceiverInfo(ports)
             port_info = self._client.getAllPortInfo()
 
             for port_data in sorted(port_info.values(), key=utils.port_sort_fn):
@@ -160,7 +163,8 @@ class PortStatusCmd(cmds.FbossCmd):
                 if port not in resp:
                     continue
                 status = resp[port]
-                attrs = utils.get_status_strs(status)
+                present = presence[port].present
+                attrs = utils.get_status_strs(status, present)
                 if internal_port:
                     speed = attrs['speed']
                     if not speed:
@@ -173,8 +177,7 @@ class PortStatusCmd(cmds.FbossCmd):
                           attrs['link_status'],
                           attrs['present'],
                           speed))
-
-                if not internal_port and status.enabled:
+                elif status.enabled:
                     name = port_data.name if port_data.name else port
                     print(field_fmt.format(
                           name,
@@ -191,8 +194,9 @@ class PortStatusCmd(cmds.FbossCmd):
 class PortStatusDetailCmd(object):
     ''' Print detailed/verbose port status '''
 
-    def __init__(self, client, ports, verbose):
+    def __init__(self, client, ports, qsfp_client, verbose):
         self._client = client
+        self._qsfp_client = qsfp_client
         self._ports = ports
         self._port_speeds = self._get_port_speeds()
         self._info_resp = None
@@ -260,7 +264,8 @@ class PortStatusDetailCmd(object):
     def _print_transceiver_ports(self, ch_to_port, info):
         # Print port info if the transceiver doesn't have any
         for port in ch_to_port.values():
-            attrs = utils.get_status_strs(self._status_resp[port])
+            attrs = utils.get_status_strs(self._status_resp[port],
+                                          info.present)
             print("Port: {:>2}  Status: {:<8}  Link: {:<4}  Transceiver: {}".
                     format(port, attrs['admin_status'], attrs['link_status'],
                             attrs['present']))
@@ -469,7 +474,7 @@ class PortStatusDetailCmd(object):
         for channel in info.channels:
             port = ch_to_port.get(channel.channel, None)
             if port:
-                attrs = utils.get_status_strs(self._status_resp[port])
+                attrs = utils.get_status_strs(self._status_resp[port], None)
                 print("  Channel: {}  Port: {:>2}  Status: {:<8}  Link: {:<4}"
                         .format(channel.channel, port, attrs['admin_status'],
                                 attrs['link_status']))
@@ -501,7 +506,8 @@ class PortStatusDetailCmd(object):
                     self._print_transceiver_details(tid)
                 transceiver_printed.append(tid)
             else:
-                attrs = utils.get_status_strs(self._status_resp[port])
+                attrs = utils.get_status_strs(self._status_resp[port],
+                            self._info_resp[status.transceiverIdx].present)
                 print("Port: {:>2}  Status: {:<8}  Link: {:<4}  Transceiver: {}"
                       .format(port, attrs['admin_status'], attrs['link_status'],
                                 attrs['present']))
@@ -517,7 +523,8 @@ class PortStatusDetailCmd(object):
             return
 
         try:
-            self._info_resp = self._client.getTransceiverInfo(self._transceiver)
+            self._info_resp = \
+                self._qsfp_client.getTransceiverInfo(self._transceiver)
         except TApplicationException:
             return
 

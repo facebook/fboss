@@ -9,7 +9,7 @@
 #
 
 from fboss.cli.utils import utils
-from fboss.thrift_clients import FbossAgentClient
+from fboss.thrift_clients import FbossAgentClient, QsfpServiceClient
 
 
 # Parent Class for all commands
@@ -30,6 +30,11 @@ class FbossCmd(object):
 
         return FbossAgentClient(*args)
 
+    def _create_qsfp_client(self):
+        args = [self._hostname, self._port]
+        if self._timeout:
+            args.append(self._timeout)
+        return QsfpServiceClient(*args)
 
 # --- All generic commands below -- #
 
