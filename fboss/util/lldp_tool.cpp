@@ -58,13 +58,14 @@ using std::map;
 using std::string;
 using std::vector;
 
+// Defined in BcmSwitch.cpp
+DECLARE_int32(linkscan_interval_us);
+
 DEFINE_bool(bcm, true,
             "Whether to listen via a Broadcom ASIC.  "
             "Enabled by default; set to \"no\" to disable");
 DEFINE_string(bcm_config, "",
               "The location of the Broadcom JSON configuration file");
-DEFINE_int32(linkscan_interval_us, 250000,
-             "The Broadcom linkscan interval");
 DEFINE_string(if_name, "eth0", "The local interface to listen on");
 DEFINE_int32(mtu, 9000, "The maximum packet size to expect");
 DEFINE_bool(verbose, false,
