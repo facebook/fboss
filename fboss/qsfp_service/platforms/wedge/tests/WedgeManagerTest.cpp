@@ -30,7 +30,7 @@ class MockWedgeManager : public WedgeManager {
       std::unique_ptr<MockQsfpModule> qsfp =
         folly::make_unique<MockQsfpModule>(nullptr);
       mockTransceivers_.push_back(qsfp.get());
-      transceivers_.emplace(TransceiverID(idx), move(qsfp));
+      transceivers_.push_back(move(qsfp));
     }
   }
 
@@ -49,7 +49,7 @@ class WedgeManagerTest : public ::testing::Test {
 TEST_F(WedgeManagerTest, getTransceiverInfo) {
   // If no ids are passed in, info for all should be returned
   for (const auto& trans : wedgeManager_->mockTransceivers_) {
-    EXPECT_CALL(*trans, getTransceiverInfo(_)).Times(1);
+    EXPECT_CALL(*trans, getTransceiverInfo()).Times(1);
   }
   std::map<int32_t, TransceiverInfo> transInfo;
   wedgeManager_->getTransceiversInfo(transInfo,
@@ -59,7 +59,7 @@ TEST_F(WedgeManagerTest, getTransceiverInfo) {
   std::vector<int32_t> data = {1, 3, 7};
   for (const auto& i : data) {
     MockQsfpModule* qsfp = wedgeManager_->mockTransceivers_[i];
-    EXPECT_CALL(*qsfp, getTransceiverInfo(_)).Times(1);
+    EXPECT_CALL(*qsfp, getTransceiverInfo()).Times(1);
   }
   wedgeManager_->getTransceiversInfo(transInfo,
       folly::make_unique<std::vector<int32_t>>(data));

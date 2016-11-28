@@ -21,12 +21,12 @@ WedgeI2CBusLock::WedgeI2CBusLock(std::unique_ptr<BaseWedgeI2CBus> wedgeI2CBus)
     : wedgeI2CBus_(std::move(wedgeI2CBus)) {}
 
 void WedgeI2CBusLock::openLocked() {
+  StatsPublisher::bumpPciLockHeld();
   wedgeI2CBus_->open();
   opened_ = true;
 }
 
 void WedgeI2CBusLock::open() {
-  StatsPublisher::bumpPciLockHeld();
   lock_guard<std::mutex> g(busMutex_);
   openLocked();
 }

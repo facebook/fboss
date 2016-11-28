@@ -24,12 +24,10 @@ void WedgeManager::initTransceiverMap(){
   // Wedge port 0 is the CPU port, so the first port associated with
   // a QSFP+ is port 1.  We start the transceiver IDs with 0, though.
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
-    std::unique_ptr<WedgeQsfp> qsfpImpl =
-      folly::make_unique<WedgeQsfp>(idx, wedgeI2CBusLock_.get());
-    std::unique_ptr<QsfpModule> qsfp =
-      folly::make_unique<QsfpModule>(std::move(qsfpImpl));
+    auto qsfpImpl = folly::make_unique<WedgeQsfp>(idx, wedgeI2CBusLock_.get());
+    auto qsfp = folly::make_unique<QsfpModule>(std::move(qsfpImpl));
     qsfp->detectTransceiver();
-    transceivers_.emplace(TransceiverID(idx), move(qsfp));
+    transceivers_.push_back(move(qsfp));
     LOG(INFO) << "making QSFP for " << idx;
   }
 }
@@ -42,10 +40,16 @@ void WedgeManager::getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
   }
 
   for (const auto& i : *ids) {
-    TransceiverInfo transInfo;
-    transceivers_[TransceiverID(i)]->getTransceiverInfo(transInfo);
-    info[i] = transInfo;
+    TransceiverInfo trans;
+    if (isValidTransceiver(i)) {
+      trans = transceivers_[TransceiverID(i)]->getTransceiverInfo();
+    }
+    info[i] = trans;
   }
+}
+
+void WedgeManager::customizeTransceiver(int32_t idx, cfg::PortSpeed speed) {
+  transceivers_.at(idx)->customizeTransceiver(speed);
 }
 
 std::unique_ptr<BaseWedgeI2CBus> WedgeManager::getI2CBus() {

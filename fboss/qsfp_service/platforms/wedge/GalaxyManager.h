@@ -9,13 +9,14 @@ class GalaxyManager : public WedgeManager {
  public:
   GalaxyManager();
   ~GalaxyManager() override {}
+
+  // This is the front panel ports count
+  int getNumQsfpModules() override { return 16; }
  private:
   // Forbidden copy constructor and assignment operator
   GalaxyManager(GalaxyManager const &) = delete;
   GalaxyManager& operator=(GalaxyManager const &) = delete;
  protected:
   std::unique_ptr<BaseWedgeI2CBus> getI2CBus() override;
-  // This is the front panel ports count
-  int getNumQsfpModules() override { return 16; }
 };
 }} // facebook::fboss

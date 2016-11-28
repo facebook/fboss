@@ -64,10 +64,6 @@ class QsfpModule : public Transceiver {
    */
   void detectTransceiver() override;
   /*
-   * Returns if the QSFP supports DOM
-   */
-  bool isDomSupported() const;
-  /*
    * Get the QSFP EEPROM Field
    */
   int getFieldValue(SffField fieldName, uint8_t* fieldValue);
@@ -85,7 +81,7 @@ class QsfpModule : public Transceiver {
   /*
    * Returns the entire QSFP information
    */
-  virtual void getTransceiverInfo(TransceiverInfo &info) override;
+  virtual TransceiverInfo getTransceiverInfo() override;
 
   /*
    * The size of the pages used by QSFP.  See below for an explanation of
@@ -104,7 +100,6 @@ class QsfpModule : public Transceiver {
    * would lock up the USB device for much longer
    */
   TransmitterTechnology getTransmitterTech();
-
  protected:
   // no copy or assignment
   QsfpModule(QsfpModule const &) = delete;

@@ -37,13 +37,13 @@ class Transceiver {
    */
   virtual void detectTransceiver() = 0;
   /*
-   * Update the transceiver information in the cache
+   * Update the QSFP Fields in the cache
    */
   virtual void updateTransceiverInfoFields() = 0;
   /*
    * Return all of the transceiver information
    */
-  virtual void getTransceiverInfo(TransceiverInfo &info) = 0;
+  virtual TransceiverInfo getTransceiverInfo() = 0;
   /*
    * Set speed specific settings for the transceiver
    */

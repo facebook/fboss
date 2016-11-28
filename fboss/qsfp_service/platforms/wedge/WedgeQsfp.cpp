@@ -72,8 +72,9 @@ int WedgeQsfp::writeTransceiver(int dataAddress, int offset,
     wedgeI2CBusLock_->moduleWrite(module_ + 1, dataAddress, offset, len,
                                    fieldValue);
   } catch (const UsbError& ex) {
-    LOG(ERROR) << "Write to transceiver " << module_ << " at offset " <<
-      offset << " with length " << len << " failed: " << ex.what();
+    LOG(ERROR) << "Write to transceiver " << module_ << " at offset "
+               << offset << " with length " << len << " failed: "
+               << folly::exceptionStr(ex);
     StatsPublisher::bumpWriteFailure();
     return -1;
   }

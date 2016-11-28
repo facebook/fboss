@@ -550,15 +550,15 @@ bool QsfpModule::cacheIsValid() const {
   return present_ && !dirty_;
 }
 
-void QsfpModule::getTransceiverInfo(TransceiverInfo &info) {
+TransceiverInfo QsfpModule::getTransceiverInfo() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   refreshCacheIfPossibleLocked();
-
+  TransceiverInfo info;
   info.present = present_;
   info.transceiver = type();
   info.port = qsfpImpl_->getNum();
   if (!cacheIsValid()) {
-    return;
+    return info;
   }
 
   if (getSensorInfo(info.sensor)) {
@@ -586,6 +586,7 @@ void QsfpModule::getTransceiverInfo(TransceiverInfo &info) {
   } else {
     info.channels.clear();
   }
+  return info;
 }
 
 // Must be called with lock held on qsfpModuleMutex_

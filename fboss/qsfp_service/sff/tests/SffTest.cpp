@@ -169,10 +169,8 @@ TEST(SffTest, simpleRead) {
     folly::make_unique<QsfpModule>(std::move(qsfpImpl));
 
   qsfp->detectTransceiver();
-  qsfp->updateTransceiverInfoFields();
 
-  TransceiverInfo info;
-  qsfp->getTransceiverInfo(info);
+  TransceiverInfo info = qsfp->getTransceiverInfo();
 
   EXPECT_EQ("FACETEST", info.vendor.name);
   EXPECT_EQ(100, info.cable.om3);
