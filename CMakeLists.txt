@@ -29,6 +29,7 @@ include_directories(${CMAKE_BINARY_DIR}/gen)
 include_directories(${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2)
 include_directories(${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2)
 include_directories(${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2)
+include_directories(${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2)
 
 # System libraries
 find_library(GLOG glog)
@@ -251,6 +252,7 @@ add_library(fboss_agent STATIC
     fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
     fboss/qsfp_service/sff/SffFieldInfo.cpp
     fboss/qsfp_service/sff/QsfpModule.cpp
+    fboss/qsfp_service/oss/StatsPublisher.cpp
 
     # generated sources
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/packettrace_types.cpp
