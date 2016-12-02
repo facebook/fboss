@@ -9,10 +9,6 @@
  */
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <ctime>
-
 #include <boost/cast.hpp>
 
 #include <folly/Hash.h>
@@ -61,7 +57,6 @@
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/RouteDelta.h"
-#include "fboss/agent/SysError.h"
 
 extern "C" {
 #include <opennsl/link.h>
