@@ -56,13 +56,13 @@ Wedge40Platform::InitPortMap Wedge40Platform::initPorts() {
   auto mode = getMode();
   if (mode == WedgePlatformMode::WEDGE || mode == WedgePlatformMode::LC) {
     // Front panel are 16 4x10G ports
-    for (const auto& mapping : frontPanelMapping_) {
+    for (const auto& mapping : getFrontPanelMapping()) {
       for (int i = 0; i < 4; i++) {
         add_port(mapping.second + i, mapping.first, ChannelID(i));
       }
     }
     if (mode == WedgePlatformMode::LC) {
-      portNum = frontPanelMapping_.size() * 4;
+      portNum = getFrontPanelMapping().size() * 4;
       // On LC, another 16 ports for back plane ports
       // No transceivers or channels
       add_ports(16);

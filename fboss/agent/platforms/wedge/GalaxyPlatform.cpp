@@ -47,7 +47,7 @@ GalaxyPlatform::InitPortMap GalaxyPlatform::initPorts() {
     }
   };
 
-  for (auto mapping : frontPanelMapping_) {
+  for (auto mapping : getFrontPanelMapping()) {
     add_quad(mapping.second, mapping.first);
   }
 
@@ -69,7 +69,8 @@ PortID GalaxyPlatform::fbossPortForQsfpChannel(int transceiver, int channel) {
   CHECK(isLC());
   CHECK_GE(transceiver, 0);
   CHECK_LT(transceiver, kNumFrontPanelPorts);
-  auto basePort = frontPanelMapping_.find(TransceiverID(transceiver))->second;
+  auto basePort =
+    getFrontPanelMapping().find(TransceiverID(transceiver))->second;
   return PortID(basePort + channel);
 }
 

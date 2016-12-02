@@ -46,8 +46,7 @@ namespace facebook { namespace fboss {
 
 WedgePlatform::WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo,
                              uint8_t numQsfps)
-    : frontPanelMapping_(getFrontPanelMapping()),
-      productInfo_(std::move(productInfo)),
+    : productInfo_(std::move(productInfo)),
       numQsfpModules_(numQsfps) {}
 
 // default to kNumWedge40Qsfps if numQsfps not specified

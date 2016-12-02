@@ -67,8 +67,6 @@ class WedgePlatform : public BcmPlatform {
   // TODO(ninasc): Delete when running qsfp service
   std::unique_ptr<WedgeI2CBusLock> wedgeI2CBusLock_;
 
-  FrontPanelMapping frontPanelMapping_;
-
  private:
   // Forbidden copy constructor and assignment operator
   WedgePlatform(WedgePlatform const &) = delete;

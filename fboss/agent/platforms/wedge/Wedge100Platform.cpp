@@ -46,7 +46,7 @@ Wedge100Platform::InitPortMap Wedge100Platform::initPorts() {
     }
   };
 
-  for (auto mapping : frontPanelMapping_) {
+  for (auto mapping : getFrontPanelMapping()) {
     add_quad(mapping.second, mapping.first);
   }
 
@@ -130,8 +130,8 @@ Wedge100Platform::FrontPanelMapping Wedge100Platform::getFrontPanelMapping() {
 }
 
 Wedge100Port* Wedge100Platform::getPortFromFrontPanelNum(TransceiverID fpPort) {
-  auto iter = frontPanelMapping_.find(fpPort);
-  if (iter == frontPanelMapping_.end()) {
+  auto iter = getFrontPanelMapping().find(fpPort);
+  if (iter == getFrontPanelMapping().end()) {
     throw FbossError("Cannot find the port ID for front panel port ", fpPort);
   }
   // Could do a dynamic_cast, but we know the type is Wedge100Port*

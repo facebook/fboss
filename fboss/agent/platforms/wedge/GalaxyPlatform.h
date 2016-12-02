@@ -53,9 +53,6 @@ class GalaxyPlatform : public WedgePlatform {
   PortID fbossPortForQsfpChannel(int transceiver, int channel) override;
   folly::ByteRange defaultLed0Code() override;
   folly::ByteRange defaultLed1Code() override;
-
-  FrontPanelMapping frontPanelMapping_;
-
 };
 
 }}
