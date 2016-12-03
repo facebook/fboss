@@ -32,8 +32,9 @@ Wedge40Platform::Wedge40Platform(
 Wedge40Platform::InitPortMap Wedge40Platform::initPorts() {
 
   InitPortMap ports;
-  auto add_port = [&](int num, TransceiverID frontPanel=TransceiverID(-1),
-        ChannelID channel=ChannelID(-1)) {
+  auto add_port = [&](int num,
+        folly::Optional<TransceiverID> frontPanel=nullptr,
+        folly::Optional<ChannelID> channel=nullptr) {
       PortID portID(num);
       opennsl_port_t bcmPortNum = num;
 
@@ -58,7 +59,9 @@ Wedge40Platform::InitPortMap Wedge40Platform::initPorts() {
     // Front panel are 16 4x10G ports
     for (const auto& mapping : getFrontPanelMapping()) {
       for (int i = 0; i < 4; i++) {
-        add_port(mapping.second + i, mapping.first, ChannelID(i));
+        add_port(mapping.second + i,
+            folly::Optional<TransceiverID>(mapping.first),
+            folly::Optional<ChannelID>(ChannelID(i)));
       }
     }
     if (mode == WedgePlatformMode::LC) {

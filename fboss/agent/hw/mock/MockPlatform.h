@@ -34,6 +34,9 @@ class MockPlatform : public Platform {
   void getProductInfo(ProductInfo& info) override {
     // Nothing to do
   };
+  TransceiverIdxThrift getPortMapping(PortID /* unused */) const override {
+    return TransceiverIdxThrift();
+  }
 
   MOCK_CONST_METHOD0(getLocalMac, folly::MacAddress());
   MOCK_METHOD1(onHwInitialized, void(SwSwitch*));

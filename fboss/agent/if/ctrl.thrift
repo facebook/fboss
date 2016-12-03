@@ -145,6 +145,7 @@ struct TransceiverIdxThrift {
 struct PortStatus {
   1: bool enabled,
   2: bool up,
+  // Deprecated, this should be retrieved from the qsfp_service
   3: optional bool present,
   4: optional TransceiverIdxThrift transceiverIdx,
   5: i64 speedMbps,
@@ -353,16 +354,9 @@ service FbossCtrl extends fb303.FacebookService {
   list<L2EntryThrift> getL2Table()
     throws (1: fboss.FbossBaseError error)
 
-  /*
-   * Returns all the DOM information
-   */
+  // Deprecated - use the qsfp_service instead
   map<i32, optic.SfpDom> getSfpDomInfo(1: list<i32> port)
     throws (1: fboss.FbossBaseError error)
-
-  /*
-   * Returns all transceiver info (both QSFP and SFP, and hopefully
-   * future devices)
-   */
   map<i32, transceiver.TransceiverInfo> getTransceiverInfo(1: list<i32> idx)
     throws (1: fboss.FbossBaseError error)
 

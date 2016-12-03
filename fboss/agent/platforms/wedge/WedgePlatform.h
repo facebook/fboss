@@ -49,7 +49,8 @@ class WedgePlatform : public BcmPlatform {
     // wedge_agent, and not with wedge_ctrl).
     return FLAGS_enable_routes_in_host_table;
   }
-  WedgePort* getPort(PortID port);
+  WedgePort* getPort(PortID port) const;
+  virtual TransceiverIdxThrift getPortMapping(PortID port) const override;
 
  protected:
   using FrontPanelMapping = std::map<TransceiverID, PortID>;
@@ -64,7 +65,6 @@ class WedgePlatform : public BcmPlatform {
   WedgePlatformMode getMode() const;
 
   WedgePortMap ports_;
-  // TODO(ninasc): Delete when running qsfp service
   std::unique_ptr<WedgeI2CBusLock> wedgeI2CBusLock_;
 
  private:
@@ -76,7 +76,6 @@ class WedgePlatform : public BcmPlatform {
   virtual std::map<std::string, std::string> loadConfig();
   virtual PortID fbossPortForQsfpChannel(int transceiver, int channel);
 
-  // TODO(ninasc): Delete when running qsfp service
   virtual std::unique_ptr<BaseWedgeI2CBus> getI2CBus();
   void initTransceiverMap(SwSwitch* sw);
 

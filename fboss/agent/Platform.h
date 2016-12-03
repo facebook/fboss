@@ -11,6 +11,8 @@
 
 #include <folly/MacAddress.h>
 #include <memory>
+#include "fboss/agent/types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 namespace facebook { namespace fboss {
 
@@ -121,6 +123,11 @@ class Platform {
    * Get filename for where we dump switch state on crash
    */
   std::string getCrashSwitchStateFile() const;
+  /*
+   * For a specific logical port, return the transceiver and channel
+   * it represents if available
+   */
+  virtual TransceiverIdxThrift getPortMapping(PortID port) const = 0;
 
  private:
   // Forbidden copy constructor and assignment operator

@@ -31,8 +31,8 @@ enum class LedColor : uint32_t {
 class Wedge100Port : public WedgePort {
  public:
   explicit Wedge100Port(PortID id, Wedge100Platform* platform,
-                        TransceiverID frontPanelPort,
-                        ChannelID channel)
+                        folly::Optional<TransceiverID> frontPanelPort,
+                        folly::Optional<ChannelID> channel)
       : WedgePort(id, frontPanelPort, channel),
         platform_(platform) {}
 
@@ -53,7 +53,7 @@ class Wedge100Port : public WedgePort {
 
  private:
   bool isTop() {
-    return !(frontPanelPort_ & 0x1);
+    return frontPanelPort_ ? !(*frontPanelPort_ & 0x1) : false;
   }
 
   BcmPortGroup::LaneMode laneMode();

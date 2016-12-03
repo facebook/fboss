@@ -58,7 +58,8 @@ class BcmPlatform : public Platform {
    * use the host table for host routes (/128 or /32).
    */
   virtual bool canUseHostTableForHostRoutes() const = 0;
-
+  virtual TransceiverIdxThrift getPortMapping(
+      PortID portId) const override = 0;
  private:
   // Forbidden copy constructor and assignment operator
   BcmPlatform(BcmPlatform const &) = delete;

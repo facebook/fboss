@@ -116,7 +116,6 @@ void WedgePlatform::initLocalMac() {
   localMac_ = MacAddress::fromHBO(eth0Mac.u64HBO() | 0x0000020000000000);
 }
 
-// TODO(ninasc): delete when running qsfp service
 std::unique_ptr<BaseWedgeI2CBus> WedgePlatform::getI2CBus() {
   return make_unique<WedgeI2CBus>();
 }
@@ -126,14 +125,12 @@ void WedgePlatform::initTransceiverMap(SwSwitch* sw) {
   // If we can't get access to the USB devices, don't bother to
   // create the QSFP objects;  this is likely to be a permanent
   // error.
-
   try {
     wedgeI2CBusLock_ = make_unique<WedgeI2CBusLock>(getI2CBus());
   } catch (const LibusbError& ex) {
     LOG(ERROR) << "failed to initialize USB to I2C interface";
     return;
   }
-
   // Wedge port 0 is the CPU port, so the first port associated with
   // a QSFP+ is port 1.  We start the transceiver IDs with 0, though.
 
@@ -156,6 +153,23 @@ void WedgePlatform::initTransceiverMap(SwSwitch* sw) {
       (getPort(portId))->setQsfp(qsfpPtr);
     }
   }
+}
+
+TransceiverIdxThrift WedgePlatform::getPortMapping(PortID portId) const {
+  auto info = TransceiverIdxThrift();
+  auto port = getPort(portId);
+
+  auto transceiver = port->getTransceiverID();
+  if (transceiver) {
+    info.transceiverId = static_cast<int32_t>(*transceiver);
+    info.__isset.transceiverId = true;
+  }
+  auto channel = port->getChannel();
+  if (channel) {
+    info.channelId = static_cast<int32_t>(*channel);
+    info.__isset.channelId = true;
+  }
+  return info;
 }
 
 PortID WedgePlatform::fbossPortForQsfpChannel(int transceiver, int channel) {
@@ -183,7 +197,7 @@ WedgePlatform::FrontPanelMapping WedgePlatform::getFrontPanelMapping() {
   };
 }
 
-WedgePort* WedgePlatform::getPort(PortID id) {
+WedgePort* WedgePlatform::getPort(PortID id) const {
   auto iter = ports_.find(id);
   if (iter == ports_.end()) {
     throw FbossError("Cannot find the Wedge port object for BCM port ", id);

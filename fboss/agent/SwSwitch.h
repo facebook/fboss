@@ -605,7 +605,6 @@ class SwSwitch : public HwSwitch::Callback {
    * on the Monitoring configuration.
    */
   void publishInitTimes(std::string name, const float& time);
-  void publishQsfpInfo();
   void publishPortInfo();
   void publishRouteStats();
   void publishSwitchInfo(struct HwInitResult hwInitRet);

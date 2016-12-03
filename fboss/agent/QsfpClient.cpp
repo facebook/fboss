@@ -14,7 +14,7 @@
 
 namespace facebook { namespace fboss {
 
-static constexpr int kQsfpServicePort = 11111;
+static constexpr int kQsfpServicePort = 5910;
 static constexpr int kQsfpConnTimeoutMs = 2000;
 static constexpr int kQsfpSendTimeoutMs = 5000;
 static constexpr int kQsfpRecvTimeoutMs = 5000;

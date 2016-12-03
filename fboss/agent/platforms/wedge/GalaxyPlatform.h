@@ -36,7 +36,6 @@ class GalaxyPlatform : public WedgePlatform {
 
   using BackplanePorts = std::vector<PortID>;
 
-  // TODO(ninasc): Delete when running qsfp service
   std::unique_ptr<BaseWedgeI2CBus> getI2CBus() override;
 
   bool isLC() const { return getMode() == WedgePlatformMode::GALAXY_LC; }

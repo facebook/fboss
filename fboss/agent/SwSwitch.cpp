@@ -119,13 +119,10 @@ facebook::fboss::PortStatus fillInPortStatus(
   status.speedMbps = (int) port.getWorkingSpeed();
 
   try {
-    auto tm = sw->getTransceiverMapping(port.getID());
-    status.transceiverIdx.channelId = tm.first;
-    status.transceiverIdx.__isset.channelId = true;
-    status.transceiverIdx.transceiverId = tm.second;
-    status.__isset.transceiverIdx = true;
-    status.present = sw->getTransceiver(tm.second)->isPresent();
-    status.__isset.present = true;
+    status.transceiverIdx = sw->getPlatform()->getPortMapping(port.getID());
+    status.__isset.transceiverIdx =
+      status.transceiverIdx.__isset.transceiverId ||
+      status.transceiverIdx.__isset.channelId;
   } catch (const facebook::fboss::FbossError& err) {
     // No problem, we just don't set the other info
   }
