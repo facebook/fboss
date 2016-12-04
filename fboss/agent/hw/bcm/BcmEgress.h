@@ -25,7 +25,7 @@ extern "C" {
 
 namespace facebook { namespace fboss {
 
-class BcmSwitch;
+class BcmSwitchIf;
 
 class BcmEgressBase : public boost::noncopyable {
  public:
@@ -39,14 +39,20 @@ class BcmEgressBase : public boost::noncopyable {
   virtual folly::dynamic toFollyDynamic() const = 0;
   virtual bool isEcmp() const = 0;
  protected:
-  explicit BcmEgressBase(const BcmSwitch* hw) : hw_(hw) {}
-  const BcmSwitch* hw_;
+  explicit BcmEgressBase(const BcmSwitchIf* hw) : hw_(hw) {}
+  // this is used for unittesting
+  BcmEgressBase(const BcmSwitchIf* hw, opennsl_if_t testId)
+      : hw_(hw), id_(testId) {}
+  const BcmSwitchIf* hw_{nullptr};
   opennsl_if_t id_{INVALID};
 };
 
 class BcmEgress : public BcmEgressBase {
  public:
-  explicit BcmEgress(const BcmSwitch* hw) : BcmEgressBase(hw) {}
+  explicit BcmEgress(const BcmSwitchIf* hw) : BcmEgressBase(hw) {}
+  // the following c-tor is used for unit-testing
+  BcmEgress(const BcmSwitchIf* hw, opennsl_if_t testId)
+      : BcmEgressBase(hw, testId) {}
   ~BcmEgress() override;
   void program(opennsl_if_t intfId, opennsl_vrf_t vrf,
       const folly::IPAddress& ip, folly::MacAddress mac,
@@ -111,7 +117,7 @@ class BcmEcmpEgress : public BcmEgressBase {
   using EgressId = opennsl_if_t;
   using Paths = boost::container::flat_set<opennsl_if_t>;
 
-  explicit BcmEcmpEgress(const BcmSwitch* hw,
+  explicit BcmEcmpEgress(const BcmSwitchIf* hw,
       Paths paths) : BcmEgressBase(hw), paths_(paths) {
     program();
   }

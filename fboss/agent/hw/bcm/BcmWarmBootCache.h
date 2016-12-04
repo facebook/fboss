@@ -29,6 +29,7 @@ extern "C" {
 
 namespace facebook { namespace fboss {
 class BcmSwitch;
+class BcmSwitchIf;
 class InterfaceMap;
 class RouteTableMap;
 class Vlan;
@@ -37,7 +38,7 @@ class SwitchState;
 
 class BcmWarmBootCache {
  public:
-  explicit BcmWarmBootCache(const BcmSwitch* hw);
+  explicit BcmWarmBootCache(const BcmSwitchIf* hw);
   void populate();
   struct VlanInfo {
     VlanInfo(VlanID _vlan, opennsl_pbmp_t _untagged, opennsl_pbmp_t _allPorts,
@@ -320,7 +321,7 @@ class BcmWarmBootCache {
    */
   folly::dynamic toFollyDynamic() const;
 
-  const BcmSwitch* getHw() const {
+  const BcmSwitchIf* getHw() const {
     return hw_;
   }
 
@@ -335,7 +336,7 @@ class BcmWarmBootCache {
   // No copy or assignment.
   BcmWarmBootCache(const BcmWarmBootCache&) = delete;
   BcmWarmBootCache& operator=(const BcmWarmBootCache&) = delete;
-  const BcmSwitch* hw_;
+  const BcmSwitchIf* hw_;
   Vlan2VlanInfo vlan2VlanInfo_;
   Vlan2Station vlan2Station_;
   VlanAndMac2Intf vlanAndMac2Intf_;

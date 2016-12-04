@@ -73,7 +73,7 @@ folly::IPAddress getFullMaskIPv6Address() {
 
 namespace facebook { namespace fboss {
 
-BcmWarmBootCache::BcmWarmBootCache(const BcmSwitch* hw)
+BcmWarmBootCache::BcmWarmBootCache(const BcmSwitchIf* hw)
     : hw_(hw),
       dropEgressId_(BcmEgressBase::INVALID),
       toCPUEgressId_(BcmEgressBase::INVALID) {}

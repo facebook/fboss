@@ -63,6 +63,7 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
   eObj.intf = intfId;
   bool addOrUpdateEgress = false;
   const auto warmBootCache = hw_->getWarmBootCache();
+  CHECK(warmBootCache);
   auto egressId2EgressAndBoolCitr = warmBootCache->findEgress(vrf, ip);
   if (egressId2EgressAndBoolCitr !=
       warmBootCache->egressId2EgressAndBool_end()) {

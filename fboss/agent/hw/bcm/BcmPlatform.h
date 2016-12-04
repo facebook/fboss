@@ -51,7 +51,7 @@ class BcmPlatform : public Platform {
    * Get filename for where we dump the HW config that
    * the switch was initialized with.
    */
-  std::string getHwConfigDumpFile() const;
+  virtual std::string getHwConfigDumpFile() const;
 
   /*
    * Based on the chip we may or may not be able to

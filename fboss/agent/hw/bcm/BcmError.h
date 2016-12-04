@@ -61,7 +61,7 @@ void bcmLogError(int err, Args&&... msgArgs) {
 }
 
 template<typename... Args>
-void bcmLogFatal(int err, const BcmSwitch* hw, Args&&... msgArgs) {
+void bcmLogFatal(int err, const BcmSwitchIf* hw, Args&&... msgArgs) {
   if (OPENNSL_FAILURE(err)) {
     hw->exitFatal();
     LOG(FATAL) << folly::to<std::string>(std::forward<Args>(msgArgs)...)

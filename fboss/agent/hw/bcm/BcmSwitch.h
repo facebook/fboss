@@ -51,10 +51,47 @@ class Vlan;
 class VlanMap;
 
 /*
+ * Virtual interface to BcmSwitch, primarily for mocking/testing
+ */
+class BcmSwitchIf : public HwSwitch {
+ public:
+  virtual std::unique_ptr<BcmUnit> releaseUnit() = 0;
+
+  virtual BcmPlatform* getPlatform() const = 0;
+
+  virtual std::unique_ptr<PacketTraceInfo> getPacketTrace(
+      std::unique_ptr<MockRxPacket> pkt) = 0;
+
+  virtual bool isRxThreadRunning() = 0;
+
+  virtual int getUnit() const = 0;
+
+  virtual const BcmPortTable* getPortTable() const = 0;
+
+  virtual const BcmIntfTable* getIntfTable() const = 0;
+
+  virtual const BcmHostTable* getHostTable() const = 0;
+
+  virtual const BcmAclTable* getAclTable() const = 0;
+
+  virtual opennsl_if_t getDropEgressId() const = 0;
+
+  virtual opennsl_if_t getToCPUEgressId() const = 0;
+
+  virtual BcmCosManager* getCosMgr() const = 0;
+
+  virtual BcmHostTable* writableHostTable() const = 0;
+
+  virtual BcmWarmBootCache* getWarmBootCache() const = 0;
+
+  virtual void dumpState() const = 0;
+};
+
+/*
  * BcmSwitch is a HwSwitch implementation for systems that use a single
  * Broadcom ASIC.
  */
-class BcmSwitch : public HwSwitch {
+class BcmSwitch : public BcmSwitchIf {
  public:
    enum HashMode {
      FULL_HASH, // Full hash - use src IP, dst IP, src port, dst port
@@ -88,7 +125,7 @@ class BcmSwitch : public HwSwitch {
    * Once this method has called no other BcmSwitch methods should be accessed
    * before destroying the BcmSwitch object.
    */
-  std::unique_ptr<BcmUnit> releaseUnit();
+  virtual std::unique_ptr<BcmUnit> releaseUnit() override;
 
   /*
    * Initialize the BcmSwitch.
@@ -99,7 +136,7 @@ class BcmSwitch : public HwSwitch {
 
   void remedyPorts() override;
 
-  BcmPlatform* getPlatform() const {
+  BcmPlatform* getPlatform() const override {
     return platform_;
   }
 
@@ -108,11 +145,11 @@ class BcmSwitch : public HwSwitch {
   bool sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
                            PortID portID) noexcept override;
   std::unique_ptr<PacketTraceInfo> getPacketTrace(
-      std::unique_ptr<MockRxPacket> pkt);
+      std::unique_ptr<MockRxPacket> pkt) override;
 
-  bool isRxThreadRunning();
+  bool isRxThreadRunning() override;
 
-  int getUnit() const {
+  int getUnit() const override {
     return unit_;
   }
 
@@ -132,22 +169,22 @@ class BcmSwitch : public HwSwitch {
   static VlanID getVlanId(opennsl_vlan_t vlan) {
     return VlanID(vlan);
   }
-  const BcmPortTable* getPortTable() const {
+  const BcmPortTable* getPortTable() const override {
     return portTable_.get();
   }
-  const BcmIntfTable* getIntfTable() const {
+  const BcmIntfTable* getIntfTable() const override {
     return intfTable_.get();
   }
-  const BcmHostTable* getHostTable() const {
+  const BcmHostTable* getHostTable() const override {
     return hostTable_.get();
   }
-  const BcmAclTable* getAclTable() const {
+  const BcmAclTable* getAclTable() const override {
     return aclTable_.get();
   }
   bool isPortUp(PortID port) const override;
 
-  opennsl_if_t getDropEgressId() const;
-  opennsl_if_t getToCPUEgressId() const;
+  opennsl_if_t getDropEgressId() const override;
+  opennsl_if_t getToCPUEgressId() const override;
 
   // The following function will modify the object.
   // Lock has to be performed in the function.
@@ -204,21 +241,21 @@ class BcmSwitch : public HwSwitch {
       const folly::StringPiece namespaceString,
       const std::set<folly::StringPiece>& counterSet) override;
 
-  BcmCosManager* getCosMgr() const {
+  BcmCosManager* getCosMgr() const override {
     return cosManager_.get();
   };
 
   void fetchL2Table(std::vector<L2EntryThrift> *l2Table) override;
 
-  BcmHostTable* writableHostTable() const { return hostTable_.get(); }
-  BcmWarmBootCache* getWarmBootCache() const {
+  BcmHostTable* writableHostTable() const override { return hostTable_.get(); }
+  BcmWarmBootCache* getWarmBootCache() const override {
     return warmBootCache_.get();
   }
 
   /**
    * Log the hardware state for the switch
    */
-  void dumpState() const;
+  void dumpState() const override;
 
   /*
    * Handle a fatal crash.
@@ -240,7 +277,7 @@ class BcmSwitch : public HwSwitch {
  private:
   enum Flags : uint32_t {
     RX_REGISTERED = 0x01,
-    LINKSCAN_REGISTERED = 0x02,
+    LINKSCAN_REGISTERED = 0x02
   };
   // Forbidden copy constructor and assignment operator
   BcmSwitch(BcmSwitch const &) = delete;
