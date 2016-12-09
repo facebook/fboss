@@ -399,6 +399,7 @@ opennsl_rx_t BcmProcessor::lldpPktHandler(int unit, opennsl_pkt_t* nslPkt,
                                           void* cookie) {
   // Ignore packets smaller than the minimum ethernet frame size
   int len = nslPkt->pkt_len;
+  LOG(INFO) << "Received packet of size " << len;
   if (len < 64) {
     return OPENNSL_RX_NOT_HANDLED;
   }
