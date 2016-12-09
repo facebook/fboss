@@ -101,7 +101,7 @@ enum DeviceTechnology : uint8_t {
   UNKNOWN_VALUE = 0b1000,
 };
 
-enum PowerControl : uint8_t {
+enum class PowerControl : uint8_t {
   POWER_LPMODE = 0,
   POWER_OVERRIDE =      1 << 0,
   POWER_SET =           1 << 1,

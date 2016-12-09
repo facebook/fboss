@@ -292,14 +292,15 @@ RateSelectState QsfpModule::getRateSelectValue() {
 }
 
 PowerControlState QsfpModule::getPowerControlValue() {
-  switch (getSettingsValue(SffField::POWER_CONTROL, POWER_CONTROL_MASK)) {
-    case POWER_LPMODE:
+  switch (static_cast<PowerControl>(getSettingsValue(
+      SffField::POWER_CONTROL, uint8_t(PowerControl::POWER_CONTROL_MASK)))) {
+    case PowerControl::POWER_LPMODE:
       return PowerControlState::POWER_LPMODE;
-    case POWER_SET:
+    case PowerControl::POWER_SET:
       return PowerControlState::POWER_SET;
-    case HIGH_POWER_OVERRIDE:
+    case PowerControl::HIGH_POWER_OVERRIDE:
       return PowerControlState::HIGH_POWER_OVERRIDE;
-    case POWER_OVERRIDE:
+    case PowerControl::POWER_OVERRIDE:
       return PowerControlState::POWER_OVERRIDE;
     default:
       return PowerControlState::POWER_LPMODE;
@@ -892,9 +893,9 @@ void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
   int powerLevel = (*extId & EXT_ID_POWER_MASK) >> EXT_ID_POWER_SHIFT;
 
   if (highPowerLevel > 0 || powerLevel > 0) {
-      uint8_t power = POWER_OVERRIDE;
+      uint8_t power = uint8_t(PowerControl::POWER_OVERRIDE);
       if (highPowerLevel > 0) {
-        power |= HIGH_POWER_OVERRIDE;
+        power |= uint8_t(PowerControl::HIGH_POWER_OVERRIDE);
       }
 
       // Note that we don't have to set the page here, but there should
