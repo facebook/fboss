@@ -157,13 +157,16 @@ class PortStatusCmd(cmds.FbossCmd):
             resp = self._client.getPortStatus(ports)
             presence = self._qsfp_client.getTransceiverInfo(ports)
             port_info = self._client.getAllPortInfo()
-
             for port_data in sorted(port_info.values(), key=utils.port_sort_fn):
                 port = port_data.portId
                 if port not in resp:
                     continue
                 status = resp[port]
-                present = presence[port].present
+                # The transceiver can be retrieved from port name
+                # e.g. port name eth1/4/1 -> transceiver is 4-1 = 3
+                # (-1 because we start counting transceivers at 0)
+                transceiver = utils.port_sort_fn(port_data)[2] - 1
+                present = presence[transceiver].present
                 attrs = utils.get_status_strs(status, present)
                 if internal_port:
                     speed = attrs['speed']
