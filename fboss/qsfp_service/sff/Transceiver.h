@@ -37,10 +37,6 @@ class Transceiver {
    */
   virtual void detectTransceiver() = 0;
   /*
-   * Update the QSFP Fields in the cache
-   */
-  virtual void updateTransceiverInfoFields() = 0;
-  /*
    * Return all of the transceiver information
    */
   virtual TransceiverInfo getTransceiverInfo() = 0;

@@ -178,25 +178,6 @@ class Initializer {
     fs_->addFunction(flushWarmbootFunc, seconds(1), flushWarmboot,
         seconds(FLAGS_flush_warmboot_cache_secs)/*initial delay*/);
 
-    // TODO(ninasc): Remove when qsfp service is live
-    // Transceiver Module Detection Thread
-    const string sfpDetect = "DetectTransceiver";
-    auto sfpDetectFunc = [=]() {
-      sw_->detectTransceiver();
-    };
-    fs_->addFunction(sfpDetectFunc, seconds(5), sfpDetect);
-
-    // TODO(ninasc): Remove when qsfp service is live
-    // Transceiver Module Detection Thread
-    const string sfpDomCacheUpdate = "CacheUpdateTransceiver";
-    auto sfpDomCacheUpdateFunc = [=]() {
-      sw_->updateTransceiverInfoFields();
-    };
-    // Call sfpDomCacheUpdate 15 seconds to get SFP monitor the
-    // DOM values
-    fs_->addFunction(sfpDomCacheUpdateFunc, seconds(15), sfpDomCacheUpdate,
-        seconds(15));
-
     fs_->start();
     LOG(INFO) << "Started background thread: UpdateStatsThread";
     initCondition_.notify_all();

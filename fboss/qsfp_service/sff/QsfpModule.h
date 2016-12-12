@@ -68,10 +68,6 @@ class QsfpModule : public Transceiver {
    */
   int getFieldValue(SffField fieldName, uint8_t* fieldValue);
   /*
-   * Update the QSFP Fields in the cache
-   */
-  void updateTransceiverInfoFields() override;
-  /*
    * Customize QSPF fields as necessary
    *
    * speed - the speed the port is running at - this will allow setting
@@ -94,12 +90,6 @@ class QsfpModule : public Transceiver {
     // Number of channels per module
     CHANNEL_COUNT = 4,
   };
-  /*
-   * Convenience method to retrieve the free side transceiver technology
-   * This method is used instead of calling getTransceiverInfo, as this
-   * would lock up the USB device for much longer
-   */
-  TransmitterTechnology getTransmitterTech();
  protected:
   // no copy or assignment
   QsfpModule(QsfpModule const &) = delete;

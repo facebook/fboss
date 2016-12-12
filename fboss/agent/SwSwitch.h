@@ -14,8 +14,6 @@
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/ThreadHeartbeat.h"
-#include "fboss/qsfp_service/sff/Transceiver.h"
-#include "fboss/agent/TransceiverMap.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/Utils.h"
 
@@ -43,9 +41,6 @@ class PortStats;
 class RxPacket;
 class SwitchState;
 class SwitchStats;
-class QsfpModule;
-class TransceiverMap;
-class TransceiverImpl;
 class StateDelta;
 class NeighborUpdater;
 class RouteUpdateLogger;
@@ -363,28 +358,6 @@ class SwSwitch : public HwSwitch::Callback {
   void getProductInfo(ProductInfo& productInfo) const;
 
   /*
-   * Get the transceiver info for the specified module ID.
-   */
-  TransceiverIdx getTransceiverMapping(PortID port) const;
-  Transceiver* getTransceiver(TransceiverID idx) const;
-
-  /*
-   * Create Transceiver mapping to a TransceiverID
-   */
-  void addTransceiver(TransceiverID, std::unique_ptr<Transceiver> trans);
-  void addTransceiverMapping(PortID portID, ChannelID channelID,
-                             TransceiverID module);
-  /*
-   * Check all possible transceiver modules for presence
-   */
-  void detectTransceiver();
-
-  /*
-   * This function is update the transceiver information cache values
-   */
-  void updateTransceiverInfoFields();
-
-  /*
    * Get the PortStats for the ingress port of this packet.
    */
   PortStats* portStats(const RxPacket* pkt);
@@ -597,13 +570,6 @@ class SwSwitch : public HwSwitch::Callback {
    */
   void setStateInternal(std::shared_ptr<SwitchState> newState);
 
-  /*
-   * This function publishes the QSFP Dom data (real time values
-   * and thresholds to the local in-memory ServiceData Structure
-   * along with the presence and dom supported status flags.
-   * These values are published by the fbagent to the ODS based
-   * on the Monitoring configuration.
-   */
   void publishInitTimes(std::string name, const float& time);
   void publishPortInfo();
   void publishRouteStats();
@@ -717,8 +683,6 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<PktCaptureManager> pcapMgr_;
   std::unique_ptr<RouteUpdateLogger> routeUpdateLogger_;
   std::unique_ptr<UnresolvedNhopsProber> unresolvedNhopsProber_;
-
-  std::unique_ptr<TransceiverMap> transceiverMap_;
 
   BootType bootType_{BootType::UNINITIALIZED};
   std::unique_ptr<LldpManager> lldpManager_;

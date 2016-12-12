@@ -15,12 +15,10 @@
 #include "fboss/lib/usb/UsbError.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/qsfp_service/sff/QsfpModule.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
-#include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
 
 #include <future>
 
@@ -120,41 +118,6 @@ std::unique_ptr<BaseWedgeI2CBus> WedgePlatform::getI2CBus() {
   return make_unique<WedgeI2CBus>();
 }
 
-// TODO(ninasc): delete when running qsfp service
-void WedgePlatform::initTransceiverMap(SwSwitch* sw) {
-  // If we can't get access to the USB devices, don't bother to
-  // create the QSFP objects;  this is likely to be a permanent
-  // error.
-  try {
-    wedgeI2CBusLock_ = make_unique<WedgeI2CBusLock>(getI2CBus());
-  } catch (const LibusbError& ex) {
-    LOG(ERROR) << "failed to initialize USB to I2C interface";
-    return;
-  }
-  // Wedge port 0 is the CPU port, so the first port associated with
-  // a QSFP+ is port 1.  We start the transceiver IDs with 0, though.
-
-  for (int idx = 0; idx < numQsfpModules_; idx++) {
-    std::unique_ptr<WedgeQsfp> qsfpImpl =
-      make_unique<WedgeQsfp>(idx, wedgeI2CBusLock_.get());
-    std::unique_ptr<QsfpModule> qsfp =
-      make_unique<QsfpModule>(std::move(qsfpImpl));
-    qsfp->detectTransceiver();
-    auto qsfpPtr = qsfp.get();
-    sw->addTransceiver(TransceiverID(idx), move(qsfp));
-    LOG(INFO) << "making QSFP for " << idx;
-
-    // TODO(ninasc): Only this part is necessary - mapping of PortID to
-    // transceiver ID - and this could potentially be done on the fly
-    for (int channel = 0; channel < QsfpModule::CHANNEL_COUNT; ++channel) {
-      PortID portId = fbossPortForQsfpChannel(idx, channel);
-      sw->addTransceiverMapping(portId,
-          ChannelID(channel), TransceiverID(idx));
-      (getPort(portId))->setQsfp(qsfpPtr);
-    }
-  }
-}
-
 TransceiverIdxThrift WedgePlatform::getPortMapping(PortID portId) const {
   auto info = TransceiverIdxThrift();
   auto port = getPort(portId);
@@ -170,10 +133,6 @@ TransceiverIdxThrift WedgePlatform::getPortMapping(PortID portId) const {
     info.__isset.channelId = true;
   }
   return info;
-}
-
-PortID WedgePlatform::fbossPortForQsfpChannel(int transceiver, int channel) {
-  return PortID(transceiver * QsfpModule::CHANNEL_COUNT + channel + 1);
 }
 
 WedgePlatform::FrontPanelMapping WedgePlatform::getFrontPanelMapping() {

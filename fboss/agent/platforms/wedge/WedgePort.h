@@ -12,7 +12,6 @@
 
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/qsfp_service/sff/QsfpModule.h"
 
 namespace facebook { namespace fboss {
 
@@ -30,10 +29,6 @@ class WedgePort : public BcmPlatformPort {
     return bcmPort_;
   }
 
-  void setQsfp(QsfpModule* qsfp) {
-    qsfp_= qsfp;
-  }
-
   void preDisable(bool temporary) override;
   void postDisable(bool temporary) override;
   void preEnable() override;
@@ -44,13 +39,13 @@ class WedgePort : public BcmPlatformPort {
                         bool discards, bool errors) override;
   void linkSpeedChanged(const cfg::PortSpeed& speed) override;
 
-  TransmitterTechnology getTransmitterTech() const override;
   virtual folly::Optional<TransceiverID> getTransceiverID() const {
     return frontPanelPort_;
   }
   virtual folly::Optional<ChannelID> getChannel() const {
     return channel_;
   }
+  virtual TransmitterTechnology getTransmitterTech() const override;
  private:
   // Forbidden copy constructor and assignment operator
   WedgePort(WedgePort const &) = delete;
@@ -62,8 +57,6 @@ class WedgePort : public BcmPlatformPort {
   folly::Optional<TransceiverID> frontPanelPort_;
   folly::Optional<ChannelID> channel_;
   BcmPort* bcmPort_{nullptr};
-  // This is owned by SwSwitch
-  QsfpModule* qsfp_{nullptr};
 };
 
 }} // facebook::fboss

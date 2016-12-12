@@ -36,8 +36,6 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUpdateHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/TransceiverMap.h"
-#include "fboss/qsfp_service/sff/TransceiverImpl.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/PortRemediator.h"
@@ -169,8 +167,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
     ipv6_(new IPv6Handler(this)),
     nUpdater_(new NeighborUpdater(this)),
     pcapMgr_(new PktCaptureManager(this)),
-    routeUpdateLogger_(new RouteUpdateLogger(this)),
-    transceiverMap_(new TransceiverMap()) {
+    routeUpdateLogger_(new RouteUpdateLogger(this)) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
@@ -765,49 +762,6 @@ cfg::PortSpeed SwSwitch::getMaxPortSpeed(PortID port) const {
 PortStatus SwSwitch::getPortStatus(PortID portID) {
   std::shared_ptr<Port> port = getState()->getPort(portID);
   return fillInPortStatus(*port, this);
-}
-
-TransceiverIdx SwSwitch::getTransceiverMapping(PortID portID) const {
-  return transceiverMap_->transceiverMapping(portID);
-}
-
-Transceiver* SwSwitch::getTransceiver(TransceiverID id) const {
-  return transceiverMap_->transceiver(id);
-}
-
-// TODO(ninasc): Remove when qsfp service is live
-void SwSwitch::addTransceiver(TransceiverID idx,
-                              std::unique_ptr<Transceiver> trans) {
-  transceiverMap_->addTransceiver(idx, std::move(trans));
-}
-
-void SwSwitch::addTransceiverMapping(PortID portID, ChannelID channelID,
-                                     TransceiverID transceiverID) {
-  transceiverMap_->addTransceiverMapping(portID, channelID, transceiverID);
-}
-
-// TODO(ninasc): Remove when qsfp service is live
-void SwSwitch::detectTransceiver() {
-  std::vector<Transceiver*> transceivers;
-  transceiverMap_->iterateTransceivers([&](TransceiverID, Transceiver* qsfp) {
-    transceivers.push_back(qsfp);
-  });
-
-  for (auto transceiver : transceivers) {
-    transceiver->detectTransceiver();
-  }
-}
-
-// TODO(ninasc): Remove when qsfp service is live
-void SwSwitch::updateTransceiverInfoFields() {
-  std::vector<Transceiver*> transceivers;
-  transceiverMap_->iterateTransceivers([&](TransceiverID, Transceiver* qsfp) {
-    transceivers.push_back(qsfp);
-  });
-
-  for (auto transceiver : transceivers) {
-    transceiver->updateTransceiverInfoFields();
-  }
 }
 
 SwitchStats* SwSwitch::createSwitchStats() {

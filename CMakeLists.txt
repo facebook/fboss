@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(FBOSS)
+
 include(CheckCXXCompilerFlag)
 include(CMakeParseArguments)
 
@@ -26,6 +27,7 @@ set(CMAKE_PROGRAM_PATH "${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/compiler/;$
 
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_BINARY_DIR}/gen)
+include_directories(${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2)
 include_directories(${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2)
 include_directories(${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2)
 include_directories(${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2)
@@ -79,6 +81,7 @@ add_executable(wedge_agent
     fboss/agent/platforms/wedge/oss/WedgePort.cpp
     fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
 )
+
 target_link_libraries(wedge_agent fboss_agent)
 
 add_library(fboss_agent STATIC
@@ -188,6 +191,7 @@ add_library(fboss_agent STATIC
     fboss/agent/platforms/wedge/WedgeProductInfo.cpp
     fboss/agent/PortStats.cpp
     fboss/agent/PortRemediator.cpp
+    fboss/agent/QsfpClient.cpp
     fboss/agent/RestClient.cpp
     fboss/agent/RouteUpdateLogger.cpp
     fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
@@ -223,7 +227,6 @@ add_library(fboss_agent STATIC
     fboss/agent/SwSwitch.cpp
     fboss/agent/ThriftHandler.cpp
     fboss/agent/ThreadHeartbeat.cpp
-    fboss/agent/TransceiverMap.cpp
     fboss/agent/TunIntf.cpp
     fboss/agent/TunManager.cpp
     fboss/agent/UDPHeader.cpp
@@ -236,7 +239,6 @@ add_library(fboss_agent STATIC
     fboss/lib/usb/CP2112.cpp
     fboss/lib/usb/CP2112.h
     fboss/lib/usb/PCA9548MultiplexedBus.cpp
-    fboss/lib/usb/TARGETS
     fboss/lib/usb/TransceiverI2CApi.h
     fboss/lib/usb/UsbDevice.cpp
     fboss/lib/usb/UsbDevice.h
@@ -248,11 +250,9 @@ add_library(fboss_agent STATIC
     fboss/lib/usb/WedgeI2CBus.cpp
     fboss/lib/usb/WedgeI2CBus.h
 
-    fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
-    fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
-    fboss/qsfp_service/sff/SffFieldInfo.cpp
-    fboss/qsfp_service/sff/QsfpModule.cpp
     fboss/qsfp_service/oss/StatsPublisher.cpp
+    fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
+
 
     # generated sources
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/packettrace_data.cpp
@@ -292,9 +292,15 @@ add_library(fboss_agent STATIC
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/highres_types.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/bcmswitch_data.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/bcmswitch_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/QsfpService.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/QsfpService_client.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/qsfp_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/qsfp_data.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/qsfp_constants.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/transceiver_types.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/transceiver_constants.cpp
 )
+
 target_link_libraries(fboss_agent
     ${GLOG}
     ${SSL}
@@ -389,8 +395,9 @@ fboss_add_thrift(THRIFTSRC fboss/agent/if/ctrl.thrift
     SERVICES FbossCtrl NeighborListenerClient)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/fboss.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/highres.thrift SERVICES FbossHighresClient)
-fboss_add_thrift(THRIFTSRC fboss/agent/if/highres.thrift SERVICES FbossHighresClient)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/optic.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/hw/bcm/packettrace.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/hw/bcm/bcmswitch.thrift)
 fboss_add_thrift(THRIFTSRC fboss/qsfp_service/if/transceiver.thrift)
+fboss_add_thrift(THRIFTSRC fboss/qsfp_service/if/qsfp.thrift
+    SERVICES QsfpService)

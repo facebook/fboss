@@ -65,15 +65,6 @@ std::unique_ptr<BaseWedgeI2CBus> GalaxyPlatform::getI2CBus() {
   return make_unique<GalaxyI2CBus>();
 }
 
-PortID GalaxyPlatform::fbossPortForQsfpChannel(int transceiver, int channel) {
-  CHECK(isLC());
-  CHECK_GE(transceiver, 0);
-  CHECK_LT(transceiver, kNumFrontPanelPorts);
-  auto basePort =
-    getFrontPanelMapping().find(TransceiverID(transceiver))->second;
-  return PortID(basePort + channel);
-}
-
 GalaxyPlatform::FrontPanelMapping GalaxyPlatform::getFrontPanelMapping() {
   if (isFC()) {
     return getFCFrontPanelMapping();

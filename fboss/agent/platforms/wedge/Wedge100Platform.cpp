@@ -14,7 +14,6 @@
 #include "fboss/agent/platforms/wedge/Wedge100Port.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/usb/Wedge100I2CBus.h"
-#include "fboss/qsfp_service/sff/QsfpModule.h"
 
 #include <folly/Memory.h>
 
@@ -55,38 +54,6 @@ Wedge100Platform::InitPortMap Wedge100Platform::initPorts() {
 
 std::unique_ptr<BaseWedgeI2CBus> Wedge100Platform::getI2CBus() {
   return folly::make_unique<Wedge100I2CBus>();
-}
-
-PortID Wedge100Platform::fbossPortForQsfpChannel(int transceiver, int channel) {
-  // TODO(aeckert): remove this hack. Instead use the frontPanelMapping
-  // for initializing transceivers.
-  //
-  // This is needed due to Tomahawk port numbering limitations and the setup on
-  // wedge100. There are two things we need to adjust for:
-  //
-  // 1. The first four qsfp transceivers are in fact the last 4
-  //    logically on the tomahawk.
-  // 2. Each pipe (32 physical ports) has 33 allowed logical numbers and
-  //    a reserved loopback port, except the first pipe which skips 0 as
-  //    an allowed port.
-  //
-  CHECK(transceiver >= 0 && transceiver < kNumWedge100QsfpModules);
-  int th_quad = transceiver - 4;
-  if (th_quad < 0) {
-    // account for first 4 qsfps actually being connected to the last
-    // ports on the tomahawk.
-    th_quad += 32;
-  }
-
-  int pipe = th_quad / 8;
-  int local = th_quad % 8;
-  int port_num = pipe * 34 + local * QsfpModule::CHANNEL_COUNT + channel;
-  if (pipe == 0) {
-    // port 0 is reserved specially for the cpu port so increment one more.
-    ++port_num;
-  }
-
-  return PortID(port_num);
 }
 
 Wedge100Platform::FrontPanelMapping Wedge100Platform::getFrontPanelMapping() {

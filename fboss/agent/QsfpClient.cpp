@@ -10,8 +10,6 @@
 
 #include "QsfpClient.h"
 
-#include "common/network/NetworkUtil.h"
-
 namespace facebook { namespace fboss {
 
 static constexpr int kQsfpServicePort = 5910;
@@ -24,8 +22,7 @@ std::unique_ptr<QsfpServiceAsyncClient> QsfpClient::createClient(
     folly::EventBase* eb) {
   // SR relies on both configerator and smcc being up
   // use raw thrift instead
-  folly::SocketAddress addr(network::NetworkUtil::getLocalAddress(),
-      kQsfpServicePort);
+  folly::SocketAddress addr("::1", kQsfpServicePort);
   auto socket = apache::thrift::async::TAsyncSocket::newSocket(
       eb, addr, kQsfpConnTimeoutMs);
   socket->setSendTimeout(kQsfpSendTimeoutMs);

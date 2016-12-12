@@ -45,7 +45,6 @@ class Wedge100Platform : public WedgePlatform {
   std::map<std::string, std::string> loadConfig() override;
   std::unique_ptr<BaseWedgeI2CBus> getI2CBus() override;
 
-  PortID fbossPortForQsfpChannel(int transceiver, int channel) override;
   FrontPanelMapping getFrontPanelMapping() override;
   folly::ByteRange defaultLed0Code() override;
   folly::ByteRange defaultLed1Code() override;

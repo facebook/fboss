@@ -607,15 +607,6 @@ void QsfpModule::refreshCacheIfPossibleLocked() {
   }
 }
 
-TransmitterTechnology QsfpModule::getTransmitterTech() {
-  lock_guard<std::mutex> g(qsfpModuleMutex_);
-  refreshCacheIfPossibleLocked();
-  if (present_) {
-    return getQsfpTransmitterTechnology();
-  }
-  return TransmitterTechnology::UNKNOWN;
-}
-
 void QsfpModule::detectTransceiver() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   detectTransceiverLocked();
@@ -652,11 +643,6 @@ int QsfpModule::getFieldValue(SffField fieldName,
     }
   }
   return -1;
-}
-
-void QsfpModule::updateTransceiverInfoFields() {
-  lock_guard<std::mutex> g(qsfpModuleMutex_);
-  updateQsfpData();
 }
 
 void QsfpModule::updateQsfpData() {
