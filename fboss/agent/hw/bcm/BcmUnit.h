@@ -115,12 +115,6 @@ class BcmUnit {
 
   void registerCallbackVector();
   void bcmInit();
-  void onSwitchEvent(opennsl_switch_event_t event,
-                     uint32_t arg1, uint32_t arg2, uint32_t arg3);
-
-  static void switchEventCallback(int unit, opennsl_switch_event_t event,
-                                  uint32_t arg1, uint32_t arg2, uint32_t arg3,
-                                  void* userdata);
 
   std::unique_ptr<BcmWarmBootHelper> wbHelper_;
   int deviceIndex_{-1};

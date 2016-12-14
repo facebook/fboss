@@ -13,6 +13,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
+#include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 #include <folly/dynamic.h>
 
@@ -21,6 +22,7 @@
 #include <boost/container/flat_map.hpp>
 
 extern "C" {
+#include <opennsl/error.h>
 #include <opennsl/port.h>
 #include <opennsl/rx.h>
 #include <opennsl/types.h>
@@ -39,7 +41,6 @@ class BcmPlatform;
 class BcmPortTable;
 class BcmRouteTable;
 class BcmRxPacket;
-class BcmSwitchEventManager;
 class BcmTableStats;
 class BcmUnit;
 class BcmWarmBootCache;
@@ -240,6 +241,15 @@ class BcmSwitch : public BcmSwitchIf {
       HighresSamplerList* samplers,
       const folly::StringPiece namespaceString,
       const std::set<folly::StringPiece>& counterSet) override;
+
+  /*
+   * Wrapper functions to register and unregister a BCM event callbacks.  These
+   * just forward the call.
+   */
+  std::shared_ptr<BcmSwitchEventCallback> registerSwitchEventCallback(
+      opennsl_switch_event_t eventID,
+      std::shared_ptr<BcmSwitchEventCallback> callback);
+  void unregisterSwitchEventCallback(opennsl_switch_event_t eventID);
 
   BcmCosManager* getCosMgr() const override {
     return cosManager_.get();
@@ -497,7 +507,6 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmRouteTable> routeTable_;
   std::unique_ptr<BcmAclTable> aclTable_;
   std::unique_ptr<BcmWarmBootCache> warmBootCache_;
-  std::unique_ptr<BcmSwitchEventManager> switchEventManager_;
   std::unique_ptr<BcmCosManager> cosManager_;
   std::unique_ptr<BcmTableStats> bcmTableStats_;
   /*

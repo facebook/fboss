@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <boost/utility.hpp>
+#include <cstdint>
 
 extern "C" {
 #include <opennsl/switch.h>
@@ -17,32 +17,38 @@ extern "C" {
 
 namespace facebook { namespace fboss {
 
-class BcmSwitchEvent;
-
 /**
  * This abstract class defines the interface for a Bcm switch event callback.
  */
 
-class BcmSwitchEventCallback : public boost::noncopyable {
+class BcmSwitchEventCallback {
  public:
   BcmSwitchEventCallback() {}
   virtual ~BcmSwitchEventCallback() {}
 
   // override this function in derived classes to specify error handling
   // behavior (eg. logging a fatal error and terminating the program).
-  virtual void callback(const BcmSwitchEvent& event)=0;
+  virtual void callback(const int unit, const opennsl_switch_event_t eventID,
+                        const uint32_t arg1, const uint32_t arg2,
+                        const uint32_t arg3) = 0;
+
+ private:
+  // disable copy constructor and assignment operator
+  BcmSwitchEventCallback(const BcmSwitchEventCallback&) = delete;
+  BcmSwitchEventCallback& operator=(const BcmSwitchEventCallback&) = delete;
 };
 
 /**
- * Default handler for Bcm parity errors.
- * Logs a descriptive fatal error and quits.
+ * Handler for BCM unit errors.  All of these are fatal.
  */
-class BcmSwitchEventParityErrorCallback : public BcmSwitchEventCallback {
+class BcmSwitchEventUnitFatalErrorCallback : public BcmSwitchEventCallback {
  public:
-  BcmSwitchEventParityErrorCallback() {}
-  ~BcmSwitchEventParityErrorCallback() override {}
+  BcmSwitchEventUnitFatalErrorCallback() {}
+  ~BcmSwitchEventUnitFatalErrorCallback() override {}
 
-  void callback(const BcmSwitchEvent& event) override;
+  void callback(const int unit, const opennsl_switch_event_t eventID,
+                const uint32_t arg1, const uint32_t arg2,
+                const uint32_t arg3) override;
 };
 
 }} // facebook::fboss

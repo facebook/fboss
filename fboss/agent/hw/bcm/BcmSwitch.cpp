@@ -31,8 +31,7 @@
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
-#include "fboss/agent/hw/bcm/BcmSwitchEventManager.h"
-#include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
+#include "fboss/agent/hw/bcm/BcmSwitchEventUtils.h"
 #include "fboss/agent/hw/bcm/BcmTableStats.h"
 #include "fboss/agent/hw/bcm/BcmTxPacket.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
@@ -72,6 +71,7 @@ using std::chrono::duration_cast;
 using std::unique_ptr;
 using std::make_pair;
 using std::make_shared;
+using std::move;
 using std::shared_ptr;
 using std::string;
 
@@ -138,14 +138,6 @@ BcmSwitch::BcmSwitch(BcmPlatform *platform, HashMode hashMode)
     aclTable_(new BcmAclTable(this)),
     warmBootCache_(new BcmWarmBootCache(this)),
     bcmTableStats_(new BcmTableStats(this)) {
-
-  // Start switch event manager so critical events will be handled.
-  switchEventManager_.reset(new BcmSwitchEventManager(this));
-
-  // Register parity error callback handler.
-  switchEventManager_->registerSwitchEventCallback(
-    OPENNSL_SWITCH_EVENT_PARITY_ERROR,
-    make_shared<BcmSwitchEventParityErrorCallback>());
   dumpConfigMap(BcmAPI::getHwConfig(), platform->getHwConfigDumpFile());
 
   exportSdkVersion();
@@ -170,7 +162,7 @@ unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
 
   // Destroy all of our member variables that track state,
   // to make sure they clean up their state now before we reset unit_.
-  switchEventManager_.reset();
+  BcmSwitchEventUtils::resetUnit(unit_);
   warmBootCache_.reset();
   routeTable_.reset();
   // Release host entries before reseting switch's host table
@@ -435,6 +427,19 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   LOG(INFO) << "Initializing BcmSwitch for unit " << unit_;
 
+  // Add callbacks for unit and parity errors as early as possible to handle
+  // critical events
+  BcmSwitchEventUtils::initUnit(unit_);
+  auto unitErrorCallback = make_shared<BcmSwitchEventUnitFatalErrorCallback>();
+  BcmSwitchEventUtils::registerSwitchEventCallback(
+      unit_, OPENNSL_SWITCH_EVENT_STABLE_FULL, unitErrorCallback);
+  BcmSwitchEventUtils::registerSwitchEventCallback(
+      unit_, OPENNSL_SWITCH_EVENT_STABLE_ERROR, unitErrorCallback);
+  BcmSwitchEventUtils::registerSwitchEventCallback(
+      unit_, OPENNSL_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN, unitErrorCallback);
+  BcmSwitchEventUtils::registerSwitchEventCallback(
+      unit_, OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE, unitErrorCallback);
+
   platform_->onUnitAttach(unit_);
 
   // Additional switch configuration
@@ -446,7 +451,6 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   auto bootType = unitObject_->bootType();
   CHECK(bootType != BootType::UNINITIALIZED);
   auto warmBoot = bootType == BootType::WARM_BOOT;
-
 
   if (!warmBoot) {
     LOG (INFO) << " Performing cold boot ";
@@ -1138,6 +1142,16 @@ void BcmSwitch::updateStats(SwitchStats *switchStats) {
   }
   // Update global statistics.
   updateGlobalStats();
+}
+
+shared_ptr<BcmSwitchEventCallback> BcmSwitch::registerSwitchEventCallback(
+    opennsl_switch_event_t eventID,
+    shared_ptr<BcmSwitchEventCallback> callback) {
+  return BcmSwitchEventUtils::registerSwitchEventCallback(unit_, eventID,
+                                                          callback);
+}
+void BcmSwitch::unregisterSwitchEventCallback(opennsl_switch_event_t eventID) {
+  return BcmSwitchEventUtils::unregisterSwitchEventCallback(unit_, eventID);
 }
 
 void BcmSwitch::updateThreadLocalSwitchStats(SwitchStats *switchStats) {

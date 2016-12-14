@@ -115,8 +115,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmStats.cpp
     fboss/agent/hw/bcm/BcmSwitch.cpp
     fboss/agent/hw/bcm/BcmSwitchEventCallback.cpp
-    fboss/agent/hw/bcm/BcmSwitchEvent.cpp
-    fboss/agent/hw/bcm/BcmSwitchEventManager.cpp
+    fboss/agent/hw/bcm/BcmSwitchEventUtils.cpp
     fboss/agent/hw/bcm/BcmTxPacket.cpp
     fboss/agent/hw/bcm/BcmWarmBootCache.cpp
     fboss/agent/hw/bcm/BcmWarmBootHelper.cpp
