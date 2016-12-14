@@ -14,6 +14,7 @@
 #include "fboss/agent/platforms/wedge/Wedge100Port.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/usb/Wedge100I2CBus.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
 #include <folly/Memory.h>
 
@@ -107,7 +108,7 @@ Wedge100Port* Wedge100Platform::getPortFromFrontPanelNum(TransceiverID fpPort) {
 void Wedge100Platform::enableLedMode() {
   uint8_t mode = TWELVE_BIT_MODE;
   try {
-    wedgeI2CBusLock_->write(ADDR_SYSCPLD, LED_MODE_REG, 1, &mode);
+    WedgeI2CBusLock(getI2CBus()).write(ADDR_SYSCPLD, LED_MODE_REG, 1, &mode);
   } catch (const std::exception& ex) {
     LOG(ERROR) << __func__ << ": failed to change LED mode: "
                << folly::exceptionStr(ex);

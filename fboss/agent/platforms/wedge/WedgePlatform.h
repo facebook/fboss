@@ -65,7 +65,6 @@ class WedgePlatform : public BcmPlatform {
   WedgePlatformMode getMode() const;
 
   WedgePortMap ports_;
-  std::unique_ptr<WedgeI2CBusLock> wedgeI2CBusLock_;
 
  private:
   // Forbidden copy constructor and assignment operator
