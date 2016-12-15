@@ -277,7 +277,8 @@ NeighborCacheEntry<NTable>* NeighborCacheImpl<NTable>::getCacheEntry(
 
 template <typename NTable>
 void NeighborCacheImpl<NTable>::setCacheEntry(std::shared_ptr<Entry> entry) {
-  entries_[entry->getIP()] = std::move(entry);
+  const auto& ip = entry->getIP();
+  entries_[ip] = std::move(entry);
 }
 
 template <typename NTable>
