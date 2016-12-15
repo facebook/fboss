@@ -125,6 +125,11 @@ unique_ptr<SwSwitch> createMockSw(cfg::SwitchConfig* config,
   EXPECT_PLATFORM_CALL(sw, onHwInitialized(_)).Times(1);
 
   if (flags & ENABLE_TUN) {
+    // TODO(aeckert): I don't think this should be a first class
+    // argument to SwSwitch::init() as unit tests are the only place
+    // that pass in a TunManager to init(). Let's come up with a way
+    // to mock the TunManager initialization instead of passing it in
+    // like this.
     auto mockTunMgr = new MockTunManager(sw.get(), sw->getBackgroundEVB());
     std::unique_ptr<TunManager> tunMgr(mockTunMgr);
     sw->init(std::move(tunMgr), flags);

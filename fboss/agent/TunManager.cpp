@@ -69,14 +69,16 @@ void TunManager::startObservingUpdates() {
 }
 
 void TunManager::stateUpdated(const StateDelta& delta) {
-  // TODO(aeckert): We currently compare the entire interface map instead
-  // of using the iterator in this delta because some of the interfaces may get
-  // get probed from hardware, before they are in the SwitchState. It would be
-  // nicer if we did a little more work at startup to sync the state, perhaps
-  // updating the SwitchState with the probed interfaces. This would allow us
-  // to reuse the iterator in the delta for more readable code and also not
-  // have to worry about waiting to listen to updates until the SwSwitch is in
-  // the configured state. t4155406 should also help with that.
+  // TODO(aeckert): t15067879 We currently compare the entire
+  // interface map instead of using the iterator in this delta because
+  // some of the interfaces may get get probed from hardware before
+  // they are in the SwitchState. It would be nicer if we did a little
+  // more work at startup to sync the state, perhaps updating the
+  // SwitchState with the probed interfaces. This would allow us to
+  // reuse the iterator in the delta for more readable code and also
+  // not have to worry about waiting to listen to updates until the
+  // SwSwitch is in the configured state. t4155406 should also help
+  // with that.
 
   auto state = delta.newState();
   evb_->runInEventBaseThread([this, state]() {
@@ -583,7 +585,17 @@ TunManager::getInterfaceStatus(std::shared_ptr<SwitchState> state) {
   return statusMap;
 }
 
+void TunManager::forceInitialSync() {
+  evb_->runInEventBaseThread([this]() {
+    if (numSyncs_ == 0) {
+      // no syncs occurred yet. Force initial sync.
+      sync(sw_->getState());
+    }
+  });
+}
+
 void TunManager::sync(std::shared_ptr<SwitchState> state) {
+  CHECK(evb_->isInEventBaseThread());
   using Addresses = Interface::Addresses;
   using ConstAddressesIter = Addresses::const_iterator;
   using IntfInfo = std::pair<bool /* status */, Addresses>;
@@ -702,6 +714,9 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
       });
 
   start();
+
+  // track number of times sync is called
+  ++numSyncs_;
 }
 
 // TODO(aeckert): Find a way to reuse the iterator from NodeMapDelta here as

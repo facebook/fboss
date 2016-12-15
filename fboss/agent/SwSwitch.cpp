@@ -397,8 +397,6 @@ void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
   setSwitchRunState(SwitchRunState::CONFIGURED);
 
   if (tunMgr_) {
-    // Perform initial sync of interfaces
-    tunMgr_->sync(getState());
     // We check for syncing tun interface only on state changes after the
     // initial configuration is applied. This is really a hack to get around
     // 2 issues
@@ -413,6 +411,10 @@ void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
     // as well. TunManager does not track this and tries to delete the
     // secondaries as well leading to errors, t4746261 is tracking this.
     tunMgr_->startObservingUpdates();
+
+    // Perform initial sync of interfaces
+    tunMgr_->forceInitialSync();
+
   }
 
   if (lldpManager_) {

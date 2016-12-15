@@ -62,6 +62,8 @@ class TunManager : public StateObserver {
    */
   virtual void sync(std::shared_ptr<SwitchState> state);
 
+  void forceInitialSync();
+
   /**
    * This should be called externally only after initial sync has been
    * performed.
@@ -220,6 +222,8 @@ class TunManager : public StateObserver {
 
   // Initial probe done
   bool probeDone_{false};
+
+  uint64_t numSyncs_{0};
 
   enum : uint8_t {
     /**
