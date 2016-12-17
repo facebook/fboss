@@ -36,6 +36,39 @@ using std::make_shared;
 using std::shared_ptr;
 using ::testing::Return;
 
+//
+// Helper functions
+//
+RouteNextHops makeNextHops(std::vector<std::string> ipStrs) {
+  RouteNextHops nhops;
+  for (const std::string & ip : ipStrs) {
+    nhops.emplace(IPAddress(ip));
+  }
+  return nhops;
+}
+
+template<typename AddrT>
+void EXPECT_FWD_INFO(std::shared_ptr<Route<AddrT>> rt,
+                     InterfaceID intf, std::string ipStr) {
+  const auto& fwds = rt->getForwardInfo().getNexthops();
+  EXPECT_EQ(1, fwds.size());
+  const auto& fwd = *fwds.begin();
+  EXPECT_EQ(intf, fwd.intf);
+  EXPECT_EQ(IPAddress(ipStr), fwd.nexthop);
+}
+
+template<typename AddrT>
+void EXPECT_RESOLVED(std::shared_ptr<Route<AddrT>> rt) {
+  ASSERT_NE(nullptr, rt);
+  EXPECT_TRUE(rt->isResolved());
+  EXPECT_FALSE(rt->isUnresolvable());
+  EXPECT_FALSE(rt->needResolve());
+}
+
+//
+// Tests
+//
+
 TEST(RouteUpdater, dedup) {
   MockPlatform platform;
   auto stateV0 = make_shared<SwitchState>();
@@ -69,10 +102,8 @@ TEST(RouteUpdater, dedup) {
   stateV1->publish();
   auto rid = RouterID(0);
   // 2 different nexthops
-  RouteNextHops nhop1;
-  nhop1.emplace(IPAddress("1.1.1.10")); // resolved by intf 1
-  RouteNextHops nhop2;
-  nhop2.emplace(IPAddress("2.2.2.10")); // resolved by intf 2
+  RouteNextHops nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
+  RouteNextHops nhop2 = makeNextHops({"2.2.2.10"}); // resolved by intf 2
   // 4 prefixes
   RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
   RouteV4::Prefix r2{IPAddressV4("20.1.1.0"), 24};
@@ -81,10 +112,10 @@ TEST(RouteUpdater, dedup) {
 
   const auto& tables1 = stateV1->getRouteTables();
   RouteUpdater u2(tables1);
-  u2.addRoute(rid, IPAddress(r1.network), r1.mask, nhop1);
-  u2.addRoute(rid, IPAddress(r2.network), r2.mask, nhop2);
-  u2.addRoute(rid, IPAddress(r3.network), r3.mask, nhop1);
-  u2.addRoute(rid, IPAddress(r4.network), r4.mask, nhop2);
+  u2.addRoute(rid, r1.network, r1.mask, nhop1);
+  u2.addRoute(rid, r2.network, r2.mask, nhop2);
+  u2.addRoute(rid, r3.network, r3.mask, nhop1);
+  u2.addRoute(rid, r4.network, r4.mask, nhop2);
   auto tables2 = u2.updateDone();
   ASSERT_NE(nullptr, tables2);
   tables2->publish();
@@ -92,10 +123,10 @@ TEST(RouteUpdater, dedup) {
   // start from empty table now, and then re-add the same routes
   RouteUpdater u3(tables2, true);
   u3.addInterfaceAndLinkLocalRoutes(stateV1->getInterfaces());
-  u3.addRoute(rid, IPAddress(r1.network), r1.mask, nhop1);
-  u3.addRoute(rid, IPAddress(r2.network), r2.mask, nhop2);
-  u3.addRoute(rid, IPAddress(r3.network), r3.mask, nhop1);
-  u3.addRoute(rid, IPAddress(r4.network), r4.mask, nhop2);
+  u3.addRoute(rid, r1.network, r1.mask, nhop1);
+  u3.addRoute(rid, r2.network, r2.mask, nhop2);
+  u3.addRoute(rid, r3.network, r3.mask, nhop1);
+  u3.addRoute(rid, r4.network, r4.mask, nhop2);
   auto tables3 = u3.updateDone();
   EXPECT_EQ(nullptr, tables3);
 
@@ -103,45 +134,25 @@ TEST(RouteUpdater, dedup) {
   // except for one difference
   RouteUpdater u4(tables2, true);
   u4.addInterfaceAndLinkLocalRoutes(stateV1->getInterfaces());
-  u4.addRoute(rid, IPAddress(r1.network), r1.mask, nhop1);
-  u4.addRoute(rid, IPAddress(r2.network), r2.mask, nhop1); // different nexthop
-  u4.addRoute(rid, IPAddress(r3.network), r3.mask, nhop1);
-  u4.addRoute(rid, IPAddress(r4.network), r4.mask, nhop2);
+  u4.addRoute(rid, r1.network, r1.mask, nhop1);
+  u4.addRoute(rid, r2.network, r2.mask, nhop1); // different nexthop
+  u4.addRoute(rid, r3.network, r3.mask, nhop1);
+  u4.addRoute(rid, r4.network, r4.mask, nhop2);
   auto tables4 = u4.updateDone();
   ASSERT_NE(nullptr, tables4);
   tables4->publish();
 
   // get all 4 routes from table2
-  auto t2 = tables2->getRouteTableIf(rid);
-  ASSERT_NE(nullptr, t2);
-  auto rib24 = t2->getRibV4();
-  ASSERT_NE(nullptr, rib24);
-  auto t2r1 = rib24->exactMatch(r1);
-  auto t2r2 = rib24->exactMatch(r2);
-  auto rib26 = t2->getRibV6();
-  ASSERT_NE(nullptr, rib26);
-  auto t2r3 = rib26->exactMatch(r3);
-  auto t2r4 = rib26->exactMatch(r4);
-  ASSERT_NE(nullptr, t2r1);
-  ASSERT_NE(nullptr, t2r2);
-  ASSERT_NE(nullptr, t2r3);
-  ASSERT_NE(nullptr, t2r4);
+  auto t2r1 = GET_ROUTE_V4(tables2, rid, r1);
+  auto t2r2 = GET_ROUTE_V4(tables2, rid, r2);
+  auto t2r3 = GET_ROUTE_V6(tables2, rid, r3);
+  auto t2r4 = GET_ROUTE_V6(tables2, rid, r4);
 
   // get all 4 routes from table4
-  auto t4 = tables4->getRouteTableIf(rid);
-  ASSERT_NE(nullptr, t4);
-  auto rib44 = t4->getRibV4();
-  ASSERT_NE(nullptr, rib44);
-  auto t4r1 = rib44->exactMatch(r1);
-  auto t4r2 = rib44->exactMatch(r2);
-  auto rib46 = t4->getRibV6();
-  ASSERT_NE(nullptr, rib46);
-  auto t4r3 = rib46->exactMatch(r3);
-  auto t4r4 = rib46->exactMatch(r4);
-  ASSERT_NE(nullptr, t4r1);
-  ASSERT_NE(nullptr, t4r2);
-  ASSERT_NE(nullptr, t4r3);
-  ASSERT_NE(nullptr, t4r4);
+  auto t4r1 = GET_ROUTE_V4(tables4, rid, r1);
+  auto t4r2 = GET_ROUTE_V4(tables4, rid, r2);
+  auto t4r3 = GET_ROUTE_V6(tables4, rid, r3);
+  auto t4r4 = GET_ROUTE_V6(tables4, rid, r4);
 
   EXPECT_EQ(t2r1, t4r1);
   EXPECT_NE(t2r2, t4r2);        // different routes
@@ -186,33 +197,22 @@ TEST(Route, resolve) {
   // recursive lookup
   {
     RouteUpdater u1(stateV1->getRouteTables());
-    RouteNextHops nexthops1;
-    nexthops1.emplace(IPAddress("1.1.1.10")); // resolved by intf 1
+    RouteNextHops nexthops1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
     u1.addRoute(rid, IPAddress("1.1.3.0"), 24, nexthops1);
-    RouteNextHops nexthops2;
-    nexthops2.emplace(IPAddress("1.1.3.10")); // resolved by '1.1.3/24'
+    RouteNextHops nexthops2 = makeNextHops({"1.1.3.10"}); //rslvd. by '1.1.3/24'
     u1.addRoute(rid, IPAddress("8.8.8.0"), 24, nexthops2);
     auto tables2 = u1.updateDone();
     ASSERT_NE(nullptr, tables2);
     tables2->publish();
-    auto t2 = tables2->getRouteTableIf(rid);
-    ASSERT_NE(nullptr, t2);
-    auto rib2 = t2->getRibV4();
-    RouteV4::Prefix p2{IPAddressV4("1.1.3.0"), 24};
-    auto r21 = rib2->exactMatch(p2);
-    ASSERT_NE(nullptr, r21);
-    EXPECT_TRUE(r21->isResolved());
-    EXPECT_FALSE(r21->isUnresolvable());
+
+    auto r21 = GET_ROUTE_V4(tables2, rid, "1.1.3.0/24");
+    EXPECT_RESOLVED(r21);
     EXPECT_FALSE(r21->isConnected());
     EXPECT_TRUE(r21->isWithNexthops());
-    EXPECT_FALSE(r21->needResolve());
-    p2 = RouteV4::Prefix{IPAddressV4("8.8.8.0"), 24};
-    auto r22 = rib2->exactMatch(p2);
-    ASSERT_NE(nullptr, r22);
-    EXPECT_TRUE(r22->isResolved());
-    EXPECT_FALSE(r22->isUnresolvable());
+
+    auto r22 = GET_ROUTE_V4(tables2, rid, "8.8.8.0/24");
+    EXPECT_RESOLVED(r22);
     EXPECT_FALSE(r22->isConnected());
-    EXPECT_FALSE(r22->needResolve());
     // r21 and r22 are different routes
     EXPECT_NE(r21, r22);
     EXPECT_NE(r21->prefix(), r22->prefix());
@@ -231,25 +231,15 @@ TEST(Route, resolve) {
     // The above 3 routes causes lookup loop, which should result in
     // all unresolvable.
     RouteUpdater u1(stateV1->getRouteTables());
-    RouteNextHops nexthops1;
-    nexthops1.emplace(IPAddress("20.1.1.1"));
-    u1.addRoute(rid, IPAddress("30.0.0.0"), 8, nexthops1);
-    RouteNextHops nexthops2;
-    nexthops2.emplace(IPAddress("10.1.1.1"));
-    u1.addRoute(rid, IPAddress("20.0.0.0"), 8, nexthops2);
-    RouteNextHops nexthops3;
-    nexthops3.emplace(IPAddress("30.1.1.1"));
-    u1.addRoute(rid, IPAddress("10.0.0.0"), 8, nexthops3);
+    u1.addRoute(rid, IPAddress("30.0.0.0"), 8, makeNextHops({"20.1.1.1"}));
+    u1.addRoute(rid, IPAddress("20.0.0.0"), 8, makeNextHops({"10.1.1.1"}));
+    u1.addRoute(rid, IPAddress("10.0.0.0"), 8, makeNextHops({"30.1.1.1"}));
     auto tables2 = u1.updateDone();
     ASSERT_NE(nullptr, tables2);
     tables2->publish();
-    auto t2 = tables2->getRouteTableIf(rid);
-    ASSERT_NE(nullptr, t2);
-    auto rib2 = t2->getRibV4();
-    auto verifyPrefix = [&](std::string network) {
-      RouteV4::Prefix prefix{IPAddressV4(network), 8};
-      auto route = rib2->exactMatch(prefix);
-      ASSERT_NE(nullptr, route);
+
+    auto verifyPrefix = [&](std::string prefixStr) {
+      auto route = GET_ROUTE_V4(tables2, rid, prefixStr);
       EXPECT_FALSE(route->isResolved());
       EXPECT_TRUE(route->isUnresolvable());
       EXPECT_FALSE(route->isConnected());
@@ -257,65 +247,50 @@ TEST(Route, resolve) {
       EXPECT_FALSE(route->needResolve());
       EXPECT_FALSE(route->isProcessing());
     };
-    verifyPrefix("10.0.0.0");
-    verifyPrefix("20.0.0.0");
-    verifyPrefix("30.0.0.0");
+    verifyPrefix("10.0.0.0/8");
+    verifyPrefix("20.0.0.0/8");
+    verifyPrefix("30.0.0.0/8");
   }
   // recursive lookup across 2 updates
   {
     RouteUpdater u1(stateV1->getRouteTables());
-    RouteNextHops nexthops1;
-    nexthops1.emplace(IPAddress("50.0.0.1"));
+    RouteNextHops nexthops1 = makeNextHops({"50.0.0.1"});
     u1.addRoute(rid, IPAddress("40.0.0.0"), 8, nexthops1);
     auto tables2 = u1.updateDone();
     ASSERT_NE(nullptr, tables2);
     tables2->publish();
-    auto t2 = tables2->getRouteTableIf(rid);
-    ASSERT_NE(nullptr, t2);
-    auto rib2 = t2->getRibV4();
-    RouteV4::Prefix p1{IPAddressV4("40.0.0.0"), 8};
-    auto r21 = rib2->exactMatch(p1);
-    ASSERT_NE(nullptr, r21);
+
     // 40.0.0.0/8 should be unresolved
+    auto r21 = GET_ROUTE_V4(tables2, rid, "40.0.0.0/8");
     EXPECT_FALSE(r21->isResolved());
     EXPECT_TRUE(r21->isUnresolvable());
     EXPECT_FALSE(r21->isConnected());
     EXPECT_FALSE(r21->needResolve());
+
     // Resolve 50.0.0.1 this should also resolve 40.0.0.0/8
-    RouteNextHops nexthops2;
-    nexthops2.emplace(IPAddress("1.1.1.1")); // intf 1
     RouteUpdater u2(tables2);
-    u2.addRoute(rid, IPAddress("50.0.0.0"), 8, nexthops2);
+    u2.addRoute(rid, IPAddress("50.0.0.0"), 8, makeNextHops({"1.1.1.1"}));
     auto tables3 = u2.updateDone();
     ASSERT_NE(nullptr, tables3);
     tables3->publish();
-    auto t3 = tables3->getRouteTableIf(rid);
-    ASSERT_NE(nullptr, t3);
-    auto rib3 = t3->getRibV4();
-    auto r31 = rib3->exactMatch(p1);
-    ASSERT_NE(nullptr, r31);
+
     // 40.0.0.0/8 should be resolved
-    EXPECT_TRUE(r31->isResolved());
-    EXPECT_FALSE(r31->isUnresolvable());
+    auto rib3 = tables3->getRouteTableIf(rid)->getRibV4();
+    auto r31 = GET_ROUTE_V4(tables3, rid, "40.0.0.0/8");
+    EXPECT_RESOLVED(r31);
     EXPECT_FALSE(r31->isConnected());
-    EXPECT_FALSE(r31->needResolve());
+
+    // 50.0.0.1/32 should be resolved
     auto r31NextHops = r31->nexthops();
     EXPECT_EQ(1, r31NextHops.size());
     auto r32 = rib3->longestMatch(r31NextHops.begin()->asV4());
-    // 50.0.0.1/32 should be resolved
-    ASSERT_NE(nullptr, r32);
-    EXPECT_TRUE(r32->isResolved());
-    EXPECT_FALSE(r32->isUnresolvable());
+    EXPECT_RESOLVED(r32);
     EXPECT_FALSE(r32->isConnected());
-    EXPECT_FALSE(r32->needResolve());
-    RouteV4::Prefix p2{IPAddressV4("50.0.0.0"), 8};
-    auto r33 = rib3->exactMatch(p2);
-    ASSERT_NE(nullptr, r33);
+
     // 50.0.0.0/8 should be resolved
-    EXPECT_TRUE(r33->isResolved());
-    EXPECT_FALSE(r33->isUnresolvable());
+    auto r33 = GET_ROUTE_V4(tables3, rid, "50.0.0.0/8");
+    EXPECT_RESOLVED(r33);
     EXPECT_FALSE(r33->isConnected());
-    EXPECT_FALSE(r33->needResolve());
 
   }
 }
@@ -354,13 +329,12 @@ TEST(Route, addDel) {
   stateV1->publish();
 
   auto rid = RouterID(0);
-  RouteNextHops nexthops;
-  nexthops.emplace(IPAddress("1.1.1.10")); // resolved by intf 1
-  nexthops.emplace(IPAddress("2::2"));     // resolved by intf 2
-  nexthops.emplace(IPAddress("1.1.2.10")); // un-resolvable
-  RouteNextHops nexthops2;
-  nexthops2.emplace(IPAddress("1.1.3.10")); // un-resolvable
-  nexthops2.emplace(IPAddress("11:11::1")); // un-resolvable
+
+  RouteNextHops nexthops = makeNextHops({"1.1.1.10",    // intf 1
+                                         "2::2",        // intf 2
+                                         "1.1.2.10"});  // un-resolvable
+  RouteNextHops nexthops2 = makeNextHops({"1.1.3.10",   // un-resolvable
+                                          "11:11::1"}); // un-resolvable
 
   RouteUpdater u1(stateV1->getRouteTables());
   u1.addRoute(rid, IPAddress("10.1.1.1"), 24, nexthops);
@@ -368,30 +342,19 @@ TEST(Route, addDel) {
   auto tables2 = u1.updateDone();
   ASSERT_NE(nullptr, tables2);
   tables2->publish();
-  auto t2 = tables2->getRouteTableIf(rid);
-  ASSERT_NE(nullptr, t2);
+
   // v4 route
-  auto rib2v4 = t2->getRibV4();
-  RouteV4::Prefix p2{IPAddressV4("10.1.1.0"), 24};
-  auto r2 = rib2v4->exactMatch(p2);
-  ASSERT_NE(nullptr, r2);
-  EXPECT_TRUE(r2->isResolved());
+  auto r2 = GET_ROUTE_V4(tables2, rid, "10.1.1.0/24");
+  EXPECT_RESOLVED(r2);
   EXPECT_FALSE(r2->isDrop());
   EXPECT_FALSE(r2->isToCPU());
-  EXPECT_FALSE(r2->isUnresolvable());
   EXPECT_FALSE(r2->isConnected());
-  EXPECT_FALSE(r2->needResolve());
   // v6 route
-  auto rib2v6 = t2->getRibV6();
-  RouteV6::Prefix p2v6{IPAddressV6("2001::0"), 48};
-  auto r2v6 = rib2v6->exactMatch(p2v6);
-  ASSERT_NE(nullptr, r2v6);
-  EXPECT_TRUE(r2v6->isResolved());
+  auto r2v6 = GET_ROUTE_V6(tables2, rid, "2001::0/48");
+  EXPECT_RESOLVED(r2v6);
   EXPECT_FALSE(r2v6->isDrop());
   EXPECT_FALSE(r2v6->isToCPU());
-  EXPECT_FALSE(r2v6->isUnresolvable());
   EXPECT_FALSE(r2v6->isConnected());
-  EXPECT_FALSE(r2v6->needResolve());
   // forwarding info
   EXPECT_EQ(RouteForwardAction::NEXTHOPS, r2->getForwardInfo().getAction());
   EXPECT_EQ(RouteForwardAction::NEXTHOPS, r2v6->getForwardInfo().getAction());
@@ -411,11 +374,8 @@ TEST(Route, addDel) {
   auto tables3 = u2.updateDone();
   ASSERT_NE(nullptr, tables3);
   tables3->publish();
-  auto t3 = tables3->getRouteTableIf(rid);
-  ASSERT_NE(nullptr, t3);
-  auto rib3v4 = t3->getRibV4();
-  RouteV4::Prefix p3{IPAddressV4("10.1.1.0"), 24};
-  auto r3 = rib3v4->exactMatch(p3);
+
+  auto r3 = GET_ROUTE_V4(tables3, rid, "10.1.1.0/24");
   ASSERT_NE(nullptr, r3);
   EXPECT_FALSE(r3->isResolved());
   EXPECT_TRUE(r3->isUnresolvable());
@@ -434,11 +394,9 @@ TEST(Route, addDel) {
   auto tables5 = u4.updateDone();
   ASSERT_NE(nullptr, tables5);
   tables5->publish();
-  auto t5 = tables5->getRouteTableIf(rid);
-  ASSERT_NE(nullptr, t5);
-  auto rib5 = t5->getRibV4();
-  RouteV4::Prefix p5{IPAddressV4("10.1.1.0"), 24};
-  auto r5 = rib5->exactMatch(p5);
+
+  auto rib5 = tables5->getRouteTableIf(rid)->getRibV4();
+  auto r5 = rib5->exactMatch({IPAddressV4("10.1.1.0"), 24});
   EXPECT_EQ(nullptr, r5);
 
   // change an old route to punt to CPU, add a new route to DROP
@@ -446,23 +404,17 @@ TEST(Route, addDel) {
   u5.addRoute(rid, IPAddress("10.1.1.0"), 24, RouteForwardAction::TO_CPU);
   u5.addRoute(rid, IPAddress("10.1.2.0"), 24, RouteForwardAction::DROP);
   auto tables6 = u5.updateDone();
-  EXPECT_NE(nullptr, tables6);
-  auto t6 = tables6->getRouteTableIf(rid);
-  EXPECT_NE(nullptr, t6);
-  auto rib6 = t6->getRibV4();
-  RouteV4::Prefix p6_1{IPAddressV4("10.1.1.0"), 24};
-  auto r6_1 = rib6->exactMatch(p6_1);
-  EXPECT_NE(nullptr, r6_1);
-  EXPECT_TRUE(r6_1->isResolved());
+
+  auto r6_1 = GET_ROUTE_V4(tables6, rid, "10.1.1.0/24");
+  EXPECT_RESOLVED(r6_1);
   EXPECT_FALSE(r6_1->isConnected());
   EXPECT_FALSE(r6_1->isWithNexthops());
   EXPECT_TRUE(r6_1->isToCPU());
   EXPECT_FALSE(r6_1->isDrop());
   EXPECT_EQ(RouteForwardAction::TO_CPU, r6_1->getForwardInfo().getAction());
-  RouteV4::Prefix p6_2{IPAddressV4("10.1.2.0"), 24};
-  auto r6_2 = rib6->exactMatch(p6_2);
-  EXPECT_NE(nullptr, r6_2);
-  EXPECT_TRUE(r6_2->isResolved());
+
+  auto r6_2 = GET_ROUTE_V4(tables6, rid, "10.1.2.0/24");
+  EXPECT_RESOLVED(r6_2);
   EXPECT_FALSE(r6_2->isConnected());
   EXPECT_FALSE(r6_2->isWithNexthops());
   EXPECT_FALSE(r6_2->isToCPU());
@@ -473,6 +425,7 @@ TEST(Route, addDel) {
 // Test interface routes
 TEST(Route, Interface) {
   MockPlatform platform;
+  RouterID rid = RouterID(0);
   auto stateV0 = make_shared<SwitchState>();
   auto tablesV0 = stateV0->getRouteTables();
 
@@ -506,59 +459,38 @@ TEST(Route, Interface) {
   EXPECT_NE(tablesV0, tablesV1);
   EXPECT_EQ(1, tablesV1->getGeneration());
   EXPECT_EQ(1, tablesV1->size());
-
-  auto table1 = tablesV1->getRouteTableIf(RouterID(0));
-  ASSERT_NE(nullptr, table1);
-  auto rib4 = table1->getRibV4();
-  auto rib6 = table1->getRibV6();
-  ASSERT_NE(nullptr, rib4);
-  ASSERT_NE(nullptr, rib6);
-  EXPECT_FALSE(rib4->empty());
-  EXPECT_FALSE(rib6->empty());
-  EXPECT_FALSE(table1->empty());
-  EXPECT_EQ(2, rib4->size());
-  EXPECT_EQ(3, rib6->size());
+  EXPECT_EQ(2, tablesV1->getRouteTableIf(rid)->getRibV4()->size());
+  EXPECT_EQ(3, tablesV1->getRouteTableIf(rid)->getRibV6()->size());
   // verify the ipv4 route
   {
-    auto rt = rib4->exactMatch(RoutePrefixV4{IPAddressV4("1.1.1.0"), 24});
-    ASSERT_NE(nullptr, rt);
+    auto rt = GET_ROUTE_V4(tablesV1, rid, "1.1.1.0/24");
     EXPECT_EQ(0, rt->getGeneration());
-    EXPECT_TRUE(rt->isResolved());
+    EXPECT_RESOLVED(rt);
     EXPECT_TRUE(rt->isConnected());
     EXPECT_FALSE(rt->isWithNexthops());
     EXPECT_FALSE(rt->isToCPU());
     EXPECT_FALSE(rt->isDrop());
     EXPECT_EQ(RouteForwardAction::NEXTHOPS, rt->getForwardInfo().getAction());
-    const auto& fwds = rt->getForwardInfo().getNexthops();
-    EXPECT_EQ(1, fwds.size());
-    const auto& fwd = *fwds.begin();
-    EXPECT_EQ(InterfaceID(1), fwd.intf);
-    EXPECT_EQ(IPAddress("1.1.1.1"), fwd.nexthop);
+    EXPECT_FWD_INFO(rt, InterfaceID(1), "1.1.1.1");
   }
   // verify the ipv6 route
   {
-    auto rt = rib6->exactMatch(RoutePrefixV6{IPAddressV6("2::0"), 48});
-    ASSERT_NE(nullptr, rt);
+    auto rt = GET_ROUTE_V6(tablesV1, rid, "2::0/48");
     EXPECT_EQ(0, rt->getGeneration());
-    EXPECT_TRUE(rt->isResolved());
+    EXPECT_RESOLVED(rt);
     EXPECT_TRUE(rt->isConnected());
     EXPECT_FALSE(rt->isWithNexthops());
     EXPECT_FALSE(rt->isToCPU());
     EXPECT_FALSE(rt->isDrop());
     EXPECT_EQ(RouteForwardAction::NEXTHOPS, rt->getForwardInfo().getAction());
-    const auto& fwds = rt->getForwardInfo().getNexthops();
-    EXPECT_EQ(1, fwds.size());
-    const auto& fwd = *fwds.begin();
-    EXPECT_EQ(InterfaceID(2), fwd.intf);
-    EXPECT_EQ(IPAddress("2::1"), fwd.nexthop);
+    EXPECT_FWD_INFO(rt, InterfaceID(2), "2::1");
   }
 
   {
     // verify v6 link local route
-    auto rt = rib6->exactMatch(RoutePrefixV6{IPAddressV6("fe80::"), 64});
-    ASSERT_NE(nullptr, rt);
+    auto rt = GET_ROUTE_V6(tablesV1, rid, "fe80::/64");
     EXPECT_EQ(0, rt->getGeneration());
-    EXPECT_TRUE(rt->isResolved());
+    EXPECT_RESOLVED(rt);
     EXPECT_FALSE(rt->isConnected());
     EXPECT_FALSE(rt->isWithNexthops());
     EXPECT_TRUE(rt->isToCPU());
@@ -580,41 +512,28 @@ TEST(Route, Interface) {
   EXPECT_NE(tablesV1, tablesV2);
   EXPECT_EQ(2, tablesV2->getGeneration());
   EXPECT_EQ(1, tablesV2->size());
+  EXPECT_EQ(2, tablesV2->getRouteTableIf(rid)->getRibV4()->size());
+  EXPECT_EQ(3, tablesV2->getRouteTableIf(rid)->getRibV6()->size());
 
-  auto table2 = tablesV2->getRouteTableIf(RouterID(0));
-  ASSERT_NE(nullptr, table1);
-  auto rib4V2 = table2->getRibV4();
-  auto rib6V2 = table2->getRibV6();
-  ASSERT_NE(nullptr, rib4);
-  ASSERT_NE(nullptr, rib6);
-  EXPECT_NE(rib4, rib4V2);
-  EXPECT_NE(rib6, rib6V2);
-  EXPECT_FALSE(rib4V2->empty());
-  EXPECT_FALSE(rib6V2->empty());
-  EXPECT_FALSE(table2->empty());
-  EXPECT_EQ(2, rib4V2->size());
-  EXPECT_EQ(3, rib6V2->size());
+  {
+    auto rib4 = tablesV1->getRouteTableIf(rid)->getRibV4();
+    auto rib6 = tablesV1->getRouteTableIf(rid)->getRibV6();
+    auto rib4V2 = tablesV2->getRouteTableIf(rid)->getRibV4();
+    auto rib6V2 = tablesV2->getRouteTableIf(rid)->getRibV6();
+    EXPECT_NE(rib4, rib4V2);
+    EXPECT_NE(rib6, rib6V2);
+  }
   // verify the ipv4 route
   {
-    auto rt = rib4V2->exactMatch(RoutePrefixV4{IPAddressV4("1.1.1.0"), 24});
-    ASSERT_NE(nullptr, rt);
+    auto rt = GET_ROUTE_V4(tablesV2, rid, "1.1.1.0/24");
     EXPECT_EQ(1, rt->getGeneration());
-    const auto& fwds = rt->getForwardInfo().getNexthops();
-    EXPECT_EQ(1, fwds.size());
-    const auto& fwd = *fwds.begin();
-    EXPECT_EQ(InterfaceID(2), fwd.intf);
-    EXPECT_EQ(IPAddress("1.1.1.1"), fwd.nexthop);
+    EXPECT_FWD_INFO(rt, InterfaceID(2), "1.1.1.1");
   }
   // verify the ipv6 route
   {
-    auto rt = rib6V2->exactMatch(RoutePrefixV6{IPAddressV6("2::0"), 48});
-    ASSERT_NE(nullptr, rt);
+    auto rt = GET_ROUTE_V6(tablesV2, rid, "2::0/48");
     EXPECT_EQ(1, rt->getGeneration());
-    const auto& fwds = rt->getForwardInfo().getNexthops();
-    EXPECT_EQ(1, fwds.size());
-    const auto& fwd = *fwds.begin();
-    EXPECT_EQ(InterfaceID(1), fwd.intf);
-    EXPECT_EQ(IPAddress("2::1"), fwd.nexthop);
+    EXPECT_FWD_INFO(rt, InterfaceID(1), "2::1");
   }
 }
 
@@ -622,6 +541,7 @@ TEST(Route, Interface) {
 // address family in an interface
 TEST(Route, MultipleAddressInterface) {
   MockPlatform platform;
+  auto rid = RouterID(0);
   auto stateV0 = make_shared<SwitchState>();
   auto tablesV0 = stateV0->getRouteTables();
 
@@ -648,53 +568,31 @@ TEST(Route, MultipleAddressInterface) {
   EXPECT_NE(tablesV0, tablesV1);
   EXPECT_EQ(1, tablesV1->getGeneration());
   EXPECT_EQ(1, tablesV1->size());
-
-  auto table1 = tablesV1->getRouteTableIf(RouterID(0));
-  ASSERT_NE(nullptr, table1);
-  auto rib4 = table1->getRibV4();
-  auto rib6 = table1->getRibV6();
-  ASSERT_NE(nullptr, rib4);
-  ASSERT_NE(nullptr, rib6);
-  EXPECT_FALSE(rib4->empty());
-  EXPECT_FALSE(rib6->empty());
-  EXPECT_FALSE(table1->empty());
-  EXPECT_EQ(1, rib4->size());
-  EXPECT_EQ(2, rib6->size());
+  EXPECT_EQ(1, tablesV1->getRouteTableIf(rid)->getRibV4()->size());
+  EXPECT_EQ(2, tablesV1->getRouteTableIf(rid)->getRibV6()->size());
   // verify the ipv4 route
   {
-    auto rt = rib4->exactMatch(RoutePrefixV4{IPAddressV4("1.1.1.0"), 24});
-    ASSERT_NE(nullptr, rt);
+    auto rt = GET_ROUTE_V4(tablesV1, rid, "1.1.1.0/24");
     EXPECT_EQ(0, rt->getGeneration());
-    EXPECT_TRUE(rt->isResolved());
+    EXPECT_RESOLVED(rt);
     EXPECT_TRUE(rt->isConnected());
     EXPECT_FALSE(rt->isWithNexthops());
     EXPECT_FALSE(rt->isToCPU());
     EXPECT_FALSE(rt->isDrop());
     EXPECT_EQ(RouteForwardAction::NEXTHOPS, rt->getForwardInfo().getAction());
-    const auto& fwds = rt->getForwardInfo().getNexthops();
-    EXPECT_EQ(1, fwds.size());
-    const auto& fwd = *fwds.begin();
-    EXPECT_EQ(InterfaceID(1), fwd.intf);
-    // expect the last configured address to be the next hop
-    EXPECT_EQ(IPAddress("1.1.1.2"), fwd.nexthop);
+    EXPECT_FWD_INFO(rt, InterfaceID(1), "1.1.1.2");
   }
   // verify the ipv6 route
   {
-    auto rt = rib6->exactMatch(RoutePrefixV6{IPAddressV6("1::0"), 48});
-    ASSERT_NE(nullptr, rt);
+    auto rt = GET_ROUTE_V6(tablesV1, rid, "1::0/48");
     EXPECT_EQ(0, rt->getGeneration());
-    EXPECT_TRUE(rt->isResolved());
+    EXPECT_RESOLVED(rt);
     EXPECT_TRUE(rt->isConnected());
     EXPECT_FALSE(rt->isWithNexthops());
     EXPECT_FALSE(rt->isToCPU());
     EXPECT_FALSE(rt->isDrop());
     EXPECT_EQ(RouteForwardAction::NEXTHOPS, rt->getForwardInfo().getAction());
-    const auto& fwds = rt->getForwardInfo().getNexthops();
-    EXPECT_EQ(1, fwds.size());
-    const auto& fwd = *fwds.begin();
-    EXPECT_EQ(InterfaceID(1), fwd.intf);
-    // expect the last configured address to be the next hop
-    EXPECT_EQ(IPAddress("1::2"), fwd.nexthop);
+    EXPECT_FWD_INFO(rt, InterfaceID(1), "1::2");
   }
 }
 
@@ -992,9 +890,8 @@ TEST(Route, changedRoutesPostUpdate) {
   ASSERT_NE(nullptr, stateV1);
   stateV1->publish();
   auto rid = RouterID(0);
-  RouteNextHops nexthops;
-  nexthops.emplace(IPAddress("1.1.1.10")); // resolved by intf 1
-  nexthops.emplace(IPAddress("2::2"));     // resolved by intf 2
+  RouteNextHops nexthops = makeNextHops({"1.1.1.10", // resolved by intf 1
+                                         "2::2"});  // resolved by intf 2
 
   auto numChangedRoutes = [=] (const RTMapDelta& delta) {
     auto cnt = 0;
@@ -1022,20 +919,14 @@ TEST(Route, changedRoutesPostUpdate) {
   auto rib2v4 = t2->getRibV4();
   RouteV4::Prefix p2{IPAddressV4("10.1.1.0"), 24};
   auto r2 = rib2v4->exactMatch(p2);
-  ASSERT_NE(nullptr, r2);
-  EXPECT_TRUE(r2->isResolved());
-  EXPECT_FALSE(r2->isUnresolvable());
+  EXPECT_RESOLVED(r2);
   EXPECT_FALSE(r2->isConnected());
-  EXPECT_FALSE(r2->needResolve());
   // v6 route
   auto rib2v6 = t2->getRibV6();
   RouteV6::Prefix p2v6{IPAddressV6("2001::0"), 48};
   auto r2v6 = rib2v6->exactMatch(p2v6);
-  ASSERT_NE(nullptr, r2v6);
-  EXPECT_TRUE(r2v6->isResolved());
-  EXPECT_FALSE(r2v6->isUnresolvable());
+  EXPECT_RESOLVED(r2v6);
   EXPECT_FALSE(r2v6->isConnected());
-  EXPECT_FALSE(r2v6->needResolve());
   auto stateV2 = stateV1->clone();
   stateV2->resetRouteTables(tables2);
   StateDelta delta12(stateV1, stateV2);
@@ -1054,26 +945,16 @@ TEST(Route, changedRoutesPostUpdate) {
   u2.addRoute(rid, IPAddress("2001:10::0"), 48, nexthops);
   auto tables3 = u2.updateDone();
   ASSERT_NE(nullptr, tables3);
-  auto t3 = tables3->getRouteTableIf(rid);
-  ASSERT_NE(nullptr, t3);
+
   // v4 route
-  auto rib3v4 = t3->getRibV4();
-  RouteV4::Prefix p3{IPAddressV4("10.10.1.0"), 24};
-  auto r3 = rib3v4->exactMatch(p3);
-  ASSERT_NE(nullptr, r3);
-  EXPECT_TRUE(r3->isResolved());
-  EXPECT_FALSE(r3->isUnresolvable());
+  auto r3 = GET_ROUTE_V4(tables3, rid, "10.10.1.0/24");
+  EXPECT_RESOLVED(r3);
   EXPECT_FALSE(r3->isConnected());
-  EXPECT_FALSE(r3->needResolve());
   // v6 route
-  auto rib3v6 = t3->getRibV6();
-  RouteV6::Prefix p3v6{IPAddressV6("2001:10::0"), 48};
-  auto r3v6 = rib3v6->exactMatch(p3v6);
-  ASSERT_NE(nullptr, r3v6);
-  EXPECT_TRUE(r3v6->isResolved());
-  EXPECT_FALSE(r3v6->isUnresolvable());
+  auto r3v6 = GET_ROUTE_V6(tables3, rid, "2001:10::0/48");
+  EXPECT_RESOLVED(r3v6);
   EXPECT_FALSE(r3v6->isConnected());
-  EXPECT_FALSE(r3v6->needResolve());
+
   auto stateV3 = stateV2->clone();
   stateV3->resetRouteTables(tables3);
   StateDelta delta23(stateV2, stateV3);
@@ -1097,63 +978,34 @@ TEST(Route, dropRoutes) {
   u1.addRoute(rid, IPAddress("10.10.10.10"), 32, DROP);
   u1.addRoute(rid, IPAddress("2001::0"), 128, DROP);
   // Check recursive resolution for drop routes
-  RouteNextHops v4nexthops;
-  v4nexthops.emplace(IPAddress("10.10.10.10"));
+  RouteNextHops v4nexthops = makeNextHops({"10.10.10.10"});
   u1.addRoute(rid, IPAddress("20.20.20.0"), 24 , v4nexthops);
-  RouteNextHops v6nexthops;
-  v6nexthops.emplace(IPAddress("2001::0"));
+  RouteNextHops v6nexthops = makeNextHops({"2001::0"});
   u1.addRoute(rid, IPAddress("2001:1::"), 64, v6nexthops);
 
   auto tables2 = u1.updateDone();
   ASSERT_NE(nullptr, tables2);
-  auto t2 = tables2->getRouteTableIf(rid);
-  ASSERT_NE(nullptr, t2);
+
   // Check routes
-  auto rib2v4 = t2->getRibV4();
-  RouteV4::Prefix p1{IPAddressV4("10.10.10.10"), 32};
-  auto r1 = rib2v4->exactMatch(p1);
-  ASSERT_NE(nullptr, r1);
-  EXPECT_TRUE(r1->isResolved());
-  EXPECT_FALSE(r1->isUnresolvable());
+  auto r1 = GET_ROUTE_V4(tables2, rid, "10.10.10.10/32");
+  EXPECT_RESOLVED(r1);
   EXPECT_FALSE(r1->isConnected());
-  EXPECT_FALSE(r1->needResolve());
   EXPECT_TRUE(r1->isSame(DROP));
-  RouteV4::Prefix p2{IPAddressV4("20.20.20.0"), 24};
-  auto r2 = rib2v4->exactMatch(p2);
-  ASSERT_NE(nullptr, r2);
-  EXPECT_TRUE(r2->isResolved());
-  EXPECT_FALSE(r2->isUnresolvable());
+
+  auto r2 = GET_ROUTE_V4(tables2, rid, "20.20.20.0/24");
+  EXPECT_RESOLVED(r2);
   EXPECT_FALSE(r2->isConnected());
-  EXPECT_FALSE(r2->needResolve());
   EXPECT_TRUE(r2->isSame(DROP));
 
-  auto rib2v6 = t2->getRibV6();
-  RouteV6::Prefix p3{IPAddressV6("2001::0"), 128};
-  auto r3 = rib2v6->exactMatch(p3);
-  ASSERT_NE(nullptr, r3);
-  EXPECT_TRUE(r3->isResolved());
-  EXPECT_FALSE(r3->isUnresolvable());
+  auto r3 = GET_ROUTE_V6(tables2, rid, "2001::0/128");
+  EXPECT_RESOLVED(r3);
   EXPECT_FALSE(r3->isConnected());
-  EXPECT_FALSE(r3->needResolve());
   EXPECT_TRUE(r3->isSame(DROP));
 
-  RouteV6::Prefix p4{IPAddressV6("2001::0"), 128};
-  auto r4 = rib2v6->exactMatch(p4);
-  ASSERT_NE(nullptr, r4);
-  EXPECT_TRUE(r4->isResolved());
-  EXPECT_FALSE(r4->isUnresolvable());
+  auto r4 = GET_ROUTE_V6(tables2, rid, "2001:1::/64");
+  EXPECT_RESOLVED(r4);
   EXPECT_FALSE(r4->isConnected());
-  EXPECT_FALSE(r4->needResolve());
   EXPECT_TRUE(r4->isSame(DROP));
-
-  RouteV6::Prefix p5{IPAddressV6("2001:1::"), 64};
-  auto r5 = rib2v6->exactMatch(p5);
-  ASSERT_NE(nullptr, r5);
-  EXPECT_TRUE(r5->isResolved());
-  EXPECT_FALSE(r5->isUnresolvable());
-  EXPECT_FALSE(r5->isConnected());
-  EXPECT_FALSE(r5->needResolve());
-  EXPECT_TRUE(r5->isSame(DROP));
 }
 
 TEST(Route, toCPURoutes) {
@@ -1165,61 +1017,30 @@ TEST(Route, toCPURoutes) {
   u1.addRoute(rid, IPAddress("10.10.10.10"), 32, TO_CPU);
   u1.addRoute(rid, IPAddress("2001::0"), 128, TO_CPU);
   // Check recursive resolution for drop routes
-  RouteNextHops v4nexthops;
-  v4nexthops.emplace(IPAddress("10.10.10.10"));
-  u1.addRoute(rid, IPAddress("20.20.20.0"), 24 , v4nexthops);
-  RouteNextHops v6nexthops;
-  v6nexthops.emplace(IPAddress("2001::0"));
-  u1.addRoute(rid, IPAddress("2001:1::"), 64, v6nexthops);
+  u1.addRoute(rid, IPAddress("20.20.20.0"), 24 , makeNextHops({"10.10.10.10"}));
+  u1.addRoute(rid, IPAddress("2001:1::"), 64, makeNextHops({"2001::0"}));
 
   auto tables2 = u1.updateDone();
   ASSERT_NE(nullptr, tables2);
-  auto t2 = tables2->getRouteTableIf(rid);
-  ASSERT_NE(nullptr, t2);
+
   // Check routes
-  auto rib2v4 = t2->getRibV4();
-  RouteV4::Prefix p1{IPAddressV4("10.10.10.10"), 32};
-  auto r1 = rib2v4->exactMatch(p1);
-  ASSERT_NE(nullptr, r1);
-  EXPECT_TRUE(r1->isResolved());
-  EXPECT_FALSE(r1->isUnresolvable());
+  auto r1 = GET_ROUTE_V4(tables2, rid, "10.10.10.10/32");
+  EXPECT_RESOLVED(r1);
   EXPECT_FALSE(r1->isConnected());
-  EXPECT_FALSE(r1->needResolve());
   EXPECT_TRUE(r1->isSame(TO_CPU));
-  RouteV4::Prefix p2{IPAddressV4("20.20.20.0"), 24};
-  auto r2 = rib2v4->exactMatch(p2);
-  ASSERT_NE(nullptr, r2);
-  EXPECT_TRUE(r2->isResolved());
-  EXPECT_FALSE(r2->isUnresolvable());
+
+  auto r2 = GET_ROUTE_V4(tables2, rid, "20.20.20.0/24");
+  EXPECT_RESOLVED(r2);
   EXPECT_FALSE(r2->isConnected());
-  EXPECT_FALSE(r2->needResolve());
   EXPECT_TRUE(r2->isSame(TO_CPU));
 
-  auto rib2v6 = t2->getRibV6();
-  RouteV6::Prefix p3{IPAddressV6("2001::0"), 128};
-  auto r3 = rib2v6->exactMatch(p3);
-  ASSERT_NE(nullptr, r3);
-  EXPECT_TRUE(r3->isResolved());
-  EXPECT_FALSE(r3->isUnresolvable());
+  auto r3 = GET_ROUTE_V6(tables2, rid, "2001::0/128");
+  EXPECT_RESOLVED(r3);
   EXPECT_FALSE(r3->isConnected());
-  EXPECT_FALSE(r3->needResolve());
   EXPECT_TRUE(r3->isSame(TO_CPU));
 
-  RouteV6::Prefix p4{IPAddressV6("2001::0"), 128};
-  auto r4 = rib2v6->exactMatch(p4);
-  ASSERT_NE(nullptr, r4);
-  EXPECT_TRUE(r4->isResolved());
-  EXPECT_FALSE(r4->isUnresolvable());
-  EXPECT_FALSE(r4->isConnected());
-  EXPECT_FALSE(r4->needResolve());
-  EXPECT_TRUE(r4->isSame(TO_CPU));
-
-  RouteV6::Prefix p5{IPAddressV6("2001:1::"), 64};
-  auto r5 = rib2v6->exactMatch(p5);
-  ASSERT_NE(nullptr, r5);
-  EXPECT_TRUE(r5->isResolved());
-  EXPECT_FALSE(r5->isUnresolvable());
+  auto r5 = GET_ROUTE_V6(tables2, rid, "2001:1::/64");
+  EXPECT_RESOLVED(r5);
   EXPECT_FALSE(r5->isConnected());
-  EXPECT_FALSE(r5->needResolve());
   EXPECT_TRUE(r5->isSame(TO_CPU));
 }

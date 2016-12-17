@@ -177,6 +177,22 @@ std::string fbossHexDump(folly::ByteRange buf);
 std::string fbossHexDump(folly::StringPiece buf);
 std::string fbossHexDump(const std::string& buf);
 
+std::shared_ptr<Route<folly::IPAddressV4>>
+GET_ROUTE_V4(const std::shared_ptr<RouteTableMap>& tables,
+             RouterID rid, RoutePrefixV4 prefix);
+
+std::shared_ptr<Route<folly::IPAddressV4>>
+GET_ROUTE_V4(const std::shared_ptr<RouteTableMap>& tables,
+             RouterID rid, std::string prefixStr);
+
+std::shared_ptr<Route<folly::IPAddressV6>>
+GET_ROUTE_V6(const std::shared_ptr<RouteTableMap>& tables,
+             RouterID rid, RoutePrefixV6 prefix);
+
+std::shared_ptr<Route<folly::IPAddressV6>>
+GET_ROUTE_V6(const std::shared_ptr<RouteTableMap>& tables,
+             RouterID rid, std::string prefixStr);
+
 /*
  * Convenience macro for expecting a packet to be transmitted by the switch
  *
