@@ -32,10 +32,7 @@
 #include <netpacket/packet.h>
 #include <net/ethernet.h>
 #include <net/if.h>
-#include <err.h>
-#include <errno.h>
 #include <string.h>
-#include <time.h>
 
 extern "C" {
 #include <opennsl/l2.h>

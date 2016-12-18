@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/state/AclMap.h"
 
-#include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/NodeMap-defs.h"
 
 namespace facebook { namespace fboss {

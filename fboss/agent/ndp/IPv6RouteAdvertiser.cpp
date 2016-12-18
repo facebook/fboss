@@ -15,7 +15,6 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/PktUtil.h"

@@ -9,8 +9,6 @@
  */
 #include "fboss/agent/hw/sim/SimHandler.h"
 
-#include <folly/Memory.h>
-#include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/hw/sim/SimSwitch.h"
 
 using folly::ByteRange;

@@ -18,7 +18,6 @@
 #include <folly/MacAddress.h>
 #include "fboss/agent/DHCPv6Handler.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/packet/DHCPv6Packet.h"
 #include <gtest/gtest.h>

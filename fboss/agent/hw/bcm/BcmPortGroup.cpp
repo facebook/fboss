@@ -15,9 +15,6 @@
 
 #include "fboss/agent/state/Port.h"
 
-extern "C" {
-#include <opennsl/port.h>
-}
 
 namespace {
 using facebook::fboss::BcmPortGroup;

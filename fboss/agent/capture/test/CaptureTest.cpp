@@ -21,7 +21,6 @@
 
 #include <folly/Memory.h>
 #include <gtest/gtest.h>
-#include <stdlib.h>
 
 using namespace facebook::fboss;
 using folly::make_unique;

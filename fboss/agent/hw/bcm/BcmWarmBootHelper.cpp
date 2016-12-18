@@ -4,7 +4,6 @@
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/Utils.h"
 
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
