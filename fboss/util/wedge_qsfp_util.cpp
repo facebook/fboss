@@ -418,7 +418,7 @@ int main(int argc, char* argv[]) {
       printf("QSFP %d: cleared low power flags\n", portNum);
     }
     if (FLAGS_set_low_power && overrideLowPower(bus.get(), portNum, 0x0)) {
-      printf("QSFP %d: cleared low power flags\n", portNum);
+      printf("QSFP %d: set low power flags\n", portNum);
     }
     if (FLAGS_tx_disable && setTxDisable(bus.get(), portNum, 0x0f)) {
       printf("QSFP %d: disabled TX on all channels\n", portNum);
