@@ -4,6 +4,7 @@
 #include "fboss/lib/usb/GalaxyI2CBus.h"
 #include "fboss/lib/usb/UsbError.h"
 
+#include <chrono>
 #include <folly/Conv.h>
 #include <folly/Memory.h>
 #include <folly/FileUtil.h>
@@ -24,6 +25,8 @@ using folly::MutableByteRange;
 using folly::StringPiece;
 using std::pair;
 using std::make_pair;
+using std::chrono::seconds;
+using std::chrono::steady_clock;
 
 // We can check on the hardware type:
 
@@ -43,6 +46,7 @@ DEFINE_bool(cdr_disable, false,
     "Clear the CDR bits if transceiver supports it");
 DEFINE_string(platform, "", "Platform on which we are running."
              " One of (galaxy, wedge100, wedge)");
+DEFINE_int32(open_timeout, 30, "Number of seconds to wait to open bus");
 
 bool overrideLowPower(
     TransceiverI2CApi* bus,
@@ -326,6 +330,22 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int>  getTransceiverAPI() {
   return make_pair(folly::make_unique<Wedge100I2CBus>(), 0);
 }
 
+void tryOpenBus(TransceiverI2CApi* bus) {
+  auto expireTime = steady_clock::now() + seconds(FLAGS_open_timeout);
+  while (true) {
+    try {
+      bus->open();
+      return;
+    } catch (const std::exception& ex) {
+      if (steady_clock::now() > expireTime) {
+        throw;
+      }
+    }
+    usleep(100);
+  }
+}
+
+
 int main(int argc, char* argv[]) {
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, true);
@@ -372,10 +392,10 @@ int main(int argc, char* argv[]) {
   auto bus = std::move(busAndError.first);
 
   try {
-    bus->open();
+    tryOpenBus(bus.get());
   } catch (const std::exception& ex) {
-    fprintf(stderr, "error: unable to open device: %s\n", ex.what());
-    return EX_IOERR;
+      fprintf(stderr, "error: unable to open device: %s\n", ex.what());
+      return EX_IOERR;
   }
 
   if (ports.empty()) {
