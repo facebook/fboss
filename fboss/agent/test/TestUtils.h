@@ -177,6 +177,12 @@ std::string fbossHexDump(folly::ByteRange buf);
 std::string fbossHexDump(folly::StringPiece buf);
 std::string fbossHexDump(const std::string& buf);
 
+RouteNextHops makeNextHops(std::vector<std::string> ipStrs);
+
+RoutePrefixV4 makePrefixV4(std::string str);
+
+RoutePrefixV6 makePrefixV6(std::string str);
+
 std::shared_ptr<Route<folly::IPAddressV4>>
 GET_ROUTE_V4(const std::shared_ptr<RouteTableMap>& tables,
              RouterID rid, RoutePrefixV4 prefix);

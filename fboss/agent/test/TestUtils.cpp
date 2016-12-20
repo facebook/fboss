@@ -385,7 +385,15 @@ void RxPacketMatcher::DescribeNegationTo(std::ostream* os) const {
   *os << "not " << name_;
 }
 
-RoutePrefixV4 prefixV4(std::string str) {
+RouteNextHops makeNextHops(std::vector<std::string> ipStrs) {
+  RouteNextHops nhops;
+  for (const std::string & ip : ipStrs) {
+    nhops.emplace(IPAddress(ip));
+  }
+  return nhops;
+}
+
+RoutePrefixV4 makePrefixV4(std::string str) {
   std::vector<std::string> vec;
   folly::split("/", str, vec);
   EXPECT_EQ(2, vec.size());
@@ -394,7 +402,7 @@ RoutePrefixV4 prefixV4(std::string str) {
   return prefix;
 }
 
-RoutePrefixV6 prefixV6(std::string str) {
+RoutePrefixV6 makePrefixV6(std::string str) {
   std::vector<std::string> vec;
   folly::split("/", str, vec);
   EXPECT_EQ(2, vec.size());
@@ -402,7 +410,6 @@ RoutePrefixV6 prefixV6(std::string str) {
                               folly::to<uint8_t>(vec.at(1))};
   return prefix;
 }
-
 
 std::shared_ptr<Route<folly::IPAddressV4>>
 GET_ROUTE_V4(const std::shared_ptr<RouteTableMap>& tables,
@@ -420,7 +427,7 @@ GET_ROUTE_V4(const std::shared_ptr<RouteTableMap>& tables,
 std::shared_ptr<Route<folly::IPAddressV4>>
 GET_ROUTE_V4(const std::shared_ptr<RouteTableMap>& tables,
              RouterID rid, std::string prefixStr) {
-  return GET_ROUTE_V4(tables, rid, prefixV4(prefixStr));
+  return GET_ROUTE_V4(tables, rid, makePrefixV4(prefixStr));
 }
 
 std::shared_ptr<Route<folly::IPAddressV6>>
@@ -439,7 +446,7 @@ GET_ROUTE_V6(const std::shared_ptr<RouteTableMap>& tables,
 std::shared_ptr<Route<folly::IPAddressV6>>
 GET_ROUTE_V6(const std::shared_ptr<RouteTableMap>& tables,
              RouterID rid, std::string prefixStr) {
-  return GET_ROUTE_V6(tables, rid, prefixV6(prefixStr));
+  return GET_ROUTE_V6(tables, rid, makePrefixV6(prefixStr));
 }
 
 }} // namespace facebook::fboss

@@ -39,14 +39,6 @@ using ::testing::Return;
 //
 // Helper functions
 //
-RouteNextHops makeNextHops(std::vector<std::string> ipStrs) {
-  RouteNextHops nhops;
-  for (const std::string & ip : ipStrs) {
-    nhops.emplace(IPAddress(ip));
-  }
-  return nhops;
-}
-
 template<typename AddrT>
 void EXPECT_FWD_INFO(std::shared_ptr<Route<AddrT>> rt,
                      InterfaceID intf, std::string ipStr) {
