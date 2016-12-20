@@ -297,6 +297,7 @@ add_library(fboss_agent STATIC
     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/qsfp_data.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/qsfp_constants.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/transceiver_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/transceiver_data.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/transceiver_constants.cpp
 )
 
