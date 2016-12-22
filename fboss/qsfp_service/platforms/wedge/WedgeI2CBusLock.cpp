@@ -21,6 +21,7 @@ WedgeI2CBusLock::WedgeI2CBusLock(std::unique_ptr<BaseWedgeI2CBus> wedgeI2CBus)
     : wedgeI2CBus_(std::move(wedgeI2CBus)) {}
 
 void WedgeI2CBusLock::openLocked() {
+  LOG(INFO) << "Holding PCI bus lock";;
   StatsPublisher::bumpPciLockHeld();
   wedgeI2CBus_->open();
   opened_ = true;

@@ -34,6 +34,8 @@ void WedgeManager::initTransceiverMap(){
 
 void WedgeManager::getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::vector<int32_t>> ids) {
+  LOG(INFO) << "Received request for getTransceiverInfo, with ids: " <<
+    (ids->size() > 0 ? folly::join(",", *ids) : "None");
   if (ids->empty()) {
     folly::gen::range(0, getNumQsfpModules()) |
       folly::gen::appendTo(*ids);
