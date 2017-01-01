@@ -11,6 +11,8 @@
 
 #include <sys/stat.h>
 
+#include <sstream>
+
 DEFINE_bool(print_rates,
             false,
             "Whether to enable RateCalculator calculations and printouts.");

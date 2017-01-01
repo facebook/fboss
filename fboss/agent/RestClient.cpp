@@ -8,6 +8,9 @@
  *
  */
 #include "RestClient.h"
+
+#include <sstream>
+
 #include "fboss/agent/FbossError.h"
 
 #include <curl/curl.h>
