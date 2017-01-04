@@ -264,6 +264,11 @@ struct Interface {
    * and the interface is expected to always be up.
    */
   9: bool isVirtual = 0
+  /**
+  * this flag is set to true if we need to
+  * disable auto-state feature for SVI
+  */
+  10: optional bool disableStateSync = 0
 }
 
 struct StaticRouteWithNextHops {
