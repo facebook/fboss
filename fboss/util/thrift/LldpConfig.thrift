@@ -1,4 +1,3 @@
-namespace cpp facebook.fboss.cfg
 namespace cpp2 facebook.fboss.cfg
 namespace py neteng.fboss.config
 

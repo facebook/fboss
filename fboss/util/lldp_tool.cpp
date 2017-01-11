@@ -5,15 +5,15 @@
 //
 // It can listen on both front-panel ports and local linux interfaces.
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/hw/bcm/facebook/gen-cpp2/bcm_config_types.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
+#include "fboss/agent/hw/bcm/facebook/gen-cpp2/bcm_config_types.h"
 #include "fboss/agent/lldp/LinkNeighbor.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/PktUtil.h"
-#include "fboss/util/thrift/gen-cpp/LldpConfig_types.h"
+#include "fboss/util/thrift/gen-cpp2/LldpConfig_types.h"
 
 #include <folly/Exception.h>
 #include <folly/FileUtil.h>
@@ -104,7 +104,9 @@ std::map<int32_t, cfg::OnePortConfig> readLldpPortConfig() {
   }
   cfg::LldpConfig lldpConfig;
   try {
-    lldpConfig.readFromJson(contents.c_str());
+    lldpConfig =
+        apache::thrift::SimpleJSONSerializer::deserialize<cfg::LldpConfig>(
+            contents);
   } catch (const std::exception& jsonEx) {
     LOG(ERROR) << "unable to parse " << FLAGS_lldp_ports_config
                << " as a JSON file: " << folly::exceptionStr(jsonEx);
