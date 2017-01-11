@@ -202,6 +202,9 @@ void TunManager::setIntfStatus(
   // Prepare socket
   auto sockFd = socket(PF_INET, SOCK_DGRAM, 0);
   sysCheckError(sockFd, "Failed to open socket");
+  SCOPE_EXIT {
+    close(sockFd);
+  };
 
   // Prepare request
   struct ifreq ifr;

@@ -244,6 +244,9 @@ void TunIntf::setMtu(int mtu) {
   mtu_ = mtu;
   auto sock = socket(PF_INET, SOCK_DGRAM, 0);
   sysCheckError(sock, "Failed to open socket");
+  SCOPE_EXIT {
+    close(sock);
+  };
 
   struct ifreq ifr;
   size_t len = std::min(name_.size(), sizeof(ifr.ifr_name));
@@ -251,7 +254,6 @@ void TunIntf::setMtu(int mtu) {
   memmove(ifr.ifr_name, name_.c_str(), len);
   ifr.ifr_mtu = mtu_;
   auto ret = ioctl(sock, SIOCSIFMTU, (void*)&ifr);
-  close(sock);
   sysCheckError(ret, "Failed to set MTU ", ifr.ifr_mtu,
                 " to fd ", fd_, " errno = ", errno);
   VLOG(3) << "Set tun " << name_ << " MTU to " << mtu;
