@@ -179,10 +179,6 @@ TEST(Vlan, applyConfig) {
   NdpResponseTable expectedNdpResp2;
   expectedNdpResp2.setEntry(IPAddressV6("fe80::1:02ff:feab:cd78"),
                            intf2Mac, InterfaceID(2));
-  // The link-local IPv6 address should also have been automatically added
-  // to interface by applyThriftConfig and hence to the NDP response table.
-  expectedNdpResp2.setEntry(IPAddressV6("fe80::8002:00ff:feab:cdef"),
-                           intf2Mac, InterfaceID(2));
   EXPECT_EQ(expectedNdpResp2.getTable(),
             vlanV3->getNdpResponseTable()->getTable());
 

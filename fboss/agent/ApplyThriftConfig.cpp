@@ -918,7 +918,12 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
 
   // Assign auto-generate v6 link-local address to interface. Config can
   // have more link-local addresses if needed.
-  const auto macAddr = platform_->getLocalMac();
+  folly::MacAddress macAddr;
+  if (config->__isset.mac) {
+    macAddr = folly::MacAddress(config->mac);
+  } else {
+    macAddr = platform_->getLocalMac();
+  }
   const folly::IPAddressV6 v6llAddr(folly::IPAddressV6::LINK_LOCAL, macAddr);
   addrs.emplace(v6llAddr, kV6LinkLocalAddrMask);
 

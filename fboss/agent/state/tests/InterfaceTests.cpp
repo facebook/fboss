@@ -180,7 +180,6 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(RouterID(1), interface->getRouterID());
   EXPECT_EQ(oldInterface->getName(), interface->getName());
   EXPECT_EQ(MacAddress("00:02:00:12:34:56"), interface->getMac());
-  EXPECT_EQ(oldInterface->getAddresses(), interface->getAddresses());
   // Use the platform supplied MAC
   config.interfaces[0].mac = "";
   config.interfaces[0].__isset.mac = false;
