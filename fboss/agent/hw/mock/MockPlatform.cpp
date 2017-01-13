@@ -13,7 +13,7 @@
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 
-using folly::make_unique;
+using std::make_unique;
 using std::string;
 using std::unique_ptr;
 

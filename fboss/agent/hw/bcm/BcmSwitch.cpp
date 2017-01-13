@@ -65,7 +65,7 @@ extern "C" {
 #include <opennsl/vlan.h>
 }
 
-using folly::make_unique;
+using std::make_unique;
 using std::chrono::seconds;
 using std::chrono::duration_cast;
 using std::unique_ptr;

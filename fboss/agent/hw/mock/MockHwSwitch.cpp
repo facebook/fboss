@@ -14,7 +14,7 @@
 
 #include "fboss/agent/hw/mock/MockTxPacket.h"
 
-using folly::make_unique;
+using std::make_unique;
 
 namespace facebook { namespace fboss {
 

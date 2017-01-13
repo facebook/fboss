@@ -33,7 +33,7 @@ using folly::IPAddress;
 using folly::ByteRange;
 using folly::IOBuf;
 using folly::io::Cursor;
-using folly::make_unique;
+using std::make_unique;
 using folly::StringPiece;
 using std::make_shared;
 using std::shared_ptr;

@@ -18,7 +18,7 @@
 
 using folly::IOBuf;
 using folly::io::Appender;
-using folly::make_unique;
+using std::make_unique;
 using folly::StringPiece;
 using std::unique_ptr;
 

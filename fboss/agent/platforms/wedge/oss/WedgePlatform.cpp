@@ -16,7 +16,7 @@
 namespace facebook { namespace fboss {
 
 std::unique_ptr<ThriftHandler> WedgePlatform::createHandler(SwSwitch* sw) {
-  return folly::make_unique<ThriftHandler>(sw);
+  return std::make_unique<ThriftHandler>(sw);
 }
 
 std::map<std::string, std::string> WedgePlatform::loadConfig() {

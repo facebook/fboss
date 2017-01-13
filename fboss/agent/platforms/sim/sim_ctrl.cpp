@@ -17,7 +17,7 @@
 
 using namespace facebook::fboss;
 using folly::MacAddress;
-using folly::make_unique;
+using std::make_unique;
 using std::unique_ptr;
 
 DEFINE_int32(num_ports, 64,

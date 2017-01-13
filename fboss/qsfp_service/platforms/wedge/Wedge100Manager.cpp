@@ -7,6 +7,6 @@ Wedge100Manager::Wedge100Manager(){
 }
 
 std::unique_ptr<BaseWedgeI2CBus> Wedge100Manager::getI2CBus() {
-  return folly::make_unique<Wedge100I2CBus>();
+  return std::make_unique<Wedge100I2CBus>();
 }
 }} // facebook::fboss

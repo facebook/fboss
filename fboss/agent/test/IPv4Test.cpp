@@ -34,7 +34,7 @@ using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::MacAddress;
 using folly::io::Cursor;
-using folly::make_unique;
+using std::make_unique;
 using std::make_shared;
 using std::make_pair;
 using std::shared_ptr;

@@ -546,13 +546,13 @@ class RadixTree {
 
   std::unique_ptr<TreeNode> makeNode(const IPADDRTYPE& ip,
       uint8_t masklen) {
-    return folly::make_unique<TreeNode>(ip, masklen, nodeDeleteCallback_);
+    return std::make_unique<TreeNode>(ip, masklen, nodeDeleteCallback_);
   }
 
   template<typename VALUE>
   std::unique_ptr<TreeNode> makeNode(const IPADDRTYPE& ip,
       uint8_t masklen, VALUE&& value) {
-    return folly::make_unique<TreeNode>(ip, masklen,
+    return std::make_unique<TreeNode>(ip, masklen,
                                         std::forward<VALUE>(value),
                                         nodeDeleteCallback_);
   }

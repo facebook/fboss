@@ -19,7 +19,7 @@
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
-using folly::make_unique;
+using std::make_unique;
 
 namespace {
 
@@ -164,9 +164,9 @@ int SffTransceiver::getNum() {
 TEST(SffTest, simpleRead) {
   int idx = 1;
   std::unique_ptr<SffTransceiver> qsfpImpl =
-    folly::make_unique<SffTransceiver>(idx);
+    std::make_unique<SffTransceiver>(idx);
   std::unique_ptr<QsfpModule> qsfp =
-    folly::make_unique<QsfpModule>(std::move(qsfpImpl));
+    std::make_unique<QsfpModule>(std::move(qsfpImpl));
 
   qsfp->detectTransceiver();
 

@@ -17,7 +17,7 @@
 
 using namespace facebook::fboss;
 using folly::MutableByteRange;
-using folly::make_unique;
+using std::make_unique;
 using folly::StringPiece;
 using std::unique_ptr;
 

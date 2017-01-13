@@ -28,7 +28,7 @@ using namespace facebook::fboss;
 using folly::IOBuf;
 using folly::io::Cursor;
 using folly::io::Appender;
-using folly::make_unique;
+using std::make_unique;
 using std::make_shared;
 using std::shared_ptr;
 using std::string;

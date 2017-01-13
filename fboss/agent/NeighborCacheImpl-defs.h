@@ -361,7 +361,7 @@ std::unique_ptr<typename NeighborCacheImpl<NTable>::EntryFields>
 NeighborCacheImpl<NTable>::cloneEntryFields(AddressType ip) {
   auto entry = getCacheEntry(ip);
   if (entry) {
-    return folly::make_unique<EntryFields>(entry->getFields());
+    return std::make_unique<EntryFields>(entry->getFields());
   }
   return nullptr;
 }

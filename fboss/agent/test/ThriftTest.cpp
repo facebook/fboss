@@ -193,7 +193,7 @@ TEST(ThriftTest, syncFib) {
 
   // Now use syncFib to replace all the BGP routes.
   // Statics and link-locals should remain unchanged.
-  auto newRoutes = folly::make_unique<std::vector<UnicastRoute>>();
+  auto newRoutes = std::make_unique<std::vector<UnicastRoute>>();
   UnicastRoute nr1 = *makeUnicastRoute("5.5.5.5", 8, "10.0.0.0").get();
   UnicastRoute nr2 = *makeUnicastRoute("6666::0", 128, "10.0.0.0").get();
   UnicastRoute nr3 = *makeUnicastRoute("7777::0", 128, "10.0.0.0").get();

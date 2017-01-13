@@ -120,7 +120,7 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
   BcmEgress* egress{nullptr};
   // get the egress object and then update it with the new MAC
   if (egressId_ == BcmEgressBase::INVALID) {
-    createdEgress = folly::make_unique<BcmEgress>(hw_);
+    createdEgress = std::make_unique<BcmEgress>(hw_);
     egress = createdEgress.get();
   } else {
     egress = dynamic_cast<BcmEgress*>(
@@ -204,7 +204,7 @@ BcmEcmpHost::BcmEcmpHost(const BcmSwitch *hw, opennsl_vrf_t vrf,
     // just one path. No BcmEcmpEgress object this case.
     egressId_ = *paths.begin();
   } else {
-    auto ecmp = folly::make_unique<BcmEcmpEgress>(hw, std::move(paths));
+    auto ecmp = std::make_unique<BcmEcmpEgress>(hw, std::move(paths));
     //ecmp->program(paths, fwd.size());
     egressId_ = ecmp->getID();
     ecmpEgressId_ = egressId_;
@@ -246,7 +246,7 @@ HostT* BcmHostTable::incRefOrCreateBcmHost(
   SCOPE_FAIL {
     map->erase(iter);
   };
-  auto newHost = folly::make_unique<HostT>(hw_, key.first, key.second, args...);
+  auto newHost = std::make_unique<HostT>(hw_, key.first, key.second, args...);
   auto hostPtr = newHost.get();
   iter->second.first = std::move(newHost);
   return hostPtr;

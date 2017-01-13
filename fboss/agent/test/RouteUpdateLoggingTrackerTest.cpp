@@ -26,7 +26,7 @@ class PrefixTrackerTest : public ::testing::Test {
       const std::string& identifier,
       bool exact) {
     RoutePrefix<folly::IPAddress> prefix{folly::IPAddress{addr}, mask};
-    auto req = folly::make_unique<RouteUpdateLoggingInstance>(
+    auto req = std::make_unique<RouteUpdateLoggingInstance>(
         prefix, identifier, exact);
     tracker.track(*req);
   }

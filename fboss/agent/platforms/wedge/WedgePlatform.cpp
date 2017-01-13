@@ -32,7 +32,7 @@ DEFINE_string(mgmt_if, "eth0",
               "name of management interface");
 
 using folly::MacAddress;
-using folly::make_unique;
+using std::make_unique;
 using folly::Subprocess;
 using std::string;
 

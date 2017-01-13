@@ -52,7 +52,7 @@ using apache::thrift::ClientReceiveState;
 using facebook::fb303::cpp2::fb_status;
 using folly::fbstring;
 using folly::IOBuf;
-using folly::make_unique;
+using std::make_unique;
 using folly::StringPiece;
 using folly::IPAddress;
 using folly::IPAddressV4;

@@ -1237,8 +1237,8 @@ TEST(RadixTree, MoveConstructible) {
     }
     prefixesSeen.insert(Prefix4(ip, mask));
     ++i;
-    rtree.insert(ip, mask, folly::make_unique<int>(i));
-    ipRtree.insert(IPAddress(ip), mask, folly::make_unique<int>(i));
+    rtree.insert(ip, mask, std::make_unique<int>(i));
+    ipRtree.insert(IPAddress(ip), mask, std::make_unique<int>(i));
     inserted.emplace_back(std::make_pair(ip, mask));
   }
   EXPECT_EQ(kInsertCount, rtree.size());
@@ -1247,9 +1247,9 @@ TEST(RadixTree, MoveConstructible) {
 
   // Set value via iterator
   rtree.exactMatch(inserted[0].first, inserted[0].second)->setValue(
-      folly::make_unique<int>(42));
+      std::make_unique<int>(42));
   ipRtree.exactMatch(IPAddress(inserted[0].first), inserted[0].second)
-    ->setValue(folly::make_unique<int>(42));
+    ->setValue(std::make_unique<int>(42));
 
   auto const kEraseCount = 20;
   // Delete kEraseCount (randomly selected) prefixes

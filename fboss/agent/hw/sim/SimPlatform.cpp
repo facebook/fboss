@@ -19,7 +19,7 @@ DEFINE_string(volatile_state_dir, "/tmp/fboss_sim/volatile",
 DEFINE_string(persistent_state_dir, "/tmp/fboss_sim/persistent",
               "Directory for storing persistent state");
 
-using folly::make_unique;
+using std::make_unique;
 using std::unique_ptr;
 
 namespace facebook { namespace fboss {
@@ -41,7 +41,7 @@ void SimPlatform::onHwInitialized(SwSwitch* sw) {
 
 unique_ptr<ThriftHandler> SimPlatform::createHandler(SwSwitch* sw) {
   SimSwitch* sim = static_cast<SimSwitch*>(sw->getHw());
-  return folly::make_unique<SimHandler>(sw, sim);
+  return std::make_unique<SimHandler>(sw, sim);
 }
 
 std::string SimPlatform::getVolatileStateDir() const {

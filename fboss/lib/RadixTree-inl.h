@@ -395,10 +395,10 @@ RadixTree<IPADDRTYPE, T, TreeTraits>::cloneSubTree(const TreeNode* node) {
   }
   std::unique_ptr<TreeNode> copy;
   if (node->isValueNode()) {
-    copy = folly::make_unique<TreeNode>(node->ipAddress(),
+    copy = std::make_unique<TreeNode>(node->ipAddress(),
       node->masklen(), node->value(), node->nodeDeleteCallback());
   } else {
-    copy = folly::make_unique<TreeNode>(node->ipAddress(),
+    copy = std::make_unique<TreeNode>(node->ipAddress(),
       node->masklen(), node->nodeDeleteCallback());
   }
   copy->resetLeft(cloneSubTree(node->left()));

@@ -71,7 +71,7 @@ void BcmUnit::attach(std::string warmBootDir) {
    * FIXME(orib): This assumes that we only ever have one unit set up,
    * and that as a result, opennsl_driver_init() will only be called once.
    */
-  wbHelper_ = folly::make_unique<BcmWarmBootHelper>(unit_, warmBootDir);
+  wbHelper_ = std::make_unique<BcmWarmBootHelper>(unit_, warmBootDir);
   unsetenv(wbEnvVar);
   if(warmBootHelper()->canWarmBoot()) {
     setenv(wbEnvVar, wbFlag, 1);

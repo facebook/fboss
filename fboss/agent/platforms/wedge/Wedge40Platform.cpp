@@ -38,7 +38,7 @@ Wedge40Platform::InitPortMap Wedge40Platform::initPorts() {
       PortID portID(num);
       opennsl_port_t bcmPortNum = num;
 
-      auto port = folly::make_unique<Wedge40Port>(portID, frontPanel, channel);
+      auto port = std::make_unique<Wedge40Port>(portID, frontPanel, channel);
 
       ports.emplace(bcmPortNum, port.get());
       ports_.emplace(portID, std::move(port));

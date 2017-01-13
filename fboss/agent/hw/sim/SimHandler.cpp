@@ -13,7 +13,7 @@
 
 using folly::ByteRange;
 using folly::IOBuf;
-using folly::make_unique;
+using std::make_unique;
 using folly::StringPiece;
 using std::unique_ptr;
 

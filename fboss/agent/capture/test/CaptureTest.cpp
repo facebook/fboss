@@ -23,7 +23,7 @@
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
-using folly::make_unique;
+using std::make_unique;
 using folly::StringPiece;
 using std::make_shared;
 using std::shared_ptr;

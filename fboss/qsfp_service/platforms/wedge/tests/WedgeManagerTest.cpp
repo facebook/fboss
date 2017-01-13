@@ -28,7 +28,7 @@ class MockWedgeManager : public WedgeManager {
   void makeTransceiverMap() {
     for (int idx = 0; idx < getNumQsfpModules(); idx++) {
       std::unique_ptr<MockQsfpModule> qsfp =
-        folly::make_unique<MockQsfpModule>(nullptr);
+        std::make_unique<MockQsfpModule>(nullptr);
       mockTransceivers_.push_back(qsfp.get());
       transceivers_.push_back(move(qsfp));
     }
@@ -40,7 +40,7 @@ class MockWedgeManager : public WedgeManager {
 class WedgeManagerTest : public ::testing::Test {
  public:
   void SetUp() override {
-    wedgeManager_ = folly::make_unique<NiceMock<MockWedgeManager>>();
+    wedgeManager_ = std::make_unique<NiceMock<MockWedgeManager>>();
     wedgeManager_->makeTransceiverMap();
   }
   std::unique_ptr<NiceMock<MockWedgeManager>> wedgeManager_;
@@ -53,7 +53,7 @@ TEST_F(WedgeManagerTest, getTransceiverInfo) {
   }
   std::map<int32_t, TransceiverInfo> transInfo;
   wedgeManager_->getTransceiversInfo(transInfo,
-      folly::make_unique<std::vector<int32_t>>());
+      std::make_unique<std::vector<int32_t>>());
 
   // Otherwise, just return the ids requested
   std::vector<int32_t> data = {1, 3, 7};
@@ -62,7 +62,7 @@ TEST_F(WedgeManagerTest, getTransceiverInfo) {
     EXPECT_CALL(*qsfp, getTransceiverInfo()).Times(1);
   }
   wedgeManager_->getTransceiversInfo(transInfo,
-      folly::make_unique<std::vector<int32_t>>(data));
+      std::make_unique<std::vector<int32_t>>(data));
 }
 
 }

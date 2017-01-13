@@ -8,6 +8,6 @@ GalaxyManager::GalaxyManager(){
 }
 
 std::unique_ptr<BaseWedgeI2CBus> GalaxyManager::getI2CBus() {
-  return folly::make_unique<GalaxyI2CBus>();
+  return std::make_unique<GalaxyI2CBus>();
 }
 }} // facebook::fboss

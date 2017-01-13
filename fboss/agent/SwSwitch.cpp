@@ -52,7 +52,7 @@
 using folly::EventBase;
 using folly::io::Cursor;
 using folly::io::RWPrivateCursor;
-using folly::make_unique;
+using std::make_unique;
 using folly::StringPiece;
 using std::lock_guard;
 using std::map;
@@ -362,11 +362,11 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   }
 
   if (flags & SwitchFlags::ENABLE_LLDP) {
-    lldpManager_ = folly::make_unique<LldpManager>(this);
+    lldpManager_ = std::make_unique<LldpManager>(this);
   }
 
   if (flags & SwitchFlags::ENABLE_NHOPS_PROBER) {
-    unresolvedNhopsProber_ = folly::make_unique<UnresolvedNhopsProber>(this);
+    unresolvedNhopsProber_ = std::make_unique<UnresolvedNhopsProber>(this);
     // Feed initial state.
     unresolvedNhopsProber_->stateUpdated(
         StateDelta(std::make_shared<SwitchState>(), getState()));
@@ -376,7 +376,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
     stats()->bgHeartbeatDelay(delay);
     stats()->bgEventBacklog(backLog);
   };
-  bgThreadHeartbeat_ = folly::make_unique<ThreadHeartbeat>(
+  bgThreadHeartbeat_ = std::make_unique<ThreadHeartbeat>(
     &backgroundEventBase_, "fbossBgThread", FLAGS_thread_heartbeat_ms,
     bgHeartbeatStatsFunc);
 
@@ -384,7 +384,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
     stats()->updHeartbeatDelay(delay);
     stats()->updEventBacklog(backLog);
   };
-  updThreadHeartbeat_ = folly::make_unique<ThreadHeartbeat>(
+  updThreadHeartbeat_ = std::make_unique<ThreadHeartbeat>(
     &updateEventBase_, "fbossUpdateThread", FLAGS_thread_heartbeat_ms,
     updHeartbeatStatsFunc);
 

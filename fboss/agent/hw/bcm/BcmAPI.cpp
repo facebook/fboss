@@ -21,7 +21,7 @@
 #include <atomic>
 #include <unordered_map>
 
-using folly::make_unique;
+using std::make_unique;
 using folly::StringPiece;
 using std::string;
 

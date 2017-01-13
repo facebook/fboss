@@ -12,7 +12,7 @@
 #include <folly/MoveWrapper.h>
 
 using folly::EventBase;
-using folly::make_unique;
+using std::make_unique;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;

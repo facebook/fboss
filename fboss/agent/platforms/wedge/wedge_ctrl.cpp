@@ -15,7 +15,7 @@
 #include "fboss/agent/platforms/wedge/Wedge100Platform.h"
 
 using namespace facebook::fboss;
-using folly::make_unique;
+using std::make_unique;
 using std::unique_ptr;
 using std::make_unique;
 
@@ -26,17 +26,17 @@ DEFINE_string(fruid_filepath,
 namespace facebook { namespace fboss {
 
 unique_ptr<WedgePlatform> createPlatform() {
-  auto productInfo = folly::make_unique<WedgeProductInfo>(FLAGS_fruid_filepath);
+  auto productInfo = std::make_unique<WedgeProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();
   auto mode = productInfo->getMode();
   if (mode == WedgePlatformMode::WEDGE100) {
-    return folly::make_unique<Wedge100Platform>(std::move(productInfo));
+    return std::make_unique<Wedge100Platform>(std::move(productInfo));
   } else if (
       mode == WedgePlatformMode::GALAXY_LC ||
       mode == WedgePlatformMode::GALAXY_FC) {
     return make_unique<GalaxyPlatform>(std::move(productInfo), mode);
   }
-  return folly::make_unique<Wedge40Platform>(std::move(productInfo), mode);
+  return std::make_unique<Wedge40Platform>(std::move(productInfo), mode);
 }
 
 unique_ptr<Platform> initWedgePlatform() {

@@ -313,11 +313,11 @@ bool isTrident2() {
 std::pair<std::unique_ptr<TransceiverI2CApi>, int>  getTransceiverAPI() {
   if (FLAGS_platform.size()) {
      if (FLAGS_platform == "galaxy") {
-        return make_pair(folly::make_unique<GalaxyI2CBus>(), 0);
+        return make_pair(std::make_unique<GalaxyI2CBus>(), 0);
      } else if (FLAGS_platform == "wedge100") {
-        return make_pair(folly::make_unique<Wedge100I2CBus>(), 0);
+        return make_pair(std::make_unique<Wedge100I2CBus>(), 0);
      } else if (FLAGS_platform == "wedge") {
-        return make_pair(folly::make_unique<WedgeI2CBus>(), 0);
+        return make_pair(std::make_unique<WedgeI2CBus>(), 0);
      } else {
        fprintf(stderr, "Unknown platform %s\n", FLAGS_platform.c_str());
        return make_pair(nullptr, EX_USAGE);
@@ -325,9 +325,9 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int>  getTransceiverAPI() {
    }
   // TODO(klahey):  Should probably verify the other chip architecture.
   if (isTrident2()) {
-     return make_pair(folly::make_unique<WedgeI2CBus>(), 0);
+     return make_pair(std::make_unique<WedgeI2CBus>(), 0);
   }
-  return make_pair(folly::make_unique<Wedge100I2CBus>(), 0);
+  return make_pair(std::make_unique<Wedge100I2CBus>(), 0);
 }
 
 void tryOpenBus(TransceiverI2CApi* bus) {

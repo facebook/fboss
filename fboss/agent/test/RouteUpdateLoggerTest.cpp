@@ -58,10 +58,10 @@ class RouteUpdateLoggerTest : public ::testing::Test {
     deltaAdd = std::make_shared<StateDelta>(blankState, stateA);
     deltaRemove = std::make_shared<StateDelta>(stateA, blankState);
     sw = createMockSw(blankState);
-    routeUpdateLogger = folly::make_unique<RouteUpdateLogger>(
+    routeUpdateLogger = std::make_unique<RouteUpdateLogger>(
         sw.get(),
-        folly::make_unique<MockRouteLogger<folly::IPAddressV4>>(),
-        folly::make_unique<MockRouteLogger<folly::IPAddressV6>>());
+        std::make_unique<MockRouteLogger<folly::IPAddressV4>>(),
+        std::make_unique<MockRouteLogger<folly::IPAddressV6>>());
     mockRouteLoggerV4 = static_cast<MockRouteLogger<folly::IPAddressV4>*>(
         routeUpdateLogger->getRouteLoggerV4());
     mockRouteLoggerV6 = static_cast<MockRouteLogger<folly::IPAddressV6>*>(
@@ -76,7 +76,7 @@ class RouteUpdateLoggerTest : public ::testing::Test {
       bool exact) {
     RoutePrefix<folly::IPAddress> prefix{folly::IPAddress{addr}, mask};
     auto req =
-        folly::make_unique<RouteUpdateLoggingInstance>(prefix, user, exact);
+        std::make_unique<RouteUpdateLoggingInstance>(prefix, user, exact);
     routeUpdateLogger->startLoggingForPrefix(*req);
   }
 

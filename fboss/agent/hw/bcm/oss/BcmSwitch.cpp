@@ -24,7 +24,7 @@ extern "C" {
 namespace facebook { namespace fboss {
 
 std::unique_ptr<BcmRxPacket> BcmSwitch::createRxPacket(opennsl_pkt_t* pkt) {
-  return folly::make_unique<BcmRxPacket>(pkt);
+  return std::make_unique<BcmRxPacket>(pkt);
 }
 
 void BcmSwitch::configureAdditionalEcmpHashSets() {}

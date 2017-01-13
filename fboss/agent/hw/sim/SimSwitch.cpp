@@ -17,7 +17,7 @@
 #include <folly/dynamic.h>
 #include <folly/Memory.h>
 
-using folly::make_unique;
+using std::make_unique;
 using std::make_shared;
 using std::shared_ptr;
 using std::string;

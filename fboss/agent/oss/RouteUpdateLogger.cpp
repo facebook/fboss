@@ -19,7 +19,7 @@
 namespace {
 template<typename AddrT>
 std::unique_ptr<facebook::fboss::RouteLogger<AddrT>> getRouteLogger() {
-  return folly::make_unique<facebook::fboss::GlogRouteLogger<AddrT>>();
+  return std::make_unique<facebook::fboss::GlogRouteLogger<AddrT>>();
 }
 }
 

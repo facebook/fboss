@@ -89,7 +89,7 @@ PortStats* SwitchStats::port(PortID portID) {
 }
 
 PortStats* SwitchStats::createPortStats(PortID portID) {
-  auto rv = ports_.emplace(portID, folly::make_unique<PortStats>(portID, this));
+  auto rv = ports_.emplace(portID, std::make_unique<PortStats>(portID, this));
   const auto& it = rv.first;
   DCHECK(rv.second);
   return it->second.get();

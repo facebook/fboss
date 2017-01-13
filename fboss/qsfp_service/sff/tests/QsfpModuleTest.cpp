@@ -28,7 +28,7 @@ namespace {
 class QsfpModuleTest : public ::testing::Test {
  public:
   void SetUp() override {
-    auto transceiverImpl = folly::make_unique<NiceMock<MockTransceiverImpl> >();
+    auto transceiverImpl = std::make_unique<NiceMock<MockTransceiverImpl> >();
     auto implPtr = transceiverImpl.get();
     // So we can check what happens during testing
     transImpl_ = transceiverImpl.get();

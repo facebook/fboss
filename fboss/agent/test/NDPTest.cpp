@@ -348,7 +348,7 @@ void sendNeighborAdvertisement(SwSwitch* sw, StringPiece ipStr,
   ICMPHdr icmp6(ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT, 0, 0);
   icmp6.serializeFullPacket(&cursor, dstMac, srcMac, vlan, ipv6, plen, bodyFn);
 
-  auto pkt = folly::make_unique<MockRxPacket>(std::move(buf));
+  auto pkt = std::make_unique<MockRxPacket>(std::move(buf));
   pkt->padToLength(totalLen);
   pkt->setSrcPort(PortID(port));
   pkt->setSrcVlan(vlan);
@@ -697,7 +697,7 @@ TEST(NdpTest, FlushEntry) {
   auto binAddr = toBinaryAddress(
     IPAddressV6("2401:db00:2110:3004::b"));
   auto numFlushed = thriftHandler.flushNeighborEntry(
-    folly::make_unique<BinaryAddress>(binAddr), 5);
+    std::make_unique<BinaryAddress>(binAddr), 5);
   EXPECT_EQ(numFlushed, 1);
 
   // Only one entry now
@@ -711,7 +711,7 @@ TEST(NdpTest, FlushEntry) {
   binAddr = toBinaryAddress(
     IPAddressV6("2401:db00:2110:3004::b"));
   numFlushed = thriftHandler.flushNeighborEntry(
-    folly::make_unique<BinaryAddress>(binAddr), 5);
+    std::make_unique<BinaryAddress>(binAddr), 5);
   EXPECT_EQ(numFlushed, 0);
 
   // Still one entry
@@ -725,7 +725,7 @@ TEST(NdpTest, FlushEntry) {
   binAddr = toBinaryAddress(
     IPAddressV6("2401:db00:2110:3004::c"));
   numFlushed = thriftHandler.flushNeighborEntry(
-    folly::make_unique<BinaryAddress>(binAddr), 0);
+    std::make_unique<BinaryAddress>(binAddr), 0);
   EXPECT_EQ(numFlushed, 1);
 
   // Table should be empty now

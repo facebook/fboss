@@ -26,7 +26,7 @@ extern "C" {
 
 namespace facebook { namespace fboss {
 
-using folly::make_unique;
+using std::make_unique;
 using std::unique_ptr;
 using std::make_pair;
 

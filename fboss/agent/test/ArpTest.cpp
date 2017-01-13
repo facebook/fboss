@@ -44,7 +44,7 @@ using facebook::network::thrift::BinaryAddress;
 using folly::io::Cursor;
 using folly::IOBuf;
 using folly::IPAddressV4;
-using folly::make_unique;
+using std::make_unique;
 using folly::StringPiece;
 using std::make_shared;
 using std::shared_ptr;

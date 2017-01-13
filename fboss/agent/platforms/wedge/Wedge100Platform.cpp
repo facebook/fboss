@@ -39,7 +39,7 @@ Wedge100Platform::InitPortMap Wedge100Platform::initPorts() {
       PortID portID(num);
       opennsl_port_t bcmPortNum = num;
 
-      auto port = folly::make_unique<Wedge100Port>(portID, this, frontPanel,
+      auto port = std::make_unique<Wedge100Port>(portID, this, frontPanel,
                                                    ChannelID(i));
       ports.emplace(bcmPortNum, port.get());
       ports_.emplace(portID, std::move(port));
@@ -54,7 +54,7 @@ Wedge100Platform::InitPortMap Wedge100Platform::initPorts() {
 }
 
 std::unique_ptr<BaseWedgeI2CBus> Wedge100Platform::getI2CBus() {
-  return folly::make_unique<Wedge100I2CBus>();
+  return std::make_unique<Wedge100I2CBus>();
 }
 
 Wedge100Platform::FrontPanelMapping Wedge100Platform::getFrontPanelMapping() {
