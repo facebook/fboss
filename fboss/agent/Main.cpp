@@ -304,6 +304,7 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   auto stopServices = [&]() {
     statsPublisher.cancelTimeout();
     init.stopFunctionScheduler();
+    fbossFinalize();
   };
   SignalHandler signalHandler(&eventBase, &sw, stopServices);
 

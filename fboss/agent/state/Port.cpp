@@ -59,7 +59,8 @@ folly::dynamic PortFields::toFollyDynamic() const {
   CHECK(itr_speed != cfg::_PortSpeed_VALUES_TO_NAMES.end());
   port[kPortSpeed] = itr_speed->second;
   auto itr_max_speed  = cfg::_PortSpeed_VALUES_TO_NAMES.find(maxSpeed);
-  CHECK(itr_max_speed != cfg::_PortSpeed_VALUES_TO_NAMES.end());
+  CHECK(itr_max_speed != cfg::_PortSpeed_VALUES_TO_NAMES.end())
+     << "Unexpected max speed: " << static_cast<int>(maxSpeed);
   port[kPortMaxSpeed] = itr_max_speed->second;
   port[kVlanMemberships] = folly::dynamic::object;
   for (const auto& vlan: vlans) {

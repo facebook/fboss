@@ -19,4 +19,6 @@ void fbossInit(int argc, char** argv) {
   google::InstallFailureSignalHandler();
 }
 
+void fbossFinalize() {}
+
 }} // facebook::fboss

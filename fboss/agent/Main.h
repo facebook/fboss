@@ -16,5 +16,6 @@ typedef std::unique_ptr<Platform> (*PlatformInitFn)();
 
 int fbossMain(int argc, char** argv, PlatformInitFn initPlatform);
 void fbossInit(int argc, char** argv);
+void fbossFinalize();
 
 }} // facebook::fboss
