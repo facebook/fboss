@@ -35,6 +35,7 @@ FBOSS_STRONG_TYPE(uint16_t, VlanID)
 FBOSS_STRONG_TYPE(uint32_t, RouterID)
 FBOSS_STRONG_TYPE(uint32_t, InterfaceID)
 FBOSS_STRONG_TYPE(uint32_t, AclEntryID)
+FBOSS_STRONG_TYPE(int, VrfID)
 
 /*
  * A unique ID identifying a node in our state tree.
