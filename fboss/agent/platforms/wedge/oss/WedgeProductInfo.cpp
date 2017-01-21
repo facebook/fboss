@@ -14,4 +14,8 @@ namespace facebook { namespace fboss {
 void WedgeProductInfo::initFromFbWhoAmI() {
 }
 
+void WedgeProductInfo::setFBSerial() {
+
+}
+
 }} // facebook::fboss

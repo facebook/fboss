@@ -155,8 +155,10 @@ void WedgeProductInfo::parse(std::string data) {
 
   productInfo_.fabricLocation = folly::to<std::string>
                                     (info[kFabricLocation].asString());
-  // Append L/R to the serial number based on the fabricLocation
-  updateSerial();
+  // FB only - we apply custom logic to construct unique SN for
+  // cases where we create multiple assets for a single physical
+  // card in chassis.
+  setFBSerial();
   productInfo_.version = info[kVersion].asInt();
   productInfo_.subVersion = info[kSubVersion].asInt();
   productInfo_.productionState = info[kProductionState].asInt();
@@ -166,15 +168,6 @@ void WedgeProductInfo::parse(std::string data) {
   auto macBase = MacAddress(info[kExtMacBase].asString()).u64HBO() + 1;
   productInfo_.macRangeStart = MacAddress::fromHBO(macBase).toString();
   productInfo_.macRangeSize = info[kExtMacSize].asInt() - 1;
-}
-
-void WedgeProductInfo::updateSerial() {
-  if (boost::iequals(productInfo_.fabricLocation, kFabricLocationLeft)) {
-    productInfo_.serial += "L";
-  } else if (boost::iequals(productInfo_.fabricLocation,
-    kFabricLocationRight)) {
-    productInfo_.serial += "R";
-  }
 }
 
 }} // facebook::fboss
