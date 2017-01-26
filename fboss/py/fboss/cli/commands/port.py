@@ -140,58 +140,69 @@ class PortStatusCmd(cmds.FbossCmd):
 
     def _get_field_format(self, internal_port):
         if internal_port:
-            field_fmt = '{:>6} {:>10}  {:>12}  {}{:>10}  {:>12}  {:>6}'
+            field_fmt = '{:>6} {:<11} {:>12}  {}{:>10}  {:>12}  {:>6}'
             print(field_fmt.format('port ID', 'Port Name', 'Admin State', '',
                                    'Link State', 'Transceiver', 'Speed'))
             print('-' * 68)
         else:
-            field_fmt = '{:>10}  {:>12}  {}{:>10}  {:>12}  {:>6}'
+            field_fmt = '{:<11} {:>12}  {}{:>10}  {:>12}  {:>6}'
             print(field_fmt.format('Port', 'Admin State', '', 'Link State',
                                    'Transceiver', 'Speed'))
             print('-' * 59)
         return field_fmt
 
     def list_ports(self, ports, internal_port=False):
+        field_fmt = self._get_field_format(internal_port)
+        port_status_map = self._client.getPortStatus(ports)
         try:
-            field_fmt = self._get_field_format(internal_port)
-            resp = self._client.getPortStatus(ports)
-            presence = self._qsfp_client.getTransceiverInfo(ports)
-            port_info = self._client.getAllPortInfo()
-            for port_data in sorted(port_info.values(), key=utils.port_sort_fn):
-                port = port_data.portId
-                if port not in resp:
-                    continue
-                status = resp[port]
-                # The transceiver can be retrieved from port name
-                # e.g. port name eth1/4/1 -> transceiver is 4-1 = 3
-                # (-1 because we start counting transceivers at 0)
-                transceiver = utils.port_sort_fn(port_data)[2] - 1
-                present = presence[transceiver].present
-                attrs = utils.get_status_strs(status, present)
-                if internal_port:
-                    speed = attrs['speed']
-                    if not speed:
-                        speed = '-'
-                    print(field_fmt.format(
-                          port,
-                          port_data.name,
-                          attrs['admin_status'],
-                          attrs['color_align'],
-                          attrs['link_status'],
-                          attrs['present'],
-                          speed))
-                elif status.enabled:
-                    name = port_data.name if port_data.name else port
-                    print(field_fmt.format(
-                          name,
-                          attrs['admin_status'],
-                          attrs['color_align'],
-                          attrs['link_status'],
-                          attrs['present'],
-                          attrs['speed']))
+            qsfp_info_map = self._qsfp_client.getTransceiverInfo(ports)
+        except Exception as e:
+            print(utils.make_error_string(
+                "Could not get qsfp info; continue anyway\n{}".format(e)))
+            qsfp_info_map = {}
+        port_info_map = self._client.getAllPortInfo()
+        missing_port_status = []
+        for port_info in sorted(port_info_map.values(), key=utils.port_sort_fn):
+            port_id = port_info.portId
+            status = port_status_map.get(port_id)
+            if not status:
+                missing_port_status.append(port_id)
+                continue
+            # The transceiver id can be derived from port name
+            # e.g. port name eth1/4/1 -> transceiver_id is 4-1 = 3
+            # (-1 because we start counting transceivers at 0)
+            transceiver_id = utils.port_sort_fn(port_info)[2] - 1
+            qsfp_info = qsfp_info_map.get(transceiver_id)
+            if qsfp_info:
+                qsfp_present = qsfp_info.present
+            else:
+                qsfp_present = False
+            attrs = utils.get_status_strs(status, qsfp_present)
+            if internal_port:
+                speed = attrs['speed']
+                if not speed:
+                    speed = '-'
+                print(field_fmt.format(
+                    port_id,
+                    port_info.name,
+                    attrs['admin_status'],
+                    attrs['color_align'],
+                    attrs['link_status'],
+                    attrs['present'],
+                    speed))
+            elif status.enabled:
+                name = port_info.name if port_info.name else port_id
+                print(field_fmt.format(
+                    name,
+                    attrs['admin_status'],
+                    attrs['color_align'],
+                    attrs['link_status'],
+                    attrs['present'],
+                    attrs['speed']))
+        if missing_port_status:
+            print(utils.make_error_string(
+                "Could not get status of ports {}".format(missing_port_status)))
 
-        except KeyError as e:
-            print("Invalid port", e)
 
 
 class PortStatusDetailCmd(object):

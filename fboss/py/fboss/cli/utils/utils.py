@@ -53,6 +53,10 @@ def port_name_sort_fn(port_name):
     return m.group(1), int(m.group(2)), int(m.group(3)), int(m.group(4))
 
 
+def make_error_string(msg):
+    return COLOR_RED + msg + COLOR_RESET
+
+
 def get_status_strs(status, is_present):
     ''' Get port status attributes '''
 
