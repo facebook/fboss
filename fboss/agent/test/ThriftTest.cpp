@@ -139,10 +139,13 @@ TEST(ThriftTest, LinkLocalRoutes) {
 }
 
 std::unique_ptr<UnicastRoute>
-makeUnicastRoute(std::string ip, uint8_t len, std::string nxtHop) {
+makeUnicastRoute(std::string prefixStr, std::string nxtHop) {
+  std::vector<std::string> vec;
+  folly::split("/", prefixStr, vec);
+  EXPECT_EQ(2, vec.size());
   auto nr = std::make_unique<UnicastRoute>();
-  nr->dest.ip = toBinaryAddress(IPAddress(ip));
-  nr->dest.prefixLength = len;
+  nr->dest.ip = toBinaryAddress(IPAddress(vec.at(0)));
+  nr->dest.prefixLength = folly::to<uint8_t>(vec.at(1));
   nr->nextHopAddrs.push_back(toBinaryAddress(IPAddress(nxtHop)));
   return nr;
 }
@@ -172,10 +175,41 @@ TEST(ThriftTest, syncFib) {
   mockSw->fibSynced();
   ThriftHandler handler(mockSw.get());
 
+  //
   // Add a few BGP routes
-  handler.addUnicastRoute(0, makeUnicastRoute("7.7.7.7", 16, "99.99.99.99"));
-  handler.addUnicastRoute(0, makeUnicastRoute("8.8.8.8", 16, "99.99.99.99"));
-  handler.addUnicastRoute(0, makeUnicastRoute("aaaa::0", 64, "bbbb::0"));
+  //
+
+  auto cli1_nhop4 = "11.11.11.11";
+  auto cli1_nhop6 = "11:11::0";
+  auto cli2_nhop4 = "22.22.22.22";
+  auto cli2_nhop6 = "22:22::0";
+  auto cli3_nhop6 = "33:33::0";
+  auto cli1_nhop6b = "44:44::0";
+
+  // These routes will include nexthops from client 1 only
+  auto prefixA4 = "7.1.0.0/16";
+  auto prefixA6 = "aaaa:1::0/64";
+  handler.addUnicastRoute(1, makeUnicastRoute(prefixA4, cli1_nhop4));
+  handler.addUnicastRoute(1, makeUnicastRoute(prefixA6, cli1_nhop6));
+
+  // This route will include nexthops from clients 1 and 2
+  auto prefixB4 = "7.2.0.0/16";
+  handler.addUnicastRoute(1, makeUnicastRoute(prefixB4, cli1_nhop4));
+  handler.addUnicastRoute(2, makeUnicastRoute(prefixB4, cli2_nhop4));
+
+  // This route will include nexthops from clients 1 and 2 and 3
+  auto prefixC6 = "aaaa:3::0/64";
+  handler.addUnicastRoute(1, makeUnicastRoute(prefixC6, cli1_nhop6));
+  handler.addUnicastRoute(2, makeUnicastRoute(prefixC6, cli2_nhop6));
+  handler.addUnicastRoute(3, makeUnicastRoute(prefixC6, cli3_nhop6));
+
+  // These routes will not be used until fibSync happens.
+  auto prefixD4 = "7.4.0.0/16";
+  auto prefixD6 = "aaaa:4::0/64";
+
+  //
+  // Test the state of things before calling syncFib
+  //
 
   // Make sure all the static and link-local routes are there
   auto tables2 = handler.getSw()->getState()->getRouteTables();
@@ -183,24 +217,34 @@ TEST(ThriftTest, syncFib) {
   GET_ROUTE_V4(tables2, rid, "192.168.0.0/24");
   GET_ROUTE_V6(tables2, rid, "2401:db00:2110:3001::/64");
   GET_ROUTE_V6(tables2, rid, "fe80::/64");
-  // Make sure the BGP routes are there.
-  GET_ROUTE_V4(tables2, rid, "7.7.0.0/16");
-  GET_ROUTE_V4(tables2, rid, "8.8.0.0/16");
-  GET_ROUTE_V6(tables2, rid, "aaaa::0/64");
+  // Make sure the client 1&2&3 routes are there.
+  GET_ROUTE_V4(tables2, rid, prefixA4);
+  GET_ROUTE_V6(tables2, rid, prefixA6);
+  GET_ROUTE_V4(tables2, rid, prefixB4);
+  GET_ROUTE_V6(tables2, rid, prefixC6);
   // Make sure there are no more routes than the ones we just tested
   EXPECT_EQ(4, tables2->getRouteTable(rid)->getRibV4()->size());
-  EXPECT_EQ(3, tables2->getRouteTable(rid)->getRibV6()->size());
+  EXPECT_EQ(4, tables2->getRouteTable(rid)->getRibV6()->size());
+  EXPECT_NO_ROUTE(tables2, rid, prefixD4);
+  EXPECT_NO_ROUTE(tables2, rid, prefixD6);
 
-  // Now use syncFib to replace all the BGP routes.
-  // Statics and link-locals should remain unchanged.
-  auto newRoutes = std::make_unique<std::vector<UnicastRoute>>();
-  UnicastRoute nr1 = *makeUnicastRoute("5.5.5.5", 8, "10.0.0.0").get();
-  UnicastRoute nr2 = *makeUnicastRoute("6666::0", 128, "10.0.0.0").get();
-  UnicastRoute nr3 = *makeUnicastRoute("7777::0", 128, "10.0.0.0").get();
+  //
+  // Now use syncFib to remove all the routes for client 1 and add some new ones
+  // Statics, link-locals, and clients 2 and 3 should remain unchanged.
+  //
+
+  auto newRoutes = folly::make_unique<std::vector<UnicastRoute>>();
+  UnicastRoute nr1 = *makeUnicastRoute(prefixC6, cli1_nhop6b).get();
+  UnicastRoute nr2 = *makeUnicastRoute(prefixD6, cli1_nhop6b).get();
+  UnicastRoute nr3 = *makeUnicastRoute(prefixD4, cli1_nhop4).get();
   newRoutes->push_back(nr1);
   newRoutes->push_back(nr2);
   newRoutes->push_back(nr3);
-  handler.syncFib(0, std::move(newRoutes));
+  handler.syncFib(1, std::move(newRoutes));
+
+  //
+  // Test the state of things after syncFib
+  //
 
   // Make sure all the static and link-local routes are still there
   auto tables3 = handler.getSw()->getState()->getRouteTables();
@@ -208,11 +252,32 @@ TEST(ThriftTest, syncFib) {
   GET_ROUTE_V4(tables3, rid, "192.168.0.0/24");
   GET_ROUTE_V6(tables3, rid, "2401:db00:2110:3001::/64");
   GET_ROUTE_V6(tables3, rid, "fe80::/64");
-  // Make sure the new BGPd routes are there.
-  GET_ROUTE_V4(tables3, rid, "5.0.0.0/8");
-  GET_ROUTE_V6(tables3, rid, "6666::0/128");
-  GET_ROUTE_V6(tables3, rid, "7777::0/128");
-  // Make sure there are no more routes (ie. old ones were deleted)
-  EXPECT_EQ(3, tables3->getRouteTable(rid)->getRibV4()->size());
+
+  // The prefixA* routes should have disappeared
+  EXPECT_NO_ROUTE(tables3, rid, prefixA4);
+  EXPECT_NO_ROUTE(tables3, rid, prefixA6);
+
+  // The prefixB4 route should have client 2 only
+  auto rt1 = GET_ROUTE_V4(tables3, rid, prefixB4);
+  ASSERT_TRUE(rt1->getFields()
+    ->nexthopsmulti.isSame(ClientID(2), makeNextHops({cli2_nhop4})));
+  auto bestNextHops = rt1->bestNextHopList();
+  EXPECT_EQ(IPAddress(cli2_nhop4), *bestNextHops.begin());
+
+  // The prefixC6 route should have clients 2 & 3, and a new value for client 1
+  auto rt2 = GET_ROUTE_V6(tables3, rid, prefixC6);
+  ASSERT_TRUE(rt2->getFields()
+    ->nexthopsmulti.isSame(ClientID(2), makeNextHops({cli2_nhop6})));
+  ASSERT_TRUE(rt2->getFields()
+    ->nexthopsmulti.isSame(ClientID(3), makeNextHops({cli3_nhop6})));
+  ASSERT_TRUE(rt2->getFields()
+    ->nexthopsmulti.isSame(ClientID(1), makeNextHops({cli1_nhop6b})));
+
+  // The prefixD4 and prefixD6 routes should have been created
+  GET_ROUTE_V4(tables3, rid, prefixD4);
+  GET_ROUTE_V6(tables3, rid, prefixD6);
+
+  // Make sure there are no more routes (ie. the old ones were deleted)
+  EXPECT_EQ(4, tables3->getRouteTable(rid)->getRibV4()->size());
   EXPECT_EQ(4, tables3->getRouteTable(rid)->getRibV6()->size());
 }

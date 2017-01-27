@@ -30,6 +30,8 @@
 
 using folly::MacAddress;
 using folly::IPAddress;
+using folly::IPAddressV4;
+using folly::IPAddressV6;
 using folly::ByteRange;
 using folly::IOBuf;
 using folly::io::Cursor;
@@ -398,7 +400,7 @@ RoutePrefixV4 makePrefixV4(std::string str) {
   std::vector<std::string> vec;
   folly::split("/", str, vec);
   EXPECT_EQ(2, vec.size());
-  auto prefix = RoutePrefixV4{folly::IPAddressV4(vec.at(0)),
+  auto prefix = RoutePrefixV4{IPAddressV4(vec.at(0)),
                               folly::to<uint8_t>(vec.at(1))};
   return prefix;
 }
@@ -407,12 +409,12 @@ RoutePrefixV6 makePrefixV6(std::string str) {
   std::vector<std::string> vec;
   folly::split("/", str, vec);
   EXPECT_EQ(2, vec.size());
-  auto prefix = RoutePrefixV6{folly::IPAddressV6(vec.at(0)),
+  auto prefix = RoutePrefixV6{IPAddressV6(vec.at(0)),
                               folly::to<uint8_t>(vec.at(1))};
   return prefix;
 }
 
-std::shared_ptr<Route<folly::IPAddressV4>>
+std::shared_ptr<Route<IPAddressV4>>
 GET_ROUTE_V4(const std::shared_ptr<RouteTableMap>& tables,
              RouterID rid, RoutePrefixV4 prefix) {
   EXPECT_NE(nullptr, tables);
@@ -425,13 +427,13 @@ GET_ROUTE_V4(const std::shared_ptr<RouteTableMap>& tables,
   return rt;
 }
 
-std::shared_ptr<Route<folly::IPAddressV4>>
+std::shared_ptr<Route<IPAddressV4>>
 GET_ROUTE_V4(const std::shared_ptr<RouteTableMap>& tables,
              RouterID rid, std::string prefixStr) {
   return GET_ROUTE_V4(tables, rid, makePrefixV4(prefixStr));
 }
 
-std::shared_ptr<Route<folly::IPAddressV6>>
+std::shared_ptr<Route<IPAddressV6>>
 GET_ROUTE_V6(const std::shared_ptr<RouteTableMap>& tables,
              RouterID rid, RoutePrefixV6 prefix) {
   EXPECT_NE(nullptr, tables);
@@ -444,10 +446,32 @@ GET_ROUTE_V6(const std::shared_ptr<RouteTableMap>& tables,
   return rt;
 }
 
-std::shared_ptr<Route<folly::IPAddressV6>>
+std::shared_ptr<Route<IPAddressV6>>
 GET_ROUTE_V6(const std::shared_ptr<RouteTableMap>& tables,
              RouterID rid, std::string prefixStr) {
   return GET_ROUTE_V6(tables, rid, makePrefixV6(prefixStr));
+}
+
+
+void EXPECT_NO_ROUTE(const std::shared_ptr<RouteTableMap>& tables,
+                     RouterID rid, std::string prefixStr) {
+  // Figure out if it's v4 or v6
+  std::vector<std::string> vec;
+  folly::split("/", prefixStr, vec);
+  EXPECT_EQ(2, vec.size());
+  IPAddress ip(vec.at(0));
+
+  if (ip.isV4()) {
+    auto prefix = RoutePrefixV4{IPAddressV4(vec.at(0)),
+      folly::to<uint8_t>(vec.at(1))};
+    EXPECT_EQ(nullptr,
+              tables->getRouteTableIf(rid)->getRibV4()->exactMatch(prefix));
+  } else {
+    auto prefix = RoutePrefixV6{IPAddressV6(vec.at(0)),
+      folly::to<uint8_t>(vec.at(1))};
+    EXPECT_EQ(nullptr,
+              tables->getRouteTableIf(rid)->getRibV6()->exactMatch(prefix));
+  }
 }
 
 }} // namespace facebook::fboss

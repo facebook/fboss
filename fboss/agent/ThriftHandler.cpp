@@ -294,13 +294,9 @@ void ThriftHandler::syncFib(
   // We could use folly::MoveWrapper if we did need to capture routes by value.
   auto updateFn = [&](const shared_ptr<SwitchState>& state) {
     // create an update object starting from empty
-    RouteUpdater updater(state->getRouteTables(), true);
-    cfg::SwitchConfig emptyPrevConfig;
-    // Add static routes from config
-    updater.updateStaticRoutes(sw_->getConfig(), emptyPrevConfig);
-    // add all interface routes
-    updater.addInterfaceAndLinkLocalRoutes(state->getInterfaces());
+    RouteUpdater updater(state->getRouteTables());
     RouterID routerId = RouterID(0); // TODO, default vrf for now
+    updater.removeAllNexthopsForClient(routerId, ClientID(client));
     for (auto const& route : *routes) {
       folly::IPAddress network = toIPAddress(route.dest.ip);
       uint8_t mask = static_cast<uint8_t>(route.dest.prefixLength);

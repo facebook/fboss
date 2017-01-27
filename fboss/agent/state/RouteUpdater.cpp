@@ -22,6 +22,8 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 using folly::IPAddress;
+using folly::IPAddressV4;
+using folly::IPAddressV6;
 using boost::container::flat_map;
 using boost::container::flat_set;
 using folly::CIDRNetwork;
@@ -36,14 +38,8 @@ namespace facebook { namespace fboss {
 
 using std::make_shared;
 
-RouteUpdater::RouteUpdater(const std::shared_ptr<RouteTableMap>& orig,
-                           bool sync)
-    : orig_(orig), sync_(sync) {
-  // In the sync mode, we don't clone from the original route table map.
-  // Intead, we start from empty.
-  if (sync_) {
-    return;
-  }
+RouteUpdater::RouteUpdater(const std::shared_ptr<RouteTableMap>& orig)
+    : orig_(orig) {
   for (const auto& rt : orig->getAllNodes()) {
     auto& rib = clonedRibs_[rt.first];
     rib.v4.rib = rt.second->getRibV4();
@@ -291,6 +287,36 @@ void RouteUpdater::delNexthopsForClient(RouterID id,
   }
 }
 
+template<typename AddrT, typename RibT>
+void RouteUpdater::removeAllNexthopsForClient(RibT *ribCloned,
+                                              ClientID clientId) {
+  auto rib = makeClone(ribCloned);
+
+  std::vector<std::shared_ptr<Route<AddrT>>> routesToDelete;
+
+  for (auto& rt : rib->routes()) {
+    auto route = rt.value().get();
+    if (route->nexthopsIsEmpty()) {
+      continue;
+    }
+    route->delNexthopsForClient(clientId);
+    if (route->nexthopsIsEmpty()) {
+      // The nexthops we removed was the only one.  Delete the route.
+      routesToDelete.push_back(rt.value());
+    }
+  }
+
+  // Now, delete whatever routes went from 1 nexthoplist to 0.
+  for (std::shared_ptr<Route<AddrT>>& rt : routesToDelete) {
+    rib->removeRoute(rt);
+  }
+}
+
+void RouteUpdater::removeAllNexthopsForClient(RouterID rid, ClientID clientId) {
+  removeAllNexthopsForClient<IPAddressV4>(getRibV4(rid), clientId);
+  removeAllNexthopsForClient<IPAddressV6>(getRibV6(rid), clientId);
+}
+
 template<typename RtRibT, typename AddrT>
 void RouteUpdater::getFwdInfoFromNhop(RtRibT* nRib,
     ClonedRib* ribCloned, const AddrT& nh, bool* hasToCpuNhops,
@@ -422,14 +448,7 @@ void RouteUpdater::resolve() {
   for (auto& ribCloned : clonedRibs_) {
     if (ribCloned.second.v4.cloned) {
       auto rib = ribCloned.second.v4.rib.get();
-      if (!sync_) {
-        // While synching FIB all routes are new and
-        // already have their flags not set, so no need
-        // to clear flags
-        setRoutesWithNhopsForResolution(rib);
-      } else {
-        DCHECK(allRouteFlagsCleared(rib));
-      }
+      setRoutesWithNhopsForResolution(rib);
       for (auto& rt : rib->routes()) {
         if (rt.value()->needResolve()) {
           resolve(rt.value().get(), rib, &ribCloned.second);
@@ -438,14 +457,7 @@ void RouteUpdater::resolve() {
     }
     if (ribCloned.second.v6.cloned) {
       auto rib = ribCloned.second.v6.rib.get();
-      if (!sync_) {
-        // While synching FIB all routes are new and
-        // already have their flags not set, so no need
-        // to clear flags
-        setRoutesWithNhopsForResolution(rib);
-      } else {
-        DCHECK(allRouteFlagsCleared(rib));
-      }
+      setRoutesWithNhopsForResolution(rib);
       for (auto& rt : rib->routes()) {
         if (rt.value()->needResolve()) {
           resolve(rt.value().get(), rib, &ribCloned.second);
@@ -458,9 +470,6 @@ void RouteUpdater::resolve() {
 std::shared_ptr<RouteTableMap> RouteUpdater::updateDone() {
   // resolve all routes
   resolve();
-  if (sync_) {
-    return syncUpdateDone();
-  }
   RouteTableMap::NodeContainer map;
   bool changed = false;
   for (const auto& ribPair : clonedRibs_) {
@@ -702,26 +711,6 @@ std::shared_ptr<RouteTableMap> RouteUpdater::deduplicate(
     return nullptr;
   }
   return orig_->clone(*newTables);
-}
-
-std::shared_ptr<RouteTableMap> RouteUpdater::syncUpdateDone() {
-  // First, create the RouteTableMap based on clonedRibs_
-  RouteTableMap::NodeContainer map;
-  for (const auto& ribPair : clonedRibs_) {
-    auto id = ribPair.first;
-    const auto& rib = ribPair.second;
-    CHECK(rib.v4.cloned && rib.v6.cloned);
-    if (rib.v4.rib->empty() && rib.v6.rib->empty()) {
-      continue;
-    }
-    auto newRt = make_shared<RouteTable>(ribPair.first);
-    newRt->setRib(rib.v4.rib);
-    newRt->setRib(rib.v6.rib);
-    auto ret = map.emplace(id, std::move(newRt));
-    CHECK(ret.second);
-  }
-  // Then, consolidate the original route tables with the new one
-  return deduplicate(&map);
 }
 
 }}

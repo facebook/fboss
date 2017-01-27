@@ -115,8 +115,8 @@ TEST(RouteUpdater, dedup) {
   ASSERT_NE(nullptr, tables2);
   tables2->publish();
 
-  // start from empty table now, and then re-add the same routes
-  RouteUpdater u3(tables2, true);
+  // Re-add the same routes; expect no change
+  RouteUpdater u3(tables2);
   u3.addInterfaceAndLinkLocalRoutes(stateV1->getInterfaces());
   u3.addRoute(rid, r1.network, r1.mask, CLIENT_A, nhop1);
   u3.addRoute(rid, r2.network, r2.mask, CLIENT_A, nhop2);
@@ -125,9 +125,8 @@ TEST(RouteUpdater, dedup) {
   auto tables3 = u3.updateDone();
   EXPECT_EQ(nullptr, tables3);
 
-  // start from empty table now, and then re-add the same routes,
-  // except for one difference
-  RouteUpdater u4(tables2, true);
+  // Re-add the same routes, except for one difference.  Expect an update.
+  RouteUpdater u4(tables2);
   u4.addInterfaceAndLinkLocalRoutes(stateV1->getInterfaces());
   u4.addRoute(rid, r1.network, r1.mask, CLIENT_A, nhop1);
   u4.addRoute(rid, r2.network, r2.mask, CLIENT_A, nhop1);//diff nxthp

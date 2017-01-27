@@ -34,20 +34,9 @@ class RouteUpdater {
    * Constructor
    *
    * @param orig The existing routing tables
-   * @param sync In sync mode or not.
-   *             In non-sync mode, all route changes are on the top of the
-   *             existing routing tables.
-   *             If it is in sync mode, none of the routes from the existing
-   *             routing tables will be automatically added into the new
-   *             routing table. A special handling is performed in sync mode
-   *             that if an existing route is re-added again with the same
-   *             info and is also resolved with same forwarding info, the
-   *             shared ptr of the existing route will be re-used in the new
-   *             routing table. This helps the delta function later to figure
-   *             out what routes are really changed.
+   * All route changes are on the top of the existing routing tables.
    */
-  explicit RouteUpdater(const std::shared_ptr<RouteTableMap>& orig,
-                        bool sync = false);
+  explicit RouteUpdater(const std::shared_ptr<RouteTableMap>& orig);
 
   typedef RoutePrefixV4 PrefixV4;
   typedef RoutePrefixV6 PrefixV6;
@@ -76,6 +65,7 @@ class RouteUpdater {
   void delNexthopsForClient(RouterID id,
                             const folly::IPAddress& network, uint8_t mask,
                             ClientID clientId);
+  void removeAllNexthopsForClient(RouterID rid, ClientID clientId);
 
   std::shared_ptr<RouteTableMap> updateDone();
 
@@ -114,7 +104,6 @@ class RouteUpdater {
   };
   boost::container::flat_map<RouterID, ClonedRib> clonedRibs_;
   const std::shared_ptr<RouteTableMap>& orig_;
-  bool sync_{false};
 
   // Helper functions to get/allocate the cloned RIB
   ClonedRib* createNewRib(RouterID id);
@@ -132,6 +121,8 @@ class RouteUpdater {
   void delRouteWithNoNexthops(const PrefixT& prefix, RibT *rib);
   template<typename PrefixT, typename RibT>
   void delNexthopsForClient(const PrefixT& prefix, RibT *rib, ClientID id);
+  template<typename AddrT, typename RibT>
+  void removeAllNexthopsForClient(RibT *ribCloned, ClientID clientId);
 
   // resolve all routes that are not resolved yet
   void resolve();
@@ -145,7 +136,6 @@ class RouteUpdater {
   template<typename RibT>
   bool dedupRoutes(const RibT* origRib, RibT* newRib);
   std::shared_ptr<RouteTableMap> deduplicate(RouteTableMap::NodeContainer* map);
-  std::shared_ptr<RouteTableMap> syncUpdateDone();
 };
 
 }}

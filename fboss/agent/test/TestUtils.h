@@ -199,6 +199,9 @@ std::shared_ptr<Route<folly::IPAddressV6>>
 GET_ROUTE_V6(const std::shared_ptr<RouteTableMap>& tables,
              RouterID rid, std::string prefixStr);
 
+void EXPECT_NO_ROUTE(const std::shared_ptr<RouteTableMap>& tables,
+                     RouterID rid, std::string prefixStr);
+
 /*
  * Convenience macro for expecting a packet to be transmitted by the switch
  *
