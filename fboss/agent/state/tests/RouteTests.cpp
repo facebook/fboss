@@ -1420,3 +1420,39 @@ TEST(Route, toCPURoutes) {
   EXPECT_FALSE(r5->isConnected());
   EXPECT_TRUE(r5->isSame(TO_CPU));
 }
+
+// Very basic test for serialization/deseralization of Routes
+TEST(Route, serializeRoute) {
+
+  ClientID clientId = ClientID(1);
+  auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
+  Route<IPAddressV4> rt(makePrefixV4("1.2.3.4/32"));
+  rt.update(clientId, nxtHops);
+
+  // to folly dynamic
+  folly::dynamic obj = rt.toFollyDynamic();
+  // to string
+  folly::json::serialization_opts serOpts;
+  serOpts.allow_non_string_keys = true;
+  std::string json = folly::json::serialize(obj, serOpts);
+  // back to folly dynamic
+  folly::dynamic obj2 = folly::parseJson(json, serOpts);
+  // back to Route object
+  auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
+  ASSERT_TRUE(rt2->isSame(clientId, nxtHops));
+}
+
+// Test deserialization of old version of the Route object (from before
+// multi-nexthops were implemented)
+TEST(Route, deserializeOldVersionRoute) {
+
+  std::string json =
+    "{\"flags\":0,\"forwardingInfo\":{\"nexthops\":[],\"action\":\"Drop\"},"
+    "\"nexthops\":[\"10.10.10.10\",\"11.11.11.11\"],"
+    "\"prefix\":{\"mask\":32,\"address\":\"1.2.3.4\"}}";
+
+  folly::dynamic obj2 = folly::parseJson(json);
+  auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
+  auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
+  ASSERT_TRUE(rt2->isSame(ClientID(0), nxtHops));
+}

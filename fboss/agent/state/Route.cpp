@@ -18,6 +18,7 @@ using facebook::network::toBinaryAddress;
 
 namespace {
 constexpr auto kPrefix = "prefix";
+constexpr auto kNextHops = "nexthops"; // Necessary for reading old data
 constexpr auto kNextHopsMulti = "nexthopsmulti";
 constexpr auto kFwdInfo = "forwardingInfo";
 constexpr auto kFlags = "flags";
@@ -87,8 +88,23 @@ template<typename AddrT>
 RouteFields<AddrT>
 RouteFields<AddrT>::fromFollyDynamic(const folly::dynamic& routeJson) {
   RouteFields rt(Prefix::fromFollyDynamic(routeJson[kPrefix]));
-  rt.nexthopsmulti =
-    std::move(RouteNextHopsMulti::fromFollyDynamic(routeJson[kNextHopsMulti]));
+  if (routeJson.find(kNextHops) != routeJson.items().end()) {
+    // Deserialize from the old format, and assume the nexthops were provided
+    // by BGPd.  It kind of doesn't matter.  In about 15 seconds, BGPd will
+    // have assembled a new set of routes, and will replace these routes
+    // en masse.
+    // This code supporting routeJson[kNextHops] can be removed once all fboss
+    // switches have been upgraded.
+    RouteNextHops nhops;
+    for (const auto& nhop: routeJson[kNextHops]) {
+      nhops.emplace(nhop.stringPiece());
+    }
+    rt.nexthopsmulti.update(ClientID((int32_t)StdClientIds::BGPD), nhops);
+  } else {
+    rt.nexthopsmulti =
+      std::move(RouteNextHopsMulti::
+        fromFollyDynamic(routeJson[kNextHopsMulti]));
+  }
   rt.fwd = std::move(RouteForwardInfo::fromFollyDynamic(routeJson[kFwdInfo]));
   rt.flags = routeJson[kFlags].asInt();
   return rt;
