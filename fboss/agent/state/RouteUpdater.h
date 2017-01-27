@@ -66,11 +66,16 @@ class RouteUpdater {
                 RouteForwardAction action);
   // methods to add or update a route with multiple nexthops
   void addRoute(RouterID id, const folly::IPAddress& network, uint8_t mask,
-                const RouteNextHops& nhs);
+                ClientID clientId, const RouteNextHops& nhs);
   void addRoute(RouterID id, const folly::IPAddress& network, uint8_t mask,
-                RouteNextHops&& nhs);
+                ClientID clientId, RouteNextHops&& nhs);
   // methods to delete a route
-  void delRoute(RouterID id, const folly::IPAddress& network, uint8_t mask);
+  // Note, throws an exception if called on a route with nexthops.
+  void delRouteWithNoNexthops(RouterID id,
+                              const folly::IPAddress& network, uint8_t mask);
+  void delNexthopsForClient(RouterID id,
+                            const folly::IPAddress& network, uint8_t mask,
+                            ClientID clientId);
 
   std::shared_ptr<RouteTableMap> updateDone();
 
@@ -124,7 +129,9 @@ class RouteUpdater {
   template<typename PrefixT, typename RibT, typename... Args>
   void addRoute(const PrefixT& prefix, RibT *rib, Args&&... args);
   template<typename PrefixT, typename RibT>
-  void delRoute(const PrefixT& prefix, RibT *rib);
+  void delRouteWithNoNexthops(const PrefixT& prefix, RibT *rib);
+  template<typename PrefixT, typename RibT>
+  void delNexthopsForClient(const PrefixT& prefix, RibT *rib, ClientID id);
 
   // resolve all routes that are not resolved yet
   void resolve();

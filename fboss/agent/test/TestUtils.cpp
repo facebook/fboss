@@ -236,7 +236,8 @@ shared_ptr<SwitchState> testStateA() {
   nexthops.emplace(IPAddress("10.0.0.23")); // resolved by intf 1
   nexthops.emplace(IPAddress("1.1.2.10")); // un-resolvable
 
-  updater.addRoute(RouterID(0), IPAddress("10.1.1.0"), 24, nexthops);
+  updater.addRoute(RouterID(0), IPAddress("10.1.1.0"), 24,
+                   ClientID(1001), nexthops);
 
   auto newRt = updater.updateDone();
   state->resetRouteTables(newRt);

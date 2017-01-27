@@ -119,7 +119,8 @@ shared_ptr<SwitchState> addMockRouteTable(shared_ptr<SwitchState> state) {
   nexthops.emplace(IPAddressV6("5555:db00:2110:3004::1")); // un-resolvable
 
   RouteUpdater updater(state->getRouteTables());
-  updater.addRoute(RouterID(0), IPAddressV6("1111:1111:1:1::1"), 64, nexthops);
+  updater.addRoute(RouterID(0), IPAddressV6("1111:1111:1:1::1"), 64,
+                   ClientID(1001), nexthops);
 
   auto newRt = updater.updateDone();
   auto newState = state->clone();

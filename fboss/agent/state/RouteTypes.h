@@ -16,6 +16,7 @@
 #include <folly/IPAddress.h>
 
 #include <boost/container/flat_set.hpp>
+#include <boost/container/flat_map.hpp>
 
 namespace facebook { namespace fboss {
 
@@ -23,6 +24,40 @@ namespace facebook { namespace fboss {
  * Nexthops (ECMP) for a route
  */
 typedef boost::container::flat_set<folly::IPAddress> RouteNextHops;
+
+/**
+ * Map form clientId -> RouteNextHops
+ */
+class RouteNextHopsMulti {
+ protected:
+   boost::container::flat_map<ClientID, RouteNextHops> map_;
+ public:
+  folly::dynamic toFollyDynamic() const;
+  static RouteNextHopsMulti fromFollyDynamic(const folly::dynamic& json);
+  std::string str() const;
+  void update(ClientID clientid, const RouteNextHops& nhs);
+  void update(ClientID clientid, const RouteNextHops&& nhs);
+  bool operator==(const RouteNextHopsMulti& p2) const {
+    return map_ == p2.map_;
+  }
+  void clear() {
+    map_.clear();
+  }
+  bool isEmpty() const {
+    // The code disallows adding/updating an empty nextHops list. So if the
+    // map contains any entries, they are non-zero-length lists.
+    return map_.empty();
+  }
+
+  void delNexthopsForClient(ClientID clientId);
+
+  // Just used for testing
+  bool hasNextHopsForClient(ClientID clientId) const;
+
+  bool isSame(ClientID clientId, const RouteNextHops& nhs) const;
+
+  const RouteNextHops& bestNextHopList() const;
+};
 
 /**
  * Route forward actions

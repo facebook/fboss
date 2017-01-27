@@ -28,8 +28,7 @@ namespace facebook { namespace fboss {
 template<typename AddrT>
 struct RouteFields {
   enum CopyBehavior {
-    COPY_ALL_MEMBERS,
-    COPY_ONLY_PREFIX,
+    COPY_PREFIX_AND_NEXTHOPS,
   };
   typedef RoutePrefix<AddrT> Prefix;
   explicit RouteFields(const Prefix& prefix);
@@ -53,7 +52,7 @@ struct RouteFields {
    * All next hops of the routes. This set could be empty if and only if
    * the route is directly connected
    */
-  RouteNextHops nexthops;
+  RouteNextHopsMulti nexthopsmulti;
   RouteForwardInfo fwd;
   uint32_t flags{0};
 };
@@ -68,8 +67,8 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   // Constructor for directly connected route
   Route(const Prefix& prefix, InterfaceID intf, const folly::IPAddress& addr);
   // Constructor for a route with ECMP
-  Route(const Prefix& prefix, const RouteNextHops& nhs);
-  Route(const Prefix& prefix, RouteNextHops&& nhs);
+  Route(const Prefix& prefix, ClientID clientId, const RouteNextHops& nhs);
+  Route(const Prefix& prefix, ClientID clientId, RouteNextHops&& nhs);
   // Constructor for a route with special forwarding action
   Route(const Prefix& prefix, Action action);
 
@@ -108,7 +107,7 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
     return (RouteBase::getFields()->flags & CONNECTED);
   }
   bool isWithNexthops() const {
-    return !nexthops().empty();
+    return !nexthopsIsEmpty();
   }
   bool isDrop() const {
     return isResolved() && RouteBase::getFields()->fwd.isDrop();
@@ -129,13 +128,21 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   const RouteForwardInfo& getForwardInfo() const {
     return RouteBase::getFields()->fwd;
   }
-  const RouteNextHops& nexthops() const {
-    return RouteBase::getFields()->nexthops;
+  const RouteNextHops& bestNextHopList() const {
+    return RouteBase::getFields()->nexthopsmulti.bestNextHopList();
+  }
+  bool nexthopsIsEmpty() const {
+    return RouteBase::getFields()->nexthopsmulti.isEmpty();
   }
   bool isSame(InterfaceID intf, const folly::IPAddress& addr) const;
-  bool isSame(const RouteNextHops& nhs) const;
+  bool isSame(ClientID clientId, const RouteNextHops& nhs) const;
   bool isSame(Action action) const;
   bool isSame(const Route* rt) const;
+  // Just used for testing
+  bool hasNextHopsForClient(ClientID clientId) const {
+    return RouteBase::getFields()->nexthopsmulti.hasNextHopsForClient(clientId);
+  }
+
   /*
    * The following functions modify the route object.
    * They should only be called on unpublished objects which are only visible
@@ -167,9 +174,10 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   }
   void setUnresolvable();
   void update(InterfaceID intf, const folly::IPAddress& addr);
-  void update(const RouteNextHops& nhs);
-  void update(RouteNextHops&& nhs);
+  void update(ClientID clientId, const RouteNextHops& nhs);
+  void update(ClientID clientId, RouteNextHops&& nhs);
   void update(Action action);
+  void delNexthopsForClient(ClientID clientId);
  private:
   // no copy or assign operator
   Route(const Route &) = delete;

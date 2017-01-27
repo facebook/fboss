@@ -15,7 +15,7 @@
 
 namespace {
 constexpr auto kPrefix = "prefix";
-constexpr auto kNextHops = "nexthops";
+constexpr auto kNextHopsMulti = "nexthopsmulti";
 constexpr auto kFwdInfo = "forwardingInfo";
 constexpr auto kFlags = "flags";
 }
@@ -33,13 +33,11 @@ template<typename AddrT>
 RouteFields<AddrT>::RouteFields(const RouteFields& rf,
     CopyBehavior copyBehavior) : prefix(rf.prefix) {
   switch(copyBehavior) {
-  case COPY_ALL_MEMBERS:
-    nexthops = rf.nexthops;
-    fwd = rf.fwd;
-    flags = rf.flags;
+  case COPY_PREFIX_AND_NEXTHOPS:
+    nexthopsmulti = rf.nexthopsmulti;
     break;
-  case COPY_ONLY_PREFIX:
-    break;
+  default:
+    throw FbossError("Unknown CopyBehavior passed to RouteFields ctor");
   }
 }
 
@@ -47,7 +45,7 @@ template<typename AddrT>
 bool RouteFields<AddrT>::operator==(const RouteFields& rf) const {
   return (flags == rf.flags
           && prefix == rf.prefix
-          && nexthops == rf.nexthops
+          && nexthopsmulti == rf.nexthopsmulti
           && fwd == rf.fwd);
 }
 
@@ -55,11 +53,7 @@ template<typename AddrT>
 folly::dynamic RouteFields<AddrT>::toFollyDynamic() const {
   folly::dynamic routeFields = folly::dynamic::object;
   routeFields[kPrefix] = prefix.toFollyDynamic();
-  folly::dynamic nhopsList = folly::dynamic::array;
-  for (const auto& nhop: nexthops) {
-    nhopsList.push_back(nhop.str());
-  }
-  routeFields[kNextHops] = std::move(nhopsList);
+  routeFields[kNextHopsMulti] = nexthopsmulti.toFollyDynamic();
   routeFields[kFwdInfo] = fwd.toFollyDynamic();
   routeFields[kFlags] = flags;
   return routeFields;
@@ -69,10 +63,9 @@ template<typename AddrT>
 RouteFields<AddrT>
 RouteFields<AddrT>::fromFollyDynamic(const folly::dynamic& routeJson) {
   RouteFields rt(Prefix::fromFollyDynamic(routeJson[kPrefix]));
-  for (const auto& nhop: routeJson[kNextHops]) {
-    rt.nexthops.emplace(nhop.stringPiece());
-  }
-  rt.fwd = RouteForwardInfo::fromFollyDynamic(routeJson[kFwdInfo]);
+  rt.nexthopsmulti =
+    std::move(RouteNextHopsMulti::fromFollyDynamic(routeJson[kNextHopsMulti]));
+  rt.fwd = std::move(RouteForwardInfo::fromFollyDynamic(routeJson[kFwdInfo]));
   rt.flags = routeJson[kFlags].asInt();
   return rt;
 }
@@ -89,15 +82,16 @@ Route<AddrT>::Route(const Prefix& prefix,
 }
 
 template<typename AddrT>
-Route<AddrT>::Route(const Prefix& prefix, const RouteNextHops& nhs)
+Route<AddrT>::Route(const Prefix& prefix, ClientID clientId,
+                    const RouteNextHops& nhs)
     : RouteBase(prefix) {
-  update(nhs);
+  update(clientId, nhs);
 }
 
 template<typename AddrT>
-Route<AddrT>::Route(const Prefix& prefix, RouteNextHops&& nhs)
+Route<AddrT>::Route(const Prefix& prefix, ClientID client, RouteNextHops&& nhs)
     : RouteBase(prefix) {
-  update(std::move(nhs));
+  update(client, std::move(nhs));
 }
 
 template<typename AddrT>
@@ -114,9 +108,7 @@ template<typename AddrT>
 std::string Route<AddrT>::str() const {
   std::string ret;
   ret = folly::to<string>(prefix(), '@');
-  for (const auto& nh : RouteBase::getFields()->nexthops) {
-    ret.append(folly::to<string>(nh, "."));
-  }
+  ret.append(RouteBase::getFields()->nexthopsmulti.str());
   ret.append(" State:");
   if (isConnected()) {
     ret.append("C");
@@ -148,8 +140,8 @@ bool Route<AddrT>::isSame(InterfaceID intf, const IPAddress& addr) const {
 }
 
 template<typename AddrT>
-bool Route<AddrT>::isSame(const RouteNextHops& nhs) const {
-  return RouteBase::getFields()->nexthops == nhs;
+bool Route<AddrT>::isSame(ClientID clientId, const RouteNextHops& nhs) const {
+  return RouteBase::getFields()->nexthopsmulti.isSame(clientId, nhs);
 }
 
 template<typename AddrT>
@@ -170,7 +162,7 @@ bool Route<AddrT>::isSame(const Route<AddrT>* rt) const {
 template<typename AddrT>
 void Route<AddrT>::update(InterfaceID intf, const IPAddress& addr) {
   // clear all existing nexthop info
-  RouteBase::writableFields()->nexthops.clear();
+  RouteBase::writableFields()->nexthopsmulti.clear();
   // replace the forwarding info for this route with just one nexthop
   RouteBase::writableFields()->fwd.setNexthops(intf, addr);
   setFlagsConnected();
@@ -186,22 +178,22 @@ void Route<AddrT>::updateNexthopCommon(const RouteNextHops& nhs) {
 }
 
 template<typename AddrT>
-void Route<AddrT>::update(const RouteNextHops& nhs) {
+void Route<AddrT>::update(ClientID clientid, const RouteNextHops& nhs) {
   updateNexthopCommon(nhs);
-  RouteBase::writableFields()->nexthops = nhs;
+  RouteBase::writableFields()->nexthopsmulti.update(clientid, nhs);
 }
 
 template<typename AddrT>
-void Route<AddrT>::update(RouteNextHops&& nhs) {
+void Route<AddrT>::update(ClientID clientid, RouteNextHops&& nhs) {
   updateNexthopCommon(nhs);
-  RouteBase::writableFields()->nexthops = std::move(nhs);
+  RouteBase::writableFields()->nexthopsmulti.update(clientid, std::move(nhs));
 }
 
 template<typename AddrT>
 void Route<AddrT>::update(Action action) {
   CHECK(action == Action::DROP || action == Action::TO_CPU);
   // clear all existing nexthop info
-  RouteBase::writableFields()->nexthops.clear();
+  RouteBase::writableFields()->nexthopsmulti.clear();
   if (action == Action::DROP) {
     this->writableFields()->fwd.setDrop();
     setFlagsResolved();
@@ -209,6 +201,11 @@ void Route<AddrT>::update(Action action) {
     this->writableFields()->fwd.setToCPU();
     setFlagsResolved();
   }
+}
+
+template<typename AddrT>
+void Route<AddrT>::delNexthopsForClient(ClientID clientId) {
+  RouteBase::writableFields()->nexthopsmulti.delNexthopsForClient(clientId);
 }
 
 template<typename AddrT>

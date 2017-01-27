@@ -19,6 +19,7 @@
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 using folly::IPAddress;
 using boost::container::flat_map;
@@ -113,7 +114,7 @@ void RouteUpdater::addRoute(const PrefixT& prefix, RibT *ribCloned,
     // directly.
     if (old->isPublished()) {
       newRoute = old->clone(
-          RouteFields<typename PrefixT::AddressT>::COPY_ONLY_PREFIX);
+          RouteFields<typename PrefixT::AddressT>::COPY_PREFIX_AND_NEXTHOPS);
       rib->updateRoute(newRoute);
     } else {
       newRoute = old;
@@ -167,33 +168,35 @@ void RouteUpdater::addRoute(
   }
 }
 
-void RouteUpdater::addRoute(RouterID id, const folly::IPAddress& network,
-                            uint8_t mask, const RouteNextHops& nhs) {
+void RouteUpdater::addRoute(RouterID id,
+                            const folly::IPAddress& network, uint8_t mask,
+                            ClientID clientId, const RouteNextHops& nhs) {
   if (network.isV4()) {
     PrefixV4 prefix{network.asV4().mask(mask), mask};
-    return addRoute(prefix, getRibV4(id), nhs);
+    return addRoute(prefix, getRibV4(id), clientId, nhs);
   } else {
     PrefixV6 prefix{network.asV6().mask(mask), mask};
     if (prefix.network.isLinkLocal()) {
       throw FbossError("Unexpected v6 routable route for link local address ",
                        prefix);
     }
-    return addRoute(prefix, getRibV6(id), nhs);
+    return addRoute(prefix, getRibV6(id), clientId, nhs);
   }
 }
 
-void RouteUpdater::addRoute(RouterID id, const folly::IPAddress& network,
-                            uint8_t mask, RouteNextHops&& nhs) {
+void RouteUpdater::addRoute(RouterID id,
+                            const folly::IPAddress& network, uint8_t mask,
+                            ClientID clientId, RouteNextHops&& nhs) {
   if (network.isV4()) {
     PrefixV4 prefix{network.asV4().mask(mask), mask};
-    return addRoute(prefix, getRibV4(id), std::move(nhs));
+    return addRoute(prefix, getRibV4(id), clientId, std::move(nhs));
   } else {
     PrefixV6 prefix{network.asV6().mask(mask), mask};
     if (prefix.network.isLinkLocal()) {
       throw FbossError("Unexpected v6 routable route for link local address ",
                        prefix);
     }
-    return addRoute(prefix, getRibV6(id), std::move(nhs));
+    return addRoute(prefix, getRibV6(id), clientId, std::move(nhs));
   }
 }
 
@@ -211,11 +214,47 @@ void RouteUpdater::addLinkLocalRoutes(RouterID id) {
 
 void RouteUpdater::delLinkLocalRoutes(RouterID id) {
   // Delete v6 link-local route
-  delRoute(id, kIPv6LinkLocalPrefix.first, kIPv6LinkLocalPrefix.second);
+  delRouteWithNoNexthops(id, kIPv6LinkLocalPrefix.first,
+                         kIPv6LinkLocalPrefix.second);
 }
 
 template<typename PrefixT, typename RibT>
-void RouteUpdater::delRoute(const PrefixT& prefix, RibT *ribCloned) {
+void RouteUpdater::delRouteWithNoNexthops(const PrefixT& prefix,
+                                          RibT *ribCloned) {
+  if (!ribCloned) {
+    VLOG(3) << "Failed to delete non-existing route " << prefix.str();
+    return;
+  }
+  auto rib = ribCloned->rib.get();
+  auto old = rib->exactMatch(prefix);
+  if (!old) {
+    VLOG(3) << "Failed to delete non-existing route " << prefix.str();
+    return;
+  }
+  if (old->isWithNexthops()) {
+    throw FbossError("Fcn illegally called on a Route containing nexthops. ",
+                     prefix);
+  }
+  rib = makeClone(ribCloned);
+  rib->removeRoute(old);
+  VLOG(3) << "Deleted route " << prefix.str();
+  CHECK(ribCloned->cloned);
+}
+void RouteUpdater::delRouteWithNoNexthops(RouterID id,
+                                          const folly::IPAddress& network,
+                                          uint8_t mask) {
+  if (network.isV4()) {
+    PrefixV4 prefix{network.asV4().mask(mask), mask};
+    return delRouteWithNoNexthops(prefix, getRibV4(id, false));
+  } else {
+    PrefixV6 prefix{network.asV6().mask(mask), mask};
+    return delRouteWithNoNexthops(prefix, getRibV6(id, false));
+  }
+}
+
+template<typename PrefixT, typename RibT>
+void RouteUpdater::delNexthopsForClient(const PrefixT& prefix,
+                                        RibT *ribCloned, ClientID clientId) {
   if (!ribCloned) {
     VLOG(3) << "Failed to delete non-existing route " << prefix.str();
     return;
@@ -227,18 +266,28 @@ void RouteUpdater::delRoute(const PrefixT& prefix, RibT *ribCloned) {
     return;
   }
   rib = makeClone(ribCloned);
-  rib->removeRoute(old);
-  VLOG(3) << "Deleted route " << prefix.str();
+  // Re-get the route from the cloned RIB
+  old = rib->exactMatch(prefix);
+  old->delNexthopsForClient(clientId);
+  // TODO Do I need to publish the change??
+  VLOG(3) << "Deleted nexthops for client " << clientId <<
+             " from route " << prefix.str();
+  if (old->nexthopsIsEmpty()) {
+    rib->removeRoute(old);
+    VLOG(3) << "...and then deleted route " << prefix.str();
+  }
   CHECK(ribCloned->cloned);
 }
-void RouteUpdater::delRoute(RouterID id, const folly::IPAddress& network,
-                            uint8_t mask) {
+
+void RouteUpdater::delNexthopsForClient(RouterID id,
+                                        const folly::IPAddress& network,
+                                        uint8_t mask, ClientID clientId) {
   if (network.isV4()) {
     PrefixV4 prefix{network.asV4().mask(mask), mask};
-    return delRoute(prefix, getRibV4(id, false));
+    return delNexthopsForClient(prefix, getRibV4(id, false), clientId);
   } else {
     PrefixV6 prefix{network.asV6().mask(mask), mask};
-    return delRoute(prefix, getRibV6(id, false));
+    return delNexthopsForClient(prefix, getRibV6(id, false), clientId);
   }
 }
 
@@ -280,9 +329,7 @@ void RouteUpdater::resolve(RouteT* route, RtRibT* rib, ClonedRib* ribCloned) {
   RouteForwardNexthops fwd;
   // first, make sure the route was not published yet, if it is, clone one
   if (route->isPublished()) {
-    auto newRoute = route->clone(RouteT::Fields::COPY_ONLY_PREFIX);
-    // copy the nexthop
-    newRoute->update(route->nexthops());
+    auto newRoute = route->clone(RouteT::Fields::COPY_PREFIX_AND_NEXTHOPS);
     // insert the cloned route back to the RIB
     // Note: resolve() is called in a loop over 'rib'. But we are modifying
     // the rib here. Fortunately, updateRoute() here does not actually
@@ -306,7 +353,7 @@ void RouteUpdater::resolve(RouteT* route, RtRibT* rib, ClonedRib* ribCloned) {
   bool hasToCpuNhops{false};
   bool hasDropNhops{false};
   // loop through all nexthops to find out the forward info
-  for (const auto& nh : route->nexthops()) {
+  for (const auto& nh : route->bestNextHopList()) {
     if (nh.isV4()) {
       auto nRib = ribCloned->v4.rib.get();
       getFwdInfoFromNhop(nRib, ribCloned, nh.asV4(), &hasToCpuNhops,
@@ -342,8 +389,8 @@ void RouteUpdater::setRoutesWithNhopsForResolution(RibT* rib) {
     auto route = rt.value().get();
     if (route->isWithNexthops()) {
       if (route->isPublished()) {
-        auto newRoute = route->clone(RibT::RouteType::Fields::COPY_ONLY_PREFIX);
-        newRoute->update(route->nexthops());
+        auto newRoute =
+          route->clone(RibT::RouteType::Fields::COPY_PREFIX_AND_NEXTHOPS);
         rib->updateRoute(newRoute);
         route = newRoute.get();
       }
@@ -489,7 +536,8 @@ void RouteUpdater::staticRouteDelHelper(
     auto itr = newRoutes.find(rid);
     if (itr == newRoutes.end() || itr->second.find(network) ==
         itr->second.end()) {
-      delRoute(rid, network.first, network.second);
+      delNexthopsForClient(rid, network.first, network.second,
+                           ClientID((int32_t)StdClientIds::STATIC_ROUTE));
       VLOG(1) << "Unconfigured static route : " << network.first
         << "/" << (int)network.second;
     }
@@ -532,7 +580,8 @@ void RouteUpdater::updateStaticRoutes(const cfg::SwitchConfig& curCfg,
       for (auto& nhopStr : route.nexthops) {
         nhops.emplace(folly::IPAddress(nhopStr));
       }
-      addRoute(rid, network.first, network.second, nhops);
+      addRoute(rid, network.first, network.second,
+               ClientID((int32_t)StdClientIds::STATIC_ROUTE), nhops);
       // Note down prefix for comparing with old static routes
       newCfgVrf2StaticPfxs[rid].emplace(network);
     }

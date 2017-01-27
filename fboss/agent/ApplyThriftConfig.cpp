@@ -781,7 +781,7 @@ shared_ptr<RouteTableMap> ThriftConfigApplier::updateInterfaceRoutes() {
         }
       }
       if (!found) {
-        updater.delRoute(id, addr.first, addr.second);
+        updater.delRouteWithNoNexthops(id, addr.first, addr.second);
       }
     }
   }

@@ -198,6 +198,11 @@ struct LinkNeighborThrift {
   14: optional string portDescription
 }
 
+enum StdClientIds {
+  BGPD = 0,
+  STATIC_ROUTE = 1,
+}
+
 service FbossCtrl extends fb303.FacebookService {
   /*
    * Retrieve up-to-date counters from the hardware, and publish all

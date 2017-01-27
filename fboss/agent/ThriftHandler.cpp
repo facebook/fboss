@@ -165,7 +165,8 @@ void ThriftHandler::addUnicastRoute(
   auto updateFn = [=](const shared_ptr<SwitchState>& state) {
     RouteUpdater updater(state->getRouteTables());
     if (nexthops.size()) {
-      updater.addRoute(routerId, network, mask, std::move(nexthops));
+      updater.addRoute(routerId, network, mask, ClientID(client),
+                       std::move(nexthops));
     } else {
       updater.addRoute(routerId, network, mask, RouteForwardAction::DROP);
     }
@@ -197,7 +198,7 @@ void ThriftHandler::deleteUnicastRoute(
   // Perform the update
   auto updateFn = [=](const shared_ptr<SwitchState>& state) {
     RouteUpdater updater(state->getRouteTables());
-    updater.delRoute(routerId, network, mask);
+    updater.delNexthopsForClient(routerId, network, mask, ClientID(client));
     auto newRt = updater.updateDone();
     if (!newRt) {
       return shared_ptr<SwitchState>();
@@ -226,7 +227,8 @@ void ThriftHandler::addUnicastRoutes(
         nexthops.emplace(toIPAddress(nh));
       }
       if (nexthops.size()) {
-        updater.addRoute(routerId, network, mask, std::move(nexthops));
+        updater.addRoute(routerId, network, mask, ClientID(client),
+                         std::move(nexthops));
       } else {
         updater.addRoute(routerId, network, mask, RouteForwardAction::DROP);
       }
@@ -268,7 +270,7 @@ void ThriftHandler::deleteUnicastRoutes(
       } else {
         sw_->stats()->delRouteV6();
       }
-      updater.delRoute(routerId, network, mask);
+      updater.delNexthopsForClient(routerId, network, mask, ClientID(client));
     }
     auto newRt = updater.updateDone();
     if (!newRt) {
@@ -307,7 +309,8 @@ void ThriftHandler::syncFib(
       for (const auto& nh : route.nextHopAddrs) {
         nexthops.emplace(toIPAddress(nh));
       }
-      updater.addRoute(routerId, network, mask, std::move(nexthops));
+      updater.addRoute(routerId, network, mask, ClientID(client),
+                       std::move(nexthops));
       if (network.isV4()) {
         sw_->stats()->addRouteV4();
       } else {

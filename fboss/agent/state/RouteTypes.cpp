@@ -8,6 +8,7 @@
  *
  */
 #include "RouteTypes.h"
+#include "fboss/agent/FbossError.h"
 
 namespace {
 constexpr auto kAddress = "address";
@@ -87,6 +88,95 @@ void toAppend(const RoutePrefixV4& prefix, std::string *result) {
 void toAppend(const RoutePrefixV6& prefix, std::string *result) {
   result->append(prefix.str());
 }
+
+folly::dynamic RouteNextHopsMulti::toFollyDynamic() const {
+  // Store the clientid->nextHops map as a dynamic::object
+  folly::dynamic obj = folly::dynamic::object();
+  for (auto const& row : map_) {
+    int clientid = row.first;
+    RouteNextHops const& nxtHps = row.second;
+
+    folly::dynamic nxtHopCopy = folly::dynamic::array;
+    for (const auto& nhop: nxtHps) {
+      nxtHopCopy.push_back(nhop.str());
+    }
+    obj[clientid] = nxtHopCopy;
+  }
+  return obj;
+}
+
+RouteNextHopsMulti
+RouteNextHopsMulti::fromFollyDynamic(const folly::dynamic& json) {
+  RouteNextHopsMulti nh;
+  for (const auto& pair: json.items()) {
+    int clientId = pair.first.asInt();
+    RouteNextHops list;
+    for (const auto& ip : pair.second) {
+      // test
+      std::string theIP = ip.asString();
+      list.emplace(folly::IPAddress(ip.asString()));
+    }
+    nh.update(ClientID(clientId), std::move(list));
+  }
+  return nh;
+}
+
+std::string RouteNextHopsMulti::str() const {
+  std::string ret = "";
+  for (auto const & row : map_) {
+    int clientid = row.first;
+    RouteNextHops const& nxtHps = row.second;
+
+    ret.append(folly::to<string>("(client#", clientid, ": "));
+    for (const auto& ip : nxtHps) {
+      ret.append(folly::to<string>(ip, ", "));
+    }
+    ret.append(")");
+  }
+  return ret;
+}
+
+void RouteNextHopsMulti::update(ClientID clientId, const RouteNextHops& nhs) {
+  map_[clientId] = nhs;
+}
+
+void RouteNextHopsMulti::update(ClientID clientId, const RouteNextHops&& nhs) {
+  map_[clientId] = std::move(nhs);
+}
+
+void RouteNextHopsMulti::delNexthopsForClient(ClientID clientId) {
+  map_.erase(clientId);
+}
+
+bool RouteNextHopsMulti::hasNextHopsForClient(ClientID clientId) const {
+  return map_.find(clientId) != map_.end();
+}
+
+bool RouteNextHopsMulti::isSame(ClientID id, const RouteNextHops& nhs) const {
+  auto iter = map_.find(id);
+  if (iter == map_.end()) {
+      return false;
+  }
+  return nhs == iter->second;
+}
+
+const RouteNextHops&
+RouteNextHopsMulti::bestNextHopList() const {
+  // I still need to implement a scheme where each clientId
+  // can be assigned a priority.  But for now, we're just saying
+  // the clientId == its priority.
+  //
+  // Since flat_map stores items in key-sorted order, the smallest key
+  // (and hence the highest-priority client) is first.
+  if (map_.size() > 0) {
+    return map_.begin()->second;
+  } else {
+    // Throw an exception if the map is empty.  That seems
+    // like the right behavior.
+    throw FbossError("bestNextHopList() called on a Route with no nexthops");
+  }
+}
+
 
 template class RoutePrefix<folly::IPAddressV4>;
 template class RoutePrefix<folly::IPAddressV6>;
