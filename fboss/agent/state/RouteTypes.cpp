@@ -103,7 +103,7 @@ folly::dynamic RouteNextHopsMulti::toFollyDynamic() const {
     for (const auto& nhop: nxtHps) {
       nxtHopCopy.push_back(nhop.str());
     }
-    obj[clientid] = nxtHopCopy;
+    obj[folly::to<std::string>(clientid)] = nxtHopCopy;
   }
   return obj;
 }
