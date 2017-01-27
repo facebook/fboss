@@ -98,6 +98,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::map<int32_t, InterfaceDetail>& interfaces) override;
   void getInterfaceList(std::vector<std::string>& interfaceList) override;
   void getRouteTable(std::vector<UnicastRoute>& routeTable) override;
+  void getRouteTableDetails(std::vector<RouteDetails>& routeTable) override;
   void getPortStatus(std::map<int32_t, PortStatus>& status,
                      std::unique_ptr<std::vector<int32_t>> ports)
                      override;

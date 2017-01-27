@@ -265,6 +265,7 @@ class RouteCli(object):
     def __init__(self):
         self.route.add_command(self._ip, name='ip')
         self.route.add_command(self._table, name='table')
+        self.route.add_command(self._details, name='details')
 
     @click.group()
     def route():
@@ -285,6 +286,12 @@ class RouteCli(object):
     def _table(cli_opts):
         ''' Show the route table '''
         route.RouteTableCmd(cli_opts).run()
+
+    @click.command()
+    @click.pass_obj
+    def _details(cli_opts):
+        ''' Show details of the route table '''
+        route.RouteTableDetailsCmd(cli_opts).run()
 
 
 # -- Main Command Group -- #

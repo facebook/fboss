@@ -12,6 +12,9 @@
 
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/AddressUtil.h"
+
+using facebook::network::toBinaryAddress;
 
 namespace {
 constexpr auto kPrefix = "prefix";
@@ -57,6 +60,27 @@ folly::dynamic RouteFields<AddrT>::toFollyDynamic() const {
   routeFields[kFwdInfo] = fwd.toFollyDynamic();
   routeFields[kFlags] = flags;
   return routeFields;
+}
+
+template<typename AddrT>
+RouteDetails RouteFields<AddrT>::toRouteDetails() const {
+  RouteDetails rd;
+  // Add the prefix
+  rd.dest.ip = toBinaryAddress(prefix.network);
+  rd.dest.prefixLength = prefix.mask;
+  // Add the action
+  rd.action = forwardActionStr(fwd.getAction());
+  // Add the forwarding info
+  for (const auto& nh : fwd.getNexthops()) {
+    IfAndIP ifAndIp;
+    ifAndIp.interfaceID = nh.intf;
+    ifAndIp.ip = toBinaryAddress(nh.nexthop);
+    rd.fwdInfo.push_back(ifAndIp);
+  }
+
+  // Add the multi-nexthops
+  rd.nextHopMulti = nexthopsmulti.toThrift();
+  return rd;
 }
 
 template<typename AddrT>

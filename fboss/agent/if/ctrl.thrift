@@ -25,6 +25,24 @@ struct UnicastRoute {
   2: required list<Address.BinaryAddress> nextHopAddrs,
 }
 
+struct ClientAndNextHops {
+  1: required i32 clientId,
+  2: required list<Address.BinaryAddress> nextHopAddrs,
+}
+
+struct IfAndIP {
+  1: required i32 interfaceID,
+  2: required Address.BinaryAddress ip,
+}
+
+struct RouteDetails {
+  1: required IpPrefix dest,
+  2: required string action,
+  3: required list<IfAndIP> fwdInfo,
+  4: required list<ClientAndNextHops> nextHopMulti,
+  5: required bool isConnected,
+}
+
 struct ArpEntryThrift {
   1: string mac,
   2: i32 port,
@@ -313,6 +331,8 @@ service FbossCtrl extends fb303.FacebookService {
   list<string> getInterfaceList()
     throws (1: fboss.FbossBaseError error)
   list<UnicastRoute> getRouteTable()
+    throws (1: fboss.FbossBaseError error)
+  list<RouteDetails> getRouteTableDetails()
     throws (1: fboss.FbossBaseError error)
   InterfaceDetail getInterfaceDetail(1: i32 interfaceId)
     throws (1: fboss.FbossBaseError error)

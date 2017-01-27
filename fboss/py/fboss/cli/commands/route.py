@@ -46,3 +46,37 @@ class RouteTableCmd(cmds.FbossCmd):
             # Need to check the nextHopAddresses
             for nhop in entry.nextHopAddrs:
                 print("\tvia %s" % utils.ip_ntop(nhop.addr))
+
+
+class RouteTableDetailsCmd(cmds.FbossCmd):
+    def run(self):
+        self._client = self._create_ctrl_client()
+        resp = self._client.getRouteTableDetails()
+        if not resp:
+            print("No Route Table Details Found")
+            return
+        for entry in resp:
+            suffix = ""
+            if (entry.isConnected):
+                suffix += " (connected)"
+            print("Network Address: %s/%d %s" %
+                                (utils.ip_ntop(entry.dest.ip.addr),
+                                 entry.dest.prefixLength,
+                                 suffix))
+
+            for clAndNxthops in entry.nextHopMulti:
+                print("  Nexthops from client %d" % clAndNxthops.clientId)
+                for nextHop in clAndNxthops.nextHopAddrs:
+                    print("    %s" % utils.ip_ntop(nextHop.addr))
+
+            print("  Action: %s" % entry.action)
+
+            if len(entry.fwdInfo) > 0:
+                print("  Forwarding via:")
+                for ifAndIp in entry.fwdInfo:
+                    print("    (i/f %d) %s" % (ifAndIp.interfaceID,
+                                               utils.ip_ntop(ifAndIp.ip.addr)))
+            else:
+                print("  No Forwarding Info")
+
+            print()

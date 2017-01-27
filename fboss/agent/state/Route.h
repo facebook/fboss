@@ -15,6 +15,7 @@
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/RouteForwardInfo.h"
 #include "fboss/agent/state/RouteTypes.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 #include <boost/container/flat_set.hpp>
 
@@ -45,6 +46,8 @@ struct RouteFields {
    * Deserialize from folly::dynamic
    */
   static RouteFields fromFollyDynamic(const folly::dynamic& routeJson);
+
+  RouteDetails toRouteDetails() const;
 
   Prefix prefix;
   // The following fields will not be copied during clone()
@@ -87,6 +90,12 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
 
   folly::dynamic toFollyDynamic() const override {
     return this->getFields()->toFollyDynamic();
+  }
+
+  RouteDetails toRouteDetails() const {
+    RouteDetails rd = this->getFields()->toRouteDetails();
+    rd.isConnected = isConnected();
+    return rd;
   }
 
   static void modify(std::shared_ptr<SwitchState>* state);

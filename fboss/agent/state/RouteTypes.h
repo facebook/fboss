@@ -14,6 +14,7 @@
 #include <folly/FBString.h>
 #include "fboss/agent/types.h"
 #include <folly/IPAddress.h>
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 #include <boost/container/flat_set.hpp>
 #include <boost/container/flat_map.hpp>
@@ -33,6 +34,7 @@ class RouteNextHopsMulti {
    boost::container::flat_map<ClientID, RouteNextHops> map_;
  public:
   folly::dynamic toFollyDynamic() const;
+  std::vector<ClientAndNextHops> toThrift() const;
   static RouteNextHopsMulti fromFollyDynamic(const folly::dynamic& json);
   std::string str() const;
   void update(ClientID clientid, const RouteNextHops& nhs);

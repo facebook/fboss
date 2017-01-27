@@ -9,6 +9,9 @@
  */
 #include "RouteTypes.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/AddressUtil.h"
+
+using facebook::network::toBinaryAddress;
 
 namespace {
 constexpr auto kAddress = "address";
@@ -103,6 +106,19 @@ folly::dynamic RouteNextHopsMulti::toFollyDynamic() const {
     obj[clientid] = nxtHopCopy;
   }
   return obj;
+}
+
+std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
+  std::vector<ClientAndNextHops> list;
+  for (const auto& srcPair : map_) {
+    ClientAndNextHops destPair;
+    destPair.clientId = srcPair.first;
+    for (const auto& ip : srcPair.second) {
+      destPair.nextHopAddrs.push_back(toBinaryAddress(ip));
+    }
+    list.push_back(destPair);
+  }
+  return list;
 }
 
 RouteNextHopsMulti

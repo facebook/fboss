@@ -558,6 +558,22 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& route) {
   }
 }
 
+void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& route) {
+  ensureConfigured();
+  for (const auto& routeTable : (*sw_->getState()->getRouteTables())) {
+    for (const auto& ipv4Rib : routeTable->getRibV4()->routes()) {
+      auto ipv4 = ipv4Rib.value().get();
+      RouteDetails rd = ipv4->toRouteDetails();
+      route.push_back(rd);
+    }
+    for (const auto& ipv6Rib : routeTable->getRibV6()->routes()) {
+      auto ipv6 = ipv6Rib.value().get();
+      RouteDetails rd = ipv6->toRouteDetails();
+      route.push_back(rd);
+    }
+  }
+}
+
 void ThriftHandler::getIpRoute(UnicastRoute& route,
                                 std::unique_ptr<Address> addr, int32_t vrfId) {
   ensureConfigured();
