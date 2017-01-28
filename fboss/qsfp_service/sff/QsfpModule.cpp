@@ -870,8 +870,9 @@ void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
    * only trigger on QSFP insertion.
    */
 
-  VLOG(1) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
-             " QSFP Ext ID " << std::hex << (int) *extId <<
+  auto portStr = folly::to<std::string>(qsfpImpl_->getName());
+  VLOG(1) << "Port " << portStr <<
+             ": QSFP Ext ID " << std::hex << (int) *extId <<
              " Ether Compliance " << std::hex << (int) *ethCompliance <<
              " Power Control " << std::hex << (int) *pwrCtrl;
 
@@ -881,7 +882,12 @@ void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
   if (highPowerLevel > 0 || powerLevel > 0) {
       uint8_t power = uint8_t(PowerControl::POWER_OVERRIDE);
       if (highPowerLevel > 0) {
+        VLOG(2) << "Port " << portStr <<
+          ": High power classes (5-7) supported";
         power |= uint8_t(PowerControl::HIGH_POWER_OVERRIDE);
+      } else {
+        VLOG(2) << "Port " << portStr <<
+          ": High power classes (5-7) not supported";
       }
 
       // Note that we don't have to set the page here, but there should
@@ -898,8 +904,8 @@ void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
 
       qsfpImpl_->writeTransceiver(TransceiverI2CApi::ADDR_QSFP, pwrCtrlOffset,
           sizeof(power), &power);
-      LOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
-                " QSFP set to override low power";
+      LOG(INFO) << "Port " << portStr <<
+        ": QSFP set to override low power (" << power << ")";
   }
 }
 
