@@ -23,7 +23,6 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/RxPacket.h"
-#include "fboss/agent/SysError.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/SwitchStats.h"

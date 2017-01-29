@@ -33,7 +33,6 @@
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/TestUtils.h"
 
-#include <boost/cast.hpp>
 #include <gtest/gtest.h>
 #include <future>
 
