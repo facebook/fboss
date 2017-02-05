@@ -23,6 +23,7 @@ else:
     COLOR_GREEN = ''
     COLOR_RESET = ''
 
+
 def ip_to_binary(ip):
     for family in (socket.AF_INET, socket.AF_INET6):
         try:
@@ -32,6 +33,7 @@ def ip_to_binary(ip):
         return BinaryAddress(addr=data)
     raise socket.error('illegal IP address string: {}'.format(ip))
 
+
 def ip_ntop(addr):
     if len(addr) == 4:
         return socket.inet_ntop(socket.AF_INET, addr)
@@ -39,6 +41,7 @@ def ip_ntop(addr):
         return socket.inet_ntop(socket.AF_INET6, addr)
     else:
         raise ValueError('bad binary address %r' % (addr,))
+
 
 def port_sort_fn(port):
     if not port.name:
@@ -99,3 +102,14 @@ def get_status_strs(status, is_present):
     attrs['speed'] = speed
 
     return attrs
+
+
+def get_qsfp_info_map(qsfp_client, ports, continue_on_error=False):
+    try:
+        return qsfp_client.getTransceiverInfo(ports)
+    except Exception as e:
+        if not continue_on_error:
+            raise
+        print(make_error_string(
+            "Could not get qsfp info; continue anyway\n{}".format(e)))
+        return {}

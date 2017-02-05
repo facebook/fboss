@@ -154,12 +154,8 @@ class PortStatusCmd(cmds.FbossCmd):
     def list_ports(self, ports, internal_port=False):
         field_fmt = self._get_field_format(internal_port)
         port_status_map = self._client.getPortStatus(ports)
-        try:
-            qsfp_info_map = self._qsfp_client.getTransceiverInfo(ports)
-        except Exception as e:
-            print(utils.make_error_string(
-                "Could not get qsfp info; continue anyway\n{}".format(e)))
-            qsfp_info_map = {}
+        qsfp_info_map = utils.get_qsfp_info_map(
+            self._qsfp_client, ports, continue_on_error=True)
         port_info_map = self._client.getAllPortInfo()
         missing_port_status = []
         for port_info in sorted(port_info_map.values(), key=utils.port_sort_fn):
