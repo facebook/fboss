@@ -135,7 +135,8 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
           " on unit ", hw_->getUnit());
       VLOG(3) << "programmed L3 egress object " << id_ << " for "
               << ((mac) ? mac->toString() : "to CPU") << " on unit "
-              << hw_->getUnit() << " for ip: " << ip << " flags " << eObj.flags;
+              << hw_->getUnit() << " for ip: " << ip << " flags " << eObj.flags
+              << " towards port " << eObj.port;
       if (mac != nullptr) {
         mac_ = *mac;
       }
