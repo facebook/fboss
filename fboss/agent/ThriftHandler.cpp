@@ -645,7 +645,12 @@ static LinkNeighborThrift thriftLinkNeighbor(const LinkNeighbor& n,
 
 void ThriftHandler::getLldpNeighbors(vector<LinkNeighborThrift>& results) {
   ensureConfigured();
-  auto* db = sw_->getLldpMgr()->getDB();
+  auto lldpMgr = sw_->getLldpMgr();
+  if (lldpMgr == nullptr) {
+    throw std::runtime_error("lldpMgr is not configured");
+  }
+
+  auto* db = lldpMgr->getDB();
   // Do an immediate check for expired neighbors
   db->pruneExpiredNeighbors();
   auto neighbors = db->getNeighbors();
