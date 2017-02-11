@@ -118,7 +118,11 @@ class LldpCmd(cmds.FbossCmd):
             print()
 
     def is_printable(self, value):
-        return all(c in string.printable for c in value)
+        try:
+            value.decode('utf-8')
+            return True
+        except UnicodeDecodeError:
+            return False
 
     def _get_fields(self, neighbor):
         fields = {}
