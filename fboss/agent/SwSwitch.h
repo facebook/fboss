@@ -265,7 +265,7 @@ class SwSwitch : public HwSwitch::Callback {
    * which counters are even valid) is hardware-specific.
    */
   int getHighresSamplers(HighresSamplerList* samplers,
-                         const std::set<std::string>& counters);
+                         const std::set<CounterRequest>& counters);
 
   /*
    * Registers an observer of all state updates. An observer will be notified of

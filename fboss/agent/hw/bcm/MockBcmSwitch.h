@@ -59,8 +59,8 @@ class MockBcmSwitch : public BcmSwitchIf {
   MOCK_METHOD3(
       getHighresSamplers,
       int(HighresSamplerList* samplers,
-          const folly::StringPiece namespaceString,
-          const std::set<folly::StringPiece>& counterSet));
+          const std::string& namespaceString,
+          const std::set<CounterRequest>& counterSet));
   MOCK_CONST_METHOD0(getCosMgr, BcmCosManager*());
   MOCK_METHOD1(fetchL2Table, void(std::vector<L2EntryThrift>* l2Table));
   MOCK_CONST_METHOD0(writableHostTable, BcmHostTable*());

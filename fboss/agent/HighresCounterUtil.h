@@ -15,7 +15,7 @@
 
 #include <chrono>
 #include <fstream>
-#include <unordered_set>
+#include <set>
 
 DECLARE_bool(print_rates);
 
@@ -58,10 +58,7 @@ class HighresSampler {
  */
 class DumbCounterSampler : public HighresSampler {
  public:
-  explicit DumbCounterSampler(const std::set<folly::StringPiece>& counters)
-      : counter_(0) {
-    numCounters_ = counters.count(kDumbCounterName);
-  }
+  explicit DumbCounterSampler(const std::set<CounterRequest>& counters);
   ~DumbCounterSampler() override {}
   void sample(CounterPublication* pub) override;
   int numCounters() const override {return numCounters_;}
@@ -70,11 +67,11 @@ class DumbCounterSampler : public HighresSampler {
   /// everything explicitly for speed.
   static constexpr const char* const kIdentifier = "dumb_counter";
   static constexpr const char* const kDumbCounterName = "foo";
-  static constexpr const char* const kDumbCounterFullName = "dumb_counter::foo";
 
  private:
-  int counter_;
-  int numCounters_;
+  CounterRequest req_;
+  int counter_ = 0;
+  int numCounters_ = 0;
 };
 
 /*
@@ -82,29 +79,23 @@ class DumbCounterSampler : public HighresSampler {
  */
 class InterfaceRateSampler : public HighresSampler {
  public:
-  explicit InterfaceRateSampler(const std::set<folly::StringPiece>& counters);
+  explicit InterfaceRateSampler(const std::set<CounterRequest>& counters);
   ~InterfaceRateSampler() override {}
   void sample(CounterPublication* pub) override;
 
-  int numCounters() const override { return numCounters_; }
+  int numCounters() const override { return counters_.size(); }
 
   /// constant strings representing the namespace and counter names.  We store
   /// everything explicitly for speed.
   static constexpr const char* const kIdentifier = "interface_rate";
   static constexpr const char* const kTxBytesCounterName = "tx";
-  static constexpr const char* const kTxBytesCounterFullName =
-      "interface_rate::tx";
   static constexpr const char* const kRxBytesCounterName = "rx";
-  static constexpr const char* const kRxBytesCounterFullName =
-      "interface_rate::rx";
 
  private:
   // We save an ifstream for reading counters without needing to repeatedly call
   // the constructor
   std::ifstream ifs_;
-  std::unordered_set<std::string> counters_;
-
-  int numCounters_;
+  std::set<CounterRequest> counters_;
 };
 
 /*

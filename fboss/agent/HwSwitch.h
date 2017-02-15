@@ -172,10 +172,10 @@ class HwSwitch {
    * @param[in]  counterSet       The set of requested counters within the
    *                              current namespace.
    */
-  virtual int getHighresSamplers(
-      HighresSamplerList* samplers,
-      const folly::StringPiece namespaceString,
-      const std::set<folly::StringPiece>& counterSet) = 0;
+  virtual int getHighresSamplers(HighresSamplerList* samplers,
+                                 const std::string& namespaceString,
+                                 const std::set<CounterRequest>& counterSet)
+                                 = 0;
 
   virtual void fetchL2Table(std::vector<L2EntryThrift> *l2Table) = 0;
 

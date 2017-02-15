@@ -237,10 +237,9 @@ class BcmSwitch : public BcmSwitchIf {
    *                              counter namespace.
    * @param[in]  counterSet       The set of requested Broadcom counters.
    */
-  int getHighresSamplers(
-      HighresSamplerList* samplers,
-      const folly::StringPiece namespaceString,
-      const std::set<folly::StringPiece>& counterSet) override;
+  int getHighresSamplers(HighresSamplerList* samplers,
+                         const std::string& namespaceString,
+                         const std::set<CounterRequest>& counterSet) override;
 
   /*
    * Wrapper functions to register and unregister a BCM event callbacks.  These

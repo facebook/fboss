@@ -67,10 +67,9 @@ std::unique_ptr<PacketTraceInfo> BcmSwitch::getPacketTrace(
   return nullptr;
 }
 
-int BcmSwitch::getHighresSamplers(
-    HighresSamplerList* samplers,
-    const folly::StringPiece namespaceString,
-    const std::set<folly::StringPiece>& counterSet) {
+int BcmSwitch::getHighresSamplers(HighresSamplerList* samplers,
+                                  const std::string& namespaceString,
+                                  const std::set<CounterRequest>& counterSet) {
   return 0;
 }
 

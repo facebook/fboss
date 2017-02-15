@@ -929,7 +929,7 @@ void ThriftHandler::async_tm_subscribeToCounters(
 
   // Grab the requested samplers from the underlying switch implementation
   auto samplers = make_unique<HighresSamplerList>();
-  auto numCounters = sw_->getHighresSamplers(samplers.get(), req->counters);
+  auto numCounters = sw_->getHighresSamplers(samplers.get(), req->counterSet);
 
   if (numCounters > 0) {
     // Grab the connection context and create a kill switch

@@ -56,6 +56,7 @@ using folly::StringPiece;
 using std::lock_guard;
 using std::map;
 using std::mutex;
+using std::set;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
@@ -627,18 +628,13 @@ void SwSwitch::handlePendingUpdates() {
 }
 
 int SwSwitch::getHighresSamplers(HighresSamplerList* samplers,
-                                 const std::set<string>& counters) {
+                                 const set<CounterRequest>& counters) {
   int numCountersAdded = 0;
 
   // Group the counters by namespace to make it easier to get samplers
-  std::map<folly::StringPiece, std::set<folly::StringPiece>> groupedCounters;
+  map<string, set<CounterRequest>> groupedCounters;
   for (const auto& c : counters) {
-    StringPiece namespaceName, counterName;
-    if (folly::split("::", c, namespaceName, counterName)) {
-      groupedCounters[namespaceName].insert(counterName);
-    } else {
-      LOG(ERROR) << "Bad counter: " << c;
-    }
+    groupedCounters[c.namespaceName].insert(c);
   }
 
   for (const auto& namespaceGroup : groupedCounters) {

@@ -19,25 +19,38 @@ DEFINE_bool(print_rates,
 
 namespace facebook { namespace fboss {
 
+DumbCounterSampler::DumbCounterSampler(
+    const std::set<CounterRequest>& counters) {
+  for (const auto& c: counters) {
+    if (c.counterName.compare(kDumbCounterName) == 0) {
+      // If there are duplicate requests, overwrite
+      req_ = c;
+      numCounters_ = 1;
+    } else {
+      LOG(WARNING) << "Requested counter " << c.counterName
+                   << " does not exist";
+    }
+  }
+}
+
 void DumbCounterSampler::sample(CounterPublication* pub) {
-  pub->counters[kDumbCounterFullName].push_back(++counter_);
+  pub->counterValues[req_].push_back(++counter_);
 }
 
 InterfaceRateSampler::InterfaceRateSampler(
-    const std::set<folly::StringPiece>& counters) {
-  for (const auto& c : counters) {
-    if (c.compare(kTxBytesCounterName) == 0 ||
-        c.compare(kRxBytesCounterName) == 0) {
-      counters_.insert(c.toString());
-    }
+    const std::set<CounterRequest>& counters) {
+  struct stat buffer;
+  if (stat("/proc/net/dev", &buffer) != 0) {
+    LOG(ERROR) << "/proc/net/dev does not exist."
+               << " Ignoring any InterfaceRateSamplers";
+    return;
   }
 
-  struct stat buffer;
-
-  if (!counters_.empty() && (stat("/proc/net/dev", &buffer) == 0)) {
-    numCounters_ = counters_.size();
-  } else {
-    numCounters_ = 0;
+  for (const auto& c : counters) {
+    if (c.counterName.compare(kTxBytesCounterName) == 0 ||
+        c.counterName.compare(kRxBytesCounterName) == 0) {
+      counters_.insert(c);
+    }
   }
 }
 
@@ -70,11 +83,12 @@ void InterfaceRateSampler::sample(CounterPublication* pub) {
     ifs_.close();
   }
 
-  if (counters_.count(kTxBytesCounterName)) {
-    pub->counters[kTxBytesCounterFullName].push_back(sout);
-  }
-  if (counters_.count(kRxBytesCounterName)) {
-    pub->counters[kRxBytesCounterFullName].push_back(sin);
+  for (const auto& c : counters_) {
+    if (c.counterName.compare(kTxBytesCounterName) == 0) {
+      pub->counterValues[c].push_back(sout);
+    } else if (c.counterName.compare(kRxBytesCounterName) == 0) {
+      pub->counterValues[c].push_back(sin);
+    }
   }
 }
 }} // facebook::fboss
