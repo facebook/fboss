@@ -7,6 +7,33 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+
+/*
+ *  A highres counter subscription goes through a few main steps:
+ *
+ *    1. Thrift call comes into async_tm_subscribeToCounters in some EventBase
+ *       thread.
+ *    2. In that function thread, we create the HighresSampler objects and other
+ *       relevant objects (SampleProducer, etc.).
+ *    3. Also in the function, we fork off a SampleProducer thread
+ *    4. The SampleProducer thread has a loop that calls sample()
+ *    5. Occasionally, the SampleProducer issues a Thrift call to send a batch
+ *       of samples to a separate service. This Thrift call uses the original
+ *       EventBase thread for event handling.
+ *
+ *  Basically, there are two threads that are involved: (1) the Thrift
+ *  EventBase that got the request and (2) the separate SampleProducer thread
+ *  that we fork off. The EventBase thread handles the original request and the
+ *  infrequent batch sample send. Utilization of this thread should be minimal.
+ *  The SampleProducer thread just sits in a tight loop around sample(). The
+ *  utilization of this thread can be tuned via sampling rate, sleep method,
+ *  and Linux thread "niceness".
+ *
+ *  The HighresSampler objects, SampleProducer, and SampleSender will be
+ *  destroyed when the Producer thread exits.  This happens if we pass maxTime,
+ *  maxCount, the agent dies, or the killSwitch is activated (because we got an
+ *  error on the channel or the collector stopped sending keepalives).
+ */
 #pragma once
 
 #include <folly/MoveWrapper.h>
