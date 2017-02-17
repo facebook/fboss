@@ -273,21 +273,10 @@ class BcmHostTable {
       opennsl_if_t* intfArray,
       void* userData);
   void setPort2EgressIdsInternal(std::shared_ptr<PortAndEgressIdsMap> newMap);
-  const BcmSwitch* hw_;
 
   template <typename KeyT, typename HostT>
   using HostMap = boost::container::
       flat_map<KeyT, std::pair<std::unique_ptr<HostT>, uint32_t>>;
-
-  boost::container::flat_map<
-      opennsl_if_t,
-      std::pair<std::unique_ptr<BcmEgressBase>, uint32_t>>
-      egressMap_;
-
-  typedef std::pair<opennsl_vrf_t, folly::IPAddress> Key;
-  HostMap<Key, BcmHost> hosts_;
-  typedef std::pair<opennsl_vrf_t, RouteForwardNexthops> EcmpKey;
-  HostMap<EcmpKey, BcmEcmpHost> ecmpHosts_;
 
   template <typename KeyT, typename HostT, typename... Args>
   HostT* incRefOrCreateBcmHost(
@@ -298,6 +287,8 @@ class BcmHostTable {
   HostT* getBcmHostIf(const HostMap<KeyT, HostT>* map, Args... args) const;
   template <typename KeyT, typename HostT, typename... Args>
   HostT* derefBcmHost(HostMap<KeyT, HostT>* map, Args... args) noexcept;
+
+  const BcmSwitch* hw_{nullptr};
 
   /*
    * The current port -> egressIds map.
@@ -316,6 +307,16 @@ class BcmHostTable {
   // egressId -> port
   boost::container::flat_map<opennsl_if_t, opennsl_port_t> egressId2Port_;
   uint32_t numEcmpEgressProgrammed_{0};
+
+  boost::container::flat_map<
+      opennsl_if_t,
+      std::pair<std::unique_ptr<BcmEgressBase>, uint32_t>>
+      egressMap_;
+
+  typedef std::pair<opennsl_vrf_t, folly::IPAddress> Key;
+  HostMap<Key, BcmHost> hosts_;
+  typedef std::pair<opennsl_vrf_t, RouteForwardNexthops> EcmpKey;
+  HostMap<EcmpKey, BcmEcmpHost> ecmpHosts_;
 };
 
 }}

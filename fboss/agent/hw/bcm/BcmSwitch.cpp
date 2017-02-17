@@ -131,12 +131,12 @@ cfg::PortSpeed BcmSwitch::getMaxPortSpeed(PortID port) const {
 BcmSwitch::BcmSwitch(BcmPlatform *platform, HashMode hashMode)
   : platform_(platform),
     hashMode_(hashMode),
+    warmBootCache_(new BcmWarmBootCache(this)),
     portTable_(new BcmPortTable(this)),
     intfTable_(new BcmIntfTable(this)),
     hostTable_(new BcmHostTable(this)),
     routeTable_(new BcmRouteTable(this)),
     aclTable_(new BcmAclTable(this)),
-    warmBootCache_(new BcmWarmBootCache(this)),
     bcmTableStats_(new BcmTableStats(this)) {
   dumpConfigMap(BcmAPI::getHwConfig(), platform->getHwConfigDumpFile());
 
@@ -149,11 +149,7 @@ BcmSwitch::BcmSwitch(BcmPlatform *platform, unique_ptr<BcmUnit> unit)
   unit_ = unitObject_->getNumber();
 }
 
-BcmSwitch::~BcmSwitch() {
-  if (unitObject_) {
-    unregisterCallbacks();
-  }
-}
+BcmSwitch::~BcmSwitch() {}
 
 unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
   std::lock_guard<std::mutex> g(lock_);
@@ -189,6 +185,7 @@ void BcmSwitch::unregisterCallbacks() {
         kRxCallbackPriority);
     CHECK(OPENNSL_SUCCESS(rv)) <<
         "failed to unregister BcmSwitch rx callback: " << opennsl_errmsg(rv);
+    flags_ &= ~RX_REGISTERED;
   }
   // Note that we don't explicitly call opennsl_linkscan_detach() here--
   // this call is not thread safe and should only be called from the main
@@ -200,6 +197,7 @@ void BcmSwitch::unregisterCallbacks() {
       "callback: " << opennsl_errmsg(rv);
 
     disableLinkscan();
+    flags_ &= ~LINKSCAN_REGISTERED;
   }
 }
 

@@ -499,13 +499,13 @@ class BcmSwitch : public BcmSwitchIf {
   int unit_{-1};
   uint32_t flags_{0};
   HashMode hashMode_;
+  std::unique_ptr<BcmWarmBootCache> warmBootCache_;
   std::unique_ptr<BcmPortTable> portTable_;
   std::unique_ptr<BcmEgress> toCPUEgress_;
   std::unique_ptr<BcmIntfTable> intfTable_;
   std::unique_ptr<BcmHostTable> hostTable_;
   std::unique_ptr<BcmRouteTable> routeTable_;
   std::unique_ptr<BcmAclTable> aclTable_;
-  std::unique_ptr<BcmWarmBootCache> warmBootCache_;
   std::unique_ptr<BcmCosManager> cosManager_;
   std::unique_ptr<BcmTableStats> bcmTableStats_;
   /*
