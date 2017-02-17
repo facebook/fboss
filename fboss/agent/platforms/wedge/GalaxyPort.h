@@ -17,7 +17,8 @@ namespace facebook { namespace fboss {
 
 class GalaxyPort : public WedgePort {
  public:
-  GalaxyPort(PortID id, TransceiverID frontPanelPort, ChannelID channel,
+  GalaxyPort(PortID id, folly::Optional<TransceiverID> frontPanelPort,
+      folly::Optional<ChannelID> channel,
       bool isBackplanePort)
       : WedgePort(id, frontPanelPort, channel),
         isBackplanePort_(isBackplanePort) {}

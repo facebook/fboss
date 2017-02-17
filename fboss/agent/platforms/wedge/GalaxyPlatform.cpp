@@ -31,7 +31,7 @@ GalaxyPlatform::InitPortMap GalaxyPlatform::initPorts() {
   InitPortMap ports;
 
   auto add_quad = [&](int start,
-      TransceiverID frontPanelPort=TransceiverID(-1)) {
+      folly::Optional<TransceiverID> frontPanelPort) {
     for (int i = 0; i < 4; i++) {
       int num = start + i;
       PortID portID(num);
@@ -40,7 +40,7 @@ GalaxyPlatform::InitPortMap GalaxyPlatform::initPorts() {
       auto port = make_unique<GalaxyPort>(portID,
           frontPanelPort,
           ChannelID(i),
-          frontPanelPort == TransceiverID(-1));
+          !frontPanelPort);
 
       ports.emplace(bcmPortNum, port.get());
       ports_.emplace(portID, std::move(port));
@@ -56,7 +56,7 @@ GalaxyPlatform::InitPortMap GalaxyPlatform::initPorts() {
     // Even though its unlikely we will ever
     // use them in anything except all 4 lanes
     // being used by single port.
-    add_quad(portNum);
+    add_quad(portNum, folly::none);
   }
   return ports;
 }

@@ -119,8 +119,7 @@ facebook::fboss::PortStatus fillInPortStatus(
   try {
     status.transceiverIdx = sw->getPlatform()->getPortMapping(port.getID());
     status.__isset.transceiverIdx =
-      status.transceiverIdx.__isset.transceiverId ||
-      status.transceiverIdx.__isset.channelId;
+      status.transceiverIdx.__isset.transceiverId;
   } catch (const facebook::fboss::FbossError& err) {
     // No problem, we just don't set the other info
   }
