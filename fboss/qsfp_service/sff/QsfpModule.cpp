@@ -22,7 +22,7 @@ namespace facebook { namespace fboss {
   using std::mutex;
   using std::lock_guard;
 
-static const time_t kQsfpMinReadIntervalMs = 1000 * 5;
+static const time_t kQsfpMinReadIntervalSecs = 5;
 
 // As per SFF-8436, QSFP+ 10 Gbs 4X PLUGGABLE TRANSCEIVER spec
 
@@ -488,7 +488,7 @@ void QsfpModule::setQsfpIdprom() {
   getQsfpValue(dataAddress, offset, length, status);
   if (status[1] & (1 << 0)) {
     dirty_ = true;
-    throw FbossError("QSFP IDProm failed as QSFP is not read");
+    throw FbossError("QSFP IDProm failed as QSFP is not ready");
   }
   flatMem_ = status[1] & (1 << 2);
   dirty_ = false;
@@ -593,7 +593,7 @@ TransceiverInfo QsfpModule::getTransceiverInfo() {
 // Must be called with lock held on qsfpModuleMutex_
 void QsfpModule::refreshCacheIfPossibleLocked() {
   // Check whether we should refresh data
-  if (std::time(nullptr) - lastReadTime_.load() > kQsfpMinReadIntervalMs) {
+  if (std::time(nullptr) - lastReadTime_.load() > kQsfpMinReadIntervalSecs) {
     dirty_ = true;
   }
   if (!cacheIsValid()) {
@@ -704,6 +704,7 @@ void QsfpModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
     // We want this on regardless of speed
     setPowerOverrideIfSupported(settings.powerControl);
     if (speed == cfg::PortSpeed::DEFAULT) {
+      LOG(INFO) << "Port speed is not set. Not customizing further.";
       return;
     }
 
@@ -725,8 +726,13 @@ void QsfpModule::setCdrIfSupported(cfg::PortSpeed speed,
    * held.
    */
 
+  LOG(INFO) << "Checking if we need to change CDR on "
+            << folly::to<std::string>(qsfpImpl_->getName());
+
   if (currentStateTx == FeatureState::UNSUPPORTED &&
       currentStateRx == FeatureState::UNSUPPORTED) {
+    LOG(INFO) << "CDR is not supported on "
+              << folly::to<std::string>(qsfpImpl_->getName());
     return;
   }
 
