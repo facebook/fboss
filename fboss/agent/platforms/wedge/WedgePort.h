@@ -15,11 +15,14 @@
 
 namespace facebook { namespace fboss {
 
+class WedgePlatform;
+
 class WedgePort : public BcmPlatformPort {
  protected:
-  explicit WedgePort(PortID id,
-                     folly::Optional<TransceiverID> frontPanelPort,
-                     folly::Optional<ChannelID> channel);
+  WedgePort(PortID id,
+            WedgePlatform* platform,
+            folly::Optional<TransceiverID> frontPanelPort,
+            folly::Optional<ChannelID> channel);
 
  public:
   PortID getPortID() const override { return id_; }
@@ -54,6 +57,7 @@ class WedgePort : public BcmPlatformPort {
  protected:
 
   PortID id_{0};
+  WedgePlatform* platform_{nullptr};
   folly::Optional<TransceiverID> frontPanelPort_;
   folly::Optional<ChannelID> channel_;
   BcmPort* bcmPort_{nullptr};

@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/platforms/wedge/WedgeProductInfo.h"
+#include "fboss/agent/platforms/wedge/WedgePortMapping.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
 #include <folly/MacAddress.h>
@@ -29,9 +30,13 @@ class WedgePort;
 
 class WedgePlatform : public BcmPlatform {
  public:
+  explicit WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo);
   ~WedgePlatform() override;
 
   void init();
+  InitPortMap initPorts() override;
+
+  virtual std::unique_ptr<WedgePortMapping> createPortMapping() = 0;
 
   HwSwitch* getHwSwitch() const override;
   virtual void onHwInitialized(SwSwitch* sw) override;
@@ -49,22 +54,13 @@ class WedgePlatform : public BcmPlatform {
     // wedge_agent, and not with wedge_ctrl).
     return FLAGS_enable_routes_in_host_table;
   }
-  WedgePort* getPort(PortID port) const;
+  WedgePort* getPort(PortID id) const;
+  WedgePort* getPort(TransceiverID id) const;
   virtual TransceiverIdxThrift getPortMapping(PortID port) const override;
 
  protected:
-  using FrontPanelMapping = std::map<TransceiverID, PortID>;
-  virtual FrontPanelMapping getFrontPanelMapping();
-
-  explicit WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo);
-  WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo,
-                uint8_t numQsfps);
-  typedef boost::container::flat_map<PortID, std::unique_ptr<WedgePort>>
-    WedgePortMap;
-
   WedgePlatformMode getMode() const;
-
-  WedgePortMap ports_;
+  std::unique_ptr<WedgePortMapping> portMapping_{nullptr};
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -83,7 +79,6 @@ class WedgePlatform : public BcmPlatform {
   std::unique_ptr<BcmSwitch> hw_;
 
   const std::unique_ptr<WedgeProductInfo> productInfo_;
-  uint8_t numQsfpModules_{0};
 };
 
 }} // namespace facebook::fboss

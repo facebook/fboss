@@ -8,15 +8,20 @@
  *
  */
 #include "fboss/agent/platforms/wedge/WedgePort.h"
+#include "fboss/agent/platforms/wedge/WedgePlatform.h"
 #include <folly/io/async/EventBase.h>
 
 #include "fboss/agent/QsfpClient.h"
 
 namespace facebook { namespace fboss {
 
-WedgePort::WedgePort(PortID id, folly::Optional<TransceiverID> frontPanelPort,
-    folly::Optional<ChannelID> channel)
-  : id_(id),
+WedgePort::WedgePort(
+  PortID id,
+  WedgePlatform* platform,
+  folly::Optional<TransceiverID> frontPanelPort,
+  folly::Optional<ChannelID> channel ) :
+    id_(id),
+    platform_(platform),
     frontPanelPort_(frontPanelPort),
     channel_(channel) {
 }

@@ -30,11 +30,11 @@ enum class LedColor : uint32_t {
 
 class Wedge100Port : public WedgePort {
  public:
-  explicit Wedge100Port(PortID id, Wedge100Platform* platform,
-                        folly::Optional<TransceiverID> frontPanelPort,
-                        folly::Optional<ChannelID> channel)
-      : WedgePort(id, frontPanelPort, channel),
-        platform_(platform) {}
+  Wedge100Port(PortID id,
+               WedgePlatform* platform,
+               folly::Optional<TransceiverID> frontPanelPort,
+               folly::Optional<ChannelID> channel) :
+      WedgePort(id, platform, frontPanelPort, channel) {}
 
   LaneSpeeds supportedLaneSpeeds() const override {
     LaneSpeeds speeds;
@@ -59,8 +59,6 @@ class Wedge100Port : public WedgePort {
   BcmPortGroup::LaneMode laneMode();
   bool useCompactMode();
   LedColor getLedColor(bool up, bool adminUp);
-
-  Wedge100Platform* platform_{nullptr};
 };
 
 }} // facebook::fboss

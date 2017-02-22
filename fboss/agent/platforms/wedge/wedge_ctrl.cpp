@@ -10,7 +10,10 @@
 #include <memory>
 
 #include "fboss/agent/Main.h"
-#include "fboss/agent/platforms/wedge/GalaxyPlatform.h"
+#include "fboss/agent/platforms/wedge/GalaxyFCPlatform.h"
+#include "fboss/agent/platforms/wedge/GalaxyLCPlatform.h"
+#include "fboss/agent/platforms/wedge/SixpackFCPlatform.h"
+#include "fboss/agent/platforms/wedge/SixpackLCPlatform.h"
 #include "fboss/agent/platforms/wedge/Wedge40Platform.h"
 #include "fboss/agent/platforms/wedge/Wedge100Platform.h"
 
@@ -31,12 +34,16 @@ unique_ptr<WedgePlatform> createPlatform() {
   auto mode = productInfo->getMode();
   if (mode == WedgePlatformMode::WEDGE100) {
     return std::make_unique<Wedge100Platform>(std::move(productInfo));
-  } else if (
-      mode == WedgePlatformMode::GALAXY_LC ||
-      mode == WedgePlatformMode::GALAXY_FC) {
-    return make_unique<GalaxyPlatform>(std::move(productInfo), mode);
+  } else if (mode == WedgePlatformMode::GALAXY_LC) {
+    return std::make_unique<GalaxyLCPlatform>(std::move(productInfo));
+  } else if (mode == WedgePlatformMode::GALAXY_FC) {
+    return std::make_unique<GalaxyFCPlatform>(std::move(productInfo));
+  } else if (mode == WedgePlatformMode::LC) {
+    return std::make_unique<SixpackLCPlatform>(std::move(productInfo));
+  } else if (mode == WedgePlatformMode::FC) {
+    return std::make_unique<SixpackFCPlatform>(std::move(productInfo));
   }
-  return std::make_unique<Wedge40Platform>(std::move(productInfo), mode);
+  return std::make_unique<Wedge40Platform>(std::move(productInfo));
 }
 
 unique_ptr<Platform> initWedgePlatform() {

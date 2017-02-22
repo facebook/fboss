@@ -10,21 +10,18 @@
 #pragma once
 
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
-#include "fboss/agent/platforms/wedge/WedgeProductInfo.h"
 
 namespace facebook { namespace fboss {
 
-class BcmSwitch;
-class WedgePort;
+class WedgePortMapping;
 class WedgeProductInfo;
 
 class Wedge40Platform : public WedgePlatform {
  public:
-  Wedge40Platform(
-      std::unique_ptr<WedgeProductInfo> productInfo,
-      WedgePlatformMode mode);
+  explicit Wedge40Platform(std::unique_ptr<WedgeProductInfo> productInfo) :
+      WedgePlatform(std::move(productInfo)) {}
 
-  InitPortMap initPorts() override;
+  virtual std::unique_ptr<WedgePortMapping> createPortMapping() override;
 
   folly::ByteRange defaultLed0Code() override;
   folly::ByteRange defaultLed1Code() override;

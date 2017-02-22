@@ -42,14 +42,8 @@ constexpr auto kNumWedge40Qsfps = 16;
 
 namespace facebook { namespace fboss {
 
-WedgePlatform::WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo,
-                             uint8_t numQsfps)
-    : productInfo_(std::move(productInfo)),
-      numQsfpModules_(numQsfps) {}
-
-// default to kNumWedge40Qsfps if numQsfps not specified
 WedgePlatform::WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo)
-    : WedgePlatform(std::move(productInfo), kNumWedge40Qsfps) {}
+    : productInfo_(std::move(productInfo)) {}
 
 void WedgePlatform::init() {
   auto config = loadConfig();
@@ -62,7 +56,17 @@ void WedgePlatform::init() {
         BcmSwitch::FULL_HASH));
 }
 
-WedgePlatform::~WedgePlatform() {
+WedgePlatform::~WedgePlatform() {}
+
+WedgePlatform::InitPortMap WedgePlatform::initPorts() {
+  portMapping_ = createPortMapping();
+
+  InitPortMap mapping;
+  for (const auto& kv: *portMapping_) {
+    opennsl_port_t id = kv.first;
+    mapping[id] = kv.second.get();
+  }
+  return mapping;
 }
 
 HwSwitch* WedgePlatform::getHwSwitch() const {
@@ -135,33 +139,11 @@ TransceiverIdxThrift WedgePlatform::getPortMapping(PortID portId) const {
   return info;
 }
 
-WedgePlatform::FrontPanelMapping WedgePlatform::getFrontPanelMapping() {
-  return {
-    {TransceiverID(0), PortID(1)},
-    {TransceiverID(1), PortID(5)},
-    {TransceiverID(2), PortID(9)},
-    {TransceiverID(3), PortID(13)},
-    {TransceiverID(4), PortID(17)},
-    {TransceiverID(5), PortID(21)},
-    {TransceiverID(6), PortID(25)},
-    {TransceiverID(7), PortID(29)},
-    {TransceiverID(8), PortID(33)},
-    {TransceiverID(9), PortID(37)},
-    {TransceiverID(10), PortID(41)},
-    {TransceiverID(11), PortID(45)},
-    {TransceiverID(12), PortID(49)},
-    {TransceiverID(13), PortID(53)},
-    {TransceiverID(14), PortID(57)},
-    {TransceiverID(15), PortID(61)}
-  };
-}
-
 WedgePort* WedgePlatform::getPort(PortID id) const {
-  auto iter = ports_.find(id);
-  if (iter == ports_.end()) {
-    throw FbossError("Cannot find the Wedge port object for BCM port ", id);
-  }
-  return iter->second.get();
+  return portMapping_->getPort(id);
+}
+WedgePort* WedgePlatform::getPort(TransceiverID id) const {
+  return portMapping_->getPort(id);
 }
 
 }} // facebook::fboss

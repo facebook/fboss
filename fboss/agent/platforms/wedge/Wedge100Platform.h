@@ -9,26 +9,23 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/wedge/WedgeProductInfo.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 
 #include <folly/Range.h>
-#include <boost/container/flat_map.hpp>
 #include <memory>
-#include <unordered_map>
 
 namespace facebook { namespace fboss {
 
 class BcmSwitch;
 class Wedge100Port;
+class WedgeProductInfo;
 
 class Wedge100Platform : public WedgePlatform {
  public:
-  explicit Wedge100Platform(std::unique_ptr<WedgeProductInfo> productInfo);
-  ~Wedge100Platform() override;
+  explicit Wedge100Platform(std::unique_ptr<WedgeProductInfo> productInfo) :
+      WedgePlatform(std::move(productInfo)) {}
 
-  InitPortMap initPorts() override;
-  Wedge100Port* getPortFromFrontPanelNum(TransceiverID fpPort);
+  std::unique_ptr<WedgePortMapping> createPortMapping() override;
   void onHwInitialized(SwSwitch* sw) override;
   void onUnitAttach(int unit) override;
 
@@ -45,7 +42,6 @@ class Wedge100Platform : public WedgePlatform {
   std::map<std::string, std::string> loadConfig() override;
   std::unique_ptr<BaseWedgeI2CBus> getI2CBus() override;
 
-  FrontPanelMapping getFrontPanelMapping() override;
   folly::ByteRange defaultLed0Code() override;
   folly::ByteRange defaultLed1Code() override;
   void enableLedMode();

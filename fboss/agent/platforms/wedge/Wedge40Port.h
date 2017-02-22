@@ -15,9 +15,11 @@ namespace facebook { namespace fboss {
 
 class Wedge40Port : public WedgePort {
  public:
-  explicit Wedge40Port(PortID id, folly::Optional<TransceiverID> transID,
-      folly::Optional<ChannelID> channel)
-    : WedgePort(id, transID, channel) {}
+  Wedge40Port(PortID id,
+             WedgePlatform* platform,
+             folly::Optional<TransceiverID> frontPanelPort,
+             folly::Optional<ChannelID> channel) :
+      WedgePort(id, platform, frontPanelPort, channel) {}
 
   LaneSpeeds supportedLaneSpeeds() const override {
     LaneSpeeds speeds;

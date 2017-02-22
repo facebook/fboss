@@ -7,14 +7,16 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/wedge/Wedge40Platform.h"
+#include "fboss/agent/platforms/wedge/SixpackLCPlatform.h"
 #include "fboss/agent/platforms/wedge/Wedge40Port.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
 
+using folly::none;
+
 namespace facebook { namespace fboss {
 
-std::unique_ptr<WedgePortMapping> Wedge40Platform::createPortMapping() {
-  const WedgePortMapping::PortTransceiverMap ports = {
+std::unique_ptr<WedgePortMapping> SixpackLCPlatform::createPortMapping() {
+  WedgePortMapping::PortTransceiverMap ports = {
     {PortID(1), TransceiverID(0)},
     {PortID(5), TransceiverID(1)},
     {PortID(9), TransceiverID(2)},
@@ -30,7 +32,23 @@ std::unique_ptr<WedgePortMapping> Wedge40Platform::createPortMapping() {
     {PortID(49), TransceiverID(12)},
     {PortID(53), TransceiverID(13)},
     {PortID(57), TransceiverID(14)},
-    {PortID(61), TransceiverID(15)}
+    {PortID(61), TransceiverID(15)},
+    {PortID(65), none},
+    {PortID(69), none},
+    {PortID(73), none},
+    {PortID(77), none},
+    {PortID(81), none},
+    {PortID(85), none},
+    {PortID(89), none},
+    {PortID(93), none},
+    {PortID(97), none},
+    {PortID(101), none},
+    {PortID(105), none},
+    {PortID(109), none},
+    {PortID(113), none},
+    {PortID(117), none},
+    {PortID(121), none},
+    {PortID(125), none}
   };
   return WedgePortMapping::create<WedgePortMappingT<Wedge40Port>>(this, ports);
 }

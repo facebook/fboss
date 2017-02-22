@@ -17,11 +17,11 @@ namespace facebook { namespace fboss {
 
 class GalaxyPort : public WedgePort {
  public:
-  GalaxyPort(PortID id, folly::Optional<TransceiverID> frontPanelPort,
-      folly::Optional<ChannelID> channel,
-      bool isBackplanePort)
-      : WedgePort(id, frontPanelPort, channel),
-        isBackplanePort_(isBackplanePort) {}
+  GalaxyPort(PortID id,
+             WedgePlatform* platform,
+             folly::Optional<TransceiverID> frontPanelPort,
+             folly::Optional<ChannelID> channel) :
+      WedgePort(id, platform, frontPanelPort, channel) {}
 
   LaneSpeeds supportedLaneSpeeds() const override {
     LaneSpeeds speeds;
@@ -34,19 +34,13 @@ class GalaxyPort : public WedgePort {
   void remedy() override {}
   void prepareForGracefulExit() override {}
   void linkStatusChanged(bool up, bool adminUp) override;
-  bool shouldDisableFEC() const override {
-    return isBackplanePort_;
+  bool isBackplanePort() const {
+    return !frontPanelPort_.hasValue();
   }
-
- private:
-  /* Its useful in certain contexts
-   * to know whether this is a bacplane
-   * port or not. For backplane ports, since
-   * there is no transceiver, the settings
-   * needed might be different from a front
-   * panel port
-   */
-  const bool isBackplanePort_{false};
+  bool shouldDisableFEC() const override {
+    // Only disable FEC if this is a backplane port
+    return isBackplanePort();
+  }
 };
 
 }} // facebook::fboss
