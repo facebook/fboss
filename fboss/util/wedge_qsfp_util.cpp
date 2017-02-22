@@ -79,8 +79,8 @@ bool setCdr(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
         port);
     return false;
   }
-  // If 2nd and 3rd bits are set, CDR is supported
-  if (supported[0] & 0xC) {
+  // If 2nd and 3rd bits are set, CDR is supported.
+  if ((supported[0] & 0xC) != 0xC) {
     fprintf(stderr, "CDR unsupported by this device, doing nothing");
     return false;
   }
