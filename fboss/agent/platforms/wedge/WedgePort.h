@@ -11,6 +11,7 @@
 #include <folly/Optional.h>
 
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
+#include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 namespace facebook { namespace fboss {
@@ -57,6 +58,8 @@ class WedgePort : public BcmPlatformPort {
 
  protected:
   void customizeTransceiver();
+  bool isControllingPort();
+  bool shouldCustomizeTransceiver();
 
   PortID id_{0};
   WedgePlatform* platform_{nullptr};

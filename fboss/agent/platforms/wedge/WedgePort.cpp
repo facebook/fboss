@@ -7,7 +7,10 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+
 #include "fboss/agent/platforms/wedge/WedgePort.h"
+
+#include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 #include <folly/io/async/EventBase.h>
 
@@ -19,7 +22,7 @@ WedgePort::WedgePort(
   PortID id,
   WedgePlatform* platform,
   folly::Optional<TransceiverID> frontPanelPort,
-  folly::Optional<ChannelID> channel ) :
+  folly::Optional<ChannelID> channel) :
     id_(id),
     platform_(platform),
     frontPanelPort_(frontPanelPort),
@@ -103,36 +106,61 @@ void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
   customizeTransceiver();
 }
 
-void WedgePort::customizeTransceiver() {
+bool WedgePort::isControllingPort() {
+  return bcmPort_ && bcmPort_->getPortGroup()->controllingPort() != bcmPort_;
+}
+
+bool WedgePort::shouldCustomizeTransceiver() {
   auto trans = getTransceiverID();
   if (!trans) {
     // No qsfp atatched to customize
-    return;
-  }
+    LOG(INFO) << "Not customising qsfps of port " << id_
+              << " as it has no transceiver.";
+    return false;
+  } else if (!isControllingPort()) {
+    auto channel = getChannel();
+    auto chan = channel ? folly::to<std::string>(*channel) : "Unknown";
 
-  auto transID = static_cast<int32_t>(*trans);
-  // This should be resolved in BcmPort before calling
-  if (speed_ == cfg::PortSpeed::DEFAULT) {
+    // We only want to customise on the first channel - this is the actual
+    // speed the transceiver should be configured for
+    // Other channels may be disabled with other speeds set
+    LOG(INFO) << "Not customising qsfps of port " << id_
+              << ", channel " << chan
+              << " as it is not the controlling port";
+    return false;
+  } else if (speed_ == cfg::PortSpeed::DEFAULT) {
+    // This should be resolved in BcmPort before calling
     LOG(ERROR) << "Unresolved speed: Unable to determine what qsfp settings "
-               << "are needed for transceiver" << transID;
-    return;
+               << "are needed for transceiver"
+               << folly::to<std::string>(*trans);
+    return false;
   }
 
+  return true;
+}
+
+void WedgePort::customizeTransceiver() {
+  if (!shouldCustomizeTransceiver()) {
+    return;
+  }
+  // We've already checked whether there is a transceiver id in needsCustomize
+  auto transID = static_cast<int32_t>(*getTransceiverID());
   try {
-    // Do we want to only make the call if this port is the PortGroup's
-    // controlling port? Are we guaranteed that if one channel needs the change
-    // all channels will have the change triggered?
     folly::EventBase eb;
     auto client = QsfpClient::createClient(&eb);
     auto options = QsfpClient::getRpcOptions();
+    LOG(INFO) << "Sending qsfp customize request for transceiver "
+              << transID << " to speed "
+              << cfg::_PortSpeed_VALUES_TO_NAMES.find(speed_)->second;
     client->sync_customizeTransceiver(options, transID, speed_);
   } catch (const std::exception& e) {
     // This can happen for a variety of reasons ranging from
     // thrift problems to invalid input sent to the server
     // Let's just catch them all
-    LOG(ERROR) << "Unable to customize transceiver " << transID <<
-      " for speed " << cfg::_PortSpeed_VALUES_TO_NAMES.find(speed_)->second <<
-      ". Exception: " << e.what();
+    LOG(ERROR) << "Unable to customize transceiver " << transID
+               << " for speed "
+               << cfg::_PortSpeed_VALUES_TO_NAMES.find(speed_)->second
+               << ". Exception: " << e.what();
   }
 }
 
