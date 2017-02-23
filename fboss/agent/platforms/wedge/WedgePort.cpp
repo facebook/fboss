@@ -98,6 +98,12 @@ void WedgePort::statusIndication(bool enabled, bool link,
 }
 
 void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
+  // Cache the current set speed
+  speed_ = speed;
+  customizeTransceiver();
+}
+
+void WedgePort::customizeTransceiver() {
   auto trans = getTransceiverID();
   if (!trans) {
     // No qsfp atatched to customize
@@ -106,11 +112,12 @@ void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
 
   auto transID = static_cast<int32_t>(*trans);
   // This should be resolved in BcmPort before calling
-  if (speed == cfg::PortSpeed::DEFAULT) {
+  if (speed_ == cfg::PortSpeed::DEFAULT) {
     LOG(ERROR) << "Unresolved speed: Unable to determine what qsfp settings "
                << "are needed for transceiver" << transID;
     return;
   }
+
   try {
     // Do we want to only make the call if this port is the PortGroup's
     // controlling port? Are we guaranteed that if one channel needs the change
@@ -118,14 +125,19 @@ void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
     folly::EventBase eb;
     auto client = QsfpClient::createClient(&eb);
     auto options = QsfpClient::getRpcOptions();
-    client->sync_customizeTransceiver(options, transID, speed);
+    client->sync_customizeTransceiver(options, transID, speed_);
   } catch (const std::exception& e) {
     // This can happen for a variety of reasons ranging from
     // thrift problems to invalid input sent to the server
     // Let's just catch them all
     LOG(ERROR) << "Unable to customize transceiver " << transID <<
-      " for speed " << cfg::_PortSpeed_VALUES_TO_NAMES.find(speed)->second <<
+      " for speed " << cfg::_PortSpeed_VALUES_TO_NAMES.find(speed_)->second <<
       ". Exception: " << e.what();
   }
+}
+
+void WedgePort::remedy() {
+  // Recall customizeTransceiver - this will use the last cached speed
+  customizeTransceiver();
 }
 }} // facebook::fboss
