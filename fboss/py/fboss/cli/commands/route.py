@@ -11,15 +11,41 @@
 from facebook.network.Address.ttypes import Address, AddressType
 from fboss.cli.utils import utils
 from fboss.cli.commands import commands as cmds
+from thrift.Thrift import TApplicationException
+
+
+def printRouteDetailEntry(entry):
+    suffix = ""
+    if (entry.isConnected):
+        suffix += " (connected)"
+    print("Network Address: %s/%d %s" %
+          (utils.ip_ntop(entry.dest.ip.addr), entry.dest.prefixLength,
+           suffix))
+    for clAndNxthops in entry.nextHopMulti:
+        print("  Nexthops from client %d" % clAndNxthops.clientId)
+        for nextHop in clAndNxthops.nextHopAddrs:
+            print("    %s" % utils.ip_ntop(nextHop.addr))
+    print("  Action: %s" % entry.action)
+    if len(entry.fwdInfo) > 0:
+        print("  Forwarding via:")
+        for ifAndIp in entry.fwdInfo:
+            print("    (i/f %d) %s" % (ifAndIp.interfaceID,
+                                       utils.ip_ntop(ifAndIp.ip.addr)))
+    else:
+        print("  No Forwarding Info")
+    print()
 
 
 class RouteIpCmd(cmds.FbossCmd):
-    def run(self, ip, vrf):
-        addr = Address(addr=ip, type=AddressType.V4)
-        if not addr.addr:
-            print('No ip address provided')
+    def printIpRouteDetails(self, addr, vrf):
+        resp = self._client.getIpRouteDetails(addr, vrf)
+        if not resp.nextHopMulti:
+            print('No route to ' + addr.addr + ', Vrf: %d' % vrf)
             return
-        self._client = self._create_ctrl_client()
+        print('Route to ' + addr.addr + ', Vrf: %d' % vrf)
+        printRouteDetailEntry(resp)
+
+    def printIpRoute(self, addr, vrf):
         resp = self._client.getIpRoute(addr, vrf)
         print('Route to ' + addr.addr + ', Vrf: %d' % vrf)
         netAddr = utils.ip_ntop(resp.dest.ip.addr)
@@ -30,6 +56,17 @@ class RouteIpCmd(cmds.FbossCmd):
                 print('\t\tvia: ' + utils.ip_ntop(nexthops.addr))
         else:
             print('No Route to destination')
+
+    def run(self, ip, vrf):
+        addr = Address(addr=ip, type=AddressType.V4)
+        if not addr.addr:
+            print('No ip address provided')
+            return
+        self._client = self._create_ctrl_client()
+        try:
+            self.printIpRouteDetails(addr, vrf)
+        except TApplicationException:
+            self.printIpRoute(addr, vrf)
 
 
 class RouteTableCmd(cmds.FbossCmd):
@@ -56,27 +93,4 @@ class RouteTableDetailsCmd(cmds.FbossCmd):
             print("No Route Table Details Found")
             return
         for entry in resp:
-            suffix = ""
-            if (entry.isConnected):
-                suffix += " (connected)"
-            print("Network Address: %s/%d %s" %
-                                (utils.ip_ntop(entry.dest.ip.addr),
-                                 entry.dest.prefixLength,
-                                 suffix))
-
-            for clAndNxthops in entry.nextHopMulti:
-                print("  Nexthops from client %d" % clAndNxthops.clientId)
-                for nextHop in clAndNxthops.nextHopAddrs:
-                    print("    %s" % utils.ip_ntop(nextHop.addr))
-
-            print("  Action: %s" % entry.action)
-
-            if len(entry.fwdInfo) > 0:
-                print("  Forwarding via:")
-                for ifAndIp in entry.fwdInfo:
-                    print("    (i/f %d) %s" % (ifAndIp.interfaceID,
-                                               utils.ip_ntop(ifAndIp.ip.addr)))
-            else:
-                print("  No Forwarding Info")
-
-            print()
+            printRouteDetailEntry(entry)

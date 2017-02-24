@@ -321,8 +321,13 @@ service FbossCtrl extends fb303.FacebookService {
   /*
    * Returns a list of IP route as per the route table for the
    * given address
+   *
+   * TODO (allwync): get rid of getIpRoute after agent code with thrift
+   * implementation of getIpRouteDetails is pushed everywhere
    */
   UnicastRoute getIpRoute(1: Address.Address addr 2: i32 vrfId)
+    throws (1: fboss.FbossBaseError error)
+  RouteDetails getIpRouteDetails(1: Address.Address addr 2: i32 vrfId)
     throws (1: fboss.FbossBaseError error)
   map<i32, InterfaceDetail> getAllInterfaces()
     throws (1: fboss.FbossBaseError error)
@@ -330,6 +335,10 @@ service FbossCtrl extends fb303.FacebookService {
     throws (1: fboss.FbossBaseError error) (thread='eb')
   list<string> getInterfaceList()
     throws (1: fboss.FbossBaseError error)
+  /*
+   * TODO (allwync): get rid of getRouteTable after agent code with thrift
+   * implementation of getRouteTableDetails is pushed everywhere
+   */
   list<UnicastRoute> getRouteTable()
     throws (1: fboss.FbossBaseError error)
   list<RouteDetails> getRouteTableDetails()

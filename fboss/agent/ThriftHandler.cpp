@@ -613,6 +613,31 @@ void ThriftHandler::getIpRoute(UnicastRoute& route,
   }
 }
 
+void ThriftHandler::getIpRouteDetails(
+  RouteDetails& route, std::unique_ptr<Address> addr, int32_t vrfId) {
+  ensureConfigured();
+  folly::IPAddress ipAddr = toIPAddress(*addr);
+  auto routeTable = sw_->getState()->getRouteTables()->getRouteTableIf(
+                                                              RouterID(vrfId));
+  if (!routeTable) {
+    throw FbossError("No Such VRF ", vrfId);
+  }
+
+  if (ipAddr.isV4()) {
+    auto ripV4Rib = routeTable->getRibV4();
+    auto match = ripV4Rib->longestMatch(ipAddr.asV4());
+    if (match && match->isResolved()) {
+      route = match->toRouteDetails();
+    }
+  } else {
+    auto ripV6Rib = routeTable->getRibV6();
+    auto match = ripV6Rib->longestMatch(ipAddr.asV6());
+    if (match && match->isResolved()) {
+      route = match->toRouteDetails();
+    }
+  }
+}
+
 static LinkNeighborThrift thriftLinkNeighbor(const LinkNeighbor& n,
                                              steady_clock::time_point now) {
   LinkNeighborThrift tn;

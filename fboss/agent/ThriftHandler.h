@@ -94,6 +94,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   /* Returns the Ip Route for the address */
   void getIpRoute(UnicastRoute& route,
                   std::unique_ptr<Address> addr, int32_t vrfId) override;
+  void getIpRouteDetails(RouteDetails& route,
+                         std::unique_ptr<Address> addr, int32_t vrfId) override;
   void getAllInterfaces(
       std::map<int32_t, InterfaceDetail>& interfaces) override;
   void getInterfaceList(std::vector<std::string>& interfaceList) override;
