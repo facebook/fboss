@@ -107,7 +107,7 @@ void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
 }
 
 bool WedgePort::isControllingPort() {
-  return bcmPort_ && bcmPort_->getPortGroup()->controllingPort() != bcmPort_;
+  return bcmPort_ && bcmPort_->getPortGroup()->controllingPort() == bcmPort_;
 }
 
 bool WedgePort::shouldCustomizeTransceiver() {
