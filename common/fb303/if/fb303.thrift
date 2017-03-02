@@ -45,4 +45,9 @@ service FacebookService {
    */
   map<string, i64> getCounters(),
 
+  /**
+   * Suggest a shutdown to the server
+   */
+  oneway void shutdown(),
+
 } (priority = 'IMPORTANT')
