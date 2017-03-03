@@ -505,7 +505,7 @@ void LocalInterfaceProcessor::run() {
 
 int main(int argc, char* argv[]) {
   // Parse command line flags
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
   google::InitGoogleLogging(argv[0]);
   google::SetCommandLineOptionWithMode("minloglevel", "0",
                                        google::SET_FLAGS_DEFAULT);

@@ -176,7 +176,7 @@ BENCHMARK(ArpRequestNotMine, numIters) {
 }
 
 int main(int argc, char** argv) {
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   // Setting up the switch is fairly expensive.  Do this once before we run the
   // benchmark functions so we don't have to do it inside the benchmark

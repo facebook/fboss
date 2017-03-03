@@ -40,7 +40,7 @@ class NeighborListenerClientInterface : public NeighborListenerClientSvIf {
 int main(int argc, char **argv) {
   folly::EventBase base;
 
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
   google::InitGoogleLogging(argv[0]);
   google::InstallFailureSignalHandler();
 
