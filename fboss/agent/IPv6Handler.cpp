@@ -218,11 +218,11 @@ void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
     // packets destined for us
     // Anything not handled by the controller, we will forward it to the host,
     // i.e. ping, ssh, bgp...
-    PortID port = pkt->getSrcPort();
+    PortID portID = pkt->getSrcPort();
     if (sw_->sendPacketToHost(intf->getID(), std::move(pkt))) {
-      sw_->stats()->port(port)->pktToHost(l3Len);
+      sw_->stats()->port(portID)->pktToHost(l3Len);
     } else {
-      sw_->stats()->port(port)->pktDropped();
+      sw_->stats()->port(portID)->pktDropped();
     }
     return;
   }
