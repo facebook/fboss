@@ -242,36 +242,36 @@ IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
       prefixes.emplace(addr.first.asV6().mask(mask), mask);
     });
 
-  auto serializeBody = [&](RWPrivateCursor* cursor) {
-    cursor->writeBE<uint8_t>(hopLimit);
-    cursor->writeBE<uint8_t>(flags);
-    cursor->writeBE<uint16_t>(lifetime.count());
-    cursor->writeBE<uint32_t>(reachableTimer.count());
-    cursor->writeBE<uint32_t>(retransTimer.count());
+  auto serializeBody = [&](RWPrivateCursor* cur) {
+    cur->writeBE<uint8_t>(hopLimit);
+    cur->writeBE<uint8_t>(flags);
+    cur->writeBE<uint16_t>(lifetime.count());
+    cur->writeBE<uint32_t>(reachableTimer.count());
+    cur->writeBE<uint32_t>(retransTimer.count());
 
     // Source MAC option
-    cursor->writeBE<uint8_t>(1); // Option type (src link-layer address)
-    cursor->writeBE<uint8_t>(1); // Option length = 1 (x8)
-    cursor->push(intf->getMac().bytes(), MacAddress::SIZE);
+    cur->writeBE<uint8_t>(1); // Option type (src link-layer address)
+    cur->writeBE<uint8_t>(1); // Option length = 1 (x8)
+    cur->push(intf->getMac().bytes(), MacAddress::SIZE);
 
     // Prefix options
     for (const auto& prefix : prefixes) {
-      cursor->writeBE<uint8_t>(3); // Option type (prefix information)
-      cursor->writeBE<uint8_t>(4); // Option length = 4 (x8)
-      cursor->writeBE<uint8_t>(prefix.second);
+      cur->writeBE<uint8_t>(3); // Option type (prefix information)
+      cur->writeBE<uint8_t>(4); // Option length = 4 (x8)
+      cur->writeBE<uint8_t>(prefix.second);
       uint8_t prefixFlags = 0xc0; // on link, autonomous address configuration
-      cursor->writeBE<uint8_t>(prefixFlags);
-      cursor->writeBE<uint32_t>(prefixValidLifetime);
-      cursor->writeBE<uint32_t>(prefixPreferredLifetime);
-      cursor->writeBE<uint32_t>(0); // reserved
-      cursor->push(prefix.first.bytes(), IPAddressV6::byteCount());
+      cur->writeBE<uint8_t>(prefixFlags);
+      cur->writeBE<uint32_t>(prefixValidLifetime);
+      cur->writeBE<uint32_t>(prefixPreferredLifetime);
+      cur->writeBE<uint32_t>(0); // reserved
+      cur->push(prefix.first.bytes(), IPAddressV6::byteCount());
     }
 
     // MTU option
-    cursor->writeBE<uint8_t>(5); // Option type (MTU)
-    cursor->writeBE<uint8_t>(1); // Option length = 1 (x8)
-    cursor->writeBE<uint16_t>(0); // Reserved
-    cursor->writeBE<uint32_t>(mtu);
+    cur->writeBE<uint8_t>(5); // Option type (MTU)
+    cur->writeBE<uint8_t>(1); // Option length = 1 (x8)
+    cur->writeBE<uint16_t>(0); // Reserved
+    cur->writeBE<uint32_t>(mtu);
   };
 
   auto bodyLength = getAdvertisementPacketBodySize(prefixes.size());
