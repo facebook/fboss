@@ -49,7 +49,7 @@ void WedgeI2CBus::verifyBus(bool autoReset) {
     if (autoReset) {
       try {
         dev_.resetDevice();
-      } catch (const UsbDeviceResetError& ex) {
+      } catch (const UsbDeviceResetError& ex2) {
       }
     } else {
       VLOG(1) << "initial read from CP2112 failed; I2C bus appears hung";
