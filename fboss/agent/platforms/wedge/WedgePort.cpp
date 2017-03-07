@@ -124,9 +124,6 @@ bool WedgePort::shouldCustomizeTransceiver() {
     // We only want to customise on the first channel - this is the actual
     // speed the transceiver should be configured for
     // Other channels may be disabled with other speeds set
-    LOG(INFO) << "Not customising qsfps of port " << id_
-              << ", channel " << chan
-              << " as it is not the controlling port";
     return false;
   } else if (speed_ == cfg::PortSpeed::DEFAULT) {
     // This should be resolved in BcmPort before calling
