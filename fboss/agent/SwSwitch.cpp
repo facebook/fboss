@@ -140,12 +140,13 @@ inline void updatePortStatusCounters(const facebook::fboss::StateDelta& delta) {
       if (oldPort->getName() == newPort->getName()) {
         return;
       }
-      long val = facebook::fbData->getCounter(getPortUpName(oldPort));
       facebook::fbData->clearCounter(getPortUpName(oldPort));
-      facebook::fbData->setCounter(getPortUpName(newPort), val);
+      facebook::fbData->setCounter(getPortUpName(newPort),
+        newPort->getOperState());
     },
     [&] (const shared_ptr<facebook::fboss::Port>& newPort) {
-      facebook::fbData->setCounter(getPortUpName(newPort), 0);
+      facebook::fbData->setCounter(getPortUpName(newPort),
+        newPort->getOperState());
     },
     [&] (const shared_ptr<facebook::fboss::Port>& oldPort) {
       facebook::fbData->clearCounter(getPortUpName(oldPort));
