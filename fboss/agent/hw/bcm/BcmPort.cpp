@@ -9,8 +9,6 @@
  */
 #include "fboss/agent/hw/bcm/BcmPort.h"
 
-#include <cstdlib>
-#include <cstring>
 #include <map>
 
 #include "common/stats/MonotonicCounter.h"
@@ -277,6 +275,10 @@ void BcmPort::enable(const std::shared_ptr<Port>& swPort) {
 void BcmPort::program(const shared_ptr<Port>& port) {
   setIngressVlan(port);
   setSpeed(port);
+  // Update FEC settings if needed. Note this is not only
+  // on speed change as the port's default speed (say on a
+  // cold boot) maybe what is desired by the config. But we
+  // may still need to enable FEC
   setFEC(port);
 }
 
@@ -399,11 +401,6 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
           swPort->getID());
       getPlatformPort()->linkSpeedChanged(desiredPortSpeed);
     }
-    // Update FEC settings if needed. Note this is not only
-    // on speed change as the port's default speed (say on a
-    // cold boot) maybe what is desired by the config. But we
-    // may still need to enable FEC
-    setFEC(swPort);
   }
 }
 
