@@ -321,16 +321,16 @@ std::string fbossHexDump(const string& buf) {
 TxPacketMatcher::TxPacketMatcher(StringPiece name, TxMatchFn fn)
   : name_(name.str()), fn_(std::move(fn)) {}
 
-::testing::Matcher<shared_ptr<TxPacket>> TxPacketMatcher::createMatcher(
+::testing::Matcher<TxPacket*> TxPacketMatcher::createMatcher(
     folly::StringPiece name,
     TxMatchFn&& fn) {
   return ::testing::MakeMatcher(new TxPacketMatcher(name, std::move(fn)));
 }
 
 bool TxPacketMatcher::MatchAndExplain(
-    shared_ptr<TxPacket> pkt, ::testing::MatchResultListener* l) const {
+    TxPacket* pkt, ::testing::MatchResultListener* l) const {
   try {
-    fn_(pkt.get());
+    fn_(pkt);
     return true;
   } catch (const std::exception& ex) {
     *l << ex.what();

@@ -249,16 +249,16 @@ using TxMatchFn = MatchFn<TxPacket>;
  * A gmock MatcherInterface for matching TxPacket objects.
  */
 class TxPacketMatcher
-  : public ::testing::MatcherInterface<std::shared_ptr<TxPacket>> {
+  : public ::testing::MatcherInterface<TxPacket*> {
  public:
   TxPacketMatcher(folly::StringPiece name, TxMatchFn fn);
 
-  static ::testing::Matcher<std::shared_ptr<TxPacket>> createMatcher(
+  static ::testing::Matcher<TxPacket*> createMatcher(
       folly::StringPiece name,
       TxMatchFn&& fn);
 
   bool MatchAndExplain(
-      std::shared_ptr<TxPacket> pkt,
+      TxPacket* pkt,
       ::testing::MatchResultListener* l) const override;
 
   void DescribeTo(std::ostream* os) const override;

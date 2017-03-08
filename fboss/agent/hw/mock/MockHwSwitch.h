@@ -19,84 +19,52 @@ namespace facebook { namespace fboss {
 
 class MockPlatform;
 
+/*
+ * MockPlatform is a mockable interface to a Platform. Non-critical
+ * functions have stub implementations and functions that we need to
+ * control for tests are mocked with gmock.
+ */
 class MockHwSwitch : public HwSwitch {
  public:
   explicit MockHwSwitch(MockPlatform* platform);
-  typedef std::pair<std::shared_ptr<SwitchState>, BootType> StateAndBootType;
+
   MOCK_METHOD1(init, HwInitResult(Callback*));
   MOCK_METHOD1(stateChanged, void(const StateDelta&));
+  MOCK_METHOD2(getAndClearNeighborHit, bool(RouterID, folly::IPAddress&));
+
+  virtual std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
 
   // gmock currently doesn't support move-only types, so we have to
   // use some janky work-arounds.
-  std::unique_ptr<TxPacket> allocatePacket(uint32_t) override;
-
-  MOCK_METHOD1(sendPacketSwitched_, void(std::shared_ptr<TxPacket>));
+  MOCK_METHOD1(sendPacketSwitched_, bool(TxPacket*));
   bool sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept override;
 
-  MOCK_METHOD1(sendPacketOutOfPort_, void(std::shared_ptr<TxPacket>));
+  MOCK_METHOD2(sendPacketOutOfPort_, bool(TxPacket*, facebook::fboss::PortID));
   bool sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
                           facebook::fboss::PortID portID) noexcept override;
 
-  // TODO
-  void updateStats(SwitchStats *switchStats) override {}
-
-  int getHighresSamplers(HighresSamplerList* samplers,
-                         const std::string& namespaceString,
-                         const std::set<CounterRequest>& counterSet) override {
-    return 0;
-  }
-
-  void fetchL2Table(std::vector<L2EntryThrift> *l2Table) override {
-    return;
-  }
-
-  cfg::PortSpeed getPortSpeed(PortID port) const override {
-    return cfg::PortSpeed::GIGE;
-  }
-
-  cfg::PortSpeed getMaxPortSpeed(PortID port) const override {
-    return cfg::PortSpeed::GIGE;
-  }
-
-  void gracefulExit(folly::dynamic& switchState) override {
-    // TODO
-  }
-
-  folly::dynamic toFollyDynamic() const override;
-
-  void initialConfigApplied() override {
-    // TODO
-  }
-
-  void clearWarmBootCache() override {
-    // TODO
-  }
-
-  void exitFatal() const override {
-    //TODO
-  }
-
-  void unregisterCallbacks() override {
-    // TODO
-  }
-
-  void remedyPorts() override {
-    // TODO
-  }
-
-  bool isValidStateUpdate(const StateDelta& delta) const override {
-    return true;
-  }
-
-  MOCK_METHOD2(getAndClearNeighborHit, bool(RouterID, folly::IPAddress&));
-
-  bool isPortUp(PortID port) const override {
-    // Should be called only from SwSwitch which knows whether
-    // the port is enabled or not
-    return true;
-  }
+  MOCK_METHOD1(updateStats, void(SwitchStats* switchStats));
+  MOCK_METHOD3(
+      getHighresSamplers,
+      int(HighresSamplerList* samplers,
+          const std::string& namespaceString,
+          const std::set<CounterRequest>& counterSet));
+  MOCK_METHOD1(fetchL2Table, void(std::vector<L2EntryThrift>* l2Table));
+  MOCK_CONST_METHOD1(getPortSpeed, cfg::PortSpeed(PortID port));
+  MOCK_CONST_METHOD1(getMaxPortSpeed, cfg::PortSpeed(PortID port));
+  MOCK_METHOD1(gracefulExit, void(folly::dynamic& switchState));
+  MOCK_CONST_METHOD0(toFollyDynamic, folly::dynamic());
+  MOCK_METHOD0(initialConfigApplied, void());
+  MOCK_METHOD0(clearWarmBootCache, void());
+  MOCK_CONST_METHOD0(exitFatal, void());
+  MOCK_METHOD0(unregisterCallbacks, void());
+  MOCK_METHOD0(remedyPorts, void());
+  MOCK_CONST_METHOD1(isValidStateUpdate, bool(const StateDelta& delta));
+  MOCK_CONST_METHOD1(isPortUp, bool(PortID port));
 
  private:
+  MockPlatform* platform_;
+
   // Forbidden copy constructor and assignment operator
   MockHwSwitch(MockHwSwitch const &) = delete;
   MockHwSwitch& operator=(MockHwSwitch const &) = delete;

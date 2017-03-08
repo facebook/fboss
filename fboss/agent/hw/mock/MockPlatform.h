@@ -11,6 +11,7 @@
 
 #include <folly/experimental/TestUtil.h>
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
@@ -20,26 +21,26 @@ namespace facebook { namespace fboss {
 
 class MockHwSwitch;
 
+/*
+ * MockPlatform is a mockable interface to a Platform. Non-critical
+ * functions have stub implementations and functions that we need to
+ * control for tests are mocked with gmock.
+ */
 class MockPlatform : public Platform {
  public:
   MockPlatform();
-  ~MockPlatform() override;
+  explicit MockPlatform(std::unique_ptr<MockHwSwitch> hw);
+  virtual ~MockPlatform() override;
 
   HwSwitch* getHwSwitch() const override;
-  std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
-  cfg::PortSpeed getPortSpeed(PortID port) const;
-  cfg::PortSpeed getMaxPortSpeed(PortID port) const;
-  void getProductInfo(ProductInfo& info) override {
-    // Nothing to do
-  };
-  TransceiverIdxThrift getPortMapping(PortID /* unused */) const override {
-    return TransceiverIdxThrift();
-  }
 
+  MOCK_METHOD1(createHandler, std::unique_ptr<ThriftHandler>(SwSwitch* sw));
+  MOCK_METHOD1(getProductInfo, void(ProductInfo& productInfo));
+  MOCK_CONST_METHOD1(getPortMapping, TransceiverIdxThrift(PortID port));
   MOCK_CONST_METHOD0(getLocalMac, folly::MacAddress());
-  MOCK_METHOD1(onHwInitialized, void(SwSwitch*));
+  MOCK_METHOD1(onHwInitialized, void(SwSwitch* sw));
 
  private:
   void createTmpDir();
