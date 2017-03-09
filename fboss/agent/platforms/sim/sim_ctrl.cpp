@@ -31,8 +31,8 @@ unique_ptr<Platform> initSimPlatform() {
   // Disable the tun interface code by default.
   // We normally don't want the sim switch to create real interfaces
   // on the host.
-  google::SetCommandLineOptionWithMode("tun_intf", "no",
-                                       google::SET_FLAGS_DEFAULT);
+  gflags::SetCommandLineOptionWithMode(
+      "tun_intf", "no", gflags::SET_FLAGS_DEFAULT);
 
   MacAddress localMac(FLAGS_local_mac);
   return make_unique<SimPlatform>(localMac, FLAGS_num_ports);

@@ -241,8 +241,8 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   // messages if --minloglevel is set to 0.  We pretty much always want to see
   // VLOG messages, so set minloglevel to 0 by default, unless overridden on
   // the command line.
-  google::SetCommandLineOptionWithMode("minloglevel", "0",
-                                       google::SET_FLAGS_DEFAULT);
+  gflags::SetCommandLineOptionWithMode(
+      "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
 
   // Allow the fb303 setOption() call to update the command line flag
   // settings.  This allows us to change the log levels on the fly using

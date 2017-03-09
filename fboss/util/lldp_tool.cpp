@@ -507,8 +507,8 @@ int main(int argc, char* argv[]) {
   // Parse command line flags
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   google::InitGoogleLogging(argv[0]);
-  google::SetCommandLineOptionWithMode("minloglevel", "0",
-                                       google::SET_FLAGS_DEFAULT);
+  gflags::SetCommandLineOptionWithMode(
+      "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
   google::InstallFailureSignalHandler();
 
   BcmProcessor bcm;

@@ -349,8 +349,8 @@ void tryOpenBus(TransceiverI2CApi* bus) {
 int main(int argc, char* argv[]) {
   google::InitGoogleLogging(argv[0]);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
-  google::SetCommandLineOptionWithMode("minloglevel", "0",
-                                       google::SET_FLAGS_DEFAULT);
+  gflags::SetCommandLineOptionWithMode(
+      "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
 
   if (FLAGS_set_100g && FLAGS_set_40g) {
     fprintf(stderr, "Cannot set both 40g and 100g\n");

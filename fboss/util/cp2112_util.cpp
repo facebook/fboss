@@ -534,8 +534,8 @@ void printCommandList(FILE* f) {
 int main(int argc, char* argv[]) {
   google::InitGoogleLogging(argv[0]);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
-  google::SetCommandLineOptionWithMode("minloglevel", "0",
-                                       google::SET_FLAGS_DEFAULT);
+  gflags::SetCommandLineOptionWithMode(
+      "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
 
   if (FLAGS_list_commands) {
     printCommandList(stdout);
