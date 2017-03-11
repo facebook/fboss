@@ -155,11 +155,13 @@ class PortStatusCmd(cmds.FbossCmd):
         field_fmt = self._get_field_format(internal_port)
         port_status_map = self._client.getPortStatus(ports)
         qsfp_info_map = utils.get_qsfp_info_map(
-            self._qsfp_client, ports, continue_on_error=True)
+            self._qsfp_client, None, continue_on_error=True)
         port_info_map = self._client.getAllPortInfo()
         missing_port_status = []
         for port_info in sorted(port_info_map.values(), key=utils.port_sort_fn):
             port_id = port_info.portId
+            if ports and (port_id not in ports):
+                continue
             status = port_status_map.get(port_id)
             if not status:
                 missing_port_status.append(port_id)

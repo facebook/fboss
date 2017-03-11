@@ -104,9 +104,9 @@ def get_status_strs(status, is_present):
     return attrs
 
 
-def get_qsfp_info_map(qsfp_client, ports, continue_on_error=False):
+def get_qsfp_info_map(qsfp_client, qsfps, continue_on_error=False):
     try:
-        return qsfp_client.getTransceiverInfo(ports)
+        return qsfp_client.getTransceiverInfo(qsfps)
     except Exception as e:
         if not continue_on_error:
             raise
