@@ -65,7 +65,7 @@ void EXPECT_RESOLVED(std::shared_ptr<Route<AddrT>> rt) {
 #define CLIENT_C ClientID(1003)
 
 TEST(RouteUpdater, dedup) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto tablesV0 = stateV0->getRouteTables();
 
@@ -92,7 +92,7 @@ TEST(RouteUpdater, dedup) {
   config.interfaces[1].ipAddresses[0] = "2.2.2.2/24";
   config.interfaces[1].ipAddresses[1] = "2::1/48";
 
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   stateV1->publish();
   auto rid = RouterID(0);
@@ -156,7 +156,7 @@ TEST(RouteUpdater, dedup) {
 }
 
 TEST(Route, resolve) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto tablesV0 = stateV0->getRouteTables();
 
@@ -183,7 +183,7 @@ TEST(Route, resolve) {
   config.interfaces[1].ipAddresses[0] = "2.2.2.2/24";
   config.interfaces[1].ipAddresses[1] = "2::1/48";
 
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   stateV1->publish();
   ASSERT_NE(nullptr, stateV1);
 
@@ -296,7 +296,7 @@ TEST(Route, resolve) {
 
 // Testing add and delete ECMP routes
 TEST(Route, addDel) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto tablesV0 = stateV0->getRouteTables();
 
@@ -323,7 +323,7 @@ TEST(Route, addDel) {
   config.interfaces[1].ipAddresses[0] = "2.2.2.2/24";
   config.interfaces[1].ipAddresses[1] = "2::1/48";
 
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   stateV1->publish();
 
@@ -423,7 +423,7 @@ TEST(Route, addDel) {
 
 // Test interface routes
 TEST(Route, Interface) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   RouterID rid = RouterID(0);
   auto stateV0 = make_shared<SwitchState>();
   auto tablesV0 = stateV0->getRouteTables();
@@ -451,7 +451,7 @@ TEST(Route, Interface) {
   config.interfaces[1].ipAddresses[0] = "2.2.2.2/24";
   config.interfaces[1].ipAddresses[1] = "2::1/48";
 
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   stateV1->publish();
   auto tablesV1 = stateV1->getRouteTables();
@@ -504,7 +504,7 @@ TEST(Route, Interface) {
   config.interfaces[0].ipAddresses[0] = "2.2.2.2/24";
   config.interfaces[0].ipAddresses[1] = "2::1/48";
 
-  auto stateV2 = publishAndApplyConfig(stateV1, &config, &platform);
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   ASSERT_NE(nullptr, stateV2);
   stateV2->publish();
   auto tablesV2 = stateV2->getRouteTables();
@@ -539,7 +539,7 @@ TEST(Route, Interface) {
 // Test interface routes when we have more than one address per
 // address family in an interface
 TEST(Route, MultipleAddressInterface) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto rid = RouterID(0);
   auto stateV0 = make_shared<SwitchState>();
   auto tablesV0 = stateV0->getRouteTables();
@@ -560,7 +560,7 @@ TEST(Route, MultipleAddressInterface) {
   config.interfaces[0].ipAddresses[2] = "1::1/48";
   config.interfaces[0].ipAddresses[3] = "1::2/48";
 
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   stateV1->publish();
   auto tablesV1 = stateV1->getRouteTables();
@@ -734,7 +734,7 @@ void checkChangedRouteTable(const shared_ptr<RouteTableMap>& oldTables,
 }
 
 TEST(RouteTableMap, applyConfig) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto tablesV0 = stateV0->getRouteTables();
 
@@ -754,7 +754,7 @@ TEST(RouteTableMap, applyConfig) {
   config.interfaces[1].__isset.mac = true;
   config.interfaces[1].mac = "00:00:00:00:00:22";
 
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   stateV1->publish();
   auto tablesV1 = stateV1->getRouteTables();
@@ -771,7 +771,7 @@ TEST(RouteTableMap, applyConfig) {
   config.interfaces[1].ipAddresses[0] = "1.1.1.1/24";
   config.interfaces[1].ipAddresses[1] = "::1/48";
 
-  auto stateV2 = publishAndApplyConfig(stateV1, &config, &platform);
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   ASSERT_NE(nullptr, stateV2);
   stateV2->publish();
   auto tablesV2 = stateV2->getRouteTables();
@@ -797,7 +797,7 @@ TEST(RouteTableMap, applyConfig) {
   // change an interface address
   config.interfaces[0].ipAddresses[3] = "11::11/48";
 
-  auto stateV3 = publishAndApplyConfig(stateV2, &config, &platform);
+  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   ASSERT_NE(nullptr, stateV3);
   stateV3->publish();
   auto tablesV3 = stateV3->getRouteTables();
@@ -815,7 +815,8 @@ TEST(RouteTableMap, applyConfig) {
 
   // move one interface to cause same route prefix conflict
   config.interfaces[1].routerID = 0;
-  EXPECT_THROW(publishAndApplyConfig(stateV3, &config, &platform), FbossError);
+  EXPECT_THROW(
+    publishAndApplyConfig(stateV3, &config, platform.get()), FbossError);
 
   // add a new interface in a new VRF
   config.vlans.resize(3);
@@ -835,7 +836,7 @@ TEST(RouteTableMap, applyConfig) {
   config.interfaces[1].ipAddresses[0] = "2.2.2.1/24";
   config.interfaces[1].ipAddresses[1] = "1::2/48";
 
-  auto stateV4 = publishAndApplyConfig(stateV3, &config, &platform);
+  auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
   ASSERT_NE(nullptr, stateV4);
   stateV4->publish();
   auto tablesV4 = stateV4->getRouteTables();
@@ -863,11 +864,11 @@ TEST(RouteTableMap, applyConfig) {
                     });
 
   // re-apply the same configure generates no change
-  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV4, &config, &platform));
+  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV4, &config, platform.get()));
 }
 
 TEST(Route, changedRoutesPostUpdate) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto tablesV0 = stateV0->getRouteTables();
 
@@ -885,7 +886,7 @@ TEST(Route, changedRoutesPostUpdate) {
   config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
   config.interfaces[0].ipAddresses[1] = "1::1/48";
 
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   stateV1->publish();
   auto rid = RouterID(0);

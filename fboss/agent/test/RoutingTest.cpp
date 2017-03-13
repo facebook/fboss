@@ -272,7 +272,7 @@ class RoutingFixture : public ::testing::Test {
  public:
   void SetUp() override {
     auto config = getSwitchConfig();
-    sw = createMockSw(&config, kPlatformMac, 0, ENABLE_TUN);
+    sw = createMockSw(&config, kPlatformMac, ENABLE_TUN);
 
     // Get TunManager pointer
     tunMgr = dynamic_cast<MockTunManager*>(sw->getTunManager());

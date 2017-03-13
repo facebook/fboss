@@ -56,11 +56,15 @@ const MacAddress kPlatformMac("02:01:02:03:04:05");
 cfg::SwitchConfig createSwitchConfig(seconds raInterval, seconds ndpTimeout) {
   // Create a thrift config to use
   cfg::SwitchConfig config;
-  config.vlans.resize(1);
+  config.vlans.resize(2);
   config.vlans[0].name = "PrimaryVlan";
   config.vlans[0].id = 5;
   config.vlans[0].routable = true;
   config.vlans[0].intfID = 1234;
+  config.vlans[1].name = "DefaultHWVlan";
+  config.vlans[1].id = 1;
+  config.vlans[1].routable = true;
+  config.vlans[1].intfID = 4321;
 
   config.vlanPorts.resize(10);
   config.ports.resize(10);
@@ -78,7 +82,7 @@ cfg::SwitchConfig createSwitchConfig(seconds raInterval, seconds ndpTimeout) {
     config.vlanPorts[n].emitTags = 0;
   }
 
-  config.interfaces.resize(1);
+  config.interfaces.resize(2);
   config.interfaces[0].intfID = 1234;
   config.interfaces[0].vlanID = 5;
   config.interfaces[0].name = "PrimaryInterface";
@@ -92,6 +96,13 @@ cfg::SwitchConfig createSwitchConfig(seconds raInterval, seconds ndpTimeout) {
   config.interfaces[0].ipAddresses[4] = "2401:db00:2110:3004::000a/64";
   config.interfaces[0].__isset.ndp = true;
   config.interfaces[0].ndp.routerAdvertisementSeconds = raInterval.count();
+  config.interfaces[1].intfID = 4321;
+  config.interfaces[1].vlanID = 1;
+  config.interfaces[1].name = "DefaultHWInterface";
+  config.interfaces[1].mtu = 9000;
+  config.interfaces[1].__isset.mtu = true;
+  config.interfaces[1].ipAddresses.resize(0);
+  config.interfaces[1].ndp.routerAdvertisementSeconds = raInterval.count();
 
   if (ndpTimeout.count() > 0) {
     config.arpTimeoutSeconds = ndpTimeout.count();

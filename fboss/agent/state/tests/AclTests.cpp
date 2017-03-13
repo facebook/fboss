@@ -23,7 +23,7 @@ using std::make_shared;
 using std::shared_ptr;
 
 TEST(Acl, applyConfig) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto aclEntry = make_shared<AclEntry>(AclEntryID(0));
   stateV0->addAcl(aclEntry);
@@ -48,7 +48,7 @@ TEST(Acl, applyConfig) {
   config.acls[0].__isset.dstPort = true;
   config.acls[0].dstPort = 8;
 
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
   auto aclV1 = stateV1->getAcl(AclEntryID(100));
   ASSERT_NE(nullptr, aclV1);
@@ -62,11 +62,11 @@ TEST(Acl, applyConfig) {
 
   config.acls[0].dstIp = "invalid address";
   EXPECT_THROW(publishAndApplyConfig(
-    stateV1, &config, &platform), folly::IPAddressFormatException);
+    stateV1, &config, platform.get()), folly::IPAddressFormatException);
 
   config.acls[0].id = 200;
   config.acls[0].__isset.dstIp = false;
-  auto stateV2 = publishAndApplyConfig(stateV1, &config, &platform);
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
   auto aclV2 = stateV2->getAcl(AclEntryID(200));
   // We should handle the field removal correctly
@@ -90,7 +90,7 @@ TEST(Acl, applyConfig) {
   configV1.acls[0].dstL4PortRange.max = 4;
   configV1.acls[0].__isset.dstL4PortRange = true;
 
-  auto stateV3 = publishAndApplyConfig(stateV2, &configV1, &platform);
+  auto stateV3 = publishAndApplyConfig(stateV2, &configV1, platform.get());
   EXPECT_NE(nullptr, stateV3);
   auto aclV3 = stateV3->getAcl(AclEntryID(101));
   ASSERT_NE(nullptr, aclV3);
@@ -106,11 +106,11 @@ TEST(Acl, applyConfig) {
 
   // test min > max case
   configV1.acls[0].srcL4PortRange.min = 3;
-  EXPECT_THROW(publishAndApplyConfig(stateV3, &configV1, &platform),
+  EXPECT_THROW(publishAndApplyConfig(stateV3, &configV1, platform.get()),
     FbossError);
   // test max > 65535 case
   configV1.acls[0].srcL4PortRange.max = 65536;
-  EXPECT_THROW(publishAndApplyConfig(stateV3, &configV1, &platform),
+  EXPECT_THROW(publishAndApplyConfig(stateV3, &configV1, platform.get()),
     FbossError);
   // set packet length rangeJson
   cfg::SwitchConfig configV2;
@@ -123,7 +123,7 @@ TEST(Acl, applyConfig) {
   configV2.acls[0].pktLenRange.max = 1500;
   configV2.acls[0].__isset.pktLenRange = true;
 
-  auto stateV4 = publishAndApplyConfig(stateV3, &configV2, &platform);
+  auto stateV4 = publishAndApplyConfig(stateV3, &configV2, platform.get());
   EXPECT_NE(nullptr, stateV4);
   auto aclV4 = stateV4->getAcl(AclEntryID(101));
   ASSERT_NE(nullptr, aclV4);
@@ -135,7 +135,7 @@ TEST(Acl, applyConfig) {
   configV2.acls[0].ipFrag = cfg::IpFragMatch::MATCH_NOT_FRAGMENTED;
   configV2.acls[0].__isset.ipFrag = true;
 
-  auto stateV5 = publishAndApplyConfig(stateV4, &configV2, &platform);
+  auto stateV5 = publishAndApplyConfig(stateV4, &configV2, platform.get());
   EXPECT_NE(nullptr, stateV5);
   auto aclV5 = stateV5->getAcl(AclEntryID(101));
   EXPECT_NE(nullptr, aclV5);
@@ -143,7 +143,7 @@ TEST(Acl, applyConfig) {
 }
 
 TEST(Acl, stateDelta) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::SwitchConfig config;
@@ -165,13 +165,13 @@ TEST(Acl, stateDelta) {
   config.acls[2].__isset.dstPort = true;
   config.acls[2].dstPort = 8;
 
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
-  auto stateV2 = publishAndApplyConfig(stateV1, &config, &platform);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_EQ(stateV2, nullptr);
 
   // Only change one action
   config.acls[0].action = cfg::AclAction::PERMIT;
-  auto stateV3 = publishAndApplyConfig(stateV1, &config, &platform);
+  auto stateV3 = publishAndApplyConfig(stateV1, &config, platform.get());
   StateDelta delta13(stateV1, stateV3);
   auto aclDelta13 = delta13.getAclsDelta();
   auto iter = aclDelta13.begin();
@@ -182,7 +182,7 @@ TEST(Acl, stateDelta) {
 
   // Remove tail element
   config.acls.pop_back();
-  auto stateV4 = publishAndApplyConfig(stateV3, &config, &platform);
+  auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
   StateDelta delta34(stateV3, stateV4);
   auto aclDelta34 = delta34.getAclsDelta();
   iter = aclDelta34.begin();
@@ -194,7 +194,7 @@ TEST(Acl, stateDelta) {
 }
 
 TEST(Acl, Icmp) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::SwitchConfig config;
@@ -208,7 +208,7 @@ TEST(Acl, Icmp) {
   config.acls[0].icmpCode = 0;
   config.acls[0].__isset.icmpCode = true;
 
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
   auto aclV1 = stateV1->getAcl(AclEntryID(100));
   ASSERT_NE(nullptr, aclV1);
@@ -219,11 +219,14 @@ TEST(Acl, Icmp) {
 
   // test config exceptions
   config.acls[0].proto = 4;
-  EXPECT_THROW(publishAndApplyConfig(stateV1, &config, &platform), FbossError);
+  EXPECT_THROW(
+    publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
   config.acls[0].__isset.proto = false;
-  EXPECT_THROW(publishAndApplyConfig(stateV1, &config, &platform), FbossError);
+  EXPECT_THROW(
+    publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
   config.acls[0].proto = 58;
   config.acls[0].__isset.proto = true;
   config.acls[0].__isset.icmpType = false;
-  EXPECT_THROW(publishAndApplyConfig(stateV1, &config, &platform), FbossError);
+  EXPECT_THROW(
+    publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
 }

@@ -100,7 +100,7 @@ TEST(ThriftTest, assertPortSpeeds) {
 }
 
 TEST(ThriftTest, LinkLocalRoutes) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto stateV0 = testStateB();
   // Remove all linklocalroutes from stateV0 in order to clear all
   // linklocalroutes
@@ -122,7 +122,7 @@ TEST(ThriftTest, LinkLocalRoutes) {
   config.interfaces[0].ipAddresses[1] = "192.168.0.1/24";
   config.interfaces[0].ipAddresses[2] = "2401:db00:2110:3001::0001/64";
   // Call applyThriftConfig
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   stateV1->publish();
   // Verify that stateV1 contains the link local route
   shared_ptr<RouteTable> rt = stateV1->getRouteTables()->

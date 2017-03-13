@@ -39,7 +39,7 @@ static const string kVlan99("Vlan99");
 static const string kVlan1299("Vlan1299");
 
 TEST(Vlan, applyConfig) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto vlanV0 = make_shared<Vlan>(VlanID(1234), kVlan1234);
   stateV0->addVlan(vlanV0);
@@ -82,7 +82,7 @@ TEST(Vlan, applyConfig) {
   expectedPorts.insert(make_pair(PortID(1), Vlan::PortInfo(false)));
   expectedPorts.insert(make_pair(PortID(99), Vlan::PortInfo(true)));
 
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto vlanV1 = stateV1->getVlans()->getVlan(VlanID(1234));
   ASSERT_NE(nullptr, vlanV1);
   auto vlanV1_byName = stateV1->getVlans()->getVlanSlow(kVlan1234);
@@ -104,7 +104,7 @@ TEST(Vlan, applyConfig) {
             IPAddressV6(map6[MacAddress("02:00:00:00:00:02")]));
 
   // Applying the same config again should return null
-  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, &platform));
+  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
 
   // Add an interface
   config.interfaces.resize(1);
@@ -115,9 +115,9 @@ TEST(Vlan, applyConfig) {
   config.interfaces[0].ipAddresses[0] = "10.1.1.1/24";
   config.interfaces[0].ipAddresses[1] = "2a03:2880:10:1f07:face:b00c:0:0/96";
   MacAddress platformMac("82:02:00:ab:cd:ef");
-  EXPECT_CALL(platform, getLocalMac()).WillRepeatedly(Return(platformMac));
+  EXPECT_CALL(*platform, getLocalMac()).WillRepeatedly(Return(platformMac));
 
-  auto stateV2 = publishAndApplyConfig(stateV1, &config, &platform);
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   auto vlanV2 = stateV2->getVlans()->getVlan(VlanID(1234));
   EXPECT_EQ(nodeID, vlanV2->getNodeID());
   EXPECT_EQ(2, vlanV2->getGeneration());
@@ -158,7 +158,7 @@ TEST(Vlan, applyConfig) {
   MacAddress intf2Mac("02:01:02:ab:cd:78");
   config.interfaces[1].mac = intf2Mac.toString();
   config.interfaces[1].__isset.mac = true;
-  auto stateV3 = publishAndApplyConfig(stateV2, &config, &platform);
+  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto vlanV3 = stateV3->getVlans()->getVlan(VlanID(1299));
   EXPECT_EQ(0, vlanV3->getGeneration());
   EXPECT_FALSE(vlanV3->isPublished());
@@ -195,7 +195,7 @@ TEST(Vlan, applyConfig) {
   config.interfaces[2].ipAddresses.resize(2);
   config.interfaces[2].ipAddresses[0] = "1.2.3.4/24";
   config.interfaces[2].ipAddresses[1] = "10.0.0.1/9";
-  auto stateV4 = publishAndApplyConfig(stateV3, &config, &platform);
+  auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
   ASSERT_NE(nullptr, stateV4);
   // VLAN 1234 should be unchanged
   EXPECT_EQ(vlanV2, stateV4->getVlans()->getVlan(VlanID(1234)));
@@ -225,7 +225,7 @@ TEST(Vlan, applyConfig) {
   config.interfaces[3].ipAddresses.resize(2);
   config.interfaces[3].ipAddresses[0] = "10.50.3.7/24";
   config.interfaces[3].ipAddresses[1] = "10.50.0.3/9";
-  auto stateV5 = publishAndApplyConfig(stateV4, &config, &platform);
+  auto stateV5 = publishAndApplyConfig(stateV4, &config, platform.get());
   ASSERT_NE(nullptr, stateV5);
   auto vlan100 = stateV5->getVlans()->getVlan(VlanID(100));
   EXPECT_EQ(InterfaceID(4), vlan100->getInterfaceID());
@@ -272,7 +272,7 @@ void checkChangedVlans(const shared_ptr<VlanMap>& oldVlans,
 }
 
 TEST(VlanMap, applyConfig) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   stateV0->registerPort(PortID(1), "port1");
   stateV0->registerPort(PortID(2), "port2");
@@ -315,7 +315,7 @@ TEST(VlanMap, applyConfig) {
   config.interfaces[1].vlanID = 99;
   config.interfaces[1].routerID = 0;
 
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto vlansV1 = stateV1->getVlans();
   ASSERT_NE(nullptr, vlansV1);
   EXPECT_EQ(1, vlansV1->getGeneration());
@@ -361,12 +361,12 @@ TEST(VlanMap, applyConfig) {
   checkChangedVlans(vlansV0, vlansV1, {}, {99, 1234}, {});
 
   // Applying the same config again should result in no change
-  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, &platform));
+  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
 
   // Drop one port from VLAN 1234
   config.vlanPorts[0] = config.vlanPorts[6];
   config.vlanPorts.resize(6);
-  auto stateV2 = publishAndApplyConfig(stateV1, &config, &platform);
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   auto vlansV2 = stateV2->getVlans();
   ASSERT_NE(nullptr, vlansV2);
   EXPECT_EQ(2, vlansV2->getGeneration());
@@ -402,7 +402,7 @@ TEST(VlanMap, applyConfig) {
   config.interfaces.resize(1);
   config.interfaces[0].intfID = 1;
 
-  auto stateV3 = publishAndApplyConfig(stateV2, &config, &platform);
+  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto vlansV3 = stateV3->getVlans();
   ASSERT_NE(nullptr, vlansV3);
   EXPECT_EQ(3, vlansV3->getGeneration());

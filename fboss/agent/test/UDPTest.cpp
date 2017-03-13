@@ -39,8 +39,8 @@ using ::testing::Return;
 TEST(UDPTest, Parse) {
 
   // setup a default state object
-  auto state = make_shared<SwitchState>();
-  auto sw = createMockSw(state);
+  auto sw = createMockSw();
+  auto state = sw->getState();
   PortID portID(1);
   VlanID vlanID(1);
 

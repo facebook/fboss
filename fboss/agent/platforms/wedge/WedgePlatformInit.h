@@ -7,11 +7,16 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/wedge/WedgePlatformInit.h"
-#include "fboss/agent/Main.h"
+#pragma once
 
-using namespace facebook::fboss;
+#include <memory>
 
-int main(int argc, char* argv[]) {
-  return facebook::fboss::fbossMain(argc, argv, initWedgePlatform);
-}
+namespace facebook { namespace fboss {
+
+class WedgePlatform;
+class Platform;
+
+std::unique_ptr<WedgePlatform> createWedgePlatform();
+std::unique_ptr<Platform> initWedgePlatform();
+
+}}

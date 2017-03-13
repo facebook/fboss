@@ -28,7 +28,7 @@ using folly::IPAddressV6;
 using folly::IPAddress;
 
 TEST(StaticRoutes, configureUnconfigure) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto tablesV0 = stateV0->getRouteTables();
 
@@ -58,7 +58,7 @@ TEST(StaticRoutes, configureUnconfigure) {
   config.staticRoutesWithNhops[3].nexthops[0] = "2001::2";
 
 
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   RouterID rid0(0);
   auto t1 = stateV1->getRouteTables()->getRouteTableIf(rid0);
@@ -139,7 +139,7 @@ TEST(StaticRoutes, configureUnconfigure) {
 
   // Now blow away the static routes from config.
   cfg::SwitchConfig emptyConfig;
-  auto stateV2 = publishAndApplyConfig(stateV1, &emptyConfig, &platform,
+  auto stateV2 = publishAndApplyConfig(stateV1, &emptyConfig, platform.get(),
       &config);
   ASSERT_NE(nullptr, stateV2);
   auto t2 = stateV2->getRouteTables()->getRouteTableIf(rid0);

@@ -101,7 +101,6 @@ TxMatchFn checkLldpPDU() {
 
 TEST(LldpManagerTest, LldpSend) {
   auto sw = setupSwitch();
-  //setAllPortsUp(sw->getState());
   SwSwitch* swPtr = sw.get();
   EXPECT_HW_CALL(
       sw,

@@ -26,7 +26,7 @@ using std::make_shared;
 using std::shared_ptr;
 
 TEST(Port, applyConfig) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   stateV0->registerPort(PortID(1), "port1");
   auto portV0 = stateV0->getPort(PortID(1));
@@ -66,7 +66,7 @@ TEST(Port, applyConfig) {
   config.interfaces[1].__isset.mac = true;
   config.interfaces[1].mac = "00:00:00:00:00:55";
 
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto portV1 = stateV1->getPort(PortID(1));
   ASSERT_NE(nullptr, portV1);
   EXPECT_NE(portV0, portV1);
@@ -82,7 +82,7 @@ TEST(Port, applyConfig) {
   EXPECT_EQ(expectedVlans, portV1->getVlans());
 
   // Applying the same config again should result in no changes
-  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, &platform));
+  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
 
   // Applying the same config with a new VLAN list should result in changes
   config.vlanPorts.resize(1);
@@ -92,7 +92,7 @@ TEST(Port, applyConfig) {
 
   Port::VlanMembership expectedVlansV2;
   expectedVlansV2.insert(make_pair(VlanID(2021), Port::VlanInfo(false)));
-  auto stateV2 = publishAndApplyConfig(stateV1, &config, &platform);
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   auto portV2 = stateV2->getPort(PortID(1));
   ASSERT_NE(nullptr, portV2);
   EXPECT_NE(portV1, portV2);
@@ -107,7 +107,7 @@ TEST(Port, applyConfig) {
   // Applying the same config with a different speed should result in changes
   config.ports[0].speed = cfg::PortSpeed::GIGE;
 
-  auto stateV3 = publishAndApplyConfig(stateV2, &config, &platform);
+  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto portV3 = stateV3->getPort(PortID(1));
   ASSERT_NE(nullptr, portV3);
   EXPECT_NE(portV2, portV3);
@@ -115,11 +115,12 @@ TEST(Port, applyConfig) {
 
   // Attempting to apply a config with a non-existent PortID should fail.
   config.ports[0].logicalID = 2;
-  EXPECT_THROW(publishAndApplyConfig(stateV3, &config, &platform), FbossError);
+  EXPECT_THROW(
+    publishAndApplyConfig(stateV3, &config, platform.get()), FbossError);
 }
 
 TEST(Port, initDefaultConfig) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   PortID portID(1);
   auto state = make_shared<SwitchState>();
   state->registerPort(portID, "port1");
@@ -129,13 +130,13 @@ TEST(Port, initDefaultConfig) {
   config.ports.resize(1);
   config.ports[0].logicalID = 1;
   config.ports[0].name = "port1";
-  EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, &platform));
+  EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 
   // Adding a port entry in the config and initializing it with
   // initDefaultConfig() should also result in no changes.
   config.ports.resize(1);
   state->getPort(portID)->initDefaultConfig(&config.ports[0]);
-  EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, &platform));
+  EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 }
 
 TEST(PortMap, registerPorts) {
@@ -218,7 +219,7 @@ void checkChangedPorts(const shared_ptr<PortMap>& oldPorts,
 }
 
 TEST(PortMap, applyConfig) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto portsV0 = stateV0->getPorts();
   portsV0->registerPort(PortID(1), "port1");
@@ -243,11 +244,11 @@ TEST(PortMap, applyConfig) {
   config.ports[2].name = "port3";
   config.ports[3].logicalID = 4;
   config.ports[3].name = "port4";
-  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV0, &config, &platform));
+  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV0, &config, platform.get()));
 
   // Enable port 2
   config.ports[1].state = cfg::PortState::UP;
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto portsV1 = stateV1->getPorts();
   ASSERT_NE(nullptr, portsV1);
   EXPECT_EQ(1, portsV1->getGeneration());
@@ -278,7 +279,7 @@ TEST(PortMap, applyConfig) {
   EXPECT_TRUE(port1->isPublished());
 
   // Applying the same config again should do nothing.
-  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, &platform));
+  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
 
   // Now mark all ports up
   config.ports[0].state = cfg::PortState::UP;
@@ -286,7 +287,7 @@ TEST(PortMap, applyConfig) {
   config.ports[2].state = cfg::PortState::UP;
   config.ports[3].state = cfg::PortState::UP;
 
-  auto stateV2 = publishAndApplyConfig(stateV1, &config, &platform);
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   auto portsV2 = stateV2->getPorts();
   ASSERT_NE(nullptr, portsV2);
   EXPECT_EQ(2, portsV2->getGeneration());
@@ -315,7 +316,8 @@ TEST(PortMap, applyConfig) {
   // Applying a config with ports that don't already exist should fail
   config.ports[0].logicalID = 10;
   config.ports[0].state = cfg::PortState::UP;
-  EXPECT_THROW(publishAndApplyConfig(stateV2, &config, &platform), FbossError);
+  EXPECT_THROW(
+    publishAndApplyConfig(stateV2, &config, platform.get()), FbossError);
 
   // If we remove port3 from the config, it should be marked down
   config.ports.resize(3);
@@ -328,7 +330,7 @@ TEST(PortMap, applyConfig) {
   config.ports[2].logicalID = 4;
   config.ports[2].name = "port4";
   config.ports[2].state = cfg::PortState::UP;
-  auto stateV3 = publishAndApplyConfig(stateV2, &config, &platform);
+  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto portsV3 = stateV3->getPorts();
   ASSERT_NE(nullptr, portsV3);
   EXPECT_EQ(3, portsV3->getGeneration());

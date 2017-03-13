@@ -53,11 +53,11 @@ class MockRouteLogger : public RouteLogger<AddrT> {
 class RouteUpdateLoggerTest : public ::testing::Test {
  public:
   void SetUp() override {
-    blankState = std::make_shared<SwitchState>();
+    sw = createMockSw();
+    initState = sw->getState();
     stateA = testStateA();
-    deltaAdd = std::make_shared<StateDelta>(blankState, stateA);
-    deltaRemove = std::make_shared<StateDelta>(stateA, blankState);
-    sw = createMockSw(blankState);
+    deltaAdd = std::make_shared<StateDelta>(initState, stateA);
+    deltaRemove = std::make_shared<StateDelta>(stateA, initState);
     routeUpdateLogger = std::make_unique<RouteUpdateLogger>(
         sw.get(),
         std::make_unique<MockRouteLogger<folly::IPAddressV4>>(),
@@ -121,7 +121,7 @@ class RouteUpdateLoggerTest : public ::testing::Test {
     expectNoAdded();
   }
 
-  std::shared_ptr<SwitchState> blankState;
+  std::shared_ptr<SwitchState> initState;
   std::shared_ptr<SwitchState> stateA;
   std::shared_ptr<StateDelta> deltaAdd;
   std::shared_ptr<StateDelta> deltaRemove;

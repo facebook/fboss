@@ -15,6 +15,8 @@
 
 #include <folly/MacAddress.h>
 #include <folly/Range.h>
+#include <folly/Optional.h>
+
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
@@ -65,19 +67,19 @@ std::shared_ptr<SwitchState> publishAndApplyConfigFile(
  * specified initial state.  The returned SwSwitch will have already been
  * initialized.
  */
-std::unique_ptr<SwSwitch> createMockSw(const std::shared_ptr<SwitchState>&);
-std::unique_ptr<SwSwitch> createMockSw(const std::shared_ptr<SwitchState>&,
-                                       const folly::MacAddress&);
+std::unique_ptr<SwSwitch> createMockSw(
+  const std::shared_ptr<SwitchState>& = nullptr,
+  const folly::Optional<folly::MacAddress>& = nullptr,
+  SwitchFlags flags = DEFAULT);
 
 std::unique_ptr<SwSwitch> createMockSw(
     cfg::SwitchConfig* cfg,
     folly::MacAddress mac,
-    uint32_t maxPorts = 0,
     SwitchFlags flags = DEFAULT);
 std::unique_ptr<SwSwitch> createMockSw(
     cfg::SwitchConfig* cfg,
-    uint32_t maxPorts = 0,
     SwitchFlags flags = DEFAULT);
+std::unique_ptr<MockPlatform> createMockPlatform();
 
 /*
  * Get the MockHwSwitch from a SwSwitch.

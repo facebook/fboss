@@ -29,7 +29,7 @@ using std::shared_ptr;
 using ::testing::Return;
 
 TEST(Interface, addrToReach) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   cfg::SwitchConfig config;
   config.vlans.resize(2);
   config.vlans[0].id = 1;
@@ -61,7 +61,7 @@ TEST(Interface, addrToReach) {
 
   InterfaceID id(1);
   shared_ptr<SwitchState> oldState = make_shared<SwitchState>();
-  auto state = publishAndApplyConfig(oldState, &config, &platform);
+  auto state = publishAndApplyConfig(oldState, &config, platform.get());
   ASSERT_NE(nullptr, state);
   const auto& intfs = state->getInterfaces();
   const auto& intf1 = intfs->getInterface(InterfaceID(1));
@@ -89,7 +89,7 @@ TEST(Interface, addrToReach) {
 }
 
 TEST(Interface, applyConfig) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   cfg::SwitchConfig config;
   config.vlans.resize(1);
   config.vlans[0].id = 1;
@@ -111,7 +111,7 @@ TEST(Interface, applyConfig) {
   auto updateState = [&]() {
     oldState = state;
     oldInterface = interface;
-    state = publishAndApplyConfig(oldState, &config, &platform);
+    state = publishAndApplyConfig(oldState, &config, platform.get());
     EXPECT_NE(oldState, state);
     ASSERT_NE(nullptr, state);
     interface = state->getInterfaces()->getInterface(id);
@@ -132,7 +132,7 @@ TEST(Interface, applyConfig) {
   auto vlan1 = state->getVlans()->getVlanIf(VlanID(1));
   EXPECT_EQ(InterfaceID(1),vlan1->getInterfaceID());
   // same configuration cause nothing changed
-  EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, &platform));
+  EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 
   // Change VlanID for intf + create new intf for existing vlan
   config.vlans.resize(2);
@@ -184,7 +184,7 @@ TEST(Interface, applyConfig) {
   config.interfaces[0].mac = "";
   config.interfaces[0].__isset.mac = false;
   MacAddress platformMac("00:02:00:ab:cd:ef");
-  EXPECT_CALL(platform, getLocalMac()).WillRepeatedly(Return(platformMac));
+  EXPECT_CALL(*platform, getLocalMac()).WillRepeatedly(Return(platformMac));
   updateState();
   EXPECT_EQ(nodeID, interface->getNodeID());
   EXPECT_EQ(oldInterface->getGeneration() + 1, interface->getGeneration());
@@ -216,14 +216,16 @@ TEST(Interface, applyConfig) {
   config.interfaces[0].ipAddresses[1] = "::22:33:44/120";
   config.interfaces[0].ipAddresses[2] = "20.1.1.2/24";
   config.interfaces[0].ipAddresses[3] = "::11:11:11/120";
-  EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, &platform));
+  EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 
   // duplicate IP addresses causes throw
   config.interfaces[0].ipAddresses[1] = config.interfaces[0].ipAddresses[0];
-  EXPECT_THROW(publishAndApplyConfig(state, &config, &platform), FbossError);
+  EXPECT_THROW(
+    publishAndApplyConfig(state, &config, platform.get()), FbossError);
   // Should still throw even if the mask is different
   config.interfaces[0].ipAddresses[1] = "10.1.1.1/16";
-  EXPECT_THROW(publishAndApplyConfig(state, &config, &platform), FbossError);
+  EXPECT_THROW(
+    publishAndApplyConfig(state, &config, platform.get()), FbossError);
   config.interfaces[0].ipAddresses[1] = "::22:33:44/120";
 
   // Name change
@@ -333,7 +335,7 @@ void checkChangedIntfs(const shared_ptr<InterfaceMap>& oldIntfs,
 }
 
 TEST(InterfaceMap, applyConfig) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto intfsV0 = stateV0->getInterfaces();
 
@@ -353,7 +355,7 @@ TEST(InterfaceMap, applyConfig) {
   config.interfaces[1].__isset.mac = true;
   config.interfaces[1].mac = "00:00:00:00:00:22";
 
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, &platform);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   auto intfsV1 = stateV1->getInterfaces();
   EXPECT_NE(intfsV1, intfsV0);
@@ -376,13 +378,13 @@ TEST(InterfaceMap, applyConfig) {
   EXPECT_EQ(nullptr, intfsV1->getInterfaceIf(InterfaceID(99)));
 
   // applying the same configure results in no change
-  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, &platform));
+  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
 
   // adding some IP addresses
   config.interfaces[1].ipAddresses.resize(2);
   config.interfaces[1].ipAddresses[0] = "192.168.1.1/16";
   config.interfaces[1].ipAddresses[1] = "::1/48";
-  auto stateV2 = publishAndApplyConfig(stateV1, &config, &platform);
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   ASSERT_NE(nullptr, stateV2);
   auto intfsV2 = stateV2->getInterfaces();
   EXPECT_NE(intfsV1, intfsV2);
@@ -408,7 +410,7 @@ TEST(InterfaceMap, applyConfig) {
   config.interfaces[2].mac = "00:00:00:00:00:55";
   config.vlans[0].intfID = 5;
 
-  auto stateV3 = publishAndApplyConfig(stateV2, &config, &platform);
+  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   ASSERT_NE(nullptr, stateV3);
   auto intfsV3 = stateV3->getInterfaces();
   EXPECT_NE(intfsV2, intfsV3);
@@ -430,7 +432,7 @@ TEST(InterfaceMap, applyConfig) {
   config.interfaces[0].mtu = 1337;
   config.interfaces[0].__isset.mtu = true;
   EXPECT_EQ(1500, intfsV3->getInterface(InterfaceID(3))->getMtu());
-  auto stateV4 = publishAndApplyConfig(stateV3, &config, &platform);
+  auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
   ASSERT_NE(nullptr, stateV4);
   auto intfsV4 = stateV4->getInterfaces();
   EXPECT_NE(intfsV3, intfsV4);

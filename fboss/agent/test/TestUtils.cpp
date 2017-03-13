@@ -16,8 +16,11 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/mock/MockableHwSwitch.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/hw/mock/MockablePlatform.h"
+#include "fboss/agent/platforms/wedge/WedgePlatformInit.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
@@ -25,8 +28,10 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/test/MockTunManager.h"
+
 #include <folly/Memory.h>
 #include <folly/json.h>
+#include <folly/Optional.h>
 
 using folly::MacAddress;
 using folly::IPAddress;
@@ -43,8 +48,67 @@ using std::string;
 using std::unique_ptr;
 using ::testing::_;
 using ::testing::Return;
+using ::testing::NiceMock;
+
+DEFINE_bool(switch_hw, false, "Run tests for actual hw");
 
 namespace facebook { namespace fboss {
+
+namespace {
+
+void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
+  if (flags & ENABLE_TUN) {
+    // TODO(aeckert): I don't think this should be a first class
+    // argument to SwSwitch::init() as unit tests are the only place
+    // that pass in a TunManager to init(). Let's come up with a way
+    // to mock the TunManager initialization instead of passing it in
+    // like this.
+    //
+    // TODO(aeckert): Have MockTunManager hit the real TunManager
+    // implementation if testing on actual hw
+    auto mockTunMgr = new MockTunManager(sw, sw->getBackgroundEVB());
+    std::unique_ptr<TunManager> tunMgr(mockTunMgr);
+    sw->init(std::move(tunMgr), flags);
+  } else {
+    sw->init(nullptr, flags);
+  }
+}
+
+std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
+    std::unique_ptr<MockPlatform> platform,
+    const std::shared_ptr<SwitchState>& state,
+    SwitchFlags flags) {
+  auto sw = make_unique<SwSwitch>(std::move(platform));
+  HwInitResult ret;
+  ret.switchState = state ? state : make_shared<SwitchState>();
+  ret.bootType = BootType::COLD_BOOT;
+  EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(ret));
+  initSwSwitchWithFlags(sw.get(), flags);
+  waitForStateUpdates(sw.get());
+  return sw;
+}
+
+std::unique_ptr<SwSwitch> setupMockSwitchWithHW(
+    std::unique_ptr<MockPlatform> platform,
+    const std::shared_ptr<SwitchState>& state,
+    SwitchFlags flags) {
+  auto sw = make_unique<SwSwitch>(std::move(platform));
+  EXPECT_PLATFORM_CALL(sw, onHwInitialized(_)).Times(1);
+  initSwSwitchWithFlags(sw.get(), flags);
+  if (state) {
+    sw->updateState(
+      "Apply initial test state",
+      [state](const shared_ptr<SwitchState>& prev) -> shared_ptr<SwitchState> {
+        state->inheritGeneration(*prev);
+        return state;
+      });
+  }
+  sw->initialConfigApplied(std::chrono::steady_clock::now());
+  waitForStateUpdates(sw.get());
+  return sw;
+}
+
+}
 
 shared_ptr<SwitchState> publishAndApplyConfig(
     shared_ptr<SwitchState>& state,
@@ -70,74 +134,47 @@ shared_ptr<SwitchState> publishAndApplyConfigFile(
   return applyThriftConfigFile(state, path, platform, &prevConfig).first;
 }
 
-unique_ptr<SwSwitch> createMockSw(const shared_ptr<SwitchState>& state) {
-  auto sw = make_unique<SwSwitch>(make_unique<MockPlatform>());
-  auto stateAndBootType = std::make_pair(state, BootType::COLD_BOOT);
-  HwInitResult ret;
-  ret.switchState = state;
-  ret.bootType = BootType::COLD_BOOT;
-  EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(ret));
-  EXPECT_PLATFORM_CALL(sw, onHwInitialized(_)).Times(1);
-  sw->init(nullptr);
-  waitForStateUpdates(sw.get());
-  return sw;
+unique_ptr<MockPlatform> createMockPlatform() {
+  if (!FLAGS_switch_hw) {
+    return make_unique<testing::NiceMock<MockPlatform>>();
+  }
+
+  std::shared_ptr<Platform> platform(initWedgePlatform().release());
+  return make_unique<testing::NiceMock<MockablePlatform>>(platform);
 }
 
-unique_ptr<SwSwitch> createMockSw(const shared_ptr<SwitchState>& state,
-                                  const MacAddress& mac) {
-  auto platform = make_unique<MockPlatform>();
-  EXPECT_CALL(*platform.get(), getLocalMac()).WillRepeatedly(Return(mac));
-  auto sw = make_unique<SwSwitch>(std::move(platform));
-  auto stateAndBootType = std::make_pair(state, BootType::COLD_BOOT);
-  HwInitResult ret;
-  ret.switchState = state;
-  ret.bootType = BootType::COLD_BOOT;
-  EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(ret));
-  EXPECT_PLATFORM_CALL(sw, onHwInitialized(_)).Times(1);
-  sw->init(nullptr);
-  waitForStateUpdates(sw.get());
-  return sw;
+unique_ptr<SwSwitch> createMockSw(
+    const shared_ptr<SwitchState>& state,
+    const folly::Optional<MacAddress>& mac,
+    SwitchFlags flags) {
+  auto platform = createMockPlatform();
+  if (mac) {
+    EXPECT_CALL(*platform.get(), getLocalMac()).WillRepeatedly(
+      Return(mac.value()));
+  }
+  if (FLAGS_switch_hw) {
+    return setupMockSwitchWithHW(std::move(platform), state, flags);
+  }
+  return setupMockSwitchWithoutHW(std::move(platform), state, flags);
 }
 
 unique_ptr<SwSwitch> createMockSw(cfg::SwitchConfig* config,
                                   MacAddress mac,
-                                  uint32_t maxPort,
                                   SwitchFlags flags) {
-  // Create the initial state, which only has ports
-  auto initialState = make_shared<SwitchState>();
-  if (maxPort == 0) {
+  shared_ptr<SwitchState> initialState{nullptr};
+  if (!FLAGS_switch_hw) {
+    // Create the initial state, which only has ports
+    initialState = make_shared<SwitchState>();
+    uint32_t maxPort{0};
     for (const auto& port : config->ports) {
       maxPort = std::max(static_cast<int32_t>(maxPort), port.logicalID);
     }
-  }
-  for (uint32_t idx = 1; idx <= maxPort; ++idx) {
-    initialState->registerPort(PortID(idx), folly::to<string>("port", idx));
+    for (uint32_t idx = 1; idx <= maxPort; ++idx) {
+      initialState->registerPort(PortID(idx), folly::to<string>("port", idx));
+    }
   }
 
-  // Create the SwSwitch
-  auto platform = make_unique<MockPlatform>();
-  EXPECT_CALL(*platform.get(), getLocalMac()).WillRepeatedly(Return(mac));
-  auto sw = make_unique<SwSwitch>(std::move(platform));
-  auto stateAndBootType = std::make_pair(initialState, BootType::COLD_BOOT);
-
-  HwInitResult ret;
-  ret.switchState = initialState;
-  ret.bootType = BootType::COLD_BOOT;
-  EXPECT_HW_CALL(sw, init(_)).WillOnce(Return(ret));
-  EXPECT_PLATFORM_CALL(sw, onHwInitialized(_)).Times(1);
-
-  if (flags & ENABLE_TUN) {
-    // TODO(aeckert): I don't think this should be a first class
-    // argument to SwSwitch::init() as unit tests are the only place
-    // that pass in a TunManager to init(). Let's come up with a way
-    // to mock the TunManager initialization instead of passing it in
-    // like this.
-    auto mockTunMgr = new MockTunManager(sw.get(), sw->getBackgroundEVB());
-    std::unique_ptr<TunManager> tunMgr(mockTunMgr);
-    sw->init(std::move(tunMgr), flags);
-  } else {
-    sw->init(nullptr, flags);
-  }
+  auto sw = createMockSw(initialState, mac, flags);
 
   // Apply the thrift config
   auto updateFn = [&](const shared_ptr<SwitchState>& state) {
@@ -148,9 +185,8 @@ unique_ptr<SwSwitch> createMockSw(cfg::SwitchConfig* config,
 }
 
 unique_ptr<SwSwitch> createMockSw(cfg::SwitchConfig* config,
-                                  uint32_t maxPort,
                                   SwitchFlags flags) {
-  return createMockSw(config, MacAddress("02:00:00:00:00:01"), maxPort, flags);
+  return createMockSw(config, MacAddress("02:00:00:00:00:01"), flags);
 }
 
 MockHwSwitch* getMockHw(SwSwitch* sw) {
