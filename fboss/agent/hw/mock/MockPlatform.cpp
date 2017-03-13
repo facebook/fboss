@@ -14,6 +14,8 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 
+#include <gmock/gmock.h>
+
 using std::make_unique;
 using std::string;
 using std::unique_ptr;
@@ -26,7 +28,7 @@ MockPlatform::MockPlatform(std::unique_ptr<MockHwSwitch> hw) :
 }
 
 MockPlatform::MockPlatform() :
-    MockPlatform(make_unique<MockHwSwitch>(this)) {
+    MockPlatform(make_unique<::testing::NiceMock<MockHwSwitch>>(this)) {
 }
 
 MockPlatform::~MockPlatform() {
