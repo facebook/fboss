@@ -452,6 +452,9 @@ void BcmPort::updateStats() {
   updateStat(now, &inBroadcastPkts_, opennsl_spl_snmpIfHCInBroadcastPkts);
   updateStat(now, &inDiscards_, opennsl_spl_snmpIfInDiscards);
   updateStat(now, &inErrors_, opennsl_spl_snmpIfInErrors);
+  // v4, v6 header errors
+  updateStat(now, &inIpv4HdrErrors_, opennsl_spl_snmpIpInHdrErrors);
+  updateStat(now, &inIpv6HdrErrors_, opennsl_spl_snmpIpv6IfStatsInHdrErrors);
 
   updateStat(now, &outBytes_, opennsl_spl_snmpIfHCOutOctets);
   updateStat(now, &outUnicastPkts_, opennsl_spl_snmpIfHCOutUcastPkts);

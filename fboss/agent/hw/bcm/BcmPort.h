@@ -170,6 +170,8 @@ class BcmPort {
   MonotonicCounter inDiscards_{statName("in_discards")};
   MonotonicCounter inErrors_{statName("in_errors")};
   MonotonicCounter inPause_{statName("in_pause_frames")};
+  MonotonicCounter inIpv4HdrErrors_{statName("in_ipv4_header_errors")};
+  MonotonicCounter inIpv6HdrErrors_{statName("in_ipv6_header_errors")};
 
   MonotonicCounter outBytes_{statName("out_bytes")};
   MonotonicCounter outUnicastPkts_{statName("out_unicast_pkts")};
