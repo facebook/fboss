@@ -198,8 +198,6 @@ void SwSwitch::stop() {
   // this is not the case for ipv6_ and tunMgr_, which may be accessed in a
   // packet handling callback as well while stopping the switch.
   //
-  // TODO(aeckert): t6862022 is there to come up with a more stable concurrency
-  // model for classes that observe state and/or handle packets.
   portRemediator_.reset();
   ipv6_.reset();
   nUpdater_.reset();
