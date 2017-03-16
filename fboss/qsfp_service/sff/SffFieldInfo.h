@@ -102,11 +102,19 @@ enum DeviceTechnology : uint8_t {
 };
 
 enum class PowerControl : uint8_t {
-  POWER_LPMODE = 0,
-  POWER_OVERRIDE =      1 << 0,
-  POWER_SET =           1 << 1,
-  HIGH_POWER_OVERRIDE = 1 << 2,
-  POWER_CONTROL_MASK = 0b111,
+  // Use lpmode set by pin
+  // We always want the first bit set to 1 so it's set in sw
+  POWER_SET_BY_HW = 0b0,
+  // Use low power mode
+  POWER_LPMODE =            0b11,
+  // Disable low power mode
+  // High power mode, class 1 to 4(<3.5W)
+  POWER_OVERRIDE =          0b01,
+  // Disable low power mode
+  // Super high power mode, class 5 to 7(>3.5W)
+  HIGH_POWER_OVERRIDE =     0b101,
+  // Only interested in first 3 bits
+  POWER_CONTROL_MASK =      0b111,
 };
 
 // This should be called ExtendedIdentifier

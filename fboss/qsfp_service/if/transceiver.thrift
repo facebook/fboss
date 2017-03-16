@@ -98,8 +98,9 @@ enum FeatureState {
 enum PowerControlState {
   POWER_LPMODE,
   POWER_OVERRIDE,
-  POWER_SET,
+  POWER_SET, // Deprecated!
   HIGH_POWER_OVERRIDE,
+  POWER_SET_BY_HW,
 }
 
 enum RateSelectState {
