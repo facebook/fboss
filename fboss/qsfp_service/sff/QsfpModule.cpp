@@ -837,83 +837,66 @@ void QsfpModule::setRateSelectIfSupported(cfg::PortSpeed speed,
 
 void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
   /* Wedge forces Low Power mode via a pin;  we have to reset this
-   * to force High Power mode on LR4s.
+   * to force High Power mode on all transceivers except SR4-40G.
    *
    * Note that this function expects to be called with qsfpModuleMutex_
    * held.
    */
-  LOG(INFO) << "Power control set to: "
-            << _PowerControlState_VALUES_TO_NAMES.find(currentState)->second;
-  if (currentState == PowerControlState::POWER_OVERRIDE ||
-      currentState == PowerControlState::HIGH_POWER_OVERRIDE) {
-    LOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
-      " Power override already set, doing nothing";
-    return;
-  }
 
   int offset;
   int length;
   int dataAddress;
+  getQsfpFieldAddress(SffField::ETHERNET_COMPLIANCE, dataAddress,
+                      offset, length);
+  const uint8_t *ether = getQsfpValuePtr(dataAddress, offset, length);
 
   getQsfpFieldAddress(SffField::EXTENDED_IDENTIFIER, dataAddress,
                       offset, length);
   const uint8_t *extId = getQsfpValuePtr(dataAddress, offset, length);
-  getQsfpFieldAddress(SffField::ETHERNET_COMPLIANCE, dataAddress,
-                      offset, length);
-  const uint8_t *ethCompliance = getQsfpValuePtr(dataAddress, offset, length);
 
-  int pwrCtrlAddress;
-  int pwrCtrlOffset;
-  int pwrCtrlLength;
-  getQsfpFieldAddress(SffField::POWER_CONTROL, pwrCtrlAddress,
-                      pwrCtrlOffset, pwrCtrlLength);
-  const uint8_t *pwrCtrl = getQsfpValuePtr(pwrCtrlAddress,
-                                           pwrCtrlOffset, pwrCtrlLength);
+  auto desiredSetting = PowerControlState::POWER_OVERRIDE;
 
-  /*
-   * It is not clear whether we'll have to use some of these values
-   * in future to determine whether or not to set the high power override.
-   * Leave the logging in until this is fully debugged -- this should
-   * only trigger on QSFP insertion.
-   */
+  // SR4-40G is represented by a value of 2 - SFF-8636
+  // This is the only transceiver that should use LP mode
+  if (*ether == EthernetCompliance::SR4_40GBASE) {
+    desiredSetting = PowerControlState::POWER_LPMODE;
+  } else {
+    uint8_t highPowerLevel = (*extId & EXT_ID_HI_POWER_MASK);
+
+    if (highPowerLevel > 0) {
+      desiredSetting = PowerControlState::HIGH_POWER_OVERRIDE;
+    }
+  }
 
   auto portStr = folly::to<std::string>(qsfpImpl_->getName());
-  VLOG(1) << "Port " << portStr <<
-             ": QSFP Ext ID " << std::hex << (int) *extId <<
-             " Ether Compliance " << std::hex << (int) *ethCompliance <<
-             " Power Control " << std::hex << (int) *pwrCtrl;
+  VLOG(1) << "Port " << portStr << ": Power control "
+            << _PowerControlState_VALUES_TO_NAMES.find(currentState)->second
+            << " Ext ID " << std::hex << (int) *extId
+            << " Ethernet compliance " << std::hex << (int) *ether
+            << " Desired power control "
+            << _PowerControlState_VALUES_TO_NAMES.find(desiredSetting)->second;
 
-  int highPowerLevel = (*extId & EXT_ID_HI_POWER_MASK);
-  int powerLevel = (*extId & EXT_ID_POWER_MASK) >> EXT_ID_POWER_SHIFT;
-
-  if (highPowerLevel > 0 || powerLevel > 0) {
-      uint8_t power = uint8_t(PowerControl::POWER_OVERRIDE);
-      if (highPowerLevel > 0) {
-        VLOG(2) << "Port " << portStr <<
-          ": High power classes (5-7) supported";
-        power |= uint8_t(PowerControl::HIGH_POWER_OVERRIDE);
-      } else {
-        VLOG(2) << "Port " << portStr <<
-          ": High power classes (5-7) not supported";
-      }
-
-      // Note that we don't have to set the page here, but there should
-      // probably be a setQsfpValue() function to handle pages, etc.
-
-      if (pwrCtrlAddress != QsfpPages::LOWER) {
-         throw FbossError("QSFP failed to set POWER_CONTROL for LR4 "
-                          "due to incorrect page number");
-      }
-      if (pwrCtrlLength != sizeof(power)) {
-         throw FbossError("QSFP failed to set POWER_CONTROL for LR4 "
-                          "due to incorrect length");
-      }
-
-      qsfpImpl_->writeTransceiver(TransceiverI2CApi::ADDR_QSFP, pwrCtrlOffset,
-          sizeof(power), &power);
-      LOG(INFO) << "Port " << portStr <<
-        ": QSFP set to override low power (" << power << ")";
+  if (currentState == desiredSetting) {
+    LOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
+      " Power override already correctly set, doing nothing";
+    return;
   }
+
+  uint8_t power = uint8_t(PowerControl::POWER_OVERRIDE);
+  if (desiredSetting == PowerControlState::HIGH_POWER_OVERRIDE) {
+    power = uint8_t(PowerControl::HIGH_POWER_OVERRIDE);
+  } else if (desiredSetting == PowerControlState::POWER_LPMODE) {
+    power = uint8_t(PowerControl::POWER_LPMODE);
+  }
+
+  getQsfpFieldAddress(SffField::POWER_CONTROL, dataAddress,
+                      offset, length);
+  qsfpImpl_->writeTransceiver(TransceiverI2CApi::ADDR_QSFP,
+      offset, sizeof(power), &power);
+  LOG(INFO) << "Port " << portStr
+            << ": QSFP set to power setting "
+            << _PowerControlState_VALUES_TO_NAMES.find(desiredSetting)->second
+            << " (" << int(power) << ")";
 }
 
 }} //namespace facebook::fboss
