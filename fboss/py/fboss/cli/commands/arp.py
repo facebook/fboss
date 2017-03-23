@@ -13,7 +13,7 @@ from fboss.cli.commands import commands as cmds
 
 class ArpTableCmd(cmds.PrintNeighborTableCmd):
     def run(self):
-        self._client = self._create_ctrl_client()
+        self._client = self._create_agent_client()
         resp = self._client.getArpTable()
         name = 'ARP'
         width = 16

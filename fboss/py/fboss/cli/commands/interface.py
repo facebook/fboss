@@ -17,14 +17,14 @@ class InterfaceCmd(cmds.FbossCmd):
     ''' Show interface information '''
     def run(self, interfaces):
         try:
-            self._client = self._create_ctrl_client()
+            self._client = self._create_agent_client()
             if not interfaces:
                 self._all_interface_info()
             else:
                 for interface in interfaces:
                     self._interface_details(interface)
         except FbossBaseError as e:
-            raise SystemExit('Fboss Error: {}'.format(e.message))
+            raise SystemExit('Fboss Error: {}'.format(e))
 
     def _all_interface_info(self):
         resp = self._client.getInterfaceList()

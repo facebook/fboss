@@ -23,7 +23,7 @@ class FbossCmd(object):
         self._timeout = cli_opts.timeout
         self._client = None
 
-    def _create_ctrl_client(self):
+    def _create_agent_client(self):
         args = [self._hostname, self._port]
         if self._timeout:
             args.append(self._timeout)
@@ -42,14 +42,14 @@ class NeighborFlushCmd(FbossCmd):
     def run(self, ip, vlan):
         bin_ip = utils.ip_to_binary(ip)
         vlan_id = vlan
-        client = self._create_ctrl_client()
+        client = self._create_agent_client()
         num_entries = client.flushNeighborEntry(bin_ip, vlan_id)
         print('Flushed {} entries'.format(num_entries))
 
 class PrintNeighborTableCmd(FbossCmd):
     def print_table(self, entries, name, width, client=None):
         if client is None:
-            client = self._create_ctrl_client()
+            client = self._create_agent_client()
         tmpl = "{:" + str(width) + "} {:18} {:<10}  {:18} {!s:12} {}"
         print(tmpl.format(
             "IP Address", "MAC Address", "Port", "VLAN", "State", "TTL"))

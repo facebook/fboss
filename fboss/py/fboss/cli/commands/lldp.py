@@ -9,7 +9,6 @@
 #
 
 import binascii
-import string
 
 from fboss.cli.utils import utils
 from fboss.cli.commands import commands as cmds
@@ -17,7 +16,7 @@ from fboss.cli.commands import commands as cmds
 
 class LldpCmd(cmds.FbossCmd):
     def run(self, lldp_port, verbosity):
-        self._client = self._create_ctrl_client()
+        self._client = self._create_agent_client()
         resp = self._client.getLldpNeighbors()
         self._AllPortsInfo = self._client.getAllPortInfo()
         if not resp:

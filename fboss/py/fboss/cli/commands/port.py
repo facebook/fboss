@@ -22,7 +22,7 @@ from thrift.Thrift import TApplicationException
 class PortDetailsCmd(cmds.FbossCmd):
     def run(self, ports):
         try:
-            self._client = self._create_ctrl_client()
+            self._client = self._create_agent_client()
             # No ports specified, get all ports
             if not ports:
                 resp = self._client.getAllPortInfo()
@@ -109,7 +109,7 @@ class PortFlapCmd(cmds.FbossCmd):
             raise SystemExit('Fboss Error: ' + e)
 
     def flap_ports(self, ports):
-        self._client = self._create_ctrl_client()
+        self._client = self._create_agent_client()
         resp = self._client.getPortStatus(ports)
         for port, status in resp.items():
             if not status.enabled:
@@ -127,7 +127,7 @@ class PortFlapCmd(cmds.FbossCmd):
 
 class PortStatusCmd(cmds.FbossCmd):
     def run(self, detail, ports, verbose, internal):
-        self._client = self._create_ctrl_client()
+        self._client = self._create_agent_client()
         self._qsfp_client = self._create_qsfp_client()
         if detail or verbose:
             PortStatusDetailCmd(

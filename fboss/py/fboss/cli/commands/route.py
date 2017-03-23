@@ -62,7 +62,7 @@ class RouteIpCmd(cmds.FbossCmd):
         if not addr.addr:
             print('No ip address provided')
             return
-        self._client = self._create_ctrl_client()
+        self._client = self._create_agent_client()
         try:
             self.printIpRouteDetails(addr, vrf)
         except TApplicationException:
@@ -71,7 +71,7 @@ class RouteIpCmd(cmds.FbossCmd):
 
 class RouteTableCmd(cmds.FbossCmd):
     def run(self):
-        self._client = self._create_ctrl_client()
+        self._client = self._create_agent_client()
         resp = self._client.getRouteTable()
         if not resp:
             print("No Route Table Entries Found")
@@ -87,7 +87,7 @@ class RouteTableCmd(cmds.FbossCmd):
 
 class RouteTableDetailsCmd(cmds.FbossCmd):
     def run(self):
-        self._client = self._create_ctrl_client()
+        self._client = self._create_agent_client()
         resp = self._client.getRouteTableDetails()
         if not resp:
             print("No Route Table Details Found")

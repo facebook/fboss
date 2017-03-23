@@ -16,7 +16,7 @@ from neteng.fboss.ttypes import FbossBaseError
 class GetConfigCmd(cmds.FbossCmd):
     def run(self, config_type):
         if config_type == 'ctrl':
-            self._client = self._create_ctrl_client()
+            self._client = self._create_agent_client()
         resp = self._client.getRunningConfig()
 
         if not resp:
@@ -34,7 +34,7 @@ class ReloadConfigCmd(cmds.FbossCmd):
     """
     def run(self):
         try:
-            self._client = self._create_ctrl_client()
+            self._client = self._create_agent_client()
             self._client.reloadConfig()
             print("Config reloaded")
             return

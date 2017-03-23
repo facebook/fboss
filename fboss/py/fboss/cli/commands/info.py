@@ -13,7 +13,7 @@ from fboss.cli.commands import commands as cmds
 
 class ProductInfoCmd(cmds.FbossCmd):
     def run(self, detail):
-        self._client = self._create_ctrl_client()
+        self._client = self._create_agent_client()
         resp = self._client.getProductInfo()
         if detail:
             self._print_product_details(resp)
