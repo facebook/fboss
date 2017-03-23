@@ -2,6 +2,7 @@ namespace cpp2 facebook.fboss
 namespace d neteng.fboss.highres
 namespace php fboss
 namespace py neteng.fboss.highres
+namespace py.asyncio neteng.fboss.asyncio.highres
 
 typedef string (cpp2.type = "::folly::fbstring") fbstring
 

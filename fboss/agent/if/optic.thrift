@@ -2,6 +2,7 @@ namespace cpp2 facebook.fboss
 namespace d neteng.fboss.optic
 namespace php fboss
 namespace py neteng.fboss.optic
+namespace py.asyncio neteng.fboss.asyncio.optic
 
 include "fboss/qsfp_service/if/transceiver.thrift"
 

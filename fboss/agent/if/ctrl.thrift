@@ -2,6 +2,7 @@ namespace cpp2 facebook.fboss
 namespace d neteng.fboss.ctrl
 namespace php fboss
 namespace py neteng.fboss.ctrl
+namespace py.asyncio neteng.fboss.asyncio.ctrl
 
 include "fboss/agent/if/fboss.thrift"
 include "common/fb303/if/fb303.thrift"

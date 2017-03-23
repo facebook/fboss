@@ -2,6 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
 namespace py neteng.fboss.switch_config
+namespace py.asyncio neteng.fboss.asyncio.switch_config
 namespace cpp2 facebook.fboss.cfg
 /**
  * Port state
