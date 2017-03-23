@@ -65,7 +65,7 @@ TEST(PcapQueueTest, SimpleAdd) {
   waiter.join();
 
   ASSERT_EQ(1, waitedPkts.size());
-  EXPECT_EQ(true, waitedPkts[0].isRx());
+  EXPECT_TRUE(waitedPkts[0].isRx());
 
   ByteRange expectedPktData = pkt->buf()->coalesce();
   auto waitedPktBufClone = waitedPkts[0].buf()->clone();
