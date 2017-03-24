@@ -204,6 +204,8 @@ class PortCli(object):
         self.port.add_command(self._details, name='details')
         self.port.add_command(self._flap, name='flap')
         self.port.add_command(self._status, name='status')
+        self.port.add_command(self._enable, name='enable')
+        self.port.add_command(self._disable, name='disable')
 
     @click.group()
     def port():
@@ -223,6 +225,20 @@ class PortCli(object):
     def _flap(cli_opts, ports):
         ''' Flap given [port(s)] '''
         port.PortFlapCmd(cli_opts).run(ports)
+
+    @click.command()
+    @click.argument('ports', nargs=-1, required=True, type=PortType())
+    @click.pass_obj
+    def _enable(cli_opts, ports):
+        ''' Enable given [port(s)] '''
+        port.PortSetStatusCmd(cli_opts).run(ports, True)
+
+    @click.command()
+    @click.argument('ports', nargs=-1, required=True, type=PortType())
+    @click.pass_obj
+    def _disable(cli_opts, ports):
+        ''' Disable given [port(s)] '''
+        port.PortSetStatusCmd(cli_opts).run(ports, False)
 
     @click.command()
     @click.argument('ports', nargs=-1, type=PortType())

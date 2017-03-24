@@ -125,6 +125,21 @@ class PortFlapCmd(cmds.FbossCmd):
                 self._client.setPortState(port, True)
 
 
+class PortSetStatusCmd(cmds.FbossCmd):
+    def run(self, ports, status):
+        try:
+            self.set_status(ports, status)
+        except FbossBaseError as e:
+            raise SystemExit('Fboss Error: ' + e)
+
+    def set_status(self, ports, status):
+        self._client = self._create_agent_client()
+        for port in ports:
+            status_str = 'Enabling' if status else 'Disabling'
+            print("{} port {}".format(status_str, port))
+            self._client.setPortState(port, status)
+
+
 class PortStatusCmd(cmds.FbossCmd):
     def run(self, detail, ports, verbose, internal):
         self._client = self._create_agent_client()
@@ -141,7 +156,7 @@ class PortStatusCmd(cmds.FbossCmd):
     def _get_field_format(self, internal_port):
         if internal_port:
             field_fmt = '{:>6} {:<11} {:>12}  {}{:>10}  {:>12}  {:>6}'
-            print(field_fmt.format('port ID', 'Port Name', 'Admin State', '',
+            print(field_fmt.format('Port ID', 'Port Name', 'Admin State', '',
                                    'Link State', 'Transceiver', 'Speed'))
             print('-' * 68)
         else:
