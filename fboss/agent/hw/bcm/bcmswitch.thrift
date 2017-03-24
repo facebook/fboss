@@ -36,4 +36,7 @@ struct BcmHwTableStats {
   19: i32 lpm_ipv6_mask_65_127_max = STAT_UNINITIALIZED
   20: i32 lpm_ipv6_mask_65_127_used = STAT_UNINITIALIZED
   21: i32 lpm_ipv6_mask_65_127_free = STAT_UNINITIALIZED
+  22: i32 lpm_slots_max = STAT_UNINITIALIZED
+  23: i32 lpm_slots_used = STAT_UNINITIALIZED
+  24: i32 lpm_slots_free = STAT_UNINITIALIZED
 }
