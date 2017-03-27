@@ -229,6 +229,14 @@ class HwSwitch {
   virtual cfg::PortSpeed getMaxPortSpeed(PortID port) const = 0;
 
   /*
+   * Get whether the port has set FEC or not
+   * TODO(rsher) Consider refactoring this interface to expose
+   * ports as first class citizens (hwPort?) and then move all of these
+   * functions into the hwPort abstraction
+   */
+   virtual bool getPortFECConfig(PortID /* unused */ ) const { return false; }
+
+  /*
    * Returns true if the arp/ndp entry for the passed in ip/intf has been hit
    * since the last call to getAndClearNeighborHit.
    */

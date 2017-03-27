@@ -128,6 +128,11 @@ cfg::PortSpeed BcmSwitch::getMaxPortSpeed(PortID port) const {
   return cfg::PortSpeed(maxPortSpeed);
 }
 
+bool BcmSwitch::getPortFECConfig(PortID port) const {
+  // relies on getBcmPort() to throw an if not found
+  return getPortTable()->getBcmPort(port)->isFECEnabled();
+}
+
 BcmSwitch::BcmSwitch(BcmPlatform *platform, HashMode hashMode)
   : platform_(platform),
     hashMode_(hashMode),

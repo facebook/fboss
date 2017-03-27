@@ -543,4 +543,20 @@ cfg::PortState BcmPort::getState() {
   }
 }
 
+/**
+  * TODO(rsher)
+  * comment back in when we move to the newer OpenNSL
+
+bool BcmPort::isFECEnabled() {
+  int value;
+  opennsl_port_phy_control_get(
+      unit_,
+      port_,
+      OPENNSL_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION,
+      &value);
+  return (value == OPENNSL_PORT_PHY_CONTROL_FEC_ON);
+}
+
+*/
+
 }} // namespace facebook::fboss

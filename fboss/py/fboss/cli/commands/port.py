@@ -83,6 +83,13 @@ class PortDetailsCmd(cmds.FbossCmd):
         speed, suffix = self._convert_bps(port_info.speedMbps * (10 ** 6))
         vlans = ' '.join(str(vlan) for vlan in (port_info.vlans or []))
 
+        if not hasattr(port_info, 'fecEnabled'):
+            fec_status = "N/A"  # many ports don't implement FEC
+        elif port_info.fecEnabled:
+            fec_status = "ENABLED"
+        else:
+            fec_status = "DISABLED"
+
         fmt = '{:.<50}{}'
         lines = [
             ('Name', port_info.name.strip()),
@@ -90,7 +97,8 @@ class PortDetailsCmd(cmds.FbossCmd):
             ('Admin State', admin_status),
             ('Link State', oper_status),
             ('Speed', '{:.0f} {}'.format(speed, suffix)),
-            ('VLANs', vlans)
+            ('VLANs', vlans),
+            ('Forward Error Correction', fec_status),
         ]
 
         print()

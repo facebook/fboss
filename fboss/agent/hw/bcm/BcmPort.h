@@ -116,6 +116,13 @@ class BcmPort {
    */
   void prepareForGracefulExit();
 
+  /**
+   * return true iff the port has Forward Error Correction (FEC)
+   * enabled
+   */
+  bool isFECEnabled();
+
+
  private:
   class MonotonicCounter : public stats::MonotonicCounter {
    public:

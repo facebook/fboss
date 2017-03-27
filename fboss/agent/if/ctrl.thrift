@@ -137,6 +137,7 @@ struct PortInfoThrift {
   11: PortCounters input,
   12: string name,
   13: string description,
+  14: bool fecEnabled, // Forward Error Correction port setting
 }
 
 struct NdpEntryThrift {

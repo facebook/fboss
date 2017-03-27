@@ -280,6 +280,7 @@ class BcmSwitch : public BcmSwitchIf {
 
   cfg::PortSpeed getPortSpeed(PortID port) const override;
   cfg::PortSpeed getMaxPortSpeed(PortID port) const override;
+  bool getPortFECConfig(PortID port) const override;
 
   bool isValidStateUpdate(const StateDelta& delta) const override;
 

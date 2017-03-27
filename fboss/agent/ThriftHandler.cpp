@@ -438,6 +438,8 @@ void ThriftHandler::getPortInfoHelper(
 
   portInfo.adminState = PortAdminState(port->getState() == cfg::PortState::UP);
   portInfo.operState = PortOperState(port->getOperState());
+  portInfo.fecEnabled = sw_->getHw()->getPortFECConfig(port->getID());
+
 
   fillPortStats(portInfo);
 }

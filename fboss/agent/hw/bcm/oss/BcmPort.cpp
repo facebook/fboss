@@ -22,4 +22,8 @@ void BcmPort::remedy() {}
 void BcmPort::prepareForGracefulExit() {}
 void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {}
 
+bool BcmPort::isFECEnabled() {
+  return false;
+}
+
 }} // namespace facebook::fboss
