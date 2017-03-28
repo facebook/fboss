@@ -148,6 +148,60 @@ class PortSetStatusCmd(cmds.FbossCmd):
             self._client.setPortState(port, status)
 
 
+class PortStatsCmd(cmds.FbossCmd):
+    def run(self, details, ports):
+        try:
+            self.show_stats(details, ports)
+        except FbossBaseError as e:
+            raise SystemExit('Fboss Error: ' + e)
+
+    def show_stats(self, details, ports):
+        with self._create_ctrl_client() as client:
+            if not ports:
+                stats = client.getAllPortStats()
+            else:
+                stats = {}
+                for port in ports:
+                    stats[port] = client.getPortStats(port)
+            neighbors = client.getLldpNeighbors()
+        n2ports = {}
+        # collect up the neighbors by port
+        for neighbor in neighbors:
+            n2ports.setdefault(neighbor.localPort, []).append(neighbor)
+        # Port Name
+        field_fmt = '{:<11} {:>3} {:>} {:<} {:>} {:<} {:<}'
+        hosts = "Hosts" if details else ""
+
+        print(field_fmt.format("Port Name", "+Id", "In",
+                               self._get_counter_string(None),
+                               "Out", self._get_counter_string(None), hosts))
+        for port_id, port in stats.items():
+            print(field_fmt.format(port.name, port_id, "In",
+                                   self._get_counter_string(port.input),
+                                   "Out", self._get_counter_string(port.output),
+                                   self._get_lldp_string(port_id, n2ports, details)))
+
+    def _get_counter_string(self, counters):
+        # bytes uPts mPts bPts err disc
+        field_fmt = '{:>15} {:>15} {:>10} {:>10} {:>10} {:>10}'
+        if counters is None:
+            return field_fmt.format("bytes", "uPkts", "mcPkts", "bcPkts",
+                                    "errs", "disc")
+        else:
+            return field_fmt.format(counters.bytes, counters.ucastPkts,
+                                    counters.multicastPkts,
+                                    counters.broadcastPkts,
+                                    counters.errors.errors,
+                                    counters.errors.discards)
+
+    def _get_lldp_string(self, port_id, n2ports, details):
+        ret = ""
+        if details and port_id in n2ports:
+            for n in n2ports[port_id]:
+                ret += " {}".format(n.systemName)
+        return ret
+
+
 class PortStatusCmd(cmds.FbossCmd):
     def run(self, detail, ports, verbose, internal):
         self._client = self._create_agent_client()

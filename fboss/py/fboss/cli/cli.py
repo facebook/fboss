@@ -206,6 +206,7 @@ class PortCli(object):
         self.port.add_command(self._status, name='status')
         self.port.add_command(self._enable, name='enable')
         self.port.add_command(self._disable, name='disable')
+        self.port.add_command(self._stats, name='stats')
 
     @click.group()
     def port():
@@ -251,6 +252,16 @@ class PortCli(object):
     def _status(cli_opts, detail, ports, verbose, internal):
         ''' Show port status '''
         port.PortStatusCmd(cli_opts).run(detail, ports, verbose, internal)
+
+    @click.command()
+    @click.argument('ports', nargs=-1, type=PortType())
+    @click.option('--detail',
+                  is_flag=True,
+                  help='Display detailed port stats with lldp')
+    @click.pass_obj
+    def _stats(cli_opts, detail, ports):
+        ''' Show port statistics '''
+        port.PortStatsCmd(cli_opts).run(detail, ports)
 
 
 class ProductInfoCli(object):
