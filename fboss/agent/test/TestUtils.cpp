@@ -100,7 +100,23 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithHW(
       "Apply initial test state",
       [state](const shared_ptr<SwitchState>& prev) -> shared_ptr<SwitchState> {
         state->inheritGeneration(*prev);
-        return state;
+        shared_ptr<SwitchState> newState{state};
+
+        // A bit hacky, but fboss currently expects the sw port
+        // mapping to match what is in hardware. Instead of removing
+        // any ports not specified in the initial state altogether,
+        // just disable non-specified ports that exist in hw.
+        auto newPorts = newState->getPorts()->modify(&newState);
+        for (auto port : *prev->getPorts()) {
+          if (!newPorts->getPortIf(port->getID())) {
+            // port not in desired state, add it as a disabled port
+            auto newPort = port->clone();
+            newPort->setState(cfg::PortState::POWER_DOWN);
+            newPorts->addPort(newPort);
+          }
+        }
+
+        return newState;
       });
   }
   sw->initialConfigApplied(std::chrono::steady_clock::now());
