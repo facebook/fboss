@@ -65,6 +65,12 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap *map)
       addRouteV6_(map, kCounterPrefix + "route.v6.add", RATE),
       delRouteV4_(map, kCounterPrefix + "route.v4.delete", RATE),
       delRouteV6_(map, kCounterPrefix + "route.v6.delete", RATE),
+      dstLookupFailureV4_(map, kCounterPrefix + "ipv4.dst_lookup_failure",
+          SUM, RATE),
+      dstLookupFailureV6_(map, kCounterPrefix + "ipv6.dst_lookup_failure",
+          SUM, RATE),
+      dstLookupFailure_(map, kCounterPrefix + "ip.dst_lookup_failure",
+          SUM, RATE),
       updateState_(map, kCounterPrefix + "state_update.us", 50000, 0, 1000000),
       routeUpdate_(map,  kCounterPrefix + "route_update.us", 50, 0, 500),
 

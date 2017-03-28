@@ -113,7 +113,9 @@ class IPv6Handler : public AutoRegisterStateObserver {
   bool checkNdpPacket(const ICMPHeaders& hdr,
                       const RxPacket* pkt) const;
 
-  void sendNeighborSolicitations(const folly::IPAddressV6& targetIP);
+  void sendNeighborSolicitations(
+      PortID ingressPort,
+      const folly::IPAddressV6& targetIP);
   void sendNeighborAdvertisement(VlanID vlan,
                                  folly::MacAddress srcMac,
                                  folly::IPAddressV6 srcIP,

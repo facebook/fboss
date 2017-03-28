@@ -215,7 +215,7 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
   // We will need to manage the rate somehow. Either from HW
   // or a SW control here
   stats->port(port)->ipv4Nexthop();
-  if (!resolveMac(state.get(), v4Hdr.dstAddr)) {
+  if (!resolveMac(state.get(), port, v4Hdr.dstAddr)) {
     stats->port(port)->ipv4NoArp();
     VLOG(3) << "Cannot find the interface to send out ARP request for "
       << v4Hdr.dstAddr.str();
@@ -226,7 +226,10 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
 }
 
 // Return true if we successfully sent an ARP request, false otherwise
-bool IPv4Handler::resolveMac(SwitchState* state, IPAddressV4 dest) {
+bool IPv4Handler::resolveMac(
+    SwitchState* state,
+    PortID ingressPort,
+    IPAddressV4 dest) {
   // need to find out our own IP and MAC addresses so that we can send the
   // ARP request out. Since the request will be broadcast, there is no need to
   // worry about which port to send the packet out.
@@ -239,6 +242,7 @@ bool IPv4Handler::resolveMac(SwitchState* state, IPAddressV4 dest) {
 
   auto route = routeTable->getRibV4()->longestMatch(dest);
   if (!route || !route->isResolved()) {
+    sw_->stats()->port(ingressPort)->ipv4DstLookupFailure();
     // No way to reach dest
     return false;
   }

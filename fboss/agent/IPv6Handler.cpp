@@ -230,7 +230,7 @@ void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
   // For now, assume we need to resolve the IP for this packet.
   // TODO: Add rate limiting so we don't generate too many requests for the
   // same IP.  Following the rules in RFC 4861 should be sufficient.
-  sendNeighborSolicitations(ipv6.dstAddr);
+  sendNeighborSolicitations(pkt->getSrcPort(), ipv6.dstAddr);
   // We drop the packet while waiting on a response.
   sw_->portStats(pkt)->pktDropped();
 }
@@ -581,7 +581,7 @@ void IPv6Handler::sendNeighborSolicitation(SwSwitch* sw,
 }
 
 void IPv6Handler::sendNeighborSolicitations(
-    const folly::IPAddressV6& targetIP) {
+    PortID ingressPort, const folly::IPAddressV6& targetIP) {
   // Don't send solicitations for multicast or broadcast addresses.
   if (targetIP.isMulticast() || targetIP.isLinkLocalBroadcast()) {
     return;
@@ -597,6 +597,7 @@ void IPv6Handler::sendNeighborSolicitations(
 
   auto route = routeTable->getRibV6()->longestMatch(targetIP);
   if (!route || !route->isResolved()) {
+    sw_->stats()->port(ingressPort)->ipv6DstLookupFailure();
     // No way to reach targetIP
     return;
   }

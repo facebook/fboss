@@ -183,6 +183,16 @@ class SwitchStats : public boost::noncopyable {
     delRouteV6_.addValue(1);
   }
 
+  void ipv4DstLookupFailure() {
+    dstLookupFailureV4_.addValue(1);
+    dstLookupFailure_.addValue(1);
+  }
+
+  void ipv6DstLookupFailure() {
+    dstLookupFailureV6_.addValue(1);
+    dstLookupFailure_.addValue(1);
+  }
+
   void stateUpdate(std::chrono::microseconds us) {
     updateState_.addValue(us.count());
   }
@@ -315,6 +325,10 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries addRouteV6_;
   TLTimeseries delRouteV4_;
   TLTimeseries delRouteV6_;
+
+  TLTimeseries dstLookupFailureV4_;
+  TLTimeseries dstLookupFailureV6_;
+  TLTimeseries dstLookupFailure_;
 
   /**
    * Histogram for time used for SwSwitch::updateState() (in ms)

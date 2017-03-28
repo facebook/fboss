@@ -122,4 +122,12 @@ void PortStats::linkStateChange() {
   switchStats_->linkStateChange();
 }
 
+void PortStats::ipv4DstLookupFailure() {
+  switchStats_->ipv4DstLookupFailure();
+}
+
+void PortStats::ipv6DstLookupFailure() {
+  switchStats_->ipv6DstLookupFailure();
+}
+
 }} // facebook::fboss

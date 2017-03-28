@@ -58,6 +58,9 @@ class PortStats {
 
   void linkStateChange();
 
+  void ipv4DstLookupFailure();
+  void ipv6DstLookupFailure();
+
  private:
   // Forbidden copy constructor and assignment operator
   PortStats(PortStats const &) = delete;

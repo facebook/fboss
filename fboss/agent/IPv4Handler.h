@@ -50,7 +50,8 @@ class IPv4Handler {
   IPv4Handler(IPv4Handler const &) = delete;
   IPv4Handler& operator=(IPv4Handler const &) = delete;
 
-  bool resolveMac(SwitchState* state, folly::IPAddressV4 dest);
+  bool
+  resolveMac(SwitchState* state, PortID ingressPort, folly::IPAddressV4 dest);
 
   SwSwitch* sw_{nullptr};
 };

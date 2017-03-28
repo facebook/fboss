@@ -242,7 +242,7 @@ void DHCPv6Handler::processDHCPv6RelayReply(SwSwitch* sw,
 
   // relay reply from the server
   MacAddress destMac;
-  const uint8_t* relayData;
+  const uint8_t* relayData = nullptr;
   uint16_t relayLen = 0;
   std::unordered_set<uint16_t> selector = { DHCPv6_OPTION_INTERFACE_ID,
     DHCPv6_OPTION_RELAY_MSG };
