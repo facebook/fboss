@@ -124,12 +124,14 @@ TEST(Port, initDefaultConfig) {
   PortID portID(1);
   auto state = make_shared<SwitchState>();
   state->registerPort(portID, "port1");
+  state->getPorts()->getPortIf(portID)->setState(cfg::PortState::POWER_DOWN);
 
   // Applying an empty config should result in no changes.
   cfg::SwitchConfig config;
   config.ports.resize(1);
   config.ports[0].logicalID = 1;
   config.ports[0].name = "port1";
+  config.ports[0].state = cfg::PortState::POWER_DOWN;
   EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 
   // Adding a port entry in the config and initializing it with
@@ -338,7 +340,8 @@ TEST(PortMap, applyConfig) {
   EXPECT_EQ(4, portsV3->numPorts());
   EXPECT_EQ(cfg::PortState::UP, portsV3->getPort(PortID(1))->getState());
   EXPECT_EQ(cfg::PortState::UP, portsV3->getPort(PortID(2))->getState());
-  EXPECT_EQ(cfg::PortState::DOWN, portsV3->getPort(PortID(3))->getState());
+  EXPECT_EQ(
+    cfg::PortState::POWER_DOWN, portsV3->getPort(PortID(3))->getState());
   EXPECT_EQ(cfg::PortState::UP, portsV3->getPort(PortID(4))->getState());
   checkChangedPorts(portsV2, portsV3, {3});
 }

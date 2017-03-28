@@ -101,7 +101,7 @@ Port::Port(PortID id, const std::string& name)
 
 void Port::initDefaultConfig(cfg::Port* config) const {
   config->logicalID = getID();
-  config->state = cfg::PortState::DOWN;
+  config->state = cfg::PortState::POWER_DOWN;
 }
 
 Port* Port::modify(std::shared_ptr<SwitchState>* state) {
