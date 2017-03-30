@@ -9,14 +9,14 @@
  */
 #include "fboss/agent/Main.h"
 #include "common/stats/ServiceData.h"
+
+#include <folly/init/Init.h>
 #include <gflags/gflags.h>
 
 namespace facebook { namespace fboss {
 
 void fbossInit(int argc, char** argv) {
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
-  google::InitGoogleLogging(argv[0]);
-  google::InstallFailureSignalHandler();
+  folly::init(&argc, &argv, true);
 }
 
 void fbossFinalize() {}
