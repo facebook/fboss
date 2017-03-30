@@ -12,6 +12,8 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
+#include <folly/Format.h>
+
 extern "C" {
 #include <opennsl/pkt.h>
 #include <opennsl/error.h>
@@ -63,9 +65,14 @@ void bcmLogError(int err, Args&&... msgArgs) {
 template<typename... Args>
 void bcmLogFatal(int err, const BcmSwitchIf* hw, Args&&... msgArgs) {
   if (OPENNSL_FAILURE(err)) {
+    auto errMsg = folly::sformat(
+      "{}: {}, {}", folly::to<std::string>(std::forward<Args>(msgArgs)...),
+      opennsl_errmsg(err), err);
+
+    // Make sure we log the error message, in case hw->exitFatal throws.
+    LOG(ERROR) << errMsg;
     hw->exitFatal();
-    LOG(FATAL) << folly::to<std::string>(std::forward<Args>(msgArgs)...)
-               << ": " << opennsl_errmsg(err) << ", " << err;
+    LOG(FATAL) << errMsg;
   }
 }
 
