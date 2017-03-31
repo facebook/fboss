@@ -31,7 +31,6 @@ class GalaxyPort : public WedgePort {
     return speeds;
   }
 
-  void remedy() override {}
   void prepareForGracefulExit() override {}
   void linkStatusChanged(bool up, bool adminUp) override;
   bool isBackplanePort() const {
