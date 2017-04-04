@@ -295,6 +295,8 @@ add_library(fboss_agent STATIC
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/highres_types.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/bcmswitch_data.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/bcmswitch_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/hardware_stats_data.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/hardware_stats_types.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/QsfpService.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/QsfpService_client.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/qsfp_types.cpp
@@ -402,6 +404,7 @@ fboss_add_thrift(THRIFTSRC fboss/agent/if/highres.thrift SERVICES FbossHighresCl
 fboss_add_thrift(THRIFTSRC fboss/agent/if/optic.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/hw/bcm/packettrace.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/hw/bcm/bcmswitch.thrift)
+fboss_add_thrift(THRIFTSRC fboss/agent/hw/bcm/hardware_stats.thrift)
 fboss_add_thrift(THRIFTSRC fboss/qsfp_service/if/transceiver.thrift)
 fboss_add_thrift(THRIFTSRC fboss/qsfp_service/if/qsfp.thrift
     SERVICES QsfpService)

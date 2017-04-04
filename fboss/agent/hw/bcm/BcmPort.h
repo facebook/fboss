@@ -21,6 +21,7 @@ extern "C" {
 #include "fboss/agent/types.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/bcm/gen-cpp2/hardware_stats_types.h"
 
 #include <mutex>
 
@@ -140,14 +141,14 @@ class BcmPort {
 
   void updateStat(std::chrono::seconds now,
                   stats::MonotonicCounter* stat,
-                  opennsl_stat_val_t type);
+                  opennsl_stat_val_t type,
+                  int64_t* portStatVal);
   void updatePktLenHist(std::chrono::seconds now,
                         stats::ExportedHistogramMapImpl::LockableHistogram* hist,
                         const std::vector<opennsl_stat_val_t>& stats);
   std::string statName(folly::StringPiece name) const;
 
   void disablePause();
-  void setAdditionalStats(std::chrono::seconds now);
   void setConfiguredMaxSpeed();
   opennsl_port_if_t getDesiredInterfaceMode(cfg::PortSpeed speed,
                                             PortID id,
@@ -191,6 +192,7 @@ class BcmPort {
   stats::ExportedStatMapImpl::LockableStat outQueueLen_;
   stats::ExportedHistogramMapImpl::LockableHistogram inPktLengths_;
   stats::ExportedHistogramMapImpl::LockableHistogram outPktLengths_;
+  HwPortStats portStats_;
 };
 
 }} // namespace facebook::fboss

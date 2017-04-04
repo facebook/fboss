@@ -13,7 +13,6 @@ namespace facebook { namespace fboss {
 
 // stubbed out
 void BcmPort::disablePause() {}
-void BcmPort::setAdditionalStats(std::chrono::seconds now) {}
 void BcmPort::setConfiguredMaxSpeed() {
   configuredMaxSpeed_ = cfg::PortSpeed::XG;
 }

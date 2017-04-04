@@ -445,25 +445,81 @@ void BcmPort::updateStats() {
   // TODO: It would be nicer to use a monotonic clock, but unfortunately
   // the ServiceData code currently expects everyone to use system time.
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
-
-  updateStat(now, &inBytes_, opennsl_spl_snmpIfHCInOctets);
-  updateStat(now, &inUnicastPkts_, opennsl_spl_snmpIfHCInUcastPkts);
-  updateStat(now, &inMulticastPkts_, opennsl_spl_snmpIfHCInMulticastPkts);
-  updateStat(now, &inBroadcastPkts_, opennsl_spl_snmpIfHCInBroadcastPkts);
-  updateStat(now, &inDiscards_, opennsl_spl_snmpIfInDiscards);
-  updateStat(now, &inErrors_, opennsl_spl_snmpIfInErrors);
+  HwPortStats portStats;
+  updateStat(now, &inBytes_, opennsl_spl_snmpIfHCInOctets, &portStats.inBytes_);
+  updateStat(
+      now,
+      &inUnicastPkts_,
+      opennsl_spl_snmpIfHCInUcastPkts,
+      &portStats.inUnicastPkts_);
+  updateStat(
+      now,
+      &inMulticastPkts_,
+      opennsl_spl_snmpIfHCInMulticastPkts,
+      &portStats.inMulticastPkts_);
+  updateStat(
+      now,
+      &inBroadcastPkts_,
+      opennsl_spl_snmpIfHCInBroadcastPkts,
+      &portStats.inBroadcastPkts_);
+  updateStat(
+      now, &inDiscards_, opennsl_spl_snmpIfInDiscards, &portStats.inDiscards_);
+  updateStat(
+      now, &inErrors_, opennsl_spl_snmpIfInErrors, &portStats.inErrors_);
   // v4, v6 header errors
-  updateStat(now, &inIpv4HdrErrors_, opennsl_spl_snmpIpInHdrErrors);
-  updateStat(now, &inIpv6HdrErrors_, opennsl_spl_snmpIpv6IfStatsInHdrErrors);
+  updateStat(
+      now,
+      &inIpv4HdrErrors_,
+      opennsl_spl_snmpIpInHdrErrors,
+      &portStats.inIpv4HdrErrors_);
+  updateStat(
+      now,
+      &inIpv6HdrErrors_,
+      opennsl_spl_snmpIpv6IfStatsInHdrErrors,
+      &portStats.inIpv6HdrErrors_);
+  updateStat(
+      now,
+      &inPause_,
+      opennsl_spl_snmpDot3InPauseFrames,
+      &portStats.inPause_);
 
-  updateStat(now, &outBytes_, opennsl_spl_snmpIfHCOutOctets);
-  updateStat(now, &outUnicastPkts_, opennsl_spl_snmpIfHCOutUcastPkts);
-  updateStat(now, &outMulticastPkts_, opennsl_spl_snmpIfHCOutMulticastPkts);
-  updateStat(now, &outBroadcastPkts_, opennsl_spl_snmpIfHCOutBroadcastPckts);
-  updateStat(now, &outDiscards_, opennsl_spl_snmpIfOutDiscards);
-  updateStat(now, &outErrors_, opennsl_spl_snmpIfOutErrors);
+  // Egress Stats
+  updateStat(
+      now,
+      &outPause_,
+      opennsl_spl_snmpDot3OutPauseFrames,
+      &portStats.outPause_);
+  updateStat(
+      now, &outBytes_, opennsl_spl_snmpIfHCOutOctets, &portStats.outBytes_);
+  updateStat(
+      now,
+      &outUnicastPkts_,
+      opennsl_spl_snmpIfHCOutUcastPkts,
+      &portStats.outUnicastPkts_);
+  updateStat(
+      now,
+      &outMulticastPkts_,
+      opennsl_spl_snmpIfHCOutMulticastPkts,
+      &portStats.outMulticastPkts_);
+  updateStat(
+      now,
+      &outBroadcastPkts_,
+      opennsl_spl_snmpIfHCOutBroadcastPckts,
+      &portStats.outBroadcastPkts_);
+  updateStat(
+      now,
+      &outDiscards_,
+      opennsl_spl_snmpIfOutDiscards,
+      &portStats.outDiscards_);
+  updateStat(
+      now, &outErrors_, opennsl_spl_snmpIfOutErrors, &portStats.outErrors_);
+  updateStat(
+      now,
+      &outPause_,
+      opennsl_spl_snmpDot3OutPauseFrames,
+      &portStats.outPause_);
 
-  setAdditionalStats(now);
+  portStats_ = portStats;
 
   // Update the queue length stat
   uint32_t qlength;
@@ -486,7 +542,7 @@ void BcmPort::updateStats() {
 
 void BcmPort::updateStat(std::chrono::seconds now,
                          stats::MonotonicCounter* stat,
-                         opennsl_stat_val_t type) {
+                         opennsl_stat_val_t type, int64_t* statVal) {
   // Use the non-sync API to just get the values accumulated in software.
   // The Broadom SDK's counter thread syncs the HW counters to software every
   // 500000us (defined in config.bcm).
@@ -498,6 +554,7 @@ void BcmPort::updateStat(std::chrono::seconds now,
     return;
   }
   stat->updateValue(now, value);
+  *statVal = value;
 }
 
 void BcmPort::updatePktLenHist(
