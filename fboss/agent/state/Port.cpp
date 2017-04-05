@@ -99,8 +99,11 @@ Port::Port(PortID id, const std::string& name)
   : NodeBaseT(id, name) {
 }
 
-void Port::initDefaultConfig(cfg::Port* config) const {
+void Port::initDefaultConfigState(cfg::Port* config) const {
+  // Copy over port identifiers and reset to (default)
+  // admin disabled state.
   config->logicalID = getID();
+  config->name = getName();
   config->state = cfg::PortState::POWER_DOWN;
 }
 

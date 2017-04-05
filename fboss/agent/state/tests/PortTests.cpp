@@ -135,9 +135,9 @@ TEST(Port, initDefaultConfig) {
   EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 
   // Adding a port entry in the config and initializing it with
-  // initDefaultConfig() should also result in no changes.
+  // initDefaultConfigState() should also result in no changes.
   config.ports.resize(1);
-  state->getPort(portID)->initDefaultConfig(&config.ports[0]);
+  state->getPort(portID)->initDefaultConfigState(&config.ports[0]);
   EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 }
 

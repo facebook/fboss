@@ -83,12 +83,13 @@ class Port : public NodeBaseT<Port, PortFields> {
 
   /*
    * Initialize a cfg::Port object with the default settings
-   * that would be applied for this port.
+   * that would be applied for this port. Port identifiers
+   * like port ID and name are retained.
    *
    * The resulting cfg::Port object can be passed to applyConfig() to return
    * the port to a state as if it had been newly constructed.
    */
-  void initDefaultConfig(cfg::Port* config) const;
+  void initDefaultConfigState(cfg::Port* config) const;
 
   PortID getID() const {
     return getFields()->id;

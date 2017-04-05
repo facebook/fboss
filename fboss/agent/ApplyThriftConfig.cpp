@@ -378,7 +378,7 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts() {
       continue;
     }
     cfg::Port defaultConfig;
-    origPort->initDefaultConfig(&defaultConfig);
+    origPort->initDefaultConfigState(&defaultConfig);
     auto newPort = updatePort(origPort, &defaultConfig);
     changed |= updateMap(&newPorts, origPort, newPort);
   }
