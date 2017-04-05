@@ -233,7 +233,7 @@ TEST(ThriftTest, syncFib) {
   // Statics, link-locals, and clients 2 and 3 should remain unchanged.
   //
 
-  auto newRoutes = folly::make_unique<std::vector<UnicastRoute>>();
+  auto newRoutes = std::make_unique<std::vector<UnicastRoute>>();
   UnicastRoute nr1 = *makeUnicastRoute(prefixC6, cli1_nhop6b).get();
   UnicastRoute nr2 = *makeUnicastRoute(prefixD6, cli1_nhop6b).get();
   UnicastRoute nr3 = *makeUnicastRoute(prefixD4, cli1_nhop4).get();
