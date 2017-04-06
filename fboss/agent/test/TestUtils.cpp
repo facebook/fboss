@@ -373,14 +373,14 @@ std::string fbossHexDump(const string& buf) {
 TxPacketMatcher::TxPacketMatcher(StringPiece name, TxMatchFn fn)
   : name_(name.str()), fn_(std::move(fn)) {}
 
-::testing::Matcher<TxPacket*> TxPacketMatcher::createMatcher(
+::testing::Matcher<TxPacketPtr> TxPacketMatcher::createMatcher(
     folly::StringPiece name,
     TxMatchFn&& fn) {
   return ::testing::MakeMatcher(new TxPacketMatcher(name, std::move(fn)));
 }
 
 bool TxPacketMatcher::MatchAndExplain(
-    TxPacket* pkt, ::testing::MatchResultListener* l) const {
+    const TxPacketPtr& pkt, ::testing::MatchResultListener* l) const {
   try {
     fn_(pkt);
     return true;
@@ -412,7 +412,7 @@ RxPacketMatcher::createMatcher(
 }
 
 bool RxPacketMatcher::MatchAndExplain(
-    RxMatchFnArgs args,
+    const RxMatchFnArgs& args,
     ::testing::MatchResultListener* l) const {
   auto dstIfID = std::get<0>(args);
   auto pkt = std::get<1>(args);

@@ -250,8 +250,9 @@ using TxMatchFn = MatchFn<TxPacket>;
 /*
  * A gmock MatcherInterface for matching TxPacket objects.
  */
+using TxPacketPtr = TxPacket*;
 class TxPacketMatcher
-  : public ::testing::MatcherInterface<TxPacket*> {
+  : public ::testing::MatcherInterface<TxPacketPtr> {
  public:
   TxPacketMatcher(folly::StringPiece name, TxMatchFn fn);
 
@@ -260,7 +261,7 @@ class TxPacketMatcher
       TxMatchFn&& fn);
 
   bool MatchAndExplain(
-      TxPacket* pkt,
+      const TxPacketPtr& pkt,
       ::testing::MatchResultListener* l) const override;
 
   void DescribeTo(std::ostream* os) const override;
@@ -285,7 +286,7 @@ class RxPacketMatcher : public ::testing::MatcherInterface<RxMatchFnArgs> {
       RxMatchFn&& fn);
 
   bool MatchAndExplain(
-      RxMatchFnArgs args,
+      const RxMatchFnArgs& args,
       ::testing::MatchResultListener* l) const override;
 
   void DescribeTo(std::ostream* os) const override;
