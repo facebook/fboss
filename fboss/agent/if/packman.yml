@@ -8,7 +8,7 @@ packages:
   ctrl-FbossCtrl-pyremote:
     packager: oncall+fboss@xmail.facebook.com
     rules:
-      fbmake:fboss/agent/if:ctrl-FbossCtrl-pyremote:
+      buck:fboss/agent/if:ctrl-FbossCtrl-pyremote:
         fboss/agent/if/ctrl-FbossCtrl-pyremote.par:
           path:
           - /usr/local/bin/ctrl-FbossCtrl-pyremote
