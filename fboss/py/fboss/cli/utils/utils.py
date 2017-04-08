@@ -14,6 +14,11 @@ import re
 
 from facebook.network.Address.ttypes import BinaryAddress
 
+AGENT_KEYWORD = 'agent'
+BGP_KEYWORD = 'bgp'
+COOP_KEYWORD = 'coop'
+SDK_KEYWORD = 'sdk'
+
 if sys.stdout.isatty():
     COLOR_RED = '\033[31m'
     COLOR_GREEN = '\033[32m'

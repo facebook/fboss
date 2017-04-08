@@ -27,6 +27,7 @@ from fboss.cli.commands import lldp
 from fboss.cli.commands import ndp
 from fboss.cli.commands import port
 from fboss.cli.commands import route
+from fboss.cli.utils.utils import AGENT_KEYWORD
 from thrift.Thrift import TApplicationException
 from thrift.transport.TTransport import TTransportException
 from neteng.fboss.ttypes import FbossBaseError
@@ -73,7 +74,7 @@ class GetConfigCli(object):
     ''' Get running config sub-commands '''
 
     def __init__(self):
-        self.config.add_command(self._ctrl, name='ctrl')
+        self.config.add_command(self._agent, name=AGENT_KEYWORD)
 
     @click.group()
     def config():
@@ -82,9 +83,9 @@ class GetConfigCli(object):
 
     @click.command()
     @click.pass_obj
-    def _ctrl(cli_opts):
+    def _agent(cli_opts):
         ''' Show controller running config '''
-        config.GetConfigCmd(cli_opts).run('ctrl')
+        config.GetConfigCmd(cli_opts).run(AGENT_KEYWORD)
 
 
 class IpCli(object):

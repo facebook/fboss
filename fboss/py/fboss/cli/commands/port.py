@@ -156,7 +156,7 @@ class PortStatsCmd(cmds.FbossCmd):
             raise SystemExit('Fboss Error: ' + e)
 
     def show_stats(self, details, ports):
-        with self._create_ctrl_client() as client:
+        with self._create_agent_client() as client:
             if not ports:
                 stats = client.getAllPortStats()
             else:

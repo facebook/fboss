@@ -10,12 +10,13 @@
 
 import json
 
+from fboss.cli.utils.utils import AGENT_KEYWORD
 from fboss.cli.commands import commands as cmds
 from neteng.fboss.ttypes import FbossBaseError
 
 class GetConfigCmd(cmds.FbossCmd):
     def run(self, config_type):
-        if config_type == 'ctrl':
+        if config_type == AGENT_KEYWORD:
             self._client = self._create_agent_client()
         resp = self._client.getRunningConfig()
 
