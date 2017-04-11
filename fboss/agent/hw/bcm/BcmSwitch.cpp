@@ -706,6 +706,11 @@ void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
 void BcmSwitch::processChangedPorts(const StateDelta& delta) {
   forEachChanged(delta.getPortsDelta(),
     [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+      if (oldPort->isAdminDisabled() && newPort->isAdminDisabled()) {
+        // No need to process changes on disabled ports. We will pick up changes
+        // should the port ever become enabled.
+        return;
+      }
 
       auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
       auto vlanChanged = oldPort->getIngressVlan() != newPort->getIngressVlan();
