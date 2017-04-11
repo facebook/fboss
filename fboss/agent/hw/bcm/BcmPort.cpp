@@ -36,6 +36,27 @@ using std::chrono::system_clock;
 using std::string;
 using std::shared_ptr;
 
+namespace {
+
+const string kInBytes = "in_bytes";
+const string kInUnicastPkts = "in_unicast_pkts";
+const string kInMulticastPkts = "in_multicast_pkts";
+const string kInBroadcastPkts = "in_broadcast_pkts";
+const string kInDiscards = "in_discards";
+const string kInErrors = "in_errors";
+const string kInPause = "in_pause_frames";
+const string kInIpv4HdrErrors = "in_ipv4_header_errors";
+const string kInIpv6HdrErrors = "in_ipv6_header_errors";
+const string kOutBytes = "out_bytes";
+const string kOutUnicastPkts = "out_unicast_pkts";
+const string kOutMulticastPkts = "out_multicast_pkts";
+const string kOutBroadcastPkts = "out_broadcast_pkts";
+const string kOutDiscards = "out_discards";
+const string kOutErrors = "out_errors";
+const string kOutPause = "out_pause_frames";
+
+}
+
 namespace facebook { namespace fboss {
 
 static const std::vector<opennsl_stat_val_t> kInPktLengthStats = {
@@ -115,6 +136,64 @@ static const std::map<cfg::PortSpeed,
     }}
 };
 
+
+void BcmPort::updateName(const std::string& newName) {
+  if (newName == portName_) {
+    return;
+  }
+  portName_ = newName;
+  reinitPortStats();
+}
+
+BcmPort::MonotonicCounter* BcmPort::getPortCounterIf(const string& statKey) {
+  auto pcitr = portCounters_.find(statKey);
+  return pcitr != portCounters_.end() ? &pcitr->second : nullptr;
+}
+
+void BcmPort::reinitPortStat(const string& statKey) {
+  auto stat = getPortCounterIf(statKey);
+  if (!stat) {
+    portCounters_.emplace(statKey,MonotonicCounter({statName(statKey)}));
+  } else {
+    MonotonicCounter newStat{statName(statKey)};
+    stat->swap(newStat);
+  }
+}
+
+void BcmPort::reinitPortStats() {
+  reinitPortStat(kInBytes);
+  reinitPortStat(kInBytes);
+  reinitPortStat(kInUnicastPkts);
+  reinitPortStat(kInMulticastPkts);
+  reinitPortStat(kInBroadcastPkts);
+  reinitPortStat(kInDiscards);
+  reinitPortStat(kInErrors);
+  reinitPortStat(kInPause);
+  reinitPortStat(kInIpv4HdrErrors);
+  reinitPortStat(kInIpv6HdrErrors);
+
+  reinitPortStat(kOutBytes);
+  reinitPortStat(kOutUnicastPkts);
+  reinitPortStat(kOutMulticastPkts);
+  reinitPortStat(kOutBroadcastPkts);
+  reinitPortStat(kOutDiscards);
+  reinitPortStat(kOutErrors);
+  reinitPortStat(kOutPause);
+
+  // (re) init out queue length
+  auto statMap = fbData->getStatMap();
+  const auto expType = stats::AVG;
+  outQueueLen_ = statMap->getLockableStat(statName("out_queue_length"),
+                                          &expType);
+  // (re) init histograms
+  auto histMap = fbData->getHistogramMap();
+  stats::ExportedHistogram pktLenHist(1, 0, kInPktLengthStats.size());
+  inPktLengths_ = histMap->getOrCreateLockableHistogram(
+      statName("in_pkt_lengths"), &pktLenHist);
+  outPktLengths_ = histMap->getOrCreateLockableHistogram(
+      statName("out_pkt_lengths"), &pktLenHist);
+}
+
 BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
                  BcmPlatformPort* platformPort)
     : hw_(hw),
@@ -128,16 +207,7 @@ BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
   disablePause();
 
   // Initialize our stats data structures
-  auto statMap = fbData->getStatMap();
-  const auto expType = stats::AVG;
-  outQueueLen_ = statMap->getLockableStat(statName("out_queue_length"),
-                                          &expType);
-  auto histMap = fbData->getHistogramMap();
-  stats::ExportedHistogram pktLenHist(1, 0, kInPktLengthStats.size());
-  inPktLengths_ = histMap->getOrCreateLockableHistogram(
-      statName("in_pkt_lengths"), &pktLenHist);
-  outPktLengths_ = histMap->getOrCreateLockableHistogram(
-      statName("out_pkt_lengths"), &pktLenHist);
+  reinitPortStats();
 
   setConfiguredMaxSpeed();
 
@@ -438,7 +508,10 @@ void BcmPort::registerInPortGroup(BcmPortGroup* portGroup) {
 }
 
 std::string BcmPort::statName(folly::StringPiece name) const {
-  return folly::to<string>("port", platformPort_->getPortID(), ".", name);
+  if (portName_.empty()) {
+    return folly::to<string>("port", platformPort_->getPortID(), ".", name);
+  }
+  return folly::to<string>(portName_, ".", name);
 }
 
 void BcmPort::updateStats() {
@@ -446,76 +519,70 @@ void BcmPort::updateStats() {
   // the ServiceData code currently expects everyone to use system time.
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   HwPortStats portStats;
-  updateStat(now, &inBytes_, opennsl_spl_snmpIfHCInOctets, &portStats.inBytes_);
+  updateStat(now, kInBytes, opennsl_spl_snmpIfHCInOctets, &portStats.inBytes_);
   updateStat(
       now,
-      &inUnicastPkts_,
+      kInUnicastPkts,
       opennsl_spl_snmpIfHCInUcastPkts,
       &portStats.inUnicastPkts_);
   updateStat(
       now,
-      &inMulticastPkts_,
+      kInMulticastPkts,
       opennsl_spl_snmpIfHCInMulticastPkts,
       &portStats.inMulticastPkts_);
   updateStat(
       now,
-      &inBroadcastPkts_,
+      kInBroadcastPkts,
       opennsl_spl_snmpIfHCInBroadcastPkts,
       &portStats.inBroadcastPkts_);
   updateStat(
-      now, &inDiscards_, opennsl_spl_snmpIfInDiscards, &portStats.inDiscards_);
+      now, kInDiscards, opennsl_spl_snmpIfInDiscards, &portStats.inDiscards_);
   updateStat(
-      now, &inErrors_, opennsl_spl_snmpIfInErrors, &portStats.inErrors_);
-  // v4, v6 header errors
+      now, kInErrors, opennsl_spl_snmpIfInErrors, &portStats.inErrors_);
+
   updateStat(
       now,
-      &inIpv4HdrErrors_,
+      kInIpv4HdrErrors,
       opennsl_spl_snmpIpInHdrErrors,
       &portStats.inIpv4HdrErrors_);
   updateStat(
       now,
-      &inIpv6HdrErrors_,
+      kInIpv6HdrErrors,
       opennsl_spl_snmpIpv6IfStatsInHdrErrors,
       &portStats.inIpv6HdrErrors_);
   updateStat(
       now,
-      &inPause_,
+      kInPause,
       opennsl_spl_snmpDot3InPauseFrames,
       &portStats.inPause_);
-
   // Egress Stats
   updateStat(
-      now,
-      &outPause_,
-      opennsl_spl_snmpDot3OutPauseFrames,
-      &portStats.outPause_);
-  updateStat(
-      now, &outBytes_, opennsl_spl_snmpIfHCOutOctets, &portStats.outBytes_);
+      now, kOutBytes, opennsl_spl_snmpIfHCOutOctets, &portStats.outBytes_);
   updateStat(
       now,
-      &outUnicastPkts_,
+      kOutUnicastPkts,
       opennsl_spl_snmpIfHCOutUcastPkts,
       &portStats.outUnicastPkts_);
   updateStat(
       now,
-      &outMulticastPkts_,
+      kOutMulticastPkts,
       opennsl_spl_snmpIfHCOutMulticastPkts,
       &portStats.outMulticastPkts_);
   updateStat(
       now,
-      &outBroadcastPkts_,
+      kOutBroadcastPkts,
       opennsl_spl_snmpIfHCOutBroadcastPckts,
       &portStats.outBroadcastPkts_);
   updateStat(
       now,
-      &outDiscards_,
+      kOutDiscards,
       opennsl_spl_snmpIfOutDiscards,
       &portStats.outDiscards_);
   updateStat(
-      now, &outErrors_, opennsl_spl_snmpIfOutErrors, &portStats.outErrors_);
+      now, kOutErrors, opennsl_spl_snmpIfOutErrors, &portStats.outErrors_);
   updateStat(
       now,
-      &outPause_,
+      kOutPause,
       opennsl_spl_snmpDot3OutPauseFrames,
       &portStats.outPause_);
 
@@ -540,17 +607,20 @@ void BcmPort::updateStats() {
   updatePktLenHist(now, &outPktLengths_, kOutPktLengthStats);
 };
 
-void BcmPort::updateStat(std::chrono::seconds now,
-                         stats::MonotonicCounter* stat,
-                         opennsl_stat_val_t type, int64_t* statVal) {
+void BcmPort::updateStat(
+    std::chrono::seconds now,
+    const string& statKey,
+    opennsl_stat_val_t type,
+    int64_t* statVal) {
+  auto stat = getPortCounterIf(statKey);
   // Use the non-sync API to just get the values accumulated in software.
   // The Broadom SDK's counter thread syncs the HW counters to software every
   // 500000us (defined in config.bcm).
   uint64_t value;
   auto ret = opennsl_stat_get(unit_, port_, type, &value);
   if (OPENNSL_FAILURE(ret)) {
-    LOG(ERROR) << "Failed to get stat " << type << " for port " << port_
-               << " :" << opennsl_errmsg(ret);
+    LOG(ERROR) << "Failed to get stat " << type << " for port " << port_ << " :"
+               << opennsl_errmsg(ret);
     return;
   }
   stat->updateValue(now, value);

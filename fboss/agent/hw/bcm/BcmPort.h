@@ -123,6 +123,7 @@ class BcmPort {
    */
   bool isFECEnabled();
 
+  void updateName(const std::string& newName);
 
  private:
   class MonotonicCounter : public stats::MonotonicCounter {
@@ -139,8 +140,11 @@ class BcmPort {
   BcmPort(BcmPort const &) = delete;
   BcmPort& operator=(BcmPort const &) = delete;
 
+  MonotonicCounter* getPortCounterIf(const std::string& statName);
+  void reinitPortStats();
+  void reinitPortStat(const std::string& newName);
   void updateStat(std::chrono::seconds now,
-                  stats::MonotonicCounter* stat,
+                  const std::string& statName,
                   opennsl_stat_val_t type,
                   int64_t* portStatVal);
   void updatePktLenHist(std::chrono::seconds now,
@@ -167,28 +171,12 @@ class BcmPort {
   cfg::PortSpeed configuredMaxSpeed_;
   BcmPlatformPort* const platformPort_{nullptr};
   int unit_{-1};
+  std::string portName_{""};
 
   // The port group this port is a part of
   BcmPortGroup* portGroup_{nullptr};
 
-  MonotonicCounter inBytes_{statName("in_bytes")};
-  MonotonicCounter inUnicastPkts_{statName("in_unicast_pkts")};
-  MonotonicCounter inMulticastPkts_{statName("in_multicast_pkts")};
-  MonotonicCounter inBroadcastPkts_{statName("in_broadcast_pkts")};
-  MonotonicCounter inDiscards_{statName("in_discards")};
-  MonotonicCounter inErrors_{statName("in_errors")};
-  MonotonicCounter inPause_{statName("in_pause_frames")};
-  MonotonicCounter inIpv4HdrErrors_{statName("in_ipv4_header_errors")};
-  MonotonicCounter inIpv6HdrErrors_{statName("in_ipv6_header_errors")};
-
-  MonotonicCounter outBytes_{statName("out_bytes")};
-  MonotonicCounter outUnicastPkts_{statName("out_unicast_pkts")};
-  MonotonicCounter outMulticastPkts_{statName("out_multicast_pkts")};
-  MonotonicCounter outBroadcastPkts_{statName("out_broadcast_pkts")};
-  MonotonicCounter outDiscards_{statName("out_discards")};
-  MonotonicCounter outErrors_{statName("out_errors")};
-  MonotonicCounter outPause_{statName("out_pause_frames")};
-
+  std::map<std::string, MonotonicCounter> portCounters_;
   stats::ExportedStatMapImpl::LockableStat outQueueLen_;
   stats::ExportedHistogramMapImpl::LockableHistogram inPktLengths_;
   stats::ExportedHistogramMapImpl::LockableHistogram outPktLengths_;

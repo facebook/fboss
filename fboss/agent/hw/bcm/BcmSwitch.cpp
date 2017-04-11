@@ -706,15 +706,23 @@ void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
 void BcmSwitch::processChangedPorts(const StateDelta& delta) {
   forEachChanged(delta.getPortsDelta(),
     [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+
       auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
       auto vlanChanged = oldPort->getIngressVlan() != newPort->getIngressVlan();
+      auto nameChanged = oldPort->getName() != newPort->getName();
 
-      if (!speedChanged && !vlanChanged) {
+      if (!nameChanged && !speedChanged && !vlanChanged) {
         return;
       }
 
       auto bcmPort = portTable_->getBcmPort(newPort->getID());
-      bcmPort->program(newPort);
+      if (nameChanged) {
+        bcmPort->updateName(newPort->getName());
+      }
+
+      if (speedChanged || vlanChanged) {
+        bcmPort->program(newPort);
+      }
     });
 }
 
