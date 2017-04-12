@@ -107,7 +107,7 @@ void WedgePlatform::initLocalMac() {
   // "locally administered" bit.  This MAC should be unique, and it's fine for
   // us to use a locally administered address for now.
   std::vector<std::string> cmd{"/sbin/ip", "address", "ls", FLAGS_mgmt_if};
-  Subprocess p(cmd, Subprocess::pipeStdout());
+  Subprocess p(cmd, Subprocess::Options().pipeStdout());
   auto out = p.communicate();
   p.waitChecked();
   auto idx = out.first.find("link/ether ");
