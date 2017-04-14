@@ -17,11 +17,12 @@ struct HwPortStats {
   8: i64 inIpv4HdrErrors_ = STAT_UNINITIALIZED;
   9: i64 inIpv6HdrErrors_ = STAT_UNINITIALIZED;
 
-  10:  i64 outBytes_ = STAT_UNINITIALIZED;
+  10: i64 outBytes_ = STAT_UNINITIALIZED;
   11: i64 outUnicastPkts_ = STAT_UNINITIALIZED;
   12: i64 outMulticastPkts_ = STAT_UNINITIALIZED;
   13: i64 outBroadcastPkts_ = STAT_UNINITIALIZED;
   14: i64 outDiscards_ = STAT_UNINITIALIZED;
   15: i64 outErrors_ = STAT_UNINITIALIZED;
   16: i64 outPause_ = STAT_UNINITIALIZED;
+  17: i64 outCongestionDiscardPkts_ = STAT_UNINITIALIZED;
 }

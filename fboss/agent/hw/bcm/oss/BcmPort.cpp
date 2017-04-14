@@ -25,4 +25,7 @@ bool BcmPort::isFECEnabled() {
   return false;
 }
 
+void BcmPort::setAdditionalStats(
+    std::chrono::seconds now,
+    HwPortStats* curPortStats) {}
 }} // namespace facebook::fboss

@@ -150,6 +150,9 @@ class BcmPort {
   void updatePktLenHist(std::chrono::seconds now,
                         stats::ExportedHistogramMapImpl::LockableHistogram* hist,
                         const std::vector<opennsl_stat_val_t>& stats);
+  // Set stats that are either FB specific, not available in
+  // open source opennsl release.
+  void setAdditionalStats(std::chrono::seconds now, HwPortStats* curPortStats);
   std::string statName(folly::StringPiece name) const;
 
   void disablePause();
@@ -162,6 +165,8 @@ class BcmPort {
 
   void setKR4Ability();
   void setFEC(const std::shared_ptr<Port>& swPort);
+
+  static constexpr auto kOutCongestionDiscards = "out_congestion_discards";
 
   BcmSwitch* const hw_{nullptr};
   const opennsl_port_t port_;    // Broadcom physical port number

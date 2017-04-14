@@ -153,7 +153,7 @@ BcmPort::MonotonicCounter* BcmPort::getPortCounterIf(const string& statKey) {
 void BcmPort::reinitPortStat(const string& statKey) {
   auto stat = getPortCounterIf(statKey);
   if (!stat) {
-    portCounters_.emplace(statKey,MonotonicCounter({statName(statKey)}));
+    portCounters_.emplace(statKey, MonotonicCounter({statName(statKey)}));
   } else {
     MonotonicCounter newStat{statName(statKey)};
     stat->swap(newStat);
@@ -179,6 +179,7 @@ void BcmPort::reinitPortStats() {
   reinitPortStat(kOutDiscards);
   reinitPortStat(kOutErrors);
   reinitPortStat(kOutPause);
+  reinitPortStat(kOutCongestionDiscards);
 
   // (re) init out queue length
   auto statMap = fbData->getStatMap();
@@ -518,75 +519,80 @@ void BcmPort::updateStats() {
   // TODO: It would be nicer to use a monotonic clock, but unfortunately
   // the ServiceData code currently expects everyone to use system time.
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
-  HwPortStats portStats;
-  updateStat(now, kInBytes, opennsl_spl_snmpIfHCInOctets, &portStats.inBytes_);
+  HwPortStats curPortStats;
+  updateStat(
+      now, kInBytes, opennsl_spl_snmpIfHCInOctets, &curPortStats.inBytes_);
   updateStat(
       now,
       kInUnicastPkts,
       opennsl_spl_snmpIfHCInUcastPkts,
-      &portStats.inUnicastPkts_);
+      &curPortStats.inUnicastPkts_);
   updateStat(
       now,
       kInMulticastPkts,
       opennsl_spl_snmpIfHCInMulticastPkts,
-      &portStats.inMulticastPkts_);
+      &curPortStats.inMulticastPkts_);
   updateStat(
       now,
       kInBroadcastPkts,
       opennsl_spl_snmpIfHCInBroadcastPkts,
-      &portStats.inBroadcastPkts_);
+      &curPortStats.inBroadcastPkts_);
   updateStat(
-      now, kInDiscards, opennsl_spl_snmpIfInDiscards, &portStats.inDiscards_);
+      now,
+      kInDiscards,
+      opennsl_spl_snmpIfInDiscards,
+      &curPortStats.inDiscards_);
   updateStat(
-      now, kInErrors, opennsl_spl_snmpIfInErrors, &portStats.inErrors_);
+      now, kInErrors, opennsl_spl_snmpIfInErrors, &curPortStats.inErrors_);
 
   updateStat(
       now,
       kInIpv4HdrErrors,
       opennsl_spl_snmpIpInHdrErrors,
-      &portStats.inIpv4HdrErrors_);
+      &curPortStats.inIpv4HdrErrors_);
   updateStat(
       now,
       kInIpv6HdrErrors,
       opennsl_spl_snmpIpv6IfStatsInHdrErrors,
-      &portStats.inIpv6HdrErrors_);
+      &curPortStats.inIpv6HdrErrors_);
   updateStat(
       now,
       kInPause,
       opennsl_spl_snmpDot3InPauseFrames,
-      &portStats.inPause_);
+      &curPortStats.inPause_);
   // Egress Stats
   updateStat(
-      now, kOutBytes, opennsl_spl_snmpIfHCOutOctets, &portStats.outBytes_);
+      now, kOutBytes, opennsl_spl_snmpIfHCOutOctets, &curPortStats.outBytes_);
   updateStat(
       now,
       kOutUnicastPkts,
       opennsl_spl_snmpIfHCOutUcastPkts,
-      &portStats.outUnicastPkts_);
+      &curPortStats.outUnicastPkts_);
   updateStat(
       now,
       kOutMulticastPkts,
       opennsl_spl_snmpIfHCOutMulticastPkts,
-      &portStats.outMulticastPkts_);
+      &curPortStats.outMulticastPkts_);
   updateStat(
       now,
       kOutBroadcastPkts,
       opennsl_spl_snmpIfHCOutBroadcastPckts,
-      &portStats.outBroadcastPkts_);
+      &curPortStats.outBroadcastPkts_);
   updateStat(
       now,
       kOutDiscards,
       opennsl_spl_snmpIfOutDiscards,
-      &portStats.outDiscards_);
+      &curPortStats.outDiscards_);
   updateStat(
-      now, kOutErrors, opennsl_spl_snmpIfOutErrors, &portStats.outErrors_);
+      now, kOutErrors, opennsl_spl_snmpIfOutErrors, &curPortStats.outErrors_);
   updateStat(
       now,
       kOutPause,
       opennsl_spl_snmpDot3OutPauseFrames,
-      &portStats.outPause_);
+      &curPortStats.outPause_);
 
-  portStats_ = portStats;
+  setAdditionalStats(now, &curPortStats);
+  portStats_ = curPortStats;
 
   // Update the queue length stat
   uint32_t qlength;
