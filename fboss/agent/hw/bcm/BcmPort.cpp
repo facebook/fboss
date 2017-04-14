@@ -235,7 +235,7 @@ void BcmPort::init(bool warmBoot) {
     bcmCheckError(rv, "failed to set port to known state: ", port_);
   }
 
-  setPortStatus(up);
+  getPlatformPort()->linkStatusChanged(up, isEnabled());
 
   // Linkscan should be enabled if the port is enabled already
   auto linkscan = isEnabled() ? OPENNSL_LINKSCAN_MODE_SW :
@@ -351,6 +351,8 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   // cold boot) maybe what is desired by the config. But we
   // may still need to enable FEC
   setFEC(port);
+  getPlatformPort()->linkStatusChanged(port->getOperState(),
+      !port->isAdminDisabled());
 }
 
 void BcmPort::setIngressVlan(const shared_ptr<Port>& swPort) {
@@ -491,15 +493,6 @@ std::shared_ptr<Port> BcmPort::getSwitchStatePort(
 std::shared_ptr<Port> BcmPort::getSwitchStatePortIf(
     const std::shared_ptr<SwitchState>& state) const {
   return state->getPorts()->getPortIf(getPortID());
-}
-
-void BcmPort::setPortStatus(bool up) {
-  int enabled = 1;
-  int rv = opennsl_port_enable_get(unit_, port_, &enabled);
-  // We ignore the return value.  If we fail to get the port status
-  // we just tell the platformPort_ that it is enabled.
-
-  platformPort_->linkStatusChanged(up, enabled);
 }
 
 void BcmPort::registerInPortGroup(BcmPortGroup* portGroup) {

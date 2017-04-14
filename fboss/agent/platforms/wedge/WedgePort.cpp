@@ -100,6 +100,14 @@ void WedgePort::statusIndication(bool enabled, bool link,
   linkStatusChanged(link, enabled);
 }
 
+void WedgePort::linkStatusChanged(bool up, bool adminUp) {
+  // If the link should be up, let's make sure the qsfp
+  // settings are correct
+  if (adminUp) {
+    customizeTransceiver();
+  }
+}
+
 void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
   // Cache the current set speed
   speed_ = speed;

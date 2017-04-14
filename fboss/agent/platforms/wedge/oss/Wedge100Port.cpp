@@ -12,7 +12,9 @@
 namespace facebook { namespace fboss {
 
 // stubbed out
-void Wedge100Port::linkStatusChanged(bool up, bool adminUp) {}
+void Wedge100Port::linkStatusChanged(bool up, bool adminUp) {
+  WedgePort::linkStatusChanged(up, adminUp);
+}
 
 void Wedge100Port::prepareForGracefulExit() {}
 

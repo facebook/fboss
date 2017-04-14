@@ -57,11 +57,6 @@ class BcmPortTable {
   BcmPort* getBcmPortIf(opennsl_port_t id) const;
 
   /*
-   * Indicate that a port's link status has changed.
-   */
-  void setPortStatus(opennsl_port_t id, int status);
-
-  /*
    * Update all ports' statistics.
    */
   void updatePortStats();

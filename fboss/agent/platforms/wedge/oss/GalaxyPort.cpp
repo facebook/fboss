@@ -12,6 +12,8 @@
 
 namespace facebook { namespace fboss {
 
-void GalaxyPort::linkStatusChanged(bool up, bool adminUp) {}
+void GalaxyPort::linkStatusChanged(bool up, bool adminUp) {
+  WedgePort::linkStatusChanged(up, adminUp);
+}
 
 }}

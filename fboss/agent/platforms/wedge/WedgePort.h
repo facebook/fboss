@@ -42,6 +42,7 @@ class WedgePort : public BcmPlatformPort {
                         bool ingress, bool egress,
                         bool discards, bool errors) override;
   void linkSpeedChanged(const cfg::PortSpeed& speed) override;
+  void linkStatusChanged(bool up, bool adminUp) override;
 
   virtual folly::Optional<TransceiverID> getTransceiverID() const {
     return frontPanelPort_;

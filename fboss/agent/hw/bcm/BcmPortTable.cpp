@@ -105,11 +105,6 @@ BcmPort* BcmPortTable::getBcmPortIf(PortID id) const {
   return iter->second;
 }
 
-void BcmPortTable::setPortStatus(opennsl_port_t id, int status) {
-  auto port = getBcmPort(id);
-  port->setPortStatus(status);
-}
-
 void BcmPortTable::updatePortStats() {
  for (const auto& entry : bcmPhysicalPorts_) {
    BcmPort* bcmPort = entry.second.get();
