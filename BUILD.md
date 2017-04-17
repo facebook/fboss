@@ -1,6 +1,6 @@
 # Build Instructions
 
-FBOSS is being tested on Ubuntu 14.04.
+FBOSS is being tested on Ubuntu 16.04.
 
 Required packages
 * cmake3.0.2 or higher
