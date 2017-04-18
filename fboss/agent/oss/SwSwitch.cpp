@@ -21,7 +21,7 @@ void SwSwitch::initThread(folly::StringPiece name) {
   char pthreadName[pthreadLength + 1];
   memcpy(pthreadName, name.begin(), pthreadLength);
   pthreadName[pthreadLength] = '\0';
-  folly::setThreadName(pthread_self(), pthreadName);
+  folly::setThreadName(pthreadName);
 }
 
 void SwSwitch::publishInitTimes(std::string name, const float& time) {}
