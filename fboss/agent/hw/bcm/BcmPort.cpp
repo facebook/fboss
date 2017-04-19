@@ -23,6 +23,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
+#include "fboss/agent/hw/bcm/gen-cpp2/hardware_stats_constants.h"
 
 extern "C" {
 #include <opennsl/link.h>
@@ -47,6 +48,7 @@ const string kInErrors = "in_errors";
 const string kInPause = "in_pause_frames";
 const string kInIpv4HdrErrors = "in_ipv4_header_errors";
 const string kInIpv6HdrErrors = "in_ipv6_header_errors";
+const string kInNonPauseDiscards = "in_non_pause_discards";
 const string kOutBytes = "out_bytes";
 const string kOutUnicastPkts = "out_unicast_pkts";
 const string kOutMulticastPkts = "out_multicast_pkts";
@@ -162,7 +164,6 @@ void BcmPort::reinitPortStat(const string& statKey) {
 
 void BcmPort::reinitPortStats() {
   reinitPortStat(kInBytes);
-  reinitPortStat(kInBytes);
   reinitPortStat(kInUnicastPkts);
   reinitPortStat(kInMulticastPkts);
   reinitPortStat(kInBroadcastPkts);
@@ -171,6 +172,7 @@ void BcmPort::reinitPortStats() {
   reinitPortStat(kInPause);
   reinitPortStat(kInIpv4HdrErrors);
   reinitPortStat(kInIpv6HdrErrors);
+  reinitPortStat(kInNonPauseDiscards);
 
   reinitPortStat(kOutBytes);
   reinitPortStat(kOutUnicastPkts);
@@ -537,7 +539,6 @@ void BcmPort::updateStats() {
       &curPortStats.inDiscards_);
   updateStat(
       now, kInErrors, opennsl_spl_snmpIfInErrors, &curPortStats.inErrors_);
-
   updateStat(
       now,
       kInIpv4HdrErrors,
@@ -585,6 +586,35 @@ void BcmPort::updateStats() {
       &curPortStats.outPause_);
 
   setAdditionalStats(now, &curPortStats);
+  // Compute non pause discards
+  const auto kUninit = hardware_stats_constants::STAT_UNINITIALIZED();
+  if (isMmuLossy() && portStats_.inDiscards_ != kUninit &&
+      portStats_.inPause_ != kUninit) {
+    // If MMU setup as lossy, all incoming pause frames will be
+    // discarded and will count towards in discards. This makes in discards
+    // counter somewhat useless. So instead calculate "in_non_pause_discards",
+    // as std::max(0, (inDiscardsSincePrev - inPauseSincePrev)).
+    // std::max(..) is used, since stats from  h/w are synced non atomically,
+    // So depending on what get synced later # of pause maybe be slightly
+    // higher than # of discards.
+    auto inPauseSincePrev = curPortStats.inPause_ - portStats_.inPause_;
+    auto inDiscardsSincePrev =
+        curPortStats.inDiscards_ - portStats_.inDiscards_;
+    if (inPauseSincePrev >= 0 && inDiscardsSincePrev >=0) {
+      // Account for counter rollover.
+      auto inNonPauseDiscardsSincePrev =
+          std::max(0L, (inDiscardsSincePrev - inPauseSincePrev));
+      // Init current port stats from prev value or 0
+      curPortStats.inNonPauseDiscards_ =
+          (portStats_.inNonPauseDiscards_ == kUninit
+               ? 0
+               : portStats_.inNonPauseDiscards_);
+      // Counters are cumalative
+      curPortStats.inNonPauseDiscards_ += inNonPauseDiscardsSincePrev;
+      auto inNonPauseDiscards = getPortCounterIf(kInNonPauseDiscards);
+      inNonPauseDiscards->updateValue(now, curPortStats.inNonPauseDiscards_);
+    }
+  }
   portStats_ = curPortStats;
 
   // Update the queue length stat
@@ -624,6 +654,10 @@ void BcmPort::updateStat(
   }
   stat->updateValue(now, value);
   *statVal = value;
+}
+
+bool BcmPort::isMmuLossy() const {
+  return hw_->getMmuState() == BcmSwitch::MmuState::MMU_LOSSY;
 }
 
 void BcmPort::updatePktLenHist(

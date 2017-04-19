@@ -164,6 +164,7 @@ class BcmPort {
 
   void setKR4Ability();
   void setFEC(const std::shared_ptr<Port>& swPort);
+  bool isMmuLossy() const;
 
   static constexpr auto kOutCongestionDiscards = "out_congestion_discards";
 
@@ -181,6 +182,7 @@ class BcmPort {
   BcmPortGroup* portGroup_{nullptr};
 
   std::map<std::string, MonotonicCounter> portCounters_;
+
   stats::ExportedStatMapImpl::LockableStat outQueueLen_;
   stats::ExportedHistogramMapImpl::LockableHistogram inPktLengths_;
   stats::ExportedHistogramMapImpl::LockableHistogram outPktLengths_;

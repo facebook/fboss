@@ -98,4 +98,9 @@ void BcmSwitch::processChangedAcl(
   const std::shared_ptr<AclEntry>& newAcl) {}
 void BcmSwitch::processAddedAcl(const std::shared_ptr<AclEntry>& acl) {}
 void BcmSwitch::processRemovedAcl(const std::shared_ptr<AclEntry>& acl) {}
+
+BcmSwitch::MmuState BcmSwitch::queryMmuState() const {
+  return MmuState::UNKNOWN;
+}
+
 }} //facebook::fboss

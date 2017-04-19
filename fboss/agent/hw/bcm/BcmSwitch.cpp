@@ -504,6 +504,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   setupCos();
   configureRxRateLimiting();
   copyIPv6LinkLocalMcastPackets();
+  mmuState_ = queryMmuState();
 
   // enable IPv4 and IPv6 on CPU port
   opennsl_port_t idx;

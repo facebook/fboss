@@ -98,6 +98,11 @@ class BcmSwitch : public BcmSwitchIf {
      FULL_HASH, // Full hash - use src IP, dst IP, src port, dst port
      HALF_HASH  // Half hash - user src IP, dst IP
    };
+   enum class MmuState {
+    UNKNOWN,
+    MMU_LOSSLESS,
+    MMU_LOSSY
+   };
   /*
    * Construct a new BcmSwitch.
    *
@@ -140,6 +145,7 @@ class BcmSwitch : public BcmSwitchIf {
   BcmPlatform* getPlatform() const override {
     return platform_;
   }
+  MmuState getMmuState() const { return mmuState_; }
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
   bool sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept override;
@@ -491,6 +497,7 @@ class BcmSwitch : public BcmSwitchIf {
     const std::shared_ptr<Port>& newPort,
     const std::shared_ptr<SwitchState>& newState) const;
 
+  MmuState queryMmuState() const;
   /*
    * Member variables
    */
@@ -500,6 +507,7 @@ class BcmSwitch : public BcmSwitchIf {
   int unit_{-1};
   uint32_t flags_{0};
   HashMode hashMode_;
+  MmuState mmuState_{MmuState::UNKNOWN};
   std::unique_ptr<BcmWarmBootCache> warmBootCache_;
   std::unique_ptr<BcmPortTable> portTable_;
   std::unique_ptr<BcmEgress> toCPUEgress_;
