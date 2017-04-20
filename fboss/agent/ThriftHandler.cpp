@@ -144,70 +144,16 @@ void ThriftHandler::flushCountersNow() {
 
 void ThriftHandler::addUnicastRoute(
     int16_t client, std::unique_ptr<UnicastRoute> route) {
-  ensureConfigured("addUnicastRoute");
-  ensureFibSynced("addUnicastRoute");
-  RouteUpdateStats stats(sw_, "Add", 1);
-  RouterID routerId = RouterID(0); // TODO, default vrf for now
-  folly::IPAddress network = toIPAddress(route->dest.ip);
-  uint8_t mask = static_cast<uint8_t>(route->dest.prefixLength);
-  RouteNextHops nexthops;
-  nexthops.reserve(route->nextHopAddrs.size());
-  for (const auto& nh : route->nextHopAddrs) {
-    nexthops.emplace(toIPAddress(nh));
-  }
-  if (network.isV4()) {
-    sw_->stats()->addRouteV4();
-  } else {
-    sw_->stats()->addRouteV6();
-  }
-
-  // Perform the update
-  auto updateFn = [=](const shared_ptr<SwitchState>& state) {
-    RouteUpdater updater(state->getRouteTables());
-    if (nexthops.size()) {
-      updater.addRoute(routerId, network, mask, ClientID(client),
-                       std::move(nexthops));
-    } else {
-      updater.addRoute(routerId, network, mask, RouteForwardAction::DROP);
-    }
-    auto newRt = updater.updateDone();
-    if (!newRt) {
-      return shared_ptr<SwitchState>();
-    }
-    auto newState = state->clone();
-    newState->resetRouteTables(std::move(newRt));
-    return newState;
-  };
-  sw_->updateStateBlocking("add unicast route", updateFn);
+  auto routes = std::make_unique<std::vector<UnicastRoute>>();
+  routes->emplace_back(std::move(*route));
+  addUnicastRoutes(client, std::move(routes));
 }
 
 void ThriftHandler::deleteUnicastRoute(
     int16_t client, std::unique_ptr<IpPrefix> prefix) {
-  ensureConfigured("deleteUnicastRoute");
-  ensureFibSynced("deleteUnicastRoute");
-  RouteUpdateStats stats(sw_, "Delete", 1);
-  RouterID routerId = RouterID(0); // TODO, default vrf for now
-  folly::IPAddress network =  toIPAddress(prefix->ip);
-  uint8_t mask = static_cast<uint8_t>(prefix->prefixLength);
-  if (network.isV4()) {
-    sw_->stats()->delRouteV4();
-  } else {
-    sw_->stats()->delRouteV6();
-  }
-
-  // Perform the update
-  auto updateFn = [=](const shared_ptr<SwitchState>& state) {
-    RouteUpdater updater(state->getRouteTables());
-    updater.delNexthopsForClient(routerId, network, mask, ClientID(client));
-    auto newRt = updater.updateDone();
-    if (!newRt) {
-      return shared_ptr<SwitchState>();
-    }
-    auto newState = state->clone();
-    newState->resetRouteTables(std::move(newRt));
-    return newState;
-  };
-  sw_->updateStateBlocking("delete unicast route", updateFn);
+  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
+  prefixes->emplace_back(std::move(*prefix));
+  deleteUnicastRoutes(client, std::move(prefixes));
 }
 
 void ThriftHandler::addUnicastRoutes(
