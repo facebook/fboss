@@ -18,7 +18,6 @@ using facebook::network::toBinaryAddress;
 
 namespace {
 constexpr auto kPrefix = "prefix";
-constexpr auto kNextHops = "nexthops"; // Necessary for reading old data
 constexpr auto kNextHopsMulti = "nexthopsmulti";
 constexpr auto kFwdInfo = "forwardingInfo";
 constexpr auto kFlags = "flags";
@@ -58,24 +57,6 @@ folly::dynamic RouteFields<AddrT>::toFollyDynamic() const {
   folly::dynamic routeFields = folly::dynamic::object;
   routeFields[kPrefix] = prefix.toFollyDynamic();
   routeFields[kNextHopsMulti] = nexthopsmulti.toFollyDynamic();
-  //
-  // For backward compatibility, we will also write the 1-best
-  // nexthops list to the [kNextHops] field.  This is just so,
-  // if a machine is reverted from a multi-nexthop code base back
-  // to a code base that's not aware of multi-nexthops, it can continue
-  // serving traffic without an outage.  Please remove this code
-  // once all developers have rebased beyond the diff containing this
-  // message.
-  folly::dynamic nhopsList = folly::dynamic::array;
-  if (!nexthopsmulti.isEmpty()) {
-    for (const auto& nhop: nexthopsmulti.bestNextHopList()) {
-      nhopsList.push_back(nhop.str());
-    }
-  }
-  routeFields[kNextHops] = std::move(nhopsList);
-  // End of backward-compatibility code
-  //
-
   routeFields[kFwdInfo] = fwd.toFollyDynamic();
   routeFields[kFlags] = flags;
   return routeFields;
@@ -106,30 +87,8 @@ template<typename AddrT>
 RouteFields<AddrT>
 RouteFields<AddrT>::fromFollyDynamic(const folly::dynamic& routeJson) {
   RouteFields rt(Prefix::fromFollyDynamic(routeJson[kPrefix]));
-  if (routeJson.find(kNextHopsMulti) != routeJson.items().end()) {
-    rt.nexthopsmulti =
-      std::move(RouteNextHopsMulti::
-                fromFollyDynamic(routeJson[kNextHopsMulti]));
-  } else {
-    // If routeJson[kNextMultiHops] does not exist, we're reading json that
-    // was serialized by an older version of the code.
-    // We will assume the nexthops were provided by BGPd.
-    // It kind of doesn't matter.  In about 15 seconds, BGPd will have
-    // assembled a new set of routes, and will replace these routes en masse.
-    //
-    // This code supporting routeJson[kNextHops] can be removed once all fboss
-    // switches have been upgraded.
-    //
-    // This check for size is necessary since the old code serialized nexthop
-    // lists of size zero even for non-NEXTHOPS routes.
-    if (routeJson[kNextHops].size() > 0) {
-      RouteNextHops nhops;
-      for (const auto& nhop: routeJson[kNextHops]) {
-        nhops.emplace(nhop.stringPiece());
-      }
-      rt.nexthopsmulti.update(ClientID((int32_t)StdClientIds::BGPD), nhops);
-    }
-  }
+  rt.nexthopsmulti = RouteNextHopsMulti::fromFollyDynamic(
+      routeJson[kNextHopsMulti]);
   rt.fwd = std::move(RouteForwardInfo::fromFollyDynamic(routeJson[kFwdInfo]));
   rt.flags = routeJson[kFlags].asInt();
   return rt;

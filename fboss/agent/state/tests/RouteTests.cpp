@@ -1442,18 +1442,3 @@ TEST(Route, serializeRoute) {
   auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
   ASSERT_TRUE(rt2->isSame(clientId, nxtHops));
 }
-
-// Test deserialization of old version of the Route object (from before
-// multi-nexthops were implemented)
-TEST(Route, deserializeOldVersionRoute) {
-
-  std::string json =
-    "{\"flags\":0,\"forwardingInfo\":{\"nexthops\":[],\"action\":\"Drop\"},"
-    "\"nexthops\":[\"10.10.10.10\",\"11.11.11.11\"],"
-    "\"prefix\":{\"mask\":32,\"address\":\"1.2.3.4\"}}";
-
-  folly::dynamic obj2 = folly::parseJson(json);
-  auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
-  auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
-  ASSERT_TRUE(rt2->isSame(ClientID(0), nxtHops));
-}
