@@ -234,12 +234,6 @@ int TunManager::getTableId(InterfaceID ifID) const {
   // as main, default, and local. IDs 0, 254 and 255 are not available. So we
   // use range 1-253 for our usecase.
 
-  // Special case to handle old front0 interfaces.
-  // XXX: Delete this case after 6 months (atleast one full rollout). 08-22-2016
-  if (ifID == InterfaceID(0)) {
-    return 100;   // This was the old-ID used for creating front0
-  }
-
   // Hacky. Need better solution but works for now. Our InterfaceID are
   // Type-1: 2000, 2001, 2002, 2003 ...
   // Type-2: 4000, 4001, 4002, 4003, 4004, ...

@@ -137,34 +137,16 @@ TunIntf::~TunIntf() {
 }
 
 bool TunIntf::isTunIntfName(std::string const& ifName) {
-  // Special case to handle old front0 interface.
-  // XXX: Delete this case after 6 months (atleast one full rollout). 08-27-2016
-  if (ifName == "front0") {
-    return true;
-  }
-
   return ifName.find(kTunIntfPrefix) == 0;
 }
 
 std::string TunIntf::createTunIntfName(InterfaceID ifID) {
-  // Special case to handle old front0 interface.
-  // XXX: Delete this case after 6 months (atleast one full rollout). 08-27-2016
-  if (ifID == InterfaceID(0)) {
-    return "front0";
-  }
-
   return folly::sformat("{}{}", kTunIntfPrefix, folly::to<std::string>(ifID));
 }
 
 InterfaceID TunIntf::getIDFromTunIntfName(std::string const& ifName) {
   if (not isTunIntfName(ifName)) {
     throw FbossError(ifName, " is not a valid tun interface");
-  }
-
-  // Special case to handle old front0 interface.
-  // XXX: Delete this case after 6 months (atleast one full rollout). 08-27-2016
-  if (ifName == "front0") {
-    return InterfaceID(0);
   }
 
   return InterfaceID(atoi(ifName.substr(kTunIntfPrefix.size()).c_str()));
