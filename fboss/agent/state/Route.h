@@ -70,8 +70,7 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   // Constructor for directly connected route
   Route(const Prefix& prefix, InterfaceID intf, const folly::IPAddress& addr);
   // Constructor for a route with ECMP
-  Route(const Prefix& prefix, ClientID clientId, const RouteNextHops& nhs);
-  Route(const Prefix& prefix, ClientID clientId, RouteNextHops&& nhs);
+  Route(const Prefix& prefix, ClientID clientId, RouteNextHops nhs);
   // Constructor for a route with special forwarding action
   Route(const Prefix& prefix, Action action);
 
@@ -161,12 +160,8 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
     CHECK(!isProcessing());
     RouteBase::writableFields()->flags |= PROCESSING;
   }
-  void setResolved(RouteForwardNexthops&& fwd) {
+  void setResolved(RouteForwardNexthops fwd) {
     RouteBase::writableFields()->fwd.setNexthops(std::move(fwd));
-    setFlagsResolved();
-  }
-  void setResolved(const RouteForwardNexthops& fwd) {
-    RouteBase::writableFields()->fwd.setNexthops(fwd);
     setFlagsResolved();
   }
   void setResolved(Action action) {
@@ -183,8 +178,7 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   }
   void setUnresolvable();
   void update(InterfaceID intf, const folly::IPAddress& addr);
-  void update(ClientID clientId, const RouteNextHops& nhs);
-  void update(ClientID clientId, RouteNextHops&& nhs);
+  void update(ClientID clientId, RouteNextHops nhs);
   void update(Action action);
   void delNexthopsForClient(ClientID clientId);
  private:

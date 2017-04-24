@@ -55,9 +55,8 @@ class RouteUpdater {
                 RouteForwardAction action);
   // methods to add or update a route with multiple nexthops
   void addRoute(RouterID id, const folly::IPAddress& network, uint8_t mask,
-                ClientID clientId, const RouteNextHops& nhs);
-  void addRoute(RouterID id, const folly::IPAddress& network, uint8_t mask,
-                ClientID clientId, RouteNextHops&& nhs);
+                ClientID clientId, RouteNextHops nhs);
+
   // methods to delete a route
   // Note, throws an exception if called on a route with nexthops.
   void delRouteWithNoNexthops(RouterID id,

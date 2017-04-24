@@ -101,11 +101,7 @@ class RouteForwardInfo {
     action_ = Action::NEXTHOPS;
   }
   // Set one or multiple nexthops
-  void setNexthops(const Nexthops& nexthops) {
-    nexthops_ = nexthops;
-    action_ = Action::NEXTHOPS;
-  }
-  void setNexthops(Nexthops&& nexthops) {
+  void setNexthops(Nexthops nexthops) {
     nexthops_ = std::move(nexthops);
     action_ = Action::NEXTHOPS;
   }

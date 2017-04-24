@@ -166,23 +166,7 @@ void RouteUpdater::addRoute(
 
 void RouteUpdater::addRoute(RouterID id,
                             const folly::IPAddress& network, uint8_t mask,
-                            ClientID clientId, const RouteNextHops& nhs) {
-  if (network.isV4()) {
-    PrefixV4 prefix{network.asV4().mask(mask), mask};
-    return addRoute(prefix, getRibV4(id), clientId, nhs);
-  } else {
-    PrefixV6 prefix{network.asV6().mask(mask), mask};
-    if (prefix.network.isLinkLocal()) {
-      throw FbossError("Unexpected v6 routable route for link local address ",
-                       prefix);
-    }
-    return addRoute(prefix, getRibV6(id), clientId, nhs);
-  }
-}
-
-void RouteUpdater::addRoute(RouterID id,
-                            const folly::IPAddress& network, uint8_t mask,
-                            ClientID clientId, RouteNextHops&& nhs) {
+                            ClientID clientId, RouteNextHops nhs) {
   if (network.isV4()) {
     PrefixV4 prefix{network.asV4().mask(mask), mask};
     return addRoute(prefix, getRibV4(id), clientId, std::move(nhs));
