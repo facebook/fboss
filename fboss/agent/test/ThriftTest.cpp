@@ -262,7 +262,7 @@ TEST(ThriftTest, syncFib) {
   ASSERT_TRUE(rt1->getFields()
     ->nexthopsmulti.isSame(ClientID(2), makeNextHops({cli2_nhop4})));
   auto bestNextHops = rt1->bestNextHopList();
-  EXPECT_EQ(IPAddress(cli2_nhop4), *bestNextHops.begin());
+  EXPECT_EQ(IPAddress(cli2_nhop4), bestNextHops.begin()->addr());
 
   // The prefixC6 route should have clients 2 & 3, and a new value for client 1
   auto rt2 = GET_ROUTE_V6(tables3, rid, prefixC6);

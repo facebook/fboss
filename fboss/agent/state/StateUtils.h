@@ -11,6 +11,8 @@
 
 #include <string>
 
+#include "fboss/agent/types.h"
+
 namespace facebook {
 namespace fboss {
 namespace StateUtils {
@@ -26,5 +28,13 @@ namespace StateUtils {
 std::string getCpp2EnumName(const std::string& enumValue);
 
 } // namespace StateUtils
+
+/**
+* Utility functions for InterfaceID <-> ifName (on host)
+*/
+std::string createTunIntfName(InterfaceID ifID);
+bool isTunIntfName(const std::string& ifName);
+InterfaceID getIDFromTunIntfName(const std::string& ifName);
+
 } // namespace fboss
 } // namespace facebook

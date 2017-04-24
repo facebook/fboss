@@ -22,9 +22,66 @@
 namespace facebook { namespace fboss {
 
 /**
- * Nexthops (ECMP) for a route
+ * RouteNextHop specified by client. It can optionally be scoped via
+ * InterfaceID attribute.
  */
-typedef boost::container::flat_set<folly::IPAddress> RouteNextHops;
+class RouteNextHop {
+ public:
+  /**
+   * Create RouteNextHop. It performs validation check for interface scoping of
+   * nexthop.
+   */
+  explicit RouteNextHop(
+      folly::IPAddress addr,
+      folly::Optional<InterfaceID> intfID = folly::none);
+
+  /**
+   * Utility function to get thrift representation of this nexthop or vice
+   * versa.
+   */
+  static RouteNextHop fromThrift(network::thrift::BinaryAddress const& nexthop);
+  network::thrift::BinaryAddress toThrift() const;
+
+  const folly::IPAddress& addr() const noexcept {
+    return addr_;
+  }
+
+  const folly::Optional<InterfaceID>& intfID() const noexcept {
+    return intfID_;
+  }
+
+ private:
+  folly::IPAddress addr_;
+  folly::Optional<InterfaceID> intfID_;
+
+};
+
+/**
+ * Comparision operators required to have flat_set<RouteNextHop>
+ */
+bool operator==(const RouteNextHop& a, const RouteNextHop& b);
+bool operator< (const RouteNextHop& a, const RouteNextHop& b);
+
+/**
+ * Multiple RouteNextHop for ECMP route.
+ */
+using RouteNextHops = boost::container::flat_set<RouteNextHop>;
+
+namespace util {
+
+/**
+ * Convert thrift representation of nexthops to RouteNextHops.
+ */
+RouteNextHops
+toRouteNextHops(std::vector<network::thrift::BinaryAddress> const& nhAddrs);
+
+/**
+ * Convert RouteNextHops to thrift representaion of nexthops
+ */
+std::vector<network::thrift::BinaryAddress>
+fromRouteNextHops(RouteNextHops const& nhs);
+
+}
 
 /**
  * Map form clientId -> RouteNextHops

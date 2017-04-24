@@ -11,6 +11,7 @@
 
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/StateUtils.h"
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventHandler.h>
 
@@ -46,13 +47,6 @@ class TunIntf : private folly::EventHandler {
       int mtu);
 
   ~TunIntf() override;
-
-  /**
-   * Utility functions for InterfaceID <-> ifName (on host)
-   */
-  static std::string createTunIntfName(InterfaceID ifID);
-  static bool isTunIntfName(const std::string& ifName);
-  static InterfaceID getIDFromTunIntfName(const std::string& ifName);
 
   /**
    * Start/Stop packet forwarding on Tun interface.

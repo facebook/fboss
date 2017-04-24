@@ -8,10 +8,9 @@
  *
  */
 #include "RouteTypes.h"
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/AddressUtil.h"
-
-using facebook::network::toBinaryAddress;
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/state/StateUtils.h"
 
 namespace {
 constexpr auto kAddress = "address";
@@ -45,7 +44,96 @@ RouteForwardAction str2ForwardAction(const std::string& action) {
   }
 }
 
+//
+// RouteNextHop Class
+//
+
+RouteNextHop::RouteNextHop(
+    folly::IPAddress addr,
+    folly::Optional<InterfaceID> intfID)
+    : addr_(std::move(addr)), intfID_(std::move(intfID)) {
+
+  // V4 link-local are not considered here as they can break BGPD route
+  // programming in Galaxy or ExaBGP peering routes to servers as they are
+  // using v4 link-local subnets on internal/downlink interfaces
+  // NOTE: we do allow interface be specified with v4 link-local but we are not
+  // being scrict about it
+  if (!intfID_ and addr_.isV6() and addr_.isLinkLocal()) {
+    throw FbossError(
+        "Missing interface scoping for link-local nexthop {}", addr_.str());
+  }
+
+  // Interface scoping shouldn't be specified with non link-local addresses
+  if (intfID_ and !addr_.isLinkLocal()) {
+    throw FbossError(
+       "Interface scoping ({}) specified for non link-local nexthop {}.",
+       static_cast<uint32_t>(intfID_.value()), addr_.str());
+  }
+}
+
+RouteNextHop
+RouteNextHop::fromThrift(network::thrift::BinaryAddress const& nexthop) {
+  // Get nexthop address
+  const auto addr = network::toIPAddress(nexthop);
+
+  // Get nexthop interface if specified. This can throw exception if interfaceID
+  // is not properly formatted.
+  folly::Optional<InterfaceID> intfID;
+  if (nexthop.__isset.ifName) {
+    intfID = getIDFromTunIntfName(nexthop.ifName);
+  }
+
+  return RouteNextHop(std::move(addr), std::move(intfID));
+}
+
+network::thrift::BinaryAddress
+RouteNextHop::toThrift() const {
+  network::thrift::BinaryAddress nexthop = network::toBinaryAddress(addr_);
+  if (intfID_) {
+    nexthop.__isset.ifName = true;
+    nexthop.ifName = createTunIntfName(intfID_.value());
+  }
+  return nexthop;
+}
+
+bool operator==(const RouteNextHop& a, const RouteNextHop& b) {
+  return (a.addr() == b.addr()) && (a.intfID() == b.intfID());
+}
+
+bool operator< (const RouteNextHop& a, const RouteNextHop& b) {
+  if (a.addr() == b.addr()) {
+    return a.intfID() < b.intfID();
+  }
+  return a.addr() < b.addr();
+}
+
+namespace util {
+
+RouteNextHops
+toRouteNextHops(std::vector<network::thrift::BinaryAddress> const& nhAddrs) {
+  RouteNextHops nhs;
+  nhs.reserve(nhAddrs.size());
+  for (auto const& nhAddr : nhAddrs) {
+    nhs.emplace(RouteNextHop::fromThrift(nhAddr));
+  }
+  return nhs;
+}
+
+std::vector<network::thrift::BinaryAddress>
+fromRouteNextHops(RouteNextHops const& nhs) {
+  std::vector<network::thrift::BinaryAddress> nhAddrs;
+  nhAddrs.reserve(nhs.size());
+  for (auto const& nh : nhs) {
+    nhAddrs.emplace_back(nh.toThrift());
+  }
+  return nhAddrs;
+}
+
+} // namespace util
+
+//
 // RoutePrefix<> Class
+//
 
 template<typename AddrT>
 bool RoutePrefix<AddrT>::operator<(const RoutePrefix& p2) const {
@@ -101,7 +189,7 @@ folly::dynamic RouteNextHopsMulti::toFollyDynamic() const {
 
     folly::dynamic nxtHopCopy = folly::dynamic::array;
     for (const auto& nhop: nxtHps) {
-      nxtHopCopy.push_back(nhop.str());
+      nxtHopCopy.push_back(nhop.addr().str());
     }
     obj[folly::to<std::string>(clientid)] = nxtHopCopy;
   }
@@ -113,8 +201,8 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
   for (const auto& srcPair : map_) {
     ClientAndNextHops destPair;
     destPair.clientId = srcPair.first;
-    for (const auto& ip : srcPair.second) {
-      destPair.nextHopAddrs.push_back(toBinaryAddress(ip));
+    for (const auto& nh : srcPair.second) {
+      destPair.nextHopAddrs.push_back(network::toBinaryAddress(nh.addr()));
     }
     list.push_back(destPair);
   }
@@ -130,7 +218,7 @@ RouteNextHopsMulti::fromFollyDynamic(const folly::dynamic& json) {
     for (const auto& ip : pair.second) {
       // test
       std::string theIP = ip.asString();
-      list.emplace(folly::IPAddress(ip.asString()));
+      list.emplace(RouteNextHop(folly::IPAddress(ip.asString())));
     }
     nh.update(ClientID(clientId), std::move(list));
   }
@@ -144,8 +232,8 @@ std::string RouteNextHopsMulti::str() const {
     RouteNextHops const& nxtHps = row.second;
 
     ret.append(folly::to<string>("(client#", clientid, ": "));
-    for (const auto& ip : nxtHps) {
-      ret.append(folly::to<string>(ip, ", "));
+    for (const auto& nh : nxtHps) {
+      ret.append(folly::to<string>(nh.addr(), ", "));
     }
     ret.append(")");
   }

@@ -37,6 +37,7 @@
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/state/RouteUpdater.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
@@ -75,6 +76,26 @@ using facebook::network::toAddress;
 using facebook::network::toIPAddress;
 
 namespace facebook { namespace fboss {
+
+namespace util {
+
+/**
+ * Utility function to convert `Nexthops` (resolved ones) to list<BinaryAddress>
+ */
+std::vector<network::thrift::BinaryAddress>
+fromFwdNextHops(RouteForwardInfo::Nexthops const& nexthops) {
+  std::vector<network::thrift::BinaryAddress> nhs;
+  nhs.reserve(nexthops.size());
+  for (auto const& nexthop : nexthops) {
+    auto addr = network::toBinaryAddress(nexthop.nexthop);
+    addr.__isset.ifName = true;
+    addr.ifName = createTunIntfName(nexthop.intf);
+    nhs.emplace_back(std::move(addr));
+  }
+  return nhs;
+}
+
+}
 
 class RouteUpdateStats {
  public:
@@ -167,11 +188,7 @@ void ThriftHandler::addUnicastRoutes(
     for (const auto& route : *routes) {
       auto network = toIPAddress(route.dest.ip);
       auto mask = static_cast<uint8_t>(route.dest.prefixLength);
-      RouteNextHops nexthops;
-      nexthops.reserve(route.nextHopAddrs.size());
-      for (const auto& nh : route.nextHopAddrs) {
-        nexthops.emplace(toIPAddress(nh));
-      }
+      RouteNextHops nexthops = util::toRouteNextHops(route.nextHopAddrs);
       if (nexthops.size()) {
         updater.addRoute(routerId, network, mask, ClientID(client),
                          std::move(nexthops));
@@ -246,11 +263,7 @@ void ThriftHandler::syncFib(
     for (auto const& route : *routes) {
       folly::IPAddress network = toIPAddress(route.dest.ip);
       uint8_t mask = static_cast<uint8_t>(route.dest.prefixLength);
-      RouteNextHops nexthops;
-      nexthops.reserve(route.nextHopAddrs.size());
-      for (const auto& nh : route.nextHopAddrs) {
-        nexthops.emplace(toIPAddress(nh));
-      }
+      RouteNextHops nexthops = util::toRouteNextHops(route.nextHopAddrs);
       updater.addRoute(routerId, network, mask, ClientID(client),
                        std::move(nexthops));
       if (network.isV4()) {
@@ -464,7 +477,7 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
   sw_->updateStateBlocking("set port state", updateFn);
 }
 
-void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& route) {
+void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
   ensureConfigured();
   for (const auto& routeTable : (*sw_->getState()->getRouteTables())) {
     for (const auto& ipv4Rib : routeTable->getRibV4()->routes()) {
@@ -477,11 +490,8 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& route) {
       auto fwdInfo = ipv4->getForwardInfo();
       tempRoute.dest.ip = toBinaryAddress(ipv4->prefix().network);
       tempRoute.dest.prefixLength = ipv4->prefix().mask;
-      for (const auto& hop : fwdInfo.getNexthops()) {
-        tempRoute.nextHopAddrs.push_back(
-                    toBinaryAddress(hop.nexthop));
-      }
-      route.push_back(tempRoute);
+      tempRoute.nextHopAddrs = util::fromFwdNextHops(fwdInfo.getNexthops());
+      routes.emplace_back(std::move(tempRoute));
     }
     for (const auto& ipv6Rib : routeTable->getRibV6()->routes()) {
       UnicastRoute tempRoute;
@@ -493,27 +503,24 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& route) {
       auto fwdInfo = ipv6->getForwardInfo();
       tempRoute.dest.ip = toBinaryAddress(ipv6->prefix().network);
       tempRoute.dest.prefixLength = ipv6->prefix().mask;
-      for (const auto& hop : fwdInfo.getNexthops()) {
-        tempRoute.nextHopAddrs.push_back(
-                    toBinaryAddress(hop.nexthop));
-      }
-      route.push_back(tempRoute);
+      tempRoute.nextHopAddrs = util::fromFwdNextHops(fwdInfo.getNexthops());
+      routes.emplace_back(std::move(tempRoute));
     }
   }
 }
 
-void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& route) {
+void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
   ensureConfigured();
   for (const auto& routeTable : (*sw_->getState()->getRouteTables())) {
     for (const auto& ipv4Rib : routeTable->getRibV4()->routes()) {
       auto ipv4 = ipv4Rib.value().get();
       RouteDetails rd = ipv4->toRouteDetails();
-      route.push_back(rd);
+      routes.emplace_back(std::move(rd));
     }
     for (const auto& ipv6Rib : routeTable->getRibV6()->routes()) {
       auto ipv6 = ipv6Rib.value().get();
       RouteDetails rd = ipv6->toRouteDetails();
-      route.push_back(rd);
+      routes.emplace_back(std::move(rd));
     }
   }
 }
@@ -539,10 +546,7 @@ void ThriftHandler::getIpRoute(UnicastRoute& route,
     const auto fwdInfo = match->getForwardInfo();
     route.dest.ip = toBinaryAddress(match->prefix().network);
     route.dest.prefixLength = match->prefix().mask;
-    for (auto iter = fwdInfo.getNexthops().begin();
-              iter != fwdInfo.getNexthops().end(); ++iter) {
-      route.nextHopAddrs.push_back(toBinaryAddress(iter->nexthop));
-    }
+    route.nextHopAddrs = util::fromFwdNextHops(fwdInfo.getNexthops());
   } else {
     auto ripV6Rib = routeTable->getRibV6();
     auto match = ripV6Rib->longestMatch(ipAddr.asV6());
@@ -554,10 +558,7 @@ void ThriftHandler::getIpRoute(UnicastRoute& route,
     const auto fwdInfo = match->getForwardInfo();
     route.dest.ip = toBinaryAddress(match->prefix().network);
     route.dest.prefixLength = match->prefix().mask;
-    for (auto iter = fwdInfo.getNexthops().begin();
-              iter != fwdInfo.getNexthops().end(); ++iter) {
-      route.nextHopAddrs.push_back(toBinaryAddress(iter->nexthop));
-    }
+    route.nextHopAddrs = util::fromFwdNextHops(fwdInfo.getNexthops());
   }
 }
 

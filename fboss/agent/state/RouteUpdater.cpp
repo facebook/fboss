@@ -364,13 +364,13 @@ void RouteUpdater::resolve(RouteT* route, RtRibT* rib, ClonedRib* ribCloned) {
   bool hasDropNhops{false};
   // loop through all nexthops to find out the forward info
   for (const auto& nh : route->bestNextHopList()) {
-    if (nh.isV4()) {
+    if (nh.addr().isV4()) {
       auto nRib = ribCloned->v4.rib.get();
-      getFwdInfoFromNhop(nRib, ribCloned, nh.asV4(), &hasToCpuNhops,
+      getFwdInfoFromNhop(nRib, ribCloned, nh.addr().asV4(), &hasToCpuNhops,
           &hasDropNhops, &fwd);
     } else {
       auto nRib = ribCloned->v6.rib.get();
-      getFwdInfoFromNhop(nRib, ribCloned, nh.asV6(), &hasToCpuNhops,
+      getFwdInfoFromNhop(nRib, ribCloned, nh.addr().asV6(), &hasToCpuNhops,
           &hasDropNhops, &fwd);
     }
   }
@@ -571,7 +571,7 @@ void RouteUpdater::updateStaticRoutes(const cfg::SwitchConfig& curCfg,
       auto network = IPAddress::createNetwork(route.prefix);
       RouteNextHops nhops;
       for (auto& nhopStr : route.nexthops) {
-        nhops.emplace(folly::IPAddress(nhopStr));
+        nhops.emplace(RouteNextHop(folly::IPAddress(nhopStr)));
       }
       addRoute(rid, network.first, network.second,
                ClientID((int32_t)StdClientIds::STATIC_ROUTE), nhops);

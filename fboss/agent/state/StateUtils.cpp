@@ -12,8 +12,15 @@
 
 #include <folly/Format.h>
 
+#include "fboss/agent/FbossError.h"
+
 namespace facebook {
 namespace fboss {
+
+namespace {
+const std::string kTunIntfPrefix = "fboss";
+} // anonymous namespace
+
 namespace StateUtils {
 
 std::string getCpp2EnumName(const std::string& enumValue) {
@@ -26,5 +33,22 @@ std::string getCpp2EnumName(const std::string& enumValue) {
 }
 
 } // namespace StateUtils
+
+bool isTunIntfName(std::string const& ifName) {
+  return ifName.find(kTunIntfPrefix) == 0;
+}
+
+std::string createTunIntfName(InterfaceID ifID) {
+  return folly::sformat("{}{}", kTunIntfPrefix, folly::to<std::string>(ifID));
+}
+
+InterfaceID getIDFromTunIntfName(std::string const& ifName) {
+  if (not isTunIntfName(ifName)) {
+    throw FbossError(ifName, " is not a valid tun interface");
+  }
+
+  return InterfaceID(atoi(ifName.substr(kTunIntfPrefix.size()).c_str()));
+}
+
 } // namespace fboss
 } // namespace facebook

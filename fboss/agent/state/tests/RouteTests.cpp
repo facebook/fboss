@@ -7,8 +7,9 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/FbossError.h"
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/DeltaFunctions.h"
@@ -282,7 +283,7 @@ TEST(Route, resolve) {
     // 50.0.0.1/32 should be resolved
     auto r31NextHops = r31->bestNextHopList();
     EXPECT_EQ(1, r31NextHops.size());
-    auto r32 = rib3->longestMatch(r31NextHops.begin()->asV4());
+    auto r32 = rib3->longestMatch(r31NextHops.begin()->addr().asV4());
     EXPECT_RESOLVED(r32);
     EXPECT_FALSE(r32->isConnected());
 
@@ -976,7 +977,7 @@ RouteNextHops newNextHops(int n, std::string prefix) {
   RouteNextHops h;
   for (int i=0; i < n; i++) {
     auto ipStr = prefix + std::to_string(i+10);
-    h.emplace(IPAddress(ipStr));
+    h.emplace(RouteNextHop(IPAddress(ipStr)));
   }
   return h;
 }
@@ -1122,9 +1123,9 @@ TEST(Route, equality) {
   // But construct the list in opposite order.
   // Objects should still be equal, despite the order of construction.
   RouteNextHops nextHopsRev;
-  nextHopsRev.emplace(IPAddress("2.2.2.12"));
-  nextHopsRev.emplace(IPAddress("2.2.2.11"));
-  nextHopsRev.emplace(IPAddress("2.2.2.10"));
+  nextHopsRev.emplace(RouteNextHop(IPAddress("2.2.2.12")));
+  nextHopsRev.emplace(RouteNextHop(IPAddress("2.2.2.11")));
+  nextHopsRev.emplace(RouteNextHop(IPAddress("2.2.2.10")));
   nhm1.update(CLIENT_B, nextHopsRev);
   EXPECT_TRUE(nhm1 == nhm2);
 }
@@ -1441,4 +1442,62 @@ TEST(Route, serializeRoute) {
   // back to Route object
   auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
   ASSERT_TRUE(rt2->isSame(clientId, nxtHops));
+}
+
+// Test utility functions for converting RouteNextHops to thrift and back
+TEST(RouteTypes, toFromRouteNextHops) {
+  RouteNextHops nhs;
+
+  // Non v4 link-local address without interface scoping
+  nhs.emplace(RouteNextHop(folly::IPAddress("10.0.0.1"), folly::none));
+
+  // v4 link-local address with/without interface scoping
+  nhs.emplace(RouteNextHop(folly::IPAddress("169.254.0.1"), folly::none));
+  nhs.emplace(RouteNextHop(folly::IPAddress("169.254.0.2"), InterfaceID(2)));
+
+  // Non v6 link-local address without interface scoping
+  nhs.emplace(RouteNextHop(folly::IPAddress("face:b00c::1"), folly::none));
+
+  // v6 link-local address with interface scoping
+  nhs.emplace(RouteNextHop(folly::IPAddress("fe80::1"), InterfaceID(4)));
+
+  // Conver to thrift object
+  auto nhAddrs = util::fromRouteNextHops(nhs);
+  ASSERT_EQ(5, nhAddrs.size());
+
+  EXPECT_EQ("10.0.0.1", facebook::network::toIPAddress(nhAddrs[0]).str());
+  EXPECT_FALSE(nhAddrs[0].__isset.ifName);
+
+  EXPECT_EQ("169.254.0.1", facebook::network::toIPAddress(nhAddrs[1]).str());
+  EXPECT_FALSE(nhAddrs[1].__isset.ifName);
+  EXPECT_EQ("169.254.0.2", facebook::network::toIPAddress(nhAddrs[2]).str());
+  EXPECT_TRUE(nhAddrs[2].__isset.ifName);
+  EXPECT_EQ("fboss2", nhAddrs[2].ifName);
+
+  EXPECT_EQ("face:b00c::1", facebook::network::toIPAddress(nhAddrs[3]).str());
+  EXPECT_FALSE(nhAddrs[3].__isset.ifName);
+
+  EXPECT_EQ("fe80::1", facebook::network::toIPAddress(nhAddrs[4]).str());
+  EXPECT_TRUE(nhAddrs[4].__isset.ifName);
+  EXPECT_EQ("fboss4", nhAddrs[4].ifName);
+
+  // Convert back to RouteNextHops
+  auto newNhs = util::toRouteNextHops(nhAddrs);
+  EXPECT_EQ(nhs, newNhs);
+
+  //
+  // Some error cases
+  //
+
+  facebook::network::thrift::BinaryAddress addr;
+
+  addr = facebook::network::toBinaryAddress(folly::IPAddress("10.0.0.1"));
+  addr.__isset.ifName = true;
+  addr.ifName = "fboss10";
+  EXPECT_THROW(RouteNextHop::fromThrift(addr), FbossError);
+
+  addr = facebook::network::toBinaryAddress(folly::IPAddress("face::1"));
+  addr.__isset.ifName = true;
+  addr.ifName = "fboss10";
+  EXPECT_THROW(RouteNextHop::fromThrift(addr), FbossError);
 }

@@ -31,7 +31,6 @@ namespace facebook { namespace fboss {
 
 namespace {
 
-const std::string kTunIntfPrefix = "fboss";
 const std::string kTunDev = "/dev/net/tun";
 
 // Max packets to be processed which are received from host
@@ -134,22 +133,6 @@ TunIntf::~TunIntf() {
   // Close FD. This will delete the interface if TUNSETPERSIST is not on
   closeFD();
   LOG(INFO) << (toDelete_ ? "Delete" : "Detach") << " interface " << name_;
-}
-
-bool TunIntf::isTunIntfName(std::string const& ifName) {
-  return ifName.find(kTunIntfPrefix) == 0;
-}
-
-std::string TunIntf::createTunIntfName(InterfaceID ifID) {
-  return folly::sformat("{}{}", kTunIntfPrefix, folly::to<std::string>(ifID));
-}
-
-InterfaceID TunIntf::getIDFromTunIntfName(std::string const& ifName) {
-  if (not isTunIntfName(ifName)) {
-    throw FbossError(ifName, " is not a valid tun interface");
-  }
-
-  return InterfaceID(atoi(ifName.substr(kTunIntfPrefix.size()).c_str()));
 }
 
 void TunIntf::stop() {
