@@ -110,6 +110,8 @@ class RouteNextHopsMulti {
 
   void delNexthopsForClient(ClientID clientId);
 
+  folly::Optional<RouteNextHops> getNexthopsForClient(ClientID clientId) const;
+
   // Just used for testing
   bool hasNextHopsForClient(ClientID clientId) const;
 

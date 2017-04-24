@@ -252,6 +252,15 @@ void RouteNextHopsMulti::delNexthopsForClient(ClientID clientId) {
   map_.erase(clientId);
 }
 
+folly::Optional<RouteNextHops>
+RouteNextHopsMulti::getNexthopsForClient(ClientID clientId) const {
+  auto it = map_.find(clientId);
+  if (it == map_.end()) {
+    return folly::none;
+  }
+  return it->second;
+}
+
 bool RouteNextHopsMulti::hasNextHopsForClient(ClientID clientId) const {
   return map_.find(clientId) != map_.end();
 }

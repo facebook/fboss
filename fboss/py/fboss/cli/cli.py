@@ -310,10 +310,12 @@ class RouteCli(object):
         route.RouteIpCmd(cli_opts).run(ip, vrf)
 
     @click.command()
+    @click.option('--client-id', type=int, default=None,
+                  help='If pass, show all routes programmed by certain client')
     @click.pass_obj
-    def _table(cli_opts):
+    def _table(cli_opts, client_id):
         ''' Show the route table '''
-        route.RouteTableCmd(cli_opts).run()
+        route.RouteTableCmd(cli_opts).run(client_id)
 
     @click.command()
     @click.pass_obj

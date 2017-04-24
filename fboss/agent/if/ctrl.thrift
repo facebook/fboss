@@ -343,6 +343,8 @@ service FbossCtrl extends fb303.FacebookService {
    */
   list<UnicastRoute> getRouteTable()
     throws (1: fboss.FbossBaseError error)
+  list<UnicastRoute> getRouteTableByClient(1: i16 clientId)
+    throws (1: fboss.FbossBaseError error)
   list<RouteDetails> getRouteTableDetails()
     throws (1: fboss.FbossBaseError error)
   InterfaceDetail getInterfaceDetail(1: i32 interfaceId)

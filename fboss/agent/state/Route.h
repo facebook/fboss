@@ -139,6 +139,9 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   const RouteNextHops& bestNextHopList() const {
     return RouteBase::getFields()->nexthopsmulti.bestNextHopList();
   }
+  folly::Optional<RouteNextHops> getNexthopsForClient(ClientID clientId) const {
+    return RouteBase::getFields()->nexthopsmulti.getNexthopsForClient(clientId);
+  }
   bool nexthopsIsEmpty() const {
     return RouteBase::getFields()->nexthopsmulti.isEmpty();
   }

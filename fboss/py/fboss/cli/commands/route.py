@@ -70,9 +70,12 @@ class RouteIpCmd(cmds.FbossCmd):
 
 
 class RouteTableCmd(cmds.FbossCmd):
-    def run(self):
+    def run(self, client_id):
         self._client = self._create_agent_client()
-        resp = self._client.getRouteTable()
+        if client_id is None:
+            resp = self._client.getRouteTable()
+        else:
+            resp = self._client.getRouteTableByClient(client_id)
         if not resp:
             print("No Route Table Entries Found")
             return

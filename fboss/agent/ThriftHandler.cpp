@@ -509,6 +509,40 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
   }
 }
 
+void ThriftHandler::getRouteTableByClient(
+    std::vector<UnicastRoute>& routes, int16_t client) {
+  ensureConfigured();
+  for (const auto& routeTable : (*sw_->getState()->getRouteTables())) {
+    for (const auto& ipv4Rib : routeTable->getRibV4()->routes()) {
+      auto ipv4 = ipv4Rib.value().get();
+      auto nhs = ipv4->getNexthopsForClient(ClientID(client));
+      if (not nhs.hasValue()) {
+        continue;
+      }
+
+      UnicastRoute tempRoute;
+      tempRoute.dest.ip = toBinaryAddress(ipv4->prefix().network);
+      tempRoute.dest.prefixLength = ipv4->prefix().mask;
+      tempRoute.nextHopAddrs = util::fromRouteNextHops(nhs.value());
+      routes.emplace_back(std::move(tempRoute));
+    }
+
+    for (const auto& ipv6Rib : routeTable->getRibV6()->routes()) {
+      auto ipv6 = ipv6Rib.value().get();
+      auto nhs = ipv6->getNexthopsForClient(ClientID(client));
+      if (not nhs.hasValue()) {
+        continue;
+      }
+
+      UnicastRoute tempRoute;
+      tempRoute.dest.ip = toBinaryAddress(ipv6->prefix().network);
+      tempRoute.dest.prefixLength = ipv6->prefix().mask;
+      tempRoute.nextHopAddrs = util::fromRouteNextHops(nhs.value());
+      routes.emplace_back(std::move(tempRoute));
+    }
+  }
+}
+
 void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
   ensureConfigured();
   for (const auto& routeTable : (*sw_->getState()->getRouteTables())) {
