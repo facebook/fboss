@@ -453,29 +453,31 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
           ret, "failed to set interface type for port ", swPort->getID());
     }
 
-    if (curMode != desiredMode || curSpeed != desiredSpeed) {
-      // Set speed if mode changed OR speed changed. Setting speed
-      // on just mode change is DELIBERATE. We have seen cases where
-      // mode change did not get picked up until speed was updated
-      // as well.
-      if (isEnabled()) {
-        // Changing the port speed causes traffic disruptions, but not doing
-        // it would cause inconsistency.  Warn the user.
-        LOG(WARNING) << "Changing port speed on enabled port. This will "
-                     << "disrupt traffic. Port: " << swPort->getName()
-                     << " id: " << swPort->getID();
-      }
-      ret = opennsl_port_speed_set(unit_, port_, desiredSpeed);
-      bcmCheckError(
-          ret,
-          "failed to set speed to ",
-          desiredSpeed,
-          " from ",
-          curSpeed,
-          ", on port ",
-          swPort->getID());
-      getPlatformPort()->linkSpeedChanged(desiredPortSpeed);
+    if (!portDown) {
+      // Changing the port speed causes traffic disruptions, but not doing
+      // it would cause inconsistency.  Warn the user.
+      LOG(WARNING) << "Changing port speed on up port. This will "
+                   << "disrupt traffic. Port: " << swPort->getName()
+                   << " id: " << swPort->getID();
     }
+
+    // Note that we call speed_set even if the speed is already set
+    // properly and port is down. This is because speed_set
+    // reinitializes the MAC layer of the port and allows us to pick
+    // up changes in interface mode and finalize flex port
+    // transitions. We ensure that the port is down for these
+    // potentially unnecessary calls, as otherwise this will cause
+    // port flaps on ports where link is up.
+    ret = opennsl_port_speed_set(unit_, port_, desiredSpeed);
+    bcmCheckError(
+      ret,
+      "failed to set speed to ",
+      desiredSpeed,
+      " from ",
+      curSpeed,
+      ", on port ",
+      swPort->getID());
+    getPlatformPort()->linkSpeedChanged(desiredPortSpeed);
   }
 }
 
