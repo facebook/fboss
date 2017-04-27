@@ -89,7 +89,7 @@ fromFwdNextHops(RouteForwardInfo::Nexthops const& nexthops) {
   for (auto const& nexthop : nexthops) {
     auto addr = network::toBinaryAddress(nexthop.nexthop);
     addr.__isset.ifName = true;
-    addr.ifName = createTunIntfName(nexthop.intf);
+    addr.ifName = util::createTunIntfName(nexthop.intf);
     nhs.emplace_back(std::move(addr));
   }
   return nhs;

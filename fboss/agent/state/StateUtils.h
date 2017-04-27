@@ -15,7 +15,7 @@
 
 namespace facebook {
 namespace fboss {
-namespace StateUtils {
+namespace util {
 /*
  * Compatibility between cpp2 and cpp enum names.
  *
@@ -27,8 +27,6 @@ namespace StateUtils {
  */
 std::string getCpp2EnumName(const std::string& enumValue);
 
-} // namespace StateUtils
-
 /**
 * Utility functions for InterfaceID <-> ifName (on host)
 */
@@ -36,5 +34,6 @@ std::string createTunIntfName(InterfaceID ifID);
 bool isTunIntfName(const std::string& ifName);
 InterfaceID getIDFromTunIntfName(const std::string& ifName);
 
+} // namespace util
 } // namespace fboss
 } // namespace facebook

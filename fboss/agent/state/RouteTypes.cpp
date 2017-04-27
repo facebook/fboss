@@ -80,7 +80,7 @@ RouteNextHop::fromThrift(network::thrift::BinaryAddress const& nexthop) {
   // is not properly formatted.
   folly::Optional<InterfaceID> intfID;
   if (nexthop.__isset.ifName) {
-    intfID = getIDFromTunIntfName(nexthop.ifName);
+    intfID = util::getIDFromTunIntfName(nexthop.ifName);
   }
 
   return RouteNextHop(std::move(addr), std::move(intfID));
@@ -91,7 +91,7 @@ RouteNextHop::toThrift() const {
   network::thrift::BinaryAddress nexthop = network::toBinaryAddress(addr_);
   if (intfID_) {
     nexthop.__isset.ifName = true;
-    nexthop.ifName = createTunIntfName(intfID_.value());
+    nexthop.ifName = util::createTunIntfName(intfID_.value());
   }
   return nexthop;
 }

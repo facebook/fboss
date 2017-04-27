@@ -203,7 +203,7 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   }
   if (aclEntryJson.find(kIpFrag) != aclEntryJson.items().end()) {
     auto itr_ipFrag = cfg::_IpFragMatch_NAMES_TO_VALUES.find(
-      StateUtils::getCpp2EnumName(aclEntryJson[kIpFrag].asString()).c_str());
+      util::getCpp2EnumName(aclEntryJson[kIpFrag].asString()).c_str());
     aclEntry.ipFrag = cfg::IpFragMatch(itr_ipFrag->second);
   }
   if (aclEntryJson.find(kIcmpType) != aclEntryJson.items().end()) {
@@ -213,7 +213,7 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
     aclEntry.icmpCode = aclEntryJson[kIcmpCode].asInt();
   }
   auto itr_action = cfg::_AclAction_NAMES_TO_VALUES.find(
-    StateUtils::getCpp2EnumName(aclEntryJson[kAction].asString()).c_str());
+    util::getCpp2EnumName(aclEntryJson[kAction].asString()).c_str());
   aclEntry.action = cfg::AclAction(itr_action->second);
   return aclEntry;
 }
@@ -236,7 +236,7 @@ void AclEntryFields::checkFollyDynamic(const folly::dynamic& aclEntryJson) {
   }
   // check ipFrag is valid
   if (aclEntryJson.find(kIpFrag) != aclEntryJson.items().end()) {
-    const auto ipFragName = StateUtils::getCpp2EnumName(
+    const auto ipFragName = util::getCpp2EnumName(
         aclEntryJson[kIpFrag].asString());
     if (cfg::_IpFragMatch_NAMES_TO_VALUES.find(ipFragName.c_str()) ==
         cfg::_IpFragMatch_NAMES_TO_VALUES.end()) {
@@ -246,7 +246,7 @@ void AclEntryFields::checkFollyDynamic(const folly::dynamic& aclEntryJson) {
   }
   // check action is valid
   if (aclEntryJson.find(kAction) != aclEntryJson.items().end()) {
-    const auto actionName = StateUtils::getCpp2EnumName(
+    const auto actionName = util::getCpp2EnumName(
         aclEntryJson[kAction].asString());
     if (cfg::_AclAction_NAMES_TO_VALUES.find(actionName.c_str()) ==
         cfg::_AclAction_NAMES_TO_VALUES.end()) {

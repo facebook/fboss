@@ -14,14 +14,13 @@
 
 #include "fboss/agent/FbossError.h"
 
-namespace facebook {
-namespace fboss {
-
 namespace {
 const std::string kTunIntfPrefix = "fboss";
 } // anonymous namespace
 
-namespace StateUtils {
+namespace facebook {
+namespace fboss {
+namespace util {
 
 std::string getCpp2EnumName(const std::string& enumValue) {
   auto pos = enumValue.find("::");
@@ -31,8 +30,6 @@ std::string getCpp2EnumName(const std::string& enumValue) {
 
   return enumValue.substr(pos + 2);
 }
-
-} // namespace StateUtils
 
 bool isTunIntfName(std::string const& ifName) {
   return ifName.find(kTunIntfPrefix) == 0;
@@ -50,5 +47,6 @@ InterfaceID getIDFromTunIntfName(std::string const& ifName) {
   return InterfaceID(atoi(ifName.substr(kTunIntfPrefix.size()).c_str()));
 }
 
+} // namespace util
 } // namespace fboss
 } // namespace facebook
