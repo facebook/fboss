@@ -114,14 +114,14 @@ void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
   customizeTransceiver();
 }
 
-bool WedgePort::isControllingPort() {
+bool WedgePort::isControllingPort() const {
   if (!bcmPort_ || !bcmPort_->getPortGroup()) {
     return false;
   }
   return bcmPort_->getPortGroup()->controllingPort() == bcmPort_;
 }
 
-bool WedgePort::shouldCustomizeTransceiver() {
+bool WedgePort::shouldCustomizeTransceiver() const {
   auto trans = getTransceiverID();
   if (!trans) {
     // No qsfp atatched to customize

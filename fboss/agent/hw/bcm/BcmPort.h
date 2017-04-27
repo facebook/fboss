@@ -51,7 +51,6 @@ class BcmPort {
   void enable(const std::shared_ptr<Port>& swPort);
   void disable(const std::shared_ptr<Port>& swPort);
   void program(const std::shared_ptr<Port>& swPort);
-  bool isEnabled();
 
   /*
    * Getters.
@@ -86,6 +85,8 @@ class BcmPort {
   LaneSpeeds supportedLaneSpeeds() const;
 
   bool supportsSpeed(cfg::PortSpeed speed);
+  bool isEnabled();
+  cfg::PortSpeed getSpeed();
 
   /*
    * Setters.

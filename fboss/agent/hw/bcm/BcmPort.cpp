@@ -237,7 +237,9 @@ void BcmPort::init(bool warmBoot) {
     bcmCheckError(rv, "failed to set port to known state: ", port_);
   }
 
+  // Notify platform port of initial state/speed
   getPlatformPort()->linkStatusChanged(up, isEnabled());
+  getPlatformPort()->linkSpeedChanged(getSpeed());
 
   // Linkscan should be enabled if the port is enabled already
   auto linkscan = isEnabled() ? OPENNSL_LINKSCAN_MODE_SW :
@@ -392,6 +394,14 @@ opennsl_port_if_t BcmPort::getDesiredInterfaceMode(cfg::PortSpeed speed,
   }
 }
 
+cfg::PortSpeed BcmPort::getSpeed() {
+  int curSpeed{0};
+  auto rv = opennsl_port_speed_get(unit_, port_, &curSpeed);
+  bcmCheckError(
+    rv, "Failed to get current speed for port ", port_);
+  return cfg::PortSpeed(curSpeed);
+}
+
 void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
   int ret;
   cfg::PortSpeed desiredPortSpeed;
@@ -410,10 +420,7 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
   // speed before making speed related changes. Doing so fixes
   // the interface flaps we were seeing during warm boots
 
-  int curSpeed{0};
-  ret = opennsl_port_speed_get(unit_, port_, &curSpeed);
-  bcmCheckError(
-    ret, "Failed to get current speed for port ", swPort->getID());
+  int curSpeed = static_cast<int>(getSpeed());
 
   // If the port is down or disabled its safe to update mode and speed to
   // desired values
@@ -460,6 +467,9 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
                    << "disrupt traffic. Port: " << swPort->getName()
                    << " id: " << swPort->getID();
     }
+
+    VLOG(2) << "Changing port speed for " << swPort->getID() << ": "
+            << curSpeed << " -> " << desiredSpeed;
 
     // Note that we call speed_set even if the speed is already set
     // properly and port is down. This is because speed_set

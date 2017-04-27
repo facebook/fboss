@@ -59,8 +59,8 @@ class WedgePort : public BcmPlatformPort {
 
  protected:
   void customizeTransceiver();
-  bool isControllingPort();
-  bool shouldCustomizeTransceiver();
+  bool isControllingPort() const;
+  bool shouldCustomizeTransceiver() const;
 
   PortID id_{0};
   WedgePlatform* platform_{nullptr};
