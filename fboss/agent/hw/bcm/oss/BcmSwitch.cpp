@@ -103,4 +103,7 @@ BcmSwitch::MmuState BcmSwitch::queryMmuState() const {
   return MmuState::UNKNOWN;
 }
 
+void BcmSwitch::startBufferStatCollection() {}
+void BcmSwitch::stopBufferStatCollection() {}
+void BcmSwitch::exportDeviceBufferUsage() {}
 }} //facebook::fboss

@@ -330,6 +330,9 @@ void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
   // SwSwitch, but it does not really matter at the graceful exit time. If
   // this is a concern, this can be moved to the updateEventBase_ of SwSwitch.
   portTable_->preparePortsForGracefulExit();
+  if (isBufferCollectionEnabled()) {
+    stopBufferStatCollection();
+  }
 
   std::lock_guard<std::mutex> g(lock_);
   switchState[kHwSwitch] = toFollyDynamic();
@@ -1189,6 +1192,9 @@ void BcmSwitch::updateThreadLocalPortStats(PortID portID,
 void BcmSwitch::updateGlobalStats() {
   portTable_->updatePortStats();
   bcmTableStats_->publish();
+  if (isBufferCollectionEnabled()) {
+    exportDeviceBufferUsage();
+  }
 }
 
 opennsl_if_t BcmSwitch::getDropEgressId() const {

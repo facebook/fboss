@@ -290,6 +290,12 @@ class BcmSwitch : public BcmSwitchIf {
 
   bool isValidStateUpdate(const StateDelta& delta) const override;
 
+  void startBufferStatCollection();
+  void stopBufferStatCollection();
+  bool isBufferCollectionEnabled() const {
+    return bufferStatsEnabled_;
+  }
+
  private:
   enum Flags : uint32_t {
     RX_REGISTERED = 0x01,
@@ -430,6 +436,7 @@ class BcmSwitch : public BcmSwitchIf {
 
   /*
    * Drop DHCP packets that are sent to us.
+   * stopBufferStatCollection();
    */
   void dropDhcpPackets();
 
@@ -498,6 +505,8 @@ class BcmSwitch : public BcmSwitchIf {
     const std::shared_ptr<SwitchState>& newState) const;
 
   MmuState queryMmuState() const;
+  void exportDeviceBufferUsage();
+
   /*
    * Member variables
    */
@@ -508,6 +517,7 @@ class BcmSwitch : public BcmSwitchIf {
   uint32_t flags_{0};
   HashMode hashMode_;
   MmuState mmuState_{MmuState::UNKNOWN};
+  bool bufferStatsEnabled_{false};
   std::unique_ptr<BcmWarmBootCache> warmBootCache_;
   std::unique_ptr<BcmPortTable> portTable_;
   std::unique_ptr<BcmEgress> toCPUEgress_;
