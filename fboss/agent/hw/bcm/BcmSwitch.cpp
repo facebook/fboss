@@ -731,7 +731,7 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
         bcmPort->updateName(newPort->getName());
       }
 
-      if (speedChanged || vlanChanged) {
+      if (speedChanged || vlanChanged || stateChanged) {
         bcmPort->program(newPort);
       }
     });
