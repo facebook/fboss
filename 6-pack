@@ -1,0 +1,3 @@
+ I'm interested in understanding whether 6-pack will be implemented a spine solution, or whether 6-pack will be used at the core of the datacenter as well? 
+ Said in another way, will wedge and 6-pack be able to meet all of the needs of the spine in addition to the core?  
+ My understanding talking to a few engineers is that once you get to the core, 6-pack lacks the capability to replace what you are using currently?
