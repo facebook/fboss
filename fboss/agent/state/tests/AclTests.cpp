@@ -230,3 +230,16 @@ TEST(Acl, Icmp) {
   EXPECT_THROW(
     publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
 }
+
+TEST(Acl, aclModifyUnpublished) {
+  auto state = make_shared<SwitchState>();
+  auto aclMap = state->getAcls();
+  EXPECT_EQ(aclMap.get(), aclMap->modify(&state));
+}
+
+TEST(Acl, aclModifyPublished) {
+  auto state = make_shared<SwitchState>();
+  state->publish();
+  auto aclMap = state->getAcls();
+  EXPECT_NE(aclMap.get(), aclMap->modify(&state));
+}

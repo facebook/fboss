@@ -38,6 +38,8 @@ class AclMap : public NodeMapT<AclMap, AclMapTraits> {
     return size();
   }
 
+  AclMap* modify(std::shared_ptr<SwitchState>* state);
+
   /*
    * The following functions modify the static state.
    * These should only be called on unpublished objects which are only visible
@@ -47,7 +49,12 @@ class AclMap : public NodeMapT<AclMap, AclMapTraits> {
   void addEntry(const std::shared_ptr<AclEntry>& aclEntry) {
     addNode(aclEntry);
   }
-
+  void removeEntry(AclEntryID aclId) {
+    removeEntry(getNode(aclId));
+  }
+  void removeEntry(const std::shared_ptr<AclEntry>& aclEntry) {
+    removeNode(aclEntry);
+  }
  private:
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;
