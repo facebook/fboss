@@ -13,11 +13,6 @@ from fboss.thrift_clients import FbossAgentClient
 from neteng.fboss.ctrl.ttypes import IpPrefix
 from neteng.fboss.ctrl.ttypes import UnicastRoute
 
-args = {
-    'host': 'localhost',
-    'port': 5909
-}
-
 
 class StressRouteInsertion(object):
     """ Measure latency of bulk route thrashing.
@@ -36,20 +31,22 @@ class StressRouteInsertion(object):
     correspond to a worst case guess as to the number of routes
     in a peering session.
     """
+    defaults = {
+        'host': 'localhost',
+        'port': 5909,
+        'entries': 4000,
+        'percent': 10,
+        'loops': 5,
+        'minprefix': 16,
+        'maxprefix': 64,
+        'pause_on_exit': False,
+        'randseed': 0,     # we're going for pseudorandom, not real random
+    }
+
     def __init__(self, **kwargs):
-        global args
-        default_vals = {
-            'host': None,
-            'port': None,
-            'entries': 32000,
-            'percent': 10,
-            'loops': 100,
-            'minprefix': 16,
-            'maxprefix': 64,
-            'randseed': 0,     # we're going for pseudorandom, not real random
-        }
-        default_vals.update(kwargs)
-        for kw, arg in default_vals.items():
+        for kw, arg in StressRouteInsertion.defaults.items():
+            setattr(self, kw, arg)
+        for kw, arg in kwargs.items():
             setattr(self, kw, arg)
         self.routes = {}
         self.generation = 1
@@ -88,33 +85,39 @@ class StressRouteInsertion(object):
         r += "{0:x}".format(random.randint(0, 15) & (pow(2, leftover) - 1))
         return r + "::1/{}".format(prefix)
 
-    def insert_route(self, route):
-        ip, prefix = route.split("/")
-        addr = utils.ip_to_binary(ip)
-        ipRoute = IpPrefix(ip=addr, prefixLength=prefix)
-        uniRoute = UnicastRoute(dest=ipRoute, nextHopAddrs=self.nexthops)
-        self.client.addUnicastRoute(self.client_id, uniRoute)
+    def insert_routes(self, routes):
+        uniRoutes = []
+        for route in routes:
+            ip, prefix = route.split("/")
+            addr = utils.ip_to_binary(ip)
+            ipRoute = IpPrefix(ip=addr, prefixLength=prefix)
+            uniRoutes.append(UnicastRoute(dest=ipRoute, nextHopAddrs=self.nexthops))
+        self.client.addUnicastRoutes(self.client_id, uniRoutes)
 
-    def delete_route(self, route):
-        ip, prefix = route.split("/")
-        addr = utils.ip_to_binary(ip)
-        ipRoute = IpPrefix(ip=addr, prefixLength=prefix)
-        self.client.deleteUnicastRoute(self.client_id, ipRoute)
+    def delete_routes(self, routes):
+        uniRoutes = []
+        for route in routes:
+            ip, prefix = route.split("/")
+            addr = utils.ip_to_binary(ip)
+            uniRoutes.append(IpPrefix(ip=addr, prefixLength=prefix))
+        self.client.deleteUnicastRoutes(self.client_id, uniRoutes)
 
     def clean_up(self):
-        for route in self.routes:
-            self.delete_route(route)
+        print("Removing all routes")
+        self.delete_routes(self.routes)
+        self.client._socket.close()
+        print("...done.")
 
     def run_test(self):
         """ Run actual test """
         print("Generating {} random routes with prefix between {} and {}".format(
             self.entries, self.minprefix, self.maxprefix))
         self.routes = self.generate_random_routes()
+        print("... done.")
 
         print("Inserting initial routes into the switch...")
         start = time.clock()
-        for route in self.routes:
-            self.insert_route(route)
+        self.insert_routes(self.routes)
         stop = time.clock()
         print(" ... done : {} seconds - not the real test, but FYI".format(
             stop - start))
@@ -123,34 +126,55 @@ class StressRouteInsertion(object):
         for loop in range(0, self.loops):
             print("--- Starting loop {}...".format(loop))
             print("Deleting {} routes".format(self.entries - target))
+            delete_routes = []
             while len(self.routes) > target:
                 route = random.choice(list(self.routes.keys()))
-                self.delete_route(route)
+                delete_routes.append(route)
                 del self.routes[route]
+            self.delete_routes(delete_routes)
             print("Picking {} new routes".format(self.entries - target))
             new_routes = self.generate_random_routes(n=self.entries - target)
             print("Adding new routes")
             start = time.clock()
             for route in new_routes:
                 self.routes[route] = loop
-                self.insert_route(route)
+            self.insert_routes(new_routes)
             stop = time.clock()
             print("RESULT: {} seconds to add {} new routes".format(
                 stop - start, self.entries - target))
+        if self.pause_on_exit:
+            input("\n\n\nTest Done -- press return to cleanup: ")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Port Testing')
     parser.add_argument('--port', type=int,
-                        help='Remote thrift TCP port ({})'.format(args['port']),
-                        default=args['port'])
+                        help='Remote thrift TCP port ({})'
+                             .format(StressRouteInsertion.defaults['port']),
+                        default=StressRouteInsertion.defaults['port'])
     parser.add_argument('--host',
-                        help='Switch Mgmt intf ({})'.format(args['host']),
-                        default=args['host'])
+                        help='Switch Mgmt intf ({})'
+                             .format(StressRouteInsertion.defaults['host']),
+                        default=StressRouteInsertion.defaults['host'])
+    parser.add_argument('--entries', type=int,
+                        help="Number of routes to insert ({})"
+                             .format(StressRouteInsertion.defaults['entries']),
+                        default=StressRouteInsertion.defaults['entries'])
+    parser.add_argument('--percent', type=int,
+                        help="Percent of routes to churn each loop ({})"
+                             .format(StressRouteInsertion.defaults['percent']),
+                        default=StressRouteInsertion.defaults['percent'])
+    parser.add_argument('--loops', type=int,
+                        help="Number of times to loop through the algorithm ({})"
+                             .format(StressRouteInsertion.defaults['loops']),
+                        default=StressRouteInsertion.defaults['loops'])
+    parser.add_argument('--pause_on_exit', action='store_true',
+                        help="Wait for key press before cleanup ({})"
+                             .format(StressRouteInsertion.defaults['pause_on_exit']),
+                        default=StressRouteInsertion.defaults['pause_on_exit'])
     args = parser.parse_args()
     try:
-        test = StressRouteInsertion(host=args.host, port=args.port, entries=4,
-                                    percent=50, loops=2)
+        test = StressRouteInsertion(**args.__dict__)
         test.run_test()
     finally:
         test.clean_up()
