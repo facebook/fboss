@@ -76,7 +76,9 @@ class QsfpServiceClient(QsfpService.Client):
     DEFAULT_PORT = 5910
 
     # we ignore the value of port
-    def __init__(self, host, port=None, timeout=2.0):
+    def __init__(self, host, port=None, timeout=10.0):
+        # In a box with all 32 QSFP ports populated, it takes about 7.5s right
+        # now to read all 32 QSFP ports. So, put the defaut timeout to 10s.
         self.host = host
 
         self._socket = TSocket(host, self.DEFAULT_PORT)
