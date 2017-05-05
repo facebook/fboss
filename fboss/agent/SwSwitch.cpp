@@ -988,10 +988,12 @@ void SwSwitch::sendL3Packet(
     return;
   }
 
+  auto state = getState();
+
   // Get VlanID associated with interface
   VlanID vlanID = getCPUVlan();
   if (maybeIfID.hasValue()) {
-    auto intf = getState()->getInterfaces()->getInterfaceIf(*maybeIfID);
+    auto intf = state->getInterfaces()->getInterfaceIf(*maybeIfID);
     if (!intf) {
       LOG(ERROR) << "Interface " << *maybeIfID << " doesn't exists in state.";
       return;
@@ -1048,7 +1050,7 @@ void SwSwitch::sendL3Packet(
       // Resolve neighbor mac address for given destination address. If address
       // doesn't exists in NDP table then request neighbor solicitation for it.
       CHECK(dstAddr.isLinkLocal());
-      auto vlan = getState()->getVlans()->getVlan(vlanID);
+      auto vlan = state->getVlans()->getVlan(vlanID);
       if (dstAddr.isV4()) {
         // We do not consult ARP table to forward v4 link local addresses.
         // Reason explained below.
@@ -1078,6 +1080,15 @@ void SwSwitch::sendL3Packet(
       // CPU. To avoid this we prefer to perform routing in hardware. Using
       // our CPU MacAddr as DestAddr we will trigger L3 lookup in hardware :)
       dstMac = srcMac;
+
+      // Resolve the l2 address of the next hop if needed. These functions
+      // will do the RIB lookup and then probe for any unresolved nexthops
+      // of the route.
+      if (dstAddr.isV6()) {
+        ipv6_->sendNeighborSolicitations(PortID(0), dstAddr.asV6());
+      } else {
+        ipv4_->resolveMac(state.get(), PortID(0), dstAddr.asV4());
+      }
     }
 
     // Write L2 header. NOTE that we pass specific VLAN and a dstMac on which

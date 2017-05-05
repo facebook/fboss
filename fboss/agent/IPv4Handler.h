@@ -39,6 +39,14 @@ class IPv4Handler {
                     folly::MacAddress src,
                     folly::io::Cursor cursor);
 
+  /*
+   * TODO(aeckert): t17949183 unify packet handling pipeline and then
+   * make this private again.
+   */
+  bool resolveMac(SwitchState* state,
+                  PortID ingressPort,
+                  folly::IPAddressV4 dest);
+
  private:
   void sendICMPTimeExceeded(VlanID srcVlan,
                             folly::MacAddress dst,
@@ -49,9 +57,6 @@ class IPv4Handler {
   // Forbidden copy constructor and assignment operator
   IPv4Handler(IPv4Handler const &) = delete;
   IPv4Handler& operator=(IPv4Handler const &) = delete;
-
-  bool
-  resolveMac(SwitchState* state, PortID ingressPort, folly::IPAddressV4 dest);
 
   SwSwitch* sw_{nullptr};
 };

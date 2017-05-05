@@ -49,6 +49,13 @@ class IPv6Handler : public AutoRegisterStateObserver {
                                 const std::shared_ptr<Vlan> vlan);
 
   /*
+   * TODO(aeckert): 17949183 unify packet handling pipeline and then
+   * make this private again.
+   */
+  void sendNeighborSolicitations(PortID ingressPort,
+                                 const folly::IPAddressV6& targetIP);
+
+  /*
    * These two static methods are for sending out an NDP solicitation.
    * The second version actually calls the first and is there
    * for the convenience of the caller. The first version
@@ -113,9 +120,6 @@ class IPv6Handler : public AutoRegisterStateObserver {
   bool checkNdpPacket(const ICMPHeaders& hdr,
                       const RxPacket* pkt) const;
 
-  void sendNeighborSolicitations(
-      PortID ingressPort,
-      const folly::IPAddressV6& targetIP);
   void sendNeighborAdvertisement(VlanID vlan,
                                  folly::MacAddress srcMac,
                                  folly::IPAddressV6 srcIP,
