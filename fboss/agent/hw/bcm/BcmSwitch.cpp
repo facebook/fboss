@@ -487,11 +487,6 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   // Trap DHCP packets to CPU
   rv = opennsl_switch_control_set(unit_, opennslSwitchDhcpPktToCpu, 1);
   bcmCheckError(rv, "failed to set DHCP packet trapping");
-  // Trap Dest miss
-  rv = opennsl_switch_control_set(unit_, opennslSwitchUnknownL3DestToCpu, 1);
-  bcmCheckError(rv, "failed to set destination miss trapping");
-  rv = opennsl_switch_control_set(unit_, opennslSwitchV6L3DstMissToCpu, 1);
-  bcmCheckError(rv, "failed to set IPv6 destination miss trapping");
   // Trap IPv6 Neighbor Discovery Protocol (NDP) packets.
   // TODO: We may want to trap NDP on a per-port or per-VLAN basis.
   rv = opennsl_switch_control_set(unit_, opennslSwitchNdPktToCpu, 1);
