@@ -155,22 +155,26 @@ shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
       titr = vlan2AddrTables.insert(make_pair(vlanId, AddrTables())).first;
     }
 
+    // If we have a drop entry programmed for an existing host, it is a
+    // pending entry
     if (ip.isV4()) {
       auto arpTable = titr->second.arpTable;
-      arpTable->addEntry(
-          ip.asV4(),
-          macFromBcm(bcmEgress.mac_addr),
-          PortID(bcmEgress.port),
-          InterfaceID(bcmEgress.vlan),
-          NeighborState::UNVERIFIED);
+      if (BcmEgress::programmedToDrop(bcmEgress)) {
+        arpTable->addPendingEntry(ip.asV4(), InterfaceID(bcmEgress.vlan));
+      } else {
+        arpTable->addEntry(ip.asV4(), macFromBcm(bcmEgress.mac_addr),
+                           PortID(bcmEgress.port), InterfaceID(bcmEgress.vlan),
+                           NeighborState::UNVERIFIED);
+      }
     } else {
       auto ndpTable = titr->second.ndpTable;
-      ndpTable->addEntry(
-          ip.asV6(),
-          macFromBcm(bcmEgress.mac_addr),
-          PortID(bcmEgress.port),
-          InterfaceID(bcmEgress.vlan),
-          NeighborState::UNVERIFIED);
+      if (BcmEgress::programmedToDrop(bcmEgress)) {
+        ndpTable->addPendingEntry(ip.asV6(), InterfaceID(bcmEgress.vlan));
+      } else {
+        ndpTable->addEntry(ip.asV6(), macFromBcm(bcmEgress.mac_addr),
+                           PortID(bcmEgress.port), InterfaceID(bcmEgress.vlan),
+                           NeighborState::UNVERIFIED);
+      }
     }
   }
   for (auto vlanAndAddrTable: vlan2AddrTables) {

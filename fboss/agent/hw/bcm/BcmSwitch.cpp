@@ -960,7 +960,7 @@ void BcmSwitch::processNeighborEntryDelta(const DELTA& delta) {
 
     if (newEntry->isPending()) {
       VLOG(3) << "adding pending neighbor entry to " << newEntry->getIP().str();
-      host->programToCPU(intf->getBcmIfId());
+      host->programToDrop(intf->getBcmIfId());
     } else {
       VLOG(3) << "adding neighbor entry " << newEntry->getIP().str()
               << " to " << newEntry->getMac().toString();
@@ -981,7 +981,7 @@ void BcmSwitch::processNeighborEntryDelta(const DELTA& delta) {
     getIntfAndVrf(newEntry->getIntfID());
     auto host = hostTable_->getBcmHost(vrf, IPAddress(newEntry->getIP()));
     if (newEntry->isPending()) {
-      host->programToCPU(intf->getBcmIfId());
+      host->programToDrop(intf->getBcmIfId());
     } else {
       host->program(intf->getBcmIfId(), newEntry->getMac(),
           getPortTable()->getBcmPortId(newEntry->getPort()));
