@@ -238,8 +238,8 @@ void BcmPort::init(bool warmBoot) {
   }
 
   // Notify platform port of initial state/speed
-  getPlatformPort()->linkStatusChanged(up, isEnabled());
   getPlatformPort()->linkSpeedChanged(getSpeed());
+  getPlatformPort()->linkStatusChanged(up, isEnabled());
 
   // Linkscan should be enabled if the port is enabled already
   auto linkscan = isEnabled() ? OPENNSL_LINKSCAN_MODE_SW :
@@ -424,7 +424,7 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
 
   // If the port is down or disabled its safe to update mode and speed to
   // desired values
-  bool portDown = !isEnabled() || getState() == cfg::PortState::DOWN;
+  bool portDown = getState() != cfg::PortState::UP;
 
   // Update to correct mode and speed settings if the port is down/disabled
   // or if the speed changed. Ideally we would like to always update to the
@@ -698,15 +698,12 @@ void BcmPort::updatePktLenHist(
 }
 
 cfg::PortState BcmPort::getState() {
-  int rv;
-  int enabled;
-  int linkStatus;
-  rv = opennsl_port_enable_get(hw_->getUnit(), port_, &enabled);
-  bcmCheckError(rv, "could not find if port ", port_, " is enabled or not...");
-  if (!enabled) {
+  if (!isEnabled()) {
     return cfg::PortState::POWER_DOWN;
   }
-  rv = opennsl_port_link_status_get(hw_->getUnit(), port_, &linkStatus);
+
+  int linkStatus;
+  auto rv = opennsl_port_link_status_get(hw_->getUnit(), port_, &linkStatus);
   bcmCheckError(rv, "could not find if the port ", port_, " is up or down...");
   if (linkStatus == OPENNSL_PORT_LINK_STATUS_UP) {
     return cfg::PortState::UP;
