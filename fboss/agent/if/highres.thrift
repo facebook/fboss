@@ -7,8 +7,8 @@ namespace py.asyncio neteng.fboss.asyncio.highres
 typedef string (cpp2.type = "::folly::fbstring") fbstring
 
 enum SleepMethod {
-  NANOSLEEP,
-  PAUSE
+  NANOSLEEP = 0,
+  PAUSE = 1,
 }
 
 struct CounterRequest {

@@ -58,9 +58,9 @@ struct ChannelSensors {
 }
 
 enum TransmitterTechnology {
-  UNKNOWN,
-  COPPER,
-  OPTICAL,
+  UNKNOWN = 0,
+  COPPER = 1,
+  OPTICAL = 2,
 }
 /*
  * QSFP and SFP units specify length as a byte;  a value of 255 indicates
@@ -86,32 +86,32 @@ struct Channel {
 }
 
 enum TransceiverType {
-  SFP,
-  QSFP,
+  SFP = 0,
+  QSFP = 1,
 }
 
 enum FeatureState {
-  UNSUPPORTED,
-  ENABLED,
-  DISABLED,
+  UNSUPPORTED = 0,
+  ENABLED = 1,
+  DISABLED = 2,
 }
 
 enum PowerControlState {
-  POWER_LPMODE,
-  POWER_OVERRIDE,
-  POWER_SET, // Deprecated!
-  HIGH_POWER_OVERRIDE,
-  POWER_SET_BY_HW,
+  POWER_LPMODE = 0,
+  POWER_OVERRIDE = 1,
+  POWER_SET = 2, // Deprecated!
+  HIGH_POWER_OVERRIDE = 3,
+  POWER_SET_BY_HW = 4,
 }
 
 enum RateSelectState {
-  UNSUPPORTED,
+  UNSUPPORTED = 0,
   // Depending on which of the rate selects are set, the Extended Rate
   // Compliance bits are read differently:
   // ftp://ftp.seagate.com/sff/SFF-8636.PDF page 36
-  EXTENDED_RATE_SELECT_V1,
-  EXTENDED_RATE_SELECT_V2,
-  APPLICATION_RATE_SELECT,
+  EXTENDED_RATE_SELECT_V1 = 1,
+  EXTENDED_RATE_SELECT_V2 = 2,
+  APPLICATION_RATE_SELECT = 3,
 }
 
 enum RateSelectSetting {
@@ -122,8 +122,8 @@ enum RateSelectSetting {
   FROM_12GB_TO_24GB = 4,
   FROM_24GB_to_26GB = 5,
   FROM_26GB_AND_ABOVE = 6,
-  UNSUPPORTED,
-  UNKNOWN,
+  UNSUPPORTED = 7,
+  UNKNOWN = 8,
 }
 
 struct TransceiverSettings {
