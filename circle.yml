@@ -1,0 +1,17 @@
+# CircleCI Continuous integration config file
+# Override everything because out setup is non-standard
+#
+#
+# Full documentation here: 
+# https://circleci.com/docs/1.0/configuration/
+compile:
+    override:
+          - bash getdeps.sh
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make
+
+test:
+    override:
+          - make test

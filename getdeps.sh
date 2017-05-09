@@ -54,7 +54,7 @@ function build_cmake() {
             mkdir -p build
             cd build
             echo cmake .. $CMAKEFLAGS
-            cmake .. "$CMAKEFLAGS" || die "Cmake failed for $1"
+            cmake .. $CMAKEFLAGS || die "Cmake failed for $1"
             make -j "$NPROC" || die "Failed to build $1"
         else
 	    die "No CmakeLists.txt found for $1"
@@ -97,7 +97,7 @@ NPROC=$(grep -c processor /proc/cpuinfo)
     build_make zstd || die "Failed to build zstd"
     build_autoconf iproute2 || die "Failed to build iproute2"
     build_autoconf folly/folly || die "Failed to build folly"
-    export CMAKEFLAGS="-D\"FOLLY_INCLUDE_DIR=$EXT/folly\" -D\"FOLLY_LIBRARY=$EXT/folly/folly/.libs/libfolly.a\" -D\"BUILD_TESTS=OFF\""
+    export CMAKEFLAGS="-DFOLLY_INCLUDE_DIR=$EXT/folly -DFOLLY_LIBRARY=$EXT/folly/folly/.libs/libfolly.a -DBUILD_TESTS=OFF"
     build_cmake wangle/wangle || die "Failed to build wangle"
     export CPPFLAGS=" -I$EXT/folly -I$EXT/wangle -I$EXT/mstch/include -I$EXT/zstd/lib/"
     export LDFLAGS="-L$EXT/folly/folly/.libs/ -L$EXT/wangle/wangle/build/lib -L$EXT/mstch/build/src/"

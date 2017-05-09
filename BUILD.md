@@ -41,4 +41,7 @@ cmake ..
 make
 ```
 
+FYI: the build status of open source fboss is tracked at:
+   https://circleci.com/gh/facebook/fboss
+
 The produced executables are `sim_agent` and `wedge_agent` in the build directory.
