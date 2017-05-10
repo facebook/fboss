@@ -104,8 +104,14 @@ BcmSwitch::MmuState BcmSwitch::queryMmuState() const {
   return MmuState::UNKNOWN;
 }
 
-void BcmSwitch::startBufferStatCollection() {}
-void BcmSwitch::stopBufferStatCollection() {}
+bool BcmSwitch::startBufferStatCollection() {
+  LOG(INFO) << "Buffer stats collection not supported";
+  return bufferStatsEnabled_;
+}
+bool BcmSwitch::stopBufferStatCollection() {
+  LOG(INFO) << "no op, buffer stats collection is not supported";
+  return !bufferStatsEnabled_;
+}
 void BcmSwitch::exportDeviceBufferUsage() {}
 
 std::unique_ptr<BufferStatsLogger> BcmSwitch::createBufferStatsLogger() {

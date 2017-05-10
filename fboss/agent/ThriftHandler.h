@@ -211,6 +211,27 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
    */
   void reloadConfig() override;
 
+ protected:
+  void ensureConfigured(folly::StringPiece function);
+  void ensureConfigured() {
+    // This version of ensureConfigured() won't log
+    ensureConfigured(folly::StringPiece(nullptr, nullptr));
+  }
+  /*
+   * On a warm boot we need to prevent route updates
+   * before a full FIB sync event. Otherwise if we get a
+   * add and delete for a route that might lead us to believe
+   * that the reference count for this route's egress object has
+   * dropped to 0 but in reality we just haven't heard about all
+   * the routes that may also point to this egress. This causes
+   * errors when we try to delete the egress objects. t4155406
+   * should fix this.
+   */
+  void ensureFibSynced(folly::StringPiece function);
+  void ensureFibSynced() {
+    // This version of ensureFibSynced() won't log
+    ensureFibSynced(folly::StringPiece(nullptr, nullptr));
+  }
  private:
   struct ThreadLocalListener {
     EventBase* eventBase;
@@ -242,26 +263,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   ThriftHandler(ThriftHandler const &) = delete;
   ThriftHandler& operator=(ThriftHandler const &) = delete;
 
-  void ensureConfigured(folly::StringPiece function);
-  void ensureConfigured() {
-    // This version of ensureConfigured() won't log
-    ensureConfigured(folly::StringPiece(nullptr, nullptr));
-  }
-  /*
-   * On a warm boot we need to prevent route updates
-   * before a full FIB sync event. Otherwise if we get a
-   * add and delete for a route that might lead us to believe
-   * that the reference count for this route's egress object has
-   * dropped to 0 but in reality we just haven't heard about all
-   * the routes that may also point to this egress. This causes
-   * errors when we try to delete the egress objects. t4155406
-   * should fix this.
-   */
-  void ensureFibSynced(folly::StringPiece function);
-  void ensureFibSynced() {
-    // This version of ensureFibSynced() won't log
-    ensureFibSynced(folly::StringPiece(nullptr, nullptr));
-  }
 
   template<typename Result>
   void fail(const ThriftCallback<Result>& callback,

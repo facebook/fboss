@@ -334,7 +334,7 @@ void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
   // SwSwitch, but it does not really matter at the graceful exit time. If
   // this is a concern, this can be moved to the updateEventBase_ of SwSwitch.
   portTable_->preparePortsForGracefulExit();
-  if (isBufferCollectionEnabled()) {
+  if (isBufferStatCollectionEnabled()) {
     stopBufferStatCollection();
   }
 
@@ -563,6 +563,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   ret.bootTime =
     duration_cast<duration<float>>(steady_clock::now() - begin).count();
+  startBufferStatCollection();
   return ret;
 }
 
@@ -1189,7 +1190,7 @@ void BcmSwitch::updateThreadLocalPortStats(PortID portID,
 void BcmSwitch::updateGlobalStats() {
   portTable_->updatePortStats();
   bcmTableStats_->publish();
-  if (isBufferCollectionEnabled()) {
+  if (isBufferStatCollectionEnabled()) {
     exportDeviceBufferUsage();
   }
 }
@@ -1221,4 +1222,15 @@ void BcmSwitch::exitFatal() const {
   callback_->exitFatal();
 }
 
+bool BcmSwitch::startFineGrainedBufferStatCollection() {
+  if (startBufferStatCollection()) {
+    fineGrainedBufferStatsEnabled_ = true;
+  }
+  return fineGrainedBufferStatsEnabled_;
+}
+
+bool BcmSwitch::stopFineGrainedBufferStatCollection() {
+  fineGrainedBufferStatsEnabled_ = false;
+  return !fineGrainedBufferStatsEnabled_;
+}
 }} // facebook::fboss

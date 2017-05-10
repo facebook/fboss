@@ -295,10 +295,15 @@ class BcmSwitch : public BcmSwitchIf {
 
   bool isValidStateUpdate(const StateDelta& delta) const override;
 
-  void startBufferStatCollection();
-  void stopBufferStatCollection();
-  bool isBufferCollectionEnabled() const {
+  bool startBufferStatCollection();
+  bool stopBufferStatCollection();
+  bool startFineGrainedBufferStatCollection();
+  bool stopFineGrainedBufferStatCollection();
+  bool isBufferStatCollectionEnabled() const {
     return bufferStatsEnabled_;
+  }
+  bool isFineGrainedBufferStatCollectionEnabled() const {
+    return fineGrainedBufferStatsEnabled_;
   }
 
  private:
@@ -527,8 +532,9 @@ class BcmSwitch : public BcmSwitchIf {
   HashMode hashMode_;
   MmuState mmuState_{MmuState::UNKNOWN};
   bool bufferStatsEnabled_{false};
-  uint32_t mmuBufferBytes_{0};
-  uint32_t mmuCellBytes_{0};
+  bool fineGrainedBufferStatsEnabled_{false};
+  uint64_t mmuBufferBytes_{0};
+  uint64_t mmuCellBytes_{0};
   std::unique_ptr<BcmWarmBootCache> warmBootCache_;
   std::unique_ptr<BcmPortTable> portTable_;
   std::unique_ptr<BcmEgress> toCPUEgress_;
