@@ -72,6 +72,8 @@ class BcmPlatform : public Platform {
    */
   virtual uint32_t getMMUCellBytes() const = 0;
 
+  virtual bool isBufferStatsCollectionSupported() const = 0;
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmPlatform(BcmPlatform const &) = delete;

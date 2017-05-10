@@ -563,7 +563,9 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   ret.bootTime =
     duration_cast<duration<float>>(steady_clock::now() - begin).count();
-  startBufferStatCollection();
+  if (platform_->isBufferStatsCollectionSupported()) {
+    startBufferStatCollection();
+  }
   return ret;
 }
 

@@ -27,6 +27,9 @@ class GalaxyPlatform : public WedgePlatform {
 
   virtual ~GalaxyPlatform() {}
 
+  bool isBufferStatsCollectionSupported() const override {
+    return true;
+  }
  private:
   GalaxyPlatform(GalaxyPlatform const &) = delete;
   GalaxyPlatform& operator=(GalaxyPlatform const &) = delete;
