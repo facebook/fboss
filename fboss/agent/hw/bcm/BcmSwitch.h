@@ -50,6 +50,7 @@ class Port;
 class PortStats;
 class Vlan;
 class VlanMap;
+class BufferStatsLogger;
 
 /*
  * Virtual interface to BcmSwitch, primarily for mocking/testing
@@ -188,6 +189,10 @@ class BcmSwitch : public BcmSwitchIf {
   const BcmAclTable* getAclTable() const override {
     return aclTable_.get();
   }
+  BufferStatsLogger* getBufferStatsLogger() {
+    return bufferStatsLogger_.get();
+  }
+
   bool isPortUp(PortID port) const override;
 
   opennsl_if_t getDropEgressId() const override;
@@ -492,6 +497,10 @@ class BcmSwitch : public BcmSwitchIf {
    * Setup COS manager
    */
   void setupCos();
+  /*
+   * Create buffer stats logger
+   */
+  std::unique_ptr<BufferStatsLogger> createBufferStatsLogger();
 
    /*
     * Check if state, speed update for this port port would
@@ -518,6 +527,8 @@ class BcmSwitch : public BcmSwitchIf {
   HashMode hashMode_;
   MmuState mmuState_{MmuState::UNKNOWN};
   bool bufferStatsEnabled_{false};
+  uint32_t mmuBufferBytes_{0};
+  uint32_t mmuCellBytes_{0};
   std::unique_ptr<BcmWarmBootCache> warmBootCache_;
   std::unique_ptr<BcmPortTable> portTable_;
   std::unique_ptr<BcmEgress> toCPUEgress_;
@@ -527,6 +538,7 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmAclTable> aclTable_;
   std::unique_ptr<BcmCosManager> cosManager_;
   std::unique_ptr<BcmTableStats> bcmTableStats_;
+  std::unique_ptr<BufferStatsLogger> bufferStatsLogger_;
   /*
    * Lock to synchronize access to all BCM* data structures
    */

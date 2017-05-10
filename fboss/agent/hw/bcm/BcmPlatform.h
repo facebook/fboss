@@ -60,6 +60,18 @@ class BcmPlatform : public Platform {
   virtual bool canUseHostTableForHostRoutes() const = 0;
   virtual TransceiverIdxThrift getPortMapping(
       PortID portId) const override = 0;
+
+  /*
+   * Get total device buffer in bytes
+   */
+  virtual uint32_t getMMUBufferBytes() const = 0;
+  /*
+   * MMU buffer is split into cells, each of which is
+   * X bytes. Cells then serve as units of for allocation
+   * and accounting of MMU resources.
+   */
+  virtual uint32_t getMMUCellBytes() const = 0;
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmPlatform(BcmPlatform const &) = delete;

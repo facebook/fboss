@@ -58,6 +58,15 @@ class WedgePlatform : public BcmPlatform {
   WedgePort* getPort(TransceiverID id) const;
   virtual TransceiverIdxThrift getPortMapping(PortID port) const override;
 
+  uint32_t getMMUBufferBytes() const override {
+    // All wedge platforms have 16MB MMU buffer
+    return 16 * 1024 * 1024;
+  }
+  uint32_t getMMUCellBytes() const override {
+    // All wedge platforms have 208 byte cells
+    return 208;
+  }
+
  protected:
   WedgePlatformMode getMode() const;
   std::unique_ptr<WedgePortMapping> portMapping_{nullptr};

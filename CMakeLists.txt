@@ -101,6 +101,7 @@ add_library(fboss_agent STATIC
     fboss/agent/DHCPv6Handler.cpp
     fboss/agent/HighresCounterSubscriptionHandler.cpp
     fboss/agent/HighresCounterUtil.cpp
+    fboss/agent/hw/BufferStatsLogger.cpp
     fboss/agent/hw/bcm/BcmAclTable.cpp
     fboss/agent/hw/bcm/BcmAPI.cpp
     fboss/agent/hw/bcm/BcmEgress.cpp

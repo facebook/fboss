@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
+#include "fboss/agent/hw/BufferStatsLogger.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
 
 #include <folly/Memory.h>
@@ -106,4 +107,8 @@ BcmSwitch::MmuState BcmSwitch::queryMmuState() const {
 void BcmSwitch::startBufferStatCollection() {}
 void BcmSwitch::stopBufferStatCollection() {}
 void BcmSwitch::exportDeviceBufferUsage() {}
+
+std::unique_ptr<BufferStatsLogger> BcmSwitch::createBufferStatsLogger() {
+  return std::make_unique<GlogBufferStatsLogger>();
+}
 }} //facebook::fboss

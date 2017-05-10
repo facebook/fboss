@@ -21,6 +21,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/hw/BufferStatsLogger.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
@@ -136,13 +137,16 @@ bool BcmSwitch::getPortFECConfig(PortID port) const {
 BcmSwitch::BcmSwitch(BcmPlatform *platform, HashMode hashMode)
   : platform_(platform),
     hashMode_(hashMode),
+    mmuBufferBytes_(platform->getMMUBufferBytes()),
+    mmuCellBytes_(platform->getMMUCellBytes()),
     warmBootCache_(new BcmWarmBootCache(this)),
     portTable_(new BcmPortTable(this)),
     intfTable_(new BcmIntfTable(this)),
     hostTable_(new BcmHostTable(this)),
     routeTable_(new BcmRouteTable(this)),
     aclTable_(new BcmAclTable(this)),
-    bcmTableStats_(new BcmTableStats(this)) {
+    bcmTableStats_(new BcmTableStats(this)),
+    bufferStatsLogger_(createBufferStatsLogger()) {
   dumpConfigMap(BcmAPI::getHwConfig(), platform->getHwConfigDumpFile());
 
   exportSdkVersion();
