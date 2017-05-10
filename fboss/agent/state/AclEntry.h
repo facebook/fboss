@@ -158,7 +158,7 @@ struct AclEntryFields {
   folly::Optional<cfg::IpFragMatch> ipFrag{folly::none};
   folly::Optional<uint8_t> icmpType{folly::none};
   folly::Optional<uint8_t> icmpCode{folly::none};
-  cfg::AclAction action{cfg::AclAction::PERMIT};
+  cfg::AclAction action;
 };
 
 /*

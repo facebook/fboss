@@ -15,12 +15,31 @@
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include <folly/IPAddress.h>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
 using std::make_pair;
 using std::make_shared;
 using std::shared_ptr;
+namespace {
+
+cfg::AclAction getAction(cfg::AclActionType type) {
+  cfg::AclAction act;
+  act.actionType = type;
+  switch(type) {
+    case cfg::AclActionType::PERMIT:
+    case cfg::AclActionType::DENY:
+      break;
+    case cfg::AclActionType::TO_PORT_QOS_QUEUE:
+      act.portName = "cpu";
+      act.qosQueueNum = 9;
+      break;
+  }
+  return act;
+}
+
+}
 
 TEST(Acl, applyConfig) {
   auto platform = createMockPlatform();
@@ -38,7 +57,7 @@ TEST(Acl, applyConfig) {
   cfg::SwitchConfig config;
   config.acls.resize(1);
   config.acls[0].id = 100;
-  config.acls[0].action = cfg::AclAction::DENY;
+  config.acls[0].action = getAction(cfg::AclActionType::DENY);
   config.acls[0].__isset.srcIp = true;
   config.acls[0].__isset.dstIp = true;
   config.acls[0].srcIp = "192.168.0.1";
@@ -55,7 +74,7 @@ TEST(Acl, applyConfig) {
   EXPECT_NE(aclV0, aclV1);
 
   EXPECT_EQ(AclEntryID(100), aclV1->getID());
-  EXPECT_EQ(cfg::AclAction::DENY, aclV1->getAction());
+  EXPECT_EQ(getAction(cfg::AclActionType::DENY), aclV1->getAction());
   EXPECT_EQ(5, aclV1->getSrcPort());
   EXPECT_EQ(8, aclV1->getDstPort());
   EXPECT_FALSE(aclV1->isPublished());
@@ -80,7 +99,7 @@ TEST(Acl, applyConfig) {
   cfg::SwitchConfig configV1;
   configV1.acls.resize(1);
   configV1.acls[0].id = 101;
-  configV1.acls[0].action = cfg::AclAction::PERMIT;
+  configV1.acls[0].action = getAction(cfg::AclActionType::PERMIT);
 
   // set ranges
   configV1.acls[0].srcL4PortRange.min = 1;
@@ -96,7 +115,7 @@ TEST(Acl, applyConfig) {
   ASSERT_NE(nullptr, aclV3);
   EXPECT_NE(aclV0, aclV3);
   EXPECT_EQ(AclEntryID(101), aclV3->getID());
-  EXPECT_EQ(cfg::AclAction::PERMIT, aclV3->getAction());
+  EXPECT_EQ(getAction(cfg::AclActionType::PERMIT), aclV3->getAction());
   EXPECT_FALSE(!aclV3->getSrcL4PortRange());
   EXPECT_EQ(aclV3->getSrcL4PortRange().value().getMin(), 1);
   EXPECT_EQ(aclV3->getSrcL4PortRange().value().getMax(), 2);
@@ -116,7 +135,7 @@ TEST(Acl, applyConfig) {
   cfg::SwitchConfig configV2;
   configV2.acls.resize(1);
   configV2.acls[0].id = 101;
-  configV2.acls[0].action = cfg::AclAction::PERMIT;
+  configV2.acls[0].action = getAction(cfg::AclActionType::PERMIT);
 
   // set pkt length range
   configV2.acls[0].pktLenRange.min = 34;
@@ -146,37 +165,41 @@ TEST(Acl, stateDelta) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
+
   cfg::SwitchConfig config;
-  config.acls.resize(3);
+  config.acls.resize(4);
   config.acls[0].id = 100;
-  config.acls[0].action = cfg::AclAction::DENY;
+  config.acls[0].action = getAction(cfg::AclActionType::DENY);
   config.acls[0].__isset.srcIp = true;
   config.acls[0].srcIp = "192.168.0.1";
   config.acls[1].id = 200;
-  config.acls[1].action = cfg::AclAction::PERMIT;
+  config.acls[1].action = getAction(cfg::AclActionType::PERMIT);
   config.acls[1].__isset.srcIp = true;
   config.acls[1].srcIp = "192.168.0.2";
   config.acls[2].id = 300;
-  config.acls[2].action = cfg::AclAction::DENY;
+  config.acls[2].action = getAction(cfg::AclActionType::DENY);
   config.acls[2].__isset.srcIp = true;
   config.acls[2].srcIp = "192.168.0.3";
   config.acls[2].__isset.srcPort = true;
   config.acls[2].srcPort = 5;
   config.acls[2].__isset.dstPort = true;
   config.acls[2].dstPort = 8;
-
+  config.acls[3].id = 400;
+  config.acls[3].action = getAction(cfg::AclActionType::TO_PORT_QOS_QUEUE);
+  config.acls[3].__isset.srcIp = true;
+  config.acls[3].srcIp = "192.168.0.4";
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_EQ(stateV2, nullptr);
 
   // Only change one action
-  config.acls[0].action = cfg::AclAction::PERMIT;
+  config.acls[0].action = getAction(cfg::AclActionType::PERMIT);
   auto stateV3 = publishAndApplyConfig(stateV1, &config, platform.get());
   StateDelta delta13(stateV1, stateV3);
   auto aclDelta13 = delta13.getAclsDelta();
   auto iter = aclDelta13.begin();
-  EXPECT_EQ(iter->getOld()->getAction(), cfg::AclAction::DENY);
-  EXPECT_EQ(iter->getNew()->getAction(), cfg::AclAction::PERMIT);
+  EXPECT_EQ(iter->getOld()->getAction(), getAction(cfg::AclActionType::DENY));
+  EXPECT_EQ(iter->getNew()->getAction(), getAction(cfg::AclActionType::PERMIT));
   ++iter;
   EXPECT_EQ(iter, aclDelta13.end());
 
@@ -186,11 +209,29 @@ TEST(Acl, stateDelta) {
   StateDelta delta34(stateV3, stateV4);
   auto aclDelta34 = delta34.getAclsDelta();
   iter = aclDelta34.begin();
-  EXPECT_EQ(iter->getOld()->getSrcPort(), 5);
-  EXPECT_EQ(iter->getOld()->getDstPort(), 8);
+  EXPECT_EQ(iter->getOld()->getSrcIp(), folly::CIDRNetwork(
+        folly::IPAddress("192.168.0.4"), 32));
+  EXPECT_EQ(
+      iter->getOld()->getAction(),
+      getAction(cfg::AclActionType::TO_PORT_QOS_QUEUE));
   EXPECT_EQ(iter->getNew(), nullptr);
   ++iter;
   EXPECT_EQ(iter, aclDelta34.end());
+  // Remove tail element
+  config.acls.pop_back();
+  auto stateV5 = publishAndApplyConfig(stateV4, &config, platform.get());
+  StateDelta delta45(stateV4, stateV5);
+  auto aclDelta45 = delta45.getAclsDelta();
+  iter = aclDelta45.begin();
+  EXPECT_EQ(
+      iter->getOld()->getSrcIp(),
+      folly::CIDRNetwork(folly::IPAddress("192.168.0.3"), 32));
+  EXPECT_EQ(iter->getOld()->getSrcPort(), 5);
+  EXPECT_EQ(iter->getOld()->getDstPort(), 8);
+  EXPECT_EQ(iter->getOld()->getAction(), getAction(cfg::AclActionType::DENY));
+  EXPECT_EQ(iter->getNew(), nullptr);
+  ++iter;
+  EXPECT_EQ(iter, aclDelta45.end());
 }
 
 TEST(Acl, Icmp) {
@@ -200,7 +241,7 @@ TEST(Acl, Icmp) {
   cfg::SwitchConfig config;
   config.acls.resize(1);
   config.acls[0].id = 100;
-  config.acls[0].action = cfg::AclAction::DENY;
+  config.acls[0].action = getAction(cfg::AclActionType::DENY);
   config.acls[0].proto = 58;
   config.acls[0].__isset.proto = true;
   config.acls[0].icmpType = 128;
@@ -213,7 +254,7 @@ TEST(Acl, Icmp) {
   auto aclV1 = stateV1->getAcl(AclEntryID(100));
   ASSERT_NE(nullptr, aclV1);
   EXPECT_EQ(AclEntryID(100), aclV1->getID());
-  EXPECT_EQ(cfg::AclAction::DENY, aclV1->getAction());
+  EXPECT_EQ(getAction(cfg::AclActionType::DENY), aclV1->getAction());
   EXPECT_EQ(128, aclV1->getIcmpType().value());
   EXPECT_EQ(0, aclV1->getIcmpCode().value());
 

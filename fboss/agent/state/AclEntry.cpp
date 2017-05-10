@@ -17,6 +17,7 @@ using folly::IPAddress;
 namespace {
 constexpr auto kId = "id";
 constexpr auto kAction = "action";
+constexpr auto kActionType = "actionType";
 constexpr auto kSrcIp = "srcIp";
 constexpr auto kDstIp = "dstIp";
 constexpr auto kL4SrcPort = "l4SrcPort";
@@ -37,6 +38,8 @@ constexpr auto kPktLenRangeMax = "max";
 constexpr auto kIpFrag = "ipFrag";
 constexpr auto kIcmpCode = "icmpCode";
 constexpr auto kIcmpType = "icmpType";
+constexpr auto kPortName = "portName";
+constexpr auto kQosQueueNum = "qosQueueNum";
 }
 
 namespace facebook { namespace fboss {
@@ -147,9 +150,15 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   if (icmpType) {
     aclEntry[kIcmpType] = static_cast<uint8_t>(icmpType.value());
   }
-  auto itr_action = cfg::_AclAction_VALUES_TO_NAMES.find(action);
-  CHECK(itr_action != cfg::_AclAction_VALUES_TO_NAMES.end());
-  aclEntry[kAction] = itr_action->second;
+  folly::dynamic aclAction = folly::dynamic::object;
+  auto itr_action = cfg::_AclActionType_VALUES_TO_NAMES.find(action.actionType);
+  CHECK(itr_action != cfg::_AclActionType_VALUES_TO_NAMES.end());
+  aclAction[kActionType] = itr_action->second;
+  if (action.actionType == cfg::AclActionType::TO_PORT_QOS_QUEUE) {
+    aclAction[kPortName] = action.portName;
+    aclAction[kQosQueueNum] = action.qosQueueNum;
+  }
+  aclEntry[kAction] =  aclAction;
   aclEntry[kId] = static_cast<uint32_t>(id);
   return aclEntry;
 }
@@ -212,9 +221,17 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   if (aclEntryJson.find(kIcmpCode) != aclEntryJson.items().end()) {
     aclEntry.icmpCode = aclEntryJson[kIcmpCode].asInt();
   }
-  auto itr_action = cfg::_AclAction_NAMES_TO_VALUES.find(
-    util::getCpp2EnumName(aclEntryJson[kAction].asString()).c_str());
-  aclEntry.action = cfg::AclAction(itr_action->second);
+  auto aclActionJson = aclEntryJson[kAction];
+  aclEntry.action.actionType =
+      cfg::_AclActionType_NAMES_TO_VALUES
+          .find(util::getCpp2EnumName(aclActionJson[kActionType].asString())
+                    .c_str())
+          ->second;
+  if (aclEntry.action.actionType == cfg::AclActionType::TO_PORT_QOS_QUEUE) {
+    aclEntry.action.portName = aclActionJson[kPortName].asString();
+    aclEntry.action.qosQueueNum =
+        static_cast<int16_t>(aclActionJson[kQosQueueNum].asInt());
+  }
   return aclEntry;
 }
 
@@ -248,8 +265,8 @@ void AclEntryFields::checkFollyDynamic(const folly::dynamic& aclEntryJson) {
   if (aclEntryJson.find(kAction) != aclEntryJson.items().end()) {
     const auto actionName = util::getCpp2EnumName(
         aclEntryJson[kAction].asString());
-    if (cfg::_AclAction_NAMES_TO_VALUES.find(actionName.c_str()) ==
-        cfg::_AclAction_NAMES_TO_VALUES.end()) {
+    if (cfg::_AclActionType_NAMES_TO_VALUES.find(actionName.c_str()) ==
+        cfg::_AclActionType_NAMES_TO_VALUES.end()) {
       throw FbossError(
           "Unsupported ACL action ", aclEntryJson[kAction].asString());
     }

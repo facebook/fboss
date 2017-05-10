@@ -52,14 +52,6 @@ enum PortSpeed {
 }
 
 /**
- * The action for an access control entry
- */
-enum AclAction {
-  DENY = 0,
-  PERMIT = 1,
-}
-
-/**
  * Configuration for a single logical port
  */
 struct Port {
@@ -317,6 +309,23 @@ enum IpFragMatch {
   MATCH_NOT_FIRST_FRAGMENT = 3
   // any fragment
   MATCH_ANY_FRAGMENT = 4
+}
+
+/**
+ * The action for an access control entry
+ */
+enum AclActionType {
+  DENY = 0
+  PERMIT = 1
+  TO_PORT_QOS_QUEUE = 2,
+}
+
+struct AclAction {
+  1: AclActionType actionType = PERMIT
+
+  2: optional string portName
+
+  3: optional i16 qosQueueNum
 }
 
 /**
