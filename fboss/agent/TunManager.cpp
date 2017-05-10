@@ -696,9 +696,11 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
           }
         }
 
-        // Update interface addresses only if interface was up before as well
-        // as now
-        if (oldStatus && newStatus) {
+        // Update interface addresses only if interface is up currently
+        // We would like to process address change whenever current state of
+        // interface is UP. We should not try to add addresses when interface is
+        // down as it can throw exception for v6 address.
+        if (newStatus) {
           applyInterfaceAddrChanges(ifID, ifName, ifIndex, oldAddrs, newAddrs);
         }
       },

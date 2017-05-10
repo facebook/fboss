@@ -137,6 +137,15 @@ class TunIntf : private folly::EventHandler {
   void openFD();
   void closeFD() noexcept;
 
+  /**
+   * In newer kernel an interface is automatically gets link-local IPv6 address
+   * because of IPv6 autoconf and FBOSS (we) assign one more.
+   *
+   * Here we disable address generation mode so that we don't end up assigning
+   * address to an interface.
+   */
+  static void disableIPv6AddrGenMode(int ifIndex);
+
   SwSwitch *sw_{nullptr};
 
   const std::string name_{""};  // The name in the host

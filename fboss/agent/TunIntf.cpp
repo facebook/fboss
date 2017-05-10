@@ -14,11 +14,15 @@ extern "C" {
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>
+#include <libnetlink.h>
 #include <linux/if.h>
+#include <linux/if_link.h>
 #include <linux/if_tun.h>
+#include <linux/rtnetlink.h>
 #include <netlink/route/link.h>
 }
 
+#include "fboss/agent/NlError.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SysError.h"
@@ -35,6 +39,25 @@ const std::string kTunDev = "/dev/net/tun";
 
 // Max packets to be processed which are received from host
 const int kMaxSentOneTime = 16;
+
+// Definition of `iplink_req` as it is not well defined in any header files
+struct iplink_req {
+  struct nlmsghdr         n;
+  struct ifinfomsg        i;
+  char                    buf[1024];
+};
+
+/**
+ * Some flags not available in current kernel includes. These has been made
+ * available since kernel-3.17
+ * This should go away when recent kernel header includes are available
+ */
+#ifndef IFLA_INET6_ADDR_GEN_MODE
+#define IFLA_INET6_ADDR_GEN_MODE 8
+#endif
+#ifndef IN6_ADDR_GEN_MODE_NONE
+#define IN6_ADDR_GEN_MODE_NONE 1
+#endif
 
 } // anonymous namespace
 
@@ -57,6 +80,11 @@ TunIntf::TunIntf(
   SCOPE_FAIL {
     closeFD();
   };
+
+  // XXX: Disabling mode on existing interface so that we end up removing
+  // automatically allocated v6 link local address on next release. from
+  // next release onwards we will not need it
+  disableIPv6AddrGenMode(ifIndex_);
 
   LOG(INFO) << "Added interface " << name_ << " with fd " << fd_
             << " @ index " << ifIndex_ << ", " << "DOWN";
@@ -113,6 +141,9 @@ TunIntf::TunIntf(
   if (ifIndex_ <= 0) {
     FbossError("Got invalid value ", ifIndex_, " for Tun interface ", name_);
   }
+
+  // Disable v6 link-local address assignment on Tun interface
+  disableIPv6AddrGenMode(ifIndex_);
 
   LOG(INFO) << "Created interface " << name_ << " with fd " << fd_
             << " @ index " << ifIndex_ << ", " << (status ? "UP" : "DOWN");
@@ -222,6 +253,43 @@ void TunIntf::setMtu(int mtu) {
   sysCheckError(ret, "Failed to set MTU ", ifr.ifr_mtu,
                 " to fd ", fd_, " errno = ", errno);
   VLOG(3) << "Set tun " << name_ << " MTU to " << mtu;
+}
+
+void TunIntf::disableIPv6AddrGenMode(int ifIndex) {
+  struct iplink_req req;
+  bzero(&req, sizeof(req));
+  req.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
+  req.n.nlmsg_flags = NLM_F_REQUEST;
+  req.n.nlmsg_type = RTM_NEWLINK;
+  req.i.ifi_family = AF_UNSPEC;
+  req.i.ifi_index = ifIndex;
+
+  struct rtattr *afs, *afs6;
+  afs = addattr_nest(&req.n, sizeof(req), IFLA_AF_SPEC);
+  afs6 = addattr_nest(&req.n, sizeof(req), AF_INET6);
+  addattr8(
+    &req.n, sizeof(req), IFLA_INET6_ADDR_GEN_MODE, IN6_ADDR_GEN_MODE_NONE);
+  addattr_nest_end(&req.n, afs6);
+  addattr_nest_end(&req.n, afs);
+
+  int err{0};
+  struct rtnl_handle rth;
+  err = rtnl_open(&rth, 0);
+  if (err != 0) {
+    throw NlError(err, "can't open rtnetlink.");
+  }
+  SCOPE_EXIT { rtnl_close(&rth); };
+
+  err = rtnl_talk(&rth, &req.n, nullptr, 0);
+  if (err != 0) {
+    // We are not throwing NlError here because ADDR_GEN_MODE is not supported
+    // in kernel 3.10 which we are using in production. In that kernel we don't
+    // have problem about duplicate link local addresses.
+    LOG(ERROR) << folly::exceptionStr(NlError(err, "rtnl_talk failure"));
+    return;
+  }
+
+  return;
 }
 
 void TunIntf::handlerReady(uint16_t events) noexcept {
