@@ -54,7 +54,7 @@ class NeighborTable
 
   NeighborTable();
 
-  std::shared_ptr<Entry> getEntry(AddressType ip) const {
+  const std::shared_ptr<Entry>& getEntry(AddressType ip) const {
     return this->getNode(ip);
   }
   std::shared_ptr<Entry> getEntryIf(AddressType ip) const {
