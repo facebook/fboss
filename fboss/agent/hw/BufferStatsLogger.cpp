@@ -15,33 +15,23 @@
 
 #include <glog/logging.h>
 
-namespace {
-std::string usageStr(uint64_t bytesUsed, uint64_t bytesMax) {
-  return folly::to<std::string>(
-      " bytes used : ",
-      bytesUsed,
-      " max available : ",
-      bytesMax,
-      " percent used : ",
-      (bytesUsed * 100.0) / bytesMax);
-}
-}
 namespace facebook {
 namespace fboss {
 
 void GlogBufferStatsLogger::logDeviceBufferStat(
     uint64_t bytesUsed,
     uint64_t bytesMax) {
-  LOG(INFO) << " Switch MMU " << usageStr(bytesUsed, bytesMax);
+  LOG(INFO) << " Switch MMU, bytes used : " << bytesUsed
+            << " max available : " << bytesMax
+            << " percent used : " << (bytesUsed * 100.0) / bytesMax;
 }
 
 void GlogBufferStatsLogger::logPortBufferStat(
     const std::string& portName,
     Direction dir,
-    uint64_t bytesUsed,
-    uint64_t bytesMax) {
+    uint64_t bytesUsed) {
   LOG(INFO) << " Port : " << portName << " " << dirStr(dir)
-            << usageStr(bytesUsed, bytesMax);
+            << " bytes used : " << bytesUsed;
 }
 }
 }

@@ -147,6 +147,7 @@ class BcmSwitch : public BcmSwitchIf {
     return platform_;
   }
   MmuState getMmuState() const { return mmuState_; }
+  uint64_t getMMUCellBytes() const { return mmuCellBytes_; }
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
   bool sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept override;
@@ -297,12 +298,12 @@ class BcmSwitch : public BcmSwitchIf {
 
   bool startBufferStatCollection();
   bool stopBufferStatCollection();
-  bool startFineGrainedBufferStatCollection();
-  bool stopFineGrainedBufferStatCollection();
+  bool startFineGrainedBufferStatLogging();
+  bool stopFineGrainedBufferStatLogging();
   bool isBufferStatCollectionEnabled() const {
     return bufferStatsEnabled_;
   }
-  bool isFineGrainedBufferStatCollectionEnabled() const {
+  bool isFineGrainedBufferStatLoggingEnabled() const {
     return fineGrainedBufferStatsEnabled_;
   }
 

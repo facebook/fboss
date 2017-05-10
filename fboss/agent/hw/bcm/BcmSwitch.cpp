@@ -1222,14 +1222,14 @@ void BcmSwitch::exitFatal() const {
   callback_->exitFatal();
 }
 
-bool BcmSwitch::startFineGrainedBufferStatCollection() {
+bool BcmSwitch::startFineGrainedBufferStatLogging() {
   if (startBufferStatCollection()) {
     fineGrainedBufferStatsEnabled_ = true;
   }
   return fineGrainedBufferStatsEnabled_;
 }
 
-bool BcmSwitch::stopFineGrainedBufferStatCollection() {
+bool BcmSwitch::stopFineGrainedBufferStatLogging() {
   fineGrainedBufferStatsEnabled_ = false;
   return !fineGrainedBufferStatsEnabled_;
 }

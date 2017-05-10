@@ -22,7 +22,7 @@ class BufferStatsLogger {
   virtual void logPortBufferStat(
       const std::string& portName,
       Direction dir,
-      uint64_t bytesUsed, uint64_t bytesMax) = 0;
+      uint64_t bytesUsed) = 0;
   static std::string dirStr(Direction dir) {
     switch (dir) {
       case Direction::Ingress:
@@ -39,8 +39,7 @@ class GlogBufferStatsLogger : public BufferStatsLogger {
   void logDeviceBufferStat(uint64_t bytesUsed, uint64_t bytesMax) override;
   void logPortBufferStat(
       const std::string& portName,
-      Direction dir,
-      uint64_t bytesUsed, uint64_t bytesMax) override;
+      Direction dir, uint64_t bytesUsed) override;
 };
 }
 }
