@@ -489,6 +489,11 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   // Trap DHCP packets to CPU
   rv = opennsl_switch_control_set(unit_, opennslSwitchDhcpPktToCpu, 1);
   bcmCheckError(rv, "failed to set DHCP packet trapping");
+  // Trap Dest miss
+  rv = opennsl_switch_control_set(unit_, opennslSwitchUnknownL3DestToCpu, 1);
+  bcmCheckError(rv, "failed to set destination miss trapping");
+  rv = opennsl_switch_control_set(unit_, opennslSwitchV6L3DstMissToCpu, 1);
+  bcmCheckError(rv, "failed to set IPv6 destination miss trapping");
   // Trap IPv6 Neighbor Discovery Protocol (NDP) packets.
   // TODO: We may want to trap NDP on a per-port or per-VLAN basis.
   rv = opennsl_switch_control_set(unit_, opennslSwitchNdPktToCpu, 1);
@@ -965,7 +970,7 @@ void BcmSwitch::processNeighborEntryDelta(const DELTA& delta) {
 
     if (newEntry->isPending()) {
       VLOG(3) << "adding pending neighbor entry to " << newEntry->getIP().str();
-      host->programToDrop(intf->getBcmIfId());
+      host->programToCPU(intf->getBcmIfId());
     } else {
       VLOG(3) << "adding neighbor entry " << newEntry->getIP().str()
               << " to " << newEntry->getMac().toString();
@@ -986,7 +991,7 @@ void BcmSwitch::processNeighborEntryDelta(const DELTA& delta) {
     getIntfAndVrf(newEntry->getIntfID());
     auto host = hostTable_->getBcmHost(vrf, IPAddress(newEntry->getIP()));
     if (newEntry->isPending()) {
-      host->programToDrop(intf->getBcmIfId());
+      host->programToCPU(intf->getBcmIfId());
     } else {
       host->program(intf->getBcmIfId(), newEntry->getMac(),
           getPortTable()->getBcmPortId(newEntry->getPort()));
