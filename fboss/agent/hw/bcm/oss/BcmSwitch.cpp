@@ -30,6 +30,10 @@ std::unique_ptr<BcmRxPacket> BcmSwitch::createRxPacket(opennsl_pkt_t* pkt) {
 
 void BcmSwitch::configureAdditionalEcmpHashSets() {}
 
+bool BcmSwitch::isAlpmEnabled() {
+  return false;
+}
+
 void BcmSwitch::dropDhcpPackets() {}
 
 void BcmSwitch::dropIPv6RAs() {}

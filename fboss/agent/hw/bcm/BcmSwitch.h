@@ -514,6 +514,9 @@ class BcmSwitch : public BcmSwitchIf {
     const std::shared_ptr<Port>& newPort,
     const std::shared_ptr<SwitchState>& newState) const;
 
+  // Returns whether ALPM has been enabled via the sdk
+  bool isAlpmEnabled();
+
   MmuState queryMmuState() const;
   void exportDeviceBufferUsage();
 

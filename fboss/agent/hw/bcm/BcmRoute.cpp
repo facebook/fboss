@@ -17,14 +17,14 @@ extern "C" {
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include "fboss/agent/Constants.h"
-#include "fboss/agent/state/Route.h"
-#include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
+
+#include "fboss/agent/state/RouteTypes.h"
 
 namespace facebook { namespace fboss {
 
@@ -35,6 +35,11 @@ auto constexpr kForwardInfo = "forwardInfo";
 auto constexpr kMaskLen = "maskLen";
 auto constexpr kNetwork = "network";
 auto constexpr kRoutes = "routes";
+
+// Needed if we're in ALPM mode
+// TODO: Assumes we have only one VRF
+auto constexpr kDefaultVrf = 0;
+auto constexpr kDefaultMask = 0;
 }
 
 BcmRoute::BcmRoute(const BcmSwitch* hw, opennsl_vrf_t vrf,
@@ -293,6 +298,7 @@ BcmRouteTable::BcmRouteTable(const BcmSwitch* hw) : hw_(hw) {
 }
 
 BcmRouteTable::~BcmRouteTable() {
+
 }
 
 BcmRoute* BcmRouteTable::getBcmRouteIf(
@@ -313,6 +319,35 @@ BcmRoute* BcmRouteTable::getBcmRoute(
                      "/", static_cast<uint32_t>(mask), " @ vrf ", vrf);
   }
   return rt;
+}
+
+void BcmRouteTable::addDefaultRoutes(bool warmBooted) {
+  // If ALPM is enabled, the first route programmed must be the default route
+  // Since we have no way of guaranteeing this with actual routes, program in
+  // a 'fake' default of 0.0.0.0/0 and ::/0
+  // When an actual default gets added, we replace this fake route
+  // If the default gets deleted, we add it back in
+  alpmEnabled_ = true;
+
+  // If we've warm booted, we already have routes programmed
+  if (!warmBooted) {
+    addRoute<RouteV4>(kDefaultVrf, defaultV4_.get());
+    addRoute<RouteV6>(kDefaultVrf, defaultV6_.get());
+  }
+}
+
+bool BcmRouteTable::isDefaultRouteV4(const Key& key) {
+  return key.mask == 0 && key.network == defaultV4_->prefix().network;
+}
+
+bool BcmRouteTable::isDefaultRouteV6(const Key& key) {
+  return key.mask == 0 && key.network == defaultV6_->prefix().network;
+}
+
+template<typename AddrT>
+const Route<AddrT>* BcmRouteTable::createDefaultRoute(const AddrT& ip) {
+  const typename Route<AddrT>::Prefix prefix {ip, kDefaultMask};
+  return new Route<AddrT>(prefix, RouteForwardAction::DROP);
 }
 
 template<typename RouteT>
@@ -340,7 +375,15 @@ void BcmRouteTable::deleteRoute(opennsl_vrf_t vrf, const RouteT *route) {
   if (iter == fib_.end()) {
     throw FbossError("Failed to delete a non-existing route ", route->str());
   }
-  fib_.erase(iter);
+  // We want to always be left with a default route in ALPM mode
+  // so if we're deleting it, add the default DROP route back
+  if (alpmEnabled_ && isDefaultRouteV4(key)) {
+    addRoute<RouteV4>(kDefaultVrf, defaultV4_.get());
+  } else if (alpmEnabled_ && isDefaultRouteV6(key)) {
+    addRoute<RouteV6>(kDefaultVrf, defaultV6_.get());
+  } else {
+    fib_.erase(iter);
+  }
 }
 
 folly::dynamic BcmRouteTable::toFollyDynamic() const {

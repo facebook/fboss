@@ -503,6 +503,9 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   initFieldProcessor(warmBoot);
 
+  if (isAlpmEnabled()) {
+    routeTable_->addDefaultRoutes(warmBoot);
+  }
   createAclGroup();
   dropDhcpPackets();
   dropIPv6RAs();
