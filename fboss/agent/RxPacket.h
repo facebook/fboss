@@ -57,6 +57,11 @@ class RxPacket : public Packet {
   virtual std::string describeDetails() const {
     return "";
   }
+  /*
+   * Derived classes to override and provide CoS queue
+   * info (if available)
+   */
+  virtual int cosQueue() const { return -1; }
 
  protected:
   PortID srcPort_{0};

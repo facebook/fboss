@@ -25,5 +25,5 @@ auto constexpr kIntfId = "intfId";
 auto constexpr kPaths = "paths";
 auto constexpr kWarmBootCache = "warmBootCache";
 auto constexpr kSwSwitch = "swSwitch";
-
+auto constexpr kCpuPortName = "cpu";
 }}

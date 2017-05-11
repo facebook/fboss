@@ -84,8 +84,7 @@ void BcmSwitch::initFieldProcessor(bool isWarmBoot) const {
   // API not available in opennsl
 }
 
-void BcmSwitch::configureCosQMappingForLocalInterfaces(
-    const StateDelta& delta) const {
+void BcmSwitch::reconfigureCoPP(const StateDelta&) {
   // API not available in opennsl
 }
 

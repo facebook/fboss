@@ -647,7 +647,7 @@ void BcmSwitch::stateChangedImpl(const StateDelta& delta) {
   // Add all new interfaces
   forEachAdded(delta.getIntfsDelta(), &BcmSwitch::processAddedIntf, this);
 
-  configureCosQMappingForLocalInterfaces(delta);
+  reconfigureCoPP(delta);
 
   // Any ARP changes
   processArpChanges(delta);

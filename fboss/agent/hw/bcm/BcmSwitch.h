@@ -456,14 +456,9 @@ class BcmSwitch : public BcmSwitchIf {
    */
   void copyIPv6LinkLocalMcastPackets();
   /*
-   * Cos Q mapping for packets destined to us.
-   * Most often these are matched by next hop self
-   * as the RX reason and we put it into the right
-   * Cos Queue. However if these packets have their
-   * TTL set to 1, that gets precedence and such packets
-   * destined to us get put in low pri cos queue. Fix that.
+   * (re) configure control plane policing based on new StateDelta
    */
-   void configureCosQMappingForLocalInterfaces(const StateDelta& delta) const;
+  void reconfigureCoPP(const StateDelta& delta);
 
 
   /*
@@ -546,6 +541,14 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmCosManager> cosManager_;
   std::unique_ptr<BcmTableStats> bcmTableStats_;
   std::unique_ptr<BufferStatsLogger> bufferStatsLogger_;
+  /*
+   * TODO - Right now we setup copp using logic embedded in code.
+   * So we need to remember what is already setup and what needs
+   * to be done now. Ideally CoPP setup should just be done via
+   * config - t14668101, once that is done, get rid of this member
+   * variable.
+   */
+  std::vector<std::shared_ptr<AclEntry>> coppAclEntries_;
   /*
    * Lock to synchronize access to all BCM* data structures
    */
