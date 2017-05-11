@@ -18,6 +18,7 @@ constexpr auto kMask = "mask";
 constexpr auto kDrop = "Drop";
 constexpr auto kToCpu = "ToCPU";
 constexpr auto kNexthops = "Nexthops";
+constexpr auto kNexthopDelim = "@";
 }
 
 namespace facebook { namespace fboss {
@@ -189,7 +190,13 @@ folly::dynamic RouteNextHopsMulti::toFollyDynamic() const {
 
     folly::dynamic nxtHopCopy = folly::dynamic::array;
     for (const auto& nhop: nxtHps) {
-      nxtHopCopy.push_back(nhop.addr().str());
+      std::string intfID = "";
+      if (nhop.intfID().hasValue()) {
+        intfID = folly::sformat(
+            "{}{}", kNexthopDelim,
+            static_cast<uint32_t>(nhop.intfID().value()));
+      }
+      nxtHopCopy.push_back(folly::sformat("{}{}", nhop.addr().str(), intfID));
     }
     obj[folly::to<std::string>(clientid)] = nxtHopCopy;
   }
@@ -203,6 +210,11 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
     destPair.clientId = srcPair.first;
     for (const auto& nh : srcPair.second) {
       destPair.nextHopAddrs.push_back(network::toBinaryAddress(nh.addr()));
+      if (nh.intfID().hasValue()) {
+        auto& nhAddr = destPair.nextHopAddrs.back();
+        nhAddr.__isset.ifName = true;
+        nhAddr.ifName = util::createTunIntfName(nh.intfID().value());
+      }
     }
     list.push_back(destPair);
   }
@@ -215,10 +227,17 @@ RouteNextHopsMulti::fromFollyDynamic(const folly::dynamic& json) {
   for (const auto& pair: json.items()) {
     int clientId = pair.first.asInt();
     RouteNextHops list;
-    for (const auto& ip : pair.second) {
-      // test
-      std::string theIP = ip.asString();
-      list.emplace(RouteNextHop(folly::IPAddress(ip.asString())));
+    for (const auto& ipnh : pair.second) {
+      std::vector<std::string> parts;
+      folly::split(kNexthopDelim, ipnh.asString(), parts);
+      CHECK(0 < parts.size() && parts.size() < 3);
+
+      folly::Optional<InterfaceID> intfID;
+      if (parts.size() == 2) {
+        intfID = InterfaceID(folly::to<uint32_t>(parts.at(1)));
+      }
+
+      list.emplace(folly::IPAddress(parts[0]), intfID);
     }
     nh.update(ClientID(clientId), std::move(list));
   }

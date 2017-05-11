@@ -364,6 +364,14 @@ void RouteUpdater::resolve(RouteT* route, RtRibT* rib, ClonedRib* ribCloned) {
   bool hasDropNhops{false};
   // loop through all nexthops to find out the forward info
   for (const auto& nh : route->bestNextHopList()) {
+    // If it is link-local nexthop just add it to fwd info. link-local nexthops
+    // doesn't need to recurse any further.
+    if (nh.intfID().hasValue()) {
+      CHECK(nh.addr().isV6() and nh.addr().isLinkLocal());
+      fwd.emplace(nh.intfID().value(), nh.addr());
+      continue;
+    }
+
     if (nh.addr().isV4()) {
       auto nRib = ribCloned->v4.rib.get();
       getFwdInfoFromNhop(nRib, ribCloned, nh.addr().asV4(), &hasToCpuNhops,

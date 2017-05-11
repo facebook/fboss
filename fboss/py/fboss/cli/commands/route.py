@@ -11,7 +11,13 @@
 from facebook.network.Address.ttypes import Address, AddressType
 from fboss.cli.utils import utils
 from fboss.cli.commands import commands as cmds
-from thrift.Thrift import TApplicationException
+
+
+def nexthop_to_str(nh):
+    ip_str = utils.ip_ntop(nh.addr)
+    if not nh.ifName:
+        return ip_str
+    return "{}@{}".format(ip_str, nh.ifName)
 
 
 def printRouteDetailEntry(entry):
@@ -24,7 +30,7 @@ def printRouteDetailEntry(entry):
     for clAndNxthops in entry.nextHopMulti:
         print("  Nexthops from client %d" % clAndNxthops.clientId)
         for nextHop in clAndNxthops.nextHopAddrs:
-            print("    %s" % utils.ip_ntop(nextHop.addr))
+            print("    %s" % nexthop_to_str(nextHop))
     print("  Action: %s" % entry.action)
     if len(entry.fwdInfo) > 0:
         print("  Forwarding via:")
@@ -45,28 +51,13 @@ class RouteIpCmd(cmds.FbossCmd):
         print('Route to ' + addr.addr + ', Vrf: %d' % vrf)
         printRouteDetailEntry(resp)
 
-    def printIpRoute(self, addr, vrf):
-        resp = self._client.getIpRoute(addr, vrf)
-        print('Route to ' + addr.addr + ', Vrf: %d' % vrf)
-        netAddr = utils.ip_ntop(resp.dest.ip.addr)
-        prefix = resp.dest.prefixLength
-        if netAddr and resp.nextHopAddrs:
-            print('N/w: %s/%d' % (netAddr, prefix))
-            for nexthops in resp.nextHopAddrs:
-                print('\t\tvia: ' + utils.ip_ntop(nexthops.addr))
-        else:
-            print('No Route to destination')
-
     def run(self, ip, vrf):
         addr = Address(addr=ip, type=AddressType.V4)
         if not addr.addr:
             print('No ip address provided')
             return
         self._client = self._create_agent_client()
-        try:
-            self.printIpRouteDetails(addr, vrf)
-        except TApplicationException:
-            self.printIpRoute(addr, vrf)
+        self.printIpRouteDetails(addr, vrf)
 
 
 class RouteTableCmd(cmds.FbossCmd):
@@ -84,8 +75,8 @@ class RouteTableCmd(cmds.FbossCmd):
                                 (utils.ip_ntop(entry.dest.ip.addr),
                                             entry.dest.prefixLength))
             # Need to check the nextHopAddresses
-            for nhop in entry.nextHopAddrs:
-                print("\tvia %s" % utils.ip_ntop(nhop.addr))
+            for nextHop in entry.nextHopAddrs:
+                print("\tvia %s" % nexthop_to_str(nextHop))
 
 
 class RouteTableDetailsCmd(cmds.FbossCmd):
