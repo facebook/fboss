@@ -63,6 +63,13 @@ class NeighborTable
 
   SUBCLASS* modify(Vlan** vlan, std::shared_ptr<SwitchState>* state);
 
+  /**
+   * Return a modifiable version of current table. If the table is cloned, all
+   * nodes to the root are cloned, and cloned state is put in the output
+   * parameter.
+   */
+  SUBCLASS* modify(VlanID vlanId, std::shared_ptr<SwitchState>* state);
+
   void addEntry(AddressType ip,
                 folly::MacAddress mac,
                 PortID port,
@@ -74,6 +81,7 @@ class NeighborTable
                    PortID port,
                    InterfaceID intfID);
   void updateEntry(const NeighborEntryFields<AddressType>& fields);
+  void updateEntry(AddressType ip, std::shared_ptr<ENTRY>);
   void addPendingEntry(AddressType ip,
                        InterfaceID intfID);
 

@@ -38,8 +38,20 @@ class VlanDelta : public DeltaValue<Vlan> {
     return NdpTableDelta(getOld() ? getOld()->getNdpTable().get() : nullptr,
                          getNew() ? getNew()->getNdpTable().get() : nullptr);
   }
+  template <typename NTableT>
+  NodeMapDelta<NTableT> getNeighborDelta() const;
 };
 
 typedef NodeMapDelta<VlanMap, VlanDelta> VlanMapDelta;
+
+template <>
+inline NodeMapDelta<ArpTable> VlanDelta::getNeighborDelta() const {
+  return getArpDelta();
+}
+
+template <>
+inline NodeMapDelta<NdpTable> VlanDelta::getNeighborDelta() const {
+  return getNdpDelta();
+}
 
 }} // facebook::fboss

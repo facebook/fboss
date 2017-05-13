@@ -18,6 +18,8 @@
 
 namespace facebook { namespace fboss {
 
+class SwitchState;
+
 struct RouteTableFields {
   explicit RouteTableFields(RouterID id);
   template <typename Fn>
@@ -73,7 +75,12 @@ class RouteTable : public NodeBaseT<RouteTable, RouteTableFields> {
   const std::shared_ptr<RibTypeV6>& getRibV6() const {
     return getFields()->ribV6;
   }
+  template <typename AddressT>
+  const std::shared_ptr<RouteTableRib<AddressT>> getRib() const;
+
   bool empty() const;
+
+  RouteTable* modify(std::shared_ptr<SwitchState>* state);
 
   std::shared_ptr<RibTypeV4>& writableRibV4() {
     return writableFields()->ribV4;
@@ -97,5 +104,17 @@ class RouteTable : public NodeBaseT<RouteTable, RouteTableFields> {
   using NodeBaseT::NodeBaseT;
   friend class CloneAllocator;
 };
+
+template <>
+inline const std::shared_ptr<RouteTableRib<folly::IPAddressV4>>
+RouteTable::getRib() const {
+  return getRibV4();
+}
+
+template <>
+inline const std::shared_ptr<RouteTableRib<folly::IPAddressV6>>
+RouteTable::getRib() const {
+  return getRibV6();
+}
 
 }}

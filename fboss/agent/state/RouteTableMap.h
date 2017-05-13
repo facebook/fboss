@@ -14,6 +14,7 @@
 
 namespace facebook { namespace fboss {
 
+class SwitchState;
 class RouteTable;
 typedef NodeMapTraits<RouterID, RouteTable> RouteTableMapTraits;
 
@@ -42,6 +43,8 @@ class RouteTableMap : public NodeMapT<RouteTableMap, RouteTableMapTraits> {
   std::shared_ptr<RouteTable> getRouteTableIf(RouterID id) const {
     return getNodeIf(id);
   }
+
+  RouteTableMap* modify(std::shared_ptr<SwitchState>* state);
 
   /**
    * Get the v4 and v6 route count

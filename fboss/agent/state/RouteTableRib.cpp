@@ -11,6 +11,7 @@
 
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/Route.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace {
 constexpr auto kRoutes = "routes";
@@ -43,6 +44,25 @@ RouteTableRib<AddrT>::fromFollyDynamic(const folly::dynamic& routes) {
     rib->addRoute(Route<AddrT>::fromFollyDynamic(routeJson));
   }
   return rib;
+}
+
+template <typename AddrT>
+RouteTableRib<AddrT>* RouteTableRib<AddrT>::modify(
+    RouterID id,
+    std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    return this;
+  }
+
+  std::shared_ptr<RouteTable> routeTable =
+      (*state)->getRouteTables()->getRouteTable(id);
+  RouteTable* clonedRouteTable = routeTable->modify(state);
+
+  auto clonedRib = this->clone();
+  auto clonedRibPtr = clonedRib.get();
+  clonedRouteTable->setRib(clonedRib);
+
+  return clonedRibPtr;
 }
 
 template class RouteTableRib<folly::IPAddressV4>;

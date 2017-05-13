@@ -31,6 +31,7 @@ class RouteTable;
 class RouteTableMap;
 class AclEntry;
 class AclMap;
+template <typename AddressT> class Route;
 
 struct SwitchStateFields {
   SwitchStateFields();
@@ -141,6 +142,19 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   }
 
   static void modify(std::shared_ptr<SwitchState>* state);
+
+  template <typename EntryClassT, typename NTableT>
+  static void revertNewNeighborEntry(
+      const std::shared_ptr<EntryClassT>& newEntry,
+      const std::shared_ptr<EntryClassT>& oldEntry,
+      std::shared_ptr<SwitchState>* appliedState);
+
+  template <typename AddressT>
+  static void revertNewRouteEntry(
+      const RouterID& id,
+      const std::shared_ptr<Route<AddressT>>& newRoute,
+      const std::shared_ptr<Route<AddressT>>& oldRoute,
+      std::shared_ptr<SwitchState>* appliedState);
 
   const std::shared_ptr<PortMap>& getPorts() const {
     return getFields()->ports;

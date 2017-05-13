@@ -12,6 +12,7 @@
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/state/NodeMap-defs.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook { namespace fboss {
 
@@ -30,6 +31,17 @@ void RouteTableMap::getRouteCount(uint64_t *v4Count, uint64_t *v6Count) {
   }
   *v4Count = v4;
   *v6Count = v6;
+}
+
+RouteTableMap* RouteTableMap::modify(std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    return this;
+  }
+  SwitchState::modify(state);
+  auto clonedRouteTableMap = this->clone();
+  auto clonedRouteTableMapPtr = clonedRouteTableMap.get();
+  (*state)->resetRouteTables(std::move(clonedRouteTableMap));
+  return clonedRouteTableMapPtr;
 }
 
 FBOSS_INSTANTIATE_NODE_MAP(RouteTableMap, RouteTableMapTraits);

@@ -40,6 +40,24 @@ SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
   return ptr;
 }
 
+template <typename IPADDR, typename ENTRY, typename SUBCLASS>
+SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
+    VlanID vlanId,
+    std::shared_ptr<SwitchState>* state) {
+  if (!this->isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return boost::polymorphic_downcast<SUBCLASS*>(this);
+  }
+  // Make clone of table
+  auto newTable = this->clone();
+  auto *newTablePtr = newTable.get();
+  // Make clone of vlan
+  auto vlanPtr = (*state)->getVlans()->getVlan(vlanId).get();
+  vlanPtr = vlanPtr->modify(state);
+  vlanPtr->setNeighborTable(std::move(newTable));
+  return newTablePtr;
+}
+
 template<typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
     AddressType ip,
@@ -78,6 +96,19 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
   entry->setIntfID(intfID);
   entry->setState(NeighborState::REACHABLE);
   it->second = entry;
+}
+
+template <typename IPADDR, typename ENTRY, typename SUBCLASS>
+void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
+    AddressType ip,
+    std::shared_ptr<ENTRY> newEntry) {
+  auto& nodes = this->writableNodes();
+  auto it = nodes.find(ip);
+  if (it == nodes.end()) {
+    throw FbossError("Neighbor entry for ", ip, " does not exist");
+  }
+  it->second = newEntry;
+  return;
 }
 
 template<typename IPADDR, typename ENTRY, typename SUBCLASS>

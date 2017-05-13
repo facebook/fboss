@@ -14,6 +14,7 @@
 #include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace {
 constexpr auto kRouterId = "routerId";
@@ -35,6 +36,20 @@ folly::dynamic RouteTableFields::toFollyDynamic() const {
   rtable[kRibV4] = ribV4->toFollyDynamic();
   rtable[kRibV6] = ribV6->toFollyDynamic();
   return rtable;
+}
+
+RouteTable* RouteTable::modify(std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    return this;
+    // We must never have a child that is published, but something up the chain
+    // is published.
+  }
+  auto clonedRouteTableMap = (*state)->getRouteTables()->modify(state);
+
+  auto clonedRT = this->clone();
+  auto it = clonedRouteTableMap->writableNodes().find(getID());
+  it->second = clonedRT;
+  return clonedRT.get();
 }
 
 RouteTableFields

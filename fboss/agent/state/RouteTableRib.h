@@ -20,6 +20,7 @@ namespace facebook { namespace fboss {
 
 template<typename AddrT>
 class Route;
+class SwitchState;
 
 template <typename AddrT>
 class RouteTableRib;
@@ -103,6 +104,8 @@ class RouteTableRib : public NodeBase {
     auto citr = rib_.longestMatch(nexthop, nexthop.bitCount());
     return citr != rib_.end() ? citr->value() : nullptr;
   }
+
+  RouteTableRib* modify(RouterID id, std::shared_ptr<SwitchState>* state);
 
   std::shared_ptr<RouteTableRib> clone() const {
     auto routeTableRib = std::make_shared<RouteTableRib>(getNodeID(),

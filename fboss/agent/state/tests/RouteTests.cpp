@@ -25,6 +25,7 @@
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/SwitchState-defs.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 #include <gtest/gtest.h>
@@ -968,6 +969,175 @@ TEST(Route, changedRoutesPostUpdate) {
                     },
                     {});
   stateV3->publish();
+}
+
+TEST(Route, PruneAddedRoutes) {
+  // start with one interface (21)
+  // Add two routes (r1prefix, r2prefix)
+  // Prune one of them (prefix1)
+  // Check that the pruning happened correctly
+  auto platform = createMockPlatform();
+  auto state0 = make_shared<SwitchState>();
+  // state0 = the empty config
+
+  cfg::SwitchConfig config;
+  config.vlans.resize(1);
+
+  config.vlans[0].id = 21;
+
+  config.interfaces.resize(1);
+  config.interfaces[0].intfID = 21;
+  config.interfaces[0].vlanID = 21;
+  config.interfaces[0].routerID = 0;
+  config.interfaces[0].__isset.mac = true;
+  config.interfaces[0].mac = "fa:ce:b0:0c:21:00";
+  config.interfaces[0].ipAddresses.resize(2);
+  config.interfaces[0].ipAddresses[0] = "10.0.21.1/24";
+  config.interfaces[0].ipAddresses[1] = "face:b00c:0:21::1/64";
+
+  // state0
+  //  ... apply interfaces config
+  // state1
+  auto state1 = publishAndApplyConfig(state0, &config, platform.get());
+
+  ASSERT_NE(nullptr, state1);
+
+  auto state2 = state1;
+  // state1
+  //  ... add route for prefix1
+  //  ... add route for prefix2
+  // state2
+  auto rid0 = RouterID(0);
+  auto tables1 = state1->getRouteTables();
+  RouteUpdater u1(tables1);
+
+  auto r1prefix = IPAddressV4("20.0.1.51");
+  auto r1prefixLen = 24;
+  auto r1nexthops = makeNextHops({"10.0.21.51", "30.0.21.51" /* unresolved */});
+
+  u1.addRoute(rid0, r1prefix, r1prefixLen, CLIENT_A, r1nexthops);
+
+  auto r2prefix = IPAddressV6("facf:b00c::52");
+  auto r2prefixLen = 96;
+  auto r2nexthops =
+      makeNextHops({"30.0.21.52" /* unresolved */, "face:b00c:0:21::52"});
+  u1.addRoute(rid0, r2prefix, r2prefixLen, CLIENT_A, r2nexthops);
+
+  auto tables2 = u1.updateDone();
+
+  SwitchState::modify(&state2);
+  state2->resetRouteTables(tables2);
+  state2->publish();
+
+  std::shared_ptr<SwitchState> state3{state2};
+  // state2
+  //  ... revert route for prefix1
+  // state3
+  RouteV4::Prefix prefix1{IPAddressV4("20.0.1.51"), 24};
+
+  auto newRouteEntry =
+      state3->getRouteTables()->getRouteTable(rid0)->getRibV4()->longestMatch(
+          prefix1.network);
+  ASSERT_NE(nullptr, newRouteEntry);
+  ASSERT_EQ(state2, state3);
+  SwitchState::revertNewRouteEntry(
+      rid0, newRouteEntry, std::shared_ptr<RouteV4>(), &state3);
+  // Make sure that state3 changes as a result of pruning
+  ASSERT_NE(state2, state3);
+  auto remainingRouteEntry =
+      state3->getRouteTables()->getRouteTable(rid0)->getRibV4()->longestMatch(
+          prefix1.network);
+  ASSERT_EQ(nullptr, remainingRouteEntry);
+}
+
+// Test that pruning of changed routes happens correctly.
+TEST(Route, PruneChangedRoutes) {
+  // start with one interface (21)
+  // Add two routes
+  // Change one of them
+  // Prune the changed one
+  // Check that the pruning happened correctly
+  auto platform = createMockPlatform();
+  auto state0 = make_shared<SwitchState>();
+  // state0 = empty state
+
+  cfg::SwitchConfig config;
+  config.vlans.resize(1);
+
+  config.vlans[0].id = 21;
+
+  config.interfaces.resize(1);
+  config.interfaces[0].intfID = 21;
+  config.interfaces[0].vlanID = 21;
+  config.interfaces[0].routerID = 0;
+  config.interfaces[0].__isset.mac = true;
+  config.interfaces[0].mac = "fa:ce:b0:0c:21:00";
+  config.interfaces[0].ipAddresses.resize(2);
+  config.interfaces[0].ipAddresses[0] = "10.0.21.1/24";
+  config.interfaces[0].ipAddresses[1] = "face:b00c:0:21::1/64";
+
+  // state0
+  //  ... add interface 21
+  // state1
+  auto state1 = publishAndApplyConfig(state0, &config, platform.get());
+
+  ASSERT_NE(nullptr, state1);
+
+  auto state2 = state1;
+  // state1
+  //  ... Add route for prefix41
+  //  ... Add route for prefix42 (TO_CPU)
+  // state2
+  auto rid0 = RouterID(0);
+  auto tables1 = state1->getRouteTables();
+  RouteUpdater u1(tables1);
+
+  RouteV4::Prefix prefix41{IPAddressV4("20.0.21.41"), 32};
+  auto nexthops41 = makeNextHops({"10.0.21.41", "face:b00c:0:21::41"});
+  u1.addRoute(rid0, prefix41.network, prefix41.mask, CLIENT_A, nexthops41);
+
+  RouteV6::Prefix prefix42{IPAddressV6("facf:b00c:0:21::42"), 96};
+  u1.addRoute(rid0, prefix42.network, prefix41.mask, TO_CPU);
+
+  auto tables2 = u1.updateDone();
+  SwitchState::modify(&state2);
+  state2->resetRouteTables(tables2);
+  state2->publish();
+
+  auto oldEntry =
+      state2->getRouteTables()->getRouteTable(rid0)->getRibV6()->longestMatch(
+          prefix42.network);
+
+  auto state3 = state2;
+  // state2
+  //  ... Make route for prefix42 resolve to actual nexthops
+  // state3
+
+  RouteUpdater u2(state2->getRouteTables());
+  auto nexthops42 = makeNextHops({"10.0.21.42", "face:b00c:0:21::42"});
+  u2.addRoute(rid0, prefix42.network, prefix41.mask, CLIENT_A, nexthops42);
+  auto tables3 = u2.updateDone();
+
+  SwitchState::modify(&state3);
+  state3->resetRouteTables(tables3);
+  state3->publish();
+
+  auto newEntry =
+      state3->getRouteTables()->getRouteTable(rid0)->getRibV6()->longestMatch(
+          prefix42.network);
+
+  auto state4 = state3;
+  // state3
+  //  ... revert route for prefix42
+  // state4
+  ASSERT_EQ(state3, state4);
+  SwitchState::revertNewRouteEntry(rid0, newEntry, oldEntry, &state4);
+  ASSERT_NE(state3, state4);
+
+  auto revertedEntry =
+      state4->getRouteTables()->getRouteTable(rid0)->getRibV6()->longestMatch(
+          prefix42.network);
+  ASSERT(revertedEntry->isToCPU());
 }
 
 // Utility function for creating a nexthops list of size n,
