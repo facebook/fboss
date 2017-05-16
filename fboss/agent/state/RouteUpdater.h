@@ -13,6 +13,7 @@
 #include "fboss/agent/types.h"
 #include <folly/IPAddress.h>
 #include "fboss/agent/state/RouteForwardInfo.h"
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/RouteTableMap.h"
 

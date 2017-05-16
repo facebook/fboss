@@ -14,6 +14,7 @@
 #include <folly/IPAddress.h>
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/RouteForwardInfo.h"
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
