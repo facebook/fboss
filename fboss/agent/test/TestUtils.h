@@ -240,6 +240,15 @@ void EXPECT_NO_ROUTE(const std::shared_ptr<RouteTableMap>& tables,
       RxPacketMatcher::createMatcher(name, dstIfID, matchFn)))
 
 /**
+ * Convenience macro for expecting a packet to be transmitted out a port
+ * usage:
+ *  EXPECT_PKT_OUT_PORT(sw, "Unicast Packet", packetChecker).Times(1)
+ */
+#define EXPECT_PKT_OUT_PORT(sw, name, matchFn) \
+  EXPECT_HW_CALL(sw, sendPacketOutOfPort_( \
+                 TxPacketMatcher::createMatcher(name, matchFn), _))
+
+/**
  * Templatized version of Matching function for Tx/Rx packet.
  */
 template <typename T>

@@ -62,6 +62,14 @@ class RouteTable : public NodeBaseT<RouteTable, RouteTableFields> {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
+  /*
+   * Resolve the next-hop L3 address.
+   * If the Interface ID is given, it will be used.
+   * Otherwise, it will be determined from the destination address.
+   */
+  folly::Optional<std::pair<folly::IPAddress, InterfaceID>> resolveL3Unicast(
+      const folly::IPAddress& dstAddr) const;
+
   folly::dynamic toFollyDynamic() const override {
     return this->getFields()->toFollyDynamic();
   }
