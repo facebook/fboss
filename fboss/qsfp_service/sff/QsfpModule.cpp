@@ -471,7 +471,7 @@ QsfpModule::QsfpModule(std::unique_ptr<TransceiverImpl> qsfpImpl)
 }
 
 void QsfpModule::setQsfpIdprom() {
-  uint8_t status[2];
+uint8_t status[2];
   int offset;
   int length;
   int dataAddress;
@@ -595,13 +595,7 @@ void QsfpModule::refreshCacheIfPossibleLocked() {
     dirty_ = true;
   }
   if (!cacheIsValid()) {
-    if (present_) {
-      // Cache is dirty, refresh
-      updateQsfpData();
-    } else {
-      // Check again
-      detectTransceiverLocked();
-    }
+    detectTransceiverLocked();
   }
 }
 
