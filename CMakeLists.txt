@@ -117,6 +117,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmSwitch.cpp
     fboss/agent/hw/bcm/BcmSwitchEventCallback.cpp
     fboss/agent/hw/bcm/BcmSwitchEventUtils.cpp
+    fboss/agent/hw/bcm/BcmTrunkTable.cpp
     fboss/agent/hw/bcm/BcmTxPacket.cpp
     fboss/agent/hw/bcm/BcmWarmBootCache.cpp
     fboss/agent/hw/bcm/BcmWarmBootHelper.cpp
@@ -129,6 +130,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmPortGroup.cpp
     fboss/agent/hw/bcm/oss/BcmPortTable.cpp
     fboss/agent/hw/bcm/oss/BcmSwitch.cpp
+    fboss/agent/hw/bcm/oss/BcmTrunk.cpp
     fboss/agent/hw/bcm/oss/BcmUnit.cpp
     fboss/agent/hw/bcm/oss/BcmWarmBootHelper.cpp
     fboss/agent/hw/bcm/oss/BcmTableStats.cpp
@@ -201,6 +203,8 @@ add_library(fboss_agent STATIC
     fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
     fboss/agent/state/AclEntry.cpp
     fboss/agent/state/AclMap.cpp
+    fboss/agent/state/AggregatePort.cpp
+    fboss/agent/state/AggregatePortMap.cpp
     fboss/agent/state/ArpEntry.cpp
     fboss/agent/state/ArpResponseTable.cpp
     fboss/agent/state/ArpTable.cpp
