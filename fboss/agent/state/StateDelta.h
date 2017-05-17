@@ -13,6 +13,7 @@
 #include <memory>
 
 #include "fboss/agent/state/AclMap.h"
+#include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/PortMap.h"
@@ -49,6 +50,7 @@ class StateDelta {
   NodeMapDelta<InterfaceMap> getIntfsDelta() const;
   RTMapDelta getRouteTablesDelta() const;
   NodeMapDelta<AclMap> getAclsDelta() const;
+  NodeMapDelta<AggregatePortMap> getAggregatePortsDelta() const;
 
  private:
   // Forbidden copy constructor and assignment operator

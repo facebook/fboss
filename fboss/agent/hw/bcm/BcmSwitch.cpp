@@ -34,11 +34,13 @@
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventUtils.h"
 #include "fboss/agent/hw/bcm/BcmTableStats.h"
+#include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/BcmTxPacket.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/bcm/BcmCosManager.h"
 #include "fboss/agent/state/AclEntry.h"
+#include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Interface.h"
@@ -87,6 +89,8 @@ DEFINE_int32(linkscan_interval_us, 250000,
              "The Broadcom linkscan interval");
 DEFINE_bool(flexports, false,
             "Load the agent with flexport support enabled");
+DEFINE_bool(enable_port_aggregation, false,
+            "Initialize Broadcom trunking machinery");
 
 enum : uint8_t {
   kRxCallbackPriority = 1,
@@ -146,7 +150,8 @@ BcmSwitch::BcmSwitch(BcmPlatform *platform, HashMode hashMode)
     routeTable_(new BcmRouteTable(this)),
     aclTable_(new BcmAclTable(this)),
     bcmTableStats_(new BcmTableStats(this)),
-    bufferStatsLogger_(createBufferStatsLogger()) {
+    bufferStatsLogger_(createBufferStatsLogger()),
+    trunkTable_(new BcmTrunkTable(this)) {
   dumpConfigMap(BcmAPI::getHwConfig(), platform->getHwConfigDumpFile());
 
   exportSdkVersion();
@@ -181,6 +186,7 @@ unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
   portTable_.reset();
   aclTable_.reset();
   bcmTableStats_.reset();
+  trunkTable_.reset();
 
   unit_ = -1;
   unitObject_->setCookie(nullptr);
@@ -514,6 +520,10 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   copyIPv6LinkLocalMcastPackets();
   mmuState_ = queryMmuState();
 
+  if (FLAGS_enable_port_aggregation) {
+    setupTrunking();
+  }
+
   // enable IPv4 and IPv6 on CPU port
   opennsl_port_t idx;
   OPENNSL_PBMP_ITER(pcfg.cpu, idx) {
@@ -665,6 +675,8 @@ void BcmSwitch::stateChangedImpl(const StateDelta& delta) {
 
   // Process any new routes or route changes
   processAddedChangedRoutes(delta);
+
+  processAggregatePortChanges(delta);
 
   // Reconfigure port groups in case we are changing between using a port as
   // 1, 2 or 4 ports. Only do this if flexports are enabled
@@ -952,6 +964,15 @@ void BcmSwitch::processAclChanges(const StateDelta& delta) {
     &BcmSwitch::processAddedAcl,
     &BcmSwitch::processRemovedAcl,
     this);
+}
+
+void BcmSwitch::processAggregatePortChanges(const StateDelta& delta) {
+  forEachChanged(
+      delta.getAggregatePortsDelta(),
+      &BcmSwitch::processChangedAggregatePort,
+      &BcmSwitch::processAddedAggregatePort,
+      &BcmSwitch::processRemovedAggregatePort,
+      this);
 }
 
 template<typename DELTA>
@@ -1242,5 +1263,28 @@ bool BcmSwitch::startFineGrainedBufferStatLogging() {
 bool BcmSwitch::stopFineGrainedBufferStatLogging() {
   fineGrainedBufferStatsEnabled_ = false;
   return !fineGrainedBufferStatsEnabled_;
+}
+
+void BcmSwitch::processChangedAggregatePort(
+    const std::shared_ptr<AggregatePort>& oldAggPort,
+    const std::shared_ptr<AggregatePort>& newAggPort) {
+  CHECK_EQ(oldAggPort->getID(), newAggPort->getID());
+
+  VLOG(2) << "reprogramming trunk " << oldAggPort->getID();
+  trunkTable_->programTrunk(oldAggPort, newAggPort);
+}
+
+void BcmSwitch::processAddedAggregatePort(
+    const std::shared_ptr<AggregatePort>& aggPort) {
+  auto memberCount = aggPort->subportsCount();
+  VLOG(2) << "creating trunk " << aggPort->getID() << " with " << memberCount
+          << " ports";
+  trunkTable_->addTrunk(aggPort);
+}
+
+void BcmSwitch::processRemovedAggregatePort(
+    const std::shared_ptr<AggregatePort>& aggPort) {
+  VLOG(2) << "deleting trunk " << aggPort->getID();
+  trunkTable_->deleteTrunk(aggPort);
 }
 }} // facebook::fboss

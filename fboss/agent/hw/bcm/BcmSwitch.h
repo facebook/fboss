@@ -32,6 +32,7 @@ namespace facebook { namespace fboss {
 
 struct AclEntryID;
 class AclEntry;
+class AggregatePort;
 class ArpEntry;
 class BcmCosManager;
 class BcmEgress;
@@ -42,6 +43,7 @@ class BcmPortTable;
 class BcmRouteTable;
 class BcmRxPacket;
 class BcmTableStats;
+class BcmTrunkTable;
 class BcmUnit;
 class BcmWarmBootCache;
 class MockRxPacket;
@@ -75,6 +77,8 @@ class BcmSwitchIf : public HwSwitch {
   virtual const BcmHostTable* getHostTable() const = 0;
 
   virtual const BcmAclTable* getAclTable() const = 0;
+
+  virtual const BcmTrunkTable* getTrunkTable() const = 0;
 
   virtual opennsl_if_t getDropEgressId() const = 0;
 
@@ -192,6 +196,9 @@ class BcmSwitch : public BcmSwitchIf {
   }
   BufferStatsLogger* getBufferStatsLogger() {
     return bufferStatsLogger_.get();
+  }
+  const BcmTrunkTable* getTrunkTable() const override {
+    return trunkTable_.get();
   }
 
   bool isPortUp(PortID port) const override;
@@ -369,6 +376,14 @@ class BcmSwitch : public BcmSwitchIf {
   void processAddedAcl(const std::shared_ptr<AclEntry>& acl);
   void processRemovedAcl(const std::shared_ptr<AclEntry>& acl);
 
+  void processAggregatePortChanges(const StateDelta& delta);
+  void processChangedAggregatePort(
+      const std::shared_ptr<AggregatePort>& oldAggPort,
+      const std::shared_ptr<AggregatePort>& newAggPort);
+  void processAddedAggregatePort(const std::shared_ptr<AggregatePort>& aggPort);
+  void processRemovedAggregatePort(
+      const std::shared_ptr<AggregatePort>& aggPort);
+
   void stateChangedImpl(const StateDelta& delta);
 
   /*
@@ -503,6 +518,11 @@ class BcmSwitch : public BcmSwitchIf {
    */
   std::unique_ptr<BufferStatsLogger> createBufferStatsLogger();
 
+  /**
+   * Setup trunking machinery
+   */
+  void setupTrunking();
+
    /*
     * Check if state, speed update for this port port would
     * be permissible in the hardware.
@@ -544,6 +564,7 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmCosManager> cosManager_;
   std::unique_ptr<BcmTableStats> bcmTableStats_;
   std::unique_ptr<BufferStatsLogger> bufferStatsLogger_;
+  std::unique_ptr<BcmTrunkTable> trunkTable_;
   /*
    * TODO - Right now we setup copp using logic embedded in code.
    * So we need to remember what is already setup and what needs
