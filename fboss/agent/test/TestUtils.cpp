@@ -229,6 +229,56 @@ void waitForBackgroundThread(SwSwitch* sw) {
   evb->runInEventBaseThreadAndWait([]() { return; });
 }
 
+cfg::SwitchConfig testConfigA() {
+  cfg::SwitchConfig cfg;
+  static constexpr auto kPortCount = 20;
+
+  cfg.ports.resize(kPortCount);
+  for (int p = 0; p < kPortCount; ++p) {
+    cfg.ports[p].logicalID = p + 1;
+    cfg.ports[p].name = folly::to<string>("port", p + 1);
+  }
+
+  cfg.vlans.resize(2);
+  cfg.vlans[0].id = 1;
+  cfg.vlans[0].name = "Vlan1";
+  cfg.vlans[0].intfID = 1;
+  cfg.vlans[1].id = 55;
+  cfg.vlans[1].name = "Vlan55";
+  cfg.vlans[1].intfID = 55;
+
+  cfg.vlanPorts.resize(20);
+  for (int p = 0; p < kPortCount; ++p) {
+    cfg.vlanPorts[p].logicalPort = p + 1;
+    cfg.vlanPorts[p].vlanID = p < 11 ? 1 : 55;
+  }
+
+  cfg.interfaces.resize(2);
+  cfg.interfaces[0].intfID = 1;
+  cfg.interfaces[0].routerID = 0;
+  cfg.interfaces[0].vlanID = 1;
+  cfg.interfaces[0].name = "interface1";
+  cfg.interfaces[0].mac = "00:02:00:00:00:01";
+  cfg.interfaces[0].mtu = 9000;
+  cfg.interfaces[0].ipAddresses.resize(3);
+  cfg.interfaces[0].ipAddresses[0] = "10.0.0.1/24";
+  cfg.interfaces[0].ipAddresses[1] = "192.168.0.1/24";
+  cfg.interfaces[0].ipAddresses[2] = "2401:db00:2110:3001::0001/64";
+
+  cfg.interfaces[1].intfID = 55;
+  cfg.interfaces[1].routerID = 0;
+  cfg.interfaces[1].vlanID = 55;
+  cfg.interfaces[1].name = "interface55";
+  cfg.interfaces[1].mac = "00:02:00:00:00:55";
+  cfg.interfaces[1].mtu = 9000;
+  cfg.interfaces[1].ipAddresses.resize(3);
+  cfg.interfaces[1].ipAddresses[0] = "10.0.55.1/24";
+  cfg.interfaces[1].ipAddresses[1] = "192.168.55.1/24";
+  cfg.interfaces[1].ipAddresses[2] = "2401:db00:2110:3055::0001/64";
+
+  return cfg;
+}
+
 shared_ptr<SwitchState> testStateA() {
   // Setup a default state object
   auto state = make_shared<SwitchState>();

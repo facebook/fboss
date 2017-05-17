@@ -141,6 +141,12 @@ void checkField(const ExpectedType& expected, const ActualType& actual,
 std::shared_ptr<SwitchState> testStateA();
 
 /*
+ * The returned configuration object, if applied to a SwitchState with ports
+ * 1-20, will yield the same SwitchState as that returned by testStateA().
+ */
+cfg::SwitchConfig testConfigA();
+
+/*
  * Create a SwitchState for testing.
  *
  * Profile B:
