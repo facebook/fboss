@@ -16,6 +16,8 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
+#include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -32,7 +34,10 @@
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/RouteUpdater.h"
 
+#include <algorithm>
 #include <boost/container/flat_set.hpp>
+#include <folly/Range.h>
+#include <vector>
 
 using boost::container::flat_map;
 using boost::container::flat_set;
@@ -104,11 +109,48 @@ class ThriftConfigApplier {
   typedef boost::container::flat_map<RouterID, IntfRoute> IntfRouteTable;
   IntfRouteTable intfRouteTables_;
 
+  /* The ThriftConfigApplier object exposes a single, top-level method "run()".
+   * In this method, a previous SwitchState "orig_" is first cloned and the
+   * clone modified until it matches the specifications of the SwitchConfig
+   * "cfg_". The private methods of ThriftConfigApplier implement the logic
+   * necessary to perform these modifications.
+   *
+   * These methods generally follow a common scheme to do so based on each
+   * SwitchState node being uniquely identified by an ID within the set of nodes
+   * of the same type. For instance, a VLAN node is uniquely identified by
+   * its "const VlanID id" member variable. No other VLAN may have the same
+   * ID. But it is entirely possible for there to exist an Interface node with
+   * the same numerical ID (ignoring type incompatibility between VlanID and
+   * InterfaceID).
+   *
+   * There are 3 cases to consider:
+   *
+   * 1) cfg_ and orig_ both have a node with the same ID
+   *    If the specifications in cfg_ differ from those of orig_, then the
+   *    clone of the node is updated appropriately. This functionality is
+   *    provided by methods such as updateAggPort(), updateVlan(), etc.
+   * 2) cfg_ has a node with an ID that does not exist in orig_
+   *    A node with this ID is added to the cloned SwitchState. This
+   *    functionality is provided by methods such as createAggPort(),
+   *    createVlan(), etc.
+   * 3) orig_ has a node with an ID that does not exist in cfg_
+   *    This node is implicity deleted in the clone.
+   *
+   * Methods such as updateAggregatePorts(), updateVlans(), etc. encapsulate
+   * this logic for each type of NodeBase.
+   */
+
   void processVlanPorts();
   void updateVlanInterfaces(const Interface* intf);
   std::shared_ptr<PortMap> updatePorts();
   std::shared_ptr<Port> updatePort(const std::shared_ptr<Port>& orig,
                                    const cfg::Port* cfg);
+  std::shared_ptr<AggregatePortMap> updateAggregatePorts();
+  std::shared_ptr<AggregatePort> updateAggPort(
+      const std::shared_ptr<AggregatePort>& orig,
+      const cfg::AggregatePort& cfg);
+  std::shared_ptr<AggregatePort> createAggPort(const cfg::AggregatePort& cfg);
+  std::vector<PortID> getSubportsSorted(const cfg::AggregatePort& cfg);
   std::shared_ptr<VlanMap> updateVlans();
   std::shared_ptr<Vlan> createVlan(const cfg::Vlan* config);
   std::shared_ptr<Vlan> updateVlan(const std::shared_ptr<Vlan>& orig,
@@ -170,6 +212,14 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newPorts = updatePorts();
     if (newPorts) {
       newState->resetPorts(std::move(newPorts));
+      changed = true;
+    }
+  }
+
+  {
+    auto newAggPorts = updateAggregatePorts();
+    if (newAggPorts) {
+      newState->resetAggregatePorts(std::move(newAggPorts));
       changed = true;
     }
   }
@@ -414,6 +464,87 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
   return newPort;
 }
 
+shared_ptr<AggregatePortMap> ThriftConfigApplier::updateAggregatePorts() {
+  auto origAggPorts = orig_->getAggregatePorts();
+  AggregatePortMap::NodeContainer newAggPorts;
+  bool changed = false;
+
+  size_t numExistingProcessed = 0;
+  for (const auto& portCfg : cfg_->aggregatePorts) {
+    AggregatePortID id(portCfg.key);
+    auto origAggPort = origAggPorts->getAggregatePortIf(id);
+
+    shared_ptr<AggregatePort> newAggPort;
+    if (origAggPort) {
+      newAggPort = updateAggPort(origAggPort, portCfg);
+      ++numExistingProcessed;
+    } else {
+      newAggPort = createAggPort(portCfg);
+    }
+
+    changed |= updateMap(&newAggPorts, origAggPort, newAggPort);
+  }
+
+  if (numExistingProcessed != origAggPorts->size()) {
+    // Some existing aggregate ports were removed.
+    CHECK_LE(numExistingProcessed, origAggPorts->size());
+    changed = true;
+  }
+
+  if (!changed) {
+    return nullptr;
+  }
+
+  return origAggPorts->clone(newAggPorts);
+}
+
+shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
+    const shared_ptr<AggregatePort>& origAggPort,
+    const cfg::AggregatePort& cfg) {
+  CHECK_EQ(origAggPort->getID(), cfg.key);
+
+  auto cfgSubports = getSubportsSorted(cfg);
+  auto origSubports = origAggPort->sortedSubports();
+
+  if (origAggPort->getName() == cfg.name &&
+      origAggPort->getDescription() == cfg.description &&
+      std::equal(
+          origSubports.begin(), origSubports.end(), cfgSubports.begin())) {
+    return nullptr;
+  }
+
+  auto newAggPort = origAggPort->clone();
+  newAggPort->setName(cfg.name);
+  newAggPort->setDescription(cfg.description);
+  newAggPort->setSubports(folly::range(cfgSubports.begin(), cfgSubports.end()));
+
+  return newAggPort;
+}
+
+shared_ptr<AggregatePort> ThriftConfigApplier::createAggPort(
+    const cfg::AggregatePort& cfg) {
+  auto subports = getSubportsSorted(cfg);
+  return AggregatePort::fromSubportRange(
+      AggregatePortID(cfg.key),
+      cfg.name,
+      cfg.description,
+      folly::range(subports.begin(), subports.end()));
+}
+
+std::vector<PortID> ThriftConfigApplier::getSubportsSorted(
+    const cfg::AggregatePort& cfg) {
+  std::vector<PortID> ids(
+      std::distance(cfg.physicalPorts.begin(), cfg.physicalPorts.end()));
+
+  for (int i = 0; i < ids.size(); ++i) {
+    ids[i] = PortID(cfg.physicalPorts[i]);
+  }
+
+  std::sort(ids.begin(), ids.end());
+
+  return ids;
+}
+
 shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
   auto origVlans = orig_->getVlans();
   VlanMap::NodeContainer newVlans;
@@ -453,6 +584,7 @@ shared_ptr<Vlan> ThriftConfigApplier::createVlan(const cfg::Vlan* config) {
   updateNeighborResponseTables(vlan.get(), config);
   updateDhcpOverrides(vlan.get(), config);
 
+
   /* TODO t7153326: Following code is added for backward compatibility
   Remove it once coop generates config with */
   if (config->__isset.intfID) {
@@ -482,7 +614,6 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(const shared_ptr<Vlan>& orig,
   auto oldDhcpV6Relay = orig->getDhcpV6Relay();
   auto newDhcpV6Relay = config->__isset.dhcpRelayAddressV6 ?
     IPAddressV6(config->dhcpRelayAddressV6) : IPAddressV6("::");
-
   /* TODO t7153326: Following code is added for backward compatibility
   Remove it once coop generates config with intfID */
   auto oldIntfID = orig->getInterfaceID();

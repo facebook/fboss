@@ -10,6 +10,8 @@
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/Vlan.h"
@@ -44,12 +46,12 @@ constexpr auto kStaleEntryInterval = "staleEntryInterval";
 namespace facebook { namespace fboss {
 
 SwitchStateFields::SwitchStateFields()
-  : ports(make_shared<PortMap>()),
-    vlans(make_shared<VlanMap>()),
-    interfaces(make_shared<InterfaceMap>()),
-    routeTables(make_shared<RouteTableMap>()),
-    acls(make_shared<AclMap>()) {
-}
+    : ports(make_shared<PortMap>()),
+      aggPorts(make_shared<AggregatePortMap>()),
+      vlans(make_shared<VlanMap>()),
+      interfaces(make_shared<InterfaceMap>()),
+      routeTables(make_shared<RouteTableMap>()),
+      acls(make_shared<AclMap>()) {}
 
 folly::dynamic SwitchStateFields::toFollyDynamic() const {
   folly::dynamic switchState = folly::dynamic::object;
@@ -178,6 +180,11 @@ std::shared_ptr<AclEntry> SwitchState::getAcl(AclEntryID id) const {
 
 void SwitchState::resetAcls(std::shared_ptr<AclMap> acls) {
   writableFields()->acls.swap(acls);
+}
+
+void SwitchState::resetAggregatePorts(
+    std::shared_ptr<AggregatePortMap> aggPorts) {
+  writableFields()->aggPorts.swap(aggPorts);
 }
 
 template class NodeBaseT<SwitchState, SwitchStateFields>;

@@ -106,6 +106,17 @@ struct Port {
   10: optional string description
 }
 
+struct AggregatePort {
+  1: i16 key
+  2: string name
+  3: string description
+  /**
+   * Physical ports are identified here according to their logicalID,
+   * as set in struct Port.
+   */
+  4: list<i32> physicalPorts
+}
+
 /**
  * Configuration for a VLAN.
  *
@@ -445,4 +456,5 @@ struct SwitchConfig {
   // seconds.
   16: i32 maxNeighborProbes = 300
   17: i32 staleEntryInterval = 10
+  18: list<AggregatePort> aggregatePorts = []
 }

@@ -21,16 +21,17 @@
 
 namespace facebook { namespace fboss {
 
-class Port;
-class PortMap;
-class Vlan;
-class VlanMap;
-class Interface;
-class InterfaceMap;
-class RouteTable;
-class RouteTableMap;
 class AclEntry;
 class AclMap;
+class AggregatePortMap;
+class Interface;
+class InterfaceMap;
+class Port;
+class PortMap;
+class RouteTable;
+class RouteTableMap;
+class Vlan;
+class VlanMap;
 template <typename AddressT> class Route;
 
 struct SwitchStateFields {
@@ -39,6 +40,7 @@ struct SwitchStateFields {
   template<typename Fn>
   void forEachChild(Fn fn) {
     fn(ports.get());
+    fn(aggPorts.get());
     fn(vlans.get());
     fn(interfaces.get());
     fn(routeTables.get());
@@ -54,6 +56,7 @@ struct SwitchStateFields {
   static SwitchStateFields fromFollyDynamic(const folly::dynamic& json);
   // Static state, which can be accessed without locking.
   std::shared_ptr<PortMap> ports;
+  std::shared_ptr<AggregatePortMap> aggPorts;
   std::shared_ptr<VlanMap> vlans;
   std::shared_ptr<InterfaceMap> interfaces;
   std::shared_ptr<RouteTableMap> routeTables;
@@ -161,6 +164,10 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   }
   std::shared_ptr<Port> getPort(PortID id) const;
 
+  const std::shared_ptr<AggregatePortMap> getAggregatePorts() const {
+    return getFields()->aggPorts;
+  }
+
   const std::shared_ptr<VlanMap>& getVlans() const {
     return getFields()->vlans;
   }
@@ -222,6 +229,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
 
   void registerPort(PortID id, const std::string& name);
   void resetPorts(std::shared_ptr<PortMap> ports);
+  void resetAggregatePorts(std::shared_ptr<AggregatePortMap> aggPorts);
   void resetVlans(std::shared_ptr<VlanMap> vlans);
   void addVlan(const std::shared_ptr<Vlan>& vlan);
   void addIntf(const std::shared_ptr<Interface>& intf);
