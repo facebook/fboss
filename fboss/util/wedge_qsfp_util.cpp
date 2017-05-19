@@ -163,18 +163,25 @@ void printChannelMonitor(unsigned int index,
                          const uint8_t* buf,
                          unsigned int rxMSB,
                          unsigned int rxLSB,
-                         unsigned int txMSB,
-                         unsigned int txLSB) {
+                         unsigned int txBiasMSB,
+                         unsigned int txBiasLSB,
+                         unsigned int txPowerMSB,
+                         unsigned int txPowerLSB) {
   uint16_t rxValue = (buf[rxMSB] << 8) | buf[rxLSB];
-  uint16_t txValue = (buf[txMSB] << 8) | buf[txLSB];
+  uint16_t txPowerValue = (buf[txPowerMSB] << 8) | buf[txPowerLSB];
+  uint16_t txBiasValue = (buf[txBiasMSB] << 8) | buf[txBiasLSB];
 
   // RX power ranges from 0mW to 6.5535mW
   double rxPower = 0.0001 * rxValue;
 
-  // TX bias ranges from 0mA to 131mA
-  double txBias = (131.0 * txValue) / 65535;
+  // TX power ranges from 0mW to 6.5535mW
+  double txPower = 0.0001 * txPowerValue;
 
-  printf("    Channel %d:   %12fmW  %12fmA\n", index, rxPower, txBias);
+  // TX bias ranges from 0mA to 131mA
+  double txBias = (131.0 * txBiasValue) / 65535;
+
+  printf("    Channel %d:   %12fmW  %12fmW  %12fmA\n",
+         index, rxPower, txPower, txBias);
 }
 
 void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
@@ -210,8 +217,8 @@ void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
   printf("    Temp: 0x%02x\n", buf[6]);
   printf("    Vcc: 0x%02x\n", buf[7]);
   printf("    Rx Power: 0x%02x 0x%02x\n", buf[9], buf[10]);
+  printf("    Tx Power: 0x%02x 0x%02x\n", buf[13], buf[14]);
   printf("    Tx Bias: 0x%02x 0x%02x\n", buf[11], buf[12]);
-  printf("    Reserved Set 3: 0x%02x 0x%02x\n", buf[13], buf[14]);
   printf("    Reserved Set 4: 0x%02x 0x%02x\n", buf[15], buf[16]);
   printf("    Reserved Set 5: 0x%02x 0x%02x\n", buf[17], buf[18]);
   printf("    Vendor Defined: 0x%02x 0x%02x 0x%02x\n",
@@ -222,11 +229,12 @@ void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
   uint16_t voltage = (buf[26] << 8) | buf[27];
   printf("  Supply Voltage: %f V\n", voltage / 10000.0);
 
-  printf("  Channel Data:  %12s    %12s\n", "RX Power", "TX Bias");
-  printChannelMonitor(1, buf, 34, 35, 42, 43);
-  printChannelMonitor(2, buf, 36, 37, 44, 45);
-  printChannelMonitor(3, buf, 38, 39, 46, 47);
-  printChannelMonitor(4, buf, 40, 41, 48, 49);
+  printf("  Channel Data:  %12s    %12s    %12s\n",
+         "RX Power", "TX Power", "TX Bias");
+  printChannelMonitor(1, buf, 34, 35, 42, 43, 50, 51);
+  printChannelMonitor(2, buf, 36, 37, 44, 45, 52, 53);
+  printChannelMonitor(3, buf, 38, 39, 46, 47, 54, 55);
+  printChannelMonitor(4, buf, 40, 41, 48, 49, 56, 57);
   printf("    Power measurement is %s\n",
          (buf[220] & 0x04) ? "supported" : "unsupported");
   printf("    Reported RX Power is %s\n",
