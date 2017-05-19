@@ -68,24 +68,6 @@ DEFINE_int32(thread_heartbeat_ms, 5000, "Thread hearbeat interval (ms)");
 
 namespace {
 
-std::string switchRunStateStr(
-  facebook::fboss::SwSwitch::SwitchRunState runstate) {
-  switch (runstate) {
-    case facebook::fboss::SwSwitch::SwitchRunState::UNINITIALIZED:
-      return "UNINITIALIZED";
-    case facebook::fboss::SwSwitch::SwitchRunState::INITIALIZED:
-      return "INITIALIZED";
-    case facebook::fboss::SwSwitch::SwitchRunState::CONFIGURED:
-      return "CONFIGURED";
-    case facebook::fboss::SwSwitch::SwitchRunState::FIB_SYNCED:
-      return "FIB_SYNCED";
-    case facebook::fboss::SwSwitch::SwitchRunState::EXITING:
-      return "EXITING";
-    default:
-      return "Unknown";
-  }
-}
-
 /**
  * Transforms the IPAddressV6 to MacAddress. RFC 2464
  * 33:33:xx:xx:xx:xx (lower 32 bits are copied from addr)
@@ -253,8 +235,7 @@ bool SwSwitch::isExiting() const {
 void SwSwitch::setSwitchRunState(SwitchRunState runState) {
   auto oldState = runState_.exchange(runState, std::memory_order_acq_rel);
   CHECK(oldState <= runState);
-  VLOG(2) << "SwitchRunState changed from " << switchRunStateStr(oldState) <<
-    " to " << switchRunStateStr(runState);
+  logSwitchRunStateChange(oldState, runState);
 }
 
 SwSwitch::SwitchRunState SwSwitch::getSwitchRunState() const {
@@ -1192,5 +1173,24 @@ bool SwSwitch::isValidStateUpdate(
     const StateDelta& delta) const {
   return hw_->isValidStateUpdate(delta);
 }
+
+std::string SwSwitch::switchRunStateStr(
+  facebook::fboss::SwSwitch::SwitchRunState runState) const {
+  switch (runState) {
+    case facebook::fboss::SwSwitch::SwitchRunState::UNINITIALIZED:
+      return "UNINITIALIZED";
+    case facebook::fboss::SwSwitch::SwitchRunState::INITIALIZED:
+      return "INITIALIZED";
+    case facebook::fboss::SwSwitch::SwitchRunState::CONFIGURED:
+      return "CONFIGURED";
+    case facebook::fboss::SwSwitch::SwitchRunState::FIB_SYNCED:
+      return "FIB_SYNCED";
+    case facebook::fboss::SwSwitch::SwitchRunState::EXITING:
+      return "EXITING";
+    default:
+      return "Unknown";
+  }
+}
+
 
 }} // facebook::fboss
