@@ -12,7 +12,7 @@
 #include "fboss/agent/FbossError.h"
 
 namespace {
-constexpr int kPortRemedyIntervalSec = 10;
+constexpr int kPortRemedyIntervalSec = 25;
 }
 
 namespace facebook { namespace fboss {
