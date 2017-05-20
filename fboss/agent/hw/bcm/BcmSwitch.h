@@ -145,8 +145,6 @@ class BcmSwitch : public BcmSwitchIf {
 
   void unregisterCallbacks() override;
 
-  void remedyPorts() override;
-
   BcmPlatform* getPlatform() const override {
     return platform_;
   }

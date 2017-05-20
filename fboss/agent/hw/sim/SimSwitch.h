@@ -64,11 +64,6 @@ class SimSwitch : public HwSwitch {
     // TODO
   }
 
-  void remedyPorts() override {
-    // TODO
-    // Do nothing for now.
-  }
-
   bool getAndClearNeighborHit(RouterID vrf,
                               folly::IPAddress& ip) override {
     //TODO

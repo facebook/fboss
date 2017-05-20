@@ -216,10 +216,6 @@ void BcmSwitch::unregisterCallbacks() {
   }
 }
 
-void BcmSwitch::remedyPorts() {
-  portTable_->remedyPorts();
-}
-
 void BcmSwitch::ecmpHashSetup() {
   int arg;
   int rv;

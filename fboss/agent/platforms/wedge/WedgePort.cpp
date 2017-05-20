@@ -171,8 +171,4 @@ void WedgePort::customizeTransceiver() {
   }
 }
 
-void WedgePort::remedy() {
-  // Recall customizeTransceiver - this will use the last cached speed
-  customizeTransceiver();
-}
 }} // facebook::fboss
