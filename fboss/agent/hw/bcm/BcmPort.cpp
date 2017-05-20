@@ -468,9 +468,6 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
                    << " id: " << swPort->getID();
     }
 
-    VLOG(2) << "Changing port speed for " << swPort->getID() << ": "
-            << curSpeed << " -> " << desiredSpeed;
-
     // Note that we call speed_set even if the speed is already set
     // properly and port is down. This is because speed_set
     // reinitializes the MAC layer of the port and allows us to pick

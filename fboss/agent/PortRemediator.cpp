@@ -10,6 +10,8 @@
 
 #include "fboss/agent/PortRemediator.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace {
 constexpr int kPortRemedyIntervalSec = 25;
@@ -17,8 +19,27 @@ constexpr int kPortRemedyIntervalSec = 25;
 
 namespace facebook { namespace fboss {
 
+void PortRemediator::updatePortState(cfg::PortState newPortState) {
+  const auto ports = sw_->getState()->getPorts();
+
+  auto updateFn = [=](const std::shared_ptr<SwitchState>& state) {
+    std::shared_ptr<SwitchState> newState{state};
+
+    for (int i=1; i<ports->numPorts(); i++) {
+      const auto port = ports->getPortIf(PortID(i));
+      if (port && !port->getOperState()) {
+        const auto newPort = port->modify(&newState);
+        newPort->setState(newPortState);
+      }
+    }
+    return newState;
+  };
+  sw_->updateStateBlocking("PortRemediator: flap port", updateFn);
+}
+
 void PortRemediator::timeoutExpired() noexcept {
-  sw_->getHw()->remedyPorts();
+  updatePortState(cfg::PortState::DOWN);
+  updatePortState(cfg::PortState::UP);
   scheduleTimeout(interval_);
 }
 
