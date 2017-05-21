@@ -16,6 +16,16 @@ typedef string (cpp2.type = "::folly::fbstring") fbstring
 
 const i32 DEFAULT_CTRL_PORT = 5909
 
+// Using the defaults from here:
+// https://en.wikipedia.org/wiki/Administrative_distance#Cisco
+enum AdminDistance {
+  DIRECTLY_CONNECTED = 0,
+  STATIC_ROUTE = 1,
+  EBGP = 20,
+  IBGP = 200,
+  MAX_ADMIN_DISTANCE = 255
+}
+
 struct IpPrefix {
   1: required Address.BinaryAddress ip,
   2: required i16 prefixLength,
@@ -24,6 +34,7 @@ struct IpPrefix {
 struct UnicastRoute {
   1: required IpPrefix dest,
   2: required list<Address.BinaryAddress> nextHopAddrs,
+  3: optional AdminDistance adminDistance,
 }
 
 struct ClientAndNextHops {
@@ -42,6 +53,7 @@ struct RouteDetails {
   3: required list<IfAndIP> fwdInfo,
   4: required list<ClientAndNextHops> nextHopMulti,
   5: required bool isConnected,
+  6: optional AdminDistance adminDistance,
 }
 
 struct ArpEntryThrift {
