@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <folly/io/async/EventBase.h>
 #include <folly/MacAddress.h>
 #include <memory>
 #include "fboss/agent/types.h"
@@ -64,6 +65,7 @@ class Platform {
    */
   virtual std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) = 0;
 
+
   /*
    * Get the local MAC address for the switch.
    *
@@ -110,6 +112,18 @@ class Platform {
   }
 
   /*
+   * Methods to set and retrieve an event base
+   * for use by platform and ports
+   */
+  void setEventBase(folly::EventBase* evb) {
+    evb_ = evb;
+  }
+
+  folly::EventBase* getEventBase() {
+    return evb_;
+  }
+
+  /*
    * Get the directory where warm boot state is stored.
    */
   std::string getWarmBootDir() const {
@@ -133,6 +147,8 @@ class Platform {
   // Forbidden copy constructor and assignment operator
   Platform(Platform const &) = delete;
   Platform& operator=(Platform const &) = delete;
+ protected:
+  folly::EventBase* evb_{nullptr};
 };
 
 }} // facebook::fboss

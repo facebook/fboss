@@ -10,10 +10,12 @@
 
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 
+#include <folly/futures/Future.h>
+#include <folly/io/async/EventBase.h>
+#include <folly/io/async/EventBaseManager.h>
+
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
-#include <folly/io/async/EventBase.h>
-
 #include "fboss/agent/QsfpClient.h"
 
 namespace facebook { namespace fboss {
@@ -152,23 +154,27 @@ void WedgePort::customizeTransceiver() {
   }
   // We've already checked whether there is a transceiver id in needsCustomize
   auto transID = static_cast<int32_t>(*getTransceiverID());
-  try {
-    folly::EventBase eb;
-    auto client = QsfpClient::createClient(&eb);
-    auto options = QsfpClient::getRpcOptions();
-    LOG(INFO) << "Sending qsfp customize request for transceiver "
-              << transID << " to speed "
-              << cfg::_PortSpeed_VALUES_TO_NAMES.find(speed_)->second;
-    client->sync_customizeTransceiver(options, transID, speed_);
-  } catch (const std::exception& e) {
-    // This can happen for a variety of reasons ranging from
-    // thrift problems to invalid input sent to the server
-    // Let's just catch them all
-    LOG(ERROR) << "Unable to customize transceiver " << transID
-               << " for speed "
-               << cfg::_PortSpeed_VALUES_TO_NAMES.find(speed_)->second
-               << ". Exception: " << e.what();
+  auto eventBase = platform_->getEventBase();
+  if (!eventBase) {
+    LOG(ERROR) << "No valid eventbase to use with async customizeTransceivers"
+               << " call. Skipping call.";
+    return;
   }
+  auto client = QsfpClient::createClient(eventBase);
+  auto options = QsfpClient::getRpcOptions();
+  auto speedString = cfg::_PortSpeed_VALUES_TO_NAMES.find(speed_)->second;
+  LOG(INFO) << "Sending qsfp customize request for transceiver "
+            << transID << " to speed " << speedString;
+
+  client->future_customizeTransceiver(options, transID, speed_)
+    .onError([transID, speedString](const std::exception& e) {
+      // This can happen for a variety of reasons ranging from
+      // thrift problems to invalid input sent to the server
+      // Let's just catch them all
+      LOG(ERROR) << "Unable to customize transceiver " << transID
+                 << " for speed " << speedString << ". Exception: " << e.what();
+      });
+
 }
 
 }} // facebook::fboss

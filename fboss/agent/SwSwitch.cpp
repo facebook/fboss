@@ -154,6 +154,10 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
   utilCreateDir(platform_->getPersistentStateDir());
+  // Set the event base for platform to use
+  // This means the platform is now able to do async events on the
+  // background thread
+  platform_->setEventBase(&backgroundEventBase_);
 }
 
 SwSwitch::~SwSwitch() {
