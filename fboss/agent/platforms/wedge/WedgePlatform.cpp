@@ -50,8 +50,7 @@ void WedgePlatform::init() {
   BcmAPI::init(config);
   initLocalMac();
   auto mode = getMode();
-  bool isLc = mode == WedgePlatformMode::LC ||
-    mode == WedgePlatformMode::GALAXY_LC;
+  bool isLc = (mode == WedgePlatformMode::GALAXY_LC);
   hw_.reset(new BcmSwitch(this, isLc ? BcmSwitch::HALF_HASH :
         BcmSwitch::FULL_HASH));
 }

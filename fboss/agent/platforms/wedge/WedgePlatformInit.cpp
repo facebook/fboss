@@ -14,8 +14,6 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/platforms/wedge/GalaxyLCPlatform.h"
 #include "fboss/agent/platforms/wedge/GalaxyFCPlatform.h"
-#include "fboss/agent/platforms/wedge/SixpackLCPlatform.h"
-#include "fboss/agent/platforms/wedge/SixpackFCPlatform.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 #include "fboss/agent/platforms/wedge/Wedge40Platform.h"
 #include "fboss/agent/platforms/wedge/Wedge100Platform.h"
@@ -37,10 +35,6 @@ std::unique_ptr<WedgePlatform> chooseWedgePlatform() {
     return std::make_unique<GalaxyLCPlatform>(std::move(productInfo));
   } else if (mode == WedgePlatformMode::GALAXY_FC) {
     return std::make_unique<GalaxyFCPlatform>(std::move(productInfo));
-  } else if (mode == WedgePlatformMode::LC) {
-    return std::make_unique<SixpackLCPlatform>(std::move(productInfo));
-  } else if (mode == WedgePlatformMode::FC) {
-    return std::make_unique<SixpackFCPlatform>(std::move(productInfo));
   }
 
   return std::make_unique<Wedge40Platform>(std::move(productInfo));

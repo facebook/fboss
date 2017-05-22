@@ -16,8 +16,6 @@ namespace facebook { namespace fboss {
 
 enum class WedgePlatformMode {
   WEDGE,
-  LC,
-  FC,
   WEDGE100,
   GALAXY_LC,
   GALAXY_FC,

@@ -89,11 +89,7 @@ std::string WedgeProductInfo::getProductName() {
 void WedgeProductInfo::initMode() {
   if (FLAGS_mode.empty()) {
     auto modelName = getProductName();
-    if (modelName == "Fabric-Card") {
-      mode_ = WedgePlatformMode::FC;
-    } else if (modelName == "Line-Card") {
-      mode_ = WedgePlatformMode::LC;
-    } else if (modelName.find("Wedge100") == 0 ||
+    if (modelName.find("Wedge100") == 0 ||
                modelName.find("WEDGE100") == 0) {
       // Wedge100 comes from fruid.json, WEDGE100 comes from fbwhoami
       mode_ = WedgePlatformMode::WEDGE100;
@@ -113,10 +109,6 @@ void WedgeProductInfo::initMode() {
   } else {
     if (FLAGS_mode == "wedge") {
       mode_ = WedgePlatformMode::WEDGE;
-    } else if (FLAGS_mode == "lc") {
-      mode_ = WedgePlatformMode::LC;
-    } else if (FLAGS_mode == "fc") {
-      mode_ = WedgePlatformMode::FC;
     } else if (FLAGS_mode == "wedge100") {
       mode_ = WedgePlatformMode::WEDGE100;
     } else if (FLAGS_mode == "galaxy_lc") {
