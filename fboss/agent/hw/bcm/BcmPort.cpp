@@ -163,6 +163,10 @@ void BcmPort::reinitPortStat(const string& statKey) {
 }
 
 void BcmPort::reinitPortStats() {
+  if (!shouldReportStats()) {
+    return;
+  }
+
   reinitPortStat(kInBytes);
   reinitPortStat(kInUnicastPkts);
   reinitPortStat(kInMulticastPkts);
@@ -522,6 +526,9 @@ std::string BcmPort::statName(folly::StringPiece name) const {
 void BcmPort::updateStats() {
   // TODO: It would be nicer to use a monotonic clock, but unfortunately
   // the ServiceData code currently expects everyone to use system time.
+  if (!shouldReportStats()) {
+    return;
+  }
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   HwPortStats curPortStats;
   updateStat(

@@ -136,6 +136,7 @@ class BcmPort {
   BcmPort& operator=(BcmPort const &) = delete;
 
   MonotonicCounter* getPortCounterIf(const std::string& statName);
+  bool shouldReportStats() const;
   void reinitPortStats();
   void reinitPortStat(const std::string& newName);
   void updateStat(std::chrono::seconds now,

@@ -27,4 +27,8 @@ bool BcmPort::isFECEnabled() {
 void BcmPort::setAdditionalStats(
     std::chrono::seconds now,
     HwPortStats* curPortStats) {}
+
+bool BcmPort::shouldReportStats() const {
+  return true;
+}
 }} // namespace facebook::fboss
