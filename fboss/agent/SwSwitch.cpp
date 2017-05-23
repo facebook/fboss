@@ -328,7 +328,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
     if (tunMgr) {
       tunMgr_ = std::move(tunMgr);
     } else {
-      tunMgr_ = std::make_unique<TunManager>(this, &backgroundEventBase_);
+      tunMgr_ = std::make_unique<TunManager>(this, &fbossPacketTxEventBase_);
     }
   }
 
@@ -880,6 +880,8 @@ void SwSwitch::startThreads() {
       this->threadLoop("fbossBgThread", &backgroundEventBase_); }));
   updateThread_.reset(new std::thread([=] {
       this->threadLoop("fbossUpdateThread", &updateEventBase_); }));
+  fbossPacketTxThread_.reset(new std::thread([=] {
+      this->threadLoop("fbossPacketTxThread", &fbossPacketTxEventBase_); }));
 }
 
 void SwSwitch::stopThreads() {
@@ -897,11 +899,18 @@ void SwSwitch::stopThreads() {
     updateEventBase_.runInEventBaseThread(
         [this] { updateEventBase_.terminateLoopSoon(); });
   }
+  if (fbossPacketTxThread_) {
+    fbossPacketTxEventBase_.runInEventBaseThread(
+        [this] { fbossPacketTxEventBase_.terminateLoopSoon(); });
+  }
   if (backgroundThread_) {
     backgroundThread_->join();
   }
   if (updateThread_) {
     updateThread_->join();
+  }
+  if (fbossPacketTxThread_) {
+    fbossPacketTxThread_->join();
   }
 }
 

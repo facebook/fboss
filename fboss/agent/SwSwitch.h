@@ -666,6 +666,14 @@ class SwSwitch : public HwSwitch::Callback {
   folly::EventBase updateEventBase_;
 
   /*
+   * A thread for processing packets received from
+   * host (linux) that may need to be sent out of
+   * ASIC front panel ports
+   */
+  std::unique_ptr<std::thread> fbossPacketTxThread_;
+  folly::EventBase fbossPacketTxEventBase_;
+
+  /*
    * A callback for listening to neighbors coming and going.
    */
   std::mutex neighborListenerMutex_;
