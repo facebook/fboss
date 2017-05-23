@@ -13,6 +13,8 @@
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include <set>
+
 namespace {
 constexpr int kPortRemedyIntervalSec = 25;
 }
@@ -20,21 +22,44 @@ constexpr int kPortRemedyIntervalSec = 25;
 namespace facebook { namespace fboss {
 
 void PortRemediator::updatePortState(cfg::PortState newPortState) {
+  // TODO - Post t17304538, if Port::state == POWER_DOWN reflects
+  // Admin down always, then just use SwitchState to to determine
+  // which ports to ignore.
+  std::set<int> configEnabledPorts;
+  for (const auto& cfgPort : sw_->getConfig().ports) {
+    if (cfgPort.state != cfg::PortState::POWER_DOWN &&
+        cfgPort.state != cfg::PortState::DOWN) {
+      configEnabledPorts.insert(cfgPort.logicalID);
+    }
+  }
   const auto ports = sw_->getState()->getPorts();
-
+  // Does port need to be flapped
+  auto portNeedsUpdate = [&configEnabledPorts](
+      const std::shared_ptr<Port>& port) {
+    if (port &&
+        configEnabledPorts.find(port->getID()) != configEnabledPorts.end()) {
+      return !port->getOperState();
+    }
+    return false;
+  };
   auto updateFn = [=](const std::shared_ptr<SwitchState>& state) {
     std::shared_ptr<SwitchState> newState{state};
 
-    for (int i=1; i<ports->numPorts(); i++) {
+    for (int i = 1; i < ports->numPorts(); i++) {
       const auto port = ports->getPortIf(PortID(i));
-      if (port && !port->getOperState()) {
+      if (portNeedsUpdate(port)) {
         const auto newPort = port->modify(&newState);
         newPort->setState(newPortState);
       }
     }
     return newState;
   };
-  sw_->updateStateBlocking("PortRemediator: flap port", updateFn);
+  for (int i = 1; i < ports->numPorts(); ++i) {
+    if (portNeedsUpdate(ports->getPortIf(PortID(i)))) {
+      sw_->updateStateBlocking("PortRemediator: flap port", updateFn);
+      return;
+    }
+  }
 }
 
 void PortRemediator::timeoutExpired() noexcept {
