@@ -328,7 +328,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
     if (tunMgr) {
       tunMgr_ = std::move(tunMgr);
     } else {
-      tunMgr_ = std::make_unique<TunManager>(this, &fbossPacketTxEventBase_);
+      tunMgr_ = std::make_unique<TunManager>(this, &fbossPktTxEventBase_);
     }
   }
 
@@ -370,6 +370,16 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   updThreadHeartbeat_ = std::make_unique<ThreadHeartbeat>(
     &updateEventBase_, "fbossUpdateThread", FLAGS_thread_heartbeat_ms,
     updHeartbeatStatsFunc);
+
+  auto fbossPktTxHeartbeatStatsFunc = [this](int delay, int backLog) {
+    stats()->fbossPktTxHeartbeatDelay(delay);
+    stats()->fbossPktTxEventBacklog(backLog);
+  };
+  fbossPktTxThreadHeartbeat_ = std::make_unique<ThreadHeartbeat>(
+      &fbossPktTxEventBase_,
+      "fbossPktTxThread",
+      FLAGS_thread_heartbeat_ms,
+      fbossPktTxHeartbeatStatsFunc);
 
   setSwitchRunState(SwitchRunState::INITIALIZED);
 }
@@ -880,8 +890,8 @@ void SwSwitch::startThreads() {
       this->threadLoop("fbossBgThread", &backgroundEventBase_); }));
   updateThread_.reset(new std::thread([=] {
       this->threadLoop("fbossUpdateThread", &updateEventBase_); }));
-  fbossPacketTxThread_.reset(new std::thread([=] {
-      this->threadLoop("fbossPacketTxThread", &fbossPacketTxEventBase_); }));
+  fbossPktTxThread_.reset(new std::thread([=] {
+      this->threadLoop("fbossPktTxThread", &fbossPktTxEventBase_); }));
 }
 
 void SwSwitch::stopThreads() {
@@ -899,9 +909,9 @@ void SwSwitch::stopThreads() {
     updateEventBase_.runInEventBaseThread(
         [this] { updateEventBase_.terminateLoopSoon(); });
   }
-  if (fbossPacketTxThread_) {
-    fbossPacketTxEventBase_.runInEventBaseThread(
-        [this] { fbossPacketTxEventBase_.terminateLoopSoon(); });
+  if (fbossPktTxThread_) {
+    fbossPktTxEventBase_.runInEventBaseThread(
+        [this] { fbossPktTxEventBase_.terminateLoopSoon(); });
   }
   if (backgroundThread_) {
     backgroundThread_->join();
@@ -909,8 +919,8 @@ void SwSwitch::stopThreads() {
   if (updateThread_) {
     updateThread_->join();
   }
-  if (fbossPacketTxThread_) {
-    fbossPacketTxThread_->join();
+  if (fbossPktTxThread_) {
+    fbossPktTxThread_->join();
   }
 }
 

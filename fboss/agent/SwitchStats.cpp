@@ -78,10 +78,15 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap *map)
                         100, 0, 20000, AVG, 50, 100),
       updHeartbeatDelay_(map, kCounterPrefix + "upd_heartbeat_delay.ms",
                          100, 0, 20000, AVG, 50, 100),
+      fbossPktTxHeartbeatDelay_(map,
+                         kCounterPrefix + "fbossPktTx_heartbeat_delay.ms",
+                         100, 0, 20000, AVG, 50, 100),
       bgEventBacklog_(map, kCounterPrefix + "bg_event_backlog",
                       1, 0, 200, AVG, 50, 100),
       updEventBacklog_(map, kCounterPrefix + "upd_event_backlog",
                        1, 0, 200, AVG, 50, 100),
+      fbossPktTxEventBacklog_(map, kCounterPrefix + "fbossPktTx_event_backlog",
+                 1, 0, 200, AVG, 50, 100),
 
       linkStateChange_(map, kCounterPrefix + "link_state.down", SUM) {
 }

@@ -670,8 +670,8 @@ class SwSwitch : public HwSwitch::Callback {
    * host (linux) that may need to be sent out of
    * ASIC front panel ports
    */
-  std::unique_ptr<std::thread> fbossPacketTxThread_;
-  folly::EventBase fbossPacketTxEventBase_;
+  std::unique_ptr<std::thread> fbossPktTxThread_;
+  folly::EventBase fbossPktTxEventBase_;
 
   /*
    * A callback for listening to neighbors coming and going.
@@ -702,6 +702,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<LldpManager> lldpManager_;
   std::unique_ptr<ThreadHeartbeat> bgThreadHeartbeat_;
   std::unique_ptr<ThreadHeartbeat> updThreadHeartbeat_;
+  std::unique_ptr<ThreadHeartbeat> fbossPktTxThreadHeartbeat_;
   SwitchFlags flags_{SwitchFlags::DEFAULT};
 };
 
