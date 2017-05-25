@@ -415,7 +415,7 @@ void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
   }
 
   if (flags_ & SwitchFlags::PUBLISH_STATS) {
-    publishInitTimes("fboss.ctrl.switch_configured",
+    publishInitTimes("fboss.agent.switch_configured",
        duration_cast<duration<float>>(steady_clock::now() - startTime).count());
   }
 }
