@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/capture/PcapWriter.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 #include <folly/Range.h>
 #include <string>
@@ -24,7 +25,8 @@ class TxPacket;
  */
 class PktCapture {
  public:
-  PktCapture(folly::StringPiece name, uint64_t maxPackets);
+  PktCapture(folly::StringPiece name, uint64_t maxPackets,
+             CaptureDirection direction);
 
   const std::string& name() const {
     return name_;
@@ -35,6 +37,8 @@ class PktCapture {
 
   bool packetReceived(const RxPacket* pkt);
   bool packetSent(const TxPacket* pkt);
+
+  std::string toString(bool withStats = false) const;
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -48,6 +52,8 @@ class PktCapture {
   PcapWriter writer_;
   uint64_t maxPackets_{0};
   uint64_t numPacketsReceived_{0};
+  uint64_t numPacketsSent_{0};
+  CaptureDirection direction_{CaptureDirection::CAPTURE_TX_RX};
 };
 
 }} // facebook::fboss

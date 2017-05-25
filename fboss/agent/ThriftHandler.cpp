@@ -712,7 +712,8 @@ void ThriftHandler::async_eb_registerForNeighborChanged(
 void ThriftHandler::startPktCapture(unique_ptr<CaptureInfo> info) {
   ensureConfigured();
   auto* mgr = sw_->getCaptureMgr();
-  auto capture = make_unique<PktCapture>(info->name, info->maxPackets);
+  auto capture = make_unique<PktCapture>(
+      info->name, info->maxPackets, info->direction);
   mgr->startCapture(std::move(capture));
 }
 

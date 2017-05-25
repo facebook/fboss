@@ -183,6 +183,12 @@ struct PortStatus {
   5: i64 speedMbps,
 }
 
+enum CaptureDirection {
+  CAPTURE_ONLY_RX = 0,
+  CAPTURE_ONLY_TX = 1,
+  CAPTURE_TX_RX = 2
+}
+
 struct CaptureInfo {
   // A name identifying the packet capture
   1: string name
@@ -195,6 +201,7 @@ struct CaptureInfo {
    * large number of packets.
    */
   2: i32 maxPackets
+  3: CaptureDirection direction = CAPTURE_TX_RX
 }
 
 struct RouteUpdateLoggingInfo {

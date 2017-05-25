@@ -35,7 +35,6 @@ PktCaptureManager::~PktCaptureManager() {
 void PktCaptureManager::startCapture(unique_ptr<PktCapture> capture) {
   checkCaptureName(capture->name());
 
-  LOG(INFO) << "starting packet capture \"" << capture->name() << "\"";
   auto path = folly::to<std::string>(captureDir_, "/",
                                      capture->name(), ".pcap");
 
@@ -59,7 +58,6 @@ void PktCaptureManager::stopCapture(StringPiece name) {
   if (it == activeCaptures_.end()) {
     throw FbossError("no active capture found with name \"", name, "\"");
   }
-  LOG(INFO) << "stopping packet capture \"" << name << "\"";
   it->second->stop();
   inactiveCaptures_[nameStr] = std::move(it->second);
   activeCaptures_.erase(it);
@@ -71,7 +69,6 @@ unique_ptr<PktCapture> PktCaptureManager::forgetCapture(StringPiece name) {
   auto nameStr = name.str();
   auto activeIt = activeCaptures_.find(nameStr);
   if (activeIt != activeCaptures_.end()) {
-    LOG(INFO) << "stopping packet capture \"" << name << "\"";
     std::unique_ptr<PktCapture> capture = std::move(activeIt->second);
     activeCaptures_.erase(activeIt);
     capturesRunning_.store(!activeCaptures_.empty(),
