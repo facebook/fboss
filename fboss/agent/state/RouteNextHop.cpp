@@ -46,26 +46,25 @@ fromRouteNextHops(RouteNextHops const& nhs) {
 // RouteNextHop Class
 //
 
-RouteNextHop::RouteNextHop(
-    folly::IPAddress addr,
-    folly::Optional<InterfaceID> intfID)
-    : addr_(std::move(addr)), intfID_(std::move(intfID)) {
+RouteNextHop::RouteNextHop(folly::IPAddress addrV,
+                           folly::Optional<InterfaceID> intfIDV)
+    : RouteNextHopBase(std::move(addrV), std::move(intfIDV)) {
 
   // V4 link-local are not considered here as they can break BGPD route
   // programming in Galaxy or ExaBGP peering routes to servers as they are
   // using v4 link-local subnets on internal/downlink interfaces
   // NOTE: we do allow interface be specified with v4 link-local but we are not
   // being scrict about it
-  if (!intfID_ and addr_.isV6() and addr_.isLinkLocal()) {
+  if (!intfID() and addr().isV6() and addr().isLinkLocal()) {
     throw FbossError(
-        "Missing interface scoping for link-local nexthop {}", addr_.str());
+        "Missing interface scoping for link-local nexthop {}", addr().str());
   }
 
   // Interface scoping shouldn't be specified with non link-local addresses
-  if (intfID_ and !addr_.isLinkLocal()) {
+  if (intfID() and !addr().isLinkLocal()) {
     throw FbossError(
        "Interface scoping ({}) specified for non link-local nexthop {}.",
-       static_cast<uint32_t>(intfID_.value()), addr_.str());
+       static_cast<uint32_t>(intfID().value()), addr().str());
   }
 }
 
@@ -84,33 +83,12 @@ RouteNextHop::fromThrift(network::thrift::BinaryAddress const& nexthop) {
   return RouteNextHop(std::move(addr), std::move(intfID));
 }
 
-network::thrift::BinaryAddress
-RouteNextHop::toThrift() const {
-  network::thrift::BinaryAddress nexthop = network::toBinaryAddress(addr_);
-  if (intfID_) {
-    nexthop.__isset.ifName = true;
-    nexthop.ifName = util::createTunIntfName(intfID_.value());
-  }
-  return nexthop;
-}
-
-bool operator==(const RouteNextHop& a, const RouteNextHop& b) {
-  return (a.addr() == b.addr()) && (a.intfID() == b.intfID());
-}
-
-bool operator< (const RouteNextHop& a, const RouteNextHop& b) {
-  if (a.addr() == b.addr()) {
-    return a.intfID() < b.intfID();
-  }
-  return a.addr() < b.addr();
-}
-
 folly::dynamic RouteNextHopsMulti::toFollyDynamic() const {
   // Store the clientid->nextHops map as a dynamic::object
   folly::dynamic obj = folly::dynamic::object();
   for (auto const& row : map_) {
     int clientid = row.first;
-    RouteNextHops const& nxtHps = row.second;
+    RouteNextHops const& nxtHps = row.second.getNextHopSet();
 
     folly::dynamic nxtHopCopy = folly::dynamic::array;
     for (const auto& nhop: nxtHps) {
@@ -132,7 +110,7 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
   for (const auto& srcPair : map_) {
     ClientAndNextHops destPair;
     destPair.clientId = srcPair.first;
-    for (const auto& nh : srcPair.second) {
+    for (const auto& nh : srcPair.second.getNextHopSet()) {
       destPair.nextHopAddrs.push_back(network::toBinaryAddress(nh.addr()));
       if (nh.intfID().hasValue()) {
         auto& nhAddr = destPair.nextHopAddrs.back();
@@ -163,7 +141,7 @@ RouteNextHopsMulti::fromFollyDynamic(const folly::dynamic& json) {
 
       list.emplace(folly::IPAddress(parts[0]), intfID);
     }
-    nh.update(ClientID(clientId), std::move(list));
+    nh.update(ClientID(clientId), RouteNextHopEntry(std::move(list)));
   }
   return nh;
 }
@@ -172,7 +150,7 @@ std::string RouteNextHopsMulti::str() const {
   std::string ret = "";
   for (auto const & row : map_) {
     int clientid = row.first;
-    RouteNextHops const& nxtHps = row.second;
+    RouteNextHops const& nxtHps = row.second.getNextHopSet();
 
     ret.append(folly::to<std::string>("(client#", clientid, ": "));
     for (const auto& nh : nxtHps) {
@@ -183,12 +161,8 @@ std::string RouteNextHopsMulti::str() const {
   return ret;
 }
 
-void RouteNextHopsMulti::update(ClientID clientId, const RouteNextHops& nhs) {
-  map_[clientId] = nhs;
-}
-
-void RouteNextHopsMulti::update(ClientID clientId, const RouteNextHops&& nhs) {
-  map_[clientId] = std::move(nhs);
+void RouteNextHopsMulti::update(ClientID clientId, RouteNextHopEntry nhe) {
+  map_[clientId] = std::move(nhe);
 }
 
 void RouteNextHopsMulti::delNexthopsForClient(ClientID clientId) {
@@ -201,7 +175,7 @@ RouteNextHopsMulti::getNexthopsForClient(ClientID clientId) const {
   if (it == map_.end()) {
     return folly::none;
   }
-  return it->second;
+  return it->second.getNextHopSet();
 }
 
 bool RouteNextHopsMulti::hasNextHopsForClient(ClientID clientId) const {
@@ -213,7 +187,7 @@ bool RouteNextHopsMulti::isSame(ClientID id, const RouteNextHops& nhs) const {
   if (iter == map_.end()) {
       return false;
   }
-  return nhs == iter->second;
+  return nhs == iter->second.getNextHopSet();
 }
 
 const RouteNextHops&
@@ -225,7 +199,7 @@ RouteNextHopsMulti::bestNextHopList() const {
   // Since flat_map stores items in key-sorted order, the smallest key
   // (and hence the highest-priority client) is first.
   if (map_.size() > 0) {
-    return map_.begin()->second;
+    return map_.begin()->second.getNextHopSet();
   } else {
     // Throw an exception if the map is empty.  That seems
     // like the right behavior.

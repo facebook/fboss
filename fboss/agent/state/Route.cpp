@@ -197,7 +197,8 @@ void Route<AddrT>::updateNexthopCommon(const RouteNextHops& nhs) {
 template<typename AddrT>
 void Route<AddrT>::update(ClientID clientid, RouteNextHops nhs) {
   updateNexthopCommon(nhs);
-  RouteBase::writableFields()->nexthopsmulti.update(clientid, nhs);
+  RouteBase::writableFields()->nexthopsmulti.update(
+      clientid, RouteNextHopEntry(std::move(nhs)));
 }
 
 template<typename AddrT>

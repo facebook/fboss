@@ -24,6 +24,7 @@
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 #include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/SwitchState-defs.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -1635,21 +1636,32 @@ TEST(RouteTypes, toFromRouteNextHops) {
   auto nhAddrs = util::fromRouteNextHops(nhs);
   ASSERT_EQ(5, nhAddrs.size());
 
-  EXPECT_EQ("10.0.0.1", facebook::network::toIPAddress(nhAddrs[0]).str());
-  EXPECT_FALSE(nhAddrs[0].__isset.ifName);
+  auto verify = [&](const std::string& ipaddr,
+                    folly::Optional<InterfaceID> intf){
+    auto bAddr = facebook::network::toBinaryAddress(folly::IPAddress(ipaddr));
+    if (intf.hasValue()) {
+      bAddr.__isset.ifName = true;
+      bAddr.ifName = util::createTunIntfName(intf.value());
+    }
+    bool found = false;
+    for (const auto& entry : nhAddrs) {
+      if (entry == bAddr) {
+        if (intf.hasValue()) {
+          EXPECT_TRUE(entry.__isset.ifName);
+          EXPECT_EQ(bAddr.ifName, entry.ifName);
+        }
+        found = true;
+        break;
+      }
+    }
+    EXPECT_TRUE(found);
+  };
 
-  EXPECT_EQ("169.254.0.1", facebook::network::toIPAddress(nhAddrs[1]).str());
-  EXPECT_FALSE(nhAddrs[1].__isset.ifName);
-  EXPECT_EQ("169.254.0.2", facebook::network::toIPAddress(nhAddrs[2]).str());
-  EXPECT_TRUE(nhAddrs[2].__isset.ifName);
-  EXPECT_EQ("fboss2", nhAddrs[2].ifName);
-
-  EXPECT_EQ("face:b00c::1", facebook::network::toIPAddress(nhAddrs[3]).str());
-  EXPECT_FALSE(nhAddrs[3].__isset.ifName);
-
-  EXPECT_EQ("fe80::1", facebook::network::toIPAddress(nhAddrs[4]).str());
-  EXPECT_TRUE(nhAddrs[4].__isset.ifName);
-  EXPECT_EQ("fboss4", nhAddrs[4].ifName);
+  verify("10.0.0.1", folly::none);
+  verify("169.254.0.1", folly::none);
+  verify("169.254.0.2", InterfaceID(2));
+  verify("face:b00c::1", folly::none);
+  verify("fe80::1", InterfaceID(4));
 
   // Convert back to RouteNextHops
   auto newNhs = util::toRouteNextHops(nhAddrs);

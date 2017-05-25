@@ -219,6 +219,8 @@ add_library(fboss_agent STATIC
     fboss/agent/state/RouteDelta.cpp
     fboss/agent/state/RouteForwardInfo.cpp
     fboss/agent/state/RouteNextHop.cpp
+    fboss/agent/state/RouteNextHopBase.cpp
+    fboss/agent/state/RouteNextHopEntry.cpp
     fboss/agent/state/RouteTable.cpp
     fboss/agent/state/RouteTableMap.cpp
     fboss/agent/state/RouteTableRib.cpp
