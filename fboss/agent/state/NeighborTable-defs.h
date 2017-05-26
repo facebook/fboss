@@ -40,7 +40,7 @@ SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
   return ptr;
 }
 
-template <typename IPADDR, typename ENTRY, typename SUBCLASS>
+template<typename IPADDR, typename ENTRY, typename SUBCLASS>
 SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
     VlanID vlanId,
     std::shared_ptr<SwitchState>* state) {
@@ -62,7 +62,7 @@ template<typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
     AddressType ip,
     folly::MacAddress mac,
-    PortID port,
+    PortDescriptor port,
     InterfaceID intfID,
     NeighborState state) {
   CHECK(!this->isPublished());
@@ -77,12 +77,11 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
     fields.ip, fields.mac, fields.port, fields.interfaceID, fields.state);
 }
 
-
 template<typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
     AddressType ip,
     folly::MacAddress mac,
-    PortID port,
+    PortDescriptor port,
     InterfaceID intfID) {
   CHECK(!this->isPublished());
   auto& nodes = this->writableNodes();
@@ -98,7 +97,7 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
   it->second = entry;
 }
 
-template <typename IPADDR, typename ENTRY, typename SUBCLASS>
+template<typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
     AddressType ip,
     std::shared_ptr<ENTRY> newEntry) {

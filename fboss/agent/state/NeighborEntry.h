@@ -11,6 +11,7 @@
 
 #include <folly/MacAddress.h>
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/PortDescriptor.h"
 
 namespace facebook { namespace fboss {
 
@@ -22,22 +23,24 @@ template<typename IPADDR>
 struct NeighborEntryFields {
   typedef IPADDR AddressType;
 
-  NeighborEntryFields(AddressType ip,
-                      folly::MacAddress mac,
-                      PortID port,
-                      InterfaceID interfaceID,
-                      NeighborState state = NeighborState::REACHABLE)
-    : ip(ip),
-      mac(mac),
-      port(port),
-      interfaceID(interfaceID),
-      state(state) {}
+  NeighborEntryFields(
+      AddressType ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      InterfaceID interfaceID,
+      NeighborState state = NeighborState::REACHABLE)
+      : ip(ip), mac(mac), port(port), interfaceID(interfaceID), state(state) {}
 
-  NeighborEntryFields(AddressType ip,
-                      InterfaceID interfaceID,
-                      NeighborState pending)
+  NeighborEntryFields(
+      AddressType ip,
+      InterfaceID interfaceID,
+      NeighborState pending)
       : NeighborEntryFields(
-          ip, MacAddress::BROADCAST, PortID(0), interfaceID, pending) {
+            ip,
+            MacAddress::BROADCAST,
+            PortDescriptor(PortID(0)),
+            interfaceID,
+            pending) {
     // This constructor should only be used for PENDING entries
     CHECK(pending == NeighborState::PENDING);
   }
@@ -60,7 +63,7 @@ struct NeighborEntryFields {
   static constexpr auto kInterface = "interfaceId";
   AddressType ip;
   folly::MacAddress mac;
-  PortID port;
+  PortDescriptor port;
   InterfaceID interfaceID;
   NeighborState state;
 };
@@ -70,9 +73,12 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
  public:
   typedef IPADDR AddressType;
 
-  NeighborEntry(AddressType ip, folly::MacAddress mac,
-                PortID port, InterfaceID interfaceID,
-                NeighborState state = NeighborState::REACHABLE);
+  NeighborEntry(
+      AddressType ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      InterfaceID interfaceID,
+      NeighborState state = NeighborState::REACHABLE);
 
   NeighborEntry(AddressType ip, InterfaceID intfID, NeighborState ignored);
 
@@ -102,7 +108,10 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
     this->writableFields()->mac = mac;
   }
 
-  PortID getPort() const {
+  void setPort(PortDescriptor port) {
+    this->writableFields()->port = port;
+  }
+  PortDescriptor getPort() const {
     return this->getFields()->port;
   }
 
@@ -115,10 +124,6 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
   }
   bool zeroPort() const {
     return !nonZeroPort();
-  }
-
-  void setPort(PortID port) {
-    this->writableFields()->port = port;
   }
 
   InterfaceID getIntfID() const {

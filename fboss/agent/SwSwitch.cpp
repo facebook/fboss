@@ -1041,7 +1041,7 @@ void SwSwitch::sendL3Packet(
 
     // Derive destination mac address
     folly::MacAddress dstMac{};
-    PortID outPort{};
+    PortDescriptor outPort(PortID(0));
     bool sendAsSwitched{false};
     if (dstAddr.isMulticast()) {
       // Multicast Case:
@@ -1139,7 +1139,7 @@ void SwSwitch::sendL3Packet(
     if (sendAsSwitched) {
       sendPacketSwitched(std::move(pkt));
     } else {
-      sendPacketOutOfPort(std::move(pkt), outPort);
+      sendPacketOutOfPort(std::move(pkt), outPort.getPhysicalPortOrThrow());
     }
   } catch (const std::exception& ex) {
     LOG(ERROR) << "Failed to send out L3 packet :"

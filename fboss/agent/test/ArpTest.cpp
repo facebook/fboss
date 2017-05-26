@@ -26,6 +26,7 @@
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/ArpTable.h"
+#include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
@@ -468,7 +469,7 @@ TEST(ArpTest, TableUpdates) {
   EXPECT_EQ(1, arpTable->getAllNodes().size());
   auto entry = arpTable->getEntry(IPAddressV4("10.0.0.15"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:03"), entry->getMac());
-  EXPECT_EQ(PortID(1), entry->getPort());
+  EXPECT_EQ(PortDescriptor(PortID(1)), entry->getPort());
   EXPECT_EQ(InterfaceID(1), entry->getIntfID());
 
   // Check the new stats
@@ -584,7 +585,7 @@ TEST(ArpTest, TableUpdates) {
   EXPECT_EQ(1, arpTable->getAllNodes().size());
   entry = arpTable->getEntry(IPAddressV4("10.0.0.15"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:08"), entry->getMac());
-  EXPECT_EQ(PortID(2), entry->getPort());
+  EXPECT_EQ(PortDescriptor(PortID(2)), entry->getPort());
   EXPECT_EQ(InterfaceID(1), entry->getIntfID());
 
   // Try another request for us from a node we haven't seen yet.
@@ -633,11 +634,11 @@ TEST(ArpTest, TableUpdates) {
   EXPECT_EQ(2, arpTable->getAllNodes().size());
   entry = arpTable->getEntry(IPAddressV4("10.0.0.15"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:08"), entry->getMac());
-  EXPECT_EQ(PortID(2), entry->getPort());
+  EXPECT_EQ(PortDescriptor(PortID(2)), entry->getPort());
   EXPECT_EQ(InterfaceID(1), entry->getIntfID());
   entry = arpTable->getEntry(IPAddressV4("10.0.0.20"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:23"), entry->getMac());
-  EXPECT_EQ(PortID(1), entry->getPort());
+  EXPECT_EQ(PortDescriptor(PortID(1)), entry->getPort());
   EXPECT_EQ(InterfaceID(1), entry->getIntfID());
 
   // Try a request for an IP on another interface, to make sure
@@ -686,15 +687,15 @@ TEST(ArpTest, TableUpdates) {
   EXPECT_EQ(3, arpTable->getAllNodes().size());
   entry = arpTable->getEntry(IPAddressV4("10.0.0.15"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:08"), entry->getMac());
-  EXPECT_EQ(PortID(2), entry->getPort());
+  EXPECT_EQ(PortDescriptor(PortID(2)), entry->getPort());
   EXPECT_EQ(InterfaceID(1), entry->getIntfID());
   entry = arpTable->getEntry(IPAddressV4("10.0.0.20"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:23"), entry->getMac());
-  EXPECT_EQ(PortID(1), entry->getPort());
+  EXPECT_EQ(PortDescriptor(PortID(1)), entry->getPort());
   EXPECT_EQ(InterfaceID(1), entry->getIntfID());
   entry = arpTable->getEntry(IPAddressV4("192.168.0.20"));
   EXPECT_EQ(MacAddress("00:02:00:55:66:77"), entry->getMac());
-  EXPECT_EQ(PortID(5), entry->getPort());
+  EXPECT_EQ(PortDescriptor(PortID(5)), entry->getPort());
   EXPECT_EQ(InterfaceID(1), entry->getIntfID());
 }
 

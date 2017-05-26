@@ -994,8 +994,11 @@ void BcmSwitch::processNeighborEntryDelta(const DELTA& delta) {
     } else {
       VLOG(3) << "adding neighbor entry " << newEntry->getIP().str()
               << " to " << newEntry->getMac().toString();
-      host->program(intf->getBcmIfId(), newEntry->getMac(),
-                    getPortTable()->getBcmPortId(newEntry->getPort()));
+      host->program(
+          intf->getBcmIfId(),
+          newEntry->getMac(),
+          getPortTable()->getBcmPortId(
+              newEntry->getPort().getPhysicalPortOrThrow()));
     }
   } else if (!newEntry) {
     VLOG(3) << "deleting neighbor entry " << oldEntry->getIP().str();
@@ -1013,8 +1016,11 @@ void BcmSwitch::processNeighborEntryDelta(const DELTA& delta) {
     if (newEntry->isPending()) {
       host->programToCPU(intf->getBcmIfId());
     } else {
-      host->program(intf->getBcmIfId(), newEntry->getMac(),
-          getPortTable()->getBcmPortId(newEntry->getPort()));
+      host->program(
+          intf->getBcmIfId(),
+          newEntry->getMac(),
+          getPortTable()->getBcmPortId(
+              newEntry->getPort().getPhysicalPortOrThrow()));
     }
   }
 }

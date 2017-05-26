@@ -17,21 +17,22 @@
 #include <folly/json.h>
 
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmEgress.h"
+#include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/Utils.h"
-#include "fboss/agent/state/Interface.h"
-#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/ArpTable.h"
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/NeighborEntry.h"
-#include "fboss/agent/state/InterfaceMap.h"
-#include "fboss/agent/SysError.h"
+#include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
-#include "fboss/agent/state/SwitchState.h"
 
 using std::make_pair;
 using std::make_tuple;
@@ -160,7 +161,7 @@ shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
       arpTable->addEntry(
           ip.asV4(),
           macFromBcm(bcmEgress.mac_addr),
-          PortID(bcmEgress.port),
+          PortDescriptor(PortID(bcmEgress.port)),
           InterfaceID(bcmEgress.vlan),
           NeighborState::UNVERIFIED);
     } else {
@@ -168,7 +169,7 @@ shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
       ndpTable->addEntry(
           ip.asV6(),
           macFromBcm(bcmEgress.mac_addr),
-          PortID(bcmEgress.port),
+          PortDescriptor(PortID(bcmEgress.port)),
           InterfaceID(bcmEgress.vlan),
           NeighborState::UNVERIFIED);
     }

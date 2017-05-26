@@ -10,10 +10,11 @@
 #pragma once
 
 #include <folly/MacAddress.h>
-#include "fboss/agent/state/NeighborEntry.h"
-#include "fboss/agent/state/NodeMap.h"
 #include <folly/dynamic.h>
 #include <folly/json.h>
+#include "fboss/agent/state/NeighborEntry.h"
+#include "fboss/agent/state/NodeMap.h"
+#include "fboss/agent/state/PortDescriptor.h"
 
 namespace {
 constexpr auto kNPending = "numPendingEntries";
@@ -70,16 +71,18 @@ class NeighborTable
    */
   SUBCLASS* modify(VlanID vlanId, std::shared_ptr<SwitchState>* state);
 
-  void addEntry(AddressType ip,
-                folly::MacAddress mac,
-                PortID port,
-                InterfaceID intfID,
-                NeighborState state = NeighborState::REACHABLE);
+  void addEntry(
+      AddressType ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      InterfaceID intfID,
+      NeighborState state = NeighborState::REACHABLE);
   void addEntry(const NeighborEntryFields<AddressType>& fields);
-  void updateEntry(AddressType ip,
-                   folly::MacAddress mac,
-                   PortID port,
-                   InterfaceID intfID);
+  void updateEntry(
+      AddressType ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      InterfaceID intfID);
   void updateEntry(const NeighborEntryFields<AddressType>& fields);
   void updateEntry(AddressType ip, std::shared_ptr<ENTRY>);
   void addPendingEntry(AddressType ip,

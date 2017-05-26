@@ -157,7 +157,7 @@ void NeighborCacheImpl<NTable>::clearEntries() {
    * to destroy themselves.
    */
   std::vector<folly::Future<folly::Unit>> stopTasks;
-  for (auto item : entries_) {
+  for (const auto& item : entries_) {
     auto addr = item.first;
     auto entry = item.second;
     stopTasks.push_back(
@@ -187,7 +187,7 @@ void NeighborCacheImpl<NTable>::setEntry(AddressType ip,
                                          PortID portID,
                                          NeighborEntryState state) {
   auto entry = setEntryInternal(
-    EntryFields(ip, mac, portID, intfID_), state);
+      EntryFields(ip, mac, PortDescriptor(portID), intfID_), state);
   if (entry) {
     programEntry(entry);
   }
@@ -199,7 +199,7 @@ void NeighborCacheImpl<NTable>::setExistingEntry(AddressType ip,
                                                  PortID portID,
                                                  NeighborEntryState state) {
   auto entry = setEntryInternal(
-    EntryFields(ip, mac, portID, intfID_), state, false);
+      EntryFields(ip, mac, PortDescriptor(portID), intfID_), state, false);
   if (entry) {
     // only program an entry if one exists
     programEntry(entry);
@@ -369,7 +369,7 @@ NeighborCacheImpl<NTable>::cloneEntryFields(AddressType ip) {
 template <typename NTable>
 void NeighborCacheImpl<NTable>::portDown(PortID port) {
   for (auto item : entries_) {
-    if (item.second->getPortID() != port) {
+    if (item.second->getPort() != port) {
       continue;
     }
 

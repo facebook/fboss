@@ -154,7 +154,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
     return fields_.ip;
   }
 
-  PortID getPortID() const {
+  PortDescriptor getPort() const {
     return fields_.port;
   }
 
@@ -182,7 +182,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
     return getIP() == fields.ip &&
       getMac() == fields.mac &&
       getIntfID() == fields.interfaceID &&
-      getPortID() == fields.port &&
+      getPort() == fields.port &&
       getProgrammedState() == fields.state;
   }
 
@@ -207,7 +207,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
   void populateThriftEntry(NeighborEntryThrift& entry) const {
     entry.ip = facebook::network::toBinaryAddress(getIP());
     entry.mac = getMac().toString();
-    entry.port = getPortID();
+    entry.port = getPort().asThriftPort();
     entry.vlanName = cache_->getVlanName();
     entry.vlanID = cache_->getVlanID();
     entry.state = getStateName();

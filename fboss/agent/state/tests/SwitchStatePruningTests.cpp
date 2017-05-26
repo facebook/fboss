@@ -160,7 +160,7 @@ void addNeighborEntry(
     typename NTable::AddressType* ip,
     MacAddress* mac,
     VlanID* vlan,
-    PortID* port) { // null port indicates pending entry
+    PortDescriptor* port) { // null port indicates pending entry
   CHECK(ip);
   CHECK(vlan);
   shared_ptr<NTable> newNeighborTable = make_shared<NTable>();
@@ -224,7 +224,7 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
   auto host1ip = IPAddressV4("10.0.21.1");
   auto host1mac = MacAddress("fa:ce:b0:0c:21:01");
   auto host1vlan = VlanID(21);
-  auto host1port = PortID(1);
+  auto host1port = PortDescriptor(PortID(1));
   // Add host1 (resolved) for vlan21
   addNeighborEntry<ArpTable>(
       &state2, &host1ip, &host1mac, &host1vlan, &host1port);
@@ -232,7 +232,7 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
   auto host2ip = IPAddressV6("face:b00c:0:21::2");
   auto host2mac = MacAddress("fa:ce:b0:0c:21:02");
   auto host2vlan = VlanID(21);
-  auto host2port = PortID(1);
+  auto host2port = PortDescriptor(PortID(1));
   auto host2intf = InterfaceID(21);
 
   addNeighborEntry<NdpTable>(
@@ -249,7 +249,7 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
   auto host3ip = IPAddressV4("10.0.21.3");
   auto host3mac = MacAddress("fa:ce:b0:0c:21:03");
   auto host3vlan = VlanID(21);
-  auto host3port = PortID(2);
+  auto host3port = PortDescriptor(PortID(2));
   addNeighborEntry<ArpTable>(
       &state3, &host3ip, &host3mac, &host3vlan, &host3port);
   state3->publish();
@@ -347,22 +347,24 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
   // state3
 
   auto host2mac = MacAddress("fa:ce:b0:0c:21:02");
-  auto host2port = PortID(2);
+  auto host2port = PortDescriptor(PortID(2));
   auto host2interface = InterfaceID(21);
 
   auto arpTable21 =
       state3->getVlans()->getVlan(host2vlan)->getArpTable()->modify(
           host2vlan, &state3);
-  arpTable21->updateEntry(host2ip, host2mac, host2port, host2interface);
+  arpTable21->updateEntry(
+      host2ip, host2mac, host2port, host2interface);
 
   auto host3mac = MacAddress("fa:ce:b0:0c:22:03");
-  auto host3port = PortID(4);
+  auto host3port = PortDescriptor(PortID(4));
   auto host3interface = InterfaceID(22);
 
   auto ndpTable22 =
       state3->getVlans()->getVlan(host3vlan)->getNdpTable()->modify(
           host3vlan, &state3);
-  ndpTable22->updateEntry(host3ip, host3mac, host3port, host3interface);
+  ndpTable22->updateEntry(
+      host3ip, host3mac, host3port, host3interface);
 
   state3->publish();
 
@@ -427,7 +429,7 @@ TEST(SwitchStatePruningTests, ModifyState) {
 
   auto host1ip = IPAddressV4("10.0.21.1");
   auto host1mac = MacAddress("fa:ce:b0:0c:21:01");
-  auto host1port = PortID(1);
+  auto host1port = PortDescriptor(PortID(1));
   auto host1intf = InterfaceID(21);
   auto host1vlan = VlanID(21);
   // Add host1 (resolved) for vlan21
@@ -470,7 +472,7 @@ TEST(SwitchStatePruningTests, ModifyEmptyArpTable) {
   shared_ptr<SwitchState> state2{state1};
   auto host1ip = IPAddressV4("10.0.21.1");
   auto host1mac = MacAddress("fa:ce:b0:0c:21:01");
-  auto host1port = PortID(1);
+  auto host1port = PortDescriptor(PortID(1));
   auto host1intf = InterfaceID(21);
   auto host1vlan = VlanID(21);
   // Old arp table
@@ -526,7 +528,7 @@ TEST(SwitchStatePruningTests, ModifyArpTableMultipleTimes) {
 
   auto host1ip = IPAddressV4("10.0.21.1");
   auto host1mac = MacAddress("fa:ce:b0:0c:21:01");
-  auto host1port = PortID(1);
+  auto host1port = PortDescriptor(PortID(1));
   auto host1intf = InterfaceID(21);
   auto host1vlan = VlanID(21);
   auto arp1 = state1->getVlans()->getVlan(host1vlan)->getArpTable();
@@ -555,7 +557,7 @@ TEST(SwitchStatePruningTests, ModifyArpTableMultipleTimes) {
 
   auto host4ip = IPAddressV4("10.0.22.4");
   auto host4mac = MacAddress("fa:ce:b0:0c:22:04");
-  auto host4port = PortID(4);
+  auto host4port = PortDescriptor(PortID(4));
   auto host4intf = InterfaceID(22);
   auto host4vlan = VlanID(22);
   // Make sure the modify function does not change the SwitchState and VlanMap

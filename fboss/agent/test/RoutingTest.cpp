@@ -308,21 +308,45 @@ class RoutingFixture : public ::testing::Test {
       auto* ndpTable2 = vlan2->getNdpTable().get()->modify(&vlan2, &newState);
 
       arpTable1->addEntry(
-          kIPv4NbhAddr1, kNbhMacAddr1, PortID(1), InterfaceID(1));
+          kIPv4NbhAddr1,
+          kNbhMacAddr1,
+          PortDescriptor(PortID(1)),
+          InterfaceID(1));
       arpTable1->addEntry(
-          kllIPv4NbhAddr1, kNbhMacAddr1, PortID(1), InterfaceID(1));
+          kllIPv4NbhAddr1,
+          kNbhMacAddr1,
+          PortDescriptor(PortID(1)),
+          InterfaceID(1));
       arpTable2->addEntry(
-          kIPv4NbhAddr2, kNbhMacAddr2, PortID(2), InterfaceID(2));
+          kIPv4NbhAddr2,
+          kNbhMacAddr2,
+          PortDescriptor(PortID(2)),
+          InterfaceID(2));
       arpTable2->addEntry(
-          kllIPv4NbhAddr2, kNbhMacAddr2, PortID(2), InterfaceID(2));
+          kllIPv4NbhAddr2,
+          kNbhMacAddr2,
+          PortDescriptor(PortID(2)),
+          InterfaceID(2));
       ndpTable1->addEntry(
-          kIPv6NbhAddr1, kNbhMacAddr1, PortID(1), InterfaceID(1));
+          kIPv6NbhAddr1,
+          kNbhMacAddr1,
+          PortDescriptor(PortID(1)),
+          InterfaceID(1));
       ndpTable1->addEntry(
-          kllIPv6NbhAddr, kNbhMacAddr1, PortID(1), InterfaceID(1));
+          kllIPv6NbhAddr,
+          kNbhMacAddr1,
+          PortDescriptor(PortID(1)),
+          InterfaceID(1));
       ndpTable2->addEntry(
-          kIPv6NbhAddr2, kNbhMacAddr2, PortID(2), InterfaceID(2));
+          kIPv6NbhAddr2,
+          kNbhMacAddr2,
+          PortDescriptor(PortID(2)),
+          InterfaceID(2));
       ndpTable2->addEntry(
-          kllIPv6NbhAddr, kNbhMacAddr2, PortID(2), InterfaceID(2));
+          kllIPv6NbhAddr,
+          kNbhMacAddr2,
+          PortDescriptor(PortID(2)),
+          InterfaceID(2));
       // Add some L3 routes as well
       const auto& tables = newState->getRouteTables();
       RouteUpdater ru(tables);
