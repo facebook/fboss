@@ -29,7 +29,7 @@ class Wedge100Platform : public WedgePlatform {
   void onHwInitialized(SwSwitch* sw) override;
   void onUnitAttach(int unit) override;
 
-  bool isBufferStatsCollectionSupported() const {
+  bool isBufferStatsCollectionSupported() const override {
     return true;
   }
 
