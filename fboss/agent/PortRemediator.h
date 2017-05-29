@@ -10,8 +10,6 @@
 
 #pragma once
 
-#include <boost/container/flat_set.hpp>
-
 #include <chrono>
 #include <folly/io/async/AsyncTimeout.h>
 
@@ -39,12 +37,7 @@ class PortRemediator : private folly::AsyncTimeout {
   void timeoutExpired() noexcept override;
 
  private:
-  void updatePortState(
-      const boost::container::flat_set<PortID>& ports,
-      cfg::PortState newPortState,
-      bool preventCoalescing);
-  boost::container::flat_set<PortID> getUnexpectedDownPorts()
-      const;
+  void updatePortState(cfg::PortState newPortState);
   SwSwitch* sw_;
   std::chrono::seconds interval_;
 };
