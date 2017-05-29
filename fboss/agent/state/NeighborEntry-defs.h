@@ -10,6 +10,8 @@
 #pragma once
 
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/types.h"
 
 namespace facebook { namespace fboss {
 

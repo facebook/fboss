@@ -983,6 +983,28 @@ void BcmSwitch::processNeighborEntryDelta(const DELTA& delta) {
     vrf = getBcmVrfId(intf->getInterface()->getRouterID());
   };
 
+  auto wasTrunk = oldEntry &&
+      oldEntry->getPort().type() == PortDescriptor::PortType::AGGREGATE;
+  auto isTrunk = newEntry &&
+      newEntry->getPort().type() == PortDescriptor::PortType::AGGREGATE;
+
+  auto program = [&](std::string op, BcmHost* host) {
+    VLOG(3) << op << (isTrunk ? " trunk" : "") << " neighbor entry "
+            << newEntry->getIP().str() << " to "
+            << newEntry->getMac().toString();
+
+    if (isTrunk) {
+      LOG(WARNING)
+          << "Neighbor-entry delta processing for trunk ports unimplemented";
+    } else {
+      auto port = newEntry->getPort().phyPortID();
+      host->program(
+          intf->getBcmIfId(),
+          newEntry->getMac(),
+          getPortTable()->getBcmPortId(port));
+    }
+  };
+
   if (!oldEntry) {
     getIntfAndVrf(newEntry->getIntfID());
     auto host = hostTable_->incRefOrCreateBcmHost(
@@ -992,13 +1014,7 @@ void BcmSwitch::processNeighborEntryDelta(const DELTA& delta) {
       VLOG(3) << "adding pending neighbor entry to " << newEntry->getIP().str();
       host->programToCPU(intf->getBcmIfId());
     } else {
-      VLOG(3) << "adding neighbor entry " << newEntry->getIP().str()
-              << " to " << newEntry->getMac().toString();
-      host->program(
-          intf->getBcmIfId(),
-          newEntry->getMac(),
-          getPortTable()->getBcmPortId(
-              newEntry->getPort().getPhysicalPortOrThrow()));
+      program("adding", host);
     }
   } else if (!newEntry) {
     VLOG(3) << "deleting neighbor entry " << oldEntry->getIP().str();
@@ -1009,18 +1025,14 @@ void BcmSwitch::processNeighborEntryDelta(const DELTA& delta) {
     }
   } else {
     CHECK_EQ(oldEntry->getIP(), newEntry->getIP());
-    VLOG(3) << "changing neighbor entry " << oldEntry->getIP().str()
-            << " to " << newEntry->getMac().toString();
     getIntfAndVrf(newEntry->getIntfID());
     auto host = hostTable_->getBcmHost(vrf, IPAddress(newEntry->getIP()));
     if (newEntry->isPending()) {
+      VLOG(3) << "changing neighbor entry " << oldEntry->getIP().str()
+              << " to pending";
       host->programToCPU(intf->getBcmIfId());
     } else {
-      host->program(
-          intf->getBcmIfId(),
-          newEntry->getMac(),
-          getPortTable()->getBcmPortId(
-              newEntry->getPort().getPhysicalPortOrThrow()));
+      program("changing", host);
     }
   }
 }

@@ -32,6 +32,7 @@
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUpdateHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -819,13 +820,13 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     ethertype = c.readBE<uint16_t>();
   }
 
-  VLOG(5) << "trapped packet: src_port=" << pkt->getSrcPort() <<
-    " vlan=" << pkt->getSrcVlan() <<
-    " length=" << len <<
-    " src=" << srcMac <<
-    " dst=" << dstMac <<
-    " ethertype=0x" << std::hex << ethertype <<
-    " :: " << pkt->describeDetails();
+  VLOG(5) << "trapped packet: src_port=" << pkt->getSrcPort() << " srcAggPort="
+          << (pkt->isFromAggregatePort()
+                  ? folly::to<string>(pkt->getSrcAggregatePort())
+                  : "None")
+          << " vlan=" << pkt->getSrcVlan() << " length=" << len
+          << " src=" << srcMac << " dst=" << dstMac << " ethertype=0x"
+          << std::hex << ethertype << " :: " << pkt->describeDetails();
 
   switch (ethertype) {
   case ArpHandler::ETHERTYPE_ARP:
@@ -956,6 +957,40 @@ void SwSwitch::sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
     // background.
     LOG(ERROR) << "failed to send packet out port " << portID;
   }
+}
+
+void SwSwitch::sendPacketOutOfPort(
+    std::unique_ptr<TxPacket> pkt,
+    AggregatePortID aggPortID) noexcept {
+  auto aggPort = getState()->getAggregatePorts()->getAggregatePortIf(aggPortID);
+  if (!aggPort) {
+    LOG(ERROR) << "failed to send packet out aggregate port " << aggPortID
+               << ": no aggregate port corresponding to identifier";
+    return;
+  }
+
+  auto subports = aggPort->sortedSubports();
+  if (subports.begin() == subports.end()) {
+    LOG(ERROR) << "failed to send packet out aggregate port " << aggPortID
+               << ": aggregate port has no constituent physical ports";
+    return;
+  }
+
+  // Ideally, we would select the same (physical) sub-port to send this
+  // packet out of as the ASIC. This could be accomplished by mimicking the
+  // hardware's logic for doing so, which would for the most part entail
+  // computing a hash of the appropriate header fields. Considering the
+  // small number of packets that will be forwarded via this path, the added
+  // complexity hardly seems worth it.
+  // Instead, we simply always choose to send the packet out of the first
+  // (physical) sub-port belonging to the aggregate port at hand. This scheme
+  // will avoid any issues related to packet reordering. Of course, this
+  // will increase the load on the first physical sub-port of each aggregate
+  // port, but this imbalance should be negligible.
+  auto out = *subports.begin();
+
+  // TODO(samank): Add logic to skip over down ports
+  sendPacketOutOfPort(std::move(pkt), out);
 }
 
 void SwSwitch::sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept {
@@ -1139,7 +1174,17 @@ void SwSwitch::sendL3Packet(
     if (sendAsSwitched) {
       sendPacketSwitched(std::move(pkt));
     } else {
-      sendPacketOutOfPort(std::move(pkt), outPort.getPhysicalPortOrThrow());
+      switch (outPort.type()) {
+        case PortDescriptor::PortType::PHYSICAL:
+          sendPacketOutOfPort(std::move(pkt), outPort.phyPortID());
+          break;
+        case PortDescriptor::PortType::AGGREGATE:
+          sendPacketOutOfPort(std::move(pkt), outPort.aggPortID());
+          break;
+        default:
+          LOG(FATAL) << "PortDescriptor matching not exhaustive";
+      }
+
     }
   } catch (const std::exception& ex) {
     LOG(ERROR) << "Failed to send out L3 packet :"

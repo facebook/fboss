@@ -389,12 +389,14 @@ void IPv6Handler::handleNeighborSolicitation(unique_ptr<RxPacket> pkt,
   auto entry = vlan->getNdpResponseTable()->getEntry(targetIP);
   if (!entry) {
     updater->receivedNdpNotMine(vlan->getID(), hdr.ipv6->srcAddr, hdr.src,
-                                pkt->getSrcPort(), type, 0);
+                                PortDescriptor::fromRxPacket(*pkt.get()),
+                                type, 0);
     return;
   }
 
   updater->receivedNdpMine(vlan->getID(), hdr.ipv6->srcAddr, hdr.src,
-                           pkt->getSrcPort(), type, 0);
+                           PortDescriptor::fromRxPacket(*pkt.get()),
+                           type, 0);
 
   // TODO: It might be nice to support duplicate address detection, and track
   // whether our IP is tentative or not.
@@ -464,12 +466,14 @@ void IPv6Handler::handleNeighborAdvertisement(unique_ptr<RxPacket> pkt,
   auto entry = vlan->getNdpResponseTable()->getEntry(hdr.ipv6->dstAddr);
   if (!entry) {
     updater->receivedNdpNotMine(vlan->getID(), targetIP, hdr.src,
-                                pkt->getSrcPort(), type, flags);
+                                PortDescriptor::fromRxPacket(*pkt.get()),
+                                type, flags);
     return;
   }
 
   updater->receivedNdpMine(vlan->getID(), targetIP, hdr.src,
-                           pkt->getSrcPort(), type, flags);
+                           PortDescriptor::fromRxPacket(*pkt.get()),
+                           type, flags);
 }
 
 

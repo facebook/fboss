@@ -184,10 +184,10 @@ void NeighborCacheImpl<NTable>::repopulate(std::shared_ptr<NTable> table) {
 template <typename NTable>
 void NeighborCacheImpl<NTable>::setEntry(AddressType ip,
                                          folly::MacAddress mac,
-                                         PortID portID,
+                                         PortDescriptor port,
                                          NeighborEntryState state) {
   auto entry = setEntryInternal(
-      EntryFields(ip, mac, PortDescriptor(portID), intfID_), state);
+    EntryFields(ip, mac, port, intfID_), state);
   if (entry) {
     programEntry(entry);
   }
@@ -196,10 +196,10 @@ void NeighborCacheImpl<NTable>::setEntry(AddressType ip,
 template <typename NTable>
 void NeighborCacheImpl<NTable>::setExistingEntry(AddressType ip,
                                                  folly::MacAddress mac,
-                                                 PortID portID,
+                                                 PortDescriptor port,
                                                  NeighborEntryState state) {
   auto entry = setEntryInternal(
-      EntryFields(ip, mac, PortDescriptor(portID), intfID_), state, false);
+    EntryFields(ip, mac, port, intfID_), state, false);
   if (entry) {
     // only program an entry if one exists
     programEntry(entry);

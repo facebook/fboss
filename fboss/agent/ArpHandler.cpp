@@ -24,6 +24,7 @@
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/ArpResponseTable.h"
+#include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -115,13 +116,15 @@ void ArpHandler::handlePacket(unique_ptr<RxPacket> pkt,
             << " on vlan " << pkt->getSrcVlan();
     stats->port(port)->arpNotMine();
 
-    updater->receivedArpNotMine(vlan->getID(), senderIP, senderMac, port, op);
+    updater->receivedArpNotMine(vlan->getID(), senderIP, senderMac,
+                                PortDescriptor::fromRxPacket(*pkt.get()), op);
     return;
   }
 
   // This ARP packet is destined to us.
   // Update the sender IP --> sender MAC entry in the ARP table.
-  updater->receivedArpMine(vlan->getID(), senderIP, senderMac, port, op);
+  updater->receivedArpMine(vlan->getID(), senderIP, senderMac,
+                           PortDescriptor::fromRxPacket(*pkt.get()), op);
 
   // Send a reply if this is an ARP request.
   if (op == ARP_OP_REQUEST) {

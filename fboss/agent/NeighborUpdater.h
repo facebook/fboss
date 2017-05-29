@@ -14,6 +14,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/agent/ArpCache.h"
 #include "fboss/agent/NdpCache.h"
+#include "fboss/agent/state/PortDescriptor.h"
 #include <list>
 #include <mutex>
 #include <string>
@@ -57,13 +58,13 @@ class NeighborUpdater : public AutoRegisterStateObserver {
   void receivedNdpMine(VlanID vlan,
                        folly::IPAddressV6 ip,
                        folly::MacAddress mac,
-                       PortID port,
+                       PortDescriptor port,
                        ICMPv6Type type,
                        uint32_t flags);
   void receivedNdpNotMine(VlanID vlan,
                           folly::IPAddressV6 ip,
                           folly::MacAddress mac,
-                          PortID port,
+                          PortDescriptor port,
                           ICMPv6Type type,
                           uint32_t flags);
 
@@ -73,12 +74,12 @@ class NeighborUpdater : public AutoRegisterStateObserver {
   void receivedArpMine(VlanID vlan,
                        folly::IPAddressV4 ip,
                        folly::MacAddress mac,
-                       PortID port,
+                       PortDescriptor port,
                        ArpOpCode op);
   void receivedArpNotMine(VlanID vlan,
                           folly::IPAddressV4 ip,
                           folly::MacAddress mac,
-                          PortID port,
+                          PortDescriptor port,
                           ArpOpCode op);
 
   void portDown(PortID port);

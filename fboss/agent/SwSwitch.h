@@ -417,6 +417,9 @@ class SwSwitch : public HwSwitch::Callback {
   void sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
                            PortID portID) noexcept;
 
+  void sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
+                           AggregatePortID aggPortID) noexcept;
+
   /*
    * Send a packet, using switching logic to send it out the correct port(s)
    * for the specified VLAN and destination MAC.

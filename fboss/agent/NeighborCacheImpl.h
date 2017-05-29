@@ -14,6 +14,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/agent/NeighborCacheEntry.h"
 #include "fboss/agent/state/NeighborEntry.h"
+#include "fboss/agent/state/PortDescriptor.h"
 
 #include <chrono>
 #include <folly/MacAddress.h>
@@ -68,12 +69,12 @@ class NeighborCacheImpl {
 
   void setExistingEntry(AddressType ip,
                         folly::MacAddress mac,
-                        PortID port,
+                        PortDescriptor port,
                         NeighborEntryState state);
 
   void setEntry(AddressType ip,
                 folly::MacAddress mac,
-                PortID port,
+                PortDescriptor port,
                 NeighborEntryState state);
 
   void updateEntryState(AddressType ip,

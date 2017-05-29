@@ -124,7 +124,7 @@ void NeighborUpdater::sentNeighborSolicitation(VlanID vlan,
 void NeighborUpdater::receivedNdpMine(VlanID vlan,
                                       IPAddressV6 ip,
                                       MacAddress mac,
-                                      PortID port,
+                                      PortDescriptor port,
                                       ICMPv6Type type,
                                       uint32_t flags) {
   auto cache = getNdpCacheFor(vlan);
@@ -134,7 +134,7 @@ void NeighborUpdater::receivedNdpMine(VlanID vlan,
 void NeighborUpdater::receivedNdpNotMine(VlanID vlan,
                                          IPAddressV6 ip,
                                          MacAddress mac,
-                                         PortID port,
+                                         PortDescriptor port,
                                          ICMPv6Type type,
                                          uint32_t flags) {
   auto cache = getNdpCacheFor(vlan);
@@ -150,7 +150,7 @@ void NeighborUpdater::sentArpRequest(VlanID vlan,
 void NeighborUpdater::receivedArpMine(VlanID vlan,
                                       IPAddressV4 ip,
                                       MacAddress mac,
-                                      PortID port,
+                                      PortDescriptor port,
                                       ArpOpCode op) {
   auto cache = getArpCacheFor(vlan);
   cache->receivedArpMine(ip, mac, port, op);
@@ -159,7 +159,7 @@ void NeighborUpdater::receivedArpMine(VlanID vlan,
 void NeighborUpdater::receivedArpNotMine(VlanID vlan,
                                          IPAddressV4 ip,
                                          MacAddress mac,
-                                         PortID port,
+                                         PortDescriptor port,
                                          ArpOpCode op) {
   auto cache = getArpCacheFor(vlan);
   cache->receivedArpNotMine(ip, mac, port, op);

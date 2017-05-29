@@ -30,7 +30,7 @@ void ArpCache::sentArpRequest(folly::IPAddressV4 ip) {
 
 void ArpCache::receivedArpMine(folly::IPAddressV4 ip,
                                folly::MacAddress mac,
-                               PortID port,
+                               PortDescriptor port,
                                ArpOpCode op) {
   // always set an entry, even if the reply was unsolicited
   setEntry(ip, mac, port, NeighborEntryState::REACHABLE);
@@ -38,7 +38,7 @@ void ArpCache::receivedArpMine(folly::IPAddressV4 ip,
 
 void ArpCache::receivedArpNotMine(folly::IPAddressV4 ip,
                                   folly::MacAddress mac,
-                                  PortID port,
+                                  PortDescriptor port,
                                   ArpOpCode op) {
   // Update the sender IP --> sender MAC entry in our ARP table
   // only if it already exists.

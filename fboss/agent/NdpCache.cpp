@@ -32,7 +32,7 @@ void NdpCache::sentNeighborSolicitation(folly::IPAddressV6 ip) {
 
 void NdpCache::receivedNdpMine(folly::IPAddressV6 ip,
                                folly::MacAddress mac,
-                               PortID port,
+                               PortDescriptor port,
                                ICMPv6Type type,
                                uint32_t flags) {
   bool override = flags & ND_NA_FLAG_OVERRIDE;
@@ -70,11 +70,11 @@ void NdpCache::receivedNdpMine(folly::IPAddressV6 ip,
   }
 }
 
-void NdpCache::receivedNdpNotMine(folly::IPAddressV6 ip,
-                                  folly::MacAddress mac,
-                                  PortID port,
-                                  ICMPv6Type type,
-                                  uint32_t flags) {
+void NdpCache::receivedNdpNotMine(folly::IPAddressV6 /* ip */,
+                                  folly::MacAddress /* mac */,
+                                  PortDescriptor /* port */,
+                                  ICMPv6Type /* type */,
+                                  uint32_t /* flags */) {
   // Note that ARP updates the forward entry mapping here if necessary.
   // We could potentially do the same here, although the IPv6 NDP RFC
   // doesn't appear to recommend this--it states that we MUST silently

@@ -12,6 +12,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/NeighborCache.h"
 #include "fboss/agent/types.h"
+#include "fboss/agent/state/PortDescriptor.h"
 
 #include <folly/MacAddress.h>
 #include <folly/IPAddressV4.h>
@@ -30,11 +31,11 @@ class ArpCache : public NeighborCache<ArpTable> {
   void sentArpRequest(folly::IPAddressV4 ip);
   void receivedArpMine(folly::IPAddressV4 ip,
                        folly::MacAddress mac,
-                       PortID port,
+                       PortDescriptor port,
                        ArpOpCode op);
   void receivedArpNotMine(folly::IPAddressV4 ip,
                           folly::MacAddress mac,
-                          PortID port,
+                          PortDescriptor port,
                           ArpOpCode op);
 
   void probeFor(folly::IPAddressV4 ip) const override;

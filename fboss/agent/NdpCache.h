@@ -12,6 +12,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/NeighborCache.h"
 #include "fboss/agent/types.h"
+#include "fboss/agent/state/PortDescriptor.h"
 
 #include <folly/MacAddress.h>
 #include <folly/IPAddressV6.h>
@@ -30,12 +31,12 @@ class NdpCache : public NeighborCache<NdpTable> {
   void sentNeighborSolicitation(folly::IPAddressV6 ip);
   void receivedNdpMine(folly::IPAddressV6 ip,
                        folly::MacAddress mac,
-                       PortID port,
+                       PortDescriptor port,
                        ICMPv6Type type,
                        uint32_t flags);
   void receivedNdpNotMine(folly::IPAddressV6 ip,
                           folly::MacAddress mac,
-                          PortID port,
+                          PortDescriptor port,
                           ICMPv6Type type,
                           uint32_t flags);
 

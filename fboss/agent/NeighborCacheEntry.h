@@ -14,6 +14,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/NeighborEntry.h"
+#include "fboss/agent/state/PortDescriptor.h"
 
 #include <chrono>
 #include <folly/MacAddress.h>
@@ -97,7 +98,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
 
   NeighborCacheEntry(AddressType ip,
                      folly::MacAddress mac,
-                     PortID port,
+                     PortDescriptor port,
                      InterfaceID intf,
                      folly::EventBase* evb,
                      Cache* cache,
