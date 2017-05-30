@@ -577,9 +577,6 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   ret.bootTime =
     duration_cast<duration<float>>(steady_clock::now() - begin).count();
-  if (platform_->isBufferStatsCollectionSupported()) {
-    startBufferStatCollection();
-  }
   return ret;
 }
 
@@ -1275,6 +1272,7 @@ bool BcmSwitch::startFineGrainedBufferStatLogging() {
 }
 
 bool BcmSwitch::stopFineGrainedBufferStatLogging() {
+  stopBufferStatCollection();
   fineGrainedBufferStatsEnabled_ = false;
   return !fineGrainedBufferStatsEnabled_;
 }
