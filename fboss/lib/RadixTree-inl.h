@@ -38,6 +38,9 @@ const typename RadixTree<IPADDRTYPE, T, TreeTraits>::TreeNode*
 RadixTree<IPADDRTYPE, T, TreeTraits>::longestMatchImpl(const IPADDRTYPE& ipaddr,
     uint8_t masklen, bool& foundExact, bool includeNonValueNodes,
     VecConstIterators* trail) const {
+  // Can't trust the clients to have 0s in all bits after mask length
+  const auto toMatch = ipaddr.mask(masklen);
+
   // Track parent pointer. This is done rather than relying
   // on node having a parent pointer always, to have the longest
   // match code be shared with implementations which don't
@@ -47,7 +50,7 @@ RadixTree<IPADDRTYPE, T, TreeTraits>::longestMatchImpl(const IPADDRTYPE& ipaddr,
   auto curNode = root_.get();
   auto done = false;
   while (curNode && !done) {
-    auto searchDirection = curNode->searchDirection(ipaddr, masklen);
+    auto searchDirection = curNode->searchDirection(toMatch, masklen);
     switch (searchDirection) {
       case TreeDirection::THIS_NODE:
         trailAppend(trail, includeNonValueNodes, curNode);
