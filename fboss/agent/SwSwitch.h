@@ -192,7 +192,7 @@ class SwSwitch : public HwSwitch::Callback {
    * object to modify.  It should return a new SwitchState object, or null if
    * it decides that no update needs to be performed.
    *
-   * Note that the update function will not be called immediately--it wil be
+   * Note that the update function will not be called immediately--it will be
    * invoked later from the update thread.  Therefore if you supply a lambda
    * with bound arguments, make sure that any bound arguments will still be
    * valid later when the function is invoked.  (e.g., Don't capture local

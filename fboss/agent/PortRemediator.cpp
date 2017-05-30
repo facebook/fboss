@@ -13,58 +13,76 @@
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include <set>
-
 namespace {
 constexpr int kPortRemedyIntervalSec = 25;
 }
 
 namespace facebook { namespace fboss {
 
-void PortRemediator::updatePortState(cfg::PortState newPortState) {
+void PortRemediator::updatePortState(
+    const boost::container::flat_set<PortID>& portIds,
+    cfg::PortState newPortState,
+    bool preventCoalescing) {
+  if (portIds.empty()) {
+    return;
+  }
+  auto updateFn =
+      [=](const std::shared_ptr<SwitchState>& state) {
+        std::shared_ptr<SwitchState> newState{state};
+        auto portMap = state->getPorts();
+        for (const auto& portId : portIds) {
+          auto port = portMap->getPortIf(portId);
+          if (!port) {
+            continue;
+          }
+          const auto newPort = port->modify(&newState);
+          newPort->setState(newPortState);
+        }
+        return newState;
+      };
+  auto name = folly::sformat(
+      "PortRemediator: flap {} down but enabled ports ({})",
+      portIds.size(),
+      newPortState == cfg::PortState::UP ? "up" : "down");
+  if (preventCoalescing) {
+    sw_->updateStateNoCoalescing(name, updateFn);
+  } else {
+    sw_->updateState(name, updateFn);
+  }
+}
+
+boost::container::flat_set<PortID>
+PortRemediator::getUnexpectedDownPorts() const {
   // TODO - Post t17304538, if Port::state == POWER_DOWN reflects
   // Admin down always, then just use SwitchState to to determine
   // which ports to ignore.
-  std::set<int> configEnabledPorts;
+  boost::container::flat_set<PortID> unexpectedDownPorts;
+  boost::container::flat_set<int> configEnabledPorts;
   for (const auto& cfgPort : sw_->getConfig().ports) {
     if (cfgPort.state != cfg::PortState::POWER_DOWN &&
         cfgPort.state != cfg::PortState::DOWN) {
       configEnabledPorts.insert(cfgPort.logicalID);
     }
   }
-  const auto ports = sw_->getState()->getPorts();
-  // Does port need to be flapped
-  auto portNeedsUpdate = [&configEnabledPorts](
-      const std::shared_ptr<Port>& port) {
+  const auto portMap = sw_->getState()->getPorts();
+  for (const auto& port : *portMap) {
     if (port &&
-        configEnabledPorts.find(port->getID()) != configEnabledPorts.end()) {
-      return !port->getOperState();
-    }
-    return false;
-  };
-  auto updateFn = [=](const std::shared_ptr<SwitchState>& state) {
-    std::shared_ptr<SwitchState> newState{state};
-
-    for (int i = 1; i < ports->numPorts(); i++) {
-      const auto port = ports->getPortIf(PortID(i));
-      if (portNeedsUpdate(port)) {
-        const auto newPort = port->modify(&newState);
-        newPort->setState(newPortState);
-      }
-    }
-    return newState;
-  };
-  for (int i = 1; i < ports->numPorts(); ++i) {
-    if (portNeedsUpdate(ports->getPortIf(PortID(i)))) {
-      sw_->updateStateBlocking("PortRemediator: flap port", updateFn);
-      return;
+        configEnabledPorts.find(port->getID()) != configEnabledPorts.end() &&
+        !(port->getOperState())) {
+      unexpectedDownPorts.insert(port->getID());
     }
   }
+  return unexpectedDownPorts;
 }
 
 void PortRemediator::timeoutExpired() noexcept {
-  updatePortState(cfg::PortState::DOWN);
-  updatePortState(cfg::PortState::UP);
+  auto unexpectedDownPorts = getUnexpectedDownPorts();
+  if (!unexpectedDownPorts.empty()) {
+    // First update cannot use coalescing or else the port
+    // won't actually flap
+    updatePortState(unexpectedDownPorts, cfg::PortState::DOWN, true);
+    updatePortState(unexpectedDownPorts, cfg::PortState::UP, false);
+  }
   scheduleTimeout(interval_);
 }
 
