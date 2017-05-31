@@ -272,7 +272,7 @@ struct Interface {
   * this flag is set to true if we need to
   * disable auto-state feature for SVI
   */
-  10: optional bool disableStateSync = 0
+  10: optional bool isStateSyncDisabled = 0
 }
 
 struct StaticRouteWithNextHops {
