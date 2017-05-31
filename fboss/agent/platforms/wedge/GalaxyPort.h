@@ -20,8 +20,9 @@ class GalaxyPort : public WedgePort {
   GalaxyPort(PortID id,
              WedgePlatform* platform,
              folly::Optional<TransceiverID> frontPanelPort,
-             folly::Optional<ChannelID> channel) :
-      WedgePort(id, platform, frontPanelPort, channel) {}
+             folly::Optional<ChannelID> channel,
+             const XPEs& egressXPEs) :
+      WedgePort(id, platform, frontPanelPort, channel, egressXPEs) {}
 
   LaneSpeeds supportedLaneSpeeds() const override {
     LaneSpeeds speeds;

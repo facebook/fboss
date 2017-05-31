@@ -22,31 +22,44 @@ namespace facebook { namespace fboss {
 /*
  * This class begins encapsulating all port mapping logic in a more
  * organized manner. The main mechanism for this is the
- * PortTransceiverMap type that we pass in to the constructor. This
+ * Port2TransceiverAndXPEs type that we pass in to the constructor. This
  * map defines every quad in the system (set of 4 contiguous related
  * ports that share a SerDes), and the corresponding front panel port
  * (TransceiverID) if it exists. If a quad is a backplane port and is
  * not associated w/ any transceiver, the value should be nullptr.
  */
+
+struct TransceiverAndXPEs {
+  TransceiverAndXPEs(
+      folly::Optional<TransceiverID> _transceiver,
+      const BcmPlatformPort::XPEs&  _egressXPEs)
+      : transceiver(std::move(_transceiver)),
+        egressXPEs(_egressXPEs) {}
+
+  folly::Optional<TransceiverID> transceiver;
+  BcmPlatformPort::XPEs egressXPEs;
+};
+
 class WedgePortMapping {
  public:
   enum : uint8_t { CHANNELS_IN_QSFP = 4 };
 
-  typedef std::map<PortID, folly::Optional<TransceiverID>> PortTransceiverMap;
+  typedef std::map<PortID, TransceiverAndXPEs> Port2TransceiverAndXPEs;
   typedef boost::container::flat_map<
     PortID, std::unique_ptr<WedgePort>>::iterator MappingIterator;
   typedef boost::container::flat_map<
     PortID, std::unique_ptr<WedgePort>>::const_iterator ConstMappingIterator;
+  using XPEs = BcmPlatformPort::XPEs;
 
   explicit WedgePortMapping(WedgePlatform* platform) : platform_(platform) {}
   virtual ~WedgePortMapping() = default;
 
   template<typename MappingT>
   static std::unique_ptr<WedgePortMapping> create(
-      WedgePlatform* platform, const PortTransceiverMap& portMapping) {
+      WedgePlatform* platform, const Port2TransceiverAndXPEs& portMapping) {
     auto mapping = std::make_unique<MappingT>(platform);
     for (auto& kv : portMapping) {
-      mapping->addQuad(kv.first, kv.second);
+      mapping->addQuad(kv.first, kv.second.egressXPEs, kv.second.transceiver);
     }
     return std::move(mapping);
   }
@@ -86,7 +99,8 @@ class WedgePortMapping {
   virtual std::unique_ptr<WedgePort> constructPort (
     const PortID port,
     const folly::Optional<TransceiverID>,
-    const folly::Optional<ChannelID>) const = 0;
+    const folly::Optional<ChannelID>,
+    const XPEs&) const = 0;
 
   /* Helper to add four associated ports to the port
    * mapping. Optionally specify a front panel port mapping if this
@@ -95,6 +109,7 @@ class WedgePortMapping {
    */
   void addQuad(
       const PortID start,
+      const XPEs& egressXPEs,
       const folly::Optional<TransceiverID> frontPanel = folly::none) {
     for (int num = 0; num < CHANNELS_IN_QSFP; ++num) {
       folly::Optional<ChannelID> channel;
@@ -102,7 +117,7 @@ class WedgePortMapping {
         channel = ChannelID(num);
       }
       PortID id(start + num);
-      ports_[id] = constructPort(id, frontPanel, channel);
+      ports_[id] = constructPort(id, frontPanel, channel, egressXPEs);
     }
     if (frontPanel) {
       // register the controlling port in the transceiver map
@@ -124,8 +139,10 @@ class WedgePortMappingT : public WedgePortMapping {
   std::unique_ptr<WedgePort> constructPort(
       PortID port,
       folly::Optional<TransceiverID> transceiver,
-      folly::Optional<ChannelID> channel) const override {
-    return std::make_unique<WedgePortT>(port, platform_, transceiver, channel);
+      folly::Optional<ChannelID> channel,
+      const XPEs& egressXPEs) const override {
+    return std::make_unique<WedgePortT>(
+        port, platform_, transceiver, channel, egressXPEs);
   }
 
 };

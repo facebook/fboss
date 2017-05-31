@@ -23,7 +23,8 @@ class WedgePort : public BcmPlatformPort {
   WedgePort(PortID id,
             WedgePlatform* platform,
             folly::Optional<TransceiverID> frontPanelPort,
-            folly::Optional<ChannelID> channel);
+            folly::Optional<ChannelID> channel,
+            const XPEs& egressXPEs);
 
  public:
   PortID getPortID() const override { return id_; }
