@@ -60,7 +60,8 @@ unique_ptr<SwSwitch> setupSwitch() {
         "interface1",
         MacAddress("02:00:01:00:00:01"),
         9000,
-        false /* is virtual */);
+        false, /* is virtual */
+        false  /* is state_sync disabled*/);
     Interface::Addresses addrs1;
     addrs1.emplace(IPAddress("10.0.0.1"), 24);
     addrs1.emplace(IPAddress("192.168.0.1"), 24);

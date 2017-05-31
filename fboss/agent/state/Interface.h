@@ -33,14 +33,16 @@ struct InterfaceFields {
       folly::StringPiece name,
       folly::MacAddress mac,
       int mtu,
-      bool isVirtual)
+      bool isVirtual,
+      bool isStateSyncDisabled)
       : id(id),
         routerID(router),
         vlanID(vlan),
         name(name.data(), name.size()),
         mac(mac),
         mtu(mtu),
-        isVirtual(isVirtual) {}
+        isVirtual(isVirtual),
+        isStateSyncDisabled(isStateSyncDisabled) {}
 
   /*
    * Deserialize from a folly::dynamic object
@@ -63,6 +65,7 @@ struct InterfaceFields {
   cfg::NdpConfig ndp;
   int mtu;
   bool isVirtual{false};
+  bool isStateSyncDisabled{false};
 };
 
 /*
@@ -79,8 +82,10 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
       folly::StringPiece name,
       folly::MacAddress mac,
       int mtu,
-      bool isVirtual)
-      : NodeBaseT(id, router, vlan, name, mac, mtu, isVirtual) {}
+      bool isVirtual,
+      bool isStateSyncDisabled)
+      : NodeBaseT(id, router, vlan, name, mac, mtu, isVirtual,
+                  isStateSyncDisabled) {}
 
   static std::shared_ptr<Interface>
   fromFollyDynamic(const folly::dynamic& json) {
@@ -141,6 +146,13 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
   }
   void setIsVirtual(bool isVirtual) {
     writableFields()->isVirtual = isVirtual;
+  }
+
+  bool isStateSyncDisabled() const {
+    return getFields()->isStateSyncDisabled;
+  }
+  void setIsStateSyncDisabled(bool isStateSyncDisabled) {
+    writableFields()->isStateSyncDisabled = isStateSyncDisabled;
   }
 
   const Addresses& getAddresses() const {

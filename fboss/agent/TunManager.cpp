@@ -554,9 +554,10 @@ boost::container::flat_map<InterfaceID, bool>
 TunManager::getInterfaceStatus(std::shared_ptr<SwitchState> state) {
   boost::container::flat_map<InterfaceID, bool> statusMap;
 
-  // Declare all virtual interfaces as up
+  // Declare all virtual or state_sync disabled interfaces as up
   for (const auto& intfIDToObj : state->getInterfaces()->getAllNodes()) {
-    if (intfIDToObj.second->isVirtual()) {
+    if (intfIDToObj.second->isVirtual() ||
+        intfIDToObj.second->isStateSyncDisabled()) {
       statusMap.emplace(intfIDToObj.first, true);
     }
   }

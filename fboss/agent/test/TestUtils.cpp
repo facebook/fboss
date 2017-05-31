@@ -305,7 +305,8 @@ shared_ptr<SwitchState> testStateA() {
       "interface1",
       MacAddress("00:02:00:00:00:01"),
       9000,
-      false /* is virtual */);
+      false, /* is virtual */
+      false  /* is state_sync disabled */);
   Interface::Addresses addrs1;
   addrs1.emplace(IPAddress("10.0.0.1"), 24);
   addrs1.emplace(IPAddress("192.168.0.1"), 24);
@@ -322,7 +323,8 @@ shared_ptr<SwitchState> testStateA() {
       "interface55",
       MacAddress("00:02:00:00:00:55"),
       9000,
-      false /* is virtual */);
+      false, /* is virtual */
+      false  /* is state_sync disabled */);
   Interface::Addresses addrs55;
   addrs55.emplace(IPAddress("10.0.55.1"), 24);
   addrs55.emplace(IPAddress("192.168.55.1"), 24);
@@ -372,7 +374,8 @@ shared_ptr<SwitchState> testStateB() {
       "interface1",
       MacAddress("00:02:00:00:00:01"),
       9000,
-      false /* is virtual */);
+      false, /* is virtual */
+      false  /* is state_sync disabled */);
   Interface::Addresses addrs1;
   addrs1.emplace(IPAddress("10.0.0.1"), 24);
   addrs1.emplace(IPAddress("192.168.0.1"), 24);

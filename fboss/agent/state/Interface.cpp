@@ -29,6 +29,7 @@ constexpr auto kAddresses = "addresses";
 constexpr auto kNdpConfig = "ndpConfig";
 constexpr auto kMtu = "mtu";
 constexpr auto kIsVirtual = "isVirtual";
+constexpr auto kIsStateSyncDisabled = "isStateSyncDisabled";
 }
 
 namespace facebook { namespace fboss {
@@ -42,7 +43,8 @@ InterfaceFields InterfaceFields::fromFollyDynamic(const folly::dynamic& json) {
         json[kName].asString(),
         MacAddress(json[kMac].asString()),
         json[kMtu].asInt(),
-        json.getDefault(kIsVirtual, false).asBool());
+        json.getDefault(kIsVirtual, false).asBool(),
+        json.getDefault(kIsStateSyncDisabled, false).asBool());
   for (const auto& addr: json[kAddresses]) {
     auto cidr = IPAddress::createNetwork(addr.asString(),
           -1 /*use /32 for v4 and /128 for v6*/,
@@ -63,6 +65,7 @@ folly::dynamic InterfaceFields::toFollyDynamic() const {
   intf[kMac] = to<string>(mac);
   intf[kMtu] = to<string>(mtu);
   intf[kIsVirtual] = to<string>(isVirtual);
+  intf[kIsStateSyncDisabled] = to<string>(isStateSyncDisabled);
   std::vector<folly::dynamic> addresses;
   for (auto const& addrAndMask: addrs) {
     addresses.emplace_back(to<string>(addrAndMask.first) + "/" +
