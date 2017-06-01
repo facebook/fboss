@@ -11,9 +11,9 @@
 
 #include "fboss/agent/hw/BufferStatsLogger.h"
 
-#include <folly/Format.h>
-
 #include <glog/logging.h>
+
+using std::string;
 
 namespace facebook {
 namespace fboss {
@@ -28,10 +28,14 @@ void GlogBufferStatsLogger::logDeviceBufferStat(
 
 void GlogBufferStatsLogger::logPortBufferStat(
     const std::string& portName,
-    Direction dir,
-    uint64_t bytesUsed) {
+    Direction dir, unsigned int cosQ,
+    uint64_t bytesUsed, uint64_t pktsDropeed,
+    const XPEs& xpes) {
   LOG(INFO) << " Port : " << portName << " " << dirStr(dir)
-            << " bytes used : " << bytesUsed;
+            << " cosQ: " << cosQ
+            << " bytes used : " << bytesUsed
+            << " Packets dropped: " <<  pktsDropeed
+            << " XPEs: " << xpeStr(xpes);
 }
 }
 }

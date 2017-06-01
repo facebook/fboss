@@ -26,7 +26,8 @@ class BcmPlatformPort : public PlatformPort {
  public:
   using XPEs = std::vector<unsigned int>;
 
-  explicit BcmPlatformPort(const XPEs& egressXPEs) : egressXPEs_(egressXPEs) {}
+  explicit BcmPlatformPort(const XPEs& egressXPEs)
+      : egressXPEs_(egressXPEs) {}
   BcmPlatformPort(BcmPlatformPort&&) = default;
   BcmPlatformPort& operator=(BcmPlatformPort&&) = default;
 

@@ -9,7 +9,10 @@
  */
 #pragma once
 
+#include <folly/String.h>
 #include <string>
+#include <vector>
+
 
 namespace facebook {
 namespace fboss {
@@ -17,12 +20,17 @@ namespace fboss {
 class BufferStatsLogger {
  public:
   enum class Direction { Ingress, Egress };
+  using XPEs = std::vector<unsigned int>;
+
   virtual ~BufferStatsLogger() {}
   virtual void logDeviceBufferStat(uint64_t bytesUsed, uint64_t bytesMax) = 0;
   virtual void logPortBufferStat(
       const std::string& portName,
       Direction dir,
-      uint64_t bytesUsed) = 0;
+      unsigned int cosQ,
+      uint64_t bytesUsed,
+      uint64_t pktsDropped,
+      const XPEs& xpes) = 0;
   static std::string dirStr(Direction dir) {
     switch (dir) {
       case Direction::Ingress:
@@ -32,6 +40,9 @@ class BufferStatsLogger {
     }
     return "Unknown";
   }
+  std::string xpeStr(const XPEs& xpes) const {
+    return folly::join(",", xpes);
+  }
 };
 
 class GlogBufferStatsLogger : public BufferStatsLogger {
@@ -39,7 +50,11 @@ class GlogBufferStatsLogger : public BufferStatsLogger {
   void logDeviceBufferStat(uint64_t bytesUsed, uint64_t bytesMax) override;
   void logPortBufferStat(
       const std::string& portName,
-      Direction dir, uint64_t bytesUsed) override;
+      Direction dir,
+      unsigned int cosQ,
+      uint64_t bytesUsed,
+      uint64_t pktsDropped,
+      const XPEs& xpes) override;
 };
 }
 }
