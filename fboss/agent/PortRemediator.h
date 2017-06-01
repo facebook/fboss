@@ -40,7 +40,7 @@ class PortRemediator : private folly::AsyncTimeout {
 
  private:
   void updatePortState(
-      const boost::container::flat_set<PortID>& ports,
+      PortID portId,
       cfg::PortState newPortState,
       bool preventCoalescing);
   boost::container::flat_set<PortID> getUnexpectedDownPorts()

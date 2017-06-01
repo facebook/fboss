@@ -20,29 +20,25 @@ constexpr int kPortRemedyIntervalSec = 25;
 namespace facebook { namespace fboss {
 
 void PortRemediator::updatePortState(
-    const boost::container::flat_set<PortID>& portIds,
+    PortID portId,
     cfg::PortState newPortState,
     bool preventCoalescing) {
-  if (portIds.empty()) {
-    return;
-  }
   auto updateFn =
       [=](const std::shared_ptr<SwitchState>& state) {
         std::shared_ptr<SwitchState> newState{state};
-        auto portMap = state->getPorts();
-        for (const auto& portId : portIds) {
-          auto port = portMap->getPortIf(portId);
-          if (!port) {
-            continue;
-          }
-          const auto newPort = port->modify(&newState);
-          newPort->setState(newPortState);
+        auto port = state->getPorts()->getPortIf(portId);
+        if (!port) {
+          LOG(WARNING) << "Could not flap port " << portId
+                       << " not found in port map";
+          return newState;
         }
+        const auto newPort = port->modify(&newState);
+        newPort->setState(newPortState);
         return newState;
       };
   auto name = folly::sformat(
-      "PortRemediator: flap {} down but enabled ports ({})",
-      portIds.size(),
+      "PortRemediator: flap down but enabled port {} ({})",
+      static_cast<uint16_t>(portId),
       newPortState == cfg::PortState::UP ? "up" : "down");
   if (preventCoalescing) {
     sw_->updateStateNoCoalescing(name, updateFn);
@@ -77,11 +73,9 @@ PortRemediator::getUnexpectedDownPorts() const {
 
 void PortRemediator::timeoutExpired() noexcept {
   auto unexpectedDownPorts = getUnexpectedDownPorts();
-  if (!unexpectedDownPorts.empty()) {
-    // First update cannot use coalescing or else the port
-    // won't actually flap
-    updatePortState(unexpectedDownPorts, cfg::PortState::DOWN, true);
-    updatePortState(unexpectedDownPorts, cfg::PortState::UP, false);
+  for (const auto& portId : unexpectedDownPorts) {
+    updatePortState(portId, cfg::PortState::DOWN, true);
+    updatePortState(portId, cfg::PortState::UP, true);
   }
   scheduleTimeout(interval_);
 }
