@@ -381,6 +381,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
       "fbossPktTxThread",
       FLAGS_thread_heartbeat_ms,
       fbossPktTxHeartbeatStatsFunc);
+  portRemediator_->init();
 
   setSwitchRunState(SwitchRunState::INITIALIZED);
 }

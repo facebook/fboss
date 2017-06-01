@@ -37,6 +37,7 @@ class PortRemediator : private folly::AsyncTimeout {
   }
 
   void timeoutExpired() noexcept override;
+  void init();
 
  private:
   void updatePortState(

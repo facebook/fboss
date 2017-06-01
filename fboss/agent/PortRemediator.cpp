@@ -84,6 +84,9 @@ PortRemediator::PortRemediator(SwSwitch* swSwitch)
     : AsyncTimeout(swSwitch->getBackgroundEVB()),
       sw_(swSwitch),
       interval_(kPortRemedyIntervalSec) {
+};
+
+void PortRemediator::init() {
   // Schedule the port remedy handler to run
   bool ret = sw_->getBackgroundEVB()->runInEventBaseThread(
       PortRemediator::start, (void*)this);
