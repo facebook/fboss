@@ -11,6 +11,8 @@
 
 namespace facebook { namespace fboss {
 
+void Wedge40Port::remedy() {}
+
 void Wedge40Port::prepareForGracefulExit() {}
 
 void Wedge40Port::linkStatusChanged(bool up, bool adminUp) {

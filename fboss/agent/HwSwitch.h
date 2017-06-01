@@ -117,6 +117,8 @@ class HwSwitch {
    */
   virtual void unregisterCallbacks() = 0;
 
+  virtual void remedyPorts() = 0;
+
   /*
    * Apply a state change to the hardware.
    *

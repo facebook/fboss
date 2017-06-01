@@ -55,6 +55,8 @@ MockableHwSwitch::MockableHwSwitch(MockPlatform *platform, HwSwitch* realHw)
     .WillByDefault(Invoke(realHw_, &HwSwitch::clearWarmBootCache));
   ON_CALL(*this, unregisterCallbacks())
     .WillByDefault(Invoke(realHw_, &HwSwitch::unregisterCallbacks));
+  ON_CALL(*this, remedyPorts())
+    .WillByDefault(Invoke(realHw_, &HwSwitch::remedyPorts));
   ON_CALL(*this, isValidStateUpdate(_))
     .WillByDefault(Invoke(realHw_, &HwSwitch::isValidStateUpdate));
   ON_CALL(*this, isPortUp(_))

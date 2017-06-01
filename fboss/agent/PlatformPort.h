@@ -110,6 +110,11 @@ class PlatformPort {
                                 bool ingress, bool egress,
                                 bool discards, bool errors) = 0;
   /**
+   * Do platform specific actions to remedy a port that is down.
+   */
+  virtual void remedy() = 0;
+
+  /**
    * Do platform specific actions for the port before we are warm booting.
    */
   virtual void prepareForGracefulExit() = 0;

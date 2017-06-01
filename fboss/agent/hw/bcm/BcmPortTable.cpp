@@ -112,4 +112,14 @@ void BcmPortTable::updatePortStats() {
  }
 }
 
+void BcmPortTable::remedyPorts() {
+  for (auto& portIdAndBcmPort : bcmPhysicalPorts_) {
+    // Only try remedy if port should actually be up (but is down)
+    if (portIdAndBcmPort.second->isEnabled() &&
+        portIdAndBcmPort.second->getState() == cfg::PortState::DOWN) {
+      portIdAndBcmPort.second->remedy();
+    }
+  }
+}
+
 }} // namespace facebook::fboss

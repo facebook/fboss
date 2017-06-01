@@ -182,4 +182,8 @@ void WedgePort::customizeTransceiver() {
   eventBase->runInEventBaseThread(runCustomize);
 }
 
+void WedgePort::remedy() {
+  // Recall customizeTransceiver - this will use the last cached speed
+  customizeTransceiver();
+}
 }} // facebook::fboss

@@ -67,6 +67,7 @@ class BcmPortTable {
   bool portExists(opennsl_port_t port) const {
     return getBcmPortIf(port) != nullptr;
   }
+  void remedyPorts();
   void preparePortsForGracefulExit() {
     for (auto& portIdAndBcmPort : bcmPhysicalPorts_) {
       portIdAndBcmPort.second->prepareForGracefulExit();

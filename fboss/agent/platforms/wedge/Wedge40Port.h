@@ -29,7 +29,7 @@ class Wedge40Port : public WedgePort {
     return speeds;
   }
 
-  void remedy();
+  void remedy() override;
   void prepareForGracefulExit() override;
   void linkStatusChanged(bool up, bool adminUp) override;
   bool shouldDisableFEC() const override {

@@ -52,6 +52,7 @@ class WedgePort : public BcmPlatformPort {
     return channel_;
   }
   virtual TransmitterTechnology getTransmitterTech() const override;
+  virtual void remedy() override;
  private:
   // Forbidden copy constructor and assignment operator
   WedgePort(WedgePort const &) = delete;
