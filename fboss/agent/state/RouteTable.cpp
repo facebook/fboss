@@ -66,47 +66,6 @@ RouteTable::RouteTable(RouterID id) : NodeBaseT(id) {
 RouteTable::~RouteTable() {
 }
 
-folly::Optional<std::pair<folly::IPAddress, InterfaceID>>
-RouteTable::resolveL3Unicast (
-    const folly::IPAddress& dstAddr) const {
-  const RouteForwardInfo::Nexthops* nhs{nullptr};
-  bool routeIsConnected{false};
-  if (dstAddr.isV4()) {
-    const auto dstAddrV4 = dstAddr.asV4();
-    auto rib4 = getRibV4();
-    auto route = rib4->longestMatch(dstAddrV4);
-    if (!route || !route->isResolved()) {
-      return folly::none;
-    }
-    nhs = &route->getForwardInfo().getNexthops();
-    routeIsConnected = route->isConnected();
-  } else {
-    const auto dstAddrV6 = dstAddr.asV6();
-    auto rib6 = getRibV6();
-    auto route = rib6->longestMatch(dstAddrV6);
-    if (!route || !route->isResolved()) {
-      return folly::none;
-    }
-    nhs = &route->getForwardInfo().getNexthops();
-    routeIsConnected = route->isConnected();
-  }
-
-  // Find the next hop which could be V4 or V6
-  // If there are multiple next hops (ECMP) we need to be consistent in
-  // our selection to avoid out of order packets.  Just pick the first resolved
-  // route.
-  // We now ignore maybeIfID and use the interface associated with the
-  // chosen next hop.
-  //
-  // TODO: handle ECMP hashing
-  auto nh = nhs->begin();
-  if (nh != nhs->end()) {
-    auto target = routeIsConnected ? dstAddr : nh->nexthop;
-    return std::make_pair(target, nh->intf);
-  }
-  return folly::none;
-}
-
 bool RouteTable::empty() const {
   return getRibV4()->empty() && getRibV6()->empty();
 }

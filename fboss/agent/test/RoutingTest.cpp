@@ -18,7 +18,6 @@
 #include <folly/io/IOBuf.h>
 
 #include "fboss/agent/AddressUtil.h"
-#include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/IPv4Handler.h"
 #include "fboss/agent/IPv6Handler.h"
@@ -31,9 +30,6 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/hw/mock/MockTxPacket.h"
-#include "fboss/agent/state/Route.h"
-#include "fboss/agent/state/RouteTable.h"
-#include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/MockTunManager.h"
@@ -51,7 +47,6 @@ namespace {
 // Platform mac address
 const folly::MacAddress kPlatformMac("02:01:02:03:04:05");
 const folly::MacAddress kEmptyMac("00:00:00:00:00:00");
-const folly::MacAddress kBroadcastMac("ff:ff:ff:ff:ff:ff");
 
 // Link-local addresses automatically assigned on all interfaces.
 const folly::IPAddressV6 kIPv6LinkLocalAddr(
@@ -79,19 +74,6 @@ const folly::IPAddressV4 kllIPv4NbhAddr2("169.254.2.55");
 const folly::IPAddressV6 kllIPv6NbhAddr("fe80::7efe:90ff:fe2e:6e47");
 const folly::MacAddress kNbhMacAddr1("00:02:c9:55:b7:a4");
 const folly::MacAddress kNbhMacAddr2("6c:40:08:99:8d:d8");
-
-// Special neighbors that fall within one interface subnet but that should be
-// routed via a more specific route, out of another interface
-const folly::IPAddressV4 kIPv4SpecialNbhAddr("10.0.0.12");
-const folly::IPAddressV6 kIPv6SpecialNbhAddr("face:b00c::12");
-const folly::IPAddressV4 kIPv4NextHopToSpecialNbh("10.0.0.22");
-const folly::IPAddressV6 kIPv6NextHopToSpecialNbh("face:b00c::22");
-
-// Non-local unicast addresses
-const folly::IPAddressV4 kIPv4UnicastAddr1("10.10.0.1");
-const folly::IPAddressV4 kIPv4UnicastAddr2("10.11.0.2");
-const folly::IPAddressV6 kIPv6UnicastAddr1("1001::1");
-const folly::IPAddressV6 kIPv6UnicastAddr2("2002::2");
 
 // Multicast addresses and their corresponding mac addresses
 const folly::IPAddressV4 kIPv4McastAddr("224.0.0.1");
@@ -347,41 +329,6 @@ class RoutingFixture : public ::testing::Test {
           kNbhMacAddr2,
           PortDescriptor(PortID(2)),
           InterfaceID(2));
-      // Add some L3 routes as well
-      const auto& tables = newState->getRouteTables();
-      RouteUpdater ru(tables);
-      RouteV4::Prefix r1{kIPv4UnicastAddr1, 24};
-      RouteV4::Prefix r2{kIPv4UnicastAddr2, 24};
-      RouteV6::Prefix r3{kIPv6UnicastAddr1, 48};
-      RouteV6::Prefix r4{kIPv6UnicastAddr2, 48};
-      RouteV4::Prefix r5{kIPv4SpecialNbhAddr, 32};
-      RouteV6::Prefix r6{kIPv6SpecialNbhAddr, 128};
-
-      // Reuse the neighbor addresses for next-hops as they are local
-      RouteNextHops nh1_4, nh2_4, nh3_6, nh4_6, nh5_4, nh6_6;
-      nh1_4.emplace(kIPv4NbhAddr1);
-      nh2_4.emplace(kIPv4NbhAddr2);
-      nh3_6.emplace(kIPv6NbhAddr1);
-      nh4_6.emplace(kIPv6NbhAddr2);
-      nh5_4.emplace(kIPv4NextHopToSpecialNbh);
-      nh6_6.emplace(kIPv6NextHopToSpecialNbh);
-
-      auto rid = RouterID(0);
-
-      ru.addRoute(rid, InterfaceID(1), kIPv4IntfAddr1, 28);
-      ru.addRoute(rid, InterfaceID(2), kIPv4IntfAddr2, 28);
-      ru.addRoute(rid, InterfaceID(1), kIPv6IntfAddr1, 124);
-      ru.addRoute(rid, InterfaceID(2), kIPv6IntfAddr2, 124);
-      ru.addRoute(rid, r1.network, r1.mask, ClientID(1001), nh1_4);
-      ru.addRoute(rid, r2.network, r2.mask, ClientID(1001), nh2_4);
-      ru.addRoute(rid, r3.network, r3.mask, ClientID(1001), nh3_6);
-      ru.addRoute(rid, r4.network, r4.mask, ClientID(1001), nh4_6);
-      ru.addRoute(rid, r5.network, r5.mask, ClientID(1001), nh5_4);
-      ru.addRoute(rid, r6.network, r6.mask, ClientID(1001), nh6_6);
-
-      auto tables2 = ru.updateDone();
-      tables2->publish();
-      newState->resetRouteTables(tables2);
 
       return newState;
     };
@@ -413,9 +360,9 @@ class RoutingFixture : public ::testing::Test {
     intf.mtu = 9000;
     intf.__isset.mtu = true;
     intf.ipAddresses.resize(4);
-    intf.ipAddresses[0] = folly::sformat("169.254.{}.{}/24", id, id);
-    intf.ipAddresses[1] = folly::sformat("10.0.0.{}1/28", id);
-    intf.ipAddresses[2] = folly::sformat("face:b00c::{}1/124", id);
+    intf.ipAddresses[0] = folly::sformat("169.254.{}.{}/32", id, id);
+    intf.ipAddresses[1] = folly::sformat("10.0.0.{}1/31", id);
+    intf.ipAddresses[2] = folly::sformat("face:b00c::{}1/127", id);
     intf.ipAddresses[3] = folly::sformat("fe80::{}/64", id);
   }
 
@@ -693,20 +640,23 @@ TEST_F(RoutingFixture, SwitchToHostMulticast) {
 
 /**
  * Verify flow of unicast packets from host to switch for both v4 and v6.
- *
+ * All outgoing L2 packets to switch must have platform MAC as the destination
+ * address as it will trigger L3 lookup in hardware.
  */
 TEST_F(RoutingFixture, HostToSwitchUnicast) {
   // Cache the current stats
   CounterCache counters(sw.get());
-  // v4
+
+  // Any unicast packet (except link-local) is forwarded to CPU at L3 lookup
+  // state by setting src/dst mac address to be the platform mac address.
   {
     auto pkt = toTxPacket(createV4UnicastPacket(
-        kIPv4IntfAddr1, kIPv4UnicastAddr1, kEmptyMac, kEmptyMac));
+        kIPv4IntfAddr1, kIPv4NbhAddr1, kEmptyMac, kEmptyMac));
 
     auto pktCopy = pkt->clone();
-    EXPECT_PKT_OUT_PORT(sw, "V4 UcastPkt", matchTxPacket(
-        kPlatformMac,       // src mac
-        kNbhMacAddr1,       // dst mac
+    EXPECT_PKT(sw, "V4 UcastPkt", matchTxPacket(
+        kPlatformMac,
+        kPlatformMac,
         VlanID(1),
         IPv4Handler::ETHERTYPE_IPV4,
         pktCopy.get())).Times(1);
@@ -716,18 +666,15 @@ TEST_F(RoutingFixture, HostToSwitchUnicast) {
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 1);
   }
 
-  /* Same as above test but for v6
-   * Unicast kIPvXUnicastAddrY should be successfully resolved and sent to
-   * kIPvXNbhAddr1
-   */
+  // Same as above test but for v6
   {
     auto pkt = toTxPacket(createV6UnicastPacket(
-        kIPv6IntfAddr2, kIPv6UnicastAddr2, kEmptyMac, kEmptyMac));
+        kIPv6IntfAddr2, kIPv6NbhAddr2, kEmptyMac, kEmptyMac));
 
     auto pktCopy = pkt->clone();
-    EXPECT_PKT_OUT_PORT(sw, "V6 UcastPkt", matchTxPacket(
-        kPlatformMac,       // src mac
-        kNbhMacAddr2,       // dst mac
+    EXPECT_PKT(sw, "V6 UcastPkt", matchTxPacket(
+        kPlatformMac,
+        kPlatformMac,
         VlanID(2),
         IPv6Handler::ETHERTYPE_IPV6,
         pktCopy.get())).Times(1);
@@ -735,97 +682,6 @@ TEST_F(RoutingFixture, HostToSwitchUnicast) {
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 1);
-  }
-  // A v4 packet for which there are two routes should be sent via the longest
-  // prefix route.   When the destination is unresolved, an ARP request should
-  // be sent out of the right interface.  In this test we send a packet to
-  // kIPv4SpecialNbhAddr which is part of first interface's subnet, but for
-  // which there is a /32 route via the second interface.  We expect to see an
-  // ARP request out of that second interface.
-  //
-  {
-    auto pkt =
-        toTxPacket(createV4UnicastPacket(kIPv4IntfAddr1, kIPv4SpecialNbhAddr));
-    auto pktArp = MockRxPacket::fromHex(
-          // EthHdr::SIZE (18 bytes) will be overwritten by matchTxPacket below
-          "ff ff ff ff ff ff    ff ff ff ff ff ff"
-          "ff ff ff ff ff ff"
-          // htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
-          "00 01  08 00  06  04"
-          // ARP Request
-          "00 01"
-          // Sender MAC
-          " 02 01 02 03 04 05"
-          // Sender IP: kIPv4IntfAddr2 (10.0.0.21)
-          "0a 00 00 15"
-          // Target MAC
-          "00 00 00 00 00 00"
-          // Target IP: kIPv4NextHopToSpecialNbh (10.0.0.22)
-          "0a 00 00 16"
-          );
-    pktArp->padToLength(0x44, 0);
-    auto pktExp = toTxPacket(std::move(pktArp));
-
-    // ARP request will be sent and the actual packet will be dropped.
-    EXPECT_PKT(
-        sw,
-        "ARP request",
-        matchTxPacket(
-            kPlatformMac,   // src
-            kBroadcastMac,  // dst
-            VlanID(2),
-            ArpHandler::ETHERTYPE_ARP,
-            pktExp.get()))
-        .Times(1);
-
-    sw->sendL3Packet(pkt->clone(), InterfaceID(1));
-    counters.update();
-    counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.tx.sum", 1);
-    counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 0);
-  }
-  // Same test for v6
-  {
-    auto pkt =
-        toTxPacket(createV6UnicastPacket(kIPv6IntfAddr1, kIPv6SpecialNbhAddr));
-    auto pktExp = toTxPacket(MockRxPacket::fromHex(
-          // EthHdr::SIZE (18 bytes) will be overwritten by matchTxPacket below
-          "ff ff ff ff ff ff    ff ff ff ff ff ff"
-          "ff ff ff ff ff ff"
-          // IP version, TC, flow label, payload length, next header, hop limit
-          "6e 00 00 00       00 20  3a ff"
-          // Source: kIPv6LinkLocalAddr
-          "fe 80 00 00 00 00 00 00 00 01 02 ff fe 03 04 05"
-          // Dest: Neighbor Solicitation Multicast IP Address
-          "ff 02 00 00 00 00 00 00 00 00 00 01 ff 00 00 22"
-          // NDP: type, code, checksum, reserved
-          "87 00 c2 ec 00 00 00 00"
-          // Target address: kIPv6NextHopToSpecialNbh
-          "fa ce b0 0c 00 00 00 00 00 00 00 00 00 00 00 22"
-          // option type, len, source link-layer address
-          "01 01 02 01 02 03 04 05"
-          ));
-
-    // LL NdpMulticast address derived from kIPv6NextHopToSpecialNbh
-    const folly::MacAddress kNdpMulticast("33:33:ff:00:00:22");
-
-    // Neighbor solicitation will be sent and the actual packet will be
-    // dropped.
-    // ARP request will be sent and the actual packet will be dropped.
-    EXPECT_PKT(
-        sw,
-        "NDP solicitation",
-        matchTxPacket(
-            kPlatformMac,   // src
-            kNdpMulticast,  // dst
-            VlanID(2),
-            IPv6Handler::ETHERTYPE_IPV6,
-            pktExp.get()))
-        .Times(1);
-
-    sw->sendL3Packet(pkt->clone(), InterfaceID(2));
-    counters.update();
-    // XXX: no counter for neigh.solicit ??
-    counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 0);
   }
 }
 
@@ -836,15 +692,16 @@ TEST_F(RoutingFixture, HostToSwitchUnicast) {
 TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
   // Cache the current stats
   CounterCache counters(sw.get());
+
   // v4 link-local
   {
     auto pkt = toTxPacket(createV4UnicastPacket(
         kllIPv4IntfAddr1, kllIPv4NbhAddr1, kEmptyMac, kEmptyMac));
 
     auto pktCopy = pkt->clone();
-    EXPECT_PKT_OUT_PORT(sw, "V4 UcastPkt", matchTxPacket(
+    EXPECT_PKT(sw, "V4 UcastPkt", matchTxPacket(
         kPlatformMac,
-        kNbhMacAddr1,
+        kPlatformMac, // NOTE: no neighbor mac address resolution like v6
         VlanID(1),
         IPv4Handler::ETHERTYPE_IPV4,
         pktCopy.get())).Times(1);
@@ -860,7 +717,7 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
         kllIPv6IntfAddr2, kllIPv6NbhAddr, kEmptyMac, kEmptyMac));
 
     auto pktCopy = pkt->clone();
-    EXPECT_PKT_OUT_PORT(sw, "V6 UcastPkt", matchTxPacket(
+    EXPECT_PKT(sw, "V6 UcastPkt", matchTxPacket(
         kPlatformMac,
         kNbhMacAddr2,   // because vlan-id = 2
         VlanID(2),
@@ -871,6 +728,7 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 1);
   }
+
   // v6 packet with unknown link-local destination address (NDP not resolvable)
   // should trigger NDP request and packet gets dropped
   {
@@ -886,21 +744,25 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 0);
   }
+
   // v4 packet with unknown link-local destination address (ARP not resolvable)
-  // should trigger ARP request and packet gets dropped
+  // should be just routed out of the box like other v4 IP packets. (unlike v6)
   {
-    const folly::IPAddressV4 llNbhAddrUnknown("169.254.2.95");
+    const folly::IPAddressV4 llNbhAddrUnknown("169.254.13.95");
     auto pkt = toTxPacket(createV4UnicastPacket(
         kllIPv4IntfAddr2, llNbhAddrUnknown, kEmptyMac, kEmptyMac));
 
-    // ARP Neighbor solicitation request will be sent and the actual packet
-    // will be dropped.
-    EXPECT_HW_CALL(sw, sendPacketSwitched_(_)).Times(1);
-    sw->sendL3Packet(pkt->clone(), InterfaceID(2));
+    auto pktCopy = pkt->clone();
+    EXPECT_PKT(sw, "V4 UcastPkt", matchTxPacket(
+        kPlatformMac,
+        kPlatformMac, // NOTE: no neighbor mac address resolution like v6
+        VlanID(1),
+        IPv4Handler::ETHERTYPE_IPV4,
+        pktCopy.get())).Times(1);
+    sw->sendL3Packet(pkt->clone(), InterfaceID(1));
 
     counters.update();
-    counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 0);
-    counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.tx.sum", 1);
+    counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 1);
   }
 }
 

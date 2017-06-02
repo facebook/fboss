@@ -1032,7 +1032,7 @@ void SwSwitch::sendL3Packet(
 
   // Get VlanID associated with interface
   VlanID vlanID = getCPUVlan();
-  if (maybeIfID) {
+  if (maybeIfID.hasValue()) {
     auto intf = state->getInterfaces()->getInterfaceIf(*maybeIfID);
     if (!intf) {
       LOG(ERROR) << "Interface " << *maybeIfID << " doesn't exists in state.";
@@ -1077,8 +1077,6 @@ void SwSwitch::sendL3Packet(
 
     // Derive destination mac address
     folly::MacAddress dstMac{};
-    PortDescriptor outPort(PortID(0));
-    bool sendAsSwitched{false};
     if (dstAddr.isMulticast()) {
       // Multicast Case:
       // Derive destination mac-address based on destination ip-address
@@ -1087,75 +1085,49 @@ void SwSwitch::sendL3Packet(
       } else {
         dstMac = getMulticastMacAddr(dstAddr.asV6());
       }
-      // Multicast traffic needs to be sent to all ports in the vlan so we
-      // cannot use sendPacketOutOfPort().
-      sendAsSwitched = true;
-    } else {
-      auto intfs = state->getInterfaces();
-      if (!dstAddr.isLinkLocal() || dstAddr.isV4()) {
-        // We do not consult ARP table to forward v4 link-local addresses;
-        // these are treated just like global IPv4 addresses.
+    } else if (dstAddr.isLinkLocal()) {
+      // LinkLocal Case:
+      // Resolve neighbor mac address for given destination address. If address
+      // doesn't exists in NDP table then request neighbor solicitation for it.
+      CHECK(dstAddr.isLinkLocal());
+      auto vlan = state->getVlans()->getVlan(vlanID);
+      if (dstAddr.isV4()) {
+        // We do not consult ARP table to forward v4 link local addresses.
         // Reason explained below.
         //
         // XXX: In 6Pack/Galaxy ipv4 link-local addresses are routed
         // internally within FCs/LCs so they might not be reachable directly.
         //
-        // For now let's make use of L3 table to forward these packets
-        auto rt = state->getRouteTables()->getRouteTableIf(RouterID(0));
-        CHECK(rt);
-        auto rslv3 = rt->resolveL3Unicast(dstAddr);
-        if (!rslv3) {
-          if (dstAddr.isV4()) {
-            stats()->ipv4DstLookupFailure();
-          } else {
-            stats()->ipv6DstLookupFailure();
-          }
-          return;
-        }
-        dstAddr = (*rslv3).first;
-        auto intfID = (*rslv3).second;
-        auto intf = state->getInterfaces()->getInterfaceIf(intfID);
-        vlanID = intf->getVlanID();
+        // For now let's make use of L3 table to forward these packets by
+        // using dstMac as srcMac
+        dstMac = srcMac;
+      } else {
+        const auto dstAddrV6 = dstAddr.asV6();
+        try {
+          auto entry = vlan->getNdpTable()->getEntry(dstAddrV6);
+          dstMac = entry->getMac();
+        } catch (...) {
+          // We don't have dstAddr in our NDP table. Request solicitation for
+          // it and let this packet be dropped.
+          IPv6Handler::sendNeighborSolicitation(
+              this, dstAddrV6, srcMac, vlanID);
+          throw;
+        } // try
       }
+    } else {
+      // Unicast Packet:
+      // Ideally we can do routing in SW but it can consume some good ammount of
+      // CPU. To avoid this we prefer to perform routing in hardware. Using
+      // our CPU MacAddr as DestAddr we will trigger L3 lookup in hardware :)
+      dstMac = srcMac;
 
-      // We can now resolve L2 for unicast packets
-      auto vlan = state->getVlans()->getVlan(vlanID);
-      try {
-          if (dstAddr.isV6()) {
-            auto entry = vlan->getNdpTable()->getEntry(dstAddr.asV6());
-            dstMac = entry->getMac();
-            outPort = entry->getPort();
-          } else {
-            auto entry = vlan->getArpTable()->getEntry(dstAddr.asV4());
-            dstMac = entry->getMac();
-            outPort = entry->getPort();
-          }
-      } catch (const FbossError& err) {
-        // We cannot resolve MAC address for this packet, send ARP/NDP
-        // request/solicitation
-        if (dstAddr.isV6()) {
-          // XXX: We tried to use
-          //
-          // ipv6_->sendNeighborSolicitations(PortID(0), dstAddr.asV6());
-          //
-          // but link-local traffic would not pass the route->isResolved() check
-          // that is done in that function.
-          //
-          // This is why we invoke the lower level functions below
-          ipv6_->sendNeighborSolicitation(this, dstAddr.asV6(), srcMac, vlanID);
-
-          // Notify the updater that we sent a solicitation out
-          getNeighborUpdater()->sentNeighborSolicitation(
-              vlanID, dstAddr.asV6());
-        } else {
-          // XXX: see comment for the v6 case above
-          // ipv4_->resolveMac(state.get(), PortID(0), dstAddr.asV4());
-          //
-          arp_->sendArpRequest(this, vlan, dstAddr.asV4());
-          // Notify the updater that we sent an arp request
-          getNeighborUpdater()->sentArpRequest(vlanID, dstAddr.asV4());
-        }
-        return;
+      // Resolve the l2 address of the next hop if needed. These functions
+      // will do the RIB lookup and then probe for any unresolved nexthops
+      // of the route.
+      if (dstAddr.isV6()) {
+        ipv6_->sendNeighborSolicitations(PortID(0), dstAddr.asV6());
+      } else {
+        ipv4_->resolveMac(state.get(), PortID(0), dstAddr.asV4());
       }
     }
 
@@ -1172,21 +1144,7 @@ void SwSwitch::sendL3Packet(
     // the packet out to the HW. The HW will drop the packet if the vlan is
     // deleted.
     stats()->pktFromHost(l3Len);
-    if (sendAsSwitched) {
-      sendPacketSwitched(std::move(pkt));
-    } else {
-      switch (outPort.type()) {
-        case PortDescriptor::PortType::PHYSICAL:
-          sendPacketOutOfPort(std::move(pkt), outPort.phyPortID());
-          break;
-        case PortDescriptor::PortType::AGGREGATE:
-          sendPacketOutOfPort(std::move(pkt), outPort.aggPortID());
-          break;
-        default:
-          LOG(FATAL) << "PortDescriptor matching not exhaustive";
-      }
-
-    }
+    sendPacketSwitched(std::move(pkt));
   } catch (const std::exception& ex) {
     LOG(ERROR) << "Failed to send out L3 packet :"
                << folly::exceptionStr(ex);
