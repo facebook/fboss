@@ -206,7 +206,11 @@ class BcmSwitch : public BcmSwitchIf {
   opennsl_if_t getDropEgressId() const override;
   opennsl_if_t getToCPUEgressId() const override;
 
-  // The following function will modify the object.
+  // The following function will modify the object. In particular, the return
+  // state will be published (to indicate what has actually been applied). If
+  // everything from delta was successfully applied, then the "new" state in
+  // delta will be published.
+  //
   // Lock has to be performed in the function.
   std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta) override;
 

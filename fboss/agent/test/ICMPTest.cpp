@@ -262,7 +262,7 @@ TEST(ICMPTest, TTLExceededV4) {
   // Cache the current stats
   CounterCache counters(sw.get());
 
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
     WillRepeatedly(Return(kPlatformMac));
 
@@ -348,7 +348,7 @@ TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
   pkt->setSrcPort(portID);
   pkt->setSrcVlan(vlanID);
 
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
     WillRepeatedly(Return(kPlatformMac));
 
@@ -477,7 +477,7 @@ TEST(ICMPTest, TTLExceededV6) {
   // Cache the current stats
   CounterCache counters(sw.get());
 
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
     WillRepeatedly(Return(kPlatformMac));
 

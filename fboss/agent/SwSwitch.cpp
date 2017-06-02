@@ -69,6 +69,9 @@ DEFINE_int32(thread_heartbeat_ms, 5000, "Thread hearbeat interval (ms)");
 
 namespace {
 
+constexpr auto kOutOfSyncStateUpdate =
+    "state update for failed hardware application";
+
 /**
  * Transforms the IPAddressV6 to MacAddress. RFC 2464
  * 33:33:xx:xx:xx:xx (lower 32 bits are copied from addr)
@@ -254,7 +257,11 @@ void SwSwitch::gracefulExit() {
     // Stop handlers and threads before uninitializing h/w
     stop();
     folly::dynamic switchState = folly::dynamic::object;
-    switchState[kSwSwitch] =  getState()->toFollyDynamic();
+    // TODO - Serialize both desired and applied state to
+    // file. Right now we just serialize applied state and
+    // then rely on a route/FIB sync on warm boot to recover
+    // desired state.
+    switchState[kSwSwitch] = getAppliedState()->toFollyDynamic();
     // Cleanup if we ever initialized
     hw_->gracefulExit(switchState);
   }
@@ -287,7 +294,7 @@ bool SwSwitch::getAndClearNeighborHit(RouterID vrf, folly::IPAddress ip) {
 
 void SwSwitch::exitFatal() const noexcept {
   folly::dynamic switchState = folly::dynamic::object;
-  switchState[kSwSwitch] =  getState()->toFollyDynamic();
+  switchState[kSwSwitch] =  getAppliedState()->toFollyDynamic();
   switchState[kHwSwitch] = hw_->toFollyDynamic();
   if (!dumpStateToFile(platform_->getCrashSwitchStateFile(), switchState)) {
     LOG(ERROR) << "Unable to write switch state JSON to file";
@@ -302,6 +309,9 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   flags_ = flags;
   auto hwInitRet = hw_->init(this);
   auto initialState = hwInitRet.switchState;
+  // for now, warmboot is not keeping failed routes, so keep the same state as
+  // applied and desired.
+  auto initialStateDesired = hwInitRet.switchState;
   bootType_ = hwInitRet.bootType;
 
   VLOG(0) << "hardware initialized in " <<
@@ -315,14 +325,15 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
 
   // Store the initial state
   initialState->publish();
-  setStateInternal(initialState);
+  initialStateDesired->publish();
+  setStateInternal(initialState, initialStateDesired);
 
   platform_->onHwInitialized(this);
 
   // Notify the state observers of the initial state
-  updateEventBase_.runInEventBaseThread([initialState, this]() {
-      notifyStateObservers(StateDelta(std::make_shared<SwitchState>(),
-                                      initialState));
+  updateEventBase_.runInEventBaseThread([initialStateDesired, this]() {
+    notifyStateObservers(
+        StateDelta(std::make_shared<SwitchState>(), initialStateDesired));
   });
 
   if (flags & SwitchFlags::ENABLE_TUN) {
@@ -503,24 +514,47 @@ void SwSwitch::notifyStateObservers(const StateDelta& delta) {
   }
 }
 
-void SwSwitch::updateState(unique_ptr<StateUpdate> update) {
-  // Put the update function on the queue.
+void SwSwitch::updateState(
+    unique_ptr<StateUpdate> update) {
   {
     folly::SpinLockGuard guard(pendingUpdatesLock_);
     pendingUpdates_.push_back(*update.release());
   }
 
-  // Signal the background thread that updates are pending.
-  // (We're using backgroundEventBase_ for now because it is convenient.
-  // If in the future we find that this is undesirable for some reason we could
-  // re-organize which tasks get performed in which threads.)
-  //
+  // Signal the update thread that updates are pending.
   // We call runInEventBaseThread() with a static function pointer since this
   // is more efficient than having to allocate a new bound function object.
   updateEventBase_.runInEventBaseThread(handlePendingUpdatesHelper, this);
 }
 
-void SwSwitch::updateState(StringPiece name, StateUpdateFn fn) {
+void SwSwitch::queueStateUpdateForGettingHwInSync(
+    StringPiece name,
+    StateUpdateFn fn) {
+  auto update = make_unique<FunctionStateUpdate>(name, std::move(fn));
+  {
+    // Push the state update in front to preserver ordering.
+    // This is not particularly necessary, since this state
+    // update is freely coalesced with other state updates when
+    // we come to processing pending updates
+    folly::SpinLockGuard guard(pendingUpdatesLock_);
+    pendingUpdates_.push_front(*update.release());
+  }
+  // Don't inform updateEventBase about this update being queued.
+  // Rather let this update be processed with the next incoming update.
+  // This laziness avoids busy loop that ensue otherwise - since nothing
+  // in the h/w changed, our attempt to sync h/w is likely to fail again,
+  // which would result in another h/w out of sync update to be queued and
+  // so on. Instead we just wait next state update, this way we stand
+  // a chance for that update to make changes to h/w to allow this update to
+  // go through. Simplest example of this is when route addition fails due
+  // to tables being full. Space for these routes is likely to be made only
+  // when some routes get deleted (ignoring platform dependent h/w
+  // optimizations).
+}
+
+void SwSwitch::updateState(
+    StringPiece name,
+    StateUpdateFn fn) {
   auto update = make_unique<FunctionStateUpdate>(name, std::move(fn));
   updateState(std::move(update));
 }
@@ -575,22 +609,35 @@ void SwSwitch::handlePendingUpdates() {
     return;
   }
 
+  if (updates.size() == 1 &&
+      updates.begin()->getName() == kOutOfSyncStateUpdate) {
+    return;
+  }
+
   // This function should never be called with valid updates while we are
   // not initialized yet
   DCHECK(isInitialized());
 
+  std::shared_ptr<SwitchState> oldAppliedState;
+  std::shared_ptr<SwitchState> oldDesiredState;
   // Call all of the update functions to prepare the new SwitchState
-  auto origState = getState();
-  auto state = origState;
+  std::tie(oldAppliedState, oldDesiredState) = getStates();
+  bool oldOutOfSync = (oldAppliedState != oldDesiredState);
+  // We start with the old applied state, and apply state updates one at a
+  // time. The first state update applied is one from oldAppliedState ->
+  // oldDesiredState. This is the one we always enqueue at the front of the
+  // queue whenever applied and desired states diverge. After that, other
+  // supplied state updates are applied (that were spliced above).
+  auto newDesiredState = oldAppliedState;
   auto iter = updates.begin();
   while (iter != updates.end()) {
     StateUpdate* update = &(*iter);
     ++iter;
 
-    shared_ptr<SwitchState> newState;
+    shared_ptr<SwitchState> intermediateState;
     LOG(INFO) << "preparing state update " << update->getName();
     try {
-      newState = update->applyUpdate(state);
+      intermediateState = update->applyUpdate(newDesiredState);
     } catch (const std::exception& ex) {
       // Call the update's onError() function, and then immediately delete
       // it (therefore removing it from the intrusive list).  This way we won't
@@ -598,23 +645,46 @@ void SwSwitch::handlePendingUpdates() {
       update->onError(ex);
       delete update;
     }
-    if (newState) {
+    // We have applied the update to software switch state, so call success
+    // on the update.
+    if (intermediateState) {
       // Call publish after applying each StateUpdate.  This guarantees that
       // the next StateUpdate function will have clone the SwitchState before
-      // making any changes.  This ensures that if a StateUpdate function ever
-      // fails partway through it can't have partially modified our existing
-      // state, leaving it in an invalid state.
-      newState->publish();
-      state = newState;
+      // making any changes.  This ensures that if a StateUpdate function
+      // ever fails partway through it can't have partially modified our
+      // existing state, leaving it in an invalid state.
+      intermediateState->publish();
+      newDesiredState = intermediateState;
     }
   }
 
   // Now apply the update and notify subscribers
-  if (state != origState) {
-    applyUpdate(origState, state);
+  if (newDesiredState != oldAppliedState) {
+    // There was some change during these state updates
+    auto newAppliedState = applyUpdate(oldAppliedState, newDesiredState);
+    // Stick the initial applied->desired in the beginning
+    bool newOutOfSync = (newAppliedState != newDesiredState);
+    if (newOutOfSync) {
+      // If we could not apply the whole delta successfully, put the difference
+      // as a state update at the beginning
+      queueStateUpdateForGettingHwInSync(
+          kOutOfSyncStateUpdate,
+          [newDesiredState](const std::shared_ptr<SwitchState>& oldState) {
+            return newDesiredState;
+          });
+      if (!isExiting() && !oldOutOfSync) {
+        stats()->setHwOutOfSync();
+      }
+    } else {
+      if (!isExiting() && oldOutOfSync) {
+        stats()->clearHwOutOfSync();
+      }
+    }
   }
 
-  // Notify all of the updates of success, and delete them
+  // Notify all of the updates of success, and delete them. Success is defined
+  // as SwSwitch's attempt to apply them to hw, even though they might have not
+  // actually been applied yet.
   while (!updates.empty()) {
     unique_ptr<StateUpdate> update(&updates.front());
     updates.pop_front();
@@ -666,17 +736,33 @@ int SwSwitch::getHighresSamplers(HighresSamplerList* samplers,
   return numCountersAdded;
 }
 
-void SwSwitch::setStateInternal(std::shared_ptr<SwitchState> newState) {
+void SwSwitch::setStateInternal(
+    std::shared_ptr<SwitchState> newAppliedState,
+    std::shared_ptr<SwitchState> newDesiredState) {
   // This is one of the only two places that should ever directly access
   // stateDontUseDirectly_.  (getState() being the other one.)
-  CHECK(newState->isPublished());
+  CHECK(bool(newAppliedState));
+  CHECK(bool(newDesiredState));
+  CHECK(newAppliedState->isPublished());
+  CHECK(newDesiredState->isPublished());
   folly::SpinLockGuard guard(stateLock_);
-  stateDontUseDirectly_.swap(newState);
+  appliedStateDontUseDirectly_.swap(newAppliedState);
+  desiredStateDontUseDirectly_.swap(newDesiredState);
 }
 
-void SwSwitch::applyUpdate(const shared_ptr<SwitchState>& oldState,
-                           const shared_ptr<SwitchState>& newState) {
-  DCHECK_EQ(oldState, getState());
+void SwSwitch::setDesiredState(std::shared_ptr<SwitchState> newDesiredState) {
+  CHECK(bool(newDesiredState));
+  CHECK(newDesiredState->isPublished());
+  folly::SpinLockGuard guard(stateLock_);
+  desiredStateDontUseDirectly_.swap(newDesiredState);
+}
+
+std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
+    const shared_ptr<SwitchState>& oldState,
+    const shared_ptr<SwitchState>& newState) {
+  // Check that we are starting from what has been already applied
+  DCHECK_EQ(oldState, getAppliedState());
+
   auto start = std::chrono::steady_clock::now();
   LOG(INFO) << "Updating state: old_gen=" << oldState->getGeneration() <<
     " new_gen=" << newState->getGeneration();
@@ -686,11 +772,10 @@ void SwSwitch::applyUpdate(const shared_ptr<SwitchState>& oldState,
 
   // If we are already exiting, abort the update
   if (isExiting()) {
-    return;
+    return oldState;
   }
 
-  // Publish the configuration as our active state.
-  setStateInternal(newState);
+  std::shared_ptr<SwitchState> newAppliedState;
 
   // Inform the HwSwitch of the change.
   //
@@ -705,7 +790,7 @@ void SwSwitch::applyUpdate(const shared_ptr<SwitchState>& oldState,
   // undesirable.  So far I don't think this brief discrepancy should cause
   // major issues.
   try {
-    hw_->stateChanged(delta);
+    newAppliedState = hw_->stateChanged(delta);
   } catch (const std::exception& ex) {
     // Notify the hw_ of the crash so it can execute any device specific
     // tasks before we fatal. An example would be to dump the current hw state.
@@ -716,7 +801,12 @@ void SwSwitch::applyUpdate(const shared_ptr<SwitchState>& oldState,
       folly::exceptionStr(ex);
   }
 
-  // Notifies all observers of the current state update.
+  setStateInternal(newAppliedState, newState);
+
+  // Notifies all observers of the current state update. We notify them that
+  // the state changed to "desired state", even if the whole state might not
+  // have been applied yet. If an observer wants to know the applied state,
+  // they can query the SwSwitch about it.
   notifyStateObservers(delta);
 
   auto end = std::chrono::steady_clock::now();
@@ -724,6 +814,7 @@ void SwSwitch::applyUpdate(const shared_ptr<SwitchState>& oldState,
     std::chrono::duration_cast<std::chrono::microseconds>(end - start);
   stats()->stateUpdate(duration);
   VLOG(0) << "Update state took " << duration.count() << "us";
+  return newAppliedState;
 }
 
 PortStats* SwSwitch::portStats(PortID portID) {

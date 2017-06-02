@@ -87,8 +87,9 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap *map)
                        1, 0, 200, AVG, 50, 100),
       fbossPktTxEventBacklog_(map, kCounterPrefix + "fbossPktTx_event_backlog",
                  1, 0, 200, AVG, 50, 100),
-
-      linkStateChange_(map, kCounterPrefix + "link_state.down", SUM) {
+      linkStateChange_(map, kCounterPrefix + "link_state.down", SUM),
+      hwOutOfSync_(
+        map, kCounterPrefix + "hw_out_of_sync") {
 }
 
 PortStats* SwitchStats::port(PortID portID) {

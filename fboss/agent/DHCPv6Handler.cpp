@@ -231,8 +231,8 @@ void DHCPv6Handler::processDHCPv6RelayReply(SwSwitch* sw,
     const IPv6Hdr& ipHdr, DHCPv6Packet& dhcpPacket) {
 
   IPAddressV6 switchIp = ipHdr.dstAddr;
-  auto intf = sw->getState()->getInterfaces()->getInterface(RouterID(0),
-      switchIp);
+  auto intf =
+      sw->getState()->getInterfaces()->getInterface(RouterID(0), switchIp);
   if (!intf) {
     sw->stats()->port(pkt->getSrcPort())->dhcpV6DropPkt();
     VLOG(2) << "Could not look up interface for " << switchIp

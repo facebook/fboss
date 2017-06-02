@@ -412,7 +412,8 @@ void ThriftHandler::getPortInfoHelper(
 void ThriftHandler::getPortInfo(PortInfoThrift &portInfo, int32_t portId) {
   ensureConfigured();
 
-  const auto port = sw_->getState()->getPorts()->getPortIf(PortID(portId));
+  const auto port =
+      sw_->getState()->getPorts()->getPortIf(PortID(portId));
   if (!port) {
     throw FbossError("no such port ", portId);
   }
@@ -570,7 +571,7 @@ void ThriftHandler::getIpRoute(UnicastRoute& route,
   ensureConfigured();
   folly::IPAddress ipAddr = toIPAddress(*addr);
   auto routeTable = sw_->getState()->getRouteTables()->getRouteTableIf(
-                                                              RouterID(vrfId));
+      RouterID(vrfId));
   if (!routeTable) {
     throw FbossError("No Such VRF ", vrfId);
   }
@@ -607,7 +608,7 @@ void ThriftHandler::getIpRouteDetails(
   ensureConfigured();
   folly::IPAddress ipAddr = toIPAddress(*addr);
   auto routeTable = sw_->getState()->getRouteTables()->getRouteTableIf(
-                                                              RouterID(vrfId));
+      RouterID(vrfId));
   if (!routeTable) {
     throw FbossError("No Such VRF ", vrfId);
   }

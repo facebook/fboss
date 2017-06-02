@@ -12,6 +12,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/Constants.h"
 
 #include <gmock/gmock.h>
 
@@ -29,7 +30,9 @@ class MockHwSwitch : public HwSwitch {
   explicit MockHwSwitch(MockPlatform* platform);
 
   MOCK_METHOD1(init, HwInitResult(Callback*));
-  MOCK_METHOD1(stateChanged, std::shared_ptr<SwitchState>(const StateDelta&));
+  MOCK_METHOD1(
+      stateChangedMock,
+      std::shared_ptr<SwitchState>(const StateDelta&));
   MOCK_METHOD2(getAndClearNeighborHit, bool(RouterID, folly::IPAddress&));
 
   virtual std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
@@ -42,6 +45,7 @@ class MockHwSwitch : public HwSwitch {
   MOCK_METHOD2(sendPacketOutOfPort_, bool(TxPacket*, facebook::fboss::PortID));
   bool sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
                           facebook::fboss::PortID portID) noexcept override;
+  std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta) override;
 
   MOCK_METHOD1(updateStats, void(SwitchStats* switchStats));
   MOCK_METHOD3(

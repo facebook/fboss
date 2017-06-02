@@ -184,7 +184,7 @@ static void sendArp(SwSwitch *sw,
 }
 
 void ArpHandler::floodGratuituousArp() {
-  for (const auto& intf: *sw_->getState()->getInterfaces()) {
+  for (const auto& intf : *sw_->getState()->getInterfaces()) {
     for (const auto& addrEntry: intf->getAddresses()) {
       if (!addrEntry.first.isV4()) {
         continue;

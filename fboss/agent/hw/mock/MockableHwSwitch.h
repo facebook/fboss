@@ -45,6 +45,8 @@ class MockableHwSwitch : public MockHwSwitch {
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t) override;
 
+  std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta) override;
+
   /*
    * These 'Adaptor' methods are super hacky, but are needed because
    * gmock does not support mocking move-only types. Note that this may

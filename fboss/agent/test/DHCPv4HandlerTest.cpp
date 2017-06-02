@@ -325,7 +325,7 @@ TEST(DHCPv4HandlerTest, DHCPRequest) {
   CounterCache counters(sw.get());
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
     WillRepeatedly(Return(kPlatformMac));
 
@@ -357,7 +357,7 @@ TEST(DHCPv4HandlerOverrideTest, DHCPRequest) {
   const string dhcpMsgTypeOpt = "35  01  01";
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
     WillRepeatedly(Return(kPlatformMac));
 
@@ -395,7 +395,7 @@ TEST(DHCPv4HandlerTest, DHCPReply) {
   CounterCache counters(sw.get());
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
     WillRepeatedly(Return(kPlatformMac));
 
@@ -428,7 +428,7 @@ TEST(DHCPv4HandlerTest, DHCPBadRequest) {
   CounterCache counters(sw.get());
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
   EXPECT_HW_CALL(sw, sendPacketSwitched_(_)).Times(0);
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
     WillRepeatedly(Return(kPlatformMac));

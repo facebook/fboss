@@ -153,7 +153,7 @@ TEST(IPv4Test, Parse) {
   pkt->setSrcPort(portID);
   pkt->setSrcVlan(vlanID);
 
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
   EXPECT_HW_CALL(sw, sendPacketSwitched_(_)).Times(0);
   sw->packetReceived(pkt->clone());
   counters.update();
@@ -189,7 +189,7 @@ TEST(IPv4Test, Parse) {
   pkt->setSrcPort(portID);
   pkt->setSrcVlan(vlanID);
 
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
   EXPECT_HW_CALL(sw, sendPacketSwitched_(_)).Times(0);
   sw->packetReceived(pkt->clone());
   counters.update();

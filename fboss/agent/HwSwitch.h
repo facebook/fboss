@@ -33,6 +33,7 @@ class TxPacket;
 
 struct HwInitResult {
   std::shared_ptr<SwitchState> switchState{nullptr};
+  std::shared_ptr<SwitchState> switchStateDesired{nullptr};
   BootType bootType{BootType::UNINITIALIZED};
   float initializedTime{0.0};
   float bootTime{0.0};
@@ -124,6 +125,8 @@ class HwSwitch {
    *
    * stateChanged() is called whenever the switch state changes.
    * This is called immediately after updating the state variable in SwSwitch.
+   *
+   * @ret   The actual state that was applied in the hardware.
    */
   virtual std::shared_ptr<SwitchState> stateChanged(
       const StateDelta& delta) = 0;

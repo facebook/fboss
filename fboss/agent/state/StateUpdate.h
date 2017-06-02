@@ -57,8 +57,8 @@ class StateUpdate {
       const std::shared_ptr<SwitchState>& origState) = 0;
 
   /*
-   * The onError() function will be called in the update thread
-   * if an error occurs applying the state update.
+   * The onError() function will be called in the update thread if an error
+   * occurs applying the state update to the SwSwitch state.
    *
    * In case the callback wishes to save the current exception as a
    * std::exception_ptr, the exception will also be available via
@@ -69,6 +69,12 @@ class StateUpdate {
   /*
    * The onSuccess() function will be called in the update thread
    * after the state update has been successfully applied.
+   *
+   * It is called when it is applied successfully to the software switch state
+   * (and not the hardware necessarily). This function indicates that SwSwitch
+   * has taken the responsibility of applying this StateUpdate to the hardware,
+   * and it will eventually apply it to the hardware. If there are errors, then
+   * it will try and make sure it is eventually applied.
    */
   virtual void onSuccess() {}
 

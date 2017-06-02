@@ -163,6 +163,10 @@ class SwSwitch : public HwSwitch::Callback {
   /*
    * Get a pointer to the current switch state.
    *
+   * There are actually two states, applied and desired. By default, desired
+   * state is the one that clients should consider (and we return that), since
+   * sooner or later, that is what will become the actual applied state too.
+   *
    * This returns a pointer to the current state.  However, note that the state
    * may be modified by another thread immediately after getState() returns,
    * in which case the caller may now have an out-of-date copy of the state.
@@ -170,17 +174,19 @@ class SwSwitch : public HwSwitch::Callback {
    * semantics of SwitchState.
    */
   std::shared_ptr<SwitchState> getState() const {
-    folly::SpinLockGuard guard(stateLock_);
-    return stateDontUseDirectly_;
+    return getDesiredState();
   }
-
   /**
    * Schedule an update to the switch state.
+   *
+   *  @param  update
+   *          The update to be enqueued
    *
    * This schedules the specified StateUpdate to be invoked in the update
    * thread in order to update the SwitchState.
    */
-  void updateState(std::unique_ptr<StateUpdate> update);
+  void updateState(
+      std::unique_ptr<StateUpdate> update);
 
   /**
    * Schedule an update to the switch state.
@@ -207,7 +213,9 @@ class SwSwitch : public HwSwitch::Callback {
    * subscribers.  Therefore the StateUpdateFn may be called with an
    * unpublished SwitchState in some cases.
    */
-  void updateState(folly::StringPiece name, StateUpdateFn fn);
+  void updateState(
+      folly::StringPiece name,
+      StateUpdateFn fn);
 
   /**
    * Schedule an update to the switch state.
@@ -563,6 +571,10 @@ class SwSwitch : public HwSwitch::Callback {
   AdminDistance clientIdToAdminDistance(int clientId) const;
 
  private:
+  void queueStateUpdateForGettingHwInSync(
+      folly::StringPiece name,
+      StateUpdateFn fn);
+
   typedef folly::IntrusiveList<StateUpdate, &StateUpdate::listHook_>
     StateUpdateList;
 
@@ -570,10 +582,33 @@ class SwSwitch : public HwSwitch::Callback {
   SwSwitch(SwSwitch const &) = delete;
   SwSwitch& operator=(SwSwitch const &) = delete;
 
+  // Private APIs to get applied and desired states for the SwSwitch. Note that
+  // we only expose the desired state currently.
+  std::shared_ptr<SwitchState> getAppliedState() const {
+    folly::SpinLockGuard guard(stateLock_);
+    return appliedStateDontUseDirectly_;
+  }
+
+  std::shared_ptr<SwitchState> getDesiredState() const {
+    folly::SpinLockGuard guard(stateLock_);
+    return desiredStateDontUseDirectly_;
+  }
+
+  std::pair<std::shared_ptr<SwitchState>, std::shared_ptr<SwitchState>>
+  getStates() const {
+    folly::SpinLockGuard guard(stateLock_);
+    return std::make_pair(
+        appliedStateDontUseDirectly_, desiredStateDontUseDirectly_);
+  }
+
   /*
-   * Update the current state pointer.
+   * Update the current states.
    */
-  void setStateInternal(std::shared_ptr<SwitchState> newState);
+  void setStateInternal(
+      std::shared_ptr<SwitchState> newAppliedState,
+      std::shared_ptr<SwitchState> newDesiredState);
+
+  void setDesiredState(std::shared_ptr<SwitchState> newDesiredState);
 
   void publishInitTimes(std::string name, const float& time);
   void publishPortInfo();
@@ -586,8 +621,9 @@ class SwSwitch : public HwSwitch::Callback {
 
   static void handlePendingUpdatesHelper(SwSwitch* sw);
   void handlePendingUpdates();
-  void applyUpdate(const std::shared_ptr<SwitchState>& oldState,
-                   const std::shared_ptr<SwitchState>& newState);
+  std::shared_ptr<SwitchState> applyUpdate(
+      const std::shared_ptr<SwitchState>& oldState,
+      const std::shared_ptr<SwitchState>& newState);
 
   void startThreads();
   void stopThreads();
@@ -645,17 +681,29 @@ class SwSwitch : public HwSwitch::Callback {
   StateUpdateList pendingUpdates_;
 
   /*
-   * The current switch state.
+   * The current switch state: modelled as two states:
    *
-   * BEWARE: You generally shouldn't access this directly, even internally
-   * within SwSwitch private methods.  This should only be accessed while
-   * holding stateLock_.  You almost certainly should call getState() or
-   * setStateInternal() instead of directly accessing this.
+   *  1. desiredState* is what we desire the SwSwitch and HwSwitch to be in.
+   *     But because of some errors, or lag, this state might not be what is
+   *     actually applied to HwSwitch.
+   *  2. appliedState* is what is actually applied in the hardware.
+   *
+   * In steady state without any errors, these state should differ only for
+   * short amounts of time when state is being applied, but otherwise should be
+   * the same.
+   *
+   * BEWARE: You generally shouldn't access these states directly, even
+   * internally within SwSwitch private methods.  These should only be accessed
+   * while holding stateLock_.
+   *
+   * You almost certainly should call getAppliedState() or getDesiredState() or
+   * setStateInternal() instead of directly accessing these.
    *
    * This intentionally has an awkward name so people won't forget and try to
    * directly access this pointer.
    */
-  std::shared_ptr<SwitchState> stateDontUseDirectly_;
+  std::shared_ptr<SwitchState> appliedStateDontUseDirectly_;
+  std::shared_ptr<SwitchState> desiredStateDontUseDirectly_;
   mutable folly::SpinLock stateLock_;
 
   /*

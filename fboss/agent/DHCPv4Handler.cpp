@@ -211,8 +211,8 @@ void DHCPv4Handler::processRequest(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
   }
 
   IPAddressV4 switchIp;
-  auto vlanInterface = sw->getState()->getInterfaces()->getInterfaceInVlanIf(
-      pkt->getSrcVlan());
+  auto vlanInterface =
+      sw->getState()->getInterfaces()->getInterfaceInVlanIf(pkt->getSrcVlan());
   auto& addresses = vlanInterface->getAddresses();
   for (auto address: addresses) {
     if (address.first.isV4()) {
@@ -290,8 +290,8 @@ void DHCPv4Handler::processReply(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
   // TODO we should add router id information to the packet
   // to get the VRF of the interface that this packet came
   // in on. Assuming 0 for now since we have only one VRF
-  auto intf = sw->getState()->getInterfaces()->getInterface(RouterID(0),
-      IPAddress(switchIp));
+  auto intf = sw->getState()->getInterfaces()->getInterface(
+      RouterID(0), IPAddress(switchIp));
   if (!intf) {
     sw->stats()->port(pkt->getSrcPort())->dhcpV4DropPkt();
     LOG (INFO) << "Could not lookup interface for : " << switchIp

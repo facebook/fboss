@@ -388,7 +388,6 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   auto rv = opennsl_port_config_get(unit_, &pcfg);
   bcmCheckError(rv, "failed to get port configuration");
   // On cold boot all ports are in Vlan 1
-  auto vlanMap = make_shared<VlanMap>();
   auto vlan = make_shared<Vlan>(VlanID(1), "InitVlan");
   Vlan::MemberPorts memberPorts;
   opennsl_port_t idx;
@@ -628,7 +627,6 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChanged(const StateDelta& delta) {
 
 std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
     const StateDelta& delta) {
-
   auto appliedState = delta.newState();
   // TODO: This function contains high-level logic for how to apply the
   // StateDelta, and isn't particularly hardware-specific.  I plan to refactor

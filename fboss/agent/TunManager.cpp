@@ -586,7 +586,9 @@ TunManager::getInterfaceStatus(std::shared_ptr<SwitchState> state) {
 void TunManager::forceInitialSync() {
   evb_->runInEventBaseThread([this]() {
     if (numSyncs_ == 0) {
-      // no syncs occurred yet. Force initial sync.
+      // no syncs occurred yet. Force initial sync. The initial sync is done
+      // with applied state, and subsequent sync's will also be done with the
+      // applied states.
       sync(sw_->getState());
     }
   });

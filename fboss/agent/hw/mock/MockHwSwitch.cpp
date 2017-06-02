@@ -53,4 +53,10 @@ bool MockHwSwitch::sendPacketOutOfPort(
   return true;
 }
 
+std::shared_ptr<SwitchState>
+MockHwSwitch::stateChanged(const StateDelta& delta) {
+    stateChangedMock(delta);
+    return delta.newState();
+}
+
 }} // facebook::fboss
