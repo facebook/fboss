@@ -109,7 +109,6 @@ void BcmHost::addBcmHost(bool isMultipath, bool replace) {
       " @egress ", getEgressId());
     VLOG(3) << "created L3 host object for " << addr_.str()
     << " @egress " << getEgressId();
-
   }
   added_ = true;
 }
@@ -117,23 +116,23 @@ void BcmHost::addBcmHost(bool isMultipath, bool replace) {
 void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
                       opennsl_port_t port, RouteForwardAction action) {
   unique_ptr<BcmEgress> createdEgress{nullptr};
-  BcmEgress* egress{nullptr};
+  BcmEgress* egressPtr{nullptr};
   // get the egress object and then update it with the new MAC
   if (egressId_ == BcmEgressBase::INVALID) {
     createdEgress = std::make_unique<BcmEgress>(hw_);
-    egress = createdEgress.get();
+    egressPtr = createdEgress.get();
   } else {
-    egress = dynamic_cast<BcmEgress*>(
+    egressPtr = dynamic_cast<BcmEgress*>(
         hw_->writableHostTable()->getEgressObjectIf(egressId_));
   }
-  CHECK(egress);
+  CHECK(egressPtr);
   if (mac) {
-    egress->program(intf, vrf_, addr_, *mac, port);
+    egressPtr->program(intf, vrf_, addr_, *mac, port);
   } else {
     if (action == DROP) {
-      egress->programToDrop(intf, vrf_, addr_);
+      egressPtr->programToDrop(intf, vrf_, addr_);
     } else {
-      egress->programToCPU(intf, vrf_, addr_);
+      egressPtr->programToCPU(intf, vrf_, addr_);
     }
   }
   if (createdEgress) {
@@ -147,14 +146,13 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
   }
   auto oldPort = port_;
   port_ = port;
-  VLOG(1) << "Updated port for : " << egress->getID() << " from " << oldPort
+  VLOG(1) << "Updated port for : " << egressPtr->getID() << " from " << oldPort
     << " to " << port;
   // Update port mapping, for entries marked to DROP or to CPU port gets
   // set to 0, which implies no ports are associated with this entry now.
-  hw_->writableHostTable()->updatePortEgressMapping(egress->getID(),
+  hw_->writableHostTable()->updatePortEgressMapping(egressPtr->getID(),
       oldPort, port_);
 }
-
 
 BcmHost::~BcmHost() {
   if (!added_) {

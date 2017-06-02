@@ -254,6 +254,7 @@ class BcmHostTable {
   uint32_t numEcmpEgress() const {
     return numEcmpEgressProgrammed_;
   }
+
  private:
   /*
    * Called both while holding and not holding the hw lock.

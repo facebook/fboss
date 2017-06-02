@@ -208,7 +208,7 @@ class BcmSwitch : public BcmSwitchIf {
 
   // The following function will modify the object.
   // Lock has to be performed in the function.
-  void stateChanged(const StateDelta& delta) override;
+  std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta) override;
 
   /*
    * gracefulExit performs the requisite cleanup
@@ -348,9 +348,13 @@ class BcmSwitch : public BcmSwitchIf {
   void processAddedIntf(const std::shared_ptr<Interface>& intf);
   void processRemovedIntf(const std::shared_ptr<Interface>& intf);
 
-  template<typename DELTA>
-  void processNeighborEntryDelta(const DELTA& delta);
-  void processArpChanges(const StateDelta& delta);
+  template <typename DELTA, typename ParentClassT>
+  void processNeighborEntryDelta(
+      const DELTA& delta,
+      std::shared_ptr<SwitchState>* appliedState);
+  void processArpChanges(
+      const StateDelta& delta,
+      std::shared_ptr<SwitchState>* appliedState);
 
   void processDisabledPorts(const StateDelta& delta);
   void processEnabledPorts(const StateDelta& delta);
@@ -359,16 +363,22 @@ class BcmSwitch : public BcmSwitchIf {
 
   template <typename RouteT>
   void processChangedRoute(
-      const RouterID id, const std::shared_ptr<RouteT>& oldRoute,
+      const RouterID& id,
+      std::shared_ptr<SwitchState>* appliedState,
+      const std::shared_ptr<RouteT>& oldRoute,
       const std::shared_ptr<RouteT>& newRoute);
   template <typename RouteT>
   void processAddedRoute(
-      const RouterID id, const std::shared_ptr<RouteT>& route);
+      const RouterID& id,
+      std::shared_ptr<SwitchState>* appliedState,
+      const std::shared_ptr<RouteT>& route);
   template <typename RouteT>
   void processRemovedRoute(
       const RouterID id, const std::shared_ptr<RouteT>& route);
   void processRemovedRoutes(const StateDelta& delta);
-  void processAddedChangedRoutes(const StateDelta& delta);
+  void processAddedChangedRoutes(
+      const StateDelta& delta,
+      std::shared_ptr<SwitchState>* appliedState);
 
   void processAclChanges(const StateDelta& delta);
   void processChangedAcl(const std::shared_ptr<AclEntry>& oldAcl,
@@ -384,7 +394,7 @@ class BcmSwitch : public BcmSwitchIf {
   void processRemovedAggregatePort(
       const std::shared_ptr<AggregatePort>& aggPort);
 
-  void stateChangedImpl(const StateDelta& delta);
+  std::shared_ptr<SwitchState> stateChangedImpl(const StateDelta& delta);
 
   /*
    * Calls linkStateChanged below

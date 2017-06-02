@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/sim/SimSwitch.h"
 
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/hw/mock/MockTxPacket.h"
@@ -42,8 +43,9 @@ HwInitResult SimSwitch::init(HwSwitch::Callback* callback) {
   return ret;
 }
 
-void SimSwitch::stateChanged(const StateDelta& delta) {
+std::shared_ptr<SwitchState> SimSwitch::stateChanged(const StateDelta& delta) {
   // TODO
+  return delta.newState();
 }
 
 std::unique_ptr<TxPacket> SimSwitch::allocatePacket(uint32_t size) {

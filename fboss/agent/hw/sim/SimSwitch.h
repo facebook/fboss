@@ -14,13 +14,14 @@
 namespace facebook { namespace fboss {
 
 class SimPlatform;
+class SwitchState;
 
 class SimSwitch : public HwSwitch {
  public:
   SimSwitch(SimPlatform* platform, uint32_t numPorts);
 
   HwInitResult init(Callback* callback) override;
-  void stateChanged(const StateDelta& delta) override;
+  std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta) override;
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
   bool sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept override;
   bool sendPacketOutOfPort(

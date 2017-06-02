@@ -51,6 +51,7 @@
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/SwitchState-defs.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/state/VlanMapDelta.h"
@@ -98,6 +99,7 @@ enum : uint8_t {
 
 namespace {
 constexpr auto kHostTable = "hostTable";
+constexpr int kLogBcmErrorFreqMs = 3000;
 /*
  * Dump map containing switch h/w config as a key, value pair
  * to a file. Create parent directories of file if needed.
@@ -112,6 +114,14 @@ void dumpConfigMap(const facebook::fboss::BcmAPI::HwConfigMap& config,
   }
   folly::writeFile(toPrettyJson(json), filename.c_str());
 }
+
+void rethrowIfHwNotFull(const facebook::fboss::BcmError& error) {
+  if (error.getBcmError() != OPENNSL_E_FULL) {
+    // If this is not because of TCAM being full, rethrow the exception.
+    throw error;
+  }
+}
+
 }
 
 namespace facebook { namespace fboss {
@@ -607,14 +617,19 @@ void BcmSwitch::initialConfigApplied() {
   bcmCheckError(rv, "failed to start broadcom packet rx API");
 }
 
-void BcmSwitch::stateChanged(const StateDelta& delta) {
+std::shared_ptr<SwitchState> BcmSwitch::stateChanged(const StateDelta& delta) {
   // Take the lock before modifying any objects
   std::lock_guard<std::mutex> g(lock_);
-  stateChangedImpl(delta);
+  auto appliedState = stateChangedImpl(delta);
+  appliedState->publish();
   bcmTableStats_->refresh();
+  return appliedState;
 }
 
-void BcmSwitch::stateChangedImpl(const StateDelta& delta) {
+std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
+    const StateDelta& delta) {
+
+  auto appliedState = delta.newState();
   // TODO: This function contains high-level logic for how to apply the
   // StateDelta, and isn't particularly hardware-specific.  I plan to refactor
   // it, and move it out into a common helper class that can be shared by
@@ -664,14 +679,14 @@ void BcmSwitch::stateChangedImpl(const StateDelta& delta) {
 
   reconfigureCoPP(delta);
 
-  // Any ARP changes
-  processArpChanges(delta);
+  // Any ARP changes, and modify appliedState if some changes fail to apply
+  processArpChanges(delta, &appliedState);
 
   // Any ACL changes
   processAclChanges(delta);
 
   // Process any new routes or route changes
-  processAddedChangedRoutes(delta);
+  processAddedChangedRoutes(delta, &appliedState);
 
   processAggregatePortChanges(delta);
 
@@ -688,6 +703,8 @@ void BcmSwitch::stateChangedImpl(const StateDelta& delta) {
   // ports are correctly configured. Note that this will also set the
   // ingressVlan and speed correctly before enabling.
   processEnabledPorts(delta);
+
+  return appliedState;
 }
 
 unique_ptr<TxPacket> BcmSwitch::allocatePacket(uint32_t size) {
@@ -972,8 +989,11 @@ void BcmSwitch::processAggregatePortChanges(const StateDelta& delta) {
       this);
 }
 
-template<typename DELTA>
-void BcmSwitch::processNeighborEntryDelta(const DELTA& delta) {
+template <typename DELTA, typename ParentClassT>
+void BcmSwitch::processNeighborEntryDelta(
+    const DELTA& delta,
+    std::shared_ptr<SwitchState>* appliedState) {
+  using EntryT = typename DELTA::Node;
   const auto* oldEntry = delta.getOld().get();
   const auto* newEntry = delta.getNew().get();
 
@@ -1013,67 +1033,117 @@ void BcmSwitch::processNeighborEntryDelta(const DELTA& delta) {
 
     if (newEntry->isPending()) {
       VLOG(3) << "adding pending neighbor entry to " << newEntry->getIP().str();
-      host->programToCPU(intf->getBcmIfId());
+      try {
+        host->programToCPU(intf->getBcmIfId());
+      } catch (const BcmError& error) {
+        rethrowIfHwNotFull(error);
+        SwitchState::revertNewNeighborEntry<EntryT, ParentClassT>(
+            delta.getNew(), nullptr, appliedState);
+      }
     } else {
-      program("adding", host);
+      try {
+        program("adding", host);
+      } catch (const BcmError& error) {
+        rethrowIfHwNotFull(error);
+        SwitchState::revertNewNeighborEntry<EntryT, ParentClassT>(
+            delta.getNew(), nullptr, appliedState);
+      }
     }
   } else if (!newEntry) {
     VLOG(3) << "deleting neighbor entry " << oldEntry->getIP().str();
     getIntfAndVrf(oldEntry->getIntfID());
     auto host = hostTable_->derefBcmHost(vrf, IPAddress(oldEntry->getIP()));
     if (host) {
-      host->programToCPU(intf->getBcmIfId());
+        host->programToCPU(intf->getBcmIfId());
+        // This should not fail. Not catching exceptions. If the delete fails,
+        // it is probably not because of TCAM being full.
     }
   } else {
     CHECK_EQ(oldEntry->getIP(), newEntry->getIP());
     getIntfAndVrf(newEntry->getIntfID());
     auto host = hostTable_->getBcmHost(vrf, IPAddress(newEntry->getIP()));
-    if (newEntry->isPending()) {
-      VLOG(3) << "changing neighbor entry " << oldEntry->getIP().str()
-              << " to pending";
-      host->programToCPU(intf->getBcmIfId());
-    } else {
-      program("changing", host);
+    try {
+      if (newEntry->isPending()) {
+        VLOG(3) << "changing neighbor entry " << oldEntry->getIP().str()
+                << " to pending";
+        host->programToCPU(intf->getBcmIfId());
+      } else {
+        program("changing", host);
+      }
+    } catch (const BcmError& error) {
+      rethrowIfHwNotFull(error);
+      SwitchState::revertNewNeighborEntry<EntryT, ParentClassT>(
+          delta.getOld(), delta.getNew(), appliedState);
     }
   }
 }
 
-void BcmSwitch::processArpChanges(const StateDelta& delta) {
+void BcmSwitch::processArpChanges(
+    const StateDelta& delta,
+    std::shared_ptr<SwitchState>* appliedState) {
   for (const auto& vlanDelta : delta.getVlansDelta()) {
     for (const auto& arpDelta : vlanDelta.getArpDelta()) {
-      processNeighborEntryDelta(arpDelta);
+      using DeltaT = DeltaValue<ArpEntry>;
+      processNeighborEntryDelta<DeltaT, ArpTable>(arpDelta, appliedState);
     }
     for (const auto& ndpDelta : vlanDelta.getNdpDelta()) {
-      processNeighborEntryDelta(ndpDelta);
+      using DeltaT = DeltaValue<NdpEntry>;
+      processNeighborEntryDelta<DeltaT, NdpTable>(ndpDelta, appliedState);
     }
   }
 }
 
 template <typename RouteT>
-void BcmSwitch::processChangedRoute(const RouterID id,
-                                    const shared_ptr<RouteT>& oldRoute,
-                                    const shared_ptr<RouteT>& newRoute) {
-  VLOG(3) << "changing to route entry @ vrf " << id << " from old: "
-    << oldRoute->str() << "to new: " << newRoute->str();
+void BcmSwitch::processChangedRoute(
+    const RouterID& id,
+    std::shared_ptr<SwitchState>* appliedState,
+    const shared_ptr<RouteT>& oldRoute,
+    const shared_ptr<RouteT>& newRoute) {
+  std::string routeMessage;
+  folly::toAppend(
+      "changing route entry @ vrf ",
+      id,
+      " from old: ",
+      oldRoute->str(),
+      "to new: ",
+      newRoute->str(),
+      &routeMessage);
+  VLOG(3) << routeMessage;
   // if the new route is not resolved, delete it instead of changing it
   if (!newRoute->isResolved()) {
     VLOG(1) << "Non-resolved route HW programming is skipped";
     processRemovedRoute(id, oldRoute);
   } else {
-    routeTable_->addRoute(getBcmVrfId(id), newRoute.get());
+    try {
+      routeTable_->addRoute(getBcmVrfId(id), newRoute.get());
+    } catch (const BcmError& error) {
+      rethrowIfHwNotFull(error);
+      SwitchState::revertNewRouteEntry(id, newRoute, oldRoute, appliedState);
+    }
   }
 }
 
 template <typename RouteT>
-void BcmSwitch::processAddedRoute(const RouterID id,
-                                  const shared_ptr<RouteT>& route) {
-  VLOG(3) << "adding route entry @ vrf " << id << " " << route->str();
+void BcmSwitch::processAddedRoute(
+    const RouterID& id,
+    std::shared_ptr<SwitchState>* appliedState,
+    const shared_ptr<RouteT>& route) {
+  std::string routeMessage;
+  folly::toAppend(
+      "adding route entry @ vrf ", id, " ", route->str(), &routeMessage);
+  VLOG(3) << routeMessage;
   // if the new route is not resolved, ignore it
   if (!route->isResolved()) {
     VLOG(1) << "Non-resolved route HW programming is skipped";
     return;
   }
-  routeTable_->addRoute(getBcmVrfId(id), route.get());
+  try {
+    routeTable_->addRoute(getBcmVrfId(id), route.get());
+  } catch (const BcmError& error) {
+    rethrowIfHwNotFull(error);
+    SwitchState::revertNewRouteEntry(
+        id, route, std::shared_ptr<RouteT>(), appliedState);
+  }
 }
 
 template <typename RouteT>
@@ -1107,10 +1177,12 @@ void BcmSwitch::processRemovedRoutes(const StateDelta& delta) {
   }
 }
 
-void BcmSwitch::processAddedChangedRoutes(const StateDelta& delta) {
+void BcmSwitch::processAddedChangedRoutes(
+    const StateDelta& delta,
+    std::shared_ptr<SwitchState>* appliedState) {
   for (auto const& rtDelta : delta.getRouteTablesDelta()) {
     if (!rtDelta.getNew()) {
-      // no new route table, must not added or changed route, skip
+      // no new route table, must not have added or changed route, skip
       continue;
     }
     RouterID id = rtDelta.getNew()->getID();
@@ -1118,16 +1190,24 @@ void BcmSwitch::processAddedChangedRoutes(const StateDelta& delta) {
         rtDelta.getRoutesV4Delta(),
         &BcmSwitch::processChangedRoute<RouteV4>,
         &BcmSwitch::processAddedRoute<RouteV4>,
-        [&](BcmSwitch *, RouterID, const shared_ptr<RouteV4>&) {},
+        [&](BcmSwitch*,
+            const RouterID&,
+            std::shared_ptr<SwitchState>*,
+            const shared_ptr<RouteV4>&) {},
         this,
-        id);
+        id,
+        appliedState);
     forEachChanged(
         rtDelta.getRoutesV6Delta(),
         &BcmSwitch::processChangedRoute<RouteV6>,
         &BcmSwitch::processAddedRoute<RouteV6>,
-        [&](BcmSwitch *, RouterID, const shared_ptr<RouteV6>&) {},
+        [&](BcmSwitch*,
+            const RouterID&,
+            std::shared_ptr<SwitchState>*,
+            const shared_ptr<RouteV6>&) {},
         this,
-        id);
+        id,
+        appliedState);
   }
 }
 

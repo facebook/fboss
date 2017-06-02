@@ -125,7 +125,8 @@ class HwSwitch {
    * stateChanged() is called whenever the switch state changes.
    * This is called immediately after updating the state variable in SwSwitch.
    */
-  virtual void stateChanged(const StateDelta& delta) = 0;
+  virtual std::shared_ptr<SwitchState> stateChanged(
+      const StateDelta& delta) = 0;
   /*
    * Check if a state update would be permissible on the HW,
    * without making any actual changes on the HW.

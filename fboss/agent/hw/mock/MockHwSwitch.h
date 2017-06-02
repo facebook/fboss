@@ -29,7 +29,7 @@ class MockHwSwitch : public HwSwitch {
   explicit MockHwSwitch(MockPlatform* platform);
 
   MOCK_METHOD1(init, HwInitResult(Callback*));
-  MOCK_METHOD1(stateChanged, void(const StateDelta&));
+  MOCK_METHOD1(stateChanged, std::shared_ptr<SwitchState>(const StateDelta&));
   MOCK_METHOD2(getAndClearNeighborHit, bool(RouterID, folly::IPAddress&));
 
   virtual std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
