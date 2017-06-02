@@ -1219,5 +1219,29 @@ std::string SwSwitch::switchRunStateStr(
   }
 }
 
+AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {
+  auto distance = curConfig_.clientIdToAdminDistance.find(clientId);
+  if (distance != curConfig_.clientIdToAdminDistance.end()) {
+    // In case we get a client id we don't know about
+    LOG(ERROR) << "No admin distance mapping available for client id"
+               << clientId << ". Using default distance - MAX_ADMIN_DISTANCE";
+    return AdminDistance::MAX_ADMIN_DISTANCE;
+  }
+
+  if (VLOG_IS_ON(3)) {
+    auto clientName = folly::get_default(
+        _StdClientIds_VALUES_TO_NAMES, StdClientIds(clientId),
+        "UNKNOWN");
+    auto distanceString = folly::get_default(
+        _AdminDistance_VALUES_TO_NAMES,
+        static_cast<AdminDistance>(distance->second),
+        "UNKNOWN");
+    VLOG(3) << "Mapping client id " << clientId << " (" << clientName
+            << ") to admin distance " << distance->second << " ("
+            << distanceString << ").";
+  }
+
+  return static_cast<AdminDistance>(distance->second);
+}
 
 }} // facebook::fboss

@@ -11,6 +11,7 @@
 
 #include "fboss/agent/HighresCounterUtil.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/ThreadHeartbeat.h"
@@ -559,6 +560,7 @@ class SwSwitch : public HwSwitch::Callback {
 
   const std::string& getConfigStr() const { return curConfigStr_; }
   const cfg::SwitchConfig& getConfig() const { return curConfig_; }
+  AdminDistance clientIdToAdminDistance(int clientId) const;
 
  private:
   typedef folly::IntrusiveList<StateUpdate, &StateUpdate::listHook_>

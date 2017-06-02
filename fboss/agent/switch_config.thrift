@@ -4,6 +4,7 @@
 namespace py neteng.fboss.switch_config
 namespace py.asyncio neteng.fboss.asyncio.switch_config
 namespace cpp2 facebook.fboss.cfg
+
 /**
  * Port state
  */
@@ -457,4 +458,12 @@ struct SwitchConfig {
   16: i32 maxNeighborProbes = 300
   17: i32 staleEntryInterval = 10
   18: list<AggregatePort> aggregatePorts = []
+  // What admin distance to use for each potential clientID
+  // These mappings map a StdClientIds to a AdminDistance
+  // Predefined values for these can be found at
+  // fboss/agent/if/ctrl.thrift
+  19: map<i32, i32> clientIdToAdminDistance = {
+        0: 20,
+        1: 1,
+      }
 }

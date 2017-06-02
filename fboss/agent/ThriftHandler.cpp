@@ -185,9 +185,12 @@ void ThriftHandler::addUnicastRoutes(
   auto updateFn = [&](const shared_ptr<SwitchState>& state) {
     RouteUpdater updater(state->getRouteTables());
     RouterID routerId = RouterID(0); // TODO, default vrf for now
+    auto clientIdToAdmin = sw_->clientIdToAdminDistance(client);
     for (const auto& route : *routes) {
       auto network = toIPAddress(route.dest.ip);
       auto mask = static_cast<uint8_t>(route.dest.prefixLength);
+      auto adminDistance = route.__isset.adminDistance ? route.adminDistance :
+        clientIdToAdmin;
       RouteNextHops nexthops = util::toRouteNextHops(route.nextHopAddrs);
       if (nexthops.size()) {
         updater.addRoute(routerId, network, mask, ClientID(client),
@@ -259,10 +262,13 @@ void ThriftHandler::syncFib(
     // create an update object starting from empty
     RouteUpdater updater(state->getRouteTables());
     RouterID routerId = RouterID(0); // TODO, default vrf for now
+    auto clientIdToAdmin = sw_->clientIdToAdminDistance(client);
     updater.removeAllNexthopsForClient(routerId, ClientID(client));
-    for (auto const& route : *routes) {
+    for (const auto& route : *routes) {
       folly::IPAddress network = toIPAddress(route.dest.ip);
       uint8_t mask = static_cast<uint8_t>(route.dest.prefixLength);
+      auto adminDistance = route.__isset.adminDistance ? route.adminDistance :
+        clientIdToAdmin;
       RouteNextHops nexthops = util::toRouteNextHops(route.nextHopAddrs);
       updater.addRoute(routerId, network, mask, ClientID(client),
                        std::move(nexthops));
