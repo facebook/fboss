@@ -10,11 +10,12 @@
 #include "fboss/agent/hw/bcm/BcmConfig.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/gen-cpp/bcm_config_types.h"
+#include "fboss/agent/gen-cpp2/bcm_config_types.h"
 #include "fboss/agent/FbossError.h"
 
 #include <folly/FileUtil.h>
 #include <folly/gen/String.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 
 DEFINE_string(bcm_config, "",
               "The location of the Broadcom JSON configuration file");
@@ -45,7 +46,8 @@ BcmConfig::ConfigMap BcmConfig::loadFromFile(const string& path) {
 
   // Try parsing it as configerator-style JSON first.
   try {
-    cfg.readFromJson(contents.c_str());
+    cfg = apache::thrift::SimpleJSONSerializer::deserialize<bcm::BcmConfig>(
+        contents);
   } catch (const std::exception& jsonEx) {
     // Wasn't valid json.  Try parsing it as a Broadcom-style flat file
     // instead.  This is mainly just for convenience, so that testing in the
