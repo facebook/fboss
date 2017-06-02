@@ -43,6 +43,7 @@
 #include "common/stats/ServiceData.h"
 #include <folly/FileUtil.h>
 #include <folly/MacAddress.h>
+#include <folly/MapUtil.h>
 #include <folly/String.h>
 #include <folly/Demangle.h>
 #include <chrono>
