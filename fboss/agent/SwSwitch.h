@@ -569,6 +569,37 @@ class SwSwitch : public HwSwitch::Callback {
   const std::string& getConfigStr() const { return curConfigStr_; }
   const cfg::SwitchConfig& getConfig() const { return curConfig_; }
   AdminDistance clientIdToAdminDistance(int clientId) const;
+  /*
+   * Applied state corresponds to what was successfully applied
+   * to h/w
+   */
+  std::shared_ptr<SwitchState> getAppliedState() const {
+    folly::SpinLockGuard guard(stateLock_);
+    return appliedStateDontUseDirectly_;
+  }
+
+  /*
+   * Desired state corresponds to what we desire the switch
+   * state to be. This is allowed to differ from desired switch
+   * state in a few select cases, where we deem it safe to
+   * let these states diverge. Currently the use case for this
+   * is when ASIC TCAM/CAM is full, we allow these s/w(desired) and
+   * h/w (applied) of switch states diverge. When this happens
+   * we keep trying to converge to this states becoming the
+   * same, by reapplying delta b/w applied and desired states
+   * along with other state updates.
+   * This however should be a pretty rare situation, where
+   * a large number of routes have leaked and caused a TCAM/CAM
+   * overflow. Allowing these states to differ, means we dont
+   * crash (and become non functional) in this situation. Reapplying
+   * deltas means that when leak is fixed we converge to
+   * normality (desired == applied)
+   *
+   */
+  std::shared_ptr<SwitchState> getDesiredState() const {
+    folly::SpinLockGuard guard(stateLock_);
+    return desiredStateDontUseDirectly_;
+  }
 
  private:
   void queueStateUpdateForGettingHwInSync(
@@ -582,17 +613,6 @@ class SwSwitch : public HwSwitch::Callback {
   SwSwitch(SwSwitch const &) = delete;
   SwSwitch& operator=(SwSwitch const &) = delete;
 
-  // Private APIs to get applied and desired states for the SwSwitch. Note that
-  // we only expose the desired state currently.
-  std::shared_ptr<SwitchState> getAppliedState() const {
-    folly::SpinLockGuard guard(stateLock_);
-    return appliedStateDontUseDirectly_;
-  }
-
-  std::shared_ptr<SwitchState> getDesiredState() const {
-    folly::SpinLockGuard guard(stateLock_);
-    return desiredStateDontUseDirectly_;
-  }
 
   std::pair<std::shared_ptr<SwitchState>, std::shared_ptr<SwitchState>>
   getStates() const {
