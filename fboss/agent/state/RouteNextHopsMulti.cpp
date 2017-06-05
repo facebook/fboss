@@ -10,6 +10,7 @@
 #include "RouteNextHopsMulti.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/state/StateUtils.h"
 
 namespace {
@@ -29,9 +30,16 @@ folly::dynamic RouteNextHopsMulti::toFollyDynamicOld() const {
   // Store the clientid->nextHops map as a dynamic::object
   folly::dynamic obj = folly::dynamic::object();
   for (auto const& row : map_) {
-    int clientid = row.first;
-    RouteNextHops const& nxtHps = row.second.getNextHopSet();
+    auto clientid = row.first;
+    const auto& entry = row.second;
+    // The old code expects empty 'nexthopsmulti' for
+    // interface and action routes
+    if (clientid == StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE)
+        || entry.getAction() != RouteForwardAction::NEXTHOPS) {
+      continue;
+    }
 
+    RouteNextHops const& nxtHps = entry.getNextHopSet();
     folly::dynamic nxtHopCopy = folly::dynamic::array;
     for (const auto& nhop: nxtHps) {
       std::string intfID = "";

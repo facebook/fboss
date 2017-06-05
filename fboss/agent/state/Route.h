@@ -77,18 +77,13 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   }
 
   static std::shared_ptr<Route<AddrT>>
-  fromFollyDynamic(const folly::dynamic& json) {
-    const auto& fields = RouteFields<AddrT>::fromFollyDynamic(json);
-    return std::make_shared<Route<AddrT>>(fields);
-  }
+  fromFollyDynamic(const folly::dynamic& json);
+
+  folly::dynamic toFollyDynamic() const override;
 
   static std::shared_ptr<Route<AddrT>>
   fromJson(const folly::fbstring& jsonStr) {
     return fromFollyDynamic(folly::parseJson(jsonStr));
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    return this->getFields()->toFollyDynamic();
   }
 
   RouteDetails toRouteDetails() const {
