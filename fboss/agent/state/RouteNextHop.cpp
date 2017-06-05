@@ -73,15 +73,20 @@ RouteNextHop::fromThrift(network::thrift::BinaryAddress const& nexthop) {
 
 folly::dynamic RouteNextHop::toFollyDynamic() const {
   folly::dynamic nhop = folly::dynamic::object;
-  nhop[kInterface] = static_cast<uint32_t>(intfID_.value());
+  if (intfID_.hasValue()) {
+    nhop[kInterface] = static_cast<uint32_t>(intfID_.value());
+  }
   nhop[kNexthop] = addr_.str();
   return nhop;
 }
 
 RouteNextHop RouteNextHop::fromFollyDynamic(const folly::dynamic& nhopJson) {
-  return createForward(
-      folly::IPAddress(nhopJson[kNexthop].stringPiece()),
-      InterfaceID(nhopJson[kInterface].asInt()));
+  auto it = nhopJson.find(kInterface);
+  folly::Optional<InterfaceID>  intf{folly::none};
+  if (it != nhopJson.items().end()) {
+    intf = InterfaceID(it->second.asInt());
+  }
+  return RouteNextHop(folly::IPAddress(nhopJson[kNexthop].stringPiece()), intf);
 }
 
 bool operator==(const RouteNextHop& a, const RouteNextHop& b) {

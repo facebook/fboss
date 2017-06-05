@@ -66,6 +66,8 @@ void EXPECT_RESOLVED(std::shared_ptr<Route<AddrT>> rt) {
 #define CLIENT_A ClientID(1001)
 #define CLIENT_B ClientID(1002)
 #define CLIENT_C ClientID(1003)
+#define CLIENT_D ClientID(1004)
+#define CLIENT_E ClientID(1005)
 
 TEST(RouteUpdater, dedup) {
   auto platform = createMockPlatform();
@@ -1332,18 +1334,42 @@ TEST(Route, deepCopy) {
 }
 
 // Test serialization of RouteNextHopsMulti.
-TEST(Route, serializeNextHops) {
+TEST(Route, serializeROuteNextHopsMulti) {
 
-  RouteNextHopsMulti nhm1;
-  nhm1.update(CLIENT_A, newNextHops(3, "1.1.1."));
-  nhm1.update(CLIENT_B, newNextHops(1, "2.2.2."));
-  nhm1.update(CLIENT_C, newNextHops(4, "3.3.3."));
+  // This function tests [de]serialization of:
+  // RouteNextHopsMulti
+  // RouteNextHopEntry
+  // RouteNextHop
 
-  auto serialized = nhm1.toFollyDynamic();
+  // test for new format to new format
+  {
+    RouteNextHopsMulti nhm1;
+    nhm1.update(CLIENT_A, newNextHops(3, "1.1.1."));
+    nhm1.update(CLIENT_B, newNextHops(1, "2.2.2."));
+    nhm1.update(CLIENT_C, newNextHops(4, "3.3.3."));
+    nhm1.update(CLIENT_D, RouteNextHopEntry(RouteForwardAction::DROP));
+    nhm1.update(CLIENT_E, RouteNextHopEntry(RouteForwardAction::TO_CPU));
 
-  auto nhm2 = RouteNextHopsMulti::fromFollyDynamic(serialized);
+    auto serialized = nhm1.toFollyDynamic();
 
-  EXPECT_TRUE(nhm1 == nhm2);
+    auto nhm2 = RouteNextHopsMulti::fromFollyDynamic(serialized);
+
+    EXPECT_TRUE(nhm1 == nhm2);
+  }
+
+  // test for deserialize from old format
+  {
+    RouteNextHopsMulti nhm1;
+    nhm1.update(CLIENT_A, newNextHops(3, "1.1.1."));
+    nhm1.update(CLIENT_B, newNextHops(1, "2.2.2."));
+    nhm1.update(CLIENT_C, newNextHops(4, "3.3.3."));
+
+    auto serialized = nhm1.toFollyDynamicOld();
+
+    auto nhm2 = RouteNextHopsMulti::fromFollyDynamicOld(serialized);
+
+    EXPECT_TRUE(nhm1 == nhm2);
+  }
 }
 
 // Test priority ranking of nexthop lists within a RouteNextHopsMulti.

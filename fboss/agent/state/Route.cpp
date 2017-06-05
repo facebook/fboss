@@ -18,7 +18,8 @@ using facebook::network::toBinaryAddress;
 
 namespace {
 constexpr auto kPrefix = "prefix";
-constexpr auto kNextHopsMulti = "nexthopsmulti";
+constexpr auto kNextHopsMultiOld = "nexthopsmulti";
+constexpr auto kNextHopsMulti = "rib";
 constexpr auto kFwdInfo = "forwardingInfo";
 constexpr auto kFlags = "flags";
 }
@@ -57,6 +58,8 @@ folly::dynamic RouteFields<AddrT>::toFollyDynamic() const {
   folly::dynamic routeFields = folly::dynamic::object;
   routeFields[kPrefix] = prefix.toFollyDynamic();
   routeFields[kNextHopsMulti] = nexthopsmulti.toFollyDynamic();
+  // to keep rolling back possible
+  routeFields[kNextHopsMultiOld] = nexthopsmulti.toFollyDynamicOld();
   routeFields[kFwdInfo] = fwd.toFollyDynamic();
   routeFields[kFlags] = flags;
   return routeFields;
@@ -87,9 +90,17 @@ template<typename AddrT>
 RouteFields<AddrT>
 RouteFields<AddrT>::fromFollyDynamic(const folly::dynamic& routeJson) {
   RouteFields rt(Prefix::fromFollyDynamic(routeJson[kPrefix]));
-  rt.nexthopsmulti = RouteNextHopsMulti::fromFollyDynamic(
-      routeJson[kNextHopsMulti]);
-  rt.fwd = std::move(RouteNextHopEntry::fromFollyDynamic(routeJson[kFwdInfo]));
+  // check if we have the new format or not
+  auto it = routeJson.find(kNextHopsMulti);
+  if (it == routeJson.items().end()) {
+    // read from old format
+    rt.nexthopsmulti = RouteNextHopsMulti::fromFollyDynamicOld(
+        routeJson[kNextHopsMultiOld]);
+  } else {
+    rt.nexthopsmulti = RouteNextHopsMulti::fromFollyDynamic(
+        routeJson[kNextHopsMulti]);
+  }
+  rt.fwd = RouteNextHopEntry::fromFollyDynamic(routeJson[kFwdInfo]);
   rt.flags = routeJson[kFlags].asInt();
   return rt;
 }

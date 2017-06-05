@@ -22,7 +22,10 @@ namespace facebook { namespace fboss {
 // RouteNextHop Class
 //
 
-folly::dynamic RouteNextHopsMulti::toFollyDynamic() const {
+// Old code has its own format expectation.
+// Keep this function until whole fleet is pushed with the code to use
+// the new format.
+folly::dynamic RouteNextHopsMulti::toFollyDynamicOld() const {
   // Store the clientid->nextHops map as a dynamic::object
   folly::dynamic obj = folly::dynamic::object();
   for (auto const& row : map_) {
@@ -44,26 +47,8 @@ folly::dynamic RouteNextHopsMulti::toFollyDynamic() const {
   return obj;
 }
 
-std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
-  std::vector<ClientAndNextHops> list;
-  for (const auto& srcPair : map_) {
-    ClientAndNextHops destPair;
-    destPair.clientId = srcPair.first;
-    for (const auto& nh : srcPair.second.getNextHopSet()) {
-      destPair.nextHopAddrs.push_back(network::toBinaryAddress(nh.addr()));
-      if (nh.intfID().hasValue()) {
-        auto& nhAddr = destPair.nextHopAddrs.back();
-        nhAddr.__isset.ifName = true;
-        nhAddr.ifName = util::createTunIntfName(nh.intfID().value());
-      }
-    }
-    list.push_back(destPair);
-  }
-  return list;
-}
-
 RouteNextHopsMulti
-RouteNextHopsMulti::fromFollyDynamic(const folly::dynamic& json) {
+RouteNextHopsMulti::fromFollyDynamicOld(const folly::dynamic& json) {
   RouteNextHopsMulti nh;
   for (const auto& pair: json.items()) {
     int clientId = pair.first.asInt();
@@ -84,6 +69,45 @@ RouteNextHopsMulti::fromFollyDynamic(const folly::dynamic& json) {
     nh.update(ClientID(clientId), RouteNextHopEntry(std::move(list)));
   }
   return nh;
+}
+
+folly::dynamic RouteNextHopsMulti::toFollyDynamic() const {
+  // Store the clientid->RouteNextHopEntry map as a dynamic::object
+  folly::dynamic obj = folly::dynamic::object();
+  for (auto const& row : map_) {
+    int clientid = static_cast<int>(row.first);
+    const auto& entry = row.second;
+    obj[folly::to<std::string>(clientid)] = entry.toFollyDynamic();
+  }
+  return obj;
+}
+
+RouteNextHopsMulti
+RouteNextHopsMulti::fromFollyDynamic(const folly::dynamic& json) {
+  RouteNextHopsMulti nh;
+  for (const auto& pair : json.items()) {
+    nh.update(ClientID(pair.first.asInt()),
+              RouteNextHopEntry::fromFollyDynamic(pair.second));
+  }
+  return nh;
+}
+
+std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
+  std::vector<ClientAndNextHops> list;
+  for (const auto& srcPair : map_) {
+    ClientAndNextHops destPair;
+    destPair.clientId = srcPair.first;
+    for (const auto& nh : srcPair.second.getNextHopSet()) {
+      destPair.nextHopAddrs.push_back(network::toBinaryAddress(nh.addr()));
+      if (nh.intfID().hasValue()) {
+        auto& nhAddr = destPair.nextHopAddrs.back();
+        nhAddr.__isset.ifName = true;
+        nhAddr.ifName = util::createTunIntfName(nh.intfID().value());
+      }
+    }
+    list.push_back(destPair);
+  }
+  return list;
 }
 
 std::string RouteNextHopsMulti::str() const {

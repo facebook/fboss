@@ -49,6 +49,9 @@ class RouteNextHopsMulti {
 
  public:
 
+  folly::dynamic toFollyDynamicOld() const;
+  static RouteNextHopsMulti fromFollyDynamicOld(const folly::dynamic& json);
+
   folly::dynamic toFollyDynamic() const;
   static RouteNextHopsMulti fromFollyDynamic(const folly::dynamic& json);
 
