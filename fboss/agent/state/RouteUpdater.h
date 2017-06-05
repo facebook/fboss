@@ -29,6 +29,30 @@ class SwitchConfig;
 class InterfaceMap;
 template<typename Addr> class RouteTableRib;
 
+/**
+ * Expected behavior of RouteUpdater::resolve():
+ *
+ * RouteUpdater::resolve() resolves the route table forwarding information
+ * based on the RIB, by doing recursively route table lookup. At the end of
+ * the process, every route will be either unresolved or resolved with a
+ * ECMP group.
+ *
+ * There are clear expectation on resolving FIB for a route, when all
+ * nexthops are resolved to actual IPs. However, if is not clearly
+ * defined and documented expectation if ECMP group has mix of action(s)
+ * (i.e. DROP, TO_CPU) and IP nexthops.
+ *
+ * The following is the current implentation of resolve():
+ * 1. No weighted ECMP. Each entry in the ECMP group is unique and has equal
+ *    weight.
+ * 2. A ECMP group could have either DROP, TO_CPU, or a set of IP nexthops.
+ * 3. If DROP and other types (i.e. TO_CPU and IP nexthops) are part of the
+ *    results of route resolve process. The finally FIB will be DROP.
+ * 4. If TO_CPU and IP nexthops are part of the results of resolving process,
+ *    only IP nexthops will be in the final ECMP group.
+ * 5. If and only if TO_CPU is the only nexthop (directly or indirectly) of
+ *    a route, TO_CPU action will be only path in the resolved ECMP group.
+ */
 class RouteUpdater {
  public:
   /**
@@ -42,30 +66,16 @@ class RouteUpdater {
   typedef RoutePrefixV4 PrefixV4;
   typedef RoutePrefixV6 PrefixV6;
 
-  // method to add or update an interface route
-  void addRoute(RouterID id, InterfaceID intf,
-                const folly::IPAddress& intfAddr, uint8_t len);
-  /**
-   * method to add or update a route with a special action
-   *
-   * @action Can be either RouteForwardAction::DROP
-   *         or RouteForwardAction::TO_CPU. For route with one or multiple
-   *         nexthops, use addRoute() with nexthop parameter.
-   */
+  // method to add a route
   void addRoute(RouterID id, const folly::IPAddress& network, uint8_t mask,
-                RouteForwardAction action);
-  // methods to add or update a route with multiple nexthops
-  void addRoute(RouterID id, const folly::IPAddress& network, uint8_t mask,
-                ClientID clientId, RouteNextHops nhs);
+                ClientID clientId, RouteNextHopEntry entry);
 
-  // methods to delete a route
-  // Note, throws an exception if called on a route with nexthops.
-  void delRouteWithNoNexthops(RouterID id,
-                              const folly::IPAddress& network, uint8_t mask);
-  void delNexthopsForClient(RouterID id,
-                            const folly::IPAddress& network, uint8_t mask,
-                            ClientID clientId);
-  void removeAllNexthopsForClient(RouterID rid, ClientID clientId);
+  // method to delete a route from a client
+  void delRoute(RouterID id, const folly::IPAddress& network, uint8_t mask,
+                ClientID clientId);
+
+  // method to delete all routes from a client
+  void removeAllRoutesForClient(RouterID rid, ClientID clientId);
 
   std::shared_ptr<RouteTableMap> updateDone();
 
@@ -113,25 +123,23 @@ class RouteUpdater {
   auto makeClone(RibT* rib) -> decltype(rib->rib.get());
 
   template<typename RibT>
-  void setRoutesWithNhopsForResolution(RibT* rib);
+  void cloneRoutesForResolution(RibT* rib);
   // Helper functions to add or delete a route
-  template<typename PrefixT, typename RibT, typename... Args>
-  void addRoute(const PrefixT& prefix, RibT *rib, Args&&... args);
   template<typename PrefixT, typename RibT>
-  void delRouteWithNoNexthops(const PrefixT& prefix, RibT *rib);
+  void addRouteImpl(const PrefixT& prefix, RibT *rib,
+                    ClientID clientId, RouteNextHopEntry entry);
   template<typename PrefixT, typename RibT>
-  void delNexthopsForClient(const PrefixT& prefix, RibT *rib, ClientID id);
+  void delRouteImpl(const PrefixT& prefix, RibT *ribCloned, ClientID clientId);
   template<typename AddrT, typename RibT>
-  void removeAllNexthopsForClient(RibT *ribCloned, ClientID clientId);
+  void removeAllRoutesForClientImpl(RibT *ribCloned, ClientID clientId);
 
   // resolve all routes that are not resolved yet
   void resolve();
   template<typename RouteT, typename RtRibT>
-  void resolve(RouteT* rt, RtRibT* rib, ClonedRib* clonedRib);
+  void resolveOne(RouteT* rt, RtRibT* rib, ClonedRib* clonedRib);
   template<typename RtRibT, typename AddrT>
   void getFwdInfoFromNhop(RtRibT* nRib, ClonedRib* ribCloned,
-      const AddrT& nh, bool* hasToCpuNhops, bool* hasDropNhops,
-      RouteNextHopSet* fwd);
+      const AddrT& nh, bool* hasToCpu, bool* hasDrop, RouteNextHopSet* fwd);
   // Functions to deduplicate routing tables during sync mode
   template<typename RibT>
   bool dedupRoutes(const RibT* origRib, RibT* newRib);

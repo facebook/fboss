@@ -15,6 +15,7 @@
 #include <folly/IPAddressV6.h>
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/RouteTableRib.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 
 namespace facebook { namespace fboss {
 

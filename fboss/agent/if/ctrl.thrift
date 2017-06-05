@@ -240,6 +240,8 @@ struct LinkNeighborThrift {
 enum StdClientIds {
   BGPD = 0,
   STATIC_ROUTE = 1,
+  INTERFACE_ROUTE = 2,
+  LINKLOCAL_ROUTE = 3,
 }
 
 service FbossCtrl extends fb303.FacebookService {

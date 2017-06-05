@@ -347,7 +347,9 @@ bool BcmRouteTable::isDefaultRouteV6(const Key& key) {
 template<typename AddrT>
 const Route<AddrT>* BcmRouteTable::createDefaultRoute(const AddrT& ip) {
   const typename Route<AddrT>::Prefix prefix {ip, kDefaultMask};
-  return new Route<AddrT>(prefix, RouteForwardAction::DROP);
+  return new Route<AddrT>(
+      prefix, StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
+      RouteNextHopEntry(RouteForwardAction::DROP));
 }
 
 template<typename RouteT>

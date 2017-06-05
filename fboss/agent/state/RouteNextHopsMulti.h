@@ -77,17 +77,14 @@ class RouteNextHopsMulti {
     return map_.empty();
   }
 
-  void delNexthopsForClient(ClientID clientId);
+  void delEntryForClient(ClientID clientId);
 
-  folly::Optional<RouteNextHops> getNextHopSetForClient(
-      ClientID clientId) const;
+  const RouteNextHopEntry* FOLLY_NULLABLE
+  getEntryForClient(ClientID clientId) const;
 
-  // Just used for testing
-  bool hasNextHopsForClient(ClientID clientId) const;
+  std::pair<ClientID, const RouteNextHopEntry *> getBestEntry() const;
 
   bool isSame(ClientID clientId, const RouteNextHops& nhs) const;
-
-  const RouteNextHops& bestNextHopList() const;
 };
 
 }}

@@ -9,6 +9,8 @@
  */
 #include "RouteNextHopEntry.h"
 
+#include "fboss/agent/FbossError.h"
+
 namespace {
 constexpr auto kNexthops = "nexthops";
 constexpr auto kAction = "action";
@@ -39,6 +41,13 @@ fromRouteNextHops(RouteNextHops const& nhs) {
 }
 
 } // namespace util
+
+RouteNextHopEntry::RouteNextHopEntry(NextHopSet nhopSet)
+    : action_(Action::NEXTHOPS), nhopSet_(std::move(nhopSet)) {
+  if (nhopSet_.size() == 0) {
+    throw FbossError("Empty nexthop set is passed to the RouteNextHopEntry");
+  }
+}
 
 std::string RouteNextHopEntry::str() const {
   std::string result;

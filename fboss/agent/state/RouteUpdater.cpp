@@ -28,13 +28,12 @@ using boost::container::flat_map;
 using boost::container::flat_set;
 using folly::CIDRNetwork;
 
-namespace {
-
-const auto kIPv6LinkLocalPrefix = IPAddress::createNetwork("fe80::/64");
-
-} // anonymous namespace
-
 namespace facebook { namespace fboss {
+
+static const
+RouteUpdater::PrefixV6 kIPv6LinkLocalPrefix{folly::IPAddressV6("fe80::"), 64};
+static const auto kInterfaceRouteClientId =
+  StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE);
 
 using std::make_shared;
 
@@ -93,13 +92,13 @@ auto RouteUpdater::makeClone(RibT* rib) -> decltype(rib->rib.get()) {
   return rib->rib.get();
 }
 
-template<typename PrefixT, typename RibT, typename... Args>
-void RouteUpdater::addRoute(const PrefixT& prefix, RibT *ribCloned,
-                            Args&&... args) {
+template<typename PrefixT, typename RibT>
+void RouteUpdater::addRouteImpl(const PrefixT& prefix, RibT *ribCloned,
+                                ClientID clientId, RouteNextHopEntry entry) {
   typedef Route<typename PrefixT::AddressT> RouteT;
   auto rib = ribCloned->rib.get();
   auto old = rib->exactMatch(prefix);
-  if (old && old->isSame(std::forward<Args>(args)...)) {
+  if (old && old->has(clientId, entry)) {
       return;
   }
   rib = makeClone(ribCloned);
@@ -115,68 +114,29 @@ void RouteUpdater::addRoute(const PrefixT& prefix, RibT *ribCloned,
     } else {
       newRoute = old;
     }
-    newRoute->update(std::forward<Args>(args)...);
+    newRoute->update(clientId, std::move(entry));
     VLOG(3) << "Updated route " << newRoute->str();
   } else {
-    auto newRoute = make_shared<RouteT>(prefix, std::forward<Args>(args)...);
+    auto newRoute = make_shared<RouteT>(prefix, clientId, std::move(entry));
     rib->addRoute(newRoute);
     VLOG(3) << "Added route " << newRoute->str();
   }
   CHECK(ribCloned->cloned);
 }
 
-void RouteUpdater::addRoute(RouterID id, InterfaceID intf,
-                            const folly::IPAddress& intfAddr, uint8_t len) {
-  if (intfAddr.isV4()) {
-    PrefixV4 ifSubnetPrefix{intfAddr.asV4().mask(len), len};
-    if (ifSubnetPrefix.network.isLinkLocal()) {
-      VLOG(3) << "Adding route for link local address "
-              << folly::to<std::string>(ifSubnetPrefix);
-      // Don't return here. We still need to add routes. Otherwise, packets to
-      // hosts advertising routes via link local addresses are not routed
-      // properly.
-      //
-      // Ideally, we would not add these routes (and return early here), but
-      // keep track of link local addresses and which VLANs they are associated
-      // with. See t7365038 for more details.
-    }
-    addRoute(ifSubnetPrefix, getRibV4(id), intf, intfAddr);
-  } else {
-    PrefixV6 ifSubnetPrefix{intfAddr.asV6().mask(len), len};
-    if (ifSubnetPrefix.network.isLinkLocal()) {
-      VLOG(3) << "Ignoring route for link local address "
-              << folly::to<std::string>(ifSubnetPrefix);
-      return;
-    }
-    addRoute(ifSubnetPrefix, getRibV6(id), intf, intfAddr);
-  }
-}
-
 void RouteUpdater::addRoute(
     RouterID id, const folly::IPAddress& network, uint8_t mask,
-    RouteForwardAction action) {
+    ClientID clientId, RouteNextHopEntry entry) {
   if (network.isV4()) {
     PrefixV4 prefix{network.asV4().mask(mask), mask};
-    return addRoute(prefix, getRibV4(id), action);
-  } else {
-    PrefixV6 prefix{network.asV6().mask(mask), mask};
-    return addRoute(prefix, getRibV6(id), action);
-  }
-}
-
-void RouteUpdater::addRoute(RouterID id,
-                            const folly::IPAddress& network, uint8_t mask,
-                            ClientID clientId, RouteNextHops nhs) {
-  if (network.isV4()) {
-    PrefixV4 prefix{network.asV4().mask(mask), mask};
-    return addRoute(prefix, getRibV4(id), clientId, std::move(nhs));
+    addRouteImpl(prefix, getRibV4(id), clientId, std::move(entry));
   } else {
     PrefixV6 prefix{network.asV6().mask(mask), mask};
     if (prefix.network.isLinkLocal()) {
-      throw FbossError("Unexpected v6 routable route for link local address ",
-                       prefix);
+      VLOG(2) << "Ignoring v6 link-local interface route: " << prefix.str();
+      return;
     }
-    return addRoute(prefix, getRibV6(id), clientId, std::move(nhs));
+    addRouteImpl(prefix, getRibV6(id), clientId, std::move(entry));
   }
 }
 
@@ -185,56 +145,24 @@ void RouteUpdater::addLinkLocalRoutes(RouterID id) {
   // v4 link-locals as normal routes.
 
   // Add v6 link-local route
-  addRoute(
-      id,
-      kIPv6LinkLocalPrefix.first,
-      kIPv6LinkLocalPrefix.second,
-      RouteForwardAction::TO_CPU);
+  addRouteImpl(
+      kIPv6LinkLocalPrefix,
+      getRibV6(id),
+      StdClientIds2ClientID(StdClientIds::LINKLOCAL_ROUTE),
+      RouteNextHopEntry(RouteForwardAction::TO_CPU));
 }
 
 void RouteUpdater::delLinkLocalRoutes(RouterID id) {
   // Delete v6 link-local route
-  delRouteWithNoNexthops(id, kIPv6LinkLocalPrefix.first,
-                         kIPv6LinkLocalPrefix.second);
+  delRouteImpl(
+      kIPv6LinkLocalPrefix,
+      getRibV6(id),
+      StdClientIds2ClientID(StdClientIds::LINKLOCAL_ROUTE));
 }
 
 template<typename PrefixT, typename RibT>
-void RouteUpdater::delRouteWithNoNexthops(const PrefixT& prefix,
-                                          RibT *ribCloned) {
-  if (!ribCloned) {
-    VLOG(3) << "Failed to delete non-existing route " << prefix.str();
-    return;
-  }
-  auto rib = ribCloned->rib.get();
-  auto old = rib->exactMatch(prefix);
-  if (!old) {
-    VLOG(3) << "Failed to delete non-existing route " << prefix.str();
-    return;
-  }
-  if (old->isWithNexthops()) {
-    throw FbossError("Fcn illegally called on a Route containing nexthops. ",
-                     prefix);
-  }
-  rib = makeClone(ribCloned);
-  rib->removeRoute(old);
-  VLOG(3) << "Deleted route " << prefix.str();
-  CHECK(ribCloned->cloned);
-}
-void RouteUpdater::delRouteWithNoNexthops(RouterID id,
-                                          const folly::IPAddress& network,
-                                          uint8_t mask) {
-  if (network.isV4()) {
-    PrefixV4 prefix{network.asV4().mask(mask), mask};
-    return delRouteWithNoNexthops(prefix, getRibV4(id, false));
-  } else {
-    PrefixV6 prefix{network.asV6().mask(mask), mask};
-    return delRouteWithNoNexthops(prefix, getRibV6(id, false));
-  }
-}
-
-template<typename PrefixT, typename RibT>
-void RouteUpdater::delNexthopsForClient(const PrefixT& prefix,
-                                        RibT *ribCloned, ClientID clientId) {
+void RouteUpdater::delRouteImpl(
+    const PrefixT& prefix, RibT *ribCloned, ClientID clientId) {
   if (!ribCloned) {
     VLOG(3) << "Failed to delete non-existing route " << prefix.str();
     return;
@@ -248,43 +176,40 @@ void RouteUpdater::delNexthopsForClient(const PrefixT& prefix,
   rib = makeClone(ribCloned);
   // Re-get the route from the cloned RIB
   old = rib->exactMatch(prefix);
-  old->delNexthopsForClient(clientId);
+  old->delEntryForClient(clientId);
   // TODO Do I need to publish the change??
   VLOG(3) << "Deleted nexthops for client " << clientId <<
              " from route " << prefix.str();
-  if (old->nexthopsIsEmpty()) {
+  if (old->hasNoEntry()) {
     rib->removeRoute(old);
     VLOG(3) << "...and then deleted route " << prefix.str();
   }
   CHECK(ribCloned->cloned);
 }
 
-void RouteUpdater::delNexthopsForClient(RouterID id,
-                                        const folly::IPAddress& network,
-                                        uint8_t mask, ClientID clientId) {
+void RouteUpdater::delRoute(
+    RouterID id, const folly::IPAddress& network,
+    uint8_t mask, ClientID clientId) {
   if (network.isV4()) {
     PrefixV4 prefix{network.asV4().mask(mask), mask};
-    return delNexthopsForClient(prefix, getRibV4(id, false), clientId);
+    delRouteImpl(prefix, getRibV4(id, false), clientId);
   } else {
     PrefixV6 prefix{network.asV6().mask(mask), mask};
-    return delNexthopsForClient(prefix, getRibV6(id, false), clientId);
+    delRouteImpl(prefix, getRibV6(id, false), clientId);
   }
 }
 
 template<typename AddrT, typename RibT>
-void RouteUpdater::removeAllNexthopsForClient(RibT *ribCloned,
-                                              ClientID clientId) {
+void RouteUpdater::removeAllRoutesForClientImpl(RibT *ribCloned,
+                                                ClientID clientId) {
   auto rib = makeClone(ribCloned);
 
   std::vector<std::shared_ptr<Route<AddrT>>> routesToDelete;
 
   for (auto& rt : rib->routes()) {
     auto route = rt.value().get();
-    if (route->nexthopsIsEmpty()) {
-      continue;
-    }
-    route->delNexthopsForClient(clientId);
-    if (route->nexthopsIsEmpty()) {
+    route->delEntryForClient(clientId);
+    if (route->hasNoEntry()) {
       // The nexthops we removed was the only one.  Delete the route.
       routesToDelete.push_back(rt.value());
     }
@@ -296,15 +221,15 @@ void RouteUpdater::removeAllNexthopsForClient(RibT *ribCloned,
   }
 }
 
-void RouteUpdater::removeAllNexthopsForClient(RouterID rid, ClientID clientId) {
-  removeAllNexthopsForClient<IPAddressV4>(getRibV4(rid), clientId);
-  removeAllNexthopsForClient<IPAddressV6>(getRibV6(rid), clientId);
+void RouteUpdater::removeAllRoutesForClient(RouterID rid, ClientID clientId) {
+  removeAllRoutesForClientImpl<IPAddressV4>(getRibV4(rid), clientId);
+  removeAllRoutesForClientImpl<IPAddressV6>(getRibV6(rid), clientId);
 }
 
 template<typename RtRibT, typename AddrT>
-void RouteUpdater::getFwdInfoFromNhop(RtRibT* nRib,
-    ClonedRib* ribCloned, const AddrT& nh, bool* hasToCpuNhops,
-    bool* hasDropNhops, RouteNextHopSet* fwd) {
+void RouteUpdater::getFwdInfoFromNhop(
+    RtRibT* nRib, ClonedRib* ribCloned, const AddrT& nh,
+    bool *hasToCpu, bool *hasDrop, RouteNextHopSet* fwd) {
   auto rt = nRib->longestMatch(nh);
   if (rt == nullptr) {
     VLOG (3) <<" Could not find route for nhop :  "<< nh;
@@ -312,14 +237,14 @@ void RouteUpdater::getFwdInfoFromNhop(RtRibT* nRib,
     return;
   }
   if (rt->needResolve()) {
-    resolve(rt.get(), nRib, ribCloned);
+    resolveOne(rt.get(), nRib, ribCloned);
   }
   if (rt->isResolved()) {
     const auto& fwdInfo = rt->getForwardInfo();
-    if (fwdInfo.isToCPU()) {
-      *hasToCpuNhops = true;
-    } else if (fwdInfo.isDrop()) {
-      *hasDropNhops = true;
+    if (fwdInfo.isDrop()) {
+      *hasDrop = true;
+    } else if (fwdInfo.isToCPU()) {
+      *hasToCpu = true;
     } else {
       const auto& nhops = fwdInfo.getNextHopSet();
       // if the route used to resolve the nexthop is directly connected
@@ -334,9 +259,8 @@ void RouteUpdater::getFwdInfoFromNhop(RtRibT* nRib,
 }
 
 template<typename RouteT, typename RtRibT>
-void RouteUpdater::resolve(RouteT* route, RtRibT* rib, ClonedRib* ribCloned) {
-  CHECK(!route->isConnected());
-  RouteNextHopSet fwd;
+void RouteUpdater::resolveOne(
+    RouteT* route, RtRibT* rib, ClonedRib* ribCloned) {
   // first, make sure the route was not published yet, if it is, clone one
   if (route->isPublished()) {
     auto newRoute = route->clone(RouteT::Fields::COPY_PREFIX_AND_NEXTHOPS);
@@ -359,75 +283,84 @@ void RouteUpdater::resolve(RouteT* route, RtRibT* rib, ClonedRib* ribCloned) {
   }
   // mark this route is in processing. This processing bit shall be cleared
   // in setUnresolvable() or setResolved()
-  route->setFlagsProcessing();
-  bool hasToCpuNhops{false};
-  bool hasDropNhops{false};
-  // loop through all nexthops to find out the forward info
-  for (const auto& nh : route->bestNextHopList()) {
-    // If it is link-local nexthop just add it to fwd info. link-local nexthops
-    // doesn't need to recurse any further.
-    if (nh.intfID().hasValue()) {
-      CHECK(nh.addr().isV6() and nh.addr().isLinkLocal());
-      fwd.emplace(RouteNextHop::createForward(nh.addr(), nh.intf()));
-      continue;
-    }
+  route->setProcessing();
 
-    if (nh.addr().isV4()) {
-      auto nRib = ribCloned->v4.rib.get();
-      getFwdInfoFromNhop(nRib, ribCloned, nh.addr().asV4(), &hasToCpuNhops,
-          &hasDropNhops, &fwd);
-    } else {
-      auto nRib = ribCloned->v6.rib.get();
-      getFwdInfoFromNhop(nRib, ribCloned, nh.addr().asV6(), &hasToCpuNhops,
-          &hasDropNhops, &fwd);
+  RouteNextHopSet fwd;
+  bool hasToCpu{false};
+  bool hasDrop{false};
+
+  auto bestPair = route->getBestEntry();
+  const auto clientId = bestPair.first;
+  const auto bestEntry = bestPair.second;
+  const auto action = bestEntry->getAction();
+  if (action == RouteForwardAction::DROP) {
+    hasDrop = true;
+  } else if (action == RouteForwardAction::TO_CPU) {
+    hasToCpu = true;
+  } else {
+    // loop through all nexthops to find out the forward info
+    for (const auto& nh : bestEntry->getNextHopSet()) {
+      const auto& addr = nh.addr();
+      // There are two reasons why InterfaceID is specified in the next hop.
+      // 1) The nexthop was generated for interface route.
+      //    In this case, the clientId is INTERFACE_ROUTE
+      // 2) The nexthop was for v6 link-local address.
+      // In both cases, this nexthop is resolved.
+      if (nh.intfID().hasValue()) {
+        // It is either an interface route or v6 link-local
+        CHECK(clientId == kInterfaceRouteClientId
+              or (addr.isV6() and addr.isLinkLocal()));
+        fwd.emplace(RouteNextHop::createForward(addr, nh.intfID().value()));
+        continue;
+      }
+
+      // nexthops are a set of IPs
+      if (addr.isV4()) {
+        auto nRib = ribCloned->v4.rib.get();
+        getFwdInfoFromNhop(nRib, ribCloned, nh.addr().asV4(), &hasToCpu,
+                           &hasDrop, &fwd);
+      } else {
+        auto nRib = ribCloned->v6.rib.get();
+        getFwdInfoFromNhop(nRib, ribCloned, nh.addr().asV6(), &hasToCpu,
+                           &hasDrop, &fwd);
+      }
+      if (hasDrop) {
+        // if having DROP action, no need to check anymore. The final action
+        // will be DROP
+        break;
+      }
     }
   }
-  if (hasToCpuNhops || hasDropNhops || fwd.size()) {
-    VLOG(3) << "Resolved route " << route->str();
-  } else {
-    VLOG(3) << "Cannot resolve route " << route->str();
-  }
-  if (fwd.empty()) {
-    if (hasToCpuNhops) {
-      route->setResolved(RouteForwardAction::TO_CPU);
-    } else if (hasDropNhops) {
-      route->setResolved(RouteForwardAction::DROP);
-    } else {
-      route->setUnresolvable();
+
+  if (hasDrop) {
+    route->setResolved(RouteNextHopEntry(RouteForwardAction::DROP));
+  } else if (not fwd.empty()) {
+    route->setResolved(RouteNextHopEntry(std::move(fwd)));
+    if (clientId == kInterfaceRouteClientId) {
+      route->setConnected();
     }
+  } else if (hasToCpu) {
+    route->setResolved(RouteNextHopEntry(RouteForwardAction::TO_CPU));
   } else {
-    route->setResolved(std::move(fwd));
+    route->setUnresolvable();
   }
+
+  VLOG(3) << (route->isResolved() ? "Resolved" : "Cannot resolve")
+          << " route " << route->str();
 }
 
-
 template<typename RibT>
-void RouteUpdater::setRoutesWithNhopsForResolution(RibT* rib) {
+void RouteUpdater::cloneRoutesForResolution(RibT* rib) {
   for (auto& rt : rib->routes()) {
     auto route = rt.value().get();
-    if (route->isWithNexthops()) {
-      if (route->isPublished()) {
-        auto newRoute =
-          route->clone(RibT::RouteType::Fields::COPY_PREFIX_AND_NEXTHOPS);
-        rib->updateRoute(newRoute);
-        route = newRoute.get();
-      }
-      route->clearFlags();
+    if (route->isPublished()) {
+      auto newRoute =
+        route->clone(RibT::RouteType::Fields::COPY_PREFIX_AND_NEXTHOPS);
+      rib->updateRoute(newRoute);
+      route = newRoute.get();
     }
+    route->clearForward();
   }
-}
-
-namespace {
-template<typename RibT>
-bool allRouteFlagsCleared(const RibT* rib) {
-  for (const auto& rt : rib->routes()) {
-    const auto& route = rt.value();
-    if (route->isWithNexthops() && !route->flagsCleared()) {
-      return false;
-    }
-  }
-  return true;
-}
 }
 
 void RouteUpdater::resolve() {
@@ -436,23 +369,22 @@ void RouteUpdater::resolve() {
   // However, Without copy-on-write RadixTree, it is O(n) to find out the
   // routes that are changed. In this case, we just simply loop through all
   // routes and resolve those that are not resolved yet.
-
   for (auto& ribCloned : clonedRibs_) {
     if (ribCloned.second.v4.cloned) {
       auto rib = ribCloned.second.v4.rib.get();
-      setRoutesWithNhopsForResolution(rib);
+      cloneRoutesForResolution(rib);
       for (auto& rt : rib->routes()) {
         if (rt.value()->needResolve()) {
-          resolve(rt.value().get(), rib, &ribCloned.second);
+          resolveOne(rt.value().get(), rib, &ribCloned.second);
         }
       }
     }
     if (ribCloned.second.v6.cloned) {
       auto rib = ribCloned.second.v6.rib.get();
-      setRoutesWithNhopsForResolution(rib);
+      cloneRoutesForResolution(rib);
       for (auto& rt : rib->routes()) {
         if (rt.value()->needResolve()) {
-          resolve(rt.value().get(), rib, &ribCloned.second);
+          resolveOne(rt.value().get(), rib, &ribCloned.second);
         }
       }
     }
@@ -511,15 +443,11 @@ void RouteUpdater::addInterfaceAndLinkLocalRoutes(
     auto routerId = intf->getRouterID();
     routers.insert(routerId);
     for (auto const& addr : intf->getAddresses()) {
-      // TODO: v4 LL addresses are used in Galaxy. Once BGP sessions are moved
-      // to non LL addresses we should remove the special check for
-      // `addr.first.isV6()` in following condition
-      if (addr.first.isV6() and addr.first.isLinkLocal()) {
-        LOG(WARNING) << "Skipping unexpected v6 link-local interface address "
-                     << addr.first << " for interface " << intf->getName();
-        continue;
-      }
-      addRoute(routerId, intf->getID(), addr.first, addr.second);
+      auto nhop = RouteNextHop::createInterfaceNextHop(
+          addr.first, intf->getID());
+      addRoute(routerId, addr.first, addr.second,
+               kInterfaceRouteClientId,
+               RouteNextHopEntry(std::move(nhop)));
     }
   }
   for (auto id : routers) {
@@ -537,8 +465,8 @@ void RouteUpdater::staticRouteDelHelper(
     auto itr = newRoutes.find(rid);
     if (itr == newRoutes.end() || itr->second.find(network) ==
         itr->second.end()) {
-      delNexthopsForClient(rid, network.first, network.second,
-                           ClientID((int32_t)StdClientIds::STATIC_ROUTE));
+      delRoute(rid, network.first, network.second,
+               StdClientIds2ClientID(StdClientIds::STATIC_ROUTE));
       VLOG(1) << "Unconfigured static route : " << network.first
         << "/" << (int)network.second;
     }
@@ -559,7 +487,9 @@ void RouteUpdater::updateStaticRoutes(const cfg::SwitchConfig& curCfg,
         throw FbossError("Prefix : ",  network.first, "/",
             (int)network.second, " in multiple static routes");
       }
-      addRoute(rid, network.first, network.second, action);
+      addRoute(rid, network.first, network.second,
+               StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
+               RouteNextHopEntry(action));
       // Note down prefix for comparing with old static routes
       newCfgVrf2StaticPfxs[rid].emplace(network);
     }
@@ -583,7 +513,8 @@ void RouteUpdater::updateStaticRoutes(const cfg::SwitchConfig& curCfg,
             RouteNextHop::createNextHop(folly::IPAddress(nhopStr)));
       }
       addRoute(rid, network.first, network.second,
-               ClientID((int32_t)StdClientIds::STATIC_ROUTE), nhops);
+               StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
+               RouteNextHopEntry(std::move(nhops)));
       // Note down prefix for comparing with old static routes
       newCfgVrf2StaticPfxs[rid].emplace(network);
     }

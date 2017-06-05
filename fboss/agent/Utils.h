@@ -9,14 +9,16 @@
  */
 #pragma once
 
+#include <string>
 #include <type_traits> // To use 'std::integral_constant'.
+
 #include <folly/Bits.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/Range.h>
 
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
-#include <string>
 
 namespace folly {
 struct dynamic;
@@ -72,5 +74,12 @@ void incNiceValue(const uint32_t increment);
  * Serialize folly dynamic to JSON and write to file
  */
 bool dumpStateToFile(const std::string& filename, const folly::dynamic& json);
+
+/*
+ * StdClientIds to ClientID
+ */
+static inline ClientID StdClientIds2ClientID(StdClientIds id) {
+  return ClientID{static_cast<uint32_t>(id)};
+}
 
 }} // facebook::fboss

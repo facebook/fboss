@@ -194,9 +194,10 @@ void ThriftHandler::addUnicastRoutes(
       RouteNextHops nexthops = util::toRouteNextHops(route.nextHopAddrs);
       if (nexthops.size()) {
         updater.addRoute(routerId, network, mask, ClientID(client),
-                         std::move(nexthops));
+                         RouteNextHopEntry(std::move(nexthops)));
       } else {
-        updater.addRoute(routerId, network, mask, RouteForwardAction::DROP);
+        updater.addRoute(routerId, network, mask, ClientID(client),
+                         RouteNextHopEntry(RouteForwardAction::DROP));
       }
       if (network.isV4()) {
         sw_->stats()->addRouteV4();
@@ -236,7 +237,7 @@ void ThriftHandler::deleteUnicastRoutes(
       } else {
         sw_->stats()->delRouteV6();
       }
-      updater.delNexthopsForClient(routerId, network, mask, ClientID(client));
+      updater.delRoute(routerId, network, mask, ClientID(client));
     }
     auto newRt = updater.updateDone();
     if (!newRt) {
@@ -263,7 +264,7 @@ void ThriftHandler::syncFib(
     RouteUpdater updater(state->getRouteTables());
     RouterID routerId = RouterID(0); // TODO, default vrf for now
     auto clientIdToAdmin = sw_->clientIdToAdminDistance(client);
-    updater.removeAllNexthopsForClient(routerId, ClientID(client));
+    updater.removeAllRoutesForClient(routerId, ClientID(client));
     for (const auto& route : *routes) {
       folly::IPAddress network = toIPAddress(route.dest.ip);
       uint8_t mask = static_cast<uint8_t>(route.dest.prefixLength);
@@ -271,7 +272,7 @@ void ThriftHandler::syncFib(
         clientIdToAdmin;
       RouteNextHops nexthops = util::toRouteNextHops(route.nextHopAddrs);
       updater.addRoute(routerId, network, mask, ClientID(client),
-                       std::move(nexthops));
+                       RouteNextHopEntry(std::move(nexthops)));
       if (network.isV4()) {
         sw_->stats()->addRouteV4();
       } else {
@@ -522,29 +523,31 @@ void ThriftHandler::getRouteTableByClient(
   for (const auto& routeTable : (*sw_->getState()->getRouteTables())) {
     for (const auto& ipv4Rib : routeTable->getRibV4()->routes()) {
       auto ipv4 = ipv4Rib.value().get();
-      auto nhs = ipv4->getNextHopSetForClient(ClientID(client));
-      if (not nhs.hasValue()) {
+      auto entry = ipv4->getEntryForClient(ClientID(client));
+      if (not entry) {
         continue;
       }
 
       UnicastRoute tempRoute;
       tempRoute.dest.ip = toBinaryAddress(ipv4->prefix().network);
       tempRoute.dest.prefixLength = ipv4->prefix().mask;
-      tempRoute.nextHopAddrs = util::fromRouteNextHops(nhs.value());
+      tempRoute.nextHopAddrs = util::fromRouteNextHops(
+          entry->getNextHopSet());
       routes.emplace_back(std::move(tempRoute));
     }
 
     for (const auto& ipv6Rib : routeTable->getRibV6()->routes()) {
       auto ipv6 = ipv6Rib.value().get();
-      auto nhs = ipv6->getNextHopSetForClient(ClientID(client));
-      if (not nhs.hasValue()) {
+      auto entry = ipv6->getEntryForClient(ClientID(client));
+      if (not entry) {
         continue;
       }
 
       UnicastRoute tempRoute;
       tempRoute.dest.ip = toBinaryAddress(ipv6->prefix().network);
       tempRoute.dest.prefixLength = ipv6->prefix().mask;
-      tempRoute.nextHopAddrs = util::fromRouteNextHops(nhs.value());
+      tempRoute.nextHopAddrs = util::fromRouteNextHops(
+          entry->getNextHopSet());
       routes.emplace_back(std::move(tempRoute));
     }
   }

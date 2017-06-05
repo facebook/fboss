@@ -30,9 +30,7 @@ class RouteNextHopEntry {
     CHECK_NE(action_, Action::NEXTHOPS);
   }
 
-  explicit RouteNextHopEntry(NextHopSet nhopSet)
-      : action_(Action::NEXTHOPS), nhopSet_(std::move(nhopSet)) {
-  }
+  explicit RouteNextHopEntry(NextHopSet nhopSet);
 
   explicit RouteNextHopEntry(RouteNextHop nhop)
       : action_(Action::NEXTHOPS) {
@@ -63,34 +61,8 @@ class RouteNextHopEntry {
   bool isDrop() const {
     return action_ == Action::DROP;
   }
-  void setDrop() {
-    nhopSet_.clear();
-    action_ = Action::DROP;
-  }
-
   bool isToCPU() const {
     return action_ == Action::TO_CPU;
-  }
-  void setToCPU() {
-    nhopSet_.clear();
-    action_ = Action::TO_CPU;
-  }
-
-  void setAction(Action action) {
-    CHECK(action == Action::TO_CPU || action == Action::DROP);
-    action_ = action;
-  }
-
-  // Set one nexthop, a simple version for non-ECMP case
-  void setNextHopSet(const folly::IPAddress& nhop, InterfaceID intf) {
-    nhopSet_.clear();
-    nhopSet_.emplace(RouteNextHop::createForward(nhop, intf));
-    action_ = Action::NEXTHOPS;
-  }
-  // Set one or multiple nexthops
-  void setNextHopSet(NextHopSet nexthops) {
-    nhopSet_ = std::move(nexthops);
-    action_ = Action::NEXTHOPS;
   }
 
   // Reset the NextHopSet

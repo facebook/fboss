@@ -346,7 +346,7 @@ shared_ptr<SwitchState> testStateA() {
   nexthops.emplace(RouteNextHop::createNextHop(IPAddress("1.1.2.10")));
 
   updater.addRoute(RouterID(0), IPAddress("10.1.1.0"), 24,
-                   ClientID(1001), nexthops);
+                   ClientID(1001), RouteNextHopEntry(nexthops));
 
   auto newRt = updater.updateDone();
   state->resetRouteTables(newRt);

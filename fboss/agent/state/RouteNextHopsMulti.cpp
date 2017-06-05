@@ -129,45 +129,38 @@ void RouteNextHopsMulti::update(ClientID clientId, RouteNextHopEntry nhe) {
   map_[clientId] = std::move(nhe);
 }
 
-void RouteNextHopsMulti::delNexthopsForClient(ClientID clientId) {
+void RouteNextHopsMulti::delEntryForClient(ClientID clientId) {
   map_.erase(clientId);
 }
 
-folly::Optional<RouteNextHops>
-RouteNextHopsMulti::getNextHopSetForClient(ClientID clientId) const {
-  auto it = map_.find(clientId);
-  if (it == map_.end()) {
-    return folly::none;
+const RouteNextHopEntry* RouteNextHopsMulti::getEntryForClient(
+    ClientID clientId) const {
+  auto iter = map_.find(clientId);
+  if (iter == map_.end()) {
+    return nullptr;
   }
-  return it->second.getNextHopSet();
-}
-
-bool RouteNextHopsMulti::hasNextHopsForClient(ClientID clientId) const {
-  return map_.find(clientId) != map_.end();
+  return &iter->second;
 }
 
 bool RouteNextHopsMulti::isSame(ClientID id, const RouteNextHops& nhs) const {
-  auto iter = map_.find(id);
-  if (iter == map_.end()) {
-      return false;
-  }
-  return nhs == iter->second.getNextHopSet();
+  auto entry = getEntryForClient(id);
+  return entry && (entry->getNextHopSet() == nhs);
 }
 
-const RouteNextHops&
-RouteNextHopsMulti::bestNextHopList() const {
+std::pair<ClientID, const RouteNextHopEntry *>
+RouteNextHopsMulti::getBestEntry() const {
   // I still need to implement a scheme where each clientId
   // can be assigned a priority.  But for now, we're just saying
   // the clientId == its priority.
   //
   // Since flat_map stores items in key-sorted order, the smallest key
   // (and hence the highest-priority client) is first.
-  if (map_.size() > 0) {
-    return map_.begin()->second.getNextHopSet();
+  auto iter = map_.begin();
+  if (iter != map_.end()) {
+    return std::make_pair(iter->first, &iter->second);
   } else {
-    // Throw an exception if the map is empty.  That seems
-    // like the right behavior.
-    throw FbossError("bestNextHopList() called on a Route with no nexthops");
+    // Throw an exception if the map is empty. Shall not happen
+    throw FbossError("Unexpected empty RouteNextHopsMulti");
   }
 }
 

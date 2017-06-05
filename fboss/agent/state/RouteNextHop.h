@@ -23,17 +23,28 @@ class RouteNextHop {
 
   /**
    * createNextHop() creates a nexthop specified by client,
-   * used as the nexthop of an route.
-   * It can optionally be scoped via InterfaceID attribute.
+   * used as the nexthop of a route.
+   * It can optionally be scoped via InterfaceID attribute, if and only
+   * if the address is an IPv6 link-local address
    */
   static RouteNextHop createNextHop(
       folly::IPAddress addr,
       folly::Optional<InterfaceID> intfID = folly::none);
 
   /**
+   * createInterfaceNextHop() create a nexthop specific for
+   * the interface route.
+   * The address is the interface address.
+   */
+  static RouteNextHop createInterfaceNextHop(
+      folly::IPAddress addr,
+      InterfaceID intf) {
+    return RouteNextHop(std::move(addr), intf);
+  }
+
+  /**
    * createForward() creates a path to reach a given nexthop, which is set
    * after the route is resolved.
-   * In the case for the directly connected route, the 'addr_' is not used.
    */
   static RouteNextHop createForward(folly::IPAddress addr, InterfaceID intf) {
     return RouteNextHop(std::move(addr), intf);
@@ -68,13 +79,13 @@ class RouteNextHop {
 
   std::string str() const;
 
- protected:
+ private:
+
   explicit RouteNextHop(folly::IPAddress addr,
                         folly::Optional<InterfaceID> intfID = folly::none)
       : addr_(std::move(addr)), intfID_(intfID) {
   }
 
- private:
   folly::IPAddress addr_;
   folly::Optional<InterfaceID> intfID_;
 };

@@ -875,18 +875,14 @@ shared_ptr<RouteTableMap> ThriftConfigApplier::updateInterfaceRoutes() {
   for (const auto& table : intfRouteTables_) {
     for (const auto& entry : table.second) {
       auto intf = entry.second.first;
-      auto& addr = entry.second.second;
+      const auto& addr = entry.second.second;
       auto len = entry.first.second;
-
-      // TODO: For now we are allowing v4 LLs to be programmed because they are
-      // used within Galaxy for LL routing. This hack should go away once we
-      // move BGP sessions over non LL addresses
-      if (addr.isV6() and addr.isLinkLocal()) {
-        LOG(WARNING) << "Skipping route for v6 link-local address " << addr;
-        continue;
-      }
-
-      updater.addRoute(table.first, intf, addr, len);
+      auto nhop = RouteNextHop::createInterfaceNextHop(addr, intf);
+      updater.addRoute(table.first,
+                       addr,
+                       len,
+                       StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE),
+                       RouteNextHopEntry(std::move(nhop)));
     }
     newToAddTables.insert(table.first);
   }
@@ -912,7 +908,10 @@ shared_ptr<RouteTableMap> ThriftConfigApplier::updateInterfaceRoutes() {
         }
       }
       if (!found) {
-        updater.delRouteWithNoNexthops(id, addr.first, addr.second);
+        updater.delRoute(id,
+                         addr.first,
+                         addr.second,
+                         StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE));
       }
     }
   }

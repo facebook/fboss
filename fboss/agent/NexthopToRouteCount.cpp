@@ -76,8 +76,10 @@ void NexthopToRouteCount::processChangedRoute(const RouterID rid,
 template<typename RouteT>
 void NexthopToRouteCount::processAddedRoute(const RouterID rid,
     const shared_ptr<RouteT>& newRoute) {
-  if (newRoute->isResolved() && newRoute->isWithNexthops()) {
-    for (const auto& nhop : newRoute->getForwardInfo().getNextHopSet()) {
+  const auto &fwd = newRoute->getForwardInfo();
+  if (newRoute->isResolved()
+      && fwd.getAction() == RouteForwardAction::NEXTHOPS) {
+    for (const auto& nhop : fwd.getNextHopSet()) {
       incNexthopReference(rid, nhop);
     }
   }
@@ -86,8 +88,10 @@ void NexthopToRouteCount::processAddedRoute(const RouterID rid,
 template<typename RouteT>
 void NexthopToRouteCount::processRemovedRoute(const RouterID rid,
    const shared_ptr<RouteT>& oldRoute) {
-  if (oldRoute->isResolved() && oldRoute->isWithNexthops()) {
-    for (const auto& nhop : oldRoute->getForwardInfo().getNextHopSet()) {
+  const auto &fwd = oldRoute->getForwardInfo();
+  if (oldRoute->isResolved()
+      && fwd.getAction() == RouteForwardAction::NEXTHOPS) {
+    for (const auto& nhop : fwd.getNextHopSet()) {
       decNexthopReference(rid, nhop);
     }
   }

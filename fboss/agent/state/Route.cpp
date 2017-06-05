@@ -108,30 +108,6 @@ RouteFields<AddrT>::fromFollyDynamic(const folly::dynamic& routeJson) {
 template class RouteFields<folly::IPAddressV4>;
 template class RouteFields<folly::IPAddressV6>;
 
-// Route<> Class
-template<typename AddrT>
-Route<AddrT>::Route(const Prefix& prefix,
-                    InterfaceID intf, const IPAddress& addr)
-    : RouteBase(prefix) {
-  update(intf, addr);
-}
-
-template<typename AddrT>
-Route<AddrT>::Route(const Prefix& prefix, ClientID clientId, RouteNextHops nhs)
-    : RouteBase(prefix) {
-  update(clientId, std::move(nhs));
-}
-
-template<typename AddrT>
-Route<AddrT>::Route(const Prefix& prefix, Action action)
-    : RouteBase(prefix) {
-  update(action);
-}
-
-template<typename AddrT>
-Route<AddrT>::~Route() {
-}
-
 template<typename AddrT>
 std::string Route<AddrT>::str() const {
   std::string ret;
@@ -156,30 +132,18 @@ std::string Route<AddrT>::str() const {
 }
 
 template<typename AddrT>
-bool Route<AddrT>::isSame(InterfaceID intf, const IPAddress& addr) const {
-  if (!isConnected()) {
-    return false;
-  }
-  const auto& fwd = RouteBase::getFields()->fwd;
-  const auto& nhops = fwd.getNextHopSet();
-  CHECK_EQ(nhops.size(), 1);
-  const auto iter = nhops.begin();
-  return iter->intf() == intf && iter->addr() == addr;
+void Route<AddrT>::update(ClientID clientId, RouteNextHopEntry entry) {
+  RouteBase::writableFields()->fwd.reset();
+  RouteBase::writableFields()->nexthopsmulti.update(
+      clientId, std::move(entry));
 }
 
 template<typename AddrT>
-bool Route<AddrT>::isSame(ClientID clientId, const RouteNextHops& nhs) const {
-  return RouteBase::getFields()->nexthopsmulti.isSame(clientId, nhs);
-}
-
-template<typename AddrT>
-bool Route<AddrT>::isSame(Action action) const {
-  CHECK(action == Action::DROP || action == Action::TO_CPU);
-  if (action == Action::DROP) {
-    return isDrop();
-  } else {
-    return isToCPU();
-  }
+bool Route<AddrT>::has(
+    ClientID clientId, const RouteNextHopEntry& entry) const {
+  auto found = RouteBase::getFields()
+    ->nexthopsmulti.getEntryForClient(clientId);
+  return found and (*found) == entry;
 }
 
 template<typename AddrT>
@@ -188,53 +152,26 @@ bool Route<AddrT>::isSame(const Route<AddrT>* rt) const {
 }
 
 template<typename AddrT>
-void Route<AddrT>::update(InterfaceID intf, const IPAddress& addr) {
-  // clear all existing nexthop info
-  RouteBase::writableFields()->nexthopsmulti.clear();
-  // replace the forwarding info for this route with just one nexthop
-  RouteBase::writableFields()->fwd.setNextHopSet(addr, intf);
-  setFlagsConnected();
+void Route<AddrT>::delEntryForClient(ClientID clientId) {
+  RouteBase::writableFields()->nexthopsmulti.delEntryForClient(clientId);
 }
 
 template<typename AddrT>
-void Route<AddrT>::updateNexthopCommon(const RouteNextHops& nhs) {
-  if (!nhs.size()) {
-    throw FbossError("Update with an empty set of nexthops for route ", str());
-  }
-  RouteBase::writableFields()->fwd.reset();
-  clearFlags();
-}
-
-template<typename AddrT>
-void Route<AddrT>::update(ClientID clientid, RouteNextHops nhs) {
-  updateNexthopCommon(nhs);
-  RouteBase::writableFields()->nexthopsmulti.update(
-      clientid, RouteNextHopEntry(std::move(nhs)));
-}
-
-template<typename AddrT>
-void Route<AddrT>::update(Action action) {
-  CHECK(action == Action::DROP || action == Action::TO_CPU);
-  // clear all existing nexthop info
-  RouteBase::writableFields()->nexthopsmulti.clear();
-  if (action == Action::DROP) {
-    this->writableFields()->fwd.setDrop();
-    setFlagsResolved();
-  } else {
-    this->writableFields()->fwd.setToCPU();
-    setFlagsResolved();
-  }
-}
-
-template<typename AddrT>
-void Route<AddrT>::delNexthopsForClient(ClientID clientId) {
-  RouteBase::writableFields()->nexthopsmulti.delNexthopsForClient(clientId);
+void Route<AddrT>::setResolved(RouteNextHopEntry fwd) {
+  RouteBase::writableFields()->fwd = std::move(fwd);
+  setFlagsResolved();
 }
 
 template<typename AddrT>
 void Route<AddrT>::setUnresolvable() {
   RouteBase::writableFields()->fwd.reset();
   setFlagsUnresolvable();
+}
+
+template<typename AddrT>
+void Route<AddrT>::clearForward() {
+  RouteBase::writableFields()->fwd.reset();
+  clearForwardInFlags();
 }
 
 template class Route<folly::IPAddressV4>;

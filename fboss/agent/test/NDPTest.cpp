@@ -138,7 +138,7 @@ shared_ptr<SwitchState> addMockRouteTable(shared_ptr<SwitchState> state) {
 
   RouteUpdater updater(state->getRouteTables());
   updater.addRoute(RouterID(0), IPAddressV6("1111:1111:1:1::1"), 64,
-                   ClientID(1001), nexthops);
+                   ClientID(1001), RouteNextHopEntry(nexthops));
 
   auto newRt = updater.updateDone();
   auto newState = state->clone();
