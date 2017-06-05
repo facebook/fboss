@@ -304,7 +304,7 @@ void RouteUpdater::removeAllNexthopsForClient(RouterID rid, ClientID clientId) {
 template<typename RtRibT, typename AddrT>
 void RouteUpdater::getFwdInfoFromNhop(RtRibT* nRib,
     ClonedRib* ribCloned, const AddrT& nh, bool* hasToCpuNhops,
-    bool* hasDropNhops, RouteForwardNexthops* fwd) {
+    bool* hasDropNhops, RouteNextHopSet* fwd) {
   auto rt = nRib->longestMatch(nh);
   if (rt == nullptr) {
     VLOG (3) <<" Could not find route for nhop :  "<< nh;
@@ -321,11 +321,11 @@ void RouteUpdater::getFwdInfoFromNhop(RtRibT* nRib,
     } else if (fwdInfo.isDrop()) {
       *hasDropNhops = true;
     } else {
-      const auto& nhops = fwdInfo.getNexthops();
+      const auto& nhops = fwdInfo.getNextHopSet();
       // if the route used to resolve the nexthop is directly connected
       if (rt->isConnected()) {
         const auto& rtNh = *nhops.begin();
-        fwd->emplace(rtNh.intf, nh);
+        fwd->emplace(RouteNextHop::createForward(nh, rtNh.intf()));
       } else {
         fwd->insert(nhops.begin(), nhops.end());
       }
@@ -336,7 +336,7 @@ void RouteUpdater::getFwdInfoFromNhop(RtRibT* nRib,
 template<typename RouteT, typename RtRibT>
 void RouteUpdater::resolve(RouteT* route, RtRibT* rib, ClonedRib* ribCloned) {
   CHECK(!route->isConnected());
-  RouteForwardNexthops fwd;
+  RouteNextHopSet fwd;
   // first, make sure the route was not published yet, if it is, clone one
   if (route->isPublished()) {
     auto newRoute = route->clone(RouteT::Fields::COPY_PREFIX_AND_NEXTHOPS);
@@ -368,7 +368,7 @@ void RouteUpdater::resolve(RouteT* route, RtRibT* rib, ClonedRib* ribCloned) {
     // doesn't need to recurse any further.
     if (nh.intfID().hasValue()) {
       CHECK(nh.addr().isV6() and nh.addr().isLinkLocal());
-      fwd.emplace(nh.intfID().value(), nh.addr());
+      fwd.emplace(RouteNextHop::createForward(nh.addr(), nh.intf()));
       continue;
     }
 
@@ -579,7 +579,8 @@ void RouteUpdater::updateStaticRoutes(const cfg::SwitchConfig& curCfg,
       auto network = IPAddress::createNetwork(route.prefix);
       RouteNextHops nhops;
       for (auto& nhopStr : route.nexthops) {
-        nhops.emplace(RouteNextHop(folly::IPAddress(nhopStr)));
+        nhops.emplace(
+            RouteNextHop::createNextHop(folly::IPAddress(nhopStr)));
       }
       addRoute(rid, network.first, network.second,
                ClientID((int32_t)StdClientIds::STATIC_ROUTE), nhops);

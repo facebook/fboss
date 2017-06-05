@@ -13,8 +13,8 @@
 #include "fboss/agent/types.h"
 #include <folly/IPAddress.h>
 #include "fboss/agent/state/NodeBase.h"
-#include "fboss/agent/state/RouteForwardInfo.h"
-#include "fboss/agent/state/RouteNextHop.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/state/RouteNextHopsMulti.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
@@ -57,7 +57,7 @@ struct RouteFields {
    * the route is directly connected
    */
   RouteNextHopsMulti nexthopsmulti;
-  RouteForwardInfo fwd;
+  RouteNextHopEntry fwd;
   uint32_t flags{0};
 };
 
@@ -134,14 +134,16 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   }
   std::string str() const;
   // Return the forwarding info for this route
-  const RouteForwardInfo& getForwardInfo() const {
+  const RouteNextHopEntry& getForwardInfo() const {
     return RouteBase::getFields()->fwd;
   }
   const RouteNextHops& bestNextHopList() const {
     return RouteBase::getFields()->nexthopsmulti.bestNextHopList();
   }
-  folly::Optional<RouteNextHops> getNexthopsForClient(ClientID clientId) const {
-    return RouteBase::getFields()->nexthopsmulti.getNexthopsForClient(clientId);
+  folly::Optional<RouteNextHops> getNextHopSetForClient(
+      ClientID clientId) const {
+    return RouteBase::getFields()
+      ->nexthopsmulti.getNextHopSetForClient(clientId);
   }
   bool nexthopsIsEmpty() const {
     return RouteBase::getFields()->nexthopsmulti.isEmpty();
@@ -164,8 +166,8 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
     CHECK(!isProcessing());
     RouteBase::writableFields()->flags |= PROCESSING;
   }
-  void setResolved(RouteForwardNexthops fwd) {
-    RouteBase::writableFields()->fwd.setNexthops(std::move(fwd));
+  void setResolved(RouteNextHopSet fwd) {
+    RouteBase::writableFields()->fwd.setNextHopSet(std::move(fwd));
     setFlagsResolved();
   }
   void setResolved(Action action) {

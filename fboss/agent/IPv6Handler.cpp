@@ -607,12 +607,12 @@ void IPv6Handler::sendNeighborSolicitations(
   }
 
   auto intfs = state->getInterfaces();
-  auto nhs = route->getForwardInfo().getNexthops();
+  auto nhs = route->getForwardInfo().getNextHopSet();
   for (auto nh : nhs) {
-    auto intf = intfs->getInterfaceIf(nh.intf);
+    auto intf = intfs->getInterfaceIf(nh.intf());
     if (intf) {
-      auto source = intf->getAddressToReach(nh.nexthop)->first.asV6();
-      auto target = route->isConnected() ? targetIP : nh.nexthop.asV6();
+      auto source = intf->getAddressToReach(nh.addr())->first.asV6();
+      auto target = route->isConnected() ? targetIP : nh.addr().asV6();
       if (source == target) {
         // This packet is for us.  Don't send NDP requests to ourself.
         continue;

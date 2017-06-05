@@ -8,64 +8,48 @@
  *
  */
 #include "RouteNextHop.h"
+
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/StateUtils.h"
 
 namespace {
-constexpr auto kNexthopDelim = "@";
+constexpr auto kInterface = "interface";
+constexpr auto kNexthop = "nexthop";
 }
 
 namespace facebook { namespace fboss {
 
-namespace util {
-
-RouteNextHops
-toRouteNextHops(std::vector<network::thrift::BinaryAddress> const& nhAddrs) {
-  RouteNextHops nhs;
-  nhs.reserve(nhAddrs.size());
-  for (auto const& nhAddr : nhAddrs) {
-    nhs.emplace(RouteNextHop::fromThrift(nhAddr));
-  }
-  return nhs;
-}
-
-std::vector<network::thrift::BinaryAddress>
-fromRouteNextHops(RouteNextHops const& nhs) {
-  std::vector<network::thrift::BinaryAddress> nhAddrs;
-  nhAddrs.reserve(nhs.size());
-  for (auto const& nh : nhs) {
-    nhAddrs.emplace_back(nh.toThrift());
-  }
-  return nhAddrs;
-}
-
-} // namespace util
-
-//
-// RouteNextHop Class
-//
-
-RouteNextHop::RouteNextHop(folly::IPAddress addrV,
-                           folly::Optional<InterfaceID> intfIDV)
-    : RouteNextHopBase(std::move(addrV), std::move(intfIDV)) {
-
+RouteNextHop RouteNextHop::createNextHop(
+    folly::IPAddress addr, folly::Optional<InterfaceID> intf) {
   // V4 link-local are not considered here as they can break BGPD route
   // programming in Galaxy or ExaBGP peering routes to servers as they are
   // using v4 link-local subnets on internal/downlink interfaces
   // NOTE: we do allow interface be specified with v4 link-local but we are not
   // being scrict about it
-  if (!intfID() and addr().isV6() and addr().isLinkLocal()) {
+  if (not intf and addr.isV6() and addr.isLinkLocal()) {
     throw FbossError(
-        "Missing interface scoping for link-local nexthop {}", addr().str());
+        "Missing interface scoping for link-local nexthop {}", addr.str());
   }
 
   // Interface scoping shouldn't be specified with non link-local addresses
-  if (intfID() and !addr().isLinkLocal()) {
+  if (intf and not addr.isLinkLocal()) {
     throw FbossError(
        "Interface scoping ({}) specified for non link-local nexthop {}.",
-       static_cast<uint32_t>(intfID().value()), addr().str());
+       static_cast<uint32_t>(intf.value()), addr.str());
   }
+
+  return RouteNextHop(std::move(addr), intf);
+}
+
+network::thrift::BinaryAddress
+RouteNextHop::toThrift() const {
+  network::thrift::BinaryAddress nexthop = network::toBinaryAddress(addr_);
+  if (intfID_) {
+    nexthop.__isset.ifName = true;
+    nexthop.ifName = util::createTunIntfName(intfID_.value());
+  }
+  return nexthop;
 }
 
 RouteNextHop
@@ -80,130 +64,49 @@ RouteNextHop::fromThrift(network::thrift::BinaryAddress const& nexthop) {
     intfID = util::getIDFromTunIntfName(nexthop.ifName);
   }
 
-  return RouteNextHop(std::move(addr), std::move(intfID));
+  // Calling createNextHop() so that the parameter verification is enforced.
+  // Currently, no one is calling this function other than unittest.
+  // If we plan to use this function for other purpose (i.e.
+  // forwarding nexthop). Need to revisit this func.
+  return createNextHop(std::move(addr), intfID);
 }
 
-folly::dynamic RouteNextHopsMulti::toFollyDynamic() const {
-  // Store the clientid->nextHops map as a dynamic::object
-  folly::dynamic obj = folly::dynamic::object();
-  for (auto const& row : map_) {
-    int clientid = row.first;
-    RouteNextHops const& nxtHps = row.second.getNextHopSet();
-
-    folly::dynamic nxtHopCopy = folly::dynamic::array;
-    for (const auto& nhop: nxtHps) {
-      std::string intfID = "";
-      if (nhop.intfID().hasValue()) {
-        intfID = folly::sformat(
-            "{}{}", kNexthopDelim,
-            static_cast<uint32_t>(nhop.intfID().value()));
-      }
-      nxtHopCopy.push_back(folly::sformat("{}{}", nhop.addr().str(), intfID));
-    }
-    obj[folly::to<std::string>(clientid)] = nxtHopCopy;
-  }
-  return obj;
+folly::dynamic RouteNextHop::toFollyDynamic() const {
+  folly::dynamic nhop = folly::dynamic::object;
+  nhop[kInterface] = static_cast<uint32_t>(intfID_.value());
+  nhop[kNexthop] = addr_.str();
+  return nhop;
 }
 
-std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
-  std::vector<ClientAndNextHops> list;
-  for (const auto& srcPair : map_) {
-    ClientAndNextHops destPair;
-    destPair.clientId = srcPair.first;
-    for (const auto& nh : srcPair.second.getNextHopSet()) {
-      destPair.nextHopAddrs.push_back(network::toBinaryAddress(nh.addr()));
-      if (nh.intfID().hasValue()) {
-        auto& nhAddr = destPair.nextHopAddrs.back();
-        nhAddr.__isset.ifName = true;
-        nhAddr.ifName = util::createTunIntfName(nh.intfID().value());
-      }
-    }
-    list.push_back(destPair);
-  }
-  return list;
+RouteNextHop RouteNextHop::fromFollyDynamic(const folly::dynamic& nhopJson) {
+  return createForward(
+      folly::IPAddress(nhopJson[kNexthop].stringPiece()),
+      InterfaceID(nhopJson[kInterface].asInt()));
 }
 
-RouteNextHopsMulti
-RouteNextHopsMulti::fromFollyDynamic(const folly::dynamic& json) {
-  RouteNextHopsMulti nh;
-  for (const auto& pair: json.items()) {
-    int clientId = pair.first.asInt();
-    RouteNextHops list;
-    for (const auto& ipnh : pair.second) {
-      std::vector<std::string> parts;
-      folly::split(kNexthopDelim, ipnh.asString(), parts);
-      CHECK(0 < parts.size() && parts.size() < 3);
-
-      folly::Optional<InterfaceID> intfID;
-      if (parts.size() == 2) {
-        intfID = InterfaceID(folly::to<uint32_t>(parts.at(1)));
-      }
-
-      list.emplace(folly::IPAddress(parts[0]), intfID);
-    }
-    nh.update(ClientID(clientId), RouteNextHopEntry(std::move(list)));
-  }
-  return nh;
+bool operator==(const RouteNextHop& a, const RouteNextHop& b) {
+  return (a.intfID() == b.intfID() and a.addr() == b.addr());
 }
 
-std::string RouteNextHopsMulti::str() const {
-  std::string ret = "";
-  for (auto const & row : map_) {
-    int clientid = row.first;
-    RouteNextHops const& nxtHps = row.second.getNextHopSet();
-
-    ret.append(folly::to<std::string>("(client#", clientid, ": "));
-    for (const auto& nh : nxtHps) {
-      ret.append(folly::to<std::string>(nh.addr(), ", "));
-    }
-    ret.append(")");
-  }
-  return ret;
+bool operator< (const RouteNextHop& a, const RouteNextHop& b) {
+  return ((a.intfID() == b.intfID())
+          ? (a.addr() < b.addr())
+          : (a.intfID() < b.intfID()));
 }
 
-void RouteNextHopsMulti::update(ClientID clientId, RouteNextHopEntry nhe) {
-  map_[clientId] = std::move(nhe);
+void toAppend(const RouteNextHop& nhop, std::string *result) {
+  result->append(nhop.str());
 }
 
-void RouteNextHopsMulti::delNexthopsForClient(ClientID clientId) {
-  map_.erase(clientId);
+std::ostream& operator<<(std::ostream& os, const RouteNextHop& nhop) {
+  return os << nhop.str();
 }
 
-folly::Optional<RouteNextHops>
-RouteNextHopsMulti::getNexthopsForClient(ClientID clientId) const {
-  auto it = map_.find(clientId);
-  if (it == map_.end()) {
-    return folly::none;
-  }
-  return it->second.getNextHopSet();
-}
-
-bool RouteNextHopsMulti::hasNextHopsForClient(ClientID clientId) const {
-  return map_.find(clientId) != map_.end();
-}
-
-bool RouteNextHopsMulti::isSame(ClientID id, const RouteNextHops& nhs) const {
-  auto iter = map_.find(id);
-  if (iter == map_.end()) {
-      return false;
-  }
-  return nhs == iter->second.getNextHopSet();
-}
-
-const RouteNextHops&
-RouteNextHopsMulti::bestNextHopList() const {
-  // I still need to implement a scheme where each clientId
-  // can be assigned a priority.  But for now, we're just saying
-  // the clientId == its priority.
-  //
-  // Since flat_map stores items in key-sorted order, the smallest key
-  // (and hence the highest-priority client) is first.
-  if (map_.size() > 0) {
-    return map_.begin()->second.getNextHopSet();
+std::string RouteNextHop::str() const {
+  if (intfID_) {
+    return folly::to<std::string>(addr_, "@I", intfID_.value());
   } else {
-    // Throw an exception if the map is empty.  That seems
-    // like the right behavior.
-    throw FbossError("bestNextHopList() called on a Route with no nexthops");
+    return folly::to<std::string>(addr_);
   }
 }
 

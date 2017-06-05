@@ -248,12 +248,12 @@ bool IPv4Handler::resolveMac(
   }
 
   auto intfs = state->getInterfaces();
-  auto nhs = route->getForwardInfo().getNexthops();
+  auto nhs = route->getForwardInfo().getNextHopSet();
   for (auto nh : nhs) {
-    auto intf = intfs->getInterfaceIf(nh.intf);
+    auto intf = intfs->getInterfaceIf(nh.intf());
     if (intf) {
-      auto source = intf->getAddressToReach(nh.nexthop)->first.asV4();
-      auto target = route->isConnected() ? dest : nh.nexthop.asV4();
+      auto source = intf->getAddressToReach(nh.addr())->first.asV4();
+      auto target = route->isConnected() ? dest : nh.addr().asV4();
       if (source == target) {
         // This packet is for us.  Don't send ARP requess for our own IP.
         continue;

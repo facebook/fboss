@@ -9,122 +9,83 @@
  */
 #pragma once
 
-#include <folly/dynamic.h>
-#include <folly/FBString.h>
 #include <folly/IPAddress.h>
+#include <folly/dynamic.h>
 
-#include <boost/container/flat_map.hpp>
-
-#include "fboss/agent/state/RouteNextHopBase.h"
-#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
 
 namespace facebook { namespace fboss {
 
-/**
- * Class relationship:
- *
- * RouteNextHopsMulti is a map from client ID to RouteNextHopEntry.
- *
- * There are two types of RouteNextHopEntry in general.
- * 1) An entry with multiple nexthop IPs (RouteNextHops), OR
- * 2) no nexthop IPs, but with pre-defined forwarding action
- *    (i.e. ToCPU or DROP)
- * Each RouteNextHopEntry also has other common attribute, like admin distance.
- *
- * RouteNextHops is a set of RouteNextHop.
- *
- * RouteNextHop inherits from RouteNextHopBase, which contains the nexthop
- * IP address. In case of the v6 link-local IP address, the interface ID is
- * also included in this class.
- *
- * TODO: Rename RouteNextHops to RouteNextHopSet
- */
+class RouteNextHop {
 
-/**
- * Multiple RouteNextHop for ECMP route.
- */
-using RouteNextHops = RouteNextHopEntry::NextHopSet;
-
-namespace util {
-
-/**
- * Convert thrift representation of nexthops to RouteNextHops.
- */
-RouteNextHops
-toRouteNextHops(std::vector<network::thrift::BinaryAddress> const& nhAddrs);
-
-/**
- * Convert RouteNextHops to thrift representaion of nexthops
- */
-std::vector<network::thrift::BinaryAddress>
-fromRouteNextHops(RouteNextHops const& nhs);
-
-}
-
-/**
- * RouteNextHop specified by client. It can optionally be scoped via
- * InterfaceID attribute.
- */
-class RouteNextHop : public RouteNextHopBase {
  public:
+
   /**
-   * Create RouteNextHop. It performs validation check for interface scoping of
-   * nexthop.
+   * createNextHop() creates a nexthop specified by client,
+   * used as the nexthop of an route.
+   * It can optionally be scoped via InterfaceID attribute.
    */
-  explicit RouteNextHop(
+  static RouteNextHop createNextHop(
       folly::IPAddress addr,
       folly::Optional<InterfaceID> intfID = folly::none);
 
-  static RouteNextHop fromThrift(
-      network::thrift::BinaryAddress const& nexthop);
+  /**
+   * createForward() creates a path to reach a given nexthop, which is set
+   * after the route is resolved.
+   * In the case for the directly connected route, the 'addr_' is not used.
+   */
+  static RouteNextHop createForward(folly::IPAddress addr, InterfaceID intf) {
+    return RouteNextHop(std::move(addr), intf);
+  }
+
+   /* Utility function to get thrift representation of this nexthop */
+  network::thrift::BinaryAddress toThrift() const;
+  static RouteNextHop fromThrift(network::thrift::BinaryAddress const& nexthop);
+
+  /*
+   * Serialize to folly::dynamic
+   */
+  folly::dynamic toFollyDynamic() const;
+
+  /*
+   * Deserialize from folly::dynamic
+   */
+  static RouteNextHop fromFollyDynamic(const folly::dynamic& nhopJson);
+
+  const folly::IPAddress& addr() const noexcept {
+    return addr_;
+  }
+
+  const folly::Optional<InterfaceID>& intfID() const noexcept {
+    return intfID_;
+  }
+
+  InterfaceID intf() const {
+    // could throw if intfID_ does not have value
+    return intfID_.value();
+  }
+
+  std::string str() const;
+
+ protected:
+  explicit RouteNextHop(folly::IPAddress addr,
+                        folly::Optional<InterfaceID> intfID = folly::none)
+      : addr_(std::move(addr)), intfID_(intfID) {
+  }
+
+ private:
+  folly::IPAddress addr_;
+  folly::Optional<InterfaceID> intfID_;
 };
 
 /**
- * Map form clientId -> RouteNextHopEntry
+ * Comparision operators
  */
-class RouteNextHopsMulti {
- protected:
-   boost::container::flat_map<ClientID, RouteNextHopEntry> map_;
+bool operator==(const RouteNextHop& a, const RouteNextHop& b);
+bool operator< (const RouteNextHop& a, const RouteNextHop& b);
 
- public:
-
-  folly::dynamic toFollyDynamic() const;
-  static RouteNextHopsMulti fromFollyDynamic(const folly::dynamic& json);
-
-  std::vector<ClientAndNextHops> toThrift() const;
-
-  std::string str() const;
-  void update(ClientID clientid, RouteNextHopEntry nhe);
-  void update(ClientID clientid, RouteNextHopEntry::NextHopSet nhs) {
-    return update(clientid, RouteNextHopEntry(std::move(nhs)));
-  }
-
-  void clear() {
-    map_.clear();
-  }
-
-  bool operator==(const RouteNextHopsMulti& p2) const {
-    return map_ == p2.map_;
-  }
-
-  bool isEmpty() const {
-    // The code disallows adding/updating an empty nextHops list. So if the
-    // map contains any entries, they are non-zero-length lists.
-    return map_.empty();
-  }
-
-  void delNexthopsForClient(ClientID clientId);
-
-  folly::Optional<RouteNextHops> getNexthopsForClient(ClientID clientId) const;
-
-  // Just used for testing
-  bool hasNextHopsForClient(ClientID clientId) const;
-
-  bool isSame(ClientID clientId, const RouteNextHops& nhs) const;
-
-  const RouteNextHops& bestNextHopList() const;
-};
+void toAppend(const RouteNextHop& nhop, std::string *result);
+std::ostream& operator<<(std::ostream& os, const RouteNextHop& nhop);
 
 }}

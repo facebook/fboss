@@ -9,7 +9,36 @@
  */
 #include "RouteNextHopEntry.h"
 
+namespace {
+constexpr auto kNexthops = "nexthops";
+constexpr auto kAction = "action";
+}
+
 namespace facebook { namespace fboss {
+
+namespace util {
+
+RouteNextHops
+toRouteNextHops(std::vector<network::thrift::BinaryAddress> const& nhAddrs) {
+  RouteNextHops nhs;
+  nhs.reserve(nhAddrs.size());
+  for (auto const& nhAddr : nhAddrs) {
+    nhs.emplace(RouteNextHop::fromThrift(nhAddr));
+  }
+  return nhs;
+}
+
+std::vector<network::thrift::BinaryAddress>
+fromRouteNextHops(RouteNextHops const& nhs) {
+  std::vector<network::thrift::BinaryAddress> nhAddrs;
+  nhAddrs.reserve(nhs.size());
+  for (auto const& nh : nhs) {
+    nhAddrs.emplace_back(nh.toThrift());
+  }
+  return nhAddrs;
+}
+
+} // namespace util
 
 std::string RouteNextHopEntry::str() const {
   std::string result;
@@ -18,7 +47,7 @@ std::string RouteNextHopEntry::str() const {
     result = "DROP";
     break;
   case Action::TO_CPU:
-    result = "ToCPU";
+    result = "To_CPU";
     break;
   case Action::NEXTHOPS:
     toAppend(getNextHopSet(), &result);
@@ -41,6 +70,15 @@ bool operator< (const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
           : a.getAction() < b.getAction());
 }
 
+// Methods for RouteNextHopEntry
+void toAppend(const RouteNextHopEntry& entry, std::string *result) {
+  result->append(entry.str());
+}
+std::ostream& operator<<(std::ostream& os, const RouteNextHopEntry& entry) {
+  return os << entry.str();
+}
+
+// Methods for RouteNextHopEntry::NextHopSet
 void toAppend(const RouteNextHopEntry::NextHopSet& nhops, std::string *result) {
   for (const auto& nhop : nhops) {
     result->append(folly::to<std::string>(nhop.str(), " "));
@@ -53,6 +91,27 @@ std::ostream& operator<<(std::ostream& os,
     os << nhop.str() << " ";
   }
   return os;
+}
+
+folly::dynamic RouteNextHopEntry::toFollyDynamic() const {
+  folly::dynamic entry = folly::dynamic::object;
+  entry[kAction] = forwardActionStr(action_);
+  folly::dynamic nhops = folly::dynamic::array;
+  for (const auto& nhop: nhopSet_) {
+    nhops.push_back(nhop.toFollyDynamic());
+  }
+  entry[kNexthops] = std::move(nhops);
+  return entry;
+}
+
+RouteNextHopEntry
+RouteNextHopEntry::fromFollyDynamic(const folly::dynamic& entryJson) {
+  RouteNextHopEntry entry;
+  for (const auto& nhop: entryJson[kNexthops]) {
+    entry.nhopSet_.insert(RouteNextHop::fromFollyDynamic(nhop));
+  }
+  entry.action_ = str2ForwardAction(entryJson[kAction].asString());
+  return entry;
 }
 
 }}

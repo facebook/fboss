@@ -71,10 +71,10 @@ RouteDetails RouteFields<AddrT>::toRouteDetails() const {
   // Add the action
   rd.action = forwardActionStr(fwd.getAction());
   // Add the forwarding info
-  for (const auto& nh : fwd.getNexthops()) {
+  for (const auto& nh : fwd.getNextHopSet()) {
     IfAndIP ifAndIp;
-    ifAndIp.interfaceID = nh.intf;
-    ifAndIp.ip = toBinaryAddress(nh.nexthop);
+    ifAndIp.interfaceID = nh.intf();
+    ifAndIp.ip = toBinaryAddress(nh.addr());
     rd.fwdInfo.push_back(ifAndIp);
   }
 
@@ -89,7 +89,7 @@ RouteFields<AddrT>::fromFollyDynamic(const folly::dynamic& routeJson) {
   RouteFields rt(Prefix::fromFollyDynamic(routeJson[kPrefix]));
   rt.nexthopsmulti = RouteNextHopsMulti::fromFollyDynamic(
       routeJson[kNextHopsMulti]);
-  rt.fwd = std::move(RouteForwardInfo::fromFollyDynamic(routeJson[kFwdInfo]));
+  rt.fwd = std::move(RouteNextHopEntry::fromFollyDynamic(routeJson[kFwdInfo]));
   rt.flags = routeJson[kFlags].asInt();
   return rt;
 }
@@ -150,10 +150,10 @@ bool Route<AddrT>::isSame(InterfaceID intf, const IPAddress& addr) const {
     return false;
   }
   const auto& fwd = RouteBase::getFields()->fwd;
-  const auto& nhops = fwd.getNexthops();
+  const auto& nhops = fwd.getNextHopSet();
   CHECK_EQ(nhops.size(), 1);
   const auto iter = nhops.begin();
-  return iter->intf == intf && iter->nexthop == addr;
+  return iter->intf() == intf && iter->addr() == addr;
 }
 
 template<typename AddrT>
@@ -181,7 +181,7 @@ void Route<AddrT>::update(InterfaceID intf, const IPAddress& addr) {
   // clear all existing nexthop info
   RouteBase::writableFields()->nexthopsmulti.clear();
   // replace the forwarding info for this route with just one nexthop
-  RouteBase::writableFields()->fwd.setNexthops(intf, addr);
+  RouteBase::writableFields()->fwd.setNextHopSet(addr, intf);
   setFlagsConnected();
 }
 

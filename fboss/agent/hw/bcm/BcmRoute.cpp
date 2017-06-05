@@ -81,7 +81,7 @@ bool BcmRoute::canUseHostTable() const {
   return isHostRoute() && hw_->getPlatform()->canUseHostTableForHostRoutes();
 }
 
-void BcmRoute::program(const RouteForwardInfo& fwd) {
+void BcmRoute::program(const RouteNextHopEntry& fwd) {
   // if the route has been programmed to the HW, check if the forward info is
   // changed or not. If not, nothing to do.
   if (added_ && fwd == fwd_) {
@@ -89,7 +89,7 @@ void BcmRoute::program(const RouteForwardInfo& fwd) {
   }
 
   // function to clean up the host reference
-  auto cleanupHost = [&] (const RouteForwardNexthops& nhopsClean) noexcept {
+  auto cleanupHost = [&] (const RouteNextHopSet& nhopsClean) noexcept {
     if (nhopsClean.size()) {
       hw_->writableHostTable()->derefBcmEcmpHost(vrf_, nhopsClean);
     }
@@ -105,7 +105,7 @@ void BcmRoute::program(const RouteForwardInfo& fwd) {
   } else {
     CHECK(action == RouteForwardAction::NEXTHOPS);
     // need to get an entry from the host table for the forward info
-    const RouteForwardNexthops& nhops = fwd.getNexthops();
+    const RouteNextHopSet& nhops = fwd.getNextHopSet();
     CHECK_GT(nhops.size(), 0);
     auto host = hw_->writableHostTable()->incRefOrCreateBcmEcmpHost(
         vrf_, nhops);
@@ -117,7 +117,7 @@ void BcmRoute::program(const RouteForwardInfo& fwd) {
   // route table or host table (if this is a host route and use of
   // host table for host routes is allowed by the chip).
   SCOPE_FAIL {
-    cleanupHost(fwd.getNexthops());
+    cleanupHost(fwd.getNextHopSet());
   };
   if (canUseHostTable()) {
     if (added_) {
@@ -146,7 +146,7 @@ void BcmRoute::program(const RouteForwardInfo& fwd) {
   }
   if (added_) {
     // the route was added before, need to free the old nexthop(s)
-    cleanupHost(fwd_.getNexthops());
+    cleanupHost(fwd_.getNextHopSet());
   }
   egressId_ = egressId;
   fwd_ = fwd;
@@ -156,7 +156,7 @@ void BcmRoute::program(const RouteForwardInfo& fwd) {
 }
 
 void BcmRoute::programHostRoute(opennsl_if_t egressId,
-    const RouteForwardInfo& fwd, bool replace) {
+    const RouteNextHopEntry& fwd, bool replace) {
   auto hostRouteHost = hw_->writableHostTable()->incRefOrCreateBcmHost(
       vrf_, prefix_, egressId);
   auto cleanupHostRoute = [=]() noexcept {
@@ -165,15 +165,15 @@ void BcmRoute::programHostRoute(opennsl_if_t egressId,
   SCOPE_FAIL {
     cleanupHostRoute();
   };
-  hostRouteHost->addBcmHost(fwd.getNexthops().size() > 1, replace);
+  hostRouteHost->addBcmHost(fwd.getNextHopSet().size() > 1, replace);
 }
 
 void BcmRoute::programLpmRoute(opennsl_if_t egressId,
-    const RouteForwardInfo& fwd) {
+    const RouteNextHopEntry& fwd) {
   opennsl_l3_route_t rt;
   initL3RouteT(&rt);
   rt.l3a_intf = egressId;
-  if (fwd.getNexthops().size() > 1) {         // multipath
+  if (fwd.getNextHopSet().size() > 1) {         // multipath
     rt.l3a_flags |= OPENNSL_L3_MULTIPATH;
   }
 
@@ -250,7 +250,7 @@ folly::dynamic BcmRoute::toFollyDynamic() const {
   route[kAction] = forwardActionStr(fwd_.getAction());
   // if many next hops, put ecmpEgressId = egressId
   // else put egressId = egressId
-  if (fwd_.getNexthops().size() > 1) {
+  if (fwd_.getNextHopSet().size() > 1) {
     route[kEcmp] = true;
     route[kEcmpEgressId] = egressId_;
   } else {
@@ -274,7 +274,7 @@ BcmRoute::~BcmRoute() {
     deleteLpmRoute(hw_->getUnit(), vrf_, prefix_, len_);
   }
   // decrease reference counter of the host entry for next hops
-  const auto& nhops = fwd_.getNexthops();
+  const auto& nhops = fwd_.getNextHopSet();
   if (nhops.size()) {
     hw_->writableHostTable()->derefBcmEcmpHost(vrf_, nhops);
   }

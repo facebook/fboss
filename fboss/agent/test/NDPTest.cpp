@@ -127,11 +127,14 @@ unique_ptr<SwSwitch> setupSwitch(seconds raInterval,
 shared_ptr<SwitchState> addMockRouteTable(shared_ptr<SwitchState> state) {
   RouteNextHops nexthops;
   // resolved by intf 1
-  nexthops.emplace(RouteNextHop(IPAddress("2401:db00:2110:3004::1")));
+  nexthops.emplace(RouteNextHop::createNextHop(
+                       IPAddress("2401:db00:2110:3004::1")));
   // resolved by intf 1
-  nexthops.emplace(RouteNextHop(IPAddress("2401:db00:2110:3004::2")));
+  nexthops.emplace(RouteNextHop::createNextHop(
+                       IPAddress("2401:db00:2110:3004::2")));
   // un-resolvable
-  nexthops.emplace(RouteNextHop(IPAddress("5555:db00:2110:3004::1")));
+  nexthops.emplace(RouteNextHop::createNextHop(
+                       IPAddress("5555:db00:2110:3004::1")));
 
   RouteUpdater updater(state->getRouteTables());
   updater.addRoute(RouterID(0), IPAddressV6("1111:1111:1:1::1"), 64,

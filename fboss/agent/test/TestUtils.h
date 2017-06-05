@@ -20,7 +20,7 @@
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/state/RouteNextHop.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 
 namespace facebook { namespace fboss {
 

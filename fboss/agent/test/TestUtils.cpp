@@ -339,11 +339,11 @@ shared_ptr<SwitchState> testStateA() {
 
   RouteNextHops nexthops;
   // resolved by intf 1
-  nexthops.emplace(RouteNextHop(IPAddress("10.0.0.22")));
+  nexthops.emplace(RouteNextHop::createNextHop(IPAddress("10.0.0.22")));
   // resolved by intf 1
-  nexthops.emplace(RouteNextHop(IPAddress("10.0.0.23")));
+  nexthops.emplace(RouteNextHop::createNextHop(IPAddress("10.0.0.23")));
   // un-resolvable
-  nexthops.emplace(RouteNextHop(IPAddress("1.1.2.10")));
+  nexthops.emplace(RouteNextHop::createNextHop(IPAddress("1.1.2.10")));
 
   updater.addRoute(RouterID(0), IPAddress("10.1.1.0"), 24,
                    ClientID(1001), nexthops);
@@ -499,7 +499,7 @@ void RxPacketMatcher::DescribeNegationTo(std::ostream* os) const {
 RouteNextHops makeNextHops(std::vector<std::string> ipStrs) {
   RouteNextHops nhops;
   for (const std::string & ip : ipStrs) {
-    nhops.emplace(RouteNextHop(IPAddress(ip)));
+    nhops.emplace(RouteNextHop::createNextHop(IPAddress(ip)));
   }
   return nhops;
 }

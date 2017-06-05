@@ -10,7 +10,6 @@
 #include "UnresolvedNhopsProber.h"
 #include "fboss/agent/NexthopToRouteCount.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/RouteForwardInfo.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
@@ -27,7 +26,7 @@ void UnresolvedNhopsProber::timeoutExpired() noexcept {
   for (const auto& ridAndNhopsRefCounts : nhops2RouteCount_) {
     for (const auto& nhopAndRefCount : ridAndNhopsRefCounts.second) {
       const auto& nhop = nhopAndRefCount.first;
-      auto intf = state->getInterfaces()->getInterfaceIf(nhop.intf);
+      auto intf = state->getInterfaces()->getInterfaceIf(nhop.intf());
       if (!intf) {
         continue; // interface got unconfigured
       }
@@ -46,15 +45,15 @@ void UnresolvedNhopsProber::timeoutExpired() noexcept {
       // probed come from after the route was (recursively) resolved.
       auto vlan = state->getVlans()->getVlanIf(intf->getVlanID());
       CHECK(vlan); // must have vlan for configrued inteface
-      if (nhop.nexthop.isV4()) {
-        auto nhop4 = nhop.nexthop.asV4();
+      if (nhop.addr().isV4()) {
+        auto nhop4 = nhop.addr().asV4();
         auto arpEntry = vlan->getArpTable()->getEntryIf(nhop4);
         if (!arpEntry || arpEntry->getPort() == PortID(0)) {
           VLOG(3) <<" Sending probe for unresolved next hop: " << nhop4;
           ArpHandler::sendArpRequest(sw_, vlan, nhop4);
         }
       } else {
-        auto nhop6 = nhop.nexthop.asV6();
+        auto nhop6 = nhop.addr().asV6();
         auto ndpEntry = vlan->getNdpTable()->getEntryIf(nhop6);
         if (!ndpEntry || ndpEntry->getPort() == PortID(0)) {
           VLOG(3) <<" Sending probe for unresolved next hop: " << nhop6;

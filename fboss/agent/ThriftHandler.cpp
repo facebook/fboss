@@ -83,13 +83,13 @@ namespace util {
  * Utility function to convert `Nexthops` (resolved ones) to list<BinaryAddress>
  */
 std::vector<network::thrift::BinaryAddress>
-fromFwdNextHops(RouteForwardInfo::Nexthops const& nexthops) {
+fromFwdNextHops(RouteNextHopSet const& nexthops) {
   std::vector<network::thrift::BinaryAddress> nhs;
   nhs.reserve(nexthops.size());
   for (auto const& nexthop : nexthops) {
-    auto addr = network::toBinaryAddress(nexthop.nexthop);
+    auto addr = network::toBinaryAddress(nexthop.addr());
     addr.__isset.ifName = true;
-    addr.ifName = util::createTunIntfName(nexthop.intf);
+    addr.ifName = util::createTunIntfName(nexthop.intf());
     nhs.emplace_back(std::move(addr));
   }
   return nhs;
@@ -497,7 +497,7 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
       auto fwdInfo = ipv4->getForwardInfo();
       tempRoute.dest.ip = toBinaryAddress(ipv4->prefix().network);
       tempRoute.dest.prefixLength = ipv4->prefix().mask;
-      tempRoute.nextHopAddrs = util::fromFwdNextHops(fwdInfo.getNexthops());
+      tempRoute.nextHopAddrs = util::fromFwdNextHops(fwdInfo.getNextHopSet());
       routes.emplace_back(std::move(tempRoute));
     }
     for (const auto& ipv6Rib : routeTable->getRibV6()->routes()) {
@@ -510,7 +510,7 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
       auto fwdInfo = ipv6->getForwardInfo();
       tempRoute.dest.ip = toBinaryAddress(ipv6->prefix().network);
       tempRoute.dest.prefixLength = ipv6->prefix().mask;
-      tempRoute.nextHopAddrs = util::fromFwdNextHops(fwdInfo.getNexthops());
+      tempRoute.nextHopAddrs = util::fromFwdNextHops(fwdInfo.getNextHopSet());
       routes.emplace_back(std::move(tempRoute));
     }
   }
@@ -522,7 +522,7 @@ void ThriftHandler::getRouteTableByClient(
   for (const auto& routeTable : (*sw_->getState()->getRouteTables())) {
     for (const auto& ipv4Rib : routeTable->getRibV4()->routes()) {
       auto ipv4 = ipv4Rib.value().get();
-      auto nhs = ipv4->getNexthopsForClient(ClientID(client));
+      auto nhs = ipv4->getNextHopSetForClient(ClientID(client));
       if (not nhs.hasValue()) {
         continue;
       }
@@ -536,7 +536,7 @@ void ThriftHandler::getRouteTableByClient(
 
     for (const auto& ipv6Rib : routeTable->getRibV6()->routes()) {
       auto ipv6 = ipv6Rib.value().get();
-      auto nhs = ipv6->getNexthopsForClient(ClientID(client));
+      auto nhs = ipv6->getNextHopSetForClient(ClientID(client));
       if (not nhs.hasValue()) {
         continue;
       }
@@ -587,7 +587,7 @@ void ThriftHandler::getIpRoute(UnicastRoute& route,
     const auto fwdInfo = match->getForwardInfo();
     route.dest.ip = toBinaryAddress(match->prefix().network);
     route.dest.prefixLength = match->prefix().mask;
-    route.nextHopAddrs = util::fromFwdNextHops(fwdInfo.getNexthops());
+    route.nextHopAddrs = util::fromFwdNextHops(fwdInfo.getNextHopSet());
   } else {
     auto ripV6Rib = routeTable->getRibV6();
     auto match = ripV6Rib->longestMatch(ipAddr.asV6());
@@ -599,7 +599,7 @@ void ThriftHandler::getIpRoute(UnicastRoute& route,
     const auto fwdInfo = match->getForwardInfo();
     route.dest.ip = toBinaryAddress(match->prefix().network);
     route.dest.prefixLength = match->prefix().mask;
-    route.nextHopAddrs = util::fromFwdNextHops(fwdInfo.getNexthops());
+    route.nextHopAddrs = util::fromFwdNextHops(fwdInfo.getNextHopSet());
   }
 }
 

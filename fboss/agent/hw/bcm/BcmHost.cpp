@@ -169,23 +169,24 @@ BcmHost::~BcmHost() {
 }
 
 BcmEcmpHost::BcmEcmpHost(const BcmSwitch *hw, opennsl_vrf_t vrf,
-                         const RouteForwardNexthops& fwd)
+                         const RouteNextHopSet& fwd)
     : hw_(hw), vrf_(vrf) {
   CHECK_GT(fwd.size(), 0);
   BcmHostTable *table = hw_->writableHostTable();
   BcmEcmpEgress::Paths paths;
-  RouteForwardNexthops prog;
+  RouteNextHopSet prog;
   prog.reserve(fwd.size());
   SCOPE_FAIL {
     for (const auto& nhop : prog) {
-      table->derefBcmHost(vrf, nhop.nexthop);
+      table->derefBcmHost(vrf, nhop.addr());
     }
   };
   // allocate a BcmHost object for each path in this ECMP
   int total = 0;
   for (const auto& nhop : fwd) {
-    auto host = table->incRefOrCreateBcmHost(vrf, nhop.nexthop);
-    auto ret = prog.emplace(nhop.intf, nhop.nexthop);
+    auto host = table->incRefOrCreateBcmHost(vrf, nhop.addr());
+    auto ret = prog.emplace(RouteNextHop::createForward(
+                                nhop.addr(), nhop.intf()));
     CHECK(ret.second);
     // TODO:
     // Ideally, we should have the nexthop resolved already and programmed in
@@ -193,7 +194,7 @@ BcmEcmpHost::BcmEcmpHost(const BcmSwitch *hw, opennsl_vrf_t vrf,
     // do the HW programming. For now, we program the egress object to punt
     // to CPU. Any traffic going to CPU will trigger the neighbor discovery.
     if (!host->isProgrammed()) {
-      const auto intf = hw->getIntfTable()->getBcmIntf(nhop.intf);
+      const auto intf = hw->getIntfTable()->getBcmIntf(nhop.intf());
       host->programToCPU(intf->getBcmIfId());
     }
     paths.insert(host->getEgressId());
@@ -218,7 +219,7 @@ BcmEcmpHost::~BcmEcmpHost() {
   hw_->writableHostTable()->derefEgress(ecmpEgressId_);
   BcmHostTable *table = hw_->writableHostTable();
   for (const auto& nhop : fwd_) {
-    table->derefBcmHost(vrf_, nhop.nexthop);
+    table->derefBcmHost(vrf_, nhop.addr());
   }
 }
 
@@ -261,7 +262,7 @@ BcmHost* BcmHostTable::incRefOrCreateBcmHost(
 }
 
 BcmEcmpHost* BcmHostTable::incRefOrCreateBcmEcmpHost(
-    opennsl_vrf_t vrf, const RouteForwardNexthops& fwd) {
+    opennsl_vrf_t vrf, const RouteNextHopSet& fwd) {
   return incRefOrCreateBcmHost(&ecmpHosts_, std::make_pair(vrf, fwd));
 }
 
@@ -291,12 +292,12 @@ BcmHost* BcmHostTable::getBcmHost(
 }
 
 BcmEcmpHost* BcmHostTable::getBcmEcmpHostIf(
-    opennsl_vrf_t vrf, const RouteForwardNexthops& fwd) const {
+    opennsl_vrf_t vrf, const RouteNextHopSet& fwd) const {
   return getBcmHostIf(&ecmpHosts_, vrf, fwd);
 }
 
 BcmEcmpHost* BcmHostTable::getBcmEcmpHost(
-    opennsl_vrf_t vrf, const RouteForwardNexthops& fwd) const {
+    opennsl_vrf_t vrf, const RouteNextHopSet& fwd) const {
   auto host = getBcmEcmpHostIf(vrf, fwd);
   if (!host) {
     throw FbossError("Cannot find BcmEcmpHost vrf=", vrf, " fwd=", fwd);
@@ -327,7 +328,7 @@ BcmHost* BcmHostTable::derefBcmHost(
 }
 
 BcmEcmpHost* BcmHostTable::derefBcmEcmpHost(
-    opennsl_vrf_t vrf, const RouteForwardNexthops& fwd) noexcept {
+    opennsl_vrf_t vrf, const RouteNextHopSet& fwd) noexcept {
   return derefBcmHost(&ecmpHosts_, vrf, fwd);
 }
 

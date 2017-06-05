@@ -45,11 +45,11 @@ using ::testing::Return;
 template<typename AddrT>
 void EXPECT_FWD_INFO(std::shared_ptr<Route<AddrT>> rt,
                      InterfaceID intf, std::string ipStr) {
-  const auto& fwds = rt->getForwardInfo().getNexthops();
+  const auto& fwds = rt->getForwardInfo().getNextHopSet();
   EXPECT_EQ(1, fwds.size());
   const auto& fwd = *fwds.begin();
-  EXPECT_EQ(intf, fwd.intf);
-  EXPECT_EQ(IPAddress(ipStr), fwd.nexthop);
+  EXPECT_EQ(intf, fwd.intf());
+  EXPECT_EQ(IPAddress(ipStr), fwd.addr());
 }
 
 template<typename AddrT>
@@ -214,10 +214,11 @@ TEST(Route, resolve) {
     EXPECT_NE(r21, r22);
     EXPECT_NE(r21->prefix(), r22->prefix());
     // check the forwarding info
-    RouteForwardNexthops expFwd2;
-    expFwd2.emplace(InterfaceID(1), IPAddress("1.1.1.10"));
-    EXPECT_EQ(expFwd2, r21->getForwardInfo().getNexthops());
-    EXPECT_EQ(expFwd2, r22->getForwardInfo().getNexthops());
+    RouteNextHopSet expFwd2;
+    expFwd2.emplace(RouteNextHop::createForward(
+                        IPAddress("1.1.1.10"), InterfaceID(1)));
+    EXPECT_EQ(expFwd2, r21->getForwardInfo().getNextHopSet());
+    EXPECT_EQ(expFwd2, r22->getForwardInfo().getNextHopSet());
   }
   // recursive lookup loop
   {
@@ -360,13 +361,15 @@ TEST(Route, addDel) {
   // forwarding info
   EXPECT_EQ(RouteForwardAction::NEXTHOPS, r2->getForwardInfo().getAction());
   EXPECT_EQ(RouteForwardAction::NEXTHOPS, r2v6->getForwardInfo().getAction());
-  const auto& fwd2 = r2->getForwardInfo().getNexthops();
-  const auto& fwd2v6 = r2v6->getForwardInfo().getNexthops();
+  const auto& fwd2 = r2->getForwardInfo().getNextHopSet();
+  const auto& fwd2v6 = r2v6->getForwardInfo().getNextHopSet();
   EXPECT_EQ(2, fwd2.size());
   EXPECT_EQ(2, fwd2v6.size());
-  RouteForwardNexthops expFwd2;
-  expFwd2.emplace(InterfaceID(1), IPAddress("1.1.1.10"));
-  expFwd2.emplace(InterfaceID(2), IPAddress("2::2"));
+  RouteNextHopSet expFwd2;
+  expFwd2.emplace(RouteNextHop::createForward(
+                      IPAddress("1.1.1.10"), InterfaceID(1)));
+  expFwd2.emplace(RouteNextHop::createForward(
+                      IPAddress("2::2"), InterfaceID(2)));
   EXPECT_EQ(expFwd2, fwd2);
   EXPECT_EQ(expFwd2, fwd2v6);
 
@@ -497,7 +500,7 @@ TEST(Route, Interface) {
     EXPECT_FALSE(rt->isWithNexthops());
     EXPECT_TRUE(rt->isToCPU());
     EXPECT_EQ(RouteForwardAction::TO_CPU, rt->getForwardInfo().getAction());
-    const auto& fwds = rt->getForwardInfo().getNexthops();
+    const auto& fwds = rt->getForwardInfo().getNextHopSet();
     EXPECT_EQ(0, fwds.size());
   }
 
@@ -1148,7 +1151,7 @@ RouteNextHops newNextHops(int n, std::string prefix) {
   RouteNextHops h;
   for (int i=0; i < n; i++) {
     auto ipStr = prefix + std::to_string(i+10);
-    h.emplace(RouteNextHop(IPAddress(ipStr)));
+    h.emplace(RouteNextHop::createNextHop(IPAddress(ipStr)));
   }
   return h;
 }
@@ -1294,9 +1297,9 @@ TEST(Route, equality) {
   // But construct the list in opposite order.
   // Objects should still be equal, despite the order of construction.
   RouteNextHops nextHopsRev;
-  nextHopsRev.emplace(RouteNextHop(IPAddress("2.2.2.12")));
-  nextHopsRev.emplace(RouteNextHop(IPAddress("2.2.2.11")));
-  nextHopsRev.emplace(RouteNextHop(IPAddress("2.2.2.10")));
+  nextHopsRev.emplace(RouteNextHop::createNextHop(IPAddress("2.2.2.12")));
+  nextHopsRev.emplace(RouteNextHop::createNextHop(IPAddress("2.2.2.11")));
+  nextHopsRev.emplace(RouteNextHop::createNextHop(IPAddress("2.2.2.10")));
   nhm1.update(CLIENT_B, nextHopsRev);
   EXPECT_TRUE(nhm1 == nhm2);
 }
@@ -1408,12 +1411,12 @@ void expectFwdInfo(std::shared_ptr<RouteTableMap>& tables, RouterID rid,
                    RouteV4::Prefix prefix, std::string ipPrefix) {
 
   auto fwdInfo = tables->getRouteTable(rid)->getRibV4()->exactMatch(prefix)
-                 ->getFields()->fwd.getNexthops();
+                 ->getFields()->fwd.getNextHopSet();
 
   // Expect the fwd'ing info to be 3 IPs all starting with 'ipPrefix'
   EXPECT_EQ(3, fwdInfo.size());
   for (auto const& it : fwdInfo) {
-    EXPECT_TRUE(stringStartsWith(it.nexthop.str(), ipPrefix));
+    EXPECT_TRUE(stringStartsWith(it.addr().str(), ipPrefix));
   }
 }
 
@@ -1620,17 +1623,22 @@ TEST(RouteTypes, toFromRouteNextHops) {
   RouteNextHops nhs;
 
   // Non v4 link-local address without interface scoping
-  nhs.emplace(RouteNextHop(folly::IPAddress("10.0.0.1"), folly::none));
+  nhs.emplace(RouteNextHop::createNextHop(
+                  folly::IPAddress("10.0.0.1"), folly::none));
 
   // v4 link-local address with/without interface scoping
-  nhs.emplace(RouteNextHop(folly::IPAddress("169.254.0.1"), folly::none));
-  nhs.emplace(RouteNextHop(folly::IPAddress("169.254.0.2"), InterfaceID(2)));
+  nhs.emplace(RouteNextHop::createNextHop(
+                  folly::IPAddress("169.254.0.1"), folly::none));
+  nhs.emplace(RouteNextHop::createNextHop(
+                  folly::IPAddress("169.254.0.2"), InterfaceID(2)));
 
   // Non v6 link-local address without interface scoping
-  nhs.emplace(RouteNextHop(folly::IPAddress("face:b00c::1"), folly::none));
+  nhs.emplace(RouteNextHop::createNextHop(
+                  folly::IPAddress("face:b00c::1"), folly::none));
 
   // v6 link-local address with interface scoping
-  nhs.emplace(RouteNextHop(folly::IPAddress("fe80::1"), InterfaceID(4)));
+  nhs.emplace(RouteNextHop::createNextHop(
+                  folly::IPAddress("fe80::1"), InterfaceID(4)));
 
   // Conver to thrift object
   auto nhAddrs = util::fromRouteNextHops(nhs);

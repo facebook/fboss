@@ -13,7 +13,7 @@
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 
-#include "fboss/agent/state/RouteForwardInfo.h"
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/types.h"
 
 
@@ -33,7 +33,7 @@ class NexthopToRouteCount {
  public:
    explicit NexthopToRouteCount() {}
    void stateChanged(const StateDelta& delta);
-   using Nexthop = RouteForwardInfo::Nexthop;
+   using Nexthop = RouteNextHop;
    // Using int rather than uint to check against bugs where we
    // get -ve reference counts
    using RouterID2NhopRefCounts = boost::container::flat_map<RouterID,
