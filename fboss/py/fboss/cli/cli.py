@@ -34,6 +34,28 @@ from neteng.fboss.ttypes import FbossBaseError
 from fboss.thrift_clients import FbossAgentClient
 
 
+class AliasedGroup(click.Group):
+    """
+    For command abbreviation
+        http://click.pocoo.org/5/advanced/#command-aliases
+    """
+
+    def get_command(self, ctx, cmd_name):
+        rv = click.Group.get_command(self, ctx, cmd_name)
+        if rv is not None:
+            return rv
+
+        matches = [
+            x for x in self.list_commands(ctx)
+            if x.startswith(cmd_name)
+        ]
+        if not matches:
+            return None
+        elif len(matches) == 1:
+            return click.Group.get_command(self, ctx, matches[0])
+        ctx.fail('Too many matches: %s' % ', '.join(sorted(matches)))
+
+
 class CliOptions(object):
     ''' Object for holding CLI state information '''
     def __init__(self, hostname, port, timeout):
@@ -49,7 +71,7 @@ class ArpCli(object):
         self.arp.add_command(self._table, name='table')
         self.arp.add_command(self._flush, name='flush')
 
-    @click.group()
+    @click.group(cls=AliasedGroup)
     def arp():
         ''' Show ARP Information '''
         pass
@@ -76,7 +98,7 @@ class GetConfigCli(object):
     def __init__(self):
         self.config.add_command(self._agent, name=AGENT_KEYWORD)
 
-    @click.group()
+    @click.group(cls=AliasedGroup)
     def config():
         ''' Show running config '''
         pass
@@ -117,7 +139,7 @@ class L2Cli(object):
         self.l2.add_command(self._table, name='table')
         self.l2.add_command(self._flush, name='flush')
 
-    @click.group()
+    @click.group(cls=AliasedGroup)
     def l2():
         ''' Show L2 information '''
         pass
@@ -159,7 +181,7 @@ class NdpCli(object):
         self.ndp.add_command(self._table, name='table')
         self.ndp.add_command(self._flush, name='flush')
 
-    @click.group()
+    @click.group(cls=AliasedGroup)
     def ndp():
         ''' Show NDP information '''
         pass
@@ -209,7 +231,7 @@ class PortCli(object):
         self.port.add_command(self._disable, name='disable')
         self.port.add_command(self._stats, name='stats')
 
-    @click.group()
+    @click.group(cls=AliasedGroup)
     def port():
         ''' Show port information '''
         pass
@@ -295,7 +317,7 @@ class RouteCli(object):
         self.route.add_command(self._table, name='table')
         self.route.add_command(self._details, name='details')
 
-    @click.group()
+    @click.group(cls=AliasedGroup)
     def route():
         ''' Show route information '''
         pass
@@ -325,7 +347,7 @@ class RouteCli(object):
 
 
 # -- Main Command Group -- #
-@click.group()
+@click.group(cls=AliasedGroup)
 @click.option('--hostname', '-H', default='::1',
         type=str, help='Host to connect to (default = ::1)')
 @click.option('--port', '-p', default=None,
