@@ -107,11 +107,6 @@ class BcmPort {
   cfg::PortState getState();
 
   /**
-   * Try to remedy this port if this is down.
-   */
-  void remedy();
-
-  /**
    * Take actions on this port (especially if it is up), so that it will not
    * flap on warm boot.
    */

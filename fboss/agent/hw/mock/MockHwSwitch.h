@@ -62,7 +62,6 @@ class MockHwSwitch : public HwSwitch {
   MOCK_METHOD0(clearWarmBootCache, void());
   MOCK_CONST_METHOD0(exitFatal, void());
   MOCK_METHOD0(unregisterCallbacks, void());
-  MOCK_METHOD0(remedyPorts, void());
   MOCK_CONST_METHOD1(isValidStateUpdate, bool(const StateDelta& delta));
   MOCK_CONST_METHOD1(isPortUp, bool(PortID port));
 

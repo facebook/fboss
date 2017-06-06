@@ -17,7 +17,6 @@ void BcmPort::setConfiguredMaxSpeed() {
   configuredMaxSpeed_ = cfg::PortSpeed::XG;
 }
 void BcmPort::setKR4Ability() {}
-void BcmPort::remedy() {}
 void BcmPort::prepareForGracefulExit() {}
 void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {}
 
