@@ -110,6 +110,8 @@ def get_status_strs(status, is_present):
 
 
 def get_qsfp_info_map(qsfp_client, qsfps, continue_on_error=False):
+    if not qsfp_client:
+        return {}
     try:
         return qsfp_client.getTransceiverInfo(qsfps)
     except Exception as e:

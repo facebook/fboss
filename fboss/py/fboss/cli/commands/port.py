@@ -17,6 +17,7 @@ from math import log10
 from neteng.fboss.transceiver import ttypes as transceiver_ttypes
 from neteng.fboss.ttypes import FbossBaseError
 from thrift.Thrift import TApplicationException
+from thrift.transport.TTransport import TTransportException
 
 
 class PortDetailsCmd(cmds.FbossCmd):
@@ -205,7 +206,10 @@ class PortStatsCmd(cmds.FbossCmd):
 class PortStatusCmd(cmds.FbossCmd):
     def run(self, detail, ports, verbose, internal):
         self._client = self._create_agent_client()
-        self._qsfp_client = self._create_qsfp_client()
+        try:
+            self._qsfp_client = self._create_qsfp_client()
+        except TTransportException:
+            self._qsfp_client = None
         if detail or verbose:
             PortStatusDetailCmd(
                 self._client, ports, self._qsfp_client, verbose
@@ -248,10 +252,7 @@ class PortStatusCmd(cmds.FbossCmd):
             # (-1 because we start counting transceivers at 0)
             transceiver_id = utils.port_sort_fn(port_info)[2] - 1
             qsfp_info = qsfp_info_map.get(transceiver_id)
-            if qsfp_info:
-                qsfp_present = qsfp_info.present
-            else:
-                qsfp_present = False
+            qsfp_present = qsfp_info if self._qsfp_client else None
             attrs = utils.get_status_strs(status, qsfp_present)
             if internal_port:
                 speed = attrs['speed']
@@ -350,11 +351,12 @@ class PortStatusDetailCmd(object):
                     info.present = False
                     self._info_resp[port] = info
 
-    def _print_transceiver_ports(self, ch_to_port, info):
+    def _print_transceiver_ports(self, ports, info):
         # Print port info if the transceiver doesn't have any
-        for port in ch_to_port.values():
-            attrs = utils.get_status_strs(self._status_resp[port],
-                                          info.present)
+        present = info.present if info else None
+
+        for port in ports:
+            attrs = utils.get_status_strs(self._status_resp[port], present)
             print("Port: {:>2}  Status: {:<8}  Link: {:<4}  Transceiver: {}".
                     format(port, attrs['admin_status'], attrs['link_status'],
                             attrs['present']))
@@ -529,11 +531,10 @@ class PortStatusDetailCmd(object):
 
     def _print_transceiver_details(self, tid):  # noqa
         ''' Print details about transceiver '''
-
         info = self._info_resp[tid]
         ch_to_port = self._t_to_p[tid]
         if info.present is False:
-            self._print_transceiver_ports(ch_to_port, info)
+            self._print_transceiver_ports(ch_to_port.values(), info)
             return
 
         print("Transceiver:  {:>2}".format(info.port))
@@ -580,10 +581,14 @@ class PortStatusDetailCmd(object):
 
         # If we didn't print any channel info, print something useful
         if not info.channels:
-            self._print_transceiver_ports(ch_to_port, info)
+            self._print_transceiver_ports(ch_to_port.values(), info)
 
     def _print_port_detail(self):
         ''' print port details '''
+
+        if not self._qsfp_client:
+            self._print_transceiver_ports(self._status_resp.keys(), None)
+            return
 
         # If a port does not have a mapping to a transceiver, we should
         # still print it, lest we skip ports in the detail display.
@@ -611,11 +616,14 @@ class PortStatusDetailCmd(object):
         if not self._transceiver:
             return
 
-        try:
-            self._info_resp = \
-                self._qsfp_client.getTransceiverInfo(self._transceiver)
-        except TApplicationException:
-            return
+        if not self._qsfp_client:
+            self._info_resp = {}
+        else:
+            try:
+                self._info_resp = \
+                    self._qsfp_client.getTransceiverInfo(self._transceiver)
+            except TApplicationException:
+                return
 
         self._get_dummy_status()
         self._print_port_detail()
