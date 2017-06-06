@@ -101,7 +101,15 @@ PortStats* SwitchStats::port(PortID portID) {
 }
 
 PortStats* SwitchStats::createPortStats(PortID portID) {
-  auto rv = ports_.emplace(portID, std::make_unique<PortStats>(portID, this));
+
+
+ auto series = std::make_unique<TLTimeseries>(
+    stats::ThreadCachedServiceData::get()->getThreadStats(),
+    folly::to<std::string>("port", static_cast<int32_t>(portID),
+      kCounterPrefix, "link_state.down"),
+    SUM);
+  auto rv = ports_.emplace(portID, std::make_unique<PortStats>(portID, std::move(series),
+                                                               this));
   const auto& it = rv.first;
   DCHECK(rv.second);
   return it->second.get();

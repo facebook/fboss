@@ -12,8 +12,10 @@
 
 namespace facebook { namespace fboss {
 
-PortStats::PortStats(PortID portID, SwitchStats *switchStats)
+PortStats::PortStats(PortID portID, std::unique_ptr<TLTimeseries> linkState,
+    SwitchStats *switchStats)
   : portID_(portID),
+    linkStateChange_(std::move(linkState)),
     switchStats_(switchStats) {
 }
 
@@ -119,6 +121,7 @@ void PortStats::dhcpV6DropPkt() {
 }
 
 void PortStats::linkStateChange() {
+  linkStateChange_->addValue(1);
   switchStats_->linkStateChange();
 }
 

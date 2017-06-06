@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/types.h"
+#include "common/stats/ThreadCachedServiceData.h"
 
 namespace facebook { namespace fboss {
 
@@ -17,7 +18,10 @@ class SwitchStats;
 
 class PortStats {
  public:
-  PortStats(PortID portID, SwitchStats *switchStats);
+  typedef stats::ThreadCachedServiceData::TLTimeseries TLTimeseries;
+
+  PortStats(PortID portID, std::unique_ptr<TLTimeseries> linkState,
+      SwitchStats *switchStats);
 
   void trappedPkt();
   void pktDropped();
@@ -70,6 +74,11 @@ class PortStats {
    * It's useful to store this
    */
   PortID portID_;
+
+  /*
+   * Port down count for the specific port
+   */
+  std::unique_ptr<TLTimeseries> linkStateChange_;
 
   // Pointer to main SwitchStats object so that we can forward method calls
   // that we do not want to track ourselves.
