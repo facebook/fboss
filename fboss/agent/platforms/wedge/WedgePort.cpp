@@ -128,8 +128,8 @@ bool WedgePort::shouldCustomizeTransceiver() const {
   auto trans = getTransceiverID();
   if (!trans) {
     // No qsfp atatched to customize
-    LOG(INFO) << "Not customising qsfps of port " << id_
-              << " as it has no transceiver.";
+    VLOG(4) << "Not customising qsfps of port " << id_
+            << " as it has no transceiver.";
     return false;
   } else if (!isControllingPort()) {
     auto channel = getChannel();
