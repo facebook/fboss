@@ -77,7 +77,7 @@ class QsfpModule : public Transceiver {
   /*
    * Returns the entire QSFP information
    */
-  virtual TransceiverInfo getTransceiverInfo() override;
+  TransceiverInfo getTransceiverInfo() override;
 
   /*
    * The size of the pages used by QSFP.  See below for an explanation of

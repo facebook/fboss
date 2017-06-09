@@ -39,7 +39,7 @@ class WedgePlatform : public BcmPlatform {
   virtual std::unique_ptr<WedgePortMapping> createPortMapping() = 0;
 
   HwSwitch* getHwSwitch() const override;
-  virtual void onHwInitialized(SwSwitch* sw) override;
+  void onHwInitialized(SwSwitch* sw) override;
   std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;
 
   folly::MacAddress getLocalMac() const override;
@@ -56,7 +56,7 @@ class WedgePlatform : public BcmPlatform {
   }
   WedgePort* getPort(PortID id) const;
   WedgePort* getPort(TransceiverID id) const;
-  virtual TransceiverIdxThrift getPortMapping(PortID port) const override;
+  TransceiverIdxThrift getPortMapping(PortID port) const override;
 
   uint32_t getMMUBufferBytes() const override {
     // All wedge platforms have 16MB MMU buffer

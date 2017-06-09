@@ -29,7 +29,7 @@ class UnresolvedNhopsProber : private folly::AsyncTimeout,
     start();
   }
 
-  ~UnresolvedNhopsProber() {
+  ~UnresolvedNhopsProber() override {
     sw_->getBackgroundEVB()->runImmediatelyOrRunInEventBaseThreadAndWait(
       [this]() {
         cancelTimeout();

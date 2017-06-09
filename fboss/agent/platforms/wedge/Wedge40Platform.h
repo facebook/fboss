@@ -21,7 +21,7 @@ class Wedge40Platform : public WedgePlatform {
   explicit Wedge40Platform(std::unique_ptr<WedgeProductInfo> productInfo) :
       WedgePlatform(std::move(productInfo)) {}
 
-  virtual std::unique_ptr<WedgePortMapping> createPortMapping() override;
+  std::unique_ptr<WedgePortMapping> createPortMapping() override;
 
   folly::ByteRange defaultLed0Code() override;
   folly::ByteRange defaultLed1Code() override;

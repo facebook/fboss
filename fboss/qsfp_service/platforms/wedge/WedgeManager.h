@@ -10,13 +10,16 @@ namespace facebook { namespace fboss {
 class WedgeManager : public TransceiverManager {
  public:
   WedgeManager();
-  virtual ~WedgeManager() override {}
+  ~WedgeManager() override {}
   void initTransceiverMap() override;
   void getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::vector<int32_t>> ids) override;
   void customizeTransceiver(int32_t idx, cfg::PortSpeed speed) override;
 
-  virtual int getNumQsfpModules() override { return 16; }
+  int getNumQsfpModules() override {
+    return 16;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   WedgeManager(WedgeManager const &) = delete;

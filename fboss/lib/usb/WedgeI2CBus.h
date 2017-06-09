@@ -19,12 +19,12 @@ namespace facebook { namespace fboss {
 class WedgeI2CBus : public BaseWedgeI2CBus {
  public:
   WedgeI2CBus();
-  virtual ~WedgeI2CBus() {}
+  ~WedgeI2CBus() override {}
 
  protected:
-  virtual void initBus() override;
-  virtual void verifyBus(bool autoReset = true) override;
-  virtual void selectQsfpImpl(unsigned int module) override;
+  void initBus() override;
+  void verifyBus(bool autoReset = true) override;
+  void selectQsfpImpl(unsigned int module) override;
 
  private:
   enum : uint8_t {

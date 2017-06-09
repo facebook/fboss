@@ -30,7 +30,7 @@ class MockPlatform : public Platform {
  public:
   MockPlatform();
   explicit MockPlatform(std::unique_ptr<MockHwSwitch> hw);
-  virtual ~MockPlatform() override;
+  ~MockPlatform() override;
 
   HwSwitch* getHwSwitch() const override;
   std::string getVolatileStateDir() const override;

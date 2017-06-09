@@ -12,7 +12,7 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
                    public facebook::fb303::FacebookBase2 {
  public:
   explicit QsfpServiceHandler(std::unique_ptr<TransceiverManager> manager);
-  ~QsfpServiceHandler(){}
+  ~QsfpServiceHandler() override {}
   void init();
   facebook::fb303::cpp2::fb_status getStatus() override;
   TransceiverType type(int32_t idx) override;

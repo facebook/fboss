@@ -46,7 +46,7 @@ enum ICMPv6Type : uint8_t;
 class NeighborUpdater : public AutoRegisterStateObserver {
  public:
   explicit NeighborUpdater(SwSwitch* sw);
-  ~NeighborUpdater();
+  ~NeighborUpdater() override;
 
   void stateUpdated(const StateDelta& delta) override;
 

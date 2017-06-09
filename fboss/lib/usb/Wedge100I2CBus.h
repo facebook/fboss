@@ -44,7 +44,7 @@ class Wedge100I2CBus : public PCA9548MultiplexedBus {
             MULTIPLEXERS,
             NUM_PORTS,
             QSFP_ADDR_MAP) {}
-  virtual ~Wedge100I2CBus() {}
+  ~Wedge100I2CBus() override {}
 
  private:
   // Forbidden copy constructor and assignment operator
