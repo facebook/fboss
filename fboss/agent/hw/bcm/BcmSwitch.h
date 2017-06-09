@@ -136,7 +136,7 @@ class BcmSwitch : public BcmSwitchIf {
    * Once this method has called no other BcmSwitch methods should be accessed
    * before destroying the BcmSwitch object.
    */
-  virtual std::unique_ptr<BcmUnit> releaseUnit() override;
+  std::unique_ptr<BcmUnit> releaseUnit() override;
 
   /*
    * Initialize the BcmSwitch.

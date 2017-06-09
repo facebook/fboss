@@ -40,9 +40,9 @@ class PCA9548MultiplexedBus : public BaseWedgeI2CBus {
         qsfpAddressMap_(qsfpAddressMap) {}
 
  protected:
-  virtual void initBus() override;
-  virtual void verifyBus(bool autoReset = true) override;
-  virtual void selectQsfpImpl(unsigned int module) override;
+  void initBus() override;
+  void verifyBus(bool autoReset = true) override;
+  void selectQsfpImpl(unsigned int module) override;
 
  private:
   // Forbidden copy constructor and assignment operator

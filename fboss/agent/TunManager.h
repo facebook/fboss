@@ -38,7 +38,7 @@ class TunManager : public StateObserver {
    * overrides the StateObserver stateUpdated api, which is always
    * guaranteed to be called from the update thread.
    */
-  virtual void stateUpdated(const StateDelta& delta) override;
+  void stateUpdated(const StateDelta& delta) override;
 
   /**
    * Send a packet to host.

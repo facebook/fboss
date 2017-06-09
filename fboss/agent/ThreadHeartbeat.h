@@ -36,7 +36,7 @@ class ThreadHeartbeat : private folly::AsyncTimeout {
       });
   }
 
-  ~ThreadHeartbeat() {
+  ~ThreadHeartbeat() override {
     evb_->runImmediatelyOrRunInEventBaseThreadAndWait(
       [this]() {
         cancelTimeout();

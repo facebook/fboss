@@ -114,7 +114,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
       : NeighborCacheEntry(EntryFields(ip, intf, ignored),
                            evb, cache, NeighborEntryState::INCOMPLETE) {}
 
-  ~NeighborCacheEntry() {}
+  ~NeighborCacheEntry() override {}
 
   /*
    * Main entry point for handling the entries. Since entries may be
@@ -221,7 +221,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
    * responsible for serializing this with other flush or rx events to prevent
    * races.
    */
-  virtual void timeoutExpired() noexcept {
+  void timeoutExpired() noexcept override {
     cache_->processEntry(getIP());
   }
 

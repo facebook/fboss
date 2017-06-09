@@ -22,7 +22,7 @@ namespace facebook { namespace fboss {
 class WedgeQsfp : public TransceiverImpl {
  public:
   WedgeQsfp(int module, WedgeI2CBusLock* i2c);
-  virtual ~WedgeQsfp() override;
+  ~WedgeQsfp() override;
 
   /* This function is used to read the SFP EEprom */
   int readTransceiver(int dataAddress, int offset,

@@ -35,7 +35,7 @@ class MockHwSwitch : public HwSwitch {
       std::shared_ptr<SwitchState>(const StateDelta&));
   MOCK_METHOD2(getAndClearNeighborHit, bool(RouterID, folly::IPAddress&));
 
-  virtual std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
+  std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
 
   // gmock currently doesn't support move-only types, so we have to
   // use some janky work-arounds.
