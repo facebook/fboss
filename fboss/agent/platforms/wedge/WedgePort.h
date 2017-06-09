@@ -51,7 +51,8 @@ class WedgePort : public BcmPlatformPort {
   virtual folly::Optional<ChannelID> getChannel() const {
     return channel_;
   }
-  virtual TransmitterTechnology getTransmitterTech() const override;
+  TransmitterTechnology getTransmitterTech() const override;
+
  private:
   // Forbidden copy constructor and assignment operator
   WedgePort(WedgePort const &) = delete;

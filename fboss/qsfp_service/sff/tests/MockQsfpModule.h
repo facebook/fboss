@@ -47,13 +47,13 @@ class MockQsfpModule : public QsfpModule {
     QsfpModule::setRateSelectIfSupported(speed, currentState, currentSetting);
   }
 
-  void customizeTransceiver(cfg::PortSpeed speed) {
+  void customizeTransceiver(cfg::PortSpeed speed) override {
     dirty_ = false;
     present_ = true;
     QsfpModule::customizeTransceiver(speed);
   }
 
-  bool getTransceiverSettingsInfo(TransceiverSettings &settings) {
+  bool getTransceiverSettingsInfo(TransceiverSettings& settings) override {
     settings.cdrTx = cdrTx_;
     settings.cdrRx = cdrRx_;
     settings.rateSelect = state_;

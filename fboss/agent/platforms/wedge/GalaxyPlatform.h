@@ -25,7 +25,7 @@ class GalaxyPlatform : public WedgePlatform {
   explicit GalaxyPlatform(std::unique_ptr<WedgeProductInfo> productInfo) :
       WedgePlatform(std::move(productInfo)) {}
 
-  virtual ~GalaxyPlatform() {}
+  ~GalaxyPlatform() override {}
 
   bool isBufferStatsCollectionSupported() const override {
     return true;

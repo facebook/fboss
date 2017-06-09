@@ -69,7 +69,7 @@ class RouteTableRib : public NodeBase {
   RouteTableRib() {}
   RouteTableRib(NodeID id, uint32_t generation):
     NodeBase(id, generation) {}
-  ~RouteTableRib() {}
+  ~RouteTableRib() override {}
 
   using Prefix =  RoutePrefix<AddrT>;
   using RouteType = Route<AddrT>;

@@ -24,7 +24,7 @@ namespace facebook { namespace fboss {
 class PortRemediator : private folly::AsyncTimeout {
  public:
   explicit PortRemediator(SwSwitch* swSwitch);
-  ~PortRemediator();
+  ~PortRemediator() override;
 
   static void start(void *arg) {
     auto me = static_cast<PortRemediator*>(arg);

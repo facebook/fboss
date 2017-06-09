@@ -44,7 +44,7 @@ class GalaxyI2CBus : public PCA9548MultiplexedBus {
             MULTIPLEXERS,
             NUM_PORTS,
             QSFP_ADDR_MAP) {}
-  virtual ~GalaxyI2CBus() {}
+  ~GalaxyI2CBus() override {}
 
  private:
   // Forbidden copy constructor and assignment operator

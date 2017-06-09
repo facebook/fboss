@@ -31,7 +31,7 @@ namespace facebook { namespace fboss {
 class MockablePlatform : public MockPlatform {
  public:
   explicit MockablePlatform(std::shared_ptr<Platform> realPlatform);
-  virtual ~MockablePlatform() override;
+  ~MockablePlatform() override;
 
  private:
   std::shared_ptr<Platform> realPlatform_{nullptr};
