@@ -466,4 +466,15 @@ struct SwitchConfig {
         0: 20,
         1: 1,
       }
+  /* Override source IP for DHCP relay packet to the DHCP server */
+  20: optional string dhcpRelaySrcOverrideV4
+  21: optional string dhcpRelaySrcOverrideV6
+  /*
+   * Override source IP for DHCP reply packet to client host.
+   * This IP has to match one of interface IPs, as it is used to determines
+   * which interface/VLAN the client host MAC is searched against in order to
+   * send the reply to.
+   */
+  22: optional string dhcpReplySrcOverrideV4
+  23: optional string dhcpReplySrcOverrideV6
 }

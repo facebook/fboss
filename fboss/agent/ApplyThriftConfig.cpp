@@ -317,6 +317,38 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     changed = true;
   }
 
+  auto oldDhcpV4RelaySrc = orig_->getDhcpV4RelaySrc();
+  auto newDhcpV4RelaySrc = cfg_->__isset.dhcpRelaySrcOverrideV4 ?
+    IPAddressV4(cfg_->dhcpRelaySrcOverrideV4) : IPAddressV4();
+  if (oldDhcpV4RelaySrc != newDhcpV4RelaySrc) {
+    newState->setDhcpV4RelaySrc(newDhcpV4RelaySrc);
+    changed = true;
+  }
+
+  auto oldDhcpV6RelaySrc = orig_->getDhcpV6RelaySrc();
+  auto newDhcpV6RelaySrc = cfg_->__isset.dhcpRelaySrcOverrideV6 ?
+    IPAddressV6(cfg_->dhcpRelaySrcOverrideV6) : IPAddressV6("::");
+  if (oldDhcpV6RelaySrc != newDhcpV6RelaySrc) {
+    newState->setDhcpV6RelaySrc(newDhcpV6RelaySrc);
+    changed = true;
+  }
+
+  auto oldDhcpV4ReplySrc = orig_->getDhcpV4ReplySrc();
+  auto newDhcpV4ReplySrc = cfg_->__isset.dhcpReplySrcOverrideV4 ?
+    IPAddressV4(cfg_->dhcpReplySrcOverrideV4) : IPAddressV4();
+  if (oldDhcpV4ReplySrc != newDhcpV4ReplySrc) {
+    newState->setDhcpV4ReplySrc(newDhcpV4ReplySrc);
+    changed = true;
+  }
+
+  auto oldDhcpV6ReplySrc = orig_->getDhcpV6ReplySrc();
+  auto newDhcpV6ReplySrc = cfg_->__isset.dhcpReplySrcOverrideV6 ?
+    IPAddressV6(cfg_->dhcpReplySrcOverrideV6) : IPAddressV6("::");
+  if (oldDhcpV6ReplySrc != newDhcpV6ReplySrc) {
+    newState->setDhcpV6ReplySrc(newDhcpV6ReplySrc);
+    changed = true;
+  }
+
   std::chrono::seconds staleEntryInterval(cfg_->staleEntryInterval);
   if (orig_->getStaleEntryInterval() != staleEntryInterval) {
     newState->setStaleEntryInterval(staleEntryInterval);

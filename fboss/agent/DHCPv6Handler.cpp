@@ -169,7 +169,11 @@ void DHCPv6Handler::processDHCPv6Packet(SwSwitch* sw,
     return;
   }
 
-  IPAddressV6 switchIp = getSwitchVlanIPv6(states, vlanId);
+  auto switchIp = states->getDhcpV6RelaySrc();
+  if (switchIp.isZero()) {
+    switchIp = getSwitchVlanIPv6(states, vlanId);
+  }
+
   // link address set to unspecified
   IPAddressV6 la("::");
   // ip src -> peer-address
@@ -230,9 +234,14 @@ void DHCPv6Handler::processDHCPv6RelayReply(SwSwitch* sw,
     std::unique_ptr<RxPacket> pkt, MacAddress srcMac, MacAddress dstMac,
     const IPv6Hdr& ipHdr, DHCPv6Packet& dhcpPacket) {
 
-  IPAddressV6 switchIp = ipHdr.dstAddr;
-  auto intf =
-      sw->getState()->getInterfaces()->getInterface(RouterID(0), switchIp);
+  auto state = sw->getState();
+
+  auto switchIp = state->getDhcpV6ReplySrc();
+  if (switchIp.isZero()) {
+     switchIp = ipHdr.dstAddr;
+  }
+  auto intf = state->getInterfaces()->getInterface(RouterID(0),
+      switchIp);
   if (!intf) {
     sw->stats()->port(pkt->getSrcPort())->dhcpV6DropPkt();
     VLOG(2) << "Could not look up interface for " << switchIp

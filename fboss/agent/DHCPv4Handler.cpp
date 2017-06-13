@@ -186,7 +186,8 @@ void DHCPv4Handler::processRequest(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
     MacAddress srcMac, const IPv4Hdr& origIPHdr,
     const DHCPv4Packet& dhcpPacket) {
   auto dhcpPacketOut(dhcpPacket);
-  auto vlan = sw->getState()->getVlans()->getVlanIf(pkt->getSrcVlan());
+  auto state = sw->getState();
+  auto vlan = state->getVlans()->getVlanIf(pkt->getSrcVlan());
   if (!vlan) {
     sw->stats()->dhcpV4DropPkt();
     VLOG(4) << " VLAN  "<< pkt->getSrcVlan() << " is no longer present "
@@ -210,14 +211,16 @@ void DHCPv4Handler::processRequest(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
     return;
   }
 
-  IPAddressV4 switchIp;
-  auto vlanInterface =
-      sw->getState()->getInterfaces()->getInterfaceInVlanIf(pkt->getSrcVlan());
-  auto& addresses = vlanInterface->getAddresses();
-  for (auto address: addresses) {
-    if (address.first.isV4()) {
-      switchIp = address.first.asV4();
-      break;
+  auto switchIp = state->getDhcpV4RelaySrc();
+  if (switchIp.isZero()) {
+    auto vlanInterface = state->getInterfaces()->getInterfaceInVlanIf(
+        pkt->getSrcVlan());
+    auto& addresses = vlanInterface->getAddresses();
+    for (auto address: addresses) {
+      if (address.first.isV4()) {
+        switchIp = address.first.asV4();
+        break;
+      }
     }
   }
 
@@ -266,6 +269,7 @@ void DHCPv4Handler::processRequest(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
 void DHCPv4Handler::processReply(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
       const IPv4Hdr& origIPHdr, const DHCPv4Packet& dhcpPacket) {
   auto dhcpPacketOut(dhcpPacket);
+  auto state = sw->getState();
   if (!stripAgentOptions(sw, pkt->getSrcPort(), dhcpPacket, dhcpPacketOut)) {
     sw->stats()->port(pkt->getSrcPort())->dhcpV4BadPkt();
     VLOG(4) << "Bad DHCP packet, error stripping agent options."
@@ -276,7 +280,10 @@ void DHCPv4Handler::processReply(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
   if (!(dhcpPacket.flags & DHCPv4Packet::kFlagBroadcast)) {
     clientIP = dhcpPacket.yiaddr;
   }
-  auto switchIp = origIPHdr.dstAddr;
+  auto switchIp = state->getDhcpV4ReplySrc();
+  if (switchIp.isZero()) {
+    switchIp = origIPHdr.dstAddr;
+  }
   MacAddress cpuMac = sw->getPlatform()->getLocalMac();
   // Extract client MAC address from dhcp reply
   uint8_t chaddr[MacAddress::SIZE];
@@ -290,8 +297,8 @@ void DHCPv4Handler::processReply(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
   // TODO we should add router id information to the packet
   // to get the VRF of the interface that this packet came
   // in on. Assuming 0 for now since we have only one VRF
-  auto intf = sw->getState()->getInterfaces()->getInterface(
-      RouterID(0), IPAddress(switchIp));
+  auto intf = state->getInterfaces()->getInterface(RouterID(0),
+      IPAddress(switchIp));
   if (!intf) {
     sw->stats()->port(pkt->getSrcPort())->dhcpV4DropPkt();
     LOG (INFO) << "Could not lookup interface for : " << switchIp

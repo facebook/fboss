@@ -76,6 +76,12 @@ struct SwitchStateFields {
   // agent restart on our neighbors
   uint32_t maxNeighborProbes{300};
   std::chrono::seconds staleEntryInterval{10};
+  // source IP of the DHCP relay pkt to the DHCP server
+  folly::IPAddressV4 dhcpV4RelaySrc;
+  folly::IPAddressV6 dhcpV6RelaySrc;
+  // source IP of the DHCP reply pkt to the client host
+  folly::IPAddressV4 dhcpV4ReplySrc;
+  folly::IPAddressV6 dhcpV6ReplySrc;
 };
 
 /*
@@ -219,6 +225,35 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
 
   void setStaleEntryInterval(std::chrono::seconds interval);
 
+  // dhcp relay packet IP overrides
+
+  folly::IPAddressV4 getDhcpV4RelaySrc() const {
+    return getFields()->dhcpV4RelaySrc;
+  }
+  void setDhcpV4RelaySrc(folly::IPAddressV4 v4RelaySrc) {
+     writableFields()->dhcpV4RelaySrc = v4RelaySrc;
+  }
+
+  folly::IPAddressV6 getDhcpV6RelaySrc() const {
+    return getFields()->dhcpV6RelaySrc;
+  }
+  void setDhcpV6RelaySrc(folly::IPAddressV6 v6RelaySrc) {
+     writableFields()->dhcpV6RelaySrc = v6RelaySrc;
+  }
+
+  folly::IPAddressV4 getDhcpV4ReplySrc() const {
+    return getFields()->dhcpV4ReplySrc;
+  }
+  void setDhcpV4ReplySrc(folly::IPAddressV4 v4ReplySrc) {
+     writableFields()->dhcpV4ReplySrc = v4ReplySrc;
+  }
+
+  folly::IPAddressV6 getDhcpV6ReplySrc() const {
+    return getFields()->dhcpV6ReplySrc;
+  }
+  void setDhcpV6ReplySrc(folly::IPAddressV6 v6ReplySrc) {
+     writableFields()->dhcpV6ReplySrc = v6ReplySrc;
+  }
 
   /*
    * The following functions modify the static state.

@@ -74,6 +74,7 @@ struct VlanFields {
   const VlanID id{0};
   std::string name;
   InterfaceID intfID{0};
+  // DHCP server IP for the DHCP relay
   folly::IPAddressV4 dhcpV4Relay;
   folly::IPAddressV6 dhcpV6Relay;
   DhcpV4OverrideMap dhcpRelayOverridesV4;
