@@ -100,9 +100,11 @@ void WedgeProductInfo::initMode() {
     } else if (modelName.find("SCM-LC") == 0 || modelName.find("LC") == 0) {
        // TODO remove LC once fruid.json is fixed on Galaxy Linecards
        mode_ = WedgePlatformMode::GALAXY_LC;
-    } else if (modelName.find("SCM-FC") == 0 || modelName.find("FAB") == 0) {
-       // TODO remove FAB once fruid.json is fixed on Galaxy fabric cards
-       mode_ = WedgePlatformMode::GALAXY_FC;
+    } else if (
+        modelName.find("SCM-FC") == 0 || modelName.find("SCM-FAB") == 0 ||
+        modelName.find("FAB") == 0) {
+      // TODO remove FAB once fruid.json is fixed on Galaxy fabric cards
+      mode_ = WedgePlatformMode::GALAXY_FC;
     } else {
       throw std::runtime_error("invalid model name " + modelName);
     }
@@ -122,7 +124,21 @@ void WedgeProductInfo::initMode() {
 }
 
 void WedgeProductInfo::parse(std::string data) {
-  dynamic info = parseJson(data)[kInfo];
+  dynamic info;
+  try {
+    info = parseJson(data).at(kInfo);
+  } catch (const std::exception& err) {
+    LOG(ERROR) << err.what();
+    // Handle fruid data present outside of "Information" i.e.
+    // {
+    //   "Information" : fruid json
+    // }
+    // vs
+    // {
+    //  Fruid json
+    // }
+    info = parseJson(data);
+  }
   productInfo_.oem = folly::to<std::string>(info[kSysMfg].asString());
   productInfo_.product = folly::to<std::string>(info[kProdName].asString());
   productInfo_.serial = folly::to<std::string>(info[kSerialNum].asString());
