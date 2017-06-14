@@ -190,7 +190,6 @@ void SwSwitch::stop() {
   // packet handling callback as well while stopping the switch.
   //
   portRemediator_.reset();
-  ipv6_.reset();
   nUpdater_.reset();
   if (lldpManager_) {
     lldpManager_->stop();
@@ -203,6 +202,12 @@ void SwSwitch::stop() {
   // in software that were sent to the switch ip or were
   // routed from kernel to the front panel tunnel interface.
   tunMgr_.reset();
+
+  // Need to destroy IPv6Handler as it is a state observer,
+  // but we must do it after we've stopped TunManager.
+  // Otherwise, we might attempt to call sendL3Packet which
+  // calls ipv6_->sendNeighborSolicitaion which will then segfault
+  ipv6_.reset();
 
   routeUpdateLogger_.reset();
 
