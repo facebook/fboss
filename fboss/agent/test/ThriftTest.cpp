@@ -139,7 +139,8 @@ TEST(ThriftTest, LinkLocalRoutes) {
 }
 
 std::unique_ptr<UnicastRoute>
-makeUnicastRoute(std::string prefixStr, std::string nxtHop) {
+makeUnicastRoute(std::string prefixStr, std::string nxtHop,
+    AdminDistance distance=AdminDistance::MAX_ADMIN_DISTANCE) {
   std::vector<std::string> vec;
   folly::split("/", prefixStr, vec);
   EXPECT_EQ(2, vec.size());
@@ -147,6 +148,8 @@ makeUnicastRoute(std::string prefixStr, std::string nxtHop) {
   nr->dest.ip = toBinaryAddress(IPAddress(vec.at(0)));
   nr->dest.prefixLength = folly::to<uint8_t>(vec.at(1));
   nr->nextHopAddrs.push_back(toBinaryAddress(IPAddress(nxtHop)));
+  nr->adminDistance = distance;
+  nr->__isset.adminDistance = true;
   return nr;
 }
 
@@ -186,22 +189,22 @@ TEST(ThriftTest, syncFib) {
   auto cli3_nhop6 = "33:33::0";
   auto cli1_nhop6b = "44:44::0";
 
-  // These routes will include nexthops from client 1 only
+  // These routes will include nexthops from client 10 only
   auto prefixA4 = "7.1.0.0/16";
   auto prefixA6 = "aaaa:1::0/64";
-  handler.addUnicastRoute(1, makeUnicastRoute(prefixA4, cli1_nhop4));
-  handler.addUnicastRoute(1, makeUnicastRoute(prefixA6, cli1_nhop6));
+  handler.addUnicastRoute(10, makeUnicastRoute(prefixA4, cli1_nhop4));
+  handler.addUnicastRoute(10, makeUnicastRoute(prefixA6, cli1_nhop6));
 
-  // This route will include nexthops from clients 1 and 2
+  // This route will include nexthops from clients 10 and 20
   auto prefixB4 = "7.2.0.0/16";
-  handler.addUnicastRoute(1, makeUnicastRoute(prefixB4, cli1_nhop4));
-  handler.addUnicastRoute(2, makeUnicastRoute(prefixB4, cli2_nhop4));
+  handler.addUnicastRoute(10, makeUnicastRoute(prefixB4, cli1_nhop4));
+  handler.addUnicastRoute(20, makeUnicastRoute(prefixB4, cli2_nhop4));
 
-  // This route will include nexthops from clients 1 and 2 and 3
+  // This route will include nexthops from clients 10 and 20 and 30
   auto prefixC6 = "aaaa:3::0/64";
-  handler.addUnicastRoute(1, makeUnicastRoute(prefixC6, cli1_nhop6));
-  handler.addUnicastRoute(2, makeUnicastRoute(prefixC6, cli2_nhop6));
-  handler.addUnicastRoute(3, makeUnicastRoute(prefixC6, cli3_nhop6));
+  handler.addUnicastRoute(10, makeUnicastRoute(prefixC6, cli1_nhop6));
+  handler.addUnicastRoute(20, makeUnicastRoute(prefixC6, cli2_nhop6));
+  handler.addUnicastRoute(30, makeUnicastRoute(prefixC6, cli3_nhop6));
 
   // These routes will not be used until fibSync happens.
   auto prefixD4 = "7.4.0.0/16";
@@ -217,7 +220,7 @@ TEST(ThriftTest, syncFib) {
   GET_ROUTE_V4(tables2, rid, "192.168.0.0/24");
   GET_ROUTE_V6(tables2, rid, "2401:db00:2110:3001::/64");
   GET_ROUTE_V6(tables2, rid, "fe80::/64");
-  // Make sure the client 1&2&3 routes are there.
+  // Make sure the client 10&20&30 routes are there.
   GET_ROUTE_V4(tables2, rid, prefixA4);
   GET_ROUTE_V6(tables2, rid, prefixA6);
   GET_ROUTE_V4(tables2, rid, prefixB4);
@@ -229,8 +232,9 @@ TEST(ThriftTest, syncFib) {
   EXPECT_NO_ROUTE(tables2, rid, prefixD6);
 
   //
-  // Now use syncFib to remove all the routes for client 1 and add some new ones
-  // Statics, link-locals, and clients 2 and 3 should remain unchanged.
+  // Now use syncFib to remove all the routes for client 10 and add
+  // some new ones
+  // Statics, link-locals, and clients 20 and 30 should remain unchanged.
   //
 
   auto newRoutes = std::make_unique<std::vector<UnicastRoute>>();
@@ -240,7 +244,7 @@ TEST(ThriftTest, syncFib) {
   newRoutes->push_back(nr1);
   newRoutes->push_back(nr2);
   newRoutes->push_back(nr3);
-  handler.syncFib(1, std::move(newRoutes));
+  handler.syncFib(10, std::move(newRoutes));
 
   //
   // Test the state of things after syncFib
@@ -257,21 +261,26 @@ TEST(ThriftTest, syncFib) {
   EXPECT_NO_ROUTE(tables3, rid, prefixA4);
   EXPECT_NO_ROUTE(tables3, rid, prefixA6);
 
-  // The prefixB4 route should have client 2 only
+  // The prefixB4 route should have client 20 only
   auto rt1 = GET_ROUTE_V4(tables3, rid, prefixB4);
   ASSERT_TRUE(rt1->getFields()
-    ->nexthopsmulti.isSame(ClientID(2), makeNextHops({cli2_nhop4})));
+    ->nexthopsmulti.isSame(ClientID(20),
+      RouteNextHopEntry(makeNextHops({cli2_nhop4}))));
   auto bestNextHops = rt1->getBestEntry().second->getNextHopSet();
   EXPECT_EQ(IPAddress(cli2_nhop4), bestNextHops.begin()->addr());
 
-  // The prefixC6 route should have clients 2 & 3, and a new value for client 1
+  // The prefixC6 route should have clients 20 & 30, and a new value for
+  // client 10
   auto rt2 = GET_ROUTE_V6(tables3, rid, prefixC6);
   ASSERT_TRUE(rt2->getFields()
-    ->nexthopsmulti.isSame(ClientID(2), makeNextHops({cli2_nhop6})));
+    ->nexthopsmulti.isSame(ClientID(20),
+      RouteNextHopEntry(makeNextHops({cli2_nhop6}))));
   ASSERT_TRUE(rt2->getFields()
-    ->nexthopsmulti.isSame(ClientID(3), makeNextHops({cli3_nhop6})));
+    ->nexthopsmulti.isSame(ClientID(30),
+      RouteNextHopEntry(makeNextHops({cli3_nhop6}))));
   ASSERT_TRUE(rt2->getFields()
-    ->nexthopsmulti.isSame(ClientID(1), makeNextHops({cli1_nhop6b})));
+    ->nexthopsmulti.isSame(ClientID(10),
+      RouteNextHopEntry(makeNextHops({cli1_nhop6b}))));
 
   // The prefixD4 and prefixD6 routes should have been created
   GET_ROUTE_V4(tables3, rid, prefixD4);

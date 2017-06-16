@@ -1318,9 +1318,9 @@ std::string SwSwitch::switchRunStateStr(
 
 AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {
   auto distance = curConfig_.clientIdToAdminDistance.find(clientId);
-  if (distance != curConfig_.clientIdToAdminDistance.end()) {
+  if (distance == curConfig_.clientIdToAdminDistance.end()) {
     // In case we get a client id we don't know about
-    LOG(ERROR) << "No admin distance mapping available for client id"
+    LOG(ERROR) << "No admin distance mapping available for client id "
                << clientId << ". Using default distance - MAX_ADMIN_DISTANCE";
     return AdminDistance::MAX_ADMIN_DISTANCE;
   }

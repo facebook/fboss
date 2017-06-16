@@ -23,6 +23,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 #include "fboss/agent/state/RouteTypes.h"
 
@@ -347,9 +348,13 @@ bool BcmRouteTable::isDefaultRouteV6(const Key& key) {
 template<typename AddrT>
 const Route<AddrT>* BcmRouteTable::createDefaultRoute(const AddrT& ip) {
   const typename Route<AddrT>::Prefix prefix {ip, kDefaultMask};
-  return new Route<AddrT>(
+  auto nhe = RouteNextHopEntry(RouteForwardAction::DROP);
+  auto r = new Route<AddrT>(
       prefix, StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
-      RouteNextHopEntry(RouteForwardAction::DROP));
+      nhe);
+  r->setResolved(nhe);
+  return r;
+
 }
 
 template<typename RouteT>

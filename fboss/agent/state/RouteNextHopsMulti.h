@@ -45,7 +45,9 @@ namespace facebook { namespace fboss {
  */
 class RouteNextHopsMulti {
  protected:
+   ClientID findLowestAdminDistance();
    boost::container::flat_map<ClientID, RouteNextHopEntry> map_;
+   ClientID lowestAdminDistanceClientId_;
 
  public:
 
@@ -84,7 +86,7 @@ class RouteNextHopsMulti {
 
   std::pair<ClientID, const RouteNextHopEntry *> getBestEntry() const;
 
-  bool isSame(ClientID clientId, const RouteNextHops& nhs) const;
+  bool isSame(ClientID clientId, const RouteNextHopEntry& nhe) const;
 };
 
 }}

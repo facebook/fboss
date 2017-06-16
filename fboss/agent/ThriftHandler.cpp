@@ -189,10 +189,11 @@ void ThriftHandler::addUnicastRoutes(
       RouteNextHops nexthops = util::toRouteNextHops(route.nextHopAddrs);
       if (nexthops.size()) {
         updater.addRoute(routerId, network, mask, ClientID(client),
-                         RouteNextHopEntry(std::move(nexthops)));
+                         RouteNextHopEntry(std::move(nexthops), adminDistance));
       } else {
         updater.addRoute(routerId, network, mask, ClientID(client),
-                         RouteNextHopEntry(RouteForwardAction::DROP));
+                         RouteNextHopEntry(RouteForwardAction::DROP,
+                           adminDistance));
       }
       if (network.isV4()) {
         sw_->stats()->addRouteV4();
@@ -267,7 +268,8 @@ void ThriftHandler::syncFib(
         clientIdToAdmin;
       RouteNextHops nexthops = util::toRouteNextHops(route.nextHopAddrs);
       updater.addRoute(routerId, network, mask, ClientID(client),
-                       RouteNextHopEntry(std::move(nexthops)));
+                       RouteNextHopEntry(std::move(nexthops),
+                         adminDistance));
       if (network.isV4()) {
         sw_->stats()->addRouteV4();
       } else {

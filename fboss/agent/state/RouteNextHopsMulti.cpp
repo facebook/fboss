@@ -135,10 +135,49 @@ std::string RouteNextHopsMulti::str() const {
 
 void RouteNextHopsMulti::update(ClientID clientId, RouteNextHopEntry nhe) {
   map_[clientId] = std::move(nhe);
+
+  // Let's check whether this has a preferred admin distance
+  if (map_.size() == 1) {
+     lowestAdminDistanceClientId_ = clientId;
+     return;
+  }
+  auto entry = getEntryForClient(lowestAdminDistanceClientId_);
+  if (!entry) {
+    lowestAdminDistanceClientId_ = findLowestAdminDistance();
+  } else if (nhe.getAdminDistance() < entry->getAdminDistance()) {
+    // Arbritary choice to use the newest one if we have multiple
+    // with the same admin distance
+    lowestAdminDistanceClientId_ = clientId;
+  }
+}
+
+ClientID RouteNextHopsMulti::findLowestAdminDistance() {
+  if (map_.size() == 0) {
+    // We'll set it on the next add
+    return ClientID(-1);
+  }
+  auto lowest = map_.begin();
+  auto it = map_.begin();
+  while (it != map_.end()) {
+    if (it->second.getAdminDistance() < lowest->second.getAdminDistance()) {
+      lowest = it;
+    } else if (it->second.isSame(lowest->second) && it->first < lowest->first) {
+      // If we have two clients with the same admin distance, pick the lowest
+      // client id - this is an arbritary, but deterministic, choice
+      lowest = it;
+    }
+    ++it;
+  }
+  return lowest->first;
 }
 
 void RouteNextHopsMulti::delEntryForClient(ClientID clientId) {
   map_.erase(clientId);
+
+  // Let's regen the next best entry
+  if (lowestAdminDistanceClientId_ == clientId) {
+    lowestAdminDistanceClientId_ = findLowestAdminDistance();
+  }
 }
 
 const RouteNextHopEntry* RouteNextHopsMulti::getEntryForClient(
@@ -150,22 +189,17 @@ const RouteNextHopEntry* RouteNextHopsMulti::getEntryForClient(
   return &iter->second;
 }
 
-bool RouteNextHopsMulti::isSame(ClientID id, const RouteNextHops& nhs) const {
+bool RouteNextHopsMulti::isSame(ClientID id,
+                                const RouteNextHopEntry& nhe) const {
   auto entry = getEntryForClient(id);
-  return entry && (entry->getNextHopSet() == nhs);
+  return entry && (*entry == nhe);
 }
 
 std::pair<ClientID, const RouteNextHopEntry *>
 RouteNextHopsMulti::getBestEntry() const {
-  // I still need to implement a scheme where each clientId
-  // can be assigned a priority.  But for now, we're just saying
-  // the clientId == its priority.
-  //
-  // Since flat_map stores items in key-sorted order, the smallest key
-  // (and hence the highest-priority client) is first.
-  auto iter = map_.begin();
-  if (iter != map_.end()) {
-    return std::make_pair(iter->first, &iter->second);
+  auto entry = getEntryForClient(lowestAdminDistanceClientId_);
+  if (entry) {
+    return std::make_pair(lowestAdminDistanceClientId_, entry);
   } else {
     // Throw an exception if the map is empty. Shall not happen
     throw FbossError("Unexpected empty RouteNextHopsMulti");

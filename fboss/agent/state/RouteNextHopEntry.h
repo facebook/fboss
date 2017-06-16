@@ -26,15 +26,25 @@ class RouteNextHopEntry {
   using Action = RouteForwardAction;
   using NextHopSet = boost::container::flat_set<RouteNextHop>;
 
-  explicit RouteNextHopEntry(Action action = Action::DROP) : action_(action) {
+  explicit RouteNextHopEntry(Action action = Action::DROP,
+      AdminDistance distance = AdminDistance::MAX_ADMIN_DISTANCE)
+      : adminDistance_(distance),
+        action_(action) {
     CHECK_NE(action_, Action::NEXTHOPS);
   }
 
-  explicit RouteNextHopEntry(NextHopSet nhopSet);
+  explicit RouteNextHopEntry(NextHopSet nhopSet,
+      AdminDistance distance=AdminDistance::MAX_ADMIN_DISTANCE);
 
-  explicit RouteNextHopEntry(RouteNextHop nhop)
-      : action_(Action::NEXTHOPS) {
+  explicit RouteNextHopEntry(RouteNextHop nhop,
+      AdminDistance distance=AdminDistance::MAX_ADMIN_DISTANCE)
+      : adminDistance_(distance),
+        action_(Action::NEXTHOPS) {
     nhopSet_.emplace(std::move(nhop));
+  }
+
+  AdminDistance getAdminDistance() const {
+    return adminDistance_;
   }
 
   Action getAction() const {
@@ -64,6 +74,9 @@ class RouteNextHopEntry {
   bool isToCPU() const {
     return action_ == Action::TO_CPU;
   }
+  bool isSame(const RouteNextHopEntry& entry) const {
+    return entry.getAdminDistance() == getAdminDistance();
+  }
 
   // Reset the NextHopSet
   void reset() {
@@ -72,6 +85,7 @@ class RouteNextHopEntry {
   }
 
  private:
+  AdminDistance adminDistance_;
   Action action_{Action::DROP};
   NextHopSet nhopSet_;
 };

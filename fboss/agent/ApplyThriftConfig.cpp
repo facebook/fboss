@@ -914,7 +914,8 @@ shared_ptr<RouteTableMap> ThriftConfigApplier::updateInterfaceRoutes() {
                        addr,
                        len,
                        StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE),
-                       RouteNextHopEntry(std::move(nhop)));
+                       RouteNextHopEntry(std::move(nhop),
+                         AdminDistance::DIRECTLY_CONNECTED));
     }
     newToAddTables.insert(table.first);
   }

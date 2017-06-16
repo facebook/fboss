@@ -14,6 +14,7 @@
 namespace {
 constexpr auto kNexthops = "nexthops";
 constexpr auto kAction = "action";
+constexpr auto kAdminDistance = "adminDistance";
 }
 
 namespace facebook { namespace fboss {
@@ -42,8 +43,10 @@ fromRouteNextHops(RouteNextHops const& nhs) {
 
 } // namespace util
 
-RouteNextHopEntry::RouteNextHopEntry(NextHopSet nhopSet)
-    : action_(Action::NEXTHOPS), nhopSet_(std::move(nhopSet)) {
+RouteNextHopEntry::RouteNextHopEntry(NextHopSet nhopSet, AdminDistance distance)
+    : adminDistance_(distance),
+      action_(Action::NEXTHOPS),
+      nhopSet_(std::move(nhopSet)) {
   if (nhopSet_.size() == 0) {
     throw FbossError("Empty nexthop set is passed to the RouteNextHopEntry");
   }
@@ -65,15 +68,21 @@ std::string RouteNextHopEntry::str() const {
     CHECK(0);
     break;
   }
+  result += folly::to<std::string>(";admin=",
+      static_cast<int32_t>(adminDistance_));
   return result;
 }
 
 bool operator==(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
   return (a.getAction() == b.getAction()
-          and a.getNextHopSet() == b.getNextHopSet());
+          and a.getNextHopSet() == b.getNextHopSet()
+          and a.getAdminDistance() == b.getAdminDistance());
 }
 
 bool operator< (const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
+  if (a.getAdminDistance() != b.getAdminDistance()) {
+    return a.getAdminDistance() < b.getAdminDistance();
+  }
   return ((a.getAction() == b.getAction())
           ? (a.getNextHopSet() < b.getNextHopSet())
           : a.getAction() < b.getAction());
@@ -110,6 +119,7 @@ folly::dynamic RouteNextHopEntry::toFollyDynamic() const {
     nhops.push_back(nhop.toFollyDynamic());
   }
   entry[kNexthops] = std::move(nhops);
+  entry[kAdminDistance] = static_cast<int32_t>(adminDistance_);
   return entry;
 }
 
@@ -120,6 +130,12 @@ RouteNextHopEntry::fromFollyDynamic(const folly::dynamic& entryJson) {
     entry.nhopSet_.insert(RouteNextHop::fromFollyDynamic(nhop));
   }
   entry.action_ = str2ForwardAction(entryJson[kAction].asString());
+  auto it = entryJson.find(kAdminDistance);
+  if (it == entryJson.items().end()) {
+    entry.adminDistance_ = AdminDistance::MAX_ADMIN_DISTANCE;
+  } else {
+    entry.adminDistance_ = AdminDistance(entryJson[kAdminDistance].asInt());
+  }
   return entry;
 }
 

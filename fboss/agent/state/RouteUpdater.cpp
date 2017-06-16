@@ -447,7 +447,8 @@ void RouteUpdater::addInterfaceAndLinkLocalRoutes(
           addr.first, intf->getID());
       addRoute(routerId, addr.first, addr.second,
                kInterfaceRouteClientId,
-               RouteNextHopEntry(std::move(nhop)));
+               RouteNextHopEntry(std::move(nhop),
+                 AdminDistance::DIRECTLY_CONNECTED));
     }
   }
   for (auto id : routers) {
