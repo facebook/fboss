@@ -359,8 +359,11 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   // cold boot) maybe what is desired by the config. But we
   // may still need to enable FEC
   setFEC(port);
-  getPlatformPort()->linkStatusChanged(port->getOperState(),
-      !port->isAdminDisabled());
+}
+
+void BcmPort::linkStatusChanged(const std::shared_ptr<Port>& port) {
+  getPlatformPort()->linkStatusChanged(
+      port->getOperState(), !port->isAdminDisabled());
 }
 
 void BcmPort::setIngressVlan(const shared_ptr<Port>& swPort) {

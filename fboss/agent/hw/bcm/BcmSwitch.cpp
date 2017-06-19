@@ -691,6 +691,7 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   }
 
   processChangedPorts(delta);
+  pickupLinkStatusChanges(delta);
 
   // As the last step, enable newly enabled ports.  Doing this as the
   // last step ensures that we only start forwarding traffic once the
@@ -747,10 +748,7 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
       auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
       auto vlanChanged = oldPort->getIngressVlan() != newPort->getIngressVlan();
       auto nameChanged = oldPort->getName() != newPort->getName();
-      auto stateChanged = oldPort->getState() != newPort->getState() || \
-        oldPort->getOperState() != newPort->getOperState();
-
-      if (!nameChanged && !speedChanged && !vlanChanged && !stateChanged) {
+      if (!nameChanged && !speedChanged && !vlanChanged) {
         return;
       }
 
@@ -759,10 +757,34 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
         bcmPort->updateName(newPort->getName());
       }
 
-      if (speedChanged || vlanChanged || stateChanged) {
+      if (speedChanged || vlanChanged) {
         bcmPort->program(newPort);
       }
     });
+}
+
+void BcmSwitch::pickupLinkStatusChanges(const StateDelta& delta) {
+  forEachChanged(
+      delta.getPortsDelta(),
+      [&](const std::shared_ptr<Port>& oldPort,
+          const std::shared_ptr<Port>& newPort) {
+        // Presently, isAdminDisabled means DOWN || POWER_DOWN
+        // we clearly don't care about DOWN->POWER_DOWN or
+        // POWER_DOWN->DOWN changes here. In the future, if it has some
+        // more meaningful semantics, this is still reasonable, as we
+        // don't need to do anything on a disabled port
+        // (though we should be able to remove this code)
+        if (oldPort->isAdminDisabled() && newPort->isAdminDisabled()) {
+          return;
+        }
+        auto stateChanged = oldPort->getState() != newPort->getState();
+        auto operStateChanged =
+            oldPort->getOperState() != newPort->getOperState();
+        if (stateChanged || operStateChanged) {
+          auto bcmPort = portTable_->getBcmPort(newPort->getID());
+          bcmPort->linkStatusChanged(newPort);
+        }
+      });
 }
 
 void BcmSwitch::reconfigurePortGroups(const StateDelta& delta) {

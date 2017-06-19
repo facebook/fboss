@@ -120,6 +120,12 @@ class BcmPort {
 
   void updateName(const std::string& newName);
 
+  /*
+   * Take the appropriate actions for reacting to the port's state changing.
+   * e.g. optionally remediate, turn on/off LEDs
+   */
+  void linkStatusChanged(const std::shared_ptr<Port>& port);
+
  private:
   class MonotonicCounter : public stats::MonotonicCounter {
    public:

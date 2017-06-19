@@ -48,8 +48,8 @@ struct PortFields {
   const PortID id{0};
   std::string name;
   std::string description;
-  cfg::PortState state{cfg::PortState::DOWN};   // Administrative state
-  bool operState{false};    // Operational state of port. UP(true), DOWN(false)
+  cfg::PortState state{cfg::PortState::DOWN}; // Administrative state
+  bool operState{false}; // Operational state of port. UP(true), DOWN(false)
   VlanID ingressVlan{0};
   cfg::PortSpeed speed{cfg::PortSpeed::DEFAULT};
   cfg::PortSpeed maxSpeed{cfg::PortSpeed::DEFAULT};

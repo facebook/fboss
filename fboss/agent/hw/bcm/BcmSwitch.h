@@ -361,6 +361,7 @@ class BcmSwitch : public BcmSwitchIf {
   void processDisabledPorts(const StateDelta& delta);
   void processEnabledPorts(const StateDelta& delta);
   void processChangedPorts(const StateDelta& delta);
+  void pickupLinkStatusChanges(const StateDelta& delta);
   void reconfigurePortGroups(const StateDelta& delta);
 
   template <typename RouteT>
