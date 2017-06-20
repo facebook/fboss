@@ -22,7 +22,7 @@ namespace facebook { namespace fboss {
   using std::mutex;
   using std::lock_guard;
 
-static const time_t kQsfpMinReadIntervalSecs = 5;
+static const time_t kQsfpMinReadIntervalSecs = 10;
 
 // As per SFF-8436, QSFP+ 10 Gbs 4X PLUGGABLE TRANSCEIVER spec
 
@@ -609,11 +609,11 @@ void QsfpModule::detectTransceiverLocked() {
   if (currentQsfpStatus != present_) {
     LOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
                   " QSFP status changed to " << currentQsfpStatus;
-    setPresent(currentQsfpStatus);
-    if (currentQsfpStatus) {
-      updateQsfpData();
-      customizeTransceiverLocked();
-    }
+  }
+  setPresent(currentQsfpStatus);
+  if (currentQsfpStatus) {
+    updateQsfpData();
+    customizeTransceiverLocked();
   }
 }
 
