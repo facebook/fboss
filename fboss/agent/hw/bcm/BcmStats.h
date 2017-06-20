@@ -53,6 +53,10 @@ class BcmStats {
     txPktAllocErrors_.addValue(1);
   }
 
+  void parityError() {
+    parityErrors_.addValue(1);
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmStats(BcmStats const &) = delete;
@@ -79,6 +83,9 @@ class BcmStats {
 
   // Time spent for each Tx packet queued in HW
   TLHistogram txQueued_;
+
+  // parity errors
+  TLTimeseries parityErrors_;
 
   static folly::ThreadLocalPtr<BcmStats> stats_;
 };

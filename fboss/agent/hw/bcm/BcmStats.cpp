@@ -37,7 +37,9 @@ BcmStats::BcmStats(ThreadLocalStatsMap *map)
       txPktAllocErrors_(map, SwitchStats::kCounterPrefix +
           "bcm.tx.pkt.allocation.errors", SUM, RATE),
       txQueued_(map, SwitchStats::kCounterPrefix + "bcm.tx.pkt.queued_us",
-                100, 0, 1000) {
+                100, 0, 1000),
+      parityErrors_(map, SwitchStats::kCounterPrefix + "bcm.parity.errors",
+                    SUM, RATE) {
 }
 
 BcmStats* BcmStats::createThreadStats() {

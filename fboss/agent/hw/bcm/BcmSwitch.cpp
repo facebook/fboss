@@ -458,6 +458,8 @@ HwInitResult BcmSwitch::init(Callback* callback) {
       unit_, OPENNSL_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN, unitErrorCallback);
   BcmSwitchEventUtils::registerSwitchEventCallback(
       unit_, OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE, unitErrorCallback);
+  BcmSwitchEventUtils::registerSwitchEventCallback(
+      unit_, OPENNSL_SWITCH_EVENT_PARITY_ERROR, unitErrorCallback);
 
   platform_->onUnitAttach(unit_);
 

@@ -8,6 +8,7 @@
  *
  */
 #include "BcmSwitchEventCallback.h"
+#include "fboss/agent/hw/bcm/BcmStats.h"
 #include <glog/logging.h>
 
 namespace facebook { namespace fboss {
@@ -28,6 +29,10 @@ void BcmSwitchEventUnitFatalErrorCallback::callback(const int unit,
       break;
     case OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE:
       alarm = "OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE";
+      break;
+    case OPENNSL_SWITCH_EVENT_PARITY_ERROR:
+      alarm = "OPENNSL_SWITCH_EVENT_PARITY_ERROR";
+      BcmStats::get()->parityError();
       break;
     default:
       alarm = "UNKNOWN";
