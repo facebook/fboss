@@ -324,23 +324,18 @@ void RouteUpdater::resolveOne(
         getFwdInfoFromNhop(nRib, ribCloned, nh.addr().asV6(), &hasToCpu,
                            &hasDrop, &fwd);
       }
-      if (hasDrop) {
-        // if having DROP action, no need to check anymore. The final action
-        // will be DROP
-        break;
-      }
     }
   }
 
-  if (hasDrop) {
-    route->setResolved(RouteNextHopEntry(RouteForwardAction::DROP));
-  } else if (not fwd.empty()) {
+  if (!fwd.empty()) {
     route->setResolved(RouteNextHopEntry(std::move(fwd)));
     if (clientId == kInterfaceRouteClientId) {
       route->setConnected();
     }
   } else if (hasToCpu) {
     route->setResolved(RouteNextHopEntry(RouteForwardAction::TO_CPU));
+  } else if (hasDrop) {
+    route->setResolved(RouteNextHopEntry(RouteForwardAction::DROP));
   } else {
     route->setUnresolvable();
   }

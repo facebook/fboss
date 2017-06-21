@@ -997,7 +997,7 @@ TEST(ArpTest, PendingArp) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.error.sum", 0);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ipv4.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.nexthop.sum", 1);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.no_arp.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.no_arp.sum", 1);
 
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(1);
   // Receive an arp reply for our pending entry

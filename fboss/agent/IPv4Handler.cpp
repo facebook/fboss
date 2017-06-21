@@ -249,6 +249,7 @@ bool IPv4Handler::resolveMac(
 
   auto intfs = state->getInterfaces();
   auto nhs = route->getForwardInfo().getNextHopSet();
+  auto sent = false;
   for (auto nh : nhs) {
     auto intf = intfs->getInterfaceIf(nh.intf());
     if (intf) {
@@ -270,6 +271,7 @@ bool IPv4Handler::resolveMac(
 
           // Notify the updater that we sent an arp request
           sw_->getNeighborUpdater()->sentArpRequest(vlanID, target);
+          sent = true;
         } else {
           VLOG(4) << "not sending arp for " << target.str() << ", "
                   << ((entry->isPending()) ? "pending " : "")
@@ -279,7 +281,7 @@ bool IPv4Handler::resolveMac(
     }
   }
 
-  return true;
+  return sent;
 }
 
 }}

@@ -301,6 +301,108 @@ TEST(Route, resolve) {
   }
 }
 
+TEST(Route, resolveDropToCPUMix) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto tablesV0 = stateV0->getRouteTables();
+
+  cfg::SwitchConfig config;
+  config.vlans.resize(2);
+  config.vlans[0].id = 1;
+  config.vlans[1].id = 2;
+
+  config.interfaces.resize(2);
+  config.interfaces[0].intfID = 1;
+  config.interfaces[0].vlanID = 1;
+  config.interfaces[0].routerID = 0;
+  config.interfaces[0].__isset.mac = true;
+  config.interfaces[0].mac = "00:00:00:00:00:11";
+  config.interfaces[0].ipAddresses.resize(2);
+  config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
+  config.interfaces[0].ipAddresses[1] = "1::1/48";
+  config.interfaces[1].intfID = 2;
+  config.interfaces[1].vlanID = 2;
+  config.interfaces[1].routerID = 0;
+  config.interfaces[1].__isset.mac = true;
+  config.interfaces[1].mac = "00:00:00:00:00:22";
+  config.interfaces[1].ipAddresses.resize(2);
+  config.interfaces[1].ipAddresses[0] = "2.2.2.2/24";
+  config.interfaces[1].ipAddresses[1] = "2::1/48";
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  stateV1->publish();
+  ASSERT_NE(nullptr, stateV1);
+
+  auto rid = RouterID(0);
+
+  // add a DROP route and a ToCPU route
+  RouteUpdater u1(stateV1->getRouteTables());
+  u1.addRoute(rid, IPAddress("11.1.1.0"), 24, CLIENT_A,
+              RouteNextHopEntry(RouteForwardAction::DROP));
+  u1.addRoute(rid, IPAddress("22.1.1.0"), 24, CLIENT_A,
+              RouteNextHopEntry(RouteForwardAction::TO_CPU));
+  // then, add a route for 4 nexthops. One to each interface, one
+  // to the DROP and one to the ToCPU
+  RouteNextHopSet nhops = makeNextHops({"1.1.1.10", // intf 1
+                                        "2.2.2.10", // intf 2
+                                        "11.1.1.10", // DROP
+                                        "22.1.1.10"}); // ToCPU
+  u1.addRoute(rid, IPAddress("8.8.8.0"), 24,
+              CLIENT_A, RouteNextHopEntry(nhops));
+  auto table2 = u1.updateDone();
+  ASSERT_NE(nullptr, table2);
+  table2->publish();
+  {
+    auto r2 = GET_ROUTE_V4(table2, rid, "8.8.8.0/24");
+    EXPECT_RESOLVED(r2);
+    EXPECT_FALSE(r2->isDrop());
+    EXPECT_FALSE(r2->isToCPU());
+    EXPECT_FALSE(r2->isConnected());
+    const auto& fwd = r2->getForwardInfo();
+    EXPECT_EQ(RouteForwardAction::NEXTHOPS, fwd.getAction());
+    EXPECT_EQ(2, fwd.getNextHopSet().size());
+  }
+
+  // now update the route with just DROP and ToCPU, expect ToCPU to win
+  RouteUpdater u2(table2);
+  RouteNextHopSet nhops2 = makeNextHops({"11.1.1.10", // DROP
+                                         "22.1.1.10"}); // ToCPU
+  u2.addRoute(rid, IPAddress("8.8.8.0"), 24,
+              CLIENT_A, RouteNextHopEntry(nhops2));
+  auto table3 = u2.updateDone();
+  ASSERT_NE(nullptr, table3);
+  table3->publish();
+  {
+    auto r2 = GET_ROUTE_V4(table3, rid, "8.8.8.0/24");
+    EXPECT_RESOLVED(r2);
+    EXPECT_FALSE(r2->isDrop());
+    EXPECT_TRUE(r2->isToCPU());
+    EXPECT_FALSE(r2->isConnected());
+    const auto& fwd = r2->getForwardInfo();
+    EXPECT_EQ(RouteForwardAction::TO_CPU, fwd.getAction());
+    EXPECT_EQ(0, fwd.getNextHopSet().size());
+  }
+
+  // now update the route with just DROP
+  RouteUpdater u3(table3);
+  RouteNextHopSet nhops3 = makeNextHops({"11.1.1.10"}); // DROP
+  u3.addRoute(rid, IPAddress("8.8.8.0"), 24,
+              CLIENT_A, RouteNextHopEntry(nhops3));
+  auto table4 = u3.updateDone();
+  ASSERT_NE(nullptr, table4);
+  table4->publish();
+  {
+    auto r2 = GET_ROUTE_V4(table4, rid, "8.8.8.0/24");
+    EXPECT_RESOLVED(r2);
+    EXPECT_TRUE(r2->isDrop());
+    EXPECT_FALSE(r2->isToCPU());
+    EXPECT_FALSE(r2->isConnected());
+    const auto& fwd = r2->getForwardInfo();
+    EXPECT_EQ(RouteForwardAction::DROP, fwd.getAction());
+    EXPECT_EQ(0, fwd.getNextHopSet().size());
+  }
+}
+
 // Testing add and delete ECMP routes
 TEST(Route, addDel) {
   auto platform = createMockPlatform();
