@@ -252,7 +252,11 @@ class PortStatusCmd(cmds.FbossCmd):
             # (-1 because we start counting transceivers at 0)
             transceiver_id = utils.port_sort_fn(port_info)[2] - 1
             qsfp_info = qsfp_info_map.get(transceiver_id)
-            qsfp_present = qsfp_info.present if self._qsfp_client else None
+            qsfp_present = None
+            if self._qsfp_client:
+                # For non QSFP ports (think Fabric port) qsfp_client
+                # will not return any information.
+                qsfp_present = qsfp_info.present if qsfp_info else False
             attrs = utils.get_status_strs(status, qsfp_present)
             if internal_port:
                 speed = attrs['speed']
