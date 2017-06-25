@@ -83,7 +83,7 @@ class PortAndEgressIds: public NodeBaseT<PortAndEgressIds,
   friend class CloneAllocator;
 };
 
-typedef NodeMapTraits<opennsl_if_t, PortAndEgressIds>
+typedef NodeMapTraits<opennsl_port_t, PortAndEgressIds>
 PortAndEgressIdsMapTraits;
 /*
  * Container for maintaining mapping from port to
@@ -100,7 +100,7 @@ class PortAndEgressIdsMap: public NodeMapT<PortAndEgressIdsMap,
    * Throws an FbossError if the mapping does not exist.
    */
   const std::shared_ptr<PortAndEgressIds>& getPortAndEgressIds(
-      opennsl_if_t port) const {
+      opennsl_port_t port) const {
     return getNode(port);
   }
   /*
@@ -109,7 +109,7 @@ class PortAndEgressIdsMap: public NodeMapT<PortAndEgressIdsMap,
    * Throws an FbossError if the mapping does not exist.
    */
   std::shared_ptr<PortAndEgressIds> getPortAndEgressIdsIf(
-      opennsl_if_t port) const {
+      opennsl_port_t port) const {
     return getNodeIf(port);
   }
   /*
