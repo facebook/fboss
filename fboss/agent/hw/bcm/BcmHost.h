@@ -20,6 +20,7 @@ extern "C" {
 #include <folly/SpinLock.h>
 #include "fboss/agent/types.h"
 #include "fboss/agent/hw/bcm/BcmEgress.h"
+#include "fboss/agent/hw/bcm/BcmTrunk.h"
 #include "fboss/agent/hw/bcm/PortAndEgressIdsMap.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/NeighborEntry.h"
@@ -62,6 +63,11 @@ class BcmHost {
   void programToDrop(opennsl_if_t intf) {
     return program(intf, nullptr, 0, DROP);
   }
+  void programToTrunk(
+      opennsl_if_t intf,
+      folly::MacAddress mac,
+      opennsl_trunk_t trunk);
+
   opennsl_if_t getEgressId() const {
     return egressId_;
   }
@@ -69,6 +75,7 @@ class BcmHost {
   bool getAndClearHitBit() const;
   void addBcmHost(bool isMultipath = false, bool replace = false);
   folly::dynamic toFollyDynamic() const;
+  // TODO(samank): use getPort() instead of port_ member variable
   opennsl_port_t getPort() const { return port_; }
  private:
   // no copy or assignment
@@ -77,6 +84,7 @@ class BcmHost {
   void program(opennsl_if_t intf, const folly::MacAddress *mac,
                opennsl_port_t port, RouteForwardAction action);
   void initHostCommon(opennsl_l3_host_t *host) const;
+  bool isTrunk() const;
   const BcmSwitch* hw_;
   opennsl_vrf_t vrf_;
   folly::IPAddress addr_;
@@ -85,6 +93,7 @@ class BcmHost {
   // drop/CPU egress object. Set to 0 for host routes as
   // well
   opennsl_if_t port_{0};
+  opennsl_trunk_t trunk_{BcmTrunk::INVALID};
   opennsl_if_t egressId_{BcmEgressBase::INVALID};
   bool added_{false}; // if added to the HW host(ARP) table or not
 };
@@ -160,7 +169,7 @@ class BcmHostTable {
    * @return The BcmHost/BcmEcmpHost pointer just created or found.
    */
   BcmHost* incRefOrCreateBcmHost(
-      opennsl_vrf_t vrf, const folly::IPAddress& addr);
+    opennsl_vrf_t vrf, const folly::IPAddress& addr);
   BcmHost* incRefOrCreateBcmHost(
       opennsl_vrf_t vrf, const folly::IPAddress& addr, opennsl_if_t egressId);
   BcmEcmpHost* incRefOrCreateBcmEcmpHost(

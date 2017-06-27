@@ -15,6 +15,8 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
+#include <string>
+
 namespace facebook { namespace fboss {
 
 using folly::IPAddress;
@@ -28,10 +30,14 @@ bool BcmEgress::alreadyExists(const opennsl_l3_egress_t& newEgress) const {
   auto rv = opennsl_l3_egress_get(hw_->getUnit(), id_, &existingEgress);
   bcmCheckError(rv, "Egress object ", id_, " does not exist");
   bool sameMacs = !memcmp(newEgress.mac_addr, existingEgress.mac_addr,
-        sizeof(newEgress.mac_addr));
-   return sameMacs && existingEgress.intf == newEgress.intf &&
-   existingEgress.port == newEgress.port &&
-   existingEgress.flags == newEgress.flags;
+                          sizeof(newEgress.mac_addr));
+  // Note that for the trunk field of an egress object to be valid,
+  // the object's flag must have its BCM_L3_TGID flag set. This is
+  // checked in the return expression.
+  bool samePorts = existingEgress.trunk == newEgress.trunk ||
+      existingEgress.port == newEgress.port;
+  return sameMacs && samePorts && existingEgress.intf == newEgress.intf &&
+      existingEgress.flags == newEgress.flags;
 }
 
 void BcmEgress::verifyDropEgress(int unit) {
@@ -288,6 +294,44 @@ bool BcmEcmpEgress::removeEgressIdHwLocked(
   // We don't really need the lock here so safe to call the
   // stricter non locked version.
   return removeEgressIdHwNotLocked(unit, ecmpId, toRemove);
+}
+
+void BcmEgress::programToTrunk(opennsl_if_t intfId, opennsl_vrf_t /* vrf */,
+                               const folly::IPAddress& /* ip */,
+                               const MacAddress mac, opennsl_trunk_t trunk) {
+  opennsl_l3_egress_t egress;
+  opennsl_l3_egress_t_init(&egress);
+  egress.intf = intfId;
+  egress.flags |= OPENNSL_L3_TGID;
+  egress.trunk = trunk;
+  memcpy(egress.mac_addr, mac.bytes(), sizeof(egress.mac_addr));
+
+  uint32_t creationFlags = 0;
+  if (id_ != INVALID) {
+    creationFlags |= OPENNSL_L3_REPLACE|OPENNSL_L3_WITH_ID;
+  }
+
+  if (!alreadyExists(egress)) {
+    auto rc = opennsl_l3_egress_create(hw_->getUnit(), creationFlags, &egress,
+                                       &id_);
+
+    auto desc = folly::to<std::string>(
+        "L3 egress object ",
+        id_,
+        " to ",
+        mac.toString(),
+        " on trunk ",
+        trunk,
+        " on unit ",
+        hw_->getUnit());
+    bcmCheckError(rc, "failed to program ", desc);
+    VLOG(3) << "programmed " << desc;
+  }
+
+  intfId_ = intfId;
+  mac_ = mac;
+
+  CHECK_NE(id_, INVALID);
 }
 
 }}

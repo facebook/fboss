@@ -354,7 +354,7 @@ class BcmSwitch : public BcmSwitchIf {
   void processNeighborEntryDelta(
       const DELTA& delta,
       std::shared_ptr<SwitchState>* appliedState);
-  void processArpChanges(
+  void processNeighborChanges(
       const StateDelta& delta,
       std::shared_ptr<SwitchState>* appliedState);
 

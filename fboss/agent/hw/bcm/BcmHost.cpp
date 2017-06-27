@@ -123,11 +123,11 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
     egressPtr = createdEgress.get();
   } else {
     egressPtr = dynamic_cast<BcmEgress*>(
-        hw_->writableHostTable()->getEgressObjectIf(egressId_));
+      hw_->writableHostTable()->getEgressObjectIf(egressId_));
   }
   CHECK(egressPtr);
   if (mac) {
-    egressPtr->program(intf, vrf_, addr_, *mac, port);
+    egressPtr->programToPort(intf, vrf_, addr_, *mac, port);
   } else {
     if (action == DROP) {
       egressPtr->programToDrop(intf, vrf_, addr_);
@@ -144,14 +144,57 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
   if (!added_) {
     addBcmHost();
   }
-  auto oldPort = port_;
-  port_ = port;
-  VLOG(1) << "Updated port for : " << egressPtr->getID() << " from " << oldPort
-    << " to " << port;
+
+  VLOG(1) << "Updating egress " << egressPtr->getID() << " from "
+          << (isTrunk() ? "trunk port " : "physical port ")
+          << (isTrunk() ? trunk_ :  port_)
+          << " to physical port " << port;
+
   // Update port mapping, for entries marked to DROP or to CPU port gets
   // set to 0, which implies no ports are associated with this entry now.
   hw_->writableHostTable()->updatePortEgressMapping(egressPtr->getID(),
-      oldPort, port_);
+                                                    port_, port);
+  trunk_ = BcmTrunk::INVALID;
+  port_ = port;
+}
+
+void BcmHost::programToTrunk(opennsl_if_t intf,
+                             const MacAddress mac, opennsl_trunk_t trunk) {
+  unique_ptr<BcmEgress> createdEgress{nullptr};
+  BcmEgress* egress{nullptr};
+  // get the egress object and then update it with the new MAC
+  if (egressId_ == BcmEgressBase::INVALID) {
+    createdEgress = std::make_unique<BcmEgress>(hw_);
+    egress = createdEgress.get();
+  } else {
+    egress = dynamic_cast<BcmEgress*>(
+        hw_->writableHostTable()->getEgressObjectIf(egressId_));
+  }
+  CHECK(egress);
+
+  egress->programToTrunk(intf, vrf_, addr_, mac, trunk);
+
+  if (createdEgress) {
+    egressId_ = createdEgress->getID();
+    hw_->writableHostTable()->insertBcmEgress(std::move(createdEgress));
+  }
+
+  // if no host was added already, add one pointing to the egress object
+  if (!added_) {
+    addBcmHost();
+  }
+
+  VLOG(1) << "Updating egress " << egress->getID() << " from "
+          << (isTrunk() ? "trunk port " : "physical port ")
+          << (isTrunk() ? trunk_ :  port_)
+          << " to trunk port " << trunk;
+
+  port_ = 0;
+  trunk_ = trunk;
+}
+
+bool BcmHost::isTrunk() const {
+  return trunk_ != BcmTrunk::INVALID;
 }
 
 BcmHost::~BcmHost() {

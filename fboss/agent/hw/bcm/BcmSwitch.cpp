@@ -675,8 +675,8 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
 
   reconfigureCoPP(delta);
 
-  // Any ARP changes, and modify appliedState if some changes fail to apply
-  processArpChanges(delta, &appliedState);
+  // Any neighbor changes, and modify appliedState if some changes fail to apply
+  processNeighborChanges(delta, &appliedState);
 
   // Any ACL changes
   processAclChanges(delta);
@@ -1022,19 +1022,21 @@ void BcmSwitch::processNeighborEntryDelta(
     vrf = getBcmVrfId(intf->getInterface()->getRouterID());
   };
 
-  auto wasTrunk = oldEntry &&
-      oldEntry->getPort().type() == PortDescriptor::PortType::AGGREGATE;
-  auto isTrunk = newEntry &&
-      newEntry->getPort().type() == PortDescriptor::PortType::AGGREGATE;
-
   auto program = [&](std::string op, BcmHost* host) {
-    VLOG(3) << op << (isTrunk ? " trunk" : "") << " neighbor entry "
+    CHECK(newEntry);
+
+    auto isTrunk = newEntry->getPort().isAggregatePort();
+
+    VLOG(3) << op << " neighbor entry "
             << newEntry->getIP().str() << " to "
             << newEntry->getMac().toString();
 
     if (isTrunk) {
-      LOG(WARNING)
-          << "Neighbor-entry delta processing for trunk ports unimplemented";
+      auto trunk = newEntry->getPort().aggPortID();
+      host->programToTrunk(
+          intf->getBcmIfId(),
+          newEntry->getMac(),
+          getTrunkTable()->getBcmTrunkId(trunk));
     } else {
       auto port = newEntry->getPort().phyPortID();
       host->program(
@@ -1096,7 +1098,7 @@ void BcmSwitch::processNeighborEntryDelta(
   }
 }
 
-void BcmSwitch::processArpChanges(
+void BcmSwitch::processNeighborChanges(
     const StateDelta& delta,
     std::shared_ptr<SwitchState>* appliedState) {
   for (const auto& vlanDelta : delta.getVlansDelta()) {

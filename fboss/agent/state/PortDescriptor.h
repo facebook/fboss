@@ -39,6 +39,13 @@ class PortDescriptor {
   PortType type() const {
     return type_;
   }
+  bool isPhysicalPort() const {
+    return type() == PortType::PHYSICAL;
+  }
+  bool isAggregatePort() const {
+    return type() == PortType::AGGREGATE;
+  }
+
   PortID phyPortID() const {
     CHECK(type() == PortType::PHYSICAL);
     return physicalPortID_;

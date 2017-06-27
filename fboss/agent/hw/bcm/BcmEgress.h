@@ -54,7 +54,7 @@ class BcmEgress : public BcmEgressBase {
   BcmEgress(const BcmSwitchIf* hw, opennsl_if_t testId)
       : BcmEgressBase(hw, testId) {}
   ~BcmEgress() override;
-  void program(opennsl_if_t intfId, opennsl_vrf_t vrf,
+  void programToPort(opennsl_if_t intfId, opennsl_vrf_t vrf,
       const folly::IPAddress& ip, folly::MacAddress mac,
                opennsl_port_t port) {
     return program(intfId, vrf, ip, &mac, port, NEXTHOPS);
@@ -67,6 +67,9 @@ class BcmEgress : public BcmEgressBase {
       const folly::IPAddress& ip) {
     return program(intfId, vrf, ip, nullptr, 0, DROP);
   }
+  void programToTrunk(opennsl_if_t intfId, opennsl_vrf_t /* vrf */,
+                      const folly::IPAddress& /* ip */, folly::MacAddress mac,
+                      opennsl_trunk_t trunk);
   /*
    * Serialize to folly::dynamic
    */
