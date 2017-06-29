@@ -179,6 +179,11 @@ void SwSwitch::stop() {
   // while we are destroying ourselves
   hw_->unregisterCallbacks();
 
+  // Stop tunMgr so we don't get any packets to process
+  // in software that were sent to the switch ip or were
+  // routed from kernel to the front panel tunnel interface.
+  tunMgr_.reset();
+
   // Several member variables are performing operations in the background
   // thread.  Ask them to stop, before we shut down the background thread.
   //
@@ -197,11 +202,6 @@ void SwSwitch::stop() {
   if (unresolvedNhopsProber_) {
     unresolvedNhopsProber_.reset();
   }
-
-  // Stop tunMgr so we don't get any packets to process
-  // in software that were sent to the switch ip or were
-  // routed from kernel to the front panel tunnel interface.
-  tunMgr_.reset();
 
   // Need to destroy IPv6Handler as it is a state observer,
   // but we must do it after we've stopped TunManager.
