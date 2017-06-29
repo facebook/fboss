@@ -9,22 +9,27 @@
  */
 
 #include "fboss/agent/PortRemediator.h"
+
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/Platform.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace {
 constexpr int kPortRemedyIntervalSec = 25;
-}
 
-namespace facebook { namespace fboss {
-
-void PortRemediator::updatePortState(
+using facebook::fboss::SwSwitch;
+using facebook::fboss::SwitchState;
+using facebook::fboss::PortID;
+using facebook::fboss::cfg::PortState;
+void updatePortState(
+    SwSwitch* sw,
     PortID portId,
-    cfg::PortState newPortState,
+    PortState newPortState,
     bool preventCoalescing) {
   auto updateFn =
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [portId, newPortState](
+          const std::shared_ptr<SwitchState>& state) {
         std::shared_ptr<SwitchState> newState{state};
         auto port = state->getPorts()->getPortIf(portId);
         if (!port) {
@@ -39,13 +44,16 @@ void PortRemediator::updatePortState(
   auto name = folly::sformat(
       "PortRemediator: flap down but enabled port {} ({})",
       static_cast<uint16_t>(portId),
-      newPortState == cfg::PortState::UP ? "up" : "down");
+      newPortState == PortState::UP ? "up" : "down");
   if (preventCoalescing) {
-    sw_->updateStateNoCoalescing(name, updateFn);
+    sw->updateStateNoCoalescing(name, updateFn);
   } else {
-    sw_->updateState(name, updateFn);
+    sw->updateState(name, updateFn);
   }
 }
+}
+
+namespace facebook { namespace fboss {
 
 boost::container::flat_set<PortID>
 PortRemediator::getUnexpectedDownPorts() const {
@@ -73,9 +81,17 @@ PortRemediator::getUnexpectedDownPorts() const {
 
 void PortRemediator::timeoutExpired() noexcept {
   auto unexpectedDownPorts = getUnexpectedDownPorts();
+  auto platform = sw_->getPlatform();
   for (const auto& portId : unexpectedDownPorts) {
-    updatePortState(portId, cfg::PortState::DOWN, true);
-    updatePortState(portId, cfg::PortState::UP, true);
+    auto platformPort = platform->getPlatformPort(portId);
+    auto infoFuture = platformPort->getTransceiverInfo();
+    infoFuture.via(sw_->getBackgroundEVB())
+        .then([ sw = sw_, portId ](TransceiverInfo info) {
+          if (info.present) {
+            updatePortState(sw, portId, cfg::PortState::DOWN, true);
+            updatePortState(sw, portId, cfg::PortState::UP, true);
+          }
+        });
   }
   scheduleTimeout(interval_);
 }

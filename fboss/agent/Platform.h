@@ -13,6 +13,7 @@
 #include <folly/MacAddress.h>
 #include <memory>
 #include "fboss/agent/types.h"
+#include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 namespace facebook { namespace fboss {
@@ -142,6 +143,8 @@ class Platform {
    * it represents if available
    */
   virtual TransceiverIdxThrift getPortMapping(PortID port) const = 0;
+
+  virtual PlatformPort* getPlatformPort(PortID port) const = 0;
 
  private:
   // Forbidden copy constructor and assignment operator

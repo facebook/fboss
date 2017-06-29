@@ -144,5 +144,8 @@ WedgePort* WedgePlatform::getPort(PortID id) const {
 WedgePort* WedgePlatform::getPort(TransceiverID id) const {
   return portMapping_->getPort(id);
 }
+PlatformPort* WedgePlatform::getPlatformPort(const PortID port) const {
+  return getPort(port);
+}
 
 }} // facebook::fboss

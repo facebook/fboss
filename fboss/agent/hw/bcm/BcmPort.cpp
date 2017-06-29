@@ -379,17 +379,29 @@ void BcmPort::setIngressVlan(const shared_ptr<Port>& swPort) {
   }
 }
 
-opennsl_port_if_t BcmPort::getDesiredInterfaceMode(cfg::PortSpeed speed,
-                                                   PortID id,
-                                                   std::string name) {
-  TransmitterTechnology transmitterTech =
-    getPlatformPort()->getTransmitterTech();
+TransmitterTechnology BcmPort::getTransmitterTechnology(
+    const std::string& name) {
+  // Since we are very unlikely to switch a port from copper to optical
+  // while the agent is running, don't make unnecessary attempts to figure
+  // out the transmitter technology when we already know what it is.
+  if (transmitterTechnology_ != TransmitterTechnology::UNKNOWN) {
+    return transmitterTechnology_;
+  }
   // 6pack backplane ports will report tech as unknown because this
   // information can't be retrieved via qsfp. These are actually copper,
   // and so should use that instead of any potential default value
   if (name.find("fab") == 0) {
-    transmitterTech = TransmitterTechnology::COPPER;
+    transmitterTechnology_ = TransmitterTechnology::COPPER;
+  } else {
+    transmitterTechnology_ = getPlatformPort()->getTransmitterTech().get();
   }
+  return transmitterTechnology_;
+}
+
+opennsl_port_if_t BcmPort::getDesiredInterfaceMode(cfg::PortSpeed speed,
+                                                   PortID id,
+                                                   const std::string& name) {
+  TransmitterTechnology transmitterTech = getTransmitterTechnology(name);
 
   // If speed or transmitter type isn't in map
   try {

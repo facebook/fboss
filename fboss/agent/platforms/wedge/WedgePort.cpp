@@ -60,42 +60,53 @@ bool WedgePort::isMediaPresent() {
   return false;
 }
 
-TransmitterTechnology WedgePort::getTransmitterTech() const {
+folly::Future<TransceiverInfo> WedgePort::getTransceiverInfo(
+    folly::EventBase* evb) const {
+  if (!evb) {
+    evb = platform_->getEventBase();
+  }
+  auto clientFuture = QsfpClient::createClient(evb);
+  auto transceiverId = static_cast<int32_t>(*getTransceiverID());
+  auto getTransceiverInfo =
+      [transceiverId](std::unique_ptr<QsfpServiceAsyncClient> client) {
+        auto options = QsfpClient::getRpcOptions();
+        // std::map<int32_t, TransceiverInfo> info_map;
+        return client->future_getTransceiverInfo(options, {transceiverId});
+      };
+  auto fromMap =
+      [transceiverId](std::map<int, facebook::fboss::TransceiverInfo> infoMap) {
+        return infoMap[transceiverId];
+      };
+  return clientFuture.via(evb).then(getTransceiverInfo).then(fromMap);
+}
+
+folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
+    folly::EventBase* evb) const {
+  if (!evb) {
+    evb = platform_->getEventBase();
+  }
   auto trans = getTransceiverID();
+  int32_t transID = static_cast<int32_t>(*trans);
 
   // If null means that there's no transceiver because this is likely
   // a backplane port. However, we know these are using copper, so
   // pass that along
   if (!trans) {
-    return TransmitterTechnology::COPPER;
+    return folly::makeFuture<TransmitterTechnology>(
+        TransmitterTechnology::COPPER);
   }
-
-  int32_t transID = static_cast<int32_t>(*trans);
-  try {
-    std::map<int32_t, TransceiverInfo> info_map;
-
-    folly::EventBase eb;
-    auto client = QsfpClient::createClient(&eb);
-    auto options = QsfpClient::getRpcOptions();
-    client->sync_getTransceiverInfo(options, info_map, {transID});
-
-    // If it doesn't exist in the map, this will insert a new element
-    // (and retrieve the default value - an empty TransceiverInfo -
-    // which suits us fine)
-    TransceiverInfo info = info_map[transID];
-
+  auto getTech = [](TransceiverInfo info) {
     if (info.__isset.cable && info.cable.__isset.transmitterTech) {
       return info.cable.transmitterTech;
     }
-  } catch (const std::exception& e) {
-    // This can happen for a variety of reasons ranging from
-    // thrift problems to invalid input sent to the server
-    // Let's just catch them all
+    return TransmitterTechnology::UNKNOWN;
+  };
+  auto handleError = [transID](const std::exception& e) {
     LOG(ERROR) << "Error retrieving info for transceiver " << transID
                << " Exception: " << folly::exceptionStr(e);
-  }
-  // Default to this if we have trouble retrieving the value for some reason
-  return TransmitterTechnology::UNKNOWN;
+    return TransmitterTechnology::UNKNOWN;
+  };
+  return getTransceiverInfo(evb).then(getTech).onError(std::move(handleError));
 }
 
 void WedgePort::statusIndication(bool enabled, bool link,
@@ -164,22 +175,22 @@ void WedgePort::customizeTransceiver() {
   }
   auto speedString = cfg::_PortSpeed_VALUES_TO_NAMES.find(speed_)->second;
   auto& speed = speed_;
-  auto runCustomize = [transID, speed, speedString, eventBase]() {
-    LOG(INFO) << "Sending qsfp customize request for transceiver "
-              << transID << " to speed " << speedString;
-    auto client = QsfpClient::createClient(eventBase);
+  auto clientFuture = QsfpClient::createClient(eventBase);
+  auto doCustomize = [transID, speed, speedString](
+                         std::unique_ptr<QsfpServiceAsyncClient> client) {
+    LOG(INFO) << "Sending qsfp customize request for transceiver " << transID
+              << " to speed " << speedString;
     auto options = QsfpClient::getRpcOptions();
-    client->future_customizeTransceiver(options, transID, speed)
-      .onError([transID, speedString](const std::exception& e) {
-        // This can happen for a variety of reasons ranging from
-        // thrift problems to invalid input sent to the server
-        // Let's just catch them all
-        LOG(ERROR) << "Unable to customize transceiver " << transID
-                   << " for speed " << speedString
-                   << ". Exception: " << e.what();
-        });
+    return client->future_customizeTransceiver(options, transID, speed);
   };
-  eventBase->runInEventBaseThread(runCustomize);
+  auto handleError = [transID, speedString](const std::exception& e) {
+    // This can happen for a variety of reasons ranging from
+    // thrift problems to invalid input sent to the server
+    // Let's just catch them all
+    LOG(ERROR) << "Unable to customize transceiver " << transID << " for speed "
+               << speedString << ". Exception: " << e.what();
+  };
+  clientFuture.via(eventBase).then(doCustomize).onError(std::move(handleError));
 }
 
 }} // facebook::fboss

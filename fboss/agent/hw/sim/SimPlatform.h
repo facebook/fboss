@@ -35,6 +35,9 @@ class SimPlatform : public Platform {
   TransceiverIdxThrift getPortMapping(PortID /* unused */) const override {
     return TransceiverIdxThrift();
   }
+  PlatformPort* getPlatformPort(PortID /* unused */) const override {
+    return nullptr;
+  }
 
  private:
   // Forbidden copy constructor and assignment operator

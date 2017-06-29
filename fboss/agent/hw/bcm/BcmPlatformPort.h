@@ -44,8 +44,6 @@ class BcmPlatformPort : public PlatformPort {
    */
   virtual LaneSpeeds supportedLaneSpeeds() const = 0;
 
-  TransmitterTechnology getTransmitterTech() const override = 0;
-
   const XPEs&  getEgressXPEs() const { return egressXPEs_; }
 
  private:

@@ -18,6 +18,7 @@ extern "C" {
 #include "common/stats/MonotonicCounter.h"
 #include "common/stats/ExportedStatMapImpl.h"
 #include "common/stats/ExportedHistogramMapImpl.h"
+
 #include "fboss/agent/types.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -161,7 +162,8 @@ class BcmPort {
   void setConfiguredMaxSpeed();
   opennsl_port_if_t getDesiredInterfaceMode(cfg::PortSpeed speed,
                                             PortID id,
-                                            std::string name);
+                                            const std::string& name);
+  TransmitterTechnology getTransmitterTechnology(const std::string& name);
 
   opennsl_pbmp_t getPbmp();
 
@@ -180,6 +182,7 @@ class BcmPort {
   BcmPlatformPort* const platformPort_{nullptr};
   int unit_{-1};
   std::string portName_{""};
+  TransmitterTechnology transmitterTechnology_{TransmitterTechnology::UNKNOWN};
 
   // The port group this port is a part of
   BcmPortGroup* portGroup_{nullptr};

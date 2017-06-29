@@ -9,6 +9,9 @@
  */
 #pragma once
 
+#include <folly/futures/Future.h>
+#include <folly/io/async/EventBase.h>
+
 #include "fboss/agent/types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
@@ -90,7 +93,11 @@ class PlatformPort {
    */
   virtual void linkSpeedChanged(const cfg::PortSpeed& speed) = 0;
 
-  virtual TransmitterTechnology getTransmitterTech() const = 0;
+  virtual folly::Future<TransmitterTechnology> getTransmitterTech(
+      folly::EventBase* evb = nullptr) const = 0;
+
+  virtual folly::Future<TransceiverInfo> getTransceiverInfo(
+      folly::EventBase* evb = nullptr) const = 0;
 
   /*
    * statusIndication() will be called by the hardware code once a second.

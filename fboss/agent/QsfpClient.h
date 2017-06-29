@@ -15,6 +15,7 @@
 
 #include <thrift/lib/cpp/ClientUtil.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
+#include <folly/futures/Future.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/SocketAddress.h>
 
@@ -32,9 +33,10 @@ class QsfpClient {
  public:
    QsfpClient(){}
   ~QsfpClient(){}
-  // This may throw an exception
-  static std::unique_ptr<QsfpServiceAsyncClient> createClient(
-      folly::EventBase* eb);
+
+  static folly::Future<std::unique_ptr<QsfpServiceAsyncClient>>
+  createClient(folly::EventBase* eb);
+
   static apache::thrift::RpcOptions getRpcOptions();
 };
 

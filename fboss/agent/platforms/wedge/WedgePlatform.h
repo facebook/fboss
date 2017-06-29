@@ -57,6 +57,7 @@ class WedgePlatform : public BcmPlatform {
   WedgePort* getPort(PortID id) const;
   WedgePort* getPort(TransceiverID id) const;
   TransceiverIdxThrift getPortMapping(PortID port) const override;
+  PlatformPort* getPlatformPort(PortID id) const override;
 
   uint32_t getMMUBufferBytes() const override {
     // All wedge platforms have 16MB MMU buffer

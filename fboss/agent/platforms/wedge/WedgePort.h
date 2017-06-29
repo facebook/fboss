@@ -9,6 +9,7 @@
  */
 #pragma once
 #include <folly/Optional.h>
+#include <folly/futures/Future.h>
 
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
@@ -51,7 +52,10 @@ class WedgePort : public BcmPlatformPort {
   virtual folly::Optional<ChannelID> getChannel() const {
     return channel_;
   }
-  TransmitterTechnology getTransmitterTech() const override;
+  folly::Future<TransmitterTechnology> getTransmitterTech(
+      folly::EventBase* evb) const override;
+  folly::Future<TransceiverInfo> getTransceiverInfo(
+      folly::EventBase* evb) const override;
 
  private:
   // Forbidden copy constructor and assignment operator
