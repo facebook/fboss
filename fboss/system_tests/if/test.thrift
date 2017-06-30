@@ -5,4 +5,5 @@ namespace py fboss.system_tests.test
 
 service TestService extends fb303.FacebookService {
   bool ping(Address.BinaryAddress ip);
+  bool status();
 }
