@@ -38,6 +38,7 @@ constexpr auto kPktLenRangeMax = "max";
 constexpr auto kIpFrag = "ipFrag";
 constexpr auto kIcmpCode = "icmpCode";
 constexpr auto kIcmpType = "icmpType";
+constexpr auto kDscp = "dscp";
 constexpr auto kPortName = "portName";
 constexpr auto kQosQueueNum = "qosQueueNum";
 }
@@ -150,6 +151,9 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   if (icmpType) {
     aclEntry[kIcmpType] = static_cast<uint8_t>(icmpType.value());
   }
+  if (dscp) {
+    aclEntry[kDscp] = static_cast<uint8_t>(dscp.value());
+  }
   folly::dynamic aclAction = folly::dynamic::object;
   auto itr_action = cfg::_AclActionType_VALUES_TO_NAMES.find(action.actionType);
   CHECK(itr_action != cfg::_AclActionType_VALUES_TO_NAMES.end());
@@ -220,6 +224,9 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   }
   if (aclEntryJson.find(kIcmpCode) != aclEntryJson.items().end()) {
     aclEntry.icmpCode = aclEntryJson[kIcmpCode].asInt();
+  }
+  if (aclEntryJson.find(kDscp) != aclEntryJson.items().end()) {
+    aclEntry.dscp = aclEntryJson[kDscp].asInt();
   }
   auto aclActionJson = aclEntryJson[kAction];
   aclEntry.action.actionType =

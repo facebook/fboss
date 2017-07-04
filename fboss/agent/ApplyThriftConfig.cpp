@@ -813,6 +813,9 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (config->__isset.icmpCode) {
     newAcl->setIcmpCode(config->icmpCode);
   }
+  if (config->__isset.dscp) {
+    newAcl->setDscp(config->dscp);
+  }
   return newAcl;
 }
 

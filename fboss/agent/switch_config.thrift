@@ -405,6 +405,10 @@ struct AclEntry {
    */
   14: optional i16 icmpType
   15: optional i16 icmpCode
+  /*
+  * Match on DSCP values
+  */
+  16: optional i16 dscp;
 }
 
 /**

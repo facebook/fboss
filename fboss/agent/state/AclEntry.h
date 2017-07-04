@@ -158,6 +158,8 @@ struct AclEntryFields {
   folly::Optional<cfg::IpFragMatch> ipFrag{folly::none};
   folly::Optional<uint8_t> icmpType{folly::none};
   folly::Optional<uint8_t> icmpCode{folly::none};
+  folly::Optional<uint8_t> dscp{folly::none};
+
   cfg::AclAction action;
 };
 
@@ -199,7 +201,8 @@ class AclEntry :
            getFields()->pktLenRange == acl.getPktLenRange() &&
            getFields()->ipFrag == acl.getIpFrag() &&
            getFields()->icmpType == acl.getIcmpType() &&
-           getFields()->icmpCode == acl.getIcmpCode();
+           getFields()->icmpCode == acl.getIcmpCode() &&
+           getFields()->dscp == acl.getDscp();
   }
 
   AclEntryID getID() const {
@@ -316,6 +319,14 @@ class AclEntry :
 
   void setIcmpType(const uint8_t type) {
     writableFields()->icmpType = type;
+  }
+
+  folly::Optional<uint8_t> getDscp() const {
+    return getFields()->dscp;
+  }
+
+  void setDscp(uint8_t dscp) {
+    writableFields()->dscp = dscp;
   }
 
  private:
