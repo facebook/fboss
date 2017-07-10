@@ -106,7 +106,8 @@ folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
                << " Exception: " << folly::exceptionStr(e);
     return TransmitterTechnology::UNKNOWN;
   };
-  return getTransceiverInfo(evb).then(getTech).onError(std::move(handleError));
+  return getTransceiverInfo(evb).via(evb).then(getTech).onError(
+      std::move(handleError));
 }
 
 void WedgePort::statusIndication(bool enabled, bool link,

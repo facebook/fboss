@@ -393,7 +393,9 @@ TransmitterTechnology BcmPort::getTransmitterTechnology(
   if (name.find("fab") == 0) {
     transmitterTechnology_ = TransmitterTechnology::COPPER;
   } else {
-    transmitterTechnology_ = getPlatformPort()->getTransmitterTech().get();
+    folly::EventBase evb;
+    transmitterTechnology_ =
+        getPlatformPort()->getTransmitterTech(&evb).getVia(&evb);
   }
   return transmitterTechnology_;
 }
