@@ -11,6 +11,10 @@
 
 namespace facebook { namespace fboss {
 
+bool BcmTableStats::refreshLPMOnlyStats() {
+  return false;
+}
+
 bool BcmTableStats::refreshHwStatusStats() {
   return false;
 }

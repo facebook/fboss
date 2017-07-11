@@ -159,7 +159,7 @@ BcmSwitch::BcmSwitch(BcmPlatform *platform, HashMode hashMode)
     hostTable_(new BcmHostTable(this)),
     routeTable_(new BcmRouteTable(this)),
     aclTable_(new BcmAclTable(this)),
-    bcmTableStats_(new BcmTableStats(this)),
+    bcmTableStats_(new BcmTableStats(this, isAlpmEnabled())),
     bufferStatsLogger_(createBufferStatsLogger()),
     trunkTable_(new BcmTrunkTable(this)) {
   dumpConfigMap(BcmAPI::getHwConfig(), platform->getHwConfigDumpFile());

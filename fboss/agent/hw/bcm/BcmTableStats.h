@@ -17,18 +17,26 @@ class BcmSwitch;
 
 class BcmTableStats {
  public:
-  explicit BcmTableStats(const BcmSwitch* hw) : hw_(hw) {}
+  explicit BcmTableStats(const BcmSwitch* hw, bool isAlpmEnabled=false) : hw_(hw),
+    isAlpmEnabled_(isAlpmEnabled) {}
   void refresh() {
     stats_.hw_table_stats_stale =
         !(refreshHwStatusStats() && refreshLPMStats());
+    if (!isAlpmEnabled_) {
+      stats_.hw_table_stats_stale |= refreshLPMOnlyStats();
+    }
   }
   void publish() const;
 
  private:
   bool refreshHwStatusStats();
+  // Stats for both LPM and ALPM mode
   bool refreshLPMStats();
+  // Stats only supported in LPM mode
+  bool refreshLPMOnlyStats();
   const BcmSwitch* hw_{nullptr};
 
   BcmHwTableStats stats_;
+  bool isAlpmEnabled_;
 };
 }}
