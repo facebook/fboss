@@ -33,6 +33,7 @@
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUpdateHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -341,6 +342,29 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
     notifyStateObservers(
         StateDelta(std::make_shared<SwitchState>(), initialStateDesired));
   });
+
+  // In ALPM mode we need to make sure that the first route added is
+  // the default route and that the route table always contains a default
+  // route
+  RouteUpdater updater(initialStateDesired->getRouteTables());
+  updater.addRoute(RouterID(0), folly::IPAddressV4("0.0.0.0"), 0,
+      StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
+      RouteNextHopEntry(RouteForwardAction::DROP,
+        AdminDistance::MAX_ADMIN_DISTANCE));
+  updater.addRoute(RouterID(0), folly::IPAddressV6("::"), 0,
+      StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
+      RouteNextHopEntry(RouteForwardAction::DROP,
+        AdminDistance::MAX_ADMIN_DISTANCE));
+  auto newRt = updater.updateDone();
+  auto newState = initialStateDesired->clone();
+  newState->resetRouteTables(std::move(newRt));
+  newState->publish();
+
+  updateEventBase_.runInEventBaseThread(
+    [newState, initialStateDesired, this]() {
+      applyUpdate(initialStateDesired, newState);
+    }
+  );
 
   if (flags & SwitchFlags::ENABLE_TUN) {
     if (tunMgr) {

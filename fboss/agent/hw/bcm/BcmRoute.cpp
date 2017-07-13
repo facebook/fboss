@@ -37,10 +37,8 @@ auto constexpr kMaskLen = "maskLen";
 auto constexpr kNetwork = "network";
 auto constexpr kRoutes = "routes";
 
-// Needed if we're in ALPM mode
 // TODO: Assumes we have only one VRF
 auto constexpr kDefaultVrf = 0;
-auto constexpr kDefaultMask = 0;
 }
 
 BcmRoute::BcmRoute(const BcmSwitch* hw, opennsl_vrf_t vrf,
@@ -322,44 +320,10 @@ BcmRoute* BcmRouteTable::getBcmRoute(
   return rt;
 }
 
-void BcmRouteTable::addDefaultRoutes(bool warmBooted) {
-  // If ALPM is enabled, the first route programmed must be the default route
-  // Since we have no way of guaranteeing this with actual routes, program in
-  // a 'fake' default of 0.0.0.0/0 and ::/0
-  // When an actual default gets added, we replace this fake route
-  // If the default gets deleted, we add it back in
-  alpmEnabled_ = true;
-
-  // If we've warm booted, we already have routes programmed
-  if (!warmBooted) {
-    addRoute<RouteV4>(kDefaultVrf, defaultV4_.get());
-    addRoute<RouteV6>(kDefaultVrf, defaultV6_.get());
-  }
-}
-
-bool BcmRouteTable::isDefaultRouteV4(const Key& key) {
-  return key.mask == 0 && key.network == defaultV4_->prefix().network;
-}
-
-bool BcmRouteTable::isDefaultRouteV6(const Key& key) {
-  return key.mask == 0 && key.network == defaultV6_->prefix().network;
-}
-
-template<typename AddrT>
-const Route<AddrT>* BcmRouteTable::createDefaultRoute(const AddrT& ip) {
-  const typename Route<AddrT>::Prefix prefix {ip, kDefaultMask};
-  auto nhe = RouteNextHopEntry(RouteForwardAction::DROP);
-  auto r = new Route<AddrT>(
-      prefix, StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
-      nhe);
-  r->setResolved(nhe);
-  return r;
-
-}
-
 template<typename RouteT>
 void BcmRouteTable::addRoute(opennsl_vrf_t vrf, const RouteT *route) {
   const auto& prefix = route->prefix();
+
   Key key{folly::IPAddress(prefix.network), prefix.mask, vrf};
   auto ret = fib_.emplace(key, nullptr);
   if (ret.second) {
@@ -382,15 +346,7 @@ void BcmRouteTable::deleteRoute(opennsl_vrf_t vrf, const RouteT *route) {
   if (iter == fib_.end()) {
     throw FbossError("Failed to delete a non-existing route ", route->str());
   }
-  // We want to always be left with a default route in ALPM mode
-  // so if we're deleting it, add the default DROP route back
-  if (alpmEnabled_ && isDefaultRouteV4(key)) {
-    addRoute<RouteV4>(kDefaultVrf, defaultV4_.get());
-  } else if (alpmEnabled_ && isDefaultRouteV6(key)) {
-    addRoute<RouteV6>(kDefaultVrf, defaultV6_.get());
-  } else {
-    fib_.erase(iter);
-  }
+  fib_.erase(iter);
 }
 
 folly::dynamic BcmRouteTable::toFollyDynamic() const {

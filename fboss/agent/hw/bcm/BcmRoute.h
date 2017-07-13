@@ -89,12 +89,8 @@ class BcmRouteTable {
   void addRoute(opennsl_vrf_t vrf, const RouteT *route);
   template<typename RouteT>
   void deleteRoute(opennsl_vrf_t vrf, const RouteT *route);
-  void addDefaultRoutes(bool warmBooted);
   folly::dynamic toFollyDynamic() const;
  private:
-  template<typename AddrT>
-  const Route<AddrT>* createDefaultRoute(const AddrT& ip);
-
   struct Key {
     folly::IPAddress network;
     uint8_t mask;
@@ -102,17 +98,8 @@ class BcmRouteTable {
     bool operator<(const Key& k2) const;
   };
 
-  bool isDefaultRouteV4(const Key& key);
-  bool isDefaultRouteV6(const Key& key);
-
   const BcmSwitch *hw_;
 
-  const std::unique_ptr<RouteV4> defaultV4_ = std::make_unique<RouteV4>(
-      createDefaultRoute<folly::IPAddressV4>(folly::IPAddressV4("0.0.0.0")));
-  const std::unique_ptr<RouteV6> defaultV6_ = std::make_unique<RouteV6>(
-      createDefaultRoute<folly::IPAddressV6>(folly::IPAddressV6("::")));
-
-  bool alpmEnabled_{false};
   boost::container::flat_map<Key, std::unique_ptr<BcmRoute>> fib_;
 };
 

@@ -226,8 +226,9 @@ TEST(ThriftTest, syncFib) {
   GET_ROUTE_V4(tables2, rid, prefixB4);
   GET_ROUTE_V6(tables2, rid, prefixC6);
   // Make sure there are no more routes than the ones we just tested
-  EXPECT_EQ(4, tables2->getRouteTable(rid)->getRibV4()->size());
-  EXPECT_EQ(4, tables2->getRouteTable(rid)->getRibV6()->size());
+  // plus the 1 default route that gets added automatically
+  EXPECT_EQ(4 + 1, tables2->getRouteTable(rid)->getRibV4()->size());
+  EXPECT_EQ(4 + 1, tables2->getRouteTable(rid)->getRibV6()->size());
   EXPECT_NO_ROUTE(tables2, rid, prefixD4);
   EXPECT_NO_ROUTE(tables2, rid, prefixD6);
 
@@ -287,6 +288,7 @@ TEST(ThriftTest, syncFib) {
   GET_ROUTE_V6(tables3, rid, prefixD6);
 
   // Make sure there are no more routes (ie. the old ones were deleted)
-  EXPECT_EQ(4, tables3->getRouteTable(rid)->getRibV4()->size());
-  EXPECT_EQ(4, tables3->getRouteTable(rid)->getRibV6()->size());
+  // + the one that gets added by default
+  EXPECT_EQ(4 + 1, tables3->getRouteTable(rid)->getRibV4()->size());
+  EXPECT_EQ(4 + 1, tables3->getRouteTable(rid)->getRibV6()->size());
 }
