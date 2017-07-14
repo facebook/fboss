@@ -356,15 +356,18 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
       RouteNextHopEntry(RouteForwardAction::DROP,
         AdminDistance::MAX_ADMIN_DISTANCE));
   auto newRt = updater.updateDone();
-  auto newState = initialStateDesired->clone();
-  newState->resetRouteTables(std::move(newRt));
-  newState->publish();
+  if (newRt) {
+    // If null default routes from above got added,
+    // send a state update to h/w
+    auto newState = initialStateDesired->clone();
+    newState->resetRouteTables(std::move(newRt));
+    newState->publish();
 
-  updateEventBase_.runInEventBaseThread(
-    [newState, initialStateDesired, this]() {
-      applyUpdate(initialStateDesired, newState);
-    }
-  );
+    updateEventBase_.runInEventBaseThread(
+        [newState, initialStateDesired, this]() {
+          applyUpdate(initialStateDesired, newState);
+        });
+  }
 
   if (flags & SwitchFlags::ENABLE_TUN) {
     if (tunMgr) {
