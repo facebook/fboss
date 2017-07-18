@@ -84,6 +84,9 @@ void PortRemediator::timeoutExpired() noexcept {
   auto platform = sw_->getPlatform();
   for (const auto& portId : unexpectedDownPorts) {
     auto platformPort = platform->getPlatformPort(portId);
+    if (!platformPort->supportsTransceiver()) {
+      continue;
+    }
     auto infoFuture = platformPort->getTransceiverInfo();
     infoFuture.via(sw_->getBackgroundEVB())
         .then([ sw = sw_, portId ](TransceiverInfo info) {

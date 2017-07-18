@@ -66,16 +66,19 @@ folly::Future<TransceiverInfo> WedgePort::getTransceiverInfo(
     evb = platform_->getEventBase();
   }
   auto clientFuture = QsfpClient::createClient(evb);
-  auto transceiverId = static_cast<int32_t>(*getTransceiverID());
+  folly::Optional<TransceiverID> transceiverId = getTransceiverID();
   auto getTransceiverInfo =
       [transceiverId](std::unique_ptr<QsfpServiceAsyncClient> client) {
+        // This will throw if there is no transceiver on this port
+        auto t = static_cast<int32_t>(transceiverId.value());
         auto options = QsfpClient::getRpcOptions();
-        // std::map<int32_t, TransceiverInfo> info_map;
-        return client->future_getTransceiverInfo(options, {transceiverId});
+        return client->future_getTransceiverInfo(options, {t});
       };
   auto fromMap =
       [transceiverId](std::map<int, facebook::fboss::TransceiverInfo> infoMap) {
-        return infoMap[transceiverId];
+        // This will throw if there is no transceiver on this port
+        auto t = static_cast<int32_t>(transceiverId.value());
+        return infoMap[t];
       };
   return clientFuture.via(evb).then(getTransceiverInfo).then(fromMap);
 }
@@ -85,16 +88,13 @@ folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
   if (!evb) {
     evb = platform_->getEventBase();
   }
-  auto trans = getTransceiverID();
-  int32_t transID = static_cast<int32_t>(*trans);
-
-  // If null means that there's no transceiver because this is likely
-  // a backplane port. However, we know these are using copper, so
-  // pass that along
-  if (!trans) {
+  // If there's no transceiver this is a backplane port.
+  // However, we know these are using copper, so pass that along
+  if (!supportsTransceiver()) {
     return folly::makeFuture<TransmitterTechnology>(
         TransmitterTechnology::COPPER);
   }
+  int32_t transID = static_cast<int32_t>(getTransceiverID().value());
   auto getTech = [](TransceiverInfo info) {
     if (info.__isset.cable && info.cable.__isset.transmitterTech) {
       return info.cable.transmitterTech;

@@ -96,8 +96,25 @@ class PlatformPort {
   virtual folly::Future<TransmitterTechnology> getTransmitterTech(
       folly::EventBase* evb = nullptr) const = 0;
 
+  /*
+   * Get information about the transceiver on the port.
+   * If this port doesn't have a transceiver, then the future
+   * will have an exception set on it.
+   */
   virtual folly::Future<TransceiverInfo> getTransceiverInfo(
       folly::EventBase* evb = nullptr) const = 0;
+
+  /*
+   * Returns true if the port supports/expects to use a transceiver
+   * and false if there is a direct electrical connection
+   */
+  virtual bool supportsTransceiver() const = 0;
+
+  /*
+   * Returns the transceiver's id if the port supports a transceiver,
+   * otherwise, returns an empty folly::Optional
+   */
+  virtual folly::Optional<TransceiverID> getTransceiverID() const = 0;
 
   /*
    * statusIndication() will be called by the hardware code once a second.
