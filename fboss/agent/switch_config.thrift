@@ -60,7 +60,7 @@ struct Port {
   /*
    * Whether the port is enabled.  Set this to UP for normal operation.
    */
-  2: PortState state
+  2: PortState state = POWER_DOWN
   /*
    * Packets ingressing on this port will be dropped if they are smaller than
    * minFrameSize.  64 bytes is the minimum frame size allowed by ethernet.

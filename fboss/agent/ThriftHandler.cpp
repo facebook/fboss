@@ -466,10 +466,11 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
   }
 
   cfg::PortState newPortState =
-    enable? cfg::PortState::UP: cfg::PortState::DOWN;
+      enable ? cfg::PortState::UP : cfg::PortState::POWER_DOWN;
 
   if (port->getState() == newPortState) {
-    VLOG(2) << "setPortState: port already in state " << (enable? "UP": "DOWN");
+    VLOG(2) << "setPortState: port already in state "
+            << (enable ? "UP" : "POWER_DOWN");
     return;
   }
 

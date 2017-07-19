@@ -74,7 +74,7 @@ void PortRemediator::timeoutExpired() noexcept {
     infoFuture.via(sw_->getBackgroundEVB())
         .then([ sw = sw_, portId ](TransceiverInfo info) {
           if (info.present) {
-            updatePortState(sw, portId, cfg::PortState::DOWN);
+            updatePortState(sw, portId, cfg::PortState::POWER_DOWN);
             updatePortState(sw, portId, cfg::PortState::UP);
           }
         });

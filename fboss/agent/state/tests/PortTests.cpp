@@ -34,7 +34,7 @@ TEST(Port, applyConfig) {
   EXPECT_FALSE(portV0->isPublished());
   EXPECT_EQ(PortID(1), portV0->getID());
   EXPECT_EQ("port1", portV0->getName());
-  EXPECT_EQ(cfg::PortState::DOWN, portV0->getState());
+  EXPECT_EQ(cfg::PortState::POWER_DOWN, portV0->getState());
   Port::VlanMembership emptyVlans;
   EXPECT_EQ(emptyVlans, portV0->getVlans());
 
@@ -265,9 +265,9 @@ TEST(PortMap, applyConfig) {
 
   auto newPort2 =  portsV1->getPort(PortID(2));
   EXPECT_EQ(cfg::PortState::UP, newPort2->getState());
-  EXPECT_EQ(cfg::PortState::DOWN, port1->getState());
-  EXPECT_EQ(cfg::PortState::DOWN, port3->getState());
-  EXPECT_EQ(cfg::PortState::DOWN, port4->getState());
+  EXPECT_EQ(cfg::PortState::POWER_DOWN, port1->getState());
+  EXPECT_EQ(cfg::PortState::POWER_DOWN, port3->getState());
+  EXPECT_EQ(cfg::PortState::POWER_DOWN, port4->getState());
 
   // The new PortMap and port 2 should still be unpublished.
   // The remaining other ports are the same and were previously published

@@ -396,7 +396,8 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
     int portEnabled;
     auto ret = opennsl_port_enable_get(unit_, port->getID(), &portEnabled);
     bcmCheckError(ret, "Failed to get current state for port", port->getID());
-    port->setState(portEnabled == 1 ? cfg::PortState::UP: cfg::PortState::DOWN);
+    port->setState(
+        portEnabled == 1 ? cfg::PortState::UP : cfg::PortState::POWER_DOWN);
   }
   warmBootState->resetIntfs(warmBootCache_->reconstructInterfaceMap());
   warmBootState->resetVlans(warmBootCache_->reconstructVlanMap());
@@ -751,12 +752,6 @@ void BcmSwitch::pickupLinkStatusChanges(const StateDelta& delta) {
       delta.getPortsDelta(),
       [&](const std::shared_ptr<Port>& oldPort,
           const std::shared_ptr<Port>& newPort) {
-        // Presently, isAdminDisabled means DOWN || POWER_DOWN
-        // we clearly don't care about DOWN->POWER_DOWN or
-        // POWER_DOWN->DOWN changes here. In the future, if it has some
-        // more meaningful semantics, this is still reasonable, as we
-        // don't need to do anything on a disabled port
-        // (though we should be able to remove this code)
         if (oldPort->isAdminDisabled() && newPort->isAdminDisabled()) {
           return;
         }
