@@ -50,8 +50,6 @@ class WedgePlatform : public BcmPlatform {
   void getProductInfo(ProductInfo& info) override;
 
   bool canUseHostTableForHostRoutes() const override {
-    // This should be enabled only with SDK versions 6.4.6 or later (with
-    // wedge_agent, and not with wedge_ctrl).
     return FLAGS_enable_routes_in_host_table;
   }
   WedgePort* getPort(PortID id) const;

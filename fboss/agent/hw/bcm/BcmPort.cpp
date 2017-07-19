@@ -99,14 +99,10 @@ static const std::map<cfg::PortSpeed,
       {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CAUI}
     }},
     {cfg::PortSpeed::FIFTYG, {
-      // TODO(aeckert): CR2 does not exist in opennsl 6.3.6.
-      // Remove this ifdef once fully on 6.4.6
-#if defined(OPENNSL_PORT_IF_CR2)
       {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR2},
+      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI},
       // What to default to
-      {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR2},
-#endif
-      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI}
+      {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR2}
     }},
     {cfg::PortSpeed::FORTYG, {
       {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR4},

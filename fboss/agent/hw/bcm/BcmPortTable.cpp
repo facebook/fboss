@@ -52,10 +52,7 @@ void BcmPortTable::initPorts(const opennsl_port_config_t* portConfig,
     BcmPlatformPort* platPort = entry.second;
 
     // Make sure this port number actually exists on the switch hardware
-    //
-    // TODO(aeckert): replace with OPENNSL_PBMP_MEMBER in future version
-    // of opennsl.
-    if (!_SHR_PBMP_MEMBER(portConfig->port, bcmPortNum)) {
+    if (!OPENNSL_PBMP_MEMBER(portConfig->port, bcmPortNum)) {
       throw FbossError("platform attempted to initialize BCM port ",
                        bcmPortNum, " which does not exist");
     }
