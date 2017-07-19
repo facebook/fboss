@@ -87,7 +87,8 @@ class BcmPort {
 
   bool supportsSpeed(cfg::PortSpeed speed);
   bool isEnabled();
-  cfg::PortSpeed getSpeed();
+  cfg::PortSpeed getSpeed() const;
+  cfg::PortSpeed getMaxSpeed() const;
 
   /*
    * Setters.
@@ -149,7 +150,6 @@ class BcmPort {
   std::string statName(folly::StringPiece name) const;
 
   void disablePause();
-  void setConfiguredMaxSpeed();
   opennsl_port_if_t getDesiredInterfaceMode(cfg::PortSpeed speed,
                                             PortID id,
                                             const std::string& name);
@@ -168,7 +168,6 @@ class BcmPort {
   // The gport_ is logically a const, but needs to be initialized as a parameter
   // to SDK call.
   opennsl_gport_t gport_;  // Broadcom global port number
-  cfg::PortSpeed configuredMaxSpeed_;
   BcmPlatformPort* const platformPort_{nullptr};
   int unit_{-1};
   std::string portName_{""};

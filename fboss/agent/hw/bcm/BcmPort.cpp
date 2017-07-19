@@ -216,8 +216,6 @@ BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
   // Initialize our stats data structures
   reinitPortStats();
 
-  setConfiguredMaxSpeed();
-
   VLOG(2) << "created BCM port:" << port_ << ", gport:" << gport_
           << ", FBOSS PortID:" << platformPort_->getPortID();
 }
@@ -261,7 +259,7 @@ bool BcmPort::supportsSpeed(cfg::PortSpeed speed) {
   // not work correctly if we performed a warm boot and the config
   // file changed port speeds. However, this is not supported by
   // broadcom for warm boot so this approach should be alright.
-  return speed <= configuredMaxSpeed_;
+  return speed <= getMaxSpeed();
 }
 
 opennsl_pbmp_t BcmPort::getPbmp() {
@@ -415,7 +413,7 @@ opennsl_port_if_t BcmPort::getDesiredInterfaceMode(cfg::PortSpeed speed,
   }
 }
 
-cfg::PortSpeed BcmPort::getSpeed() {
+cfg::PortSpeed BcmPort::getSpeed() const {
   int curSpeed{0};
   auto rv = opennsl_port_speed_get(unit_, port_, &curSpeed);
   bcmCheckError(
