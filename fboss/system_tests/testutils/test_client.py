@@ -7,17 +7,17 @@ import socket
 import sys
 
 from fboss.system_tests.test import TestService
-from fboss.cli.utils import utils
 
 from thrift.protocol.THeaderProtocol import THeaderProtocol
 from thrift.transport.THeaderTransport import THeaderTransport
 from thrift.transport.TSocket import TSocket
+import fboss.system_tests.test.constants
 
 
 class TestClient(TestService.Client):
-    DEFAULT_PORT = 20121
+    DEFAULT_PORT = fboss.system_tests.test.constants.DEFAULT_PORT
 
-    def __init__(self, host, port=None, timeout=5.0):
+    def __init__(self, host, port=None, timeout=10.0):
         self.host = host
         if port is None:
             port = self.DEFAULT_PORT
@@ -40,7 +40,6 @@ class TestClient(TestService.Client):
 def main(ip):
     print("in client main")
     client = TestClient(socket.gethostname())
-    ip = utils.ip_to_binary(ip)
     response = client.ping(ip)
     client._socket.close()
     print(response)

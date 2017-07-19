@@ -55,6 +55,11 @@ but we hope to make more of these available in the future weeks.  In the
 meantime, the thrift compiler can automatically generate a python-remote script
 to allow manual invocation of the agent's various thrift interfaces.
 
+### Testing Infrastructure
+
+Scripts for system-level testing is included in $base/system_tests/
+and documented in the same directory.
+
 ## Building
 
 See the BUILD.md document for instructions on how to build FBOSS.
