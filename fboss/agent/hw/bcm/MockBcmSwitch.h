@@ -72,8 +72,6 @@ class MockBcmSwitch : public BcmSwitchIf {
   MOCK_METHOD2(
       getAndClearNeighborHit,
       bool(RouterID vrf, folly::IPAddress& ip));
-  MOCK_CONST_METHOD1(getPortSpeed, cfg::PortSpeed(PortID port));
-  MOCK_CONST_METHOD1(getMaxPortSpeed, cfg::PortSpeed(PortID port));
   MOCK_CONST_METHOD1(isValidStateUpdate, bool(const StateDelta& delta));
 };
 

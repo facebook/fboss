@@ -219,18 +219,6 @@ class HwSwitch {
   virtual bool isPortUp(PortID port) const = 0;
 
   /*
-   * Get current port speed.
-   *
-   * Returns -1 if the port is down.
-   */
-  virtual cfg::PortSpeed getPortSpeed(PortID port) const = 0;
-
-  /*
-   * Get max port speed.
-   */
-  virtual cfg::PortSpeed getMaxPortSpeed(PortID port) const = 0;
-
-  /*
    * Get whether the port has set FEC or not
    * TODO(rsher) Consider refactoring this interface to expose
    * ports as first class citizens (hwPort?) and then move all of these

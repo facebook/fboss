@@ -30,6 +30,8 @@ class BcmPortTable {
   explicit BcmPortTable(BcmSwitch *hw);
   ~BcmPortTable();
 
+  typedef boost::container::flat_map<PortID, BcmPort*> FbossPortMap;
+
   /*
    * Initialize the port table from the list of physical switch ports.
    *
@@ -56,6 +58,14 @@ class BcmPortTable {
   BcmPort* getBcmPortIf(PortID id) const;
   BcmPort* getBcmPortIf(opennsl_port_t id) const;
 
+  FbossPortMap::const_iterator begin() const {
+    return fbossPhysicalPorts_.begin();
+  }
+
+  FbossPortMap::const_iterator end() const {
+    return fbossPhysicalPorts_.end();
+  }
+
   /*
    * Update all ports' statistics.
    */
@@ -80,7 +90,6 @@ class BcmPortTable {
 
   typedef boost::container::flat_map<opennsl_port_t, std::unique_ptr<BcmPort>>
     BcmPortMap;
-  typedef boost::container::flat_map<PortID, BcmPort*> FbossPortMap;
 
   typedef std::vector<std::unique_ptr<BcmPortGroup>> BcmPortGroupList;
 

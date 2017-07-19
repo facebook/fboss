@@ -100,6 +100,10 @@ void SwitchState::registerPort(PortID id, const std::string& name) {
   writableFields()->ports->registerPort(id, name);
 }
 
+void SwitchState::addPort(const std::shared_ptr<Port>& port) {
+  writableFields()->ports->addPort(port);
+}
+
 void SwitchState::resetPorts(std::shared_ptr<PortMap> ports) {
   writableFields()->ports.swap(ports);
 }

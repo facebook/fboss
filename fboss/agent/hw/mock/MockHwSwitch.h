@@ -54,8 +54,6 @@ class MockHwSwitch : public HwSwitch {
           const std::string& namespaceString,
           const std::set<CounterRequest>& counterSet));
   MOCK_METHOD1(fetchL2Table, void(std::vector<L2EntryThrift>* l2Table));
-  MOCK_CONST_METHOD1(getPortSpeed, cfg::PortSpeed(PortID port));
-  MOCK_CONST_METHOD1(getMaxPortSpeed, cfg::PortSpeed(PortID port));
   MOCK_METHOD1(gracefulExit, void(folly::dynamic& switchState));
   MOCK_CONST_METHOD0(toFollyDynamic, folly::dynamic());
   MOCK_METHOD0(initialConfigApplied, void());

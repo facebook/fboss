@@ -341,17 +341,6 @@ class SwSwitch : public HwSwitch::Callback {
   PortStats* portStats(PortID port);
 
   /*
-   * Get the port speed for the specified port in Mbps.  Zero implies that
-   * speed has been set to the Default (maximum) value.
-   */
-  cfg::PortSpeed getPortSpeed(PortID port) const;
-
-  /*
-   * Get the port speed for the specified port in Mbps.
-   */
-  cfg::PortSpeed getMaxPortSpeed(PortID port) const;
-
-  /*
    * Get PortStatus for all the ports.
    */
   std::map<int32_t, PortStatus> getPortStatus();

@@ -63,9 +63,16 @@ BcmPortGroup::BcmPortGroup(BcmSwitch* hw,
                      allPorts_.size());
   }
 
+  // We expect all ports to run at the same speed and are passed in in
+  // the correct order.
+  portSpeed_ = controllingPort_->getSpeed();
   for (int i = 0; i < allPorts_.size(); ++i) {
-    if (getLane(allPorts_[i]) != i) {
+    auto port = allPorts_[i];
+    if (getLane(port) != i) {
       throw FbossError("Ports passed in are not ordered by lane");
+    }
+    if (port->isEnabled() && portSpeed_ != port->getSpeed()) {
+      throw FbossError("All enabled ports must have same speed");
     }
   }
 
@@ -85,9 +92,6 @@ BcmPortGroup::BcmPortGroup(BcmSwitch* hw,
       throw FbossError("Unexpected number of lanes retrieved for bcm port ",
                        controllingPort_->getBcmPortId());
   }
-  // We expect all ports to run at the same speed, so just retrieve the
-  // controlling port's speed.
-  portSpeed_ = hw_->getPortSpeed(PortID(controllingPort_->getBcmPortId()));
 }
 
 BcmPortGroup::~BcmPortGroup() {}
@@ -95,6 +99,7 @@ BcmPortGroup::~BcmPortGroup() {}
 BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
     const std::vector<Port*>& ports, LaneSpeeds laneSpeeds) {
   auto desiredMode = LaneMode::QUAD;
+
   for (int lane = 0; lane < ports.size(); ++lane) {
     auto port = ports[lane];
     if (!port->isAdminDisabled()) {
@@ -126,12 +131,6 @@ std::vector<Port*> BcmPortGroup::getSwPorts(
   std::vector<Port*> ports;
   for (auto bcmPort : allPorts_) {
     auto swPort = bcmPort->getSwitchStatePort(state).get();
-    // Make sure the ports support the configured speed.
-    // We check this even if the port is disabled.
-    if (!bcmPort->supportsSpeed(swPort->getSpeed())) {
-      throw FbossError("Port ", swPort->getID(), " does not support speed ",
-                       static_cast<int>(swPort->getSpeed()));
-    }
     ports.push_back(swPort);
   }
   return ports;

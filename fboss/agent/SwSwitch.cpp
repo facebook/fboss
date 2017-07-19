@@ -325,9 +325,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
     hwInitRet.bootTime << " seconds; applying initial config";
 
   for (const auto& port : (*initialState->getPorts())) {
-    auto maxSpeed = getMaxPortSpeed(port->getID());
     fbData->setCounter(getPortUpName(port), 0);
-    port->setMaxSpeed(maxSpeed);
   }
 
   // Store the initial state
@@ -865,14 +863,6 @@ map<int32_t, PortStatus> SwSwitch::getPortStatus() {
     statusMap[p->getID()] = fillInPortStatus(*p, this);
   }
   return statusMap;
-}
-
-cfg::PortSpeed SwSwitch::getPortSpeed(PortID port) const {
-  return hw_->getPortSpeed(port);
-}
-
-cfg::PortSpeed SwSwitch::getMaxPortSpeed(PortID port) const {
-  return hw_->getMaxPortSpeed(port);
 }
 
 PortStatus SwSwitch::getPortStatus(PortID portID) {

@@ -43,10 +43,6 @@ MockableHwSwitch::MockableHwSwitch(MockPlatform *platform, HwSwitch* realHw)
     .WillByDefault(Invoke(realHw_, &HwSwitch::getHighresSamplers));
   ON_CALL(*this, fetchL2Table(_))
     .WillByDefault(Invoke(realHw_, &HwSwitch::fetchL2Table));
-  ON_CALL(*this, getPortSpeed(_))
-    .WillByDefault(Invoke(realHw_, &HwSwitch::getPortSpeed));
-  ON_CALL(*this, getMaxPortSpeed(_))
-    .WillByDefault(Invoke(realHw_, &HwSwitch::getMaxPortSpeed));
   ON_CALL(*this, gracefulExit(_))
     .WillByDefault(Invoke(realHw_, &HwSwitch::gracefulExit));
   ON_CALL(*this, initialConfigApplied())

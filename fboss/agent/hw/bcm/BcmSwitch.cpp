@@ -129,19 +129,6 @@ namespace facebook { namespace fboss {
  * Get current port speed from BCM SDK and convert to
  * cfg::PortSpeed
  */
-cfg::PortSpeed BcmSwitch::getPortSpeed(PortID port) const {
-  int portSpeed;
-  auto ret = opennsl_port_speed_get(unit_, port, &portSpeed);
-  bcmCheckError(ret, "failed to get current speed for port", port);
-  return cfg::PortSpeed(portSpeed);
-}
-
-cfg::PortSpeed BcmSwitch::getMaxPortSpeed(PortID port) const {
-  int maxPortSpeed = 0;
-  auto ret = opennsl_port_speed_max(unit_, port, &maxPortSpeed);
-  bcmCheckError(ret, "failed to get max speed for port", port);
-  return cfg::PortSpeed(maxPortSpeed);
-}
 
 bool BcmSwitch::getPortFECConfig(PortID port) const {
   // relies on getBcmPort() to throw an if not found
@@ -386,12 +373,17 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   // On cold boot all ports are in Vlan 1
   auto vlan = make_shared<Vlan>(VlanID(1), "InitVlan");
   Vlan::MemberPorts memberPorts;
-  opennsl_port_t idx;
-  OPENNSL_PBMP_ITER(pcfg.port, idx) {
-    PortID portID = portTable_->getPortId(idx);
+  for (const auto& kv : *portTable_) {
+    PortID portID = kv.first;
+    BcmPort* bcmPort = kv.second;
     string name = folly::to<string>("port", portID);
-    bootState->registerPort(portID, name);
-    memberPorts.insert(make_pair(PortID(idx), false));
+
+    auto swPort = make_shared<Port>(portID, name);
+    swPort->setSpeed(bcmPort->getSpeed());
+    swPort->setMaxSpeed(bcmPort->getMaxSpeed());
+    bootState->addPort(swPort);
+
+    memberPorts.insert(make_pair(portID, false));
   }
   vlan->setPorts(memberPorts);
   bootState->addVlan(vlan);
@@ -400,20 +392,11 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
 
 std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
   auto warmBootState = getColdBootSwitchState();
-  for (auto port:  *warmBootState->getPorts()) {
+  for (auto port :  *warmBootState->getPorts()) {
     int portEnabled;
     auto ret = opennsl_port_enable_get(unit_, port->getID(), &portEnabled);
     bcmCheckError(ret, "Failed to get current state for port", port->getID());
     port->setState(portEnabled == 1 ? cfg::PortState::UP: cfg::PortState::DOWN);
-
-    auto speed = getPortSpeed(port->getID());
-    auto maxSpeed = getMaxPortSpeed(port->getID());
-    if (speed > maxSpeed) {
-      LOG(FATAL) << "Invalid port speed:" << (int) speed << " for port:"
-        << port->getID()<< " max:" << (int) maxSpeed;
-    }
-    port->setSpeed(speed);
-    port->setMaxSpeed(maxSpeed);
   }
   warmBootState->resetIntfs(warmBootCache_->reconstructInterfaceMap());
   warmBootState->resetVlans(warmBootCache_->reconstructVlanMap());
