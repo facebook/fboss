@@ -25,8 +25,7 @@ using facebook::fboss::cfg::PortState;
 void updatePortState(
     SwSwitch* sw,
     PortID portId,
-    PortState newPortState,
-    bool preventCoalescing) {
+    PortState newPortState) {
   auto updateFn =
       [portId, newPortState](
           const std::shared_ptr<SwitchState>& state) {
@@ -45,11 +44,7 @@ void updatePortState(
       "PortRemediator: flap down but enabled port {} ({})",
       static_cast<uint16_t>(portId),
       newPortState == PortState::UP ? "up" : "down");
-  if (preventCoalescing) {
     sw->updateStateNoCoalescing(name, updateFn);
-  } else {
-    sw->updateState(name, updateFn);
-  }
 }
 }
 
@@ -57,22 +52,10 @@ namespace facebook { namespace fboss {
 
 boost::container::flat_set<PortID>
 PortRemediator::getUnexpectedDownPorts() const {
-  // TODO - Post t17304538, if Port::state == POWER_DOWN reflects
-  // Admin down always, then just use SwitchState to to determine
-  // which ports to ignore.
   boost::container::flat_set<PortID> unexpectedDownPorts;
-  boost::container::flat_set<int> configEnabledPorts;
-  for (const auto& cfgPort : sw_->getConfig().ports) {
-    if (cfgPort.state != cfg::PortState::POWER_DOWN &&
-        cfgPort.state != cfg::PortState::DOWN) {
-      configEnabledPorts.insert(cfgPort.logicalID);
-    }
-  }
   const auto portMap = sw_->getState()->getPorts();
   for (const auto& port : *portMap) {
-    if (port &&
-        configEnabledPorts.find(port->getID()) != configEnabledPorts.end() &&
-        !(port->getOperState())) {
+    if (port && !port->isAdminDisabled() && !port->getOperState()) {
       unexpectedDownPorts.insert(port->getID());
     }
   }
@@ -91,8 +74,8 @@ void PortRemediator::timeoutExpired() noexcept {
     infoFuture.via(sw_->getBackgroundEVB())
         .then([ sw = sw_, portId ](TransceiverInfo info) {
           if (info.present) {
-            updatePortState(sw, portId, cfg::PortState::DOWN, true);
-            updatePortState(sw, portId, cfg::PortState::UP, true);
+            updatePortState(sw, portId, cfg::PortState::DOWN);
+            updatePortState(sw, portId, cfg::PortState::UP);
           }
         });
   }
