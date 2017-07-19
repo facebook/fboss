@@ -187,28 +187,24 @@ void BcmPortGroup::reconfigureLaneMode(
           << " from " << laneMode_ << " active ports to " << newLaneMode
           << " active ports";
 
-  // 1. disable all group members
+  // 1. Disable linkscan, then disable ports.
   for (auto& bcmPort : allPorts_) {
     auto swPort = bcmPort->getSwitchStatePort(state);
+    bcmPort->disableLinkscan();
     bcmPort->disable(swPort);
   }
 
-  // 2. remove all ports from the counter DMA and linkscan bitmaps
-  // This is done in BcmPort::disable()
-
-  // 3. set the opennslPortControlLanes setting
+  // 2. Set the opennslPortControlLanes setting
   setActiveLanes(newLaneMode);
 
-  // 4. enable ports
+  // 3. Enable linkscan, then enable ports.
   for (auto& bcmPort : allPorts_) {
     auto swPort = bcmPort->getSwitchStatePort(state);
     if (!swPort->isAdminDisabled()) {
+      bcmPort->enableLinkscan();
       bcmPort->enable(swPort);
     }
   }
-
-  // 5. add ports to the counter DMA + linkscan
-  // This is done in BcmPort::enable()
 }
 
 }} // namespace facebook::fboss

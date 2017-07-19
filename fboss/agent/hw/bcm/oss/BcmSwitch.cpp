@@ -59,7 +59,7 @@ bool BcmSwitch::isRxThreadRunning() {
 
 void BcmSwitch::dumpState() const {}
 
-void BcmSwitch::disableLinkscan() {
+void BcmSwitch::stopLinkscanThread() {
     // Disable the linkscan thread
   auto rv = opennsl_linkscan_enable_set(unit_, 0);
   CHECK(OPENNSL_SUCCESS(rv)) << "failed to stop BcmSwitch linkscan thread "

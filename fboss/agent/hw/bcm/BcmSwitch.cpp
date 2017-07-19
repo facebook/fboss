@@ -208,7 +208,7 @@ void BcmSwitch::unregisterCallbacks() {
     CHECK(OPENNSL_SUCCESS(rv)) << "failed to unregister BcmSwitch linkscan "
       "callback: " << opennsl_errmsg(rv);
 
-    disableLinkscan();
+    stopLinkscanThread();
     flags_ &= ~LINKSCAN_REGISTERED;
   }
 }

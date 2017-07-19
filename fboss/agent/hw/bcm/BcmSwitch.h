@@ -506,9 +506,9 @@ class BcmSwitch : public BcmSwitchIf {
   void configureAdditionalEcmpHashSets();
 
   /*
-   * Disable linkscan thread. This should only be done on shutdown.
+   * Stop linkscan thread. This should only be done on shutdown.
    */
-  void disableLinkscan();
+  void stopLinkscanThread();
 
 
   /**

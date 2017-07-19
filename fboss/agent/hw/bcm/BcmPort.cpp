@@ -243,11 +243,7 @@ void BcmPort::init(bool warmBoot) {
   getPlatformPort()->linkSpeedChanged(getSpeed());
   getPlatformPort()->linkStatusChanged(up, isEnabled());
 
-  // Linkscan should be enabled if the port is enabled already
-  auto linkscan = isEnabled() ? OPENNSL_LINKSCAN_MODE_SW :
-    OPENNSL_LINKSCAN_MODE_NONE;
-  auto rv = opennsl_linkscan_mode_set(unit_, port_, linkscan);
-  bcmCheckError(rv, "failed to set initial linkscan mode on port ", port_);
+  enableLinkscan();
 }
 
 bool BcmPort::supportsSpeed(cfg::PortSpeed speed) {
@@ -286,12 +282,13 @@ void BcmPort::disable(const std::shared_ptr<Port>& swPort) {
   bcmCheckError(rv, "Unexpected error disabling counter DMA on port ",
                 swPort->getID());
 
-  // Disable linkscan
-  rv = opennsl_linkscan_mode_set(unit_, port_, OPENNSL_LINKSCAN_MODE_NONE);
-  bcmCheckError(rv, "Failed to disable linkscan on port ", swPort->getID());
-
   rv = opennsl_port_enable_set(unit_, port_, false);
   bcmCheckError(rv, "failed to disable port ", swPort->getID());
+}
+
+void BcmPort::disableLinkscan() {
+  int rv = opennsl_linkscan_mode_set(unit_, port_, OPENNSL_LINKSCAN_MODE_NONE);
+  bcmCheckError(rv, "Failed to disable linkscan on port ", port_);
 }
 
 bool BcmPort::isEnabled() {
@@ -340,14 +337,14 @@ void BcmPort::enable(const std::shared_ptr<Port>& swPort) {
                   swPort->getID());
   }
 
-  // Enable linkscan
-  rv = opennsl_linkscan_mode_set(unit_, port_, OPENNSL_LINKSCAN_MODE_SW);
-  bcmCheckError(rv, "Failed to enable linkscan on port ", swPort->getID());
-
   rv = opennsl_port_enable_set(unit_, port_, true);
   bcmCheckError(rv, "failed to enable port ", swPort->getID());
 }
 
+void BcmPort::enableLinkscan() {
+  int rv = opennsl_linkscan_mode_set(unit_, port_, OPENNSL_LINKSCAN_MODE_SW);
+  bcmCheckError(rv, "Failed to enable linkscan on port ", port_);
+}
 
 void BcmPort::program(const shared_ptr<Port>& port) {
   setIngressVlan(port);

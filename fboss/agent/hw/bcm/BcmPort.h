@@ -50,7 +50,9 @@ class BcmPort {
   void init(bool warmBoot);
 
   void enable(const std::shared_ptr<Port>& swPort);
+  void enableLinkscan();
   void disable(const std::shared_ptr<Port>& swPort);
+  void disableLinkscan();
   void program(const std::shared_ptr<Port>& swPort);
 
   /*
