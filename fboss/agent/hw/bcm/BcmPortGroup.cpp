@@ -131,6 +131,12 @@ std::vector<Port*> BcmPortGroup::getSwPorts(
   std::vector<Port*> ports;
   for (auto bcmPort : allPorts_) {
     auto swPort = bcmPort->getSwitchStatePort(state).get();
+    // Make sure the ports support the configured speed.
+    // We check this even if the port is disabled.
+    if (!bcmPort->supportsSpeed(swPort->getSpeed())) {
+      throw FbossError("Port ", swPort->getID(), " does not support speed ",
+                       static_cast<int>(swPort->getSpeed()));
+    }
     ports.push_back(swPort);
   }
   return ports;
