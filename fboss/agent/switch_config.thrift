@@ -418,7 +418,7 @@ struct AclEntry {
  * single switch/router in the network.
  */
 struct SwitchConfig {
-  1: i64 version = 0
+  1: optional string version
   2: list<Port> ports
   3: list<Vlan> vlans = []
   4: list<VlanPort> vlanPorts = []
