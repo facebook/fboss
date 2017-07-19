@@ -523,6 +523,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   configureRxRateLimiting();
   copyIPv6LinkLocalMcastPackets();
   mmuState_ = queryMmuState();
+  setupCpuPortCounters();
 
   if (FLAGS_enable_port_aggregation) {
     setupTrunking();
@@ -1309,6 +1310,8 @@ void BcmSwitch::updateStats(SwitchStats *switchStats) {
   }
   // Update global statistics.
   updateGlobalStats();
+  // Update cpu or host bound packet stats
+  updateCpuPortCounters();
 }
 
 shared_ptr<BcmSwitchEventCallback> BcmSwitch::registerSwitchEventCallback(

@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "common/stats/MonotonicCounter.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -316,6 +317,8 @@ class BcmSwitch : public BcmSwitchIf {
     return fineGrainedBufferStatsEnabled_;
   }
 
+  opennsl_gport_t getCpuGPort() const;
+
  private:
   enum Flags : uint32_t {
     RX_REGISTERED = 0x01,
@@ -590,6 +593,18 @@ class BcmSwitch : public BcmSwitchIf {
    * Lock to synchronize access to all BCM* data structures
    */
   std::mutex lock_;
-};
 
+  /*
+   *  Counters tracking cpu or host bound packets
+   */
+  struct CpuPortCounter {
+    opennsl_cos_queue_t queueNum;
+    bool isDropCounter;
+    stats::MonotonicCounter counter;
+  };
+  std::vector<CpuPortCounter> cpuPortCounters_;
+
+  void updateCpuPortCounters();
+  void setupCpuPortCounters();
+};
 }} // facebook::fboss

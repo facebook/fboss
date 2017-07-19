@@ -128,21 +128,11 @@ class BcmPort {
   void linkStatusChanged(const std::shared_ptr<Port>& port);
 
  private:
-  class MonotonicCounter : public stats::MonotonicCounter {
-   public:
-    // Inherit stats::MonotonicCounter constructors
-    using stats::MonotonicCounter::MonotonicCounter;
-
-    // Export SUM and RATE by default
-    explicit MonotonicCounter(const std::string& name)
-      : stats::MonotonicCounter(name, stats::SUM, stats::RATE) {}
-  };
-
   // no copy or assignment
   BcmPort(BcmPort const &) = delete;
   BcmPort& operator=(BcmPort const &) = delete;
 
-  MonotonicCounter* getPortCounterIf(const std::string& statName);
+  stats::MonotonicCounter* getPortCounterIf(const std::string& statName);
   bool shouldReportStats() const;
   void reinitPortStats();
   void reinitPortStat(const std::string& newName);
@@ -187,7 +177,7 @@ class BcmPort {
   // The port group this port is a part of
   BcmPortGroup* portGroup_{nullptr};
 
-  std::map<std::string, MonotonicCounter> portCounters_;
+  std::map<std::string, stats::MonotonicCounter> portCounters_;
 
   stats::ExportedStatMapImpl::LockableStat outQueueLen_;
   stats::ExportedHistogramMapImpl::LockableHistogram inPktLengths_;

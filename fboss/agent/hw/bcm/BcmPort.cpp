@@ -37,6 +37,8 @@ using std::chrono::system_clock;
 using std::string;
 using std::shared_ptr;
 
+using facebook::stats::MonotonicCounter;
+
 namespace {
 
 const string kInBytes = "in_bytes";
@@ -147,7 +149,7 @@ void BcmPort::updateName(const std::string& newName) {
   reinitPortStats();
 }
 
-BcmPort::MonotonicCounter* BcmPort::getPortCounterIf(const string& statKey) {
+MonotonicCounter* BcmPort::getPortCounterIf(const string& statKey) {
   auto pcitr = portCounters_.find(statKey);
   return pcitr != portCounters_.end() ? &pcitr->second : nullptr;
 }
@@ -155,9 +157,11 @@ BcmPort::MonotonicCounter* BcmPort::getPortCounterIf(const string& statKey) {
 void BcmPort::reinitPortStat(const string& statKey) {
   auto stat = getPortCounterIf(statKey);
   if (!stat) {
-    portCounters_.emplace(statKey, MonotonicCounter({statName(statKey)}));
+    portCounters_.emplace(
+        statKey,
+        MonotonicCounter({statName(statKey), stats::SUM, stats::RATE}));
   } else {
-    MonotonicCounter newStat{statName(statKey)};
+    MonotonicCounter newStat{statName(statKey), stats::SUM, stats::RATE};
     stat->swap(newStat);
   }
 }

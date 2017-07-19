@@ -107,6 +107,16 @@ BcmSwitch::MmuState BcmSwitch::queryMmuState() const {
   return MmuState::UNKNOWN;
 }
 
+// Update cpu or host bound port statistics
+void BcmSwitch::updateCpuPortCounters() {}
+// API not available in opennsl to support this
+void BcmSwitch::setupCpuPortCounters() {}
+
+opennsl_gport_t BcmSwitch::getCpuGPort() const {
+  // API not available in opennsl
+  return 0;
+}
+
 bool BcmSwitch::startBufferStatCollection() {
   LOG(INFO) << "Buffer stats collection not supported";
   return bufferStatsEnabled_;
