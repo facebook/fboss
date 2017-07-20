@@ -88,7 +88,19 @@ class BcmPort {
   LaneSpeeds supportedLaneSpeeds() const;
 
   bool supportsSpeed(cfg::PortSpeed speed);
+
+  /*
+   * Methods for retreiving the administrative and operational state of the
+   * port according to the SDK.
+   * Both port state methods (isEnabled and isUp) can throw if there is an
+   * error talking to the SDK.
+   */
+  // Return whether we have enabled the port
   bool isEnabled();
+  // Return whether the link status of the port is actually up.
+  // Note: if it is not enabled, return false
+  bool isUp();
+
   cfg::PortSpeed getSpeed() const;
   cfg::PortSpeed getMaxSpeed() const;
 
@@ -103,12 +115,6 @@ class BcmPort {
    * Update this port's statistics.
    */
   void updateStats();
-
-  /**
-   * Get the state of the port. If there is an error in finding the port state,
-   * then an BcmError() exception is thrown.
-   */
-  cfg::PortState getState();
 
   /**
    * Take actions on this port (especially if it is up), so that it will not

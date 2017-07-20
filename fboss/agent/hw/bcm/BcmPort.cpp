@@ -298,6 +298,16 @@ bool BcmPort::isEnabled() {
   return static_cast<bool>(enabled);
 }
 
+bool BcmPort::isUp() {
+  if (!isEnabled()) {
+    return false;
+  }
+  int linkStatus;
+  auto rv = opennsl_port_link_status_get(hw_->getUnit(), port_, &linkStatus);
+  bcmCheckError(rv, "could not find if the port ", port_, " is up or down...");
+  return linkStatus == OPENNSL_PORT_LINK_STATUS_UP;
+}
+
 void BcmPort::enable(const std::shared_ptr<Port>& swPort) {
   if (isEnabled()) {
     // Port is already enabled, don't need to do anything
@@ -440,7 +450,7 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
 
   // If the port is down or disabled its safe to update mode and speed to
   // desired values
-  bool portDown = getState() != cfg::PortState::UP;
+  bool portUp = isUp();
 
   // Update to correct mode and speed settings if the port is down/disabled
   // or if the speed changed. Ideally we would like to always update to the
@@ -456,7 +466,7 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
   // separately. Once that is resolved, we can do a audit to see that if all
   // ports are in desired mode settings, we can make mode changes a first
   // class citizen as well.
-  if (portDown || curSpeed != desiredSpeed) {
+  if (!portUp || curSpeed != desiredSpeed) {
     opennsl_port_if_t desiredMode = getDesiredInterfaceMode(desiredPortSpeed,
                                                         swPort->getID(),
                                                         swPort->getName());
@@ -476,7 +486,7 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
           ret, "failed to set interface type for port ", swPort->getID());
     }
 
-    if (!portDown) {
+    if (portUp) {
       // Changing the port speed causes traffic disruptions, but not doing
       // it would cause inconsistency.  Warn the user.
       LOG(WARNING) << "Changing port speed on up port. This will "
@@ -710,21 +720,6 @@ void BcmPort::updatePktLenHist(
   auto guard = hist->makeLockGuard();
   for (int idx = 0; idx < stats.size(); ++idx) {
     hist->addValueLocked(guard, now.count(), idx, counters[idx]);
-  }
-}
-
-cfg::PortState BcmPort::getState() {
-  if (!isEnabled()) {
-    return cfg::PortState::POWER_DOWN;
-  }
-
-  int linkStatus;
-  auto rv = opennsl_port_link_status_get(hw_->getUnit(), port_, &linkStatus);
-  bcmCheckError(rv, "could not find if the port ", port_, " is up or down...");
-  if (linkStatus == OPENNSL_PORT_LINK_STATUS_UP) {
-    return cfg::PortState::UP;
-  } else {
-    return cfg::PortState::DOWN;
   }
 }
 
