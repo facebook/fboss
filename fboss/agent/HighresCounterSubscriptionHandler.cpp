@@ -39,7 +39,7 @@ inline void SampleSender::publish(unique_ptr<CounterPublication> pub) {
           if (state.isException()) {
             if (!killSwitch->set()) {
               LOG(ERROR) << "Exception sending publication: "
-                         << folly::exceptionStr(state.exception());
+                         << state.exceptionWrapper();
             }
             // else, we were already dying so don't beat a dead horse
           } else {
