@@ -26,7 +26,7 @@ folly::ByteRange Wedge100Platform::defaultLed1Code() {
   return defaultLed0Code();
 }
 
-void Wedge100Platform::setPciPreemphasis(int unit) const {
+void Wedge100Platform::setPciPreemphasis(int /*unit*/) const {
   //stubbed out
 }
 

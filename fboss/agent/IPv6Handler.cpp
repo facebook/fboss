@@ -336,9 +336,10 @@ void IPv6Handler::handleRouterSolicitation(unique_ptr<RxPacket> pkt,
   sw_->sendPacketSwitched(std::move(resp));
 }
 
-void IPv6Handler::handleRouterAdvertisement(unique_ptr<RxPacket> pkt,
-                                            const ICMPHeaders& hdr,
-                                            Cursor cursor) {
+void IPv6Handler::handleRouterAdvertisement(
+    unique_ptr<RxPacket> pkt,
+    const ICMPHeaders& hdr,
+    Cursor /*cursor*/) {
   sw_->portStats(pkt)->ipv6NdpPkt();
   if (!checkNdpPacket(hdr, pkt.get())) {
     return;

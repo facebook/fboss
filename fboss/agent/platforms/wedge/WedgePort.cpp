@@ -44,11 +44,9 @@ void WedgePort::setBcmPort(BcmPort* port) {
  * handling code open source.
  */
 
-void WedgePort::preDisable(bool temporary) {
-}
+void WedgePort::preDisable(bool /*temporary*/) {}
 
-void WedgePort::postDisable(bool temporary) {
-}
+void WedgePort::postDisable(bool /*temporary*/) {}
 
 void WedgePort::preEnable() {
 }
@@ -110,9 +108,13 @@ folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
       std::move(handleError));
 }
 
-void WedgePort::statusIndication(bool enabled, bool link,
-                                 bool ingress, bool egress,
-                                 bool discards, bool errors) {
+void WedgePort::statusIndication(
+    bool enabled,
+    bool link,
+    bool /*ingress*/,
+    bool /*egress*/,
+    bool /*discards*/,
+    bool /*errors*/) {
   linkStatusChanged(link, enabled);
 }
 

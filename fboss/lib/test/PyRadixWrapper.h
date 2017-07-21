@@ -108,7 +108,7 @@ class PyRadixWrapper {
    // Deleter for radix tree.
   class RadixDelete {
    public:
-    static void node_delete_callback(radix_node_t *node, void *arg) {
+    static void node_delete_callback(radix_node_t* node, void* /*arg*/) {
       auto ptr = static_cast<std::shared_ptr<T>*>(node->data);
       delete ptr;
       node->data = nullptr;
@@ -134,7 +134,7 @@ class PyRadixWrapper {
     return radixNode->data;
   }
 
-  void * findClosestRaw(const IPAddrType& ip, int prefix) {
+  void* findClosestRaw(const IPAddrType& ip, int /*prefix*/) {
     auto radixPfx = makePrefix(ip, ip.bitCount());
     auto radixNode = radix_search_best(tree_.get(), radixPfx.get());
     if (!radixNode || !radixNode->data) {

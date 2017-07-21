@@ -111,7 +111,7 @@ class BlockingStateUpdate : public StateUpdate {
     return function_(origState);
   }
 
-  void onError(const std::exception& ex) noexcept override {
+  void onError(const std::exception& /*ex*/) noexcept override {
     // Note that we need to use std::current_exception() here rather than
     // std::make_exception_ptr() -- make_exception_ptr will lose the original
     // exception type information.  SwSwitch guarantees that the exception

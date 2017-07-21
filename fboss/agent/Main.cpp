@@ -223,7 +223,7 @@ class SignalHandler : public AsyncSignalHandler {
     registerSignalHandler(SIGINT);
     registerSignalHandler(SIGTERM);
   }
-  void signalReceived(int signum) noexcept override {
+  void signalReceived(int /*signum*/) noexcept override {
     stopServices_();
     sw_->gracefulExit();
     exit(0);

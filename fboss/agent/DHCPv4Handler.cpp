@@ -139,9 +139,14 @@ bool DHCPv4Handler::isDHCPv4Packet(const UDPHeader& udpHdr) {
          (dstPort == kBootPCPort || dstPort == kBootPSPort);
 }
 
-void DHCPv4Handler::handlePacket(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
-    MacAddress srcMac, MacAddress dstMac, const IPv4Hdr& ipHdr,
-    const UDPHeader& udpHdr, Cursor cursor) {
+void DHCPv4Handler::handlePacket(
+    SwSwitch* sw,
+    std::unique_ptr<RxPacket> pkt,
+    MacAddress srcMac,
+    MacAddress /*dstMac*/,
+    const IPv4Hdr& ipHdr,
+    const UDPHeader& /*udpHdr*/,
+    Cursor cursor) {
   sw->stats()->port(pkt->getSrcPort())->dhcpV4Pkt();
   if (ipHdr.ttl <= 1) {
     sw->stats()->port(pkt->getSrcPort())->dhcpV4BadPkt();
@@ -316,9 +321,11 @@ void DHCPv4Handler::processReply(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
   sendDHCPPacket(sw, ethHdr, ipHdr, udpHdr, dhcpPacketOut);
 }
 
-
-bool DHCPv4Handler::addAgentOptions(SwSwitch* sw, PortID port,
-    IPAddressV4 relayAddr, const DHCPv4Packet& dhcpPacketIn,
+bool DHCPv4Handler::addAgentOptions(
+    SwSwitch* /*sw*/,
+    PortID /*port*/,
+    IPAddressV4 relayAddr,
+    const DHCPv4Packet& dhcpPacketIn,
     DHCPv4Packet& dhcpPacketOut) {
   dhcpPacketOut.clearOptions();
   const auto& optionsIn = dhcpPacketIn.options;
@@ -369,8 +376,11 @@ bool DHCPv4Handler::addAgentOptions(SwSwitch* sw, PortID port,
   return isDHCP;
 }
 
-bool DHCPv4Handler::stripAgentOptions(SwSwitch* sw, PortID port,
-    const DHCPv4Packet& dhcpPacketIn, DHCPv4Packet& dhcpPacketOut) {
+bool DHCPv4Handler::stripAgentOptions(
+    SwSwitch* /*sw*/,
+    PortID /*port*/,
+    const DHCPv4Packet& dhcpPacketIn,
+    DHCPv4Packet& dhcpPacketOut) {
   dhcpPacketOut.clearOptions();
   const auto& optionsIn = dhcpPacketIn.options;
   auto optIndex = 0;

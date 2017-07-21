@@ -101,11 +101,11 @@ class IPv6RAImpl : private folly::AsyncTimeout {
   SwSwitch* const sw_{nullptr};
 };
 
-IPv6RAImpl::IPv6RAImpl(SwSwitch* sw,
-                       const SwitchState* state,
-                       const Interface* intf)
-  : AsyncTimeout(sw->getBackgroundEVB()),
-    sw_(sw) {
+IPv6RAImpl::IPv6RAImpl(
+    SwSwitch* sw,
+    const SwitchState* /*state*/,
+    const Interface* intf)
+    : AsyncTimeout(sw->getBackgroundEVB()), sw_(sw) {
   std::chrono::seconds raInterval(
       intf->getNdpConfig().routerAdvertisementSeconds);
   interval_ = raInterval;

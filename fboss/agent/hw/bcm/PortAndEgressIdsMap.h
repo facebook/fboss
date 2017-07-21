@@ -27,8 +27,8 @@ struct PortAndEgressIdsFields {
   PortAndEgressIdsFields(opennsl_if_t port, EgressIds egressIds) :
     id(port), egressIds(std::move(egressIds)) {}
 
-  template<typename Fn>
-  void forEachChild(Fn fn) {}
+  template <typename Fn>
+  void forEachChild(Fn /*fn*/) {}
 
   const opennsl_port_t id{0};
   EgressIds egressIds;
@@ -71,8 +71,8 @@ class PortAndEgressIds: public NodeBaseT<PortAndEgressIds,
     return folly::dynamic::object;
   }
 
-  static std::shared_ptr<PortAndEgressIds>
-    fromFollyDynamic(const folly::dynamic& json) {
+  static std::shared_ptr<PortAndEgressIds> fromFollyDynamic(
+      const folly::dynamic& /*json*/) {
     CHECK(0); // Not needed yet
     return std::make_shared<PortAndEgressIds>(0, EgressIds());
   }

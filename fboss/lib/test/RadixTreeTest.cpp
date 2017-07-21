@@ -301,11 +301,12 @@ TEST(RadixTree, Erase4) {
 
   // The following tests exercise all these code paths and then some.
   auto deleteCount = 0;
-  auto deleteCallback =
-    [&](const RadixTreeNode<IPAddressV4, int>& node) { ++deleteCount; };
+  auto deleteCallback = [&](const RadixTreeNode<IPAddressV4, int>& /*node*/) {
+    ++deleteCount;
+  };
   RadixTree<IPAddressV4, int> rtree(deleteCallback), rtreeOrig;
   typedef RadixTreeIterator<IPAddressV4, int>::ValueType IterValue;
-  auto counter =  [](int cnt, IterValue i) { return cnt + 1; };
+  auto counter = [](int cnt, IterValue /*i*/) { return cnt + 1; };
   setupTestTree4(rtree);
   setupTestTree4(rtreeOrig);
   // Trees are identical
@@ -602,8 +603,8 @@ TEST(RadixTree, Iterator4) {
   const auto&  crtree = rtree;
   typedef RadixTreeIterator<IPAddressV4, int>::ValueType IterValue;
   typedef RadixTreeConstIterator<IPAddressV4, int>::ValueType CIterValue;
-  auto counter =  [](int cnt, IterValue i) { return cnt + 1; };
-  auto ccounter = [](int cnt, CIterValue i) { return cnt + 1; };
+  auto counter = [](int cnt, IterValue /*i*/) { return cnt + 1; };
+  auto ccounter = [](int cnt, CIterValue /*i*/) { return cnt + 1; };
 
   EXPECT_EQ(rtree.size(), accumulate(rtree.begin(), rtree.end(), 0, counter));
   EXPECT_EQ(crtree.size(), accumulate(crtree.begin(), crtree.end(), 0,
@@ -654,11 +655,12 @@ TEST(RadixTree, Erase6) {
 
   // The following tests exercise all these code paths and then some.
   auto deleteCount = 0;
-  auto deleteCallback =
-    [&](const RadixTreeNode<IPAddressV6, int>& node) { ++deleteCount; };
+  auto deleteCallback = [&](const RadixTreeNode<IPAddressV6, int>& /*node*/) {
+    ++deleteCount;
+  };
   RadixTree<IPAddressV6, int> rtree(deleteCallback), rtreeOrig;
   typedef RadixTreeIterator<IPAddressV6, int>::ValueType IterValue;
-  auto counter =  [](int cnt, IterValue i) { return cnt + 1; };
+  auto counter = [](int cnt, IterValue /*i*/) { return cnt + 1; };
   setupTestTree6(rtree);
   setupTestTree6(rtreeOrig);
   // Trees are identical
@@ -963,8 +965,8 @@ TEST(RadixTree, Iterator6) {
   const auto&  crtree = rtree;
   typedef RadixTreeIterator<IPAddressV6, int>::ValueType IterValue;
   typedef RadixTreeConstIterator<IPAddressV6, int>::ValueType CIterValue;
-  auto counter =  [](int cnt, IterValue i) { return cnt + 1; };
-  auto ccounter = [](int cnt, CIterValue i) { return cnt + 1; };
+  auto counter = [](int cnt, IterValue /*i*/) { return cnt + 1; };
+  auto ccounter = [](int cnt, CIterValue /*i*/) { return cnt + 1; };
 
   EXPECT_EQ(rtree.size(), accumulate(rtree.begin(), rtree.end(), 0, counter));
   EXPECT_EQ(crtree.size(), accumulate(crtree.begin(), crtree.end(), 0,
@@ -1241,8 +1243,8 @@ TEST(RadixTree, MoveConstructible) {
     IterValueIPv4;
   typedef RadixTreeIterator<IPAddress, std::unique_ptr<int>>::ValueType
     IterValueIP;
-  auto counterIPv4 =  [](int cnt, IterValueIPv4 i) { return cnt + 1; };
-  auto counterIP = [](int cnt, IterValueIP i) { return cnt + 1; };
+  auto counterIPv4 = [](int cnt, IterValueIPv4 /*i*/) { return cnt + 1; };
+  auto counterIP = [](int cnt, IterValueIP /*i*/) { return cnt + 1; };
   auto const kInsertCount = 100;
   set<Prefix4> prefixesSeen;
   // Insert a kInsertCount random prefixes
@@ -1341,7 +1343,7 @@ TEST(RadixTree, PyRadixCompare) {
   std::vector<std::pair<IPAddressV4, uint8_t>> inserted;
   typedef RadixTreeIterator<IPAddressV4, NoDefaultConstructibleInt>::ValueType
     IterValue;
-  auto counter =  [](int cnt, IterValue i) { return cnt + 1; };
+  auto counter = [](int cnt, IterValue /*i*/) { return cnt + 1; };
   auto const kInsertCount = 1000;
   set<Prefix4> prefixesSeen;
   // Insert a kInsertCount random prefixes

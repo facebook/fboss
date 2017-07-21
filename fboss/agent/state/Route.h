@@ -37,7 +37,7 @@ struct RouteFields {
   explicit RouteFields(const Prefix& prefix);
   RouteFields(const RouteFields& rf, CopyBehavior copyBehavior);
   template <typename Fn>
-  void forEachChild(Fn fn) {}
+  void forEachChild(Fn /*fn*/) {}
   bool operator==(const RouteFields& rf) const;
   /*
    * Serialize to folly::dynamic

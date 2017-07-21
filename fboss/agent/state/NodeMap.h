@@ -45,14 +45,14 @@ struct NodeMapFields {
 };
 
 struct NodeMapNoExtraFields {
-  template<typename Fn> void forEachChild(Fn fn) {}
+  template <typename Fn>
+  void forEachChild(Fn /*fn*/) {}
 
   folly::dynamic toFollyDynamic() const {
     return folly::dynamic::object;
   }
 
-  static NodeMapNoExtraFields
-  fromFollyDynamic(const folly::dynamic& json) {
+  static NodeMapNoExtraFields fromFollyDynamic(const folly::dynamic& /*json*/) {
     return NodeMapNoExtraFields();
   }
 };

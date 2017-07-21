@@ -19,7 +19,5 @@ using std::unique_ptr;
 
 namespace facebook { namespace fboss {
 
-SimHandler::SimHandler(SwSwitch* sw, SimSwitch* hw)
-  : ThriftHandler(sw) {
-}
+SimHandler::SimHandler(SwSwitch* sw, SimSwitch* /*hw*/) : ThriftHandler(sw) {}
 }} // facebook::fboss

@@ -24,7 +24,7 @@ std::map<std::string, std::string> WedgePlatform::loadConfig() {
   return config;
 }
 
-void WedgePlatform::onHwInitialized(SwSwitch* sw) {
+void WedgePlatform::onHwInitialized(SwSwitch* /*sw*/) {
   // TODO: Initialize the LEDs.  The LED handling code isn't open source yet,
   // but should be soon once we get approval for the required OpenNSL APIs.
 }

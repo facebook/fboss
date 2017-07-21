@@ -292,7 +292,7 @@ void TunIntf::disableIPv6AddrGenMode(int ifIndex) {
   return;
 }
 
-void TunIntf::handlerReady(uint16_t events) noexcept {
+void TunIntf::handlerReady(uint16_t /*events*/) noexcept {
   CHECK(fd_ != -1);
 
   // Since this is L3 packet size, we should also reserve some space for L2

@@ -24,11 +24,11 @@ void SwSwitch::initThread(folly::StringPiece name) {
   folly::setThreadName(pthreadName);
 }
 
-void SwSwitch::publishInitTimes(std::string name, const float& time) {}
+void SwSwitch::publishInitTimes(std::string /*name*/, const float& /*time*/) {}
 
 void SwSwitch::publishStats() {}
 
-void SwSwitch::publishSwitchInfo(struct HwInitResult hwInitRet) {}
+void SwSwitch::publishSwitchInfo(struct HwInitResult /*hwInitRet*/) {}
 
 void SwSwitch::logLinkStateEvent(PortID port, bool up) {
   std::string logMsg = folly::sformat("LinkState: Port {0} {1}",

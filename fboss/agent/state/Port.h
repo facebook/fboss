@@ -39,8 +39,8 @@ struct PortFields {
     : id(id),
       name(name) {}
 
-  template<typename Fn>
-  void forEachChild(Fn fn) {}
+  template <typename Fn>
+  void forEachChild(Fn /*fn*/) {}
 
   folly::dynamic toFollyDynamic() const;
   static PortFields fromFollyDynamic(const folly::dynamic& json);

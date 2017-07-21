@@ -36,8 +36,7 @@ HwSwitch* SimPlatform::getHwSwitch() const {
   return hw_.get();
 }
 
-void SimPlatform::onHwInitialized(SwSwitch* sw) {
-}
+void SimPlatform::onHwInitialized(SwSwitch* /*sw*/) {}
 
 unique_ptr<ThriftHandler> SimPlatform::createHandler(SwSwitch* sw) {
   SimSwitch* sim = static_cast<SimSwitch*>(sw->getHw());

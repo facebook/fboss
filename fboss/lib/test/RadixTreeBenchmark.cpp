@@ -193,7 +193,7 @@ BENCHMARK_RELATIVE(RadixTreeLongestMatch6) {
 
 }
 
-int main (int argc, char *argv[]) {
+int main(int /*argc*/, char* /*argv*/ []) {
   vector<Prefix4> inserted4;
   while (insertSet4.size() < FLAGS_insert_count) {
     auto mask = folly::Random::rand32(32);

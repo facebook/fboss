@@ -45,8 +45,8 @@ struct NeighborEntryFields {
     CHECK(pending == NeighborState::PENDING);
   }
 
-  template<typename Fn>
-  void forEachChild(Fn fn) {}
+  template <typename Fn>
+  void forEachChild(Fn /*fn*/) {}
   /*
    * Serialize to folly::dynamic
    */

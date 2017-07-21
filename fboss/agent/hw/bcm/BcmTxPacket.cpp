@@ -23,14 +23,14 @@ namespace {
 
 using namespace facebook::fboss;
 
-void freeTxBuf(void *ptr, void* arg) {
+void freeTxBuf(void* /*ptr*/, void* arg) {
   opennsl_pkt_t* pkt = reinterpret_cast<opennsl_pkt_t*>(arg);
   int rv = opennsl_pkt_free(pkt->unit, pkt);
   bcmLogError(rv, "Failed to free packet");
   BcmStats::get()->txPktFree();
 }
 
-void txCallback(int unit, opennsl_pkt_t* pkt, void* cookie) {
+void txCallback(int /*unit*/, opennsl_pkt_t* pkt, void* cookie) {
   // Put the BcmTxPacket back into a unique_ptr.
   // This will delete it when we return.
   unique_ptr<facebook::fboss::BcmTxPacket> bcmTxPkt(

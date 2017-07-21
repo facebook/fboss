@@ -1302,12 +1302,13 @@ void BcmSwitch::unregisterSwitchEventCallback(opennsl_switch_event_t eventID) {
   return BcmSwitchEventUtils::unregisterSwitchEventCallback(unit_, eventID);
 }
 
-void BcmSwitch::updateThreadLocalSwitchStats(SwitchStats *switchStats) {
+void BcmSwitch::updateThreadLocalSwitchStats(SwitchStats* /*switchStats*/) {
   // TODO
 }
 
-void BcmSwitch::updateThreadLocalPortStats(PortID portID,
-    PortStats *portStats) {
+void BcmSwitch::updateThreadLocalPortStats(
+    PortID /*portID*/,
+    PortStats* /*portStats*/) {
   // TODO
 }
 
@@ -1331,8 +1332,9 @@ opennsl_if_t BcmSwitch::getToCPUEgressId() const {
   }
 }
 
-bool BcmSwitch::getAndClearNeighborHit(RouterID vrf,
-                                       folly::IPAddress& ip) {
+bool BcmSwitch::getAndClearNeighborHit(
+    RouterID /*vrf*/,
+    folly::IPAddress& /*ip*/) {
   // TODO(aeckert): t20059623 This should look in the host table and
   // check the hit bit, but that currently requires grabbing the main
   // lock and opens up the possibility of bg thread getting stuck

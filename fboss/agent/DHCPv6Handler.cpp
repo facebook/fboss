@@ -110,9 +110,14 @@ bool DHCPv6Handler::isForDHCPv6RelayOrServer(const UDPHeader& udpHdr) {
   return (udpHdr.dstPort == DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT);
 }
 
-void DHCPv6Handler::handlePacket(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
-    MacAddress srcMac, MacAddress dstMac, const IPv6Hdr& ipHdr,
-    const UDPHeader& udpHdr, Cursor cursor) {
+void DHCPv6Handler::handlePacket(
+    SwSwitch* sw,
+    std::unique_ptr<RxPacket> pkt,
+    MacAddress srcMac,
+    MacAddress dstMac,
+    const IPv6Hdr& ipHdr,
+    const UDPHeader& /*udpHdr*/,
+    Cursor cursor) {
   sw->stats()->port(pkt->getSrcPort())->dhcpV6Pkt();
   // Parse dhcp packet
   DHCPv6Packet dhcp6Pkt;
@@ -136,9 +141,13 @@ void DHCPv6Handler::handlePacket(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
   }
 }
 
-void DHCPv6Handler::processDHCPv6Packet(SwSwitch* sw,
-    std::unique_ptr<RxPacket> pkt, MacAddress srcMac, MacAddress dstMac,
-    const IPv6Hdr& ipHdr, const DHCPv6Packet& dhcpPacket) {
+void DHCPv6Handler::processDHCPv6Packet(
+    SwSwitch* sw,
+    std::unique_ptr<RxPacket> pkt,
+    MacAddress srcMac,
+    MacAddress /*dstMac*/,
+    const IPv6Hdr& ipHdr,
+    const DHCPv6Packet& dhcpPacket) {
   auto vlanId = pkt->getSrcVlan();
   auto states = sw->getState();
   auto vlan = states->getVlans()->getVlanIf(vlanId);
@@ -230,10 +239,13 @@ void DHCPv6Handler::processDHCPv6RelayForward(SwSwitch* sw,
       dhcpPacket.computePacketLength(), serializeBody);
 }
 
-void DHCPv6Handler::processDHCPv6RelayReply(SwSwitch* sw,
-    std::unique_ptr<RxPacket> pkt, MacAddress srcMac, MacAddress dstMac,
-    const IPv6Hdr& ipHdr, DHCPv6Packet& dhcpPacket) {
-
+void DHCPv6Handler::processDHCPv6RelayReply(
+    SwSwitch* sw,
+    std::unique_ptr<RxPacket> pkt,
+    MacAddress /*srcMac*/,
+    MacAddress /*dstMac*/,
+    const IPv6Hdr& ipHdr,
+    DHCPv6Packet& dhcpPacket) {
   auto state = sw->getState();
 
   auto switchIp = state->getDhcpV6ReplySrc();

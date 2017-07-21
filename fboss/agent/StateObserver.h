@@ -33,7 +33,7 @@ class AutoRegisterStateObserver : public StateObserver {
   // destroyed, but the unregisterStateObserver call is blocked. If someone
   // has a pointer to the observer, they could call a pure virtual method
   // during that time if this didn't exist.
-  void stateUpdated(const StateDelta& delta) override {}
+  void stateUpdated(const StateDelta& /*delta*/) override {}
 
  private:
   SwSwitch* sw_{nullptr};

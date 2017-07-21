@@ -97,9 +97,13 @@ void unregisterSwitchEventCallback(const int unit,
 }
 
 // central location for all switch event callbacks
-void callbackDispatch(int unit,
-    opennsl_switch_event_t eventID, uint32_t arg1, uint32_t arg2,
-    uint32_t arg3, void* userdata) {
+void callbackDispatch(
+    int unit,
+    opennsl_switch_event_t eventID,
+    uint32_t arg1,
+    uint32_t arg2,
+    uint32_t arg3,
+    void* /*userdata*/) {
   std::shared_ptr<BcmSwitchEventCallback> callbackObj;
   SYNCHRONIZED_CONST(callbacks) {
     auto unitCallbacks = callbacks.find(unit);

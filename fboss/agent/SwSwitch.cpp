@@ -700,7 +700,7 @@ void SwSwitch::handlePendingUpdates() {
       // as a state update at the beginning
       queueStateUpdateForGettingHwInSync(
           kOutOfSyncStateUpdate,
-          [newDesiredState](const std::shared_ptr<SwitchState>& oldState) {
+          [newDesiredState](const std::shared_ptr<SwitchState>& /*oldState*/) {
             return newDesiredState;
           });
       if (!isExiting() && !oldOutOfSync) {

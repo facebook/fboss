@@ -53,8 +53,8 @@ struct InterfaceFields {
    */
   folly::dynamic toFollyDynamic() const;
 
-  template<typename Fn>
-  void forEachChild(Fn fn) {}
+  template <typename Fn>
+  void forEachChild(Fn /*fn*/) {}
 
   const InterfaceID id;
   RouterID routerID;

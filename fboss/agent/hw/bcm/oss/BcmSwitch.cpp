@@ -66,25 +66,25 @@ void BcmSwitch::stopLinkscanThread() {
                              << opennsl_errmsg(rv);
 }
 
-
 std::unique_ptr<PacketTraceInfo> BcmSwitch::getPacketTrace(
-    std::unique_ptr<MockRxPacket> pkt) {
+    std::unique_ptr<MockRxPacket> /*pkt*/) {
   return nullptr;
 }
 
-int BcmSwitch::getHighresSamplers(HighresSamplerList* samplers,
-                                  const std::string& namespaceString,
-                                  const std::set<CounterRequest>& counterSet) {
+int BcmSwitch::getHighresSamplers(
+    HighresSamplerList* /*samplers*/,
+    const std::string& /*namespaceString*/,
+    const std::set<CounterRequest>& /*counterSet*/) {
   return 0;
 }
 
 void BcmSwitch::exportSdkVersion() const {}
 
-void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift> *l2Table) {
+void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift>* /*l2Table*/) {
   return;
 }
 
-void BcmSwitch::initFieldProcessor(bool isWarmBoot) const {
+void BcmSwitch::initFieldProcessor(bool /*isWarmBoot*/) const {
   // API not available in opennsl
 }
 
@@ -98,10 +98,10 @@ void BcmSwitch::createAclGroup() {
 
 // Bcm's ContentAware Processing engine API is not open sourced yet
 void BcmSwitch::processChangedAcl(
-  const std::shared_ptr<AclEntry>& oldAcl,
-  const std::shared_ptr<AclEntry>& newAcl) {}
-void BcmSwitch::processAddedAcl(const std::shared_ptr<AclEntry>& acl) {}
-void BcmSwitch::processRemovedAcl(const std::shared_ptr<AclEntry>& acl) {}
+    const std::shared_ptr<AclEntry>& /*oldAcl*/,
+    const std::shared_ptr<AclEntry>& /*newAcl*/) {}
+void BcmSwitch::processAddedAcl(const std::shared_ptr<AclEntry>& /*acl*/) {}
+void BcmSwitch::processRemovedAcl(const std::shared_ptr<AclEntry>& /*acl*/) {}
 
 BcmSwitch::MmuState BcmSwitch::queryMmuState() const {
   return MmuState::UNKNOWN;

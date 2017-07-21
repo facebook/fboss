@@ -29,20 +29,20 @@ class MockRouteLogger : public RouteLogger<AddrT> {
  public:
   void logAddedRoute(
       const std::shared_ptr<Route<AddrT>>& newRoute,
-      const std::vector<std::string>& identifiers) override {
+      const std::vector<std::string>& /*identifiers*/) override {
     added.push_back(newRoute->str());
   }
 
   void logChangedRoute(
       const std::shared_ptr<Route<AddrT>>& oldRoute,
       const std::shared_ptr<Route<AddrT>>& newRoute,
-      const std::vector<std::string>& identifiers) override {
+      const std::vector<std::string>& /*identifiers*/) override {
     changed.push_back({oldRoute->str(), newRoute->str()});
   }
 
   void logRemovedRoute(
       const std::shared_ptr<Route<AddrT>>& oldRoute,
-      const std::vector<std::string>& identifiers) override {
+      const std::vector<std::string>& /*identifiers*/) override {
     removed.push_back(oldRoute->str());
   }
 

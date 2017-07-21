@@ -394,8 +394,10 @@ void BcmProcessor::setFEC(opennsl_port_t port, bool disableFEC) {
       unit_, port, BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION, desiredFEC);
 }
 
-opennsl_rx_t BcmProcessor::lldpPktHandler(int unit, opennsl_pkt_t* nslPkt,
-                                          void* cookie) {
+opennsl_rx_t BcmProcessor::lldpPktHandler(
+    int /*unit*/,
+    opennsl_pkt_t* nslPkt,
+    void* /*cookie*/) {
   // Ignore packets smaller than the minimum ethernet frame size
   int len = nslPkt->pkt_len;
   LOG(INFO) << "Received packet of size " << len;

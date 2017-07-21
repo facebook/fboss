@@ -31,8 +31,10 @@ MockHwSwitch::MockHwSwitch(MockPlatform *platform) :
     .WillByDefault(Invoke([=](TxPacket* pkt) -> bool {
           delete pkt; return true; } ));
   ON_CALL(*this, sendPacketOutOfPort_(_, _))
-    .WillByDefault(Invoke([=](TxPacket* pkt, PortID port) -> bool {
-          delete pkt; return true; } ));
+      .WillByDefault(Invoke([=](TxPacket* pkt, PortID /*port*/) -> bool {
+        delete pkt;
+        return true;
+      }));
 }
 
 std::unique_ptr<TxPacket> MockHwSwitch::allocatePacket(uint32_t size) {

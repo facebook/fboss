@@ -52,8 +52,10 @@ struct NeighborResponseTableFields {
 
   NeighborResponseTableFields() {}
   explicit NeighborResponseTableFields(Table&& t) : table(std::move(t)) {}
-  NeighborResponseTableFields(const NeighborResponseTableFields& other,
-                         Table t) : table(std::move(t)) {}
+  NeighborResponseTableFields(
+      const NeighborResponseTableFields& /*other*/,
+      Table t)
+      : table(std::move(t)) {}
 
   /*
    * Serialize to folly::dynamic
@@ -65,8 +67,8 @@ struct NeighborResponseTableFields {
   static NeighborResponseTableFields fromFollyDynamic(
       const folly::dynamic& entry);
 
-  template<typename Fn>
-  void forEachChild(Fn fn) {};
+  template <typename Fn>
+  void forEachChild(Fn /*fn*/){};
 
   Table table;
 };

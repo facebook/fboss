@@ -54,10 +54,11 @@ ArpHandler::ArpHandler(SwSwitch* sw)
   : sw_(sw) {
 }
 
-void ArpHandler::handlePacket(unique_ptr<RxPacket> pkt,
-                              MacAddress dst,
-                              MacAddress src,
-                              Cursor cursor) {
+void ArpHandler::handlePacket(
+    unique_ptr<RxPacket> pkt,
+    MacAddress /*dst*/,
+    MacAddress /*src*/,
+    Cursor cursor) {
   PortID port = pkt->getSrcPort();
   auto stats = sw_->stats();
   stats->port(port)->arpPkt();

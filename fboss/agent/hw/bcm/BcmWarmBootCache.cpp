@@ -394,8 +394,11 @@ bool BcmWarmBootCache::fillVlanPortInfo(Vlan* vlan) {
   return false;
 }
 
-int BcmWarmBootCache::hostTraversalCallback(int unit, int index,
-    opennsl_l3_host_t* host, void* userData) {
+int BcmWarmBootCache::hostTraversalCallback(
+    int /*unit*/,
+    int /*index*/,
+    opennsl_l3_host_t* host,
+    void* userData) {
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
   auto ip = host->l3a_flags & OPENNSL_L3_IP6 ?
     IPAddress::fromBinary(ByteRange(host->l3a_ip6_addr,
@@ -408,10 +411,11 @@ int BcmWarmBootCache::hostTraversalCallback(int unit, int index,
   return 0;
 }
 
-int BcmWarmBootCache::egressTraversalCallback(int unit,
-                                              EgressId egressId,
-                                              opennsl_l3_egress_t* egress,
-                                              void* userData) {
+int BcmWarmBootCache::egressTraversalCallback(
+    int /*unit*/,
+    EgressId egressId,
+    opennsl_l3_egress_t* egress,
+    void* userData) {
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
   CHECK(cache->egressId2EgressAndBool_.find(egressId) ==
         cache->egressId2EgressAndBool_.end())
@@ -453,8 +457,11 @@ int BcmWarmBootCache::egressTraversalCallback(int unit,
   return 0;
 }
 
-int BcmWarmBootCache::routeTraversalCallback(int unit, int index,
-    opennsl_l3_route_t* route, void* userData) {
+int BcmWarmBootCache::routeTraversalCallback(
+    int /*unit*/,
+    int /*index*/,
+    opennsl_l3_route_t* route,
+    void* userData) {
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
   bool isIPv6 = route->l3a_flags & OPENNSL_L3_IP6;
   auto ip = isIPv6 ? IPAddress::fromBinary(ByteRange(
@@ -479,9 +486,12 @@ int BcmWarmBootCache::routeTraversalCallback(int unit, int index,
   return 0;
 }
 
-int BcmWarmBootCache::ecmpEgressTraversalCallback(int unit,
-    opennsl_l3_egress_ecmp_t *ecmp, int intfCount, opennsl_if_t *intfArray,
-    void *userData) {
+int BcmWarmBootCache::ecmpEgressTraversalCallback(
+    int /*unit*/,
+    opennsl_l3_egress_ecmp_t* ecmp,
+    int intfCount,
+    opennsl_if_t* intfArray,
+    void* userData) {
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
   EgressIds egressIds;
   if (cache->hwSwitchEcmp2EgressIdsPopulated_) {

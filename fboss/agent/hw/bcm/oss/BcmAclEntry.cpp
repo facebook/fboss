@@ -11,11 +11,13 @@
 
 namespace facebook { namespace fboss {
 
-BcmAclRange::BcmAclRange(BcmSwitch* hw, const AclRange& range) {}
+BcmAclRange::BcmAclRange(BcmSwitch* /*hw*/, const AclRange& /*range*/) {}
 BcmAclRange::~BcmAclRange() {}
-BcmAclEntry::BcmAclEntry(BcmSwitch* hw, int gid,
-  const std::shared_ptr<AclEntry>& acl,
-  const BcmAclRanges& ranges) {}
+BcmAclEntry::BcmAclEntry(
+    BcmSwitch* /*hw*/,
+    int /*gid*/,
+    const std::shared_ptr<AclEntry>& /*acl*/,
+    const BcmAclRanges& /*ranges*/) {}
 BcmAclEntry::~BcmAclEntry() {}
 
 }} // facebook::fboss

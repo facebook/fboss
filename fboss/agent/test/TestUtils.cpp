@@ -218,7 +218,7 @@ void waitForStateUpdates(SwSwitch* sw) {
   // so we can simply perform a blocking no-op update.  When it is done
   // we can be sure that all previously scheduled updates have also been
   // applied.
-  auto noopUpdate = [](const shared_ptr<SwitchState>& state) {
+  auto noopUpdate = [](const shared_ptr<SwitchState>& /*state*/) {
     return shared_ptr<SwitchState>();
   };
   sw->updateStateBlocking("waitForStateUpdates", noopUpdate);

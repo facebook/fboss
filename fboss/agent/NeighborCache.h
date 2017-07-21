@@ -171,7 +171,7 @@ class NeighborCache {
 
  private:
   // This should only be called by a NeighborCacheEntry
-  virtual void probeFor(AddressType ip) const {
+  virtual void probeFor(AddressType /*ip*/) const {
     LOG(DFATAL) << " Only derived class probeFor should ever be called";
   }
 

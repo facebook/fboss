@@ -21,15 +21,15 @@ namespace facebook { namespace fboss {
 void BcmPort::disablePause() {}
 void BcmPort::setKR4Ability() {}
 void BcmPort::prepareForGracefulExit() {}
-void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {}
+void BcmPort::setFEC(const std::shared_ptr<Port>& /*swPort*/) {}
 
 bool BcmPort::isFECEnabled() {
   return false;
 }
 
 void BcmPort::setAdditionalStats(
-    std::chrono::seconds now,
-    HwPortStats* curPortStats) {}
+    std::chrono::seconds /*now*/,
+    HwPortStats* /*curPortStats*/) {}
 
 bool BcmPort::shouldReportStats() const {
   return true;

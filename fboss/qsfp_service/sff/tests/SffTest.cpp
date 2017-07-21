@@ -138,8 +138,11 @@ int SffTransceiver::readTransceiver(int dataAddress, int offset,
   return read;
 }
 
-int SffTransceiver::writeTransceiver(int dataAddress, int offset,
-                            int len, uint8_t* fieldValue) {
+int SffTransceiver::writeTransceiver(
+    int /*dataAddress*/,
+    int offset,
+    int len,
+    uint8_t* fieldValue) {
   /*
    * This obviously depends on the transceiver parsing code only
    * using the write function to change the page to query.

@@ -49,10 +49,11 @@ void LldpManager::stop() {
   f.get();
 }
 
-void LldpManager::handlePacket(std::unique_ptr<RxPacket> pkt,
-                               folly::MacAddress dst,
-                               folly::MacAddress src,
-                               folly::io::Cursor cursor) {
+void LldpManager::handlePacket(
+    std::unique_ptr<RxPacket> pkt,
+    folly::MacAddress /*dst*/,
+    folly::MacAddress src,
+    folly::io::Cursor cursor) {
   LinkNeighbor neighbor;
   bool ret = neighbor.parseLldpPdu(pkt->getSrcPort(), pkt->getSrcVlan(),
                                    src, ETHERTYPE_LLDP, &cursor);
@@ -128,9 +129,10 @@ void writeTlv(uint16_t type, const ByteRange& value,
   cursor->push(value.data(), value.size());
 }
 
-void LldpManager::sendLldpInfo(SwSwitch* sw,
-                               const std::shared_ptr<SwitchState>& swState,
-                               const std::shared_ptr<Port>& port) {
+void LldpManager::sendLldpInfo(
+    SwSwitch* sw,
+    const std::shared_ptr<SwitchState>& /*swState*/,
+    const std::shared_ptr<Port>& port) {
   MacAddress cpuMac = sw->getPlatform()->getLocalMac();
   const size_t kMaxLen = 64;
   char hostname[kMaxLen];

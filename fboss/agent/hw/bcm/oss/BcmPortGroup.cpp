@@ -15,6 +15,5 @@ namespace facebook { namespace fboss {
 int BcmPortGroup::retrieveActiveLanes() const {
   return 0;
 }
-void BcmPortGroup::setActiveLanes(LaneMode laneMode) {}
-
+void BcmPortGroup::setActiveLanes(LaneMode /*laneMode*/) {}
 }} // namespace facebook::fboss

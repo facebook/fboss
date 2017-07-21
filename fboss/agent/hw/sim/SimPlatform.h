@@ -29,8 +29,8 @@ class SimPlatform : public Platform {
   }
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
-  void getProductInfo(ProductInfo& info) override {
-    // Nothing to do
+  void getProductInfo(ProductInfo& /*info*/) override{
+      // Nothing to do
   };
   TransceiverIdxThrift getPortMapping(PortID /* unused */) const override {
     return TransceiverIdxThrift();

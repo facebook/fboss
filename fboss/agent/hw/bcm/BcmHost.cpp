@@ -597,10 +597,10 @@ void BcmHostTable::linkStateChangedMaybeLocked(opennsl_port_t port, bool up,
 
 int BcmHostTable::removeAllEgressesFromEcmpCallback(
     int unit,
-    opennsl_l3_egress_ecmp_t *ecmp,
-    int intfCount,
-    opennsl_if_t *intfArray,
-    void *userData) {
+    opennsl_l3_egress_ecmp_t* ecmp,
+    int /*intfCount*/,
+    opennsl_if_t* /*intfArray*/,
+    void* userData) {
   Paths* paths = static_cast<Paths*>(userData);
   for (const auto& egrId : *paths) {
     BcmEcmpEgress::removeEgressIdHwNotLocked(unit, ecmp->ecmp_intf, egrId);

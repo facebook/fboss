@@ -199,7 +199,7 @@ TxMatchFn checkICMPv6Pkt(MacAddress srcMac, IPAddressV6 srcIP,
 TxMatchFn checkNeighborAdvert(MacAddress srcMac, IPAddressV6 srcIP,
                               MacAddress dstMac, IPAddressV6 dstIP,
                               VlanID vlan, uint8_t flags) {
-  auto checkPayload = [=](Cursor* cursor, uint32_t length) {
+  auto checkPayload = [=](Cursor* cursor, uint32_t /*length*/) {
     auto parsedFlags = cursor->read<uint8_t>();
     checkField(flags, parsedFlags, "NA flags");
     checkField(0, cursor->read<uint8_t>(), "reserved1");
@@ -226,7 +226,7 @@ TxMatchFn checkNeighborAdvert(MacAddress srcMac, IPAddressV6 srcIP,
 TxMatchFn checkNeighborSolicitation(MacAddress srcMac, IPAddressV6 srcIP,
                                     MacAddress dstMac, IPAddressV6 dstIP,
                                     IPAddressV6 targetIP, VlanID vlan) {
-  auto checkPayload = [=](Cursor* cursor, uint32_t length) {
+  auto checkPayload = [=](Cursor* cursor, uint32_t /*length*/) {
     auto reserved = cursor->read<uint32_t>();
     checkField(0, reserved, "NS reserved field");
     auto parsedTargetIP = PktUtil::readIPv6(cursor);

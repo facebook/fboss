@@ -25,9 +25,8 @@ using std::string;
 
 namespace facebook { namespace fboss {
 
-SimSwitch::SimSwitch(SimPlatform* platform, uint32_t numPorts)
-  : numPorts_(numPorts) {
-}
+SimSwitch::SimSwitch(SimPlatform* /*platform*/, uint32_t numPorts)
+    : numPorts_(numPorts) {}
 
 HwInitResult SimSwitch::init(HwSwitch::Callback* callback) {
   HwInitResult ret;
@@ -52,15 +51,15 @@ std::unique_ptr<TxPacket> SimSwitch::allocatePacket(uint32_t size) {
   return make_unique<MockTxPacket>(size);
 }
 
-bool SimSwitch::sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept {
+bool SimSwitch::sendPacketSwitched(std::unique_ptr<TxPacket> /*pkt*/) noexcept {
   // TODO
   ++txCount_;
   return true;
 }
 
 bool SimSwitch::sendPacketOutOfPort(
-    std::unique_ptr<TxPacket> pkt,
-    PortID portID) noexcept {
+    std::unique_ptr<TxPacket> /*pkt*/,
+    PortID /*portID*/) noexcept {
   // TODO
   ++txCount_;
   return true;

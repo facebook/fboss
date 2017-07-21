@@ -29,8 +29,7 @@ constexpr auto wbEnvVar = "SOC_BOOT_FLAGS";
 constexpr auto wbFlag = "0x200000";
 }
 
-
-BcmUnit::BcmUnit(int deviceIndex) {
+BcmUnit::BcmUnit(int /*deviceIndex*/) {
   // For now we assume that the unit number is 0. This will be changed once
   // opennsl exposes interfaces to determine which units are on the system
   unit_ = 0;
@@ -46,8 +45,9 @@ BcmUnit::~BcmUnit() {
   BcmAPI::unitDestroyed(this);
 }
 
-void BcmUnit::detach(const std::string& switchStateFile,
-    folly::dynamic& switchState) {
+void BcmUnit::detach(
+    const std::string& /*switchStateFile*/,
+    folly::dynamic& /*switchState*/) {
   attached_.store(false, std::memory_order_release);
 
   // Clean up SDK state, without touching the hardware
@@ -95,9 +95,10 @@ BootType BcmUnit::bootType() {
   return wbHelper_->canWarmBoot() ? BootType::WARM_BOOT : BootType::COLD_BOOT;
 }
 
-void BcmUnit::rawRegisterWrite(uint16_t phyID,
-                               uint8_t reg,
-                               uint16_t data) {
+void BcmUnit::rawRegisterWrite(
+    uint16_t /*phyID*/,
+    uint8_t /*reg*/,
+    uint16_t /*data*/) {
   // stubbed out
 }
 

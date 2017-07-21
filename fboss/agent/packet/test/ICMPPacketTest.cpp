@@ -37,7 +37,7 @@ using folly::IPAddressV6;
 using folly::MacAddress;
 using std::unique_ptr;
 
-auto emptyBody = [](RWPrivateCursor* cursor) {};
+auto emptyBody = [](RWPrivateCursor* /*cursor*/) {};
 
 IPv4Hdr makeIPv4Hdr() {
   const uint8_t version = IPV4_VERSION;
