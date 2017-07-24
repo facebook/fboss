@@ -10,6 +10,7 @@
 
 from fboss.cli.utils import utils
 from fboss.thrift_clients import FbossAgentClient, QsfpServiceClient
+import pickle
 
 
 # Parent Class for all commands
@@ -21,12 +22,21 @@ class FbossCmd(object):
         self._hostname = cli_opts.hostname
         self._port = cli_opts.port
         self._timeout = cli_opts.timeout
+        self._snapshot_file = cli_opts.snapshot_file
         self._client = None
 
     def _create_agent_client(self):
         args = [self._hostname, self._port]
         if self._timeout:
             args.append(self._timeout)
+
+        if self._snapshot_file is not None:
+            snap_client = pickle.load(open(self._snapshot_file, "rb"))
+            try:
+                return snap_client[self._hostname]['agent']
+            except KeyError:
+                print("Please specify the host the snapshot was taken of")
+                exit(0)
 
         return FbossAgentClient(*args)
 
@@ -38,6 +48,7 @@ class FbossCmd(object):
 
 # --- All generic commands below -- #
 
+
 class NeighborFlushCmd(FbossCmd):
     def run(self, ip, vlan):
         bin_ip = utils.ip_to_binary(ip)
@@ -45,6 +56,7 @@ class NeighborFlushCmd(FbossCmd):
         client = self._create_agent_client()
         num_entries = client.flushNeighborEntry(bin_ip, vlan_id)
         print('Flushed {} entries'.format(num_entries))
+
 
 class PrintNeighborTableCmd(FbossCmd):
     def print_table(self, entries, name, width, client=None):
