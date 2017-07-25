@@ -51,4 +51,18 @@ class BcmSwitchEventUnitFatalErrorCallback : public BcmSwitchEventCallback {
                 const uint32_t arg3) override;
 };
 
+/**
+ * Handler for non-fatal BCM unit errors. These should just log (and
+ * potentially count) the errors.
+ */
+class BcmSwitchEventUnitNonFatalErrorCallback : public BcmSwitchEventCallback {
+ public:
+  BcmSwitchEventUnitNonFatalErrorCallback() {}
+  ~BcmSwitchEventUnitNonFatalErrorCallback() override {}
+
+  void callback(const int unit, const opennsl_switch_event_t eventID,
+                const uint32_t arg1, const uint32_t arg2,
+                const uint32_t arg3) override;
+};
+
 }} // facebook::fboss

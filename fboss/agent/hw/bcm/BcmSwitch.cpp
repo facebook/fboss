@@ -433,17 +433,18 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   // Add callbacks for unit and parity errors as early as possible to handle
   // critical events
   BcmSwitchEventUtils::initUnit(unit_);
-  auto unitErrorCallback = make_shared<BcmSwitchEventUnitFatalErrorCallback>();
+  auto fatalCob = make_shared<BcmSwitchEventUnitFatalErrorCallback>();
+  auto nonFatalCob = make_shared<BcmSwitchEventUnitNonFatalErrorCallback>();
   BcmSwitchEventUtils::registerSwitchEventCallback(
-      unit_, OPENNSL_SWITCH_EVENT_STABLE_FULL, unitErrorCallback);
+      unit_, OPENNSL_SWITCH_EVENT_STABLE_FULL, fatalCob);
   BcmSwitchEventUtils::registerSwitchEventCallback(
-      unit_, OPENNSL_SWITCH_EVENT_STABLE_ERROR, unitErrorCallback);
+      unit_, OPENNSL_SWITCH_EVENT_STABLE_ERROR, fatalCob);
   BcmSwitchEventUtils::registerSwitchEventCallback(
-      unit_, OPENNSL_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN, unitErrorCallback);
+      unit_, OPENNSL_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN, fatalCob);
   BcmSwitchEventUtils::registerSwitchEventCallback(
-      unit_, OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE, unitErrorCallback);
+      unit_, OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE, fatalCob);
   BcmSwitchEventUtils::registerSwitchEventCallback(
-      unit_, OPENNSL_SWITCH_EVENT_PARITY_ERROR, unitErrorCallback);
+      unit_, OPENNSL_SWITCH_EVENT_PARITY_ERROR, nonFatalCob);
 
   platform_->onUnitAttach(unit_);
 

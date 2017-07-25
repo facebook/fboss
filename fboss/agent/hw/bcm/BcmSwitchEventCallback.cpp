@@ -13,34 +13,52 @@
 
 namespace facebook { namespace fboss {
 
+namespace switch_event_helpers {
+
+std::string getAlarmName(const opennsl_switch_event_t eventID) {
+  switch (eventID) {
+    case OPENNSL_SWITCH_EVENT_STABLE_FULL:
+      return "OPENNSL_SWITCH_EVENT_STABLE_FULL";
+    case OPENNSL_SWITCH_EVENT_STABLE_ERROR:
+      return "OPENNSL_SWITCH_EVENT_STABLE_ERROR";
+    case OPENNSL_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN:
+      return "OPENNSL_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN";
+    case OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE:
+      return "OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE";
+    case OPENNSL_SWITCH_EVENT_PARITY_ERROR:
+      return "OPENNSL_SWITCH_EVENT_PARITY_ERROR";
+    default:
+      return "UNKNOWN";
+  }
+}
+
+void exportEventCounters(const opennsl_switch_event_t eventID) {
+  if (eventID == OPENNSL_SWITCH_EVENT_PARITY_ERROR) {
+      BcmStats::get()->parityError();
+  }
+}
+
+} // switch_event_helpers
+
 void BcmSwitchEventUnitFatalErrorCallback::callback(const int unit,
     const opennsl_switch_event_t eventID, const uint32_t arg1,
     const uint32_t arg2, const uint32_t arg3) {
-  std::string alarm;
-  switch (eventID) {
-    case OPENNSL_SWITCH_EVENT_STABLE_FULL:
-      alarm = "OPENNSL_SWITCH_EVENT_STABLE_FULL";
-      break;
-    case OPENNSL_SWITCH_EVENT_STABLE_ERROR:
-      alarm = "OPENNSL_SWITCH_EVENT_STABLE_ERROR";
-      break;
-    case OPENNSL_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN:
-      alarm = "OPENNSL_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN";
-      break;
-    case OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE:
-      alarm = "OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE";
-      break;
-    case OPENNSL_SWITCH_EVENT_PARITY_ERROR:
-      alarm = "OPENNSL_SWITCH_EVENT_PARITY_ERROR";
-      BcmStats::get()->parityError();
-      break;
-    default:
-      alarm = "UNKNOWN";
-  }
-
+  auto alarm = switch_event_helpers::getAlarmName(eventID);
   LOG(FATAL) << "BCM Fatal error on unit " << unit << ": " << alarm
              << " (" << eventID << ") with params "
              << arg1 << ", " << arg2 << ", " << arg3;
 }
 
-}}
+void BcmSwitchEventUnitNonFatalErrorCallback::callback(const int unit,
+    const opennsl_switch_event_t eventID, const uint32_t arg1,
+    const uint32_t arg2, const uint32_t arg3) {
+
+  switch_event_helpers::exportEventCounters(eventID);
+
+  auto alarm = switch_event_helpers::getAlarmName(eventID);
+  LOG(ERROR) << "BCM non-fatal error on unit " << unit << ": " << alarm
+             << " (" << eventID << ") with params "
+             << arg1 << ", " << arg2 << ", " << arg3;
+}
+
+}} // facebook::fboss
