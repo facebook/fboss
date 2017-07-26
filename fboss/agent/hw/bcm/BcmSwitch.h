@@ -31,7 +31,6 @@ extern "C" {
 
 namespace facebook { namespace fboss {
 
-struct AclEntryID;
 class AclEntry;
 class AggregatePort;
 class ArpEntry;

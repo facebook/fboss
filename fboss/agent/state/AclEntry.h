@@ -135,7 +135,9 @@ struct AclEntryFields {
   static const uint8_t kProtoIcmpv6 = 58;
   static const uint8_t kMaxIcmpType = 0xFF;
   static const uint8_t kMaxIcmpCode = 0xFF;
-  explicit AclEntryFields(AclEntryID id) : id(id) {}
+  explicit AclEntryFields(int priority, const std::string& name)
+    : priority(priority),
+      name(name) {}
 
   template<typename Fn>
   void forEachChild(Fn) {}
@@ -144,7 +146,8 @@ struct AclEntryFields {
   static AclEntryFields fromFollyDynamic(const folly::dynamic& json);
   static void checkFollyDynamic(const folly::dynamic& json);
   static void checkFollyDynamicPortRange(const folly::dynamic& json);
-  const AclEntryID id{0};
+  int priority{0};
+  std::string name{nullptr};
   folly::CIDRNetwork srcIp{std::make_pair(folly::IPAddress(), 0)};
   folly::CIDRNetwork dstIp{std::make_pair(folly::IPAddress(), 0)};
   uint8_t proto{0};
@@ -160,7 +163,8 @@ struct AclEntryFields {
   folly::Optional<uint8_t> icmpCode{folly::none};
   folly::Optional<uint8_t> dscp{folly::none};
 
-  cfg::AclAction action;
+  cfg::AclActionType actionType{cfg::AclActionType::PERMIT};
+  folly::Optional<int16_t> qosQueueNum{0};
 };
 
 /*
@@ -170,7 +174,7 @@ struct AclEntryFields {
 class AclEntry :
     public NodeBaseT<AclEntry, AclEntryFields> {
  public:
-  explicit AclEntry(AclEntryID id);
+  explicit AclEntry(int priority, const std::string& name);
   static std::shared_ptr<AclEntry>
   fromFollyDynamic(const folly::dynamic& json) {
     const auto& fields = AclEntryFields::fromFollyDynamic(json);
@@ -187,8 +191,10 @@ class AclEntry :
   }
 
   bool operator==(const AclEntry& acl) {
-    return getFields()->id == acl.getID() &&
-           getFields()->action == acl.getAction() &&
+    return getFields()->priority == acl.getPriority() &&
+           getFields()->name == acl.getID() &&
+           getFields()->actionType == acl.getActionType() &&
+           getFields()->qosQueueNum == acl.getQosQueueNum() &&
            getFields()->srcIp == acl.getSrcIp() &&
            getFields()->dstIp == acl.getDstIp() &&
            getFields()->proto == acl.getProto() &&
@@ -205,16 +211,28 @@ class AclEntry :
            getFields()->dscp == acl.getDscp();
   }
 
-  AclEntryID getID() const {
-    return getFields()->id;
+  int getPriority() const {
+    return getFields()->priority;
   }
 
-  cfg::AclAction getAction() const {
-    return getFields()->action;
+  const std::string& getID() const {
+    return getFields()->name;
   }
 
-  void setAction(const cfg::AclAction& action) {
-    writableFields()->action = action;
+  folly::Optional<int16_t> getQosQueueNum() const {
+    return getFields()->qosQueueNum;
+  }
+
+  void setQosQueueNum(int16_t qosQueueNum) {
+    writableFields()->qosQueueNum = qosQueueNum;
+  }
+
+  cfg::AclActionType getActionType() const {
+    return getFields()->actionType;
+  }
+
+  void setActionType(const cfg::AclActionType& actionType) {
+    writableFields()->actionType = actionType;
   }
 
   folly::CIDRNetwork getSrcIp() const {

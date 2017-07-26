@@ -15,8 +15,8 @@
 using folly::IPAddress;
 
 namespace {
-constexpr auto kId = "id";
-constexpr auto kAction = "action";
+constexpr auto kPriority = "priority";
+constexpr auto kName = "name";
 constexpr auto kActionType = "actionType";
 constexpr auto kSrcIp = "srcIp";
 constexpr auto kDstIp = "dstIp";
@@ -154,22 +154,21 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   if (dscp) {
     aclEntry[kDscp] = static_cast<uint8_t>(dscp.value());
   }
-  folly::dynamic aclAction = folly::dynamic::object;
-  auto itr_action = cfg::_AclActionType_VALUES_TO_NAMES.find(action.actionType);
+  auto itr_action = cfg::_AclActionType_VALUES_TO_NAMES.find(actionType);
   CHECK(itr_action != cfg::_AclActionType_VALUES_TO_NAMES.end());
-  aclAction[kActionType] = itr_action->second;
-  if (action.actionType == cfg::AclActionType::TO_PORT_QOS_QUEUE) {
-    aclAction[kPortName] = action.portName;
-    aclAction[kQosQueueNum] = action.qosQueueNum;
+  aclEntry[kActionType] = itr_action->second;
+  if (qosQueueNum) {
+    aclEntry[kQosQueueNum] = qosQueueNum.value();
   }
-  aclEntry[kAction] =  aclAction;
-  aclEntry[kId] = static_cast<uint32_t>(id);
+  aclEntry[kPriority] = priority;
+  aclEntry[kName] = name;
   return aclEntry;
 }
 
 AclEntryFields AclEntryFields::fromFollyDynamic(
     const folly::dynamic& aclEntryJson) {
-  AclEntryFields aclEntry(AclEntryID(aclEntryJson[kId].asInt()));
+  AclEntryFields aclEntry(aclEntryJson[kPriority].asInt(),
+      aclEntryJson[kName].asString());
   if (aclEntryJson.find(kSrcIp) != aclEntryJson.items().end()) {
     aclEntry.srcIp = IPAddress::createNetwork(
       aclEntryJson[kSrcIp].asString());
@@ -228,16 +227,14 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   if (aclEntryJson.find(kDscp) != aclEntryJson.items().end()) {
     aclEntry.dscp = aclEntryJson[kDscp].asInt();
   }
-  auto aclActionJson = aclEntryJson[kAction];
-  aclEntry.action.actionType =
+  aclEntry.actionType =
       cfg::_AclActionType_NAMES_TO_VALUES
-          .find(util::getCpp2EnumName(aclActionJson[kActionType].asString())
+          .find(util::getCpp2EnumName(aclEntryJson[kActionType].asString())
                     .c_str())
           ->second;
-  if (aclEntry.action.actionType == cfg::AclActionType::TO_PORT_QOS_QUEUE) {
-    aclEntry.action.portName = aclActionJson[kPortName].asString();
-    aclEntry.action.qosQueueNum =
-        static_cast<int16_t>(aclActionJson[kQosQueueNum].asInt());
+  if (aclEntryJson.find(kQosQueueNum) != aclEntryJson.items().end()) {
+    aclEntry.qosQueueNum =
+        static_cast<int16_t>(aclEntryJson[kQosQueueNum].asInt());
   }
   return aclEntry;
 }
@@ -269,14 +266,11 @@ void AclEntryFields::checkFollyDynamic(const folly::dynamic& aclEntryJson) {
     }
   }
   // check action is valid
-  if (aclEntryJson.find(kAction) != aclEntryJson.items().end()) {
-    const auto actionName = util::getCpp2EnumName(
-        aclEntryJson[kAction].asString());
-    if (cfg::_AclActionType_NAMES_TO_VALUES.find(actionName.c_str()) ==
-        cfg::_AclActionType_NAMES_TO_VALUES.end()) {
-      throw FbossError(
-          "Unsupported ACL action ", aclEntryJson[kAction].asString());
-    }
+  if (cfg::_AclActionType_NAMES_TO_VALUES.find(
+        aclEntryJson[kActionType].asString().c_str()) ==
+      cfg::_AclActionType_NAMES_TO_VALUES.end()) {
+    throw FbossError(
+        "Unsupported ACL action ", aclEntryJson[kActionType].asString());
   }
   // check icmp type exists when icmp code exist
   if (aclEntryJson.find(kIcmpCode) != aclEntryJson.items().end() &&
@@ -307,8 +301,8 @@ void AclEntryFields::checkFollyDynamic(const folly::dynamic& aclEntryJson) {
   }
 }
 
-AclEntry::AclEntry(AclEntryID id)
-  : NodeBaseT(id) {
+AclEntry::AclEntry(int priority, const std::string& name)
+  : NodeBaseT(priority, name) {
 }
 
 template class NodeBaseT<AclEntry, AclEntryFields>;

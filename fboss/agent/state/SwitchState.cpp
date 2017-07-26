@@ -178,8 +178,8 @@ void SwitchState::addAcl(const std::shared_ptr<AclEntry>& acl) {
   fields->acls->addEntry(acl);
 }
 
-std::shared_ptr<AclEntry> SwitchState::getAcl(AclEntryID id) const {
-  return getFields()->acls->getEntryIf(id);
+std::shared_ptr<AclEntry> SwitchState::getAcl(const std::string& name) const {
+  return getFields()->acls->getEntryIf(name);
 }
 
 void SwitchState::resetAcls(std::shared_ptr<AclMap> acls) {

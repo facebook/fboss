@@ -5,6 +5,9 @@ namespace py neteng.fboss.switch_config
 namespace py.asyncio neteng.fboss.asyncio.switch_config
 namespace cpp2 facebook.fboss.cfg
 
+typedef string AclEntryName
+
+
 /**
  * Port state
  */
@@ -332,30 +335,10 @@ enum AclActionType {
   TO_PORT_QOS_QUEUE = 2,
 }
 
-struct AclAction {
-  1: AclActionType actionType = PERMIT
-
-  2: optional string portName
-
-  3: optional i16 qosQueueNum
-}
-
 /**
  * An access control entry
  */
 struct AclEntry {
-  /**
-   * Unique identifier of an AclEntry. Entries with smaller ID will have
-   * higher priority (matched first). Please make sure all AclEntry has a unique
-   * ID so that they can be totally ordered.
-   */
-  1: i32 id
-
-  /**
-   * Actions to take
-   */
-  2: AclAction action
-
   /**
    * IP addresses with mask. e.g. 192.168.0.0/16. Can be either V4 or V6
    */
@@ -408,7 +391,15 @@ struct AclEntry {
   /*
   * Match on DSCP values
   */
-  16: optional i16 dscp;
+  16: optional i16 dscp
+  /*
+   * Identifier used to refer to the ACL
+   */
+  17: AclEntryName name
+
+  18: AclActionType actionType = PERMIT
+  // This is temporary and will be removed in the next diff that introduces QoS
+  19: optional i16 qosQueueNum
 }
 
 /**
@@ -443,7 +434,7 @@ struct SwitchConfig {
   13: optional list<StaticRouteNoNextHops> staticRoutesToNull = [];
   // Prefixes for which to send traffic to CPU
   14: optional list<StaticRouteNoNextHops> staticRoutesToCPU = [];
-  // The order of AclEntry does _not_ determine its priority.
+  // The order of AclEntry _does_ determine its priority.
   // Highest priority entry comes with smallest ID.
   15: optional list<AclEntry> acls = []
   // Set max number of probes to a sufficiently high value

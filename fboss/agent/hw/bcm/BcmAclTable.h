@@ -41,7 +41,7 @@ class BcmAclTable {
   // map from acl range to bcm acl range and its reference count
   using BcmAclRangeMap = boost::container::flat_map<AclRange,
     std::pair<std::unique_ptr<BcmAclRange>, uint32_t>>;
-  using BcmAclEntryMap = boost::container::flat_map<AclEntryID,
+  using BcmAclEntryMap = boost::container::flat_map<int,
     std::unique_ptr<BcmAclEntry>>;
 
   BcmSwitch* hw_;

@@ -47,7 +47,8 @@ void BcmAclTable::processAddedAcl(
   // create the new bcm acl entry and add it to the table
   std::unique_ptr<BcmAclEntry> bcmAcl = std::make_unique<BcmAclEntry>(
     hw_, groupId, acl, bcmRanges);
-  const auto& entry = aclEntryMap_.emplace(acl->getID(), std::move(bcmAcl));
+  const auto& entry = aclEntryMap_.emplace(acl->getPriority(),
+      std::move(bcmAcl));
   if (!entry.second) {
     throw FbossError("failed to add an existing acl entry");
   }
@@ -57,7 +58,7 @@ void BcmAclTable::processRemovedAcl(
   const std::shared_ptr<AclEntry>& acl) {
   // free the resources of acl in the reverse order of creation
   // remove the bcm acl entry first
-  const auto numErasedAcl = aclEntryMap_.erase(acl->getID());
+  const auto numErasedAcl = aclEntryMap_.erase(acl->getPriority());
   if (numErasedAcl == 0) {
     throw FbossError("failed to erase an existing bcm acl entry");
   }

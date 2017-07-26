@@ -11,12 +11,11 @@
 
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeMap.h"
+#include "fboss/agent/state/AclEntry.h"
 
 namespace facebook { namespace fboss {
 
-class AclEntry;
-using AclMapTraits = NodeMapTraits<AclEntryID, AclEntry>;
-
+using AclMapTraits = NodeMapTraits<std::string, AclEntry>;
 /*
  * A container for the set of entries.
  */
@@ -25,13 +24,11 @@ class AclMap : public NodeMapT<AclMap, AclMapTraits> {
   AclMap();
   ~AclMap() override;
 
-  const std::shared_ptr<AclEntry>& getEntry(AclEntryID id) const {
-    LOG(INFO) << id;
-    LOG(INFO) << size();
-    return getNode(id);
+  const std::shared_ptr<AclEntry>& getEntry(const std::string& name) const {
+    return getNode(name);
   }
-  std::shared_ptr<AclEntry> getEntryIf(AclEntryID id) const {
-    return getNodeIf(id);
+  std::shared_ptr<AclEntry> getEntryIf(const std::string& name) const {
+    return getNodeIf(name);
   }
 
   size_t numEntries() const {
@@ -49,8 +46,8 @@ class AclMap : public NodeMapT<AclMap, AclMapTraits> {
   void addEntry(const std::shared_ptr<AclEntry>& aclEntry) {
     addNode(aclEntry);
   }
-  void removeEntry(AclEntryID aclId) {
-    removeEntry(getNode(aclId));
+  void removeEntry(const std::string& aclName) {
+    removeEntry(getNode(aclName));
   }
   void removeEntry(const std::shared_ptr<AclEntry>& aclEntry) {
     removeNode(aclEntry);

@@ -85,7 +85,8 @@ class ThriftConfigApplier {
   ThriftConfigApplier& operator=(ThriftConfigApplier const &) = delete;
 
   template<typename Node, typename NodeMap>
-  bool updateMap(NodeMap* map, std::shared_ptr<Node> origNode,
+  bool updateMap(NodeMap* map,
+                 std::shared_ptr<Node> origNode,
                  std::shared_ptr<Node> newNode) {
     if (newNode) {
       auto ret = map->insert(std::make_pair(newNode->getID(), newNode));
@@ -156,9 +157,11 @@ class ThriftConfigApplier {
   std::shared_ptr<Vlan> updateVlan(const std::shared_ptr<Vlan>& orig,
                                    const cfg::Vlan* config);
   std::shared_ptr<AclMap> updateAcls();
-  std::shared_ptr<AclEntry> createAcl(const cfg::AclEntry* config);
+  std::shared_ptr<AclEntry> createAcl(const cfg::AclEntry* config,
+                                      int priority);
   std::shared_ptr<AclEntry> updateAcl(const std::shared_ptr<AclEntry>& orig,
-                                      const cfg::AclEntry* config);
+                                      const cfg::AclEntry* config,
+                                      int priority);
   // check the acl provided by config is valid
   void checkAcl(const cfg::AclEntry* config) const;
   bool updateNeighborResponseTables(Vlan* vlan, const cfg::Vlan* config);
@@ -685,13 +688,13 @@ shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
   size_t numExistingProcessed = 0;
   for (int i = 0; i < cfg_->acls.size(); ++i) {
     const auto& acl = cfg_->acls[i];
-    auto origAcl = origAcls->getEntryIf(AclEntryID(acl.id));
+    auto origAcl = origAcls->getEntryIf(acl.name);
     shared_ptr<AclEntry> newAcl;
     if (origAcl) {
-      newAcl = updateAcl(origAcl, &acl);
+      newAcl = updateAcl(origAcl, &acl, i);
       ++numExistingProcessed;
     } else {
-      newAcl = createAcl(&acl);
+      newAcl = createAcl(&acl, i);
     }
     changed |= updateMap(&newAcls, origAcl, newAcl);
   }
@@ -767,10 +770,14 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry *config) const {
 }
 
 shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
-    const cfg::AclEntry* config) {
+    const cfg::AclEntry* config, int priority) {
   checkAcl(config);
-  auto newAcl = make_shared<AclEntry>(AclEntryID(config->id));
-  newAcl->setAction(config->action);
+  auto newAcl = make_shared<AclEntry>(priority, config->name);
+  newAcl->setActionType(config->actionType);
+  if (config->__isset.qosQueueNum) {
+    // TODO(ninasc): Remove from acl
+    newAcl->setQosQueueNum(config->qosQueueNum);
+  }
   if (config->__isset.srcIp) {
     newAcl->setSrcIp(IPAddress::createNetwork(config->srcIp));
   }
@@ -821,9 +828,10 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
 
 shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
     const shared_ptr<AclEntry>& orig,
-    const cfg::AclEntry* config) {
+    const cfg::AclEntry* config,
+    int priority) {
 
-  auto newAcl = createAcl(config);
+  auto newAcl = createAcl(config, priority);
 
   if (*orig == *newAcl) {
     return nullptr;

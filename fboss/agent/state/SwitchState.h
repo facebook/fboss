@@ -190,7 +190,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return getFields()->routeTables;
   }
 
-  std::shared_ptr<AclEntry> getAcl(AclEntryID id) const;
+  std::shared_ptr<AclEntry> getAcl(const std::string& name) const;
 
   const std::shared_ptr<AclMap>& getAcls() const {
     return getFields()->acls;
