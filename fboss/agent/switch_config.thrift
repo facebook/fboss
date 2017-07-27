@@ -5,8 +5,6 @@ namespace py neteng.fboss.switch_config
 namespace py.asyncio neteng.fboss.asyncio.switch_config
 namespace cpp2 facebook.fboss.cfg
 
-typedef string AclEntryName
-
 
 /**
  * Port state
@@ -53,6 +51,151 @@ enum PortSpeed {
   FORTYG = 40000;               // 40G
   FIFTYG = 50000;               // 50G
   HUNDREDG = 100000;            // 100G
+}
+
+/**
+ *  A Range for L4 port range checker
+ *  Define a range bewteen [min, max]
+ */
+struct L4PortRange {
+  1: i32 min
+  2: i32 max
+}
+
+/**
+ *  A Range for packet length
+ *  Define a packet length range [min, max]
+ */
+struct PktLenRange {
+  1: i16 min
+  2: i16 max
+}
+
+enum IpFragMatch {
+  // not fragment
+  MATCH_NOT_FRAGMENTED = 0
+  // first fragment
+  MATCH_FIRST_FRAGMENT = 1
+  // not fragment or the first fragment
+  MATCH_NOT_FRAGMENTED_OR_FIRST_FRAGMENT = 2
+  // fragment but not the first frament
+  MATCH_NOT_FIRST_FRAGMENT = 3
+  // any fragment
+  MATCH_ANY_FRAGMENT = 4
+}
+
+/**
+ * The action for an access control entry
+ */
+enum AclActionType {
+  DENY = 0
+  PERMIT = 1
+}
+
+/**
+ * An access control entry
+ */
+struct AclEntry {
+  /**
+   * IP addresses with mask. e.g. 192.168.0.0/16. Can be either V4 or V6
+   */
+  3: optional string srcIp
+  4: optional string dstIp
+
+  /**
+   * L4 port ranges (TCP/UDP)
+   */
+  5: optional L4PortRange srcL4PortRange
+  6: optional L4PortRange dstL4PortRange
+
+  /**
+   * IP Protocol. e.g, 6 for TCP
+   */
+  7: optional i16 proto
+
+  /**
+   * TCP flags and mask (to support "don't care" bits). As in IP address,
+   * mask = 1 means we _care_ about this bit position.
+   * Example: tcpFlags = 16, tcpFlagsMask = 16 means ACK set, while ignoring
+   * all other bits
+   */
+  8: optional i16 tcpFlags
+  9: optional i16 tcpFlagsMask
+
+  /**
+   * Physical switch ports.
+   */
+  10: optional i16 srcPort
+  11: optional i16 dstPort
+
+  /**
+   * Packet length range
+   */
+  12: optional PktLenRange pktLenRange
+
+  /**
+   * Ip fragment
+   */
+  13: optional IpFragMatch ipFrag
+
+  /**
+   * Icmp type and code
+   * Code can only be set if type is set.
+   * "proto" field must be 1 (icmpv4) or 58 (icmpv6)
+   */
+  14: optional i16 icmpType
+  15: optional i16 icmpCode
+  /*
+  * Match on DSCP values
+  */
+  16: optional byte dscp
+  /*
+   * Identifier used to refer to the ACL
+   */
+  17: string name
+
+  18: AclActionType actionType = PERMIT
+  // This is temporary and will be removed in the next diff that introduces QoS
+  19: optional i16 qosQueueNum
+}
+
+/*
+ * We only support unicast in FBOSS, but for completeness sake
+ */
+enum StreamType {
+  UNICAST = 0,
+  MULTICAST = 1,
+}
+
+struct QueueMatchAction {
+  1: i16 queueId
+}
+
+struct MatchAction {
+  1: optional QueueMatchAction sendToQueue
+}
+
+struct MatchToAction {
+  // This references an ACL added to the acls list in the SwitchConfig object
+  1: string matcher
+  2: MatchAction action
+}
+
+struct PortQueue {
+  1: required i16 id
+  // We only use unicast in Fabric
+  2: required StreamType streamType = StreamType.UNICAST
+  3: optional i32 priority = 0
+  4: optional i32 weight
+}
+
+struct TrafficPolicyConfig {
+  1: list<MatchToAction> matchToAction = []
+  /*
+   * There are multiple queues per port
+   * This allows defining their attributes
+   */
+  2: optional list<PortQueue> queues
 }
 
 /**
@@ -108,6 +251,10 @@ struct Port {
    * An optional configurable string describing the port.
    */
   10: optional string description
+  /**
+   * If this is undefined, the global TrafficPolicyConfig will be used
+   */
+  11: optional TrafficPolicyConfig egressTrafficPolicy
 }
 
 struct AggregatePort {
@@ -296,113 +443,6 @@ struct StaticRouteNoNextHops {
 }
 
 /**
- *  A Range for L4 port range checker
- *  Define a range bewteen [min, max]
- */
-struct L4PortRange {
-  1: i32 min
-  2: i32 max
-}
-
-/**
- *  A Range for packet length
- *  Define a packet length range [min, max]
- */
-struct PktLenRange {
-  1: i16 min
-  2: i16 max
-}
-
-enum IpFragMatch {
-  // not fragment
-  MATCH_NOT_FRAGMENTED = 0
-  // first fragment
-  MATCH_FIRST_FRAGMENT = 1
-  // not fragment or the first fragment
-  MATCH_NOT_FRAGMENTED_OR_FIRST_FRAGMENT = 2
-  // fragment but not the first frament
-  MATCH_NOT_FIRST_FRAGMENT = 3
-  // any fragment
-  MATCH_ANY_FRAGMENT = 4
-}
-
-/**
- * The action for an access control entry
- */
-enum AclActionType {
-  DENY = 0
-  PERMIT = 1
-  TO_PORT_QOS_QUEUE = 2,
-}
-
-/**
- * An access control entry
- */
-struct AclEntry {
-  /**
-   * IP addresses with mask. e.g. 192.168.0.0/16. Can be either V4 or V6
-   */
-  3: optional string srcIp
-  4: optional string dstIp
-
-  /**
-   * L4 port ranges (TCP/UDP)
-   */
-  5: optional L4PortRange srcL4PortRange
-  6: optional L4PortRange dstL4PortRange
-
-  /**
-   * IP Protocol. e.g, 6 for TCP
-   */
-  7: optional i16 proto
-
-  /**
-   * TCP flags and mask (to support "don't care" bits). As in IP address,
-   * mask = 1 means we _care_ about this bit position.
-   * Example: tcpFlags = 16, tcpFlagsMask = 16 means ACK set, while ignoring
-   * all other bits
-   */
-  8: optional i16 tcpFlags
-  9: optional i16 tcpFlagsMask
-
-  /**
-   * Physical switch ports.
-   */
-  10: optional i16 srcPort
-  11: optional i16 dstPort
-
-  /**
-   * Packet length range
-   */
-  12: optional PktLenRange pktLenRange
-
-  /**
-   * Ip fragment
-   */
-  13: optional IpFragMatch ipFrag
-
-  /**
-   * Icmp type and code
-   * Code can only be set if type is set.
-   * "proto" field must be 1 (icmpv4) or 58 (icmpv6)
-   */
-  14: optional i16 icmpType
-  15: optional i16 icmpCode
-  /*
-  * Match on DSCP values
-  */
-  16: optional i16 dscp
-  /*
-   * Identifier used to refer to the ACL
-   */
-  17: AclEntryName name
-
-  18: AclActionType actionType = PERMIT
-  // This is temporary and will be removed in the next diff that introduces QoS
-  19: optional i16 qosQueueNum
-}
-
-/**
  * The configuration for a switch.
  *
  * This contains all of the hardware-independent configuration for a
@@ -472,4 +512,5 @@ struct SwitchConfig {
    */
   22: optional string dhcpReplySrcOverrideV4
   23: optional string dhcpReplySrcOverrideV6
+  24: optional TrafficPolicyConfig globalEgressTrafficPolicy
 }

@@ -147,7 +147,6 @@ TEST(Acl, stateDelta) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
-
   cfg::SwitchConfig config;
   config.acls.resize(4);
   config.acls[0].name = "acl0";
