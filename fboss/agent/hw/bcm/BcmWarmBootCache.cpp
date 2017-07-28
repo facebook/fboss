@@ -86,17 +86,12 @@ shared_ptr<InterfaceMap> BcmWarmBootCache::reconstructInterfaceMap() const {
     const auto& bcmIntf = vlanMacAndIntf.second;
     std::shared_ptr<Interface> dumpedInterface =
         dumpedInterfaceMap->getInterfaceIf(InterfaceID(bcmIntf.l3a_vid));
-    std::string dumpedInterfaceName = dumpedInterface->getName();
-    auto newInterface = make_shared<Interface>(InterfaceID(bcmIntf.l3a_vid),
-                                               RouterID(bcmIntf.l3a_vrf),
-                                               VlanID(bcmIntf.l3a_vid),
-                                               dumpedInterfaceName,
-                                               vlanMacAndIntf.first.second,
-                                               bcmIntf.l3a_mtu,
-                                               false, /* is virtual intf */
-                                               false  /* is state_sync off*/);
-    newInterface->setAddresses(dumpedInterface->getAddresses());
-    intfMap->addInterface(newInterface);
+    // update with bcmIntf
+    dumpedInterface->setRouterID(RouterID(bcmIntf.l3a_vrf));
+    dumpedInterface->setVlanID(VlanID(bcmIntf.l3a_vid));
+    dumpedInterface->setMac(vlanMacAndIntf.first.second);
+    dumpedInterface->setMtu(bcmIntf.l3a_mtu);
+    intfMap->addInterface(dumpedInterface);
   }
   return intfMap;
 }
