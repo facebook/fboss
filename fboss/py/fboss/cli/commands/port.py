@@ -605,7 +605,7 @@ class PortStatusDetailCmd(object):
                 transceiver_printed.append(tid)
             else:
                 attrs = utils.get_status_strs(self._status_resp[port],
-                            self._info_resp[status.transceiverIdx].present)
+                                              is_present=False)
                 print("Port: {:>2}  Status: {:<8}  Link: {:<4}  Transceiver: {}"
                       .format(port, attrs['admin_status'], attrs['link_status'],
                                 attrs['present']))
