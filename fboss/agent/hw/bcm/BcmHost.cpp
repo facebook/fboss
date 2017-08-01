@@ -204,6 +204,8 @@ void BcmHost::programToTrunk(opennsl_if_t intf,
           << (isTrunk() ? trunk_ :  port_)
           << " to trunk port " << trunk;
 
+  hw_->writableHostTable()->resolved(egressId_);
+
   port_ = 0;
   trunk_ = trunk;
 }
