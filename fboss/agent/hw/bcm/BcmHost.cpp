@@ -244,6 +244,9 @@ void BcmHost::programToTrunk(opennsl_if_t intf,
 
   hw_->writableHostTable()->resolved(egressId_);
 
+  hw_->writableHostTable()->egressResolutionChangedHwLocked(
+      egressId_, BcmEcmpEgress::Action::EXPAND);
+
   port_ = 0;
   trunk_ = trunk;
 }
