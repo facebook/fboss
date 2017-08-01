@@ -150,10 +150,25 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
           << (isTrunk() ? trunk_ :  port_)
           << " to physical port " << port;
 
+  // TODO(samank): port_ or trunk_ being set is used as a proxy for whether
+  // egressId_ is in the set of resolved egresses. We should instead simply
+  // consult the set of resolved egresses for this information.
+  bool isSet = isPortOrTrunkSet();
+  if (isSet && !port) {
+    hw_->writableHostTable()->unresolved(egressId_);
+  } else if (!isSet && port) {
+    hw_->writableHostTable()->resolved(egressId_);
+  } else if (!isSet && !port) {
+    /* unresolved(egressId_); */
+  } else {
+    DCHECK(isSet && port);
+    /* resolved(egressId_); */
+  }
+
   // Update port mapping, for entries marked to DROP or to CPU port gets
   // set to 0, which implies no ports are associated with this entry now.
-  hw_->writableHostTable()->updatePortEgressMapping(egressPtr->getID(),
-                                                    port_, port);
+  hw_->writableHostTable()->updatePortToEgressMapping(
+      egressPtr->getID(), port_, port);
   trunk_ = BcmTrunk::INVALID;
   port_ = port;
 }
@@ -206,8 +221,11 @@ BcmHost::~BcmHost() {
   auto rc = opennsl_l3_host_delete(hw_->getUnit(), &host);
   bcmLogFatal(rc, hw_, "failed to delete L3 host object for ", addr_.str());
   VLOG(3) << "deleted L3 host object for " << addr_.str();
+  if (isPortOrTrunkSet()) {
+    hw_->writableHostTable()->unresolved(egressId_);
+  }
   // This host mapping just went away, update the port -> egress id mapping
-  hw_->writableHostTable()->updatePortEgressMapping(egressId_, port_, 0);
+  hw_->writableHostTable()->updatePortToEgressMapping(egressId_, port_, 0);
   hw_->writableHostTable()->derefEgress(egressId_);
 }
 
@@ -405,12 +423,13 @@ BcmEgressBase* BcmHostTable::derefEgress(opennsl_if_t egressId) {
   return it->second.first.get();
 }
 
-void BcmHostTable::updatePortEgressMapping(opennsl_if_t egressId,
-    opennsl_port_t oldPort, opennsl_port_t newPort) {
+void BcmHostTable::updatePortToEgressMapping(
+    opennsl_if_t egressId,
+    opennsl_port_t oldPort,
+    opennsl_port_t newPort) {
   auto newMapping = getPortAndEgressIdsMap()->clone();
 
   if (oldPort) {
-    unresolved(egressId);
     auto old = newMapping->getPortAndEgressIdsIf(oldPort);
     CHECK(old);
     auto oldCloned = old->clone();
@@ -422,7 +441,6 @@ void BcmHostTable::updatePortEgressMapping(opennsl_if_t egressId,
     }
   }
   if (newPort) {
-    resolved(egressId);
     auto existing = newMapping->getPortAndEgressIdsIf(newPort);
     if (existing) {
       auto existingCloned = existing->clone();

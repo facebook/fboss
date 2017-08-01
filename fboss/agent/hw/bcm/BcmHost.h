@@ -77,6 +77,9 @@ class BcmHost {
   folly::dynamic toFollyDynamic() const;
   // TODO(samank): use getPort() instead of port_ member variable
   opennsl_port_t getPort() const { return port_; }
+  bool isPortOrTrunkSet() const {
+    return trunk_ != BcmTrunk::INVALID || port_ != 0;
+  }
  private:
   // no copy or assignment
   BcmHost(BcmHost const &) = delete;
@@ -230,7 +233,9 @@ class BcmHostTable {
   /*
    * Update port to egressIds mapping
    */
-  void updatePortEgressMapping(opennsl_if_t egressId, opennsl_port_t oldPort,
+  void updatePortToEgressMapping(
+      opennsl_if_t egressId,
+      opennsl_port_t oldPort,
       opennsl_port_t newPort);
   /*
    * Get port -> egressIds map
