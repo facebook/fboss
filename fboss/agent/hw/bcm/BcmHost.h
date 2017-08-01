@@ -278,13 +278,22 @@ class BcmHostTable {
     return numEcmpEgressProgrammed_;
   }
 
+  void egressResolutionChangedHwLocked(
+      const Paths& affectedPaths,
+      BcmEcmpEgress::Action action);
+  void egressResolutionChangedHwLocked(
+      opennsl_if_t affectedPath,
+      BcmEcmpEgress::Action action) {
+    BcmEcmpEgress::Paths affectedPaths{affectedPath};
+    egressResolutionChangedHwLocked(affectedPaths, action);
+  }
+
  private:
   /*
    * Called both while holding and not holding the hw lock.
    */
   void linkStateChangedMaybeLocked(opennsl_port_t port, bool up,
       bool locked);
-  void egressResolutionChangedHwLocked(const Paths& affectedPaths, bool up);
   static void egressResolutionChangedHwNotLocked(
       int unit,
       const Paths& affectedPaths,

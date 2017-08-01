@@ -119,6 +119,7 @@ class BcmEcmpEgress : public BcmEgressBase {
  public:
   using EgressId = opennsl_if_t;
   using Paths = boost::container::flat_set<opennsl_if_t>;
+  enum class Action { SHRINK, EXPAND, SKIP };
 
   explicit BcmEcmpEgress(const BcmSwitchIf* hw,
       Paths paths) : BcmEgressBase(hw), paths_(paths) {

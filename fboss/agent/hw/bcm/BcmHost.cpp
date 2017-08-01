@@ -154,21 +154,59 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
   // egressId_ is in the set of resolved egresses. We should instead simply
   // consult the set of resolved egresses for this information.
   bool isSet = isPortOrTrunkSet();
+  // If ARP/NDP just resolved for this host, we need to inform
+  // ecmp egress objects about this egress Id becoming reachable.
+  // Consider the case where a port went down, neighbor entry expires
+  // and then the port came back up. When the neighbor entry expired,
+  // we would have taken it out of the port->egressId mapping. Now even
+  // when the port comes back up, we won't have that egress Id mapping
+  // there and won't signal ecmp objects to add this back. So when
+  // a egress object gets resolved, for all the ecmp objects that
+  // have this egress Id, ask them to add it back if they don't
+  // already have this egress Id. We do a checked add because if
+  // the neighbor entry just expired w/o the port going down we
+  // would have never removed it from ecmp egress object.
+
+  // Note that we notify the ecmp group of the paths whenever we get
+  // to this point with a nonzero port to associate with an egress
+  // mapping. This handles the case where we hit the ecmp shrink code
+  // during the initialization process and the port down event is not
+  // processed by the SwSwitch correctly.  The SwSwitch is responsible
+  // for generating an update for each NeighborEntry after it is
+  // initialized to ensure the hw is programmed correctly. By trying
+  // to always expand ECMP whenever we get a valid port mapping for a
+  // egress ID, we would also signal for ECMP expand when port mapping
+  // of a egress ID changes (e.g. on IP Address renumbering). This is
+  // however safe since we ECMP expand code handles the case where we
+  // try to add a already present egress ID in a ECMP group.
+  BcmEcmpEgress::Action ecmpAction;
   if (isSet && !port) {
+    /* went down */
     hw_->writableHostTable()->unresolved(egressId_);
+    ecmpAction = BcmEcmpEgress::Action::SHRINK;
   } else if (!isSet && port) {
+    /* came up */
     hw_->writableHostTable()->resolved(egressId_);
+    ecmpAction = BcmEcmpEgress::Action::EXPAND;
   } else if (!isSet && !port) {
+    /* stayed down */
     /* unresolved(egressId_); */
+    ecmpAction = BcmEcmpEgress::Action::SKIP;
   } else {
+    /* stayed up */
     DCHECK(isSet && port);
     /* resolved(egressId_); */
+    ecmpAction = BcmEcmpEgress::Action::EXPAND;
   }
 
   // Update port mapping, for entries marked to DROP or to CPU port gets
   // set to 0, which implies no ports are associated with this entry now.
   hw_->writableHostTable()->updatePortToEgressMapping(
       egressPtr->getID(), port_, port);
+
+  hw_->writableHostTable()->egressResolutionChangedHwLocked(
+      egressId_, ecmpAction);
+
   trunk_ = BcmTrunk::INVALID;
   port_ = port;
 }
@@ -228,6 +266,10 @@ BcmHost::~BcmHost() {
   }
   // This host mapping just went away, update the port -> egress id mapping
   hw_->writableHostTable()->updatePortToEgressMapping(egressId_, port_, 0);
+  hw_->writableHostTable()->egressResolutionChangedHwLocked(
+      egressId_,
+      isPortOrTrunkSet() ? BcmEcmpEgress::Action::SHRINK
+                         : BcmEcmpEgress::Action::SKIP);
   hw_->writableHostTable()->derefEgress(egressId_);
 }
 
@@ -458,38 +500,6 @@ void BcmHostTable::updatePortToEgressMapping(
   // Publish and replace with the updated mapping
   newMapping->publish();
   setPort2EgressIdsInternal(newMapping);
-  // Note that we notify the ecmp group of the paths whenever we get
-  // to this point with a nonzero port to associate with an egress
-  // mapping. This handles the case where we hit the ecmp shrink code
-  // during the initialization process and the port down event is not
-  // processed by the SwSwitch correctly.  The SwSwitch is responsible
-  // for generating an update for each NeighborEntry after it is
-  // initialized to ensure the hw is programmed correctly. By trying
-  // to always expand ECMP whenever we get a valid port mapping for a
-  // egress ID, we would also signal for ECMP expand when port mapping
-  // of a egress ID changes (e.g. on IP Address renumbering). This is
-  // however safe since we ECMP expand code handles the case where we
-  // try to add a already present egress ID in a ECMP group.
-  bool isUp = newPort;
-  bool wentDown = oldPort && !newPort;
-  if (isUp || wentDown) {
-    // If ARP/NDP just resolved for this host, we need to inform
-    // ecmp egress objects about this egress Id becoming reachable.
-    // Consider the case where a port went down, neighbor entry expires
-    // and then the port came back up. When the neighbor entry expired,
-    // we would have taken it out of the port->egressId mapping. Now even
-    // when the port comes back up, we won't have that egress Id mapping
-    // there and won't signal ecmp objects to add this back. So when
-    // a egress object gets resolved, for all the ecmp objects that
-    // have this egress Id, ask them to add it back if they don't
-    // already have this egress Id. We do a checked add because if
-    // the neighbor entry just expired w/o the port going down we
-    // would have never removed it from ecmp egress object.
-    BcmEcmpEgress::Paths affectedPaths;
-    affectedPaths.insert(egressId);
-    egressResolutionChangedHwLocked(
-        affectedPaths, isUp ? true /*up*/ : false /*went away*/);
-  }
 }
 
 void BcmHostTable::setPort2EgressIdsInternal(
@@ -602,7 +612,8 @@ void BcmHostTable::linkStateChangedMaybeLocked(opennsl_port_t port, bool up,
   }
   if (locked) {
     egressResolutionChangedHwLocked(
-        portAndEgressIds->getEgressIds(), up);
+        portAndEgressIds->getEgressIds(),
+        up ? BcmEcmpEgress::Action::EXPAND : BcmEcmpEgress::Action::SHRINK);
   } else {
     CHECK(!up);
     egressResolutionChangedHwNotLocked(
@@ -635,7 +646,11 @@ void BcmHostTable::egressResolutionChangedHwNotLocked(
 
 void BcmHostTable::egressResolutionChangedHwLocked(
     const Paths& affectedPaths,
-    bool up) {
+    BcmEcmpEgress::Action action) {
+  if (action == BcmEcmpEgress::Action::SKIP) {
+    return;
+  }
+
   for (const auto& nextHopsAndEcmpHostInfo : ecmpHosts_) {
     auto ecmpId = nextHopsAndEcmpHostInfo.second.first->getEcmpEgressId();
     if (ecmpId == BcmEgressBase::INVALID) {
@@ -648,10 +663,18 @@ void BcmHostTable::egressResolutionChangedHwLocked(
     // a ecmp egress Id anyways
     CHECK(ecmpEgress);
     for (auto path : affectedPaths) {
-      if (up) {
-        ecmpEgress->pathReachableHwLocked(path);
-      } else {
-        ecmpEgress->pathUnreachableHwLocked(path);
+      switch (action) {
+        case BcmEcmpEgress::Action::EXPAND:
+          ecmpEgress->pathReachableHwLocked(path);
+          break;
+        case BcmEcmpEgress::Action::SHRINK:
+          ecmpEgress->pathUnreachableHwLocked(path);
+          break;
+        case BcmEcmpEgress::Action::SKIP:
+          break;
+        default:
+          LOG(FATAL) << "BcmEcmpEgress::Action matching not exhaustive";
+          break;
       }
     }
   }
@@ -666,17 +689,23 @@ void BcmHostTable::egressResolutionChangedHwLocked(
   for (const auto& ecmpAndEgressIds :
        hw_->getWarmBootCache()->ecmp2EgressIds()) {
     for (auto path : affectedPaths) {
-      if (up) {
-        BcmEcmpEgress::addEgressIdHwLocked(
-            hw_->getUnit(),
-            ecmpAndEgressIds.first,
-            ecmpAndEgressIds.second,
-            path);
-      } else {
-        BcmEcmpEgress::removeEgressIdHwLocked(
-            hw_->getUnit(),
-            ecmpAndEgressIds.first,
-            path);
+      switch (action) {
+        case BcmEcmpEgress::Action::EXPAND:
+          BcmEcmpEgress::addEgressIdHwLocked(
+              hw_->getUnit(),
+              ecmpAndEgressIds.first,
+              ecmpAndEgressIds.second,
+              path);
+          break;
+        case BcmEcmpEgress::Action::SHRINK:
+          BcmEcmpEgress::removeEgressIdHwLocked(
+              hw_->getUnit(), ecmpAndEgressIds.first, path);
+          break;
+        case BcmEcmpEgress::Action::SKIP:
+          break;
+        default:
+          LOG(FATAL) << "BcmEcmpEgress::Action matching not exhaustive";
+          break;
       }
     }
   }
