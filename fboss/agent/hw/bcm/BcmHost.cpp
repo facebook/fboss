@@ -405,17 +405,12 @@ BcmEgressBase* BcmHostTable::derefEgress(opennsl_if_t egressId) {
   return it->second.first.get();
 }
 
-opennsl_port_t BcmHostTable::egressIdPort(opennsl_if_t egressId) const {
-  auto itr = egressId2Port_.find(egressId);
-  return itr == egressId2Port_.end() ? 0 : itr->second;
-}
-
 void BcmHostTable::updatePortEgressMapping(opennsl_if_t egressId,
     opennsl_port_t oldPort, opennsl_port_t newPort) {
   auto newMapping = getPortAndEgressIdsMap()->clone();
 
   if (oldPort) {
-    egressId2Port_.erase(egressId);
+    unresolved(egressId);
     auto old = newMapping->getPortAndEgressIdsIf(oldPort);
     CHECK(old);
     auto oldCloned = old->clone();
@@ -427,7 +422,7 @@ void BcmHostTable::updatePortEgressMapping(opennsl_if_t egressId,
     }
   }
   if (newPort) {
-    egressId2Port_[egressId] = newPort;
+    resolved(egressId);
     auto existing = newMapping->getPortAndEgressIdsIf(newPort);
     if (existing) {
       auto existingCloned = existing->clone();

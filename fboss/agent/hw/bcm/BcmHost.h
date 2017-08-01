@@ -258,7 +258,16 @@ class BcmHostTable {
     ecmpHosts_.clear();
     hosts_.clear();
   }
-  opennsl_port_t egressIdPort(opennsl_if_t egressId) const;
+
+  bool isResolved(const opennsl_if_t egressId) const {
+    return resolvedEgresses_.find(egressId) != resolvedEgresses_.cend();
+  }
+  void resolved(const opennsl_if_t egressId) {
+    resolvedEgresses_.insert(egressId);
+  }
+  void unresolved(const opennsl_if_t egressId) {
+    resolvedEgresses_.erase(egressId);
+  }
 
   uint32_t numEcmpEgress() const {
     return numEcmpEgressProgrammed_;
@@ -314,8 +323,7 @@ class BcmHostTable {
    */
   std::shared_ptr<PortAndEgressIdsMap> portAndEgressIdsDontUseDirectly_;
   mutable folly::SpinLock portAndEgressIdsLock_;
-  // egressId -> port
-  boost::container::flat_map<opennsl_if_t, opennsl_port_t> egressId2Port_;
+  boost::container::flat_set<opennsl_if_t> resolvedEgresses_;
   uint32_t numEcmpEgressProgrammed_{0};
 
   boost::container::flat_map<
