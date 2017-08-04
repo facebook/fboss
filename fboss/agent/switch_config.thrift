@@ -449,7 +449,7 @@ struct StaticRouteNoNextHops {
  * single switch/router in the network.
  */
 struct SwitchConfig {
-  1: i64 version = 0
+  1: optional i64 version (deprecated)
   2: list<Port> ports
   3: list<Vlan> vlans = []
   4: list<VlanPort> vlanPorts = []
@@ -513,4 +513,5 @@ struct SwitchConfig {
   22: optional string dhcpReplySrcOverrideV4
   23: optional string dhcpReplySrcOverrideV6
   24: optional TrafficPolicyConfig globalEgressTrafficPolicy
-}
+  25: optional string config_version
+} (deprecated="i64 version not supported. Use string config_version instead ")
