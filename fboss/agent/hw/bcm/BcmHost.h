@@ -284,7 +284,8 @@ class BcmHostTable {
   void egressResolutionChangedHwLocked(
       opennsl_if_t affectedPath,
       BcmEcmpEgress::Action action) {
-    BcmEcmpEgress::Paths affectedPaths{affectedPath};
+    BcmEcmpEgress::Paths affectedPaths;
+    affectedPaths.insert(affectedPath);
     egressResolutionChangedHwLocked(affectedPaths, action);
   }
 
