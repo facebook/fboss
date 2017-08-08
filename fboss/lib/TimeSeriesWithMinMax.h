@@ -21,7 +21,7 @@ namespace fboss {
  * are all thread safe, and are intended to be used for data logging.
  */
 template <class ValueType>
-class TimedMaxBuffer {
+class TimeSeriesWithMinMax {
  public:
   /*
    * Unit definitions for readable interface.
@@ -30,13 +30,13 @@ class TimedMaxBuffer {
   using Duration = std::chrono::seconds;
 
   /*
-   * Instantiate a buffer.
+   * Instantiate a time series.
    * interval : Length of time to record max over.
    * bucketInterval : The granularity of the data.
    * The class relies on the buffer's buckets being sorted
    * by time covered.
    */
-  explicit TimedMaxBuffer(
+  explicit TimeSeriesWithMinMax(
       Duration interval = Duration(60),
       Duration bucketInterval = Duration(1))
       : interval_(interval), bucketInterval_(bucketInterval) {
@@ -67,6 +67,17 @@ class TimedMaxBuffer {
    */
   ValueType getMax(Time start, Time end);
 
+  /*
+   * Get the current minimum value of the buffer.
+   */
+  ValueType getMin();
+
+  /*
+   * Get the minimum value over an interval
+   */
+  ValueType getMin(Time start, Time end);
+
+
  private:
   /*
    * Internal bucket class to keep granularity of data.
@@ -94,15 +105,13 @@ class TimedMaxBuffer {
       return max_;
     }
 
-    /*
-     * Implicit conversion to ValueType, for ease of use.
-     */
-    /* implicit */ operator ValueType() const {
-      return max_;
+    ValueType getMin() const {
+      return min_;
     }
 
    private:
     ValueType max_ = std::numeric_limits<ValueType>::lowest();
+    ValueType min_ = std::numeric_limits<ValueType>::max();
     Time startTime_;
     Duration width_;
   };
@@ -112,7 +121,6 @@ class TimedMaxBuffer {
    * from outside of the time window.
    */
   void maintainBuffer(Time now);
-
 
   /*
    * Local copies of constructor arguments.
@@ -128,4 +136,4 @@ class TimedMaxBuffer {
 };
 }
 }
-#include "TimedMaxBuffer-inl.h"
+#include "TimeSeriesWithMinMax-inl.h"

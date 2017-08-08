@@ -1,5 +1,5 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
-#include "fboss/lib/TimedMaxBuffer.h"
+#include "fboss/lib/TimeSeriesWithMinMax.h"
 
 #include <folly/Benchmark.h>
 #include <folly/Synchronized.h>
@@ -12,7 +12,7 @@ using namespace facebook::fboss;
 using namespace folly;
 
 BENCHMARK(InsertionTest, n) {
-  TimedMaxBuffer<int> buf;
+  TimeSeriesWithMinMax<int> buf;
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++) {
       buf.addValue(j);

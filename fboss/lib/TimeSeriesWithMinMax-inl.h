@@ -1,5 +1,5 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
-#include "TimedMaxBuffer.h"
+#include "TimeSeriesWithMinMax.h"
 
 #include <algorithm>
 
@@ -13,7 +13,7 @@ namespace fboss {
  * the value inside it.
  */
 template <class ValueType>
-void TimedMaxBuffer<ValueType>::addValue(const ValueType& value) {
+void TimeSeriesWithMinMax<ValueType>::addValue(const ValueType& value) {
   auto t = std::chrono::system_clock::now();
   auto locked_buf = buf_.wlock();
   auto last_bucket = locked_buf->size() == 0
@@ -34,10 +34,11 @@ void TimedMaxBuffer<ValueType>::addValue(const ValueType& value) {
  * structure.
  */
 template <class ValueType>
-void TimedMaxBuffer<ValueType>::addValue(
+void TimeSeriesWithMinMax<ValueType>::addValue(
     const ValueType& value,
-    typename TimedMaxBuffer<ValueType>::Time t) {
+    typename TimeSeriesWithMinMax<ValueType>::Time t) {
   auto locked_buf = buf_.wlock();
+
   /*
    * If the time is out of the buffer, return.
    */
@@ -84,17 +85,16 @@ void TimedMaxBuffer<ValueType>::addValue(
    * of the buffer.
    */
   for (int i = 0; i < locked_buf->size(); i++) {
-    Bucket& b = locked_buf->at(i);
-    if (b.isTimeInBucket(t)) {
-      b.addValue(value);
+    auto b = &locked_buf->at(i);
+    if (b->isTimeInBucket(t)) {
+      b->addValue(value);
       return;
-    }
-    if (i + 1 < locked_buf->size()) {
+    } else if (i + 1 < locked_buf->size()) {
       if (t < locked_buf->at(i + 1).getInstantiatedTime() &&
-          t > b.getInstantiatedTime()) {
-        Bucket b2(t, bucketInterval_);
-        b2.addValue(value);
-        locked_buf->insert(locked_buf->begin() + i, std::move(b2));
+          t > b->getInstantiatedTime()) {
+        Bucket b(t, bucketInterval_);
+        b.addValue(value);
+        locked_buf->insert(locked_buf->begin() + i, std::move(b));
         return;
       }
     }
@@ -107,7 +107,7 @@ void TimedMaxBuffer<ValueType>::addValue(
  * size of the buffer is not longer than expected.
  */
 template <class T>
-void TimedMaxBuffer<T>::maintainBuffer(Time now) {
+void TimeSeriesWithMinMax<T>::maintainBuffer(Time now) {
   auto locked_buf = buf_.wlock();
   // remove buckets that are out of date
   locked_buf->erase(
@@ -122,27 +122,26 @@ void TimedMaxBuffer<T>::maintainBuffer(Time now) {
 }
 
 /*
- * Return the maximum value in the buffer. Use the STL accumulate
- * function for readable code.
+ * Return the maximum value in the buffer.
  */
 template <class ValueType>
-ValueType TimedMaxBuffer<ValueType>::getMax() {
+ValueType TimeSeriesWithMinMax<ValueType>::getMax() {
   maintainBuffer(std::chrono::system_clock::now());
   auto locked_buf = buf_.rlock();
   if (locked_buf->size() == 0) {
     throw std::runtime_error("Empty Buffer!");
   }
-  return std::accumulate(
-      locked_buf->begin(),
-      locked_buf->end(),
-      std::numeric_limits<ValueType>::lowest(),
-      [](ValueType b1, ValueType b2) { return std::max(b1, b2); });
+  ValueType max = std::numeric_limits<ValueType>::lowest();
+  for (auto b : *locked_buf) {
+    max = std::max(max, b.getMax());
+  }
+  return max;
 }
 
 template <class ValueType>
-ValueType TimedMaxBuffer<ValueType>::getMax(
-    typename TimedMaxBuffer<ValueType>::Time start,
-    typename TimedMaxBuffer<ValueType>::Time end) {
+ValueType TimeSeriesWithMinMax<ValueType>::getMax(
+    typename TimeSeriesWithMinMax<ValueType>::Time start,
+    typename TimeSeriesWithMinMax<ValueType>::Time end) {
   maintainBuffer(std::chrono::system_clock::now());
   auto locked_buf = buf_.rlock();
 
@@ -150,20 +149,62 @@ ValueType TimedMaxBuffer<ValueType>::getMax(
     throw std::runtime_error("Empty Buffer!");
   }
 
-  ValueType maxVal = std::numeric_limits<ValueType>::lowest();
+  ValueType max = std::numeric_limits<ValueType>::lowest();
   bool isValid = false;
-  for (int i = 0; i < locked_buf->size(); i++) {
-    auto b = &locked_buf->at(i);
-    auto t = b->getInstantiatedTime();
+  for (auto b : *locked_buf) {
+    auto t = b.getInstantiatedTime();
     if (t >= start && t < end) {
       isValid = true;
-      maxVal = std::max((ValueType)*b, maxVal);
+      max = std::max(b.getMax(), max);
     }
   }
   if (!isValid) {
     throw std::runtime_error("Bad range specified");
   }
-  return maxVal;
+  return max;
+}
+
+/*
+ * Return the minimum value in the buffer.
+ */
+template <class ValueType>
+ValueType TimeSeriesWithMinMax<ValueType>::getMin() {
+  maintainBuffer(std::chrono::system_clock::now());
+  auto locked_buf = buf_.rlock();
+  if (locked_buf->size() == 0) {
+    throw std::runtime_error("Empty Buffer!");
+  }
+  ValueType min = std::numeric_limits<ValueType>::max();
+  for (auto b : *locked_buf) {
+    min = std::min(min, b.getMin());
+  }
+  return min;
+}
+
+template <class ValueType>
+ValueType TimeSeriesWithMinMax<ValueType>::getMin(
+    typename TimeSeriesWithMinMax<ValueType>::Time start,
+    typename TimeSeriesWithMinMax<ValueType>::Time end) {
+  maintainBuffer(std::chrono::system_clock::now());
+  auto locked_buf = buf_.rlock();
+
+  if (locked_buf->size() == 0) {
+    throw std::runtime_error("Empty Buffer!");
+  }
+
+  ValueType min = std::numeric_limits<ValueType>::max();
+  bool isValid = false;
+  for (auto b : *locked_buf) {
+    auto t = b.getInstantiatedTime();
+    if (t >= start && t < end) {
+      isValid = true;
+      min = std::min(b.getMin(), min);
+    }
+  }
+  if (!isValid) {
+    throw std::runtime_error("Bad range specified");
+  }
+  return min;
 }
 
 /*
@@ -171,7 +212,7 @@ ValueType TimedMaxBuffer<ValueType>::getMax(
  * to the bucket interval.
  */
 template <class ValueType>
-TimedMaxBuffer<ValueType>::Bucket::Bucket(Time now, Duration width)
+TimeSeriesWithMinMax<ValueType>::Bucket::Bucket(Time now, Duration width)
     : width_(width) {
   auto epoch = std::chrono::duration_cast<Duration>(now.time_since_epoch());
   auto leftover = epoch % width;
@@ -184,18 +225,19 @@ TimedMaxBuffer<ValueType>::Bucket::Bucket(Time now, Duration width)
  * usage, the user must check this for themselves.
  */
 template <class ValueType>
-void TimedMaxBuffer<ValueType>::Bucket::addValue(const ValueType& value) {
+void TimeSeriesWithMinMax<ValueType>::Bucket::addValue(const ValueType& value) {
   max_ = std::max(value, max_);
+  min_ = std::min(value, min_);
 }
 
 template <class ValueType>
-bool TimedMaxBuffer<ValueType>::Bucket::isTimeInBucket(Time time) {
+bool TimeSeriesWithMinMax<ValueType>::Bucket::isTimeInBucket(Time time) {
   return time >= startTime_ && time <= startTime_ + width_;
 }
 
 template <class ValueType>
-typename TimedMaxBuffer<ValueType>::Time
-TimedMaxBuffer<ValueType>::Bucket::getInstantiatedTime() const{
+typename TimeSeriesWithMinMax<ValueType>::Time
+TimeSeriesWithMinMax<ValueType>::Bucket::getInstantiatedTime() const{
   return startTime_;
 }
 }
