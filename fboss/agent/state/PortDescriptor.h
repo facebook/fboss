@@ -56,8 +56,14 @@ class PortDescriptor {
   }
 
   bool operator==(const PortDescriptor& rhs) const {
-    return type_ == rhs.type_ && (physicalPortID_ == rhs.physicalPortID_ ||
-                                  aggregatePortID_ == rhs.aggregatePortID_);
+    return type_ == rhs.type_ &&
+        ((type_ == PortType::PHYSICAL &&
+          physicalPortID_ == rhs.physicalPortID_) ||
+         (type_ == PortType::AGGREGATE &&
+          aggregatePortID_ == rhs.aggregatePortID_));
+  }
+  bool operator!=(const PortDescriptor& rhs) const {
+    return !(*this == rhs);
   }
   bool operator==(const PortID portID) const {
     return type_ == PortType::PHYSICAL &&
