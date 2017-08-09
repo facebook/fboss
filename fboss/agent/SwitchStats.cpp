@@ -89,7 +89,8 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap *map)
                  1, 0, 200, AVG, 50, 100),
       linkStateChange_(map, kCounterPrefix + "link_state.down", SUM),
       hwOutOfSync_(
-        map, kCounterPrefix + "hw_out_of_sync") {
+        map, kCounterPrefix + "hw_out_of_sync"),
+      pcapDistFailure_(map, kCounterPrefix + "pcap_dist_failure.error"){
 }
 
 PortStats* SwitchStats::port(PortID portID) {

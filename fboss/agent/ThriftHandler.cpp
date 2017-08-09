@@ -68,7 +68,6 @@ using std::shared_ptr;
 using std::string;
 using std::vector;
 using std::unique_ptr;
-using namespace apache::thrift::transport;
 using apache::thrift::server::TConnectionContext;
 
 using facebook::network::toBinaryAddress;
@@ -775,6 +774,15 @@ void ThriftHandler::getRouteUpdateLoggingTrackedPrefixes(
     info.exact = tracked.exact;
     infos.push_back(info);
   }
+}
+
+void ThriftHandler::beginPacketDump(int32_t port) {
+  // Client construction is serialized via SwSwitch event base
+  sw_->constructPushClient(port);
+}
+
+void ThriftHandler::killDistributionProcess(){
+  sw_->killDistributionProcess();
 }
 
 void ThriftHandler::sendPkt(int32_t port, int32_t vlan,

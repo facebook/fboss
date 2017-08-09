@@ -32,9 +32,11 @@
 namespace facebook { namespace fboss {
 
 class ArpHandler;
+class ChannelCloser;
 class IPv4Handler;
 class IPv6Handler;
 class LldpManager;
+class PcapPushSubscriberAsyncClient;
 class PktCaptureManager;
 class Platform;
 class Port;
@@ -325,6 +327,19 @@ class SwSwitch : public HwSwitch::Callback {
   }
 
   /*
+   * Construct and destroy a client to dump packets to the packet distribution
+   * service.
+   */
+  void constructPushClient(uint16_t port);
+
+  void destroyPushClient();
+
+  /*
+   * Send a kill message to the distribution process.
+   */
+  void killDistributionProcess();
+
+  /*
    * Check if the passed in state is valid.
    * For now we just check for the new port speeds being valid.
    * This could be extended as needed
@@ -590,6 +605,9 @@ class SwSwitch : public HwSwitch::Callback {
     return desiredStateDontUseDirectly_;
   }
 
+  void publishRxPacket(RxPacket* packet);
+  void publishTxPacket(TxPacket* packet);
+
  private:
   void queueStateUpdateForGettingHwInSync(
       folly::StringPiece name,
@@ -736,6 +754,12 @@ class SwSwitch : public HwSwitch::Callback {
   folly::EventBase fbossPktTxEventBase_;
 
   /*
+   * A thread for sending packets to the distribution process
+   */
+  std::unique_ptr<std::thread> pcapDistributionThread_;
+  folly::EventBase pcapDistributionEvb_;
+
+  /*
    * A callback for listening to neighbors coming and going.
    */
   std::mutex neighborListenerMutex_;
@@ -752,6 +776,11 @@ class SwSwitch : public HwSwitch::Callback {
 
   std::unique_ptr<PortRemediator> portRemediator_;
 
+  std::unique_ptr<PcapPushSubscriberAsyncClient> pcapPusher_;
+  std::atomic<bool> distributionServiceReady_{false};
+
+  std::unique_ptr<ChannelCloser> closer_;
+
   std::unique_ptr<ArpHandler> arp_;
   std::unique_ptr<IPv4Handler> ipv4_;
   std::unique_ptr<IPv6Handler> ipv6_;
@@ -759,7 +788,6 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<PktCaptureManager> pcapMgr_;
   std::unique_ptr<RouteUpdateLogger> routeUpdateLogger_;
   std::unique_ptr<UnresolvedNhopsProber> unresolvedNhopsProber_;
-
   BootType bootType_{BootType::UNINITIALIZED};
   std::unique_ptr<LldpManager> lldpManager_;
   std::unique_ptr<ThreadHeartbeat> bgThreadHeartbeat_;

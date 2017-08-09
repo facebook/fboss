@@ -13,6 +13,7 @@ from __future__ import unicode_literals
 
 from neteng.fboss.ctrl import FbossCtrl
 from neteng.fboss.qsfp import QsfpService
+from neteng.fboss.pcap_pubsub import PcapPushSubscriber
 from thrift.protocol.THeaderProtocol import THeaderProtocol
 from thrift.transport.THeaderTransport import THeaderTransport
 from thrift.transport.TSocket import TSocket
@@ -59,7 +60,7 @@ class FbossAgentClient(FbossCtrl.Client):
         try:
             return FbossCtrl.Client.getPortInfo(self, *args, **kwargs)
         except TApplicationException as ex:
-            if 'Method name getPortInfo not found' in ex.message:
+            if 'Method name getPortInfo not found' in str(ex):
                 return FbossCtrl.Client.getPortStats(self, *args, **kwargs)
             raise
 
@@ -67,9 +68,33 @@ class FbossAgentClient(FbossCtrl.Client):
         try:
             return FbossCtrl.Client.getAllPortInfo(self, *args, **kwargs)
         except TApplicationException as ex:
-            if 'Method name getAllPortInfo not found' in ex.message:
+            if 'Method name getAllPortInfo not found' in str(ex):
                 return FbossCtrl.Client.getAllPortStats(self, *args, **kwargs)
             raise
+
+
+class PcapPushSubClient(PcapPushSubscriber.Client):
+    DEFAULT_PORT = 5911
+
+    def __init__(self, host, port=None, timeout=5.0):
+        self.host = host
+        if port is None:
+            port = self.DEFAULT_PORT
+
+        self._socket = TSocket(host, port)
+        # TSocket.setTimeout() takes a value in milliseconds
+        self._socket.setTimeout(timeout * 1000)
+        self._transport = THeaderTransport(self._socket)
+        self._protocol = THeaderProtocol(self._transport)
+
+        self._transport.open()
+        PcapPushSubscriber.Client.__init__(self, self._protocol)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self._transport.close()
 
 
 class QsfpServiceClient(QsfpService.Client):

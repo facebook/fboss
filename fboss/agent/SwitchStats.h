@@ -241,6 +241,10 @@ class SwitchStats : public boost::noncopyable {
     hwOutOfSync_.incrementValue(-1);
   }
 
+  void pcapDistFailure(){
+    pcapDistFailure_.incrementValue(1);
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   SwitchStats(SwitchStats const &) = delete;
@@ -401,6 +405,9 @@ class SwitchStats : public boost::noncopyable {
 
   // Individual port stats objects, indexed by PortID
   PortStatsMap ports_;
+
+  // Number of packets dropped by the PCAP distribution service
+  TLCounter pcapDistFailure_;
 };
 
 }} // facebook::fboss

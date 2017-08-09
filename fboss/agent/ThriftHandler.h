@@ -74,10 +74,14 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
     return sw_;
   }
 
+  void beginPacketDump(int32_t port) override;
+  void killDistributionProcess() override;
+
   void sendPkt(int32_t port, int32_t vlan,
       std::unique_ptr<folly::fbstring> data) override;
   void sendPktHex(int32_t port, int32_t vlan,
       std::unique_ptr<folly::fbstring> hex) override;
+
   void txPkt(int32_t port, std::unique_ptr<folly::fbstring> data) override;
   void txPktL2(std::unique_ptr<folly::fbstring> data) override;
   void txPktL3(std::unique_ptr<folly::fbstring> payload) override;
@@ -262,7 +266,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   // Forbidden copy constructor and assignment operator
   ThriftHandler(ThriftHandler const &) = delete;
   ThriftHandler& operator=(ThriftHandler const &) = delete;
-
 
   template<typename Result>
   void fail(const ThriftCallback<Result>& callback,

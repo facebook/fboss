@@ -17,7 +17,7 @@ typedef string (cpp2.type = "::folly::fbstring") fbstring
 const i32 DEFAULT_CTRL_PORT = 5909
 
 // Using the defaults from here:
-// https://en.wikipedia.org/wiki/Administrative_distance#Cisco
+// https://en.wikipedia.org/wiki/Administrative_distance
 enum AdminDistance {
   DIRECTLY_CONNECTED = 0,
   STATIC_ROUTE = 1,
@@ -273,6 +273,16 @@ service FbossCtrl extends fb303.FacebookService {
     throws (1: fboss.FbossBaseError error)
   void syncFib(1: i16 clientId, 2: list<UnicastRoute> routes)
     throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Begins a packet stream from the switch to a distribution service
+   */
+  void beginPacketDump(1: i32 port)
+
+  /*
+   * Kill the pcap distribution process
+   */
+  void killDistributionProcess()
 
   /*
    * Send packets in binary or hex format to controller.
