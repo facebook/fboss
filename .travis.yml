@@ -26,9 +26,14 @@ install:
     fi
   - cd ..
 
+
+# split this up because there is a 50 mins/step time limit
+before_script:
+  - bash getdeps.sh
+
 # Build steps
 script:
-  - bash getdeps.sh && mkdir build && cd build && ${DEPS_DIR}/cmake/bin/cmake .. && make
+  - mkdir build && cd build && ${DEPS_DIR}/cmake/bin/cmake .. && make
 
 notifications:
   email:
