@@ -1,4 +1,5 @@
 #include "fboss/pcap_distribution_service/PcapDistributor.h"
+#include "fboss/pcap_distribution_service/PcapCircularBuffer.h"
 
 #include <memory>
 

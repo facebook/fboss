@@ -10,13 +10,17 @@
 #pragma once
 
 #include <chrono>
+#include <vector>
 #include <folly/io/IOBuf.h>
 #include "fboss/agent/types.h"
+#include "fboss/pcap_distribution_service/if/gen-cpp2/pcap_pubsub_types.h"
 
 namespace facebook { namespace fboss {
 
 class RxPacket;
 class TxPacket;
+class RxPacketData;
+class TxPacketData;
 
 /*
  * PcapPkt represents a packet captured on the wire.
@@ -42,6 +46,18 @@ class PcapPkt {
   explicit PcapPkt(const TxPacket* pkt);
   PcapPkt(const TxPacket* pkt, TimePoint timestamp);
 
+  /*
+   * Create a PcapPkt from distribution service data
+   */
+  explicit PcapPkt(const RxPacketData* pkt);
+  PcapPkt(const RxPacketData* pkt, TimePoint timestamp);
+
+  /*
+   * Create a PcapPkt from distribution service data
+   */
+  explicit PcapPkt(const TxPacketData* pkt);
+  PcapPkt(const TxPacketData* pkt, TimePoint timestamp);
+
   bool initialized() const {
     return initialized_;
   }
@@ -63,6 +79,9 @@ class PcapPkt {
   const folly::IOBuf* buf() const {
     return &buf_;
   }
+  std::vector<RxReason> getReasons(){
+    return reasons_;
+  }
 
   // Move assignment
   PcapPkt(PcapPkt&& other) noexcept {
@@ -77,14 +96,14 @@ class PcapPkt {
     vlan_ = other.vlan_;
     timestamp_ = other.timestamp_;
     buf_ = std::move(other.buf_);
+    reasons_ = std::move(other.reasons_);
     return *this;
   }
 
- private:
-  // Forbidden copy constructor and assignment operator
-  PcapPkt(PcapPkt const&) = delete;
-  PcapPkt& operator=(PcapPkt const&) = delete;
+  PcapPkt(PcapPkt const&) = default;
+  PcapPkt& operator=(PcapPkt const&) = default;
 
+ private:
   bool initialized_{false};
   // Whether or not we received this packet, or are sending it.
   bool rx_{false};
@@ -101,6 +120,8 @@ class PcapPkt {
   TimePoint timestamp_;
   // The packet contents, starting from the ethernet header.
   folly::IOBuf buf_;
+  // Reasons for sending packet to CPU
+  std::vector<RxReason> reasons_;
 };
 
 }} // facebook::fboss
