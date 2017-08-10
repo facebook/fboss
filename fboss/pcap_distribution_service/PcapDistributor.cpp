@@ -1,10 +1,10 @@
 #include "fboss/pcap_distribution_service/PcapDistributor.h"
 
-#include <functional>
-#include <memory>
-#include <map>
-#include <tuple>
 #include <folly/Logging.h>
+#include <functional>
+#include <map>
+#include <memory>
+#include <tuple>
 
 #include <folly/SocketAddress.h>
 #include <folly/Synchronized.h>
@@ -15,7 +15,6 @@
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
-#include "fboss/pcap_distribution_service/if/gen-cpp2/PcapPushSubscriber.h"
 #include "fboss/pcap_distribution_service/if/gen-cpp2/PcapSubscriber.h"
 
 using namespace std;
@@ -24,8 +23,7 @@ using namespace apache::thrift::server;
 using namespace apache::thrift::async;
 using namespace apache::thrift;
 
-namespace facebook {
-namespace fboss {
+namespace facebook { namespace fboss {
 
 void PcapDistributor::subscribe(unique_ptr<string> hostname, int port) {
   auto creation = [&, hostname = move(hostname), port ]() {
@@ -53,7 +51,7 @@ void PcapDistributor::unsubscribe(const string& hostname, int port) {
   LOG(INFO) << "UNSUBSCRIBED CLIENT: " << hostname << " " << port;
 }
 
-void PcapDistributor::distributeRxPacket(unique_ptr<RxPacketData> packetData) {
+void PcapDistributor::distributeRxPacket(RxPacketData* packetData) {
   auto locked_map = subs_.rlock();
   auto onError = [](runtime_error& e) {
     FB_LOG_EVERY_MS(ERROR, 1000) << e.what();
@@ -63,7 +61,7 @@ void PcapDistributor::distributeRxPacket(unique_ptr<RxPacketData> packetData) {
   }
 }
 
-void PcapDistributor::distributeTxPacket(unique_ptr<TxPacketData> packetData) {
+void PcapDistributor::distributeTxPacket(TxPacketData* packetData) {
   auto locked_map = subs_.rlock();
   auto onError = [](runtime_error& e) {
     FB_LOG_EVERY_MS(ERROR, 1000) << e.what();
@@ -72,22 +70,4 @@ void PcapDistributor::distributeTxPacket(unique_ptr<TxPacketData> packetData) {
     i.second->future_receiveTxPacket(*packetData).onError(move(onError));
   }
 }
-
-void PushSubscriber::subscribe(unique_ptr<string> hostname, int port) {
-  dist_->subscribe(move(hostname), port);
-}
-void PushSubscriber::unsubscribe(unique_ptr<string> hostname, int port) {
-  dist_->unsubscribe(*hostname, port);
-}
-void PushSubscriber::receiveRxPacket(unique_ptr<RxPacketData> packetData) {
-  dist_->distributeRxPacket(move(packetData));
-}
-void PushSubscriber::receiveTxPacket(unique_ptr<TxPacketData> packetData) {
-  dist_->distributeTxPacket(move(packetData));
-}
-void PushSubscriber::kill() {
-  LOG(INFO) << "KILLED FROM AGENT";
-  exit(0);
-}
-}
-}
+}}

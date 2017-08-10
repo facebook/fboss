@@ -12,8 +12,7 @@
 
 #include "folly/Synchronized.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook { namespace fboss {
 
 class ChannelCloserCB;
 
@@ -28,8 +27,8 @@ class PcapDistributor {
   explicit PcapDistributor(std::shared_ptr<folly::EventBase> b) : evb_(b) {}
   void subscribe(std::unique_ptr<std::string> hostname, int port);
   void unsubscribe(const std::string& hostname, int port);
-  void distributeRxPacket(std::unique_ptr<RxPacketData> packetData);
-  void distributeTxPacket(std::unique_ptr<TxPacketData> packetData);
+  void distributeRxPacket(RxPacketData* packetData);
+  void distributeTxPacket(TxPacketData* packetData);
 
  private:
   /*
@@ -47,6 +46,8 @@ class PcapDistributor {
 
    private:
     PcapDistributor* p_ = nullptr;
+    // The pair is the key for each client. When the channel
+    // closes, we unsubscribe the client based on this pair.
     const std::pair<std::string, int> key_;
   };
 
@@ -59,19 +60,4 @@ class PcapDistributor {
       callbacks_;
   std::shared_ptr<folly::EventBase> evb_;
 };
-
-class PushSubscriber : virtual public PcapPushSubscriberSvIf,
-                       public apache::thrift::server::TServerEventHandler {
- public:
-  explicit PushSubscriber(std::shared_ptr<PcapDistributor> d) : dist_(d) {}
-  void subscribe(std::unique_ptr<std::string> hostname, int port) override;
-  void unsubscribe(std::unique_ptr<std::string> hostname, int port) override;
-  void receiveRxPacket(std::unique_ptr<RxPacketData> packet) override;
-  void receiveTxPacket(std::unique_ptr<TxPacketData> packet) override;
-  void kill() override;
-
- private:
-  std::shared_ptr<PcapDistributor> dist_;
-};
-}
-}
+}}

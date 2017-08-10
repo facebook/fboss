@@ -1,5 +1,6 @@
 #include "fboss/pcap_distribution_service/PcapDistributor.h"
-#include "fboss/pcap_distribution_service/PcapCircularBuffer.h"
+#include "fboss/pcap_distribution_service/ThriftHandler.h"
+#include "fboss/pcap_distribution_service/PcapBufferManager.h"
 
 #include <memory>
 
@@ -27,8 +28,9 @@ int main(int argc, char** argv) {
 
   auto evb = make_shared<EventBase>();
 
-  auto dist = make_shared<PcapDistributor>(evb);
-  auto pushsub = make_shared<PushSubscriber>(dist);
+  auto dist = make_unique<PcapDistributor>(evb);
+  auto buff = make_unique<PcapBufferManager>();
+  auto pushsub = make_shared<ThriftHandler>(move(dist), move(buff));
 
   SocketAddress ctrl_address("::1", ctrl_constants::DEFAULT_CTRL_PORT());
   auto socket = TAsyncSocket::newSocket(evb.get(), ctrl_address);
