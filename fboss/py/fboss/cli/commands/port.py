@@ -53,10 +53,11 @@ class PortDetailsCmd(cmds.FbossCmd):
             :return suffix string: human readable format
         '''
 
+        # TODO: Make this more accurate.
         bps_per_unit = suffix = None
         value = bps
         # expand to 'T' and beyond by adding in the proper unit
-        for factor, unit in [(1, ''), (3, 'K'), (6, 'M'), (9, 'G')]:
+        for factor, unit in [(0, ''), (3, 'K'), (6, 'M'), (9, 'G')]:
             if value < 1000:
                 bps_per_unit = bps / 10 ** factor
                 suffix = '{}bps'.format(unit)
@@ -117,7 +118,7 @@ class PortFlapCmd(cmds.FbossCmd):
         except FbossBaseError as e:
             raise SystemExit('Fboss Error: ' + e)
 
-    def flap_ports(self, ports):
+    def flap_ports(self, ports, flap_time=1):
         self._client = self._create_agent_client()
         resp = self._client.getPortStatus(ports)
         for port, status in resp.items():
@@ -127,7 +128,7 @@ class PortFlapCmd(cmds.FbossCmd):
                 continue
             print("Disabling port %d" % (port))
             self._client.setPortState(port, False)
-        time.sleep(1)
+        time.sleep(flap_time)
         for port, status in resp.items():
             if status.enabled:
                 print("Enabling port %d" % (port))
@@ -313,14 +314,11 @@ class PortStatusDetailCmd(object):
         start_channel = xcvr_info.channelId
         speed = self._port_speeds[port]
 
-        # speed == 1000 and N/A are one channel
-        channels = [start_channel]
-        if speed == 20000:
-            channels = range(start_channel, start_channel + 2)
-        elif speed == 40000:
-            channels = range(start_channel, start_channel + 4)
+        if speed in (20000, 40000):
+            return range(start_channel, (start_channel + int(speed / 10000)))
 
-        return channels
+        # Else, return one channel for all other cases.
+        return [start_channel]
 
     def _get_channel_detail(self, port, status):
         ''' Get channel detail for port '''
@@ -356,7 +354,8 @@ class PortStatusDetailCmd(object):
                     self._info_resp[port] = info
 
     def _print_transceiver_ports(self, ports, info):
-        # Print port info if the transceiver doesn't have any
+        ''' Print port info if the transceiver doesn't have any'''
+
         present = info.present if info else None
 
         for port in ports:
@@ -376,6 +375,7 @@ class PortStatusDetailCmd(object):
 
     def _print_settings_details(self, info):
         ''' print setting details'''
+
         print("CDR Tx: {}\tCDR Rx: {}".format(
             transceiver_ttypes.FeatureState._VALUES_TO_NAMES[
                 info.settings.cdrTx],
@@ -394,25 +394,56 @@ class PortStatusDetailCmd(object):
             transceiver_ttypes.PowerControlState._VALUES_TO_NAMES[
                 info.settings.powerControl]))
 
-    def _print_cable_details(self, info):
-        ''' print cable details '''
+    def _get_cable_details(self, info):
+        ''' returns cable details '''
 
-        print("Cable:", end=""),
-        if info.cable.singleModeKm:
-            print("Single Mode:  {}km".format(
-                  info.cable.singleModeKm % 1000), end=""),
-        if info.cable.singleMode:
-            print("Single Mode:  {}m".format(
-                  info.cable.singleMode), end=""),
-        if info.cable.om3:
-            print("OM3:  {}m".format(info.cable.om3), end=""),
-        if info.cable.om2:
-            print("OM2:  {}m".format(info.cable.om2), end=""),
-        if info.cable.om1:
-            print("OM1:  {}m".format(info.cable.om1), end=""),
-        if info.cable.copper:
-            print("Copper:  {}m".format(info.cable.copper), end="")
-        print("")
+        # TODO(T20770659): Add support for AOC.
+        # TODO(T20773909): Validate cable type based on part number.
+        # TODO(T20773919): Validate cable length based on part number.
+
+        Cable = collections.namedtuple('Cable', 'length type unit')
+        cable_info_obtained = (
+            Cable(length=info.cable.copper, type="Copper", unit='m'),
+            Cable(length=info.cable.om1, type="OM1", unit='m'),
+            Cable(length=info.cable.om2, type="OM2", unit='m'),
+            Cable(length=info.cable.om3, type="OM3", unit='m'),
+            Cable(length=info.cable.singleMode, type="singleMode", unit='m'),
+            Cable(length=info.cable.singleModeKm, type="singleModeKm", unit='km'
+                  ))
+
+        cables_found = []
+        for cable in cable_info_obtained:
+            if cable.length:
+                cables_found.append(cable)
+
+        return cables_found
+
+    def _print_cable_details(self, info):
+        '''prints cable details'''
+
+        cables_found = self._get_cable_details(info)
+
+        if len(cables_found) == 1:
+            print_string = "Cable:"
+            print_string += cables_found[0].type
+            print_string += " "
+            print_string += str(cables_found[0].length)
+            print_string += cables_found[0].unit
+
+            print(print_string)
+
+        # Bad DOM or unsupported conditions.
+        elif len(cables_found) == 0:
+            print("Cable:Unknown/unsupported/no cable type found.")
+            print("\n       WARNING:Please verify DOM.")
+        else:  # len(cables_found) > 1
+            print("Cable:More than one cables found. Details: ")
+            print("      ", end="")
+            for cable_iterator in cables_found:
+                print(cable_iterator.type + " " +
+                      str(cable_iterator.length) +
+                      cable_iterator.unit + "  ", end="")
+            print("\n      WARNING: Please verify DOM.")
 
     def _print_thresholds(self, thresh):
         ''' print threshold details '''
@@ -466,7 +497,8 @@ class PortStatusDetailCmd(object):
             'Flags:', 'Alarm Low', 'Warning Low', 'Warning High', 'Alarm High'))
 
         sensor_tmpl = "    {:<12} {:>10} {:>15} {:>15} {:>10}"
-        # temp
+
+        # temperature
         print(sensor_tmpl.format('Temp:',
               sensor.temp.flags.alarm.low,
               sensor.temp.flags.warn.low,
@@ -482,6 +514,7 @@ class PortStatusDetailCmd(object):
 
     def _print_port_channel(self, channel):
         # per-channel output:
+
         print("  {:<15} {:0.4}  ".format("Tx Bias(mA)",
               channel.sensors.txBias.value), end="")
         if channel.sensors.txPwr:
@@ -535,6 +568,7 @@ class PortStatusDetailCmd(object):
 
     def _print_transceiver_details(self, tid):  # noqa
         ''' Print details about transceiver '''
+
         info = self._info_resp[tid]
         ch_to_port = self._t_to_p[tid]
         if info.present is False:
