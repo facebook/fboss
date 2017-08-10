@@ -13,6 +13,8 @@
 #include "fboss/agent/types.h"
 
 #include <string>
+#include <tuple>
+#include <vector>
 
 namespace facebook { namespace fboss {
 
@@ -74,6 +76,21 @@ class RxPacket : public Packet {
    * info (if available)
    */
   virtual int cosQueue() const { return -1; }
+
+  /*
+   * Struct to hold reason information
+   */
+  struct RxReason {
+    int bytes;
+    std::string description;
+  };
+
+  /*
+   * Return a vector of reasons for the packet
+   */
+  virtual std::vector<RxReason> getReasons() {
+    return {};
+  }
 
  protected:
   PortID srcPort_{0};

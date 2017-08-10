@@ -13,6 +13,7 @@ class TestSubscriber(PcapSubscriber):
 
     def receiveRxPacket(self, packetdata):
         print("got Rx Packet!")
+        print(packetdata)
 
     def receiveTxPacket(self, packetdata):
         print("got Tx Packet!")

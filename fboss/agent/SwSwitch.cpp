@@ -58,6 +58,7 @@
 #include <exception>
 #include <condition_variable>
 #include <glog/logging.h>
+#include <tuple>
 
 using folly::EventBase;
 using folly::io::Cursor;
@@ -377,6 +378,14 @@ void SwSwitch::publishRxPacket(RxPacket* pkt) {
   RxPacketData pubPkt;
   pubPkt.srcPort = pkt->getSrcPort();
   pubPkt.srcVlan = pkt->getSrcVlan();
+
+  for (const auto& r : pkt->getReasons()) {
+    RxReason reason;
+    reason.bytes = r.bytes;
+    reason.description = r.description;
+    pubPkt.reasons.push_back(reason);
+  }
+
   folly::IOBuf buf_copy;
   pkt->buf()->cloneInto(buf_copy);
   pubPkt.packetData = buf_copy.moveToFbString();

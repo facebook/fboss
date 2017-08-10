@@ -5,16 +5,30 @@ namespace d neteng.fboss.pcap_pubsub
 
 typedef binary (cpp2.type = "::folly::fbstring") fbbinary
 
-
 const i32 PCAP_PUBSUB_PORT = 5911
 
+// A struct to hold a Broadcom reason for
+// why a packet was sent to the CPU
+struct RxReason {
+  // a integer encoding of the reason
+  1: required i32 bytes,
+  // a human readable description of the reason
+  2: required string description
+}
+
+// A struct holding data of a packet received by the CPU
 struct RxPacketData {
   1: required i32 srcPort,
   2: required i32 srcVlan,
-  3: required fbbinary packetData
+  // The data in the packet
+  3: required fbbinary packetData,
+  // A list of the reasons that the packet
+  // was sent to the CPU
+  4: required list<RxReason> reasons
 }
 
-// can expand this packet later
+// A struct holding data of a packet that was sent out
+// of the CPU
 struct TxPacketData {
   1: required fbbinary packetData
 }
