@@ -82,4 +82,9 @@ static inline ClientID StdClientIds2ClientID(StdClientIds id) {
   return ClientID{static_cast<uint32_t>(id)};
 }
 
+/*
+ * Report our hostname
+ */
+std::string getLocalHostname();
+
 }} // facebook::fboss

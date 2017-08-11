@@ -11,6 +11,8 @@
 
 #include <folly/MoveWrapper.h>
 
+#include "fboss/agent/Utils.h"
+
 using folly::EventBase;
 using std::make_unique;
 using std::shared_ptr;
@@ -49,18 +51,6 @@ inline void SampleSender::publish(unique_ptr<CounterPublication> pub) {
         *pub);
     rateCalc_.finishedSamples(pub->times.size() * numCounters_);
   }
-}
-
-// Helper function to get the current machine's hostname
-string getLocalHostname() {
-  const size_t kHostnameMaxLen = 256;  // from gethostname man page
-  char hostname[kHostnameMaxLen];
-  if (gethostname(hostname, sizeof(hostname)) != 0) {
-    LOG(ERROR) << "gethostname() failed";
-    return "";
-  }
-
-  return hostname;
 }
 
 SampleProducer::SampleProducer(unique_ptr<HighresSamplerList> samplers,

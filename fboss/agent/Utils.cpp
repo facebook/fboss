@@ -92,4 +92,15 @@ bool dumpStateToFile(const std::string& filename,
   return folly::writeFile(folly::toPrettyJson(json), filename.c_str());
 }
 
+std::string getLocalHostname() {
+  const size_t kHostnameMaxLen = 256;  // from gethostname man page
+  char hostname[kHostnameMaxLen];
+  if (gethostname(hostname, sizeof(hostname)) != 0) {
+    LOG(ERROR) << "gethostname() failed";
+    return "";
+  }
+
+  return hostname;
+}
+
 }} // facebook::fboss
