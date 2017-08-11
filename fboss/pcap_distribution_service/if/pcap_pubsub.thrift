@@ -33,11 +33,23 @@ struct TxPacketData {
   1: required fbbinary packetData
 }
 
+union PacketData {
+  1: RxPacketData rxpkt,
+  2: TxPacketData txpkt
+}
+
+struct CapturedPacket {
+  1: required bool rx,
+  2: required PacketData pkt
+}
+
+// This interface is for a user to connect to the service,
+// and open subscriptions and request packet dumps
 service PcapPushSubscriber {
   // Called by the switch to send a packet to the
   // distributor
-  void receiveRxPacket(1: RxPacketData packet)
-  void receiveTxPacket(1: TxPacketData packet)
+  void receiveRxPacket(1: RxPacketData packet, 2: i16 type)
+  void receiveTxPacket(1: TxPacketData packet, 2: i16 type)
 
   // Give the switch the ability to kill the distribution
   // process if needed
@@ -47,8 +59,15 @@ service PcapPushSubscriber {
   // the service
   void subscribe(1: string client, 2: i32 port)
   void unsubscribe(1: string client, 2: i32 port)
+
+  // Dump the requested packet as a list
+  // Request by type of packet, or get all ethertypes
+  list<CapturedPacket> dumpAllPackets()
+  list<CapturedPacket> dumpPacketsByType(1: list<i16> ethertypes)
 }
 
+// This interface is for a subscriber to receive a packet stream
+// from the service
 service PcapSubscriber {
   // Both of these functions will be called by the
   // distributor upon receiving a packet from the switch.

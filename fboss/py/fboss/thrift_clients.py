@@ -86,7 +86,6 @@ class PcapPushSubClient(PcapPushSubscriber.Client):
         self._socket.setTimeout(timeout * 1000)
         self._transport = THeaderTransport(self._socket)
         self._protocol = THeaderProtocol(self._transport)
-
         self._transport.open()
         PcapPushSubscriber.Client.__init__(self, self._protocol)
 

@@ -374,7 +374,7 @@ void SwSwitch::clearWarmBootCache() {
   hw_->clearWarmBootCache();
 }
 
-void SwSwitch::publishRxPacket(RxPacket* pkt) {
+void SwSwitch::publishRxPacket(RxPacket* pkt, uint16_t ethertype){
   RxPacketData pubPkt;
   pubPkt.srcPort = pkt->getSrcPort();
   pubPkt.srcVlan = pkt->getSrcVlan();
@@ -394,10 +394,11 @@ void SwSwitch::publishRxPacket(RxPacket* pkt) {
     FB_LOG_EVERY_MS(ERROR, 1000)
         << "Unable to push packet to distribution service\n";
   };
-  pcapPusher_->future_receiveRxPacket(pubPkt).onError(std::move(onError));
+  pcapPusher_->future_receiveRxPacket(pubPkt, ethertype)
+      .onError(std::move(onError));
 }
 
-void SwSwitch::publishTxPacket(TxPacket* pkt) {
+void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype){
   TxPacketData pubPkt;
   folly::IOBuf copy_buf;
   pkt->buf()->cloneInto(copy_buf);
@@ -407,7 +408,8 @@ void SwSwitch::publishTxPacket(TxPacket* pkt) {
     FB_LOG_EVERY_MS(ERROR, 1000)
         << "Unable to push packet to distribution service\n";
   };
-  pcapPusher_->future_receiveTxPacket(pubPkt).onError(std::move(onError));
+  pcapPusher_->future_receiveTxPacket(pubPkt, ethertype)
+      .onError(std::move(onError));
 }
 
 void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
@@ -1016,10 +1018,6 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
 
   pcapMgr_->packetReceived(pkt.get());
 
-  if (distributionServiceReady_.load()) {
-    publishRxPacket(pkt.get());
-  }
-
   // The minimum required frame length for ethernet is 64 bytes.
   // Abort processing early if the packet is too short.
   auto len = pkt->getLength();
@@ -1037,6 +1035,10 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     // 802.1Q
     c += 2; // Advance over the VLAN tag.  We ignore it for now
     ethertype = c.readBE<uint16_t>();
+  }
+
+  if (distributionServiceReady_.load()) {
+    publishRxPacket(pkt.get(), ethertype);
   }
 
   VLOG(5) << "trapped packet: src_port=" << pkt->getSrcPort() << " srcAggPort="
@@ -1180,8 +1182,19 @@ void SwSwitch::sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
                                    PortID portID) noexcept {
   pcapMgr_->packetSent(pkt.get());
 
+  Cursor c(pkt->buf());
+  // unused to parse the ethertype correctly
+  PktUtil::readMac(&c);
+  PktUtil::readMac(&c);
+  auto ethertype = c.readBE<uint16_t>();
+  if (ethertype == 0x8100) {
+    // 802.1Q
+    c += 2; // Advance over the VLAN tag.  We ignore it for now
+    ethertype = c.readBE<uint16_t>();
+  }
+
   if (distributionServiceReady_.load()) {
-    publishTxPacket(pkt.get());
+    publishTxPacket(pkt.get(), ethertype);
   }
 
   if (!hw_->sendPacketOutOfPort(std::move(pkt), portID)) {

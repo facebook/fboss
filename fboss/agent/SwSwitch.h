@@ -605,8 +605,8 @@ class SwSwitch : public HwSwitch::Callback {
     return desiredStateDontUseDirectly_;
   }
 
-  void publishRxPacket(RxPacket* packet);
-  void publishTxPacket(TxPacket* packet);
+  void publishRxPacket(RxPacket* packet, uint16_t ethertype);
+  void publishTxPacket(TxPacket* packet, uint16_t ethertype);
 
  private:
   void queueStateUpdateForGettingHwInSync(

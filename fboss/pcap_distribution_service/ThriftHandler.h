@@ -26,15 +26,26 @@ class ThriftHandler : virtual public PcapPushSubscriberSvIf,
    */
   void subscribe(std::unique_ptr<std::string> hostname, int port) override;
   void unsubscribe(std::unique_ptr<std::string> hostname, int port) override;
+
   /*
    * Called by SwSwitch when a packet is received
    */
-  void receiveRxPacket(std::unique_ptr<RxPacketData> pkt) override;
-  void receiveTxPacket(std::unique_ptr<TxPacketData> pkt) override;
+  void receiveRxPacket(std::unique_ptr<RxPacketData> pkt, int16_t ethertype)
+      override;
+  void receiveTxPacket(std::unique_ptr<TxPacketData> pkt, int16_t ethertype)
+      override;
   /*
    * A thrift kill switch for the service
    */
   void kill() override;
+
+  /*
+   * Methods to receive a packet dump from the service
+   */
+  void dumpAllPackets(std::vector<CapturedPacket>& out) override;
+  void dumpPacketsByType(
+      std::vector<CapturedPacket>& out,
+      std::unique_ptr<std::vector<int16_t>> ethertypes) override;
 
  private:
   std::unique_ptr<PcapDistributor> dist_;
