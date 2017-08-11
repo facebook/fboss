@@ -138,6 +138,13 @@ bool WedgePort::isControllingPort() const {
   return bcmPort_->getPortGroup()->controllingPort() == bcmPort_;
 }
 
+bool WedgePort::isInSingleMode() const {
+  if (!bcmPort_ || !bcmPort_->getPortGroup()) {
+    return false;
+  }
+  return bcmPort_->getPortGroup()->laneMode() == BcmPortGroup::LaneMode::SINGLE;
+}
+
 bool WedgePort::shouldCustomizeTransceiver() const {
   auto trans = getTransceiverID();
   if (!trans) {
@@ -146,12 +153,13 @@ bool WedgePort::shouldCustomizeTransceiver() const {
             << " as it has no transceiver.";
     return false;
   } else if (!isControllingPort()) {
-    auto channel = getChannel();
-    auto chan = channel ? folly::to<std::string>(*channel) : "Unknown";
-
     // We only want to customise on the first channel - this is the actual
     // speed the transceiver should be configured for
     // Other channels may be disabled with other speeds set
+    return false;
+  } else if (!isInSingleMode()) {
+    // If we are not in single mode (all 4 S gbps lanes treated as one
+    // 4xS port) then customizing risks restarting other non-broken lanes
     return false;
   } else if (speed_ == cfg::PortSpeed::DEFAULT) {
     // This should be resolved in BcmPort before calling

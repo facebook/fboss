@@ -72,10 +72,9 @@ void PortRemediator::timeoutExpired() noexcept {
     }
     auto infoFuture = platformPort->getTransceiverInfo();
     infoFuture.via(sw_->getBackgroundEVB())
-        .then([ sw = sw_, portId ](TransceiverInfo info) {
+        .then([platformPort](TransceiverInfo info) {
           if (info.present) {
-            updatePortState(sw, portId, cfg::PortState::POWER_DOWN);
-            updatePortState(sw, portId, cfg::PortState::UP);
+            platformPort->customizeTransceiver();
           }
         });
   }

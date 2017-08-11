@@ -61,6 +61,7 @@ class WedgePort : public BcmPlatformPort {
       folly::EventBase* evb) const override;
   folly::Future<TransceiverInfo> getTransceiverInfo(
       folly::EventBase* evb) const override;
+  void customizeTransceiver() override;
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -68,8 +69,8 @@ class WedgePort : public BcmPlatformPort {
   WedgePort& operator=(WedgePort const &) = delete;
 
  protected:
-  void customizeTransceiver();
   bool isControllingPort() const;
+  bool isInSingleMode() const;
   bool shouldCustomizeTransceiver() const;
 
   PortID id_{0};
