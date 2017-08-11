@@ -173,6 +173,7 @@ struct QueueMatchAction {
 
 struct MatchAction {
   1: optional QueueMatchAction sendToQueue
+  2: bool sendToCPU = false
 }
 
 struct MatchToAction {
@@ -181,21 +182,23 @@ struct MatchToAction {
   2: MatchAction action
 }
 
+enum MMUScalingFactor {
+  ONE = 0
+  EIGHT = 1
+}
+
 struct PortQueue {
   1: required i16 id
   // We only use unicast in Fabric
   2: required StreamType streamType = StreamType.UNICAST
-  3: optional i32 priority = 0
-  4: optional i32 weight
+  3: optional i32 weight
+  4: optional i32 reservedBytes
+  5: optional MMUScalingFactor scalingFactor
 }
 
 struct TrafficPolicyConfig {
+  // Order of entries determines priority of acls when applied
   1: list<MatchToAction> matchToAction = []
-  /*
-   * There are multiple queues per port
-   * This allows defining their attributes
-   */
-  2: optional list<PortQueue> queues
 }
 
 /**
@@ -251,10 +254,16 @@ struct Port {
    * An optional configurable string describing the port.
    */
   10: optional string description
+
   /**
    * If this is undefined, the global TrafficPolicyConfig will be used
    */
   11: optional TrafficPolicyConfig egressTrafficPolicy
+  /*
+   * There are multiple queues per port
+   * This allows defining their attributes
+   */
+  12: list<PortQueue> queues = []
 }
 
 struct AggregatePort {
@@ -474,8 +483,8 @@ struct SwitchConfig {
   13: optional list<StaticRouteNoNextHops> staticRoutesToNull = [];
   // Prefixes for which to send traffic to CPU
   14: optional list<StaticRouteNoNextHops> staticRoutesToCPU = [];
-  // The order of AclEntry _does_ determine its priority.
-  // Highest priority entry comes with smallest ID.
+  // These acls are not applied directly, instead they're used by TrafficPolicy
+  // to define policy matchers and actions
   15: optional list<AclEntry> acls = []
   // Set max number of probes to a sufficiently high value
   // to allow for the cases where
