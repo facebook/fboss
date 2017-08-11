@@ -16,6 +16,13 @@
 
 namespace facebook { namespace fboss {
 
+
+namespace cfg {
+class FbDACTable;
+class CableInfo;
+}
+
+
 // As per SFF-8436, QSFP+ 10 Gbs 4X PLUGGABLE TRANSCEIVER spec
 
 enum QsfpPages {
@@ -23,7 +30,6 @@ enum QsfpPages {
   PAGE0,
   PAGE3,
 };
-
 
 enum class SffField;
 class TransceiverImpl;
@@ -213,6 +219,18 @@ class QsfpModule : public Transceiver {
    * returns cable length (negative for "longer than we can represent")
    */
   int getQsfpCableLength(SffField field);
+
+  /*
+   * returns accurate floating-point DAC cable length
+   */
+  float getQsfpDACLength();
+
+  /*
+   * returns DAC cable gauge (representing the width of cable)
+   * smaller value means wider cable -> smaller loss
+   */
+  int getQsfpDACGauge();
+
   /*
    * returns the freeside transceiver technology type
    */
@@ -255,6 +273,11 @@ class QsfpModule : public Transceiver {
    * Gather the cable info for thrift queries
    */
   void getCableInfo(Cable &cable);
+
+  /*
+   * Gather DAC Cable info for thrift queries.
+   */
+  void getDACCableInfo(Cable &cable);
   /*
    * Retrieves the values of settings based on field name and bit placement
    * Default mask is a noop

@@ -32,6 +32,10 @@ using std::chrono::steady_clock;
 
 const char *chipCheckPath = "/sys/bus/pci/devices/0000:01:00.0/device";
 const char *trident2 = "0xb850\n";  // Note expected carriage return
+static constexpr uint16_t hexBase = 16;
+static constexpr uint16_t decimalBase = 10;
+static constexpr uint16_t eePromDefault = 255;
+static constexpr uint16_t maxGauge = 30;
 
 DEFINE_bool(clear_low_power, false,
             "Allow the QSFP to use higher power; needed for LR4 optics");
@@ -259,6 +263,31 @@ void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
   auto vendorSN = sfpString(buf, 196, 16);
   auto vendorDate = sfpString(buf, 212, 8);
 
+  // custom vendor-specified fields
+  // Byte-236 byte 236 is used to indicate extra cable length in unit of 0.1m
+  // Byte-237 DAC cable AWG information
+  double cableLen = buf[146];
+  auto fractionalCableLen = buf[236];
+  if (fractionalCableLen != eePromDefault){
+    // unset field
+    if (fractionalCableLen > 10){
+      // vendor puts in whole length
+      cableLen = fractionalCableLen / 10.0;
+    } else {
+      cableLen += fractionalCableLen / 10.0;
+    }
+  }
+  int gauge = buf[237];
+  auto cableGauge = gauge;
+  if (gauge != eePromDefault){
+    if (gauge > maxGauge){
+      // gauge implemented as hexadecimal; convert to decimal
+      cableGauge = (gauge / hexBase) * decimalBase + gauge % hexBase;
+    }
+  } else {
+    cableGauge = 0;
+  }
+
   printf("  Connector: 0x%02x\n", buf[130]);
   printf("  Spec compliance: "
          "0x%02x 0x%02x 0x%02x 0x%02x"
@@ -273,6 +302,10 @@ void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
   printf("  Length (OM2): %d m\n", buf[144]);
   printf("  Length (OM1): %d m\n", buf[145]);
   printf("  Length (Copper): %d m\n", buf[146]);
+  printf("  Length (dacLength): %.2f m\n", cableLen);
+  if (cableGauge > 0){
+    printf("  DAC Cable Gauge: %d\n", cableGauge);
+  }
   printf("  Device Tech: 0x%02x\n", buf[147]);
   printf("  Ext Module: 0x%02x\n", buf[164]);
   printf("  Wavelength tolerance: 0x%02x 0x%02x\n", buf[188], buf[189]);
