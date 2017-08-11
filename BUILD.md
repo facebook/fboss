@@ -35,10 +35,12 @@ If you use `getdeps.sh`, then this should work out of the box.
 Build as follows:
 
 ```
-mkdir fboss/build
+mkdir fboss/build                         # start with a clean build dir
 cd fboss/build
-cmake ..
-make
+cmake ..                                  # build the Makefile
+NPROC=$(grep -c processor /proc/cpuinfo)  # lookup cores in system
+make "-j$NPROC"                           # spawn a thread per core
+
 ```
 
 FYI: the build status of open source fboss is tracked at:

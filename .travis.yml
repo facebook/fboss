@@ -33,7 +33,7 @@ before_script:
 
 # Build steps
 script:
-  - mkdir build && cd build && ${DEPS_DIR}/cmake/bin/cmake .. && make
+  - mkdir build && cd build && ${DEPS_DIR}/cmake/bin/cmake .. && make -j`grep -c processor /proc/cpuinfo`
 
 notifications:
   email:
