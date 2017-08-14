@@ -480,7 +480,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
   CHECK_EQ(orig->getID(), cfg->logicalID);
 
   auto vlans = portVlans_[orig->getID()];
-  if (cfg->state == orig->getState() &&
+  if (cfg->state == orig->getAdminState() &&
       VlanID(cfg->ingressVlan) == orig->getIngressVlan() &&
       vlans == orig->getVlans() &&
       cfg->speed == orig->getSpeed() &&
@@ -490,7 +490,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
   }
 
   auto newPort = orig->clone();
-  newPort->setState(cfg->state);
+  newPort->setAdminState(cfg->state);
   newPort->setIngressVlan(VlanID(cfg->ingressVlan));
   newPort->setVlans(vlans);
   newPort->setSpeed(cfg->speed);

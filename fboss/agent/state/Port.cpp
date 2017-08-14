@@ -50,10 +50,25 @@ folly::dynamic PortFields::toFollyDynamic() const {
   port[kPortId] = static_cast<uint16_t>(id);
   port[kPortName] = name;
   port[kPortDescription] = description;
-  auto itr_state  = cfg::_PortState_VALUES_TO_NAMES.find(state);
-  CHECK(itr_state != cfg::_PortState_VALUES_TO_NAMES.end());
-  port[kPortState] = itr_state->second;
-  port[kPortOperState] = operState;
+  // For backwards compatibility, we must keep writing out the old strings
+  // otherwise, if we were to try to roll back with a warm boot, the old
+  // agent would crash failing to find "ENABLED" or "DISABLED" in
+  // the VALUES_TO_NAMES map. After the agent everywhere is capable of
+  // reading in either UP/POWER_DOWN or ENABLED/DISABLED,
+  // then we can remove this.
+  // Finally, after a release like that, we can remove the code that reads in
+  // "POWER_DOWN" and "UP".
+  std::unordered_map<cfg::PortState, std::string> transitionAdminStateMap{
+      {cfg::PortState::DISABLED, "POWER_DOWN"},
+      {cfg::PortState::ENABLED, "UP"},
+      // There should be no instances of DOWN, but leave it in the map just
+      // in case to avoid crashes if we missed deprecating it somewhere.
+      {cfg::PortState::DOWN, "POWER_DOWN"},
+  };
+  auto itrAdminState  = transitionAdminStateMap.find(adminState);
+  CHECK(itrAdminState != transitionAdminStateMap.end());
+  port[kPortState] = itrAdminState->second;
+  port[kPortOperState] = operState == OperState::UP;
   port[kIngressVlan] = static_cast<uint16_t>(ingressVlan);
   auto itr_speed  = cfg::_PortSpeed_VALUES_TO_NAMES.find(speed);
   CHECK(itr_speed != cfg::_PortSpeed_VALUES_TO_NAMES.end());
@@ -74,11 +89,21 @@ PortFields PortFields::fromFollyDynamic(const folly::dynamic& portJson) {
   PortFields port(PortID(portJson[kPortId].asInt()),
       portJson[kPortName].asString());
   port.description = portJson[kPortDescription].asString();
-  auto itr_state  = cfg::_PortState_NAMES_TO_VALUES.find(
+  // see note in toFollyDynamic for an explanation of the ugprade path
+  // to get rid of this backwards compatibility hack.
+  std::unordered_map<std::string, cfg::PortState> transitionAdminStateMap{
+      {"DISABLED", cfg::PortState::DISABLED},
+      {"POWER_DOWN", cfg::PortState::DISABLED},
+      {"DOWN", cfg::PortState::DISABLED},
+      {"ENABLED", cfg::PortState::ENABLED},
+      {"UP", cfg::PortState::ENABLED},
+  };
+  auto itrAdminState = transitionAdminStateMap.find(
       util::getCpp2EnumName(portJson[kPortState].asString()).c_str());
-  CHECK(itr_state != cfg::_PortState_NAMES_TO_VALUES.end());
-  port.state = cfg::PortState(itr_state->second);
-  port.operState = portJson.getDefault(kPortOperState, false).asBool();
+  CHECK(itrAdminState != transitionAdminStateMap.end());
+  port.adminState = itrAdminState->second;
+  port.operState =
+      OperState(portJson.getDefault(kPortOperState, false).asBool());
   port.ingressVlan = VlanID(portJson[kIngressVlan].asInt());
   auto itr_speed  = cfg::_PortSpeed_NAMES_TO_VALUES.find(
       util::getCpp2EnumName(portJson[kPortSpeed].asString()).c_str());
@@ -104,7 +129,7 @@ void Port::initDefaultConfigState(cfg::Port* config) const {
   // admin disabled state.
   config->logicalID = getID();
   config->name = getName();
-  config->state = cfg::PortState::POWER_DOWN;
+  config->state = cfg::PortState::DISABLED;
 }
 
 Port* Port::modify(std::shared_ptr<SwitchState>* state) {

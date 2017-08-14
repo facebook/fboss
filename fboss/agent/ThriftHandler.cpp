@@ -398,8 +398,10 @@ void ThriftHandler::getPortInfoHelper(
     portInfo.vlans.push_back(entry.first);
   }
 
-  portInfo.adminState = PortAdminState(port->getState() == cfg::PortState::UP);
-  portInfo.operState = PortOperState(port->getOperState());
+  portInfo.adminState =
+      PortAdminState(port->getAdminState() == cfg::PortState::ENABLED);
+  portInfo.operState =
+      PortOperState(port->getOperState() == Port::OperState::UP);
   portInfo.fecEnabled = sw_->getHw()->getPortFECConfig(port->getID());
 
 
@@ -465,18 +467,18 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
   }
 
   cfg::PortState newPortState =
-      enable ? cfg::PortState::UP : cfg::PortState::POWER_DOWN;
+      enable ? cfg::PortState::ENABLED : cfg::PortState::DISABLED;
 
-  if (port->getState() == newPortState) {
+  if (port->getAdminState() == newPortState) {
     VLOG(2) << "setPortState: port already in state "
-            << (enable ? "UP" : "POWER_DOWN");
+            << (enable ? "ENABLED" : "DISABLED");
     return;
   }
 
   auto updateFn = [=](const shared_ptr<SwitchState>& state) {
     shared_ptr<SwitchState> newState{state};
     auto newPort = port->modify(&newState);
-    newPort->setState(newPortState);
+    newPort->setAdminState(newPortState);
     return newState;
   };
   sw_->updateStateBlocking("set port state", updateFn);

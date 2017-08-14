@@ -22,12 +22,12 @@ using facebook::fboss::SwSwitch;
 using facebook::fboss::SwitchState;
 using facebook::fboss::PortID;
 using facebook::fboss::cfg::PortState;
-void updatePortState(
+void updatePortAdminState(
     SwSwitch* sw,
     PortID portId,
-    PortState newPortState) {
+    PortState newPortAdminState) {
   auto updateFn =
-      [portId, newPortState](
+      [portId, newPortAdminState](
           const std::shared_ptr<SwitchState>& state) {
         std::shared_ptr<SwitchState> newState{state};
         auto port = state->getPorts()->getPortIf(portId);
@@ -37,14 +37,14 @@ void updatePortState(
           return newState;
         }
         const auto newPort = port->modify(&newState);
-        newPort->setState(newPortState);
+        newPort->setAdminState(newPortAdminState);
         return newState;
       };
   auto name = folly::sformat(
       "PortRemediator: flap down but enabled port {} ({})",
       static_cast<uint16_t>(portId),
-      newPortState == PortState::UP ? "up" : "down");
-    sw->updateStateNoCoalescing(name, updateFn);
+      newPortAdminState == PortState::ENABLED ? "enable" : "disable");
+  sw->updateStateNoCoalescing(name, updateFn);
 }
 }
 
@@ -55,7 +55,7 @@ PortRemediator::getUnexpectedDownPorts() const {
   boost::container::flat_set<PortID> unexpectedDownPorts;
   const auto portMap = sw_->getState()->getPorts();
   for (const auto& port : *portMap) {
-    if (port && !port->isAdminDisabled() && !port->getOperState()) {
+    if (port && port->isEnabled() && !port->isUp()) {
       unexpectedDownPorts.insert(port->getID());
     }
   }

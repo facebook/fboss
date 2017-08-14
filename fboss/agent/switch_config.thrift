@@ -7,12 +7,14 @@ namespace cpp2 facebook.fboss.cfg
 
 
 /**
- * Port state
+ * Administrative port state. ie "should the port be enabled?"
  */
 enum PortState {
-  DOWN = 0,  // Down, transmits an idle pattern
-  POWER_DOWN = 1,  // Down, no signal transmitted
-  UP = 2,
+  // Deprecated from when this capture administrative and operational state.
+  DOWN = 0,
+
+  DISABLED = 1,  // Disabled, no signal transmitted
+  ENABLED = 2,
 }
 
 /**
@@ -207,9 +209,9 @@ struct TrafficPolicyConfig {
 struct Port {
   1: i32 logicalID
   /*
-   * Whether the port is enabled.  Set this to UP for normal operation.
+   * Whether the port is enabled.  Set this to ENABLED for normal operation.
    */
-  2: PortState state = POWER_DOWN
+  2: PortState state = DISABLED
   /*
    * Packets ingressing on this port will be dropped if they are smaller than
    * minFrameSize.  64 bytes is the minimum frame size allowed by ethernet.

@@ -110,7 +110,7 @@ TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
   cfg::SwitchConfig config;
   config.ports.resize(1);
   config.ports[0].logicalID = 1;
-  config.ports[0].state = cfg::PortState::UP;
+  config.ports[0].state = cfg::PortState::ENABLED;
 
   config.vlans.resize(1);
   config.vlans[0].id = 1000;
@@ -156,9 +156,9 @@ TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
   cfg::SwitchConfig baseConfig;
   baseConfig.ports.resize(2);
   baseConfig.ports[0].logicalID = 1;
-  baseConfig.ports[0].state = cfg::PortState::UP;
+  baseConfig.ports[0].state = cfg::PortState::ENABLED;
   baseConfig.ports[1].logicalID = 2;
-  baseConfig.ports[1].state = cfg::PortState::UP;
+  baseConfig.ports[1].state = cfg::PortState::ENABLED;
 
   baseConfig.vlans.resize(1);
   baseConfig.vlans[0].id = 1000;
@@ -214,9 +214,9 @@ TEST(AggregatePort, singleTrunkIdempotence) {
   cfg::SwitchConfig baseConfig;
   baseConfig.ports.resize(2);
   baseConfig.ports[0].logicalID = 1;
-  baseConfig.ports[0].state = cfg::PortState::UP;
+  baseConfig.ports[0].state = cfg::PortState::ENABLED;
   baseConfig.ports[1].logicalID = 2;
-  baseConfig.ports[1].state = cfg::PortState::UP;
+  baseConfig.ports[1].state = cfg::PortState::ENABLED;
 
   baseConfig.vlans.resize(1);
   baseConfig.vlans[0].id = 1000;
@@ -272,9 +272,9 @@ TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
   cfg::SwitchConfig baseConfig;
   baseConfig.ports.resize(2);
   baseConfig.ports[0].logicalID = 1;
-  baseConfig.ports[0].state = cfg::PortState::UP;
+  baseConfig.ports[0].state = cfg::PortState::ENABLED;
   baseConfig.ports[1].logicalID = 2;
-  baseConfig.ports[1].state = cfg::PortState::UP;
+  baseConfig.ports[1].state = cfg::PortState::ENABLED;
 
   baseConfig.vlans.resize(1);
   baseConfig.vlans[0].id = 1000;
@@ -334,9 +334,9 @@ TEST(AggregatePort, noTrunk) {
   cfg::SwitchConfig baseConfig;
   baseConfig.ports.resize(2);
   baseConfig.ports[0].logicalID = 1;
-  baseConfig.ports[0].state = cfg::PortState::UP;
+  baseConfig.ports[0].state = cfg::PortState::ENABLED;
   baseConfig.ports[1].logicalID = 2;
-  baseConfig.ports[1].state = cfg::PortState::UP;
+  baseConfig.ports[1].state = cfg::PortState::ENABLED;
 
   baseConfig.vlans.resize(1);
   baseConfig.vlans[0].id = 1000;

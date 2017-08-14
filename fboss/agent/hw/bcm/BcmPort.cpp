@@ -367,8 +367,7 @@ void BcmPort::program(const shared_ptr<Port>& port) {
 }
 
 void BcmPort::linkStatusChanged(const std::shared_ptr<Port>& port) {
-  getPlatformPort()->linkStatusChanged(
-      port->getOperState(), !port->isAdminDisabled());
+  getPlatformPort()->linkStatusChanged(port->isUp(), port->isEnabled());
 }
 
 void BcmPort::setIngressVlan(const shared_ptr<Port>& swPort) {

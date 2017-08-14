@@ -62,7 +62,7 @@ unique_ptr<SwSwitch> setupSwitch() {
   for (int idx = 1; idx < 40; ++idx) {
     cfg::Port thriftPort;
     thriftPort.logicalID = idx;
-    thriftPort.state = cfg::PortState::UP;
+    thriftPort.state = cfg::PortState::ENABLED;
     thriftPort.parserType = cfg::ParserType::L3;
     thriftPort.routable = true;
     thriftPort.ingressVlan = 1;

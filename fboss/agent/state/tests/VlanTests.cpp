@@ -59,9 +59,9 @@ TEST(Vlan, applyConfig) {
   cfg::SwitchConfig config;
   config.ports.resize(2);
   config.ports[0].logicalID = 1;
-  config.ports[0].state = cfg::PortState::UP;
+  config.ports[0].state = cfg::PortState::ENABLED;
   config.ports[1].logicalID = 99;
-  config.ports[1].state = cfg::PortState::UP;
+  config.ports[1].state = cfg::PortState::ENABLED;
   config.vlans.resize(1);
   config.vlans[0].id = 1234;
   config.vlans[0].name = kVlan1234;

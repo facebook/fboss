@@ -35,6 +35,11 @@ struct PortFields {
   };
   typedef boost::container::flat_map<VlanID, VlanInfo> VlanMembership;
 
+  enum class OperState {
+    DOWN = 0,
+    UP = 1,
+  };
+
   PortFields(PortID id, std::string name)
     : id(id),
       name(name) {}
@@ -48,8 +53,8 @@ struct PortFields {
   const PortID id{0};
   std::string name;
   std::string description;
-  cfg::PortState state{cfg::PortState::POWER_DOWN}; // Administrative state
-  bool operState{false}; // Operational state of port. UP(true), DOWN(false)
+  cfg::PortState adminState{cfg::PortState::DISABLED}; // is the port enabled
+  OperState operState{OperState::DOWN}; // is the port actually up
   VlanID ingressVlan{0};
   cfg::PortSpeed speed{cfg::PortSpeed::DEFAULT};
   cfg::PortSpeed maxSpeed{cfg::PortSpeed::DEFAULT};
@@ -63,6 +68,7 @@ class Port : public NodeBaseT<Port, PortFields> {
  public:
   typedef PortFields::VlanInfo VlanInfo;
   typedef PortFields::VlanMembership VlanMembership;
+  typedef PortFields::OperState OperState;
 
   Port(PortID id, const std::string& name);
 
@@ -111,25 +117,28 @@ class Port : public NodeBaseT<Port, PortFields> {
     writableFields()->description = description;
   }
 
-  cfg::PortState getState() const {
-    return getFields()->state;
+  cfg::PortState getAdminState() const {
+    return getFields()->adminState;
   }
 
-  void setState(cfg::PortState state) {
-    writableFields()->state = state;
+  void setAdminState(cfg::PortState adminState) {
+    writableFields()->adminState = adminState;
   }
 
-  bool getOperState() const {
+  OperState getOperState() const {
     return getFields()->operState;
   }
 
   void setOperState(bool isUp) {
-    writableFields()->operState = isUp;
+    writableFields()->operState = isUp ? OperState::UP : OperState::DOWN;
   }
 
-  bool isAdminDisabled() const {
-    auto state = getFields()->state;
-    return state == cfg::PortState::POWER_DOWN;
+  bool isEnabled() const {
+    return getFields()->adminState == cfg::PortState::DISABLED;
+  }
+
+  bool isUp() const {
+    return getFields()->operState == OperState::UP;
   }
 
   /**
@@ -137,8 +146,7 @@ class Port : public NodeBaseT<Port, PortFields> {
    * oper state is UP.
    */
   bool isPortUp() const {
-    auto const& fields = getFields();
-    return fields->state == cfg::PortState::UP && fields->operState;
+    return isEnabled() && isUp();
   }
 
   const VlanMembership& getVlans() const {

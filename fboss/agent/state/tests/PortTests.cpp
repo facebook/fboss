@@ -34,7 +34,7 @@ TEST(Port, applyConfig) {
   EXPECT_FALSE(portV0->isPublished());
   EXPECT_EQ(PortID(1), portV0->getID());
   EXPECT_EQ("port1", portV0->getName());
-  EXPECT_EQ(cfg::PortState::POWER_DOWN, portV0->getState());
+  EXPECT_EQ(cfg::PortState::DISABLED, portV0->getAdminState());
   Port::VlanMembership emptyVlans;
   EXPECT_EQ(emptyVlans, portV0->getVlans());
 
@@ -45,7 +45,7 @@ TEST(Port, applyConfig) {
   config.ports.resize(1);
   config.ports[0].logicalID = 1;
   config.ports[0].name = "port1";
-  config.ports[0].state = cfg::PortState::UP;
+  config.ports[0].state = cfg::PortState::ENABLED;
   config.vlans.resize(2);
   config.vlans[0].id = 2;
   config.vlans[1].id = 5;
@@ -74,7 +74,7 @@ TEST(Port, applyConfig) {
   EXPECT_EQ(PortID(1), portV1->getID());
   EXPECT_EQ("port1", portV1->getName());
   EXPECT_EQ(1, portV1->getGeneration());
-  EXPECT_EQ(cfg::PortState::UP, portV1->getState());
+  EXPECT_EQ(cfg::PortState::ENABLED, portV1->getAdminState());
   EXPECT_FALSE(portV1->isPublished());
   Port::VlanMembership expectedVlans;
   expectedVlans.insert(make_pair(VlanID(2), Port::VlanInfo(false)));
@@ -100,7 +100,7 @@ TEST(Port, applyConfig) {
   EXPECT_EQ(PortID(1), portV2->getID());
   EXPECT_EQ("port1", portV2->getName());
   EXPECT_EQ(2, portV2->getGeneration());
-  EXPECT_EQ(cfg::PortState::UP, portV2->getState());
+  EXPECT_EQ(cfg::PortState::ENABLED, portV2->getAdminState());
   EXPECT_FALSE(portV2->isPublished());
   EXPECT_EQ(expectedVlansV2, portV2->getVlans());
 
@@ -124,14 +124,14 @@ TEST(Port, initDefaultConfig) {
   PortID portID(1);
   auto state = make_shared<SwitchState>();
   state->registerPort(portID, "port1");
-  state->getPorts()->getPortIf(portID)->setState(cfg::PortState::POWER_DOWN);
+  state->getPorts()->getPortIf(portID)->setAdminState(cfg::PortState::DISABLED);
 
   // Applying an empty config should result in no changes.
   cfg::SwitchConfig config;
   config.ports.resize(1);
   config.ports[0].logicalID = 1;
   config.ports[0].name = "port1";
-  config.ports[0].state = cfg::PortState::POWER_DOWN;
+  config.ports[0].state = cfg::PortState::DISABLED;
   EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 
   // Adding a port entry in the config and initializing it with
@@ -249,7 +249,7 @@ TEST(PortMap, applyConfig) {
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV0, &config, platform.get()));
 
   // Enable port 2
-  config.ports[1].state = cfg::PortState::UP;
+  config.ports[1].state = cfg::PortState::ENABLED;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto portsV1 = stateV1->getPorts();
   ASSERT_NE(nullptr, portsV1);
@@ -264,10 +264,10 @@ TEST(PortMap, applyConfig) {
   checkChangedPorts(portsV0, portsV1, {2});
 
   auto newPort2 =  portsV1->getPort(PortID(2));
-  EXPECT_EQ(cfg::PortState::UP, newPort2->getState());
-  EXPECT_EQ(cfg::PortState::POWER_DOWN, port1->getState());
-  EXPECT_EQ(cfg::PortState::POWER_DOWN, port3->getState());
-  EXPECT_EQ(cfg::PortState::POWER_DOWN, port4->getState());
+  EXPECT_EQ(cfg::PortState::ENABLED, newPort2->getAdminState());
+  EXPECT_EQ(cfg::PortState::DISABLED, port1->getAdminState());
+  EXPECT_EQ(cfg::PortState::DISABLED, port3->getAdminState());
+  EXPECT_EQ(cfg::PortState::DISABLED, port4->getAdminState());
 
   // The new PortMap and port 2 should still be unpublished.
   // The remaining other ports are the same and were previously published
@@ -284,10 +284,10 @@ TEST(PortMap, applyConfig) {
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
 
   // Now mark all ports up
-  config.ports[0].state = cfg::PortState::UP;
-  config.ports[1].state = cfg::PortState::UP;
-  config.ports[2].state = cfg::PortState::UP;
-  config.ports[3].state = cfg::PortState::UP;
+  config.ports[0].state = cfg::PortState::ENABLED;
+  config.ports[1].state = cfg::PortState::ENABLED;
+  config.ports[2].state = cfg::PortState::ENABLED;
+  config.ports[3].state = cfg::PortState::ENABLED;
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   auto portsV2 = stateV2->getPorts();
@@ -299,10 +299,10 @@ TEST(PortMap, applyConfig) {
   EXPECT_NE(port3, portsV2->getPort(PortID(3)));
   EXPECT_NE(port4, portsV2->getPort(PortID(4)));
 
-  EXPECT_EQ(cfg::PortState::UP, portsV2->getPort(PortID(1))->getState());
-  EXPECT_EQ(cfg::PortState::UP, portsV2->getPort(PortID(2))->getState());
-  EXPECT_EQ(cfg::PortState::UP, portsV2->getPort(PortID(3))->getState());
-  EXPECT_EQ(cfg::PortState::UP, portsV2->getPort(PortID(4))->getState());
+  EXPECT_EQ(cfg::PortState::ENABLED, portsV2->getPort(PortID(1))->getAdminState());
+  EXPECT_EQ(cfg::PortState::ENABLED, portsV2->getPort(PortID(2))->getAdminState());
+  EXPECT_EQ(cfg::PortState::ENABLED, portsV2->getPort(PortID(3))->getAdminState());
+  EXPECT_EQ(cfg::PortState::ENABLED, portsV2->getPort(PortID(4))->getAdminState());
   checkChangedPorts(portsV1, portsV2, {1, 3, 4});
 
   EXPECT_FALSE(portsV2->getPort(PortID(1))->isPublished());
@@ -317,7 +317,7 @@ TEST(PortMap, applyConfig) {
 
   // Applying a config with ports that don't already exist should fail
   config.ports[0].logicalID = 10;
-  config.ports[0].state = cfg::PortState::UP;
+  config.ports[0].state = cfg::PortState::ENABLED;
   EXPECT_THROW(
     publishAndApplyConfig(stateV2, &config, platform.get()), FbossError);
 
@@ -325,24 +325,24 @@ TEST(PortMap, applyConfig) {
   config.ports.resize(3);
   config.ports[0].logicalID = 1;
   config.ports[0].name = "port1";
-  config.ports[0].state = cfg::PortState::UP;
+  config.ports[0].state = cfg::PortState::ENABLED;
   config.ports[1].logicalID = 2;
   config.ports[1].name = "port2";
-  config.ports[1].state = cfg::PortState::UP;
+  config.ports[1].state = cfg::PortState::ENABLED;
   config.ports[2].logicalID = 4;
   config.ports[2].name = "port4";
-  config.ports[2].state = cfg::PortState::UP;
+  config.ports[2].state = cfg::PortState::ENABLED;
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto portsV3 = stateV3->getPorts();
   ASSERT_NE(nullptr, portsV3);
   EXPECT_EQ(3, portsV3->getGeneration());
 
   EXPECT_EQ(4, portsV3->numPorts());
-  EXPECT_EQ(cfg::PortState::UP, portsV3->getPort(PortID(1))->getState());
-  EXPECT_EQ(cfg::PortState::UP, portsV3->getPort(PortID(2))->getState());
+  EXPECT_EQ(cfg::PortState::ENABLED, portsV3->getPort(PortID(1))->getAdminState());
+  EXPECT_EQ(cfg::PortState::ENABLED, portsV3->getPort(PortID(2))->getAdminState());
   EXPECT_EQ(
-    cfg::PortState::POWER_DOWN, portsV3->getPort(PortID(3))->getState());
-  EXPECT_EQ(cfg::PortState::UP, portsV3->getPort(PortID(4))->getState());
+    cfg::PortState::DISABLED, portsV3->getPort(PortID(3))->getAdminState());
+  EXPECT_EQ(cfg::PortState::ENABLED, portsV3->getPort(PortID(4))->getAdminState());
   checkChangedPorts(portsV2, portsV3, {3});
 }
 

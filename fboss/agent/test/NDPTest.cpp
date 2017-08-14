@@ -71,7 +71,7 @@ cfg::SwitchConfig createSwitchConfig(seconds raInterval, seconds ndpTimeout) {
   config.ports.resize(10);
   for (int n = 0; n < 10; ++n) {
     config.ports[n].logicalID = n + 1;
-    config.ports[n].state = cfg::PortState::UP;
+    config.ports[n].state = cfg::PortState::ENABLED;
     config.ports[n].minFrameSize = 64;
     config.ports[n].maxFrameSize = 9000;
     config.ports[n].routable = true;

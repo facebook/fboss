@@ -395,7 +395,7 @@ class RoutingFixture : public ::testing::Test {
     for (int i = 0; i < 2; ++i) {
       auto& port = config.ports[i];
       port.logicalID = i + 1;
-      port.state = cfg::PortState::UP;
+      port.state = cfg::PortState::ENABLED;
       port.minFrameSize = 64;
       port.maxFrameSize = 9000;
       port.routable = true;

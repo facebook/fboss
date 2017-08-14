@@ -111,7 +111,7 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithHW(
           if (!newPorts->getPortIf(port->getID())) {
             // port not in desired state, add it as a disabled port
             auto newPort = port->clone();
-            newPort->setState(cfg::PortState::POWER_DOWN);
+            newPort->setAdminState(cfg::PortState::DISABLED);
             newPorts->addPort(newPort);
           }
         }

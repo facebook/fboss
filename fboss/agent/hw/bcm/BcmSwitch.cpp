@@ -396,8 +396,8 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
     int portEnabled;
     auto ret = opennsl_port_enable_get(unit_, port->getID(), &portEnabled);
     bcmCheckError(ret, "Failed to get current state for port", port->getID());
-    port->setState(
-        portEnabled == 1 ? cfg::PortState::UP : cfg::PortState::POWER_DOWN);
+    port->setAdminState(
+        portEnabled == 1 ? cfg::PortState::ENABLED : cfg::PortState::DISABLED);
   }
   warmBootState->resetIntfs(warmBootCache_->reconstructInterfaceMap());
   warmBootState->resetVlans(warmBootCache_->reconstructVlanMap());
@@ -704,7 +704,7 @@ unique_ptr<TxPacket> BcmSwitch::allocatePacket(uint32_t size) {
 void BcmSwitch::processDisabledPorts(const StateDelta& delta) {
   forEachChanged(delta.getPortsDelta(),
     [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-      if (!oldPort->isAdminDisabled() && newPort->isAdminDisabled()) {
+      if (oldPort->isEnabled() && !newPort->isEnabled()) {
         auto bcmPort = portTable_->getBcmPort(newPort->getID());
         bcmPort->disable(newPort);
       }
@@ -714,7 +714,7 @@ void BcmSwitch::processDisabledPorts(const StateDelta& delta) {
 void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
   forEachChanged(delta.getPortsDelta(),
     [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-      if (oldPort->isAdminDisabled() && !newPort->isAdminDisabled()) {
+      if (!oldPort->isEnabled() && newPort->isEnabled()) {
         auto bcmPort = portTable_->getBcmPort(newPort->getID());
         bcmPort->enable(newPort);
       }
@@ -724,7 +724,7 @@ void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
 void BcmSwitch::processChangedPorts(const StateDelta& delta) {
   forEachChanged(delta.getPortsDelta(),
     [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-      if (oldPort->isAdminDisabled() && newPort->isAdminDisabled()) {
+      if (!oldPort->isEnabled() && !newPort->isEnabled()) {
         // No need to process changes on disabled ports. We will pick up changes
         // should the port ever become enabled.
         return;
@@ -753,13 +753,14 @@ void BcmSwitch::pickupLinkStatusChanges(const StateDelta& delta) {
       delta.getPortsDelta(),
       [&](const std::shared_ptr<Port>& oldPort,
           const std::shared_ptr<Port>& newPort) {
-        if (oldPort->isAdminDisabled() && newPort->isAdminDisabled()) {
+        if (!oldPort->isEnabled() && !newPort->isEnabled()) {
           return;
         }
-        auto stateChanged = oldPort->getState() != newPort->getState();
+        auto adminStateChanged =
+            oldPort->getAdminState() != newPort->getAdminState();
         auto operStateChanged =
             oldPort->getOperState() != newPort->getOperState();
-        if (stateChanged || operStateChanged) {
+        if (adminStateChanged || operStateChanged) {
           auto bcmPort = portTable_->getBcmPort(newPort->getID());
           bcmPort->linkStatusChanged(newPort);
         }
@@ -783,7 +784,7 @@ void BcmSwitch::reconfigurePortGroups(const StateDelta& delta) {
   auto newState = delta.newState();
   forEachChanged(delta.getPortsDelta(),
     [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-      auto enabled = oldPort->isAdminDisabled() && !newPort->isAdminDisabled();
+      auto enabled = !oldPort->isEnabled() && newPort->isEnabled();
       auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
 
       if (speedChanged || enabled) {
@@ -803,7 +804,7 @@ void BcmSwitch::reconfigurePortGroups(const StateDelta& delta) {
 bool BcmSwitch::isValidPortUpdate(const shared_ptr<Port>& oldPort,
     const shared_ptr<Port>& newPort,
     const shared_ptr<SwitchState>& newState) const {
-  auto enabled = oldPort->isAdminDisabled() && !newPort->isAdminDisabled();
+  auto enabled = !oldPort->isEnabled() && newPort->isEnabled();
   auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
 
   if (speedChanged || enabled) {

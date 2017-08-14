@@ -120,9 +120,9 @@ facebook::fboss::PortStatus fillInPortStatus(
     const facebook::fboss::Port& port,
     const facebook::fboss::SwSwitch* sw) {
   facebook::fboss::PortStatus status;
-  status.enabled = (port.getState() == facebook::fboss::cfg::PortState::UP);
-  status.up = port.getOperState();
-  status.speedMbps = (int) port.getWorkingSpeed();
+  status.enabled = port.isEnabled();
+  status.up = port.isUp();
+  status.speedMbps = static_cast<int>(port.getWorkingSpeed());
 
   try {
     status.transceiverIdx = sw->getPlatform()->getPortMapping(port.getID());
@@ -142,24 +142,21 @@ string getPortUpName(const shared_ptr<facebook::fboss::Port>& port) {
 
 inline void updatePortStatusCounters(const facebook::fboss::StateDelta& delta) {
   facebook::fboss::DeltaFunctions::forEachChanged(
-    delta.getPortsDelta(),
-    [&] (const shared_ptr<facebook::fboss::Port>& oldPort,
-         const shared_ptr<facebook::fboss::Port>& newPort) {
-      if (oldPort->getName() == newPort->getName()) {
-        return;
-      }
-      facebook::fbData->clearCounter(getPortUpName(oldPort));
-      facebook::fbData->setCounter(getPortUpName(newPort),
-        newPort->getOperState());
-    },
-    [&] (const shared_ptr<facebook::fboss::Port>& newPort) {
-      facebook::fbData->setCounter(getPortUpName(newPort),
-        newPort->getOperState());
-    },
-    [&] (const shared_ptr<facebook::fboss::Port>& oldPort) {
-      facebook::fbData->clearCounter(getPortUpName(oldPort));
-    }
-  );
+      delta.getPortsDelta(),
+      [&](const shared_ptr<facebook::fboss::Port>& oldPort,
+          const shared_ptr<facebook::fboss::Port>& newPort) {
+        if (oldPort->getName() == newPort->getName()) {
+          return;
+        }
+        facebook::fbData->clearCounter(getPortUpName(oldPort));
+        facebook::fbData->setCounter(getPortUpName(newPort), newPort->isUp());
+      },
+      [&](const shared_ptr<facebook::fboss::Port>& newPort) {
+        facebook::fbData->setCounter(getPortUpName(newPort), newPort->isUp());
+      },
+      [&](const shared_ptr<facebook::fboss::Port>& oldPort) {
+        facebook::fbData->clearCounter(getPortUpName(oldPort));
+      });
 }
 
 } // anonymous namespace

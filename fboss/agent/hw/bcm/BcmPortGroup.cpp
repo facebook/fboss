@@ -102,7 +102,7 @@ BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
 
   for (int lane = 0; lane < ports.size(); ++lane) {
     auto port = ports[lane];
-    if (!port->isAdminDisabled()) {
+    if (port->isEnabled()) {
       auto neededMode = neededLaneModeForSpeed(port->getSpeed(), laneSpeeds);
       if (neededMode < desiredMode) {
         desiredMode = neededMode;
@@ -200,7 +200,7 @@ void BcmPortGroup::reconfigureLaneMode(
   // 3. Enable linkscan, then enable ports.
   for (auto& bcmPort : allPorts_) {
     auto swPort = bcmPort->getSwitchStatePort(state);
-    if (!swPort->isAdminDisabled()) {
+    if (swPort->isEnabled()) {
       bcmPort->enableLinkscan();
       bcmPort->enable(swPort);
     }
