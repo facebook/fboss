@@ -76,6 +76,15 @@ function get_packages() {
 
 if [ "$1" != 'nopkg' ]; then
     get_packages
+else
+  shift
+fi
+
+GET_OPENNSL=1
+
+if [ "$1" == "nobcm" ]; then
+  GET_OPENNSL=0   # used by people concerned with OpenNSL agreement
+                  # WARNING: setting this will currently break compile!
 fi
 
 echo "creating external..."
@@ -84,9 +93,11 @@ NPROC=$(grep -c processor /proc/cpuinfo)
 (
     cd external
     EXT=$(pwd)
-    # We hard code OpenNSL to OpenNSL-6.4.6.6 release, later releases seem to
-    # SIGSEV in opennsl_pkt_alloc()
-    update https://github.com/Broadcom-Switch/OpenNSL.git 8e0b499f02dcef751a3703c9a18600901374b28a
+    if [ $GET_OPENNSL == 1 ] ; then
+      # We hard code OpenNSL to OpenNSL-6.4.6.6 release, later releases seem to
+      # SIGSEV in opennsl_pkt_alloc()
+      update https://github.com/Broadcom-Switch/OpenNSL.git 8e0b499f02dcef751a3703c9a18600901374b28a
+    fi
     # iproute2 v4.4.0
     update https://git.kernel.org/pub/scm/linux/kernel/git/shemminger/iproute2.git 7ca63aef7d1b0c808da0040c6b366ef7a61f38c1
     update https://github.com/facebook/folly.git
