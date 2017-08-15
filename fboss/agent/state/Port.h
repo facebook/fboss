@@ -134,7 +134,7 @@ class Port : public NodeBaseT<Port, PortFields> {
   }
 
   bool isEnabled() const {
-    return getFields()->adminState == cfg::PortState::DISABLED;
+    return getFields()->adminState == cfg::PortState::ENABLED;
   }
 
   bool isUp() const {
