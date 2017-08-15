@@ -285,6 +285,7 @@ class PortStatusCmd(cmds.FbossCmd):
                 "Could not get status of ports {}".format(missing_port_status)))
 
 
+
 class PortStatusDetailCmd(object):
     ''' Print detailed/verbose port status '''
 
@@ -402,7 +403,7 @@ class PortStatusDetailCmd(object):
 
         Cable = collections.namedtuple('Cable', 'length type unit')
         cable_info_obtained = (
-            Cable(length=info.cable.dacLength, type="DAC", unit='m'),
+            Cable(length=info.cable.copper, type="Copper", unit='m'),
             Cable(length=info.cable.om1, type="OM1", unit='m'),
             Cable(length=info.cable.om2, type="OM2", unit='m'),
             Cable(length=info.cable.om3, type="OM3", unit='m'),

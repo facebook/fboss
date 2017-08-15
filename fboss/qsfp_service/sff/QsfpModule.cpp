@@ -567,7 +567,6 @@ TransceiverInfo QsfpModule::getTransceiverInfo() {
     info.__isset.vendor = true;
   }
   getCableInfo(info.cable);
-  getDACCableInfo(info.cable);
   info.__isset.cable = true;
   if (getThresholdInfo(info.thresholds)) {
     info.__isset.thresholds = true;
