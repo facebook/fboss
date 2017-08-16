@@ -160,7 +160,9 @@ BcmSwitch::BcmSwitch(BcmPlatform *platform, unique_ptr<BcmUnit> unit)
   unit_ = unitObject_->getNumber();
 }
 
-BcmSwitch::~BcmSwitch() {}
+BcmSwitch::~BcmSwitch() {
+  LOG(ERROR) << "Destroying BcmSwitch";
+}
 
 unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
   std::lock_guard<std::mutex> g(lock_);

@@ -34,10 +34,6 @@ BcmRxPacket::BcmRxPacket(const opennsl_pkt_t* pkt)
   CHECK_EQ(pkt->blk_count, 1);
   CHECK_EQ(pkt->pkt_data, &pkt->_pkt_data);
 
-  // The BCM RX code always uses a single buffer.
-  // Therefore we don't bother checking to see if we need to create a chain of
-  // IOBufs rather than just one.
-  CHECK_EQ(pkt->blk_count, 1);
   // The packet contains Ethernet FCS (frame check sequence) at the end before
   // interpacket gap, which we are not interested in.
   uint32_t length = std::max(pkt->pkt_len - 4, 0);
@@ -47,11 +43,7 @@ BcmRxPacket::BcmRxPacket(const opennsl_pkt_t* pkt)
       freeRxBuf,                       // FreeFunction freeFn
       reinterpret_cast<void*>(unit_)); // void* userData
 
-  // TODO(aeckert): fix sdk bug where the src_port is a signed 8-bit
-  // int.  This causes issues when the logical port numbers exceed
-  // 127. For now we work around the issue by casting to an 8-bit
-  // unsigned port id, but we should fix this in the sdk.
-  srcPort_ = PortID(static_cast<uint8_t>(pkt->src_port));
+  srcPort_ = PortID(pkt->src_port);
   srcVlan_ = VlanID(pkt->vlan);
   len_ = length;
 }
