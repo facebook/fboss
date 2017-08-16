@@ -5,6 +5,7 @@
 #include <folly/Synchronized.h>
 #include <chrono>
 #include <limits>
+#include <numeric>
 #include <boost/circular_buffer.hpp>
 
 namespace facebook {
