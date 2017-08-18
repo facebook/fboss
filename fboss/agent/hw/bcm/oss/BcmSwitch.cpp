@@ -134,4 +134,7 @@ std::unique_ptr<BufferStatsLogger> BcmSwitch::createBufferStatsLogger() {
 void BcmSwitch::setupTrunking() {
   // API not available in OpenNSL
 }
+
+void BcmSwitch::printDiagCmd(const std::string& cmd) const {}
+
 }} //facebook::fboss

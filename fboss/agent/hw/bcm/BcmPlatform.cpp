@@ -23,4 +23,8 @@ std::string BcmPlatform::getHwConfigDumpFile() const {
   return getVolatileStateDir() + "/" + FLAGS_hw_config_file;
 }
 
+bool BcmPlatform::isBcmShellSupported() const {
+  return true;
+}
+
 }} //facebook::fboss

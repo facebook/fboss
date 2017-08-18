@@ -73,6 +73,8 @@ class BcmPlatform : public Platform {
 
   virtual bool isBufferStatsCollectionSupported() const = 0;
 
+  virtual bool isBcmShellSupported() const;
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmPlatform(BcmPlatform const &) = delete;

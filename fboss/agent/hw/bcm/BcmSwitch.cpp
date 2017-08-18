@@ -427,6 +427,11 @@ HwInitResult BcmSwitch::init(Callback* callback) {
     unitObject_->attach(platform_->getWarmBootDir());
   }
 
+  // Temporarily turn on deeper logging to debug the SDK flex count
+  // DMA counter creation error.  T19362234
+  printDiagCmd("debug FLEXctr Info");
+  printDiagCmd("debug show FLEXctr");
+
   ret.initializedTime =
     duration_cast<duration<float>>(steady_clock::now() - begin).count();
 
