@@ -143,6 +143,8 @@ class BcmSwitch : public BcmSwitchIf {
    */
   HwInitResult init(Callback* callback) override;
 
+  void runBcmScriptPreAsicInit() const;
+
   void unregisterCallbacks() override;
 
   BcmPlatform* getPlatform() const override {

@@ -407,6 +407,18 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
   return warmBootState;
 }
 
+void BcmSwitch::runBcmScriptPreAsicInit() const {
+  std::string filename = platform_->getScriptPreAsicInit();
+  std::ifstream scriptFile(filename);
+
+  if (!scriptFile.good()) {
+    return;
+  }
+
+  LOG(INFO) << "Run script " << filename;
+  printDiagCmd(folly::to<string>("rcload ", filename));
+}
+
 HwInitResult BcmSwitch::init(Callback* callback) {
   HwInitResult ret;
 
@@ -427,10 +439,8 @@ HwInitResult BcmSwitch::init(Callback* callback) {
     unitObject_->attach(platform_->getWarmBootDir());
   }
 
-  // Temporarily turn on deeper logging to debug the SDK flex count
-  // DMA counter creation error.  T19362234
-  printDiagCmd("debug FLEXctr Info");
-  printDiagCmd("debug show FLEXctr");
+  // Possibly run pre-init bcm shell script before ASIC init.
+  runBcmScriptPreAsicInit();
 
   ret.initializedTime =
     duration_cast<duration<float>>(steady_clock::now() - begin).count();

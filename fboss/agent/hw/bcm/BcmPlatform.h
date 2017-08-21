@@ -54,6 +54,11 @@ class BcmPlatform : public Platform {
   virtual std::string getHwConfigDumpFile() const;
 
   /*
+   * Get filename for the script to be run before ASIC initialization
+   */
+  virtual std::string getScriptPreAsicInit() const;
+
+  /*
    * Based on the chip we may or may not be able to
    * use the host table for host routes (/128 or /32).
    */
