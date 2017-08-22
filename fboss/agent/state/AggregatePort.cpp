@@ -26,11 +26,18 @@ AggregatePortFields::AggregatePortFields(
     AggregatePortID id,
     const std::string& name,
     const std::string& description,
-    Subports&& ports)
+    Subports&& ports,
+    AggregatePortFields::Forwarding fwd)
     : id_(id),
       name_(name),
       description_(description),
-      ports_(std::move(ports)) {}
+      ports_(std::move(ports)),
+      portToFwdState_() {
+  for (const auto& port : ports_) {
+    auto hint = portToFwdState_.end();
+    portToFwdState_.emplace_hint(hint, port, fwd);
+  }
+}
 
 folly::dynamic AggregatePortFields::toFollyDynamic() const {
   folly::dynamic aggPortFields = folly::dynamic::object;
