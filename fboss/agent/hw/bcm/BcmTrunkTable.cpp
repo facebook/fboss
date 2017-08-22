@@ -9,8 +9,11 @@
  */
 #include "BcmTrunkTable.h"
 
+#include "BcmSwitch.h"
 #include "BcmTrunk.h"
+
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/state/AggregatePort.h"
 
 namespace facebook {
@@ -62,6 +65,38 @@ void BcmTrunkTable::deleteTrunk(const std::shared_ptr<AggregatePort>& aggPort) {
   }
 
   trunks_.erase(it);
+}
+
+/* 1. If opennsl_trunk_t == INVALID, then
+ *    a. port does _not_ belong to any trunk port, OR
+ *    b. port _does_ belong to a trunk port, but the loss of the port does not
+ *       affect layer three reachability (ie. there is at least one physical
+ *       member port up)
+ * 2. If opennsl_trunk_t != INVALID, then all ECMP egress entries which egress
+ *    over this physical port must be shrunk to exclude it.
+ */
+opennsl_trunk_t BcmTrunkTable::linkDownHwNotLocked(opennsl_port_t port) {
+  auto maybeTrunk = BcmTrunk::findTrunk(
+      hw_->getUnit(), static_cast<opennsl_module_t>(0), port);
+
+  if (!maybeTrunk) { // (1.a)
+    LOG(INFO) << "Did not find trunk corresponding to port " << port;
+    return facebook::fboss::BcmTrunk::INVALID;
+  }
+  auto trunk = *maybeTrunk;
+
+  // Note that getEnabledMemberPortsCountHwNotLocked() must be invoked before
+  // shrinkTrunkGroupHwNotLocked()
+  auto count = BcmTrunk::getEnabledMemberPortsCountHwNotLocked(
+      hw_->getUnit(), trunk, port);
+  LOG(INFO) << count << " member ports enabled in trunk " << trunk;
+  BcmTrunk::shrinkTrunkGroupHwNotLocked(hw_->getUnit(), trunk, port);
+
+  if (count > 1) { // (1.b)
+    return facebook::fboss::BcmTrunk::INVALID;
+  }
+
+  return trunk; // (2)
 }
 }
 } // namespace facebook::fboss

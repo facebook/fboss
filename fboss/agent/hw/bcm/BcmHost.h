@@ -224,7 +224,12 @@ class BcmHostTable {
    * explains why we can't hold this lock here.
    */
   void linkDownHwNotLocked(opennsl_port_t port) {
-    linkStateChangedMaybeLocked(port, false /*down*/, false /*not locked*/);
+    linkStateChangedMaybeLocked(
+        BcmPort::asGPort(port), false /*down*/, false /*not locked*/);
+  }
+  void trunkDownHwNotLocked(opennsl_trunk_t trunk) {
+    linkStateChangedMaybeLocked(
+        BcmTrunk::asGPort(trunk), false /*down*/, false /*not locked*/);
   }
   void linkDownHwLocked(opennsl_port_t port) {
     // Just call the non locked counterpart here.
@@ -237,7 +242,8 @@ class BcmHostTable {
    * while holding hw lock.
    */
   void linkUpHwLocked(opennsl_port_t port) {
-    linkStateChangedMaybeLocked(port, true /*up*/, true /*locked*/);
+    linkStateChangedMaybeLocked(
+        BcmPort::asGPort(port), true /*up*/, true /*locked*/);
   }
   /*
    * Update port to egressIds mapping

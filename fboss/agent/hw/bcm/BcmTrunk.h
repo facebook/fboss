@@ -15,8 +15,9 @@ extern "C" {
 #include <opennsl/types.h>
 }
 
-#include "fboss/agent/types.h"
 #include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/types.h"
+#include "folly/Optional.h"
 
 namespace facebook {
 namespace fboss {
@@ -38,6 +39,16 @@ class BcmTrunk {
   void program(
       const std::shared_ptr<AggregatePort>& oldAggPort,
       const std::shared_ptr<AggregatePort>& newAggPort);
+
+  static void shrinkTrunkGroupHwNotLocked(
+      int unit,
+      opennsl_trunk_t trunk,
+      opennsl_port_t toDisable);
+  static int getEnabledMemberPortsCountHwNotLocked(
+      int unit,
+      opennsl_trunk_t trunk,
+      opennsl_port_t port);
+  static folly::Optional<int> findTrunk(int, opennsl_module_t, opennsl_port_t);
 
   static opennsl_gport_t asGPort(opennsl_trunk_t trunk);
   static bool isValidTrunkPort(opennsl_gport_t gPort);

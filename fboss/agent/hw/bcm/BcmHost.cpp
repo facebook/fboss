@@ -611,12 +611,14 @@ folly::dynamic BcmHostTable::toFollyDynamic() const {
   return hostTable;
 }
 
-void BcmHostTable::linkStateChangedMaybeLocked(opennsl_port_t port, bool up,
+void BcmHostTable::linkStateChangedMaybeLocked(
+    opennsl_gport_t gport,
+    bool up,
     bool locked) {
   auto portAndEgressIdMapping = getPortAndEgressIdsMap();
 
-  const auto portAndEgressIds = portAndEgressIdMapping->getPortAndEgressIdsIf(
-      port);
+  const auto portAndEgressIds =
+      portAndEgressIdMapping->getPortAndEgressIdsIf(gport);
   if (!portAndEgressIds) {
     return;
   }

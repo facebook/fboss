@@ -1248,10 +1248,16 @@ void BcmSwitch::linkStateChangedHwNotLocked(
   // callback about why the link is down.
   bool up = info->linkstatus == OPENNSL_PORT_LINK_STATUS_UP;
   if (!up) {
+    auto trunk = trunkTable_->linkDownHwNotLocked(bcmPortId);
+    if (trunk != BcmTrunk::INVALID) {
+      LOG(INFO) << "Shrinking ECMP entries egressing over trunk " << trunk;
+      hostTable_->trunkDownHwNotLocked(trunk);
+    }
+    hostTable_->linkDownHwNotLocked(bcmPortId);
+  } else {
     // For port up events we wait till ARP/NDP entries
     // are re resolved after port up before adding them
     // back. Adding them earlier leads to packet loss.
-    hostTable_->linkDownHwNotLocked(bcmPortId);
   }
   callback_->linkStateChanged(portTable_->getPortId(bcmPortId), up);
 }

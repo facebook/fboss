@@ -51,6 +51,8 @@ class BcmTrunkTable {
   // Serialize to folly::dynamic
   folly::dynamic toFollyDynamic() const;
 
+  opennsl_trunk_t linkDownHwNotLocked(opennsl_port_t port);
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTrunkTable(const BcmTrunkTable&) = delete;
