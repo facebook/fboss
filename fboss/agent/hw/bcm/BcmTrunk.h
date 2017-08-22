@@ -39,6 +39,9 @@ class BcmTrunk {
       const std::shared_ptr<AggregatePort>& oldAggPort,
       const std::shared_ptr<AggregatePort>& newAggPort);
 
+  static opennsl_gport_t asGPort(opennsl_trunk_t trunk);
+  static bool isValidTrunkPort(opennsl_gport_t gPort);
+
  private:
   void programSubports(
       AggregatePort::SubportsConstRange oldMembersRange,

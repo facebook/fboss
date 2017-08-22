@@ -1240,7 +1240,8 @@ void BcmSwitch::linkscanCallback(int unit,
   }
 }
 
-void BcmSwitch::linkStateChangedHwNotLocked(opennsl_port_t bcmPortId,
+void BcmSwitch::linkStateChangedHwNotLocked(
+    opennsl_port_t bcmPortId,
     opennsl_port_info_t* info) {
   // TODO: We should eventually define a more robust hardware independent
   // LinkStatus enum, so we can expose more detailed information to to the

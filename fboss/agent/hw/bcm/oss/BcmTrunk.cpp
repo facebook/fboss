@@ -26,5 +26,13 @@ void BcmTrunk::programSubports(
 void BcmTrunk::programForwardingState(
     AggregatePort::SubportAndForwardingStateConstRange /* oldRange */,
     AggregatePort::SubportAndForwardingStateConstRange /* newRange */) {}
+
+opennsl_gport_t BcmTrunk::asGPort(opennsl_trunk_t /* trunk */) {
+  return static_cast<opennsl_gport_t>(0);
+}
+bool BcmTrunk::isValidTrunkPort(opennsl_gport_t /* gPort */) {
+  return false;
+}
+
 }
 } // namespace facebook::fboss

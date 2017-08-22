@@ -202,7 +202,7 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
   // Update port mapping, for entries marked to DROP or to CPU port gets
   // set to 0, which implies no ports are associated with this entry now.
   hw_->writableHostTable()->updatePortToEgressMapping(
-      egressPtr->getID(), port_, port);
+      egressPtr->getID(), getSetPortAsGPort(), BcmPort::asGPort(port));
 
   hw_->writableHostTable()->egressResolutionChangedHwLocked(
       egressId_, ecmpAction);
@@ -244,6 +244,9 @@ void BcmHost::programToTrunk(opennsl_if_t intf,
 
   hw_->writableHostTable()->resolved(egressId_);
 
+  hw_->writableHostTable()->updatePortToEgressMapping(
+      egress->getID(), getSetPortAsGPort(), BcmTrunk::asGPort(trunk));
+
   hw_->writableHostTable()->egressResolutionChangedHwLocked(
       egressId_, BcmEcmpEgress::Action::EXPAND);
 
@@ -268,7 +271,8 @@ BcmHost::~BcmHost() {
     hw_->writableHostTable()->unresolved(egressId_);
   }
   // This host mapping just went away, update the port -> egress id mapping
-  hw_->writableHostTable()->updatePortToEgressMapping(egressId_, port_, 0);
+  hw_->writableHostTable()->updatePortToEgressMapping(
+      egressId_, getSetPortAsGPort(), BcmPort::asGPort(0));
   hw_->writableHostTable()->egressResolutionChangedHwLocked(
       egressId_,
       isPortOrTrunkSet() ? BcmEcmpEgress::Action::SHRINK
@@ -472,23 +476,25 @@ BcmEgressBase* BcmHostTable::derefEgress(opennsl_if_t egressId) {
 
 void BcmHostTable::updatePortToEgressMapping(
     opennsl_if_t egressId,
-    opennsl_port_t oldPort,
-    opennsl_port_t newPort) {
+    opennsl_gport_t oldGPort,
+    opennsl_gport_t newGPort) {
   auto newMapping = getPortAndEgressIdsMap()->clone();
 
-  if (oldPort) {
-    auto old = newMapping->getPortAndEgressIdsIf(oldPort);
+  if (BcmPort::isValidLocalPort(oldGPort) ||
+      BcmTrunk::isValidTrunkPort(oldGPort)) {
+    auto old = newMapping->getPortAndEgressIdsIf(oldGPort);
     CHECK(old);
     auto oldCloned = old->clone();
     oldCloned->removeEgressId(egressId);
     if (oldCloned->empty()) {
-      newMapping->removePort(oldPort);
+      newMapping->removePort(oldGPort);
     } else {
       newMapping->updatePortAndEgressIds(oldCloned);
     }
   }
-  if (newPort) {
-    auto existing = newMapping->getPortAndEgressIdsIf(newPort);
+  if (BcmPort::isValidLocalPort(newGPort) ||
+      BcmTrunk::isValidTrunkPort(newGPort)) {
+    auto existing = newMapping->getPortAndEgressIdsIf(newGPort);
     if (existing) {
       auto existingCloned = existing->clone();
       existingCloned->addEgressId(egressId);
@@ -496,7 +502,7 @@ void BcmHostTable::updatePortToEgressMapping(
     } else {
       PortAndEgressIdsFields::EgressIds egressIds;
       egressIds.insert(egressId);
-      auto toAdd = std::make_shared<PortAndEgressIds>(newPort, egressIds);
+      auto toAdd = std::make_shared<PortAndEgressIds>(newGPort, egressIds);
       newMapping->addPortAndEgressIds(toAdd);
     }
   }
@@ -608,6 +614,7 @@ folly::dynamic BcmHostTable::toFollyDynamic() const {
 void BcmHostTable::linkStateChangedMaybeLocked(opennsl_port_t port, bool up,
     bool locked) {
   auto portAndEgressIdMapping = getPortAndEgressIdsMap();
+
   const auto portAndEgressIds = portAndEgressIdMapping->getPortAndEgressIdsIf(
       port);
   if (!portAndEgressIds) {

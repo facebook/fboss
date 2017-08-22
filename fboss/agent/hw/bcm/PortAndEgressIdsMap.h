@@ -24,13 +24,13 @@ namespace facebook { namespace fboss {
 
 struct PortAndEgressIdsFields {
   typedef boost::container::flat_set<opennsl_if_t> EgressIds;
-  PortAndEgressIdsFields(opennsl_if_t port, EgressIds egressIds) :
-    id(port), egressIds(std::move(egressIds)) {}
+  PortAndEgressIdsFields(opennsl_gport_t gport, EgressIds egressIds)
+      : id(gport), egressIds(std::move(egressIds)) {}
 
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
 
-  const opennsl_port_t id{0};
+  const opennsl_gport_t id{0};
   EgressIds egressIds;
 };
 
@@ -41,11 +41,11 @@ class PortAndEgressIds: public NodeBaseT<PortAndEgressIds,
   PortAndEgressIdsFields> {
  public:
     typedef PortAndEgressIdsFields::EgressIds EgressIds;
-    PortAndEgressIds(opennsl_if_t port, EgressIds egressIds) :
-      NodeBaseT(port, std::move(egressIds)) {}
+    PortAndEgressIds(opennsl_gport_t gport, EgressIds egressIds)
+        : NodeBaseT(gport, std::move(egressIds)) {}
 
-  opennsl_if_t getID() const {
-    return getFields()->id;
+    opennsl_gport_t getID() const {
+      return getFields()->id;
   }
   const EgressIds& getEgressIds() const {
     return getFields()->egressIds;
@@ -83,8 +83,9 @@ class PortAndEgressIds: public NodeBaseT<PortAndEgressIds,
   friend class CloneAllocator;
 };
 
-typedef NodeMapTraits<opennsl_port_t, PortAndEgressIds>
-PortAndEgressIdsMapTraits;
+using PortAndEgressIdsMapTraits =
+    NodeMapTraits<opennsl_gport_t, PortAndEgressIds>;
+
 /*
  * Container for maintaining mapping from port to
  * egressIds
@@ -99,9 +100,9 @@ class PortAndEgressIdsMap: public NodeMapT<PortAndEgressIdsMap,
    *
    * Throws an FbossError if the mapping does not exist.
    */
-  const std::shared_ptr<PortAndEgressIds>& getPortAndEgressIds(
-      opennsl_port_t port) const {
-    return getNode(port);
+   const std::shared_ptr<PortAndEgressIds>& getPortAndEgressIds(
+       opennsl_gport_t gport) const {
+     return getNode(gport);
   }
   /*
    * Get the PortAndEgressIds for a given port.
@@ -109,8 +110,8 @@ class PortAndEgressIdsMap: public NodeMapT<PortAndEgressIdsMap,
    * Throws an FbossError if the mapping does not exist.
    */
   std::shared_ptr<PortAndEgressIds> getPortAndEgressIdsIf(
-      opennsl_port_t port) const {
-    return getNodeIf(port);
+      opennsl_gport_t gport) const {
+    return getNodeIf(gport);
   }
   /*
    * The following functions modify the object state.
@@ -128,8 +129,8 @@ class PortAndEgressIdsMap: public NodeMapT<PortAndEgressIdsMap,
     updateNode(portAndEgressIds);
   }
 
-  void removePort(opennsl_port_t port) {
-    removeNode(port);
+  void removePort(opennsl_gport_t gport) {
+    removeNode(gport);
   }
 
  private:

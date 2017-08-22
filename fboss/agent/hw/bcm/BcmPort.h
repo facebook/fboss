@@ -136,6 +136,9 @@ class BcmPort {
    */
   void linkStatusChanged(const std::shared_ptr<Port>& port);
 
+  static opennsl_gport_t asGPort(opennsl_port_t port);
+  static bool isValidLocalPort(opennsl_gport_t gport);
+
  private:
   // no copy or assignment
   BcmPort(BcmPort const &) = delete;
