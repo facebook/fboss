@@ -17,36 +17,11 @@
 
 namespace {
 constexpr int kPortRemedyIntervalSec = 25;
+}
 
 using facebook::fboss::SwSwitch;
 using facebook::fboss::SwitchState;
 using facebook::fboss::PortID;
-using facebook::fboss::cfg::PortState;
-void updatePortAdminState(
-    SwSwitch* sw,
-    PortID portId,
-    PortState newPortAdminState) {
-  auto updateFn =
-      [portId, newPortAdminState](
-          const std::shared_ptr<SwitchState>& state) {
-        std::shared_ptr<SwitchState> newState{state};
-        auto port = state->getPorts()->getPortIf(portId);
-        if (!port) {
-          LOG(WARNING) << "Could not flap port " << portId
-                       << " not found in port map";
-          return newState;
-        }
-        const auto newPort = port->modify(&newState);
-        newPort->setAdminState(newPortAdminState);
-        return newState;
-      };
-  auto name = folly::sformat(
-      "PortRemediator: flap down but enabled port {} ({})",
-      static_cast<uint16_t>(portId),
-      newPortAdminState == PortState::ENABLED ? "enable" : "disable");
-  sw->updateStateNoCoalescing(name, updateFn);
-}
-}
 
 namespace facebook { namespace fboss {
 
