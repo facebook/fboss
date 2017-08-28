@@ -318,18 +318,38 @@ SwSwitch::SwitchRunState SwSwitch::getSwitchRunState() const {
 
 void SwSwitch::gracefulExit() {
   if (isFullyInitialized()) {
+    steady_clock::time_point begin = steady_clock::now();
+    LOG(INFO) << "[Exit] Starting SwSwitch graceful exit";
     ipv6_->floodNeighborAdvertisements();
     arp_->floodGratuituousArp();
+    steady_clock::time_point neighborFloodDone = steady_clock::now();
+    LOG(INFO)
+        << "[Exit] Neighbor flood time "
+        << duration_cast<duration<float>>(neighborFloodDone - begin).count();
     // Stop handlers and threads before uninitializing h/w
     stop();
+    steady_clock::time_point stopThreadsAndHandlersDone = steady_clock::now();
+    LOG(INFO) << "[Exit] Stop thread and handlers time "
+              << duration_cast<duration<float>>(
+                     stopThreadsAndHandlersDone - neighborFloodDone)
+                     .count();
+
     folly::dynamic switchState = folly::dynamic::object;
     // TODO - Serialize both desired and applied state to
     // file. Right now we just serialize applied state and
     // then rely on a route/FIB sync on warm boot to recover
     // desired state.
     switchState[kSwSwitch] = getAppliedState()->toFollyDynamic();
+    steady_clock::time_point switchStateToFollyDone = steady_clock::now();
+    LOG(INFO) << "[Exit] Switch state to folly dynamic "
+              << duration_cast<duration<float>>(
+                     switchStateToFollyDone - stopThreadsAndHandlersDone)
+                     .count();
     // Cleanup if we ever initialized
     hw_->gracefulExit(switchState);
+    LOG(INFO)
+        << "[Exit] SwSwitch Graceful Exit time "
+        << duration_cast<duration<float>>(steady_clock::now() - begin).count();
   }
 }
 
@@ -410,6 +430,7 @@ void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype){
 }
 
 void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
+  auto begin = steady_clock::now();
   flags_ = flags;
   auto hwInitRet = hw_->init(this);
   auto initialState = hwInitRet.switchState;
@@ -473,6 +494,9 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   }
 
   startThreads();
+  LOG(INFO)
+      << "Time to init switch and start all threads "
+      << duration_cast<duration<float>>(steady_clock::now() - begin).count();
 
   // Publish timers after we aked TunManager to do a probe. This
   // is not required but since both stats publishing and tunnel

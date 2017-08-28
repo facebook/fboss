@@ -224,8 +224,23 @@ class SignalHandler : public AsyncSignalHandler {
     registerSignalHandler(SIGTERM);
   }
   void signalReceived(int /*signum*/) noexcept override {
+    LOG(INFO) <<"[Exit] Signal received ";
+    steady_clock::time_point begin = steady_clock::now();
     stopServices_();
+    steady_clock::time_point servicesStopped = steady_clock::now();
+    LOG(INFO)
+        << "[Exit] Services stop time "
+        << duration_cast<duration<float>>(servicesStopped - begin).count();
     sw_->gracefulExit();
+    steady_clock::time_point switchGracefulExit = steady_clock::now();
+    LOG(INFO)
+        << "[Exit] Switch Graceful Exit time "
+        << duration_cast<duration<float>>(switchGracefulExit - servicesStopped)
+               .count()
+        << std::endl
+        << "[Exit] Total graceful Exit time "
+        << duration_cast<duration<float>>(switchGracefulExit - begin).count();
+
     exit(0);
   }
  private:

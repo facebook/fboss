@@ -331,6 +331,8 @@ void BcmSwitch::ecmpHashSetup() {
 }
 
 void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
+  steady_clock::time_point begin = steady_clock::now();
+  LOG(INFO) << "[Exit] Starting BCM Switch graceful exit";
   // Ideally, preparePortsForGracefulExit() would run in update EVB of the
   // SwSwitch, but it does not really matter at the graceful exit time. If
   // this is a concern, this can be moved to the updateEventBase_ of SwSwitch.
@@ -344,6 +346,8 @@ void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
   unitObject_->detach(platform_->getWarmBootSwitchStateFile(),
       switchState);
   unitObject_.reset();
+  LOG(INFO) <<"[Exit] BRCM Graceful Exit time " <<
+    duration_cast<duration<float>>(steady_clock::now() - begin).count();
 }
 
 folly::dynamic BcmSwitch::toFollyDynamic() const {
