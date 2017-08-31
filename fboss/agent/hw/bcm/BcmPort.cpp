@@ -211,8 +211,6 @@ BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
   int rv = opennsl_port_gport_get(unit_, port_, &gport_);
   bcmCheckError(rv, "Failed to get gport for BCM port ", port_);
 
-  disablePause();
-
   // Initialize our stats data structures
   reinitPortStats();
 
@@ -359,6 +357,7 @@ void BcmPort::enableLinkscan() {
 void BcmPort::program(const shared_ptr<Port>& port) {
   setIngressVlan(port);
   setSpeed(port);
+  setPause(port);
   // Update FEC settings if needed. Note this is not only
   // on speed change as the port's default speed (say on a
   // cold boot) maybe what is desired by the config. But we
