@@ -113,5 +113,5 @@ NPROC=$(grep -c processor /proc/cpuinfo)
     build_cmake wangle/wangle || die "Failed to build wangle"
     export CPPFLAGS=" -I$EXT/folly -I$EXT/wangle -I$EXT/mstch/include -I$EXT/zstd/lib/"
     export LDFLAGS="-L$EXT/folly/folly/.libs/ -L$EXT/wangle/wangle/build/lib -L$EXT/mstch/build/src/"
-    build_autoconf fbthrift/thrift || die "Failed to build thrift"
+    build_cmake fbthrift || die "Failed to build thrift"
 )
