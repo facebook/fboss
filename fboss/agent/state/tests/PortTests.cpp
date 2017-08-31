@@ -141,6 +141,55 @@ TEST(Port, initDefaultConfig) {
   EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 }
 
+TEST(Port, pauseConfig) {
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+  state->registerPort(PortID(1), "port1");
+  auto verifyPause = [&state](cfg::PortPause expectPause) {
+    auto port = state->getPort(PortID(1));
+    auto pause = port->getPause();
+    EXPECT_EQ(expectPause, pause);
+  };
+
+  auto changePause =  [&](cfg::PortPause newPause) {
+    auto oldPause = state->getPort(PortID(1))->getPause();
+    cfg::SwitchConfig config;
+    config.ports.resize(1);
+    config.ports[0].logicalID = 1;
+    config.ports[0].name = "port1";
+    config.ports[0].state = cfg::PortState::DISABLED;
+    config.ports[0].pause = newPause;
+    auto newState = publishAndApplyConfig(state, &config, platform.get());
+
+    if (oldPause != newPause) {
+      EXPECT_NE(nullptr, newState);
+      state = newState;
+      verifyPause(newPause);
+    } else {
+      EXPECT_EQ(nullptr, newState);
+    }
+  };
+
+  // Verify the default pause config is no pause for either tx or rx
+  cfg::PortPause expected;
+  verifyPause(expected);
+
+  // Now change it each time
+  changePause(expected);
+
+  expected.tx = false;
+  expected.rx = true;
+  changePause(expected);
+
+  expected.tx = true;
+  expected.rx = false;
+  changePause(expected);
+
+  expected.tx = true;
+  expected.rx = true;
+  changePause(expected);
+}
+
 TEST(PortMap, registerPorts) {
   auto ports = make_shared<PortMap>();
   EXPECT_EQ(0, ports->getGeneration());

@@ -58,6 +58,7 @@ struct PortFields {
   VlanID ingressVlan{0};
   cfg::PortSpeed speed{cfg::PortSpeed::DEFAULT};
   cfg::PortSpeed maxSpeed{cfg::PortSpeed::DEFAULT};
+  cfg::PortPause pause;
   VlanMembership vlans;
 };
 
@@ -183,6 +184,13 @@ class Port : public NodeBaseT<Port, PortFields> {
     } else {
       return getFields()->speed;
     }
+  }
+
+  cfg::PortPause getPause() const {
+    return getFields()->pause;
+  }
+  void setPause(cfg::PortPause pause) {
+    writableFields()->pause = pause;
   }
 
   Port* modify(std::shared_ptr<SwitchState>* state);

@@ -56,6 +56,14 @@ enum PortSpeed {
 }
 
 /**
+ * The pause setting for a port
+ */
+struct PortPause {
+  1: bool tx = false
+  2: bool rx = false
+}
+
+/**
  *  A Range for L4 port range checker
  *  Define a range bewteen [min, max]
  */
@@ -266,6 +274,10 @@ struct Port {
    * This allows defining their attributes
    */
   12: list<PortQueue> queues = []
+  /**
+   * pause configuration
+   */
+  13: PortPause pause
 }
 
 struct AggregatePort {

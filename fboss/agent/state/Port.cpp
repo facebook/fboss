@@ -26,6 +26,8 @@ constexpr auto kPortOperState = "portOperState";
 constexpr auto kIngressVlan = "ingressVlan";
 constexpr auto kPortSpeed = "portSpeed";
 constexpr auto kPortMaxSpeed = "portMaxSpeed";
+constexpr auto kPortTxPause = "txPause";
+constexpr auto kPortRxPause = "rxPause";
 constexpr auto kVlanMemberships = "vlanMemberShips";
 constexpr auto kVlanId = "vlanId";
 constexpr auto kVlanInfo = "vlanInfo";
@@ -77,6 +79,8 @@ folly::dynamic PortFields::toFollyDynamic() const {
   CHECK(itr_max_speed != cfg::_PortSpeed_VALUES_TO_NAMES.end())
      << "Unexpected max speed: " << static_cast<int>(maxSpeed);
   port[kPortMaxSpeed] = itr_max_speed->second;
+  port[kPortTxPause] = pause.tx;
+  port[kPortRxPause] = pause.rx;
   port[kVlanMemberships] = folly::dynamic::object;
   for (const auto& vlan: vlans) {
     port[kVlanMemberships][to<string>(vlan.first)] =
@@ -113,6 +117,14 @@ PortFields PortFields::fromFollyDynamic(const folly::dynamic& portJson) {
       util::getCpp2EnumName(portJson[kPortMaxSpeed].asString()).c_str());
   CHECK(itr_max_speed != cfg::_PortSpeed_NAMES_TO_VALUES.end());
   port.maxSpeed = cfg::PortSpeed(itr_max_speed->second);
+  auto tx_pause_itr = portJson.find(kPortTxPause);
+  if (tx_pause_itr != portJson.items().end()) {
+    port.pause.tx = tx_pause_itr->second.asBool();
+  }
+  auto rx_pause_itr = portJson.find(kPortRxPause);
+  if (rx_pause_itr != portJson.items().end()) {
+    port.pause.tx = rx_pause_itr->second.asBool();
+  }
   for (const auto& vlanInfo: portJson[kVlanMemberships].items()) {
     port.vlans.emplace(VlanID(to<uint32_t>(vlanInfo.first.asString())),
       VlanInfo::fromFollyDynamic(vlanInfo.second));

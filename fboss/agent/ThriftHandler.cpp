@@ -404,6 +404,9 @@ void ThriftHandler::getPortInfoHelper(
       PortOperState(port->getOperState() == Port::OperState::UP);
   portInfo.fecEnabled = sw_->getHw()->getPortFECConfig(port->getID());
 
+  auto pause = port->getPause();
+  portInfo.txPause = pause.tx;
+  portInfo.rxPause = pause.rx;
 
   fillPortStats(portInfo);
 }

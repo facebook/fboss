@@ -92,6 +92,14 @@ class PortDetailsCmd(cmds.FbossCmd):
         else:
             fec_status = "DISABLED"
 
+        pause = ''
+        if port_info.txPause:
+            pause = 'TX '
+        if port_info.rxPause:
+            pause = pause + 'RX'
+        if pause == '':
+            pause = 'None'
+
         fmt = '{:.<50}{}'
         lines = [
             ('Name', port_info.name.strip()),
@@ -101,6 +109,7 @@ class PortDetailsCmd(cmds.FbossCmd):
             ('Speed', '{:.0f} {}'.format(speed, suffix)),
             ('VLANs', vlans),
             ('Forward Error Correction', fec_status),
+            ('Pause', pause),
         ]
 
         print()
