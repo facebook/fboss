@@ -193,6 +193,7 @@ add_library(fboss_agent STATIC
     fboss/agent/platforms/wedge/GalaxyLCPlatform.cpp
     fboss/agent/platforms/wedge/GalaxyFCPlatform.cpp
     fboss/agent/platforms/wedge/WedgePort.cpp
+    fboss/agent/platforms/wedge/Wedge100Port.cpp
     fboss/agent/platforms/wedge/WedgeProductInfo.cpp
     fboss/agent/platforms/wedge/WedgePlatformInit.cpp
     fboss/agent/PortStats.cpp
