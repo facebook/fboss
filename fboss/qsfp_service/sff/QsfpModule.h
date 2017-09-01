@@ -80,6 +80,8 @@ class QsfpModule : public Transceiver {
    */
   TransceiverInfo getTransceiverInfo() override;
 
+  RawDOMData getRawDOMData() override;
+
   /*
    * The size of the pages used by QSFP.  See below for an explanation of
    * how they are laid out.  This needs to be publicly accessible for

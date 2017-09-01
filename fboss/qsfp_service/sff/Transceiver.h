@@ -40,6 +40,12 @@ class Transceiver {
    * Return all of the transceiver information
    */
   virtual TransceiverInfo getTransceiverInfo() = 0;
+
+  /*
+   * Return raw page data from the qsfp DOM
+   */
+  virtual RawDOMData getRawDOMData() = 0;
+
   /*
    * Set speed specific settings for the transceiver
    */

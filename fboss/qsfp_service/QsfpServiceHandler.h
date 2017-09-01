@@ -21,6 +21,14 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
    */
   void getTransceiverInfo(std::map<int32_t, TransceiverInfo>& info,
       std::unique_ptr<std::vector<int32_t>> ids) override;
+
+  /*
+   * Returns raw DOM page data for each passed in transceiver.
+   */
+  void getTransceiverRawDOMData(
+    std::map<int32_t, RawDOMData>& info,
+    std::unique_ptr<std::vector<int32_t>> ids) override;
+
   /*
    * Customise the transceiver based on the speed at which it has
    * been configured to operate at

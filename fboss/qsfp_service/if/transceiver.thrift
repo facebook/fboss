@@ -149,3 +149,17 @@ struct TransceiverInfo {
   12: list<Channel> channels,
   13: optional TransceiverSettings settings,
 }
+
+typedef binary (cpp2.type = "folly::IOBuf") IOBuf
+
+struct RawDOMData {
+  // The SFF DOM exposes at most 256 bytes at a time and is divided in
+  // to two 128 byte "pages". The lower page is always the same, but
+  // you can swap in different pages for the upper 128 bytes. The only
+  // ones we use now are upper pages 0 and 3. Page 0 is required of
+  // every transceiver, but the rest are optional. If we need other
+  // fields in the future we can add support for other pages.
+  1: IOBuf lower,
+  2: IOBuf page0,
+  3: optional IOBuf page3,
+}

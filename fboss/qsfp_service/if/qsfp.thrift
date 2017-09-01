@@ -20,5 +20,11 @@ service QsfpService extends fb303.FacebookService {
    */
   void customizeTransceiver(1: i32 idx,
       2: switch_config.PortSpeed speed)
+      throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Do a raw read on the data for a specific transceiver.
+   */
+  map<i32, transceiver.RawDOMData> getTransceiverRawDOMData(1: list<i32> idx)
     throws (1: fboss.FbossBaseError error)
 }

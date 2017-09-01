@@ -31,4 +31,11 @@ void QsfpServiceHandler::customizeTransceiver(int32_t idx,
     " to speed " << cfg::_PortSpeed_VALUES_TO_NAMES.find(speed)->second;
   manager_->customizeTransceiver(idx, speed);
 }
+
+void QsfpServiceHandler::getTransceiverRawDOMData(
+    std::map<int32_t, RawDOMData>& info,
+    std::unique_ptr<std::vector<int32_t>> ids) {
+  manager_->getTransceiversRawDOMData(info, std::move(ids));
+}
+
 }} // facebook::fboss

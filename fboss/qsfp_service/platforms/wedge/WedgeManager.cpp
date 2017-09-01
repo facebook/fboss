@@ -50,6 +50,24 @@ void WedgeManager::getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
   }
 }
 
+void WedgeManager::getTransceiversRawDOMData(
+    std::map<int32_t, RawDOMData>& info,
+    std::unique_ptr<std::vector<int32_t>> ids) {
+  LOG(INFO) << "Received request for getTransceiversRawDOMData, with ids: " <<
+    (ids->size() > 0 ? folly::join(",", *ids) : "None");
+  if (ids->empty()) {
+    folly::gen::range(0, getNumQsfpModules()) |
+      folly::gen::appendTo(*ids);
+  }
+  for (const auto& i : *ids) {
+    RawDOMData data;
+    if (isValidTransceiver(i)) {
+      data = transceivers_[TransceiverID(i)]->getRawDOMData();
+    }
+    info[i] = data;
+  }
+}
+
 void WedgeManager::customizeTransceiver(int32_t idx, cfg::PortSpeed speed) {
   transceivers_.at(idx)->customizeTransceiver(speed);
 }

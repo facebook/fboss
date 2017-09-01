@@ -14,6 +14,9 @@ class WedgeManager : public TransceiverManager {
   void initTransceiverMap() override;
   void getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::vector<int32_t>> ids) override;
+  void getTransceiversRawDOMData(
+    std::map<int32_t, RawDOMData>& info,
+    std::unique_ptr<std::vector<int32_t>> ids) override;
   void customizeTransceiver(int32_t idx, cfg::PortSpeed speed) override;
 
   int getNumQsfpModules() override {

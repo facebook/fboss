@@ -14,6 +14,8 @@ class TransceiverManager {
   virtual void initTransceiverMap() = 0;
   virtual void getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::vector<int32_t>> ids) = 0;
+  virtual void getTransceiversRawDOMData(std::map<int32_t, RawDOMData>& info,
+    std::unique_ptr<std::vector<int32_t>> ids) = 0;
   virtual void customizeTransceiver(int32_t idx, cfg::PortSpeed speed) = 0;
   bool isValidTransceiver(int32_t id) {
     return id < transceivers_.size() && id >= 0;

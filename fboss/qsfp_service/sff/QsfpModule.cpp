@@ -17,10 +17,13 @@
 #include "fboss/qsfp_service/sff/SffFieldInfo.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 
+#include <folly/io/IOBuf.h>
+
 namespace facebook { namespace fboss {
   using std::memcpy;
   using std::mutex;
   using std::lock_guard;
+  using folly::IOBuf;
 
 static const time_t kQsfpMinReadIntervalSecs = 10;
 
@@ -642,6 +645,21 @@ TransceiverInfo QsfpModule::getTransceiverInfo() {
     info.channels.clear();
   }
   return info;
+}
+
+RawDOMData QsfpModule::getRawDOMData() {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
+  refreshCacheIfPossibleLocked();
+  RawDOMData data;
+  if (present_) {
+    data.lower = IOBuf::wrapBufferAsValue(qsfpIdprom_, MAX_QSFP_PAGE_SIZE);
+    data.page0 = IOBuf::wrapBufferAsValue(qsfpPage0_, MAX_QSFP_PAGE_SIZE);
+    if (!flatMem_) {
+      data.__isset.page3 = true;
+      data.page3 = IOBuf::wrapBufferAsValue(qsfpPage3_, MAX_QSFP_PAGE_SIZE);
+    }
+  }
+  return data;
 }
 
 // Must be called with lock held on qsfpModuleMutex_
