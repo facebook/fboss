@@ -14,6 +14,8 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
+#include <folly/Optional.h>
+
 namespace facebook { namespace fboss {
 
 // As per SFF-8436, QSFP+ 10 Gbs 4X PLUGGABLE TRANSCEIVER spec
@@ -23,7 +25,6 @@ enum QsfpPages {
   PAGE0,
   PAGE3,
 };
-
 
 enum class SffField;
 class TransceiverImpl;
@@ -90,14 +91,19 @@ class QsfpModule : public Transceiver {
     // Number of channels per module
     CHANNEL_COUNT = 4,
   };
+
+  using LengthAndGauge = std::pair<double, uint8_t>;
+
  protected:
   // no copy or assignment
   QsfpModule(QsfpModule const &) = delete;
   QsfpModule& operator=(QsfpModule const &) = delete;
 
   enum : unsigned int {
-    // Maximum cable length reported
-    MAX_CABLE_LEN = 255,
+    EEPROM_DEFAULT = 255,
+    MAX_GAUGE = 30,
+    DECIMAL_BASE = 10,
+    HEX_BASE = 16,
   };
   // QSFP+ requires a bottom 128 byte page describing important monitoring
   // information, and then an upper 128 byte page with less frequently
@@ -212,7 +218,8 @@ class QsfpModule : public Transceiver {
   /*
    * returns cable length (negative for "longer than we can represent")
    */
-  int getQsfpCableLength(SffField field);
+  double getQsfpCableLength(SffField field) const;
+
   /*
    * returns the freeside transceiver technology type
    */
@@ -229,7 +236,7 @@ class QsfpModule : public Transceiver {
    * This function returns various strings from the QSFP EEPROM
    * caller needs to check if DOM is supported or not
    */
-  std::string getQsfpString(SffField flag);
+  std::string getQsfpString(SffField flag) const;
   /*
    * Fills in values for alarm and warning thresholds based on field name
    */
@@ -287,6 +294,24 @@ class QsfpModule : public Transceiver {
    * Update the cached data with the information from the physical QSFP.
    */
   virtual void updateQsfpData();
+
+ private:
+  /*
+   * Helpers to parse DOM data for DAC cables. These incorporate some
+   * extra fields that FB has vendors put in the 'Vendor specific'
+   * byte range of the SFF spec.
+   */
+  double getQsfpDACLength() const;
+  int getQsfpDACGauge() const;
+  /*
+   * Provides the option to override the length/gauge values read from
+   * the DOM for certain transceivers. This is useful when vendors
+   * input incorrect data and the accuracy of these fields is
+   * important for proper tuning.
+   */
+  const folly::Optional<LengthAndGauge> getDACCableOverride() const;
+
+
 };
 
 }} //namespace facebook::fboss

@@ -79,6 +79,8 @@ struct Cable {
   5: optional i32 om1,
   6: optional i32 copper,
   7: TransmitterTechnology transmitterTech,
+  8: optional double length,
+  9: optional i32 gauge,
 }
 
 struct Channel {

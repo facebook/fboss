@@ -294,7 +294,6 @@ class PortStatusCmd(cmds.FbossCmd):
                 "Could not get status of ports {}".format(missing_port_status)))
 
 
-
 class PortStatusDetailCmd(object):
     ''' Print detailed/verbose port status '''
 

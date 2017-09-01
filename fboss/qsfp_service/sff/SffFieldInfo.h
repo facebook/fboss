@@ -45,6 +45,9 @@ enum class SffField {
   LENGTH_OM2,
   LENGTH_OM1,
   LENGTH_COPPER,
+  LENGTH_COPPER_DECIMETERS,
+  DAC_GAUGE,
+
   DEVICE_TECHNOLOGY, // Device or cable technology of free side device
   OPTIONS, // Variety of options, including rate select support
   VENDOR_NAME, // QSFP Vendor Name (ASCII)
