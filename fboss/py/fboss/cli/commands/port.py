@@ -332,7 +332,8 @@ class PortStatusDetailCmd(object):
         ''' Get channel detail for port '''
 
         channels = status.transceiverIdx.channels
-        if not channels:
+        if channels is None:
+            # TODO(aeckert): rm after next agent push
             channels = self._get_port_channels(
                 port, status.transceiverIdx)
 

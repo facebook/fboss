@@ -130,11 +130,9 @@ TransceiverIdxThrift WedgePlatform::getPortMapping(PortID portId) const {
     info.transceiverId = static_cast<int32_t>(*transceiver);
     info.__isset.transceiverId = true;
   }
-  auto channel = port->getChannel();
-  if (channel) {
-    info.channelId = static_cast<int32_t>(*channel);
-    info.__isset.channelId = true;
-  }
+  auto channels = port->getChannels();
+  info.channels = channels;
+  info.__isset.channels = true;
   return info;
 }
 

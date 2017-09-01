@@ -60,6 +60,9 @@ class WedgePort : public BcmPlatformPort {
   virtual folly::Optional<ChannelID> getChannel() const {
     return channel_;
   }
+
+  std::vector<int32_t> getChannels() const;
+
   folly::Future<TransmitterTechnology> getTransmitterTech(
       folly::EventBase* evb) const override;
   folly::Future<TransceiverInfo> getTransceiverInfo(
