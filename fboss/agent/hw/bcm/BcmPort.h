@@ -170,6 +170,7 @@ class BcmPort {
   void setKR4Ability();
   void setFEC(const std::shared_ptr<Port>& swPort);
   void setPause(const std::shared_ptr<Port>& swPort);
+  void setTxSetting(const std::shared_ptr<Port>& swPort);
   bool isMmuLossy() const;
 
   static constexpr auto kOutCongestionDiscards = "out_congestion_discards";

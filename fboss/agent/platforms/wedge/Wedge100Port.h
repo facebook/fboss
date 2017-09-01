@@ -56,6 +56,8 @@ class Wedge100Port : public WedgePort {
     return frontPanelPort_ ? !(*frontPanelPort_ & 0x1) : false;
   }
 
+  TxOverrides getTxOverrides() const override;
+
   BcmPortGroup::LaneMode laneMode();
   bool useCompactMode();
   LedColor getLedColor(bool up, bool adminUp);

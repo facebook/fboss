@@ -37,6 +37,8 @@ struct TransceiverAndXPEs {
         egressXPEs(_egressXPEs) {}
 
   folly::Optional<TransceiverID> transceiver;
+
+  // TODO(aeckert): can we determine XPE programatically?
   BcmPlatformPort::XPEs egressXPEs;
 };
 

@@ -363,6 +363,8 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   // cold boot) maybe what is desired by the config. But we
   // may still need to enable FEC
   setFEC(port);
+  // Update Tx Setting if needed.
+  setTxSetting(port);
 }
 
 void BcmPort::linkStatusChanged(const std::shared_ptr<Port>& port) {
