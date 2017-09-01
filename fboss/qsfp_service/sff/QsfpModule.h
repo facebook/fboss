@@ -54,20 +54,26 @@ class QsfpModule : public Transceiver {
    * Returns if the QSFP is present or not
    */
   bool isPresent() const override;
+
   /*
    * Return a valid type.
    */
-  TransceiverType type() const override{
+  TransceiverType type() const override {
     return TransceiverType::QSFP;
   }
+
+  TransceiverID getID() const override;
+
   /*
    * Takes a lock on qsfpModuleMutex_ before calling detectTransceiverLocked
    */
   void detectTransceiver() override;
+
   /*
    * Get the QSFP EEPROM Field
    */
   int getFieldValue(SffField fieldName, uint8_t* fieldValue);
+
   /*
    * Customize QSPF fields as necessary
    *
@@ -75,6 +81,7 @@ class QsfpModule : public Transceiver {
    * different qsfp settings based on speed
    */
   void customizeTransceiver(cfg::PortSpeed speed) override;
+
   /*
    * Returns the entire QSFP information
    */

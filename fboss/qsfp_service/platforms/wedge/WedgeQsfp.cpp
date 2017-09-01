@@ -85,7 +85,7 @@ folly::StringPiece WedgeQsfp::getName() {
   return moduleName_;
 }
 
-int WedgeQsfp::getNum() {
+int WedgeQsfp::getNum() const {
   return module_;
 }
 

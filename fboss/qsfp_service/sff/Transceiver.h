@@ -19,6 +19,8 @@ namespace facebook { namespace fboss {
  * to support.  This supports, for now, QSFP and SFP.
  */
 
+class TransceiverID;
+
 class Transceiver {
  public:
   Transceiver() {}
@@ -28,14 +30,19 @@ class Transceiver {
    * Transceiver type (SFP, QSFP)
    */
   virtual TransceiverType type() const = 0;
+
+  virtual TransceiverID getID() const = 0;
+
   /*
    * Returns if the SFP is present or not
    */
   virtual bool isPresent() const = 0;
+
   /*
    * Check if the transceiver is present or not
    */
   virtual void detectTransceiver() = 0;
+
   /*
    * Return all of the transceiver information
    */

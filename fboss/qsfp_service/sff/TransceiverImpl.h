@@ -31,15 +31,18 @@ class TransceiverImpl {
                               int len, uint8_t* fieldValue) = 0;
   virtual int writeTransceiver(int dataAddress, int offset,
                               int len, uint8_t* fieldValue) = 0;
+
   /*
    * This function will check if the transceiver is present or not
    */
   virtual bool detectTransceiver() = 0;
+
   /*
    * Returns the name of the port
    */
   virtual folly::StringPiece getName() = 0;
-  virtual int getNum() = 0;
+
+  virtual int getNum() const = 0;
 
  private:
   // Forbidden copy contructor and assignment operator

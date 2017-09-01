@@ -98,6 +98,10 @@ void getQsfpFieldAddress(SffField field, int &dataAddress,
   length = info.length;
 }
 
+TransceiverID QsfpModule::getID() const {
+  return TransceiverID(qsfpImpl_->getNum());
+}
+
 /*
  * Given a byte, extract bit fields for various alarm flags;
  * note the we might want to use the lower or the upper nibble,

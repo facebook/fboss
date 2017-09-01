@@ -43,7 +43,7 @@ class SffTransceiver : public TransceiverImpl {
   bool detectTransceiver() override;
   /* Returns the name for the port */
   folly::StringPiece getName() override;
-  int getNum() override;
+  int getNum() const override;
 
  private:
   int module_;
@@ -158,7 +158,7 @@ folly::StringPiece SffTransceiver::getName() {
   return moduleName_;
 }
 
-int SffTransceiver::getNum() {
+int SffTransceiver::getNum() const {
   return module_;
 }
 
