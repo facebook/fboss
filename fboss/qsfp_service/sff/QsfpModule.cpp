@@ -42,6 +42,7 @@ static SffFieldInfo::SffFieldMap qsfpFields = {
   {SffField::CHANNEL_RX_PWR, {QsfpPages::LOWER, 34, 8} },
   {SffField::CHANNEL_TX_BIAS, {QsfpPages::LOWER, 42, 8} },
   {SffField::CHANNEL_TX_PWR, {QsfpPages::LOWER, 50, 8} },
+  {SffField::TX_DISABLE, {QsfpPages::LOWER, 86, 1} },
   {SffField::RATE_SELECT_RX, {QsfpPages::LOWER, 87, 1} },
   {SffField::RATE_SELECT_TX, {QsfpPages::LOWER, 88, 1} },
   {SffField::POWER_CONTROL, {QsfpPages::LOWER, 93, 1} },
@@ -691,7 +692,7 @@ void QsfpModule::detectTransceiverLocked() {
 }
 
 int QsfpModule::getFieldValue(SffField fieldName,
-                             uint8_t* fieldValue) {
+                              uint8_t* fieldValue) {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   int offset;
   int length;
@@ -768,6 +769,10 @@ void QsfpModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
 
     // We want this on regardless of speed
     setPowerOverrideIfSupported(settings.powerControl);
+
+    // make sure TX is enabled on the transceiver
+    ensureTxEnabled();
+
     if (speed == cfg::PortSpeed::DEFAULT) {
       LOG(INFO) << "Port speed is not set. Not customizing further.";
       return;
@@ -964,6 +969,23 @@ void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
             << ": QSFP set to power setting "
             << _PowerControlState_VALUES_TO_NAMES.find(desiredSetting)->second
             << " (" << int(power) << ")";
+}
+
+void QsfpModule::ensureTxEnabled() {
+  // Sometimes transceivers lock up and disable TX. When we customize
+  // the transceiver let's also ensure that tx is enabled. We have
+  // even seen transceivers report to have tx enabled in the DOM, but
+  // no traffic was flowing. When we forcibly set the tx_enable bits
+  // again, traffic began flowing.  Because of this, we ALWAYS set the
+  // bits (even if they report enabled).
+  int offset;
+  int length;
+  int dataAddress;
+  getQsfpFieldAddress(SffField::TX_DISABLE, dataAddress, offset, length);
+
+  std::array<uint8_t, 1> buf = {{0}};
+  qsfpImpl_->writeTransceiver(
+    TransceiverI2CApi::ADDR_QSFP, offset, 1, buf.data());
 }
 
 }} //namespace facebook::fboss

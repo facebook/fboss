@@ -313,7 +313,8 @@ class QsfpModule : public Transceiver {
    */
   const folly::Optional<LengthAndGauge> getDACCableOverride() const;
 
-
+  // make sure that tx_disable bits are clear
+  void ensureTxEnabled();
 };
 
 }} //namespace facebook::fboss
