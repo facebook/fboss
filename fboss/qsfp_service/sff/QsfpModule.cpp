@@ -613,7 +613,6 @@ void QsfpModule::detectTransceiverLocked() {
   setPresent(currentQsfpStatus);
   if (currentQsfpStatus) {
     updateQsfpData();
-    customizeTransceiverLocked();
   }
 }
 
