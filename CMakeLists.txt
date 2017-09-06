@@ -3,6 +3,7 @@ project(FBOSS)
 
 include(CheckCXXCompilerFlag)
 include(CMakeParseArguments)
+include(ExternalProject)
 
 # Check the version
 CHECK_CXX_COMPILER_FLAG("-std=gnu++1y" COMPILER_SUPPORTS_CXX14)
@@ -19,7 +20,8 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++1y")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/include/libnl3")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-sign-compare -Wno-bool-compare")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Wnon-virtual-dtor")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized -Wdeprecated-declarations")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=deprecated-declarations")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DINCLUDE_L3 -DLONGS_ARE_64BITS")
@@ -419,3 +421,58 @@ fboss_add_thrift(THRIFTSRC fboss/pcap_distribution_service/if/pcap_pubsub.thrift
 fboss_add_thrift(THRIFTSRC fboss/qsfp_service/if/transceiver.thrift)
 fboss_add_thrift(THRIFTSRC fboss/qsfp_service/if/qsfp.thrift
     SERVICES QsfpService)
+
+# Unit testing  
+find_package(Threads REQUIRED)
+if(MSVC)
+    #vc 2012 fix for vararg templates
+    set(MSVC_COMPILER_DEFS "-D_VARIADIC_MAX=10")
+endif() 
+#-------------------
+# set common include folder for module
+#-------------------
+set(EXT_PROJECTS_DIR ${PROJECT_SOURCE_DIR}/external)
+
+#-------------------
+# Module source
+#-------------------
+#set(PROJECT_LIB_NAME ${PROJECT_NAME_STR}_impl)
+
+#include_directories(${COMMON_INCLUDES})
+#file(GLOB SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
+#add_library(${PROJECT_LIB_NAME} ${SRC_FILES})
+
+add_subdirectory(${EXT_PROJECTS_DIR}/gtest)
+
+#-------------------
+# Test
+#-------------------
+add_definitions(${MSVC_COMPILER_DEFS})
+enable_testing()
+set(PROJECT_TEST_NAME agent_test)
+include_directories(${GTEST_INCLUDE_DIRS} ${GMOCK_INCLUDE_DIRS})
+
+file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/fboss/agent/test/*)
+add_executable(${PROJECT_TEST_NAME} ${TEST_SRC_FILES})
+add_dependencies(${PROJECT_TEST_NAME} gtest)
+
+
+if(NOT WIN32 OR MINGW)
+    target_link_libraries(${PROJECT_TEST_NAME}
+        ${GTEST_LIBS_DIR}/libgtest.a
+        ${GTEST_LIBS_DIR}/libgtest_main.a
+        )
+else()
+    target_link_libraries(${PROJECT_TEST_NAME}
+        debug ${GTEST_LIBS_DIR}/DebugLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gtest${CMAKE_FIND_LIBRARY_SUFFIXES}
+        optimized ${GTEST_LIBS_DIR}/ReleaseLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gtest${CMAKE_FIND_LIBRARY_SUFFIXES}
+        )
+    target_link_libraries(${PROJECT_TEST_NAME}
+        debug ${GTEST_LIBS_DIR}/DebugLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${CMAKE_FIND_LIBRARY_SUFFIXES}
+        optimized ${GTEST_LIBS_DIR}/ReleaseLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${CMAKE_FIND_LIBRARY_SUFFIXES}
+        )
+endif()
+
+target_link_libraries(${PROJECT_TEST_NAME} ${CMAKE_THREAD_LIBS_INIT})
+
+add_test(test1 ${PROJECT_TEST_NAME})

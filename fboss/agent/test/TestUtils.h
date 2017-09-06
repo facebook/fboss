@@ -267,7 +267,7 @@ class TxPacketMatcher
       folly::StringPiece name,
       TxMatchFn&& fn);
 
-  bool MatchAndExplain(
+  virtual bool MatchAndExplain(
       const TxPacketPtr& pkt,
       ::testing::MatchResultListener* l) const override;
 
@@ -292,7 +292,7 @@ class RxPacketMatcher : public ::testing::MatcherInterface<RxMatchFnArgs> {
       InterfaceID dstIfID,
       RxMatchFn&& fn);
 
-  bool MatchAndExplain(
+  virtual bool MatchAndExplain(
       const RxMatchFnArgs& args,
       ::testing::MatchResultListener* l) const override;
 
