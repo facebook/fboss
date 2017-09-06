@@ -18,9 +18,13 @@ class L3InterfacesTest(FbossBaseSystemTest):
         for intf in interfaces.values():
             for host in self.test_topology.hosts():
                 ip = ip_addr_to_str(intf.address[0].ip)
-                self.log.info("Ping from %s to %s" % (host, ip))
-                with host.thrift_client() as client:
-                    self.assertTrue(client.ping(ip))
+                for host_intf in host.intfs():
+                    if ":" in ip:
+                        # for v6, always ping with "%eth0" in address
+                        ip = ip + "%%%s" % host_intf
+                    self.log.info("Ping from %s to %s" % (host, ip))
+                    with host.thrift_client() as client:
+                        self.assertTrue(client.ping(ip))
 
 
 class L3AllPairsPing(FbossBaseSystemTest):

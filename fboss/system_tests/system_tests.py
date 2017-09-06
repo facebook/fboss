@@ -133,7 +133,7 @@ def run_tests(options):
                                                   pattern='*test*.py')
         suite.addTests(testsdir)
     frob_options_into_tests(suite, options)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    return unittest.TextTestRunner(verbosity=2).run(suite)
 
 
 def main(args):

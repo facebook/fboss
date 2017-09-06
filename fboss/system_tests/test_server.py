@@ -34,7 +34,7 @@ class TestServer(TestService.Iface):
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.addHandler(logging.StreamHandler())
-        self.log.setLevel(logging.DEBUG)
+        self.log.setLevel(logging.INFO)
         self.pcap_captures = {}
         self.pkt_captures = {}
         self.log.debug("Log: debug enabled")
