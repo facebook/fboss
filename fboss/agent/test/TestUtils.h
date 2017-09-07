@@ -267,9 +267,15 @@ class TxPacketMatcher
       folly::StringPiece name,
       TxMatchFn&& fn);
 
+#ifndef IS_OSS
   bool MatchAndExplain(
       const TxPacketPtr& pkt,
       ::testing::MatchResultListener* l) const override;
+#else
+  bool MatchAndExplain(
+      TxPacketPtr pkt,
+      ::testing::MatchResultListener* l) const override;
+#endif
 
   void DescribeTo(std::ostream* os) const override;
   void DescribeNegationTo(std::ostream* os) const override;
@@ -292,9 +298,15 @@ class RxPacketMatcher : public ::testing::MatcherInterface<RxMatchFnArgs> {
       InterfaceID dstIfID,
       RxMatchFn&& fn);
 
+#ifndef IS_OSS
   bool MatchAndExplain(
       const RxMatchFnArgs& args,
       ::testing::MatchResultListener* l) const override;
+#else
+  bool MatchAndExplain(
+      RxMatchFnArgs args,
+      ::testing::MatchResultListener* l) const override;
+#endif
 
   void DescribeTo(std::ostream* os) const override;
   void DescribeNegationTo(std::ostream* os) const override;

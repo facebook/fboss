@@ -419,3 +419,21 @@ fboss_add_thrift(THRIFTSRC fboss/pcap_distribution_service/if/pcap_pubsub.thrift
 fboss_add_thrift(THRIFTSRC fboss/qsfp_service/if/transceiver.thrift)
 fboss_add_thrift(THRIFTSRC fboss/qsfp_service/if/qsfp.thrift
     SERVICES QsfpService)
+
+# Unit Testing
+add_definitions (-DIS_OSS=true)
+find_package(Threads REQUIRED)
+enable_testing()
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+set(PROJECT_TEST_NAME agent_test)
+
+set(GMOCK_DIRS /usr/src/gmock)
+include_directories(${GMOCK_DIRS}/include)
+
+file(GLOB TEST_SOURCE_FILES ${PROJECT_SOURCE_DIR}/fboss/agent/test/*)
+add_executable(${PROJECT_TEST_NAME} ${TEST_SOURCE_FILES})
+target_link_libraries(${PROJECT_TEST_NAME} ${GTEST_BOTH_LIBRARIES})
+target_link_libraries(${PROJECT_TEST_NAME} gmock gmock_main)
+target_link_libraries(${PROJECT_TEST_NAME} ${CMAKE_THREAD_LIBS_INIT})
+#add_test(test ${PROJECT_TEST_NAME})
