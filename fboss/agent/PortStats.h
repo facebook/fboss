@@ -9,19 +9,15 @@
  */
 #pragma once
 
-#include "fboss/agent/types.h"
 #include "common/stats/ThreadCachedServiceData.h"
+#include "fboss/agent/types.h"
 
 namespace facebook { namespace fboss {
-
 class SwitchStats;
 
 class PortStats {
  public:
-  typedef stats::ThreadCachedServiceData::TLTimeseries TLTimeseries;
-
-  PortStats(PortID portID, std::unique_ptr<TLTimeseries> linkState,
-      SwitchStats *switchStats);
+  PortStats(PortID portID, std::string portName, SwitchStats *switchStats);
 
   void trappedPkt();
   void pktDropped();
@@ -65,24 +61,42 @@ class PortStats {
   void ipv4DstLookupFailure();
   void ipv6DstLookupFailure();
 
+  void setPortStatusCounter(bool isUp);
+  void clearPortStatusCounter();
+
+  void updateName(const std::string& newName);
+  std::string getName() {
+    return portName_;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   PortStats(PortStats const &) = delete;
   PortStats& operator=(PortStats const &) = delete;
+
+  using ThreadLocalStatsMap =
+    stats::ThreadCachedServiceData::ThreadLocalStatsMap;
+  using TLTimeseries = stats::ThreadCachedServiceData::TLTimeseries;
+
+  void reinitPortStats();
+
+  std::string getCounterKey(const std::string& key);
 
   /*
    * It's useful to store this
    */
   PortID portID_;
 
-  /*
-   * Port down count for the specific port
-   */
-  std::unique_ptr<TLTimeseries> linkStateChange_;
+  std::string portName_;
 
   // Pointer to main SwitchStats object so that we can forward method calls
   // that we do not want to track ourselves.
   SwitchStats *switchStats_;
+
+  /*
+   * Port flap count for the specific port
+   */
+  std::unique_ptr<TLTimeseries> linkStateChange_;
 };
 
 }} // facebook::fboss

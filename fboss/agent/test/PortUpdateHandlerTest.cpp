@@ -1,0 +1,144 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+#include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/PortUpdateHandler.h"
+#include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/CounterCache.h"
+#include "fboss/agent/test/TestUtils.h"
+
+#include <gtest/gtest.h>
+
+using namespace facebook::fboss;
+using std::string;
+
+namespace {
+
+class PortUpdateHandlerTest: public ::testing::Test {
+public:
+  void SetUp() override {
+    sw = createMockSw();
+    initState = testStateA();
+
+    addState = testStateA();
+    // add port 21 which uses VLAN 1
+    addState->registerPort(PortID(21), "port21");
+    addState->getVlans()->getVlanIf(VlanID(1))->addPort(PortID(21), false);
+    deltaAdd = std::make_shared<StateDelta>(initState, addState);
+    deltaRemove = std::make_shared<StateDelta>(addState, initState);
+
+    // rename all port name fron portX to eth1/X/1
+    initPorts = initState->getPorts();
+    newPorts = std::make_shared<PortMap>();
+    for (const auto& origPort: *initPorts) {
+      auto newPort = origPort->clone();
+      newPort->setName(folly::to<string>("eth1/", origPort->getID(), "/1"));
+      newPort->setOperState(true);
+      newPorts->addPort(newPort);
+    }
+    auto changedState = initState->clone();
+    changedState->resetPorts(newPorts);
+    deltaChange = std::make_shared<StateDelta>(initState, changedState);
+
+    portUpdateHandler = std::make_unique<PortUpdateHandler>(sw.get());
+  }
+
+  void expectPortCounterExist(CounterCache& counters,
+                              std::shared_ptr<PortMap> ports) {
+    for (const auto& port: *ports) {
+      EXPECT_TRUE(counters.checkExist(port->getName() +
+                                       ".link_state.flap.sum"));
+      EXPECT_TRUE(counters.checkExist(port->getName() + ".up"));
+      EXPECT_EQ(counters.value(port->getName() + ".up"), port->isUp());
+    }
+  }
+
+  void expectPortCounterNotExist(CounterCache& counters,
+                                 std::shared_ptr<PortMap> ports) {
+    for (const auto& port: *ports) {
+      EXPECT_FALSE(counters.checkExist(port->getName() + ".up"));
+    }
+  }
+
+  std::shared_ptr<SwSwitch> sw;
+  std::shared_ptr<SwitchState> initState;
+  std::shared_ptr<SwitchState> addState;
+  std::shared_ptr<PortMap> initPorts;
+  std::shared_ptr<PortMap> newPorts;
+  std::shared_ptr<StateDelta> deltaAdd;
+  std::shared_ptr<StateDelta> deltaRemove;
+  std::shared_ptr<StateDelta> deltaChange;
+  std::unique_ptr<PortUpdateHandler> portUpdateHandler;
+};
+
+
+TEST_F(PortUpdateHandlerTest, PortAdded) {
+  // // Cache the current stats
+  CounterCache counters(sw.get());
+  EXPECT_EQ(sw->stats()->getPortStats()->size(), 0);
+
+  portUpdateHandler->stateUpdated(*std::make_shared<StateDelta>(
+    std::make_shared<SwitchState>(), initState));
+  EXPECT_EQ(sw->stats()->getPortStats()->size(), 20);
+
+  portUpdateHandler->stateUpdated(*deltaAdd);
+  // should be 21 PortStats now
+  EXPECT_EQ(sw->stats()->getPortStats()->size(), 21);
+
+  counters.update();
+  // make sure original PortStats still exist
+  expectPortCounterExist(counters, initPorts);
+  // make sure PortStats for port 21 is also created
+  EXPECT_TRUE(counters.checkExist("port21.link_state.flap.sum"));
+  EXPECT_TRUE(counters.checkExist("port21.up"));
+  EXPECT_EQ(counters.value("port21.up"), 0);
+}
+
+TEST_F(PortUpdateHandlerTest, PortRemoved) {
+  // // Cache the current stats
+  CounterCache counters(sw.get());
+  EXPECT_EQ(sw->stats()->getPortStats()->size(), 0);
+
+  portUpdateHandler->stateUpdated(*std::make_shared<StateDelta>(
+    std::make_shared<SwitchState>(), addState));
+  EXPECT_EQ(sw->stats()->getPortStats()->size(), 21);
+
+  portUpdateHandler->stateUpdated(*deltaRemove);
+  // should be 20 PortStats now
+  EXPECT_EQ(sw->stats()->getPortStats()->size(), 20);
+
+  counters.update();
+  // make sure original PortStats still exist
+  expectPortCounterExist(counters, initPorts);
+  // make sure PortStats for port 21 no longer exist
+  EXPECT_FALSE(counters.checkExist("port21.up"));
+}
+
+TEST_F(PortUpdateHandlerTest, PortChanged) {
+  // // Cache the current stats
+  CounterCache counters(sw.get());
+  EXPECT_EQ(sw->stats()->getPortStats()->size(), 0);
+
+  portUpdateHandler->stateUpdated(*std::make_shared<StateDelta>(
+    std::make_shared<SwitchState>(), initState));
+  EXPECT_EQ(sw->stats()->getPortStats()->size(), 20);
+
+  portUpdateHandler->stateUpdated(*deltaChange);
+  // should be 20 PortStats now
+  EXPECT_EQ(sw->stats()->getPortStats()->size(), 20);
+
+  counters.update();
+  // make sure PortStats with the new name is created
+  expectPortCounterExist(counters, newPorts);
+  expectPortCounterNotExist(counters, initPorts);
+}
+} // unnamed namespace

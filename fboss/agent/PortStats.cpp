@@ -10,13 +10,48 @@
 
 #include "fboss/agent/SwitchStats.h"
 
+#include "common/stats/ServiceData.h"
+#include <folly/String.h>
+
+using facebook::stats::RATE;
+using facebook::stats::SUM;
+
+namespace {
+  const std::string kNameKeySeperator = ".";
+  const std::string kUp = "up";
+  const std::string kLinkStateFlap = "link_state.flap";
+}
+
 namespace facebook { namespace fboss {
 
-PortStats::PortStats(PortID portID, std::unique_ptr<TLTimeseries> linkState,
-    SwitchStats *switchStats)
+PortStats::PortStats(PortID portID, std::string portName,
+                     SwitchStats *switchStats)
   : portID_(portID),
-    linkStateChange_(std::move(linkState)),
+    portName_(portName),
     switchStats_(switchStats) {
+  reinitPortStats();
+}
+
+void PortStats::updateName(const std::string &newName) {
+  if (newName == portName_) {
+    return;
+  }
+  portName_ = newName;
+  reinitPortStats();
+}
+
+void PortStats::reinitPortStats() {
+  if (portName_.empty()) {
+    return;
+  }
+  ThreadLocalStatsMap* map =
+    stats::ThreadCachedServiceData::get()->getThreadStats();
+  linkStateChange_ = std::make_unique<TLTimeseries>(
+    map, getCounterKey(kLinkStateFlap), SUM);
+}
+
+std::string PortStats::getCounterKey(const std::string& key) {
+  return folly::to<std::string>(portName_, kNameKeySeperator, key);
 }
 
 void PortStats::trappedPkt() {
@@ -121,7 +156,9 @@ void PortStats::dhcpV6DropPkt() {
 }
 
 void PortStats::linkStateChange() {
-  linkStateChange_->addValue(1);
+  if (linkStateChange_) {
+    linkStateChange_->addValue(1);
+  }
   switchStats_->linkStateChange();
 }
 
@@ -131,6 +168,14 @@ void PortStats::ipv4DstLookupFailure() {
 
 void PortStats::ipv6DstLookupFailure() {
   switchStats_->ipv6DstLookupFailure();
+}
+
+void PortStats::setPortStatusCounter(bool isUp) {
+  fbData->setCounter(getCounterKey(kUp), isUp);
+}
+
+void PortStats::clearPortStatusCounter() {
+  fbData->clearCounter(getCounterKey(kUp));
 }
 
 }} // facebook::fboss

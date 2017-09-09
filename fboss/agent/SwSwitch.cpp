@@ -24,7 +24,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
-#include "fboss/agent/PortStats.h"
+#include "fboss/agent/PortUpdateHandler.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/TxPacket.h"
@@ -134,31 +134,6 @@ facebook::fboss::PortStatus fillInPortStatus(
   return status;
 }
 
-string getPortUpName(const shared_ptr<facebook::fboss::Port>& port) {
-  return port->getName().empty()
-    ? folly::to<string>("port", port->getID(), ".up")
-    : port->getName() + ".up";
-}
-
-inline void updatePortStatusCounters(const facebook::fboss::StateDelta& delta) {
-  facebook::fboss::DeltaFunctions::forEachChanged(
-      delta.getPortsDelta(),
-      [&](const shared_ptr<facebook::fboss::Port>& oldPort,
-          const shared_ptr<facebook::fboss::Port>& newPort) {
-        if (oldPort->getName() == newPort->getName()) {
-          return;
-        }
-        facebook::fbData->clearCounter(getPortUpName(oldPort));
-        facebook::fbData->setCounter(getPortUpName(newPort), newPort->isUp());
-      },
-      [&](const shared_ptr<facebook::fboss::Port>& newPort) {
-        facebook::fbData->setCounter(getPortUpName(newPort), newPort->isUp());
-      },
-      [&](const shared_ptr<facebook::fboss::Port>& oldPort) {
-        facebook::fbData->clearCounter(getPortUpName(oldPort));
-      });
-}
-
 } // anonymous namespace
 
 namespace facebook { namespace fboss {
@@ -186,7 +161,8 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
     ipv6_(new IPv6Handler(this)),
     nUpdater_(new NeighborUpdater(this)),
     pcapMgr_(new PktCaptureManager(this)),
-    routeUpdateLogger_(new RouteUpdateLogger(this)) {
+    routeUpdateLogger_(new RouteUpdateLogger(this)),
+    portUpdateHandler_(new PortUpdateHandler(this)) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
@@ -442,10 +418,6 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   VLOG(0) << "hardware initialized in " <<
     hwInitRet.bootTime << " seconds; applying initial config";
 
-  for (const auto& port : (*initialState->getPorts())) {
-    fbData->setCounter(getPortUpName(port), 0);
-  }
-
   // Store the initial state
   initialState->publish();
   initialStateDesired->publish();
@@ -458,6 +430,13 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
     notifyStateObservers(
         StateDelta(std::make_shared<SwitchState>(), initialStateDesired));
   });
+
+  // set port status count to false as default
+  PortStatsMap* portStatsMap = stats()->getPortStats();
+  for (auto& it : *portStatsMap) {
+    PortStats *portStats = it.second.get();
+    portStats->setPortStatusCounter(false);
+  }
 
   // In ALPM mode we need to make sure that the first route added is
   // the default route and that the route table always contains a default
@@ -655,7 +634,6 @@ void SwSwitch::notifyStateObservers(const StateDelta& delta) {
     // Make sure the SwSwitch is not already being destroyed
     return;
   }
-  updatePortStatusCounters(delta);
   for (auto observerName : stateObservers_) {
     try {
       auto observer = observerName.first;
@@ -995,6 +973,11 @@ PortStatus SwSwitch::getPortStatus(PortID portID) {
 
 SwitchStats* SwSwitch::createSwitchStats() {
   SwitchStats* s = new SwitchStats();
+  // create PortStats
+  std::shared_ptr<PortMap> portMap = getState()->getPorts();
+  for (const auto& p : *portMap) {
+    s->createPortStats(p->getID(), p->getName());
+  }
   stats_.reset(s);
   return s;
 }
@@ -1006,7 +989,30 @@ void SwSwitch::setPortStatusCounter(PortID port, bool up) {
     // called during initialization
     return;
   }
-  fbData->setCounter(getPortUpName(state->getPort(port)), int(up));
+  stats()->port(port)->setPortStatusCounter(up);
+}
+
+/*
+ * Update portName of PortStats of all thread-local SwitchStats
+ */
+void SwSwitch::upatePortStats(PortID portID, const std::string& portName) {
+  for (SwitchStats& switchStats: stats_.accessAllThreads()) {
+    PortStats* portStats = switchStats.port(portID);
+    if (!portStats) {
+      switchStats.createPortStats(portID, portName);
+    } else if (portStats->getName() != portName) {
+      portStats->updateName(portName);
+    }
+  }
+}
+
+/*
+ * Delete PortStats of all thread-local SwitchStats
+ */
+void SwSwitch::deletePortStats(PortID portID) {
+  for (SwitchStats& switchStats: stats_.accessAllThreads()) {
+    switchStats.deletePortStats(portID);
+  }
 }
 
 void SwSwitch::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {

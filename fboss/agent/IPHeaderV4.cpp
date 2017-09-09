@@ -10,7 +10,6 @@
 #include "IPHeaderV4.h"
 
 #include <folly/io/Cursor.h>
-#include "fboss/agent/PortStats.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/FbossError.h"

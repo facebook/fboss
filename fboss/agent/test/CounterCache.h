@@ -42,6 +42,9 @@ class CounterCache {
   int64_t prevValue(const std::string& name) const {
     return getValue(name, &prev_);
   }
+  bool checkExist(const std::string& name) const {
+    return current_.find(name) != current_.end();
+  }
 
  private:
   int64_t getValue(const std::string& counter,
