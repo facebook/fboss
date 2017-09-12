@@ -199,6 +199,7 @@ add_library(fboss_agent STATIC
     fboss/agent/PortRemediator.cpp
     fboss/agent/PortStats.cpp
     fboss/agent/PortUpdateHandler.cpp
+    fboss/agent/PortRemediator.cpp
     fboss/agent/QsfpClient.cpp
     fboss/agent/RestClient.cpp
     fboss/agent/RouteUpdateLogger.cpp
@@ -289,6 +290,9 @@ add_library(fboss_agent STATIC
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_constants.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/optic_data.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/optic_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/sflow_data.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/sflow_types.cpp
+    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/sflow_constants.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/ctrl_data.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/ctrl_types.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/FbossCtrl.cpp
@@ -412,6 +416,7 @@ fboss_add_thrift(THRIFTSRC fboss/agent/if/ctrl.thrift
 fboss_add_thrift(THRIFTSRC fboss/agent/if/fboss.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/highres.thrift SERVICES FbossHighresClient)
 fboss_add_thrift(THRIFTSRC fboss/agent/if/optic.thrift)
+fboss_add_thrift(THRIFTSRC fboss/agent/if/sflow.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/hw/bcm/packettrace.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/hw/bcm/bcmswitch.thrift)
 fboss_add_thrift(THRIFTSRC fboss/agent/hw/bcm/hardware_stats.thrift)
