@@ -731,6 +731,7 @@ void BcmSwitch::processDisabledPorts(const StateDelta& delta) {
     [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
       if (oldPort->isEnabled() && !newPort->isEnabled()) {
         auto bcmPort = portTable_->getBcmPort(newPort->getID());
+        LOG(INFO) << "Disabling port: " << newPort->getID();
         bcmPort->disable(newPort);
       }
     });
