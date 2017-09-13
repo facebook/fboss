@@ -280,6 +280,9 @@ void BcmPort::disable(const std::shared_ptr<Port>& swPort) {
   bcmCheckError(rv, "Unexpected error disabling counter DMA on port ",
                 swPort->getID());
 
+  // Disable sFlow sampling
+  disableSflow();
+
   rv = opennsl_port_enable_set(unit_, port_, false);
   bcmCheckError(rv, "failed to disable port ", swPort->getID());
 }
@@ -334,7 +337,7 @@ void BcmPort::enable(const std::shared_ptr<Port>& swPort) {
   bcmCheckError(rv, "failed to set VLAN filtering on port ",
                 swPort->getID());
 
-  // Set the speed and ingress vlan before enabling
+  // Set the speed, ingress vlan, and sFlow rates before enabling
   program(swPort);
 
   // Enable packet and byte counter statistic collection.
@@ -365,6 +368,7 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   setFEC(port);
   // Update Tx Setting if needed.
   setTxSetting(port);
+  setSflowRates(port);
 }
 
 void BcmPort::linkStatusChanged(const std::shared_ptr<Port>& port) {

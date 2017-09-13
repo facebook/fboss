@@ -13,7 +13,6 @@
 
 #include <folly/Hash.h>
 #include <folly/Memory.h>
-#include <folly/ScopeGuard.h>
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
 #include "fboss/agent/Constants.h"
@@ -23,6 +22,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/BufferStatsLogger.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
+#include "fboss/agent/hw/bcm/BcmSflowExporter.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
@@ -42,6 +42,8 @@
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/ArpEntry.h"
+#include "fboss/agent/state/SflowCollector.h"
+#include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -136,21 +138,21 @@ bool BcmSwitch::getPortFECConfig(PortID port) const {
 }
 
 BcmSwitch::BcmSwitch(BcmPlatform *platform, HashMode hashMode)
-  : platform_(platform),
-    hashMode_(hashMode),
-    mmuBufferBytes_(platform->getMMUBufferBytes()),
-    mmuCellBytes_(platform->getMMUCellBytes()),
-    warmBootCache_(new BcmWarmBootCache(this)),
-    portTable_(new BcmPortTable(this)),
-    intfTable_(new BcmIntfTable(this)),
-    hostTable_(new BcmHostTable(this)),
-    routeTable_(new BcmRouteTable(this)),
-    aclTable_(new BcmAclTable(this)),
-    bcmTableStats_(new BcmTableStats(this, isAlpmEnabled())),
-    bufferStatsLogger_(createBufferStatsLogger()),
-    trunkTable_(new BcmTrunkTable(this)) {
+    : platform_(platform),
+      hashMode_(hashMode),
+      mmuBufferBytes_(platform->getMMUBufferBytes()),
+      mmuCellBytes_(platform->getMMUCellBytes()),
+      warmBootCache_(new BcmWarmBootCache(this)),
+      portTable_(new BcmPortTable(this)),
+      intfTable_(new BcmIntfTable(this)),
+      hostTable_(new BcmHostTable(this)),
+      routeTable_(new BcmRouteTable(this)),
+      aclTable_(new BcmAclTable(this)),
+      bcmTableStats_(new BcmTableStats(this, isAlpmEnabled())),
+      bufferStatsLogger_(createBufferStatsLogger()),
+      trunkTable_(new BcmTrunkTable(this)),
+      sFlowExporterTable_(new BcmSflowExporterTable()) {
   dumpConfigMap(BcmAPI::getHwConfig(), platform->getHwConfigDumpFile());
-
   exportSdkVersion();
 }
 
@@ -648,9 +650,8 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
 
   // Add all new VLANs, and modify VLAN port memberships.
   // We don't actually delete removed VLANs at this point, we simply remove
-  // all members from the VLAN.  This way any ports that ingres packets to this
-  // VLAN will still switch use this VLAN until we get the new VLAN fully
-  // configured.
+  // all members from the VLAN.  This way any ports that ingress packets to this
+  // VLAN will still use this VLAN until we get the new VLAN fully configured.
   forEachChanged(delta.getVlansDelta(),
                  &BcmSwitch::processChangedVlan,
                  &BcmSwitch::processAddedVlan,
@@ -684,6 +685,9 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
 
   // Any ACL changes
   processAclChanges(delta);
+
+  // Any changes to the set of sFlow collectors
+  processSflowCollectorChanges(delta);
 
   // Process any new routes or route changes
   processAddedChangedRoutes(delta, &appliedState);
@@ -760,7 +764,11 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
       auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
       auto vlanChanged = oldPort->getIngressVlan() != newPort->getIngressVlan();
       auto pauseChanged = oldPort->getPause() != newPort->getPause();
-      if (speedChanged || vlanChanged || pauseChanged) {
+      auto sFlowChanged =
+          (oldPort->getSflowIngressRate() != newPort->getSflowIngressRate()) ||
+          (oldPort->getSflowEgressRate() != newPort->getSflowEgressRate());
+
+      if (speedChanged || vlanChanged || pauseChanged || sFlowChanged) {
         bcmPort->program(newPort);
       }
     });
@@ -804,8 +812,11 @@ void BcmSwitch::reconfigurePortGroups(const StateDelta& delta) {
     [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
       auto enabled = !oldPort->isEnabled() && newPort->isEnabled();
       auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
+      auto sFlowChanged =
+          (oldPort->getSflowIngressRate() != newPort->getSflowIngressRate()) ||
+          (oldPort->getSflowEgressRate() != newPort->getSflowEgressRate());
 
-      if (speedChanged || enabled) {
+      if (enabled || speedChanged || sFlowChanged) {
         if (!isValidPortUpdate(oldPort, newPort, newState)) {
           // Fail hard
           throw FbossError("Invalid port configuration passed in ");
@@ -1001,6 +1012,40 @@ void BcmSwitch::processAggregatePortChanges(const StateDelta& delta) {
       &BcmSwitch::processAddedAggregatePort,
       &BcmSwitch::processRemovedAggregatePort,
       this);
+}
+
+void BcmSwitch::processChangedSflowCollector(
+    const std::shared_ptr<SflowCollector>& /* oldCollector */,
+    const std::shared_ptr<SflowCollector>& /* newCollector */) {
+  LOG(ERROR) << "sFlow collector should should only change on restarts";
+}
+
+void BcmSwitch::processRemovedSflowCollector(
+    const std::shared_ptr<SflowCollector>& collector) {
+  if (!sFlowExporterTable_->contains(collector)) {
+    throw FbossError("Tried to remove non-existent sFlow exporter");
+  }
+
+  sFlowExporterTable_->removeExporter(collector->getID());
+}
+
+void BcmSwitch::processAddedSflowCollector(
+    const shared_ptr<SflowCollector>& collector) {
+  if (sFlowExporterTable_->contains(collector)) {
+    // Something is wrong.
+    throw FbossError("Tried to add an existing sFlow exporter");
+  }
+
+  sFlowExporterTable_->addExporter(collector);
+}
+
+void BcmSwitch::processSflowCollectorChanges(const StateDelta& delta) {
+  forEachChanged(
+    delta.getSflowCollectorsDelta(),
+    &BcmSwitch::processChangedSflowCollector,
+    &BcmSwitch::processAddedSflowCollector,
+    &BcmSwitch::processRemovedSflowCollector,
+    this);
 }
 
 template <typename DELTA, typename ParentClassT>
@@ -1272,6 +1317,14 @@ opennsl_rx_t BcmSwitch::packetRxCallback(int unit, opennsl_pkt_t* pkt,
 }
 
 opennsl_rx_t BcmSwitch::packetReceived(opennsl_pkt_t* pkt) noexcept {
+  // Log it if it's an sFlow sample
+  if (handleSflowPacket(pkt)) {
+    // It was just here because it was an sFlow packet
+    opennsl_rx_free(pkt->unit, pkt);
+    return OPENNSL_RX_HANDLED_OWNED;
+  }
+
+  // Otherwise, send it to the SwSwitch
   unique_ptr<BcmRxPacket> bcmPkt;
   try {
     bcmPkt = createRxPacket(pkt);
@@ -1280,6 +1333,7 @@ opennsl_rx_t BcmSwitch::packetReceived(opennsl_pkt_t* pkt) noexcept {
       folly::exceptionStr(ex);
     return OPENNSL_RX_NOT_HANDLED;
   }
+
   callback_->packetReceived(std::move(bcmPkt));
   return OPENNSL_RX_HANDLED_OWNED;
 }

@@ -115,6 +115,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmPortTable.cpp
     fboss/agent/hw/bcm/BcmRoute.cpp
     fboss/agent/hw/bcm/BcmRxPacket.cpp
+    fboss/agent/hw/bcm/BcmSflowExporter.cpp
     fboss/agent/hw/bcm/BcmStats.cpp
     fboss/agent/hw/bcm/BcmSwitch.cpp
     fboss/agent/hw/bcm/BcmSwitchEventCallback.cpp

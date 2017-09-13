@@ -28,6 +28,9 @@ bool BcmPort::isFECEnabled() {
   return false;
 }
 
+void BcmPort::setSflowRates(const std::shared_ptr<Port>& /* swPort */) {}
+void BcmPort::disableSflow() {}
+
 void BcmPort::setAdditionalStats(
     std::chrono::seconds /*now*/,
     HwPortStats* /*curPortStats*/) {}

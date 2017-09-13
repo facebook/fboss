@@ -46,6 +46,8 @@ class BcmTableStats;
 class BcmTrunkTable;
 class BcmUnit;
 class BcmWarmBootCache;
+class BcmSflowExporterTable;
+class SflowCollector;
 class MockRxPacket;
 class Interface;
 class Port;
@@ -387,7 +389,7 @@ class BcmSwitch : public BcmSwitchIf {
 
   void processAclChanges(const StateDelta& delta);
   void processChangedAcl(const std::shared_ptr<AclEntry>& oldAcl,
-                          const std::shared_ptr<AclEntry>& newAcl);
+                         const std::shared_ptr<AclEntry>& newAcl);
   void processAddedAcl(const std::shared_ptr<AclEntry>& acl);
   void processRemovedAcl(const std::shared_ptr<AclEntry>& acl);
 
@@ -400,6 +402,15 @@ class BcmSwitch : public BcmSwitchIf {
       const std::shared_ptr<AggregatePort>& aggPort);
 
   std::shared_ptr<SwitchState> stateChangedImpl(const StateDelta& delta);
+
+  void processSflowCollectorChanges(const StateDelta& delta);
+  void processChangedSflowCollector(
+      const std::shared_ptr<SflowCollector>& oldCollector,
+      const std::shared_ptr<SflowCollector>& newCollector);
+  void processAddedSflowCollector(
+      const std::shared_ptr<SflowCollector>& collector);
+  void processRemovedSflowCollector(
+      const std::shared_ptr<SflowCollector>& collector);
 
   /*
    * Calls linkStateChanged below
@@ -511,6 +522,13 @@ class BcmSwitch : public BcmSwitchIf {
    */
   void stopLinkscanThread();
 
+  /*
+   * Handle a potential sFlow trapped packet.
+   *
+   * Returns true if it is only an sFlow sample.
+   * Returns false if it is there for another reason as well.
+   */
+  bool handleSflowPacket(opennsl_pkt_t* pkt) noexcept;
 
   /**
    * Runs a diag cmd on the corresponding unit
@@ -580,6 +598,8 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmTableStats> bcmTableStats_;
   std::unique_ptr<BufferStatsLogger> bufferStatsLogger_;
   std::unique_ptr<BcmTrunkTable> trunkTable_;
+  std::unique_ptr<BcmSflowExporterTable> sFlowExporterTable_;
+
   /*
    * TODO - Right now we setup copp using logic embedded in code.
    * So we need to remember what is already setup and what needs
@@ -588,6 +608,7 @@ class BcmSwitch : public BcmSwitchIf {
    * variable.
    */
   std::vector<std::shared_ptr<AclEntry>> coppAclEntries_;
+
   /*
    * Lock to synchronize access to all BCM* data structures
    */

@@ -110,6 +110,8 @@ class BcmPort {
   void registerInPortGroup(BcmPortGroup* portGroup);
   void setIngressVlan(const std::shared_ptr<Port>& swPort);
   void setSpeed(const std::shared_ptr<Port>& swPort);
+  void setSflowRates(const std::shared_ptr<Port>& swPort);
+  void disableSflow();
 
   /*
    * Update this port's statistics.

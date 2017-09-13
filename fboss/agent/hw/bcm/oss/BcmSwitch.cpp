@@ -57,6 +57,10 @@ bool BcmSwitch::isRxThreadRunning() {
   return true;
 }
 
+bool BcmSwitch::handleSflowPacket(opennsl_pkt_t* /* pkt */) noexcept {
+  return false;
+}
+
 void BcmSwitch::dumpState() const {}
 
 void BcmSwitch::stopLinkscanThread() {
