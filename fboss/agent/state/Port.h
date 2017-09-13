@@ -60,6 +60,10 @@ struct PortFields {
   cfg::PortSpeed maxSpeed{cfg::PortSpeed::DEFAULT};
   cfg::PortPause pause;
   VlanMembership vlans;
+  // settings for ingress/egress sFlow sampling rate; we sample every 1:N'th
+  // packets randomly based on those settings. Zero means no sampling.
+  int64_t sFlowIngressRate{0};
+  int64_t sFlowEgressRate{0};
 };
 
 /*
@@ -191,6 +195,20 @@ class Port : public NodeBaseT<Port, PortFields> {
   }
   void setPause(cfg::PortPause pause) {
     writableFields()->pause = pause;
+  }
+
+  int64_t getSflowIngressRate() const {
+    return getFields()->sFlowIngressRate;
+  }
+  void setSflowIngressRate(int64_t ingressRate) {
+    writableFields()->sFlowIngressRate = ingressRate;
+  }
+
+  int64_t getSflowEgressRate() const {
+    return getFields()->sFlowEgressRate;
+  }
+  void setSflowEgressRate(int64_t egressRate) {
+    writableFields()->sFlowEgressRate = egressRate;
   }
 
   Port* modify(std::shared_ptr<SwitchState>* state);

@@ -19,6 +19,8 @@
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ArpResponseTable.h"
+#include "fboss/agent/state/SflowCollector.h"
+#include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/NdpResponseTable.h"
@@ -178,6 +180,12 @@ class ThriftConfigApplier {
   std::string getInterfaceName(const cfg::Interface* config);
   folly::MacAddress getInterfaceMac(const cfg::Interface* config);
   Interface::Addresses getInterfaceAddresses(const cfg::Interface* config);
+  shared_ptr<SflowCollectorMap> updateSflowCollectors();
+  shared_ptr<SflowCollector> createSflowCollector(
+      const cfg::SflowCollector* config);
+  shared_ptr<SflowCollector> updateSflowCollector(
+      const shared_ptr<SflowCollector>& orig,
+      const cfg::SflowCollector* config);
 
   std::shared_ptr<SwitchState> orig_;
   const cfg::SwitchConfig* cfg_{nullptr};
@@ -358,6 +366,14 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     changed = true;
   }
 
+  // Add sFlow collectors
+  {
+    auto newCollectors = updateSflowCollectors();
+    if (newCollectors) {
+      newState->resetSflowCollectors(std::move(newCollectors));
+      changed = true;
+    }
+  }
 
   if (!changed) {
     return nullptr;
@@ -484,6 +500,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
       VlanID(cfg->ingressVlan) == orig->getIngressVlan() &&
       cfg->speed == orig->getSpeed() &&
       cfg->pause == orig->getPause() &&
+      cfg->sFlowIngressRate == orig->getSflowIngressRate() &&
+      cfg->sFlowEgressRate == orig->getSflowEgressRate() &&
       cfg->name == orig->getName() &&
       cfg->description == orig->getDescription() &&
       vlans == orig->getVlans()) {
@@ -496,6 +514,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
   newPort->setVlans(vlans);
   newPort->setSpeed(cfg->speed);
   newPort->setPause(cfg->pause);
+  newPort->setSflowIngressRate(cfg->sFlowIngressRate);
+  newPort->setSflowEgressRate(cfg->sFlowEgressRate);
   newPort->setName(cfg->name);
   newPort->setDescription(cfg->description);
   return newPort;
@@ -1035,6 +1055,59 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
     intf->setNdpConfig(config->ndp);
   }
   return intf;
+}
+
+shared_ptr<SflowCollectorMap> ThriftConfigApplier::updateSflowCollectors() {
+  auto origCollectors = orig_->getSflowCollectors();
+  SflowCollectorMap::NodeContainer newCollectors;
+  bool changed = false;
+
+  // Process all supplied collectors
+  size_t numExistingProcessed = 0;
+  for (const auto& collector: cfg_->sFlowCollectors) {
+    folly::IPAddress address(collector.ip);
+    auto id = address.toFullyQualified() + ':'
+              + folly::to<std::string>(collector.port);
+    auto origCollector = origCollectors->getNodeIf(id);
+    shared_ptr<SflowCollector> newCollector;
+
+    if (origCollector) {
+      newCollector = updateSflowCollector(origCollector, &collector);
+      ++numExistingProcessed;
+    } else {
+      newCollector = createSflowCollector(&collector);
+    }
+    changed |= updateMap(&newCollectors, origCollector, newCollector);
+  }
+
+  if (numExistingProcessed != origCollectors->size()) {
+    // Some existing SflowCollectors were removed.
+    CHECK_LT(numExistingProcessed, origCollectors->size());
+    changed = true;
+  }
+
+  if (!changed) {
+    return nullptr;
+  }
+
+  return origCollectors->clone(std::move(newCollectors));
+}
+
+shared_ptr<SflowCollector> ThriftConfigApplier::createSflowCollector(
+    const cfg::SflowCollector* config) {
+  return make_shared<SflowCollector>(config->ip, config->port);
+}
+
+shared_ptr<SflowCollector> ThriftConfigApplier::updateSflowCollector(
+    const shared_ptr<SflowCollector>& orig,
+    const cfg::SflowCollector* config) {
+  auto newCollector = createSflowCollector(config);
+
+  if (orig->getAddress() == newCollector->getAddress()) {
+    return nullptr;
+  }
+
+  return newCollector;
 }
 
 shared_ptr<Interface> ThriftConfigApplier::updateInterface(

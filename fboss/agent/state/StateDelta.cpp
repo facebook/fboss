@@ -13,6 +13,7 @@
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
+#include "fboss/agent/state/SflowCollector.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
@@ -65,6 +66,11 @@ NodeMapDelta<AggregatePortMap> StateDelta::getAggregatePortsDelta() const {
       old_->getAggregatePorts().get(), new_->getAggregatePorts().get());
 }
 
+NodeMapDelta<SflowCollectorMap> StateDelta::getSflowCollectorsDelta() const {
+  return NodeMapDelta<SflowCollectorMap>(old_->getSflowCollectors().get(),
+                                         new_->getSflowCollectors().get());
+}
+
 // Explicit instantiations of NodeMapDelta that are used by StateDelta.
 // This prevents users of StateDelta from needing to include
 // NodeMapDelta-defs.h
@@ -73,6 +79,7 @@ template class NodeMapDelta<PortMap>;
 template class NodeMapDelta<RouteTableMap>;
 template class NodeMapDelta<AclMap>;
 template class NodeMapDelta<AggregatePortMap>;
+template class NodeMapDelta<SflowCollectorMap>;
 template class NodeMapDelta<RouteTableRibNodeMap<folly::IPAddressV4>>;
 template class NodeMapDelta<RouteTableRibNodeMap<folly::IPAddressV6>>;
 

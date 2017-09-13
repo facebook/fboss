@@ -269,15 +269,31 @@ struct Port {
    * If this is undefined, the global TrafficPolicyConfig will be used
    */
   11: optional TrafficPolicyConfig egressTrafficPolicy
+
   /*
    * There are multiple queues per port
    * This allows defining their attributes
    */
   12: list<PortQueue> queues = []
+
   /**
    * pause configuration
    */
   13: PortPause pause
+
+  /**
+   * sFlow sampling rate for ingressing packets.
+   * Every 1/sFlowIngressRate ingressing packets will be sampled.
+   * 0 indicates no sampling while 1 indicates sampling all packets.
+   */
+  14: i64 sFlowIngressRate = 0;
+
+  /**
+   * sFlow sampling rate for egressing packets.
+   * Every 1/sFlowEgressRate egressing packets will be sampled.
+   * 0 indicates no sampling while 1 indicates sampling all packets.
+   */
+  15: i64 sFlowEgressRate = 0;
 }
 
 struct AggregatePort {
@@ -465,6 +481,12 @@ struct StaticRouteNoNextHops {
   2: string prefix
 }
 
+
+struct SflowCollector {
+  1: string ip
+  2: i16 port
+}
+
 /**
  * The configuration for a switch.
  *
@@ -537,4 +559,5 @@ struct SwitchConfig {
   23: optional string dhcpReplySrcOverrideV6
   24: optional TrafficPolicyConfig globalEgressTrafficPolicy
   25: optional string config_version
+  26: list<SflowCollector> sFlowCollectors = []
 }

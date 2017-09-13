@@ -230,6 +230,8 @@ add_library(fboss_agent STATIC
     fboss/agent/state/RouteTableRib.cpp
     fboss/agent/state/RouteTypes.cpp
     fboss/agent/state/RouteUpdater.cpp
+    fboss/agent/state/SflowCollector.cpp
+    fboss/agent/state/SflowCollectorMap.cpp
     fboss/agent/state/StateDelta.cpp
     fboss/agent/state/StateUtils.cpp
     fboss/agent/state/SwitchState.cpp

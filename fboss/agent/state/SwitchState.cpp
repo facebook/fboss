@@ -22,6 +22,7 @@
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
+#include "fboss/agent/state/SflowCollectorMap.h"
 
 #include "fboss/agent/state/NodeBase-defs.h"
 
@@ -36,6 +37,7 @@ constexpr auto kVlans = "vlans";
 constexpr auto kRouteTables = "routeTables";
 constexpr auto kDefaultVlan = "defaultVlan";
 constexpr auto kAcls = "acls";
+constexpr auto kSflowCollectors = "sFlowCollectors";
 constexpr auto kArpTimeout = "arpTimeout";
 constexpr auto kNdpTimeout = "ndpTimeout";
 constexpr auto kArpAgerInterval = "arpAgerInterval";
@@ -51,7 +53,8 @@ SwitchStateFields::SwitchStateFields()
       vlans(make_shared<VlanMap>()),
       interfaces(make_shared<InterfaceMap>()),
       routeTables(make_shared<RouteTableMap>()),
-      acls(make_shared<AclMap>()) {}
+      acls(make_shared<AclMap>()),
+      sFlowCollectors(make_shared<SflowCollectorMap>()) {}
 
 folly::dynamic SwitchStateFields::toFollyDynamic() const {
   folly::dynamic switchState = folly::dynamic::object;
@@ -60,6 +63,7 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kVlans] = vlans->toFollyDynamic();
   switchState[kRouteTables] = routeTables->toFollyDynamic();
   switchState[kAcls] = acls->toFollyDynamic();
+  switchState[kSflowCollectors] = sFlowCollectors->toFollyDynamic();
   switchState[kDefaultVlan] = static_cast<uint32_t>(defaultVlan);
   return switchState;
 }
@@ -74,6 +78,10 @@ SwitchStateFields::fromFollyDynamic(const folly::dynamic& swJson) {
   switchState.routeTables = RouteTableMap::fromFollyDynamic(
       swJson[kRouteTables]);
   switchState.acls = AclMap::fromFollyDynamic(swJson[kAcls]);
+  if (swJson.count(kSflowCollectors) > 0) {
+    switchState.sFlowCollectors = SflowCollectorMap::fromFollyDynamic(
+      swJson[kSflowCollectors]);
+  }
   switchState.defaultVlan = VlanID(swJson[kDefaultVlan].asInt());
   //TODO verify that created state here is internally consistent t4155406
   return switchState;
@@ -189,6 +197,11 @@ void SwitchState::resetAcls(std::shared_ptr<AclMap> acls) {
 void SwitchState::resetAggregatePorts(
     std::shared_ptr<AggregatePortMap> aggPorts) {
   writableFields()->aggPorts.swap(aggPorts);
+}
+
+void SwitchState::resetSflowCollectors(
+    const std::shared_ptr<SflowCollectorMap>& collectors) {
+  writableFields()->sFlowCollectors = collectors;
 }
 
 template class NodeBaseT<SwitchState, SwitchStateFields>;

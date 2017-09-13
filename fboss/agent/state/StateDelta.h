@@ -14,12 +14,13 @@
 
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AggregatePortMap.h"
+#include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/InterfaceMap.h"
-#include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/NodeMapDelta.h"
-#include "fboss/agent/state/VlanMapDelta.h"
+#include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/RouteDelta.h"
+#include "fboss/agent/state/VlanMapDelta.h"
 
 namespace facebook { namespace fboss {
 
@@ -51,6 +52,7 @@ class StateDelta {
   RTMapDelta getRouteTablesDelta() const;
   NodeMapDelta<AclMap> getAclsDelta() const;
   NodeMapDelta<AggregatePortMap> getAggregatePortsDelta() const;
+  NodeMapDelta<SflowCollectorMap> getSflowCollectorsDelta() const;
 
  private:
   // Forbidden copy constructor and assignment operator
