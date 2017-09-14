@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from fboss.thrift_clients import FbossAgentClient
+from fboss.thrift_clients import FbossAgentClient, QsfpServiceClient
 from fboss.system_tests.testutils.test_client import TestClient
 from neteng.fboss.ttypes import FbossBaseError
 
@@ -84,10 +84,13 @@ class FBOSSTestTopology(object):
         For now, this is just for single switch testing.
     """
 
-    def __init__(self, switch, port=None):
+    def __init__(self, switch, port=None, qsfp_port=None):
         if port is None:
             port = FbossAgentClient.DEFAULT_PORT
+        if qsfp_port is None:
+            qsfp_port = QsfpServiceClient.DEFAULT_PORT
         self.port = port
+        self.qsfp_port = qsfp_port
         self.log = logging.getLogger(__name__)
         self.log.setLevel(logging.getLevelName('DEBUG'))
         self.switch = switch
@@ -147,6 +150,9 @@ class FBOSSTestTopology(object):
 
     def switch_thrift(self):
         return FbossAgentClient(self.switch, self.port)
+
+    def qsfp_thrift(self):
+        return QsfpServiceClient(self.switch, self.qsfp_port)
 
     def hosts(self):
         return self.test_hosts.values()

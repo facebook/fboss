@@ -84,7 +84,22 @@ add_executable(wedge_agent
     fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
 )
 
+add_executable(qsfp_service
+    fboss/qsfp_service/oss/QsfpServer.cpp
+    fboss/qsfp_service/Main.cpp
+    fboss/qsfp_service/QsfpServiceHandler.cpp
+    fboss/qsfp_service/sff/QsfpModule.cpp
+    fboss/qsfp_service/sff/SffFieldInfo.cpp
+    fboss/qsfp_service/sff/oss/QsfpModule.cpp
+    fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
+    fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
+    fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
+    fboss/qsfp_service/platforms/wedge/GalaxyManager.cpp
+    fboss/qsfp_service/platforms/wedge/Wedge40Manager.cpp
+)
+
 target_link_libraries(wedge_agent fboss_agent)
+target_link_libraries(qsfp_service fboss_agent)
 
 add_library(fboss_agent STATIC
     common/stats/ServiceData.cpp
@@ -270,6 +285,7 @@ add_library(fboss_agent STATIC
     fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
 
 
+
     # generated sources
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/packettrace_data.cpp
     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/packettrace_types.cpp
@@ -354,6 +370,22 @@ target_link_libraries(fboss_agent
     ${CURL}
     ${NUMA}
     ${ZSTD}
+)
+
+target_link_libraries(qsfp_service
+    ${ZSTD}
+    ${GLOG}
+    ${SSL}
+    ${ZLIB}
+    ${FOLLY}
+    ${WANGLE}
+    ${GFLAGS}
+    ${GLOG}
+    ${PTHREAD}
+    ${THRIFT}
+    ${THRIFTPROTO}
+    ${THRIFTCPP2}
+    ${EVENT}
 )
 
 find_program(THRIFT1 thrift1)
