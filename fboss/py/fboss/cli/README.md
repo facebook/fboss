@@ -64,6 +64,7 @@ Commands:
   l2            Show L2 information
   lldp          Show LLDP neighbors
   ndp           Show NDP information
+  nic           Show host NIC information 
   port          Show port information
   product       Show product information
   reloadconfig  Reload agent configuration file

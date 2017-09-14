@@ -25,6 +25,7 @@ from fboss.cli.commands import ip
 from fboss.cli.commands import l2
 from fboss.cli.commands import lldp
 from fboss.cli.commands import ndp
+from fboss.cli.commands import nic
 from fboss.cli.commands import port
 from fboss.cli.commands import route
 from fboss.cli.utils.utils import AGENT_KEYWORD
@@ -34,6 +35,7 @@ from neteng.fboss.ttypes import FbossBaseError
 from fboss.thrift_clients import FbossAgentClient
 
 DEFAULT_CLIENTID = 1
+
 
 class AliasedGroup(click.Group):
     """
@@ -92,6 +94,26 @@ class ArpCli(object):
     def _flush(cli_opts, ip, vlan):
         ''' Flush an ARP entry by [IP]'''
         cmds.NeighborFlushCmd(cli_opts).run(ip, vlan)
+
+
+class NicCli(object):
+    '''NIC Cli sub-commands '''
+
+    def __init__(self):
+        self.nic.add_command(self._vendor, name='vendor')
+
+    @click.group(cls=AliasedGroup)
+    def nic():
+        ''' Show NIC Information on connected hosts'''
+        pass
+
+    @click.command()
+    @click.option('--detail', is_flag=True, help='Display detailed port status')
+    @click.option('--verbose', is_flag=True, help='Display detailed port status')
+    @click.pass_obj
+    def _vendor(cli_opts, detail, verbose):
+        '''Show NIC vendor information on hosts'''
+        nic.NicCmd(cli_opts).run(detail, verbose)
 
 
 class GetConfigCli(object):
@@ -427,6 +449,7 @@ def add_modules(main_func):
     main_func.add_command(L2Cli().l2)
     main_func.add_command(LldpCli().lldp)
     main_func.add_command(NdpCli().ndp)
+    main_func.add_command(NicCli().nic)
     main_func.add_command(PortCli().port)
     main_func.add_command(ProductInfoCli().product)
     main_func.add_command(ReloadConfigCli().reloadconfig)
