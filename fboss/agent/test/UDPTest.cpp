@@ -18,6 +18,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/UDPHeader.h"
 
@@ -39,13 +40,14 @@ using ::testing::Return;
 TEST(UDPTest, Parse) {
 
   // setup a default state object
-  auto sw = createMockSw();
+  auto handle = createTestHandle();
+  auto sw = handle->getSw();
   auto state = sw->getState();
   PortID portID(1);
   VlanID vlanID(1);
 
   // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
 
   // Create an UDP packet  without IP or L2
   auto pkt = MockRxPacket::fromHex(
@@ -59,7 +61,7 @@ TEST(UDPTest, Parse) {
 
   Cursor c(pkt->buf());
   UDPHeader hdr;
-  hdr.parse(sw.get(), portID, &c);
+  hdr.parse(sw, portID, &c);
   EXPECT_EQ(67, hdr.srcPort);
   EXPECT_EQ(68, hdr.dstPort);
   EXPECT_EQ(8, hdr.length);
@@ -75,7 +77,7 @@ TEST(UDPTest, Parse) {
   pkt->setSrcVlan(vlanID);
 
   Cursor c2(pkt->buf());
-  EXPECT_THROW(hdr.parse(sw.get(), portID, &c2), FbossError);
+  EXPECT_THROW(hdr.parse(sw, portID, &c2), FbossError);
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "udp.too_small.sum", 1);
 }

@@ -18,6 +18,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/HwTestHandle.h"
 
 #include <folly/Memory.h>
 #include <gtest/gtest.h>
@@ -37,7 +38,7 @@ namespace {
 
 const MacAddress kPlatformMac("02:01:02:03:04:05");
 
-unique_ptr<SwSwitch> setupSwitch() {
+unique_ptr<HwTestHandle> setupTestHandle() {
   // Setup the initial state object
   cfg::SwitchConfig thriftCfg;
 
@@ -76,16 +77,17 @@ unique_ptr<SwSwitch> setupSwitch() {
     thriftCfg.vlanPorts.push_back(thriftVlanPort);
   }
 
-  auto sw = createMockSw(&thriftCfg, kPlatformMac);
-  sw->initialConfigApplied(std::chrono::steady_clock::now());
+  auto handle = createTestHandle(&thriftCfg, kPlatformMac);
+  handle->getSw()->initialConfigApplied(std::chrono::steady_clock::now());
 
-  return sw;
+  return handle;
 }
 
 } // unnamed namespace
 
 TEST(CaptureTest, FullCapture) {
-  auto sw = setupSwitch();
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
 
   // Start a packet capture
   auto* mgr = sw->getCaptureMgr();
@@ -207,13 +209,13 @@ TEST(CaptureTest, FullCapture) {
   EXPECT_HW_CALL(sw, sendPacketSwitched_(_)).Times(1);
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(1);
   sw->packetReceived(ipPkt.clone());
-  waitForStateUpdates(sw.get());
+  waitForStateUpdates(sw);
 
   // Receive an ARP reply for the desired IP. This should cause the
   // arp entry to change from pending to active
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(1);
   sw->packetReceived(arpPkt.clone());
-  waitForStateUpdates(sw.get());
+  waitForStateUpdates(sw);
 
   // Re-send the original packet now that the ARP table is populated.
   sw->packetReceived(ipPkt.clone());

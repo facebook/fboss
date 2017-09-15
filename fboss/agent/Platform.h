@@ -16,6 +16,10 @@
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
+// TODO(aeckert): change to forward declaration once all platforms implement
+// createTestHandle
+#include "fboss/agent/test/HwTestHandle.h"
+
 namespace facebook { namespace fboss {
 
 class HwSwitch;
@@ -145,6 +149,17 @@ class Platform {
   virtual TransceiverIdxThrift getPortMapping(PortID port) const = 0;
 
   virtual PlatformPort* getPlatformPort(PortID port) const = 0;
+
+  /*
+   * Provide a test handle to induce certain low level events. This is
+   * used to unit test the platform code.
+   *
+   * TODO(aeckert): make pure virtual once all platforms implement this.
+   */
+  virtual std::unique_ptr<HwTestHandle> createTestHandle(
+      std::unique_ptr<SwSwitch> sw) {
+    return nullptr;
+  };
 
  private:
   // Forbidden copy constructor and assignment operator

@@ -168,15 +168,27 @@ unique_ptr<SwSwitch> createMockSw(
     EXPECT_CALL(*platform.get(), getLocalMac()).WillRepeatedly(
       Return(mac.value()));
   }
+
   if (FLAGS_switch_hw) {
     return setupMockSwitchWithHW(std::move(platform), state, flags);
   }
   return setupMockSwitchWithoutHW(std::move(platform), state, flags);
 }
 
-unique_ptr<SwSwitch> createMockSw(cfg::SwitchConfig* config,
-                                  MacAddress mac,
-                                  SwitchFlags flags) {
+unique_ptr<HwTestHandle> createTestHandle(
+    const shared_ptr<SwitchState>& state,
+    const folly::Optional<MacAddress>& mac,
+    SwitchFlags flags) {
+  auto sw = createMockSw(state, mac, flags);
+  auto platform = sw->getPlatform();
+  auto handle = platform->createTestHandle(std::move(sw));
+  handle->prepareForTesting();
+  return handle;
+}
+
+unique_ptr<HwTestHandle> createTestHandle(cfg::SwitchConfig* config,
+                                          MacAddress mac,
+                                          SwitchFlags flags) {
   shared_ptr<SwitchState> initialState{nullptr};
   if (!FLAGS_switch_hw) {
     // Create the initial state, which only has ports
@@ -190,19 +202,20 @@ unique_ptr<SwSwitch> createMockSw(cfg::SwitchConfig* config,
     }
   }
 
-  auto sw = createMockSw(initialState, mac, flags);
+  auto handle = createTestHandle(initialState, mac, flags);
+  auto sw = handle->getSw();
 
   // Apply the thrift config
   auto updateFn = [&](const shared_ptr<SwitchState>& state) {
     return applyThriftConfig(state, config, sw->getPlatform());
   };
   sw->updateStateBlocking("test_setup", updateFn);
-  return sw;
+  return handle;
 }
 
-unique_ptr<SwSwitch> createMockSw(cfg::SwitchConfig* config,
-                                  SwitchFlags flags) {
-  return createMockSw(config, MacAddress("02:00:00:00:00:01"), flags);
+unique_ptr<HwTestHandle> createTestHandle(cfg::SwitchConfig* config,
+                                          SwitchFlags flags) {
+  return createTestHandle(config, MacAddress("02:00:00:00:00:01"), flags);
 }
 
 MockHwSwitch* getMockHw(SwSwitch* sw) {
@@ -210,6 +223,14 @@ MockHwSwitch* getMockHw(SwSwitch* sw) {
 }
 
 MockPlatform* getMockPlatform(SwSwitch* sw) {
+  return boost::polymorphic_downcast<MockPlatform*>(sw->getPlatform());
+}
+
+MockHwSwitch* getMockHw(std::unique_ptr<SwSwitch>& sw) {
+  return boost::polymorphic_downcast<MockHwSwitch*>(sw->getHw());
+}
+
+MockPlatform* getMockPlatform(std::unique_ptr<SwSwitch>& sw) {
   return boost::polymorphic_downcast<MockPlatform*>(sw->getPlatform());
 }
 

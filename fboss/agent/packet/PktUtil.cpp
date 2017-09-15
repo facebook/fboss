@@ -191,4 +191,17 @@ void PktUtil::appendHexData(StringPiece hex, Appender* appender) {
   }
 }
 
+void PktUtil::padToLength(folly::IOBuf* buf, uint32_t size, uint8_t pad) {
+  auto len = buf->computeChainDataLength();
+  if (len >= size) {
+    return;
+  }
+
+  size_t toPad = size - len;
+  Appender app(buf, 1024);
+  app.ensure(toPad);
+  memset(app.writableData(), pad, toPad);
+  app.append(toPad);
+}
+
 }} // facebook::fboss

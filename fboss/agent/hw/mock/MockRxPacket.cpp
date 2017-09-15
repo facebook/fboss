@@ -43,16 +43,8 @@ std::unique_ptr<MockRxPacket> MockRxPacket::clone() const {
 }
 
 void MockRxPacket::padToLength(uint32_t size, uint8_t pad) {
-  if (len_ >= size) {
-    return;
-  }
-
-  size_t padLen = size - len_;
-  Appender app(buf_.get(), 1024);
-  app.ensure(padLen);
-  memset(app.writableData(), pad, padLen);
-  app.append(padLen);
-  len_ += padLen;
+  PktUtil::padToLength(buf_.get(), size, pad);
+  len_ = buf_->computeChainDataLength();
 }
 
 }} // facebook::fboss

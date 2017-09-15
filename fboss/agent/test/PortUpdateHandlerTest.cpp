@@ -15,6 +15,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/HwTestHandle.h"
 
 #include <gtest/gtest.h>
 
@@ -26,7 +27,8 @@ namespace {
 class PortUpdateHandlerTest: public ::testing::Test {
 public:
   void SetUp() override {
-    sw = createMockSw();
+    handle = createTestHandle();
+    sw = handle->getSw();
     initState = testStateA();
 
     addState = testStateA();
@@ -49,7 +51,7 @@ public:
     changedState->resetPorts(newPorts);
     deltaChange = std::make_shared<StateDelta>(initState, changedState);
 
-    portUpdateHandler = std::make_unique<PortUpdateHandler>(sw.get());
+    portUpdateHandler = std::make_unique<PortUpdateHandler>(sw);
   }
 
   void expectPortCounterExist(CounterCache& counters,
@@ -69,7 +71,8 @@ public:
     }
   }
 
-  std::shared_ptr<SwSwitch> sw;
+  SwSwitch* sw{nullptr};
+  std::unique_ptr<HwTestHandle> handle{nullptr};
   std::shared_ptr<SwitchState> initState;
   std::shared_ptr<SwitchState> addState;
   std::shared_ptr<PortMap> initPorts;
@@ -83,7 +86,7 @@ public:
 
 TEST_F(PortUpdateHandlerTest, PortAdded) {
   // // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
   EXPECT_EQ(sw->stats()->getPortStats()->size(), 0);
 
   portUpdateHandler->stateUpdated(*std::make_shared<StateDelta>(
@@ -105,7 +108,7 @@ TEST_F(PortUpdateHandlerTest, PortAdded) {
 
 TEST_F(PortUpdateHandlerTest, PortRemoved) {
   // // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
   EXPECT_EQ(sw->stats()->getPortStats()->size(), 0);
 
   portUpdateHandler->stateUpdated(*std::make_shared<StateDelta>(
@@ -125,7 +128,7 @@ TEST_F(PortUpdateHandlerTest, PortRemoved) {
 
 TEST_F(PortUpdateHandlerTest, PortChanged) {
   // // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
   EXPECT_EQ(sw->stats()->getPortStats()->size(), 0);
 
   portUpdateHandler->stateUpdated(*std::make_shared<StateDelta>(

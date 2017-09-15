@@ -20,6 +20,7 @@
 namespace facebook { namespace fboss {
 
 class MockHwSwitch;
+class HwTestHandle;
 
 /*
  * MockPlatform is a mockable interface to a Platform. Non-critical
@@ -35,6 +36,8 @@ class MockPlatform : public Platform {
   HwSwitch* getHwSwitch() const override;
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
+  std::unique_ptr<HwTestHandle> createTestHandle(
+    std::unique_ptr<SwSwitch> sw) override;
 
   MOCK_METHOD1(createHandler, std::unique_ptr<ThriftHandler>(SwSwitch* sw));
   MOCK_METHOD1(getProductInfo, void(ProductInfo& productInfo));

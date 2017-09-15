@@ -17,6 +17,7 @@
 #include "fboss/agent/IPv4Handler.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
+#include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/Vlan.h"
@@ -24,6 +25,7 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/FbossError.h"
 
 #include <boost/cast.hpp>
@@ -46,7 +48,7 @@ using ::testing::Return;
 
 namespace {
 
-unique_ptr<SwSwitch> setupSwitch() {
+unique_ptr<HwTestHandle> setupTestHandle() {
   auto state = testStateA();
   const auto& vlans = state->getVlans();
   // Set up an arp response entry for VLAN 1, 10.0.0.1,
@@ -57,18 +59,20 @@ unique_ptr<SwSwitch> setupSwitch() {
                        InterfaceID(1));
   vlans->getVlan(VlanID(1))->setArpResponseTable(respTable1);
 
-  return createMockSw(state);
+  return createTestHandle(state);
 }
 
 } // unnamed namespace
 
 TEST(IPv4Test, Parse) {
-  auto sw = setupSwitch();
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
   PortID portID(1);
   VlanID vlanID(1);
 
   // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
 
   // Create an IP pkt without L2
   auto pkt = MockRxPacket::fromHex(
@@ -89,7 +93,7 @@ TEST(IPv4Test, Parse) {
 
   Cursor c(pkt->buf());
   IPHeaderV4 hdr;
-  hdr.parse(sw.get(), portID, &c);
+  hdr.parse(sw, portID, &c);
   EXPECT_EQ(4, hdr.getVersion());
   EXPECT_EQ(5, hdr.getIHL());
   EXPECT_EQ(7, hdr.getDSCP());
@@ -121,7 +125,7 @@ TEST(IPv4Test, Parse) {
   pkt->setSrcVlan(vlanID);
 
   Cursor c2(pkt->buf());
-  EXPECT_THROW(hdr.parse(sw.get(), portID, &c2), FbossError);
+  EXPECT_THROW(hdr.parse(sw, portID, &c2), FbossError);
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.too_small.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.nexthop.sum", 0);
@@ -131,7 +135,7 @@ TEST(IPv4Test, Parse) {
                       "ipv4.wrong_version.sum", 0);
 
   // create an IP pkt with wrong version
-  pkt = MockRxPacket::fromHex(
+  auto buf = PktUtil::parseHexData(
     // dst mac, src mac
     "02 00 01 00 00 01  02 00 02 01 02 03"
     // 802.1q, VLAN 1
@@ -149,13 +153,10 @@ TEST(IPv4Test, Parse) {
     // Destination IP (10.0.0.10)
     "0a 00 00 0a"
   );
-  pkt->padToLength(68);
-  pkt->setSrcPort(portID);
-  pkt->setSrcVlan(vlanID);
 
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
   EXPECT_HW_CALL(sw, sendPacketSwitched_(_)).Times(0);
-  sw->packetReceived(pkt->clone());
+  handle->rxPacket(make_unique<folly::IOBuf>(buf), portID, vlanID);
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
@@ -167,7 +168,7 @@ TEST(IPv4Test, Parse) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.no_arp.sum", 0);
 
   // Create an IP pkt to self
-  pkt = MockRxPacket::fromHex(
+  buf = PktUtil::parseHexData(
     // dst mac, src mac
     "02 00 01 00 00 01  02 00 02 01 02 03"
     // 802.1q, VLAN 1
@@ -185,13 +186,10 @@ TEST(IPv4Test, Parse) {
     // Destination IP (10.0.0.1)
     "0a 00 00 01"
   );
-  pkt->padToLength(68);
-  pkt->setSrcPort(portID);
-  pkt->setSrcVlan(vlanID);
 
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
   EXPECT_HW_CALL(sw, sendPacketSwitched_(_)).Times(0);
-  sw->packetReceived(pkt->clone());
+  handle->rxPacket(make_unique<folly::IOBuf>(buf), portID, vlanID);
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);

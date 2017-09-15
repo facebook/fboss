@@ -42,12 +42,12 @@ using ::testing::_;
 namespace {
 
 const MacAddress testLocalMac = MacAddress("00:00:00:00:00:02");
-unique_ptr<SwSwitch> setupSwitch() {
+unique_ptr<HwTestHandle> setupTestHandle() {
   // Setup a default state object
   // reusing this, as this seems to be legit RSW config under which we should
   // do any unit tests.
   auto state = testStateA();
-  return createMockSw(state, testLocalMac);
+  return createTestHandle(state, testLocalMac);
 }
 
 TxMatchFn checkLldpPDU() {
@@ -100,13 +100,14 @@ TxMatchFn checkLldpPDU() {
 }
 
 TEST(LldpManagerTest, LldpSend) {
-  auto sw = setupSwitch();
-  SwSwitch* swPtr = sw.get();
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
   EXPECT_HW_CALL(
       sw,
       sendPacketOutOfPort_(TxPacketMatcher::createMatcher(
                              "Lldp PDU", checkLldpPDU()), _)).Times(AtLeast(1));
-  LldpManager lldpManager(swPtr);
+  LldpManager lldpManager(sw);
   lldpManager.sendLldpOnAllPorts(false);
 }
 
@@ -114,16 +115,18 @@ TEST(LldpManagerTest, NotEnabledTest) {
   // Setup switch without flags enabling LLDP, and
   // send an LLDP frame nevertheless. Used to segfault
   // because of NULL dereference.
-  auto sw = setupSwitch();
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
 
   PortID portID(1);
   VlanID vlanID(1);
 
   // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
 
   // Random parseable LLDP packet found using the fuzzer
-  auto pkt = MockRxPacket::fromHex(
+  auto pkt = PktUtil::parseHexData(
   "02 00 01 00 00 01 02 00 02 01 02 03"
   "81 00 00 01 88 cc 02 0d 00 14 34 56"
   "53 0c 1f 06 12 34 01 02 03 04 0a 32"
@@ -131,10 +134,8 @@ TEST(LldpManagerTest, NotEnabledTest) {
   "00 00 00 00 f2 00 00 0d 0d 0d 0d 0d"
   "00 00 00 00 00 94 94 94 94 00 00 3b"
   "3b de 00 00");
-  pkt->setSrcPort(portID);
-  pkt->setSrcVlan(vlanID);
 
-  sw->packetReceived(pkt->clone());
+  handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.unhandled.sum", 1);

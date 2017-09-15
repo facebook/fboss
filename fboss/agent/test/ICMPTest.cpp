@@ -59,7 +59,7 @@ const IPAddressV4 kVlanInterfaceIP("10.0.0.1");
 
 namespace {
 
-unique_ptr<SwSwitch> setupSwitch() {
+unique_ptr<HwTestHandle> setupTestHandle() {
   // Setup a default state object
   auto state = testStateA();
   const auto& vlans = state->getVlans();
@@ -68,7 +68,7 @@ unique_ptr<SwSwitch> setupSwitch() {
   auto respTable1 = make_shared<ArpResponseTable>();
   respTable1->setEntry(kVlanInterfaceIP, kPlatformMac, InterfaceID(1));
   vlans->getVlan(VlanID(1))->setArpResponseTable(respTable1);
-  return createMockSw(state);
+  return createTestHandle(state);
 }
 
 } // unnamed namespace
@@ -207,12 +207,14 @@ TxMatchFn checkICMPv6TTLExceeded(MacAddress srcMac, IPAddressV6 srcIP,
 }
 
 TEST(ICMPTest, TTLExceededV4) {
-  auto sw = setupSwitch();
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
   PortID portID(1);
   VlanID vlanID(1);
 
   // create an IPv4 packet with TTL = 1
-  auto pkt = MockRxPacket::fromHex(
+  auto pkt = PktUtil::parseHexData(
     // dst mac, src mac
     "00 02 00 00 00 01  02 00 02 01 02 03"
     // 802.1q, VLAN 1
@@ -234,9 +236,10 @@ TEST(ICMPTest, TTLExceededV4) {
     // Length (8), checksum (0x1234, faked)
     "00 08 12 34"
   );
+  PktUtil::padToLength(&pkt, 68);
 
   // a copy of origin packet to comparison (only IP packet included)
-  auto icmpPayload = MockRxPacket::fromHex(
+  auto icmpPayload = PktUtil::parseHexData(
     // icmp padding for unused field
     "00 00 00 00"
     // Version(4), IHL(5), DSCP(7), ECN(1), Total Length(20)
@@ -255,12 +258,9 @@ TEST(ICMPTest, TTLExceededV4) {
     "00 08 12 34"
   );
 
-  pkt->padToLength(68);
-  pkt->setSrcPort(portID);
-  pkt->setSrcVlan(vlanID);
 
   // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
 
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
@@ -272,9 +272,9 @@ TEST(ICMPTest, TTLExceededV4) {
                                  IPAddressV4("10.0.0.1"),
                                  kPlatformMac,
                                  IPAddressV4("1.2.3.4"),
-                                 VlanID(1), icmpPayload->buf()->data(), 32));
+                                 VlanID(1), icmpPayload.data(), 32));
 
-  sw->packetReceived(pkt->clone());
+  handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
@@ -286,7 +286,9 @@ TEST(ICMPTest, TTLExceededV4) {
 // Force ICMP TTL expiration to test that serialize(unserialize(x)) = x
 // even if we have extra IPv4 options
 TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
-  auto sw = setupSwitch();
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
   PortID portID(1);
   VlanID vlanID(1);
 
@@ -294,7 +296,7 @@ TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
   //       the bogus option bytes will need to be replaced with valid options
 
   // create an IPv4 packet with TTL = 1 and ihl != 5
-  auto pkt = MockRxPacket::fromHex(
+  auto pkt = PktUtil::parseHexData(
     // dst mac, src mac
     "00 02 00 00 00 01  02 00 02 01 02 03"
     // 802.1q, VLAN 1
@@ -319,9 +321,10 @@ TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
     // Length (8), checksum (0x1234, faked)
     "00 08 12 34"
   );
+  PktUtil::padToLength(&pkt, 108);
 
   // a copy of origin packet to comparison (only IP packet included)
-  auto icmpPayload = MockRxPacket::fromHex(
+  auto icmpPayload = PktUtil::parseHexData(
     // icmp padding for unused field
     "00 00 00 00"
     // Version(4), IHL(15), DSCP(7), ECN(1), Total Length(60) <------ N.B. IHL
@@ -344,10 +347,6 @@ TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
 
   );
 
-  pkt->padToLength(108);
-  pkt->setSrcPort(portID);
-  pkt->setSrcVlan(vlanID);
-
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
     WillRepeatedly(Return(kPlatformMac));
@@ -358,13 +357,15 @@ TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
                                  IPAddressV4("10.0.0.1"),
                                  kPlatformMac,
                                  IPAddressV4("1.2.3.4"),
-                                 VlanID(1), icmpPayload->buf()->data(), 72));
+                                 VlanID(1), icmpPayload.data(), 72));
 
-  sw->packetReceived(pkt->clone());
+  handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
 }
 
 TEST(ICMPTest, ExtraFrameCheckSequenceAtEnd) {
-  auto sw = setupSwitch();
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
   PortID portID(1);
   VlanID vlanID(1);
 
@@ -407,19 +408,21 @@ TEST(ICMPTest, ExtraFrameCheckSequenceAtEnd) {
   pktWithChecksum->setSrcVlan(vlanID);
 
   EXPECT_THROW(
-      sw->packetReceivedThrowExceptionOnError(pktWithChecksum->clone()),
+    sw->packetReceivedThrowExceptionOnError(std::move(pktWithChecksum)),
       std::out_of_range);
   EXPECT_NO_THROW(
-      sw->packetReceivedThrowExceptionOnError(pktWithoutChecksum->clone()));
+    sw->packetReceivedThrowExceptionOnError(std::move(pktWithoutChecksum)));
 }
 
 TEST(ICMPTest, TTLExceededV6) {
-  auto sw = setupSwitch();
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
   PortID portID(1);
   VlanID vlanID(1);
 
   // a testing IPv6 packet with hop limit 1
-  auto pkt = MockRxPacket::fromHex(
+  auto pkt = PktUtil::parseHexData(
       // dst mac, src mac
       "33 33 ff 00 00 0a  02 05 73 f9 46 fc"
       // 802.1q, VLAN 5
@@ -448,7 +451,7 @@ TEST(ICMPTest, TTLExceededV6) {
       "24 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a");
 
   // keep a copy of the ip packet for icmp payload comparison
-  auto icmp6Payload = MockRxPacket::fromHex(
+  auto icmp6Payload = PktUtil::parseHexData(
       // icmp6 padding for unused field
       "00 00 00 00"
       // Version 6, traffic class, flow label
@@ -472,10 +475,8 @@ TEST(ICMPTest, TTLExceededV6) {
       // target address (2401:db00:2110:3004::a)
       "24 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a");
 
-  pkt->setSrcPort(portID);
-  pkt->setSrcVlan(vlanID);
   // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
 
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
@@ -487,9 +488,9 @@ TEST(ICMPTest, TTLExceededV6) {
                                  IPAddressV6("2401:db00:2110:3001::0001"),
                                  kPlatformMac,
                                  IPAddressV6("2401:db00:2110:3004::a"),
-                                 VlanID(1), icmp6Payload->buf()->data(), 68));
+                                 VlanID(1), icmp6Payload.data(), 68));
 
-  sw->packetReceived(pkt->clone());
+  handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);

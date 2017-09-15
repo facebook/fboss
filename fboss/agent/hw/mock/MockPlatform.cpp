@@ -13,6 +13,7 @@
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
+#include "fboss/agent/hw/mock/MockTestHandle.h"
 
 #include <gmock/gmock.h>
 
@@ -45,5 +46,11 @@ string MockPlatform::getVolatileStateDir() const {
 string MockPlatform::getPersistentStateDir() const {
   return tmpDir_.path().string() + "/persist";
 }
+
+std::unique_ptr<HwTestHandle> MockPlatform::createTestHandle(
+    std::unique_ptr<SwSwitch> sw) {
+  return make_unique<MockTestHandle>(std::move(sw), this);
+}
+
 
 }} // facebook::fboss

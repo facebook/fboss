@@ -32,6 +32,7 @@ class RxPacket;
 class SwitchState;
 class SwSwitch;
 class TxPacket;
+class HwTestHandle;
 
 namespace cfg {
 class SwitchConfig;
@@ -68,29 +69,32 @@ std::shared_ptr<SwitchState> publishAndApplyConfigFile(
  * specified initial state.  The returned SwSwitch will have already been
  * initialized.
  */
-std::unique_ptr<SwSwitch> createMockSw(
+std::unique_ptr<HwTestHandle> createTestHandle(
   const std::shared_ptr<SwitchState>& = nullptr,
   const folly::Optional<folly::MacAddress>& = nullptr,
   SwitchFlags flags = DEFAULT);
-
-std::unique_ptr<SwSwitch> createMockSw(
+std::unique_ptr<HwTestHandle> createTestHandle(
     cfg::SwitchConfig* cfg,
     folly::MacAddress mac,
     SwitchFlags flags = DEFAULT);
-std::unique_ptr<SwSwitch> createMockSw(
+std::unique_ptr<HwTestHandle> createTestHandle(
     cfg::SwitchConfig* cfg,
     SwitchFlags flags = DEFAULT);
+
+
 std::unique_ptr<MockPlatform> createMockPlatform();
 
 /*
  * Get the MockHwSwitch from a SwSwitch.
  */
 MockHwSwitch* getMockHw(SwSwitch* sw);
+MockHwSwitch* getMockHw(std::unique_ptr<SwSwitch>& sw);
 
 /*
  * Get the MockPlatform from a SwSwitch.
  */
 MockPlatform* getMockPlatform(SwSwitch* sw);
+MockPlatform* getMockPlatform(std::unique_ptr<SwSwitch>& sw);
 
 /*
  * Wait until all pending StateUpdates have been applied.
@@ -166,13 +170,13 @@ std::shared_ptr<SwitchState> testStateB();
  * Convenience macro that wraps EXPECT_CALL() on the underlying MockHwSwitch
  */
 #define EXPECT_HW_CALL(sw, method) \
-  EXPECT_CALL(*getMockHw((sw).get()), method)
+  EXPECT_CALL(*getMockHw(sw), method)
 
 /*
  * Convenience macro that wraps EXPECT_CALL() on the underlying MockPlatform
  */
 #define EXPECT_PLATFORM_CALL(sw, method) \
-  EXPECT_CALL(*getMockPlatform((sw).get()), method)
+  EXPECT_CALL(*getMockPlatform(sw), method)
 
 /*
  * Helper functions for comparing buffer-like objects

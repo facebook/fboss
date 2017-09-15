@@ -14,6 +14,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/HwTestHandle.h"
 #include <folly/IPAddress.h>
 
 #include <gtest/gtest.h>
@@ -54,7 +55,8 @@ class MockRouteLogger : public RouteLogger<AddrT> {
 class RouteUpdateLoggerTest : public ::testing::Test {
  public:
   void SetUp() override {
-    sw = createMockSw();
+    handle = createTestHandle();
+    sw = handle->getSw();
     initState = sw->getState();
     auto initialStateA = testStateA();
     RouteUpdater updater(initialStateA->getRouteTables());
@@ -75,7 +77,7 @@ class RouteUpdateLoggerTest : public ::testing::Test {
     deltaAdd = std::make_shared<StateDelta>(initState, stateA);
     deltaRemove = std::make_shared<StateDelta>(stateA, initState);
     routeUpdateLogger = std::make_unique<RouteUpdateLogger>(
-        sw.get(),
+        sw,
         std::make_unique<MockRouteLogger<folly::IPAddressV4>>(),
         std::make_unique<MockRouteLogger<folly::IPAddressV6>>());
     mockRouteLoggerV4 = static_cast<MockRouteLogger<folly::IPAddressV4>*>(
@@ -141,7 +143,8 @@ class RouteUpdateLoggerTest : public ::testing::Test {
   std::shared_ptr<SwitchState> stateA;
   std::shared_ptr<StateDelta> deltaAdd;
   std::shared_ptr<StateDelta> deltaRemove;
-  std::shared_ptr<SwSwitch> sw;
+  SwSwitch* sw;
+  std::unique_ptr<HwTestHandle> handle;
   MockRouteLogger<folly::IPAddressV4>* mockRouteLoggerV4;
   MockRouteLogger<folly::IPAddressV6>* mockRouteLoggerV6;
   std::unique_ptr<RouteUpdateLogger> routeUpdateLogger;

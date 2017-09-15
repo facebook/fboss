@@ -104,6 +104,8 @@ class PktUtil {
   static void appendHexData(folly::StringPiece hex,
                             folly::io::Appender* appender);
 
+  static void padToLength(folly::IOBuf* buf, uint32_t size, uint8_t pad = 0);
+
  private:
   // Forbidden copy constructor and assignment operator
   PktUtil(PktUtil const &) = delete;

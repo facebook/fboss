@@ -16,6 +16,7 @@
 #include <folly/MacAddress.h>
 #include <folly/String.h>
 #include <folly/io/IOBuf.h>
+#include <folly/MoveWrapper.h>
 
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FbossError.h"
@@ -27,6 +28,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/packet/EthHdr.h"
+#include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/hw/mock/MockTxPacket.h"
@@ -34,6 +36,7 @@
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/MockTunManager.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/HwTestHandle.h"
 
 using namespace facebook::fboss;
 
@@ -41,6 +44,7 @@ using ::testing::_;
 
 using folly::IPAddressV4;
 using folly::IPAddressV6;
+using folly::IOBuf;
 
 namespace {
 
@@ -138,16 +142,16 @@ const std::string kPayload = \
 /**
  * Utility function to create V4 packet based on src/dst addresses.
  */
-std::unique_ptr<MockRxPacket> createV4UnicastPacket(
+const IOBuf createV4UnicastPacket(
     const folly::IPAddressV4& srcAddr,
     const folly::IPAddressV4& dstAddr,
     const folly::MacAddress& srcMac = kPlatformMac,
     const folly::MacAddress& dstMac = kPlatformMac) {
-  auto pkt = MockRxPacket::fromHex(
+  auto pkt = PktUtil::parseHexData(
       kL2PacketHeader + kIPv4PacketHeader + kPayload);
 
   // Write L2 header
-  folly::io::RWPrivateCursor rwCursor(pkt->buf());
+  folly::io::RWPrivateCursor rwCursor(&pkt);
   TxPacket::writeEthHeader(
       &rwCursor, dstMac, srcMac, VlanID(0), IPv4Handler::ETHERTYPE_IPV4);
 
@@ -156,8 +160,7 @@ std::unique_ptr<MockRxPacket> createV4UnicastPacket(
   rwCursor.write<uint32_t>(srcAddr.toLong());
   rwCursor.write<uint32_t>(dstAddr.toLong());
 
-  auto buf = pkt->buf();
-  VLOG(2) << "\n" << folly::hexDump(buf->data(), buf->length());
+  VLOG(2) << "\n" << folly::hexDump(pkt.data(), pkt.length());
 
   return pkt;
 }
@@ -165,16 +168,16 @@ std::unique_ptr<MockRxPacket> createV4UnicastPacket(
 /**
  * Utility function to create V6 packet based on src/dst addresses.
  */
-std::unique_ptr<MockRxPacket> createV6UnicastPacket(
+const IOBuf createV6UnicastPacket(
     const folly::IPAddressV6& srcAddr,
     const folly::IPAddressV6& dstAddr,
     const folly::MacAddress& srcMac = kPlatformMac,
     const folly::MacAddress& dstMac = kPlatformMac) {
-  auto pkt = MockRxPacket::fromHex(
+  auto pkt = PktUtil::parseHexData(
       kL2PacketHeader + kIPv6PacketHeader + kPayload);
 
   // Write L2 header
-  folly::io::RWPrivateCursor rwCursor(pkt->buf());
+  folly::io::RWPrivateCursor rwCursor(&pkt);
   TxPacket::writeEthHeader(
       &rwCursor, dstMac, srcMac, VlanID(0), IPv6Handler::ETHERTYPE_IPV6);
 
@@ -183,8 +186,7 @@ std::unique_ptr<MockRxPacket> createV6UnicastPacket(
   rwCursor.push(srcAddr.bytes(), IPAddressV6::byteCount());
   rwCursor.push(dstAddr.bytes(), IPAddressV6::byteCount());
 
-  auto buf = pkt->buf();
-  VLOG(2) << "\n" << folly::hexDump(buf->data(), buf->length());
+  VLOG(2) << "\n" << folly::hexDump(pkt.data(), pkt.length());
 
   return pkt;
 }
@@ -193,12 +195,12 @@ std::unique_ptr<MockRxPacket> createV6UnicastPacket(
  * Utility function to create multicast packets with fixed destination
  * address.
  */
-std::unique_ptr<MockRxPacket> createV4MulticastPacket(
+const IOBuf createV4MulticastPacket(
     const folly::IPAddressV4& srcAddr) {
   return createV4UnicastPacket(
       srcAddr, kIPv4McastAddr, kPlatformMac, kIPv4MacAddr);
 }
-std::unique_ptr<MockRxPacket> createV6MulticastPacket(
+const IOBuf createV6MulticastPacket(
     const folly::IPAddressV6& srcAddr) {
   return createV6UnicastPacket(
       srcAddr, kIPv6McastAddr, kPlatformMac, kIPv6MacAddr);
@@ -207,9 +209,9 @@ std::unique_ptr<MockRxPacket> createV6MulticastPacket(
 /**
  * Expectation comparision for RxPacket being sent to Host.
  */
-RxMatchFn matchRxPacket(RxPacket* expPkt) {
-  return [=](const RxPacket* rcvdPkt) {
-    if (!folly::IOBufEqual()(*expPkt->buf(), *rcvdPkt->buf())) {
+RxMatchFn matchRxPacket(const IOBuf& expBuf) {
+  return [expBuf](const RxPacket* rcvdPkt) {
+    if (!folly::IOBufEqual()(expBuf, *rcvdPkt->buf())) {
       throw FbossError("Expected rx-packet is not same as received packet");
     }
 
@@ -226,20 +228,21 @@ TxMatchFn matchTxPacket(
     const folly::MacAddress& dstMac,
     VlanID vlanID,
     uint16_t protocol,
-    TxPacket* expPkt) {
+    std::unique_ptr<IOBuf> expBuf) {
   // Write these into header. NOTE expPkt is being modified for comparision.
-  expPkt->buf()->prepend(EthHdr::SIZE);
-  folly::io::RWPrivateCursor rwCursor(expPkt->buf());
+  expBuf->prepend(EthHdr::SIZE);
+  folly::io::RWPrivateCursor rwCursor(expBuf.get());
   TxPacket::writeEthHeader(&rwCursor, dstMac, srcMac, vlanID, protocol);
 
-  return [=](const TxPacket* rcvdPkt) {
+  auto wrappedExpBuf = folly::makeMoveWrapper(std::move(expBuf));
+  return [wrappedExpBuf](const TxPacket* rcvdPkt) {
     auto buf = rcvdPkt->buf();
     VLOG(2) << "-------------";
     VLOG(2) << "\n" << folly::hexDump(buf->data(), buf->length());
-    buf = expPkt->buf();
-    VLOG(2) << "\n" << folly::hexDump(buf->data(), buf->length());
+    VLOG(2) << "\n" << folly::hexDump(
+      wrappedExpBuf->get(), (*wrappedExpBuf)->length());
 
-    if (!folly::IOBufEqual()(*expPkt->buf(), *rcvdPkt->buf())) {
+    if (!folly::IOBufEqual()(**wrappedExpBuf, *rcvdPkt->buf())) {
       throw FbossError("Expected tx-packet is not same as received packet");
     }
 
@@ -249,19 +252,17 @@ TxMatchFn matchTxPacket(
 }
 
 /**
- * Convenience function to convert RxPacket to TxPacket (just copying the buf)
+ * Convenience function to copy a buffer to a TxPacket.
  * L2 Header is advanced from RxPacket but headroom is provided in TxPacket.
  */
-std::unique_ptr<MockTxPacket> toTxPacket(std::unique_ptr<MockRxPacket> rxPkt) {
-  auto txPkt = std::make_unique<MockTxPacket>(rxPkt->buf()->length());
-
+std::unique_ptr<TxPacket> createTxPacket(SwSwitch* sw, const IOBuf& buf) {
+  auto txPkt = sw->allocatePacket(buf.length());
   auto txBuf = txPkt->buf();
-  auto rxBuf = rxPkt->buf();
   txBuf->trimStart(EthHdr::SIZE);
   memcpy(
-      txBuf->writableData(),
-      rxBuf->data() + EthHdr::SIZE,
-      rxBuf->length() - EthHdr::SIZE);
+    txBuf->writableData(),
+    buf.data() + EthHdr::SIZE,
+    buf.length() - EthHdr::SIZE);
   VLOG(2) << "\n" << folly::hexDump(txBuf->data(), txBuf->length());
 
   return txPkt;
@@ -276,7 +277,8 @@ class RoutingFixture : public ::testing::Test {
  public:
   void SetUp() override {
     auto config = getSwitchConfig();
-    sw = createMockSw(&config, kPlatformMac, ENABLE_TUN);
+    handle = createTestHandle(&config, kPlatformMac, ENABLE_TUN);
+    sw = handle->getSw();
 
     // Get TunManager pointer
     tunMgr = dynamic_cast<MockTunManager*>(sw->getTunManager());
@@ -346,7 +348,8 @@ class RoutingFixture : public ::testing::Test {
 
   void TearDown() override {
     tunMgr = nullptr;
-    sw.reset();
+    sw = nullptr;
+    handle.reset();
   }
 
   /**
@@ -416,7 +419,8 @@ class RoutingFixture : public ::testing::Test {
   }
 
   // Member variables. Kept public for each access.
-  std::unique_ptr<SwSwitch> sw;
+  SwSwitch* sw{nullptr};
+  std::unique_ptr<HwTestHandle> handle{nullptr};
   MockTunManager* tunMgr{nullptr};
 
   const InterfaceID ifID1{1};
@@ -430,7 +434,7 @@ class RoutingFixture : public ::testing::Test {
  */
 TEST_F(RoutingFixture, SwitchToHostUnicast) {
   // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
 
   // v4 packet destined to intf1 address from any address. Destination Linux
   // Inteface is identified based on srcVlan.
@@ -438,12 +442,12 @@ TEST_F(RoutingFixture, SwitchToHostUnicast) {
   // still be forwarded to host because dest is one of interface's address.
   {
     auto pkt = createV4UnicastPacket(kIPv4NbhAddr2, kIPv4IntfAddr1);
-    pkt->setSrcPort(PortID(2));
-    pkt->setSrcVlan(VlanID(2));
 
     EXPECT_TUN_PKT(
-        tunMgr, "V4 UcastPkt", ifID1, matchRxPacket(pkt.get())).Times(1);
-    sw->packetReceived(pkt->clone());
+        tunMgr, "V4 UcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
+
+    handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
+
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 1);
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 0);
@@ -453,12 +457,12 @@ TEST_F(RoutingFixture, SwitchToHostUnicast) {
   {
     const folly::IPAddressV4 unknownDest("10.152.35.65");
     auto pkt = createV4UnicastPacket(kIPv4NbhAddr1, unknownDest);
-    pkt->setSrcPort(PortID(1));
-    pkt->setSrcVlan(VlanID(1));
 
     EXPECT_TUN_PKT(
-        tunMgr, "V4 UcastPkt", ifID1, matchRxPacket(pkt.get())).Times(0);
-    sw->packetReceived(pkt->clone());
+        tunMgr, "V4 UcastPkt", ifID1, matchRxPacket(pkt)).Times(0);
+
+    handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
+
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 0);
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
@@ -468,12 +472,12 @@ TEST_F(RoutingFixture, SwitchToHostUnicast) {
   // Interface is identified based on srcVlan (not verified here).
   {
     auto pkt = createV6UnicastPacket(kIPv6NbhAddr1, kIPv6IntfAddr1);
-    pkt->setSrcPort(PortID(1));
-    pkt->setSrcVlan(VlanID(1));
 
     EXPECT_TUN_PKT(
-        tunMgr, "V6 UcastPkt", ifID1, matchRxPacket(pkt.get())).Times(1);
-    sw->packetReceived(pkt->clone());
+      tunMgr, "V6 UcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
+
+    handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
+
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 1);
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 0);
@@ -483,12 +487,12 @@ TEST_F(RoutingFixture, SwitchToHostUnicast) {
   {
     const folly::IPAddressV6 unknownDest("2803:6082:990:8c2d::1");
     auto pkt = createV6UnicastPacket(kIPv6NbhAddr2, unknownDest);
-    pkt->setSrcPort(PortID(2));
-    pkt->setSrcVlan(VlanID(2));
 
     EXPECT_TUN_PKT(
-        tunMgr, "V6 UcastPkt", ifID2, matchRxPacket(pkt.get())).Times(0);
-    sw->packetReceived(pkt->clone());
+        tunMgr, "V6 UcastPkt", ifID2, matchRxPacket(pkt)).Times(0);
+
+    handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
+
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 0);
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
@@ -507,18 +511,18 @@ TEST_F(RoutingFixture, SwitchToHostUnicast) {
  */
 TEST_F(RoutingFixture, SwitchToHostLinkLocalUnicast) {
   // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
 
   // v4 packet destined to intf2 link-local address from any address but from
   // same VLAN as of intf2
   {
     auto pkt = createV4UnicastPacket(kllIPv4NbhAddr2, kllIPv4IntfAddr2);
-    pkt->setSrcPort(PortID(2));
-    pkt->setSrcVlan(VlanID(2));
 
     EXPECT_TUN_PKT(
-        tunMgr, "V4 llUcastPkt", ifID2, matchRxPacket(pkt.get())).Times(1);
-    sw->packetReceived(pkt->clone());
+        tunMgr, "V4 llUcastPkt", ifID2, matchRxPacket(pkt)).Times(1);
+
+    handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
+
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 1);
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 0);
@@ -528,12 +532,12 @@ TEST_F(RoutingFixture, SwitchToHostLinkLocalUnicast) {
   {
     const folly::IPAddressV4 llDstAddrUnknown("169.254.3.4");
     auto pkt = createV4UnicastPacket(kllIPv4NbhAddr1, llDstAddrUnknown);
-    pkt->setSrcPort(PortID(1));
-    pkt->setSrcVlan(VlanID(1));
 
     EXPECT_TUN_PKT(
-        tunMgr, "V4 llUcastPkt", ifID1, matchRxPacket(pkt.get())).Times(0);
-    sw->packetReceived(pkt->clone());
+        tunMgr, "V4 llUcastPkt", ifID1, matchRxPacket(pkt)).Times(0);
+
+    handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
+
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 0);
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
@@ -545,12 +549,10 @@ TEST_F(RoutingFixture, SwitchToHostLinkLocalUnicast) {
   // NOTE: Scope of link-local packet is purely within single VLAN.
   {
     auto pkt = createV4UnicastPacket(kllIPv4NbhAddr2, kllIPv4IntfAddr1);
-    pkt->setSrcPort(PortID(2));
-    pkt->setSrcVlan(VlanID(2));
 
     EXPECT_TUN_PKT(
-        tunMgr, "V4 llUcastPkt", ifID1, matchRxPacket(pkt.get())).Times(1);
-    sw->packetReceived(pkt->clone());
+        tunMgr, "V4 llUcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
+    handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 1);
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 0);
@@ -561,12 +563,12 @@ TEST_F(RoutingFixture, SwitchToHostLinkLocalUnicast) {
   // NOTE: We have two ipv6 link-local addresses
   {
     auto pkt = createV6UnicastPacket(kllIPv6NbhAddr, kIPv6LinkLocalAddr);
-    pkt->setSrcPort(PortID(1));
-    pkt->setSrcVlan(VlanID(1));
 
     EXPECT_TUN_PKT(
-        tunMgr, "V6 llUcastPkt", ifID1, matchRxPacket(pkt.get())).Times(1);
-    sw->packetReceived(pkt->clone());
+        tunMgr, "V6 llUcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
+
+    handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
+
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 1);
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 0);
@@ -576,12 +578,12 @@ TEST_F(RoutingFixture, SwitchToHostLinkLocalUnicast) {
   {
     const folly::IPAddressV6 llDstAddrUnknown("fe80::202:c9ff:fe55:b7a4");
     auto pkt = createV6UnicastPacket(kllIPv6NbhAddr, llDstAddrUnknown);
-    pkt->setSrcPort(PortID(2));
-    pkt->setSrcVlan(VlanID(2));
 
     EXPECT_TUN_PKT(
-        tunMgr, "V6 llUcastPkt", ifID2, matchRxPacket(pkt.get())).Times(0);
-    sw->packetReceived(pkt->clone());
+        tunMgr, "V6 llUcastPkt", ifID2, matchRxPacket(pkt)).Times(0);
+
+    handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
+
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 0);
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
@@ -591,12 +593,12 @@ TEST_F(RoutingFixture, SwitchToHostLinkLocalUnicast) {
   // (outside of vlan), then it should be dropped.
   {
     auto pkt = createV6UnicastPacket(kllIPv6NbhAddr, kllIPv6IntfAddr1);
-    pkt->setSrcPort(PortID(2));
-    pkt->setSrcVlan(VlanID(2));
 
     EXPECT_TUN_PKT(
-        tunMgr, "V6 llUcastPkt", ifID2, matchRxPacket(pkt.get())).Times(0);
-    sw->packetReceived(pkt->clone());
+        tunMgr, "V6 llUcastPkt", ifID2, matchRxPacket(pkt)).Times(0);
+
+    handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
+
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 0);
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
@@ -609,18 +611,17 @@ TEST_F(RoutingFixture, SwitchToHostLinkLocalUnicast) {
  */
 TEST_F(RoutingFixture, SwitchToHostMulticast) {
   // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
 
   // Packet destined to v4 multicast address should always be forwarded to
   // Host regarless of it's dest/src IP
   {
     auto pkt = createV4MulticastPacket(kIPv4IntfAddr1);
-    pkt->setSrcPort(PortID(1));
-    pkt->setSrcVlan(VlanID(1));
 
     EXPECT_TUN_PKT(
-        tunMgr, "V4 llMcastPkt", ifID1, matchRxPacket(pkt.get())).Times(1);
-    sw->packetReceived(pkt->clone());
+        tunMgr, "V4 llMcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
+    handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
+
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 1);
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 0);
@@ -630,12 +631,12 @@ TEST_F(RoutingFixture, SwitchToHostMulticast) {
   // Host regarless of it's dest/src IP
   {
     auto pkt = createV6MulticastPacket(kIPv6IntfAddr1);
-    pkt->setSrcPort(PortID(1));
-    pkt->setSrcVlan(VlanID(1));
 
     EXPECT_TUN_PKT(
-        tunMgr, "V6 llMcastPkt", ifID1, matchRxPacket(pkt.get())).Times(1);
-    sw->packetReceived(pkt->clone());
+        tunMgr, "V6 llMcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
+
+    handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
+
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 1);
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 0);
@@ -649,22 +650,23 @@ TEST_F(RoutingFixture, SwitchToHostMulticast) {
  */
 TEST_F(RoutingFixture, HostToSwitchUnicast) {
   // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
 
   // Any unicast packet (except link-local) is forwarded to CPU at L3 lookup
   // state by setting src/dst mac address to be the platform mac address.
   {
-    auto pkt = toTxPacket(createV4UnicastPacket(
+    auto pkt = createTxPacket(sw, createV4UnicastPacket(
         kIPv4IntfAddr1, kIPv4NbhAddr1, kEmptyMac, kEmptyMac));
 
-    auto pktCopy = pkt->clone();
+    auto bufCopy = IOBuf::copyBuffer(
+      pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
     EXPECT_PKT(sw, "V4 UcastPkt", matchTxPacket(
         kPlatformMac,
         kPlatformMac,
         VlanID(1),
         IPv4Handler::ETHERTYPE_IPV4,
-        pktCopy.get())).Times(1);
-    sw->sendL3Packet(pkt->clone(), InterfaceID(1));
+        std::move(bufCopy))).Times(1);
+    sw->sendL3Packet(std::move(pkt), InterfaceID(1));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 1);
@@ -672,17 +674,18 @@ TEST_F(RoutingFixture, HostToSwitchUnicast) {
 
   // Same as above test but for v6
   {
-    auto pkt = toTxPacket(createV6UnicastPacket(
+    auto pkt = createTxPacket(sw, createV6UnicastPacket(
         kIPv6IntfAddr2, kIPv6NbhAddr2, kEmptyMac, kEmptyMac));
 
-    auto pktCopy = pkt->clone();
+    auto bufCopy = IOBuf::copyBuffer(
+      pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
     EXPECT_PKT(sw, "V6 UcastPkt", matchTxPacket(
         kPlatformMac,
         kPlatformMac,
         VlanID(2),
         IPv6Handler::ETHERTYPE_IPV6,
-        pktCopy.get())).Times(1);
-    sw->sendL3Packet(pkt->clone(), InterfaceID(2));
+        std::move(bufCopy))).Times(1);
+    sw->sendL3Packet(std::move(pkt), InterfaceID(2));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 1);
@@ -695,21 +698,22 @@ TEST_F(RoutingFixture, HostToSwitchUnicast) {
  */
 TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
   // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
 
   // v4 link-local
   {
-    auto pkt = toTxPacket(createV4UnicastPacket(
+    auto pkt = createTxPacket(sw, createV4UnicastPacket(
         kllIPv4IntfAddr1, kllIPv4NbhAddr1, kEmptyMac, kEmptyMac));
 
-    auto pktCopy = pkt->clone();
+    auto bufCopy = IOBuf::copyBuffer(
+      pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
     EXPECT_PKT(sw, "V4 UcastPkt", matchTxPacket(
         kPlatformMac,
         kPlatformMac, // NOTE: no neighbor mac address resolution like v6
         VlanID(1),
         IPv4Handler::ETHERTYPE_IPV4,
-        pktCopy.get())).Times(1);
-    sw->sendL3Packet(pkt->clone(), InterfaceID(1));
+        std::move(bufCopy))).Times(1);
+    sw->sendL3Packet(std::move(pkt), InterfaceID(1));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 1);
@@ -717,17 +721,18 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
 
   // Same as above test but for v6
   {
-    auto pkt = toTxPacket(createV6UnicastPacket(
+    auto pkt = createTxPacket(sw, createV6UnicastPacket(
         kllIPv6IntfAddr2, kllIPv6NbhAddr, kEmptyMac, kEmptyMac));
 
-    auto pktCopy = pkt->clone();
+    auto bufCopy = IOBuf::copyBuffer(
+      pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
     EXPECT_PKT(sw, "V6 UcastPkt", matchTxPacket(
         kPlatformMac,
         kNbhMacAddr2,   // because vlan-id = 2
         VlanID(2),
         IPv6Handler::ETHERTYPE_IPV6,
-        pktCopy.get())).Times(1);
-    sw->sendL3Packet(pkt->clone(), InterfaceID(2));
+        std::move(bufCopy))).Times(1);
+    sw->sendL3Packet(std::move(pkt), InterfaceID(2));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 1);
@@ -737,13 +742,13 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
   // should trigger NDP request and packet gets dropped
   {
     const folly::IPAddressV6 llNbhAddrUnknown("fe80::face");
-    auto pkt = toTxPacket(createV6UnicastPacket(
+    auto pkt = createTxPacket(sw, createV6UnicastPacket(
         kllIPv6IntfAddr2, llNbhAddrUnknown, kEmptyMac, kEmptyMac));
 
     // NDP Neighbor solicitation request will be sent and the actual packet
     // will be dropped.
     EXPECT_HW_CALL(sw, sendPacketSwitched_(_)).Times(1);
-    sw->sendL3Packet(pkt->clone(), InterfaceID(1));
+    sw->sendL3Packet(std::move(pkt), InterfaceID(1));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 0);
@@ -753,17 +758,18 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
   // should be just routed out of the box like other v4 IP packets. (unlike v6)
   {
     const folly::IPAddressV4 llNbhAddrUnknown("169.254.13.95");
-    auto pkt = toTxPacket(createV4UnicastPacket(
+    auto pkt = createTxPacket(sw, createV4UnicastPacket(
         kllIPv4IntfAddr2, llNbhAddrUnknown, kEmptyMac, kEmptyMac));
 
-    auto pktCopy = pkt->clone();
+    auto bufCopy = IOBuf::copyBuffer(
+      pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
     EXPECT_PKT(sw, "V4 UcastPkt", matchTxPacket(
         kPlatformMac,
         kPlatformMac, // NOTE: no neighbor mac address resolution like v6
         VlanID(1),
         IPv4Handler::ETHERTYPE_IPV4,
-        pktCopy.get())).Times(1);
-    sw->sendL3Packet(pkt->clone(), InterfaceID(1));
+        std::move(bufCopy))).Times(1);
+    sw->sendL3Packet(std::move(pkt), InterfaceID(1));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 1);
@@ -777,23 +783,24 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
  */
 TEST_F(RoutingFixture, HostToSwitchMulticast) {
   // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
 
   // Any multicast packet sent to switch must have it's source mac address
   // set appropriately as per it's multicast IP address.
   // This test is for v4
   {
-    auto pkt = toTxPacket(createV4UnicastPacket(
+    auto pkt = createTxPacket(sw, createV4UnicastPacket(
         kIPv4IntfAddr1, kIPv4McastAddr, kEmptyMac, kEmptyMac));
 
-    auto pktCopy = pkt->clone();
+    auto bufCopy = IOBuf::copyBuffer(
+      pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
     EXPECT_PKT(sw, "V4 McastPkt", matchTxPacket(
         kPlatformMac,
         kIPv4MacAddr,
         VlanID(1),
         IPv4Handler::ETHERTYPE_IPV4,
-        pktCopy.get())).Times(1);
-    sw->sendL3Packet(pkt->clone(), InterfaceID(1));
+        std::move(bufCopy))).Times(1);
+    sw->sendL3Packet(std::move(pkt), InterfaceID(1));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 1);
@@ -801,17 +808,18 @@ TEST_F(RoutingFixture, HostToSwitchMulticast) {
 
   // Same as above test but for v6
   {
-    auto pkt = toTxPacket(createV6UnicastPacket(
+    auto pkt = createTxPacket(sw, createV6UnicastPacket(
         kIPv6IntfAddr2, kIPv6McastAddr, kEmptyMac, kEmptyMac));
 
-    auto pktCopy = pkt->clone();
+    auto bufCopy = IOBuf::copyBuffer(
+      pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
     EXPECT_PKT(sw, "V6 McastPkt", matchTxPacket(
         kPlatformMac,
         kIPv6MacAddr,
         VlanID(2),
         IPv6Handler::ETHERTYPE_IPV6,
-        pktCopy.get())).Times(1);
-    sw->sendL3Packet(pkt->clone(), InterfaceID(2));
+        std::move(bufCopy))).Times(1);
+    sw->sendL3Packet(std::move(pkt), InterfaceID(2));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 1);

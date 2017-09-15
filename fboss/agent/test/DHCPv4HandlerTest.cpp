@@ -26,6 +26,7 @@
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
+#include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/ArpTable.h"
@@ -35,6 +36,7 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/HwTestHandle.h"
 
 #include <boost/cast.hpp>
 #include <gtest/gtest.h>
@@ -44,6 +46,7 @@ using folly::IPAddressV4;
 using folly::MacAddress;
 using folly::io::Cursor;
 using std::make_shared;
+using std::make_unique;
 using std::shared_ptr;
 using std::unique_ptr;
 using std::string;
@@ -69,7 +72,7 @@ const IPAddressV4 kDhcpV4RelaySrc("88.0.0.1");
 // have to match an interface (interface55) IP address
 const IPAddressV4 kDhcpV4ReplySrc("10.0.55.1");
 
-std::shared_ptr<SwitchState> setupSwitchState() {
+shared_ptr<SwitchState> testState() {
   auto state = testStateA();
   const auto& vlans = state->getVlans();
   // Set up an arp response entry for VLAN 1, 10.0.0.1,
@@ -84,19 +87,23 @@ std::shared_ptr<SwitchState> setupSwitchState() {
   return state;
 }
 
-unique_ptr<SwSwitch> setupSwitch() {
-  auto state = setupSwitchState();
-  return createMockSw(state);
-}
-
-unique_ptr<SwSwitch> setupSwitchNAT() {
-  auto state = setupSwitchState();
+shared_ptr<SwitchState> testStateNAT() {
+  auto state = testState();
   state->setDhcpV4RelaySrc(kDhcpV4RelaySrc);
   state->setDhcpV4ReplySrc(kDhcpV4ReplySrc);
-  return createMockSw(state);
+  return state;
 }
 
-unique_ptr<MockRxPacket> makeDHCPPacket(
+unique_ptr<HwTestHandle> setupTestHandle() {
+  return createTestHandle(testState());
+}
+
+unique_ptr<HwTestHandle> setupTestHandleNAT() {
+  return createTestHandle(testStateNAT());
+}
+
+void sendDHCPPacket(
+    HwTestHandle* handle,
     string srcMac, string dstMac, string vlan,
     string srcIp, string dstIp, string srcPort,
     string dstPort, string bootpOp,
@@ -107,7 +114,7 @@ unique_ptr<MockRxPacket> makeDHCPPacket(
   replace(chaddr.begin(), chaddr.end(), ':', ' ');
   // Pad 10 zero bytes to fill in 16 byte chaddr
   chaddr += "00 00 00 00 00 00 00 00 00 00";
-  auto pkt = MockRxPacket::fromHex(
+  auto buf = make_unique<folly::IOBuf>(PktUtil::parseHexData(
     // Ethernet header
     dstMac + srcMac +
     "81 00" + vlan +
@@ -198,11 +205,8 @@ unique_ptr<MockRxPacket> makeDHCPPacket(
     // Other options to append
     + appendOptions +
     // 3 X Pad, 1 X end
-    "00  00  00 ff"
-  );
-  pkt->setSrcPort(PortID(1));
-  pkt->setSrcVlan(VlanID(1));
-  return pkt;
+    "00  00  00 ff"));
+  handle->rxPacket(std::move(buf), PortID(1), VlanID(1));
 }
 
 struct Option {
@@ -326,7 +330,9 @@ TxMatchFn checkDHCPReply(
 } // unnamed   namespace
 
 TEST(DHCPv4HandlerTest, DHCPRequest) {
-  auto sw = setupSwitch();
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
   VlanID vlanID(1);
   const char* senderIP = "00 00 00 00";
   // Client mac
@@ -341,7 +347,7 @@ TEST(DHCPv4HandlerTest, DHCPRequest) {
   // DHCP Message type (option = 53, len = 1, message type = DHCP discover
   const string dhcpMsgTypeOpt = "35  01  01";
   // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
@@ -350,9 +356,8 @@ TEST(DHCPv4HandlerTest, DHCPRequest) {
 
   EXPECT_PKT(sw, "DHCP request", checkDHCPReq());
 
-  auto dhcpPkt = makeDHCPPacket(senderMac, targetMac, vlan,
+  sendDHCPPacket(handle.get(), senderMac, targetMac, vlan,
       senderIP, targetIP, srcPort, dstPort, bootpOp, dhcpMsgTypeOpt);
-  sw->packetReceived(dhcpPkt->clone());
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.pkt.sum", 1);
@@ -360,7 +365,8 @@ TEST(DHCPv4HandlerTest, DHCPRequest) {
 }
 
 TEST(DHCPv4HandlerOverrideTest, DHCPRequest) {
-  auto sw = setupSwitch();
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
   VlanID vlanID(1);
   const char* senderIP = "00 00 00 00";
   // Client mac
@@ -382,13 +388,13 @@ TEST(DHCPv4HandlerOverrideTest, DHCPRequest) {
 
   EXPECT_PKT(sw, "DHCP request", checkDHCPReq(kDhcpOverride));
 
-  auto dhcpPkt = makeDHCPPacket(senderMac, targetMac, vlan,
+  sendDHCPPacket(handle.get(), senderMac, targetMac, vlan,
       senderIP, targetIP, srcPort, dstPort, bootpOp, dhcpMsgTypeOpt);
-  sw->packetReceived(dhcpPkt->clone());
 }
 
 TEST(DHCPv4RelaySrcTest, DHCPRequest) {
-  auto sw = setupSwitchNAT();
+  auto handle = setupTestHandleNAT();
+  auto sw = handle->getSw();
   VlanID vlanID(1);
   const char* senderIP = "00 00 00 00";
   // Client mac
@@ -411,13 +417,13 @@ TEST(DHCPv4RelaySrcTest, DHCPRequest) {
   EXPECT_PKT(sw, "DHCP request",
              checkDHCPReq(kDhcpOverride, kDhcpV4RelaySrc));
 
-  auto dhcpPkt = makeDHCPPacket(senderMac, targetMac, vlan,
-      senderIP, targetIP, srcPort, dstPort, bootpOp, dhcpMsgTypeOpt);
-  sw->packetReceived(dhcpPkt->clone());
+  sendDHCPPacket(handle.get(), senderMac, targetMac, vlan,
+                 senderIP, targetIP, srcPort, dstPort, bootpOp, dhcpMsgTypeOpt);
 }
 
 TEST(DHCPv4HandlerTest, DHCPReply) {
-  auto sw = setupSwitch();
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
   VlanID vlanID(55);
   // Client mac
   auto senderMac = kPlatformMac.toString();
@@ -440,7 +446,7 @@ TEST(DHCPv4HandlerTest, DHCPReply) {
   const string agentOption = "52 02 00 00";
 
   // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
@@ -449,10 +455,9 @@ TEST(DHCPv4HandlerTest, DHCPReply) {
 
   EXPECT_PKT(sw, "DHCP reply", checkDHCPReply());
 
-  auto dhcpPkt = makeDHCPPacket(senderMac, targetMac, vlan,
+  sendDHCPPacket(handle.get(), senderMac, targetMac, vlan,
       senderIP, targetIP, srcPort, dstPort, bootpOp, dhcpMsgTypeOpt,
       agentOption, yiaddr);
-  sw->packetReceived(dhcpPkt->clone());
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.pkt.sum", 1);
@@ -460,7 +465,8 @@ TEST(DHCPv4HandlerTest, DHCPReply) {
 }
 
 TEST(DHCPv4ReplySrcTest, DHCPReply) {
-  auto sw = setupSwitchNAT();
+  auto handle = setupTestHandleNAT();
+  auto sw = handle->getSw();
   VlanID vlanID(55);
   // Client mac
   auto senderMac = kPlatformMac.toString();
@@ -483,7 +489,7 @@ TEST(DHCPv4ReplySrcTest, DHCPReply) {
   const string agentOption = "52 02 00 00";
 
   // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
@@ -493,10 +499,9 @@ TEST(DHCPv4ReplySrcTest, DHCPReply) {
   // DHCP reply source is override to interface55's address
   EXPECT_PKT(sw, "DHCP reply", checkDHCPReply(kDhcpV4ReplySrc, VlanID(55)));
 
-  auto dhcpPkt = makeDHCPPacket(senderMac, targetMac, vlan,
+  sendDHCPPacket(handle.get(), senderMac, targetMac, vlan,
       senderIP, targetIP, srcPort, dstPort, bootpOp, dhcpMsgTypeOpt,
       agentOption, yiaddr);
-  sw->packetReceived(dhcpPkt->clone());
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.pkt.sum", 1);
@@ -504,7 +509,8 @@ TEST(DHCPv4ReplySrcTest, DHCPReply) {
 }
 
 TEST(DHCPv4HandlerTest, DHCPBadRequest) {
-  auto sw = setupSwitch();
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
   VlanID vlanID(1);
   const string senderIP = "00 00 00 00";
   auto senderMac = "00 00 00 00 00 01";
@@ -517,7 +523,7 @@ TEST(DHCPv4HandlerTest, DHCPBadRequest) {
   // DHCP Message type (option = 53, len = 1, message type = DHCP discover
   const string dhcpMsgTypeOpt = "35  01  01";
   // Cache the current stats
-  CounterCache counters(sw.get());
+  CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
@@ -525,10 +531,8 @@ TEST(DHCPv4HandlerTest, DHCPBadRequest) {
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
     WillRepeatedly(Return(kPlatformMac));
 
-
-  auto dhcpPkt = makeDHCPPacket(senderMac, targetMac, vlan,
+  sendDHCPPacket(handle.get(), senderMac, targetMac, vlan,
       senderIP, targetIP, srcPort, dstPort, bootpOp, dhcpMsgTypeOpt);
-  sw->packetReceived(dhcpPkt->clone());
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.pkt.sum", 1);

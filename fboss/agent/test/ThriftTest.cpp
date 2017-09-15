@@ -11,6 +11,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -33,11 +34,11 @@ using cfg::PortSpeed;
 
 namespace {
 
-unique_ptr<SwSwitch> setupSwitch() {
+unique_ptr<HwTestHandle> setupTestHandle() {
   auto state = testStateA();
-  auto sw = createMockSw(state);
-  sw->initialConfigApplied(std::chrono::steady_clock::now());
-  return sw;
+  auto handle = createTestHandle(state);
+  handle->getSw()->initialConfigApplied(std::chrono::steady_clock::now());
+  return handle;
 }
 
 IpPrefix ipPrefix(StringPiece ip, int length) {
@@ -50,8 +51,10 @@ IpPrefix ipPrefix(StringPiece ip, int length) {
 } // unnamed namespace
 
 TEST(ThriftTest, getInterfaceDetail) {
-  auto sw = setupSwitch();
-  ThriftHandler handler(sw.get());
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  ThriftHandler handler(sw);
 
   // Query the two interfaces configured by testStateA()
   InterfaceDetail info;
@@ -173,10 +176,11 @@ TEST(ThriftTest, syncFib) {
   config.interfaces[0].ipAddresses[2] = "2401:db00:2110:3001::0001/64";
 
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
-  auto mockSw = createMockSw(&config);
-  mockSw->initialConfigApplied(std::chrono::steady_clock::now());
-  mockSw->fibSynced();
-  ThriftHandler handler(mockSw.get());
+  auto handle = createTestHandle(&config);
+  auto sw = handle->getSw();
+  sw->initialConfigApplied(std::chrono::steady_clock::now());
+  sw->fibSynced();
+  ThriftHandler handler(sw);
 
   //
   // Add a few BGP routes
@@ -215,7 +219,7 @@ TEST(ThriftTest, syncFib) {
   //
 
   // Make sure all the static and link-local routes are there
-  auto tables2 = handler.getSw()->getState()->getRouteTables();
+  auto tables2 = sw->getState()->getRouteTables();
   GET_ROUTE_V4(tables2, rid, "10.0.0.0/24");
   GET_ROUTE_V4(tables2, rid, "192.168.0.0/24");
   GET_ROUTE_V6(tables2, rid, "2401:db00:2110:3001::/64");
@@ -252,7 +256,7 @@ TEST(ThriftTest, syncFib) {
   //
 
   // Make sure all the static and link-local routes are still there
-  auto tables3 = handler.getSw()->getState()->getRouteTables();
+  auto tables3 = sw->getState()->getRouteTables();
   GET_ROUTE_V4(tables3, rid, "10.0.0.0/24");
   GET_ROUTE_V4(tables3, rid, "192.168.0.0/24");
   GET_ROUTE_V6(tables3, rid, "2401:db00:2110:3001::/64");
