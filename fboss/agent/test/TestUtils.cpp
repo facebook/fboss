@@ -234,15 +234,20 @@ MockPlatform* getMockPlatform(std::unique_ptr<SwSwitch>& sw) {
   return boost::polymorphic_downcast<MockPlatform*>(sw->getPlatform());
 }
 
-void waitForStateUpdates(SwSwitch* sw) {
+std::shared_ptr<SwitchState> waitForStateUpdates(SwSwitch* sw) {
   // All StateUpdates scheduled from this thread will be applied in order,
   // so we can simply perform a blocking no-op update.  When it is done
   // we can be sure that all previously scheduled updates have also been
   // applied.
-  auto noopUpdate = [](const shared_ptr<SwitchState>& /*state*/) {
-    return shared_ptr<SwitchState>();
+  std::shared_ptr<SwitchState> snapshot{nullptr};
+  auto snapshotUpdate = [&snapshot](const shared_ptr<SwitchState>& state)
+      -> std::shared_ptr<SwitchState>{
+    // take a snapshot of the current state, but don't modify state
+    snapshot = state;
+    return nullptr;
   };
-  sw->updateStateBlocking("waitForStateUpdates", noopUpdate);
+  sw->updateStateBlocking("waitForStateUpdates", snapshotUpdate);
+  return snapshot;
 }
 
 void waitForBackgroundThread(SwSwitch* sw) {

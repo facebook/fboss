@@ -97,9 +97,11 @@ MockPlatform* getMockPlatform(SwSwitch* sw);
 MockPlatform* getMockPlatform(std::unique_ptr<SwSwitch>& sw);
 
 /*
- * Wait until all pending StateUpdates have been applied.
+ * Wait until all pending StateUpdates have been applied. Take a
+ * snapshot and return the state at the time all previous updates have
+ * been processed.
  */
-void waitForStateUpdates(SwSwitch* sw);
+std::shared_ptr<SwitchState> waitForStateUpdates(SwSwitch* sw);
 
 /*
  * Wait until all pending actions on the background thread

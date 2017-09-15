@@ -1298,8 +1298,8 @@ TEST(NdpTest, PortFlapRecover) {
   handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), vlanID);
 
   // Should see a pending entry now
-  waitForStateUpdates(sw);
-  auto entry = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()
+  auto state = waitForStateUpdates(sw);
+  auto entry = state->getVlans()->getVlanIf(vlanID)->getNdpTable()
     ->getEntryIf(targetIP);
   EXPECT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), true);
@@ -1361,9 +1361,9 @@ TEST(NdpTest, PortFlapRecover) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 
   // Should see two more pending entries now
-  waitForStateUpdates(sw);
+  state = waitForStateUpdates(sw);
 
-  auto ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
+  auto ndpTable = state->getVlans()->getVlanIf(vlanID)->getNdpTable();
   auto entry2 = ndpTable->getEntryIf(targetIP2);
   auto entry3 = ndpTable->getEntryIf(targetIP3);
   EXPECT_NE(entry2, nullptr);
@@ -1390,8 +1390,8 @@ TEST(NdpTest, PortFlapRecover) {
     .WillRepeatedly(testing::Return(true));
 
   // The entries should now be valid instead of pending
-  waitForStateUpdates(sw);
-  ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
+  state = waitForStateUpdates(sw);
+  ndpTable = state->getVlans()->getVlanIf(vlanID)->getNdpTable();
   entry = ndpTable->getEntryIf(targetIP);
   entry2 = ndpTable->getEntryIf(targetIP2);
   entry3 = ndpTable->getEntryIf(targetIP3);
@@ -1408,7 +1408,7 @@ TEST(NdpTest, PortFlapRecover) {
   // port down handling is async on the bg evb, so
   // block on something coming off of that
   waitForBackgroundThread(sw);
-  waitForStateUpdates(sw);
+  state = waitForStateUpdates(sw);
 
   // The first two entries should be pending now, but not the third
   ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
@@ -1432,7 +1432,7 @@ TEST(NdpTest, PortFlapRecover) {
                             "02:10:20:30:40:22", 1, vlanID);
 
   // All entries should be valid again
-  waitForStateUpdates(sw);
+  state = waitForStateUpdates(sw);
   ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
   entry = ndpTable->getEntryIf(targetIP);
   entry2 = ndpTable->getEntryIf(targetIP2);
