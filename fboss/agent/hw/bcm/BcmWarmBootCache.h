@@ -113,8 +113,6 @@ class BcmWarmBootCache {
     VlanAndMac2Intf;
   typedef boost::container::flat_map<VrfAndIP,
           opennsl_l3_host_t> VrfAndIP2Host;
-  typedef boost::container::flat_map<VrfAndIP, EgressId> VrfAndIP2EgressId;
-  typedef boost::container::flat_map<EgressId, VrfAndIP> EgressId2VrfAndIP;
   typedef boost::container::flat_map<VrfAndPrefix, opennsl_l3_route_t>
     VrfAndPrefix2Route;
   typedef boost::container::flat_map<EgressIds, EcmpEgress> EgressIds2Ecmp;
@@ -340,14 +338,8 @@ class BcmWarmBootCache {
   Vlan2VlanInfo vlan2VlanInfo_;
   Vlan2Station vlan2Station_;
   VlanAndMac2Intf vlanAndMac2Intf_;
-  // This is the set of egress ids read from the hardware on warm boot.
-  //
-  // Future: Make this ref count how many host and route entries are pointing
-  // to it.
-  //
-  // Future: Make it exhaustive in counting egress entries from routes too.
-  // Currently, we only put entries from host table.
-  EgressIds egressOrEcmpIdsFromHostTable_;
+  // This is the set of egress ids pointed by BcmHost in warm boot file.
+  EgressIds egressIdsFromBcmHostInWarmBootFile_;
   VrfAndIP2Host vrfIp2Host_;
   // These are routes from defip table that are not fully qualified (not /32 or
   // /128).

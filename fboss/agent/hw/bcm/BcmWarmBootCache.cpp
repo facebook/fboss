@@ -268,6 +268,15 @@ void BcmWarmBootCache::populateStateFromWarmbootFile() {
     VLOG(1) << ecmpIdAndEgress.first << " (from warmboot file) ==> "
             << toEgressIdsStr(ecmpIdAndEgress.second);
   }
+
+  // Extract egress IDs pointed by the BcmHost
+  for (const auto& hostEntry : hostTable[kHosts]) {
+    auto egressId = hostEntry[kEgressId].asInt();
+    if (egressId == BcmEgressBase::INVALID) {
+      continue;
+    }
+    egressIdsFromBcmHostInWarmBootFile_.insert(egressId);
+  }
 }
 
 void BcmWarmBootCache::populate() {
@@ -340,16 +349,11 @@ void BcmWarmBootCache::populate() {
       // Diag shell uses this for getting # of v6 route entries
       l3Info.l3info_max_route / 2,
       routeTraversalCallback, this);
-  // Get egress entries. This is done after we have traversed through host and
-  // route entries, so we have populated egressOrEcmpIdsFromHostTable_.
+  // Get egress entries.
   opennsl_l3_egress_traverse(hw_->getUnit(), egressTraversalCallback, this);
   // Traverse ecmp egress entries
   opennsl_l3_egress_ecmp_traverse(hw_->getUnit(), ecmpEgressTraversalCallback,
       this);
-
-  // Clear the egresses that were collected during populate() to find out
-  // egress ids corresponding to drop egress and cpu egress.
-  egressOrEcmpIdsFromHostTable_.clear();
 }
 
 bool BcmWarmBootCache::fillVlanPortInfo(Vlan* vlan) {
@@ -384,7 +388,6 @@ int BcmWarmBootCache::hostTraversalCallback(
   cache->vrfIp2Host_[make_pair(host->l3a_vrf, ip)] = *host;
   VLOG(1) << "Adding egress id: " << host->l3a_intf << " to " << ip
           << " mapping";
-  cache->egressOrEcmpIdsFromHostTable_.insert(host->l3a_intf);
   return 0;
 }
 
@@ -397,10 +400,10 @@ int BcmWarmBootCache::egressTraversalCallback(
   CHECK(cache->egressId2EgressAndBool_.find(egressId) ==
         cache->egressId2EgressAndBool_.end())
       << "Double callback for egress id: " << egressId;
-  // Look up egressId in egressOrEcmpIdsFromHostTable_ and populate either
-  // dropEgressId_ or toCPUEgressId_.
-  auto egressIdItr = cache->egressOrEcmpIdsFromHostTable_.find(egressId);
-  if (egressIdItr != cache->egressOrEcmpIdsFromHostTable_.end()) {
+  // Look up egressId in egressIdsFromBcmHostInWarmBootFile_
+  // to populate both dropEgressId_ and toCPUEgressId_.
+  auto egressIdItr = cache->egressIdsFromBcmHostInWarmBootFile_.find(egressId);
+  if (egressIdItr != cache->egressIdsFromBcmHostInWarmBootFile_.cend()) {
     // May be: Add information to figure out how many host or route entry
     // reference it.
     VLOG(1) << "Adding bcm egress entry for: " << *egressIdItr
@@ -632,5 +635,8 @@ void BcmWarmBootCache::clear() {
     bcmLogFatal(rv, hw_, "failed to destroy vlan: ", vlanItr->first);
     vlanItr = vlan2VlanInfo_.erase(vlanItr);
   }
+
+  egressIdsFromBcmHostInWarmBootFile_.clear();
 }
+
 }}

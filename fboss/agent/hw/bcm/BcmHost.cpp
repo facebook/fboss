@@ -26,7 +26,6 @@ constexpr auto kIp = "ip";
 constexpr auto kPort = "port";
 constexpr auto kNextHops = "nexthops";
 constexpr auto kEgress = "egress";
-constexpr auto kHosts = "hosts";
 
 std::string hostStr(const opennsl_l3_host_t& host) {
   std::ostringstream os;
