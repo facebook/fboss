@@ -196,7 +196,6 @@ BcmWarmBootCache::reconstructRouteTables() const {
 
 const BcmWarmBootCache::EgressIds&
 BcmWarmBootCache::getPathsForEcmp(EgressId ecmp) const {
-  CHECK(hwSwitchEcmp2EgressIdsPopulated_);
   static const EgressIds kEmptyEgressIds;
   if (hwSwitchEcmp2EgressIds_.empty()) {
     // We may have empty hwSwitchEcmp2EgressIds_ when
@@ -236,29 +235,12 @@ void BcmWarmBootCache::populateStateFromWarmbootFile() {
   auto ret = folly::readFile(warmBootFile.c_str(), warmBootJson);
   sysCheckError(ret, "Unable to read switch state from : ", warmBootFile);
   auto switchStateJson = folly::parseJson(warmBootJson);
-  if (switchStateJson.find(kSwSwitch) != switchStateJson.items().end()) {
-    dumpedSwSwitchState_ =
-        SwitchState::uniquePtrFromFollyDynamic(switchStateJson[kSwSwitch]);
-  } else {
-    dumpedSwSwitchState_ =
-        SwitchState::uniquePtrFromFollyDynamic(switchStateJson);
-  }
+  dumpedSwSwitchState_ =
+    SwitchState::uniquePtrFromFollyDynamic(switchStateJson[kSwSwitch]);
   CHECK(dumpedSwSwitchState_)
       << "Was not able to recover software state after warmboot from state "
          "file: " << hw_->getPlatform()->getWarmBootSwitchStateFile();
 
-  if (switchStateJson.find(kHwSwitch) == switchStateJson.items().end()) {
-    // hwSwitch state does not exist no need to reconstruct
-    // ecmp -> egressId map. We only started dumping this
-    // when we added fast handling of updating ecmp entries
-    // on link down. So on update from a version which does
-    // not have this fast handling its expected that this
-    // JSON wont exist.
-    VLOG (1) << "Hw switch state does not exist, skipped reconstructing "
-      << "ECMP -> egressIds map ";
-    return;
-  }
-  hwSwitchEcmp2EgressIdsPopulated_ = true;
   // Extract ecmps for dumped host table
   auto hostTable = switchStateJson[kHwSwitch][kHostTable];
   for (const auto& ecmpEntry : hostTable[kEcmpHosts]) {
@@ -489,40 +471,34 @@ int BcmWarmBootCache::ecmpEgressTraversalCallback(
     void* userData) {
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
   EgressIds egressIds;
-  if (cache->hwSwitchEcmp2EgressIdsPopulated_) {
-    // Rather than using the egressId in the intfArray we use the
-    // egressIds that we dumped as part of the warm boot state. IntfArray
-    // does not include any egressIds that go over the ports that may be
-    // down while the warm boot state we dumped does
-    try {
-      egressIds = cache->getPathsForEcmp(ecmp->ecmp_intf);
-    } catch (const FbossError& ex) {
-      // There was a bug in SDK where sometimes we got callback with invalid
-      // ecmp id with zero number of interfaces. This happened for double wide
-      // ECMP entries (when two "words" are used to represent one ECMP entry).
-      // For example, if the entries were 200256 and 200258, we got callback
-      // for 200257 also with zero interfaces associated with it. If this is
-      // the case, we skip this entry.
-      //
-      // We can also get intfCount of zero with valid ecmp entry (when all the
-      // links associated with egress of the ecmp are down. But in this case,
-      // cache->getPathsForEcmp() call above should return a valid set of
-      // egressIds.
-      if (intfCount == 0) {
-        return 0;
-      }
-      throw ex;
-    }
-    EgressIds egressIdsInHw;
-    egressIdsInHw = cache->toEgressIds(intfArray, intfCount);
-    VLOG(1) << "ignoring paths for ecmp egress " << ecmp->ecmp_intf
-            << " gotten from hardware: " << toEgressIdsStr(egressIdsInHw);
-  } else {
+  // Rather than using the egressId in the intfArray we use the
+  // egressIds that we dumped as part of the warm boot state. IntfArray
+  // does not include any egressIds that go over the ports that may be
+  // down while the warm boot state we dumped does
+  try {
+    egressIds = cache->getPathsForEcmp(ecmp->ecmp_intf);
+  } catch (const FbossError& ex) {
+    // There was a bug in SDK where sometimes we got callback with invalid
+    // ecmp id with zero number of interfaces. This happened for double wide
+    // ECMP entries (when two "words" are used to represent one ECMP entry).
+    // For example, if the entries were 200256 and 200258, we got callback
+    // for 200257 also with zero interfaces associated with it. If this is
+    // the case, we skip this entry.
+    //
+    // We can also get intfCount of zero with valid ecmp entry (when all the
+    // links associated with egress of the ecmp are down. But in this case,
+    // cache->getPathsForEcmp() call above should return a valid set of
+    // egressIds.
     if (intfCount == 0) {
       return 0;
     }
-    egressIds = cache->toEgressIds(intfArray, intfCount);
+    throw ex;
   }
+  EgressIds egressIdsInHw;
+  egressIdsInHw = cache->toEgressIds(intfArray, intfCount);
+  VLOG(1) << "ignoring paths for ecmp egress " << ecmp->ecmp_intf
+          << " gotten from hardware: " << toEgressIdsStr(egressIdsInHw);
+
   CHECK(egressIds.size() > 0)
       << "There must be at least one egress pointed to by the ecmp egress id: "
       << ecmp->ecmp_intf;

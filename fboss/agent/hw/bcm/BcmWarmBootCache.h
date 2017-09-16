@@ -382,10 +382,6 @@ class BcmWarmBootCache {
   // second port would be queued behind the updates for the downed port.
   // The delay can be multiple seconds.
   Ecmp2EgressIds hwSwitchEcmp2EgressIds_;
-  // When going from version where this table was not dumped to
-  // one where we do, the table wont exist in the warm boot file.
-  // So don't look for egressIds in this table.
-  bool hwSwitchEcmp2EgressIdsPopulated_{false};
   std::unique_ptr<SwitchState> dumpedSwSwitchState_;
 };
 }} // facebook::fboss
