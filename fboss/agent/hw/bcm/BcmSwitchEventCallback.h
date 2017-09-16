@@ -10,6 +10,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 extern "C" {
 #include <opennsl/switch.h>
@@ -63,6 +64,14 @@ class BcmSwitchEventUnitNonFatalErrorCallback : public BcmSwitchEventCallback {
   void callback(const int unit, const opennsl_switch_event_t eventID,
                 const uint32_t arg1, const uint32_t arg2,
                 const uint32_t arg3) override;
+ private:
+  void logNonFatalError(
+      int unit,
+      const std::string& alarm,
+      opennsl_switch_event_t eventID,
+      uint32_t arg1,
+      uint32_t arg2,
+      uint32_t arg3);
 };
 
 }} // facebook::fboss

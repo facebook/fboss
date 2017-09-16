@@ -56,9 +56,7 @@ void BcmSwitchEventUnitNonFatalErrorCallback::callback(const int unit,
   switch_event_helpers::exportEventCounters(eventID);
 
   auto alarm = switch_event_helpers::getAlarmName(eventID);
-  LOG(ERROR) << "BCM non-fatal error on unit " << unit << ": " << alarm
-             << " (" << eventID << ") with params "
-             << arg1 << ", " << arg2 << ", " << arg3;
+  logNonFatalError(unit, alarm, eventID, arg1, arg2, arg3);
 }
 
 }} // facebook::fboss
