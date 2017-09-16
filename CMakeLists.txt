@@ -229,6 +229,7 @@ add_library(fboss_agent STATIC
     fboss/agent/state/ArpTable.cpp
     fboss/agent/state/Interface.cpp
     fboss/agent/state/InterfaceMap.cpp
+    fboss/agent/state/MatchToActionEntry.cpp
     fboss/agent/state/NdpEntry.cpp
     fboss/agent/state/NdpResponseTable.cpp
     fboss/agent/state/NdpTable.cpp
@@ -251,6 +252,7 @@ add_library(fboss_agent STATIC
     fboss/agent/state/StateDelta.cpp
     fboss/agent/state/StateUtils.cpp
     fboss/agent/state/SwitchState.cpp
+    fboss/agent/state/TrafficPolicy.cpp
     fboss/agent/state/Vlan.cpp
     fboss/agent/state/VlanMap.cpp
     fboss/agent/state/VlanMapDelta.cpp

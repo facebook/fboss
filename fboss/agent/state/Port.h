@@ -12,6 +12,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/TrafficPolicy.h"
 
 #include <boost/container/flat_map.hpp>
 #include <string>
@@ -64,6 +65,7 @@ struct PortFields {
   // packets randomly based on those settings. Zero means no sampling.
   int64_t sFlowIngressRate{0};
   int64_t sFlowEgressRate{0};
+  std::shared_ptr<TrafficPolicy> trafficPolicy;
 };
 
 /*
@@ -159,6 +161,15 @@ class Port : public NodeBaseT<Port, PortFields> {
   }
   void setVlans(VlanMembership vlans) {
     writableFields()->vlans.swap(vlans);
+  }
+
+  const std::shared_ptr<TrafficPolicy> getTrafficPolicy() {
+    return getFields()->trafficPolicy;
+  }
+
+  void resetTrafficPolicy(
+      std::shared_ptr<TrafficPolicy> trafficPolicy) {
+    writableFields()->trafficPolicy.swap(trafficPolicy);
   }
 
   VlanID getIngressVlan() const {
