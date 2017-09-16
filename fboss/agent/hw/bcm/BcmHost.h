@@ -38,10 +38,9 @@ class BcmHostTable;
 
 class BcmHost {
  public:
-  BcmHost(const BcmSwitch* hw, opennsl_vrf_t vrf, const folly::IPAddress& addr)
-      : hw_(hw), vrf_(vrf), addr_(addr) {
-  }
-
+  BcmHost(
+      const BcmSwitch* hw, opennsl_vrf_t vrf, const folly::IPAddress& addr,
+      opennsl_if_t referenced_egress = BcmEgressBase::INVALID);
   virtual ~BcmHost();
   bool isProgrammed() const {
     return added_;
@@ -69,8 +68,6 @@ class BcmHost {
       opennsl_if_t intf,
       folly::MacAddress mac,
       opennsl_trunk_t trunk);
-
-  void setEgressId(opennsl_if_t eid);
 
   opennsl_if_t getEgressId() const {
     return egressId_;
@@ -185,6 +182,8 @@ class BcmHostTable {
    */
   BcmHost* incRefOrCreateBcmHost(
     opennsl_vrf_t vrf, const folly::IPAddress& addr);
+  BcmHost* incRefOrCreateBcmHost(
+      opennsl_vrf_t vrf, const folly::IPAddress& addr, opennsl_if_t egressId);
   BcmEcmpHost* incRefOrCreateBcmEcmpHost(
       opennsl_vrf_t vrf, const RouteNextHopSet& fwd);
 
@@ -327,10 +326,11 @@ class BcmHostTable {
   using HostMap = boost::container::
       flat_map<KeyT, std::pair<std::unique_ptr<HostT>, uint32_t>>;
 
-  template <typename KeyT, typename HostT>
-  HostT* incRefOrCreateBcmHostImpl(
+  template <typename KeyT, typename HostT, typename... Args>
+  HostT* incRefOrCreateBcmHost(
       HostMap<KeyT, HostT>* map,
-      const KeyT& key);
+      const KeyT& key,
+      Args... args);
   template <typename KeyT, typename HostT, typename... Args>
   HostT* getBcmHostIf(const HostMap<KeyT, HostT>* map, Args... args) const;
   template <typename KeyT, typename HostT, typename... Args>

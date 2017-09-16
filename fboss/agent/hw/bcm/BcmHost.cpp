@@ -44,13 +44,11 @@ using std::shared_ptr;
 using folly::MacAddress;
 using folly::IPAddress;
 
-void BcmHost::setEgressId(opennsl_if_t eid) {
-  // This can only be called when there is no egressId_ allocated before
-  CHECK(egressId_ == BcmEgressBase::INVALID);
-  egressId_ = eid;
+BcmHost::BcmHost(const BcmSwitch* hw, opennsl_vrf_t vrf, const IPAddress& addr,
+    opennsl_if_t referenced_egress)
+      : hw_(hw), vrf_(vrf), addr_(addr),
+      egressId_(referenced_egress) {
   hw_->writableHostTable()->incEgressReference(egressId_);
-  VLOG(3) << "set host object for " << addr_.str()
-          << " to @egress " << getEgressId();
 }
 
 void BcmHost::initHostCommon(opennsl_l3_host_t *host) const {
@@ -345,9 +343,9 @@ BcmHostTable::BcmHostTable(const BcmSwitch *hw) : hw_(hw) {
 BcmHostTable::~BcmHostTable() {
 }
 
-template<typename KeyT, typename HostT>
-HostT* BcmHostTable::incRefOrCreateBcmHostImpl(
-    HostMap<KeyT, HostT>* map, const KeyT& key) {
+template<typename KeyT, typename HostT, typename... Args>
+HostT* BcmHostTable::incRefOrCreateBcmHost(
+    HostMap<KeyT, HostT>* map, const KeyT& key, Args... args) {
   auto ret = map->emplace(key, std::make_pair(nullptr, 1));
   auto& iter = ret.first;
   if (!ret.second) {
@@ -358,7 +356,7 @@ HostT* BcmHostTable::incRefOrCreateBcmHostImpl(
   SCOPE_FAIL {
     map->erase(iter);
   };
-  auto newHost = std::make_unique<HostT>(hw_, key.first, key.second);
+  auto newHost = std::make_unique<HostT>(hw_, key.first, key.second, args...);
   auto hostPtr = newHost.get();
   iter->second.first = std::move(newHost);
   return hostPtr;
@@ -366,12 +364,17 @@ HostT* BcmHostTable::incRefOrCreateBcmHostImpl(
 
 BcmHost* BcmHostTable::incRefOrCreateBcmHost(
     opennsl_vrf_t vrf, const IPAddress& addr) {
-  return incRefOrCreateBcmHostImpl(&hosts_, std::make_pair(vrf, addr));
+  return incRefOrCreateBcmHost(&hosts_, std::make_pair(vrf, addr));
+}
+
+BcmHost* BcmHostTable::incRefOrCreateBcmHost(
+    opennsl_vrf_t vrf, const IPAddress& addr, opennsl_if_t egressId) {
+  return incRefOrCreateBcmHost(&hosts_, std::make_pair(vrf, addr), egressId);
 }
 
 BcmEcmpHost* BcmHostTable::incRefOrCreateBcmEcmpHost(
     opennsl_vrf_t vrf, const RouteNextHopSet& fwd) {
-  return incRefOrCreateBcmHostImpl(&ecmpHosts_, std::make_pair(vrf, fwd));
+  return incRefOrCreateBcmHost(&ecmpHosts_, std::make_pair(vrf, fwd));
 }
 
 template<typename KeyT, typename HostT, typename... Args>

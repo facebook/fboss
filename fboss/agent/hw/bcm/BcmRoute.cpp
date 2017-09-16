@@ -157,8 +157,7 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
 void BcmRoute::programHostRoute(opennsl_if_t egressId,
     const RouteNextHopEntry& fwd, bool replace) {
   auto hostRouteHost = hw_->writableHostTable()->incRefOrCreateBcmHost(
-      vrf_, prefix_);
-  hostRouteHost->setEgressId(egressId);
+      vrf_, prefix_, egressId);
   auto cleanupHostRoute = [=]() noexcept {
     hw_->writableHostTable()->derefBcmHost(vrf_, prefix_);
   };
