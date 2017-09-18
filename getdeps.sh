@@ -62,6 +62,29 @@ function build_cmake() {
     )
 }
 
+function build_gtest_and_gmock() {
+    (
+# OpenNetworkLinux already has googletest's latest version
+# and we built googletest differently for it.
+      if ! [ -d /usr/src/googletest ]; then
+	mkdir build.test && cd build.test
+	for LIB in gmock gtest
+	do
+	  mkdir $LIB && cd $LIB
+	  echo "building $LIB..."
+	  test -d "/usr/src/$LIB" || die "Missing dir /usr/src/$LIB"
+	  cmfile=/usr/src/$LIB/CMakeLists.txt
+	  test -e $cmfile || die "Missing cmake file for $LIB"
+	  echo ${PWD}
+	  echo cmake $LIB $CMAKEFLAGS
+	  cmake $cmfile  $CMAKEFLAGS -B./ || die "Cmake failed for $LIB"
+	  make -j "$NPROC" || die "Failed to build $LIB"
+	  cd ..
+	done
+      fi
+    )
+}
+
 function get_packages() {
     echo "installing packages"
     sudo apt-get install -yq autoconf automake libdouble-conversion-dev \
@@ -69,7 +92,7 @@ function get_packages() {
         libevent-dev flex bison libgoogle-glog-dev scons libkrb5-dev \
         libsnappy-dev libsasl2-dev libnuma-dev libi2c-dev libcurl4-nss-dev \
         libusb-1.0-0-dev libpcap-dev libdb5.3-dev cmake libnl-3-dev \
-        libnl-route-3-dev iptables-dev
+        libnl-route-3-dev iptables-dev libgtest-dev google-mock
 
    sudo apt-get install -yq shtool pkg-config
 }
@@ -105,6 +128,7 @@ NPROC=$(grep -c processor /proc/cpuinfo)
     update https://github.com/facebook/fbthrift.git
     update https://github.com/no1msd/mstch.git
     update https://github.com/facebook/zstd.git
+    build_gtest_and_gmock || die "Failed to build gmock/gtest"
     build_cmake mstch || die "Failed to build mstch"
     build_make zstd || die "Failed to build zstd"
     build_autoconf iproute2 || die "Failed to build iproute2"
