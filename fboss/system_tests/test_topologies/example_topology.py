@@ -12,14 +12,14 @@ from fboss.system_tests.testutils.test_topology import (TestHost,
 
 def generate_test_topology():
     """ Create and populate a FBOSSTestTopology() object """
-    config = FBOSSTestTopology("rsw1aj.20.snc1")
+    config = FBOSSTestTopology("myswitch.example.com")  # DNS name of switch
 
     """ This example has two testing hosts """
-    f154 = TestHost("fboss154.20.snc1")
-    f154.add_interface("eth0", "2401:db00:111:400a::154")
-    config.add_host(f154)
+    h1 = TestHost("testhost1.example.com")
+    h1.add_interface("eth0", "2401:db00:111:400a::154")
+    config.add_host(h1)
 
-    f155 = TestHost("fboss155.20.snc1")
-    f155.add_interface("eth0", "2401:db00:111:400a::155")
-    config.add_host(f155)
+    h2 = TestHost("testhost2.example.com")
+    h2.add_interface("eth0", "2401:db00:111:400a::155")
+    config.add_host(h2)
     return config

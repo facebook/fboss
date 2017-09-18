@@ -22,8 +22,25 @@ at least two hosts connected to the switch.
 # Running tests
 
 Once the switch is running the FBOSS agent and the hosts are running the TestServer
-binary, you simply need to populate a FBOSSTestBaseConfig() object (see examples) and
-run `./system_tests.py --config your_config.py`    TODO(rsher)
+binary, you simply need to populate a FBOSSTestBaseConfig() python object and
+run `./system_tests.py --config your_config.py`.  For example, look at 
+./test_topologies/example_topology.py for an example static test config.
+
+This same testing framework is also optionally customizable for
+dynamic/programatic/automatic test configuration.  For example, you
+can write something like this:
+
+  #!/usr/bin/python
+  import system_tests
+  import testutils.test_topology
+
+  if __name__ == '__main__':
+     argparse = system_tests.generate_default_test_argparse()
+     # add custom command-line arguments here
+     # ...
+     options = argparse.parse_args()
+     options.test_topology = your_custom_topology_generator()
+     system_tests.run_test(options)
 
 # New Development
 
@@ -32,6 +49,10 @@ All new tests should :
   ** If you think you are smarter than the defaults, minimally inherit from 'unittest.TestCase'
 * live in system_tests/tests/
 * match '*test*.py' to be autodiscovered by the test discovery algorithm
+
+# Facebook Internal
+* If you work at Facebook, look in the ./facebook directory for additonal automation
+magic.
 
 
 # Longer term goals
