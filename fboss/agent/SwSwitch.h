@@ -787,10 +787,10 @@ class SwSwitch : public HwSwitch::Callback {
 
   std::unique_ptr<PortRemediator> portRemediator_;
 
+  std::unique_ptr<ChannelCloser> closer_; // must be before pcapPusher_
   std::unique_ptr<PcapPushSubscriberAsyncClient> pcapPusher_;
   std::atomic<bool> distributionServiceReady_{false};
 
-  std::unique_ptr<ChannelCloser> closer_;
 
   std::unique_ptr<ArpHandler> arp_;
   std::unique_ptr<IPv4Handler> ipv4_;
