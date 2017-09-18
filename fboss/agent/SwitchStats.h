@@ -20,8 +20,8 @@ namespace facebook { namespace fboss {
 
 class PortStats;
 
-using PortStatsMap = boost::container::flat_map<PortID,
-                                                std::unique_ptr<PortStats>> ;
+typedef boost::container::flat_map<PortID,
+          std::unique_ptr<PortStats>> PortStatsMap;
 
 class SwitchStats : public boost::noncopyable {
  public:
@@ -36,13 +36,6 @@ class SwitchStats : public boost::noncopyable {
    * Return the PortStats object for the given PortID.
    */
   PortStats* port(PortID portID);
-
-  // Create a PortStats object for the given PortID
-  PortStats* createPortStats(PortID portID, std::string portName);
-
-  void deletePortStats(PortID portID) {
-    ports_.erase(portID);
-  }
 
   /*
    * Getters.
@@ -406,6 +399,9 @@ class SwitchStats : public boost::noncopyable {
    * Value of 0 would mean they are in sync.
    */
   TLCounter hwOutOfSync_;
+
+  // Create a PortStats object for the given PortID
+  PortStats* createPortStats(PortID portID);
 
   // Individual port stats objects, indexed by PortID
   PortStatsMap ports_;

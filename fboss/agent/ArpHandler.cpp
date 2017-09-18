@@ -14,6 +14,7 @@
 #include <folly/io/Cursor.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/PortStats.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/SwSwitch.h"

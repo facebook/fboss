@@ -41,7 +41,6 @@ class PktCaptureManager;
 class Platform;
 class Port;
 class PortStats;
-class PortUpdateHandler;
 class RxPacket;
 class SwitchState;
 class SwitchStats;
@@ -326,16 +325,6 @@ class SwSwitch : public HwSwitch::Callback {
     }
     return createSwitchStats();
   }
-
-  /*
-   * Update portName of PortStats of all thread-local SwitchStats
-   */
-  void upatePortStats(PortID portID, const std::string& portName);
-
-  /*
-   * Delete PortStats of all thread-local SwitchStats
-   */
-  void deletePortStats(PortID portID);
 
   /*
    * Construct and destroy a client to dump packets to the packet distribution
@@ -805,7 +794,6 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<ThreadHeartbeat> updThreadHeartbeat_;
   std::unique_ptr<ThreadHeartbeat> fbossPktTxThreadHeartbeat_;
   SwitchFlags flags_{SwitchFlags::DEFAULT};
-  std::unique_ptr<PortUpdateHandler> portUpdateHandler_;
 };
 
 }} // facebook::fboss

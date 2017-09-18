@@ -14,6 +14,7 @@
 #include <folly/MacAddress.h>
 #include <folly/io/Cursor.h>
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/PortStats.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/SwitchStats.h"
