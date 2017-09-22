@@ -461,8 +461,13 @@ TxPacketMatcher::TxPacketMatcher(StringPiece name, TxMatchFn fn)
   return ::testing::MakeMatcher(new TxPacketMatcher(name, std::move(fn)));
 }
 
+#ifndef IS_OSS
 bool TxPacketMatcher::MatchAndExplain(
     const TxPacketPtr& pkt, ::testing::MatchResultListener* l) const {
+#else
+bool TxPacketMatcher::MatchAndExplain(
+    TxPacketPtr pkt, ::testing::MatchResultListener* l) const {
+#endif
   try {
     fn_(pkt);
     return true;
@@ -493,9 +498,15 @@ RxPacketMatcher::createMatcher(
       new RxPacketMatcher(name, dstIfID, std::move(fn)));
 }
 
+#ifndef IS_OSS
 bool RxPacketMatcher::MatchAndExplain(
     const RxMatchFnArgs& args,
     ::testing::MatchResultListener* l) const {
+#else
+bool RxPacketMatcher::MatchAndExplain(
+    RxMatchFnArgs args,
+    ::testing::MatchResultListener* l) const {
+#endif
   auto dstIfID = std::get<0>(args);
   auto pkt = std::get<1>(args);
 

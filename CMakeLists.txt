@@ -61,6 +61,7 @@ find_library(CURL curl)
 # External libraries that are not generally available. Look in external/
 # for these. This is where getdeps.sh will toss them.
 find_library(FOLLY folly PATHS ${CMAKE_SOURCE_DIR}/external/folly/folly/.libs)
+find_library(FOLLYBENCHMARK follybenchmark PATHS ${CMAKE_SOURCE_DIR}/external/folly/folly/.libs)
 find_library(WANGLE wangle PATHS ${CMAKE_SOURCE_DIR}/external/wangle/wangle/build/lib)
 find_library(THRIFT thrift PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp/.libs)
 find_library(THRIFTPROTO thriftprotocol PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs)
@@ -155,10 +156,14 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmWarmBootHelper.cpp
     fboss/agent/hw/bcm/oss/BcmTableStats.cpp
     fboss/agent/hw/bcm/Utils.cpp
+    fboss/agent/hw/mock/MockHwSwitch.cpp
+    fboss/agent/hw/mock/MockPlatform.cpp
     fboss/agent/hw/mock/MockRxPacket.cpp
     fboss/agent/hw/mock/MockTxPacket.cpp
+    fboss/agent/hw/mock/MockTestHandle.cpp
+    fboss/agent/hw/mock/MockableHwSwitch.cpp
+    fboss/agent/hw/mock/MockablePlatform.cpp
     fboss/agent/hw/sim/SimHandler.cpp
-    fboss/agent/hw/sim/SimPlatform.cpp
     fboss/agent/hw/sim/SimSwitch.cpp
     fboss/agent/lldp/LinkNeighbor.cpp
     fboss/agent/lldp/LinkNeighborDB.cpp
@@ -462,3 +467,43 @@ fboss_add_thrift(THRIFTSRC fboss/pcap_distribution_service/if/pcap_pubsub.thrift
 fboss_add_thrift(THRIFTSRC fboss/qsfp_service/if/transceiver.thrift)
 fboss_add_thrift(THRIFTSRC fboss/qsfp_service/if/qsfp.thrift
     SERVICES QsfpService)
+
+# Unit Testing
+add_definitions (-DIS_OSS=true)
+find_package(Threads REQUIRED)
+enable_testing()
+set(GTEST_DIR "external/googletest")
+include_directories(${GTEST_DIR}/googletest/include ${GTEST_DIR}/googlemock/include)
+add_subdirectory(${GTEST_DIR} ${GTEST_DIR}.build)
+
+# Don't include fboss/agent/test/ArpBenchmark.cpp
+# It depends on the Sim implementation and needs its own target
+add_executable(agent_test
+       fboss/agent/test/TestUtils.cpp
+       fboss/agent/test/ArpTest.cpp
+       fboss/agent/test/CounterCache.cpp
+       fboss/agent/test/DHCPv4HandlerTest.cpp
+       fboss/agent/test/ICMPTest.cpp
+       fboss/agent/test/IPv4Test.cpp
+       fboss/agent/test/LldpManagerTest.cpp
+       fboss/agent/test/MockTunManager.cpp
+       fboss/agent/test/NDPTest.cpp
+       fboss/agent/test/RouteUpdateLoggerTest.cpp
+       fboss/agent/test/RouteUpdateLoggingTrackerTest.cpp
+       fboss/agent/test/RoutingTest.cpp
+       fboss/agent/test/StaticRoutes.cpp
+       fboss/agent/test/ThriftTest.cpp
+       fboss/agent/test/UDPTest.cpp
+       fboss/agent/test/oss/Main.cpp
+)
+target_link_libraries(agent_test
+  fboss_agent
+  gtest
+  gmock
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${FOLLY}
+  ${FOLLYBENCHMARK}
+)
+add_test(test agent_test)
+
+#TODO: Add tests from other folders aside from agent/test

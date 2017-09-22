@@ -105,6 +105,7 @@ NPROC=$(grep -c processor /proc/cpuinfo)
     update https://github.com/facebook/fbthrift.git
     update https://github.com/no1msd/mstch.git
     update https://github.com/facebook/zstd.git
+    update https://github.com/google/googletest.git release-1.8.0
     build_cmake mstch || die "Failed to build mstch"
     build_make zstd || die "Failed to build zstd"
     build_autoconf iproute2 || die "Failed to build iproute2"
