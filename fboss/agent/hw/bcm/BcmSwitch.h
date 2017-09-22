@@ -551,11 +551,6 @@ class BcmSwitch : public BcmSwitchIf {
    */
   std::unique_ptr<BufferStatsLogger> createBufferStatsLogger();
 
-  /**
-   * Setup trunking machinery
-   */
-  void setupTrunking();
-
    /*
     * Check if state, speed update for this port port would
     * be permissible in the hardware.

@@ -61,6 +61,12 @@ class BcmTrunkTable {
   boost::container::flat_map<AggregatePortID, std::unique_ptr<BcmTrunk>>
       trunks_;
   const BcmSwitch* const hw_{nullptr};
+
+  // Setup trunking machinery
+  void setupTrunking();
+
+  // State that stores if the BCM trunk has been initialized.
+  bool isBcmHWTrunkInitialized_ = false;
 };
 }
 } // namespace facebook::fboss

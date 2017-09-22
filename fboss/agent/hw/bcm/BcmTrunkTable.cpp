@@ -24,6 +24,7 @@ BcmTrunkTable::BcmTrunkTable(const BcmSwitch* hw) : trunks_(), hw_(hw) {}
 BcmTrunkTable::~BcmTrunkTable() {}
 
 void BcmTrunkTable::addTrunk(const std::shared_ptr<AggregatePort>& aggPort) {
+  setupTrunking();
   auto trunk = std::make_unique<BcmTrunk>(hw_);
   trunk->init(aggPort);
 

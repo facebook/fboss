@@ -92,8 +92,6 @@ DEFINE_int32(linkscan_interval_us, 250000,
              "The Broadcom linkscan interval");
 DEFINE_bool(flexports, false,
             "Load the agent with flexport support enabled");
-DEFINE_bool(enable_port_aggregation, false,
-            "Initialize Broadcom trunking machinery");
 
 enum : uint8_t {
   kRxCallbackPriority = 1,
@@ -532,10 +530,6 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   copyIPv6LinkLocalMcastPackets();
   mmuState_ = queryMmuState();
   setupCpuPortCounters();
-
-  if (FLAGS_enable_port_aggregation) {
-    setupTrunking();
-  }
 
   // enable IPv4 and IPv6 on CPU port
   opennsl_port_t idx;
