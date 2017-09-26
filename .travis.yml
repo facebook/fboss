@@ -3,7 +3,7 @@ dist: xenial    # I wish this worked; defaults to trusty
 services:
   - docker
 before_install:
-  - docker run -v `pwd`:/tmp/code opennetworklinux/builder9:1.0 /bin/sh -c "g++ --version ; cd /tmp/code && bash getdeps.sh && mkdir build && cd build && cmake .. && make -j`grep -c processor /proc/cpuinfo`" 
+  - docker run -v `pwd`:/tmp/code opennetworklinux/builder9:1.0 /bin/sh -c "g++ --version ; cd /tmp/code && bash getdeps.sh && mkdir build && cd build && cmake .. && make -j`grep -c processor /proc/cpuinfo` && make test" 
 script:
   - true   # eventually do unittests here; but currently everything in docker build
 
