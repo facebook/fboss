@@ -39,9 +39,10 @@ class PortRemediator : private folly::AsyncTimeout {
   void timeoutExpired() noexcept override;
   void init();
 
+  boost::container::flat_set<PortID> getUnexpectedDownPorts() const;
+  folly::Future<std::vector<folly::Try<folly::Unit>>> remediatePorts();
+
  private:
-  boost::container::flat_set<PortID> getUnexpectedDownPorts()
-      const;
   SwSwitch* sw_;
   std::chrono::seconds interval_;
 };

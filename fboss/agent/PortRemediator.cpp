@@ -37,22 +37,29 @@ PortRemediator::getUnexpectedDownPorts() const {
   return unexpectedDownPorts;
 }
 
-void PortRemediator::timeoutExpired() noexcept {
+folly::Future<std::vector<folly::Try<folly::Unit>>>
+PortRemediator::remediatePorts() {
   auto unexpectedDownPorts = getUnexpectedDownPorts();
   auto platform = sw_->getPlatform();
+  std::vector<folly::Future<folly::Unit>> futs;
   for (const auto& portId : unexpectedDownPorts) {
     auto platformPort = platform->getPlatformPort(portId);
-    if (!platformPort->supportsTransceiver()) {
+    if (!platformPort || !platformPort->supportsTransceiver()) {
       continue;
     }
     auto infoFuture = platformPort->getTransceiverInfo();
-    infoFuture.via(sw_->getBackgroundEVB())
-        .then([platformPort](TransceiverInfo info) {
-          if (info.present) {
-            platformPort->customizeTransceiver();
-          }
-        });
+    futs.push_back(infoFuture.via(sw_->getBackgroundEVB())
+                       .then([platformPort](TransceiverInfo info) {
+                         if (info.present) {
+                           platformPort->customizeTransceiver();
+                         }
+                       }));
   }
+  return collectAll(futs);
+}
+
+void PortRemediator::timeoutExpired() noexcept {
+  remediatePorts();
   scheduleTimeout(interval_);
 }
 
