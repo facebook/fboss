@@ -33,13 +33,13 @@ namespace facebook { namespace fboss {
 
 class BcmEcmpEgress;
 class BcmEgress;
-class BcmSwitch;
+class BcmSwitchIf;
 class BcmHostTable;
 
 class BcmHost {
  public:
   BcmHost(
-      const BcmSwitch* hw, opennsl_vrf_t vrf, const folly::IPAddress& addr,
+      const BcmSwitchIf* hw, opennsl_vrf_t vrf, const folly::IPAddress& addr,
       opennsl_if_t referenced_egress = BcmEgressBase::INVALID);
   virtual ~BcmHost();
   bool isProgrammed() const {
@@ -97,7 +97,7 @@ class BcmHost {
                opennsl_port_t port, RouteForwardAction action);
   void initHostCommon(opennsl_l3_host_t *host) const;
   bool isTrunk() const;
-  const BcmSwitch* hw_;
+  const BcmSwitchIf* hw_;
   opennsl_vrf_t vrf_;
   folly::IPAddress addr_;
   // Port that the corresponding egress object references.
@@ -123,7 +123,7 @@ class BcmHost {
  */
 class BcmEcmpHost {
  public:
-  BcmEcmpHost(const BcmSwitch* hw, opennsl_vrf_t vrf,
+  BcmEcmpHost(const BcmSwitchIf* hw, opennsl_vrf_t vrf,
               const RouteNextHopSet& fwd);
   virtual ~BcmEcmpHost();
   opennsl_if_t getEgressId() const {
@@ -134,7 +134,7 @@ class BcmEcmpHost {
   }
   folly::dynamic toFollyDynamic() const;
  private:
-  const BcmSwitch* hw_;
+  const BcmSwitchIf* hw_;
   opennsl_vrf_t vrf_;
   /**
    * The egress ID for this ECMP host
@@ -153,7 +153,7 @@ class BcmEcmpHost {
 
 class BcmHostTable {
  public:
-  explicit BcmHostTable(const BcmSwitch *hw);
+  explicit BcmHostTable(const BcmSwitchIf *hw);
   virtual ~BcmHostTable();
   // throw an exception if not found
   BcmHost* getBcmHost(opennsl_vrf_t vrf, const folly::IPAddress& addr) const;
@@ -280,7 +280,7 @@ class BcmHostTable {
   }
 
   bool isResolved(const opennsl_if_t egressId) const {
-    return resolvedEgresses_.find(egressId) != resolvedEgresses_.cend();
+    return resolvedEgresses_.find(egressId) != resolvedEgresses_.end();
   }
   void resolved(const opennsl_if_t egressId) {
     resolvedEgresses_.insert(egressId);
@@ -336,7 +336,7 @@ class BcmHostTable {
   template <typename KeyT, typename HostT, typename... Args>
   HostT* derefBcmHost(HostMap<KeyT, HostT>* map, Args... args) noexcept;
 
-  const BcmSwitch* hw_{nullptr};
+  const BcmSwitchIf* hw_{nullptr};
 
   /*
    * The current port -> egressIds map.

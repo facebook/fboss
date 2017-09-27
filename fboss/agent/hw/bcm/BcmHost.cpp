@@ -44,10 +44,12 @@ using std::shared_ptr;
 using folly::MacAddress;
 using folly::IPAddress;
 
-BcmHost::BcmHost(const BcmSwitch* hw, opennsl_vrf_t vrf, const IPAddress& addr,
+BcmHost::BcmHost(
+    const BcmSwitchIf* hw,
+    opennsl_vrf_t vrf,
+    const IPAddress& addr,
     opennsl_if_t referenced_egress)
-      : hw_(hw), vrf_(vrf), addr_(addr),
-      egressId_(referenced_egress) {
+    : hw_(hw), vrf_(vrf), addr_(addr), egressId_(referenced_egress) {
   hw_->writableHostTable()->incEgressReference(egressId_);
 }
 
@@ -279,7 +281,7 @@ BcmHost::~BcmHost() {
   hw_->writableHostTable()->derefEgress(egressId_);
 }
 
-BcmEcmpHost::BcmEcmpHost(const BcmSwitch *hw, opennsl_vrf_t vrf,
+BcmEcmpHost::BcmEcmpHost(const BcmSwitchIf *hw, opennsl_vrf_t vrf,
                          const RouteNextHopSet& fwd)
     : hw_(hw), vrf_(vrf) {
   CHECK_GT(fwd.size(), 0);
@@ -334,7 +336,7 @@ BcmEcmpHost::~BcmEcmpHost() {
   }
 }
 
-BcmHostTable::BcmHostTable(const BcmSwitch *hw) : hw_(hw) {
+BcmHostTable::BcmHostTable(const BcmSwitchIf *hw) : hw_(hw) {
   auto port2EgressIds = std::make_shared<PortAndEgressIdsMap>();
   port2EgressIds->publish();
   setPort2EgressIdsInternal(port2EgressIds);
