@@ -11,6 +11,7 @@ Modeled after pyserver example in open source
 https://github.com/facebook/fbthrift/blob/master/thrift/tutorial/\
                                                        py/PythonServer.py
 """
+
 from thrift.transport import TSocket
 from thrift.transport import TTransport
 from thrift.protocol import THeaderProtocol
@@ -19,9 +20,12 @@ from thrift.server import TServer
 from neteng.fboss.ttypes import FbossBaseError
 from fboss.system_tests.test import TestService
 from fboss.system_tests.test.constants import DEFAULT_PORT
+from os.path import isfile
 
+import json
 import logging
 import pcapy            # this library currently only supports python 2.x :-(
+import signal
 import subprocess
 import time
 import traceback
@@ -129,6 +133,61 @@ class TestServer(TestService.Iface):
         self.pcap_captures[interface_name].sendpacket(pkt)
         if need_cleanup:
             self.stopPktCapture(interface_name)
+
+    @staticmethod
+    def check_output(cmd, **kwargs):
+        return subprocess.check_output(cmd.split(' '), **kwargs)
+
+    def kill_iperf3(self):
+        try:
+            self.check_output('pkill -9 iperf3')
+        except Exception:
+            pass
+
+    def iperf3_server(self, timeout=10):
+        ''' initialize iperf3 server, with timeout to expire server if no
+        client request comes in
+        '''
+        def timeout_handler(signum, frame):
+            raise FbossBaseError("IPERF3 SERVER TIMEOUT")
+
+        self.kill_iperf3()  # kill lingering iperf3 processes (server or client)
+        signal.signal(signal.SIGALRM, timeout_handler)
+        signal.alarm(timeout)
+        iperf3_pid_fn = '/tmp/iperf3_thrift.pid'
+        command = "iperf3 -I {fn} -J -1 -s".format(fn=iperf3_pid_fn)
+        try:
+            response = self.check_output(command)
+        except Exception as e:
+            response = json.dumps({'error': repr(e)})
+        finally:
+            signal.alarm(0)
+            if isfile(iperf3_pid_fn):
+                with open(iperf3_pid_fn, 'r') as f:
+                    pid = f.read().strip('\0')
+                self.check_output('kill -9 {pid}'.format(pid=pid))
+        return response
+
+    def iperf3_client(self, server_ip, client_retries=3):
+        ''' @param ip : a string, e.g., "128.8.128.118"
+            @param client_retries: int, how many retries client attempts
+        '''
+
+        self.kill_iperf3()  # kill lingering iperf3 processes (server or client)
+        is_ipv6 = '-6' if ':' in server_ip else ''
+        command = "iperf3 {} -J -t 1 -c {}".format(is_ipv6, server_ip)
+        client_loop_cnt = 0
+        while client_loop_cnt < client_retries:
+            try:
+                response = self.check_output(command)
+                break
+            except Exception:
+                client_loop_cnt += 1
+                error_msg = '{} retries to reach iperf3 server {}' \
+                            .format(client_loop_cnt, server_ip)
+                response = json.dumps({'error': error_msg})
+                time.sleep(1)
+        return response
 
 
 if __name__ == '__main__':

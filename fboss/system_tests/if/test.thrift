@@ -40,4 +40,25 @@ service TestService extends fb303.FacebookService {
      performance, so don't use for line rate traffic generation */
   void sendPkt(1: string interfaceName, 2: ctrl.fbbinary pkt)
                throws (1: fboss.FbossBaseError error)
+
+  /* initialize and listen to an iperf3 client test request. Returns a JSON
+  formatted string which can be deserialized/loaded for post processing
+  server-side test results.
+
+  Useful links:
+  =============
+  * Iperf homepage:
+  http://software.es.net/iperf/
+  * Comparison of various iperf3 capabilities with other tools:
+  https://fasterdata.es.net/performance-testing/network-troubleshooting-tools/throughput-tool-comparision/
+   */
+
+  string iperf3_server() throws (1: fboss.FbossBaseError error)
+
+  /* initiate an iperf3 test to host server @ server_ip. server_ip can be
+  ipv4 or ipv6. Returns a JSON formatted string which can be deserialized/loaded
+  for post-processing of iperf3 client-side test results */
+
+  string iperf3_client(1: string server_ip) throws
+                      (1: fboss.FbossBaseError error)
 }
