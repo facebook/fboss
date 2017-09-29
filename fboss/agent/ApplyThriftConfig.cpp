@@ -887,10 +887,6 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (action) {
     newAcl->setAclAction(*action);
   }
-  if (config->__isset.qosQueueNum) {
-    // TODO(ninasc): Remove from acl
-    newAcl->setQosQueueNum(config->qosQueueNum);
-  }
   if (config->__isset.srcIp) {
     newAcl->setSrcIp(IPAddress::createNetwork(config->srcIp));
   }

@@ -219,8 +219,6 @@ TEST(Acl, stateDelta) {
   config.acls[2].dstPort = 8;
   config.acls[3].name = "acl4";
   config.acls[3].actionType = cfg::AclActionType::DENY;
-  config.acls[3].qosQueueNum = 9;
-  config.acls[3].__isset.qosQueueNum = true;
   config.acls[3].__isset.srcIp = true;
   config.acls[3].srcIp = "192.168.0.4";
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
@@ -246,7 +244,6 @@ TEST(Acl, stateDelta) {
   iter = aclDelta34.begin();
   EXPECT_EQ(iter->getOld()->getSrcIp(), folly::CIDRNetwork(
         folly::IPAddress("192.168.0.4"), 32));
-  EXPECT_TRUE(iter->getOld()->getQosQueueNum());
   EXPECT_EQ(iter->getNew(), nullptr);
   ++iter;
   EXPECT_EQ(iter, aclDelta34.end());

@@ -165,8 +165,6 @@ struct AclEntry {
   17: string name
 
   18: AclActionType actionType = PERMIT
-  // This is temporary and will be removed in the next diff that introduces QoS
-  19: optional i16 qosQueueNum
 }
 
 /*

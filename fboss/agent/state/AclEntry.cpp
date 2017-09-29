@@ -41,7 +41,6 @@ constexpr auto kIcmpCode = "icmpCode";
 constexpr auto kIcmpType = "icmpType";
 constexpr auto kDscp = "dscp";
 constexpr auto kPortName = "portName";
-constexpr auto kQosQueueNum = "qosQueueNum";
 constexpr auto kAclAction = "aclAction";
 }
 
@@ -160,9 +159,6 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   CHECK(itr_action != cfg::_AclActionType_VALUES_TO_NAMES.end());
   aclEntry[kActionType] = itr_action->second;
   aclEntry[kAclAction] = MatchAction::toFollyDynamic(aclAction);
-  if (qosQueueNum) {
-    aclEntry[kQosQueueNum] = qosQueueNum.value();
-  }
   aclEntry[kPriority] = priority;
   aclEntry[kName] = name;
   return aclEntry;
@@ -237,10 +233,6 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
           ->second;
   aclEntry.aclAction = MatchAction::fromFollyDynamic(aclEntryJson[kAclAction]);
 
-  if (aclEntryJson.find(kQosQueueNum) != aclEntryJson.items().end()) {
-    aclEntry.qosQueueNum =
-        static_cast<int16_t>(aclEntryJson[kQosQueueNum].asInt());
-  }
   return aclEntry;
 }
 

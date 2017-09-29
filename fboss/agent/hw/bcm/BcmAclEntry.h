@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/types.h"
 
 namespace facebook { namespace fboss {
@@ -20,6 +19,7 @@ using BcmAclRangeHandle = uint32_t;
 using BcmAclEntryHandle = int;
 
 class BcmSwitch;
+class AclEntry;
 
 /**
  * AclRange is the class that contains a range's value for range checker
