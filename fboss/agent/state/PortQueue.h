@@ -21,9 +21,7 @@
 namespace facebook { namespace fboss {
 
 struct PortQueueFields {
-  explicit PortQueueFields(int8_t id, cfg::StreamType streamType)
-    : id(id),
-      streamType(streamType) {}
+  explicit PortQueueFields(uint8_t id) : id(id) {}
 
   template<typename Fn>
   void forEachChild(Fn) {}
@@ -42,7 +40,7 @@ struct PortQueueFields {
 class PortQueue :
     public NodeBaseT<PortQueue, PortQueueFields> {
  public:
-  explicit PortQueue(int8_t id, cfg::StreamType streamType);
+  explicit PortQueue(uint8_t id);
   static std::shared_ptr<PortQueue>
   fromFollyDynamic(const folly::dynamic& json) {
     const auto& fields = PortQueueFields::fromFollyDynamic(json);
@@ -67,6 +65,10 @@ class PortQueue :
 
   uint8_t getID() const {
     return getFields()->id;
+  }
+
+  void setStreamType(cfg::StreamType type) {
+    writableFields()->streamType = type;
   }
 
   cfg::StreamType getStreamType() const {

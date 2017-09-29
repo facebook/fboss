@@ -32,11 +32,14 @@ class BcmSwitch;
 class BcmPortGroup;
 class SwitchState;
 class Port;
+class PortQueue;
 
 /**
  * BcmPort is the class to abstract the physical port in BcmSwitch.
  */
 class BcmPort {
+  using QueueConfig =
+    boost::container::flat_map<int, std::shared_ptr<PortQueue> >;
  public:
   /*
    * Construct the BcmPort object.
@@ -54,6 +57,7 @@ class BcmPort {
   void disable(const std::shared_ptr<Port>& swPort);
   void disableLinkscan();
   void program(const std::shared_ptr<Port>& swPort);
+  void setupQueues(const QueueConfig& swQueues);
 
   /*
    * Getters.

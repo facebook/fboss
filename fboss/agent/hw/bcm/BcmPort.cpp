@@ -19,6 +19,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
@@ -355,6 +356,12 @@ void BcmPort::enable(const std::shared_ptr<Port>& swPort) {
 void BcmPort::enableLinkscan() {
   int rv = opennsl_linkscan_mode_set(unit_, port_, OPENNSL_LINKSCAN_MODE_SW);
   bcmCheckError(rv, "Failed to enable linkscan on port ", port_);
+}
+
+void BcmPort::setupQueues(const QueueConfig& swQueues) {
+  for (const auto& queue : swQueues) {
+    // program in queue
+  }
 }
 
 void BcmPort::program(const shared_ptr<Port>& port) {

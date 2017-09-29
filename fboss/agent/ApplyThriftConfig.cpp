@@ -27,6 +27,7 @@
 #include "fboss/agent/state/NdpResponseTable.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
@@ -39,6 +40,7 @@
 
 #include <algorithm>
 #include <boost/container/flat_set.hpp>
+#include <boost/container/flat_map.hpp>
 #include <folly/Range.h>
 #include <vector>
 
@@ -64,6 +66,8 @@ const int kAclStartPriority = 100000;
 
 namespace facebook { namespace fboss {
 
+typedef boost::container::flat_map<int, std::shared_ptr<PortQueue> >
+  QueueConfig;
 /*
  * A class for implementing applyThriftConfig().
  *
@@ -94,13 +98,13 @@ class ThriftConfigApplier {
                  std::shared_ptr<Node> origNode,
                  std::shared_ptr<Node> newNode) {
     if (newNode) {
-      auto ret = map->insert(std::make_pair(newNode->getID(), newNode));
+      auto ret = map->emplace(std::make_pair(newNode->getID(), newNode));
       if (!ret.second) {
         throw FbossError("duplicate entry ", newNode->getID());
       }
       return true;
     } else {
-      auto ret = map->insert(std::make_pair(origNode->getID(), origNode));
+      auto ret = map->emplace(std::make_pair(origNode->getID(), origNode));
       if (!ret.second) {
         throw FbossError("duplicate entry ", origNode->getID());
       }
@@ -151,6 +155,13 @@ class ThriftConfigApplier {
   std::shared_ptr<PortMap> updatePorts();
   std::shared_ptr<Port> updatePort(const std::shared_ptr<Port>& orig,
                                    const cfg::Port* cfg);
+  QueueConfig updatePortQueues(
+      const std::shared_ptr<Port>& orig,
+      const cfg::Port* cfg);
+  std::shared_ptr<PortQueue> updatePortQueue(
+      const std::shared_ptr<PortQueue>& orig,
+      const cfg::PortQueue& cfg);
+  std::shared_ptr<PortQueue> createPortQueue(const cfg::PortQueue& cfg);
   std::shared_ptr<AggregatePortMap> updateAggregatePorts();
   std::shared_ptr<AggregatePort> updateAggPort(
       const std::shared_ptr<AggregatePort>& orig,
@@ -496,12 +507,58 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts() {
 
   return origPorts->clone(newPorts);
 }
+std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
+    const std::shared_ptr<PortQueue>& orig,
+    const cfg::PortQueue& cfg) {
+  CHECK_EQ(orig->getID(), cfg.id);
+
+  if (orig->getStreamType() == cfg.streamType &&
+      orig->getWeight() == cfg.weight) {
+    return nullptr;
+  }
+
+  auto newQueue = orig->clone();
+  newQueue->setStreamType(cfg.streamType);
+  newQueue->setWeight(cfg.weight);
+  return newQueue;
+}
+
+std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
+    const cfg::PortQueue& cfg) {
+  auto queue = std::make_shared<PortQueue>(cfg.id);
+  queue->setStreamType(cfg.streamType);
+  queue->setWeight(cfg.weight);
+  return queue;
+}
+
+QueueConfig ThriftConfigApplier::updatePortQueues(
+    const std::shared_ptr<Port>& orig,
+    const cfg::Port* cfg) {
+  auto origPortQueues = orig->getPortQueues();
+  QueueConfig newPortQueues;
+  // Process all supplied queues
+  for (const auto& queue : cfg->queues) {
+    auto origQueueIter = origPortQueues.find(queue.id);
+    std::shared_ptr<PortQueue> newQueue;
+    std::shared_ptr<PortQueue> origQueue;
+    if (origQueueIter != origPortQueues.end()) {
+      newQueue = updatePortQueue(origQueueIter->second, queue);
+      origQueue = origQueueIter->second;
+    } else {
+      newQueue = createPortQueue(queue);
+    }
+    updateMap(&newPortQueues, origQueue, newQueue);
+  }
+  return newPortQueues;
+}
 
 shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
                                                  const cfg::Port* portConf) {
   CHECK_EQ(orig->getID(), portConf->logicalID);
 
   auto vlans = portVlans_[orig->getID()];
+
+  auto portQueues = updatePortQueues(orig, portConf);
 
   if (portConf->state == orig->getAdminState() &&
       VlanID(portConf->ingressVlan) == orig->getIngressVlan() &&
@@ -511,7 +568,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
       portConf->sFlowEgressRate == orig->getSflowEgressRate() &&
       portConf->name == orig->getName() &&
       portConf->description == orig->getDescription() &&
-      vlans == orig->getVlans()) {
+      vlans == orig->getVlans() &&
+      portQueues == orig->getPortQueues()) {
     return nullptr;
   }
 
@@ -525,6 +583,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
   newPort->setSflowEgressRate(portConf->sFlowEgressRate);
   newPort->setName(portConf->name);
   newPort->setDescription(portConf->description);
+  newPort->resetPortQueues(portQueues);
   return newPort;
 }
 

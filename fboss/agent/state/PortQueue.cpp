@@ -36,10 +36,11 @@ folly::dynamic PortQueueFields::toFollyDynamic() const {
 
 PortQueueFields PortQueueFields::fromFollyDynamic(
     const folly::dynamic& queueJson) {
+  PortQueueFields queue(static_cast<uint8_t>(queueJson[kId].asInt()));
+
   cfg::StreamType streamType = cfg::_StreamType_NAMES_TO_VALUES.find(
       queueJson[kStreamType].asString().c_str())->second;
-  PortQueueFields queue(static_cast<int8_t>(queueJson[kId].asInt()),
-      streamType);
+  queue.streamType = streamType;
   if (queueJson.find(kPriority) != queueJson.items().end()) {
     queue.priority = queueJson[kPriority].asInt();
   }
@@ -49,8 +50,7 @@ PortQueueFields PortQueueFields::fromFollyDynamic(
   return queue;
 }
 
-PortQueue::PortQueue(int8_t id, cfg::StreamType streamType)
-  : NodeBaseT(id, streamType) {
+PortQueue::PortQueue(uint8_t id) : NodeBaseT(id) {
 }
 
 template class NodeBaseT<PortQueue, PortQueueFields>;

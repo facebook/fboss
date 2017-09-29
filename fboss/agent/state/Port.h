@@ -34,7 +34,7 @@ struct PortFields {
     static VlanInfo fromFollyDynamic(const folly::dynamic& json);
     bool tagged;
   };
-  typedef boost::container::flat_map<VlanID, VlanInfo> VlanMembership;
+  using VlanMembership = boost::container::flat_map<VlanID, VlanInfo>;
   using QueueConfig =
     boost::container::flat_map<int, std::shared_ptr<PortQueue> >;
 
@@ -75,9 +75,9 @@ struct PortFields {
  */
 class Port : public NodeBaseT<Port, PortFields> {
  public:
-  typedef PortFields::VlanInfo VlanInfo;
-  typedef PortFields::VlanMembership VlanMembership;
-  typedef PortFields::OperState OperState;
+  using VlanInfo = PortFields::VlanInfo;
+  using VlanMembership = PortFields::VlanMembership;
+  using OperState = PortFields::OperState;
   using QueueConfig = PortFields::QueueConfig;
 
   Port(PortID id, const std::string& name);
