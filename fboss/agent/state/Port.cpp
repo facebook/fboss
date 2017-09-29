@@ -56,23 +56,8 @@ folly::dynamic PortFields::toFollyDynamic() const {
   port[kPortId] = static_cast<uint16_t>(id);
   port[kPortName] = name;
   port[kPortDescription] = description;
-  // For backwards compatibility, we must keep writing out the old strings
-  // otherwise, if we were to try to roll back with a warm boot, the old
-  // agent would crash failing to find "ENABLED" or "DISABLED" in
-  // the VALUES_TO_NAMES map. After the agent everywhere is capable of
-  // reading in either UP/POWER_DOWN or ENABLED/DISABLED,
-  // then we can remove this.
-  // Finally, after a release like that, we can remove the code that reads in
-  // "POWER_DOWN" and "UP".
-  std::unordered_map<cfg::PortState, std::string> transitionAdminStateMap{
-      {cfg::PortState::DISABLED, "POWER_DOWN"},
-      {cfg::PortState::ENABLED, "UP"},
-      // There should be no instances of DOWN, but leave it in the map just
-      // in case to avoid crashes if we missed deprecating it somewhere.
-      {cfg::PortState::DOWN, "POWER_DOWN"},
-  };
-  auto itrAdminState  = transitionAdminStateMap.find(adminState);
-  CHECK(itrAdminState != transitionAdminStateMap.end());
+  auto itrAdminState  = cfg::_PortState_VALUES_TO_NAMES.find(adminState);
+  CHECK(itrAdminState != cfg::_PortState_VALUES_TO_NAMES.end());
   port[kPortState] = itrAdminState->second;
   port[kPortOperState] = operState == OperState::UP;
   port[kIngressVlan] = static_cast<uint16_t>(ingressVlan);
@@ -103,8 +88,11 @@ PortFields PortFields::fromFollyDynamic(const folly::dynamic& portJson) {
   PortFields port(PortID(portJson[kPortId].asInt()),
       portJson[kPortName].asString());
   port.description = portJson[kPortDescription].asString();
-  // see note in toFollyDynamic for an explanation of the ugprade path
-  // to get rid of this backwards compatibility hack.
+  // For backwards compatibility, we still need the ability to read in
+  // both possible names for the admin port state. The production agent
+  // still writes out POWER_DOWN/UP instead of DISABLED/ENABLED. After
+  // another release, where we only write ENABLED/DISABLED we can get rid
+  // of this and use the NAMES_TO_VALUES map directly.
   std::unordered_map<std::string, cfg::PortState> transitionAdminStateMap{
       {"DISABLED", cfg::PortState::DISABLED},
       {"POWER_DOWN", cfg::PortState::DISABLED},
