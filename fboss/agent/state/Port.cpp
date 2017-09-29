@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include <folly/Conv.h>
@@ -34,6 +35,7 @@ constexpr auto kVlanInfo = "vlanInfo";
 constexpr auto kTagged = "tagged";
 constexpr auto kSflowIngressRate = "sFlowIngressRate";
 constexpr auto kSflowEgressRate = "sFlowEgressRate";
+constexpr auto kQueues = "queues";
 }
 namespace facebook { namespace fboss {
 
@@ -90,6 +92,10 @@ folly::dynamic PortFields::toFollyDynamic() const {
   }
   port[kSflowIngressRate] = sFlowIngressRate;
   port[kSflowEgressRate] = sFlowEgressRate;
+  port[kQueues] = folly::dynamic::array;
+  for (const auto& queue : queues) {
+    port[kQueues].push_back(queue.second->toFollyDynamic());
+  }
   return port;
 }
 
@@ -138,6 +144,12 @@ PortFields PortFields::fromFollyDynamic(const folly::dynamic& portJson) {
   }
   if (portJson.count(kSflowEgressRate) > 0) {
     port.sFlowEgressRate = portJson[kSflowEgressRate].asInt();
+  }
+  if (portJson.find(kQueues) != portJson.items().end()) {
+    for (const auto& queue : portJson[kQueues]) {
+      auto madeQueue = PortQueue::fromFollyDynamic(queue);
+      port.queues.emplace(std::make_pair(madeQueue->getID(), madeQueue));
+    }
   }
   return port;
 }

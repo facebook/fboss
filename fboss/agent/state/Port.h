@@ -18,6 +18,7 @@
 
 namespace facebook { namespace fboss {
 
+class PortQueue;
 class SwitchState;
 
 struct PortFields {
@@ -34,6 +35,8 @@ struct PortFields {
     bool tagged;
   };
   typedef boost::container::flat_map<VlanID, VlanInfo> VlanMembership;
+  using QueueConfig =
+    boost::container::flat_map<int, std::shared_ptr<PortQueue> >;
 
   enum class OperState {
     DOWN = 0,
@@ -64,6 +67,7 @@ struct PortFields {
   // packets randomly based on those settings. Zero means no sampling.
   int64_t sFlowIngressRate{0};
   int64_t sFlowEgressRate{0};
+  QueueConfig queues;
 };
 
 /*
@@ -74,6 +78,7 @@ class Port : public NodeBaseT<Port, PortFields> {
   typedef PortFields::VlanInfo VlanInfo;
   typedef PortFields::VlanMembership VlanMembership;
   typedef PortFields::OperState OperState;
+  using QueueConfig = PortFields::QueueConfig;
 
   Port(PortID id, const std::string& name);
 
@@ -159,6 +164,14 @@ class Port : public NodeBaseT<Port, PortFields> {
   }
   void setVlans(VlanMembership vlans) {
     writableFields()->vlans.swap(vlans);
+  }
+
+  const QueueConfig& getPortQueues() {
+    return getFields()->queues;
+  }
+
+  void resetPortQueues(QueueConfig& queues) {
+    writableFields()->queues.swap(queues);
   }
 
   VlanID getIngressVlan() const {
