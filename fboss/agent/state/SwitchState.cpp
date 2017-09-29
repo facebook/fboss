@@ -20,7 +20,6 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableMap.h"
-#include "fboss/agent/state/TrafficPolicy.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
@@ -44,7 +43,6 @@ constexpr auto kNdpTimeout = "ndpTimeout";
 constexpr auto kArpAgerInterval = "arpAgerInterval";
 constexpr auto kMaxNeighborProbes = "maxNeighborProbes";
 constexpr auto kStaleEntryInterval = "staleEntryInterval";
-constexpr auto kGlobalTrafficPolicy = "globalTrafficPolicy";
 }
 
 namespace facebook { namespace fboss {
@@ -67,9 +65,6 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kAcls] = acls->toFollyDynamic();
   switchState[kSflowCollectors] = sFlowCollectors->toFollyDynamic();
   switchState[kDefaultVlan] = static_cast<uint32_t>(defaultVlan);
-  if (trafficPolicy) {
-    switchState[kGlobalTrafficPolicy] = trafficPolicy->toFollyDynamic();
-  }
   return switchState;
 }
 
@@ -88,10 +83,6 @@ SwitchStateFields::fromFollyDynamic(const folly::dynamic& swJson) {
       swJson[kSflowCollectors]);
   }
   switchState.defaultVlan = VlanID(swJson[kDefaultVlan].asInt());
-  if (swJson.find(kGlobalTrafficPolicy) != swJson.items().end()) {
-    switchState.trafficPolicy = TrafficPolicy::fromFollyDynamic(
-        swJson[kGlobalTrafficPolicy]);
-  }
   //TODO verify that created state here is internally consistent t4155406
   return switchState;
 }

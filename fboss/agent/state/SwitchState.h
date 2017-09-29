@@ -28,7 +28,6 @@ class Interface;
 class InterfaceMap;
 class Port;
 class PortMap;
-class TrafficPolicy;
 class RouteTable;
 class RouteTableMap;
 class Vlan;
@@ -66,7 +65,6 @@ struct SwitchStateFields {
   std::shared_ptr<AclMap> acls;
   std::shared_ptr<SflowCollectorMap> sFlowCollectors;
   VlanID defaultVlan{0};
-  std::shared_ptr<TrafficPolicy> trafficPolicy;
 
 
   // Timeout settings
@@ -263,14 +261,6 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   }
   void setDhcpV6ReplySrc(folly::IPAddressV6 v6ReplySrc) {
      writableFields()->dhcpV6ReplySrc = v6ReplySrc;
-  }
-  const std::shared_ptr<TrafficPolicy> getTrafficPolicy() {
-    return getFields()->trafficPolicy;
-  }
-
-  void resetTrafficPolicy(
-      std::shared_ptr<TrafficPolicy> trafficPolicy) {
-    writableFields()->trafficPolicy.swap(trafficPolicy);
   }
 
   /*

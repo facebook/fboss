@@ -164,6 +164,7 @@ struct AclEntryFields {
   folly::Optional<uint8_t> dscp{folly::none};
 
   cfg::AclActionType actionType{cfg::AclActionType::PERMIT};
+  cfg::MatchAction aclAction;
   folly::Optional<int16_t> qosQueueNum{0};
 };
 
@@ -194,6 +195,7 @@ class AclEntry :
     return getFields()->priority == acl.getPriority() &&
            getFields()->name == acl.getID() &&
            getFields()->actionType == acl.getActionType() &&
+           getFields()->aclAction == acl.getAclAction() &&
            getFields()->qosQueueNum == acl.getQosQueueNum() &&
            getFields()->srcIp == acl.getSrcIp() &&
            getFields()->dstIp == acl.getDstIp() &&
@@ -217,6 +219,14 @@ class AclEntry :
 
   const std::string& getID() const {
     return getFields()->name;
+  }
+
+  const cfg::MatchAction& getAclAction() const {
+    return getFields()->aclAction;
+  }
+
+  void setAclAction(const cfg::MatchAction& action) {
+    writableFields()->aclAction = action;
   }
 
   folly::Optional<int16_t> getQosQueueNum() const {

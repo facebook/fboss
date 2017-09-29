@@ -10,6 +10,7 @@
 #include "fboss/agent/ApplyThriftConfig.h"
 
 #include <folly/FileUtil.h>
+#include <folly/gen/Base.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/agent/FbossError.h"
@@ -56,6 +57,8 @@ using std::shared_ptr;
 namespace {
 
 const uint8_t kV6LinkLocalAddrMask{64};
+// Needed until CoPP is removed from code and put into config
+const int kAclStartPriority = 100000;
 
 } // anonymous namespace
 
@@ -160,10 +163,13 @@ class ThriftConfigApplier {
                                    const cfg::Vlan* config);
   std::shared_ptr<AclMap> updateAcls();
   std::shared_ptr<AclEntry> createAcl(const cfg::AclEntry* config,
-                                      int priority);
-  std::shared_ptr<AclEntry> updateAcl(const std::shared_ptr<AclEntry>& orig,
-                                      const cfg::AclEntry* config,
-                                      int priority);
+      int priority,
+      const cfg::MatchAction* action = nullptr);
+  std::shared_ptr<AclEntry> updateAcl(const cfg::AclEntry& acl,
+    int priority,
+    int* numExistingProcessed,
+    bool* changed,
+    const cfg::MatchAction* action = nullptr);
   // check the acl provided by config is valid
   void checkAcl(const cfg::AclEntry* config) const;
   bool updateNeighborResponseTables(Vlan* vlan, const cfg::Vlan* config);
@@ -218,6 +224,14 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   bool changed = false;
 
   processVlanPorts();
+
+  {
+    auto newAcls = updateAcls();
+    if (newAcls) {
+      newState->resetAcls(std::move(newAcls));
+      changed = true;
+    }
+  }
 
   {
     auto newPorts = updatePorts();
@@ -296,14 +310,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
                        entry.interfaces.size(), " interfaces ");
       }
    }
-  }
-
-  {
-    auto newAcls = updateAcls();
-    if (newAcls) {
-      newState->resetAcls(std::move(newAcls));
-      changed = true;
-    }
   }
 
   std::chrono::seconds arpAgerInterval(cfg_->arpAgerInterval);
@@ -492,32 +498,33 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts() {
 }
 
 shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
-                                                 const cfg::Port* cfg) {
-  CHECK_EQ(orig->getID(), cfg->logicalID);
+                                                 const cfg::Port* portConf) {
+  CHECK_EQ(orig->getID(), portConf->logicalID);
 
   auto vlans = portVlans_[orig->getID()];
-  if (cfg->state == orig->getAdminState() &&
-      VlanID(cfg->ingressVlan) == orig->getIngressVlan() &&
-      cfg->speed == orig->getSpeed() &&
-      cfg->pause == orig->getPause() &&
-      cfg->sFlowIngressRate == orig->getSflowIngressRate() &&
-      cfg->sFlowEgressRate == orig->getSflowEgressRate() &&
-      cfg->name == orig->getName() &&
-      cfg->description == orig->getDescription() &&
+
+  if (portConf->state == orig->getAdminState() &&
+      VlanID(portConf->ingressVlan) == orig->getIngressVlan() &&
+      portConf->speed == orig->getSpeed() &&
+      portConf->pause == orig->getPause() &&
+      portConf->sFlowIngressRate == orig->getSflowIngressRate() &&
+      portConf->sFlowEgressRate == orig->getSflowEgressRate() &&
+      portConf->name == orig->getName() &&
+      portConf->description == orig->getDescription() &&
       vlans == orig->getVlans()) {
     return nullptr;
   }
 
   auto newPort = orig->clone();
-  newPort->setAdminState(cfg->state);
-  newPort->setIngressVlan(VlanID(cfg->ingressVlan));
+  newPort->setAdminState(portConf->state);
+  newPort->setIngressVlan(VlanID(portConf->ingressVlan));
   newPort->setVlans(vlans);
-  newPort->setSpeed(cfg->speed);
-  newPort->setPause(cfg->pause);
-  newPort->setSflowIngressRate(cfg->sFlowIngressRate);
-  newPort->setSflowEgressRate(cfg->sFlowEgressRate);
-  newPort->setName(cfg->name);
-  newPort->setDescription(cfg->description);
+  newPort->setSpeed(portConf->speed);
+  newPort->setPause(portConf->pause);
+  newPort->setSflowIngressRate(portConf->sFlowIngressRate);
+  newPort->setSflowEgressRate(portConf->sFlowEgressRate);
+  newPort->setName(portConf->name);
+  newPort->setDescription(portConf->description);
   return newPort;
 }
 
@@ -701,37 +708,117 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(const shared_ptr<Vlan>& orig,
   return newVlan;
 }
 
-shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
-  auto origAcls = orig_->getAcls();
+std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
   AclMap::NodeContainer newAcls;
   bool changed = false;
+  int numExistingProcessed = 0;
+  int priority = kAclStartPriority;
 
-  // Process all supplied ACLs
-  size_t numExistingProcessed = 0;
-  for (int i = 0; i < cfg_->acls.size(); ++i) {
-    const auto& acl = cfg_->acls[i];
-    auto origAcl = origAcls->getEntryIf(acl.name);
-    shared_ptr<AclEntry> newAcl;
-    if (origAcl) {
-      newAcl = updateAcl(origAcl, &acl, i);
-      ++numExistingProcessed;
-    } else {
-      newAcl = createAcl(&acl, i);
+  // Start with the DROP acls, these should have highest priority
+  auto acls = folly::gen::from(cfg_->acls)
+    | folly::gen::filter([](const cfg::AclEntry& entry) {
+          return entry.actionType == cfg::AclActionType::DENY;
+      })
+    | folly::gen::map([&](const cfg::AclEntry& entry) {
+          auto acl = updateAcl(entry, priority++, &numExistingProcessed,
+            &changed);
+          return std::make_pair(acl->getID(), acl);
+      })
+    | folly::gen::appendTo(newAcls);
+
+  // Let's get a map of acls to name so we don't have to search the acl list
+  // for every new use
+  flat_map<std::string, const cfg::AclEntry*> aclByName;
+  folly::gen::from(cfg_->acls)
+    | folly::gen::map([](const cfg::AclEntry& acl) {
+        return std::make_pair(acl.name, &acl);
+      })
+    | folly::gen::appendTo(aclByName);
+
+  // Generates new acls from template
+  auto addToAcls = [&] (const cfg::TrafficPolicyConfig& policy,
+      const std::string& name,
+      int dstPortID=-1)
+      -> const std::vector<std::pair<std::string, std::shared_ptr<AclEntry>>> {
+    std::vector<std::pair<std::string, std::shared_ptr<AclEntry>>> entries;
+    for (const auto& mta : policy.matchToAction) {
+      auto a = aclByName.find(mta.matcher);
+      if (a == aclByName.end()) {
+        throw FbossError("Invalid config: No acl named ", mta.matcher,
+            " found.");
+      }
+
+      auto aclCfg = *(a->second);
+      if (dstPortID != -1 && aclCfg.__isset.dstPort && aclCfg.dstPort !=
+          dstPortID) {
+        throw FbossError("Invalid port traffic policy acl: ",
+              aclCfg.name, " - dstPort is set to ", aclCfg.dstPort,
+              " but set on port ", dstPortID);
+      }
+
+      // We've already added any DENY acls
+      if (aclCfg.actionType == cfg::AclActionType::DENY) {
+        continue;
+      }
+
+      aclCfg.name = folly::to<std::string>("system:", name, mta.matcher);
+      if (dstPortID != -1) {
+        aclCfg.dstPort = dstPortID;
+        aclCfg.__isset.dstPort = true;
+      }
+      auto acl = updateAcl(aclCfg, priority++, &numExistingProcessed,
+        &changed, &(mta.action));
+      entries.push_back(std::make_pair(acl->getID(), acl));
     }
-    changed |= updateMap(&newAcls, origAcl, newAcl);
+    return entries;
+  };
+
+  // Add acls defined in any per port traffic policies
+  folly::gen::from(cfg_->ports)
+    | folly::gen::filter([](const cfg::Port& port) {
+        return port.__isset.egressTrafficPolicy;
+      })
+    | folly::gen::map([addToAcls](const cfg::Port& port) {
+        return addToAcls(port.egressTrafficPolicy,
+          folly::to<std::string>(port.name, ":"),
+          port.logicalID);
+      })
+    | folly::gen::rconcat
+    | folly::gen::appendTo(newAcls);
+
+  // Now add the global acls in defined
+  if (cfg_->__isset.globalEgressTrafficPolicy) {
+    folly::gen::from(addToAcls(cfg_->globalEgressTrafficPolicy, ""))
+      | folly::gen::appendTo(newAcls);;
   }
 
-  if (numExistingProcessed != origAcls->size()) {
+  if (numExistingProcessed != orig_->getAcls()->size()) {
     // Some existing ACLs were removed.
-    CHECK_LT(numExistingProcessed, origAcls->size());
     changed = true;
   }
 
   if (!changed) {
     return nullptr;
   }
+  return orig_->getAcls()->clone(std::move(newAcls));
+}
 
-  return origAcls->clone(std::move(newAcls));
+std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
+    const cfg::AclEntry& acl,
+    int priority,
+    int* numExistingProcessed,
+    bool* changed,
+    const cfg::MatchAction* action) {
+  auto origAcl = orig_->getAcls()->getEntryIf(acl.name);
+  auto newAcl = createAcl(&acl, priority, action);
+  if (origAcl) {
+    ++(*numExistingProcessed);
+    if (*origAcl == *newAcl) {
+      return origAcl;
+    }
+  }
+  *changed = true;
+  return newAcl;
 }
 
 void ThriftConfigApplier::checkAcl(const cfg::AclEntry *config) const {
@@ -792,10 +879,14 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry *config) const {
 }
 
 shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
-    const cfg::AclEntry* config, int priority) {
+    const cfg::AclEntry* config, int priority,
+    const cfg::MatchAction* action) {
   checkAcl(config);
   auto newAcl = make_shared<AclEntry>(priority, config->name);
   newAcl->setActionType(config->actionType);
+  if (action) {
+    newAcl->setAclAction(*action);
+  }
   if (config->__isset.qosQueueNum) {
     // TODO(ninasc): Remove from acl
     newAcl->setQosQueueNum(config->qosQueueNum);
@@ -845,20 +936,6 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (config->__isset.dscp) {
     newAcl->setDscp(config->dscp);
   }
-  return newAcl;
-}
-
-shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
-    const shared_ptr<AclEntry>& orig,
-    const cfg::AclEntry* config,
-    int priority) {
-
-  auto newAcl = createAcl(config, priority);
-
-  if (*orig == *newAcl) {
-    return nullptr;
-  }
-
   return newAcl;
 }
 

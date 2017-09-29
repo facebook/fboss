@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/state/AclEntry.h"
+#include "fboss/agent/state/MatchAction.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/StateUtils.h"
 #include <folly/Conv.h>
@@ -41,6 +42,7 @@ constexpr auto kIcmpType = "icmpType";
 constexpr auto kDscp = "dscp";
 constexpr auto kPortName = "portName";
 constexpr auto kQosQueueNum = "qosQueueNum";
+constexpr auto kAclAction = "aclAction";
 }
 
 namespace facebook { namespace fboss {
@@ -157,6 +159,7 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   auto itr_action = cfg::_AclActionType_VALUES_TO_NAMES.find(actionType);
   CHECK(itr_action != cfg::_AclActionType_VALUES_TO_NAMES.end());
   aclEntry[kActionType] = itr_action->second;
+  aclEntry[kAclAction] = MatchAction::toFollyDynamic(aclAction);
   if (qosQueueNum) {
     aclEntry[kQosQueueNum] = qosQueueNum.value();
   }
@@ -232,6 +235,8 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
           .find(util::getCpp2EnumName(aclEntryJson[kActionType].asString())
                     .c_str())
           ->second;
+  aclEntry.aclAction = MatchAction::fromFollyDynamic(aclEntryJson[kAclAction]);
+
   if (aclEntryJson.find(kQosQueueNum) != aclEntryJson.items().end()) {
     aclEntry.qosQueueNum =
         static_cast<int16_t>(aclEntryJson[kQosQueueNum].asInt());

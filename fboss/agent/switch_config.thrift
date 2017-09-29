@@ -519,8 +519,12 @@ struct SwitchConfig {
   13: optional list<StaticRouteNoNextHops> staticRoutesToNull = [];
   // Prefixes for which to send traffic to CPU
   14: optional list<StaticRouteNoNextHops> staticRoutesToCPU = [];
-  // These acls are not applied directly, instead they're used by TrafficPolicy
-  // to define policy matchers and actions
+  // List of all ACLs that are available for use by various agent components
+  // ACLs declared here can be referenced in other places in order to tie
+  // actions to them, e.g. as part of a MatchToAction
+  // Only DROP acls are applied directly, all others require being referenced
+  // elsewhere in order to be meaningful
+  // Ordering of DROP acls define their priority
   15: optional list<AclEntry> acls = []
   // Set max number of probes to a sufficiently high value
   // to allow for the cases where
