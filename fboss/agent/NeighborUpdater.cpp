@@ -12,6 +12,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/IPv6Handler.h"
+#include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Port.h"
@@ -37,6 +38,8 @@ using folly::IPAddressV4;
 using folly::IPAddressV6;
 
 namespace facebook { namespace fboss {
+
+using facebook::fboss::DeltaFunctions::forEachChanged;
 
 NeighborUpdater::NeighborUpdater(SwSwitch* sw)
     : AutoRegisterStateObserver(sw, "NeighborUpdater"),
@@ -165,7 +168,7 @@ void NeighborUpdater::receivedArpNotMine(VlanID vlan,
   cache->receivedArpNotMine(ip, mac, port, op);
 }
 
-void NeighborUpdater::portDown(PortID port) {
+void NeighborUpdater::portDown(PortDescriptor port) {
   for (auto vlanCaches : caches_) {
     auto arpCache = vlanCaches.second->arpCache;
     arpCache->portDown(port);
@@ -242,6 +245,8 @@ void NeighborUpdater::stateUpdated(const StateDelta& delta) {
       ndpCache->setStaleEntryInterval(newState->getStaleEntryInterval());
     }
   }
+
+  forEachChanged(delta.getPortsDelta(), &NeighborUpdater::portChanged, this);
 }
 
 template<typename T>
@@ -349,4 +354,30 @@ void NeighborUpdater::vlanChanged(const Vlan* oldVlan, const Vlan* newVlan) {
   }
 }
 
+void NeighborUpdater::portChanged(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  if (oldPort->getOperState() == Port::OperState::UP &&
+      newPort->getOperState() == Port::OperState::DOWN) {
+    // Fire explicit callback for purging neighbor entries.
+    CHECK_EQ(oldPort->getID(), newPort->getID());
+    auto portId = newPort->getID();
+
+    sw_->getBackgroundEVB()->runInEventBaseThread([this, portId]() {
+      auto aggPort =
+          sw_->getState()->getAggregatePorts()->getAggregatePortIf(portId);
+      if (aggPort) {
+        if (aggPort->forwardingSubportCount() < 1) {
+          auto aggPortID = aggPort->getID();
+          LOG(INFO) << "Purging neighbor entry for aggregate port "
+                    << aggPortID;
+          portDown(PortDescriptor(aggPortID));
+        }
+      } else {
+        LOG(INFO) << "Purging neighbor entry for physical port " << portId;
+        portDown(PortDescriptor(portId));
+      }
+    });
+  }
+}
 }} // facebook::fboss

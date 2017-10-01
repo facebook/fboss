@@ -1218,6 +1218,9 @@ TEST(ArpTest, PortFlapRecover) {
   // synced, so we set that here.
   sw->fibSynced();
 
+  // ensure port is up
+  sw->linkStateChanged(PortID(1), true);
+
   VlanID vlanID(1);
   IPAddressV4 senderIP = IPAddressV4("10.0.0.1");
   IPAddressV4 targetIP = IPAddressV4("10.0.0.2");
@@ -1288,10 +1291,17 @@ TEST(ArpTest, PortFlapRecover) {
   // send a port down event to the switch for port 1
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
   sw->linkStateChanged(PortID(1), false);
-  // port down handling is async on the bg evb, so
-  // block on something coming off of that
-  waitForBackgroundThread(sw);
+
+
+  // purging neighbor entries occurs on the background EVB via NeighorUpdater as
+  // a StateObserver.
+  // block until NeighborUpdater::stateChanged() has been invoked
   waitForStateUpdates(sw);
+  // block until neighbor purging logic has been executed on the background evb
+  waitForBackgroundThread(sw);
+  // block until updates to neighbor entries have been picked up by SwitchState
+  waitForStateUpdates(sw);
+
   // both entries should now be pending
   entry =
       sw->getState()->getVlans()->getVlanIf(vlanID)->getArpTable()->getEntryIf(

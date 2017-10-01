@@ -9,8 +9,10 @@
  */
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/state/SwitchState.h"
 
 #include <algorithm>
+#include <tuple>
 #include <utility>
 
 namespace {
@@ -72,6 +74,43 @@ AggregatePortFields AggregatePortFields::fromFollyDynamic(
 AggregatePort::SubportsDifferenceType AggregatePort::subportsCount() const {
   auto subportsRange = sortedSubports();
   return std::distance(subportsRange.begin(), subportsRange.end());
+}
+
+uint32_t AggregatePort::forwardingSubportCount() const {
+  uint32_t count = 0;
+
+  AggregatePort::Forwarding fwdState;
+  for (const auto& portAndState : subportAndFwdState()) {
+    std::tie(std::ignore, fwdState) = portAndState;
+    if (fwdState == Forwarding::ENABLED) {
+      ++count;
+    }
+  }
+
+  return count;
+}
+
+bool AggregatePort::isMemberPort(PortID port) const {
+  for (const auto memberPort : getFields()->ports_) {
+    if (memberPort == port) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+AggregatePort* AggregatePort::modify(std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  AggregatePortMap* aggPorts = (*state)->getAggregatePorts()->modify(state);
+  auto newAggPort = clone();
+  auto* ptr = newAggPort.get();
+  aggPorts->updateAggregatePort(std::move(newAggPort));
+  return ptr;
 }
 
 template class NodeBaseT<AggregatePort, AggregatePortFields>;

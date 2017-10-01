@@ -8,14 +8,40 @@
  *
  */
 #include "fboss/agent/state/AggregatePortMap.h"
-
+#include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/NodeMap-defs.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook { namespace fboss {
 
 AggregatePortMap::AggregatePortMap() {}
 
 AggregatePortMap::~AggregatePortMap() {}
+
+std::shared_ptr<AggregatePort> AggregatePortMap::getAggregatePortIf(
+    PortID port) const {
+  for (const auto& aggPort : *this) {
+    if (aggPort->isMemberPort(port)) {
+      return aggPort;
+    }
+  }
+
+  return nullptr;
+}
+
+AggregatePortMap* AggregatePortMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  SwitchState::modify(state);
+  auto newAggPorts = clone();
+  auto* ptr = newAggPorts.get();
+  (*state)->resetAggregatePorts(std::move(newAggPorts));
+  return ptr;
+}
 
 FBOSS_INSTANTIATE_NODE_MAP(AggregatePortMap, AggregatePortMapTraits);
 

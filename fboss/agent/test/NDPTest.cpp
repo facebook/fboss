@@ -1247,6 +1247,9 @@ TEST(NdpTest, PortFlapRecover) {
   // synced, so we set that here.
   sw->fibSynced();
 
+  // ensure port is up
+  sw->linkStateChanged(PortID(1), true);
+
   auto vlanID = VlanID(5);
 
   auto targetIP = IPAddressV6("2401:db00:2110:3004::1:0");
@@ -1402,12 +1405,17 @@ TEST(NdpTest, PortFlapRecover) {
   EXPECT_NE(entry3, nullptr);
   EXPECT_EQ(entry3->isPending(), false);
 
-  // send a port down event to the switch for port 2
+  // send a port down event to the switch for port 1
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
   sw->linkStateChanged(PortID(1), false);
-  // port down handling is async on the bg evb, so
-  // block on something coming off of that
+
+  // purging neighbor entries occurs on the background EVB via NeighorUpdater as
+  // a StateObserver.
+  // block until NeighborUpdater::stateChanged() has been invoked
+  waitForStateUpdates(sw);
+  // block until neighbor purging logic has been executed on the background evb
   waitForBackgroundThread(sw);
+  // block until updates to neighbor entries have been picked up by SwitchState
   state = waitForStateUpdates(sw);
 
   // The first two entries should be pending now, but not the third

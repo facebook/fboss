@@ -61,7 +61,7 @@ class NeighborCache {
     impl_->setVlanName(vlanName);
   }
 
-  void portDown(PortID port) {
+  void portDown(PortDescriptor port) {
     std::lock_guard<std::mutex> g(cacheLock_);
     impl_->portDown(port);
   }

@@ -30,6 +30,18 @@ class AggregatePortMap
     return getNodeIf(id);
   }
 
+  /* This method will iterate over every member port in every aggregate port,
+   * so it is a quadratic operation. If it turns out to be a bottleneck, we can
+   * maintain an index to speed it up.
+   */
+  std::shared_ptr<AggregatePort> getAggregatePortIf(PortID port) const;
+
+  void updateAggregatePort(const std::shared_ptr<AggregatePort>& aggPort) {
+    updateNode(aggPort);
+  }
+
+  AggregatePortMap* modify(std::shared_ptr<SwitchState>* state);
+
  private:
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;

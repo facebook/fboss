@@ -82,7 +82,7 @@ class NeighborCacheImpl {
 
   std::unique_ptr<EntryFields> cloneEntryFields(AddressType ip);
 
-  void portDown(PortID port);
+  void portDown(PortDescriptor port);
 
   SwSwitch* getSw() const {
     return sw_;

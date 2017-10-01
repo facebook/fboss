@@ -1102,7 +1102,7 @@ void SwSwitch::linkStateChanged(PortID portId, bool up) {
   }
 
   // Schedule an update for port's operational status
-  auto updateFn = [=] (const std::shared_ptr<SwitchState>& state) {
+  auto updateOperStateFn = [=](const std::shared_ptr<SwitchState>& state) {
     std::shared_ptr<SwitchState> newState(state);
     auto* port = newState->getPorts()->getPortIf(portId).get();
     if (not port) {
@@ -1114,18 +1114,52 @@ void SwSwitch::linkStateChanged(PortID portId, bool up) {
 
     return newState;
   };
-  updateState("Port OperState Update", std::move(updateFn));
+  updateStateNoCoalescing(
+      "Port OperState Update", std::move(updateOperStateFn));
+
+  /* In testing, we've found that it can take up to 100 ms _after_ a link-up
+   * interrupt has been issued for the link to actually be usable (ie. able to
+   * transmit and receive frames). Thus, immediately expanding the LAG group
+   * to include the newly-up port can result in packet loss.
+   * Packet loss of this nature is avoided in the case of dynamic link
+   * aggregation by an application of fate-sharing: instead of immediately
+   * expanding the LAG group, the LACP machinery is first notified of the event,
+   * resulting in a LAC PDU exchange between the local interface and the remote
+   * interface. Once the LACP handshake has completed, the LAG group is expanded
+   * to include the newly-up port. Since the link must have been able to
+   * transmit and receive to complete the handshake, expanding the LAG group
+   * afterwards must avoid packet loss. Conversely, if the LACP handshake does
+   * not complete, whether due to the link not yet being usable or due to normal
+   * LACP operation, then we would not want to add the newly-up port to the LAG
+   * group, as dictated by LACP.
+   */
+  auto updateFwdStateFn = [=](const std::shared_ptr<SwitchState>& state)
+      -> std::shared_ptr<SwitchState> {
+    std::shared_ptr<SwitchState> nextState(state);
+    auto* aggPort =
+        nextState->getAggregatePorts()->getAggregatePortIf(portId).get();
+    if (!aggPort) {
+      return nullptr;
+    }
+
+    LOG(INFO) << "Updating AggregatePort " << aggPort->getID()
+              << ": ForwardingState[" << portId << "] --> "
+              << (up ? "ENABLED" : "DISABLED");
+
+    aggPort = aggPort->modify(&nextState);
+    auto fwdState = up ? AggregatePort::Forwarding::ENABLED
+                       : AggregatePort::Forwarding::DISABLED;
+    aggPort->setForwardingState(portId, fwdState);
+
+    return nextState;
+  };
+  updateStateNoCoalescing(
+      "AggregatePort ForwardingState", std::move(updateFwdStateFn));
 
   // Log event and update counters
   logLinkStateEvent(portId, up);
   setPortStatusCounter(portId, up);
   stats()->port(portId)->linkStateChange();
-
-  // Fire explicit callback for purging neighbor entries.
-  if (not up) {
-    backgroundEventBase_.runInEventBaseThread(
-        [this, portId]() { nUpdater_->portDown(portId); });
-  }
 }
 
 void SwSwitch::startThreads() {

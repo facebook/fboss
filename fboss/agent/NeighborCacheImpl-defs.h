@@ -367,7 +367,7 @@ NeighborCacheImpl<NTable>::cloneEntryFields(AddressType ip) {
 }
 
 template <typename NTable>
-void NeighborCacheImpl<NTable>::portDown(PortID port) {
+void NeighborCacheImpl<NTable>::portDown(PortDescriptor port) {
   for (auto item : entries_) {
     if (item.second->getPort() != port) {
       continue;

@@ -82,7 +82,7 @@ class NeighborUpdater : public AutoRegisterStateObserver {
                           PortDescriptor port,
                           ArpOpCode op);
 
-  void portDown(PortID port);
+  void portDown(PortDescriptor port);
 
   void getArpCacheData(std::vector<ArpEntryThrift>& arpTable);
 
@@ -92,6 +92,10 @@ class NeighborUpdater : public AutoRegisterStateObserver {
   void vlanAdded(const SwitchState* state, const Vlan* vlan);
   void vlanDeleted(const Vlan* vlan);
   void vlanChanged(const Vlan* oldVlan, const Vlan* newVlan);
+
+  void portChanged(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
 
   void sendNeighborUpdates(const VlanDelta& delta);
 

@@ -139,6 +139,16 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
     return it->second;
   }
 
+  void setForwardingState(PortID port, AggregatePort::Forwarding fwd) {
+    // TODO(samank): need to handle case in which port doesn't exist?
+    auto it = writableFields()->portToFwdState_.find(port);
+    if (it == writableFields()->portToFwdState_.end()) {
+      throw FbossError("No forwarding state found for port ", port);
+    }
+
+    it->second = fwd;
+  }
+
   SubportsConstRange sortedSubports() const {
     return SubportsConstRange(
         getFields()->ports_.cbegin(), getFields()->ports_.cend());
@@ -151,11 +161,17 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
 
   SubportsDifferenceType subportsCount() const;
 
+  uint32_t forwardingSubportCount() const;
+
   SubportAndForwardingStateConstRange subportAndFwdState() const {
     return SubportAndForwardingStateConstRange(
         getFields()->portToFwdState_.cbegin(),
         getFields()->portToFwdState_.cend());
   }
+
+  bool isMemberPort(PortID port) const;
+
+  AggregatePort* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()
