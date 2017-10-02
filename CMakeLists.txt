@@ -23,18 +23,112 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Woverloaded-virtua
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized -Wdeprecated-declarations")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=deprecated-declarations")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DINCLUDE_L3 -DLONGS_ARE_64BITS")
-set(CMAKE_PROGRAM_PATH "${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/compiler/;${CMAKE_PROGRAM_PATH}")
+#set(CMAKE_PROGRAM_PATH "${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/compiler/;${CMAKE_PROGRAM_PATH}")
 set(PCAP_DIR_PATH
   "${CMAKE_BINARY_DIR}/gen/fboss/pcap_distribution_service/if/gen-cpp2/")
 
 include_directories(${CMAKE_SOURCE_DIR})
-include_directories(${CMAKE_BINARY_DIR}/gen)
-include_directories(${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2)
-include_directories(${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2)
-include_directories(${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2)
-include_directories(${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2)
-include_directories(${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2)
 
+
+# Generate thrift deps and libraries
+find_program(THRIFT1 thrift1)
+set(THRIFT_INCLUDE ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift)
+set(THRIFT_TEMPLATES ${THRIFT_INCLUDE}/thrift/templates)
+include(${THRIFT_INCLUDE}/../ThriftLibrary.cmake)
+
+set(THRIFT_DIR ${CMAKE_BINARY_DIR}/thrift-out/)
+file(MAKE_DIRECTORY ${THRIFT_DIR})
+
+include_directories(${CMAKE_BINARY_DIR}/thrift-out)
+
+foreach(lang cpp2 py)
+    thrift_library(
+        "fb303" #file_name
+        "facebookservice" #services
+        "${lang}" #language
+        "" #options
+        "${cmake_source_dir}/common/fb303/if" #file_path
+        "${thrift_dir}" #output_path
+        )
+# fboss_add_thrift(THRIFTSRC common/network/if/Address.thrift
+#     OPTIONS json,compatibility,include_prefix=common/network/if
+#     REFLECT Address)
+    thrift_library(
+        "Address" #file_name
+        "" #services
+        "${lang}" #language
+        "json,compatibility,include_prefix=common/network/if" #options
+        "${cmake_source_dir}/common/network/if" #file_path
+        "${thrift_dir}" #output_path
+        )
+# fboss_add_thrift(THRIFTSRC fboss/agent/switch_config.thrift
+#     OPTIONS json
+#     REFLECT switch_config)
+    thrift_library(
+        "switch_config" #file_name
+        "" #services
+        "${lang}" #language
+        "json" #options
+        "${cmake_source_dir}/fboss/agent" #file_path
+        "${thrift_dir}" #output_path
+        )
+# fboss_add_thrift(THRIFTSRC fboss/agent/hw/sim/sim_ctrl.thrift SERVICES SimCtrl)
+    thrift_library(
+        "sim_ctrl" #file_name
+        "" #services
+        "${lang}" #language
+        "" #options
+        "${cmake_source_dir}/fboss/agent/hw/sim" #file_path
+        "${thrift_dir}" #output_path
+        )
+    foreach(lib ctrl fboss highres optics sflow)
+        thrift_library(
+            "${lib}" #file_name
+            "" #services
+            "${lang}" #language
+            "" #options
+            "${cmake_source_dir}/fboss/agent/if" #file_path
+            "${thrift_dir}" #output_path
+            )
+    endforeach(lib)
+    foreach(lib packettrace bcmswitch hardware_stats)
+        thrift_library(
+            "${lib}" #file_name
+            "" #services
+            "${lang}" #language
+            "" #options
+            "${cmake_source_dir}/fboss/agent/hw/bcm" #file_path
+            "${thrift_dir}" #output_path
+            )
+    endforeach(lib)
+    thrift_library(
+        "pcap_pubsub" #file_name
+        "" #services
+        "${lang}" #language
+        "" #options
+        "${cmake_source_dir}/fboss/pcap_distribution_service/if" #file_path
+        "${thrift_dir}" #output_path
+        )
+    foreach(lib transceiver qsfp)
+        thrift_library(
+            "${lib}" #file_name
+            "" #services
+            "${lang}" #language
+            "" #options
+            "${cmake_source_dir}/fboss/qsfp_service/if" #file_path
+            "${thrift_dir}" #output_path
+            )
+    endforeach(lib)
+endforeach(lang)
+
+
+# include_directories(${CMAKE_BINARY_DIR}/gen)
+# include_directories(${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2)
+# include_directories(${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2)
+# include_directories(${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2)
+# include_directories(${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2)
+# include_directories(${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2)
+# 
 # System libraries
 find_library(GLOG glog)
 find_library(BOOSTSER boost_serialization)
@@ -63,9 +157,9 @@ find_library(CURL curl)
 find_library(FOLLY folly PATHS ${CMAKE_SOURCE_DIR}/external/folly/folly/.libs)
 find_library(FOLLYBENCHMARK follybenchmark PATHS ${CMAKE_SOURCE_DIR}/external/folly/folly/.libs)
 find_library(WANGLE wangle PATHS ${CMAKE_SOURCE_DIR}/external/wangle/wangle/build/lib)
-find_library(THRIFT thrift PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp/.libs)
-find_library(THRIFTPROTO thriftprotocol PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs)
-find_library(THRIFTCPP2 thriftcpp2 PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/lib/cpp2/.libs)
+find_library(THRIFT thrift PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib/)
+find_library(THRIFTPROTO thriftprotocol PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
+find_library(THRIFTCPP2 thriftcpp2 PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
 find_library(OPENNSL opennsl PATHS ${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge-trident)
 find_library(IPROUTE2 netlink PATHS ${CMAKE_SOURCE_DIR}/external/iproute2/lib)
 find_library(ZSTD zstd PATHS ${CMAKE_SOURCE_DIR}/external/zstd/lib)
@@ -292,59 +386,59 @@ add_library(fboss_agent STATIC
     fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
 
 
-
-    # generated sources
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/packettrace_data.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/packettrace_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/FacebookService.cpp
-    ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/FacebookService_client.cpp
-    ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/fb303_data.cpp
-    ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/fb303_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_constants.cpp
-    ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_reflection.cpp
-    ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_data.cpp
-    ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_constants.cpp
-    ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_data.cpp
-    ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2/switch_config_constants.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2/switch_config_data.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2/switch_config_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/SimCtrl.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_data.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_constants.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/optic_data.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/optic_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/sflow_data.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/sflow_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/sflow_constants.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/ctrl_data.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/ctrl_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/FbossCtrl.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/NeighborListenerClient_client.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/FbossHighresClient_client.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/fboss_data.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/fboss_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/highres_data.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/highres_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/bcmswitch_data.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/bcmswitch_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/hardware_stats_data.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/hardware_stats_types.cpp
-    ${PCAP_DIR_PATH}PcapPushSubscriber.cpp
-    ${PCAP_DIR_PATH}PcapPushSubscriber_client.cpp
-    ${PCAP_DIR_PATH}pcap_pubsub_constants.cpp
-    ${PCAP_DIR_PATH}pcap_pubsub_types.cpp
-    ${PCAP_DIR_PATH}pcap_pubsub_data.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/QsfpService.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/QsfpService_client.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/qsfp_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/qsfp_data.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/qsfp_constants.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/transceiver_types.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/transceiver_data.cpp
-    ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/transceiver_constants.cpp
+# 
+#     # generated sources
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/packettrace_data.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/packettrace_types.cpp
+#     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/FacebookService.cpp
+#     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/FacebookService_client.cpp
+#     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/fb303_data.cpp
+#     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/fb303_types.cpp
+#     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_constants.cpp
+#     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_reflection.cpp
+#     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_data.cpp
+#     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_types.cpp
+#     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_constants.cpp
+#     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_data.cpp
+#     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_types.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2/switch_config_constants.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2/switch_config_data.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2/switch_config_types.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/SimCtrl.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_data.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_types.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_constants.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/optic_data.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/optic_types.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/sflow_data.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/sflow_types.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/sflow_constants.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/ctrl_data.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/ctrl_types.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/FbossCtrl.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/NeighborListenerClient_client.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/FbossHighresClient_client.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/fboss_data.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/fboss_types.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/highres_data.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/highres_types.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/bcmswitch_data.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/bcmswitch_types.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/hardware_stats_data.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/hardware_stats_types.cpp
+#     ${PCAP_DIR_PATH}PcapPushSubscriber.cpp
+#     ${PCAP_DIR_PATH}PcapPushSubscriber_client.cpp
+#     ${PCAP_DIR_PATH}pcap_pubsub_constants.cpp
+#     ${PCAP_DIR_PATH}pcap_pubsub_types.cpp
+#     ${PCAP_DIR_PATH}pcap_pubsub_data.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/QsfpService.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/QsfpService_client.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/qsfp_types.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/qsfp_data.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/qsfp_constants.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/transceiver_types.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/transceiver_data.cpp
+#     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/transceiver_constants.cpp
 )
 
 target_link_libraries(fboss_agent
@@ -377,6 +471,22 @@ target_link_libraries(fboss_agent
     ${CURL}
     ${NUMA}
     ${ZSTD}
+    # autogenerated thrift libs
+    fb303-cpp2
+    Address-cpp2
+    switch_config-cpp2
+    sim_ctrl-cpp2
+    ctrl-cpp2
+    fboss-cpp2
+    highres-cpp2
+    optics-cpp2
+    sflow-cpp2
+    packettrace-cpp2
+    bcmswitch-cpp2
+    hardware_stats-cpp2
+    pcap_pubsub-cpp2
+    transceiver-cpp2
+    qsfp-cpp2
 )
 
 target_link_libraries(qsfp_service
@@ -402,71 +512,49 @@ set(THRIFTC ${THRIFT1} -I ${CMAKE_SOURCE_DIR} -gen cpp:json,templates -gen py:)
 set(THRIFTC2
     ${PYTHON} -mthrift_compiler.main -I ${CMAKE_SOURCE_DIR} --gen cpp2:)
 
-function(fboss_add_thrift)
-    cmake_parse_arguments("arg" "" "OPTIONS;THRIFTSRC;REFLECT" "SERVICES" ${ARGN})
-    get_cmake_property(_variableNames VARIABLES)
-    get_filename_component(dirname "${arg_THRIFTSRC}" PATH)
-    # NAME_WE = name without extension.
-    get_filename_component(basename "${arg_THRIFTSRC}" NAME_WE)
-    foreach(srv ${arg_SERVICES})
-        set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${srv}.cpp)
-        set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${srv}.h)
-        set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}_client.cpp)
-        set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}.cpp)
-        set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}.h)
-    endforeach(srv)
-    foreach(reflect ${arg_REFLECT})
-        set(outputs ${outputs}
-            ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${reflect}_reflection.h
-            ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${reflect}_reflection.cpp)
-    endforeach(reflect)
-    foreach(gen cpp cpp2)
-        foreach(output constants data types)
-            set(outputs ${outputs}
-                ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${basename}_${output}.h
-                ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${basename}_${output}.cpp)
-        endforeach(output)
-    endforeach(gen)
-    if (${arg_OPTIONS})
-        set(THRIFTOPT ${arg_OPTIONS})
-    else()
-        set(THRIFTOPT ${THRIFTC2OPTIONS})
-    endif()
-    add_custom_command(
-        OUTPUT
-            ${outputs}
-            ${services}
-        COMMAND
-            export PYTHONPATH=${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/.python-local/lib/python/\;
-            mkdir -p ${CMAKE_BINARY_DIR}/gen/${dirname}\;
-            ${THRIFTC} -o ${CMAKE_BINARY_DIR}/gen/${dirname} ${CMAKE_SOURCE_DIR}/${arg_THRIFTSRC}\;
-            ${THRIFTC2}${arg_OPTIONS} -o ${CMAKE_BINARY_DIR}/gen/${dirname} ${CMAKE_SOURCE_DIR}/${arg_THRIFTSRC};
-    )
+# function(fboss_add_thrift)
+#     cmake_parse_arguments("arg" "" "OPTIONS;THRIFTSRC;REFLECT" "SERVICES" ${ARGN})
+#     get_cmake_property(_variableNames VARIABLES)
+#     get_filename_component(dirname "${arg_THRIFTSRC}" PATH)
+#     # NAME_WE = name without extension.
+#     get_filename_component(basename "${arg_THRIFTSRC}" NAME_WE)
+#     foreach(srv ${arg_SERVICES})
+#         set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${srv}.cpp)
+#         set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${srv}.h)
+#         set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}_client.cpp)
+#         set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}.cpp)
+#         set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}.h)
+#     endforeach(srv)
+#     foreach(reflect ${arg_REFLECT})
+#         set(outputs ${outputs}
+#             ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${reflect}_reflection.h
+#             ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${reflect}_reflection.cpp)
+#     endforeach(reflect)
+#     foreach(gen cpp cpp2)
+#         foreach(output constants data types)
+#             set(outputs ${outputs}
+#                 ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${basename}_${output}.h
+#                 ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${basename}_${output}.cpp)
+#         endforeach(output)
+#     endforeach(gen)
+#     if (${arg_OPTIONS})
+#         set(THRIFTOPT ${arg_OPTIONS})
+#     else()
+#         set(THRIFTOPT ${THRIFTC2OPTIONS})
+#     endif()
+#     add_custom_command(
+#         OUTPUT
+#             ${outputs}
+#             ${services}
+#         COMMAND
+#             export PYTHONPATH=${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/.python-local/lib/python/\;
+#             mkdir -p ${CMAKE_BINARY_DIR}/gen/${dirname}\;
+#             ${THRIFTC} -o ${CMAKE_BINARY_DIR}/gen/${dirname} ${CMAKE_SOURCE_DIR}/${arg_THRIFTSRC}\;
+#             ${THRIFTC2}${arg_OPTIONS} -o ${CMAKE_BINARY_DIR}/gen/${dirname} ${CMAKE_SOURCE_DIR}/${arg_THRIFTSRC};
+#     )
+# 
+# endfunction(fboss_add_thrift)
 
-endfunction(fboss_add_thrift)
-
-fboss_add_thrift(THRIFTSRC common/fb303/if/fb303.thrift SERVICES FacebookService)
-fboss_add_thrift(THRIFTSRC common/network/if/Address.thrift
-    OPTIONS json,compatibility,include_prefix=common/network/if
-    REFLECT Address)
-fboss_add_thrift(THRIFTSRC fboss/agent/switch_config.thrift
-    OPTIONS json
-    REFLECT switch_config)
-fboss_add_thrift(THRIFTSRC fboss/agent/hw/sim/sim_ctrl.thrift SERVICES SimCtrl)
-fboss_add_thrift(THRIFTSRC fboss/agent/if/ctrl.thrift
-    SERVICES FbossCtrl NeighborListenerClient)
-fboss_add_thrift(THRIFTSRC fboss/agent/if/fboss.thrift)
-fboss_add_thrift(THRIFTSRC fboss/agent/if/highres.thrift SERVICES FbossHighresClient)
-fboss_add_thrift(THRIFTSRC fboss/agent/if/optic.thrift)
-fboss_add_thrift(THRIFTSRC fboss/agent/if/sflow.thrift)
-fboss_add_thrift(THRIFTSRC fboss/agent/hw/bcm/packettrace.thrift)
-fboss_add_thrift(THRIFTSRC fboss/agent/hw/bcm/bcmswitch.thrift)
-fboss_add_thrift(THRIFTSRC fboss/agent/hw/bcm/hardware_stats.thrift)
-fboss_add_thrift(THRIFTSRC fboss/pcap_distribution_service/if/pcap_pubsub.thrift
-    SERVICES PcapSubscriber PcapPushSubscriber)
-fboss_add_thrift(THRIFTSRC fboss/qsfp_service/if/transceiver.thrift)
-fboss_add_thrift(THRIFTSRC fboss/qsfp_service/if/qsfp.thrift
-    SERVICES QsfpService)
 
 # Unit Testing
 add_definitions (-DIS_OSS=true)

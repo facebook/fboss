@@ -51,7 +51,7 @@ function build_cmake() {
         echo "building $1..."
         cd "$1" || die "Missing dir $1"
         if [ -e ./CMakeLists.txt ]; then
-            mkdir -p build
+            mkdir -p build || true
             cd build
             echo cmake .. $CMAKEFLAGS
             cmake .. $CMAKEFLAGS || die "Cmake failed for $1"
@@ -112,7 +112,12 @@ NPROC=$(grep -c processor /proc/cpuinfo)
     build_autoconf folly/folly || die "Failed to build folly"
     export CMAKEFLAGS="-DFOLLY_INCLUDE_DIR=$EXT/folly -DFOLLY_LIBRARY=$EXT/folly/folly/.libs/libfolly.a -DBUILD_TESTS=OFF"
     build_cmake wangle/wangle || die "Failed to build wangle"
-    export CPPFLAGS=" -I$EXT/folly -I$EXT/wangle -I$EXT/mstch/include -I$EXT/zstd/lib/"
-    export LDFLAGS="-L$EXT/folly/folly/.libs/ -L$EXT/wangle/wangle/build/lib -L$EXT/mstch/build/src/"
-    build_autoconf fbthrift/thrift || die "Failed to build thrift"
+    export CMAKEFLAGS="$CMAKEFLAGS \
+        -DMSTCH_LIBRARIES=$EXT/mstch/build/src/libmstch.a \
+        -DMSTCH_INCLUDE_DIRS=$EXT/mstch/include \
+        -DWANGLE_LIBRARIES=$EXT/wangle/wangle/build/lib \
+        -DWANGLE_INCLUDE_DIRS=$EXT/wangle \
+        -DZSTD_LIBRARIES=$EXT/zstd/lib \
+        -DZSTD_INCLUDE_DIRS=$EXT/zstd/lib"
+    build_cmake fbthrift/ || die "Failed to build thrift"
 )
