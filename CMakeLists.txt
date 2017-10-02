@@ -31,24 +31,28 @@ include_directories(${CMAKE_SOURCE_DIR})
 
 
 # Generate thrift deps and libraries
-find_program(THRIFT1 thrift1)
+find_program(THRIFT1 thrift1 HINT ${CMAKE_SOURCE_DIR}/external/fbthrift/build/bin)
 set(THRIFT_INCLUDE ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift)
-set(THRIFT_TEMPLATES ${THRIFT_INCLUDE}/thrift/templates)
+set(THRIFT_TEMPLATES ${THRIFT_INCLUDE}/compiler/generate/templates)
 include(${THRIFT_INCLUDE}/../ThriftLibrary.cmake)
 
-set(THRIFT_DIR ${CMAKE_BINARY_DIR}/thrift-out/)
-file(MAKE_DIRECTORY ${THRIFT_DIR})
-
-include_directories(${CMAKE_BINARY_DIR}/thrift-out)
+set(THRIFT_DIR ${CMAKE_BINARY_DIR}/thrift-out)
+file(MAKE_DIRECTORY ${THRIFT_DIR}/common/fb303/if)
+file(MAKE_DIRECTORY ${THRIFT_DIR}/common/network/if)
+file(MAKE_DIRECTORY ${THRIFT_DIR}/fboss/agent/if)
+file(MAKE_DIRECTORY ${THRIFT_DIR}/fboss/agent/hw/sim)
+file(MAKE_DIRECTORY ${THRIFT_DIR}/fboss/agent/hw/bcm)
+file(MAKE_DIRECTORY ${THRIFT_DIR}/fboss/pcap_distribution_service/if)
+file(MAKE_DIRECTORY ${THRIFT_DIR}/fboss/qsfp_service/if)
 
 foreach(lang cpp2 py)
     thrift_library(
         "fb303" #file_name
-        "facebookservice" #services
+        "FacebookService" #services
         "${lang}" #language
         "" #options
-        "${cmake_source_dir}/common/fb303/if" #file_path
-        "${thrift_dir}" #output_path
+        "${CMAKE_SOURCE_DIR}/common/fb303/if" #file_path
+        "${THRIFT_DIR}/common/fb303/if" #output_path
         )
 # fboss_add_thrift(THRIFTSRC common/network/if/Address.thrift
 #     OPTIONS json,compatibility,include_prefix=common/network/if
@@ -57,9 +61,10 @@ foreach(lang cpp2 py)
         "Address" #file_name
         "" #services
         "${lang}" #language
-        "json,compatibility,include_prefix=common/network/if" #options
-        "${cmake_source_dir}/common/network/if" #file_path
-        "${thrift_dir}" #output_path
+        #"json,compatibility,include_prefix=common/network/if" #options
+        ""
+        "${CMAKE_SOURCE_DIR}/common/network/if" #file_path
+        "${THRIFT_DIR}/common/network/if" #output_path
         )
 # fboss_add_thrift(THRIFTSRC fboss/agent/switch_config.thrift
 #     OPTIONS json
@@ -69,8 +74,8 @@ foreach(lang cpp2 py)
         "" #services
         "${lang}" #language
         "json" #options
-        "${cmake_source_dir}/fboss/agent" #file_path
-        "${thrift_dir}" #output_path
+        "${CMAKE_SOURCE_DIR}/fboss/agent" #file_path
+        "${THRIFT_DIR}/fboss/agent" #output_path
         )
 # fboss_add_thrift(THRIFTSRC fboss/agent/hw/sim/sim_ctrl.thrift SERVICES SimCtrl)
     thrift_library(
@@ -78,17 +83,17 @@ foreach(lang cpp2 py)
         "" #services
         "${lang}" #language
         "" #options
-        "${cmake_source_dir}/fboss/agent/hw/sim" #file_path
-        "${thrift_dir}" #output_path
+        "${CMAKE_SOURCE_DIR}/fboss/agent/hw/sim" #file_path
+        "${THRIFT_DIR}/fboss/agent/hw/sim" #output_path
         )
-    foreach(lib ctrl fboss highres optics sflow)
+    foreach(lib ctrl fboss highres optic sflow)
         thrift_library(
             "${lib}" #file_name
             "" #services
             "${lang}" #language
             "" #options
-            "${cmake_source_dir}/fboss/agent/if" #file_path
-            "${thrift_dir}" #output_path
+            "${CMAKE_SOURCE_DIR}/fboss/agent/if" #file_path
+            "${THRIFT_DIR}/fboss/agent/if" #output_path
             )
     endforeach(lib)
     foreach(lib packettrace bcmswitch hardware_stats)
@@ -97,8 +102,8 @@ foreach(lang cpp2 py)
             "" #services
             "${lang}" #language
             "" #options
-            "${cmake_source_dir}/fboss/agent/hw/bcm" #file_path
-            "${thrift_dir}" #output_path
+            "${CMAKE_SOURCE_DIR}/fboss/agent/hw/bcm" #file_path
+            "${THRIFT_DIR}/fboss/agent/hw/bcm" #output_path
             )
     endforeach(lib)
     thrift_library(
@@ -106,8 +111,8 @@ foreach(lang cpp2 py)
         "" #services
         "${lang}" #language
         "" #options
-        "${cmake_source_dir}/fboss/pcap_distribution_service/if" #file_path
-        "${thrift_dir}" #output_path
+        "${CMAKE_SOURCE_DIR}/fboss/pcap_distribution_service/if" #file_path
+        "${THRIFT_DIR}/fboss/pcap_distribution_service/if" #output_path
         )
     foreach(lib transceiver qsfp)
         thrift_library(
@@ -115,11 +120,14 @@ foreach(lang cpp2 py)
             "" #services
             "${lang}" #language
             "" #options
-            "${cmake_source_dir}/fboss/qsfp_service/if" #file_path
-            "${thrift_dir}" #output_path
+            "${CMAKE_SOURCE_DIR}/fboss/qsfp_service/if" #file_path
+            "${THRIFT_DIR}/fboss/qsfp_service/if" #output_path
             )
     endforeach(lib)
 endforeach(lang)
+
+include_directories(${THRIFT_DIR})
+
 
 
 # include_directories(${CMAKE_BINARY_DIR}/gen)
