@@ -79,7 +79,7 @@ folly::Future<TransceiverInfo> WedgePort::getTransceiverInfo(
         auto t = static_cast<int32_t>(transceiverId.value());
         return infoMap[t];
       };
-  return clientFuture.via(evb).then(getTransceiverInfo).then(fromMap);
+  return clientFuture.then(evb, getTransceiverInfo).then(evb, fromMap);
 }
 
 folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
@@ -105,7 +105,7 @@ folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
                << " Exception: " << folly::exceptionStr(e);
     return TransmitterTechnology::UNKNOWN;
   };
-  return getTransceiverInfo(evb).via(evb).then(getTech).onError(
+  return getTransceiverInfo(evb).then(evb, getTech).onError(
       std::move(handleError));
 }
 
@@ -246,15 +246,15 @@ void WedgePort::customizeTransceiver() {
   }
   // We've already checked whether there is a transceiver id in needsCustomize
   auto transID = static_cast<int32_t>(*getTransceiverID());
-  auto eventBase = platform_->getEventBase();
-  if (!eventBase) {
+  auto evb = platform_->getEventBase();
+  if (!evb) {
     LOG(ERROR) << "No valid eventbase to use with async customizeTransceivers"
                << " call. Skipping call.";
     return;
   }
   auto speedString = cfg::_PortSpeed_VALUES_TO_NAMES.find(speed_)->second;
   auto& speed = speed_;
-  auto clientFuture = QsfpClient::createClient(eventBase);
+  auto clientFuture = QsfpClient::createClient(evb);
   auto doCustomize = [transID, speed, speedString](
                          std::unique_ptr<QsfpServiceAsyncClient> client) {
     LOG(INFO) << "Sending qsfp customize request for transceiver " << transID
@@ -269,7 +269,7 @@ void WedgePort::customizeTransceiver() {
     LOG(ERROR) << "Unable to customize transceiver " << transID << " for speed "
                << speedString << ". Exception: " << e.what();
   };
-  clientFuture.via(eventBase).then(doCustomize).onError(std::move(handleError));
+  clientFuture.then(evb, doCustomize).onError(std::move(handleError));
 }
 
 }} // facebook::fboss

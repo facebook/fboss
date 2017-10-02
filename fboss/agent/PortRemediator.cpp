@@ -48,12 +48,12 @@ PortRemediator::remediatePorts() {
       continue;
     }
     auto infoFuture = platformPort->getTransceiverInfo();
-    futs.push_back(infoFuture.via(sw_->getBackgroundEVB())
-                       .then([platformPort](TransceiverInfo info) {
-                         if (info.present) {
-                           platformPort->customizeTransceiver();
-                         }
-                       }));
+    futs.push_back(infoFuture.then(
+        sw_->getBackgroundEVB(), [platformPort](TransceiverInfo info) {
+          if (info.present) {
+            platformPort->customizeTransceiver();
+          }
+        }));
   }
   return collectAll(futs);
 }

@@ -30,7 +30,7 @@ QsfpClient::createClient(folly::EventBase* eb) {
     auto channel = apache::thrift::HeaderClientChannel::newChannel(socket);
     return std::make_unique<QsfpServiceAsyncClient>(std::move(channel));
   };
-  return folly::via(eb).then(createClient);
+  return folly::via(eb, createClient);
 }
 
 // static

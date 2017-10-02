@@ -44,9 +44,8 @@ void LldpManager::start() {
 }
 
 void LldpManager::stop() {
-  auto f = via(sw_->getBackgroundEVB())
-    .then([this] { this->cancelTimeout(); });
-  f.get();
+  sw_->getBackgroundEVB()->runInEventBaseThreadAndWait(
+      [this] { this->cancelTimeout(); });
 }
 
 void LldpManager::handlePacket(
