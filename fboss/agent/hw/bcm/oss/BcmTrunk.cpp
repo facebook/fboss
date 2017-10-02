@@ -17,12 +17,8 @@ void BcmTrunk::init(const std::shared_ptr<AggregatePort>& /*aggPort*/) {}
 void BcmTrunk::program(
     const std::shared_ptr<AggregatePort>& /*oldAggPort*/,
     const std::shared_ptr<AggregatePort>& /*newAggPort*/) {}
-void BcmTrunk::modifyMemberPortChecked(bool /*added*/, PortID /*memberPort*/) {}
 void BcmTrunk::modifyMemberPort(bool /* added */, PortID /* memberPort */) {}
 
-void BcmTrunk::programSubports(
-    AggregatePort::SubportsConstRange /* oldMembersRange */,
-    AggregatePort::SubportsConstRange /* newMembersRange */) {}
 void BcmTrunk::programForwardingState(
     AggregatePort::SubportAndForwardingStateConstRange /* oldRange */,
     AggregatePort::SubportAndForwardingStateConstRange /* newRange */) {}

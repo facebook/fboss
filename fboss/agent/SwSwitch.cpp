@@ -1271,8 +1271,8 @@ void SwSwitch::sendPacketOutOfPort(
     return;
   }
 
-  auto subports = aggPort->sortedSubports();
-  if (subports.begin() == subports.end()) {
+  auto subportAndFwdStates = aggPort->subportAndFwdState();
+  if (subportAndFwdStates.begin() == subportAndFwdStates.end()) {
     LOG(ERROR) << "failed to send packet out aggregate port " << aggPortID
                << ": aggregate port has no constituent physical ports";
     return;
@@ -1289,10 +1289,17 @@ void SwSwitch::sendPacketOutOfPort(
   // will avoid any issues related to packet reordering. Of course, this
   // will increase the load on the first physical sub-port of each aggregate
   // port, but this imbalance should be negligible.
-  auto out = *subports.begin();
-
-  // TODO(samank): Add logic to skip over down ports
-  sendPacketOutOfPort(std::move(pkt), out);
+  PortID subport;
+  AggregatePort::Forwarding fwdState;
+  for (auto elem : subportAndFwdStates) {
+    std::tie(subport, fwdState) = elem;
+    if (fwdState == AggregatePort::Forwarding::ENABLED) {
+      sendPacketOutOfPort(std::move(pkt), subport);
+      return;
+    }
+  }
+  LOG(INFO) << "failed to send packet out aggregate port" << aggPortID
+            << ": aggregate port has no enabled physical ports";
 }
 
 void SwSwitch::sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept {

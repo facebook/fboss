@@ -54,13 +54,9 @@ class BcmTrunk {
   static bool isValidTrunkPort(opennsl_gport_t gPort);
 
  private:
-  void programSubports(
-      AggregatePort::SubportsConstRange oldMembersRange,
-      AggregatePort::SubportsConstRange newMembersRange);
   void programForwardingState(
       AggregatePort::SubportAndForwardingStateConstRange oldRange,
       AggregatePort::SubportAndForwardingStateConstRange newRange);
-  void modifyMemberPortChecked(bool added, PortID memberPort);
   void modifyMemberPort(bool added, PortID memberPort);
   // Forbidden copy constructor and assignment operator
   BcmTrunk(const BcmTrunk&) = delete;

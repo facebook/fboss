@@ -1449,9 +1449,8 @@ void BcmSwitch::processChangedAggregatePort(
 
 void BcmSwitch::processAddedAggregatePort(
     const std::shared_ptr<AggregatePort>& aggPort) {
-  auto memberCount = aggPort->subportsCount();
-  VLOG(2) << "creating trunk " << aggPort->getID() << " with " << memberCount
-          << " ports";
+  VLOG(2) << "creating trunk " << aggPort->getID() << " with "
+          << aggPort->subportsCount() << " ports";
   trunkTable_->addTrunk(aggPort);
 }
 
