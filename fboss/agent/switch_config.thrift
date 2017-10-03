@@ -63,6 +63,16 @@ struct PortPause {
   2: bool rx = false
 }
 
+/**
+ * Using this as default is slightly better for generated bindings w/ nullable
+ * languages, most notably python. Setting this as default ensures that the
+ * attribute is non-null, but defaults both members to false.
+*/
+const PortPause NO_PAUSE = {
+  "tx": false,
+  "rx": false,
+}
+
 enum PortFEC {
   ON = 1,
   OFF = 2,
@@ -255,7 +265,7 @@ struct Port {
    * The speed of the interface in mbps.
    * Value 0 means default setting based on the HW and port type.
    */
-  8: PortSpeed speed = DEFAULT;
+  8: PortSpeed speed = DEFAULT
 
   /**
    * A configurable string describing the name of the port. If this
@@ -282,26 +292,26 @@ struct Port {
   /**
    * pause configuration
    */
-  13: PortPause pause
+  13: PortPause pause = NO_PAUSE
 
   /**
    * sFlow sampling rate for ingressing packets.
    * Every 1/sFlowIngressRate ingressing packets will be sampled.
    * 0 indicates no sampling while 1 indicates sampling all packets.
    */
-  14: i64 sFlowIngressRate = 0;
+  14: i64 sFlowIngressRate = 0
 
   /**
    * sFlow sampling rate for egressing packets.
    * Every 1/sFlowEgressRate egressing packets will be sampled.
    * 0 indicates no sampling while 1 indicates sampling all packets.
    */
-  15: i64 sFlowEgressRate = 0;
+  15: i64 sFlowEgressRate = 0
 
   /**
    * Should FEC be on for this port?
    */
-  16: PortFEC fec = PortFEC.OFF;
+  16: PortFEC fec = PortFEC.OFF
 }
 
 struct AggregatePort {
