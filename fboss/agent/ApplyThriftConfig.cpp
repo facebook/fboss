@@ -569,6 +569,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
       portConf->name == orig->getName() &&
       portConf->description == orig->getDescription() &&
       vlans == orig->getVlans() &&
+      portConf->fec == orig->getFEC() &&
       portQueues == orig->getPortQueues()) {
     return nullptr;
   }
@@ -583,6 +584,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
   newPort->setSflowEgressRate(portConf->sFlowEgressRate);
   newPort->setName(portConf->name);
   newPort->setDescription(portConf->description);
+  newPort->setFEC(portConf->fec);
   newPort->resetPortQueues(portQueues);
   return newPort;
 }

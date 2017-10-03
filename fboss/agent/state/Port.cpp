@@ -36,7 +36,9 @@ constexpr auto kTagged = "tagged";
 constexpr auto kSflowIngressRate = "sFlowIngressRate";
 constexpr auto kSflowEgressRate = "sFlowEgressRate";
 constexpr auto kQueues = "queues";
+constexpr auto kPortFEC = "portFEC";
 }
+
 namespace facebook { namespace fboss {
 
 
@@ -68,6 +70,10 @@ folly::dynamic PortFields::toFollyDynamic() const {
   CHECK(itr_max_speed != cfg::_PortSpeed_VALUES_TO_NAMES.end())
      << "Unexpected max speed: " << static_cast<int>(maxSpeed);
   port[kPortMaxSpeed] = itr_max_speed->second;
+  auto itr_port_fec  = cfg::_PortFEC_VALUES_TO_NAMES.find(fec);
+  CHECK(itr_port_fec != cfg::_PortFEC_VALUES_TO_NAMES.end())
+     << "Unexpected port FEC: " << static_cast<int>(fec);
+  port[kPortFEC] = itr_port_fec->second;
   port[kPortTxPause] = pause.tx;
   port[kPortRxPause] = pause.rx;
   port[kVlanMemberships] = folly::dynamic::object;
@@ -111,10 +117,14 @@ PortFields PortFields::fromFollyDynamic(const folly::dynamic& portJson) {
       util::getCpp2EnumName(portJson[kPortSpeed].asString()).c_str());
   CHECK(itr_speed != cfg::_PortSpeed_NAMES_TO_VALUES.end());
   port.speed = cfg::PortSpeed(itr_speed->second);
-  auto itr_max_speed  = cfg::_PortSpeed_NAMES_TO_VALUES.find(
+  auto itr_max_speed = cfg::_PortSpeed_NAMES_TO_VALUES.find(
       util::getCpp2EnumName(portJson[kPortMaxSpeed].asString()).c_str());
   CHECK(itr_max_speed != cfg::_PortSpeed_NAMES_TO_VALUES.end());
   port.maxSpeed = cfg::PortSpeed(itr_max_speed->second);
+  auto itr_port_fec = cfg::_PortFEC_NAMES_TO_VALUES.find(
+    portJson.getDefault(kPortFEC, "OFF").asString().c_str());
+  CHECK(itr_port_fec != cfg::_PortFEC_NAMES_TO_VALUES.end());
+  port.fec = cfg::PortFEC(itr_port_fec->second);
   auto tx_pause_itr = portJson.find(kPortTxPause);
   if (tx_pause_itr != portJson.items().end()) {
     port.pause.tx = tx_pause_itr->second.asBool();

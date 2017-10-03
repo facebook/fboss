@@ -762,8 +762,10 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
       auto sFlowChanged =
           (oldPort->getSflowIngressRate() != newPort->getSflowIngressRate()) ||
           (oldPort->getSflowEgressRate() != newPort->getSflowEgressRate());
+      auto fecChanged = oldPort->getFEC() != newPort->getFEC();
 
-      if (speedChanged || vlanChanged || pauseChanged || sFlowChanged) {
+      if (speedChanged || vlanChanged || pauseChanged || sFlowChanged ||
+          fecChanged) {
         bcmPort->program(newPort);
       }
     });

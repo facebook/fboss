@@ -63,6 +63,11 @@ struct PortPause {
   2: bool rx = false
 }
 
+enum PortFEC {
+  ON = 1,
+  OFF = 2,
+}
+
 /**
  *  A Range for L4 port range checker
  *  Define a range bewteen [min, max]
@@ -268,7 +273,7 @@ struct Port {
    */
   11: optional TrafficPolicyConfig egressTrafficPolicy
 
-  /*
+  /**
    * There are multiple queues per port
    * This allows defining their attributes
    */
@@ -292,6 +297,11 @@ struct Port {
    * 0 indicates no sampling while 1 indicates sampling all packets.
    */
   15: i64 sFlowEgressRate = 0;
+
+  /**
+   * Should FEC be on for this port?
+   */
+  16: PortFEC fec = PortFEC.OFF;
 }
 
 struct AggregatePort {

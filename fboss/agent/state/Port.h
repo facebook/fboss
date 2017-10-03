@@ -68,6 +68,7 @@ struct PortFields {
   int64_t sFlowIngressRate{0};
   int64_t sFlowEgressRate{0};
   QueueConfig queues;
+  cfg::PortFEC fec{cfg::PortFEC::OFF};  // TODO: should this default to ON?
 };
 
 /*
@@ -209,6 +210,14 @@ class Port : public NodeBaseT<Port, PortFields> {
   void setPause(cfg::PortPause pause) {
     writableFields()->pause = pause;
   }
+
+  cfg::PortFEC getFEC() const {
+    return getFields()->fec;
+  }
+  void setFEC(cfg::PortFEC fec) {
+    writableFields()->fec = fec;
+  }
+
 
   int64_t getSflowIngressRate() const {
     return getFields()->sFlowIngressRate;
