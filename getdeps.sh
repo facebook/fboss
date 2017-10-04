@@ -80,6 +80,11 @@ else
   shift
 fi
 
+if [ "$1" == 'pkgsonly' ]; then
+    echo Requested to install packages only >&2
+    exit 0
+fi
+
 GET_OPENNSL=1
 
 if [ "$1" == "nobcm" ]; then

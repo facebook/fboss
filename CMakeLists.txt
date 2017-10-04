@@ -28,25 +28,49 @@ set(PCAP_DIR_PATH
   "${CMAKE_BINARY_DIR}/gen/fboss/pcap_distribution_service/if/gen-cpp2/")
 
 include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_BUILD_DIR})
 
 
 # Generate thrift deps and libraries
 find_program(THRIFT1 thrift1 HINT ${CMAKE_SOURCE_DIR}/external/fbthrift/build/bin)
 set(THRIFT_INCLUDE ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift)
 set(THRIFT_TEMPLATES ${THRIFT_INCLUDE}/compiler/generate/templates)
-include(${THRIFT_INCLUDE}/../ThriftLibrary.cmake)
+include(${CMAKE_SOURCE_DIR}/ThriftLibrary.cmake)
 
-set(THRIFT_DIR ${CMAKE_BINARY_DIR}/thrift-out)
-file(MAKE_DIRECTORY ${THRIFT_DIR}/common/fb303/if)
-file(MAKE_DIRECTORY ${THRIFT_DIR}/common/network/if)
-file(MAKE_DIRECTORY ${THRIFT_DIR}/fboss/agent/if)
-file(MAKE_DIRECTORY ${THRIFT_DIR}/fboss/agent/hw/sim)
-file(MAKE_DIRECTORY ${THRIFT_DIR}/fboss/agent/hw/bcm)
-file(MAKE_DIRECTORY ${THRIFT_DIR}/fboss/pcap_distribution_service/if)
-file(MAKE_DIRECTORY ${THRIFT_DIR}/fboss/qsfp_service/if)
+set(THRIFT_DIR ${CMAKE_SOURCE_DIR}/build/thrift-out)
 
-foreach(lang cpp2 py)
+#### HACK!
+# Current thrift_library() macro semantics don't transitively
+# infer dependencies, e.g., qsfp.thrift can't complile because
+# it depends files generated from on fb303.thrift.
+# So, with each call of our macro my_thrift_library()
+# we accumulate the sources files and pass them as dependencies
+# to the subsequent calls. Thus, the order we declare the thrift_library()
+# calls informs the dependency graph.
+
+# Create our own wrapper around the standard thrift library generator
+set(THRIFT_LANGS cpp2 )
+foreach(lang ${THRIFT_LANGS})
+    set(THRIFT_CODE_${lang} "")
+    set(THRIFT_LIBS_${lang} "") # create an empty list per lang
+endforeach(lang)
+macro(my_thrift_library file_name services language options file_path output_path)
+    file(MAKE_DIRECTORY ${output_path})
     thrift_library(
+        "${file_name}"
+        "${services}"
+        "${language}"
+        "${options}"
+        "${file_path}"
+        "${output_path}"
+        "${THRIFT_CODE}")
+    list(APPEND THRIFT_CODE_${lang} "${${file_name}-${language}-SOURCES}")
+    list(APPEND THRIFT_LIBS_${language} "${file_name}-${language}")
+endmacro(my_thrift_library)
+
+# Now generate code for each .thrift file
+foreach(lang ${THRIFT_LANGS})
+    my_thrift_library(
         "fb303" #file_name
         "FacebookService" #services
         "${lang}" #language
@@ -57,37 +81,39 @@ foreach(lang cpp2 py)
 # fboss_add_thrift(THRIFTSRC common/network/if/Address.thrift
 #     OPTIONS json,compatibility,include_prefix=common/network/if
 #     REFLECT Address)
-    thrift_library(
+    my_thrift_library(
         "Address" #file_name
         "" #services
         "${lang}" #language
         #"json,compatibility,include_prefix=common/network/if" #options
-        ""
+        "include_prefix=common/network/if" # options
         "${CMAKE_SOURCE_DIR}/common/network/if" #file_path
         "${THRIFT_DIR}/common/network/if" #output_path
+        ""  # deps
         )
 # fboss_add_thrift(THRIFTSRC fboss/agent/switch_config.thrift
 #     OPTIONS json
 #     REFLECT switch_config)
-    thrift_library(
+    my_thrift_library(
         "switch_config" #file_name
         "" #services
         "${lang}" #language
-        "json" #options
+        "" #options
         "${CMAKE_SOURCE_DIR}/fboss/agent" #file_path
         "${THRIFT_DIR}/fboss/agent" #output_path
+        ""  # deps
         )
 # fboss_add_thrift(THRIFTSRC fboss/agent/hw/sim/sim_ctrl.thrift SERVICES SimCtrl)
-    thrift_library(
+    my_thrift_library(
         "sim_ctrl" #file_name
-        "" #services
+        "SimCtrl" #services
         "${lang}" #language
         "" #options
         "${CMAKE_SOURCE_DIR}/fboss/agent/hw/sim" #file_path
         "${THRIFT_DIR}/fboss/agent/hw/sim" #output_path
         )
-    foreach(lib ctrl fboss highres optic sflow)
-        thrift_library(
+    foreach(lib fboss optic sflow)
+        my_thrift_library(
             "${lib}" #file_name
             "" #services
             "${lang}" #language
@@ -96,8 +122,24 @@ foreach(lang cpp2 py)
             "${THRIFT_DIR}/fboss/agent/if" #output_path
             )
     endforeach(lib)
+    my_thrift_library(
+        "ctrl" #file_name
+        "NeighborListenerClient;FbossCtrl" #services
+        "${lang}" #language
+        "FbossHighresClient" #options
+        "${CMAKE_SOURCE_DIR}/fboss/agent/if" #file_path
+        "${THRIFT_DIR}/fboss/agent/if" #output_path
+        )
+    my_thrift_library(
+        "highres" #file_name
+        "" #services
+        "${lang}" #language
+        "FbossHighresClient" #options
+        "${CMAKE_SOURCE_DIR}/fboss/agent/if" #file_path
+        "${THRIFT_DIR}/fboss/agent/if" #output_path
+        )
     foreach(lib packettrace bcmswitch hardware_stats)
-        thrift_library(
+        my_thrift_library(
             "${lib}" #file_name
             "" #services
             "${lang}" #language
@@ -106,37 +148,36 @@ foreach(lang cpp2 py)
             "${THRIFT_DIR}/fboss/agent/hw/bcm" #output_path
             )
     endforeach(lib)
-    thrift_library(
+    my_thrift_library(
         "pcap_pubsub" #file_name
-        "" #services
+        "PcapPushSubscriber" #services
         "${lang}" #language
         "" #options
         "${CMAKE_SOURCE_DIR}/fboss/pcap_distribution_service/if" #file_path
         "${THRIFT_DIR}/fboss/pcap_distribution_service/if" #output_path
         )
-    foreach(lib transceiver qsfp)
-        thrift_library(
-            "${lib}" #file_name
-            "" #services
-            "${lang}" #language
-            "" #options
-            "${CMAKE_SOURCE_DIR}/fboss/qsfp_service/if" #file_path
-            "${THRIFT_DIR}/fboss/qsfp_service/if" #output_path
-            )
-    endforeach(lib)
+    my_thrift_library(
+        "transceiver" #file_name
+        "" #services
+        "${lang}" #language
+        "" #options
+        "${CMAKE_SOURCE_DIR}/fboss/qsfp_service/if" #file_path
+        "${THRIFT_DIR}/fboss/qsfp_service/if" #output_path
+        )
+    my_thrift_library(
+        "qsfp" #file_name
+        "QsfpService" #services
+        "${lang}" #language
+        "" #options
+        "${CMAKE_SOURCE_DIR}/fboss/qsfp_service/if" #file_path
+        "${THRIFT_DIR}/fboss/qsfp_service/if" #output_path
+        )
 endforeach(lang)
 
 include_directories(${THRIFT_DIR})
 
 
 
-# include_directories(${CMAKE_BINARY_DIR}/gen)
-# include_directories(${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2)
-# include_directories(${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2)
-# include_directories(${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2)
-# include_directories(${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2)
-# include_directories(${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2)
-# 
 # System libraries
 find_library(GLOG glog)
 find_library(BOOSTSER boost_serialization)
@@ -168,6 +209,8 @@ find_library(WANGLE wangle PATHS ${CMAKE_SOURCE_DIR}/external/wangle/wangle/buil
 find_library(THRIFT thrift PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib/)
 find_library(THRIFTPROTO thriftprotocol PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
 find_library(THRIFTCPP2 thriftcpp2 PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
+find_library(THRIFTTRANSPORT transport PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
+find_library(THRIFTASYNC async PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
 find_library(OPENNSL opennsl PATHS ${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge-trident)
 find_library(IPROUTE2 netlink PATHS ${CMAKE_SOURCE_DIR}/external/iproute2/lib)
 find_library(ZSTD zstd PATHS ${CMAKE_SOURCE_DIR}/external/zstd/lib)
@@ -450,6 +493,7 @@ add_library(fboss_agent STATIC
 )
 
 target_link_libraries(fboss_agent
+    ${THRIFT_LIBS_cpp2}  # autogenerated thrift libs
     ${GLOG}
     ${SSL}
     ${PCAP}
@@ -479,23 +523,8 @@ target_link_libraries(fboss_agent
     ${CURL}
     ${NUMA}
     ${ZSTD}
-    # autogenerated thrift libs
-    fb303-cpp2
-    Address-cpp2
-    switch_config-cpp2
-    sim_ctrl-cpp2
-    ctrl-cpp2
-    fboss-cpp2
-    highres-cpp2
-    optics-cpp2
-    sflow-cpp2
-    packettrace-cpp2
-    bcmswitch-cpp2
-    hardware_stats-cpp2
-    pcap_pubsub-cpp2
-    transceiver-cpp2
-    qsfp-cpp2
 )
+
 
 target_link_libraries(qsfp_service
     ${ZSTD}
@@ -593,6 +622,12 @@ add_executable(agent_test
        fboss/agent/test/oss/Main.cpp
 )
 target_link_libraries(agent_test
+  ${THRIFT}
+  ${THRIFTPROTO}
+  ${THRIFTCPP2}
+  ${THRIFTTRANSPORT}
+  ${THRIFTASYNC}
+  ${THRIFT_LIBS_cpp2}
   fboss_agent
   gtest
   gmock
