@@ -214,7 +214,7 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   }
   if (aclEntryJson.find(kIpFrag) != aclEntryJson.items().end()) {
     auto itr_ipFrag = cfg::_IpFragMatch_NAMES_TO_VALUES.find(
-      util::getCpp2EnumName(aclEntryJson[kIpFrag].asString()).c_str());
+      aclEntryJson[kIpFrag].asString().c_str());
     aclEntry.ipFrag = cfg::IpFragMatch(itr_ipFrag->second);
   }
   if (aclEntryJson.find(kIcmpType) != aclEntryJson.items().end()) {
@@ -228,8 +228,7 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   }
   aclEntry.actionType =
       cfg::_AclActionType_NAMES_TO_VALUES
-          .find(util::getCpp2EnumName(aclEntryJson[kActionType].asString())
-                    .c_str())
+          .find(aclEntryJson[kActionType].asString().c_str())
           ->second;
   aclEntry.aclAction = MatchAction::fromFollyDynamic(aclEntryJson[kAclAction]);
 
@@ -254,8 +253,7 @@ void AclEntryFields::checkFollyDynamic(const folly::dynamic& aclEntryJson) {
   }
   // check ipFrag is valid
   if (aclEntryJson.find(kIpFrag) != aclEntryJson.items().end()) {
-    const auto ipFragName = util::getCpp2EnumName(
-        aclEntryJson[kIpFrag].asString());
+    const auto ipFragName = aclEntryJson[kIpFrag].asString();
     if (cfg::_IpFragMatch_NAMES_TO_VALUES.find(ipFragName.c_str()) ==
         cfg::_IpFragMatch_NAMES_TO_VALUES.end()) {
       throw FbossError("Unsupported ACL IP fragmentation option ",

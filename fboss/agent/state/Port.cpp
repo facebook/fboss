@@ -107,18 +107,18 @@ PortFields PortFields::fromFollyDynamic(const folly::dynamic& portJson) {
       {"UP", cfg::PortState::ENABLED},
   };
   auto itrAdminState = transitionAdminStateMap.find(
-      util::getCpp2EnumName(portJson[kPortState].asString()).c_str());
+    portJson[kPortState].asString());
   CHECK(itrAdminState != transitionAdminStateMap.end());
   port.adminState = itrAdminState->second;
   port.operState =
       OperState(portJson.getDefault(kPortOperState, false).asBool());
   port.ingressVlan = VlanID(portJson[kIngressVlan].asInt());
   auto itr_speed  = cfg::_PortSpeed_NAMES_TO_VALUES.find(
-      util::getCpp2EnumName(portJson[kPortSpeed].asString()).c_str());
+      portJson[kPortSpeed].asString().c_str());
   CHECK(itr_speed != cfg::_PortSpeed_NAMES_TO_VALUES.end());
   port.speed = cfg::PortSpeed(itr_speed->second);
   auto itr_max_speed = cfg::_PortSpeed_NAMES_TO_VALUES.find(
-      util::getCpp2EnumName(portJson[kPortMaxSpeed].asString()).c_str());
+      portJson[kPortMaxSpeed].asString().c_str());
   CHECK(itr_max_speed != cfg::_PortSpeed_NAMES_TO_VALUES.end());
   port.maxSpeed = cfg::PortSpeed(itr_max_speed->second);
   auto itr_port_fec = cfg::_PortFEC_NAMES_TO_VALUES.find(

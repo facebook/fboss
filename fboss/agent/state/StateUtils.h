@@ -16,16 +16,6 @@
 namespace facebook {
 namespace fboss {
 namespace util {
-/*
- * Compatibility between cpp2 and cpp enum names.
- *
- * cpp2: `EnumType::EnumValue`
- * cpp: `EnumValue`
- *
- * TODO: Temporary until next fboss agent release. After that we can take
- * away this logic.
- */
-std::string getCpp2EnumName(const std::string& enumValue);
 
 /**
 * Utility functions for InterfaceID <-> ifName (on host)

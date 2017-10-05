@@ -22,15 +22,6 @@ namespace facebook {
 namespace fboss {
 namespace util {
 
-std::string getCpp2EnumName(const std::string& enumValue) {
-  auto pos = enumValue.find("::");
-  if (pos == std::string::npos) {
-    return enumValue;
-  }
-
-  return enumValue.substr(pos + 2);
-}
-
 bool isTunIntfName(std::string const& ifName) {
   return ifName.find(kTunIntfPrefix) == 0;
 }
