@@ -230,7 +230,10 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
       cfg::_AclActionType_NAMES_TO_VALUES
           .find(aclEntryJson[kActionType].asString().c_str())
           ->second;
-  aclEntry.aclAction = MatchAction::fromFollyDynamic(aclEntryJson[kAclAction]);
+  if (aclEntryJson.find(kAclAction) != aclEntryJson.items().end()) {
+    aclEntry.aclAction = MatchAction::fromFollyDynamic(
+      aclEntryJson[kAclAction]);
+  }
 
   return aclEntry;
 }
