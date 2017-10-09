@@ -25,6 +25,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/PortStats.h"
+#include "fboss/agent/PortUpdateHandler.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/TxPacket.h"
@@ -133,32 +134,6 @@ facebook::fboss::PortStatus fillInPortStatus(
   }
   return status;
 }
-
-string getPortUpName(const shared_ptr<facebook::fboss::Port>& port) {
-  return port->getName().empty()
-    ? folly::to<string>("port", port->getID(), ".up")
-    : port->getName() + ".up";
-}
-
-inline void updatePortStatusCounters(const facebook::fboss::StateDelta& delta) {
-  facebook::fboss::DeltaFunctions::forEachChanged(
-      delta.getPortsDelta(),
-      [&](const shared_ptr<facebook::fboss::Port>& oldPort,
-          const shared_ptr<facebook::fboss::Port>& newPort) {
-        if (oldPort->getName() == newPort->getName()) {
-          return;
-        }
-        facebook::fbData->clearCounter(getPortUpName(oldPort));
-        facebook::fbData->setCounter(getPortUpName(newPort), newPort->isUp());
-      },
-      [&](const shared_ptr<facebook::fboss::Port>& newPort) {
-        facebook::fbData->setCounter(getPortUpName(newPort), newPort->isUp());
-      },
-      [&](const shared_ptr<facebook::fboss::Port>& oldPort) {
-        facebook::fbData->clearCounter(getPortUpName(oldPort));
-      });
-}
-
 } // anonymous namespace
 
 namespace facebook { namespace fboss {
@@ -186,7 +161,8 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
     ipv6_(new IPv6Handler(this)),
     nUpdater_(new NeighborUpdater(this)),
     pcapMgr_(new PktCaptureManager(this)),
-    routeUpdateLogger_(new RouteUpdateLogger(this)) {
+    routeUpdateLogger_(new RouteUpdateLogger(this)),
+    portUpdateHandler_(new PortUpdateHandler(this)) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
@@ -442,10 +418,6 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   VLOG(0) << "hardware initialized in " <<
     hwInitRet.bootTime << " seconds; applying initial config";
 
-  for (const auto& port : (*initialState->getPorts())) {
-    fbData->setCounter(getPortUpName(port), 0);
-  }
-
   // Store the initial state
   initialState->publish();
   initialStateDesired->publish();
@@ -655,7 +627,6 @@ void SwSwitch::notifyStateObservers(const StateDelta& delta) {
     // Make sure the SwSwitch is not already being destroyed
     return;
   }
-  updatePortStatusCounters(delta);
   for (auto observerName : stateObservers_) {
     try {
       auto observer = observerName.first;
@@ -972,11 +943,24 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
 }
 
 PortStats* SwSwitch::portStats(PortID portID) {
-  return stats()->port(portID);
+  auto portStats = stats()->port(portID);
+  if (portStats) {
+    return portStats;
+  }
+  auto portIf = getState()->getPorts()->getPortIf(portID);
+  if (portIf) {
+    // get portName from current state
+    return stats()->createPortStats(
+      portID, getState()->getPort(portID)->getName());
+  } else {
+    // only for port0 case
+    VLOG(0) << "Port node doesn't exist, use default name=port" << portID;
+    return stats()->createPortStats(portID, folly::to<string>("port", portID));
+  }
 }
 
 PortStats* SwSwitch::portStats(const RxPacket* pkt) {
-  return stats()->port(pkt->getSrcPort());
+  return portStats(pkt->getSrcPort());
 }
 
 map<int32_t, PortStatus> SwSwitch::getPortStatus() {
@@ -1006,7 +990,7 @@ void SwSwitch::setPortStatusCounter(PortID port, bool up) {
     // called during initialization
     return;
   }
-  fbData->setCounter(getPortUpName(state->getPort(port)), int(up));
+  portStats(port)->setPortStatus(up);
 }
 
 void SwSwitch::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {
@@ -1014,7 +998,7 @@ void SwSwitch::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {
   try {
     handlePacket(std::move(pkt));
   } catch (const std::exception& ex) {
-    stats()->port(port)->pktError();
+    portStats(port)->pktError();
     LOG(ERROR) << "error processing trapped packet: " <<
       folly::exceptionStr(ex);
     // Return normally, without letting the exception propagate to our caller.
@@ -1035,7 +1019,7 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     return;
   }
   PortID port = pkt->getSrcPort();
-  stats()->port(port)->trappedPkt();
+  portStats(port)->trappedPkt();
 
   pcapMgr_->packetReceived(pkt.get());
 
@@ -1043,7 +1027,7 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   // Abort processing early if the packet is too short.
   auto len = pkt->getLength();
   if (len < 64) {
-    stats()->port(port)->pktBogus();
+    portStats(port)->pktBogus();
     return;
   }
 
@@ -1092,7 +1076,7 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
 
   // If we are still here, we don't know what to do with this packet.
   // Increment a counter and just drop the packet on the floor.
-  stats()->port(port)->pktUnhandled();
+  portStats(port)->pktUnhandled();
 }
 
 void SwSwitch::linkStateChanged(PortID portId, bool up) {
@@ -1159,7 +1143,7 @@ void SwSwitch::linkStateChanged(PortID portId, bool up) {
   // Log event and update counters
   logLinkStateEvent(portId, up);
   setPortStatusCounter(portId, up);
-  stats()->port(portId)->linkStateChange();
+  portStats(portId)->linkStateChange();
 }
 
 void SwSwitch::startThreads() {

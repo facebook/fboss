@@ -206,7 +206,7 @@ void ArpHandler::sendArpReply(VlanID vlan,
                               IPAddressV4 senderIP,
                               MacAddress targetMac,
                               IPAddressV4 targetIP) {
-  sw_->stats()->port(port)->arpReplyTx();
+  sw_->portStats(port)->arpReplyTx();
   sendArp(sw_, vlan, ARP_OP_REPLY, senderMac, senderIP, targetMac, targetIP);
 }
 

@@ -41,6 +41,7 @@ class PktCaptureManager;
 class Platform;
 class Port;
 class PortStats;
+class PortUpdateHandler;
 class RxPacket;
 class SwitchState;
 class SwitchStats;
@@ -94,6 +95,9 @@ class SwSwitch : public HwSwitch::Callback {
     StateUpdateFn;
 
   typedef std::function<void(const StateDelta&)> StateUpdatedCallback;
+
+  using AllThreadsSwitchStats =
+    folly::ThreadLocalPtr<SwitchStats, SwSwitch>::Accessor;
 
   explicit SwSwitch(std::unique_ptr<Platform> platform);
   ~SwSwitch() override;
@@ -324,6 +328,13 @@ class SwSwitch : public HwSwitch::Callback {
       return s;
     }
     return createSwitchStats();
+  }
+
+  /**
+   * Get all SwitchStats for all threads
+   */
+  AllThreadsSwitchStats getAllThreadsSwitchStats() {
+    return stats_.accessAllThreads();
   }
 
   /*
@@ -793,6 +804,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<ThreadHeartbeat> bgThreadHeartbeat_;
   std::unique_ptr<ThreadHeartbeat> updThreadHeartbeat_;
   std::unique_ptr<ThreadHeartbeat> fbossPktTxThreadHeartbeat_;
+  std::unique_ptr<PortUpdateHandler> portUpdateHandler_;
   SwitchFlags flags_{SwitchFlags::DEFAULT};
 };
 

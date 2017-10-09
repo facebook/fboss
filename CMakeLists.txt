@@ -168,10 +168,6 @@ add_library(fboss_agent STATIC
     fboss/agent/lldp/LinkNeighbor.cpp
     fboss/agent/lldp/LinkNeighborDB.cpp
     fboss/agent/ndp/IPv6RouteAdvertiser.cpp
-    fboss/agent/oss/ApplyThriftConfig.cpp
-    fboss/agent/oss/Main.cpp
-    fboss/agent/oss/RouteUpdateLogger.cpp
-    fboss/agent/oss/SwSwitch.cpp
     fboss/agent/HwSwitch.cpp
     fboss/agent/I2c.cpp
     fboss/agent/IPHeaderV4.cpp
@@ -188,6 +184,7 @@ add_library(fboss_agent STATIC
     fboss/agent/NexthopToRouteCount.cpp
     fboss/agent/oss/ApplyThriftConfig.cpp
     fboss/agent/oss/Main.cpp
+    fboss/agent/oss/RouteUpdateLogger.cpp
     fboss/agent/oss/SwSwitch.cpp
     fboss/agent/packet/ArpHdr.cpp
     fboss/agent/packet/DHCPv4Packet.cpp
@@ -219,8 +216,9 @@ add_library(fboss_agent STATIC
     fboss/agent/platforms/wedge/Wedge100Port.cpp
     fboss/agent/platforms/wedge/WedgeProductInfo.cpp
     fboss/agent/platforms/wedge/WedgePlatformInit.cpp
-    fboss/agent/PortStats.cpp
     fboss/agent/PortRemediator.cpp
+    fboss/agent/PortStats.cpp
+    fboss/agent/PortUpdateHandler.cpp
     fboss/agent/QsfpClient.cpp
     fboss/agent/RestClient.cpp
     fboss/agent/RouteUpdateLogger.cpp

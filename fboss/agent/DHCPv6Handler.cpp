@@ -118,13 +118,13 @@ void DHCPv6Handler::handlePacket(
     const IPv6Hdr& ipHdr,
     const UDPHeader& /*udpHdr*/,
     Cursor cursor) {
-  sw->stats()->port(pkt->getSrcPort())->dhcpV6Pkt();
+  sw->portStats(pkt->getSrcPort())->dhcpV6Pkt();
   // Parse dhcp packet
   DHCPv6Packet dhcp6Pkt;
   try {
     dhcp6Pkt.parse(&cursor);
   } catch (const FbossError& err) {
-     sw->stats()->port(pkt->getSrcPort())->dhcpV6BadPkt();
+     sw->portStats(pkt->getSrcPort())->dhcpV6BadPkt();
      throw; // Rethrow
   }
   if (dhcp6Pkt.type == DHCPv6_RELAY_FORWARD) {
@@ -197,7 +197,7 @@ void DHCPv6Handler::processDHCPv6Packet(
   if (relayFwdPkt.computePacketLength() >
       DHCPv6Packet::MAX_DHCPV6_MSG_LENGTH) {
     VLOG(2) << "DHCPv6 relay forward message exceeds max length, drop it.";
-    sw->stats()->port(pkt->getSrcPort())->dhcpV6BadPkt();
+    sw->portStats(pkt->getSrcPort())->dhcpV6BadPkt();
     return;
   }
 
@@ -224,7 +224,7 @@ void DHCPv6Handler::processDHCPv6RelayForward(SwSwitch* sw,
   // relay forward from other agent
   if (dhcpPacket.hopCount >= MAX_RELAY_HOPCOUNT) {
     VLOG(2) << "Received DHCPv6 relay foward packet with max relay hopcount";
-    sw->stats()->port(pkt->getSrcPort())->dhcpV6BadPkt();
+    sw->portStats(pkt->getSrcPort())->dhcpV6BadPkt();
     return;
   }
   // increment the hopcount and forward it
@@ -255,7 +255,7 @@ void DHCPv6Handler::processDHCPv6RelayReply(
   auto intf = state->getInterfaces()->getInterface(RouterID(0),
       switchIp);
   if (!intf) {
-    sw->stats()->port(pkt->getSrcPort())->dhcpV6DropPkt();
+    sw->portStats(pkt->getSrcPort())->dhcpV6DropPkt();
     VLOG(2) << "Could not look up interface for " << switchIp
             << "DHCPv6 packet dropped";
     return;
@@ -279,7 +279,7 @@ void DHCPv6Handler::processDHCPv6RelayReply(
     }
   }
   if (destMac == MacAddress::ZERO || relayLen == 0) {
-    sw->stats()->port(pkt->getSrcPort())->dhcpV6DropPkt();
+    sw->portStats(pkt->getSrcPort())->dhcpV6DropPkt();
     VLOG(2) << "Bad dhcp relay reply message: malformed options";
     return;
   }

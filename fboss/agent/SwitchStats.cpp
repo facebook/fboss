@@ -87,32 +87,27 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap *map)
                        1, 0, 200, AVG, 50, 100),
       fbossPktTxEventBacklog_(map, kCounterPrefix + "fbossPktTx_event_backlog",
                  1, 0, 200, AVG, 50, 100),
-      linkStateChange_(map, kCounterPrefix + "link_state.down", SUM),
+      linkStateChange_(map, kCounterPrefix + "link_state.flap", SUM),
       hwOutOfSync_(
         map, kCounterPrefix + "hw_out_of_sync"),
       pcapDistFailure_(map, kCounterPrefix + "pcap_dist_failure.error"){
 }
 
-PortStats* SwitchStats::port(PortID portID) {
+PortStats* FOLLY_NULLABLE SwitchStats::port(PortID portID) {
   auto it = ports_.find(portID);
   if (it != ports_.end()) {
     return it->second.get();
   }
-  return createPortStats(portID);
+  // Since PortStats needs portName from current switch state, let caller to
+  // decide whether it needs createPortStats function.
+  return nullptr;
 }
 
-PortStats* SwitchStats::createPortStats(PortID portID) {
-
-
- auto series = std::make_unique<TLTimeseries>(
-    stats::ThreadCachedServiceData::get()->getThreadStats(),
-    folly::to<std::string>("port", static_cast<int32_t>(portID),
-      kCounterPrefix, "link_state.down"),
-    SUM);
-  auto rv = ports_.emplace(portID, std::make_unique<PortStats>(portID, std::move(series),
-                                                               this));
-  const auto& it = rv.first;
+PortStats* SwitchStats::createPortStats(PortID portID, std::string portName) {
+  auto rv = ports_.emplace(portID,
+                           std::make_unique<PortStats>(portID, portName, this));
   DCHECK(rv.second);
+  const auto& it = rv.first;
   return it->second.get();
 }
 

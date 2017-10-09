@@ -1,0 +1,56 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+#include "fboss/agent/PortUpdateHandler.h"
+
+#include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/PortStats.h"
+
+namespace facebook { namespace fboss {
+
+PortUpdateHandler::PortUpdateHandler(SwSwitch* sw)
+  : AutoRegisterStateObserver(sw, "PortUpdateHandler"),
+    sw_(sw) {
+}
+
+void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
+  // For now, the stateUpdated is only used to update the portName of PortStats
+  // for all threads.
+  DeltaFunctions::forEachChanged(
+    delta.getPortsDelta(),
+    [&](const std::shared_ptr<Port>& oldPort,
+        const std::shared_ptr<Port>& newPort) {
+      if (oldPort->getName() == newPort->getName()) {
+        return;
+      }
+
+      for (SwitchStats& switchStats: sw_->getAllThreadsSwitchStats()) {
+        // only update the portName when the portStatus exists
+        PortStats* portStats = switchStats.port(newPort->getID());
+        if (portStats) {
+          portStats->setPortName(newPort->getName());
+        }
+      }
+      sw_->portStats(newPort->getID())->setPortStatus(newPort->isUp());
+    },
+    [&](const std::shared_ptr<Port>& newPort) {
+      sw_->portStats(newPort->getID())->setPortStatus(newPort->isUp());
+    },
+    [&](const std::shared_ptr<Port>& oldPort) {
+      for (SwitchStats& switchStats: sw_->getAllThreadsSwitchStats()) {
+        switchStats.deletePortStats(oldPort->getID());
+      }
+    }
+  );
+}
+}}

@@ -147,9 +147,9 @@ void DHCPv4Handler::handlePacket(
     const IPv4Hdr& ipHdr,
     const UDPHeader& /*udpHdr*/,
     Cursor cursor) {
-  sw->stats()->port(pkt->getSrcPort())->dhcpV4Pkt();
+  sw->portStats(pkt->getSrcPort())->dhcpV4Pkt();
   if (ipHdr.ttl <= 1) {
-    sw->stats()->port(pkt->getSrcPort())->dhcpV4BadPkt();
+    sw->portStats(pkt->getSrcPort())->dhcpV4BadPkt();
     VLOG(4) << "Dropped DHCP packet with TTL of " << ipHdr.ttl;
     return;
   }
@@ -159,7 +159,7 @@ void DHCPv4Handler::handlePacket(
   try {
     dhcpPkt.parse(&cursor);
   } catch (const FbossError& err) {
-     sw->stats()->port(pkt->getSrcPort())->dhcpV4BadPkt();
+     sw->portStats(pkt->getSrcPort())->dhcpV4BadPkt();
      throw; // Rethrow
   }
   if (dhcpPkt.hasDhcpCookie()) {
@@ -174,7 +174,7 @@ void DHCPv4Handler::handlePacket(
         break;
       default:
         VLOG(4)<<" Unknown DHCP Packet type "<<(uint)dhcpPkt.op;
-        sw->stats()->port(pkt->getSrcPort())->dhcpV4BadPkt();
+        sw->portStats(pkt->getSrcPort())->dhcpV4BadPkt();
         break;
     }
   } else {
@@ -240,7 +240,7 @@ void DHCPv4Handler::processRequest(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
   // Prepare DHCP packet to relay
   if (!addAgentOptions(sw, pkt->getSrcPort(), switchIp, dhcpPacket,
         dhcpPacketOut)) {
-    sw->stats()->port(pkt->getSrcPort())->dhcpV4BadPkt();
+    sw->portStats(pkt->getSrcPort())->dhcpV4BadPkt();
     VLOG(4) << "Bad DHCP packet, error adding agent options."
       << " DHCP packet dropped";
     return;
@@ -254,7 +254,7 @@ void DHCPv4Handler::processRequest(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
     dhcpPacketOut.hops++;
   } else {
     VLOG(4) << "Max hops exceeded for dhcp packet";
-    sw->stats()->port(pkt->getSrcPort())->dhcpV4BadPkt();
+    sw->portStats(pkt->getSrcPort())->dhcpV4BadPkt();
     return;
   }
   dhcpPacketOut.giaddr = switchIp;
@@ -276,7 +276,7 @@ void DHCPv4Handler::processReply(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
   auto dhcpPacketOut(dhcpPacket);
   auto state = sw->getState();
   if (!stripAgentOptions(sw, pkt->getSrcPort(), dhcpPacket, dhcpPacketOut)) {
-    sw->stats()->port(pkt->getSrcPort())->dhcpV4BadPkt();
+    sw->portStats(pkt->getSrcPort())->dhcpV4BadPkt();
     VLOG(4) << "Bad DHCP packet, error stripping agent options."
       << " DHCP packet dropped";
     return;
@@ -305,7 +305,7 @@ void DHCPv4Handler::processReply(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
   auto intf = state->getInterfaces()->getInterface(RouterID(0),
       IPAddress(switchIp));
   if (!intf) {
-    sw->stats()->port(pkt->getSrcPort())->dhcpV4DropPkt();
+    sw->portStats(pkt->getSrcPort())->dhcpV4DropPkt();
     LOG (INFO) << "Could not lookup interface for : " << switchIp
       << "DHCP packet dropped ";
     return;

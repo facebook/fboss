@@ -51,7 +51,7 @@ void UDPHeader::parse(SwSwitch *sw, PortID port, Cursor* cursor) {
   try {
     parse(cursor);
   } catch (std::out_of_range& e) {
-    sw->stats()->port(port)->udpTooSmall();
+    sw->portStats(port)->udpTooSmall();
     throw FbossError("Too small packet. Got ", cursor->length(),
                      " bytes. Minimum ", size(), " bytes");
   }

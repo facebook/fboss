@@ -189,8 +189,8 @@ void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
   auto minHopLimit = intf ? 0 : 1;
   if (ipv6.hopLimit <= minHopLimit) {
     VLOG(4) << "Rx IPv6 Packet with hop limit exceeded";
-    sw_->stats()->port(port)->pktDropped();
-    sw_->stats()->port(port)->ipv6HopExceeded();
+    sw_->portStats(port)->pktDropped();
+    sw_->portStats(port)->ipv6HopExceeded();
     // Look up cpu mac from platform
     MacAddress cpuMac = sw_->getPlatform()->getLocalMac();
     sendICMPv6TimeExceeded(pkt->getSrcVlan(), cpuMac, cpuMac, ipv6, cursor);
@@ -220,9 +220,9 @@ void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
     // i.e. ping, ssh, bgp...
     PortID portID = pkt->getSrcPort();
     if (sw_->sendPacketToHost(intf->getID(), std::move(pkt))) {
-      sw_->stats()->port(portID)->pktToHost(l3Len);
+      sw_->portStats(portID)->pktToHost(l3Len);
     } else {
-      sw_->stats()->port(portID)->pktDropped();
+      sw_->portStats(portID)->pktDropped();
     }
     return;
   }
@@ -602,7 +602,7 @@ void IPv6Handler::sendNeighborSolicitations(
 
   auto route = routeTable->getRibV6()->longestMatch(targetIP);
   if (!route || !route->isResolved()) {
-    sw_->stats()->port(ingressPort)->ipv6DstLookupFailure();
+    sw_->portStats(ingressPort)->ipv6DstLookupFailure();
     // No way to reach targetIP
     return;
   }

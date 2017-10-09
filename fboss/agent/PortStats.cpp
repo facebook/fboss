@@ -9,14 +9,33 @@
  */
 
 #include "fboss/agent/SwitchStats.h"
+#include "common/stats/ThreadCachedServiceData.h"
+#include <folly/String.h>
+
+using facebook::stats::SUM;
 
 namespace facebook { namespace fboss {
 
-PortStats::PortStats(PortID portID, std::unique_ptr<TLTimeseries> linkState,
-    SwitchStats *switchStats)
+const std::string kNameKeySeperator = ".";
+const std::string kUp = "up";
+const std::string kLinkStateFlap = "link_state.flap";
+
+PortStats::PortStats(PortID portID, std::string portName,
+                     SwitchStats *switchStats)
   : portID_(portID),
-    linkStateChange_(std::move(linkState)),
+    portName_(portName),
     switchStats_(switchStats) {
+}
+
+PortStats::~PortStats() {
+  // clear counter
+  clearPortStatusCounter();
+}
+
+void PortStats::setPortName(const std::string &portName) {
+  // clear counter
+  clearPortStatusCounter();
+  portName_ = portName;
 }
 
 void PortStats::trappedPkt() {
@@ -121,7 +140,19 @@ void PortStats::dhcpV6DropPkt() {
 }
 
 void PortStats::linkStateChange() {
-  linkStateChange_->addValue(1);
+  // We decided not to maintain the TLTimeseries in PortStats and use tcData()
+  // to addStatValue based on the key name, because:
+  // 1) each thread has its own SwitchStats and PortStats
+  // 2) update PortName need to delete old TLTimeseries in the thread which
+  // can recognize the name changed.
+  // 3) w/o a global lock like the one in ThreadLocalStats, we might have
+  // race condition issue when two threads want to delete the same TLTimeseries
+  // from the same thread.
+  // Using tcData() can make sure we don't have to maintain the lifecycle of
+  // TLTimeseries and leave ThreadLocalStats do it for us.
+  if (!portName_.empty()) {
+    tcData().addStatValue(getCounterKey(kLinkStateFlap), 1, SUM);
+  }
   switchStats_->linkStateChange();
 }
 
@@ -131,6 +162,22 @@ void PortStats::ipv4DstLookupFailure() {
 
 void PortStats::ipv6DstLookupFailure() {
   switchStats_->ipv6DstLookupFailure();
+}
+
+void PortStats::setPortStatus(bool isUp) {
+  if (!portName_.empty()) {
+    tcData().setCounter(getCounterKey(kUp), isUp);
+  }
+}
+
+void PortStats::clearPortStatusCounter() {
+  if (!portName_.empty()) {
+    tcData().clearCounter(getCounterKey(kUp));
+  }
+}
+
+std::string PortStats::getCounterKey(const std::string &key) {
+  return folly::to<std::string>(portName_, kNameKeySeperator, key);
 }
 
 }} // facebook::fboss

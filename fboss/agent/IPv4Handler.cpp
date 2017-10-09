@@ -242,7 +242,7 @@ bool IPv4Handler::resolveMac(
 
   auto route = routeTable->getRibV4()->longestMatch(dest);
   if (!route || !route->isResolved()) {
-    sw_->stats()->port(ingressPort)->ipv4DstLookupFailure();
+    sw_->portStats(ingressPort)->ipv4DstLookupFailure();
     // No way to reach dest
     return false;
   }

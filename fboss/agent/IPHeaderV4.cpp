@@ -22,12 +22,12 @@ namespace facebook { namespace fboss {
 void IPHeaderV4::parse(SwSwitch *sw, PortID port, Cursor* cursor) {
   auto len = cursor->pullAtMost(&hdr_[0], sizeof(hdr_));
   if (len != sizeof(hdr_)) {
-    sw->stats()->port(port)->ipv4TooSmall();
+    sw->portStats(port)->ipv4TooSmall();
     throw FbossError("Too small packet. Get ", cursor->length(),
                      " bytes. Minimum ", sizeof(hdr_), " bytes");
   }
   if (getVersion() != 4) {
-    sw->stats()->port(port)->ipv4WrongVer();
+    sw->portStats(port)->ipv4WrongVer();
     throw FbossError("Wrong IPv4 version number (", getVersion(), " vs 4)");
   }
   // TODO: other sanity checks (i.e. packet length, checksum...)
