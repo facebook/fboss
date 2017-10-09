@@ -27,6 +27,8 @@ namespace facebook { namespace fboss {
 
 class BcmSwitchIf;
 
+bool operator==(const opennsl_l3_egress_t& lhs, const opennsl_l3_egress_t& rhs);
+
 class BcmEgressBase : public boost::noncopyable {
  public:
   enum : opennsl_if_t {

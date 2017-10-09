@@ -22,6 +22,19 @@ namespace facebook { namespace fboss {
 using folly::IPAddress;
 using folly::MacAddress;
 
+bool operator==(
+    const opennsl_l3_egress_t& lhs,
+    const opennsl_l3_egress_t& rhs) {
+  bool sameMacs = !memcmp(lhs.mac_addr, rhs.mac_addr, sizeof(lhs.mac_addr));
+  bool lhsTrunk = lhs.flags & OPENNSL_L3_TGID;
+  bool rhsTrunk = rhs.flags & OPENNSL_L3_TGID;
+  bool sameTrunks = lhsTrunk && rhsTrunk && lhs.trunk == rhs.trunk;
+  bool samePhysicalPorts = !lhsTrunk && !rhsTrunk && rhs.port == lhs.port;
+  bool samePorts = sameTrunks || samePhysicalPorts;
+  return sameMacs && samePorts && rhs.intf == lhs.intf &&
+      rhs.flags == lhs.flags;
+}
+
 bool BcmEgress::alreadyExists(const opennsl_l3_egress_t& newEgress) const {
   if (id_ == INVALID) {
     return false;
@@ -29,15 +42,7 @@ bool BcmEgress::alreadyExists(const opennsl_l3_egress_t& newEgress) const {
   opennsl_l3_egress_t existingEgress;
   auto rv = opennsl_l3_egress_get(hw_->getUnit(), id_, &existingEgress);
   bcmCheckError(rv, "Egress object ", id_, " does not exist");
-  bool sameMacs = !memcmp(newEgress.mac_addr, existingEgress.mac_addr,
-                          sizeof(newEgress.mac_addr));
-  // Note that for the trunk field of an egress object to be valid,
-  // the object's flag must have its BCM_L3_TGID flag set. This is
-  // checked in the return expression.
-  bool samePorts = existingEgress.trunk == newEgress.trunk ||
-      existingEgress.port == newEgress.port;
-  return sameMacs && samePorts && existingEgress.intf == newEgress.intf &&
-      existingEgress.flags == newEgress.flags;
+  return newEgress == existingEgress;
 }
 
 void BcmEgress::verifyDropEgress(int unit) {
