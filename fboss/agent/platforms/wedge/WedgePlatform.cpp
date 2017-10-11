@@ -51,7 +51,9 @@ void WedgePlatform::init() {
   initLocalMac();
   auto mode = getMode();
   bool isLc = (mode == WedgePlatformMode::GALAXY_LC);
-  hw_.reset(new BcmSwitch(this, isLc ? BcmSwitch::HALF_HASH :
+  // HACK - looking at mode == LC or isDu to determine HASH mode.
+  // How to set up hashing should really come from config - T21721301
+  hw_.reset(new BcmSwitch(this, (isLc || isDu()) ? BcmSwitch::HALF_HASH :
         BcmSwitch::FULL_HASH));
 }
 

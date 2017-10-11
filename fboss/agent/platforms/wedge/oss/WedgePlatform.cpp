@@ -29,4 +29,8 @@ void WedgePlatform::onHwInitialized(SwSwitch* /*sw*/) {
   // but should be soon once we get approval for the required OpenNSL APIs.
 }
 
+bool WedgePlatform::isDu() const {
+  return false;
+}
+
 }} // facebook::fboss

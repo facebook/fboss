@@ -71,6 +71,8 @@ class WedgePlatform : public BcmPlatform {
   std::unique_ptr<WedgePortMapping> portMapping_{nullptr};
 
  private:
+  // TODO get rid of this once T21721301 is done
+  bool isDu() const;
   // Forbidden copy constructor and assignment operator
   WedgePlatform(WedgePlatform const &) = delete;
   WedgePlatform& operator=(WedgePlatform const &) = delete;
