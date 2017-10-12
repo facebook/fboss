@@ -120,9 +120,9 @@ NPROC=$(grep -c processor /proc/cpuinfo)
     export CMAKEFLAGS="$CMAKEFLAGS \
         -DMSTCH_LIBRARIES=$EXT/mstch/build/src/libmstch.a \
         -DMSTCH_INCLUDE_DIRS=$EXT/mstch/include \
-        -DWANGLE_LIBRARIES=$EXT/wangle/wangle/build/lib \
+        -DWANGLE_LIBRARIES=$EXT/wangle/wangle/build/lib/libwangle.a \
         -DWANGLE_INCLUDE_DIRS=$EXT/wangle \
-        -DZSTD_LIBRARIES=$EXT/zstd/lib \
+        -DZSTD_LIBRARIES=$EXT/zstd/lib/libzstd.a \
         -DZSTD_INCLUDE_DIRS=$EXT/zstd/lib"
     build_cmake fbthrift/ || die "Failed to build thrift"
 )

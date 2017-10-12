@@ -63,7 +63,7 @@ macro(my_thrift_library file_name services language options file_path output_pat
         "${options}"
         "${file_path}"
         "${output_path}"
-        "${THRIFT_CODE}")
+        "${THRIFT_CODE_${lang}}")
     list(APPEND THRIFT_CODE_${lang} "${${file_name}-${language}-SOURCES}")
     list(APPEND THRIFT_LIBS_${language} "${file_name}-${language}")
 endmacro(my_thrift_library)
@@ -95,10 +95,18 @@ foreach(lang ${THRIFT_LANGS})
 #     OPTIONS json
 #     REFLECT switch_config)
     my_thrift_library(
+        "highres" #file_name
+        "FbossHighresClient" #services
+        "${lang}" #language
+        "" #options
+        "${CMAKE_SOURCE_DIR}/fboss/agent/if" #file_path
+        "${THRIFT_DIR}/fboss/agent/if" #output_path
+        )
+    my_thrift_library(
         "switch_config" #file_name
         "" #services
         "${lang}" #language
-        "" #options
+        "json" #options
         "${CMAKE_SOURCE_DIR}/fboss/agent" #file_path
         "${THRIFT_DIR}/fboss/agent" #output_path
         ""  # deps
@@ -125,14 +133,6 @@ foreach(lang ${THRIFT_LANGS})
     my_thrift_library(
         "ctrl" #file_name
         "NeighborListenerClient;FbossCtrl" #services
-        "${lang}" #language
-        "FbossHighresClient" #options
-        "${CMAKE_SOURCE_DIR}/fboss/agent/if" #file_path
-        "${THRIFT_DIR}/fboss/agent/if" #output_path
-        )
-    my_thrift_library(
-        "highres" #file_name
-        "" #services
         "${lang}" #language
         "FbossHighresClient" #options
         "${CMAKE_SOURCE_DIR}/fboss/agent/if" #file_path
@@ -175,7 +175,7 @@ foreach(lang ${THRIFT_LANGS})
 endforeach(lang)
 
 include_directories(${THRIFT_DIR})
-
+# message("Building Thrift libraries: ${THRIFT_LIBS_cpp2}")
 
 
 # System libraries
@@ -194,6 +194,7 @@ find_library(SNAPPY snappy)
 find_library(ZLIB z)
 find_library(SSL ssl)
 find_library(CRYPTO crypto)
+find_library(GSSAPI gssapi_krb5)
 find_library(DL dl)
 find_library(EVENT event)
 find_library(NETLINK3 nl-3)
@@ -207,10 +208,14 @@ find_library(FOLLY folly PATHS ${CMAKE_SOURCE_DIR}/external/folly/folly/.libs)
 find_library(FOLLYBENCHMARK follybenchmark PATHS ${CMAKE_SOURCE_DIR}/external/folly/folly/.libs)
 find_library(WANGLE wangle PATHS ${CMAKE_SOURCE_DIR}/external/wangle/wangle/build/lib)
 find_library(THRIFT thrift PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib/)
+find_library(PROTOCOL protocol PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
 find_library(THRIFTPROTO thriftprotocol PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
 find_library(THRIFTCPP2 thriftcpp2 PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
 find_library(THRIFTTRANSPORT transport PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
 find_library(THRIFTASYNC async PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
+find_library(THRIFTCONCURENCY concurrency PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
+find_library(THRIFTCORE thrift-core PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
+find_library(THRIFTFROZEN thriftfrozen2 PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
 find_library(OPENNSL opennsl PATHS ${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge-trident)
 find_library(IPROUTE2 netlink PATHS ${CMAKE_SOURCE_DIR}/external/iproute2/lib)
 find_library(ZSTD zstd PATHS ${CMAKE_SOURCE_DIR}/external/zstd/lib)
@@ -243,9 +248,6 @@ add_executable(qsfp_service
     fboss/qsfp_service/platforms/wedge/GalaxyManager.cpp
     fboss/qsfp_service/platforms/wedge/Wedge40Manager.cpp
 )
-
-target_link_libraries(wedge_agent fboss_agent)
-target_link_libraries(qsfp_service fboss_agent)
 
 add_library(fboss_agent STATIC
     common/stats/ServiceData.cpp
@@ -435,65 +437,25 @@ add_library(fboss_agent STATIC
 
     fboss/qsfp_service/oss/StatsPublisher.cpp
     fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
-
-
-# 
-#     # generated sources
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/packettrace_data.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/packettrace_types.cpp
-#     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/FacebookService.cpp
-#     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/FacebookService_client.cpp
-#     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/fb303_data.cpp
-#     ${CMAKE_BINARY_DIR}/gen/common/fb303/if/gen-cpp2/fb303_types.cpp
-#     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_constants.cpp
-#     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_reflection.cpp
-#     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_data.cpp
-#     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp/Address_types.cpp
-#     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_constants.cpp
-#     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_data.cpp
-#     ${CMAKE_BINARY_DIR}/gen/common/network/if/gen-cpp2/Address_types.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2/switch_config_constants.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2/switch_config_data.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/gen-cpp2/switch_config_types.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/SimCtrl.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_data.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_types.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/sim/gen-cpp2/sim_ctrl_constants.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/optic_data.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/optic_types.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/sflow_data.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/sflow_types.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/sflow_constants.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/ctrl_data.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/ctrl_types.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/FbossCtrl.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/NeighborListenerClient_client.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/FbossHighresClient_client.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/fboss_data.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/fboss_types.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/highres_data.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/if/gen-cpp2/highres_types.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/bcmswitch_data.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/bcmswitch_types.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/hardware_stats_data.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/agent/hw/bcm/gen-cpp2/hardware_stats_types.cpp
-#     ${PCAP_DIR_PATH}PcapPushSubscriber.cpp
-#     ${PCAP_DIR_PATH}PcapPushSubscriber_client.cpp
-#     ${PCAP_DIR_PATH}pcap_pubsub_constants.cpp
-#     ${PCAP_DIR_PATH}pcap_pubsub_types.cpp
-#     ${PCAP_DIR_PATH}pcap_pubsub_data.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/QsfpService.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/QsfpService_client.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/qsfp_types.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/qsfp_data.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/qsfp_constants.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/transceiver_types.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/transceiver_data.cpp
-#     ${CMAKE_BINARY_DIR}/gen/fboss/qsfp_service/if/gen-cpp2/transceiver_constants.cpp
 )
 
-target_link_libraries(fboss_agent
-    ${THRIFT_LIBS_cpp2}  # autogenerated thrift libs
+set(ALL_THRIFT_LIBS
+    ${THRIFT}
+    ${PROTOCOL}
+    ${THRIFTPROTO}
+    ${THRIFTCPP2}
+    ${THRIFTASYNC}
+    ${THRIFTCONCURENCY}
+    ${THRIFTCORE}
+    ${THRIFTFROZEN}
+    ${THRIFTTRANSPORT}
+    )
+
+# NOTE: target_link_library doesn't do anything for
+# static (archive) files
+set(LIBFBOSS_AGENT_DEPS
+    "${ALL_THRIFT_LIBS}"
+    "${THRIFT_LIBS_cpp2}"  # autogenerated thrift libs
     ${GLOG}
     ${SSL}
     ${PCAP}
@@ -501,14 +463,13 @@ target_link_libraries(fboss_agent
     ${ZLIB}
     ${SNAPPY}
     ${CRYPTO}
+    ${GSSAPI}
     ${FOLLY}
-    ${WANGLE}
     ${GFLAGS}
     ${GLOG}
     ${PTHREAD}
-    ${THRIFT}
-    ${THRIFTPROTO}
-    ${THRIFTCPP2}
+    ${WANGLE}
+    "${ALL_THRIFT_LIBS}"
     ${OPENNSL}
     ${IPROUTE2}
     ${BOOSTFS}
@@ -523,74 +484,22 @@ target_link_libraries(fboss_agent
     ${CURL}
     ${NUMA}
     ${ZSTD}
-)
-
-
-target_link_libraries(qsfp_service
-    ${ZSTD}
-    ${GLOG}
-    ${SSL}
-    ${ZLIB}
-    ${FOLLY}
+    "${THRIFT_LIBS_cpp2}"  # autogenerated thrift libs
     ${WANGLE}
-    ${GFLAGS}
-    ${GLOG}
-    ${PTHREAD}
-    ${THRIFT}
-    ${THRIFTPROTO}
-    ${THRIFTCPP2}
-    ${EVENT}
 )
 
-find_program(THRIFT1 thrift1)
-find_program(PYTHON python)
-set(THRIFTC2OPTS json)
-set(THRIFTC ${THRIFT1} -I ${CMAKE_SOURCE_DIR} -gen cpp:json,templates -gen py:)
-set(THRIFTC2
-    ${PYTHON} -mthrift_compiler.main -I ${CMAKE_SOURCE_DIR} --gen cpp2:)
+#message("LIBFBOSS_AGENT_DEPS: ${LIBFBOSS_AGENT_DEPS}")
 
-# function(fboss_add_thrift)
-#     cmake_parse_arguments("arg" "" "OPTIONS;THRIFTSRC;REFLECT" "SERVICES" ${ARGN})
-#     get_cmake_property(_variableNames VARIABLES)
-#     get_filename_component(dirname "${arg_THRIFTSRC}" PATH)
-#     # NAME_WE = name without extension.
-#     get_filename_component(basename "${arg_THRIFTSRC}" NAME_WE)
-#     foreach(srv ${arg_SERVICES})
-#         set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${srv}.cpp)
-#         set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${srv}.h)
-#         set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}_client.cpp)
-#         set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}.cpp)
-#         set(services ${services} ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp2/${srv}.h)
-#     endforeach(srv)
-#     foreach(reflect ${arg_REFLECT})
-#         set(outputs ${outputs}
-#             ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${reflect}_reflection.h
-#             ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-cpp/${reflect}_reflection.cpp)
-#     endforeach(reflect)
-#     foreach(gen cpp cpp2)
-#         foreach(output constants data types)
-#             set(outputs ${outputs}
-#                 ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${basename}_${output}.h
-#                 ${CMAKE_BINARY_DIR}/gen/${dirname}/gen-${gen}/${basename}_${output}.cpp)
-#         endforeach(output)
-#     endforeach(gen)
-#     if (${arg_OPTIONS})
-#         set(THRIFTOPT ${arg_OPTIONS})
-#     else()
-#         set(THRIFTOPT ${THRIFTC2OPTIONS})
-#     endif()
-#     add_custom_command(
-#         OUTPUT
-#             ${outputs}
-#             ${services}
-#         COMMAND
-#             export PYTHONPATH=${CMAKE_SOURCE_DIR}/external/fbthrift/thrift/.python-local/lib/python/\;
-#             mkdir -p ${CMAKE_BINARY_DIR}/gen/${dirname}\;
-#             ${THRIFTC} -o ${CMAKE_BINARY_DIR}/gen/${dirname} ${CMAKE_SOURCE_DIR}/${arg_THRIFTSRC}\;
-#             ${THRIFTC2}${arg_OPTIONS} -o ${CMAKE_BINARY_DIR}/gen/${dirname} ${CMAKE_SOURCE_DIR}/${arg_THRIFTSRC};
-#     )
-# 
-# endfunction(fboss_add_thrift)
+target_link_libraries(fboss_agent "${LIBFBOSS_AGENT_DEPS}")
+target_link_libraries(wedge_agent 
+                        fboss_agent
+                        "${LIBFBOSS_AGENT_DEPS}"
+                    )
+target_link_libraries(qsfp_service 
+                        fboss_agent
+                        "${LIBFBOSS_AGENT_DEPS}"
+                     )
+
 
 
 # Unit Testing
@@ -622,18 +531,11 @@ add_executable(agent_test
        fboss/agent/test/oss/Main.cpp
 )
 target_link_libraries(agent_test
-  ${THRIFT}
-  ${THRIFTPROTO}
-  ${THRIFTCPP2}
-  ${THRIFTTRANSPORT}
-  ${THRIFTASYNC}
-  ${THRIFT_LIBS_cpp2}
-  fboss_agent
-  gtest
-  gmock
-  ${CMAKE_THREAD_LIBS_INIT}
-  ${FOLLY}
-  ${FOLLYBENCHMARK}
+    fboss_agent
+    "${LIBFBOSS_AGENT_DEPS}"
+    gtest
+    gmock
+    ${CMAKE_THREAD_LIBS_INIT}
 )
 add_test(test agent_test)
 

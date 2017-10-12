@@ -212,12 +212,12 @@ add_custom_command(
     -I ${CMAKE_SOURCE_DIR}
     --templates ${THRIFT_TEMPLATES}
     "${file_path}/${file_name}.thrift"
-  DEPENDS ${THRIFT1} ${deps}
+  DEPENDS "${file_path}/${file_name}.thrift"
   COMMENT "Generating ${file_name} files. Output: ${output_path}"
 )
 add_custom_target(
   ${file_name}-${language}-target ALL
-  DEPENDS ${${language}-${language}-HEADERS} ${${file_name}-${language}-SOURCES}
+  DEPENDS ${${file_name}-${language}-HEADERS} ${${file_name}-${language}-SOURCES}
 )
 install(
   DIRECTORY gen-${language}
