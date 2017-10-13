@@ -9,19 +9,54 @@
  */
 #pragma once
 
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/types.h"
-#include "fboss/agent/FbossError.h"
 
 #include <boost/container/flat_set.hpp>
+#include <folly/MacAddress.h>
 #include <folly/Range.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwitchState;
 
 struct AggregatePortFields {
-  using Subports = boost::container::flat_set<PortID>;
+  struct subport {
+    subport() {}
+    subport(
+        PortID id,
+        uint16_t pri,
+        cfg::LacpPortRate r,
+        cfg::LacpPortActivity a)
+        : portID(id), priority(pri), rate(r), activity(a) {}
+
+    // Needed for std::equal
+    bool operator==(const struct subport& rhs) const {
+      return portID == rhs.portID && priority == rhs.priority &&
+          rate == rhs.rate && activity == rhs.activity;
+    }
+    bool operator!=(const struct subport& rhs) const {
+      return !(*this == rhs);
+    }
+
+    // Needed for boost::container::flat_set
+    bool operator<(const struct subport& rhs) const {
+      return portID < rhs.portID;
+    }
+
+    folly::dynamic toFollyDynamic() const;
+    static struct subport fromFollyDynamic(const folly::dynamic& json);
+
+    PortID portID{0};
+    uint16_t priority{0};
+    cfg::LacpPortRate rate{cfg::LacpPortRate::SLOW};
+    cfg::LacpPortActivity activity{cfg::LacpPortActivity::PASSIVE};
+  };
+  using Subport = struct subport;
+  using Subports = boost::container::flat_set<Subport>;
 
   /* The SDK exposes much finer controls over the egress state of trunk member
    * ports, both as compared to what we expose in SwSwitch and as compared to
@@ -55,10 +90,12 @@ struct AggregatePortFields {
       AggregatePortID id,
       const std::string& name,
       const std::string& description,
+      uint16_t systemPriority,
+      folly::MacAddress systemID,
       Subports&& ports,
       Forwarding fwd = Forwarding::ENABLED);
 
-  template<typename Fn>
+  template <typename Fn>
   void forEachChild(Fn /* unused */) {}
 
   folly::dynamic toFollyDynamic() const;
@@ -67,6 +104,13 @@ struct AggregatePortFields {
   const AggregatePortID id_{0};
   std::string name_;
   std::string description_;
+  // systemPriortity_ and systemID_ are LACP parameters associated with an
+  // entire system; they are constant across AggregatePorts. Maintaining a copy
+  // of these parameters in each AggregatePort node is a convenient way of
+  // signalling to LinkAggregationManager that they've been updated via a config
+  // change.
+  uint16_t systemPriority_;
+  folly::MacAddress systemID_;
   Subports ports_;
   SubportToForwardingState portToFwdState_;
 };
@@ -76,6 +120,7 @@ struct AggregatePortFields {
  */
 class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
  public:
+  using Subport = AggregatePortFields::Subport;
   using SubportsDifferenceType = AggregatePortFields::Subports::difference_type;
   using SubportsConstRange =
       folly::Range<AggregatePortFields::Subports::const_iterator>;
@@ -85,14 +130,21 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
   using SubportAndForwardingStateValueType =
       AggregatePortFields::SubportToForwardingState::value_type;
 
-  template<typename Iterator>
+  template <typename Iterator>
   static std::shared_ptr<AggregatePort> fromSubportRange(
       AggregatePortID id,
       const std::string& name,
       const std::string& description,
+      uint16_t systemPriority,
+      folly::MacAddress systemID,
       folly::Range<Iterator> subports) {
     return std::make_shared<AggregatePort>(
-        id, name, description, Subports(subports.begin(), subports.end()));
+        id,
+        name,
+        description,
+        systemPriority,
+        systemID,
+        Subports(subports.begin(), subports.end()));
   }
 
   static std::shared_ptr<AggregatePort> fromFollyDynamic(
@@ -128,6 +180,22 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
 
   void setDescription(const std::string& desc) {
     writableFields()->description_ = desc;
+  }
+
+  uint16_t getSystemPriority() const {
+    return getFields()->systemPriority_;
+  }
+
+  void setSystemPriority(uint16_t systemPriority) {
+    writableFields()->systemPriority_ = systemPriority;
+  }
+
+  folly::MacAddress getSystemID() const {
+    return getFields()->systemID_;
+  }
+
+  void setSystemID(folly::MacAddress systemID) {
+    writableFields()->systemID_ = systemID;
   }
 
   AggregatePort::Forwarding getForwardingState(PortID port) {
@@ -181,4 +249,5 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
   using Subports = AggregatePortFields::Subports;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

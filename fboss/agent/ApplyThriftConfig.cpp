@@ -37,11 +37,13 @@
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/RouteUpdater.h"
+#include "fboss/agent/LacpTypes.h"
 
 #include <algorithm>
 #include <boost/container/flat_set.hpp>
 #include <boost/container/flat_map.hpp>
 #include <folly/Range.h>
+#include <utility>
 #include <vector>
 
 using boost::container::flat_map;
@@ -167,7 +169,9 @@ class ThriftConfigApplier {
       const std::shared_ptr<AggregatePort>& orig,
       const cfg::AggregatePort& cfg);
   std::shared_ptr<AggregatePort> createAggPort(const cfg::AggregatePort& cfg);
-  std::vector<PortID> getSubportsSorted(const cfg::AggregatePort& cfg);
+  std::vector<AggregatePort::Subport> getSubportsSorted(
+      const cfg::AggregatePort& cfg);
+  std::pair<folly::MacAddress, uint16_t> getSystemLacpConfig();
   std::shared_ptr<VlanMap> updateVlans();
   std::shared_ptr<Vlan> createVlan(const cfg::Vlan* config);
   std::shared_ptr<Vlan> updateVlan(const std::shared_ptr<Vlan>& orig,
@@ -631,8 +635,14 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
   auto cfgSubports = getSubportsSorted(cfg);
   auto origSubports = origAggPort->sortedSubports();
 
+  uint16_t cfgSystemPriority;
+  folly::MacAddress cfgSystemID;
+  std::tie(cfgSystemID, cfgSystemPriority) = getSystemLacpConfig();
+
   if (origAggPort->getName() == cfg.name &&
       origAggPort->getDescription() == cfg.description &&
+      origAggPort->getSystemPriority() == cfgSystemPriority &&
+      origAggPort->getSystemID() == cfgSystemID &&
       std::equal(
           origSubports.begin(), origSubports.end(), cfgSubports.begin())) {
     return nullptr;
@@ -641,6 +651,8 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
   auto newAggPort = origAggPort->clone();
   newAggPort->setName(cfg.name);
   newAggPort->setDescription(cfg.description);
+  newAggPort->setSystemPriority(cfgSystemPriority);
+  newAggPort->setSystemID(cfgSystemID);
   newAggPort->setSubports(folly::range(cfgSubports.begin(), cfgSubports.end()));
 
   return newAggPort;
@@ -649,25 +661,63 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
 shared_ptr<AggregatePort> ThriftConfigApplier::createAggPort(
     const cfg::AggregatePort& cfg) {
   auto subports = getSubportsSorted(cfg);
+
+  uint16_t cfgSystemPriority;
+  folly::MacAddress cfgSystemID;
+  std::tie(cfgSystemID, cfgSystemPriority) = getSystemLacpConfig();
+
   return AggregatePort::fromSubportRange(
       AggregatePortID(cfg.key),
       cfg.name,
       cfg.description,
+      cfgSystemPriority,
+      cfgSystemID,
       folly::range(subports.begin(), subports.end()));
 }
 
-std::vector<PortID> ThriftConfigApplier::getSubportsSorted(
+std::vector<AggregatePort::Subport> ThriftConfigApplier::getSubportsSorted(
     const cfg::AggregatePort& cfg) {
-  std::vector<PortID> ids(
-      std::distance(cfg.physicalPorts.begin(), cfg.physicalPorts.end()));
+  std::vector<AggregatePort::Subport> subports(
+      std::distance(cfg.memberPorts.begin(), cfg.memberPorts.end()));
 
-  for (int i = 0; i < ids.size(); ++i) {
-    ids[i] = PortID(cfg.physicalPorts[i]);
+  for (int i = 0; i < subports.size(); ++i) {
+    if (cfg.memberPorts[i].priority < 0 ||
+        cfg.memberPorts[i].priority >= 1 << 16) {
+      throw FbossError("Member port ", i, " has priority outside of [0, 2^16)");
+    }
+
+    auto id = PortID(cfg.memberPorts[i].memberPortID);
+    auto priority = static_cast<uint16_t>(cfg.memberPorts[i].priority);
+    auto rate = cfg.memberPorts[i].rate;
+    auto activity = cfg.memberPorts[i].activity;
+
+    subports[i] = AggregatePort::Subport(id, priority, rate, activity);
   }
 
-  std::sort(ids.begin(), ids.end());
+  std::sort(subports.begin(), subports.end());
 
-  return ids;
+  return subports;
+}
+
+std::pair<folly::MacAddress, uint16_t>
+ThriftConfigApplier::getSystemLacpConfig() {
+  folly::MacAddress systemID;
+  uint16_t systemPriority;
+
+  if (cfg_->__isset.lacp) {
+    systemID = MacAddress(cfg_->lacp.systemID);
+    systemPriority = cfg_->lacp.systemPriority;
+  } else {
+    // If the system LACP configuration parameters were not specified,
+    // we fall back to default parameters. Since the default system ID
+    // is not a compile-time constant (it is derived from the CPU mac),
+    // the default value is defined here, instead of, say,
+    // AggregatePortFields::kDefaultSystemID.
+    systemID = platform_->getLocalMac();
+    systemPriority = kDefaultSystemPriority;
+  }
+
+  return std::make_pair(systemID, systemPriority);
 }
 
 shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {

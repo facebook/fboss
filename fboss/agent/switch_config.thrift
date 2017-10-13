@@ -314,15 +314,37 @@ struct Port {
   16: PortFEC fec = PortFEC.OFF
 }
 
+enum LacpPortRate {
+  SLOW = 0,
+  FAST = 1,
+}
+
+enum LacpPortActivity {
+  PASSIVE = 0,
+  ACTIVE = 1,
+}
+
+struct AggregatePortMember {
+  /**
+   * Member ports are identified according to their logicalID, as defined in
+   * struct Port.
+   */
+  1: i32 memberPortID
+  2: i32 priority
+  3: LacpPortRate rate = FAST
+  4: LacpPortActivity activity = ACTIVE
+}
+
 struct AggregatePort {
   1: i16 key
   2: string name
   3: string description
-  /**
-   * Physical ports are identified here according to their logicalID,
-   * as set in struct Port.
-   */
-  4: list<i32> physicalPorts
+  4: list<AggregatePortMember> memberPorts
+}
+
+struct Lacp {
+  1: string systemID    // = cpuMAC
+  2: i32 systemPriority // = (2 ^ 16) - 1
 }
 
 /**
@@ -582,4 +604,5 @@ struct SwitchConfig {
   24: optional TrafficPolicyConfig globalEgressTrafficPolicy
   25: optional string config_version
   26: list<SflowCollector> sFlowCollectors = []
+  27: optional Lacp lacp
 }

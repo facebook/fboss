@@ -21,6 +21,9 @@
 #include <algorithm>
 #include <vector>
 
+#include <folly/Enumerate.h>
+#include <folly/Range.h>
+
 using namespace facebook::fboss;
 using std::make_shared;
 using std::shared_ptr;
@@ -60,8 +63,8 @@ void checkAggPort(
   auto subportsBegin = aggPort->sortedSubports().cbegin();
   auto subportsBeyond = aggPort->sortedSubports().cend();
 
-  auto equivalent = [](
-      PortID actual, PortID expected) -> testing::AssertionResult {
+  auto equivalent = [](PortID actual,
+                       PortID expected) -> testing::AssertionResult {
     if (actual == expected) {
       return testing::AssertionSuccess();
     }
@@ -76,7 +79,7 @@ void checkAggPort(
 
   while (subportsBegin != subportsBeyond &&
          expectedSubportsBegin != expectedSubportsBeyond) {
-    auto actual = *subportsBegin;
+    auto actual = subportsBegin->portID;
     auto expected = PortID(*expectedSubportsBegin);
 
     EXPECT_TRUE(equivalent(actual, expected));
@@ -92,7 +95,8 @@ void checkAggPort(
   }
 
   for (; subportsBegin < subportsBeyond; ++subportsBegin) {
-    EXPECT_TRUE(testing::AssertionFailure() << *subportsBegin << " unexpected");
+    EXPECT_TRUE(
+        testing::AssertionFailure() << subportsBegin->portID << " unexpected");
   }
   for (; expectedSubportsBegin < expectedSubportsBeyond;
        ++expectedSubportsBegin) {
@@ -134,8 +138,8 @@ TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
   config.aggregatePorts[0].key = 1;
   config.aggregatePorts[0].name = "port-channel";
   config.aggregatePorts[0].description = "single bundle";
-  config.aggregatePorts[0].physicalPorts.resize(1);
-  config.aggregatePorts[0].physicalPorts[0] = 1;
+  config.aggregatePorts[0].memberPorts.resize(1);
+  config.aggregatePorts[0].memberPorts[0].memberPortID = 1;
 
   auto endState = publishAndApplyConfig(startState, &config, &platform);
   ASSERT_NE(nullptr, endState);
@@ -191,9 +195,9 @@ TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
   config.aggregatePorts[0].key = 1;
   config.aggregatePorts[0].name = "port-channel";
   config.aggregatePorts[0].description = "double bundle";
-  config.aggregatePorts[0].physicalPorts.resize(2);
-  config.aggregatePorts[0].physicalPorts[0] = 1;
-  config.aggregatePorts[0].physicalPorts[1] = 2;
+  config.aggregatePorts[0].memberPorts.resize(2);
+  config.aggregatePorts[0].memberPorts[0].memberPortID = 1;
+  config.aggregatePorts[0].memberPorts[1].memberPortID = 2;
 
   auto endState = publishAndApplyConfig(startState, &config, &platform);
   ASSERT_NE(nullptr, endState);
@@ -244,9 +248,9 @@ TEST(AggregatePort, singleTrunkIdempotence) {
   baseConfig.aggregatePorts[0].key = 1;
   baseConfig.aggregatePorts[0].name = "port-channel";
   baseConfig.aggregatePorts[0].description = "double bundle";
-  baseConfig.aggregatePorts[0].physicalPorts.resize(2);
-  baseConfig.aggregatePorts[0].physicalPorts[0] = 1;
-  baseConfig.aggregatePorts[0].physicalPorts[1] = 2;
+  baseConfig.aggregatePorts[0].memberPorts.resize(2);
+  baseConfig.aggregatePorts[0].memberPorts[0].memberPortID = 1;
+  baseConfig.aggregatePorts[0].memberPorts[1].memberPortID = 2;
 
   auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
   ASSERT_NE(nullptr, startState);
@@ -256,8 +260,8 @@ TEST(AggregatePort, singleTrunkIdempotence) {
   // subports are sorted in ThriftConfigApplier.
   auto config = baseConfig;
   std::swap(
-      config.aggregatePorts[0].physicalPorts[0],
-      config.aggregatePorts[0].physicalPorts[1]);
+      config.aggregatePorts[0].memberPorts[0],
+      config.aggregatePorts[0].memberPorts[1]);
 
   EXPECT_EQ(nullptr, publishAndApplyConfig(startState, &config, &platform));
 }
@@ -302,9 +306,9 @@ TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
   baseConfig.aggregatePorts[0].key = 1;
   baseConfig.aggregatePorts[0].name = "port-channel";
   baseConfig.aggregatePorts[0].description = "double bundle";
-  baseConfig.aggregatePorts[0].physicalPorts.resize(2);
-  baseConfig.aggregatePorts[0].physicalPorts[0] = 1;
-  baseConfig.aggregatePorts[0].physicalPorts[1] = 2;
+  baseConfig.aggregatePorts[0].memberPorts.resize(2);
+  baseConfig.aggregatePorts[0].memberPorts[0].memberPortID = 1;
+  baseConfig.aggregatePorts[0].memberPorts[1].memberPortID = 2;
 
   auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
   ASSERT_NE(nullptr, startState);
@@ -313,7 +317,7 @@ TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
   // physical ports.
   auto config = baseConfig;
   config.aggregatePorts[0].description = "empty bundle";
-  config.aggregatePorts[0].physicalPorts.resize(0);
+  config.aggregatePorts[0].memberPorts.resize(0);
 
   auto endState = publishAndApplyConfig(startState, &config, &platform);
   ASSERT_NE(nullptr, endState);
@@ -364,9 +368,9 @@ TEST(AggregatePort, noTrunk) {
   baseConfig.aggregatePorts[0].key = 1;
   baseConfig.aggregatePorts[0].name = "port-channel";
   baseConfig.aggregatePorts[0].description = "double bundle";
-  baseConfig.aggregatePorts[0].physicalPorts.resize(2);
-  baseConfig.aggregatePorts[0].physicalPorts[0] = 1;
-  baseConfig.aggregatePorts[0].physicalPorts[1] = 2;
+  baseConfig.aggregatePorts[0].memberPorts.resize(2);
+  baseConfig.aggregatePorts[0].memberPorts[0].memberPortID = 1;
+  baseConfig.aggregatePorts[0].memberPorts[1].memberPortID = 2;
 
   auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
   ASSERT_NE(nullptr, startState);
@@ -427,6 +431,16 @@ void checkChangedAggPorts(
   EXPECT_EQ(removedIDs, foundRemoved);
 }
 
+void setAggregatePortMemberIDs(
+    std::vector<cfg::AggregatePortMember>& members,
+    std::vector<int32_t> portIDs) {
+  members.resize(portIDs.size());
+
+  for (const auto& it : folly::enumerate(portIDs)) {
+    members[it.index].set_memberPortID(*it);
+  }
+}
+
 TEST(AggregatePort, multiTrunkAdd) {
   MockPlatform platform;
 
@@ -441,14 +455,15 @@ TEST(AggregatePort, multiTrunkAdd) {
   config.aggregatePorts[0].key = 55;
   config.aggregatePorts[0].name = "lag55";
   config.aggregatePorts[0].description = "upwards facing link-bundle";
-  config.aggregatePorts[0].physicalPorts.resize(10);
-  config.aggregatePorts[0].physicalPorts = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  setAggregatePortMemberIDs(
+      config.aggregatePorts[0].memberPorts, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
   config.aggregatePorts[1].key = 155;
   config.aggregatePorts[1].name = "lag155";
   config.aggregatePorts[1].description = "downwards facing link-bundle";
-  config.aggregatePorts[1].physicalPorts.resize(10);
-  config.aggregatePorts[1].physicalPorts = {
-      11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+  config.aggregatePorts[1].memberPorts.resize(10);
+  setAggregatePortMemberIDs(
+      config.aggregatePorts[1].memberPorts,
+      {11, 12, 13, 14, 15, 16, 17, 18, 19, 20});
 
   auto endState = publishAndApplyConfig(startState, &config, &platform);
   ASSERT_NE(nullptr, endState);
@@ -494,14 +509,15 @@ TEST(AggregatePort, multiTrunkIdempotence) {
   config.aggregatePorts[0].key = 55;
   config.aggregatePorts[0].name = "lag55";
   config.aggregatePorts[0].description = "upwards facing link-bundle";
-  config.aggregatePorts[0].physicalPorts.resize(10);
-  config.aggregatePorts[0].physicalPorts = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  config.aggregatePorts[0].memberPorts.resize(10);
+  setAggregatePortMemberIDs(
+      config.aggregatePorts[0].memberPorts, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
   config.aggregatePorts[1].key = 155;
   config.aggregatePorts[1].name = "lag155";
   config.aggregatePorts[1].description = "downwards facing link-bundle";
-  config.aggregatePorts[1].physicalPorts.resize(10);
-  config.aggregatePorts[1].physicalPorts = {
-      11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+  setAggregatePortMemberIDs(
+      config.aggregatePorts[1].memberPorts,
+      {11, 12, 13, 14, 15, 16, 17, 18, 19, 20});
 
   auto endState = publishAndApplyConfig(startState, &config, &platform);
   ASSERT_NE(nullptr, endState);
@@ -523,14 +539,16 @@ TEST(AggregatePort, multiTrunkAddAndChange) {
   baseConfig.aggregatePorts[0].key = 55;
   baseConfig.aggregatePorts[0].name = "lag55";
   baseConfig.aggregatePorts[0].description = "upwards facing link-bundle";
-  baseConfig.aggregatePorts[0].physicalPorts.resize(10);
-  baseConfig.aggregatePorts[0].physicalPorts = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  setAggregatePortMemberIDs(
+      baseConfig.aggregatePorts[0].memberPorts,
+      {1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
+
   baseConfig.aggregatePorts[1].key = 155;
   baseConfig.aggregatePorts[1].name = "lag155";
   baseConfig.aggregatePorts[1].description = "downwards facing link-bundle";
-  baseConfig.aggregatePorts[1].physicalPorts.resize(10);
-  baseConfig.aggregatePorts[1].physicalPorts = {
-      11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+  setAggregatePortMemberIDs(
+      baseConfig.aggregatePorts[1].memberPorts,
+      {11, 12, 13, 14, 15, 16, 17, 18, 19, 20});
 
   auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
   ASSERT_NE(nullptr, startState);
@@ -542,24 +560,25 @@ TEST(AggregatePort, multiTrunkAddAndChange) {
   auto config = baseConfig;
   config.aggregatePorts.resize(4);
   config.aggregatePorts[0].description = "up & leftwards facing link-bundle";
-  config.aggregatePorts[0].physicalPorts.resize(5);
-  config.aggregatePorts[0].physicalPorts = {1, 2, 3, 4, 5};
+  config.aggregatePorts[0].memberPorts.resize(5);
+  setAggregatePortMemberIDs(
+      config.aggregatePorts[0].memberPorts, {1, 2, 3, 4, 5});
 
   config.aggregatePorts[1].description = "down & leftwards facing link-bundle";
-  config.aggregatePorts[1].physicalPorts.resize(5);
-  config.aggregatePorts[1].physicalPorts = {11, 12, 13, 14, 15};
+  setAggregatePortMemberIDs(
+      config.aggregatePorts[1].memberPorts, {11, 12, 13, 14, 15});
 
   config.aggregatePorts[2].key = 40;
   config.aggregatePorts[2].name = "lag40";
   config.aggregatePorts[2].description = "up & rightwards facing link-bundle";
-  config.aggregatePorts[2].physicalPorts.resize(5);
-  config.aggregatePorts[2].physicalPorts = {6, 7, 8, 9, 10};
+  setAggregatePortMemberIDs(
+      config.aggregatePorts[2].memberPorts, {6, 7, 8, 9, 10});
 
   config.aggregatePorts[3].key = 90;
   config.aggregatePorts[3].name = "lag90";
   config.aggregatePorts[3].description = "down & rightwards facing link-bundle";
-  config.aggregatePorts[3].physicalPorts.resize(5);
-  config.aggregatePorts[3].physicalPorts = {16, 17, 18, 19, 20};
+  setAggregatePortMemberIDs(
+      config.aggregatePorts[3].memberPorts, {16, 17, 18, 19, 20});
 
   auto endState = publishAndApplyConfig(startState, &config, &platform);
   ASSERT_NE(nullptr, endState);
@@ -622,26 +641,29 @@ TEST(AggregatePort, multiTrunkRemove) {
   baseConfig.aggregatePorts[0].name = "lag55";
   baseConfig.aggregatePorts[0].description =
       "up & leftwards facing link-bundle";
-  baseConfig.aggregatePorts[0].physicalPorts.resize(5);
-  baseConfig.aggregatePorts[0].physicalPorts = {1, 2, 3, 4, 5};
+  setAggregatePortMemberIDs(
+      baseConfig.aggregatePorts[0].memberPorts, {1, 2, 3, 4, 5});
+
   baseConfig.aggregatePorts[1].key = 155;
   baseConfig.aggregatePorts[1].name = "lag155";
   baseConfig.aggregatePorts[1].description =
       "down & leftwards facing link-bundle";
-  baseConfig.aggregatePorts[1].physicalPorts.resize(5);
-  baseConfig.aggregatePorts[1].physicalPorts = {11, 12, 13, 14, 15};
+  setAggregatePortMemberIDs(
+      baseConfig.aggregatePorts[1].memberPorts, {11, 12, 13, 14, 15});
+
   baseConfig.aggregatePorts[2].key = 40;
   baseConfig.aggregatePorts[2].name = "lag40";
   baseConfig.aggregatePorts[2].description =
       "up & rightwards facing link-bundle";
-  baseConfig.aggregatePorts[2].physicalPorts.resize(5);
-  baseConfig.aggregatePorts[2].physicalPorts = {6, 7, 8, 9, 10};
+  setAggregatePortMemberIDs(
+      baseConfig.aggregatePorts[2].memberPorts, {6, 7, 8, 9, 10});
+
   baseConfig.aggregatePorts[3].key = 90;
   baseConfig.aggregatePorts[3].name = "lag90";
   baseConfig.aggregatePorts[3].description =
       "down & rightwards facing link-bundle";
-  baseConfig.aggregatePorts[3].physicalPorts.resize(5);
-  baseConfig.aggregatePorts[3].physicalPorts = {16, 17, 18, 19, 20};
+  setAggregatePortMemberIDs(
+      baseConfig.aggregatePorts[3].memberPorts, {16, 17, 18, 19, 20});
 
   auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
   ASSERT_NE(nullptr, startState);
@@ -679,4 +701,56 @@ TEST(AggregatePort, multiTrunkRemove) {
   EXPECT_EQ(
       startAggPorts->getAggregatePortIf(AggregatePortID(90)),
       endAggPorts->getAggregatePortIf(AggregatePortID(90)));
+}
+
+TEST(Subport, serializationInverseOfDeserialization) {
+  auto subport = AggregatePort::Subport(
+      PortID(1),
+      static_cast<uint16_t>(1) << 8,
+      cfg::LacpPortRate::SLOW,
+      cfg::LacpPortActivity::PASSIVE);
+
+  auto serializedSubport = subport.toFollyDynamic();
+  auto deserializedSubport =
+      AggregatePort::Subport::fromFollyDynamic(serializedSubport);
+
+  EXPECT_TRUE(subport == deserializedSubport);
+}
+
+TEST(AggregatePort, serializationInverseOfDeserialization) {
+  std::vector<AggregatePort::Subport> subports;
+  for (int i = 0; i < subports.size(); ++i) {
+    subports.emplace_back(
+        PortID(i),
+        (1 << 15) + i,
+        i % 2 ? cfg::LacpPortRate::SLOW : cfg::LacpPortRate::FAST,
+        i % 2 ? cfg::LacpPortActivity::PASSIVE : cfg::LacpPortActivity::ACTIVE);
+  }
+
+  auto subportRange =
+      folly::Range<std::vector<AggregatePort::Subport>::const_iterator>(
+          subports.begin(), subports.end());
+  auto aggPort = AggregatePort::fromSubportRange(
+      AggregatePortID(1),
+      "ae1/1/1",
+      "Link bundle with member ports eth1/[1234]/1",
+      static_cast<uint16_t>(1) << 14, // systemPriority
+      folly::MacAddress("01:02:03:04:05:06"), // systemID
+      subportRange);
+
+  auto serializedAggPort = aggPort->toFollyDynamic();
+  auto deserializedAggPort = AggregatePort::fromFollyDynamic(serializedAggPort);
+
+  ASSERT(deserializedAggPort);
+  EXPECT_EQ(aggPort->getID(), deserializedAggPort->getID());
+  EXPECT_EQ(aggPort->getName(), deserializedAggPort->getName());
+  EXPECT_EQ(aggPort->getDescription(), deserializedAggPort->getDescription());
+  EXPECT_EQ(
+      aggPort->getSystemPriority(), deserializedAggPort->getSystemPriority());
+  EXPECT_EQ(aggPort->getSystemID(), deserializedAggPort->getSystemID());
+  EXPECT_TRUE(std::equal(
+      aggPort->sortedSubports().begin(),
+      aggPort->sortedSubports().end(),
+      deserializedAggPort->sortedSubports().begin(),
+      deserializedAggPort->sortedSubports().end()));
 }
