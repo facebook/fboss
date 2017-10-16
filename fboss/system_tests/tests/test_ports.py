@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import unittest
 
-from fboss.system_tests.system_tests import FbossBaseSystemTest
+from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 
 
 @unittest.skip("This test is correct, but code is currently broken -- fixme !!")
@@ -18,6 +18,7 @@ class PortStatusTest(FbossBaseSystemTest):
                                  sw_client.getCounter("%s.up" % pstate.name))
 
 
+@test_tags("port")
 class PortFECCheck(FbossBaseSystemTest):
     """ FEC should be enabled for all 100G ports """
     def test_fec_check_for_100g(self):

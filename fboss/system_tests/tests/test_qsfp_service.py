@@ -3,9 +3,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from fboss.system_tests.system_tests import FbossBaseSystemTest
+from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 
 
+@test_tags("qsfp")
 class QsfpService(FbossBaseSystemTest):
     """ Thrift connect to the qsfp service and
         verify everything looks OK

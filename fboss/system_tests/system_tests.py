@@ -10,6 +10,8 @@ import os
 import sys
 import unittest
 
+user_requested_tags = []
+
 Defaults = {
     "test_dirs": ['tests'],
     "config": 'test_topologies/example_topology.py',
@@ -17,8 +19,24 @@ Defaults = {
     "log_dir": "results",
     "log_file": "{dir}/result-{test}.log",
     "test_topology": None,
-    "min_hosts": 2
+    "min_hosts": 2,
+    "tags": user_requested_tags
 }
+
+
+def _test_has_user_requested_tag(test_tags):
+    for tag in test_tags:
+        if tag in user_requested_tags:
+            return True
+    return False
+
+
+def test_tags(*args):
+    def fn(cls):
+        if _test_has_user_requested_tag(list(args)):
+            cls.valid_tags = True
+        return cls
+    return fn
 
 
 def generate_default_test_argparse(**kwargs):
@@ -35,6 +53,10 @@ def generate_default_test_argparse(**kwargs):
     parser.add_argument('--log_file', default=Defaults['log_file'])
     parser.add_argument('--min_hosts', default=Defaults['min_hosts'])
     parser.add_argument('--log_level', default=Defaults['log_level'])
+    parser.add_argument('--tags',
+                        help="Provide list of test tags, default is all tests "
+                             "Example tags qsfp, port etc",
+                        default=Defaults['tags'])
 
     return parser
 
@@ -119,6 +141,19 @@ def frob_options_into_tests(suite, options):
             test.options = options
 
 
+def add_interested_tests_to_test_suite(tests, suite):
+    if not isinstance(tests, unittest.suite.TestSuite):
+        # when user provides a tag , add testcases which has
+        # valid tags and add all testcases when user do not
+        # provide any tags
+        if hasattr(tests, "valid_tags") or not user_requested_tags:
+            suite.addTest(tests)
+        return
+
+    for test in tests:
+        add_interested_tests_to_test_suite(test, suite)
+
+
 def run_tests(options):
     """ Run all of the tests as described in options
     :options : a dict of testing options, as described above
@@ -131,10 +166,9 @@ def run_tests(options):
     for directory in options.test_dirs:
         testsdir = unittest.TestLoader().discover(start_dir=directory,
                                                   pattern='*test*.py')
-        suite.addTests(testsdir)
+        add_interested_tests_to_test_suite(testsdir, suite)
     frob_options_into_tests(suite, options)
     return unittest.TextTestRunner(verbosity=2).run(suite)
-
 
 def main(args):
     options_parser = generate_default_test_argparse()

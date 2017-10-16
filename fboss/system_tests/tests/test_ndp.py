@@ -3,9 +3,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from fboss.system_tests.system_tests import FbossBaseSystemTest
+from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 
 
+@test_tags("ndp")
 class V6NeightborAdvertisement(FbossBaseSystemTest):
     """ Verify we receive well-formatted IPv6 route advertisments
         On all hosts, on all interfaces

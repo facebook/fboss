@@ -3,12 +3,13 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from fboss.system_tests.system_tests import FbossBaseSystemTest
+from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 from fboss.system_tests.testutils.ip_conversion import ip_addr_to_str
 
 
 # By the time we get here, connectivity to the switch
 # and the hosts has been verified
+@test_tags("l3interface")
 class L3InterfacesTest(FbossBaseSystemTest):
     """ Ping Each L3 Interface from Each host
     """
@@ -27,6 +28,7 @@ class L3InterfacesTest(FbossBaseSystemTest):
                         self.assertTrue(client.ping(ip))
 
 
+@test_tags("l3interface")
 class L3AllPairsPing(FbossBaseSystemTest):
     """ Make sure each host can ping every other host """
     def test_all_pairs_ping(self):
