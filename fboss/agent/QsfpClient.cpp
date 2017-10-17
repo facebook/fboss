@@ -10,6 +10,8 @@
 
 #include "QsfpClient.h"
 
+#include <thrift/lib/cpp/async/TAsyncSocket.h>
+
 namespace facebook { namespace fboss {
 
 static constexpr int kQsfpServicePort = 5910;
