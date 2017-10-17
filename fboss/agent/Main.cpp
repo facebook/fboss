@@ -61,6 +61,7 @@ DEFINE_int32(thrift_task_expire_timeout, 30,
 DEFINE_bool(tun_intf, true,
             "Create tun interfaces to allow other processes to "
             "send and receive traffic via the switch ports");
+DEFINE_bool(enable_lacp, false, "Run LACP in agent");
 DEFINE_bool(enable_lldp, true,
             "Run LLDP protocol in agent");
 DEFINE_bool(publish_boot_type, true,
@@ -113,6 +114,9 @@ class Initializer {
 
   SwitchFlags setupFlags() {
     SwitchFlags flags = SwitchFlags::DEFAULT;
+    if (FLAGS_enable_lacp) {
+      flags |= SwitchFlags::ENABLE_LACP;
+    }
     if (FLAGS_tun_intf) {
       flags |= SwitchFlags::ENABLE_TUN;
     }

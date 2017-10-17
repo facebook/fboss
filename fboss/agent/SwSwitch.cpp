@@ -16,6 +16,7 @@
 #include "common/stats/ServiceData.h"
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/IPv4Handler.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/RouteUpdateLogger.h"
@@ -34,6 +35,7 @@
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/pcap_distribution_service/if/gen-cpp2/PcapPushSubscriber.h"
 #include "fboss/pcap_distribution_service/if/gen-cpp2/pcap_pubsub_constants.h"
+#include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
@@ -231,10 +233,17 @@ void SwSwitch::stop() {
   // packet handling callback as well while stopping the switch.
   //
   portRemediator_.reset();
+
   nUpdater_.reset();
+
   if (lldpManager_) {
     lldpManager_->stop();
   }
+
+  if (lagManager_) {
+    lagManager_.reset();
+  }
+
   if (unresolvedNhopsProber_) {
     unresolvedNhopsProber_.reset();
   }
@@ -491,6 +500,10 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
         StateDelta(std::make_shared<SwitchState>(), getState()));
   }
 
+  if (flags & SwitchFlags::ENABLE_LACP) {
+    lagManager_ = std::make_unique<LinkAggregationManager>(this);
+  }
+
   auto bgHeartbeatStatsFunc = [this] (int delay, int backLog) {
     stats()->bgHeartbeatDelay(delay);
     stats()->bgEventBacklog(backLog);
@@ -550,7 +563,7 @@ void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
   }
 
   if (lldpManager_) {
-      lldpManager_->start();
+    lldpManager_->start();
   }
 
   if (flags_ & SwitchFlags::PUBLISH_STATS) {
@@ -1070,6 +1083,22 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   case IPv6Handler::ETHERTYPE_IPV6:
     ipv6_->handlePacket(std::move(pkt), dstMac, srcMac, c);
     return;
+  case LACPDU::EtherType::SLOW_PROTOCOLS:
+  {
+    // The only supported protocol in the Ethernet suite's "Slow Protocols"
+    // is the Link Aggregation Control Protocol
+    auto subtype = c.readBE<uint8_t>();
+    if (subtype == LACPDU::EtherSubtype::LACP) {
+      if (lagManager_) {
+        lagManager_->handlePacket(std::move(pkt), c);
+      } else {
+        LOG_EVERY_N(WARNING, 60) << "Received LACP frame but LACP not enabled";
+      }
+    } else if (subtype == LACPDU::EtherSubtype::MARKER) {
+      LOG(WARNING) << "Received Marker frame but Marker Protocol not supported";
+    }
+  }
+    return;
   default:
     break;
   }
@@ -1100,45 +1129,6 @@ void SwSwitch::linkStateChanged(PortID portId, bool up) {
   };
   updateStateNoCoalescing(
       "Port OperState Update", std::move(updateOperStateFn));
-
-  /* In testing, we've found that it can take up to 100 ms _after_ a link-up
-   * interrupt has been issued for the link to actually be usable (ie. able to
-   * transmit and receive frames). Thus, immediately expanding the LAG group
-   * to include the newly-up port can result in packet loss.
-   * Packet loss of this nature is avoided in the case of dynamic link
-   * aggregation by an application of fate-sharing: instead of immediately
-   * expanding the LAG group, the LACP machinery is first notified of the event,
-   * resulting in a LAC PDU exchange between the local interface and the remote
-   * interface. Once the LACP handshake has completed, the LAG group is expanded
-   * to include the newly-up port. Since the link must have been able to
-   * transmit and receive to complete the handshake, expanding the LAG group
-   * afterwards must avoid packet loss. Conversely, if the LACP handshake does
-   * not complete, whether due to the link not yet being usable or due to normal
-   * LACP operation, then we would not want to add the newly-up port to the LAG
-   * group, as dictated by LACP.
-   */
-  auto updateFwdStateFn = [=](const std::shared_ptr<SwitchState>& state)
-      -> std::shared_ptr<SwitchState> {
-    std::shared_ptr<SwitchState> nextState(state);
-    auto* aggPort =
-        nextState->getAggregatePorts()->getAggregatePortIf(portId).get();
-    if (!aggPort) {
-      return nullptr;
-    }
-
-    LOG(INFO) << "Updating AggregatePort " << aggPort->getID()
-              << ": ForwardingState[" << portId << "] --> "
-              << (up ? "ENABLED" : "DISABLED");
-
-    aggPort = aggPort->modify(&nextState);
-    auto fwdState = up ? AggregatePort::Forwarding::ENABLED
-                       : AggregatePort::Forwarding::DISABLED;
-    aggPort->setForwardingState(portId, fwdState);
-
-    return nextState;
-  };
-  updateStateNoCoalescing(
-      "AggregatePort ForwardingState", std::move(updateFwdStateFn));
 
   // Log event and update counters
   logLinkStateEvent(portId, up);

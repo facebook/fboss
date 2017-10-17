@@ -30,6 +30,10 @@ class AggregatePortMap
     return getNodeIf(id);
   }
 
+  std::shared_ptr<AggregatePort> getAggregatePort(AggregatePortID id) const {
+    return getNode(id);
+  }
+
   /* This method will iterate over every member port in every aggregate port,
    * so it is a quadratic operation. If it turns out to be a bottleneck, we can
    * maintain an index to speed it up.

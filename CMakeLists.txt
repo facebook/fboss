@@ -175,6 +175,10 @@ add_library(fboss_agent STATIC
     fboss/agent/IPv6Handler.cpp
     fboss/agent/lldp/LinkNeighbor.cpp
     fboss/agent/lldp/LinkNeighborDB.cpp
+    fboss/agent/LacpController.cpp
+    fboss/agent/LacpMachines.cpp
+    fboss/agent/LacpTypes.cpp
+    fboss/agent/LinkAggregationManager.cpp
     fboss/agent/LldpManager.cpp
     fboss/agent/Main.cpp
     fboss/agent/ndp/IPv6RouteAdvertiser.cpp

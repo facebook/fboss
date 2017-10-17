@@ -35,6 +35,7 @@ class ArpHandler;
 class ChannelCloser;
 class IPv4Handler;
 class IPv6Handler;
+class LinkAggregationManager;
 class LldpManager;
 class PcapPushSubscriberAsyncClient;
 class PktCaptureManager;
@@ -58,7 +59,8 @@ enum SwitchFlags : int {
   ENABLE_TUN = 1,
   ENABLE_LLDP = 2,
   PUBLISH_STATS = 4,
-  ENABLE_NHOPS_PROBER = 8
+  ENABLE_NHOPS_PROBER = 8,
+  ENABLE_LACP = 16
 };
 
 inline SwitchFlags operator|=(SwitchFlags& a, const SwitchFlags b) {
@@ -401,6 +403,13 @@ class SwSwitch : public HwSwitch::Callback {
    */
   folly::EventBase* getUpdateEVB() {
     return &updateEventBase_;
+  }
+
+  /*
+   * Get the EventBase over which LacpController and LacpMachines should execute
+   */
+  folly::EventBase* getLacpEvb() {
+    return getBackgroundEVB();
   }
 
   /**
@@ -799,6 +808,8 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<PktCaptureManager> pcapMgr_;
   std::unique_ptr<RouteUpdateLogger> routeUpdateLogger_;
   std::unique_ptr<UnresolvedNhopsProber> unresolvedNhopsProber_;
+  std::unique_ptr<LinkAggregationManager> lagManager_;
+
   BootType bootType_{BootType::UNINITIALIZED};
   std::unique_ptr<LldpManager> lldpManager_;
   std::unique_ptr<ThreadHeartbeat> bgThreadHeartbeat_;

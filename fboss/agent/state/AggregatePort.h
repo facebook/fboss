@@ -93,7 +93,7 @@ struct AggregatePortFields {
       uint16_t systemPriority,
       folly::MacAddress systemID,
       Subports&& ports,
-      Forwarding fwd = Forwarding::ENABLED);
+      Forwarding fwd = Forwarding::DISABLED);
 
   template <typename Fn>
   void forEachChild(Fn /* unused */) {}
