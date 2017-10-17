@@ -101,7 +101,7 @@ class FBOSSTestTopology(object):
         self.test_hosts[host.name] = host
 
     def remove_host(self, host):
-        if host in self.test_hosts:
+        if host in self.test_hosts.values():
             del self.test_hosts[host.name]
         else:
             raise FbossTestException("host not in test topology: %s" % host)
