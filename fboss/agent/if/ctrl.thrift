@@ -245,6 +245,7 @@ enum StdClientIds {
   STATIC_ROUTE = 1,
   INTERFACE_ROUTE = 2,
   LINKLOCAL_ROUTE = 3,
+  OPENR = 786,
 }
 
 service FbossCtrl extends fb303.FacebookService {

@@ -587,8 +587,9 @@ struct SwitchConfig {
   // Predefined values for these can be found at
   // fboss/agent/if/ctrl.thrift
   19: map<i32, i32> clientIdToAdminDistance = {
-        0: 20,
-        1: 1,
+        0: 20,    // BGP
+        786: 10,  // OPENR
+        1: 1,     // Static routes from config
       }
   /* Override source IP for DHCP relay packet to the DHCP server */
   20: optional string dhcpRelaySrcOverrideV4
