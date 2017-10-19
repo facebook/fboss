@@ -11,7 +11,7 @@
 
 #include <boost/cast.hpp>
 
-#include <folly/hash/Hash.h>
+#include <folly/Hash.h>
 #include <folly/Memory.h>
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
