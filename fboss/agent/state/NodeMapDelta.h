@@ -14,7 +14,7 @@
 #include <type_traits>
 #include <cstddef>
 
-#include <folly/ApplyTuple.h>
+#include <folly/functional/ApplyTuple.h>
 
 namespace facebook { namespace fboss {
 
