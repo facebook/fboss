@@ -73,6 +73,16 @@ struct L2EntryThrift {
   3: i32 vlanID,
 }
 
+struct SubportThrift {
+  1: required i32 id,
+  2: required bool isForwardingEnabled,
+}
+
+struct AggregatePortEntryThrift {
+  1: required i32 aggregatePortId,
+  2: required list<SubportThrift> subports,
+}
+
 struct InterfaceDetail {
   1: string interfaceName,
   2: i32 interfaceId,
@@ -425,6 +435,8 @@ service FbossCtrl extends fb303.FacebookService {
   list<NdpEntryThrift> getNdpTable()
     throws (1: fboss.FbossBaseError error)
   list<L2EntryThrift> getL2Table()
+    throws (1: fboss.FbossBaseError error)
+  list<AggregatePortEntryThrift> getAggregatePortTable()
     throws (1: fboss.FbossBaseError error)
 
   // Deprecated - use the qsfp_service instead

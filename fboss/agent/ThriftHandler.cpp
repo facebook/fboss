@@ -359,6 +359,13 @@ void ThriftHandler::getL2Table(std::vector<L2EntryThrift>& l2Table) {
   VLOG(6) << "L2 Table size:" << l2Table.size();
 }
 
+void ThriftHandler::getAggregatePortTable(
+    std::vector<AggregatePortEntryThrift>& aggregatePortTable) {
+  ensureConfigured();
+  sw_->fetchAggregatePortTable(aggregatePortTable);
+  VLOG(6) << "Aggregate Port Table size:" << aggregatePortTable.size();
+}
+
 void ThriftHandler::fillPortStats(PortInfoThrift& portInfo) {
   auto portId = portInfo.portId;
   auto statMap = fbData->getStatMap();

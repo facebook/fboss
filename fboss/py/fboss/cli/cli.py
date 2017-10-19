@@ -17,6 +17,7 @@ sys.path.insert(2, '../../../agent/if/gen-py')
 import click
 
 from fboss.cli.commands import arp
+from fboss.cli.commands import aggregate_port
 from fboss.cli.commands import config
 from fboss.cli.commands import commands as cmds
 from fboss.cli.commands import interface
@@ -94,6 +95,17 @@ class ArpCli(object):
     def _flush(cli_opts, ip, vlan):
         ''' Flush an ARP entry by [IP]'''
         cmds.NeighborFlushCmd(cli_opts).run(ip, vlan)
+
+
+class AggregatePortCli(object):
+    ''' Aggregate Port sub-commands '''
+    @click.command()
+    @click.pass_obj
+    def aggregate_port(cli_opts):
+        ''' Show aggregate port information; Outputs a list of
+            aggregate port and the subports that are part of the
+            aggregate port. '''
+        aggregate_port.AggregatePortCmd(cli_opts).run()
 
 
 class NicCli(object):
@@ -443,6 +455,7 @@ def add_modules(main_func):
     ''' Add sub-commands to main '''
 
     main_func.add_command(ArpCli().arp)
+    main_func.add_command(AggregatePortCli().aggregate_port)
     main_func.add_command(GetConfigCli().config)
     main_func.add_command(IpCli().ip)
     main_func.add_command(InterfaceCli().interface)

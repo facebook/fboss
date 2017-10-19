@@ -414,6 +414,34 @@ void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype){
       .onError(std::move(onError));
 }
 
+void SwSwitch::fetchAggregatePortTable(
+    std::vector<AggregatePortEntryThrift> &aggregatePortTable) {
+  auto aggrPorts = getState()->getAggregatePorts();
+  PortID subportID;
+  AggregatePort::Forwarding fwdState;
+  aggregatePortTable.clear();
+  aggregatePortTable.reserve(aggrPorts->size());
+  for (const auto& aggPort : *aggrPorts) {
+    AggregatePortEntryThrift aggrPortEntry;
+    aggrPortEntry.aggregatePortId = aggPort->getID();
+    std::vector<SubportThrift> subports;
+    auto subportAndFwdState = aggPort->subportAndFwdState();
+    subports.reserve(subportAndFwdState.size());
+    for (const auto& portAndState : subportAndFwdState) {
+      SubportThrift subport;
+      std::tie(subportID, fwdState) = portAndState;
+      if (!subportID) continue;
+      subport.id = subportID;
+      subport.isForwardingEnabled =
+          (fwdState == AggregatePortFields::Forwarding::ENABLED);
+      subports.push_back(subport);
+    }
+    aggrPortEntry.subports = subports;
+    aggregatePortTable.push_back(aggrPortEntry);
+  }
+}
+
+
 void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
@@ -1525,5 +1553,4 @@ AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {
 
   return static_cast<AdminDistance>(distance->second);
 }
-
 }} // facebook::fboss

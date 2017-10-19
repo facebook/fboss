@@ -57,18 +57,19 @@ Options:
   --help                 Show this message and exit.
 
 Commands:
-  arp           Show ARP Information
-  config        Show running config
-  interface     Show interface information for Interface(s);...
-  ip            Show IP information for an interface
-  l2            Show L2 information
-  lldp          Show LLDP neighbors
-  ndp           Show NDP information
-  nic           Show host NIC information 
-  port          Show port information
-  product       Show product information
-  reloadconfig  Reload agent configuration file
-  route         Show route information
+  arp             Show ARP Information
+  aggregate_port  Show Aggregate Port Information
+  config          Show running config
+  interface       Show interface information for Interface(s);...
+  ip              Show IP information for an interface
+  l2              Show L2 information
+  lldp            Show LLDP neighbors
+  ndp             Show NDP information
+  nic             Show host NIC information
+  port            Show port information
+  product         Show product information
+  reloadconfig    Reload agent configuration file
+  route           Show route information
 ```
 
 ## How FBOSS Cli works
@@ -77,4 +78,3 @@ information to/from the switch.
 
 ## License
 FBOSS cli is BSD-licensed. We also provide an additional patent grant.
-

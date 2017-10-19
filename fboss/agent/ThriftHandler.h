@@ -122,6 +122,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getRunningConfig(std::string& configStr) override;
   void getArpTable(std::vector<ArpEntryThrift>& arpTable) override;
   void getL2Table(std::vector<L2EntryThrift>& l2Table) override;
+  void getAggregatePortTable(
+      std::vector<AggregatePortEntryThrift>& trunkTable) override;
   void getNdpTable(std::vector<NdpEntryThrift>& arpTable) override;
 
   /* returns the product information */

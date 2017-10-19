@@ -628,6 +628,9 @@ class SwSwitch : public HwSwitch::Callback {
   void publishRxPacket(RxPacket* packet, uint16_t ethertype);
   void publishTxPacket(TxPacket* packet, uint16_t ethertype);
 
+  void fetchAggregatePortTable(
+      std::vector<AggregatePortEntryThrift> &aggregatePortTable);
+
  private:
   void queueStateUpdateForGettingHwInSync(
       folly::StringPiece name,
