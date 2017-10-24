@@ -549,7 +549,10 @@ std::shared_ptr<SwitchState> ProgramForwardingState::operator()(
     const std::shared_ptr<SwitchState>& state) {
   std::shared_ptr<SwitchState> nextState(state);
   auto* aggPort =
-      nextState->getAggregatePorts()->getAggregatePort(aggegatePortID_).get();
+      nextState->getAggregatePorts()->getAggregatePortIf(aggegatePortID_).get();
+  if (!aggPort) {
+    return nullptr;
+  }
 
   VLOG(4) << "Updating AggregatePort " << aggPort->getID()
             << ": ForwardingState[" << portID_ << "] --> "
