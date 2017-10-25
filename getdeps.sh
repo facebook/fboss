@@ -63,6 +63,8 @@ function build_cmake() {
 }
 
 function get_packages() {
+    echo "updating package indices"
+    sudo apt-get update
     echo "installing packages"
     sudo apt-get install -yq autoconf automake libdouble-conversion-dev \
         libssl-dev make zip git autoconf libtool g++ libboost-all-dev \

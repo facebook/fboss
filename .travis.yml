@@ -3,9 +3,15 @@ dist: xenial    # I wish this worked; defaults to trusty
 services:
   - docker
 before_install:
-  - docker run -v `pwd`:/tmp/code opennetworklinux/builder9:1.0 /bin/sh -c "g++ --version ; cd /tmp/code && bash getdeps.sh && mkdir build && cd build && cmake .. && make -j`grep -c processor /proc/cpuinfo` && make test" 
+  - docker rm fboss_build fboss_build_phase2 fboss_build_phase3 || true   # clean up from any old runs
+  # split docker commands up to avoid travis travel
+  - docker run --name fboss_build -v `pwd`:/tmp/code opennetworklinux/builder9:1.0 /bin/sh -c "g++ --version ; cd /tmp/code && bash getdeps.sh"
+  - docker commit fboss_build fboss/tmp  
 script:
-  - true   # eventually do unittests here; but currently everything in docker build
+  - docker run --name fboss_build_phase2 -v `pwd`:/tmp/code fboss/tmp /bin/sh -c "cd /tmp/code && mkdir build && cd build && cmake .. && make -j`grep -c processor /proc/cpuinfo`"
+  - docker commit fboss_build_phase2 fboss/tmp2
+  # This hangs in travis !?!?  Need to debug
+  # - docker run --name fboss_build_phase3 -v `pwd`:/tmp/code fboss/tmp /bin/sh -c "cd /tmp/code/build && make test"
 
 notifications:
   email:
