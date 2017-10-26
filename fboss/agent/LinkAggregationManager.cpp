@@ -60,10 +60,11 @@ void LinkAggregationManager::stateUpdated(const StateDelta& delta) {
   if (!initialized_) {
     bool inserted;
     for (const auto& port : *(delta.newState()->getPorts())) {
-      std::tie(std::ignore, inserted) = portToController_.try_emplace(
+      // TODO(samank): use try_emplace once OSS build uses boost >1.63.0
+      std::tie(std::ignore, inserted) = portToController_.insert(std::make_pair(
           port->getID(),
           std::make_shared<LacpController>(
-              port->getID(), sw_->getLacpEvb(), sw_));
+              port->getID(), sw_->getLacpEvb(), sw_)));
       CHECK(inserted);
     }
     initialized_ = true;
