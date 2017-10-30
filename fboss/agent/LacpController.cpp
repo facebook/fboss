@@ -95,16 +95,16 @@ folly::EventBase* LacpController::evb() {
 }
 
 void LacpController::portUp() {
-  evb()->runInEventBaseThread([this]() {
-    rx_.portUp();
-    periodicTx_.portUp();
+  evb()->runInEventBaseThread([self = shared_from_this()]() {
+    self->rx_.portUp();
+    self->periodicTx_.portUp();
   });
 }
 
 void LacpController::portDown() {
-  evb()->runInEventBaseThread([this]() {
-    rx_.portDown();
-    periodicTx_.portDown();
+  evb()->runInEventBaseThread([self = shared_from_this()]() {
+    self->rx_.portDown();
+    self->periodicTx_.portDown();
   });
 }
 
