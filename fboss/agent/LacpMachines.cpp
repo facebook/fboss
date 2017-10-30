@@ -169,6 +169,12 @@ void ReceiveMachine::rx(LACPDU lacpdu) {
   VLOG(4) << "ReceiveMachine[" << controller_.portID() << "]: "
             << "RX(" << lacpdu.describe() << ")";
 
+  if (state_ == ReceiveState::DISABLED) {
+    VLOG(4) << "ReceiveMachine[" << controller_.portID() << "]: "
+            << "Ignoring frame reception in DISABLED state";
+    return;
+  }
+
   current(lacpdu);
 }
 
