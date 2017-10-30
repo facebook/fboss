@@ -170,6 +170,7 @@ def run_tests(options):
     frob_options_into_tests(suite, options)
     return unittest.TextTestRunner(verbosity=2).run(suite)
 
+
 def main(args):
     options_parser = generate_default_test_argparse()
     options = options_parser.parse_args()
