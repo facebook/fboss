@@ -48,7 +48,7 @@ class ThreadHeartbeat : private folly::AsyncTimeout {
 
   void scheduleFirstHeartbeat() {
     CHECK(evb_->inRunningEventBaseThread());
-    lastTime_ = std::chrono::system_clock::now();
+    lastTime_ = std::chrono::steady_clock::now();
     scheduleTimeout(intervalMsecs_);
   }
 
@@ -56,7 +56,7 @@ class ThreadHeartbeat : private folly::AsyncTimeout {
   std::string threadName_;
   std::chrono::milliseconds intervalMsecs_;
   std::function<void(int, int)> heartbeatStatsFunc_;
-  std::chrono::time_point<std::chrono::system_clock> lastTime_;
+  std::chrono::time_point<std::chrono::steady_clock> lastTime_;
   //XXX: these thresholds could be made configurable if needed
   int delayThresholdMsecs_ = 1000;
   int backlogThreshold_ = 10;

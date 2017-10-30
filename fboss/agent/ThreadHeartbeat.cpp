@@ -16,7 +16,7 @@ namespace facebook { namespace fboss {
 
 void ThreadHeartbeat::timeoutExpired() noexcept {
   CHECK(evb_->inRunningEventBaseThread());
-  auto now = system_clock::now();
+  auto now = steady_clock::now();
   auto elapsed = duration_cast<milliseconds>(now - lastTime_);
   auto delay = elapsed - intervalMsecs_;
   auto evbQueueSize = evb_->getNotificationQueueSize();
