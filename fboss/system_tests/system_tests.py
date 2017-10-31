@@ -13,7 +13,7 @@ import unittest
 user_requested_tags = []
 
 Defaults = {
-    "test_dirs": ['tests'],
+    "test_dirs": None,
     "config": 'test_topologies/example_topology.py',
     "log_level": logging.INFO,
     "log_dir": "results",
@@ -47,7 +47,7 @@ def generate_default_test_argparse(**kwargs):
     global Defaults
     parser = argparse.ArgumentParser(description='FBOSS System Tests', **kwargs)
     parser.add_argument('--test_dirs', default=Defaults['test_dirs'],
-                                      nargs='*')
+                        action='append')
     parser.add_argument('--config', default=Defaults['config'])
     parser.add_argument('--log_dir', default=Defaults['log_dir'])
     parser.add_argument('--log_file', default=Defaults['log_file'])
@@ -164,6 +164,10 @@ def run_tests(options):
     # this test needs to run first
     suite.addTest(TestTopologyValidation('test_topology_sanity'))
     for directory in options.test_dirs:
+        if not os.path.exists(directory):
+            raise Exception("Specified test directory '%s' does not exist" %
+                            directory)
+        print("Looding tests from test_dir=%s" % directory)
         testsdir = unittest.TestLoader().discover(start_dir=directory,
                                                   pattern='*test*.py')
         add_interested_tests_to_test_suite(testsdir, suite)
