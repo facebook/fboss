@@ -7,9 +7,10 @@ import json
 from threading import Thread
 from queue import Queue
 
-from fboss.system_tests.system_tests import FbossBaseSystemTest
+from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 
 
+@test_tags("iperf")
 class Iperf3AllPairs(FbossBaseSystemTest):
     """ Make sure each host can ping every other host """
     def test_pair_iperf3(self):

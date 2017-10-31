@@ -28,7 +28,7 @@ class L3InterfacesTest(FbossBaseSystemTest):
                         self.assertTrue(client.ping(ip))
 
 
-@test_tags("l3interface")
+@test_tags("l3pairping")
 class L3AllPairsPing(FbossBaseSystemTest):
     """ Make sure each host can ping every other host """
     def test_all_pairs_ping(self):
