@@ -91,8 +91,7 @@ class FBOSSTestTopology(object):
             qsfp_port = QsfpServiceClient.DEFAULT_PORT
         self.port = port
         self.qsfp_port = qsfp_port
-        self.log = logging.getLogger(__name__)
-        self.log.setLevel(logging.getLevelName('DEBUG'))
+        self.log = logging.getLogger("__main__")
         self.switch = switch
         self.test_hosts = {}
 
@@ -132,7 +131,7 @@ class FBOSSTestTopology(object):
                     if not client.status():
                         bad_hosts.append(host)
                     else:
-                        self.log.info("Verified host %s" % host.name)
+                        self.log.debug("Verified host %s" % host.name)
             except (FbossBaseError, TTransportException):
                 bad_hosts.append(host)
         if bad_hosts:

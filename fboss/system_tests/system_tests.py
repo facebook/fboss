@@ -15,7 +15,8 @@ user_requested_tags = []
 Defaults = {
     "test_dirs": None,
     "config": 'test_topologies/example_topology.py',
-    "log_level": logging.INFO,
+    "console_log_level": logging.INFO,   # very terse, for console log_level
+    "file_log_level": logging.DEBUG,  # result/test-foo.log, more verbose
     "log_dir": "results",
     "log_file": "{dir}/result-{test}.log",
     "test_topology": None,
@@ -52,7 +53,8 @@ def generate_default_test_argparse(**kwargs):
     parser.add_argument('--log_dir', default=Defaults['log_dir'])
     parser.add_argument('--log_file', default=Defaults['log_file'])
     parser.add_argument('--min_hosts', default=Defaults['min_hosts'])
-    parser.add_argument('--log_level', default=Defaults['log_level'])
+    parser.add_argument('--console_log_level', default=Defaults['console_log_level'])
+    parser.add_argument('--file_log_level', default=Defaults['file_log_level'])
     parser.add_argument('--tags',
                         help="Provide list of test tags, default is all tests "
                              "Example tags qsfp, port etc",
@@ -89,6 +91,11 @@ def setup_logging(options):
     if options.log_dir is not None:
         if not os.path.exists(options.log_dir):
             os.makedirs(options.log_dir)
+    if not hasattr(options, "log"):
+        # setup the console log if not done already
+        # this is different from the per test file log
+        options.log = logging.getLogger("__main__")
+        options.log.setLevel(options.console_log_level)
 
 
 class FbossBaseSystemTest(unittest.TestCase):
@@ -106,15 +113,16 @@ class FbossBaseSystemTest(unittest.TestCase):
         self.test_topology = self.options.test_topology  # save typing
         my_name = str(self.__class__.__name__)
         self.log = logging.getLogger(my_name)
-        self.log.setLevel(self.options.log_level)
+        self.log.setLevel(logging.DEBUG)  # logging controlled by handlers
         logfile_opts = {'test': my_name, 'dir': self.options.log_dir}
         logfile = self.options.log_file.format(**logfile_opts)
         # close old log files
         for handler in self.log.handlers:
             self.log.removeHandler(handler)
             handler.close()
-        # open one unique to this class of tests
+        # open one unique for each test class
         handler = logging.FileHandler(logfile, mode='w+')
+        handler.setLevel(self.options.file_log_level)
         handler.setFormatter(logging.Formatter(self._format, self._datefmt))
         self.log.addHandler(handler)
 
@@ -172,7 +180,19 @@ def run_tests(options):
                                                   pattern='*test*.py')
         add_interested_tests_to_test_suite(testsdir, suite)
     frob_options_into_tests(suite, options)
-    return unittest.TextTestRunner(verbosity=2).run(suite)
+    options.log.info("""
+    ===================================================
+    ================ STARTING TESTS ===================
+    ===================================================
+    """)
+    ret = unittest.TextTestRunner(verbosity=2).run(suite)
+    options.log.info("""
+    ===================================================
+    ================  ENDING TESTS  ===================
+    ===================================================
+    """)
+    return ret
+
 
 
 def main(args):

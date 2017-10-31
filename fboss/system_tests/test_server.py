@@ -54,7 +54,7 @@ class TestServer(TestService.Iface):
         # any security concerns because this just calls exec() natively
         # (assuming there are no commandline buffer overflows in ping)
         command = ["ping"] + options + [ip]
-        self.log.info("Ping: running `%s`" % " ".join(command))
+        self.log.debug("Ping: running `%s`" % " ".join(command))
         with open("/dev/null") as devnull:
             response = subprocess.call(command, stdout=devnull)
         return response == 0
@@ -63,7 +63,7 @@ class TestServer(TestService.Iface):
         return True
 
     def startPktCapture(self, interface_name, pcap_filter_str):
-        self.log.info("startPktCapture(%s,filter=%s)" % (
+        self.log.debug("startPktCapture(%s,filter=%s)" % (
                       interface_name, pcap_filter_str))
         if interface_name in self.pcap_captures:
             # close out any old captures
@@ -90,7 +90,7 @@ class TestServer(TestService.Iface):
         start = time.time()
         intf = interface_name  # horrible hack to fit in 80 chars below
     #    pdb.set_trace()
-        self.log.info("getPktCapture(%s,ms_timeout=%d,maxPackets=%d)" %
+        self.log.debug("getPktCapture(%s,ms_timeout=%d,maxPackets=%d)" %
                       (interface_name, ms_timeout, maxPackets))
         while time.time() < (start + (ms_timeout / 1000)):
             # this reader is set to not block, so this will busy wait until

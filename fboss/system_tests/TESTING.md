@@ -42,6 +42,16 @@ can write something like this:
      options.test_topology = your_custom_topology_generator()
      system_tests.run_test(options)
 
+# Test Results
+
+Test results are logged to two places: the console and a per-test logfile
+(by default "results/result-TESTNAME.log").  There are commandline
+flags to control the verbosity of what is logged to each location
+(--console_log_level, --file_log_level ) as well as the default output
+directory (--log_dir).  The idea is that the console should serve as
+an uncluttered, terse summary of what passed and failed, where the logs
+should be a detailed, permanent log suitable for debugging.
+
 # New Development
 
 All new tests should :
