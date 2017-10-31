@@ -523,6 +523,36 @@ target_link_libraries(qsfp_service
                      )
 
 
+# TODO(rsher)
+# depends on agent/hw/bcm/facebook/bcm_config.thrift
+# investigate open sourcing
+# add_executable(lldp_tool
+#       fboss/util/lldp_tool.cpp
+# )
+#
+# target_link_libraries(lldp_tool
+#       fboss-agent
+#       "${LIBFBOSS_AGENT_DEPS}"
+# )
+
+add_executable(cp2112_tool
+    fboss/util/cp2112_tool.cpp
+)
+target_link_libraries(cp2112_tool
+       fboss_agent
+       "${LIBFBOSS_AGENT_DEPS}"
+)
+
+add_executable(wedge_qsfp_util
+    fboss/util/wedge_qsfp_util.cpp
+)
+target_link_libraries(wedge_qsfp_util
+       fboss_agent
+       "${LIBFBOSS_AGENT_DEPS}"
+)
+
+
+
 
 # Unit Testing
 add_definitions (-DIS_OSS=true)
