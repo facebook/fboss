@@ -1199,8 +1199,8 @@ void BcmSwitch::processAddedRoute(
     routeTable_->addRoute(getBcmVrfId(id), route.get());
   } catch (const BcmError& error) {
     rethrowIfHwNotFull(error);
-    SwitchState::revertNewRouteEntry(
-        id, route, std::shared_ptr<RouteT>(), appliedState);
+    using AddrT = typename RouteT::Addr;
+    SwitchState::revertNewRouteEntry<AddrT>(id, route, nullptr, appliedState);
   }
 }
 

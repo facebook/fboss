@@ -835,8 +835,14 @@ void SwSwitch::handlePendingUpdates() {
       // as a state update at the beginning
       queueStateUpdateForGettingHwInSync(
           kOutOfSyncStateUpdate,
-          [newDesiredState](const std::shared_ptr<SwitchState>& /*oldState*/) {
-            return newDesiredState;
+          [newDesiredState, newAppliedState](
+              const std::shared_ptr<SwitchState>& /*oldState*/) {
+            // clone the newDesiredState and then inheritGeneration from
+            // newAppliedState otherwise the return state has a smaller gen#
+            // than the one of appliedState
+            auto hwOutOfSyncState = newDesiredState->clone();
+            hwOutOfSyncState->inheritGeneration(*newAppliedState);
+            return hwOutOfSyncState;
           });
       if (!isExiting() && !oldOutOfSync) {
         stats()->setHwOutOfSync();

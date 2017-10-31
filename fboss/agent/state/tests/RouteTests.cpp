@@ -1154,8 +1154,10 @@ TEST(Route, PruneAddedRoutes) {
           prefix1.network);
   ASSERT_NE(nullptr, newRouteEntry);
   ASSERT_EQ(state2, state3);
-  SwitchState::revertNewRouteEntry(
-      rid0, newRouteEntry, std::shared_ptr<RouteV4>(), &state3);
+  ASSERT_TRUE(newRouteEntry->isPublished());
+
+  SwitchState::revertNewRouteEntry<IPAddressV4>(
+      rid0, newRouteEntry, nullptr, &state3);
   // Make sure that state3 changes as a result of pruning
   ASSERT_NE(state2, state3);
   auto remainingRouteEntry =

@@ -69,6 +69,7 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   typedef NodeBaseT<Route<AddrT>, RouteFields<AddrT>> RouteBase;
   typedef typename RouteFields<AddrT>::Prefix Prefix;
   typedef RouteForwardAction Action;
+  using Addr = AddrT;
 
   // Constructor for a route
   Route(const Prefix& prefix, ClientID clientId, RouteNextHopEntry entry)
