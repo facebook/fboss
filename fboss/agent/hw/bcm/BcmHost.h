@@ -45,7 +45,9 @@ class BcmHost {
 
   virtual ~BcmHost();
   bool isProgrammed() const {
-    return addedInHW_;
+    // Cannot use addedInHW_, as v6 link-local will not be added
+    // to the HW. Instead, check the egressId_.
+    return (egressId_ != BcmEgressBase::INVALID);
   }
   /*
    * program* apis get called only when for non host
