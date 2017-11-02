@@ -25,18 +25,17 @@ RouteNextHop RouteNextHop::createNextHop(
   // V4 link-local are not considered here as they can break BGPD route
   // programming in Galaxy or ExaBGP peering routes to servers as they are
   // using v4 link-local subnets on internal/downlink interfaces
-  // NOTE: we do allow interface be specified with v4 link-local but we are not
-  // being scrict about it
-  if (not intf and addr.isV6() and addr.isLinkLocal()) {
-    throw FbossError(
-        "Missing interface scoping for link-local nexthop {}", addr.str());
-  }
-
-  // Interface scoping shouldn't be specified with non link-local addresses
-  if (intf and not addr.isLinkLocal()) {
-    throw FbossError(
-       "Interface scoping ({}) specified for non link-local nexthop {}.",
-       static_cast<uint32_t>(intf.value()), addr.str());
+  // Interface scoping with any other address except v6 link-local will be
+  // ignored and normal resolution will proceed.
+  if (addr.isV6() and addr.isLinkLocal()) {
+    if (not intf) {
+      throw FbossError(
+          "Missing interface scoping for link-local nexthop ", addr.str());
+    }
+  } else {
+    // Open/R sends us the interface ID for all nexthops. Agent does not expect
+    // such interface ID if it is not v6 link-local. Reset intf to None
+    intf = folly::none;
   }
 
   return RouteNextHop(std::move(addr), intf);
