@@ -148,20 +148,20 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
               << ((mac) ? mac->toString() : "to CPU") << " on unit "
               << hw_->getUnit() << " for ip: " << ip << " flags " << eObj.flags
               << " towards port " << eObj.port;
-      if (mac != nullptr) {
-        mac_ = *mac;
-      }
-      intfId_ = intfId;
     } else {
-      // TODO(t10268453): How can we get here? The entries were not equivalent
-      // when we entered this ' if (addOrUpdateEgress) ' condition. Is the
-      // difference between what is in BcmWarmBootCache and what is in the
-      // hardware?
+      // This could happen when neighbor entry is confirmed with the same MAC
+      // after warmboot, as it will trigger another egress programming with the
+      // same MAC.
       VLOG(1) << "Identical egress object for : " << ip << " pointing to "
         << (mac ? mac->toString() : "CPU ") << " already exists "
         << "skipping egress programming ";
     }
   }
+  // update our internal fields
+  mac_ = (mac != nullptr) ? *mac : folly::MacAddress{};
+  intfId_ = intfId;
+
+  // update warmboot cache if needed
   if (egressId2EgressAndBoolCitr !=
       warmBootCache->egressId2EgressAndBool_end()) {
     warmBootCache->programmed(egressId2EgressAndBoolCitr);
