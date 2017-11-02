@@ -24,6 +24,7 @@
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmSflowExporter.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmHostKey.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
@@ -1087,7 +1088,7 @@ void BcmSwitch::processNeighborEntryDelta(
   if (!oldEntry) {
     getIntfAndVrf(newEntry->getIntfID());
     auto host = hostTable_->incRefOrCreateBcmHost(
-      vrf, IPAddress(newEntry->getIP()));
+        BcmHostKey(vrf, IPAddress(newEntry->getIP()), newEntry->getIntfID()));
 
     if (newEntry->isPending()) {
       VLOG(3) << "adding pending neighbor entry to " << newEntry->getIP().str();
@@ -1110,7 +1111,8 @@ void BcmSwitch::processNeighborEntryDelta(
   } else if (!newEntry) {
     VLOG(3) << "deleting neighbor entry " << oldEntry->getIP().str();
     getIntfAndVrf(oldEntry->getIntfID());
-    auto host = hostTable_->derefBcmHost(vrf, IPAddress(oldEntry->getIP()));
+    auto host = hostTable_->derefBcmHost(
+        BcmHostKey(vrf, IPAddress(oldEntry->getIP()), oldEntry->getIntfID()));
     if (host) {
         host->programToCPU(intf->getBcmIfId());
         // This should not fail. Not catching exceptions. If the delete fails,
@@ -1119,7 +1121,8 @@ void BcmSwitch::processNeighborEntryDelta(
   } else {
     CHECK_EQ(oldEntry->getIP(), newEntry->getIP());
     getIntfAndVrf(newEntry->getIntfID());
-    auto host = hostTable_->getBcmHost(vrf, IPAddress(newEntry->getIP()));
+    auto host = hostTable_->getBcmHost(
+        BcmHostKey(vrf, IPAddress(newEntry->getIP()), newEntry->getIntfID()));
     try {
       if (newEntry->isPending()) {
         VLOG(3) << "changing neighbor entry " << oldEntry->getIP().str()

@@ -19,6 +19,7 @@ extern "C" {
 #include <folly/SpinLock.h>
 #include <folly/dynamic.h>
 #include "fboss/agent/hw/bcm/BcmEgress.h"
+#include "fboss/agent/hw/bcm/BcmHostKey.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmTrunk.h"
 #include "fboss/agent/hw/bcm/PortAndEgressIdsMap.h"
@@ -38,8 +39,8 @@ class BcmHostTable;
 
 class BcmHost {
  public:
-  BcmHost(const BcmSwitchIf* hw, opennsl_vrf_t vrf, const folly::IPAddress& addr)
-      : hw_(hw), vrf_(vrf), addr_(addr) {
+  BcmHost(const BcmSwitchIf* hw, BcmHostKey key)
+    : hw_(hw), key_(std::move(key)) {
   }
 
   virtual ~BcmHost();
@@ -101,8 +102,7 @@ class BcmHost {
   void initHostCommon(opennsl_l3_host_t *host) const;
   bool isTrunk() const;
   const BcmSwitchIf* hw_;
-  opennsl_vrf_t vrf_;
-  folly::IPAddress addr_;
+  BcmHostKey key_;
   // Port that the corresponding egress object references.
   // Only set for actual host entries that point a non
   // drop/CPU egress object. Set to 0 for host routes as
@@ -124,10 +124,11 @@ class BcmHost {
  * simply references another egress entry (which maybe either BcmEgress
  * or BcmEcmpEgress).
  */
+using BcmEcmpHostKey = std::pair<opennsl_vrf_t, RouteNextHopSet>;
+
 class BcmEcmpHost {
  public:
-  BcmEcmpHost(const BcmSwitchIf* hw, opennsl_vrf_t vrf,
-              const RouteNextHopSet& fwd);
+  BcmEcmpHost(const BcmSwitchIf* hw, BcmEcmpHostKey key);
   virtual ~BcmEcmpHost();
   opennsl_if_t getEgressId() const {
     return egressId_;
@@ -158,15 +159,15 @@ class BcmHostTable {
  public:
   explicit BcmHostTable(const BcmSwitchIf *hw);
   virtual ~BcmHostTable();
+
   // throw an exception if not found
-  BcmHost* getBcmHost(opennsl_vrf_t vrf, const folly::IPAddress& addr) const;
-  BcmEcmpHost* getBcmEcmpHost(
-      opennsl_vrf_t vrf, const RouteNextHopSet& fwd) const;
+  BcmHost* getBcmHost(const BcmHostKey& key) const;
+  BcmEcmpHost* getBcmEcmpHost(const BcmEcmpHostKey& key) const;
+
   // return nullptr if not found
-  BcmHost* getBcmHostIf(
-      opennsl_vrf_t vrf, const folly::IPAddress& addr) const;
-  BcmEcmpHost* getBcmEcmpHostIf(
-      opennsl_vrf_t vrf, const RouteNextHopSet&) const;
+  BcmHost* getBcmHostIf(const BcmHostKey& key) const noexcept;
+  BcmEcmpHost* getBcmEcmpHostIf(const BcmEcmpHostKey& key) const noexcept;
+
   /*
    * The following functions will modify the object. They rely on the global
    * HW update lock in BcmSwitch::lock_ for the protection.
@@ -183,10 +184,8 @@ class BcmHostTable {
    *
    * @return The BcmHost/BcmEcmpHost pointer just created or found.
    */
-  BcmHost* incRefOrCreateBcmHost(
-    opennsl_vrf_t vrf, const folly::IPAddress& addr);
-  BcmEcmpHost* incRefOrCreateBcmEcmpHost(
-      opennsl_vrf_t vrf, const RouteNextHopSet& fwd);
+  BcmHost* incRefOrCreateBcmHost(BcmHostKey hostKey);
+  BcmEcmpHost* incRefOrCreateBcmEcmpHost(BcmEcmpHostKey key);
 
   /**
    * Decrease an existing BcmHost/BcmEcmpHost entry's reference counter by 1.
@@ -198,10 +197,9 @@ class BcmHostTable {
    *         decreased by 1, but the object is still valid as it is
    *         still referred in somewhere else
    */
-  BcmHost* derefBcmHost(
-      opennsl_vrf_t vrf, const folly::IPAddress& addr) noexcept;
-  BcmEcmpHost* derefBcmEcmpHost(opennsl_vrf_t vrf,
-                                const RouteNextHopSet& fwd) noexcept;
+  BcmHost* derefBcmHost(const BcmHostKey& key) noexcept;
+  BcmEcmpHost* derefBcmEcmpHost(const BcmEcmpHostKey& key) noexcept;
+
   /*
    * APIs to manage egress objects. Multiple host entries can point
    * to a egress object. Lifetime of these egress objects is thus
@@ -323,19 +321,6 @@ class BcmHostTable {
       void* userData);
   void setPort2EgressIdsInternal(std::shared_ptr<PortAndEgressIdsMap> newMap);
 
-  template <typename KeyT, typename HostT>
-  using HostMap = boost::container::
-      flat_map<KeyT, std::pair<std::unique_ptr<HostT>, uint32_t>>;
-
-  template <typename KeyT, typename HostT>
-  HostT* incRefOrCreateBcmHostImpl(
-      HostMap<KeyT, HostT>* map,
-      const KeyT& key);
-  template <typename KeyT, typename HostT, typename... Args>
-  HostT* getBcmHostIf(const HostMap<KeyT, HostT>* map, Args... args) const;
-  template <typename KeyT, typename HostT, typename... Args>
-  HostT* derefBcmHost(HostMap<KeyT, HostT>* map, Args... args) noexcept;
-
   const BcmSwitchIf* hw_{nullptr};
 
   /*
@@ -360,10 +345,24 @@ class BcmHostTable {
       std::pair<std::unique_ptr<BcmEgressBase>, uint32_t>>
       egressMap_;
 
-  using Key = std::pair<opennsl_vrf_t, folly::IPAddress>;
-  HostMap<Key, BcmHost> hosts_;
-  using EcmpKey = std::pair<opennsl_vrf_t, RouteNextHopSet>;
-  HostMap<EcmpKey, BcmEcmpHost> ecmpHosts_;
+  template <typename KeyT, typename HostT>
+  using HostMap = boost::container::
+    flat_map<KeyT, std::pair<std::unique_ptr<HostT>, uint32_t>>;
+  template <typename KeyT, typename HostT>
+  HostT* incRefOrCreateBcmHostImpl(
+      HostMap<KeyT, HostT>* map,
+      KeyT&& key);
+  template <typename KeyT, typename HostT>
+  HostT* getBcmHostIfImpl(
+      const HostMap<KeyT, HostT>* map,
+      const KeyT& key) const noexcept;
+  template <typename KeyT, typename HostT>
+  HostT* derefBcmHostImpl(
+      HostMap<KeyT, HostT>* map,
+      const KeyT& key) noexcept;
+
+  HostMap<BcmHostKey, BcmHost> hosts_;
+  HostMap<BcmEcmpHostKey, BcmEcmpHost> ecmpHosts_;
 };
 
 }}

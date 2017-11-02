@@ -90,7 +90,8 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
   // function to clean up the host reference
   auto cleanupHost = [&] (const RouteNextHopSet& nhopsClean) noexcept {
     if (nhopsClean.size()) {
-      hw_->writableHostTable()->derefBcmEcmpHost(vrf_, nhopsClean);
+      hw_->writableHostTable()->derefBcmEcmpHost(
+          std::make_pair(vrf_, nhopsClean));
     }
   };
 
@@ -103,11 +104,11 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
     egressId = hw_->getToCPUEgressId();
   } else {
     CHECK(action == RouteForwardAction::NEXTHOPS);
-    // need to get an entry from the host table for the forward info
     const RouteNextHopSet& nhops = fwd.getNextHopSet();
     CHECK_GT(nhops.size(), 0);
+    // need to get an entry from the host table for the forward info
     auto host = hw_->writableHostTable()->incRefOrCreateBcmEcmpHost(
-        vrf_, nhops);
+        std::make_pair(vrf_, nhops));
     egressId = host->getEgressId();
   }
 
@@ -122,12 +123,13 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
     if (added_) {
       // Delete the already existing host table entry, because we cannot change
       // host entries.
-      auto host = hw_->getHostTable()->getBcmHostIf(vrf_, prefix_);
+      auto hostKey = BcmHostKey(vrf_, prefix_);
+      auto host = hw_->getHostTable()->getBcmHostIf(hostKey);
       CHECK(host);
       VLOG(3) << "Derefrencing host prefix for " << prefix_ << "/"
               << static_cast<int>(len_)
               << " host egress Id : " << host->getEgressId();
-      hw_->writableHostTable()->derefBcmHost(vrf_, prefix_);
+      hw_->writableHostTable()->derefBcmHost(hostKey);
     }
     auto warmBootCache = hw_->getWarmBootCache();
     auto vrfAndIP2RouteCitr =
@@ -150,6 +152,7 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
   }
   egressId_ = egressId;
   fwd_ = fwd;
+
   // new nexthop has been stored in fwd_. From now on, it is up to
   // ~BcmRoute() to clean up such nexthop.
   added_ = true;
@@ -158,10 +161,10 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
 void BcmRoute::programHostRoute(opennsl_if_t egressId,
     const RouteNextHopEntry& fwd, bool replace) {
   auto hostRouteHost = hw_->writableHostTable()->incRefOrCreateBcmHost(
-      vrf_, prefix_);
+      BcmHostKey(vrf_, prefix_));
   hostRouteHost->setEgressId(egressId);
   auto cleanupHostRoute = [=]() noexcept {
-    hw_->writableHostTable()->derefBcmHost(vrf_, prefix_);
+    hw_->writableHostTable()->derefBcmHost(BcmHostKey(vrf_, prefix_));
   };
   SCOPE_FAIL {
     cleanupHostRoute();
@@ -266,18 +269,20 @@ BcmRoute::~BcmRoute() {
     return;
   }
   if (canUseHostTable()) {
-    auto host = hw_->getHostTable()->getBcmHostIf(vrf_, prefix_);
+    auto hostKey = BcmHostKey(vrf_, prefix_);
+    auto host = hw_->getHostTable()->getBcmHostIf(hostKey);
     CHECK(host);
     VLOG(3) << "Derefrencing host prefix for : " << prefix_ << "/" << len_
             << " host: " << host;
-    hw_->writableHostTable()->derefBcmHost(vrf_, prefix_);
+    hw_->writableHostTable()->derefBcmHost(hostKey);
   } else {
     deleteLpmRoute(hw_->getUnit(), vrf_, prefix_, len_);
   }
   // decrease reference counter of the host entry for next hops
   const auto& nhops = fwd_.getNextHopSet();
   if (nhops.size()) {
-    hw_->writableHostTable()->derefBcmEcmpHost(vrf_, nhops);
+    hw_->writableHostTable()->derefBcmEcmpHost(
+        std::make_pair(vrf_, nhops));
   }
 }
 

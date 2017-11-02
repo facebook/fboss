@@ -14,12 +14,13 @@ extern "C" {
 #include <opennsl/l3.h>
 }
 
+#include <boost/container/flat_map.hpp>
 #include <folly/dynamic.h>
 #include <folly/IPAddress.h>
-#include "fboss/agent/types.h"
-
-#include <boost/container/flat_map.hpp>
 #include <set>
+
+#include "fboss/agent/hw/bcm/BcmHostKey.h"
+#include "fboss/agent/types.h"
 
 namespace facebook { namespace fboss {
 
@@ -60,7 +61,7 @@ class BcmIntf {
   //       the small number of interfaces we have, no gain for that now.
   std::unique_ptr<BcmStation> station_;
   // The interface addresses that have BcmHost object created
-  std::set<folly::IPAddress> hosts_;
+  std::set<BcmHostKey> hosts_;
 };
 
 class BcmIntfTable {

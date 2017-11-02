@@ -68,7 +68,7 @@ class RouteNextHop {
     return addr_;
   }
 
-  const folly::Optional<InterfaceID>& intfID() const noexcept {
+  folly::Optional<InterfaceID> intfID() const noexcept {
     return intfID_;
   }
 
@@ -79,12 +79,21 @@ class RouteNextHop {
 
   std::string str() const;
 
- private:
+ protected:
+  void setIntfID(folly::Optional<InterfaceID> intfID) {
+    intfID_ = intfID;
+  }
+
+  void setAddr(const folly::IPAddress& addr) {
+    addr_ = addr;
+  }
 
   explicit RouteNextHop(folly::IPAddress addr,
                         folly::Optional<InterfaceID> intfID = folly::none)
       : addr_(std::move(addr)), intfID_(intfID) {
   }
+
+ private:
 
   folly::IPAddress addr_;
   folly::Optional<InterfaceID> intfID_;

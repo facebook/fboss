@@ -209,13 +209,14 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
     CHECK_NE(bcmIfId_, INVALID);
   }
 
-  auto createHost = [&](const IPAddress& addr) {
+  auto createHost = [&](const IPAddress& addr, InterfaceID intfID) {
     try {
-      auto host = hw_->writableHostTable()->incRefOrCreateBcmHost(vrf, addr);
-      auto ret = hosts_.insert(addr);
+      auto hostKey = BcmHostKey(vrf, addr, intfID);
+      auto host = hw_->writableHostTable()->incRefOrCreateBcmHost(hostKey);
+      auto ret = hosts_.insert(hostKey);
       CHECK(ret.second);
       SCOPE_FAIL {
-        hw_->writableHostTable()->derefBcmHost(vrf, addr);
+        hw_->writableHostTable()->derefBcmHost(hostKey);
         hosts_.erase(ret.first);
       };
       host->programToCPU(bcmIfId_);
@@ -224,19 +225,20 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
                  << " Error:" << folly::exceptionStr(ex);
     }
   };
-  auto removeHost = [&](const IPAddress& addr) {
-    auto iter = hosts_.find(addr);
-    if (iter == hosts_.end()) {
+  auto removeHost = [&](const IPAddress& addr, InterfaceID intfID) {
+    auto hostKey = BcmHostKey(vrf, addr, intfID);
+    auto iter = hosts_.find(hostKey);
+    if (iter == hosts_.cend()) {
       return;
     }
-    hw_->writableHostTable()->derefBcmHost(vrf, addr);
+    hw_->writableHostTable()->derefBcmHost(hostKey);
     hosts_.erase(iter);
   };
 
   if (!oldIntf) {
     // create host entries for all network IP addresses
     for (const auto& addr : intf->getAddresses()) {
-      createHost(addr.first);
+      createHost(addr.first, intf->getID());
     }
   } else {
     // address change
@@ -250,18 +252,18 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
         continue;
       }
       if (oldIter->first < newIter->first) {
-        removeHost(oldIter->first);
+        removeHost(oldIter->first, oldIntf->getID());
         oldIter++;
       } else {
-        createHost(newIter->first);
+        createHost(newIter->first, intf->getID());
         newIter++;
       }
     }
     for (; oldIter != oldIntf->getAddresses().end(); oldIter++) {
-      removeHost(oldIter->first);
+      removeHost(oldIter->first, oldIntf->getID());
     }
     for (; newIter != intf->getAddresses().end(); newIter++) {
-      createHost(newIter->first);
+      createHost(newIter->first, intf->getID());
     }
   }
   // all new info have been programmed, store the interface configuration
@@ -275,10 +277,9 @@ BcmIntf::~BcmIntf() {
     return;
   }
   // remove all BcmHost objects
-  const auto vrf = BcmSwitch::getBcmVrfId(intf_->getRouterID());
   if (hw_->writableHostTable() != nullptr) {
-    for (const auto& addr : hosts_) {
-      hw_->writableHostTable()->derefBcmHost(vrf, addr);
+    for (const auto& key : hosts_) {
+      hw_->writableHostTable()->derefBcmHost(key);
     }
   }
   opennsl_l3_intf_t ifParams;

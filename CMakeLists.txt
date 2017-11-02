@@ -291,6 +291,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmAPI.cpp
     fboss/agent/hw/bcm/BcmEgress.cpp
     fboss/agent/hw/bcm/BcmHost.cpp
+    fboss/agent/hw/bcm/BcmHostKey.cpp
     fboss/agent/hw/bcm/BcmIntf.cpp
     fboss/agent/hw/bcm/BcmPlatform.cpp
     fboss/agent/hw/bcm/BcmPort.cpp
