@@ -1825,12 +1825,13 @@ TEST(RouteTypes, toFromRouteNextHops) {
         break;
       }
     }
+    LOG(INFO) << "**** " << ipaddr;
     EXPECT_TRUE(found);
   };
 
   verify("10.0.0.1", folly::none);
   verify("169.254.0.1", folly::none);
-  verify("169.254.0.2", InterfaceID(2));
+  verify("169.254.0.2", folly::none);   // interface scoping is ignored for v4
   verify("face:b00c::1", folly::none);
   verify("fe80::1", InterfaceID(4));
 
@@ -1839,7 +1840,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
   EXPECT_EQ(nhs, newNhs);
 
   //
-  // Some error cases
+  // Some ignore cases
   //
 
   facebook::network::thrift::BinaryAddress addr;
@@ -1847,10 +1848,18 @@ TEST(RouteTypes, toFromRouteNextHops) {
   addr = facebook::network::toBinaryAddress(folly::IPAddress("10.0.0.1"));
   addr.__isset.ifName = true;
   addr.ifName = "fboss10";
-  EXPECT_THROW(RouteNextHop::fromThrift(addr), FbossError);
+  {
+    auto routeNexthop = RouteNextHop::fromThrift(addr);
+    EXPECT_EQ(folly::IPAddress("10.0.0.1"), routeNexthop.addr());
+    EXPECT_EQ(folly::none, routeNexthop.intfID());
+  }
 
   addr = facebook::network::toBinaryAddress(folly::IPAddress("face::1"));
   addr.__isset.ifName = true;
   addr.ifName = "fboss10";
-  EXPECT_THROW(RouteNextHop::fromThrift(addr), FbossError);
+  {
+    auto routeNexthop = RouteNextHop::fromThrift(addr);
+    EXPECT_EQ(folly::IPAddress("face::1"), routeNexthop.addr());
+    EXPECT_EQ(folly::none, routeNexthop.intfID());
+  }
 }
