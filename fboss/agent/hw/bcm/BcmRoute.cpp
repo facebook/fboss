@@ -169,7 +169,7 @@ void BcmRoute::programHostRoute(opennsl_if_t egressId,
   SCOPE_FAIL {
     cleanupHostRoute();
   };
-  hostRouteHost->addBcmHost(fwd.getNextHopSet().size() > 1, replace);
+  hostRouteHost->addToBcmHostTable(fwd.getNextHopSet().size() > 1, replace);
 }
 
 void BcmRoute::programLpmRoute(opennsl_if_t egressId,

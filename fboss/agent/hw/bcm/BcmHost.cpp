@@ -80,10 +80,16 @@ void BcmHost::initHostCommon(opennsl_l3_host_t *host) const {
   host->l3a_intf = getEgressId();
 }
 
-void BcmHost::addBcmHost(bool isMultipath, bool replace) {
-  if (added_) {
+void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
+  if (addedInHW_) {
     return;
   }
+  const auto& addr = key_.addr();
+  if (addr.isV6() && addr.isLinkLocal()) {
+    // For v6 link-local BcmHost, do not add it to the HW table
+    return;
+  }
+
   opennsl_l3_host_t host;
   initHostCommon(&host);
   if (isMultipath) {
@@ -92,7 +98,6 @@ void BcmHost::addBcmHost(bool isMultipath, bool replace) {
   if (replace) {
     host.l3a_flags |= OPENNSL_L3_REPLACE;
   }
-  const auto& addr = key_.addr();
   const auto warmBootCache = hw_->getWarmBootCache();
   auto vrfIp2HostCitr = warmBootCache->findHost(key_.getVrf(), addr);
   if (vrfIp2HostCitr != warmBootCache->vrfAndIP2Host_end()) {
@@ -126,7 +131,7 @@ void BcmHost::addBcmHost(bool isMultipath, bool replace) {
     VLOG(3) << "created L3 host object for " << key_.str()
     << " @egress " << getEgressId();
   }
-  added_ = true;
+  addedInHW_ = true;
 }
 
 void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
@@ -159,8 +164,8 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
   }
 
   // if no host was added already, add one pointing to the egress object
-  if (!added_) {
-    addBcmHost();
+  if (!addedInHW_) {
+    addToBcmHostTable();
   }
 
   VLOG(1) << "Updating egress " << egressPtr->getID() << " from "
@@ -251,8 +256,8 @@ void BcmHost::programToTrunk(opennsl_if_t intf,
   }
 
   // if no host was added already, add one pointing to the egress object
-  if (!added_) {
-    addBcmHost();
+  if (!addedInHW_) {
+    addToBcmHostTable();
   }
 
   VLOG(1) << "Updating egress " << egress->getID() << " from "
@@ -277,14 +282,19 @@ bool BcmHost::isTrunk() const {
 }
 
 BcmHost::~BcmHost() {
-  if (!added_) {
+  if (addedInHW_) {
+    opennsl_l3_host_t host;
+    initHostCommon(&host);
+    auto rc = opennsl_l3_host_delete(hw_->getUnit(), &host);
+    bcmLogFatal(rc, hw_, "failed to delete L3 host object for ", key_.str());
+    VLOG(3) << "deleted L3 host object for " << key_.str();
+  } else {
+    VLOG(3) << "No need to delete L3 host object for " << key_.str()
+            << " as it was not added to the HW before";
+  }
+  if (egressId_ == BcmEgressBase::INVALID) {
     return;
   }
-  opennsl_l3_host_t host;
-  initHostCommon(&host);
-  auto rc = opennsl_l3_host_delete(hw_->getUnit(), &host);
-  bcmLogFatal(rc, hw_, "failed to delete L3 host object for ", key_.str());
-  VLOG(3) << "deleted L3 host object for " << key_.str();
   if (isPortOrTrunkSet()) {
     hw_->writableHostTable()->unresolved(egressId_);
   }

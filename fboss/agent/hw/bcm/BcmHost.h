@@ -45,7 +45,7 @@ class BcmHost {
 
   virtual ~BcmHost();
   bool isProgrammed() const {
-    return added_;
+    return addedInHW_;
   }
   /*
    * program* apis get called only when for non host
@@ -78,7 +78,7 @@ class BcmHost {
   }
 
   bool getAndClearHitBit() const;
-  void addBcmHost(bool isMultipath = false, bool replace = false);
+  void addToBcmHostTable(bool isMultipath = false, bool replace = false);
   folly::dynamic toFollyDynamic() const;
   // TODO(samank): use getPort() instead of port_ member variable
   opennsl_port_t getPort() const { return port_; }
@@ -110,7 +110,7 @@ class BcmHost {
   opennsl_if_t port_{0};
   opennsl_trunk_t trunk_{BcmTrunk::INVALID};
   opennsl_if_t egressId_{BcmEgressBase::INVALID};
-  bool added_{false}; // if added to the HW host(ARP) table or not
+  bool addedInHW_{false}; // if added to the HW host(ARP) table or not
 };
 
 /**
