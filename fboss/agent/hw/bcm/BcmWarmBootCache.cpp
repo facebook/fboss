@@ -122,19 +122,21 @@ shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
   }
   flat_map<VlanID, AddrTables> vlan2AddrTables;
   // Populate ARP and NDP tables of VLANs using egress entries
-  for (auto vrfIpAndHost : vrfIp2Host_) {
-    const auto& vrf = vrfIpAndHost.first.first;
-    const auto& ip = vrfIpAndHost.first.second;
-    const auto egressIdAndEgressBool = findEgress(vrf, ip);
+  for (const auto& hostEntry : vrfIp2EgressFromBcmHostInWarmBootFile_) {
+    auto egressId = hostEntry.second;
+    const auto egressIdAndEgressBool = findEgress(egressId);
     if (egressIdAndEgressBool == egressId2EgressAndBool_.end()) {
       // The host entry might be an ECMP egress entry.
       continue;
     }
+
     const auto& bcmEgress = egressIdAndEgressBool->second.first;
     if (bcmEgress.vlan == kVlanForCPUEgressEntries) {
       // Ignore to CPU egress entries which get mapped to vlan 0
       continue;
     }
+
+    const auto& ip = std::get<1>(hostEntry.first);
     const auto& vlanId = VlanID(bcmEgress.vlan);
     // Is this ip a route or interface? If this is an entry for a route, then we
     // don't want to add this to the warm boot state.
@@ -169,6 +171,12 @@ shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
           InterfaceID(bcmEgress.vlan),
           NeighborState::UNVERIFIED);
     }
+    VLOG (1) << "Reconstructed a neighbor entry."
+             << " ip=" << ip
+             << " mac=" << macFromBcm(bcmEgress.mac_addr)
+             << " port=" << PortID(bcmEgress.port)
+             << " vlan=" << bcmEgress.vlan;
+
   }
   for (auto vlanAndAddrTable: vlan2AddrTables) {
     auto vlan = vlans->getVlanIf(vlanAndAddrTable.first);
@@ -269,14 +277,61 @@ void BcmWarmBootCache::populateStateFromWarmbootFile() {
             << toEgressIdsStr(ecmpIdAndEgress.second);
   }
 
-  // Extract egress IDs pointed by the BcmHost
+  // Extract BcmHost and its egress object from the warm boot file
   for (const auto& hostEntry : hostTable[kHosts]) {
     auto egressId = hostEntry[kEgressId].asInt();
     if (egressId == BcmEgressBase::INVALID) {
       continue;
     }
     egressIdsFromBcmHostInWarmBootFile_.insert(egressId);
+
+    folly::Optional<opennsl_if_t> intf;
+    auto ip = folly::IPAddress(hostEntry[kIp].stringPiece());
+    if (ip.isV6() && ip.isLinkLocal()) {
+      auto egressIt = hostEntry.find(kEgress);
+      if (egressIt != hostEntry.items().end()) {
+        // check if kIntfId is part of the key, if not. That means it is an ECMP
+        // egress object. No interface in this case.
+        auto intfIt = egressIt->second.find(kIntfId);
+        if (intfIt != egressIt->second.items().end()) {
+          intf = intfIt->second.asInt();
+        }
+      }
+    }
+    auto vrf = hostEntry[kVrf].asInt();
+    auto key = std::make_tuple(vrf, ip, intf);
+    vrfIp2EgressFromBcmHostInWarmBootFile_[key] = egressId;
+
+    VLOG(1) << "Construct a host entry (vrf=" << vrf
+            << ",ip=" << ip
+            << ",intf=" << (intf.hasValue()
+                            ? folly::to<std::string>(intf.value())
+                            : "None")
+            << ") pointing to the egress entry, id=" << egressId;
   }
+}
+
+BcmWarmBootCache::EgressId2EgressAndBoolCitr
+BcmWarmBootCache::findEgressFromHost(
+    opennsl_vrf_t vrf,
+    const folly::IPAddress &addr,
+    folly::Optional<opennsl_if_t> intf) {
+
+  // Do a cheap check of size to avoid construct the key for lookup.
+  // That helps the case after warmboot is done.
+  if (vrfIp2EgressFromBcmHostInWarmBootFile_.size() == 0) {
+    return egressId2EgressAndBool_.end();
+  }
+  // only care about the intf if addr is v6 link-local
+  if (!addr.isV6() || !addr.isLinkLocal()) {
+    intf = folly::none;
+  }
+  auto key = std::make_tuple(vrf, addr, intf);
+  auto it = vrfIp2EgressFromBcmHostInWarmBootFile_.find(key);
+  if (it == vrfIp2EgressFromBcmHostInWarmBootFile_.cend()) {
+    return egressId2EgressAndBool_.end();
+  }
+  return findEgress(it->second);
 }
 
 void BcmWarmBootCache::populate() {
@@ -637,6 +692,7 @@ void BcmWarmBootCache::clear() {
   }
 
   egressIdsFromBcmHostInWarmBootFile_.clear();
+  vrfIp2EgressFromBcmHostInWarmBootFile_.clear();
 }
 
 }}

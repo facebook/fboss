@@ -24,6 +24,7 @@ extern "C" {
 #include <folly/dynamic.h>
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
+#include <folly/Optional.h>
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/RouteTypes.h"
 
@@ -97,6 +98,8 @@ class BcmWarmBootCache {
   using EgressIdAndEgress = std::pair<EgressId, Egress>;
   using VlanAndMac = std::pair<VlanID, folly::MacAddress>;
   using IntfIdAndMac = std::pair<IntfId, folly::MacAddress>;
+  using HostKey = std::tuple<
+    opennsl_vrf_t, folly::IPAddress, folly::Optional<opennsl_if_t>>;
   /*
    * VRF, IP, Mask
    * TODO - Convert mask to mask len for efficient storage/lookup
@@ -121,6 +124,7 @@ class BcmWarmBootCache {
   using EgressAndBool = std::pair<Egress, bool>;
   using EgressId2EgressAndBool =
       boost::container::flat_map<EgressId, EgressAndBool>;
+  using HostTableInWarmBootFile = boost::container::flat_map<HostKey, EgressId>;
 
   /*
    * Callbacks for traversing entries in BCM h/w tables
@@ -206,14 +210,11 @@ class BcmWarmBootCache {
   EgressId2EgressAndBoolCitr findEgress(EgressId id) const {
     return egressId2EgressAndBool_.find(id);
   }
-  EgressId2EgressAndBoolCitr findEgress(opennsl_vrf_t vrf,
-                                        const folly::IPAddress& nhopIp) const {
-    const auto& vrfIpAndHost = vrfIp2Host_.find(VrfAndIP(vrf, nhopIp));
-    if (vrfIpAndHost == vrfIp2Host_.end()) {
-      return egressId2EgressAndBool_.end();
-    }
-    return findEgress(vrfIpAndHost->second.l3a_intf);
-  }
+  EgressId2EgressAndBoolCitr findEgressFromHost(
+      opennsl_vrf_t vrf,
+      const folly::IPAddress& addr,
+      folly::Optional<opennsl_if_t> intf);
+
   void programmed(EgressId2EgressAndBoolCitr citr) {
     VLOG(1) << "Programmed egress entry: " << citr->first
             << ". Marking at used in warmboot cache.";
@@ -338,8 +339,14 @@ class BcmWarmBootCache {
   Vlan2VlanInfo vlan2VlanInfo_;
   Vlan2Station vlan2Station_;
   VlanAndMac2Intf vlanAndMac2Intf_;
+
   // This is the set of egress ids pointed by BcmHost in warm boot file.
   EgressIds egressIdsFromBcmHostInWarmBootFile_;
+  // Mapping from <vrf, ip, intf> to the egress,
+  // based on the BcmHost in warm boot file.
+  HostTableInWarmBootFile vrfIp2EgressFromBcmHostInWarmBootFile_;
+
+  // The host table in HW
   VrfAndIP2Host vrfIp2Host_;
   // These are routes from defip table that are not fully qualified (not /32 or
   // /128).

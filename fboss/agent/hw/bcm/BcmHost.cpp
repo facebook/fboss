@@ -21,18 +21,16 @@
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
 namespace {
-constexpr auto kVrf = "vrf";
-constexpr auto kIp = "ip";
+constexpr auto kIntf = "intf";
 constexpr auto kPort = "port";
 constexpr auto kNextHops = "nexthops";
-constexpr auto kEgress = "egress";
 
 std::string hostStr(const opennsl_l3_host_t& host) {
   std::ostringstream os;
   os << "is v6: " << (host.l3a_flags & OPENNSL_L3_IP6 ? "yes" : "no")
-    << " is multipath: "
+    << ", is multipath: "
     << (host.l3a_flags & OPENNSL_L3_MULTIPATH ? "yes": "no")
-    << " vrf: " << host.l3a_vrf << " intf: " << host.l3a_intf;
+    << ", vrf: " << host.l3a_vrf << ", intf: " << host.l3a_intf;
   return os.str();
 }
 }
@@ -591,6 +589,9 @@ folly::dynamic BcmHost::toFollyDynamic() const {
   folly::dynamic host = folly::dynamic::object;
   host[kVrf] = key_.getVrf();
   host[kIp] = key_.addr().str();
+  if (key_.intfID().hasValue()) {
+    host[kIntf] = static_cast<uint32_t>(key_.intfID().value());
+  }
   host[kPort] = port_;
   host[kEgressId] = egressId_;
   if (egressId_ != BcmEgressBase::INVALID &&

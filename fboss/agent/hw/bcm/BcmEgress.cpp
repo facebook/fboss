@@ -75,7 +75,8 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
   bool addOrUpdateEgress = false;
   const auto warmBootCache = hw_->getWarmBootCache();
   CHECK(warmBootCache);
-  auto egressId2EgressAndBoolCitr = warmBootCache->findEgress(vrf, ip);
+  auto egressId2EgressAndBoolCitr = warmBootCache->findEgressFromHost(
+      vrf, ip, intfId);
   if (egressId2EgressAndBoolCitr !=
       warmBootCache->egressId2EgressAndBool_end()) {
     // Lambda to compare with existing egress to know if should reprogram

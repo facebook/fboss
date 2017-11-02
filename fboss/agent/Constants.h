@@ -12,19 +12,23 @@
 
 namespace facebook { namespace fboss {
 
-auto constexpr kHwSwitch = "hwSwitch";
-auto constexpr kHostTable = "hostTable";
-auto constexpr kIntfTable = "intfTable";
-auto constexpr kRouteTable = "routeTable";
+auto constexpr kCpuPortName = "cpu";
 auto constexpr kEcmpEgressId = "ecmpEgressId";
-auto constexpr kEgressId = "egressId";
 auto constexpr kEcmpEgress = "ecmpEgress";
 auto constexpr kEcmpHosts = "ecmpHosts";
+auto constexpr kEgress = "egress";
+auto constexpr kEgressId = "egressId";
 auto constexpr kHosts = "hosts";
+auto constexpr kHostTable = "hostTable";
+auto constexpr kHwSwitch = "hwSwitch";
 auto constexpr kIntfId = "intfId";
+auto constexpr kIntfTable = "intfTable";
+auto constexpr kIp = "ip";
 auto constexpr kMac = "mac";
 auto constexpr kPaths = "paths";
-auto constexpr kWarmBootCache = "warmBootCache";
+auto constexpr kRouteTable = "routeTable";
 auto constexpr kSwSwitch = "swSwitch";
-auto constexpr kCpuPortName = "cpu";
+auto constexpr kVrf = "vrf";
+auto constexpr kWarmBootCache = "warmBootCache";
+
 }}
