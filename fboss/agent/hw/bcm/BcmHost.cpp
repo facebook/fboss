@@ -371,30 +371,28 @@ BcmHostTable::~BcmHostTable() {
 template<typename KeyT, typename HostT>
 HostT* BcmHostTable::incRefOrCreateBcmHostImpl(
     HostMap<KeyT, HostT>* map,
-    KeyT&& key) {
-  auto ret = map->emplace(key, std::make_pair(nullptr, 1));
-  auto& iter = ret.first;
-  if (!ret.second) {
+    const KeyT& key) {
+  auto iter = map->find(key);
+  if (iter != map->cend()) {
     // there was an entry already there
     iter->second.second++;  // increase the reference counter
     return iter->second.first.get();
   }
-  SCOPE_FAIL {
-    map->erase(iter);
-  };
-  auto newHost = std::make_unique<HostT>(hw_, std::move(key));
+  auto newHost = std::make_unique<HostT>(hw_, key);
   auto hostPtr = newHost.get();
-  iter->second.first = std::move(newHost);
+  auto ret = map->emplace(key, std::make_pair(std::move(newHost), 1));
+  CHECK_EQ(ret.second, true)
+    << "must insert BcmHost/BcmEcmpHost as a new entry in this case";
   return hostPtr;
 }
 
-BcmHost* BcmHostTable::incRefOrCreateBcmHost(BcmHostKey hostKey) {
-  return incRefOrCreateBcmHostImpl(&hosts_, std::move(hostKey));
+BcmHost* BcmHostTable::incRefOrCreateBcmHost(const BcmHostKey& hostKey) {
+  return incRefOrCreateBcmHostImpl(&hosts_, hostKey);
 }
 
 BcmEcmpHost* BcmHostTable::incRefOrCreateBcmEcmpHost(
-    BcmEcmpHostKey key) {
-  return incRefOrCreateBcmHostImpl(&ecmpHosts_, std::move(key));
+    const BcmEcmpHostKey& key) {
+  return incRefOrCreateBcmHostImpl(&ecmpHosts_, key);
 }
 
 template<typename KeyT, typename HostT>

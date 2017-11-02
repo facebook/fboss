@@ -114,10 +114,13 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
     id_ = existingEgressId;
     auto existingEgressObject = egressId2EgressAndBoolCitr->second.first;
     if (!equivalent(eObj, existingEgressObject)) {
-      VLOG(1) << "Updating egress object for next hop : " << ip;
+      VLOG(1) << "Updating egress object for next hop : " << ip
+              << " @ brcmif " << intfId;
       addOrUpdateEgress = true;
     } else {
-      VLOG(1) << "Egress object for : " << ip << " already exists";
+      VLOG(1) << "Egress object for : " << ip
+              << " @ brcmif " << intfId
+              << " already exists";
     }
   } else {
     addOrUpdateEgress = true;
@@ -125,7 +128,8 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
   if (addOrUpdateEgress) {
     if (egressId2EgressAndBoolCitr ==
         warmBootCache->egressId2EgressAndBool_end()) {
-      VLOG(1) << "Adding egress object for next hop : " << ip;
+      VLOG(1) << "Adding egress object for next hop : " << ip
+              << " @ brcmif " << intfId;
     }
     uint32_t flags = 0;
     if (id_ != INVALID) {
@@ -147,15 +151,19 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
           " on unit ", hw_->getUnit());
       VLOG(3) << "programmed L3 egress object " << id_ << " for "
               << ((mac) ? mac->toString() : "to CPU") << " on unit "
-              << hw_->getUnit() << " for ip: " << ip << " flags " << eObj.flags
+              << hw_->getUnit() << " for ip: " << ip
+              << " @ brcmif " << intfId
+              << " flags " << eObj.flags
               << " towards port " << eObj.port;
     } else {
       // This could happen when neighbor entry is confirmed with the same MAC
       // after warmboot, as it will trigger another egress programming with the
       // same MAC.
-      VLOG(1) << "Identical egress object for : " << ip << " pointing to "
-        << (mac ? mac->toString() : "CPU ") << " already exists "
-        << "skipping egress programming ";
+      VLOG(1) << "Identical egress object for : " << ip
+              << " @ brcmif " << intfId
+              << " pointing to "
+              << (mac ? mac->toString() : "CPU ") << " already exists "
+              << "skipping egress programming ";
     }
   }
   // update our internal fields

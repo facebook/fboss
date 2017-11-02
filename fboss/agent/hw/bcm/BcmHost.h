@@ -184,8 +184,8 @@ class BcmHostTable {
    *
    * @return The BcmHost/BcmEcmpHost pointer just created or found.
    */
-  BcmHost* incRefOrCreateBcmHost(BcmHostKey hostKey);
-  BcmEcmpHost* incRefOrCreateBcmEcmpHost(BcmEcmpHostKey key);
+  BcmHost* incRefOrCreateBcmHost(const BcmHostKey& hostKey);
+  BcmEcmpHost* incRefOrCreateBcmEcmpHost(const BcmEcmpHostKey& key);
 
   /**
    * Decrease an existing BcmHost/BcmEcmpHost entry's reference counter by 1.
@@ -351,7 +351,7 @@ class BcmHostTable {
   template <typename KeyT, typename HostT>
   HostT* incRefOrCreateBcmHostImpl(
       HostMap<KeyT, HostT>* map,
-      KeyT&& key);
+      const KeyT& key);
   template <typename KeyT, typename HostT>
   HostT* getBcmHostIfImpl(
       const HostMap<KeyT, HostT>* map,
