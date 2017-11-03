@@ -536,10 +536,10 @@ target_link_libraries(qsfp_service
 #       "${LIBFBOSS_AGENT_DEPS}"
 # )
 
-add_executable(cp2112_tool
-    fboss/util/cp2112_tool.cpp
+add_executable(cp2112_util
+    fboss/util/cp2112_util.cpp
 )
-target_link_libraries(cp2112_tool
+target_link_libraries(cp2112_util
        fboss_agent
        "${LIBFBOSS_AGENT_DEPS}"
 )
