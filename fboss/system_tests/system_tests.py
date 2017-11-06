@@ -194,7 +194,6 @@ def run_tests(options):
     return ret
 
 
-
 def main(args):
     options_parser = generate_default_test_argparse()
     options = options_parser.parse_args()
