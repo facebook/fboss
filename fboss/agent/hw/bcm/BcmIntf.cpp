@@ -146,42 +146,58 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
   }
 
   const auto vrf = BcmSwitch::getBcmVrfId(intf->getRouterID());
+
+  // Lambda to compare with existing intf to determine if we need to
+  // reprogram
+  auto updateIntfIfNeeded =
+    [&] (opennsl_l3_intf_t& newIntf,
+        const opennsl_l3_intf_t& oldIntf) {
+    auto equivalent =
+      [=] (const opennsl_l3_intf_t& newIntf,
+          const opennsl_l3_intf_t& existingIntf) {
+      CHECK(newIntf.l3a_vrf == existingIntf.l3a_vrf);
+      return macFromBcm(newIntf.l3a_mac_addr) ==
+        macFromBcm(existingIntf.l3a_mac_addr) &&
+        newIntf.l3a_vid == existingIntf.l3a_vid
+        && newIntf.l3a_mtu == existingIntf.l3a_mtu;
+      };
+
+    if (!equivalent(newIntf, oldIntf)) {
+      VLOG(1) << "Updating interface for vlan : " << intf->getVlanID()
+        << " and mac: " << intf->getMac();
+      CHECK_NE(bcmIfId_, INVALID);
+      newIntf.l3a_intf_id = bcmIfId_;
+      newIntf.l3a_flags = OPENNSL_L3_WITH_ID | OPENNSL_L3_REPLACE;
+      return true;
+     }
+      return false;
+   };
+
+  const auto intftoIfparam =
+    [=] (const auto& Intf) {
+      opennsl_l3_intf_t ifParams;
+      opennsl_l3_intf_t_init(&ifParams);
+      ifParams.l3a_vrf = vrf;
+      memcpy(&ifParams.l3a_mac_addr, Intf->getMac().bytes(),
+             sizeof(ifParams.l3a_mac_addr));
+      ifParams.l3a_vid = Intf->getVlanID();
+      ifParams.l3a_mtu = Intf->getMtu();
+      return ifParams;
+  };
+
+  auto ifParams = intftoIfparam(intf);
   // create the interface if needed
   if (bcmIfId_ == INVALID) {
     // create a BCM l3 interface
-    opennsl_l3_intf_t ifParams;
-    opennsl_l3_intf_t_init(&ifParams);
-    ifParams.l3a_vrf = vrf;
-    memcpy(&ifParams.l3a_mac_addr, intf->getMac().bytes(),
-           sizeof(ifParams.l3a_mac_addr));
-    ifParams.l3a_vid = intf->getVlanID();
-    ifParams.l3a_mtu = intf->getMtu();
-
     bool addInterface = false;
     const auto warmBootCache = hw_->getWarmBootCache();
     auto vlanMac2IntfItr =
       warmBootCache->findL3Intf(intf->getVlanID(), intf->getMac());
     if (vlanMac2IntfItr != warmBootCache->vlanAndMac2Intf_end()) {
-      // Lambda to compare with existing intf to determine if we need to
-      // reprogram
-      auto equivalent =
-        [=] (const opennsl_l3_intf_t& newIntf,
-            const opennsl_l3_intf_t& existingIntf) {
-        CHECK(newIntf.l3a_vrf == existingIntf.l3a_vrf);
-        return macFromBcm(newIntf.l3a_mac_addr) ==
-          macFromBcm(existingIntf.l3a_mac_addr) &&
-          newIntf.l3a_vid == existingIntf.l3a_vid
-          && newIntf.l3a_mtu == existingIntf.l3a_mtu;
-      };
 
       const auto& existingIntf = vlanMac2IntfItr->second;
       bcmIfId_ = existingIntf.l3a_intf_id;
-      if (!equivalent(ifParams, existingIntf)) {
-        VLOG(1) << "Updating interface for vlan : " << intf->getVlanID()
-          << " and mac: " << intf->getMac();
-        CHECK_NE(bcmIfId_, INVALID);
-        ifParams.l3a_intf_id = bcmIfId_;
-        ifParams.l3a_flags = OPENNSL_L3_WITH_ID | OPENNSL_L3_REPLACE;
+      if (updateIntfIfNeeded(ifParams, existingIntf)) {
         // Set add interface to true, we will no issue the call to add
         // but with the above flags set this will cause the entry to be
         // updated.
@@ -241,6 +257,11 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
       createHost(addr.first, intf->getID());
     }
   } else {
+    auto oldIfParams = intftoIfparam(oldIntf);
+    if (updateIntfIfNeeded(ifParams, oldIfParams)) {
+      auto rc = opennsl_l3_intf_create(hw_->getUnit(), &ifParams);
+      bcmCheckError(rc, "failed to update L3 interface ", intf->getID());
+    }
     // address change
     auto oldIter = oldIntf->getAddresses().begin();
     auto newIter = intf->getAddresses().begin();
