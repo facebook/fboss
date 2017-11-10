@@ -168,3 +168,13 @@ class FBOSSTestTopology(object):
     def host_ips(self, hostname):
         self._valid_testhost(hostname)
         return self.test_hosts[hostname].ips()
+
+    def get_switch_port_id_from_ip(self, host_binary_ip):
+        # TODO(ashwinp): Add support for ARP.
+        with self.switch_thrift() as sw_client:
+                ndp_entries = sw_client.getNdpTable()
+                for ndp_entry in ndp_entries:
+                    if ndp_entry.ip == host_binary_ip:
+                        return ndp_entry.port
+
+        return None

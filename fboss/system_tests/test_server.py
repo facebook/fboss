@@ -89,7 +89,6 @@ class TestServer(TestService.Iface):
         reader = self.pcap_captures[interface_name]
         start = time.time()
         intf = interface_name  # horrible hack to fit in 80 chars below
-    #    pdb.set_trace()
         self.log.debug("getPktCapture(%s,ms_timeout=%d,maxPackets=%d)" %
                       (interface_name, ms_timeout, maxPackets))
         while time.time() < (start + (ms_timeout / 1000)):
@@ -189,6 +188,28 @@ class TestServer(TestService.Iface):
                 time.sleep(1)
         return response
 
+    def flap_server_port(self, interface, numberOfFlaps, sleepDuration):
+        ''' System test to verify port flap handling works and doesn't hang
+            the system.
+        '''
+        command_for_interface_down = 'ifconfig ' + interface + " down"
+        command_for_interface_up = 'ifup ' + interface
+
+        for _iteration in range(1, numberOfFlaps + 1):
+            # Ignore the SIGHUP signal to maintain session when the server port
+            # is turned down.
+            old_handler = signal.signal(signal.SIGHUP, signal.SIG_IGN)
+
+            self.log.debug("Flap iteration {}".format(_iteration))
+
+            self.check_output(command_for_interface_down)
+            time.sleep(sleepDuration)
+
+            self.check_output(command_for_interface_up)
+
+            # Change the SIGHUP settings back to original value.
+            signal.signal(signal.SIGHUP, old_handler)
+
 
 if __name__ == '__main__':
     handler = TestServer()
@@ -203,4 +224,4 @@ if __name__ == '__main__':
 
     print('Starting the server...')
     server.serve()
-    print('done.')
+    print('Done.')

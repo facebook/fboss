@@ -38,7 +38,7 @@ class TestClient(TestService.Client):
 
 
 def main(ip):
-    print("in client main")
+    print("In client main")
     client = TestClient(socket.gethostname())
     response = client.ping(ip)
     client._socket.close()

@@ -61,4 +61,10 @@ service TestService extends fb303.FacebookService {
 
   string iperf3_client(1: string server_ip) throws
                       (1: fboss.FbossBaseError error)
+
+  void flap_server_port(1: string interfaceName,
+                       2: i32 duration,
+                       3: i32 numberOfFlaps)
+                       throws (1: fboss.FbossBaseError error)
+
 }

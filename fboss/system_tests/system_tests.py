@@ -175,7 +175,7 @@ def run_tests(options):
         if not os.path.exists(directory):
             raise Exception("Specified test directory '%s' does not exist" %
                             directory)
-        print("Looding tests from test_dir=%s" % directory)
+        print("Loading tests from test_dir=%s" % directory)
         testsdir = unittest.TestLoader().discover(start_dir=directory,
                                                   pattern='*test*.py')
         add_interested_tests_to_test_suite(testsdir, suite)
