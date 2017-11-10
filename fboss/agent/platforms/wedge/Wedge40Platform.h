@@ -27,7 +27,7 @@ class Wedge40Platform : public WedgePlatform {
   folly::ByteRange defaultLed1Code() override;
 
   bool isBufferStatsCollectionSupported() const override {
-    return false;
+    return true;
   }
 
  private:
