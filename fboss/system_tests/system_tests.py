@@ -156,6 +156,11 @@ def add_interested_tests_to_test_suite(tests, suite):
         # provide any tags
         if hasattr(tests, "valid_tags") or not user_requested_tags:
             suite.addTest(tests)
+
+        # Edge case when user uses tag & there is import error
+        # The import error will just be silently ignored
+        if isinstance(tests, unittest.loader._FailedTest):
+            raise Exception("Failed to import tests: {}".format(tests._exception))
         return
 
     for test in tests:
