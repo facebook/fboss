@@ -180,6 +180,10 @@ class RouteTableRib : public NodeBase {
     CHECK_EQ(size(), radixTree_.size());
   }
 
+  // STRONGLY RECOMMEND to use routes() which returns the NodeMap
+  // routesRadixTree() should only be used in the unit test to check whether
+  // noddeMap_ and radixTree_ in sync
+  const RoutesRadixTree& routesRadixTree() const { return radixTree_; }
   RoutesRadixTree& writableRoutesRadixTree() {
     CHECK(!isPublished());
     return radixTree_;
