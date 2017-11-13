@@ -18,14 +18,8 @@ namespace facebook { namespace fboss {
 template class NodeMapDelta<RouteTableMap, RouteTablesDelta>;
 
 using NodeMapRibV4 = RouteTableRibNodeMap<folly::IPAddressV4>;
-template class NodeMapDelta<
-    NodeMapRibV4,
-    DeltaValue<NodeMapRibV4::Node>,
-    MapUniquePointerTraits<NodeMapRibV4>>;
+template class NodeMapDelta<NodeMapRibV4>;
 
 using NodeMapRibV6 = RouteTableRibNodeMap<folly::IPAddressV6>;
-template class NodeMapDelta<
-    NodeMapRibV6,
-    DeltaValue<NodeMapRibV6::Node>,
-    MapUniquePointerTraits<NodeMapRibV6>>;
+template class NodeMapDelta<NodeMapRibV6>;
 }}

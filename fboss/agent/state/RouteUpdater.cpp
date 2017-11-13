@@ -102,6 +102,8 @@ void RouteUpdater::addRouteImpl(const PrefixT& prefix, RibT *ribCloned,
       return;
   }
   rib = makeClone(ribCloned);
+  // make sure rib is cloned before any change
+  CHECK(ribCloned->cloned);
   if (old) {
     std::shared_ptr<RouteT> newRoute;
     // If the node is not published yet, we assume this thread has exclusive
@@ -121,7 +123,6 @@ void RouteUpdater::addRouteImpl(const PrefixT& prefix, RibT *ribCloned,
     rib->addRoute(newRoute);
     VLOG(3) << "Added route " << newRoute->str();
   }
-  CHECK(ribCloned->cloned);
 }
 
 void RouteUpdater::addRoute(
@@ -174,8 +175,16 @@ void RouteUpdater::delRouteImpl(
     return;
   }
   rib = makeClone(ribCloned);
-  // Re-get the route from the cloned RIB
-  old = rib->exactMatch(prefix);
+
+  // make sure rib is cloned before any change
+  CHECK(ribCloned->cloned);
+  // If the node is not published yet, we assume this thread has exclusive
+  // access to the node. Therefore, we can do the modification in-place
+  // directly.
+  if (old->isPublished()) {
+    old = old->clone();
+    rib->updateRoute(old);
+  }
   old->delEntryForClient(clientId);
   // TODO Do I need to publish the change??
   VLOG(3) << "Deleted nexthops for client " << clientId <<
@@ -184,7 +193,6 @@ void RouteUpdater::delRouteImpl(
     rib->removeRoute(old);
     VLOG(3) << "...and then deleted route " << prefix.str();
   }
-  CHECK(ribCloned->cloned);
 }
 
 void RouteUpdater::delRoute(
@@ -206,18 +214,24 @@ void RouteUpdater::removeAllRoutesForClientImpl(RibT *ribCloned,
 
   std::vector<std::shared_ptr<Route<AddrT>>> routesToDelete;
 
-  for (auto& rt : rib->routes()) {
-    auto route = rt.value().get();
+  // make sure rib is cloned before any change
+  CHECK(ribCloned->cloned);
+  for (auto& routeNode : rib->writableRoutes()->writableNodes()) {
+    auto route = routeNode.second;
+    if (route->isPublished()) {
+      route = route->clone();
+      routeNode.second = route;
+    }
     route->delEntryForClient(clientId);
     if (route->hasNoEntry()) {
       // The nexthops we removed was the only one.  Delete the route.
-      routesToDelete.push_back(rt.value());
+      routesToDelete.push_back(routeNode.second);
     }
   }
 
   // Now, delete whatever routes went from 1 nexthoplist to 0.
-  for (std::shared_ptr<Route<AddrT>>& rt : routesToDelete) {
-    rib->removeRoute(rt);
+  for (std::shared_ptr<Route<AddrT>>& route : routesToDelete) {
+    rib->removeRoute(route);
   }
 }
 
@@ -230,17 +244,17 @@ template<typename RtRibT, typename AddrT>
 void RouteUpdater::getFwdInfoFromNhop(
     RtRibT* nRib, ClonedRib* ribCloned, const AddrT& nh,
     bool *hasToCpu, bool *hasDrop, RouteNextHopSet* fwd) {
-  auto rt = nRib->longestMatch(nh);
-  if (rt == nullptr) {
-    VLOG (3) <<" Could not find route for nhop :  "<< nh;
+  auto route = nRib->longestMatch(nh);
+  if (route == nullptr) {
+    VLOG(3) << " Could not find route for nhop :  " << nh;
     // Un resolvable next hop
     return;
   }
-  if (rt->needResolve()) {
-    resolveOne(rt.get(), nRib, ribCloned);
+  if (route->needResolve()) {
+    resolveOne(route.get(), ribCloned);
   }
-  if (rt->isResolved()) {
-    const auto& fwdInfo = rt->getForwardInfo();
+  if (route->isResolved()) {
+    const auto& fwdInfo = route->getForwardInfo();
     if (fwdInfo.isDrop()) {
       *hasDrop = true;
     } else if (fwdInfo.isToCPU()) {
@@ -248,7 +262,7 @@ void RouteUpdater::getFwdInfoFromNhop(
     } else {
       const auto& nhops = fwdInfo.getNextHopSet();
       // if the route used to resolve the nexthop is directly connected
-      if (rt->isConnected()) {
+      if (route->isConnected()) {
         const auto& rtNh = *nhops.begin();
         fwd->emplace(RouteNextHop::createForward(nh, rtNh.intf()));
       } else {
@@ -258,29 +272,10 @@ void RouteUpdater::getFwdInfoFromNhop(
   }
 }
 
-template<typename RouteT, typename RtRibT>
-void RouteUpdater::resolveOne(
-    RouteT* route, RtRibT* rib, ClonedRib* ribCloned) {
-  // first, make sure the route was not published yet, if it is, clone one
-  if (route->isPublished()) {
-    auto newRoute = route->clone(RouteT::Fields::COPY_PREFIX_AND_NEXTHOPS);
-    // insert the cloned route back to the RIB
-    // Note: resolve() is called in a loop over 'rib'. But we are modifying
-    // the rib here. Fortunately, updateRoute() here does not actually
-    // invalidate the existing iterator, it just replace the value pointed by
-    // an existing iterator.
-    // It might be nice to change resolve() to accept a RouteTableRib::iterator
-    // as a first argument. This way it could just modify iter.second, instead
-    // of having to call updateRoute(). This way it would be very clear that
-    // this can't invalidate the iterator. (It would also avoid having to
-    // re-lookup the node in updateRoute().)
-    // The current API for the temporary RouteTableRib solution does not return
-    // any iterator. Once we switch to the RadixTree() solution, we should make
-    // this change.
-    rib->updateRoute(newRoute);
-    route = newRoute.get();
-    CHECK(!route->isPublished());
-  }
+template<typename RouteT>
+void RouteUpdater::resolveOne(RouteT* route, ClonedRib* ribCloned) {
+  // We need to guarantee that route is already cloned before resolve
+  CHECK(!route->isPublished());
   // mark this route is in processing. This processing bit shall be cleared
   // in setUnresolvable() or setResolved()
   route->setProcessing();
@@ -344,42 +339,41 @@ void RouteUpdater::resolveOne(
           << " route " << route->str();
 }
 
-template<typename RibT>
-void RouteUpdater::cloneRoutesForResolution(RibT* rib) {
-  for (auto& rt : rib->routes()) {
-    auto route = rt.value().get();
-    if (route->isPublished()) {
-      auto newRoute =
-        route->clone(RibT::RouteType::Fields::COPY_PREFIX_AND_NEXTHOPS);
-      rib->updateRoute(newRoute);
-      route = newRoute.get();
-    }
-    route->clearForward();
-  }
-}
-
 void RouteUpdater::resolve() {
+  // First, we need to make sure every route of the changed rib is cloned
+  // and the RadixTree of this changed rib is also generated.
+  // The reason why we have to do the same for-loop separately is because the
+  // resolveOne needs radixTree_ to find nexthop, so we have to build the tree
+  // before resolveOne().
+  for (auto& ribCloned : clonedRibs_) {
+    if (ribCloned.second.v4.cloned) {
+      ribCloned.second.v4.rib->cloneToRadixTreeWithForwardClear();
+    }
+    if (ribCloned.second.v6.cloned) {
+      ribCloned.second.v6.rib->cloneToRadixTreeWithForwardClear();
+    }
+  }
+
   // Ideally, just need to resolve the routes that is changed or impacted by
   // the changed routes.
   // However, Without copy-on-write RadixTree, it is O(n) to find out the
   // routes that are changed. In this case, we just simply loop through all
   // routes and resolve those that are not resolved yet.
+  // TODO(joseph5wu) T23364375 will try to improve it in the future.
   for (auto& ribCloned : clonedRibs_) {
     if (ribCloned.second.v4.cloned) {
       auto rib = ribCloned.second.v4.rib.get();
-      cloneRoutesForResolution(rib);
-      for (auto& rt : rib->routes()) {
-        if (rt.value()->needResolve()) {
-          resolveOne(rt.value().get(), rib, &ribCloned.second);
+      for (auto& routeNode : rib->writableRoutesRadixTree()) {
+        if (routeNode.value()->needResolve()) {
+          resolveOne(routeNode.value().get(), &ribCloned.second);
         }
       }
     }
     if (ribCloned.second.v6.cloned) {
       auto rib = ribCloned.second.v6.rib.get();
-      cloneRoutesForResolution(rib);
-      for (auto& rt : rib->routes()) {
-        if (rt.value()->needResolve()) {
-          resolveOne(rt.value().get(), rib, &ribCloned.second);
+      for (auto& routeNode : rib->writableRoutesRadixTree()) {
+        if (routeNode.value()->needResolve()) {
+          resolveOne(routeNode.value().get(), &ribCloned.second);
         }
       }
     }
@@ -424,10 +418,10 @@ std::shared_ptr<RouteTableMap> RouteUpdater::updateDone() {
     auto iter = map.emplace(id, std::move(newRt));
     CHECK(iter.second);
   }
-  if (!changed || !deduplicate(&map)) {
+  if (!changed) {
     return nullptr;
   }
-  return orig_->clone(map);
+  return deduplicate(&map);
 }
 
 void RouteUpdater::addInterfaceAndLinkLocalRoutes(
@@ -538,36 +532,42 @@ bool RouteUpdater::dedupRoutes(const RibT* oldRib, RibT* newRib) {
   if (oldRib == newRib) {
     return isSame;
   }
-  const auto& oldRoutes = oldRib->routes();
-  auto& newRoutes = newRib->writableRoutes();
+  const auto oldRoutes = oldRib->routes();
+  auto& newRoutes = newRib->writableRoutesRadixTree();
+  // make sure radixTree_ and nodeMap_ has the same size in newRib
+  CHECK_EQ(newRib->size(), newRoutes.size());
   // Copy routes from old route table if they are
   // same. For matching prefixes, which don't have
   // same attributes inherit the generation number
-  for (auto oldIter : oldRoutes) {
-    const auto& oldRt = oldIter->value();
-    auto newIter = newRoutes.exactMatch(oldIter->ipAddress(),
-        oldIter->masklen());
+  for (const auto& oldRoute : *oldRoutes) {
+    auto newIter = newRoutes.exactMatch(oldRoute->prefix().network,
+                                        oldRoute->prefix().mask);
     if (newIter == newRoutes.end()) {
       isSame = false;
       continue;
     }
-    auto& newRt = newIter->value();
-    if (oldRt->isSame(newRt.get())) {
+    auto& newRoute = newIter->value();
+    if (oldRoute->isSame(newRoute.get())) {
       // both routes are completely same, instead of using the new route,
-      // we re-use the old route.
-      newIter->value() = oldRt;
+      // we re-use the old route. First update oldRoute to radixTree_
+      newIter->value() = oldRoute;
+      // we also need to update the nodeMap_
+      newRib->updateRoute(oldRoute);
     } else {
       isSame = false;
-      newRt->inheritGeneration(*oldRt);
+      newRoute->inheritGeneration(*oldRoute);
+      newRib->updateRoute(newRoute);
     }
   }
-  if (newRoutes.size() != oldRoutes.size()) {
+  if (newRoutes.size() != oldRoutes->size()) {
     isSame = false;
   } else {
     // If sizes are same we would have already caught any
     // difference while looking up all routes from oldRoutes
     // in newRoutes, so do nothing
   }
+  // make sure after change nodeMap_ and radixTree_ size still match
+  CHECK_EQ(newRib->size(), newRoutes.size());
   return isSame;
 }
 

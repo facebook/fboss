@@ -122,8 +122,6 @@ class RouteUpdater {
   template<typename RibT>
   auto makeClone(RibT* rib) -> decltype(rib->rib.get());
 
-  template<typename RibT>
-  void cloneRoutesForResolution(RibT* rib);
   // Helper functions to add or delete a route
   template<typename PrefixT, typename RibT>
   void addRouteImpl(const PrefixT& prefix, RibT *rib,
@@ -135,8 +133,8 @@ class RouteUpdater {
 
   // resolve all routes that are not resolved yet
   void resolve();
-  template<typename RouteT, typename RtRibT>
-  void resolveOne(RouteT* rt, RtRibT* rib, ClonedRib* clonedRib);
+  template<typename RouteT>
+  void resolveOne(RouteT* route, ClonedRib* clonedRib);
   template<typename RtRibT, typename AddrT>
   void getFwdInfoFromNhop(RtRibT* nRib, ClonedRib* ribCloned,
       const AddrT& nh, bool* hasToCpu, bool* hasDrop, RouteNextHopSet* fwd);

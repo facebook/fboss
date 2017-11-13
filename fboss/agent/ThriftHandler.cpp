@@ -497,9 +497,8 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
 void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
   ensureConfigured();
   for (const auto& routeTable : (*sw_->getAppliedState()->getRouteTables())) {
-    for (const auto& ipv4Rib : routeTable->getRibV4()->routes()) {
+    for (const auto& ipv4 : *(routeTable->getRibV4()->routes())) {
       UnicastRoute tempRoute;
-      auto ipv4 = ipv4Rib.value().get();
       if (!ipv4->isResolved()) {
         LOG(INFO) << "Skipping unresolved route: " << ipv4->toFollyDynamic();
         continue;
@@ -510,9 +509,8 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
       tempRoute.nextHopAddrs = util::fromFwdNextHops(fwdInfo.getNextHopSet());
       routes.emplace_back(std::move(tempRoute));
     }
-    for (const auto& ipv6Rib : routeTable->getRibV6()->routes()) {
+    for (const auto& ipv6 : *(routeTable->getRibV6()->routes())) {
       UnicastRoute tempRoute;
-      auto ipv6 = ipv6Rib.value().get();
       if (!ipv6->isResolved()) {
         LOG(INFO) << "Skipping unresolved route: " << ipv6->toFollyDynamic();
         continue;
@@ -530,8 +528,7 @@ void ThriftHandler::getRouteTableByClient(
     std::vector<UnicastRoute>& routes, int16_t client) {
   ensureConfigured();
   for (const auto& routeTable : (*sw_->getState()->getRouteTables())) {
-    for (const auto& ipv4Rib : routeTable->getRibV4()->routes()) {
-      auto ipv4 = ipv4Rib.value().get();
+    for (const auto& ipv4 : *(routeTable->getRibV4()->routes())) {
       auto entry = ipv4->getEntryForClient(ClientID(client));
       if (not entry) {
         continue;
@@ -545,8 +542,7 @@ void ThriftHandler::getRouteTableByClient(
       routes.emplace_back(std::move(tempRoute));
     }
 
-    for (const auto& ipv6Rib : routeTable->getRibV6()->routes()) {
-      auto ipv6 = ipv6Rib.value().get();
+    for (const auto& ipv6 : *(routeTable->getRibV6()->routes())) {
       auto entry = ipv6->getEntryForClient(ClientID(client));
       if (not entry) {
         continue;
@@ -565,13 +561,11 @@ void ThriftHandler::getRouteTableByClient(
 void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
   ensureConfigured();
   for (const auto& routeTable : (*sw_->getState()->getRouteTables())) {
-    for (const auto& ipv4Rib : routeTable->getRibV4()->routes()) {
-      auto ipv4 = ipv4Rib.value().get();
+    for (const auto& ipv4 : *(routeTable->getRibV4()->routes())) {
       RouteDetails rd = ipv4->toRouteDetails();
       routes.emplace_back(std::move(rd));
     }
-    for (const auto& ipv6Rib : routeTable->getRibV6()->routes()) {
-      auto ipv6 = ipv6Rib.value().get();
+    for (const auto& ipv6 : *(routeTable->getRibV6()->routes())) {
       RouteDetails rd = ipv6->toRouteDetails();
       routes.emplace_back(std::move(rd));
     }

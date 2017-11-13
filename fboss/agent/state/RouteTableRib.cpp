@@ -27,8 +27,8 @@ FBOSS_INSTANTIATE_NODE_MAP(RouteTableRibNodeMap<folly::IPAddressV6>,
 template<typename AddrT>
 folly::dynamic RouteTableRib<AddrT>::toFollyDynamic() const {
   folly::dynamic routesJson = folly::dynamic::array;
-  for (const auto& route: rib_) {
-    routesJson.push_back(route->value()->toFollyDynamic());
+  for (const auto& route: *nodeMap_) {
+    routesJson.push_back(route->toFollyDynamic());
   }
   folly::dynamic routes = folly::dynamic::object;
   routes[kRoutes] = std::move(routesJson);
@@ -41,7 +41,9 @@ RouteTableRib<AddrT>::fromFollyDynamic(const folly::dynamic& routes) {
   auto rib = std::make_shared<RouteTableRib<AddrT>>();
   auto routesJson = routes[kRoutes];
   for (const auto& routeJson: routesJson) {
-    rib->addRoute(Route<AddrT>::fromFollyDynamic(routeJson));
+    auto route = Route<AddrT>::fromFollyDynamic(routeJson);
+    rib->addRoute(route);
+    rib->addRouteInRadixTree(route);
   }
   return rib;
 }
@@ -59,6 +61,18 @@ RouteTableRib<AddrT>* RouteTableRib<AddrT>::modify(
   RouteTable* clonedRouteTable = routeTable->modify(state);
 
   auto clonedRib = this->clone();
+  // Generate the radix tree from the cloned nodeMap_. Remember, we haven't
+  // clone every route yet. So we will still use the old route pointer.
+  // Right now only revertNewRouteEntry() needs modify(). The expected result of
+  // modify() is that we have a cloned RouteTableRib return if the current one
+  // is published. To make sure the cloned RouteTableRib works, we need to
+  // ensure radixTree_ and nodeMap_ in sync before we return a newly cloned rib.
+  for (const auto& node: nodeMap_->getAllNodes()) {
+    clonedRib->radixTree_.insert(node.first.network, node.first.mask,
+                                 node.second);
+  }
+  CHECK_EQ(clonedRib->size(), clonedRib->radixTree_.size());
+
   auto clonedRibPtr = clonedRib.get();
   clonedRouteTable->setRib(clonedRib);
 

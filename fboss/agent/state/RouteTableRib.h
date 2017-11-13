@@ -31,33 +31,42 @@ template<typename AddrT> using RouteTableRibNodeMapTraits
 template<typename AddrT>
 class RouteTableRibNodeMap
     : public NodeMapT<RouteTableRibNodeMap<AddrT>,
-    RouteTableRibNodeMapTraits<AddrT>> {
+                      RouteTableRibNodeMapTraits<AddrT>> {
  public:
-  explicit RouteTableRibNodeMap() {}
+  RouteTableRibNodeMap() {}
   ~RouteTableRibNodeMap() override {}
 
-  using Base =  NodeMapT<RouteTableRibNodeMap<AddrT>,
-        RouteTableRibNodeMapTraits<AddrT>>;
+  using Base = NodeMapT<RouteTableRibNodeMap<AddrT>,
+                        RouteTableRibNodeMapTraits<AddrT>>;
   using Prefix = RoutePrefix<AddrT>;
   using RouteType = typename Base::Node;
 
   bool empty() const {
-    return Base::getAllNodes().size() == 0;
+    return size() == 0;
   }
 
   uint64_t size() const {
-    return this->getAllNodes().size();
+    return Base::size();
   }
 
-  void addRoutes(const RouteTableRib<AddrT>& rib) {
-    for(const auto& routeItr: rib.routes()) {
-      addRoute(routeItr->value());
-    }
-  }
- private:
   void addRoute(const std::shared_ptr<Route<AddrT>>& rt) {
     Base::addNode(rt);
   }
+
+  void updateRoute(const std::shared_ptr<Route<AddrT>>& rt) {
+    Base::updateNode(rt);
+  }
+
+  void removeRoute(const std::shared_ptr<Route<AddrT>>& rt) {
+    Base::removeNode(rt);
+  }
+
+  std::shared_ptr<Route<AddrT>> getRouteIf(const Prefix& prefix) const {
+    return Base::getNodeIf(prefix);
+  }
+
+
+ private:
   // Inherit the constructors required for clone()
   using Base::Base;
   friend class CloneAllocator;
@@ -66,60 +75,59 @@ class RouteTableRibNodeMap
 template<typename AddrT>
 class RouteTableRib : public NodeBase {
  public:
-  RouteTableRib() {}
+  using RoutesNodeMap = RouteTableRibNodeMap<AddrT>;
+  RouteTableRib(): nodeMap_(std::make_shared<RoutesNodeMap>()) {}
   RouteTableRib(NodeID id, uint32_t generation):
-    NodeBase(id, generation) {}
+    NodeBase(id, generation),
+    nodeMap_(std::make_shared<RoutesNodeMap>()) {}
   ~RouteTableRib() override {}
 
   using Prefix =  RoutePrefix<AddrT>;
   using RouteType = Route<AddrT>;
-  using Routes = facebook::network::RadixTree<AddrT,
+  using RoutesRadixTree = facebook::network::RadixTree<AddrT,
         std::shared_ptr<Route<AddrT>>>;
 
   bool empty() const {
-    return size() == 0;
+    return nodeMap_->empty();
   }
 
   uint64_t size() const {
-    return rib_.size();
+    return nodeMap_->size();
   }
 
-  const Routes& routes() const { return rib_; }
-  Routes& writableRoutes() {
+  const std::shared_ptr<RoutesNodeMap> routes() const {
+    return nodeMap_;
+  }
+  std::shared_ptr<RoutesNodeMap> writableRoutes() {
     CHECK(!isPublished());
-    return rib_;
+    return nodeMap_;
   }
 
   void publish() override {
+    // We should expect radixTree_ and nodeMap_ in sync before we publish rib
+    CHECK_EQ(size(), radixTree_.size());
+    nodeMap_->publish();
     NodeBase::publish();
-    for (auto routeIter: rib_) {
-      routeIter->value()->publish();
-    }
-  }
-  std::shared_ptr<Route<AddrT>> exactMatch(const Prefix& prefix) const {
-    auto citr = rib_.exactMatch(prefix.network, prefix.mask);
-    return citr != rib_.end() ? citr->value() : nullptr;
-  }
-  std::shared_ptr<Route<AddrT>> longestMatch(const AddrT& nexthop) const {
-    auto citr = rib_.longestMatch(nexthop, nexthop.bitCount());
-    return citr != rib_.end() ? citr->value() : nullptr;
   }
 
   RouteTableRib* modify(RouterID id, std::shared_ptr<SwitchState>* state);
 
   std::shared_ptr<RouteTableRib> clone() const {
+    // In this clone(), we make sure the root RouteTableRib version increased by
+    // 1. And then we use the default NodeMap clone() to clone the childNode
+    // `nodeMap_`, so we don't have to clone every route in `nodeMap_`.
+    // Besides, we don't clone the RadixTree. So that, we can just add/update/
+    // remove routes on nodeMap_ and then call
+    // `cloneToRadixTreeWithForwardClear()` to build the whole radixTree_
+    // after all the changes.
     auto routeTableRib = std::make_shared<RouteTableRib>(getNodeID(),
         getGeneration() + 1);
-    for (auto& routeItr: rib_) {
-      /* Explicitly insert cloned routes rather than calling
-       * rib_.clone(), which will just use the shared_ptr copy
-       * constructor
-       */
-      routeTableRib->rib_.insert(routeItr->ipAddress(),
-          routeItr->masklen(), routeItr->value()->clone());
-    }
+    // Note: this is the default NodeMap clone(), only the nodeMap pointer is
+    // cloned, while all the routes are still the old route pointer.
+    routeTableRib->nodeMap_ = nodeMap_->clone();
     return routeTableRib;
   }
+
   /*
    * Serialize to folly::dynamic
    */
@@ -142,33 +150,75 @@ class RouteTableRib : public NodeBase {
    * The following functions modify the static state.
    * These should only be called on unpublished objects which are only visible
    * to a single thread.
+   * To add/update/remove a route, we only do it on nodeMap_
    */
-  void addRoute(const std::shared_ptr<Route<AddrT>>& rt) {
-    auto inserted = rib_.insert(rt->prefix().network,
-        rt->prefix().mask, rt).second;
-    if (!inserted) {
-      throw FbossError("Prefix for: ", rt->str(), " already exists");
-    }
+  void addRoute(const std::shared_ptr<Route<AddrT>>& route) {
+    nodeMap_->addRoute(route);
   }
-  void updateRoute(const std::shared_ptr<Route<AddrT>>& rt) {
-    auto itr = rib_.exactMatch(rt->prefix().network, rt->prefix().mask);
-    if (itr == rib_.end()) {
-      throw FbossError("Update failed, prefix for: ", rt->str(),
-          " not present");
-    }
-    itr->value() = rt;
+  void updateRoute(const std::shared_ptr<Route<AddrT>>& route) {
+    nodeMap_->updateRoute(route);
   }
-  void removeRoute(const std::shared_ptr<Route<AddrT>>& rt) {
-    auto erased = rib_.erase(rt->prefix().network, rt->prefix().mask);
-    if (!erased) {
-      throw FbossError("Remove failed, prefix for: ", rt->str(),
-          " not present");
-    }
+  void removeRoute(const std::shared_ptr<Route<AddrT>>& route) {
+    nodeMap_->removeRoute(route);
+  }
+  std::shared_ptr<Route<AddrT>> exactMatch(const Prefix& prefix) const {
+    return nodeMap_->getRouteIf(prefix);
   }
 
+  void cloneToRadixTreeWithForwardClear() {
+    // We should expect this function is called only before we publish the rib
+    CHECK(!isPublished());
+    radixTree_.clear();
+    for (const auto& node: nodeMap_->getAllNodes()) {
+      auto route = node.second;
+      if (route->isPublished()) {
+        route = route->clone(RouteType::Fields::COPY_PREFIX_AND_NEXTHOPS);
+      }
+      route->clearForward();
+      radixTree_.insert(node.first.network, node.first.mask, route);
+    }
+    CHECK_EQ(size(), radixTree_.size());
+  }
+
+  RoutesRadixTree& writableRoutesRadixTree() {
+    CHECK(!isPublished());
+    return radixTree_;
+  }
+
+  std::shared_ptr<Route<AddrT>> longestMatch(const AddrT& nexthop) const {
+    auto citr = radixTree_.longestMatch(nexthop, nexthop.bitCount());
+    return citr != radixTree_.end() ? citr->value() : nullptr;
+  }
+
+  void addRouteInRadixTree(const std::shared_ptr<Route<AddrT>>& route) {
+    auto inserted = radixTree_.insert(route->prefix().network,
+      route->prefix().mask, route).second;
+    if (!inserted) {
+    throw FbossError("Add failed, prefix for: ", route->str(),
+                     " already exists in RadixTree");
+    }
+  }
+  void updateRouteInRadixTree(const std::shared_ptr<Route<AddrT>>& route) {
+    auto itr = radixTree_.exactMatch(route->prefix().network,
+                                    route->prefix().mask);
+    if (itr == radixTree_.end()) {
+    throw FbossError("Update failed, prefix for: ", route->str(),
+                     " not present in RadixTree");
+    }
+    itr->value() = route;
+  }
+  void removeRouteInRadixTree(const std::shared_ptr<Route<AddrT>>& route) {
+    auto erased = radixTree_.erase(route->prefix().network,
+                                  route->prefix().mask);
+    if (!erased) {
+     throw FbossError("Remove failed, prefix for: ", route->str(),
+                      " not present in RadixTree");
+    }
+  }
 
  private:
-  Routes rib_;
+  RoutesRadixTree radixTree_;
+  std::shared_ptr<RoutesNodeMap> nodeMap_;
 };
 
 }}

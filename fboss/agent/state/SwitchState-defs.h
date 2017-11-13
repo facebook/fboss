@@ -53,9 +53,12 @@ void SwitchState::revertNewRouteEntry(
   auto clonedRib = rib->modify(id, appliedState);
   if (oldRoute) {
     clonedRib->updateRoute(oldRoute);
+    clonedRib->updateRouteInRadixTree(oldRoute);
   } else {
     clonedRib->removeRoute(newRoute);
+    clonedRib->removeRouteInRadixTree(newRoute);
   }
+  CHECK_EQ(clonedRib->size(), clonedRib->writableRoutesRadixTree().size());
 }
 
 }}
