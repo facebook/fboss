@@ -150,7 +150,8 @@ void RouteUpdater::addLinkLocalRoutes(RouterID id) {
       kIPv6LinkLocalPrefix,
       getRibV6(id),
       StdClientIds2ClientID(StdClientIds::LINKLOCAL_ROUTE),
-      RouteNextHopEntry(RouteForwardAction::TO_CPU));
+      RouteNextHopEntry(
+          RouteForwardAction::TO_CPU, AdminDistance::DIRECTLY_CONNECTED));
 }
 
 void RouteUpdater::delLinkLocalRoutes(RouterID id) {
@@ -479,7 +480,7 @@ void RouteUpdater::updateStaticRoutes(const cfg::SwitchConfig& curCfg,
       }
       addRoute(rid, network.first, network.second,
                StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
-               RouteNextHopEntry(action));
+               RouteNextHopEntry(action, AdminDistance::STATIC_ROUTE));
       // Note down prefix for comparing with old static routes
       newCfgVrf2StaticPfxs[rid].emplace(network);
     }
@@ -504,7 +505,8 @@ void RouteUpdater::updateStaticRoutes(const cfg::SwitchConfig& curCfg,
       }
       addRoute(rid, network.first, network.second,
                StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
-               RouteNextHopEntry(std::move(nhops)));
+               RouteNextHopEntry(
+                   std::move(nhops), AdminDistance::STATIC_ROUTE));
       // Note down prefix for comparing with old static routes
       newCfgVrf2StaticPfxs[rid].emplace(network);
     }
