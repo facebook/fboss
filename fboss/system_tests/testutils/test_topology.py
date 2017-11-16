@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from fboss.thrift_clients import FbossAgentClient, QsfpServiceClient
+from fboss.netlink_manager.netlink_manager_client import NetlinkManagerClient
 from fboss.system_tests.testutils.test_client import TestClient
 from neteng.fboss.ttypes import FbossBaseError
 
@@ -152,6 +153,9 @@ class FBOSSTestTopology(object):
 
     def qsfp_thrift(self):
         return QsfpServiceClient(self.switch, self.qsfp_port)
+
+    def netlink_manager_thrift(self):
+        return NetlinkManagerClient(self.switch, NetlinkManagerClient.DEFAULT_PORT)
 
     def hosts(self):
         return self.test_hosts.values()

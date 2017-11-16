@@ -24,6 +24,7 @@ enum AdminDistance {
   STATIC_ROUTE = 1,
   EBGP = 20,
   IBGP = 200,
+  NETLINK_LISTENER = 225,
   MAX_ADMIN_DISTANCE = 255
 }
 
@@ -255,6 +256,7 @@ enum StdClientIds {
   STATIC_ROUTE = 1,
   INTERFACE_ROUTE = 2,
   LINKLOCAL_ROUTE = 3,
+  NETLINK_LISTENER = 100,
   OPENR = 786,
 }
 
