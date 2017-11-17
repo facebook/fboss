@@ -177,7 +177,22 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
     [=] (const auto& Intf) {
       opennsl_l3_intf_t ifParams;
       opennsl_l3_intf_t_init(&ifParams);
+#ifndef IS_OSS
+      // Something about the open source build breaks here in ubuntu 16_04
+      //
+      // Specifically g++-5.4 seems to segfault (!!) compiling this line.
+      // It's a simple assignment from ultimately a
+      // BOOST_STRONG_TYPE RouterID (which is an int) to
+      // a opennsl_vrf_t (which is also an int!!).  The casting should
+      // be a NOOP but somehow kills g++'s type checking system
+      // This is not a problem with g++-6 that the ONL OSS build uses
+      //
+      // -- hack around this until compilers fix themselves :-/
+      //
       ifParams.l3a_vrf = vrf;
+#else
+      ifParams.l3a_vrf = 0;     // Currently VRF is always zero anyway
+#endif
       memcpy(&ifParams.l3a_mac_addr, Intf->getMac().bytes(),
              sizeof(ifParams.l3a_mac_addr));
       ifParams.l3a_vid = Intf->getVlanID();
