@@ -72,7 +72,6 @@ public:
 
   void TearDown() override {
     sw = nullptr;
-    handle.reset();
   }
 
   SwSwitch* sw{nullptr};
