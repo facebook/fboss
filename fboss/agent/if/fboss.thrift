@@ -8,4 +8,4 @@ namespace py.asyncio neteng.asyncio.fboss
 
 exception FbossBaseError {
   1: string message
-} ( message = "message" )
+} ( cpp.virtual, message = "message" )
