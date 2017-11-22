@@ -126,7 +126,7 @@ std::string RouteNextHopsMulti::str() const {
 
     ret.append(folly::to<std::string>("(client#", clientid, ": "));
     for (const auto& nh : nxtHps) {
-      ret.append(folly::to<std::string>(nh.addr(), ", "));
+      ret.append(folly::to<std::string>(nh.str(), ", "));
     }
     ret.append(")");
   }
