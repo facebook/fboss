@@ -177,6 +177,8 @@ std::string ThriftType::ThriftGenVisitor::operator()(
       return "binary";
     case ThriftType::Primitive::String:
       return "string";
+    default:
+      return "unknown primitive";
   }
 }
 
