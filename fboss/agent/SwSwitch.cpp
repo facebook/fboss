@@ -622,23 +622,15 @@ void SwSwitch::fibSynced() {
 void SwSwitch::registerStateObserver(StateObserver* observer,
                                      const string name) {
   VLOG(2) << "Registering state observer: " << name;
-  if (!updateEventBase_.isInEventBaseThread()) {
-    updateEventBase_.runInEventBaseThreadAndWait([=]() {
-        addStateObserver(observer, name);
-    });
-  } else {
-    addStateObserver(observer, name);
-  }
+  updateEventBase_.runImmediatelyOrRunInEventBaseThreadAndWait([=]() {
+      addStateObserver(observer, name);
+  });
 }
 
 void SwSwitch::unregisterStateObserver(StateObserver* observer) {
-  if (!updateEventBase_.isInEventBaseThread()) {
-    updateEventBase_.runInEventBaseThreadAndWait([=]() {
-      removeStateObserver(observer);
-    });
-  } else {
+  updateEventBase_.runImmediatelyOrRunInEventBaseThreadAndWait([=]() {
     removeStateObserver(observer);
-  }
+  });
 }
 
 bool SwSwitch::stateObserverRegistered(StateObserver* observer) {
