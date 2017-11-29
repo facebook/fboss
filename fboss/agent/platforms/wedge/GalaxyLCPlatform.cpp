@@ -16,46 +16,39 @@ using folly::none;
 namespace facebook { namespace fboss {
 
 std::unique_ptr<WedgePortMapping> GalaxyLCPlatform::createPortMapping() {
-  // FC == Falcon Core
-  // GalaxyLC is based on Tomahawk, which divides MMU buffer into 4
-  // sub buffers called XPEs. FC are then mapped, to each XPE like so
-  // Traffic egressing on FC0-15 use XPE 0, 2
-  // Traffic egressing on FC16-13 use XPE 1, 3
-  // Port to FC mappings are fixed for TH and are used as input to
-  // creating bcm.conf files.
-  WedgePortMapping::Port2TransceiverAndXPEs ports = {
-    {PortID(84), TransceiverAndXPEs(TransceiverID(0), {1, 3})}, // FC20
-    {PortID(88), TransceiverAndXPEs(TransceiverID(1), {1, 3})}, // FC21
-    {PortID(92), TransceiverAndXPEs(TransceiverID(2), {1, 3})}, // FC22
-    {PortID(96), TransceiverAndXPEs(TransceiverID(3), {1, 3})}, // FC23
-    {PortID(102), TransceiverAndXPEs(TransceiverID(4), {1, 3})}, // FC24
-    {PortID(106), TransceiverAndXPEs(TransceiverID(5), {1, 3})}, // FC25
-    {PortID(110), TransceiverAndXPEs(TransceiverID(6), {1, 3})}, // FC26
-    {PortID(114), TransceiverAndXPEs(TransceiverID(7), {1, 3})}, // FC27
-    {PortID(118), TransceiverAndXPEs(TransceiverID(8), {1, 3})}, // FC28
-    {PortID(122), TransceiverAndXPEs(TransceiverID(9), {1, 3})}, // FC29
-    {PortID(126), TransceiverAndXPEs(TransceiverID(10), {1, 3})},// FC30
-    {PortID(130), TransceiverAndXPEs(TransceiverID(11), {1, 3})}, // FC31
-    {PortID(1), TransceiverAndXPEs(TransceiverID(12), {0, 2})}, // FC0
-    {PortID(5), TransceiverAndXPEs(TransceiverID(13), {0, 2})}, // FC1
-    {PortID(9), TransceiverAndXPEs(TransceiverID(14), {0, 2})}, // FC2
-    {PortID(13), TransceiverAndXPEs(TransceiverID(15), {0, 2})},// FC3
-    {PortID(68), TransceiverAndXPEs(none, {1, 3})}, // FC16
-    {PortID(72), TransceiverAndXPEs(none, {1, 3})}, // FC17
-    {PortID(76), TransceiverAndXPEs(none, {1, 3})}, // FC18
-    {PortID(80), TransceiverAndXPEs(none, {1, 3})}, // FC19
-    {PortID(50), TransceiverAndXPEs(none, {0, 2})}, // FC12
-    {PortID(54), TransceiverAndXPEs(none, {0, 2})}, // FC13
-    {PortID(58), TransceiverAndXPEs(none, {0, 2})}, // FC14
-    {PortID(62), TransceiverAndXPEs(none, {0, 2})}, // FC15
-    {PortID(34), TransceiverAndXPEs(none, {0, 2})}, // FC8
-    {PortID(38), TransceiverAndXPEs(none, {0, 2})}, // FC9
-    {PortID(42), TransceiverAndXPEs(none, {0, 2})}, // FC10
-    {PortID(46), TransceiverAndXPEs(none, {0, 2})}, // FC11
-    {PortID(17), TransceiverAndXPEs(none, {0, 2})}, // FC4
-    {PortID(21), TransceiverAndXPEs(none, {0, 2})}, // FC5
-    {PortID(25), TransceiverAndXPEs(none, {0, 2})}, // FC6
-    {PortID(29), TransceiverAndXPEs(none, {0, 2})}  // FC7
+  WedgePortMapping::PortTransceiverMap ports = {
+    {PortID(84), TransceiverID(0)},
+    {PortID(88), TransceiverID(1)},
+    {PortID(92), TransceiverID(2)},
+    {PortID(96), TransceiverID(3)},
+    {PortID(102), TransceiverID(4)},
+    {PortID(106), TransceiverID(5)},
+    {PortID(110), TransceiverID(6)},
+    {PortID(114), TransceiverID(7)},
+    {PortID(118), TransceiverID(8)},
+    {PortID(122), TransceiverID(9)},
+    {PortID(126), TransceiverID(10)},
+    {PortID(130), TransceiverID(11)},
+    {PortID(1), TransceiverID(12)},
+    {PortID(5), TransceiverID(13)},
+    {PortID(9), TransceiverID(14)},
+    {PortID(13), TransceiverID(15)},
+    {PortID(68), none},
+    {PortID(72), none},
+    {PortID(76), none},
+    {PortID(80), none},
+    {PortID(50), none},
+    {PortID(54), none},
+    {PortID(58), none},
+    {PortID(62), none},
+    {PortID(34), none},
+    {PortID(38), none},
+    {PortID(42), none},
+    {PortID(46), none},
+    {PortID(17), none},
+    {PortID(21), none},
+    {PortID(25), none},
+    {PortID(29), none}
   };
   return WedgePortMapping::create<WedgePortMappingT<GalaxyPort>>(this, ports);
 }

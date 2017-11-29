@@ -18,15 +18,18 @@ class Wedge40Port : public WedgePort {
   Wedge40Port(PortID id,
              WedgePlatform* platform,
              folly::Optional<TransceiverID> frontPanelPort,
-             folly::Optional<ChannelID> channel,
-             const XPEs& egressXPEs) :
-      WedgePort(id, platform, frontPanelPort, channel, egressXPEs) {}
+             folly::Optional<ChannelID> channel) :
+      WedgePort(id, platform, frontPanelPort, channel) {}
 
   LaneSpeeds supportedLaneSpeeds() const override {
     LaneSpeeds speeds;
     speeds.insert(cfg::PortSpeed::GIGE);
     speeds.insert(cfg::PortSpeed::XG);
     return speeds;
+  }
+
+  const XPEs getEgressXPEs() const override {
+    return {0};
   }
 
   void remedy();

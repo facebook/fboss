@@ -25,9 +25,7 @@ WedgePort::WedgePort(
   PortID id,
   WedgePlatform* platform,
   folly::Optional<TransceiverID> frontPanelPort,
-  folly::Optional<ChannelID> channel,
-  const XPEs& egressXPEs) :
-    BcmPlatformPort(egressXPEs),
+  folly::Optional<ChannelID> channel) :
     id_(id),
     platform_(platform),
     frontPanelPort_(frontPanelPort),

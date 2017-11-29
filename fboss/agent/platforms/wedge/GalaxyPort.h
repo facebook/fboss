@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
@@ -20,9 +21,8 @@ class GalaxyPort : public WedgePort {
   GalaxyPort(PortID id,
              WedgePlatform* platform,
              folly::Optional<TransceiverID> frontPanelPort,
-             folly::Optional<ChannelID> channel,
-             const XPEs& egressXPEs) :
-      WedgePort(id, platform, frontPanelPort, channel, egressXPEs) {}
+             folly::Optional<ChannelID> channel) :
+      WedgePort(id, platform, frontPanelPort, channel) {}
 
   LaneSpeeds supportedLaneSpeeds() const override {
     LaneSpeeds speeds;
@@ -30,6 +30,16 @@ class GalaxyPort : public WedgePort {
     speeds.insert(cfg::PortSpeed::XG);
     speeds.insert(cfg::PortSpeed::TWENTYFIVEG);
     return speeds;
+  }
+
+  const XPEs getEgressXPEs() const override {
+    auto pipe = bcmPort_->getPipe();
+    if (pipe == 0 || pipe == 1) {
+      return {0, 2};
+    } else if (pipe == 2 || pipe == 3) {
+      return {1, 3};
+    }
+    throw FbossError("Unexpected pipe ", pipe);
   }
 
   void prepareForGracefulExit() override {}
@@ -41,6 +51,7 @@ class GalaxyPort : public WedgePort {
     // Only disable FEC if this is a backplane port
     return isBackplanePort();
   }
+
 };
 
 }} // facebook::fboss

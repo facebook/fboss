@@ -14,26 +14,23 @@
 namespace facebook { namespace fboss {
 
 std::unique_ptr<WedgePortMapping> Wedge40Platform::createPortMapping() {
-  // TD2 does not divide MMU buffer into subregions. So we
-  // consider the entire MMU buffer a XPE0 and map all ports
-  // to it.
-  const WedgePortMapping::Port2TransceiverAndXPEs ports = {
-    {PortID(1), TransceiverAndXPEs(TransceiverID(0), {0})},
-    {PortID(5), TransceiverAndXPEs(TransceiverID(1), {0})},
-    {PortID(9), TransceiverAndXPEs(TransceiverID(2), {0})},
-    {PortID(13), TransceiverAndXPEs(TransceiverID(3), {0})},
-    {PortID(17), TransceiverAndXPEs(TransceiverID(4), {0})},
-    {PortID(21), TransceiverAndXPEs(TransceiverID(5), {0})},
-    {PortID(25), TransceiverAndXPEs(TransceiverID(6), {0})},
-    {PortID(29), TransceiverAndXPEs(TransceiverID(7), {0})},
-    {PortID(33), TransceiverAndXPEs(TransceiverID(8), {0})},
-    {PortID(37), TransceiverAndXPEs(TransceiverID(9), {0})},
-    {PortID(41), TransceiverAndXPEs(TransceiverID(10), {0})},
-    {PortID(45), TransceiverAndXPEs(TransceiverID(11), {0})},
-    {PortID(49), TransceiverAndXPEs(TransceiverID(12), {0})},
-    {PortID(53), TransceiverAndXPEs(TransceiverID(13), {0})},
-    {PortID(57), TransceiverAndXPEs(TransceiverID(14), {0})},
-    {PortID(61), TransceiverAndXPEs(TransceiverID(15), {0})}
+  const WedgePortMapping::PortTransceiverMap ports = {
+    {PortID(1), TransceiverID(0)},
+    {PortID(5), TransceiverID(1)},
+    {PortID(9), TransceiverID(2)},
+    {PortID(13), TransceiverID(3)},
+    {PortID(17), TransceiverID(4)},
+    {PortID(21), TransceiverID(5)},
+    {PortID(25), TransceiverID(6)},
+    {PortID(29), TransceiverID(7)},
+    {PortID(33), TransceiverID(8)},
+    {PortID(37), TransceiverID(9)},
+    {PortID(41), TransceiverID(10)},
+    {PortID(45), TransceiverID(11)},
+    {PortID(49), TransceiverID(12)},
+    {PortID(53), TransceiverID(13)},
+    {PortID(57), TransceiverID(14)},
+    {PortID(61), TransceiverID(15)}
   };
   return WedgePortMapping::create<WedgePortMappingT<Wedge40Port>>(this, ports);
 }

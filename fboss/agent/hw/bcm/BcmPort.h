@@ -77,6 +77,9 @@ class BcmPort {
   BcmPortGroup* getPortGroup() const {
     return portGroup_;
   }
+  uint8_t getPipe() const {
+    return pipe_;
+  }
 
   /*
    * Helpers for retreiving the SwitchState node for a given
@@ -178,6 +181,7 @@ class BcmPort {
   void setPause(const std::shared_ptr<Port>& swPort);
   void setTxSetting(const std::shared_ptr<Port>& swPort);
   bool isMmuLossy() const;
+  uint8_t determinePipe() const;
 
   static constexpr auto kOutCongestionDiscards = "out_congestion_discards";
 
@@ -186,6 +190,7 @@ class BcmPort {
   // The gport_ is logically a const, but needs to be initialized as a parameter
   // to SDK call.
   opennsl_gport_t gport_;  // Broadcom global port number
+  uint8_t pipe_;
   BcmPlatformPort* const platformPort_{nullptr};
   int unit_{-1};
   std::string portName_{""};

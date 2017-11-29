@@ -212,6 +212,8 @@ BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
   int rv = opennsl_port_gport_get(unit_, port_, &gport_);
   bcmCheckError(rv, "Failed to get gport for BCM port ", port_);
 
+  pipe_ = determinePipe();
+
   // Initialize our stats data structures
   reinitPortStats();
 
