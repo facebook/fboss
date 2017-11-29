@@ -8,11 +8,20 @@ const i32 DEFAULT_PORT = 20121
 
 struct CapturedPacket {
   1: ctrl.fbbinary packet_data,
+  /* Depending on how the packet is captured, len(packet_data) is not
+     necessarily the same as packet_length,
+     Ex: For jumbo frames snaplen option would be smaller than the packet size
+  */
+  2: i32 packet_length,
   // TODO(rsher): add timestamp info and other pcap metadata
 }
 
 service TestService extends fb303.FacebookService {
-  bool ping(1: string ip) throws (1: fboss.FbossBaseError error)
+  bool ping(1: string ip,
+            2: optional list<string> options)
+            throws (1: fboss.FbossBaseError error)
+  i32 get_interface_mtu(1: string intf)
+      throws (1: fboss.FbossBaseError error)
   bool status();
 
   /* This will start capturing packets, but the buffer is small so if lots

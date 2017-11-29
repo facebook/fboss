@@ -45,11 +45,14 @@ class TestServer(TestService.Iface):
         self.log.info("Log: info enabled")
         self.log.warn("Log: warnings enabled")
 
-    def ping(self, ip):
+    def ping(self, ip, options=None):
         """ @param ip : a string, e.g., "128.8.128.118" """
-        options = ['-c 1']
+        # Ping default options is to capture 1 packet
+        if not options:
+            options = ['-c', '1']
         if ":" in ip:
             options.append('-6')
+
         # Using subprocess.call with shell=False should prevent
         # any security concerns because this just calls exec() natively
         # (assuming there are no commandline buffer overflows in ping)
@@ -58,6 +61,11 @@ class TestServer(TestService.Iface):
         with open("/dev/null") as devnull:
             response = subprocess.call(command, stdout=devnull)
         return response == 0
+
+    def get_interface_mtu(self, intf):
+        command = ["cat", "/sys/class/net/%s/mtu" % intf]
+        response = subprocess.check_output(command)
+        return int(response)
 
     def status(self):
         return True
@@ -112,6 +120,7 @@ class TestServer(TestService.Iface):
         for _phdr, pdata in pkts:
             capture = TestService.CapturedPacket()
             capture.packet_data = pdata
+            capture.packet_length = _phdr.getlen()
             return_pkts.append(capture)
         return return_pkts
 
