@@ -64,8 +64,6 @@ class WedgePort : public BcmPlatformPort {
 
   folly::Future<TransmitterTechnology> getTransmitterTech(
       folly::EventBase* evb) const override;
-  folly::Future<TransceiverInfo> getTransceiverInfo(
-      folly::EventBase* evb) const override;
   folly::Future<folly::Optional<TxSettings>> getTxSettings(
       folly::EventBase* evb) const override;
   void customizeTransceiver() override;
@@ -90,6 +88,11 @@ class WedgePort : public BcmPlatformPort {
   virtual TxOverrides getTxOverrides() const override {
     return TxOverrides();
   }
+
+  folly::Future<TransceiverInfo> getTransceiverInfo(
+    folly::EventBase* evb) const;
+
+
 };
 
 }} // facebook::fboss

@@ -67,27 +67,11 @@ TEST_F(PortRemediatorTest, OneDisabledAndDown) {
 TEST_F(PortRemediatorTest, RemediatePort) {
   setupPorts({}, {PortID(10)});
   MockPlatformPort mockPort;
-  mockPort.transceiverPresent = true;
   EXPECT_CALL(
       *getMockPlatform(handle->getSw()), getPlatformPort(Eq(PortID(10))))
       .WillOnce(Return(&mockPort));
-  EXPECT_CALL(mockPort, getTransceiverInfo(_))
-      .WillOnce(Invoke(&mockPort, &MockPlatformPort::getTransceiverInfo_));
   EXPECT_CALL(mockPort, supportsTransceiver()).WillOnce(Return(true));
   EXPECT_CALL(mockPort, customizeTransceiver());
-  portRemediator->remediatePorts().get();
-}
-
-TEST_F(PortRemediatorTest, SkipNotPresent) {
-  setupPorts({}, {PortID(10)});
-  StrictMock<MockPlatformPort> mockPort;
-  mockPort.transceiverPresent = false;
-  EXPECT_CALL(
-      *getMockPlatform(handle->getSw()), getPlatformPort(Eq(PortID(10))))
-      .WillOnce(Return(&mockPort));
-  EXPECT_CALL(mockPort, getTransceiverInfo(_))
-      .WillOnce(Invoke(&mockPort, &MockPlatformPort::getTransceiverInfo_));
-  EXPECT_CALL(mockPort, supportsTransceiver()).WillOnce(Return(true));
   portRemediator->remediatePorts().get();
 }
 

@@ -15,6 +15,8 @@
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include <folly/futures/Future.h>
+
 namespace {
 constexpr int kPortRemedyIntervalSec = 25;
 }
@@ -47,13 +49,11 @@ PortRemediator::remediatePorts() {
     if (!platformPort || !platformPort->supportsTransceiver()) {
       continue;
     }
-    auto infoFuture = platformPort->getTransceiverInfo();
-    futs.push_back(infoFuture.then(
-        sw_->getBackgroundEVB(), [platformPort](TransceiverInfo info) {
-          if (info.present) {
+    futs.push_back(folly::makeFuture().then(
+          sw_->getBackgroundEVB(),
+          [platformPort]() {
             platformPort->customizeTransceiver();
-          }
-        }));
+          }));
   }
   return collectAll(futs);
 }

@@ -34,9 +34,6 @@ class MockPlatformPort : public PlatformPort {
   MOCK_CONST_METHOD1(
       getTransmitterTech,
       folly::Future<TransmitterTechnology>(folly::EventBase* evb));
-  MOCK_CONST_METHOD1(
-      getTransceiverInfo,
-      folly::Future<TransceiverInfo>(folly::EventBase* evb));
   MOCK_CONST_METHOD0(supportsTransceiver, bool());
   MOCK_CONST_METHOD0(getTransceiverID, folly::Optional<TransceiverID>());
   MOCK_METHOD0(customizeTransceiver, void());
@@ -51,9 +48,6 @@ class MockPlatformPort : public PlatformPort {
           bool errors));
   MOCK_METHOD0(prepareForGracefulExit, void());
   MOCK_CONST_METHOD0(shouldDisableFEC, bool());
-  // wrapper we _can_ invoke for getTransceiverInfo() since folly::Future
-  // is non-copyable so cannot be given as a return value to testing::Return()
-  folly::Future<TransceiverInfo> getTransceiverInfo_(folly::EventBase* evb);
   bool transceiverPresent;
 };
 
