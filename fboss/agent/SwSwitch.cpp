@@ -125,7 +125,7 @@ facebook::fboss::PortStatus fillInPortStatus(
   facebook::fboss::PortStatus status;
   status.enabled = port.isEnabled();
   status.up = port.isUp();
-  status.speedMbps = static_cast<int>(port.getWorkingSpeed());
+  status.speedMbps = static_cast<int>(port.getSpeed());
 
   try {
     status.transceiverIdx = sw->getPlatform()->getPortMapping(port.getID());

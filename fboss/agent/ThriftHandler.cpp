@@ -400,7 +400,7 @@ void ThriftHandler::getPortInfoHelper(
   portInfo.portId = port->getID();
   portInfo.name = port->getName();
   portInfo.description = port->getDescription();
-  portInfo.speedMbps = (int) port->getWorkingSpeed();
+  portInfo.speedMbps = static_cast<int>(port->getSpeed());
   for (auto entry : port->getVlans()) {
     portInfo.vlans.push_back(entry.first);
   }

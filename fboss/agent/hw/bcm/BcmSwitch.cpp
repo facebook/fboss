@@ -387,7 +387,6 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
 
     auto swPort = make_shared<Port>(portID, name);
     swPort->setSpeed(bcmPort->getSpeed());
-    swPort->setMaxSpeed(bcmPort->getMaxSpeed());
     bootState->addPort(swPort);
 
     memberPorts.insert(make_pair(portID, false));

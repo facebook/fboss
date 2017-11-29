@@ -60,7 +60,6 @@ struct PortFields {
   OperState operState{OperState::DOWN}; // is the port actually up
   VlanID ingressVlan{0};
   cfg::PortSpeed speed{cfg::PortSpeed::DEFAULT};
-  cfg::PortSpeed maxSpeed{cfg::PortSpeed::DEFAULT};
   cfg::PortPause pause;
   VlanMembership vlans;
   // settings for ingress/egress sFlow sampling rate; we sample every 1:N'th
@@ -187,21 +186,6 @@ class Port : public NodeBaseT<Port, PortFields> {
   }
   void setSpeed(cfg::PortSpeed speed) {
     writableFields()->speed = speed;
-  }
-
-  cfg::PortSpeed getMaxSpeed() const {
-    return getFields()->maxSpeed;
-  }
-  void setMaxSpeed(cfg::PortSpeed maxSpeed) {
-    writableFields()->maxSpeed = maxSpeed;
-  }
-
-  cfg::PortSpeed getWorkingSpeed() const {
-    if (getFields()->speed == cfg::PortSpeed::DEFAULT) {
-      return getFields()->maxSpeed;
-    } else {
-      return getFields()->speed;
-    }
   }
 
   cfg::PortPause getPause() const {

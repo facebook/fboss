@@ -66,10 +66,6 @@ folly::dynamic PortFields::toFollyDynamic() const {
   auto itr_speed  = cfg::_PortSpeed_VALUES_TO_NAMES.find(speed);
   CHECK(itr_speed != cfg::_PortSpeed_VALUES_TO_NAMES.end());
   port[kPortSpeed] = itr_speed->second;
-  auto itr_max_speed  = cfg::_PortSpeed_VALUES_TO_NAMES.find(maxSpeed);
-  CHECK(itr_max_speed != cfg::_PortSpeed_VALUES_TO_NAMES.end())
-     << "Unexpected max speed: " << static_cast<int>(maxSpeed);
-  port[kPortMaxSpeed] = itr_max_speed->second;
   auto itr_port_fec  = cfg::_PortFEC_VALUES_TO_NAMES.find(fec);
   CHECK(itr_port_fec != cfg::_PortFEC_VALUES_TO_NAMES.end())
      << "Unexpected port FEC: " << static_cast<int>(fec);
@@ -117,10 +113,6 @@ PortFields PortFields::fromFollyDynamic(const folly::dynamic& portJson) {
       portJson[kPortSpeed].asString().c_str());
   CHECK(itr_speed != cfg::_PortSpeed_NAMES_TO_VALUES.end());
   port.speed = cfg::PortSpeed(itr_speed->second);
-  auto itr_max_speed = cfg::_PortSpeed_NAMES_TO_VALUES.find(
-      portJson[kPortMaxSpeed].asString().c_str());
-  CHECK(itr_max_speed != cfg::_PortSpeed_NAMES_TO_VALUES.end());
-  port.maxSpeed = cfg::PortSpeed(itr_max_speed->second);
   auto itr_port_fec = cfg::_PortFEC_NAMES_TO_VALUES.find(
     portJson.getDefault(kPortFEC, "OFF").asString().c_str());
   CHECK(itr_port_fec != cfg::_PortFEC_NAMES_TO_VALUES.end());
