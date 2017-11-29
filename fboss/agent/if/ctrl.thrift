@@ -441,12 +441,6 @@ service FbossCtrl extends fb303.FacebookService {
   list<AggregatePortEntryThrift> getAggregatePortTable()
     throws (1: fboss.FbossBaseError error)
 
-  // Deprecated - use the qsfp_service instead
-  map<i32, optic.SfpDom> getSfpDomInfo(1: list<i32> port)
-    throws (1: fboss.FbossBaseError error)
-  map<i32, transceiver.TransceiverInfo> getTransceiverInfo(1: list<i32> idx)
-    throws (1: fboss.FbossBaseError error)
-
   /*
    * Type of boot performed by the controller
    */

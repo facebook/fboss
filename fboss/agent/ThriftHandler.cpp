@@ -879,20 +879,6 @@ void ThriftHandler::getVlanBinaryAddressesByName(BinaryAddresses& addrs,
   getVlanAddresses(getVlan(*vlan), addrs, toBinaryAddress);
 }
 
-void ThriftHandler::getSfpDomInfo(
-    map<int32_t, SfpDom>& /*domInfos*/,
-    unique_ptr<vector<int32_t>> /*ports*/) {
-  throw FbossError(folly::to<std::string>("This call is no longer supported, ",
-      "use getTransceiverInfo instead"));
-}
-
-void ThriftHandler::getTransceiverInfo(
-    map<int32_t, TransceiverInfo>& /*info*/,
-    unique_ptr<vector<int32_t>> /*ids*/) {
-  throw FbossError(folly::to<std::string>("This call is no longer supported, ",
-      "please call the QsfpService instead"));
-}
-
 template<typename ADDR_TYPE, typename ADDR_CONVERTER>
 void ThriftHandler::getVlanAddresses(const Vlan* vlan,
     std::vector<ADDR_TYPE>& addrs, ADDR_CONVERTER& converter) {

@@ -129,14 +129,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   /* returns the product information */
   void getProductInfo(ProductInfo& productInfo) override;
 
-  /* Returns the SFP Dom information */
-  void getSfpDomInfo(std::map<int32_t, SfpDom>& domInfos,
-                     std::unique_ptr<std::vector<int32_t>> ports) override;
-
-  /* Returns generic transceiver information */
-  void getTransceiverInfo(std::map<int32_t, TransceiverInfo>& info,
-                     std::unique_ptr<std::vector<int32_t>> ports) override;
-
   BootType getBootType() override;
 
   void getLldpNeighbors(std::vector<LinkNeighborThrift>& results) override;
