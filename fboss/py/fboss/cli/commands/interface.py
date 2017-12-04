@@ -40,11 +40,13 @@ class InterfaceCmd(cmds.FbossCmd):
             print("No interface details found for interface")
             return
 
-        print("%s\tInterface ID: %d" %
-                            (resp.interfaceName, resp.interfaceId))
-        print("  Vlan: %d\t\t\tRouter Id: %d" % (resp.vlanId, resp.routerId))
-        print("  MTU: %d" % (resp.mtu))
-        print("  Mac Address: %s" % resp.mac)
+        print("{}\tInterface ID: {}".format(
+            resp.interfaceName, resp.interfaceId))
+        print("  Vlan: {}\t\t\tRouter Id: {}".format(
+            resp.vlanId, resp.routerId))
+        print("  MTU: {}".format(resp.mtu))
+        print("  Mac Address: {}".format(resp.mac))
         print("  IP Address:")
         for addr in resp.address:
-            print("\t%s/%d" % (utils.ip_ntop(addr.ip.addr), addr.prefixLength))
+            print("\t{}/{}".format(utils.ip_ntop(addr.ip.addr),
+                                   addr.prefixLength))
