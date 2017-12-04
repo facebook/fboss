@@ -91,6 +91,7 @@ struct InterfaceDetail {
   4: i32 routerId,
   5: string mac,
   6: list<IpPrefix> address,
+  7: i32 mtu,
 }
 
 struct ProductInfo {

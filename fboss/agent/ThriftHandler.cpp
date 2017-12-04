@@ -290,17 +290,15 @@ void ThriftHandler::syncFib(
   }
 }
 
-void ThriftHandler::getAllInterfaces(
-    std::map<int32_t, InterfaceDetail>& interfaces) {
-  ensureConfigured();
-  for (const auto& intf : (*sw_->getState()->getInterfaces())) {
-    auto& interfaceDetail = interfaces[intf->getID()];
-
+static void populateInterfaceDetail(InterfaceDetail& interfaceDetail,
+                                    const std::shared_ptr<Interface> intf) {
     interfaceDetail.interfaceName = intf->getName();
     interfaceDetail.interfaceId = intf->getID();
     interfaceDetail.vlanId = intf->getVlanID();
     interfaceDetail.routerId = intf->getRouterID();
+    interfaceDetail.mtu = intf->getMtu();
     interfaceDetail.mac = intf->getMac().toString();
+    interfaceDetail.address.clear();
     interfaceDetail.address.reserve(intf->getAddresses().size());
     for (const auto& addrAndMask: intf->getAddresses()) {
       IpPrefix temp;
@@ -308,6 +306,14 @@ void ThriftHandler::getAllInterfaces(
       temp.prefixLength = addrAndMask.second;
       interfaceDetail.address.push_back(temp);
     }
+}
+
+void ThriftHandler::getAllInterfaces(
+    std::map<int32_t, InterfaceDetail>& interfaces) {
+  ensureConfigured();
+  for (const auto& intf : (*sw_->getState()->getInterfaces())) {
+    auto& interfaceDetail = interfaces[intf->getID()];
+    populateInterfaceDetail(interfaceDetail, intf);
   }
 }
 
@@ -327,20 +333,7 @@ void ThriftHandler::getInterfaceDetail(InterfaceDetail& interfaceDetail,
   if (!intf) {
     throw FbossError("no such interface ", interfaceId);
   }
-
-  interfaceDetail.interfaceName = intf->getName();
-  interfaceDetail.interfaceId = intf->getID();
-  interfaceDetail.vlanId = intf->getVlanID();
-  interfaceDetail.routerId = intf->getRouterID();
-  interfaceDetail.mac = intf->getMac().toString();
-  interfaceDetail.address.clear();
-  interfaceDetail.address.reserve(intf->getAddresses().size());
-  for (const auto& addrAndMask: intf->getAddresses()) {
-    IpPrefix temp;
-    temp.ip = toBinaryAddress(addrAndMask.first);
-    temp.prefixLength = int(addrAndMask.second);
-    interfaceDetail.address.push_back(temp);
-  }
+  populateInterfaceDetail(interfaceDetail, intf);
 }
 
 void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {

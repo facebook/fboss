@@ -43,6 +43,7 @@ class InterfaceCmd(cmds.FbossCmd):
         print("%s\tInterface ID: %d" %
                             (resp.interfaceName, resp.interfaceId))
         print("  Vlan: %d\t\t\tRouter Id: %d" % (resp.vlanId, resp.routerId))
+        print("  MTU: %d" % (resp.mtu))
         print("  Mac Address: %s" % resp.mac)
         print("  IP Address:")
         for addr in resp.address:
