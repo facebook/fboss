@@ -7,10 +7,10 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
 
 namespace facebook { namespace fboss {
-WedgeManager::WedgeManager(){
-}
 
-void WedgeManager::initTransceiverMap(){
+WedgeManager::WedgeManager() {}
+
+void WedgeManager::initTransceiverMap() {
   // If we can't get access to the USB devices, don't bother to
   // create the QSFP objects;  this is likely to be a permanent
   // error.
@@ -72,7 +72,31 @@ void WedgeManager::customizeTransceiver(int32_t idx, cfg::PortSpeed speed) {
   transceivers_.at(idx)->customizeTransceiver(speed);
 }
 
+void WedgeManager::syncPorts(
+    std::map<int32_t, TransceiverInfo>& info,
+    std::unique_ptr<std::map<int32_t, PortStatus>> ports) {
+
+  auto groups = folly::gen::from(*ports)
+    | folly::gen::groupBy([](const std::pair<int32_t, PortStatus>& item) {
+        return item.second.transceiverIdx.transceiverId;
+      })
+    | folly::gen::as<std::vector>();
+
+  for (auto& group : groups) {
+    int32_t transceiverIdx = group.key();
+    LOG(INFO) << "Syncing ports of transceiver " << transceiverIdx;
+
+    auto transceiver = transceivers_.at(transceiverIdx).get();
+    for (auto& it : group.values()) {
+      transceiver->portChanged(it.first, std::move(it.second));
+    }
+    transceiver->customizeTransceiverIfDown();
+    info[transceiverIdx] = transceiver->getTransceiverInfo();
+  }
+}
+
 std::unique_ptr<BaseWedgeI2CBus> WedgeManager::getI2CBus() {
   return std::make_unique<WedgeI2CBus>();
 }
+
 }} // facebook::fboss

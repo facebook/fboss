@@ -192,10 +192,9 @@ struct TransceiverIdxThrift {
 struct PortStatus {
   1: bool enabled,
   2: bool up,
-  // Deprecated, this should be retrieved from the qsfp_service
-  3: optional bool present,
+  3: optional bool present,  # deprecated
   4: optional TransceiverIdxThrift transceiverIdx,
-  5: i64 speedMbps,
+  5: i64 speedMbps,  // TODO: i32 (someone is optimistic about port speeds)
 }
 
 enum CaptureDirection {

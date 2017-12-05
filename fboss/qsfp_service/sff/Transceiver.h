@@ -11,6 +11,7 @@
 #include <cstdint>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 namespace facebook { namespace fboss {
@@ -57,6 +58,16 @@ class Transceiver {
    * Set speed specific settings for the transceiver
    */
   virtual void customizeTransceiver(cfg::PortSpeed speed) = 0;
+
+  /*
+   * Ensure QSFP settings are properly set.
+   */
+  virtual void customizeTransceiverIfDown() = 0;
+
+  /*
+   * Register that a logical port that is part of this transceiver has changed.
+   */
+  virtual void portChanged(uint32_t portID, PortStatus&& status) = 0;
 
  private:
   // no copy or assignment

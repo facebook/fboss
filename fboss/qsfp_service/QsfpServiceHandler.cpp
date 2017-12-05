@@ -38,4 +38,10 @@ void QsfpServiceHandler::getTransceiverRawDOMData(
   manager_->getTransceiversRawDOMData(info, std::move(ids));
 }
 
+void QsfpServiceHandler::syncPorts(
+    std::map<int32_t, TransceiverInfo>& info,
+    std::unique_ptr<std::map<int32_t, PortStatus>> ports) {
+  manager_->syncPorts(info, std::move(ports));
+}
+
 }} // facebook::fboss

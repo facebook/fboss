@@ -4,6 +4,7 @@
 
 #include "common/fb303/cpp/FacebookBase2.h"
 
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 
@@ -28,6 +29,13 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
   void getTransceiverRawDOMData(
     std::map<int32_t, RawDOMData>& info,
     std::unique_ptr<std::vector<int32_t>> ids) override;
+
+  /*
+   * Store port status information and return relevant transceiver map.
+   */
+  void syncPorts(
+    std::map<int32_t, TransceiverInfo>& info,
+    std::unique_ptr<std::map<int32_t, PortStatus>> ports) override;
 
   /*
    * Customise the transceiver based on the speed at which it has

@@ -9,26 +9,31 @@
 namespace facebook { namespace fboss {
 class WedgeManager : public TransceiverManager {
  public:
+  using TransceiverMap = std::map<int32_t, TransceiverInfo>;
+  using PortMap = std::map<int32_t, PortStatus>;
+
   WedgeManager();
   ~WedgeManager() override {}
   void initTransceiverMap() override;
-  void getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
+  void getTransceiversInfo(TransceiverMap& info,
     std::unique_ptr<std::vector<int32_t>> ids) override;
   void getTransceiversRawDOMData(
     std::map<int32_t, RawDOMData>& info,
     std::unique_ptr<std::vector<int32_t>> ids) override;
   void customizeTransceiver(int32_t idx, cfg::PortSpeed speed) override;
+  void syncPorts(TransceiverMap& info, std::unique_ptr<PortMap> ports) override;
 
   int getNumQsfpModules() override {
     return 16;
   }
 
+ protected:
+  virtual std::unique_ptr<BaseWedgeI2CBus> getI2CBus();
+  std::unique_ptr<WedgeI2CBusLock> wedgeI2CBusLock_;
+
  private:
   // Forbidden copy constructor and assignment operator
   WedgeManager(WedgeManager const &) = delete;
   WedgeManager& operator=(WedgeManager const &) = delete;
- protected:
-  virtual std::unique_ptr<BaseWedgeI2CBus> getI2CBus();
-  std::unique_ptr<WedgeI2CBusLock> wedgeI2CBusLock_;
 };
 }} // facebook::fboss

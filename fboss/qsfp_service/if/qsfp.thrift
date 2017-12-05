@@ -3,6 +3,7 @@ namespace py neteng.fboss.qsfp
 namespace py.asyncio neteng.fboss.asyncio.qsfp
 
 include "common/fb303/if/fb303.thrift"
+include "fboss/agent/if/ctrl.thrift"
 include "fboss/agent/if/fboss.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "fboss/agent/switch_config.thrift"
@@ -27,4 +28,12 @@ service QsfpService extends fb303.FacebookService {
    */
   map<i32, transceiver.RawDOMData> getTransceiverRawDOMData(1: list<i32> idx)
     throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Tell the qsfp service about the status of ports, retrieve transceiver information
+   * for each of these ports.
+   */
+  map<i32, transceiver.TransceiverInfo> syncPorts(1: map<i32, ctrl.PortStatus> ports)
+    throws (1: fboss.FbossBaseError error)
+
 }

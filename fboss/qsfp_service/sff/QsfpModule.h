@@ -89,6 +89,10 @@ class QsfpModule : public Transceiver {
 
   RawDOMData getRawDOMData() override;
 
+  void customizeTransceiverIfDown() override;
+
+  void portChanged(uint32_t portID, PortStatus&& status) override;
+
   /*
    * The size of the pages used by QSFP.  See below for an explanation of
    * how they are laid out.  This needs to be publicly accessible for
@@ -322,6 +326,19 @@ class QsfpModule : public Transceiver {
 
   // make sure that tx_disable bits are clear
   void ensureTxEnabled();
+
+  /*
+   * Determine if it is safe to customize the ports based on the
+   * status of our member ports.
+   */
+  bool safeToCustomize() const;
+
+  /*
+   * Determine set speed of enabled member ports.
+   */
+  cfg::PortSpeed getPortSpeed() const;
+
+  std::map<uint32_t, PortStatus> ports_;
 };
 
 }} //namespace facebook::fboss

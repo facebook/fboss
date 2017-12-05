@@ -12,18 +12,19 @@
 #include "fboss/qsfp_service/sff/tests/MockTransceiverImpl.h"
 
 #include <folly/Memory.h>
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/sff/TransceiverImpl.h"
 #include "fboss/qsfp_service/sff/QsfpModule.h"
 #include "fboss/qsfp_service/sff/SffFieldInfo.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-using namespace facebook::fboss;
+namespace facebook { namespace fboss {
 using namespace ::testing;
-namespace {
 
 class QsfpModuleTest : public ::testing::Test {
  public:
@@ -38,6 +39,16 @@ class QsfpModuleTest : public ::testing::Test {
     EXPECT_CALL(*qsfp_, cacheIsValid()).WillRepeatedly(Return(true));
     EXPECT_CALL(*implPtr, detectTransceiver()).WillRepeatedly(Return(true));
   }
+
+  PortStatus portStatus(bool enabled, bool up, int32_t speed = 25000) {
+  // usese dummy tcvr mapping for now
+    TransceiverIdxThrift tcvr(
+      apache::thrift::FragileConstructor::FRAGILE, qsfp_->getID(), 0, {});
+    return PortStatus(
+      apache::thrift::FragileConstructor::FRAGILE,
+      enabled, up, false, tcvr, speed);
+  }
+
   std::unique_ptr<MockQsfpModule> qsfp_;
   NiceMock<MockTransceiverImpl>* transImpl_;
 };
@@ -146,4 +157,122 @@ TEST_F(QsfpModuleTest, setCdr) {
   }
 }
 
-} // namespace facebook::fboss
+TEST_F(QsfpModuleTest, customizeIfDown25G) {
+  qsfp_->portChanged(1, portStatus(true, false));
+  qsfp_->portChanged(2, portStatus(true, false));
+  qsfp_->portChanged(3, portStatus(true, false));
+  qsfp_->portChanged(4, portStatus(true, false));
+
+  // should customize w/ 25G
+  EXPECT_CALL(
+    *qsfp_, setCdrIfSupported(cfg::PortSpeed::TWENTYFIVEG, _, _)).Times(1);
+  qsfp_->customizeTransceiverIfDown();
+}
+
+TEST_F(QsfpModuleTest, customizeIfDownSpeedMismatch) {
+  qsfp_->portChanged(1, portStatus(true, false, 50000));
+  qsfp_->portChanged(2, portStatus(true, false));
+  qsfp_->portChanged(3, portStatus(true, false));
+  qsfp_->portChanged(4, portStatus(true, false));
+
+  // Speeds don't match across ports, should throw
+  EXPECT_ANY_THROW(qsfp_->customizeTransceiverIfDown());
+}
+
+TEST_F(QsfpModuleTest, customizeIfDownSpeedMismatchButDisabled) {
+  qsfp_->portChanged(1, portStatus(false, false, 50000));
+  qsfp_->portChanged(2, portStatus(true, false));
+  qsfp_->portChanged(3, portStatus(true, false));
+  qsfp_->portChanged(4, portStatus(true, false));
+
+  // should customize w/ 25G. Mismatched port is disabled
+  EXPECT_CALL(
+    *qsfp_, setCdrIfSupported(cfg::PortSpeed::TWENTYFIVEG, _, _)).Times(1);
+  qsfp_->customizeTransceiverIfDown();
+}
+
+TEST_F(QsfpModuleTest, customizeIfDown50G) {
+  qsfp_->portChanged(1, portStatus(true, false, 50000));
+  qsfp_->portChanged(2, portStatus(false, false));
+  qsfp_->portChanged(3, portStatus(true, false, 50000));
+  qsfp_->portChanged(4, portStatus(false, false));
+
+  // should customize w/ 50G
+  EXPECT_CALL(
+    *qsfp_, setCdrIfSupported(cfg::PortSpeed::FIFTYG, _, _)).Times(1);
+  qsfp_->customizeTransceiverIfDown();
+}
+
+TEST_F(QsfpModuleTest, customizeIfDownAllUp) {
+  qsfp_->portChanged(1, portStatus(true, true));
+  qsfp_->portChanged(2, portStatus(true, true));
+  qsfp_->portChanged(3, portStatus(true, true));
+  qsfp_->portChanged(4, portStatus(true, true));
+
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
+  qsfp_->customizeTransceiverIfDown();
+}
+
+TEST_F(QsfpModuleTest, customizeIfDownOneUp) {
+  qsfp_->portChanged(1, portStatus(true, true));
+  qsfp_->portChanged(2, portStatus(true, false));
+  qsfp_->portChanged(3, portStatus(true, false));
+  qsfp_->portChanged(4, portStatus(true, false));
+
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
+  qsfp_->customizeTransceiverIfDown();
+}
+
+TEST_F(QsfpModuleTest, customizeIfDownAllDown) {
+  qsfp_->portChanged(1, portStatus(true, false));
+  qsfp_->portChanged(2, portStatus(true, false));
+  qsfp_->portChanged(3, portStatus(true, false));
+  qsfp_->portChanged(4, portStatus(true, false));
+
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(1);
+  qsfp_->customizeTransceiverIfDown();
+}
+
+TEST_F(QsfpModuleTest, customizeIfDownMissingPort) {
+  qsfp_->portChanged(1, portStatus(true, false));
+  qsfp_->portChanged(2, portStatus(true, false));
+  qsfp_->portChanged(3, portStatus(true, false));
+
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
+  qsfp_->customizeTransceiverIfDown();
+}
+
+TEST_F(QsfpModuleTest, customizeIfDownExtraPort) {
+  qsfp_->portChanged(1, portStatus(true, false));
+  qsfp_->portChanged(2, portStatus(true, false));
+  qsfp_->portChanged(3, portStatus(true, false));
+  qsfp_->portChanged(4, portStatus(true, false));
+  qsfp_->portChanged(5, portStatus(true, false));
+
+  EXPECT_ANY_THROW(qsfp_->customizeTransceiverIfDown());
+}
+
+TEST_F(QsfpModuleTest, customizeIfDownNonsensicalDisabledButUp) {
+  qsfp_->portChanged(1, portStatus(false, true));
+  qsfp_->portChanged(2, portStatus(false, true));
+  qsfp_->portChanged(3, portStatus(false, true));
+  qsfp_->portChanged(4, portStatus(false, true));
+
+  // should not customize if any port is up or no ports are enabled
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
+  qsfp_->customizeTransceiverIfDown();
+}
+
+TEST_F(QsfpModuleTest, customizeIfDownNonsensicalDisabledButUpOneEnabled) {
+  qsfp_->portChanged(1, portStatus(false, true));
+  qsfp_->portChanged(2, portStatus(false, true));
+  qsfp_->portChanged(3, portStatus(false, true));
+  qsfp_->portChanged(4, portStatus(true, false));
+
+  // This will never happen, but even if the only up ports are
+  // disabled we shouldn't customize
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
+  qsfp_->customizeTransceiverIfDown();
+}
+
+}} // namespace facebook::fboss

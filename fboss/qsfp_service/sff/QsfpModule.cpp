@@ -667,6 +667,61 @@ RawDOMData QsfpModule::getRawDOMData() {
   return data;
 }
 
+bool QsfpModule::safeToCustomize() const {
+  if (ports_.size() < CHANNEL_COUNT) {
+    LOG(ERROR) << "Not all channels present... skip customization";
+    return false;
+  } else if (ports_.size() > CHANNEL_COUNT) {
+    throw FbossError(
+      "More than ", CHANNEL_COUNT, " ports found in transceiver ", getID());
+  }
+
+  bool anyEnabled{false};
+  for (const auto& port : ports_) {
+    const auto& status = port.second;
+    if (status.up) {
+      return false;
+    }
+    anyEnabled = anyEnabled || status.enabled;
+  }
+
+  // Only return safe if at least one port is enabled
+  return anyEnabled;
+}
+
+cfg::PortSpeed QsfpModule::getPortSpeed() const {
+  cfg::PortSpeed speed = cfg::PortSpeed::DEFAULT;
+  for (const auto& port : ports_) {
+    const auto& status = port.second;
+    auto newSpeed = cfg::PortSpeed(status.speedMbps);
+    if (!status.enabled || speed == newSpeed) {
+      continue;
+    }
+
+    if (speed == cfg::PortSpeed::DEFAULT) {
+      speed = newSpeed;
+    } else {
+      throw FbossError(
+        "Multiple speeds found for member ports of transceiver ", getID());
+    }
+  }
+  return speed;
+}
+
+void QsfpModule::customizeTransceiverIfDown() {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
+  if (safeToCustomize()) {
+    customizeTransceiverLocked(getPortSpeed());
+  }
+}
+
+void QsfpModule::portChanged(uint32_t portID, PortStatus&& status) {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
+  CHECK(TransceiverID(status.transceiverIdx.transceiverId) == getID());
+  ports_[portID] = std::move(status);
+}
+
+
 // Must be called with lock held on qsfpModuleMutex_
 void QsfpModule::refreshCacheIfPossibleLocked() {
   // Check whether we should refresh data
