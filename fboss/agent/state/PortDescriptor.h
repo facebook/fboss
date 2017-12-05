@@ -13,6 +13,7 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/types.h"
 
+#include <folly/Conv.h>
 #include <folly/dynamic.h>
 
 namespace facebook { namespace fboss {
@@ -115,11 +116,26 @@ class PortDescriptor {
 
     return physicalPortID_;
   }
+  std::string str() const {
+    if (type_ == PortType::AGGREGATE) {
+      return folly::to<std::string>("AggregatePort-", aggregatePortID_);
+    } else {
+      return folly::to<std::string>("PhysicalPort-", physicalPortID_);
+    }
+  }
 
  private:
   PortType type_;
   PortID physicalPortID_;
   AggregatePortID aggregatePortID_;
 };
+
+// helper so port descriptors work directly in folly::to<string> expressions.
+inline void toAppend(const PortDescriptor& pd, std::string* result) {
+  folly::toAppend(pd.str(), result);
+}
+inline std::ostream& operator<<(std::ostream& out, const PortDescriptor& pd) {
+  return out << pd.str();
+}
 
 }} // facebook::fboss
