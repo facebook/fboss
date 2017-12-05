@@ -26,7 +26,6 @@ constexpr auto kPortState = "portState";
 constexpr auto kPortOperState = "portOperState";
 constexpr auto kIngressVlan = "ingressVlan";
 constexpr auto kPortSpeed = "portSpeed";
-constexpr auto kPortMaxSpeed = "portMaxSpeed";
 constexpr auto kPortTxPause = "txPause";
 constexpr auto kPortRxPause = "rxPause";
 constexpr auto kVlanMemberships = "vlanMemberShips";
@@ -66,6 +65,11 @@ folly::dynamic PortFields::toFollyDynamic() const {
   auto itr_speed  = cfg::_PortSpeed_VALUES_TO_NAMES.find(speed);
   CHECK(itr_speed != cfg::_PortSpeed_VALUES_TO_NAMES.end());
   port[kPortSpeed] = itr_speed->second;
+
+  // needed for backwards compatibility
+  // TODO(aeckert): t24117229 remove this after next version is pushed
+  port["portMaxSpeed"] = itr_speed->second;
+
   auto itr_port_fec  = cfg::_PortFEC_VALUES_TO_NAMES.find(fec);
   CHECK(itr_port_fec != cfg::_PortFEC_VALUES_TO_NAMES.end())
      << "Unexpected port FEC: " << static_cast<int>(fec);
