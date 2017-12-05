@@ -15,9 +15,10 @@ using namespace facebook::fboss;
 DEFINE_int32(port, 5910, "Port for the thrift service");
 DEFINE_string(fruid_filepath, "/dev/shm/fboss/fruid.json",
               "File for storing the fruid data");
-
-static constexpr auto kStatsPublishInterval =
-  std::chrono::milliseconds(std::chrono::minutes(5));
+DEFINE_int32(stats_publish_interval, 300,
+             "Interval (in seconds) for publishing stats");
+DEFINE_int32(customize_down_ports_interval, 25,
+             "Interval (in seconds) for customizing down ports");
 
 std::unique_ptr<TransceiverManager> getManager() {
   auto productInfo = std::make_unique<WedgeProductInfo>(FLAGS_fruid_filepath);
@@ -44,7 +45,7 @@ int main(int argc, char **argv) {
   StatsPublisher publisher(transceiverManager.get());
 
   auto handler = std::make_shared<QsfpServiceHandler>(
-      std::move(transceiverManager));
+    std::move(transceiverManager));
   handler->init();
 
   folly::FunctionScheduler scheduler;
@@ -55,7 +56,15 @@ int main(int argc, char **argv) {
       [&publisher]() {
         publisher.publishStats();
       },
-      kStatsPublishInterval
+      std::chrono::seconds(FLAGS_stats_publish_interval),
+      "statsPublish"
+  );
+  scheduler.addFunction(
+    [mgr = handler->getTransceiverManager()]() {
+      mgr->customizeDownTransceivers();
+    },
+    std::chrono::seconds(FLAGS_customize_down_ports_interval),
+    "customizeDown"
   );
   // Note: This doesn't block, this merely starts it's own thread
   scheduler.start();

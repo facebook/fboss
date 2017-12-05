@@ -3,7 +3,7 @@
 namespace facebook { namespace fboss {
 
 QsfpServiceHandler::QsfpServiceHandler(
-    std::unique_ptr<TransceiverManager> manager) :
+  std::unique_ptr<TransceiverManager> manager) :
     FacebookBase2("QsfpService"),
     manager_(std::move(manager)) {
 }

@@ -9,11 +9,13 @@
 #include "fboss/qsfp_service/TransceiverManager.h"
 
 namespace facebook { namespace fboss {
+
 class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
-                   public facebook::fb303::FacebookBase2 {
+                           public facebook::fb303::FacebookBase2 {
  public:
   explicit QsfpServiceHandler(std::unique_ptr<TransceiverManager> manager);
-  ~QsfpServiceHandler() override {}
+  ~QsfpServiceHandler() override = default;
+
   void init();
   facebook::fb303::cpp2::fb_status getStatus() override;
   TransceiverType type(int32_t idx) override;
@@ -42,11 +44,19 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
    * been configured to operate at
    */
   void customizeTransceiver(int32_t idx, cfg::PortSpeed speed) override;
+
+  /*
+   * Return a pointer to the transceiver manager.
+   */
+  TransceiverManager* getTransceiverManager() const {
+    return manager_.get();
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   QsfpServiceHandler(QsfpServiceHandler const &) = delete;
   QsfpServiceHandler& operator=(QsfpServiceHandler const &) = delete;
 
-  std::unique_ptr<TransceiverManager> manager_;
+  std::unique_ptr<TransceiverManager> manager_{nullptr};
 };
 }} // facebook::fboss

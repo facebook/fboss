@@ -95,6 +95,12 @@ void WedgeManager::syncPorts(
   }
 }
 
+void WedgeManager::customizeDownTransceivers() {
+  for (const auto& transceiver : transceivers_) {
+    transceiver->customizeTransceiverIfDown();
+  }
+}
+
 std::unique_ptr<BaseWedgeI2CBus> WedgeManager::getI2CBus() {
   return std::make_unique<WedgeI2CBus>();
 }

@@ -26,6 +26,7 @@ class WedgeManager : public TransceiverManager {
   int getNumQsfpModules() override {
     return 16;
   }
+  void customizeDownTransceivers() override;
 
  protected:
   virtual std::unique_ptr<BaseWedgeI2CBus> getI2CBus();

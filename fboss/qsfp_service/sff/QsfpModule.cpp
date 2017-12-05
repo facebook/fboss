@@ -711,6 +711,7 @@ cfg::PortSpeed QsfpModule::getPortSpeed() const {
 void QsfpModule::customizeTransceiverIfDown() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   if (safeToCustomize()) {
+    VLOG(1) << "Customizing transceiver with only down ports: " << getID();
     customizeTransceiverLocked(getPortSpeed());
   }
 }
