@@ -151,16 +151,17 @@ def frob_options_into_tests(suite, options):
 
 def add_interested_tests_to_test_suite(tests, suite):
     if not isinstance(tests, unittest.suite.TestSuite):
+        # If user uses tag and there is an import error on a test
+        # the "valid_tags" attributes are never added,
+        # so the test would not be run and there is no error.
+        # The next 2 lines is to explicitly add these tests
+        if isinstance(tests, unittest.loader._FailedTest):
+            suite.addTest(tests)
         # when user provides a tag , add testcases which has
         # valid tags and add all testcases when user do not
         # provide any tags
         if hasattr(tests, "valid_tags") or not user_requested_tags:
             suite.addTest(tests)
-
-        # Edge case when user uses tag & there is import error
-        # The import error will just be silently ignored
-        if isinstance(tests, unittest.loader._FailedTest):
-            raise Exception("Failed to import tests: {}".format(tests._exception))
         return
 
     for test in tests:
