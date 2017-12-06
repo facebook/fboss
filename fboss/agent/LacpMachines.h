@@ -77,6 +77,7 @@ class ReceiveMachine : private folly::AsyncTimeout {
   void recordDefault();
   void recordPDU(LACPDU& lacpdu);
   void updateSelected(LACPDU& lacpdu);
+  void updateDefaultSelected();
   bool updateNTT(LACPDU& lacpdu);
   std::chrono::seconds epochDuration();
   void updateState(ReceiveState nextState);

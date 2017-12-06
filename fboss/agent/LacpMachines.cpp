@@ -214,7 +214,8 @@ void ReceiveMachine::initialize() {
 void ReceiveMachine::defaulted() {
   updateState(ReceiveState::DEFAULTED);
 
-  // TODO(samank): record default selected
+  updateDefaultSelected();
+
   recordDefault();
 
   controller_.setActorState(controller_.actorState() & ~LacpState::EXPIRED);
@@ -256,6 +257,14 @@ void ReceiveMachine::updateSelected(LACPDU& lacpdu) {
             << "Partner claimed " << lacpdu.actorInfo.describe()
             << " but I have " << partnerInfo_.describe();
   controller_.unselected();
+}
+
+void ReceiveMachine::updateDefaultSelected() {
+  auto adminDefault = ParticipantInfo();
+
+  if (adminDefault != controller_.partnerInfo()) {
+      controller_.unselected();
+  }
 }
 
 bool ReceiveMachine::updateNTT(LACPDU& lacpdu) {
