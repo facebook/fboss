@@ -19,6 +19,7 @@ from thrift.server import TServer
 
 from neteng.fboss.ttypes import FbossBaseError
 from fboss.system_tests.test import TestService
+from fboss.system_tests.test.ttypes import DeviceType
 from fboss.system_tests.test.constants import DEFAULT_PORT
 from os.path import isfile
 
@@ -34,6 +35,9 @@ import traceback
 class TestServer(TestService.Iface):
     SERVICE = TestService
     PCAP_READ_BATCHING = 100  # in miliseconds
+    DEVICE_TYPE_ENUM_TO_STRING = {
+        DeviceType.LOOPBACK: "dummy"
+    }
 
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
@@ -42,8 +46,18 @@ class TestServer(TestService.Iface):
         self.pcap_captures = {}
         self.pkt_captures = {}
         self.log.debug("Log: debug enabled")
+        # Keep track of added_interfaces so users can't remove interfaces
+        # they didn't add
+        self.added_interfaces = set()
+        signal.signal(signal.SIGINT, self._cleanUpAddedInterfaces)
         self.log.info("Log: info enabled")
         self.log.warn("Log: warnings enabled")
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self._cleanUpAddedInterfaces()
 
     def ping(self, ip, options=None):
         """ @param ip : a string, e.g., "128.8.128.118" """
@@ -72,7 +86,7 @@ class TestServer(TestService.Iface):
 
     def startPktCapture(self, interface_name, pcap_filter_str):
         self.log.debug("startPktCapture(%s,filter=%s)" % (
-                      interface_name, pcap_filter_str))
+                       interface_name, pcap_filter_str))
         if interface_name in self.pcap_captures:
             # close out any old captures
             del self.pcap_captures[interface_name]
@@ -98,7 +112,7 @@ class TestServer(TestService.Iface):
         start = time.time()
         intf = interface_name  # horrible hack to fit in 80 chars below
         self.log.debug("getPktCapture(%s,ms_timeout=%d,maxPackets=%d)" %
-                      (interface_name, ms_timeout, maxPackets))
+                       (interface_name, ms_timeout, maxPackets))
         while time.time() < (start + (ms_timeout / 1000)):
             # this reader is set to not block, so this will busy wait until
             # packets show up or the timeout occurs.  Given the note
@@ -219,18 +233,70 @@ class TestServer(TestService.Iface):
             # Change the SIGHUP settings back to original value.
             signal.signal(signal.SIGHUP, old_handler)
 
+    def add_interface(self, ifName, deviceType):
+        if ifName in self.added_interfaces:
+            raise FbossBaseError(
+                "Device {} already exists".format(ifName))
+
+        strDeviceType = self.DEVICE_TYPE_ENUM_TO_STRING.get(deviceType)
+        if not strDeviceType:
+            raise FbossBaseError(
+                "DeviceType {} not found/supported (are you sure you used the enum?)"
+                .format(deviceType))
+
+        command = "ip link add name {} type {}".format(ifName, strDeviceType)
+        try:
+            self.check_output(command)
+        except Exception as e:
+            # Ignoring "File exists" error
+            if "exit status 2" not in str(e):
+                raise FbossBaseError("Error adding interface: {}".format(str(e)))
+        self.added_interfaces.add(ifName)
+        return True
+
+    def remove_interface(self, ifName):
+        if ifName not in self.added_interfaces:
+            raise FbossBaseError(
+                "User attempted to remove an interface they did not add. Ignoring.")
+
+        command = "ip link del dev {}".format(ifName)
+        try:
+            self.check_output(command)
+        except Exception as e:
+            raise FbossBaseError("Error deleting interface: {}".format(str(e)))
+        self.added_interfaces.remove(ifName)
+        return True
+
+    def add_address(self, address, ifName):
+        command = "ip addr add {} dev {}".format(address, ifName)
+        try:
+            self.check_output(command)
+        except Exception as e:
+            # Ignoring "File exists" error
+            if "exit status 2" not in str(e):
+                raise FbossBaseError("Error adding address: {}".format(str(e)))
+        return True
+
+    def _cleanUpAddedInterfaces(self):
+        for ifName in self.added_interfaces:
+            command = "ip link del dev {}".format(ifName)
+            try:
+                self.check_output(command)
+            except Exception as e:
+                self.log.info("Error deleting interface: {}".format(str(e)))
+
 
 if __name__ == '__main__':
-    handler = TestServer()
-    transport = TSocket.TServerSocket(DEFAULT_PORT)
-    tfactory = TTransport.TBufferedTransportFactory()
-    pfactory = THeaderProtocol.THeaderProtocolFactory()
+    with TestServer() as handler:
+        transport = TSocket.TServerSocket(DEFAULT_PORT)
+        tfactory = TTransport.TBufferedTransportFactory()
+        pfactory = THeaderProtocol.THeaderProtocolFactory()
 
-    server = TServer.TSimpleServer(handler, transport, tfactory, pfactory)
+        server = TServer.TSimpleServer(handler, transport, tfactory, pfactory)
 
-    # You could do one of these for a multithreaded server
-    # server = TServer.TThreadedServer(handler, transport, tfactory, pfactory)
+        # You could do one of these for a multithreaded server
+        # server = TServer.TThreadedServer(handler, transport, tfactory, pfactory)
 
-    print('Starting the server...')
-    server.serve()
-    print('Done.')
+        print('Starting the server...')
+        server.serve()
+        print('Done.')

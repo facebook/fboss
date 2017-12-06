@@ -88,6 +88,7 @@ class ServerPortFlap(FbossBaseSystemTest):
                 self.log.info("Exception caught{}".format(e))
                 pass
 
+
 @test_tags("port")
 class PortFECCheck(FbossBaseSystemTest):
     """ FEC should be enabled for all 100G ports """
