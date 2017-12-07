@@ -42,6 +42,7 @@
 #include <algorithm>
 #include <boost/container/flat_set.hpp>
 #include <boost/container/flat_map.hpp>
+#include <cmath>
 #include <folly/Range.h>
 #include <utility>
 #include <vector>
@@ -172,6 +173,7 @@ class ThriftConfigApplier {
   std::vector<AggregatePort::Subport> getSubportsSorted(
       const cfg::AggregatePort& cfg);
   std::pair<folly::MacAddress, uint16_t> getSystemLacpConfig();
+  uint8_t computeMinimumLinkCount(const cfg::AggregatePort& cfg);
   std::shared_ptr<VlanMap> updateVlans();
   std::shared_ptr<Vlan> createVlan(const cfg::Vlan* config);
   std::shared_ptr<Vlan> updateVlan(const std::shared_ptr<Vlan>& orig,
@@ -639,10 +641,13 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
   folly::MacAddress cfgSystemID;
   std::tie(cfgSystemID, cfgSystemPriority) = getSystemLacpConfig();
 
+  auto cfgMinLinkCount = computeMinimumLinkCount(cfg);
+
   if (origAggPort->getName() == cfg.name &&
       origAggPort->getDescription() == cfg.description &&
       origAggPort->getSystemPriority() == cfgSystemPriority &&
       origAggPort->getSystemID() == cfgSystemID &&
+      origAggPort->getMinimumLinkCount() == cfgMinLinkCount &&
       std::equal(
           origSubports.begin(), origSubports.end(), cfgSubports.begin())) {
     return nullptr;
@@ -653,6 +658,7 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
   newAggPort->setDescription(cfg.description);
   newAggPort->setSystemPriority(cfgSystemPriority);
   newAggPort->setSystemID(cfgSystemID);
+  newAggPort->setMinimumLinkCount(cfgMinLinkCount);
   newAggPort->setSubports(folly::range(cfgSubports.begin(), cfgSubports.end()));
 
   return newAggPort;
@@ -666,12 +672,15 @@ shared_ptr<AggregatePort> ThriftConfigApplier::createAggPort(
   folly::MacAddress cfgSystemID;
   std::tie(cfgSystemID, cfgSystemPriority) = getSystemLacpConfig();
 
+  auto cfgMinLinkCount = computeMinimumLinkCount(cfg);
+
   return AggregatePort::fromSubportRange(
       AggregatePortID(cfg.key),
       cfg.name,
       cfg.description,
       cfgSystemPriority,
       cfgSystemID,
+      cfgMinLinkCount,
       folly::range(subports.begin(), subports.end()));
 }
 
@@ -718,6 +727,40 @@ ThriftConfigApplier::getSystemLacpConfig() {
   }
 
   return std::make_pair(systemID, systemPriority);
+}
+
+uint8_t ThriftConfigApplier::computeMinimumLinkCount(
+    const cfg::AggregatePort& cfg) {
+  uint8_t minLinkCount = 1;
+
+  auto minCapacity = cfg.minimumCapacity;
+  switch (minCapacity.getType()) {
+    case cfg::MinimumCapacity::Type::linkCount:
+      // Thrift's byte type is an int8_t
+      CHECK_GE(minCapacity.get_linkCount(), 1);
+
+      minLinkCount = minCapacity.get_linkCount();
+      break;
+    case cfg::MinimumCapacity::Type::linkPercentage:
+      CHECK_GT(minCapacity.get_linkPercentage(), 0);
+      CHECK_LE(minCapacity.get_linkPercentage(), 1);
+
+      minLinkCount = std::ceil(
+          minCapacity.get_linkPercentage() *
+          std::distance(cfg.memberPorts.begin(), cfg.memberPorts.end()));
+      if (std::distance(cfg.memberPorts.begin(), cfg.memberPorts.end()) != 0) {
+        CHECK_GE(minLinkCount, 1);
+      }
+
+      break;
+    case cfg::MinimumCapacity::Type::__EMPTY__:
+    // needed to handle error from -Werror=switch
+    default:
+      folly::assume_unreachable();
+      break;
+  }
+
+  return minLinkCount;
 }
 
 shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {

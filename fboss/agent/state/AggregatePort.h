@@ -92,6 +92,7 @@ struct AggregatePortFields {
       const std::string& description,
       uint16_t systemPriority,
       folly::MacAddress systemID,
+      uint8_t minLinkCount,
       Subports&& ports,
       Forwarding fwd = Forwarding::DISABLED);
 
@@ -111,6 +112,7 @@ struct AggregatePortFields {
   // change.
   uint16_t systemPriority_;
   folly::MacAddress systemID_;
+  uint8_t minimumLinkCount_;
   Subports ports_;
   SubportToForwardingState portToFwdState_;
 };
@@ -137,6 +139,7 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
       const std::string& description,
       uint16_t systemPriority,
       folly::MacAddress systemID,
+      uint8_t minLinkCount,
       folly::Range<Iterator> subports) {
     return std::make_shared<AggregatePort>(
         id,
@@ -144,6 +147,7 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
         description,
         systemPriority,
         systemID,
+        minLinkCount,
         Subports(subports.begin(), subports.end()));
   }
 
@@ -196,6 +200,14 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
 
   void setSystemID(folly::MacAddress systemID) {
     writableFields()->systemID_ = systemID;
+  }
+
+  uint8_t getMinimumLinkCount() const {
+    return getFields()->minimumLinkCount_;
+  }
+
+  void setMinimumLinkCount(uint8_t minLinkCount) {
+    writableFields()->minimumLinkCount_ = minLinkCount;
   }
 
   AggregatePort::Forwarding getForwardingState(PortID port) {

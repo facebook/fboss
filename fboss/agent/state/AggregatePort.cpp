@@ -19,6 +19,7 @@ namespace {
 constexpr auto kId = "id";
 constexpr auto kName = "name";
 constexpr auto kDescription = "description";
+constexpr auto kMinimumLinkCount = "minimumLinkCount";
 constexpr auto kSubports = "subports";
 constexpr auto kSystemID = "systemID";
 constexpr auto kSystemPriority = "systemPriority";
@@ -71,6 +72,7 @@ AggregatePortFields::AggregatePortFields(
     const std::string& description,
     uint16_t systemPriority,
     folly::MacAddress systemID,
+    uint8_t minimumLinkCount,
     Subports&& ports,
     AggregatePortFields::Forwarding fwd)
     : id_(id),
@@ -78,6 +80,7 @@ AggregatePortFields::AggregatePortFields(
       description_(description),
       systemPriority_(systemPriority),
       systemID_(systemID),
+      minimumLinkCount_(minimumLinkCount),
       ports_(std::move(ports)),
       portToFwdState_() {
   for (const auto& subport : ports_) {
@@ -91,6 +94,8 @@ folly::dynamic AggregatePortFields::toFollyDynamic() const {
   aggPortFields[kId] = static_cast<uint16_t>(id_);
   aggPortFields[kName] = name_;
   aggPortFields[kDescription] = description_;
+  aggPortFields[kMinimumLinkCount] = minimumLinkCount_;
+
   folly::dynamic subports = folly::dynamic::array;
   for (const auto& subport : ports_) {
     subports.push_back(subport.toFollyDynamic());
@@ -117,6 +122,7 @@ AggregatePortFields AggregatePortFields::fromFollyDynamic(
       json[kDescription].getString(),
       json[kSystemPriority].getInt(),
       MacAddress(json[kSystemID].getString()),
+      json[kMinimumLinkCount].getInt(),
       std::move(ports));
 }
 

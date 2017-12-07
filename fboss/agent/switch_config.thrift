@@ -335,11 +335,21 @@ struct AggregatePortMember {
   4: LacpPortActivity activity = ACTIVE
 }
 
+union MinimumCapacity {
+  1: byte linkCount,
+  2: double linkPercentage,
+}
+
+const MinimumCapacity ALL_LINKS = {
+  "linkPercentage": 1
+}
+
 struct AggregatePort {
   1: i16 key
   2: string name
   3: string description
   4: list<AggregatePortMember> memberPorts
+  5: MinimumCapacity minimumCapacity = ALL_LINKS
 }
 
 struct Lacp {

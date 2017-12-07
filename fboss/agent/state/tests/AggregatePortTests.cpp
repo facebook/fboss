@@ -736,6 +736,7 @@ TEST(AggregatePort, serializationInverseOfDeserialization) {
       "Link bundle with member ports eth1/[1234]/1",
       static_cast<uint16_t>(1) << 14, // systemPriority
       folly::MacAddress("01:02:03:04:05:06"), // systemID
+      4,
       subportRange);
 
   auto serializedAggPort = aggPort->toFollyDynamic();
@@ -748,6 +749,9 @@ TEST(AggregatePort, serializationInverseOfDeserialization) {
   EXPECT_EQ(
       aggPort->getSystemPriority(), deserializedAggPort->getSystemPriority());
   EXPECT_EQ(aggPort->getSystemID(), deserializedAggPort->getSystemID());
+  EXPECT_EQ(
+      aggPort->getMinimumLinkCount(),
+      deserializedAggPort->getMinimumLinkCount());
   EXPECT_TRUE(std::equal(
       aggPort->sortedSubports().begin(),
       aggPort->sortedSubports().end(),
