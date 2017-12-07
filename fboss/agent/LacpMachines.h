@@ -88,7 +88,7 @@ class ReceiveMachine : private folly::AsyncTimeout {
 
   ReceiveState state_{ReceiveState::INITIALIZED};
   ReceiveState prevState_{ReceiveState::INITIALIZED};
-  ParticipantInfo partnerInfo_{LacpState::NONE}; // operational
+  ParticipantInfo partnerInfo_; // operational
 
   LacpController& controller_;
 };
