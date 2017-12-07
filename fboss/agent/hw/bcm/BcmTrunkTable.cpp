@@ -19,7 +19,8 @@
 namespace facebook {
 namespace fboss {
 
-BcmTrunkTable::BcmTrunkTable(const BcmSwitch* hw) : trunks_(), hw_(hw) {}
+BcmTrunkTable::BcmTrunkTable(const BcmSwitch* hw)
+    : trunks_(), hw_(hw), trunkToMinLinkCount_() {}
 
 BcmTrunkTable::~BcmTrunkTable() {}
 
@@ -27,6 +28,7 @@ void BcmTrunkTable::addTrunk(const std::shared_ptr<AggregatePort>& aggPort) {
   setupTrunking();
   auto trunk = std::make_unique<BcmTrunk>(hw_);
   trunk->init(aggPort);
+  auto trunkID = trunk->id();
 
   bool inserted;
   std::tie(std::ignore, inserted) =
@@ -38,6 +40,8 @@ void BcmTrunkTable::addTrunk(const std::shared_ptr<AggregatePort>& aggPort) {
         aggPort->getID(),
         ": corresponding trunk already exists");
   }
+
+  trunkToMinLinkCount_.addOrUpdate(trunkID, aggPort->getMinimumLinkCount());
 }
 
 void BcmTrunkTable::programTrunk(
@@ -54,6 +58,8 @@ void BcmTrunkTable::programTrunk(
   }
 
   it->second->program(oldAggPort, newAggPort);
+  trunkToMinLinkCount_.addOrUpdate(
+      it->second->id(), newAggPort->getMinimumLinkCount());
 }
 
 void BcmTrunkTable::deleteTrunk(const std::shared_ptr<AggregatePort>& aggPort) {
@@ -65,7 +71,9 @@ void BcmTrunkTable::deleteTrunk(const std::shared_ptr<AggregatePort>& aggPort) {
         ": no corresponding trunk");
   }
 
+  auto trunkID = it->second->id();
   trunks_.erase(it);
+  trunkToMinLinkCount_.del(trunkID);
 }
 
 /* 1. If opennsl_trunk_t == INVALID, then
@@ -93,7 +101,15 @@ opennsl_trunk_t BcmTrunkTable::linkDownHwNotLocked(opennsl_port_t port) {
   LOG(INFO) << count << " member ports enabled in trunk " << trunk;
   BcmTrunk::shrinkTrunkGroupHwNotLocked(hw_->getUnit(), trunk, port);
 
-  if (count > 1) { // (1.b)
+  auto maybeMinLinkCount = trunkToMinLinkCount_.get(trunk);
+  if (!maybeMinLinkCount) {
+    LOG(WARNING) << "Trunk " << trunk
+                 << " removed out from underneath linkscan thread";
+    return facebook::fboss::BcmTrunk::INVALID;
+  }
+  auto minLinkCount = *maybeMinLinkCount;
+
+  if (count > minLinkCount) { // (1.b)
     return facebook::fboss::BcmTrunk::INVALID;
   }
 

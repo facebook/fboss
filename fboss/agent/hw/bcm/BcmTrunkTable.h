@@ -18,6 +18,7 @@ extern "C" {
 #include <boost/container/flat_map.hpp>
 #include <folly/dynamic.h>
 
+#include "fboss/agent/hw/bcm/MinimumLinkCountMap.h"
 #include "fboss/agent/types.h"
 
 namespace facebook {
@@ -67,6 +68,8 @@ class BcmTrunkTable {
 
   // State that stores if the BCM trunk has been initialized.
   bool isBcmHWTrunkInitialized_ = false;
+
+  TrunkToMinimumLinkCountMap trunkToMinLinkCount_;
 };
 }
 } // namespace facebook::fboss
