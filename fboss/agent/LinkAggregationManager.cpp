@@ -64,7 +64,7 @@ void LinkAggregationManager::stateUpdated(const StateDelta& delta) {
       std::tie(std::ignore, inserted) = portToController_.insert(std::make_pair(
           port->getID(),
           std::make_shared<LacpController>(
-              port->getID(), sw_->getLacpEvb(), sw_)));
+              port->getID(), sw_->getLacpEvb(), this, sw_)));
       CHECK(inserted);
     }
     initialized_ = true;
@@ -100,6 +100,8 @@ void LinkAggregationManager::aggregatePortAdded(
         aggPort->getID(),
         aggPort->getSystemPriority(),
         aggPort->getSystemID(),
+        aggPort->getMinimumLinkCount(),
+        this,
         sw_));
   }
 }
@@ -111,7 +113,7 @@ void LinkAggregationManager::aggregatePortRemoved(
     it = portToController_.find(subport.portID);
     CHECK_NE(it, portToController_.end());
     it->second.reset(
-        new LacpController(subport.portID, sw_->getLacpEvb(), sw_));
+        new LacpController(subport.portID, sw_->getLacpEvb(), this, sw_));
   }
 }
 

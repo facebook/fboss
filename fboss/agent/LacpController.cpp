@@ -25,6 +25,7 @@ using std::string;
 LacpController::LacpController(
     PortID portID,
     folly::EventBase* evb,
+    LinkAggregationManager* lagMgr,
     SwSwitch* sw)
     : portID_(portID),
       tx_(*this, evb, sw),
@@ -32,7 +33,8 @@ LacpController::LacpController(
       periodicTx_(*this, evb),
       mux_(*this, evb, sw),
       selector_(*this),
-      evb_(evb) {
+      evb_(evb),
+      lagMgr_(lagMgr) {
   actorState_ &= ~LacpState::AGGREGATABLE;
   startMachines();
 }
@@ -46,6 +48,8 @@ LacpController::LacpController(
     AggregatePortID aggPortID,
     uint16_t systemPriority,
     folly::MacAddress systemID,
+    uint8_t minLinkCount,
+    LinkAggregationManager* lagMgr,
     SwSwitch* sw)
     : aggPortID_(aggPortID),
       portID_(portID),
@@ -55,8 +59,9 @@ LacpController::LacpController(
       rx_(*this, evb),
       periodicTx_(*this, evb),
       mux_(*this, evb, sw),
-      selector_(*this),
-      evb_(evb) {
+      selector_(*this, minLinkCount),
+      evb_(evb),
+      lagMgr_(lagMgr) {
   std::memcpy(systemID_.begin(), systemID.bytes(), systemID_.size());
 
   actorState_ |= LacpState::AGGREGATABLE;
@@ -105,6 +110,7 @@ void LacpController::portDown() {
   evb()->runInEventBaseThread([self = shared_from_this()]() {
     self->rx_.portDown();
     self->periodicTx_.portDown();
+    self->selector_.portDown();
   });
 }
 
@@ -157,11 +163,19 @@ AggregatePortID LacpController::aggregatePortID() const {
 }
 
 void LacpController::selected() {
-  mux_.selected(selector_.selection());
+  selector_.selected();
+  auto sel = selector_.getSelection();
+  mux_.selected(static_cast<AggregatePortID>(sel.lagID.actorKey));
 }
 
 void LacpController::unselected() {
+  selector_.unselected();
   mux_.unselected();
+}
+
+void LacpController::standby() {
+  mux_.standby();
+  selector_.standby();
 }
 
 void LacpController::matched() {

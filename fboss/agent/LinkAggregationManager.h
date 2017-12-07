@@ -35,6 +35,31 @@ class LinkAggregationManager : public AutoRegisterStateObserver {
   void stateUpdated(const StateDelta& delta) override;
   void handlePacket(std::unique_ptr<RxPacket> pkt, folly::io::Cursor c);
 
+  // TODO(samank): output data structure generic
+  template <typename Iterator>
+  std::vector<std::shared_ptr<LacpController>> getControllersFor(
+      folly::Range<Iterator> ports) {
+    // Although this method is thread-safe, it is only invoked from a Selector
+    // object, which should always be executing over the Background EVB
+    CHECK(sw_->getBackgroundEVB()->inRunningEventBaseThread());
+
+    std::vector<std::shared_ptr<LacpController>> controllers(
+        std::distance(ports.begin(), ports.end()));
+
+    folly::SharedMutexWritePriority::ReadHolder g(&controllersLock_);
+
+    // TODO(samank): Rerwite as an O(N + M) algorithm
+    for (auto i = 0; i < controllers.size(); ++i) {
+      auto it = portToController_.find(ports[i]);
+      CHECK(it != portToController_.end());
+
+      controllers[i] = it->second;
+    }
+
+    // TODO(samank): does this move?
+    return controllers;
+  }
+
  private:
   void aggregatePortRemoved(const std::shared_ptr<AggregatePort>& aggPort);
   void aggregatePortAdded(const std::shared_ptr<AggregatePort>& aggPort);

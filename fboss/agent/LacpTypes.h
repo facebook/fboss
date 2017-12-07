@@ -158,6 +158,8 @@ class LinkAggregationGroupID {
 
   std::string describe() const;
 
+  bool operator==(const LinkAggregationGroupID& rhs) const;
+
   ParticipantInfo::SystemID actorSystemID{};
   ParticipantInfo::SystemID partnerSystemID{};
   ParticipantInfo::SystemPriority actorSystemPriority{0};

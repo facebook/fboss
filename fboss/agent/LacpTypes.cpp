@@ -1,3 +1,12 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
 #include "fboss/agent/LacpTypes.h"
 
 #include <folly/Conv.h>
@@ -81,7 +90,6 @@ LinkAggregationGroupID LinkAggregationGroupID::from(
 }
 
 std::string LinkAggregationGroupID::describe() const {
-  // TODO(samank): zero out physical ports if not individual
   // TODO(samank): put smaller of S and T first
   std::string description;
 
@@ -114,5 +122,18 @@ std::string LinkAggregationGroupID::describe() const {
       partnerPort,
       ")]");
 }
+
+bool LinkAggregationGroupID::operator==(
+    const LinkAggregationGroupID& rhs) const {
+  return rhs.actorSystemID == actorSystemID &&
+      rhs.partnerSystemID == partnerSystemID &&
+      rhs.actorSystemPriority == actorSystemPriority &&
+      rhs.partnerSystemPriority == partnerSystemPriority &&
+      rhs.actorKey == actorKey && rhs.partnerKey == partnerKey &&
+      rhs.actorPort == actorPort && rhs.partnerPort == partnerPort &&
+      rhs.actorPortPriority == actorPortPriority &&
+      rhs.partnerPortPriority == partnerPortPriority;
+}
+
 } // namespace fboss
 } // namespace facebook

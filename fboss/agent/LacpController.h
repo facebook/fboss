@@ -12,8 +12,10 @@
 #include <folly/MacAddress.h>
 #include <folly/io/Cursor.h>
 
+
 #include "fboss/agent/LacpMachines.h"
 #include "fboss/agent/LacpTypes.h"
+#include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/types.h"
 
@@ -29,7 +31,11 @@ class SwSwitch;
 
 class LacpController : public std::enable_shared_from_this<LacpController> {
  public:
-  LacpController(PortID portID, folly::EventBase* evb, SwSwitch* sw);
+  LacpController(
+      PortID portID,
+      folly::EventBase* evb,
+      LinkAggregationManager* lagMgr,
+      SwSwitch* sw);
   LacpController(
       PortID portID,
       folly::EventBase* evb,
@@ -39,6 +45,8 @@ class LacpController : public std::enable_shared_from_this<LacpController> {
       AggregatePortID aggPortID,
       uint16_t systemPriority,
       folly::MacAddress systemID,
+      uint8_t minLinkCount,
+      LinkAggregationManager* lagMgr,
       SwSwitch* sw);
 
   ~LacpController();
@@ -67,7 +75,22 @@ class LacpController : public std::enable_shared_from_this<LacpController> {
 
   void ntt();
   void selected();
+  template <typename Iterator> void selected(folly::Range<Iterator> ports) {
+    auto controllersToSignal = lagMgr_->getControllersFor(ports);
+
+    for (const auto& controller : controllersToSignal) {
+      controller->selected();
+    }
+  }
   void unselected();
+  void standby();
+  template <typename Iterator> void standby(folly::Range<Iterator> ports) {
+    auto controllersToSignal = lagMgr_->getControllersFor(ports);
+
+    for (const auto& controller : controllersToSignal) {
+      controller->standby();
+    }
+  }
   void matched();
   void notMatched();
 
@@ -89,7 +112,8 @@ class LacpController : public std::enable_shared_from_this<LacpController> {
   MuxMachine mux_;
   Selector selector_;
 
-  folly::EventBase* evb_;
+  folly::EventBase* evb_{nullptr};
+  LinkAggregationManager* lagMgr_{nullptr};
 
   // Forbidden copy constructor and assignment operator
   LacpController(LacpController const&) = delete;

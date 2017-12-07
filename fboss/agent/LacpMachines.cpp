@@ -20,6 +20,7 @@
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include <algorithm>
 #include <exception>
 #include <folly/Conv.h>
 #include <folly/ExceptionString.h>
@@ -599,9 +600,12 @@ void MuxMachine::selected(AggregatePortID selection) {
     case MuxState::DETACHED:
       VLOG(4) << "MuxMachine[" << controller_.portID() << "]: SELECTED in "
                 << state_;
-      waiting();
+      waiting(true);
       break;
     case MuxState::WAITING:
+      VLOG(4) << "MuxMachine[" << controller_.portID() << "]: SELECTED in "
+                << state_;
+      attached();
     case MuxState::ATTACHED:
     case MuxState::COLLECTING_DISTRIBUTING:
       LOG(WARNING) << "MuxMachine[" << controller_.portID()
@@ -628,6 +632,28 @@ void MuxMachine::unselected() {
       VLOG(4) << "MuxMachine[" << controller_.portID() << "]: UNSELECTED in "
                 << state_;
       attached();
+      break;
+  }
+}
+
+void MuxMachine::standby() {
+  CHECK(controller_.evb()->inRunningEventBaseThread());
+
+  switch (state_) {
+    case MuxState::DETACHED:
+      VLOG(4) << "MuxMachine[" << controller_.portID() << "]: STANDBY in "
+              << state_;
+      waiting(false);
+      break;
+    case MuxState::WAITING:
+      VLOG(4) << "MuxMachine[" << controller_.portID()
+              << "]: Ignoring STANDBY in " << state_;
+      break;
+    case MuxState::ATTACHED:
+    case MuxState::COLLECTING_DISTRIBUTING:
+      VLOG(4) << "MuxMachine[" << controller_.portID() << "]: STANDBY in "
+              << state_;
+      detached();
       break;
   }
 }
@@ -730,10 +756,12 @@ void MuxMachine::detached() {
   controller_.ntt();
 }
 
-void MuxMachine::waiting() {
+void MuxMachine::waiting(bool shouldScheduleTimeout) {
   updateState(MuxState::WAITING);
 
-  scheduleTimeout(AGGREGATE_WAIT_DURATION);
+  if (shouldScheduleTimeout) {
+    scheduleTimeout(AGGREGATE_WAIT_DURATION);
+  }
 }
 
 void MuxMachine::timeoutExpired() noexcept {
@@ -754,6 +782,7 @@ void MuxMachine::attached() {
 
   // Attach_Mux_To_Aggregator
 
+  // TODO(samank): this needs to change on port down for min-links
   controller_.setActorState(controller_.actorState() | LacpState::IN_SYNC);
 
   controller_.setActorState(controller_.actorState() & ~LacpState::COLLECTING);
@@ -786,83 +815,181 @@ void MuxMachine::updateState(MuxState nextState) {
             << "-->" << state_;
 }
 
-Selector::Selector(LacpController& controller) : controller_(controller) {}
+Selector::Selector(LacpController& controller, uint8_t minLinkCount)
+    : controller_(controller), minLinkCount_(minLinkCount) {}
 
 void Selector::start() {}
 
 void Selector::stop() {}
 
+// TODO(samank): Factor out into MininumLinksSelector
 void Selector::select() {
-  // TODO(samank): don't resignal if lag id doesn't change
-  auto actorInfo = controller_.actorInfo();
-  auto partnerInfo = controller_.partnerInfo();
+  auto targetLagID = LinkAggregationGroupID::from(
+      controller_.actorInfo(), controller_.partnerInfo());
 
-  // Has either the actor or the partner signalled State::INDIVIDUAL?
-  if ((partnerInfo.state & LacpState::AGGREGATABLE) == 0 ||
-      (actorInfo.state & LacpState::AGGREGATABLE) == 0) {
-    auto lagID = LinkAggregationGroupID::from(actorInfo, partnerInfo);
-    VLOG(4) << "SelectionLogic[" << controller_.portID() << "]: selected "
-              << lagID.describe();
-
-    Selector::portToLag().insert(std::make_pair(controller_.portID(), lagID));
-
-    controller_.selected();
+  // If the Link Aggregation Group this port has SELECTED or STANDBYed is the
+  // same as that identified by targetLagID, then there's nothing to do.
+  auto maybeSelection = getSelectionIf();
+  if (maybeSelection && maybeSelection->lagID == targetLagID) {
+    VLOG(4) << "Selection[" << controller_.portID()
+            << "]: skipping selection logic";
     return;
   }
 
-  auto myDesiredKey =
-      static_cast<ParticipantInfo::Key>(controller_.aggregatePortID());
+  auto chooseTargetLag = [this, targetLagID](SelectionState state) {
+    Selector::portToSelection().insert(
+        std::make_pair(controller_.portID(), Selection(targetLagID, state)));
 
-  if (isAvailable(controller_.aggregatePortID())) {
-    auto lagID = LinkAggregationGroupID::from(actorInfo, partnerInfo);
-    VLOG(4) << "SelectionLogic[" << controller_.portID() << "]: selected "
-              << lagID.describe();
-    Selector::portToLag().insert(std::make_pair(controller_.portID(), lagID));
-    controller_.selected();
-    return;
-  }
-
-  auto myPartnerSystemID = partnerInfo.systemID;
-  auto myPartnerKey = partnerInfo.key;
-
-  LinkAggregationGroupID lag;
-  for (const auto& portAndLag : portToLag()) {
-    std::tie(std::ignore, lag) = portAndLag;
-    if (lag.partnerSystemID == myPartnerSystemID &&
-        lag.partnerKey == myPartnerKey && lag.actorKey == myDesiredKey) {
-      VLOG(4) << "SelectionLogic[" << controller_.portID() << "]: selected "
-                << lag.describe();
-      Selector::portToLag().insert(std::make_pair(controller_.portID(), lag));
+    if (state == SelectionState::SELECTED) {
+      VLOG(4) << "Selection[" << controller_.portID() << "]: selected "
+              << targetLagID.describe();
       controller_.selected();
-      return;
+    } else {
+      VLOG(4) << "Selection[" << controller_.portID() << "]: standby "
+              << targetLagID.describe();
+      controller_.standby();
+    }
+  };
+
+  // If either the actor or the partner has specified it must operate as
+  // INDIVIDUAL, we must select the Aggregator that uniquely belongs to it
+  if ((controller_.partnerInfo().state & LacpState::AGGREGATABLE) == 0 ||
+      (controller_.actorInfo().state & LacpState::AGGREGATABLE) == 0) {
+    chooseTargetLag(SelectionState::SELECTED);
+    return;
+  }
+
+  bool targetLagSelectedByOtherPort = false;
+  for (const auto& portAndSelection : portToSelection()) {
+    if (portAndSelection.second.lagID == targetLagID) {
+      targetLagSelectedByOtherPort = true;
+      break;
     }
   }
 
-  // TODO(samank): Aggregate with the "nil" aggregator
+  bool chosen = false;
+  if (targetLagSelectedByOtherPort) {
+    chooseTargetLag(SelectionState::STANDBY);
+    chosen = true;
+  } else {
+    // The target Link Aggregation Group can only be chosen if no other port has
+    // SELECTED or STANDBYed a LAG with the same AggregatePortID (ie. the other
+    // port's LinkAggregationGroupID.actorKey == controller_.aggregatePortID())
+    if (isAvailable(controller_.aggregatePortID())) {
+      chooseTargetLag(SelectionState::STANDBY);
+      chosen = true;
+    }
+  }
+
+  if (chosen) {
+    auto targetLagMemberCount = std::count_if(
+        portToSelection().begin(),
+        portToSelection().end(),
+        [targetLagID](PortIDToSelection::value_type el) {
+          Selection s = el.second;
+          return s.lagID == targetLagID && s.state == SelectionState::STANDBY;
+        });
+
+    if (targetLagMemberCount == minLinkCount_) {
+      auto portsToSignal = getPortsWithSelection(
+          Selection(targetLagID, SelectionState::STANDBY));
+      controller_.selected(
+          folly::range(portsToSignal.begin(), portsToSignal.end()));
+    }
+  }
+
+  // TODO(samank): aggregate with the nil aggregator
 }
 
-AggregatePortID Selector::selection() {
-  auto it = portToLag().find(controller_.portID());
-  if (it == portToLag().end()) {
+Selector::Selection Selector::getSelection() {
+  auto it = portToSelection().find(controller_.portID());
+  if (it == portToSelection().end()) {
     throw LACPError();
   }
-  return static_cast<AggregatePortID>(it->second.actorKey);
+  return it->second;
 }
 
-bool Selector::isAvailable(AggregatePortID aggPortID) {
-  LinkAggregationGroupID lag;
-  for (const auto& portAndLag : portToLag()) {
-    std::tie(std::ignore, lag) = portAndLag;
-    if (static_cast<AggregatePortID>(lag.actorKey) == aggPortID) {
+folly::Optional<Selector::Selection> Selector::getSelectionIf() {
+  auto it = portToSelection().find(controller_.portID());
+  if (it == portToSelection().end()) {
+    return folly::none;
+  }
+  return it->second;
+}
+
+bool Selector::isAvailable(AggregatePortID aggPortID) const {
+  for (const auto& portAndSelection : portToSelection()) {
+    Selection s = portAndSelection.second;
+    if (static_cast<AggregatePortID>(s.lagID.actorKey) == aggPortID) {
       return false;
     }
   }
   return true;
 }
 
-Selector::PortIDToLagID& Selector::portToLag() {
-  static Selector::PortIDToLagID portToLag_;
-  return portToLag_;
+Selector::PortIDToSelection& Selector::portToSelection() {
+  static Selector::PortIDToSelection portToSelection_;
+  return portToSelection_;
 }
+
+std::vector<PortID> Selector::getPortsWithSelection(Selection s) const {
+  std::vector<PortID> ports;
+
+  for (const auto& portIDAndSelection : portToSelection()) {
+    auto portID = portIDAndSelection.first;
+    auto selection = portIDAndSelection.second;
+    if (selection == s) {
+      ports.push_back(portID);
+    }
+  }
+
+  return ports;
+}
+
+void Selector::portDown() {
+  auto maybeSelection = getSelectionIf();
+  if (!maybeSelection) {
+    VLOG(4) << "Selection[" << controller_.portID() << "]: no LAG chosen";
+    return;
+  }
+  LinkAggregationGroupID myLagID = maybeSelection->lagID;
+
+  // ReceiveMachine::portDown() was invoked prior to this, which will eventually
+  // signal NOT partner.SYNC. If the MuxMachine was in state
+  // MuxState::COLLECTING_DISTRIBUTING, then it would have transitioned to
+  // MuxMachine::ATTACHED on this signal. Signalling UNSELECTED at this point
+  // will transition it to MuxMachine::DETACHED.
+  controller_.unselected();
+
+  auto ports =
+      getPortsWithSelection(Selection(myLagID, SelectionState::SELECTED));
+
+  controller_.standby(folly::range(ports.begin(), ports.end()));
+}
+
+void Selector::unselected() {
+  auto it = portToSelection().find(controller_.portID());
+  if (it == portToSelection().end()) {
+    return;
+  }
+
+  portToSelection().erase(it);
+}
+
+void Selector::selected() {
+  auto it = portToSelection().find(controller_.portID());
+  CHECK(it != portToSelection().end());
+  it->second.state = SelectionState::SELECTED;
+}
+
+void Selector::standby() {
+  auto it = portToSelection().find(controller_.portID());
+  if (it == portToSelection().end()) {
+    return;
+  }
+
+  it->second.state = SelectionState::STANDBY;
+}
+
 } // namespace fboss
 } // namespace facebook
