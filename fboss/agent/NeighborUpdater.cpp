@@ -367,7 +367,8 @@ void NeighborUpdater::portChanged(
       auto aggPort =
           sw_->getState()->getAggregatePorts()->getAggregatePortIf(portId);
       if (aggPort) {
-        if (aggPort->forwardingSubportCount() < 1) {
+        if (aggPort->forwardingSubportCount() <
+            aggPort->getMinimumLinkCount()) {
           auto aggPortID = aggPort->getID();
           LOG(INFO) << "Purging neighbor entry for aggregate port "
                     << aggPortID;
