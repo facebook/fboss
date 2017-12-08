@@ -190,9 +190,9 @@ class NodeBaseT : public NodeBase {
    */
 
   template<typename... Args>
-  typename std::enable_if<
+  std::enable_if_t<
     std::is_constructible<Fields, const Fields&, Args...>::value,
-    std::shared_ptr<Node>>::type
+    std::shared_ptr<Node>>
   clone(Args&&... args) const {
     return std::allocate_shared<NodeT>(CloneAllocator(), self(),
                                        std::forward<Args>(args)...);
