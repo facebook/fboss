@@ -12,9 +12,11 @@
 
 #include <thrift/lib/cpp/async/TAsyncSocket.h>
 
+DEFINE_string(qsfp_service_host, "::1", "Host running qsfp service");
+DEFINE_int32(qsfp_service_port, 5910, "Port running qsfp service");
+
 namespace facebook { namespace fboss {
 
-static constexpr int kQsfpServicePort = 5910;
 static constexpr int kQsfpConnTimeoutMs = 2000;
 static constexpr int kQsfpSendTimeoutMs = 5000;
 static constexpr int kQsfpRecvTimeoutMs = 5000;
@@ -25,7 +27,7 @@ QsfpClient::createClient(folly::EventBase* eb) {
   // SR relies on both configerator and smcc being up
   // use raw thrift instead
   auto createClient = [eb]() {
-    folly::SocketAddress addr("::1", kQsfpServicePort);
+    folly::SocketAddress addr(FLAGS_qsfp_service_host, FLAGS_qsfp_service_port);
     auto socket = apache::thrift::async::TAsyncSocket::newSocket(
         eb, addr, kQsfpConnTimeoutMs);
     socket->setSendTimeout(kQsfpSendTimeoutMs);

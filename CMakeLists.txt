@@ -391,7 +391,6 @@ add_library(fboss_agent STATIC
     fboss/agent/PortRemediator.cpp
     fboss/agent/PortStats.cpp
     fboss/agent/PortUpdateHandler.cpp
-    fboss/agent/QsfpClient.cpp
     fboss/agent/RestClient.cpp
     fboss/agent/RouteUpdateLogger.cpp
     fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
@@ -460,6 +459,8 @@ add_library(fboss_agent STATIC
 
     fboss/qsfp_service/oss/StatsPublisher.cpp
     fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
+    fboss/qsfp_service/lib/QsfpClient.cpp
+
 )
 
 set(ALL_THRIFT_LIBS

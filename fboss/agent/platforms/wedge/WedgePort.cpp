@@ -17,7 +17,7 @@
 
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
-#include "fboss/agent/QsfpClient.h"
+#include "fboss/qsfp_service/lib/QsfpClient.h"
 
 namespace facebook { namespace fboss {
 
