@@ -10,7 +10,7 @@
 #include "UDPHeader.h"
 #include <sstream>
 #include <folly/io/Cursor.h>
-#include <folly/Bits.h>
+#include <folly/lang/Bits.h>
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/SwSwitch.h"

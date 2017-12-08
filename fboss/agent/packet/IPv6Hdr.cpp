@@ -13,7 +13,7 @@
 #include <sstream>
 #include <folly/IPAddress.h>
 #include <folly/IPAddressV6.h>
-#include <folly/Bits.h>
+#include <folly/lang/Bits.h>
 #include "fboss/agent/packet/PktUtil.h"
 
 namespace facebook { namespace fboss {

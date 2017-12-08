@@ -12,7 +12,7 @@
 #include <string>
 #include <type_traits> // To use 'std::integral_constant'.
 
-#include <folly/Bits.h>
+#include <folly/lang/Bits.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/Range.h>

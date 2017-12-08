@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <folly/Bits.h>
+#include <folly/lang/Bits.h>
 #include <folly/IPAddressV4.h>
 #include "fboss/agent/types.h"
 #include "fboss/agent/Utils.h"

@@ -29,7 +29,7 @@
 #include "fboss/lib/usb/UsbError.h"
 #include "fboss/agent/BmcRestClient.h"
 
-#include <folly/Bits.h>
+#include <folly/lang/Bits.h>
 #include <folly/ScopeGuard.h>
 #include <libusb-1.0/libusb.h>
 
