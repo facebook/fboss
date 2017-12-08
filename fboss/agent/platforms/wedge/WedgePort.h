@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 namespace facebook { namespace fboss {
 
@@ -48,6 +49,8 @@ class WedgePort : public BcmPlatformPort {
   void linkSpeedChanged(const cfg::PortSpeed& speed) override;
   void linkStatusChanged(bool up, bool adminUp) override;
 
+  PortStatus toThrift(const std::shared_ptr<Port>& port);
+
   folly::Optional<TransceiverID> getTransceiverID() const override {
     return frontPanelPort_;
   }
@@ -61,6 +64,8 @@ class WedgePort : public BcmPlatformPort {
   }
 
   std::vector<int32_t> getChannels() const;
+
+  TransceiverIdxThrift getTransceiverMapping() const;
 
   folly::Future<TransmitterTechnology> getTransmitterTech(
       folly::EventBase* evb) const override;
@@ -91,8 +96,6 @@ class WedgePort : public BcmPlatformPort {
 
   folly::Future<TransceiverInfo> getTransceiverInfo(
     folly::EventBase* evb) const;
-
-
 };
 
 }} // facebook::fboss

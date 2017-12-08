@@ -124,18 +124,7 @@ std::unique_ptr<BaseWedgeI2CBus> WedgePlatform::getI2CBus() {
 }
 
 TransceiverIdxThrift WedgePlatform::getPortMapping(PortID portId) const {
-  auto info = TransceiverIdxThrift();
-  auto port = getPort(portId);
-
-  auto transceiver = port->getTransceiverID();
-  if (transceiver) {
-    info.transceiverId = static_cast<int32_t>(*transceiver);
-    info.__isset.transceiverId = true;
-  }
-  auto channels = port->getChannels();
-  info.channels = channels;
-  info.__isset.channels = true;
-  return info;
+  return getPort(portId)->getTransceiverMapping();
 }
 
 WedgePort* WedgePlatform::getPort(PortID id) const {
