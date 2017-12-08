@@ -13,6 +13,7 @@
 
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <vector>
 
@@ -65,6 +66,12 @@ class BcmPlatformPort : public PlatformPort {
    * this platform.
    */
   virtual LaneSpeeds supportedLaneSpeeds() const = 0;
+
+  /*
+   * What type of cable is plugged in to the transceiver.
+   */
+  virtual folly::Future<TransmitterTechnology> getTransmitterTech(
+      folly::EventBase* evb = nullptr) const = 0;
 
   /*
    * getTxSettings() returns the correct transmitter's amplitude control

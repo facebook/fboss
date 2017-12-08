@@ -93,8 +93,6 @@ class PlatformPort {
    */
   virtual void linkSpeedChanged(const cfg::PortSpeed& speed) = 0;
 
-  virtual folly::Future<TransmitterTechnology> getTransmitterTech(
-      folly::EventBase* evb = nullptr) const = 0;
 
   /*
    * Returns true if the port supports/expects to use a transceiver

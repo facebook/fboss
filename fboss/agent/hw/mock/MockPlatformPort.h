@@ -31,9 +31,6 @@ class MockPlatformPort : public PlatformPort {
   MOCK_METHOD0(isMediaPresent, bool());
   MOCK_METHOD2(linkStatusChanged, void(bool up, bool adminUp));
   MOCK_METHOD1(linkSpeedChanged, void(const cfg::PortSpeed& speed));
-  MOCK_CONST_METHOD1(
-      getTransmitterTech,
-      folly::Future<TransmitterTechnology>(folly::EventBase* evb));
   MOCK_CONST_METHOD0(supportsTransceiver, bool());
   MOCK_CONST_METHOD0(getTransceiverID, folly::Optional<TransceiverID>());
   MOCK_METHOD0(customizeTransceiver, void());
@@ -48,7 +45,6 @@ class MockPlatformPort : public PlatformPort {
           bool errors));
   MOCK_METHOD0(prepareForGracefulExit, void());
   MOCK_CONST_METHOD0(shouldDisableFEC, bool());
-  bool transceiverPresent;
 };
 
 }} // facebook::fboss
