@@ -367,6 +367,7 @@ void BcmPort::setupQueues(const QueueConfig& swQueues) {
 }
 
 void BcmPort::program(const shared_ptr<Port>& port) {
+  VLOG(1) << "Reprogramming BcmPort for port " << port->getID();
   setIngressVlan(port);
   setSpeed(port);
   setPause(port);

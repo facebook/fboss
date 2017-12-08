@@ -744,8 +744,8 @@ void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
 void BcmSwitch::processChangedPorts(const StateDelta& delta) {
   forEachChanged(delta.getPortsDelta(),
     [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-
-      auto bcmPort = portTable_->getBcmPort(newPort->getID());
+      auto id = newPort->getID();
+      auto bcmPort = portTable_->getBcmPort(id);
       if (oldPort->getName() != newPort->getName()) {
         bcmPort->updateName(newPort->getName());
       }
@@ -757,12 +757,21 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
       }
 
       auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
+      VLOG_IF(1, speedChanged) << "New speed on port " << id;
+
       auto vlanChanged = oldPort->getIngressVlan() != newPort->getIngressVlan();
+      VLOG_IF(1, vlanChanged) << "New ingress vlan on port " << id;
+
       auto pauseChanged = oldPort->getPause() != newPort->getPause();
+      VLOG_IF(1, pauseChanged) << "New pause settings on port " << id;
+
       auto sFlowChanged =
           (oldPort->getSflowIngressRate() != newPort->getSflowIngressRate()) ||
           (oldPort->getSflowEgressRate() != newPort->getSflowEgressRate());
+      VLOG_IF(1, sFlowChanged) << "New sFlow settings on port " << id;
+
       auto fecChanged = oldPort->getFEC() != newPort->getFEC();
+      VLOG_IF(1, fecChanged) << "New FEC settings on port " << id;
 
       if (speedChanged || vlanChanged || pauseChanged || sFlowChanged ||
           fecChanged) {
@@ -779,12 +788,24 @@ void BcmSwitch::pickupLinkStatusChanges(const StateDelta& delta) {
         if (!oldPort->isEnabled() && !newPort->isEnabled()) {
           return;
         }
+        auto id = newPort->getID();
+
         auto adminStateChanged =
-            oldPort->getAdminState() != newPort->getAdminState();
+          oldPort->getAdminState() != newPort->getAdminState();
+        if (adminStateChanged) {
+          auto adminStr = (newPort->isEnabled()) ? "ENABLED" : "DISABLED";
+          VLOG(1) << "Admin state changed on port " << id << ": " << adminStr;
+        }
+
         auto operStateChanged =
-            oldPort->getOperState() != newPort->getOperState();
+          oldPort->getOperState() != newPort->getOperState();
+        if (operStateChanged) {
+          auto operStr = (newPort->isUp()) ? "UP" : "DOWN";
+          VLOG(1) << "Oper state changed on port " << id << ": " << operStr;
+        }
+
         if (adminStateChanged || operStateChanged) {
-          auto bcmPort = portTable_->getBcmPort(newPort->getID());
+          auto bcmPort = portTable_->getBcmPort(id);
           bcmPort->linkStatusChanged(newPort);
         }
       });
