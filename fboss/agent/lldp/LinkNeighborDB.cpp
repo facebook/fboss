@@ -109,6 +109,12 @@ void LinkNeighborDB::pruneExpiredNeighbors(steady_clock::time_point now) {
   pruneLocked(now);
 }
 
+void LinkNeighborDB::portDown(PortID port) {
+  lock_guard<mutex> guard(mutex_);
+  // Port went down, prune lldp entries for that port
+  byLocalPort_.erase(port);
+}
+
 void LinkNeighborDB::pruneLocked(steady_clock::time_point now) {
   // We just do a linear scan for now.
   //

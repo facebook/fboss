@@ -46,6 +46,7 @@ class LinkNeighborDB {
    */
   void pruneExpiredNeighbors();
   void pruneExpiredNeighbors(std::chrono::steady_clock::time_point now);
+  void portDown(PortID port);
 
  private:
   class NeighborKey {

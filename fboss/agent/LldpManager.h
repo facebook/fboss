@@ -88,6 +88,10 @@ class LldpManager : private folly::AsyncTimeout {
     return &db_;
   }
 
+  void portDown(PortID port) {
+    db_.portDown(port);
+  }
+
  private:
   void timeoutExpired() noexcept override;
   void sendLldpInfo(SwSwitch* sw, const std::shared_ptr<SwitchState>& swState,
