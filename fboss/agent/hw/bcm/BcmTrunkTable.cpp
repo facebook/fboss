@@ -9,6 +9,10 @@
  */
 #include "BcmTrunkTable.h"
 
+extern "C" {
+#include <opennsl/trunk.h>
+}
+
 #include "BcmSwitch.h"
 #include "BcmTrunk.h"
 
@@ -23,6 +27,14 @@ BcmTrunkTable::BcmTrunkTable(const BcmSwitch* hw)
     : trunks_(), hw_(hw), trunkToMinLinkCount_() {}
 
 BcmTrunkTable::~BcmTrunkTable() {}
+
+void BcmTrunkTable::setupTrunking() {
+  if (!isBcmHWTrunkInitialized_) {
+    auto rv = opennsl_trunk_init(hw_->getUnit());
+    bcmCheckError(rv, "Failed to initialize trunking machinery");
+    isBcmHWTrunkInitialized_ = true;
+  }
+}
 
 void BcmTrunkTable::addTrunk(const std::shared_ptr<AggregatePort>& aggPort) {
   setupTrunking();
