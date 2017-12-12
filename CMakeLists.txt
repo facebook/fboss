@@ -180,6 +180,14 @@ foreach(lang ${THRIFT_LANGS})
         "${CMAKE_SOURCE_DIR}/fboss/qsfp_service/if" #file_path
         "${THRIFT_DIR}/fboss/qsfp_service/if" #output_path
         )
+        my_thrift_library(
+            "netlink_manager_service" #file_name
+            "NetlinkManagerService" #services
+            "${lang}" #language
+            "" #options
+            "${CMAKE_SOURCE_DIR}/fboss/netlink_manager/if" #file_path
+            "${THRIFT_DIR}/fboss/netlink_manager/if" #output_path
+        )
 endforeach(lang)
 
 include_directories(${THRIFT_DIR})
@@ -253,6 +261,15 @@ add_executable(wedge_agent
     fboss/agent/platforms/wedge/wedge_agent.cpp
     fboss/agent/platforms/wedge/oss/WedgePort.cpp
     fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
+)
+
+add_executable(netlink_manager
+    fboss/netlink_manager/NlResources.cpp
+    fboss/netlink_manager/NetlinkManager.cpp
+    fboss/netlink_manager/NetlinkPoller.cpp
+    fboss/netlink_manager/main.cpp
+    fboss/netlink_manager/utils/AddressUtils.cpp
+    fboss/netlink_manager/NetlinkManagerHandler.cpp
 )
 
 add_executable(qsfp_service
@@ -515,6 +532,10 @@ set(LIBFBOSS_AGENT_DEPS
 
 target_link_libraries(fboss_agent "${LIBFBOSS_AGENT_DEPS}")
 target_link_libraries(wedge_agent
+                        fboss_agent
+                        "${LIBFBOSS_AGENT_DEPS}"
+                    )
+target_link_libraries(netlink_manager
                         fboss_agent
                         "${LIBFBOSS_AGENT_DEPS}"
                     )

@@ -15,9 +15,6 @@ extern "C" {
 namespace folly {
 class EventBase;
 }
-namespace {
-struct nl_dump_params initDumpParams();
-}
 namespace facebook {
 namespace fboss {
 using FbossClient = std::unique_ptr<FbossCtrlAsyncClient>;

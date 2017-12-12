@@ -1,7 +1,6 @@
 #include "NetlinkManager.h"
 #include <chrono>
 #include "NetlinkManagerException.h"
-#include "common/logging/logging.h"
 #include "folly/Format.h"
 #include "folly/ScopeGuard.h"
 #include "folly/futures/Future.h"
