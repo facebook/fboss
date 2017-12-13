@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import socket
+import unittest
 
 from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 from fboss.system_tests.testutils.ip_conversion import ip_str_to_addr
@@ -12,6 +13,7 @@ from neteng.fboss.ctrl.ttypes import UnicastRoute
 from neteng.fboss.ctrl.ttypes import StdClientIds
 
 
+@unittest.skip("Working test but deployment is buggy now so temporarily skipping")
 @test_tags("netlink-manager")
 class NetlinkManager(FbossBaseSystemTest):
     NETLINK_MANAGER_CLIENT_ID = StdClientIds.NETLINK_LISTENER
