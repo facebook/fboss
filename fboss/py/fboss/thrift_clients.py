@@ -98,13 +98,15 @@ class PcapPushSubClient(PcapPushSubscriber.Client):
 
 class QsfpServiceClient(QsfpService.Client):
     DEFAULT_PORT = 5910
+    DEFAULT_TIMEOUT = 10.0
 
     # we ignore the value of port
-    def __init__(self, host, port=None, timeout=10.0):
+    def __init__(self, host, port=None, timeout=None):
         # In a box with all 32 QSFP ports populated, it takes about 7.5s right
         # now to read all 32 QSFP ports. So, put the defaut timeout to 10s.
         self.host = host
 
+        timeout = timeout or self.DEFAULT_TIMEOUT
         self._socket = TSocket(host, self.DEFAULT_PORT)
         # TSocket.setTimeout() takes a value in milliseconds
         self._socket.setTimeout(timeout * 1000)
