@@ -31,7 +31,8 @@ BcmHostKey::BcmHostKey(
 }
 
 std::string BcmHostKey::str() const {
-  return folly::to<std::string>(RouteNextHop::str(), "@vrf", getVrf());
+  return folly::to<std::string>(
+      "BcmHost: ", RouteNextHop::str(), "@vrf", getVrf());
 }
 
 bool operator==(const BcmHostKey& a, const BcmHostKey& b) {

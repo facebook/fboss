@@ -37,6 +37,12 @@ std::string hostStr(const opennsl_l3_host_t& host) {
 
 namespace facebook { namespace fboss {
 
+std::ostream& operator<<(
+    std::ostream& os,
+    const facebook::fboss::BcmEcmpHostKey& key) {
+  return os << "BcmEcmpHost: " << key.second << "@vrf " << key.first;
+}
+
 using std::unique_ptr;
 using std::shared_ptr;
 using folly::MacAddress;
@@ -378,6 +384,8 @@ HostT* BcmHostTable::incRefOrCreateBcmHostImpl(
   if (iter != map->cend()) {
     // there was an entry already there
     iter->second.second++;  // increase the reference counter
+    VLOG(3) << "referenced " << key
+            << ". new ref count: " << iter->second.second;
     return iter->second.first.get();
   }
   auto newHost = std::make_unique<HostT>(hw_, key);
@@ -385,6 +393,8 @@ HostT* BcmHostTable::incRefOrCreateBcmHostImpl(
   auto ret = map->emplace(key, std::make_pair(std::move(newHost), 1));
   CHECK_EQ(ret.second, true)
     << "must insert BcmHost/BcmEcmpHost as a new entry in this case";
+  VLOG(3) << "created " << key
+          << ". new ref count: " << ret.first->second.second;
   return hostPtr;
 }
 
@@ -421,8 +431,8 @@ BcmEcmpHost* BcmHostTable::getBcmEcmpHost(
     const BcmEcmpHostKey& key) const {
   auto host = getBcmEcmpHostIf(key);
   if (!host) {
-    throw FbossError("Cannot find BcmEcmpHost vrf=", key.first,
-                     " fwd=", key.second);
+    throw FbossError(
+        "Cannot find BcmEcmpHost vrf=", key.first, " fwd=", key.second);
   }
   return host;
 }
@@ -448,9 +458,11 @@ HostT* BcmHostTable::derefBcmHostImpl(
   auto& entry = iter->second;
   CHECK_GT(entry.second, 0);
   if (--entry.second == 0) {
+    VLOG(3) << "erase host " << key << " from host map";
     map->erase(iter);
     return nullptr;
   }
+  VLOG(3) << "dereferenced host " << key << ". new ref count: " << entry.second;
   return entry.first.get();
 }
 
@@ -472,6 +484,8 @@ BcmEgressBase* BcmHostTable::incEgressReference(opennsl_if_t egressId) {
   auto it = egressMap_.find(egressId);
   CHECK(it != egressMap_.end());
   it->second.second++;
+  VLOG(3) << "referenced egress " << egressId
+          << ". new ref count: " << it->second.second;
   return it->second.first.get();
 }
 
@@ -492,6 +506,8 @@ BcmEgressBase* BcmHostTable::derefEgress(opennsl_if_t egressId) {
     egressMap_.erase(egressId);
     return nullptr;
   }
+  VLOG(3) << "dereferenced egress " << egressId
+          << ". new ref count: " << it->second.second;
   return it->second.first.get();
 }
 
