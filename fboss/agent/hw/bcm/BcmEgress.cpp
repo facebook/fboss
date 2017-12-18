@@ -118,7 +118,7 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
               << " @ brcmif " << intfId;
       addOrUpdateEgress = true;
     } else {
-      VLOG(1) << "Egress object for : " << ip
+      VLOG(1) << "Egress object for: " << ip
               << " @ brcmif " << intfId
               << " already exists";
     }
@@ -126,11 +126,6 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
     addOrUpdateEgress = true;
   }
   if (addOrUpdateEgress) {
-    if (egressId2EgressAndBoolCitr ==
-        warmBootCache->egressId2EgressAndBool_end()) {
-      VLOG(1) << "Adding egress object for next hop : " << ip
-              << " @ brcmif " << intfId;
-    }
     uint32_t flags = 0;
     if (id_ != INVALID) {
       flags |= OPENNSL_L3_REPLACE|OPENNSL_L3_WITH_ID;

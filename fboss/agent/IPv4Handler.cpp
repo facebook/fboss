@@ -217,7 +217,7 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
   stats->port(port)->ipv4Nexthop();
   if (!resolveMac(state.get(), port, v4Hdr.dstAddr)) {
     stats->port(port)->ipv4NoArp();
-    VLOG(3) << "Cannot find the interface to send out ARP request for "
+    VLOG(4) << "Cannot find the interface to send out ARP request for "
       << v4Hdr.dstAddr.str();
   }
   // TODO: ideally, we need to store this packet until the ARP is done and

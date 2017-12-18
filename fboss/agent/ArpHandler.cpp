@@ -149,7 +149,7 @@ static void sendArp(SwSwitch *sw,
                     IPAddressV4 senderIP,
                     MacAddress targetMac,
                     IPAddressV4 targetIP) {
-  VLOG(3) << "sending ARP " << ((op == ARP_OP_REQUEST) ? "request" : "reply")
+  VLOG(4) << "sending ARP " << ((op == ARP_OP_REQUEST) ? "request" : "reply")
           << " on vlan " << vlan
           << " to " << targetIP.str() << " (" << targetMac << "): "
           << senderIP.str() << " is " << senderMac;

@@ -325,7 +325,7 @@ void IPv6Handler::handleRouterSolicitation(unique_ptr<RxPacket> pkt,
     dstIP = IPAddressV6("ff01::1");
   }
 
-  VLOG(3) << "sending router advertisement in response to solicitation from "
+  VLOG(4) << "sending router advertisement in response to solicitation from "
     << dstIP.str() << " (" << dstMac << ")";
 
   uint32_t pktLen = IPv6RouteAdvertiser::getPacketSize(intf.get());
@@ -657,7 +657,7 @@ void IPv6Handler::sendNeighborAdvertisement(VlanID vlan,
                                             IPAddressV6 srcIP,
                                             MacAddress dstMac,
                                             IPAddressV6 dstIP) {
-  VLOG(3) << "sending neighbor advertisement to " << dstIP.str()
+  VLOG(4) << "sending neighbor advertisement to " << dstIP.str()
     << " (" << dstMac << "): for " <<  srcIP << " (" << srcMac << ")";
 
   uint32_t flags = 0xa0000000; // router, override

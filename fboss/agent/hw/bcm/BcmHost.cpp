@@ -114,11 +114,11 @@ void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
         existingHost.l3a_intf == newHost.l3a_intf;
     };
     if (!equivalent(host, vrfIp2HostCitr->second)) {
-      LOG (FATAL) << "Host entries should never change, addr: " << addr
+      LOG(FATAL) << "Host entries should never change, addr: " << addr
         <<" existing: " << hostStr(vrfIp2HostCitr->second)
         <<" new: " << hostStr(host);
     } else {
-      VLOG(1) << "Host entry for : " << addr << " already exists";
+      VLOG(1) << "Host entry for " << addr << " already exists";
     }
     warmBootCache->programmed(vrfIp2HostCitr);
   } else {
@@ -126,8 +126,8 @@ void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
     auto rc = opennsl_l3_host_add(hw_->getUnit(), &host);
     bcmCheckError(rc, "failed to program L3 host object for ", key_.str(),
       " @egress ", getEgressId());
-    VLOG(3) << "created L3 host object for " << key_.str()
-    << " @egress " << getEgressId();
+    VLOG(3) << "created L3 host object for " << key_.str() << " @egress "
+            << getEgressId();
   }
   addedInHW_ = true;
 }
@@ -136,8 +136,12 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
                       opennsl_port_t port, RouteForwardAction action) {
   unique_ptr<BcmEgress> createdEgress{nullptr};
   BcmEgress* egressPtr{nullptr};
+  const auto& addr = key_.addr();
+  const auto vrf = key_.getVrf();
   // get the egress object and then update it with the new MAC
   if (egressId_ == BcmEgressBase::INVALID) {
+    VLOG(3) << "Host entry for " << key_.str()
+            << " does not have an egress, create one.";
     createdEgress = std::make_unique<BcmEgress>(hw_);
     egressPtr = createdEgress.get();
   } else {
@@ -145,8 +149,6 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
       hw_->writableHostTable()->getEgressObjectIf(egressId_));
   }
   CHECK(egressPtr);
-  const auto& addr = key_.addr();
-  const auto vrf = key_.getVrf();
   if (mac) {
     egressPtr->programToPort(intf, vrf, addr, *mac, port);
   } else {
@@ -486,6 +488,7 @@ BcmEgressBase* BcmHostTable::derefEgress(opennsl_if_t egressId) {
       CHECK(numEcmpEgressProgrammed_ > 0);
       numEcmpEgressProgrammed_--;
     }
+    VLOG(3) << "erase egress " << egressId << " from egress map";
     egressMap_.erase(egressId);
     return nullptr;
   }
@@ -552,6 +555,7 @@ BcmEgressBase* BcmHostTable::getEgressObjectIf(opennsl_if_t egress) {
 void BcmHostTable::insertBcmEgress(
     std::unique_ptr<BcmEgressBase> egress) {
   auto id = egress->getID();
+  VLOG(3) << "insert egress " << id << " into egress map";
   if (egress->isEcmp()) {
     numEcmpEgressProgrammed_++;
   }

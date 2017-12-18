@@ -160,6 +160,8 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
 
 void BcmRoute::programHostRoute(opennsl_if_t egressId,
     const RouteNextHopEntry& fwd, bool replace) {
+  VLOG(3) << "creating a host route entry for " << prefix_.str() << " @egress "
+          << egressId << " with " << fwd;
   auto hostRouteHost = hw_->writableHostTable()->incRefOrCreateBcmHost(
       BcmHostKey(vrf_, prefix_));
   hostRouteHost->setEgressId(egressId);
@@ -196,7 +198,7 @@ void BcmRoute::programLpmRoute(opennsl_if_t egressId,
       existingRoute.l3a_intf == newRoute.l3a_intf;
     };
     if (!equivalent(rt, vrfAndPfx2RouteCitr->second)) {
-      VLOG (3) << "Updating route for : " << prefix_ << "/"
+      VLOG(3) << "Updating route for : " << prefix_ << "/"
         << static_cast<int>(len_) << " in vrf : " << vrf_;
       // This is a change
       rt.l3a_flags |= OPENNSL_L3_REPLACE;
@@ -210,7 +212,7 @@ void BcmRoute::programLpmRoute(opennsl_if_t egressId,
   }
   if (addRoute) {
     if (vrfAndPfx2RouteCitr == warmBootCache->vrfAndPrefix2Route_end()) {
-      VLOG (3) << "Adding route for : " << prefix_ << "/"
+      VLOG(3) << "Adding route for : " << prefix_ << "/"
         << static_cast<int>(len_) << " in vrf : " << vrf_;
     }
     if (added_) {
@@ -272,8 +274,8 @@ BcmRoute::~BcmRoute() {
     auto hostKey = BcmHostKey(vrf_, prefix_);
     auto host = hw_->getHostTable()->getBcmHostIf(hostKey);
     CHECK(host);
-    VLOG(3) << "Derefrencing host prefix for : " << prefix_ << "/" << len_
-            << " host: " << host;
+    VLOG(3) << "Deleting host route; derefrence host prefix for : " << prefix_
+            << "/" << len_ << " host: " << host;
     hw_->writableHostTable()->derefBcmHost(hostKey);
   } else {
     deleteLpmRoute(hw_->getUnit(), vrf_, prefix_, len_);

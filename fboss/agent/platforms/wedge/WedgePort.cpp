@@ -279,8 +279,8 @@ void WedgePort::customizeTransceiver() {
   auto clientFuture = QsfpClient::createClient(evb);
   auto doCustomize = [transID, speed, speedString](
                          std::unique_ptr<QsfpServiceAsyncClient> client) {
-    LOG(INFO) << "Sending qsfp customize request for transceiver " << transID
-              << " to speed " << speedString;
+    VLOG(4) << "Sending qsfp customize request for transceiver " << transID
+            << " to speed " << speedString;
     auto options = QsfpClient::getRpcOptions();
     return client->future_customizeTransceiver(options, transID, speed);
   };

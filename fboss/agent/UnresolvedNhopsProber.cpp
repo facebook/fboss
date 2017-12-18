@@ -49,14 +49,14 @@ void UnresolvedNhopsProber::timeoutExpired() noexcept {
         auto nhop4 = nhop.addr().asV4();
         auto arpEntry = vlan->getArpTable()->getEntryIf(nhop4);
         if (!arpEntry || arpEntry->getPort() == PortID(0)) {
-          VLOG(3) <<" Sending probe for unresolved next hop: " << nhop4;
+          VLOG(4) <<" Sending probe for unresolved next hop: " << nhop4;
           ArpHandler::sendArpRequest(sw_, vlan, nhop4);
         }
       } else {
         auto nhop6 = nhop.addr().asV6();
         auto ndpEntry = vlan->getNdpTable()->getEntryIf(nhop6);
         if (!ndpEntry || ndpEntry->getPort() == PortID(0)) {
-          VLOG(3) <<" Sending probe for unresolved next hop: " << nhop6;
+          VLOG(4) <<" Sending probe for unresolved next hop: " << nhop6;
           IPv6Handler::sendNeighborSolicitation(sw_, nhop6, vlan);
         }
       }
