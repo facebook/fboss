@@ -1050,11 +1050,8 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (config->__isset.proto) {
     newAcl->setProto(config->proto);
   }
-  if (config->__isset.tcpFlags) {
-    newAcl->setTcpFlags(config->tcpFlags);
-  }
-  if (config->__isset.tcpFlagsMask) {
-    newAcl->setTcpFlagsMask(config->tcpFlagsMask);
+  if (config->__isset.tcpFlagsBitMap) {
+    newAcl->setTcpFlagsBitMap(config->tcpFlagsBitMap);
   }
   if (config->__isset.srcPort) {
     newAcl->setSrcPort(config->srcPort);

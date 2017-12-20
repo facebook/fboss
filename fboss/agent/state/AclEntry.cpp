@@ -24,8 +24,7 @@ constexpr auto kDstIp = "dstIp";
 constexpr auto kL4SrcPort = "l4SrcPort";
 constexpr auto kL4DstPort = "l4DstPort";
 constexpr auto kProto = "proto";
-constexpr auto kTcpFlags = "tcpFlags";
-constexpr auto kTcpFlagsMask = "tcpFlagsMask";
+constexpr auto kTcpFlagsBitMap = "tcpFlagsBitMap";
 constexpr auto kSrcPort = "srcPort";
 constexpr auto kDstPort = "dstPort";
 constexpr auto kSrcL4PortRange = "srcL4PortRange";
@@ -118,19 +117,16 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
     aclEntry[kDstIp] = IPAddress::networkToString(dstIp);
   }
   if (proto) {
-    aclEntry[kProto] = static_cast<uint16_t>(proto);
+    aclEntry[kProto] = static_cast<uint8_t>(proto.value());
   }
-  if (tcpFlags) {
-    aclEntry[kTcpFlags] = static_cast<uint16_t>(tcpFlags);
-  }
-  if (tcpFlagsMask) {
-    aclEntry[kTcpFlagsMask] = static_cast<uint16_t>(tcpFlagsMask);
+  if (tcpFlagsBitMap) {
+    aclEntry[kTcpFlagsBitMap] = static_cast<uint8_t>(tcpFlagsBitMap.value());
   }
   if (srcPort) {
-    aclEntry[kSrcPort] = static_cast<uint16_t>(srcPort);
+    aclEntry[kSrcPort] = static_cast<uint16_t>(srcPort.value());
   }
   if (dstPort) {
-    aclEntry[kDstPort] = static_cast<uint16_t>(dstPort);
+    aclEntry[kDstPort] = static_cast<uint16_t>(dstPort.value());
   }
   if (srcL4PortRange) {
     aclEntry[kSrcL4PortRange] = srcL4PortRange.value().toFollyDynamic();
@@ -188,11 +184,8 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   if (aclEntryJson.find(kProto) != aclEntryJson.items().end()) {
     aclEntry.proto = aclEntryJson[kProto].asInt();
   }
-  if (aclEntryJson.find(kTcpFlags) != aclEntryJson.items().end()) {
-    aclEntry.tcpFlags = aclEntryJson[kTcpFlags].asInt();
-  }
-  if (aclEntryJson.find(kTcpFlagsMask) != aclEntryJson.items().end()) {
-    aclEntry.tcpFlagsMask = aclEntryJson[kTcpFlagsMask].asInt();
+  if (aclEntryJson.find(kTcpFlagsBitMap) != aclEntryJson.items().end()) {
+    aclEntry.tcpFlagsBitMap = aclEntryJson[kTcpFlagsBitMap].asInt();
   }
   if (aclEntryJson.find(kSrcPort) != aclEntryJson.items().end()) {
     aclEntry.srcPort = aclEntryJson[kSrcPort].asInt();

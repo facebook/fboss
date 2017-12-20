@@ -135,17 +135,19 @@ struct AclEntry {
 
   /**
    * IP Protocol. e.g, 6 for TCP
+   * Valid value should between 0-255.
+   * Note: Should use uint8, but `byte` in thrift is int8, so use i16 instead.
+   * Otherwise we will have to use [-127,-1] to represent [128,255], which is
+   * not straight-forward at all.
    */
   7: optional i16 proto
 
   /**
-   * TCP flags and mask (to support "don't care" bits). As in IP address,
-   * mask = 1 means we _care_ about this bit position.
-   * Example: tcpFlags = 16, tcpFlagsMask = 16 means ACK set, while ignoring
-   * all other bits
+   * TCP flags(aka Control bits) Bit Map. e.g, 16 for ACK set
+   * Starting from the FIN flag which is bit 0 and bit 7 is the CWR bit
+   * Valid value should between 0-255.
    */
-  8: optional i16 tcpFlags
-  9: optional i16 tcpFlagsMask
+  8: optional i16 tcpFlagsBitMap
 
   /**
    * Physical switch ports.
@@ -165,6 +167,7 @@ struct AclEntry {
 
   /**
    * Icmp type and code
+   * Valid value should between 0-255.
    * Code can only be set if type is set.
    * "proto" field must be 1 (icmpv4) or 58 (icmpv6)
    */

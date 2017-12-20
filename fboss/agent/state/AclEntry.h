@@ -129,8 +129,6 @@ private:
 };
 
 struct AclEntryFields {
-  // Invalid physical port for initialization
-  static const uint16_t kInvalidPhysicalPort = 9999;
   static const uint8_t kProtoIcmp = 1;
   static const uint8_t kProtoIcmpv6 = 58;
   static const uint8_t kMaxIcmpType = 0xFF;
@@ -150,11 +148,10 @@ struct AclEntryFields {
   std::string name{nullptr};
   folly::CIDRNetwork srcIp{std::make_pair(folly::IPAddress(), 0)};
   folly::CIDRNetwork dstIp{std::make_pair(folly::IPAddress(), 0)};
-  uint8_t proto{0};
-  uint8_t tcpFlags{0};
-  uint8_t tcpFlagsMask{0};
-  uint16_t srcPort{kInvalidPhysicalPort};
-  uint16_t dstPort{kInvalidPhysicalPort};
+  folly::Optional<uint8_t> proto{folly::none};
+  folly::Optional<uint8_t> tcpFlagsBitMap{folly::none};
+  folly::Optional<uint16_t> srcPort{folly::none};
+  folly::Optional<uint16_t> dstPort{folly::none};
   folly::Optional<AclL4PortRange> srcL4PortRange{folly::none};
   folly::Optional<AclL4PortRange> dstL4PortRange{folly::none};
   folly::Optional<AclPktLenRange> pktLenRange{folly::none};
@@ -198,8 +195,7 @@ class AclEntry :
            getFields()->srcIp == acl.getSrcIp() &&
            getFields()->dstIp == acl.getDstIp() &&
            getFields()->proto == acl.getProto() &&
-           getFields()->tcpFlags == acl.getTcpFlags() &&
-           getFields()->tcpFlagsMask == acl.getTcpFlagsMask() &&
+           getFields()->tcpFlagsBitMap == acl.getTcpFlagsBitMap() &&
            getFields()->srcPort == acl.getSrcPort() &&
            getFields()->dstPort == acl.getDstPort() &&
            getFields()->srcL4PortRange == acl.getSrcL4PortRange() &&
@@ -251,31 +247,23 @@ class AclEntry :
     writableFields()->dstIp = ip;
   }
 
-  uint16_t getProto() const {
+  folly::Optional<uint8_t> getProto() const {
     return getFields()->proto;
   }
 
-  void setProto(const uint16_t proto) {
+  void setProto(const uint8_t proto) {
     writableFields()->proto = proto;
   }
 
-  uint16_t getTcpFlags() const {
-    return getFields()->tcpFlags;
+  folly::Optional<uint8_t> getTcpFlagsBitMap() const {
+    return getFields()->tcpFlagsBitMap;
   }
 
-  void setTcpFlags(const uint16_t flags) {
-    writableFields()->tcpFlags = flags;
+  void setTcpFlagsBitMap(const uint8_t flagsBitMap) {
+    writableFields()->tcpFlagsBitMap = flagsBitMap;
   }
 
-  uint16_t getTcpFlagsMask() const {
-    return getFields()->tcpFlagsMask;
-  }
-
-  void setTcpFlagsMask(const uint16_t flagsMask) {
-    writableFields()->tcpFlagsMask = flagsMask;
-  }
-
-  uint16_t getSrcPort() const {
+  folly::Optional<uint16_t> getSrcPort() const {
     return getFields()->srcPort;
   }
 
@@ -283,7 +271,7 @@ class AclEntry :
     writableFields()->srcPort = port;
   }
 
-  uint16_t getDstPort() const {
+  folly::Optional<uint16_t> getDstPort() const {
     return getFields()->dstPort;
   }
 
