@@ -4,8 +4,12 @@
 
 int main(int argc, char** argv) {
   folly::init(&argc, &argv);
-  folly::EventBase eb;
-  facebook::fboss::NetlinkManager(&eb).run();
-  eb.loopForever();
+  auto netlinkManagerThread = std::make_unique<std::thread>([] {
+    folly::EventBase eb;
+    auto nlm = std::make_unique<facebook::fboss::NetlinkManager>(&eb);
+    nlm->run();
+    eb.loopForever();
+  });
+  netlinkManagerThread->join();
   return 0;
 }
