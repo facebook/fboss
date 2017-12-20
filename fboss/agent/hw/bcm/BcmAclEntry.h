@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/types.h"
 
 namespace facebook { namespace fboss {
@@ -86,6 +87,8 @@ public:
   bool isExactMatch() const {
     return max_ == min_;
   }
+
+  std::string str() const;
 
 private:
   uint32_t flags_;

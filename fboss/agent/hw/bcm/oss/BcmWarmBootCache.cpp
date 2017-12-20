@@ -20,4 +20,8 @@ void BcmWarmBootCache::populateAcls(
 void BcmWarmBootCache::populateAclRanges(
   const BcmAclEntryHandle /*acl*/,
   AclRange2BcmAclRangeHandle& /*ranges*/) {}
+
+void BcmWarmBootCache::removeBcmAcl(BcmAclEntryHandle /*handle*/) {}
+
+void BcmWarmBootCache::removeBcmAclRange(BcmAclRangeHandle /*handle*/) {}
 }} // facebook::fboss

@@ -112,6 +112,18 @@ uint32_t BcmAclTable::getAclRangeRefCount(const AclRange& range) const {
   }
 }
 
+folly::Optional<uint32_t> BcmAclTable::getAclRangeRefCountIf(
+    BcmAclRangeHandle handle) const {
+  folly::Optional<uint32_t> refCount{folly::none};
+  for (auto iter = aclRangeMap_.begin(); iter != aclRangeMap_.end(); iter++) {
+    if (iter->second.first->getHandle() == handle) {
+      refCount = iter->second.second;
+      break;
+    }
+  }
+  return refCount;
+}
+
 uint32_t BcmAclTable::getAclRangeCount() const {
   return aclRangeMap_.size();
 }

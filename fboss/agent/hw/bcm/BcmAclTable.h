@@ -33,6 +33,9 @@ class BcmAclTable {
   BcmAclRange*  getAclRangeIf(const AclRange& range) const;
   // return 0 if range does not exist
   uint32_t getAclRangeRefCount(const AclRange& range) const;
+  // if range doesn't exist, return folly::none
+  folly::Optional<uint32_t> getAclRangeRefCountIf(
+    BcmAclRangeHandle handle) const;
   uint32_t getAclRangeCount() const;
 
  private:

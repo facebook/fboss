@@ -684,7 +684,7 @@ void BcmWarmBootCache::clear() {
 
   // Delete interfaces
   for (auto vlanMacAndIntf : vlanAndMac2Intf_) {
-    VLOG(1) <<"Deletingl3 interface for vlan: " << vlanMacAndIntf.first.first
+    VLOG(1) <<"Deleting l3 interface for vlan: " << vlanMacAndIntf.first.first
       <<" and mac : " << vlanMacAndIntf.first.second;
     auto rv = opennsl_l3_intf_delete(hw_->getUnit(), &vlanMacAndIntf.second);
     bcmLogFatal(rv, hw_, "failed to delete l3 interface for vlan: ",
@@ -717,6 +717,23 @@ void BcmWarmBootCache::clear() {
 
   egressIdsFromBcmHostInWarmBootFile_.clear();
   vrfIp2EgressFromBcmHostInWarmBootFile_.clear();
+
+  // Delete acls and acl ranges, since acl(field process) doesn't support
+  // opennsl, we call BcmAclTable to remove the unclaimed acls
+  VLOG(1) << "Unclaimed acl count=" << priority2BcmAclEntryHandle_.size();
+  for (auto aclItr: priority2BcmAclEntryHandle_) {
+    VLOG(1) << "Deleting unclaimed acl: prio=" << aclItr.first
+            << ", handle=" << aclItr.second;
+    removeBcmAcl(aclItr.second);
+  }
+  priority2BcmAclEntryHandle_.clear();
+  VLOG(1) << "Unclaimed acl range count=" << aclRange2BcmAclRangeHandle_.size();
+  for (auto aclRangeItr: aclRange2BcmAclRangeHandle_) {
+    VLOG(1) << "Deleting unclaimed acl range=" << aclRangeItr.first.str()
+            << ", handle=" << aclRangeItr.second.first;
+    removeBcmAclRange(aclRangeItr.second.first);
+  }
+  aclRange2BcmAclRangeHandle_.clear();
 }
 
 }}

@@ -156,7 +156,8 @@ class BcmWarmBootCache {
       void *user_data);
 
   /**
-   * Helper functions for populate AclEntry and AclRange
+   * Helper functions for populate AclEntry and AclRange since we don't have
+   * OpenNSL support for Field Processor
    */
   // retrieve all bcm acls of the specified group
   void populateAcls(const int groupId, AclRange2BcmAclRangeHandle& ranges,
@@ -164,6 +165,11 @@ class BcmWarmBootCache {
   // retrieve bcm acl ranges for the specified acl
   void populateAclRanges(const BcmAclEntryHandle acl,
                          AclRange2BcmAclRangeHandle& ranges);
+  // remove bcm acl directly from h/w
+  void removeBcmAcl(BcmAclEntryHandle handle);
+  // remove bcm acl range directly from h/w
+  void removeBcmAclRange(BcmAclRangeHandle handle);
+
  public:
   /*
    * Iterators and find functions for finding VlanInfo

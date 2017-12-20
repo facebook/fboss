@@ -304,6 +304,7 @@ add_library(fboss_agent STATIC
     fboss/agent/HighresCounterSubscriptionHandler.cpp
     fboss/agent/HighresCounterUtil.cpp
     fboss/agent/hw/BufferStatsLogger.cpp
+    fboss/agent/hw/bcm/BcmAclEntry.cpp
     fboss/agent/hw/bcm/BcmAclTable.cpp
     fboss/agent/hw/bcm/BcmAPI.cpp
     fboss/agent/hw/bcm/BcmEgress.cpp
