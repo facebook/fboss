@@ -57,8 +57,17 @@ RTMapDelta StateDelta::getRouteTablesDelta() const {
                     new_->getRouteTables().get());
 }
 
-NodeMapDelta<AclMap> StateDelta::getAclsDelta() const {
-  return NodeMapDelta<AclMap>(old_->getAcls().get(), new_->getAcls().get());
+AclMapDelta StateDelta::getAclsDelta() const {
+  std::unique_ptr<PrioAclMap> oldAcls, newAcls;
+  if (old_->getAcls()) {
+    oldAcls.reset(new PrioAclMap());
+    oldAcls->addAcls(old_->getAcls());
+  }
+  if (new_->getAcls()) {
+    newAcls.reset(new PrioAclMap());
+    newAcls->addAcls(new_->getAcls());
+  }
+  return AclMapDelta(std::move(oldAcls), std::move(newAcls));
 }
 
 NodeMapDelta<AggregatePortMap> StateDelta::getAggregatePortsDelta() const {

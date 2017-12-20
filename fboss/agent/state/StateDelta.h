@@ -50,7 +50,7 @@ class StateDelta {
   VlanMapDelta getVlansDelta() const;
   NodeMapDelta<InterfaceMap> getIntfsDelta() const;
   RTMapDelta getRouteTablesDelta() const;
-  NodeMapDelta<AclMap> getAclsDelta() const;
+  AclMapDelta getAclsDelta() const;
   NodeMapDelta<AggregatePortMap> getAggregatePortsDelta() const;
   NodeMapDelta<SflowCollectorMap> getSflowCollectorsDelta() const;
 

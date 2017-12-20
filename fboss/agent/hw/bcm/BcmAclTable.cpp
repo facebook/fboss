@@ -76,6 +76,11 @@ void BcmAclTable::processRemovedAcl(
     AclRange range(AclRange::DST_L4_PORT, r.getMin(), r.getMax());
     derefBcmAclRange(range);
   }
+  if (acl->getPktLenRange()) {
+    AclPktLenRange r = acl->getPktLenRange().value();
+    AclRange range(AclRange::PKT_LEN, r.getMin(), r.getMax());
+    derefBcmAclRange(range);
+  }
 
 }
 
