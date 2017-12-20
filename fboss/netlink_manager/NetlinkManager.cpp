@@ -122,12 +122,14 @@ void NetlinkManager::setMonitoredInterfaces() {
 std::set<std::string> NetlinkManager::getFbossInterfaces() {
   std::set<std::string> interfaceNames;
   std::map<int32_t, fboss::InterfaceDetail> interfaceDetails;
+  // getAllInterfaces only get Fboss interfaces, not eth0, lo, etc
   fbossClient_->sync_getAllInterfaces(interfaceDetails);
   for (auto const& interfaceDetail : interfaceDetails) {
-    std::string interfaceName = interfaceDetail.second.get_interfaceName();
-    if (interfaceName.find("fboss") != std::string::npos) {
-      interfaceNames.insert(interfaceName);
-    }
+    // get_interfaceName() returns "Interface 10", while we want "fboss10"
+    // for if_nametoindex so I'm going this roundabout way.
+    int fbossInterfaceId = interfaceDetail.second.get_interfaceId();
+    std::string interfaceName = "fboss" + std::to_string(fbossInterfaceId);
+    interfaceNames.insert(interfaceName);
   }
   return interfaceNames;
 }
