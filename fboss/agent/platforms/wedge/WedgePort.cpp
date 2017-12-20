@@ -65,9 +65,8 @@ folly::Future<TransceiverInfo> WedgePort::getTransceiverInfo() const {
 
 folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
     folly::EventBase* evb) const {
-  if (!evb) {
-    evb = platform_->getEventBase();
-  }
+  DCHECK(evb);
+
   // If there's no transceiver this is a backplane port.
   // However, we know these are using copper, so pass that along
   if (!supportsTransceiver()) {
@@ -93,13 +92,11 @@ folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
 // Get correct transmitter setting.
 folly::Future<folly::Optional<TxSettings>> WedgePort::getTxSettings(
     folly::EventBase* evb) const {
+  DCHECK(evb);
+
   auto txOverrides = getTxOverrides();
   if (txOverrides.empty()) {
     return folly::makeFuture<folly::Optional<TxSettings>>(folly::none);
-  }
-
-  if (!evb) {
-    evb = platform_->getEventBase();
   }
 
   auto getTx = [overrides = std::move(txOverrides)](TransceiverInfo info)

@@ -172,11 +172,6 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
 
   // doesnt need to be guarded, only accessed by 1 event base
   pcapPusher_ = nullptr;
-
-  // Set the event base for platform to use
-  // This means the platform is now able to do async events on the
-  // background thread
-  platform_->setEventBase(&backgroundEventBase_);
 }
 
 
