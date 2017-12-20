@@ -202,6 +202,9 @@ class BcmSwitch : public BcmSwitchIf {
   const BcmTrunkTable* getTrunkTable() const override {
     return trunkTable_.get();
   }
+  const std::vector<std::shared_ptr<AclEntry>> getCoppAcls() const {
+    return coppAclEntries_;
+  }
 
   bool isPortUp(PortID port) const override;
 
@@ -285,6 +288,8 @@ class BcmSwitch : public BcmSwitchIf {
   BcmWarmBootCache* getWarmBootCache() const override {
     return warmBootCache_.get();
   }
+
+  BcmRouteTable* writableRouteTable() const { return routeTable_.get(); }
 
   /**
    * Log the hardware state for the switch
