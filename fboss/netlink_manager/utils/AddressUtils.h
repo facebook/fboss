@@ -38,10 +38,10 @@ std::vector<BinaryAddress> getNextHops(
     int ipLen,
     const std::set<std::string>& interfaceNames);
 
+bool isNlAddrValid(struct nl_addr* addr, int ipLen);
 struct nl_addr* getNlGatewayFromNlRoute(
     struct rtnl_route* route,
     int i,
-    const std::set<std::string>& interfaceNames,
-    int ipLen);
+    const std::set<std::string>& interfaceNames);
 } // namespace fboss
 } // namespace facebook

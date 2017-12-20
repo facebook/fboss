@@ -217,7 +217,7 @@ void NetlinkManager::netlinkRouteUpdated(
     nexthops = getNextHops(route, ipLen, nlm->monitoredInterfaces_);
   }
 
-  if (nexthops.empty() && nlOperation == NL_ACT_NEW) {
+  if (nexthops.empty()) {
     VLOG(1) << operation << " Route update for " << strDst
             << " has no valid nexthop";
     return;

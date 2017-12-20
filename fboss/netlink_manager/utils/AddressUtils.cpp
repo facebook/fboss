@@ -83,18 +83,29 @@ std::vector<BinaryAddress> getNextHops(
   int numNexthops = rtnl_route_get_nnexthops(route);
   for (int i = 0; i < numNexthops; i++) {
     auto nlAddrGateway =
-        getNlGatewayFromNlRoute(route, i, interfaceNames, ipLen);
-    nexthops.push_back(nlAddrToBinAddr(nlAddrGateway));
+        getNlGatewayFromNlRoute(route, i, interfaceNames);
+    if (isNlAddrValid(nlAddrGateway, ipLen)) {
+      nexthops.push_back(nlAddrToBinAddr(nlAddrGateway));
+    }
   }
 
   return nexthops;
 }
 
+bool isNlAddrValid(struct nl_addr* addr, int ipLen) {
+    char strGateway[ipLen];
+    nl_addr2str(addr, strGateway, ipLen);
+    if (strcmp("none", strGateway) == 0) {
+      return false;
+    } else {
+      return true;
+    }
+}
+
 struct nl_addr* getNlGatewayFromNlRoute(
     struct rtnl_route* route,
     int i,
-    const std::set<std::string>& interfaceNames,
-    int ipLen) {
+    const std::set<std::string>& interfaceNames) {
   struct nl_addr* nlAddrGateway = nullptr;
   struct rtnl_nexthop* nh = rtnl_route_nexthop_n(route, i);
   int ifindex = rtnl_route_nh_get_ifindex(nh);
@@ -104,11 +115,6 @@ struct nl_addr* getNlGatewayFromNlRoute(
     VLOG(1) << "Interface index  " << ifindex << "is not set to be monitored";
   }
   nlAddrGateway = rtnl_route_nh_get_gateway(nh);
-  char strGateway[ipLen];
-  nl_addr2str(nlAddrGateway, strGateway, ipLen);
-  if (strcmp("none", strGateway) == 0) {
-    VLOG(1) << "Route update has no gateway";
-  }
   return nlAddrGateway;
 }
 } // namespace fboss
