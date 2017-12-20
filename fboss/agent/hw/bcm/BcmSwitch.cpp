@@ -408,6 +408,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
   warmBootState->resetIntfs(warmBootCache_->reconstructInterfaceMap());
   warmBootState->resetVlans(warmBootCache_->reconstructVlanMap());
   warmBootState->resetRouteTables(warmBootCache_->reconstructRouteTables());
+  warmBootState->resetAcls(warmBootCache_->reconstructAclMap());
   return warmBootState;
 }
 
@@ -520,14 +521,17 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   // Setup hash functions for ECMP
   ecmpHashSetup();
 
-  initFieldProcessor(warmBoot);
+  // initialize field processor and field groups
+  if (!warmBoot) {
+    initFieldProcessor();
+    createAclGroup();
+    dropIPv6RAs();
+    copyIPv6LinkLocalMcastPackets();
+  }
 
-  createAclGroup();
   dropDhcpPackets();
-  dropIPv6RAs();
   setupCos();
   configureRxRateLimiting();
-  copyIPv6LinkLocalMcastPackets();
   mmuState_ = queryMmuState();
   setupCpuPortCounters();
 

@@ -496,11 +496,11 @@ class BcmSwitch : public BcmSwitchIf {
    * Copy IPv6 link local multicast packets to CPU
    */
   void copyIPv6LinkLocalMcastPackets();
+
   /*
    * (re) configure control plane policing based on new StateDelta
    */
   void reconfigureCoPP(const StateDelta& delta);
-
 
   /*
    * Create ACL group
@@ -540,7 +540,7 @@ class BcmSwitch : public BcmSwitchIf {
    */
   void exportSdkVersion() const;
 
-  void initFieldProcessor(bool isWarmBoot) const;
+  void initFieldProcessor() const;
 
   /**
    * Setup COS manager

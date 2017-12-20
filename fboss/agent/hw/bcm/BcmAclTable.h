@@ -37,7 +37,7 @@ class BcmAclTable {
 
  private:
   BcmAclRange* incRefOrCreateBcmAclRange(const AclRange& range);
-  BcmAclRange*  derefBcmAclRange(const AclRange& range);
+  BcmAclRange* derefBcmAclRange(const AclRange& range);
 
   // map from acl range to bcm acl range and its reference count
   using BcmAclRangeMap = boost::container::flat_map<AclRange,
