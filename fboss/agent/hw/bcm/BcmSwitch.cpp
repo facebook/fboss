@@ -399,11 +399,14 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
 std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
   auto warmBootState = getColdBootSwitchState();
   for (auto port :  *warmBootState->getPorts()) {
-    int portEnabled;
-    auto ret = opennsl_port_enable_get(unit_, port->getID(), &portEnabled);
-    bcmCheckError(ret, "Failed to get current state for port", port->getID());
-    port->setAdminState(
-        portEnabled == 1 ? cfg::PortState::ENABLED : cfg::PortState::DISABLED);
+    auto bcmPort = portTable_->getBcmPort(port->getID());
+    port->setOperState(bcmPort->isUp());
+    port->setAdminState(bcmPort->isEnabled() ?
+                        cfg::PortState::ENABLED : cfg::PortState::DISABLED);
+
+    VLOG(1) << "Recovered port " << port->getID() << " after warm boot."
+            << " AdminState=" << ((port->isEnabled()) ? "Enabled" : "Disabled")
+            << " OperState=" << ((port->isUp()) ? "Up" : "Down");
   }
   warmBootState->resetIntfs(warmBootCache_->reconstructInterfaceMap());
   warmBootState->resetVlans(warmBootCache_->reconstructVlanMap());
@@ -566,6 +569,15 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   flags_ |= LINKSCAN_REGISTERED;
   rv = opennsl_linkscan_enable_set(unit_, FLAGS_linkscan_interval_us);
   bcmCheckError(rv, "failed to enable linkscan");
+
+  // If warm booting, force a scan of all ports. Unfortunately
+  // opennsl_enable_set will enable all of the ports and return before
+  // the first loop on the link thread has updated the link status of
+  // ports. This will guarantee we have performed at least one scan of
+  // all ports before proceeding.
+  if (warmBoot) {
+    forceLinkscanOn(pcfg.port);
+  }
 
   // Set the spanning tree state of all ports to forwarding.
   // TODO: Eventually the spanning tree state should be part of the Port

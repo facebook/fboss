@@ -513,6 +513,11 @@ class BcmSwitch : public BcmSwitchIf {
   void createAclGroup();
 
   /*
+   * Forces a linkscan pass on the provided ports.
+   */
+  void forceLinkscanOn(opennsl_pbmp_t ports);
+
+  /*
    * Configure rate limiting of packets sent to the CPU.
    */
   void configureRxRateLimiting();

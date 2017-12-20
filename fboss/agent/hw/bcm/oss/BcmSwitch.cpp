@@ -137,4 +137,6 @@ std::unique_ptr<BufferStatsLogger> BcmSwitch::createBufferStatsLogger() {
 
 void BcmSwitch::printDiagCmd(const std::string& cmd) const {}
 
+void BcmSwitch::forceLinkscanOn(opennsl_pbmp_t ports) {}
+
 }} //facebook::fboss
