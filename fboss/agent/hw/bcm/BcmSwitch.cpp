@@ -563,7 +563,6 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   portTable_->initPorts(&pcfg, warmBoot);
 
-  bcmCheckError(rv, "failed to set linkscan ports");
   rv = opennsl_linkscan_register(unit_, linkscanCallback);
   bcmCheckError(rv, "failed to register for linkscan events");
   flags_ |= LINKSCAN_REGISTERED;
