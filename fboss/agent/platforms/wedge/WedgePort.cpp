@@ -138,11 +138,6 @@ void WedgePort::statusIndication(
 }
 
 void WedgePort::linkStatusChanged(bool up, bool adminUp) {
-  // If the link should be up but is not, let's make sure the qsfp
-  // settings are correct
-  if (!up && adminUp) {
-    customizeTransceiver();
-  }
 }
 
 void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
@@ -246,6 +241,7 @@ bool WedgePort::shouldCustomizeTransceiver() const {
 }
 
 void WedgePort::customizeTransceiver() {
+  CHECK(false);
   if (!shouldCustomizeTransceiver()) {
     return;
   }

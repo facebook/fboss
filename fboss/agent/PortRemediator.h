@@ -11,6 +11,7 @@
 #pragma once
 
 #include <boost/container/flat_set.hpp>
+#include <gtest/gtest_prod.h>
 
 #include <chrono>
 #include <folly/io/async/AsyncTimeout.h>
@@ -39,10 +40,15 @@ class PortRemediator : private folly::AsyncTimeout {
   void timeoutExpired() noexcept override;
   void init();
 
-  boost::container::flat_set<PortID> getUnexpectedDownPorts() const;
-  folly::Future<std::vector<folly::Try<folly::Unit>>> remediatePorts();
+  // testing
+  FRIEND_TEST(PortRemediatorTest, AllEnabledAndUp);
+  FRIEND_TEST(PortRemediatorTest, OneEnabledAndDown);
+  FRIEND_TEST(PortRemediatorTest, OneDisabledAndDown);
 
  private:
+  boost::container::flat_set<PortID> getUnexpectedDownPorts() const;
+  void remediatePorts();
+
   SwSwitch* sw_;
   std::chrono::seconds interval_;
 };

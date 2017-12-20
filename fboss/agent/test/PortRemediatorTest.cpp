@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-using namespace facebook::fboss;
+namespace facebook { namespace fboss {
 using namespace ::testing;
 
 class PortRemediatorTest : public ::testing::Test {
@@ -64,23 +64,4 @@ TEST_F(PortRemediatorTest, OneDisabledAndDown) {
   EXPECT_EQ(0, unexpected.size());
 }
 
-TEST_F(PortRemediatorTest, RemediatePort) {
-  setupPorts({}, {PortID(10)});
-  MockPlatformPort mockPort;
-  EXPECT_CALL(
-      *getMockPlatform(handle->getSw()), getPlatformPort(Eq(PortID(10))))
-      .WillOnce(Return(&mockPort));
-  EXPECT_CALL(mockPort, supportsTransceiver()).WillOnce(Return(true));
-  EXPECT_CALL(mockPort, customizeTransceiver());
-  portRemediator->remediatePorts().get();
-}
-
-TEST_F(PortRemediatorTest, SkipNotTransceiver) {
-  setupPorts({}, {PortID(10)});
-  StrictMock<MockPlatformPort> mockPort;
-  EXPECT_CALL(
-      *getMockPlatform(handle->getSw()), getPlatformPort(Eq(PortID(10))))
-      .WillOnce(Return(&mockPort));
-  EXPECT_CALL(mockPort, supportsTransceiver()).WillOnce(Return(false));
-  portRemediator->remediatePorts().get();
-}
+}} // facebook::fboss

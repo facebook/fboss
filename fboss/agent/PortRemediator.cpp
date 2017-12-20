@@ -39,23 +39,12 @@ PortRemediator::getUnexpectedDownPorts() const {
   return unexpectedDownPorts;
 }
 
-folly::Future<std::vector<folly::Try<folly::Unit>>>
-PortRemediator::remediatePorts() {
-  auto unexpectedDownPorts = getUnexpectedDownPorts();
-  auto platform = sw_->getPlatform();
-  std::vector<folly::Future<folly::Unit>> futs;
-  for (const auto& portId : unexpectedDownPorts) {
-    auto platformPort = platform->getPlatformPort(portId);
-    if (!platformPort || !platformPort->supportsTransceiver()) {
-      continue;
-    }
-    futs.push_back(folly::makeFuture().then(
-          sw_->getBackgroundEVB(),
-          [platformPort]() {
-            platformPort->customizeTransceiver();
-          }));
-  }
-  return collectAll(futs);
+void PortRemediator::remediatePorts() {
+  // fill in if we need to operate on unexpectedly down ports
+  // sample would be something like:
+  //
+  // auto downPorts = getUnexpectedDownPorts();
+  // for (auto down : downPorts) doSomething
 }
 
 void PortRemediator::timeoutExpired() noexcept {
