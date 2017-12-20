@@ -18,7 +18,9 @@
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
+#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include <future>
 
@@ -43,7 +45,8 @@ constexpr auto kNumWedge40Qsfps = 16;
 namespace facebook { namespace fboss {
 
 WedgePlatform::WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo)
-    : productInfo_(std::move(productInfo)) {}
+    : productInfo_(std::move(productInfo)),
+      qsfpCache_(std::make_unique<QsfpCache>()) {}
 
 void WedgePlatform::init() {
   auto config = loadConfig();
@@ -68,6 +71,27 @@ WedgePlatform::InitPortMap WedgePlatform::initPorts() {
     mapping[id] = kv.second.get();
   }
   return mapping;
+}
+
+void WedgePlatform::onHwInitialized(SwSwitch* sw) {
+  // could populate with initial ports here, but should get taken care
+  // of through state changes sent to the stateUpdated method.
+  initLEDs();
+  qsfpCache_->init(sw->getBackgroundEVB());
+  sw->registerStateObserver(this, "WedgePlatform");
+}
+
+void WedgePlatform::stateUpdated(const StateDelta& delta) {
+  QsfpCache::PortMapThrift changedPorts;
+  auto portsDelta = delta.getPortsDelta();
+  for (const auto& entry : portsDelta) {
+    auto newPort = entry.getNew();
+    if (newPort) {
+      auto platformPort = getPort(newPort->getID());
+      changedPorts[newPort->getID()] = platformPort->toThrift(newPort);
+    }
+  }
+  qsfpCache_->portsChanged(changedPorts);
 }
 
 HwSwitch* WedgePlatform::getHwSwitch() const {

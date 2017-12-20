@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
+#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 namespace facebook { namespace fboss {
 
@@ -57,27 +58,9 @@ bool WedgePort::isMediaPresent() {
   return false;
 }
 
-folly::Future<TransceiverInfo> WedgePort::getTransceiverInfo(
-    folly::EventBase* evb) const {
-  if (!evb) {
-    evb = platform_->getEventBase();
-  }
-  auto clientFuture = QsfpClient::createClient(evb);
-  folly::Optional<TransceiverID> transceiverId = getTransceiverID();
-  auto getTransceiverInfo =
-      [transceiverId](std::unique_ptr<QsfpServiceAsyncClient> client) {
-        // This will throw if there is no transceiver on this port
-        auto t = static_cast<int32_t>(transceiverId.value());
-        auto options = QsfpClient::getRpcOptions();
-        return client->future_getTransceiverInfo(options, {t});
-      };
-  auto fromMap =
-      [transceiverId](std::map<int, facebook::fboss::TransceiverInfo> infoMap) {
-        // This will throw if there is no transceiver on this port
-        auto t = static_cast<int32_t>(transceiverId.value());
-        return infoMap[t];
-      };
-  return clientFuture.then(evb, getTransceiverInfo).then(evb, fromMap);
+folly::Future<TransceiverInfo> WedgePort::getTransceiverInfo() const {
+  auto qsfpCache = platform_->getQsfpCache();
+  return qsfpCache->futureGet(getTransceiverID().value());
 }
 
 folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
@@ -103,7 +86,7 @@ folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
                << " Exception: " << folly::exceptionStr(e);
     return TransmitterTechnology::UNKNOWN;
   };
-  return getTransceiverInfo(evb).then(evb, getTech).onError(
+  return getTransceiverInfo().then(evb, getTech).onError(
       std::move(handleError));
 }
 
@@ -141,7 +124,7 @@ folly::Future<folly::Optional<TxSettings>> WedgePort::getTxSettings(
                << " Exception: " << folly::exceptionStr(e);
     return folly::Optional<TxSettings>();
   };
-  return getTransceiverInfo(evb).then(evb, getTx).onError(std::move(handleErr));
+  return getTransceiverInfo().then(evb, getTx).onError(std::move(handleErr));
 }
 
 void WedgePort::statusIndication(

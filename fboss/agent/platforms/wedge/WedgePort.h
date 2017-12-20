@@ -94,8 +94,7 @@ class WedgePort : public BcmPlatformPort {
     return TxOverrides();
   }
 
-  folly::Future<TransceiverInfo> getTransceiverInfo(
-    folly::EventBase* evb) const;
+  folly::Future<TransceiverInfo> getTransceiverInfo() const;
 };
 
 }} // facebook::fboss

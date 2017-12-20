@@ -643,7 +643,6 @@ class SwSwitch : public HwSwitch::Callback {
   SwSwitch(SwSwitch const &) = delete;
   SwSwitch& operator=(SwSwitch const &) = delete;
 
-
   std::pair<std::shared_ptr<SwitchState>, std::shared_ptr<SwitchState>>
   getStates() const {
     folly::SpinLockGuard guard(stateLock_);

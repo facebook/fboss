@@ -93,7 +93,6 @@ class PlatformPort {
    */
   virtual void linkSpeedChanged(const cfg::PortSpeed& speed) = 0;
 
-
   /*
    * Returns true if the port supports/expects to use a transceiver
    * and false if there is a direct electrical connection
