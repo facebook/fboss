@@ -13,7 +13,7 @@ from neteng.fboss.ctrl.ttypes import UnicastRoute
 from neteng.fboss.ctrl.ttypes import StdClientIds
 
 
-@unittest.skip("Working test but deployment is buggy now so temporarily skipping")
+@unittest.skip("Test is great, deployment is not. Should be fixed with D6577165")
 @test_tags("netlink-manager")
 class NetlinkManager(FbossBaseSystemTest):
     NETLINK_MANAGER_CLIENT_ID = StdClientIds.NETLINK_LISTENER

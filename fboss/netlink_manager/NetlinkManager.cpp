@@ -197,9 +197,6 @@ void NetlinkManager::netlinkRouteUpdated(
   }
 
   struct nl_addr* nlDst = rtnl_route_get_dst(route);
-  SCOPE_EXIT {
-    nl_addr_put(nlDst);
-  };
   const uint8_t ipLen = nl_addr_get_prefixlen(nlDst);
   char strDst[ipLen];
   nl_addr2str(nlDst, strDst, ipLen);
