@@ -106,13 +106,6 @@ class PlatformPort {
   virtual folly::Optional<TransceiverID> getTransceiverID() const = 0;
 
   /*
-   * If the port supports a transceiver, set the appropriate settings
-   * on the transceiver. "Appropriate" is up to the platform to
-   * determine.
-   */
-  virtual void customizeTransceiver() = 0;
-
-  /*
    * statusIndication() will be called by the hardware code once a second.
    *
    * enabled  - If the port is enabled or not.

@@ -33,7 +33,6 @@ class MockPlatformPort : public PlatformPort {
   MOCK_METHOD1(linkSpeedChanged, void(const cfg::PortSpeed& speed));
   MOCK_CONST_METHOD0(supportsTransceiver, bool());
   MOCK_CONST_METHOD0(getTransceiverID, folly::Optional<TransceiverID>());
-  MOCK_METHOD0(customizeTransceiver, void());
   MOCK_METHOD6(
       statusIndication,
       void(

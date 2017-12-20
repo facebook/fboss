@@ -71,12 +71,10 @@ class WedgePort : public BcmPlatformPort {
       folly::EventBase* evb) const override;
   folly::Future<folly::Optional<TxSettings>> getTxSettings(
       folly::EventBase* evb) const override;
-  void customizeTransceiver() override;
 
  protected:
   bool isControllingPort() const;
   bool isInSingleMode() const;
-  bool shouldCustomizeTransceiver() const;
 
   PortID id_{0};
   WedgePlatform* platform_{nullptr};
