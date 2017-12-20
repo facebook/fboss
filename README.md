@@ -35,7 +35,7 @@ The FBOSS agent manages the forwarding tables in the hardware ASIC, but it
 needs to be informed of the current routes via thrift APIs.
 
 Our initial open source release does not yet contain a routing protocol daemon
-capable of talking to the agent.  The routing protocol daemon we use at
+capable of talking to the agent (UPDATE: checkout [Netlink Manager](https://github.com/facebook/fboss/blob/master/fboss/netlink_manager/README.md)).  The routing protocol daemon we use at
 Facebook is rather specific to our environment, and likely won't be as useful
 to the open source community.  For more general use outside of Facebook, it
 should be possible to modify existing open source routing tools to talk to the
