@@ -28,6 +28,7 @@ class BcmAclTable {
   void processAddedAcl(const int groupId, const std::shared_ptr<AclEntry>& acl);
   void processRemovedAcl(const std::shared_ptr<AclEntry>& acl);
 
+  BcmAclEntry* getAclIf(int priority) const;
   // return nullptr if not found
   BcmAclRange*  getAclRangeIf(const AclRange& range) const;
   // return 0 if range does not exist

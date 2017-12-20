@@ -79,6 +79,14 @@ void BcmAclTable::processRemovedAcl(
 
 }
 
+BcmAclEntry* FOLLY_NULLABLE BcmAclTable::getAclIf(int priority) const {
+  auto iter = aclEntryMap_.find(priority);
+  if (iter == aclEntryMap_.end()) {
+    return nullptr;
+  }
+  return iter->second.get();
+}
+
 BcmAclRange* FOLLY_NULLABLE BcmAclTable::getAclRangeIf(
   const AclRange& range) const {
   auto iter = aclRangeMap_.find(range);
