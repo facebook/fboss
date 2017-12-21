@@ -20,6 +20,7 @@ extern "C" {
 #include "common/stats/ExportedHistogramMapImpl.h"
 
 #include "fboss/agent/types.h"
+#include "fboss/agent/hw/bcm/BcmCosManager.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/hardware_stats_types.h"
@@ -147,6 +148,9 @@ class BcmPort {
 
   static opennsl_gport_t asGPort(opennsl_port_t port);
   static bool isValidLocalPort(opennsl_gport_t gport);
+  CosQueueGports* getCosQueueGports() {
+    return &cosQueueGports_;
+  }
 
  private:
   // no copy or assignment
@@ -182,6 +186,9 @@ class BcmPort {
   void setTxSetting(const std::shared_ptr<Port>& swPort);
   bool isMmuLossy() const;
   uint8_t determinePipe() const;
+  int getNumUnicastQueues() {
+    return cosQueueGports_.unicast.size();
+  }
 
   static constexpr auto kOutCongestionDiscards = "out_congestion_discards";
 
@@ -200,6 +207,7 @@ class BcmPort {
   BcmPortGroup* portGroup_{nullptr};
 
   std::map<std::string, stats::MonotonicCounter> portCounters_;
+  CosQueueGports cosQueueGports_;
 
   stats::ExportedStatMapImpl::LockableStat outQueueLen_;
   stats::ExportedHistogramMapImpl::LockableHistogram inPktLengths_;

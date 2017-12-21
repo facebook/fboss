@@ -533,10 +533,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   }
 
   dropDhcpPackets();
-  setupCos();
-  configureRxRateLimiting();
   mmuState_ = queryMmuState();
-  setupCpuPortCounters();
 
   // enable IPv4 and IPv6 on CPU port
   opennsl_port_t idx;
@@ -562,6 +559,10 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   toCPUEgress_->programToCPU();
 
   portTable_->initPorts(&pcfg, warmBoot);
+
+  setupCos();
+  configureRxRateLimiting();
+  setupCpuPortCounters();
 
   rv = opennsl_linkscan_register(unit_, linkscanCallback);
   bcmCheckError(rv, "failed to register for linkscan events");
@@ -791,6 +792,18 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
       if (speedChanged || vlanChanged || pauseChanged || sFlowChanged ||
           fecChanged) {
         bcmPort->program(newPort);
+      }
+
+      auto queuesChanged = oldPort->getPortQueues() !=
+        newPort->getPortQueues();
+      VLOG_IF(1, queuesChanged) << "New cos queue settings on port " << id;
+
+      if (queuesChanged) {
+        if (!platform_->isCosSupported()) {
+          throw FbossError("Changing settings for cos queues not supported on ",
+              "this platform");
+        }
+        bcmPort->setupQueues(newPort->getPortQueues());
       }
     });
 }

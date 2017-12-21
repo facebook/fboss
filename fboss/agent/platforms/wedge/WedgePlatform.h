@@ -69,6 +69,9 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
     // All wedge platforms have 208 byte cells
     return 208;
   }
+  bool isCosSupported() const override {
+    return true;
+  }
 
   QsfpCache* getQsfpCache() const {
     return qsfpCache_.get();

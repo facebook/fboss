@@ -14,6 +14,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
+#include "fboss/agent/hw/bcm/BcmCosManager.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 #include <folly/dynamic.h>
@@ -34,7 +35,6 @@ namespace facebook { namespace fboss {
 class AclEntry;
 class AggregatePort;
 class ArpEntry;
-class BcmCosManager;
 class BcmEgress;
 class BcmHostTable;
 class BcmIntfTable;
@@ -324,6 +324,9 @@ class BcmSwitch : public BcmSwitchIf {
   }
 
   opennsl_gport_t getCpuGPort() const;
+  CosQueueGports* getCpuCosQueueGports() {
+    return &cpuCosGports_;
+  }
 
  private:
   enum Flags : uint32_t {
@@ -556,6 +559,7 @@ class BcmSwitch : public BcmSwitchIf {
    * Setup COS manager
    */
   void setupCos();
+
   /*
    * Create buffer stats logger
    */
@@ -628,6 +632,7 @@ class BcmSwitch : public BcmSwitchIf {
     stats::MonotonicCounter counter;
   };
   std::vector<CpuPortCounter> cpuPortCounters_;
+  CosQueueGports cpuCosGports_;
 
   void updateCpuPortCounters();
   void setupCpuPortCounters();

@@ -30,6 +30,12 @@ class Wedge40Platform : public WedgePlatform {
     return true;
   }
 
+  // TD2 requires building the cos queue hierarchy manually, so we don't
+  // support it
+  bool isCosSupported() const override {
+    return false;
+  }
+
  private:
   Wedge40Platform(Wedge40Platform const &) = delete;
   Wedge40Platform& operator=(Wedge40Platform const &) = delete;
