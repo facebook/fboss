@@ -49,7 +49,7 @@ void QsfpCache::portsChanged(const PortMapThrift& ports) {
   }
 
   ports_.withWLock([this, &ports](auto& lockedPorts) {
-    auto gen = incrementGen();
+    auto gen = this->incrementGen();
     for (const auto& item : ports) {
       lockedPorts[PortID(item.first)] = {item.second, gen};
     }
@@ -146,7 +146,7 @@ folly::Future<folly::Unit> QsfpCache::doSync(PortMapThrift&& toSync) {
     oldAliveSince = remoteAliveSince_
   ](auto& tcvrs) {
     VLOG(1) << "Got " << tcvrs.size() << " transceivers from qsfp_service";
-    updateCache(tcvrs);
+    this->updateCache(tcvrs);
     if (remoteAliveSince_ == oldAliveSince || oldAliveSince < 0) {
       // no restart occurred in middle of request, store gen
       remoteGen_ = gen;
@@ -164,7 +164,7 @@ folly::Future<folly::Unit> QsfpCache::doSync(PortMapThrift&& toSync) {
     .then(evb_, onSuccess)
     .onError([this](const std::exception& e) {
       LOG(ERROR) << "Exception talking to qsfp_service: " << e.what();
-      maybeSync();
+      this->maybeSync();
     }).ensure([this]() {
       // make sure we allow other requests in again
       activeReq_->setValue();
@@ -213,7 +213,7 @@ folly::Future<TransceiverInfo> QsfpCache::futureGet(TransceiverID tcvrId) {
     // fulfilled. Otherwise query now.
     auto baseFut = (activeReq_) ? activeReq_->getFuture() : folly::makeFuture();
     return baseFut.then([this, tcvrId]() {
-      return get(tcvrId);
+      return this->get(tcvrId);
     });
   });
 }
