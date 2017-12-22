@@ -211,6 +211,15 @@ struct MatchToAction {
 enum MMUScalingFactor {
   ONE = 0
   EIGHT = 1
+  ONE_128TH = 2
+  ONE_64TH = 3
+  ONE_32TH = 4
+  ONE_16TH = 5
+  ONE_8TH = 6
+  ONE_QUARTER = 7
+  ONE_HALF = 8
+  TWO = 9
+  FOUR = 10
 }
 
 struct PortQueue {

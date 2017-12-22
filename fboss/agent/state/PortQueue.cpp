@@ -14,8 +14,9 @@
 namespace {
 constexpr auto kId = "id";
 constexpr auto kStreamType = "streamType";
-constexpr auto kPriority = "priority";
 constexpr auto kWeight = "weight";
+constexpr auto kReservedBytes = "reserved";
+constexpr auto kScalingFactor = "scalingFactor";
 }
 
 namespace facebook { namespace fboss {
@@ -25,8 +26,13 @@ folly::dynamic PortQueueFields::toFollyDynamic() const {
   if (weight) {
     queue[kWeight] = weight.value();
   }
-  if (priority) {
-    queue[kPriority] = priority.value();
+  if (reservedBytes) {
+    queue[kReservedBytes] = reservedBytes.value();
+  }
+  if (scalingFactor) {
+    queue[kScalingFactor] =
+      cfg::_MMUScalingFactor_VALUES_TO_NAMES.find(
+          scalingFactor.value())->second;
   }
   queue[kId] = id;
   queue[kStreamType] =
@@ -41,11 +47,15 @@ PortQueueFields PortQueueFields::fromFollyDynamic(
   cfg::StreamType streamType = cfg::_StreamType_NAMES_TO_VALUES.find(
       queueJson[kStreamType].asString().c_str())->second;
   queue.streamType = streamType;
-  if (queueJson.find(kPriority) != queueJson.items().end()) {
-    queue.priority = queueJson[kPriority].asInt();
+  if (queueJson.find(kReservedBytes) != queueJson.items().end()) {
+    queue.reservedBytes = queueJson[kReservedBytes].asInt();
   }
   if (queueJson.find(kWeight) != queueJson.items().end()) {
     queue.weight = queueJson[kWeight].asInt();
+  }
+  if (queueJson.find(kScalingFactor) != queueJson.items().end()) {
+    queue.scalingFactor = cfg::_MMUScalingFactor_NAMES_TO_VALUES.find(
+        queueJson[kScalingFactor].asString().c_str())->second;
   }
   return queue;
 }

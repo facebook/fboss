@@ -30,8 +30,9 @@ struct PortQueueFields {
   static PortQueueFields fromFollyDynamic(const folly::dynamic& json);
   uint8_t id{0};
   cfg::StreamType streamType{cfg::StreamType::UNICAST};
-  folly::Optional<int> priority{folly::none};
   folly::Optional<int> weight{folly::none};
+  folly::Optional<int> reservedBytes{folly::none};
+  folly::Optional<cfg::MMUScalingFactor> scalingFactor{folly::none};
 };
 
 /*
@@ -59,8 +60,9 @@ class PortQueue :
   bool operator==(const PortQueue& queue) {
     return getFields()->id == queue.getID() &&
            getFields()->streamType == queue.getStreamType() &&
-           getFields()->priority == queue.getPriority() &&
-           getFields()->weight == queue.getWeight();
+           getFields()->weight == queue.getWeight() &&
+           getFields()->reservedBytes == queue.getReservedBytes() &&
+           getFields()->scalingFactor == queue.getScalingFactor();
   }
 
   uint8_t getID() const {
@@ -75,20 +77,28 @@ class PortQueue :
     return getFields()->streamType;
   }
 
-  folly::Optional<int> getPriority() const {
-    return getFields()->priority;
-  }
-
   folly::Optional<int> getWeight() const {
     return getFields()->weight;
   }
 
-  void setPriority(int priority) {
-    writableFields()->priority = priority;;
-  }
-
   void setWeight(int weight) {
     writableFields()->weight = weight;
+  }
+
+  folly::Optional<int> getReservedBytes() const {
+    return getFields()->reservedBytes;
+  }
+
+  void setReservedBytes(int reservedBytes) {
+    writableFields()->reservedBytes = reservedBytes;
+  }
+
+  folly::Optional<cfg::MMUScalingFactor> getScalingFactor() const {
+    return getFields()->scalingFactor;
+  }
+
+  void setScalingFactor(cfg::MMUScalingFactor scalingFactor) {
+    writableFields()->scalingFactor = scalingFactor;
   }
 
  private:

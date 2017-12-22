@@ -22,8 +22,26 @@ using namespace facebook::fboss;
 using std::make_pair;
 using std::make_shared;
 using std::shared_ptr;
-namespace {
+
+TEST(PortQueue, serialization) {
+  int id = 5;
+  auto streamType = cfg::StreamType::UNICAST;
+  int weight = 5;
+  int reservedBytes = 1000;
+  auto scalingFactor = cfg::MMUScalingFactor::ONE;
+
+  PortQueue pqObject(id);
+  pqObject.setStreamType(streamType);
+  pqObject.setWeight(weight);
+  pqObject.setReservedBytes(reservedBytes);
+  pqObject.setScalingFactor(scalingFactor);
+
+  auto serialized = pqObject.toFollyDynamic();
+  auto deserialized = PortQueue::fromFollyDynamic(serialized);
+
+  EXPECT_EQ(pqObject, deserialized);
 }
+
 TEST(PortQueue, stateDelta) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();

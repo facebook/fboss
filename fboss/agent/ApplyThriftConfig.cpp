@@ -519,13 +519,23 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
   CHECK_EQ(orig->getID(), cfg.id);
 
   if (orig->getStreamType() == cfg.streamType &&
-      orig->getWeight() == cfg.weight) {
+      orig->getWeight() == cfg.weight &&
+      orig->getReservedBytes() == cfg.reservedBytes &&
+      orig->getScalingFactor() == cfg.scalingFactor) {
     return nullptr;
   }
 
   auto newQueue = orig->clone();
   newQueue->setStreamType(cfg.streamType);
-  newQueue->setWeight(cfg.weight);
+  if (cfg.__isset.weight) {
+    newQueue->setWeight(cfg.weight);
+  }
+  if (cfg.__isset.reservedBytes) {
+    newQueue->setReservedBytes(cfg.reservedBytes);
+  }
+  if (cfg.__isset.scalingFactor) {
+    newQueue->setScalingFactor(cfg.scalingFactor);
+  }
   return newQueue;
 }
 
@@ -533,7 +543,16 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
     const cfg::PortQueue& cfg) {
   auto queue = std::make_shared<PortQueue>(cfg.id);
   queue->setStreamType(cfg.streamType);
-  queue->setWeight(cfg.weight);
+  if (cfg.__isset.weight) {
+    queue->setWeight(cfg.weight);
+  }
+  if (cfg.__isset.reservedBytes) {
+    queue->setReservedBytes(cfg.reservedBytes);
+  }
+  if (cfg.__isset.scalingFactor) {
+    queue->setScalingFactor(cfg.scalingFactor);
+  }
+
   return queue;
 }
 
