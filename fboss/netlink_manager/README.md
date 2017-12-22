@@ -22,12 +22,13 @@ Currently, Netlink Manager only supports route updates (NEW & DELETE).
 * Code in [NetlinkManagerHandler.cpp](https://github.com/facebook/fboss/blob/master/fboss/netlink_manager/NetlinkManagerHandler.cpp)
 
 # Technical Overview
-* Event driven
+## EventBase
 Netlink Manager uses [folly::EventBase](https://github.com/facebook/folly/blob/master/folly/io/async/README.md) to manage async calls, and [folly::EventHandler](https://github.com/facebook/folly/blob/master/folly/io/async/README.md#eventhandler) to poll netlink socket.
 
-* libnl cache manager & callback:
-    The callback method is NetlinkManager::netlinkRouteUpdated()
-This diagram (copied & edited from [infradead] (https://www.infradead.org/~tgr/libnl/doc/core.html#core_cb) ) explains the role of manager, routeCache(NlResources.cpp) & netlinkRouteUpdated() callback (NetlinkManager.cpp)
+## libnl cache manager & callback
+The callback method is NetlinkManager::netlinkRouteUpdated().
+
+This diagram (copied & edited from [infradead](https://www.infradead.org/~tgr/libnl/doc/core.html#core_cb)), explains the role of manager, routeCache(NlResources.cpp) & netlinkRouteUpdated() callback (NetlinkManager.cpp)
 ```
 netlink_manager       libnl                        Kernel
 
