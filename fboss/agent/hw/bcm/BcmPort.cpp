@@ -51,7 +51,6 @@ const string kInPause = "in_pause_frames";
 const string kInIpv4HdrErrors = "in_ipv4_header_errors";
 const string kInIpv6HdrErrors = "in_ipv6_header_errors";
 const string kInNonPauseDiscards = "in_non_pause_discards";
-const string kOutBytes = "out_bytes";
 const string kOutUnicastPkts = "out_unicast_pkts";
 const string kOutMulticastPkts = "out_multicast_pkts";
 const string kOutBroadcastPkts = "out_broadcast_pkts";
@@ -178,15 +177,19 @@ void BcmPort::reinitPortStats() {
   reinitPortStat(kInIpv6HdrErrors);
   reinitPortStat(kInNonPauseDiscards);
 
-  reinitPortStat(kOutBytes);
+  reinitPortStat(getkOutBytes());
   reinitPortStat(kOutUnicastPkts);
   reinitPortStat(kOutMulticastPkts);
   reinitPortStat(kOutBroadcastPkts);
   reinitPortStat(kOutDiscards);
   reinitPortStat(kOutErrors);
   reinitPortStat(kOutPause);
-  reinitPortStat(kOutCongestionDiscards);
-
+  reinitPortStat(getkOutCongestionDiscards());
+  for (int i = 0; i < getNumUnicastQueues(); i++) {
+    auto name = folly::to<std::string>("queue", i, ".");
+    reinitPortStat(folly::to<std::string>(name, getkOutCongestionDiscards()));
+    reinitPortStat(folly::to<std::string>(name, getkOutBytes()));
+  }
   // (re) init out queue length
   auto statMap = fbData->getStatMap();
   const auto expType = stats::AVG;
@@ -601,7 +604,8 @@ void BcmPort::updateStats() {
       &curPortStats.inPause_);
   // Egress Stats
   updateStat(
-      now, kOutBytes, opennsl_spl_snmpIfHCOutOctets, &curPortStats.outBytes_);
+      now, getkOutBytes(), opennsl_spl_snmpIfHCOutOctets,
+      &curPortStats.outBytes_);
   updateStat(
       now,
       kOutUnicastPkts,

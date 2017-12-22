@@ -24,6 +24,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/state/PortQueue.h"
 
 #include <mutex>
 
@@ -33,7 +34,6 @@ class BcmSwitch;
 class BcmPortGroup;
 class SwitchState;
 class Port;
-class PortQueue;
 
 /**
  * BcmPort is the class to abstract the physical port in BcmSwitch.
@@ -190,7 +190,14 @@ class BcmPort {
     return cosQueueGports_.unicast.size();
   }
 
-  static constexpr auto kOutCongestionDiscards = "out_congestion_discards";
+  static const std::string& getkOutCongestionDiscards() {
+    static const std::string out = "out_congestion_discards";
+    return out;
+  }
+  static const std::string& getkOutBytes() {
+    static const std::string out = "out_bytes";
+    return out;
+  }
 
   BcmSwitch* const hw_{nullptr};
   const opennsl_port_t port_;    // Broadcom physical port number

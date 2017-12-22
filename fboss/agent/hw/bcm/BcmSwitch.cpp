@@ -93,6 +93,8 @@ DEFINE_int32(linkscan_interval_us, 250000,
              "The Broadcom linkscan interval");
 DEFINE_bool(flexports, false,
             "Load the agent with flexport support enabled");
+DEFINE_bool(enable_fine_grained_buffer_stats, false,
+            "Enable fine grained buffer stats collection by default");
 
 enum : uint8_t {
   kRxCallbackPriority = 1,
@@ -139,6 +141,7 @@ bool BcmSwitch::getPortFECConfig(PortID port) const {
 BcmSwitch::BcmSwitch(BcmPlatform *platform, HashMode hashMode)
     : platform_(platform),
       hashMode_(hashMode),
+      fineGrainedBufferStatsEnabled_(FLAGS_enable_fine_grained_buffer_stats),
       mmuBufferBytes_(platform->getMMUBufferBytes()),
       mmuCellBytes_(platform->getMMUCellBytes()),
       warmBootCache_(new BcmWarmBootCache(this)),
@@ -563,6 +566,9 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   setupCos();
   configureRxRateLimiting();
   setupCpuPortCounters();
+  if (fineGrainedBufferStatsEnabled_) {
+    startFineGrainedBufferStatLogging();
+  }
 
   rv = opennsl_linkscan_register(unit_, linkscanCallback);
   bcmCheckError(rv, "failed to register for linkscan events");
