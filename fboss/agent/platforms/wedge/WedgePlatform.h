@@ -70,7 +70,13 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
     return 208;
   }
   bool isCosSupported() const override {
+// TODO: add support for CoS queue traverse in FakeSdk
+// (see D5644650 that broke FakeSdk build)
+#ifdef FAKE_SDK
+    return false;
+#else
     return true;
+#endif
   }
 
   QsfpCache* getQsfpCache() const {
