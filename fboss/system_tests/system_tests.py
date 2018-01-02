@@ -10,10 +10,12 @@ import os
 import sys
 import unittest
 
+
+from fboss.system_tests.testutils.system_tests_runner import SystemTestsRunner
+
 user_requested_tags = []
 
 Defaults = {
-    "test_dirs": None,
     "config": 'test_topologies/example_topology.py',
     "console_log_level": logging.INFO,   # very terse, for console log_level
     "file_log_level": logging.DEBUG,  # result/test-foo.log, more verbose
@@ -21,7 +23,8 @@ Defaults = {
     "log_file": "{dir}/result-{test}.log",
     "test_topology": None,
     "min_hosts": 2,
-    "tags": user_requested_tags
+    "tags": user_requested_tags,
+    "list_tests": False
 }
 
 
@@ -47,8 +50,11 @@ def generate_default_test_argparse(**kwargs):
     """
     global Defaults
     parser = argparse.ArgumentParser(description='FBOSS System Tests', **kwargs)
-    parser.add_argument('--test_dirs', default=Defaults['test_dirs'],
-                        action='append')
+    parser.add_argument('tests', nargs='*',
+                        help="List of test classes to run. For example:\n"
+                             "basset_test_runner.par [options] TestClass\n"
+                             "basset_test_runner.par[options] TestClass1 TestClass2")
+    parser.add_argument('--test_dirs', required=True, action='append')
     parser.add_argument('--config', default=Defaults['config'])
     parser.add_argument('--log_dir', default=Defaults['log_dir'])
     parser.add_argument('--log_file', default=Defaults['log_file'])
@@ -59,6 +65,10 @@ def generate_default_test_argparse(**kwargs):
                         help="Provide list of test tags, default is all tests "
                              "Example tags qsfp, port etc",
                         default=Defaults['tags'])
+    parser.add_argument('--list_tests',
+                        help="List all tests without running them",
+                        action="store_true",
+                        default=Defaults['list_tests'])
 
     return parser
 
@@ -173,7 +183,9 @@ def run_tests(options):
     :options : a dict of testing options, as described above
     """
     setup_logging(options)
-    options.test_topology = dynamic_generate_test_topology(options)
+    # Skipping some work when we are just listing the tests
+    if not options.list_tests:
+        options.test_topology = dynamic_generate_test_topology(options)
     suite = unittest.TestSuite()
     # this test needs to run first
     suite.addTest(TestTopologyValidation('test_topology_sanity'))
@@ -192,7 +204,11 @@ def run_tests(options):
     ================ STARTING TESTS ===================
     ===================================================
     """)
-    ret = unittest.TextTestRunner(verbosity=2).run(suite)
+    ret = SystemTestsRunner(
+        list_tests=options.list_tests,
+        tests=options.tests,
+        log=options.log,
+        verbosity=2).run(suite)
     options.log.info("""
     ===================================================
     ================  ENDING TESTS  ===================
