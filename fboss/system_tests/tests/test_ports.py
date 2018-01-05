@@ -12,7 +12,7 @@ from fboss.system_tests.testutils.ip_conversion import ip_str_to_addr
 from neteng.fboss.ctrl.ttypes import PortOperState
 
 
-@unittest.skip("This test is correct, but code is currently broken -- fixme !!")
+@test_tags("port")
 class PortStatusTest(FbossBaseSystemTest):
     """ Verify that for each port, that the internal state agrees with fb303 """
     def test_port_status_matchfb303(self):
