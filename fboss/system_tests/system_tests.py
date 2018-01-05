@@ -167,6 +167,7 @@ def add_interested_tests_to_test_suite(tests, suite):
         # The next 2 lines is to explicitly add these tests
         if isinstance(tests, unittest.loader._FailedTest):
             suite.addTest(tests)
+            return
         # when user provides a tag , add testcases which has
         # valid tags and add all testcases when user do not
         # provide any tags
