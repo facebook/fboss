@@ -1,11 +1,13 @@
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
+#include <folly/init/Init.h>
+
 using namespace facebook;
 using namespace facebook::fboss;
 
-int qsfpServiceInit(int * /* unused */, char *** /* unused */ ) {
-  // no special init needed for open source
+int qsfpServiceInit(int * argc, char *** argv ) {
+  folly::init(argc, argv, true);
   return 0;
 }
 
