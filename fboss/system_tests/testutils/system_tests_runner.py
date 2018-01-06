@@ -36,6 +36,14 @@ class SystemTestsRunner(unittest.TextTestRunner):
         for node in suite:
             if isinstance(node, unittest.suite.TestSuite):
                 self.build_test_suite_from_names(new_suite, node)
+            # We need this logic both in here & in system_tests.py.
+            # If users don't specify which test to run, this method won't be run
+            # at all. If users do specify, the logic need to be here to catch
+            # the FailedTest again.
+            elif isinstance(node, unittest.loader._FailedTest):
+                new_suite.addTest(node)
+            # TestTopologyValidation always needed to be run
             else:
-                if type(node).__name__ in self.tests:
+                if type(node).__name__ in self.tests or \
+                   type(node).__name__ == 'TestTopologyValidation':
                     new_suite.addTest(node)
