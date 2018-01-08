@@ -109,7 +109,7 @@ void QsfpCache::maybeSync() {
 folly::Future<folly::Unit> QsfpCache::confirmAlive() {
   CHECK(evb_->isInEventBaseThread());
 
-  auto getAliveSince = [](auto& client) {
+  auto getAliveSince = [](std::unique_ptr<QsfpServiceAsyncClient> client) {
     VLOG(3) << "Polling qsfp_service aliveSince...";
     auto options = QsfpClient::getRpcOptions();
     return client->future_aliveSince(options);
@@ -134,7 +134,8 @@ folly::Future<folly::Unit> QsfpCache::confirmAlive() {
 folly::Future<folly::Unit> QsfpCache::doSync(PortMapThrift&& toSync) {
   CHECK(evb_->isInEventBaseThread());
 
-  auto syncPorts = [ports = std::move(toSync)](auto& client) mutable {
+  auto syncPorts = [ports = std::move(toSync)](
+        std::unique_ptr<QsfpServiceAsyncClient> client) mutable {
     VLOG(1) << "Will try to sync " << ports.size() << " ports to qsfp_service";
     auto options = QsfpClient::getRpcOptions();
     return client->future_syncPorts(options, std::move(ports));
