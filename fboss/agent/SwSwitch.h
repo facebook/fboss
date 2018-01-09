@@ -412,6 +412,13 @@ class SwSwitch : public HwSwitch::Callback {
     return getBackgroundEVB();
   }
 
+  /*
+   * Get the EventBase over which QsfpCache should execute
+   */
+  folly::EventBase* getQsfpCacheEvb() {
+    return &qsfpCacheEventBase_;
+  }
+
   /**
    * Do the packet received callback, and throw exception if there is an error
    * in the handling of packet.
@@ -780,6 +787,12 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::unique_ptr<std::thread> pcapDistributionThread_;
   folly::EventBase pcapDistributionEvb_;
+
+  /*
+   * A thread for communicating with qsfp_service via QsfpCache
+   */
+  std::unique_ptr<std::thread> qsfpCacheThread_;
+  folly::EventBase qsfpCacheEventBase_;
 
   /*
    * A callback for listening to neighbors coming and going.

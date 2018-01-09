@@ -552,6 +552,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
       "fbossPktTxThread",
       FLAGS_thread_heartbeat_ms,
       fbossPktTxHeartbeatStatsFunc);
+
   portRemediator_->init();
 
   setSwitchRunState(SwitchRunState::INITIALIZED);
@@ -1167,6 +1168,8 @@ void SwSwitch::startThreads() {
   pcapDistributionThread_.reset(new std::thread([=] {
     this->threadLoop("pcapDistributionThread", &pcapDistributionEvb_);
   }));
+  qsfpCacheThread_.reset(new std::thread(
+      [=] { this->threadLoop("fbossQsfpCacheThread", &qsfpCacheEventBase_); }));
 }
 
 void SwSwitch::stopThreads() {
@@ -1192,6 +1195,10 @@ void SwSwitch::stopThreads() {
     pcapDistributionEvb_.runInEventBaseThread(
         [this] { pcapDistributionEvb_.terminateLoopSoon(); });
   }
+  if (qsfpCacheThread_) {
+    qsfpCacheEventBase_.runInEventBaseThread(
+        [this] { qsfpCacheEventBase_.terminateLoopSoon(); });
+  }
   if (backgroundThread_) {
     backgroundThread_->join();
   }
@@ -1203,6 +1210,9 @@ void SwSwitch::stopThreads() {
   }
   if (pcapDistributionThread_) {
     pcapDistributionThread_->join();
+  }
+  if (qsfpCacheThread_) {
+    qsfpCacheThread_->join();
   }
 }
 
