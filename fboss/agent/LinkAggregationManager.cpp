@@ -53,7 +53,7 @@ void LinkAggregationManager::handlePacket(
 }
 
 void LinkAggregationManager::stateUpdated(const StateDelta& delta) {
-  CHECK(sw_->getUpdateEVB()->inRunningEventBaseThread());
+  CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
 
   folly::SharedMutexWritePriority::WriteHolder writeGuard(&controllersLock_);
 

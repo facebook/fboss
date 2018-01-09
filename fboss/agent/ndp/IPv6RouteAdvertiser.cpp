@@ -105,7 +105,7 @@ IPv6RAImpl::IPv6RAImpl(
     SwSwitch* sw,
     const SwitchState* /*state*/,
     const Interface* intf)
-    : AsyncTimeout(sw->getBackgroundEVB()), sw_(sw) {
+    : AsyncTimeout(sw->getBackgroundEvb()), sw_(sw) {
   std::chrono::seconds raInterval(
       intf->getNdpConfig().routerAdvertisementSeconds);
   interval_ = raInterval;
@@ -160,7 +160,7 @@ IPv6RouteAdvertiser::IPv6RouteAdvertiser(SwSwitch* sw,
                                          const SwitchState* state,
                                          const Interface* intf) {
   adv_ = new IPv6RAImpl(sw, state, intf);
-  bool ret = sw->getBackgroundEVB()->runInEventBaseThread(
+  bool ret = sw->getBackgroundEvb()->runInEventBaseThread(
       IPv6RAImpl::start, adv_);
   if (!ret) {
     delete adv_;
@@ -180,7 +180,7 @@ IPv6RouteAdvertiser::~IPv6RouteAdvertiser() {
   if (!adv_) {
     return;
   }
-  bool ret = adv_->getSw()->getBackgroundEVB()->runInEventBaseThread(
+  bool ret = adv_->getSw()->getBackgroundEvb()->runInEventBaseThread(
       IPv6RAImpl::stop, adv_);
   if (!ret) {
     LOG(ERROR) << "failed to stop IPv6 route advertiser";

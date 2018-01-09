@@ -1035,7 +1035,7 @@ TEST(ArpTest, PendingArpCleanup) {
  // Wait for pending entries to expire
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
   std::promise<bool> done;
-  auto* evb = sw->getBackgroundEVB();
+  auto* evb = sw->getBackgroundEvb();
   evb->runInEventBaseThread([&]() {
       evb->tryRunAfterDelay([&]() {
         done.set_value(true);
@@ -1167,7 +1167,7 @@ TEST(ArpTest, ArpExpiration) {
  // 1 more second for probe
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
   std::promise<bool> done;
-  auto* evb = sw->getBackgroundEVB();
+  auto* evb = sw->getBackgroundEvb();
   evb->runInEventBaseThread([&]() {
       evb->tryRunAfterDelay([&]() {
         done.set_value(true);

@@ -66,7 +66,7 @@ void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
     //
     // TODO(aeckert): Have MockTunManager hit the real TunManager
     // implementation if testing on actual hw
-    auto mockTunMgr = new MockTunManager(sw, sw->getBackgroundEVB());
+    auto mockTunMgr = new MockTunManager(sw, sw->getBackgroundEvb());
     std::unique_ptr<TunManager> tunMgr(mockTunMgr);
     sw->init(std::move(tunMgr), flags);
   } else {
@@ -251,7 +251,7 @@ std::shared_ptr<SwitchState> waitForStateUpdates(SwSwitch* sw) {
 }
 
 void waitForBackgroundThread(SwSwitch* sw) {
-  auto* evb = sw->getBackgroundEVB();
+  auto* evb = sw->getBackgroundEvb();
   evb->runInEventBaseThreadAndWait([]() { return; });
 }
 

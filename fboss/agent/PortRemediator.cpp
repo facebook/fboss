@@ -53,14 +53,14 @@ void PortRemediator::timeoutExpired() noexcept {
 }
 
 PortRemediator::PortRemediator(SwSwitch* swSwitch)
-    : AsyncTimeout(swSwitch->getBackgroundEVB()),
+    : AsyncTimeout(swSwitch->getBackgroundEvb()),
       sw_(swSwitch),
       interval_(kPortRemedyIntervalSec) {
 };
 
 void PortRemediator::init() {
   // Schedule the port remedy handler to run
-  bool ret = sw_->getBackgroundEVB()->runInEventBaseThread(
+  bool ret = sw_->getBackgroundEvb()->runInEventBaseThread(
       PortRemediator::start, (void*)this);
   if (!ret) {
     // Throw error from the constructor because this object is unusable if we
@@ -71,7 +71,7 @@ void PortRemediator::init() {
 
 PortRemediator::~PortRemediator() {
   int stopPortRemediator =
-      sw_->getBackgroundEVB()->runImmediatelyOrRunInEventBaseThreadAndWait(
+      sw_->getBackgroundEvb()->runImmediatelyOrRunInEventBaseThreadAndWait(
           PortRemediator::stop, (void*)this);
   // At this point, PortRemediator must not be running.
   if (!stopPortRemediator) {

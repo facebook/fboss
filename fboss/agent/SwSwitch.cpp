@@ -182,7 +182,8 @@ void SwSwitch::destroyPushClient(){
 void SwSwitch::constructPushClient(uint16_t port) {
   auto creation = [&, port]() {
     SocketAddress addr("::1", port);
-    auto socket = TAsyncSocket::newSocket(&pcapDistributionEvb_, addr, 2000);
+    auto socket =
+        TAsyncSocket::newSocket(&pcapDistributionEventBase_, addr, 2000);
     auto chan = HeaderClientChannel::newChannel(socket);
     chan->setTimeout(FLAGS_distribution_timeout_ms);
     chan->setCloseCallback(closer_.get());
@@ -190,7 +191,7 @@ void SwSwitch::constructPushClient(uint16_t port) {
         std::make_unique<PcapPushSubscriberAsyncClient>(std::move(chan));
     distributionServiceReady_.store(true);
   };
-  pcapDistributionEvb_.runInEventBaseThread(creation);
+  pcapDistributionEventBase_.runInEventBaseThread(creation);
 }
 
 void SwSwitch::killDistributionProcess(){
@@ -493,7 +494,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
     if (tunMgr) {
       tunMgr_ = std::move(tunMgr);
     } else {
-      tunMgr_ = std::make_unique<TunManager>(this, &fbossPktTxEventBase_);
+      tunMgr_ = std::make_unique<TunManager>(this, &packetTxEventBase_);
     }
   }
 
@@ -543,15 +544,15 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
     &updateEventBase_, "fbossUpdateThread", FLAGS_thread_heartbeat_ms,
     updHeartbeatStatsFunc);
 
-  auto fbossPktTxHeartbeatStatsFunc = [this](int delay, int backLog) {
-    stats()->fbossPktTxHeartbeatDelay(delay);
-    stats()->fbossPktTxEventBacklog(backLog);
+  auto packetTxHeartbeatStatsFunc = [this](int delay, int backLog) {
+    stats()->packetTxHeartbeatDelay(delay);
+    stats()->packetTxEventBacklog(backLog);
   };
-  fbossPktTxThreadHeartbeat_ = std::make_unique<ThreadHeartbeat>(
-      &fbossPktTxEventBase_,
+  packetTxThreadHeartbeat_ = std::make_unique<ThreadHeartbeat>(
+      &packetTxEventBase_,
       "fbossPktTxThread",
       FLAGS_thread_heartbeat_ms,
-      fbossPktTxHeartbeatStatsFunc);
+      packetTxHeartbeatStatsFunc);
 
   portRemediator_->init();
 
@@ -1163,10 +1164,11 @@ void SwSwitch::startThreads() {
       [=] { this->threadLoop("fbossBgThread", &backgroundEventBase_); }));
   updateThread_.reset(new std::thread(
       [=] { this->threadLoop("fbossUpdateThread", &updateEventBase_); }));
-  fbossPktTxThread_.reset(new std::thread(
-      [=] { this->threadLoop("fbossPktTxThread", &fbossPktTxEventBase_); }));
+  packetTxThread_.reset(new std::thread(
+      [=] { this->threadLoop("fbossPktTxThread", &packetTxEventBase_); }));
   pcapDistributionThread_.reset(new std::thread([=] {
-    this->threadLoop("pcapDistributionThread", &pcapDistributionEvb_);
+    this->threadLoop(
+        "fbossPcapDistributionThread", &pcapDistributionEventBase_);
   }));
   qsfpCacheThread_.reset(new std::thread(
       [=] { this->threadLoop("fbossQsfpCacheThread", &qsfpCacheEventBase_); }));
@@ -1187,13 +1189,13 @@ void SwSwitch::stopThreads() {
     updateEventBase_.runInEventBaseThread(
         [this] { updateEventBase_.terminateLoopSoon(); });
   }
-  if (fbossPktTxThread_) {
-    fbossPktTxEventBase_.runInEventBaseThread(
-        [this] { fbossPktTxEventBase_.terminateLoopSoon(); });
+  if (packetTxThread_) {
+    packetTxEventBase_.runInEventBaseThread(
+        [this] { packetTxEventBase_.terminateLoopSoon(); });
   }
   if (pcapDistributionThread_) {
-    pcapDistributionEvb_.runInEventBaseThread(
-        [this] { pcapDistributionEvb_.terminateLoopSoon(); });
+    pcapDistributionEventBase_.runInEventBaseThread(
+        [this] { pcapDistributionEventBase_.terminateLoopSoon(); });
   }
   if (qsfpCacheThread_) {
     qsfpCacheEventBase_.runInEventBaseThread(
@@ -1205,8 +1207,8 @@ void SwSwitch::stopThreads() {
   if (updateThread_) {
     updateThread_->join();
   }
-  if (fbossPktTxThread_) {
-    fbossPktTxThread_->join();
+  if (packetTxThread_) {
+    packetTxThread_->join();
   }
   if (pcapDistributionThread_) {
     pcapDistributionThread_->join();

@@ -21,7 +21,7 @@ class UnresolvedNhopsProber : private folly::AsyncTimeout,
                               public AutoRegisterStateObserver {
  public:
   explicit UnresolvedNhopsProber(SwSwitch *sw) :
-      AsyncTimeout(sw->getBackgroundEVB()),
+      AsyncTimeout(sw->getBackgroundEvb()),
       AutoRegisterStateObserver(sw, "UnresolvedNhopsProber"),
       sw_(sw),
       // Probe every 5 secs (make it faster ?)
@@ -30,14 +30,14 @@ class UnresolvedNhopsProber : private folly::AsyncTimeout,
   }
 
   ~UnresolvedNhopsProber() override {
-    sw_->getBackgroundEVB()->runImmediatelyOrRunInEventBaseThreadAndWait(
+    sw_->getBackgroundEvb()->runImmediatelyOrRunInEventBaseThreadAndWait(
       [this]() {
         cancelTimeout();
       });
   }
 
   void start() {
-    sw_->getBackgroundEVB()->runInEventBaseThread([this]() {
+    sw_->getBackgroundEvb()->runInEventBaseThread([this]() {
       scheduleTimeout(interval_);
     });
   }

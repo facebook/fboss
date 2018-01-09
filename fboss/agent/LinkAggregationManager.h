@@ -41,7 +41,7 @@ class LinkAggregationManager : public AutoRegisterStateObserver {
       folly::Range<Iterator> ports) {
     // Although this method is thread-safe, it is only invoked from a Selector
     // object, which should always be executing over the Background EVB
-    CHECK(sw_->getBackgroundEVB()->inRunningEventBaseThread());
+    CHECK(sw_->getBackgroundEvb()->inRunningEventBaseThread());
 
     std::vector<std::shared_ptr<LacpController>> controllers(
         std::distance(ports.begin(), ports.end()));

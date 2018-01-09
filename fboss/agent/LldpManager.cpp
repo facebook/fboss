@@ -31,20 +31,20 @@ namespace facebook { namespace fboss {
 const MacAddress LldpManager::LLDP_DEST_MAC("01:80:c2:00:00:0e");
 
 LldpManager::LldpManager(SwSwitch* sw)
-  : folly::AsyncTimeout(sw->getBackgroundEVB()),
+  : folly::AsyncTimeout(sw->getBackgroundEvb()),
     sw_(sw),
     interval_(LLDP_INTERVAL) {}
 
 LldpManager::~LldpManager() {}
 
 void LldpManager::start() {
-  sw_->getBackgroundEVB()->runInEventBaseThread([this] {
+  sw_->getBackgroundEvb()->runInEventBaseThread([this] {
     this->timeoutExpired();
   });
 }
 
 void LldpManager::stop() {
-  sw_->getBackgroundEVB()->runInEventBaseThreadAndWait(
+  sw_->getBackgroundEvb()->runInEventBaseThreadAndWait(
       [this] { this->cancelTimeout(); });
 }
 

@@ -645,7 +645,7 @@ TEST(NdpTest, RouterAdvertisement) {
   // expired.  Using the background EventBase to run the timeout ensures that
   // it will always run after the RA timeout has fired.
   std::promise<bool> done;
-  auto* evb = sw->getBackgroundEVB();
+  auto* evb = sw->getBackgroundEvb();
   evb->runInEventBaseThread([&]() {
       evb->tryRunAfterDelay([&]() {
         done.set_value(true);
@@ -981,7 +981,7 @@ TEST(NdpTest, PendingNdpCleanup) {
  // Wait for pending entries to expire
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
   std::promise<bool> done;
-  auto* evb = sw->getBackgroundEVB();
+  auto* evb = sw->getBackgroundEvb();
   evb->runInEventBaseThread([&]() {
       evb->tryRunAfterDelay([&]() {
         done.set_value(true);
@@ -1187,7 +1187,7 @@ TEST(NdpTest, NdpExpiration) {
  // 1 more second for probe
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
   std::promise<bool> done;
-  auto* evb = sw->getBackgroundEVB();
+  auto* evb = sw->getBackgroundEvb();
   evb->runInEventBaseThread([&]() {
       evb->tryRunAfterDelay([&]() {
         done.set_value(true);

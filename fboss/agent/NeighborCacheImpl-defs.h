@@ -161,7 +161,7 @@ void NeighborCacheImpl<NTable>::clearEntries() {
     auto addr = item.first;
     auto entry = item.second;
     stopTasks.push_back(
-        Entry::destroy(std::move(entry), sw_->getBackgroundEVB())
+        Entry::destroy(std::move(entry), sw_->getBackgroundEvb())
             .onError([=](const std::exception& /*e*/) {
               LOG(FATAL) << "failed to stop NeighborCacheEntry w/ addr "
                          << addr;
@@ -229,7 +229,7 @@ NeighborCacheEntry<NTable>* NeighborCacheImpl<NTable>::setEntryInternal(
     entry->updateState(state);
     return changed ? entry : nullptr;
   } else if (add) {
-    auto evb = sw_->getBackgroundEVB();
+    auto evb = sw_->getBackgroundEvb();
     auto to_store = std::make_shared<Entry>(fields, evb, cache_, state);
     entry = to_store.get();
     setCacheEntry(std::move(to_store));
@@ -293,7 +293,7 @@ bool NeighborCacheImpl<NTable>::removeEntry(AddressType ip) {
   // likely have the cache level lock here and the background thread could be
   // waiting for the lock. To avoid this deadlock scenario, we keep the entry
   // around in a shared_ptr for a bit longer and then destroy it later.
-  Entry::destroy(std::move(it->second), sw_->getBackgroundEVB());
+  Entry::destroy(std::move(it->second), sw_->getBackgroundEvb());
 
   entries_.erase(it);
 

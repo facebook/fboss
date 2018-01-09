@@ -212,7 +212,7 @@ uint32_t NeighborUpdater::flushEntry(VlanID vlan, IPAddress ip) {
 }
 
 void NeighborUpdater::stateUpdated(const StateDelta& delta) {
-  CHECK(sw_->getUpdateEVB()->inRunningEventBaseThread());
+  CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
   for (const auto& entry : delta.getVlansDelta()) {
     sendNeighborUpdates(entry);
     auto oldEntry = entry.getOld();
@@ -287,7 +287,7 @@ void NeighborUpdater::sendNeighborUpdates(const VlanDelta& delta) {
 }
 
 void NeighborUpdater::vlanAdded(const SwitchState* state, const Vlan* vlan) {
-  CHECK(sw_->getUpdateEVB()->inRunningEventBaseThread());
+  CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
 
   auto vlanID = vlan->getID();
   auto vlanName = vlan->getName();
@@ -308,7 +308,7 @@ void NeighborUpdater::vlanAdded(const SwitchState* state, const Vlan* vlan) {
 }
 
 void NeighborUpdater::vlanDeleted(const Vlan* vlan) {
-  CHECK(sw_->getUpdateEVB()->inRunningEventBaseThread());
+  CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
   std::shared_ptr<NeighborCaches> removedEntry;
   {
     std::lock_guard<std::mutex> g(cachesMutex_);
@@ -334,7 +334,7 @@ void NeighborUpdater::vlanChanged(const Vlan* oldVlan, const Vlan* newVlan) {
     return;
   }
 
-  CHECK(sw_->getUpdateEVB()->inRunningEventBaseThread());
+  CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
   {
     std::lock_guard<std::mutex> g(cachesMutex_);
     auto iter = caches_.find(newVlan->getID());
@@ -363,7 +363,7 @@ void NeighborUpdater::portChanged(
     CHECK_EQ(oldPort->getID(), newPort->getID());
     auto portId = newPort->getID();
 
-    sw_->getBackgroundEVB()->runInEventBaseThread([this, portId]() {
+    sw_->getBackgroundEvb()->runInEventBaseThread([this, portId]() {
       auto aggPort =
           sw_->getState()->getAggregatePorts()->getAggregatePortIf(portId);
       if (aggPort) {

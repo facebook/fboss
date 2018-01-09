@@ -220,8 +220,8 @@ class SwitchStats : public boost::noncopyable {
     updHeartbeatDelay_.addValue(delay);
   }
 
-  void  fbossPktTxHeartbeatDelay(int value) {
-    fbossPktTxHeartbeatDelay_.addValue(value);
+  void  packetTxHeartbeatDelay(int value) {
+    packetTxHeartbeatDelay_.addValue(value);
   }
 
   void bgEventBacklog(int value) {
@@ -232,8 +232,8 @@ class SwitchStats : public boost::noncopyable {
     updEventBacklog_.addValue(value);
   }
 
-  void  fbossPktTxEventBacklog(int value) {
-    fbossPktTxEventBacklog_.addValue(value);
+  void  packetTxEventBacklog(int value) {
+    packetTxEventBacklog_.addValue(value);
   }
 
   void linkStateChange() {
@@ -380,7 +380,7 @@ class SwitchStats : public boost::noncopyable {
   /**
    * Fboss packet Tx thread heartbeat delay (ms)
    */
-  TLHistogram fbossPktTxHeartbeatDelay_;
+  TLHistogram packetTxHeartbeatDelay_;
 
   /**
    * Number of events queued in background thread
@@ -394,7 +394,7 @@ class SwitchStats : public boost::noncopyable {
   /**
    * Number of events queued in fboss packet TX thread
    */
-  TLHistogram fbossPktTxEventBacklog_;
+  TLHistogram packetTxEventBacklog_;
 
   /**
    * Link state up/down change count
