@@ -23,6 +23,7 @@ class PortStatusTest(FbossBaseSystemTest):
 
 
 @test_tags("port", "server_port_flap")
+@unittest.skip("Test broken - T24997025 to investigate furthur")
 class ServerPortFlap(FbossBaseSystemTest):
     """ Verify that a server port flap is handled by fboss correctly and does
         not hang the system.
