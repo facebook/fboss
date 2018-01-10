@@ -202,6 +202,13 @@ void BcmPort::reinitPortStats() {
       statName("in_pkt_lengths"), &pktLenHist);
   outPktLengths_ = histMap->getOrCreateLockableHistogram(
       statName("out_pkt_lengths"), &pktLenHist);
+
+  // (re) init last set of statistics
+  portStats_ = HwPortStats();
+  portStats_.set_queueOutDiscardBytes_(
+      std::vector<int64_t>(getNumUnicastQueues(), 0));
+  portStats_.set_queueOutBytes_(
+      std::vector<int64_t>(getNumUnicastQueues(), 0));
 }
 
 BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
