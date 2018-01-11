@@ -222,13 +222,33 @@ enum MMUScalingFactor {
   FOUR = 10
 }
 
+// This determines how packets are scheduled on a per queue basis
+enum QueueScheduling {
+  // The round robin runs on all queues set to use WRR for a port
+  // Required to set a weight when using this
+  WEIGHTED_ROUND_ROBIN = 0
+  // All packets in this type of queue are dequeued before moving on
+  // to the next (lower priority) queue
+  // This means this can cause starvation on other queues if not
+  // configured properly
+  STRICT_PRIORITY = 1
+}
+
+// It is only necessary to define PortQueues for those that you want to
+// change settings on
+// It is only necessary to define PortQueues for those where you do not want to
+// use the default settings.
+// Any queues not described by config will use the system defaults of weighted
+// round robin with a default weight of 1
 struct PortQueue {
   1: required i16 id
   // We only use unicast in Fabric
   2: required StreamType streamType = StreamType.UNICAST
+  // This value is ignored if STRICT_PRIORITY is chosen
   3: optional i32 weight
   4: optional i32 reservedBytes
   5: optional MMUScalingFactor scalingFactor
+  6: required QueueScheduling scheduling
 }
 
 struct TrafficPolicyConfig {

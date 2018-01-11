@@ -519,6 +519,7 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
   CHECK_EQ(orig->getID(), cfg.id);
 
   if (orig->getStreamType() == cfg.streamType &&
+      orig->getScheduling() == cfg.scheduling &&
       orig->getWeight() == cfg.weight &&
       orig->getReservedBytes() == cfg.reservedBytes &&
       orig->getScalingFactor() == cfg.scalingFactor) {
@@ -527,6 +528,7 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
 
   auto newQueue = orig->clone();
   newQueue->setStreamType(cfg.streamType);
+  newQueue->setScheduling(cfg.scheduling);
   if (cfg.__isset.weight) {
     newQueue->setWeight(cfg.weight);
   }
@@ -543,6 +545,7 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
     const cfg::PortQueue& cfg) {
   auto queue = std::make_shared<PortQueue>(cfg.id);
   queue->setStreamType(cfg.streamType);
+  queue->setScheduling(cfg.scheduling);
   if (cfg.__isset.weight) {
     queue->setWeight(cfg.weight);
   }

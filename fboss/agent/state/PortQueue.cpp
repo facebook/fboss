@@ -17,6 +17,7 @@ constexpr auto kStreamType = "streamType";
 constexpr auto kWeight = "weight";
 constexpr auto kReservedBytes = "reserved";
 constexpr auto kScalingFactor = "scalingFactor";
+constexpr auto kScheduling = "scheduling";
 }
 
 namespace facebook { namespace fboss {
@@ -35,6 +36,8 @@ folly::dynamic PortQueueFields::toFollyDynamic() const {
           scalingFactor.value())->second;
   }
   queue[kId] = id;
+  queue[kScheduling] =
+    cfg::_QueueScheduling_VALUES_TO_NAMES.find(scheduling)->second;
   queue[kStreamType] =
     cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second;
   return queue;
@@ -47,6 +50,9 @@ PortQueueFields PortQueueFields::fromFollyDynamic(
   cfg::StreamType streamType = cfg::_StreamType_NAMES_TO_VALUES.find(
       queueJson[kStreamType].asString().c_str())->second;
   queue.streamType = streamType;
+  auto sched = cfg::_QueueScheduling_NAMES_TO_VALUES.find(
+      queueJson[kScheduling].asString().c_str())->second;
+  queue.scheduling = sched;
   if (queueJson.find(kReservedBytes) != queueJson.items().end()) {
     queue.reservedBytes = queueJson[kReservedBytes].asInt();
   }

@@ -25,12 +25,14 @@ using std::shared_ptr;
 
 TEST(PortQueue, serialization) {
   int id = 5;
+  auto scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   auto streamType = cfg::StreamType::UNICAST;
   int weight = 5;
   int reservedBytes = 1000;
   auto scalingFactor = cfg::MMUScalingFactor::ONE;
 
   PortQueue pqObject(id);
+  pqObject.setScheduling(scheduling);
   pqObject.setStreamType(streamType);
   pqObject.setWeight(weight);
   pqObject.setReservedBytes(reservedBytes);

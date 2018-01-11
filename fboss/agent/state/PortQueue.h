@@ -29,6 +29,7 @@ struct PortQueueFields {
   folly::dynamic toFollyDynamic() const;
   static PortQueueFields fromFollyDynamic(const folly::dynamic& json);
   uint8_t id{0};
+  cfg::QueueScheduling scheduling{cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN};
   cfg::StreamType streamType{cfg::StreamType::UNICAST};
   folly::Optional<int> weight{folly::none};
   folly::Optional<int> reservedBytes{folly::none};
@@ -62,11 +63,20 @@ class PortQueue :
            getFields()->streamType == queue.getStreamType() &&
            getFields()->weight == queue.getWeight() &&
            getFields()->reservedBytes == queue.getReservedBytes() &&
-           getFields()->scalingFactor == queue.getScalingFactor();
+           getFields()->scalingFactor == queue.getScalingFactor() &&
+           getFields()->scheduling == queue.getScheduling();
   }
 
   uint8_t getID() const {
     return getFields()->id;
+  }
+
+  void setScheduling(cfg::QueueScheduling scheduling) {
+    writableFields()->scheduling = scheduling;
+  }
+
+  cfg::QueueScheduling getScheduling() const {
+    return getFields()->scheduling;
   }
 
   void setStreamType(cfg::StreamType type) {
