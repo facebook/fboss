@@ -199,6 +199,8 @@ struct QueueMatchAction {
 
 struct MatchAction {
   1: optional QueueMatchAction sendToQueue
+  // TODO(joseph5wu) remove it after we can distinguish PortQueue by
+  // trafficPolicy types
   2: bool sendToCPU = false
 }
 
@@ -249,11 +251,31 @@ struct PortQueue {
   4: optional i32 reservedBytes
   5: optional MMUScalingFactor scalingFactor
   6: required QueueScheduling scheduling
+  7: optional string name
+  8: optional i32 length
+  9: optional i32 packetsPerSec
+  10: optional i32 sharedBytes
 }
 
 struct TrafficPolicyConfig {
   // Order of entries determines priority of acls when applied
   1: list<MatchToAction> matchToAction = []
+}
+
+struct CPUTrafficPolicyConfig {
+  1: optional TrafficPolicyConfig trafficPolicy
+  2: optional map<PacketRxReason, i16> rxReasonToCPUQueue
+}
+
+enum PacketRxReason {
+  UNMATCHED    = 0 // all packets for which there's not a explicit match rule
+  ARP          = 1
+  DHCP         = 2
+  BPDU         = 3
+  L3_SLOW_PATH = 4 // L3 slow path processed pkt
+  L3_DEST_MISS = 5 // L3 DIP miss
+  TTL_1        = 6 // L3UC or IPMC packet with TTL equal to 1
+  CPU_IS_NHOP  = 7 // The CPU port is the next-hop in the routing table
 }
 
 /**
@@ -648,4 +670,6 @@ struct SwitchConfig {
   25: optional string config_version
   26: list<SflowCollector> sFlowCollectors = []
   27: optional Lacp lacp
+  28: optional list<PortQueue> cpuQueues
+  29: optional CPUTrafficPolicyConfig cpuTrafficPolicy
 }
