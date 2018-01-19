@@ -201,13 +201,14 @@ PortStatus WedgePort::toThrift(const std::shared_ptr<Port>& port) {
   // TODO: make it possible to generate a PortStatus struct solely
   // from a Port SwitchState node. Currently you need platform to get
   // transceiver mapping, which is not ideal.
-  return PortStatus(
-    apache::thrift::FragileConstructor::FRAGILE,
-    port->isEnabled(),
-    port->isUp(),
-    false,
-    getTransceiverMapping(),
-    static_cast<int64_t>(port->getSpeed()));
+  PortStatus status;
+  status.enabled = port->isEnabled();
+  status.up = port->isUp();
+  status.speedMbps = static_cast<int64_t>(port->getSpeed());
+  if (supportsTransceiver()) {
+    status.set_transceiverIdx(getTransceiverMapping());
+  }
+  return status;
 }
 
 }} // facebook::fboss
