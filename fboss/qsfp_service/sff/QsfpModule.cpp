@@ -673,7 +673,8 @@ bool QsfpModule::safeToCustomize() const {
     return false;
   } else if (ports_.size() > CHANNEL_COUNT) {
     throw FbossError(
-      "More than ", CHANNEL_COUNT, " ports found in transceiver ", getID());
+      ports_.size(), " channels found in transceiver ", getID(),
+      " (max=", CHANNEL_COUNT, ")");
   }
 
   bool anyEnabled{false};
