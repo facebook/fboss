@@ -12,7 +12,7 @@ from neteng.fboss.ctrl.ttypes import UnicastRoute
 from fboss.system_tests.test.ttypes import DeviceType
 
 
-@test_tags("loopback")
+@test_tags("loopback", "run-on-diff")
 class LoopbackPing(FbossBaseSystemTest):
     """ Test whether host can ping other hosts' loopback interface
         """
