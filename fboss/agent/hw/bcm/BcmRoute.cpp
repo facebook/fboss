@@ -275,7 +275,7 @@ BcmRoute::~BcmRoute() {
     auto host = hw_->getHostTable()->getBcmHostIf(hostKey);
     CHECK(host);
     VLOG(3) << "Deleting host route; derefrence host prefix for : " << prefix_
-            << "/" << len_ << " host: " << host;
+            << "/" << static_cast<int>(len_) << " host: " << host;
     hw_->writableHostTable()->derefBcmHost(hostKey);
   } else {
     deleteLpmRoute(hw_->getUnit(), vrf_, prefix_, len_);
