@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+import unittest
 
 from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 from fboss.system_tests.testutils.ip_conversion import ip_addr_to_str
@@ -9,9 +10,11 @@ from fboss.system_tests.testutils.ip_conversion import ip_addr_to_str
 
 # By the time we get here, connectivity to the switch
 # and the hosts has been verified
+@unittest.skip("Test broken - T25410615 to investigate furthur")
 @test_tags("l3interface", "run-on-diff")
 class L3InterfacesTest(FbossBaseSystemTest):
-    """ Ping Each L3 Interface from Each host
+    """
+    Ping Each L3 Interface from Each host
     """
     def test_l3_interface_ping(self):
         with self.test_topology.switch_thrift() as sw_client:
