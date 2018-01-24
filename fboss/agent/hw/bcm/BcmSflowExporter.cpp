@@ -55,7 +55,19 @@ BcmSflowExporter::BcmSflowExporter(const folly::SocketAddress& address)
   }
 
   // bind the socket.
-  folly::SocketAddress localAddr("::", 0);
+  folly::SocketAddress localAddr;
+
+  switch (address.getFamily()) {
+    case AF_INET6:
+      localAddr = folly::SocketAddress("::", 0);
+      break;
+    case AF_INET:
+      localAddr = folly::SocketAddress("0.0.0.0", 0);
+      break;
+    default:
+      throw FbossError("Unsupported address family for exporter target");
+  }
+
   sockaddr_storage addrStorage;
   localAddr.getAddress(&addrStorage);
   sockaddr* saddr = reinterpret_cast<sockaddr*>(&addrStorage);
@@ -116,6 +128,7 @@ void BcmSflowExporterTable::addExporter(const shared_ptr<SflowCollector>& c) {
     LOG(ERROR) << "Could not add exporter: "
                << c->getAddress().getFullyQualified()
                << " reason: " << folly::exceptionStr(ex);
+    return;
   }
 
   LOG(INFO) << "Successfully added exporter for "
@@ -123,6 +136,7 @@ void BcmSflowExporterTable::addExporter(const shared_ptr<SflowCollector>& c) {
 }
 
 void BcmSflowExporterTable::removeExporter(const std::string& id) {
+  LOG(INFO) << "Removed sFlow exporter " << id;
   map_.erase(id);
 }
 
