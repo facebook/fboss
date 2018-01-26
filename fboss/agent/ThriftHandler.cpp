@@ -176,40 +176,7 @@ void ThriftHandler::addUnicastRoutes(
     int16_t client, std::unique_ptr<std::vector<UnicastRoute>> routes) {
   ensureConfigured("addUnicastRoutes");
   ensureFibSynced("addUnicastRoutes");
-  RouteUpdateStats stats(sw_, "Add", routes->size());
-  auto updateFn = [&](const shared_ptr<SwitchState>& state) {
-    RouteUpdater updater(state->getRouteTables());
-    RouterID routerId = RouterID(0); // TODO, default vrf for now
-    auto clientIdToAdmin = sw_->clientIdToAdminDistance(client);
-    for (const auto& route : *routes) {
-      auto network = toIPAddress(route.dest.ip);
-      auto mask = static_cast<uint8_t>(route.dest.prefixLength);
-      auto adminDistance = route.__isset.adminDistance ? route.adminDistance :
-        clientIdToAdmin;
-      RouteNextHops nexthops = util::toRouteNextHops(route.nextHopAddrs);
-      if (nexthops.size()) {
-        updater.addRoute(routerId, network, mask, ClientID(client),
-                         RouteNextHopEntry(std::move(nexthops), adminDistance));
-      } else {
-        updater.addRoute(routerId, network, mask, ClientID(client),
-                         RouteNextHopEntry(RouteForwardAction::DROP,
-                           adminDistance));
-      }
-      if (network.isV4()) {
-        sw_->stats()->addRouteV4();
-      } else {
-        sw_->stats()->addRouteV6();
-      }
-    }
-    auto newRt = updater.updateDone();
-    if (!newRt) {
-      return shared_ptr<SwitchState>();
-    }
-    auto newState = state->clone();
-    newState->resetRouteTables(std::move(newRt));
-    return newState;
-  };
-  sw_->updateStateBlocking("add unicast route", updateFn);
+  updateUnicastRoutesImpl(client, routes, "addUnicastRoutes", false);
 }
 
 void ThriftHandler::getProductInfo(ProductInfo& productInfo) {
@@ -249,7 +216,16 @@ void ThriftHandler::deleteUnicastRoutes(
 void ThriftHandler::syncFib(
     int16_t client, std::unique_ptr<std::vector<UnicastRoute>> routes) {
   ensureConfigured("syncFib");
-  RouteUpdateStats stats(sw_, "Sync", routes->size());
+  updateUnicastRoutesImpl(client, routes, "syncFib", true);
+  if (!sw_->isFibSynced()) {
+    sw_->fibSynced();
+  }
+}
+
+void ThriftHandler::updateUnicastRoutesImpl(
+  int16_t client, const std::unique_ptr<std::vector<UnicastRoute>>& routes,
+  const std::string& updType, bool sync) {
+  RouteUpdateStats stats(sw_, updType, routes->size());
 
   // Note that we capture routes by reference here, since it is a unique_ptr.
   // This is safe since we use updateStateBlocking(), so routes will still
@@ -260,16 +236,25 @@ void ThriftHandler::syncFib(
     RouteUpdater updater(state->getRouteTables());
     RouterID routerId = RouterID(0); // TODO, default vrf for now
     auto clientIdToAdmin = sw_->clientIdToAdminDistance(client);
-    updater.removeAllRoutesForClient(routerId, ClientID(client));
+    if (sync) {
+      updater.removeAllRoutesForClient(routerId, ClientID(client));
+    }
     for (const auto& route : *routes) {
       folly::IPAddress network = toIPAddress(route.dest.ip);
       uint8_t mask = static_cast<uint8_t>(route.dest.prefixLength);
       auto adminDistance = route.__isset.adminDistance ? route.adminDistance :
         clientIdToAdmin;
       RouteNextHops nexthops = util::toRouteNextHops(route.nextHopAddrs);
-      updater.addRoute(routerId, network, mask, ClientID(client),
-                       RouteNextHopEntry(std::move(nexthops),
-                         adminDistance));
+      if (nexthops.size()) {
+        updater.addRoute(routerId, network, mask, ClientID(client),
+                         RouteNextHopEntry(std::move(nexthops), adminDistance));
+      } else {
+        VLOG(3) << "Blackhole route:" << network << "/"
+                <<  static_cast<int>(mask);
+        updater.addRoute(routerId, network, mask, ClientID(client),
+                         RouteNextHopEntry(RouteForwardAction::DROP,
+                           adminDistance));
+      }
       if (network.isV4()) {
         sw_->stats()->addRouteV4();
       } else {
@@ -284,11 +269,7 @@ void ThriftHandler::syncFib(
     newState->resetRouteTables(std::move(newRt));
     return newState;
   };
-  sw_->updateStateBlocking("sync fib", updateFn);
-
-  if (!sw_->isFibSynced()) {
-    sw_->fibSynced();
-  }
+  sw_->updateStateBlocking(updType, updateFn);
 }
 
 static void populateInterfaceDetail(InterfaceDetail& interfaceDetail,

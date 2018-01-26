@@ -247,6 +247,10 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
                                 std::vector<std::string> added,
                                 std::vector<std::string> deleted);
 
+  void updateUnicastRoutesImpl(
+    int16_t client, const std::unique_ptr<std::vector<UnicastRoute>>& routes,
+    const std::string& updType, bool sync);
+
   void getPortInfoHelper(
       PortInfoThrift& portInfo,
       const std::shared_ptr<Port> port);
