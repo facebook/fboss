@@ -21,11 +21,11 @@ namespace facebook { namespace fboss {
  */
 template <typename TraitsT>
 struct NodeMapFields {
-  typedef typename TraitsT::KeyType KeyType;
-  typedef typename TraitsT::Node Node;
-  typedef typename TraitsT::ExtraFields ExtraFields;
-  typedef boost::container::flat_map<KeyType, std::shared_ptr<Node>>
-    NodeContainer;
+  using KeyType = typename TraitsT::KeyType;
+  using Node = typename TraitsT::Node;
+  using ExtraFields = typename TraitsT::ExtraFields;
+  using NodeContainer =
+      boost::container::flat_map<KeyType, std::shared_ptr<Node>>;
 
   NodeMapFields() {}
   NodeMapFields(const NodeMapFields& other, NodeContainer nodes)
@@ -41,7 +41,7 @@ struct NodeMapFields {
   }
 
   NodeContainer nodes;
-  typename TraitsT::ExtraFields extra;
+  ExtraFields extra;
 };
 
 struct NodeMapNoExtraFields {
@@ -59,9 +59,9 @@ struct NodeMapNoExtraFields {
 
 template<typename KeyT, typename NodeT, typename ExtraT = NodeMapNoExtraFields>
 struct NodeMapTraits {
-  typedef KeyT KeyType;
-  typedef NodeT Node;
-  typedef ExtraT ExtraFields;
+  using KeyType = KeyT;
+  using Node = NodeT;
+  using ExtraFields = ExtraT;
 
   static KeyType getKey(const std::shared_ptr<Node>& node) {
     return node->getID();
@@ -80,15 +80,15 @@ template <typename MapTypeT, typename TraitsT>
 class NodeMapT : public NodeBaseT<MapTypeT,
                                   NodeMapFields<TraitsT>> {
  public:
-  typedef TraitsT Traits;
-  typedef typename TraitsT::KeyType KeyType;
-  typedef typename TraitsT::Node Node;
-  typedef typename TraitsT::ExtraFields ExtraFields;
-  typedef MapTypeT MapType;
-  typedef NodeMapFields<TraitsT> Fields;
-  typedef typename Fields::NodeContainer NodeContainer;
-  typedef NodeMapIterator<Node, NodeContainer> Iterator;
-  typedef ReverseNodeMapIterator<Node, NodeContainer> ReverseIterator;
+  using Traits = TraitsT;
+  using KeyType = typename TraitsT::KeyType;
+  using Node = typename TraitsT::Node;
+  using ExtraFields = typename TraitsT::ExtraFields;
+  using MapType = MapTypeT;
+  using Fields = NodeMapFields<TraitsT>;
+  using NodeContainer = typename Fields::NodeContainer;
+  using Iterator = NodeMapIterator<Node, NodeContainer>;
+  using ReverseIterator = ReverseNodeMapIterator<Node, NodeContainer>;
 
   const std::shared_ptr<Node>& getNode(KeyType key) const;
   std::shared_ptr<Node> getNodeIf(KeyType key) const;

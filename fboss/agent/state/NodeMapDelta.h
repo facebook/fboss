@@ -105,7 +105,7 @@ class NodeMapDelta {
 template<typename NODE>
 class DeltaValue {
  public:
-  typedef NODE Node;
+  using Node = NODE;
   DeltaValue(const std::shared_ptr<Node>& o, const std::shared_ptr<Node>& n)
     : old_(o), new_(n) {}
 
@@ -141,15 +141,15 @@ class DeltaValue {
 template<typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
 class NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator {
  public:
-  typedef MAP MapType;
-  typedef typename MAP::Node Node;
+  using MapType = MAP;
+  using Node = typename MAP::Node;
 
   // Iterator properties
-  typedef std::forward_iterator_tag iterator_category;
-  typedef VALUE value_type;
-  typedef ptrdiff_t difference_type;
-  typedef VALUE* pointer;
-  typedef VALUE& reference;
+  using iterator_category = std::forward_iterator_tag;
+  using value_type = VALUE;
+  using difference_type = ptrdiff_t;
+  using pointer = VALUE*;
+  using reference = VALUE&;
 
   Iterator(const MapType* oldMap,
            typename MapType::Iterator oldIt,
@@ -182,16 +182,16 @@ class NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator {
   }
 
  private:
-  typedef typename MapType::Iterator InnerIter;
-  typedef typename MapType::Traits Traits;
+  using InnerIter = typename MapType::Iterator;
+  using Traits = typename MapType::Traits;
 
   void advance();
   void updateValue();
 
-  InnerIter oldIt_;
-  InnerIter newIt_;
-  const MapType* oldMap_;
-  const MapType* newMap_;
+  InnerIter oldIt_{nullptr};
+  InnerIter newIt_{nullptr};
+  const MapType* oldMap_{nullptr};
+  const MapType* newMap_{nullptr};
   VALUE value_;
 
   static std::shared_ptr<Node> nullNode_;

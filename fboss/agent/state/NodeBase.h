@@ -40,7 +40,7 @@ namespace facebook { namespace fboss {
  */
 class NodeBase {
  public:
-  virtual ~NodeBase() {}
+  virtual ~NodeBase() = default;
 
   /*
    * Returns if this state is published yet.
@@ -155,10 +155,10 @@ class NodeBase {
 template<typename NodeT, typename FieldsT>
 class NodeBaseT : public NodeBase {
  public:
-  typedef NodeT Node;
-  typedef FieldsT Fields;
+  using Node = NodeT;
+  using Fields = FieldsT;
 
-  ~NodeBaseT() override {}
+  ~NodeBaseT() override = default;
 
   /*
    * Create a new version of the node, cloned from this one.
