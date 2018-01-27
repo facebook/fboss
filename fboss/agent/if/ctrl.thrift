@@ -493,6 +493,11 @@ service FbossCtrl extends fb303.FacebookService {
    * has changed since the agent started.
    */
   void reloadConfig()
+
+  /*
+   * Serialize current (live) switch state as JSON string
+   */
+  string getCurrentStateJSON()
 }
 
 service NeighborListenerClient extends fb303.FacebookService {

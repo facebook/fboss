@@ -431,6 +431,13 @@ void ThriftHandler::getRunningConfig(std::string& configStr) {
   configStr = sw_->getConfigStr();
 }
 
+void ThriftHandler::getCurrentStateJSON(std::string& ret) {
+  ensureConfigured();
+  auto swState = sw_->getState();
+  ret = folly::json::serialize(
+      swState->toFollyDynamic(), folly::json::serialization_opts{});
+}
+
 void ThriftHandler::getPortStatus(map<int32_t, PortStatus>& statusMap,
                                   unique_ptr<vector<int32_t>> ports) {
   ensureConfigured();

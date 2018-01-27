@@ -209,6 +209,11 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
    */
   void reloadConfig() override;
 
+  /**
+   * Serialize live running switch state
+   */
+  void getCurrentStateJSON(std::string& ret) override;
+
  protected:
   void ensureConfigured(folly::StringPiece function);
   void ensureConfigured() {
