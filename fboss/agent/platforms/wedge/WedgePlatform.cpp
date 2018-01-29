@@ -88,7 +88,9 @@ void WedgePlatform::stateUpdated(const StateDelta& delta) {
     auto newPort = entry.getNew();
     if (newPort) {
       auto platformPort = getPort(newPort->getID());
-      changedPorts[newPort->getID()] = platformPort->toThrift(newPort);
+      if (platformPort->supportsTransceiver()) {
+        changedPorts[newPort->getID()] = platformPort->toThrift(newPort);
+      }
     }
   }
   qsfpCache_->portsChanged(changedPorts);
