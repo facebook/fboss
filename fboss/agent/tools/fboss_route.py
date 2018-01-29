@@ -57,7 +57,7 @@ def del_route(args):
 def list_intf(args):
     with get_client(args) as client:
         #for intf in client.getInterfaceList():
-        for idx, intf in client.getAllInterfaces().iteritems():
+        for idx, intf in client.getAllInterfaces().iteritems():  # noqa: B301 T25377293 Grandfathered in
             print ("L3 Interface %d: %s" % (idx, format_interface(intf)))
 
 def format_ip(ip):
@@ -87,13 +87,13 @@ def list_routes(args):
 def list_optics(args):
     with get_qsfp_client(args) as client:
         info = client.getTransceiverInfo()
-        for key, val in info.iteritems():
+        for key, val in info.iteritems():  # noqa: B301 T25377293 Grandfathered in
             print ("Optic %d: %s" % (key, str(val)))
 
 def list_ports(args):
     details = args.details
     with get_client(args) as client:
-        for idx, intf in client.getPortStatus(range(1, 65)).iteritems():
+        for idx, intf in client.getPortStatus(range(1, 65)).iteritems():  # noqa: B301 T25377293 Grandfathered in
             stats = ""
             if details:
                 stats = " (%s)" % client.getPortStats(idx)
