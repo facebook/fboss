@@ -40,6 +40,7 @@ void NetlinkManager::run() {
   fbossClient_ = clientFuture.getVia(eb_);
   setMonitoredInterfaces();
   testFbossClient();
+  callSyncFib();
   registerWNetlink();
   startListening();
 }
@@ -108,6 +109,15 @@ void NetlinkManager::testFbossClient() {
   } else {
     logAndDie("Failed to ping fboss client.");
   }
+}
+
+// The fboss agent will not accept incremental route changes
+// (e.g., addUnicastRoute() ) until *after* syncFib() is called
+//  to unblock the open source, it's probably ok to call syncFib()
+// with an empty list of routes and then we'll go back and fix this.
+void NetlinkManager::callSyncFib() {
+  std::vector<UnicastRoute> routes;
+  fbossClient_->sync_syncFib(FBOSS_CLIENT_ID, routes);
 }
 
 void NetlinkManager::setMonitoredInterfaces() {

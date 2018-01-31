@@ -41,6 +41,7 @@ class NetlinkManager {
       const int& port);
   void startListening();
   void testFbossClient();
+  void callSyncFib();
   static void netlinkRouteUpdated(
       struct nl_cache* cache, // Route cache
       struct nl_object* obj, // New route object
