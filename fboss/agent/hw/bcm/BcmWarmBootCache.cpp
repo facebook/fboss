@@ -125,13 +125,13 @@ shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
   // Populate ARP and NDP tables of VLANs using egress entries
   for (const auto& hostEntry : vrfIp2EgressFromBcmHostInWarmBootFile_) {
     auto egressId = hostEntry.second;
-    const auto egressIdAndEgressBool = findEgress(egressId);
-    if (egressIdAndEgressBool == egressId2EgressAndBool_.end()) {
+    const auto egressIdAndEgress = findEgress(egressId);
+    if (egressIdAndEgress == egressId2Egress_.end()) {
       // The host entry might be an ECMP egress entry.
       continue;
     }
 
-    const auto& bcmEgress = egressIdAndEgressBool->second.first;
+    const auto& bcmEgress = egressIdAndEgress->second;
     if (bcmEgress.vlan == kVlanForCPUEgressEntries) {
       // Ignore to CPU egress entries which get mapped to vlan 0
       continue;
@@ -331,7 +331,7 @@ void BcmWarmBootCache::populateStateFromWarmbootFile() {
   }
 }
 
-BcmWarmBootCache::EgressId2EgressAndBoolCitr
+BcmWarmBootCache::EgressId2EgressCitr
 BcmWarmBootCache::findEgressFromHost(
     opennsl_vrf_t vrf,
     const folly::IPAddress &addr,
@@ -340,7 +340,7 @@ BcmWarmBootCache::findEgressFromHost(
   // Do a cheap check of size to avoid construct the key for lookup.
   // That helps the case after warmboot is done.
   if (vrfIp2EgressFromBcmHostInWarmBootFile_.size() == 0) {
-    return egressId2EgressAndBool_.end();
+    return egressId2Egress_.end();
   }
   // only care about the intf if addr is v6 link-local
   if (!addr.isV6() || !addr.isLinkLocal()) {
@@ -349,7 +349,7 @@ BcmWarmBootCache::findEgressFromHost(
   auto key = std::make_tuple(vrf, addr, intf);
   auto it = vrfIp2EgressFromBcmHostInWarmBootFile_.find(key);
   if (it == vrfIp2EgressFromBcmHostInWarmBootFile_.cend()) {
-    return egressId2EgressAndBool_.end();
+    return egressId2Egress_.end();
   }
   return findEgress(it->second);
 }
@@ -476,8 +476,7 @@ int BcmWarmBootCache::egressTraversalCallback(
     opennsl_l3_egress_t* egress,
     void* userData) {
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
-  CHECK(cache->egressId2EgressAndBool_.find(egressId) ==
-        cache->egressId2EgressAndBool_.end())
+  CHECK(cache->egressId2Egress_.find(egressId) == cache->egressId2Egress_.end())
       << "Double callback for egress id: " << egressId;
   // Look up egressId in egressIdsFromBcmHostInWarmBootFile_
   // to populate both dropEgressId_ and toCPUEgressId_.
@@ -487,7 +486,7 @@ int BcmWarmBootCache::egressTraversalCallback(
     // reference it.
     VLOG(1) << "Adding bcm egress entry for: " << *egressIdItr
             << " which is referenced by at least one host or route entry.";
-    cache->egressId2EgressAndBool_[egressId] = std::make_pair(*egress, false);
+    cache->egressId2Egress_[egressId] = *egress;
   } else {
     // found egress ID that is not used by any host entry, we shall
     // only have two of them. One is for drop and the other one is for TO CPU.
@@ -668,19 +667,17 @@ void BcmWarmBootCache::clear() {
   // Delete bcm egress entries. These are referenced by routes, ecmp egress
   // and host objects all of which we deleted above. Egress objects in turn
   // my point to a interface which we delete later
-  for (auto egressIdAndEgressBool : egressId2EgressAndBool_) {
-    if (!egressIdAndEgressBool.second.second) {
-      // This is not used yet
-      VLOG(1) << "Deleting egress object: " << egressIdAndEgressBool.first;
-      auto rv = opennsl_l3_egress_destroy(hw_->getUnit(),
-                                          egressIdAndEgressBool.first);
+  for (auto egressIdAndEgress : egressId2Egress_) {
+    // This is not used yet
+    VLOG(1) << "Deleting egress object: " << egressIdAndEgress.first;
+    auto rv = opennsl_l3_egress_destroy(hw_->getUnit(),
+                                        egressIdAndEgress.first);
       bcmLogFatal(rv,
                   hw_,
                   "failed to destroy egress object ",
-                  egressIdAndEgressBool.first);
-    }
+                  egressIdAndEgress.first);
   }
-  egressId2EgressAndBool_.clear();
+  egressId2Egress_.clear();
 
   // Delete interfaces
   for (auto vlanMacAndIntf : vlanAndMac2Intf_) {

@@ -75,10 +75,8 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
   bool addOrUpdateEgress = false;
   const auto warmBootCache = hw_->getWarmBootCache();
   CHECK(warmBootCache);
-  auto egressId2EgressAndBoolCitr = warmBootCache->findEgressFromHost(
-      vrf, ip, intfId);
-  if (egressId2EgressAndBoolCitr !=
-      warmBootCache->egressId2EgressAndBool_end()) {
+  auto egressId2EgressCitr = warmBootCache->findEgressFromHost(vrf, ip, intfId);
+  if (egressId2EgressCitr != warmBootCache->egressId2Egress_end()) {
     // Lambda to compare with existing egress to know if should reprogram
     auto equivalent = [] (const opennsl_l3_egress_t& newEgress,
         const opennsl_l3_egress_t& existingEgress) {
@@ -109,10 +107,10 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
       }
       return false;
     };
-    const auto& existingEgressId = egressId2EgressAndBoolCitr->first;
+    const auto& existingEgressId = egressId2EgressCitr->first;
     // Cache existing egress id
     id_ = existingEgressId;
-    auto existingEgressObject = egressId2EgressAndBoolCitr->second.first;
+    auto existingEgressObject = egressId2EgressCitr->second;
     if (!equivalent(eObj, existingEgressObject)) {
       VLOG(1) << "Updating egress object for next hop : " << ip
               << " @ brcmif " << intfId;
@@ -166,9 +164,8 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
   intfId_ = intfId;
 
   // update warmboot cache if needed
-  if (egressId2EgressAndBoolCitr !=
-      warmBootCache->egressId2EgressAndBool_end()) {
-    warmBootCache->programmed(egressId2EgressAndBoolCitr);
+  if (egressId2EgressCitr != warmBootCache->egressId2Egress_end()) {
+    warmBootCache->programmed(egressId2EgressCitr);
   }
   CHECK_NE(id_, INVALID);
 }

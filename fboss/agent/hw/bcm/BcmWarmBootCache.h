@@ -128,9 +128,7 @@ class BcmWarmBootCache {
   typedef boost::container::flat_map<EgressIds, EcmpEgress> EgressIds2Ecmp;
   using VrfAndIP2Route =
       boost::container::flat_map<VrfAndIP, opennsl_l3_route_t>;
-  using EgressAndBool = std::pair<Egress, bool>;
-  using EgressId2EgressAndBool =
-      boost::container::flat_map<EgressId, EgressAndBool>;
+  using EgressId2Egress = boost::container::flat_map<EgressId, Egress>;
   using HostTableInWarmBootFile = boost::container::flat_map<HostKey, EgressId>;
 
   // current h/w acl ranges: value = <BcmAclRangeHandle, ref_count>
@@ -232,26 +230,25 @@ class BcmWarmBootCache {
   /**
    * Iterators and find functions for finding egress objects.
    */
-  using EgressId2EgressAndBoolCitr = EgressId2EgressAndBool::const_iterator;
-  EgressId2EgressAndBoolCitr egressId2EgressAndBool_begin() const {
-    return egressId2EgressAndBool_.begin();
+  using EgressId2EgressCitr = EgressId2Egress::const_iterator;
+  EgressId2EgressCitr egressId2Egress_begin() {
+    return egressId2Egress_.begin();
   }
-  EgressId2EgressAndBoolCitr egressId2EgressAndBool_end() const {
-    return egressId2EgressAndBool_.end();
+  EgressId2EgressCitr egressId2Egress_end() {
+    return egressId2Egress_.end();
   }
-  EgressId2EgressAndBoolCitr findEgress(EgressId id) const {
-    return egressId2EgressAndBool_.find(id);
+  EgressId2EgressCitr findEgress(EgressId id) const {
+    return egressId2Egress_.find(id);
   }
-  EgressId2EgressAndBoolCitr findEgressFromHost(
+  EgressId2EgressCitr findEgressFromHost(
       opennsl_vrf_t vrf,
       const folly::IPAddress& addr,
       folly::Optional<opennsl_if_t> intf);
 
-  void programmed(EgressId2EgressAndBoolCitr citr) {
+  void programmed(EgressId2EgressCitr citr) {
     VLOG(1) << "Programmed egress entry: " << citr->first
-            << ". Marking at used in warmboot cache.";
-    auto itr = egressId2EgressAndBool_.find(citr->first);
-    itr->second.second = true;
+            << ". Removing from warmboot cache.";
+    egressId2Egress_.erase(citr->first);
   }
   /*
    * Iterators and find functions for finding opennsl_l3_host_t
@@ -418,7 +415,7 @@ class BcmWarmBootCache {
   // These are the fully qualified routes stored in defip table (/32 and /128
   // routes).
   VrfAndIP2Route vrfAndIP2Route_;
-  EgressId2EgressAndBool egressId2EgressAndBool_;
+  EgressId2Egress egressId2Egress_;
   EgressIds2Ecmp egressIds2Ecmp_;
   opennsl_if_t dropEgressId_;
   opennsl_if_t toCPUEgressId_;
