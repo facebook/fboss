@@ -26,6 +26,10 @@ service TestService extends fb303.FacebookService {
             throws (1: fboss.FbossBaseError error)
   i32 get_interface_mtu(1: string intf)
       throws (1: fboss.FbossBaseError error)
+  string get_v4_ip(1: string intf)
+      throws (1: fboss.FbossBaseError error)
+  string get_v6_ip(1: string intf)
+      throws (1: fboss.FbossBaseError error)
   bool status();
 
   /* This will start capturing packets, but the buffer is small so if lots

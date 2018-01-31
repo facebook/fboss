@@ -81,6 +81,16 @@ class TestServer(TestService.Iface):
         response = subprocess.check_output(command)
         return int(response)
 
+    def get_v4_ip(self, intf):
+        command = ["ip", "-4", "addr", "show", intf]
+        response = subprocess.check_output(command)
+        return response
+
+    def get_v6_ip(self, intf):
+        command = ["ip", "-6", "addr", "show", intf]
+        response = subprocess.check_output(command)
+        return response
+
     def status(self):
         return True
 

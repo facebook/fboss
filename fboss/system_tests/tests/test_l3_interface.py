@@ -8,24 +8,57 @@ from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 from fboss.system_tests.testutils.ip_conversion import ip_addr_to_str
 
 
+def _append_outgoing_interface(ip, host_intf, is_ipv4=True):
+    if ":" in ip and not is_ipv4:
+        return (ip + "%%%s" % host_intf)
+    elif "." in ip and is_ipv4:
+        return ip
+    else:
+        return None
+
 # By the time we get here, connectivity to the switch
 # and the hosts has been verified
-@unittest.skip("Test broken - T25410615 to investigate furthur")
 @test_tags("l3interface", "run-on-diff")
 class L3InterfacesTest(FbossBaseSystemTest):
     """
     Ping Each L3 Interface from Each host
     """
-    def test_l3_interface_ping(self):
+    def test_interface_ipv6_ping(self):
+        '''
+        Test switch l3 interface v6 ping only
+        if connected host is v6 capable
+        '''
+        v6_capable_host_exist = False
+        for host in self.test_topology.hosts():
+            with host.thrift_client() as client:
+                if client.get_v6_ip('eth0'):
+                    self._test_interface_ip_ping(host, v4=False)
+                    v6_capable_host_exist = True
+        if not v6_capable_host_exist:
+            raise unittest.SkipTest("None of connected servers are v6 capable")
+
+    def test_interface_ipv4_ping(self):
+        '''
+        Test switch l3 interface v4 ping only
+        if connected host is v4 capable
+        '''
+        v4_capable_host_exist = False
+        for host in self.test_topology.hosts():
+            with host.thrift_client() as client:
+                if client.get_v4_ip('eth0'):
+                    self._test_interface_ip_ping(host, v4=True)
+                    v4_capable_host_exist = True
+        if not v4_capable_host_exist:
+            raise unittest.SkipTest("None of connected servers are v4 capable")
+
+    def _test_interface_ip_ping(self, host, v4=True):
         with self.test_topology.switch_thrift() as sw_client:
             interfaces = sw_client.getAllInterfaces()
         for intf in interfaces.values():
-            for host in self.test_topology.hosts():
-                ip = ip_addr_to_str(intf.address[0].ip)
-                for host_intf in host.intfs():
-                    if ":" in ip:
-                        # for v6, always ping with "%eth0" in address
-                        ip = ip + "%%%s" % host_intf
+            ip = ip_addr_to_str(intf.address[0].ip)
+            for host_intf in host.intfs():
+                ip = _append_outgoing_interface(ip, host_intf, v4)
+                if ip is not None:
                     self.log.info("Ping from %s to %s" % (host, ip))
                     with host.thrift_client() as client:
                         self.assertTrue(client.ping(ip))
