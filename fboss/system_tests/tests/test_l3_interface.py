@@ -49,7 +49,7 @@ class L3InterfacesTest(FbossBaseSystemTest):
                 if client.get_v4_ip('eth0'):
                     v4_capable_host_exist = True
             if v4_capable_host_exist:
-                self._test_interface_ip_ping(host, v4=False)
+                self._test_interface_ip_ping(host, v4=True)
         if not v4_capable_host_exist:
             raise unittest.SkipTest("None of connected servers are v4 capable")
 
