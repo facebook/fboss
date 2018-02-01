@@ -99,7 +99,6 @@ class PortDetailsCmd(cmds.FbossCmd):
             pause = pause + 'RX'
         if pause == '':
             pause = 'None'
-
         fmt = '{:.<50}{}'
         lines = [
             ('Name', port_info.name.strip()),
@@ -114,7 +113,17 @@ class PortDetailsCmd(cmds.FbossCmd):
 
         print()
         print('\n'.join(fmt.format(*l) for l in lines))
-        print('Description'.ljust(20, '.') + (port_info.description or ""))
+        if hasattr(port_info, 'portQueues'):
+            print(fmt.format("Unicast queues", len(port_info.portQueues)))
+            for queue in port_info.portQueues:
+                name = "({})".format(+queue.name) if queue.name != "" else ""
+                attrs = [queue.mode]
+                for val in ("weight", "reservedBytes", "scalingFactor"):
+                    if hasattr(queue, val) and getattr(queue, val):
+                        attrs.append("{}={}".format(val, getattr(queue, val)))
+                print("    Queue {}{:30}{}".format(queue.id, name, ",".join(attrs)))
+
+        print(fmt.format('Description', port_info.description or ""))
 
 
 class PortFlapCmd(cmds.FbossCmd):
