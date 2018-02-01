@@ -31,7 +31,7 @@ struct PortQueueFields {
   uint8_t id{0};
   cfg::QueueScheduling scheduling{cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN};
   cfg::StreamType streamType{cfg::StreamType::UNICAST};
-  folly::Optional<int> weight{folly::none};
+  int weight{1};
   folly::Optional<int> reservedBytes{folly::none};
   folly::Optional<cfg::MMUScalingFactor> scalingFactor{folly::none};
 };
@@ -66,6 +66,9 @@ class PortQueue :
            getFields()->scalingFactor == queue.getScalingFactor() &&
            getFields()->scheduling == queue.getScheduling();
   }
+  bool operator!=(const PortQueue& queue) {
+    return !(*this == queue);
+  }
 
   uint8_t getID() const {
     return getFields()->id;
@@ -87,7 +90,7 @@ class PortQueue :
     return getFields()->streamType;
   }
 
-  folly::Optional<int> getWeight() const {
+  int getWeight() const {
     return getFields()->weight;
   }
 

@@ -15,6 +15,7 @@
 
 #include <boost/container/flat_map.hpp>
 #include <string>
+#include <vector>
 
 namespace facebook { namespace fboss {
 
@@ -35,8 +36,7 @@ struct PortFields {
     bool tagged;
   };
   using VlanMembership = boost::container::flat_map<VlanID, VlanInfo>;
-  using QueueConfig =
-    boost::container::flat_map<int, std::shared_ptr<PortQueue> >;
+  using QueueConfig = std::vector<std::shared_ptr<PortQueue> >;
 
   enum class OperState {
     DOWN = 0,
@@ -170,7 +170,7 @@ class Port : public NodeBaseT<Port, PortFields> {
     return getFields()->queues;
   }
 
-  void resetPortQueues(QueueConfig& queues) {
+  void resetPortQueues(QueueConfig queues) {
     writableFields()->queues.swap(queues);
   }
 

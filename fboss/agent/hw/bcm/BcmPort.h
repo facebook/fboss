@@ -24,6 +24,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortQueue.h"
 
 #include <mutex>
@@ -33,14 +34,12 @@ namespace facebook { namespace fboss {
 class BcmSwitch;
 class BcmPortGroup;
 class SwitchState;
-class Port;
 
+using QueueConfig = PortFields::QueueConfig;
 /**
  * BcmPort is the class to abstract the physical port in BcmSwitch.
  */
 class BcmPort {
-  using QueueConfig =
-    boost::container::flat_map<int, std::shared_ptr<PortQueue> >;
  public:
   /*
    * Construct the BcmPort object.
@@ -58,7 +57,7 @@ class BcmPort {
   void disable(const std::shared_ptr<Port>& swPort);
   void disableLinkscan();
   void program(const std::shared_ptr<Port>& swPort);
-  void setupQueues(const QueueConfig& swQueues);
+  void setupQueue(const std::shared_ptr<PortQueue>& queue);
 
   /*
    * Getters.
@@ -81,6 +80,8 @@ class BcmPort {
   uint8_t getPipe() const {
     return pipe_;
   }
+  QueueConfig getCurrentQueueSettings();
+
 
   /*
    * Helpers for retreiving the SwitchState node for a given

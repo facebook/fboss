@@ -85,7 +85,7 @@ folly::dynamic PortFields::toFollyDynamic() const {
   port[kSflowEgressRate] = sFlowEgressRate;
   port[kQueues] = folly::dynamic::array;
   for (const auto& queue : queues) {
-    port[kQueues].push_back(queue.second->toFollyDynamic());
+    port[kQueues].push_back(queue->toFollyDynamic());
   }
   return port;
 }
@@ -142,7 +142,7 @@ PortFields PortFields::fromFollyDynamic(const folly::dynamic& portJson) {
   if (portJson.find(kQueues) != portJson.items().end()) {
     for (const auto& queue : portJson[kQueues]) {
       auto madeQueue = PortQueue::fromFollyDynamic(queue);
-      port.queues.emplace(std::make_pair(madeQueue->getID(), madeQueue));
+      port.queues.push_back(madeQueue);
     }
   }
   return port;

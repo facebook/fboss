@@ -24,9 +24,7 @@ namespace facebook { namespace fboss {
 
 folly::dynamic PortQueueFields::toFollyDynamic() const {
   folly::dynamic queue = folly::dynamic::object;
-  if (weight) {
-    queue[kWeight] = weight.value();
-  }
+  queue[kWeight] = weight;
   if (reservedBytes) {
     queue[kReservedBytes] = reservedBytes.value();
   }

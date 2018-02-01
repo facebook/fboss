@@ -59,6 +59,10 @@ uint8_t BcmPort::determinePipe() const {
   return 0;
 }
 
-void BcmPort::setupQueues(const QueueConfig& /*swQueues*/) {
+QueueConfig BcmPort::getCurrentQueueSettings() {
+  return QueueConfig();
+}
+
+void BcmPort::setupQueue(const std::shared_ptr<PortQueue>& /*queue*/) {
 }
 }} // namespace facebook::fboss

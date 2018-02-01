@@ -390,6 +390,10 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
 
     auto swPort = make_shared<Port>(portID, name);
     swPort->setSpeed(bcmPort->getSpeed());
+    if (platform_->isCosSupported()) {
+      auto queues = bcmPort->getCurrentQueueSettings();
+      swPort->resetPortQueues(queues);
+    }
     bootState->addPort(swPort);
 
     memberPorts.insert(make_pair(portID, false));
@@ -800,16 +804,23 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
         bcmPort->program(newPort);
       }
 
-      auto queuesChanged = oldPort->getPortQueues() !=
-        newPort->getPortQueues();
-      VLOG_IF(1, queuesChanged) << "New cos queue settings on port " << id;
+      if (newPort->getPortQueues().size() != 0 &&
+          !platform_->isCosSupported()) {
+        throw FbossError("Changing settings for cos queues not supported on ",
+            "this platform");
+      }
 
-      if (queuesChanged) {
-        if (!platform_->isCosSupported()) {
-          throw FbossError("Changing settings for cos queues not supported on ",
-              "this platform");
+      // We expect the number of port queues to remain constant because this is
+      // defined by the hardware
+      for (const auto& newQueue : newPort->getPortQueues()) {
+        if (oldPort->getPortQueues().size() > 0 &&
+            *(oldPort->getPortQueues().at(newQueue->getID())) == *newQueue) {
+          continue;
         }
-        bcmPort->setupQueues(newPort->getPortQueues());
+
+        VLOG(1) << "New cos queue settings on port " << id << " queue "
+                << newQueue->getID();
+        bcmPort->setupQueue(newQueue);
       }
     });
 }

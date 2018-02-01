@@ -69,8 +69,8 @@ const int kAclStartPriority = 100000;
 
 namespace facebook { namespace fboss {
 
-typedef boost::container::flat_map<int, std::shared_ptr<PortQueue> >
-  QueueConfig;
+using QueueConfig = PortFields::QueueConfig;
+
 /*
  * A class for implementing applyThriftConfig().
  *
@@ -163,7 +163,7 @@ class ThriftConfigApplier {
       const cfg::Port* cfg);
   std::shared_ptr<PortQueue> updatePortQueue(
       const std::shared_ptr<PortQueue>& orig,
-      const cfg::PortQueue& cfg);
+      const cfg::PortQueue* cfg);
   std::shared_ptr<PortQueue> createPortQueue(const cfg::PortQueue& cfg);
   std::shared_ptr<AggregatePortMap> updateAggregatePorts();
   std::shared_ptr<AggregatePort> updateAggPort(
@@ -515,28 +515,28 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts() {
 }
 std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
     const std::shared_ptr<PortQueue>& orig,
-    const cfg::PortQueue& cfg) {
-  CHECK_EQ(orig->getID(), cfg.id);
+    const cfg::PortQueue* cfg) {
+  CHECK_EQ(orig->getID(), cfg->id);
 
-  if (orig->getStreamType() == cfg.streamType &&
-      orig->getScheduling() == cfg.scheduling &&
-      orig->getWeight() == cfg.weight &&
-      orig->getReservedBytes() == cfg.reservedBytes &&
-      orig->getScalingFactor() == cfg.scalingFactor) {
-    return nullptr;
+  if (orig->getStreamType() == cfg->streamType &&
+      orig->getScheduling() == cfg->scheduling &&
+      orig->getWeight() == cfg->weight &&
+      orig->getReservedBytes() == cfg->reservedBytes &&
+      orig->getScalingFactor() == cfg->scalingFactor) {
+    return orig;
   }
 
   auto newQueue = orig->clone();
-  newQueue->setStreamType(cfg.streamType);
-  newQueue->setScheduling(cfg.scheduling);
-  if (cfg.__isset.weight) {
-    newQueue->setWeight(cfg.weight);
+  newQueue->setStreamType(cfg->streamType);
+  newQueue->setScheduling(cfg->scheduling);
+  if (cfg->__isset.weight) {
+    newQueue->setWeight(cfg->weight);
   }
-  if (cfg.__isset.reservedBytes) {
-    newQueue->setReservedBytes(cfg.reservedBytes);
+  if (cfg->__isset.reservedBytes) {
+    newQueue->setReservedBytes(cfg->reservedBytes);
   }
-  if (cfg.__isset.scalingFactor) {
-    newQueue->setScalingFactor(cfg.scalingFactor);
+  if (cfg->__isset.scalingFactor) {
+    newQueue->setScalingFactor(cfg->scalingFactor);
   }
   return newQueue;
 }
@@ -564,18 +564,20 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
     const cfg::Port* cfg) {
   auto origPortQueues = orig->getPortQueues();
   QueueConfig newPortQueues;
-  // Process all supplied queues
+
+  flat_map<int, const cfg::PortQueue*> newQueues;
   for (const auto& queue : cfg->queues) {
-    auto origQueueIter = origPortQueues.find(queue.id);
-    std::shared_ptr<PortQueue> newQueue;
-    std::shared_ptr<PortQueue> origQueue;
-    if (origQueueIter != origPortQueues.end()) {
-      newQueue = updatePortQueue(origQueueIter->second, queue);
-      origQueue = origQueueIter->second;
-    } else {
-      newQueue = createPortQueue(queue);
+    newQueues.emplace(std::make_pair(queue.id, &queue));
+  }
+
+  // Process all supplied queues
+  for (int i=0; i< origPortQueues.size(); i++) {
+    auto newQueueIter = newQueues.find(i);
+    auto newQueue = std::make_shared<PortQueue>(i);
+    if (newQueueIter != newQueues.end()) {
+      newQueue = updatePortQueue(origPortQueues.at(i), newQueueIter->second);
     }
-    updateMap(&newPortQueues, origQueue, newQueue);
+    newPortQueues.push_back(newQueue);
   }
   return newPortQueues;
 }
@@ -587,6 +589,12 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
   auto vlans = portVlans_[orig->getID()];
 
   auto portQueues = updatePortQueues(orig, portConf);
+  bool queuesUnchanged = portQueues.size() == orig->getPortQueues().size();
+  for (int i=0; i<portQueues.size() && queuesUnchanged; i++) {
+    if (*(portQueues.at(i)) != *(orig->getPortQueues().at(i))) {
+      queuesUnchanged = false;
+    }
+  }
 
   if (portConf->state == orig->getAdminState() &&
       VlanID(portConf->ingressVlan) == orig->getIngressVlan() &&
@@ -598,7 +606,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
       portConf->description == orig->getDescription() &&
       vlans == orig->getVlans() &&
       portConf->fec == orig->getFEC() &&
-      portQueues == orig->getPortQueues()) {
+      queuesUnchanged) {
     return nullptr;
   }
 
