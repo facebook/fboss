@@ -151,6 +151,15 @@ enum PortOperState {
   UP = 1,
 }
 
+struct PortQueueThrift {
+  1: i32 id,
+  2: string name = "",
+  3: string mode,
+  4: optional i32 weight,
+  5: optional i32 reservedBytes,
+  6: optional string scalingFactor,
+}
+
 struct PortInfoThrift {
   1: i32 portId,
   2: i64 speedMbps,
@@ -165,6 +174,7 @@ struct PortInfoThrift {
   14: bool fecEnabled, // Forward Error Correction port setting
   15: bool txPause = false,
   16: bool rxPause = false,
+  17: list<PortQueueThrift> portQueues = [],
 }
 
 struct NdpEntryThrift {

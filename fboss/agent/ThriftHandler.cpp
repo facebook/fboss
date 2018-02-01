@@ -34,6 +34,7 @@
 #include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/NdpEntry.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableRib.h"
@@ -378,6 +379,27 @@ void ThriftHandler::getPortInfoHelper(
   portInfo.speedMbps = static_cast<int>(port->getSpeed());
   for (auto entry : port->getVlans()) {
     portInfo.vlans.push_back(entry.first);
+  }
+
+  for (const auto& queue : port->getPortQueues()) {
+    PortQueueThrift pq;
+    pq.id = queue->getID();
+    pq.mode = cfg::_QueueScheduling_VALUES_TO_NAMES.find(
+        queue->getScheduling())->second;
+    if (queue->getScheduling() == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
+      pq.weight = queue->getWeight();
+      pq.__isset.weight = true;
+    }
+    if (queue->getReservedBytes()) {
+      pq.reservedBytes = queue->getReservedBytes().value();
+      pq.__isset.reservedBytes = true;
+    }
+    if (queue->getScalingFactor()) {
+      pq.scalingFactor = cfg::_MMUScalingFactor_VALUES_TO_NAMES.find(
+          queue->getScalingFactor().value())->second;
+      pq.__isset.scalingFactor = true;
+    }
+    portInfo.portQueues.push_back(pq);
   }
 
   portInfo.adminState =
