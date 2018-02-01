@@ -77,3 +77,9 @@ class PrintNeighborTableCmd(FbossCmd):
             state = entry.state if entry.state else 'NA'
             print(tmpl.format(ip, entry.mac, port_identifier, vlan_field,
                               state, ttl))
+
+
+class VerbosityCmd(FbossCmd):
+    def run(self, verbosity):
+        client = self._create_agent_client()
+        client.setOption('v', verbosity)

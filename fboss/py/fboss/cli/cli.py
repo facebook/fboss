@@ -438,6 +438,16 @@ class RouteCli(object):
         route.RouteFlushCmd(cli_opt).run(client_id)
 
 
+class VerbosityCli(object):
+    '''Change the verbosity of the fboss agent'''
+
+    @click.command(name='verbosity')
+    @click.argument('verbosity')
+    @click.pass_obj
+    def set(cli_opt, verbosity):
+        cmds.VerbosityCmd(cli_opt).run(verbosity)
+
+
 # -- Main Command Group -- #
 @click.group(cls=AliasedGroup)
 @click.option('--hostname', '-H', default='::1',
@@ -471,6 +481,7 @@ def add_modules(main_func):
     main_func.add_command(ProductInfoCli().product)
     main_func.add_command(ReloadConfigCli().reloadconfig)
     main_func.add_command(RouteCli().route)
+    main_func.add_command(VerbosityCli().set)
 
 if __name__ == '__main__':
 
