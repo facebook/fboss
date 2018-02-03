@@ -236,6 +236,51 @@ enum QueueScheduling {
   STRICT_PRIORITY = 1
 }
 
+// Detection based on average queue length in bytes with two thresholds.
+// If the queue length is below the minimum threshold, then never consider the
+// queue congested. If the queue length is above the maximum threshold, then
+// always consider the queue congested. If the queue length is in between the
+// two thresholds, then probabilistically consider the queue congested.
+// The probability grows linearly between the two thresholds. That is,
+// if we call the minimum threshold m and the maximum threshold M then the
+// formula for the probability at queue length m+k is:
+// P(m+k) = k/(M-m) for k between 0 and M-m
+struct LinearQueueCongestionDetection {
+  1: i16 minimumLength
+  2: i16 maximumLength
+}
+
+// Determines when we will consider a queue to be experiencing congestion
+// for the purposes of Active Queue Management
+union QueueCongestionDetection {
+  1: LinearQueueCongestionDetection linear;
+}
+
+// Two behaviors are supported for Active Queue Management:
+// drops and ECN marking. ECN marking is also conditional on the entity
+// entering the queue being an IP packet marked as ECN-enabled. Thus, the
+// two booleans can configure the following behavior during congestion:
+// earlyDrop false; ecn false: Tail drops for all packets
+// earlyDrop true; ecn false: Early drops for all packets
+// earlyDrop false; ecn true: Tail drops for ECN-disabled, ECN for ECN-enabled
+// earlyDrop true; ecn true: Early drops for ECN-disabled, ECN for ECN-enabled
+struct QueueCongestionBehavior {
+  // Drop packets before congested queues are totally full using an algorithm
+  // like WRED
+  1: bool earlyDrop
+  // Mark congestion enabled packets with Congestion Experienced
+  2: bool ecn
+}
+
+// Configuration for Active Queue Management of a PortQueue.
+// Follows the principles outlined in RFC 7567.
+struct ActiveQueueManagement {
+  // How we answer the question "Is the queue congested?"
+  1: QueueCongestionDetection detection
+  // How we handle packets on queues experiencing congestion
+  2: QueueCongestionBehavior behavior
+}
+
 // It is only necessary to define PortQueues for those that you want to
 // change settings on
 // It is only necessary to define PortQueues for those where you do not want to
@@ -255,6 +300,7 @@ struct PortQueue {
   8: optional i32 length
   9: optional i32 packetsPerSec
   10: optional i32 sharedBytes
+  11: optional ActiveQueueManagement aqm;
 }
 
 struct TrafficPolicyConfig {
