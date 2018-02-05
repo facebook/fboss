@@ -608,7 +608,7 @@ void MuxMachine::selected(AggregatePortID selection) {
       attached();
     case MuxState::ATTACHED:
     case MuxState::COLLECTING_DISTRIBUTING:
-      LOG(WARNING) << "MuxMachine[" << controller_.portID()
+      VLOG(3) << "MuxMachine[" << controller_.portID()
                    << "]: Ignoring SELECTED in " << state_;
       break;
   }
@@ -619,7 +619,7 @@ void MuxMachine::unselected() {
 
   switch (state_) {
     case MuxState::DETACHED:
-      LOG(WARNING) << "MuxMachine[" << controller_.portID()
+      VLOG(3) << "MuxMachine[" << controller_.portID()
                    << "]: Ignoring UNSELECTED in " << state_;
       break;
     case MuxState::WAITING:
@@ -667,8 +667,8 @@ void MuxMachine::matched() {
     case MuxState::DETACHED:
     case MuxState::WAITING:
     case MuxState::COLLECTING_DISTRIBUTING:
-      LOG(WARNING) << "MuxMachine[" << controller_.portID()
-                   << "]: Ignoring MATCHED in " << state_;
+      VLOG(3) << "MuxMachine[" << controller_.portID()
+              << "]: Ignoring MATCHED in " << state_;
       break;
     case MuxState::ATTACHED:
       VLOG(4) << "MuxMachine[" << controller_.portID() << "]: MATCHED in "
@@ -687,7 +687,7 @@ void MuxMachine::notMatched() {
     case MuxState::DETACHED:
     case MuxState::WAITING:
     case MuxState::ATTACHED:
-      LOG(WARNING) << "MuxMachine[" << controller_.portID()
+      VLOG(3) << "MuxMachine[" << controller_.portID()
                    << "]: Ignoring NOT MATCHED in " << state_;
       break;
     case MuxState::COLLECTING_DISTRIBUTING:
