@@ -513,6 +513,7 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts() {
 
   return origPorts->clone(newPorts);
 }
+
 std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
     const std::shared_ptr<PortQueue>& orig,
     const cfg::PortQueue* cfg) {
@@ -522,7 +523,8 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
       orig->getScheduling() == cfg->scheduling &&
       orig->getWeight() == cfg->weight &&
       orig->getReservedBytes() == cfg->reservedBytes &&
-      orig->getScalingFactor() == cfg->scalingFactor) {
+      orig->getScalingFactor() == cfg->scalingFactor &&
+      orig->getAqm() == cfg->aqm) {
     return orig;
   }
 
@@ -537,6 +539,14 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
   }
   if (cfg->__isset.scalingFactor) {
     newQueue->setScalingFactor(cfg->scalingFactor);
+  }
+  if (cfg->__isset.aqm) {
+    if (cfg->aqm.detection.getType() ==
+        cfg::QueueCongestionDetection::Type::__EMPTY__) {
+      throw FbossError(
+          "Active Queue Management must specify a congestion detection method");
+    }
+    newQueue->setAqm(cfg->aqm);
   }
   return newQueue;
 }
@@ -555,7 +565,14 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
   if (cfg.__isset.scalingFactor) {
     queue->setScalingFactor(cfg.scalingFactor);
   }
-
+  if (cfg.__isset.aqm) {
+    if (cfg.aqm.detection.getType() ==
+        cfg::QueueCongestionDetection::Type::__EMPTY__) {
+      throw FbossError(
+          "Active Queue Management must specify a congestion detection method");
+    }
+    queue->setAqm(cfg.aqm);
+  }
   return queue;
 }
 
@@ -571,7 +588,7 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
   }
 
   // Process all supplied queues
-  for (int i=0; i< origPortQueues.size(); i++) {
+  for (int i = 0; i < origPortQueues.size(); i++) {
     auto newQueueIter = newQueues.find(i);
     auto newQueue = std::make_shared<PortQueue>(i);
     if (newQueueIter != newQueues.end()) {

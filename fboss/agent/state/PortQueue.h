@@ -34,6 +34,11 @@ struct PortQueueFields {
   int weight{1};
   folly::Optional<int> reservedBytes{folly::none};
   folly::Optional<cfg::MMUScalingFactor> scalingFactor{folly::none};
+  folly::Optional<cfg::ActiveQueueManagement> aqm{folly::none};
+ private:
+  folly::dynamic aqmToFollyDynamic() const;
+  static cfg::ActiveQueueManagement aqmFromFollyDynamic(
+      const folly::dynamic& json);
 };
 
 /*
@@ -58,13 +63,14 @@ class PortQueue :
     return getFields()->toFollyDynamic();
   }
 
-  bool operator==(const PortQueue& queue) {
+  bool operator==(const PortQueue& queue) const {
     return getFields()->id == queue.getID() &&
            getFields()->streamType == queue.getStreamType() &&
            getFields()->weight == queue.getWeight() &&
            getFields()->reservedBytes == queue.getReservedBytes() &&
            getFields()->scalingFactor == queue.getScalingFactor() &&
-           getFields()->scheduling == queue.getScheduling();
+           getFields()->scheduling == queue.getScheduling() &&
+           getFields()->aqm == queue.getAqm();
   }
   bool operator!=(const PortQueue& queue) {
     return !(*this == queue);
@@ -112,6 +118,14 @@ class PortQueue :
 
   void setScalingFactor(cfg::MMUScalingFactor scalingFactor) {
     writableFields()->scalingFactor = scalingFactor;
+  }
+
+  folly::Optional<cfg::ActiveQueueManagement> getAqm() const {
+    return getFields()->aqm;
+  }
+
+  void setAqm(const cfg::ActiveQueueManagement& aqm) {
+    writableFields()->aqm = aqm;
   }
 
  private:
