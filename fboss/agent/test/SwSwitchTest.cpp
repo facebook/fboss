@@ -10,12 +10,14 @@
 
 #include <gtest/gtest.h>
 
+#include "fboss/agent/Main.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/HwTestHandle.h"
+#include "fboss/agent/test/CounterCache.h"
 
 using namespace facebook::fboss;
 using std::string;
@@ -58,4 +60,22 @@ TEST_F(SwSwitchTest, GetPortStats) {
   portStats = sw->portStats(PortID(0));
   EXPECT_EQ(sw->stats()->getPortStats()->size(), 2);
   EXPECT_EQ(portStats->getPortName(), "port0");
+}
+ACTION(ThrowException)
+{
+  throw std::exception();
+}
+TEST_F(SwSwitchTest, UpdateStatsExceptionCounter){
+  CounterCache counters(sw);
+
+  MockHwSwitch* hw = static_cast<MockHwSwitch*>(sw->getHw());
+  EXPECT_CALL(*hw, updateStats(sw->stats()))
+    .Times(1)
+    .WillRepeatedly(ThrowException());
+  sw->updateStats();
+
+  counters.update();
+  counters.checkDelta(
+    SwitchStats::kCounterPrefix + "update_stats_exceptions.sum.60", 1);
+
 }

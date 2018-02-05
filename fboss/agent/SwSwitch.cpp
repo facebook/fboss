@@ -337,6 +337,15 @@ void SwSwitch::gracefulExit() {
 void SwSwitch::getProductInfo(ProductInfo& productInfo) const {
   platform_->getProductInfo(productInfo);
 }
+void SwSwitch::updateStats(){
+  try {
+    getHw()->updateStats(stats());
+  } catch (const std::exception& ex) {
+    stats()->updateStatsException();
+    LOG(ERROR) << "Error running updateStats: "
+      << folly::exceptionStr(ex);
+  }
+}
 
 void SwSwitch::registerNeighborListener(
     std::function<void(const std::vector<std::string>& added,

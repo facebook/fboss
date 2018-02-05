@@ -17,6 +17,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "common/stats/ServiceData.h"
@@ -73,15 +74,19 @@ DEFINE_int32(flush_warmboot_cache_secs, 60,
 using facebook::fboss::SwSwitch;
 using facebook::fboss::ThriftHandler;
 
-namespace facebook { namespace fboss {
-
+namespace {
 /*
  * This function is executed periodically by the UpdateStats thread.
  * It calls the hardware-specific function of the same name.
  */
 void updateStats(SwSwitch *swSwitch) {
-  swSwitch->getHw()->updateStats(swSwitch->stats());
+  swSwitch->updateStats();
 }
+}
+
+namespace facebook { namespace fboss {
+
+
 
 class Initializer {
  public:

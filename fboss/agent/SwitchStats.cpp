@@ -90,7 +90,9 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap *map)
       linkStateChange_(map, kCounterPrefix + "link_state.flap", SUM),
       hwOutOfSync_(
         map, kCounterPrefix + "hw_out_of_sync"),
-      pcapDistFailure_(map, kCounterPrefix + "pcap_dist_failure.error"){
+      pcapDistFailure_(map, kCounterPrefix + "pcap_dist_failure.error"),
+      updateStatsExceptions_(map, kCounterPrefix + "update_stats_exceptions",
+        SUM){
 }
 
 PortStats* FOLLY_NULLABLE SwitchStats::port(PortID portID) {

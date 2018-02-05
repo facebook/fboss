@@ -168,6 +168,9 @@ class SwSwitch : public HwSwitch::Callback {
 
   bool isExiting() const;
 
+  void updateStats();
+
+
   /*
    * Get a pointer to the current switch state.
    *
