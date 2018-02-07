@@ -45,6 +45,7 @@
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
 
+#include <folly/json_pointer.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 #include <folly/MoveWrapper.h>
@@ -453,11 +454,20 @@ void ThriftHandler::getRunningConfig(std::string& configStr) {
   configStr = sw_->getConfigStr();
 }
 
-void ThriftHandler::getCurrentStateJSON(std::string& ret) {
+void ThriftHandler::getCurrentStateJSON(
+    std::string& ret,
+    std::unique_ptr<std::string> jsonPointerStr) {
+  if (!jsonPointerStr) {
+    return;
+  }
   ensureConfigured();
-  auto swState = sw_->getState();
-  ret = folly::json::serialize(
-      swState->toFollyDynamic(), folly::json::serialization_opts{});
+  auto const jsonPtr = folly::json_pointer::try_parse(*jsonPointerStr);
+  if (!jsonPtr) {
+    throw FbossError("Malformed JSON Pointer");
+  }
+  auto swState = sw_->getState()->toFollyDynamic();
+  auto dyn = swState.get_ptr(jsonPtr.value());
+  ret = folly::json::serialize(*dyn, folly::json::serialization_opts{});
 }
 
 void ThriftHandler::getPortStatus(map<int32_t, PortStatus>& statusMap,

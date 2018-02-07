@@ -505,9 +505,9 @@ service FbossCtrl extends fb303.FacebookService {
   void reloadConfig()
 
   /*
-   * Serialize current (live) switch state as JSON string
+   * Serialize switch state at path pointed by JSON pointer
    */
-  string getCurrentStateJSON()
+  string getCurrentStateJSON(1: string jsonPointer)
 }
 
 service NeighborListenerClient extends fb303.FacebookService {
