@@ -508,6 +508,12 @@ service FbossCtrl extends fb303.FacebookService {
    * Serialize switch state at path pointed by JSON pointer
    */
   string getCurrentStateJSON(1: string jsonPointer)
+
+  /*
+   * Apply patch at given path within the state tree. jsonPatch must  be
+   * a valid JSON object string
+   */
+  void patchCurrentStateJSON(1: string jsonPointer, 2: string jsonPatch)
 }
 
 service NeighborListenerClient extends fb303.FacebookService {

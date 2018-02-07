@@ -215,6 +215,14 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getCurrentStateJSON(std::string& ret, std::unique_ptr<std::string>)
       override;
 
+  /**
+   * Patch live running switch state at path pointed by jsonPointer using the
+   * JSON merge patch supplied in jsonPatch
+   */
+  void patchCurrentStateJSON(
+      std::unique_ptr<std::string> jsonPointer,
+      std::unique_ptr<std::string> jsonPatch) override;
+
  protected:
   void ensureConfigured(folly::StringPiece function);
   void ensureConfigured() {

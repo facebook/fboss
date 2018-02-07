@@ -77,6 +77,11 @@ using facebook::network::toBinaryAddress;
 using facebook::network::toAddress;
 using facebook::network::toIPAddress;
 
+DEFINE_bool(
+    enable_running_config_mutations,
+    false,
+    "Allow external mutations of running config");
+
 namespace facebook { namespace fboss {
 
 namespace util {
@@ -468,6 +473,31 @@ void ThriftHandler::getCurrentStateJSON(
   auto swState = sw_->getState()->toFollyDynamic();
   auto dyn = swState.get_ptr(jsonPtr.value());
   ret = folly::json::serialize(*dyn, folly::json::serialization_opts{});
+}
+
+void ThriftHandler::patchCurrentStateJSON(
+    std::unique_ptr<std::string> jsonPointerStr,
+    std::unique_ptr<std::string> jsonPatchStr) {
+  if (!FLAGS_enable_running_config_mutations) {
+    throw FbossError( "Running config mutations are not allowed");
+  }
+  ensureConfigured();
+  auto const jsonPtr = folly::json_pointer::try_parse(*jsonPointerStr);
+  if (!jsonPtr) {
+    throw FbossError("Malformed JSON Pointer");
+  }
+  // OK to capture by reference because the update call below is blocking
+  auto updateFn = [&](const shared_ptr<SwitchState>& oldState) {
+    auto fullDynamic = oldState->toFollyDynamic();
+    auto* partialDynamic = fullDynamic.get_ptr(jsonPtr.value());
+    if (!partialDynamic) {
+      throw FbossError("JSON Pointer does not address proper object");
+    }
+    // mutates in place, i.e. modifies fullDynamic too
+    partialDynamic->merge_patch(folly::parseJson(*jsonPatchStr));
+    return SwitchState::fromFollyDynamic(fullDynamic);
+  };
+  sw_->updateStateBlocking("JSON patch", std::move(updateFn));
 }
 
 void ThriftHandler::getPortStatus(map<int32_t, PortStatus>& statusMap,
