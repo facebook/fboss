@@ -268,7 +268,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getPortInfoHelper(
       PortInfoThrift& portInfo,
       const std::shared_ptr<Port> port);
-  void fillPortStats(PortInfoThrift& portInfo);
+  void fillPortStats(PortInfoThrift& portInfo, int numPortQs = 0);
 
   Vlan* getVlan(int32_t vlanId);
   Vlan* getVlan(const std::string& vlanName);

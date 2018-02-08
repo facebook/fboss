@@ -129,6 +129,11 @@ struct PortErrors {
   2: i64 discards,
 }
 
+struct QueueStats {
+  1: i64 congestionDiscards,
+  2: i64 outBytes,
+}
+
 /*
  * Values in these counters are cumulative since the last time the agent
  * started.
@@ -139,6 +144,7 @@ struct PortCounters {
   3: i64 multicastPkts,
   4: i64 broadcastPkts,
   5: PortErrors errors,
+  6: list<QueueStats> unicast = [];
 }
 
 enum PortAdminState {

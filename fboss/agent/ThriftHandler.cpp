@@ -348,7 +348,7 @@ void ThriftHandler::getAggregatePortTable(
   VLOG(6) << "Aggregate Port Table size:" << aggregatePortTable.size();
 }
 
-void ThriftHandler::fillPortStats(PortInfoThrift& portInfo) {
+void ThriftHandler::fillPortStats(PortInfoThrift& portInfo, int numPortQs) {
   auto portId = portInfo.portId;
   auto statMap = fbData->getStatMap();
 
@@ -374,6 +374,13 @@ void ThriftHandler::fillPortStats(PortInfoThrift& portInfo) {
 
   fillPortCounters(portInfo.output, "out_");
   fillPortCounters(portInfo.input, "in_");
+  for (int i=0; i<numPortQs; i++) {
+    auto queue = folly::to<std::string>("queue", i, ".");
+    QueueStats stats;
+    stats.congestionDiscards = getSumStat(queue, "out_congestion_discards");
+    stats.outBytes = getSumStat(queue, "out_bytes");
+    portInfo.output.unicast.push_back(stats);
+  }
 }
 
 void ThriftHandler::getPortInfoHelper(
@@ -418,7 +425,7 @@ void ThriftHandler::getPortInfoHelper(
   portInfo.txPause = pause.tx;
   portInfo.rxPause = pause.rx;
 
-  fillPortStats(portInfo);
+  fillPortStats(portInfo, portInfo.portQueues.size());
 }
 
 void ThriftHandler::getPortInfo(PortInfoThrift &portInfo, int32_t portId) {
