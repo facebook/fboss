@@ -169,6 +169,7 @@ TEST(SffTest, simpleRead) {
     std::make_unique<SffTransceiver>(idx);
   std::unique_ptr<QsfpModule> qsfp =
     std::make_unique<QsfpModule>(std::move(qsfpImpl));
+  qsfp->refresh();
 
   TransceiverInfo info = qsfp->getTransceiverInfo();
 

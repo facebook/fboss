@@ -25,7 +25,7 @@ class TransceiverManager {
     return id < transceivers_.size() && id >= 0;
   }
   virtual int getNumQsfpModules() = 0;
-  virtual void customizeDownTransceivers() = 0;
+  virtual void refreshTransceivers() = 0;
  private:
   // Forbidden copy constructor and assignment operator
   TransceiverManager(TransceiverManager const &) = delete;

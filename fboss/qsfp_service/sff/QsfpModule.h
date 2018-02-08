@@ -15,6 +15,7 @@
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <folly/Optional.h>
+#include <folly/Synchronized.h>
 
 namespace facebook { namespace fboss {
 
@@ -51,9 +52,9 @@ class QsfpModule : public Transceiver {
   explicit QsfpModule(std::unique_ptr<TransceiverImpl> qsfpImpl);
 
   /*
-   * Returns if the QSFP is present or not
+   * Determines if the QSFP is present or not.
    */
-  bool isPresent() const override;
+  bool detectPresence() override;
 
   /*
    * Return a valid type.
@@ -64,10 +65,11 @@ class QsfpModule : public Transceiver {
 
   TransceiverID getID() const override;
 
-  /*
-   * Takes a lock on qsfpModuleMutex_ before calling detectTransceiverLocked
-   */
-  void detectTransceiver() override;
+  bool detectPresenceLocked();
+  TransceiverInfo parseDataLocked();
+
+  virtual void refresh() override;
+  void refreshLocked();
 
   /*
    * Get the QSFP EEPROM Field
@@ -89,9 +91,8 @@ class QsfpModule : public Transceiver {
 
   RawDOMData getRawDOMData() override;
 
-  void customizeTransceiverIfDown() override;
-
-  void portChanged(uint32_t portID, PortStatus&& status) override;
+  void transceiverPortsChanged(
+    const std::vector<std::pair<const int, PortStatus>>& ports) override;
 
   /*
    * The size of the pages used by QSFP.  See below for an explanation of
@@ -123,19 +124,22 @@ class QsfpModule : public Transceiver {
   // referenced information, including vendor identifiers.  There are
   // three other optional pages;  the third provides a bunch of
   // alarm and warning thresholds which we are interested in.
-  uint8_t qsfpIdprom_[MAX_QSFP_PAGE_SIZE];
-  uint8_t qsfpPage0_[MAX_QSFP_PAGE_SIZE];
-  uint8_t qsfpPage3_[MAX_QSFP_PAGE_SIZE];
+  uint8_t lowerPage_[MAX_QSFP_PAGE_SIZE];
+  uint8_t page0_[MAX_QSFP_PAGE_SIZE];
+  uint8_t page3_[MAX_QSFP_PAGE_SIZE];
 
   /* Qsfp Internal Implementation */
   std::unique_ptr<TransceiverImpl> qsfpImpl_;
   // QSFP Presence status
   bool present_{false};
   // Denotes if the cache value is valid or stale
-  bool dirty_{false};
+  bool dirty_{true};
   // Flat memory systems don't support paged access to extra data
   bool flatMem_{false};
+  // This transceiver needs customization
+  bool needsCustomization_{false};
 
+  folly::Synchronized<folly::Optional<TransceiverInfo>> info_;
   /*
    * qsfpModuleMutex_ is held around all the read and writes to the qsfpModule
    *
@@ -146,12 +150,11 @@ class QsfpModule : public Transceiver {
   mutable std::mutex qsfpModuleMutex_;
 
   /*
-   * We don't want to read from the qsfps excessively as there's a single lock
-   * held to read from all of them.
-   * Instead, only refresh data if it hasn't been updated in
-   * kQsfpMinReadIntervalMs.
+   * Used to track last time key actions were taken so we don't retry
+   * too frequently. These MUST be accessed holding qsfpModuleMutex_.
    */
-  std::atomic<time_t> lastReadTime_;
+  time_t lastRefreshTime_{0};
+  time_t lastCustomizeTime_{0};
 
   /*
    * Perform transceiver customization
@@ -162,23 +165,6 @@ class QsfpModule : public Transceiver {
    */
   void customizeTransceiverLocked(
       cfg::PortSpeed speed=cfg::PortSpeed::DEFAULT);
-
-  /*
-   * Check if the QSFP is present or not
-   *
-   * This must be called with a lock held on qsfpModuleMutex_
-   */
-  void detectTransceiverLocked();
-
-  /*
-   * Checks whether the cache is valid
-   * If it isn't it either refreshes the cache (if the transceiver is present)
-   * or tries to redetect the transceiver (which will refresh the cache if
-   * it is now present
-   *
-   * This must be called with a lock held on qsfpModuleMutex_
-   */
-  virtual void refreshCacheIfPossibleLocked();
 
   /*
    * This function returns a pointer to the value in the static cached
@@ -200,12 +186,6 @@ class QsfpModule : public Transceiver {
    * The thread needs to have the lock before calling the function.
    */
   void setQsfpIdprom();
-  /*
-   * This is used by the detection thread to set the QSFP presence
-   * status based on the HW read.
-   * The thread needs to have the lock before calling the function.
-   */
-  void setPresent(bool present);
   /*
    * Set power mode
    * Wedge forces Low Power mode via a pin;  we have to reset this
@@ -305,8 +285,13 @@ class QsfpModule : public Transceiver {
   virtual bool cacheIsValid() const;
   /*
    * Update the cached data with the information from the physical QSFP.
+   *
+   * The 'allPages' parameter determines which pages we refresh. Data
+   * on the first page holds most of the fields that actually change,
+   * so unless we have reason to believe the transceiver was unplugged
+   * there is not much point in refreshing static data on other pages.
    */
-  virtual void updateQsfpData();
+  virtual void updateQsfpData(bool allPages = true);
 
  private:
   /*
@@ -332,6 +317,20 @@ class QsfpModule : public Transceiver {
    * status of our member ports.
    */
   bool safeToCustomize() const;
+
+  /*
+   * Similar to safeToCustomize, but also factors in whether we think
+   * we need customization (needsCustomization_) and also makes sure
+   * we haven't customized too recently via the cooldown param.
+   */
+  bool shouldCustomize(time_t cooldown) const;
+
+  /*
+   * Whether enough time has passed that we should refresh our data.
+   * Cooldown parameter indicates how much time must have elapsed
+   * since last time we refreshed the DOM data.
+   */
+  bool shouldRefresh(time_t cooldown) const;
 
   /*
    * Determine set speed of enabled member ports.

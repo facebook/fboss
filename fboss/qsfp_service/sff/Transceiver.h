@@ -37,12 +37,12 @@ class Transceiver {
   /*
    * Returns if the SFP is present or not
    */
-  virtual bool isPresent() const = 0;
+  virtual bool detectPresence() = 0;
 
   /*
-   * Check if the transceiver is present or not
+   * Check if the transceiver is present or not and refresh data.
    */
-  virtual void detectTransceiver() = 0;
+  virtual void refresh() = 0;
 
   /*
    * Return all of the transceiver information
@@ -60,14 +60,10 @@ class Transceiver {
   virtual void customizeTransceiver(cfg::PortSpeed speed) = 0;
 
   /*
-   * Ensure QSFP settings are properly set.
-   */
-  virtual void customizeTransceiverIfDown() = 0;
-
-  /*
    * Register that a logical port that is part of this transceiver has changed.
    */
-  virtual void portChanged(uint32_t portID, PortStatus&& status) = 0;
+  virtual void transceiverPortsChanged(
+    const std::vector<std::pair<const int, PortStatus>>& ports) = 0;
 
  private:
   // no copy or assignment

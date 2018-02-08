@@ -204,6 +204,8 @@ TransceiverInfo QsfpCache::get(TransceiverID tcvrId) {
 }
 
 folly::Future<TransceiverInfo> QsfpCache::futureGet(TransceiverID tcvrId) {
+  VLOG(4) << "futureGet for transceiver " << tcvrId;
+
   auto fromCache = getIf(tcvrId);
   if (fromCache) {
     return fromCache.value();

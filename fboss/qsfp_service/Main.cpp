@@ -13,12 +13,19 @@ using namespace facebook;
 using namespace facebook::fboss;
 
 DEFINE_int32(port, 5910, "Port for the thrift service");
-DEFINE_string(fruid_filepath, "/dev/shm/fboss/fruid.json",
-              "File for storing the fruid data");
-DEFINE_int32(stats_publish_interval, 300,
-             "Interval (in seconds) for publishing stats");
-DEFINE_int32(customize_down_ports_interval, 25,
-             "Interval (in seconds) for customizing down ports");
+DEFINE_string(
+    fruid_filepath,
+    "/dev/shm/fboss/fruid.json",
+    "File for storing the fruid data");
+DEFINE_int32(
+    stats_publish_interval,
+    300,
+    "Interval (in seconds) for publishing stats");
+DEFINE_int32(
+    loop_interval,
+    5,
+    "Interval (in seconds) to run the main loop that determines "
+    "if we need to change or fetch data for transceivers");
 
 std::unique_ptr<TransceiverManager> getManager() {
   auto productInfo = std::make_unique<WedgeProductInfo>(FLAGS_fruid_filepath);
@@ -61,10 +68,10 @@ int main(int argc, char **argv) {
   );
   scheduler.addFunction(
     [mgr = handler->getTransceiverManager()]() {
-      mgr->customizeDownTransceivers();
+      mgr->refreshTransceivers();
     },
-    std::chrono::seconds(FLAGS_customize_down_ports_interval),
-    "customizeDown"
+    std::chrono::seconds(FLAGS_loop_interval),
+    "refreshTransceivers"
   );
   // Note: This doesn't block, this merely starts it's own thread
   scheduler.start();

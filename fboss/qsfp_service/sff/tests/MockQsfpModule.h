@@ -25,12 +25,14 @@ namespace facebook { namespace fboss {
 class MockQsfpModule : public QsfpModule {
  public:
   explicit MockQsfpModule(std::unique_ptr<TransceiverImpl> qsfpImpl) :
-    QsfpModule(std::move(qsfpImpl)) {}
+      QsfpModule(std::move(qsfpImpl)) {
+    ON_CALL(*this, updateQsfpData(testing::_))
+      .WillByDefault(testing::Assign(&dirty_, false));
+  }
   MOCK_METHOD1(setPowerOverrideIfSupported, void(PowerControlState));
   MOCK_CONST_METHOD0(cacheIsValid, bool());
-  MOCK_METHOD0(updateQsfpData, void());
+  MOCK_METHOD1(updateQsfpData, void(bool));
   MOCK_METHOD2(getSettingsValue, uint8_t(SffField, uint8_t));
-  MOCK_METHOD0(refreshCacheIfPossibleLocked, void());
   MOCK_METHOD0(getTransceiverInfo, TransceiverInfo());
 
   MOCK_METHOD3(setCdrIfSupported, void(cfg::PortSpeed, FeatureState,
@@ -46,6 +48,14 @@ class MockQsfpModule : public QsfpModule {
       RateSelectState currentState, RateSelectSetting currentSetting) {
     QsfpModule::setRateSelectIfSupported(speed, currentState, currentSetting);
   }
+  void actualUpdateQsfpData(bool full) {
+    present_ = true;
+    QsfpModule::updateQsfpData(full);
+  }
+  void setFlatMem() {
+    flatMem_ = false;
+  }
+
 
   void customizeTransceiver(cfg::PortSpeed speed) override {
     dirty_ = false;
