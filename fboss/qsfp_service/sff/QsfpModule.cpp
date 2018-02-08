@@ -29,6 +29,10 @@ DEFINE_int32(
     customize_interval,
     30,
     "minimum interval between customizing the same down port twice");
+DEFINE_int32(
+    tx_enable_interval,
+    300,
+    "seconds between ensuring tx is enabled on down ports");
 
 using std::memcpy;
 using std::mutex;
@@ -892,7 +896,7 @@ void QsfpModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
     setPowerOverrideIfSupported(settings.powerControl);
 
     // make sure TX is enabled on the transceiver
-    ensureTxEnabled();
+    ensureTxEnabled(FLAGS_tx_enable_interval);
 
     if (speed == cfg::PortSpeed::DEFAULT) {
       LOG(INFO) << "Port speed is not set. Not customizing further.";
@@ -1094,21 +1098,29 @@ void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
             << " (" << int(power) << ")";
 }
 
-void QsfpModule::ensureTxEnabled() {
+void QsfpModule::ensureTxEnabled(time_t cooldown) {
   // Sometimes transceivers lock up and disable TX. When we customize
   // the transceiver let's also ensure that tx is enabled. We have
   // even seen transceivers report to have tx enabled in the DOM, but
   // no traffic was flowing. When we forcibly set the tx_enable bits
   // again, traffic began flowing.  Because of this, we ALWAYS set the
   // bits (even if they report enabled).
+  //
+  // This is likely a very rare occurence, so we make sure we only write
+  // to the transceiver at most every cooldown seconds.
   int offset;
   int length;
   int dataAddress;
   getQsfpFieldAddress(SffField::TX_DISABLE, dataAddress, offset, length);
+  const uint8_t *disabled = getQsfpValuePtr(dataAddress, offset, length);
 
-  std::array<uint8_t, 1> buf = {{0}};
-  qsfpImpl_->writeTransceiver(
-    TransceiverI2CApi::ADDR_QSFP, offset, 1, buf.data());
+  if (*disabled || std::time(nullptr) - lastTxEnable_ > cooldown) {
+    // If tx is disabled or it has been > cooldown secs, force writ
+    std::array<uint8_t, 1> buf = {{0}};
+    qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, 1, buf.data());
+    lastTxEnable_ = std::time(nullptr);
+  }
 }
 
 }} //namespace facebook::fboss

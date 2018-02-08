@@ -155,6 +155,7 @@ class QsfpModule : public Transceiver {
    */
   time_t lastRefreshTime_{0};
   time_t lastCustomizeTime_{0};
+  time_t lastTxEnable_{0};
 
   /*
    * Perform transceiver customization
@@ -310,7 +311,7 @@ class QsfpModule : public Transceiver {
   const folly::Optional<LengthAndGauge> getDACCableOverride() const;
 
   // make sure that tx_disable bits are clear
-  void ensureTxEnabled();
+  void ensureTxEnabled(time_t cooldown);
 
   /*
    * Determine if it is safe to customize the ports based on the
