@@ -1181,6 +1181,8 @@ void SwSwitch::startThreads() {
   }));
   qsfpCacheThread_.reset(new std::thread(
       [=] { this->threadLoop("fbossQsfpCacheThread", &qsfpCacheEventBase_); }));
+  lacpThread_.reset(new std::thread(
+      [=] { this->threadLoop("fbossLacpThread", &lacpEventBase_); }));
 }
 
 void SwSwitch::stopThreads() {
@@ -1210,6 +1212,10 @@ void SwSwitch::stopThreads() {
     qsfpCacheEventBase_.runInEventBaseThread(
         [this] { qsfpCacheEventBase_.terminateLoopSoon(); });
   }
+  if (lacpThread_) {
+    lacpEventBase_.runInEventBaseThread(
+        [this] { lacpEventBase_.terminateLoopSoon(); });
+  }
   if (backgroundThread_) {
     backgroundThread_->join();
   }
@@ -1224,6 +1230,9 @@ void SwSwitch::stopThreads() {
   }
   if (qsfpCacheThread_) {
     qsfpCacheThread_->join();
+  }
+  if (lacpThread_) {
+    lacpThread_->join();
   }
 }
 

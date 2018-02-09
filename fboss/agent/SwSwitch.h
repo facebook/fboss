@@ -405,7 +405,7 @@ class SwSwitch : public HwSwitch::Callback {
    * Get the EventBase over which LacpController and LacpMachines should execute
    */
   folly::EventBase* getLacpEvb() {
-    return getBackgroundEvb();
+    return &lacpEventBase_;
   }
 
   /*
@@ -796,6 +796,12 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::unique_ptr<std::thread> updateThread_;
   folly::EventBase updateEventBase_;
+
+  /*
+   * A thread dedicated to LACP processing.
+   */
+  std::unique_ptr<std::thread> lacpThread_;
+  folly::EventBase lacpEventBase_;
 
   /*
    * A callback for listening to neighbors coming and going.
