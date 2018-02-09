@@ -86,7 +86,7 @@ using namespace apache::thrift::async;
 
 
 DEFINE_string(config, "", "The path to the local JSON configuration file");
-DEFINE_int32(thread_heartbeat_ms, 5000, "Thread hearbeat interval (ms)");
+DEFINE_int32(thread_heartbeat_ms, 1000, "Thread hearbeat interval (ms)");
 DEFINE_int32(
     distribution_timeout_ms,
     1000,

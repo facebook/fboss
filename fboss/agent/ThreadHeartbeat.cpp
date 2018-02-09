@@ -23,7 +23,7 @@ void ThreadHeartbeat::timeoutExpired() noexcept {
   heartbeatStatsFunc_(delay.count(), evbQueueSize);
   if (delay.count() > delayThresholdMsecs_ ||
       evbQueueSize > backlogThreshold_) {
-    VLOG(2) << threadName_ << ": heartbeat elapsed ms:" << elapsed.count()
+    VLOG(3) << threadName_ << ": heartbeat elapsed ms:" << elapsed.count()
             << " delay ms:" << delay.count() << " event queue size:"
             << evbQueueSize;
   }
