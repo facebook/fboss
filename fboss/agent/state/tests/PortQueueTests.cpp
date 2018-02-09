@@ -148,6 +148,14 @@ TEST(PortQueue, stateDelta) {
   auto queues3 = stateV3->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(4, queues3.size());
   EXPECT_EQ(1, queues3.at(3)->getWeight());
+
+  cfg::PortQueue queueExtra;
+  queueExtra.id = 11;
+  queueExtra.weight = 5;
+  queueExtra.__isset.weight = true;
+  config.ports[0].queues.push_back(queueExtra);
+  EXPECT_THROW(publishAndApplyConfig(stateV3, &config, platform.get()),
+      FbossError);
 }
 
 TEST(PortQueue, aqmState) {

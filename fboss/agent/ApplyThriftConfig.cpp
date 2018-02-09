@@ -588,13 +588,23 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
   }
 
   // Process all supplied queues
+  // We retrieve the current port queue values from hardware
+  // if there is a config present for any of these queues, we update the
+  // PortQueue according to this
+  // Otherwise we reset it to the default values for this queue type
   for (int i = 0; i < origPortQueues.size(); i++) {
     auto newQueueIter = newQueues.find(i);
     auto newQueue = std::make_shared<PortQueue>(i);
     if (newQueueIter != newQueues.end()) {
       newQueue = updatePortQueue(origPortQueues.at(i), newQueueIter->second);
+      newQueues.erase(newQueueIter);
     }
     newPortQueues.push_back(newQueue);
+  }
+
+  if (newQueues.size() > 0) {
+    throw FbossError("Port queue config listed for invalid queues. Maximum",
+        " number of queues on this platform is ", origPortQueues.size());
   }
   return newPortQueues;
 }
