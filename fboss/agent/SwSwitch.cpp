@@ -56,6 +56,7 @@
 #include <folly/String.h>
 #include <folly/Logging.h>
 #include <folly/SocketAddress.h>
+#include <folly/system/ThreadName.h>
 #include <folly/Demangle.h>
 #include <chrono>
 #include <exception>
@@ -86,7 +87,7 @@ using namespace apache::thrift::async;
 
 
 DEFINE_string(config, "", "The path to the local JSON configuration file");
-DEFINE_int32(thread_heartbeat_ms, 1000, "Thread hearbeat interval (ms)");
+DEFINE_int32(thread_heartbeat_ms, 1000, "Thread heartbeat interval (ms)");
 DEFINE_int32(
     distribution_timeout_ms,
     1000,
@@ -254,6 +255,8 @@ void SwSwitch::stop() {
 
   bgThreadHeartbeat_.reset();
   updThreadHeartbeat_.reset();
+  packetTxThreadHeartbeat_.reset();
+  lacpThreadHeartbeat_.reset();
 
   // stops the background and update threads.
   stopThreads();
@@ -562,6 +565,16 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
       "fbossPktTxThread",
       FLAGS_thread_heartbeat_ms,
       packetTxHeartbeatStatsFunc);
+
+  auto updateLacpThreadHeartbeatStats = [this](int delay, int backLog) {
+        stats()->lacpHeartbeatDelay(delay);
+        stats()->lacpEventBacklog(backLog);
+  };
+  lacpThreadHeartbeat_ = std::make_unique<ThreadHeartbeat>(
+      &lacpEventBase_,
+      *folly::getThreadName(lacpThread_->get_id()),
+      FLAGS_thread_heartbeat_ms,
+      updateLacpThreadHeartbeatStats);
 
   portRemediator_->init();
 

@@ -770,6 +770,7 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::unique_ptr<std::thread> backgroundThread_;
   folly::EventBase backgroundEventBase_;
+  std::unique_ptr<ThreadHeartbeat> bgThreadHeartbeat_;
 
   /*
    * A thread for processing packets received from
@@ -778,6 +779,7 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::unique_ptr<std::thread> packetTxThread_;
   folly::EventBase packetTxEventBase_;
+  std::unique_ptr<ThreadHeartbeat> packetTxThreadHeartbeat_;
 
   /*
    * A thread for sending packets to the distribution process
@@ -796,12 +798,14 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::unique_ptr<std::thread> updateThread_;
   folly::EventBase updateEventBase_;
+  std::unique_ptr<ThreadHeartbeat> updThreadHeartbeat_;
 
   /*
    * A thread dedicated to LACP processing.
    */
   std::unique_ptr<std::thread> lacpThread_;
   folly::EventBase lacpEventBase_;
+  std::unique_ptr<ThreadHeartbeat> lacpThreadHeartbeat_;
 
   /*
    * A callback for listening to neighbors coming and going.
@@ -836,9 +840,6 @@ class SwSwitch : public HwSwitch::Callback {
 
   BootType bootType_{BootType::UNINITIALIZED};
   std::unique_ptr<LldpManager> lldpManager_;
-  std::unique_ptr<ThreadHeartbeat> bgThreadHeartbeat_;
-  std::unique_ptr<ThreadHeartbeat> updThreadHeartbeat_;
-  std::unique_ptr<ThreadHeartbeat> packetTxThreadHeartbeat_;
   std::unique_ptr<PortUpdateHandler> portUpdateHandler_;
   SwitchFlags flags_{SwitchFlags::DEFAULT};
 };
