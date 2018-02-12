@@ -101,10 +101,10 @@ opennsl_trunk_t BcmTrunkTable::linkDownHwNotLocked(opennsl_port_t port) {
       hw_->getUnit(), static_cast<opennsl_module_t>(0), port);
 
   if (!maybeTrunk) { // (1.a)
-    LOG(INFO) << "Did not find trunk corresponding to port " << port;
     return facebook::fboss::BcmTrunk::INVALID;
   }
   auto trunk = *maybeTrunk;
+  LOG(INFO) << "Found trunk " << trunk << " for port " << port;
 
   // Note that getEnabledMemberPortsCountHwNotLocked() must be invoked before
   // shrinkTrunkGroupHwNotLocked()
