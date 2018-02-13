@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/state/AclEntry.h"
-#include "fboss/agent/state/MatchAction.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/StateUtils.h"
 #include <folly/Conv.h>
@@ -154,7 +153,9 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   auto itr_action = cfg::_AclActionType_VALUES_TO_NAMES.find(actionType);
   CHECK(itr_action != cfg::_AclActionType_VALUES_TO_NAMES.end());
   aclEntry[kActionType] = itr_action->second;
-  aclEntry[kAclAction] = MatchAction::toFollyDynamic(aclAction);
+  if (aclAction) {
+    aclEntry[kAclAction] = aclAction.value().toFollyDynamic();
+  }
   aclEntry[kPriority] = priority;
   aclEntry[kName] = name;
   return aclEntry;

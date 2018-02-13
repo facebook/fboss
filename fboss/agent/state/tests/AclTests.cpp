@@ -403,3 +403,37 @@ TEST(Acl, AclGeneration) {
   EXPECT_THROW(publishAndApplyConfig(stateV1, &config, platform.get()),
       FbossError);
 }
+
+TEST(Acl, SerializeAclEntry) {
+  auto entry = std::make_unique<AclEntry>(0, "dscp1");
+  entry->setDscp(1);
+  MatchAction action = MatchAction();
+  cfg::QueueMatchAction queueAction = cfg::QueueMatchAction();
+  queueAction.queueId = 3;
+  action.setSendToQueue(make_pair(queueAction, false));
+  entry->setAclAction(action);
+
+  auto serialized = entry->toFollyDynamic();
+  auto entryBack = AclEntry::fromFollyDynamic(serialized);
+
+  EXPECT_TRUE(*entry == *entryBack);
+  EXPECT_TRUE(entryBack->getAclAction());
+  auto aclAction = entryBack->getAclAction().value();
+  EXPECT_TRUE(aclAction.getSendToQueue());
+  EXPECT_EQ(aclAction.getSendToQueue().value().second, false);
+  EXPECT_EQ(aclAction.getSendToQueue().value().first.queueId, 3);
+
+  // change to sendToCPU = true
+  action.setSendToQueue(make_pair(queueAction, true));
+  EXPECT_EQ(action.getSendToQueue().value().second, true);
+  entry->setAclAction(action);
+  serialized = entry->toFollyDynamic();
+  entryBack = AclEntry::fromFollyDynamic(serialized);
+
+  EXPECT_TRUE(*entry == *entryBack);
+  EXPECT_TRUE(entryBack->getAclAction());
+  aclAction = entryBack->getAclAction().value();
+  EXPECT_TRUE(aclAction.getSendToQueue());
+  EXPECT_EQ(aclAction.getSendToQueue().value().second, true);
+  EXPECT_EQ(aclAction.getSendToQueue().value().first.queueId, 3);
+}

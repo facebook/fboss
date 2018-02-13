@@ -13,6 +13,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/MatchAction.h"
 
 #include <string>
 #include <utility>
@@ -161,7 +162,7 @@ struct AclEntryFields {
   folly::Optional<uint8_t> dscp{folly::none};
 
   cfg::AclActionType actionType{cfg::AclActionType::PERMIT};
-  cfg::MatchAction aclAction;
+  folly::Optional<MatchAction> aclAction{folly::none};
 };
 
 /*
@@ -215,11 +216,11 @@ class AclEntry :
     return getFields()->name;
   }
 
-  const cfg::MatchAction& getAclAction() const {
+  const folly::Optional<MatchAction> getAclAction() const {
     return getFields()->aclAction;
   }
 
-  void setAclAction(const cfg::MatchAction& action) {
+  void setAclAction(const MatchAction& action) {
     writableFields()->aclAction = action;
   }
 

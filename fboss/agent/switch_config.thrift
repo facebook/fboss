@@ -199,9 +199,6 @@ struct QueueMatchAction {
 
 struct MatchAction {
   1: optional QueueMatchAction sendToQueue
-  // TODO(joseph5wu) remove it after we can distinguish PortQueue by
-  // trafficPolicy types
-  2: bool sendToCPU = false
 }
 
 struct MatchToAction {

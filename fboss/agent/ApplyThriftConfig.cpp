@@ -181,12 +181,12 @@ class ThriftConfigApplier {
   std::shared_ptr<AclMap> updateAcls();
   std::shared_ptr<AclEntry> createAcl(const cfg::AclEntry* config,
       int priority,
-      const cfg::MatchAction* action = nullptr);
+      const MatchAction* action = nullptr);
   std::shared_ptr<AclEntry> updateAcl(const cfg::AclEntry& acl,
     int priority,
     int* numExistingProcessed,
     bool* changed,
-    const cfg::MatchAction* action = nullptr);
+    const MatchAction* action = nullptr);
   // check the acl provided by config is valid
   void checkAcl(const cfg::AclEntry* config) const;
   bool updateNeighborResponseTables(Vlan* vlan, const cfg::Vlan* config);
@@ -977,8 +977,12 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
         aclCfg.dstPort = dstPortID;
         aclCfg.__isset.dstPort = true;
       }
+
+      // Here is sending to regular port queue action
+      MatchAction matchAction = MatchAction();
+      matchAction.setSendToQueue(std::make_pair(mta.action.sendToQueue, false));
       auto acl = updateAcl(aclCfg, priority++, &numExistingProcessed,
-        &changed, &(mta.action));
+        &changed, &matchAction);
       entries.push_back(std::make_pair(acl->getID(), acl));
     }
     return entries;
@@ -1019,7 +1023,7 @@ std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
     int priority,
     int* numExistingProcessed,
     bool* changed,
-    const cfg::MatchAction* action) {
+    const MatchAction* action) {
   auto origAcl = orig_->getAcls()->getEntryIf(acl.name);
   auto newAcl = createAcl(&acl, priority, action);
   if (origAcl) {
@@ -1091,7 +1095,7 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry *config) const {
 
 shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
     const cfg::AclEntry* config, int priority,
-    const cfg::MatchAction* action) {
+    const MatchAction* action) {
   checkAcl(config);
   auto newAcl = make_shared<AclEntry>(priority, config->name);
   newAcl->setActionType(config->actionType);

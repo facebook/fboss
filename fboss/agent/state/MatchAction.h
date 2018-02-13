@@ -11,18 +11,50 @@
 
 #include <folly/dynamic.h>
 #include <folly/FBString.h>
+#include <folly/Optional.h>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 namespace facebook { namespace fboss {
 
-/*
- * Utility class to handle serializing MatchActions
- */
 class MatchAction {
  public:
-  static const cfg::MatchAction fromFollyDynamic(const folly::dynamic& json);
-  static const folly::dynamic toFollyDynamic(const cfg::MatchAction& action);
+  /*
+   * In config, we will get rid of `sendToCPU` and use `CPUTrafficPolicyConfig`
+   * to decide whether we need to send to cpu queue or regular port queue.
+   * In agent code, we still need to keep this `sendToCPU` logic for acl, thus,
+   * SendToQueue.second is the old `sendToCPU` value.
+   */
+  using SendToQueue = std::pair<cfg::QueueMatchAction, bool>;
+
+  MatchAction() {}
+
+  MatchAction(const MatchAction& action) {
+    sendToQueue_ = action.sendToQueue_;
+  }
+
+  folly::Optional<SendToQueue> getSendToQueue() const {
+    return sendToQueue_;
+  }
+
+  void setSendToQueue(const SendToQueue& sendToQueue) {
+    sendToQueue_ = sendToQueue;
+  }
+
+  bool operator==(const MatchAction& action) const {
+    return sendToQueue_ == action.sendToQueue_;
+  }
+
+  MatchAction& operator=(const MatchAction& action) {
+    sendToQueue_ = action.sendToQueue_;
+    return *this;
+  }
+
+  folly::dynamic toFollyDynamic() const;
+  static MatchAction fromFollyDynamic(const folly::dynamic& actionJson);
+
+ private:
+  folly::Optional<SendToQueue> sendToQueue_{folly::none};
 };
 
 }} // facebook::fboss

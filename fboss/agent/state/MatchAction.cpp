@@ -8,42 +8,35 @@
  *
  */
 #include "fboss/agent/state/MatchAction.h"
-#include "fboss/agent/state/StateUtils.h"
 #include <folly/Conv.h>
 
 namespace {
 constexpr auto kQueueMatchAction = "queueMatchAction";
 constexpr auto kQueueId = "queueId";
-constexpr auto kSendToCpu = "sendToCpu";
+constexpr auto kSendToCPU = "sendToCPU";
 }
 
 namespace facebook { namespace fboss {
 
-const folly::dynamic MatchAction::toFollyDynamic(
-    const cfg::MatchAction& action) {
+folly::dynamic MatchAction::toFollyDynamic() const {
   folly::dynamic matchAction = folly::dynamic::object;
-  if (action.__isset.sendToQueue) {
+  if (sendToQueue_) {
     matchAction[kQueueMatchAction] = folly::dynamic::object;
     matchAction[kQueueMatchAction][kQueueId] =
-      action.sendToQueue.queueId;
+      sendToQueue_.value().first.queueId;
+    matchAction[kQueueMatchAction][kSendToCPU] = sendToQueue_.value().second;
   }
-  matchAction[kSendToCpu] = action.sendToCPU;
   return matchAction;
 }
 
-const cfg::MatchAction MatchAction::fromFollyDynamic(
-    const folly::dynamic& json) {
-  cfg::MatchAction matchAction;
-  if (json.find(kQueueMatchAction) != json.items().end()) {
-    matchAction.sendToQueue = cfg::QueueMatchAction();
-    matchAction.__isset.sendToQueue = true;
-    matchAction.sendToQueue.queueId =
-      json[kQueueMatchAction][kQueueId].asInt();
-  }
-  if (json.find(kSendToCpu) != json.items().end()) {
-    // TODO: This if statement can be removed once we've warmbooted into
-    // the new config format
-    matchAction.sendToCPU = json[kSendToCpu].asBool();
+MatchAction MatchAction::fromFollyDynamic(
+    const folly::dynamic& actionJson) {
+  MatchAction matchAction = MatchAction();
+  if (actionJson.find(kQueueMatchAction) != actionJson.items().end()) {
+    cfg::QueueMatchAction queueAction = cfg::QueueMatchAction();
+    queueAction.queueId = actionJson[kQueueMatchAction][kQueueId].asInt();
+    bool sendToCPU = actionJson[kQueueMatchAction][kSendToCPU].asBool();
+    matchAction.setSendToQueue(std::make_pair(queueAction, sendToCPU));
   }
   return matchAction;
 }
