@@ -36,8 +36,6 @@ bool BcmSwitch::isAlpmEnabled() {
 
 void BcmSwitch::dropDhcpPackets() {}
 
-void BcmSwitch::dropIPv6RAs() {}
-
 void BcmSwitch::setupCos() {}
 
 void BcmSwitch::copyIPv6LinkLocalMcastPackets() {
