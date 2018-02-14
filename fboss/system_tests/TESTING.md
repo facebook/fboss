@@ -23,7 +23,7 @@ at least two hosts connected to the switch.
 
 Once the switch is running the FBOSS agent and the hosts are running the TestServer
 binary, you simply need to populate a FBOSSTestBaseConfig() python object and
-run `./system_tests.py --config your_config.py`.  For example, look at 
+run `./system_tests.py --config your_config.py`.  For example, look at
 ./test_topologies/example_topology.py for an example static test config.
 
 This same testing framework is also optionally customizable for
@@ -61,7 +61,7 @@ All new tests should :
 * match '*test*.py' to be autodiscovered by the test discovery algorithm
 
 # Facebook Internal
-* If you work at Facebook, look in the ./facebook directory for additonal automation
+* If you work at Facebook, look in the ./facebook directory for additional automation
 magic.
 
 
