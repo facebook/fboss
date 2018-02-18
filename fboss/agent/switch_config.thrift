@@ -183,6 +183,10 @@ struct AclEntry {
   17: string name
 
   18: AclActionType actionType = PERMIT
+
+  19: optional string srcMac
+  20: optional string dstMac
+
 }
 
 /*

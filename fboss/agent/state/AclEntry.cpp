@@ -39,6 +39,8 @@ constexpr auto kIcmpCode = "icmpCode";
 constexpr auto kIcmpType = "icmpType";
 constexpr auto kDscp = "dscp";
 constexpr auto kPortName = "portName";
+constexpr auto kSrcMac = "srcMac";
+constexpr auto kDstMac = "dstMac";
 constexpr auto kAclAction = "aclAction";
 }
 
@@ -115,6 +117,12 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   if (dstIp.first) {
     aclEntry[kDstIp] = IPAddress::networkToString(dstIp);
   }
+  if (srcMac) {
+    aclEntry[kSrcMac] = srcMac->toString();
+  }
+  if (dstMac) {
+    aclEntry[kDstMac] = dstMac->toString();
+  }
   if (proto) {
     aclEntry[kProto] = static_cast<uint8_t>(proto.value());
   }
@@ -181,6 +189,12 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
       " vs ",
       aclEntryJson[kDstIp].asString()
     );
+  }
+  if (aclEntryJson.find(kSrcMac) != aclEntryJson.items().end()) {
+    aclEntry.srcMac = MacAddress(aclEntryJson[kSrcMac].asString());
+  }
+  if (aclEntryJson.find(kDstMac) != aclEntryJson.items().end()) {
+    aclEntry.dstMac = MacAddress(aclEntryJson[kDstMac].asString());
   }
   if (aclEntryJson.find(kProto) != aclEntryJson.items().end()) {
     aclEntry.proto = aclEntryJson[kProto].asInt();

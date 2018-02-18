@@ -17,12 +17,15 @@
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/IPAddress.h>
+#include <folly/MacAddress.h>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
 using std::make_pair;
 using std::make_shared;
 using std::shared_ptr;
+using folly::MacAddress;
+
 namespace {
 // We offset the start point in ApplyThriftConfig
 constexpr auto kAclStartPriority = 100000;
@@ -70,6 +73,7 @@ TEST(Acl, applyConfig) {
   EXPECT_EQ(cfg::AclActionType::DENY, aclV1->getActionType());
   EXPECT_EQ(5, aclV1->getSrcPort());
   EXPECT_EQ(8, aclV1->getDstPort());
+
   EXPECT_FALSE(aclV1->isPublished());
 
   config.acls[0].dstIp = "invalid address";
@@ -191,6 +195,33 @@ TEST(Acl, applyConfig) {
   auto aclV5 = stateV5->getAcl("system:acl3");
   EXPECT_NE(nullptr, aclV5);
   EXPECT_EQ(aclV5->getIpFrag().value(), cfg::IpFragMatch::MATCH_NOT_FRAGMENTED);
+
+  // set src, dst Mac
+  auto macStr1 = "01:01:01:01:01:01";
+  auto macStr2 = "02:02:02:02:02:02";
+  configV2.acls[0].__isset.srcMac = true;
+  configV2.acls[0].srcMac = macStr1;
+  configV2.acls[0].__isset.dstMac = true;
+  configV2.acls[0].dstMac = macStr2;
+
+  auto stateV6 = publishAndApplyConfig(stateV5, &configV2, platform.get());
+  EXPECT_NE(nullptr, stateV6);
+  auto aclV6 = stateV6->getAcl("system:acl3");
+  EXPECT_NE(nullptr, aclV6);
+
+  EXPECT_EQ(MacAddress(macStr1), aclV6->getSrcMac());
+  EXPECT_EQ(MacAddress(macStr2), aclV6->getDstMac());
+  // Remove src, dst Mac
+  configV2.acls[0].__isset.srcMac = false;
+  configV2.acls[0].__isset.dstMac = false;
+
+  auto stateV7 = publishAndApplyConfig(stateV6, &configV2, platform.get());
+  EXPECT_NE(nullptr, stateV7);
+  auto aclV7 = stateV7->getAcl("system:acl3");
+  EXPECT_NE(nullptr, aclV7);
+
+  EXPECT_FALSE(aclV7->getSrcMac());
+  EXPECT_FALSE(aclV7->getDstMac());
 }
 
 TEST(Acl, stateDelta) {
