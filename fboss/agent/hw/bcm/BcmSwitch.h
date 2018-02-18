@@ -514,7 +514,10 @@ class BcmSwitch : public BcmSwitchIf {
    * Create ACL group
    */
   void createAclGroup();
-
+  /*
+   * Create slow protocols MAC group
+   */
+  void createSlowProtocolsGroup();
   /*
    * Forces a linkscan pass on the provided ports.
    */

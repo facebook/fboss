@@ -535,6 +535,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   if (!warmBoot) {
     initFieldProcessor();
     createAclGroup();
+    createSlowProtocolsGroup();
     copyIPv6LinkLocalMcastPackets();
   }
 
