@@ -161,7 +161,6 @@ struct AclEntryFields {
   folly::Optional<uint8_t> icmpType{folly::none};
   folly::Optional<uint8_t> icmpCode{folly::none};
   folly::Optional<uint8_t> dscp{folly::none};
-  folly::Optional<folly::MacAddress> srcMac{folly::none};
   folly::Optional<folly::MacAddress> dstMac{folly::none};
 
   cfg::AclActionType actionType{cfg::AclActionType::PERMIT};
@@ -209,7 +208,6 @@ class AclEntry :
            getFields()->icmpType == acl.getIcmpType() &&
            getFields()->icmpCode == acl.getIcmpCode() &&
            getFields()->dscp == acl.getDscp() &&
-           getFields()->srcMac == acl.getSrcMac() &&
            getFields()->dstMac == acl.getDstMac();
   }
 
@@ -339,14 +337,6 @@ class AclEntry :
 
   void setDscp(uint8_t dscp) {
     writableFields()->dscp = dscp;
-  }
-
-  folly::Optional<folly::MacAddress> getSrcMac() const {
-    return getFields()->srcMac;
-  }
-
-  void setSrcMac(const folly::MacAddress& srcMac) {
-    writableFields()->srcMac = srcMac;
   }
 
   folly::Optional<folly::MacAddress> getDstMac() const {

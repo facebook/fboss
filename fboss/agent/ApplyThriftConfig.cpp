@@ -1144,9 +1144,6 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (config->__isset.dscp) {
     newAcl->setDscp(config->dscp);
   }
-  if (config->__isset.srcMac) {
-    newAcl->setSrcMac(MacAddress(config->srcMac));
-  }
   if (config->__isset.dstMac) {
     newAcl->setDstMac(MacAddress(config->dstMac));
   }

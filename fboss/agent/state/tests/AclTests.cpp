@@ -196,23 +196,18 @@ TEST(Acl, applyConfig) {
   EXPECT_NE(nullptr, aclV5);
   EXPECT_EQ(aclV5->getIpFrag().value(), cfg::IpFragMatch::MATCH_NOT_FRAGMENTED);
 
-  // set src, dst Mac
-  auto macStr1 = "01:01:01:01:01:01";
-  auto macStr2 = "02:02:02:02:02:02";
-  configV2.acls[0].__isset.srcMac = true;
-  configV2.acls[0].srcMac = macStr1;
+  // set dst Mac
+  auto dstMacStr = "01:01:01:01:01:01";
   configV2.acls[0].__isset.dstMac = true;
-  configV2.acls[0].dstMac = macStr2;
+  configV2.acls[0].dstMac = dstMacStr;
 
   auto stateV6 = publishAndApplyConfig(stateV5, &configV2, platform.get());
   EXPECT_NE(nullptr, stateV6);
   auto aclV6 = stateV6->getAcl("system:acl3");
   EXPECT_NE(nullptr, aclV6);
 
-  EXPECT_EQ(MacAddress(macStr1), aclV6->getSrcMac());
-  EXPECT_EQ(MacAddress(macStr2), aclV6->getDstMac());
+  EXPECT_EQ(MacAddress(dstMacStr), aclV6->getDstMac());
   // Remove src, dst Mac
-  configV2.acls[0].__isset.srcMac = false;
   configV2.acls[0].__isset.dstMac = false;
 
   auto stateV7 = publishAndApplyConfig(stateV6, &configV2, platform.get());
@@ -220,7 +215,6 @@ TEST(Acl, applyConfig) {
   auto aclV7 = stateV7->getAcl("system:acl3");
   EXPECT_NE(nullptr, aclV7);
 
-  EXPECT_FALSE(aclV7->getSrcMac());
   EXPECT_FALSE(aclV7->getDstMac());
 }
 
