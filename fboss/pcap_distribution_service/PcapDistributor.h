@@ -3,7 +3,6 @@
 #include <memory>
 #include <map>
 
-#include <thrift/lib/cpp/server/TServer.h>
 #include <thrift/lib/cpp2/async/RequestChannel.h>
 
 #include "fboss/pcap_distribution_service/if/gen-cpp2/PcapPushSubscriber.h"

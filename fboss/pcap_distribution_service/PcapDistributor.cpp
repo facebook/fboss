@@ -11,7 +11,6 @@
 #include <folly/io/async/EventBase.h>
 
 #include <thrift/lib/cpp/async/TAsyncSocket.h>
-#include <thrift/lib/cpp/server/TServer.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 

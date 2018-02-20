@@ -23,7 +23,7 @@
 
 #include <folly/Synchronized.h>
 #include <folly/String.h>
-#include <thrift/lib/cpp/server/TServer.h>
+#include <thrift/lib/cpp/server/TServerEventHandler.h>
 #include <thrift/lib/cpp2/async/DuplexChannel.h>
 
 namespace facebook { namespace fboss {

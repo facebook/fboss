@@ -1,6 +1,5 @@
 #pragma once
 
-#include <thrift/lib/cpp/server/TServer.h>
 #include <memory>
 
 #include "fboss/pcap_distribution_service/if/gen-cpp2/PcapPushSubscriber.h"
@@ -14,8 +13,7 @@ class PcapBufferManager;
  * This class handles users connecting to the service,
  * and SwSwitch connecting to the service to send packets.
  */
-class ThriftHandler : virtual public PcapPushSubscriberSvIf,
-                    public apache::thrift::server::TServerEventHandler {
+class ThriftHandler : virtual public PcapPushSubscriberSvIf {
  public:
   explicit ThriftHandler(
       std::unique_ptr<PcapDistributor> d,
