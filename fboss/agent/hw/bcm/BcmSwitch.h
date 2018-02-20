@@ -35,6 +35,7 @@ namespace facebook { namespace fboss {
 class AclEntry;
 class AggregatePort;
 class ArpEntry;
+class BcmControlPlane;
 class BcmEgress;
 class BcmHostTable;
 class BcmIntfTable;
@@ -81,6 +82,8 @@ class BcmSwitchIf : public HwSwitch {
   virtual const BcmAclTable* getAclTable() const = 0;
 
   virtual const BcmTrunkTable* getTrunkTable() const = 0;
+
+  virtual BcmControlPlane* getControlPlane() const = 0;
 
   virtual opennsl_if_t getDropEgressId() const = 0;
 
@@ -211,6 +214,10 @@ class BcmSwitch : public BcmSwitchIf {
   opennsl_if_t getDropEgressId() const override;
   opennsl_if_t getToCPUEgressId() const override;
 
+  BcmControlPlane* getControlPlane() const override {
+    return controlPlane_.get();
+  }
+
   // The following function will modify the object. In particular, the return
   // state will be published (to indicate what has actually been applied). If
   // everything from delta was successfully applied, then the "new" state in
@@ -324,9 +331,6 @@ class BcmSwitch : public BcmSwitchIf {
   }
 
   opennsl_gport_t getCpuGPort() const;
-  CosQueueGports* getCpuCosQueueGports() {
-    return &cpuCosGports_;
-  }
 
  private:
   enum Flags : uint32_t {
@@ -419,6 +423,8 @@ class BcmSwitch : public BcmSwitchIf {
       const std::shared_ptr<SflowCollector>& collector);
   void processRemovedSflowCollector(
       const std::shared_ptr<SflowCollector>& collector);
+
+  void processControlPlaneChanges(const StateDelta& delta);
 
   /*
    * Calls linkStateChanged below
@@ -611,6 +617,7 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BufferStatsLogger> bufferStatsLogger_;
   std::unique_ptr<BcmTrunkTable> trunkTable_;
   std::unique_ptr<BcmSflowExporterTable> sFlowExporterTable_;
+  std::unique_ptr<BcmControlPlane> controlPlane_;
 
   /*
    * TODO - Right now we setup copp using logic embedded in code.
@@ -625,19 +632,5 @@ class BcmSwitch : public BcmSwitchIf {
    * Lock to synchronize access to all BCM* data structures
    */
   std::mutex lock_;
-
-  /*
-   *  Counters tracking cpu or host bound packets
-   */
-  struct CpuPortCounter {
-    opennsl_cos_queue_t queueNum;
-    bool isDropCounter;
-    stats::MonotonicCounter counter;
-  };
-  std::vector<CpuPortCounter> cpuPortCounters_;
-  CosQueueGports cpuCosGports_;
-
-  void updateCpuPortCounters();
-  void setupCpuPortCounters();
 };
 }} // facebook::fboss

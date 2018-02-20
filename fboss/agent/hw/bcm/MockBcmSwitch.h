@@ -73,6 +73,7 @@ class MockBcmSwitch : public BcmSwitchIf {
       getAndClearNeighborHit,
       bool(RouterID vrf, folly::IPAddress& ip));
   MOCK_CONST_METHOD1(isValidStateUpdate, bool(const StateDelta& delta));
+  MOCK_CONST_METHOD0(getControlPlane, BcmControlPlane*());
 };
 
 } // namespace fboss

@@ -329,6 +329,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/PortAndEgressIdsMap.cpp
     fboss/agent/hw/bcm/oss/BcmAclEntry.cpp
     fboss/agent/hw/bcm/oss/BcmAPI.cpp
+    fboss/agent/hw/bcm/oss/BcmControlPlane.cpp
     fboss/agent/hw/bcm/oss/BcmEgress.cpp
     fboss/agent/hw/bcm/oss/BcmHost.cpp
     fboss/agent/hw/bcm/oss/BcmPort.cpp
@@ -419,6 +420,7 @@ add_library(fboss_agent STATIC
     fboss/agent/state/ArpEntry.cpp
     fboss/agent/state/ArpResponseTable.cpp
     fboss/agent/state/ArpTable.cpp
+    fboss/agent/state/ControlPlane.cpp
     fboss/agent/state/Interface.cpp
     fboss/agent/state/InterfaceMap.cpp
     fboss/agent/state/MatchAction.cpp

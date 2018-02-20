@@ -22,6 +22,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/BufferStatsLogger.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
+#include "fboss/agent/hw/bcm/BcmControlPlane.h"
 #include "fboss/agent/hw/bcm/BcmSflowExporter.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
@@ -153,7 +154,8 @@ BcmSwitch::BcmSwitch(BcmPlatform *platform, HashMode hashMode)
       bcmTableStats_(new BcmTableStats(this, isAlpmEnabled())),
       bufferStatsLogger_(createBufferStatsLogger()),
       trunkTable_(new BcmTrunkTable(this)),
-      sFlowExporterTable_(new BcmSflowExporterTable()) {
+      sFlowExporterTable_(new BcmSflowExporterTable()),
+      controlPlane_(new BcmControlPlane(this)) {
   dumpConfigMap(BcmAPI::getHwConfig(), platform->getHwConfigDumpFile());
   exportSdkVersion();
 }
@@ -190,6 +192,7 @@ unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
   aclTable_.reset();
   bcmTableStats_.reset();
   trunkTable_.reset();
+  controlPlane_.reset();
 
   unit_ = -1;
   unitObject_->setCookie(nullptr);
@@ -569,7 +572,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   setupCos();
   configureRxRateLimiting();
-  setupCpuPortCounters();
+  controlPlane_->setupQueueCounters();
   if (fineGrainedBufferStatsEnabled_) {
     startFineGrainedBufferStatLogging();
   }
@@ -1435,7 +1438,7 @@ void BcmSwitch::updateStats(SwitchStats *switchStats) {
   // Update global statistics.
   updateGlobalStats();
   // Update cpu or host bound packet stats
-  updateCpuPortCounters();
+  controlPlane_->updateQueueCounters();
 }
 
 shared_ptr<BcmSwitchEventCallback> BcmSwitch::registerSwitchEventCallback(

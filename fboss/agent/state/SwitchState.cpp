@@ -12,6 +12,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
+#include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/Vlan.h"
@@ -38,6 +39,7 @@ constexpr auto kRouteTables = "routeTables";
 constexpr auto kDefaultVlan = "defaultVlan";
 constexpr auto kAcls = "acls";
 constexpr auto kSflowCollectors = "sFlowCollectors";
+constexpr auto kControlPlane = "controlPlane";
 constexpr auto kArpTimeout = "arpTimeout";
 constexpr auto kNdpTimeout = "ndpTimeout";
 constexpr auto kArpAgerInterval = "arpAgerInterval";
@@ -54,7 +56,8 @@ SwitchStateFields::SwitchStateFields()
       interfaces(make_shared<InterfaceMap>()),
       routeTables(make_shared<RouteTableMap>()),
       acls(make_shared<AclMap>()),
-      sFlowCollectors(make_shared<SflowCollectorMap>()) {}
+      sFlowCollectors(make_shared<SflowCollectorMap>()),
+      controlPlane(make_shared<ControlPlane>()) {}
 
 folly::dynamic SwitchStateFields::toFollyDynamic() const {
   folly::dynamic switchState = folly::dynamic::object;
@@ -65,6 +68,7 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kAcls] = acls->toFollyDynamic();
   switchState[kSflowCollectors] = sFlowCollectors->toFollyDynamic();
   switchState[kDefaultVlan] = static_cast<uint32_t>(defaultVlan);
+  switchState[kControlPlane] = controlPlane->toFollyDynamic();
   return switchState;
 }
 
@@ -83,6 +87,10 @@ SwitchStateFields::fromFollyDynamic(const folly::dynamic& swJson) {
       swJson[kSflowCollectors]);
   }
   switchState.defaultVlan = VlanID(swJson[kDefaultVlan].asInt());
+  if (swJson.find(kControlPlane) != swJson.items().end()) {
+    switchState.controlPlane = ControlPlane::fromFollyDynamic(
+      swJson[kControlPlane]);
+  }
   //TODO verify that created state here is internally consistent t4155406
   return switchState;
 }
@@ -202,6 +210,11 @@ void SwitchState::resetAggregatePorts(
 void SwitchState::resetSflowCollectors(
     const std::shared_ptr<SflowCollectorMap>& collectors) {
   writableFields()->sFlowCollectors = collectors;
+}
+
+void SwitchState::resetControlPlane(
+    std::shared_ptr<ControlPlane> controlPlane) {
+  writableFields()->controlPlane = controlPlane;
 }
 
 template class NodeBaseT<SwitchState, SwitchStateFields>;

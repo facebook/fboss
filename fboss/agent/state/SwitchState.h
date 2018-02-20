@@ -24,6 +24,7 @@ namespace facebook { namespace fboss {
 class AclEntry;
 class AclMap;
 class AggregatePortMap;
+class ControlPlane;
 class Interface;
 class InterfaceMap;
 class Port;
@@ -64,6 +65,7 @@ struct SwitchStateFields {
   std::shared_ptr<RouteTableMap> routeTables;
   std::shared_ptr<AclMap> acls;
   std::shared_ptr<SflowCollectorMap> sFlowCollectors;
+  std::shared_ptr<ControlPlane> controlPlane;
   VlanID defaultVlan{0};
 
 
@@ -208,6 +210,10 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return getFields()->sFlowCollectors;
   }
 
+  const std::shared_ptr<ControlPlane>& getControlPlane() const {
+    return getFields()->controlPlane;
+  }
+
   void setArpTimeout(std::chrono::seconds timeout);
 
   std::chrono::seconds getNdpTimeout() const {
@@ -284,6 +290,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void resetAcls(std::shared_ptr<AclMap> acls);
   void resetSflowCollectors(
       const std::shared_ptr<SflowCollectorMap>& collectors);
+  void resetControlPlane(std::shared_ptr<ControlPlane> cpu);
 
  private:
   // Inherit the constructor required for clone()

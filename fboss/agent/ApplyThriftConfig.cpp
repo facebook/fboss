@@ -20,6 +20,7 @@
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ArpResponseTable.h"
+#include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/SflowCollector.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/Interface.h"
@@ -209,6 +210,7 @@ class ThriftConfigApplier {
   shared_ptr<SflowCollector> updateSflowCollector(
       const shared_ptr<SflowCollector>& orig,
       const cfg::SflowCollector* config);
+  shared_ptr<ControlPlane> updateControlPlane();
 
   std::shared_ptr<SwitchState> orig_;
   const cfg::SwitchConfig* cfg_{nullptr};
@@ -239,6 +241,14 @@ class ThriftConfigApplier {
 shared_ptr<SwitchState> ThriftConfigApplier::run() {
   auto newState = orig_->clone();
   bool changed = false;
+
+  {
+    auto newControlPlane = updateControlPlane();
+    if (newControlPlane) {
+      newState->resetControlPlane(std::move(newControlPlane));
+      changed = true;
+    }
+  }
 
   processVlanPorts();
 
@@ -1435,6 +1445,11 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   newIntf->setIsVirtual(config->isVirtual);
   newIntf->setIsStateSyncDisabled(config->isStateSyncDisabled);
   return newIntf;
+}
+
+shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
+  // TODO(joseph5wu) Add processing cpu queue setting and reason mapping logics
+  return nullptr;
 }
 
 std::string
