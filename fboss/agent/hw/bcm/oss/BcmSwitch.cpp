@@ -38,6 +38,9 @@ void BcmSwitch::dropDhcpPackets() {}
 
 void BcmSwitch::setupCos() {}
 
+void BcmSwitch::recreateChangedFPGroups() const {
+}
+
 void BcmSwitch::copyIPv6LinkLocalMcastPackets() {
   // OpenNSL doesn't yet provide functions for adding field-processor rules
   // for capturing packets

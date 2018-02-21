@@ -96,7 +96,6 @@ DEFINE_bool(flexports, false,
             "Load the agent with flexport support enabled");
 DEFINE_bool(enable_fine_grained_buffer_stats, false,
             "Enable fine grained buffer stats collection by default");
-
 enum : uint8_t {
   kRxCallbackPriority = 1,
 };
@@ -540,6 +539,13 @@ HwInitResult BcmSwitch::init(Callback* callback) {
     createAclGroup();
     createSlowProtocolsGroup();
     copyIPv6LinkLocalMcastPackets();
+  } else {
+    // On warm boot, if any of the groups
+    // changed in a way that old setup is no
+    // longer valid (e.g. QSET chages), we recreate
+    // them and have individual entries be recreated
+    // as we play the warm boot state.
+    recreateChangedFPGroups();
   }
 
   dropDhcpPackets();

@@ -525,6 +525,12 @@ class BcmSwitch : public BcmSwitchIf {
    */
   void createSlowProtocolsGroup();
   /*
+   * During warm boot, check if any FP groups changed in a way that
+   * the group needs to be recreated (e.g. on QSET changes).
+   */
+  void recreateChangedFPGroups() const;
+
+  /*
    * Forces a linkscan pass on the provided ports.
    */
   void forceLinkscanOn(opennsl_pbmp_t ports);
