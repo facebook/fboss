@@ -264,7 +264,7 @@ void ReceiveMachine::updateDefaultSelected() {
   auto adminDefault = ParticipantInfo();
 
   if (adminDefault != controller_.partnerInfo()) {
-      controller_.unselected();
+    controller_.unselected();
   }
 }
 
@@ -952,7 +952,6 @@ void Selector::portDown() {
     VLOG(4) << "Selection[" << controller_.portID() << "]: no LAG chosen";
     return;
   }
-  LinkAggregationGroupID myLagID = maybeSelection->lagID;
 
   // ReceiveMachine::portDown() was invoked prior to this, which will eventually
   // signal NOT partner.SYNC. If the MuxMachine was in state
@@ -960,11 +959,6 @@ void Selector::portDown() {
   // MuxMachine::ATTACHED on this signal. Signalling UNSELECTED at this point
   // will transition it to MuxMachine::DETACHED.
   controller_.unselected();
-
-  auto ports =
-      getPortsWithSelection(Selection(myLagID, SelectionState::SELECTED));
-
-  controller_.standby(folly::range(ports.begin(), ports.end()));
 }
 
 void Selector::unselected() {
@@ -973,7 +967,14 @@ void Selector::unselected() {
     return;
   }
 
+  LinkAggregationGroupID myLagID = it->second.lagID;
+
   portToSelection().erase(it);
+
+  auto ports =
+      getPortsWithSelection(Selection(myLagID, SelectionState::SELECTED));
+
+  controller_.standby(folly::range(ports.begin(), ports.end()));
 }
 
 void Selector::selected() {
