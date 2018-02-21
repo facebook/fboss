@@ -45,7 +45,7 @@ eth1/16/2     62   eth1-22.csw21d.snc1                Enabled          Up
         # Does the binary exist?
         self.assertTrue(os.path.exists(FbossCmdline.FBOSS_CMD))
         cmd = [FbossCmdline.FBOSS_CMD,
-                "-H", self.test_topology.switch,
+                "-H", self.test_topology.switch.name,
                 "hosts"
                ]
         output = subprocess.check_output(cmd, encoding="utf-8")

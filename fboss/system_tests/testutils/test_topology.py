@@ -7,6 +7,8 @@ from fboss.thrift_clients import FbossAgentClient, QsfpServiceClient
 from fboss.netlink_manager.netlink_manager_client import NetlinkManagerClient
 from fboss.system_tests.testutils.test_client import TestClient
 from neteng.fboss.ttypes import FbossBaseError
+from fboss.system_tests.facebook.utils.agent_config import (
+    FbossAgentConfig)
 
 from thrift.transport.TTransport import TTransportException
 
@@ -114,7 +116,7 @@ class FBOSSTestTopology(object):
     def verify_switch(self):
         """ Verify the switch is THRIFT reachable """
         try:
-            with FbossAgentClient(self.switch, self.port) as client:
+            with FbossAgentClient(self.switch.name, self.port) as client:
                 client.keepalive()  # will throw FbossBaseError on failure
         except FbossBaseError:
             return False
@@ -149,13 +151,13 @@ class FBOSSTestTopology(object):
         return True
 
     def switch_thrift(self):
-        return FbossAgentClient(self.switch, self.port)
+        return FbossAgentClient(self.switch.name, self.port)
 
     def qsfp_thrift(self):
-        return QsfpServiceClient(self.switch, self.qsfp_port)
+        return QsfpServiceClient(self.switch.name, self.qsfp_port)
 
     def netlink_manager_thrift(self):
-        return NetlinkManagerClient(self.switch, NetlinkManagerClient.DEFAULT_PORT)
+        return NetlinkManagerClient(self.switch.name, NetlinkManagerClient.DEFAULT_PORT)
 
     def hosts(self):
         return self.test_hosts.values()
@@ -182,3 +184,9 @@ class FBOSSTestTopology(object):
                         return ndp_entry.port
 
         return None
+
+    def switch_agent_config(self):
+        return FbossAgentConfig(self.switch.name, self.switch.login_user,
+                                self.switch.login_password,
+                                self.switch_thrift,
+                                self.log)
