@@ -157,6 +157,25 @@ enum PortOperState {
   UP = 1,
 }
 
+struct LinearQueueCongestionDetection {
+  1: i16 minimumLength
+  2: i16 maximumLength
+}
+
+union QueueCongestionDetection {
+  1: LinearQueueCongestionDetection linear;
+}
+
+struct QueueCongestionBehavior {
+  1: bool earlyDrop
+  2: bool ecn
+}
+
+struct ActiveQueueManagement {
+  1: QueueCongestionDetection detection
+  2: QueueCongestionBehavior behavior
+}
+
 struct PortQueueThrift {
   1: i32 id,
   2: string name = "",
@@ -164,6 +183,7 @@ struct PortQueueThrift {
   4: optional i32 weight,
   5: optional i32 reservedBytes,
   6: optional string scalingFactor,
+  7: optional ActiveQueueManagement aqm,
 }
 
 struct PortInfoThrift {

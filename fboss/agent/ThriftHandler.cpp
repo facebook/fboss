@@ -412,6 +412,24 @@ void ThriftHandler::getPortInfoHelper(
           queue->getScalingFactor().value())->second;
       pq.__isset.scalingFactor = true;
     }
+    if (queue->getAqm()) {
+      auto aqm = queue->getAqm().value();
+      LinearQueueCongestionDetection lqcd;
+
+      pq.aqm.behavior.earlyDrop = aqm.behavior.earlyDrop;
+      pq.aqm.behavior.ecn = aqm.behavior.ecn;
+      switch (aqm.detection.getType()) {
+        case cfg::QueueCongestionDetection::Type::linear:
+          lqcd.minimumLength = aqm.detection.get_linear().minimumLength;
+          lqcd.maximumLength = aqm.detection.get_linear().maximumLength;
+          pq.aqm.detection.set_linear(lqcd);
+          pq.__isset.aqm = true;
+          break;
+        case cfg::QueueCongestionDetection::Type::__EMPTY__:
+          LOG(WARNING) << "Invalid queue congestion detection config";
+          break;
+      }
+    }
     portInfo.portQueues.push_back(pq);
   }
 

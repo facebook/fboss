@@ -118,6 +118,26 @@ class PortDetailsCmd(cmds.FbossCmd):
                     if hasattr(queue, val) and getattr(queue, val):
                         attrs.append("{}={}".format(val, getattr(queue, val)))
                 print("    Queue {}{:30}{}".format(queue.id, name, ",".join(attrs)))
+                if hasattr(queue, "aqm") and getattr(queue, "aqm"):
+                    aqm = getattr(queue, "aqm")
+                    attrs1 = []
+                    attrs1.append("{}={}".format(
+                        "lqcdMinThresh",
+                        aqm.detection.get_linear().minimumLength))
+                    attrs1.append("{}={}".format(
+                        "lqcdMaxThresh",
+                        aqm.detection.get_linear().maximumLength))
+                    if aqm.behavior.earlyDrop:
+                        earlyDrop = "ENABLED"
+                    else:
+                        earlyDrop = "DISABLED"
+                    attrs1.append("{}={}".format("earlyDrop", earlyDrop))
+                    if aqm.behavior.ecn:
+                        ecn = "ENABLED"
+                    else:
+                        ecn = "DISABLED"
+                    attrs1.append("{}={}".format("ecn", ecn))
+                    print('{:<5}{}'.format('', ",".join(attrs1)))
 
         print(fmt.format('Description', port_info.description or ""))
 
