@@ -145,7 +145,7 @@ class Platform {
    * TODO(aeckert): make pure virtual once all platforms implement this.
    */
   virtual std::unique_ptr<HwTestHandle> createTestHandle(
-      std::unique_ptr<SwSwitch> /*sw*/) {
+      std::unique_ptr<SwSwitch> sw) {
     return nullptr;
   };
 

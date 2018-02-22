@@ -134,7 +134,8 @@ void WedgePort::statusIndication(
   linkStatusChanged(link, enabled);
 }
 
-void WedgePort::linkStatusChanged(bool /*up*/, bool /*adminUp*/) {}
+void WedgePort::linkStatusChanged(bool up, bool adminUp) {
+}
 
 void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
   // Cache the current set speed
