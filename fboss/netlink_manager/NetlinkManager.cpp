@@ -189,7 +189,7 @@ void NetlinkManager::checkError(int errCode, std::string message) {
 }
 
 void NetlinkManager::netlinkRouteUpdated(
-    struct nl_cache* cache,
+    struct nl_cache* /*cache*/,
     struct nl_object* obj,
     int nlOperation,
     void* data) {

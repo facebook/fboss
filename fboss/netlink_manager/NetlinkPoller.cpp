@@ -17,7 +17,7 @@ NetlinkPoller::NetlinkPoller(
   registerHandler(folly::EventHandler::READ | folly::EventHandler::PERSIST);
 }
 
-void NetlinkPoller::handlerReady(uint16_t events) noexcept {
+void NetlinkPoller::handlerReady(uint16_t /*events*/) noexcept {
   nl_cache_mngr_data_ready(manager_);
   return;
 }
