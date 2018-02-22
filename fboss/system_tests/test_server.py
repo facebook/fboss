@@ -27,6 +27,7 @@ import json
 import logging
 import pcapy            # this library currently only supports python 2.x :-(
 import signal
+import socket
 import subprocess
 import time
 import traceback
@@ -158,13 +159,12 @@ class TestServer(TestService.Iface):
         """ To send a packet, we need an open_live call.
             If one's already open, use that, if not, start and
             stop one quickly """
-        need_cleanup = False
-        if interface_name not in self.pcap_captures:
-            need_cleanup = True
-            self.startPktCapture(interface_name, "")
-        self.pcap_captures[interface_name].sendpacket(pkt)
-        if need_cleanup:
-            self.stopPktCapture(interface_name)
+        self.log.warning("Doing sendPkt(%s,len(%s))" % (interface_name,
+                                                    len(pkt)))
+        ## NOTE: pcapy.reader.sendpacket() is not implemented!  use python
+        raw = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
+        raw.bind((interface_name, 0))
+        raw.send(pkt)
 
     @staticmethod
     def check_output(cmd, **kwargs):
