@@ -612,7 +612,7 @@ struct Interface {
   * this flag is set to true if we need to
   * disable auto-state feature for SVI
   */
-  10: optional bool isStateSyncDisabled = 0
+  10: bool isStateSyncDisabled = 0
 }
 
 struct StaticRouteWithNextHops {
@@ -664,18 +664,18 @@ struct SwitchConfig {
   // The MAC address to use for the switch CPU.
   11: optional string cpuMAC
   // Static routes with next hops
-  12: optional list<StaticRouteWithNextHops> staticRoutesWithNhops = [];
+  12: list<StaticRouteWithNextHops> staticRoutesWithNhops = [];
   // Prefixes for which to drop traffic
-  13: optional list<StaticRouteNoNextHops> staticRoutesToNull = [];
+  13: list<StaticRouteNoNextHops> staticRoutesToNull = [];
   // Prefixes for which to send traffic to CPU
-  14: optional list<StaticRouteNoNextHops> staticRoutesToCPU = [];
+  14: list<StaticRouteNoNextHops> staticRoutesToCPU = [];
   // List of all ACLs that are available for use by various agent components
   // ACLs declared here can be referenced in other places in order to tie
   // actions to them, e.g. as part of a MatchToAction
   // Only DROP acls are applied directly, all others require being referenced
   // elsewhere in order to be meaningful
   // Ordering of DROP acls define their priority
-  15: optional list<AclEntry> acls = []
+  15: list<AclEntry> acls = []
   // Set max number of probes to a sufficiently high value
   // to allow for the cases where
   // a) We are probing and the agent on other end is restarting.
