@@ -162,8 +162,8 @@ struct LinearQueueCongestionDetection {
   2: i16 maximumLength
 }
 
-union QueueCongestionDetection {
-  1: LinearQueueCongestionDetection linear;
+struct QueueCongestionDetection {
+  1: optional LinearQueueCongestionDetection linear
 }
 
 struct QueueCongestionBehavior {

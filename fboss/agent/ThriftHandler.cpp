@@ -414,16 +414,17 @@ void ThriftHandler::getPortInfoHelper(
     }
     if (queue->getAqm()) {
       auto aqm = queue->getAqm().value();
-      LinearQueueCongestionDetection lqcd;
 
       pq.aqm.behavior.earlyDrop = aqm.behavior.earlyDrop;
       pq.aqm.behavior.ecn = aqm.behavior.ecn;
+      pq.__isset.aqm = true;
       switch (aqm.detection.getType()) {
         case cfg::QueueCongestionDetection::Type::linear:
-          lqcd.minimumLength = aqm.detection.get_linear().minimumLength;
-          lqcd.maximumLength = aqm.detection.get_linear().maximumLength;
-          pq.aqm.detection.set_linear(lqcd);
-          pq.__isset.aqm = true;
+          pq.aqm.detection.linear.minimumLength =
+              aqm.detection.get_linear().minimumLength;
+          pq.aqm.detection.linear.maximumLength =
+              aqm.detection.get_linear().maximumLength;
+          pq.aqm.detection.__isset.linear = true;
           break;
         case cfg::QueueCongestionDetection::Type::__EMPTY__:
           LOG(WARNING) << "Invalid queue congestion detection config";

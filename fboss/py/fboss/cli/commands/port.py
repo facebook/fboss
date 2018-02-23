@@ -121,12 +121,17 @@ class PortDetailsCmd(cmds.FbossCmd):
                 if hasattr(queue, "aqm") and getattr(queue, "aqm"):
                     aqm = getattr(queue, "aqm")
                     attrs1 = []
-                    attrs1.append("{}={}".format(
-                        "lqcdMinThresh",
-                        aqm.detection.get_linear().minimumLength))
-                    attrs1.append("{}={}".format(
-                        "lqcdMaxThresh",
-                        aqm.detection.get_linear().maximumLength))
+                    attrs1.append("{}={}".format("aqm", "enabled"))
+                    if hasattr(aqm.detection, "linear") and getattr(
+                            aqm.detection, "linear"):
+                        attrs1.append("{}={}".format("detection", "linear"))
+                        linear = getattr(aqm.detection, "linear")
+                        attrs1.append("{}={}".format(
+                            "minThresh",
+                            linear.minimumLength))
+                        attrs1.append("{}={}".format(
+                            "maxThresh",
+                            linear.maximumLength))
                     if aqm.behavior.earlyDrop:
                         earlyDrop = "ENABLED"
                     else:
