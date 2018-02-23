@@ -528,7 +528,7 @@ class BcmSwitch : public BcmSwitchIf {
    * During warm boot, check if any FP groups changed in a way that
    * the group needs to be recreated (e.g. on QSET changes).
    */
-  void recreateChangedFPGroups() const;
+  void setupChangedOrMissingFPGroups();
 
   /*
    * Forces a linkscan pass on the provided ports.

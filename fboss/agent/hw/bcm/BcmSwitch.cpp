@@ -540,12 +540,13 @@ HwInitResult BcmSwitch::init(Callback* callback) {
     createSlowProtocolsGroup();
     copyIPv6LinkLocalMcastPackets();
   } else {
-    // On warm boot, if any of the groups
-    // changed in a way that old setup is no
-    // longer valid (e.g. QSET chages), we recreate
-    // them and have individual entries be recreated
-    // as we play the warm boot state.
-    recreateChangedFPGroups();
+    // On warm boot,
+    // - Add any missing groups.
+    // - If any of the groups changed in a way that
+    // old setup is no longer valid (e.g. QSET chages),
+    // we recreate them and have individual entries be
+    // recreated as we play the warm boot state.
+    setupChangedOrMissingFPGroups();
   }
 
   dropDhcpPackets();
