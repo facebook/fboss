@@ -577,7 +577,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   portTable_->initPorts(&pcfg, warmBoot);
 
-  setupCos();
+  setupCos(warmBoot);
   configureRxRateLimiting();
   controlPlane_->setupQueueCounters();
   if (fineGrainedBufferStatsEnabled_) {

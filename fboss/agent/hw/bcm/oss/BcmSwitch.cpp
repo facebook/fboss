@@ -36,7 +36,7 @@ bool BcmSwitch::isAlpmEnabled() {
 
 void BcmSwitch::dropDhcpPackets() {}
 
-void BcmSwitch::setupCos() {}
+void BcmSwitch::setupCos(bool /*warmBoot*/) {}
 
 void BcmSwitch::setupChangedOrMissingFPGroups() {
 }
