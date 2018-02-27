@@ -573,7 +573,7 @@ class BcmSwitch : public BcmSwitchIf {
   /**
    * Setup COS manager
    */
-  void setupCos(bool warmBoot);
+  void setupCos();
 
   /*
    * Create buffer stats logger
