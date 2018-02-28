@@ -246,8 +246,8 @@ enum QueueScheduling {
 // formula for the probability at queue length m+k is:
 // P(m+k) = k/(M-m) for k between 0 and M-m
 struct LinearQueueCongestionDetection {
-  1: i16 minimumLength
-  2: i16 maximumLength
+  1: i32 minimumLength
+  2: i32 maximumLength
 }
 
 // Determines when we will consider a queue to be experiencing congestion
