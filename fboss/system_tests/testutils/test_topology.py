@@ -70,7 +70,7 @@ class TestHost(object):
             yield intf['ip']
 
     def intfs(self):
-        return self.interface_map.keys()
+        return list(self.interface_map.keys())
 
     def thrift_client(self):
         return TestClient(self.name, self.port)
@@ -160,7 +160,7 @@ class FBOSSTestTopology(object):
         return NetlinkManagerClient(self.switch.name, NetlinkManagerClient.DEFAULT_PORT)
 
     def hosts(self):
-        return self.test_hosts.values()
+        return list(self.test_hosts.values())
 
     def hosts_thrift(self, hostname):
         self._valid_testhost(hostname)
