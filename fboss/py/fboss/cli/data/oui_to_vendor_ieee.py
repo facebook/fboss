@@ -18,6 +18,22 @@
 # Last updated: September 11, 2017.
 # This needs to be updated when the standard is updated.
 
+import re
+
+
+def oui(mac):
+    m = re.match(
+        '(?P<oui>[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2})(?::[0-9A-F]{2}){3}',
+        mac.upper())
+    if not m:
+        raise Exception('misformatted mac: {}'.format(mac))
+    return m.group('oui')
+
+
+def vendors_for_macs(macs):
+    ouis = {oui(mac) for mac in macs}
+    return {NIC_VENDOR_OUI_MAP[oui] for oui in ouis}
+
 
 NIC_VENDOR_OUI_MAP = {
 '70:02:58':'01DB-METRAVIB',
