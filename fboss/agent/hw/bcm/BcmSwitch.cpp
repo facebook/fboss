@@ -1029,6 +1029,7 @@ void BcmSwitch::processAddedVlan(const shared_ptr<Vlan>& vlan) {
       bcmCheckError(rv, "failed to add VLAN ", vlan->getID());
       rv = opennsl_vlan_port_add(unit_, vlan->getID(), pbmp, ubmp);
       bcmCheckError(rv, "failed to add members to new VLAN ", vlan->getID());
+      configureNewVlan(vlan);
   }
 }
 
