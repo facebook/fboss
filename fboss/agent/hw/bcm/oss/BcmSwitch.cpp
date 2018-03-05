@@ -11,12 +11,14 @@
 
 #include "fboss/agent/hw/BufferStatsLogger.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
+#include "fboss/agent/state/Vlan.h"
 
 #include <folly/Memory.h>
 
 extern "C" {
 #include <opennsl/link.h>
 #include <opennsl/error.h>
+#include <opennsl/l2.h>
 }
 
 /*
@@ -41,9 +43,41 @@ void BcmSwitch::setupCos() {}
 void BcmSwitch::setupChangedOrMissingFPGroups() {
 }
 
+void BcmSwitch::configureNewVlan(const std::shared_ptr<Vlan>& vlan) {
+  // HACK: for now, just punt the multicast traffic that Open/R
+  // uses to CPU and ignore the rest
+#ifndef OPENNSL_L2_COPY_TO_CPU
+// back port from newer OpenNSL versions
+#define OPENNSL_L2_COPY_TO_CPU 0x00000008
+#endif
+
+#ifndef DEFAULT_CPU_VLAN
+// this is defined in SwSwitch.h, but as a function and not easily
+// reachable here.  Hack around for now to test and fix later if works.
+#define DEFAULT_CPU_VLAN 4095
+#endif
+				  // Standard IPv6 multicast addr
+  const opennsl_mac_t multicast = { 0x33, 0x33, 0, 0, 0, 1 };
+  opennsl_l2_addr_t l2_addr;
+
+  if (vlan->getID() == DEFAULT_CPU_VLAN) {
+    LOG(INFO) << "Not enabling multicast on CPU vlan " << vlan->getID();
+    return;
+  }
+
+  opennsl_l2_addr_t_init( &l2_addr, multicast, vlan->getID());
+  l2_addr.flags = OPENNSL_L2_STATIC | OPENNSL_L2_COPY_TO_CPU;
+  LOG(INFO) << "Enabling multicast MAC addr on vlan " << vlan->getID();
+  auto rv = opennsl_l2_addr_add( unit_, &l2_addr);
+  CHECK(OPENNSL_SUCCESS(rv)) << "failed to install L2 Multicast Mac "
+	  << opennsl_errmsg(rv);
+	
+}
+
 void BcmSwitch::copyIPv6LinkLocalMcastPackets() {
-  // OpenNSL doesn't yet provide functions for adding field-processor rules
-  // for capturing packets
+  // TODO{rsher} now that newer versions of OpenNSL support ACLs
+  // port the real code into open source.
+  
 }
 
 void BcmSwitch::configureRxRateLimiting() {

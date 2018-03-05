@@ -331,6 +331,7 @@ class BcmSwitch : public BcmSwitchIf {
   }
 
   opennsl_gport_t getCpuGPort() const;
+  void configureNewVlan(const std::shared_ptr<Vlan>& vlan);
 
  private:
   enum Flags : uint32_t {
