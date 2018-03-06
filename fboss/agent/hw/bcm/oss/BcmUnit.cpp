@@ -77,7 +77,17 @@ void BcmUnit::attach(std::string warmBootDir) {
     setenv(wbEnvVar, wbFlag, 1);
   }
 
-  opennsl_driver_init();
+  /*
+   * By passing NULL here instead of a opennsl_init_t, we fall back
+   * to configation via environmental variable, e.g.,:
+   * - OPENNSL_CONFIG_FILE to point to the config.bcm
+   * - OPENNSL_BOOT_FLAGS for bootflags
+   * - OPENNSL_POST_INIT_CONFIG_FILE for post-init bcm shell cmds
+   *
+   * this also forces(?) the resource monitor to not start
+   */
+
+  opennsl_driver_init(NULL);
 
   attached_.store(true, std::memory_order_release);
 }

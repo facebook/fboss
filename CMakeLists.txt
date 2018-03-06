@@ -244,7 +244,7 @@ find_library(THRIFTCORE thrift-core
 find_library(THRIFTFROZEN thriftfrozen2
              PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
 find_library(OPENNSL opennsl
-             PATHS ${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge-trident)
+             PATHS ${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge)
 find_library(IPROUTE2 netlink PATHS ${CMAKE_SOURCE_DIR}/external/iproute2/lib)
 find_library(ZSTD zstd PATHS ${CMAKE_SOURCE_DIR}/external/zstd/lib)
 
