@@ -19,6 +19,7 @@ class FbossBmcCmdline(FbossBaseSystemTest):
     MIN_F = 40.0
     MAX_F = 140.0
     TEMP_PATTERN = re.compile('^.+ Temp: (\+|-)[0-9.]+ (C|F)$')
+    FAN_PATTERN = re.compile('^Fan [0-6] (front|rear): [0-9]+ RPM$')
 
     def _check_temp(self, line_split, temp_location):
         '''
@@ -121,3 +122,55 @@ class FbossBmcCmdline(FbossBaseSystemTest):
             temperature, temperature_unit = self._check_temp(line_split,
                 temp_location)
             self._check_temp_range(temperature, temperature_unit)
+
+    def test_fboss_bmc_fan_cmd(self):
+        """
+        Tests the 'fboss bmc fan' command
+
+        Note to the future: system_tests currently don't support galaxy devices,
+        but when we do, know that galaxy FC/LC cards have 0 fan
+
+        Expected output:
+
+        $ fboss -H rsw1ab.20.snc1 bmc fan
+        Fan 1 front: 9750 RPM
+        Fan 1 rear: 6900 RPM
+        Fan 2 front: 9900 RPM
+        Fan 2 rear: 6900 RPM
+        Fan 3 front: 9900 RPM
+        Fan 3 rear: 6900 RPM
+        Fan 4 front: 9900 RPM
+        Fan 4 rear: 6750 RPM
+        Fan 5 front: 9750 RPM
+        Fan 5 rear: 6600 RPM
+
+        We expect there to be four or five fans labeled 0+ or 1+ with both front
+        and rear present in the output. This test will check that there are
+        between 1 and 12 lines of code inclusive, and that each line matches the
+        regex.
+
+        """
+        # Does the binary exist?
+        self.assertTrue(os.path.exists(FbossBmcCmdline.FBOSS_CMD),
+            msg="fboss command not found")
+        cmd = [FbossBmcCmdline.FBOSS_CMD,
+                "-H", self.test_topology.switch.name,
+                "bmc", "fan"
+               ]
+        try:
+            output = subprocess.check_output(cmd, encoding="utf-8")
+        except Exception as e:
+            self.fail(
+                "Something went wrong when executing \
+                fboss bmc fan command. \n {0}".format(e)
+            )
+        self.assertTrue(output,
+            msg="fboss bmc fan command produced no output")
+
+        output = output.splitlines()
+        self.assertTrue(len(output) > 0 and len(output) <= 12,
+            msg="fboss bmc fan command produced unexpected output size")
+
+        for line in output:
+            self.assertTrue(FbossBmcCmdline.FAN_PATTERN.match(line) is not None,
+                msg="fboss bmc fan command output did not match regex")
