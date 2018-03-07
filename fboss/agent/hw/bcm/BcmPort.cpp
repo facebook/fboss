@@ -489,7 +489,7 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
                                                         swPort->getName());
 
     // Check whether we have the correct interface set
-    opennsl_port_if_t curMode;
+    opennsl_port_if_t curMode = opennsl_port_if_t(0);
     ret = opennsl_port_interface_get(unit_, port_, &curMode);
     bcmCheckError(ret,
                   "Failed to get current interface setting for port ",
