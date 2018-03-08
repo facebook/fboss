@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/LacpTypes.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 #include <folly/Conv.h>
 #include <folly/Range.h>
@@ -46,6 +47,28 @@ std::string ParticipantInfo::describe() const {
       ", State ",
       state,
       ")");
+}
+
+void ParticipantInfo::populate(LacpEndpoint& endpoint) const {
+  auto systemAsMacAddr = folly::MacAddress::fromBinary(
+      folly::ByteRange(systemID.begin(), systemID.end()));
+
+  // All conversions to int32_t (the type underlying Thrift's "i32") are from
+  // uint16_t
+  endpoint.systemPriority = static_cast<int32_t>(systemPriority);
+  endpoint.systemID = systemAsMacAddr.toString();
+  endpoint.key = static_cast<int32_t>(key);
+  endpoint.portPriority = static_cast<int32_t>(portPriority);
+  endpoint.port = static_cast<int32_t>(port);
+
+  endpoint.state.active       = state & LacpState::ACTIVE;
+  endpoint.state.shortTimeout = state & LacpState::SHORT_TIMEOUT;
+  endpoint.state.aggregatable = state & LacpState::AGGREGATABLE;
+  endpoint.state.inSync       = state & LacpState::IN_SYNC;
+  endpoint.state.collecting   = state & LacpState::COLLECTING;
+  endpoint.state.distributing = state & LacpState::DISTRIBUTING;
+  endpoint.state.defaulted    = state & LacpState::DEFAULTED;
+  endpoint.state.expired      = state & LacpState::EXPIRED;
 }
 
 bool LACPDU::isValid() const {

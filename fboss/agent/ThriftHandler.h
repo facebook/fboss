@@ -125,6 +125,10 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getAggregatePortTable(
       std::vector<AggregatePortEntryThrift>& trunkTable) override;
   void getNdpTable(std::vector<NdpEntryThrift>& arpTable) override;
+  void getLacpPartnerPair(LacpPartnerPair& lacpPartnerPair, int32_t portID)
+      override;
+  void getAllLacpPartnerPairs(
+      std::vector<LacpPartnerPair>& lacpPartnerPairs) override;
 
   /* returns the product information */
   void getProductInfo(ProductInfo& productInfo) override;

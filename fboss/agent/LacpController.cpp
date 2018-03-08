@@ -95,7 +95,7 @@ LacpController::~LacpController() {
   stopMachines();
 }
 
-folly::EventBase* LacpController::evb() {
+folly::EventBase* LacpController::evb() const {
   return evb_;
 }
 
@@ -128,12 +128,15 @@ void LacpController::receivedLACPDU(Cursor c) {
 ParticipantInfo LacpController::actorInfo() const {
   ParticipantInfo info;
 
-  info.systemID = systemID_;
-  info.systemPriority = systemPriority_;
-  info.port = static_cast<ParticipantInfo::Port>(portID_);
-  info.portPriority = portPriority_;
-  info.key = static_cast<ParticipantInfo::Key>(aggPortID_);
-  info.state = actorState_;
+  evb()->runImmediatelyOrRunInEventBaseThreadAndWait(
+      [self = shared_from_this(), &info]() {
+        info.systemID = self->systemID_;
+        info.systemPriority = self->systemPriority_;
+        info.port = static_cast<ParticipantInfo::Port>(self->portID_);
+        info.portPriority = self->portPriority_;
+        info.key = static_cast<ParticipantInfo::Key>(self->aggPortID_);
+        info.state = self->actorState_;
+      });
 
   return info;
 }
@@ -147,7 +150,10 @@ LacpState LacpController::actorState() const {
 }
 
 ParticipantInfo LacpController::partnerInfo() const {
-  return rx_.partnerInfo();
+  ParticipantInfo info;
+  evb()->runImmediatelyOrRunInEventBaseThreadAndWait(
+      [self = shared_from_this(), &info]() { info = self->rx_.partnerInfo(); });
+  return info;
 }
 
 void LacpController::ntt() {

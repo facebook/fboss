@@ -22,6 +22,8 @@
 namespace facebook {
 namespace fboss {
 
+class LacpEndpoint;
+
 static const uint16_t kDefaultSystemPriority = 65535;
 
 class LACPError : public FbossError {
@@ -90,6 +92,8 @@ struct ParticipantInfo {
 
   template <typename CursorType>
   void to(CursorType* cursor) const;
+
+  void populate(LacpEndpoint& endpoint) const;
 
   bool operator==(const ParticipantInfo& rhs) const;
   bool operator!=(const ParticipantInfo& rhs) const;

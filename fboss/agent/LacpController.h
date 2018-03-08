@@ -55,12 +55,14 @@ class LacpController : public std::enable_shared_from_this<LacpController> {
   void stopMachines();
 
   // All of machines.cpp should execute in the context of the EventBase *evb()
-  folly::EventBase* evb();
+  folly::EventBase* evb() const;
 
   // Invoked from LinkAggregationManager
   void portUp();
   void portDown();
   void receivedLACPDU(folly::io::Cursor c);
+  ParticipantInfo actorInfo() const;
+  ParticipantInfo partnerInfo() const;
 
   // Invoked from TransmitMachine and *::updateState(*State) and
   // LinkAggregationGroupID::from(const Controller&)
@@ -68,8 +70,6 @@ class LacpController : public std::enable_shared_from_this<LacpController> {
   AggregatePortID aggregatePortID() const;
 
   // Inter-machine signals
-  ParticipantInfo actorInfo() const;
-  ParticipantInfo partnerInfo() const;
   LacpState actorState() const;
   void setActorState(LacpState state);
 

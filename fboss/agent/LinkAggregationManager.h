@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/types.h"
 #include "fboss/agent/StateObserver.h"
 
 #include <boost/container/flat_map.hpp>
@@ -23,6 +24,7 @@ namespace facebook {
 namespace fboss {
 
 class LacpController;
+class LacpPartnerPair;
 class RxPacket;
 class StateDelta;
 class SwSwitch;
@@ -34,6 +36,9 @@ class LinkAggregationManager : public AutoRegisterStateObserver {
 
   void stateUpdated(const StateDelta& delta) override;
   void handlePacket(std::unique_ptr<RxPacket> pkt, folly::io::Cursor c);
+
+  void populatePartnerPair(PortID portID, LacpPartnerPair& partnerPair);
+  void populatePartnerPairs(std::vector<LacpPartnerPair>& partnerPairs);
 
   // TODO(samank): output data structure generic
   template <typename Iterator>

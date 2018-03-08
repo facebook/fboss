@@ -17,6 +17,7 @@
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/HighresCounterSubscriptionHandler.h"
 #include "fboss/agent/IPv6Handler.h"
+#include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/SwSwitch.h"
@@ -1064,6 +1065,31 @@ int32_t ThriftHandler::getIdleTimeout() {
 
 void ThriftHandler::reloadConfig() {
   return sw_->applyConfig("reload config initiated by thrift call");
+}
+
+void ThriftHandler::getLacpPartnerPair(
+    LacpPartnerPair& lacpPartnerPair,
+    int32_t portID) {
+  ensureConfigured();
+
+  auto lagManager = sw_->getLagManager();
+  if (!lagManager) {
+    throw FbossError("LACP not enabled");
+  }
+
+  lagManager->populatePartnerPair(static_cast<PortID>(portID), lacpPartnerPair);
+}
+
+void ThriftHandler::getAllLacpPartnerPairs(
+    std::vector<LacpPartnerPair>& lacpPartnerPairs) {
+  ensureConfigured();
+
+  auto lagManager = sw_->getLagManager();
+  if (!lagManager) {
+    throw FbossError("LACP not enabled");
+  }
+
+  lagManager->populatePartnerPairs(lacpPartnerPairs);
 }
 
 }} // facebook::fboss

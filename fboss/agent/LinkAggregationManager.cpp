@@ -18,6 +18,8 @@
 
 #include <folly/io/async/EventBase.h>
 
+#include <algorithm>
+#include <iterator>
 #include <tuple>
 #include <utility>
 
@@ -159,6 +161,48 @@ void LinkAggregationManager::portChanged(
       return;
     }
     it->second->portDown();
+  }
+}
+
+void LinkAggregationManager::populatePartnerPair(
+    PortID portID,
+    LacpPartnerPair& partnerPair) {
+  // TODO(samank): CHECK in Thrift worker thread
+
+  std::shared_ptr<LacpController> controller;
+  {
+    folly::SharedMutexWritePriority::ReadHolder g(&controllersLock_);
+
+    auto it = portToController_.find(portID);
+    if (it == portToController_.end()) {
+      throw LACPError("No LACP controller found for port ", portID);
+    }
+
+    controller = it->second;
+  }
+
+  controller->actorInfo().populate(partnerPair.localEndpoint);
+  controller->partnerInfo().populate(partnerPair.remoteEndpoint);
+}
+
+void LinkAggregationManager::populatePartnerPairs(
+    std::vector<LacpPartnerPair>& partnerPairs) {
+  // TODO(samank): CHECK in Thrift worker thread
+
+  partnerPairs.clear();
+
+  folly::SharedMutexWritePriority::ReadHolder g(&controllersLock_);
+
+  partnerPairs.reserve(
+      std::distance(portToController_.begin(), portToController_.end()));
+
+  for (const auto& portAndController : portToController_) {
+    auto controller = portAndController.second;
+
+    partnerPairs.emplace_back();
+
+    controller->actorInfo().populate(partnerPairs.back().localEndpoint);
+    controller->partnerInfo().populate(partnerPairs.back().remoteEndpoint);
   }
 }
 

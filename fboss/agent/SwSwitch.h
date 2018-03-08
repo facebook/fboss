@@ -552,6 +552,10 @@ class SwSwitch : public HwSwitch::Callback {
     return routeUpdateLogger_.get();
   }
 
+  LinkAggregationManager* getLagManager() {
+    return lagManager_.get();
+  }
+
   /*
    * Gets the flags the SwSwitch was initialized with.
    */
