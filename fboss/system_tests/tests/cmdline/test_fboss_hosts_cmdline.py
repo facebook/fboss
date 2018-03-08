@@ -10,7 +10,7 @@ from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 
 
 @test_tags("cmdline", "run-on-diff")
-class FbossCmdline(FbossBaseSystemTest):
+class FbossHostsCmdline(FbossBaseSystemTest):
     """ Does the 'fboss' tool work correctly? """
     FBOSS_CMD = '/usr/local/bin/fboss'
     HOSTNAME_COL = 2
@@ -43,8 +43,8 @@ eth1/16/2     62   eth1-22.csw21d.snc1                Enabled          Up
 
         """
         # Does the binary exist?
-        self.assertTrue(os.path.exists(FbossCmdline.FBOSS_CMD))
-        cmd = [FbossCmdline.FBOSS_CMD,
+        self.assertTrue(os.path.exists(FbossHostsCmdline.FBOSS_CMD))
+        cmd = [FbossHostsCmdline.FBOSS_CMD,
                 "-H", self.test_topology.switch.name,
                 "hosts"
                ]
@@ -52,13 +52,13 @@ eth1/16/2     62   eth1-22.csw21d.snc1                Enabled          Up
         self.assertTrue(output)  # make sure we got something
         output = output.splitlines()  # convern to array
         headings = output[0].split()
-        self.assertEqual(headings[FbossCmdline.HOSTNAME_COL], "Hostname")
+        self.assertEqual(headings[FbossHostsCmdline.HOSTNAME_COL], "Hostname")
         target_hosts = {host.name: True for host in self.test_topology.hosts()}
         # as we step through each line, verify that all of the hosts
         # in the test topology appear UP and as expected
         for line in output[1:]:
             info = line.split()
-            host = info[FbossCmdline.HOSTNAME_COL]
+            host = info[FbossHostsCmdline.HOSTNAME_COL]
             if host in target_hosts:
                 del target_hosts[host]
         # if this worked correctly, we should have found and removed
