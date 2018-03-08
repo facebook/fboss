@@ -176,7 +176,7 @@ class TestServer(TestService.Iface):
         except Exception:
             pass
 
-    def iperf3_server(self, timeout=10):
+    def iperf3_server(self, timeout, options):
         ''' initialize iperf3 server, with timeout to expire server if no
         client request comes in
         '''
@@ -187,7 +187,10 @@ class TestServer(TestService.Iface):
         signal.signal(signal.SIGALRM, timeout_handler)
         signal.alarm(timeout)
         iperf3_pid_fn = '/tmp/iperf3_thrift.pid'
-        command = "iperf3 -I {fn} -J -1 -s".format(fn=iperf3_pid_fn)
+        server_options = '-I {fn} -J -1 -s '.format(fn=iperf3_pid_fn)
+        if options:
+            server_options += ' '.join(options)
+        command = "iperf3 {options}".format(options=server_options)
         try:
             response = self.check_output(command)
         except Exception as e:

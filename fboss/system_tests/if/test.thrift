@@ -70,7 +70,9 @@ service TestService extends fb303.FacebookService {
   https://fasterdata.es.net/performance-testing/network-troubleshooting-tools/throughput-tool-comparision/
    */
 
-  string iperf3_server() throws (1: fboss.FbossBaseError error)
+  string iperf3_server(1: i32 timeout,
+                       2: list<string> options)
+        throws (1: fboss.FbossBaseError error)
 
   /* initiate an iperf3 test to host server @ server_ip. server_ip can be
   ipv4 or ipv6. Returns a JSON formatted string which can be deserialized/loaded
