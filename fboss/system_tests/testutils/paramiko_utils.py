@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import paramiko
 from scp import SCPClient
-from libfb.decorators import memoize_forever
+from libfb.py.decorators import memoize_forever
 import os
 
 DEFAULT_SSH_TIMEOUT = 5
