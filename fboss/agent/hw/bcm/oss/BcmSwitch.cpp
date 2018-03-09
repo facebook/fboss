@@ -51,10 +51,6 @@ void BcmSwitch::configureRxRateLimiting() {
   // so rate limiting settings must be baked into the binary driver.
 }
 
-void BcmSwitch::createSlowProtocolsGroup() {
-  // OpenNSL doesn't yet provide functions for adding field-processor rules
-}
-
 bool BcmSwitch::isRxThreadRunning() {
   // FIXME(orib): Right now, the BCM calls to figure out if rx is active are not
   // exported. Since initializing the driver sets up the rx thread, it should
