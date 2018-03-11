@@ -36,7 +36,6 @@ LacpController::LacpController(
       evb_(evb),
       lagMgr_(lagMgr) {
   actorState_ &= ~LacpState::AGGREGATABLE;
-  startMachines();
 }
 
 LacpController::LacpController(
@@ -71,8 +70,6 @@ LacpController::LacpController(
   if (activity == cfg::LacpPortActivity::ACTIVE) {
     actorState_ |= LacpState::ACTIVE;
   }
-
-  startMachines();
 }
 
 void LacpController::startMachines() {
@@ -95,9 +92,7 @@ void LacpController::stopMachines() {
   });
 }
 
-LacpController::~LacpController() {
-  stopMachines();
-}
+LacpController::~LacpController() {}
 
 folly::EventBase* LacpController::evb() const {
   return evb_;

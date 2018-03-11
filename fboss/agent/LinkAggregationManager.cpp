@@ -69,6 +69,10 @@ void LinkAggregationManager::stateUpdated(const StateDelta& delta) {
               port->getID(), sw_->getLacpEvb(), this, sw_)));
       CHECK(inserted);
     }
+
+    for (const auto& portAndController : portToController_) {
+      portAndController.second->startMachines();
+    }
     initialized_ = true;
   }
 
@@ -93,6 +97,7 @@ void LinkAggregationManager::aggregatePortAdded(
   for (const auto& subport : aggPort->sortedSubports()) {
     it = portToController_.find(subport.portID);
     CHECK_NE(it, portToController_.end());
+    it->second->stopMachines();
     it->second.reset(new LacpController(
         subport.portID,
         sw_->getLacpEvb(),
@@ -105,6 +110,7 @@ void LinkAggregationManager::aggregatePortAdded(
         aggPort->getMinimumLinkCount(),
         this,
         sw_));
+    it->second->startMachines();
   }
 }
 
@@ -114,8 +120,10 @@ void LinkAggregationManager::aggregatePortRemoved(
   for (const auto& subport : aggPort->sortedSubports()) {
     it = portToController_.find(subport.portID);
     CHECK_NE(it, portToController_.end());
+    it->second->stopMachines();
     it->second.reset(
         new LacpController(subport.portID, sw_->getLacpEvb(), this, sw_));
+    it->second->startMachines();
   }
 }
 
