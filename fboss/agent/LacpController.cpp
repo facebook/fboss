@@ -76,19 +76,23 @@ LacpController::LacpController(
 }
 
 void LacpController::startMachines() {
-  mux_.start();
-  tx_.start();
-  periodicTx_.start();
-  rx_.start();
-  selector_.start();
+  evb()->runInEventBaseThread([self = shared_from_this()]() {
+    self->mux_.start();
+    self->tx_.start();
+    self->periodicTx_.start();
+    self->rx_.start();
+    self->selector_.start();
+  });
 }
 
 void LacpController::stopMachines() {
-  mux_.stop();
-  tx_.stop();
-  periodicTx_.stop();
-  rx_.stop();
-  selector_.stop();
+  evb()->runInEventBaseThread([self = shared_from_this()]() {
+    self->mux_.stop();
+    self->tx_.stop();
+    self->periodicTx_.stop();
+    self->rx_.stop();
+    self->selector_.stop();
+  });
 }
 
 LacpController::~LacpController() {
@@ -151,8 +155,10 @@ LacpState LacpController::actorState() const {
 
 ParticipantInfo LacpController::partnerInfo() const {
   ParticipantInfo info;
+
   evb()->runImmediatelyOrRunInEventBaseThreadAndWait(
       [self = shared_from_this(), &info]() { info = self->rx_.partnerInfo(); });
+
   return info;
 }
 

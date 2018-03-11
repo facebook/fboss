@@ -156,12 +156,11 @@ ReceiveMachine::ReceiveMachine(
 ReceiveMachine::~ReceiveMachine() {}
 
 void ReceiveMachine::start() {
-  controller_.evb()->runInEventBaseThread([this] { this->initialize(); });
+  initialize();
 }
 
 void ReceiveMachine::stop() {
-  controller_.evb()->runImmediatelyOrRunInEventBaseThreadAndWait(
-      [this] { this->cancelTimeout(); });
+  cancelTimeout();
 }
 
 void ReceiveMachine::rx(LACPDU lacpdu) {
@@ -382,15 +381,12 @@ PeriodicTransmissionMachine::PeriodicTransmissionMachine(
 PeriodicTransmissionMachine::~PeriodicTransmissionMachine() {}
 
 void PeriodicTransmissionMachine::start() {
-  controller_.evb()->runInEventBaseThread([this] {
-    state_ = determineTransmissionRate();
-    beginNextPeriod();
-  });
+  state_ = determineTransmissionRate();
+  beginNextPeriod();
 }
 
 void PeriodicTransmissionMachine::stop() {
-  controller_.evb()->runImmediatelyOrRunInEventBaseThreadAndWait(
-      [this] { this->cancelTimeout(); });
+  cancelTimeout();
 }
 
 void PeriodicTransmissionMachine::portUp() {
@@ -476,13 +472,11 @@ TransmitMachine::TransmitMachine(
 TransmitMachine::~TransmitMachine() {}
 
 void TransmitMachine::start() {
-  controller_.evb()->runInEventBaseThread(
-      [this] { scheduleTimeout(TransmitMachine::TX_REPLENISH_RATE); });
+  scheduleTimeout(TransmitMachine::TX_REPLENISH_RATE);
 }
 
 void TransmitMachine::stop() {
-  controller_.evb()->runImmediatelyOrRunInEventBaseThreadAndWait(
-      [this] { this->cancelTimeout(); });
+  cancelTimeout();
 }
 
 void TransmitMachine::timeoutExpired() noexcept {
