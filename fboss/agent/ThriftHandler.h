@@ -20,6 +20,7 @@
 #include "fboss/agent/HighresCounterSubscriptionHandler.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 #include <folly/Synchronized.h>
 #include <folly/String.h>
@@ -28,6 +29,7 @@
 
 namespace facebook { namespace fboss {
 
+class AggregatePort;
 class Port;
 class SwSwitch;
 class Vlan;
@@ -122,8 +124,11 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getRunningConfig(std::string& configStr) override;
   void getArpTable(std::vector<ArpEntryThrift>& arpTable) override;
   void getL2Table(std::vector<L2EntryThrift>& l2Table) override;
+  void getAggregatePort(
+      AggregatePortEntryThrift& aggregatePortThrift,
+      int32_t aggregatePortIDThrift) override;
   void getAggregatePortTable(
-      std::vector<AggregatePortEntryThrift>& trunkTable) override;
+      std::vector<AggregatePortEntryThrift>& aggregatePortsThrift) override;
   void getNdpTable(std::vector<NdpEntryThrift>& arpTable) override;
   void getLacpPartnerPair(LacpPartnerPair& lacpPartnerPair, int32_t portID)
       override;
@@ -279,6 +284,14 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   template<typename ADDR_TYPE, typename ADDR_CONVERTER>
   void getVlanAddresses(const Vlan* vlan, std::vector<ADDR_TYPE>& addrs,
       ADDR_CONVERTER& converter);
+
+  static LacpPortRateThrift fromLacpPortRate(cfg::LacpPortRate rate);
+  static LacpPortActivityThrift fromLacpPortActivity(
+      cfg::LacpPortActivity activity);
+  static void populateAggregatePortThrift(
+    const std::shared_ptr<AggregatePort>& aggregatePort,
+    AggregatePortEntryThrift& aggregatePortThrift);
+
   // Forbidden copy constructor and assignment operator
   ThriftHandler(ThriftHandler const &) = delete;
   ThriftHandler& operator=(ThriftHandler const &) = delete;
