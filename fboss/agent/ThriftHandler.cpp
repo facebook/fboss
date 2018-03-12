@@ -379,26 +379,25 @@ LacpPortActivityThrift ThriftHandler::fromLacpPortActivity(
 
 void ThriftHandler::populateAggregatePortThrift(
     const std::shared_ptr<AggregatePort>& aggregatePort,
-    AggregatePortEntryThrift& aggregatePortThrift) {
-  aggregatePortThrift.aggregatePortId =
-      static_cast<uint32_t>(aggregatePort->getID());
+    AggregatePortThrift& aggregatePortThrift) {
+  aggregatePortThrift.key = static_cast<uint32_t>(aggregatePort->getID());
   aggregatePortThrift.name = aggregatePort->getName();
   aggregatePortThrift.description = aggregatePort->getDescription();
   aggregatePortThrift.systemPriority = aggregatePort->getSystemPriority();
   aggregatePortThrift.systemID = aggregatePort->getSystemID().toString();
   aggregatePortThrift.minimumLinkCount = aggregatePort->getMinimumLinkCount();
 
-  // Since aggregatePortThrift.subports is being push_back'ed to, but is an out
-  // parameter, make sure it's clear() first
-  aggregatePortThrift.subports.clear();
+  // Since aggregatePortThrift.memberPorts is being push_back'ed to, but is an
+  // out parameter, make sure it's clear() first
+  aggregatePortThrift.memberPorts.clear();
 
-  aggregatePortThrift.subports.reserve(aggregatePort->subportsCount());
+  aggregatePortThrift.memberPorts.reserve(aggregatePort->subportsCount());
 
   for (const auto& subport : aggregatePort->sortedSubports()) {
     bool isEnabled = aggregatePort->getForwardingState(subport.portID) ==
         AggregatePort::Forwarding::ENABLED;
 
-    aggregatePortThrift.subports.push_back(
+    aggregatePortThrift.memberPorts.push_back(
         {apache::thrift::FragileConstructor::FRAGILE,
          static_cast<int32_t>(subport.portID),
          isEnabled,
@@ -409,7 +408,7 @@ void ThriftHandler::populateAggregatePortThrift(
 }
 
 void ThriftHandler::getAggregatePort(
-    AggregatePortEntryThrift& aggregatePortThrift,
+    AggregatePortThrift& aggregatePortThrift,
     int32_t aggregatePortIDThrift) {
   ensureConfigured();
 
@@ -432,7 +431,7 @@ void ThriftHandler::getAggregatePort(
 }
 
 void ThriftHandler::getAggregatePortTable(
-    std::vector<AggregatePortEntryThrift>& aggregatePortsThrift) {
+    std::vector<AggregatePortThrift>& aggregatePortsThrift) {
   ensureConfigured();
 
   // Since aggregatePortsThrift is being push_back'ed to, but is an out

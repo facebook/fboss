@@ -125,10 +125,10 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getArpTable(std::vector<ArpEntryThrift>& arpTable) override;
   void getL2Table(std::vector<L2EntryThrift>& l2Table) override;
   void getAggregatePort(
-      AggregatePortEntryThrift& aggregatePortThrift,
+      AggregatePortThrift& aggregatePortThrift,
       int32_t aggregatePortIDThrift) override;
   void getAggregatePortTable(
-      std::vector<AggregatePortEntryThrift>& aggregatePortsThrift) override;
+      std::vector<AggregatePortThrift>& aggregatePortsThrift) override;
   void getNdpTable(std::vector<NdpEntryThrift>& arpTable) override;
   void getLacpPartnerPair(LacpPartnerPair& lacpPartnerPair, int32_t portID)
       override;
@@ -290,7 +290,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       cfg::LacpPortActivity activity);
   static void populateAggregatePortThrift(
     const std::shared_ptr<AggregatePort>& aggregatePort,
-    AggregatePortEntryThrift& aggregatePortThrift);
+    AggregatePortThrift& aggregatePortThrift);
 
   // Forbidden copy constructor and assignment operator
   ThriftHandler(ThriftHandler const &) = delete;

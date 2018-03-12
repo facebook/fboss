@@ -84,17 +84,17 @@ enum LacpPortActivityThrift {
   ACTIVE = 1,
 }
 
-struct SubportThrift {
-  1: required i32 id,
-  2: required bool isForwardingEnabled,
+struct AggregatePortMemberThrift {
+  1: i32 memberPortID
+  2: bool isForwarding
   3: i32 priority
   4: LacpPortRateThrift rate
   5: LacpPortActivityThrift activity
 }
 
-struct AggregatePortEntryThrift {
-  1: required i32 aggregatePortId,
-  2: required list<SubportThrift> subports,
+struct AggregatePortThrift {
+  1: i32 key
+  2: list<AggregatePortMemberThrift> memberPorts
   3: string name
   4: string description
   5: i32 systemPriority
@@ -518,9 +518,9 @@ service FbossCtrl extends fb303.FacebookService {
   list<L2EntryThrift> getL2Table()
     throws (1: fboss.FbossBaseError error)
 
-  AggregatePortEntryThrift getAggregatePort(1: i32 aggregatePortID)
+  AggregatePortThrift getAggregatePort(1: i32 aggregatePortID)
     throws (1: fboss.FbossBaseError error)
-  list<AggregatePortEntryThrift> getAggregatePortTable()
+  list<AggregatePortThrift> getAggregatePortTable()
     throws (1: fboss.FbossBaseError error)
 
   LacpPartnerPair getLacpPartnerPair(1: i32 portID)
