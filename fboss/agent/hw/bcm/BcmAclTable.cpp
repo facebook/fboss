@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
+#include "fboss/agent/hw/bcm/BcmAclRange.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/FbossError.h"

@@ -7,9 +7,13 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/BcmAclEntry.h"
+#include "fboss/agent/hw/bcm/BcmAclRange.h"
 
-namespace facebook { namespace fboss {
+#include <folly/Conv.h>
+
+namespace facebook {
+namespace fboss {
+
 std::string AclRange::str() const {
   std::string ret;
   ret = "flags=";
@@ -27,4 +31,6 @@ std::string AclRange::str() const {
   ret.append(folly::to<std::string>(", min=", min_, ", max=", max_));
   return ret;
 }
-}} // facebook::fboss
+
+} // namespace fboss
+} // namespace facebook

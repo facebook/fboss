@@ -11,12 +11,15 @@
 
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
+#include "fboss/agent/hw/bcm/BcmAclRange.h"
 
 #include <boost/container/flat_map.hpp>
 
 namespace facebook { namespace fboss {
 
+class AclRange;
 class BcmSwitch;
+class BcmAclRange;
 
 /**
  * A class to keep state related to acl entries in BcmSwitch

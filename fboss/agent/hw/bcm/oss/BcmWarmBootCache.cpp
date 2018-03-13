@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
+#include "fboss/agent/hw/bcm/BcmAclRange.h"
 
 namespace facebook { namespace fboss {
 

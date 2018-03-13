@@ -8,15 +8,13 @@
  *
  */
 
-#include "fboss/agent/hw/bcm/BcmAclEntry.h"
+#include "fboss/agent/hw/bcm/BcmAclRange.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-BcmAclEntry::BcmAclEntry(
-    BcmSwitch* /*hw*/,
-    int /*gid*/,
-    const std::shared_ptr<AclEntry>& /*acl*/,
-    const BcmAclRanges& /*ranges*/) {}
-BcmAclEntry::~BcmAclEntry() {}
+BcmAclRange::BcmAclRange(BcmSwitch* /*hw*/, const AclRange& /*range*/) {}
+BcmAclRange::~BcmAclRange() {}
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook
