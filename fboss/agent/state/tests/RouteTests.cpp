@@ -1450,34 +1450,18 @@ TEST(Route, serializeRouteNextHopsMulti) {
   // RouteNextHop
 
   // test for new format to new format
-  {
-    RouteNextHopsMulti nhm1;
-    nhm1.update(CLIENT_A, RouteNextHopEntry(newNextHops(3, "1.1.1.")));
-    nhm1.update(CLIENT_B, RouteNextHopEntry(newNextHops(1, "2.2.2.")));
-    nhm1.update(CLIENT_C, RouteNextHopEntry(newNextHops(4, "3.3.3.")));
-    nhm1.update(CLIENT_D, RouteNextHopEntry(RouteForwardAction::DROP));
-    nhm1.update(CLIENT_E, RouteNextHopEntry(RouteForwardAction::TO_CPU));
+  RouteNextHopsMulti nhm1;
+  nhm1.update(CLIENT_A, RouteNextHopEntry(newNextHops(3, "1.1.1.")));
+  nhm1.update(CLIENT_B, RouteNextHopEntry(newNextHops(1, "2.2.2.")));
+  nhm1.update(CLIENT_C, RouteNextHopEntry(newNextHops(4, "3.3.3.")));
+  nhm1.update(CLIENT_D, RouteNextHopEntry(RouteForwardAction::DROP));
+  nhm1.update(CLIENT_E, RouteNextHopEntry(RouteForwardAction::TO_CPU));
 
-    auto serialized = nhm1.toFollyDynamic();
+  auto serialized = nhm1.toFollyDynamic();
 
-    auto nhm2 = RouteNextHopsMulti::fromFollyDynamic(serialized);
+  auto nhm2 = RouteNextHopsMulti::fromFollyDynamic(serialized);
 
-    EXPECT_TRUE(nhm1 == nhm2);
-  }
-
-  // test for deserialize from old format
-  {
-    RouteNextHopsMulti nhm1;
-    nhm1.update(CLIENT_A, RouteNextHopEntry(newNextHops(3, "1.1.1.")));
-    nhm1.update(CLIENT_B, RouteNextHopEntry(newNextHops(1, "2.2.2.")));
-    nhm1.update(CLIENT_C, RouteNextHopEntry(newNextHops(4, "3.3.3.")));
-
-    auto serialized = nhm1.toFollyDynamicOld();
-
-    auto nhm2 = RouteNextHopsMulti::fromFollyDynamicOld(serialized);
-
-    EXPECT_TRUE(nhm1 == nhm2);
-  }
+  EXPECT_TRUE(nhm1 == nhm2);
 }
 
 // Test priority ranking of nexthop lists within a RouteNextHopsMulti.

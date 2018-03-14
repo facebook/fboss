@@ -23,62 +23,6 @@ namespace facebook { namespace fboss {
 // RouteNextHop Class
 //
 
-// Old code has its own format expectation.
-// Keep this function until whole fleet is pushed with the code to use
-// the new format.
-folly::dynamic RouteNextHopsMulti::toFollyDynamicOld() const {
-  // Store the clientid->nextHops map as a dynamic::object
-  folly::dynamic obj = folly::dynamic::object();
-  for (auto const& row : map_) {
-    auto clientid = row.first;
-    const auto& entry = row.second;
-    // The old code expects empty 'nexthopsmulti' for
-    // interface and action routes
-    if (clientid == StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE)
-        || entry.getAction() != RouteForwardAction::NEXTHOPS) {
-      continue;
-    }
-
-    RouteNextHops const& nxtHps = entry.getNextHopSet();
-    folly::dynamic nxtHopCopy = folly::dynamic::array;
-    for (const auto& nhop: nxtHps) {
-      std::string intfID = "";
-      if (nhop.intfID().hasValue()) {
-        intfID = folly::sformat(
-            "{}{}", kNexthopDelim,
-            static_cast<uint32_t>(nhop.intfID().value()));
-      }
-      nxtHopCopy.push_back(folly::sformat("{}{}", nhop.addr().str(), intfID));
-    }
-    obj[folly::to<std::string>(clientid)] = nxtHopCopy;
-  }
-  return obj;
-}
-
-RouteNextHopsMulti
-RouteNextHopsMulti::fromFollyDynamicOld(const folly::dynamic& json) {
-  RouteNextHopsMulti nh;
-  for (const auto& pair: json.items()) {
-    int clientId = pair.first.asInt();
-    RouteNextHops list;
-    for (const auto& ipnh : pair.second) {
-      std::vector<std::string> parts;
-      folly::split(kNexthopDelim, ipnh.asString(), parts);
-      CHECK(0 < parts.size() && parts.size() < 3);
-
-      folly::Optional<InterfaceID> intfID;
-      if (parts.size() == 2) {
-        intfID = InterfaceID(folly::to<uint32_t>(parts.at(1)));
-      }
-
-      list.emplace(
-          RouteNextHop::createNextHop(folly::IPAddress(parts[0]), intfID));
-    }
-    nh.update(ClientID(clientId), RouteNextHopEntry(std::move(list)));
-  }
-  return nh;
-}
-
 folly::dynamic RouteNextHopsMulti::toFollyDynamic() const {
   // Store the clientid->RouteNextHopEntry map as a dynamic::object
   folly::dynamic obj = folly::dynamic::object();

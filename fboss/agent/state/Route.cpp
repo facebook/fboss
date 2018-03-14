@@ -18,7 +18,6 @@ using facebook::network::toBinaryAddress;
 
 namespace {
 constexpr auto kPrefix = "prefix";
-constexpr auto kNextHopsMultiOld = "nexthopsmulti";
 constexpr auto kNextHopsMulti = "rib";
 constexpr auto kFwdInfo = "forwardingInfo";
 constexpr auto kFlags = "flags";
@@ -59,9 +58,6 @@ folly::dynamic Route<AddrT>::toFollyDynamic() const {
   routeFields[kPrefix] = RouteBase::getFields()->prefix.toFollyDynamic();
   routeFields[kNextHopsMulti] =
     RouteBase::getFields()->nexthopsmulti.toFollyDynamic();
-  // to keep rolling back possible.
-  routeFields[kNextHopsMultiOld] =
-    RouteBase::getFields()->nexthopsmulti.toFollyDynamicOld();
   routeFields[kFwdInfo] = RouteBase::getFields()->fwd.toFollyDynamic();
   routeFields[kFlags] = RouteBase::getFields()->flags;
   return routeFields;
@@ -71,40 +67,12 @@ template<typename AddrT>
 std::shared_ptr<Route<AddrT>> Route<AddrT>::fromFollyDynamic(
     const folly::dynamic& routeJson) {
   RouteFields<AddrT> rt(Prefix::fromFollyDynamic(routeJson[kPrefix]));
-  bool needFixup{false};
-  // check if we have the new format or not
-  auto it = routeJson.find(kNextHopsMulti);
-  if (it == routeJson.items().end()) {
-    // read from old format
-    rt.nexthopsmulti = RouteNextHopsMulti::fromFollyDynamicOld(
-        routeJson[kNextHopsMultiOld]);
-  } else {
-    rt.nexthopsmulti = RouteNextHopsMulti::fromFollyDynamic(
-        routeJson[kNextHopsMulti]);
-  }
+  rt.nexthopsmulti =
+      RouteNextHopsMulti::fromFollyDynamic(routeJson[kNextHopsMulti]);
   rt.fwd = RouteNextHopEntry::fromFollyDynamic(routeJson[kFwdInfo]);
   rt.flags = routeJson[kFlags].asInt();
   auto route = std::make_shared<Route<AddrT>>(rt);
-  // route read from old format has empty RouteNextHopsMulti for
-  // interface or action route. Need fix it up
-  if (route->hasNoEntry()) {
-    auto& nhops = route->writableFields()->nexthopsmulti;
-    const auto& fwd = route->getForwardInfo();
-    const auto& prefix = route->prefix();
-    if (route->isConnected()) {
-      // interface route, copy from forwarding info
-      nhops.update(StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE), fwd);
-      VLOG(2) << "Fixed up empty multi interface route " << route->str();
-    } else if (prefix.network == folly::IPAddressV6("fe80::")) {
-      nhops.update(StdClientIds2ClientID(StdClientIds::LINKLOCAL_ROUTE), fwd);
-      VLOG(2) << "Fixed up empty multi linklocal route " << route->str();
-    } else if (fwd.getAction() != Action::NEXTHOPS) {
-      nhops.update(StdClientIds2ClientID(StdClientIds::STATIC_ROUTE), fwd);
-      VLOG(2) << "Fixed up empty multi static action route " << route->str();
-    } else {
-      LOG(FATAL) << "Unexpected empty multi nexthops route " << route->str();
-    }
-  }
+  CHECK(!route->hasNoEntry());
   return route;
 }
 

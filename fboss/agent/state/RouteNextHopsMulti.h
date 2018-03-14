@@ -50,10 +50,6 @@ class RouteNextHopsMulti {
    ClientID lowestAdminDistanceClientId_;
 
  public:
-
-  folly::dynamic toFollyDynamicOld() const;
-  static RouteNextHopsMulti fromFollyDynamicOld(const folly::dynamic& json);
-
   folly::dynamic toFollyDynamic() const;
   static RouteNextHopsMulti fromFollyDynamic(const folly::dynamic& json);
 
@@ -61,9 +57,6 @@ class RouteNextHopsMulti {
 
   std::string str() const;
   void update(ClientID clientid, RouteNextHopEntry nhe);
-  void update(ClientID clientid, RouteNextHopEntry::NextHopSet nhs) {
-    return update(clientid, RouteNextHopEntry(std::move(nhs)));
-  }
 
   void clear() {
     map_.clear();
