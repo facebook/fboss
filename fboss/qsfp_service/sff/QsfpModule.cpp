@@ -748,14 +748,6 @@ void QsfpModule::transceiverPortsChanged(
     ports_[it.first] = std::move(it.second);
   }
 
-  bool anyUp{false};
-  for (const auto& port : ports_) {
-    if (port.second.up) {
-      anyUp = true;
-      break;
-    }
-  }
-
   // update the present_ field (and will set dirty_ if presence change detected)
   detectPresenceLocked();
 
