@@ -64,8 +64,9 @@ class BcmRoute {
   opennsl_vrf_t vrf_;
   folly::IPAddress prefix_;
   uint8_t len_;
-  RouteNextHopEntry fwd_;
-  bool added_{false};           // if the route added to HW or not
+  RouteNextHopEntry fwd_{RouteNextHopEntry::Action::DROP,
+                        AdminDistance::MAX_ADMIN_DISTANCE};
+  bool added_{false}; // if the route added to HW or not
   opennsl_if_t egressId_{-1};
   void initL3RouteT(opennsl_l3_route_t* rt) const;
 };

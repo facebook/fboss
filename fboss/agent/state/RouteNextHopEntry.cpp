@@ -125,16 +125,15 @@ folly::dynamic RouteNextHopEntry::toFollyDynamic() const {
 
 RouteNextHopEntry
 RouteNextHopEntry::fromFollyDynamic(const folly::dynamic& entryJson) {
-  RouteNextHopEntry entry;
-  for (const auto& nhop: entryJson[kNexthops]) {
-    entry.nhopSet_.insert(RouteNextHop::fromFollyDynamic(nhop));
-  }
-  entry.action_ = str2ForwardAction(entryJson[kAction].asString());
+  Action action = str2ForwardAction(entryJson[kAction].asString());
   auto it = entryJson.find(kAdminDistance);
-  if (it == entryJson.items().end()) {
-    entry.adminDistance_ = AdminDistance::MAX_ADMIN_DISTANCE;
-  } else {
-    entry.adminDistance_ = AdminDistance(entryJson[kAdminDistance].asInt());
+  AdminDistance adminDistance = (it == entryJson.items().end())
+      ? AdminDistance::MAX_ADMIN_DISTANCE
+      : AdminDistance(entryJson[kAdminDistance].asInt());
+  RouteNextHopEntry entry(Action::DROP, adminDistance);
+  entry.action_ = action;
+  for (const auto& nhop : entryJson[kNexthops]) {
+    entry.nhopSet_.insert(RouteNextHop::fromFollyDynamic(nhop));
   }
   return entry;
 }

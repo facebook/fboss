@@ -58,7 +58,8 @@ struct RouteFields {
    * the route is directly connected
    */
   RouteNextHopsMulti nexthopsmulti;
-  RouteNextHopEntry fwd;
+  RouteNextHopEntry fwd{RouteNextHopEntry::Action::DROP,
+                        AdminDistance::MAX_ADMIN_DISTANCE};
   uint32_t flags{0};
 };
 

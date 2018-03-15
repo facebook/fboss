@@ -42,9 +42,11 @@ using ::testing::Return;
 //
 // Helper functions
 //
-template<typename AddrT>
-void EXPECT_FWD_INFO(std::shared_ptr<Route<AddrT>> rt,
-                     InterfaceID intf, std::string ipStr) {
+template <typename AddrT>
+void EXPECT_FWD_INFO(
+    std::shared_ptr<Route<AddrT>> rt,
+    InterfaceID intf,
+    std::string ipStr) {
   const auto& fwds = rt->getForwardInfo().getNextHopSet();
   EXPECT_EQ(1, fwds.size());
   const auto& fwd = *fwds.begin();
@@ -52,7 +54,7 @@ void EXPECT_FWD_INFO(std::shared_ptr<Route<AddrT>> rt,
   EXPECT_EQ(IPAddress(ipStr), fwd.addr());
 }
 
-template<typename AddrT>
+template <typename AddrT>
 void EXPECT_RESOLVED(std::shared_ptr<Route<AddrT>> rt) {
   ASSERT_NE(nullptr, rt);
   EXPECT_TRUE(rt->isResolved());
@@ -60,13 +62,13 @@ void EXPECT_RESOLVED(std::shared_ptr<Route<AddrT>> rt) {
   EXPECT_FALSE(rt->needResolve());
 }
 
-template<typename AddrT>
+template <typename AddrT>
 void EXPECT_NODEMAP_MATCH(const std::shared_ptr<RouteTableRib<AddrT>>& rib) {
   const auto& radixTree = rib->routesRadixTree();
   EXPECT_EQ(rib->size(), radixTree.size());
-  for (const auto& route: *(rib->routes())) {
-    auto match = radixTree.exactMatch(route->prefix().network,
-                                      route->prefix().mask);
+  for (const auto& route : *(rib->routes())) {
+    auto match =
+        radixTree.exactMatch(route->prefix().network, route->prefix().mask);
     ASSERT_NE(match, radixTree.end());
     // should be the same shared_ptr
     EXPECT_EQ(route, match->value());
@@ -74,7 +76,7 @@ void EXPECT_NODEMAP_MATCH(const std::shared_ptr<RouteTableRib<AddrT>>& rib) {
 }
 
 void EXPECT_NODEMAP_MATCH(const std::shared_ptr<RouteTableMap>& routeTables) {
-  for (const auto& rt: *routeTables) {
+  for (const auto& rt : *routeTables) {
     if (rt->getRibV4()) {
       EXPECT_NODEMAP_MATCH<IPAddressV4>(rt->getRibV4());
     }
@@ -84,13 +86,13 @@ void EXPECT_NODEMAP_MATCH(const std::shared_ptr<RouteTableMap>& routeTables) {
   }
 }
 
-template<typename AddrT>
+template <typename AddrT>
 void EXPECT_ROUTETABLERIB_MATCH(
     const std::shared_ptr<RouteTableRib<AddrT>>& rib1,
     const std::shared_ptr<RouteTableRib<AddrT>>& rib2) {
   EXPECT_EQ(rib1->size(), rib2->size());
   EXPECT_EQ(rib1->routesRadixTree().size(), rib2->routesRadixTree().size());
-  for (const auto& route: *(rib1->routes())) {
+  for (const auto& route : *(rib1->routes())) {
     auto match = rib2->exactMatch(route->prefix());
     ASSERT_NE(nullptr, match);
     EXPECT_TRUE(match->isSame(route.get()));
@@ -105,6 +107,8 @@ void EXPECT_ROUTETABLERIB_MATCH(
 #define CLIENT_C ClientID(1003)
 #define CLIENT_D ClientID(1004)
 #define CLIENT_E ClientID(1005)
+
+constexpr AdminDistance DISTANCE = AdminDistance::MAX_ADMIN_DISTANCE;
 
 std::shared_ptr<SwitchState> applyInitConfig() {
   auto platform = createMockPlatform();
@@ -156,10 +160,14 @@ TEST(RouteUpdater, dedup) {
 
   const auto& tables1 = stateV1->getRouteTables();
   RouteUpdater u2(tables1);
-  u2.addRoute(rid, r1.network, r1.mask, CLIENT_A, RouteNextHopEntry(nhop1));
-  u2.addRoute(rid, r2.network, r2.mask, CLIENT_A, RouteNextHopEntry(nhop2));
-  u2.addRoute(rid, r3.network, r3.mask, CLIENT_A, RouteNextHopEntry(nhop1));
-  u2.addRoute(rid, r4.network, r4.mask, CLIENT_A, RouteNextHopEntry(nhop2));
+  u2.addRoute(
+      rid, r1.network, r1.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
+  u2.addRoute(
+      rid, r2.network, r2.mask, CLIENT_A, RouteNextHopEntry(nhop2, DISTANCE));
+  u2.addRoute(
+      rid, r3.network, r3.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
+  u2.addRoute(
+      rid, r4.network, r4.mask, CLIENT_A, RouteNextHopEntry(nhop2, DISTANCE));
   auto tables2 = u2.updateDone();
   ASSERT_NE(nullptr, tables2);
   EXPECT_NODEMAP_MATCH(tables2);
@@ -168,20 +176,28 @@ TEST(RouteUpdater, dedup) {
   // Re-add the same routes; expect no change
   RouteUpdater u3(tables2);
   u3.addInterfaceAndLinkLocalRoutes(stateV1->getInterfaces());
-  u3.addRoute(rid, r1.network, r1.mask, CLIENT_A, RouteNextHopEntry(nhop1));
-  u3.addRoute(rid, r2.network, r2.mask, CLIENT_A, RouteNextHopEntry(nhop2));
-  u3.addRoute(rid, r3.network, r3.mask, CLIENT_A, RouteNextHopEntry(nhop1));
-  u3.addRoute(rid, r4.network, r4.mask, CLIENT_A, RouteNextHopEntry(nhop2));
+  u3.addRoute(
+      rid, r1.network, r1.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
+  u3.addRoute(
+      rid, r2.network, r2.mask, CLIENT_A, RouteNextHopEntry(nhop2, DISTANCE));
+  u3.addRoute(
+      rid, r3.network, r3.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
+  u3.addRoute(
+      rid, r4.network, r4.mask, CLIENT_A, RouteNextHopEntry(nhop2, DISTANCE));
   auto tables3 = u3.updateDone();
   EXPECT_EQ(nullptr, tables3);
 
   // Re-add the same routes, except for one difference.  Expect an update.
   RouteUpdater u4(tables2);
   u4.addInterfaceAndLinkLocalRoutes(stateV1->getInterfaces());
-  u4.addRoute(rid, r1.network, r1.mask, CLIENT_A, RouteNextHopEntry(nhop1));
-  u4.addRoute(rid, r2.network, r2.mask, CLIENT_A, RouteNextHopEntry(nhop1));
-  u4.addRoute(rid, r3.network, r3.mask, CLIENT_A, RouteNextHopEntry(nhop1));
-  u4.addRoute(rid, r4.network, r4.mask, CLIENT_A, RouteNextHopEntry(nhop2));
+  u4.addRoute(
+      rid, r1.network, r1.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
+  u4.addRoute(
+      rid, r2.network, r2.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
+  u4.addRoute(
+      rid, r3.network, r3.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
+  u4.addRoute(
+      rid, r4.network, r4.mask, CLIENT_A, RouteNextHopEntry(nhop2, DISTANCE));
   auto tables4 = u4.updateDone();
   ASSERT_NE(nullptr, tables4);
   EXPECT_NODEMAP_MATCH(tables4);
@@ -200,7 +216,7 @@ TEST(RouteUpdater, dedup) {
   auto t4r4 = GET_ROUTE_V6(tables4, rid, r4);
 
   EXPECT_EQ(t2r1, t4r1);
-  EXPECT_NE(t2r2, t4r2);        // different routes
+  EXPECT_NE(t2r2, t4r2); // different routes
   EXPECT_EQ(t2r2->getGeneration() + 1, t4r2->getGeneration());
   EXPECT_EQ(t2r3, t4r3);
   EXPECT_EQ(t2r4, t4r4);
@@ -215,11 +231,20 @@ TEST(Route, resolve) {
   {
     RouteUpdater u1(stateV1->getRouteTables());
     RouteNextHops nexthops1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
-    u1.addRoute(rid, IPAddress("1.1.3.0"), 24, CLIENT_A,
-                RouteNextHopEntry(nexthops1));
-    RouteNextHops nexthops2 = makeNextHops({"1.1.3.10"}); //rslvd. by '1.1.3/24'
-    u1.addRoute(rid, IPAddress("8.8.8.0"), 24, CLIENT_A,
-                RouteNextHopEntry(nexthops2));
+    u1.addRoute(
+        rid,
+        IPAddress("1.1.3.0"),
+        24,
+        CLIENT_A,
+        RouteNextHopEntry(nexthops1, DISTANCE));
+    RouteNextHops nexthops2 = makeNextHops({"1.1.3.10"}); // rslvd. by
+                                                          // '1.1.3/24'
+    u1.addRoute(
+        rid,
+        IPAddress("8.8.8.0"),
+        24,
+        CLIENT_A,
+        RouteNextHopEntry(nexthops2, DISTANCE));
     auto tables2 = u1.updateDone();
     ASSERT_NE(nullptr, tables2);
     EXPECT_NODEMAP_MATCH(tables2);
@@ -237,8 +262,8 @@ TEST(Route, resolve) {
     EXPECT_NE(r21->prefix(), r22->prefix());
     // check the forwarding info
     RouteNextHopSet expFwd2;
-    expFwd2.emplace(RouteNextHop::createForward(
-                        IPAddress("1.1.1.10"), InterfaceID(1)));
+    expFwd2.emplace(
+        RouteNextHop::createForward(IPAddress("1.1.1.10"), InterfaceID(1)));
     EXPECT_EQ(expFwd2, r21->getForwardInfo().getNextHopSet());
     EXPECT_EQ(expFwd2, r22->getForwardInfo().getNextHopSet());
   }
@@ -251,12 +276,24 @@ TEST(Route, resolve) {
     // The above 3 routes causes lookup loop, which should result in
     // all unresolvable.
     RouteUpdater u1(stateV1->getRouteTables());
-    u1.addRoute(rid, IPAddress("30.0.0.0"), 8,
-                CLIENT_A, RouteNextHopEntry(makeNextHops({"20.1.1.1"})));
-    u1.addRoute(rid, IPAddress("20.0.0.0"), 8,
-                CLIENT_A, RouteNextHopEntry(makeNextHops({"10.1.1.1"})));
-    u1.addRoute(rid, IPAddress("10.0.0.0"), 8,
-                CLIENT_A, RouteNextHopEntry(makeNextHops({"30.1.1.1"})));
+    u1.addRoute(
+        rid,
+        IPAddress("30.0.0.0"),
+        8,
+        CLIENT_A,
+        RouteNextHopEntry(makeNextHops({"20.1.1.1"}), DISTANCE));
+    u1.addRoute(
+        rid,
+        IPAddress("20.0.0.0"),
+        8,
+        CLIENT_A,
+        RouteNextHopEntry(makeNextHops({"10.1.1.1"}), DISTANCE));
+    u1.addRoute(
+        rid,
+        IPAddress("10.0.0.0"),
+        8,
+        CLIENT_A,
+        RouteNextHopEntry(makeNextHops({"30.1.1.1"}), DISTANCE));
     auto tables2 = u1.updateDone();
     ASSERT_NE(nullptr, tables2);
     EXPECT_NODEMAP_MATCH(tables2);
@@ -278,8 +315,12 @@ TEST(Route, resolve) {
   {
     RouteUpdater u1(stateV1->getRouteTables());
     RouteNextHops nexthops1 = makeNextHops({"50.0.0.1"});
-    u1.addRoute(rid, IPAddress("40.0.0.0"), 8, CLIENT_A,
-                RouteNextHopEntry(nexthops1));
+    u1.addRoute(
+        rid,
+        IPAddress("40.0.0.0"),
+        8,
+        CLIENT_A,
+        RouteNextHopEntry(nexthops1, DISTANCE));
 
     auto tables2 = u1.updateDone();
     ASSERT_NE(nullptr, tables2);
@@ -294,8 +335,12 @@ TEST(Route, resolve) {
 
     // Resolve 50.0.0.1 this should also resolve 40.0.0.0/8
     RouteUpdater u2(tables2);
-    u2.addRoute(rid, IPAddress("50.0.0.0"), 8,
-                CLIENT_A, RouteNextHopEntry(makeNextHops({"1.1.1.1"})));
+    u2.addRoute(
+        rid,
+        IPAddress("50.0.0.0"),
+        8,
+        CLIENT_A,
+        RouteNextHopEntry(makeNextHops({"1.1.1.1"}), DISTANCE));
     auto tables3 = u2.updateDone();
     ASSERT_NE(nullptr, tables3);
     EXPECT_NODEMAP_MATCH(tables3);
@@ -318,7 +363,6 @@ TEST(Route, resolve) {
     auto r33 = GET_ROUTE_V4(tables3, rid, "50.0.0.0/8");
     EXPECT_RESOLVED(r33);
     EXPECT_FALSE(r33->isConnected());
-
   }
 }
 
@@ -330,18 +374,30 @@ TEST(Route, resolveDropToCPUMix) {
 
   // add a DROP route and a ToCPU route
   RouteUpdater u1(stateV1->getRouteTables());
-  u1.addRoute(rid, IPAddress("11.1.1.0"), 24, CLIENT_A,
-              RouteNextHopEntry(RouteForwardAction::DROP));
-  u1.addRoute(rid, IPAddress("22.1.1.0"), 24, CLIENT_A,
-              RouteNextHopEntry(RouteForwardAction::TO_CPU));
+  u1.addRoute(
+      rid,
+      IPAddress("11.1.1.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
+  u1.addRoute(
+      rid,
+      IPAddress("22.1.1.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
   // then, add a route for 4 nexthops. One to each interface, one
   // to the DROP and one to the ToCPU
   RouteNextHopSet nhops = makeNextHops({"1.1.1.10", // intf 1
                                         "2.2.2.10", // intf 2
                                         "11.1.1.10", // DROP
                                         "22.1.1.10"}); // ToCPU
-  u1.addRoute(rid, IPAddress("8.8.8.0"), 24,
-              CLIENT_A, RouteNextHopEntry(nhops));
+  u1.addRoute(
+      rid,
+      IPAddress("8.8.8.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nhops, DISTANCE));
   auto table2 = u1.updateDone();
   ASSERT_NE(nullptr, table2);
   EXPECT_NODEMAP_MATCH(table2);
@@ -361,8 +417,12 @@ TEST(Route, resolveDropToCPUMix) {
   RouteUpdater u2(table2);
   RouteNextHopSet nhops2 = makeNextHops({"11.1.1.10", // DROP
                                          "22.1.1.10"}); // ToCPU
-  u2.addRoute(rid, IPAddress("8.8.8.0"), 24,
-              CLIENT_A, RouteNextHopEntry(nhops2));
+  u2.addRoute(
+      rid,
+      IPAddress("8.8.8.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nhops2, DISTANCE));
   auto table3 = u2.updateDone();
   ASSERT_NE(nullptr, table3);
   EXPECT_NODEMAP_MATCH(table3);
@@ -381,8 +441,12 @@ TEST(Route, resolveDropToCPUMix) {
   // now update the route with just DROP
   RouteUpdater u3(table3);
   RouteNextHopSet nhops3 = makeNextHops({"11.1.1.10"}); // DROP
-  u3.addRoute(rid, IPAddress("8.8.8.0"), 24,
-              CLIENT_A, RouteNextHopEntry(nhops3));
+  u3.addRoute(
+      rid,
+      IPAddress("8.8.8.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nhops3, DISTANCE));
   auto table4 = u3.updateDone();
   ASSERT_NE(nullptr, table4);
   EXPECT_NODEMAP_MATCH(table4);
@@ -406,17 +470,25 @@ TEST(Route, addDel) {
 
   auto rid = RouterID(0);
 
-  RouteNextHops nexthops = makeNextHops({"1.1.1.10",    // intf 1
-                                         "2::2",        // intf 2
-                                         "1.1.2.10"});  // un-resolvable
-  RouteNextHops nexthops2 = makeNextHops({"1.1.3.10",   // un-resolvable
+  RouteNextHops nexthops = makeNextHops({"1.1.1.10", // intf 1
+                                         "2::2", // intf 2
+                                         "1.1.2.10"}); // un-resolvable
+  RouteNextHops nexthops2 = makeNextHops({"1.1.3.10", // un-resolvable
                                           "11:11::1"}); // un-resolvable
 
   RouteUpdater u1(stateV1->getRouteTables());
-  u1.addRoute(rid, IPAddress("10.1.1.1"), 24, CLIENT_A,
-              RouteNextHopEntry(nexthops));
-  u1.addRoute(rid, IPAddress("2001::1"), 48, CLIENT_A,
-              RouteNextHopEntry(nexthops));
+  u1.addRoute(
+      rid,
+      IPAddress("10.1.1.1"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops, DISTANCE));
+  u1.addRoute(
+      rid,
+      IPAddress("2001::1"),
+      48,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops, DISTANCE));
   auto tables2 = u1.updateDone();
   ASSERT_NE(nullptr, tables2);
   EXPECT_NODEMAP_MATCH(tables2);
@@ -442,17 +514,21 @@ TEST(Route, addDel) {
   EXPECT_EQ(2, fwd2.size());
   EXPECT_EQ(2, fwd2v6.size());
   RouteNextHopSet expFwd2;
-  expFwd2.emplace(RouteNextHop::createForward(
-                      IPAddress("1.1.1.10"), InterfaceID(1)));
-  expFwd2.emplace(RouteNextHop::createForward(
-                      IPAddress("2::2"), InterfaceID(2)));
+  expFwd2.emplace(
+      RouteNextHop::createForward(IPAddress("1.1.1.10"), InterfaceID(1)));
+  expFwd2.emplace(
+      RouteNextHop::createForward(IPAddress("2::2"), InterfaceID(2)));
   EXPECT_EQ(expFwd2, fwd2);
   EXPECT_EQ(expFwd2, fwd2v6);
 
   // change the nexthops of the V4 route
   RouteUpdater u2(tables2);
-  u2.addRoute(rid, IPAddress("10.1.1.1"), 24,
-              CLIENT_A, RouteNextHopEntry(nexthops2));
+  u2.addRoute(
+      rid,
+      IPAddress("10.1.1.1"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops2, DISTANCE));
   auto tables3 = u2.updateDone();
   ASSERT_NE(nullptr, tables3);
   EXPECT_NODEMAP_MATCH(tables3);
@@ -467,8 +543,12 @@ TEST(Route, addDel) {
 
   // re-add the same route does not cause change
   RouteUpdater u3(tables3);
-  u3.addRoute(rid, IPAddress("10.1.1.1"), 24, CLIENT_A,
-              RouteNextHopEntry(nexthops2));
+  u3.addRoute(
+      rid,
+      IPAddress("10.1.1.1"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops2, DISTANCE));
   auto tables4 = u3.updateDone();
   EXPECT_EQ(nullptr, tables4);
 
@@ -486,10 +566,18 @@ TEST(Route, addDel) {
 
   // change an old route to punt to CPU, add a new route to DROP
   RouteUpdater u5(tables3);
-  u5.addRoute(rid, IPAddress("10.1.1.0"), 24,
-              CLIENT_A, RouteNextHopEntry(RouteForwardAction::TO_CPU));
-  u5.addRoute(rid, IPAddress("10.1.2.0"), 24,
-              CLIENT_A, RouteNextHopEntry(RouteForwardAction::DROP));
+  u5.addRoute(
+      rid,
+      IPAddress("10.1.1.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
+  u5.addRoute(
+      rid,
+      IPAddress("10.1.2.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
   auto tables6 = u5.updateDone();
   EXPECT_NODEMAP_MATCH(tables6);
   EXPECT_FALSE(GET_ROUTE_V4(tables6, rid, "10.1.1.0/24")->isPublished());
@@ -706,13 +794,14 @@ struct Route {
     return vrf == rt.vrf && len == rt.len && prefix == rt.prefix;
   }
 };
-}
+} // namespace TEMP
 
-void checkChangedRoute(const shared_ptr<RouteTableMap>& oldTables,
-                       const shared_ptr<RouteTableMap>& newTables,
-                       const std::set<TEMP::Route> changedIDs,
-                       const std::set<TEMP::Route> addedIDs,
-                       const std::set<TEMP::Route> removedIDs) {
+void checkChangedRoute(
+    const shared_ptr<RouteTableMap>& oldTables,
+    const shared_ptr<RouteTableMap>& newTables,
+    const std::set<TEMP::Route> changedIDs,
+    const std::set<TEMP::Route> addedIDs,
+    const std::set<TEMP::Route> removedIDs) {
   auto oldState = make_shared<SwitchState>();
   oldState->resetRouteTables(oldTables);
   auto newState = make_shared<SwitchState>();
@@ -732,8 +821,8 @@ void checkChangedRoute(const shared_ptr<RouteTableMap>& oldTables,
     }
     DeltaFunctions::forEachChanged(
         rtDelta.getRoutesV4Delta(),
-        [&] (const shared_ptr<RouteV4>& oldRt,
-             const shared_ptr<RouteV4>& newRt) {
+        [&](const shared_ptr<RouteV4>& oldRt,
+            const shared_ptr<RouteV4>& newRt) {
           EXPECT_EQ(oldRt->prefix(), newRt->prefix());
           EXPECT_NE(oldRt, newRt);
           const auto prefix = newRt->prefix();
@@ -741,13 +830,13 @@ void checkChangedRoute(const shared_ptr<RouteTableMap>& oldTables,
               TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
           EXPECT_TRUE(ret.second);
         },
-        [&] (const shared_ptr<RouteV4>& rt) {
+        [&](const shared_ptr<RouteV4>& rt) {
           const auto prefix = rt->prefix();
           auto ret = foundAdded.insert(
               TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
           EXPECT_TRUE(ret.second);
         },
-        [&] (const shared_ptr<RouteV4>& rt) {
+        [&](const shared_ptr<RouteV4>& rt) {
           const auto prefix = rt->prefix();
           auto ret = foundRemoved.insert(
               TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
@@ -755,8 +844,8 @@ void checkChangedRoute(const shared_ptr<RouteTableMap>& oldTables,
         });
     DeltaFunctions::forEachChanged(
         rtDelta.getRoutesV6Delta(),
-        [&] (const shared_ptr<RouteV6>& oldRt,
-             const shared_ptr<RouteV6>& newRt) {
+        [&](const shared_ptr<RouteV6>& oldRt,
+            const shared_ptr<RouteV6>& newRt) {
           EXPECT_EQ(oldRt->prefix(), newRt->prefix());
           EXPECT_NE(oldRt, newRt);
           const auto prefix = newRt->prefix();
@@ -764,13 +853,13 @@ void checkChangedRoute(const shared_ptr<RouteTableMap>& oldTables,
               TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
           EXPECT_TRUE(ret.second);
         },
-        [&] (const shared_ptr<RouteV6>& rt) {
+        [&](const shared_ptr<RouteV6>& rt) {
           const auto prefix = rt->prefix();
           auto ret = foundAdded.insert(
               TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
           EXPECT_TRUE(ret.second);
         },
-        [&] (const shared_ptr<RouteV6>& rt) {
+        [&](const shared_ptr<RouteV6>& rt) {
           const auto prefix = rt->prefix();
           auto ret = foundRemoved.insert(
               TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
@@ -783,11 +872,12 @@ void checkChangedRoute(const shared_ptr<RouteTableMap>& oldTables,
   EXPECT_EQ(removedIDs, foundRemoved);
 }
 
-void checkChangedRouteTable(const shared_ptr<RouteTableMap>& oldTables,
-                            const shared_ptr<RouteTableMap>& newTables,
-                            const std::set<uint32_t> changedIDs,
-                            const std::set<uint32_t> addedIDs,
-                            const std::set<uint32_t> removedIDs) {
+void checkChangedRouteTable(
+    const shared_ptr<RouteTableMap>& oldTables,
+    const shared_ptr<RouteTableMap>& newTables,
+    const std::set<uint32_t> changedIDs,
+    const std::set<uint32_t> addedIDs,
+    const std::set<uint32_t> removedIDs) {
   auto oldState = make_shared<SwitchState>();
   oldState->resetRouteTables(oldTables);
   auto newState = make_shared<SwitchState>();
@@ -799,18 +889,18 @@ void checkChangedRouteTable(const shared_ptr<RouteTableMap>& oldTables,
   StateDelta delta(oldState, newState);
   DeltaFunctions::forEachChanged(
       delta.getRouteTablesDelta(),
-      [&] (const shared_ptr<RouteTable>& oldTable,
-           const shared_ptr<RouteTable>& newTable) {
+      [&](const shared_ptr<RouteTable>& oldTable,
+          const shared_ptr<RouteTable>& newTable) {
         EXPECT_EQ(oldTable->getID(), newTable->getID());
         EXPECT_NE(oldTable, newTable);
         auto ret = foundChanged.insert(oldTable->getID());
         EXPECT_TRUE(ret.second);
       },
-      [&] (const shared_ptr<RouteTable>& table) {
+      [&](const shared_ptr<RouteTable>& table) {
         auto ret = foundAdded.insert(table->getID());
         EXPECT_TRUE(ret.second);
       },
-      [&] (const shared_ptr<RouteTable>& table) {
+      [&](const shared_ptr<RouteTable>& table) {
         auto ret = foundRemoved.insert(table->getID());
         EXPECT_TRUE(ret.second);
       });
@@ -870,18 +960,20 @@ TEST(RouteTableMap, applyConfig) {
   EXPECT_NE(nullptr, tablesV2->getRouteTable(RouterID(0)));
   EXPECT_NE(nullptr, tablesV2->getRouteTable(RouterID(1)));
 
-  checkChangedRouteTable(tablesV1, tablesV2, {}, {0,1}, {});
-  checkChangedRoute(tablesV1, tablesV2,
-                    {},
-                    {
-                      TEMP::Route{0, IPAddress("1.1.1.0"), 24},
-                      TEMP::Route{0, IPAddress("::0"), 48},
-                      TEMP::Route{0, IPAddress("fe80::"), 64},
-                      TEMP::Route{1, IPAddress("1.1.1.0"), 24},
-                      TEMP::Route{1, IPAddress("::0"), 48},
-                      TEMP::Route{1, IPAddress("fe80::"), 64},
-                    },
-                    {});
+  checkChangedRouteTable(tablesV1, tablesV2, {}, {0, 1}, {});
+  checkChangedRoute(
+      tablesV1,
+      tablesV2,
+      {},
+      {
+          TEMP::Route{0, IPAddress("1.1.1.0"), 24},
+          TEMP::Route{0, IPAddress("::0"), 48},
+          TEMP::Route{0, IPAddress("fe80::"), 64},
+          TEMP::Route{1, IPAddress("1.1.1.0"), 24},
+          TEMP::Route{1, IPAddress("::0"), 48},
+          TEMP::Route{1, IPAddress("fe80::"), 64},
+      },
+      {});
 
   // change an interface address
   config.interfaces[0].ipAddresses[3] = "11::11/48";
@@ -898,15 +990,17 @@ TEST(RouteTableMap, applyConfig) {
   EXPECT_NE(nullptr, tablesV2->getRouteTable(RouterID(1)));
 
   checkChangedRouteTable(tablesV2, tablesV3, {0}, {}, {});
-  checkChangedRoute(tablesV2, tablesV3,
-                    {},
-                    {TEMP::Route{0, IPAddress("11::0"), 48}},
-                    {TEMP::Route{0, IPAddress("::0"), 48}});
+  checkChangedRoute(
+      tablesV2,
+      tablesV3,
+      {},
+      {TEMP::Route{0, IPAddress("11::0"), 48}},
+      {TEMP::Route{0, IPAddress("::0"), 48}});
 
   // move one interface to cause same route prefix conflict
   config.interfaces[1].routerID = 0;
   EXPECT_THROW(
-    publishAndApplyConfig(stateV3, &config, platform.get()), FbossError);
+      publishAndApplyConfig(stateV3, &config, platform.get()), FbossError);
 
   // add a new interface in a new VRF
   config.vlans.resize(3);
@@ -939,20 +1033,22 @@ TEST(RouteTableMap, applyConfig) {
   EXPECT_NE(nullptr, tablesV4->getRouteTable(RouterID(2)));
 
   checkChangedRouteTable(tablesV3, tablesV4, {0}, {2}, {1});
-  checkChangedRoute(tablesV3, tablesV4,
-                    {},
-                    {
-                      TEMP::Route{0, IPAddress("2.2.2.0"), 24},
-                      TEMP::Route{0, IPAddress("1::0"), 48},
-                      TEMP::Route{2, IPAddress("1.1.1.0"), 24},
-                      TEMP::Route{2, IPAddress("::0"), 48},
-                      TEMP::Route{2, IPAddress("fe80::"), 64},
-                    },
-                    {
-                      TEMP::Route{1, IPAddress("1.1.1.0"), 24},
-                      TEMP::Route{1, IPAddress("::0"), 48},
-                      TEMP::Route{1, IPAddress("fe80::"), 64},
-                    });
+  checkChangedRoute(
+      tablesV3,
+      tablesV4,
+      {},
+      {
+          TEMP::Route{0, IPAddress("2.2.2.0"), 24},
+          TEMP::Route{0, IPAddress("1::0"), 48},
+          TEMP::Route{2, IPAddress("1.1.1.0"), 24},
+          TEMP::Route{2, IPAddress("::0"), 48},
+          TEMP::Route{2, IPAddress("fe80::"), 64},
+      },
+      {
+          TEMP::Route{1, IPAddress("1.1.1.0"), 24},
+          TEMP::Route{1, IPAddress("::0"), 48},
+          TEMP::Route{1, IPAddress("fe80::"), 64},
+      });
 
   // re-apply the same configure generates no change
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV4, &config, platform.get()));
@@ -982,17 +1078,17 @@ TEST(Route, changedRoutesPostUpdate) {
   stateV1->publish();
   auto rid = RouterID(0);
   RouteNextHops nexthops = makeNextHops({"1.1.1.10", // resolved by intf 1
-                                         "2::2"});  // resolved by intf 2
+                                         "2::2"}); // resolved by intf 2
 
-  auto numChangedRoutes = [=] (const RTMapDelta& delta) {
+  auto numChangedRoutes = [=](const RTMapDelta& delta) {
     auto cnt = 0;
     for (auto itr = delta.begin(); itr != delta.end(); ++itr) {
       const auto& v4Delta = itr->getRoutesV4Delta();
       const auto& v6Delta = itr->getRoutesV6Delta();
-      for (auto v4Itr = v4Delta.begin(); v4Itr != v4Delta.end();
-          ++v4Itr, ++cnt);
-      for (auto v6Itr = v6Delta.begin(); v6Itr != v6Delta.end();
-          ++v6Itr, ++cnt);
+      for (auto v4Itr = v4Delta.begin(); v4Itr != v4Delta.end(); ++v4Itr, ++cnt)
+        ;
+      for (auto v6Itr = v6Delta.begin(); v6Itr != v6Delta.end(); ++v6Itr, ++cnt)
+        ;
     }
     return cnt;
   };
@@ -1000,10 +1096,18 @@ TEST(Route, changedRoutesPostUpdate) {
   auto tables1 = stateV1->getRouteTables();
   stateV1->publish();
   RouteUpdater u1(tables1);
-  u1.addRoute(rid, IPAddress("10.1.1.0"), 24,
-              CLIENT_A, RouteNextHopEntry(nexthops));
-  u1.addRoute(rid, IPAddress("2001::0"), 48,
-              CLIENT_A, RouteNextHopEntry(nexthops));
+  u1.addRoute(
+      rid,
+      IPAddress("10.1.1.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops, DISTANCE));
+  u1.addRoute(
+      rid,
+      IPAddress("2001::0"),
+      48,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops, DISTANCE));
   auto tables2 = u1.updateDone();
   ASSERT_NE(nullptr, tables2);
   EXPECT_NODEMAP_MATCH(tables2);
@@ -1026,19 +1130,30 @@ TEST(Route, changedRoutesPostUpdate) {
   StateDelta delta12(stateV1, stateV2);
   EXPECT_EQ(2, numChangedRoutes(delta12.getRouteTablesDelta()));
   checkChangedRouteTable(tables1, tables2, {0}, {}, {});
-  checkChangedRoute(tables1, tables2,
-                    {},
-                    { TEMP::Route{0, IPAddress("10.1.1.0"), 24},
-                      TEMP::Route{0, IPAddress("2001::0"), 48},
-                    },
-                    {});
+  checkChangedRoute(
+      tables1,
+      tables2,
+      {},
+      {
+          TEMP::Route{0, IPAddress("10.1.1.0"), 24},
+          TEMP::Route{0, IPAddress("2001::0"), 48},
+      },
+      {});
   stateV2->publish();
   // Add 2 more routes
   RouteUpdater u2(stateV2->getRouteTables());
-  u2.addRoute(rid, IPAddress("10.10.1.0"), 24,
-              CLIENT_A, RouteNextHopEntry(nexthops));
-  u2.addRoute(rid, IPAddress("2001:10::0"), 48,
-              CLIENT_A, RouteNextHopEntry(nexthops));
+  u2.addRoute(
+      rid,
+      IPAddress("10.10.1.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops, DISTANCE));
+  u2.addRoute(
+      rid,
+      IPAddress("2001:10::0"),
+      48,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops, DISTANCE));
   auto tables3 = u2.updateDone();
   ASSERT_NE(nullptr, tables3);
   EXPECT_NODEMAP_MATCH(tables3);
@@ -1057,12 +1172,15 @@ TEST(Route, changedRoutesPostUpdate) {
   StateDelta delta23(stateV2, stateV3);
   EXPECT_EQ(2, numChangedRoutes(delta23.getRouteTablesDelta()));
   checkChangedRouteTable(tables2, tables3, {0}, {}, {});
-  checkChangedRoute(tables2, tables3,
-                    {},
-                    { TEMP::Route{0, IPAddress("10.10.1.0"), 24},
-                      TEMP::Route{0, IPAddress("2001:10::0"), 48},
-                    },
-                    {});
+  checkChangedRoute(
+      tables2,
+      tables3,
+      {},
+      {
+          TEMP::Route{0, IPAddress("10.10.1.0"), 24},
+          TEMP::Route{0, IPAddress("2001:10::0"), 48},
+      },
+      {});
   stateV3->publish();
 }
 
@@ -1110,15 +1228,23 @@ TEST(Route, PruneAddedRoutes) {
   auto r1prefixLen = 24;
   auto r1nexthops = makeNextHops({"10.0.21.51", "30.0.21.51" /* unresolved */});
 
-  u1.addRoute(rid0, r1prefix, r1prefixLen,
-              CLIENT_A, RouteNextHopEntry(r1nexthops));
+  u1.addRoute(
+      rid0,
+      r1prefix,
+      r1prefixLen,
+      CLIENT_A,
+      RouteNextHopEntry(r1nexthops, DISTANCE));
 
   auto r2prefix = IPAddressV6("facf:b00c::52");
   auto r2prefixLen = 96;
   auto r2nexthops =
       makeNextHops({"30.0.21.52" /* unresolved */, "face:b00c:0:21::52"});
-  u1.addRoute(rid0, r2prefix, r2prefixLen,
-              CLIENT_A, RouteNextHopEntry(r2nexthops));
+  u1.addRoute(
+      rid0,
+      r2prefix,
+      r2prefixLen,
+      CLIENT_A,
+      RouteNextHopEntry(r2nexthops, DISTANCE));
 
   auto tables2 = u1.updateDone();
   EXPECT_NODEMAP_MATCH(tables2);
@@ -1195,12 +1321,20 @@ TEST(Route, PruneChangedRoutes) {
 
   RouteV4::Prefix prefix41{IPAddressV4("20.0.21.41"), 32};
   auto nexthops41 = makeNextHops({"10.0.21.41", "face:b00c:0:21::41"});
-  u1.addRoute(rid0, prefix41.network, prefix41.mask,
-              CLIENT_A, RouteNextHopEntry(nexthops41));
+  u1.addRoute(
+      rid0,
+      prefix41.network,
+      prefix41.mask,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops41, DISTANCE));
 
   RouteV6::Prefix prefix42{IPAddressV6("facf:b00c:0:21::42"), 96};
-  u1.addRoute(rid0, prefix42.network, prefix41.mask,
-              CLIENT_A, RouteNextHopEntry(TO_CPU));
+  u1.addRoute(
+      rid0,
+      prefix42.network,
+      prefix41.mask,
+      CLIENT_A,
+      RouteNextHopEntry(TO_CPU, DISTANCE));
 
   auto tables2 = u1.updateDone();
   EXPECT_NODEMAP_MATCH(tables2);
@@ -1219,8 +1353,12 @@ TEST(Route, PruneChangedRoutes) {
 
   RouteUpdater u2(state2->getRouteTables());
   auto nexthops42 = makeNextHops({"10.0.21.42", "face:b00c:0:21::42"});
-  u2.addRoute(rid0, prefix42.network, prefix41.mask,
-              CLIENT_A, RouteNextHopEntry(nexthops42));
+  u2.addRoute(
+      rid0,
+      prefix42.network,
+      prefix41.mask,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops42, DISTANCE));
   auto tables3 = u2.updateDone();
   EXPECT_NODEMAP_MATCH(tables3);
 
@@ -1252,8 +1390,8 @@ TEST(Route, PruneChangedRoutes) {
 // IP in the list will be 1.1.1.10
 RouteNextHops newNextHops(int n, std::string prefix) {
   RouteNextHops h;
-  for (int i=0; i < n; i++) {
-    auto ipStr = prefix + std::to_string(i+10);
+  for (int i = 0; i < n; i++) {
+    auto ipStr = prefix + std::to_string(i + 10);
     h.emplace(RouteNextHop::createNextHop(IPAddress(ipStr)));
   }
   return h;
@@ -1274,12 +1412,24 @@ TEST(Route, modRoutes) {
   RouteNextHops nexthops2 = newNextHops(3, "2.2.2.");
   RouteNextHops nexthops3 = newNextHops(3, "3.3.3.");
 
-  u1.addRoute(rid, IPAddress("10.10.10.10"), 32,
-              CLIENT_A, RouteNextHopEntry(nexthops1));
-  u1.addRoute(rid, IPAddress("10.10.10.10"), 32,
-              CLIENT_B, RouteNextHopEntry(nexthops2));
-  u1.addRoute(rid, IPAddress("99.99.99.99"), 32,
-              CLIENT_A, RouteNextHopEntry(nexthops3));
+  u1.addRoute(
+      rid,
+      IPAddress("10.10.10.10"),
+      32,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops1, DISTANCE));
+  u1.addRoute(
+      rid,
+      IPAddress("10.10.10.10"),
+      32,
+      CLIENT_B,
+      RouteNextHopEntry(nexthops2, DISTANCE));
+  u1.addRoute(
+      rid,
+      IPAddress("99.99.99.99"),
+      32,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops3, DISTANCE));
   tables1 = u1.updateDone();
   EXPECT_NODEMAP_MATCH(tables1);
   tables1->publish();
@@ -1288,9 +1438,9 @@ TEST(Route, modRoutes) {
   auto t1rt10 = tables1->getRouteTable(rid)->getRibV4()->exactMatch(prefix10);
   auto t1rt99 = tables1->getRouteTable(rid)->getRibV4()->exactMatch(prefix99);
   // Table1 has route 10 with two nexthop sets, and route 99 with one set
-  EXPECT_TRUE(t1rt10->has(CLIENT_A, RouteNextHopEntry(nexthops1)));
-  EXPECT_TRUE(t1rt10->has(CLIENT_B, RouteNextHopEntry(nexthops2)));
-  EXPECT_TRUE(t1rt99->has(CLIENT_A, RouteNextHopEntry(nexthops3)));
+  EXPECT_TRUE(t1rt10->has(CLIENT_A, RouteNextHopEntry(nexthops1, DISTANCE)));
+  EXPECT_TRUE(t1rt10->has(CLIENT_B, RouteNextHopEntry(nexthops2, DISTANCE)));
+  EXPECT_TRUE(t1rt99->has(CLIENT_A, RouteNextHopEntry(nexthops3, DISTANCE)));
 
   u2.delRoute(rid, IPAddress("10.10.10.10"), 32, CLIENT_A);
   auto tables2 = u2.updateDone();
@@ -1298,9 +1448,9 @@ TEST(Route, modRoutes) {
   auto t2rt10 = tables2->getRouteTable(rid)->getRibV4()->exactMatch(prefix10);
   auto t2rt99 = tables2->getRouteTable(rid)->getRibV4()->exactMatch(prefix99);
   // Table2 should only be missing the 10.10.10.10 route for client CLIENT_A
-  EXPECT_FALSE(t2rt10->has(CLIENT_A, RouteNextHopEntry(nexthops1)));
-  EXPECT_TRUE(t2rt10->has(CLIENT_B, RouteNextHopEntry(nexthops2)));
-  EXPECT_TRUE(t2rt99->has(CLIENT_A, RouteNextHopEntry(nexthops3)));
+  EXPECT_FALSE(t2rt10->has(CLIENT_A, RouteNextHopEntry(nexthops1, DISTANCE)));
+  EXPECT_TRUE(t2rt10->has(CLIENT_B, RouteNextHopEntry(nexthops2, DISTANCE)));
+  EXPECT_TRUE(t2rt99->has(CLIENT_A, RouteNextHopEntry(nexthops3, DISTANCE)));
   EXPECT_EQ(t2rt10->getEntryForClient(CLIENT_A), nullptr);
   EXPECT_NE(t2rt10->getEntryForClient(CLIENT_B), nullptr);
 
@@ -1325,19 +1475,30 @@ TEST(Route, disallowEmptyNexthops) {
   // It's illegal to add an empty nextHops list to a route
 
   // Test the case where the empty list is the first to be added to the Route
-  ASSERT_THROW(u1.addRoute(rid, IPAddress("5.5.5.5"), 32,
-                           CLIENT_A,
-                           RouteNextHopEntry(newNextHops(0, "20.20.20."))),
-               FbossError);
+  ASSERT_THROW(
+      u1.addRoute(
+          rid,
+          IPAddress("5.5.5.5"),
+          32,
+          CLIENT_A,
+          RouteNextHopEntry(newNextHops(0, "20.20.20."), DISTANCE)),
+      FbossError);
 
   // Test the case where the empty list is the second to be added to the Route
-  u1.addRoute(rid, IPAddress("10.10.10.10"), 32,
-              CLIENT_A, RouteNextHopEntry(newNextHops(3, "10.10.10.")));
-  ASSERT_THROW(u1.addRoute(rid, IPAddress("10.10.10.10"), 32,
-                           CLIENT_B,
-                           RouteNextHopEntry(newNextHops(0, "20.20.20."))),
-               FbossError);
-
+  u1.addRoute(
+      rid,
+      IPAddress("10.10.10.10"),
+      32,
+      CLIENT_A,
+      RouteNextHopEntry(newNextHops(3, "10.10.10."), DISTANCE));
+  ASSERT_THROW(
+      u1.addRoute(
+          rid,
+          IPAddress("10.10.10.10"),
+          32,
+          CLIENT_B,
+          RouteNextHopEntry(newNextHops(0, "20.20.20."), DISTANCE)),
+      FbossError);
 }
 
 // Test deleting routes
@@ -1351,10 +1512,18 @@ TEST(Route, delRoutes) {
   RouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
   RouteV4::Prefix prefix22{IPAddressV4("22.22.22.22"), 32};
 
-  u1.addRoute(rid, IPAddress("10.10.10.10"), 32,
-              CLIENT_A, RouteNextHopEntry(newNextHops(3, "1.1.1.")));
-  u1.addRoute(rid, IPAddress("22.22.22.22"), 32,
-              CLIENT_B, RouteNextHopEntry(TO_CPU));
+  u1.addRoute(
+      rid,
+      IPAddress("10.10.10.10"),
+      32,
+      CLIENT_A,
+      RouteNextHopEntry(newNextHops(3, "1.1.1."), DISTANCE));
+  u1.addRoute(
+      rid,
+      IPAddress("22.22.22.22"),
+      32,
+      CLIENT_B,
+      RouteNextHopEntry(TO_CPU, DISTANCE));
   tables1 = u1.updateDone();
   EXPECT_NODEMAP_MATCH(tables1);
 
@@ -1378,15 +1547,14 @@ TEST(Route, delRoutes) {
 
 // Test equality of RouteNextHopsMulti.
 TEST(Route, equality) {
-
   // Create two identical RouteNextHopsMulti, and compare
   RouteNextHopsMulti nhm1;
-  nhm1.update(CLIENT_A, RouteNextHopEntry(newNextHops(3, "1.1.1.")));
-  nhm1.update(CLIENT_B, RouteNextHopEntry(newNextHops(3, "2.2.2.")));
+  nhm1.update(CLIENT_A, RouteNextHopEntry(newNextHops(3, "1.1.1."), DISTANCE));
+  nhm1.update(CLIENT_B, RouteNextHopEntry(newNextHops(3, "2.2.2."), DISTANCE));
 
   RouteNextHopsMulti nhm2;
-  nhm2.update(CLIENT_A, RouteNextHopEntry(newNextHops(3, "1.1.1.")));
-  nhm2.update(CLIENT_B, RouteNextHopEntry(newNextHops(3, "2.2.2.")));
+  nhm2.update(CLIENT_A, RouteNextHopEntry(newNextHops(3, "1.1.1."), DISTANCE));
+  nhm2.update(CLIENT_B, RouteNextHopEntry(newNextHops(3, "2.2.2."), DISTANCE));
 
   EXPECT_TRUE(nhm1 == nhm2);
 
@@ -1400,7 +1568,7 @@ TEST(Route, equality) {
 
   // Now replace obj1's CLIENT_B list with a shorter list.
   // Objs should be NOT equal.
-  nhm1.update(CLIENT_B, RouteNextHopEntry(newNextHops(2, "2.2.2.")));
+  nhm1.update(CLIENT_B, RouteNextHopEntry(newNextHops(2, "2.2.2."), DISTANCE));
   EXPECT_FALSE(nhm1 == nhm2);
 
   // Now replace obj1's CLIENT_B list with the original list.
@@ -1410,19 +1578,18 @@ TEST(Route, equality) {
   nextHopsRev.emplace(RouteNextHop::createNextHop(IPAddress("2.2.2.12")));
   nextHopsRev.emplace(RouteNextHop::createNextHop(IPAddress("2.2.2.11")));
   nextHopsRev.emplace(RouteNextHop::createNextHop(IPAddress("2.2.2.10")));
-  nhm1.update(CLIENT_B, RouteNextHopEntry(nextHopsRev));
+  nhm1.update(CLIENT_B, RouteNextHopEntry(nextHopsRev, DISTANCE));
   EXPECT_TRUE(nhm1 == nhm2);
 }
 
 // Test that a copy of a RouteNextHopsMulti is a deep copy, and that the
 // resulting objects can be modified independently.
 TEST(Route, deepCopy) {
-
   // Create two identical RouteNextHopsMulti, and compare
   RouteNextHopsMulti nhm1;
   auto origHops = newNextHops(3, "1.1.1.");
-  nhm1.update(CLIENT_A, RouteNextHopEntry(origHops));
-  nhm1.update(CLIENT_B, RouteNextHopEntry(newNextHops(3, "2.2.2.")));
+  nhm1.update(CLIENT_A, RouteNextHopEntry(origHops, DISTANCE));
+  nhm1.update(CLIENT_B, RouteNextHopEntry(newNextHops(3, "2.2.2."), DISTANCE));
 
   // Copy it
   RouteNextHopsMulti nhm2 = nhm1;
@@ -1433,17 +1600,16 @@ TEST(Route, deepCopy) {
   // Now modify the underlying nexthop list.
   // Should be changed in nhm1, but not nhm2.
   auto newHops = newNextHops(4, "10.10.10.");
-  nhm1.update(CLIENT_A, RouteNextHopEntry(newHops));
+  nhm1.update(CLIENT_A, RouteNextHopEntry(newHops, DISTANCE));
 
   EXPECT_FALSE(nhm1 == nhm2);
 
-  EXPECT_TRUE(nhm1.isSame(CLIENT_A, RouteNextHopEntry(newHops)));
-  EXPECT_TRUE(nhm2.isSame(CLIENT_A, RouteNextHopEntry(origHops)));
+  EXPECT_TRUE(nhm1.isSame(CLIENT_A, RouteNextHopEntry(newHops, DISTANCE)));
+  EXPECT_TRUE(nhm2.isSame(CLIENT_A, RouteNextHopEntry(origHops, DISTANCE)));
 }
 
 // Test serialization of RouteNextHopsMulti.
 TEST(Route, serializeRouteNextHopsMulti) {
-
   // This function tests [de]serialization of:
   // RouteNextHopsMulti
   // RouteNextHopEntry
@@ -1451,11 +1617,12 @@ TEST(Route, serializeRouteNextHopsMulti) {
 
   // test for new format to new format
   RouteNextHopsMulti nhm1;
-  nhm1.update(CLIENT_A, RouteNextHopEntry(newNextHops(3, "1.1.1.")));
-  nhm1.update(CLIENT_B, RouteNextHopEntry(newNextHops(1, "2.2.2.")));
-  nhm1.update(CLIENT_C, RouteNextHopEntry(newNextHops(4, "3.3.3.")));
-  nhm1.update(CLIENT_D, RouteNextHopEntry(RouteForwardAction::DROP));
-  nhm1.update(CLIENT_E, RouteNextHopEntry(RouteForwardAction::TO_CPU));
+  nhm1.update(CLIENT_A, RouteNextHopEntry(newNextHops(3, "1.1.1."), DISTANCE));
+  nhm1.update(CLIENT_B, RouteNextHopEntry(newNextHops(1, "2.2.2."), DISTANCE));
+  nhm1.update(CLIENT_C, RouteNextHopEntry(newNextHops(4, "3.3.3."), DISTANCE));
+  nhm1.update(CLIENT_D, RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
+  nhm1.update(
+      CLIENT_E, RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
 
   auto serialized = nhm1.toFollyDynamic();
 
@@ -1466,7 +1633,6 @@ TEST(Route, serializeRouteNextHopsMulti) {
 
 // Test priority ranking of nexthop lists within a RouteNextHopsMulti.
 TEST(Route, listRanking) {
-
   auto list00 = newNextHops(3, "0.0.0.");
   auto list07 = newNextHops(3, "7.7.7.");
   auto list01 = newNextHops(3, "1.1.1.");
@@ -1474,15 +1640,17 @@ TEST(Route, listRanking) {
   auto list30 = newNextHops(3, "30.30.30.");
 
   RouteNextHopsMulti nhm;
-  nhm.update(ClientID(20), RouteNextHopEntry(list20,
-      AdminDistance::EBGP));
-  nhm.update(ClientID(1), RouteNextHopEntry(list01,
-        AdminDistance::STATIC_ROUTE));
-  nhm.update(ClientID(30), RouteNextHopEntry(list30));
+  nhm.update(ClientID(20), RouteNextHopEntry(list20, AdminDistance::EBGP));
+  nhm.update(
+      ClientID(1), RouteNextHopEntry(list01, AdminDistance::STATIC_ROUTE));
+  nhm.update(
+      ClientID(30),
+      RouteNextHopEntry(list30, AdminDistance::MAX_ADMIN_DISTANCE));
   EXPECT_TRUE(nhm.getBestEntry().second->getNextHopSet() == list01);
 
-  nhm.update(ClientID(10), RouteNextHopEntry(list00,
-        AdminDistance::DIRECTLY_CONNECTED));
+  nhm.update(
+      ClientID(10),
+      RouteNextHopEntry(list00, AdminDistance::DIRECTLY_CONNECTED));
   EXPECT_TRUE(nhm.getBestEntry().second->getNextHopSet() == list00);
 
   nhm.delEntryForClient(ClientID(10));
@@ -1502,33 +1670,41 @@ bool stringStartsWith(std::string s1, std::string prefix) {
   return s1.compare(0, prefix.size(), prefix) == 0;
 }
 
-void assertClientsNotPresent(std::shared_ptr<RouteTableMap>& tables,
-                             RouterID rid, RouteV4::Prefix prefix,
-                             std::vector<int16_t> clientIds) {
+void assertClientsNotPresent(
+    std::shared_ptr<RouteTableMap>& tables,
+    RouterID rid,
+    RouteV4::Prefix prefix,
+    std::vector<int16_t> clientIds) {
   for (int16_t clientId : clientIds) {
     const auto& route =
-      tables->getRouteTable(rid)->getRibV4()->exactMatch(prefix);
+        tables->getRouteTable(rid)->getRibV4()->exactMatch(prefix);
     auto entry = route->getEntryForClient(ClientID(clientId));
     EXPECT_EQ(nullptr, entry);
   }
 }
 
-void assertClientsPresent(std::shared_ptr<RouteTableMap>& tables, RouterID rid,
-                          RouteV4::Prefix prefix,
-                          std::vector<int16_t> clientIds) {
+void assertClientsPresent(
+    std::shared_ptr<RouteTableMap>& tables,
+    RouterID rid,
+    RouteV4::Prefix prefix,
+    std::vector<int16_t> clientIds) {
   for (int16_t clientId : clientIds) {
     const auto& route =
-      tables->getRouteTable(rid)->getRibV4()->exactMatch(prefix);
+        tables->getRouteTable(rid)->getRibV4()->exactMatch(prefix);
     auto entry = route->getEntryForClient(ClientID(clientId));
     EXPECT_NE(nullptr, entry);
   }
 }
 
-void expectFwdInfo(std::shared_ptr<RouteTableMap>& tables, RouterID rid,
-                   RouteV4::Prefix prefix, std::string ipPrefix) {
-
-  const auto& fwd = tables->getRouteTable(rid)->getRibV4()
-    ->exactMatch(prefix)->getForwardInfo();
+void expectFwdInfo(
+    std::shared_ptr<RouteTableMap>& tables,
+    RouterID rid,
+    RouteV4::Prefix prefix,
+    std::string ipPrefix) {
+  const auto& fwd = tables->getRouteTable(rid)
+                        ->getRibV4()
+                        ->exactMatch(prefix)
+                        ->getForwardInfo();
   const auto& nhops = fwd.getNextHopSet();
   // Expect the fwd'ing info to be 3 IPs all starting with 'ipPrefix'
   EXPECT_EQ(3, nhops.size());
@@ -1537,25 +1713,31 @@ void expectFwdInfo(std::shared_ptr<RouteTableMap>& tables, RouterID rid,
   }
 }
 
-std::shared_ptr<RouteTableMap>&
-addNextHopsForClient(std::shared_ptr<RouteTableMap>& tables, RouterID rid,
-                     RouteV4::Prefix prefix, int16_t clientId,
-                     std::string ipPrefix,
-                     AdminDistance adminDistance= \
-                      AdminDistance::MAX_ADMIN_DISTANCE) {
+std::shared_ptr<RouteTableMap>& addNextHopsForClient(
+    std::shared_ptr<RouteTableMap>& tables,
+    RouterID rid,
+    RouteV4::Prefix prefix,
+    int16_t clientId,
+    std::string ipPrefix,
+    AdminDistance adminDistance = AdminDistance::MAX_ADMIN_DISTANCE) {
   RouteUpdater u(tables);
-  u.addRoute(rid, prefix.network, prefix.mask,
-             ClientID(clientId),
-             RouteNextHopEntry(newNextHops(3, ipPrefix), adminDistance));
+  u.addRoute(
+      rid,
+      prefix.network,
+      prefix.mask,
+      ClientID(clientId),
+      RouteNextHopEntry(newNextHops(3, ipPrefix), adminDistance));
   tables = u.updateDone();
   EXPECT_NODEMAP_MATCH(tables);
   tables->publish();
   return tables;
 }
 
-std::shared_ptr<RouteTableMap>&
-deleteNextHopsForClient(std::shared_ptr<RouteTableMap>& tables, RouterID rid,
-                        RouteV4::Prefix prefix, int16_t clientId) {
+std::shared_ptr<RouteTableMap>& deleteNextHopsForClient(
+    std::shared_ptr<RouteTableMap>& tables,
+    RouterID rid,
+    RouteV4::Prefix prefix,
+    int16_t clientId) {
   RouteUpdater u(tables);
   u.delRoute(rid, prefix.network, prefix.mask, ClientID(clientId));
   tables = u.updateDone();
@@ -1577,18 +1759,24 @@ TEST(Route, fwdInfoRanking) {
   uint8_t mask = 32;
   RouteV4::Prefix prefix{network, mask};
 
-
   // Add client 30, plus an interface for resolution.
   RouteUpdater u1(tables);
   // This is the route all the others will resolve to.
-  u1.addRoute(rid, IPAddress("10.10.0.0"), 16,
-              StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE),
-              RouteNextHopEntry(
-                  RouteNextHop::createInterfaceNextHop(
-                      IPAddress("10.10.0.1"), InterfaceID(9)),
-                  AdminDistance::DIRECTLY_CONNECTED));
-  u1.addRoute(rid, network, mask,
-              ClientID(30), RouteNextHopEntry(newNextHops(3, "10.10.30.")));
+  u1.addRoute(
+      rid,
+      IPAddress("10.10.0.0"),
+      16,
+      StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE),
+      RouteNextHopEntry(
+          RouteNextHop::createInterfaceNextHop(
+              IPAddress("10.10.0.1"), InterfaceID(9)),
+          AdminDistance::DIRECTLY_CONNECTED));
+  u1.addRoute(
+      rid,
+      network,
+      mask,
+      ClientID(30),
+      RouteNextHopEntry(newNextHops(3, "10.10.30."), DISTANCE));
   tables = u1.updateDone();
   EXPECT_NODEMAP_MATCH(tables);
   tables->publish();
@@ -1599,8 +1787,8 @@ TEST(Route, fwdInfoRanking) {
   expectFwdInfo(tables, rid, prefix, "10.10.30.");
 
   // Add client 20
-  tables = addNextHopsForClient(tables, rid, prefix, 20, "10.10.20.",
-      AdminDistance::EBGP);
+  tables = addNextHopsForClient(
+      tables, rid, prefix, 20, "10.10.20.", AdminDistance::EBGP);
 
   // Expect fwdInfo based on client 20
   assertClientsPresent(tables, rid, prefix, {20, 30});
@@ -1616,8 +1804,8 @@ TEST(Route, fwdInfoRanking) {
   expectFwdInfo(tables, rid, prefix, "10.10.20.");
 
   // Add client 10
-  tables = addNextHopsForClient(tables, rid, prefix, 10, "10.10.10.",
-      AdminDistance::STATIC_ROUTE);
+  tables = addNextHopsForClient(
+      tables, rid, prefix, 10, "10.10.10.", AdminDistance::STATIC_ROUTE);
 
   // Expect fwdInfo based on client 10
   assertClientsPresent(tables, rid, prefix, {10, 20, 30, 40});
@@ -1655,17 +1843,33 @@ TEST(Route, dropRoutes) {
   auto tables1 = stateV1->getRouteTables();
   auto rid = RouterID(0);
   RouteUpdater u1(tables1);
-  u1.addRoute(rid, IPAddress("10.10.10.10"), 32,
-              CLIENT_A, RouteNextHopEntry(DROP));
-  u1.addRoute(rid, IPAddress("2001::0"), 128,
-              CLIENT_A, RouteNextHopEntry(DROP));
+  u1.addRoute(
+      rid,
+      IPAddress("10.10.10.10"),
+      32,
+      CLIENT_A,
+      RouteNextHopEntry(DROP, DISTANCE));
+  u1.addRoute(
+      rid,
+      IPAddress("2001::0"),
+      128,
+      CLIENT_A,
+      RouteNextHopEntry(DROP, DISTANCE));
   // Check recursive resolution for drop routes
   RouteNextHops v4nexthops = makeNextHops({"10.10.10.10"});
-  u1.addRoute(rid, IPAddress("20.20.20.0"), 24,
-              CLIENT_A, RouteNextHopEntry(v4nexthops));
+  u1.addRoute(
+      rid,
+      IPAddress("20.20.20.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(v4nexthops, DISTANCE));
   RouteNextHops v6nexthops = makeNextHops({"2001::0"});
-  u1.addRoute(rid, IPAddress("2001:1::"), 64,
-              CLIENT_A, RouteNextHopEntry(v6nexthops));
+  u1.addRoute(
+      rid,
+      IPAddress("2001:1::"),
+      64,
+      CLIENT_A,
+      RouteNextHopEntry(v6nexthops, DISTANCE));
 
   auto tables2 = u1.updateDone();
   ASSERT_NE(nullptr, tables2);
@@ -1675,25 +1879,25 @@ TEST(Route, dropRoutes) {
   auto r1 = GET_ROUTE_V4(tables2, rid, "10.10.10.10/32");
   EXPECT_RESOLVED(r1);
   EXPECT_FALSE(r1->isConnected());
-  EXPECT_TRUE(r1->has(CLIENT_A, RouteNextHopEntry(DROP)));
-  EXPECT_EQ(r1->getForwardInfo(), RouteNextHopEntry(DROP));
+  EXPECT_TRUE(r1->has(CLIENT_A, RouteNextHopEntry(DROP, DISTANCE)));
+  EXPECT_EQ(r1->getForwardInfo(), RouteNextHopEntry(DROP, DISTANCE));
 
   auto r2 = GET_ROUTE_V4(tables2, rid, "20.20.20.0/24");
   EXPECT_RESOLVED(r2);
   EXPECT_FALSE(r2->isConnected());
-  EXPECT_FALSE(r2->has(CLIENT_A, RouteNextHopEntry(DROP)));
-  EXPECT_EQ(r2->getForwardInfo(), RouteNextHopEntry(DROP));
+  EXPECT_FALSE(r2->has(CLIENT_A, RouteNextHopEntry(DROP, DISTANCE)));
+  EXPECT_EQ(r2->getForwardInfo(), RouteNextHopEntry(DROP, DISTANCE));
 
   auto r3 = GET_ROUTE_V6(tables2, rid, "2001::0/128");
   EXPECT_RESOLVED(r3);
   EXPECT_FALSE(r3->isConnected());
-  EXPECT_TRUE(r3->has(CLIENT_A, RouteNextHopEntry(DROP)));
-  EXPECT_EQ(r3->getForwardInfo(), RouteNextHopEntry(DROP));
+  EXPECT_TRUE(r3->has(CLIENT_A, RouteNextHopEntry(DROP, DISTANCE)));
+  EXPECT_EQ(r3->getForwardInfo(), RouteNextHopEntry(DROP, DISTANCE));
 
   auto r4 = GET_ROUTE_V6(tables2, rid, "2001:1::/64");
   EXPECT_RESOLVED(r4);
   EXPECT_FALSE(r4->isConnected());
-  EXPECT_EQ(r4->getForwardInfo(), RouteNextHopEntry(DROP));
+  EXPECT_EQ(r4->getForwardInfo(), RouteNextHopEntry(DROP, DISTANCE));
 }
 
 TEST(Route, toCPURoutes) {
@@ -1702,17 +1906,33 @@ TEST(Route, toCPURoutes) {
   auto tables1 = stateV1->getRouteTables();
   auto rid = RouterID(0);
   RouteUpdater u1(tables1);
-  u1.addRoute(rid, IPAddress("10.10.10.10"), 32,
-              CLIENT_A, RouteNextHopEntry(TO_CPU));
-  u1.addRoute(rid, IPAddress("2001::0"), 128,
-              CLIENT_A, RouteNextHopEntry(TO_CPU));
+  u1.addRoute(
+      rid,
+      IPAddress("10.10.10.10"),
+      32,
+      CLIENT_A,
+      RouteNextHopEntry(TO_CPU, DISTANCE));
+  u1.addRoute(
+      rid,
+      IPAddress("2001::0"),
+      128,
+      CLIENT_A,
+      RouteNextHopEntry(TO_CPU, DISTANCE));
   // Check recursive resolution for to_cpu routes
   RouteNextHops v4nexthops = makeNextHops({"10.10.10.10"});
-  u1.addRoute(rid, IPAddress("20.20.20.0"), 24 ,
-              CLIENT_A, RouteNextHopEntry(v4nexthops));
+  u1.addRoute(
+      rid,
+      IPAddress("20.20.20.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(v4nexthops, DISTANCE));
   RouteNextHops v6nexthops = makeNextHops({"2001::0"});
-  u1.addRoute(rid, IPAddress("2001:1::"), 64,
-              CLIENT_A, RouteNextHopEntry(v6nexthops));
+  u1.addRoute(
+      rid,
+      IPAddress("2001:1::"),
+      64,
+      CLIENT_A,
+      RouteNextHopEntry(v6nexthops, DISTANCE));
 
   auto tables2 = u1.updateDone();
   ASSERT_NE(nullptr, tables2);
@@ -1722,33 +1942,32 @@ TEST(Route, toCPURoutes) {
   auto r1 = GET_ROUTE_V4(tables2, rid, "10.10.10.10/32");
   EXPECT_RESOLVED(r1);
   EXPECT_FALSE(r1->isConnected());
-  EXPECT_TRUE(r1->has(CLIENT_A, RouteNextHopEntry(TO_CPU)));
-  EXPECT_EQ(r1->getForwardInfo(), RouteNextHopEntry(TO_CPU));
+  EXPECT_TRUE(r1->has(CLIENT_A, RouteNextHopEntry(TO_CPU, DISTANCE)));
+  EXPECT_EQ(r1->getForwardInfo(), RouteNextHopEntry(TO_CPU, DISTANCE));
 
   auto r2 = GET_ROUTE_V4(tables2, rid, "20.20.20.0/24");
   EXPECT_RESOLVED(r2);
   EXPECT_FALSE(r2->isConnected());
-  EXPECT_EQ(r2->getForwardInfo(), RouteNextHopEntry(TO_CPU));
+  EXPECT_EQ(r2->getForwardInfo(), RouteNextHopEntry(TO_CPU, DISTANCE));
 
   auto r3 = GET_ROUTE_V6(tables2, rid, "2001::0/128");
   EXPECT_RESOLVED(r3);
   EXPECT_FALSE(r3->isConnected());
-  EXPECT_TRUE(r3->has(CLIENT_A, RouteNextHopEntry(TO_CPU)));
-  EXPECT_EQ(r3->getForwardInfo(), RouteNextHopEntry(TO_CPU));
+  EXPECT_TRUE(r3->has(CLIENT_A, RouteNextHopEntry(TO_CPU, DISTANCE)));
+  EXPECT_EQ(r3->getForwardInfo(), RouteNextHopEntry(TO_CPU, DISTANCE));
 
   auto r5 = GET_ROUTE_V6(tables2, rid, "2001:1::/64");
   EXPECT_RESOLVED(r5);
   EXPECT_FALSE(r5->isConnected());
-  EXPECT_EQ(r5->getForwardInfo(), RouteNextHopEntry(TO_CPU));
+  EXPECT_EQ(r5->getForwardInfo(), RouteNextHopEntry(TO_CPU, DISTANCE));
 }
 
 // Very basic test for serialization/deseralization of Routes
 TEST(Route, serializeRoute) {
-
   ClientID clientId = ClientID(1);
   auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
   Route<IPAddressV4> rt(makePrefixV4("1.2.3.4/32"));
-  rt.update(clientId, RouteNextHopEntry(nxtHops));
+  rt.update(clientId, RouteNextHopEntry(nxtHops, DISTANCE));
 
   // to folly dynamic
   folly::dynamic obj = rt.toFollyDynamic();
@@ -1760,7 +1979,7 @@ TEST(Route, serializeRoute) {
   folly::dynamic obj2 = folly::parseJson(json, serOpts);
   // back to Route object
   auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
-  ASSERT_TRUE(rt2->has(clientId, RouteNextHopEntry(nxtHops)));
+  ASSERT_TRUE(rt2->has(clientId, RouteNextHopEntry(nxtHops, DISTANCE)));
 }
 
 TEST(Route, serializeRouteTable) {
@@ -1778,10 +1997,14 @@ TEST(Route, serializeRouteTable) {
   RouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
 
   RouteUpdater u2(stateV1->getRouteTables());
-  u2.addRoute(rid, r1.network, r1.mask, CLIENT_A, RouteNextHopEntry(nhop1));
-  u2.addRoute(rid, r2.network, r2.mask, CLIENT_A, RouteNextHopEntry(nhop2));
-  u2.addRoute(rid, r3.network, r3.mask, CLIENT_A, RouteNextHopEntry(nhop1));
-  u2.addRoute(rid, r4.network, r4.mask, CLIENT_A, RouteNextHopEntry(nhop2));
+  u2.addRoute(
+      rid, r1.network, r1.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
+  u2.addRoute(
+      rid, r2.network, r2.mask, CLIENT_A, RouteNextHopEntry(nhop2, DISTANCE));
+  u2.addRoute(
+      rid, r3.network, r3.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
+  u2.addRoute(
+      rid, r4.network, r4.mask, CLIENT_A, RouteNextHopEntry(nhop2, DISTANCE));
   auto tables2 = u2.updateDone();
   ASSERT_NE(nullptr, tables2);
   EXPECT_NODEMAP_MATCH(tables2);
@@ -1808,29 +2031,29 @@ TEST(RouteTypes, toFromRouteNextHops) {
   RouteNextHops nhs;
 
   // Non v4 link-local address without interface scoping
-  nhs.emplace(RouteNextHop::createNextHop(
-                  folly::IPAddress("10.0.0.1"), folly::none));
+  nhs.emplace(
+      RouteNextHop::createNextHop(folly::IPAddress("10.0.0.1"), folly::none));
 
   // v4 link-local address with/without interface scoping
   nhs.emplace(RouteNextHop::createNextHop(
-                  folly::IPAddress("169.254.0.1"), folly::none));
+      folly::IPAddress("169.254.0.1"), folly::none));
   nhs.emplace(RouteNextHop::createNextHop(
-                  folly::IPAddress("169.254.0.2"), InterfaceID(2)));
+      folly::IPAddress("169.254.0.2"), InterfaceID(2)));
 
   // Non v6 link-local address without interface scoping
   nhs.emplace(RouteNextHop::createNextHop(
-                  folly::IPAddress("face:b00c::1"), folly::none));
+      folly::IPAddress("face:b00c::1"), folly::none));
 
   // v6 link-local address with interface scoping
-  nhs.emplace(RouteNextHop::createNextHop(
-                  folly::IPAddress("fe80::1"), InterfaceID(4)));
+  nhs.emplace(
+      RouteNextHop::createNextHop(folly::IPAddress("fe80::1"), InterfaceID(4)));
 
   // Conver to thrift object
   auto nhAddrs = util::fromRouteNextHops(nhs);
   ASSERT_EQ(5, nhAddrs.size());
 
   auto verify = [&](const std::string& ipaddr,
-                    folly::Optional<InterfaceID> intf){
+                    folly::Optional<InterfaceID> intf) {
     auto bAddr = facebook::network::toBinaryAddress(folly::IPAddress(ipaddr));
     if (intf.hasValue()) {
       bAddr.__isset.ifName = true;
@@ -1853,7 +2076,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
 
   verify("10.0.0.1", folly::none);
   verify("169.254.0.1", folly::none);
-  verify("169.254.0.2", folly::none);   // interface scoping is ignored for v4
+  verify("169.254.0.2", folly::none); // interface scoping is ignored for v4
   verify("face:b00c::1", folly::none);
   verify("fe80::1", InterfaceID(4));
 
@@ -1894,7 +2117,7 @@ TEST(Route, nodeMapMatchesRadixTree) {
   auto rid = RouterID(0);
   RouteNextHops nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
   RouteNextHops nhop2 = makeNextHops({"2.2.2.10"}); // resolved by intf 2
-  RouteNextHops nonResolvedHops = makeNextHops({"1.1.3.10"}); //Non-resolved
+  RouteNextHops nonResolvedHops = makeNextHops({"1.1.3.10"}); // Non-resolved
 
   RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
   RouteV4::Prefix r2{IPAddressV4("20.1.1.0"), 24};
@@ -1905,12 +2128,20 @@ TEST(Route, nodeMapMatchesRadixTree) {
 
   // add route case
   RouteUpdater u1(tables1);
-  u1.addRoute(rid, r1.network, r1.mask, CLIENT_A, RouteNextHopEntry(nhop1));
-  u1.addRoute(rid, r2.network, r2.mask, CLIENT_A, RouteNextHopEntry(nhop2));
-  u1.addRoute(rid, r3.network, r3.mask, CLIENT_A, RouteNextHopEntry(nhop1));
-  u1.addRoute(rid, r4.network, r4.mask, CLIENT_A, RouteNextHopEntry(nhop2));
-  u1.addRoute(rid, r5.network, r5.mask, CLIENT_A,
-              RouteNextHopEntry(nonResolvedHops));
+  u1.addRoute(
+      rid, r1.network, r1.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
+  u1.addRoute(
+      rid, r2.network, r2.mask, CLIENT_A, RouteNextHopEntry(nhop2, DISTANCE));
+  u1.addRoute(
+      rid, r3.network, r3.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
+  u1.addRoute(
+      rid, r4.network, r4.mask, CLIENT_A, RouteNextHopEntry(nhop2, DISTANCE));
+  u1.addRoute(
+      rid,
+      r5.network,
+      r5.mask,
+      CLIENT_A,
+      RouteNextHopEntry(nonResolvedHops, DISTANCE));
   auto tables2 = u1.updateDone();
   ASSERT_NE(nullptr, tables2);
   // check every node in nodeMap_ also matches node in rib_, and every node
@@ -1928,7 +2159,8 @@ TEST(Route, nodeMapMatchesRadixTree) {
 
   // update route case, resolve previous nonResolved route with prefix r5
   RouteUpdater u3(tables3);
-  u3.addRoute(rid, r6.network, r6.mask, CLIENT_A, RouteNextHopEntry(nhop1));
+  u3.addRoute(
+      rid, r6.network, r6.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
   auto tables4 = u3.updateDone();
   EXPECT_NODEMAP_MATCH(tables4);
   ASSERT_NE(nullptr, tables4);

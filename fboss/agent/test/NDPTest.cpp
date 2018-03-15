@@ -140,8 +140,12 @@ shared_ptr<SwitchState> addMockRouteTable(shared_ptr<SwitchState> state) {
                        IPAddress("5555:db00:2110:3004::1")));
 
   RouteUpdater updater(state->getRouteTables());
-  updater.addRoute(RouterID(0), IPAddressV6("1111:1111:1:1::1"), 64,
-                   ClientID(1001), RouteNextHopEntry(nexthops));
+  updater.addRoute(
+      RouterID(0),
+      IPAddressV6("1111:1111:1:1::1"),
+      64,
+      ClientID(1001),
+      RouteNextHopEntry(nexthops, AdminDistance::MAX_ADMIN_DISTANCE));
 
   auto newRt = updater.updateDone();
   auto newState = state->clone();

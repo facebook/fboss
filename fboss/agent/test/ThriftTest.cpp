@@ -268,24 +268,28 @@ TEST(ThriftTest, syncFib) {
 
   // The prefixB4 route should have client 20 only
   auto rt1 = GET_ROUTE_V4(tables3, rid, prefixB4);
-  ASSERT_TRUE(rt1->getFields()
-    ->nexthopsmulti.isSame(ClientID(20),
-      RouteNextHopEntry(makeNextHops({cli2_nhop4}))));
+  ASSERT_TRUE(rt1->getFields()->nexthopsmulti.isSame(
+      ClientID(20),
+      RouteNextHopEntry(
+          makeNextHops({cli2_nhop4}), AdminDistance::MAX_ADMIN_DISTANCE)));
   auto bestNextHops = rt1->getBestEntry().second->getNextHopSet();
   EXPECT_EQ(IPAddress(cli2_nhop4), bestNextHops.begin()->addr());
 
   // The prefixC6 route should have clients 20 & 30, and a new value for
   // client 10
   auto rt2 = GET_ROUTE_V6(tables3, rid, prefixC6);
-  ASSERT_TRUE(rt2->getFields()
-    ->nexthopsmulti.isSame(ClientID(20),
-      RouteNextHopEntry(makeNextHops({cli2_nhop6}))));
-  ASSERT_TRUE(rt2->getFields()
-    ->nexthopsmulti.isSame(ClientID(30),
-      RouteNextHopEntry(makeNextHops({cli3_nhop6}))));
-  ASSERT_TRUE(rt2->getFields()
-    ->nexthopsmulti.isSame(ClientID(10),
-      RouteNextHopEntry(makeNextHops({cli1_nhop6b}))));
+  ASSERT_TRUE(rt2->getFields()->nexthopsmulti.isSame(
+      ClientID(20),
+      RouteNextHopEntry(
+          makeNextHops({cli2_nhop6}), AdminDistance::MAX_ADMIN_DISTANCE)));
+  ASSERT_TRUE(rt2->getFields()->nexthopsmulti.isSame(
+      ClientID(30),
+      RouteNextHopEntry(
+          makeNextHops({cli3_nhop6}), AdminDistance::MAX_ADMIN_DISTANCE)));
+  ASSERT_TRUE(rt2->getFields()->nexthopsmulti.isSame(
+      ClientID(10),
+      RouteNextHopEntry(
+          makeNextHops({cli1_nhop6b}), AdminDistance::MAX_ADMIN_DISTANCE)));
 
   // The prefixD4 and prefixD6 routes should have been created
   GET_ROUTE_V4(tables3, rid, prefixD4);

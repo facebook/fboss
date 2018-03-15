@@ -324,14 +324,17 @@ void RouteUpdater::resolveOne(RouteT* route, ClonedRib* ribCloned) {
   }
 
   if (!fwd.empty()) {
-    route->setResolved(RouteNextHopEntry(std::move(fwd)));
+    route->setResolved(
+        RouteNextHopEntry(std::move(fwd), AdminDistance::MAX_ADMIN_DISTANCE));
     if (clientId == kInterfaceRouteClientId) {
       route->setConnected();
     }
   } else if (hasToCpu) {
-    route->setResolved(RouteNextHopEntry(RouteForwardAction::TO_CPU));
+    route->setResolved(RouteNextHopEntry(
+        RouteForwardAction::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE));
   } else if (hasDrop) {
-    route->setResolved(RouteNextHopEntry(RouteForwardAction::DROP));
+    route->setResolved(RouteNextHopEntry(
+        RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
   } else {
     route->setUnresolvable();
   }

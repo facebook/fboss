@@ -26,20 +26,15 @@ class RouteNextHopEntry {
   using Action = RouteForwardAction;
   using NextHopSet = boost::container::flat_set<RouteNextHop>;
 
-  explicit RouteNextHopEntry(Action action = Action::DROP,
-      AdminDistance distance = AdminDistance::MAX_ADMIN_DISTANCE)
-      : adminDistance_(distance),
-        action_(action) {
+  RouteNextHopEntry(Action action, AdminDistance distance)
+      : adminDistance_(distance), action_(action) {
     CHECK_NE(action_, Action::NEXTHOPS);
   }
 
-  explicit RouteNextHopEntry(NextHopSet nhopSet,
-      AdminDistance distance=AdminDistance::MAX_ADMIN_DISTANCE);
+  RouteNextHopEntry(NextHopSet nhopSet, AdminDistance distance);
 
-  explicit RouteNextHopEntry(RouteNextHop nhop,
-      AdminDistance distance=AdminDistance::MAX_ADMIN_DISTANCE)
-      : adminDistance_(distance),
-        action_(Action::NEXTHOPS) {
+  RouteNextHopEntry(RouteNextHop nhop, AdminDistance distance)
+      : adminDistance_(distance), action_(Action::NEXTHOPS) {
     nhopSet_.emplace(std::move(nhop));
   }
 

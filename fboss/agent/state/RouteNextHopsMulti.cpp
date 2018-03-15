@@ -78,7 +78,12 @@ std::string RouteNextHopsMulti::str() const {
 }
 
 void RouteNextHopsMulti::update(ClientID clientId, RouteNextHopEntry nhe) {
-  map_[clientId] = std::move(nhe);
+  auto iter = map_.find(clientId);
+  if (iter == map_.end()) {
+    map_.insert(std::make_pair(clientId, std::move(nhe)));
+  } else {
+    iter->second = std::move(nhe);
+  }
 
   // Let's check whether this has a preferred admin distance
   if (map_.size() == 1) {
