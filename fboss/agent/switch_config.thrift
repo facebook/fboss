@@ -246,8 +246,8 @@ enum QueueScheduling {
 // formula for the probability at queue length m+k is:
 // P(m+k) = k/(M-m) for k between 0 and M-m
 struct LinearQueueCongestionDetection {
-  1: i32 minimumLength
-  2: i32 maximumLength
+  1: required i32 minimumLength
+  2: required i32 maximumLength
 }
 
 // Determines when we will consider a queue to be experiencing congestion
@@ -276,9 +276,9 @@ struct QueueCongestionBehavior {
 // Follows the principles outlined in RFC 7567.
 struct ActiveQueueManagement {
   // How we answer the question "Is the queue congested?"
-  1: QueueCongestionDetection detection
+  1: required QueueCongestionDetection detection
   // How we handle packets on queues experiencing congestion
-  2: QueueCongestionBehavior behavior
+  2: required QueueCongestionBehavior behavior
 }
 
 // It is only necessary to define PortQueues for those that you want to

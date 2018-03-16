@@ -113,6 +113,15 @@ foreach(lang ${THRIFT_LANGS})
         ""  # deps
         )
     my_thrift_library(
+        "switch_state" #file_name
+        "" #services
+        "${lang}" #language
+        "json,optionals" #options
+        "${CMAKE_SOURCE_DIR}/fboss/agent" #file_path
+        "${THRIFT_DIR}/fboss/agent" #output_path
+        ""  # deps
+        )
+    my_thrift_library(
         "transceiver" #file_name
         "" #services
         "${lang}" #language

@@ -14,6 +14,7 @@
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -117,6 +118,119 @@ TEST(Port, applyConfig) {
   config.ports[0].logicalID = 2;
   EXPECT_THROW(
     publishAndApplyConfig(stateV3, &config, platform.get()), FbossError);
+}
+
+TEST(Port, ToFromJSON) {
+  std::string jsonStr = R"(
+        {
+          "queues" : [
+            {
+                "streamType": "UNICAST",
+                "weight": 1,
+                "reserved": 3328,
+                "scheduling": "WEIGHTED_ROUND_ROBIN",
+                "id": 0,
+                "scalingFactor": "ONE"
+            },
+            {
+                "streamType": "UNICAST",
+                "weight": 9,
+                "reserved": 19968,
+                "scheduling": "WEIGHTED_ROUND_ROBIN",
+                "id": 1,
+                "scalingFactor": "EIGHT"
+            },
+            {
+                "streamType": "UNICAST",
+                "scheduling": "WEIGHTED_ROUND_ROBIN",
+                "id": 2,
+                "weight": 1
+            },
+            {
+                "streamType": "UNICAST",
+                "scheduling": "WEIGHTED_ROUND_ROBIN",
+                "id": 3,
+                "weight": 1
+            }
+          ],
+          "sFlowIngressRate" : 100,
+          "vlanMemberShips" : {
+            "2000" : {
+              "tagged" : true
+            }
+          },
+          "rxPause" : true,
+          "portState" : "ENABLED",
+          "sFlowEgressRate" : 200,
+          "portDescription" : "TEST",
+          "portName" : "eth1/1/1",
+          "portId" : 100,
+          "portOperState" : true,
+          "portMaxSpeed" : "XG",
+          "ingressVlan" : 2000,
+          "portSpeed" : "XG",
+          "portFEC" : "OFF",
+          "txPause" : true
+        }
+  )";
+  auto port = Port::fromJson(jsonStr);
+
+  EXPECT_EQ(100, port->getSflowIngressRate());
+  EXPECT_EQ(200, port->getSflowEgressRate());
+  auto vlans = port->getVlans();
+  EXPECT_EQ(1, vlans.size());
+  EXPECT_TRUE(vlans.at(VlanID(2000)).tagged);
+  EXPECT_TRUE(port->getPause().rx);
+  EXPECT_EQ(cfg::PortState::ENABLED, port->getAdminState());
+  EXPECT_EQ("TEST", port->getDescription());
+  EXPECT_EQ("eth1/1/1", port->getName());
+  EXPECT_EQ(PortID{100}, port->getID());
+  EXPECT_EQ(PortFields::OperState::UP, port->getOperState());
+  EXPECT_EQ(VlanID(2000), port->getIngressVlan());
+  EXPECT_EQ(cfg::PortSpeed::XG, port->getSpeed());
+  EXPECT_EQ(cfg::PortFEC::OFF, port->getFEC());
+  EXPECT_TRUE(port->getPause().tx);
+
+  auto queues = port->getPortQueues();
+  EXPECT_EQ(4, queues.size());
+
+  EXPECT_EQ(cfg::StreamType::UNICAST, queues[0]->getStreamType());
+  EXPECT_EQ(3328, queues[0]->getReservedBytes().value());
+  EXPECT_EQ(1, queues[0]->getWeight());
+  EXPECT_EQ(0, queues[0]->getID());
+  EXPECT_EQ(
+      cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN, queues[0]->getScheduling());
+  EXPECT_EQ(cfg::MMUScalingFactor::ONE, queues[0]->getScalingFactor().value());
+
+  EXPECT_EQ(cfg::StreamType::UNICAST, queues[1]->getStreamType());
+  EXPECT_EQ(19968, queues[1]->getReservedBytes().value());
+  EXPECT_EQ(9, queues[1]->getWeight());
+  EXPECT_EQ(1, queues[1]->getID());
+  EXPECT_EQ(
+      cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN, queues[1]->getScheduling());
+  EXPECT_EQ(
+      cfg::MMUScalingFactor::EIGHT, queues[1]->getScalingFactor().value());
+
+  EXPECT_EQ(cfg::StreamType::UNICAST, queues[2]->getStreamType());
+  EXPECT_FALSE(queues[2]->getReservedBytes().hasValue());
+  EXPECT_EQ(1, queues[2]->getWeight());
+  EXPECT_EQ(2, queues[2]->getID());
+  EXPECT_EQ(
+      cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN, queues[2]->getScheduling());
+  EXPECT_FALSE(queues[2]->getScalingFactor().hasValue());
+
+  EXPECT_EQ(cfg::StreamType::UNICAST, queues[3]->getStreamType());
+  EXPECT_FALSE(queues[3]->getReservedBytes().hasValue());
+  EXPECT_EQ(1, queues[3]->getWeight());
+  EXPECT_EQ(3, queues[3]->getID());
+  EXPECT_EQ(
+      cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN, queues[3]->getScheduling());
+  EXPECT_FALSE(queues[3]->getScalingFactor().hasValue());
+
+  auto dyn1 = port->toFollyDynamic();
+  auto dyn2 = folly::parseJson(jsonStr);
+
+  EXPECT_EQ(dyn1, dyn2);
 }
 
 TEST(Port, initDefaultConfig) {

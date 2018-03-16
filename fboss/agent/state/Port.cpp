@@ -18,82 +18,26 @@
 using folly::to;
 using std::string;
 
-namespace {
-constexpr auto kPortId = "portId";
-constexpr auto kPortName = "portName";
-constexpr auto kPortDescription = "portDescription";
-constexpr auto kPortState = "portState";
-constexpr auto kPortOperState = "portOperState";
-constexpr auto kIngressVlan = "ingressVlan";
-constexpr auto kPortSpeed = "portSpeed";
-constexpr auto kPortTxPause = "txPause";
-constexpr auto kPortRxPause = "rxPause";
-constexpr auto kVlanMemberships = "vlanMemberShips";
-constexpr auto kVlanId = "vlanId";
-constexpr auto kVlanInfo = "vlanInfo";
-constexpr auto kTagged = "tagged";
-constexpr auto kSflowIngressRate = "sFlowIngressRate";
-constexpr auto kSflowEgressRate = "sFlowEgressRate";
-constexpr auto kQueues = "queues";
-constexpr auto kPortFEC = "portFEC";
-}
-
 namespace facebook { namespace fboss {
 
 
-folly::dynamic PortFields::VlanInfo::toFollyDynamic() const {
-  folly::dynamic vlanInfo = folly::dynamic::object;
-  vlanInfo[kTagged] = tagged;
-  return vlanInfo;
+state::VlanInfo PortFields::VlanInfo::toThrift() const {
+  state::VlanInfo vlanThrift;
+  vlanThrift.tagged = tagged;
+  return vlanThrift;
 }
 
+// static
 PortFields::VlanInfo
-PortFields::VlanInfo::fromFollyDynamic(const folly::dynamic& json) {
-  return VlanInfo(json[kTagged].asBool());
+PortFields::VlanInfo::fromThrift(const state::VlanInfo& vlanThrift) {
+  return VlanInfo(vlanThrift.tagged);
 }
 
-folly::dynamic PortFields::toFollyDynamic() const {
-  folly::dynamic port = folly::dynamic::object;
-  port[kPortId] = static_cast<uint16_t>(id);
-  port[kPortName] = name;
-  port[kPortDescription] = description;
-  auto itrAdminState  = cfg::_PortState_VALUES_TO_NAMES.find(adminState);
-  CHECK(itrAdminState != cfg::_PortState_VALUES_TO_NAMES.end());
-  port[kPortState] = itrAdminState->second;
-  port[kPortOperState] = operState == OperState::UP;
-  port[kIngressVlan] = static_cast<uint16_t>(ingressVlan);
-  auto itr_speed  = cfg::_PortSpeed_VALUES_TO_NAMES.find(speed);
-  CHECK(itr_speed != cfg::_PortSpeed_VALUES_TO_NAMES.end());
-  port[kPortSpeed] = itr_speed->second;
+// static
+PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
+  PortFields port(PortID(portThrift.portId), portThrift.portName);
+  port.description = portThrift.portDescription;
 
-  // needed for backwards compatibility
-  // TODO(aeckert): t24117229 remove this after next version is pushed
-  port["portMaxSpeed"] = itr_speed->second;
-
-  auto itr_port_fec  = cfg::_PortFEC_VALUES_TO_NAMES.find(fec);
-  CHECK(itr_port_fec != cfg::_PortFEC_VALUES_TO_NAMES.end())
-     << "Unexpected port FEC: " << static_cast<int>(fec);
-  port[kPortFEC] = itr_port_fec->second;
-  port[kPortTxPause] = pause.tx;
-  port[kPortRxPause] = pause.rx;
-  port[kVlanMemberships] = folly::dynamic::object;
-  for (const auto& vlan: vlans) {
-    port[kVlanMemberships][to<string>(vlan.first)] =
-      vlan.second.toFollyDynamic();
-  }
-  port[kSflowIngressRate] = sFlowIngressRate;
-  port[kSflowEgressRate] = sFlowEgressRate;
-  port[kQueues] = folly::dynamic::array;
-  for (const auto& queue : queues) {
-    port[kQueues].push_back(queue->toFollyDynamic());
-  }
-  return port;
-}
-
-PortFields PortFields::fromFollyDynamic(const folly::dynamic& portJson) {
-  PortFields port(PortID(portJson[kPortId].asInt()),
-      portJson[kPortName].asString());
-  port.description = portJson[kPortDescription].asString();
   // For backwards compatibility, we still need the ability to read in
   // both possible names for the admin port state. The production agent
   // still writes out POWER_DOWN/UP instead of DISABLED/ENABLED. After
@@ -106,50 +50,96 @@ PortFields PortFields::fromFollyDynamic(const folly::dynamic& portJson) {
       {"ENABLED", cfg::PortState::ENABLED},
       {"UP", cfg::PortState::ENABLED},
   };
-  auto itrAdminState = transitionAdminStateMap.find(
-    portJson[kPortState].asString());
-  CHECK(itrAdminState != transitionAdminStateMap.end());
+  auto itrAdminState = transitionAdminStateMap.find(portThrift.portState);
+  CHECK(itrAdminState != transitionAdminStateMap.end())
+      << "Invalid port state: " << portThrift.portState;
   port.adminState = itrAdminState->second;
-  port.operState =
-      OperState(portJson.getDefault(kPortOperState, false).asBool());
-  port.ingressVlan = VlanID(portJson[kIngressVlan].asInt());
-  auto itr_speed  = cfg::_PortSpeed_NAMES_TO_VALUES.find(
-      portJson[kPortSpeed].asString().c_str());
-  CHECK(itr_speed != cfg::_PortSpeed_NAMES_TO_VALUES.end());
-  port.speed = cfg::PortSpeed(itr_speed->second);
-  auto itr_port_fec = cfg::_PortFEC_NAMES_TO_VALUES.find(
-    portJson.getDefault(kPortFEC, "OFF").asString().c_str());
-  CHECK(itr_port_fec != cfg::_PortFEC_NAMES_TO_VALUES.end());
-  port.fec = cfg::PortFEC(itr_port_fec->second);
-  auto tx_pause_itr = portJson.find(kPortTxPause);
-  if (tx_pause_itr != portJson.items().end()) {
-    port.pause.tx = tx_pause_itr->second.asBool();
+
+  port.operState = OperState(portThrift.portOperState);
+  port.ingressVlan = VlanID(portThrift.ingressVlan);
+
+  auto itrSpeed =
+      cfg::_PortSpeed_NAMES_TO_VALUES.find(portThrift.portSpeed.c_str());
+  CHECK(itrSpeed != cfg::_PortSpeed_NAMES_TO_VALUES.end())
+      << "Invalid port speed: " << portThrift.portSpeed;
+  port.speed = cfg::PortSpeed(itrSpeed->second);
+
+  auto itrPortFec =
+      cfg::_PortFEC_NAMES_TO_VALUES.find(portThrift.portFEC.c_str());
+  CHECK(itrPortFec != cfg::_PortFEC_NAMES_TO_VALUES.end())
+      << "Unexpected FEC value: " << portThrift.portFEC;
+  port.fec = cfg::PortFEC(itrPortFec->second);
+
+  port.pause.tx = portThrift.txPause;
+  port.pause.rx = portThrift.rxPause;
+
+  for (const auto& vlanInfo : portThrift.vlanMemberShips) {
+    port.vlans.emplace(
+        VlanID(to<uint32_t>(vlanInfo.first)),
+        VlanInfo::fromThrift(vlanInfo.second));
   }
-  auto rx_pause_itr = portJson.find(kPortRxPause);
-  if (rx_pause_itr != portJson.items().end()) {
-    port.pause.tx = rx_pause_itr->second.asBool();
+
+  port.sFlowIngressRate = portThrift.sFlowIngressRate;
+  port.sFlowEgressRate = portThrift.sFlowEgressRate;
+
+  for (const auto& queue : portThrift.queues) {
+    port.queues.push_back(
+        std::make_shared<PortQueue>(PortQueueFields::fromThrift(queue)));
   }
-  for (const auto& vlanInfo: portJson[kVlanMemberships].items()) {
-    port.vlans.emplace(VlanID(to<uint32_t>(vlanInfo.first.asString())),
-      VlanInfo::fromFollyDynamic(vlanInfo.second));
+
+  return port;
+}
+
+state::PortFields PortFields::toThrift() const {
+  state::PortFields port;
+
+  port.portId = id;
+  port.portName = name;
+  port.portDescription = description;
+
+  // TODO: store admin state as enum, not string?
+  auto itrAdminState  = cfg::_PortState_VALUES_TO_NAMES.find(adminState);
+  CHECK(itrAdminState != cfg::_PortState_VALUES_TO_NAMES.end())
+      << "Unexpected admin state: " << static_cast<int>(adminState);
+  port.portState = itrAdminState->second;
+
+  port.portOperState = operState == OperState::UP;
+  port.ingressVlan = ingressVlan;
+
+  // TODO: store speed as enum, not string?
+  auto itrSpeed  = cfg::_PortSpeed_VALUES_TO_NAMES.find(speed);
+  CHECK(itrSpeed != cfg::_PortSpeed_VALUES_TO_NAMES.end())
+      << "Unexpected port speed: " << static_cast<int>(speed);
+  port.portSpeed = itrSpeed->second;
+
+  // TODO(aeckert): t24117229 remove this after next version is pushed
+  port.portMaxSpeed = port.portSpeed;
+
+  auto itrPortFec  = cfg::_PortFEC_VALUES_TO_NAMES.find(fec);
+  CHECK(itrPortFec != cfg::_PortFEC_VALUES_TO_NAMES.end())
+      << "Unexpected port FEC: " << static_cast<int>(fec);
+  port.portFEC = itrPortFec->second;
+
+  port.txPause = pause.tx;
+  port.rxPause = pause.rx;
+
+  for (const auto& vlan: vlans) {
+    port.vlanMemberShips[to<string>(vlan.first)] = vlan.second.toThrift();
   }
-  if (portJson.count(kSflowIngressRate) > 0) {
-    port.sFlowIngressRate = portJson[kSflowIngressRate].asInt();
+
+  port.sFlowIngressRate = sFlowIngressRate;
+  port.sFlowEgressRate = sFlowEgressRate;
+
+  for (const auto& queue : queues) {
+    // TODO: Use PortQueue::toThrift() when available
+    port.queues.push_back(queue->getFields()->toThrift());
   }
-  if (portJson.count(kSflowEgressRate) > 0) {
-    port.sFlowEgressRate = portJson[kSflowEgressRate].asInt();
-  }
-  if (portJson.find(kQueues) != portJson.items().end()) {
-    for (const auto& queue : portJson[kQueues]) {
-      auto madeQueue = PortQueue::fromFollyDynamic(queue);
-      port.queues.push_back(madeQueue);
-    }
-  }
+
   return port;
 }
 
 Port::Port(PortID id, const std::string& name)
-  : NodeBaseT(id, name) {
+  : ThriftyBaseT(id, name) {
 }
 
 void Port::initDefaultConfigState(cfg::Port* config) const {

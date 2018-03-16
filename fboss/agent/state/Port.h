@@ -10,8 +10,9 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/types.h"
-#include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/Thrifty.h"
 
 #include <boost/container/flat_map.hpp>
 #include <string>
@@ -31,10 +32,11 @@ struct PortFields {
     bool operator!=(const VlanInfo& other) const {
       return !(*this == other);
     }
-    folly::dynamic toFollyDynamic() const;
-    static VlanInfo fromFollyDynamic(const folly::dynamic& json);
+    state::VlanInfo toThrift() const;
+    static VlanInfo fromThrift(state::VlanInfo const&);
     bool tagged;
   };
+
   using VlanMembership = boost::container::flat_map<VlanID, VlanInfo>;
   using QueueConfig = std::vector<std::shared_ptr<PortQueue> >;
 
@@ -50,8 +52,9 @@ struct PortFields {
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
 
-  folly::dynamic toFollyDynamic() const;
-  static PortFields fromFollyDynamic(const folly::dynamic& json);
+  static PortFields fromThrift(state::PortFields const& pf);
+
+  state::PortFields toThrift() const;
 
   const PortID id{0};
   std::string name;
@@ -73,7 +76,7 @@ struct PortFields {
 /*
  * Port stores state about one of the physical ports on the switch.
  */
-class Port : public NodeBaseT<Port, PortFields> {
+class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
  public:
   using VlanInfo = PortFields::VlanInfo;
   using VlanMembership = PortFields::VlanMembership;
@@ -81,21 +84,6 @@ class Port : public NodeBaseT<Port, PortFields> {
   using QueueConfig = PortFields::QueueConfig;
 
   Port(PortID id, const std::string& name);
-
-  static std::shared_ptr<Port>
-  fromFollyDynamic(const folly::dynamic& json) {
-    const auto& fields = PortFields::fromFollyDynamic(json);
-    return std::make_shared<Port>(fields);
-  }
-
-  static std::shared_ptr<Port>
-  fromJson(const folly::fbstring& jsonStr) {
-    return fromFollyDynamic(folly::parseJson(jsonStr));
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    return getFields()->toFollyDynamic();
-  }
 
   /*
    * Initialize a cfg::Port object with the default settings
@@ -221,7 +209,7 @@ class Port : public NodeBaseT<Port, PortFields> {
 
  private:
   // Inherit the constructors required for clone()
-  using NodeBaseT::NodeBaseT;
+  using ThriftyBaseT<state::PortFields, Port, PortFields>::ThriftyBaseT;
   friend class CloneAllocator;
 };
 

@@ -82,21 +82,21 @@ TEST(PortQueue, serializationBadFrom) {
 
   auto noBehavior = serialized;
   noBehavior["aqm"].erase("behavior");
-  EXPECT_THROW(PortQueue::fromFollyDynamic(noBehavior), FbossError);
+  EXPECT_THROW(PortQueue::fromFollyDynamic(noBehavior), std::exception);
 
   auto noDetection = serialized;
   noDetection["aqm"].erase("detection");
-  EXPECT_THROW(PortQueue::fromFollyDynamic(noDetection), FbossError);
+  EXPECT_THROW(PortQueue::fromFollyDynamic(noDetection), std::exception);
 
   auto noLinearMaximumThreshold = serialized;
   noLinearMaximumThreshold["aqm"]["detection"]["linear"].erase("maximumLength");
   EXPECT_THROW(
-      PortQueue::fromFollyDynamic(noLinearMaximumThreshold), FbossError);
+      PortQueue::fromFollyDynamic(noLinearMaximumThreshold), std::exception);
 
   auto noLinearMinimumThreshold = serialized;
   noLinearMinimumThreshold["aqm"]["detection"]["linear"].erase("minimumLength");
   EXPECT_THROW(
-      PortQueue::fromFollyDynamic(noLinearMinimumThreshold), FbossError);
+      PortQueue::fromFollyDynamic(noLinearMinimumThreshold), std::exception);
 }
 
 

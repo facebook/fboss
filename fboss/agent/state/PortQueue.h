@@ -10,9 +10,10 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/types.h"
-#include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/Thrifty.h"
 
 #include <string>
 #include <utility>
@@ -26,6 +27,9 @@ struct PortQueueFields {
   template<typename Fn>
   void forEachChild(Fn) {}
 
+  state::PortQueueFields toThrift() const;
+  static PortQueueFields fromThrift(state::PortQueueFields const&);
+
   folly::dynamic toFollyDynamic() const;
   static PortQueueFields fromFollyDynamic(const folly::dynamic& json);
   uint8_t id{0};
@@ -35,34 +39,15 @@ struct PortQueueFields {
   folly::Optional<int> reservedBytes{folly::none};
   folly::Optional<cfg::MMUScalingFactor> scalingFactor{folly::none};
   folly::Optional<cfg::ActiveQueueManagement> aqm{folly::none};
- private:
-  folly::dynamic aqmToFollyDynamic() const;
-  static cfg::ActiveQueueManagement aqmFromFollyDynamic(
-      const folly::dynamic& json);
 };
 
 /*
  * PortQueue defines the behaviour of the per port queues
  */
 class PortQueue :
-    public NodeBaseT<PortQueue, PortQueueFields> {
+    public ThriftyBaseT<state::PortQueueFields, PortQueue, PortQueueFields> {
  public:
   explicit PortQueue(uint8_t id);
-  static std::shared_ptr<PortQueue>
-  fromFollyDynamic(const folly::dynamic& json) {
-    const auto& fields = PortQueueFields::fromFollyDynamic(json);
-    return std::make_shared<PortQueue>(fields);
-  }
-
-  static std::shared_ptr<PortQueue>
-  fromJson(const folly::fbstring& jsonStr) {
-    return fromFollyDynamic(folly::parseJson(jsonStr));
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    return getFields()->toFollyDynamic();
-  }
-
   bool operator==(const PortQueue& queue) const {
     return getFields()->id == queue.getID() &&
            getFields()->streamType == queue.getStreamType() &&
@@ -130,7 +115,8 @@ class PortQueue :
 
  private:
   // Inherit the constructors required for clone()
-  using NodeBaseT::NodeBaseT;
+  using ThriftyBaseT<state::PortQueueFields, PortQueue, PortQueueFields>::
+      ThriftyBaseT;
   friend class CloneAllocator;
 };
 
