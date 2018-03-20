@@ -16,6 +16,7 @@ from neteng.fboss.ctrl.ttypes import PortOperState
 class PortStatusTest(FbossBaseSystemTest):
     """ Verify that for each port, that the internal state agrees with fb303 """
     def test_port_status_matchfb303(self):
+        self.test_topology.min_hosts_or_skip(1)
         with self.test_topology.switch_thrift() as sw_client:
             for _pnum, pstate in sw_client.getAllPortInfo().items():
                 self.assertEqual(pstate.operState,
