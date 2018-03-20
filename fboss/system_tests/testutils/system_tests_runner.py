@@ -42,8 +42,6 @@ class SystemTestsRunner(unittest.TextTestRunner):
             # the FailedTest again.
             elif isinstance(node, unittest.loader._FailedTest):
                 new_suite.addTest(node)
-            # TestTopologyValidation always needed to be run
             else:
-                if type(node).__name__ in self.tests or \
-                   type(node).__name__ == 'TestTopologyValidation':
+                if type(node).__name__ in self.tests:
                     new_suite.addTest(node)

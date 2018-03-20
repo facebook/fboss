@@ -136,9 +136,10 @@ class FbossBaseSystemTest(unittest.TestCase):
         handler.setFormatter(logging.Formatter(self._format, self._datefmt))
         self.log.addHandler(handler)
 
-
-class TestTopologyValidation(FbossBaseSystemTest):
-    def test_topology_sanity(self):
+    def tearDown(self):
+        '''
+        Make sure our topology is still in healthy state
+        '''
         self.log.info("Testing connection to switch")
         self.assertTrue(self.test_topology.verify_switch())
         self.log.info("Testing connection to hosts")
@@ -188,8 +189,6 @@ def run_tests(options):
     if not options.list_tests:
         options.test_topology = dynamic_generate_test_topology(options)
     suite = unittest.TestSuite()
-    # this test needs to run first
-    suite.addTest(TestTopologyValidation('test_topology_sanity'))
     for directory in options.test_dirs:
         if not os.path.exists(directory):
             raise Exception("Specified test directory '%s' does not exist" %
