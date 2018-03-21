@@ -28,7 +28,9 @@ extern "C" {
 #include "fboss/agent/state/PortQueue.h"
 
 #include <folly/Range.h>
+#include <folly/Synchronized.h>
 #include <mutex>
+#include <utility>
 
 namespace facebook { namespace fboss {
 
@@ -127,7 +129,8 @@ class BcmPort {
    * Update this port's statistics.
    */
   void updateStats();
-  const HwPortStats getStats() const;
+  HwPortStats getPortStats() const;
+  std::chrono::seconds getTimeRetrieved() const;
 
   /**
    * Take actions on this port (especially if it is up), so that it will not
@@ -156,6 +159,19 @@ class BcmPort {
   }
 
  private:
+  class BcmPortStats {
+   public:
+    BcmPortStats() {}
+    explicit BcmPortStats(int numUnicastQueues);
+    BcmPortStats(HwPortStats portStats, std::chrono::seconds seconds);
+    HwPortStats portStats() const;
+    std::chrono::seconds timeRetrieved() const;
+
+   private:
+    HwPortStats portStats_;
+    std::chrono::seconds timeRetrieved_;
+  };
+
   // no copy or assignment
   BcmPort(BcmPort const &) = delete;
   BcmPort& operator=(BcmPort const &) = delete;
@@ -213,7 +229,8 @@ class BcmPort {
   stats::ExportedStatMapImpl::LockableStat outQueueLen_;
   stats::ExportedHistogramMapImpl::LockableHistogram inPktLengths_;
   stats::ExportedHistogramMapImpl::LockableHistogram outPktLengths_;
-  HwPortStats portStats_;
+
+  folly::Synchronized<BcmPortStats> lastPortStats_;
 };
 
 }} // namespace facebook::fboss

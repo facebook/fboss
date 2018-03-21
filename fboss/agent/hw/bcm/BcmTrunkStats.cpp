@@ -19,7 +19,7 @@ namespace facebook {
 namespace fboss {
 
 BcmTrunkStats::BcmTrunkStats(const BcmSwitch* hw)
-    : hw_(hw), memberPorts_(), counters_() {}
+    : hw_(hw), memberPortIDs_(), counters_() {}
 
 void BcmTrunkStats::initialize(
     AggregatePortID aggPortID,
@@ -64,55 +64,100 @@ void BcmTrunkStats::initializeCounter(folly::StringPiece counterKey) {
 
 void BcmTrunkStats::grantMembership(PortID memberPortID) {
   bool inserted;
-  std::tie(std::ignore, inserted) = memberPorts_.wlock()->insert(memberPortID);
+  std::tie(std::ignore, inserted) =
+      memberPortIDs_.wlock()->insert(memberPortID);
   if (!inserted) {
-    LOG(WARNING) << "BcmTrunkStats::memberPorts_ out of sync";
+    LOG(WARNING) << "BcmTrunkStats for AggregatePort " << aggregatePortID_
+                 << " is out of sync for member " << memberPortID;
   }
 }
 
 void BcmTrunkStats::revokeMembership(PortID memberPortID) {
-  auto numErased = memberPorts_.wlock()->erase(memberPortID);
+  auto numErased = memberPortIDs_.wlock()->erase(memberPortID);
 
   if (numErased != 0) {
-    LOG(WARNING) << "BcmTrunkStats::memberPorts_ out of sync";
+    LOG(WARNING) << "BcmTrunkStats for AggregatePort " << aggregatePortID_
+                 << " is out of sync for member " << memberPortID;
   }
 }
 
-const HwTrunkStats BcmTrunkStats::accumulateMemberStats() const {
+std::pair<HwTrunkStats, std::chrono::seconds>
+BcmTrunkStats::accumulateMemberStats() const {
   auto portTable = hw_->getPortTable();
+
+  auto timeRetrieved = std::chrono::duration_cast<std::chrono::seconds>(
+      std::chrono::system_clock::now().time_since_epoch());
+  bool timeRetrievedFromMemberPort = false;
 
   HwTrunkStats cumulativeSum;
   clearHwTrunkStats(cumulativeSum);
 
   {
-    auto lockedMemberPortsPtr = memberPorts_.rlock();
-    for (const auto& memberPort : *lockedMemberPortsPtr) {
-      auto memberStats = portTable->getBcmPortIf(memberPort)->getStats();
+    auto lockedMemberPortIDsPtr = memberPortIDs_.rlock();
+    for (const auto& memberPortID : *lockedMemberPortIDsPtr) {
+      /* There are two data-structures below that need to be thread-safe:
+       *
+       * 1. BcmPort::portStats_ (returned by getPortStats()) because it is read
+       * from and written to in this thread (updateStatsThread) every second AND
+       * may be written to by the update thread (if BcmPort::updateName() is
+       * invoked).
+       *
+       * BcmPort::portStats_ is protected with a read-write lock.
+       *
+       * 2. BcmPortTable::bcmPhysicalPorts_ (over which getBcmPortIf() is
+       * iterating) because it is being read in this thread (updateStatsThread)
+       * every second AND may be written to in the update thread.
+       *
+       * BcmPortTable::bcmPhysicalPorts_ is already accessed concurrently from
+       * updateStatsThread and the update thread in
+       * BcmPortTable::updatePortStats(). Although this is unsound, it turns out
+       * to be safe at run-time because bcmPhysicalPorts_ is not modified after
+       * the application of the SwitchState derived from the Platform.
+       * Because protecting bcmPhysicalPorts_ would be a departure from our
+       * current concurrency model in BcmSwitch, and the data structure is
+       * already being accessed concurrently elsewhere in precisely the same way
+       *  as below, I have foregone locking it below.
+       * In the future, it seems a combination of BcmPortStats and thread-local
+       * storage could be the solution to this ailement.
+       *
+       */
+      auto memberPort = portTable->getBcmPortIf(memberPortID);
+      if (!memberPort) {
+        LOG(WARNING) << "BcmTrunkStats for AggregatePort " << aggregatePortID_
+                     << " is out of sync for member " << memberPort;
+        continue;
+      }
 
-      cumulativeSum.inBytes_            += memberStats.inBytes_;
-      cumulativeSum.inUnicastPkts_      += memberStats.inUnicastPkts_;
-      cumulativeSum.inMulticastPkts_    += memberStats.inMulticastPkts_;
-      cumulativeSum.inBroadcastPkts_    += memberStats.inBroadcastPkts_;
-      cumulativeSum.inDiscards_         += memberStats.inDiscards_;
-      cumulativeSum.inErrors_           += memberStats.inErrors_;
-      cumulativeSum.inPause_            += memberStats.inPause_;
-      cumulativeSum.inIpv4HdrErrors_    += memberStats.inIpv4HdrErrors_;
-      cumulativeSum.inIpv6HdrErrors_    += memberStats.inIpv6HdrErrors_;
+      auto memberStats = memberPort->getPortStats();
+      cumulativeSum.inBytes_ += memberStats.inBytes_;
+      cumulativeSum.inUnicastPkts_ += memberStats.inUnicastPkts_;
+      cumulativeSum.inMulticastPkts_ += memberStats.inMulticastPkts_;
+      cumulativeSum.inBroadcastPkts_ += memberStats.inBroadcastPkts_;
+      cumulativeSum.inDiscards_ += memberStats.inDiscards_;
+      cumulativeSum.inErrors_ += memberStats.inErrors_;
+      cumulativeSum.inPause_ += memberStats.inPause_;
+      cumulativeSum.inIpv4HdrErrors_ += memberStats.inIpv4HdrErrors_;
+      cumulativeSum.inIpv6HdrErrors_ += memberStats.inIpv6HdrErrors_;
       cumulativeSum.inNonPauseDiscards_ += memberStats.inNonPauseDiscards_;
 
-      cumulativeSum.outBytes_                 += memberStats.outBytes_;
-      cumulativeSum.outUnicastPkts_           += memberStats.outUnicastPkts_;
-      cumulativeSum.outMulticastPkts_         += memberStats.outMulticastPkts_;
-      cumulativeSum.outBroadcastPkts_         += memberStats.outBroadcastPkts_;
-      cumulativeSum.outDiscards_              += memberStats.outDiscards_;
-      cumulativeSum.outErrors_                += memberStats.outErrors_;
-      cumulativeSum.outPause_                 += memberStats.outPause_;
+      cumulativeSum.outBytes_ += memberStats.outBytes_;
+      cumulativeSum.outUnicastPkts_ += memberStats.outUnicastPkts_;
+      cumulativeSum.outMulticastPkts_ += memberStats.outMulticastPkts_;
+      cumulativeSum.outBroadcastPkts_ += memberStats.outBroadcastPkts_;
+      cumulativeSum.outDiscards_ += memberStats.outDiscards_;
+      cumulativeSum.outErrors_ += memberStats.outErrors_;
+      cumulativeSum.outPause_ += memberStats.outPause_;
       cumulativeSum.outCongestionDiscardPkts_ +=
           memberStats.outCongestionDiscardPkts_;
+
+      if (!timeRetrievedFromMemberPort) {
+        timeRetrieved = memberPort->getTimeRetrieved();
+        timeRetrievedFromMemberPort = true;
+      }
     }
   }
 
-  return cumulativeSum;
+  return std::make_pair(cumulativeSum, timeRetrieved);
 }
 
 void BcmTrunkStats::clearHwTrunkStats(HwTrunkStats& stats) {
@@ -160,31 +205,31 @@ void BcmTrunkStats::updateCounter(
 }
 
 void BcmTrunkStats::update() {
-  auto stats = accumulateMemberStats();
+  HwTrunkStats stats;
+  std::chrono::seconds then;
 
-  // TODO(samank): use time when member stats were actually retrieved
-  auto now = std::chrono::duration_cast<std::chrono::seconds>(
-      std::chrono::system_clock::now().time_since_epoch());
+  std::tie(stats, then) = accumulateMemberStats();
 
-  updateCounter(now, kInBytes(), stats.inBytes_);
-  updateCounter(now, kInUnicastPkts(), stats.inUnicastPkts_);
-  updateCounter(now, kInMulticastPkts(), stats.inMulticastPkts_);
-  updateCounter(now, kInBroadcastPkts(), stats.inBroadcastPkts_);
-  updateCounter(now, kInDiscards(), stats.inDiscards_);
-  updateCounter(now, kInErrors(), stats.inErrors_);
-  updateCounter(now, kInPause(), stats.inPause_);
-  updateCounter(now, kInIpv4HdrErrors(), stats.inIpv4HdrErrors_);
-  updateCounter(now, kInIpv6HdrErrors(), stats.inIpv6HdrErrors_);
-  updateCounter(now, kInNonPauseDiscards(), stats.inNonPauseDiscards_);
+  updateCounter(then, kInBytes(), stats.inBytes_);
+  updateCounter(then, kInUnicastPkts(), stats.inUnicastPkts_);
+  updateCounter(then, kInMulticastPkts(), stats.inMulticastPkts_);
+  updateCounter(then, kInBroadcastPkts(), stats.inBroadcastPkts_);
+  updateCounter(then, kInDiscards(), stats.inDiscards_);
+  updateCounter(then, kInErrors(), stats.inErrors_);
+  updateCounter(then, kInPause(), stats.inPause_);
+  updateCounter(then, kInIpv4HdrErrors(), stats.inIpv4HdrErrors_);
+  updateCounter(then, kInIpv6HdrErrors(), stats.inIpv6HdrErrors_);
+  updateCounter(then, kInNonPauseDiscards(), stats.inNonPauseDiscards_);
 
-  updateCounter(now, kOutBytes(), stats.outBytes_);
-  updateCounter(now, kOutUnicastPkts(), stats.outUnicastPkts_);
-  updateCounter(now, kOutMulticastPkts(), stats.outMulticastPkts_);
-  updateCounter(now, kOutBroadcastPkts(), stats.outBroadcastPkts_);
-  updateCounter(now, kOutDiscards(), stats.outDiscards_);
-  updateCounter(now, kOutErrors(), stats.outErrors_);
-  updateCounter(now, kOutPause(), stats.outPause_);
-  updateCounter(now, kOutCongestionDiscards(), stats.outCongestionDiscardPkts_);
+  updateCounter(then, kOutBytes(), stats.outBytes_);
+  updateCounter(then, kOutUnicastPkts(), stats.outUnicastPkts_);
+  updateCounter(then, kOutMulticastPkts(), stats.outMulticastPkts_);
+  updateCounter(then, kOutBroadcastPkts(), stats.outBroadcastPkts_);
+  updateCounter(then, kOutDiscards(), stats.outDiscards_);
+  updateCounter(then, kOutErrors(), stats.outErrors_);
+  updateCounter(then, kOutPause(), stats.outPause_);
+  updateCounter(
+      then, kOutCongestionDiscards(), stats.outCongestionDiscardPkts_);
 }
 
 std::string BcmTrunkStats::constructCounterName(

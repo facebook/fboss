@@ -21,6 +21,7 @@
 
 #include <map>
 #include <string>
+#include <utility>
 
 namespace facebook {
 namespace fboss {
@@ -43,7 +44,7 @@ class BcmTrunkStats {
 
   // Helpers operating on an HwTrunkStats object
   static void clearHwTrunkStats(HwTrunkStats& stats);
-  const HwTrunkStats accumulateMemberStats() const;
+  std::pair<HwTrunkStats, std::chrono::seconds> accumulateMemberStats() const;
 
   // Helpers which operate on an individual counter
   void initializeCounter(folly::StringPiece counterKey);
@@ -61,7 +62,7 @@ class BcmTrunkStats {
 
   using SynchronizedPortIDs =
       folly::Synchronized<boost::container::flat_set<PortID>>;
-  SynchronizedPortIDs memberPorts_;
+  SynchronizedPortIDs memberPortIDs_;
 
   std::map<std::string, stats::MonotonicCounter> counters_;
 };

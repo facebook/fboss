@@ -186,12 +186,10 @@ void BcmPort::reinitPortStats() {
   outPktLengths_ = histMap->getOrCreateLockableHistogram(
       statName("out_pkt_lengths"), &pktLenHist);
 
-  // (re) init last set of statistics
-  portStats_ = HwPortStats();
-  portStats_.set_queueOutDiscardBytes_(
-      std::vector<int64_t>(getNumUnicastQueues(), 0));
-  portStats_.set_queueOutBytes_(
-      std::vector<int64_t>(getNumUnicastQueues(), 0));
+  {
+    auto lockedPortStatsPtr = lastPortStats_.wlock();
+    *lockedPortStatsPtr = BcmPortStats(getNumUnicastQueues());
+  }
 }
 
 BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
@@ -627,10 +625,13 @@ void BcmPort::updateStats() {
       &curPortStats.outPause_);
 
   setAdditionalStats(now, &curPortStats);
+
+  auto lastPortStats = lastPortStats_.rlock()->portStats();
+
   // Compute non pause discards
   const auto kUninit = hardware_stats_constants::STAT_UNINITIALIZED();
-  if (isMmuLossy() && portStats_.inDiscards_ != kUninit &&
-      portStats_.inPause_ != kUninit) {
+  if (isMmuLossy() && lastPortStats.inDiscards_ != kUninit &&
+      lastPortStats.inPause_ != kUninit) {
     // If MMU setup as lossy, all incoming pause frames will be
     // discarded and will count towards in discards. This makes in discards
     // counter somewhat useless. So instead calculate "in_non_pause_discards",
@@ -638,25 +639,29 @@ void BcmPort::updateStats() {
     // std::max(..) is used, since stats from  h/w are synced non atomically,
     // So depending on what get synced later # of pause maybe be slightly
     // higher than # of discards.
-    auto inPauseSincePrev = curPortStats.inPause_ - portStats_.inPause_;
+    auto inPauseSincePrev = curPortStats.inPause_ - lastPortStats.inPause_;
     auto inDiscardsSincePrev =
-        curPortStats.inDiscards_ - portStats_.inDiscards_;
-    if (inPauseSincePrev >= 0 && inDiscardsSincePrev >=0) {
+        curPortStats.inDiscards_ - lastPortStats.inDiscards_;
+    if (inPauseSincePrev >= 0 && inDiscardsSincePrev >= 0) {
       // Account for counter rollover.
       auto inNonPauseDiscardsSincePrev =
           std::max(0L, (inDiscardsSincePrev - inPauseSincePrev));
       // Init current port stats from prev value or 0
       curPortStats.inNonPauseDiscards_ =
-          (portStats_.inNonPauseDiscards_ == kUninit
+          (lastPortStats.inNonPauseDiscards_ == kUninit
                ? 0
-               : portStats_.inNonPauseDiscards_);
+               : lastPortStats.inNonPauseDiscards_);
       // Counters are cumalative
       curPortStats.inNonPauseDiscards_ += inNonPauseDiscardsSincePrev;
       auto inNonPauseDiscards = getPortCounterIf(kInNonPauseDiscards());
       inNonPauseDiscards->updateValue(now, curPortStats.inNonPauseDiscards_);
     }
   }
-  portStats_ = curPortStats;
+
+  {
+    auto lockedLastPortStatsPtr = lastPortStats_.wlock();
+    *lockedLastPortStatsPtr = BcmPortStats(curPortStats, now);
+  }
 
   // Update the queue length stat
   uint32_t qlength;
@@ -697,10 +702,6 @@ void BcmPort::updateStat(
   *statVal = value;
 }
 
-const HwPortStats BcmPort::getStats() const {
-  return portStats_;
-}
-
 bool BcmPort::isMmuLossy() const {
   return hw_->getMmuState() == BcmSwitch::MmuState::MMU_LOSSY;
 }
@@ -728,6 +729,35 @@ void BcmPort::updatePktLenHist(
   for (int idx = 0; idx < stats.size(); ++idx) {
     hist->addValueLocked(guard, now.count(), idx, counters[idx]);
   }
+}
+
+BcmPort::BcmPortStats::BcmPortStats(int numUnicastQueues) {
+  HwPortStats portStats;
+  portStats_.set_queueOutDiscardBytes_(
+      std::vector<int64_t>(numUnicastQueues, 0));
+  portStats_.set_queueOutBytes_(std::vector<int64_t>(numUnicastQueues, 0));
+  portStats_ = portStats;
+}
+
+BcmPort::BcmPortStats::BcmPortStats(
+    HwPortStats portStats,
+    std::chrono::seconds timeRetrieved)
+    : portStats_(portStats), timeRetrieved_(timeRetrieved) {}
+
+HwPortStats BcmPort::BcmPortStats::portStats() const {
+  return portStats_;
+}
+
+std::chrono::seconds BcmPort::BcmPortStats::timeRetrieved() const {
+  return timeRetrieved_;
+}
+
+HwPortStats BcmPort::getPortStats() const {
+  return lastPortStats_.rlock()->portStats();
+}
+
+std::chrono::seconds BcmPort::getTimeRetrieved() const {
+  return lastPortStats_.rlock()->timeRetrieved();
 }
 
 /**
