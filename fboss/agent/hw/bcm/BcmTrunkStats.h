@@ -1,0 +1,70 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+#pragma once
+
+#include "common/stats/MonotonicCounter.h"
+#include "fboss/agent/hw/bcm/BcmStatsConstants.h"
+#include "fboss/agent/hw/bcm/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/types.h"
+
+#include <boost/container/flat_set.hpp>
+#include <folly/CppAttributes.h>
+#include <folly/Range.h>
+#include <folly/Synchronized.h>
+
+#include <map>
+#include <string>
+
+namespace facebook {
+namespace fboss {
+
+class BcmSwitch;
+
+class BcmTrunkStats {
+ public:
+  explicit BcmTrunkStats(const BcmSwitch* hw);
+
+  void initialize(AggregatePortID aggPortID, std::string trunkName);
+  void update();
+
+  void grantMembership(PortID memberPortID);
+  void revokeMembership(PortID memberPortID);
+
+ private:
+  BcmTrunkStats(const BcmTrunkStats&) = delete;
+  BcmTrunkStats& operator=(const BcmTrunkStats&) = delete;
+
+  // Helpers operating on an HwTrunkStats object
+  static void clearHwTrunkStats(HwTrunkStats& stats);
+  const HwTrunkStats accumulateMemberStats() const;
+
+  // Helpers which operate on an individual counter
+  void initializeCounter(folly::StringPiece counterKey);
+  stats::MonotonicCounter* FOLLY_NULLABLE
+  getCounterIf(folly::StringPiece counterKey);
+  void updateCounter(
+      std::chrono::seconds now,
+      folly::StringPiece counterKey,
+      int64_t value);
+  std::string constructCounterName(folly::StringPiece counterKey) const;
+
+  const BcmSwitch* const hw_;
+  std::string trunkName_;
+  AggregatePortID aggregatePortID_{0};
+
+  using SynchronizedPortIDs =
+      folly::Synchronized<boost::container::flat_set<PortID>>;
+  SynchronizedPortIDs memberPorts_;
+
+  std::map<std::string, stats::MonotonicCounter> counters_;
+};
+
+} // namespace fboss
+} // namespace facebook

@@ -127,5 +127,12 @@ opennsl_trunk_t BcmTrunkTable::linkDownHwNotLocked(opennsl_port_t port) {
 
   return trunk; // (2)
 }
+
+void BcmTrunkTable::updateStats() {
+  for (const auto& idAndTrunk : trunks_) {
+    BcmTrunk* trunk = idAndTrunk.second.get();
+    trunk->stats().update();
+  }
 }
-} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -54,6 +54,8 @@ class BcmTrunkTable {
 
   opennsl_trunk_t linkDownHwNotLocked(opennsl_port_t port);
 
+  void updateStats();
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTrunkTable(const BcmTrunkTable&) = delete;

@@ -15,6 +15,7 @@ extern "C" {
 #include <opennsl/types.h>
 }
 
+#include "fboss/agent/hw/bcm/BcmTrunkStats.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/types.h"
 #include "folly/Optional.h"
@@ -30,7 +31,7 @@ class BcmTrunk {
     INVALID = -1,
   };
 
-  explicit BcmTrunk(const BcmSwitch* hw) : hw_(hw) {}
+  explicit BcmTrunk(const BcmSwitch* hw);
   ~BcmTrunk();
 
   opennsl_trunk_t id() const { return bcmTrunkID_; }
@@ -53,16 +54,21 @@ class BcmTrunk {
   static opennsl_gport_t asGPort(opennsl_trunk_t trunk);
   static bool isValidTrunkPort(opennsl_gport_t gPort);
 
+  BcmTrunkStats& stats();
+
  private:
   void programForwardingState(
       AggregatePort::SubportAndForwardingStateConstRange oldRange,
       AggregatePort::SubportAndForwardingStateConstRange newRange);
   void modifyMemberPort(bool added, PortID memberPort);
+
   // Forbidden copy constructor and assignment operator
   BcmTrunk(const BcmTrunk&) = delete;
   BcmTrunk& operator=(const BcmTrunk&) = delete;
+
   opennsl_trunk_t bcmTrunkID_{INVALID};
   const BcmSwitch* const hw_{nullptr};
+  BcmTrunkStats trunkStats_;
 };
 }
 } // namespace facebook::fboss

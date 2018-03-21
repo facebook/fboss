@@ -1464,6 +1464,7 @@ void BcmSwitch::updateThreadLocalPortStats(
 
 void BcmSwitch::updateGlobalStats() {
   portTable_->updatePortStats();
+  trunkTable_->updateStats();
   bcmTableStats_->publish();
   if (isBufferStatCollectionEnabled()) {
     exportDeviceBufferUsage();

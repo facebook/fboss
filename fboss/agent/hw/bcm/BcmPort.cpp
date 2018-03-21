@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmPort.h"
 
+#include <chrono>
 #include <map>
 
 #include "common/stats/MonotonicCounter.h"
@@ -694,6 +695,10 @@ void BcmPort::updateStat(
   }
   stat->updateValue(now, value);
   *statVal = value;
+}
+
+const HwPortStats BcmPort::getStats() const {
+  return portStats_;
 }
 
 bool BcmPort::isMmuLossy() const {

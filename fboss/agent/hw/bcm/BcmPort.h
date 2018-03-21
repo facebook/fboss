@@ -127,6 +127,7 @@ class BcmPort {
    * Update this port's statistics.
    */
   void updateStats();
+  const HwPortStats getStats() const;
 
   /**
    * Take actions on this port (especially if it is up), so that it will not

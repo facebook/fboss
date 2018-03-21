@@ -12,6 +12,7 @@
 namespace facebook {
 namespace fboss {
 
+BcmTrunk::BcmTrunk(const BcmSwitch* hw) : hw_(hw), trunkStats_(hw) {}
 BcmTrunk::~BcmTrunk() {}
 void BcmTrunk::init(const std::shared_ptr<AggregatePort>& /*aggPort*/) {}
 void BcmTrunk::program(
@@ -47,5 +48,10 @@ bool BcmTrunk::isValidTrunkPort(opennsl_gport_t /* gPort */) {
   return false;
 }
 
+BcmTrunkStats& BcmTrunk::stats() {
+  return trunkStats_;
 }
-} // namespace facebook::fboss
+
+
+} // namespace fboss
+} // namespace facebook
