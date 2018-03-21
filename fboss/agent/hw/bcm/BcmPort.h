@@ -27,6 +27,7 @@ extern "C" {
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortQueue.h"
 
+#include <folly/Range.h>
 #include <mutex>
 
 namespace facebook { namespace fboss {
@@ -158,12 +159,12 @@ class BcmPort {
   BcmPort(BcmPort const &) = delete;
   BcmPort& operator=(BcmPort const &) = delete;
 
-  stats::MonotonicCounter* getPortCounterIf(const std::string& statName);
+  stats::MonotonicCounter* getPortCounterIf(folly::StringPiece statName);
   bool shouldReportStats() const;
   void reinitPortStats();
-  void reinitPortStat(const std::string& newName);
+  void reinitPortStat(folly::StringPiece newName);
   void updateStat(std::chrono::seconds now,
-                  const std::string& statName,
+                  folly::StringPiece statName,
                   opennsl_stat_val_t type,
                   int64_t* portStatVal);
   void updatePktLenHist(std::chrono::seconds now,
@@ -189,15 +190,6 @@ class BcmPort {
   uint8_t determinePipe() const;
   int getNumUnicastQueues() {
     return cosQueueGports_.unicast.size();
-  }
-
-  static const std::string& getkOutCongestionDiscards() {
-    static const std::string out = "out_congestion_discards";
-    return out;
-  }
-  static const std::string& getkOutBytes() {
-    static const std::string out = "out_bytes";
-    return out;
   }
 
   BcmSwitch* const hw_{nullptr};
