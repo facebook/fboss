@@ -18,7 +18,6 @@ extern "C" {
 namespace facebook { namespace fboss {
 
 // stubbed out
-void BcmPort::setKR4Ability() {}
 void BcmPort::prepareForGracefulExit() {}
 void BcmPort::setFEC(const std::shared_ptr<Port>& /*swPort*/) {}
 void BcmPort::setPause(const std::shared_ptr<Port>& swPort) {}

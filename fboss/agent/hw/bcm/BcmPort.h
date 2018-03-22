@@ -199,7 +199,6 @@ class BcmPort {
 
   opennsl_pbmp_t getPbmp();
 
-  void setKR4Ability();
   void setFEC(const std::shared_ptr<Port>& swPort);
   void setPause(const std::shared_ptr<Port>& swPort);
   void setTxSetting(const std::shared_ptr<Port>& swPort);
