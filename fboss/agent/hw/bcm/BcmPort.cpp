@@ -448,7 +448,7 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
 
   // If the port is down or disabled its safe to update mode and speed to
   // desired values
-  bool portUp = isUp();
+  bool portUp = swPort->isPortUp();
 
   // Update to correct mode and speed settings if the port is down/disabled
   // or if the speed changed. Ideally we would like to always update to the
@@ -491,6 +491,8 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
                    << "disrupt traffic. Port: " << swPort->getName()
                    << " id: " << swPort->getID();
     }
+
+    VLOG(1) << "Finalizing BcmPort::setSpeed() by calling port_speed_set";
 
     // Note that we call speed_set even if the speed is already set
     // properly and port is down. This is because speed_set
