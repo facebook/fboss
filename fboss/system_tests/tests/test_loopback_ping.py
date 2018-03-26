@@ -10,6 +10,8 @@ from fboss.system_tests.testutils.test_ip import get_random_test_ipv6
 from neteng.fboss.ctrl.ttypes import IpPrefix
 from neteng.fboss.ctrl.ttypes import UnicastRoute
 from fboss.system_tests.test.ttypes import DeviceType
+from neteng.fboss.ttypes import FbossBaseError
+from libfb.py.decorators import retryable
 
 
 @test_tags("loopback", "run-on-diff")
@@ -56,7 +58,10 @@ class LoopbackPing(FbossBaseSystemTest):
             prefixLength=64)
         nexthops = [ip_str_to_addr(next(host.ips()))]
         unicast_route = UnicastRoute(dest=prefix, nextHopAddrs=nexthops)
+        return self._add_unicast_route(unicast_route)
 
+    @retryable(num_tries=3, retryable_exs=[FbossBaseError])
+    def _add_unicast_route(self, unicast_route):
         with self.test_topology.switch_thrift() as client:
             client.addUnicastRoute(1, unicast_route)
         return unicast_route
