@@ -131,8 +131,7 @@ std::unique_ptr<BufferStatsLogger> BcmSwitch::createBufferStatsLogger() {
   return std::make_unique<GlogBufferStatsLogger>();
 }
 
-void BcmSwitch::printDiagCmd(const std::string& cmd) const {}
+void BcmSwitch::printDiagCmd(const std::string& /*cmd*/) const {}
 
-void BcmSwitch::forceLinkscanOn(opennsl_pbmp_t ports) {}
-
+void BcmSwitch::forceLinkscanOn(opennsl_pbmp_t /*ports*/) {}
 }} //facebook::fboss

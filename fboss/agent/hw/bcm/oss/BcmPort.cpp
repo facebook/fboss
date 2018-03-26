@@ -20,7 +20,7 @@ namespace facebook { namespace fboss {
 // stubbed out
 void BcmPort::prepareForGracefulExit() {}
 void BcmPort::setFEC(const std::shared_ptr<Port>& /*swPort*/) {}
-void BcmPort::setPause(const std::shared_ptr<Port>& swPort) {}
+void BcmPort::setPause(const std::shared_ptr<Port>& /*swPort*/) {}
 void BcmPort::setTxSetting(const std::shared_ptr<Port>& /*swPort*/) {}
 
 bool BcmPort::isFECEnabled() {
@@ -46,11 +46,11 @@ cfg::PortSpeed BcmPort::getMaxSpeed() const {
   return cfg::PortSpeed(speed);
 }
 
-opennsl_gport_t BcmPort::asGPort(opennsl_port_t port) {
+opennsl_gport_t BcmPort::asGPort(opennsl_port_t /*port*/) {
   return static_cast<opennsl_gport_t>(0);
 }
 
-bool BcmPort::isValidLocalPort(opennsl_gport_t gport) {
+bool BcmPort::isValidLocalPort(opennsl_gport_t /*gport*/) {
   return false;
 }
 

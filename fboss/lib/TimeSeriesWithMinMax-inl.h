@@ -107,7 +107,7 @@ void TimeSeriesWithMinMax<ValueType>::addValue(
  * size of the buffer is not longer than expected.
  */
 template <class T>
-void TimeSeriesWithMinMax<T>::maintainBuffer(Time now) {
+void TimeSeriesWithMinMax<T>::maintainBuffer(Time /*now*/) {
   auto locked_buf = buf_.wlock();
   // remove buckets that are out of date
   locked_buf->erase(
