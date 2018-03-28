@@ -3,11 +3,11 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import os
 import re
-import subprocess
 
 from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
+from fboss.system_tests.testutils.cmdline_tests_helper import (
+    check_binary_exist, check_subprocess_output)
 
 
 @test_tags("cmdline", "run-on-diff")
@@ -20,6 +20,10 @@ class FbossBmcCmdline(FbossBaseSystemTest):
     MAX_F = 140.0
     TEMP_PATTERN = re.compile('^.+ Temp: (\+|-)[0-9.]+ (C|F)$')
     FAN_PATTERN = re.compile('^Fan [0-6] (front|rear): [0-9]+ RPM$')
+    POWER_PATTERN = re.compile('^Power Supply [0-9]$')
+    POWER_NAME_PATTERN = re.compile('^Name: [0-9a-z-]+$')
+    POWER_IO_PATTERN = re.compile('^(Input|Output) [a-zA-Z]+: (\+|-|)[0-9.]+ '
+                                  '(V|A|W)$')
 
     def _check_temp(self, line_split, temp_location):
         '''
@@ -87,26 +91,20 @@ class FbossBmcCmdline(FbossBaseSystemTest):
         between 40F and 140F (4.5C and 60C)
         """
 
-        # make sure binary exists
-        self.assertTrue(os.path.exists(FbossBmcCmdline.FBOSS_CMD),
+        # Does the binary exist?
+        self.assertTrue(check_binary_exist(FbossBmcCmdline.FBOSS_CMD),
             msg="fboss command not found")
+
         cmd = [FbossBmcCmdline.FBOSS_CMD,
                 '-H', self.test_topology.switch.name,
                 'bmc',
                 'temp'
                ]
-        try:
-            output = subprocess.check_output(cmd, encoding="utf-8")
-        except Exception as e:
-            self.fail(
-                "Something went wrong when executing \
-                fboss bmc temp command. \n {0}".format(e)
-            )
 
-        # make sure we got something
-        self.assertTrue(output,
-            msg="fboss bmc temp command produced no output")
-        output = output.splitlines()
+        try:
+            output = check_subprocess_output(cmd).splitlines()
+        except Exception as e:
+            self.fail(e)
 
         # as we step through each line:
         # - verify that each line follows expected output
@@ -150,27 +148,75 @@ class FbossBmcCmdline(FbossBaseSystemTest):
         regex.
 
         """
+
         # Does the binary exist?
-        self.assertTrue(os.path.exists(FbossBmcCmdline.FBOSS_CMD),
+        self.assertTrue(check_binary_exist(FbossBmcCmdline.FBOSS_CMD),
             msg="fboss command not found")
+
         cmd = [FbossBmcCmdline.FBOSS_CMD,
                 "-H", self.test_topology.switch.name,
                 "bmc", "fan"
                ]
-        try:
-            output = subprocess.check_output(cmd, encoding="utf-8")
-        except Exception as e:
-            self.fail(
-                "Something went wrong when executing \
-                fboss bmc fan command. \n {0}".format(e)
-            )
-        self.assertTrue(output,
-            msg="fboss bmc fan command produced no output")
 
-        output = output.splitlines()
+        try:
+            output = check_subprocess_output(cmd).splitlines()
+        except Exception as e:
+            self.fail(e)
+
         self.assertTrue(len(output) > 0 and len(output) <= 12,
             msg="fboss bmc fan command produced unexpected output size")
 
         for line in output:
             self.assertTrue(FbossBmcCmdline.FAN_PATTERN.match(line) is not None,
                 msg="fboss bmc fan command output did not match regex")
+
+    def test_fboss_bmc_power_cmd(self):
+        """
+        Tests the 'fboss bmc power' command
+
+        Expected output:
+
+        $ fboss -H rsw1at.20.snc1 bmc power
+
+        Power Supply 1
+        Name: pfe1100-i2c-7-59
+        Input Voltage: +208.50 V
+        Output Current: +0.00 A
+        Output Power: 54.00 W
+        Output Voltage: +12.01 V
+
+        Power Supply 2
+        Name: pfe1100-i2c-7-5a
+        Input Voltage: +212.00 V
+        Output Current: +2.50 A
+        Output Power: 30.00 W
+        Output Voltage: +12.05 V
+
+        We expect there to be one or two power supply labeled 1, 2,
+        each with a name and several input/output parameters.
+        This test will check that each line matches the corresponding regex.
+
+        """
+
+        # Does the binary exist?
+        self.assertTrue(check_binary_exist(FbossBmcCmdline.FBOSS_CMD),
+            msg="fboss command not found")
+
+        cmd = [FbossBmcCmdline.FBOSS_CMD,
+                "-H", self.test_topology.switch.name,
+                "bmc", "power"
+               ]
+
+        try:
+            output = check_subprocess_output(cmd).splitlines()
+        except Exception as e:
+            self.fail(e)
+
+        for line in output:
+            if len(line) == 0:
+                continue
+            self.assertTrue(
+                FbossBmcCmdline.POWER_PATTERN.match(line) is not None
+                or FbossBmcCmdline.POWER_NAME_PATTERN.match(line) is not None
+                or FbossBmcCmdline.POWER_IO_PATTERN.match(line) is not None,
+                msg="fboss bmc power command output did not match regex")
