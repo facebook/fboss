@@ -114,6 +114,10 @@ class FBOSSTestTopology(object):
         if len(self.test_hosts) < n_hosts:
             raise unittest.SkipTest("Test needs %d hosts, topology has %d",
                                     (n_hosts, len(self.test_hosts)))
+        if not self.verify_hosts(min_hosts=n_hosts):
+            raise unittest.SkipTest("Not able to find %d good hosts",
+                                    (n_hosts))
+
 
     def verify_switch(self):
         """ Verify the switch is THRIFT reachable """

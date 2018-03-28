@@ -121,6 +121,11 @@ class FbossBaseSystemTest(unittest.TestCase):
             raise Exception("options.test_topology not set - " +
                             "did you call run_tests()?")
         self.test_topology = self.options.test_topology  # save typing
+        # We have seen cases where previous testcase brings down the system
+        # and all following testcaes fails. Instead we should skip a testcase
+        # if system went to bad state.
+        if not self.test_topology.verify_switch():
+            raise unittest.SkipTest("Switch is in bad state, Skip Test")
         my_name = str(self.__class__.__name__)
         self.log = logging.getLogger(my_name)
         self.log.setLevel(logging.DEBUG)  # logging controlled by handlers
