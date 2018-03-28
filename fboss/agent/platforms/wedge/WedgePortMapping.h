@@ -23,14 +23,15 @@ namespace facebook { namespace fboss {
  * This class begins encapsulating all port mapping logic in a more
  * organized manner. The main mechanism for this is the
  * PortTransceiverMap type that we pass in to the constructor. This
- * map defines every quad in the system (set of 4 contiguous related
- * ports that share a SerDes), and the corresponding front panel port
- * (TransceiverID) if it exists. If a quad is a backplane port and is
- * not associated w/ any transceiver, the value should be nullptr.
+ * map defines the controlling port of a set of 'count' contiguous related ports
+ * that share a SerDes), and the corresponding front panel port (TransceiverID)
+ * if it exists.
+ * If the controlling port is a backplane port and is not associated w/ any
+ * transceiver, the Transceiver and Channel value should be nullptr.
  */
 class WedgePortMapping {
  public:
-  enum : uint8_t { CHANNELS_IN_QSFP = 4 };
+  enum : uint8_t { CHANNELS_IN_QSFP28 = 4 };
 
   typedef std::map<PortID, folly::Optional<TransceiverID>> PortTransceiverMap;
   typedef boost::container::flat_map<
@@ -43,10 +44,11 @@ class WedgePortMapping {
 
   template<typename MappingT>
   static std::unique_ptr<WedgePortMapping> create(
-      WedgePlatform* platform, const PortTransceiverMap& portMapping) {
+      WedgePlatform* platform, const PortTransceiverMap& portMapping,
+      int numPortsPerTransceiver = CHANNELS_IN_QSFP28) {
     auto mapping = std::make_unique<MappingT>(platform);
     for (auto& kv : portMapping) {
-      mapping->addQuad(kv.first, kv.second);
+      mapping->addPorts(kv.first, numPortsPerTransceiver, kv.second);
     }
     return std::move(mapping);
   }
@@ -88,15 +90,14 @@ class WedgePortMapping {
     const folly::Optional<TransceiverID>,
     const folly::Optional<ChannelID>) const = 0;
 
-  /* Helper to add four associated ports to the port
-   * mapping. Optionally specify a front panel port mapping if this
-   * quad is associated w/ a front panel port. This is a common idiom
-   * because QSFPs use four channels internally.
+  /* Helper to add associated ports to the port mapping.
+   * Optionally specify a front panel port mapping if this
+   * controlling port is associated w/ a front panel port.
    */
-  void addQuad(
-      const PortID start,
+  void addPorts(
+      const PortID start, int count,
       const folly::Optional<TransceiverID> frontPanel = folly::none) {
-    for (int num = 0; num < CHANNELS_IN_QSFP; ++num) {
+    for (int num = 0; num < count; ++num) {
       folly::Optional<ChannelID> channel;
       if (frontPanel) {
         channel = ChannelID(num);

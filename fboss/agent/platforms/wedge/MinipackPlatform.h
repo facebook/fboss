@@ -11,9 +11,6 @@
 
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 
-#include <folly/Range.h>
-#include <memory>
-
 namespace facebook { namespace fboss {
 
 class BcmSwitch;
@@ -24,8 +21,6 @@ class MinipackPlatform : public WedgePlatform {
 public:
   explicit MinipackPlatform(std::unique_ptr<WedgeProductInfo> productInfo) :
     WedgePlatform(std::move(productInfo)) {}
-
-  std::unique_ptr<WedgePortMapping> createPortMapping() override;
 
 private:
   MinipackPlatform(MinipackPlatform const &) = delete;

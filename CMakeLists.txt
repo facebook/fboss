@@ -401,8 +401,6 @@ add_library(fboss_agent STATIC
     fboss/agent/Platform.cpp
     fboss/agent/platforms/wedge/oss/GalaxyPlatform.cpp
     fboss/agent/platforms/wedge/oss/GalaxyPort.cpp
-    fboss/agent/platforms/wedge/oss/MinipackPlatform.cpp
-    fboss/agent/platforms/wedge/oss/MinipackPort.cpp
     fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
     fboss/agent/platforms/wedge/oss/Wedge40Platform.cpp
     fboss/agent/platforms/wedge/oss/Wedge100Platform.cpp
