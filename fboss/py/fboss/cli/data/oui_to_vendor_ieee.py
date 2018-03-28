@@ -34,10 +34,10 @@ def vendors_for_macs(macs):
     vendors = set()
     ouis = {oui(mac) for mac in macs}
 
-    for oui in ouis:
-        if oui not in NIC_VENDOR_OUI_MAP:
-            raise KeyError("Unknown MAC OUI: {}".format(oui))
-        vendors.add(NIC_VENDOR_OUI_MAP[oui])
+    for o in ouis:
+        if o not in NIC_VENDOR_OUI_MAP:
+            raise KeyError("Unknown MAC OUI: {}".format(o))
+        vendors.add(NIC_VENDOR_OUI_MAP[o])
     return vendors
 
 
