@@ -58,7 +58,7 @@ def generate_default_test_argparse(**kwargs):
     parser.add_argument('--config', default=Defaults['config'])
     parser.add_argument('--log_dir', default=Defaults['log_dir'])
     parser.add_argument('--log_file', default=Defaults['log_file'])
-    parser.add_argument('--min_hosts', default=Defaults['min_hosts'])
+    parser.add_argument('--min_hosts', type=int, default=Defaults['min_hosts'])
     parser.add_argument('--console_log_level', default=Defaults['console_log_level'])
     parser.add_argument('--file_log_level', default=Defaults['file_log_level'])
     parser.add_argument('--tags',
