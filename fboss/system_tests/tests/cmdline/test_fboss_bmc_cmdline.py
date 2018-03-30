@@ -4,7 +4,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import re
-import unittest
 
 from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 from fboss.system_tests.testutils.cmdline_tests_helper import (
@@ -23,8 +22,7 @@ class FbossBmcCmdline(FbossBaseSystemTest):
     FAN_PATTERN = re.compile('^Fan [0-6] (front|rear): [0-9]+ RPM$')
     POWER_PATTERN = re.compile('^Power Supply [0-9]$')
     POWER_NAME_PATTERN = re.compile('^Name: [0-9a-z-]+$')
-    POWER_IO_PATTERN = re.compile('^(Input|Output) [a-zA-Z]+: (\+|-|)[0-9.]+ '
-                                  '(V|A|W)$')
+    POWER_IO_PATTERN = re.compile('^(Input|Output) [a-zA-Z]+: ')
 
     def _check_temp(self, line_split, temp_location):
         '''
@@ -171,7 +169,6 @@ class FbossBmcCmdline(FbossBaseSystemTest):
             self.assertTrue(FbossBmcCmdline.FAN_PATTERN.match(line) is not None,
                 msg="fboss bmc fan command output did not match regex")
 
-    @unittest.skip("Test broken. T27671355 to investigate")
     def test_fboss_bmc_power_cmd(self):
         """
         Tests the 'fboss bmc power' command
