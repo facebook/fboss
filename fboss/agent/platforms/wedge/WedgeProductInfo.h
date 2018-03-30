@@ -20,6 +20,7 @@ enum class WedgePlatformMode {
   GALAXY_LC,
   GALAXY_FC,
   FAKE_WEDGE,
+  MINIPACK,
 };
 
 class WedgeProductInfo {

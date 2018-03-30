@@ -35,6 +35,8 @@ std::unique_ptr<WedgePlatform> chooseWedgePlatform() {
     return std::make_unique<GalaxyLCPlatform>(std::move(productInfo));
   } else if (mode == WedgePlatformMode::GALAXY_FC) {
     return std::make_unique<GalaxyFCPlatform>(std::move(productInfo));
+  } else if (mode == WedgePlatformMode::MINIPACK) {
+    return createFBWedgePlatform(std::move(productInfo));
   }
 
   return std::make_unique<Wedge40Platform>(std::move(productInfo));

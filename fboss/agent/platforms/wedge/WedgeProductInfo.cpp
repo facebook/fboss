@@ -105,6 +105,8 @@ void WedgeProductInfo::initMode() {
         modelName.find("FAB") == 0) {
       // TODO remove FAB once fruid.json is fixed on Galaxy fabric cards
       mode_ = WedgePlatformMode::GALAXY_FC;
+    } else if (modelName.find("MINIPACK") == 0) {
+      mode_ = WedgePlatformMode::MINIPACK;
     } else {
       throw std::runtime_error("invalid model name " + modelName);
     }
@@ -117,6 +119,8 @@ void WedgeProductInfo::initMode() {
       mode_ = WedgePlatformMode::GALAXY_LC;
     } else if (FLAGS_mode == "galaxy_fc") {
       mode_ = WedgePlatformMode::GALAXY_FC;
+    } else if (FLAGS_mode == "minipack") {
+      mode_ = WedgePlatformMode::MINIPACK;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }

@@ -407,6 +407,7 @@ add_library(fboss_agent STATIC
     fboss/agent/platforms/wedge/oss/WedgePort.cpp
     fboss/agent/platforms/wedge/oss/Wedge40Port.cpp
     fboss/agent/platforms/wedge/oss/Wedge100Port.cpp
+    fboss/agent/platforms/wedge/oss/WedgePlatformInit.cpp
     fboss/agent/platforms/wedge/oss/WedgeProductInfo.cpp
     fboss/agent/platforms/wedge/wedge_agent.cpp
     fboss/agent/platforms/wedge/WedgePlatform.cpp
