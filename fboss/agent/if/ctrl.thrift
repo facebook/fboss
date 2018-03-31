@@ -282,6 +282,23 @@ enum CaptureDirection {
   CAPTURE_TX_RX = 2
 }
 
+
+enum CpuCosQueueId {
+  LOPRI = 0,
+  DEFAULT = 1,
+  MIDPRI = 2,
+  HIPRI = 9
+}
+
+struct RxCaptureFilter {
+  1: list<CpuCosQueueId> cosQueues
+  # can put additional Rx filters here if need be
+}
+
+struct CaptureFilter {
+  1: RxCaptureFilter rxCaptureFilter;
+}
+
 struct CaptureInfo {
   // A name identifying the packet capture
   1: string name
@@ -295,6 +312,10 @@ struct CaptureInfo {
    */
   2: i32 maxPackets
   3: CaptureDirection direction = CAPTURE_TX_RX
+  /*
+   * set of criteria that packet must meet to be captured
+   */
+  4: CaptureFilter  filter
 }
 
 struct RouteUpdateLoggingInfo {

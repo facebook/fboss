@@ -895,7 +895,7 @@ void ThriftHandler::startPktCapture(unique_ptr<CaptureInfo> info) {
   ensureConfigured();
   auto* mgr = sw_->getCaptureMgr();
   auto capture = make_unique<PktCapture>(
-      info->name, info->maxPackets, info->direction);
+       info->name, info->maxPackets, info->direction, info->filter);
   mgr->startCapture(std::move(capture));
 }
 

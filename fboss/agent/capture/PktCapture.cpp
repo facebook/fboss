@@ -17,10 +17,18 @@ using folly::StringPiece;
 namespace facebook { namespace fboss {
 
 PktCapture::PktCapture(folly::StringPiece name, uint64_t maxPackets,
-                       CaptureDirection direction)
+                         CaptureDirection direction)
+    : PktCapture(name, maxPackets, direction, CaptureFilter()) {
+  }
+
+PktCapture::PktCapture(folly::StringPiece name, uint64_t maxPackets,
+                       CaptureDirection direction,
+                       const CaptureFilter& captureFilter)
   : name_(name.str()),
     maxPackets_(maxPackets),
-    direction_(direction) {
+    direction_(direction),
+    packetFilter_(captureFilter) {
+
 }
 
 void PktCapture::start(StringPiece path) {
@@ -35,7 +43,8 @@ void PktCapture::stop() {
 
 bool PktCapture::packetReceived(const RxPacket* pkt) {
   std::lock_guard<std::mutex> guard(writer_.mutex());
-  if (direction_ != CaptureDirection::CAPTURE_ONLY_TX) {
+  if (direction_ != CaptureDirection::CAPTURE_ONLY_TX &&
+      true == packetFilter_.passes(pkt)) {
     ++numPacketsReceived_;
     writer_.addPktLocked(pkt);
   }
@@ -66,5 +75,4 @@ std::string PktCapture::toString(bool withStats) const {
   }
   return ss.str();
 }
-
 }} // facebook::fboss

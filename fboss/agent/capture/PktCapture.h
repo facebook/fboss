@@ -14,11 +14,38 @@
 
 #include <folly/Range.h>
 #include <string>
+#include "fboss/agent/RxPacket.h"
+#include "fboss/agent/TxPacket.h"
+#include <boost/container/flat_set.hpp>
 
 namespace facebook { namespace fboss {
 
-class RxPacket;
-class TxPacket;
+class RxPacketFilter {
+ public:
+  explicit RxPacketFilter(const RxCaptureFilter& rxCaptureFilter) :
+  cosQueues_(rxCaptureFilter.get_cosQueues().begin(),
+    rxCaptureFilter.get_cosQueues().end()) {
+  }
+  bool passes(const RxPacket* pkt) const {
+    return (cosQueues_.empty() ||
+            cosQueues_.find(static_cast<CpuCosQueueId>(pkt->cosQueue()))
+              != cosQueues_.end());
+  }
+ private:
+  boost::container::flat_set<CpuCosQueueId> cosQueues_;
+};
+
+class PacketFilter {
+ public:
+   explicit PacketFilter(const CaptureFilter & captureFilter) :
+   rxPacketFilter_(captureFilter.get_rxCaptureFilter()) {}
+
+   bool passes(const RxPacket* pkt) {
+     return rxPacketFilter_.passes(pkt);
+   }
+ private:
+   RxPacketFilter rxPacketFilter_;
+};
 
 /*
  * A packet capture job.
@@ -27,6 +54,8 @@ class PktCapture {
  public:
   PktCapture(folly::StringPiece name, uint64_t maxPackets,
              CaptureDirection direction);
+  PktCapture(folly::StringPiece name, uint64_t maxPackets,
+             CaptureDirection direction, const CaptureFilter& captureFilter);
 
   const std::string& name() const {
     return name_;
@@ -54,6 +83,6 @@ class PktCapture {
   uint64_t numPacketsReceived_{0};
   uint64_t numPacketsSent_{0};
   CaptureDirection direction_{CaptureDirection::CAPTURE_TX_RX};
+  PacketFilter packetFilter_;
 };
-
 }} // facebook::fboss
