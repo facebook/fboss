@@ -37,6 +37,10 @@ struct LacpServicerIf {
   virtual bool transmit(LACPDU lacpdu, PortID portID) = 0;
   virtual void enableForwarding(PortID portID, AggregatePortID aggPortID) = 0;
   virtual void disableForwarding(PortID portID, AggregatePortID aggPortID) = 0;
+  // If Selector was a static member of LinkAggregationManager, this wouldn't be
+  // necessary
+  virtual std::vector<std::shared_ptr<LacpController>> getControllersFor(
+      folly::Range<std::vector<PortID>::const_iterator> ports) = 0;
 };
 
 class LinkAggregationManager : public AutoRegisterStateObserver,
@@ -51,34 +55,11 @@ class LinkAggregationManager : public AutoRegisterStateObserver,
   void populatePartnerPair(PortID portID, LacpPartnerPair& partnerPair);
   void populatePartnerPairs(std::vector<LacpPartnerPair>& partnerPairs);
 
-  // TODO(samank): output data structure generic
-  template <typename Iterator>
-  std::vector<std::shared_ptr<LacpController>> getControllersFor(
-      folly::Range<Iterator> ports) {
-    // Although this method is thread-safe, it is only invoked from a Selector
-    // object, which should always be executing over the LACP EVB
-    CHECK(sw_->getLacpEvb()->inRunningEventBaseThread());
-
-    std::vector<std::shared_ptr<LacpController>> controllers(
-        std::distance(ports.begin(), ports.end()));
-
-    folly::SharedMutexWritePriority::ReadHolder g(&controllersLock_);
-
-    // TODO(samank): Rerwite as an O(N + M) algorithm
-    for (auto i = 0; i < controllers.size(); ++i) {
-      auto it = portToController_.find(ports[i]);
-      CHECK(it != portToController_.end());
-
-      controllers[i] = it->second;
-    }
-
-    // TODO(samank): does this move?
-    return controllers;
-  }
-
   bool transmit(LACPDU lacpdu, PortID portID) override;
   void enableForwarding(PortID portID, AggregatePortID aggPortID) override;
   void disableForwarding(PortID portID, AggregatePortID aggPortID) override;
+  std::vector<std::shared_ptr<LacpController>> getControllersFor(
+      folly::Range<std::vector<PortID>::const_iterator> ports) override;
 
  private:
   void aggregatePortRemoved(const std::shared_ptr<AggregatePort>& aggPort);

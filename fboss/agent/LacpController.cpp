@@ -25,7 +25,6 @@ using std::string;
 LacpController::LacpController(
     PortID portID,
     folly::EventBase* evb,
-    LinkAggregationManager* lagMgr,
     LacpServicerIf* servicer)
     : portID_(portID),
       tx_(*this, evb, servicer),
@@ -34,7 +33,7 @@ LacpController::LacpController(
       mux_(*this, evb, servicer),
       selector_(*this),
       evb_(evb),
-      lagMgr_(lagMgr) {
+      servicer_(servicer) {
   actorState_ &= ~LacpState::AGGREGATABLE;
 }
 
@@ -48,7 +47,6 @@ LacpController::LacpController(
     uint16_t systemPriority,
     folly::MacAddress systemID,
     uint8_t minLinkCount,
-    LinkAggregationManager* lagMgr,
     LacpServicerIf* servicer)
     : aggPortID_(aggPortID),
       portID_(portID),
@@ -60,7 +58,7 @@ LacpController::LacpController(
       mux_(*this, evb, servicer),
       selector_(*this, minLinkCount),
       evb_(evb),
-      lagMgr_(lagMgr) {
+      servicer_(servicer) {
   std::memcpy(systemID_.begin(), systemID.bytes(), systemID_.size());
 
   actorState_ |= LacpState::AGGREGATABLE;
@@ -199,6 +197,24 @@ void LacpController::startPeriodicTransmissionMachine() {
 
 void LacpController::select() {
   selector_.select();
+}
+
+void LacpController::selected(
+    folly::Range<std::vector<PortID>::const_iterator> ports) {
+  auto controllersToSignal = servicer_->getControllersFor(ports);
+
+  for (const auto& controller : controllersToSignal) {
+    controller->selected();
+  }
+}
+
+void LacpController::standby(
+    folly::Range<std::vector<PortID>::const_iterator> ports) {
+  auto controllersToSignal = servicer_->getControllersFor(ports);
+
+  for (const auto& controller : controllersToSignal) {
+    controller->standby();
+  }
 }
 
 } // namespace fboss

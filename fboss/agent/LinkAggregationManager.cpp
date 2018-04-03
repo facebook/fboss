@@ -118,7 +118,7 @@ void LinkAggregationManager::stateUpdated(const StateDelta& delta) {
       std::tie(std::ignore, inserted) = portToController_.insert(std::make_pair(
           port->getID(),
           std::make_shared<LacpController>(
-              port->getID(), sw_->getLacpEvb(), this, this)));
+              port->getID(), sw_->getLacpEvb(), this)));
       CHECK(inserted);
     }
 
@@ -160,7 +160,6 @@ void LinkAggregationManager::aggregatePortAdded(
         aggPort->getSystemPriority(),
         aggPort->getSystemID(),
         aggPort->getMinimumLinkCount(),
-        this,
         this));
     it->second->startMachines();
   }
@@ -174,7 +173,7 @@ void LinkAggregationManager::aggregatePortRemoved(
     CHECK_NE(it, portToController_.end());
     it->second->stopMachines();
     it->second.reset(
-        new LacpController(subport.portID, sw_->getLacpEvb(), this, this));
+        new LacpController(subport.portID, sw_->getLacpEvb(), this));
     it->second->startMachines();
   }
 }
@@ -320,6 +319,30 @@ void LinkAggregationManager::disableForwarding(
 
   sw_->updateStateNoCoalescing(
       "AggregatePort ForwardingState", std::move(disableFwdStateFn));
+}
+
+std::vector<std::shared_ptr<LacpController>>
+LinkAggregationManager::getControllersFor(
+    folly::Range<std::vector<PortID>::const_iterator> ports) {
+  // Although this method is thread-safe, it is only invoked from a Selector
+  // object, which should always be executing over the LACP EVB
+  CHECK(sw_->getLacpEvb()->inRunningEventBaseThread());
+
+  std::vector<std::shared_ptr<LacpController>> controllers(
+      std::distance(ports.begin(), ports.end()));
+
+  folly::SharedMutexWritePriority::ReadHolder g(&controllersLock_);
+
+  // TODO(samank): Rerwite as an O(N + M) algorithm
+  for (auto i = 0; i < controllers.size(); ++i) {
+    auto it = portToController_.find(ports[i]);
+    CHECK(it != portToController_.end());
+
+    controllers[i] = it->second;
+  }
+
+  // TODO(samank): does this move?
+  return controllers;
 }
 
 LinkAggregationManager::~LinkAggregationManager() {}
