@@ -56,7 +56,7 @@ class LacpController : public std::enable_shared_from_this<LacpController> {
   // Invoked from LinkAggregationManager
   void portUp();
   void portDown();
-  void receivedLACPDU(folly::io::Cursor c);
+  void received(const LACPDU& lacpdu);
   ParticipantInfo actorInfo() const;
   ParticipantInfo partnerInfo() const;
 

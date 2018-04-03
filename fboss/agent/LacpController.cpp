@@ -111,13 +111,7 @@ void LacpController::portDown() {
   });
 }
 
-void LacpController::receivedLACPDU(Cursor c) {
-  auto lacpdu = LACPDU::from(&c);
-
-  if (!lacpdu.isValid()) {
-    return;
-  }
-
+void LacpController::received(const LACPDU& lacpdu) {
   evb()->runInEventBaseThread(
       [self = shared_from_this(), lacpdu]() { self->rx_.rx(lacpdu); });
 }

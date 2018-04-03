@@ -103,7 +103,13 @@ void LinkAggregationManager::handlePacket(
     return;
   }
 
-  it->second->receivedLACPDU(c);
+  auto lacpdu = LACPDU::from(&c);
+  if (!lacpdu.isValid()) {
+    LOG(ERROR) << "Invalid LACP data unit";
+    return;
+  }
+
+  it->second->received(lacpdu);
 }
 
 void LinkAggregationManager::stateUpdated(const StateDelta& delta) {
