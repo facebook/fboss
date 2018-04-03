@@ -9,16 +9,9 @@
  */
 
 #include "fboss/agent/LacpMachines.h"
+#include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/LacpController.h"
 
-#include "fboss/agent/LacpTypes-defs.h"
-#include "fboss/agent/Platform.h"
-#include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/TxPacket.h"
-#include "fboss/agent/state/AggregatePortMap.h"
-#include "fboss/agent/state/Port.h"
-#include "fboss/agent/state/PortMap.h"
-#include "fboss/agent/state/SwitchState.h"
 
 #include <algorithm>
 #include <exception>
@@ -167,7 +160,7 @@ void ReceiveMachine::rx(LACPDU lacpdu) {
   CHECK(controller_.evb()->inRunningEventBaseThread());
 
   VLOG(4) << "ReceiveMachine[" << controller_.portID() << "]: "
-            << "RX(" << lacpdu.describe() << ")";
+          << "RX(" << lacpdu.describe() << ")";
 
   if (state_ == ReceiveState::DISABLED) {
     VLOG(4) << "ReceiveMachine[" << controller_.portID() << "]: "
@@ -466,8 +459,8 @@ const int TransmitMachine::MAX_TRANSMISSIONS_IN_SHORT_PERIOD = 3;
 TransmitMachine::TransmitMachine(
     LacpController& controller,
     folly::EventBase* evb,
-    SwSwitch* sw)
-    : folly::AsyncTimeout(evb), controller_(controller), sw_(sw) {}
+    LacpServicerIf* servicer)
+    : folly::AsyncTimeout(evb), controller_(controller), servicer_(servicer) {}
 
 TransmitMachine::~TransmitMachine() {}
 
@@ -490,7 +483,7 @@ void TransmitMachine::replenishTranmissionsLeft() noexcept {
   scheduleTimeout(TransmitMachine::TX_REPLENISH_RATE);
 }
 
-void TransmitMachine::ntt(LACPDU toTransmit) {
+void TransmitMachine::ntt(LACPDU lacpdu) {
   CHECK(controller_.evb()->inRunningEventBaseThread());
 
   if (transmissionsLeft_ == 0) {
@@ -500,88 +493,24 @@ void TransmitMachine::ntt(LACPDU toTransmit) {
     return;
   }
 
-  auto pkt = sw_->allocatePacket(LACPDU::LENGTH);
-  if (!pkt) {
-    VLOG(4) << "Failed to allocate tx packet for LACPDU transmission";
+  auto outPort = controller_.portID();
+  if (!servicer_->transmit(lacpdu, outPort)) {
     return;
   }
 
-  folly::io::RWPrivateCursor writer(pkt->buf());
-
-  folly::MacAddress cpuMac = sw_->getPlatform()->getLocalMac();
-
-  auto port = sw_->getState()->getPorts()->getPortIf(controller_.portID());
-  CHECK(port);
-
-  TxPacket::writeEthHeader(
-      &writer,
-      LACPDU::kSlowProtocolsDstMac(),
-      cpuMac,
-      port->getIngressVlan(),
-      LACPDU::EtherType::SLOW_PROTOCOLS);
-
-  writer.writeBE<uint8_t>(LACPDU::EtherSubtype::LACP);
-
-  toTransmit.to(&writer);
-
   VLOG(4) << "TransmitMachine[" << controller_.portID() << "]: "
-            << "TX(" << toTransmit.describe() << ")";
+            << "TX(" << lacpdu.describe() << ")";
 
-  sw_->sendPacketOutOfPort(std::move(pkt), controller_.portID());
   --transmissionsLeft_;
-
   VLOG(4) << transmissionsLeft_ << " transmissions left";
-}
-
-// TODO(samank): move into anonymous namespace
-class ProgramForwardingState {
- public:
-  ProgramForwardingState(
-      PortID portID,
-      AggregatePortID aggPortID,
-      AggregatePort::Forwarding fwdState);
-  std::shared_ptr<SwitchState> operator()(
-      const std::shared_ptr<SwitchState>& state);
-
- private:
-  PortID portID_;
-  AggregatePortID aggegatePortID_;
-  AggregatePort::Forwarding forwardingState_;
-};
-
-ProgramForwardingState::ProgramForwardingState(
-    PortID portID,
-    AggregatePortID aggPortID,
-    AggregatePort::Forwarding fwdState)
-    : portID_(portID), aggegatePortID_(aggPortID), forwardingState_(fwdState) {}
-
-std::shared_ptr<SwitchState> ProgramForwardingState::operator()(
-    const std::shared_ptr<SwitchState>& state) {
-  std::shared_ptr<SwitchState> nextState(state);
-  auto* aggPort =
-      nextState->getAggregatePorts()->getAggregatePortIf(aggegatePortID_).get();
-  if (!aggPort) {
-    return nullptr;
-  }
-
-  VLOG(4) << "Updating AggregatePort " << aggPort->getID()
-            << ": ForwardingState[" << portID_ << "] --> "
-            << (forwardingState_ == AggregatePort::Forwarding::ENABLED
-                    ? "ENABLED"
-                    : "DISABLED");
-
-  aggPort = aggPort->modify(&nextState);
-  aggPort->setForwardingState(portID_, forwardingState_);
-
-  return nextState;
 }
 
 const std::chrono::seconds MuxMachine::AGGREGATE_WAIT_DURATION(2);
 MuxMachine::MuxMachine(
     LacpController& controller,
     folly::EventBase* evb,
-    SwSwitch* sw)
-    : AsyncTimeout(evb), controller_(controller), sw_(sw) {}
+    LacpServicerIf* servicer)
+    : AsyncTimeout(evb), controller_(controller), servicer_(servicer) {}
 
 MuxMachine::~MuxMachine() {}
 
@@ -716,22 +645,14 @@ void MuxMachine::enableCollectingDistributing() const {
    * LACP operation, then we would not want to add the newly-up port to the LAG
    * group, as dictated by LACP.
    */
-  auto enableFwdStateFn = ProgramForwardingState(
-      portID, aggPortID, AggregatePort::Forwarding::ENABLED);
-
-  sw_->updateStateNoCoalescing(
-      "AggregatePort ForwardingState", std::move(enableFwdStateFn));
+  servicer_->enableForwarding(portID, aggPortID);
 }
 
 void MuxMachine::disableCollectingDistributing() const {
   auto portID = controller_.portID();
   auto aggPortID = selection_;
 
-  auto disableFwdStateFn = ProgramForwardingState(
-      portID, aggPortID, AggregatePort::Forwarding::DISABLED);
-
-  sw_->updateStateNoCoalescing(
-      "AggregatePort ForwardingState", std::move(disableFwdStateFn));
+  servicer_->disableForwarding(portID, aggPortID);
 }
 
 void MuxMachine::detached() {

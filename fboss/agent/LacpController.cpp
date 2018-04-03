@@ -26,12 +26,12 @@ LacpController::LacpController(
     PortID portID,
     folly::EventBase* evb,
     LinkAggregationManager* lagMgr,
-    SwSwitch* sw)
+    LacpServicerIf* servicer)
     : portID_(portID),
-      tx_(*this, evb, sw),
+      tx_(*this, evb, servicer),
       rx_(*this, evb),
       periodicTx_(*this, evb),
-      mux_(*this, evb, sw),
+      mux_(*this, evb, servicer),
       selector_(*this),
       evb_(evb),
       lagMgr_(lagMgr) {
@@ -49,15 +49,15 @@ LacpController::LacpController(
     folly::MacAddress systemID,
     uint8_t minLinkCount,
     LinkAggregationManager* lagMgr,
-    SwSwitch* sw)
+    LacpServicerIf* servicer)
     : aggPortID_(aggPortID),
       portID_(portID),
       portPriority_(portPriority),
       systemPriority_(systemPriority),
-      tx_(*this, evb, sw),
+      tx_(*this, evb, servicer),
       rx_(*this, evb),
       periodicTx_(*this, evb),
-      mux_(*this, evb, sw),
+      mux_(*this, evb, servicer),
       selector_(*this, minLinkCount),
       evb_(evb),
       lagMgr_(lagMgr) {

@@ -23,10 +23,9 @@
 namespace facebook {
 namespace fboss {
 
-class LacpController;
 class AggregatePort;
-class SwSwitch;
-class SwitchState;
+class LacpController;
+class LacpServicerIf;
 
 /*
  * See IEEE 802.3AD-2000 43.4.3 for an overview of each state machine
@@ -134,7 +133,7 @@ class TransmitMachine : private folly::AsyncTimeout {
   TransmitMachine(
       LacpController& controller,
       folly::EventBase* evb,
-      SwSwitch* sw);
+      LacpServicerIf* servicer);
   ~TransmitMachine() override;
 
   void ntt(LACPDU lacpdu);
@@ -153,12 +152,15 @@ class TransmitMachine : private folly::AsyncTimeout {
 
   int transmissionsLeft_{MAX_TRANSMISSIONS_IN_SHORT_PERIOD};
   LacpController& controller_;
-  SwSwitch* sw_;
+  LacpServicerIf* servicer_{nullptr};
 };
 
 class MuxMachine : private folly::AsyncTimeout {
  public:
-  MuxMachine(LacpController& controller, folly::EventBase* evb, SwSwitch* sw);
+  MuxMachine(
+      LacpController& controller,
+      folly::EventBase* evb,
+      LacpServicerIf* servicer);
   ~MuxMachine() override;
 
   void start();
@@ -198,7 +200,7 @@ class MuxMachine : private folly::AsyncTimeout {
   bool matched_{false};
   AggregatePortID selection_;
   LacpController& controller_;
-  SwSwitch* sw_{nullptr};
+  LacpServicerIf* servicer_{nullptr};
 
   static const std::chrono::seconds AGGREGATE_WAIT_DURATION;
 };

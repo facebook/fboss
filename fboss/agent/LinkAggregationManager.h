@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/types.h"
+#include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/StateObserver.h"
 
 #include <boost/container/flat_map.hpp>
@@ -29,7 +30,17 @@ class RxPacket;
 class StateDelta;
 class SwSwitch;
 
-class LinkAggregationManager : public AutoRegisterStateObserver {
+struct LacpServicerIf {
+  LacpServicerIf() {}
+  virtual ~LacpServicerIf() {}
+
+  virtual bool transmit(LACPDU lacpdu, PortID portID) = 0;
+  virtual void enableForwarding(PortID portID, AggregatePortID aggPortID) = 0;
+  virtual void disableForwarding(PortID portID, AggregatePortID aggPortID) = 0;
+};
+
+class LinkAggregationManager : public AutoRegisterStateObserver,
+                               public LacpServicerIf {
  public:
   explicit LinkAggregationManager(SwSwitch* sw);
   ~LinkAggregationManager() override;
@@ -64,6 +75,10 @@ class LinkAggregationManager : public AutoRegisterStateObserver {
     // TODO(samank): does this move?
     return controllers;
   }
+
+  bool transmit(LACPDU lacpdu, PortID portID) override;
+  void enableForwarding(PortID portID, AggregatePortID aggPortID) override;
+  void disableForwarding(PortID portID, AggregatePortID aggPortID) override;
 
  private:
   void aggregatePortRemoved(const std::shared_ptr<AggregatePort>& aggPort);
