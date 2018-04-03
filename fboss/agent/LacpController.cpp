@@ -81,7 +81,7 @@ void LacpController::startMachines() {
 }
 
 void LacpController::stopMachines() {
-  evb()->runInEventBaseThread([self = shared_from_this()]() {
+  evb()->runInEventBaseThreadAndWait([self = shared_from_this()]() {
     self->mux_.stop();
     self->tx_.stop();
     self->periodicTx_.stop();
