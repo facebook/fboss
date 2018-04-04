@@ -177,7 +177,6 @@ unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
   // Destroy all of our member variables that track state,
   // to make sure they clean up their state now before we reset unit_.
   BcmSwitchEventUtils::resetUnit(unit_);
-  warmBootCache_.reset();
   routeTable_.reset();
   // Release host entries before reseting switch's host table
   // entries so that if host try to refer to look up host table
@@ -192,6 +191,9 @@ unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
   bcmTableStats_.reset();
   trunkTable_.reset();
   controlPlane_.reset();
+  // Reset warmboot cache last in case Bcm object destructors
+  // access it during object deletion.
+  warmBootCache_.reset();
 
   unit_ = -1;
   unitObject_->setCookie(nullptr);
