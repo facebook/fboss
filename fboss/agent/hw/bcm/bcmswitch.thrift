@@ -39,4 +39,15 @@ struct BcmHwTableStats {
   22: i32 lpm_slots_max = STAT_UNINITIALIZED
   23: i32 lpm_slots_used = STAT_UNINITIALIZED
   24: i32 lpm_slots_free = STAT_UNINITIALIZED
+
+  // ACLs
+  25: i32 acl_entries_used = STAT_UNINITIALIZED
+  26: i32 acl_entries_free = STAT_UNINITIALIZED
+  27: i32 acl_entries_max = STAT_UNINITIALIZED
+  28: i32 acl_counters_used = STAT_UNINITIALIZED
+  29: i32 acl_counters_free = STAT_UNINITIALIZED
+  30: i32 acl_counters_max = STAT_UNINITIALIZED
+  31: i32 acl_meters_used = STAT_UNINITIALIZED
+  32: i32 acl_meters_free = STAT_UNINITIALIZED
+  33: i32 acl_meters_max = STAT_UNINITIALIZED
 }

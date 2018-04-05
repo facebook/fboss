@@ -23,5 +23,9 @@ bool BcmTableStats::refreshLPMStats() {
   return false;
 }
 
+bool BcmTableStats::refreshFPStats() {
+  return false;
+}
+
 void BcmTableStats::publish() const {}
 }}

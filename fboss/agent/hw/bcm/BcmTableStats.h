@@ -21,7 +21,7 @@ class BcmTableStats {
     isAlpmEnabled_(isAlpmEnabled) {}
   void refresh() {
     stats_.hw_table_stats_stale =
-        !(refreshHwStatusStats() && refreshLPMStats());
+        !(refreshHwStatusStats() && refreshLPMStats() && refreshFPStats());
     if (!isAlpmEnabled_) {
       stats_.hw_table_stats_stale |= !(refreshLPMOnlyStats());
     }
@@ -34,6 +34,8 @@ class BcmTableStats {
   bool refreshLPMStats();
   // Stats only supported in LPM mode
   bool refreshLPMOnlyStats();
+  // Stats pertaining to FP
+  bool refreshFPStats();
   const BcmSwitch* hw_{nullptr};
 
   BcmHwTableStats stats_;
