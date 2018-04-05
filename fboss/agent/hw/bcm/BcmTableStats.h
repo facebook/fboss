@@ -23,7 +23,7 @@ class BcmTableStats {
     stats_.hw_table_stats_stale =
         !(refreshHwStatusStats() && refreshLPMStats());
     if (!isAlpmEnabled_) {
-      stats_.hw_table_stats_stale |= refreshLPMOnlyStats();
+      stats_.hw_table_stats_stale |= !(refreshLPMOnlyStats());
     }
   }
   void publish() const;
