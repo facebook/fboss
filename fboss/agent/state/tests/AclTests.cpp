@@ -461,4 +461,21 @@ TEST(Acl, SerializeAclEntry) {
   EXPECT_TRUE(aclAction.getSendToQueue());
   EXPECT_EQ(aclAction.getSendToQueue().value().second, true);
   EXPECT_EQ(aclAction.getSendToQueue().value().first.queueId, 3);
+
+  // Test PacketCounterAction
+  entry = std::make_unique<AclEntry>(0, "stat0");
+  action = MatchAction();
+  auto packetCounterAction = cfg::PacketCounterMatchAction();
+  packetCounterAction.counterName = "stat0.c";
+  action.setPacketCounter(packetCounterAction);
+  entry->setAclAction(action);
+
+  serialized = entry->toFollyDynamic();
+  entryBack = AclEntry::fromFollyDynamic(serialized);
+
+  EXPECT_TRUE(*entry == *entryBack);
+  EXPECT_TRUE(entryBack->getAclAction());
+  aclAction = entryBack->getAclAction().value();
+  EXPECT_TRUE(aclAction.getPacketCounter());
+  EXPECT_EQ(aclAction.getPacketCounter().value().counterName, "stat0.c");
 }

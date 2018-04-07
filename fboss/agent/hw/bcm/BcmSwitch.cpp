@@ -187,6 +187,7 @@ unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
   intfTable_.reset();
   toCPUEgress_.reset();
   portTable_.reset();
+  aclTable_->releaseAcls();
   aclTable_.reset();
   bcmTableStats_.reset();
   trunkTable_.reset();

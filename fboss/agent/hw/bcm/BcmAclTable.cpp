@@ -18,6 +18,17 @@
 
 namespace facebook { namespace fboss {
 
+/*
+ * Release all acl, stat and range entries.
+ * Should only be called when we are about to reset/destroy the acl table
+ */
+void BcmAclTable::releaseAcls() {
+  // AclEntries must be removed before the AclStats
+  aclEntryMap_.clear();
+  aclStatMap_.clear();
+  aclRangeMap_.clear();
+}
+
 void BcmAclTable::processAddedAcl(
   const int groupId,
   const std::shared_ptr<AclEntry>& acl) {
@@ -46,6 +57,13 @@ void BcmAclTable::processAddedAcl(
     bcmRanges.push_back(bcmRange);
   }
 
+  // check if stat exists
+  auto action = acl->getAclAction();
+  if (action && action.value().getPacketCounter()) {
+    const auto counter = action.value().getPacketCounter().value().counterName;
+    incRefOrCreateBcmAclStat(groupId, counter);
+  }
+
   // create the new bcm acl entry and add it to the table
   std::unique_ptr<BcmAclEntry> bcmAcl = std::make_unique<BcmAclEntry>(
     hw_, groupId, acl, bcmRanges);
@@ -63,6 +81,13 @@ void BcmAclTable::processRemovedAcl(
   const auto numErasedAcl = aclEntryMap_.erase(acl->getPriority());
   if (numErasedAcl == 0) {
     throw FbossError("failed to erase an existing bcm acl entry");
+  }
+
+  // remove unused stats
+  auto action = acl->getAclAction();
+  if (action && action.value().getPacketCounter()) {
+    const auto counter = action.value().getPacketCounter().value().counterName;
+    derefBcmAclStat(counter);
   }
 
   // remove unused ranges
@@ -83,7 +108,6 @@ void BcmAclTable::processRemovedAcl(
     AclRange range(AclRange::PKT_LEN, r.getMin(), r.getMax());
     derefBcmAclRange(range);
   }
-
 }
 
 BcmAclEntry* FOLLY_NULLABLE BcmAclTable::getAclIf(int priority) const {
@@ -168,6 +192,58 @@ BcmAclRange* FOLLY_NULLABLE BcmAclTable::derefBcmAclRange(
     return nullptr;
   }
   return iter->second.first.get();
+}
+
+BcmAclStat* BcmAclTable::incRefOrCreateBcmAclStat(int groupId,
+  const std::string& name) {
+  auto iter = aclStatMap_.find(name);
+  if (iter == aclStatMap_.end()) {
+    // if the stat does not exist, create a new one
+    auto newStat = std::make_unique<BcmAclStat>(hw_, groupId, name);
+    auto stat = newStat.get();
+    aclStatMap_.emplace(name, std::make_pair(std::move(newStat), 1));
+    return stat;
+  } else {
+    iter->second.second++;
+    return iter->second.first.get();
+  }
+}
+
+void BcmAclTable::derefBcmAclStat(
+  const std::string& name) {
+  auto iter = aclStatMap_.find(name);
+  if (iter == aclStatMap_.end()) {
+    throw FbossError(
+      "Tried to decrease reference count on a non-existing BcmAclStat, name=",
+      name);
+  }
+  iter->second.second--;
+  if (iter->second.second == 0) {
+    aclStatMap_.erase(iter);
+  }
+}
+
+BcmAclStat* FOLLY_NULLABLE BcmAclTable::getAclStatIf(
+  const std::string& name) const {
+  auto iter = aclStatMap_.find(name);
+  if (iter == aclStatMap_.end()) {
+    return nullptr;
+  } else {
+    return iter->second.first.get();
+  }
+}
+
+uint32_t BcmAclTable::getAclStatRefCount(const std::string& name) const {
+  auto iter = aclStatMap_.find(name);
+  if (iter == aclStatMap_.end()) {
+    return 0;
+  } else {
+    return iter->second.second;
+  }
+}
+
+uint32_t BcmAclTable::getAclStatCount() const {
+  return aclStatMap_.size();
 }
 
 }} // facebook::fboss

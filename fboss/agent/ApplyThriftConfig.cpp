@@ -990,7 +990,14 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
 
       // Here is sending to regular port queue action
       MatchAction matchAction = MatchAction();
-      matchAction.setSendToQueue(std::make_pair(mta.action.sendToQueue, false));
+      if (mta.action.__isset.sendToQueue) {
+        matchAction.setSendToQueue(
+          std::make_pair(mta.action.sendToQueue, false));
+      }
+      if (mta.action.__isset.packetCounter) {
+        matchAction.setPacketCounter(mta.action.packetCounter);
+      }
+
       auto acl = updateAcl(aclCfg, priority++, &numExistingProcessed,
         &changed, &matchAction);
       entries.push_back(std::make_pair(acl->getID(), acl));

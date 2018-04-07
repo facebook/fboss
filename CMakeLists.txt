@@ -339,6 +339,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/PortAndEgressIdsMap.cpp
     fboss/agent/hw/bcm/oss/BcmAclEntry.cpp
     fboss/agent/hw/bcm/oss/BcmAclRange.cpp
+    fboss/agent/hw/bcm/oss/BcmAclStat.cpp
     fboss/agent/hw/bcm/oss/BcmAPI.cpp
     fboss/agent/hw/bcm/oss/BcmControlPlane.cpp
     fboss/agent/hw/bcm/oss/BcmEgress.cpp

@@ -12,6 +12,7 @@
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
 #include "fboss/agent/hw/bcm/BcmAclRange.h"
+#include "fboss/agent/hw/bcm/BcmAclStat.h"
 
 #include <boost/container/flat_map.hpp>
 
@@ -30,6 +31,7 @@ class BcmAclTable {
   ~BcmAclTable() {}
   void processAddedAcl(const int groupId, const std::shared_ptr<AclEntry>& acl);
   void processRemovedAcl(const std::shared_ptr<AclEntry>& acl);
+  void releaseAcls();
 
   BcmAclEntry* getAclIf(int priority) const;
   // return nullptr if not found
@@ -40,20 +42,30 @@ class BcmAclTable {
   folly::Optional<uint32_t> getAclRangeRefCountIf(
     BcmAclRangeHandle handle) const;
   uint32_t getAclRangeCount() const;
+  // return nullptr if not found
+  BcmAclStat* getAclStatIf(const std::string& name) const;
+  // return 0 if stat does not exist
+  uint32_t getAclStatRefCount(const std::string& name) const;
+  uint32_t getAclStatCount() const;
 
  private:
   BcmAclRange* incRefOrCreateBcmAclRange(const AclRange& range);
   BcmAclRange* derefBcmAclRange(const AclRange& range);
+  BcmAclStat* incRefOrCreateBcmAclStat(int groupId, const std::string& name);
+  void derefBcmAclStat(const std::string& name);
 
   // map from acl range to bcm acl range and its reference count
   using BcmAclRangeMap = boost::container::flat_map<AclRange,
     std::pair<std::unique_ptr<BcmAclRange>, uint32_t>>;
   using BcmAclEntryMap = boost::container::flat_map<int,
     std::unique_ptr<BcmAclEntry>>;
+  using BcmAclStatMap = boost::container::flat_map<std::string,
+    std::pair<std::unique_ptr<BcmAclStat>, uint32_t>>;
 
   BcmSwitch* hw_;
   BcmAclRangeMap aclRangeMap_;
   BcmAclEntryMap aclEntryMap_;
+  BcmAclStatMap aclStatMap_;
 };
 
 }} // facebook::fboss

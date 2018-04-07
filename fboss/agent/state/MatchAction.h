@@ -26,12 +26,13 @@ class MatchAction {
    * SendToQueue.second is the old `sendToCPU` value.
    */
   using SendToQueue = std::pair<cfg::QueueMatchAction, bool>;
+  using PacketCounter = cfg::PacketCounterMatchAction;
 
   MatchAction() {}
 
-  MatchAction(const MatchAction& action) {
-    sendToQueue_ = action.sendToQueue_;
-  }
+  MatchAction(const MatchAction& action)
+    : sendToQueue_(action.sendToQueue_),
+      packetCounter_(action.packetCounter_) {}
 
   folly::Optional<SendToQueue> getSendToQueue() const {
     return sendToQueue_;
@@ -41,12 +42,22 @@ class MatchAction {
     sendToQueue_ = sendToQueue;
   }
 
+  folly::Optional<PacketCounter> getPacketCounter() const {
+    return packetCounter_;
+  }
+
+  void setPacketCounter(const PacketCounter& packetCounter) {
+    packetCounter_ = packetCounter;
+  }
+
   bool operator==(const MatchAction& action) const {
-    return sendToQueue_ == action.sendToQueue_;
+    return sendToQueue_ == action.sendToQueue_ &&
+      packetCounter_ == action.packetCounter_;
   }
 
   MatchAction& operator=(const MatchAction& action) {
     sendToQueue_ = action.sendToQueue_;
+    packetCounter_ = action.packetCounter_;
     return *this;
   }
 
@@ -55,6 +66,7 @@ class MatchAction {
 
  private:
   folly::Optional<SendToQueue> sendToQueue_{folly::none};
+  folly::Optional<PacketCounter> packetCounter_{folly::none};
 };
 
 }} // facebook::fboss

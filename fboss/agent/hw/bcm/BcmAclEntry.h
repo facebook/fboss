@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/bcm/BcmAclStat.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/types.h"
 

@@ -14,6 +14,8 @@ namespace {
 constexpr auto kQueueMatchAction = "queueMatchAction";
 constexpr auto kQueueId = "queueId";
 constexpr auto kSendToCPU = "sendToCPU";
+constexpr auto kPacketCounterMatchAction = "packetCounterMatchAction";
+constexpr auto kCounterName = "counterName";
 }
 
 namespace facebook { namespace fboss {
@@ -26,6 +28,11 @@ folly::dynamic MatchAction::toFollyDynamic() const {
       sendToQueue_.value().first.queueId;
     matchAction[kQueueMatchAction][kSendToCPU] = sendToQueue_.value().second;
   }
+  if (packetCounter_) {
+    matchAction[kPacketCounterMatchAction] = folly::dynamic::object;
+    matchAction[kPacketCounterMatchAction][kCounterName] =
+      packetCounter_.value().counterName;
+  }
   return matchAction;
 }
 
@@ -37,6 +44,12 @@ MatchAction MatchAction::fromFollyDynamic(
     queueAction.queueId = actionJson[kQueueMatchAction][kQueueId].asInt();
     bool sendToCPU = actionJson[kQueueMatchAction][kSendToCPU].asBool();
     matchAction.setSendToQueue(std::make_pair(queueAction, sendToCPU));
+  }
+  if (actionJson.find(kPacketCounterMatchAction) != actionJson.items().end()) {
+    auto packetCounterAction = cfg::PacketCounterMatchAction();
+    packetCounterAction.counterName =
+        actionJson[kPacketCounterMatchAction][kCounterName].asString();
+    matchAction.setPacketCounter(packetCounterAction);
   }
   return matchAction;
 }

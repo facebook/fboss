@@ -200,8 +200,13 @@ struct QueueMatchAction {
   1: i16 queueId
 }
 
+struct PacketCounterMatchAction {
+  1: string counterName
+}
+
 struct MatchAction {
   1: optional QueueMatchAction sendToQueue
+  2: optional PacketCounterMatchAction packetCounter
 }
 
 struct MatchToAction {
