@@ -1108,6 +1108,18 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry *config) const {
     throw FbossError("proto must be either icmp or icmpv6 ",
       "if icmp type is set");
   }
+  if (config->__isset.ttl && config->ttl.value > 255) {
+    throw FbossError("ttl value is larger than 255");
+  }
+  if (config->__isset.ttl && config->ttl.value < 0) {
+    throw FbossError("ttl value is less than 0");
+  }
+  if (config->__isset.ttl && config->ttl.mask > 255) {
+    throw FbossError("ttl mask is larger than 255");
+  }
+  if (config->__isset.ttl && config->ttl.mask < 0) {
+    throw FbossError("ttl mask is less than 0");
+  }
 }
 
 shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
@@ -1163,6 +1175,12 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   }
   if (config->__isset.dstMac) {
     newAcl->setDstMac(MacAddress(config->dstMac));
+  }
+  if (config->__isset.ipType) {
+      newAcl->setIpType(config->ipType);
+  }
+  if (config->__isset.ttl) {
+      newAcl->setTtl(AclTtl(config->ttl.value, config->ttl.mask));
   }
   return newAcl;
 }

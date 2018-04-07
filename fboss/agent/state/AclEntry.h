@@ -80,6 +80,61 @@ private:
   uint16_t max_;
 };
 
+class AclTtl {
+public:
+  AclTtl(const AclTtl& ttl) {
+    setValue(ttl.value_);
+    setMask(ttl.mask_);
+  }
+
+  AclTtl(const uint16_t value, const uint16_t mask) {
+    setValue(value);
+    setMask(mask);
+  }
+
+  uint16_t getValue() const {
+    return value_;
+  }
+
+  void setValue(uint16_t value) {
+    if (value > 255) {
+      throw FbossError("ttl value is invalid (must be [0,255])");
+    }
+    value_ = value;
+  }
+
+  uint16_t getMask() const {
+    return mask_;
+  }
+
+  void setMask(uint16_t mask) {
+    if (mask > 255) {
+      throw FbossError("ttl mask is invalid (must be [0,255])");
+    }
+    mask_ = mask;
+  }
+
+  bool operator<(const AclTtl& ttl) const {
+    return std::tie(value_, mask_) < std::tie(ttl.value_, ttl.mask_);
+  }
+
+  bool operator==(const AclTtl& ttl) const {
+    return std::tie(value_, mask_) == std::tie(ttl.value_, ttl.mask_);
+  }
+
+  AclTtl& operator=(const AclTtl& ttl) {
+    value_ = ttl.value_;
+    mask_ = ttl.mask_;
+    return *this;
+  }
+
+  folly::dynamic toFollyDynamic() const;
+  static AclTtl fromFollyDynamic(const folly::dynamic& rangeJson);
+private:
+  uint16_t value_;
+  uint16_t mask_;
+};
+
 class AclPktLenRange {
 public:
   AclPktLenRange(const AclPktLenRange& range) {
@@ -161,6 +216,8 @@ struct AclEntryFields {
   folly::Optional<uint8_t> icmpType{folly::none};
   folly::Optional<uint8_t> icmpCode{folly::none};
   folly::Optional<uint8_t> dscp{folly::none};
+  folly::Optional<cfg::IpType> ipType{folly::none};
+  folly::Optional<AclTtl> ttl{folly::none};
   folly::Optional<folly::MacAddress> dstMac{folly::none};
 
   cfg::AclActionType actionType{cfg::AclActionType::PERMIT};
@@ -208,7 +265,9 @@ class AclEntry :
            getFields()->icmpType == acl.getIcmpType() &&
            getFields()->icmpCode == acl.getIcmpCode() &&
            getFields()->dscp == acl.getDscp() &&
-           getFields()->dstMac == acl.getDstMac();
+           getFields()->dstMac == acl.getDstMac() &&
+           getFields()->ipType == acl.getIpType() &&
+           getFields()->ttl == acl.getTtl();
   }
 
   int getPriority() const {
@@ -337,6 +396,22 @@ class AclEntry :
 
   void setDscp(uint8_t dscp) {
     writableFields()->dscp = dscp;
+  }
+
+  folly::Optional<cfg::IpType> getIpType() const {
+    return getFields()->ipType;
+  }
+
+  void setIpType(const cfg::IpType& ipType) {
+    writableFields()->ipType = ipType;
+  }
+
+  folly::Optional<AclTtl> getTtl() const {
+    return getFields()->ttl;
+  }
+
+  void setTtl(const AclTtl& ttl) {
+    writableFields()->ttl = ttl;
   }
 
   folly::Optional<folly::MacAddress> getDstMac() const {

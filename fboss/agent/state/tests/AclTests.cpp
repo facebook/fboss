@@ -479,3 +479,88 @@ TEST(Acl, SerializeAclEntry) {
   EXPECT_TRUE(aclAction.getPacketCounter());
   EXPECT_EQ(aclAction.getPacketCounter().value().counterName, "stat0.c");
 }
+
+TEST(Acl, Ttl) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  config.acls.resize(1);
+  config.acls[0].name = "acl1";
+  config.acls[0].actionType = cfg::AclActionType::DENY;
+  // set ttl
+  config.acls[0].ttl.value = 42;
+  config.acls[0].ttl.mask = 0xff;
+  config.acls[0].__isset.ttl = true;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto aclV1 = stateV1->getAcl("acl1");
+  ASSERT_NE(nullptr, aclV1);
+  EXPECT_TRUE(aclV1->getTtl());
+  EXPECT_EQ(aclV1->getTtl().value().getValue(), 42);
+  EXPECT_EQ(aclV1->getTtl().value().getMask(), 0xff);
+
+  // check invalid configs
+  config.acls[0].ttl.value = 256;
+  EXPECT_THROW(publishAndApplyConfig(stateV1, &config, platform.get()),
+    FbossError);
+  config.acls[0].ttl.value = -1;
+  EXPECT_THROW(publishAndApplyConfig(stateV1, &config, platform.get()),
+    FbossError);
+  config.acls[0].ttl.value = 42;
+  config.acls[0].ttl.mask = 256;
+  EXPECT_THROW(publishAndApplyConfig(stateV1, &config, platform.get()),
+    FbossError);
+  config.acls[0].ttl.mask = -1;
+  EXPECT_THROW(publishAndApplyConfig(stateV1, &config, platform.get()),
+    FbossError);
+}
+
+TEST(Acl, TtlSerialization) {
+  auto entry = std::make_unique<AclEntry>(0, "stat0");
+  entry->setTtl(AclTtl(42, 0xff));
+  auto action = MatchAction();
+  auto packetCounterAction = cfg::PacketCounterMatchAction();
+  packetCounterAction.counterName = "stat0.c";
+  action.setPacketCounter(packetCounterAction);
+  entry->setAclAction(action);
+
+  auto serialized = entry->toFollyDynamic();
+  auto entryBack = AclEntry::fromFollyDynamic(serialized);
+
+  EXPECT_TRUE(*entry == *entryBack);
+  EXPECT_TRUE(entryBack->getTtl());
+  EXPECT_EQ(entryBack->getTtl().value().getValue(), 42);
+  EXPECT_EQ(entryBack->getTtl().value().getMask(), 0xff);
+
+  // check invalid configs
+  auto ttl = AclTtl(42, 0xff);
+  EXPECT_THROW(AclTtl(256, 0xff), FbossError);
+  EXPECT_THROW(AclTtl(42, 256), FbossError);
+  EXPECT_THROW(ttl.setValue(256), FbossError);
+  EXPECT_THROW(ttl.setValue(-1), FbossError);
+  EXPECT_THROW(ttl.setMask(256), FbossError);
+  EXPECT_THROW(ttl.setMask(-1), FbossError);
+}
+
+TEST(Acl, IpType) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  config.acls.resize(1);
+  config.acls[0].name = "acl1";
+  config.acls[0].actionType = cfg::AclActionType::DENY;
+  // set IpType
+  auto ipType = cfg::IpType::IP6;
+  config.acls[0].__isset.ipType = true;
+  config.acls[0].ipType = ipType;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto aclV1 = stateV1->getAcl("acl1");
+  EXPECT_NE(nullptr, aclV1);
+  EXPECT_TRUE(aclV1->getIpType());
+  EXPECT_EQ(aclV1->getIpType().value(), ipType);
+}

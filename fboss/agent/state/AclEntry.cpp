@@ -40,6 +40,10 @@ constexpr auto kIcmpType = "icmpType";
 constexpr auto kDscp = "dscp";
 constexpr auto kPortName = "portName";
 constexpr auto kDstMac = "dstMac";
+constexpr auto kIpType = "IpType";
+constexpr auto kTtl = "ttl";
+constexpr auto kTtlValue = "value";
+constexpr auto kTtlMask = "mask";
 constexpr auto kAclAction = "aclAction";
 }
 
@@ -108,6 +112,23 @@ void AclPktLenRange::checkFollyDynamic(const folly::dynamic& rangeJson) {
   }
 }
 
+folly::dynamic AclTtl::toFollyDynamic() const {
+  folly::dynamic ttl = folly::dynamic::object;
+  ttl[kTtlValue] = static_cast<uint16_t>(value_);
+  ttl[kTtlMask] = static_cast<uint16_t>(mask_);
+  return ttl;
+}
+
+AclTtl AclTtl::fromFollyDynamic(const folly::dynamic& ttlJson) {
+  if (ttlJson.find(kTtlValue) == ttlJson.items().end()) {
+    throw FbossError("ttl should have a value set");
+  }
+  if (ttlJson.find(kTtlMask) == ttlJson.items().end()) {
+    throw FbossError("ttl should have a mask set");
+  }
+  return AclTtl(ttlJson[kTtlValue].asInt(), ttlJson[kTtlMask].asInt());
+}
+
 folly::dynamic AclEntryFields::toFollyDynamic() const {
   folly::dynamic aclEntry = folly::dynamic::object;
   if (srcIp.first) {
@@ -153,6 +174,12 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   }
   if (dscp) {
     aclEntry[kDscp] = static_cast<uint8_t>(dscp.value());
+  }
+  if (ipType) {
+    aclEntry[kIpType] = static_cast<uint16_t>(ipType.value());
+  }
+  if (ttl) {
+    aclEntry[kTtl] = ttl.value().toFollyDynamic();
   }
   auto itr_action = cfg::_AclActionType_VALUES_TO_NAMES.find(actionType);
   CHECK(itr_action != cfg::_AclActionType_VALUES_TO_NAMES.end());
@@ -226,6 +253,12 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   }
   if (aclEntryJson.find(kDscp) != aclEntryJson.items().end()) {
     aclEntry.dscp = aclEntryJson[kDscp].asInt();
+  }
+  if (aclEntryJson.find(kIpType) != aclEntryJson.items().end()) {
+    aclEntry.ipType = static_cast<cfg::IpType>(aclEntryJson[kIpType].asInt());
+  }
+  if (aclEntryJson.find(kTtl) != aclEntryJson.items().end()) {
+    aclEntry.ttl = AclTtl::fromFollyDynamic(aclEntryJson[kTtl]);
   }
   aclEntry.actionType =
       cfg::_AclActionType_NAMES_TO_VALUES

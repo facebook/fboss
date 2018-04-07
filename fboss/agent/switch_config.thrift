@@ -96,6 +96,18 @@ struct PktLenRange {
   2: i16 max
 }
 
+enum IpType {
+  ANY = 0,
+  IP = 1,
+  IP4 = 2,
+  IP6 = 3,
+}
+
+struct Ttl {
+  1: i16 value
+  2: i16 mask = 0xFF
+}
+
 enum IpFragMatch {
   // not fragment
   MATCH_NOT_FRAGMENTED = 0
@@ -185,6 +197,12 @@ struct AclEntry {
   18: AclActionType actionType = PERMIT
 
   19: optional string dstMac
+
+  /* Match TTL if IPv4 and HopLimit if IPv6 */
+  20: optional Ttl ttl
+
+  /* IP type (IPv4, IPv6, ARP, MPLS... */
+  21: optional IpType ipType
 
 }
 
