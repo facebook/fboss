@@ -331,6 +331,13 @@ class BcmSwitch : public BcmSwitchIf {
   }
 
   opennsl_gport_t getCpuGPort() const;
+  /*
+   * Calls linkStateChanged. Invoked by linkscan thread
+   * on BCM ASIC as well as explicitly by tests.
+   */
+  static void linkscanCallback(int unit,
+                               opennsl_port_t port,
+                               opennsl_port_info_t* info);
 
  private:
   enum Flags : uint32_t {
@@ -426,12 +433,6 @@ class BcmSwitch : public BcmSwitchIf {
 
   void processControlPlaneChanges(const StateDelta& delta);
 
-  /*
-   * Calls linkStateChanged below
-   */
-  static void linkscanCallback(int unit,
-                               opennsl_port_t port,
-                               opennsl_port_info_t* info);
   /*
    * linkStateChangedHwNotLocked is in the call chain started by link scan
    * thread while invoking our link state handler. Link scan thread
