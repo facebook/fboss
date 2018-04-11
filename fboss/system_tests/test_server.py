@@ -159,8 +159,6 @@ class TestServer(TestService.Iface):
         """ To send a packet, we need an open_live call.
             If one's already open, use that, if not, start and
             stop one quickly """
-        self.log.warning("Doing sendPkt(%s,len(%s))" % (interface_name,
-                                                    len(pkt)))
         ## NOTE: pcapy.reader.sendpacket() is not implemented!  use python
         raw = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
         raw.bind((interface_name, 0))
