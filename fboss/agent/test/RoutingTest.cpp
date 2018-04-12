@@ -211,7 +211,7 @@ const IOBuf createV6MulticastPacket(
  */
 RxMatchFn matchRxPacket(const IOBuf& expBuf) {
   return [expBuf](const RxPacket* rcvdPkt) {
-    if (!folly::IOBufEqual()(expBuf, *rcvdPkt->buf())) {
+    if (!folly::IOBufEqualTo()(expBuf, *rcvdPkt->buf())) {
       throw FbossError("Expected rx-packet is not same as received packet");
     }
 
@@ -242,7 +242,7 @@ TxMatchFn matchTxPacket(
     VLOG(2) << "\n" << folly::hexDump(
       wrappedExpBuf->get(), (*wrappedExpBuf)->length());
 
-    if (!folly::IOBufEqual()(**wrappedExpBuf, *rcvdPkt->buf())) {
+    if (!folly::IOBufEqualTo()(**wrappedExpBuf, *rcvdPkt->buf())) {
       throw FbossError("Expected tx-packet is not same as received packet");
     }
 
