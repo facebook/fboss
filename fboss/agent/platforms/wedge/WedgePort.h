@@ -72,6 +72,10 @@ class WedgePort : public BcmPlatformPort {
   folly::Future<folly::Optional<TxSettings>> getTxSettings(
       folly::EventBase* evb) const override;
 
+  bool shouldUsePortResourceAPIs() const override {
+    return false;
+  }
+
  protected:
   bool isControllingPort() const;
   bool isInSingleMode() const;

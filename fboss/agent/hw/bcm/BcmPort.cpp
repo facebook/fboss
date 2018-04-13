@@ -353,13 +353,17 @@ void BcmPort::enableLinkscan() {
 void BcmPort::program(const shared_ptr<Port>& port) {
   VLOG(1) << "Reprogramming BcmPort for port " << port->getID();
   setIngressVlan(port);
-  setSpeed(port);
+  if (platformPort_->shouldUsePortResourceAPIs()) {
+    setPortResource(port);
+  } else {
+    setSpeed(port);
+    // Update FEC settings if needed. Note this is not only
+    // on speed change as the port's default speed (say on a
+    // cold boot) maybe what is desired by the config. But we
+    // may still need to enable FEC
+    setFEC(port);
+  }
   setPause(port);
-  // Update FEC settings if needed. Note this is not only
-  // on speed change as the port's default speed (say on a
-  // cold boot) maybe what is desired by the config. But we
-  // may still need to enable FEC
-  setFEC(port);
   // Update Tx Setting if needed.
   setTxSetting(port);
   setSflowRates(port);
@@ -426,18 +430,42 @@ cfg::PortSpeed BcmPort::getSpeed() const {
   return cfg::PortSpeed(curSpeed);
 }
 
-void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
-  int ret;
-  cfg::PortSpeed desiredPortSpeed;
+cfg::PortSpeed BcmPort::getDesiredPortSpeed(
+    const std::shared_ptr<Port>& swPort) {
   if (swPort->getSpeed() == cfg::PortSpeed::DEFAULT) {
     int speed;
-    ret = opennsl_port_speed_max(unit_, port_, &speed);
+    auto ret = opennsl_port_speed_max(unit_, port_, &speed);
     bcmCheckError(ret, "failed to get max speed for port", swPort->getID());
-    desiredPortSpeed = cfg::PortSpeed(speed);
+    return cfg::PortSpeed(speed);
   } else {
-    desiredPortSpeed = swPort->getSpeed();
+    return swPort->getSpeed();
   }
+}
 
+void BcmPort::setInterfaceMode(const shared_ptr<Port>& swPort) {
+  auto desiredPortSpeed = getDesiredPortSpeed(swPort);
+  opennsl_port_if_t desiredMode = getDesiredInterfaceMode(desiredPortSpeed,
+                                                          swPort->getID(),
+                                                          swPort->getName());
+
+  // Check whether we have the correct interface set
+  opennsl_port_if_t curMode = opennsl_port_if_t(0);
+  auto ret = opennsl_port_interface_get(unit_, port_, &curMode);
+  bcmCheckError(ret, "Failed to get current interface setting for port ",
+                     swPort->getID());
+
+  if (curMode != desiredMode) {
+    // Changes to the interface setting only seem to take effect on the next
+    // call to opennsl_port_speed_set()
+    ret = opennsl_port_interface_set(unit_, port_, desiredMode);
+    bcmCheckError(ret, "failed to set interface type for port ",
+                       swPort->getID());
+  }
+}
+
+void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
+  int ret;
+  cfg::PortSpeed desiredPortSpeed = getDesiredPortSpeed(swPort);
   int desiredSpeed = static_cast<int>(desiredPortSpeed);
   // Unnecessarily updating BCM port speed actually causes
   // the port to flap, even if this should be a noop, so check current
@@ -465,24 +493,7 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
   // ports are in desired mode settings, we can make mode changes a first
   // class citizen as well.
   if (!portUp || curSpeed != desiredSpeed) {
-    opennsl_port_if_t desiredMode = getDesiredInterfaceMode(desiredPortSpeed,
-                                                        swPort->getID(),
-                                                        swPort->getName());
-
-    // Check whether we have the correct interface set
-    opennsl_port_if_t curMode = opennsl_port_if_t(0);
-    ret = opennsl_port_interface_get(unit_, port_, &curMode);
-    bcmCheckError(ret,
-                  "Failed to get current interface setting for port ",
-                  swPort->getID());
-
-    if (curMode != desiredMode) {
-      // Changes to the interface setting only seem to take effect on the next
-      // call to opennsl_port_speed_set()
-      ret = opennsl_port_interface_set(unit_, port_, desiredMode);
-      bcmCheckError(
-          ret, "failed to set interface type for port ", swPort->getID());
-    }
+    setInterfaceMode(swPort);
 
     if (portUp) {
       // Changing the port speed causes traffic disruptions, but not doing

@@ -64,4 +64,11 @@ QueueConfig BcmPort::getCurrentQueueSettings() {
 
 void BcmPort::setupQueue(const std::shared_ptr<PortQueue>& /*queue*/) {
 }
+
+void BcmPort::setPortResource(const std::shared_ptr<Port>& /*swPort*/) {}
+
+bool BcmPort::getDesiredFECEnabledStatus(
+    const std::shared_ptr<Port>& /*swPort*/) {
+  return false;
+}
 }} // namespace facebook::fboss

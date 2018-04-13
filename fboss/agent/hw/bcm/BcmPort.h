@@ -124,6 +124,7 @@ class BcmPort {
   void setSpeed(const std::shared_ptr<Port>& swPort);
   void setSflowRates(const std::shared_ptr<Port>& swPort);
   void disableSflow();
+  void setPortResource(const std::shared_ptr<Port>& swPort);
 
   /*
    * Update this port's statistics.
@@ -192,13 +193,16 @@ class BcmPort {
   void setAdditionalStats(std::chrono::seconds now, HwPortStats* curPortStats);
   std::string statName(folly::StringPiece name) const;
 
+  cfg::PortSpeed getDesiredPortSpeed(const std::shared_ptr<Port>& swPort);
   opennsl_port_if_t getDesiredInterfaceMode(cfg::PortSpeed speed,
                                             PortID id,
                                             const std::string& name);
+  bool getDesiredFECEnabledStatus(const std::shared_ptr<Port>& swPort);
   TransmitterTechnology getTransmitterTechnology(const std::string& name);
 
   opennsl_pbmp_t getPbmp();
 
+  void setInterfaceMode(const std::shared_ptr<Port>& swPort);
   void setFEC(const std::shared_ptr<Port>& swPort);
   void setPause(const std::shared_ptr<Port>& swPort);
   void setTxSetting(const std::shared_ptr<Port>& swPort);
