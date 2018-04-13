@@ -35,6 +35,7 @@
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/HwTestHandle.h"
 
+#include <array>
 #include <gtest/gtest.h>
 #include <future>
 #include <string>
@@ -266,52 +267,6 @@ TEST(ArpTest, SendRequest) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.rx.sum", 0);
   counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.tx.sum", 0);
   counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.rx.sum", 0);
-
-  // Create an IP pkt for 10.1.1.10, reachable through 10.0.0.22 and 10.0.0.23
-  auto buf = make_unique<IOBuf>(PktUtil::parseHexData(
-    // dst mac, src mac
-    "02 00 01 00 00 01  02 00 02 01 02 03"
-    // 802.1q, VLAN 1
-    "81 00 00 01"
-    // IPv4
-    "08 00"
-    // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
-    "45  00  00 14"
-    // Identification(0), Flags(0), Fragment offset(0)
-    "00 00  00 00"
-    // TTL(31), Protocol(6), Checksum (0, fake)
-    "1F  06  00 00"
-    // Source IP (1.2.3.4)
-    "01 02 03 04"
-    // Destination IP (10.1.1.10)
-    "0a 01 01 0a"
-  ));
-
-  // Receiving this packet should trigger an ARP request to 10.0.0.22 and
-  // 10.0.0.23, which causes pending arp entries to be added to the state.
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
-  EXPECT_PKT(sw, "ARP request",
-             checkArpRequest(senderIP, MacAddress("00:02:00:00:00:01"),
-                             IPAddressV4("10.0.0.22"), vlanID));
-  EXPECT_PKT(sw, "ARP request",
-             checkArpRequest(senderIP, MacAddress("00:02:00:00:00:01"),
-                             IPAddressV4("10.0.0.23"), vlanID));
-
-  handle->rxPacket(std::move(buf), PortID(1), vlanID);
-
-  waitForStateUpdates(sw);
-  counters.update();
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.arp.sum", 0);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.tx.sum", 2);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.rx.sum", 0);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.tx.sum", 0);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.rx.sum", 0);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.error.sum", 0);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ipv4.sum", 1);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.nexthop.sum", 1);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.no_arp.sum", 0);
 }
 
 TEST(ArpTest, TableUpdates) {
@@ -1399,4 +1354,77 @@ TEST(ArpTest, receivedPacketWithNoRouteToDestination) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ipv4.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.nexthop.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.no_arp.sum", 1);
+}
+
+TEST(ArpTest, receivedPacketWithRouteToDestination) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+  VlanID vlanID(1);
+  IPAddressV4 senderIP = IPAddressV4("10.0.0.1");
+  std::array<IPAddressV4, 2> nextHops = {IPAddressV4("10.0.0.22"),
+                                         IPAddressV4("10.0.0.23")};
+
+  // Cache the current stats
+  CounterCache counters(sw);
+
+  WaitForArpEntryExpiration firstNextHopWaiter(nextHops[0]);
+  sw->registerStateObserver(
+      &firstNextHopWaiter,
+      WaitForArpEntryExpiration::kStateObserverName() + "0");
+  WaitForArpEntryExpiration secondNextHopWaiter(nextHops[1]);
+  sw->registerStateObserver(
+      &secondNextHopWaiter,
+      WaitForArpEntryExpiration::kStateObserverName() + "1");
+
+  // Create an IP pkt for 10.1.1.10, reachable through 10.0.0.22 and 10.0.0.23
+  auto buf = make_unique<IOBuf>(PktUtil::parseHexData(
+    // dst mac, src mac
+    "02 00 01 00 00 01  02 00 02 01 02 03"
+    // 802.1q, VLAN 1
+    "81 00 00 01"
+    // IPv4
+    "08 00"
+    // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
+    "45  00  00 14"
+    // Identification(0), Flags(0), Fragment offset(0)
+    "00 00  00 00"
+    // TTL(31), Protocol(6), Checksum (0, fake)
+    "1F  06  00 00"
+    // Source IP (1.2.3.4)
+    "01 02 03 04"
+    // Destination IP (10.1.1.10)
+    "0a 01 01 0a"
+  ));
+
+  // Receiving this packet should trigger an ARP request to 10.0.0.22 and
+  // 10.0.0.23, which causes pending arp entries to be added to the state.
+  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(2));
+  EXPECT_PKT(sw, "ARP request",
+             checkArpRequest(senderIP, MacAddress("00:02:00:00:00:01"),
+                             IPAddressV4("10.0.0.22"), vlanID));
+  EXPECT_PKT(sw, "ARP request",
+             checkArpRequest(senderIP, MacAddress("00:02:00:00:00:01"),
+                             IPAddressV4("10.0.0.23"), vlanID));
+
+  handle->rxPacket(std::move(buf), PortID(1), vlanID);
+
+  waitForStateUpdates(sw);
+  EXPECT_TRUE(firstNextHopWaiter.wait());
+  EXPECT_TRUE(secondNextHopWaiter.wait());
+
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.arp.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.tx.sum", 2);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.rx.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.tx.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.rx.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.error.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ipv4.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.nexthop.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.no_arp.sum", 0);
+
+  sw->unregisterStateObserver(&firstNextHopWaiter);
+  sw->unregisterStateObserver(&secondNextHopWaiter);
 }
