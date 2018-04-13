@@ -250,23 +250,47 @@ class WaitForArpEntryExpiration : public WaitForSwitchState {
 
 } // unnamed namespace
 
-TEST(ArpTest, SendRequest) {
+TEST(ArpTest, BasicSendRequest) {
   auto handle = setupTestHandle();
   auto sw = handle->getSw();
   VlanID vlanID(1);
   IPAddressV4 senderIP = IPAddressV4("10.0.0.1");
   IPAddressV4 targetIP = IPAddressV4("10.0.0.2");
 
+  WaitForArpEntryExpiration waiter(targetIP);
+  sw->registerStateObserver(
+      &waiter, WaitForArpEntryExpiration::kStateObserverName());
+
   // Cache the current stats
   CounterCache counters(sw);
 
-  testSendArpRequest(sw, vlanID, senderIP, targetIP);
+  auto state = sw->getState();
+  auto vlan = state->getVlans()->getVlanIf(vlanID);
+  EXPECT_NE(vlan, nullptr);
+  auto intf = state->getInterfaces()->getInterfaceIf(RouterID(0), senderIP);
+  EXPECT_NE(intf, nullptr);
+
+  // Sending an ARP request will trigger state update for setting pending entry
+  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(2);
+  EXPECT_PKT(sw, "ARP request",
+             checkArpRequest(senderIP, intf->getMac(), targetIP, vlanID));
+
+  ArpHandler::sendArpRequest(sw, vlan->getID(), intf->getMac(),
+                             senderIP, targetIP);
+
+  // Notify the updater that we sent an arp request
+  sw->getNeighborUpdater()->sentArpRequest(vlanID, targetIP);
+
+  waitForStateUpdates(sw);
+  EXPECT_TRUE(waiter.wait());
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.tx.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.rx.sum", 0);
   counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.tx.sum", 0);
   counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.rx.sum", 0);
+
+  sw->unregisterStateObserver(&waiter);
 }
 
 TEST(ArpTest, TableUpdates) {
