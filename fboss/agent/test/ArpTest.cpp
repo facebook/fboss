@@ -260,57 +260,15 @@ TEST(ArpTest, SendRequest) {
   CounterCache counters(sw);
 
   testSendArpRequest(sw, vlanID, senderIP, targetIP);
+
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.tx.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.rx.sum", 0);
   counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.tx.sum", 0);
   counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.rx.sum", 0);
-
-  // Create an IP pkt for 10.0.0.10
-  auto buf = make_unique<IOBuf>(PktUtil::parseHexData(
-    // dst mac, src mac
-    "02 00 01 00 00 01  02 00 02 01 02 03"
-    // 802.1q, VLAN 1
-    "81 00 00 01"
-    // IPv4
-    "08 00"
-    // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
-    "45  00  00 14"
-    // Identification(0), Flags(0), Fragment offset(0)
-    "00 00  00 00"
-    // TTL(31), Protocol(6), Checksum (0, fake)
-    "1F  06  00 00"
-    // Source IP (1.2.3.4)
-    "01 02 03 04"
-    // Destination IP (10.0.0.10)
-    "0a 00 00 0a"
-  ));
-
-  // Receiving this packet should trigger an ARP request out.
-  // The state will also update because a pending arp entry will be created
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(1);
-  EXPECT_PKT(sw, "ARP request",
-             checkArpRequest(senderIP, MacAddress("00:02:00:00:00:01"),
-                             IPAddressV4("10.0.0.10"), vlanID));
-
-  handle->rxPacket(std::move(buf), PortID(1), vlanID);
-  waitForStateUpdates(sw);
-
-  counters.update();
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.arp.sum", 0);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.tx.sum", 1);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.rx.sum", 0);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.tx.sum", 0);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.rx.sum", 0);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.error.sum", 0);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ipv4.sum", 1);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.nexthop.sum", 1);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.no_arp.sum", 0);
 
   // Create an IP pkt for 10.0.10.10
-  buf = make_unique<IOBuf>(PktUtil::parseHexData(
+  auto buf = make_unique<IOBuf>(PktUtil::parseHexData(
     // dst mac, src mac
     "02 00 01 00 00 01  02 00 02 01 02 03"
     // 802.1q, VLAN 1
@@ -1368,4 +1326,67 @@ TEST(ArpTest, PortFlapRecover) {
   EXPECT_EQ(entry->isPending(), false);
   EXPECT_EQ(entry2->isPending(), false);
   EXPECT_EQ(entry3->isPending(), false);
+}
+
+TEST(ArpTest, receivedPacketWithDirectlyConnectedDestination) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+  VlanID vlanID(1);
+  IPAddressV4 senderIP = IPAddressV4("10.0.0.1");
+  IPAddressV4 targetIP = IPAddressV4("10.0.0.10");
+
+  WaitForArpEntryExpiration waiter(targetIP);
+  sw->registerStateObserver(
+      &waiter, WaitForArpEntryExpiration::kStateObserverName());
+
+  // Cache the current stats
+  CounterCache counters(sw);
+
+  // Create an IP pkt for 10.0.0.10
+  auto buf = make_unique<IOBuf>(PktUtil::parseHexData(
+    // dst mac, src mac
+    "02 00 01 00 00 01  02 00 02 01 02 03"
+    // 802.1q, VLAN 1
+    "81 00 00 01"
+    // IPv4
+    "08 00"
+    // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
+    "45  00  00 14"
+    // Identification(0), Flags(0), Fragment offset(0)
+    "00 00  00 00"
+    // TTL(31), Protocol(6), Checksum (0, fake)
+    "1F  06  00 00"
+    // Source IP (1.2.3.4)
+    "01 02 03 04"
+    // Destination IP (10.0.0.10)
+    "0a 00 00 0a"
+  ));
+
+  // Receiving this packet should trigger an ARP request out.
+  EXPECT_PKT(sw, "ARP request",
+             checkArpRequest(senderIP, MacAddress("00:02:00:00:00:01"),
+                             targetIP, vlanID));
+  // The state will be updated twice: once to create a pending ARP entry and
+  // once to expire the ARP entry
+  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(2);
+
+  handle->rxPacket(std::move(buf), PortID(1), vlanID);
+
+  waitForStateUpdates(sw);
+  EXPECT_TRUE(waiter.wait());
+
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.arp.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.tx.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.request.rx.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.tx.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "arp.reply.rx.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.error.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ipv4.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.nexthop.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.no_arp.sum", 0);
+
+  sw->unregisterStateObserver(&waiter);
 }
