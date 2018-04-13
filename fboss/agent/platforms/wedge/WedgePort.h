@@ -75,6 +75,9 @@ class WedgePort : public BcmPlatformPort {
   bool shouldUsePortResourceAPIs() const override {
     return false;
   }
+  bool shouldSetupPortGroup() const override {
+    return true;
+  }
 
  protected:
   bool isControllingPort() const;

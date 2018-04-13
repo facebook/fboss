@@ -83,6 +83,7 @@ class BcmPlatformPort : public PlatformPort {
   virtual const XPEs getEgressXPEs() const = 0;
 
   virtual bool shouldUsePortResourceAPIs() const = 0;
+  virtual bool shouldSetupPortGroup() const = 0;
 
  private:
   // Forbidden copy constructor and assignment operator
