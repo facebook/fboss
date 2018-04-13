@@ -7,8 +7,7 @@ from fboss.thrift_clients import FbossAgentClient, QsfpServiceClient
 from fboss.netlink_manager.netlink_manager_client import NetlinkManagerClient
 from fboss.system_tests.testutils.test_client import TestClient
 from neteng.fboss.ttypes import FbossBaseError
-from fboss.system_tests.facebook.utils.agent_config import (
-    FbossAgentConfig)
+
 from thrift.transport.TTransport import TTransportException
 
 import logging
@@ -191,9 +190,3 @@ class FBOSSTestTopology(object):
                         return ndp_entry.port
 
         return None
-
-    def switch_agent_config(self):
-        return FbossAgentConfig(self.switch.name, self.switch.login_user,
-                                self.switch.login_password,
-                                self.switch_thrift,
-                                self.log)
