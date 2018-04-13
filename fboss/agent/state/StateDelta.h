@@ -10,6 +10,7 @@
 #pragma once
 
 #include <functional>
+#include <ostream>
 #include <memory>
 
 #include "fboss/agent/state/AclMap.h"
@@ -62,5 +63,7 @@ class StateDelta {
   std::shared_ptr<SwitchState> old_;
   std::shared_ptr<SwitchState> new_;
 };
+
+std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta);
 
 }} // facebook::fboss

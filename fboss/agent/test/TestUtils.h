@@ -13,12 +13,15 @@
 #include <functional>
 #include <gmock/gmock.h>
 
+#include <folly/Function.h>
 #include <folly/MacAddress.h>
 #include <folly/Range.h>
 #include <folly/Optional.h>
+#include <folly/synchronization/Baton.h>
 
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/StateObserver.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
@@ -323,4 +326,18 @@ class RxPacketMatcher : public ::testing::MatcherInterface<RxMatchFnArgs> {
   const RxMatchFn fn_;
 };
 
+class WaitForSwitchState : public StateObserver {
+ public:
+  using SwitchStatePredicate = folly::Function<bool(const StateDelta&)>;
+
+  explicit WaitForSwitchState(SwitchStatePredicate predicate);
+  ~WaitForSwitchState();
+
+  void stateUpdated(const StateDelta& delta) override;
+  bool wait();
+
+ private:
+  SwitchStatePredicate predicate_;
+  folly::Baton<> switchStateObserved_;
+};
 }} // facebook::fboss

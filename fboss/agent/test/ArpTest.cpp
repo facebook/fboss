@@ -37,6 +37,7 @@
 
 #include <gtest/gtest.h>
 #include <future>
+#include <string>
 
 using namespace facebook::fboss;
 using facebook::network::toBinaryAddress;
@@ -219,6 +220,32 @@ void testSendArpRequest(SwSwitch* sw, VlanID vlanID,
 
   waitForStateUpdates(sw);
 }
+
+class WaitForArpEntryExpiration : public WaitForSwitchState {
+ public:
+  explicit WaitForArpEntryExpiration(IPAddressV4 entryIPAddress)
+      : WaitForSwitchState([entryIPAddress](const StateDelta& delta) {
+          // TODO(samank): don't need to iterate over every vlan
+          for (const auto& vlanDelta : delta.getVlansDelta()) {
+            for (const auto& arpDelta : vlanDelta.getArpDelta()) {
+              const auto* oldArpEntry = arpDelta.getOld().get();
+              const auto* newArpEntry = arpDelta.getNew().get();
+
+              bool entryRemoved = oldArpEntry && !newArpEntry;
+
+              if (entryRemoved && oldArpEntry->getIP() == entryIPAddress) {
+                return true;
+              }
+            }
+          }
+          return false;
+        }) {}
+  ~WaitForArpEntryExpiration() {}
+
+  static std::string kStateObserverName() {
+    return "Arp Entry Expiration";
+  }
+};
 
 } // unnamed namespace
 

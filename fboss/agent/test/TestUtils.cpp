@@ -29,6 +29,7 @@
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/test/MockTunManager.h"
 
+#include <chrono>
 #include <folly/Memory.h>
 #include <folly/json.h>
 #include <folly/Optional.h>
@@ -623,4 +624,22 @@ void EXPECT_NO_ROUTE(const std::shared_ptr<RouteTableMap>& tables,
   }
 }
 
-}} // namespace facebook::fboss
+WaitForSwitchState::WaitForSwitchState(SwitchStatePredicate predicate)
+      : predicate_(std::move(predicate)), switchStateObserved_() {}
+
+WaitForSwitchState::~WaitForSwitchState() {}
+
+void WaitForSwitchState::stateUpdated(const StateDelta& delta) {
+  if (predicate_(delta)) {
+    switchStateObserved_.post();
+  }
+}
+
+bool WaitForSwitchState::wait() {
+  // TODO(samank): make timeout configurable
+  using namespace std::chrono_literals;
+  return switchStateObserved_.try_wait_for(5s);
+}
+
+} // namespace fboss
+} // namespace facebook

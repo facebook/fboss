@@ -31,6 +31,8 @@
 
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 
+#include <folly/dynamic.h>
+
 using std::shared_ptr;
 
 namespace facebook { namespace fboss {
@@ -78,6 +80,37 @@ NodeMapDelta<AggregatePortMap> StateDelta::getAggregatePortsDelta() const {
 NodeMapDelta<SflowCollectorMap> StateDelta::getSflowCollectorsDelta() const {
   return NodeMapDelta<SflowCollectorMap>(old_->getSflowCollectors().get(),
                                          new_->getSflowCollectors().get());
+}
+
+std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
+  // Leverage the folly::dynamic printing facilities
+  folly::dynamic diff = folly::dynamic::object;
+
+  diff["added"] = folly::dynamic::array;
+  diff["removed"] = folly::dynamic::array;
+  diff["modified"] = folly::dynamic::array;
+
+  for (const auto& vlanDelta : stateDelta.getVlansDelta()) {
+    for (const auto& arpDelta : vlanDelta.getArpDelta()) {
+        const auto* oldArpEntry = arpDelta.getOld().get();
+        const auto* newArpEntry = arpDelta.getNew().get();
+
+        if (!oldArpEntry /* added */) {
+          diff["added"].push_back(newArpEntry->toFollyDynamic());
+        } else if (!newArpEntry /* deleted */) {
+          diff["removed"].push_back(oldArpEntry->toFollyDynamic());
+        } else { /* modified */
+          CHECK(oldArpEntry);
+          CHECK(newArpEntry);
+          folly::dynamic modification = folly::dynamic::object;
+          modification["old"] = oldArpEntry->toFollyDynamic();
+          modification["new"] = newArpEntry->toFollyDynamic();
+          diff["removed"].push_back(modification);
+        }
+    }
+  }
+
+  return out << diff;
 }
 
 // Explicit instantiations of NodeMapDelta that are used by StateDelta.
