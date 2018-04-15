@@ -60,44 +60,78 @@ class LacpTest : public ::testing::Test {
   std::unique_ptr<std::thread> lacpThread_{nullptr};
 };
 
-// This may eventually be subsumed by an LacpBehaviorInterceptor and the
-// appropriate factory methods
-class LacpTransmissionInterceptor : public LacpServicerIf {
+class LacpServiceInterceptor : public LacpServicerIf {
  public:
-  explicit LacpTransmissionInterceptor(
-      folly::Function<bool(LACPDU, PortID)> transmitInterceptor)
-      : transmitInterceptor_(std::move(transmitInterceptor)) {}
+  explicit LacpServiceInterceptor(folly::EventBase* lacpEvb)
+      : lacpEvb_(lacpEvb) {}
 
-  // The following methods implement the LacpServicerIf interface.
+  // The following methods implement the LacpServicerIf interface
   bool transmit(LACPDU lacpdu, PortID portID) override {
-    return transmitInterceptor_(lacpdu, portID);
+    *(lastTransmission_.wlock()) = lacpdu;
+
+    // "Transmit" the frame
+    LOG(INFO) << "Transmitting " << lacpdu.describe() << " out port " << portID;
+    return true;
   }
   void enableForwarding(PortID portID, AggregatePortID aggPortID) override {
-    // no-op
     LOG(INFO) << "Enabling member " << portID << " in "
-              << " aggregate" << aggPortID;
+              << "aggregate " << aggPortID;
+
+    // "Enable" forwarding
+    *(isForwarding_.wlock()) = true;
   }
   void disableForwarding(PortID portID, AggregatePortID aggPortID) override {
-    // no-op
     LOG(INFO) << "Disabling member " << portID << " in "
-              << " aggregate" << aggPortID;
+              << "aggregate " << aggPortID;
+
+    // "Disable" forwarding"
+    *(isForwarding_.wlock()) = false;
   }
   std::vector<std::shared_ptr<LacpController>> getControllersFor(
       folly::Range<std::vector<PortID>::const_iterator> /* ports */) override {
     return {controller_};
   }
 
-  // This is an artifact of the circular dependencies in the test below
+  // setController is needed because of a circular dependency between the
   void setController(std::shared_ptr<LacpController> controller) {
     controller_ = controller;
   }
 
- private:
-  folly::Function<bool(LACPDU, PortID)> transmitInterceptor_;
-  std::shared_ptr<LacpController> controller_{nullptr};
+  // The following methods ensure all processing up to their invocation has
+  // has completed in the LACP eventbase.
+  LacpState lastActorStateTransmitted() {
+    LacpState actorStateTransmitted = LacpState::NONE;
 
-  // Force users to implement the transmit method
-  LacpTransmissionInterceptor();
+    lacpEvb_->runInEventBaseThreadAndWait([this, &actorStateTransmitted]() {
+      actorStateTransmitted = lastTransmission_.rlock()->actorInfo.state;
+    });
+
+    return actorStateTransmitted;
+  }
+  LacpState lastPartnerStateTransmitted() {
+    LacpState partnerStateTransmitted = LacpState::NONE;
+
+    lacpEvb_->runInEventBaseThreadAndWait([this, &partnerStateTransmitted]() {
+      partnerStateTransmitted = lastTransmission_.rlock()->partnerInfo.state;
+    });
+
+    return partnerStateTransmitted;
+  }
+  bool isForwarding() {
+    bool forwarding = false;
+
+    lacpEvb_->runInEventBaseThreadAndWait([this, &forwarding]() {
+      forwarding = *(isForwarding_.rlock());
+    });
+
+    return forwarding;
+  }
+
+ private:
+  std::shared_ptr<LacpController> controller_{nullptr};
+  folly::Synchronized<bool> isForwarding_{false};
+  folly::Synchronized<LACPDU> lastTransmission_;
+  folly::EventBase* lacpEvb_{nullptr};
 };
 
 class MockLacpServicer : public LacpServicerIf {
@@ -117,51 +151,34 @@ class MockLacpServicer : public LacpServicerIf {
  */
 TEST_F(LacpTest, nonAggregatablePortTransmitsIndividualBit) {
   // The LacpController constructor reserved for non-AGGREGATABLE ports takes 3
-  // parameters. In what follows, we construct two of those three parameters:
-  // LacpServiceIf* and folly::EventBase*.
+  // parameters. In what follows, we construct those three parameters:
+  // PortID, LacpServiceIf*, and folly::EventBase*.
 
-  folly::Synchronized<LACPDU> lacpduTransmitted;
-  auto onTransmission = [&lacpduTransmitted](LACPDU lacpdu, PortID portID) {
-    // Cache the information we're interested in testing
-    *(lacpduTransmitted.wlock()) = lacpdu;
-
-    // "Transmit" the frame
-    LOG(INFO) << "Transmitting " << lacpdu.describe() << " out port " << portID;
-    return true;
-  };
-
-  // A LacpTransmissionInterceptor takes the place of a LinkAggregationManager
-  // by implementing the LacpServicerIf interface.
-  LacpTransmissionInterceptor transmissionInterceptor(onTransmission);
+  // A LacpServiceInterceptor takes the place of a LinkAggregationManager by
+  // implementing the LacpServicerIf interface.
+  LacpServiceInterceptor serviceInterceptor(lacpEvb());
 
   // An LacpController takes an EventBase over which to execute. This EventBase
   // is provided by the test fixture's lacpEvb() method.
 
   // An LacpController's methods assume it is being managed by a shared_ptr
   auto controllerPtr = std::make_shared<LacpController>(
-      PortID(1), lacpEvb(), &transmissionInterceptor);
-  transmissionInterceptor.setController(controllerPtr);
+      PortID(1), lacpEvb(), &serviceInterceptor);
+  serviceInterceptor.setController(controllerPtr);
 
   // At this point, the LacpController we would like to test and the
-  // LacpTransmissionInterceptor we will use to test it with are in place
+  // LacpServiceInterceptor we will use to test it with are in place
   controllerPtr->startMachines();
 
   // We are going to send the LacpController an LACPDU so as to induce its
   // response
   controllerPtr->received(LACPDU());
 
-  // By scheduling this check on the same EventBase that LacpController
-  // is executing on, we ensure that the LacpController has finished executing.
-  // This may become overly tricky with more complicated tests.
-  LacpState actorInfoTransmitted;
-  lacpEvb()->runInEventBaseThreadAndWait(
-      [&actorInfoTransmitted, &lacpduTransmitted]() {
-        actorInfoTransmitted = lacpduTransmitted.rlock()->actorInfo.state;
-      });
-
   // Finally, we can check that the transmitted frame did indeed signal
   // itself as not AGGREGATABLE.
-  ASSERT_EQ(actorInfoTransmitted & LacpState::AGGREGATABLE, LacpState::NONE);
+  ASSERT_EQ(
+      serviceInterceptor.lastActorStateTransmitted() & LacpState::AGGREGATABLE,
+      LacpState::NONE);
 
   controllerPtr->stopMachines();
 }
