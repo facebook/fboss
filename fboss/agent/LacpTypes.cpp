@@ -19,6 +19,10 @@ namespace fboss {
 LACPDU::LACPDU(ParticipantInfo actor, ParticipantInfo partner)
     : actorInfo(actor), partnerInfo(partner) {}
 
+ParticipantInfo ParticipantInfo::defaultParticipantInfo() {
+  return ParticipantInfo();
+}
+
 bool ParticipantInfo::operator==(const ParticipantInfo& rhs) const {
   return systemPriority == rhs.systemPriority && systemID == rhs.systemID &&
       key == rhs.key && portPriority == rhs.portPriority && port == rhs.port &&

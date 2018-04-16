@@ -89,6 +89,7 @@ struct ParticipantInfo {
 
   template <typename CursorType>
   static ParticipantInfo from(CursorType* cursor);
+  static ParticipantInfo defaultParticipantInfo();
 
   template <typename CursorType>
   void to(CursorType* cursor) const;

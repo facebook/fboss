@@ -7,12 +7,15 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include <chrono>
 #include <memory>
 #include <thread>
 #include <vector>
 
+#include <folly/MacAddress.h>
 #include <folly/Function.h>
 #include <folly/Synchronized.h>
+#include <folly/Range.h>
 #include <folly/synchronization/Baton.h>
 #include <folly/system/ThreadName.h>
 #include <string>
@@ -20,6 +23,7 @@
 #include "fboss/agent/LacpController.h"
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LinkAggregationManager.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
 
 #include <gmock/gmock.h>
@@ -227,4 +231,182 @@ TEST_F(LacpTest, frameReceivedOnDownPort) {
   // we should get here without the failed CHECK in (6)
 
   controllerPtr->stopMachines();
+}
+
+TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
+  LacpServiceInterceptor duEventInterceptor(lacpEvb());
+
+  // The following declares some attributes of the DU and the ESW derived from
+  // configuration
+  ParticipantInfo duInfo;
+  duInfo.systemPriority = 65535;
+  // TODO(samank): check endianness
+  duInfo.systemID = {{0x02, 0x90, 0xfb, 0x5e, 0x1e, 0x8d}};
+  duInfo.key = 903;
+  duInfo.portPriority = 32768;
+  duInfo.port = 42;
+
+  ParticipantInfo eswInfo;
+  eswInfo.systemPriority = 32768;
+  // TODO(samank): check endianness
+  eswInfo.systemID = {{0x00, 0x1c, 0x73, 0x5b, 0xa8, 0x47}};
+  eswInfo.key = 609;
+  eswInfo.portPriority = 32768;
+  eswInfo.port = 499;
+
+  // Some bits in LacpState are derived from configuration. To avoid having to
+  // repreat them, they are factored out into the following variables
+  const LacpState eswActorStateBase =
+      LacpState::AGGREGATABLE | LacpState::ACTIVE | LacpState::SHORT_TIMEOUT;
+  const LacpState duActorStateBase =
+      LacpState::AGGREGATABLE | LacpState::ACTIVE | LacpState::SHORT_TIMEOUT;
+
+  // duController contains the totality of the LACP logic we would like to test
+  // Although its lifetime coincides with this stack frame, duController's
+  // methods assume it is being managed by a shared_ptr
+  auto duControllerPtr = std::make_shared<LacpController>(
+      PortID(duInfo.port),
+      lacpEvb(),
+      duInfo.portPriority,
+      cfg::LacpPortRate::FAST,
+      cfg::LacpPortActivity::ACTIVE,
+      AggregatePortID(duInfo.key),
+      duInfo.systemPriority,
+      MacAddress::fromBinary(
+          folly::ByteRange(duInfo.systemID.cbegin(), duInfo.systemID.cend())),
+      1 /* minimum-link count */,
+      &duEventInterceptor);
+
+  duEventInterceptor.setController(duControllerPtr);
+
+  // The following four variables are used for ease of reading
+  LacpState eswActorState = LacpState::NONE;
+  LacpState eswPartnerState = LacpState::NONE;
+
+  duControllerPtr->startMachines();
+
+  duControllerPtr->portUp();
+
+  /*** First Round Trip ***/
+
+  // The following declares the state of the ESW _after_ the agent has come up
+  // on the DU but before any LACP data-units have been exchanged.
+
+  // After a DU cold-boot, the ESW has timed out through multiple
+  // current_while_timer's, so it's DEFAULTED
+  eswActorState = eswActorStateBase | LacpState::DEFAULTED;
+  // The ESW knows nothing about its partner
+  eswPartnerState = LacpState::SHORT_TIMEOUT;
+
+  /* actorInfo=(SystemPriority 32768,
+   *            SystemID 00:1c:73:5b:a8:47,
+   *            Key 609,
+   *            PortPriority 32768,
+   *            Port 499,
+   *            State 199)
+   */
+  ParticipantInfo eswActorInfo = eswInfo;
+  eswActorInfo.state = eswActorState;
+  /* partnerInfo=(SystemPriority 0,
+   *              SystemID 00:00:00:00:00:00,
+   *              Key 0,
+   *              PortPriority 0,
+   *              Port 0,
+   *              State 2)
+   */
+  ParticipantInfo eswPartnerInfo = ParticipantInfo::defaultParticipantInfo();
+  eswPartnerInfo.state = eswPartnerState;
+
+  // The ESW transmits the first LACP data-unit
+  duControllerPtr->received(LACPDU(eswActorInfo, eswPartnerInfo));
+
+  ASSERT_EQ(
+      duEventInterceptor.lastActorStateTransmitted(),
+      duActorStateBase | LacpState::IN_SYNC);
+  // What the partner told us about itself should be reflected back
+  ASSERT_EQ(duEventInterceptor.lastPartnerStateTransmitted(), eswActorState);
+
+  /*** Second Round Trip ***/
+  eswActorState = eswActorStateBase | LacpState::IN_SYNC;
+  eswPartnerState = duActorStateBase | LacpState::IN_SYNC;
+
+  /* actorInfo=(SystemPriority 32768,
+   *            SystemID 00:1c:73:5b:a8:47,
+   *            Key 609,
+   *            PortPriority 32768,
+   *            Port 499,
+   *            State 15)
+   */
+  eswActorInfo = eswInfo;
+  eswActorInfo.state = eswActorState;
+
+  /*
+   * partnerInfo=(SystemPriority 65535,
+   *              SystemID 02:90:fb:5e:1e:8d,
+   *              Key 903,
+   *              PortPriority 32768,
+   *              Port 42,
+   *              State 15)
+   */
+  eswPartnerInfo = duInfo;
+  eswPartnerInfo.state = eswPartnerState;
+
+  duControllerPtr->received(LACPDU(eswActorInfo, eswPartnerInfo));
+
+  ASSERT_EQ(
+      duEventInterceptor.lastActorStateTransmitted(),
+      duActorStateBase | LacpState::IN_SYNC |
+      LacpState::COLLECTING | LacpState::DISTRIBUTING);
+  // What the partner told us about iself should be reflected back
+  ASSERT_EQ(
+      duEventInterceptor.lastPartnerStateTransmitted(), eswActorInfo.state);
+  ASSERT(duEventInterceptor.isForwarding());
+
+  /*** Third Round Trip ***/
+  eswActorState = eswActorStateBase | LacpState::IN_SYNC |
+      LacpState::COLLECTING | LacpState::DISTRIBUTING;
+  eswPartnerState = duActorStateBase | LacpState::IN_SYNC |
+      LacpState::COLLECTING | LacpState::DISTRIBUTING;
+
+  /*
+   * actorInfo=(SystemPriority 32768,
+   *            SystemID 00:1c:73:5b:a8:47,
+   *            Key 609,
+   *            PortPriority 32768,
+   *            Port 499,
+   *            State 63)
+   */
+  eswActorInfo = eswInfo;
+  eswActorInfo.state = eswActorState;
+
+  /*
+   * partnerInfo=(SystemPriority 65535,
+   *              SystemID 02:90:fb:5e:1e:8d,
+   *              Key 903,
+   *              PortPriority 32768,
+   *              Port 42,
+   *              State 63)
+   */
+  eswPartnerInfo = duInfo;
+  eswPartnerInfo.state = eswPartnerState;
+
+  duControllerPtr->received(LACPDU(eswActorInfo, eswPartnerInfo));
+
+  // TODO(samank): how would a PASSIVE LACP speaker handle this?
+  // Waiting double the PeriodicTransmissionMachine's tranmission period
+  // guarantees a new LACP frame has been transmitted
+  std::this_thread::sleep_for(PeriodicTransmissionMachine::SHORT_PERIOD * 2);
+
+  ASSERT_EQ(
+      duEventInterceptor.lastActorStateTransmitted(),
+      duActorStateBase | LacpState::IN_SYNC |
+      LacpState::COLLECTING | LacpState::DISTRIBUTING);
+  ASSERT_EQ(
+      duEventInterceptor.lastPartnerStateTransmitted(),
+      eswActorInfo.state);
+  // TODO(samank): really we should check that forwarding hasn't changed, even
+  // twice
+  ASSERT(duEventInterceptor.isForwarding());
+
+  duControllerPtr->stopMachines();
 }

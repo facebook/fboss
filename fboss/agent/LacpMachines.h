@@ -108,6 +108,9 @@ class PeriodicTransmissionMachine : private folly::AsyncTimeout {
   void start();
   void stop();
 
+  static const std::chrono::seconds SHORT_PERIOD;
+  static const std::chrono::seconds LONG_PERIOD;
+
  private:
   enum class PeriodicState { NONE, SLOW, FAST, TX };
   friend void toAppend(
@@ -117,9 +120,6 @@ class PeriodicTransmissionMachine : private folly::AsyncTimeout {
   void timeoutExpired() noexcept override;
   void beginNextPeriod();
   PeriodicState determineTransmissionRate();
-
-  static const std::chrono::seconds SHORT_PERIOD;
-  static const std::chrono::seconds LONG_PERIOD;
 
   PeriodicState state_{PeriodicState::NONE};
   LacpController& controller_;
