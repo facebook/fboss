@@ -192,6 +192,7 @@ unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
   bcmTableStats_.reset();
   trunkTable_.reset();
   controlPlane_.reset();
+  coppAclEntries_.clear();
   // Reset warmboot cache last in case Bcm object destructors
   // access it during object deletion.
   warmBootCache_.reset();
