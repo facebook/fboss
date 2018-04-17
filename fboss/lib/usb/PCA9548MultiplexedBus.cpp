@@ -23,7 +23,7 @@ void PCA9548MultiplexedBus::initBus() {
   // on port write to address on that multiplexer to select
   // the QSFP.
   for (int offset = 0; offset < numMultiplexers_ * 2; offset += 2) {
-    dev_.writeByte(multiplexerStartAddr_ + offset, 0);
+    dev_->writeByte(multiplexerStartAddr_ + offset, 0);
   }
 }
 
@@ -43,7 +43,7 @@ void PCA9548MultiplexedBus::selectQsfpImpl(unsigned int port) {
     DCHECK_NE(selectedPort_, NO_PORT);  // Checked in BaseWedgeI2CBus
     int offset = ((selectedPort_ - 1) / 8) * 2;
     VLOG(4) << "unsetting " << selectedPort_ << " via " << offset;
-    dev_.writeByte(multiplexerStartAddr_ + offset, 0);
+    dev_->writeByte(multiplexerStartAddr_ + offset, 0);
   } else {
     // Ports are reversed on 32-port hardware, just like 16-port hardware.
     // Each 8 ports are on one I2C multiplexor, so we choose the address;
@@ -55,12 +55,12 @@ void PCA9548MultiplexedBus::selectQsfpImpl(unsigned int port) {
       int oldOffset = ((selectedPort_ - 1) / 8) * 2;
       if (offset != oldOffset) {
         LOG(INFO) << "clearing " << selectedPort_ << " via " << oldOffset;
-        dev_.writeByte(multiplexerStartAddr_ + oldOffset, 0);
+        dev_->writeByte(multiplexerStartAddr_ + oldOffset, 0);
         selectedPort_ = NO_PORT;  // In case the next write throws
       }
     }
     VLOG(4) << "setting " << port << " via " << offset << " bit " << bit;
-    dev_.writeByte(multiplexerStartAddr_ + offset, bit);
+    dev_->writeByte(multiplexerStartAddr_ + offset, bit);
   }
 
   selectedPort_ = port;

@@ -17,6 +17,9 @@
 #include "fboss/lib/usb/BaseWedgeI2CBus.h"
 #include "fboss/lib/usb/PCA9548.h"
 
+#include <folly/Format.h>
+#include <folly/String.h>
+
 namespace facebook {
 namespace fboss {
 
@@ -26,11 +29,19 @@ struct MuxChannel {
   MuxChannel() {}
   MuxChannel(QsfpMux* mux_, uint8_t channel_) : mux(mux_), channel(channel_) {}
 
+  std::string str() const {
+    return folly::sformat("(mux={},channel={})", mux, channel);
+  }
+
   QsfpMux* mux{nullptr};
   uint8_t channel{0};
 
   void select();
 };
+
+inline void toAppend(MuxChannel* value, std::string* result) {
+  folly::toAppend(value->str(), result);
+}
 
 using Path = std::deque<MuxChannel*>;
 using MuxLayer = std::vector<std::unique_ptr<QsfpMux>>;
@@ -44,10 +55,18 @@ void selectPath(Path::iterator begin, Path::iterator end);
 
 class QsfpMux {
  public:
-  QsfpMux(CP2112* dev, uint8_t address) : mux_(dev, address) {}
-  QsfpMux(CP2112* dev, uint8_t address, QsfpMux* parent, uint8_t parentChannel)
+  QsfpMux(CP2112Intf* dev, uint8_t address) : mux_(dev, address) {
+    VLOG(3) << "Adding root mux at " << &mux_;
+  }
+  QsfpMux(
+      CP2112Intf* dev,
+      uint8_t address,
+      QsfpMux* parent,
+      uint8_t parentChannel)
       : mux_(dev, address),
         parent_(std::make_unique<MuxChannel>(parent, parentChannel)) {
+    VLOG(3) << "Adding child mux " << &mux_ << " to " << parent->mux()
+            << " on channel " << (int)parentChannel;
   }
 
   void clear(bool force = false);
@@ -62,7 +81,11 @@ class QsfpMux {
     mux_.selectOne(channel);
   }
 
-  void registerChildMux(CP2112* dev, uint8_t channel, uint8_t address);
+  void registerChildMux(CP2112Intf* dev, uint8_t channel, uint8_t address);
+
+  PCA9548* mux() {
+    return &mux_;
+  }
 
  private:
   PCA9548 mux_;
@@ -72,6 +95,14 @@ class QsfpMux {
 
 template <int NUM_PORTS>
 class PCA9548MuxedBus : public BaseWedgeI2CBus {
+ public:
+  explicit PCA9548MuxedBus(std::unique_ptr<CP2112Intf> dev = nullptr)
+      : BaseWedgeI2CBus(std::move(dev)) {}
+
+  constexpr int numPorts() {
+    return NUM_PORTS;
+  }
+
  protected:
   using PortLeaves = std::array<MuxChannel, NUM_PORTS>;
 
@@ -90,7 +121,7 @@ class PCA9548MuxedBus : public BaseWedgeI2CBus {
 
   MuxLayer roots_;
 
- private:
+ protected:
   void initBus() override {
     roots_ = createMuxes();
     wireUpPorts(leaves_);
@@ -114,6 +145,7 @@ class PCA9548MuxedBus : public BaseWedgeI2CBus {
     if (newPath.empty()) {
       existingPath[0]->mux->clear();
     } else if (existingPath.empty()) {
+      vlogPath(newPath, "new path");
       pca9548_helpers::selectPath(newPath.begin(), newPath.end());
     } else {
       changePath(existingPath, newPath);
@@ -122,7 +154,11 @@ class PCA9548MuxedBus : public BaseWedgeI2CBus {
     selectedPort_ = port;
   }
 
+ private:
   void changePath(Path existingPath, Path newPath) {
+    vlogPath(existingPath, "existing path");
+    vlogPath(newPath, "new path");
+
     for (int i = 0; i < newPath.size(); ++i) {
       auto desired = newPath[i];
       auto current = existingPath[i];
@@ -158,6 +194,10 @@ class PCA9548MuxedBus : public BaseWedgeI2CBus {
       curr = curr->mux->parent();
     }
     return path;
+  }
+
+  void vlogPath(const Path& path, std::string label, int level = 3) {
+    VLOG(level) << label << ": " << folly::join(",", path);
   }
 
   /*

@@ -37,7 +37,7 @@ void QsfpMux::clear(bool force) {
 }
 
 void QsfpMux::registerChildMux(
-  CP2112* dev,
+  CP2112Intf* dev,
   uint8_t channel,
   uint8_t address) {
   children_[channel].push_back(

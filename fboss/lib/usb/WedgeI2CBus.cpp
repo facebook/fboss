@@ -20,8 +20,8 @@ WedgeI2CBus::WedgeI2CBus() {
 }
 
 void WedgeI2CBus::initBus() {
-  dev_.writeByte(ADDR_SWITCH_1, 0);
-  dev_.writeByte(ADDR_SWITCH_2, 0);
+  dev_->writeByte(ADDR_SWITCH_1, 0);
+  dev_->writeByte(ADDR_SWITCH_2, 0);
 }
 
 void WedgeI2CBus::verifyBus(bool autoReset) {
@@ -35,7 +35,7 @@ void WedgeI2CBus::verifyBus(bool autoReset) {
   // be able to read from successfully.
   uint8_t tmpBuf[8];
   try {
-    dev_.read(ADDR_EEPROM, MutableByteRange(tmpBuf, sizeof(tmpBuf)));
+    dev_->read(ADDR_EEPROM, MutableByteRange(tmpBuf, sizeof(tmpBuf)));
   } catch (const UsbError& ex) {
     // The read failed.
     // Reset the device, and then confirm that we can read this time.
@@ -48,7 +48,7 @@ void WedgeI2CBus::verifyBus(bool autoReset) {
     // inaccessible.
     if (autoReset) {
       try {
-        dev_.resetDevice();
+        dev_->resetDevice();
       } catch (const UsbDeviceResetError& ex2) {
       }
     } else {
@@ -66,19 +66,19 @@ void WedgeI2CBus::selectQsfpImpl(unsigned int port) {
   // to ensure that we never have more than one port selected at a time.
   if (newValues.first == 0) {
     if (newValues.first != oldValues.first) {
-      dev_.writeByte(ADDR_SWITCH_1, newValues.first);
+      dev_->writeByte(ADDR_SWITCH_1, newValues.first);
     }
     selectedPort_ = NO_PORT; // In case the second write throws
     if (newValues.second != oldValues.second) {
-      dev_.writeByte(ADDR_SWITCH_2, newValues.second);
+      dev_->writeByte(ADDR_SWITCH_2, newValues.second);
     }
   } else {
     if (newValues.second != oldValues.second) {
-      dev_.writeByte(ADDR_SWITCH_2, newValues.second);
+      dev_->writeByte(ADDR_SWITCH_2, newValues.second);
     }
     selectedPort_ = NO_PORT; // In case the second write throws
     if (newValues.first != oldValues.first) {
-      dev_.writeByte(ADDR_SWITCH_1, newValues.first);
+      dev_->writeByte(ADDR_SWITCH_1, newValues.first);
     }
   }
   selectedPort_ = port;

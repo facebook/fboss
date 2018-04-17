@@ -16,11 +16,8 @@ using std::lock_guard;
 
 namespace facebook { namespace fboss {
 
-BaseWedgeI2CBus::BaseWedgeI2CBus() {
-}
-
 void BaseWedgeI2CBus::open() {
-  dev_.open();
+  dev_->open();
 
   selectedPort_ = NO_PORT;
   verifyBus();
@@ -30,7 +27,7 @@ void BaseWedgeI2CBus::open() {
 }
 
 void BaseWedgeI2CBus::close() {
-  dev_.close();
+  dev_->close();
 }
 
 void BaseWedgeI2CBus::read(uint8_t address, int offset,
@@ -47,13 +44,13 @@ void BaseWedgeI2CBus::read(uint8_t address, int offset,
   // that's okay since there aren't any other master devices on the bus.
 
   // Also note that we can't read more than 128 bytes at a time.
-  dev_.writeByte(address, offset);
+  dev_->writeByte(address, offset);
   if (len > 128) {
-    dev_.read(address, MutableByteRange(buf, 128));
-    dev_.writeByte(address, offset + 128);
-    dev_.read(address, MutableByteRange(buf + 128, len - 128));
+    dev_->read(address, MutableByteRange(buf, 128));
+    dev_->writeByte(address, offset + 128);
+    dev_->read(address, MutableByteRange(buf + 128, len - 128));
   } else {
-    dev_.read(address, MutableByteRange(buf, len));
+    dev_->read(address, MutableByteRange(buf, len));
   }
 }
 
@@ -73,7 +70,7 @@ void BaseWedgeI2CBus::write(uint8_t address, int offset,
   uint8_t output[61]; // USB buffer size;
   output[0] = offset;
   memcpy(output + 1, buf, len);
-  dev_.write(address, MutableByteRange(output, len + 1));
+  dev_->write(address, MutableByteRange(output, len + 1));
 }
 
 void BaseWedgeI2CBus::moduleRead(unsigned int module, uint8_t address,

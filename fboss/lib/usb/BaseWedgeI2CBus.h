@@ -24,7 +24,9 @@ namespace facebook { namespace fboss {
 class BaseWedgeI2CBus : public TransceiverI2CApi {
 
  public:
-  BaseWedgeI2CBus();
+  explicit BaseWedgeI2CBus(std::unique_ptr<CP2112Intf> dev = nullptr) {
+    dev_ = (dev) ? std::move(dev) : std::make_unique<CP2112>();
+  }
   ~BaseWedgeI2CBus() override {}
   void open() override;
   void close() override;
@@ -52,7 +54,7 @@ class BaseWedgeI2CBus : public TransceiverI2CApi {
   virtual void verifyBus(bool autoReset = true) = 0;
   virtual void selectQsfpImpl(unsigned int module) = 0;
 
-  CP2112 dev_;
+  std::unique_ptr<CP2112Intf> dev_;
   unsigned int selectedPort_{NO_PORT};
 
  private:

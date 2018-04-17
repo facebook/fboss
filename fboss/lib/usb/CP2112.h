@@ -21,6 +21,47 @@ struct libusb_transfer;
 
 namespace facebook { namespace fboss {
 
+class CP2112Intf {
+  // Bare-bones virtual interface to the CP2112 class. Used for gmock
+  // testing.
+ public:
+  virtual ~CP2112Intf() {}
+
+  virtual void open(bool setSmbusConfig = true) = 0;
+  virtual void close() = 0;
+  virtual void resetDevice() = 0;
+
+  virtual void read(
+      uint8_t address,
+      folly::MutableByteRange buf,
+      std::chrono::milliseconds timeout) = 0;
+  virtual void write(
+      uint8_t address,
+      folly::ByteRange buf,
+      std::chrono::milliseconds timeout) = 0;
+
+  virtual std::chrono::milliseconds getDefaultTimeout() const = 0;
+
+  // Move shortened read/write forms to base interface so they
+  // can be used in tests
+  void read(uint8_t address, folly::MutableByteRange buf) {
+    read(address, buf, getDefaultTimeout());
+  }
+
+  void write(uint8_t address, folly::ByteRange buf) {
+    write(address, buf, getDefaultTimeout());
+  }
+
+  void
+  writeByte(uint8_t address, uint8_t value, std::chrono::milliseconds timeout) {
+    write(address, folly::ByteRange(&value, sizeof(value)), timeout);
+  }
+  void writeByte(uint8_t address, uint8_t value) {
+    write(
+        address, folly::ByteRange(&value, sizeof(value)), getDefaultTimeout());
+  }
+};
+
 /*
  * An interface to the Silicon Labs CP2112 USB to SMBus bridge.
  *
@@ -29,7 +70,7 @@ namespace facebook { namespace fboss {
  * blocking APIs.  Code that wants to deal with other I2C interfaces therefore
  * already has to support blocking operation.
  */
-class CP2112 {
+class CP2112 : public CP2112Intf {
  public:
   /*
    * The standard vendor and product IDs reported by cp2112 devices
@@ -207,10 +248,10 @@ class CP2112 {
 
   CP2112();
   explicit CP2112(libusb_context* ctx);
-  ~CP2112();
+  ~CP2112() override;
 
-  void open(bool setSmbusConfig=true);
-  void close();
+  void open(bool setSmbusConfig=true) override;
+  void close() override;
   bool isOpen() const {
     return handle_.isOpen();
   }
@@ -231,7 +272,7 @@ class CP2112 {
    */
   void resetFromUserver();
   bool resetFromRestEndpoint();
-  void resetDevice();
+  void resetDevice() override;
 
   VersionInfo getVersion();
 
@@ -261,10 +302,8 @@ class CP2112 {
    * The length must be between 1 and 512 bytes.
    */
   void read(uint8_t address, folly::MutableByteRange buf,
-            std::chrono::milliseconds timeout);
-  void read(uint8_t address, folly::MutableByteRange buf) {
-    read(address, buf, defaultTimeout_);
-  }
+            std::chrono::milliseconds timeout) override;
+  using CP2112Intf::read;
 
   /*
    * Write to the SMBus.
@@ -272,18 +311,8 @@ class CP2112 {
    * The length must be between 1 and 61 bytes.
    */
   void write(uint8_t address, folly::ByteRange buf,
-             std::chrono::milliseconds timeout);
-  void write(uint8_t address, folly::ByteRange buf) {
-    write(address, buf, defaultTimeout_);
-  }
-
-  void writeByte(uint8_t address, uint8_t value,
-                 std::chrono::milliseconds timeout) {
-    write(address, folly::ByteRange(&value, sizeof(value)), timeout);
-  }
-  void writeByte(uint8_t address, uint8_t value) {
-    write(address, folly::ByteRange(&value, sizeof(value)), defaultTimeout_);
-  }
+             std::chrono::milliseconds timeout) override;
+  using CP2112Intf::write;
 
   /*
    * An atomic write followed by read, without releasing the I2C bus.

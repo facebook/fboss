@@ -18,6 +18,7 @@ namespace fboss {
 void PCA9548::commit(uint8_t selector) {
   // The multiplexer address is shifted one to the left to
   // work with the underlying I2C libraries.
+  VLOG(3) << "Selecting " << (int)selector << " on " << this;
   dev_->writeByte(address_ << 1, selector);
   selected_ = selector;
 }

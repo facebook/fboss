@@ -27,10 +27,10 @@ namespace fboss {
 
 MuxLayer Wedge100I2CBus::createMuxes() {
   MuxLayer muxes;
-  muxes.push_back(std::make_unique<QsfpMux>(&dev_, MUX_0_TO_7));
-  muxes.push_back(std::make_unique<QsfpMux>(&dev_, MUX_8_TO_15));
-  muxes.push_back(std::make_unique<QsfpMux>(&dev_, MUX_16_TO_23));
-  muxes.push_back(std::make_unique<QsfpMux>(&dev_, MUX_24_TO_31));
+  muxes.push_back(std::make_unique<QsfpMux>(dev_.get(), MUX_0_TO_7));
+  muxes.push_back(std::make_unique<QsfpMux>(dev_.get(), MUX_8_TO_15));
+  muxes.push_back(std::make_unique<QsfpMux>(dev_.get(), MUX_16_TO_23));
+  muxes.push_back(std::make_unique<QsfpMux>(dev_.get(), MUX_24_TO_31));
   return muxes;
 }
 

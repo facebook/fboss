@@ -15,7 +15,7 @@
 namespace facebook {
 namespace fboss {
 
-class CP2112;
+class CP2112Intf;
 
 // The PCA9548 chip is a mux that allows internally connecting 0-8
 // channels over i2c. Note that this is NOT thread safe and expects
@@ -25,7 +25,7 @@ class PCA9548 {
  public:
   static constexpr uint8_t WIDTH = 8;
 
-  PCA9548(CP2112* dev, uint8_t address) : dev_(dev), address_(address) {}
+  PCA9548(CP2112Intf* dev, uint8_t address) : dev_(dev), address_(address) {}
 
   void init(uint8_t selector = 0) {
     commit(selector);
@@ -58,11 +58,18 @@ class PCA9548 {
   uint8_t selected() const {
     return selected_;
   }
+  uint8_t isSelected(uint8_t channel) const {
+    return selected_ & (1 << channel);
+  }
+
+  uint8_t address() const {
+    return address_;
+  }
 
  private:
   void commit(uint8_t selector);
 
-  CP2112* dev_{nullptr};
+  CP2112Intf* dev_{nullptr};
 
   // i2c address of the mux
   uint8_t address_{0};
