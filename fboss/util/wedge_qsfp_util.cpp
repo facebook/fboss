@@ -1,4 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
+#include "fboss/util/wedge_qsfp_util.h"
+
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/lib/usb/Wedge100I2CBus.h"
 #include "fboss/lib/usb/GalaxyI2CBus.h"
@@ -48,8 +50,6 @@ DEFINE_bool(set_100g, false, "Rate select 100G");
 DEFINE_bool(cdr_enable, false, "Set the CDR bits if transceiver supports it");
 DEFINE_bool(cdr_disable, false,
     "Clear the CDR bits if transceiver supports it");
-DEFINE_string(platform, "", "Platform on which we are running."
-             " One of (galaxy, wedge100, wedge)");
 DEFINE_int32(open_timeout, 30, "Number of seconds to wait to open bus");
 
 bool overrideLowPower(
@@ -338,26 +338,6 @@ bool isTrident2() {
     folly::throwSystemError("error reading ", chipCheckPath);
   }
   return (contents == trident2);
-}
-
-std::pair<std::unique_ptr<TransceiverI2CApi>, int>  getTransceiverAPI() {
-  if (FLAGS_platform.size()) {
-     if (FLAGS_platform == "galaxy") {
-        return make_pair(std::make_unique<GalaxyI2CBus>(), 0);
-     } else if (FLAGS_platform == "wedge100") {
-        return make_pair(std::make_unique<Wedge100I2CBus>(), 0);
-     } else if (FLAGS_platform == "wedge") {
-        return make_pair(std::make_unique<WedgeI2CBus>(), 0);
-     } else {
-       fprintf(stderr, "Unknown platform %s\n", FLAGS_platform.c_str());
-       return make_pair(nullptr, EX_USAGE);
-     }
-   }
-  // TODO(klahey):  Should probably verify the other chip architecture.
-  if (isTrident2()) {
-     return make_pair(std::make_unique<WedgeI2CBus>(), 0);
-  }
-  return make_pair(std::make_unique<Wedge100I2CBus>(), 0);
 }
 
 void tryOpenBus(TransceiverI2CApi* bus) {

@@ -587,6 +587,7 @@ target_link_libraries(cp2112_util
 
 add_executable(wedge_qsfp_util
     fboss/util/wedge_qsfp_util.cpp
+    fboss/util/oss/wedge_qsfp_util.cpp
 )
 target_link_libraries(wedge_qsfp_util
        fboss_agent
