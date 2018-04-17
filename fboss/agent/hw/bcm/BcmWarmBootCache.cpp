@@ -257,11 +257,17 @@ folly::dynamic BcmWarmBootCache::toFollyDynamic() const {
   return warmBootCache;
 }
 
-void BcmWarmBootCache::populateStateFromWarmbootFile() {
-  string warmBootJson;
+std::string BcmWarmBootCache::getWarmBootJsonFromFile() const {
+  std::string warmBootJson;
   const auto& warmBootFile = hw_->getPlatform()->getWarmBootSwitchStateFile();
   auto ret = folly::readFile(warmBootFile.c_str(), warmBootJson);
   sysCheckError(ret, "Unable to read switch state from : ", warmBootFile);
+  return warmBootJson;
+}
+
+void BcmWarmBootCache::populateStateFromWarmBootJson(const std::string&
+    warmBootJson) {
+
   auto switchStateJson = folly::parseJson(warmBootJson);
   dumpedSwSwitchState_ =
     SwitchState::uniquePtrFromFollyDynamic(switchStateJson[kSwSwitch]);
@@ -354,8 +360,12 @@ BcmWarmBootCache::findEgressFromHost(
   return findEgress(it->second);
 }
 
-void BcmWarmBootCache::populate() {
-  populateStateFromWarmbootFile();
+void BcmWarmBootCache::populate(folly::Optional<std::string> warmBootJson) {
+  if (warmBootJson) {
+    populateStateFromWarmBootJson(*warmBootJson);
+  } else {
+    populateStateFromWarmBootJson(getWarmBootJsonFromFile());
+  }
   opennsl_vlan_data_t* vlanList = nullptr;
   int vlanCount = 0;
   SCOPE_EXIT {
