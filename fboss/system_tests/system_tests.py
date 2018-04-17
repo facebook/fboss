@@ -207,7 +207,6 @@ def run_tests(options):
         options.log.info("Loading tests from test_dir=%s" % directory)
         testsdir = unittest.TestLoader().discover(start_dir=directory,
                                                   pattern='*test*.py')
-
         add_interested_tests_to_test_suite(testsdir, suite)
     frob_options_into_tests(suite, options)
     options.log.info("""

@@ -111,10 +111,10 @@ class FBOSSTestTopology(object):
 
     def min_hosts_or_skip(self, n_hosts):
         if len(self.test_hosts) < n_hosts:
-            raise unittest.SkipTest("Test needs %d hosts, topology has %d",
+            raise unittest.SkipTest("Test needs %d hosts, topology has %d" %
                                     (n_hosts, len(self.test_hosts)))
         if not self.verify_hosts(min_hosts=n_hosts):
-            raise unittest.SkipTest("Not able to find %d good hosts",
+            raise unittest.SkipTest("Not able to find %d good hosts" %
                                     (n_hosts))
 
 
