@@ -9,9 +9,36 @@
  */
 #include "fboss/lib/usb/Wedge100I2CBus.h"
 
+#include <folly/container/Enumerate.h>
+
+namespace {
+
+enum Wedge100Muxes {
+  MUX_0_TO_7 = 0x70,
+  MUX_8_TO_15 = 0x71,
+  MUX_16_TO_23 = 0x72,
+  MUX_24_TO_31 = 0x73
+};
+
+}
+
 namespace facebook {
 namespace fboss {
 
-constexpr Wedge100I2CBus::QsfpAddressMap_t Wedge100I2CBus::QSFP_ADDR_MAP;
+MuxLayer Wedge100I2CBus::createMuxes() {
+  MuxLayer muxes;
+  muxes.push_back(std::make_unique<QsfpMux>(&dev_, MUX_0_TO_7));
+  muxes.push_back(std::make_unique<QsfpMux>(&dev_, MUX_8_TO_15));
+  muxes.push_back(std::make_unique<QsfpMux>(&dev_, MUX_16_TO_23));
+  muxes.push_back(std::make_unique<QsfpMux>(&dev_, MUX_24_TO_31));
+  return muxes;
 }
-} // facebook::fboss
+
+void Wedge100I2CBus::wireUpPorts(Wedge100I2CBus::PortLeaves& leaves) {
+  for (auto&& mux : folly::enumerate(roots_)) {
+    wireEightPorts(leaves, (*mux).get(), mux.index * PCA9548::WIDTH, true);
+  }
+}
+
+} // namespace fboss
+} // namespace facebook
