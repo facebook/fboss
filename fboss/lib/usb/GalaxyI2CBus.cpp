@@ -9,9 +9,32 @@
  */
 #include "fboss/lib/usb/GalaxyI2CBus.h"
 
+#include <folly/container/Enumerate.h>
+
+namespace {
+
+enum GalaxyMuxes {
+  MUX_0_TO_7 = 0x70,
+  MUX_8_TO_15 = 0x71,
+};
+
+}
+
 namespace facebook {
 namespace fboss {
 
-constexpr GalaxyI2CBus::QsfpAddressMap_t GalaxyI2CBus::QSFP_ADDR_MAP;
+MuxLayer GalaxyI2CBus::createMuxes() {
+  MuxLayer muxes;
+  muxes.push_back(std::make_unique<QsfpMux>(&dev_, MUX_0_TO_7));
+  muxes.push_back(std::make_unique<QsfpMux>(&dev_, MUX_8_TO_15));
+  return muxes;
+}
+
+void GalaxyI2CBus::wireUpPorts(GalaxyI2CBus::PortLeaves& leaves) {
+  for (auto&& mux : folly::enumerate(roots_)) {
+    wireEightPorts(leaves, (*mux).get(), mux.index * PCA9548::WIDTH);
+  }
+}
+
 }
 } // facebook::fboss
