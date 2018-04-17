@@ -32,7 +32,7 @@ MuxLayer GalaxyI2CBus::createMuxes() {
 
 void GalaxyI2CBus::wireUpPorts(GalaxyI2CBus::PortLeaves& leaves) {
   for (auto&& mux : folly::enumerate(roots_)) {
-    wireEightPorts(leaves, (*mux).get(), mux.index * PCA9548::WIDTH);
+    connectPortsToMux(leaves, (*mux).get(), mux.index * PCA9548::WIDTH);
   }
 }
 

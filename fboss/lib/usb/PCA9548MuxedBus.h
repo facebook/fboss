@@ -75,12 +75,13 @@ class PCA9548MuxedBus : public BaseWedgeI2CBus {
  protected:
   using PortLeaves = std::array<MuxChannel, NUM_PORTS>;
 
-  void wireEightPorts(
+  void connectPortsToMux(
       PortLeaves& leaves,
       QsfpMux* mux,
       int start,
-      bool flip = false) {
-    for (uint8_t i = 0; i < PCA9548::WIDTH; ++i) {
+      bool flip = false,
+      uint8_t count = PCA9548::WIDTH) {
+    for (uint8_t i = 0; i < count; ++i) {
       auto& leaf = leaves.at(start + i);
       leaf.mux = mux;
       leaf.channel = (flip) ? i ^ 0x1 : i;

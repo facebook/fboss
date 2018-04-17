@@ -36,7 +36,7 @@ MuxLayer Wedge100I2CBus::createMuxes() {
 
 void Wedge100I2CBus::wireUpPorts(Wedge100I2CBus::PortLeaves& leaves) {
   for (auto&& mux : folly::enumerate(roots_)) {
-    wireEightPorts(leaves, (*mux).get(), mux.index * PCA9548::WIDTH, true);
+    connectPortsToMux(leaves, (*mux).get(), mux.index * PCA9548::WIDTH, true);
   }
 }
 
