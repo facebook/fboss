@@ -55,6 +55,10 @@ class PCA9548 {
     commit(0);
   }
 
+  uint8_t selected() const {
+    return selected_;
+  }
+
  private:
   void commit(uint8_t selector);
 

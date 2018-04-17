@@ -480,6 +480,7 @@ add_library(fboss_agent STATIC
     fboss/lib/usb/CP2112.h
     fboss/lib/usb/PCA9548.cpp
     fboss/lib/usb/PCA9548MultiplexedBus.cpp
+    fboss/lib/usb/PCA9548MuxedBus.cpp
     fboss/lib/usb/TransceiverI2CApi.h
     fboss/lib/usb/UsbDevice.cpp
     fboss/lib/usb/UsbDevice.h

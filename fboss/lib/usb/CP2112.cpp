@@ -317,6 +317,8 @@ void CP2112::write(uint8_t address, ByteRange buf, milliseconds timeout) {
   }
   ensureGoodState();
 
+  VLOG(5) << "writing to i2c address " << std::hex << (int)address;
+
   // Send the write request
   uint8_t usbBuf[64];
   usbBuf[0] = ReportID::WRITE;
