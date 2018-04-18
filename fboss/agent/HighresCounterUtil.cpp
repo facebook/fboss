@@ -22,7 +22,7 @@ namespace facebook { namespace fboss {
 DumbCounterSampler::DumbCounterSampler(
     const std::set<CounterRequest>& counters) {
   for (const auto& c: counters) {
-    if (c.counterName.compare(kDumbCounterName) == 0) {
+    if (c.counterName == kDumbCounterName) {
       // If there are duplicate requests, overwrite
       req_ = c;
       numCounters_ = 1;
@@ -47,8 +47,8 @@ InterfaceRateSampler::InterfaceRateSampler(
   }
 
   for (const auto& c : counters) {
-    if (c.counterName.compare(kTxBytesCounterName) == 0 ||
-        c.counterName.compare(kRxBytesCounterName) == 0) {
+    if (c.counterName == kTxBytesCounterName ||
+        c.counterName == kRxBytesCounterName) {
       counters_.insert(c);
     }
   }
@@ -84,9 +84,9 @@ void InterfaceRateSampler::sample(CounterPublication* pub) {
   }
 
   for (const auto& c : counters_) {
-    if (c.counterName.compare(kTxBytesCounterName) == 0) {
+    if (c.counterName == kTxBytesCounterName) {
       pub->counterValues[c].push_back(sout);
-    } else if (c.counterName.compare(kRxBytesCounterName) == 0) {
+    } else if (c.counterName == kRxBytesCounterName) {
       pub->counterValues[c].push_back(sin);
     }
   }

@@ -328,8 +328,8 @@ void NeighborUpdater::vlanDeleted(const Vlan* vlan) {
 }
 
 void NeighborUpdater::vlanChanged(const Vlan* oldVlan, const Vlan* newVlan) {
-  if (newVlan->getInterfaceID() == oldVlan->getInterfaceID()
-      && newVlan->getName().compare(oldVlan->getName()) == 0) {
+  if (newVlan->getInterfaceID() == oldVlan->getInterfaceID() &&
+      newVlan->getName() == oldVlan->getName()) {
     // For now we only care about changes to the interfaceID and VlanName
     return;
   }

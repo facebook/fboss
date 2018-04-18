@@ -863,10 +863,9 @@ int SwSwitch::getHighresSamplers(HighresSamplerList* samplers,
     unique_ptr<HighresSampler> sampler;
 
     // Check for cross-platform samplers
-    if (namespaceString.compare(DumbCounterSampler::kIdentifier) == 0) {
+    if (namespaceString == DumbCounterSampler::kIdentifier) {
       sampler = make_unique<DumbCounterSampler>(counterSet);
-    } else if (namespaceString.compare(InterfaceRateSampler::kIdentifier) ==
-               0) {
+    } else if (namespaceString == InterfaceRateSampler::kIdentifier) {
       sampler = make_unique<InterfaceRateSampler>(counterSet);
     }
 
