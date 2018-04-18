@@ -293,6 +293,8 @@ add_executable(qsfp_service
     fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
     fboss/qsfp_service/platforms/wedge/GalaxyManager.cpp
     fboss/qsfp_service/platforms/wedge/Wedge40Manager.cpp
+    fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp
+    fboss/qsfp_service/platforms/wedge/oss/WedgeManagerInit.cpp
 )
 
 add_library(fboss_agent STATIC
