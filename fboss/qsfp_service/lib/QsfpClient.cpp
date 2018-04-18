@@ -14,12 +14,14 @@
 
 DEFINE_string(qsfp_service_host, "::1", "Host running qsfp service");
 DEFINE_int32(qsfp_service_port, 5910, "Port running qsfp service");
+DEFINE_int32(qsfp_service_recv_timeout,
+             5000,
+             "Receive timeout(ms) from qsfp service");
 
 namespace facebook { namespace fboss {
 
 static constexpr int kQsfpConnTimeoutMs = 2000;
 static constexpr int kQsfpSendTimeoutMs = 5000;
-static constexpr int kQsfpRecvTimeoutMs = 5000;
 
 // static
 folly::Future<std::unique_ptr<QsfpServiceAsyncClient>>
@@ -41,7 +43,7 @@ QsfpClient::createClient(folly::EventBase* eb) {
 apache::thrift::RpcOptions QsfpClient::getRpcOptions(){
   apache::thrift::RpcOptions opts;
   opts.setTimeout(
-      std::chrono::milliseconds(kQsfpRecvTimeoutMs));
+      std::chrono::milliseconds(FLAGS_qsfp_service_recv_timeout));
   return opts;
 }
 
