@@ -1106,7 +1106,7 @@ void QsfpModule::ensureTxEnabled(time_t cooldown) {
   getQsfpFieldAddress(SffField::TX_DISABLE, dataAddress, offset, length);
   const uint8_t *disabled = getQsfpValuePtr(dataAddress, offset, length);
 
-  if (*disabled || std::time(nullptr) - lastTxEnable_ > cooldown) {
+  if (*disabled || std::time(nullptr) - lastTxEnable_ >= cooldown) {
     // If tx is disabled or it has been > cooldown secs, force writ
     std::array<uint8_t, 1> buf = {{0}};
     qsfpImpl_->writeTransceiver(

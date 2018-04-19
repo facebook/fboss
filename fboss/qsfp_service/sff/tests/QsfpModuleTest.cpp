@@ -35,6 +35,9 @@ class QsfpModuleTest : public ::testing::Test {
     transImpl_ = transceiverImpl.get();
     qsfp_ = std::make_unique<MockQsfpModule>(std::move(transceiverImpl));
 
+    gflags::SetCommandLineOptionWithMode(
+      "tx_enable_interval", "0", gflags::SET_FLAGS_DEFAULT);
+
     // We're explicitly setting the value of the dirty bit, so fudge this
     EXPECT_CALL(*qsfp_, cacheIsValid()).WillRepeatedly(Return(true));
     EXPECT_CALL(*implPtr, detectTransceiver()).WillRepeatedly(Return(true));
