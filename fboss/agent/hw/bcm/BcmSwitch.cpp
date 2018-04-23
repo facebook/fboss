@@ -96,6 +96,7 @@ DEFINE_bool(flexports, false,
             "Load the agent with flexport support enabled");
 DEFINE_bool(enable_fine_grained_buffer_stats, false,
             "Enable fine grained buffer stats collection by default");
+
 enum : uint8_t {
   kRxCallbackPriority = 1,
 };
@@ -626,6 +627,27 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 }
 
 void BcmSwitch::initialConfigApplied() {
+  static opennsl_rx_cfg_t _rx_cfg = {
+    (16 * 1032),            // packet alloc size (12K packets plus spare)
+    16,                     // Packets per chain
+    0,                      // Default pkt rate, global (all COS, one unit)
+    0,                      // Burst
+    {                       // 1 RX channel
+      {0, 0, 0, 0},         // Channel 0 is usually TX
+      {                     // Channel 1, default RX
+        4,                  // DV count (number of chains)
+        0,                  // Default pkt rate, DEPRECATED
+        0,                  // No flags
+        0xff                // COS bitmap channel to receive
+      }
+    },
+    nullptr,                // Use default alloc function
+    nullptr,                // Use default free function
+    0,                      // flags
+    0,                      // Num CPU addrs
+    nullptr                 // cpu_addresses
+  };
+
   std::lock_guard<std::mutex> g(lock_);
   // Register our packet handler callback function.
   uint32_t rxFlags = OPENNSL_RCO_F_ALL_COS;
@@ -638,12 +660,8 @@ void BcmSwitch::initialConfigApplied() {
       rxFlags);         // uint32 flags
   bcmCheckError(rv, "failed to register packet rx callback");
   flags_ |= RX_REGISTERED;
-  //
-  // TODO: Configure rate limiting for packets sent to the CPU
-  //
-  // Start the Broadcom packet RX API.
   if (!isRxThreadRunning()) {
-    rv = opennsl_rx_start(unit_, nullptr);
+    rv = opennsl_rx_start(unit_, &_rx_cfg);
   }
   bcmCheckError(rv, "failed to start broadcom packet rx API");
 }
