@@ -100,11 +100,11 @@ class FBOSSTestTopology(object):
         """ This host is physically connected to this switch. """
         self.test_hosts[host.name] = host
 
-    def remove_host(self, host):
-        if host in self.test_hosts.values():
-            del self.test_hosts[host.name]
+    def remove_host(self, host_name):
+        if host_name in self.test_hosts:
+            del self.test_hosts[host_name]
         else:
-            raise FbossTestException("host not in test topology: %s" % host)
+            raise FbossTestException("host not in test topology: %s" % host_name)
 
     def number_of_hosts(self):
         return len(self.test_hosts)
@@ -116,7 +116,6 @@ class FBOSSTestTopology(object):
         if not self.verify_hosts(min_hosts=n_hosts):
             raise unittest.SkipTest("Not able to find %d good hosts" %
                                     (n_hosts))
-
 
     def verify_switch(self):
         """ Verify the switch is THRIFT reachable """
