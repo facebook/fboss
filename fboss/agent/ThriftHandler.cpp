@@ -347,34 +347,24 @@ void ThriftHandler::getL2Table(std::vector<L2EntryThrift>& l2Table) {
 }
 
 LacpPortRateThrift ThriftHandler::fromLacpPortRate(cfg::LacpPortRate rate) {
-  LacpPortRateThrift thriftRate;
-
   switch (rate) {
     case cfg::LacpPortRate::SLOW:
-      thriftRate = LacpPortRateThrift::SLOW;
-      break;
+      return LacpPortRateThrift::SLOW;
     case cfg::LacpPortRate::FAST:
-      thriftRate = LacpPortRateThrift::FAST;
-      break;
+      return LacpPortRateThrift::FAST;
   }
-
-  return thriftRate;
+  throw FbossError("Unknown LACP port rate: ", rate);
 }
 
 LacpPortActivityThrift ThriftHandler::fromLacpPortActivity(
     cfg::LacpPortActivity activity) {
-  LacpPortActivityThrift thriftActivity;
-
   switch (activity) {
     case cfg::LacpPortActivity::ACTIVE:
-      thriftActivity = LacpPortActivityThrift::ACTIVE;
-      break;
+      return LacpPortActivityThrift::ACTIVE;
     case cfg::LacpPortActivity::PASSIVE:
-      thriftActivity = LacpPortActivityThrift::PASSIVE;
-      break;
+      return LacpPortActivityThrift::PASSIVE;
   }
-
-  return thriftActivity;
+  throw FbossError("Unknown LACP port activity: ", activity);
 }
 
 void ThriftHandler::populateAggregatePortThrift(

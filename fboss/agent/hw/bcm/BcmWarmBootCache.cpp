@@ -311,7 +311,7 @@ void BcmWarmBootCache::populateStateFromWarmBootJson(const std::string&
     }
     egressIdsFromBcmHostInWarmBootFile_.insert(egressId);
 
-    folly::Optional<opennsl_if_t> intf;
+    folly::Optional<opennsl_if_t> intf{folly::none};
     auto ip = folly::IPAddress(hostEntry[kIp].stringPiece());
     if (ip.isV6() && ip.isLinkLocal()) {
       auto egressIt = hostEntry.find(kEgress);
