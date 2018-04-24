@@ -114,6 +114,10 @@ class BcmSwitch : public BcmSwitchIf {
     MMU_LOSSLESS,
     MMU_LOSSY
    };
+   enum FeaturesDesired : uint32_t {
+     PACKET_RX_DESIRED = 0x01,
+     LINKSCAN_DESIRED = 0x02
+   };
   /*
    * Construct a new BcmSwitch.
    *
@@ -143,7 +147,6 @@ class BcmSwitch : public BcmSwitchIf {
    * before destroying the BcmSwitch object.
    */
   std::unique_ptr<BcmUnit> releaseUnit() override;
-
   /*
    * Initialize the BcmSwitch.
    */
@@ -582,13 +585,22 @@ class BcmSwitch : public BcmSwitchIf {
    */
   std::unique_ptr<BufferStatsLogger> createBufferStatsLogger();
 
-   /*
-    * Check if state, speed update for this port port would
-    * be permissible in the hardware.
-    * Right now we check for valid speed and port state update
-    * given the constraints of lanes on the physical
-    * port group/QSFP. More checks can be added as needed.
-    */
+  /*
+   * Setup linkscan unless its explicitly disabled via featuresDesired_ flag
+   */
+  void setupLinkscan();
+  /*
+   * Setup packet RX unless its explicitly disabled via featuresDesired_ flag
+   */
+  void setupPacketRx();
+
+ /*
+  * Check if state, speed update for this port port would
+  * be permissible in the hardware.
+  * Right now we check for valid speed and port state update
+  * given the constraints of lanes on the physical
+  * port group/QSFP. More checks can be added as needed.
+  */
   bool isValidPortUpdate(const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort,
     const std::shared_ptr<SwitchState>& newState) const;
@@ -607,6 +619,7 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmUnit> unitObject_;
   int unit_{-1};
   uint32_t flags_{0};
+  uint32_t featuresDesired_{PACKET_RX_DESIRED | LINKSCAN_DESIRED};
   HashMode hashMode_;
   MmuState mmuState_{MmuState::UNKNOWN};
   bool bufferStatsEnabled_{false};

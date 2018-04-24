@@ -441,6 +441,18 @@ void BcmSwitch::runBcmScriptPreAsicInit() const {
   printDiagCmd(folly::to<string>("rcload ", filename));
 }
 
+void BcmSwitch::setupLinkscan() {
+  if (!(featuresDesired_ & LINKSCAN_DESIRED)) {
+    LOG(INFO) << " Skipping linkscan registeration as the feature is disabled";
+    return;
+  }
+  auto rv = opennsl_linkscan_register(unit_, linkscanCallback);
+  bcmCheckError(rv, "failed to register for linkscan events");
+  flags_ |= LINKSCAN_REGISTERED;
+  rv = opennsl_linkscan_enable_set(unit_, FLAGS_linkscan_interval_us);
+  bcmCheckError(rv, "failed to enable linkscan");
+
+}
 HwInitResult BcmSwitch::init(Callback* callback) {
   HwInitResult ret;
 
@@ -583,12 +595,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
     startFineGrainedBufferStatLogging();
   }
 
-  rv = opennsl_linkscan_register(unit_, linkscanCallback);
-  bcmCheckError(rv, "failed to register for linkscan events");
-  flags_ |= LINKSCAN_REGISTERED;
-  rv = opennsl_linkscan_enable_set(unit_, FLAGS_linkscan_interval_us);
-  bcmCheckError(rv, "failed to enable linkscan");
-
+  setupLinkscan();
   // If warm booting, force a scan of all ports. Unfortunately
   // opennsl_enable_set will enable all of the ports and return before
   // the first loop on the link thread has updated the link status of
@@ -626,7 +633,11 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   return ret;
 }
 
-void BcmSwitch::initialConfigApplied() {
+void BcmSwitch::setupPacketRx() {
+  if (!(featuresDesired_ & PACKET_RX_DESIRED)) {
+    LOG(INFO) <<" Skip settiing up packet RX since its explicitly disabled";
+    return;
+  }
   static opennsl_rx_cfg_t _rx_cfg = {
     (16 * 1032),            // packet alloc size (12K packets plus spare)
     16,                     // Packets per chain
@@ -648,7 +659,6 @@ void BcmSwitch::initialConfigApplied() {
     nullptr                 // cpu_addresses
   };
 
-  std::lock_guard<std::mutex> g(lock_);
   // Register our packet handler callback function.
   uint32_t rxFlags = OPENNSL_RCO_F_ALL_COS;
   auto rv = opennsl_rx_register(
@@ -664,6 +674,10 @@ void BcmSwitch::initialConfigApplied() {
     rv = opennsl_rx_start(unit_, &_rx_cfg);
   }
   bcmCheckError(rv, "failed to start broadcom packet rx API");
+}
+void BcmSwitch::initialConfigApplied() {
+  std::lock_guard<std::mutex> g(lock_);
+  setupPacketRx();
 }
 
 std::shared_ptr<SwitchState> BcmSwitch::stateChanged(const StateDelta& delta) {
