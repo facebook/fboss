@@ -13,6 +13,7 @@
 
 #include <folly/hash/Hash.h>
 #include <folly/Memory.h>
+#include <folly/Optional.h>
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
 #include "fboss/agent/Constants.h"
@@ -139,8 +140,12 @@ bool BcmSwitch::getPortFECConfig(PortID port) const {
   return getPortTable()->getBcmPort(port)->isFECEnabled();
 }
 
-BcmSwitch::BcmSwitch(BcmPlatform *platform, HashMode hashMode)
+BcmSwitch::BcmSwitch(
+    BcmPlatform* platform,
+    HashMode hashMode,
+    uint32_t featuresDesired)
     : platform_(platform),
+      featuresDesired_(featuresDesired),
       hashMode_(hashMode),
       fineGrainedBufferStatsEnabled_(FLAGS_enable_fine_grained_buffer_stats),
       mmuBufferBytes_(platform->getMMUBufferBytes()),
@@ -160,8 +165,11 @@ BcmSwitch::BcmSwitch(BcmPlatform *platform, HashMode hashMode)
   exportSdkVersion();
 }
 
-BcmSwitch::BcmSwitch(BcmPlatform *platform, unique_ptr<BcmUnit> unit)
-  : BcmSwitch(platform) {
+BcmSwitch::BcmSwitch(
+    BcmPlatform* platform,
+    unique_ptr<BcmUnit> unit,
+    uint32_t featuresDesired)
+    : BcmSwitch(platform, FULL_HASH, featuresDesired) {
   unitObject_ = std::move(unit);
   unit_ = unitObject_->getNumber();
 }
@@ -170,14 +178,8 @@ BcmSwitch::~BcmSwitch() {
   LOG(ERROR) << "Destroying BcmSwitch";
 }
 
-unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
-  std::lock_guard<std::mutex> g(lock_);
-
+void BcmSwitch::resetTablesImpl(std::unique_lock<std::mutex>& /*lock*/) {
   unregisterCallbacks();
-
-  // Destroy all of our member variables that track state,
-  // to make sure they clean up their state now before we reset unit_.
-  BcmSwitchEventUtils::resetUnit(unit_);
   routeTable_.reset();
   // Release host entries before reseting switch's host table
   // entries so that if host try to refer to look up host table
@@ -198,9 +200,43 @@ unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
   // access it during object deletion.
   warmBootCache_.reset();
 
+}
+
+unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
+  std::unique_lock<std::mutex> lk(lock_);
+
+  // Destroy all of our member variables that track state,
+  // to make sure they clean up their state now before we reset unit_.
+  BcmSwitchEventUtils::resetUnit(unit_);
+  resetTablesImpl(lk);
   unit_ = -1;
   unitObject_->setCookie(nullptr);
   return std::move(unitObject_);
+}
+
+void BcmSwitch::resetTables() {
+  std::unique_lock<std::mutex> lk(lock_);
+  resetTablesImpl(lk);
+}
+
+void BcmSwitch::initTables(const std::string& warmBootJson) {
+  std::lock_guard<std::mutex> g(lock_);
+  portTable_ = std::make_unique<BcmPortTable>(this);
+  intfTable_ = std::make_unique<BcmIntfTable>(this);
+  hostTable_ = std::make_unique<BcmHostTable>(this);
+  routeTable_ = std::make_unique<BcmRouteTable>(this);
+  aclTable_ = std::make_unique<BcmAclTable>(this);
+  bcmTableStats_ = std::make_unique<BcmTableStats>(this, isAlpmEnabled());
+  trunkTable_ = std::make_unique<BcmTrunkTable>(this);
+  sFlowExporterTable_ = std::make_unique<BcmSflowExporterTable>();
+  controlPlane_ = std::make_unique<BcmControlPlane>(this);
+  warmBootCache_ = std::make_unique<BcmWarmBootCache>(this);
+  warmBootCache_->populate(folly::Optional<std::string>(warmBootJson));
+  setupToCpuEgress();
+  auto warmBootState = getWarmBootSwitchState();
+  stateChangedImpl(StateDelta(make_shared<SwitchState>(), warmBootState));
+  setupLinkscan();
+  setupPacketRx();
 }
 
 void BcmSwitch::unregisterCallbacks() {
@@ -582,10 +618,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
     // in the host table don't show up correctly.
     warmBootCache_->populate();
   }
-  // create an egress object for ToCPU
-  toCPUEgress_ = make_unique<BcmEgress>(this);
-  toCPUEgress_->programToCPU();
-
+  setupToCpuEgress();
   portTable_->initPorts(&pcfg, warmBoot);
 
   setupCos();
@@ -633,6 +666,12 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   return ret;
 }
 
+void BcmSwitch::setupToCpuEgress() {
+  // create an egress object for ToCPU
+  toCPUEgress_ = make_unique<BcmEgress>(this);
+  toCPUEgress_->programToCPU();
+}
+
 void BcmSwitch::setupPacketRx() {
   if (!(featuresDesired_ & PACKET_RX_DESIRED)) {
     LOG(INFO) <<" Skip settiing up packet RX since its explicitly disabled";
@@ -675,6 +714,7 @@ void BcmSwitch::setupPacketRx() {
   }
   bcmCheckError(rv, "failed to start broadcom packet rx API");
 }
+
 void BcmSwitch::initialConfigApplied() {
   std::lock_guard<std::mutex> g(lock_);
   setupPacketRx();

@@ -14,6 +14,8 @@ class MockBcmSwitch : public BcmSwitchIf {
   MockBcmSwitch() {}
 
   MOCK_METHOD0(releaseUnit, std::unique_ptr<BcmUnit>());
+  MOCK_METHOD0(resetTables, void());
+  MOCK_METHOD1(initTables, void(const std::string&));
   MOCK_CONST_METHOD0(getPlatform, BcmPlatform*());
   MOCK_METHOD1(init, HwInitResult(Callback* callback));
   MOCK_METHOD0(unregisterCallbacks, void());

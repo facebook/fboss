@@ -62,7 +62,19 @@ class BufferStatsLogger;
  */
 class BcmSwitchIf : public HwSwitch {
  public:
+  /*
+   * Flush internal tables and release ASIC/unit for destruction
+   */
   virtual std::unique_ptr<BcmUnit> releaseUnit() = 0;
+  /*
+   * Flush internal tables w/o but remain attached to ASIC/Unit
+   */
+  virtual void resetTables() = 0;
+  /*
+   * Set up tables as would be just after doing a init (w/o going through
+   * the whole init sequence of setting up the ASIC)
+   */
+  virtual void initTables(const std::string& warmBootJson) = 0;
 
   virtual BcmPlatform* getPlatform() const = 0;
 
@@ -125,39 +137,58 @@ class BcmSwitch : public BcmSwitchIf {
    * When init() is called, it will initialize the SDK, then find and
    * initialize the first switching ASIC.
    */
-  explicit BcmSwitch(BcmPlatform* platform, HashMode hashMode=FULL_HASH);
+   explicit BcmSwitch(
+       BcmPlatform* platform,
+       HashMode hashMode = FULL_HASH,
+       uint32_t featuresDesired = (PACKET_RX_DESIRED | LINKSCAN_DESIRED));
 
-  /*
-   * Construct a new BcmSwitch for an existing BCM unit.
-   *
-   * This version assumes the BCM SDK has already been initialized, and uses
-   * the specified BCM unit.  The BCM unit is not reset, but is used in its
-   * current state.  Note that BcmSwitch::init() must still be called.
-   */
-  BcmSwitch(BcmPlatform *platform, std::unique_ptr<BcmUnit> unit);
+   /*
+    * Construct a new BcmSwitch for an existing BCM unit.
+    *
+    * This version assumes the BCM SDK has already been initialized, and uses
+    * the specified BCM unit.  The BCM unit is not reset, but is used in its
+    * current state.  Note that BcmSwitch::init() must still be called.
+    */
+   BcmSwitch(
+       BcmPlatform* platform,
+       std::unique_ptr<BcmUnit> unit,
+       uint32_t featuresDesired);
 
-  ~BcmSwitch() override;
+   ~BcmSwitch() override;
 
-  /*
-   * Release the BcmUnit used by this BcmSwitch.
-   *
-   * This returns the BcmUnit used by this switch.  This can be used to
-   * destroy the BcmSwitch without also detaching the underlying BcmUnit.
-   * Once this method has called no other BcmSwitch methods should be accessed
-   * before destroying the BcmSwitch object.
-   */
-  std::unique_ptr<BcmUnit> releaseUnit() override;
-  /*
-   * Initialize the BcmSwitch.
-   */
-  HwInitResult init(Callback* callback) override;
+   /*
+    * Release the BcmUnit used by this BcmSwitch.
+    *
+    * This returns the BcmUnit used by this switch.  This can be used to
+    * destroy the BcmSwitch without also detaching the underlying BcmUnit.
+    * Once this method has called no other BcmSwitch methods should be accessed
+    * before destroying the BcmSwitch object.
+    */
+   std::unique_ptr<BcmUnit> releaseUnit() override;
+   /*
+    * Flush tables tracking ASIC state. Without releasing the ASIC/unit for
+    * destruction/detaching. Primarily used for testing, where we flush state
+    * and then try to recreate it by mimicking a warmboot sequence
+    */
+   void resetTables() override;
+   /*
+    * Init tables using warm boot state (represented by passed in JSON).
+    * This mimics the warm boot init sequence, without having the ASIC
+    * go through a warm boot.
+    */
+   void initTables(const std::string& warmBootJson) override;
 
-  void runBcmScriptPreAsicInit() const;
+   /*
+    * Initialize the BcmSwitch.
+    */
+   HwInitResult init(Callback* callback) override;
 
-  void unregisterCallbacks() override;
+   void runBcmScriptPreAsicInit() const;
 
-  BcmPlatform* getPlatform() const override {
-    return platform_;
+   void unregisterCallbacks() override;
+
+   BcmPlatform* getPlatform() const override {
+     return platform_;
   }
   MmuState getMmuState() const { return mmuState_; }
   uint64_t getMMUCellBytes() const { return mmuCellBytes_; }
@@ -344,6 +375,8 @@ class BcmSwitch : public BcmSwitchIf {
                                opennsl_port_info_t* info);
 
  private:
+  void resetTablesImpl(std::unique_lock<std::mutex>& lock);
+
   enum Flags : uint32_t {
     RX_REGISTERED = 0x01,
     LINKSCAN_REGISTERED = 0x02
@@ -362,6 +395,8 @@ class BcmSwitch : public BcmSwitchIf {
    * building complete state.
    */
   std::shared_ptr<SwitchState> getWarmBootSwitchState() const;
+
+  void setupToCpuEgress();
 
   std::unique_ptr<BcmRxPacket> createRxPacket(opennsl_pkt_t* pkt);
   void changeDefaultVlan(VlanID id);
