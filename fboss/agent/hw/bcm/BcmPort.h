@@ -20,12 +20,11 @@ extern "C" {
 #include "common/stats/ExportedHistogramMapImpl.h"
 
 #include "fboss/agent/types.h"
-#include "fboss/agent/hw/bcm/BcmCosManager.h"
+#include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/state/Port.h"
-#include "fboss/agent/state/PortQueue.h"
 
 #include <folly/Range.h>
 #include <folly/Synchronized.h>
@@ -38,7 +37,6 @@ class BcmSwitch;
 class BcmPortGroup;
 class SwitchState;
 
-using QueueConfig = PortFields::QueueConfig;
 /**
  * BcmPort is the class to abstract the physical port in BcmSwitch.
  */
@@ -155,8 +153,8 @@ class BcmPort {
 
   static opennsl_gport_t asGPort(opennsl_port_t port);
   static bool isValidLocalPort(opennsl_gport_t gport);
-  CosQueueGports* getCosQueueGports() {
-    return &cosQueueGports_;
+  BcmPortQueueManager* getQueueManager() const {
+    return queueManager_.get();
   }
 
  private:
@@ -208,9 +206,6 @@ class BcmPort {
   void setTxSetting(const std::shared_ptr<Port>& swPort);
   bool isMmuLossy() const;
   uint8_t determinePipe() const;
-  int getNumUnicastQueues() {
-    return cosQueueGports_.unicast.size();
-  }
 
   BcmSwitch* const hw_{nullptr};
   const opennsl_port_t port_;    // Broadcom physical port number
@@ -227,7 +222,7 @@ class BcmPort {
   BcmPortGroup* portGroup_{nullptr};
 
   std::map<std::string, stats::MonotonicCounter> portCounters_;
-  CosQueueGports cosQueueGports_;
+  std::unique_ptr<BcmPortQueueManager> queueManager_;
 
   stats::ExportedStatMapImpl::LockableStat outQueueLen_;
   stats::ExportedHistogramMapImpl::LockableHistogram inPktLengths_;

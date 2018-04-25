@@ -9,19 +9,7 @@
  */
 #pragma once
 
-#include <vector>
-
-extern "C" {
-#include <opennsl/types.h>
-}
-
 namespace facebook { namespace fboss {
-
-struct CosQueueGports {
-  opennsl_gport_t scheduler;
-  std::vector<opennsl_gport_t> unicast;
-  std::vector<opennsl_gport_t> multicast;
-};
 
 class BcmCosManager {
 public:

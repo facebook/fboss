@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/Thrifty.h"
+#include "fboss/agent/state/PortQueue.h"
 
 #include <boost/container/flat_map.hpp>
 #include <string>
@@ -20,7 +21,6 @@
 
 namespace facebook { namespace fboss {
 
-class PortQueue;
 class SwitchState;
 
 struct PortFields {
@@ -38,7 +38,6 @@ struct PortFields {
   };
 
   using VlanMembership = boost::container::flat_map<VlanID, VlanInfo>;
-  using QueueConfig = std::vector<std::shared_ptr<PortQueue> >;
 
   enum class OperState {
     DOWN = 0,
@@ -81,7 +80,6 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
   using VlanInfo = PortFields::VlanInfo;
   using VlanMembership = PortFields::VlanMembership;
   using OperState = PortFields::OperState;
-  using QueueConfig = PortFields::QueueConfig;
 
   Port(PortID id, const std::string& name);
 

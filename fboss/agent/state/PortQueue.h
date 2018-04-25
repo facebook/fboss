@@ -17,6 +17,7 @@
 
 #include <string>
 #include <utility>
+#include <vector>
 #include <folly/Optional.h>
 
 namespace facebook { namespace fboss {
@@ -120,4 +121,6 @@ class PortQueue :
   friend class CloneAllocator;
 };
 
+// TODO: Will move it to Queues.h
+using QueueConfig = std::vector<std::shared_ptr<PortQueue>>;
 }} // facebook::fboss

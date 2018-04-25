@@ -28,7 +28,6 @@
 #include "fboss/agent/state/NdpResponseTable.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
-#include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
@@ -69,8 +68,6 @@ const int kAclStartPriority = 100000;
 } // anonymous namespace
 
 namespace facebook { namespace fboss {
-
-using QueueConfig = PortFields::QueueConfig;
 
 /*
  * A class for implementing applyThriftConfig().

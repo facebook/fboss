@@ -25,6 +25,7 @@
 #include "fboss/agent/hw/bcm/BcmStatsConstants.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
+#include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/hardware_stats_constants.h"
 
 
@@ -117,12 +118,22 @@ static const std::map<cfg::PortSpeed,
     }}
 };
 
+static const std::vector<BcmPortQueueCounterType> kPortQueueCounters = {
+  {cfg::StreamType::UNICAST, BcmPortQueueStatType::DROPPED_BYTES,
+   BcmPortQueueCounterScope::QUEUES, kOutCongestionDiscards()},
+  {cfg::StreamType::UNICAST, BcmPortQueueStatType::OUT_BYTES,
+   BcmPortQueueCounterScope::QUEUES, kOutBytes()},
+  {cfg::StreamType::UNICAST, BcmPortQueueStatType::DROPPED_PACKETS,
+   BcmPortQueueCounterScope::AGGREGATED, kOutCongestionDiscards()}
+};
+
 
 void BcmPort::updateName(const std::string& newName) {
   if (newName == portName_) {
     return;
   }
   portName_ = newName;
+  queueManager_->setPortName(newName);
   reinitPortStats();
 }
 
@@ -167,12 +178,9 @@ void BcmPort::reinitPortStats() {
   reinitPortStat(kOutDiscards());
   reinitPortStat(kOutErrors());
   reinitPortStat(kOutPause());
-  reinitPortStat(kOutCongestionDiscards());
-  for (int i = 0; i < getNumUnicastQueues(); i++) {
-    auto name = folly::to<std::string>("queue", i, ".");
-    reinitPortStat(folly::to<std::string>(name, kOutCongestionDiscards()));
-    reinitPortStat(folly::to<std::string>(name, kOutBytes()));
-  }
+
+  queueManager_->setupQueueCounters(kPortQueueCounters);
+
   // (re) init out queue length
   auto statMap = fbData->getStatMap();
   const auto expType = stats::AVG;
@@ -188,7 +196,8 @@ void BcmPort::reinitPortStats() {
 
   {
     auto lockedPortStatsPtr = lastPortStats_.wlock();
-    *lockedPortStatsPtr = BcmPortStats(getNumUnicastQueues());
+    *lockedPortStatsPtr = BcmPortStats(
+      queueManager_->getQueueSize(cfg::StreamType::UNICAST));
   }
 }
 
@@ -197,10 +206,16 @@ BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
     : hw_(hw),
       port_(port),
       platformPort_(platformPort),
-      unit_(hw->getUnit()) {
+      unit_(hw->getUnit()),
+      // we can only get the real name(ethX/Y/Z) after we first apply config
+      portName_(folly::to<string>("port", platformPort_->getPortID())) {
+
   // Obtain the gport handle from the port handle.
   int rv = opennsl_port_gport_get(unit_, port_, &gport_);
   bcmCheckError(rv, "Failed to get gport for BCM port ", port_);
+
+  queueManager_ = std::make_unique<BcmPortQueueManager>(
+    hw_, portName_, gport_);
 
   pipe_ = determinePipe();
 
@@ -550,9 +565,6 @@ void BcmPort::registerInPortGroup(BcmPortGroup* portGroup) {
 }
 
 std::string BcmPort::statName(folly::StringPiece name) const {
-  if (portName_.empty()) {
-    return folly::to<string>("port", platformPort_->getPortID(), ".", name);
-  }
   return folly::to<string>(portName_, ".", name);
 }
 

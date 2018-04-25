@@ -106,7 +106,7 @@ TEST(PortQueue, stateDelta) {
   auto stateV0 = make_shared<SwitchState>();
   stateV0->registerPort(PortID(1), "port1");
   auto port0 = stateV0->getPort(PortID(1));
-  Port::QueueConfig initialQueues;
+  QueueConfig initialQueues;
   for (int i = 0; i < 4; i++) {
     auto q = std::make_shared<PortQueue>(i);
     q->setScheduling(cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
