@@ -55,7 +55,7 @@ function build_cmake() {
             cd build
             echo cmake .. $CMAKEFLAGS
             cmake .. $CMAKEFLAGS || die "Cmake failed for $1"
-            make -j "$NPROC" || die "Failed to build $1"
+            make -j "$NPROC" all install || die "Failed to build $1"
         else
       die "No CmakeLists.txt found for $1"
         fi
@@ -113,11 +113,13 @@ NPROC=$(grep -c processor /proc/cpuinfo)
     update https://github.com/no1msd/mstch.git
     update https://github.com/facebook/zstd.git
     update https://github.com/google/googletest.git release-1.8.0
+    # build and install everything to this dir
+    export CMAKEFLAGS="-DCMAKE_INSTALL_PREFIX:PATH=$EXT.install -DCMAKE_MODULE_PATH=$EXT.install"
     build_cmake mstch || die "Failed to build mstch"
     build_make zstd || die "Failed to build zstd"
     build_autoconf iproute2 || die "Failed to build iproute2"
-    build_autoconf folly/folly || die "Failed to build folly"
-    export CMAKEFLAGS="-DFOLLY_INCLUDE_DIR=$EXT/folly -DFOLLY_LIBRARY=$EXT/folly/folly/.libs/libfolly.a -DBUILD_TESTS=OFF"
+    build_cmake folly || die "Failed to build folly"
+    export CMAKEFLAGS="$CMAKEFLAGS -DBUILD_TESTS=OFF"
     build_cmake wangle/wangle || die "Failed to build wangle"
     export CMAKEFLAGS="$CMAKEFLAGS \
         -DMSTCH_LIBRARIES=$EXT/mstch/build/src/libmstch.a \

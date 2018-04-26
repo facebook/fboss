@@ -209,6 +209,8 @@ find_library(BOOSTSER boost_serialization)
 find_library(BOOSTFS boost_filesystem)
 find_library(BOOSTSYS boost_system)
 find_library(BOOSTTHREAD boost_thread)
+find_library(BOOSTCONTEXT boost_context)
+find_library(BOOSTREGEXP boost_regex)
 find_library(DOUBLECONV double-conversion)
 find_library(GFLAGS gflags)
 find_library(GLOG glog)
@@ -229,9 +231,9 @@ find_library(CURL curl)
 
 # External libraries that are not generally available. Look in external/
 # for these. This is where getdeps.sh will toss them.
-find_library(FOLLY folly PATHS ${CMAKE_SOURCE_DIR}/external/folly/folly/.libs)
+find_library(FOLLY folly PATHS ${CMAKE_SOURCE_DIR}/external.install/lib)
 find_library(FOLLYBENCHMARK follybenchmark
-             PATHS ${CMAKE_SOURCE_DIR}/external/folly/folly/.libs)
+             PATHS ${CMAKE_SOURCE_DIR}/external.install/lib)
 find_library(WANGLE wangle
              PATHS ${CMAKE_SOURCE_DIR}/external/wangle/wangle/build/lib)
 find_library(THRIFT thrift
@@ -259,7 +261,7 @@ find_library(ZSTD zstd PATHS ${CMAKE_SOURCE_DIR}/external/zstd/lib)
 
 include_directories(${CMAKE_SOURCE_DIR}/external/OpenNSL/include)
 include_directories(${CMAKE_SOURCE_DIR}/external/iproute2/include)
-include_directories(${CMAKE_SOURCE_DIR}/external/folly)
+include_directories(${CMAKE_SOURCE_DIR}/external.install/include)
 include_directories(${CMAKE_SOURCE_DIR}/external/fbthrift)
 include_directories(${CMAKE_SOURCE_DIR}/external/wangle)
 
@@ -536,7 +538,9 @@ set(LIBFBOSS_AGENT_DEPS
     "${ALL_THRIFT_LIBS}"
     ${OPENNSL}
     ${IPROUTE2}
+    ${BOOSTCONTEXT}
     ${BOOSTFS}
+    ${BOOSTREGEXP}
     ${BOOSTSER}
     ${BOOSTSYS}
     ${BOOSTTHREAD}
