@@ -51,10 +51,10 @@
 #include "fboss/agent/gen-cpp2/switch_config_types_custom_protocol.h"
 #include "fboss/agent/ThriftHandler.h"
 #include <folly/FileUtil.h>
+#include <folly/GLog.h>
 #include <folly/MacAddress.h>
 #include <folly/MapUtil.h>
 #include <folly/String.h>
-#include <folly/Logging.h>
 #include <folly/SocketAddress.h>
 #include <folly/system/ThreadName.h>
 #include <folly/Demangle.h>

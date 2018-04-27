@@ -1,6 +1,6 @@
 #include "fboss/pcap_distribution_service/PcapDistributor.h"
 
-#include <folly/Logging.h>
+#include <folly/GLog.h>
 #include <functional>
 #include <map>
 #include <memory>
