@@ -1,4 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
+if (POLICY CMP0054)
+  # Enable CMP0054 to indicate that we want the new safer if() argument behavior
+  cmake_policy(SET CMP0054 NEW)
+endif()
 project(FBOSS)
 
 include(CheckCXXCompilerFlag)
@@ -23,247 +27,150 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Woverloaded-virtua
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized -Wdeprecated-declarations")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=deprecated-declarations")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DINCLUDE_L3 -DLONGS_ARE_64BITS")
-set(PCAP_DIR_PATH
-  "${CMAKE_BINARY_DIR}/gen/fboss/pcap_distribution_service/if/gen-cpp2/")
+
+# Tell CMake to also look in the directories where getdeps.sh installs
+# our third-party dependencies.
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external.install")
 
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_BUILD_DIR})
 
+find_package(folly CONFIG REQUIRED)
+find_package(wangle CONFIG REQUIRED)
+find_package(FBThrift CONFIG REQUIRED)
 
 # Generate thrift deps and libraries
-find_program(THRIFT1 thrift1 HINT
-             ${CMAKE_SOURCE_DIR}/external/fbthrift/build/bin)
-set(THRIFT_INCLUDE ${CMAKE_SOURCE_DIR}/external/fbthrift/thrift)
-set(THRIFT_TEMPLATES ${THRIFT_INCLUDE}/compiler/generate/templates)
-include(${CMAKE_SOURCE_DIR}/ThriftLibrary.cmake)
+include(${CMAKE_SOURCE_DIR}/ThriftCppLibrary.cmake)
 
-set(THRIFT_DIR ${CMAKE_SOURCE_DIR}/build/thrift-out)
-
-#### HACK!
-# Current thrift_library() macro semantics don't transitively
-# infer dependencies, e.g., qsfp.thrift can't complile because
-# it depends files generated from on fb303.thrift.
-# So, with each call of our macro my_thrift_library()
-# we accumulate the sources files and pass them as dependencies
-# to the subsequent calls. Thus, the order we declare the thrift_library()
-# calls informs the dependency graph.
-
-# Create our own wrapper around the standard thrift library generator
-set(THRIFT_LANGS cpp2 )
-foreach(lang ${THRIFT_LANGS})
-    set(THRIFT_CODE_${lang} "")
-    set(THRIFT_LIBS_${lang} "") # create an empty list per lang
-endforeach(lang)
-macro(my_thrift_library file_name services language
-                        options file_path output_path)
-    file(MAKE_DIRECTORY ${output_path})
-    thrift_library(
-        "${file_name}"
-        "${services}"
-        "${language}"
-        "${options}"
-        "${file_path}"
-        "${output_path}"
-        "${THRIFT_CODE_${lang}}")
-    list(APPEND THRIFT_CODE_${lang} "${${file_name}-${language}-SOURCES}")
-    list(APPEND THRIFT_LIBS_${language} "${file_name}-${language}")
-endmacro(my_thrift_library)
-
-# Now generate code for each .thrift file
-foreach(lang ${THRIFT_LANGS})
-    my_thrift_library(
-        "fb303" #file_name
-        "FacebookService" #services
-        "${lang}" #language
-        "" #options
-        "${CMAKE_SOURCE_DIR}/common/fb303/if" #file_path
-        "${THRIFT_DIR}/common/fb303/if" #output_path
-        )
-# fboss_add_thrift(THRIFTSRC common/network/if/Address.thrift
-#     OPTIONS json,compatibility,include_prefix=common/network/if
-#     REFLECT Address)
-    my_thrift_library(
-        "Address" #file_name
-        "" #services
-        "${lang}" #language
-        #"json,compatibility,include_prefix=common/network/if" #options
-        "include_prefix=common/network/if" # options
-        "${CMAKE_SOURCE_DIR}/common/network/if" #file_path
-        "${THRIFT_DIR}/common/network/if" #output_path
-        ""  # deps
-        )
-# fboss_add_thrift(THRIFTSRC fboss/agent/switch_config.thrift
-#     OPTIONS json
-#     REFLECT switch_config)
-    my_thrift_library(
-        "highres" #file_name
-        "FbossHighresClient" #services
-        "${lang}" #language
-        "" #options
-        "${CMAKE_SOURCE_DIR}/fboss/agent/if" #file_path
-        "${THRIFT_DIR}/fboss/agent/if" #output_path
-        )
-    my_thrift_library(
-        "switch_config" #file_name
-        "" #services
-        "${lang}" #language
-        "json" #options
-        "${CMAKE_SOURCE_DIR}/fboss/agent" #file_path
-        "${THRIFT_DIR}/fboss/agent" #output_path
-        ""  # deps
-        )
-    my_thrift_library(
-        "switch_state" #file_name
-        "" #services
-        "${lang}" #language
-        "json,optionals" #options
-        "${CMAKE_SOURCE_DIR}/fboss/agent" #file_path
-        "${THRIFT_DIR}/fboss/agent" #output_path
-        ""  # deps
-        )
-    my_thrift_library(
-        "transceiver" #file_name
-        "" #services
-        "${lang}" #language
-        "" #options
-        "${CMAKE_SOURCE_DIR}/fboss/qsfp_service/if" #file_path
-        "${THRIFT_DIR}/fboss/qsfp_service/if" #output_path
-        )
-    my_thrift_library(
-        "optic" #file_name
-        "" #services
-        "${lang}" #language
-        "" #options
-        "${CMAKE_SOURCE_DIR}/fboss/agent/if" #file_path
-        "${THRIFT_DIR}/fboss/agent/if" #output_path
-        )
-    foreach(lib fboss sflow)
-        my_thrift_library(
-            "${lib}" #file_name
-            "" #services
-            "${lang}" #language
-            "" #options
-            "${CMAKE_SOURCE_DIR}/fboss/agent/if" #file_path
-            "${THRIFT_DIR}/fboss/agent/if" #output_path
-            )
-    endforeach(lib)
-    my_thrift_library(
-        "ctrl" #file_name
-        "NeighborListenerClient;FbossCtrl" #services
-        "${lang}" #language
-        "FbossHighresClient" #options
-        "${CMAKE_SOURCE_DIR}/fboss/agent/if" #file_path
-        "${THRIFT_DIR}/fboss/agent/if" #output_path
-        )
-    my_thrift_library(
-        "sim_ctrl" #file_name
-        "SimCtrl" #services
-        "${lang}" #language
-        "" #options
-        "${CMAKE_SOURCE_DIR}/fboss/agent/hw/sim" #file_path
-        "${THRIFT_DIR}/fboss/agent/hw/sim" #output_path
-        )
-    foreach(lib packettrace bcmswitch hardware_stats)
-        my_thrift_library(
-            "${lib}" #file_name
-            "" #services
-            "${lang}" #language
-            "" #options
-            "${CMAKE_SOURCE_DIR}/fboss/agent/hw/bcm" #file_path
-            "${THRIFT_DIR}/fboss/agent/hw/bcm" #output_path
-            )
-    endforeach(lib)
-    my_thrift_library(
-        "pcap_pubsub" #file_name
-        "PcapPushSubscriber" #services
-        "${lang}" #language
-        "" #options
-        "${CMAKE_SOURCE_DIR}/fboss/pcap_distribution_service/if" #file_path
-        "${THRIFT_DIR}/fboss/pcap_distribution_service/if" #output_path
-        )
-    my_thrift_library(
-        "qsfp" #file_name
-        "QsfpService" #services
-        "${lang}" #language
-        "" #options
-        "${CMAKE_SOURCE_DIR}/fboss/qsfp_service/if" #file_path
-        "${THRIFT_DIR}/fboss/qsfp_service/if" #output_path
-        )
-        my_thrift_library(
-            "netlink_manager_service" #file_name
-            "NetlinkManagerService" #services
-            "${lang}" #language
-            "" #options
-            "${CMAKE_SOURCE_DIR}/fboss/netlink_manager/if" #file_path
-            "${THRIFT_DIR}/fboss/netlink_manager/if" #output_path
-        )
-endforeach(lang)
-
-include_directories(${THRIFT_DIR})
-# message("Building Thrift libraries: ${THRIFT_LIBS_cpp2}")
-
+# Thrift libraries
+add_thrift_cpp2_library(
+  fb303_cpp2
+  common/fb303/if/fb303.thrift
+  SERVICES
+    FacebookService
+)
+add_thrift_cpp2_library(
+  network_address_cpp2
+  common/network/if/Address.thrift
+)
+add_thrift_cpp2_library(
+  highres_cpp2
+  fboss/agent/if/highres.thrift
+  SERVICES
+    FbossHighresClient
+)
+add_thrift_cpp2_library(
+  switch_config_cpp2
+  fboss/agent/switch_config.thrift
+  OPTIONS
+    json
+)
+add_thrift_cpp2_library(
+  switch_state_cpp2
+  fboss/agent/switch_state.thrift
+  OPTIONS
+    json
+    optionals
+  DEPENDS
+    switch_config_cpp2
+)
+add_thrift_cpp2_library(
+  transceiver_cpp2
+  fboss/qsfp_service/if/transceiver.thrift
+  DEPENDS
+    switch_config_cpp2
+)
+add_thrift_cpp2_library(
+  optic_cpp2
+  fboss/agent/if/optic.thrift
+  DEPENDS
+    transceiver_cpp2
+)
+add_thrift_cpp2_library(
+  fboss_cpp2
+  fboss/agent/if/fboss.thrift
+)
+add_thrift_cpp2_library(
+  sflow_cpp2
+  fboss/agent/if/sflow.thrift
+)
+add_thrift_cpp2_library(
+  ctrl_cpp2
+  fboss/agent/if/ctrl.thrift
+  SERVICES
+    FbossCtrl
+    NeighborListenerClient
+  DEPENDS
+    fboss_cpp2
+    fb303_cpp2
+    network_address_cpp2
+    optic_cpp2
+    highres_cpp2
+    transceiver_cpp2
+)
+add_thrift_cpp2_library(
+  sim_ctrl_cpp2
+  fboss/agent/hw/sim/sim_ctrl.thrift
+  SERVICES
+    SimCtrl
+  DEPENDS
+    fboss_cpp2
+    ctrl_cpp2
+)
+add_thrift_cpp2_library(
+  packettrace_cpp2
+  fboss/agent/hw/bcm/packettrace.thrift
+)
+add_thrift_cpp2_library(
+  bcmswitch_cpp2
+  fboss/agent/hw/bcm/bcmswitch.thrift
+)
+add_thrift_cpp2_library(
+  hardware_stats_cpp2
+  fboss/agent/hw/bcm/hardware_stats.thrift
+)
+add_thrift_cpp2_library(
+  pcap_pubsub_cpp2
+  fboss/pcap_distribution_service/if/pcap_pubsub.thrift
+  SERVICES
+    PcapPushSubscriber
+    PcapSubscriber
+)
+add_thrift_cpp2_library(
+  qsfp_cpp2
+  fboss/qsfp_service/if/qsfp.thrift
+  SERVICES
+    QsfpService
+  DEPENDS
+    fb303_cpp2
+    ctrl_cpp2
+    fboss_cpp2
+    transceiver_cpp2
+    switch_config_cpp2
+)
+add_thrift_cpp2_library(
+  netlink_manager_service_cpp2
+  fboss/netlink_manager/if/netlink_manager_service.thrift
+  SERVICES
+    NetlinkManagerService
+  DEPENDS
+    fb303_cpp2
+    ctrl_cpp2
+)
 
 # System libraries
-find_library(GLOG glog)
-find_library(BOOSTSER boost_serialization)
-find_library(BOOSTFS boost_filesystem)
-find_library(BOOSTSYS boost_system)
-find_library(BOOSTTHREAD boost_thread)
-find_library(BOOSTCONTEXT boost_context)
-find_library(BOOSTREGEXP boost_regex)
-find_library(DOUBLECONV double-conversion)
-find_library(GFLAGS gflags)
-find_library(GLOG glog)
-find_library(PTHREAD pthread)
 find_library(USB usb-1.0)
 find_library(PCAP pcap)
-find_library(SNAPPY snappy)
-find_library(ZLIB z)
-find_library(SSL ssl)
-find_library(CRYPTO crypto)
-find_library(GSSAPI gssapi_krb5)
-find_library(DL dl)
-find_library(EVENT event)
 find_library(NETLINK3 nl-3)
 find_library(NETLINKROUTE3 nl-route-3)
-find_library(NUMA numa)
 find_library(CURL curl)
 
-# External libraries that are not generally available. Look in external/
-# for these. This is where getdeps.sh will toss them.
-find_library(FOLLY folly PATHS ${CMAKE_SOURCE_DIR}/external.install/lib)
-find_library(FOLLYBENCHMARK follybenchmark
-             PATHS ${CMAKE_SOURCE_DIR}/external.install/lib)
-find_library(WANGLE wangle
-             PATHS ${CMAKE_SOURCE_DIR}/external/wangle/wangle/build/lib)
-find_library(THRIFT thrift
-             PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib/)
-find_library(PROTOCOL protocol
-             PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
-find_library(THRIFTPROTO thriftprotocol
-             PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
-find_library(THRIFTCPP2 thriftcpp2
-             PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
-find_library(THRIFTTRANSPORT transport
-             PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
-find_library(THRIFTASYNC async
-             PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
-find_library(THRIFTCONCURENCY concurrency
-             PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
-find_library(THRIFTCORE thrift-core
-             PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
-find_library(THRIFTFROZEN thriftfrozen2
-             PATHS ${CMAKE_SOURCE_DIR}/external/fbthrift/build/lib)
 find_library(OPENNSL opennsl
              PATHS ${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge-trident)
 find_library(IPROUTE2 netlink PATHS ${CMAKE_SOURCE_DIR}/external/iproute2/lib)
-find_library(ZSTD zstd PATHS ${CMAKE_SOURCE_DIR}/external/zstd/lib)
 
 include_directories(${CMAKE_SOURCE_DIR}/external/OpenNSL/include)
 include_directories(${CMAKE_SOURCE_DIR}/external/iproute2/include)
-include_directories(${CMAKE_SOURCE_DIR}/external.install/include)
-include_directories(${CMAKE_SOURCE_DIR}/external/fbthrift)
-include_directories(${CMAKE_SOURCE_DIR}/external/wangle)
 
 add_executable(wedge_agent
     fboss/agent/platforms/wedge/WedgePlatform.cpp
@@ -504,73 +411,33 @@ add_library(fboss_agent STATIC
     fboss/qsfp_service/lib/QsfpCache.cpp
 
 )
-
-set(ALL_THRIFT_LIBS
-    ${THRIFT}
-    ${PROTOCOL}
-    ${THRIFTPROTO}
-    ${THRIFTCPP2}
-    ${THRIFTASYNC}
-    ${THRIFTCONCURENCY}
-    ${THRIFTCORE}
-    ${THRIFTFROZEN}
-    ${THRIFTTRANSPORT}
-    )
-
-# NOTE: target_link_library doesn't do anything for
-# static (archive) files
-set(LIBFBOSS_AGENT_DEPS
-    "${ALL_THRIFT_LIBS}"
-    "${THRIFT_LIBS_cpp2}"  # autogenerated thrift libs
-    ${GLOG}
-    ${SSL}
+target_link_libraries(
+  fboss_agent PUBLIC
+    switch_state_cpp2
+    sflow_cpp2
+    ctrl_cpp2
+    sim_ctrl_cpp2
+    packettrace_cpp2
+    bcmswitch_cpp2
+    hardware_stats_cpp2
+    pcap_pubsub_cpp2
+    qsfp_cpp2
+    netlink_manager_service_cpp2
+    Folly::folly
+    wangle::wangle
+    FBThrift::thriftcpp2
+    ${OPENNSL}
     ${PCAP}
     ${USB}
-    ${ZLIB}
-    ${SNAPPY}
-    ${CRYPTO}
-    ${GSSAPI}
-    ${FOLLY}
-    ${GFLAGS}
-    ${GLOG}
-    ${PTHREAD}
-    ${WANGLE}
-    "${ALL_THRIFT_LIBS}"
-    ${OPENNSL}
     ${IPROUTE2}
-    ${BOOSTCONTEXT}
-    ${BOOSTFS}
-    ${BOOSTREGEXP}
-    ${BOOSTSER}
-    ${BOOSTSYS}
-    ${BOOSTTHREAD}
-    ${DOUBLECONV}
-    ${DL}
-    ${EVENT}
     ${NETLINK3}
     ${NETLINKROUTE3}
     ${CURL}
-    ${NUMA}
-    ${ZSTD}
-    "${THRIFT_LIBS_cpp2}"  # autogenerated thrift libs
-    ${WANGLE}
 )
 
-#message("LIBFBOSS_AGENT_DEPS: ${LIBFBOSS_AGENT_DEPS}")
-
-target_link_libraries(fboss_agent "${LIBFBOSS_AGENT_DEPS}")
-target_link_libraries(wedge_agent
-                        fboss_agent
-                        "${LIBFBOSS_AGENT_DEPS}"
-                    )
-target_link_libraries(netlink_manager
-                        fboss_agent
-                        "${LIBFBOSS_AGENT_DEPS}"
-                    )
-target_link_libraries(qsfp_service
-                        fboss_agent
-                        "${LIBFBOSS_AGENT_DEPS}"
-                     )
+target_link_libraries(wedge_agent fboss_agent)
+target_link_libraries(netlink_manager fboss_agent)
+target_link_libraries(qsfp_service fboss_agent)
 
 
 # TODO(rsher)
@@ -580,27 +447,18 @@ target_link_libraries(qsfp_service
 #       fboss/util/lldp_tool.cpp
 # )
 #
-# target_link_libraries(lldp_tool
-#       fboss-agent
-#       "${LIBFBOSS_AGENT_DEPS}"
-# )
+# target_link_libraries(lldp_tool fboss-agent)
 
 add_executable(cp2112_util
     fboss/util/cp2112_util.cpp
 )
-target_link_libraries(cp2112_util
-       fboss_agent
-       "${LIBFBOSS_AGENT_DEPS}"
-)
+target_link_libraries(cp2112_util fboss_agent)
 
 add_executable(wedge_qsfp_util
     fboss/util/wedge_qsfp_util.cpp
     fboss/util/oss/wedge_qsfp_util.cpp
 )
-target_link_libraries(wedge_qsfp_util
-       fboss_agent
-       "${LIBFBOSS_AGENT_DEPS}"
-)
+target_link_libraries(wedge_qsfp_util fboss_agent)
 
 
 
@@ -635,7 +493,6 @@ add_executable(agent_test
 )
 target_link_libraries(agent_test
     fboss_agent
-    "${LIBFBOSS_AGENT_DEPS}"
     gtest
     gmock
     ${CMAKE_THREAD_LIBS_INIT}

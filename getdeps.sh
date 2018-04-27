@@ -43,6 +43,8 @@ function build_make() {
        die "Missing Makefile for $1"
     fi
     make -j "$NPROC"|| die "Make failed for $1"
+    make install prefix="$INSTALL_DIR" || \
+        die "Failed to install $1 to $INSTALL_DIR"
     )
 }
 
@@ -51,13 +53,17 @@ function build_cmake() {
         echo "building $1..."
         cd "$1" || die "Missing dir $1"
         if [ -e ./CMakeLists.txt ]; then
-            mkdir -p build || true
-            cd build
-            echo cmake .. $CMAKEFLAGS
-            cmake .. $CMAKEFLAGS || die "Cmake failed for $1"
-            make -j "$NPROC" all install || die "Failed to build $1"
+            mkdir -p _build || true
+            cd _build || die "Failed to cd into _build directory"
+            cmake configure .. \
+                -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+                -DCMAKE_PREFIX_PATH="$INSTALL_DIR" \
+                -DBUILD_TESTS=OFF \
+                || die "Cmake failed for $1"
+            make -j "$NPROC" || die "Failed to build $1"
+            make install || die "Failed to install $1 to $INSTALL_DIR"
         else
-      die "No CmakeLists.txt found for $1"
+            die "No CmakeLists.txt found for $1"
         fi
     )
 }
@@ -100,6 +106,8 @@ NPROC=$(grep -c processor /proc/cpuinfo)
 (
     cd external
     EXT=$(pwd)
+    # build and install everything to this dir
+    INSTALL_DIR="$EXT.install"
     if [ $GET_OPENNSL == 1 ] ; then
       # We hard code OpenNSL to OpenNSL-6.4.6.6 release, later releases seem to
       # SIGSEV in opennsl_pkt_alloc()
@@ -113,20 +121,10 @@ NPROC=$(grep -c processor /proc/cpuinfo)
     update https://github.com/no1msd/mstch.git
     update https://github.com/facebook/zstd.git
     update https://github.com/google/googletest.git release-1.8.0
-    # build and install everything to this dir
-    export CMAKEFLAGS="-DCMAKE_INSTALL_PREFIX:PATH=$EXT.install -DCMAKE_MODULE_PATH=$EXT.install"
     build_cmake mstch || die "Failed to build mstch"
     build_make zstd || die "Failed to build zstd"
     build_autoconf iproute2 || die "Failed to build iproute2"
     build_cmake folly || die "Failed to build folly"
-    export CMAKEFLAGS="$CMAKEFLAGS -DBUILD_TESTS=OFF"
     build_cmake wangle/wangle || die "Failed to build wangle"
-    export CMAKEFLAGS="$CMAKEFLAGS \
-        -DMSTCH_LIBRARIES=$EXT/mstch/build/src/libmstch.a \
-        -DMSTCH_INCLUDE_DIRS=$EXT/mstch/include \
-        -DWANGLE_LIBRARIES=$EXT/wangle/wangle/build/lib/libwangle.a \
-        -DWANGLE_INCLUDE_DIRS=$EXT/wangle \
-        -DZSTD_LIBRARIES=$EXT/zstd/lib/libzstd.a \
-        -DZSTD_INCLUDE_DIRS=$EXT/zstd/lib"
     build_cmake fbthrift/ || die "Failed to build thrift"
 )
