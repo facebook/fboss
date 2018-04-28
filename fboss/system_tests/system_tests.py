@@ -55,7 +55,7 @@ def generate_default_test_argparse(**kwargs):
                         help="List of test classes to run. For example:\n"
                              "basset_test_runner.par [options] TestClass\n"
                              "basset_test_runner.par[options] TestClass1 TestClass2")
-    parser.add_argument('--test_dirs', action='append',
+    parser.add_argument('--test_dirs', nargs='*',
                         help="List of directories to discover tests",
                         default=Defaults['test_dirs'])
     parser.add_argument('--config', default=Defaults['config'])
