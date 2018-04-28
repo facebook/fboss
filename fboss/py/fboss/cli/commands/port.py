@@ -290,16 +290,15 @@ class PortStatusCmd(cmds.FbossCmd):
             if not status:
                 missing_port_status.append(port_id)
                 continue
-            # The transceiver id can be derived from port name
-            # e.g. port name eth1/4/1 -> transceiver_id is 4-1 = 3
-            # (-1 because we start counting transceivers at 0)
-            transceiver_id = utils.port_sort_fn(port_info)[2] - 1
-            qsfp_info = qsfp_info_map.get(transceiver_id)
-            qsfp_present = None
-            if self._qsfp_client:
-                # For non QSFP ports (think Fabric port) qsfp_client
-                # will not return any information.
+
+            qsfp_present = False
+            # For non QSFP ports (think Fabric port) qsfp_client
+            # will not return any information.
+            if status.transceiverIdx and self._qsfp_client:
+                qsfp_info = qsfp_info_map.get(
+                    status.transceiverIdx.transceiverId)
                 qsfp_present = qsfp_info.present if qsfp_info else False
+
             attrs = utils.get_status_strs(status, qsfp_present)
             if internal_port:
                 speed = attrs['speed']
