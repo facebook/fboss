@@ -111,11 +111,14 @@ class PCA9548MuxedBus : public BaseWedgeI2CBus {
       QsfpMux* mux,
       int start,
       bool flip = false,
+      bool reverse = false,
       uint8_t count = PCA9548::WIDTH) {
     for (uint8_t i = 0; i < count; ++i) {
       auto& leaf = leaves.at(start + i);
       leaf.mux = mux;
-      leaf.channel = (flip) ? i ^ 0x1 : i;
+      // if reverse, channel should start with 7; otherwise start with 0
+      int channel = (reverse) ? count - 1 - i : i;
+      leaf.channel = (flip) ? channel ^ 0x1 : channel;
     }
   }
 
