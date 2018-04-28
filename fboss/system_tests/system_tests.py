@@ -209,6 +209,9 @@ def run_tests(options):
                                                   pattern='*test*.py')
         add_interested_tests_to_test_suite(testsdir, suite)
     frob_options_into_tests(suite, options)
+    all_tests = []
+    for test in suite:
+        all_tests.append(test)
     options.log.info("""
     ===================================================
     ================ STARTING TESTS ===================
@@ -224,7 +227,7 @@ def run_tests(options):
     ================  ENDING TESTS  ===================
     ===================================================
     """)
-    return ret
+    return ret, all_tests
 
 
 def main(args):
