@@ -429,7 +429,11 @@ opennsl_port_if_t BcmPort::getDesiredInterfaceMode(cfg::PortSpeed speed,
 
   // If speed or transmitter type isn't in map
   try {
-    return kPortTypeMapping.at(speed).at(transmitterTech);
+    auto result = kPortTypeMapping.at(speed).at(transmitterTech);
+    VLOG(1) << "Getting desired interface mode for port " << id << " (speed="
+            << static_cast<int>(speed) << ", tech="
+            << static_cast<int>(transmitterTech) << "). RESULT=" << result;
+    return result;
   } catch (const std::out_of_range& ex) {
     throw FbossError("Unsupported speed (", speed,
                      ") or transmitter technology (", transmitterTech,
@@ -518,7 +522,8 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
                    << " id: " << swPort->getID();
     }
 
-    VLOG(1) << "Finalizing BcmPort::setSpeed() by calling port_speed_set";
+    VLOG(1) << "Finalizing BcmPort::setSpeed() by calling port_speed_set on "
+            << "port " << swPort->getID() << " (" << swPort->getName() << ")";
 
     // Note that we call speed_set even if the speed is already set
     // properly and port is down. This is because speed_set
