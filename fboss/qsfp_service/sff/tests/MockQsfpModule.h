@@ -39,6 +39,9 @@ class MockQsfpModule : public QsfpModule {
         FeatureState));
   MOCK_METHOD3(setRateSelectIfSupported, void(cfg::PortSpeed,
         RateSelectState, RateSelectSetting));
+
+  MOCK_CONST_METHOD0(getQsfpTransmitterTechnology, TransmitterTechnology());
+
   // Provide way to call parent
   void actualSetCdrIfSupported(cfg::PortSpeed speed, FeatureState tx,
       FeatureState rx) {

@@ -368,4 +368,40 @@ TEST_F(QsfpModuleTest, updateQsfpDataFull) {
   qsfp_->actualUpdateQsfpData(true);
 }
 
+TEST_F(QsfpModuleTest, skipCustomizingMissingPorts) {
+  // set present_ = false, dirty_ = true
+  EXPECT_CALL(*transImpl_, detectTransceiver()).WillRepeatedly(Return(false));
+  qsfp_->detectPresence();
+
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
+  qsfp_->transceiverPortsChanged({
+      {1, portStatus(true, false)},
+      {2, portStatus(true, false)},
+      {3, portStatus(true, false)},
+      {4, portStatus(true, false)},
+    });
+
+  // We should also not actually customize on subsequent refresh calls
+  qsfp_->refresh();
+  qsfp_->refresh();
+}
+
+TEST_F(QsfpModuleTest, skipCustomizingCopperPorts) {
+  // Should get detected as copper and skip all customization
+  EXPECT_CALL(*qsfp_, getQsfpTransmitterTechnology()).WillRepeatedly(
+    Return(TransmitterTechnology::COPPER));
+
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
+  qsfp_->transceiverPortsChanged({
+      {1, portStatus(true, false)},
+      {2, portStatus(true, false)},
+      {3, portStatus(true, false)},
+      {4, portStatus(true, false)},
+    });
+
+  // We should also not actually customize on subsequent refresh calls
+  qsfp_->refresh();
+  qsfp_->refresh();
+}
+
 }} // namespace facebook::fboss

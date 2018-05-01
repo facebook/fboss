@@ -520,7 +520,7 @@ double QsfpModule::getQsfpCableLength(SffField field) const {
   return length;
 }
 
-TransmitterTechnology QsfpModule::getQsfpTransmitterTechnology() {
+TransmitterTechnology QsfpModule::getQsfpTransmitterTechnology() const {
   auto info = SffFieldInfo::getSffFieldAddress(qsfpFields,
       SffField::DEVICE_TECHNOLOGY);
   try {
@@ -709,7 +709,7 @@ bool QsfpModule::safeToCustomize() const {
   return anyEnabled;
 }
 
-bool QsfpModule::shouldCustomize(time_t cooldown) const {
+bool QsfpModule::customizationWanted(time_t cooldown) const {
   if (needsCustomization_) {
     return true;
   }
@@ -717,6 +717,13 @@ bool QsfpModule::shouldCustomize(time_t cooldown) const {
     return false;
   }
   return safeToCustomize();
+}
+
+bool QsfpModule::customizationSupported() const {
+  // TODO: there may be a better way of determining this rather than
+  // looking at transmitter tech.
+  auto tech = getQsfpTransmitterTechnology();
+  return present_ && tech != TransmitterTechnology::COPPER;
 }
 
 bool QsfpModule::shouldRefresh(time_t cooldown) const {
@@ -774,9 +781,9 @@ void QsfpModule::refresh() {
 void QsfpModule::refreshLocked() {
   detectPresenceLocked();
 
-  auto willCustomize = shouldCustomize(FLAGS_customize_interval);
+  auto customizeWanted = customizationWanted(FLAGS_customize_interval);
   auto willRefresh = !dirty_ && shouldRefresh(FLAGS_qsfp_data_refresh_interval);
-  if (!dirty_ && !willCustomize && !willRefresh) {
+  if (!dirty_ && !customizeWanted && !willRefresh) {
     return;
   }
 
@@ -786,11 +793,11 @@ void QsfpModule::refreshLocked() {
       updateQsfpData(true);
     }
 
-    if (willCustomize) {
+    if (customizeWanted) {
       customizeTransceiverLocked(getPortSpeed());
     }
 
-    if (willCustomize || willRefresh) {
+    if (customizeWanted || willRefresh) {
       // update either if data is stale or if we customized this
       // round. We update in the customization because we may have
       // written fields, but only need a partial update because all of
@@ -831,8 +838,9 @@ void QsfpModule::updateQsfpData(bool allPages) {
   // expects the lock to be held
   if (present_) {
     try {
-      LOG(INFO) << "Performing qsfp data cache refresh for transceiver " <<
-        folly::to<std::string>(qsfpImpl_->getName());
+      LOG(INFO) << "Performing " << ((allPages) ? "full" : "partial")
+                << " qsfp data cache refresh for transceiver "
+                << folly::to<std::string>(qsfpImpl_->getName());
       qsfpImpl_->readTransceiver(TransceiverI2CApi::ADDR_QSFP, 0,
           sizeof(lowerPage_), lowerPage_);
       lastRefreshTime_ = std::time(nullptr);
@@ -884,23 +892,24 @@ void QsfpModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
    * This must be called with a lock held on qsfpModuleMutex_
    */
   try {
-    TransceiverSettings settings;
-    getTransceiverSettingsInfo(settings);
+    if (customizationSupported()) {
+      TransceiverSettings settings;
+      getTransceiverSettingsInfo(settings);
 
-    // We want this on regardless of speed
-    setPowerOverrideIfSupported(settings.powerControl);
+      // We want this on regardless of speed
+      setPowerOverrideIfSupported(settings.powerControl);
 
-    // make sure TX is enabled on the transceiver
-    ensureTxEnabled(FLAGS_tx_enable_interval);
+      // make sure TX is enabled on the transceiver
+      ensureTxEnabled(FLAGS_tx_enable_interval);
 
-    if (speed == cfg::PortSpeed::DEFAULT) {
-      LOG(INFO) << "Port speed is not set. Not customizing further.";
-      return;
+      if (speed != cfg::PortSpeed::DEFAULT) {
+        setCdrIfSupported(speed, settings.cdrTx, settings.cdrRx);
+        setRateSelectIfSupported(
+          speed, settings.rateSelect, settings.rateSelectSetting);
+      }
+    } else {
+      VLOG(1) << "Customization not supported on " << qsfpImpl_->getName();
     }
-
-    setCdrIfSupported(speed, settings.cdrTx, settings.cdrRx);
-    setRateSelectIfSupported(
-      speed, settings.rateSelect, settings.rateSelectSetting);
 
     lastCustomizeTime_ = std::time(nullptr);
     needsCustomization_ = false;

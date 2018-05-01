@@ -217,7 +217,7 @@ class QsfpModule : public Transceiver {
   /*
    * returns the freeside transceiver technology type
    */
-  TransmitterTechnology getQsfpTransmitterTechnology();
+  virtual TransmitterTechnology getQsfpTransmitterTechnology() const;
   /*
    * Parse out flag values from bitfields
    */
@@ -324,7 +324,13 @@ class QsfpModule : public Transceiver {
    * we need customization (needsCustomization_) and also makes sure
    * we haven't customized too recently via the cooldown param.
    */
-  bool shouldCustomize(time_t cooldown) const;
+  bool customizationWanted(time_t cooldown) const;
+
+  /*
+   * Returns whether customization is supported at all. Basically
+   * checks if something is plugged in and checks if copper.
+   */
+  bool customizationSupported() const;
 
   /*
    * Whether enough time has passed that we should refresh our data.
