@@ -526,6 +526,7 @@ TransmitterTechnology QsfpModule::getQsfpTransmitterTechnology() {
   try {
     const uint8_t* data =
         getQsfpValuePtr(info.dataAddress, info.offset, info.length);
+
     uint8_t transTech = *data >> DeviceTechnology::TRANSMITTER_TECH_SHIFT;
     if (transTech == DeviceTechnology::UNKNOWN_VALUE) {
       return TransmitterTechnology::UNKNOWN;
@@ -563,6 +564,8 @@ void QsfpModule::setQsfpIdprom() {
     throw FbossError("QSFP IDProm failed as QSFP is not ready");
   }
   flatMem_ = status[1] & (1 << 2);
+  VLOG(3) << "Detected QSFP " << qsfpImpl_->getName()
+          << ", flatMem=" << flatMem_;
 }
 
 const uint8_t* QsfpModule::getQsfpValuePtr(int dataAddress, int offset,

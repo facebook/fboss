@@ -61,7 +61,7 @@ int WedgeQsfp::readTransceiver(int dataAddress, int offset,
     LOG(ERROR) << "Read from transceiver " << module_ << " at offset " <<
       offset << " with length " << len << " failed: " << ex.what();
     StatsPublisher::bumpReadFailure();
-    return -1;
+    throw;
   }
   return len;
 }
@@ -76,7 +76,7 @@ int WedgeQsfp::writeTransceiver(int dataAddress, int offset,
                << offset << " with length " << len << " failed: "
                << folly::exceptionStr(ex);
     StatsPublisher::bumpWriteFailure();
-    return -1;
+    throw;
   }
   return len;
 }
