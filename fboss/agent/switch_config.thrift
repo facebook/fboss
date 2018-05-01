@@ -402,9 +402,10 @@ struct Port {
   10: optional string description
 
   /**
-   * If this is undefined, the global TrafficPolicyConfig will be used
+   * OBSOLETED - per port TrafficPolicy. Use global Traffic policy instead.
    */
-  11: optional TrafficPolicyConfig egressTrafficPolicy
+
+  11: optional TrafficPolicyConfig OBSOLETE_egressTrafficPolicy
 
   /**
    * There are multiple queues per port

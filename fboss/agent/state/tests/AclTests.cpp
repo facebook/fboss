@@ -375,18 +375,6 @@ TEST(Acl, AclGeneration) {
   config.acls[3].name = "acl4";
   config.acls[3].actionType = cfg::AclActionType::DENY;
 
-  config.ports[0].__isset.egressTrafficPolicy = true;
-  config.ports[0].egressTrafficPolicy = cfg::TrafficPolicyConfig();
-  config.ports[0].egressTrafficPolicy.matchToAction.resize(1,
-      cfg::MatchToAction());
-  config.ports[0].egressTrafficPolicy.matchToAction[0].matcher = "acl2";
-  config.ports[0].egressTrafficPolicy.matchToAction[0].action =
-    cfg::MatchAction();
-  config.ports[0].egressTrafficPolicy.matchToAction[0].action.sendToQueue =
-      cfg::QueueMatchAction();
-  config.ports[0].egressTrafficPolicy.matchToAction[0]
-      .action.sendToQueue.queueId = 5;
-
   config.__isset.globalEgressTrafficPolicy = true;
   config.globalEgressTrafficPolicy.matchToAction.resize(2,
       cfg::MatchToAction());
@@ -412,21 +400,13 @@ TEST(Acl, AclGeneration) {
   EXPECT_NE(acls->getEntryIf("acl1"), nullptr);
   EXPECT_NE(acls->getEntryIf("system:acl2"), nullptr);
   EXPECT_NE(acls->getEntryIf("system:acl3"), nullptr);
-  EXPECT_NE(acls->getEntryIf("system:port1:acl2"), nullptr);
 
   EXPECT_EQ(acls->getEntryIf("acl1")->getPriority(), kAclStartPriority);
   EXPECT_EQ(acls->getEntryIf("acl4")->getPriority(), kAclStartPriority + 1);
-  EXPECT_EQ(acls->getEntryIf("system:port1:acl2")->getPriority(),
-      kAclStartPriority + 2);
   EXPECT_EQ(acls->getEntryIf("system:acl2")->getPriority(),
-      kAclStartPriority + 3);
+      kAclStartPriority + 2);
   EXPECT_EQ(acls->getEntryIf("system:acl3")->getPriority(),
-      kAclStartPriority + 4);
-
-  config.acls[1].__isset.dstPort = true;
-  config.acls[1].dstPort = 5;
-  EXPECT_THROW(publishAndApplyConfig(stateV1, &config, platform.get()),
-      FbossError);
+      kAclStartPriority + 3);
 }
 
 TEST(Acl, SerializeAclEntry) {

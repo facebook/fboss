@@ -1002,20 +1002,15 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
     return entries;
   };
 
-  // Add acls defined in any per port traffic policies
-  folly::gen::from(cfg_->ports)
-    | folly::gen::filter([](const cfg::Port& port) {
-        return port.__isset.egressTrafficPolicy;
-      })
-    | folly::gen::map([addToAcls](const cfg::Port& port) {
-        return addToAcls(port.egressTrafficPolicy,
-          folly::to<std::string>(port.name, ":"),
-          port.logicalID);
-      })
-    | folly::gen::rconcat
-    | folly::gen::appendTo(newAcls);
-
-  // Now add the global acls in defined
+  // Throw on any port traffic policy being set. That field
+  // has been obsoleted
+  for (const auto& port: cfg_->ports) {
+    if (port.__isset.OBSOLETE_egressTrafficPolicy) {
+      throw FbossError(
+          "Found obsolete traffic policy config on port : ", port.name);
+    }
+  }
+  // Add the global acls in defined
   if (cfg_->__isset.globalEgressTrafficPolicy) {
     folly::gen::from(addToAcls(cfg_->globalEgressTrafficPolicy, ""))
       | folly::gen::appendTo(newAcls);;
