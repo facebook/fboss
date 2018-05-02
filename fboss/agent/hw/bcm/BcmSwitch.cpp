@@ -1140,6 +1140,11 @@ void BcmSwitch::processRemovedIntf(const shared_ptr<Interface>& intf) {
 }
 
 void BcmSwitch::processAclChanges(const StateDelta& delta) {
+  if (!platform_->areAclsSupported()) {
+    // certain platforms may not support acls fully.
+    return;
+  }
+
   forEachChanged(
     delta.getAclsDelta(),
     &BcmSwitch::processChangedAcl,

@@ -82,6 +82,10 @@ class BcmPlatform : public Platform {
 
   virtual bool isCosSupported() const = 0;
 
+  virtual bool areAclsSupported() const {
+    return true;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmPlatform(BcmPlatform const &) = delete;
