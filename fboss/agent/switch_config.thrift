@@ -53,6 +53,7 @@ enum PortSpeed {
   FORTYG = 40000;               // 40G
   FIFTYG = 50000;               // 50G
   HUNDREDG = 100000;            // 100G
+  FOURHUNDREDG = 400000;        // 400G
 }
 
 /**
