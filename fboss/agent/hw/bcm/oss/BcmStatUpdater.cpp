@@ -7,11 +7,16 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
- #include "fboss/agent/hw/bcm/BcmAclStat.h"
+#include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 
 namespace facebook { namespace fboss {
 
-BcmAclStat::BcmAclStat(BcmSwitch* hw, int /*gid*/) : hw_(hw) {}
-BcmAclStat::~BcmAclStat() {}
+using facebook::stats::MonotonicCounter;
+
+void BcmStatUpdater::updateAclStat(
+  int /*unit*/,
+  BcmAclStatHandle /*handle*/,
+  std::chrono::seconds /*now*/,
+  MonotonicCounter* /*counter*/) {}
 
 }} // facebook::fboss

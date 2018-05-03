@@ -199,9 +199,10 @@ BcmAclStat* BcmAclTable::incRefOrCreateBcmAclStat(int groupId,
   auto iter = aclStatMap_.find(name);
   if (iter == aclStatMap_.end()) {
     // if the stat does not exist, create a new one
-    auto newStat = std::make_unique<BcmAclStat>(hw_, groupId, name);
+    auto newStat = std::make_unique<BcmAclStat>(hw_, groupId);
     auto stat = newStat.get();
     aclStatMap_.emplace(name, std::make_pair(std::move(newStat), 1));
+    hw_->getStatUpdater()->toBeAddedAclStat(stat->getHandle(), name);
     return stat;
   } else {
     iter->second.second++;
@@ -219,6 +220,7 @@ void BcmAclTable::derefBcmAclStat(
   }
   iter->second.second--;
   if (iter->second.second == 0) {
+    hw_->getStatUpdater()->toBeRemovedAclStat(iter->second.first->getHandle());
     aclStatMap_.erase(iter);
   }
 }

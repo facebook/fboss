@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
 #include "fboss/agent/hw/bcm/BcmCosManager.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
+#include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 #include <folly/dynamic.h>
 
@@ -94,6 +95,8 @@ class BcmSwitchIf : public HwSwitch {
   virtual const BcmAclTable* getAclTable() const = 0;
 
   virtual const BcmTrunkTable* getTrunkTable() const = 0;
+
+  virtual BcmStatUpdater* getStatUpdater() const = 0;
 
   virtual BcmControlPlane* getControlPlane() const = 0;
 
@@ -233,6 +236,9 @@ class BcmSwitch : public BcmSwitchIf {
   }
   const BcmAclTable* getAclTable() const override {
     return aclTable_.get();
+  }
+  BcmStatUpdater* getStatUpdater() const override {
+    return bcmStatUpdater_.get();
   }
   BufferStatsLogger* getBufferStatsLogger() {
     return bufferStatsLogger_.get();
@@ -668,6 +674,7 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmHostTable> hostTable_;
   std::unique_ptr<BcmRouteTable> routeTable_;
   std::unique_ptr<BcmAclTable> aclTable_;
+  std::unique_ptr<BcmStatUpdater> bcmStatUpdater_;
   std::unique_ptr<BcmCosManager> cosManager_;
   std::unique_ptr<BcmTableStats> bcmTableStats_;
   std::unique_ptr<BufferStatsLogger> bufferStatsLogger_;

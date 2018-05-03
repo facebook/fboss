@@ -190,6 +190,7 @@ void BcmSwitch::resetTablesImpl(std::unique_lock<std::mutex>& /*lock*/) {
   intfTable_.reset();
   toCPUEgress_.reset();
   portTable_.reset();
+  bcmStatUpdater_.reset();
   aclTable_->releaseAcls();
   aclTable_.reset();
   bcmTableStats_.reset();
@@ -226,6 +227,7 @@ void BcmSwitch::initTables(const std::string& warmBootJson) {
   hostTable_ = std::make_unique<BcmHostTable>(this);
   routeTable_ = std::make_unique<BcmRouteTable>(this);
   aclTable_ = std::make_unique<BcmAclTable>(this);
+  bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(unit_);
   bcmTableStats_ = std::make_unique<BcmTableStats>(this, isAlpmEnabled());
   trunkTable_ = std::make_unique<BcmTrunkTable>(this);
   sFlowExporterTable_ = std::make_unique<BcmSflowExporterTable>();
@@ -535,6 +537,9 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   platform_->onUnitAttach(unit_);
 
+  // Create bcmStatUpdater to cache the stat ids
+  bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(unit_);
+
   // Additional switch configuration
   auto state = make_shared<SwitchState>();
   opennsl_port_config_t pcfg;
@@ -726,6 +731,7 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChanged(const StateDelta& delta) {
   auto appliedState = stateChangedImpl(delta);
   appliedState->publish();
   bcmTableStats_->refresh();
+  bcmStatUpdater_->refresh();
   return appliedState;
 }
 
@@ -1547,6 +1553,7 @@ void BcmSwitch::updateGlobalStats() {
   portTable_->updatePortStats();
   trunkTable_->updateStats();
   bcmTableStats_->publish();
+  bcmStatUpdater_->updateStats();
   if (isBufferStatCollectionEnabled()) {
     exportDeviceBufferUsage();
   }

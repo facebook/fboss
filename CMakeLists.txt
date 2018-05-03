@@ -240,6 +240,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmRxPacket.cpp
     fboss/agent/hw/bcm/BcmSflowExporter.cpp
     fboss/agent/hw/bcm/BcmStats.cpp
+    fboss/agent/hw/bcm/BcmStatUpdater.cpp
     fboss/agent/hw/bcm/BcmSwitch.cpp
     fboss/agent/hw/bcm/BcmSwitchEventCallback.cpp
     fboss/agent/hw/bcm/BcmSwitchEventUtils.cpp
@@ -260,6 +261,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmPortGroup.cpp
     fboss/agent/hw/bcm/oss/BcmPortQueueManager.cpp
     fboss/agent/hw/bcm/oss/BcmPortTable.cpp
+    fboss/agent/hw/bcm/oss/BcmStatUpdater.cpp
     fboss/agent/hw/bcm/oss/BcmSwitch.cpp
     fboss/agent/hw/bcm/oss/BcmSwitchEventCallback.cpp
     fboss/agent/hw/bcm/oss/BcmTrunk.cpp

@@ -10,12 +10,9 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
-#include "common/stats/MonotonicCounter.h"
 #include "fboss/agent/types.h"
 
 namespace facebook { namespace fboss {
-
-using facebook::stats::MonotonicCounter;
 
 class BcmSwitch;
 
@@ -25,20 +22,15 @@ class BcmSwitch;
 class BcmAclStat {
  public:
   using BcmAclStatHandle = int;
-  BcmAclStat(BcmSwitch* hw, int gid, const std::string& name);
+  BcmAclStat(BcmSwitch* hw, int gid);
   ~BcmAclStat();
+
   BcmAclStatHandle getHandle() const {
     return handle_;
   }
-  const std::string& getName() const {
-    return name_;
-  }
-  void updateStat();
  private:
   BcmSwitch* hw_;
-  std::string name_;
   BcmAclStatHandle handle_;
-  MonotonicCounter counter_;
 };
 
 }} // facebook::fboss
