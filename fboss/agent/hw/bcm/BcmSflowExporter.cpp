@@ -140,6 +140,19 @@ void BcmSflowExporterTable::removeExporter(const std::string& id) {
   map_.erase(id);
 }
 
+void BcmSflowExporterTable::updateSamplingRates(
+    PortID id,
+    int64_t inRate,
+    int64_t outRate) {
+  std::pair<int64_t, int64_t> rates(inRate, outRate);
+  auto it = port2samplingRates_.find(id);
+  if (it != port2samplingRates_.end()) {
+    it->second = rates;
+  } else {
+    port2samplingRates_.insert(std::make_pair(id, rates));
+  }
+}
+
 void BcmSflowExporterTable::sendToAll(const SflowPacketInfo& info) {
   if (map_.empty()) {
     VLOG(1)

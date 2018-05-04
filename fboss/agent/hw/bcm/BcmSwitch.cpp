@@ -795,6 +795,9 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   // Any changes to the set of sFlow collectors
   processSflowCollectorChanges(delta);
 
+  // Any changes to the sampling rate of sflow
+  processSflowSamplingRateChanges(delta);
+
   // Process any new routes or route changes
   processAddedChangedRoutes(delta, &appliedState);
 
@@ -1191,6 +1194,24 @@ void BcmSwitch::processAddedSflowCollector(
   }
 
   sFlowExporterTable_->addExporter(collector);
+}
+
+void BcmSwitch::processSflowSamplingRateChanges(const StateDelta& delta) {
+  forEachChanged(
+      delta.getPortsDelta(),
+      [&](const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+        auto oldIngressRate = oldPort->getSflowIngressRate();
+        auto oldEgressRate = oldPort->getSflowEgressRate();
+        auto newIngressRate = newPort->getSflowIngressRate();
+        auto newEgressRate = newPort->getSflowEgressRate();
+        auto sFlowChanged = (oldIngressRate != newIngressRate) ||
+            (oldEgressRate != newEgressRate);
+        if (sFlowChanged) {
+          auto id = newPort->getID();
+          sFlowExporterTable_->updateSamplingRates(
+              id, newIngressRate, newEgressRate);
+        }
+      });
 }
 
 void BcmSwitch::processSflowCollectorChanges(const StateDelta& delta) {

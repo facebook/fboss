@@ -467,6 +467,7 @@ class BcmSwitch : public BcmSwitchIf {
 
   std::shared_ptr<SwitchState> stateChangedImpl(const StateDelta& delta);
 
+  void processSflowSamplingRateChanges(const StateDelta& delta);
   void processSflowCollectorChanges(const StateDelta& delta);
   void processChangedSflowCollector(
       const std::shared_ptr<SflowCollector>& oldCollector,

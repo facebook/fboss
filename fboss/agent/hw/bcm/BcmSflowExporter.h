@@ -15,9 +15,10 @@
 
 #include "fboss/agent/if/gen-cpp2/sflow_types.h"
 #include "fboss/agent/state/SflowCollector.h"
+#include "fboss/agent/types.h"
 
-
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmSflowExporter {
  public:
@@ -53,6 +54,8 @@ class BcmSflowExporterTable {
     void addExporter(const std::shared_ptr<SflowCollector>& collector);
     void removeExporter(const std::string& ID);
 
+    void updateSamplingRates(PortID id, int64_t inRate, int64_t outRate);
+
     void sendToAll(const SflowPacketInfo& info);
   private:
     // no copy or assignment
@@ -60,6 +63,11 @@ class BcmSflowExporterTable {
     BcmSflowExporterTable& operator=(BcmSflowExporterTable const &) = delete;
 
     std::unordered_map<std::string, std::unique_ptr<BcmSflowExporter>> map_;
+    std::unordered_map<
+        PortID,
+        std::pair<int64_t /* ingress rate */, int64_t /* egress rate */>>
+        port2samplingRates_;
 };
 
-}}
+} // namespace fboss
+} // namespace facebook
