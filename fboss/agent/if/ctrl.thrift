@@ -35,7 +35,10 @@ struct IpPrefix {
 
 struct UnicastRoute {
   1: required IpPrefix dest,
-  2: required list<Address.BinaryAddress> nextHopAddrs,
+  // NOTE: nextHopAddrs was once required. While we work on
+  // fully deprecating it, we need to be extra careful and
+  // ensure we don't crash clients/servers that still see it as required.
+  2: list<Address.BinaryAddress> nextHopAddrs,
   3: optional AdminDistance adminDistance,
 }
 
