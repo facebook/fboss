@@ -9,8 +9,15 @@
  */
 #include "BcmSflowExporter.h"
 
-#include <fcntl.h>
+#include <fstream>
+#include <iostream>
+#include <vector>
 
+#include <fcntl.h>
+#include <ifaddrs.h>
+
+#include <folly/Range.h>
+#include <folly/Optional.h>
 #include <glog/logging.h>
 
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -20,7 +27,83 @@
 
 using namespace std;
 
-namespace facebook { namespace fboss {
+namespace {
+  folly::Optional<folly::IPAddress> getLocalIPv6FromWhoAmI() {
+  const std::string whoAmIFn = "/etc/fbwhoami";
+  const std::string key = "DEVICE_PRIMARY_IPV6";
+
+  std::ifstream infile(whoAmIFn);
+  std::string line;
+
+  while (std::getline(infile, line)) {
+    std::vector<std::string> kv;
+    folly::split("=", line, kv);
+    if (kv.size() != 2) {
+      continue;
+    }
+    if (kv[0] == key) {
+      try {
+        return folly::IPAddress(kv[1]);
+      } catch (std::exception const& e)  {
+        VLOG(2) << folly::exceptionStr(e);
+        return folly::none;
+      }
+    }
+  }
+  return folly::none;
+}
+
+folly::IPAddress getLocalIPv6() {
+  // We first try to get the local IPv6 in fbwhoami
+  auto ret = getLocalIPv6FromWhoAmI();
+  if (ret.hasValue()) {
+    VLOG(2) << "Got local IPv6 address from fbwhoami";
+    return ret.value();
+  }
+
+  struct ifaddrs* ifaddr;
+  std::vector<char> host;
+  host.reserve(NI_MAXHOST);
+
+  if (getifaddrs(&ifaddr) == -1) {
+    VLOG(2) << "getifaddrs failed. Returned default address ::";
+    return folly::IPAddress("::");
+  }
+
+  for (struct ifaddrs* ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
+    if (ifa->ifa_addr == nullptr) {
+      continue;
+    }
+    std::string ifname{ifa->ifa_name};
+    if (ifname != "eth0" or ifa->ifa_addr->sa_family != AF_INET6) {
+      continue;
+    }
+    int retno = getnameinfo(
+        ifa->ifa_addr,
+        sizeof(struct sockaddr_in6),
+        host.data(),
+        NI_MAXHOST,
+        nullptr,
+        0,
+        NI_NUMERICHOST);
+    if (retno != 0) {
+      VLOG(2) << "getnameinfo() failed: " << gai_strerror(retno);
+      continue;
+    }
+    try {
+      return folly::IPAddress(host.data());
+    } catch (std::exception const& e) {
+      VLOG(2) << folly::exceptionStr(e);
+      continue;
+    }
+  }
+  VLOG(2) << "Failed to get loopback ipv6 address, returned default one ::";
+  return folly::IPAddress("::");
+}
+} // namespace
+
+namespace facebook {
+namespace fboss {
 
 BcmSflowExporter::BcmSflowExporter(const folly::SocketAddress& address)
     : address_(address) {
@@ -151,6 +234,9 @@ void BcmSflowExporterTable::updateSamplingRates(
   } else {
     port2samplingRates_.insert(std::make_pair(id, rates));
   }
+
+  // We piggyback the update of local IPv6
+  localIP_ = getLocalIPv6();
 }
 
 void BcmSflowExporterTable::sendToAll(const SflowPacketInfo& info) {
@@ -180,4 +266,5 @@ void BcmSflowExporterTable::sendToAll(const SflowPacketInfo& info) {
   }
 }
 
-}}
+} // namespace fboss
+} // namespace facebook

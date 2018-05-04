@@ -11,6 +11,7 @@
 
 #include <unordered_map>
 
+#include <folly/IPAddress.h>
 #include <folly/SocketAddress.h>
 
 #include "fboss/agent/if/gen-cpp2/sflow_types.h"
@@ -67,6 +68,7 @@ class BcmSflowExporterTable {
         PortID,
         std::pair<int64_t /* ingress rate */, int64_t /* egress rate */>>
         port2samplingRates_;
+    folly::IPAddress localIP_;
 };
 
 } // namespace fboss
