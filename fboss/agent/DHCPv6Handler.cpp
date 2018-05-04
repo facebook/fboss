@@ -223,7 +223,7 @@ void DHCPv6Handler::processDHCPv6RelayForward(SwSwitch* sw,
    */
   // relay forward from other agent
   if (dhcpPacket.hopCount >= MAX_RELAY_HOPCOUNT) {
-    VLOG(2) << "Received DHCPv6 relay foward packet with max relay hopcount";
+    VLOG(2) << "Received DHCPv6 relay forward packet with max relay hopcount";
     sw->portStats(pkt->getSrcPort())->dhcpV6BadPkt();
     return;
   }
