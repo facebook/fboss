@@ -159,6 +159,9 @@ class BcmPort {
 
  private:
   class BcmPortStats {
+    // All actions or instantiations of this class need to be done in a
+    // thread-safe way (for example, the way that locking is done on
+    // lastPortStats_) - the class itself does not guarantee this on it's own
    public:
     BcmPortStats() {}
     explicit BcmPortStats(int numUnicastQueues);

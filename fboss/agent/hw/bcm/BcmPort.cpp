@@ -762,11 +762,9 @@ void BcmPort::updatePktLenHist(
 }
 
 BcmPort::BcmPortStats::BcmPortStats(int numUnicastQueues) {
-  HwPortStats portStats;
   portStats_.set_queueOutDiscardBytes_(
       std::vector<int64_t>(numUnicastQueues, 0));
   portStats_.set_queueOutBytes_(std::vector<int64_t>(numUnicastQueues, 0));
-  portStats_ = portStats;
 }
 
 BcmPort::BcmPortStats::BcmPortStats(
