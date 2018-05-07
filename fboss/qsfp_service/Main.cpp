@@ -2,9 +2,9 @@
 
 #include <folly/experimental/FunctionScheduler.h>
 
+#include "fboss/qsfp_service/Main.h"
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
-#include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 
 using namespace facebook;
 using namespace facebook::fboss;
@@ -24,8 +24,8 @@ int doServerLoop(std::shared_ptr<apache::thrift::ThriftServer>
         thriftServer, std::shared_ptr<QsfpServiceHandler>);
 int qsfpServiceInit(int * argc, char*** argv);
 
-int main(int argc, char **argv) {
-  qsfpServiceInit(&argc, &argv);
+int qsfpMain(int* argc, char ***argv, ManagerInitFn createTransceiverManager) {
+  qsfpServiceInit(argc, argv);
 
   auto transceiverManager = createTransceiverManager();
   StatsPublisher publisher(transceiverManager.get());

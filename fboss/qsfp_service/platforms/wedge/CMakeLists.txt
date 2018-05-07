@@ -14,6 +14,7 @@ add_executable(qsfp_service
     fboss/qsfp_service/platforms/wedge/Wedge40Manager.cpp
     fboss/agent/platforms/wedge/WedgeProductInfo.cpp
     fboss/agent/platforms/wedge/oss/WedgeProductInfo.cpp
+    fboss/qsfp_service/platforms/wedge/wedge_qsfp.cpp
 )
 
 target_link_libraries(qsfp_service
