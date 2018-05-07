@@ -15,7 +15,8 @@ DOWNLINK_VLAN = 2000
 # Due to SDK stats thread (1/sec) and Fboss stats thread (1/sec)
 # it's possible that it takes a full two seconds in the worst case
 # for a fb303 counter to increment after the packet passes
-MAX_COUNTER_DELAY = 2  # in seconds
+# also add on 0.5 seconds for thread processing delay
+MAX_COUNTER_DELAY = 2.5  # in seconds
 
 
 def make_packet(src_host, dst_host, ttl=64):
