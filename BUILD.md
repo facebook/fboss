@@ -18,7 +18,11 @@ If you want to build them manually, the dependencies are as follows:
   installed
 * iproute2-3.19.0: download from
   [here](https://www.kernel.org/pub/linux/utils/net/iproute2/iproute2-3.19.0.tar.xz)
-* Broadcom's [OpenNSL](https://github.com/Broadcom-Switch/OpenNSL)
+* for wedge
+  * Broadcom's [OpenNSL](https://github.com/Broadcom-Switch/OpenNSL)
+* for mellanox
+  * [SwitchX interface](https://github.com/Mellanox/SwitchX-interfaces)
+	NOTE: repo above contains include headers only
 
 Once the prerequisites are available, take the following steps.
 
@@ -37,7 +41,7 @@ Build as follows:
 ```
 mkdir fboss/build                         # start with a clean build dir
 cd fboss/build
-cmake .. -DBUILD_PLATFORM=<PLATFORM>      # build the Makefile; PLATFORM=wedge
+cmake .. -DBUILD_PLATFORM=<PLATFORM>      # build the Makefile; PLATFORM=wedge or PLATFORM=mlnx
                                           # if not specified only sim_agent will be built
 NPROC=$(grep -c processor /proc/cpuinfo)  # lookup cores in system
 make "-j$NPROC"                           # spawn a thread per core
@@ -47,4 +51,5 @@ make "-j$NPROC"                           # spawn a thread per core
 FYI: the build status of open source fboss is tracked at:
    https://travis-ci.org/facebook/fboss
 
-The produced executables are `sim_agent`, `wedge_agent`, `qsfp_service`, `netlink_manager` in the build directory.
+The produced executables are `sim_agent`, `<PLATFORM>_agent`, `qsfp_service`, `netlink_manager`
+(+ some other utilities specific for wedge) in the build directory.

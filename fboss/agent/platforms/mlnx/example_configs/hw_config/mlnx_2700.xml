@@ -1,0 +1,259 @@
+<?xml version="1.0"?>
+<root>
+    <device>
+      	<device-id>1</device-id>
+        <device-mac-address>00:02:04:04:05:45</device-mac-address>
+        <!-- In addition the first 5 bytes of the MAC address is used incremently as the base MAC for the ports -->
+	      <ports-list>
+
+            <port-info>
+                <local-port>1</local-port>                <!-- Local port number -->
+                <mapping-mode>1</mapping-mode>            <!-- 0 - port is not active , 1 - active port -->
+                <lanes>0,1,2,3</lanes>                    <!-- Which lanes are allocated for this port -->
+                <frontpanel-port>16</frontpanel-port>     <!-- Front panel port number -->
+            </port-info>
+
+            <port-info>
+                <local-port>3</local-port>
+                <mapping-mode>1</mapping-mode>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>17</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>5</local-port>
+                <mapping-mode>1</mapping-mode>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>18</frontpanel-port>
+           </port-info>
+
+            <port-info>
+                <local-port>7</local-port>
+                <mapping-mode>1</mapping-mode>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>19</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>9</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>20</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>11</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>21</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>13</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>22</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>15</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>23</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>17</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>24</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>19</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>25</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>21</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>26</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>23</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>27</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>25</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>28</frontpanel-port>
+            </port-info>
+
+
+            <port-info>
+                <local-port>27</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>29</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>29</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>30</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>31</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>31</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>33</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>14</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>35</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>15</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>37</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>12</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>39</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>13</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>41</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>10</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>43</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>11</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>45</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>8</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>47</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>9</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>49</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>6</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>51</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>7</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>53</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>4</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>55</local-port>
+                <mapping-mode>1</mapping-mode>
+                <width>4</width>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>5</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>57</local-port>
+                <mapping-mode>1</mapping-mode>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>2</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>59</local-port>
+                <mapping-mode>1</mapping-mode>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>3</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>61</local-port>
+                <mapping-mode>1</mapping-mode>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>0</frontpanel-port>
+            </port-info>
+
+            <port-info>
+                <local-port>63</local-port>
+                <mapping-mode>1</mapping-mode>
+                <lanes>0,1,2,3</lanes>
+                <frontpanel-port>1</frontpanel-port>
+            </port-info>
+        </ports-list>
+    </device>
+</root>

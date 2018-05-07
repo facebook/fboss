@@ -20,6 +20,9 @@ option(BUILD_PLATFORM "platform")
 if(${BUILD_PLATFORM} MATCHES "wedge")
   set(BUILD_WEDGE ON)
   message(STATUS "Build FBOSS for Wedge platform")
+elseif(${BUILD_PLATFORM} MATCHES "mlnx")
+  set(BUILD_MLNX ON)
+  message(STATUS "Build FBOSS for Mellanox platform")
 endif()
 
 # Ideally, we would use
@@ -336,6 +339,8 @@ if(BUILD_WEDGE)
     include(fboss/agent/platforms/wedge/CMakeLists.txt)
     include(fboss/qsfp_service/platforms/wedge/CMakeLists.txt)
     include(fboss/util/CMakeLists.txt)
+elseif(BUILD_MLNX)
+    include(fboss/agent/platforms/mlnx/CMakeLists.txt)
 endif()
 
 # Unit Testing

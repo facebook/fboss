@@ -1,0 +1,531 @@
+{
+  "version": 0,
+  "ports": [
+    {
+      "logicalID": 1,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 9000,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 3,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 5,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 543,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 7,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 9,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 11,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 13,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 15,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 17,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 19,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 21,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 23,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 25,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 27,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 29,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 31,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 33,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 35,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 37,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 39,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 41,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 43,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 45,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 47,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 49,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 51,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 53,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 55,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 57,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 59,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 61,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    },
+    {
+      "logicalID": 63,
+      "state": 2,
+      "minFrameSize": 64,
+      "maxFrameSize": 1500,
+      "parserType": 0,
+      "routable": false,
+      "ingressVlan": 1,
+      "speed": 100000
+    }
+  ],
+  "vlans": [
+    {
+      "id": 1,
+      "recordStats": true,
+      "mtuIndex": 0,
+      "routable": false
+    }
+  ],
+  "vlanPorts": [
+    {
+        "vlanID": 1,
+        "logicalPort": 1,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 3,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 5,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 7,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 9,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 11,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 13,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 15,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 17,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 19,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 21,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 23,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 25,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 27,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 29,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 31,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 33,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 35,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 39,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 41,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 43,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 45,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 47,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 49,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 51,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 53,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 55,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 57,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 59,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 61,
+        "spanningTreeState": 2,
+        "emitTags": false
+    },
+    {
+        "vlanID": 1,
+        "logicalPort": 63,
+        "spanningTreeState": 2,
+        "emitTags": false
+    }
+  ],
+  "defaultVlan": 1,
+
+  "arpTimeoutSeconds": 60,
+  "arpRefreshSeconds": 20,
+  "arpAgerInterval": 5,
+  "proactiveArp": false,
+  "supportedMTUs": [
+    1500,
+    9000
+  ]
+}
