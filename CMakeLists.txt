@@ -341,6 +341,7 @@ if(BUILD_WEDGE)
     include(fboss/util/CMakeLists.txt)
 elseif(BUILD_MLNX)
     include(fboss/agent/platforms/mlnx/CMakeLists.txt)
+    include(fboss/qsfp_service/platforms/mlnx/CMakeLists.txt)
 endif()
 
 # Unit Testing

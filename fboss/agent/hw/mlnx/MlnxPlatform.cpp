@@ -53,7 +53,8 @@ using std::unique_ptr;
 
 namespace facebook { namespace fboss {
 
-MlnxPlatform::MlnxPlatform() {
+MlnxPlatform::MlnxPlatform() :
+  qsfpCache_(make_unique<QsfpCache>()){
 }
 
 MlnxPlatform::~MlnxPlatform() {
@@ -159,6 +160,23 @@ HwSwitch* MlnxPlatform::getHwSwitch() const {
 }
 
 void MlnxPlatform::onHwInitialized(SwSwitch* sw) {
+  qsfpCache_->init(sw->getQsfpCacheEvb());
+  sw->registerStateObserver(this, "MlnxPlatform");
+}
+
+void MlnxPlatform::stateUpdated(const StateDelta& delta) {
+  QsfpCache::PortMapThrift changedPorts;
+  auto portsDelta = delta.getPortsDelta();
+  for (const auto& entry : portsDelta) {
+    auto newPort = entry.getNew();
+    if (newPort) {
+      auto platformPort = getPort(newPort->getID());
+      if (platformPort->supportsTransceiver()) {
+        changedPorts[newPort->getID()] = platformPort->toThrift(newPort);
+      }
+    }
+  }
+  qsfpCache_->portsChanged(changedPorts);
 }
 
 folly::MacAddress MlnxPlatform::getLocalMac() const {
@@ -188,6 +206,10 @@ void MlnxPlatform::getProductInfo(ProductInfo& /*info*/) {
 
 TransceiverIdxThrift MlnxPlatform::getPortMapping(PortID portId) const {
   return getPort(portId)->getTransceiverMapping();
+}
+
+QsfpCache* MlnxPlatform::getQsfpCache() const {
+  return qsfpCache_.get();
 }
 
 }} // facebook::fboss

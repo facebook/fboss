@@ -33,6 +33,9 @@
 
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/ThriftHandler.h"
+#include "fboss/agent/StateObserver.h"
+#include "fboss/agent/state/StateDelta.h"
+#include "fboss/qsfp_service/lib/QsfpCache.h"
 #include "fboss/agent/types.h"
 
 extern "C" {
@@ -50,7 +53,7 @@ class MlnxPlatformPort;
  * MlnxPlatform specifies additional APIs that must be provided by platforms
  * based on mlnx chips.
  */
-class MlnxPlatform : public Platform {
+class MlnxPlatform : public Platform, public StateObserver {
  public:
   using PortMap = boost::container::flat_map<PortID,
     std::unique_ptr<MlnxPlatformPort>>;
@@ -99,6 +102,14 @@ class MlnxPlatform : public Platform {
    * @param sw Pointer to Software Switch instance
    */
   void onHwInitialized(SwSwitch* sw) override;
+
+  /**
+   * Inherited from StateObserver, called whenever ports are changed.
+   * Used to sync port configuration with qsfp service
+   *
+   * @param delta StateDelta
+   */
+  void stateUpdated(const StateDelta& stateDelta) override;
 
   /**
    * Creates Thrift Handler
@@ -170,6 +181,13 @@ class MlnxPlatform : public Platform {
    */
   MlnxPlatformPort* getPort(PortID portId) const;
 
+  /**
+   * Returns QsfpCache object
+   *
+   * @ret Pointer to QsfpCahce object
+   */
+  QsfpCache* getQsfpCache() const;
+
  private:
   // Forbidden copy constructor and assignment operator
   MlnxPlatform(MlnxPlatform const &) = delete;
@@ -182,6 +200,7 @@ class MlnxPlatform : public Platform {
 
   folly::MacAddress localMac_;
   std::unique_ptr<MlnxSwitch> hw_;
+  std::unique_ptr<QsfpCache> qsfpCache_;
   PortMap ports_;
 };
 
