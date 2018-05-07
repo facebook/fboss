@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1.3)
 if (POLICY CMP0054)
   # Enable CMP0054 to indicate that we want the new safer if() argument behavior
   cmake_policy(SET CMP0054 NEW)
@@ -14,6 +14,14 @@ if(NOT COMPILER_SUPPORTS_CXX14)
   message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++14 support.")
 endif()
 
+# build option
+option(BUILD_PLATFORM "platform")
+
+if(${BUILD_PLATFORM} MATCHES "wedge")
+  set(BUILD_WEDGE ON)
+  message(STATUS "Build FBOSS for Wedge platform")
+endif()
+
 # Ideally, we would use
 #    set_property(TARGET fboss_agent PROPERTY CXX_STANDARD 11)
 # to define the C++ version, but we don't want to depend on
@@ -21,7 +29,6 @@ endif()
 # building on Linux under GCC right now, so we might as well just hard
 # code the flags.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++1y")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/include/libnl3")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-sign-compare -Wno-bool-compare")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized -Wdeprecated-declarations")
@@ -34,6 +41,10 @@ list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external.install")
 
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_BUILD_DIR})
+
+# find libnl3 include path
+find_path(NETLINK_INCLUDE_PATH libnl3/netlink)
+include_directories("${NETLINK_INCLUDE_PATH}/libnl3")
 
 find_package(folly CONFIG REQUIRED)
 find_package(wangle CONFIG REQUIRED)
@@ -109,27 +120,6 @@ add_thrift_cpp2_library(
     transceiver_cpp2
 )
 add_thrift_cpp2_library(
-  sim_ctrl_cpp2
-  fboss/agent/hw/sim/sim_ctrl.thrift
-  SERVICES
-    SimCtrl
-  DEPENDS
-    fboss_cpp2
-    ctrl_cpp2
-)
-add_thrift_cpp2_library(
-  packettrace_cpp2
-  fboss/agent/hw/bcm/packettrace.thrift
-)
-add_thrift_cpp2_library(
-  bcmswitch_cpp2
-  fboss/agent/hw/bcm/bcmswitch.thrift
-)
-add_thrift_cpp2_library(
-  hardware_stats_cpp2
-  fboss/agent/hw/bcm/hardware_stats.thrift
-)
-add_thrift_cpp2_library(
   pcap_pubsub_cpp2
   fboss/pcap_distribution_service/if/pcap_pubsub.thrift
   SERVICES
@@ -165,46 +155,9 @@ find_library(NETLINK3 nl-3)
 find_library(NETLINKROUTE3 nl-route-3)
 find_library(CURL curl)
 
-find_library(OPENNSL opennsl
-             PATHS ${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge-trident)
-find_library(IPROUTE2 netlink PATHS ${CMAKE_SOURCE_DIR}/external/iproute2/lib)
+find_library(IPROUTE2 netlink PATHS ${CMAKE_SOURCE_DIR}/external/iproute2/lib NO_DEFAULT_PATH)
 
-include_directories(${CMAKE_SOURCE_DIR}/external/OpenNSL/include)
 include_directories(${CMAKE_SOURCE_DIR}/external/iproute2/include)
-
-add_executable(wedge_agent
-    fboss/agent/platforms/wedge/WedgePlatform.cpp
-    fboss/agent/platforms/wedge/WedgeProductInfo.cpp
-    fboss/agent/platforms/wedge/WedgePort.cpp
-    fboss/agent/platforms/wedge/wedge_agent.cpp
-    fboss/agent/platforms/wedge/oss/WedgePort.cpp
-    fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
-)
-
-add_executable(netlink_manager
-    fboss/netlink_manager/NlResources.cpp
-    fboss/netlink_manager/NetlinkManager.cpp
-    fboss/netlink_manager/NetlinkPoller.cpp
-    fboss/netlink_manager/main.cpp
-    fboss/netlink_manager/utils/AddressUtils.cpp
-    fboss/netlink_manager/NetlinkManagerHandler.cpp
-)
-
-add_executable(qsfp_service
-    fboss/qsfp_service/oss/QsfpServer.cpp
-    fboss/qsfp_service/Main.cpp
-    fboss/qsfp_service/QsfpServiceHandler.cpp
-    fboss/qsfp_service/sff/QsfpModule.cpp
-    fboss/qsfp_service/sff/SffFieldInfo.cpp
-    fboss/qsfp_service/sff/oss/QsfpModule.cpp
-    fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
-    fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
-    fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
-    fboss/qsfp_service/platforms/wedge/GalaxyManager.cpp
-    fboss/qsfp_service/platforms/wedge/Wedge40Manager.cpp
-    fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp
-    fboss/qsfp_service/platforms/wedge/oss/WedgeManagerInit.cpp
-)
 
 add_library(fboss_agent STATIC
     common/stats/ServiceData.cpp
@@ -224,50 +177,6 @@ add_library(fboss_agent STATIC
     fboss/agent/HighresCounterSubscriptionHandler.cpp
     fboss/agent/HighresCounterUtil.cpp
     fboss/agent/hw/BufferStatsLogger.cpp
-    fboss/agent/hw/bcm/BcmAclRange.cpp
-    fboss/agent/hw/bcm/BcmAclTable.cpp
-    fboss/agent/hw/bcm/BcmAPI.cpp
-    fboss/agent/hw/bcm/BcmEgress.cpp
-    fboss/agent/hw/bcm/BcmHost.cpp
-    fboss/agent/hw/bcm/BcmHostKey.cpp
-    fboss/agent/hw/bcm/BcmIntf.cpp
-    fboss/agent/hw/bcm/BcmPlatform.cpp
-    fboss/agent/hw/bcm/BcmPort.cpp
-    fboss/agent/hw/bcm/BcmPortGroup.cpp
-    fboss/agent/hw/bcm/BcmPortQueueManager.cpp
-    fboss/agent/hw/bcm/BcmPortTable.cpp
-    fboss/agent/hw/bcm/BcmRoute.cpp
-    fboss/agent/hw/bcm/BcmRxPacket.cpp
-    fboss/agent/hw/bcm/BcmSflowExporter.cpp
-    fboss/agent/hw/bcm/BcmStats.cpp
-    fboss/agent/hw/bcm/BcmSwitch.cpp
-    fboss/agent/hw/bcm/BcmSwitchEventCallback.cpp
-    fboss/agent/hw/bcm/BcmSwitchEventUtils.cpp
-    fboss/agent/hw/bcm/BcmTrunkStats.cpp
-    fboss/agent/hw/bcm/BcmTrunkTable.cpp
-    fboss/agent/hw/bcm/BcmTxPacket.cpp
-    fboss/agent/hw/bcm/BcmWarmBootCache.cpp
-    fboss/agent/hw/bcm/BcmWarmBootHelper.cpp
-    fboss/agent/hw/bcm/PortAndEgressIdsMap.cpp
-    fboss/agent/hw/bcm/oss/BcmAclEntry.cpp
-    fboss/agent/hw/bcm/oss/BcmAclRange.cpp
-    fboss/agent/hw/bcm/oss/BcmAclStat.cpp
-    fboss/agent/hw/bcm/oss/BcmAPI.cpp
-    fboss/agent/hw/bcm/oss/BcmControlPlane.cpp
-    fboss/agent/hw/bcm/oss/BcmEgress.cpp
-    fboss/agent/hw/bcm/oss/BcmHost.cpp
-    fboss/agent/hw/bcm/oss/BcmPort.cpp
-    fboss/agent/hw/bcm/oss/BcmPortGroup.cpp
-    fboss/agent/hw/bcm/oss/BcmPortQueueManager.cpp
-    fboss/agent/hw/bcm/oss/BcmPortTable.cpp
-    fboss/agent/hw/bcm/oss/BcmSwitch.cpp
-    fboss/agent/hw/bcm/oss/BcmSwitchEventCallback.cpp
-    fboss/agent/hw/bcm/oss/BcmTrunk.cpp
-    fboss/agent/hw/bcm/oss/BcmUnit.cpp
-    fboss/agent/hw/bcm/oss/BcmWarmBootCache.cpp
-    fboss/agent/hw/bcm/oss/BcmWarmBootHelper.cpp
-    fboss/agent/hw/bcm/oss/BcmTableStats.cpp
-    fboss/agent/hw/bcm/Utils.cpp
     fboss/agent/hw/mock/MockHwSwitch.cpp
     fboss/agent/hw/mock/MockPlatform.cpp
     fboss/agent/hw/mock/MockRxPacket.cpp
@@ -275,8 +184,6 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/mock/MockTestHandle.cpp
     fboss/agent/hw/mock/MockableHwSwitch.cpp
     fboss/agent/hw/mock/MockablePlatform.cpp
-    fboss/agent/hw/sim/SimHandler.cpp
-    fboss/agent/hw/sim/SimSwitch.cpp
     fboss/agent/lldp/LinkNeighbor.cpp
     fboss/agent/lldp/LinkNeighborDB.cpp
     fboss/agent/ndp/IPv6RouteAdvertiser.cpp
@@ -313,26 +220,6 @@ add_library(fboss_agent STATIC
     fboss/agent/packet/NDPRouterAdvertisement.cpp
     fboss/agent/packet/PktUtil.cpp
     fboss/agent/Platform.cpp
-    fboss/agent/platforms/wedge/oss/GalaxyPlatform.cpp
-    fboss/agent/platforms/wedge/oss/GalaxyPort.cpp
-    fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
-    fboss/agent/platforms/wedge/oss/Wedge40Platform.cpp
-    fboss/agent/platforms/wedge/oss/Wedge100Platform.cpp
-    fboss/agent/platforms/wedge/oss/WedgePort.cpp
-    fboss/agent/platforms/wedge/oss/Wedge40Port.cpp
-    fboss/agent/platforms/wedge/oss/Wedge100Port.cpp
-    fboss/agent/platforms/wedge/oss/WedgePlatformInit.cpp
-    fboss/agent/platforms/wedge/oss/WedgeProductInfo.cpp
-    fboss/agent/platforms/wedge/wedge_agent.cpp
-    fboss/agent/platforms/wedge/WedgePlatform.cpp
-    fboss/agent/platforms/wedge/Wedge40Platform.cpp
-    fboss/agent/platforms/wedge/Wedge100Platform.cpp
-    fboss/agent/platforms/wedge/GalaxyLCPlatform.cpp
-    fboss/agent/platforms/wedge/GalaxyFCPlatform.cpp
-    fboss/agent/platforms/wedge/WedgePort.cpp
-    fboss/agent/platforms/wedge/Wedge100Port.cpp
-    fboss/agent/platforms/wedge/WedgeProductInfo.cpp
-    fboss/agent/platforms/wedge/WedgePlatformInit.cpp
     fboss/agent/PortRemediator.cpp
     fboss/agent/PortStats.cpp
     fboss/agent/PortUpdateHandler.cpp
@@ -409,24 +296,19 @@ add_library(fboss_agent STATIC
     fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
     fboss/qsfp_service/lib/QsfpClient.cpp
     fboss/qsfp_service/lib/QsfpCache.cpp
-
 )
+
 target_link_libraries(
   fboss_agent PUBLIC
     switch_state_cpp2
     sflow_cpp2
     ctrl_cpp2
-    sim_ctrl_cpp2
-    packettrace_cpp2
-    bcmswitch_cpp2
-    hardware_stats_cpp2
     pcap_pubsub_cpp2
     qsfp_cpp2
     netlink_manager_service_cpp2
     Folly::folly
     wangle::wangle
     FBThrift::thriftcpp2
-    ${OPENNSL}
     ${PCAP}
     ${USB}
     ${IPROUTE2}
@@ -435,41 +317,39 @@ target_link_libraries(
     ${CURL}
 )
 
-target_link_libraries(wedge_agent fboss_agent)
-target_link_libraries(netlink_manager fboss_agent)
-target_link_libraries(qsfp_service fboss_agent)
-
-
-# TODO(rsher)
-# depends on agent/hw/bcm/facebook/bcm_config.thrift
-# investigate open sourcing
-# add_executable(lldp_tool
-#       fboss/util/lldp_tool.cpp
-# )
-#
-# target_link_libraries(lldp_tool fboss-agent)
-
-add_executable(cp2112_util
-    fboss/util/cp2112_util.cpp
+add_executable(netlink_manager
+    fboss/netlink_manager/NlResources.cpp
+    fboss/netlink_manager/NetlinkManager.cpp
+    fboss/netlink_manager/NetlinkPoller.cpp
+    fboss/netlink_manager/main.cpp
+    fboss/netlink_manager/utils/AddressUtils.cpp
+    fboss/netlink_manager/NetlinkManagerHandler.cpp
 )
-target_link_libraries(cp2112_util fboss_agent)
 
-add_executable(wedge_qsfp_util
-    fboss/util/wedge_qsfp_util.cpp
-    fboss/util/oss/wedge_qsfp_util.cpp
+target_link_libraries(netlink_manager
+                      fboss_agent
 )
-target_link_libraries(wedge_qsfp_util fboss_agent)
 
+include(fboss/agent/platforms/sim/CMakeLists.txt)
 
-
+if(BUILD_WEDGE)
+    include(fboss/agent/platforms/wedge/CMakeLists.txt)
+    include(fboss/qsfp_service/platforms/wedge/CMakeLists.txt)
+    include(fboss/util/CMakeLists.txt)
+endif()
 
 # Unit Testing
 add_definitions (-DIS_OSS=true)
 find_package(Threads REQUIRED)
-enable_testing()
 set(GTEST_DIR "external/googletest")
 include_directories(${GTEST_DIR}/googletest/include ${GTEST_DIR}/googlemock/include)
 add_subdirectory(${GTEST_DIR} ${GTEST_DIR}.build)
+
+# agent unit tests depends on bcm
+# until add support for other this should
+# compile only for wedge
+if(BUILD_WEDGE)
+enable_testing()
 
 # Don't include fboss/agent/test/ArpBenchmark.cpp
 # It depends on the Sim implementation and needs its own target
@@ -492,11 +372,14 @@ add_executable(agent_test
        fboss/agent/test/oss/Main.cpp
 )
 target_link_libraries(agent_test
-    fboss_agent
-    gtest
-    gmock
-    ${CMAKE_THREAD_LIBS_INIT}
+   fboss_agent
+   gtest
+   gmock
+   ${CMAKE_THREAD_LIBS_INIT}
 )
 add_test(test agent_test)
 
 #TODO: Add tests from other folders aside from agent/test
+
+endif()
+

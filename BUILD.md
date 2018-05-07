@@ -37,7 +37,8 @@ Build as follows:
 ```
 mkdir fboss/build                         # start with a clean build dir
 cd fboss/build
-cmake ..                                  # build the Makefile
+cmake .. -DBUILD_PLATFORM=<PLATFORM>      # build the Makefile; PLATFORM=wedge
+                                          # if not specified only sim_agent will be built
 NPROC=$(grep -c processor /proc/cpuinfo)  # lookup cores in system
 make "-j$NPROC"                           # spawn a thread per core
 
@@ -46,4 +47,4 @@ make "-j$NPROC"                           # spawn a thread per core
 FYI: the build status of open source fboss is tracked at:
    https://travis-ci.org/facebook/fboss
 
-The produced executables are `sim_agent` and `wedge_agent` in the build directory.
+The produced executables are `sim_agent`, `wedge_agent`, `qsfp_service`, `netlink_manager` in the build directory.
