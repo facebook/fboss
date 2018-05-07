@@ -9,25 +9,27 @@
  */
 #include <chrono>
 #include <memory>
+#include <stdexcept>
+#include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
-#include <folly/MacAddress.h>
+#include <boost/container/flat_map.hpp>
 #include <folly/Function.h>
-#include <folly/Synchronized.h>
+#include <folly/MacAddress.h>
 #include <folly/Range.h>
+#include <folly/Synchronized.h>
 #include <folly/synchronization/Baton.h>
 #include <folly/system/ThreadName.h>
-#include <string>
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include "fboss/agent/LacpController.h"
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
-
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 
 using namespace facebook::fboss;
 using namespace std::string_literals;
@@ -71,70 +73,150 @@ class LacpServiceInterceptor : public LacpServicerIf {
 
   // The following methods implement the LacpServicerIf interface
   bool transmit(LACPDU lacpdu, PortID portID) override {
-    *(lastTransmission_.wlock()) = lacpdu;
+    auto portToLastTransmissionLocked = portToLastTransmission_.wlock();
+
+    auto portAndLastTransmissionIter =
+        portToLastTransmissionLocked->find(portID);
+
+    if (portAndLastTransmissionIter == portToLastTransmissionLocked->end()) {
+      bool inserted;
+      std::tie(portAndLastTransmissionIter, inserted) =
+          portToLastTransmissionLocked->emplace(portID, lacpdu);
+      CHECK(inserted);
+    } else {
+      portAndLastTransmissionIter->second = lacpdu;
+    }
 
     // "Transmit" the frame
     LOG(INFO) << "Transmitting " << lacpdu.describe() << " out port " << portID;
     return true;
   }
   void enableForwarding(PortID portID, AggregatePortID aggPortID) override {
-    LOG(INFO) << "Enabling member " << portID << " in "
-              << "aggregate " << aggPortID;
+    auto portToIsForwardingLocked = portToIsForwarding_.wlock();
+
+    auto portAndIsForwardingIter = portToIsForwardingLocked->find(portID);
+
+    if (portAndIsForwardingIter == portToIsForwardingLocked->end()) {
+      bool inserted;
+      std::tie(portAndIsForwardingIter, inserted) =
+          portToIsForwardingLocked->emplace(portID, true);
+      CHECK(inserted);
+    } else {
+      portAndIsForwardingIter->second = true;
+    }
 
     // "Enable" forwarding
-    *(isForwarding_.wlock()) = true;
+    LOG(INFO) << "Enabling member " << portID << " in "
+              << "aggregate " << aggPortID;
   }
   void disableForwarding(PortID portID, AggregatePortID aggPortID) override {
+    auto portToIsForwardingLocked = portToIsForwarding_.wlock();
+
+    auto portAndIsForwardingIter = portToIsForwardingLocked->find(portID);
+
+    if (portAndIsForwardingIter == portToIsForwardingLocked->end()) {
+      bool inserted;
+      std::tie(portAndIsForwardingIter, inserted) =
+          portToIsForwardingLocked->emplace(portID, false);
+      CHECK(inserted);
+    } else {
+      portAndIsForwardingIter->second = false;
+    }
+
+    // "Disable" forwarding
     LOG(INFO) << "Disabling member " << portID << " in "
               << "aggregate " << aggPortID;
-
-    // "Disable" forwarding"
-    *(isForwarding_.wlock()) = false;
   }
   std::vector<std::shared_ptr<LacpController>> getControllersFor(
-      folly::Range<std::vector<PortID>::const_iterator> /* ports */) override {
-    return {controller_};
+      folly::Range<std::vector<PortID>::const_iterator> ports) override {
+    std::vector<std::shared_ptr<LacpController>> filteredControllers;
+
+    for (const auto& port : ports) {
+      for (const auto& controller : controllers_) {
+        if (port == controller->portID()) {
+          filteredControllers.push_back(controller);
+        }
+      }
+    }
+
+    return filteredControllers;
   }
 
-  // setController is needed because of a circular dependency between the
-  void setController(std::shared_ptr<LacpController> controller) {
-    controller_ = controller;
+  void addController(std::shared_ptr<LacpController> controller) {
+    controllers_.push_back(controller);
   }
 
   // The following methods ensure all processing up to their invocation has
   // has completed in the LACP eventbase.
-  LacpState lastActorStateTransmitted() {
+  LacpState lastActorStateTransmitted(PortID portID) {
     LacpState actorStateTransmitted = LacpState::NONE;
 
-    lacpEvb_->runInEventBaseThreadAndWait([this, &actorStateTransmitted]() {
-      actorStateTransmitted = lastTransmission_.rlock()->actorInfo.state;
+    lacpEvb_->runInEventBaseThreadAndWait([this,
+                                           portID,
+                                           &actorStateTransmitted]() {
+      auto portToLastTransmissionLocked = portToLastTransmission_.rlock();
+      auto portAndLastTransmissionIter =
+          portToLastTransmissionLocked->find(portID);
+      if (portAndLastTransmissionIter == portToLastTransmissionLocked->end()) {
+        throw std::out_of_range("No port found");
+      }
+      actorStateTransmitted =
+          portAndLastTransmissionIter->second.actorInfo.state;
     });
 
     return actorStateTransmitted;
   }
-  LacpState lastPartnerStateTransmitted() {
+  LacpState lastPartnerStateTransmitted(PortID portID) {
     LacpState partnerStateTransmitted = LacpState::NONE;
 
-    lacpEvb_->runInEventBaseThreadAndWait([this, &partnerStateTransmitted]() {
-      partnerStateTransmitted = lastTransmission_.rlock()->partnerInfo.state;
+    lacpEvb_->runInEventBaseThreadAndWait([this,
+                                           portID,
+                                           &partnerStateTransmitted]() {
+      auto portToLastTransmissionLocked = portToLastTransmission_.rlock();
+      auto portAndLastTransmissionIter =
+          portToLastTransmissionLocked->find(portID);
+      if (portAndLastTransmissionIter == portToLastTransmissionLocked->end()) {
+        throw std::out_of_range("No port found");
+      }
+      partnerStateTransmitted =
+          portAndLastTransmissionIter->second.partnerInfo.state;
     });
 
     return partnerStateTransmitted;
   }
-  bool isForwarding() {
+  bool isForwarding(PortID portID) {
     bool forwarding = false;
 
-    lacpEvb_->runInEventBaseThreadAndWait([this, &forwarding]() {
-      forwarding = *(isForwarding_.rlock());
+    lacpEvb_->runInEventBaseThreadAndWait([this, portID, &forwarding]() {
+      auto portToIsForwardingLocked = portToIsForwarding_.rlock();
+      auto portAndIsForwardingIter = portToIsForwardingLocked->find(portID);
+      if (portAndIsForwardingIter == portToIsForwardingLocked->end()) {
+        throw std::out_of_range("No port found");
+      }
+
+      forwarding = portAndIsForwardingIter->second;
     });
 
     return forwarding;
   }
 
+  ~LacpServiceInterceptor() {
+    lacpEvb_->runInEventBaseThreadAndWait([this]() {
+      for (auto& controller : controllers_) {
+        controller.reset();
+      }
+    });
+  }
+
  private:
-  std::shared_ptr<LacpController> controller_{nullptr};
-  folly::Synchronized<bool> isForwarding_{false};
-  folly::Synchronized<LACPDU> lastTransmission_;
+  std::vector<std::shared_ptr<LacpController>> controllers_;
+
+  using PortIDToForwardingStateMap = boost::container::flat_map<PortID, bool>;
+  folly::Synchronized<PortIDToForwardingStateMap> portToIsForwarding_;
+
+  using PortIDToLacpduMap = boost::container::flat_map<PortID, LACPDU>;
+  folly::Synchronized<PortIDToLacpduMap> portToLastTransmission_;
+
   folly::EventBase* lacpEvb_{nullptr};
 };
 
@@ -168,7 +250,7 @@ TEST_F(LacpTest, nonAggregatablePortTransmitsIndividualBit) {
   // An LacpController's methods assume it is being managed by a shared_ptr
   auto controllerPtr = std::make_shared<LacpController>(
       PortID(1), lacpEvb(), &serviceInterceptor);
-  serviceInterceptor.setController(controllerPtr);
+  serviceInterceptor.addController(controllerPtr);
 
   // At this point, the LacpController we would like to test and the
   // LacpServiceInterceptor we will use to test it with are in place
@@ -188,7 +270,8 @@ TEST_F(LacpTest, nonAggregatablePortTransmitsIndividualBit) {
   // Finally, we can check that the transmitted frame did indeed signal
   // itself as not AGGREGATABLE.
   ASSERT_EQ(
-      serviceInterceptor.lastActorStateTransmitted() & LacpState::AGGREGATABLE,
+      serviceInterceptor.lastActorStateTransmitted(PortID(1)) &
+          LacpState::AGGREGATABLE,
       LacpState::NONE);
 
   controllerPtr->stopMachines();
@@ -253,6 +336,8 @@ TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
   duInfo.portPriority = 32768;
   duInfo.port = 42;
 
+  PortID duPort = static_cast<PortID>(duInfo.port);
+
   ParticipantInfo eswInfo;
   eswInfo.systemPriority = 32768;
   // TODO(samank): check endianness
@@ -284,7 +369,7 @@ TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
       1 /* minimum-link count */,
       &duEventInterceptor);
 
-  duEventInterceptor.setController(duControllerPtr);
+  duEventInterceptor.addController(duControllerPtr);
 
   // The following four variables are used for ease of reading
   LacpState eswActorState = LacpState::NONE;
@@ -328,10 +413,11 @@ TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
   duControllerPtr->received(LACPDU(eswActorInfo, eswPartnerInfo));
 
   ASSERT_EQ(
-      duEventInterceptor.lastActorStateTransmitted(),
+      duEventInterceptor.lastActorStateTransmitted(duPort),
       duActorStateBase | LacpState::IN_SYNC);
   // What the partner told us about itself should be reflected back
-  ASSERT_EQ(duEventInterceptor.lastPartnerStateTransmitted(), eswActorState);
+  ASSERT_EQ(
+      duEventInterceptor.lastPartnerStateTransmitted(duPort), eswActorState);
 
   /*** Second Round Trip ***/
   eswActorState = eswActorStateBase | LacpState::IN_SYNC;
@@ -361,13 +447,14 @@ TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
   duControllerPtr->received(LACPDU(eswActorInfo, eswPartnerInfo));
 
   ASSERT_EQ(
-      duEventInterceptor.lastActorStateTransmitted(),
-      duActorStateBase | LacpState::IN_SYNC |
-      LacpState::COLLECTING | LacpState::DISTRIBUTING);
+      duEventInterceptor.lastActorStateTransmitted(duPort),
+      duActorStateBase | LacpState::IN_SYNC | LacpState::COLLECTING |
+          LacpState::DISTRIBUTING);
   // What the partner told us about iself should be reflected back
   ASSERT_EQ(
-      duEventInterceptor.lastPartnerStateTransmitted(), eswActorInfo.state);
-  ASSERT(duEventInterceptor.isForwarding());
+      duEventInterceptor.lastPartnerStateTransmitted(duPort),
+      eswActorInfo.state);
+  ASSERT(duEventInterceptor.isForwarding(duPort));
 
   /*** Third Round Trip ***/
   eswActorState = eswActorStateBase | LacpState::IN_SYNC |
@@ -405,15 +492,15 @@ TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
   std::this_thread::sleep_for(PeriodicTransmissionMachine::SHORT_PERIOD * 2);
 
   ASSERT_EQ(
-      duEventInterceptor.lastActorStateTransmitted(),
-      duActorStateBase | LacpState::IN_SYNC |
-      LacpState::COLLECTING | LacpState::DISTRIBUTING);
+      duEventInterceptor.lastActorStateTransmitted(duPort),
+      duActorStateBase | LacpState::IN_SYNC | LacpState::COLLECTING |
+          LacpState::DISTRIBUTING);
   ASSERT_EQ(
-      duEventInterceptor.lastPartnerStateTransmitted(),
+      duEventInterceptor.lastPartnerStateTransmitted(duPort),
       eswActorInfo.state);
   // TODO(samank): really we should check that forwarding hasn't changed, even
   // twice
-  ASSERT(duEventInterceptor.isForwarding());
+  ASSERT(duEventInterceptor.isForwarding(duPort));
 
   duControllerPtr->stopMachines();
 }
