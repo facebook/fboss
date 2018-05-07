@@ -174,9 +174,16 @@ TEST_F(LacpTest, nonAggregatablePortTransmitsIndividualBit) {
   // LacpServiceInterceptor we will use to test it with are in place
   controllerPtr->startMachines();
 
+  controllerPtr->portUp();
+
   // We are going to send the LacpController an LACPDU so as to induce its
-  // response
-  controllerPtr->received(LACPDU());
+  // response. Note that actorInfo needs to take on some bits different than
+  // that of the default actor information because otherwise the
+  // ReceiveMachine would not drive NeedToTransmit.
+  ParticipantInfo actorInfo;
+  actorInfo.state = LacpState::ACTIVE | LacpState::AGGREGATABLE;
+  ParticipantInfo partnerInfo = ParticipantInfo::defaultParticipantInfo();
+  controllerPtr->received(LACPDU(actorInfo, partnerInfo));
 
   // Finally, we can check that the transmitted frame did indeed signal
   // itself as not AGGREGATABLE.
