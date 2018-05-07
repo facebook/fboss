@@ -511,6 +511,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
     unitObject_->attach(platform_->getWarmBootDir());
   }
 
+  platform_->onUnitAttach(unit_);
   // Possibly run pre-init bcm shell script before ASIC init.
   runBcmScriptPreAsicInit();
 
@@ -534,8 +535,6 @@ HwInitResult BcmSwitch::init(Callback* callback) {
       unit_, OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE, fatalCob);
   BcmSwitchEventUtils::registerSwitchEventCallback(
       unit_, OPENNSL_SWITCH_EVENT_PARITY_ERROR, nonFatalCob);
-
-  platform_->onUnitAttach(unit_);
 
   // Create bcmStatUpdater to cache the stat ids
   bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(unit_);
