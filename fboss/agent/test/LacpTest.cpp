@@ -8,6 +8,7 @@
  *
  */
 #include <chrono>
+#include <cstddef>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -88,7 +89,6 @@ class LacpServiceInterceptor : public LacpServicerIf {
     }
 
     // "Transmit" the frame
-    LOG(INFO) << "Transmitting " << lacpdu.describe() << " out port " << portID;
     return true;
   }
   void enableForwarding(PortID portID, AggregatePortID aggPortID) override {
@@ -503,4 +503,262 @@ TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
   ASSERT(duEventInterceptor.isForwarding(duPort));
 
   duControllerPtr->stopMachines();
+}
+
+TEST_F(LacpTest, UUColdBootReconvergenceWithDR) {
+  LacpServiceInterceptor uuEventInterceptor(lacpEvb());
+
+  constexpr std::size_t portCount = 3;
+
+  std::array<ParticipantInfo, portCount> uuPortToParticipantInfo;
+  for (std::size_t port = 0; port < portCount; ++port) {
+    uuPortToParticipantInfo[port].systemPriority = 65535;
+    uuPortToParticipantInfo[port].systemID = {
+        {0x02, 0x90, 0xfb, 0x5e, 0x1e, 0x84}};
+    uuPortToParticipantInfo[port].key = 21;
+    uuPortToParticipantInfo[port].portPriority = 32768;
+    uuPortToParticipantInfo[port].port = 4 * port + 118;
+  }
+
+  std::array<ParticipantInfo, portCount> drPortToParticipantInfo;
+  for (std::size_t port = 0; port < portCount; ++port) {
+    drPortToParticipantInfo[port].systemPriority = 127;
+    drPortToParticipantInfo[port].systemID = {
+        {0x84, 0xb5, 0x9c, 0xd6, 0x91, 0x44}};
+    drPortToParticipantInfo[port].key = 23;
+    drPortToParticipantInfo[port].portPriority = 127;
+    drPortToParticipantInfo[port].port = port + 110;
+  }
+
+  std::array<PortID, portCount> uuPortIdxToPortID;
+  for (std::size_t portIdx = 0; portIdx < portCount; ++portIdx) {
+    uuPortIdxToPortID[portIdx] =
+        static_cast<PortID>(uuPortToParticipantInfo[portIdx].port);
+  }
+
+  std::array<std::shared_ptr<LacpController>, portCount> controllerPtrs;
+  for (std::size_t portIdx = 0; portIdx < portCount; ++portIdx) {
+    auto info = uuPortToParticipantInfo[portIdx];
+
+    controllerPtrs[portIdx] = std::make_shared<LacpController>(
+        PortID(info.port),
+        lacpEvb(),
+        info.portPriority,
+        cfg::LacpPortRate::FAST,
+        cfg::LacpPortActivity::ACTIVE,
+        AggregatePortID(info.key),
+        info.systemPriority,
+        MacAddress::fromBinary(
+            folly::ByteRange(info.systemID.cbegin(), info.systemID.cend())),
+        portCount /* minimum-link count */,
+        &uuEventInterceptor);
+
+    uuEventInterceptor.addController(controllerPtrs[portIdx]);
+  }
+
+  for (const auto& controllerPtr : controllerPtrs) {
+    controllerPtr->startMachines();
+  }
+
+  for (const auto& controllerPtr : controllerPtrs) {
+    controllerPtr->portUp();
+  }
+
+  // Some bits in LacpState are derived from configuration. To avoid having to
+  // repreat them, they are factored out into the following variables
+  const LacpState uuActorStateBase =
+      LacpState::AGGREGATABLE | LacpState::ACTIVE | LacpState::SHORT_TIMEOUT;
+  const LacpState drActorStateBase =
+      LacpState::AGGREGATABLE | LacpState::ACTIVE | LacpState::SHORT_TIMEOUT;
+
+  // We can't simply use {dr,uu}PortToParticipantInfo to fill in actor and
+  // partner state in the first round-trip because the DR has yet to hear
+  // from the UU, and so its partner information will be the DR's default
+  // information
+  ParticipantInfo initialActorInfo, initialPartnerInfo;
+  for (std::size_t portIdx = 0; portIdx < portCount; ++portIdx) {
+    initialActorInfo = drPortToParticipantInfo[portIdx];
+    initialActorInfo.state =
+        drActorStateBase | LacpState::DEFAULTED | LacpState::EXPIRED;
+
+    // When an LACP speaker hasn't heard from its partner in a while, it
+    // enters the DEFAULTED state and correspondingly uses defaulted information
+    // for its partner.
+    // IEEE 802.3AD and 802.1AX allow for this default information to be
+    // configured by the administrator, but no implementation exposes this level
+    // of control.
+    // Implementations usually take the default partner information to be zero
+    // for all fields. Junos is unique in that it does not take this approach.
+    initialPartnerInfo.systemPriority = 1;
+    initialPartnerInfo.systemID = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
+    // Junos guesses the partner is using the same key
+    initialPartnerInfo.key = initialActorInfo.key;
+    initialPartnerInfo.portPriority = 1;
+    // Junos guesses the partner has the same port numbering
+    initialPartnerInfo.port = initialActorInfo.port;
+    // Junos guesses the partner has also timed out and is configured to be
+    // aggregatable with a short timeout
+    initialPartnerInfo.state = LacpState::DEFAULTED | LacpState::SHORT_TIMEOUT |
+        LacpState::AGGREGATABLE;
+
+    /* actorInfo=(SystemPriority 127,
+     *            SystemID 84:b5:9c:d6:91:44,
+     *            Key 23,
+     *            PortPriority 127,
+     *            Port {110,111,112},
+     *            State 199)
+     *
+     * partnerInfo=(SystemPriority 1,
+     *              SystemID 00:00:00:00:00:00,
+     *              Key 23,
+     *              PortPriority 1,
+     *              Port {110,111,112},
+     *              State 70)
+     */
+    controllerPtrs[portIdx]->received(
+        LACPDU(initialActorInfo, initialPartnerInfo));
+
+    // There is an obvious but easy to miss problem with structuring this code
+    // as
+    // 1. for each Controller c: c->received(...)
+    // 2. for each Port p: ASSERT_EQ(P's last transmitted state, ...)
+    // In the last iteration of (1), the satisfaction of min-links would result
+    // in LacpState::IN_SYNC being set, which would cause us to miss the
+    // transitional state tested below.
+    if (portIdx != portCount - 1) {
+      ASSERT_EQ(
+          uuEventInterceptor.lastActorStateTransmitted(
+              uuPortIdxToPortID[portIdx]),
+          uuActorStateBase);
+      ASSERT_EQ(
+          uuEventInterceptor.lastPartnerStateTransmitted(
+              uuPortIdxToPortID[portIdx]),
+          initialActorInfo.state);
+    }
+  }
+
+  // Each iteration of the above loop leaves the port corresponding to that
+  // iteration in MuxMachine::WAITING. The very last iteration in the loop will
+  // lead to the min-links contraint being satisfied.
+  // At this point, every LacpController's MuxMachine transitions from
+  // MuxState::WAITING to MuxState::ATTACHED. A mark of this internal transition
+  // is the setting of the IN_SYNC bit in the next LACPDU transmitted.
+  for (std::size_t portIdx = 0; portIdx < portCount; ++portIdx) {
+    ASSERT_EQ(
+        uuEventInterceptor.lastActorStateTransmitted(
+            uuPortIdxToPortID[portIdx]),
+        uuActorStateBase | LacpState::IN_SYNC);
+    ASSERT_EQ(
+        uuEventInterceptor.lastPartnerStateTransmitted(
+            uuPortIdxToPortID[portIdx]),
+        initialActorInfo.state);
+  }
+
+  // TODO(samank): The following transmission from the DR a
+  for (std::size_t portIdx = 0; portIdx < portCount; ++portIdx) {
+    if (portIdx == 2) {
+      /* actorInfo=(SystemPriority 127,
+       *            SystemID 84:b5:9c:d6:91:44,
+       *            Key 23,
+       *            PortPriority 127,
+       *            Port 112,
+       *            State 7)
+       * partnerInfo=(SystemPriority 65535,
+       *              SystemID 02:90:fb:5e:1e:84,
+       *              Key 21,
+       *              PortPriority 32768,
+       *              Port 126,
+       *              State 199)
+       */
+      drPortToParticipantInfo[portIdx].state = drActorStateBase;
+      uuPortToParticipantInfo[portIdx].state =
+          uuActorStateBase | LacpState::DEFAULTED | LacpState::EXPIRED;
+      controllerPtrs[portIdx]->received(LACPDU(
+          drPortToParticipantInfo[portIdx], uuPortToParticipantInfo[portIdx]));
+    } else {
+      /* actorInfo=(SystemPriority 127,
+       *            SystemID 84:b5:9c:d6:91:44,
+       *            Key 23,
+       *            PortPriority 127,
+       *            Port {110,111},
+       *            State 7)
+       * partnerInfo=(SystemPriority 65535,
+       *              SystemID 02:90:fb:5e:1e:84,
+       *              Key 21,
+       *              PortPriority 32768,
+       *              Port {118,122},
+       *              State 7)
+       */
+      drPortToParticipantInfo[portIdx].state = drActorStateBase;
+      uuPortToParticipantInfo[portIdx].state = uuActorStateBase;
+      controllerPtrs[portIdx]->received(LACPDU(
+          drPortToParticipantInfo[portIdx], uuPortToParticipantInfo[portIdx]));
+    }
+  }
+
+  for (std::size_t portIdx = 0; portIdx < portCount; ++portIdx) {
+    drPortToParticipantInfo[portIdx].state = drActorStateBase;
+    uuPortToParticipantInfo[portIdx].state =
+        uuActorStateBase | LacpState::IN_SYNC;
+    /* actorInfo=(SystemPriority 127,
+     *            SystemID 84:b5:9c:d6:91:44,
+     *            Key 23,
+     *            PortPriority 127,
+     *            Port {110,111,112},
+     *            State 7)
+     * partnerInfo=(SystemPriority 65535,
+     *              SystemID 02:90:fb:5e:1e:84,
+     *              Key 21,
+     *              PortPriority 32768,
+     *              Port {118,122,126},
+     *              State 15)
+     */
+    controllerPtrs[portIdx]->received(LACPDU(
+        drPortToParticipantInfo[portIdx], uuPortToParticipantInfo[portIdx]));
+  }
+
+  for (std::size_t portIdx = 0; portIdx < portCount; ++portIdx) {
+    drPortToParticipantInfo[portIdx].state = drActorStateBase |
+        LacpState::COLLECTING | LacpState::DISTRIBUTING | LacpState::IN_SYNC;
+    uuPortToParticipantInfo[portIdx].state =
+        uuActorStateBase | LacpState::IN_SYNC;
+
+    /* actorInfo=(SystemPriority 127,
+     *            SystemID 84:b5:9c:d6:91:44,
+     *            Key 23,
+     *            PortPriority 127,
+     *            Port {110,111,112},
+     *            State 63)
+     * partnerInfo=(SystemPriority 65535,
+     *              SystemID 02:90:fb:5e:1e:84,
+     *              Key 21,
+     *              PortPriority 32768,
+     *              Port {118,122,126},
+     *              State 15)
+     */
+    controllerPtrs[portIdx]->received(LACPDU(
+        drPortToParticipantInfo[portIdx], uuPortToParticipantInfo[portIdx]));
+
+    // Having received the MATCHED signal in MuxState::ATTACHED, the MuxMachine
+    // transitions to MuxState::COLLECTING_DISTRIBUTING.
+    ASSERT(uuEventInterceptor.isForwarding(uuPortIdxToPortID[portIdx]));
+  }
+
+  std::this_thread::sleep_for(PeriodicTransmissionMachine::SHORT_PERIOD * 2);
+
+  for (std::size_t portIdx = 0; portIdx < portCount; ++portIdx) {
+    ASSERT_EQ(
+        uuEventInterceptor.lastActorStateTransmitted(
+            uuPortIdxToPortID[portIdx]),
+        uuActorStateBase | LacpState::IN_SYNC | LacpState::COLLECTING |
+            LacpState::DISTRIBUTING);
+    ASSERT_EQ(
+        uuEventInterceptor.lastPartnerStateTransmitted(
+            uuPortIdxToPortID[portIdx]),
+        drPortToParticipantInfo[portIdx].state);
+  }
+
+  for (const auto& controllerPtr : controllerPtrs) {
+    controllerPtr->stopMachines();
+  }
 }
