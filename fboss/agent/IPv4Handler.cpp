@@ -195,9 +195,13 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
     VLOG(4) << "Rx IPv4 Packet with TTL expired";
     stats->port(port)->pktDropped();
     stats->port(port)->ipv4TtlExceeded();
-    // Look up cpu mac from platform
-    MacAddress cpuMac = sw_->getPlatform()->getLocalMac();
-    sendICMPTimeExceeded(pkt->getSrcVlan(), cpuMac, cpuMac, v4Hdr, cursor);
+
+    folly::MacAddress srcMac, dstMac;
+
+    std::tie(srcMac, dstMac, std::ignore) = sw_->getEtherInfoForL3Packet(
+      sw_->getState().get(), vlan->getInterfaceID());
+
+    sendICMPTimeExceeded(pkt->getSrcVlan(), dstMac, srcMac, v4Hdr, cursor);
     return;
   }
 

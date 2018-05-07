@@ -4,6 +4,8 @@ find_library(SW_RM sw_rm)
 find_library(SXDEV sxdev)
 find_library(SXDREGINIT sxdreg_access)
 
+target_compile_definitions(fboss_agent PRIVATE MLNX_PLATFORM)
+
 target_sources(fboss_agent
   PRIVATE
     fboss/agent/hw/mlnx/MlnxInitHelper.cpp

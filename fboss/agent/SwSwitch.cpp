@@ -1389,11 +1389,8 @@ void SwSwitch::sendL3Packet(
       buf->append(tailRoom);
     }
 
-    // We always use our CPU's mac-address as source mac-address
-    const folly::MacAddress srcMac = getPlatform()->getLocalMac();
-
     // Derive destination mac address
-    folly::MacAddress dstMac{};
+    folly::MacAddress dstMac, srcMac;
     if (dstAddr.isMulticast()) {
       // Multicast Case:
       // Derive destination mac-address based on destination ip-address
@@ -1414,10 +1411,10 @@ void SwSwitch::sendL3Packet(
         //
         // XXX: In 6Pack/Galaxy ipv4 link-local addresses are routed
         // internally within FCs/LCs so they might not be reachable directly.
-        //
-        // For now let's make use of L3 table to forward these packets by
-        // using dstMac as srcMac
-        dstMac = srcMac;
+
+        std::tie(srcMac, dstMac, vlanID) = 
+          getEtherInfoForL3Packet(state.get(), *maybeIfID);
+
       } else {
         const auto dstAddrV6 = dstAddr.asV6();
         try {
@@ -1435,8 +1432,9 @@ void SwSwitch::sendL3Packet(
       // Unicast Packet:
       // Ideally we can do routing in SW but it can consume some good ammount of
       // CPU. To avoid this we prefer to perform routing in hardware. Using
-      // our CPU MacAddr as DestAddr we will trigger L3 lookup in hardware :)
-      dstMac = srcMac;
+
+      std::tie(srcMac, dstMac, vlanID) =
+        getEtherInfoForL3Packet(state.get(), *maybeIfID);
 
       // Resolve the l2 address of the next hop if needed. These functions
       // will do the RIB lookup and then probe for any unresolved nexthops
@@ -1466,6 +1464,36 @@ void SwSwitch::sendL3Packet(
     LOG(ERROR) << "Failed to send out L3 packet :"
                << folly::exceptionStr(ex);
   }
+}
+
+std::tuple<folly::MacAddress, folly::MacAddress, VlanID>
+SwSwitch::getEtherInfoForL3Packet(SwitchState* swState,
+    InterfaceID ifId) const {
+  folly::MacAddress srcMac, dstMac, cpuMac {getPlatform()->getLocalMac()};
+  VlanID vlanId;
+#ifdef MLNX_PLATFORM
+  // dstMac needs to be equal to Interface mac address for mlnx platform
+  // The reason is that HW discards packets with srcMac == dstMac
+
+  auto intfMap = swState->getInterfaces();
+  Interface* intf = intfMap->getInterfaceIf(ifId).get();
+  if (intf) {
+    dstMac = intf->getMac();
+    vlanId = intf->getVlanID();
+  } else {
+    dstMac = cpuMac;
+    vlanId = getCPUVlan();
+    LOG(WARNING) << "No interface with id " << ifId
+                 << ". Sending to " << dstMac.toString()
+                 << " vlan " << vlanId;
+  }
+#else /* wedge */
+  // Using our CPU MacAddr as DestAddr we will trigger L3 lookup in hardware :)
+
+  srcMac = dstMac = cpuMac;
+  vlanId = getCPUVlan();
+#endif
+  return std::make_tuple(srcMac, dstMac, vlanId);
 }
 
 bool SwSwitch::sendPacketToHost(

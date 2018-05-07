@@ -494,6 +494,18 @@ class SwSwitch : public HwSwitch::Callback {
       folly::Optional<InterfaceID> ifID = folly::none) noexcept;
 
   /**
+   * Get dstMac, srcMac, vlanId info to prepare Ethernet header for sending
+   * L3 packet
+   *
+   * @param swState SwitchState
+   * @param ifId interface ID to wich forward packet
+   *        (not related if platform=wedge)
+   * @ret tuple of dstMac, srcMac, vlanId
+   */
+  std::tuple<folly::MacAddress, folly::MacAddress, VlanID>
+  getEtherInfoForL3Packet(SwitchState* sw, InterfaceID ifId) const;
+
+  /**
    * method to send out a packet from HW to host.
    *
    * @return true The packet is sent to host

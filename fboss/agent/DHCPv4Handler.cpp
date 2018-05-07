@@ -258,11 +258,13 @@ void DHCPv4Handler::processRequest(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
     return;
   }
   dhcpPacketOut.giaddr = switchIp;
-  // Look up cpu mac from platform
-  MacAddress cpuMac = sw->getPlatform()->getLocalMac();
 
-  // Prepare the packet to be sent out
-  EthHdr ethHdr = makeEthHdr(cpuMac, cpuMac, pkt->getSrcVlan());
+  folly::MacAddress sMac, dMac;
+
+  std::tie(sMac, dMac, std::ignore) = sw->getEtherInfoForL3Packet(
+    sw->getState().get(), vlan->getInterfaceID());
+  EthHdr ethHdr = makeEthHdr(sMac, dMac, pkt->getSrcVlan());
+
   auto ipHdr = makeIpv4Header(switchIp, dhcpServer, origIPHdr.ttl - 1,
       IPv4Hdr::minSize() + UDPHeader::size() + dhcpPacketOut.size());
   UDPHeader udpHdr(kBootPSPort, kBootPSPort,

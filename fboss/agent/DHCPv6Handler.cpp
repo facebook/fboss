@@ -202,13 +202,16 @@ void DHCPv6Handler::processDHCPv6Packet(
   }
 
   // create the dhcpv6 packet
-  // vlanIp -> ip src, ipHdr.dst -> ip dst, srcMac -> mac src, dstMac -> mac dst
-  MacAddress cpuMac = sw->getPlatform()->getLocalMac();
   auto serializeBody = [&](RWPrivateCursor* sendCursor) {
     relayFwdPkt.write(sendCursor);
   };
 
-  sendDHCPv6Packet(sw, cpuMac, cpuMac, vlanId, dhcp6ServerIp, switchIp,
+  folly::MacAddress sMac, dMac;
+
+  std::tie(sMac, dMac, vlanId) = sw->getEtherInfoForL3Packet(
+    sw->getState().get(), vlan->getInterfaceID());
+
+  sendDHCPv6Packet(sw, dMac, sMac, vlanId, dhcp6ServerIp, switchIp,
       DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT,
       DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT,
       relayFwdPkt.computePacketLength(), serializeBody);

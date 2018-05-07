@@ -191,9 +191,15 @@ void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
     VLOG(4) << "Rx IPv6 Packet with hop limit exceeded";
     sw_->portStats(port)->pktDropped();
     sw_->portStats(port)->ipv6HopExceeded();
-    // Look up cpu mac from platform
-    MacAddress cpuMac = sw_->getPlatform()->getLocalMac();
-    sendICMPv6TimeExceeded(pkt->getSrcVlan(), cpuMac, cpuMac, ipv6, cursor);
+
+    folly::MacAddress srcMac, dstMac;
+
+    intf = interfaceMap->getInterfaceInVlanIf(pkt->getSrcVlan());
+
+    std::tie(srcMac, dstMac, std::ignore) = sw_->getEtherInfoForL3Packet(
+      sw_->getState().get(), intf->getID());
+
+    sendICMPv6TimeExceeded(pkt->getSrcVlan(), dstMac, srcMac, ipv6, cursor);
     return;
   }
 
