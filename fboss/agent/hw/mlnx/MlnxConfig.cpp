@@ -74,6 +74,23 @@ void MlnxConfig::parseConfigXml(const std::string& pathToConfigFile) {
           device.ports.push_back(portInfo);
         }
       }
+    } else if (v.first == "router-resources") {
+      // parse
+      routerRsrc.maxVrfNum = v.second.get<uint32_t>("max-vrf", 0);
+      routerRsrc.maxVlanRouterInterfaces =
+        v.second.get<uint32_t>("max-vlan-router-interfaces", 0);
+      routerRsrc.maxPortRouterInterfaces =
+        v.second.get<uint32_t>("max-port-router-interface", 0);
+      routerRsrc.maxRouterInterfaces =
+        v.second.get<uint32_t>("max-router-interfaces", 0);
+      routerRsrc.maxV4NeighEntries =
+        v.second.get<uint32_t>("max-ipv4-neighbor-entires", 0);
+      routerRsrc.maxV6NeighEntries =
+        v.second.get<uint32_t>("max-ipv6-neighbor-entires", 0);
+      routerRsrc.maxV4RouteEntries =
+        v.second.get<uint32_t>("max-ipv4-route-entries", 0);
+      routerRsrc.maxV6RouteEntries =
+        v.second.get<uint32_t>("max-ipv6-route-entries", 0);
     }
   }
 }

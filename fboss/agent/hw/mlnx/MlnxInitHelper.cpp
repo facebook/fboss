@@ -92,6 +92,12 @@ DEFINE_string(verbosity_sdk_vlan_module,
 DEFINE_validator(verbosity_sdk_vlan_module,
   &facebook::fboss::MlnxInitHelper::validateVerbosityLevel);
 
+DEFINE_string(verbosity_sdk_router_module,
+  "error",
+  "SDK router module verbosity level");
+DEFINE_validator(verbosity_sdk_router_module,
+  &facebook::fboss::MlnxInitHelper::validateVerbosityLevel);
+
 DEFINE_string(verbosity_sdk_system,
   "error",
   "SDK system verbosity level");
@@ -111,6 +117,8 @@ constexpr auto kChipInfoTypePath =
 constexpr auto kChipInfoRevPath =
   "/sys/module/sx_core/parameters/chip_info_revision";
 
+constexpr auto kMaxVlanRouterInterfaces = 64;
+constexpr auto kMaxPortRouterInterfaces = 64;
 }
 
 namespace facebook { namespace fboss {
@@ -576,6 +584,7 @@ void MlnxInitHelper::setVerbosityLevels() {
   auto host_ifc_verbosity_level = strToLogVerbosity(FLAGS_verbosity_sdk_host_ifc_module);
   auto fdb_verbosity_level = strToLogVerbosity(FLAGS_verbosity_sdk_fdb_module);
   auto vlan_verbosity_level = strToLogVerbosity(FLAGS_verbosity_sdk_vlan_module);
+  auto router_verbosity_level = strToLogVerbosity(FLAGS_verbosity_sdk_router_module);
 
   // first set global system verbosity level and the per each module
   rc = sx_api_system_log_verbosity_level_set(handle_,
@@ -641,6 +650,19 @@ void MlnxInitHelper::setVerbosityLevels() {
 
   LOG(INFO) << "Host interface module verbosity level set to "
             << (SX_VERBOSITY_LEVEL_STR(host_ifc_verbosity_level));
+
+  // router module
+  rc = sx_api_router_log_verbosity_level_set(handle_,
+    SX_LOG_VERBOSITY_TARGET_MODULE,
+    router_verbosity_level,
+    router_verbosity_level);
+  mlnxCheckSdkFail(rc,
+    "sx_api_router_log_verbosity_level_set",
+    "Failed to set router log verbosity to ",
+    SX_VERBOSITY_LEVEL_STR(router_verbosity_level));
+
+  LOG(INFO) << "Router module verbosity level set to "
+            << (SX_VERBOSITY_LEVEL_STR(router_verbosity_level));
 }
 
 void MlnxInitHelper::loadConfig(const std::string& pathToConfigFile,
@@ -715,6 +737,74 @@ std::unique_ptr<MlnxSwitch> MlnxInitHelper::getMlnxSwitchInstance(
   }
 }
 
+void MlnxInitHelper::initRouter() {
+  sx_status_t rc;
+  CHECK(handle_) << "Invalid SDK handle";
+  sx_router_general_param_t generalParams;
+  sx_router_resources_param_t rsrcParams;
+
+  // IPv4/v6 unicast enabled, multicast disabled
+  generalParams.ipv4_enable = SX_ROUTER_ENABLE_STATE_ENABLE;
+  generalParams.ipv6_enable = SX_ROUTER_ENABLE_STATE_ENABLE;
+  generalParams.ipv4_mc_enable = SX_ROUTER_ENABLE_STATE_DISABLE;
+  generalParams.ipv6_mc_enable = SX_ROUTER_ENABLE_STATE_DISABLE;
+  generalParams.rpf_enable = SX_ROUTER_ENABLE_STATE_DISABLE;
+
+  // router resources, the min* fields form sx_router_resources_param_t
+  // are set to 0
+  memset(&rsrcParams, 0, sizeof(rsrcParams));
+  const auto& rsrcCfg = mlnxConfig_.routerRsrc;
+
+  rsrcParams.max_virtual_routers_num = rsrcCfg.maxVrfNum;
+  rsrcParams.max_vlan_router_interfaces = rsrcCfg.maxVlanRouterInterfaces;
+  rsrcParams.max_port_router_interfaces = rsrcCfg.maxPortRouterInterfaces;
+  rsrcParams.max_router_interfaces = rsrcCfg.maxRouterInterfaces;
+  rsrcParams.max_ipv4_neighbor_entries = rsrcCfg.maxV4NeighEntries;
+  rsrcParams.max_ipv6_neighbor_entries = rsrcCfg.maxV6NeighEntries;
+  rsrcParams.max_ipv4_uc_route_entries = rsrcCfg.maxV4RouteEntries;
+  rsrcParams.max_ipv6_uc_route_entries = rsrcCfg.maxV6RouteEntries;
+
+  auto checkLimitOrSetDefault =
+    [&] (auto& param, const char*  name, auto limit, auto defaultValue) {
+      if (param == 0) {
+        param = defaultValue;
+      } else if (param > limit) {
+        throw FbossError("Param: ", name, ", value: ", param,
+          " - exceeded resource limit: ", limit);
+      }
+  };
+
+  // set 0 values to limits max
+  checkLimitOrSetDefault(rsrcParams.max_virtual_routers_num, "max-vrf",
+      resourceLimits_.router_vrid_max, resourceLimits_.router_vrid_max);
+  checkLimitOrSetDefault(rsrcParams.max_vlan_router_interfaces,
+      "max-vlan-router-interfaces",
+      kMaxVlanRouterInterfaces, kMaxVlanRouterInterfaces);
+  checkLimitOrSetDefault(rsrcParams.max_port_router_interfaces,
+      "max-port-router-interfaces",
+      kMaxPortRouterInterfaces, kMaxPortRouterInterfaces);
+  checkLimitOrSetDefault(rsrcParams.max_ipv4_neighbor_entries,
+      "max-ipv4-neighbor-entries",
+      resourceLimits_.router_neigh_max, 0);
+  checkLimitOrSetDefault(rsrcParams.max_ipv6_neighbor_entries,
+      "max-ipv6-neighbor-entries",
+      resourceLimits_.router_neigh_max, 0);
+  checkLimitOrSetDefault(rsrcParams.max_ipv4_uc_route_entries,
+      "max-ipv4-route-entries",
+      resourceLimits_.router_ipv4_uc_max, 0);
+  checkLimitOrSetDefault(rsrcParams.max_ipv6_uc_route_entries,
+      "max-ipv6-route-entries",
+      resourceLimits_.router_ipv6_uc_max, 0);
+
+  rc = sx_api_router_init_set(handle_, &generalParams, &rsrcParams);
+  mlnxCheckSdkFail(rc,
+    "sx_api_router_init_set",
+    "Failed to init router module");
+  routerInitialized_ = true;
+
+  LOG(INFO) << " [ Init ] Router initialized";
+}
+
 void MlnxInitHelper::stopSdk() {
   sdkProcess_.sendSignal(SIGINT);
   aclRmProcess_.sendSignal(SIGINT);
@@ -731,6 +821,19 @@ void MlnxInitHelper::stopSdk() {
   // interrupt sdk
   interruptAndWaitForExit(sdkProcess_);
   interruptAndWaitForExit(aclRmProcess_);
+}
+
+void MlnxInitHelper::deinitRouter() {
+  sx_status_t rc;
+  CHECK(handle_) << "Invalid SDK handle";
+  if (!routerInitialized_) {
+    return;
+  }
+  rc = sx_api_router_deinit_set(handle_);
+  mlnxLogSxError(rc,
+    "sx_api_router_deinit_set",
+    "Failed to deinit router module");
+  LOG_IF(INFO, rc == SX_STATUS_SUCCESS) << " [ Exit ] Router deinitialized";
 }
 
 void MlnxInitHelper::deinit() {

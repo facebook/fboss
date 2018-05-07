@@ -142,6 +142,16 @@ class MlnxInitHelper {
   MlnxConfig& getConfig();
 
   /**
+   * initilize router module
+   */
+  void initRouter();
+
+  /**
+   * deinitialize router module
+   */
+  void deinitRouter();
+
+  /**
    * Method to pass to gflags validator.
    * Used to validate verbosity level of sdk module
    * (Checks if verbosity level is in set 'error', 'info', etc.)
@@ -252,6 +262,7 @@ class MlnxInitHelper {
 
   MlnxConfig mlnxConfig_;
   std::atomic<bool> configLoaded_ {false};
+  std::atomic<bool> routerInitialized_ {false};
 
   // sx_sdk and sx_acl_rm processes
   folly::Subprocess sdkProcess_{};

@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (c) Mellanox Technologies. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,71 +29,59 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#pragma once
+#include "fboss/agent/hw/mlnx/MlnxVrf.h"
+#include "fboss/agent/hw/mlnx/MlnxSwitch.h"
+#include "fboss/agent/hw/mlnx/MlnxError.h"
 
-#include <cstdint>
-#include <vector>
-#include <string>
+extern "C" {
+#include <sx/sdk/sx_api_router.h>
+}
 
 namespace facebook { namespace fboss {
 
-/**
- * Struct that store hw specific configuration
- */
-struct MlnxConfig{
-  /**
-   * Structures based on
-   * mlnx XML configuration file
-   */
-  struct PortInfo {
-    // local port number
-    uint8_t localPort;
-    // 0 - port is not active , 1 - active port
-    uint8_t mappingMode;
-    // Which lanes are allocated for this port
-    std::vector<uint8_t> lanes;
-    // front panel port number
-    uint8_t frontpanelPort;
-  };
+MlnxVrf::MlnxVrf(MlnxSwitch* hw, RouterID id) :
+  hw_(hw),
+  handle_(hw_->getHandle()),
+  id_(id) {
+  sx_status_t rc;
+  sx_router_attributes_t routerAttrs;
+  std::memset(&routerAttrs, 0, sizeof(routerAttrs));
 
-  /**
-   * Device configuration
-   */
-  struct DeviceInfo {
-    // device id
-    uint8_t deviceId;
-    // device mac
-    std::string deviceMacAddress;
-    // ports list
-    std::vector<PortInfo> ports;
+  // enbale ipv4/ipv6 unicast
+  routerAttrs.ipv4_enable = SX_ROUTER_ENABLE_STATE_ENABLE;
+  routerAttrs.ipv6_enable = SX_ROUTER_ENABLE_STATE_ENABLE;
+  routerAttrs.ipv4_mc_enable = SX_ROUTER_ENABLE_STATE_DISABLE;
+  routerAttrs.ipv6_mc_enable = SX_ROUTER_ENABLE_STATE_DISABLE;
+  routerAttrs.uc_default_rule_action = SX_ROUTER_ACTION_DROP;
+  routerAttrs.mc_default_rule_action = SX_ROUTER_ACTION_DROP;
 
-  } device;
+  // create virtual router
+  rc = sx_api_router_set(handle_, SX_ACCESS_CMD_ADD, &routerAttrs, &vrid_);
+  mlnxCheckSdkFail(rc,
+    "sx_api_router_set",
+    "Failed to create VRF in SDK");
 
-  /**
-   * Router module resources related configuration
-   */
-  struct RouterResourcesInfo {
-    uint32_t maxVrfNum;
-    uint32_t maxVlanRouterInterfaces;
-    uint32_t maxPortRouterInterfaces;
-    uint32_t maxRouterInterfaces;
-    uint32_t minV4NeighEntries;
-    uint32_t maxV4NeighEntries;
-    uint32_t minV6NeighEntries;
-    uint32_t maxV6NeighEntries;
-    uint32_t minV4RouteEntries;
-    uint32_t maxV4RouteEntries;
-    uint32_t minV6RouteEntries;
-    uint32_t maxV6RouteEntries;
-  } routerRsrc;
+  LOG(INFO) << "Virtaul router with @id " << id_
+            << " @vrid " << vrid_ << " created";
+}
 
-  /**
-   * parse the mellanox config XML file
-   *
-   * @param pathToConfigFile Path to configuration XML file
-   */
-  void parseConfigXml(const std::string& pathToConfigFile);
+sx_router_id_t MlnxVrf::getSdkVrid() const {
+  return vrid_;
+}
 
-};
+MlnxVrf::~MlnxVrf() {
+  sx_status_t rc;
+
+  // delete virtual router
+  rc = sx_api_router_set(handle_, SX_ACCESS_CMD_DELETE, nullptr, &vrid_);
+  mlnxLogSxError(rc,
+    "sx_api_router_set",
+    "Failed to delete a virtual router with @id ",
+    id_);
+
+  LOG_IF(INFO, rc == SX_STATUS_SUCCESS)
+    << "Virtaul router with @id " << id_
+    << " sdk @vrid " << vrid_ << " deleted";
+}
 
 }} // facebook::fboss

@@ -62,11 +62,15 @@ class Interface;
 class SwitchState;
 class SwSwitch;
 
+class MlnxVrf;
 class MlnxPort;
 class MlnxDevice;
 class MlnxPlatform;
 class MlnxPortTable;
+class MlnxIntfTable;
 class MlnxHostIfc;
+class MlnxRouteTable;
+class MlnxNeighTable;
 class MlnxError;
 
 const uint32_t kMinPacketSize {64};
@@ -310,6 +314,21 @@ class MlnxSwitch : public HwSwitch {
   const MlnxPortTable* getMlnxPortTable() const;
 
   /**
+   * Return interface table
+   *
+   * @ret pointer to MlnxIntfTable
+   */
+  const MlnxIntfTable* getMlnxIntfTable() const;
+
+  /**
+   * NOTE: FBOSS currenly supports only one default vrf with RouterID 0
+   * Return default vrf
+   *
+   * @ret pointer to MlnxVrf object
+   */
+  const MlnxVrf* getDefaultMlnxVrf() const;
+
+  /**
    * This method return the vector of all ports
    * in the system. It is used by the MlnxPlatform
    * code to generate MlnxPlatformPort & MlnxPort
@@ -354,6 +373,13 @@ class MlnxSwitch : public HwSwitch {
    * @param RxDataStruct Structure that holds data, length and receive info
    */
   void onReceivedPUDEvent(const RxDataStruct& rxData) const noexcept;
+
+  /**
+   * Callback for received host ifc events/packets
+   *
+   * @param RxDataStruct Structure that holds data, length and receive info
+   */
+  void onReceivedNeedToResolveArp(const RxDataStruct& rxData) const noexcept;
 
   // L2 processing
 
@@ -416,6 +442,157 @@ class MlnxSwitch : public HwSwitch {
    */
   void changeDefaultVlan(VlanID vlan);
 
+  // L3 processing
+
+  /**
+   * Process added L3 interface
+   *
+   * @param intf Reference to SW interface
+   */
+  void processAddedIntf(const std::shared_ptr<Interface>& intf);
+
+  /**
+   * Process removed L3 interface
+   *
+   * @param intf Reference to SW interface
+   */
+  void processRemovedIntf(const std::shared_ptr<Interface>& intf);
+
+  /**
+   * Process changed L3 interface
+   *
+   * @param oldIntf Reference to old SW interface
+   * @param newIntf Reference to new SW interface
+   */
+  void processChangedIntf(const std::shared_ptr<Interface>& oldIntf,
+    const std::shared_ptr<Interface>& newIntf);
+
+  /**
+   * Process added and changed routes
+   *
+   * @param delta SW state delta
+   * @param appliedState Pointer to switch state instance.
+   *        In case of route insertion failed
+   *        revert those changes
+   */
+  void processAddedChangedRoutes(const StateDelta& delta,
+    std::shared_ptr<SwitchState>* appliedState);
+
+  /**
+   * Process removed routes
+   *
+   * @param delta SW state delta
+   */
+  void processRemovedRoutes(const StateDelta& delta);
+
+  /**
+   * Process added route
+   * RouteT - RouteV4, RouteV6
+   *
+   * @param vrf Router/Vrf ID
+   * @param swRoute SW route to add
+   * @param appliedState Pointer to switch state instance.
+   *        In case of route insertion failed
+   *        revert those changes
+   */
+  template<typename RouteT>
+  void processAddedRoute(RouterID vrf,
+    std::shared_ptr<SwitchState>* appliedState,
+    const std::shared_ptr<RouteT>& swRoute);
+
+  /**
+   * Process removed route
+   * RouteT - RouteV4, RouteV6
+   *
+   * @param vrf Router/Vrf ID
+   * @param swRoute SW route to remove
+   */
+  template<typename RouteT>
+  void processRemovedRoute(RouterID vrf,
+    const std::shared_ptr<RouteT>& swRoute);
+
+  /**
+   * Process changed route
+   * RouteT - RouteV4, RouteV6
+   *
+   * @param vrf Router/Vrf ID
+   * @param oldRoute SW old route
+   * @param newRoute SW new route
+   * @param appliedState Pointer to switch state instance.
+   *        In case of route insertion failed
+   *        revert those changes
+   */
+  template<typename RouteT>
+  void processChangedRoute(RouterID vrf,
+    std::shared_ptr<SwitchState>* appliedState,
+    const std::shared_ptr<RouteT>& oldRoute,
+    const std::shared_ptr<RouteT>& newRoute);
+
+  /**
+   * Process added and changed neighbors
+   *
+   * @param delta SW state delta
+   * @param appliedState Pointer to switch state instance.
+   *        In case of neighbor insertion failed
+   *        revert those changes
+   */
+  void processAddedChangedNeighbors(const StateDelta& delta,
+    std::shared_ptr<SwitchState>* appliedState);
+
+  /**
+   * Process removed neighbors
+   *
+   * @param delta SW state delta
+   */
+  void processRemovedNeighbors(const StateDelta& delta);
+
+  /**
+   * Process added neighbor entry
+   * NeighEntryT - ArpEntry, NdpEntry
+   * NeighTableT - ArpTable, NdpTable
+   *
+   * @param appliedState Pointer to switch state instance.
+   *        In case of neighbor insertion failed
+   *        revert those changes
+   * @param swNeigh SW neighbor to add
+   */
+  template<typename NeighEntryT, typename NeighTableT>
+  void processAddedNeighbor(std::shared_ptr<SwitchState>* appliedState,
+    const std::shared_ptr<NeighEntryT>& swNeigh);
+
+  /**
+   * Process removed neighbor entry
+   * NeighEntryT - ArpEntry, NdpEntry
+   *
+   * @param swNeigh SW neighbor to remove
+   */
+  template<typename NeighEntryT>
+  void processRemovedNeighbor(const std::shared_ptr<NeighEntryT>& swNeigh);
+
+  /**
+   * Process changed neighbor entry
+   * NeighEntryT - ArpEntry, NdpEntry
+   * NeighTableT - ArpTable, NdpTable
+   *
+   * @param appliedState Pointer to switch state instance.
+   *        In case of neighbor insertion failed
+   *        revert those changes
+   * @param oldNeigh SW old neigh
+   * @param newNeigh SW new neigh
+   */
+  template<typename NeighEntryT, typename NeighTableT>
+  void processChangedNeighbor(std::shared_ptr<SwitchState>* appliedState,
+    const std::shared_ptr<NeighEntryT>& oldNeigh,
+    const std::shared_ptr<NeighEntryT>& newNeigh);
+
+  /**
+   * Rethrows exception if the reson of error is not
+   * that HW tables (routes, adjacency) is not full
+   *
+   * @param error
+   */
+  void rethrowIfHwNotFull(const MlnxError& error);
+
   // private fields
 
   HwSwitch::Callback* callback_{nullptr};
@@ -424,10 +601,14 @@ class MlnxSwitch : public HwSwitch {
   sx_swid_t swid_;
 
   std::unique_ptr<MlnxDevice> device_;
+  std::unique_ptr<MlnxVrf> vrf_;
   std::unique_ptr<MlnxHostIfc> hostIfc_;
 
   // tables
   std::unique_ptr<MlnxPortTable> portTable_;
+  std::unique_ptr<MlnxIntfTable> intfTable_;
+  std::unique_ptr<MlnxRouteTable> routeTable_;
+  std::unique_ptr<MlnxNeighTable> neighTable_;
 
   std::mutex lock_;
 };

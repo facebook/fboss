@@ -18,7 +18,14 @@ target_sources(fboss_agent
     fboss/agent/hw/mlnx/MlnxSwitch.cpp
     fboss/agent/hw/mlnx/MlnxSwitchSpectrum.cpp
     fboss/agent/hw/mlnx/MlnxPort.cpp
+    fboss/agent/hw/mlnx/MlnxVrf.cpp
+    fboss/agent/hw/mlnx/MlnxIntf.cpp
+    fboss/agent/hw/mlnx/MlnxRoute.cpp
+    fboss/agent/hw/mlnx/MlnxNeigh.cpp
     fboss/agent/hw/mlnx/MlnxPortTable.cpp
+    fboss/agent/hw/mlnx/MlnxIntfTable.cpp
+    fboss/agent/hw/mlnx/MlnxRouteTable.cpp
+    fboss/agent/hw/mlnx/MlnxNeighTable.cpp
     fboss/agent/hw/mlnx/MlnxPlatform.cpp
     fboss/agent/hw/mlnx/MlnxPlatformPort.cpp
     fboss/agent/hw/mlnx/MlnxUtils.cpp

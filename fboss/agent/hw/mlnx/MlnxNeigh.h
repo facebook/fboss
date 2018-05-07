@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (c) Mellanox Technologies. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,69 +31,86 @@
  */
 #pragma once
 
-#include <cstdint>
-#include <vector>
+#include "fboss/agent/state/NeighborEntry.h"
+
+extern "C" {
+#include <sx/sdk/sx_api.h>
+#include <sx/sdk/sx_router.h>
+}
+
+#include <folly/IPAddress.h>
+
 #include <string>
 
 namespace facebook { namespace fboss {
 
+class MlnxSwitch;
+
 /**
- * Struct that store hw specific configuration
+ * Structure to have a key for neighbor
+ * Contains from Interface ID and IP address of neighbor
  */
-struct MlnxConfig{
+struct MlnxNeighKey{
+  MlnxNeighKey(InterfaceID ifId,
+    const folly::IPAddress ip);
   /**
-   * Structures based on
-   * mlnx XML configuration file
-   */
-  struct PortInfo {
-    // local port number
-    uint8_t localPort;
-    // 0 - port is not active , 1 - active port
-    uint8_t mappingMode;
-    // Which lanes are allocated for this port
-    std::vector<uint8_t> lanes;
-    // front panel port number
-    uint8_t frontpanelPort;
-  };
-
-  /**
-   * Device configuration
-   */
-  struct DeviceInfo {
-    // device id
-    uint8_t deviceId;
-    // device mac
-    std::string deviceMacAddress;
-    // ports list
-    std::vector<PortInfo> ports;
-
-  } device;
-
-  /**
-   * Router module resources related configuration
-   */
-  struct RouterResourcesInfo {
-    uint32_t maxVrfNum;
-    uint32_t maxVlanRouterInterfaces;
-    uint32_t maxPortRouterInterfaces;
-    uint32_t maxRouterInterfaces;
-    uint32_t minV4NeighEntries;
-    uint32_t maxV4NeighEntries;
-    uint32_t minV6NeighEntries;
-    uint32_t maxV6NeighEntries;
-    uint32_t minV4RouteEntries;
-    uint32_t maxV4RouteEntries;
-    uint32_t minV6RouteEntries;
-    uint32_t maxV6RouteEntries;
-  } routerRsrc;
-
-  /**
-   * parse the mellanox config XML file
+   * Comparison operator for neighbor key.
+   * Required by flat_map implementation
    *
-   * @param pathToConfigFile Path to configuration XML file
+   * @param key Another MlnxNeighKey instance
+   * @ret true if this key < another key, otherwise false
    */
-  void parseConfigXml(const std::string& pathToConfigFile);
+  bool operator < (const MlnxNeighKey& key) const;
 
+  InterfaceID ifId_;
+  folly::IPAddress ip_;
+};
+
+/**
+ * Manages a neighbor entry in SDK
+ */
+class MlnxNeigh {
+ public:
+  /**
+   * ctor, creates neighbor entry in SDK
+   * Lifetime of that entry is bound to the lifetime of this object
+   * The object is creating only when we have valid MAC (the neighbor is resolved)
+   * The action is set to forward
+   *
+   * @param hw Pointer to MlnxSwitch
+   * @param key Neighbor key structure
+   * @param mac Mac address for an entry
+   */
+  MlnxNeigh(MlnxSwitch* hw,
+    const MlnxNeighKey& key,
+    const folly::MacAddress& mac);
+
+  /**
+   * dtor, deletes an entry from SDK
+   */
+  ~MlnxNeigh();
+
+  /**
+   * Serialize neighbor object into string that represents
+   * neighbor fields as written to the HW, useful for logs and debug
+   *
+   * @ret string with neighbor info
+   */
+  std::string toString() const;
+
+ private:
+  // forbidden copy constructor and assignment operator
+  MlnxNeigh(const MlnxNeigh&) = delete;
+  MlnxNeigh& operator=(const MlnxNeigh&) = delete;
+
+  // private fields
+
+  MlnxSwitch* hw_;
+  sx_api_handle_t handle_;
+  // SDK values for a neighbor
+  sx_router_interface_t rif_;
+  sx_ip_addr_t ipAddr_;
+  sx_neigh_data_t neighData_;
 };
 
 }} // facebook::fboss

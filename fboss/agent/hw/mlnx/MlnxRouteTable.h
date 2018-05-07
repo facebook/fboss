@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (c) Mellanox Technologies. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,69 +31,82 @@
  */
 #pragma once
 
-#include <cstdint>
-#include <vector>
-#include <string>
+#include "fboss/agent/hw/mlnx/MlnxRoute.h"
+#include "fboss/agent/types.h"
+
+#include <boost/container/flat_map.hpp>
+
+#include <folly/IPAddress.h>
+
+#include <memory>
 
 namespace facebook { namespace fboss {
 
-/**
- * Struct that store hw specific configuration
- */
-struct MlnxConfig{
+class MlnxSwitch;
+
+class MlnxRouteTable {
+ public:
   /**
-   * Structures based on
-   * mlnx XML configuration file
+   * RouteMapT is a map between MlnxRouteKey (router ID, network/mask) and
+   * MlnxRoute instance
    */
-  struct PortInfo {
-    // local port number
-    uint8_t localPort;
-    // 0 - port is not active , 1 - active port
-    uint8_t mappingMode;
-    // Which lanes are allocated for this port
-    std::vector<uint8_t> lanes;
-    // front panel port number
-    uint8_t frontpanelPort;
-  };
+  using RouteMapT =
+    boost::container::flat_map<MlnxRouteKey,std::unique_ptr<MlnxRoute>>;
 
   /**
-   * Device configuration
-   */
-  struct DeviceInfo {
-    // device id
-    uint8_t deviceId;
-    // device mac
-    std::string deviceMacAddress;
-    // ports list
-    std::vector<PortInfo> ports;
-
-  } device;
-
-  /**
-   * Router module resources related configuration
-   */
-  struct RouterResourcesInfo {
-    uint32_t maxVrfNum;
-    uint32_t maxVlanRouterInterfaces;
-    uint32_t maxPortRouterInterfaces;
-    uint32_t maxRouterInterfaces;
-    uint32_t minV4NeighEntries;
-    uint32_t maxV4NeighEntries;
-    uint32_t minV6NeighEntries;
-    uint32_t maxV6NeighEntries;
-    uint32_t minV4RouteEntries;
-    uint32_t maxV4RouteEntries;
-    uint32_t minV6RouteEntries;
-    uint32_t maxV6RouteEntries;
-  } routerRsrc;
-
-  /**
-   * parse the mellanox config XML file
+   * ctor, empty map
    *
-   * @param pathToConfigFile Path to configuration XML file
+   * @param hw Pointer to MlnxSwitch
    */
-  void parseConfigXml(const std::string& pathToConfigFile);
 
+  MlnxRouteTable(MlnxSwitch* hw);
+
+  /**
+   * dtor, deletes the map
+   */
+  ~MlnxRouteTable();
+
+  /**
+   * Adds a new route to a map
+   * RouteT - a route type (RouteV4, RouteV6)
+   *
+   * @param vrf Router ID
+   * @param swRoute SW Route instance
+   */
+  template<typename RouteT>
+  void addRoute(RouterID vrf, const std::shared_ptr<RouteT>& swRoute);
+
+  /**
+   * Changes exsiting route in table, throw if not found
+   * RouteT - a route type (RouteV4, RouteV6)
+   *
+   * @param vrf Router ID
+   * @param oldRoute SW old route instance
+   * @param newRoute SW new route instance
+   */
+  template<typename RouteT>
+  void changeRoute(RouterID vrf,
+    const std::shared_ptr<RouteT>& oldRoute,
+    const std::shared_ptr<RouteT>& newRoute);
+
+  /**
+   * Deletes a new route from a map
+   * RouteT - a route type (RouteV4, RouteV6)
+   *
+   * @param vrf Router ID
+   * @param swRoute SW Route instance to delete
+   */
+  template<typename RouteT>
+  void deleteRoute(RouterID vrf, const std::shared_ptr<RouteT>& swRoute);
+
+ private:
+   // forbidden copy constructor and assignment operator
+   MlnxRouteTable(const MlnxRouteTable&) = delete;
+   MlnxRouteTable& operator=(const MlnxRouteTable&) = delete;
+
+  // private fields
+  MlnxSwitch* hw_ {nullptr};
+  RouteMapT routes_ {};
 };
 
 }} // facebook::fboss

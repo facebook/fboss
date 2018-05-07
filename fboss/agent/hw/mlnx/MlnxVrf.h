@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (c) Mellanox Technologies. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,69 +31,46 @@
  */
 #pragma once
 
-#include <cstdint>
-#include <vector>
-#include <string>
+#include "fboss/agent/types.h"
+
+extern "C" {
+#include <sx/sdk/sx_api.h>
+#include <sx/sdk/sx_router.h>
+}
 
 namespace facebook { namespace fboss {
 
-/**
- * Struct that store hw specific configuration
- */
-struct MlnxConfig{
-  /**
-   * Structures based on
-   * mlnx XML configuration file
-   */
-  struct PortInfo {
-    // local port number
-    uint8_t localPort;
-    // 0 - port is not active , 1 - active port
-    uint8_t mappingMode;
-    // Which lanes are allocated for this port
-    std::vector<uint8_t> lanes;
-    // front panel port number
-    uint8_t frontpanelPort;
-  };
+class MlnxSwitch;
 
+class MlnxVrf {
+ public:
   /**
-   * Device configuration
-   */
-  struct DeviceInfo {
-    // device id
-    uint8_t deviceId;
-    // device mac
-    std::string deviceMacAddress;
-    // ports list
-    std::vector<PortInfo> ports;
-
-  } device;
-
-  /**
-   * Router module resources related configuration
-   */
-  struct RouterResourcesInfo {
-    uint32_t maxVrfNum;
-    uint32_t maxVlanRouterInterfaces;
-    uint32_t maxPortRouterInterfaces;
-    uint32_t maxRouterInterfaces;
-    uint32_t minV4NeighEntries;
-    uint32_t maxV4NeighEntries;
-    uint32_t minV6NeighEntries;
-    uint32_t maxV6NeighEntries;
-    uint32_t minV4RouteEntries;
-    uint32_t maxV4RouteEntries;
-    uint32_t minV6RouteEntries;
-    uint32_t maxV6RouteEntries;
-  } routerRsrc;
-
-  /**
-   * parse the mellanox config XML file
+   * ctor, creates VRF in SDK
    *
-   * @param pathToConfigFile Path to configuration XML file
+   * @param hw Pointer to MlnxSwitch
+   * @param id FBOSS Router ID
    */
-  void parseConfigXml(const std::string& pathToConfigFile);
+  MlnxVrf(MlnxSwitch* hw, RouterID id);
+  /**
+   * Returns SDK virtual router id
+   *
+   * @param Virtual router id
+   */
+  sx_router_id_t getSdkVrid() const;
+  /**
+   * dtor, deletes VRF from SDK
+   */
+  ~MlnxVrf();
+ private:
+  // forbidden copy ctor and assignment operator
+  MlnxVrf(const MlnxVrf&) = delete;
+  MlnxVrf& operator=(const MlnxVrf&) = delete;
 
+  // private fields
+  MlnxSwitch* hw_ {nullptr};
+  sx_api_handle_t handle_ {SX_API_INVALID_HANDLE};
+  RouterID id_;
+  sx_router_id_t vrid_;
 };
 
 }} // facebook::fboss

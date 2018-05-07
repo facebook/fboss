@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (c) Mellanox Technologies. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,69 +31,61 @@
  */
 #pragma once
 
-#include <cstdint>
-#include <vector>
-#include <string>
+#include <boost/container/flat_map.hpp>
+
+#include <memory>
 
 namespace facebook { namespace fboss {
 
+class MlnxSwitch;
+
+struct MlnxNeighKey;
+class MlnxNeigh;
+
 /**
- * Struct that store hw specific configuration
+ * This class is a table for MlnxNeigh objects
+ * Contains mapping between MlnxNeighKey (Interface Id, neighbor ip address)
+ * and MlnxNeigh instance
  */
-struct MlnxConfig{
-  /**
-   * Structures based on
-   * mlnx XML configuration file
-   */
-  struct PortInfo {
-    // local port number
-    uint8_t localPort;
-    // 0 - port is not active , 1 - active port
-    uint8_t mappingMode;
-    // Which lanes are allocated for this port
-    std::vector<uint8_t> lanes;
-    // front panel port number
-    uint8_t frontpanelPort;
-  };
+class MlnxNeighTable {
+ public:
+  // NeighMapT - type for container
+  using NeighMapT =
+    boost::container::flat_map<MlnxNeighKey, std::unique_ptr<MlnxNeigh>>;
 
   /**
-   * Device configuration
-   */
-  struct DeviceInfo {
-    // device id
-    uint8_t deviceId;
-    // device mac
-    std::string deviceMacAddress;
-    // ports list
-    std::vector<PortInfo> ports;
-
-  } device;
-
-  /**
-   * Router module resources related configuration
-   */
-  struct RouterResourcesInfo {
-    uint32_t maxVrfNum;
-    uint32_t maxVlanRouterInterfaces;
-    uint32_t maxPortRouterInterfaces;
-    uint32_t maxRouterInterfaces;
-    uint32_t minV4NeighEntries;
-    uint32_t maxV4NeighEntries;
-    uint32_t minV6NeighEntries;
-    uint32_t maxV6NeighEntries;
-    uint32_t minV4RouteEntries;
-    uint32_t maxV4RouteEntries;
-    uint32_t minV6RouteEntries;
-    uint32_t maxV6RouteEntries;
-  } routerRsrc;
-
-  /**
-   * parse the mellanox config XML file
+   * ctor, creates an empty map
    *
-   * @param pathToConfigFile Path to configuration XML file
+   * @param hw Pointer to MlnxSwitch
    */
-  void parseConfigXml(const std::string& pathToConfigFile);
+  MlnxNeighTable(MlnxSwitch* hw);
 
+  /**
+   * dtor, deletes table and all neighbors
+   */
+  ~MlnxNeighTable();
+
+  /**
+   * Adds a neighbor to table
+   *
+   * @param swNeigh SW neighbor entry object to add
+   */
+  template <typename NeighEntryT>
+  void addNeigh(const std::shared_ptr<NeighEntryT>& swNeigh);
+
+  /**
+   * Deletes a neighbor to table
+   *
+   * @param swNeigh SW neighbor entry object to delete
+   */
+  template <typename NeighEntryT>
+  void deleteNeigh(const std::shared_ptr<NeighEntryT>& swNeigh);
+
+ private:
+  // privatge fields
+
+  MlnxSwitch* hw_ {nullptr};
+  NeighMapT neighbors_ {};
 };
 
 }} // facebook::fboss

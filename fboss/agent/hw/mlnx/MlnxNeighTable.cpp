@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (c) Mellanox Technologies. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,71 +29,58 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#pragma once
+#include "fboss/agent/hw/mlnx/MlnxNeighTable.h"
+#include "fboss/agent/hw/mlnx/MlnxNeigh.h"
+#include "fboss/agent/hw/mlnx/MlnxSwitch.h"
 
-#include <cstdint>
-#include <vector>
-#include <string>
+#include "fboss/agent/state/ArpEntry.h"
+#include "fboss/agent/state/NdpEntry.h"
 
 namespace facebook { namespace fboss {
 
-/**
- * Struct that store hw specific configuration
- */
-struct MlnxConfig{
-  /**
-   * Structures based on
-   * mlnx XML configuration file
-   */
-  struct PortInfo {
-    // local port number
-    uint8_t localPort;
-    // 0 - port is not active , 1 - active port
-    uint8_t mappingMode;
-    // Which lanes are allocated for this port
-    std::vector<uint8_t> lanes;
-    // front panel port number
-    uint8_t frontpanelPort;
-  };
+MlnxNeighTable::MlnxNeighTable(MlnxSwitch* hw) :
+  hw_(hw) {
+}
 
-  /**
-   * Device configuration
-   */
-  struct DeviceInfo {
-    // device id
-    uint8_t deviceId;
-    // device mac
-    std::string deviceMacAddress;
-    // ports list
-    std::vector<PortInfo> ports;
+MlnxNeighTable::~MlnxNeighTable() {
+}
 
-  } device;
+template <typename NeighEntryT>
+void MlnxNeighTable::addNeigh(const std::shared_ptr<NeighEntryT>& swNeigh) {
+  // construct a key for this neighbor
+  InterfaceID ifId = swNeigh->getIntfID();
+  const folly::IPAddress& ip = swNeigh->getIP();
+  const folly::MacAddress& mac = swNeigh->getMac();
+  MlnxNeighKey key {ifId, ip};
 
-  /**
-   * Router module resources related configuration
-   */
-  struct RouterResourcesInfo {
-    uint32_t maxVrfNum;
-    uint32_t maxVlanRouterInterfaces;
-    uint32_t maxPortRouterInterfaces;
-    uint32_t maxRouterInterfaces;
-    uint32_t minV4NeighEntries;
-    uint32_t maxV4NeighEntries;
-    uint32_t minV6NeighEntries;
-    uint32_t maxV6NeighEntries;
-    uint32_t minV4RouteEntries;
-    uint32_t maxV4RouteEntries;
-    uint32_t minV6RouteEntries;
-    uint32_t maxV6RouteEntries;
-  } routerRsrc;
+  // create and insert MlnxNeigh in table
+  neighbors_.emplace(key, std::make_unique<MlnxNeigh>(hw_, key, mac));
+}
 
-  /**
-   * parse the mellanox config XML file
-   *
-   * @param pathToConfigFile Path to configuration XML file
-   */
-  void parseConfigXml(const std::string& pathToConfigFile);
+template <typename NeighEntryT>
+void MlnxNeighTable::deleteNeigh(const std::shared_ptr<NeighEntryT>& swNeigh) {
+  // construct a key for this neighbor
+  InterfaceID ifId = swNeigh->getIntfID();
+  const folly::IPAddress& ip = swNeigh->getIP();
+  MlnxNeighKey key {ifId, ip};
 
-};
+  // delete MlnxNeigh and erase from table
+  neighbors_.erase(key);
+}
+
+// force compiler to generate code for NeighEntryT=ArpEntry
+// and NeighEntryT=NdpEnty
+
+template void
+MlnxNeighTable::addNeigh(const std::shared_ptr<ArpEntry>&);
+
+template void
+MlnxNeighTable::addNeigh(const std::shared_ptr<NdpEntry>&);
+
+template void
+MlnxNeighTable::deleteNeigh(const std::shared_ptr<ArpEntry>&);
+
+template void
+MlnxNeighTable::deleteNeigh(const std::shared_ptr<NdpEntry>&);
 
 }} // facebook::fboss

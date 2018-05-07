@@ -256,4 +256,17 @@
             </port-info>
         </ports-list>
     </device>
+
+    <router-resources>
+      <max-vrf>2</max-vrf>
+      <max-vlan-router-interfaces>64</max-vlan-router-interfaces>
+      <max-port-router-interfaces>64</max-port-router-interfaces>
+      <max-router-interfaces>64</max-router-interfaces>
+      <!-- next parameters defaults set to 0; in this case SDK will
+           allocate memory when needed -->
+      <max-ipv4-neighbor-entries>0</max-ipv4-neighbor-entries>
+      <max-ipv6-neighbor-entries>0</max-ipv6-neighbor-entries>
+      <max-ipv4-route-entries>0</max-ipv4-route-entries>
+      <max-ipv6-route-entries>0</max-ipv6-route-entries>
+    </router-resources>
 </root>
