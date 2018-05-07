@@ -481,7 +481,7 @@ void BcmSwitch::runBcmScriptPreAsicInit() const {
 
 void BcmSwitch::setupLinkscan() {
   if (!(featuresDesired_ & LINKSCAN_DESIRED)) {
-    LOG(INFO) << " Skipping linkscan registeration as the feature is disabled";
+    VLOG(1) << " Skipping linkscan registeration as the feature is disabled";
     return;
   }
   auto rv = opennsl_linkscan_register(unit_, linkscanCallback);
@@ -679,7 +679,7 @@ void BcmSwitch::setupToCpuEgress() {
 
 void BcmSwitch::setupPacketRx() {
   if (!(featuresDesired_ & PACKET_RX_DESIRED)) {
-    LOG(INFO) <<" Skip settiing up packet RX since its explicitly disabled";
+    VLOG(1) <<" Skip settiing up packet RX since its explicitly disabled";
     return;
   }
   static opennsl_rx_cfg_t _rx_cfg = {
@@ -991,7 +991,7 @@ bool BcmSwitch::isValidPortUpdate(const shared_ptr<Port>& oldPort,
   if (speedChanged || enabled) {
     auto bcmPort = portTable_->getBcmPort(newPort->getID());
     auto portGroup = bcmPort->getPortGroup();
-    LOG(INFO) << "Verifying port group config for : " << newPort->getID();
+    VLOG(1) << "Verifying port group config for : " << newPort->getID();
     return !portGroup || portGroup->validConfiguration(newState);
   }
   return true;
