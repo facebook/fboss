@@ -11,6 +11,7 @@
 
 #include <boost/assign.hpp>
 #include <string>
+#include <numeric>
 #include <iomanip>
 #include "fboss/agent/FbossError.h"
 #include "fboss/qsfp_service/sff/TransceiverImpl.h"
@@ -685,12 +686,18 @@ RawDOMData QsfpModule::getRawDOMData() {
 }
 
 bool QsfpModule::safeToCustomize() const {
-  if (ports_.size() < CHANNEL_COUNT) {
+  auto channelsInUse = std::accumulate(std::begin(ports_), std::end(ports_),
+      0,
+      [] (int32_t channels, const auto& port) {
+        return channels + port.second.get_transceiverIdx()->channels.size();
+      });
+
+  if (channelsInUse < CHANNEL_COUNT) {
     VLOG(2) << "Not all channels present in transceiver" << getID()
-               << "... skip customization";
+            << "... skip customization";
 
     return false;
-  } else if (ports_.size() > CHANNEL_COUNT) {
+  } else if (channelsInUse > CHANNEL_COUNT) {
     throw FbossError(
       ports_.size(), " channels found in transceiver ", getID(),
       " (max=", CHANNEL_COUNT, ")");
