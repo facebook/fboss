@@ -151,36 +151,22 @@ class LacpServiceInterceptor : public LacpServicerIf {
   LacpState lastActorStateTransmitted(PortID portID) {
     LacpState actorStateTransmitted = LacpState::NONE;
 
-    lacpEvb_->runInEventBaseThreadAndWait([this,
-                                           portID,
-                                           &actorStateTransmitted]() {
-      auto portToLastTransmissionLocked = portToLastTransmission_.rlock();
-      auto portAndLastTransmissionIter =
-          portToLastTransmissionLocked->find(portID);
-      if (portAndLastTransmissionIter == portToLastTransmissionLocked->end()) {
-        throw std::out_of_range("No port found");
-      }
-      actorStateTransmitted =
-          portAndLastTransmissionIter->second.actorInfo.state;
-    });
+    lacpEvb_->runInEventBaseThreadAndWait(
+        [this, portID, &actorStateTransmitted]() {
+          auto lastTransmission = portToLastTransmission_.rlock()->at(portID);
+          actorStateTransmitted = lastTransmission.actorInfo.state;
+        });
 
     return actorStateTransmitted;
   }
   LacpState lastPartnerStateTransmitted(PortID portID) {
     LacpState partnerStateTransmitted = LacpState::NONE;
 
-    lacpEvb_->runInEventBaseThreadAndWait([this,
-                                           portID,
-                                           &partnerStateTransmitted]() {
-      auto portToLastTransmissionLocked = portToLastTransmission_.rlock();
-      auto portAndLastTransmissionIter =
-          portToLastTransmissionLocked->find(portID);
-      if (portAndLastTransmissionIter == portToLastTransmissionLocked->end()) {
-        throw std::out_of_range("No port found");
-      }
-      partnerStateTransmitted =
-          portAndLastTransmissionIter->second.partnerInfo.state;
-    });
+    lacpEvb_->runInEventBaseThreadAndWait(
+        [this, portID, &partnerStateTransmitted]() {
+          auto lastTransmission = portToLastTransmission_.rlock()->at(portID);
+          partnerStateTransmitted = lastTransmission.partnerInfo.state;
+        });
 
     return partnerStateTransmitted;
   }
@@ -188,13 +174,7 @@ class LacpServiceInterceptor : public LacpServicerIf {
     bool forwarding = false;
 
     lacpEvb_->runInEventBaseThreadAndWait([this, portID, &forwarding]() {
-      auto portToIsForwardingLocked = portToIsForwarding_.rlock();
-      auto portAndIsForwardingIter = portToIsForwardingLocked->find(portID);
-      if (portAndIsForwardingIter == portToIsForwardingLocked->end()) {
-        throw std::out_of_range("No port found");
-      }
-
-      forwarding = portAndIsForwardingIter->second;
+      forwarding = portToIsForwarding_.rlock()->at(portID);
     });
 
     return forwarding;
