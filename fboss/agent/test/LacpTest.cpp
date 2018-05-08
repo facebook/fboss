@@ -76,17 +76,7 @@ class LacpServiceInterceptor : public LacpServicerIf {
   bool transmit(LACPDU lacpdu, PortID portID) override {
     auto portToLastTransmissionLocked = portToLastTransmission_.wlock();
 
-    auto portAndLastTransmissionIter =
-        portToLastTransmissionLocked->find(portID);
-
-    if (portAndLastTransmissionIter == portToLastTransmissionLocked->end()) {
-      bool inserted;
-      std::tie(portAndLastTransmissionIter, inserted) =
-          portToLastTransmissionLocked->emplace(portID, lacpdu);
-      CHECK(inserted);
-    } else {
-      portAndLastTransmissionIter->second = lacpdu;
-    }
+    (*portToLastTransmissionLocked)[portID] = lacpdu;
 
     // "Transmit" the frame
     return true;
@@ -94,16 +84,7 @@ class LacpServiceInterceptor : public LacpServicerIf {
   void enableForwarding(PortID portID, AggregatePortID aggPortID) override {
     auto portToIsForwardingLocked = portToIsForwarding_.wlock();
 
-    auto portAndIsForwardingIter = portToIsForwardingLocked->find(portID);
-
-    if (portAndIsForwardingIter == portToIsForwardingLocked->end()) {
-      bool inserted;
-      std::tie(portAndIsForwardingIter, inserted) =
-          portToIsForwardingLocked->emplace(portID, true);
-      CHECK(inserted);
-    } else {
-      portAndIsForwardingIter->second = true;
-    }
+    (*portToIsForwardingLocked)[portID] = true;
 
     // "Enable" forwarding
     LOG(INFO) << "Enabling member " << portID << " in "
@@ -112,16 +93,7 @@ class LacpServiceInterceptor : public LacpServicerIf {
   void disableForwarding(PortID portID, AggregatePortID aggPortID) override {
     auto portToIsForwardingLocked = portToIsForwarding_.wlock();
 
-    auto portAndIsForwardingIter = portToIsForwardingLocked->find(portID);
-
-    if (portAndIsForwardingIter == portToIsForwardingLocked->end()) {
-      bool inserted;
-      std::tie(portAndIsForwardingIter, inserted) =
-          portToIsForwardingLocked->emplace(portID, false);
-      CHECK(inserted);
-    } else {
-      portAndIsForwardingIter->second = false;
-    }
+    (*portToIsForwardingLocked)[portID] = false;
 
     // "Disable" forwarding
     LOG(INFO) << "Disabling member " << portID << " in "
