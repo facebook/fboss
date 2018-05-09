@@ -18,9 +18,6 @@
 
 namespace facebook { namespace fboss {
 
-/**
- * Multiple RouteNextHop for ECMP route.
- */
 class RouteNextHopEntry {
  public:
   using Action = RouteForwardAction;
@@ -98,8 +95,6 @@ void toAppend(const RouteNextHopEntry::NextHopSet& nhops, std::string *result);
 std::ostream& operator<<(
     std::ostream& os, const RouteNextHopEntry::NextHopSet& nhops);
 
-// TODO: replace all RouteNextHops with RouteNextHopSet
-using RouteNextHops = RouteNextHopEntry::NextHopSet;
 using RouteNextHopSet = RouteNextHopEntry::NextHopSet;
 
 namespace util {
@@ -107,15 +102,14 @@ namespace util {
 /**
  * Convert thrift representation of nexthops to RouteNextHops.
  */
-RouteNextHops
-toRouteNextHops(std::vector<NextHopThrift> const& nhs);
+RouteNextHopSet
+toRouteNextHopSet(std::vector<NextHopThrift> const& nhts);
 
 /**
  * Convert RouteNextHops to thrift representaion of nexthops
  */
 std::vector<NextHopThrift>
-fromRouteNextHops(RouteNextHops const& nhs);
-
+fromRouteNextHopSet(RouteNextHopSet const& nhs);
 }
 
 }}

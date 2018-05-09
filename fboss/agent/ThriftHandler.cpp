@@ -271,7 +271,7 @@ void ThriftHandler::updateUnicastRoutesImpl(
       } else {
         nhts = route.nextHops;
       }
-      RouteNextHops nexthops = util::toRouteNextHops(nhts);
+      RouteNextHopSet nexthops = util::toRouteNextHopSet(nhts);
       if (nexthops.size()) {
         updater.addRoute(routerId, network, mask, ClientID(client),
                          RouteNextHopEntry(std::move(nexthops), adminDistance));
@@ -711,7 +711,7 @@ void ThriftHandler::getRouteTableByClient(
       UnicastRoute tempRoute;
       tempRoute.dest.ip = toBinaryAddress(ipv4->prefix().network);
       tempRoute.dest.prefixLength = ipv4->prefix().mask;
-      tempRoute.nextHops = util::fromRouteNextHops(entry->getNextHopSet());
+      tempRoute.nextHops = util::fromRouteNextHopSet(entry->getNextHopSet());
       for (const auto& nh : tempRoute.nextHops) {
         tempRoute.nextHopAddrs.emplace_back(nh.address);
       }
@@ -727,7 +727,7 @@ void ThriftHandler::getRouteTableByClient(
       UnicastRoute tempRoute;
       tempRoute.dest.ip = toBinaryAddress(ipv6->prefix().network);
       tempRoute.dest.prefixLength = ipv6->prefix().mask;
-      tempRoute.nextHops = util::fromRouteNextHops(entry->getNextHopSet());
+      tempRoute.nextHops = util::fromRouteNextHopSet(entry->getNextHopSet());
       for (const auto& nh : tempRoute.nextHops) {
         tempRoute.nextHopAddrs.emplace_back(nh.address);
       }

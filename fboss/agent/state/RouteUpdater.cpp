@@ -501,7 +501,7 @@ void RouteUpdater::updateStaticRoutes(const cfg::SwitchConfig& curCfg,
     for (const auto& route : curCfg.staticRoutesWithNhops) {
       RouterID rid(route.routerID) ;
       auto network = IPAddress::createNetwork(route.prefix);
-      RouteNextHops nhops;
+      RouteNextHopSet nhops;
       for (auto& nhopStr : route.nexthops) {
         nhops.emplace(
             RouteNextHop::createNextHop(folly::IPAddress(nhopStr)));

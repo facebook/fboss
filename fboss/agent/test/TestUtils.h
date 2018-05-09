@@ -195,7 +195,7 @@ std::string fbossHexDump(folly::ByteRange buf);
 std::string fbossHexDump(folly::StringPiece buf);
 std::string fbossHexDump(const std::string& buf);
 
-RouteNextHops makeNextHops(std::vector<std::string> ipStrs);
+RouteNextHopSet makeNextHops(std::vector<std::string> ipStrs);
 
 RoutePrefixV4 makePrefixV4(std::string str);
 

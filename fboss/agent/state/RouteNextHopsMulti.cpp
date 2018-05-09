@@ -66,7 +66,7 @@ std::string RouteNextHopsMulti::str() const {
   std::string ret = "";
   for (auto const & row : map_) {
     int clientid = row.first;
-    RouteNextHops const& nxtHps = row.second.getNextHopSet();
+    RouteNextHopSet const& nxtHps = row.second.getNextHopSet();
 
     ret.append(folly::to<std::string>("(client#", clientid, ": "));
     for (const auto& nh : nxtHps) {

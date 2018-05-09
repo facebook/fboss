@@ -364,7 +364,7 @@ shared_ptr<SwitchState> testStateA() {
   RouteUpdater updater(state->getRouteTables());
   updater.addInterfaceAndLinkLocalRoutes(state->getInterfaces());
 
-  RouteNextHops nexthops;
+  RouteNextHopSet nexthops;
   // resolved by intf 1
   nexthops.emplace(RouteNextHop::createNextHop(IPAddress("10.0.0.22")));
   // resolved by intf 1
@@ -538,8 +538,8 @@ void RxPacketMatcher::DescribeNegationTo(std::ostream* os) const {
   *os << "not " << name_;
 }
 
-RouteNextHops makeNextHops(std::vector<std::string> ipStrs) {
-  RouteNextHops nhops;
+RouteNextHopSet makeNextHops(std::vector<std::string> ipStrs) {
+  RouteNextHopSet nhops;
   for (const std::string & ip : ipStrs) {
     nhops.emplace(RouteNextHop::createNextHop(IPAddress(ip)));
   }

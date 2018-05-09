@@ -150,8 +150,8 @@ TEST(RouteUpdater, dedup) {
 
   auto rid = RouterID(0);
   // 2 different nexthops
-  RouteNextHops nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
-  RouteNextHops nhop2 = makeNextHops({"2.2.2.10"}); // resolved by intf 2
+  RouteNextHopSet nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
+  RouteNextHopSet nhop2 = makeNextHops({"2.2.2.10"}); // resolved by intf 2
   // 4 prefixes
   RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
   RouteV4::Prefix r2{IPAddressV4("20.1.1.0"), 24};
@@ -230,15 +230,16 @@ TEST(Route, resolve) {
   // recursive lookup
   {
     RouteUpdater u1(stateV1->getRouteTables());
-    RouteNextHops nexthops1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
+    RouteNextHopSet nexthops1 =
+        makeNextHops({"1.1.1.10"}); // resolved by intf 1
     u1.addRoute(
         rid,
         IPAddress("1.1.3.0"),
         24,
         CLIENT_A,
         RouteNextHopEntry(nexthops1, DISTANCE));
-    RouteNextHops nexthops2 = makeNextHops({"1.1.3.10"}); // rslvd. by
-                                                          // '1.1.3/24'
+    RouteNextHopSet nexthops2 = makeNextHops({"1.1.3.10"}); // rslvd. by
+                                                            // '1.1.3/24'
     u1.addRoute(
         rid,
         IPAddress("8.8.8.0"),
@@ -314,7 +315,7 @@ TEST(Route, resolve) {
   // recursive lookup across 2 updates
   {
     RouteUpdater u1(stateV1->getRouteTables());
-    RouteNextHops nexthops1 = makeNextHops({"50.0.0.1"});
+    RouteNextHopSet nexthops1 = makeNextHops({"50.0.0.1"});
     u1.addRoute(
         rid,
         IPAddress("40.0.0.0"),
@@ -470,11 +471,11 @@ TEST(Route, addDel) {
 
   auto rid = RouterID(0);
 
-  RouteNextHops nexthops = makeNextHops({"1.1.1.10", // intf 1
-                                         "2::2", // intf 2
-                                         "1.1.2.10"}); // un-resolvable
-  RouteNextHops nexthops2 = makeNextHops({"1.1.3.10", // un-resolvable
-                                          "11:11::1"}); // un-resolvable
+  RouteNextHopSet nexthops = makeNextHops({"1.1.1.10", // intf 1
+                                           "2::2", // intf 2
+                                           "1.1.2.10"}); // un-resolvable
+  RouteNextHopSet nexthops2 = makeNextHops({"1.1.3.10", // un-resolvable
+                                            "11:11::1"}); // un-resolvable
 
   RouteUpdater u1(stateV1->getRouteTables());
   u1.addRoute(
@@ -1077,7 +1078,7 @@ TEST(Route, changedRoutesPostUpdate) {
   ASSERT_NE(nullptr, stateV1);
   stateV1->publish();
   auto rid = RouterID(0);
-  RouteNextHops nexthops = makeNextHops({"1.1.1.10", // resolved by intf 1
+  RouteNextHopSet nexthops = makeNextHops({"1.1.1.10", // resolved by intf 1
                                          "2::2"}); // resolved by intf 2
 
   auto numChangedRoutes = [=](const RTMapDelta& delta) {
@@ -1388,8 +1389,8 @@ TEST(Route, PruneChangedRoutes) {
 // Utility function for creating a nexthops list of size n,
 // starting with the prefix.  For prefix "1.1.1.", first
 // IP in the list will be 1.1.1.10
-RouteNextHops newNextHops(int n, std::string prefix) {
-  RouteNextHops h;
+RouteNextHopSet newNextHops(int n, std::string prefix) {
+  RouteNextHopSet h;
   for (int i = 0; i < n; i++) {
     auto ipStr = prefix + std::to_string(i + 10);
     h.emplace(RouteNextHop::createNextHop(IPAddress(ipStr)));
@@ -1408,9 +1409,9 @@ TEST(Route, modRoutes) {
   RouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
   RouteV4::Prefix prefix99{IPAddressV4("99.99.99.99"), 32};
 
-  RouteNextHops nexthops1 = newNextHops(3, "1.1.1.");
-  RouteNextHops nexthops2 = newNextHops(3, "2.2.2.");
-  RouteNextHops nexthops3 = newNextHops(3, "3.3.3.");
+  RouteNextHopSet nexthops1 = newNextHops(3, "1.1.1.");
+  RouteNextHopSet nexthops2 = newNextHops(3, "2.2.2.");
+  RouteNextHopSet nexthops3 = newNextHops(3, "3.3.3.");
 
   u1.addRoute(
       rid,
@@ -1574,7 +1575,7 @@ TEST(Route, equality) {
   // Now replace obj1's CLIENT_B list with the original list.
   // But construct the list in opposite order.
   // Objects should still be equal, despite the order of construction.
-  RouteNextHops nextHopsRev;
+  RouteNextHopSet nextHopsRev;
   nextHopsRev.emplace(RouteNextHop::createNextHop(IPAddress("2.2.2.12")));
   nextHopsRev.emplace(RouteNextHop::createNextHop(IPAddress("2.2.2.11")));
   nextHopsRev.emplace(RouteNextHop::createNextHop(IPAddress("2.2.2.10")));
@@ -1856,14 +1857,14 @@ TEST(Route, dropRoutes) {
       CLIENT_A,
       RouteNextHopEntry(DROP, DISTANCE));
   // Check recursive resolution for drop routes
-  RouteNextHops v4nexthops = makeNextHops({"10.10.10.10"});
+  RouteNextHopSet v4nexthops = makeNextHops({"10.10.10.10"});
   u1.addRoute(
       rid,
       IPAddress("20.20.20.0"),
       24,
       CLIENT_A,
       RouteNextHopEntry(v4nexthops, DISTANCE));
-  RouteNextHops v6nexthops = makeNextHops({"2001::0"});
+  RouteNextHopSet v6nexthops = makeNextHops({"2001::0"});
   u1.addRoute(
       rid,
       IPAddress("2001:1::"),
@@ -1919,14 +1920,14 @@ TEST(Route, toCPURoutes) {
       CLIENT_A,
       RouteNextHopEntry(TO_CPU, DISTANCE));
   // Check recursive resolution for to_cpu routes
-  RouteNextHops v4nexthops = makeNextHops({"10.10.10.10"});
+  RouteNextHopSet v4nexthops = makeNextHops({"10.10.10.10"});
   u1.addRoute(
       rid,
       IPAddress("20.20.20.0"),
       24,
       CLIENT_A,
       RouteNextHopEntry(v4nexthops, DISTANCE));
-  RouteNextHops v6nexthops = makeNextHops({"2001::0"});
+  RouteNextHopSet v6nexthops = makeNextHops({"2001::0"});
   u1.addRoute(
       rid,
       IPAddress("2001:1::"),
@@ -1988,8 +1989,8 @@ TEST(Route, serializeRouteTable) {
 
   auto rid = RouterID(0);
   // 2 different nexthops
-  RouteNextHops nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
-  RouteNextHops nhop2 = makeNextHops({"2.2.2.10"}); // resolved by intf 2
+  RouteNextHopSet nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
+  RouteNextHopSet nhop2 = makeNextHops({"2.2.2.10"}); // resolved by intf 2
   // 4 prefixes
   RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
   RouteV4::Prefix r2{IPAddressV4("20.1.1.0"), 24};
@@ -2026,9 +2027,9 @@ TEST(Route, serializeRouteTable) {
   EXPECT_ROUTETABLERIB_MATCH(origRt->getRibV6(), desRt->getRibV6());
 }
 
-// Test utility functions for converting RouteNextHops to thrift and back
+// Test utility functions for converting RouteNextHopSet to thrift and back
 TEST(RouteTypes, toFromRouteNextHops) {
-  RouteNextHops nhs;
+  RouteNextHopSet nhs;
 
   // Non v4 link-local address without interface scoping
   nhs.emplace(
@@ -2049,7 +2050,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
       RouteNextHop::createNextHop(folly::IPAddress("fe80::1"), InterfaceID(4)));
 
   // Convert to thrift object
-  auto nhts = util::fromRouteNextHops(nhs);
+  auto nhts = util::fromRouteNextHopSet(nhs);
   ASSERT_EQ(5, nhts.size());
 
   auto verify = [&](const std::string& ipaddr,
@@ -2080,8 +2081,8 @@ TEST(RouteTypes, toFromRouteNextHops) {
   verify("face:b00c::1", folly::none);
   verify("fe80::1", InterfaceID(4));
 
-  // Convert back to RouteNextHops
-  auto newNhs = util::toRouteNextHops(nhts);
+  // Convert back to RouteNextHopSet
+  auto newNhs = util::toRouteNextHopSet(nhts);
   EXPECT_EQ(nhs, newNhs);
 
   //
@@ -2118,9 +2119,9 @@ TEST(Route, nodeMapMatchesRadixTree) {
   auto tables1 = stateV1->getRouteTables();
 
   auto rid = RouterID(0);
-  RouteNextHops nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
-  RouteNextHops nhop2 = makeNextHops({"2.2.2.10"}); // resolved by intf 2
-  RouteNextHops nonResolvedHops = makeNextHops({"1.1.3.10"}); // Non-resolved
+  RouteNextHopSet nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
+  RouteNextHopSet nhop2 = makeNextHops({"2.2.2.10"}); // resolved by intf 2
+  RouteNextHopSet nonResolvedHops = makeNextHops({"1.1.3.10"}); // Non-resolved
 
   RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
   RouteV4::Prefix r2{IPAddressV4("20.1.1.0"), 24};

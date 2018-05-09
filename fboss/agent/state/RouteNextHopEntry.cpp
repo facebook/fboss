@@ -21,9 +21,9 @@ namespace facebook { namespace fboss {
 
 namespace util {
 
-RouteNextHops
-toRouteNextHops(std::vector<NextHopThrift> const& nhs) {
-  RouteNextHops rnhs;
+RouteNextHopSet
+toRouteNextHopSet(std::vector<NextHopThrift> const& nhs) {
+  RouteNextHopSet rnhs;
   rnhs.reserve(nhs.size());
   for (auto const& nh : nhs) {
     rnhs.emplace(RouteNextHop::fromThrift(nh));
@@ -32,7 +32,7 @@ toRouteNextHops(std::vector<NextHopThrift> const& nhs) {
 }
 
 std::vector<NextHopThrift>
-fromRouteNextHops(RouteNextHops const& nhs) {
+fromRouteNextHopSet(RouteNextHopSet const& nhs) {
   std::vector<NextHopThrift> nhts;
   nhts.reserve(nhs.size());
   for (auto const& nh : nhs) {

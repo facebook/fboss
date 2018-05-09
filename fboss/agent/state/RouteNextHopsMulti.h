@@ -27,17 +27,16 @@ namespace facebook { namespace fboss {
  * RouteNextHopsMulti is a map from client ID to RouteNextHopEntry.
  *
  * There are two types of RouteNextHopEntry in general.
- * 1) An entry with multiple nexthop IPs (RouteNextHops), OR
+ * 1) An entry with multiple nexthop IPs (RouteNextHopSet), OR
  * 2) no nexthop IPs, but with pre-defined forwarding action
  *    (i.e. ToCPU or DROP)
  * Each RouteNextHopEntry also has other common attribute, like admin distance.
  *
- * RouteNextHops is a set of RouteNextHop.
+ * RouteNextHopSet is a set of RouteNextHop.
  *
  * RouteNextHop contains the nexthop IP address. In case of the v6 link-local
  * IP address, the interface ID is also included in this class.
  *
- * TODO: Rename RouteNextHops to RouteNextHopSet
  */
 
 /**
