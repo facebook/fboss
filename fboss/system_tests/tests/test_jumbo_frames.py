@@ -11,7 +11,7 @@ JUMBO_FRAME_SIZE = 9000
 PACKET_HEADER = 62
 
 
-@test_tags("jumbo_frame", "run-on-diff")
+@test_tags("jumbo_frame", "run-on-diff", "trunk-stable")
 class JumboFrameTest(FbossBaseSystemTest):
     def _is_topology_jumbo_frame_enabled(self):
         '''

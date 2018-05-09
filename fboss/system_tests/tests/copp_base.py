@@ -2,7 +2,6 @@
 
 import fboss.system_tests.testutils.packet as packet
 
-
 HIGH_PRI_QUEUE = 9
 MID_PRI_QUEUE = 2
 DOWNLINK_VLAN = 2000

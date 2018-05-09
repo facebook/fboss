@@ -9,7 +9,7 @@ import subprocess
 from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 
 
-@test_tags("cmdline", "run-on-diff")
+@test_tags("cmdline", "run-on-diff", "trunk-stable")
 class FbossHostsCmdline(FbossBaseSystemTest):
     """ Does the 'fboss' tool work correctly? """
     FBOSS_CMD = '/usr/local/bin/fboss'

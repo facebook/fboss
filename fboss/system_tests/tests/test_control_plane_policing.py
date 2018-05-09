@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
-from fboss.system_tests.system_tests import FbossBaseSystemTest
+from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 import fboss.system_tests.testutils.packet as packet
 from fboss.system_tests.tests.copp_base import CoppBase
 
 
+@test_tags("new-test")
 class CoppTest(CoppBase, FbossBaseSystemTest):
     """ Test that packets sent to CPU get the correct control plane policy
         applied.

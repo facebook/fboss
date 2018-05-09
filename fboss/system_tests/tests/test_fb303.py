@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 
 
-@test_tags("run-on-diff")
+@test_tags("run-on-diff", "trunk-stable")
 class Fb303Tests(FbossBaseSystemTest):
     """ Verify we receive well-formatted IPv6 route advertisments
         On all hosts, on all interfaces

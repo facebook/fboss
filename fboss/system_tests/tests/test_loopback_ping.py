@@ -14,7 +14,7 @@ from neteng.fboss.ttypes import FbossBaseError
 from libfb.py.decorators import retryable
 
 
-@test_tags("loopback", "run-on-diff")
+@test_tags("loopback", "run-on-diff", "trunk-stable")
 class LoopbackPing(FbossBaseSystemTest):
     """ Test whether host can ping other hosts' loopback interface
         """

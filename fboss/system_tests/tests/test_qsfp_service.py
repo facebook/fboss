@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 
 
-@test_tags("qsfp", "run-on-diff")
+@test_tags("qsfp", "new-test")
 class QsfpService(FbossBaseSystemTest):
     """ Thrift connect to the qsfp service and
         verify everything looks OK

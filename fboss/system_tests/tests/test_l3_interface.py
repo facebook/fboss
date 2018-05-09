@@ -16,9 +16,10 @@ def _append_outgoing_interface(ip, host_intf, is_ipv4=True):
     else:
         return None
 
+
 # By the time we get here, connectivity to the switch
 # and the hosts has been verified
-@test_tags("l3interface", "run-on-diff")
+@test_tags("l3interface", "run-on-diff", "trunk-stable")
 class L3InterfacesTest(FbossBaseSystemTest):
     """
     Ping Each L3 Interface from Each host

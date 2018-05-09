@@ -6,7 +6,8 @@ from __future__ import unicode_literals
 from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 from fboss.system_tests.testutils.packet import run_iperf
 
-@test_tags("iperf", "run-on-diff")
+
+@test_tags("iperf", "run-on-diff", "trunk-stable")
 class Iperf3AllPairs(FbossBaseSystemTest):
     """ Make sure each host can ping every other host """
     def test_pair_iperf3(self):

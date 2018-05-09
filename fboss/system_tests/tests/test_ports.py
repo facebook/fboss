@@ -12,7 +12,7 @@ from fboss.system_tests.testutils.ip_conversion import ip_str_to_addr
 from neteng.fboss.ctrl.ttypes import PortOperState
 
 
-@test_tags("port", "run-on-diff")
+@test_tags("port", "run-on-diff", "trunk-stable")
 class PortStatusTest(FbossBaseSystemTest):
     """ Verify that for each port, that the internal state agrees with fb303 """
     def test_port_status_matchfb303(self):
@@ -23,8 +23,8 @@ class PortStatusTest(FbossBaseSystemTest):
                                  sw_client.getCounter("%s.up" % pstate.name))
 
 
-@test_tags("port", "server_port_flap", "run-on-diff")
-@unittest.skip("Test broken - T24997025 to investigate furthur")
+@test_tags("port", "server_port_flap", "new-test")
+@unittest.skip("Test broken - T24997025 to investigate further")
 class ServerPortFlap(FbossBaseSystemTest):
     """ Verify that a server port flap is handled by fboss correctly and does
         not hang the system.
