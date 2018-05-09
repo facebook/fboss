@@ -9,7 +9,6 @@
 #include <folly/io/async/EventBase.h>
 #include <thrift/lib/cpp2/async/DuplexChannel.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
-#include <thrift/lib/cpp/util/ScopedServerThread.h>
 #include <thrift/lib/cpp/async/TAsyncSocket.h>
 
 using namespace apache::thrift;
