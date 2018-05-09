@@ -22,23 +22,23 @@ namespace facebook { namespace fboss {
 namespace util {
 
 RouteNextHops
-toRouteNextHops(std::vector<network::thrift::BinaryAddress> const& nhAddrs) {
-  RouteNextHops nhs;
-  nhs.reserve(nhAddrs.size());
-  for (auto const& nhAddr : nhAddrs) {
-    nhs.emplace(RouteNextHop::fromThrift(nhAddr));
+toRouteNextHops(std::vector<NextHopThrift> const& nhs) {
+  RouteNextHops rnhs;
+  rnhs.reserve(nhs.size());
+  for (auto const& nh : nhs) {
+    rnhs.emplace(RouteNextHop::fromThrift(nh));
   }
-  return nhs;
+  return rnhs;
 }
 
-std::vector<network::thrift::BinaryAddress>
+std::vector<NextHopThrift>
 fromRouteNextHops(RouteNextHops const& nhs) {
-  std::vector<network::thrift::BinaryAddress> nhAddrs;
-  nhAddrs.reserve(nhs.size());
+  std::vector<NextHopThrift> nhts;
+  nhts.reserve(nhs.size());
   for (auto const& nh : nhs) {
-    nhAddrs.emplace_back(nh.toThrift());
+    nhts.emplace_back(nh.toThrift());
   }
-  return nhAddrs;
+  return nhts;
 }
 
 } // namespace util

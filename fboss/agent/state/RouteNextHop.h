@@ -51,8 +51,8 @@ class RouteNextHop {
   }
 
    /* Utility function to get thrift representation of this nexthop */
-  network::thrift::BinaryAddress toThrift() const;
-  static RouteNextHop fromThrift(network::thrift::BinaryAddress const& nexthop);
+  NextHopThrift toThrift() const;
+  static RouteNextHop fromThrift(NextHopThrift const& nexthop);
 
   /*
    * Serialize to folly::dynamic

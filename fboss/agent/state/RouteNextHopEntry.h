@@ -108,12 +108,12 @@ namespace util {
  * Convert thrift representation of nexthops to RouteNextHops.
  */
 RouteNextHops
-toRouteNextHops(std::vector<network::thrift::BinaryAddress> const& nhAddrs);
+toRouteNextHops(std::vector<NextHopThrift> const& nhs);
 
 /**
  * Convert RouteNextHops to thrift representaion of nexthops
  */
-std::vector<network::thrift::BinaryAddress>
+std::vector<NextHopThrift>
 fromRouteNextHops(RouteNextHops const& nhs);
 
 }

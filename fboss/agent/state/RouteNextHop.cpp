@@ -41,26 +41,25 @@ RouteNextHop RouteNextHop::createNextHop(
   return RouteNextHop(std::move(addr), intf);
 }
 
-network::thrift::BinaryAddress
-RouteNextHop::toThrift() const {
-  network::thrift::BinaryAddress nexthop = network::toBinaryAddress(addr_);
+NextHopThrift RouteNextHop::toThrift() const {
+  NextHopThrift nh;
+  nh.address = network::toBinaryAddress(addr_);
   if (intfID_) {
-    nexthop.__isset.ifName = true;
-    nexthop.ifName = util::createTunIntfName(intfID_.value());
+    nh.address.set_ifName(util::createTunIntfName(intfID_.value()));
   }
-  return nexthop;
+  return nh;
 }
 
 RouteNextHop
-RouteNextHop::fromThrift(network::thrift::BinaryAddress const& nexthop) {
+RouteNextHop::fromThrift(NextHopThrift const& nh) {
   // Get nexthop address
-  const auto addr = network::toIPAddress(nexthop);
+  const auto addr = network::toIPAddress(nh.address);
 
   // Get nexthop interface if specified. This can throw exception if interfaceID
   // is not properly formatted.
   folly::Optional<InterfaceID> intfID;
-  if (nexthop.__isset.ifName) {
-    intfID = util::getIDFromTunIntfName(nexthop.ifName);
+  if (nh.address.get_ifName()) {
+    intfID = util::getIDFromTunIntfName(*(nh.address.get_ifName()));
   }
 
   // Calling createNextHop() so that the parameter verification is enforced.

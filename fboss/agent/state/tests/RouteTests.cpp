@@ -2048,9 +2048,9 @@ TEST(RouteTypes, toFromRouteNextHops) {
   nhs.emplace(
       RouteNextHop::createNextHop(folly::IPAddress("fe80::1"), InterfaceID(4)));
 
-  // Conver to thrift object
-  auto nhAddrs = util::fromRouteNextHops(nhs);
-  ASSERT_EQ(5, nhAddrs.size());
+  // Convert to thrift object
+  auto nhts = util::fromRouteNextHops(nhs);
+  ASSERT_EQ(5, nhts.size());
 
   auto verify = [&](const std::string& ipaddr,
                     folly::Optional<InterfaceID> intf) {
@@ -2060,11 +2060,11 @@ TEST(RouteTypes, toFromRouteNextHops) {
       bAddr.ifName = util::createTunIntfName(intf.value());
     }
     bool found = false;
-    for (const auto& entry : nhAddrs) {
-      if (entry == bAddr) {
+    for (const auto& entry : nhts) {
+      if (entry.address == bAddr) {
         if (intf.hasValue()) {
-          EXPECT_TRUE(entry.__isset.ifName);
-          EXPECT_EQ(bAddr.ifName, entry.ifName);
+          EXPECT_TRUE(entry.address.__isset.ifName);
+          EXPECT_EQ(bAddr.ifName, entry.address.ifName);
         }
         found = true;
         break;
@@ -2081,7 +2081,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
   verify("fe80::1", InterfaceID(4));
 
   // Convert back to RouteNextHops
-  auto newNhs = util::toRouteNextHops(nhAddrs);
+  auto newNhs = util::toRouteNextHops(nhts);
   EXPECT_EQ(nhs, newNhs);
 
   //
@@ -2093,8 +2093,10 @@ TEST(RouteTypes, toFromRouteNextHops) {
   addr = facebook::network::toBinaryAddress(folly::IPAddress("10.0.0.1"));
   addr.__isset.ifName = true;
   addr.ifName = "fboss10";
+  NextHopThrift nh;
+  nh.address = addr;
   {
-    auto routeNexthop = RouteNextHop::fromThrift(addr);
+    auto routeNexthop = RouteNextHop::fromThrift(nh);
     EXPECT_EQ(folly::IPAddress("10.0.0.1"), routeNexthop.addr());
     EXPECT_EQ(folly::none, routeNexthop.intfID());
   }
@@ -2102,8 +2104,9 @@ TEST(RouteTypes, toFromRouteNextHops) {
   addr = facebook::network::toBinaryAddress(folly::IPAddress("face::1"));
   addr.__isset.ifName = true;
   addr.ifName = "fboss10";
+  nh.address = addr;
   {
-    auto routeNexthop = RouteNextHop::fromThrift(addr);
+    auto routeNexthop = RouteNextHop::fromThrift(nh);
     EXPECT_EQ(folly::IPAddress("face::1"), routeNexthop.addr());
     EXPECT_EQ(folly::none, routeNexthop.intfID());
   }

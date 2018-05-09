@@ -107,6 +107,15 @@ fromFwdNextHops(RouteNextHopSet const& nexthops) {
   return nhs;
 }
 
+std::vector<NextHopThrift> thriftNextHopsFromAddresses(
+    const std::vector<network::thrift::BinaryAddress>& addrs) {
+  std::vector<NextHopThrift> nhs;
+  nhs.reserve(addrs.size());
+  for (const auto& addr : addrs) {
+    nhs.emplace_back(apache::thrift::FRAGILE, addr, 0);
+  }
+  return nhs;
+}
 }
 
 class RouteUpdateStats {
@@ -256,7 +265,13 @@ void ThriftHandler::updateUnicastRoutesImpl(
       uint8_t mask = static_cast<uint8_t>(route.dest.prefixLength);
       auto adminDistance = route.__isset.adminDistance ? route.adminDistance :
         clientIdToAdmin;
-      RouteNextHops nexthops = util::toRouteNextHops(route.nextHopAddrs);
+      std::vector<NextHopThrift> nhts;
+      if (route.nextHops.empty() && !route.nextHopAddrs.empty()) {
+        nhts = util::thriftNextHopsFromAddresses(route.nextHopAddrs);
+      } else {
+        nhts = route.nextHops;
+      }
+      RouteNextHops nexthops = util::toRouteNextHops(nhts);
       if (nexthops.size()) {
         updater.addRoute(routerId, network, mask, ClientID(client),
                          RouteNextHopEntry(std::move(nexthops), adminDistance));
@@ -696,8 +711,10 @@ void ThriftHandler::getRouteTableByClient(
       UnicastRoute tempRoute;
       tempRoute.dest.ip = toBinaryAddress(ipv4->prefix().network);
       tempRoute.dest.prefixLength = ipv4->prefix().mask;
-      tempRoute.nextHopAddrs = util::fromRouteNextHops(
-          entry->getNextHopSet());
+      tempRoute.nextHops = util::fromRouteNextHops(entry->getNextHopSet());
+      for (const auto& nh : tempRoute.nextHops) {
+        tempRoute.nextHopAddrs.emplace_back(nh.address);
+      }
       routes.emplace_back(std::move(tempRoute));
     }
 
@@ -710,8 +727,10 @@ void ThriftHandler::getRouteTableByClient(
       UnicastRoute tempRoute;
       tempRoute.dest.ip = toBinaryAddress(ipv6->prefix().network);
       tempRoute.dest.prefixLength = ipv6->prefix().mask;
-      tempRoute.nextHopAddrs = util::fromRouteNextHops(
-          entry->getNextHopSet());
+      tempRoute.nextHops = util::fromRouteNextHops(entry->getNextHopSet());
+      for (const auto& nh : tempRoute.nextHops) {
+        tempRoute.nextHopAddrs.emplace_back(nh.address);
+      }
       routes.emplace_back(std::move(tempRoute));
     }
   }
