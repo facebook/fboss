@@ -29,6 +29,11 @@ std::shared_ptr<AggregatePort> AggregatePortMap::getAggregatePortIf(
   return nullptr;
 }
 
+void AggregatePortMap::updateAggregatePort(
+    const std::shared_ptr<AggregatePort>& aggPort) {
+  updateNode(aggPort);
+}
+
 AggregatePortMap* AggregatePortMap::modify(
     std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {

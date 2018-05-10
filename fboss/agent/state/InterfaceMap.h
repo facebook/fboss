@@ -95,9 +95,7 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
    */
 
 
-  void addInterface(const std::shared_ptr<Interface>& interface) {
-    addNode(interface);
-  }
+  void addInterface(const std::shared_ptr<Interface>& interface);
 
   /*
    * Serialize to a folly::dynamic object

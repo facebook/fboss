@@ -25,6 +25,14 @@ void PortMap::registerPort(PortID id, const std::string& name) {
   addNode(std::make_shared<Port>(id, name));
 }
 
+void PortMap::addPort(const std::shared_ptr<Port>& port) {
+  addNode(port);
+}
+
+void PortMap::updatePort(const std::shared_ptr<Port>& port) {
+  updateNode(port);
+}
+
 PortMap* PortMap::modify(std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {
     CHECK(!(*state)->isPublished());

@@ -45,13 +45,9 @@ class PortMap : public NodeMapT<PortMap, PortMapTraits> {
 
   void registerPort(PortID id, const std::string& name);
 
-  void addPort(const std::shared_ptr<Port>& port) {
-    addNode(port);
-  }
+  void addPort(const std::shared_ptr<Port>& port);
 
-  void updatePort(const std::shared_ptr<Port>& port) {
-    updateNode(port);
-  }
+  void updatePort(const std::shared_ptr<Port>& port);
 
   PortMap* modify(std::shared_ptr<SwitchState>* state);
 

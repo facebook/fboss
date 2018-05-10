@@ -77,6 +77,10 @@ InterfaceMap::IntfAddrToReach InterfaceMap::getIntfAddrToReach(
   return IntfAddrToReach(nullptr, nullptr, 0);
 }
 
+void InterfaceMap::addInterface(const std::shared_ptr<Interface>& interface) {
+  addNode(interface);
+}
+
 folly::dynamic InterfaceMap::toFollyDynamic() const {
   folly::dynamic intfs = folly::dynamic::array;
   for (const auto& intf: *this) {

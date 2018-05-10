@@ -49,17 +49,11 @@ class RouteTableRibNodeMap
     return Base::size();
   }
 
-  void addRoute(const std::shared_ptr<Route<AddrT>>& rt) {
-    Base::addNode(rt);
-  }
+  void addRoute(const std::shared_ptr<Route<AddrT>>& rt);
 
-  void updateRoute(const std::shared_ptr<Route<AddrT>>& rt) {
-    Base::updateNode(rt);
-  }
+  void updateRoute(const std::shared_ptr<Route<AddrT>>& rt);
 
-  void removeRoute(const std::shared_ptr<Route<AddrT>>& rt) {
-    Base::removeNode(rt);
-  }
+  void removeRoute(const std::shared_ptr<Route<AddrT>>& rt);
 
   std::shared_ptr<Route<AddrT>> getRouteIf(const Prefix& prefix) const {
     return Base::getNodeIf(prefix);
@@ -152,15 +146,9 @@ class RouteTableRib : public NodeBase {
    * to a single thread.
    * To add/update/remove a route, we only do it on nodeMap_
    */
-  void addRoute(const std::shared_ptr<Route<AddrT>>& route) {
-    nodeMap_->addRoute(route);
-  }
-  void updateRoute(const std::shared_ptr<Route<AddrT>>& route) {
-    nodeMap_->updateRoute(route);
-  }
-  void removeRoute(const std::shared_ptr<Route<AddrT>>& route) {
-    nodeMap_->removeRoute(route);
-  }
+  void addRoute(const std::shared_ptr<Route<AddrT>>& route);
+  void updateRoute(const std::shared_ptr<Route<AddrT>>& route);
+  void removeRoute(const std::shared_ptr<Route<AddrT>>& route);
   std::shared_ptr<Route<AddrT>> exactMatch(const Prefix& prefix) const {
     return nodeMap_->getRouteIf(prefix);
   }

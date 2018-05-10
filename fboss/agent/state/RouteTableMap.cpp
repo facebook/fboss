@@ -33,6 +33,16 @@ void RouteTableMap::getRouteCount(uint64_t *v4Count, uint64_t *v6Count) {
   *v6Count = v6;
 }
 
+void RouteTableMap::addRouteTable(const std::shared_ptr<RouteTable>& rt) {
+  addNode(rt);
+}
+void RouteTableMap::updateRouteTable(const std::shared_ptr<RouteTable>& rt) {
+  updateNode(rt);
+}
+void RouteTableMap::removeRouteTable(const std::shared_ptr<RouteTable>& rt) {
+  removeNode(rt);
+}
+
 RouteTableMap* RouteTableMap::modify(std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {
     return this;

@@ -57,15 +57,12 @@ class RouteTableMap : public NodeMapT<RouteTableMap, RouteTableMapTraits> {
    * to a single thread.
    */
 
-  void addRouteTable(const std::shared_ptr<RouteTable>& rt) {
-    addNode(rt);
-  }
-  void updateRouteTable(const std::shared_ptr<RouteTable>& rt) {
-    updateNode(rt);
-  }
-  void removeRouteTable(const std::shared_ptr<RouteTable>& rt) {
-    removeNode(rt);
-  }
+  void addRouteTable(const std::shared_ptr<RouteTable>& rt);
+
+  void updateRouteTable(const std::shared_ptr<RouteTable>& rt);
+
+  void removeRouteTable(const std::shared_ptr<RouteTable>& rt);
+
  private:
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;

@@ -62,6 +62,14 @@ shared_ptr<Vlan> VlanMap::getVlanSlowIf(const string& name) const {
   return nullptr;
 }
 
+void VlanMap::addVlan(const std::shared_ptr<Vlan>& vlan) {
+  addNode(vlan);
+}
+
+void VlanMap::updateVlan(const std::shared_ptr<Vlan>& vlan) {
+  updateNode(vlan);
+}
+
 FBOSS_INSTANTIATE_NODE_MAP(VlanMap, VlanMapTraits);
 
 }} // facebook::fboss

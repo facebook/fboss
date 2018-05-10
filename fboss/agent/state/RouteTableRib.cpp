@@ -11,6 +11,7 @@
 
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/Route.h"
+#include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace {
@@ -19,12 +20,32 @@ constexpr auto kRoutes = "routes";
 
 namespace facebook { namespace fboss {
 
-FBOSS_INSTANTIATE_NODE_MAP(RouteTableRibNodeMap<folly::IPAddressV4>,
-                           RouteTableRibNodeMapTraits<folly::IPAddressV4>);
-FBOSS_INSTANTIATE_NODE_MAP(RouteTableRibNodeMap<folly::IPAddressV6>,
-                           RouteTableRibNodeMapTraits<folly::IPAddressV6>);
+template <typename AddrT>
+void RouteTableRibNodeMap<AddrT>::addRoute(
+    const std::shared_ptr<Route<AddrT>>& rt) {
+  Base::addNode(rt);
+}
 
-template<typename AddrT>
+template <typename AddrT>
+void RouteTableRibNodeMap<AddrT>::updateRoute(
+    const std::shared_ptr<Route<AddrT>>& rt) {
+  Base::updateNode(rt);
+}
+
+template <typename AddrT>
+void RouteTableRibNodeMap<AddrT>::removeRoute(
+    const std::shared_ptr<Route<AddrT>>& rt) {
+  Base::removeNode(rt);
+}
+
+FBOSS_INSTANTIATE_NODE_MAP(
+    RouteTableRibNodeMap<folly::IPAddressV4>,
+    RouteTableRibNodeMapTraits<folly::IPAddressV4>);
+FBOSS_INSTANTIATE_NODE_MAP(
+    RouteTableRibNodeMap<folly::IPAddressV6>,
+    RouteTableRibNodeMapTraits<folly::IPAddressV6>);
+
+template <typename AddrT>
 folly::dynamic RouteTableRib<AddrT>::toFollyDynamic() const {
   folly::dynamic routesJson = folly::dynamic::array;
   for (const auto& route: *nodeMap_) {
@@ -35,7 +56,7 @@ folly::dynamic RouteTableRib<AddrT>::toFollyDynamic() const {
   return routes;
 }
 
-template<typename AddrT>
+template <typename AddrT>
 std::shared_ptr<RouteTableRib<AddrT>>
 RouteTableRib<AddrT>::fromFollyDynamic(const folly::dynamic& routes) {
   auto rib = std::make_shared<RouteTableRib<AddrT>>();
@@ -77,6 +98,24 @@ RouteTableRib<AddrT>* RouteTableRib<AddrT>::modify(
   clonedRouteTable->setRib(clonedRib);
 
   return clonedRibPtr;
+}
+
+template <typename AddrT>
+void RouteTableRib<AddrT>::addRoute(
+    const std::shared_ptr<Route<AddrT>>& route) {
+  nodeMap_->addRoute(route);
+}
+
+template <typename AddrT>
+void RouteTableRib<AddrT>::updateRoute(
+    const std::shared_ptr<Route<AddrT>>& route) {
+  nodeMap_->updateRoute(route);
+}
+
+template <typename AddrT>
+void RouteTableRib<AddrT>::removeRoute(
+    const std::shared_ptr<Route<AddrT>>& route) {
+  nodeMap_->removeRoute(route);
 }
 
 template class RouteTableRib<folly::IPAddressV4>;

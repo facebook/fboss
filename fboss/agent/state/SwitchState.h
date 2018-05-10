@@ -17,22 +17,18 @@
 #include <folly/Memory.h>
 
 #include "fboss/agent/types.h"
+#include "fboss/agent/state/AclMap.h"
+#include "fboss/agent/state/AggregatePortMap.h"
+#include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/RouteTableMap.h"
+#include "fboss/agent/state/VlanMap.h"
 
 namespace facebook { namespace fboss {
 
-class AclEntry;
-class AclMap;
-class AggregatePortMap;
 class ControlPlane;
 class Interface;
-class InterfaceMap;
-class Port;
-class PortMap;
-class RouteTable;
-class RouteTableMap;
-class Vlan;
-class VlanMap;
 template <typename AddressT> class Route;
 class SflowCollector;
 class SflowCollectorMap;

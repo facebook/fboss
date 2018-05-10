@@ -11,6 +11,8 @@
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include <folly/MacAddress.h>
+
 #include <algorithm>
 #include <tuple>
 #include <utility>
@@ -121,7 +123,7 @@ AggregatePortFields AggregatePortFields::fromFollyDynamic(
       json[kName].getString(),
       json[kDescription].getString(),
       json[kSystemPriority].getInt(),
-      MacAddress(json[kSystemID].getString()),
+      folly::MacAddress(json[kSystemID].getString()),
       json[kMinimumLinkCount].getInt(),
       std::move(ports));
 }

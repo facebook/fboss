@@ -76,14 +76,9 @@ class VlanMap : public NodeMapT<VlanMap, VlanMapTraits> {
    * to a single thread.
    */
 
-  void addVlan(const std::shared_ptr<Vlan>& vlan) {
-    addNode(vlan);
-  }
+  void addVlan(const std::shared_ptr<Vlan>& vlan);
 
-  void updateVlan(const std::shared_ptr<Vlan>& vlan) {
-    updateNode(vlan);
-  }
-
+  void updateVlan(const std::shared_ptr<Vlan>& vlan);
  private:
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;

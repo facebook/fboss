@@ -40,9 +40,7 @@ class AggregatePortMap
    */
   std::shared_ptr<AggregatePort> getAggregatePortIf(PortID port) const;
 
-  void updateAggregatePort(const std::shared_ptr<AggregatePort>& aggPort) {
-    updateNode(aggPort);
-  }
+  void updateAggregatePort(const std::shared_ptr<AggregatePort>& aggPort);
 
   AggregatePortMap* modify(std::shared_ptr<SwitchState>* state);
 

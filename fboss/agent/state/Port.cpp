@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/state/Port.h"
+#include "Port.h"
+
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"

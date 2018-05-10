@@ -11,6 +11,7 @@
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/StateUtils.h"
 #include <folly/Conv.h>
+#include <folly/MacAddress.h>
 
 using folly::IPAddress;
 
@@ -214,7 +215,7 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
     );
   }
   if (aclEntryJson.find(kDstMac) != aclEntryJson.items().end()) {
-    aclEntry.dstMac = MacAddress(aclEntryJson[kDstMac].asString());
+    aclEntry.dstMac = folly::MacAddress(aclEntryJson[kDstMac].asString());
   }
   if (aclEntryJson.find(kProto) != aclEntryJson.items().end()) {
     aclEntry.proto = aclEntryJson[kProto].asInt();
