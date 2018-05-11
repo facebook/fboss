@@ -9,108 +9,94 @@
  */
 #include "RouteNextHop.h"
 
-#include "fboss/agent/AddressUtil.h"
-#include "fboss/agent/FbossError.h"
-#include "fboss/agent/state/StateUtils.h"
+#include <folly/Conv.h>
 
-namespace {
-constexpr auto kInterface = "interface";
-constexpr auto kNexthop = "nexthop";
-}
+#include "fboss/agent/FbossError.h"
 
 namespace facebook { namespace fboss {
 
-RouteNextHop RouteNextHop::createNextHop(
-    folly::IPAddress addr, folly::Optional<InterfaceID> intf) {
-  // V4 link-local are not considered here as they can break BGPD route
-  // programming in Galaxy or ExaBGP peering routes to servers as they are
-  // using v4 link-local subnets on internal/downlink interfaces
-  // Interface scoping with any other address except v6 link-local will be
-  // ignored and normal resolution will proceed.
-  if (addr.isV6() and addr.isLinkLocal()) {
-    if (not intf) {
-      throw FbossError(
-          "Missing interface scoping for link-local nexthop ", addr.str());
-    }
+namespace util {
+NextHop fromThrift(const NextHopThrift& nht) {
+  auto address = network::toIPAddress(nht.address);
+  bool v6LinkLocal = address.isV6() and address.isLinkLocal();
+  // Only honor interface specified over thrift if the address
+  // is a v6 link-local. Otherwise, consume it as an unresolved
+  // next hop and let route resolution populate the interface.
+  if (nht.address.get_ifName() and v6LinkLocal) {
+    InterfaceID intfID =
+        util::getIDFromTunIntfName(*(nht.address.get_ifName()));
+    return ResolvedNextHop(std::move(address), intfID);
   } else {
-    // Open/R sends us the interface ID for all nexthops. Agent does not expect
-    // such interface ID if it is not v6 link-local. Reset intf to None
-    intf = folly::none;
+    return UnresolvedNextHop(std::move(address));
   }
-
-  return RouteNextHop(std::move(addr), intf);
 }
 
-NextHopThrift RouteNextHop::toThrift() const {
-  NextHopThrift nh;
-  nh.address = network::toBinaryAddress(addr_);
-  if (intfID_) {
-    nh.address.set_ifName(util::createTunIntfName(intfID_.value()));
-  }
-  return nh;
-}
-
-RouteNextHop
-RouteNextHop::fromThrift(NextHopThrift const& nh) {
-  // Get nexthop address
-  const auto addr = network::toIPAddress(nh.address);
-
-  // Get nexthop interface if specified. This can throw exception if interfaceID
-  // is not properly formatted.
-  folly::Optional<InterfaceID> intfID;
-  if (nh.address.get_ifName()) {
-    intfID = util::getIDFromTunIntfName(*(nh.address.get_ifName()));
-  }
-
-  // Calling createNextHop() so that the parameter verification is enforced.
-  // Currently, no one is calling this function other than unittest.
-  // If we plan to use this function for other purpose (i.e.
-  // forwarding nexthop). Need to revisit this func.
-  return createNextHop(std::move(addr), intfID);
-}
-
-folly::dynamic RouteNextHop::toFollyDynamic() const {
-  folly::dynamic nhop = folly::dynamic::object;
-  if (intfID_.hasValue()) {
-    nhop[kInterface] = static_cast<uint32_t>(intfID_.value());
-  }
-  nhop[kNexthop] = addr_.str();
-  return nhop;
-}
-
-RouteNextHop RouteNextHop::fromFollyDynamic(const folly::dynamic& nhopJson) {
-  auto it = nhopJson.find(kInterface);
-  folly::Optional<InterfaceID>  intf{folly::none};
+NextHop nextHopFromFollyDynamic(const folly::dynamic& nhopJson) {
+  folly::IPAddress address(nhopJson[kNexthop()].stringPiece());
+  auto it = nhopJson.find(kInterface());
   if (it != nhopJson.items().end()) {
-    intf = InterfaceID(it->second.asInt());
+    int64_t stored = it->second.asInt();
+    if (stored < 0 || stored > std::numeric_limits<uint32_t>::max()) {
+      throw FbossError("stored InterfaceID exceeds uint32_t limit");
+    }
+    InterfaceID intfID = InterfaceID(it->second.asInt());
+    return ResolvedNextHop(std::move(address), intfID);
+  } else {
+    return UnresolvedNextHop(std::move(address));
   }
-  return RouteNextHop(folly::IPAddress(nhopJson[kNexthop].stringPiece()), intf);
+}
 }
 
-bool operator==(const RouteNextHop& a, const RouteNextHop& b) {
-  return (a.intfID() == b.intfID() and a.addr() == b.addr());
+void toAppend(const NextHop& nhop, std::string *result) {
+  folly::toAppend(nhop.str(), result);
 }
 
-bool operator< (const RouteNextHop& a, const RouteNextHop& b) {
-  return ((a.intfID() == b.intfID())
-          ? (a.addr() < b.addr())
-          : (a.intfID() < b.intfID()));
-}
-
-void toAppend(const RouteNextHop& nhop, std::string *result) {
-  result->append(nhop.str());
-}
-
-std::ostream& operator<<(std::ostream& os, const RouteNextHop& nhop) {
+std::ostream& operator<<(std::ostream& os, const NextHop& nhop) {
   return os << nhop.str();
 }
 
-std::string RouteNextHop::str() const {
-  if (intfID_) {
-    return folly::to<std::string>(addr_, "@I", intfID_.value());
+bool operator<(const NextHop& a, const NextHop& b) {
+  if (a.intfID() == b.intfID()) {
+    return a.addr() < b.addr();
   } else {
-    return folly::to<std::string>(addr_);
+    return a.intfID() < b.intfID();
   }
 }
 
-}}
+bool operator>(const NextHop& a, const NextHop& b) {
+  return (b < a);
+}
+
+bool operator<=(const NextHop& a, const NextHop& b) {
+  return !(b < a);
+}
+
+bool operator>=(const NextHop& a, const NextHop& b) {
+  return !(a < b);
+}
+
+bool operator==(const NextHop& a, const NextHop& b) {
+  return (a.intfID() == b.intfID() && a.addr() == b.addr());
+}
+
+bool operator!=(const NextHop& a, const NextHop& b) {
+  return !(a == b);
+}
+
+UnresolvedNextHop::UnresolvedNextHop(const folly::IPAddress& addr)
+    : addr_(addr) {
+  if (addr.isV6() and addr.isLinkLocal()) {
+    throw FbossError(
+        "Missing interface scoping for link-local nexthop ", addr.str());
+  }
+}
+
+UnresolvedNextHop::UnresolvedNextHop(folly::IPAddress&& addr)
+    : addr_(std::move(addr)) {
+  if (addr.isV6() and addr.isLinkLocal()) {
+    throw FbossError(
+        "Missing interface scoping for link-local nexthop ", addr.str());
+  }
+}
+} // namespace fboss
+} // namespace facebook

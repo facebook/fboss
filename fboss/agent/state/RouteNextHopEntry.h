@@ -21,7 +21,7 @@ namespace facebook { namespace fboss {
 class RouteNextHopEntry {
  public:
   using Action = RouteForwardAction;
-  using NextHopSet = boost::container::flat_set<RouteNextHop>;
+  using NextHopSet = boost::container::flat_set<NextHop>;
 
   RouteNextHopEntry(Action action, AdminDistance distance)
       : adminDistance_(distance), action_(action) {
@@ -30,7 +30,7 @@ class RouteNextHopEntry {
 
   RouteNextHopEntry(NextHopSet nhopSet, AdminDistance distance);
 
-  RouteNextHopEntry(RouteNextHop nhop, AdminDistance distance)
+  RouteNextHopEntry(NextHop nhop, AdminDistance distance)
       : adminDistance_(distance), action_(Action::NEXTHOPS) {
     nhopSet_.emplace(std::move(nhop));
   }

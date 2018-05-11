@@ -17,7 +17,7 @@ BcmHostKey::BcmHostKey(
     opennsl_vrf_t vrf,
     folly::IPAddress ipAddr,
     folly::Optional<InterfaceID> intf)
-    : RouteNextHop(std::move(ipAddr), intf), vrf_(vrf) {
+    : vrf_(vrf), addr_(std::move(ipAddr)), intfID_(intf) {
   // need the interface ID if and only if the address is v6 link-local
   if (addr().isV6() && addr().isLinkLocal()) {
     if (!intfID().hasValue()) {
@@ -26,24 +26,32 @@ BcmHostKey::BcmHostKey(
     }
   } else {
     // for not v6 link-local address, do not track the interface ID
-    setIntfID(folly::none);
+    intfID_ = folly::none;
   }
 }
 
 std::string BcmHostKey::str() const {
-  return folly::to<std::string>(
-      "BcmHost: ", RouteNextHop::str(), "@vrf", getVrf());
+  std::string intfStr = "";
+  if (intfID_) {
+    intfStr = folly::to<std::string>("@I", intfID_.value());
+  }
+  return folly::to<std::string>("BcmHost: ", addr_, intfStr, "@vrf", getVrf());
 }
 
 bool operator==(const BcmHostKey& a, const BcmHostKey& b) {
-  return (a.getVrf() == b.getVrf() &&
-          static_cast<RouteNextHop>(a) == static_cast<RouteNextHop>(b));
+  return (
+      a.getVrf() == b.getVrf() && a.addr() == b.addr() &&
+      a.intfID() == b.intfID());
 }
 
 bool operator< (const BcmHostKey& a, const BcmHostKey& b) {
-  return ((a.getVrf() == b.getVrf())
-          ? (static_cast<RouteNextHop>(a) < static_cast<RouteNextHop>(b))
-          : (a.getVrf() < b.getVrf()));
+  if (a.getVrf() != b.getVrf()) {
+    return a.getVrf() < b.getVrf();
+  } else if (a.intfID() != b.intfID()) {
+    return a.intfID() < b.intfID();
+  } else {
+    return a.addr() < b.addr();
+  }
 }
 
 void toAppend(const BcmHostKey& key, std::string *result) {

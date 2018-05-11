@@ -9,103 +9,125 @@
  */
 #pragma once
 
-#include <folly/IPAddress.h>
 #include <folly/dynamic.h>
+#include <folly/IPAddress.h>
+#include <folly/Poly.h>
+#include <folly/poly/Regular.h>
+#include <folly/Range.h>
 
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/agent/state/StateUtils.h"
 
 namespace facebook { namespace fboss {
 
-class RouteNextHop {
+inline folly::StringPiece constexpr kInterface() {
+  return "interface";
+}
 
- public:
+inline folly::StringPiece constexpr kNexthop() {
+  return "nexthop";
+}
 
-  /**
-   * createNextHop() creates a nexthop specified by client,
-   * used as the nexthop of a route.
-   * It can optionally be scoped via InterfaceID attribute, if and only
-   * if the address is an IPv6 link-local address
-   */
-  static RouteNextHop createNextHop(
-      folly::IPAddress addr,
-      folly::Optional<InterfaceID> intfID = folly::none);
 
-  /**
-   * createInterfaceNextHop() create a nexthop specific for
-   * the interface route.
-   * The address is the interface address.
-   */
-  static RouteNextHop createInterfaceNextHop(
-      folly::IPAddress addr,
-      InterfaceID intf) {
-    return RouteNextHop(std::move(addr), intf);
-  }
+// weights are represented as a percentage between 0 and 100
+using NextHopWeight = uint32_t;
 
-  /**
-   * createForward() creates a path to reach a given nexthop, which is set
-   * after the route is resolved.
-   */
-  static RouteNextHop createForward(folly::IPAddress addr, InterfaceID intf) {
-    return RouteNextHop(std::move(addr), intf);
-  }
+struct INextHop {
+  // In this context "Interface" does not refer to network interfaces
+  // but is rather an implementation detail of folly::Poly. This is
+  // the "well-known" name you must use for your interface definition
+  // for things like poly_call to work properly.
+  template <class Base>
+  struct Interface : Base {
+    folly::Optional<InterfaceID> intfID() const {
+      return folly::poly_call<0>(*this);
+    }
 
-   /* Utility function to get thrift representation of this nexthop */
-  NextHopThrift toThrift() const;
-  static RouteNextHop fromThrift(NextHopThrift const& nexthop);
+    folly::IPAddress addr() const {
+      return folly::poly_call<1>(*this);
+    }
 
-  /*
-   * Serialize to folly::dynamic
-   */
-  folly::dynamic toFollyDynamic() const;
+    bool isResolved() const {
+      return intfID().hasValue();
+    }
 
-  /*
-   * Deserialize from folly::dynamic
-   */
-  static RouteNextHop fromFollyDynamic(const folly::dynamic& nhopJson);
+    InterfaceID intf() const {
+      return intfID().value();
+    }
 
-  const folly::IPAddress& addr() const noexcept {
-    return addr_;
-  }
+    folly::dynamic toFollyDynamic() const {
+      folly::dynamic nh = folly::dynamic::object;
+      nh[kNexthop()] = addr().str();
+      if (isResolved()) {
+        nh[kInterface()] = static_cast<uint32_t>(intf());
+      }
+      return nh;
+    }
 
-  folly::Optional<InterfaceID> intfID() const noexcept {
-    return intfID_;
-  }
+    NextHopThrift toThrift() const {
+      NextHopThrift nht;
+      nht.address = network::toBinaryAddress(addr());
+      if (isResolved()) {
+        nht.address.set_ifName(util::createTunIntfName(intf()));
+      }
+      return nht;
+    }
 
-  InterfaceID intf() const {
-    // could throw if intfID_ does not have value
-    return intfID_.value();
-  }
+    std::string str() const {
+      if (isResolved()) {
+        return folly::to<std::string>(addr(), "@I", intf());
+      } else {
+        return folly::to<std::string>(addr());
+      }
+    }
+  };
 
-  std::string str() const;
-
- protected:
-  void setIntfID(folly::Optional<InterfaceID> intfID) {
-    intfID_ = intfID;
-  }
-
-  void setAddr(const folly::IPAddress& addr) {
-    addr_ = addr;
-  }
-
-  explicit RouteNextHop(folly::IPAddress addr,
-                        folly::Optional<InterfaceID> intfID = folly::none)
-      : addr_(std::move(addr)), intfID_(intfID) {
-  }
-
- private:
-
-  folly::IPAddress addr_;
-  folly::Optional<InterfaceID> intfID_;
+  template <class T>
+  using Members = FOLLY_POLY_MEMBERS(&T::intfID, &T::addr);
 };
 
-/**
- * Comparision operators
- */
-bool operator==(const RouteNextHop& a, const RouteNextHop& b);
-bool operator< (const RouteNextHop& a, const RouteNextHop& b);
 
-void toAppend(const RouteNextHop& nhop, std::string *result);
-std::ostream& operator<<(std::ostream& os, const RouteNextHop& nhop);
+using NextHop = folly::Poly<INextHop>;
+void toAppend(const NextHop& nhop, std::string *result);
+std::ostream& operator<<(std::ostream& os, const NextHop& nhop);
+bool operator<(const NextHop& a, const NextHop& b);
+bool operator>(const NextHop& a, const NextHop& b);
+bool operator<=(const NextHop& a, const NextHop& b);
+bool operator>=(const NextHop& a, const NextHop& b);
+bool operator==(const NextHop& a, const NextHop& b);
+bool operator!=(const NextHop& a, const NextHop& b);
 
+class ResolvedNextHop {
+ public:
+  ResolvedNextHop(const folly::IPAddress& addr, InterfaceID intfID)
+      : addr_(addr), intfID_(intfID) {}
+  ResolvedNextHop(folly::IPAddress&& addr, InterfaceID intfID)
+      : addr_(std::move(addr)), intfID_(intfID) {}
+  folly::Optional<InterfaceID> intfID() const { return intfID_; }
+  folly::IPAddress addr() const { return addr_; }
+ private:
+  folly::IPAddress addr_;
+  InterfaceID intfID_;
+};
+
+bool operator==(const ResolvedNextHop& a, const ResolvedNextHop& b);
+
+class UnresolvedNextHop {
+ public:
+  explicit UnresolvedNextHop(const folly::IPAddress& addr);
+  explicit UnresolvedNextHop(folly::IPAddress&& addr);
+  folly::Optional<InterfaceID> intfID() const { return folly::none; }
+  folly::IPAddress addr() const { return addr_; }
+ private:
+  folly::IPAddress addr_;
+};
+
+bool operator==(const UnresolvedNextHop& a, const UnresolvedNextHop& b);
+
+namespace util {
+NextHop fromThrift(const NextHopThrift& nht);
+NextHop nextHopFromFollyDynamic(const folly::dynamic& nhopJson);
+}
 }}

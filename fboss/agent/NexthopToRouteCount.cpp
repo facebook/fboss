@@ -98,7 +98,7 @@ void NexthopToRouteCount::processRemovedRoute(const RouterID rid,
 }
 
 void NexthopToRouteCount::incNexthopReference(RouterID rid,
-    const Nexthop& nhop) {
+    const NextHop& nhop) {
   auto& nhop2RefCount = rid2nhopRefCounts_[rid];
   auto itr = nhop2RefCount.find(nhop);
   if (itr == nhop2RefCount.end()) {
@@ -110,7 +110,7 @@ void NexthopToRouteCount::incNexthopReference(RouterID rid,
 }
 
 void NexthopToRouteCount::decNexthopReference(RouterID rid,
-    const Nexthop& nhop) {
+    const NextHop& nhop) {
   auto& nhop2RefCount = rid2nhopRefCounts_[rid];
   auto itr = nhop2RefCount.find(nhop);
   CHECK(itr != nhop2RefCount.end());

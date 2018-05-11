@@ -33,11 +33,10 @@ class NexthopToRouteCount {
  public:
    explicit NexthopToRouteCount() {}
    void stateChanged(const StateDelta& delta);
-   using Nexthop = RouteNextHop;
    // Using int rather than uint to check against bugs where we
    // get -ve reference counts
    using RouterID2NhopRefCounts = boost::container::flat_map<RouterID,
-         boost::container::flat_map<Nexthop, int64_t>>;
+         boost::container::flat_map<NextHop, int64_t>>;
 
   using const_iterator = RouterID2NhopRefCounts::const_iterator;
   const_iterator begin() const { return rid2nhopRefCounts_.begin(); }
@@ -59,8 +58,8 @@ class NexthopToRouteCount {
     void processRemovedRoute(const RouterID id,
         const std::shared_ptr<RouteT>& newRoute);
 
-    void incNexthopReference(RouterID rid, const Nexthop& nhop);
-    void decNexthopReference(RouterID rid, const Nexthop& nhop);
+    void incNexthopReference(RouterID rid, const NextHop& nhop);
+    void decNexthopReference(RouterID rid, const NextHop& nhop);
 
     RouterID2NhopRefCounts rid2nhopRefCounts_;
 };

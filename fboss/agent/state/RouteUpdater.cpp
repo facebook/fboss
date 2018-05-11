@@ -265,7 +265,7 @@ void RouteUpdater::getFwdInfoFromNhop(
       // if the route used to resolve the nexthop is directly connected
       if (route->isConnected()) {
         const auto& rtNh = *nhops.begin();
-        fwd->emplace(RouteNextHop::createForward(nh, rtNh.intf()));
+        fwd->emplace(ResolvedNextHop(nh, rtNh.intfID().value()));
       } else {
         fwd->insert(nhops.begin(), nhops.end());
       }
@@ -306,7 +306,7 @@ void RouteUpdater::resolveOne(RouteT* route, ClonedRib* ribCloned) {
         // It is either an interface route or v6 link-local
         CHECK(clientId == kInterfaceRouteClientId
               or (addr.isV6() and addr.isLinkLocal()));
-        fwd.emplace(RouteNextHop::createForward(addr, nh.intfID().value()));
+        fwd.emplace(ResolvedNextHop(addr, nh.intfID().value()));
         continue;
       }
 
@@ -436,8 +436,7 @@ void RouteUpdater::addInterfaceAndLinkLocalRoutes(
     auto routerId = intf->getRouterID();
     routers.insert(routerId);
     for (auto const& addr : intf->getAddresses()) {
-      auto nhop = RouteNextHop::createInterfaceNextHop(
-          addr.first, intf->getID());
+      auto nhop = ResolvedNextHop(addr.first, intf->getID());
       addRoute(routerId, addr.first, addr.second,
                kInterfaceRouteClientId,
                RouteNextHopEntry(std::move(nhop),
@@ -503,8 +502,7 @@ void RouteUpdater::updateStaticRoutes(const cfg::SwitchConfig& curCfg,
       auto network = IPAddress::createNetwork(route.prefix);
       RouteNextHopSet nhops;
       for (auto& nhopStr : route.nexthops) {
-        nhops.emplace(
-            RouteNextHop::createNextHop(folly::IPAddress(nhopStr)));
+        nhops.emplace(UnresolvedNextHop(folly::IPAddress(nhopStr)));
       }
       addRoute(rid, network.first, network.second,
                StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),

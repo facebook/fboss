@@ -321,7 +321,7 @@ BcmEcmpHost::BcmEcmpHost(const BcmSwitchIf *hw,
   CHECK_GT(fwd.size(), 0);
   BcmHostTable *table = hw_->writableHostTable();
   BcmEcmpEgress::Paths paths;
-  std::vector<const RouteNextHop *> prog;
+  std::vector<const NextHop *> prog;
   SCOPE_FAIL {
     for (auto nhopPtr : prog) {
       table->derefBcmHost(BcmHostKey(vrf_, *nhopPtr));

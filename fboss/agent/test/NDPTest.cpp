@@ -130,14 +130,11 @@ unique_ptr<HwTestHandle> setupTestHandle(seconds raInterval,
 shared_ptr<SwitchState> addMockRouteTable(shared_ptr<SwitchState> state) {
   RouteNextHopSet nexthops;
   // resolved by intf 1
-  nexthops.emplace(RouteNextHop::createNextHop(
-                       IPAddress("2401:db00:2110:3004::1")));
+  nexthops.emplace(UnresolvedNextHop(IPAddress("2401:db00:2110:3004::1")));
   // resolved by intf 1
-  nexthops.emplace(RouteNextHop::createNextHop(
-                       IPAddress("2401:db00:2110:3004::2")));
+  nexthops.emplace(UnresolvedNextHop(IPAddress("2401:db00:2110:3004::2")));
   // un-resolvable
-  nexthops.emplace(RouteNextHop::createNextHop(
-                       IPAddress("5555:db00:2110:3004::1")));
+  nexthops.emplace(UnresolvedNextHop(IPAddress("5555:db00:2110:3004::1")));
 
   RouteUpdater updater(state->getRouteTables());
   updater.addRoute(

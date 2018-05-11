@@ -263,8 +263,7 @@ TEST(Route, resolve) {
     EXPECT_NE(r21->prefix(), r22->prefix());
     // check the forwarding info
     RouteNextHopSet expFwd2;
-    expFwd2.emplace(
-        RouteNextHop::createForward(IPAddress("1.1.1.10"), InterfaceID(1)));
+    expFwd2.emplace(ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1)));
     EXPECT_EQ(expFwd2, r21->getForwardInfo().getNextHopSet());
     EXPECT_EQ(expFwd2, r22->getForwardInfo().getNextHopSet());
   }
@@ -515,10 +514,8 @@ TEST(Route, addDel) {
   EXPECT_EQ(2, fwd2.size());
   EXPECT_EQ(2, fwd2v6.size());
   RouteNextHopSet expFwd2;
-  expFwd2.emplace(
-      RouteNextHop::createForward(IPAddress("1.1.1.10"), InterfaceID(1)));
-  expFwd2.emplace(
-      RouteNextHop::createForward(IPAddress("2::2"), InterfaceID(2)));
+  expFwd2.emplace(ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1)));
+  expFwd2.emplace(ResolvedNextHop(IPAddress("2::2"), InterfaceID(2)));
   EXPECT_EQ(expFwd2, fwd2);
   EXPECT_EQ(expFwd2, fwd2v6);
 
@@ -1393,7 +1390,7 @@ RouteNextHopSet newNextHops(int n, std::string prefix) {
   RouteNextHopSet h;
   for (int i = 0; i < n; i++) {
     auto ipStr = prefix + std::to_string(i + 10);
-    h.emplace(RouteNextHop::createNextHop(IPAddress(ipStr)));
+    h.emplace(UnresolvedNextHop(IPAddress(ipStr)));
   }
   return h;
 }
@@ -1576,9 +1573,9 @@ TEST(Route, equality) {
   // But construct the list in opposite order.
   // Objects should still be equal, despite the order of construction.
   RouteNextHopSet nextHopsRev;
-  nextHopsRev.emplace(RouteNextHop::createNextHop(IPAddress("2.2.2.12")));
-  nextHopsRev.emplace(RouteNextHop::createNextHop(IPAddress("2.2.2.11")));
-  nextHopsRev.emplace(RouteNextHop::createNextHop(IPAddress("2.2.2.10")));
+  nextHopsRev.emplace(UnresolvedNextHop(IPAddress("2.2.2.12")));
+  nextHopsRev.emplace(UnresolvedNextHop(IPAddress("2.2.2.11")));
+  nextHopsRev.emplace(UnresolvedNextHop(IPAddress("2.2.2.10")));
   nhm1.update(CLIENT_B, RouteNextHopEntry(nextHopsRev, DISTANCE));
   EXPECT_TRUE(nhm1 == nhm2);
 }
@@ -1614,7 +1611,7 @@ TEST(Route, serializeRouteNextHopsMulti) {
   // This function tests [de]serialization of:
   // RouteNextHopsMulti
   // RouteNextHopEntry
-  // RouteNextHop
+  // NextHop
 
   // test for new format to new format
   RouteNextHopsMulti nhm1;
@@ -1769,8 +1766,7 @@ TEST(Route, fwdInfoRanking) {
       16,
       StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE),
       RouteNextHopEntry(
-          RouteNextHop::createInterfaceNextHop(
-              IPAddress("10.10.0.1"), InterfaceID(9)),
+          ResolvedNextHop(IPAddress("10.10.0.1"), InterfaceID(9)),
           AdminDistance::DIRECTLY_CONNECTED));
   u1.addRoute(
       rid,
@@ -2030,28 +2026,25 @@ TEST(Route, serializeRouteTable) {
 // Test utility functions for converting RouteNextHopSet to thrift and back
 TEST(RouteTypes, toFromRouteNextHops) {
   RouteNextHopSet nhs;
-
   // Non v4 link-local address without interface scoping
-  nhs.emplace(
-      RouteNextHop::createNextHop(folly::IPAddress("10.0.0.1"), folly::none));
+  nhs.emplace(UnresolvedNextHop(folly::IPAddress("10.0.0.1")));
 
-  // v4 link-local address with/without interface scoping
-  nhs.emplace(RouteNextHop::createNextHop(
-      folly::IPAddress("169.254.0.1"), folly::none));
-  nhs.emplace(RouteNextHop::createNextHop(
-      folly::IPAddress("169.254.0.2"), InterfaceID(2)));
+  // v4 link-local address without interface scoping
+  nhs.emplace(UnresolvedNextHop(folly::IPAddress("169.254.0.1")));
 
   // Non v6 link-local address without interface scoping
-  nhs.emplace(RouteNextHop::createNextHop(
-      folly::IPAddress("face:b00c::1"), folly::none));
+  nhs.emplace(UnresolvedNextHop(folly::IPAddress("face:b00c::1")));
 
   // v6 link-local address with interface scoping
-  nhs.emplace(
-      RouteNextHop::createNextHop(folly::IPAddress("fe80::1"), InterfaceID(4)));
+  nhs.emplace(ResolvedNextHop(folly::IPAddress("fe80::1"), InterfaceID(4)));
+
+  // v6 link-local address without interface scoping
+  EXPECT_THROW(
+      nhs.emplace(UnresolvedNextHop(folly::IPAddress("fe80::1"))), FbossError);
 
   // Convert to thrift object
   auto nhts = util::fromRouteNextHopSet(nhs);
-  ASSERT_EQ(5, nhts.size());
+  ASSERT_EQ(4, nhts.size());
 
   auto verify = [&](const std::string& ipaddr,
                     folly::Optional<InterfaceID> intf) {
@@ -2077,7 +2070,6 @@ TEST(RouteTypes, toFromRouteNextHops) {
 
   verify("10.0.0.1", folly::none);
   verify("169.254.0.1", folly::none);
-  verify("169.254.0.2", folly::none); // interface scoping is ignored for v4
   verify("face:b00c::1", folly::none);
   verify("fe80::1", InterfaceID(4));
 
@@ -2094,23 +2086,53 @@ TEST(RouteTypes, toFromRouteNextHops) {
   addr = facebook::network::toBinaryAddress(folly::IPAddress("10.0.0.1"));
   addr.__isset.ifName = true;
   addr.ifName = "fboss10";
-  NextHopThrift nh;
-  nh.address = addr;
+  NextHopThrift nht;
+  nht.address = addr;
   {
-    auto routeNexthop = RouteNextHop::fromThrift(nh);
-    EXPECT_EQ(folly::IPAddress("10.0.0.1"), routeNexthop.addr());
-    EXPECT_EQ(folly::none, routeNexthop.intfID());
+    NextHop nh = util::fromThrift(nht);
+    EXPECT_EQ(folly::IPAddress("10.0.0.1"), nh.addr());
+    EXPECT_EQ(folly::none, nh.intfID());
   }
 
   addr = facebook::network::toBinaryAddress(folly::IPAddress("face::1"));
   addr.__isset.ifName = true;
   addr.ifName = "fboss10";
-  nh.address = addr;
+  nht.address = addr;
   {
-    auto routeNexthop = RouteNextHop::fromThrift(nh);
-    EXPECT_EQ(folly::IPAddress("face::1"), routeNexthop.addr());
-    EXPECT_EQ(folly::none, routeNexthop.intfID());
+    NextHop nh = util::fromThrift(nht);
+    EXPECT_EQ(folly::IPAddress("face::1"), nh.addr());
+    EXPECT_EQ(folly::none, nh.intfID());
   }
+
+  addr = facebook::network::toBinaryAddress(folly::IPAddress("fe80::1"));
+  addr.__isset.ifName = true;
+  addr.ifName = "fboss10";
+  nht.address = addr;
+  {
+    NextHop nh = util::fromThrift(nht);
+    EXPECT_EQ(folly::IPAddress("fe80::1"), nh.addr());
+    EXPECT_EQ(InterfaceID(10), nh.intfID());
+  }
+}
+
+TEST(Route, nextHopTest) {
+  folly::IPAddress addr("1.1.1.1");
+  NextHop unh = UnresolvedNextHop(addr);
+  NextHop rnh = ResolvedNextHop(addr, InterfaceID(1));
+  EXPECT_FALSE(unh.isResolved());
+  EXPECT_TRUE(rnh.isResolved());
+  EXPECT_EQ(unh.addr(), addr);
+  EXPECT_EQ(rnh.addr(), addr);
+  EXPECT_THROW(unh.intf(), folly::OptionalEmptyException);
+  EXPECT_EQ(rnh.intf(), InterfaceID(1));
+  EXPECT_NE(unh, rnh);
+  auto unh2 = unh;
+  EXPECT_EQ(unh, unh2);
+  auto rnh2 = rnh;
+  EXPECT_EQ(rnh, rnh2);
+  EXPECT_FALSE(rnh < unh && unh < rnh);
+  EXPECT_TRUE(rnh < unh || unh < rnh);
+  EXPECT_TRUE(unh < rnh && rnh > unh);
 }
 
 TEST(Route, nodeMapMatchesRadixTree) {

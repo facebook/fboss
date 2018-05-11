@@ -1249,7 +1249,7 @@ shared_ptr<RouteTableMap> ThriftConfigApplier::updateInterfaceRoutes() {
       auto intf = entry.second.first;
       const auto& addr = entry.second.second;
       auto len = entry.first.second;
-      auto nhop = RouteNextHop::createInterfaceNextHop(addr, intf);
+      auto nhop = ResolvedNextHop(addr, intf);
       updater.addRoute(table.first,
                        addr,
                        len,

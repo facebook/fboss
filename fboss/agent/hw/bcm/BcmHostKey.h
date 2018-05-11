@@ -17,13 +17,12 @@ extern "C" {
 
 namespace facebook { namespace fboss {
 
-class BcmHostKey : public RouteNextHop {
+class BcmHostKey {
 
  public:
   // Constructor based on the forward info
-  BcmHostKey(opennsl_vrf_t vrf, const RouteNextHop& fwd)
-      : BcmHostKey(vrf, fwd.addr(), fwd.intfID()) {
-  }
+  BcmHostKey(opennsl_vrf_t vrf, const NextHop& fwd)
+    : BcmHostKey(vrf, fwd.addr(), fwd.intfID()) {}
 
   // Constructor based on the IP address
   BcmHostKey(
@@ -35,10 +34,25 @@ class BcmHostKey : public RouteNextHop {
     return vrf_;
   }
 
+  folly::IPAddress addr() const {
+    return addr_;
+  }
+
+  folly::Optional<InterfaceID> intfID() const {
+    return intfID_;
+  }
+
+  InterfaceID intf() const {
+    // could throw if intfID_ does not have value
+    return intfID_.value();
+  }
+
   std::string str() const;
 
  private:
   opennsl_vrf_t vrf_;
+  folly::IPAddress addr_;
+  folly::Optional<InterfaceID> intfID_;
 };
 
 /**

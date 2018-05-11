@@ -26,7 +26,7 @@ toRouteNextHopSet(std::vector<NextHopThrift> const& nhs) {
   RouteNextHopSet rnhs;
   rnhs.reserve(nhs.size());
   for (auto const& nh : nhs) {
-    rnhs.emplace(RouteNextHop::fromThrift(nh));
+    rnhs.emplace(fromThrift(nh));
   }
   return rnhs;
 }
@@ -35,7 +35,7 @@ std::vector<NextHopThrift>
 fromRouteNextHopSet(RouteNextHopSet const& nhs) {
   std::vector<NextHopThrift> nhts;
   nhts.reserve(nhs.size());
-  for (auto const& nh : nhs) {
+  for (const auto& nh : nhs) {
     nhts.emplace_back(nh.toThrift());
   }
   return nhts;
@@ -133,7 +133,7 @@ RouteNextHopEntry::fromFollyDynamic(const folly::dynamic& entryJson) {
   RouteNextHopEntry entry(Action::DROP, adminDistance);
   entry.action_ = action;
   for (const auto& nhop : entryJson[kNexthops]) {
-    entry.nhopSet_.insert(RouteNextHop::fromFollyDynamic(nhop));
+    entry.nhopSet_.insert(util::nextHopFromFollyDynamic(nhop));
   }
   return entry;
 }
