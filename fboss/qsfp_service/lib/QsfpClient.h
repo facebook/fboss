@@ -13,7 +13,6 @@
 #include <memory>
 #include <vector>
 
-#include <thrift/lib/cpp/ClientUtil.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 #include <folly/futures/Future.h>
 #include <folly/io/async/EventBase.h>
