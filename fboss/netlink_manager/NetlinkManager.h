@@ -36,7 +36,7 @@ class NetlinkManager {
   std::set<std::string> getFbossInterfaces();
   std::set<std::string> parseInterfacesArg(std::string interfacesStr);
   void registerWNetlink();
-  folly::Future<FbossClient> getFbossClient(
+  FbossClient getFbossClient(
       const std::string& ip,
       const int& port);
   void startListening();
@@ -74,7 +74,6 @@ class NetlinkManager {
 
   std::set<std::string> monitoredInterfaces_;
   folly::EventBase* eb_;
-  FbossClient fbossClient_{nullptr};
   std::unique_ptr<NetlinkPoller> poller_{nullptr};
   std::unique_ptr<NlResources> nlResources_{nullptr};
   std::mutex interfacesMutex_;

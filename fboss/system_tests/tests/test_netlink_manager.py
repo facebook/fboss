@@ -15,7 +15,7 @@ from neteng.fboss.ctrl.ttypes import UnicastRoute
 from neteng.fboss.ctrl.ttypes import StdClientIds
 
 
-@unittest.skip("Test is great. Skipping until added to nightly build")
+@unittest.skip('Broken test, UnicastRoute struct now has nextHops field as well')
 class NetlinkManager(FbossBaseSystemTest):
     NETLINK_MANAGER_CLIENT_ID = StdClientIds.NETLINK_LISTENER
 
@@ -62,6 +62,6 @@ class NetlinkManager(FbossBaseSystemTest):
                         prefixLength=prefixlen)
 
     def _get_nexthops(self):
-        host = next(iter(self.test_topology.hosts()))
+        host = self.test_topology.hosts()[0]
         ip = next(host.ips())
         return [ip_str_to_addr(ip)]

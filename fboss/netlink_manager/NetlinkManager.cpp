@@ -31,13 +31,11 @@ namespace facebook {
 namespace fboss {
 
 NetlinkManager::NetlinkManager(folly::EventBase* eb)
-    : eb_(eb), fbossClient_(nullptr), nlResources_(nullptr) {
+    : eb_(eb), nlResources_(nullptr) {
   VLOG(0) << "Constructing NetlinkManager ";
 }
 
 void NetlinkManager::run() {
-  auto clientFuture = getFbossClient(FLAGS_ip, FLAGS_fboss_port);
-  fbossClient_ = clientFuture.getVia(eb_);
   setMonitoredInterfaces();
   testFbossClient();
   callSyncFib();
@@ -69,27 +67,25 @@ void NetlinkManager::stopMonitoringInterface(std::string ifname) {
 // Creating an async socket needs to run on the thread you expect to handle the
 // socket later. If not, there might be a race condition where requests came
 // before the socket exists.
-folly::Future<FbossClient> NetlinkManager::getFbossClient(
+FbossClient NetlinkManager::getFbossClient(
     const std::string& ip,
     const int& port) {
-  auto getClient = [eb = eb_, ip, port] {
-    folly::SocketAddress addr(ip, port);
-    auto socket =
-        apache::thrift::async::TAsyncSocket::newSocket(eb, addr, 2000);
-    socket->setSendTimeout(5000);
-    auto channel = apache::thrift::HeaderClientChannel::newChannel(socket);
-    return std::make_unique<FbossCtrlAsyncClient>(std::move(channel));
-  };
-  return folly::via(eb_, getClient);
+  folly::SocketAddress addr(ip, port);
+  auto socket =
+      apache::thrift::async::TAsyncSocket::newSocket(eb_, addr, 2000);
+  socket->setSendTimeout(5000);
+  auto channel = apache::thrift::HeaderClientChannel::newChannel(socket);
+  return std::make_unique<FbossCtrlAsyncClient>(std::move(channel));
 }
 
 void NetlinkManager::testFbossClient() {
   int triesLeft = 5;
   // We are retrying multiple times here to mitigate a race condition during
   // start-up time when fboss might not be up as fast as the netlink manager
+  FbossClient fbossClient = getFbossClient(FLAGS_ip, FLAGS_fboss_port);
   while (triesLeft > 0) {
     try {
-      fb_status s = fbossClient_->sync_getStatus();
+      fb_status s = fbossClient->sync_getStatus();
       if (s == fb_status::ALIVE) {
         break;
       } else {
@@ -117,7 +113,8 @@ void NetlinkManager::testFbossClient() {
 // with an empty list of routes and then we'll go back and fix this.
 void NetlinkManager::callSyncFib() {
   std::vector<UnicastRoute> routes;
-  fbossClient_->sync_syncFib(FBOSS_CLIENT_ID, routes);
+  FbossClient fbossClient = getFbossClient(FLAGS_ip, FLAGS_fboss_port);
+  fbossClient->sync_syncFib(FBOSS_CLIENT_ID, routes);
 }
 
 void NetlinkManager::setMonitoredInterfaces() {
@@ -133,7 +130,8 @@ std::set<std::string> NetlinkManager::getFbossInterfaces() {
   std::set<std::string> interfaceNames;
   std::map<int32_t, fboss::InterfaceDetail> interfaceDetails;
   // getAllInterfaces only get Fboss interfaces, not eth0, lo, etc
-  fbossClient_->sync_getAllInterfaces(interfaceDetails);
+  FbossClient fbossClient = getFbossClient(FLAGS_ip, FLAGS_fboss_port);
+  fbossClient->sync_getAllInterfaces(interfaceDetails);
   for (auto const& interfaceDetail : interfaceDetails) {
     // get_interfaceName() returns "Interface 10", while we want "fboss10"
     // for if_nametoindex so I'm going this roundabout way.
@@ -268,7 +266,8 @@ void NetlinkManager::addRouteViaFbossThrift(
   unicastRoute.dest = nlAddrToIpPrefix(nlDst);
   unicastRoute.nextHopAddrs = nexthops;
   eb_->runInEventBaseThread([this, unicastRoute]() {
-    fbossClient_->future_addUnicastRoute(FBOSS_CLIENT_ID, unicastRoute)
+    FbossClient fbossClient = getFbossClient(FLAGS_ip, FLAGS_fboss_port);
+    fbossClient->future_addUnicastRoute(FBOSS_CLIENT_ID, unicastRoute)
         .then([]() { VLOG(2) << "NetlinkManager route add success"; })
         .onError([unicastRoute](const std::exception& ex) {
           BinaryAddress binaryDst = unicastRoute.dest.ip;
@@ -284,7 +283,8 @@ void NetlinkManager::deleteRouteViaFbossThrift(struct nl_addr* nlDst) {
   IpPrefix prefix = nlAddrToIpPrefix(nlDst);
 
   eb_->runInEventBaseThread([this, prefix]() {
-    fbossClient_->future_deleteUnicastRoute(FBOSS_CLIENT_ID, prefix)
+    FbossClient fbossClient = getFbossClient(FLAGS_ip, FLAGS_fboss_port);
+    fbossClient->future_deleteUnicastRoute(FBOSS_CLIENT_ID, prefix)
         .then([]() { VLOG(2) << "NetlinkManager route delete success"; })
         .onError([prefix](const std::exception& ex) {
           BinaryAddress binaryDst = prefix.ip;
