@@ -20,6 +20,8 @@
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 #include <folly/dynamic.h>
 
+#include <gtest/gtest_prod.h>
+
 #include <memory>
 #include <mutex>
 #include <boost/container/flat_map.hpp>
@@ -380,6 +382,12 @@ class BcmSwitch : public BcmSwitchIf {
                                opennsl_port_t port,
                                opennsl_port_info_t* info);
 
+  /*
+   * Friend tests. We want the abilty to test private methods
+   * without comprimising encapsulation for code generally.
+   * To that end make tests friends, but no one else
+   */
+  FRIEND_TEST(BcmTest, fpNoMissingOrQsetChangedGrpsPostInit);
  private:
   void resetTablesImpl(std::unique_lock<std::mutex>& lock);
 
