@@ -590,15 +590,10 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   // Setup hash functions for ECMP
   ecmpHashSetup();
 
-  // initialize field processor and field groups
-  // TODO - Stop initing FP on warm boots once
-  // T26329911 is solved. The problem seen there
-  // is that probing FP groups for comparison
-  // during warm boot messes up the COPP policy
-  // to direct traffic to CPU. Upshot of it being
-  // that most traffic gets routed to queue0
-  initFieldProcessor();
-  setupChangedOrMissingFPGroups();
+  if (!warmBoot || haveMissingOrQSetChangedFPGroups()) {
+    initFieldProcessor();
+    setupFPGroups();
+  }
 
   dropDhcpPackets();
   mmuState_ = queryMmuState();

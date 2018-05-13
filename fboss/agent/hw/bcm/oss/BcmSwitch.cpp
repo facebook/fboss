@@ -38,7 +38,10 @@ void BcmSwitch::dropDhcpPackets() {}
 
 void BcmSwitch::setupCos() {}
 
-void BcmSwitch::setupChangedOrMissingFPGroups() {
+void BcmSwitch::setupFPGroups() {}
+
+bool BcmSwitch::haveMissingOrQSetChangedFPGroups() const {
+  return false;
 }
 
 void BcmSwitch::copyIPv6LinkLocalMcastPackets() {

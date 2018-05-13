@@ -572,10 +572,11 @@ class BcmSwitch : public BcmSwitchIf {
    */
   void createSlowProtocolsGroup();
   /*
-   * During warm boot, check if any FP groups changed in a way that
-   * the group needs to be recreated (e.g. on QSET changes).
+   * During warm boot, check for missing FP Groups or FP groups
+   * for which QSETs changed.
    */
-  void setupChangedOrMissingFPGroups();
+  bool haveMissingOrQSetChangedFPGroups() const;
+  void setupFPGroups();
 
   /*
    * Forces a linkscan pass on the provided ports.
