@@ -71,6 +71,7 @@ void BcmAPI::unitDestroyed(BcmUnit* unit) {
     LOG(FATAL) << "inconsistency in BCM unit array for unit " << num <<
       ": expected " << (void*)unit << " but found " << (void*)expectedUnit;
   }
+  bcmInitialized.store(false, std::memory_order_release);
 }
 
 BcmUnit* BcmAPI::getUnit(int unit) {
