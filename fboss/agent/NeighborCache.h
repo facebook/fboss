@@ -14,11 +14,12 @@
 #include "fboss/agent/NeighborCacheEntry.h"
 #include "fboss/agent/state/PortDescriptor.h"
 
-#include <chrono>
-#include <folly/Memory.h>
-#include <folly/MacAddress.h>
 #include <folly/IPAddress.h>
+#include <folly/MacAddress.h>
+#include <folly/Memory.h>
 #include <folly/io/async/EventBase.h>
+#include <folly/logging/xlog.h>
+#include <chrono>
 #include <list>
 #include <string>
 
@@ -172,7 +173,7 @@ class NeighborCache {
  private:
   // This should only be called by a NeighborCacheEntry
   virtual void probeFor(AddressType /*ip*/) const {
-    LOG(DFATAL) << " Only derived class probeFor should ever be called";
+    XLOG(DFATAL) << " Only derived class probeFor should ever be called";
   }
 
   void flushEntry(AddressType ip) {

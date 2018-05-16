@@ -10,14 +10,15 @@
 // Copyright 2014-present Facebook. All Rights Reserved.
 #include "fboss/agent/LldpManager.h"
 
-#include <folly/futures/Future.h>
-#include <folly/io/Cursor.h>
 #include <folly/MacAddress.h>
 #include <folly/Range.h>
+#include <folly/futures/Future.h>
+#include <folly/io/Cursor.h>
+#include <folly/logging/xlog.h>
+#include <unistd.h>
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
-#include <unistd.h>
 
 using folly::MacAddress;
 using folly::io::RWPrivateCursor;
@@ -62,10 +63,10 @@ void LldpManager::handlePacket(
     return;
   }
 
-  VLOG(4) << "got LLDP packet: local_port=" << pkt->getSrcPort() <<
-    " chassis=" << neighbor.humanReadableChassisId() <<
-    " port=" << neighbor.humanReadablePortId() <<
-    " name=" << neighbor.getSystemName();
+  XLOG(DBG4) << "got LLDP packet: local_port=" << pkt->getSrcPort()
+             << " chassis=" << neighbor.humanReadableChassisId()
+             << " port=" << neighbor.humanReadablePortId()
+             << " name=" << neighbor.getSystemName();
   db_.update(neighbor);
 }
 
@@ -73,8 +74,8 @@ void LldpManager::timeoutExpired() noexcept {
   try {
     sendLldpOnAllPorts(true);
   } catch (const std::exception& ex) {
-    LOG(ERROR) << "Failed to send LLDP on all ports. Error:"
-               << folly::exceptionStr(ex);
+    XLOG(ERR) << "Failed to send LLDP on all ports. Error:"
+              << folly::exceptionStr(ex);
   }
   scheduleTimeout(interval_);
 }
@@ -86,8 +87,8 @@ void LldpManager::sendLldpOnAllPorts(bool checkPortStatusFlag) {
     if (checkPortStatusFlag == false || port->isPortUp()) {
       sendLldpInfo(sw_, state, port);
     } else {
-      VLOG(5) << "Skipping LLDP send as this port is disabled " <<
-        port->getID();
+      XLOG(DBG5) << "Skipping LLDP send as this port is disabled "
+                 << port->getID();
     }
   }
 }
@@ -187,11 +188,10 @@ void LldpManager::sendLldpInfo(
   memset(cursor.writableData(), 0, cursor.length());
   // this LLDP packet HAS to exit out of the port specified here.
   sw->sendPacketOutOfPort(std::move(pkt), thisPortID);
-  VLOG(4) << "sent LLDP "
-    << " on port " << port->getID()
-    << " with CPU MAC " << cpuMac.toString()
-    << " port id " << port->getName()
-    << " and vlan " << port->getIngressVlan();
+  XLOG(DBG4) << "sent LLDP "
+             << " on port " << port->getID() << " with CPU MAC "
+             << cpuMac.toString() << " port id " << port->getName()
+             << " and vlan " << port->getIngressVlan();
 }
 
 }} // facebook::fboss

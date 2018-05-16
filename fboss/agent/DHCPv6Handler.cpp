@@ -9,21 +9,12 @@
  */
 #include "DHCPv6Handler.h"
 #include <arpa/inet.h>
-#include <string>
-#include <folly/io/IOBuf.h>
-#include <folly/io/Cursor.h>
 #include <folly/IPAddressV6.h>
+#include <folly/io/Cursor.h>
+#include <folly/io/IOBuf.h>
+#include <folly/logging/xlog.h>
+#include <string>
 #include "FbossError.h"
-#include "fboss/agent/packet/DHCPv6Packet.h"
-#include "fboss/agent/packet/IPv6Hdr.h"
-#include "fboss/agent/packet/IPProto.h"
-#include "fboss/agent/packet/EthHdr.h"
-#include "fboss/agent/packet/Ethertype.h"
-#include "fboss/agent/state/Interface.h"
-#include "fboss/agent/state/InterfaceMap.h"
-#include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
@@ -31,6 +22,16 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/UDPHeader.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/packet/DHCPv6Packet.h"
+#include "fboss/agent/packet/EthHdr.h"
+#include "fboss/agent/packet/Ethertype.h"
+#include "fboss/agent/packet/IPProto.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/state/VlanMap.h"
 
 using std::string;
 using std::unique_ptr;
@@ -91,11 +92,11 @@ void sendDHCPv6Packet(SwSwitch* sw, MacAddress dstMac, MacAddress srcMac,
   udpHdr.updateChecksum(ipHdr, payloadStart);
   csumCursor.writeBE<uint16_t>(udpHdr.csum);
 
-  VLOG (4) << " Send dhcp packet:"
-    << " Eth header: " << ethHdr.toString()
-    << " IP header: " << ipHdr.toString()
-    << " UDP Header: " << udpHdr.toString()
-    << " dhcpLength: " << dhcpLength;
+  XLOG(DBG4) << " Send dhcp packet:"
+             << " Eth header: " << ethHdr.toString()
+             << " IP header: " << ipHdr.toString()
+             << " UDP Header: " << udpHdr.toString()
+             << " dhcpLength: " << dhcpLength;
   // Send packet
   sw->sendPacketSwitched(std::move(txPacket));
 }
@@ -128,15 +129,16 @@ void DHCPv6Handler::handlePacket(
      throw; // Rethrow
   }
   if (dhcp6Pkt.type == DHCPv6_RELAY_FORWARD) {
-    VLOG(4) << "Received DHCPv6 relay forward packet: " << dhcp6Pkt.toString();
+    XLOG(DBG4) << "Received DHCPv6 relay forward packet: "
+               << dhcp6Pkt.toString();
     processDHCPv6RelayForward(sw, std::move(pkt), srcMac, dstMac,
                              ipHdr, dhcp6Pkt);
   } else if (dhcp6Pkt.type == DHCPv6_RELAY_REPLY) {
-    VLOG(4) << "Received DHCPv6 relay reply packet: " << dhcp6Pkt.toString();
+    XLOG(DBG4) << "Received DHCPv6 relay reply packet: " << dhcp6Pkt.toString();
     processDHCPv6RelayReply(sw, std::move(pkt), srcMac, dstMac,
                              ipHdr, dhcp6Pkt);
   } else {
-    VLOG(4) << "Received DHCPv6 packet: " << dhcp6Pkt.toString();
+    XLOG(DBG4) << "Received DHCPv6 packet: " << dhcp6Pkt.toString();
     processDHCPv6Packet(sw, std::move(pkt), srcMac, dstMac, ipHdr, dhcp6Pkt);
   }
 }
@@ -153,27 +155,27 @@ void DHCPv6Handler::processDHCPv6Packet(
   auto vlan = states->getVlans()->getVlanIf(vlanId);
   if (!vlan) {
     sw->stats()->dhcpV6DropPkt();
-    VLOG(2) << "VLAN " << vlanId << " is no longer present"
-            << "DHCPv6Packet dropped.";
+    XLOG(DBG2) << "VLAN " << vlanId << " is no longer present"
+               << "DHCPv6Packet dropped.";
     return;
   }
 
   auto dhcp6ServerIp = vlan->getDhcpV6Relay();
 
   // look in the override map, and use relevant destination
-  VLOG(4) << "srcMac: " << srcMac.toString();
+  XLOG(DBG4) << "srcMac: " << srcMac.toString();
   auto dhcpOverrideMap = vlan->getDhcpV6RelayOverrides();
   for (auto o : dhcpOverrideMap) {
     if (MacAddress(o.first) == srcMac) {
       dhcp6ServerIp = o.second;
-      VLOG(4) << "dhcp6ServerIp: " << dhcp6ServerIp;
+      XLOG(DBG4) << "dhcp6ServerIp: " << dhcp6ServerIp;
       break;
     }
   }
 
   if (dhcp6ServerIp.isZero()) {
-    VLOG(4) << "No DHCPv6 relay configured for Vlan " << vlan->getID()
-            << " dropped DHCPv6 packet";
+    XLOG(DBG4) << "No DHCPv6 relay configured for Vlan " << vlan->getID()
+               << " dropped DHCPv6 packet";
     sw->stats()->dhcpV6DropPkt();
     return;
   }
@@ -196,7 +198,7 @@ void DHCPv6Handler::processDHCPv6Packet(
 
   if (relayFwdPkt.computePacketLength() >
       DHCPv6Packet::MAX_DHCPV6_MSG_LENGTH) {
-    VLOG(2) << "DHCPv6 relay forward message exceeds max length, drop it.";
+    XLOG(DBG2) << "DHCPv6 relay forward message exceeds max length, drop it.";
     sw->portStats(pkt->getSrcPort())->dhcpV6BadPkt();
     return;
   }
@@ -223,7 +225,7 @@ void DHCPv6Handler::processDHCPv6RelayForward(SwSwitch* sw,
    */
   // relay forward from other agent
   if (dhcpPacket.hopCount >= MAX_RELAY_HOPCOUNT) {
-    VLOG(2) << "Received DHCPv6 relay foward packet with max relay hopcount";
+    XLOG(DBG2) << "Received DHCPv6 relay foward packet with max relay hopcount";
     sw->portStats(pkt->getSrcPort())->dhcpV6BadPkt();
     return;
   }
@@ -256,8 +258,8 @@ void DHCPv6Handler::processDHCPv6RelayReply(
       switchIp);
   if (!intf) {
     sw->portStats(pkt->getSrcPort())->dhcpV6DropPkt();
-    VLOG(2) << "Could not look up interface for " << switchIp
-            << "DHCPv6 packet dropped";
+    XLOG(DBG2) << "Could not look up interface for " << switchIp
+               << "DHCPv6 packet dropped";
     return;
   }
 
@@ -280,7 +282,7 @@ void DHCPv6Handler::processDHCPv6RelayReply(
   }
   if (destMac == MacAddress::ZERO || relayLen == 0) {
     sw->portStats(pkt->getSrcPort())->dhcpV6DropPkt();
-    VLOG(2) << "Bad dhcp relay reply message: malformed options";
+    XLOG(DBG2) << "Bad dhcp relay reply message: malformed options";
     return;
   }
   /**

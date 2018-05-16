@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 
 extern "C" {
@@ -53,8 +54,8 @@ void sysLogError(int ret, Args&&... msgArgs) {
   if (ret < 0) {
     auto err = errno;
     char buf[256];
-    LOG(ERROR) << folly::to<std::string>(std::forward<Args>(msgArgs)...)
-               << ": " << strerror_r(err, buf, sizeof(buf));
+    XLOG(ERR) << folly::to<std::string>(std::forward<Args>(msgArgs)...) << ": "
+              << strerror_r(err, buf, sizeof(buf));
   }
 }
 
@@ -63,8 +64,8 @@ void sysLogFatal(int ret, Args&&... msgArgs) {
   if (ret < 0) {
     auto err = errno;
     char buf[256];
-    LOG(FATAL) << folly::to<std::string>(std::forward<Args>(msgArgs)...)
-               << ": " << strerror_r(err, buf, sizeof(buf));
+    XLOG(FATAL) << folly::to<std::string>(std::forward<Args>(msgArgs)...)
+                << ": " << strerror_r(err, buf, sizeof(buf));
   }
 }
 }} // facebook::fboss

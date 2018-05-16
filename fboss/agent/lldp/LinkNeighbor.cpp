@@ -6,6 +6,7 @@
 #include <folly/IPAddressV6.h>
 #include <folly/String.h>
 #include <folly/io/Cursor.h>
+#include <folly/logging/xlog.h>
 #include <glog/logging.h>
 
 using folly::ByteRange;
@@ -142,24 +143,24 @@ bool LinkNeighbor::parseLldpPdu(PortID srcPort,
   } catch (const std::exception& ex) {
     // This generally happens if the packet is malformatted and specifies
     // a TLV length longer than the packet itself.
-    VLOG(1) << "error parsing LLDP packet on port " << srcPort <<
-      " from " << srcMac << ": " << folly::exceptionStr(ex);
+    XLOG(DBG1) << "error parsing LLDP packet on port " << srcPort << " from "
+               << srcMac << ": " << folly::exceptionStr(ex);
     return false;
   }
 
   if (!chassisIdPresent) {
-    VLOG(1) << "received bad LLDP packet on port " << srcPort <<
-      " from " << srcMac << ": missing chassis ID";
+    XLOG(DBG1) << "received bad LLDP packet on port " << srcPort << " from "
+               << srcMac << ": missing chassis ID";
     return false;
   }
   if (!portIdPresent) {
-    VLOG(1) << "received bad LLDP packet on port " << srcPort <<
-      " from " << srcMac << ": missing port ID";
+    XLOG(DBG1) << "received bad LLDP packet on port " << srcPort << " from "
+               << srcMac << ": missing port ID";
     return false;
   }
   if (!ttlPresent) {
-    VLOG(1) << "received bad LLDP packet on port " << srcPort <<
-      " from " << srcMac << ": missing TTL";
+    XLOG(DBG1) << "received bad LLDP packet on port " << srcPort << " from "
+               << srcMac << ": missing TTL";
     return false;
   }
 
@@ -294,8 +295,8 @@ bool LinkNeighbor::parseCdpPdu(PortID srcPort,
   } catch (const std::exception& ex) {
     // This generally happens if the packet is malformatted and specifies a TLV
     // length longer than the packet itself.
-    VLOG(1) << "error parsing CDP packet on port " << srcPort <<
-      " from " << srcMac << ": " << folly::exceptionStr(ex);
+    XLOG(DBG1) << "error parsing CDP packet on port " << srcPort << " from "
+               << srcMac << ": " << folly::exceptionStr(ex);
     return false;
   }
 }
@@ -310,9 +311,9 @@ bool LinkNeighbor::parseCdpPayload(PortID srcPort,
     auto length = cursor->readBE<uint16_t>();
 
     if (length < 4) {
-      VLOG(1) << "received bad CDP packet on port " << srcPort <<
-        " from " << srcMac << " too-short TLV: length=" << length <<
-        ", type=" << static_cast<int>(type);
+      XLOG(DBG1) << "received bad CDP packet on port " << srcPort << " from "
+                 << srcMac << " too-short TLV: length=" << length
+                 << ", type=" << static_cast<int>(type);
       return false;
     }
     length -= 4;
@@ -336,13 +337,13 @@ bool LinkNeighbor::parseCdpPayload(PortID srcPort,
   }
 
   if (!chassisIdPresent) {
-    VLOG(1) << "received bad CDP packet on port " << srcPort <<
-      " from " << srcMac << ": missing device ID";
+    XLOG(DBG1) << "received bad CDP packet on port " << srcPort << " from "
+               << srcMac << ": missing device ID";
     return false;
   }
   if (!portIdPresent) {
-    VLOG(1) << "received bad CDP packet on port " << srcPort <<
-      " from " << srcMac << ": missing port ID";
+    XLOG(DBG1) << "received bad CDP packet on port " << srcPort << " from "
+               << srcMac << ": missing port ID";
     return false;
   }
 

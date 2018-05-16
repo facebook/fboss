@@ -8,15 +8,16 @@
  *
  */
 #include "UnresolvedNhopsProber.h"
-#include "fboss/agent/NexthopToRouteCount.h"
-#include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Interface.h"
-#include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/VlanMap.h"
-#include "fboss/agent/state/ArpTable.h"
-#include "fboss/agent/state/NdpTable.h"
+#include <folly/logging/xlog.h>
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/IPv6Handler.h"
+#include "fboss/agent/NexthopToRouteCount.h"
+#include "fboss/agent/state/ArpTable.h"
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/NdpTable.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/state/VlanMap.h"
 
 namespace facebook { namespace fboss {
 
@@ -49,14 +50,14 @@ void UnresolvedNhopsProber::timeoutExpired() noexcept {
         auto nhop4 = nhop.addr().asV4();
         auto arpEntry = vlan->getArpTable()->getEntryIf(nhop4);
         if (!arpEntry || arpEntry->getPort() == PortID(0)) {
-          VLOG(4) <<" Sending probe for unresolved next hop: " << nhop4;
+          XLOG(DBG4) << " Sending probe for unresolved next hop: " << nhop4;
           ArpHandler::sendArpRequest(sw_, vlan, nhop4);
         }
       } else {
         auto nhop6 = nhop.addr().asV6();
         auto ndpEntry = vlan->getNdpTable()->getEntryIf(nhop6);
         if (!ndpEntry || ndpEntry->getPort() == PortID(0)) {
-          VLOG(4) <<" Sending probe for unresolved next hop: " << nhop6;
+          XLOG(DBG4) << " Sending probe for unresolved next hop: " << nhop6;
           IPv6Handler::sendNeighborSolicitation(sw_, nhop6, vlan);
         }
       }

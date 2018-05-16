@@ -29,6 +29,7 @@
 #include "fboss/agent/state/SwitchState-defs.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
+#include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
@@ -2064,7 +2065,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
         break;
       }
     }
-    LOG(INFO) << "**** " << ipaddr;
+    XLOG(INFO) << "**** " << ipaddr;
     EXPECT_TRUE(found);
   };
 

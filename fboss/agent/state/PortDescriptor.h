@@ -15,6 +15,7 @@
 
 #include <folly/Conv.h>
 #include <folly/dynamic.h>
+#include <folly/logging/xlog.h>
 
 namespace facebook { namespace fboss {
 
@@ -90,7 +91,7 @@ class PortDescriptor {
       case PortType::AGGREGATE:
         return static_cast<int32_t>(aggregatePortID_);
       default:
-        LOG(FATAL) << "PortDescriptor matching not exhaustive";
+        XLOG(FATAL) << "PortDescriptor matching not exhaustive";
     }
   }
   folly::dynamic toFollyDynamic() const {
@@ -100,7 +101,7 @@ class PortDescriptor {
       case PortType::AGGREGATE:
         return folly::dynamic(static_cast<uint16_t>(aggregatePortID_));
       default:
-        LOG(FATAL) << "PortDescriptor matching not exhaustive";
+        XLOG(FATAL) << "PortDescriptor matching not exhaustive";
     }
   }
   static PortDescriptor fromFollyDynamic(const folly::dynamic& descJSON) {

@@ -24,11 +24,12 @@
 #include "fboss/agent/ArpCache.h"
 #include "fboss/agent/NdpCache.h"
 
+#include <boost/container/flat_map.hpp>
+#include <folly/logging/xlog.h>
 #include <list>
 #include <mutex>
 #include <string>
 #include <vector>
-#include <boost/container/flat_map.hpp>
 
 using std::shared_ptr;
 using boost::container::flat_map;
@@ -322,7 +323,7 @@ void NeighborUpdater::vlanDeleted(const Vlan* vlan) {
       // TODO(aeckert): May want to fatal here when a cache doesn't exist for a
       // specific vlan. Need to make sure that caches are correctly created for
       // the initial SwitchState to avoid false positives
-      VLOG(0) << "Deleted Vlan with no corresponding NeighborCaches";
+      XLOG(DBG0) << "Deleted Vlan with no corresponding NeighborCaches";
     }
   }
 }
@@ -349,7 +350,7 @@ void NeighborUpdater::vlanChanged(const Vlan* oldVlan, const Vlan* newVlan) {
       // TODO(aeckert): May want to fatal here when a cache doesn't exist for a
       // specific vlan. Need to make sure that caches are correctly created for
       // the initial SwitchState to avoid false positives
-      VLOG(0) << "Changed Vlan with no corresponding NeighborCaches";
+      XLOG(DBG0) << "Changed Vlan with no corresponding NeighborCaches";
     }
   }
 }
@@ -370,12 +371,12 @@ void NeighborUpdater::portChanged(
         if (aggPort->forwardingSubportCount() <
             aggPort->getMinimumLinkCount()) {
           auto aggPortID = aggPort->getID();
-          LOG(INFO) << "Purging neighbor entry for aggregate port "
-                    << aggPortID;
+          XLOG(INFO) << "Purging neighbor entry for aggregate port "
+                     << aggPortID;
           portDown(PortDescriptor(aggPortID));
         }
       } else {
-        LOG(INFO) << "Purging neighbor entry for physical port " << portId;
+        XLOG(INFO) << "Purging neighbor entry for physical port " << portId;
         portDown(PortDescriptor(portId));
       }
     });

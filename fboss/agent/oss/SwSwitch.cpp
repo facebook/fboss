@@ -11,6 +11,7 @@
 
 #include <folly/Format.h>
 #include <folly/Range.h>
+#include <folly/logging/xlog.h>
 #include <folly/system/ThreadName.h>
 
 namespace facebook { namespace fboss {
@@ -35,7 +36,7 @@ void SwSwitch::publishSwitchInfo(struct HwInitResult /*hwInitRet*/) {}
 void SwSwitch::logLinkStateEvent(PortID port, bool up) {
   std::string logMsg = folly::sformat("LinkState: Port {0} {1}",
                                       (uint16_t)port, (up ? "Up" : "Down"));
-  VLOG(2) << logMsg;
+  XLOG(DBG2) << logMsg;
 }
 
 void SwSwitch::logSwitchRunStateChange(
@@ -45,6 +46,6 @@ void SwSwitch::logSwitchRunStateChange(
       "SwitchRunState changed from {} to {}",
       switchRunStateStr(oldState),
       switchRunStateStr(newState));
-  VLOG(2) << logMsg;
+  XLOG(DBG2) << logMsg;
 }
 }} // facebook::fboss

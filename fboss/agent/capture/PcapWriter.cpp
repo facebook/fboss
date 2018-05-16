@@ -12,6 +12,7 @@
 #include "fboss/agent/capture/PcapPkt.h"
 
 #include <folly/String.h>
+#include <folly/logging/xlog.h>
 
 using folly::StringPiece;
 
@@ -36,8 +37,8 @@ PcapWriter::~PcapWriter() {
     // Can't throw from a destructor, so just log the error.
     // Ideally the caller should always call finish() explicitly before calling
     // the destructor, so they can handle errors properly.
-    LOG(ERROR) << "shutting down PcapWriter with unhandled exception: " <<
-      folly::exceptionStr(ex);
+    XLOG(ERR) << "shutting down PcapWriter with unhandled exception: "
+              << folly::exceptionStr(ex);
   }
 }
 
@@ -65,7 +66,7 @@ void PcapWriter::threadMain() {
     writeLoop();
     file_.close();
   } catch (const std::exception& ex) {
-    LOG(ERROR) << "error writing to pcap file: " << folly::exceptionStr(ex);
+    XLOG(ERR) << "error writing to pcap file: " << folly::exceptionStr(ex);
     ex_ = std::current_exception();
   }
 }

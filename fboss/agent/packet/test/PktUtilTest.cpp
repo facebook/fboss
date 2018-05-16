@@ -12,9 +12,10 @@
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
+#include <folly/Random.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
-#include <folly/Random.h>
+#include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;

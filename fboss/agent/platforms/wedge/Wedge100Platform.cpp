@@ -16,6 +16,7 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
 #include <folly/Memory.h>
+#include <folly/logging/xlog.h>
 
 namespace facebook { namespace fboss {
 
@@ -66,8 +67,8 @@ void Wedge100Platform::enableLedMode() {
   try {
     WedgeI2CBusLock(getI2CBus()).write(ADDR_SYSCPLD, LED_MODE_REG, 1, &mode);
   } catch (const std::exception& ex) {
-    LOG(ERROR) << __func__ << ": failed to change LED mode: "
-               << folly::exceptionStr(ex);
+    XLOG(ERR) << __func__
+              << ": failed to change LED mode: " << folly::exceptionStr(ex);
   }
 }
 

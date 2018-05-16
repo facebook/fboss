@@ -9,6 +9,7 @@
  */
 // Copyright 2014-present Facebook. All Rights Reserved.
 #include "fboss/agent/ThreadHeartbeat.h"
+#include <folly/logging/xlog.h>
 
 using namespace std::chrono;
 
@@ -23,9 +24,9 @@ void ThreadHeartbeat::timeoutExpired() noexcept {
   heartbeatStatsFunc_(delay.count(), evbQueueSize);
   if (delay.count() > delayThresholdMsecs_ ||
       evbQueueSize > backlogThreshold_) {
-    VLOG(3) << threadName_ << ": heartbeat elapsed ms:" << elapsed.count()
-            << " delay ms:" << delay.count() << " event queue size:"
-            << evbQueueSize;
+    XLOG(DBG3) << threadName_ << ": heartbeat elapsed ms:" << elapsed.count()
+               << " delay ms:" << delay.count()
+               << " event queue size:" << evbQueueSize;
   }
   lastTime_ = now;
   scheduleTimeout(intervalMsecs_);

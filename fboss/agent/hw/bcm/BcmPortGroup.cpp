@@ -13,8 +13,8 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 
+#include <folly/logging/xlog.h>
 #include "fboss/agent/state/Port.h"
-
 
 namespace {
 using facebook::fboss::BcmPortGroup;
@@ -119,8 +119,8 @@ BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
         }
       }
 
-      VLOG(3) << "Port " << port->getID() << " enabled with speed " <<
-        static_cast<int>(port->getSpeed());
+      XLOG(DBG3) << "Port " << port->getID() << " enabled with speed "
+                 << static_cast<int>(port->getSpeed());
     }
   }
   return desiredMode;
@@ -152,7 +152,7 @@ bool BcmPortGroup::validConfiguration(
     calculateDesiredLaneMode(
       getSwPorts(state), controllingPort_->supportedLaneSpeeds());
   } catch (const std::exception& ex) {
-    VLOG(1) << "Received exception determining lane mode: " << ex.what();
+    XLOG(DBG1) << "Received exception determining lane mode: " << ex.what();
     return false;
   }
   return true;
@@ -183,9 +183,9 @@ void BcmPortGroup::reconfigureLaneMode(
 ) {
   // The logic for this follows the steps required for flex-port support
   // outlined in the sdk documentation.
-  VLOG(1) << "Reconfiguring port " << controllingPort_->getBcmPortId()
-          << " from " << laneMode_ << " active ports to " << newLaneMode
-          << " active ports";
+  XLOG(DBG1) << "Reconfiguring port " << controllingPort_->getBcmPortId()
+             << " from " << laneMode_ << " active ports to " << newLaneMode
+             << " active ports";
 
   // 1. Disable linkscan, then disable ports.
   for (auto& bcmPort : allPorts_) {

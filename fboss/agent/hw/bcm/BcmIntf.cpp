@@ -14,10 +14,11 @@ extern "C" {
 }
 
 #include <folly/IPAddress.h>
+#include <folly/logging/xlog.h>
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/bcm/Utils.h"
 #include "fboss/agent/state/Interface.h"
@@ -54,7 +55,7 @@ BcmStation::~BcmStation() {
   }
   auto rc = opennsl_l2_station_delete(hw_->getUnit(), id_);
   bcmLogFatal(rc, hw_, "failed to delete station entry ", id_);
-  VLOG(3) << "deleted station entry " << id_;
+  XLOG(DBG3) << "deleted station entry " << id_;
 }
 
 void BcmStation::program(MacAddress mac, int id) {
@@ -84,12 +85,12 @@ void BcmStation::program(MacAddress mac, int id) {
     const auto& existingStation = vlanStationItr->second;
     if (!equivalent(params, existingStation)) {
       // Delete old station end and set addStation to true
-      VLOG (1) << "Updating BCM station with Mac : " << mac <<" and " << id;
+      XLOG(DBG1) << "Updating BCM station with Mac : " << mac << " and " << id;
       rc = opennsl_l2_station_delete(hw_->getUnit(), id);
       bcmCheckError(rc, "failed to delete station entry ", id);
       addStation = true;
     } else {
-      VLOG(1) << " station entry " << id << " already exists ";
+      XLOG(DBG1) << " station entry " << id << " already exists ";
       id_ = id;
     }
 
@@ -99,13 +100,13 @@ void BcmStation::program(MacAddress mac, int id) {
 
   if (addStation) {
     if (vlanStationItr != warmBootCache->vlan2Station_end()) {
-      VLOG (1) << "Adding BCM station with Mac : " << mac <<" and " << id;
+      XLOG(DBG1) << "Adding BCM station with Mac : " << mac << " and " << id;
     }
     rc = opennsl_l2_station_add(hw_->getUnit(), &id, &params);
     bcmCheckError(rc, "failed to program station entry ", id,
         " to ", mac.toString());
     id_ = id;
-    VLOG(1) << "updated station entry " << id_ << " to " << mac.toString();
+    XLOG(DBG1) << "updated station entry " << id_ << " to " << mac.toString();
   }
   if (vlanStationItr != warmBootCache->vlan2Station_end()) {
     warmBootCache->programmed(vlanStationItr);
@@ -163,8 +164,8 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
       };
 
     if (!equivalent(newIntf, oldIntf)) {
-      VLOG(1) << "Updating interface for vlan : " << intf->getVlanID()
-        << " and mac: " << intf->getMac();
+      XLOG(DBG1) << "Updating interface for vlan : " << intf->getVlanID()
+                 << " and mac: " << intf->getMac();
       CHECK_NE(bcmIfId_, INVALID);
       newIntf.l3a_intf_id = bcmIfId_;
       newIntf.l3a_flags = OPENNSL_L3_WITH_ID | OPENNSL_L3_REPLACE;
@@ -218,8 +219,8 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
         // updated.
         addInterface = true;
       } else {
-        VLOG(1) << "Interface for vlan " << intf->getVlanID()
-              << " and mac " << intf->getMac() <<" already exists";
+        XLOG(DBG1) << "Interface for vlan " << intf->getVlanID() << " and mac "
+                   << intf->getMac() << " already exists";
       }
 
     } else {
@@ -227,8 +228,8 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
     }
     if (addInterface) {
       if (vlanMac2IntfItr == warmBootCache->vlanAndMac2Intf_end()) {
-        VLOG(1) << "Adding interface for vlan : " << intf->getVlanID()
-          << " and mac: " << intf->getMac();
+        XLOG(DBG1) << "Adding interface for vlan : " << intf->getVlanID()
+                   << " and mac: " << intf->getMac();
       }
       auto rc = opennsl_l3_intf_create(hw_->getUnit(), &ifParams);
       bcmCheckError(rc, "failed to create L3 interface ", intf->getID());
@@ -252,8 +253,8 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
       };
       host->programToCPU(bcmIfId_);
     } catch (const std::exception& ex) {
-      LOG(ERROR) << "failed to allocate BcmHost for " << addr
-                 << " Error:" << folly::exceptionStr(ex);
+      XLOG(ERR) << "failed to allocate BcmHost for " << addr
+                << " Error:" << folly::exceptionStr(ex);
     }
   };
   auto removeHost = [&](const IPAddress& addr, InterfaceID intfID) {
@@ -304,8 +305,8 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
   }
   // all new info have been programmed, store the interface configuration
   intf_ = intf;
-  VLOG(3) << "updated L3 interface " << bcmIfId_ << " for interface ID "
-          << intf->getID();
+  XLOG(DBG3) << "updated L3 interface " << bcmIfId_ << " for interface ID "
+             << intf->getID();
 }
 
 BcmIntf::~BcmIntf() {
@@ -324,7 +325,7 @@ BcmIntf::~BcmIntf() {
   ifParams.l3a_flags |= OPENNSL_L3_WITH_ID;
   auto rc = opennsl_l3_intf_delete(hw_->getUnit(), &ifParams);
   bcmLogFatal(rc, hw_, "failed to delete L3 interface ", bcmIfId_);
-  VLOG(3) << "deleted L3 interface " << bcmIfId_;
+  XLOG(DBG3) << "deleted L3 interface " << bcmIfId_;
 }
 
 folly::dynamic BcmIntf::toFollyDynamic() const {

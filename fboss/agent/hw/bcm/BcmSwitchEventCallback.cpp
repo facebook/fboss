@@ -8,8 +8,9 @@
  *
  */
 #include "BcmSwitchEventCallback.h"
-#include "fboss/agent/hw/bcm/BcmStats.h"
+#include <folly/logging/xlog.h>
 #include <glog/logging.h>
+#include "fboss/agent/hw/bcm/BcmStats.h"
 
 namespace facebook { namespace fboss {
 
@@ -44,9 +45,9 @@ void BcmSwitchEventUnitFatalErrorCallback::callback(const int unit,
     const opennsl_switch_event_t eventID, const uint32_t arg1,
     const uint32_t arg2, const uint32_t arg3) {
   auto alarm = switch_event_helpers::getAlarmName(eventID);
-  LOG(FATAL) << "BCM Fatal error on unit " << unit << ": " << alarm
-             << " (" << eventID << ") with params "
-             << arg1 << ", " << arg2 << ", " << arg3;
+  XLOG(FATAL) << "BCM Fatal error on unit " << unit << ": " << alarm << " ("
+              << eventID << ") with params " << arg1 << ", " << arg2 << ", "
+              << arg3;
 }
 
 void BcmSwitchEventUnitNonFatalErrorCallback::callback(const int unit,

@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <folly/logging/xlog.h>
 #include <glog/logging.h>
 
 using std::string;
@@ -59,7 +60,7 @@ BcmWarmBootHelper::BcmWarmBootHelper(int unit, std::string warmBootDir)
     }
 
     auto bootType = canWarmBoot_ ? "WARM" : "COLD";
-    VLOG(1) << "Will attempt " << bootType << " boot";
+    XLOG(DBG1) << "Will attempt " << bootType << " boot";
 
     setupWarmBootFile();
   }
@@ -69,8 +70,8 @@ BcmWarmBootHelper::~BcmWarmBootHelper() {
   if (warmBootFd_ > 0) {
     int rv = close(warmBootFd_);
     if (rv < 0) {
-      LOG(ERROR) << "error closing warm boot file for unit " << unit_
-        << ": " << errno;
+      XLOG(ERR) << "error closing warm boot file for unit " << unit_ << ": "
+                << errno;
     }
     warmBootFd_ = -1;
   }
@@ -101,7 +102,7 @@ void BcmWarmBootHelper::setCanWarmBoot() {
   }
   close(updateFd);
 
-  VLOG(1) << "Wrote can warm boot flag: " << wbFlag;
+  XLOG(DBG1) << "Wrote can warm boot flag: " << wbFlag;
 }
 
 bool BcmWarmBootHelper::checkAndClearWarmBootFlags() {

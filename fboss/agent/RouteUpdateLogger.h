@@ -9,12 +9,13 @@
  */
 #pragma once
 
+#include <folly/IPAddress.h>
+#include <folly/logging/xlog.h>
 #include "fboss/agent/RouteUpdateLoggingPrefixTracker.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/StateDelta.h"
-#include <folly/IPAddress.h>
 
 #include <memory>
 #include <vector>
@@ -44,8 +45,8 @@ class GlogRouteLogger : public RouteLogger<AddrT> {
       const std::shared_ptr<Route<AddrT>>& newRoute,
       const std::vector<std::string>& identifiers) override {
     for (const auto& identifier : identifiers) {
-      LOG(INFO) << "[" << identifier << "] "
-                << "Added route: " << newRoute->str();
+      XLOG(INFO) << "[" << identifier << "] "
+                 << "Added route: " << newRoute->str();
     }
   }
 
@@ -54,9 +55,9 @@ class GlogRouteLogger : public RouteLogger<AddrT> {
       const std::shared_ptr<Route<AddrT>>& newRoute,
       const std::vector<std::string>& identifiers) override {
     for (const auto& identifier : identifiers) {
-      LOG(INFO) << "[" << identifier << "] "
-                << "Updated route. old route: " << oldRoute->str()
-                << "-> new route: " << newRoute->str();
+      XLOG(INFO) << "[" << identifier << "] "
+                 << "Updated route. old route: " << oldRoute->str()
+                 << "-> new route: " << newRoute->str();
     }
   }
 
@@ -64,8 +65,8 @@ class GlogRouteLogger : public RouteLogger<AddrT> {
       const std::shared_ptr<Route<AddrT>>& oldRoute,
       const std::vector<std::string>& identifiers) override {
     for (const auto& identifier : identifiers) {
-      LOG(INFO) << "[" << identifier << "] "
-                << "Removed route: " << oldRoute->str();
+      XLOG(INFO) << "[" << identifier << "] "
+                 << "Removed route: " << oldRoute->str();
     }
   }
 };

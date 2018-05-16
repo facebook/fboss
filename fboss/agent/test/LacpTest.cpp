@@ -21,6 +21,7 @@
 #include <folly/MacAddress.h>
 #include <folly/Range.h>
 #include <folly/Synchronized.h>
+#include <folly/logging/xlog.h>
 #include <folly/synchronization/Baton.h>
 #include <folly/system/ThreadName.h>
 #include <gmock/gmock.h>
@@ -87,8 +88,8 @@ class LacpServiceInterceptor : public LacpServicerIf {
     (*portToIsForwardingLocked)[portID] = true;
 
     // "Enable" forwarding
-    LOG(INFO) << "Enabling member " << portID << " in "
-              << "aggregate " << aggPortID;
+    XLOG(INFO) << "Enabling member " << portID << " in "
+               << "aggregate " << aggPortID;
   }
   void disableForwarding(PortID portID, AggregatePortID aggPortID) override {
     auto portToIsForwardingLocked = portToIsForwarding_.wlock();
@@ -96,8 +97,8 @@ class LacpServiceInterceptor : public LacpServicerIf {
     (*portToIsForwardingLocked)[portID] = false;
 
     // "Disable" forwarding
-    LOG(INFO) << "Disabling member " << portID << " in "
-              << "aggregate " << aggPortID;
+    XLOG(INFO) << "Disabling member " << portID << " in "
+               << "aggregate " << aggPortID;
   }
   std::vector<std::shared_ptr<LacpController>> getControllersFor(
       folly::Range<std::vector<PortID>::const_iterator> ports) override {

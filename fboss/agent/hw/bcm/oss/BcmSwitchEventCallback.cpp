@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
 
+#include <folly/logging/xlog.h>
 #include <glog/logging.h>
 
 namespace facebook { namespace fboss {
@@ -20,8 +21,8 @@ void BcmSwitchEventUnitNonFatalErrorCallback::logNonFatalError(
     uint32_t arg1,
     uint32_t arg2,
     uint32_t arg3) {
-  LOG(ERROR) << "BCM non-fatal error on unit " << unit << ": " << alarm << " ("
-             << eventID << ") with params " << arg1 << ", " << arg2 << ", "
-             << arg3;
+  XLOG(ERR) << "BCM non-fatal error on unit " << unit << ": " << alarm << " ("
+            << eventID << ") with params " << arg1 << ", " << arg2 << ", "
+            << arg3;
 }
 }} // facebook::fboss

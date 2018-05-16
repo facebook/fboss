@@ -12,9 +12,10 @@
 
 #include <boost/algorithm/string.hpp>
 #include <folly/FileUtil.h>
-#include <folly/json.h>
-#include <folly/dynamic.h>
 #include <folly/MacAddress.h>
+#include <folly/dynamic.h>
+#include <folly/json.h>
+#include <folly/logging/xlog.h>
 
 namespace {
 constexpr auto kInfo = "Information";
@@ -63,7 +64,7 @@ void WedgeProductInfo::initialize() {
     folly::readFile(path_.str().c_str(), data);
     parse(data);
   } catch (const std::exception& err) {
-    LOG(ERROR) << err.what();
+    XLOG(ERR) << err.what();
     // if fruid info fails fall back to fbwhoami
     initFromFbWhoAmI();
   }
@@ -132,7 +133,7 @@ void WedgeProductInfo::parse(std::string data) {
   try {
     info = parseJson(data).at(kInfo);
   } catch (const std::exception& err) {
-    LOG(ERROR) << err.what();
+    XLOG(ERR) << err.what();
     // Handle fruid data present outside of "Information" i.e.
     // {
     //   "Information" : fruid json

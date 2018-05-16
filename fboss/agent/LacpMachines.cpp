@@ -12,11 +12,11 @@
 #include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/LacpController.h"
 
-
-#include <algorithm>
-#include <exception>
 #include <folly/Conv.h>
 #include <folly/ExceptionString.h>
+#include <folly/logging/xlog.h>
+#include <algorithm>
+#include <exception>
 
 namespace facebook {
 namespace fboss {
@@ -159,12 +159,12 @@ void ReceiveMachine::stop() {
 void ReceiveMachine::rx(LACPDU lacpdu) {
   CHECK(controller_.evb()->inRunningEventBaseThread());
 
-  VLOG(4) << "ReceiveMachine[" << controller_.portID() << "]: "
-          << "RX(" << lacpdu.describe() << ")";
+  XLOG(DBG4) << "ReceiveMachine[" << controller_.portID() << "]: "
+             << "RX(" << lacpdu.describe() << ")";
 
   if (state_ == ReceiveState::DISABLED) {
-    VLOG(4) << "ReceiveMachine[" << controller_.portID() << "]: "
-            << "Ignoring frame reception in DISABLED state";
+    XLOG(DBG4) << "ReceiveMachine[" << controller_.portID() << "]: "
+               << "Ignoring frame reception in DISABLED state";
     return;
   }
 
@@ -175,7 +175,7 @@ void ReceiveMachine::portUp() {
   CHECK(controller_.evb()->inRunningEventBaseThread());
   CHECK_EQ(state_, ReceiveState::DISABLED);
 
-  VLOG(4) << "ReceiveMachine[" << controller_.portID() << "]: UP";
+  XLOG(DBG4) << "ReceiveMachine[" << controller_.portID() << "]: UP";
 
   expired();
 }
@@ -183,7 +183,7 @@ void ReceiveMachine::portUp() {
 void ReceiveMachine::portDown() {
   CHECK(controller_.evb()->inRunningEventBaseThread());
 
-  VLOG(4) << "ReceiveMachine[" << controller_.portID() << "]: DOWN";
+  XLOG(DBG4) << "ReceiveMachine[" << controller_.portID() << "]: DOWN";
 
   disabled();
 }
@@ -246,9 +246,9 @@ void ReceiveMachine::updateSelected(LACPDU& lacpdu) {
           (partnerInfo_.state & LacpState::AGGREGATABLE)) {
     return;
   }
-  VLOG(4) << "ReceiveMachine[" << controller_.portID() << "]: "
-            << "Partner claimed " << lacpdu.actorInfo.describe()
-            << " but I have " << partnerInfo_.describe();
+  XLOG(DBG4) << "ReceiveMachine[" << controller_.portID() << "]: "
+             << "Partner claimed " << lacpdu.actorInfo.describe()
+             << " but I have " << partnerInfo_.describe();
   controller_.unselected();
 }
 
@@ -340,8 +340,8 @@ void ReceiveMachine::timeoutExpired() noexcept {
   } catch (...) {
     std::exception_ptr e = std::current_exception();
     CHECK(e);
-    LOG(FATAL) << "ReceiveMachine::timeoutExpired(): "
-               << folly::exceptionStr(e);
+    XLOG(FATAL) << "ReceiveMachine::timeoutExpired(): "
+                << folly::exceptionStr(e);
   }
 }
 
@@ -355,8 +355,8 @@ void ReceiveMachine::recordDefault() {
 void ReceiveMachine::updateState(ReceiveState nextState) {
   prevState_ = state_;
   state_ = nextState;
-  VLOG(4) << "ReceiveMachine[" << controller_.portID() << "]: " << prevState_
-            << "-->" << state_;
+  XLOG(DBG4) << "ReceiveMachine[" << controller_.portID() << "]: " << prevState_
+             << "-->" << state_;
 }
 
 ParticipantInfo ReceiveMachine::partnerInfo() const {
@@ -399,18 +399,18 @@ void PeriodicTransmissionMachine::portDown() {
 void PeriodicTransmissionMachine::beginNextPeriod() {
   switch (state_) {
     case PeriodicState::SLOW:
-      VLOG(4) << "PeriodicTransmissionMachine[" << controller_.portID()
-                << "]: scheduling timeout for long period";
+      XLOG(DBG4) << "PeriodicTransmissionMachine[" << controller_.portID()
+                 << "]: scheduling timeout for long period";
       scheduleTimeout(LONG_PERIOD);
       break;
     case PeriodicState::FAST:
-      VLOG(4) << "PeriodicTransmissionMachine[" << controller_.portID()
-                << "]: scheduling timeout for short period";
+      XLOG(DBG4) << "PeriodicTransmissionMachine[" << controller_.portID()
+                 << "]: scheduling timeout for short period";
       scheduleTimeout(SHORT_PERIOD);
       break;
     case PeriodicState::NONE:
-      VLOG(4) << "PeriodicTransmissionMachine[" << controller_.portID()
-                << "]: not scheduling a timeout";
+      XLOG(DBG4) << "PeriodicTransmissionMachine[" << controller_.portID()
+                 << "]: not scheduling a timeout";
       break;
     case PeriodicState::TX:
       throw LACPError("invalid transition to ", state_);
@@ -420,8 +420,8 @@ void PeriodicTransmissionMachine::beginNextPeriod() {
 
 void PeriodicTransmissionMachine::timeoutExpired() noexcept {
   try {
-    VLOG(4) << "PeriodicTransmissionMachine[" << controller_.portID()
-              << "]: end of period";
+    XLOG(DBG4) << "PeriodicTransmissionMachine[" << controller_.portID()
+               << "]: end of period";
 
     state_ = PeriodicState::TX;
 
@@ -433,8 +433,8 @@ void PeriodicTransmissionMachine::timeoutExpired() noexcept {
   } catch (...) {
     std::exception_ptr e = std::current_exception();
     CHECK(e);
-    LOG(FATAL) << "PeriodicTranmissionMachine::timeoutExpired(): "
-               << folly::exceptionStr(e);
+    XLOG(FATAL) << "PeriodicTranmissionMachine::timeoutExpired(): "
+                << folly::exceptionStr(e);
   }
 }
 
@@ -488,8 +488,8 @@ void TransmitMachine::ntt(LACPDU lacpdu) {
 
   if (transmissionsLeft_ == 0) {
     // TODO(samank): figure out stale ntt details
-    VLOG(4) << "TransmitMachine[" << controller_.portID() << "]: "
-              << "skipping ntt request";
+    XLOG(DBG4) << "TransmitMachine[" << controller_.portID() << "]: "
+               << "skipping ntt request";
     return;
   }
 
@@ -498,11 +498,11 @@ void TransmitMachine::ntt(LACPDU lacpdu) {
     return;
   }
 
-  VLOG(4) << "TransmitMachine[" << controller_.portID() << "]: "
-            << "TX(" << lacpdu.describe() << ")";
+  XLOG(DBG4) << "TransmitMachine[" << controller_.portID() << "]: "
+             << "TX(" << lacpdu.describe() << ")";
 
   --transmissionsLeft_;
-  VLOG(4) << transmissionsLeft_ << " transmissions left";
+  XLOG(DBG4) << transmissionsLeft_ << " transmissions left";
 }
 
 const std::chrono::seconds MuxMachine::AGGREGATE_WAIT_DURATION(2);
@@ -521,18 +521,18 @@ void MuxMachine::selected(AggregatePortID selection) {
 
   switch (state_) {
     case MuxState::DETACHED:
-      VLOG(4) << "MuxMachine[" << controller_.portID() << "]: SELECTED in "
-                << state_;
+      XLOG(DBG4) << "MuxMachine[" << controller_.portID() << "]: SELECTED in "
+                 << state_;
       waiting(true);
       break;
     case MuxState::WAITING:
-      VLOG(4) << "MuxMachine[" << controller_.portID() << "]: SELECTED in "
-                << state_;
+      XLOG(DBG4) << "MuxMachine[" << controller_.portID() << "]: SELECTED in "
+                 << state_;
       attached();
     case MuxState::ATTACHED:
     case MuxState::COLLECTING_DISTRIBUTING:
-      LOG(WARNING) << "MuxMachine[" << controller_.portID()
-                   << "]: Ignoring SELECTED in " << state_;
+      XLOG(WARNING) << "MuxMachine[" << controller_.portID()
+                    << "]: Ignoring SELECTED in " << state_;
       break;
   }
 }
@@ -542,18 +542,18 @@ void MuxMachine::unselected() {
 
   switch (state_) {
     case MuxState::DETACHED:
-      LOG(WARNING) << "MuxMachine[" << controller_.portID()
-                   << "]: Ignoring UNSELECTED in " << state_;
+      XLOG(WARNING) << "MuxMachine[" << controller_.portID()
+                    << "]: Ignoring UNSELECTED in " << state_;
       break;
     case MuxState::WAITING:
     case MuxState::ATTACHED:
-      VLOG(4) << "MuxMachine[" << controller_.portID() << "]: UNSELECTED in "
-                << state_;
+      XLOG(DBG4) << "MuxMachine[" << controller_.portID() << "]: UNSELECTED in "
+                 << state_;
       detached();
       break;
     case MuxState::COLLECTING_DISTRIBUTING:
-      VLOG(4) << "MuxMachine[" << controller_.portID() << "]: UNSELECTED in "
-                << state_;
+      XLOG(DBG4) << "MuxMachine[" << controller_.portID() << "]: UNSELECTED in "
+                 << state_;
       attached();
       break;
   }
@@ -564,18 +564,18 @@ void MuxMachine::standby() {
 
   switch (state_) {
     case MuxState::DETACHED:
-      VLOG(4) << "MuxMachine[" << controller_.portID() << "]: STANDBY in "
-              << state_;
+      XLOG(DBG4) << "MuxMachine[" << controller_.portID() << "]: STANDBY in "
+                 << state_;
       waiting(false);
       break;
     case MuxState::WAITING:
-      VLOG(4) << "MuxMachine[" << controller_.portID()
-              << "]: Ignoring STANDBY in " << state_;
+      XLOG(DBG4) << "MuxMachine[" << controller_.portID()
+                 << "]: Ignoring STANDBY in " << state_;
       break;
     case MuxState::ATTACHED:
     case MuxState::COLLECTING_DISTRIBUTING:
-      VLOG(4) << "MuxMachine[" << controller_.portID() << "]: STANDBY in "
-              << state_;
+      XLOG(DBG4) << "MuxMachine[" << controller_.portID() << "]: STANDBY in "
+                 << state_;
       detached();
       break;
   }
@@ -590,12 +590,12 @@ void MuxMachine::matched() {
     case MuxState::DETACHED:
     case MuxState::WAITING:
     case MuxState::COLLECTING_DISTRIBUTING:
-      LOG(WARNING) << "MuxMachine[" << controller_.portID()
-                   << "]: Ignoring MATCHED in " << state_;
+      XLOG(WARNING) << "MuxMachine[" << controller_.portID()
+                    << "]: Ignoring MATCHED in " << state_;
       break;
     case MuxState::ATTACHED:
-      VLOG(4) << "MuxMachine[" << controller_.portID() << "]: MATCHED in "
-                << state_;
+      XLOG(DBG4) << "MuxMachine[" << controller_.portID() << "]: MATCHED in "
+                 << state_;
       collectingDistributing();
       break;
   }
@@ -610,12 +610,12 @@ void MuxMachine::notMatched() {
     case MuxState::DETACHED:
     case MuxState::WAITING:
     case MuxState::ATTACHED:
-      LOG(WARNING) << "MuxMachine[" << controller_.portID()
-                   << "]: Ignoring NOT MATCHED in " << state_;
+      XLOG(WARNING) << "MuxMachine[" << controller_.portID()
+                    << "]: Ignoring NOT MATCHED in " << state_;
       break;
     case MuxState::COLLECTING_DISTRIBUTING:
-      VLOG(4) << "MuxMachine[" << controller_.portID() << "]: NOT MATCHED in "
-                << state_;
+      XLOG(DBG4) << "MuxMachine[" << controller_.portID()
+                 << "]: NOT MATCHED in " << state_;
       attached();
       break;
   }
@@ -688,7 +688,7 @@ void MuxMachine::timeoutExpired() noexcept {
   } catch (...) {
     std::exception_ptr e = std::current_exception();
     CHECK(e);
-    LOG(FATAL) << "MuxMachine::timeoutExpired(): " << folly::exceptionStr(e);
+    XLOG(FATAL) << "MuxMachine::timeoutExpired(): " << folly::exceptionStr(e);
   }
 }
 
@@ -726,8 +726,8 @@ void MuxMachine::updateState(MuxState nextState) {
   prevState_ = state_;
   state_ = nextState;
 
-  VLOG(4) << "MuxMachine[" << controller_.portID() << "]: " << prevState_
-            << "-->" << state_;
+  XLOG(DBG4) << "MuxMachine[" << controller_.portID() << "]: " << prevState_
+             << "-->" << state_;
 }
 
 Selector::Selector(LacpController& controller, uint8_t minLinkCount)
@@ -746,8 +746,8 @@ void Selector::select() {
   // same as that identified by targetLagID, then there's nothing to do.
   auto maybeSelection = getSelectionIf();
   if (maybeSelection && maybeSelection->lagID == targetLagID) {
-    VLOG(4) << "Selection[" << controller_.portID()
-            << "]: skipping selection logic";
+    XLOG(DBG4) << "Selection[" << controller_.portID()
+               << "]: skipping selection logic";
     return;
   }
 
@@ -756,12 +756,12 @@ void Selector::select() {
         std::make_pair(controller_.portID(), Selection(targetLagID, state)));
 
     if (state == SelectionState::SELECTED) {
-      VLOG(4) << "Selection[" << controller_.portID() << "]: selected "
-              << targetLagID.describe();
+      XLOG(DBG4) << "Selection[" << controller_.portID() << "]: selected "
+                 << targetLagID.describe();
       controller_.selected();
     } else {
-      VLOG(4) << "Selection[" << controller_.portID() << "]: standby "
-              << targetLagID.describe();
+      XLOG(DBG4) << "Selection[" << controller_.portID() << "]: standby "
+                 << targetLagID.describe();
       controller_.standby();
     }
   };
@@ -864,7 +864,7 @@ std::vector<PortID> Selector::getPortsWithSelection(Selection s) const {
 void Selector::portDown() {
   auto maybeSelection = getSelectionIf();
   if (!maybeSelection) {
-    VLOG(4) << "Selection[" << controller_.portID() << "]: no LAG chosen";
+    XLOG(DBG4) << "Selection[" << controller_.portID() << "]: no LAG chosen";
     return;
   }
 

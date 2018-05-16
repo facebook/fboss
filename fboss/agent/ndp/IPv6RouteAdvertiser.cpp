@@ -9,14 +9,15 @@
  */
 #include "fboss/agent/ndp/IPv6RouteAdvertiser.h"
 
-#include <netinet/icmp6.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
+#include <folly/logging/xlog.h>
+#include <netinet/icmp6.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/ICMPHdr.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -136,8 +137,8 @@ void IPv6RAImpl::initPacket(const Interface* intf) {
 }
 
 void IPv6RAImpl::sendRouteAdvertisement() {
-  VLOG(5) << "sending route advertisement:\n" <<
-    PktUtil::hexDump(Cursor(&buf_));
+  XLOG(DBG5) << "sending route advertisement:\n"
+             << PktUtil::hexDump(Cursor(&buf_));
 
   // Allocate a new packet, and copy our data into it.
   //
@@ -183,7 +184,7 @@ IPv6RouteAdvertiser::~IPv6RouteAdvertiser() {
   bool ret = adv_->getSw()->getBackgroundEvb()->runInEventBaseThread(
       IPv6RAImpl::stop, adv_);
   if (!ret) {
-    LOG(ERROR) << "failed to stop IPv6 route advertiser";
+    XLOG(ERR) << "failed to stop IPv6 route advertiser";
   }
 }
 

@@ -18,6 +18,7 @@
 
 #include <folly/Range.h>
 #include <folly/String.h>
+#include <folly/logging/xlog.h>
 #include "fboss/agent/state/StateUpdate.h"
 
 namespace facebook { namespace fboss {
@@ -39,8 +40,8 @@ class FunctionStateUpdate : public StateUpdate {
   }
 
   void onError(const std::exception& ex) noexcept override {
-    LOG(FATAL) << "unexpected error applying state update <" <<
-      getName() << ">: " << folly::exceptionStr(ex);
+    XLOG(FATAL) << "unexpected error applying state update <" << getName()
+                << ">: " << folly::exceptionStr(ex);
   }
 
  private:

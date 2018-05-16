@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
 
 #include <folly/Memory.h>
+#include <folly/logging/xlog.h>
 
 extern "C" {
 #include <opennsl/link.h>
@@ -121,11 +122,11 @@ opennsl_gport_t BcmSwitch::getCpuGPort() const {
 }
 
 bool BcmSwitch::startBufferStatCollection() {
-  LOG(INFO) << "Buffer stats collection not supported";
+  XLOG(INFO) << "Buffer stats collection not supported";
   return bufferStatsEnabled_;
 }
 bool BcmSwitch::stopBufferStatCollection() {
-  LOG(INFO) << "no op, buffer stats collection is not supported";
+  XLOG(INFO) << "no op, buffer stats collection is not supported";
   return !bufferStatsEnabled_;
 }
 void BcmSwitch::exportDeviceBufferUsage() {}

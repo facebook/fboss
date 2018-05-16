@@ -7,22 +7,23 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "common/stats/ServiceData.h"
+#include "fboss/agent/LldpManager.h"
 #include <folly/Memory.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
+#include <folly/logging/xlog.h>
+#include "common/stats/ServiceData.h"
+#include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/TestUtils.h"
-#include "fboss/agent/TxPacket.h"
-#include "fboss/agent/LldpManager.h"
 
 #include <boost/cast.hpp>
 #include "gmock/gmock.h"
@@ -70,8 +71,8 @@ TxMatchFn checkLldpPDU() {
                  testLocalMac, "; got ", srcMac);
      }
      auto ethertype = c.readBE<uint16_t>();
-     VLOG(0) << "\ndstMac is " << dstMac.toString() << " srcMac is " <<
-         srcMac.toString() << " ethertype is " << ethertype;
+     XLOG(DBG0) << "\ndstMac is " << dstMac.toString() << " srcMac is "
+                << srcMac.toString() << " ethertype is " << ethertype;
      if (ethertype != 0x8100) {
          throw FbossError(
                  " expected VLAN tag to be present, found ethertype ",
@@ -94,8 +95,8 @@ TxMatchFn checkLldpPDU() {
          throw FbossError("expected chassis tlv type and length -",
                  expectedChassisTLVTypeLength, " found -", chassisTLVType);
      }
-     VLOG(0) << "\n ChassisTLV Sub-type - " << c.readBE<uint16_t>() <<
-         " cpu Mac is " << PktUtil::readMac(&c);
+     XLOG(DBG0) << "\n ChassisTLV Sub-type - " << c.readBE<uint16_t>()
+                << " cpu Mac is " << PktUtil::readMac(&c);
    };
 }
 

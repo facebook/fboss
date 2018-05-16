@@ -10,16 +10,17 @@
 // Copyright 2004-present Facebook.  All rights reserved.
 #include "RouteUpdater.h"
 
+#include <folly/logging/xlog.h>
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
-#include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/RouteTableRib.h"
-#include "fboss/agent/FbossError.h"
-#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 using folly::IPAddress;
 using folly::IPAddressV4;
@@ -117,11 +118,11 @@ void RouteUpdater::addRouteImpl(const PrefixT& prefix, RibT *ribCloned,
       newRoute = old;
     }
     newRoute->update(clientId, std::move(entry));
-    VLOG(3) << "Updated route " << newRoute->str();
+    XLOG(DBG3) << "Updated route " << newRoute->str();
   } else {
     auto newRoute = make_shared<RouteT>(prefix, clientId, std::move(entry));
     rib->addRoute(newRoute);
-    VLOG(3) << "Added route " << newRoute->str();
+    XLOG(DBG3) << "Added route " << newRoute->str();
   }
 }
 
@@ -134,7 +135,7 @@ void RouteUpdater::addRoute(
   } else {
     PrefixV6 prefix{network.asV6().mask(mask), mask};
     if (prefix.network.isLinkLocal()) {
-      VLOG(2) << "Ignoring v6 link-local interface route: " << prefix.str();
+      XLOG(DBG2) << "Ignoring v6 link-local interface route: " << prefix.str();
       return;
     }
     addRouteImpl(prefix, getRibV6(id), clientId, std::move(entry));
@@ -166,13 +167,13 @@ template<typename PrefixT, typename RibT>
 void RouteUpdater::delRouteImpl(
     const PrefixT& prefix, RibT *ribCloned, ClientID clientId) {
   if (!ribCloned) {
-    VLOG(3) << "Failed to delete non-existing route " << prefix.str();
+    XLOG(DBG3) << "Failed to delete non-existing route " << prefix.str();
     return;
   }
   auto rib = ribCloned->rib.get();
   auto old = rib->exactMatch(prefix);
   if (!old) {
-    VLOG(3) << "Failed to delete non-existing route " << prefix.str();
+    XLOG(DBG3) << "Failed to delete non-existing route " << prefix.str();
     return;
   }
   rib = makeClone(ribCloned);
@@ -188,11 +189,11 @@ void RouteUpdater::delRouteImpl(
   }
   old->delEntryForClient(clientId);
   // TODO Do I need to publish the change??
-  VLOG(3) << "Deleted nexthops for client " << clientId <<
-             " from route " << prefix.str();
+  XLOG(DBG3) << "Deleted nexthops for client " << clientId << " from route "
+             << prefix.str();
   if (old->hasNoEntry()) {
     rib->removeRoute(old);
-    VLOG(3) << "...and then deleted route " << prefix.str();
+    XLOG(DBG3) << "...and then deleted route " << prefix.str();
   }
 }
 
@@ -247,7 +248,7 @@ void RouteUpdater::getFwdInfoFromNhop(
     bool *hasToCpu, bool *hasDrop, RouteNextHopSet* fwd) {
   auto route = nRib->longestMatch(nh);
   if (route == nullptr) {
-    VLOG(3) << " Could not find route for nhop :  " << nh;
+    XLOG(DBG3) << " Could not find route for nhop :  " << nh;
     // Un resolvable next hop
     return;
   }
@@ -339,8 +340,8 @@ void RouteUpdater::resolveOne(RouteT* route, ClonedRib* ribCloned) {
     route->setUnresolvable();
   }
 
-  VLOG(3) << (route->isResolved() ? "Resolved" : "Cannot resolve")
-          << " route " << route->str();
+  XLOG(DBG3) << (route->isResolved() ? "Resolved" : "Cannot resolve")
+             << " route " << route->str();
 }
 
 void RouteUpdater::resolve() {
@@ -460,8 +461,8 @@ void RouteUpdater::staticRouteDelHelper(
         itr->second.end()) {
       delRoute(rid, network.first, network.second,
                StdClientIds2ClientID(StdClientIds::STATIC_ROUTE));
-      VLOG(1) << "Unconfigured static route : " << network.first
-        << "/" << (int)network.second;
+      XLOG(DBG1) << "Unconfigured static route : " << network.first << "/"
+                 << (int)network.second;
     }
   }
 }

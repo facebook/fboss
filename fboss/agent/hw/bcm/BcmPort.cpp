@@ -12,9 +12,10 @@
 #include <chrono>
 #include <map>
 
+#include <folly/Conv.h>
+#include <folly/logging/xlog.h>
 #include "common/stats/MonotonicCounter.h"
 #include "common/stats/ServiceData.h"
-#include <folly/Conv.h>
 
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -222,8 +223,8 @@ BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
   // Initialize our stats data structures
   reinitPortStats();
 
-  VLOG(2) << "created BCM port:" << port_ << ", gport:" << gport_
-          << ", FBOSS PortID:" << platformPort_->getPortID();
+  XLOG(DBG2) << "created BCM port:" << port_ << ", gport:" << gport_
+             << ", FBOSS PortID:" << platformPort_->getPortID();
 }
 
 void BcmPort::init(bool warmBoot) {
@@ -366,7 +367,7 @@ void BcmPort::enableLinkscan() {
 }
 
 void BcmPort::program(const shared_ptr<Port>& port) {
-  VLOG(1) << "Reprogramming BcmPort for port " << port->getID();
+  XLOG(DBG1) << "Reprogramming BcmPort for port " << port->getID();
   setIngressVlan(port);
   if (platformPort_->shouldUsePortResourceAPIs()) {
     setPortResource(port);
@@ -430,9 +431,10 @@ opennsl_port_if_t BcmPort::getDesiredInterfaceMode(cfg::PortSpeed speed,
   // If speed or transmitter type isn't in map
   try {
     auto result = kPortTypeMapping.at(speed).at(transmitterTech);
-    VLOG(1) << "Getting desired interface mode for port " << id << " (speed="
-            << static_cast<int>(speed) << ", tech="
-            << static_cast<int>(transmitterTech) << "). RESULT=" << result;
+    XLOG(DBG1) << "Getting desired interface mode for port " << id
+               << " (speed=" << static_cast<int>(speed)
+               << ", tech=" << static_cast<int>(transmitterTech)
+               << "). RESULT=" << result;
     return result;
   } catch (const std::out_of_range& ex) {
     throw FbossError("Unsupported speed (", speed,
@@ -517,13 +519,14 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
     if (portUp) {
       // Changing the port speed causes traffic disruptions, but not doing
       // it would cause inconsistency.  Warn the user.
-      LOG(WARNING) << "Changing port speed on up port. This will "
-                   << "disrupt traffic. Port: " << swPort->getName()
-                   << " id: " << swPort->getID();
+      XLOG(WARNING) << "Changing port speed on up port. This will "
+                    << "disrupt traffic. Port: " << swPort->getName()
+                    << " id: " << swPort->getID();
     }
 
-    VLOG(1) << "Finalizing BcmPort::setSpeed() by calling port_speed_set on "
-            << "port " << swPort->getID() << " (" << swPort->getName() << ")";
+    XLOG(DBG1) << "Finalizing BcmPort::setSpeed() by calling port_speed_set on "
+               << "port " << swPort->getID() << " (" << swPort->getName()
+               << ")";
 
     // Note that we call speed_set even if the speed is already set
     // properly and port is down. This is because speed_set
@@ -565,8 +568,9 @@ std::shared_ptr<Port> BcmPort::getSwitchStatePortIf(
 
 void BcmPort::registerInPortGroup(BcmPortGroup* portGroup) {
   portGroup_ = portGroup;
-  VLOG(2) << "Port " << getPortID() << " registered in PortGroup with "
-          << "controlling port " << portGroup->controllingPort()->getPortID();
+  XLOG(DBG2) << "Port " << getPortID() << " registered in PortGroup with "
+             << "controlling port "
+             << portGroup->controllingPort()->getPortID();
 }
 
 std::string BcmPort::statName(folly::StringPiece name) const {
@@ -697,8 +701,8 @@ void BcmPort::updateStats() {
   uint32_t qlength;
   auto ret = opennsl_port_queued_count_get(unit_, port_, &qlength);
   if (OPENNSL_FAILURE(ret)) {
-    LOG(ERROR) << "Failed to get queue length for port " << port_
-               << " :" << opennsl_errmsg(ret);
+    XLOG(ERR) << "Failed to get queue length for port " << port_ << " :"
+              << opennsl_errmsg(ret);
   } else {
     outQueueLen_.addValue(now.count(), qlength);
     // TODO: outQueueLen_ only exports the average queue length over the last
@@ -724,8 +728,8 @@ void BcmPort::updateStat(
   uint64_t value;
   auto ret = opennsl_stat_get(unit_, port_, type, &value);
   if (OPENNSL_FAILURE(ret)) {
-    LOG(ERROR) << "Failed to get stat " << type << " for port " << port_ << " :"
-               << opennsl_errmsg(ret);
+    XLOG(ERR) << "Failed to get stat " << type << " for port " << port_ << " :"
+              << opennsl_errmsg(ret);
     return;
   }
   stat->updateValue(now, value);
@@ -749,8 +753,8 @@ void BcmPort::updatePktLenHist(
   auto ret = opennsl_stat_multi_get(unit_, port_,
                                 stats.size(), statsArg, counters);
   if (OPENNSL_FAILURE(ret)) {
-    LOG(ERROR) << "Failed to get packet length stats for port " << port_
-               << " :" << opennsl_errmsg(ret);
+    XLOG(ERR) << "Failed to get packet length stats for port " << port_ << " :"
+              << opennsl_errmsg(ret);
     return;
   }
 

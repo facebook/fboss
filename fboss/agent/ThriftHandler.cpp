@@ -48,11 +48,12 @@
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
 
-#include <folly/json_pointer.h>
-#include <folly/io/Cursor.h>
-#include <folly/io/IOBuf.h>
 #include <folly/MoveWrapper.h>
 #include <folly/Range.h>
+#include <folly/io/Cursor.h>
+#include <folly/io/IOBuf.h>
+#include <folly/json_pointer.h>
+#include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/async/DuplexChannel.h>
 
 #include <limits>
@@ -131,8 +132,8 @@ class RouteUpdateStats {
     auto duration =
       std::chrono::duration_cast<std::chrono::microseconds>(end - start_);
     sw_->stats()->routeUpdate(duration, routes_);
-    VLOG(0) << func_ << " " << routes_ << " routes took "
-            << duration.count() << "us";
+    XLOG(DBG0) << func_ << " " << routes_ << " routes took " << duration.count()
+               << "us";
   }
  private:
   SwSwitch* sw_;
@@ -146,12 +147,12 @@ ThriftHandler::ThriftHandler(SwSwitch* sw) : FacebookBase2("FBOSS"), sw_(sw) {
     [=](const std::vector<std::string>& added,
         const std::vector<std::string>& deleted) {
       for (auto& listener : listeners_.accessAllThreads()) {
-        LOG(INFO) << "Sending notification to bgpD";
+        XLOG(INFO) << "Sending notification to bgpD";
         auto listenerPtr = &listener;
-        listener.eventBase->runInEventBaseThread(
-            [=] {
-              LOG(INFO) << "firing off notification";
-              invokeNeighborListeners(listenerPtr, added, deleted); });
+        listener.eventBase->runInEventBaseThread([=] {
+          XLOG(INFO) << "firing off notification";
+          invokeNeighborListeners(listenerPtr, added, deleted);
+        });
       }
   });
 }
@@ -276,8 +277,8 @@ void ThriftHandler::updateUnicastRoutesImpl(
         updater.addRoute(routerId, network, mask, ClientID(client),
                          RouteNextHopEntry(std::move(nexthops), adminDistance));
       } else {
-        VLOG(3) << "Blackhole route:" << network << "/"
-                <<  static_cast<int>(mask);
+        XLOG(DBG3) << "Blackhole route:" << network << "/"
+                   << static_cast<int>(mask);
         updater.addRoute(routerId, network, mask, ClientID(client),
                          RouteNextHopEntry(RouteForwardAction::DROP,
                            adminDistance));
@@ -358,7 +359,7 @@ void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
 void ThriftHandler::getL2Table(std::vector<L2EntryThrift>& l2Table) {
   ensureConfigured();
   sw_->getHw()->fetchL2Table(&l2Table);
-  VLOG(6) << "L2 Table size:" << l2Table.size();
+  XLOG(DBG6) << "L2 Table size:" << l2Table.size();
 }
 
 LacpPortRateThrift ThriftHandler::fromLacpPortRate(cfg::LacpPortRate rate) {
@@ -531,7 +532,7 @@ void ThriftHandler::getPortInfoHelper(
           pq.aqm.detection.__isset.linear = true;
           break;
         case cfg::QueueCongestionDetection::Type::__EMPTY__:
-          LOG(WARNING) << "Invalid queue congestion detection config";
+          XLOG(WARNING) << "Invalid queue congestion detection config";
           break;
       }
     }
@@ -654,8 +655,8 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
       enable ? cfg::PortState::ENABLED : cfg::PortState::DISABLED;
 
   if (port->getAdminState() == newPortState) {
-    VLOG(2) << "setPortState: port already in state "
-            << (enable ? "ENABLED" : "DISABLED");
+    XLOG(DBG2) << "setPortState: port already in state "
+               << (enable ? "ENABLED" : "DISABLED");
     return;
   }
 
@@ -674,7 +675,7 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
     for (const auto& ipv4 : *(routeTable->getRibV4()->routes())) {
       UnicastRoute tempRoute;
       if (!ipv4->isResolved()) {
-        LOG(INFO) << "Skipping unresolved route: " << ipv4->toFollyDynamic();
+        XLOG(INFO) << "Skipping unresolved route: " << ipv4->toFollyDynamic();
         continue;
       }
       auto fwdInfo = ipv4->getForwardInfo();
@@ -686,7 +687,7 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
     for (const auto& ipv6 : *(routeTable->getRibV6()->routes())) {
       UnicastRoute tempRoute;
       if (!ipv6->isResolved()) {
-        LOG(INFO) << "Skipping unresolved route: " << ipv6->toFollyDynamic();
+        XLOG(INFO) << "Skipping unresolved route: " << ipv6->toFollyDynamic();
         continue;
       }
       auto fwdInfo = ipv6->getForwardInfo();
@@ -874,7 +875,7 @@ void ThriftHandler::invokeNeighborListeners(ThreadLocalListener* listener,
       try {
         NeighborListenerClientAsyncClient::recv_neighborsChanged(state);
       } catch (const std::exception& ex) {
-        LOG(ERROR) << "Exception in neighbor listener: " << ex.what();
+        XLOG(ERR) << "Exception in neighbor listener: " << ex.what();
         brokenClients_.push_back(client.first);
       }
     };
@@ -1081,7 +1082,7 @@ void ThriftHandler::ensureConfigured(StringPiece function) {
   }
 
   if (!function.empty()) {
-    VLOG(1) << "failing thrift prior to switch configuration: " << function;
+    XLOG(DBG1) << "failing thrift prior to switch configuration: " << function;
   }
   throw FbossError("switch is still initializing or is exiting and is not "
                    "fully configured yet");
@@ -1158,7 +1159,7 @@ void ThriftHandler::async_tm_subscribeToCounters(
 
     callback->result(true);
   } else {
-    LOG(ERROR) << "None of the requested counters were valid.";
+    XLOG(ERR) << "None of the requested counters were valid.";
     callback->result(false);
   }
 }

@@ -9,27 +9,28 @@
  */
 #include "DHCPv4Handler.h"
 #include <arpa/inet.h>
-#include <string>
-#include <folly/io/IOBuf.h>
-#include <folly/io/Cursor.h>
 #include <folly/IPAddress.h>
+#include <folly/io/Cursor.h>
+#include <folly/io/IOBuf.h>
+#include <folly/logging/xlog.h>
+#include <string>
 #include "FbossError.h"
-#include "fboss/agent/packet/DHCPv4Packet.h"
-#include "fboss/agent/packet/IPv4Hdr.h"
-#include "fboss/agent/packet/IPProto.h"
-#include "fboss/agent/packet/EthHdr.h"
-#include "fboss/agent/packet/Ethertype.h"
-#include "fboss/agent/state/Interface.h"
-#include "fboss/agent/state/InterfaceMap.h"
-#include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/VlanMap.h"
 #include "Platform.h"
 #include "RxPacket.h"
 #include "SwSwitch.h"
 #include "SwitchStats.h"
 #include "TxPacket.h"
 #include "UDPHeader.h"
+#include "fboss/agent/packet/DHCPv4Packet.h"
+#include "fboss/agent/packet/EthHdr.h"
+#include "fboss/agent/packet/Ethertype.h"
+#include "fboss/agent/packet/IPProto.h"
+#include "fboss/agent/packet/IPv4Hdr.h"
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/state/VlanMap.h"
 
 using std::string;
 using std::unique_ptr;
@@ -99,10 +100,9 @@ void sendDHCPPacket(SwSwitch* sw, const EthHdr& ethHdr, const IPv4Hdr& ipHdr,
   uint16_t csum = udpHdr.computeChecksum(ipHdr, payloadStart);
   csumCursor.writeBE<uint16_t>(csum);
 
-  VLOG (4) << " Sent dhcp packet :"
-    << " Eth header : " << ethHdr
-    << " IPv4 Header : "<< ipHdr
-    << " UDP Header : " << udpHdr;
+  XLOG(DBG4) << " Sent dhcp packet :"
+             << " Eth header : " << ethHdr << " IPv4 Header : " << ipHdr
+             << " UDP Header : " << udpHdr;
   // Send packet
   sw->sendPacketSwitched(std::move(txPacket));
 }
@@ -150,7 +150,7 @@ void DHCPv4Handler::handlePacket(
   sw->portStats(pkt->getSrcPort())->dhcpV4Pkt();
   if (ipHdr.ttl <= 1) {
     sw->portStats(pkt->getSrcPort())->dhcpV4BadPkt();
-    VLOG(4) << "Dropped DHCP packet with TTL of " << ipHdr.ttl;
+    XLOG(DBG4) << "Dropped DHCP packet with TTL of " << ipHdr.ttl;
     return;
   }
 
@@ -165,15 +165,15 @@ void DHCPv4Handler::handlePacket(
   if (dhcpPkt.hasDhcpCookie()) {
     switch(dhcpPkt.op) {
       case BOOTREQUEST:
-        VLOG(4) << " Got boot request ";
+        XLOG(DBG4) << " Got boot request ";
         processRequest(sw, std::move(pkt), srcMac, ipHdr, dhcpPkt);
         break;
       case BOOTREPLY:
-        VLOG(4) << " Got boot reply";
+        XLOG(DBG4) << " Got boot reply";
         processReply(sw, std::move(pkt), ipHdr, dhcpPkt);
         break;
       default:
-        VLOG(4)<<" Unknown DHCP Packet type "<<(uint)dhcpPkt.op;
+        XLOG(DBG4) << " Unknown DHCP Packet type " << (uint)dhcpPkt.op;
         sw->portStats(pkt->getSrcPort())->dhcpV4BadPkt();
         break;
     }
@@ -181,7 +181,7 @@ void DHCPv4Handler::handlePacket(
     // Got a bootp packet do nothing. Should never
     // really happen since DHCP obsoleted BOOT protocol
     // and we run only DHCP. Drop the packet
-    VLOG (4) << " Dropped bootp packet ";
+    XLOG(DBG4) << " Dropped bootp packet ";
   }
 
 }
@@ -195,24 +195,24 @@ void DHCPv4Handler::processRequest(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
   auto vlan = state->getVlans()->getVlanIf(pkt->getSrcVlan());
   if (!vlan) {
     sw->stats()->dhcpV4DropPkt();
-    VLOG(4) << " VLAN  "<< pkt->getSrcVlan() << " is no longer present "
-      << " dropped dhcp packet received on a port in this VLAN";
+    XLOG(DBG4) << " VLAN  " << pkt->getSrcVlan() << " is no longer present "
+               << " dropped dhcp packet received on a port in this VLAN";
     return;
   }
   auto dhcpServer = vlan->getDhcpV4Relay();
 
-  VLOG(4) << "srcMac: " << srcMac.toString();
+  XLOG(DBG4) << "srcMac: " << srcMac.toString();
   // look in the override map, and use relevant destination
   auto dhcpOverrideMap = vlan->getDhcpV4RelayOverrides();
   if (dhcpOverrideMap.find(srcMac) != dhcpOverrideMap.end()) {
     dhcpServer = dhcpOverrideMap[srcMac];
-    VLOG(4) << "dhcpServer: " << dhcpServer;
+    XLOG(DBG4) << "dhcpServer: " << dhcpServer;
   }
 
   if (dhcpServer.isZero()) {
     sw->stats()->dhcpV4DropPkt();
-    VLOG(4) << " No relay configured for VLAN : "<< vlan->getID()
-      << " dropped dhcp packet ";
+    XLOG(DBG4) << " No relay configured for VLAN : " << vlan->getID()
+               << " dropped dhcp packet ";
     return;
   }
 
@@ -231,18 +231,18 @@ void DHCPv4Handler::processRequest(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
 
   if (switchIp.isZero()) {
     sw->stats()->dhcpV4DropPkt();
-    LOG(ERROR) << "Could not find a SVI interface on vlan : "
-      << pkt->getSrcVlan()<< "DHCP packet dropped ";
+    XLOG(ERR) << "Could not find a SVI interface on vlan : "
+              << pkt->getSrcVlan() << "DHCP packet dropped ";
     return;
   }
 
-  VLOG(4) << " Got switch ip : " << switchIp;
+  XLOG(DBG4) << " Got switch ip : " << switchIp;
   // Prepare DHCP packet to relay
   if (!addAgentOptions(sw, pkt->getSrcPort(), switchIp, dhcpPacket,
         dhcpPacketOut)) {
     sw->portStats(pkt->getSrcPort())->dhcpV4BadPkt();
-    VLOG(4) << "Bad DHCP packet, error adding agent options."
-      << " DHCP packet dropped";
+    XLOG(DBG4) << "Bad DHCP packet, error adding agent options."
+               << " DHCP packet dropped";
     return;
   }
   // Incrementing hops is optional for relay agent forwarding,
@@ -253,7 +253,7 @@ void DHCPv4Handler::processRequest(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
   if (dhcpPacketOut.hops < kMaxHops) {
     dhcpPacketOut.hops++;
   } else {
-    VLOG(4) << "Max hops exceeded for dhcp packet";
+    XLOG(DBG4) << "Max hops exceeded for dhcp packet";
     sw->portStats(pkt->getSrcPort())->dhcpV4BadPkt();
     return;
   }
@@ -277,8 +277,8 @@ void DHCPv4Handler::processReply(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
   auto state = sw->getState();
   if (!stripAgentOptions(sw, pkt->getSrcPort(), dhcpPacket, dhcpPacketOut)) {
     sw->portStats(pkt->getSrcPort())->dhcpV4BadPkt();
-    VLOG(4) << "Bad DHCP packet, error stripping agent options."
-      << " DHCP packet dropped";
+    XLOG(DBG4) << "Bad DHCP packet, error stripping agent options."
+               << " DHCP packet dropped";
     return;
   }
   IPAddressV4 clientIP = IPAddressV4::fromLong(INADDR_BROADCAST);

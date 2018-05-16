@@ -12,8 +12,9 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/types.h"
 
-#include <folly/MacAddress.h>
 #include <folly/IPAddressV4.h>
+#include <folly/MacAddress.h>
+#include <folly/logging/xlog.h>
 
 namespace facebook { namespace fboss {
 
@@ -51,7 +52,7 @@ void ArpCache::receivedArpNotMine(
 inline void ArpCache::probeFor(folly::IPAddressV4 ip) const {
   auto vlan = getSw()->getState()->getVlans()->getVlanIf(getVlanID());
   if (!vlan) {
-    VLOG(2) << "Vlan " << getVlanID() << " not found. Skip sending probe";
+    XLOG(DBG2) << "Vlan " << getVlanID() << " not found. Skip sending probe";
     return;
   }
   ArpHandler::sendArpRequest(getSw(), vlan, ip);

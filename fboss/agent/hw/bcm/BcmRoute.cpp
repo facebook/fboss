@@ -16,12 +16,13 @@ extern "C" {
 #include <folly/IPAddress.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
+#include <folly/logging/xlog.h>
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
@@ -126,9 +127,9 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
       auto hostKey = BcmHostKey(vrf_, prefix_);
       auto host = hw_->getHostTable()->getBcmHostIf(hostKey);
       CHECK(host);
-      VLOG(3) << "Derefrencing host prefix for " << prefix_ << "/"
-              << static_cast<int>(len_)
-              << " host egress Id : " << host->getEgressId();
+      XLOG(DBG3) << "Derefrencing host prefix for " << prefix_ << "/"
+                 << static_cast<int>(len_)
+                 << " host egress Id : " << host->getEgressId();
       hw_->writableHostTable()->derefBcmHost(hostKey);
     }
     auto warmBootCache = hw_->getWarmBootCache();
@@ -160,8 +161,8 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
 
 void BcmRoute::programHostRoute(opennsl_if_t egressId,
     const RouteNextHopEntry& fwd, bool replace) {
-  VLOG(3) << "creating a host route entry for " << prefix_.str() << " @egress "
-          << egressId << " with " << fwd;
+  XLOG(DBG3) << "creating a host route entry for " << prefix_.str()
+             << " @egress " << egressId << " with " << fwd;
   auto hostRouteHost = hw_->writableHostTable()->incRefOrCreateBcmHost(
       BcmHostKey(vrf_, prefix_));
   hostRouteHost->setEgressId(egressId);
@@ -198,22 +199,22 @@ void BcmRoute::programLpmRoute(opennsl_if_t egressId,
       existingRoute.l3a_intf == newRoute.l3a_intf;
     };
     if (!equivalent(rt, vrfAndPfx2RouteCitr->second)) {
-      VLOG(3) << "Updating route for : " << prefix_ << "/"
-        << static_cast<int>(len_) << " in vrf : " << vrf_;
+      XLOG(DBG3) << "Updating route for : " << prefix_ << "/"
+                 << static_cast<int>(len_) << " in vrf : " << vrf_;
       // This is a change
       rt.l3a_flags |= OPENNSL_L3_REPLACE;
       addRoute = true;
     } else {
-      VLOG(3) << " Route for : " << prefix_ << "/" << static_cast<int>(len_)
-        << " in vrf : " << vrf_ << " already exists";
+      XLOG(DBG3) << " Route for : " << prefix_ << "/" << static_cast<int>(len_)
+                 << " in vrf : " << vrf_ << " already exists";
     }
   } else {
     addRoute = true;
   }
   if (addRoute) {
     if (vrfAndPfx2RouteCitr == warmBootCache->vrfAndPrefix2Route_end()) {
-      VLOG(3) << "Adding route for : " << prefix_ << "/"
-        << static_cast<int>(len_) << " in vrf : " << vrf_;
+      XLOG(DBG3) << "Adding route for : " << prefix_ << "/"
+                 << static_cast<int>(len_) << " in vrf : " << vrf_;
     }
     if (added_) {
       rt.l3a_flags |= OPENNSL_L3_REPLACE;
@@ -221,9 +222,9 @@ void BcmRoute::programLpmRoute(opennsl_if_t egressId,
     auto rc = opennsl_l3_route_add(hw_->getUnit(), &rt);
     bcmCheckError(rc, "failed to create a route entry for ", prefix_, "/",
         static_cast<int>(len_), " @ ", fwd, " @egress ", egressId);
-    VLOG(3) << "created a route entry for " << prefix_.str() << "/"
-      << static_cast<int>(len_) << " @egress " << egressId
-      << " with " << fwd;
+    XLOG(DBG3) << "created a route entry for " << prefix_.str() << "/"
+               << static_cast<int>(len_) << " @egress " << egressId << " with "
+               << fwd;
   }
   if (vrfAndPfx2RouteCitr != warmBootCache->vrfAndPrefix2Route_end()) {
     warmBootCache->programmed(vrfAndPfx2RouteCitr);
@@ -238,13 +239,13 @@ bool BcmRoute::deleteLpmRoute(int unitNumber,
   initL3RouteFromArgs(&rt, vrf, prefix, prefixLength);
   auto rc = opennsl_l3_route_delete(unitNumber, &rt);
   if (OPENNSL_FAILURE(rc)) {
-    LOG(ERROR) << "Failed to delete a route entry for " << prefix << "/"
-               << static_cast<int>(prefixLength)
-               << " Error: " << opennsl_errmsg(rc);
+    XLOG(ERR) << "Failed to delete a route entry for " << prefix << "/"
+              << static_cast<int>(prefixLength)
+              << " Error: " << opennsl_errmsg(rc);
     return false;
   } else {
-    VLOG(3) << "deleted a route entry for " << prefix.str() << "/"
-            << static_cast<int>(prefixLength);
+    XLOG(DBG3) << "deleted a route entry for " << prefix.str() << "/"
+               << static_cast<int>(prefixLength);
   }
   return true;
 }
@@ -274,8 +275,8 @@ BcmRoute::~BcmRoute() {
     auto hostKey = BcmHostKey(vrf_, prefix_);
     auto host = hw_->getHostTable()->getBcmHostIf(hostKey);
     CHECK(host);
-    VLOG(3) << "Deleting host route; derefrence host prefix for : " << prefix_
-            << "/" << static_cast<int>(len_) << " host: " << host;
+    XLOG(DBG3) << "Deleting host route; derefrence host prefix for : "
+               << prefix_ << "/" << static_cast<int>(len_) << " host: " << host;
     hw_->writableHostTable()->derefBcmHost(hostKey);
   } else {
     deleteLpmRoute(hw_->getUnit(), vrf_, prefix_, len_);

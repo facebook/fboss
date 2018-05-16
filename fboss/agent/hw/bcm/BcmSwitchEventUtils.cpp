@@ -9,10 +9,10 @@
  */
 #include "fboss/agent/hw/bcm/BcmSwitchEventUtils.h"
 
+#include <folly/logging/xlog.h>
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
-
 
 namespace facebook { namespace fboss { namespace BcmSwitchEventUtils {
 
@@ -154,9 +154,9 @@ void defaultCallback(const int unit, const opennsl_switch_event_t eventID,
       alarm = "UNKNOWN";
   }
 
-  LOG(ERROR) << "BCM Unhandled switch event " << alarm << "(" << eventID
-             << ") on hw unit " << unit << " with params: ("
-             << arg1 << ", " << arg2 << ", " << arg3 << ")";
+  XLOG(ERR) << "BCM Unhandled switch event " << alarm << "(" << eventID
+            << ") on hw unit " << unit << " with params: (" << arg1 << ", "
+            << arg2 << ", " << arg3 << ")";
 }
 
 }}}

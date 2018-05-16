@@ -10,6 +10,7 @@
 #pragma once
 
 #include <folly/io/async/EventBase.h>
+#include <folly/Conv.h>
 #include <folly/MacAddress.h>
 #include <memory>
 #include "fboss/agent/types.h"

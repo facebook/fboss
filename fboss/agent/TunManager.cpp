@@ -18,6 +18,10 @@ extern "C" {
 #include <sys/ioctl.h>
 }
 
+#include <folly/Demangle.h>
+#include <folly/MapUtil.h>
+#include <folly/io/async/EventBase.h>
+#include <folly/logging/xlog.h>
 #include "fboss/agent/NlError.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SysError.h"
@@ -26,9 +30,6 @@ extern "C" {
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
-#include <folly/Demangle.h>
-#include <folly/MapUtil.h>
-#include <folly/io/async/EventBase.h>
 
 #include <boost/container/flat_set.hpp>
 
@@ -93,7 +94,7 @@ bool TunManager::sendPacketToHost(
   auto iter = intfs_.find(dstIfID);
   if (iter == intfs_.end()) {
     // the Interface ID has been deleted, make a log, and skip the pkt
-    VLOG(4) << "Dropping a packet for unknown interface " << dstIfID;
+    XLOG(DBG4) << "Dropping a packet for unknown interface " << dstIfID;
     return false;
   }
   return iter->second->sendPacketToHost(std::move(pkt));
@@ -181,9 +182,9 @@ void TunManager::addProbedAddr(
   // This function is called for all interface addresses discovered from
   // the host. Since we only create TunIntf object for TUN interfaces,
   // it is normal we cannot find the interface matching the ifIndex provided.
-  VLOG(3) << "Cannot find interface @ index " << ifIndex
-          << " for probed address " << addr.str() << "/"
-          << static_cast<int>(mask);
+  XLOG(DBG3) << "Cannot find interface @ index " << ifIndex
+             << " for probed address " << addr.str() << "/"
+             << static_cast<int>(mask);
 }
 
 void TunManager::setIntfStatus(
@@ -225,8 +226,8 @@ void TunManager::setIntfStatus(
   // Set flags
   error = ioctl(sockFd, SIOCSIFFLAGS, static_cast<void*>(&ifr));
   sysCheckError(error, "Failed to set interface flags on ", ifName);
-  LOG(INFO) << "Brought " << (status ? "up" : "down") << " interface "
-            << ifName << " @ index " << ifIndex;
+  XLOG(INFO) << "Brought " << (status ? "up" : "down") << " interface "
+             << ifName << " @ index " << ifIndex;
 }
 
 int TunManager::getTableId(InterfaceID ifID) const {
@@ -315,13 +316,13 @@ void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {
                   ". ErrorCode: ", error);
       */
     if (error < 0) {
-      LOG(WARNING) << "Failed to " << (add ? "add" : "remove")
-                   << " default route " << addr << " @index " << ifIndex
-                   << ". ErrorCode: " << error;
+      XLOG(WARNING) << "Failed to " << (add ? "add" : "remove")
+                    << " default route " << addr << " @index " << ifIndex
+                    << ". ErrorCode: " << error;
     }
-    LOG(INFO) << (add ? "Added" : "Removed") << " default route " << addr
-              << " @ index " << ifIndex << " in table " << getTableId(ifID)
-              << " for interface " << ifID;
+    XLOG(INFO) << (add ? "Added" : "Removed") << " default route " << addr
+               << " @ index " << ifIndex << " in table " << getTableId(ifID)
+               << " for interface " << ifID;
   }
 }
 
@@ -330,7 +331,8 @@ void TunManager::addRemoveSourceRouteRule(
   // We should not add source routing rule for link-local addresses because
   // they can be re-used across interfaces.
   if (addr.isLinkLocal()) {
-    VLOG(2) << "Ignoring source routing rule for link-local address " << addr;
+    XLOG(DBG2) << "Ignoring source routing rule for link-local address "
+               << addr;
     return;
   }
 
@@ -361,9 +363,9 @@ void TunManager::addRemoveSourceRouteRule(
                 " rule for address ", addr,
                 " to lookup table ", getTableId(ifID),
                 " for interface ", ifID);
-  LOG(INFO) << (add ? "Added" : "Removed") << " rule for address " << addr
-            << " to lookup table " << getTableId(ifID)
-            << " for interface " << ifID;
+  XLOG(INFO) << (add ? "Added" : "Removed") << " rule for address " << addr
+             << " to lookup table " << getTableId(ifID) << " for interface "
+             << ifID;
 }
 
 void TunManager::addRemoveTunAddress(
@@ -407,9 +409,9 @@ void TunManager::addRemoveTunAddress(
   nlCheckError(error, "Failed to ", add ? "add" : "remove",
                 " address ", addr, "/", static_cast<int>(mask),
                 " to interface ", ifName, " @ index ", ifIndex);
-  LOG(INFO) << (add ? "Added" : "Removed") << " address " << addr.str() << "/"
-            << static_cast<int>(mask) << " on interface " << ifName
-            << " @ index " << ifIndex;
+  XLOG(INFO) << (add ? "Added" : "Removed") << " address " << addr.str() << "/"
+             << static_cast<int>(mask) << " on interface " << ifName
+             << " @ index " << ifIndex;
 }
 
 void TunManager::addTunAddress(
@@ -423,8 +425,8 @@ void TunManager::addTunAddress(
     try {
       addRemoveSourceRouteRule(ifID, addr, false);
     } catch (const std::exception& ex) {
-      LOG(ERROR) << "Failed to removed partially added source rule on "
-                 << "interface " << ifName;
+      XLOG(ERR) << "Failed to removed partially added source rule on "
+                << "interface " << ifName;
     }
   };
   addRemoveTunAddress(ifName, ifIndex, addr, mask, true);
@@ -441,8 +443,8 @@ void TunManager::removeTunAddress(
     try {
       addRemoveSourceRouteRule(ifID, addr, true);
     } catch (const std::exception& ex) {
-      LOG(ERROR) << "Failed to add partially added source rule on "
-                 << "interface " << ifName;
+      XLOG(ERR) << "Failed to add partially added source rule on "
+                << "interface " << ifName;
     }
   };
   addRemoveTunAddress(ifName, ifIndex, addr, mask, false);
@@ -472,8 +474,8 @@ void TunManager::linkProcessor(struct nl_object *obj, void *data) {
 
   // Only add interface if it is a Tun interface
   if (!util::isTunIntfName(name)) {
-    VLOG(3) << "Ignore interface " << name
-            << " because it is not a tun interface";
+    XLOG(DBG3) << "Ignore interface " << name
+               << " because it is not a tun interface";
     return;
   }
 
@@ -488,27 +490,27 @@ void TunManager::addressProcessor(struct nl_object *obj, void *data) {
   // Validate family
   auto family = rtnl_addr_get_family(addr);
   if (family != AF_INET && family != AF_INET6) {
-    VLOG(3) << "Skip address from device @ index "
-            << rtnl_addr_get_ifindex(addr)
-            << " because of its address family " << family;
+    XLOG(DBG3) << "Skip address from device @ index "
+               << rtnl_addr_get_ifindex(addr)
+               << " because of its address family " << family;
     return;
   }
 
   // Validate address
   auto localaddr = rtnl_addr_get_local(addr);
   if (!localaddr) {
-   VLOG(3) << "Skip address from device @ index "
-           << rtnl_addr_get_ifindex(addr)
-           << " because of it does not have a local address ";
-   return;
+    XLOG(DBG3) << "Skip address from device @ index "
+               << rtnl_addr_get_ifindex(addr)
+               << " because of it does not have a local address ";
+    return;
   }
 
   // Convert rtnl_addr to string representation
   char buf[INET6_ADDRSTRLEN];
   nl_addr2str(localaddr, buf, sizeof(buf));
   if (!*buf) {
-    VLOG(3) << "Device @ index " << rtnl_addr_get_ifindex(addr)
-            << " does not have an address at family " << family;
+    XLOG(DBG3) << "Device @ index " << rtnl_addr_get_ifindex(addr)
+               << " does not have an address at family " << family;
   }
 
   auto ipaddr  = IPAddress::createNetwork(buf, -1, false).first;
@@ -525,7 +527,7 @@ void TunManager::doProbe(std::lock_guard<std::mutex>& /* lock */) {
     const auto endTs = std::chrono::steady_clock::now();
     auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
         endTs - startTs);
-    LOG(INFO) << "Probing of linux state took " << elapsedMs.count() << "ms.";
+    XLOG(INFO) << "Probing of linux state took " << elapsedMs.count() << "ms.";
   };
 
   CHECK(!probeDone_);  // Callers must check for probeDone before calling
@@ -571,7 +573,7 @@ TunManager::getInterfaceStatus(std::shared_ptr<SwitchState> state) {
     for (const auto& vlanIDToInfo : port->getVlans()) {
       auto vlan = vlanMap->getVlanIf(vlanIDToInfo.first);
       if (!vlan) {
-        LOG(ERROR) << "Vlan " << vlanIDToInfo.first << " not found in state.";
+        XLOG(ERR) << "Vlan " << vlanIDToInfo.first << " not found in state.";
         continue;
       }
 

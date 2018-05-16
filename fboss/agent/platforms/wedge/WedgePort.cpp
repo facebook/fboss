@@ -14,6 +14,7 @@
 #include <folly/gen/Base.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
+#include <folly/logging/xlog.h>
 
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
@@ -81,8 +82,8 @@ folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
     return TransmitterTechnology::UNKNOWN;
   };
   auto handleError = [transID](const std::exception& e) {
-    LOG(ERROR) << "Error retrieving info for transceiver " << transID
-               << " Exception: " << folly::exceptionStr(e);
+    XLOG(ERR) << "Error retrieving info for transceiver " << transID
+              << " Exception: " << folly::exceptionStr(e);
     return TransmitterTechnology::UNKNOWN;
   };
   return getTransceiverInfo().then(evb, getTech).onError(
@@ -117,8 +118,8 @@ folly::Future<folly::Optional<TxSettings>> WedgePort::getTxSettings(
   };
   auto transID = getTransceiverID();
   auto handleErr = [transID](const std::exception& e) {
-    LOG(ERROR) << "Error retrieving cable info for transceiver " << *transID
-               << " Exception: " << folly::exceptionStr(e);
+    XLOG(ERR) << "Error retrieving cable info for transceiver " << *transID
+              << " Exception: " << folly::exceptionStr(e);
     return folly::Optional<TxSettings>();
   };
   return getTransceiverInfo().then(evb, getTx).onError(std::move(handleErr));

@@ -10,6 +10,7 @@
  #pragma once
 
 #include <folly/Synchronized.h>
+#include <folly/logging/xlog.h>
 
 #include "fboss/agent/if/gen-cpp2/highres_types.h"
 
@@ -167,8 +168,8 @@ class SingleThreadRateCalculator : RateCalculatorIf {
     // If a second has passed since the last rate update...
     if (time - timeAtLastUpdate > std::chrono::seconds(1)) {
       // ...then print the update and reset everything!
-      LOG(INFO) << name_ << ": processing at a rate of "
-                << numSamples_ - lastRateCalc_.numSamples_ << " per second";
+      XLOG(INFO) << name_ << ": processing at a rate of "
+                 << numSamples_ - lastRateCalc_.numSamples_ << " per second";
       lastRateCalc_.numSamples_ = numSamples_;
       lastRateCalc_.time_ = time;
     }
@@ -214,8 +215,8 @@ class SharedRateCalculator : RateCalculatorIf {
         if (timeAtLastUpdate == lastRateCalc_.time_) {
           // ...then print the update and reset everything!
           auto tmp = getNumSamples();
-          LOG(INFO) << name_ << ": processing at a rate of "
-                    << tmp - lastRateCalc_.numSamples_ << " per second";
+          XLOG(INFO) << name_ << ": processing at a rate of "
+                     << tmp - lastRateCalc_.numSamples_ << " per second";
           lastRateCalc_.numSamples_ = tmp;
           lastRateCalc_.time_ = time;
         }

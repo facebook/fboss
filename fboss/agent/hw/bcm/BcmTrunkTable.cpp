@@ -16,6 +16,7 @@ extern "C" {
 #include "BcmSwitch.h"
 #include "BcmTrunk.h"
 
+#include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/state/AggregatePort.h"
@@ -104,19 +105,19 @@ opennsl_trunk_t BcmTrunkTable::linkDownHwNotLocked(opennsl_port_t port) {
     return facebook::fboss::BcmTrunk::INVALID;
   }
   auto trunk = *maybeTrunk;
-  LOG(INFO) << "Found trunk " << trunk << " for port " << port;
+  XLOG(INFO) << "Found trunk " << trunk << " for port " << port;
 
   // Note that getEnabledMemberPortsCountHwNotLocked() must be invoked before
   // shrinkTrunkGroupHwNotLocked()
   auto count = BcmTrunk::getEnabledMemberPortsCountHwNotLocked(
       hw_->getUnit(), trunk, port);
-  LOG(INFO) << count << " member ports enabled in trunk " << trunk;
+  XLOG(INFO) << count << " member ports enabled in trunk " << trunk;
   BcmTrunk::shrinkTrunkGroupHwNotLocked(hw_->getUnit(), trunk, port);
 
   auto maybeMinLinkCount = trunkToMinLinkCount_.get(trunk);
   if (!maybeMinLinkCount) {
-    LOG(WARNING) << "Trunk " << trunk
-                 << " removed out from underneath linkscan thread";
+    XLOG(WARNING) << "Trunk " << trunk
+                  << " removed out from underneath linkscan thread";
     return facebook::fboss::BcmTrunk::INVALID;
   }
   auto minLinkCount = *maybeMinLinkCount;

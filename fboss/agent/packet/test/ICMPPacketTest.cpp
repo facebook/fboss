@@ -7,23 +7,24 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include <algorithm>
-#include <memory>
-#include <string>
 #include <folly/Conv.h>
+#include <folly/IPAddressV4.h>
+#include <folly/IPAddressV6.h>
+#include <folly/MacAddress.h>
 #include <folly/Memory.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
-#include <folly/IPAddressV4.h>
-#include <folly/IPAddressV6.h>
-#include "fboss/agent/state/Vlan.h"
-#include <folly/MacAddress.h>
-#include "fboss/agent/test/CounterCache.h"
+#include <folly/logging/xlog.h>
+#include <algorithm>
+#include <memory>
+#include <string>
+#include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/packet/EthHdr.h"
+#include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
-#include "fboss/agent/packet/ICMPHdr.h"
-#include "fboss/agent/hw/mock/MockRxPacket.h"
+#include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/test/CounterCache.h"
 
 using namespace facebook::fboss;
 using std::string;
@@ -87,8 +88,7 @@ TEST(ICMPv4Packet, serializeFullPacket) {
                         MacAddress("33:33:00:00:00:02"),
                         VlanID(1), ipv4, 0, emptyBody);
 
-  VLOG(1) << "ip csum: " << ipv4.csum
-          << "icmp csum: " << icmp4.csum;
+  XLOG(DBG1) << "ip csum: " << ipv4.csum << "icmp csum: " << icmp4.csum;
 
   auto pkt = MockRxPacket::fromHex(
     // Ethernet Header

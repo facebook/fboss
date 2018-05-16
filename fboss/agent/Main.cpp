@@ -9,10 +9,18 @@
  */
 #include "fboss/agent/Main.h"
 
-#include <folly/experimental/FunctionScheduler.h>
 #include <folly/MacAddress.h>
 #include <folly/ScopeGuard.h>
+#include <folly/SocketAddress.h>
 #include <folly/String.h>
+#include <folly/experimental/FunctionScheduler.h>
+#include <folly/io/async/AsyncSignalHandler.h>
+#include <folly/io/async/AsyncTimeout.h>
+#include <folly/io/async/EventBase.h>
+#include <folly/logging/Init.h>
+#include <folly/logging/xlog.h>
+#include <thrift/lib/cpp2/server/ThriftServer.h>
+#include "common/stats/ServiceData.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
@@ -20,12 +28,6 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
-#include "common/stats/ServiceData.h"
-#include <folly/io/async/AsyncTimeout.h>
-#include <folly/io/async/AsyncSignalHandler.h>
-#include <folly/io/async/EventBase.h>
-#include <thrift/lib/cpp2/server/ThriftServer.h>
-#include <folly/SocketAddress.h>
 
 #include <chrono>
 #include <condition_variable>
@@ -84,6 +86,8 @@ void updateStats(SwSwitch *swSwitch) {
 }
 }
 
+FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
+
 namespace facebook { namespace fboss {
 
 
@@ -112,8 +116,8 @@ class Initializer {
     try {
       initImpl();
     } catch (const std::exception& ex) {
-      LOG(FATAL) << "switch initialization failed: " <<
-        folly::exceptionStr(ex);
+      XLOG(FATAL) << "switch initialization failed: "
+                  << folly::exceptionStr(ex);
     }
   }
 
@@ -153,7 +157,7 @@ class Initializer {
     // Wait for the local MAC address to be available.
     ret.wait();
     auto localMac = ret.get();
-    LOG(INFO) << "local MAC is " << localMac;
+    XLOG(INFO) << "local MAC is " << localMac;
 
     sw_->applyConfig("apply initial config");
     // Enable route update logging for all routes so that when we are told
@@ -188,7 +192,7 @@ class Initializer {
         seconds(FLAGS_flush_warmboot_cache_secs)/*initial delay*/);
 
     fs_->start();
-    LOG(INFO) << "Started background thread: UpdateStatsThread";
+    XLOG(INFO) << "Started background thread: UpdateStatsThread";
     initCondition_.notify_all();
   }
 
@@ -233,16 +237,16 @@ class SignalHandler : public AsyncSignalHandler {
     registerSignalHandler(SIGTERM);
   }
   void signalReceived(int /*signum*/) noexcept override {
-    LOG(INFO) <<"[Exit] Signal received ";
+    XLOG(INFO) << "[Exit] Signal received ";
     steady_clock::time_point begin = steady_clock::now();
     stopServices_();
     steady_clock::time_point servicesStopped = steady_clock::now();
-    LOG(INFO)
+    XLOG(INFO)
         << "[Exit] Services stop time "
         << duration_cast<duration<float>>(servicesStopped - begin).count();
     sw_->gracefulExit();
     steady_clock::time_point switchGracefulExit = steady_clock::now();
-    LOG(INFO)
+    XLOG(INFO)
         << "[Exit] Switch Graceful Exit time "
         << duration_cast<duration<float>>(switchGracefulExit - servicesStopped)
                .count()
@@ -333,7 +337,7 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   SignalHandler signalHandler(&eventBase, &sw, stopServices);
 
   SCOPE_EXIT { server.cleanUp(); };
-  LOG(INFO) << "serving on localhost on port " << FLAGS_port;
+  XLOG(INFO) << "serving on localhost on port " << FLAGS_port;
 
   // Run the EventBase main loop
   eventBase.loopForever();

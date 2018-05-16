@@ -16,6 +16,7 @@
 #include "fboss/agent/capture/PktCapture.h"
 
 #include <folly/String.h>
+#include <folly/logging/xlog.h>
 
 using folly::StringPiece;
 using std::string;
@@ -115,19 +116,19 @@ void PktCaptureManager::invokeCaptures(const Fn& fn) {
     try {
       stillActive = fn(capture);
     } catch (const std::exception& ex) {
-      LOG(ERROR) << "error when processing packet for capture " <<
-        capture->name() << " : " << folly::exceptionStr(ex);
+      XLOG(ERR) << "error when processing packet for capture "
+                << capture->name() << " : " << folly::exceptionStr(ex);
       stillActive = false;
     }
 
     if (!stillActive) {
-      LOG(INFO) << "auto-stopping packet capture \"" <<
-        capture->name() << "\"";
+      XLOG(INFO) << "auto-stopping packet capture \"" << capture->name()
+                 << "\"";
       try {
         inactiveCaptures_[capture->name()] = std::move(thisIt->second);
       } catch (const std::exception& ex) {
-        LOG(ERROR) << "error adding capture " << capture->name() <<
-          " to the inactive list";
+        XLOG(ERR) << "error adding capture " << capture->name()
+                  << " to the inactive list";
         // Can't do much else here.  Just continue and forget the capture.
       }
       activeCaptures_.erase(thisIt);

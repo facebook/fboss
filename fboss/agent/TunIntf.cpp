@@ -22,14 +22,15 @@ extern "C" {
 #include <netlink/route/link.h>
 }
 
+#include <folly/io/async/EventBase.h>
+#include <folly/io/async/EventHandler.h>
+#include <folly/logging/xlog.h>
 #include "fboss/agent/NlError.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/EthHdr.h"
-#include <folly/io/async/EventBase.h>
-#include <folly/io/async/EventHandler.h>
 
 namespace facebook { namespace fboss {
 
@@ -86,8 +87,9 @@ TunIntf::TunIntf(
   // next release onwards we will not need it
   disableIPv6AddrGenMode(ifIndex_);
 
-  LOG(INFO) << "Added interface " << name_ << " with fd " << fd_
-            << " @ index " << ifIndex_ << ", " << "DOWN";
+  XLOG(INFO) << "Added interface " << name_ << " with fd " << fd_ << " @ index "
+             << ifIndex_ << ", "
+             << "DOWN";
 }
 
 TunIntf::TunIntf(
@@ -145,8 +147,8 @@ TunIntf::TunIntf(
   // Disable v6 link-local address assignment on Tun interface
   disableIPv6AddrGenMode(ifIndex_);
 
-  LOG(INFO) << "Created interface " << name_ << " with fd " << fd_
-            << " @ index " << ifIndex_ << ", " << (status ? "UP" : "DOWN");
+  XLOG(INFO) << "Created interface " << name_ << " with fd " << fd_
+             << " @ index " << ifIndex_ << ", " << (status ? "UP" : "DOWN");
 }
 
 TunIntf::~TunIntf() {
@@ -163,7 +165,7 @@ TunIntf::~TunIntf() {
 
   // Close FD. This will delete the interface if TUNSETPERSIST is not on
   closeFD();
-  LOG(INFO) << (toDelete_ ? "Delete" : "Detach") << " interface " << name_;
+  XLOG(INFO) << (toDelete_ ? "Delete" : "Detach") << " interface " << name_;
 }
 
 void TunIntf::stop() {
@@ -212,14 +214,14 @@ void TunIntf::openFD() {
   sysCheckError(ret, "Failed to set close-on-exec flags ", flags,
                 " to fd ", fd_);
 
-  LOG(INFO) << "Create/attach to tun interface " << name_ << " @ fd " << fd_;
+  XLOG(INFO) << "Create/attach to tun interface " << name_ << " @ fd " << fd_;
 }
 
 void TunIntf::closeFD() noexcept {
   auto ret = close(fd_);
   sysLogError(ret, "Failed to close fd ", fd_, " for interface ", name_);
   if (ret == 0) {
-    LOG(INFO) << "Closed fd " << fd_ << " for interface " << name_;
+    XLOG(INFO) << "Closed fd " << fd_ << " for interface " << name_;
     fd_ = -1;
   }
 }
@@ -231,9 +233,8 @@ void TunIntf::addAddress(const folly::IPAddress& addr, uint8_t mask) {
                      static_cast<int>(mask), " for interface ", name_,
                      " @ index", ifIndex_);
   }
-  VLOG(3) << "Added address " << addr.str() << "/"
-          << static_cast<int>(mask) << " to interface " << name_
-          << " @ index " << ifIndex_;
+  XLOG(DBG3) << "Added address " << addr.str() << "/" << static_cast<int>(mask)
+             << " to interface " << name_ << " @ index " << ifIndex_;
 }
 
 void TunIntf::setMtu(int mtu) {
@@ -252,7 +253,7 @@ void TunIntf::setMtu(int mtu) {
   auto ret = ioctl(sock, SIOCSIFMTU, (void*)&ifr);
   sysCheckError(ret, "Failed to set MTU ", ifr.ifr_mtu,
                 " to fd ", fd_, " errno = ", errno);
-  VLOG(3) << "Set tun " << name_ << " MTU to " << mtu;
+  XLOG(DBG3) << "Set tun " << name_ << " MTU to " << mtu;
 }
 
 void TunIntf::disableIPv6AddrGenMode(int ifIndex) {
@@ -285,7 +286,7 @@ void TunIntf::disableIPv6AddrGenMode(int ifIndex) {
     // We are not throwing NlError here because ADDR_GEN_MODE is not supported
     // in kernel 3.10 which we are using in production. In that kernel we don't
     // have problem about duplicate link local addresses.
-    LOG(ERROR) << folly::exceptionStr(NlError(err, "rtnl_talk failure"));
+    XLOG(ERR) << folly::exceptionStr(NlError(err, "rtnl_talk failure"));
     return;
   }
 
@@ -326,8 +327,8 @@ void TunIntf::handlerReady(uint16_t /*events*/) noexcept {
       } else if (ret > buf->tailroom()) {
         // The pkt is larger than the buffer. We don't have complete packet.
         // It shall not happen unless the MTU is mis-match. Drop the packet.
-        LOG(ERROR) << "Too large packet (" << ret << " > " << buf->tailroom()
-                   << ") received from host. Drop the packet.";
+        XLOG(ERR) << "Too large packet (" << ret << " > " << buf->tailroom()
+                  << ") received from host. Drop the packet.";
         ++dropped;
       } else {
         bytes += ret;
@@ -337,17 +338,17 @@ void TunIntf::handlerReady(uint16_t /*events*/) noexcept {
       }
     } // while
   } catch (const std::exception& ex) {
-    LOG(ERROR) << "Hit some error when forwarding packets :"
-               << folly::exceptionStr(ex);
+    XLOG(ERR) << "Hit some error when forwarding packets :"
+              << folly::exceptionStr(ex);
   }
 
   if (fdFail) {
     unregisterHandler();
   }
 
-  VLOG(4) << "Forwarded " << sent << " packets (" << bytes
-          << " bytes) from host @ fd " << fd_ << " for interface " << name_
-          << " dropped:" << dropped;
+  XLOG(DBG4) << "Forwarded " << sent << " packets (" << bytes
+             << " bytes) from host @ fd " << fd_ << " for interface " << name_
+             << " dropped:" << dropped;
 }
 
 bool TunIntf::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
@@ -356,7 +357,7 @@ bool TunIntf::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
 
   auto buf = pkt->buf();
   if (buf->length() <= l2Len) {
-    LOG(ERROR) << "Received a too small packet with length " << buf->length();
+    XLOG(ERR) << "Received a too small packet with length " << buf->length();
     return false;
   }
 
@@ -371,13 +372,13 @@ bool TunIntf::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
     sysLogError(ret, "Failed to send packet to host from Interface ", ifID_);
     return false;
   } else if (ret < buf->length()) {
-    LOG(ERROR) << "Failed to send full packet to host from Interface " << ifID_
-               << ". " << ret << " bytes sent instead of " << buf->length();
+    XLOG(ERR) << "Failed to send full packet to host from Interface " << ifID_
+              << ". " << ret << " bytes sent instead of " << buf->length();
     return false;
   }
 
-  VLOG(4) << "Send packet (" << ret << " bytes) to host from Interface "
-          << ifID_;
+  XLOG(DBG4) << "Send packet (" << ret << " bytes) to host from Interface "
+             << ifID_;
   return true;
 }
 

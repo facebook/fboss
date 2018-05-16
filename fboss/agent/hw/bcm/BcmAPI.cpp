@@ -15,6 +15,7 @@
 #include <folly/Memory.h>
 #include <folly/String.h>
 #include <folly/io/Cursor.h>
+#include <folly/logging/xlog.h>
 #include <glog/logging.h>
 
 #include <atomic>
@@ -68,8 +69,9 @@ void BcmAPI::unitDestroyed(BcmUnit* unit) {
   BcmUnit* expectedUnit{unit};
   if (!bcmUnits[num].compare_exchange_strong(expectedUnit, nullptr,
                                              std::memory_order_acq_rel)) {
-    LOG(FATAL) << "inconsistency in BCM unit array for unit " << num <<
-      ": expected " << (void*)unit << " but found " << (void*)expectedUnit;
+    XLOG(FATAL) << "inconsistency in BCM unit array for unit " << num
+                << ": expected " << (void*)unit << " but found "
+                << (void*)expectedUnit;
   }
   bcmInitialized.store(false, std::memory_order_release);
 }

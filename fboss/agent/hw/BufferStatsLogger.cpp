@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/BufferStatsLogger.h"
 
+#include <folly/logging/xlog.h>
 #include <glog/logging.h>
 
 using std::string;
@@ -21,9 +22,9 @@ namespace fboss {
 void GlogBufferStatsLogger::logDeviceBufferStat(
     uint64_t bytesUsed,
     uint64_t bytesMax) {
-  LOG(INFO) << " Switch MMU, bytes used : " << bytesUsed
-            << " max available : " << bytesMax
-            << " percent used : " << (bytesUsed * 100.0) / bytesMax;
+  XLOG(INFO) << " Switch MMU, bytes used : " << bytesUsed
+             << " max available : " << bytesMax
+             << " percent used : " << (bytesUsed * 100.0) / bytesMax;
 }
 
 void GlogBufferStatsLogger::logPortBufferStat(
@@ -31,11 +32,10 @@ void GlogBufferStatsLogger::logPortBufferStat(
     Direction dir, unsigned int cosQ,
     uint64_t bytesUsed, uint64_t pktsDropeed,
     const XPEs& xpes) {
-  LOG(INFO) << " Port : " << portName << " " << dirStr(dir)
-            << " cosQ: " << cosQ
-            << " bytes used : " << bytesUsed
-            << " Packets dropped: " <<  pktsDropeed
-            << " XPEs: " << xpeStr(xpes);
+  XLOG(INFO) << " Port : " << portName << " " << dirStr(dir)
+             << " cosQ: " << cosQ << " bytes used : " << bytesUsed
+             << " Packets dropped: " << pktsDropeed
+             << " XPEs: " << xpeStr(xpes);
 }
 }
 }

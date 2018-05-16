@@ -16,8 +16,9 @@
 #include <fcntl.h>
 #include <ifaddrs.h>
 
-#include <folly/Range.h>
 #include <folly/Optional.h>
+#include <folly/Range.h>
+#include <folly/logging/xlog.h>
 #include <glog/logging.h>
 
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -45,7 +46,7 @@ namespace {
       try {
         return folly::IPAddress(kv[1]);
       } catch (std::exception const& e)  {
-        VLOG(2) << folly::exceptionStr(e);
+        XLOG(DBG2) << folly::exceptionStr(e);
         return folly::none;
       }
     }
@@ -57,7 +58,7 @@ folly::IPAddress getLocalIPv6() {
   // We first try to get the local IPv6 in fbwhoami
   auto ret = getLocalIPv6FromWhoAmI();
   if (ret.hasValue()) {
-    VLOG(2) << "Got local IPv6 address from fbwhoami";
+    XLOG(DBG2) << "Got local IPv6 address from fbwhoami";
     return ret.value();
   }
 
@@ -66,7 +67,7 @@ folly::IPAddress getLocalIPv6() {
   host.reserve(NI_MAXHOST);
 
   if (getifaddrs(&ifaddr) == -1) {
-    VLOG(2) << "getifaddrs failed. Returned default address ::";
+    XLOG(DBG2) << "getifaddrs failed. Returned default address ::";
     return folly::IPAddress("::");
   }
 
@@ -87,17 +88,17 @@ folly::IPAddress getLocalIPv6() {
         0,
         NI_NUMERICHOST);
     if (retno != 0) {
-      VLOG(2) << "getnameinfo() failed: " << gai_strerror(retno);
+      XLOG(DBG2) << "getnameinfo() failed: " << gai_strerror(retno);
       continue;
     }
     try {
       return folly::IPAddress(host.data());
     } catch (std::exception const& e) {
-      VLOG(2) << folly::exceptionStr(e);
+      XLOG(DBG2) << folly::exceptionStr(e);
       continue;
     }
   }
-  VLOG(2) << "Failed to get loopback ipv6 address, returned default one ::";
+  XLOG(DBG2) << "Failed to get loopback ipv6 address, returned default one ::";
   return folly::IPAddress("::");
 }
 } // namespace
@@ -164,7 +165,7 @@ BcmSflowExporter::BcmSflowExporter(const folly::SocketAddress& address)
 }
 
 ssize_t BcmSflowExporter::sendUDPDatagram(iovec* vec, const size_t iovec_len) {
-  VLOG(4) << "Sending an sFlow packet to " << address_.describe();
+  XLOG(DBG4) << "Sending an sFlow packet to " << address_.describe();
 
   sockaddr_storage addrStorage;
   address_.getAddress(&addrStorage);
@@ -179,11 +180,11 @@ ssize_t BcmSflowExporter::sendUDPDatagram(iovec* vec, const size_t iovec_len) {
   msg.msg_flags = 0;
   auto ret = ::sendmsg(socket_, &msg, 0);
   if (ret < 0) {
-    VLOG(1) << "Failed sending sFlow packet to " << address_.describe()
-            << " reason: " << folly::errnoStr(errno);
+    XLOG(DBG1) << "Failed sending sFlow packet to " << address_.describe()
+               << " reason: " << folly::errnoStr(errno);
   }
-  VLOG(4) << "Sent " << ret << " bytes of sFlow packet to "
-          << address_.describe();
+  XLOG(DBG4) << "Sent " << ret << " bytes of sFlow packet to "
+             << address_.describe();
   return ret;
 }
 
@@ -208,18 +209,18 @@ void BcmSflowExporterTable::addExporter(const shared_ptr<SflowCollector>& c) {
     auto exporter = make_unique<BcmSflowExporter>(c->getAddress());
     map_.emplace(c->getID(), move(exporter));
   } catch (const fboss::thrift::FbossBaseError& ex) {
-    LOG(ERROR) << "Could not add exporter: "
-               << c->getAddress().getFullyQualified()
-               << " reason: " << folly::exceptionStr(ex);
+    XLOG(ERR) << "Could not add exporter: "
+              << c->getAddress().getFullyQualified()
+              << " reason: " << folly::exceptionStr(ex);
     return;
   }
 
-  LOG(INFO) << "Successfully added exporter for "
-            << c->getAddress().getFullyQualified();
+  XLOG(INFO) << "Successfully added exporter for "
+             << c->getAddress().getFullyQualified();
 }
 
 void BcmSflowExporterTable::removeExporter(const std::string& id) {
-  LOG(INFO) << "Removed sFlow exporter " << id;
+  XLOG(INFO) << "Removed sFlow exporter " << id;
   map_.erase(id);
 }
 
@@ -241,7 +242,7 @@ void BcmSflowExporterTable::updateSamplingRates(
 
 void BcmSflowExporterTable::sendToAll(const SflowPacketInfo& info) {
   if (map_.empty()) {
-    VLOG(1)
+    XLOG(DBG1)
         << "zero sFlow collectors with sflow enabled, skipping sample export";
     return;
   }

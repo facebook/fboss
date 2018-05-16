@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/state/Vlan.h"
 

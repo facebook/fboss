@@ -1,15 +1,16 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
 
-#include <iostream>
-#include <string>
-#include <chrono>
-#include <gflags/gflags.h>
 #include <folly/SocketAddress.h>
 #include <folly/io/async/EventBase.h>
+#include <folly/logging/xlog.h>
+#include <gflags/gflags.h>
+#include <thrift/lib/cpp/async/TAsyncSocket.h>
 #include <thrift/lib/cpp2/async/DuplexChannel.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
-#include <thrift/lib/cpp/async/TAsyncSocket.h>
+#include <chrono>
+#include <iostream>
+#include <string>
 
 using namespace apache::thrift;
 using namespace apache::thrift::util;
@@ -28,10 +29,10 @@ class NeighborListenerClientInterface : public NeighborListenerClientSvIf {
       std::unique_ptr<std::vector<std::string>> added,
       std::unique_ptr<std::vector<std::string>> removed) {
     for (const auto& up : *added) {
-      LOG(INFO) << "neighbour added: " << up << "\n";
+      XLOG(INFO) << "neighbour added: " << up << "\n";
     }
     for (const auto& down : *removed) {
-      LOG(INFO) << "neighbour added: " << down << "\n";
+      XLOG(INFO) << "neighbour added: " << down << "\n";
     }
   }
 };
@@ -57,7 +58,7 @@ int main(int argc, char **argv) {
   client.registerForNeighborChanged([](ClientReceiveState&& state) {
     PortStatus ps;
     FbossCtrlAsyncClient::recv_registerForNeighborChanged(state);
-    LOG(INFO) << "registered for port status on " << FLAGS_host << "\n";
+    XLOG(INFO) << "registered for port status on " << FLAGS_host << "\n";
   });
 
   base.loopForever();

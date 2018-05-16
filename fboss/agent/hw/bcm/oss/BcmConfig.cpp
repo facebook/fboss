@@ -15,6 +15,7 @@
 
 #include <folly/FileUtil.h>
 #include <folly/gen/String.h>
+#include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 DEFINE_string(bcm_config, "",
@@ -55,10 +56,10 @@ BcmConfig::ConfigMap BcmConfig::loadFromFile(const string& path) {
     try {
       return parseBcmStyleConfig(contents);
     } catch (const std::exception& flatEx) {
-      LOG(ERROR) << "unable to parse " << FLAGS_bcm_config <<
-        " as either JSON or a BCM-style config";
-      LOG(ERROR) << "JSON error: " << folly::exceptionStr(jsonEx);
-      LOG(ERROR) << "BCM-style error: " << folly::exceptionStr(flatEx);
+      XLOG(ERR) << "unable to parse " << FLAGS_bcm_config
+                << " as either JSON or a BCM-style config";
+      XLOG(ERR) << "JSON error: " << folly::exceptionStr(jsonEx);
+      XLOG(ERR) << "BCM-style error: " << folly::exceptionStr(flatEx);
       throw jsonEx;
     }
   }
@@ -97,7 +98,7 @@ BcmConfig::ConfigMap BcmConfig::parseBcmStyleConfig(StringPiece data) {
     trimStr(&name);
     trimStr(&value);
 
-    VLOG(3) << "BCM config: " << name << "=" << value;
+    XLOG(DBG3) << "BCM config: " << name << "=" << value;
     results[name.str()] = value.str();
   };
 

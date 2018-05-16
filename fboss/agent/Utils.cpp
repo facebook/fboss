@@ -18,9 +18,10 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 
-#include <folly/dynamic.h>
 #include <folly/FileUtil.h>
+#include <folly/dynamic.h>
 #include <folly/json.h>
+#include <folly/logging/xlog.h>
 
 #include <boost/filesystem/operations.hpp>
 
@@ -67,7 +68,7 @@ IPAddressV6 getSwitchVlanIPv6(const std::shared_ptr<SwitchState>& state,
 
 void incNiceValue(const uint32_t increment) {
   if (increment == 0) {
-    LOG(WARNING) << "Nice value increment is 0. Returning now.";
+    XLOG(WARNING) << "Nice value increment is 0. Returning now.";
     return;
   }
   pid_t tid;
@@ -78,10 +79,10 @@ void incNiceValue(const uint32_t increment) {
 
   int niceness = getpriority(PRIO_PROCESS, tid);
   if (niceness == -1 && errno) {
-    LOG(ERROR)
-        << "Error while getting current thread niceness: " << strerror(errno);
+    XLOG(ERR) << "Error while getting current thread niceness: "
+              << strerror(errno);
   } else if (setpriority(PRIO_PROCESS, tid, niceness + increment) == -1) {
-    LOG(ERROR) << "Error while setting thread niceness: " << strerror(errno);
+    XLOG(ERR) << "Error while setting thread niceness: " << strerror(errno);
   }
 
   errno = oldErrno;
@@ -96,7 +97,7 @@ std::string getLocalHostname() {
   const size_t kHostnameMaxLen = 256;  // from gethostname man page
   char hostname[kHostnameMaxLen];
   if (gethostname(hostname, sizeof(hostname)) != 0) {
-    LOG(ERROR) << "gethostname() failed";
+    XLOG(ERR) << "gethostname() failed";
     return "";
   }
 

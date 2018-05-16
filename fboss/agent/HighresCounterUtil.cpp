@@ -11,6 +11,7 @@
 
 #include <sys/stat.h>
 
+#include <folly/logging/xlog.h>
 #include <sstream>
 
 DEFINE_bool(print_rates,
@@ -27,8 +28,8 @@ DumbCounterSampler::DumbCounterSampler(
       req_ = c;
       numCounters_ = 1;
     } else {
-      LOG(WARNING) << "Requested counter " << c.counterName
-                   << " does not exist";
+      XLOG(WARNING) << "Requested counter " << c.counterName
+                    << " does not exist";
     }
   }
 }
@@ -41,8 +42,8 @@ InterfaceRateSampler::InterfaceRateSampler(
     const std::set<CounterRequest>& counters) {
   struct stat buffer;
   if (stat("/proc/net/dev", &buffer) != 0) {
-    LOG(ERROR) << "/proc/net/dev does not exist."
-               << " Ignoring any InterfaceRateSamplers";
+    XLOG(ERR) << "/proc/net/dev does not exist."
+              << " Ignoring any InterfaceRateSamplers";
     return;
   }
 

@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/state/NodeMapDelta.h"
 #include <glog/logging.h>
 
 namespace facebook { namespace fboss {

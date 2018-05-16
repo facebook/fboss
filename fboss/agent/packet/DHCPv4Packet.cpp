@@ -8,13 +8,14 @@
  *
  */
 #include "DHCPv4Packet.h"
-#include <cstring>
-#include <algorithm>
-#include <iterator>
 #include <folly/io/Cursor.h>
+#include <folly/logging/xlog.h>
+#include <algorithm>
+#include <cstring>
+#include <iostream>
+#include <iterator>
 #include "fboss/agent/DHCPv4Handler.h"
 #include "fboss/agent/FbossError.h"
-#include <iostream>
 
 using folly::io::Cursor;
 using std::vector;
@@ -82,7 +83,7 @@ bool DHCPv4Packet::operator==(const DHCPv4Packet& r) const {
 
 size_t DHCPv4Packet::appendOption(uint8_t op, uint8_t len,
     const uint8_t* bytes) {
-  VLOG(4) << "Appending option: " << (int)op << " of length: " << (int) len;
+  XLOG(DBG4) << "Appending option: " << (int)op << " of length: " << (int)len;
 
   if (isOptionWithoutLength(op)) {
     options.push_back(op);

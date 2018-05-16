@@ -13,9 +13,10 @@
 #include "fboss/agent/types.h"
 #include "fboss/agent/packet/ICMPHdr.h"
 
-#include <netinet/icmp6.h>
-#include <folly/MacAddress.h>
 #include <folly/IPAddressV6.h>
+#include <folly/MacAddress.h>
+#include <folly/logging/xlog.h>
+#include <netinet/icmp6.h>
 
 namespace facebook { namespace fboss {
 
@@ -84,7 +85,7 @@ void NdpCache::receivedNdpNotMine(folly::IPAddressV6 /* ip */,
 inline void NdpCache::probeFor(folly::IPAddressV6 ip) const {
   auto vlan = getSw()->getState()->getVlans()->getVlanIf(getVlanID());
   if (!vlan) {
-    VLOG(2) << "Vlan " << getVlanID() << " not found. Skip sending probe";
+    XLOG(DBG2) << "Vlan " << getVlanID() << " not found. Skip sending probe";
     return;
   }
   IPv6Handler::sendNeighborSolicitation(getSw(), ip, vlan);

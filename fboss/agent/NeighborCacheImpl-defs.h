@@ -9,20 +9,21 @@
  */
 #pragma once
 
-#include "fboss/agent/NeighborCacheImpl.h"
-#include "fboss/agent/types.h"
+#include <folly/IPAddress.h>
+#include <folly/MacAddress.h>
+#include <folly/futures/Future.h>
+#include <folly/io/async/EventBase.h>
+#include <folly/logging/xlog.h>
+#include <list>
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/IPv6Handler.h"
-#include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/NeighborCacheImpl.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/NeighborEntry.h"
-#include <folly/MacAddress.h>
-#include <folly/IPAddress.h>
-#include <folly/io/async/EventBase.h>
-#include <folly/futures/Future.h>
-#include <list>
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/types.h"
 
 namespace facebook { namespace fboss {
 
@@ -41,16 +42,16 @@ bool checkVlanAndIntf(
   auto* vlan = state->getVlans()->getVlanIf(vlanID).get();
   if (!vlan) {
     // This VLAN no longer exists.  Just ignore the entry update.
-    VLOG(3) << "VLAN " << vlanID << " deleted before entry " <<
-      fields.ip << " --> " << fields.mac << " could be updated";
+    XLOG(DBG3) << "VLAN " << vlanID << " deleted before entry " << fields.ip
+               << " --> " << fields.mac << " could be updated";
     return false;
   }
 
   // In case the interface subnets have changed, make sure the IP address
   // is still on a locally attached subnet
   if (!Interface::isIpAttached(fields.ip, fields.interfaceID, state)) {
-    VLOG(3) << "interface subnets changed before entry " <<
-      fields.ip << " --> " << fields.mac << " could be updated";
+    XLOG(DBG3) << "interface subnets changed before entry " << fields.ip
+               << " --> " << fields.mac << " could be updated";
     return false;
   }
 
@@ -80,7 +81,7 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
     if (!node) {
       table = table->modify(&vlan, &newState);
       table->addEntry(fields);
-      VLOG(2) << "Adding entry for " << fields.ip << " --> " << fields.mac;
+      XLOG(DBG2) << "Adding entry for " << fields.ip << " --> " << fields.mac;
     } else {
       if (node->getMac() == fields.mac &&
           node->getPort() == fields.port &&
@@ -92,8 +93,8 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
       }
       table = table->modify(&vlan, &newState);
       table->updateEntry(fields);
-      VLOG(2) << "Converting pending entry for " << fields.ip << " --> "
-                << fields.mac;
+      XLOG(DBG2) << "Converting pending entry for " << fields.ip << " --> "
+                 << fields.mac;
     }
     return newState;
   };
@@ -133,8 +134,8 @@ void NeighborCacheImpl<NTable>::programPendingEntry(Entry* entry, bool force) {
     }
     table->addPendingEntry(fields.ip, fields.interfaceID);
 
-    VLOG(4) << "Adding pending entry for " << fields.ip
-            << " on interface " << fields.interfaceID;
+    XLOG(DBG4) << "Adding pending entry for " << fields.ip << " on interface "
+               << fields.interfaceID;
     return newState;
   };
 
@@ -163,8 +164,8 @@ void NeighborCacheImpl<NTable>::clearEntries() {
     stopTasks.push_back(
         Entry::destroy(std::move(entry), sw_->getBackgroundEvb())
             .onError([=](const std::exception& /*e*/) {
-              LOG(FATAL) << "failed to stop NeighborCacheEntry w/ addr "
-                         << addr;
+              XLOG(FATAL) << "failed to stop NeighborCacheEntry w/ addr "
+                          << addr;
             }));
   }
   folly::collectAll(stopTasks).get();

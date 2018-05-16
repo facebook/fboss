@@ -13,33 +13,34 @@
 #include <folly/IPAddressV4.h>
 #include <folly/MacAddress.h>
 #include <folly/io/Cursor.h>
-#include "fboss/agent/HwSwitch.h"
-#include "fboss/agent/PortStats.h"
-#include "fboss/agent/RxPacket.h"
-#include "fboss/agent/TxPacket.h"
-#include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/Platform.h"
+#include <folly/logging/xlog.h>
 #include "fboss/agent/ArpHandler.h"
-#include "fboss/agent/NeighborUpdater.h"
-#include "fboss/agent/IPHeaderV4.h"
-#include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/InterfaceMap.h"
-#include "fboss/agent/state/Interface.h"
-#include "fboss/agent/state/VlanMap.h"
-#include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/ArpResponseTable.h"
-#include "fboss/agent/state/ArpTable.h"
-#include "fboss/agent/state/RouteTableMap.h"
-#include "fboss/agent/state/RouteTable.h"
-#include "fboss/agent/state/RouteTableRib.h"
-#include "fboss/agent/state/Route.h"
 #include "fboss/agent/DHCPv4Handler.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/IPHeaderV4.h"
+#include "fboss/agent/NeighborUpdater.h"
+#include "fboss/agent/Platform.h"
+#include "fboss/agent/PortStats.h"
+#include "fboss/agent/RxPacket.h"
+#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/UDPHeader.h"
-#include "fboss/agent/packet/IPv4Hdr.h"
-#include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/packet/ICMPHdr.h"
+#include "fboss/agent/packet/IPv4Hdr.h"
+#include "fboss/agent/state/ArpResponseTable.h"
+#include "fboss/agent/state/ArpTable.h"
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/Route.h"
+#include "fboss/agent/state/RouteTable.h"
+#include "fboss/agent/state/RouteTableMap.h"
+#include "fboss/agent/state/RouteTableRib.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/state/VlanMap.h"
 
 using folly::IPAddress;
 using folly::IPAddressV4;
@@ -102,12 +103,10 @@ void IPv4Handler::sendICMPTimeExceeded(VlanID srcVlan,
                              ICMPV4_TYPE_TIME_EXCEEDED,
                              ICMPV4_CODE_TIME_EXCEEDED_TTL_EXCEEDED,
                              bodyLength, serializeBody);
-  VLOG(4) << "sending ICMP Time Exceeded with srcMac " << src
-          << " dstMac: " << dst
-          << " vlan: " << srcVlan
-          << " dstIp: " << v4Hdr.srcAddr.str()
-          << " srcIp: " << srcIp.str()
-          << " bodyLength: " << bodyLength;
+  XLOG(DBG4) << "sending ICMP Time Exceeded with srcMac " << src
+             << " dstMac: " << dst << " vlan: " << srcVlan
+             << " dstIp: " << v4Hdr.srcAddr.str() << " srcIp: " << srcIp.str()
+             << " bodyLength: " << bodyLength;
   sw_->sendPacketSwitched(std::move(icmpPkt));
 }
 
@@ -121,9 +120,9 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
   const uint32_t l3Len = pkt->getLength() - (cursor - Cursor(pkt->buf()));
   stats->port(port)->ipv4Rx();
   IPv4Hdr v4Hdr(cursor);
-  VLOG(4) << "Rx IPv4 packet (" << l3Len << " bytes) " << v4Hdr.srcAddr.str()
-          << " --> " << v4Hdr.dstAddr.str()
-          << " proto: 0x" << std::hex << static_cast<int>(v4Hdr.protocol);
+  XLOG(DBG4) << "Rx IPv4 packet (" << l3Len << " bytes) " << v4Hdr.srcAddr.str()
+             << " --> " << v4Hdr.dstAddr.str() << " proto: 0x" << std::hex
+             << static_cast<int>(v4Hdr.protocol);
 
   // retrieve the current switch state
   auto state = sw_->getState();
@@ -139,8 +138,8 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
     Cursor udpCursor(cursor);
     UDPHeader udpHdr;
     udpHdr.parse(sw_, port, &udpCursor);
-    VLOG(4) << "UDP packet, Source port :" << udpHdr.srcPort
-        << " destination port: " << udpHdr.dstPort;
+    XLOG(DBG4) << "UDP packet, Source port :" << udpHdr.srcPort
+               << " destination port: " << udpHdr.dstPort;
     if (DHCPv4Handler::isDHCPv4Packet(udpHdr)) {
       DHCPv4Handler::handlePacket(sw_, std::move(pkt), src, dst, v4Hdr,
           udpHdr, udpCursor);
@@ -192,7 +191,7 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
 
   // if packet is not for us, check the ttl exceed
   if (v4Hdr.ttl <= 1) {
-    VLOG(4) << "Rx IPv4 Packet with TTL expired";
+    XLOG(DBG4) << "Rx IPv4 Packet with TTL expired";
     stats->port(port)->pktDropped();
     stats->port(port)->ipv4TtlExceeded();
     // Look up cpu mac from platform
@@ -217,8 +216,8 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
   stats->port(port)->ipv4Nexthop();
   if (!resolveMac(state.get(), port, v4Hdr.dstAddr)) {
     stats->port(port)->ipv4NoArp();
-    VLOG(4) << "Cannot find the interface to send out ARP request for "
-      << v4Hdr.dstAddr.str();
+    XLOG(DBG4) << "Cannot find the interface to send out ARP request for "
+               << v4Hdr.dstAddr.str();
   }
   // TODO: ideally, we need to store this packet until the ARP is done and
   // then send this pkt out. For now, just drop it.
@@ -273,9 +272,9 @@ bool IPv4Handler::resolveMac(
           sw_->getNeighborUpdater()->sentArpRequest(vlanID, target);
           sent = true;
         } else {
-          VLOG(4) << "not sending arp for " << target.str() << ", "
-                  << ((entry->isPending()) ? "pending " : "")
-                  << "entry already exists";
+          XLOG(DBG4) << "not sending arp for " << target.str() << ", "
+                     << ((entry->isPending()) ? "pending " : "")
+                     << "entry already exists";
         }
       }
     }

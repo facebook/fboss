@@ -15,6 +15,7 @@
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
@@ -45,10 +46,10 @@ TEST(PortQueue, serialization) {
   pqObject.setScalingFactor(scalingFactor);
   pqObject.setAqm(aqm);
 
-  LOG(INFO) << "to folly dynamic";
+  XLOG(INFO) << "to folly dynamic";
   auto serialized = pqObject.toFollyDynamic();
 
-  LOG(INFO) << "from folly dynamic";
+  XLOG(INFO) << "from folly dynamic";
   auto deserialized = PortQueue::fromFollyDynamic(serialized);
 
   EXPECT_EQ(pqObject, *deserialized);
@@ -78,7 +79,7 @@ TEST(PortQueue, serializationBadFrom) {
   pqObject.setAqm(aqm);
 
   auto serialized = pqObject.toFollyDynamic();
-  LOG(INFO) << serialized;
+  XLOG(INFO) << serialized;
 
   auto noBehavior = serialized;
   noBehavior["aqm"].erase("behavior");

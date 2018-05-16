@@ -10,6 +10,7 @@
 #include "HighresCounterSubscriptionHandler.h"
 
 #include <folly/MoveWrapper.h>
+#include <folly/logging/xlog.h>
 
 #include "fboss/agent/Utils.h"
 
@@ -40,12 +41,12 @@ inline void SampleSender::publish(unique_ptr<CounterPublication> pub) {
           // For oneway functions like this one, only exceptions make it here.
           if (state.isException()) {
             if (!killSwitch->set()) {
-              LOG(ERROR) << "Exception sending publication: "
-                         << state.exception();
+              XLOG(ERR) << "Exception sending publication: "
+                        << state.exception();
             }
             // else, we were already dying so don't beat a dead horse
           } else {
-            LOG(ERROR) << "There was a result to a oneway call";
+            XLOG(ERR) << "There was a result to a oneway call";
           }
         },
         *pub);
@@ -99,9 +100,9 @@ inline void SampleProducer::sleepNs(high_resolution_clock::time_point* start) {
     if (++overloadWarningCounter_ % kOverloadWarningEveryN == 0) {
       double percent = ((double)kOverloadWarningEveryN) /
                        (numSamples_ - numSamplesAtLastOverloadWarning_) * 100;
-      LOG(WARNING) << "Interval is too small for " << percent
-                   << "% of samples. Exceeded by "
-                   << -duration_cast<nanoseconds>(timeLeft).count() << " ns.";
+      XLOG(WARNING) << "Interval is too small for " << percent
+                    << "% of samples. Exceeded by "
+                    << -duration_cast<nanoseconds>(timeLeft).count() << " ns.";
 
       numSamplesAtLastOverloadWarning_ = numSamples_;
       overloadWarningCounter_ = 0;

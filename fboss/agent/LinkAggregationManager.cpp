@@ -25,6 +25,7 @@
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/io/async/EventBase.h>
+#include <folly/logging/xlog.h>
 
 #include <algorithm>
 #include <iterator>
@@ -65,11 +66,11 @@ std::shared_ptr<SwitchState> ProgramForwardingState::operator()(
     return nullptr;
   }
 
-  VLOG(4) << "Updating AggregatePort " << aggPort->getID()
-          << ": ForwardingState[" << portID_ << "] --> "
-          << (forwardingState_ == AggregatePort::Forwarding::ENABLED
-                  ? "ENABLED"
-                  : "DISABLED");
+  XLOG(DBG4) << "Updating AggregatePort " << aggPort->getID()
+             << ": ForwardingState[" << portID_ << "] --> "
+             << (forwardingState_ == AggregatePort::Forwarding::ENABLED
+                     ? "ENABLED"
+                     : "DISABLED");
 
   aggPort = aggPort->modify(&nextState);
   aggPort->setForwardingState(portID_, forwardingState_);
@@ -99,13 +100,13 @@ void LinkAggregationManager::handlePacket(
 
   auto it = portToController_.find(ingressPort);
   if (it == portToController_.end()) {
-    LOG(ERROR) << "No LACP controller found for port " << ingressPort;
+    XLOG(ERR) << "No LACP controller found for port " << ingressPort;
     return;
   }
 
   auto lacpdu = LACPDU::from(&c);
   if (!lacpdu.isValid()) {
-    LOG(ERROR) << "Invalid LACP data unit";
+    XLOG(ERR) << "Invalid LACP data unit";
     return;
   }
 
@@ -213,7 +214,7 @@ void LinkAggregationManager::portChanged(
       newPort->getOperState() == Port::OperState::UP) {
     auto it = portToController_.find(portId);
     if (it == portToController_.end()) {
-      LOG(ERROR) << "Port " << portId << " not found";
+      XLOG(ERR) << "Port " << portId << " not found";
       return;
     }
     it->second->portUp();
@@ -222,7 +223,7 @@ void LinkAggregationManager::portChanged(
       newPort->getOperState() == Port::OperState::DOWN) {
     auto it = portToController_.find(portId);
     if (it == portToController_.end()) {
-      LOG(ERROR) << "Port " << portId << " not found";
+      XLOG(ERR) << "Port " << portId << " not found";
       return;
     }
     it->second->portDown();
@@ -276,7 +277,7 @@ bool LinkAggregationManager::transmit(LACPDU lacpdu, PortID portID) {
 
   auto pkt = sw_->allocatePacket(LACPDU::LENGTH);
   if (!pkt) {
-    VLOG(4) << "Failed to allocate tx packet for LACPDU transmission";
+    XLOG(DBG4) << "Failed to allocate tx packet for LACPDU transmission";
     return false;
   }
 

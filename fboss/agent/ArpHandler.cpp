@@ -12,24 +12,25 @@
 #include <folly/IPAddressV4.h>
 #include <folly/MacAddress.h>
 #include <folly/io/Cursor.h>
+#include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/RxPacket.h"
-#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/NeighborUpdater.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/ArpEntry.h"
-#include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/ArpResponseTable.h"
-#include "fboss/agent/state/PortDescriptor.h"
-#include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/state/VlanMap.h"
 
 using folly::IPAddressV4;
 using folly::MacAddress;
@@ -113,8 +114,8 @@ void ArpHandler::handlePacket(
   auto entry = vlan->getArpResponseTable()->getEntry(targetIP);
   if (!entry) {
     // The target IP does not refer to us.
-    VLOG(5) << "ignoring ARP message for " << targetIP.str()
-            << " on vlan " << pkt->getSrcVlan();
+    XLOG(DBG5) << "ignoring ARP message for " << targetIP.str() << " on vlan "
+               << pkt->getSrcVlan();
     stats->port(port)->arpNotMine();
 
     updater->receivedArpNotMine(vlan->getID(), senderIP, senderMac,
@@ -149,10 +150,9 @@ static void sendArp(SwSwitch *sw,
                     IPAddressV4 senderIP,
                     MacAddress targetMac,
                     IPAddressV4 targetIP) {
-  VLOG(4) << "sending ARP " << ((op == ARP_OP_REQUEST) ? "request" : "reply")
-          << " on vlan " << vlan
-          << " to " << targetIP.str() << " (" << targetMac << "): "
-          << senderIP.str() << " is " << senderMac;
+  XLOG(DBG4) << "sending ARP " << ((op == ARP_OP_REQUEST) ? "request" : "reply")
+             << " on vlan " << vlan << " to " << targetIP.str() << " ("
+             << targetMac << "): " << senderIP.str() << " is " << senderMac;
 
   // TODO: We need a more robust mechanism for setting up the ethernet
   // header in the response.  The HwSwitch should probably be responsible for
@@ -228,13 +228,13 @@ void ArpHandler::sendArpRequest(SwSwitch* sw,
   auto intfID = vlan->getInterfaceID();
 
   if (!Interface::isIpAttached(targetIP, intfID, state)) {
-    VLOG(0) << "Cannot reach " << targetIP << " on interface " << intfID;
+    XLOG(DBG0) << "Cannot reach " << targetIP << " on interface " << intfID;
     return;
   }
 
   auto intf = state->getInterfaces()->getInterfaceIf(intfID);
   if (!intf) {
-    VLOG(0) << "Cannot find interface " << intfID;
+    XLOG(DBG0) << "Cannot find interface " << intfID;
     return;
   }
   auto addrToReach = intf->getAddressToReach(targetIP);

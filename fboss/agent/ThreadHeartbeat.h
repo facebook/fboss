@@ -10,8 +10,9 @@
 // Copyright 2014-present Facebook. All Rights Reserved.
 #pragma once
 #include <folly/io/async/AsyncTimeout.h>
-#include <chrono>
 #include <folly/io/async/EventBase.h>
+#include <folly/logging/xlog.h>
+#include <chrono>
 
 namespace facebook { namespace fboss {
 
@@ -30,7 +31,7 @@ class ThreadHeartbeat : private folly::AsyncTimeout {
       threadName_(threadName),
       intervalMsecs_(intervalMsecs),
       heartbeatStatsFunc_(heartbeatStatsFunc) {
-    VLOG(2) << "ThreadHeartbeat intervalMsecs:" << intervalMsecs_.count();
+    XLOG(DBG2) << "ThreadHeartbeat intervalMsecs:" << intervalMsecs_.count();
     evb_->runInEventBaseThread([this]() {
         scheduleFirstHeartbeat();
       });
