@@ -667,7 +667,6 @@ class BcmSwitch : public BcmSwitchIf {
    */
   BcmPlatform* platform_{nullptr};
   Callback* callback_{nullptr};
-  std::unique_ptr<BcmUnit> unitObject_;
   int unit_{-1};
   uint32_t flags_{0};
   uint32_t featuresDesired_{PACKET_RX_DESIRED | LINKSCAN_DESIRED};
@@ -700,6 +699,7 @@ class BcmSwitch : public BcmSwitchIf {
    * variable.
    */
   std::vector<std::shared_ptr<AclEntry>> coppAclEntries_;
+  std::unique_ptr<BcmUnit> unitObject_;
 
   /*
    * Lock to synchronize access to all BCM* data structures
