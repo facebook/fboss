@@ -23,8 +23,4 @@ void BcmControlPlane::setupQueueCounters() {}
 
 void BcmControlPlane::updateQueueCounters() {}
 
-int BcmControlPlane::setRxCpuRate(const int /*unit*/, const int /*pps*/) {
-  return true;
-}
-
 }} // facebook::fboss

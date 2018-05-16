@@ -52,14 +52,6 @@ public:
 
   void updateQueueCounters();
 
-  /**
-   * Set the max CPU RX rate
-   *
-   * @param[in]  unit             hw unit
-   * @param[in]  ppc              RX CPU rate in packets per sec
-   */
-  int setRxCpuRate(const int unit, int pps);
-
 private:
   // no copy or assignment
   BcmControlPlane(BcmControlPlane const &) = delete;

@@ -113,7 +113,6 @@ class BcmSwitchIf : public HwSwitch {
   virtual BcmWarmBootCache* getWarmBootCache() const = 0;
 
   virtual void dumpState() const = 0;
-
 };
 
 /*
