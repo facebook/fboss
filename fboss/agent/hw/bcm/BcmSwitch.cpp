@@ -165,15 +165,6 @@ BcmSwitch::BcmSwitch(
   exportSdkVersion();
 }
 
-BcmSwitch::BcmSwitch(
-    BcmPlatform* platform,
-    unique_ptr<BcmUnit> unit,
-    uint32_t featuresDesired)
-    : BcmSwitch(platform, FULL_HASH, featuresDesired) {
-  unitObject_ = std::move(unit);
-  unit_ = unitObject_->getNumber();
-}
-
 BcmSwitch::~BcmSwitch() {
   XLOG(ERR) << "Destroying BcmSwitch";
 }
@@ -498,10 +489,8 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   std::lock_guard<std::mutex> g(lock_);
 
-  // Create unitObject_ before doing anything else.
-  if (!unitObject_) {
-    unitObject_ = BcmAPI::initOnlyUnit();
-  }
+  CHECK(!unitObject_);
+  unitObject_ = BcmAPI::initOnlyUnit();
   unit_ = unitObject_->getNumber();
   unitObject_->setCookie(this);
   callback_ = callback;

@@ -50,19 +50,6 @@ class BcmAPI {
   static size_t getMaxSwitches();
 
   /*
-   * Create a BcmUnit.
-   *
-   * The unit will not have been initialized yet, and must still
-   * be initialized with BcmUnit::attach().
-   *
-   * All devices should be initialized from the main thread, before
-   * performing BCM SDK calls from other threads.  The Broadcom SDK does
-   * not appear to perform locking around device ID allocation and
-   * initialization.
-   */
-  static std::unique_ptr<BcmUnit> initUnit(int deviceIndex);
-
-  /*
    * Ensure that there is only a single BCM switch in the system,
    * and create a BcmUnit for it.
    *
@@ -102,6 +89,19 @@ class BcmAPI {
   static HwConfigMap getHwConfig();
 
  private:
+  /*
+   * Create a BcmUnit.
+   *
+   * The unit will not have been initialized yet, and must still
+   * be initialized with BcmUnit::attach().
+   *
+   * All devices should be initialized from the main thread, before
+   * performing BCM SDK calls from other threads.  The Broadcom SDK does
+   * not appear to perform locking around device ID allocation and
+   * initialization.
+   */
+  static std::unique_ptr<BcmUnit> initUnit(int deviceIndex);
+
   // Forbidden copy constructor and assignment operator
   BcmAPI(BcmAPI const &) = delete;
   BcmAPI& operator=(BcmAPI const &) = delete;
