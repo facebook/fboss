@@ -202,6 +202,9 @@ class BcmHostTable {
   BcmHost* derefBcmHost(const BcmHostKey& key) noexcept;
   BcmEcmpHost* derefBcmEcmpHost(const BcmEcmpHostKey& key) noexcept;
 
+  uint32_t getReferenceCount(const BcmHostKey& key) const noexcept;
+  uint32_t getReferenceCount(const BcmEcmpHostKey& key) const noexcept;
+
   /*
    * APIs to manage egress objects. Multiple host entries can point
    * to a egress object. Lifetime of these egress objects is thus
@@ -362,6 +365,10 @@ class BcmHostTable {
   HostT* derefBcmHostImpl(
       HostMap<KeyT, HostT>* map,
       const KeyT& key) noexcept;
+  template <typename KeyT, typename HostT>
+  uint32_t getReferenceCountImpl(
+      const HostMap<KeyT, HostT> *map,
+      const KeyT& key) const noexcept;
 
   HostMap<BcmHostKey, BcmHost> hosts_;
   HostMap<BcmEcmpHostKey, BcmEcmpHost> ecmpHosts_;

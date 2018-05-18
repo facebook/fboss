@@ -405,6 +405,27 @@ BcmEcmpHost* BcmHostTable::incRefOrCreateBcmEcmpHost(
   return incRefOrCreateBcmHostImpl(&ecmpHosts_, key);
 }
 
+uint32_t BcmHostTable::getReferenceCount(const BcmEcmpHostKey& key)
+    const noexcept {
+  return getReferenceCountImpl(&ecmpHosts_, key);
+}
+
+uint32_t BcmHostTable::getReferenceCount(const BcmHostKey& key)
+    const noexcept {
+  return getReferenceCountImpl(&hosts_, key);
+}
+
+template<typename KeyT, typename HostT>
+uint32_t BcmHostTable::getReferenceCountImpl(
+    const HostMap<KeyT, HostT>* map,
+    const KeyT& key) const noexcept {
+  auto iter = map->find(key);
+  if (iter == map->cend()) {
+    return 0;
+  }
+  return iter->second.second;
+}
+
 template<typename KeyT, typename HostT>
 HostT* BcmHostTable::getBcmHostIfImpl(
     const HostMap<KeyT, HostT>* map,
