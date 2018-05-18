@@ -26,6 +26,7 @@ class TransceiverManager {
   }
   virtual int getNumQsfpModules() = 0;
   virtual void refreshTransceivers() = 0;
+  virtual int numPortsPerTransceiver() = 0;
  private:
   // Forbidden copy constructor and assignment operator
   TransceiverManager(TransceiverManager const &) = delete;

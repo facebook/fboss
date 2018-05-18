@@ -24,10 +24,12 @@ namespace facebook { namespace fboss {
 
 class MockQsfpModule : public QsfpModule {
  public:
-  explicit MockQsfpModule(std::unique_ptr<TransceiverImpl> qsfpImpl) :
-      QsfpModule(std::move(qsfpImpl)) {
+  explicit MockQsfpModule(
+      std::unique_ptr<TransceiverImpl> qsfpImpl,
+      unsigned int portsPerTransceiver)
+      : QsfpModule(std::move(qsfpImpl), portsPerTransceiver) {
     ON_CALL(*this, updateQsfpData(testing::_))
-      .WillByDefault(testing::Assign(&dirty_, false));
+        .WillByDefault(testing::Assign(&dirty_, false));
   }
   MOCK_METHOD1(setPowerOverrideIfSupported, void(PowerControlState));
   MOCK_CONST_METHOD0(cacheIsValid, bool());

@@ -26,6 +26,10 @@ class WedgeManager : public TransceiverManager {
   int getNumQsfpModules() override {
     return 16;
   }
+  int numPortsPerTransceiver() override {
+    // most of our platforms specify a port per channel in a qsfp
+    return 4;
+  }
   void refreshTransceivers() override;
 
  protected:

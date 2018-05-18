@@ -49,7 +49,9 @@ void getQsfpFieldAddress(SffField field, int &dataAddress,
  */
 class QsfpModule : public Transceiver {
  public:
-  explicit QsfpModule(std::unique_ptr<TransceiverImpl> qsfpImpl);
+  explicit QsfpModule(
+      std::unique_ptr<TransceiverImpl> qsfpImpl,
+      unsigned int portsPerTransceiver);
 
   /*
    * Determines if the QSFP is present or not.
@@ -345,6 +347,7 @@ class QsfpModule : public Transceiver {
   cfg::PortSpeed getPortSpeed() const;
 
   std::map<uint32_t, PortStatus> ports_;
+  unsigned int portsPerTransceiver_{0};
 };
 
 }} //namespace facebook::fboss

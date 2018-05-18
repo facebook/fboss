@@ -29,11 +29,19 @@ using namespace ::testing;
 class QsfpModuleTest : public ::testing::Test {
  public:
   void SetUp() override {
-    auto transceiverImpl = std::make_unique<NiceMock<MockTransceiverImpl> >();
+    // save some typing in most tests by creating the test qsfp
+    // expecting 4 ports. Tests that need a different number of ports
+    // can call setupQsfp() themselves.
+    setupQsfp(4);
+  }
+
+  void setupQsfp(unsigned int portsPerTransceiver) {
+    auto transceiverImpl = std::make_unique<NiceMock<MockTransceiverImpl>>();
     auto implPtr = transceiverImpl.get();
     // So we can check what happens during testing
     transImpl_ = transceiverImpl.get();
-    qsfp_ = std::make_unique<MockQsfpModule>(std::move(transceiverImpl));
+    qsfp_ = std::make_unique<MockQsfpModule>(
+        std::move(transceiverImpl), portsPerTransceiver);
 
     gflags::SetCommandLineOptionWithMode(
       "tx_enable_interval", "0", gflags::SET_FLAGS_DEFAULT);
@@ -254,6 +262,31 @@ TEST_F(QsfpModuleTest, portsChangedExtraPort) {
       {3, portStatus(true, false)},
       {4, portStatus(true, false)},
       {5, portStatus(true, false)},
+    }));
+}
+
+TEST_F(QsfpModuleTest, portsChangedOnePortPerModule) {
+  setupQsfp(1);
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(1);
+  qsfp_->transceiverPortsChanged({
+      {1, portStatus(true, false)},
+  });
+}
+
+TEST_F(QsfpModuleTest, portsChangedMissingPortOnePortPerModule) {
+  setupQsfp(1);
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
+  qsfp_->transceiverPortsChanged({});
+}
+
+TEST_F(QsfpModuleTest, portsChangedExtraPortOnePortPerModule) {
+  setupQsfp(1);
+  EXPECT_ANY_THROW(
+    qsfp_->transceiverPortsChanged({
+      {1, portStatus(true, false)},
+      {2, portStatus(true, false)},
+      {3, portStatus(true, false)},
+      {4, portStatus(true, false)},
     }));
 }
 

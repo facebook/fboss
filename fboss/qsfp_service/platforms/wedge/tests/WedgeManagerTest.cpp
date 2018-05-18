@@ -28,7 +28,7 @@ class MockWedgeManager : public WedgeManager {
   void makeTransceiverMap() {
     for (int idx = 0; idx < getNumQsfpModules(); idx++) {
       std::unique_ptr<MockQsfpModule> qsfp =
-        std::make_unique<MockQsfpModule>(nullptr);
+        std::make_unique<MockQsfpModule>(nullptr, numPortsPerTransceiver());
       mockTransceivers_.push_back(qsfp.get());
       transceivers_.push_back(move(qsfp));
     }

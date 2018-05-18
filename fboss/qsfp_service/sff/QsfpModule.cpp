@@ -536,14 +536,18 @@ TransmitterTechnology QsfpModule::getQsfpTransmitterTechnology() const {
       return TransmitterTechnology::COPPER;
     }
   } catch (const std::exception& e) {
-    LOG(INFO) << " Unable to get transmitter technology for QSFP: "
-              << qsfpImpl_->getName();
+    LOG(INFO) << " Unable to get transmitter technology for QSFP "
+              << qsfpImpl_->getName() << ": " << e.what();
   }
   return TransmitterTechnology::UNKNOWN;
 }
 
-QsfpModule::QsfpModule(std::unique_ptr<TransceiverImpl> qsfpImpl)
-  : qsfpImpl_(std::move(qsfpImpl)) {
+QsfpModule::QsfpModule(
+    std::unique_ptr<TransceiverImpl> qsfpImpl,
+    unsigned int portsPerTransceiver)
+    : qsfpImpl_(std::move(qsfpImpl)),
+      portsPerTransceiver_(portsPerTransceiver) {
+  CHECK_GT(portsPerTransceiver_, 0);
 }
 
 void QsfpModule::setQsfpIdprom() {
@@ -685,15 +689,15 @@ RawDOMData QsfpModule::getRawDOMData() {
 }
 
 bool QsfpModule::safeToCustomize() const {
-  if (ports_.size() < CHANNEL_COUNT) {
-    VLOG(2) << "Not all channels present in transceiver" << getID()
-               << "... skip customization";
+  if (ports_.size() < portsPerTransceiver_) {
+    VLOG(2) << "Not all ports present in transceiver " << getID()
+            << " (expected=" << portsPerTransceiver_ << "). Skip customization";
 
     return false;
-  } else if (ports_.size() > CHANNEL_COUNT) {
+  } else if (ports_.size() > portsPerTransceiver_) {
     throw FbossError(
-      ports_.size(), " channels found in transceiver ", getID(),
-      " (max=", CHANNEL_COUNT, ")");
+      ports_.size(), " ports found in transceiver ", getID(),
+      " (max=", portsPerTransceiver_, ")");
   }
 
   bool anyEnabled{false};
@@ -838,7 +842,7 @@ void QsfpModule::updateQsfpData(bool allPages) {
   // expects the lock to be held
   if (present_) {
     try {
-      LOG(INFO) << "Performing " << ((allPages) ? "full" : "partial")
+      VLOG(2) << "Performing " << ((allPages) ? "full" : "partial")
                 << " qsfp data cache refresh for transceiver "
                 << folly::to<std::string>(qsfpImpl_->getName());
       qsfpImpl_->readTransceiver(TransceiverI2CApi::ADDR_QSFP, 0,

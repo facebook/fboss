@@ -25,7 +25,8 @@ void WedgeManager::initTransceiverMap() {
   // a QSFP+ is port 1.  We start the transceiver IDs with 0, though.
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
     auto qsfpImpl = std::make_unique<WedgeQsfp>(idx, wedgeI2CBusLock_.get());
-    auto qsfp = std::make_unique<QsfpModule>(std::move(qsfpImpl));
+    auto qsfp = std::make_unique<QsfpModule>(
+        std::move(qsfpImpl), numPortsPerTransceiver());
     qsfp->refresh();
     transceivers_.push_back(move(qsfp));
     LOG(INFO) << "making QSFP for " << idx;
