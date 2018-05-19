@@ -458,9 +458,8 @@ void ThriftHandler::fillPortStats(PortInfoThrift& portInfo, int numPortQs) {
   auto statMap = fbData->getStatMap();
 
   auto getSumStat = [&] (StringPiece prefix, StringPiece name) {
-    // Currently, the internal name of the port is "port<n>", even though
-    // `the external name is "eth<a>/<b>/<c>"
-    auto portName = folly::to<std::string>("port", portId);
+    auto portName =  portInfo.name.empty() ?
+      folly::to<std::string>("port", portId) : portInfo.name;
     auto statName = folly::to<std::string>(portName, ".", prefix, name);
     auto statPtr = statMap->getLockedStatPtr(statName);
     auto numLevels = statPtr->numLevels();
