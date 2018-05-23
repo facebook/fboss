@@ -7,6 +7,7 @@
 #include "fboss/lib/usb/UsbError.h"
 
 #include <chrono>
+#include <folly/init/Init.h>
 #include <folly/Conv.h>
 #include <folly/Memory.h>
 #include <folly/FileUtil.h>
@@ -357,8 +358,7 @@ void tryOpenBus(TransceiverI2CApi* bus) {
 
 
 int main(int argc, char* argv[]) {
-  google::InitGoogleLogging(argv[0]);
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
+  folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
       "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
 
