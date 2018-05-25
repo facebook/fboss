@@ -148,7 +148,7 @@ class FBOSSTestTopology(object):
                                      " ".join(bad_hosts))
             else:
                 for host in bad_hosts:
-                    self.log.warning("Removing unreachable host: %s " %
+                    self.log.warning("Removing thrift-unreachable host: %s " %
                                         host)
                     self.remove_host(host)
                 if len(self.test_hosts) == min_hosts:
