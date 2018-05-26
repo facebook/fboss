@@ -50,6 +50,7 @@ class BcmTableStats;
 class BcmTrunkTable;
 class BcmUnit;
 class BcmWarmBootCache;
+class BcmWarmBootHelper;
 class BcmSflowExporterTable;
 class SflowCollector;
 class MockRxPacket;

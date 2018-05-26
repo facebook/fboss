@@ -50,6 +50,7 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
 
+  void onUnitCreate(int unit) override;
   void onUnitAttach(int unit) override;
   void getProductInfo(ProductInfo& info) override;
 
@@ -60,6 +61,9 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   WedgePort* getPort(TransceiverID id) const;
   TransceiverIdxThrift getPortMapping(PortID port) const override;
   PlatformPort* getPlatformPort(PortID id) const override;
+  BcmWarmBootHelper* getWarmBootHelper() override {
+    return warmBootHelper_.get();
+  }
 
   uint32_t getMMUBufferBytes() const override {
     // All wedge platforms have 16MB MMU buffer
@@ -108,6 +112,7 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
 
   const std::unique_ptr<WedgeProductInfo> productInfo_;
   const std::unique_ptr<QsfpCache> qsfpCache_;
+  std::unique_ptr<BcmWarmBootHelper> warmBootHelper_;
 };
 
 }} // namespace facebook::fboss

@@ -19,6 +19,7 @@
 namespace facebook { namespace fboss {
 
 class BcmUnit;
+class BcmPlatform;
 
 /*
  * BcmAPI is a singleton class that wraps the Broadcom SDK.
@@ -56,7 +57,7 @@ class BcmAPI {
    * The unit will not have been initialized yet, and must still
    * be initialized with BcmUnit::attach().
    */
-  static std::unique_ptr<BcmUnit> initOnlyUnit();
+  static std::unique_ptr<BcmUnit> initOnlyUnit(BcmPlatform* platform);
 
   /*
    * Indicate that a BcmUnit object is being destroyed.
@@ -100,7 +101,9 @@ class BcmAPI {
    * not appear to perform locking around device ID allocation and
    * initialization.
    */
-  static std::unique_ptr<BcmUnit> initUnit(int deviceIndex);
+  static std::unique_ptr<BcmUnit> initUnit(
+      int deviceIndex,
+      BcmPlatform* platform);
 
   // Forbidden copy constructor and assignment operator
   BcmAPI(BcmAPI const &) = delete;

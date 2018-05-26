@@ -43,6 +43,7 @@
 #include "fboss/agent/hw/bcm/BcmTxPacket.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/ArpEntry.h"
@@ -383,7 +384,8 @@ void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
 
   std::lock_guard<std::mutex> g(lock_);
   switchState[kHwSwitch] = toFollyDynamic();
-  unitObject_->detach(platform_->getWarmBootSwitchStateFile(),
+  unitObject_->detachAndSetupWarmBoot(
+      platform_->getWarmBootSwitchStateFile(),
       switchState);
   unitObject_.reset();
   XLOG(INFO)
@@ -490,16 +492,22 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   std::lock_guard<std::mutex> g(lock_);
 
   CHECK(!unitObject_);
-  unitObject_ = BcmAPI::initOnlyUnit();
+  unitObject_ = BcmAPI::initOnlyUnit(platform_);
   unit_ = unitObject_->getNumber();
+  platform_->onUnitCreate(unit_);
   unitObject_->setCookie(this);
   callback_ = callback;
 
   steady_clock::time_point begin = steady_clock::now();
 
-  // Initialize the switch.
-  if (!unitObject_->isAttached()) {
-    unitObject_->attach(platform_->getWarmBootDir());
+  auto bootType = platform_->getWarmBootHelper()->canWarmBoot()
+      ? BootType::WARM_BOOT
+      : BootType::COLD_BOOT;
+  auto warmBoot = bootType == BootType::WARM_BOOT;
+  if (warmBoot) {
+    unitObject_->warmBootAttach();
+  } else {
+    unitObject_->coldBootAttach();
   }
 
   platform_->onUnitAttach(unit_);
@@ -536,9 +544,6 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   auto rv = opennsl_port_config_get(unit_, &pcfg);
   bcmCheckError(rv, "failed to get port configuration");
 
-  auto bootType = unitObject_->bootType();
-  CHECK(bootType != BootType::UNINITIALIZED);
-  auto warmBoot = bootType == BootType::WARM_BOOT;
 
   if (!warmBoot) {
     LOG (INFO) << " Performing cold boot ";

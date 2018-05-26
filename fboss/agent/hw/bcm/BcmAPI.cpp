@@ -32,8 +32,10 @@ extern std::atomic<BcmUnit*> bcmUnits[];
 
 std::unique_ptr<BcmAPI> BcmAPI::singleton_;
 
-std::unique_ptr<BcmUnit> BcmAPI::initUnit(int deviceIndex) {
-  auto unitObj = make_unique<BcmUnit>(deviceIndex);
+std::unique_ptr<BcmUnit> BcmAPI::initUnit(
+    int deviceIndex,
+    BcmPlatform* platform) {
+  auto unitObj = make_unique<BcmUnit>(deviceIndex, platform);
   int unit = unitObj->getNumber();
   BcmUnit* expectedUnit{nullptr};
   if (!bcmUnits[unit].compare_exchange_strong(expectedUnit, unitObj.get(),
@@ -54,14 +56,14 @@ void BcmAPI::init(const std::map<std::string, std::string>& config) {
 }
 
 
-std::unique_ptr<BcmUnit> BcmAPI::initOnlyUnit() {
+std::unique_ptr<BcmUnit> BcmAPI::initOnlyUnit(BcmPlatform* platform) {
   auto numDevices = BcmAPI::getNumSwitches();
   if (numDevices == 0) {
     throw FbossError("no Broadcom switching ASIC found");
   } else if (numDevices > 1) {
     throw FbossError("found more than 1 Broadcom switching ASIC");
   }
-  return initUnit(0);
+  return initUnit(0, platform);
 }
 
 void BcmAPI::unitDestroyed(BcmUnit* unit) {

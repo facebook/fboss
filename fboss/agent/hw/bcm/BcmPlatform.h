@@ -20,6 +20,7 @@ extern "C" {
 namespace facebook { namespace fboss {
 
 class BcmPlatformPort;
+class BcmWarmBootHelper;
 
 /*
  * BcmPlatform specifies additional APIs that must be provided by platforms
@@ -30,6 +31,13 @@ class BcmPlatform : public Platform {
   typedef std::map<opennsl_port_t, BcmPlatformPort*> InitPortMap;
 
   BcmPlatform() {}
+
+  /*
+   * onUnitCreate() will be called by the BcmSwitch code immediately after
+   * creating up switch unit. This is distinct from actually attaching
+   * to the unit/ASIC, which happens in a separate step.
+   */
+  virtual void onUnitCreate(int unit) = 0;
 
   /*
    * onUnitAttach() will be called by the BcmSwitch code immediately after
@@ -75,6 +83,8 @@ class BcmPlatform : public Platform {
    * and accounting of MMU resources.
    */
   virtual uint32_t getMMUCellBytes() const = 0;
+
+  virtual BcmWarmBootHelper* getWarmBootHelper() = 0;
 
   virtual bool isBufferStatsCollectionSupported() const = 0;
 

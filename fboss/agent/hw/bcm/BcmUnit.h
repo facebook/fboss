@@ -12,6 +12,7 @@
 #include <atomic>
 #include <folly/Range.h>
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/agent/hw/bcm/BcmPlatform.h"
 
 extern "C" {
 #include <opennsl/error.h>
@@ -27,55 +28,33 @@ class BcmWarmBootHelper;
 
 class BcmUnit {
  public:
-  explicit BcmUnit(int deviceIndex);
+   BcmUnit(int deviceIndex, BcmPlatform* platform);
   ~BcmUnit();
 
   /*
-   * Initialize this BcmUnit.
-   *
-   * The warmBootDir specifies the directory where switch state should be stored
-   * to allow warm booting the switch the next time it is initialized.
-   *
-   * The contents of this directory will be used by the BcmWarmBootHelper to
-   * determine if a warm boot should be performed. In order for warm boot to
-   * work properly the directory should not change between runs.
+   * Initialize this BcmUnit and do a warm boot
    */
-  void attach(std::string warmBootDir);
+  void warmBootAttach() {
+    attach(true);
+  }
 
   /*
-   * Initialize this BcmUnit, without warm boot support.
-   *
-   * The unit will perform a cold reset, and will not support warm boot
-   * the next time it is initialized.
+   * Initialize this BcmUnit and do a cold boot
    */
-  void attach();
+  void coldBootAttach() {
+    attach(false);
+  }
 
   /*
    * Flush warm boot state to disk, and then detach from the hardware
    * device, without changing any hardware state.
    *
-   * Once detach() has been called no other methods other than the
+   * Once detachAndSetupWarmBoot has been called no other methods other than the
    * BcmUnit destructor should be invoked.
    */
-  void detach(const std::string& switchStateFile,
+  void detachAndSetupWarmBoot(
+      const std::string& switchStateFile,
       folly::dynamic& switchState);
-
-  /*
-   * Returns the boot type used when the unit was loaded. This will be either
-   * WARM_BOOT or COLD_BOOT if the unit is attached. If the unit is not attached
-   * it should return UNINITIALIZED.
-   */
-  BootType bootType();
-
-  /**
-   * Get the WarmBootHelper object.
-   *
-   * The NeighborUpdater returned is owned by the BcmUnit, and is only valid as
-   * long as the BcmUnit object.
-   */
-  BcmWarmBootHelper* warmBootHelper() {
-    return wbHelper_.get();
-  }
 
   bool isAttached() const {
     return attached_.load(std::memory_order_acquire);
@@ -107,8 +86,13 @@ class BcmUnit {
   void setCookie(void* cookie) {
     cookie_ = cookie;
   }
+  BcmWarmBootHelper* warmBootHelper() {
+    CHECK(platform_);
+    return platform_->getWarmBootHelper();
+  }
 
  private:
+  void attach(bool warmBoot);
   // Forbidden copy constructor and assignment operator
   BcmUnit(BcmUnit const &) = delete;
   BcmUnit& operator=(BcmUnit const &) = delete;
@@ -116,8 +100,8 @@ class BcmUnit {
   void registerCallbackVector();
   void bcmInit();
 
-  std::unique_ptr<BcmWarmBootHelper> wbHelper_;
   int deviceIndex_{-1};
+  BcmPlatform* platform_{nullptr};
   int unit_{-1};
   std::atomic<bool> attached_{false};
   void* cookie_{nullptr};

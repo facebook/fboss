@@ -262,8 +262,8 @@ class BcmProcessor {
 };
 
 void BcmProcessor::prepare() {
-  bcmUnit_ = BcmAPI::initOnlyUnit();
-  bcmUnit_->attach();
+  bcmUnit_ = BcmAPI::initOnlyUnit(nullptr);
+  bcmUnit_->coldBootAttach();
   unit_ = bcmUnit_->getNumber();
 
   // Get the list of ports

@@ -29,7 +29,7 @@ constexpr auto wbEnvVar = "SOC_BOOT_FLAGS";
 constexpr auto wbFlag = "0x200000";
 }
 
-BcmUnit::BcmUnit(int /*deviceIndex*/) {
+BcmUnit::BcmUnit(int /*deviceIndex*/, BcmPlatform* /*platform*/) {
   // For now we assume that the unit number is 0. This will be changed once
   // opennsl exposes interfaces to determine which units are on the system
   unit_ = 0;
@@ -45,7 +45,7 @@ BcmUnit::~BcmUnit() {
   BcmAPI::unitDestroyed(this);
 }
 
-void BcmUnit::detach(
+void BcmUnit::detachAndSetupWarmBoot(
     const std::string& /*switchStateFile*/,
     folly::dynamic& /*switchState*/) {
   attached_.store(false, std::memory_order_release);
@@ -54,10 +54,10 @@ void BcmUnit::detach(
   auto rv = _opennsl_shutdown(unit_);
   bcmCheckError(rv, "failed to clean up BCM state during warm boot shutdown");
 
-  wbHelper_->setCanWarmBoot();
+  warmBootHelper()->setCanWarmBoot();
 }
 
-void BcmUnit::attach(std::string warmBootDir) {
+void BcmUnit::attach(bool warmBoot) {
   if (attached_.load(std::memory_order_acquire)) {
     throw FbossError("unit ", unit_, " already initialized");
   }
@@ -71,28 +71,14 @@ void BcmUnit::attach(std::string warmBootDir) {
    * FIXME(orib): This assumes that we only ever have one unit set up,
    * and that as a result, opennsl_driver_init() will only be called once.
    */
-  wbHelper_ = std::make_unique<BcmWarmBootHelper>(unit_, warmBootDir);
   unsetenv(wbEnvVar);
-  if(warmBootHelper()->canWarmBoot()) {
+  if(warmBoot) {
     setenv(wbEnvVar, wbFlag, 1);
   }
 
   opennsl_driver_init();
 
   attached_.store(true, std::memory_order_release);
-}
-
-void BcmUnit::attach() {
-  attach("");
-}
-
-BootType BcmUnit::bootType() {
-  // TODO(aeckert): Move this function into fboss/agent/hw/bcm/BcmUnit.cpp
-  if (!attached_.load(std::memory_order_acquire)) {
-    return BootType::UNINITIALIZED;
-  }
-
-  return wbHelper_->canWarmBoot() ? BootType::WARM_BOOT : BootType::COLD_BOOT;
 }
 
 void BcmUnit::rawRegisterWrite(
