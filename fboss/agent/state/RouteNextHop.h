@@ -30,9 +30,13 @@ inline folly::StringPiece constexpr kNexthop() {
   return "nexthop";
 }
 
+inline folly::StringPiece constexpr kWeight() {
+  return "weight";
+}
 
-// weights are represented as a percentage between 0 and 100
-using NextHopWeight = uint32_t;
+using NextHopWeight = uint64_t;
+constexpr NextHopWeight ECMP_WEIGHT = 0;
+constexpr NextHopWeight UCMP_DEFAULT_WEIGHT = 1;
 
 struct INextHop {
   // In this context "Interface" does not refer to network interfaces
@@ -49,6 +53,10 @@ struct INextHop {
       return folly::poly_call<1>(*this);
     }
 
+    NextHopWeight weight() const {
+      return folly::poly_call<2>(*this);
+    }
+
     bool isResolved() const {
       return intfID().hasValue();
     }
@@ -60,6 +68,7 @@ struct INextHop {
     folly::dynamic toFollyDynamic() const {
       folly::dynamic nh = folly::dynamic::object;
       nh[kNexthop()] = addr().str();
+      nh[kWeight()] = folly::to<std::string>(weight());
       if (isResolved()) {
         nh[kInterface()] = static_cast<uint32_t>(intf());
       }
@@ -69,6 +78,7 @@ struct INextHop {
     NextHopThrift toThrift() const {
       NextHopThrift nht;
       nht.address = network::toBinaryAddress(addr());
+      nht.weight = weight();
       if (isResolved()) {
         nht.address.set_ifName(util::createTunIntfName(intf()));
       }
@@ -76,22 +86,25 @@ struct INextHop {
     }
 
     std::string str() const {
-      if (isResolved()) {
-        return folly::to<std::string>(addr(), "@I", intf());
-      } else {
-        return folly::to<std::string>(addr());
-      }
+      std::string intfStr =
+          isResolved() ? folly::to<std::string>("@I", intf()) : "";
+      return folly::to<std::string>(addr(), intfStr, "x", weight());
     }
   };
 
   template <class T>
-  using Members = FOLLY_POLY_MEMBERS(&T::intfID, &T::addr);
+  using Members = FOLLY_POLY_MEMBERS(&T::intfID, &T::addr, &T::weight);
 };
 
 
 using NextHop = folly::Poly<INextHop>;
+
+using NextHopKey = std::pair<folly::IPAddress, InterfaceID>;
+NextHopKey nextHopKey(const NextHop& nh);
+
 void toAppend(const NextHop& nhop, std::string *result);
 std::ostream& operator<<(std::ostream& os, const NextHop& nhop);
+
 bool operator<(const NextHop& a, const NextHop& b);
 bool operator>(const NextHop& a, const NextHop& b);
 bool operator<=(const NextHop& a, const NextHop& b);
@@ -101,27 +114,37 @@ bool operator!=(const NextHop& a, const NextHop& b);
 
 class ResolvedNextHop {
  public:
-  ResolvedNextHop(const folly::IPAddress& addr, InterfaceID intfID)
-      : addr_(addr), intfID_(intfID) {}
-  ResolvedNextHop(folly::IPAddress&& addr, InterfaceID intfID)
-      : addr_(std::move(addr)), intfID_(intfID) {}
+  ResolvedNextHop(
+      const folly::IPAddress& addr,
+      InterfaceID intfID,
+      const NextHopWeight& weight)
+      : addr_(addr), intfID_(intfID), weight_(weight) {}
+  ResolvedNextHop(
+      folly::IPAddress&& addr,
+      InterfaceID intfID,
+      const NextHopWeight& weight)
+      : addr_(std::move(addr)), intfID_(intfID), weight_(weight) {}
   folly::Optional<InterfaceID> intfID() const { return intfID_; }
   folly::IPAddress addr() const { return addr_; }
+  NextHopWeight weight() const { return weight_; }
  private:
   folly::IPAddress addr_;
   InterfaceID intfID_;
+  NextHopWeight weight_;
 };
 
 bool operator==(const ResolvedNextHop& a, const ResolvedNextHop& b);
 
 class UnresolvedNextHop {
  public:
-  explicit UnresolvedNextHop(const folly::IPAddress& addr);
-  explicit UnresolvedNextHop(folly::IPAddress&& addr);
+  UnresolvedNextHop(const folly::IPAddress& addr, const NextHopWeight& weight);
+  UnresolvedNextHop(folly::IPAddress&& addr, const NextHopWeight& weight);
   folly::Optional<InterfaceID> intfID() const { return folly::none; }
   folly::IPAddress addr() const { return addr_; }
+  NextHopWeight weight() const { return weight_; }
  private:
   folly::IPAddress addr_;
+  NextHopWeight weight_;
 };
 
 bool operator==(const UnresolvedNextHop& a, const UnresolvedNextHop& b);

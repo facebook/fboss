@@ -135,9 +135,14 @@ class RouteUpdater {
   void resolve();
   template<typename RouteT>
   void resolveOne(RouteT* route, ClonedRib* clonedRib);
-  template<typename RtRibT, typename AddrT>
-  void getFwdInfoFromNhop(RtRibT* nRib, ClonedRib* ribCloned,
-      const AddrT& nh, bool* hasToCpu, bool* hasDrop, RouteNextHopSet* fwd);
+  template <typename RtRibT, typename AddrT>
+  void getFwdInfoFromNhop(
+      RtRibT* nRib,
+      ClonedRib* ribCloned,
+      const AddrT& nh,
+      bool* hasToCpu,
+      bool* hasDrop,
+      RouteNextHopSet& fwd);
   // Functions to deduplicate routing tables during sync mode
   template<typename RibT>
   bool dedupRoutes(const RibT* origRib, RibT* newRib);

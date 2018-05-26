@@ -26,6 +26,7 @@
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/test/MockTunManager.h"
 
@@ -366,11 +367,14 @@ shared_ptr<SwitchState> testStateA() {
 
   RouteNextHopSet nexthops;
   // resolved by intf 1
-  nexthops.emplace(UnresolvedNextHop(IPAddress("10.0.0.22")));
+  nexthops.emplace(
+      UnresolvedNextHop(IPAddress("10.0.0.22"), UCMP_DEFAULT_WEIGHT));
   // resolved by intf 1
-  nexthops.emplace(UnresolvedNextHop(IPAddress("10.0.0.23")));
+  nexthops.emplace(
+      UnresolvedNextHop(IPAddress("10.0.0.23"), UCMP_DEFAULT_WEIGHT));
   // un-resolvable
-  nexthops.emplace(UnresolvedNextHop(IPAddress("1.1.2.10")));
+  nexthops.emplace(
+      UnresolvedNextHop(IPAddress("1.1.2.10"), UCMP_DEFAULT_WEIGHT));
 
   updater.addRoute(
       RouterID(0),
@@ -541,7 +545,7 @@ void RxPacketMatcher::DescribeNegationTo(std::ostream* os) const {
 RouteNextHopSet makeNextHops(std::vector<std::string> ipStrs) {
   RouteNextHopSet nhops;
   for (const std::string & ip : ipStrs) {
-    nhops.emplace(UnresolvedNextHop(IPAddress(ip)));
+    nhops.emplace(UnresolvedNextHop(IPAddress(ip), ECMP_WEIGHT));
   }
   return nhops;
 }

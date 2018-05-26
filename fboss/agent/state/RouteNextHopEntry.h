@@ -47,6 +47,9 @@ class RouteNextHopEntry {
     return nhopSet_;
   }
 
+  // Get the sum of the weights of all the nexthops in the entry
+  NextHopWeight getTotalWeight() const;
+
   std::string str() const;
 
   /*
@@ -94,6 +97,7 @@ std::ostream& operator<<(std::ostream& os, const RouteNextHopEntry& entry);
 void toAppend(const RouteNextHopEntry::NextHopSet& nhops, std::string *result);
 std::ostream& operator<<(
     std::ostream& os, const RouteNextHopEntry::NextHopSet& nhops);
+NextHopWeight totalWeight(const RouteNextHopEntry::NextHopSet& nhops);
 
 using RouteNextHopSet = RouteNextHopEntry::NextHopSet;
 

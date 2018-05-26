@@ -117,11 +117,13 @@ std::shared_ptr<SwitchState> applyInitConfig() {
   auto tablesV0 = stateV0->getRouteTables();
 
   cfg::SwitchConfig config;
-  config.vlans.resize(2);
+  config.vlans.resize(4);
   config.vlans[0].id = 1;
   config.vlans[1].id = 2;
+  config.vlans[2].id = 3;
+  config.vlans[3].id = 4;
 
-  config.interfaces.resize(2);
+  config.interfaces.resize(4);
   config.interfaces[0].intfID = 1;
   config.interfaces[0].vlanID = 1;
   config.interfaces[0].routerID = 0;
@@ -130,6 +132,7 @@ std::shared_ptr<SwitchState> applyInitConfig() {
   config.interfaces[0].ipAddresses.resize(2);
   config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
   config.interfaces[0].ipAddresses[1] = "1::1/48";
+
   config.interfaces[1].intfID = 2;
   config.interfaces[1].vlanID = 2;
   config.interfaces[1].routerID = 0;
@@ -138,6 +141,24 @@ std::shared_ptr<SwitchState> applyInitConfig() {
   config.interfaces[1].ipAddresses.resize(2);
   config.interfaces[1].ipAddresses[0] = "2.2.2.2/24";
   config.interfaces[1].ipAddresses[1] = "2::1/48";
+
+  config.interfaces[2].intfID = 3;
+  config.interfaces[2].vlanID = 3;
+  config.interfaces[2].routerID = 0;
+  config.interfaces[2].__isset.mac = true;
+  config.interfaces[2].mac = "00:00:00:00:00:33";
+  config.interfaces[2].ipAddresses.resize(2);
+  config.interfaces[2].ipAddresses[0] = "3.3.3.3/24";
+  config.interfaces[2].ipAddresses[1] = "3::1/48";
+
+  config.interfaces[3].intfID = 4;
+  config.interfaces[3].vlanID = 4;
+  config.interfaces[3].routerID = 0;
+  config.interfaces[3].__isset.mac = true;
+  config.interfaces[3].mac = "00:00:00:00:00:44";
+  config.interfaces[3].ipAddresses.resize(2);
+  config.interfaces[3].ipAddresses[0] = "4.4.4.4/24";
+  config.interfaces[3].ipAddresses[1] = "4::1/48";
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   stateV1->publish();
@@ -264,7 +285,8 @@ TEST(Route, resolve) {
     EXPECT_NE(r21->prefix(), r22->prefix());
     // check the forwarding info
     RouteNextHopSet expFwd2;
-    expFwd2.emplace(ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1)));
+    expFwd2.emplace(
+        ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), ECMP_WEIGHT));
     EXPECT_EQ(expFwd2, r21->getForwardInfo().getNextHopSet());
     EXPECT_EQ(expFwd2, r22->getForwardInfo().getNextHopSet());
   }
@@ -515,8 +537,10 @@ TEST(Route, addDel) {
   EXPECT_EQ(2, fwd2.size());
   EXPECT_EQ(2, fwd2v6.size());
   RouteNextHopSet expFwd2;
-  expFwd2.emplace(ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1)));
-  expFwd2.emplace(ResolvedNextHop(IPAddress("2::2"), InterfaceID(2)));
+  expFwd2.emplace(
+      ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), ECMP_WEIGHT));
+  expFwd2.emplace(
+      ResolvedNextHop(IPAddress("2::2"), InterfaceID(2), ECMP_WEIGHT));
   EXPECT_EQ(expFwd2, fwd2);
   EXPECT_EQ(expFwd2, fwd2v6);
 
@@ -1391,7 +1415,7 @@ RouteNextHopSet newNextHops(int n, std::string prefix) {
   RouteNextHopSet h;
   for (int i = 0; i < n; i++) {
     auto ipStr = prefix + std::to_string(i + 10);
-    h.emplace(UnresolvedNextHop(IPAddress(ipStr)));
+    h.emplace(UnresolvedNextHop(IPAddress(ipStr), UCMP_DEFAULT_WEIGHT));
   }
   return h;
 }
@@ -1574,9 +1598,12 @@ TEST(Route, equality) {
   // But construct the list in opposite order.
   // Objects should still be equal, despite the order of construction.
   RouteNextHopSet nextHopsRev;
-  nextHopsRev.emplace(UnresolvedNextHop(IPAddress("2.2.2.12")));
-  nextHopsRev.emplace(UnresolvedNextHop(IPAddress("2.2.2.11")));
-  nextHopsRev.emplace(UnresolvedNextHop(IPAddress("2.2.2.10")));
+  nextHopsRev.emplace(
+      UnresolvedNextHop(IPAddress("2.2.2.12"), UCMP_DEFAULT_WEIGHT));
+  nextHopsRev.emplace(
+      UnresolvedNextHop(IPAddress("2.2.2.11"), UCMP_DEFAULT_WEIGHT));
+  nextHopsRev.emplace(
+      UnresolvedNextHop(IPAddress("2.2.2.10"), UCMP_DEFAULT_WEIGHT));
   nhm1.update(CLIENT_B, RouteNextHopEntry(nextHopsRev, DISTANCE));
   EXPECT_TRUE(nhm1 == nhm2);
 }
@@ -1767,7 +1794,8 @@ TEST(Route, fwdInfoRanking) {
       16,
       StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE),
       RouteNextHopEntry(
-          ResolvedNextHop(IPAddress("10.10.0.1"), InterfaceID(9)),
+          ResolvedNextHop(
+              IPAddress("10.10.0.1"), InterfaceID(9), UCMP_DEFAULT_WEIGHT),
           AdminDistance::DIRECTLY_CONNECTED));
   u1.addRoute(
       rid,
@@ -2028,20 +2056,25 @@ TEST(Route, serializeRouteTable) {
 TEST(RouteTypes, toFromRouteNextHops) {
   RouteNextHopSet nhs;
   // Non v4 link-local address without interface scoping
-  nhs.emplace(UnresolvedNextHop(folly::IPAddress("10.0.0.1")));
+  nhs.emplace(
+      UnresolvedNextHop(folly::IPAddress("10.0.0.1"), UCMP_DEFAULT_WEIGHT));
 
   // v4 link-local address without interface scoping
-  nhs.emplace(UnresolvedNextHop(folly::IPAddress("169.254.0.1")));
+  nhs.emplace(
+      UnresolvedNextHop(folly::IPAddress("169.254.0.1"), UCMP_DEFAULT_WEIGHT));
 
   // Non v6 link-local address without interface scoping
-  nhs.emplace(UnresolvedNextHop(folly::IPAddress("face:b00c::1")));
+  nhs.emplace(
+      UnresolvedNextHop(folly::IPAddress("face:b00c::1"), UCMP_DEFAULT_WEIGHT));
 
   // v6 link-local address with interface scoping
-  nhs.emplace(ResolvedNextHop(folly::IPAddress("fe80::1"), InterfaceID(4)));
+  nhs.emplace(ResolvedNextHop(
+      folly::IPAddress("fe80::1"), InterfaceID(4), UCMP_DEFAULT_WEIGHT));
 
   // v6 link-local address without interface scoping
   EXPECT_THROW(
-      nhs.emplace(UnresolvedNextHop(folly::IPAddress("fe80::1"))), FbossError);
+      nhs.emplace(UnresolvedNextHop(folly::IPAddress("fe80::1"), 42)),
+      FbossError);
 
   // Convert to thrift object
   auto nhts = util::fromRouteNextHopSet(nhs);
@@ -2118,8 +2151,8 @@ TEST(RouteTypes, toFromRouteNextHops) {
 
 TEST(Route, nextHopTest) {
   folly::IPAddress addr("1.1.1.1");
-  NextHop unh = UnresolvedNextHop(addr);
-  NextHop rnh = ResolvedNextHop(addr, InterfaceID(1));
+  NextHop unh = UnresolvedNextHop(addr, 0);
+  NextHop rnh = ResolvedNextHop(addr, InterfaceID(1), 0);
   EXPECT_FALSE(unh.isResolved());
   EXPECT_TRUE(rnh.isResolved());
   EXPECT_EQ(unh.addr(), addr);
@@ -2196,4 +2229,560 @@ TEST(Route, nodeMapMatchesRadixTree) {
   // both r5 and r6 should be unpublished now
   ASSERT_FALSE(GET_ROUTE_V4(tables4, rid, r5)->isPublished());
   ASSERT_FALSE(GET_ROUTE_V4(tables4, rid, r6)->isPublished());
+}
+
+/*
+ * Four interfaces: I1, I2, I3, I4
+ * Three routes which require resolution: R1, R2, R3
+ * R1 has R2 and R3 as next hops with weights 3 and 2
+ * R2 has I1 and I2 as next hops with weights 5 and 4
+ * R3 has I3 and I4 as next hops with weights 3 and 2
+ * expect R1 to resolve to I1:25, I2:20, I3:18, I4:12
+ */
+TEST(Route, recursiveUcmp) {
+  auto stateV1 = applyInitConfig();
+  ASSERT_NE(nullptr, stateV1);
+  auto rid = RouterID(0);
+  RouteUpdater u1(stateV1->getRouteTables());
+  // next hops for R1
+  RouteNextHopSet nexthops1;
+  // next hop to be resolved by R2
+  nexthops1.emplace(UnresolvedNextHop(IPAddress("42.42.42.42"), 3));
+  // next hop to be resolved by R3
+  nexthops1.emplace(UnresolvedNextHop(IPAddress("43.43.43.43"), 2));
+  // next hops for R2
+  RouteNextHopSet nexthops2;
+  nexthops2.emplace(UnresolvedNextHop(IPAddress("1.1.1.10"), 5));
+  nexthops2.emplace(UnresolvedNextHop(IPAddress("2.2.2.20"), 4));
+  // next hops for R3
+  RouteNextHopSet nexthops3;
+  nexthops3.emplace(UnresolvedNextHop(IPAddress("3.3.3.30"), 3));
+  nexthops3.emplace(UnresolvedNextHop(IPAddress("4.4.4.40"), 2));
+  // R1
+  u1.addRoute(
+      rid,
+      IPAddress("41.41.41.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops1, DISTANCE));
+  // R2
+  u1.addRoute(
+      rid,
+      IPAddress("42.42.42.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops2, DISTANCE));
+  // R3
+  u1.addRoute(
+      rid,
+      IPAddress("43.43.43.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops3, DISTANCE));
+  auto tables2 = u1.updateDone();
+  ASSERT_NE(nullptr, tables2);
+  EXPECT_NODEMAP_MATCH(tables2);
+  tables2->publish();
+
+  auto r1 = GET_ROUTE_V4(tables2, rid, "41.41.41.0/24");
+  EXPECT_RESOLVED(r1);
+  EXPECT_FALSE(r1->isConnected());
+
+  auto r2 = GET_ROUTE_V4(tables2, rid, "42.42.42.0/24");
+  EXPECT_RESOLVED(r2);
+  EXPECT_FALSE(r2->isConnected());
+
+  auto r3 = GET_ROUTE_V4(tables2, rid, "42.42.42.0/24");
+  EXPECT_RESOLVED(r3);
+  EXPECT_FALSE(r3->isConnected());
+
+  // check the forwarding info
+  RouteNextHopSet expFwd1;
+  expFwd1.emplace(ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), 25));
+  expFwd1.emplace(ResolvedNextHop(IPAddress("2.2.2.20"), InterfaceID(2), 20));
+  expFwd1.emplace(ResolvedNextHop(IPAddress("3.3.3.30"), InterfaceID(3), 18));
+  expFwd1.emplace(ResolvedNextHop(IPAddress("4.4.4.40"), InterfaceID(4), 12));
+  EXPECT_EQ(expFwd1, r1->getForwardInfo().getNextHopSet());
+}
+
+/*
+ * Two interfaces: I1, I2
+ * Three routes which require resolution: R1, R2, R3
+ * R1 has R2 and R3 as next hops with weights 2 and 1
+ * R2 has I1 and I2 as next hops with weights 1 and 1
+ * R3 has I1 as next hop with weight 1
+ * expect R1 to resolve to I1:2, I2:1
+ */
+TEST(Route, recursiveUcmpDuplicateIntf) {
+  auto stateV1 = applyInitConfig();
+  ASSERT_NE(nullptr, stateV1);
+  auto rid = RouterID(0);
+  RouteUpdater u1(stateV1->getRouteTables());
+  // next hops for R1
+  RouteNextHopSet nexthops1;
+  // next hop to be resolved by R2
+  nexthops1.emplace(UnresolvedNextHop(IPAddress("42.42.42.42"), 2));
+  // next hop to be resolved by R3
+  nexthops1.emplace(UnresolvedNextHop(IPAddress("43.43.43.43"), 1));
+  // next hops for R2
+  RouteNextHopSet nexthops2;
+  nexthops2.emplace(UnresolvedNextHop(IPAddress("1.1.1.10"), 1));
+  nexthops2.emplace(UnresolvedNextHop(IPAddress("2.2.2.20"), 1));
+  // next hops for R3
+  RouteNextHopSet nexthops3;
+  nexthops3.emplace(UnresolvedNextHop(IPAddress("1.1.1.10"), 1));
+  // R1
+  u1.addRoute(
+      rid,
+      IPAddress("41.41.41.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops1, DISTANCE));
+  // R2
+  u1.addRoute(
+      rid,
+      IPAddress("42.42.42.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops2, DISTANCE));
+  // R3
+  u1.addRoute(
+      rid,
+      IPAddress("43.43.43.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops3, DISTANCE));
+  auto tables2 = u1.updateDone();
+  ASSERT_NE(nullptr, tables2);
+  EXPECT_NODEMAP_MATCH(tables2);
+  tables2->publish();
+
+  auto r1 = GET_ROUTE_V4(tables2, rid, "41.41.41.0/24");
+  EXPECT_RESOLVED(r1);
+  EXPECT_FALSE(r1->isConnected());
+
+  auto r2 = GET_ROUTE_V4(tables2, rid, "42.42.42.0/24");
+  EXPECT_RESOLVED(r2);
+  EXPECT_FALSE(r2->isConnected());
+
+  auto r3 = GET_ROUTE_V4(tables2, rid, "42.42.42.0/24");
+  EXPECT_RESOLVED(r3);
+  EXPECT_FALSE(r3->isConnected());
+
+  // check the forwarding info
+  RouteNextHopSet expFwd1;
+  expFwd1.emplace(ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), 2));
+  expFwd1.emplace(ResolvedNextHop(IPAddress("2.2.2.20"), InterfaceID(2), 1));
+  EXPECT_EQ(expFwd1, r1->getForwardInfo().getNextHopSet());
+}
+
+/*
+ * Two interfaces: I1, I2
+ * Three routes which require resolution: R1, R2, R3
+ * R1 has R2 and R3 as next hops with ECMP
+ * R2 has I1 and I2 as next hops with ECMP
+ * R3 has I1 as next hop with weight 1
+ * expect R1 to resolve to ECMP
+ */
+TEST(Route, recursiveEcmpDuplicateIntf) {
+  auto stateV1 = applyInitConfig();
+  ASSERT_NE(nullptr, stateV1);
+  auto rid = RouterID(0);
+  RouteUpdater u1(stateV1->getRouteTables());
+  // next hops for R1
+  RouteNextHopSet nexthops1;
+  // next hop to be resolved by R2
+  nexthops1.emplace(UnresolvedNextHop(IPAddress("42.42.42.42"), ECMP_WEIGHT));
+  // next hop to be resolved by R3
+  nexthops1.emplace(UnresolvedNextHop(IPAddress("43.43.43.43"), ECMP_WEIGHT));
+  // next hops for R2
+  RouteNextHopSet nexthops2;
+  nexthops2.emplace(UnresolvedNextHop(IPAddress("1.1.1.10"), ECMP_WEIGHT));
+  nexthops2.emplace(UnresolvedNextHop(IPAddress("2.2.2.20"), ECMP_WEIGHT));
+  // next hops for R3
+  RouteNextHopSet nexthops3;
+  nexthops3.emplace(
+      UnresolvedNextHop(IPAddress("1.1.1.10"), UCMP_DEFAULT_WEIGHT));
+  // R1
+  u1.addRoute(
+      rid,
+      IPAddress("41.41.41.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops1, DISTANCE));
+  // R2
+  u1.addRoute(
+      rid,
+      IPAddress("42.42.42.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops2, DISTANCE));
+  // R3
+  u1.addRoute(
+      rid,
+      IPAddress("43.43.43.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops3, DISTANCE));
+  auto tables2 = u1.updateDone();
+  ASSERT_NE(nullptr, tables2);
+  EXPECT_NODEMAP_MATCH(tables2);
+  tables2->publish();
+
+  auto r1 = GET_ROUTE_V4(tables2, rid, "41.41.41.0/24");
+  EXPECT_RESOLVED(r1);
+  EXPECT_FALSE(r1->isConnected());
+
+  auto r2 = GET_ROUTE_V4(tables2, rid, "42.42.42.0/24");
+  EXPECT_RESOLVED(r2);
+  EXPECT_FALSE(r2->isConnected());
+
+  auto r3 = GET_ROUTE_V4(tables2, rid, "42.42.42.0/24");
+  EXPECT_RESOLVED(r3);
+  EXPECT_FALSE(r3->isConnected());
+
+  // check the forwarding info
+  RouteNextHopSet expFwd1;
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), ECMP_WEIGHT));
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("2.2.2.20"), InterfaceID(2), ECMP_WEIGHT));
+  EXPECT_EQ(expFwd1, r1->getForwardInfo().getNextHopSet());
+}
+
+/*
+ * Two interfaces: I1, I2
+ * One route which requires resolution: R1
+ * R1 has I1 and I2 as next hops with weights 0 (ECMP) and 1
+ * expect R1 to resolve to ECMP between I1, I2
+ */
+TEST(Route, mixedUcmpVsEcmp_EcmpWins) {
+  auto stateV1 = applyInitConfig();
+  ASSERT_NE(nullptr, stateV1);
+  auto rid = RouterID(0);
+  RouteUpdater u1(stateV1->getRouteTables());
+  // next hops for R1
+  RouteNextHopSet nexthops1;
+  nexthops1.emplace(UnresolvedNextHop(IPAddress("1.1.1.10"), ECMP_WEIGHT));
+  nexthops1.emplace(
+      UnresolvedNextHop(IPAddress("2.2.2.20"), UCMP_DEFAULT_WEIGHT));
+  // R1
+  u1.addRoute(
+      rid,
+      IPAddress("41.41.41.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops1, DISTANCE));
+  auto tables2 = u1.updateDone();
+  ASSERT_NE(nullptr, tables2);
+  EXPECT_NODEMAP_MATCH(tables2);
+  tables2->publish();
+
+  auto r1 = GET_ROUTE_V4(tables2, rid, "41.41.41.0/24");
+  EXPECT_RESOLVED(r1);
+  EXPECT_FALSE(r1->isConnected());
+
+  // check the forwarding info
+  RouteNextHopSet expFwd1;
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), ECMP_WEIGHT));
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("2.2.2.20"), InterfaceID(2), ECMP_WEIGHT));
+  EXPECT_EQ(expFwd1, r1->getForwardInfo().getNextHopSet());
+}
+
+/*
+ * Four interfaces: I1, I2, I3, I4
+ * Three routes which require resolution: R1, R2, R3
+ * R1 has R2 and R3 as next hops with weights 3 and 2
+ * R2 has I1 and I2 as next hops with weights 5 and 4
+ * R3 has I3 and I4 as next hops with ECMP
+ * expect R1 to resolve to ECMP between I1, I2, I3, I4
+ */
+TEST(Route, recursiveEcmpPropagatesUp) {
+  auto stateV1 = applyInitConfig();
+  ASSERT_NE(nullptr, stateV1);
+  auto rid = RouterID(0);
+  RouteUpdater u1(stateV1->getRouteTables());
+  // next hops for R1
+  RouteNextHopSet nexthops1;
+  // next hop to be resolved by R2
+  nexthops1.emplace(UnresolvedNextHop(IPAddress("42.42.42.42"), 3));
+  // next hop to be resolved by R3
+  nexthops1.emplace(UnresolvedNextHop(IPAddress("43.43.43.43"), 2));
+  // next hops for R2
+  RouteNextHopSet nexthops2;
+  nexthops2.emplace(UnresolvedNextHop(IPAddress("1.1.1.10"), 5));
+  nexthops2.emplace(UnresolvedNextHop(IPAddress("2.2.2.20"), 4));
+  // next hops for R3
+  RouteNextHopSet nexthops3;
+  nexthops3.emplace(UnresolvedNextHop(IPAddress("3.3.3.30"), ECMP_WEIGHT));
+  nexthops3.emplace(UnresolvedNextHop(IPAddress("4.4.4.40"), ECMP_WEIGHT));
+  // R1
+  u1.addRoute(
+      rid,
+      IPAddress("41.41.41.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops1, DISTANCE));
+  // R2
+  u1.addRoute(
+      rid,
+      IPAddress("42.42.42.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops2, DISTANCE));
+  // R3
+  u1.addRoute(
+      rid,
+      IPAddress("43.43.43.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops3, DISTANCE));
+  auto tables2 = u1.updateDone();
+  ASSERT_NE(nullptr, tables2);
+  EXPECT_NODEMAP_MATCH(tables2);
+  tables2->publish();
+
+  auto r1 = GET_ROUTE_V4(tables2, rid, "41.41.41.0/24");
+  EXPECT_RESOLVED(r1);
+  EXPECT_FALSE(r1->isConnected());
+
+  auto r2 = GET_ROUTE_V4(tables2, rid, "42.42.42.0/24");
+  EXPECT_RESOLVED(r2);
+  EXPECT_FALSE(r2->isConnected());
+
+  auto r3 = GET_ROUTE_V4(tables2, rid, "42.42.42.0/24");
+  EXPECT_RESOLVED(r3);
+  EXPECT_FALSE(r3->isConnected());
+
+  // check the forwarding info
+  RouteNextHopSet expFwd1;
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), ECMP_WEIGHT));
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("2.2.2.20"), InterfaceID(2), ECMP_WEIGHT));
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("3.3.3.30"), InterfaceID(3), ECMP_WEIGHT));
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("4.4.4.40"), InterfaceID(4), ECMP_WEIGHT));
+  EXPECT_EQ(expFwd1, r1->getForwardInfo().getNextHopSet());
+}
+
+/*
+ * Four interfaces: I1, I2, I3, I4
+ * Three routes which require resolution: R1, R2, R3
+ * R1 has R2 and R3 as next hops with weights 3 and 2
+ * R2 has I1 and I2 as next hops with weights 5 and 4
+ * R3 has I3 and I4 as next hops with weights 0 (ECMP) and 1
+ * expect R1 to resolve to ECMP between I1, I2, I3, I4
+ */
+TEST(Route, recursiveMixedEcmpPropagatesUp) {
+  auto stateV1 = applyInitConfig();
+  ASSERT_NE(nullptr, stateV1);
+  auto rid = RouterID(0);
+  RouteUpdater u1(stateV1->getRouteTables());
+  // next hops for R1
+  RouteNextHopSet nexthops1;
+  // next hop to be resolved by R2
+  nexthops1.emplace(UnresolvedNextHop(IPAddress("42.42.42.42"), 3));
+  // next hop to be resolved by R3
+  nexthops1.emplace(UnresolvedNextHop(IPAddress("43.43.43.43"), 2));
+  // next hops for R2
+  RouteNextHopSet nexthops2;
+  nexthops2.emplace(UnresolvedNextHop(IPAddress("1.1.1.10"), 5));
+  nexthops2.emplace(UnresolvedNextHop(IPAddress("2.2.2.20"), 4));
+  // next hops for R3
+  RouteNextHopSet nexthops3;
+  nexthops3.emplace(UnresolvedNextHop(IPAddress("3.3.3.30"), ECMP_WEIGHT));
+  nexthops3.emplace(
+      UnresolvedNextHop(IPAddress("4.4.4.40"), UCMP_DEFAULT_WEIGHT));
+  // R1
+  u1.addRoute(
+      rid,
+      IPAddress("41.41.41.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops1, DISTANCE));
+  // R2
+  u1.addRoute(
+      rid,
+      IPAddress("42.42.42.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops2, DISTANCE));
+  // R3
+  u1.addRoute(
+      rid,
+      IPAddress("43.43.43.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops3, DISTANCE));
+  auto tables2 = u1.updateDone();
+  ASSERT_NE(nullptr, tables2);
+  EXPECT_NODEMAP_MATCH(tables2);
+  tables2->publish();
+
+  auto r1 = GET_ROUTE_V4(tables2, rid, "41.41.41.0/24");
+  EXPECT_RESOLVED(r1);
+  EXPECT_FALSE(r1->isConnected());
+
+  auto r2 = GET_ROUTE_V4(tables2, rid, "42.42.42.0/24");
+  EXPECT_RESOLVED(r2);
+  EXPECT_FALSE(r2->isConnected());
+
+  auto r3 = GET_ROUTE_V4(tables2, rid, "42.42.42.0/24");
+  EXPECT_RESOLVED(r3);
+  EXPECT_FALSE(r3->isConnected());
+
+  // check the forwarding info
+  RouteNextHopSet expFwd1;
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), ECMP_WEIGHT));
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("2.2.2.20"), InterfaceID(2), ECMP_WEIGHT));
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("3.3.3.30"), InterfaceID(3), ECMP_WEIGHT));
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("4.4.4.40"), InterfaceID(4), ECMP_WEIGHT));
+  EXPECT_EQ(expFwd1, r1->getForwardInfo().getNextHopSet());
+}
+
+/*
+ * Four interfaces: I1, I2, I3, I4
+ * Three routes which require resolution: R1, R2, R3
+ * R1 has R2 and R3 as next hops with ECMP
+ * R2 has I1 and I2 as next hops with weights 5 and 4
+ * R3 has I3 and I4 as next hops with weights 3 and 2
+ * expect R1 to resolve to ECMP between I1, I2, I3, I4
+ */
+TEST(Route, recursiveEcmpPropagatesDown) {
+  auto stateV1 = applyInitConfig();
+  ASSERT_NE(nullptr, stateV1);
+  auto rid = RouterID(0);
+  RouteUpdater u1(stateV1->getRouteTables());
+  // next hops for R1
+  RouteNextHopSet nexthops1;
+  // next hop to be resolved by R2
+  nexthops1.emplace(UnresolvedNextHop(IPAddress("42.42.42.42"), ECMP_WEIGHT));
+  // next hop to be resolved by R3
+  nexthops1.emplace(UnresolvedNextHop(IPAddress("43.43.43.43"), ECMP_WEIGHT));
+  // next hops for R2
+  RouteNextHopSet nexthops2;
+  nexthops2.emplace(UnresolvedNextHop(IPAddress("1.1.1.10"), 5));
+  nexthops2.emplace(UnresolvedNextHop(IPAddress("2.2.2.20"), 4));
+  // next hops for R3
+  RouteNextHopSet nexthops3;
+  nexthops3.emplace(UnresolvedNextHop(IPAddress("3.3.3.30"), 3));
+  nexthops3.emplace(UnresolvedNextHop(IPAddress("4.4.4.40"), 2));
+  // R1
+  u1.addRoute(
+      rid,
+      IPAddress("41.41.41.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops1, DISTANCE));
+  // R2
+  u1.addRoute(
+      rid,
+      IPAddress("42.42.42.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops2, DISTANCE));
+  // R3
+  u1.addRoute(
+      rid,
+      IPAddress("43.43.43.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops3, DISTANCE));
+  auto tables2 = u1.updateDone();
+  ASSERT_NE(nullptr, tables2);
+  EXPECT_NODEMAP_MATCH(tables2);
+  tables2->publish();
+
+  auto r1 = GET_ROUTE_V4(tables2, rid, "41.41.41.0/24");
+  EXPECT_RESOLVED(r1);
+  EXPECT_FALSE(r1->isConnected());
+
+  auto r2 = GET_ROUTE_V4(tables2, rid, "42.42.42.0/24");
+  EXPECT_RESOLVED(r2);
+  EXPECT_FALSE(r2->isConnected());
+
+  auto r3 = GET_ROUTE_V4(tables2, rid, "42.42.42.0/24");
+  EXPECT_RESOLVED(r3);
+  EXPECT_FALSE(r3->isConnected());
+
+  // check the forwarding info
+  RouteNextHopSet expFwd1;
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), ECMP_WEIGHT));
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("2.2.2.20"), InterfaceID(2), ECMP_WEIGHT));
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("3.3.3.30"), InterfaceID(3), ECMP_WEIGHT));
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("4.4.4.40"), InterfaceID(4), ECMP_WEIGHT));
+  EXPECT_EQ(expFwd1, r1->getForwardInfo().getNextHopSet());
+}
+
+/*
+ * Two interfaces: I1, I2
+ * Two routes which require resolution: R1, R2
+ * R1 has I1 and I2 as next hops with ECMP
+ * R2 has I1 and I2 as next hops with weights 2 and 1
+ * expect R1 to resolve to ECMP between I1, I2
+ * expect R2 to resolve to I1:2, I2: 1
+ */
+TEST(Route, separateEcmpUcmp) {
+  auto stateV1 = applyInitConfig();
+  ASSERT_NE(nullptr, stateV1);
+  auto rid = RouterID(0);
+  RouteUpdater u1(stateV1->getRouteTables());
+  // next hops for R1
+  RouteNextHopSet nexthops1;
+  nexthops1.emplace(UnresolvedNextHop(IPAddress("1.1.1.10"), ECMP_WEIGHT));
+  nexthops1.emplace(UnresolvedNextHop(IPAddress("2.2.2.20"), ECMP_WEIGHT));
+  // next hops for R2
+  RouteNextHopSet nexthops2;
+  nexthops2.emplace(UnresolvedNextHop(IPAddress("1.1.1.10"), 2));
+  nexthops2.emplace(UnresolvedNextHop(IPAddress("2.2.2.20"), 1));
+  // R1
+  u1.addRoute(
+      rid,
+      IPAddress("41.41.41.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops1, DISTANCE));
+  // R2
+  u1.addRoute(
+      rid,
+      IPAddress("42.42.42.0"),
+      24,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops2, DISTANCE));
+  auto tables2 = u1.updateDone();
+  ASSERT_NE(nullptr, tables2);
+  EXPECT_NODEMAP_MATCH(tables2);
+  tables2->publish();
+
+  auto r1 = GET_ROUTE_V4(tables2, rid, "41.41.41.0/24");
+  EXPECT_RESOLVED(r1);
+  EXPECT_FALSE(r1->isConnected());
+
+  auto r2 = GET_ROUTE_V4(tables2, rid, "42.42.42.0/24");
+  EXPECT_RESOLVED(r2);
+  EXPECT_FALSE(r2->isConnected());
+
+  // check the forwarding info
+  RouteNextHopSet expFwd1;
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), ECMP_WEIGHT));
+  expFwd1.emplace(
+      ResolvedNextHop(IPAddress("2.2.2.20"), InterfaceID(2), ECMP_WEIGHT));
+  EXPECT_EQ(expFwd1, r1->getForwardInfo().getNextHopSet());
+  RouteNextHopSet expFwd2;
+  expFwd2.emplace(ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), 2));
+  expFwd2.emplace(ResolvedNextHop(IPAddress("2.2.2.20"), InterfaceID(2), 1));
+  EXPECT_EQ(expFwd2, r2->getForwardInfo().getNextHopSet());
 }

@@ -52,6 +52,10 @@ RouteNextHopEntry::RouteNextHopEntry(NextHopSet nhopSet, AdminDistance distance)
   }
 }
 
+NextHopWeight RouteNextHopEntry::getTotalWeight() const {
+  return totalWeight(getNextHopSet());
+}
+
 std::string RouteNextHopEntry::str() const {
   std::string result;
   switch (action_) {
@@ -109,6 +113,14 @@ std::ostream& operator<<(std::ostream& os,
     os << nhop.str() << " ";
   }
   return os;
+}
+
+NextHopWeight totalWeight(const RouteNextHopEntry::NextHopSet& nhops) {
+  uint32_t result = 0;
+  for (const auto& nh : nhops) {
+    result += nh.weight();
+  }
+  return result;
 }
 
 folly::dynamic RouteNextHopEntry::toFollyDynamic() const {
