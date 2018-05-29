@@ -1,11 +1,8 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #pragma once
 
+#include <folly/dynamic.h>
 #include <folly/Range.h>
-
-namespace folly {
-struct dynamic;
-}
 
 namespace facebook { namespace fboss {
 
@@ -33,7 +30,7 @@ public:
 
   bool storeWarmBootState(const folly::dynamic& switchState);
 
-  std::string getWarmBootJson() const;
+  folly::dynamic getWarmBootState() const;
 private:
   // Forbidden copy constructor and assignment operator
   BcmWarmBootHelper(BcmWarmBootHelper const &) = delete;

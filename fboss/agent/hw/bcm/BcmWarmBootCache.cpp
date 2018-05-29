@@ -255,21 +255,20 @@ folly::dynamic BcmWarmBootCache::toFollyDynamic() const {
   return warmBootCache;
 }
 
-std::string BcmWarmBootCache::getWarmBootJson() const {
-  return hw_->getPlatform()->getWarmBootHelper()->getWarmBootJson();
+folly::dynamic BcmWarmBootCache::getWarmBootState() const {
+  return hw_->getPlatform()->getWarmBootHelper()->getWarmBootState();
 }
 
-void BcmWarmBootCache::populateStateFromWarmBootJson(const std::string&
-    warmBootJson) {
+void BcmWarmBootCache::populateFromWarmBootState(const folly::dynamic&
+    warmBootState) {
 
-  auto switchStateJson = folly::parseJson(warmBootJson);
   dumpedSwSwitchState_ =
-    SwitchState::uniquePtrFromFollyDynamic(switchStateJson[kSwSwitch]);
+    SwitchState::uniquePtrFromFollyDynamic(warmBootState[kSwSwitch]);
   CHECK(dumpedSwSwitchState_)
       << "Was not able to recover software state after warmboot";
 
-      // Extract ecmps for dumped host table
-      auto hostTable = switchStateJson[kHwSwitch][kHostTable];
+  // Extract ecmps for dumped host table
+  auto hostTable = warmBootState[kHwSwitch][kHostTable];
   for (const auto& ecmpEntry : hostTable[kEcmpHosts]) {
     auto ecmpEgressId = ecmpEntry[kEcmpEgressId].asInt();
     if (ecmpEgressId == BcmEgressBase::INVALID) {
@@ -282,7 +281,7 @@ void BcmWarmBootCache::populateStateFromWarmBootJson(const std::string&
   }
   // Extract ecmps from dumped warm boot cache. We
   // may have shut down before a FIB sync
-  auto ecmpObjects = switchStateJson[kHwSwitch][kWarmBootCache][kEcmpObjects];
+  auto ecmpObjects = warmBootState[kHwSwitch][kWarmBootCache][kEcmpObjects];
   for (const auto& ecmpEntry : ecmpObjects) {
     auto ecmpEgressId = ecmpEntry[kEcmpEgressId].asInt();
     CHECK(ecmpEgressId != BcmEgressBase::INVALID);
@@ -352,11 +351,11 @@ BcmWarmBootCache::findEgressFromHost(
   return findEgress(it->second);
 }
 
-void BcmWarmBootCache::populate(folly::Optional<std::string> warmBootJson) {
-  if (warmBootJson) {
-    populateStateFromWarmBootJson(*warmBootJson);
+void BcmWarmBootCache::populate(folly::Optional<folly::dynamic> warmBootState) {
+  if (warmBootState) {
+    populateFromWarmBootState(*warmBootState);
   } else {
-    populateStateFromWarmBootJson(getWarmBootJson());
+    populateFromWarmBootState(getWarmBootState());
   }
   opennsl_vlan_data_t* vlanList = nullptr;
   int vlanCount = 0;

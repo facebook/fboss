@@ -78,7 +78,7 @@ class BcmSwitchIf : public HwSwitch {
    * Set up tables as would be just after doing a init (w/o going through
    * the whole init sequence of setting up the ASIC)
    */
-  virtual void initTables(const std::string& warmBootJson) = 0;
+  virtual void initTables(const folly::dynamic& warmBootState) = 0;
 
   virtual BcmPlatform* getPlatform() const = 0;
 
@@ -165,11 +165,11 @@ class BcmSwitch : public BcmSwitchIf {
     */
    void resetTables() override;
    /*
-    * Init tables using warm boot state (represented by passed in JSON).
-    * This mimics the warm boot init sequence, without having the ASIC
-    * go through a warm boot.
+    * Init tables using warm boot state (represented by passed in
+    * folly::dynamic). This mimics the warm boot init sequence, without having
+    * the ASIC go through a warm boot.
     */
-   void initTables(const std::string& warmBootJson) override;
+   void initTables(const folly::dynamic& warmBootState) override;
 
    /*
     * Initialize the BcmSwitch.

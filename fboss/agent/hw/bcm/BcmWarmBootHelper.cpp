@@ -8,6 +8,7 @@
 #include <fcntl.h>
 
 #include <folly/FileUtil.h>
+#include <folly/json.h>
 #include <folly/logging/xlog.h>
 #include <glog/logging.h>
 
@@ -124,11 +125,11 @@ bool BcmWarmBootHelper::storeWarmBootState(const folly::dynamic& switchState) {
   return dumpStateToFile(warmBootSwitchStateFile(), switchState);
 }
 
-std::string BcmWarmBootHelper::getWarmBootJson() const {
+folly::dynamic BcmWarmBootHelper::getWarmBootState() const {
   std::string warmBootJson;
   auto ret = folly::readFile(warmBootSwitchStateFile().c_str(), warmBootJson);
   sysCheckError(
       ret, "Unable to read switch state from : ", warmBootSwitchStateFile());
-  return warmBootJson;
+  return folly::parseJson(warmBootJson);
 }
 }} // facebook::fboss

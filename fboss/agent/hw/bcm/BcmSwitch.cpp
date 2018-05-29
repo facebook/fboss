@@ -212,7 +212,7 @@ void BcmSwitch::resetTables() {
   resetTablesImpl(lk);
 }
 
-void BcmSwitch::initTables(const std::string& warmBootJson) {
+void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   std::lock_guard<std::mutex> g(lock_);
   portTable_ = std::make_unique<BcmPortTable>(this);
   intfTable_ = std::make_unique<BcmIntfTable>(this);
@@ -225,10 +225,10 @@ void BcmSwitch::initTables(const std::string& warmBootJson) {
   sFlowExporterTable_ = std::make_unique<BcmSflowExporterTable>();
   controlPlane_ = std::make_unique<BcmControlPlane>(this);
   warmBootCache_ = std::make_unique<BcmWarmBootCache>(this);
-  warmBootCache_->populate(folly::Optional<std::string>(warmBootJson));
+  warmBootCache_->populate(folly::Optional<folly::dynamic>(warmBootState));
   setupToCpuEgress();
-  auto warmBootState = getWarmBootSwitchState();
-  stateChangedImpl(StateDelta(make_shared<SwitchState>(), warmBootState));
+  stateChangedImpl(
+      StateDelta(make_shared<SwitchState>(), getWarmBootSwitchState()));
   setupLinkscan();
   setupPacketRx();
 }
