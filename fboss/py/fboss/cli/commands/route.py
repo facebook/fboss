@@ -14,6 +14,7 @@ from facebook.network.Address.ttypes import Address, AddressType
 from fboss.cli.utils import utils
 from fboss.cli.commands import commands as cmds
 from neteng.fboss.ctrl.ttypes import IpPrefix
+from neteng.fboss.ctrl.ttypes import NextHopThrift
 from neteng.fboss.ctrl.ttypes import UnicastRoute
 from facebook.network.Address.ttypes import BinaryAddress
 
@@ -55,21 +56,27 @@ def parse_prefix(prefix):
 
 
 def parse_nexthops(nexthops):
-    bin_addresses = []
-    for nh_iface in nexthops:
-        iface, addr = None, None
-        # Nexthop may or may not be link-local. Handle it here well
-        if '@' in nh_iface:
-            addr, iface = nh_iface.split('@')
-        elif '%' in nh_iface:
-            addr, iface = nh_iface.split('%')
+    nhts = []
+    for nh in nexthops:
+        iface = None
+        weight = 0
+        # Nexthop may have weight.
+        if 'x' in nh:
+            addr_iface, _, weight = nh.rpartition('x')
+            weight = int(weight)
         else:
-            addr = nh_iface
-        bin_addresses.append(BinaryAddress(
-            addr=ipaddress.ip_address(addr).packed,
-            ifName=iface)
-        )
-    return bin_addresses
+            addr_iface = nh
+        # Nexthop may or may not be link-local. Handle it here well
+        if '@' in addr_iface:
+            addr, _, iface = addr_iface.rpartition('@')
+        elif '%' in addr_iface:
+            addr, _, iface = addr_iface.rpartition('%')
+        else:
+            addr = addr_iface
+        binaddr = BinaryAddress(
+            addr=ipaddress.ip_address(addr).packed, ifName=iface)
+        nhts.append(NextHopThrift(address=binaddr, weight=weight))
+    return nhts
 
 
 class RouteAddCmd(cmds.FbossCmd):
@@ -78,7 +85,7 @@ class RouteAddCmd(cmds.FbossCmd):
         nexthops = parse_nexthops(nexthops)
         with self._create_agent_client() as client:
             client.addUnicastRoutes(
-                client_id, [UnicastRoute(dest=prefix, nextHopAddrs=nexthops,
+                client_id, [UnicastRoute(dest=prefix, nextHops=nexthops,
                                          adminDistance=admin_distance)]
             )
 
