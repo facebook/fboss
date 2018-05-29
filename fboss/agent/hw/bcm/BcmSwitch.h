@@ -370,6 +370,9 @@ class BcmSwitch : public BcmSwitchIf {
                                opennsl_port_t port,
                                opennsl_port_info_t* info);
 
+  BootType getBootType() const {
+    return bootType_;
+  }
   /*
    * Friend tests. We want the abilty to test private methods
    * without comprimising encapsulation for code generally.
@@ -688,6 +691,7 @@ class BcmSwitch : public BcmSwitchIf {
    */
   std::vector<std::shared_ptr<AclEntry>> coppAclEntries_;
   std::unique_ptr<BcmUnit> unitObject_;
+  BootType bootType_{BootType::UNINITIALIZED};
 
   /*
    * Lock to synchronize access to all BCM* data structures
