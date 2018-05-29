@@ -41,8 +41,10 @@ MockableHwSwitch::MockableHwSwitch(MockPlatform *platform, HwSwitch* realHw)
     .WillByDefault(Invoke(realHw_, &HwSwitch::updateStats));
   ON_CALL(*this, getHighresSamplers(_, _, _))
     .WillByDefault(Invoke(realHw_, &HwSwitch::getHighresSamplers));
+#ifdef OPENNSL_6_4_6_6_ODP
   ON_CALL(*this, fetchL2Table(_))
     .WillByDefault(Invoke(realHw_, &HwSwitch::fetchL2Table));
+#endif
   ON_CALL(*this, gracefulExit(_))
     .WillByDefault(Invoke(realHw_, &HwSwitch::gracefulExit));
   ON_CALL(*this, initialConfigApplied())

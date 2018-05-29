@@ -112,6 +112,8 @@ NPROC=$(grep -c processor /proc/cpuinfo)
       # We hard code OpenNSL to OpenNSL-6.4.6.6 release, later releases seem to
       # SIGSEV in opennsl_pkt_alloc()
       update https://github.com/Broadcom-Switch/OpenNSL.git 8e0b499f02dcef751a3703c9a18600901374b28a
+      # Opennsl-3.5.0.1
+      #update https://github.com/Broadcom-Switch/OpenNSL.git 0478ce76b0430f079b3c7addc821cd56f26c2cab
     fi
     # iproute2 v4.4.0
     update https://git.kernel.org/pub/scm/linux/kernel/git/shemminger/iproute2.git 7ca63aef7d1b0c808da0040c6b366ef7a61f38c1

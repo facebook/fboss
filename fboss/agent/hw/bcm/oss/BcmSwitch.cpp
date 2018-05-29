@@ -89,9 +89,11 @@ int BcmSwitch::getHighresSamplers(
 
 void BcmSwitch::exportSdkVersion() const {}
 
+#ifdef OPENNSL_6_4_6_6_ODP
 void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift>* /*l2Table*/) {
   return;
 }
+#endif
 
 void BcmSwitch::initFieldProcessor() const {
   // API not available in opennsl
