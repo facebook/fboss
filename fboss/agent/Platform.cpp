@@ -13,23 +13,20 @@
 #include <string>
 #include "fboss/agent/state/SwitchState.h"
 
-DEFINE_string(switch_state_file, "switch_state",
-    "File for dumping switch state JSON in on exit");
-DEFINE_string(hw_state_file, "hw_state",
+DEFINE_string(crash_switch_state_file, "crash_switch_state",
+              "File for dumping SwitchState state on crash");
+
+DEFINE_string(crash_hw_state_file, "crash_hw_state",
               "File for dumping HW state on crash");
 
 namespace facebook { namespace fboss {
 
-std::string Platform::getWarmBootSwitchStateFile() const {
-  return getWarmBootDir() + "/" + FLAGS_switch_state_file;
-}
-
 std::string Platform::getCrashHwStateFile() const {
-  return getCrashInfoDir() + "/" + FLAGS_hw_state_file;
+  return getCrashInfoDir() + "/" + FLAGS_crash_hw_state_file;
 }
 
 std::string Platform::getCrashSwitchStateFile() const {
-  return getCrashInfoDir() + "/" + FLAGS_switch_state_file;
+  return getCrashInfoDir() + "/" + FLAGS_crash_switch_state_file;
 }
 
 }} //facebook::fboss

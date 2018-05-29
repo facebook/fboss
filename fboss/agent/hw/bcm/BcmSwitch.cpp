@@ -384,9 +384,7 @@ void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
 
   std::lock_guard<std::mutex> g(lock_);
   switchState[kHwSwitch] = toFollyDynamic();
-  unitObject_->detachAndSetupWarmBoot(
-      platform_->getWarmBootSwitchStateFile(),
-      switchState);
+  unitObject_->detachAndSetupWarmBoot(switchState);
   unitObject_.reset();
   XLOG(INFO)
       << "[Exit] BRCM Graceful Exit time "

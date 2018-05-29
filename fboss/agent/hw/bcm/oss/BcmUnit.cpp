@@ -46,8 +46,7 @@ BcmUnit::~BcmUnit() {
 }
 
 void BcmUnit::detachAndSetupWarmBoot(
-    const std::string& /*switchStateFile*/,
-    folly::dynamic& /*switchState*/) {
+    const folly::dynamic& /*switchState*/) {
   attached_.store(false, std::memory_order_release);
 
   // Clean up SDK state, without touching the hardware

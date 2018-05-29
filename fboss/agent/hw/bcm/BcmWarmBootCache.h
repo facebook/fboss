@@ -396,7 +396,7 @@ class BcmWarmBootCache {
    * map
    */
   const EgressIds& getPathsForEcmp(EgressId ecmp) const;
-  std::string getWarmBootJsonFromFile() const;
+  std::string getWarmBootJson() const;
   void populateStateFromWarmBootJson(const std::string& warmBootJson);
   // No copy or assignment.
   BcmWarmBootCache(const BcmWarmBootCache&) = delete;

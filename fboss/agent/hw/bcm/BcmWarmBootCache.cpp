@@ -12,7 +12,6 @@
 #include <utility>
 
 #include <folly/Conv.h>
-#include <folly/FileUtil.h>
 #include <folly/dynamic.h>
 #include <folly/json.h>
 #include <folly/logging/xlog.h>
@@ -23,6 +22,7 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/hw/bcm/Utils.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
@@ -255,12 +255,8 @@ folly::dynamic BcmWarmBootCache::toFollyDynamic() const {
   return warmBootCache;
 }
 
-std::string BcmWarmBootCache::getWarmBootJsonFromFile() const {
-  std::string warmBootJson;
-  const auto& warmBootFile = hw_->getPlatform()->getWarmBootSwitchStateFile();
-  auto ret = folly::readFile(warmBootFile.c_str(), warmBootJson);
-  sysCheckError(ret, "Unable to read switch state from : ", warmBootFile);
-  return warmBootJson;
+std::string BcmWarmBootCache::getWarmBootJson() const {
+  return hw_->getPlatform()->getWarmBootHelper()->getWarmBootJson();
 }
 
 void BcmWarmBootCache::populateStateFromWarmBootJson(const std::string&
@@ -270,11 +266,10 @@ void BcmWarmBootCache::populateStateFromWarmBootJson(const std::string&
   dumpedSwSwitchState_ =
     SwitchState::uniquePtrFromFollyDynamic(switchStateJson[kSwSwitch]);
   CHECK(dumpedSwSwitchState_)
-      << "Was not able to recover software state after warmboot from state "
-         "file: " << hw_->getPlatform()->getWarmBootSwitchStateFile();
+      << "Was not able to recover software state after warmboot";
 
-  // Extract ecmps for dumped host table
-  auto hostTable = switchStateJson[kHwSwitch][kHostTable];
+      // Extract ecmps for dumped host table
+      auto hostTable = switchStateJson[kHwSwitch][kHostTable];
   for (const auto& ecmpEntry : hostTable[kEcmpHosts]) {
     auto ecmpEgressId = ecmpEntry[kEcmpEgressId].asInt();
     if (ecmpEgressId == BcmEgressBase::INVALID) {
@@ -361,7 +356,7 @@ void BcmWarmBootCache::populate(folly::Optional<std::string> warmBootJson) {
   if (warmBootJson) {
     populateStateFromWarmBootJson(*warmBootJson);
   } else {
-    populateStateFromWarmBootJson(getWarmBootJsonFromFile());
+    populateStateFromWarmBootJson(getWarmBootJson());
   }
   opennsl_vlan_data_t* vlanList = nullptr;
   int vlanCount = 0;

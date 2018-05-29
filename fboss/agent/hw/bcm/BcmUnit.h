@@ -52,9 +52,7 @@ class BcmUnit {
    * Once detachAndSetupWarmBoot has been called no other methods other than the
    * BcmUnit destructor should be invoked.
    */
-  void detachAndSetupWarmBoot(
-      const std::string& switchStateFile,
-      folly::dynamic& switchState);
+  void detachAndSetupWarmBoot(const folly::dynamic& switchState);
 
   bool isAttached() const {
     return attached_.load(std::memory_order_acquire);

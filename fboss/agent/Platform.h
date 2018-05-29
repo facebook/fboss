@@ -105,10 +105,6 @@ class Platform {
   virtual std::string getVolatileStateDir() const = 0;
 
   /*
-   * Get filename where switch state JSON maybe stored
-   */
-  std::string getWarmBootSwitchStateFile() const;
-  /*
    * Get the directory where we will dump info when there is a crash.
    *
    * The directory is in persistent storage.

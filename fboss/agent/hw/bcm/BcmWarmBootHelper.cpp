@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 #include <glog/logging.h>
 
@@ -14,6 +15,8 @@ using std::string;
 
 DEFINE_bool(can_warm_boot, true,
             "Enable/disable warm boot functionality");
+DEFINE_string(switch_state_file, "switch_state",
+    "File for dumping switch state JSON in on exit");
 
 namespace {
 constexpr auto wbFlagPrefix = "can_warm_boot_";
@@ -77,6 +80,10 @@ BcmWarmBootHelper::~BcmWarmBootHelper() {
   }
 }
 
+std::string BcmWarmBootHelper::warmBootSwitchStateFile() const {
+  return folly::to<string>(warmBootDir_, "/", FLAGS_switch_state_file);
+}
+
 std::string BcmWarmBootHelper::warmBootFlag() const {
   return folly::to<string>(warmBootDir_, "/", wbFlagPrefix, unit_);
 }
@@ -113,4 +120,15 @@ bool BcmWarmBootHelper::checkAndClearWarmBootFlags() {
   return !forceColdBoot && canWarmBoot;
 }
 
+bool BcmWarmBootHelper::storeWarmBootState(const folly::dynamic& switchState) {
+  return dumpStateToFile(warmBootSwitchStateFile(), switchState);
+}
+
+std::string BcmWarmBootHelper::getWarmBootJson() const {
+  std::string warmBootJson;
+  auto ret = folly::readFile(warmBootSwitchStateFile().c_str(), warmBootJson);
+  sysCheckError(
+      ret, "Unable to read switch state from : ", warmBootSwitchStateFile());
+  return warmBootJson;
+}
 }} // facebook::fboss

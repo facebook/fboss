@@ -3,6 +3,10 @@
 
 #include <folly/Range.h>
 
+namespace folly {
+struct dynamic;
+}
+
 namespace facebook { namespace fboss {
 
 
@@ -27,6 +31,9 @@ public:
    */
   void setCanWarmBoot();
 
+  bool storeWarmBootState(const folly::dynamic& switchState);
+
+  std::string getWarmBootJson() const;
 private:
   // Forbidden copy constructor and assignment operator
   BcmWarmBootHelper(BcmWarmBootHelper const &) = delete;
@@ -35,6 +42,7 @@ private:
   std::string warmBootFlag() const;
   std::string warmBootDataPath() const;
   std::string forceColdBootOnceFlag() const;
+  std::string warmBootSwitchStateFile() const;
 
   void setupWarmBootFile();
 
