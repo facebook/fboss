@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import ipaddress
 import json
 from threading import Thread
 from queue import Queue
@@ -21,6 +22,20 @@ MAX_COUNTER_DELAY = 2.5  # in seconds
 
 def make_packet(src_host, dst_host, ttl=64):
     pass
+
+
+def is_v4(addr):
+    """
+    @param addr: a string or anything ipaddress lib can parse
+    """
+    return isinstance(ipaddress.ip_address(addr), ipaddress.IPv4Address)
+
+
+def is_v6(addr):
+    """
+    @param addr: a string or anything ipaddress lib can parse
+    """
+    return isinstance(ipaddress.ip_address(addr), ipaddress.IPv6Address)
 
 
 def run_iperf(src_host, dst_host, server_ip=None, duration=10, options=None):
@@ -72,10 +87,14 @@ def gen_pkt_to_switch(test,  # something that inherits from FbossBaseSystemTest
         src_ip=None,   # fill in based on v6=True
         dst_ip=None,   # fill in with switch's inband interface
         src_port=12345,
-        dst_port=54321,
-        v6=True):
+        dst_port=54321):
+    # are we using v6?   Assume yes until told otherwise
+    v6 = True if dst_ip is None else is_v6(dst_ip)
     if src_ip is None:
         src_ip = 'fe80:1:2:3:4::1' if v6 else '1.2.3.4'
+    else:
+        v6 = is_v6(src_ip)
+
     if dst_ip is None or dst_eth is None:
         with test.test_topology.switch_thrift() as client:
             interfaces = client.getAllInterfaces()
@@ -91,7 +110,7 @@ def gen_pkt_to_switch(test,  # something that inherits from FbossBaseSystemTest
         if dst_ip is None:
             dst_ip = _get_first_router_ip(test, interface, v6)
     frame = scapy.Ether(src=src_eth, dst=dst_eth)
-    if v6:
+    if v6 or ':' in dst_ip:
         pkt = scapy.IPv6(src=src_ip, dst=dst_ip)
     else:
         pkt = scapy.IP(src=src_ip, dst=dst_ip)
@@ -114,7 +133,14 @@ def _get_first_router_ip(test, interface, v6):
 def send_pkt_verify_counter_bump(test,  # an instance of FbossBaseSystemTest
                                  pkt,   # array of bytes
                                  counter,  # string of fb303 counter name
-                                 delay=MAX_COUNTER_DELAY):  # time in seconds
+                                 delay=MAX_COUNTER_DELAY):
+        return send_pkts_verify_counter_bump(test, [pkt], counter, delay)
+
+
+def send_pkts_verify_counter_bump(test,  # an instance of FbossBaseSystemTest
+                                  pkts,   # array of bytes
+                                  counter,  # string of fb303 counter name
+                                  delay=MAX_COUNTER_DELAY):  # time in seconds
     " Does sending this packet increment this counter?"
     test.test_topology.min_hosts_or_skip(1)  # need >1 host to run this
     with test.test_topology.switch_thrift() as switch_thrift:
@@ -126,7 +152,8 @@ def send_pkt_verify_counter_bump(test,  # an instance of FbossBaseSystemTest
             intf = host.intfs()[0]
             test.log.info('sending packet from host %s intf=%s',
                           host, intf)
-            client.sendPkt(intf, pkt)
+            for pkt in pkts:
+                client.sendPkt(intf, pkt)
         # sleep  because the stats counting thread takes time to schedule
         time.sleep(delay)
         # get the new count of packets
@@ -135,5 +162,5 @@ def send_pkt_verify_counter_bump(test,  # an instance of FbossBaseSystemTest
         # note that if there is stray traffic on the link, this can
         # cause false positives.  See FBCoppTest for Facebook specific
         # tests that prevent this problem.
-        test.assertGreater(npkts_after, npkts_before,
-                           "Packet didn't hit the counter %s!?" % counter)
+        test.assertGreaterEqual(npkts_after, npkts_before + len(pkts),
+                           "Packets didn't hit the counter %s!?" % counter)

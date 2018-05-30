@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import fboss.system_tests.testutils.packet as packet
+from fboss.system_tests.testutils.ip_conversion import ip_addr_to_str
 
 HIGH_PRI_QUEUE = 9
 MID_PRI_QUEUE = 2
@@ -35,3 +36,28 @@ class CoppBase(object):
         pkt = packet.gen_pkt_to_switch(self, dst_port=12345)
         counter = "cpu.queue%d.in_pkts.sum" % MID_PRI_QUEUE
         self.send_pkt_verify_counter_bump(pkt, counter)
+
+    def test_all_router_ips(self):
+        """ Does every router IP get COPP classified correcty?
+        """
+        with self.test_topology.switch_thrift() as switch_thrift:
+            interfaces = switch_thrift.getAllInterfaces()
+            self.assertIsNotNone(interfaces)
+        test_bgp_pkts = []
+        test_non_bgp_pkts = []
+        for intf in interfaces.values():
+            for prefix in intf.address:
+                test_bgp_pkts.append(packet.gen_pkt_to_switch(self,
+                                        dst_ip=ip_addr_to_str(prefix.ip),
+                                        dst_port=179))
+                test_non_bgp_pkts.append(packet.gen_pkt_to_switch(self,
+                                         dst_ip=ip_addr_to_str(prefix.ip),
+                                         dst_port=12345))
+        # make sure each bgp-like pkt bumps the hi-pri counter
+        self.send_pkts_verify_counter_bump(test_bgp_pkts,
+                                           "cpu.queue%d.in_pkts.sum" %
+                                                        HIGH_PRI_QUEUE)
+        # make sure each non-bgp pkt bumps the mid-pri counter
+        self.send_pkts_verify_counter_bump(test_non_bgp_pkts,
+                                           "cpu.queue%d.in_pkts.sum" %
+                                                        MID_PRI_QUEUE)

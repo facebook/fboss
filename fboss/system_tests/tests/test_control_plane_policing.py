@@ -19,3 +19,13 @@ class CoppTest(CoppBase, FbossBaseSystemTest):
 
     def send_pkt_verify_counter_bump(self, pkt, counter):
         return packet.send_pkt_verify_counter_bump(self, pkt, counter)
+
+    def send_pkts_verify_counter_bump(self, pkts, counter):
+        return packet.send_pkts_verify_counter_bump(self, pkts, counter)
+
+    ###########
+    # Automagically inherit all of the tests from
+    # fboss.system_tests.tests.test_control_plane_policing.CoppBaseTest
+    #
+    # It's a little less obvious but a lot less typing then writing
+    # each test definition twice
