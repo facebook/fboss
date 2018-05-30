@@ -129,7 +129,7 @@ class FbossBaseSystemTest(unittest.TestCase):
         # if system went to bad state.
         if not self.test_topology.verify_switch():
             raise unittest.SkipTest("Switch is in bad state, Skip Test")
-        my_name = str(self.__class__.__name__)
+        my_name = str(self.__class__.__name__ + "." + self._testMethodName)
         self.log = logging.getLogger(my_name)
         self.log.setLevel(logging.DEBUG)  # logging controlled by handlers
         logfile_opts = {'test': my_name, 'dir': self.options.log_dir}
