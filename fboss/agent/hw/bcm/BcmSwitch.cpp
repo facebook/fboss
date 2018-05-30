@@ -126,6 +126,8 @@ void rethrowIfHwNotFull(const facebook::fboss::BcmError& error) {
     // If this is not because of TCAM being full, rethrow the exception.
     throw error;
   }
+
+  XLOG(WARNING) << error.what();
 }
 
 }
