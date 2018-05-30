@@ -22,8 +22,7 @@ class StateObserver : public boost::noncopyable {
 
 class AutoRegisterStateObserver : public StateObserver {
  public:
-  AutoRegisterStateObserver(SwSwitch* sw, const std::string name)
-      : sw_(sw) {
+  AutoRegisterStateObserver(SwSwitch* sw, const std::string& name) : sw_(sw) {
     sw_->registerStateObserver(this, name);
   }
   ~AutoRegisterStateObserver() override { sw_->unregisterStateObserver(this); }

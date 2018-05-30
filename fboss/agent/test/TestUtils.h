@@ -326,18 +326,37 @@ class RxPacketMatcher : public ::testing::MatcherInterface<RxMatchFnArgs> {
   const RxMatchFn fn_;
 };
 
-class WaitForSwitchState : public StateObserver {
- public:
-  using SwitchStatePredicate = folly::Function<bool(const StateDelta&)>;
+using SwitchStatePredicate = folly::Function<bool(const StateDelta&)>;
 
-  explicit WaitForSwitchState(SwitchStatePredicate predicate);
+class WaitForSwitchState : public AutoRegisterStateObserver {
+ public:
+  explicit WaitForSwitchState(
+      SwSwitch* sw,
+      SwitchStatePredicate predicate,
+      const std::string& name);
   ~WaitForSwitchState();
 
   void stateUpdated(const StateDelta& delta) override;
-  bool wait();
+  template <class Rep = int64_t, class Period = std::ratio<1>>
+  bool wait(
+      const std::chrono::duration<Rep, Period>& timeout =
+          std::chrono::seconds(5)) {
+    std::unique_lock<std::mutex> lock(mtx_);
+    while (!done_) {
+      if (cv_.wait_for(lock, timeout) == std::cv_status::timeout) {
+        XLOG(ERR) << "timed out on " << name_;
+        return false;
+      }
+    }
+    done_ = false;
+    return true;
+  }
 
  private:
   SwitchStatePredicate predicate_;
-  folly::Baton<> switchStateObserved_;
+  std::mutex mtx_;
+  std::condition_variable cv_;
+  bool done_{false};
+  std::string name_;
 };
 }} // facebook::fboss

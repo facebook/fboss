@@ -628,22 +628,24 @@ void EXPECT_NO_ROUTE(const std::shared_ptr<RouteTableMap>& tables,
   }
 }
 
-WaitForSwitchState::WaitForSwitchState(SwitchStatePredicate predicate)
-      : predicate_(std::move(predicate)), switchStateObserved_() {}
+WaitForSwitchState::WaitForSwitchState(
+    SwSwitch* sw,
+    SwitchStatePredicate predicate,
+    const std::string& name)
+    : AutoRegisterStateObserver(sw, name),
+      predicate_(std::move(predicate)),
+      name_(name) {}
 
 WaitForSwitchState::~WaitForSwitchState() {}
 
 void WaitForSwitchState::stateUpdated(const StateDelta& delta) {
   if (predicate_(delta)) {
-    switchStateObserved_.post();
+    {
+      std::lock_guard<std::mutex> guard(mtx_);
+      done_ = true;
+    }
+    cv_.notify_all();
   }
 }
-
-bool WaitForSwitchState::wait() {
-  // TODO(samank): make timeout configurable
-  using namespace std::chrono_literals;
-  return switchStateObserved_.try_wait_for(5s);
-}
-
 } // namespace fboss
 } // namespace facebook
