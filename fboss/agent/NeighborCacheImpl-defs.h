@@ -304,10 +304,6 @@ bool NeighborCacheImpl<NTable>::removeEntry(AddressType ip) {
 template <typename NTable>
 bool NeighborCacheImpl<NTable>::flushEntryFromSwitchState(
     std::shared_ptr<SwitchState>* state, AddressType ip) {
-  // The entry should be removed from the cache before it is
-  // flushed from the SwitchState
-  DCHECK(!getCacheEntry(ip));
-
   auto* vlan = (*state)->getVlans()->getVlan(vlanID_).get();
   auto* table = vlan->template getNeighborTable<NTable>().get();
   const auto& entry = table->getNodeIf(ip);
