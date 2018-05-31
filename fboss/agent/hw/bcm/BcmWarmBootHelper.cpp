@@ -47,9 +47,10 @@ bool removeFile(const string& filename) {
 
 namespace facebook { namespace fboss {
 
-BcmWarmBootHelper::BcmWarmBootHelper(int unit, std::string warmBootDir)
-    : unit_(unit),
-      warmBootDir_(warmBootDir) {
+DiscBackedBcmWarmBootHelper::DiscBackedBcmWarmBootHelper(
+    int unit,
+    std::string warmBootDir)
+    : unit_(unit), warmBootDir_(warmBootDir) {
   if (!warmBootDir_.empty()) {
     // Make sure the warm boot directory exists.
     //
@@ -70,7 +71,7 @@ BcmWarmBootHelper::BcmWarmBootHelper(int unit, std::string warmBootDir)
   }
 }
 
-BcmWarmBootHelper::~BcmWarmBootHelper() {
+DiscBackedBcmWarmBootHelper::~DiscBackedBcmWarmBootHelper() {
   if (warmBootFd_ > 0) {
     int rv = close(warmBootFd_);
     if (rv < 0) {
@@ -81,27 +82,23 @@ BcmWarmBootHelper::~BcmWarmBootHelper() {
   }
 }
 
-std::string BcmWarmBootHelper::warmBootSwitchStateFile() const {
+std::string DiscBackedBcmWarmBootHelper::warmBootSwitchStateFile() const {
   return folly::to<string>(warmBootDir_, "/", FLAGS_switch_state_file);
 }
 
-std::string BcmWarmBootHelper::warmBootFlag() const {
+std::string DiscBackedBcmWarmBootHelper::warmBootFlag() const {
   return folly::to<string>(warmBootDir_, "/", wbFlagPrefix, unit_);
 }
 
-std::string BcmWarmBootHelper::warmBootDataPath() const {
+std::string DiscBackedBcmWarmBootHelper::warmBootDataPath() const {
   return folly::to<string>(warmBootDir_, "/", wbDataPrefix, unit_);
 }
 
-std::string BcmWarmBootHelper::forceColdBootOnceFlag() const {
+std::string DiscBackedBcmWarmBootHelper::forceColdBootOnceFlag() const {
   return folly::to<string>(warmBootDir_, "/", forceColdBootPrefix, unit_);
 }
 
-bool BcmWarmBootHelper::canWarmBoot() {
-  return canWarmBoot_;
-}
-
-void BcmWarmBootHelper::setCanWarmBoot() {
+void DiscBackedBcmWarmBootHelper::setCanWarmBoot() {
   auto wbFlag = warmBootFlag();
   auto updateFd = creat(wbFlag.c_str(),
                         S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
@@ -113,7 +110,7 @@ void BcmWarmBootHelper::setCanWarmBoot() {
   XLOG(DBG1) << "Wrote can warm boot flag: " << wbFlag;
 }
 
-bool BcmWarmBootHelper::checkAndClearWarmBootFlags() {
+bool DiscBackedBcmWarmBootHelper::checkAndClearWarmBootFlags() {
   // Return true if coldBootOnceFile does not exist and
   // canWarmBoot file exists
   bool canWarmBoot = removeFile(warmBootFlag());
@@ -121,15 +118,17 @@ bool BcmWarmBootHelper::checkAndClearWarmBootFlags() {
   return !forceColdBoot && canWarmBoot;
 }
 
-bool BcmWarmBootHelper::storeWarmBootState(const folly::dynamic& switchState) {
+bool DiscBackedBcmWarmBootHelper::storeWarmBootState(
+    const folly::dynamic& switchState) {
   return dumpStateToFile(warmBootSwitchStateFile(), switchState);
 }
 
-folly::dynamic BcmWarmBootHelper::getWarmBootState() const {
+folly::dynamic DiscBackedBcmWarmBootHelper::getWarmBootState() const {
   std::string warmBootJson;
   auto ret = folly::readFile(warmBootSwitchStateFile().c_str(), warmBootJson);
   sysCheckError(
       ret, "Unable to read switch state from : ", warmBootSwitchStateFile());
   return folly::parseJson(warmBootJson);
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

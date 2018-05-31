@@ -15,26 +15,54 @@ namespace facebook { namespace fboss {
  * performing a warm boot on the next startup.
  */
 class BcmWarmBootHelper {
-public:
-  explicit BcmWarmBootHelper(int unit, std::string warmBootDir="");
-  ~BcmWarmBootHelper();
+ public:
+  BcmWarmBootHelper() {}
+  virtual ~BcmWarmBootHelper() {}
 
-  bool canWarmBoot();
-
+  virtual bool canWarmBoot() const = 0;
   /*
    * Sets a flag that can be read when we next start up that indicates that
    * warm boot is possible. Since warm boot is not currently supported this is
    * always a no-op for now.
    */
-  void setCanWarmBoot();
+  virtual void setCanWarmBoot() = 0;
+  static int
+  warmBootReadCallback(int unit, uint8_t* buf, int offset, int nbytes);
+  static int
+  warmBootWriteCallback(int unit, uint8_t* buf, int offset, int nbytes);
 
-  bool storeWarmBootState(const folly::dynamic& switchState);
+  virtual void warmBootRead(uint8_t* buf, int offset, int nbytes) = 0;
+  virtual void warmBootWrite(const uint8_t* buf, int offset, int nbytes) = 0;
 
-  folly::dynamic getWarmBootState() const;
-private:
+  virtual bool storeWarmBootState(const folly::dynamic& switchState) = 0;
+  virtual folly::dynamic getWarmBootState() const = 0;
+
+ private:
   // Forbidden copy constructor and assignment operator
-  BcmWarmBootHelper(BcmWarmBootHelper const &) = delete;
-  BcmWarmBootHelper& operator=(BcmWarmBootHelper const &) = delete;
+  BcmWarmBootHelper(BcmWarmBootHelper const&) = delete;
+  BcmWarmBootHelper& operator=(BcmWarmBootHelper const&) = delete;
+};
+
+class DiscBackedBcmWarmBootHelper: public BcmWarmBootHelper {
+
+ public:
+  DiscBackedBcmWarmBootHelper(int unit, std::string warmBootDir);
+  ~DiscBackedBcmWarmBootHelper() override;
+
+  bool canWarmBoot() const override {
+    return canWarmBoot_;
+  }
+  void setCanWarmBoot() override;
+  void warmBootRead(uint8_t* buf, int offset, int nbytes) override;
+  void warmBootWrite(const uint8_t* buf, int offset, int nbytes) override;
+  bool storeWarmBootState(const folly::dynamic& switchState) override;
+  folly::dynamic getWarmBootState() const override;
+
+ private:
+  // Forbidden copy constructor and assignment operator
+  DiscBackedBcmWarmBootHelper(DiscBackedBcmWarmBootHelper const&) = delete;
+  DiscBackedBcmWarmBootHelper& operator=(DiscBackedBcmWarmBootHelper const&) =
+      delete;
 
   std::string warmBootFlag() const;
   std::string warmBootDataPath() const;
@@ -56,18 +84,10 @@ private:
    */
   bool checkAndClearWarmBootFlags();
 
-  void warmBootRead(uint8_t* buf, int offset, int nbytes);
-  void warmBootWrite(const uint8_t* buf, int offset, int nbytes);
-
-  static int warmBootReadCallback(int unit, uint8_t* buf, int offset,
-                                  int nbytes);
-  static int warmBootWriteCallback(int unit, uint8_t* buf, int offset,
-                                   int nbytes);
-
   int unit_{-1};
-  bool canWarmBoot_{false};
   std::string warmBootDir_;
   int warmBootFd_{-1};
+  bool canWarmBoot_{false};
 };
 
 }} // facebook::fboss
