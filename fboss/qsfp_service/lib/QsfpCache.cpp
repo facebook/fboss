@@ -145,7 +145,7 @@ folly::Future<folly::Unit> QsfpCache::doSync(PortMapThrift&& toSync) {
     this,
     gen = incrementGen(),
     oldAliveSince = remoteAliveSince_
-  ](auto& tcvrs) {
+  ](auto&& tcvrs) {
     VLOG(1) << "Got " << tcvrs.size() << " transceivers from qsfp_service";
     this->updateCache(tcvrs);
     if (remoteAliveSince_ == oldAliveSince || oldAliveSince < 0) {

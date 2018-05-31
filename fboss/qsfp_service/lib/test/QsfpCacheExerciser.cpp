@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
       if ((folly::Random::rand32() % 10) == 0) {
         LOG(INFO) << "querying for transceiver " << i;
         auto fut = qc.futureGet(facebook::fboss::TransceiverID(i))
-          .then([i](auto& info) {
+          .then([i](auto&& info) {
             LOG(INFO) << "Successfully got transceiver " << i;
             return info;
           }).onError([i](std::runtime_error exc) {
