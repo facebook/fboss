@@ -100,12 +100,13 @@ class ArpCli(object):
 class AggregatePortCli(object):
     ''' Aggregate Port sub-commands '''
     @click.command()
+    @click.argument('port', required=False, default="")
     @click.pass_obj
-    def aggregate_port(cli_opts):
+    def aggregate_port(cli_opts, port):
         ''' Show aggregate port information; Outputs a list of
             aggregate port and the subports that are part of the
-            aggregate port. '''
-        aggregate_port.AggregatePortCmd(cli_opts).run()
+            aggregate port.'''
+        aggregate_port.AggregatePortCmd(cli_opts).run(port)
 
 
 class NicCli(object):

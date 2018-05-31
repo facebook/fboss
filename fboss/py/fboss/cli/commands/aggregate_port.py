@@ -8,8 +8,60 @@
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
 
+import re
+
 from fboss.cli.commands import commands as cmds
-from thrift.Thrift import TApplicationException
+
+AGG_PORT_NUM_RE = re.compile(r".*?(?P<port_num>[0-9]+)$")
+
+
+def get_port_num(port: str) -> str:
+
+    port_num_match = AGG_PORT_NUM_RE.match(port)
+    if port_num_match:
+        return port_num_match.group('port_num')
+
+    return ""
+
+
+def _should_print_agg_port_info(target_port_num: str, agg_port) -> bool:
+
+    # If there's no target set we print the info for all ports
+    if not target_port_num:
+        return True
+
+    if agg_port.key == int(target_port_num):
+        return True
+
+    return False
+
+
+def _print_agg_port_sum(agg_port) -> None:
+    active_members_count = _get_active_member_count(agg_port.memberPorts)
+
+    print(f"\nPort name: {agg_port.name}")
+    print(f"Description: {agg_port.description}")
+    print(
+        f"Active members/Configured members/Min members: "
+        f"{active_members_count}/"
+        f"{len(agg_port.memberPorts)}/"
+        f"{agg_port.minimumLinkCount}"
+    )
+
+
+def _get_active_member_count(subports) -> int:
+    active_members = [
+        subport for subport in subports if subport.isForwarding
+    ]
+    return len(active_members)
+
+
+def _print_subport_info(name, subport) -> None:
+    print(
+        f"\tMember: {name}, "
+        f"id: {subport.memberPortID}, "
+        f"Up: {subport.isForwarding}"
+    )
 
 
 class AggregatePortCmd(cmds.FbossCmd):
@@ -19,34 +71,45 @@ class AggregatePortCmd(cmds.FbossCmd):
         for entry in resp:
             subports = entry.subports
             subports = sorted(subports, key=lambda x: x.id)
-            print("AggregatePortID: {} Num Ports: {}".format(
-                entry.aggregatePortId,
-                len(subports)))
+            print(
+                "AggregatePortID: {} Num Ports: {}".format(
+                    entry.aggregatePortId, len(subports)
+                )
+            )
             for subport in subports:
-                print("\tSubport ID: {} Enabled: {}".format(
-                    subport.id,
-                    subport.isForwardingEnabled))
+                print(
+                    "\tSubport ID: {} Enabled: {}".format(
+                        subport.id, subport.isForwardingEnabled
+                    )
+                )
 
-    def run(self):
+    def run(self, port):
+
+        port_num = get_port_num(port)
+        if port and not port_num:
+            print(f"Invalid aggregate port name: {port}")
+            return
+
         self._client = self._create_agent_client()
-        resp = self._client.getAggregatePortTable()
+        agg_port_table = self._client.getAggregatePortTable()
 
-        if not resp:
+        port_details = self._client.getAllPortInfo()
+
+        if not agg_port_table:
             print("No Aggregate Port Entries Found")
             return
 
-        if not hasattr(resp[0],'key'):
-            self.legacy_format(resp)
+        if not hasattr(agg_port_table[0], "key"):
+            self.legacy_format(agg_port_table)
         else:
-            resp = sorted(resp, key=lambda x: x.key)
+            agg_port_table = sorted(agg_port_table, key=lambda x: x.key)
 
-            for entry in resp:
-                subports = entry.memberPorts
-                subports = sorted(subports, key=lambda x: x.memberPortID)
-                print("AggregatePortID: {} Num Ports: {}".format(
-                    entry.key,
-                    len(subports)))
-                for subport in subports:
-                    print("\tSubport ID: {} Enabled: {}".format(
-                        subport.memberPortID,
-                        subport.isForwarding))
+            for entry in agg_port_table:
+                if not _should_print_agg_port_info(port_num, entry):
+                    continue
+
+                _print_agg_port_sum(entry)
+                for subport in sorted(entry.memberPorts, key=lambda x: x.memberPortID):
+                    _print_subport_info(
+                        port_details[subport.memberPortID].name, subport
+                    )
