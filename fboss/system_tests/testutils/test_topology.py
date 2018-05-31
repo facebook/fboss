@@ -18,6 +18,10 @@ class FbossTestException(BaseException):
     pass
 
 
+class RoleType(object):
+    SINGLE_SWITCH = "single"
+    CHASSIS = "chassis"
+
 class TestHost(object):
     """ FBOSS System Test Host Information
         For testing, a "host" is anything that can
@@ -95,6 +99,7 @@ class FBOSSTestTopology(object):
         self.log = logging.getLogger("__main__")
         self.switch = switch
         self.test_hosts = {}
+        self.role_type = RoleType.SINGLE_SWITCH
 
     def add_host(self, host):
         """ This host is physically connected to this switch. """
@@ -189,3 +194,41 @@ class FBOSSTestTopology(object):
                         return ndp_entry.port
 
         return None
+
+
+class FBOSSChassisTestTopology(object):
+    """ FBOSS System Test Config
+        Contains all of the state for which hosts, switches,
+        and tests to run.
+
+        This is specifically for devices that are composed of multiple
+        subdevices, like in the case of backpack
+    """
+
+    def __init__(self, chassis, cards, port=None, qsfp_port=None):
+        if port is None:
+            port = FbossAgentClient.DEFAULT_PORT
+        if qsfp_port is None:
+            qsfp_port = QsfpServiceClient.DEFAULT_PORT
+        self.port = port
+        self.qsfp_port = qsfp_port
+        self.log = logging.getLogger("__main__")
+        self.chassis = chassis
+        self.cards = self._generate_cards(cards)
+        self.role_type = RoleType.CHASSIS
+
+    def _generate_cards(self, cards):
+        return [self._generate_card_topology(card) for card in cards]
+
+    def _generate_card_topology(self, card):
+        return FBOSSTestTopology(card, self.port, self.qsfp_port)
+
+    def verify_switch(self):
+        """ Verify the switch is THRIFT reachable """
+        return all(card.verify_switch() for card in self.cards)
+
+    def verify_hosts(self, min_hosts):
+        return True
+
+    def number_of_hosts(self):
+        return 0
