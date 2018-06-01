@@ -55,9 +55,13 @@ def generate_default_test_argparse(**kwargs):
                         help="List of test classes to run. For example:\n"
                              "basset_test_runner.par [options] TestClass\n"
                              "basset_test_runner.par[options] TestClass1 TestClass2")
-    parser.add_argument('--test_dirs', nargs='*',
+    parser.add_argument('--test_dirs', action='append',
                         help="List of directories to discover tests",
                         default=Defaults['test_dirs'])
+    parser.add_argument('--override-test-dirs', action='store_const', const=[],
+                        dest='test_dirs',
+                        help="Ignore the default test directories, only "
+                             "consider explicit --test_dir <dir> directories")
     parser.add_argument('--config', default=Defaults['config'])
     parser.add_argument('--log_dir', default=Defaults['log_dir'])
     parser.add_argument('--log_file', default=Defaults['log_file'])
