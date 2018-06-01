@@ -168,7 +168,7 @@ void NeighborCacheImpl<NTable>::clearEntries() {
                           << addr;
             }));
   }
-  folly::collectAll(stopTasks).get();
+  folly::collectAllSemiFuture(stopTasks).get();
   entries_.clear();
 }
 
