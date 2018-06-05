@@ -16,8 +16,8 @@ DOWNLINK_VLAN = 2000
 # Due to SDK stats thread (1/sec) and Fboss stats thread (1/sec)
 # it's possible that it takes a full two seconds in the worst case
 # for a fb303 counter to increment after the packet passes
-# also add on 0.5 seconds for thread processing delay
-MAX_COUNTER_DELAY = 2.5  # in seconds
+# also add time for scheduling ... just make it big
+MAX_COUNTER_DELAY = 10  # in seconds
 
 
 def make_packet(src_host, dst_host, ttl=64):
@@ -130,37 +130,89 @@ def _get_first_router_ip(test, interface, v6):
     return ip_addr_to_str(dst_ips[0].ip)
 
 
+def _wait_for_counter_to_stop(test, switch_thrift, counter, delay):
+    # wait for counter to stop incrementing,
+    # so no old/queued packets corrupt our test data
+    npkts_start = switch_thrift.getCounter(counter)
+    start = time.time()
+    while (start + delay) > time.time():
+        time.sleep(1)  # assume no packets queued for more than 1 sec
+        npkts_before = switch_thrift.getCounter(counter)
+        if npkts_before != npkts_start:
+            # need to wait longer
+            npkts_start = npkts_before
+        else:
+            break
+    test.assertEqual(npkts_before, npkts_start,
+                        "Packets never stopped; test broken!?")
+    return npkts_before
+
+
+def _wait_for_pkts_to_be_counted(test, switch_thrift, counter, sent_pkts,
+                                 delay, npkts_before):
+        # wait for counter to increment at least sent_pkts times before delay
+        start = time.time()
+        found = False
+        while not found and (start + delay) > time.time():
+            npkts_after = switch_thrift.getCounter(counter)
+            if npkts_after >= npkts_before + sent_pkts:
+                found = True
+            else:
+                time.sleep(0.5)  # sleep a little intead of busy wait
+        delta = time.time() - start
+        # TODO log to scuba and track time delta
+        # to expose/track stats thread lag/latency -- seems to be 1-5 seconds!?
+        test.log.info("Packets after: %d secs %f" % (npkts_after, delta))
+        return npkts_after
+
+
+def _verify_counter_bump(test, counter, sent_pkts, received):
+        test.log.info("Packets: got %d; wanted %d" % (received, sent_pkts))
+        # first, make sure something hit the counter
+        test.assertGreater(received, 0,
+                    "No packets hit the counter %s !?" % counter)
+        # second, make sure all of the packets sent were counted
+        test.assertGreaterEqual(received, sent_pkts,
+                    "All packets didn't hit the counter %s!?" % counter)
+        # third, make sure the counter isn't just going crazy
+        # this test is a bit imprecise and may not have real value
+        # opinions?
+        test.assertLess(received, 2 * sent_pkts,
+                    "Received more than 2x expected pkts on %s!?" % counter)
+
+
 def send_pkt_verify_counter_bump(test,  # an instance of FbossBaseSystemTest
                                  pkt,   # array of bytes
                                  counter,  # string of fb303 counter name
-                                 delay=MAX_COUNTER_DELAY):
-        return send_pkts_verify_counter_bump(test, [pkt], counter, delay)
+                                 **kwargs):
+        return send_pkts_verify_counter_bump(test, [pkt], counter, **kwargs)
 
 
 def send_pkts_verify_counter_bump(test,  # an instance of FbossBaseSystemTest
-                                  pkts,   # array of bytes
+                                  pkts,   # array of array of bytes
                                   counter,  # string of fb303 counter name
-                                  delay=MAX_COUNTER_DELAY):  # time in seconds
+                                  delay=MAX_COUNTER_DELAY,  # time in seconds
+                                  min_packets=100):
     " Does sending this packet increment this counter?"
     test.test_topology.min_hosts_or_skip(1)  # need >1 host to run this
     with test.test_topology.switch_thrift() as switch_thrift:
         # get the current count of packets
-        npkts_before = switch_thrift.getCounter(counter)
+        npkts_before = _wait_for_counter_to_stop(test, switch_thrift, counter,
+                                                 delay)
         host = test.test_topology.hosts()[0]  # guaranteed to have 1
-        # send a packet that's supposed to hit the queue/counter
+        # send packets that are supposed to hit the queue/counter
         with host.thrift_client() as client:
             intf = host.intfs()[0]
             test.log.info('sending packet from host %s intf=%s',
                           host, intf)
-            for pkt in pkts:
-                client.sendPkt(intf, pkt)
-        # sleep  because the stats counting thread takes time to schedule
-        time.sleep(delay)
+            sent_pkts = 0
+            while sent_pkts < min_packets:
+                for pkt in pkts:
+                    client.sendPkt(intf, pkt)
+                sent_pkts += len(pkts)
         # get the new count of packets
-        npkts_after = switch_thrift.getCounter(counter)
-        # make sure we got at least one more
-        # note that if there is stray traffic on the link, this can
-        # cause false positives.  See FBCoppTest for Facebook specific
-        # tests that prevent this problem.
-        test.assertGreaterEqual(npkts_after, npkts_before + len(pkts),
-                           "Packets didn't hit the counter %s!?" % counter)
+        npkts_after = _wait_for_pkts_to_be_counted(test, switch_thrift, counter,
+                                                    sent_pkts, delay,
+                                                    npkts_before)
+        _verify_counter_bump(test, counter, sent_pkts,
+                                npkts_after - npkts_before)

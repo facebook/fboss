@@ -38,7 +38,7 @@ class CoppBase(object):
         self.send_pkt_verify_counter_bump(pkt, counter)
 
     def test_all_router_ips(self):
-        """ Does every router IP get COPP classified correcty?
+        """ Does every router IP get COPP classified correctly?
         """
         with self.test_topology.switch_thrift() as switch_thrift:
             interfaces = switch_thrift.getAllInterfaces()

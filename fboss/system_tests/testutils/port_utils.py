@@ -10,6 +10,10 @@ class DownAllPorts(DelayedSignalManager):
     back up after we __exit__().  Build on top of DelayedSignalManager so
     that if we get a SIGTERM or similar in the middle, the ports still
     get brought back up on exit from the test.
+
+    Process ports in parallel to speed up systems with lots of ports.
+    But, go back and make sure ports are actually up/down at the appropriate
+    times because sometimes they take seconds to retrain their signal/settings
     '''
 
     def __init__(self, test, retry=3):
@@ -33,16 +37,26 @@ class DownAllPorts(DelayedSignalManager):
         # iff the oper state is up
         with self.test.test_topology.switch_thrift() as switch_thrift:
             ports = switch_thrift.getAllPortInfo()
+            # first pass, down all of the ports without waiting
             for port, port_state in ports.items():
                 if port_state.operState:
                     self.test.log.info("Downing port %s  -- id=%d" %
                                         (port_state.name, port))
                     self.downed_ports.append(port)
-                    self._set_port_admin_state(port, switch_thrift, False)
+                    self._set_port_admin_state(port, switch_thrift, False, True)
+            # second pass, go back and make sure they're all down
+            for port in self.downed_ports:
+                self._set_port_admin_state(port, switch_thrift, False, False)
 
-    def _set_port_admin_state(self, port, switch_thrift, enabled):
+    def _set_port_admin_state(self, port, switch_thrift, enabled, quick=False):
+        # first, get the state to see if this is a NOOP
+        state = switch_thrift.getPortInfo(port)
+        if state.operState == enabled:
+            return
         switch_thrift.setPortState(port, enabled)
         dir = "Up" if enabled else "Down"
+        if quick:
+            return
         # wait for the port to comeback up
         # don't use FB internal retryable library because this is OSS
         for i in range(self.retry):
@@ -57,6 +71,10 @@ class DownAllPorts(DelayedSignalManager):
 
     def restore_all_ports_state(self):
         with self.test.test_topology.switch_thrift() as switch_thrift:
+            # first pass, tell them all to come up without waiting
             for port in self.downed_ports:
                 self.test.log.info("Restoring downed port to up : id=%d" % port)
-                self._set_port_admin_state(port, switch_thrift, True)
+                self._set_port_admin_state(port, switch_thrift, True, True)
+            # second pass, go back and make sure each port came up
+            for port in self.downed_ports:
+                self._set_port_admin_state(port, switch_thrift, True, False)

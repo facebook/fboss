@@ -23,6 +23,7 @@ Defaults = {
     "log_file": "{dir}/result-{test}.log",
     "test_topology": None,
     "min_hosts": 2,
+    "repeat-tests": 1,  # number of times we run tests before exiting
     "tags": user_requested_tags,
     "list_tests": False,
     "test_dirs": ["tests"],
@@ -68,6 +69,8 @@ def generate_default_test_argparse(**kwargs):
     parser.add_argument('--min_hosts', type=int, default=Defaults['min_hosts'])
     parser.add_argument('--console_log_level', default=Defaults['console_log_level'])
     parser.add_argument('--file_log_level', default=Defaults['file_log_level'])
+    parser.add_argument('--repeat-tests', help="Times to repeatedly run tests",
+                            type=int, default=Defaults['repeat-tests'])
     parser.add_argument('--tags',
                         help="Provide list of test tags, default is all tests "
                              "Example tags qsfp, port etc",
@@ -213,6 +216,10 @@ def run_tests(options):
                                                   pattern='*test*.py')
         add_interested_tests_to_test_suite(testsdir, suite)
     frob_options_into_tests(suite, options)
+    # useful for debugging flakey tests
+    repeated_suite = unittest.TestSuite()
+    for _i in range(options.repeat_tests):
+        repeated_suite.addTests(suite)
     all_tests = []
     for test in suite:
         all_tests.append(test)
@@ -221,11 +228,11 @@ def run_tests(options):
     ================ STARTING TESTS ===================
     ===================================================
     """)
-    ret = SystemTestsRunner(
-        list_tests=options.list_tests,
-        tests=options.tests,
-        log=options.log,
-        verbosity=2).run(suite)
+    testRunner = SystemTestsRunner(list_tests=options.list_tests,
+                                   tests=options.tests,
+                                   log=options.log,
+                                   verbosity=2)
+    ret = testRunner.run(repeated_suite)
     options.log.info("""
     ===================================================
     ================  ENDING TESTS  ===================
