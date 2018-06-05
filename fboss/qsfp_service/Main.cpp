@@ -33,18 +33,21 @@ int main(int argc, char **argv) {
   auto handler = std::make_shared<QsfpServiceHandler>(
     std::move(transceiverManager));
   handler->init();
-
+  auto server = std::make_shared<apache::thrift::ThriftServer>();
+  server->setPort(FLAGS_port);
+  server->setInterface(handler);
   folly::FunctionScheduler scheduler;
   // init after handler has been initted - this ensures everything is setup
   // before we try to retrieve stats for it
   publisher.init();
   scheduler.addFunction(
-      [&publisher]() {
-        publisher.publishStats();
+      [&publisher, &server]() {
+        publisher.publishStats(
+            server->getEventBaseManager()->getEventBase(),
+            FLAGS_stats_publish_interval);
       },
       std::chrono::seconds(FLAGS_stats_publish_interval),
-      "statsPublish"
-  );
+      "statsPublish");
   scheduler.addFunction(
     [mgr = handler->getTransceiverManager()]() {
       mgr->refreshTransceivers();
@@ -55,9 +58,6 @@ int main(int argc, char **argv) {
   // Note: This doesn't block, this merely starts it's own thread
   scheduler.start();
 
-  auto server = std::make_shared<apache::thrift::ThriftServer>();
-  server->setPort(FLAGS_port);
-  server->setInterface(handler);
 
   doServerLoop(server, handler);
 

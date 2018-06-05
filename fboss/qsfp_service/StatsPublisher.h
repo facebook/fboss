@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <folly/io/async/EventBase.h>
 #include "fboss/qsfp_service/TransceiverManager.h"
 
 namespace facebook { namespace fboss {
@@ -18,7 +19,7 @@ class StatsPublisher {
   explicit StatsPublisher(TransceiverManager* transceiverManager)
     : transceiverManager_(transceiverManager) {};
   void init();
-  void publishStats();
+  void publishStats(folly::EventBase* evb, int32_t stats_publish_interval);
   static void bumpPciLockHeld();
   static void bumpReadFailure();
   static void bumpWriteFailure();

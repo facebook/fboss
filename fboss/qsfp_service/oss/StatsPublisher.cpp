@@ -9,13 +9,11 @@
  */
 
 #include "fboss/qsfp_service/StatsPublisher.h"
-
 namespace facebook { namespace fboss {
 void StatsPublisher::init() {
 }
 
-void StatsPublisher::publishStats() {
-}
+void StatsPublisher::publishStats(folly::EventBase*, int32_t) {}
 //static
 void StatsPublisher::bumpPciLockHeld(){
 }
