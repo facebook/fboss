@@ -34,7 +34,6 @@
 #include "fboss/agent/types.h"
 
 using namespace facebook::fboss;
-using namespace std::string_literals;
 
 namespace {
 
@@ -44,9 +43,7 @@ class LacpTest : public ::testing::Test {
 
   void SetUp() override {
     lacpThread_.reset(new std::thread([this] {
-      static auto const name = "testLACPthread"s;
-      folly::setThreadName(name);
-      google::setThreadName(name);
+      folly::setThreadName("testLACPthread");
 
       // TODO(samank): why doesn't this trip the CHECK...
       lacpEvb_.loopForever();
