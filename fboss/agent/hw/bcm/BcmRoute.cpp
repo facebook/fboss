@@ -105,7 +105,7 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
     egressId = hw_->getToCPUEgressId();
   } else {
     CHECK(action == RouteForwardAction::NEXTHOPS);
-    const RouteNextHopSet& nhops = fwd.getNextHopSet();
+    const auto& nhops = fwd.getNextHopSet();
     CHECK_GT(nhops.size(), 0);
     // need to get an entry from the host table for the forward info
     auto host = hw_->writableHostTable()->incRefOrCreateBcmEcmpHost(
@@ -345,7 +345,25 @@ void BcmRouteTable::addRoute(opennsl_vrf_t vrf, const RouteT *route) {
                                         prefix.mask));
   }
   CHECK(route->isResolved());
-  ret.first->second->program(route->getForwardInfo());
+  RouteNextHopEntry fwd(route->getForwardInfo());
+  if (fwd.getAction() == RouteForwardAction::NEXTHOPS) {
+    // NOTE:
+    // Due to details of how ECMP vs UCMP recursive route resolution works in
+    // SwSwitch, for an ECMP route we can receive a route whose next hops all
+    // have weight 0. To make the egress programming logic simpler, normalize
+    // those to weight 1 here at the entry point to route programming, rather
+    // than trying to handle it everywhere.
+    RouteNextHopSet nhops;
+    for (const auto& nhop : fwd.getNextHopSet()) {
+      if (nhop.weight() > 1) {
+        throw FbossError("UCMP weights not yet supported in BcmSwitch ", fwd);
+      }
+      nhops.insert(
+          ResolvedNextHop(nhop.addr(), nhop.intf(), UCMP_DEFAULT_WEIGHT));
+    }
+    fwd = RouteNextHopEntry(nhops, fwd.getAdminDistance());
+  }
+  ret.first->second->program(fwd);
 }
 
 template<typename RouteT>
