@@ -26,4 +26,24 @@ void BcmPortQueueManager::updateQueueStat(
     facebook::stats::MonotonicCounter* /*counter*/,
     std::chrono::seconds /*now*/,
     HwPortStats* /*portStats*/) {}
+
+void BcmPortQueueManager::getAlpha(
+    opennsl_gport_t /*gport*/,
+    int /*queueIdx*/,
+    std::shared_ptr<PortQueue> /*queue*/) const {}
+
+void BcmPortQueueManager::programAlpha(
+    opennsl_gport_t /*gport*/,
+    int /*queueIdx*/,
+    const std::shared_ptr<PortQueue>& /*queue*/) {}
+
+void BcmPortQueueManager::getAqms(
+    opennsl_gport_t /*gport*/,
+    int /*queueIdx*/,
+    std::shared_ptr<PortQueue> /*queue*/) const {}
+
+void BcmPortQueueManager::programAqms(
+    opennsl_gport_t /*gport*/,
+    int /*queueIdx*/,
+    const std::shared_ptr<PortQueue>& /*queue*/) {}
 }} // facebook::fboss

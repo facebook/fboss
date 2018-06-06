@@ -10,6 +10,41 @@
 #include "fboss/agent/hw/bcm/BcmCosQueueManager.h"
 
 namespace facebook { namespace fboss {
+int BcmCosQueueManager::getControlValue(
+    cfg::StreamType /*streamType*/,
+    opennsl_gport_t /*gport*/,
+    int /*queueIdx*/,
+    BcmCosQueueControlType /*ctrlType*/) const {
+  return 0;
+}
+
+void BcmCosQueueManager::programControlValue(
+    cfg::StreamType /*streamType*/,
+    opennsl_gport_t /*gport*/,
+    int /*queueIdx*/,
+    BcmCosQueueControlType /*ctrlType*/,
+    int /*value*/) {}
+
+void BcmCosQueueManager::getSchedulingAndWeight(
+    opennsl_gport_t /*gport*/,
+    int /*queueIdx*/,
+    std::shared_ptr<PortQueue> /*queue*/) const {}
+
+void BcmCosQueueManager::programSchedulingAndWeight(
+    opennsl_gport_t /*gport*/,
+    int /*queueIdx*/,
+    const std::shared_ptr<PortQueue>& /*queue*/) {}
+
+void BcmCosQueueManager::getReservedBytes(
+    opennsl_gport_t /*gport*/,
+    int /*queueIdx*/,
+    std::shared_ptr<PortQueue> /*queue*/) const {}
+
+void BcmCosQueueManager::programReservedBytes(
+    opennsl_gport_t /*gport*/,
+    int /*queueIdx*/,
+    const std::shared_ptr<PortQueue>& /*queue*/) {}
+
 void BcmCosQueueManager::updateQueueAggregatedStat(
     const BcmCosQueueCounterType& /*type*/,
     facebook::stats::MonotonicCounter* /*counter*/,

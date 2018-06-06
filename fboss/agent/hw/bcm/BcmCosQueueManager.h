@@ -44,6 +44,14 @@ struct BcmPortQueueConfig {
       multicast(std::move(multicast)) {}
 };
 
+// Shared control types for both uc and mc queues
+enum class BcmCosQueueControlType {
+  ALPHA,
+  RESERVED_BYTES,
+  SHARED_BYTES
+};
+
+
 class BcmSwitch;
 
 class BcmCosQueueManager {
@@ -92,6 +100,31 @@ public:
                         HwPortStats* portStats = nullptr);
 
 protected:
+  int getControlValue(cfg::StreamType streamType,
+                      opennsl_gport_t gport,
+                      int queueIdx,
+                      BcmCosQueueControlType ctrlType) const;
+
+  void programControlValue(cfg::StreamType streamType,
+                           opennsl_gport_t gport,
+                           int queueIdx,
+                           BcmCosQueueControlType ctrlType,
+                           int value);
+
+  void getSchedulingAndWeight(opennsl_gport_t gport,
+                              int queueIdx,
+                              std::shared_ptr<PortQueue> queue) const;
+  void programSchedulingAndWeight(opennsl_gport_t gport,
+                                  int queueIdx,
+                                  const std::shared_ptr<PortQueue>& queue);
+
+  void getReservedBytes(opennsl_gport_t gport,
+                        int queueIdx,
+                        std::shared_ptr<PortQueue> queue) const;
+  void programReservedBytes(opennsl_gport_t gport,
+                            int queueIdx,
+                            const std::shared_ptr<PortQueue>& queue);
+
   const BcmSwitch* hw_;
   // owner port name of this cosq manager
   std::string portName_;
@@ -125,5 +158,4 @@ private:
 
   std::map<BcmCosQueueCounterType, QueueStatCounters> queueCounters_;
 };
-
 }} //facebook::fboss

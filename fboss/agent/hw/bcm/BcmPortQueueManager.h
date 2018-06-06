@@ -23,7 +23,7 @@ public:
       opennsl_gport_t portGport)
     : BcmCosQueueManager(hw, portName, portGport) {}
 
-    ~BcmPortQueueManager() {}
+  ~BcmPortQueueManager() {}
 
   int getNumQueues(cfg::StreamType streamType) const override;
 
@@ -51,5 +51,19 @@ private:
                        facebook::stats::MonotonicCounter* counter,
                        std::chrono::seconds now,
                        HwPortStats* portStats = nullptr) override;
+
+   void getAlpha(opennsl_gport_t gport,
+                 int queueIdx,
+                 std::shared_ptr<PortQueue> queue) const;
+   void programAlpha(opennsl_gport_t gport,
+                     int queueIdx,
+                     const std::shared_ptr<PortQueue>& queue);
+
+   void getAqms(opennsl_gport_t gport,
+                int queueIdx,
+                std::shared_ptr<PortQueue> queue) const;
+   void programAqms(opennsl_gport_t gport,
+                    int queueIdx,
+                    const std::shared_ptr<PortQueue>& queue);
 };
 }} // facebook::fboss
