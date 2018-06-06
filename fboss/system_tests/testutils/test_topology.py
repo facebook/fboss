@@ -156,9 +156,8 @@ class FBOSSTestTopology(object):
                     self.log.warning("Removing thrift-unreachable host: %s " %
                                         host)
                     self.remove_host(host)
-                if len(self.test_hosts) == min_hosts:
-                    return False    # all hosts were bad
-        return True
+
+        return len(self.test_hosts) >= min_hosts
 
     def switch_thrift(self):
         return FbossAgentClient(self.switch.name, self.port)
