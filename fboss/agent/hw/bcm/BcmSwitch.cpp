@@ -162,8 +162,7 @@ BcmSwitch::BcmSwitch(
       bcmTableStats_(new BcmTableStats(this, isAlpmEnabled())),
       bufferStatsLogger_(createBufferStatsLogger()),
       trunkTable_(new BcmTrunkTable(this)),
-      sFlowExporterTable_(new BcmSflowExporterTable()),
-      controlPlane_(new BcmControlPlane(this)) {
+      sFlowExporterTable_(new BcmSflowExporterTable()) {
   dumpConfigMap(BcmAPI::getHwConfig(), platform->getHwConfigDumpFile());
   exportSdkVersion();
 }
@@ -618,7 +617,6 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   setupCos();
   configureRxRateLimiting();
-  controlPlane_->setupQueueCounters();
   if (fineGrainedBufferStatsEnabled_) {
     startFineGrainedBufferStatLogging();
   }

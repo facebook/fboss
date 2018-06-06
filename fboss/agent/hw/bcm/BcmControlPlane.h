@@ -10,7 +10,7 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
+#include "fboss/agent/hw/bcm/BcmCosQueueManager.h"
 #include "fboss/agent/state/ControlPlane.h"
 
 extern "C" {
@@ -34,7 +34,7 @@ public:
   opennsl_gport_t getCPUGPort() const {
     return gport_;
   }
-  BcmPortQueueManager* getQueueManager() const {
+  BcmCosQueueManager* getQueueManager() const {
     return queueManager_.get();
   }
 
@@ -48,8 +48,6 @@ public:
    */
   void setupRxReasonToQueue(const ControlPlane::RxReasonToQueue& reasonToQueue);
 
-  void setupQueueCounters();
-
   void updateQueueCounters();
 
 private:
@@ -60,6 +58,6 @@ private:
   BcmSwitch* hw_{nullptr};
   // Broadcom global port number
   const opennsl_gport_t gport_;
-  std::unique_ptr<BcmPortQueueManager> queueManager_;
+  std::unique_ptr<BcmCosQueueManager> queueManager_;
 };
 }} // facebook::fboss

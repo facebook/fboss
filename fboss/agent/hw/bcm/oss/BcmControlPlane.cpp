@@ -19,8 +19,6 @@ void BcmControlPlane::setupQueue(const std::shared_ptr<PortQueue>& /*queue*/) {}
 void BcmControlPlane::setupRxReasonToQueue(
   const ControlPlane::RxReasonToQueue& /*reasonToQueue*/) {}
 
-void BcmControlPlane::setupQueueCounters() {}
-
 void BcmControlPlane::updateQueueCounters() {}
 
 }} // facebook::fboss

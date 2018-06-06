@@ -7,27 +7,43 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
+#include "fboss/agent/hw/bcm/BcmStatsConstants.h"
 
 namespace facebook { namespace fboss {
+const std::vector<BcmCosQueueCounterType>&
+BcmPortQueueManager::getQueueCounterTypes() const {
+  static const std::vector<BcmCosQueueCounterType> types = {
+    {cfg::StreamType::UNICAST, BcmCosQueueStatType::DROPPED_BYTES,
+     BcmCosQueueCounterScope::QUEUES, kOutCongestionDiscards()},
+    {cfg::StreamType::UNICAST, BcmCosQueueStatType::OUT_BYTES,
+     BcmCosQueueCounterScope::QUEUES, kOutBytes()},
+    {cfg::StreamType::UNICAST, BcmCosQueueStatType::DROPPED_PACKETS,
+     BcmCosQueueCounterScope::AGGREGATED, kOutCongestionDiscards()}
+  };
+  return types;
+}
 
-BcmPortQueueConfig BcmPortQueueManager::getCurrentQueueSettings() {
+BcmPortQueueConfig BcmPortQueueManager::getCurrentQueueSettings() const {
   QueueConfig unicastQueues;
   for (int i = 0; i < cosQueueGports_.unicast.size(); i++) {
     unicastQueues.push_back(getCurrentQueueSettings(
-      cfg::StreamType::UNICAST, cosQueueGports_.unicast.at(i), i));
+      cfg::StreamType::UNICAST, i));
   }
   QueueConfig multicastQueues;
   for (int i = 0; i < cosQueueGports_.multicast.size(); i++) {
     multicastQueues.push_back(getCurrentQueueSettings(
-      cfg::StreamType::MULTICAST, cosQueueGports_.multicast.at(i), i));
+      cfg::StreamType::MULTICAST, i));
   }
   return BcmPortQueueConfig(std::move(unicastQueues),
                             std::move(multicastQueues));
 }
 
-int BcmPortQueueManager::getQueueSize(cfg::StreamType streamType) {
+/**
+ * For regular port queue, we always return # of queues based on how many
+ # queue gports we collect from BCM during H/W initializing.
+ */
+int BcmPortQueueManager::getNumQueues(cfg::StreamType streamType) const {
   if (streamType == cfg::StreamType::UNICAST) {
     return cosQueueGports_.unicast.size();
   } else if (streamType == cfg::StreamType::MULTICAST) {
@@ -39,11 +55,11 @@ int BcmPortQueueManager::getQueueSize(cfg::StreamType streamType) {
 }
 
 opennsl_gport_t BcmPortQueueManager::getQueueGPort(
-    cfg::StreamType streamType, int queueID) {
+    cfg::StreamType streamType, int queueIdx) const {
   if (streamType == cfg::StreamType::UNICAST) {
-    return cosQueueGports_.unicast.at(queueID);
+    return cosQueueGports_.unicast.at(queueIdx);
   } else if (streamType == cfg::StreamType::MULTICAST) {
-    return cosQueueGports_.multicast.at(queueID);
+    return cosQueueGports_.multicast.at(queueIdx);
   }
   throw FbossError(
     "Failed to retrieve queue gport because unknown StreamType: ",

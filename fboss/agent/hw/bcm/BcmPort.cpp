@@ -119,16 +119,6 @@ static const std::map<cfg::PortSpeed,
     }}
 };
 
-static const std::vector<BcmPortQueueCounterType> kPortQueueCounters = {
-  {cfg::StreamType::UNICAST, BcmPortQueueStatType::DROPPED_BYTES,
-   BcmPortQueueCounterScope::QUEUES, kOutCongestionDiscards()},
-  {cfg::StreamType::UNICAST, BcmPortQueueStatType::OUT_BYTES,
-   BcmPortQueueCounterScope::QUEUES, kOutBytes()},
-  {cfg::StreamType::UNICAST, BcmPortQueueStatType::DROPPED_PACKETS,
-   BcmPortQueueCounterScope::AGGREGATED, kOutCongestionDiscards()}
-};
-
-
 void BcmPort::updateName(const std::string& newName) {
   if (newName == portName_) {
     return;
@@ -180,7 +170,7 @@ void BcmPort::reinitPortStats() {
   reinitPortStat(kOutErrors());
   reinitPortStat(kOutPause());
 
-  queueManager_->setupQueueCounters(kPortQueueCounters);
+  queueManager_->setupQueueCounters();
 
   // (re) init out queue length
   auto statMap = fbData->getStatMap();
@@ -198,7 +188,7 @@ void BcmPort::reinitPortStats() {
   {
     auto lockedPortStatsPtr = lastPortStats_.wlock();
     *lockedPortStatsPtr = BcmPortStats(
-      queueManager_->getQueueSize(cfg::StreamType::UNICAST));
+      queueManager_->getNumQueues(cfg::StreamType::UNICAST));
   }
 }
 

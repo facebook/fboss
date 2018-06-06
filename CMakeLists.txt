@@ -227,6 +227,8 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmAclRange.cpp
     fboss/agent/hw/bcm/BcmAclTable.cpp
     fboss/agent/hw/bcm/BcmAPI.cpp
+    fboss/agent/hw/bcm/BcmControlPlaneQueueManager.cpp
+    fboss/agent/hw/bcm/BcmCosQueueManager.cpp
     fboss/agent/hw/bcm/BcmEgress.cpp
     fboss/agent/hw/bcm/BcmHost.cpp
     fboss/agent/hw/bcm/BcmHostKey.cpp
@@ -255,6 +257,8 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmAclStat.cpp
     fboss/agent/hw/bcm/oss/BcmAPI.cpp
     fboss/agent/hw/bcm/oss/BcmControlPlane.cpp
+    fboss/agent/hw/bcm/oss/BcmControlPlaneQueueManager.cpp
+    fboss/agent/hw/bcm/oss/BcmCosQueueManager.cpp
     fboss/agent/hw/bcm/oss/BcmEgress.cpp
     fboss/agent/hw/bcm/oss/BcmHost.cpp
     fboss/agent/hw/bcm/oss/BcmPort.cpp

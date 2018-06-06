@@ -15,15 +15,14 @@ namespace facebook { namespace fboss {
 
 class BcmSwitch;
 
-class BcmPortQueueManager : public BcmCosQueueManager {
+class BcmControlPlaneQueueManager : public BcmCosQueueManager {
 public:
-  BcmPortQueueManager(
+  BcmControlPlaneQueueManager(
       BcmSwitch* hw,
       const std::string& portName,
-      opennsl_gport_t portGport)
-    : BcmCosQueueManager(hw, portName, portGport) {}
+      opennsl_gport_t portGport);
 
-    ~BcmPortQueueManager() {}
+  ~BcmControlPlaneQueueManager() {}
 
   int getNumQueues(cfg::StreamType streamType) const override;
 
@@ -40,8 +39,9 @@ public:
 
 private:
   // Forbidden copy constructor and assignment operator
-  BcmPortQueueManager(BcmPortQueueManager const &) = delete;
-  BcmPortQueueManager& operator=(BcmPortQueueManager const &) = delete;
+  BcmControlPlaneQueueManager(BcmControlPlaneQueueManager const &) = delete;
+  BcmControlPlaneQueueManager& operator=(
+    BcmControlPlaneQueueManager const &) = delete;
 
   opennsl_gport_t getQueueGPort(cfg::StreamType streamType,
                                 int queueIdx) const override;
@@ -51,5 +51,7 @@ private:
                        facebook::stats::MonotonicCounter* counter,
                        std::chrono::seconds now,
                        HwPortStats* portStats = nullptr) override;
+
+  int maxCPUQueue_{0};
 };
 }} // facebook::fboss

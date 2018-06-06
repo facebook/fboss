@@ -7,21 +7,10 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
+#include "fboss/agent/hw/bcm/BcmCosQueueManager.h"
 
 namespace facebook { namespace fboss {
-
-std::shared_ptr<PortQueue> BcmPortQueueManager::getCurrentQueueSettings(
-    cfg::StreamType /*streamType*/,
-    int /*queueIdx*/) const {
-  return std::shared_ptr<PortQueue>{};
-}
-
-void BcmPortQueueManager::program(
-  const std::shared_ptr<PortQueue>& /*queue*/) {}
-
-void BcmPortQueueManager::updateQueueStat(
-    int /*queueIdx*/,
+void BcmCosQueueManager::updateQueueAggregatedStat(
     const BcmCosQueueCounterType& /*type*/,
     facebook::stats::MonotonicCounter* /*counter*/,
     std::chrono::seconds /*now*/,
