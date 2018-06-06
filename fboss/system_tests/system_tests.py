@@ -123,6 +123,8 @@ class FbossBaseSystemTest(unittest.TestCase):
     _format = "%(asctime)s.%(msecs)03d  %(name)-10s: %(levelname)-8s: %(message)s"
     _datefmt = "%H:%M:%S"
 
+    TopologyIsSane = True
+
     def setUp(self):
         if self.options is None:
             raise Exception("options not set - did you call run_tests()?")
@@ -131,11 +133,6 @@ class FbossBaseSystemTest(unittest.TestCase):
             raise Exception("options.test_topology not set - " +
                             "did you call run_tests()?")
         self.test_topology = self.options.test_topology  # save typing
-        # We have seen cases where previous testcase brings down the system
-        # and all following testcaes fails. Instead we should skip a testcase
-        # if system went to bad state.
-        if not self.test_topology.verify_switch():
-            raise unittest.SkipTest("Switch is in bad state, Skip Test")
         my_name = str(self.__class__.__name__ + "." + self._testMethodName)
         self.log = logging.getLogger(my_name)
         self.log.setLevel(logging.DEBUG)  # logging controlled by handlers
@@ -151,6 +148,11 @@ class FbossBaseSystemTest(unittest.TestCase):
         handler.setFormatter(logging.Formatter(self._format, self._datefmt))
         self.log.addHandler(handler)
         self.test_hosts_in_topo = self.test_topology.number_of_hosts()
+        # We have seen cases where previous testcase brings down the system
+        # and all following testcaes fails. Instead we should skip a testcase
+        # if system went to bad state.
+        if not self.TopologyIsSane:
+            raise unittest.SkipTest("Topology is in bad state, Skip Test")
 
     def tearDown(self):
         '''
@@ -158,10 +160,14 @@ class FbossBaseSystemTest(unittest.TestCase):
         and no hosts got busted during test
         '''
         self.log.info("Testing connection to switch")
-        self.assertTrue(self.test_topology.verify_switch())
+        self.TopologyIsSane = self.test_topology.verify_switch(log=self.log)
+        self.assertTrue(self.TopologyIsSane)
         self.log.info("Testing connection to hosts")
-        self.assertTrue(self.test_topology.verify_hosts(
-            self.test_hosts_in_topo))
+        self.TopologyIsSane = \
+            self.test_topology.verify_hosts(min_hosts=self.options.min_hosts,
+                                            log=self.log)
+        self.assertTrue(self.TopologyIsSane,
+                        "Test broke connectivity to hosts?")
 
 
 def frob_options_into_tests(suite, options):

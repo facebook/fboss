@@ -11,6 +11,7 @@ from neteng.fboss.ttypes import FbossBaseError
 from thrift.transport.TTransport import TTransportException
 
 import logging
+import time
 import unittest
 
 
@@ -21,6 +22,7 @@ class FbossTestException(BaseException):
 class RoleType(object):
     SINGLE_SWITCH = "single"
     CHASSIS = "chassis"
+
 
 class TestHost(object):
     """ FBOSS System Test Host Information
@@ -77,6 +79,32 @@ class TestHost(object):
     def thrift_client(self):
         return TestClient(self.name, self.port)
 
+    def thrift_verify(self, retries, log=None):
+        alive = False
+        for i in range(retries):  # don't use @retry decorator - this is OSS
+            try:
+                with self.thrift_client() as client:
+                    alive = client.status()
+                    if alive:
+                        break
+                    if log:
+                        log.debug("Failed to thrift verify %s: retry %d" %
+                                    (self.name, i))
+                    time.sleep(1)
+            except Exception as e:
+                msg = "Failed to thrift verify %s: " % self.name
+                msg += " retry %d: Exception %s" % (i, str(e))
+                if log:
+                    log.debug(msg)
+                else:
+                    print(msg)
+        if log:
+            status = "ALIVE" if alive else "NOT alive"
+            log.debug("Server %s is %s" % (self.name, status))
+        if not alive and log:
+            log.warning("Server %s failed to thrift verify" % self.name)
+        return alive
+
     def __str__(self):
         return self.name
 
@@ -122,41 +150,40 @@ class FBOSSTestTopology(object):
             raise unittest.SkipTest("Not able to find %d good hosts" %
                                     (n_hosts))
 
-    def verify_switch(self):
+    def verify_switch(self, log=None):
         """ Verify the switch is THRIFT reachable """
+        if not log:
+            log = self.log
         try:
             with FbossAgentClient(self.switch.name, self.port) as client:
                 client.keepalive()  # will throw FbossBaseError on failure
         except (FbossBaseError, TTransportException):
+            log.warning("Switch failed to thrift verify")
             return False
         return True
 
-    def verify_hosts(self, fail_on_error=False, min_hosts=0):
+    def verify_hosts(self, fail_on_error=False, min_hosts=0, retries=10,
+                     log=None):
         """ Verify each host is thrift reachable
                 if fail_on_error is false, just remove unreachable
                 hosts from our setup with a warning.
-            zero min_hosts implies switche
+            zero min_hosts means we don't need any servers to run these tests
         """
+        if not log:
+            log = self.log
         bad_hosts = []
         for host in self.test_hosts.values():
-            try:
-                with TestClient(host.name, host.port) as client:
-                    if not client.status():
-                        bad_hosts.append(host.name)
-                    else:
-                        self.log.debug("Verified host %s" % host.name)
-            except (FbossBaseError, TTransportException):
+            if not host.thrift_verify(retries=retries, log=log):
                 bad_hosts.append(host.name)
         if bad_hosts:
             if fail_on_error:
                 raise FbossBaseError("fail_on_error set and hosts down: %s" %
                                      " ".join(bad_hosts))
             else:
-                for host in bad_hosts:
+                for host_name in bad_hosts:
                     self.log.warning("Removing thrift-unreachable host: %s " %
-                                        host)
-                    self.remove_host(host)
-
+                                        host_name)
+                    self.remove_host(host_name)
         return len(self.test_hosts) >= min_hosts
 
     def switch_thrift(self):
