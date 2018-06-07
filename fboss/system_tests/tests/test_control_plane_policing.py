@@ -5,7 +5,7 @@ import fboss.system_tests.testutils.packet as packet
 from fboss.system_tests.tests.copp_base import CoppBase
 
 
-@test_tags("run-on-diff", "trunk-stable")
+@test_tags("new-test")
 class CoppTest(CoppBase, FbossBaseSystemTest):
     """ Test that packets sent to CPU get the correct control plane policy
         applied.
