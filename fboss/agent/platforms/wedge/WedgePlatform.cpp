@@ -55,10 +55,12 @@ void WedgePlatform::init() {
   initLocalMac();
   auto mode = getMode();
   bool isLc = (mode == WedgePlatformMode::GALAXY_LC);
-  // HACK - looking at mode == LC or isDu to determine HASH mode.
+  bool isMinipackFsw = (mode == WedgePlatformMode::MINIPACK);
+  // HACK - looking at mode == LC or isDu or minipack fsw to determine HASH mode
   // How to set up hashing should really come from config - T21721301
-  hw_.reset(new BcmSwitch(this, (isLc || isDu()) ? BcmSwitch::HALF_HASH :
-        BcmSwitch::FULL_HASH));
+  auto hashMode = (isLc || isDu() || isMinipackFsw) ?
+                  BcmSwitch::HALF_HASH : BcmSwitch::FULL_HASH;
+  hw_.reset(new BcmSwitch(this, hashMode));
 }
 
 WedgePlatform::~WedgePlatform() {}
