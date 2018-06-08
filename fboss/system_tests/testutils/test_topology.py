@@ -98,6 +98,7 @@ class TestHost(object):
                     log.debug(msg)
                 else:
                     print(msg)
+                time.sleep(1)
         if log:
             status = "ALIVE" if alive else "NOT alive"
             log.debug("Server %s is %s" % (self.name, status))
