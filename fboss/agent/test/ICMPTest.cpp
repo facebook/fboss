@@ -36,6 +36,7 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/state/RouteUpdater.h"
 
 #include <boost/cast.hpp>
 #include <gtest/gtest.h>
@@ -70,7 +71,6 @@ unique_ptr<HwTestHandle> setupTestHandle() {
   vlans->getVlan(VlanID(1))->setArpResponseTable(respTable1);
   return createTestHandle(state);
 }
-
 } // unnamed namespace
 
 typedef std::function<void(Cursor* cursor, uint32_t length)> PayloadCheckFn;
@@ -204,6 +204,42 @@ TxMatchFn checkICMPv6TTLExceeded(MacAddress srcMac, IPAddressV6 srcIP,
                         ICMPV6_TYPE_TIME_EXCEEDED,
                         ICMPV6_CODE_TIME_EXCEEDED_HOPLIMIT_EXCEEDED,
                         checkPayload);
+}
+
+TxMatchFn checkICMPv6PacketTooBig(
+    MacAddress srcMac,
+    IPAddressV6 srcIP,
+    MacAddress dstMac,
+    IPAddressV6 dstIP,
+    VlanID vlan,
+    const uint8_t* payloadData,
+    size_t payloadLengthLimit) {
+  auto checkPayload = [=](Cursor* cursor, uint32_t length) {
+    if (length > payloadLengthLimit) {
+      throw FbossError(
+          "ICMPv6 Packet Too Big payload length too long, cursor length ",
+          length,
+          " but payloadLengthLimit is ",
+          payloadLengthLimit);
+    }
+    EXPECT_EQ(length, payloadLengthLimit);
+    const uint8_t* cursorData = cursor->data();
+    for (int i = 0; i < length; i++) {
+      EXPECT_EQ(cursorData[i], payloadData[i]);
+    }
+    cursor->skip(length);
+    return;
+  };
+
+  return checkICMPv6Pkt(
+      srcMac,
+      srcIP,
+      dstMac,
+      dstIP,
+      vlan,
+      ICMPV6_TYPE_PACKET_TOO_BIG,
+      ICMPV6_CODE_PACKET_TOO_BIG,
+      checkPayload);
 }
 
 TEST(ICMPTest, TTLExceededV4) {
@@ -371,7 +407,7 @@ TEST(ICMPTest, ExtraFrameCheckSequenceAtEnd) {
 
   std::string msg =
       // Destination mac
-      "00 02 c9 bc 26 f0"
+      "00 02 00 00 00 01"
       // Source mac
       "00 02 c9 bb 5e 0e"
       // VLAN type
@@ -387,10 +423,10 @@ TEST(ICMPTest, ExtraFrameCheckSequenceAtEnd) {
       // Src IPv6 address
       "fe 80 00 00 00 00 00 00 02 02 c9 ff fe bb 5e 0e"
       // Dst IPv6 address
-      "fe 80 00 00 00 00 00 00 02 02 c9 ff fe bc 26 f0"
+      "24 01 db 00 21 10 30 01 00 00 00 00 00 00 00 01"
       // ICMPv6 type (1) / code (1) / checksum (2).
       // 0x88 = Neighbor Advertisement
-      "88 00 f8 e2"
+      "88 00 98 fe"
       // flags for ICMPv6 (4)
       "40 00 00 00"
       // IPv6 address of the source
@@ -498,5 +534,126 @@ TEST(ICMPTest, TTLExceededV6) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv6.hop_exceeded.sum", 1);
 }
 
+TEST(ICMPTest, PacketTooBigV6) {
+  cfg::SwitchConfig config = testConfigA();
+  /*
+   * sender is on interface with MTU 9000
+   * receiver is on interface with MTU 1500
+   */
+  config.interfaces[0].mtu = 9000;
+  config.interfaces[1].mtu = 1500;
+  auto state = testState(config);
+  auto handle = createTestHandle(state);
+  auto sw = handle->getSw();
+
+  /* ICMPv6 exchange on vlan 1 */
+  PortID portID(1);
+  VlanID vlanID(1);
+
+  /*
+   * sender sends a packet of size 9000, excluding 802.1q ethernet header
+   * this makes input frame size as 9018 bytes
+   */
+  constexpr uint16_t inputFrameSize = 9018;
+  std::array<uint8_t, inputFrameSize> zeros; // maximum required padding
+  zeros.fill(0);
+
+  // ICMPv6 echo request of size 9000
+  auto header = PktUtil::parseHexData(
+      // dst mac (intf1 of switch), src mac
+      "00 02 00 00 00 01  02 03 04 05 06 07"
+      // 802.1q header, VLAN 1
+      "81 00 00 01"
+      // IPv6
+      "86 dd"
+      // Version 6, traffic class, flow label
+      "60 00 00 00"
+      // Payload length: 8960 (MTU of 9000 - IPv6 header),
+      // this has to be greater that MTU of interface on which
+      // receiver is reachable to trigger PTB
+      "23 00"
+      // Next Header: 58 (ICMPv6), Hop Limit (127)
+      "3a 7F"
+      // src addr (2401:db00:2110:3001::a) (unicast in subnet of intf1)
+      "24 01 db 00 21 10 30 01 00 00 00 00 00 00 00 0a"
+      // dst addr (2401:db00:2110:3055::a) (unicast in subnet intf2)
+      "24 01 db 00 21 10 30 55 00 00 00 00 00 00 00 0a"
+      // type: echo request
+      "80"
+      // code
+      "00"
+      // checksum (does matter if validateChecksum is called)
+      "9c 31"
+      // identifier(2004), sequence (01)
+      "20 04 00 01");
+
+  // pad zero bytes to make packet fill entire mtu
+  header.appendChain(
+      folly::IOBuf::wrapBuffer(zeros.data(), inputFrameSize - header.length()));
+
+  // create a single input packet
+  IOBuf pkt(IOBuf::WRAP_BUFFER, header.coalesce());
+
+  ASSERT_EQ(pkt.length(), inputFrameSize);
+
+  // header without type (ICMPv6), code (PTB) & checksum
+  auto icmpHeader = PktUtil::parseHexData(
+      // MTU 1500 of a link that goes to receiver
+      "00 00 05 dc"
+      // subsequently it is an original IPv6 packet that triggered the response
+      // Version 6, traffic class, flow label
+      "60 00 00 00"
+      // Payload length: 9001 (larger than MTU)
+      "23 00"
+      // Next Header: 58 (ICMPv6), Hop Limit (127)
+      "3a 7F"
+      // src addr (2401:db00:2110:3001::a) (unicast in subnet of intf1)
+      "24 01 db 00 21 10 30 01 00 00 00 00 00 00 00 0a"
+      // dst addr (2401:db00:2110:3055::a) (unicast in subnet intf2)
+      "24 01 db 00 21 10 30 55 00 00 00 00 00 00 00 0a"
+      // type: echo request
+      "80"
+      // code
+      "00"
+      // checksum
+      "9c 31"
+      // identifier(2004), sequence (01)
+      "20 04 00 01");
+
+  // Minumum IPv6 MTU (1280)
+  // IPv6 header (40) +  Ethernet header(18) = 58
+  // Expected payload size = 1280 - 58 = 1222
+  // pad the icmpHeader with zeros
+  icmpHeader.appendChain(
+      IOBuf::wrapBuffer(zeros.data(), 1222 - icmpHeader.length()));
+
+  // create a single ICMPv6 PTB response buffer
+  IOBuf icmp6Payload(IOBuf::WRAP_BUFFER, icmpHeader.coalesce());
+
+  // Cache the current stats
+  CounterCache counters(sw);
+
+  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
+  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
+  EXPECT_PKT(
+      sw,
+      "ICMPv6 Packet Too Big",
+      checkICMPv6PacketTooBig(
+          folly::MacAddress("00:02:00:00:00:01"), /* switch's interface1 mac */
+          IPAddressV6("2401:db00:2110:3001::1"), /* switch's interface1 addr */
+          folly::MacAddress("02:03:04:05:06:07"), /* sender's mac */
+          IPAddressV6("2401:db00:2110:3001::a"), /* sender's addr */
+          VlanID(1), /* on vlan */
+          icmp6Payload.data(), /* payload to check excluding Type/Code/Cksum */
+          1218)); /* 1222 - 4 bytes of ICMPv6 header (Type/Code/Cksum ) */
+
+  /* receive a big packet */
+  handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
+
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ptb.sum", 1);
+}
 
 } // namespace

@@ -95,7 +95,8 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap *map)
         map, kCounterPrefix + "hw_out_of_sync"),
       pcapDistFailure_(map, kCounterPrefix + "pcap_dist_failure.error"),
       updateStatsExceptions_(map, kCounterPrefix + "update_stats_exceptions",
-        SUM){
+        SUM),
+      trapPktTooBig_(map, kCounterPrefix + "trapped.ptb", SUM, RATE){
 }
 
 PortStats* FOLLY_NULLABLE SwitchStats::port(PortID portID) {

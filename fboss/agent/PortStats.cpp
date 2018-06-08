@@ -176,6 +176,10 @@ void PortStats::clearPortStatusCounter() {
   }
 }
 
+void PortStats::pktTooBig() {
+  switchStats_->pktTooBig();
+}
+
 std::string PortStats::getCounterKey(const std::string &key) {
   return folly::to<std::string>(portName_, kNameKeySeperator, key);
 }

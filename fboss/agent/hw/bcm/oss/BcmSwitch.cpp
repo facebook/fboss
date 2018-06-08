@@ -37,6 +37,8 @@ bool BcmSwitch::isAlpmEnabled() {
 
 void BcmSwitch::dropDhcpPackets() {}
 
+void BcmSwitch::setL3MtuFailPackets() {}
+
 void BcmSwitch::setupCos() {}
 
 void BcmSwitch::setupFPGroups() {}

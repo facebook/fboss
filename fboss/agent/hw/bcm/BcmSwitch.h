@@ -552,6 +552,11 @@ class BcmSwitch : public BcmSwitchIf {
    */
   void dropDhcpPackets();
 
+  /*
+   * Process packets for which L3 MTU check fails
+   */
+  void setL3MtuFailPackets();
+
   /**
    * Copy IPv6 link local multicast packets to CPU
    */

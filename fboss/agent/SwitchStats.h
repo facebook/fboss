@@ -264,6 +264,10 @@ class SwitchStats : public boost::noncopyable {
     updateStatsExceptions_.addValue(1);
   }
 
+  void pktTooBig() {
+    trapPktTooBig_.addValue(1);
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   SwitchStats(SwitchStats const &) = delete;
@@ -433,6 +437,9 @@ class SwitchStats : public boost::noncopyable {
 
   // Number of failed updateStats callbacks do to exceptions.
   TLTimeseries updateStatsExceptions_;
+
+  // Number of packet too big ICMPv6 triggered
+  TLTimeseries trapPktTooBig_;
 };
 
 }} // facebook::fboss

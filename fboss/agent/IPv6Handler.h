@@ -87,6 +87,15 @@ class IPv6Handler : public AutoRegisterStateObserver {
                               folly::MacAddress src,
                               IPv6Hdr& v6Hdr,
                               folly::io::Cursor cursor);
+
+  void sendICMPv6PacketTooBig(
+      PortID srcPort,
+      VlanID srcVlan,
+      folly::MacAddress dst,
+      folly::MacAddress src,
+      IPv6Hdr& v6Hdr,
+      int expectedMtu,
+      folly::io::Cursor cursor);
   /**
    * Function to handle ICMPv6
    *
@@ -125,6 +134,14 @@ class IPv6Handler : public AutoRegisterStateObserver {
                                  folly::IPAddressV6 srcIP,
                                  folly::MacAddress dstMac,
                                  folly::IPAddressV6 dstIP);
+
+  void resolveDestAndHandlePacket(
+      IPv6Hdr hdr,
+      std::unique_ptr<RxPacket> pkt,
+      folly::MacAddress dst,
+      folly::MacAddress src,
+      folly::io::Cursor cursor);
+
   SwSwitch* sw_{nullptr};
   RAMap routeAdvertisers_;
 };

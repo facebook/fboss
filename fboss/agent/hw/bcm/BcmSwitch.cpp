@@ -591,6 +591,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   }
 
   dropDhcpPackets();
+  setL3MtuFailPackets();
   mmuState_ = queryMmuState();
 
   // enable IPv4 and IPv6 on CPU port

@@ -174,6 +174,7 @@ class ICMPHdr {
  public:
   enum { SIZE = 4 };
   enum { ICMPV6_UNUSED_LEN = 4 };
+  enum { ICMPV6_MTU_LEN = 4 };
   enum { ICMPV4_UNUSED_LEN = 4 };
   enum { ICMPV4_SENDER_BYTES = 8 };
   /*

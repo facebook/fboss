@@ -307,6 +307,59 @@ cfg::SwitchConfig testConfigA() {
   return cfg;
 }
 
+shared_ptr<SwitchState> testState(cfg::SwitchConfig cfg) {
+  auto state = make_shared<SwitchState>();
+
+  for (auto cfgVlan : cfg.vlans) {
+    auto vlan = make_shared<Vlan>(VlanID(cfgVlan.id), cfgVlan.name);
+    state->addVlan(vlan);
+  }
+
+  for (auto cfgVlanPort : cfg.vlanPorts) {
+    state->registerPort(
+        PortID(cfgVlanPort.logicalPort),
+        folly::to<string>("port", cfgVlanPort.logicalPort));
+    auto vlan = state->getVlans()->getVlanIf(VlanID(cfgVlanPort.vlanID));
+    if (vlan) {
+      vlan->addPort(PortID(cfgVlanPort.logicalPort), false);
+    }
+  }
+
+  for (auto cfgInterface : cfg.interfaces) {
+    auto interface = make_shared<Interface>(
+        InterfaceID(cfgInterface.intfID),
+        RouterID(0), /* TODO - vrf is 0 */
+        VlanID(cfgInterface.vlanID),
+        cfgInterface.name,
+        folly::MacAddress(cfgInterface.mac),
+        cfgInterface.mtu,
+        false, /* is virtual */
+        false /* is state_sync disabled */
+    );
+
+    Interface::Addresses addrs;
+    for (auto cfgIpAddress : cfgInterface.ipAddresses) {
+      /** TODO - fill IPs **/
+      std::vector<std::string> splitVec;
+      folly::split("/", cfgIpAddress, splitVec);
+      addrs.emplace(IPAddress(splitVec[0]), folly::to<uint8_t>(splitVec[1]));
+    }
+    interface->setAddresses(addrs);
+
+    state->addIntf(interface);
+
+    auto vlan = state->getVlans()->getVlanIf(VlanID(cfgInterface.vlanID));
+    if (vlan) {
+      vlan->setInterfaceID(interface->getID());
+    }
+  }
+  RouteUpdater routeUpdater(state->getRouteTables());
+  routeUpdater.addInterfaceAndLinkLocalRoutes(state->getInterfaces());
+
+  state->resetRouteTables(routeUpdater.updateDone());
+  return state;
+}
+
 shared_ptr<SwitchState> testStateA() {
   // Setup a default state object
   auto state = make_shared<SwitchState>();
