@@ -20,6 +20,7 @@
 #include "fboss/lib/usb/UsbError.h"
 
 #include <folly/io/IOBuf.h>
+#include <folly/logging/xlog.h>
 
 DEFINE_int32(
     qsfp_data_refresh_interval,
@@ -324,8 +325,8 @@ RateSelectSetting QsfpModule::getRateSelectSettingValue(RateSelectState state) {
   uint8_t rateRx = getSettingsValue(SffField::RATE_SELECT_RX);
   uint8_t rateTx = getSettingsValue(SffField::RATE_SELECT_TX);
   if (rateRx != rateTx) {
-    LOG(ERROR) << "Unable to retrieve rate select setting: rx(" << std::hex <<
-      rateRx << " and tx(" << rateTx << ") are not equal";
+    XLOG(ERR) << "Unable to retrieve rate select setting: rx(" << std::hex
+              << rateRx << " and tx(" << rateTx << ") are not equal";
     return RateSelectSetting::UNSUPPORTED;
   }
 
@@ -536,8 +537,8 @@ TransmitterTechnology QsfpModule::getQsfpTransmitterTechnology() const {
       return TransmitterTechnology::COPPER;
     }
   } catch (const std::exception& e) {
-    LOG(INFO) << " Unable to get transmitter technology for QSFP "
-              << qsfpImpl_->getName() << ": " << e.what();
+    XLOG(INFO) << " Unable to get transmitter technology for QSFP "
+               << qsfpImpl_->getName() << ": " << e.what();
   }
   return TransmitterTechnology::UNKNOWN;
 }
@@ -568,8 +569,8 @@ void QsfpModule::setQsfpIdprom() {
     throw FbossError("QSFP IDProm failed as QSFP is not ready");
   }
   flatMem_ = status[1] & (1 << 2);
-  VLOG(3) << "Detected QSFP " << qsfpImpl_->getName()
-          << ", flatMem=" << flatMem_;
+  XLOG(DBG3) << "Detected QSFP " << qsfpImpl_->getName()
+             << ", flatMem=" << flatMem_;
 }
 
 const uint8_t* QsfpModule::getQsfpValuePtr(int dataAddress, int offset,
@@ -629,8 +630,8 @@ bool QsfpModule::detectPresence() {
 bool QsfpModule::detectPresenceLocked() {
   auto currentQsfpStatus = qsfpImpl_->detectTransceiver();
   if (currentQsfpStatus != present_) {
-    LOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
-                  " QSFP status changed to " << currentQsfpStatus;
+    XLOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
+               << " QSFP status changed to " << currentQsfpStatus;
     dirty_ = true;
     present_ = currentQsfpStatus;
   }
@@ -690,8 +691,9 @@ RawDOMData QsfpModule::getRawDOMData() {
 
 bool QsfpModule::safeToCustomize() const {
   if (ports_.size() < portsPerTransceiver_) {
-    VLOG(2) << "Not all ports present in transceiver " << getID()
-            << " (expected=" << portsPerTransceiver_ << "). Skip customization";
+    XLOG(DBG2) << "Not all ports present in transceiver " << getID()
+               << " (expected=" << portsPerTransceiver_
+               << "). Skip customization";
 
     return false;
   } else if (ports_.size() > portsPerTransceiver_) {
@@ -814,7 +816,7 @@ void QsfpModule::refreshLocked() {
     // assign
     info_.wlock()->assign(parseDataLocked());
   } catch (const UsbError& ex) {
-    LOG(ERROR) << "Error during refreshLocked(): " << ex.what();
+    XLOG(ERR) << "Error during refreshLocked(): " << ex.what();
   }
 }
 
@@ -831,8 +833,9 @@ int QsfpModule::getFieldValue(SffField fieldName,
       getQsfpFieldAddress(fieldName, dataAddress, offset, length);
       getQsfpValue(dataAddress, offset, length, fieldValue);
     } catch (const std::exception& ex) {
-      LOG(ERROR) << "Error reading field value for transceiver:" <<
-             folly::to<std::string>(qsfpImpl_->getName()) << " " << ex.what();
+      XLOG(ERR) << "Error reading field value for transceiver:"
+                << folly::to<std::string>(qsfpImpl_->getName()) << " "
+                << ex.what();
     }
   }
   return -1;
@@ -842,9 +845,9 @@ void QsfpModule::updateQsfpData(bool allPages) {
   // expects the lock to be held
   if (present_) {
     try {
-      VLOG(2) << "Performing " << ((allPages) ? "full" : "partial")
-                << " qsfp data cache refresh for transceiver "
-                << folly::to<std::string>(qsfpImpl_->getName());
+      XLOG(DBG2) << "Performing " << ((allPages) ? "full" : "partial")
+                 << " qsfp data cache refresh for transceiver "
+                 << folly::to<std::string>(qsfpImpl_->getName());
       qsfpImpl_->readTransceiver(TransceiverI2CApi::ADDR_QSFP, 0,
           sizeof(lowerPage_), lowerPage_);
       lastRefreshTime_ = std::time(nullptr);
@@ -877,8 +880,9 @@ void QsfpModule::updateQsfpData(bool allPages) {
       }
     } catch (const UsbError& ex) {
       dirty_ = true;
-      LOG(WARNING) << "Error reading data for transceiver:" <<
-           folly::to<std::string>(qsfpImpl_->getName()) << ": " << ex.what();
+      XLOG(WARNING) << "Error reading data for transceiver:"
+                    << folly::to<std::string>(qsfpImpl_->getName()) << ": "
+                    << ex.what();
       throw;
     }
   }
@@ -912,15 +916,15 @@ void QsfpModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
           speed, settings.rateSelect, settings.rateSelectSetting);
       }
     } else {
-      VLOG(1) << "Customization not supported on " << qsfpImpl_->getName();
+      XLOG(DBG1) << "Customization not supported on " << qsfpImpl_->getName();
     }
 
     lastCustomizeTime_ = std::time(nullptr);
     needsCustomization_ = false;
   } catch (const std::exception& e) {
-    LOG(ERROR) << " Unable to customize transceiver: "
-               << folly::to<std::string>(qsfpImpl_->getName()) << " "
-               << e.what();
+    XLOG(ERR) << " Unable to customize transceiver: "
+              << folly::to<std::string>(qsfpImpl_->getName()) << " "
+              << e.what();
   }
 }
 
@@ -931,13 +935,13 @@ void QsfpModule::setCdrIfSupported(cfg::PortSpeed speed,
    * Note that this function expects to be called with qsfpModuleMutex_
    * held.
    */
-  LOG(INFO) << "Checking if we need to change CDR on "
-            << folly::to<std::string>(qsfpImpl_->getName());
+  XLOG(INFO) << "Checking if we need to change CDR on "
+             << folly::to<std::string>(qsfpImpl_->getName());
 
   if (currentStateTx == FeatureState::UNSUPPORTED &&
       currentStateRx == FeatureState::UNSUPPORTED) {
-    LOG(INFO) << "CDR is not supported on "
-              << folly::to<std::string>(qsfpImpl_->getName());
+    XLOG(INFO) << "CDR is not supported on "
+               << folly::to<std::string>(qsfpImpl_->getName());
     return;
   }
 
@@ -954,8 +958,8 @@ void QsfpModule::setCdrIfSupported(cfg::PortSpeed speed,
   bool changeRx = toChange(currentStateRx);
   bool changeTx = toChange(currentStateTx);
   if (!changeRx && !changeTx) {
-    LOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
-      " Not changing CDR setting, already correctly set";
+    XLOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
+               << " Not changing CDR setting, already correctly set";
     return;
   }
 
@@ -973,9 +977,11 @@ void QsfpModule::setCdrIfSupported(cfg::PortSpeed speed,
 
   qsfpImpl_->writeTransceiver(TransceiverI2CApi::ADDR_QSFP, dataOffset,
       sizeof(value), &value);
-  LOG(INFO) << folly::to<std::string>("Port: ", qsfpImpl_->getName(),
-     " Setting CDR to state: ",
-     _FeatureState_VALUES_TO_NAMES.find(newState)->second);
+  XLOG(INFO) << folly::to<std::string>(
+      "Port: ",
+      qsfpImpl_->getName(),
+      " Setting CDR to state: ",
+      _FeatureState_VALUES_TO_NAMES.find(newState)->second);
 }
 
 void QsfpModule::setRateSelectIfSupported(cfg::PortSpeed speed,
@@ -1037,9 +1043,9 @@ void QsfpModule::setRateSelectIfSupported(cfg::PortSpeed speed,
                       dataOffset, dataLength);
   qsfpImpl_->writeTransceiver(TransceiverI2CApi::ADDR_QSFP,
       dataOffset, sizeof(value), &value);
-  LOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
-    " set rate select to " <<
-    _RateSelectSetting_VALUES_TO_NAMES.find(newSetting)->second;
+  XLOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
+             << " set rate select to "
+             << _RateSelectSetting_VALUES_TO_NAMES.find(newSetting)->second;
 }
 
 void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
@@ -1076,16 +1082,15 @@ void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
   }
 
   auto portStr = folly::to<std::string>(qsfpImpl_->getName());
-  VLOG(1) << "Port " << portStr << ": Power control "
-            << _PowerControlState_VALUES_TO_NAMES.find(currentState)->second
-            << " Ext ID " << std::hex << (int) *extId
-            << " Ethernet compliance " << std::hex << (int) *ether
-            << " Desired power control "
-            << _PowerControlState_VALUES_TO_NAMES.find(desiredSetting)->second;
+  XLOG(DBG1) << "Port " << portStr << ": Power control "
+             << _PowerControlState_VALUES_TO_NAMES.find(currentState)->second
+             << " Ext ID " << std::hex << (int)*extId << " Ethernet compliance "
+             << std::hex << (int)*ether << " Desired power control "
+             << _PowerControlState_VALUES_TO_NAMES.find(desiredSetting)->second;
 
   if (currentState == desiredSetting) {
-    LOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName()) <<
-      " Power override already correctly set, doing nothing";
+    XLOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
+               << " Power override already correctly set, doing nothing";
     return;
   }
 
@@ -1100,10 +1105,9 @@ void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
                       offset, length);
   qsfpImpl_->writeTransceiver(TransceiverI2CApi::ADDR_QSFP,
       offset, sizeof(power), &power);
-  LOG(INFO) << "Port " << portStr
-            << ": QSFP set to power setting "
-            << _PowerControlState_VALUES_TO_NAMES.find(desiredSetting)->second
-            << " (" << int(power) << ")";
+  XLOG(INFO) << "Port " << portStr << ": QSFP set to power setting "
+             << _PowerControlState_VALUES_TO_NAMES.find(desiredSetting)->second
+             << " (" << int(power) << ")";
 }
 
 void QsfpModule::ensureTxEnabled(time_t cooldown) {

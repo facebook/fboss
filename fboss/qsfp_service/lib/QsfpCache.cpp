@@ -11,6 +11,7 @@
 
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
+#include <folly/logging/xlog.h>
 #include <chrono>
 
 namespace facebook { namespace fboss {
@@ -80,7 +81,7 @@ void QsfpCache::maybeSync() {
     // TODO(aeckert): refactor qsfp_service locking to have different
     // locks for cache and bus to be more performant on syncPorts +
     // getTransceiver calls.
-    VLOG(3) << "Already an active outstanding request to qsfp_service";
+    XLOG(DBG3) << "Already an active outstanding request to qsfp_service";
     return;
   }
 
@@ -91,13 +92,13 @@ void QsfpCache::maybeSync() {
     for (const auto& item : *lockedPorts) {
       const auto& port = item.second;
       if (port.generation > remoteGen_) {
-        VLOG(3) << "Will sync port " << item.first;
+        XLOG(DBG3) << "Will sync port " << item.first;
         portsToSync[item.first] = item.second.port;
       }
     }
 
     if (portsToSync.size() == 0) {
-      VLOG(3) << "All " << lockedPorts->size() << " ports up to date";
+      XLOG(DBG3) << "All " << lockedPorts->size() << " ports up to date";
       return;
     }
   }
@@ -110,18 +111,18 @@ folly::Future<folly::Unit> QsfpCache::confirmAlive() {
   CHECK(evb_->isInEventBaseThread());
 
   auto getAliveSince = [](std::unique_ptr<QsfpServiceAsyncClient> client) {
-    VLOG(3) << "Polling qsfp_service aliveSince...";
+    XLOG(DBG3) << "Polling qsfp_service aliveSince...";
     auto options = QsfpClient::getRpcOptions();
     return client->future_aliveSince(options);
   };
   auto storeIt = [this](int64_t aliveSince) {
-    VLOG(3) << "qsfp_service aliveSince=" << aliveSince;
+    XLOG(DBG3) << "qsfp_service aliveSince=" << aliveSince;
     if (aliveSince > remoteAliveSince_) {
       // restart detected (or starting up). Store remoteAliveSince_ +
       // set remoteGen_ back to 0 since we have no knowledge of state
       // on qsfp_service side
-      VLOG(1) << "qsfp_service restarted. aliveSince: "
-              << remoteAliveSince_ << " -> " << aliveSince;
+      XLOG(DBG1) << "qsfp_service restarted. aliveSince: " << remoteAliveSince_
+                 << " -> " << aliveSince;
       std::tie(remoteAliveSince_,  remoteGen_) = std::make_tuple(aliveSince, 0);
     }
   };
@@ -135,18 +136,17 @@ folly::Future<folly::Unit> QsfpCache::doSync(PortMapThrift&& toSync) {
   CHECK(evb_->isInEventBaseThread());
 
   auto syncPorts = [ports = std::move(toSync)](
-        std::unique_ptr<QsfpServiceAsyncClient> client) mutable {
-    VLOG(1) << "Will try to sync " << ports.size() << " ports to qsfp_service";
+                       std::unique_ptr<QsfpServiceAsyncClient> client) mutable {
+    XLOG(DBG1) << "Will try to sync " << ports.size()
+               << " ports to qsfp_service";
     auto options = QsfpClient::getRpcOptions();
     return client->future_syncPorts(options, std::move(ports));
   };
 
-  auto onSuccess = [
-    this,
-    gen = incrementGen(),
-    oldAliveSince = remoteAliveSince_
-  ](auto&& tcvrs) {
-    VLOG(1) << "Got " << tcvrs.size() << " transceivers from qsfp_service";
+  auto onSuccess = [this,
+                    gen = incrementGen(),
+                    oldAliveSince = remoteAliveSince_](auto&& tcvrs) {
+    XLOG(DBG1) << "Got " << tcvrs.size() << " transceivers from qsfp_service";
     this->updateCache(tcvrs);
     if (remoteAliveSince_ == oldAliveSince || oldAliveSince < 0) {
       // no restart occurred in middle of request, store gen
@@ -155,22 +155,22 @@ folly::Future<folly::Unit> QsfpCache::doSync(PortMapThrift&& toSync) {
   };
 
   // lock out other request attempts
-  VLOG(4) << "Starting new request";
+  XLOG(DBG4) << "Starting new request";
   activeReq_ = folly::SharedPromise<folly::Unit>();
 
   auto baseFut = (remoteAliveSince_ < 0) ? confirmAlive() : folly::makeFuture();
-  return baseFut
-    .then([evb = evb_]() { return QsfpClient::createClient(evb); })
-    .then(evb_, syncPorts)
-    .then(evb_, onSuccess)
-    .onError([this](const std::exception& e) {
-      LOG(ERROR) << "Exception talking to qsfp_service: " << e.what();
-      this->maybeSync();
-    }).ensure([this]() {
-      // make sure we allow other requests in again
-      activeReq_->setValue();
-      VLOG(4) << "Finished request";
-    });
+  return baseFut.then([evb = evb_]() { return QsfpClient::createClient(evb); })
+      .then(evb_, syncPorts)
+      .then(evb_, onSuccess)
+      .onError([this](const std::exception& e) {
+        XLOG(ERR) << "Exception talking to qsfp_service: " << e.what();
+        this->maybeSync();
+      })
+      .ensure([this]() {
+        // make sure we allow other requests in again
+        activeReq_->setValue();
+        XLOG(DBG4) << "Finished request";
+      });
 }
 
 void QsfpCache::updateCache(const TcvrMapThrift& tcvrs) {
@@ -204,7 +204,7 @@ TransceiverInfo QsfpCache::get(TransceiverID tcvrId) {
 }
 
 folly::Future<TransceiverInfo> QsfpCache::futureGet(TransceiverID tcvrId) {
-  VLOG(4) << "futureGet for transceiver " << tcvrId;
+  XLOG(DBG4) << "futureGet for transceiver " << tcvrId;
 
   auto fromCache = getIf(tcvrId);
   if (fromCache) {
@@ -230,8 +230,8 @@ void QsfpCache::dump() {
   // for now just dumps presence info. We should expand later
   auto lockedTcvrs = tcvrs_.rlock();
   for (const auto& item : *lockedTcvrs) {
-    LOG(INFO) << folly::to<std::string>(
-      item.first, " -> present=", item.second.present);
+    XLOG(INFO) << folly::to<std::string>(
+        item.first, " -> present=", item.second.present);
   }
 }
 

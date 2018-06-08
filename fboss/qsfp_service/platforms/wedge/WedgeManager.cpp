@@ -2,9 +2,10 @@
 
 #include <folly/gen/Base.h>
 
+#include <folly/logging/xlog.h>
 #include "fboss/lib/usb/UsbError.h"
-#include "fboss/qsfp_service/sff/QsfpModule.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
+#include "fboss/qsfp_service/sff/QsfpModule.h"
 
 namespace facebook { namespace fboss {
 
@@ -17,7 +18,7 @@ void WedgeManager::initTransceiverMap() {
   try {
     wedgeI2CBusLock_ = std::make_unique<WedgeI2CBusLock>(getI2CBus());
   } catch (const LibusbError& ex) {
-    LOG(ERROR) << "failed to initialize USB to I2C interface";
+    XLOG(ERR) << "failed to initialize USB to I2C interface";
     return;
   }
 
@@ -29,14 +30,14 @@ void WedgeManager::initTransceiverMap() {
         std::move(qsfpImpl), numPortsPerTransceiver());
     qsfp->refresh();
     transceivers_.push_back(move(qsfp));
-    LOG(INFO) << "making QSFP for " << idx;
+    XLOG(INFO) << "making QSFP for " << idx;
   }
 }
 
 void WedgeManager::getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::vector<int32_t>> ids) {
-  LOG(INFO) << "Received request for getTransceiverInfo, with ids: " <<
-    (ids->size() > 0 ? folly::join(",", *ids) : "None");
+  XLOG(INFO) << "Received request for getTransceiverInfo, with ids: "
+             << (ids->size() > 0 ? folly::join(",", *ids) : "None");
   if (ids->empty()) {
     folly::gen::range(0, getNumQsfpModules()) |
       folly::gen::appendTo(*ids);
@@ -54,8 +55,8 @@ void WedgeManager::getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
 void WedgeManager::getTransceiversRawDOMData(
     std::map<int32_t, RawDOMData>& info,
     std::unique_ptr<std::vector<int32_t>> ids) {
-  LOG(INFO) << "Received request for getTransceiversRawDOMData, with ids: " <<
-    (ids->size() > 0 ? folly::join(",", *ids) : "None");
+  XLOG(INFO) << "Received request for getTransceiversRawDOMData, with ids: "
+             << (ids->size() > 0 ? folly::join(",", *ids) : "None");
   if (ids->empty()) {
     folly::gen::range(0, getNumQsfpModules()) |
       folly::gen::appendTo(*ids);
@@ -88,7 +89,7 @@ void WedgeManager::syncPorts(
 
   for (auto& group : groups) {
     int32_t transceiverIdx = group.key();
-    LOG(INFO) << "Syncing ports of transceiver " << transceiverIdx;
+    XLOG(INFO) << "Syncing ports of transceiver " << transceiverIdx;
 
     auto transceiver = transceivers_.at(transceiverIdx).get();
     transceiver->transceiverPortsChanged(group.values());

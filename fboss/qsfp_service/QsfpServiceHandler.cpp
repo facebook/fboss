@@ -1,4 +1,5 @@
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
+#include <folly/logging/xlog.h>
 
 namespace facebook { namespace fboss {
 
@@ -27,8 +28,8 @@ void QsfpServiceHandler::getTransceiverInfo(std::map<int32_t,
 
 void QsfpServiceHandler::customizeTransceiver(int32_t idx,
     cfg::PortSpeed speed) {
-  LOG(INFO) << "customizeTransceiver request for " << idx <<
-    " to speed " << cfg::_PortSpeed_VALUES_TO_NAMES.find(speed)->second;
+  XLOG(INFO) << "customizeTransceiver request for " << idx << " to speed "
+             << cfg::_PortSpeed_VALUES_TO_NAMES.find(speed)->second;
   manager_->customizeTransceiver(idx, speed);
 }
 

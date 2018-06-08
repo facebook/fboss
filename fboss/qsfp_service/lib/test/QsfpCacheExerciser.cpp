@@ -11,6 +11,7 @@
 #include <folly/io/async/EventBase.h>
 #include <folly/Random.h>
 
+#include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/async/TAsyncSocket.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 
@@ -57,7 +58,7 @@ int main(int argc, char** argv) {
   auto poke = [&]() {
     for (auto& item : ret) {
       if ((folly::Random::rand32() % 10) == 0) {
-        LOG(INFO) << "calling portChanged w/ " << item.first;
+        XLOG(INFO) << "calling portChanged w/ " << item.first;
         qc.portChanged(item.first, item.second);
       }
     }
@@ -66,22 +67,23 @@ int main(int argc, char** argv) {
     std::vector<folly::Future<facebook::fboss::TransceiverInfo>> futs;
     for (int i = 0; i < 40; ++i) {
       if ((folly::Random::rand32() % 10) == 0) {
-        LOG(INFO) << "querying for transceiver " << i;
+        XLOG(INFO) << "querying for transceiver " << i;
         auto fut = qc.futureGet(facebook::fboss::TransceiverID(i))
-          .then([i](auto&& info) {
-            LOG(INFO) << "Successfully got transceiver " << i;
-            return info;
-          }).onError([i](std::runtime_error exc) {
-            LOG(ERROR) << "Error retrieving info for tcvr " << i
-              << ": " << exc.what();
-            return facebook::fboss::TransceiverInfo();
-          });
+                       .then([i](auto&& info) {
+                         XLOG(INFO) << "Successfully got transceiver " << i;
+                         return info;
+                       })
+                       .onError([i](std::runtime_error exc) {
+                         XLOG(ERR) << "Error retrieving info for tcvr " << i
+                                   << ": " << exc.what();
+                         return facebook::fboss::TransceiverInfo();
+                       });
         futs.push_back(std::move(fut));
       }
     }
     if (futs.size() > 0) {
       folly::collectAllSemiFuture(futs).toUnsafeFuture().then([]() {
-        LOG(INFO) << "Retrieved all desired transceivers from cache";
+        XLOG(INFO) << "Retrieved all desired transceivers from cache";
       });
     }
 
