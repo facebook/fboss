@@ -62,9 +62,10 @@ class TestServer(TestService.Iface):
 
     def ping(self, ip, options=None):
         """ @param ip : a string, e.g., "128.8.128.118" """
-        # Ping default options is to capture 1 packet
+        # Ping default options is to capture 3 packets
+        # 1 ping only is not resilient enough, and will cause flaky tests
         if not options:
-            options = ['-c', '1']
+            options = ['-c', '3']
         if ":" in ip:
             options.append('-6')
 
