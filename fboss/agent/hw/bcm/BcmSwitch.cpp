@@ -232,6 +232,15 @@ void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   warmBootCache_ = std::make_unique<BcmWarmBootCache>(this);
   warmBootCache_->populate(folly::Optional<folly::dynamic>(warmBootState));
   setupToCpuEgress();
+
+  // We should always initPorts for portTable_ during init/initTables, Otherwise
+  // portable will be empty.
+  opennsl_port_config_t pcfg;
+  auto rv = opennsl_port_config_get(unit_, &pcfg);
+  bcmCheckError(rv, "failed to get port configuration");
+  portTable_->initPorts(&pcfg, true);
+
+  setupCos();
   stateChangedImpl(
       StateDelta(make_shared<SwitchState>(), getWarmBootSwitchState()));
   setupLinkscan();
@@ -419,9 +428,6 @@ bool BcmSwitch::isPortUp(PortID port) const {
 
 std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   auto bootState = make_shared<SwitchState>();
-  opennsl_port_config_t pcfg;
-  auto rv = opennsl_port_config_get(unit_, &pcfg);
-  bcmCheckError(rv, "failed to get port configuration");
   // On cold boot all ports are in Vlan 1
   auto vlan = make_shared<Vlan>(VlanID(1), "InitVlan");
   Vlan::MemberPorts memberPorts;
