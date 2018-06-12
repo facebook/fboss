@@ -82,6 +82,11 @@ NodeMapDelta<SflowCollectorMap> StateDelta::getSflowCollectorsDelta() const {
                                          new_->getSflowCollectors().get());
 }
 
+NodeMapDelta<LoadBalancerMap> StateDelta::getLoadBalancersDelta() const {
+  return NodeMapDelta<LoadBalancerMap>(
+      old_->getLoadBalancers().get(), new_->getLoadBalancers().get());
+}
+
 std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
   // Leverage the folly::dynamic printing facilities
   folly::dynamic diff = folly::dynamic::object;

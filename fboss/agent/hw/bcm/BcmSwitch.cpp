@@ -50,6 +50,9 @@
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/LoadBalancer.h"
+#include "fboss/agent/state/LoadBalancerMap.h"
+#include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/Port.h"
@@ -67,6 +70,7 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/state/VlanMapDelta.h"
+#include "fboss/agent/types.h"
 
 extern "C" {
 #include <opennsl/link.h>
@@ -718,6 +722,8 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   // As the first step, disable ports that are now disabled.
   // This ensures that we immediately stop forwarding traffic on these ports.
   processDisabledPorts(delta);
+
+  processLoadBalancerChanges(delta);
 
   // remove all routes to be deleted
   processRemovedRoutes(delta);
@@ -1641,5 +1647,32 @@ void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift> *l2Table) {
   }
 }
 #endif
+
+void BcmSwitch::processLoadBalancerChanges(const StateDelta& delta) {
+  forEachChanged(
+      delta.getLoadBalancersDelta(),
+      &BcmSwitch::processChangedLoadBalancer,
+      &BcmSwitch::processAddedLoadBalancer,
+      &BcmSwitch::processRemovedLoadBalancer,
+      this);
+}
+
+void BcmSwitch::processChangedLoadBalancer(
+    const std::shared_ptr<LoadBalancer>& oldLoadBalancer,
+    const std::shared_ptr<LoadBalancer>& newLoadBalancer) {
+  CHECK_EQ(oldLoadBalancer->getID(), newLoadBalancer->getID());
+
+  XLOG(DBG2) << "reprogramming LoadBalancer " << oldLoadBalancer->getID();
+}
+
+void BcmSwitch::processAddedLoadBalancer(
+    const std::shared_ptr<LoadBalancer>& loadBalancer) {
+  XLOG(DBG2) << "creating LoadBalancer " << loadBalancer->getID();
+}
+
+void BcmSwitch::processRemovedLoadBalancer(
+    const std::shared_ptr<LoadBalancer>& loadBalancer) {
+  XLOG(DBG2) << "deleting LoadBalancer " << loadBalancer->getID();
+}
 
 }} // facebook::fboss

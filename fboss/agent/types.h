@@ -10,6 +10,7 @@
 #pragma once
 
 #include <folly/Conv.h>
+#include <iosfwd>
 
 #include <boost/serialization/strong_typedef.hpp>
 #include <cstdint>
@@ -62,5 +63,15 @@ namespace fboss {
 
 using LoadBalancerID = cfg::LoadBalancerID;
 
+} // namespace fboss
+} // namespace facebook
+
+namespace facebook {
+namespace fboss {
+namespace cfg {
+
+std::ostream& operator<<(std::ostream& out, LoadBalancerID id);
+
+} // namespace cfg
 } // namespace fboss
 } // namespace facebook

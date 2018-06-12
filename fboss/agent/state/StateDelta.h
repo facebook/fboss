@@ -18,6 +18,7 @@
 #include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/LoadBalancerMap.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/RouteDelta.h"
@@ -54,6 +55,7 @@ class StateDelta {
   AclMapDelta getAclsDelta() const;
   NodeMapDelta<AggregatePortMap> getAggregatePortsDelta() const;
   NodeMapDelta<SflowCollectorMap> getSflowCollectorsDelta() const;
+  NodeMapDelta<LoadBalancerMap> getLoadBalancersDelta() const;
 
  private:
   // Forbidden copy constructor and assignment operator

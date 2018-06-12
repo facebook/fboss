@@ -52,6 +52,7 @@ class BcmUnit;
 class BcmWarmBootCache;
 class BcmWarmBootHelper;
 class BcmSflowExporterTable;
+class LoadBalancer;
 class SflowCollector;
 class MockRxPacket;
 class Interface;
@@ -463,6 +464,15 @@ class BcmSwitch : public BcmSwitchIf {
   void processAddedAggregatePort(const std::shared_ptr<AggregatePort>& aggPort);
   void processRemovedAggregatePort(
       const std::shared_ptr<AggregatePort>& aggPort);
+
+  void processLoadBalancerChanges(const StateDelta& delta);
+  void processChangedLoadBalancer(
+      const std::shared_ptr<LoadBalancer>& oldLoadBalancer,
+      const std::shared_ptr<LoadBalancer>& newLoadBalancer);
+  void processAddedLoadBalancer(
+      const std::shared_ptr<LoadBalancer>& loadBalancer);
+  void processRemovedLoadBalancer(
+      const std::shared_ptr<LoadBalancer>& loadBalancer);
 
   std::shared_ptr<SwitchState> stateChangedImpl(const StateDelta& delta);
 
