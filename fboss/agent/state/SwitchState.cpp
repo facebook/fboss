@@ -218,6 +218,15 @@ void SwitchState::resetControlPlane(
   writableFields()->controlPlane = controlPlane;
 }
 
+void SwitchState::resetLoadBalancers(
+    std::shared_ptr<LoadBalancerMap> loadBalancers) {
+  writableFields()->loadBalancers.swap(loadBalancers);
+}
+
+const std::shared_ptr<LoadBalancerMap>& SwitchState::getLoadBalancers() const {
+  return getFields()->loadBalancers;
+}
+
 template class NodeBaseT<SwitchState, SwitchStateFields>;
 
 }} // facebook::fboss

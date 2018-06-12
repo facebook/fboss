@@ -19,6 +19,11 @@ LoadBalancerMap::LoadBalancerMap() {}
 
 LoadBalancerMap::~LoadBalancerMap() {}
 
+std::shared_ptr<LoadBalancer> LoadBalancerMap::getLoadBalancerIf(
+    LoadBalancerID id) const {
+  return getNodeIf(id);
+}
+
 FBOSS_INSTANTIATE_NODE_MAP(LoadBalancerMap, LoadBalancerMapTraits);
 
 } // namespace fboss

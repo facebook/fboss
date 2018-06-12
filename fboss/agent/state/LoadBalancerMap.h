@@ -12,6 +12,8 @@
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/types.h"
 
+#include <memory>
+
 namespace facebook {
 namespace fboss {
 
@@ -27,6 +29,8 @@ class LoadBalancerMap
  public:
   LoadBalancerMap();
   ~LoadBalancerMap() override;
+
+  std::shared_ptr<LoadBalancer> getLoadBalancerIf(LoadBalancerID id) const;
 
  private:
   // Inherit the constructors required for clone()

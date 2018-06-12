@@ -268,6 +268,8 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
      writableFields()->dhcpV6ReplySrc = v6ReplySrc;
   }
 
+  const std::shared_ptr<LoadBalancerMap>& getLoadBalancers() const;
+
   /*
    * The following functions modify the static state.
    * The should only be called on newly created SwitchState objects that are
@@ -290,6 +292,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void resetSflowCollectors(
       const std::shared_ptr<SflowCollectorMap>& collectors);
   void resetControlPlane(std::shared_ptr<ControlPlane> cpu);
+  void resetLoadBalancers(std::shared_ptr<LoadBalancerMap> loadBalancers);
 
  private:
   // Inherit the constructor required for clone()

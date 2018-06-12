@@ -14,6 +14,8 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/LacpTypes.h"
+#include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
@@ -37,7 +39,6 @@
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/RouteUpdater.h"
-#include "fboss/agent/LacpTypes.h"
 
 #include <algorithm>
 #include <boost/container/flat_set.hpp>
@@ -401,6 +402,16 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newCollectors = updateSflowCollectors();
     if (newCollectors) {
       newState->resetSflowCollectors(std::move(newCollectors));
+      changed = true;
+    }
+  }
+
+  {
+    LoadBalancerConfigApplier loadBalancerConfigApplier(
+        orig_->getLoadBalancers(), cfg_->get_loadBalancers(), platform_);
+    auto newLoadBalancers = loadBalancerConfigApplier.updateLoadBalancers();
+    if (newLoadBalancers) {
+      newState->resetLoadBalancers(std::move(newLoadBalancers));
       changed = true;
     }
   }

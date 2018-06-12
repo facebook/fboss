@@ -298,6 +298,7 @@ add_library(fboss_agent STATIC
     fboss/agent/LacpTypes.cpp
     fboss/agent/LinkAggregationManager.cpp
     fboss/agent/LldpManager.cpp
+    fboss/agent/LoadBalancerConfigApplier.cpp
     fboss/agent/Main.cpp
     fboss/agent/ndp/IPv6RouteAdvertiser.cpp
     fboss/agent/NdpCache.cpp

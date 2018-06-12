@@ -9,8 +9,13 @@
  */
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/Platform.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 
+#include <folly/MacAddress.h>
+#include <folly/hash/Hash.h>
+
+#include <algorithm>
 #include <limits>
 #include <type_traits>
 
@@ -178,6 +183,53 @@ folly::dynamic LoadBalancer::toFollyDynamic() const {
 
   return serialized;
 }
+
+uint32_t LoadBalancer::generateDeterministicSeed(
+    LoadBalancerID loadBalancerID,
+    const Platform* platform) {
+  // To avoid changing the seed across graceful restarts, the seed is generated
+  // deterministically using the local MAC address.
+  auto mac64 = platform->getLocalMac().u64HBO();
+  uint32_t mac32 = static_cast<uint32_t>(mac64 & 0xFFFFFFFF);
+
+  uint32_t seed = 0;
+  switch (loadBalancerID) {
+    case LoadBalancerID::ECMP:
+      seed = folly::hash::jenkins_rev_mix32(mac32);
+      break;
+    case LoadBalancerID::AGGREGATE_PORT:
+      seed = folly::hash::twang_32from64(mac64);
+      break;
+  }
+
+  return seed;
+}
+
+bool LoadBalancer::operator==(const LoadBalancer& rhs) const {
+  return getID() == rhs.getID() && getSeed() == rhs.getSeed() &&
+      getAlgorithm() == rhs.getAlgorithm() &&
+      std::equal(
+             getIPv4Fields().begin(),
+             getIPv4Fields().end(),
+             rhs.getIPv4Fields().begin(),
+             rhs.getIPv4Fields().end()) &&
+      std::equal(
+             getIPv6Fields().begin(),
+             getIPv6Fields().end(),
+             rhs.getIPv6Fields().begin(),
+             rhs.getIPv6Fields().end()) &&
+      std::equal(
+             getTransportFields().begin(),
+             getTransportFields().end(),
+             rhs.getTransportFields().begin(),
+             rhs.getTransportFields().end());
+}
+
+bool LoadBalancer::operator!=(const LoadBalancer& rhs) const {
+  return !(*this == rhs);
+}
+
+// template class NodeBaseT<AggregatePort, AggregatePortFields>;
 
 } // namespace fboss
 } // namespace facebook

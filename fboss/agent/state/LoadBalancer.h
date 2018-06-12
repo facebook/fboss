@@ -21,6 +21,8 @@
 namespace facebook {
 namespace fboss {
 
+class Platform;
+
 struct LoadBalancerFields {
   using IPv4Field = cfg::IPv4Field;
   using IPv4Fields = boost::container::flat_set<IPv4Field>;
@@ -108,6 +110,13 @@ class LoadBalancer : public NodeBaseT<LoadBalancer, LoadBalancerFields> {
   static std::shared_ptr<LoadBalancer> fromFollyDynamic(
       const folly::dynamic& json);
   folly::dynamic toFollyDynamic() const override;
+
+  bool operator==(const LoadBalancer& rhs) const;
+  bool operator!=(const LoadBalancer& rhs) const;
+
+  static uint32_t generateDeterministicSeed(
+      LoadBalancerID loadBalancerID,
+      const Platform* platform);
 
  private:
   // Inherit the constructors required for clone()
