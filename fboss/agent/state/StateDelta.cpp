@@ -28,6 +28,7 @@
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/RouteTableRib.h"
+#include "fboss/agent/state/LoadBalancer.h"
 
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 
@@ -129,5 +130,6 @@ template class NodeMapDelta<AggregatePortMap>;
 template class NodeMapDelta<SflowCollectorMap>;
 template class NodeMapDelta<RouteTableRibNodeMap<folly::IPAddressV4>>;
 template class NodeMapDelta<RouteTableRibNodeMap<folly::IPAddressV6>>;
+template class NodeMapDelta<LoadBalancerMap>;
 
 }} // facebook::fboss
