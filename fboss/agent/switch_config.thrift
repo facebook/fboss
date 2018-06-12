@@ -656,6 +656,46 @@ struct SflowCollector {
   2: i16 port
 }
 
+enum LoadBalancerID {
+  ECMP = 1,
+  AGGREGATE_PORT = 2,
+}
+
+enum IPv4Field {
+  SOURCE_ADDRESS      = 1,
+  DESTINATION_ADDRESS = 2
+}
+
+enum IPv6Field {
+  SOURCE_ADDRESS      = 1,
+  DESTINATION_ADDRESS = 2,
+  FLOW_LABEL          = 3
+}
+
+enum TransportField {
+  SOURCE_PORT      = 1,
+  DESTINATION_PORT = 2
+}
+
+struct Fields {
+  1: set<IPv4Field> ipv4Fields
+  2: set<IPv6Field> ipv6Fields
+  3: set<TransportField> transportFields
+}
+
+enum HashingAlgorithm {
+  CRC16_CCITT = 1
+}
+
+struct LoadBalancer {
+  1: LoadBalancerID id
+  2: Fields fieldSelection
+  3: HashingAlgorithm algorithm
+  // If not set, the seed will be chosen so as to remain constant across process
+  // restarts
+  4: optional i32 seed
+}
+
 /**
  * The configuration for a switch.
  *
@@ -737,4 +777,5 @@ struct SwitchConfig {
   27: optional Lacp lacp
   28: optional list<PortQueue> cpuQueues
   29: optional CPUTrafficPolicyConfig cpuTrafficPolicy
+  30: list<LoadBalancer> loadBalancers = []
 }

@@ -57,7 +57,8 @@ SwitchStateFields::SwitchStateFields()
       routeTables(make_shared<RouteTableMap>()),
       acls(make_shared<AclMap>()),
       sFlowCollectors(make_shared<SflowCollectorMap>()),
-      controlPlane(make_shared<ControlPlane>()) {}
+      controlPlane(make_shared<ControlPlane>()),
+      loadBalancers(make_shared<LoadBalancerMap>()) {}
 
 folly::dynamic SwitchStateFields::toFollyDynamic() const {
   folly::dynamic switchState = folly::dynamic::object;

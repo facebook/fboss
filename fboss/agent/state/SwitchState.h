@@ -16,14 +16,15 @@
 #include <folly/dynamic.h>
 #include <folly/Memory.h>
 
-#include "fboss/agent/types.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/LoadBalancerMap.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/VlanMap.h"
+#include "fboss/agent/types.h"
 
 namespace facebook { namespace fboss {
 
@@ -44,6 +45,7 @@ struct SwitchStateFields {
     fn(interfaces.get());
     fn(routeTables.get());
     fn(acls.get());
+    fn(loadBalancers.get());
   }
   /*
    * Serialize to folly::dynamic
@@ -62,6 +64,7 @@ struct SwitchStateFields {
   std::shared_ptr<AclMap> acls;
   std::shared_ptr<SflowCollectorMap> sFlowCollectors;
   std::shared_ptr<ControlPlane> controlPlane;
+  std::shared_ptr<LoadBalancerMap> loadBalancers;
   VlanID defaultVlan{0};
 
 
