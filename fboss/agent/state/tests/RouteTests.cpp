@@ -2305,6 +2305,17 @@ class UcmpTest : public ::testing::Test {
     runRecursiveTest(routeUnresolvedNextHops, resolvedWeights);
   }
 
+  void runVaryFromHundredTest(
+      NextHopWeight w,
+      const std::vector<NextHopWeight>& resolvedWeights) {
+    runRecursiveTest(
+        {{UnresolvedNextHop(intfIp1, 100),
+          UnresolvedNextHop(intfIp2, 100),
+          UnresolvedNextHop(intfIp3, 100),
+          UnresolvedNextHop(intfIp4, w)}},
+        resolvedWeights);
+  }
+
   std::vector<std::shared_ptr<Route<folly::IPAddressV4>>> resolvedRoutes;
   const folly::IPAddress intfIp1{"1.1.1.10"};
   const folly::IPAddress intfIp2{"2.2.2.20"};
@@ -2445,4 +2456,47 @@ TEST_F(UcmpTest, separateEcmpUcmp) {
   route2ExpFwd.emplace(ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), 2));
   route2ExpFwd.emplace(ResolvedNextHop(IPAddress("2.2.2.20"), InterfaceID(2), 1));
   EXPECT_EQ(route2ExpFwd, resolvedRoutes[1]->getForwardInfo().getNextHopSet());
+}
+
+// The following set of tests will start with 4 next hops all weight 100
+// then vary one next hop by 10 weight increments to 90, 80, ... , 10
+
+TEST_F(UcmpTest, Hundred) {
+  runVaryFromHundredTest(100, {1, 1, 1, 1});
+}
+
+TEST_F(UcmpTest, Ninety) {
+  runVaryFromHundredTest(90, {10, 10, 10, 9});
+}
+
+TEST_F(UcmpTest, Eighty) {
+  runVaryFromHundredTest(80, {5, 5, 5, 4});
+}
+
+TEST_F(UcmpTest, Seventy) {
+  runVaryFromHundredTest(70, {10, 10, 10, 7});
+}
+
+TEST_F(UcmpTest, Sixty) {
+  runVaryFromHundredTest(60, {5, 5, 5, 3});
+}
+
+TEST_F(UcmpTest, Fifty) {
+  runVaryFromHundredTest(50, {2, 2, 2, 1});
+}
+
+TEST_F(UcmpTest, Forty) {
+  runVaryFromHundredTest(40, {5, 5, 5, 2});
+}
+
+TEST_F(UcmpTest, Thirty) {
+  runVaryFromHundredTest(30, {10, 10, 10, 3});
+}
+
+TEST_F(UcmpTest, Twenty) {
+  runVaryFromHundredTest(20, {5, 5, 5, 1});
+}
+
+TEST_F(UcmpTest, Ten) {
+  runVaryFromHundredTest(10, {10, 10, 10, 1});
 }
