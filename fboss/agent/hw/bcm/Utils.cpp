@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/hw/bcm/Utils.h"
 
+#include <folly/Range.h>
+
 namespace facebook { namespace fboss {
 
 void macFromBcm(opennsl_mac_t mac, folly::MacAddress* result) {
@@ -33,6 +35,11 @@ void ipToBcmIp6(const folly::IPAddress& ip, opennsl_ip6_t* bcmIp6) {
         ip.bytes(),
         ip.byteCount());
   }
+}
+
+folly::IPAddress ipFromBcm(opennsl_ip6_t bcmIp6) {
+  return folly::IPAddress::fromBinary(
+      folly::ByteRange(bcmIp6, 16));
 }
 
 void networkToBcmIp6(
