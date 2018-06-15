@@ -2321,22 +2321,22 @@ class UcmpTest : public ::testing::Test {
   const folly::IPAddress intfIp2{"2.2.2.20"};
   const folly::IPAddress intfIp3{"3.3.3.30"};
   const folly::IPAddress intfIp4{"4.4.4.40"};
-  const std::array<folly::IPAddress, 4> intfIps{intfIp1,
+  const std::array<folly::IPAddress, 4> intfIps{{intfIp1,
                                                 intfIp2,
                                                 intfIp3,
-                                                intfIp4};
+                                                intfIp4}};
   const folly::IPAddress r2Nh{"42.42.42.42"};
   const folly::IPAddress r3Nh{"43.43.43.43"};
-  std::array<folly::IPAddress, 2> r1Nhs{r2Nh, r3Nh};
-  std::array<folly::IPAddress, 2> r2Nhs{intfIp1, intfIp2};
-  std::array<folly::IPAddress, 2> r3Nhs{intfIp3, intfIp4};
-  const std::array<std::array<folly::IPAddress, 2>, 3> rnhs{r1Nhs,
+  std::array<folly::IPAddress, 2> r1Nhs{{r2Nh, r3Nh}};
+  std::array<folly::IPAddress, 2> r2Nhs{{intfIp1, intfIp2}};
+  std::array<folly::IPAddress, 2> r3Nhs{{intfIp3, intfIp4}};
+  const std::array<std::array<folly::IPAddress, 2>, 3> rnhs{{r1Nhs,
                                                             r2Nhs,
-                                                            r3Nhs};
+                                                            r3Nhs}};
   const folly::IPAddress r1Net{"41.41.41.0"};
   const folly::IPAddress r2Net{"42.42.42.0"};
   const folly::IPAddress r3Net{"43.43.43.0"};
-  const std::array<folly::IPAddress, 3> nets{r1Net, r2Net, r3Net};
+  const std::array<folly::IPAddress, 3> nets{{r1Net, r2Net, r3Net}};
   const uint8_t mask{24};
  private:
   RouterID rid_;
