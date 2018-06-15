@@ -20,6 +20,7 @@ extern "C" {
 
 int bde_create() {
   assert(0);
+  return 0;
 }
 void sal_config_init_defaults() {
   assert(0);
