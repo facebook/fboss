@@ -159,15 +159,16 @@ class FbossBaseSystemTest(unittest.TestCase):
         Make sure our topology is still in healthy state
         and no hosts got busted during test
         '''
-        self.log.info("Testing connection to switch")
-        self.TopologyIsSane = self.test_topology.verify_switch(log=self.log)
-        self.assertTrue(self.TopologyIsSane)
-        self.log.info("Testing connection to hosts")
-        self.TopologyIsSane = \
-            self.test_topology.verify_hosts(min_hosts=self.options.min_hosts,
-                                            log=self.log)
-        self.assertTrue(self.TopologyIsSane,
-                        "Test broke connectivity to hosts?")
+        if self.TopologyIsSane:     # don't test if things are already broken
+            self.log.info("Testing connection to switch")
+            self.TopologyIsSane = self.test_topology.verify_switch(log=self.log)
+            self.assertTrue(self.TopologyIsSane)
+            self.log.info("Testing connection to hosts")
+            self.TopologyIsSane = \
+                self.test_topology.verify_hosts(min_hosts=self.options.min_hosts,
+                                                log=self.log)
+            self.assertTrue(self.TopologyIsSane,
+                            "Test broke connectivity to hosts?")
 
 
 def frob_options_into_tests(suite, options):
