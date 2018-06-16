@@ -30,9 +30,10 @@ extern "C" {
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/types.h"
 
+#include "fboss/agent/hw/bcm/BcmAclRange.h"
+
 namespace facebook { namespace fboss {
 class AclMap;
-class AclRange;
 class BcmSwitch;
 class BcmSwitchIf;
 class InterfaceMap;

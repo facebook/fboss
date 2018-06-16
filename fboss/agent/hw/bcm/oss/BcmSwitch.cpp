@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/BufferStatsLogger.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
+#include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 
 #include <folly/Memory.h>
 #include <folly/logging/xlog.h>

@@ -18,6 +18,7 @@
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/SysError.h"
+#include "fboss/agent/hw/bcm/BcmAclTable.h"
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"

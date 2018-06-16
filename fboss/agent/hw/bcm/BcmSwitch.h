@@ -9,15 +9,9 @@
  */
 #pragma once
 
-#include "common/stats/MonotonicCounter.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/bcm/BcmAclTable.h"
-#include "fboss/agent/hw/bcm/BcmCosManager.h"
-#include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
-#include "fboss/agent/hw/bcm/BcmStatUpdater.h"
-#include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 #include <folly/dynamic.h>
 
 #include <gtest/gtest_prod.h>
@@ -38,7 +32,9 @@ namespace facebook { namespace fboss {
 class AclEntry;
 class AggregatePort;
 class ArpEntry;
+class BcmAclTable;
 class BcmControlPlane;
+class BcmCosManager;
 class BcmEgress;
 class BcmHostTable;
 class BcmIntfTable;
@@ -46,6 +42,8 @@ class BcmPlatform;
 class BcmPortTable;
 class BcmRouteTable;
 class BcmRxPacket;
+class BcmStatUpdater;
+class BcmSwitchEventCallback;
 class BcmTableStats;
 class BcmTrunkTable;
 class BcmUnit;
@@ -53,6 +51,7 @@ class BcmWarmBootCache;
 class BcmWarmBootHelper;
 class BcmSflowExporterTable;
 class LoadBalancer;
+class PacketTraceInfo;
 class SflowCollector;
 class MockRxPacket;
 class Interface;

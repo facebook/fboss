@@ -3,6 +3,7 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmTxPacket.h"
+#include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 
 #include <gmock/gmock.h>
 
