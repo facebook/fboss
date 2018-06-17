@@ -20,7 +20,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
-#include "fboss/agent/hw/bcm/Utils.h"
+#include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/state/Interface.h"
 
 namespace facebook { namespace fboss {

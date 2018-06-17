@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/hw/bcm/Utils.h"
+#include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>

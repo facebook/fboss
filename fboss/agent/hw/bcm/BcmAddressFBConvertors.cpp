@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/Utils.h"
+#include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 
 #include <folly/Range.h>
 

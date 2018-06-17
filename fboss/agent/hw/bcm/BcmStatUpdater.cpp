@@ -10,7 +10,7 @@
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmAclStat.h"
-#include "fboss/agent/hw/bcm/Utils.h"
+#include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 
 #include <boost/container/flat_map.hpp>
 
