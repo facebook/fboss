@@ -361,7 +361,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     // Make sure there is a one-to-one map between vlan and interface
     // Remove this sanity check if multiple interfaces are allowed per vlans
     auto& entry = vlanInterfaces_[vlanInfo.first];
-    if (entry.interfaces.size() != 1) {
+    if (entry.interfaces.size() > 1) {
       auto cpu_vlan = new_->getDefaultVlan();
       if (vlanInfo.first != cpu_vlan) {
         throw FbossError("Vlan ", vlanInfo.first, " refers to ",
