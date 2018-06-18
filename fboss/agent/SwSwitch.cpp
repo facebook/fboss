@@ -258,6 +258,7 @@ void SwSwitch::stop() {
   updThreadHeartbeat_.reset();
   packetTxThreadHeartbeat_.reset();
   lacpThreadHeartbeat_.reset();
+  neighborCacheThreadHeartbeat_.reset();
 
   // stops the background and update threads.
   stopThreads();
@@ -547,6 +548,15 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
       *folly::getThreadName(lacpThread_->get_id()),
       FLAGS_thread_heartbeat_ms,
       updateLacpThreadHeartbeatStats);
+
+  neighborCacheThreadHeartbeat_ = std::make_unique<ThreadHeartbeat>(
+      &neighborCacheEventBase_,
+      *folly::getThreadName(neighborCacheThread_->get_id()),
+      FLAGS_thread_heartbeat_ms,
+      [this](int delay, int backlog) {
+        stats()->neighborCacheHeartbeatDelay(delay);
+        stats()->neighborCacheEventBacklog(backlog);
+      });
 
   portRemediator_->init();
 
@@ -1169,6 +1179,9 @@ void SwSwitch::startThreads() {
       [=] { this->threadLoop("fbossQsfpCacheThread", &qsfpCacheEventBase_); }));
   lacpThread_.reset(new std::thread(
       [=] { this->threadLoop("fbossLacpThread", &lacpEventBase_); }));
+  neighborCacheThread_.reset(new std::thread([=] {
+    this->threadLoop("fbossNeighborCacheThread", &neighborCacheEventBase_);
+  }));
 }
 
 void SwSwitch::stopThreads() {
@@ -1202,6 +1215,10 @@ void SwSwitch::stopThreads() {
     lacpEventBase_.runInEventBaseThread(
         [this] { lacpEventBase_.terminateLoopSoon(); });
   }
+  if (neighborCacheThread_) {
+    neighborCacheEventBase_.runInEventBaseThread(
+        [this] { neighborCacheEventBase_.terminateLoopSoon(); });
+  }
   if (backgroundThread_) {
     backgroundThread_->join();
   }
@@ -1219,6 +1236,9 @@ void SwSwitch::stopThreads() {
   }
   if (lacpThread_) {
     lacpThread_->join();
+  }
+  if (neighborCacheThread_) {
+    neighborCacheThread_->join();
   }
 }
 

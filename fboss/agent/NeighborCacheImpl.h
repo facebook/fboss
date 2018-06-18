@@ -52,16 +52,18 @@ class NeighborCacheImpl {
   bool flushEntryBlocking (AddressType ip);
   void repopulate(std::shared_ptr<NTable> table);
 
-  NeighborCacheImpl(NeighborCache<NTable>* cache,
-                    SwSwitch* sw,
-                    VlanID vlanID,
-                    std::string vlanName,
-                    InterfaceID intfID)
+  NeighborCacheImpl(
+      NeighborCache<NTable>* cache,
+      SwSwitch* sw,
+      VlanID vlanID,
+      std::string vlanName,
+      InterfaceID intfID)
       : cache_(cache),
         sw_(sw),
         vlanID_(vlanID),
         vlanName_(vlanName),
-        intfID_(intfID) {}
+        intfID_(intfID),
+        evb_(sw->getNeighborCacheEvb()) {}
 
   // Methods useful for subclasses
   void setPendingEntry(AddressType ip,
@@ -115,6 +117,7 @@ class NeighborCacheImpl {
   std::list<NeighborEntryThrift> getCacheData() const;
 
   void clearEntries();
+
  private:
   // These are used to program entries into the SwitchState
   void programEntry(Entry* entry);
@@ -146,6 +149,7 @@ class NeighborCacheImpl {
   VlanID vlanID_;
   std::string vlanName_;
   InterfaceID intfID_;
+  folly::EventBase* evb_;
 
   // Map of all entries
   std::unordered_map<AddressType, std::shared_ptr<Entry>> entries_;

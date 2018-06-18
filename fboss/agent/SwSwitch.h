@@ -422,6 +422,13 @@ class SwSwitch : public HwSwitch::Callback {
     return &updateEventBase_;
   }
 
+  /*
+   * Get the EventBase for Arp/Ndp Cache
+   */
+  folly::EventBase* getNeighborCacheEvb() {
+    return &neighborCacheEventBase_;
+  }
+
   /**
    * Do the packet received callback, and throw exception if there is an error
    * in the handling of packet.
@@ -807,6 +814,13 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<std::thread> lacpThread_;
   folly::EventBase lacpEventBase_;
   std::unique_ptr<ThreadHeartbeat> lacpThreadHeartbeat_;
+
+  /*
+   * A thread dedicated to Arp and Ndp cache entry processing.
+   */
+  std::unique_ptr<std::thread> neighborCacheThread_;
+  folly::EventBase neighborCacheEventBase_;
+  std::unique_ptr<ThreadHeartbeat> neighborCacheThreadHeartbeat_;
 
   /*
    * A callback for listening to neighbors coming and going.
