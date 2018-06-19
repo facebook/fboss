@@ -13,22 +13,23 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/ThriftHandler.h"
+#include "fboss/agent/TxPacket.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
-#include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/EthHdr.h"
-#include "fboss/agent/packet/IPv6Hdr.h"
+#include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/ICMPHdr.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
-#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/RouteUpdater.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/CounterCache.h"
-#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/HwTestHandle.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/test/NeighborEntryTest.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <future>
 #include <netinet/icmp6.h>
@@ -479,8 +480,13 @@ TEST(NdpTest, TriggerSolicitation) {
         IPAddressV6("2401:db00:2110:3004::1:0"),
         VlanID(5)));
 
+  WaitForNdpEntryCreation neighborEntryCreate(
+      sw, IPAddressV6("2401:db00:2110:3004::1:0"), VlanID(5));
   // Send the packet to the SwSwitch
   handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), VlanID(5));
+
+  // expect neighbor solicitation to neighbor in the subnet & entry in NDP table
+  EXPECT_TRUE(neighborEntryCreate.wait());
 
   // Check the new stats
   counters.update();
@@ -530,8 +536,17 @@ TEST(NdpTest, TriggerSolicitation) {
         IPAddressV6("2401:db00:2110:3004::2"),
         VlanID(5)));
 
+  /* expect neighbor solicitations to nexthops and their entries in NDP table */
+  WaitForNdpEntryCreation nextHop1Create(
+      sw, IPAddressV6("2401:db00:2110:3004::1"), VlanID(5));
+  WaitForNdpEntryCreation nextHop2Create(
+      sw, IPAddressV6("2401:db00:2110:3004::2"), VlanID(5));
+
   // Send the packet to the SwSwitch
   handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), VlanID(5));
+
+  EXPECT_TRUE(nextHop1Create.wait());
+  EXPECT_TRUE(nextHop2Create.wait());
 
   // Check the new stats
   counters.update();
@@ -672,81 +687,68 @@ TEST(NdpTest, FlushEntry) {
   auto sw = handle->getSw();
 
   ThriftHandler thriftHandler(sw);
-  std::vector<NdpEntryThrift> ndpTable;
 
   // Helper for checking entries in NDP table
-  auto checkEntry = [&](int idx, StringPiece ip, StringPiece mac, int port) {
-    SCOPED_TRACE(folly::to<std::string>("index ", idx));
-    EXPECT_EQ(ndpTable[idx].vlanID, 5);
-    EXPECT_EQ(ndpTable[idx].vlanName, "PrimaryVlan");
-    EXPECT_EQ(toIPAddress(ndpTable[idx].ip).str(), ip);
-    EXPECT_EQ(ndpTable[idx].mac, mac);
-    EXPECT_EQ(ndpTable[idx].port, port);
+  auto getNDPTableEntry = [&](IPAddressV6 ip, VlanID vlan) {
+    return sw->getState()
+        ->getVlans()
+        ->getVlanIf(vlan)
+        ->getNdpTable()
+        ->getEntryIf(ip);
   };
 
   // Send two unsolicited neighbor advertisements, state should update at
   // least once
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
+  WaitForNdpEntryCreation neighbor1Create(
+      sw, IPAddressV6("2401:db00:2110:3004::b"), VlanID(5));
+  WaitForNdpEntryCreation neighbor2Create(
+      sw, IPAddressV6("2401:db00:2110:3004::c"), VlanID(5));
+
   sendNeighborAdvertisement(handle.get(), "2401:db00:2110:3004::b",
                             "02:05:73:f9:46:fb", 1, 5);
   sendNeighborAdvertisement(handle.get(), "2401:db00:2110:3004::c",
                             "02:05:73:f9:46:fc", 1, 5);
-  waitForStateUpdates(sw);
 
-  // Check there are 2 entries
-  thriftHandler.getNdpTable(ndpTable);
-  ASSERT_EQ(ndpTable.size(), 2);
-  // Sort the results so we can check the exact ordering here.
-  std::sort(
-    ndpTable.begin(),
-    ndpTable.end(),
-    [](const NdpEntryThrift& a, const NdpEntryThrift& b) {
-      return a.mac < b.mac;
-    }
-  );
-  checkEntry(0, "2401:db00:2110:3004::b", "02:05:73:f9:46:fb", 1);
-  checkEntry(1, "2401:db00:2110:3004::c", "02:05:73:f9:46:fc", 1);
+  EXPECT_TRUE(neighbor1Create.wait());
+  EXPECT_TRUE(neighbor2Create.wait());
 
   // Flush 2401:db00:2110:3004::b
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(1);
+  WaitForNdpEntryExpiration neighbor1Expire(
+      sw, IPAddressV6("2401:db00:2110:3004::b"), VlanID(5));
   auto binAddr = toBinaryAddress(
     IPAddressV6("2401:db00:2110:3004::b"));
   auto numFlushed = thriftHandler.flushNeighborEntry(
     make_unique<BinaryAddress>(binAddr), 5);
   EXPECT_EQ(numFlushed, 1);
-
-  // Only one entry now
-  ndpTable.clear();
-  thriftHandler.getNdpTable(ndpTable);
-  ASSERT_EQ(ndpTable.size(), 1);
-  checkEntry(0, "2401:db00:2110:3004::c", "02:05:73:f9:46:fc", 1);
-
-  // Try flushing 2401:db00:2110:3004::b again (should be a no-op)
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
-  binAddr = toBinaryAddress(
-    IPAddressV6("2401:db00:2110:3004::b"));
-  numFlushed = thriftHandler.flushNeighborEntry(
-    make_unique<BinaryAddress>(binAddr), 5);
-  EXPECT_EQ(numFlushed, 0);
+  EXPECT_TRUE(neighbor1Expire.wait());
 
   // Still one entry
-  ndpTable.clear();
-  thriftHandler.getNdpTable(ndpTable);
-  ASSERT_EQ(ndpTable.size(), 1);
-  checkEntry(0, "2401:db00:2110:3004::c", "02:05:73:f9:46:fc", 1);
+  // Only one entry now
+  auto entry0 =
+      getNDPTableEntry(IPAddressV6("2401:db00:2110:3004::b"), VlanID(5));
+  EXPECT_EQ(entry0, nullptr);
+
+  auto entry1 =
+      getNDPTableEntry(IPAddressV6("2401:db00:2110:3004::c"), VlanID(5));
+  EXPECT_NE(entry1, nullptr);
+  EXPECT_EQ(entry1->getMac(), MacAddress("02:05:73:f9:46:fc"));
 
   // Now flush 2401:db00:2110:3004::c, but using special Vlan0
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(1);
+  WaitForNdpEntryExpiration neighbor2Expire(
+      sw, IPAddressV6("2401:db00:2110:3004::c"), VlanID(5));
   binAddr = toBinaryAddress(
     IPAddressV6("2401:db00:2110:3004::c"));
   numFlushed = thriftHandler.flushNeighborEntry(
     make_unique<BinaryAddress>(binAddr), 0);
   EXPECT_EQ(numFlushed, 1);
+  EXPECT_TRUE(neighbor2Expire.wait());
 
-  // Table should be empty now
-  ndpTable.clear();
-  thriftHandler.getNdpTable(ndpTable);
-  ASSERT_EQ(ndpTable.size(), 0);
+  // Try flushing 2401:db00:2110:3004::c again (should be a no-op)
+  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
+  binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
+  numFlushed =
+      thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 5);
+  EXPECT_EQ(numFlushed, 0);
 }
 
 TEST(NdpTest, PendingNdp) {
@@ -787,7 +789,8 @@ TEST(NdpTest, PendingNdp) {
 
   // We should get a neighbor solicitation back and the state should change once
   // to add the pending entry
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
+  WaitForNdpEntryCreation neighborEntryCreate(
+      sw, IPAddressV6("2401:db00:2110:3004::1:0"), vlanID);
   EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
@@ -798,9 +801,9 @@ TEST(NdpTest, PendingNdp) {
 
   // Send the packet to the SwSwitch
   handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), vlanID);
+  EXPECT_TRUE(neighborEntryCreate.wait());
 
   // Should see a pending entry now
-  waitForStateUpdates(sw);
   auto entry = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()
     ->getEntryIf(IPAddressV6("2401:db00:2110:3004::1:0"));
   EXPECT_NE(entry, nullptr);
@@ -810,31 +813,15 @@ TEST(NdpTest, PendingNdp) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ndp.sum", 0);
 
-  // Receiving this duplicate packet should NOT trigger an ndp solicitation out,
-  // and no state update for now.
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
+  WaitForNdpEntryReachable neighborEntryReachable(
+      sw, IPAddressV6("2401:db00:2110:3004::1:0"), vlanID);
 
-  // Send the packet to the SwSwitch
-  handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), vlanID);
-
-  // Should still see a pending entry now
-  waitForStateUpdates(sw);
-  entry = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()
-    ->getEntryIf(IPAddressV6("2401:db00:2110:3004::1:0"));
-  EXPECT_NE(entry, nullptr);
-  EXPECT_EQ(entry->isPending(), true);
-
-  counters.update();
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ndp.sum", 0);
-
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(1);
   // Receive an ndp advertisement for our pending entry
   sendNeighborAdvertisement(handle.get(), "2401:db00:2110:3004::1:0",
                             "02:10:20:30:40:22", 1, vlanID);
 
   // The entry should now be valid instead of pending
-  waitForStateUpdates(sw);
+  EXPECT_TRUE(neighborEntryReachable.wait());
   entry = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()
     ->getEntryIf(IPAddressV6("2401:db00:2110:3004::1:0"));
   EXPECT_NE(entry, nullptr);
@@ -896,7 +883,8 @@ TEST(NdpTest, PendingNdpCleanup) {
 
   // We should get a neighbor solicitation back and the state should change once
   // to add the pending entry
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(1);
+  WaitForNdpEntryCreation neighborEntryCreate(
+      sw, IPAddressV6("2401:db00:2110:3004::1:0"), vlanID);
   EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
@@ -907,9 +895,9 @@ TEST(NdpTest, PendingNdpCleanup) {
 
   // Send the packet to the SwSwitch
   handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), vlanID);
-
+  // waitForStateUpdates(sw);
   // Should see a pending entry now
-  waitForStateUpdates(sw);
+  EXPECT_TRUE(neighborEntryCreate.wait());
   auto entry = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()
     ->getEntryIf(IPAddressV6("2401:db00:2110:3004::1:0"));
   EXPECT_NE(entry, nullptr);
@@ -947,7 +935,11 @@ TEST(NdpTest, PendingNdpCleanup) {
       "2a 7e");
 
   // We should send two more neighbor solicitations
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
+  WaitForNdpEntryCreation nexthop1Create(
+      sw, IPAddressV6("2401:db00:2110:3004::1"), vlanID);
+  WaitForNdpEntryCreation nexthop2Create(
+      sw, IPAddressV6("2401:db00:2110:3004::2"), vlanID);
+
   EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
@@ -967,12 +959,14 @@ TEST(NdpTest, PendingNdpCleanup) {
   // Send the packet to the SwSwitch
   handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), VlanID(5));
 
+  EXPECT_TRUE(nexthop1Create.wait());
+  EXPECT_TRUE(nexthop2Create.wait());
+
   // Check the new stats
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 
   // Should see two more pending entries now
-  waitForStateUpdates(sw);
   entry = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()
     ->getEntryIf(IPAddressV6("2401:db00:2110:3004::1"));
   auto entry2 = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()
@@ -983,7 +977,13 @@ TEST(NdpTest, PendingNdpCleanup) {
   EXPECT_EQ(entry2->isPending(), true);
 
  // Wait for pending entries to expire
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
+  WaitForNdpEntryExpiration neighborExpire(
+      sw, IPAddressV6("2401:db00:2110:3004::1:0"), vlanID);
+  WaitForNdpEntryExpiration nexthop1Expire(
+      sw, IPAddressV6("2401:db00:2110:3004::1"), vlanID);
+  WaitForNdpEntryExpiration nexthop2Expire(
+      sw, IPAddressV6("2401:db00:2110:3004::2"), vlanID);
+
   std::promise<bool> done;
   auto* evb = sw->getBackgroundEvb();
   evb->runInEventBaseThread([&]() {
@@ -993,6 +993,9 @@ TEST(NdpTest, PendingNdpCleanup) {
     });
   done.get_future().wait();
 
+  EXPECT_TRUE(neighborExpire.wait());
+  EXPECT_TRUE(nexthop1Expire.wait());
+  EXPECT_TRUE(nexthop2Expire.wait());
   // Entries should be removed
   auto ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
   entry = ndpTable->getEntryIf(IPAddressV6("2401:db00:2110:3004::1:0"));
@@ -1049,7 +1052,7 @@ TEST(NdpTest, NdpExpiration) {
 
   // We should get a neighbor solicitation back and the state should change once
   // to add the pending entry
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(1);
+  WaitForNdpEntryCreation neighbor0Create(sw, targetIP, vlanID);
   EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
@@ -1062,7 +1065,7 @@ TEST(NdpTest, NdpExpiration) {
   handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), vlanID);
 
   // Should see a pending entry now
-  waitForStateUpdates(sw);
+  EXPECT_TRUE(neighbor0Create.wait());
   auto entry = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()
     ->getEntryIf(targetIP);
   EXPECT_NE(entry, nullptr);
@@ -1100,7 +1103,9 @@ TEST(NdpTest, NdpExpiration) {
       "2a 7e");
 
   // We should send two more neighbor solicitations
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
+  WaitForNdpEntryCreation neighbor1Create(sw, targetIP2, vlanID);
+  WaitForNdpEntryCreation neighbor2Create(sw, targetIP3, vlanID);
+
   EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
@@ -1125,7 +1130,8 @@ TEST(NdpTest, NdpExpiration) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 
   // Should see two more pending entries now
-  waitForStateUpdates(sw);
+  EXPECT_TRUE(neighbor1Create.wait());
+  EXPECT_TRUE(neighbor2Create.wait());
 
   auto ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
   auto entry2 = ndpTable->getEntryIf(targetIP2);
@@ -1135,7 +1141,10 @@ TEST(NdpTest, NdpExpiration) {
   EXPECT_NE(entry3, nullptr);
   EXPECT_EQ(entry3->isPending(), true);
 
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
+  WaitForNdpEntryReachable neighbor0Reachable(sw, targetIP, vlanID);
+  WaitForNdpEntryReachable neighbor1Reachable(sw, targetIP2, vlanID);
+  WaitForNdpEntryReachable neighbor2Reachable(sw, targetIP3, vlanID);
+
   // Receive ndp advertisements for our pending entries
   sendNeighborAdvertisement(handle.get(), targetIP.str(),
                             "02:10:20:30:40:22", 1, vlanID);
@@ -1155,7 +1164,10 @@ TEST(NdpTest, NdpExpiration) {
     .WillRepeatedly(testing::Return(true));
 
   // The entries should now be valid instead of pending
-  waitForStateUpdates(sw);
+  EXPECT_TRUE(neighbor0Reachable.wait());
+  EXPECT_TRUE(neighbor1Reachable.wait());
+  EXPECT_TRUE(neighbor2Reachable.wait());
+
   ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
   entry = ndpTable->getEntryIf(targetIP);
   entry2 = ndpTable->getEntryIf(targetIP2);
@@ -1189,7 +1201,9 @@ TEST(NdpTest, NdpExpiration) {
  // We wait 2.5 seconds(plus change):
  // Up to 1.5 seconds for lifetime.
  // 1 more second for probe
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
+  WaitForNdpEntryExpiration expire1(sw, targetIP2, vlanID);
+  WaitForNdpEntryExpiration expire2(sw, targetIP3, vlanID);
+
   std::promise<bool> done;
   auto* evb = sw->getBackgroundEvb();
   evb->runInEventBaseThread([&]() {
@@ -1198,6 +1212,8 @@ TEST(NdpTest, NdpExpiration) {
       }, 2550);
     });
   done.get_future().wait();
+  EXPECT_TRUE(expire1.wait());
+  EXPECT_TRUE(expire2.wait());
 
   // The first entry should not be expired, but the others should be
   ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
@@ -1223,7 +1239,7 @@ TEST(NdpTest, NdpExpiration) {
         vlanID));
 
  // Wait for the first entry to expire
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
+  WaitForNdpEntryExpiration expire0(sw, targetIP, vlanID);
   std::promise<bool> done2;
   evb->runInEventBaseThread([&]() {
       evb->tryRunAfterDelay([&]() {
@@ -1231,6 +1247,7 @@ TEST(NdpTest, NdpExpiration) {
       }, 2050);
     });
   done2.get_future().wait();
+  EXPECT_TRUE(expire0.wait());
 
   // First entry should now be expired
   entry =
@@ -1292,7 +1309,7 @@ TEST(NdpTest, PortFlapRecover) {
 
   // We should get a neighbor solicitation back and the state should change once
   // to add the pending entry
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(1);
+  WaitForNdpEntryCreation neighbor0Create(sw, targetIP, vlanID);
   EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
@@ -1305,9 +1322,10 @@ TEST(NdpTest, PortFlapRecover) {
   handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), vlanID);
 
   // Should see a pending entry now
-  auto state = waitForStateUpdates(sw);
-  auto entry = state->getVlans()->getVlanIf(vlanID)->getNdpTable()
-    ->getEntryIf(targetIP);
+  EXPECT_TRUE(neighbor0Create.wait());
+  auto entry =
+      sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()->getEntryIf(
+          targetIP);
   EXPECT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), true);
 
@@ -1343,7 +1361,8 @@ TEST(NdpTest, PortFlapRecover) {
       "2a 7e");
 
   // We should send two more neighbor solicitations
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
+  WaitForNdpEntryCreation neighbor1Create(sw, targetIP2, vlanID);
+  WaitForNdpEntryCreation neighbor2Create(sw, targetIP3, vlanID);
   EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
@@ -1363,14 +1382,15 @@ TEST(NdpTest, PortFlapRecover) {
   // Send the packet to the SwSwitch
   handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), VlanID(5));
 
+  EXPECT_TRUE(neighbor1Create.wait());
+  EXPECT_TRUE(neighbor2Create.wait());
   // Check the new stats
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 
   // Should see two more pending entries now
-  state = waitForStateUpdates(sw);
 
-  auto ndpTable = state->getVlans()->getVlanIf(vlanID)->getNdpTable();
+  auto ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
   auto entry2 = ndpTable->getEntryIf(targetIP2);
   auto entry3 = ndpTable->getEntryIf(targetIP3);
   EXPECT_NE(entry2, nullptr);
@@ -1378,13 +1398,20 @@ TEST(NdpTest, PortFlapRecover) {
   EXPECT_NE(entry3, nullptr);
   EXPECT_EQ(entry3->isPending(), true);
 
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
+  WaitForNdpEntryReachable neighbor0Reachable(sw, targetIP, vlanID);
+  WaitForNdpEntryReachable neighbor1Reachable(sw, targetIP2, vlanID);
+  WaitForNdpEntryReachable neighbor2Reachable(sw, targetIP3, vlanID);
+
   sendNeighborAdvertisement(handle.get(), targetIP.str(),
                             "02:10:20:30:40:22", 1, vlanID);
   sendNeighborAdvertisement(handle.get(), targetIP2.str(),
                             "02:10:20:30:40:22", 1, vlanID);
   sendNeighborAdvertisement(handle.get(), targetIP3.str(),
                             "02:10:20:30:40:23", 2, vlanID);
+
+  EXPECT_TRUE(neighbor0Reachable.wait());
+  EXPECT_TRUE(neighbor1Reachable.wait());
+  EXPECT_TRUE(neighbor2Reachable.wait());
 
   // Have getAndClearNeighborHit return false for the first entry,
   // but true for the others. This should result in the first
@@ -1397,8 +1424,7 @@ TEST(NdpTest, PortFlapRecover) {
     .WillRepeatedly(testing::Return(true));
 
   // The entries should now be valid instead of pending
-  state = waitForStateUpdates(sw);
-  ndpTable = state->getVlans()->getVlanIf(vlanID)->getNdpTable();
+  ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
   entry = ndpTable->getEntryIf(targetIP);
   entry2 = ndpTable->getEntryIf(targetIP2);
   entry3 = ndpTable->getEntryIf(targetIP3);
@@ -1411,6 +1437,9 @@ TEST(NdpTest, PortFlapRecover) {
 
   // send a port down event to the switch for port 1
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
+  WaitForNdpEntryPending neigbor0Pending(sw, targetIP, vlanID);
+  WaitForNdpEntryPending neigbor1Pending(sw, targetIP2, vlanID);
+
   sw->linkStateChanged(PortID(1), false);
 
   // purging neighbor entries occurs on the background EVB via NeighorUpdater as
@@ -1420,9 +1449,12 @@ TEST(NdpTest, PortFlapRecover) {
   // block until neighbor purging logic has been executed on the background evb
   waitForBackgroundThread(sw);
   // block until updates to neighbor entries have been picked up by SwitchState
-  state = waitForStateUpdates(sw);
+  waitForStateUpdates(sw);
 
   // The first two entries should be pending now, but not the third
+  EXPECT_TRUE(neigbor0Pending.wait());
+  EXPECT_TRUE(neigbor1Pending.wait());
+
   ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
   entry = ndpTable->getEntryIf(targetIP);
   entry2 = ndpTable->getEntryIf(targetIP2);
@@ -1443,8 +1475,10 @@ TEST(NdpTest, PortFlapRecover) {
   sendNeighborAdvertisement(handle.get(), targetIP2.str(),
                             "02:10:20:30:40:22", 1, vlanID);
 
+  EXPECT_TRUE(neighbor0Reachable.wait());
+  EXPECT_TRUE(neighbor1Reachable.wait());
+
   // All entries should be valid again
-  state = waitForStateUpdates(sw);
   ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
   entry = ndpTable->getEntryIf(targetIP);
   entry2 = ndpTable->getEntryIf(targetIP2);

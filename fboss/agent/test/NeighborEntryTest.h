@@ -18,35 +18,46 @@ using folly::IPAddressV4;
 using folly::IPAddressV6;
 using std::shared_ptr;
 
-DeltaValue<ArpEntry>
-getNeighborEntryDelta(const StateDelta& delta, IPAddressV4 ip, VlanID vlan) {
-  shared_ptr<ArpEntry> oldEntry = nullptr;
-  shared_ptr<ArpEntry> newEntry = nullptr;
-  const auto& newVlan = delta.getVlansDelta().getNew()->getNodeIf(vlan);
-  const auto& oldVlan = delta.getVlansDelta().getOld()->getNodeIf(vlan);
-  if (nullptr != newVlan) {
-    newEntry = newVlan->getArpTable()->getEntryIf(ip);
+template <typename IPTYPE>
+struct NeighborEntryTestUtil {
+  template <typename T = IPTYPE>
+  static DeltaValue<NdpEntry> getNeighborEntryDelta(
+      const StateDelta& delta,
+      typename std::
+          enable_if<std::is_same<T, IPAddressV6>::value, IPAddressV6>::type ip,
+      VlanID vlan) {
+    shared_ptr<NdpEntry> oldEntry = nullptr;
+    shared_ptr<NdpEntry> newEntry = nullptr;
+    const auto& newVlan = delta.getVlansDelta().getNew()->getNodeIf(vlan);
+    const auto& oldVlan = delta.getVlansDelta().getOld()->getNodeIf(vlan);
+    if (nullptr != newVlan) {
+      newEntry = newVlan->getNdpTable()->getEntryIf(ip);
+    }
+    if (nullptr != oldVlan) {
+      oldEntry = oldVlan->getNdpTable()->getEntryIf(ip);
+    }
+    return DeltaValue<NdpEntry>(oldEntry, newEntry);
   }
-  if (nullptr != oldVlan) {
-    oldEntry = oldVlan->getArpTable()->getEntryIf(ip);
-  }
-  return DeltaValue<ArpEntry>(oldEntry, newEntry);
-}
 
-DeltaValue<NdpEntry>
-getNeighborEntryDelta(const StateDelta& delta, IPAddressV6 ip, VlanID vlan) {
-  shared_ptr<NdpEntry> oldEntry = nullptr;
-  shared_ptr<NdpEntry> newEntry = nullptr;
-  const auto& newVlan = delta.getVlansDelta().getNew()->getNodeIf(vlan);
-  const auto& oldVlan = delta.getVlansDelta().getOld()->getNodeIf(vlan);
-  if (nullptr != newVlan) {
-    newEntry = newVlan->getNdpTable()->getEntryIf(ip);
+  template <typename T = IPTYPE>
+  static DeltaValue<ArpEntry> getNeighborEntryDelta(
+      const StateDelta& delta,
+      typename std::
+          enable_if<std::is_same<T, IPAddressV4>::value, IPAddressV4>::type ip,
+      VlanID vlan) {
+    shared_ptr<ArpEntry> oldEntry = nullptr;
+    shared_ptr<ArpEntry> newEntry = nullptr;
+    const auto& newVlan = delta.getVlansDelta().getNew()->getNodeIf(vlan);
+    const auto& oldVlan = delta.getVlansDelta().getOld()->getNodeIf(vlan);
+    if (nullptr != newVlan) {
+      newEntry = newVlan->getArpTable()->getEntryIf(ip);
+    }
+    if (nullptr != oldVlan) {
+      oldEntry = oldVlan->getArpTable()->getEntryIf(ip);
+    }
+    return DeltaValue<ArpEntry>(oldEntry, newEntry);
   }
-  if (nullptr != oldVlan) {
-    oldEntry = oldVlan->getNdpTable()->getEntryIf(ip);
-  }
-  return DeltaValue<NdpEntry>(oldEntry, newEntry);
-}
+};
 
 template <class IPTYPE>
 class WaitForNeighborEntryExpiration : public WaitForSwitchState {
@@ -59,7 +70,8 @@ class WaitForNeighborEntryExpiration : public WaitForSwitchState {
             sw,
             [ipAddress, vlan](const StateDelta& delta) {
               const auto& neighborEntryDelta =
-                  getNeighborEntryDelta(delta, ipAddress, vlan);
+                  NeighborEntryTestUtil<IPTYPE>::getNeighborEntryDelta(
+                      delta, ipAddress, vlan);
               const auto& oldEntry = neighborEntryDelta.getOld();
               const auto& newEntry = neighborEntryDelta.getNew();
               return (oldEntry != nullptr) && (newEntry == nullptr);
@@ -79,7 +91,8 @@ class WaitForNeighborEntryCreation : public WaitForSwitchState {
             sw,
             [ipAddress, vlan](const StateDelta& delta) {
               const auto& neighborEntryDelta =
-                  getNeighborEntryDelta(delta, ipAddress, vlan);
+                  NeighborEntryTestUtil<IPTYPE>::getNeighborEntryDelta(
+                      delta, ipAddress, vlan);
               const auto& oldEntry = neighborEntryDelta.getOld();
               const auto& newEntry = neighborEntryDelta.getNew();
               return (oldEntry == nullptr) && (newEntry != nullptr);
@@ -99,7 +112,8 @@ class WaitForNeighborEntryPending : public WaitForSwitchState {
             sw,
             [ipAddress, vlan](const StateDelta& delta) {
               const auto& neighborEntryDelta =
-                  getNeighborEntryDelta(delta, ipAddress, vlan);
+                  NeighborEntryTestUtil<IPTYPE>::getNeighborEntryDelta(
+                      delta, ipAddress, vlan);
               const auto& oldEntry = neighborEntryDelta.getOld();
               const auto& newEntry = neighborEntryDelta.getNew();
               return (oldEntry != nullptr) && (newEntry != nullptr) &&
@@ -120,7 +134,8 @@ class WaitForNeighborEntryReachable : public WaitForSwitchState {
             sw,
             [ipAddress, vlan](const StateDelta& delta) {
               const auto& neighborEntryDelta =
-                  getNeighborEntryDelta(delta, ipAddress, vlan);
+                  NeighborEntryTestUtil<IPTYPE>::getNeighborEntryDelta(
+                      delta, ipAddress, vlan);
               const auto& oldEntry = neighborEntryDelta.getOld();
               const auto& newEntry = neighborEntryDelta.getNew();
               return (oldEntry != nullptr) && (newEntry != nullptr) &&
@@ -134,6 +149,11 @@ typedef WaitForNeighborEntryExpiration<IPAddressV4> WaitForArpEntryExpiration;
 typedef WaitForNeighborEntryCreation<IPAddressV4> WaitForArpEntryCreation;
 typedef WaitForNeighborEntryPending<IPAddressV4> WaitForArpEntryPending;
 typedef WaitForNeighborEntryReachable<IPAddressV4> WaitForArpEntryReachable;
+
+typedef WaitForNeighborEntryExpiration<IPAddressV6> WaitForNdpEntryExpiration;
+typedef WaitForNeighborEntryCreation<IPAddressV6> WaitForNdpEntryCreation;
+typedef WaitForNeighborEntryPending<IPAddressV6> WaitForNdpEntryPending;
+typedef WaitForNeighborEntryReachable<IPAddressV6> WaitForNdpEntryReachable;
 
 } // namespace fboss
 } // namespace facebook
