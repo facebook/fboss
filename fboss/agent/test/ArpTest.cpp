@@ -60,7 +60,10 @@ using ::testing::_;
 
 namespace {
 
-unique_ptr<HwTestHandle> setupTestHandle(std::chrono::seconds arpTimeout) {
+unique_ptr<HwTestHandle> setupTestHandle(
+    std::chrono::seconds arpTimeout = std::chrono::seconds(0),
+    uint32_t maxProbes = 1,
+    std::chrono::seconds staleTimeout = std::chrono::seconds(1)) {
   // Setup a default state object
   auto state = testStateA();
   const auto& intfs = state->getInterfaces();
@@ -85,17 +88,13 @@ unique_ptr<HwTestHandle> setupTestHandle(std::chrono::seconds arpTimeout) {
     state->setArpTimeout(arpTimeout);
   }
 
-  state->setMaxNeighborProbes(1);
-  state->setStaleEntryInterval(std::chrono::seconds(1));
+  state->setMaxNeighborProbes(maxProbes);
+  state->setStaleEntryInterval(staleTimeout);
 
   auto handle = createTestHandle(state);
   handle->getSw()->initialConfigApplied(std::chrono::steady_clock::now());
   waitForStateUpdates(handle->getSw());
   return handle;
-}
-
-unique_ptr<HwTestHandle> setupTestHandle() {
-  return setupTestHandle(std::chrono::seconds(0));
 }
 
 TxMatchFn checkArpPkt(bool isRequest,
@@ -225,9 +224,14 @@ void testSendArpRequest(SwSwitch* sw, VlanID vlanID,
 
   // Expect ARP entry to be created
   WaitForArpEntryCreation arpCreate(sw, targetIP);
-  EXPECT_PKT(sw, "ARP request",
-             checkArpRequest(senderIP, intf->getMac(), targetIP, vlanID));
-
+  if (state->getMaxNeighborProbes() > 1) {
+    EXPECT_MANY_PKTS(sw, "ARP request",
+               checkArpRequest(senderIP, intf->getMac(), targetIP, vlanID));
+  }
+  else {
+    EXPECT_PKT(sw, "ARP request",
+               checkArpRequest(senderIP, intf->getMac(), targetIP, vlanID));
+  }
   ArpHandler::sendArpRequest(sw, vlan->getID(), intf->getMac(),
                              senderIP, targetIP);
 

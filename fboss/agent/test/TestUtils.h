@@ -182,6 +182,9 @@ std::shared_ptr<SwitchState> testStateB();
 #define EXPECT_HW_CALL(sw, method) \
   EXPECT_CALL(*getMockHw(sw), method)
 
+#define EXPECT_MANY_HW_CALLS(sw, method) \
+  EXPECT_CALL(*getMockHw(sw), method).Times(testing::AtLeast(1))
+
 /*
  * Convenience macro that wraps EXPECT_CALL() on the underlying MockPlatform
  */
@@ -247,6 +250,10 @@ void EXPECT_NO_ROUTE(const std::shared_ptr<RouteTableMap>& tables,
  */
 #define EXPECT_PKT(sw, name, matchFn) \
   EXPECT_HW_CALL(sw, sendPacketSwitched_( \
+                 TxPacketMatcher::createMatcher(name, matchFn)))
+
+#define EXPECT_MANY_PKTS(sw, name, matchFn) \
+  EXPECT_MANY_HW_CALLS(sw, sendPacketSwitched_( \
                  TxPacketMatcher::createMatcher(name, matchFn)))
 
 /**
