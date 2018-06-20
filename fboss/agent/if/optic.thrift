@@ -3,6 +3,7 @@ namespace d neteng.fboss.optic
 namespace go neteng.fboss.optic
 namespace php fboss
 namespace py neteng.fboss.optic
+namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.optic
 
 include "fboss/qsfp_service/if/transceiver.thrift"

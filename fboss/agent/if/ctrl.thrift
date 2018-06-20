@@ -3,6 +3,7 @@ namespace d neteng.fboss.ctrl
 namespace go neteng.fboss.ctrl
 namespace php fboss
 namespace py neteng.fboss.ctrl
+namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.ctrl
 
 include "fboss/agent/if/fboss.thrift"

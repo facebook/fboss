@@ -4,6 +4,7 @@ namespace d neteng.fboss
 namespace go neteng.fboss
 namespace php fboss
 namespace py neteng.fboss
+namespace py3 neteng.fboss
 namespace py.asyncio neteng.asyncio.fboss
 
 exception FbossBaseError {

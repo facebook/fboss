@@ -1,5 +1,6 @@
 namespace cpp2 facebook.fboss
 namespace py neteng.fboss.qsfp
+namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.qsfp
 
 include "common/fb303/if/fb303.thrift"

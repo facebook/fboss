@@ -2,6 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
 namespace py neteng.fboss.switch_state
+namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.switch_state
 namespace cpp2 facebook.fboss.state
 
