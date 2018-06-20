@@ -896,7 +896,7 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
         }
 
         XLOG(DBG1) << "New cos queue settings on port " << id << " queue "
-                   << newQueue->getID();
+                   << static_cast<int>(newQueue->getID());
         bcmPort->setupQueue(newQueue);
       }
     });

@@ -13,6 +13,13 @@
 
 namespace facebook { namespace fboss {
 
+// TODO(joseph5wu) Temporarily add this enum, will move it to config so we can
+// reuse it everywhere
+enum class AqmBehavior {
+  EARLY_DROP,
+  ECN
+};
+
 class BcmSwitch;
 
 class BcmPortQueueManager : public BcmCosQueueManager {
@@ -60,18 +67,25 @@ private:
                        std::chrono::seconds now,
                        HwPortStats* portStats = nullptr) override;
 
-   void getAlpha(opennsl_gport_t gport,
-                 int queueIdx,
-                 std::shared_ptr<PortQueue> queue) const;
-   void programAlpha(opennsl_gport_t gport,
-                     int queueIdx,
-                     const std::shared_ptr<PortQueue>& queue);
-
-   void getAqms(opennsl_gport_t gport,
+  void getAlpha(opennsl_gport_t gport,
                 int queueIdx,
                 std::shared_ptr<PortQueue> queue) const;
-   void programAqms(opennsl_gport_t gport,
+  void programAlpha(opennsl_gport_t gport,
                     int queueIdx,
                     const std::shared_ptr<PortQueue>& queue);
+
+  folly::Optional<cfg::ActiveQueueManagement> getAqms(
+    opennsl_gport_t gport,
+    int queueIdx,
+    std::shared_ptr<PortQueue> queue) const;
+  void programAqms(opennsl_gport_t gport,
+                   int queueIdx,
+                   const std::shared_ptr<PortQueue>& queue);
+  // if detection is null, the aqm for such behavior will be reset to default
+  void programAqm(
+    opennsl_gport_t gport,
+    int queueIdx,
+    AqmBehavior behavior,
+    folly::Optional<cfg::QueueCongestionDetection> detection);
 };
 }} // facebook::fboss
