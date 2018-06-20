@@ -164,6 +164,8 @@ class ThriftConfigApplier {
       const std::shared_ptr<PortQueue>& orig,
       const cfg::PortQueue* cfg);
   std::shared_ptr<PortQueue> createPortQueue(const cfg::PortQueue* cfg);
+  void checkPortQueueAQMValid(
+      const std::vector<cfg::ActiveQueueManagement>& aqms);
   std::shared_ptr<AggregatePortMap> updateAggregatePorts();
   std::shared_ptr<AggregatePort> updateAggPort(
       const std::shared_ptr<AggregatePort>& orig,
@@ -532,6 +534,26 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts() {
   return origPorts->clone(newPorts);
 }
 
+void ThriftConfigApplier::checkPortQueueAQMValid(
+    const std::vector<cfg::ActiveQueueManagement>& aqms) {
+  if (aqms.empty()) {
+    return;
+  }
+  std::set<cfg::QueueCongestionBehavior> behaviors;
+  for (const auto& aqm: aqms) {
+    if (aqm.detection.getType() ==
+        cfg::QueueCongestionDetection::Type::__EMPTY__) {
+      throw FbossError(
+        "Active Queue Management must specify a congestion detection method");
+    }
+    if (behaviors.find(aqm.behavior) != behaviors.end()) {
+      throw FbossError(
+        "Same Active Queue Management behavior already exists");
+    }
+    behaviors.insert(aqm.behavior);
+  }
+}
+
 std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
     const std::shared_ptr<PortQueue>& orig,
     const cfg::PortQueue* cfg) {
@@ -561,13 +583,9 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
   if (cfg->__isset.scalingFactor) {
     queue->setScalingFactor(cfg->scalingFactor);
   }
-  if (cfg->__isset.aqm) {
-    if (cfg->aqm.detection.getType() ==
-        cfg::QueueCongestionDetection::Type::__EMPTY__) {
-      throw FbossError(
-          "Active Queue Management must specify a congestion detection method");
-    }
-    queue->setAqm(cfg->aqm);
+  if (cfg->__isset.aqms) {
+    checkPortQueueAQMValid(cfg->aqms);
+    queue->resetAqms(cfg->aqms);
   }
   return queue;
 }

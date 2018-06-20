@@ -36,11 +36,11 @@ void BcmPortQueueManager::programAlpha(
     int /*queueIdx*/,
     const std::shared_ptr<PortQueue>& /*queue*/) {}
 
-folly::Optional<cfg::ActiveQueueManagement> BcmPortQueueManager::getAqms(
+std::vector<cfg::ActiveQueueManagement> BcmPortQueueManager::getAqms(
     opennsl_gport_t /*gport*/,
     int /*queueIdx*/,
     std::shared_ptr<PortQueue> /*queue*/) const {
-  return folly::Optional<cfg::ActiveQueueManagement>{};
+  return std::vector<cfg::ActiveQueueManagement>();
 }
 
 void BcmPortQueueManager::programAqms(
@@ -51,7 +51,7 @@ void BcmPortQueueManager::programAqms(
 void BcmPortQueueManager::programAqm(
     opennsl_gport_t /*gport*/,
     int /*queueIdx*/,
-    AqmBehavior /*behavior*/,
+    cfg::QueueCongestionBehavior /*behavior*/,
     folly::Optional<cfg::QueueCongestionDetection> /*detection*/) {}
 
 void BcmPortQueueManager::getReservedBytes(

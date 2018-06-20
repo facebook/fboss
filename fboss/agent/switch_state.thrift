@@ -23,7 +23,7 @@ struct PortQueueFields {
  5: string scheduling
  // TODO: replace with switch_config.StreamType?
  6: string streamType
- 7: optional switch_config.ActiveQueueManagement aqm
+ 7: optional list<switch_config.ActiveQueueManagement> aqms
  8: optional string name
  10: optional i32 packetsPerSec
  11: optional i32 sharedBytes

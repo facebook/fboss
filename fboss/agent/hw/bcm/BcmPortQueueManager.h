@@ -74,7 +74,7 @@ private:
                     int queueIdx,
                     const std::shared_ptr<PortQueue>& queue);
 
-  folly::Optional<cfg::ActiveQueueManagement> getAqms(
+  std::vector<cfg::ActiveQueueManagement> getAqms(
     opennsl_gport_t gport,
     int queueIdx,
     std::shared_ptr<PortQueue> queue) const;
@@ -85,7 +85,7 @@ private:
   void programAqm(
     opennsl_gport_t gport,
     int queueIdx,
-    AqmBehavior behavior,
+    cfg::QueueCongestionBehavior behavior,
     folly::Optional<cfg::QueueCongestionDetection> detection);
 };
 }} // facebook::fboss

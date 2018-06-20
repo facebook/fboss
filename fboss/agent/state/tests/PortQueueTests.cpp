@@ -23,6 +23,26 @@ using std::make_shared;
 using std::shared_ptr;
 
 namespace {
+cfg::ActiveQueueManagement getEarlyDropAqmConfig() {
+  cfg::ActiveQueueManagement earlyDropAQM;
+  cfg::LinearQueueCongestionDetection earlyDropLQCD;
+  earlyDropLQCD.minimumLength = 208;
+  earlyDropLQCD.maximumLength = 416;
+  earlyDropAQM.detection.set_linear(earlyDropLQCD);
+  earlyDropAQM.behavior = cfg::QueueCongestionBehavior::EARLY_DROP;
+  return earlyDropAQM;
+}
+
+cfg::ActiveQueueManagement getECNAqmConfig() {
+  cfg::ActiveQueueManagement ecnAQM;
+  cfg::LinearQueueCongestionDetection ecnLQCD;
+  ecnLQCD.minimumLength = 624;
+  ecnLQCD.maximumLength = 624;
+  ecnAQM.detection.set_linear(ecnLQCD);
+  ecnAQM.behavior = cfg::QueueCongestionBehavior::ECN;
+  return ecnAQM;
+}
+
 cfg::SwitchConfig generateTestConfig() {
   cfg::SwitchConfig config;
   config.ports.resize(1);
@@ -45,16 +65,9 @@ cfg::SwitchConfig generateTestConfig() {
   queue1.__isset.sharedBytes = true;
   queue1.packetsPerSec = 100;
   queue1.__isset.packetsPerSec = true;
-
-  cfg::ActiveQueueManagement aqm;
-  cfg::LinearQueueCongestionDetection lqcd;
-  lqcd.minimumLength = 208;
-  lqcd.maximumLength = 416;
-  aqm.detection.set_linear(lqcd);
-  aqm.behavior.earlyDrop = true;
-  aqm.behavior.ecn = true;
-  queue1.aqm = aqm;
-  queue1.__isset.aqm = true;
+  queue1.aqms.push_back(getEarlyDropAqmConfig());
+  queue1.aqms.push_back(getECNAqmConfig());
+  queue1.__isset.aqms = true;
 
   config.ports[0].queues.push_back(queue1);
   return config;
@@ -70,15 +83,10 @@ PortQueue* generatePortQueue() {
   pqObject->setName("queue0");
   pqObject->setPacketsPerSec(200);
   pqObject->setSharedBytes(10000);
-
-  cfg::ActiveQueueManagement aqm;
-  cfg::LinearQueueCongestionDetection lqcd;
-  lqcd.minimumLength = 42;
-  lqcd.maximumLength = 42;
-  aqm.detection.set_linear(lqcd);
-  aqm.behavior.earlyDrop = true;
-  aqm.behavior.ecn = true;
-  pqObject->setAqm(aqm);
+  std::vector<cfg::ActiveQueueManagement> aqms;
+  aqms.push_back(getEarlyDropAqmConfig());
+  aqms.push_back(getECNAqmConfig());
+  pqObject->resetAqms(aqms);
   return pqObject;
 }
 
@@ -147,20 +155,21 @@ TEST(PortQueue, serializationBadForm) {
   auto serialized = pqObject->toFollyDynamic();
 
   auto noBehavior = serialized;
-  noBehavior["aqm"].erase("behavior");
+  noBehavior["aqms"][0].erase("behavior");
   EXPECT_THROW(PortQueue::fromFollyDynamic(noBehavior), std::exception);
 
   auto noDetection = serialized;
-  noDetection["aqm"].erase("detection");
+  noDetection["aqms"][0].erase("detection");
   EXPECT_THROW(PortQueue::fromFollyDynamic(noDetection), std::exception);
 
   auto noLinearMaximumThreshold = serialized;
-  noLinearMaximumThreshold["aqm"]["detection"]["linear"].erase("maximumLength");
+  noLinearMaximumThreshold["aqms"][0]["detection"]["linear"].erase(
+    "maximumLength");
   EXPECT_THROW(
       PortQueue::fromFollyDynamic(noLinearMaximumThreshold), std::exception);
 
   auto noLinearMinimumThreshold = serialized;
-  noLinearMinimumThreshold["aqm"]["detection"]["linear"].erase("minimumLength");
+  noLinearMinimumThreshold["aqms"][0]["detection"]["linear"].erase("minimumLength");
   EXPECT_THROW(
       PortQueue::fromFollyDynamic(noLinearMinimumThreshold), std::exception);
 }
@@ -220,17 +229,10 @@ TEST(PortQueue, aqmState) {
   config.ports[0].name = "port1";
   config.ports[0].state = cfg::PortState::ENABLED;
   cfg::PortQueue queue;
-  cfg::ActiveQueueManagement aqm;
-  cfg::LinearQueueCongestionDetection lqcd;
-  lqcd.minimumLength = 42;
-  lqcd.maximumLength = 42;
-  aqm.detection.set_linear(lqcd);
-  aqm.behavior.earlyDrop = true;
-  aqm.behavior.ecn = true;
   queue.id = 0;
   queue.weight = 1;
-  queue.aqm = aqm;
-  queue.__isset.aqm = true;
+  queue.aqms.push_back(getEarlyDropAqmConfig());
+  queue.__isset.aqms = true;
   config.ports[0].queues.push_back(queue);
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
@@ -238,10 +240,9 @@ TEST(PortQueue, aqmState) {
   auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
   // change one queue, won't affect the other queues
   EXPECT_EQ(kStateTestDefaultNumPortQueues, queues1.size());
-  EXPECT_EQ(42, queues1.at(0)->getAqm()->detection.get_linear().minimumLength);
-  EXPECT_EQ(42, queues1.at(0)->getAqm()->detection.get_linear().maximumLength);
-  EXPECT_EQ(true, queues1.at(0)->getAqm()->behavior.ecn);
-  EXPECT_EQ(true, queues1.at(0)->getAqm()->behavior.earlyDrop);
+  std::vector<cfg::ActiveQueueManagement> aqms;
+  aqms.push_back(getEarlyDropAqmConfig());
+  EXPECT_TRUE(comparePortQueueAQMs(queues1.at(0)->getAqms(), aqms));
 }
 
 TEST(PortQueue, aqmBadState) {
@@ -254,16 +255,16 @@ TEST(PortQueue, aqmBadState) {
   config.ports[0].name = "port1";
   config.ports[0].state = cfg::PortState::ENABLED;
   cfg::PortQueue queue;
-  cfg::ActiveQueueManagement aqm;
-  cfg::LinearQueueCongestionDetection lqcd;
-  lqcd.minimumLength = 42;
-  lqcd.maximumLength = 42;
-  aqm.behavior.earlyDrop = true;
-  aqm.behavior.ecn = true;
   queue.id = 0;
   queue.weight = 1;
-  queue.aqm = aqm;
-  queue.__isset.aqm = true;
+
+  // create bad ECN AQM state w/o specifying thresholds
+  cfg::ActiveQueueManagement ecnAQM;
+  ecnAQM.behavior = cfg::QueueCongestionBehavior::ECN;
+  queue.aqms.push_back(getEarlyDropAqmConfig());
+  queue.aqms.push_back(ecnAQM);
+  queue.__isset.aqms = true;
+
   config.ports[0].queues.push_back(queue);
 
   EXPECT_THROW(
@@ -306,11 +307,12 @@ TEST(PortQueue, resetPartOfConfigs) {
     EXPECT_NE(nullptr, stateV1);
 
     // reset aqm
-    config.ports[0].queues[0].__isset.aqm = false;
+    config.ports[0].queues[0].aqms.clear();
+    config.ports[0].queues[0].__isset.aqms = false;
 
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_TRUE(stateV2 != nullptr);
     auto queues2 = stateV2->getPort(PortID(1))->getPortQueues();
-    EXPECT_FALSE(queues2.at(0)->getAqm().hasValue());
+    EXPECT_TRUE(queues2.at(0)->getAqms().empty());
   }
 }

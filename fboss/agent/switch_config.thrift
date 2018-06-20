@@ -289,12 +289,10 @@ union QueueCongestionDetection {
 // earlyDrop true; ecn false: Early drops for all packets
 // earlyDrop false; ecn true: Tail drops for ECN-disabled, ECN for ECN-enabled
 // earlyDrop true; ecn true: Early drops for ECN-disabled, ECN for ECN-enabled
-struct QueueCongestionBehavior {
-  // Drop packets before congested queues are totally full using an algorithm
-  // like WRED
-  1: bool earlyDrop
-  // Mark congestion enabled packets with Congestion Experienced
-  2: bool ecn
+enum QueueCongestionBehavior {
+  EARLY_DROP = 0 // Drop packets before congested queues are totally full using
+                 // an algorithm like WRED
+  ECN        = 1 // Mark congestion enabled packets with Congestion Experienced
 }
 
 // Configuration for Active Queue Management of a PortQueue.
@@ -325,7 +323,8 @@ struct PortQueue {
   // 8: optional i32 length (deprecated)
   9: optional i32 packetsPerSec
   10: optional i32 sharedBytes
-  11: optional ActiveQueueManagement aqm;
+  // Only Unicast queue supports aqms
+  11: optional list<ActiveQueueManagement> aqms;
 }
 
 struct TrafficPolicyConfig {

@@ -15,6 +15,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/Thrifty.h"
 
+#include <boost/container/flat_map.hpp>
 #include <string>
 #include <utility>
 #include <vector>
@@ -23,6 +24,9 @@
 namespace facebook { namespace fboss {
 
 struct PortQueueFields {
+  using AQMMap = boost::container::flat_map<cfg::QueueCongestionBehavior,
+                                            cfg::ActiveQueueManagement>;
+
   explicit PortQueueFields(uint8_t id) : id(id) {}
 
   template<typename Fn>
@@ -39,10 +43,11 @@ struct PortQueueFields {
   int weight{1};
   folly::Optional<int> reservedBytes{folly::none};
   folly::Optional<cfg::MMUScalingFactor> scalingFactor{folly::none};
-  folly::Optional<cfg::ActiveQueueManagement> aqm{folly::none};
   folly::Optional<std::string> name{folly::none};
   folly::Optional<int> packetsPerSec{folly::none};
   folly::Optional<int> sharedBytes{folly::none};
+  // Using map to avoid manually sorting aqm list from thrift api
+  AQMMap aqms;
 };
 
 /*
@@ -51,6 +56,8 @@ struct PortQueueFields {
 class PortQueue :
     public ThriftyBaseT<state::PortQueueFields, PortQueue, PortQueueFields> {
  public:
+  using AQMMap = PortQueueFields::AQMMap;
+
   explicit PortQueue(uint8_t id);
   bool operator==(const PortQueue& queue) const {
     // TODO(joseph5wu) Add sharedBytes
@@ -60,7 +67,7 @@ class PortQueue :
            getFields()->reservedBytes == queue.getReservedBytes() &&
            getFields()->scalingFactor == queue.getScalingFactor() &&
            getFields()->scheduling == queue.getScheduling() &&
-           getFields()->aqm == queue.getAqm() &&
+           getFields()->aqms == queue.getAqms() &&
            getFields()->packetsPerSec == queue.getPacketsPerSec();
   }
   bool operator!=(const PortQueue& queue) {
@@ -111,12 +118,15 @@ class PortQueue :
     writableFields()->scalingFactor = scalingFactor;
   }
 
-  folly::Optional<cfg::ActiveQueueManagement> getAqm() const {
-    return getFields()->aqm;
+  const AQMMap& getAqms() const {
+    return getFields()->aqms;
   }
 
-  void setAqm(const cfg::ActiveQueueManagement& aqm) {
-    writableFields()->aqm = aqm;
+  void resetAqms(std::vector<cfg::ActiveQueueManagement> aqms) {
+    writableFields()->aqms.clear();
+    for (auto& aqm: aqms) {
+      writableFields()->aqms.emplace(aqm.behavior, aqm);
+    }
   }
 
   folly::Optional<std::string> getName() const {
@@ -153,4 +163,7 @@ using QueueConfig = std::vector<std::shared_ptr<PortQueue>>;
 bool checkSwConfPortQueueMatch(
   const std::shared_ptr<PortQueue>& swQueue,
   const cfg::PortQueue* cfgQueue);
+bool comparePortQueueAQMs(
+  const PortQueue::AQMMap& aqmMap,
+  const std::vector<cfg::ActiveQueueManagement>& aqms);
 }} // facebook::fboss

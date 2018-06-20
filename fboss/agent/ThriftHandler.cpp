@@ -516,24 +516,27 @@ void ThriftHandler::getPortInfoHelper(
           queue->getScalingFactor().value())->second;
       pq.__isset.scalingFactor = true;
     }
-    if (queue->getAqm()) {
-      auto aqm = queue->getAqm().value();
-
-      pq.aqm.behavior.earlyDrop = aqm.behavior.earlyDrop;
-      pq.aqm.behavior.ecn = aqm.behavior.ecn;
-      pq.__isset.aqm = true;
-      switch (aqm.detection.getType()) {
-        case cfg::QueueCongestionDetection::Type::linear:
-          pq.aqm.detection.linear.minimumLength =
-              aqm.detection.get_linear().minimumLength;
-          pq.aqm.detection.linear.maximumLength =
-              aqm.detection.get_linear().maximumLength;
-          pq.aqm.detection.__isset.linear = true;
-          break;
-        case cfg::QueueCongestionDetection::Type::__EMPTY__:
-          XLOG(WARNING) << "Invalid queue congestion detection config";
-          break;
+    if (!queue->getAqms().empty()) {
+      std::vector<ActiveQueueManagement> aqms;
+      for (const auto& aqm: queue->getAqms()) {
+        ActiveQueueManagement aqmThrift;
+        switch (aqm.second.detection.getType()) {
+          case cfg::QueueCongestionDetection::Type::linear:
+            aqmThrift.detection.linear.minimumLength =
+                aqm.second.detection.get_linear().minimumLength;
+            aqmThrift.detection.linear.maximumLength =
+                aqm.second.detection.get_linear().maximumLength;
+            aqmThrift.detection.__isset.linear = true;
+            break;
+          case cfg::QueueCongestionDetection::Type::__EMPTY__:
+            XLOG(WARNING) << "Invalid queue congestion detection config";
+            break;
+        }
+        aqmThrift.behavior = QueueCongestionBehavior(aqm.first);
+        aqms.push_back(aqmThrift);
       }
+      pq.aqms.swap(aqms);
+      pq.__isset.aqms = true;
     }
     portInfo.portQueues.push_back(pq);
   }

@@ -42,9 +42,6 @@ state::PortQueueFields PortQueueFields::toThrift() const {
   }
   queue.scheduling = cfg::_QueueScheduling_VALUES_TO_NAMES.at(scheduling);
   queue.streamType = cfg::_StreamType_VALUES_TO_NAMES.at(streamType);
-  if (aqm) {
-    queue.aqm = aqm;
-  }
   if (name) {
     queue.name = name;
   }
@@ -53,6 +50,13 @@ state::PortQueueFields PortQueueFields::toThrift() const {
   }
   if (sharedBytes) {
     queue.sharedBytes = sharedBytes;
+  }
+  if (!aqms.empty()) {
+    std::vector<cfg::ActiveQueueManagement> aqmList;
+    for (const auto& aqm: aqms) {
+      aqmList.push_back(aqm.second);
+    }
+    queue.aqms = aqmList;
   }
   return queue;
 }
@@ -82,9 +86,6 @@ PortQueueFields PortQueueFields::fromThrift(
     CHECK(itrScalingFactor != cfg::_MMUScalingFactor_NAMES_TO_VALUES.end());
     queue.scalingFactor = itrScalingFactor->second;
   }
-  if (queueThrift.aqm) {
-    queue.aqm = queueThrift.aqm;
-  }
   if (queueThrift.name) {
     queue.name = queueThrift.name;
   }
@@ -93,6 +94,11 @@ PortQueueFields PortQueueFields::fromThrift(
   }
   if (queueThrift.sharedBytes) {
     queue.sharedBytes = queueThrift.sharedBytes;
+  }
+  if (queueThrift.aqms) {
+    for (const auto& aqm: queueThrift.aqms.value()) {
+      queue.aqms.emplace(aqm.behavior, aqm);
+    }
   }
 
   return queue;
@@ -116,8 +122,22 @@ bool checkSwConfPortQueueMatch(
            cfgQueue->__isset.packetsPerSec, cfgQueue->packetsPerSec) &&
          isPortQueueOptionalAttributeSame(swQueue->getSharedBytes(),
            cfgQueue->__isset.sharedBytes, cfgQueue->sharedBytes) &&
-         isPortQueueOptionalAttributeSame(swQueue->getAqm(),
-           cfgQueue->__isset.aqm, cfgQueue->aqm);
+         comparePortQueueAQMs(swQueue->getAqms(), cfgQueue->aqms);
+}
+
+bool comparePortQueueAQMs(
+    const PortQueue::AQMMap& aqmMap,
+    const std::vector<cfg::ActiveQueueManagement>& aqms) {
+  if (aqmMap.size() != aqms.size()) {
+    return false;
+  }
+  for (const auto& aqm: aqms) {
+    auto aqmMapItr = aqmMap.find(aqm.behavior);
+    if (aqmMapItr == aqmMap.end() || aqmMapItr->second != aqm) {
+      return false;
+    }
+  }
+  return true;
 }
 
 template class NodeBaseT<PortQueue, PortQueueFields>;

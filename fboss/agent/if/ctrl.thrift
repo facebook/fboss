@@ -228,9 +228,9 @@ struct QueueCongestionDetection {
   1: optional LinearQueueCongestionDetection linear
 }
 
-struct QueueCongestionBehavior {
-  1: bool earlyDrop
-  2: bool ecn
+enum QueueCongestionBehavior {
+  EARLY_DROP = 0,
+  ECN = 1,
 }
 
 struct ActiveQueueManagement {
@@ -245,7 +245,7 @@ struct PortQueueThrift {
   4: optional i32 weight,
   5: optional i32 reservedBytes,
   6: optional string scalingFactor,
-  7: optional ActiveQueueManagement aqm,
+  7: optional list<ActiveQueueManagement> aqms,
 }
 
 struct PortInfoThrift {
