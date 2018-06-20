@@ -163,7 +163,7 @@ class ThriftConfigApplier {
   std::shared_ptr<PortQueue> updatePortQueue(
       const std::shared_ptr<PortQueue>& orig,
       const cfg::PortQueue* cfg);
-  std::shared_ptr<PortQueue> createPortQueue(const cfg::PortQueue& cfg);
+  std::shared_ptr<PortQueue> createPortQueue(const cfg::PortQueue* cfg);
   std::shared_ptr<AggregatePortMap> updateAggregatePorts();
   std::shared_ptr<AggregatePort> updateAggPort(
       const std::shared_ptr<AggregatePort>& orig,
@@ -537,26 +537,29 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
     const cfg::PortQueue* cfg) {
   CHECK_EQ(orig->getID(), cfg->id);
 
-  if (orig->getStreamType() == cfg->streamType &&
-      orig->getScheduling() == cfg->scheduling &&
-      orig->getWeight() == cfg->weight &&
-      orig->getReservedBytes() == cfg->reservedBytes &&
-      orig->getScalingFactor() == cfg->scalingFactor &&
-      orig->getAqm() == cfg->aqm) {
+  if (checkSwConfPortQueueMatch(orig, cfg)) {
     return orig;
   }
 
-  auto newQueue = orig->clone();
-  newQueue->setStreamType(cfg->streamType);
-  newQueue->setScheduling(cfg->scheduling);
+  // We should always use the PortQueue settings from config, so that if some of
+  // the attributes is removed from config, we can make sure that attribute can
+  // set back to default
+  return createPortQueue(cfg);
+}
+
+std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
+    const cfg::PortQueue* cfg) {
+  auto queue = std::make_shared<PortQueue>(cfg->id);
+  queue->setStreamType(cfg->streamType);
+  queue->setScheduling(cfg->scheduling);
   if (cfg->__isset.weight) {
-    newQueue->setWeight(cfg->weight);
+    queue->setWeight(cfg->weight);
   }
   if (cfg->__isset.reservedBytes) {
-    newQueue->setReservedBytes(cfg->reservedBytes);
+    queue->setReservedBytes(cfg->reservedBytes);
   }
   if (cfg->__isset.scalingFactor) {
-    newQueue->setScalingFactor(cfg->scalingFactor);
+    queue->setScalingFactor(cfg->scalingFactor);
   }
   if (cfg->__isset.aqm) {
     if (cfg->aqm.detection.getType() ==
@@ -564,32 +567,7 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
       throw FbossError(
           "Active Queue Management must specify a congestion detection method");
     }
-    newQueue->setAqm(cfg->aqm);
-  }
-  return newQueue;
-}
-
-std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
-    const cfg::PortQueue& cfg) {
-  auto queue = std::make_shared<PortQueue>(cfg.id);
-  queue->setStreamType(cfg.streamType);
-  queue->setScheduling(cfg.scheduling);
-  if (cfg.__isset.weight) {
-    queue->setWeight(cfg.weight);
-  }
-  if (cfg.__isset.reservedBytes) {
-    queue->setReservedBytes(cfg.reservedBytes);
-  }
-  if (cfg.__isset.scalingFactor) {
-    queue->setScalingFactor(cfg.scalingFactor);
-  }
-  if (cfg.__isset.aqm) {
-    if (cfg.aqm.detection.getType() ==
-        cfg::QueueCongestionDetection::Type::__EMPTY__) {
-      throw FbossError(
-          "Active Queue Management must specify a congestion detection method");
-    }
-    queue->setAqm(cfg.aqm);
+    queue->setAqm(cfg->aqm);
   }
   return queue;
 }
