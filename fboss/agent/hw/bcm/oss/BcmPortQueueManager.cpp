@@ -10,7 +10,6 @@
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 
 namespace facebook { namespace fboss {
-
 std::shared_ptr<PortQueue> BcmPortQueueManager::getCurrentQueueSettings(
     cfg::StreamType /*streamType*/,
     int /*queueIdx*/) const {
@@ -43,6 +42,15 @@ void BcmPortQueueManager::getAqms(
     std::shared_ptr<PortQueue> /*queue*/) const {}
 
 void BcmPortQueueManager::programAqms(
+    opennsl_gport_t /*gport*/,
+    int /*queueIdx*/,
+    const std::shared_ptr<PortQueue>& /*queue*/) {}
+
+void BcmPortQueueManager::getReservedBytes(
+    opennsl_gport_t /*gport*/,
+    int /*queueIdx*/,
+    std::shared_ptr<PortQueue> /*queue*/) const {}
+void BcmPortQueueManager::programReservedBytes(
     opennsl_gport_t /*gport*/,
     int /*queueIdx*/,
     const std::shared_ptr<PortQueue>& /*queue*/) {}

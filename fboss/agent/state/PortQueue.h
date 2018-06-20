@@ -40,6 +40,9 @@ struct PortQueueFields {
   folly::Optional<int> reservedBytes{folly::none};
   folly::Optional<cfg::MMUScalingFactor> scalingFactor{folly::none};
   folly::Optional<cfg::ActiveQueueManagement> aqm{folly::none};
+  folly::Optional<std::string> name{folly::none};
+  folly::Optional<int> packetsPerSec{folly::none};
+  folly::Optional<int> sharedBytes{folly::none};
 };
 
 /*
@@ -50,13 +53,15 @@ class PortQueue :
  public:
   explicit PortQueue(uint8_t id);
   bool operator==(const PortQueue& queue) const {
+    // TODO(joseph5wu) Add sharedBytes
     return getFields()->id == queue.getID() &&
            getFields()->streamType == queue.getStreamType() &&
            getFields()->weight == queue.getWeight() &&
            getFields()->reservedBytes == queue.getReservedBytes() &&
            getFields()->scalingFactor == queue.getScalingFactor() &&
            getFields()->scheduling == queue.getScheduling() &&
-           getFields()->aqm == queue.getAqm();
+           getFields()->aqm == queue.getAqm() &&
+           getFields()->packetsPerSec == queue.getPacketsPerSec();
   }
   bool operator!=(const PortQueue& queue) {
     return !(*this == queue);
@@ -114,6 +119,27 @@ class PortQueue :
     writableFields()->aqm = aqm;
   }
 
+  folly::Optional<std::string> getName() const {
+    return getFields()->name;
+  }
+  void setName(const std::string& name) {
+    writableFields()->name = name;
+  }
+
+  folly::Optional<int> getPacketsPerSec() const {
+    return getFields()->packetsPerSec;
+  }
+  void setPacketsPerSec(int packetsPerSec) {
+    writableFields()->packetsPerSec = packetsPerSec;
+  }
+
+  folly::Optional<int> getSharedBytes() const {
+    return getFields()->sharedBytes;
+  }
+  void setSharedBytes(int sharedBytes) {
+    writableFields()->sharedBytes = sharedBytes;
+  }
+
  private:
   // Inherit the constructors required for clone()
   using ThriftyBaseT<state::PortQueueFields, PortQueue, PortQueueFields>::
@@ -123,4 +149,8 @@ class PortQueue :
 
 // TODO: Will move it to Queues.h
 using QueueConfig = std::vector<std::shared_ptr<PortQueue>>;
+
+bool checkSwConfPortQueueMatch(
+  const std::shared_ptr<PortQueue>& swQueue,
+  const cfg::PortQueue* cfgQueue);
 }} // facebook::fboss

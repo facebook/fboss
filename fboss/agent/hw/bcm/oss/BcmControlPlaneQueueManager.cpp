@@ -31,4 +31,13 @@ void BcmControlPlaneQueueManager::updateQueueStat(
     facebook::stats::MonotonicCounter* /*counter*/,
     std::chrono::seconds /*now*/,
     HwPortStats* /*portStats*/) {}
+
+void BcmControlPlaneQueueManager::getReservedBytes(
+    opennsl_gport_t /*gport*/,
+    int /*queueIdx*/,
+    std::shared_ptr<PortQueue> /*queue*/) const {}
+void BcmControlPlaneQueueManager::programReservedBytes(
+    opennsl_gport_t /*gport*/,
+    int /*queueIdx*/,
+    const std::shared_ptr<PortQueue>& /*queue*/) {}
 }} //facebook::fboss

@@ -15,7 +15,6 @@
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
@@ -23,13 +22,19 @@ using std::make_pair;
 using std::make_shared;
 using std::shared_ptr;
 
-TEST(PortQueue, serialization) {
-  int id = 5;
-  auto scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  auto streamType = cfg::StreamType::UNICAST;
-  int weight = 5;
-  int reservedBytes = 1000;
-  auto scalingFactor = cfg::MMUScalingFactor::ONE;
+namespace {
+
+PortQueue* generatePortQueue() {
+  PortQueue* pqObject = new PortQueue(5);
+  pqObject->setScheduling(cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
+  pqObject->setStreamType(cfg::StreamType::UNICAST);
+  pqObject->setWeight(5);
+  pqObject->setReservedBytes(1000);
+  pqObject->setScalingFactor(cfg::MMUScalingFactor::ONE);
+  pqObject->setName("queue0");
+  pqObject->setPacketsPerSec(200);
+  pqObject->setSharedBytes(10000);
+
   cfg::ActiveQueueManagement aqm;
   cfg::LinearQueueCongestionDetection lqcd;
   lqcd.minimumLength = 42;
@@ -37,49 +42,55 @@ TEST(PortQueue, serialization) {
   aqm.detection.set_linear(lqcd);
   aqm.behavior.earlyDrop = true;
   aqm.behavior.ecn = true;
+  pqObject->setAqm(aqm);
+  return pqObject;
+}
 
-  PortQueue pqObject(id);
-  pqObject.setScheduling(scheduling);
-  pqObject.setStreamType(streamType);
-  pqObject.setWeight(weight);
-  pqObject.setReservedBytes(reservedBytes);
-  pqObject.setScalingFactor(scalingFactor);
-  pqObject.setAqm(aqm);
+PortQueue* generateProdPortQueue() {
+  PortQueue* pqObject = new PortQueue(0);
+  pqObject->setWeight(1);
+  pqObject->setStreamType(cfg::StreamType::UNICAST);
+  pqObject->setReservedBytes(3328);
+  pqObject->setScheduling(cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
+  pqObject->setScalingFactor(cfg::MMUScalingFactor::ONE);
+  return pqObject;
+}
 
-  XLOG(INFO) << "to folly dynamic";
-  auto serialized = pqObject.toFollyDynamic();
+PortQueue* generateProdCPUPortQueue() {
+  PortQueue* pqObject = new PortQueue(1);
+  pqObject->setName("cpuQueue-default");
+  pqObject->setStreamType(cfg::StreamType::MULTICAST);
+  pqObject->setWeight(1);
+  pqObject->setScheduling(cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
+  pqObject->setPacketsPerSec(200);
+  pqObject->setReservedBytes(1000);
+  pqObject->setSharedBytes(10000);
+  return pqObject;
+}
 
-  XLOG(INFO) << "from folly dynamic";
-  auto deserialized = PortQueue::fromFollyDynamic(serialized);
+PortQueue* generateDefaultPortQueue() {
+  // Most of the queues in our system are using default values
+  PortQueue* pqObject = new PortQueue(1);
+  return pqObject;
+}
+} // unnamed namespace
 
-  EXPECT_EQ(pqObject, *deserialized);
+TEST(PortQueue, serialization) {
+  std::vector<PortQueue*> queues = {
+    generatePortQueue(), generateProdPortQueue(), generateProdCPUPortQueue(),
+    generateDefaultPortQueue()};
+
+  for (const auto* pqObject: queues) {
+    auto serialized = pqObject->toFollyDynamic();
+    auto deserialized = PortQueue::fromFollyDynamic(serialized);
+    EXPECT_EQ(*pqObject, *deserialized);
+  }
 }
 
 TEST(PortQueue, serializationBadFrom) {
-  int id = 5;
-  auto scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  auto streamType = cfg::StreamType::UNICAST;
-  int weight = 5;
-  int reservedBytes = 1000;
-  auto scalingFactor = cfg::MMUScalingFactor::ONE;
-  cfg::ActiveQueueManagement aqm;
-  cfg::LinearQueueCongestionDetection lqcd;
-  lqcd.minimumLength = 42;
-  lqcd.maximumLength = 42;
-  aqm.detection.set_linear(lqcd);
-  aqm.behavior.earlyDrop = true;
-  aqm.behavior.ecn = true;
+  auto pqObject = generatePortQueue();
 
-  PortQueue pqObject(id);
-  pqObject.setScheduling(scheduling);
-  pqObject.setStreamType(streamType);
-  pqObject.setWeight(weight);
-  pqObject.setReservedBytes(reservedBytes);
-  pqObject.setScalingFactor(scalingFactor);
-  pqObject.setAqm(aqm);
-
-  auto serialized = pqObject.toFollyDynamic();
-  XLOG(INFO) << serialized;
+  auto serialized = pqObject->toFollyDynamic();
 
   auto noBehavior = serialized;
   noBehavior["aqm"].erase("behavior");
@@ -99,8 +110,6 @@ TEST(PortQueue, serializationBadFrom) {
   EXPECT_THROW(
       PortQueue::fromFollyDynamic(noLinearMinimumThreshold), std::exception);
 }
-
-
 
 TEST(PortQueue, stateDelta) {
   auto platform = createMockPlatform();

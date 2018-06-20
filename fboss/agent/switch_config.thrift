@@ -322,7 +322,7 @@ struct PortQueue {
   5: optional MMUScalingFactor scalingFactor
   6: required QueueScheduling scheduling
   7: optional string name
-  8: optional i32 length
+  // 8: optional i32 length (deprecated)
   9: optional i32 packetsPerSec
   10: optional i32 sharedBytes
   11: optional ActiveQueueManagement aqm;

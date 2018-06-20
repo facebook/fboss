@@ -28,9 +28,12 @@ BcmControlPlaneQueueManager::getQueueCounterTypes() const {
 
 BcmPortQueueConfig
 BcmControlPlaneQueueManager::getCurrentQueueSettings() const {
-  // TODO(joseph5wu) Will implement it when we support getting multicast queue
-  // settings
-  return BcmPortQueueConfig({}, {});
+  QueueConfig multicastQueues;
+  for (int i = 0; i < getNumQueues(cfg::StreamType::MULTICAST); i++) {
+    multicastQueues.push_back(getCurrentQueueSettings(
+      cfg::StreamType::MULTICAST, i));
+  }
+  return BcmPortQueueConfig({}, std::move(multicastQueues));
 }
 
 int BcmControlPlaneQueueManager::getNumQueues(

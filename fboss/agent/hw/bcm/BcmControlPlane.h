@@ -50,6 +50,10 @@ public:
 
   void updateQueueCounters();
 
+  QueueConfig getMulticastQueueSettings() {
+    return queueManager_->getCurrentQueueSettings().multicast;
+  }
+
 private:
   // no copy or assignment
   BcmControlPlane(BcmControlPlane const &) = delete;

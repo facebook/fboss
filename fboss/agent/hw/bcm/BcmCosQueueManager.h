@@ -72,6 +72,9 @@ public:
 
   virtual int getNumQueues(cfg::StreamType streamType) const = 0;
 
+  virtual opennsl_gport_t getQueueGPort(cfg::StreamType streamType,
+                                        int queueIdx) const = 0;
+
   void setPortName(const std::string& portName) {
     portName_ = portName;
   }
@@ -118,12 +121,27 @@ protected:
                                   int queueIdx,
                                   const std::shared_ptr<PortQueue>& queue);
 
-  void getReservedBytes(opennsl_gport_t gport,
+  virtual void getReservedBytes(opennsl_gport_t gport,
+                                int queueIdx,
+                                std::shared_ptr<PortQueue> queue) const = 0;
+  virtual void programReservedBytes(
+    opennsl_gport_t gport,
+    int queueIdx,
+    const std::shared_ptr<PortQueue>& queue) = 0;
+
+  void getSharedBytes(opennsl_gport_t gport,
+                      int queueIdx,
+                      std::shared_ptr<PortQueue> queue) const;
+  void programSharedBytes(opennsl_gport_t gport,
+                          int queueIdx,
+                          const std::shared_ptr<PortQueue>& queue);
+
+  void getBandwidth(opennsl_gport_t gport,
+                      int queueIdx,
+                      std::shared_ptr<PortQueue> queue) const;
+  void programBandwidth(opennsl_gport_t gport,
                         int queueIdx,
-                        std::shared_ptr<PortQueue> queue) const;
-  void programReservedBytes(opennsl_gport_t gport,
-                            int queueIdx,
-                            const std::shared_ptr<PortQueue>& queue);
+                        const std::shared_ptr<PortQueue>& queue);
 
   const BcmSwitch* hw_;
   // owner port name of this cosq manager
@@ -136,9 +154,6 @@ private:
   // Forbidden copy constructor and assignment operator
   BcmCosQueueManager(BcmCosQueueManager const &) = delete;
   BcmCosQueueManager& operator=(BcmCosQueueManager const &) = delete;
-
-  virtual opennsl_gport_t getQueueGPort(cfg::StreamType streamType,
-                                        int queueIdx) const = 0;
 
   void fillOrReplaceCounter(const BcmCosQueueCounterType& type,
                            QueueStatCounters& counters);
