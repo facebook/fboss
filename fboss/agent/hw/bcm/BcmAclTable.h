@@ -33,7 +33,12 @@ class BcmAclTable {
   void processRemovedAcl(const std::shared_ptr<AclEntry>& acl);
   void releaseAcls();
 
+  // Throw exception if not found
+  BcmAclEntry* getAcl(int priority) const;
+  // return nullptr if not found
   BcmAclEntry* getAclIf(int priority) const;
+  // Throw exception if not found
+  BcmAclRange*  getAclRange(const AclRange& range) const;
   // return nullptr if not found
   BcmAclRange*  getAclRangeIf(const AclRange& range) const;
   // return 0 if range does not exist
@@ -42,6 +47,8 @@ class BcmAclTable {
   folly::Optional<uint32_t> getAclRangeRefCountIf(
     BcmAclRangeHandle handle) const;
   uint32_t getAclRangeCount() const;
+  // Throw exception if not found
+  BcmAclStat* getAclStat(const std::string& name) const;
   // return nullptr if not found
   BcmAclStat* getAclStatIf(const std::string& name) const;
   // return 0 if stat does not exist

@@ -83,6 +83,7 @@ private:
   uint32_t max_;
 };
 
+void toAppend(const AclRange& range, std::string* result);
 /**
  *  BcmAclRange is the class to abstract an range's resources and functions
  */

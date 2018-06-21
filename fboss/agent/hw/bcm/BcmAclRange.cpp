@@ -32,5 +32,9 @@ std::string AclRange::str() const {
   return ret;
 }
 
+void toAppend(const AclRange& range, std::string* result) {
+  folly::toAppend(range.str(), result);
+}
+
 } // namespace fboss
 } // namespace facebook

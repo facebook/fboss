@@ -119,6 +119,15 @@ BcmAclEntry* FOLLY_NULLABLE BcmAclTable::getAclIf(int priority) const {
   return iter->second.get();
 }
 
+BcmAclEntry* BcmAclTable::getAcl(int priority) const {
+  auto acl = getAclIf(priority);
+  if (!acl) {
+    throw FbossError("Acl with priority: ", priority, " does not exist");
+  }
+  return acl;
+}
+
+
 BcmAclRange* FOLLY_NULLABLE BcmAclTable::getAclRangeIf(
   const AclRange& range) const {
   auto iter = aclRangeMap_.find(range);
@@ -127,6 +136,14 @@ BcmAclRange* FOLLY_NULLABLE BcmAclTable::getAclRangeIf(
   } else {
     return iter->second.first.get();
   }
+}
+
+BcmAclRange* BcmAclTable::getAclRange(const AclRange& range) const {
+  auto bcmRange = getAclRangeIf(range);
+  if (!bcmRange) {
+    throw FbossError("Range: ", range, " does not exist");
+  }
+  return bcmRange;
 }
 
 uint32_t BcmAclTable::getAclRangeRefCount(const AclRange& range) const {
@@ -234,6 +251,14 @@ BcmAclStat* FOLLY_NULLABLE BcmAclTable::getAclStatIf(
   } else {
     return iter->second.first.get();
   }
+}
+
+BcmAclStat* BcmAclTable::getAclStat(const std::string& stat) const {
+  auto bcmStat = getAclStatIf(stat);
+  if (!bcmStat) {
+    throw FbossError("Stat: ", stat, " does not exist");
+  }
+  return bcmStat;
 }
 
 uint32_t BcmAclTable::getAclStatRefCount(const std::string& name) const {
