@@ -775,7 +775,7 @@ struct SwitchConfig {
   25: optional string config_version
   26: list<SflowCollector> sFlowCollectors = []
   27: optional Lacp lacp
-  28: optional list<PortQueue> cpuQueues
+  28: list<PortQueue> cpuQueues = []
   29: optional CPUTrafficPolicyConfig cpuTrafficPolicy
   30: list<LoadBalancer> loadBalancers = []
 }
