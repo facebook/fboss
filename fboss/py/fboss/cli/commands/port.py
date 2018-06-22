@@ -706,3 +706,29 @@ class PortStatusDetailCmd(object):
 
         self._get_dummy_status()
         self._print_port_detail()
+
+
+class PortDescriptionCmd(cmds.FbossCmd):
+    def run(self, ports, show_down=True):
+        try:
+            self._client = self._create_agent_client()
+            resp = self._client.getAllPortInfo()
+
+        except FbossBaseError as e:
+            raise SystemExit('Fboss Error: ' + str(e))
+        except Exception as e:
+            raise Exception('Error: ' + str(e))
+
+        def use_port(port):
+            return (show_down or port.operState == 1) and \
+                   (not ports or port.portId in ports or port.name in ports)
+
+        port_description = {k: v for k, v in resp.items() if use_port(v)}
+
+        if not port_description:
+            print("No ports found")
+
+        tmpl = "{:18} {}"
+        print(tmpl.format("Port", "Description"))
+        for port in sorted(port_description.values(), key=utils.port_sort_fn):
+            print(tmpl.format(port.name.strip(), port.description))

@@ -267,6 +267,7 @@ class PortCli(object):
         self.port.add_command(self._enable, name='enable')
         self.port.add_command(self._disable, name='disable')
         self.port.add_command(self._stats, name='stats')
+        self.port.add_command(self._description, name='description')
 
     @click.group(cls=AliasedGroup)
     def port():
@@ -322,6 +323,13 @@ class PortCli(object):
     def _stats(cli_opts, detail, ports):
         ''' Show port statistics '''
         port.PortStatsCmd(cli_opts).run(detail, ports)
+
+    @click.command()
+    @click.argument('ports', nargs=-1, type=PortType())
+    @click.pass_obj
+    def _description(cli_opts, ports):
+        ''' Show port description for given [port(s)] '''
+        port.PortDescriptionCmd(cli_opts).run(ports)
 
 
 class ProductInfoCli(object):
