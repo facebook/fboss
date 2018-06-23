@@ -49,6 +49,7 @@ class BcmTrunkTable;
 class BcmUnit;
 class BcmWarmBootCache;
 class BcmWarmBootHelper;
+class BcmRtag7LoadBalancer;
 class BcmSflowExporterTable;
 class LoadBalancer;
 class PacketTraceInfo;
@@ -695,6 +696,7 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmTrunkTable> trunkTable_;
   std::unique_ptr<BcmSflowExporterTable> sFlowExporterTable_;
   std::unique_ptr<BcmControlPlane> controlPlane_;
+  std::unique_ptr<BcmRtag7LoadBalancer> rtag7LoadBalancer_;
 
   /*
    * TODO - Right now we setup copp using logic embedded in code.

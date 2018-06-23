@@ -36,6 +36,7 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
+#include "fboss/agent/hw/bcm/BcmRtag7LoadBalancer.h"
 #include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
 #include "fboss/agent/hw/bcm/BcmSflowExporter.h"
@@ -170,7 +171,8 @@ BcmSwitch::BcmSwitch(
       bcmTableStats_(new BcmTableStats(this, isAlpmEnabled())),
       bufferStatsLogger_(createBufferStatsLogger()),
       trunkTable_(new BcmTrunkTable(this)),
-      sFlowExporterTable_(new BcmSflowExporterTable()) {
+      sFlowExporterTable_(new BcmSflowExporterTable()),
+      rtag7LoadBalancer_(new BcmRtag7LoadBalancer(this)) {
   dumpConfigMap(BcmAPI::getHwConfig(), platform->getHwConfigDumpFile());
   exportSdkVersion();
 }
@@ -1673,16 +1675,19 @@ void BcmSwitch::processChangedLoadBalancer(
   CHECK_EQ(oldLoadBalancer->getID(), newLoadBalancer->getID());
 
   XLOG(DBG2) << "reprogramming LoadBalancer " << oldLoadBalancer->getID();
+  rtag7LoadBalancer_->programLoadBalancer(oldLoadBalancer, newLoadBalancer);
 }
 
 void BcmSwitch::processAddedLoadBalancer(
     const std::shared_ptr<LoadBalancer>& loadBalancer) {
   XLOG(DBG2) << "creating LoadBalancer " << loadBalancer->getID();
+  rtag7LoadBalancer_->addLoadBalancer(loadBalancer);
 }
 
 void BcmSwitch::processRemovedLoadBalancer(
     const std::shared_ptr<LoadBalancer>& loadBalancer) {
   XLOG(DBG2) << "deleting LoadBalancer " << loadBalancer->getID();
+  rtag7LoadBalancer_->deleteLoadBalancer(loadBalancer);
 }
 
 }} // facebook::fboss
