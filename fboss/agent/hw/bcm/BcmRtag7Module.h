@@ -10,6 +10,9 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/state/LoadBalancer.h"
+#include "fboss/agent/types.h"
 
 #include <boost/serialization/strong_typedef.hpp>
 
@@ -55,6 +58,14 @@ DECLARE_MODULE_CONTROL_STRONG_TYPE(
 class BcmSwitch;
 class LoadBalancer;
 
+/* BcmRtag7Module owns a single module in the RTAG7 load-balancing engine.
+ *
+ * A BcmRtag7Module object is responsible for configuring the module it owns so
+ * as to faithfully implement a given LoadBalancer in hardware.
+ *
+ * The RTAG7 module owned by an BcmRtag7Module object is dictated by
+ * its ModuleControl member variable.
+ */
 class BcmRtag7Module {
  public:
   /* ModuleControl is an attempt to make up for a deficiency in Broadcom's RTAG7
@@ -139,15 +150,50 @@ class BcmRtag7Module {
       const BcmSwitch* hw);
   ~BcmRtag7Module();
 
-  void init(const std::shared_ptr<LoadBalancer>& /* loadBalancer */) {}
+  void init(const std::shared_ptr<LoadBalancer>& loadBalancer);
   void program(
-      const std::shared_ptr<LoadBalancer>& /* oldLoadBalancer */,
-      const std::shared_ptr<LoadBalancer>& /* newLoadBalancer */) {}
+      const std::shared_ptr<LoadBalancer>& oldLoadBalancer,
+      const std::shared_ptr<LoadBalancer>& newLoadBalancer);
 
  private:
+  void programPreprocessing(bool enable);
+  void programAlgorithm(cfg::HashingAlgorithm algorithm);
+  void programOutputSelection();
+  void programFieldSelection(
+      LoadBalancer::IPv4FieldsRange v4FieldsRange,
+      LoadBalancer::IPv6FieldsRange v6FieldsRange,
+      LoadBalancer::TransportFieldsRange transportFieldsRange);
+  void programSeed(uint32_t seed);
+  void programMacroFlowHashing(bool enable);
+  void enableRtag7(LoadBalancerID);
+  void programIPv4FieldSelection(
+      LoadBalancer::IPv4FieldsRange v4FieldsRange,
+      LoadBalancer::TransportFieldsRange transportFieldsRange);
+  void programIPv6FieldSelection(
+      LoadBalancer::IPv6FieldsRange v6FieldsRange,
+      LoadBalancer::TransportFieldsRange transportFieldsRange);
+  void programFieldControl();
+
+  int computeIPv4Subfields(LoadBalancer::IPv4FieldsRange v4FieldsRange) const;
+  int computeIPv6Subfields(LoadBalancer::IPv6FieldsRange v6FieldsRange) const;
+  int computeTransportSubfields(
+      LoadBalancer::TransportFieldsRange transportFieldsRange) const;
+
+  void enableFlowLabelSelection();
+  int getFlowLabelSubfields() const;
+
+  // This is a small warpper around opennsl_switch_control_set(unit, ...) that
+  // defaults the unit to HwSwitch::getUnit()
+  template <typename ModuleControlType>
+  int setUnitControl(ModuleControlType controlType, int arg) {
+    return opennsl_switch_control_set(hw_->getUnit(), controlType, arg);
+  }
+
   ModuleControl moduleControl_;
   opennsl_switch_control_t offset_;
   const BcmSwitch* const hw_;
+
+  static bool fieldControlProgrammed_;
 };
 
 } // namespace fboss
