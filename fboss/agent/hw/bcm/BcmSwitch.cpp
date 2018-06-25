@@ -249,6 +249,7 @@ void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   setupCos();
   stateChangedImpl(
       StateDelta(make_shared<SwitchState>(), getWarmBootSwitchState()));
+  bcmStatUpdater_->refresh();
   setupLinkscan();
   setupPacketRx();
 }
