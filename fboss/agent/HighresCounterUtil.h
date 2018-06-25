@@ -206,7 +206,7 @@ class SharedRateCalculator : RateCalculatorIf {
     numSamples_.fetch_add(n, std::memory_order_relaxed);
     auto time = std::chrono::high_resolution_clock::now();
 
-    auto timeAtLastUpdate = lastRateCalc_.asConst()->time_;
+    auto timeAtLastUpdate = as_const(lastRateCalc_)->time_;
 
     // If a second has passed since the last rate update...
     if (time - timeAtLastUpdate > std::chrono::seconds(1)) {

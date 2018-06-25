@@ -1112,7 +1112,7 @@ void ThriftHandler::connectionDestroyed(TConnectionContext* ctx) {
 
   // If there is an ongoing high-resolution counter subscription, kill it. Don't
   // grab a write lock if there are no active calls
-  if (!highresKillSwitches_.asConst()->empty()) {
+  if (!as_const(highresKillSwitches_)->empty()) {
     SYNCHRONIZED(highresKillSwitches_) {
       auto killSwitchIter = highresKillSwitches_.find(ctx);
 
