@@ -15,6 +15,7 @@ sys.path.insert(1, '../../')
 sys.path.insert(2, '../../../agent/if/gen-py')
 
 import click
+import ipaddress
 
 from fboss.cli.commands import arp
 from fboss.cli.commands import aggregate_port
@@ -29,6 +30,7 @@ from fboss.cli.commands import ndp
 from fboss.cli.commands import nic
 from fboss.cli.commands import port
 from fboss.cli.commands import route
+from fboss.cli.commands.commands import FlushType
 from fboss.cli.utils.utils import AGENT_KEYWORD
 from thrift.Thrift import TApplicationException
 from thrift.transport.TTransport import TTransportException
@@ -93,8 +95,11 @@ class ArpCli(object):
     @click.argument('ip')
     @click.pass_obj
     def _flush(cli_opts, ip, vlan):
-        ''' Flush an ARP entry by [IP]'''
-        cmds.NeighborFlushCmd(cli_opts).run(ip, vlan)
+        ''' Flush an ARP entry by [IP] or [subnet] or flush [all]'''
+        if ip == 'all':
+            ip = '0.0.0.0/0'
+        cmds.NeighborFlushSubnetCmd(cli_opts).run(FlushType.arp,
+                ipaddress.IPv4Network(ip), vlan)
 
 
 class AggregatePortCli(object):
@@ -235,8 +240,12 @@ class NdpCli(object):
     @click.argument('ip')
     @click.pass_obj
     def _flush(cli_opts, ip, vlan):
-        ''' Flush an NDP entry '''
-        cmds.NeighborFlushCmd(cli_opts).run(ip, vlan)
+        ''' Flush an NDP entry by [IP] or [subnet] or flush [all]'''
+        if ip == 'all':
+            ip = '::/0'
+        cmds.NeighborFlushSubnetCmd(cli_opts).run(FlushType.ndp,
+                ipaddress.IPv6Network(ip), vlan)
+
 
 class PortType(click.ParamType):
     port_info_map = None

@@ -11,6 +11,11 @@
 from fboss.cli.utils import utils
 from fboss.thrift_clients import FbossAgentClient, QsfpServiceClient
 import pickle
+import ipaddress
+
+
+class FlushType:
+        arp, ndp = range(2)
 
 
 # Parent Class for all commands
@@ -49,14 +54,41 @@ class FbossCmd(object):
 # --- All generic commands below -- #
 
 
-class NeighborFlushCmd(FbossCmd):
-    def run(self, ip, vlan):
+class NeighborFlushSubnetCmd(FbossCmd):
+
+    def _flush_entry(self, ip, vlan):
         bin_ip = utils.ip_to_binary(ip)
         vlan_id = vlan
         client = self._create_agent_client()
         num_entries = client.flushNeighborEntry(bin_ip, vlan_id)
         print('Flushed {} entries'.format(num_entries))
 
+    def run(self, flushType, network, vlan):
+        client = self._create_agent_client()
+
+        if (isinstance(network, ipaddress.IPv6Network) and
+                network.prefixlen == 128) or                    \
+           (isinstance(network, ipaddress.IPv4Network) and
+                network.prefixlen == 32):
+            self._flush_entry(str(network.network_address), vlan)
+            return
+
+        if flushType == FlushType.arp:
+            table = client.getArpTable()
+        elif flushType == FlushType.ndp:
+            table = client.getNdpTable()
+        else:
+            print("Invaid flushType")
+            exit(1)
+
+        num_entries = 0
+        for entry in table:
+            if (ipaddress.ip_address(utils.ip_ntop(entry.ip.addr)) in
+                ipaddress.ip_network(network)) and                           \
+                    (vlan is 0 or vlan == entry.vlanID):
+                num_entries += client.flushNeighborEntry(entry.ip, entry.vlanID)
+
+        print('Flushed {} entries'.format(num_entries))
 
 class PrintNeighborTableCmd(FbossCmd):
     def print_table(self, entries, name, width, client=None):
