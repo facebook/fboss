@@ -13,7 +13,7 @@ namespace facebook { namespace fboss {
 int BcmCosQueueManager::getControlValue(
     cfg::StreamType /*streamType*/,
     opennsl_gport_t /*gport*/,
-    int /*queueIdx*/,
+    opennsl_cos_queue_t /*cosQ*/,
     BcmCosQueueControlType /*ctrlType*/) const {
   return 0;
 }
@@ -21,23 +21,23 @@ int BcmCosQueueManager::getControlValue(
 void BcmCosQueueManager::programControlValue(
     cfg::StreamType /*streamType*/,
     opennsl_gport_t /*gport*/,
-    int /*queueIdx*/,
+    opennsl_cos_queue_t /*cosQ*/,
     BcmCosQueueControlType /*ctrlType*/,
     int /*value*/) {}
 
 void BcmCosQueueManager::getSchedulingAndWeight(
     opennsl_gport_t /*gport*/,
-    int /*queueIdx*/,
+    opennsl_cos_queue_t /*cosQ*/,
     std::shared_ptr<PortQueue> /*queue*/) const {}
 
 void BcmCosQueueManager::programSchedulingAndWeight(
     opennsl_gport_t /*gport*/,
-    int /*queueIdx*/,
+    opennsl_cos_queue_t /*cosQ*/,
     const std::shared_ptr<PortQueue>& /*queue*/) {}
 
 void BcmCosQueueManager::getSharedBytes(
     opennsl_gport_t /*gport*/,
-    int /*queueIdx*/,
+    opennsl_cos_queue_t /*cosQ*/,
     std::shared_ptr<PortQueue> /*queue*/) const {}
 void BcmCosQueueManager::programSharedBytes(
     opennsl_gport_t /*gport*/,
@@ -50,7 +50,7 @@ void BcmCosQueueManager::getBandwidth(
     std::shared_ptr<PortQueue> /*queue*/) const {}
 void BcmCosQueueManager::programBandwidth(
     opennsl_gport_t /*gport*/,
-    int /*queueIdx*/,
+    opennsl_cos_queue_t /*cosQ*/,
     const std::shared_ptr<PortQueue>& /*queue*/) {}
 
 void BcmCosQueueManager::updateQueueAggregatedStat(

@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmStatsConstants.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 namespace facebook { namespace fboss {
 const std::vector<BcmCosQueueCounterType>&
@@ -22,21 +23,6 @@ BcmPortQueueManager::getQueueCounterTypes() const {
      BcmCosQueueCounterScope::AGGREGATED, kOutCongestionDiscards()}
   };
   return types;
-}
-
-BcmPortQueueConfig BcmPortQueueManager::getCurrentQueueSettings() const {
-  QueueConfig unicastQueues;
-  for (int i = 0; i < cosQueueGports_.unicast.size(); i++) {
-    unicastQueues.push_back(getCurrentQueueSettings(
-      cfg::StreamType::UNICAST, i));
-  }
-  QueueConfig multicastQueues;
-  for (int i = 0; i < cosQueueGports_.multicast.size(); i++) {
-    multicastQueues.push_back(getCurrentQueueSettings(
-      cfg::StreamType::MULTICAST, i));
-  }
-  return BcmPortQueueConfig(std::move(unicastQueues),
-                            std::move(multicastQueues));
 }
 
 /**
@@ -55,14 +41,44 @@ int BcmPortQueueManager::getNumQueues(cfg::StreamType streamType) const {
 }
 
 opennsl_gport_t BcmPortQueueManager::getQueueGPort(
-    cfg::StreamType streamType, int queueIdx) const {
+    cfg::StreamType streamType, opennsl_cos_queue_t cosQ) const {
   if (streamType == cfg::StreamType::UNICAST) {
-    return cosQueueGports_.unicast.at(queueIdx);
+    return cosQueueGports_.unicast.at(cosQ);
   } else if (streamType == cfg::StreamType::MULTICAST) {
-    return cosQueueGports_.multicast.at(queueIdx);
+    return cosQueueGports_.multicast.at(cosQ);
   }
   throw FbossError(
-    "Failed to retrieve queue gport because unknown StreamType: ",
-    cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second);
+      "Failed to retrieve queue gport because unknown StreamType: ",
+      cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second);
 }
+
+BcmPortQueueConfig BcmPortQueueManager::getCurrentQueueSettings() const {
+  // Make sure that the QueueConf is in cosQ order
+  QueueConfig unicastQueues;
+  for (int i = 0; i < cosQueueGports_.unicast.size(); i++) {
+    try {
+      unicastQueues.push_back(
+          getCurrentQueueSettings(cfg::StreamType::UNICAST, i));
+    } catch (const facebook::fboss::FbossError& err) {
+      XLOG(ERR)
+        << "Error in getCurrentQueueSettings - unicast cosq order: "
+        << i;
+    }
+  }
+  // Make sure that the QueueConf is in cosQ order
+  QueueConfig multicastQueues;
+  for (int i = 0; i < cosQueueGports_.multicast.size(); i++) {
+    try {
+      multicastQueues.push_back(
+          getCurrentQueueSettings(cfg::StreamType::MULTICAST, i));
+    } catch (const facebook::fboss::FbossError& err) {
+      XLOG(ERR)
+        << "Error in getCurrentQueueSettings - multicast cosq order: "
+        << i;
+    }
+  }
+  return BcmPortQueueConfig(std::move(unicastQueues),
+                            std::move(multicastQueues));
+}
+
 }} // facebook::fboss

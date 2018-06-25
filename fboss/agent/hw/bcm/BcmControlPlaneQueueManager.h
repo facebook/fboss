@@ -27,13 +27,13 @@ public:
   int getNumQueues(cfg::StreamType streamType) const override;
 
   opennsl_gport_t getQueueGPort(cfg::StreamType streamType,
-                                int queueIdx) const override;
+                                opennsl_cos_queue_t cosQ) const override;
 
   BcmPortQueueConfig getCurrentQueueSettings() const override;
 
   std::shared_ptr<PortQueue> getCurrentQueueSettings(
     cfg::StreamType streamType,
-    int queueIdx) const override;
+    opennsl_cos_queue_t cosQ) const override;
 
   void program(const std::shared_ptr<PortQueue>& queue) override;
 
@@ -54,7 +54,7 @@ private:
   BcmControlPlaneQueueManager& operator=(
     BcmControlPlaneQueueManager const &) = delete;
 
-  void updateQueueStat(int queueIdx,
+  void updateQueueStat(opennsl_cos_queue_t cosQ,
                        const BcmCosQueueCounterType& type,
                        facebook::stats::MonotonicCounter* counter,
                        std::chrono::seconds now,

@@ -12,7 +12,7 @@
 namespace facebook { namespace fboss {
 std::shared_ptr<PortQueue> BcmPortQueueManager::getCurrentQueueSettings(
     cfg::StreamType /*streamType*/,
-    int /*queueIdx*/) const {
+    opennsl_cos_queue_t /*cosQ*/) const {
   return std::shared_ptr<PortQueue>{};
 }
 
@@ -20,7 +20,7 @@ void BcmPortQueueManager::program(
   const std::shared_ptr<PortQueue>& /*queue*/) {}
 
 void BcmPortQueueManager::updateQueueStat(
-    int /*queueIdx*/,
+    opennsl_cos_queue_t /*cosQ*/,
     const BcmCosQueueCounterType& /*type*/,
     facebook::stats::MonotonicCounter* /*counter*/,
     std::chrono::seconds /*now*/,
@@ -28,24 +28,24 @@ void BcmPortQueueManager::updateQueueStat(
 
 void BcmPortQueueManager::getAlpha(
     opennsl_gport_t /*gport*/,
-    int /*queueIdx*/,
+    opennsl_cos_queue_t /*cosQ*/,
     std::shared_ptr<PortQueue> /*queue*/) const {}
 
 void BcmPortQueueManager::programAlpha(
     opennsl_gport_t /*gport*/,
-    int /*queueIdx*/,
+    opennsl_cos_queue_t /*cosQ*/,
     const std::shared_ptr<PortQueue>& /*queue*/) {}
 
 std::vector<cfg::ActiveQueueManagement> BcmPortQueueManager::getAqms(
     opennsl_gport_t /*gport*/,
-    int /*queueIdx*/,
+    opennsl_cos_queue_t /*cosQ*/,
     std::shared_ptr<PortQueue> /*queue*/) const {
   return std::vector<cfg::ActiveQueueManagement>();
 }
 
 void BcmPortQueueManager::programAqms(
     opennsl_gport_t /*gport*/,
-    int /*queueIdx*/,
+    opennsl_cos_queue_t /*cosQ*/,
     const std::shared_ptr<PortQueue>& /*queue*/) {}
 
 void BcmPortQueueManager::programAqm(

@@ -18,7 +18,7 @@ BcmControlPlaneQueueManager::BcmControlPlaneQueueManager(
 
 std::shared_ptr<PortQueue> BcmControlPlaneQueueManager::getCurrentQueueSettings(
     cfg::StreamType /*streamType*/,
-    int /*queueIdx*/) const {
+    opennsl_cos_queue_t /*cosQ*/) const {
   return std::shared_ptr<PortQueue>{};
 }
 
@@ -26,7 +26,7 @@ void BcmControlPlaneQueueManager::program(
     const std::shared_ptr<PortQueue>& /*queue*/) {}
 
 void BcmControlPlaneQueueManager::updateQueueStat(
-    int /*queueIdx*/,
+    opennsl_cos_queue_t /*cosQ*/,
     const BcmCosQueueCounterType& /*type*/,
     facebook::stats::MonotonicCounter* /*counter*/,
     std::chrono::seconds /*now*/,

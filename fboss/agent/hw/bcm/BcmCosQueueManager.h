@@ -25,10 +25,12 @@ extern "C" {
 }
 
 namespace facebook { namespace fboss {
+typedef std::map<opennsl_cos_queue_t, opennsl_gport_t> CosQGportMap;
+
 struct CosQueueGports {
   opennsl_gport_t scheduler;
-  std::vector<opennsl_gport_t> unicast;
-  std::vector<opennsl_gport_t> multicast;
+  CosQGportMap unicast;
+  CosQGportMap multicast;
 };
 
 /**
@@ -39,7 +41,8 @@ struct BcmPortQueueConfig {
   QueueConfig unicast;
   QueueConfig multicast;
 
-  BcmPortQueueConfig(QueueConfig unicast, QueueConfig multicast)
+  BcmPortQueueConfig(QueueConfig unicast,
+                     QueueConfig multicast)
     : unicast(std::move(unicast)),
       multicast(std::move(multicast)) {}
 };
@@ -72,8 +75,11 @@ public:
 
   virtual int getNumQueues(cfg::StreamType streamType) const = 0;
 
+  opennsl_cos_queue_t getCosQueue(cfg::StreamType streamType,
+                                  opennsl_gport_t gport) const;
+
   virtual opennsl_gport_t getQueueGPort(cfg::StreamType streamType,
-                                        int queueIdx) const = 0;
+                                        opennsl_cos_queue_t cosQ) const = 0;
 
   void setPortName(const std::string& portName) {
     portName_ = portName;
@@ -83,7 +89,7 @@ public:
 
   virtual std::shared_ptr<PortQueue> getCurrentQueueSettings(
     cfg::StreamType streamType,
-    int queueIdx) const = 0;
+    opennsl_cos_queue_t cosQ) const = 0;
 
   virtual void program(const std::shared_ptr<PortQueue>& queue) = 0;
 
@@ -105,42 +111,42 @@ public:
 protected:
   int getControlValue(cfg::StreamType streamType,
                       opennsl_gport_t gport,
-                      int queueIdx,
+                      opennsl_cos_queue_t cosQ,
                       BcmCosQueueControlType ctrlType) const;
 
   void programControlValue(cfg::StreamType streamType,
                            opennsl_gport_t gport,
-                           int queueIdx,
+                           opennsl_cos_queue_t cosQ,
                            BcmCosQueueControlType ctrlType,
                            int value);
 
   void getSchedulingAndWeight(opennsl_gport_t gport,
-                              int queueIdx,
+                              opennsl_cos_queue_t cosQ,
                               std::shared_ptr<PortQueue> queue) const;
   void programSchedulingAndWeight(opennsl_gport_t gport,
-                                  int queueIdx,
+                                  opennsl_cos_queue_t cosQ,
                                   const std::shared_ptr<PortQueue>& queue);
 
   virtual void getReservedBytes(opennsl_gport_t gport,
-                                int queueIdx,
+                                opennsl_cos_queue_t cosQ,
                                 std::shared_ptr<PortQueue> queue) const = 0;
   virtual void programReservedBytes(
     opennsl_gport_t gport,
-    int queueIdx,
+    opennsl_cos_queue_t cosQ,
     const std::shared_ptr<PortQueue>& queue) = 0;
 
   void getSharedBytes(opennsl_gport_t gport,
-                      int queueIdx,
+                      opennsl_cos_queue_t cosQ,
                       std::shared_ptr<PortQueue> queue) const;
   void programSharedBytes(opennsl_gport_t gport,
-                          int queueIdx,
+                          opennsl_cos_queue_t cosQ,
                           const std::shared_ptr<PortQueue>& queue);
 
   void getBandwidth(opennsl_gport_t gport,
-                      int queueIdx,
-                      std::shared_ptr<PortQueue> queue) const;
+                    opennsl_cos_queue_t cosQ,
+                    std::shared_ptr<PortQueue> queue) const;
   void programBandwidth(opennsl_gport_t gport,
-                        int queueIdx,
+                        opennsl_cos_queue_t cosQ,
                         const std::shared_ptr<PortQueue>& queue);
 
   const BcmSwitch* hw_;
@@ -165,7 +171,7 @@ private:
                                  std::chrono::seconds now,
                                  HwPortStats* portStats = nullptr);
 
-  virtual void updateQueueStat(int queueIdx,
+  virtual void updateQueueStat(int cosQ,
                                const BcmCosQueueCounterType& type,
                                facebook::stats::MonotonicCounter* counter,
                                std::chrono::seconds now,

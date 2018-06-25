@@ -35,13 +35,13 @@ public:
   int getNumQueues(cfg::StreamType streamType) const override;
 
   opennsl_gport_t getQueueGPort(cfg::StreamType streamType,
-                                int queueIdx) const override;
+                                opennsl_cos_queue_t cosQ) const override;
 
   BcmPortQueueConfig getCurrentQueueSettings() const override;
 
   std::shared_ptr<PortQueue> getCurrentQueueSettings(
     cfg::StreamType streamType,
-    int queueIdx) const override;
+    opennsl_cos_queue_t cosQ) const override;
 
   void program(const std::shared_ptr<PortQueue>& queue) override;
 
@@ -50,10 +50,10 @@ public:
 
 protected:
   void getReservedBytes(opennsl_gport_t gport,
-                        int queueIdx,
+                        opennsl_cos_queue_t cosQ,
                         std::shared_ptr<PortQueue> queue) const override;
   void programReservedBytes(opennsl_gport_t gport,
-                            int queueIdx,
+                            opennsl_cos_queue_t cosQ,
                             const std::shared_ptr<PortQueue>& queue) override;
 
 private:
@@ -61,30 +61,32 @@ private:
   BcmPortQueueManager(BcmPortQueueManager const &) = delete;
   BcmPortQueueManager& operator=(BcmPortQueueManager const &) = delete;
 
-  void updateQueueStat(int queueIdx,
+  void updateQueueStat(opennsl_cos_queue_t cosQ,
                        const BcmCosQueueCounterType& type,
                        facebook::stats::MonotonicCounter* counter,
                        std::chrono::seconds now,
                        HwPortStats* portStats = nullptr) override;
 
-  void getAlpha(opennsl_gport_t gport,
-                int queueIdx,
-                std::shared_ptr<PortQueue> queue) const;
-  void programAlpha(opennsl_gport_t gport,
-                    int queueIdx,
-                    const std::shared_ptr<PortQueue>& queue);
+   void getAlpha(opennsl_gport_t gport,
+                 opennsl_cos_queue_t cosQ,
+                 std::shared_ptr<PortQueue> queue) const;
+   void programAlpha(opennsl_gport_t gport,
+                     opennsl_cos_queue_t cosQ,
+                     const std::shared_ptr<PortQueue>& queue);
 
   std::vector<cfg::ActiveQueueManagement> getAqms(
     opennsl_gport_t gport,
-    int queueIdx,
+    opennsl_cos_queue_t cosQ,
     std::shared_ptr<PortQueue> queue) const;
-  void programAqms(opennsl_gport_t gport,
-                   int queueIdx,
-                   const std::shared_ptr<PortQueue>& queue);
+
+   void programAqms(opennsl_gport_t gport,
+                    opennsl_cos_queue_t cosQ,
+                    const std::shared_ptr<PortQueue>& queue);
+
   // if detection is null, the aqm for such behavior will be reset to default
   void programAqm(
     opennsl_gport_t gport,
-    int queueIdx,
+    opennsl_cos_queue_t cosQ,
     cfg::QueueCongestionBehavior behavior,
     folly::Optional<cfg::QueueCongestionDetection> detection);
 };

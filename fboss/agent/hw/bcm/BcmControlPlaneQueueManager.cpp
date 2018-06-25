@@ -42,7 +42,7 @@ int BcmControlPlaneQueueManager::getNumQueues(
   if (!hw_->getPlatform()->isCosSupported()) {
       return maxCPUQueue_;
   }
-  // cpu only have multicast
+  // cpu only has multicast
   if (streamType == cfg::StreamType::MULTICAST) {
     return cosQueueGports_.multicast.size();
   }
@@ -53,14 +53,14 @@ int BcmControlPlaneQueueManager::getNumQueues(
 
 opennsl_gport_t BcmControlPlaneQueueManager::getQueueGPort(
     cfg::StreamType streamType,
-    int queueIdx) const {
+    opennsl_cos_queue_t cosQ) const {
   if (!hw_->getPlatform()->isCosSupported()) {
     throw FbossError(
       "Failed to retrieve queue gport because platform doesn't support cosq");
   }
   // cpu only have multicast
   if (streamType == cfg::StreamType::MULTICAST) {
-    return cosQueueGports_.multicast.at(queueIdx);
+    return cosQueueGports_.multicast.at(cosQ);
   }
   throw FbossError(
     "Failed to retrieve queue gport because unsupported StreamType: ",
