@@ -1,7 +1,4 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+#!/usr/bin/env python3
 
 import threading
 import time
@@ -15,12 +12,33 @@ from neteng.fboss.ctrl.ttypes import PortOperState
 @test_tags("port", "run-on-diff", "trunk-stable")
 class PortStatusTest(FbossBaseSystemTest):
     """ Verify that for each port, that the internal state agrees with fb303 """
+
     def test_port_status_matchfb303(self):
         self.test_topology.min_hosts_or_skip(1)
+        mismatch_ports = []
         with self.test_topology.switch_thrift() as sw_client:
-            for _pnum, pstate in sw_client.getAllPortInfo().items():
-                self.assertEqual(pstate.operState,
-                                 sw_client.getCounter("%s.up" % pstate.name))
+            all_port_info = sw_client.getAllPortInfo()
+            for _pnum, pstate in all_port_info.items():
+                is_port_up = pstate.operState == PortOperState.UP
+                fb303_counter = sw_client.getCounter('%s.up' % (pstate.name))
+                fb303_is_port_up = fb303_counter == 1
+                if is_port_up != fb303_is_port_up:
+                    mismatch_ports.append(
+                        (pstate.name, pstate.operState, fb303_counter)
+                    )
+        self.assertEqual(
+            len(mismatch_ports),
+            0,
+            msg="There are %d/%d mismatch ports: %s" % (
+                len(mismatch_ports), len(all_port_info), ', '.join(
+                    [
+                        '%s (operState: %s, fb303_counter: %s' %
+                        (name, is_port_up, fb303_is_port_up)
+                        for name, is_port_up, fb303_is_port_up in mismatch_ports
+                    ]
+                )
+            )
+        )
 
 
 @test_tags("port", "server_port_flap", "new-test")
