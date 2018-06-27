@@ -165,13 +165,29 @@ class IpCli(object):
 
 class InterfaceCli(object):
     ''' Interface sub-commands '''
+
+    def __init__(self):
+        self.interface.add_command(self._show, name='show')
+        self.interface.add_command(self._summary, name='summary')
+
+    @click.group(cls=AliasedGroup)
+    def interface():
+        ''' Show Interface Information '''
+        pass
+
     @click.command()
     @click.argument('interfaces', type=int, nargs=-1)
     @click.pass_obj
-    def interface(cli_opts, interfaces):
+    def _show(cli_opts, interfaces):
         ''' Show interface information for Interface(s); Outputs a list of
             interfaces on host if no interfaces are specified '''
-        interface.InterfaceCmd(cli_opts).run(interfaces)
+        interface.InterfaceShowCmd(cli_opts).run(interfaces)
+
+    @click.command()
+    @click.pass_obj
+    def _summary(cli_opts):
+        ''' Show interface summary '''
+        interface.InterfaceSummaryCmd(cli_opts).run()
 
 
 class L2Cli(object):

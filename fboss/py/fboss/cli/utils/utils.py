@@ -12,6 +12,8 @@ import socket
 import sys
 import re
 
+from typing import Tuple
+
 from facebook.network.Address.ttypes import BinaryAddress
 
 AGENT_KEYWORD = 'agent'
@@ -19,14 +21,11 @@ BGP_KEYWORD = 'bgp'
 COOP_KEYWORD = 'coop'
 SDK_KEYWORD = 'sdk'
 
-if sys.stdout.isatty():
-    COLOR_RED = '\033[31m'
-    COLOR_GREEN = '\033[32m'
-    COLOR_RESET = '\033[m'
-else:
-    COLOR_RED = ''
-    COLOR_GREEN = ''
-    COLOR_RESET = ''
+
+def get_colors() -> Tuple[str, str, str]:
+    if sys.stdout.isatty():
+        return ('\033[31m', '\033[32m', '\033[m')
+    return ('', '', '')
 
 
 def ip_to_binary(ip):
@@ -62,12 +61,14 @@ def port_name_sort_fn(port_name):
 
 
 def make_error_string(msg):
+    COLOR_RED, COLOR_GREEN, COLOR_RESET = get_colors()
     return COLOR_RED + msg + COLOR_RESET
 
 
 def get_status_strs(status, is_present):
     ''' Get port status attributes '''
 
+    COLOR_RED, COLOR_GREEN, COLOR_RESET = get_colors()
     attrs = {}
     admin_status = "Enabled"
     link_status = "Up"
