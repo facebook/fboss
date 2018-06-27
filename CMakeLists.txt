@@ -397,7 +397,6 @@ add_library(fboss_agent STATIC
     fboss/agent/TunIntf.cpp
     fboss/agent/TunManager.cpp
     fboss/agent/UDPHeader.cpp
-    fboss/agent/UnresolvedNhopsProber.cpp
     fboss/agent/Utils.cpp
 
     fboss/lib/usb/GalaxyI2CBus.cpp

@@ -49,7 +49,6 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/UnresolvedNhopsProber.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/gen-cpp2/switch_config_types_custom_protocol.h"
@@ -240,10 +239,6 @@ void SwSwitch::stop() {
 
   if (lagManager_) {
     lagManager_.reset();
-  }
-
-  if (unresolvedNhopsProber_) {
-    unresolvedNhopsProber_.reset();
   }
 
   // Need to destroy IPv6Handler as it is a state observer,
@@ -500,13 +495,6 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
 
   if (flags & SwitchFlags::ENABLE_LLDP) {
     lldpManager_ = std::make_unique<LldpManager>(this);
-  }
-
-  if (flags & SwitchFlags::ENABLE_NHOPS_PROBER) {
-    unresolvedNhopsProber_ = std::make_unique<UnresolvedNhopsProber>(this);
-    // Feed initial state.
-    unresolvedNhopsProber_->stateUpdated(
-        StateDelta(std::make_shared<SwitchState>(), getState()));
   }
 
   if (flags & SwitchFlags::ENABLE_LACP) {
