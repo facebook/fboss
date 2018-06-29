@@ -16,6 +16,7 @@
 #include <folly/Range.h>
 
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/StateUtils.h"
@@ -28,10 +29,6 @@ inline folly::StringPiece constexpr kInterface() {
 
 inline folly::StringPiece constexpr kNexthop() {
   return "nexthop";
-}
-
-inline folly::StringPiece constexpr kWeight() {
-  return "weight";
 }
 
 using NextHopWeight = uint64_t;

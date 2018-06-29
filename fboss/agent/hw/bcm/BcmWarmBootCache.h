@@ -69,12 +69,13 @@ class BcmWarmBootCache {
   };
   typedef opennsl_if_t EcmpEgressId;
   typedef opennsl_if_t EgressId;
-  typedef boost::container::flat_set<EgressId> EgressIds;
-  typedef boost::container::flat_map<EgressId, EgressIds> Ecmp2EgressIds;
+  typedef boost::container::flat_multiset<EgressId> EgressIds;
+  typedef boost::container::flat_map<EcmpEgressId, EgressIds> Ecmp2EgressIds;
   static EgressIds toEgressIds(EgressId* egress, int count) {
     EgressIds egressIds;
-    std::for_each(egress, egress + count,
-        [&](EgressId egress) { egressIds.insert(egress);});
+    std::for_each(egress, egress + count, [&egressIds](EgressId egress) {
+      egressIds.insert(egress);
+    });
     return egressIds;
   }
   static std::string toEgressIdsStr(const EgressIds& egressIds);

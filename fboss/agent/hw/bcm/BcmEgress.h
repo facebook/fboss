@@ -120,13 +120,11 @@ class BcmEgress : public BcmEgressBase {
 class BcmEcmpEgress : public BcmEgressBase {
  public:
   using EgressId = opennsl_if_t;
-  using Paths = boost::container::flat_set<opennsl_if_t>;
+  using EgressIdSet = boost::container::flat_set<EgressId>;
+  using Paths = boost::container::flat_multiset<EgressId>;
   enum class Action { SHRINK, EXPAND, SKIP };
 
-  explicit BcmEcmpEgress(const BcmSwitchIf* hw,
-      Paths paths) : BcmEgressBase(hw), paths_(paths) {
-    program();
-  }
+  BcmEcmpEgress(const BcmSwitchIf* hw, const Paths& paths);
   ~BcmEcmpEgress() override;
   bool pathUnreachableHwLocked(EgressId path);
   bool pathReachableHwLocked(EgressId path);

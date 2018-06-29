@@ -28,6 +28,8 @@ extern "C" {
 
 #include "fboss/agent/state/RouteTypes.h"
 
+#include <numeric>
+
 namespace facebook { namespace fboss {
 
 namespace {
@@ -40,6 +42,95 @@ auto constexpr kRoutes = "routes";
 
 // TODO: Assumes we have only one VRF
 auto constexpr kDefaultVrf = 0;
+
+auto constexpr kEcmpWidth = 64;
+
+// Next hops coming from the SwSwitch need to be normalized
+// in two ways:
+// 1) Weight=0 (ECMP that does not support UCMP) needs to be treated
+//    the same as Weight=1
+// 2) If the total weights of the next hops exceed the ECMP group width,
+//    we need to scale them down to within the ECMP group width.
+RouteNextHopEntry::NextHopSet normalizeNextHops(
+    const RouteNextHopEntry::NextHopSet& unnormalizedNextHops) {
+  RouteNextHopEntry::NextHopSet normalizedNextHops;
+  // 1)
+  for (const auto& nhop : unnormalizedNextHops) {
+    normalizedNextHops.insert(ResolvedNextHop(
+        nhop.addr(),
+        nhop.intf(),
+        std::max(nhop.weight(), NextHopWeight(1))));
+  }
+  // 2)
+  // Calculate the totalWeight. If that exceeds the max ecmp width, we use the
+  // following heuristic algorithm:
+  // 2a) Calculate the scaled factor kEcmpWidth/totalWeight. Without rounding,
+  //     multiplying each weight by this will still yield correct weight ratios
+  //     between the next hops.
+  // 2b) Scale each next hop by the scaling factor, rounding down by default
+  //     except for when weights go below 1. In that case, add them in as
+  //     weight 1. At this point, we might _still_ be above kEcmpWidth, because
+  //     we could have rounded too many 0s up to 1.
+  // 2c) Do a final pass where we make up any remaining excess weight above
+  //     kEcmpWidth by iteratively decrementing the max weight. If there are
+  //     more than kEcmpWidth next hops, this cannot possibly succeed.
+  NextHopWeight totalWeight = std::accumulate(
+      normalizedNextHops.begin(),
+      normalizedNextHops.end(),
+      0,
+      [](NextHopWeight w, const NextHop& nh) { return w + nh.weight(); });
+  // Total weight after applying the scaling factor
+  // kEcmpWidth/totalWeight to all next hops.
+  NextHopWeight scaledTotalWeight = 0;
+  if (totalWeight > kEcmpWidth) {
+    XLOG(DBG2) << "Total weight of next hops exceeds max ecmp width: "
+               << totalWeight << " > " << kEcmpWidth << " ("
+               << normalizedNextHops << ")";
+    // 2a)
+    double factor = kEcmpWidth / static_cast<double>(totalWeight);
+    RouteNextHopEntry::NextHopSet scaledNextHops;
+    // 2b)
+    for (const auto& nhop : normalizedNextHops) {
+      NextHopWeight w = std::max(
+          static_cast<NextHopWeight>(nhop.weight() * factor), NextHopWeight(1));
+      scaledNextHops.insert(ResolvedNextHop(nhop.addr(), nhop.intf(), w));
+      scaledTotalWeight += w;
+    }
+    // 2c)
+    if (scaledTotalWeight > kEcmpWidth) {
+      XLOG(WARNING) << "Total weight of scaled next hops STILL exceeds max "
+                    << "ecmp width: " << scaledTotalWeight << " > "
+                    << kEcmpWidth << " (" << scaledNextHops << ")";
+      // calculate number of times we need to decrement the max next hop
+      NextHopWeight overflow = scaledTotalWeight - kEcmpWidth;
+      for (int i = 0; i < overflow; ++i) {
+        // find the max weight next hop
+        auto maxItr = std::max_element(
+            scaledNextHops.begin(),
+            scaledNextHops.end(),
+            [](const NextHop& n1, const NextHop& n2) {
+              return n1.weight() < n2.weight();
+            });
+        XLOG(DBG2) << "Decrementing the weight of next hop: " << *maxItr;
+        // create a clone of the max weight next hop with weight decremented
+        ResolvedNextHop decMax = ResolvedNextHop(
+            maxItr->addr(), maxItr->intf(), maxItr->weight() - 1);
+        // remove the max weight next hop and replace with the
+        // decremented version, if the decremented version would
+        // not have weight 0. If it would have weight 0, that means
+        // that we have > kEcmpWidth next hops.
+        scaledNextHops.erase(maxItr);
+        if (decMax.weight() > 0) {
+          scaledNextHops.insert(decMax);
+        }
+      }
+    }
+    XLOG(DBG2) << "Scaled next hops from " << unnormalizedNextHops << " to "
+               << scaledNextHops;
+    normalizedNextHops = scaledNextHops;
+  }
+  return normalizedNextHops;
+}
 }
 
 BcmRoute::BcmRoute(const BcmSwitch* hw, opennsl_vrf_t vrf,
@@ -347,20 +438,7 @@ void BcmRouteTable::addRoute(opennsl_vrf_t vrf, const RouteT *route) {
   CHECK(route->isResolved());
   RouteNextHopEntry fwd(route->getForwardInfo());
   if (fwd.getAction() == RouteForwardAction::NEXTHOPS) {
-    // NOTE:
-    // Due to details of how ECMP vs UCMP recursive route resolution works in
-    // SwSwitch, for an ECMP route we can receive a route whose next hops all
-    // have weight 0. To make the egress programming logic simpler, normalize
-    // those to weight 1 here at the entry point to route programming, rather
-    // than trying to handle it everywhere.
-    RouteNextHopSet nhops;
-    for (const auto& nhop : fwd.getNextHopSet()) {
-      if (nhop.weight() > 1) {
-        throw FbossError("UCMP weights not yet supported in BcmSwitch ", fwd);
-      }
-      nhops.insert(
-          ResolvedNextHop(nhop.addr(), nhop.intf(), UCMP_DEFAULT_WEIGHT));
-    }
+    RouteNextHopSet nhops = normalizeNextHops(fwd.getNextHopSet());
     fwd = RouteNextHopEntry(nhops, fwd.getAdminDistance());
   }
   ret.first->second->program(fwd);
@@ -391,5 +469,4 @@ template void BcmRouteTable::addRoute(opennsl_vrf_t, const RouteV4 *);
 template void BcmRouteTable::addRoute(opennsl_vrf_t, const RouteV6 *);
 template void BcmRouteTable::deleteRoute(opennsl_vrf_t, const RouteV4 *);
 template void BcmRouteTable::deleteRoute(opennsl_vrf_t, const RouteV6 *);
-
 }}

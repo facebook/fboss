@@ -200,11 +200,15 @@ BcmEgress::~BcmEgress() {
              << hw_->getUnit();
 }
 
+BcmEcmpEgress::BcmEcmpEgress(const BcmSwitchIf* hw, const Paths& paths)
+    : BcmEgressBase(hw), paths_(paths) {
+  program();
+}
+
 void BcmEcmpEgress::program() {
   opennsl_l3_egress_ecmp_t obj;
   opennsl_l3_egress_ecmp_t_init(&obj);
-  auto n_path = paths_.size();
-  obj.max_paths = ((n_path + 3) >> 2) << 2; // multiple of 4
+  obj.max_paths = ((paths_.size() + 3) >> 2) << 2; // multiple of 4
 
   const auto warmBootCache = hw_->getWarmBootCache();
   auto egressIds2EcmpCItr = warmBootCache->findEcmp(paths_);
@@ -231,7 +235,7 @@ void BcmEcmpEgress::program() {
     }
     opennsl_if_t pathsArray[paths_.size()];
     auto index = 0;
-    for (auto path: paths_) {
+    for (const auto& path : paths_) {
       if (hw_->getHostTable()->isResolved(path)) {
         pathsArray[index++] = path;
       } else {
@@ -242,10 +246,10 @@ void BcmEcmpEgress::program() {
     auto ret = opennsl_l3_egress_ecmp_create(hw_->getUnit(), &obj, index,
                                              pathsArray);
     bcmCheckError(ret, "failed to program L3 ECMP egress object ", id_,
-                " with ", n_path, " paths");
+                " with ", paths_.size(), " paths");
     id_ = obj.ecmp_intf;
     XLOG(DBG2) << "Programmed L3 ECMP egress object " << id_ << " for "
-               << n_path << " paths";
+               << paths_.size() << " paths";
   }
   CHECK_NE(id_, INVALID);
 }
@@ -276,7 +280,7 @@ folly::dynamic BcmEcmpEgress::toFollyDynamic() const {
   folly::dynamic ecmpEgress = folly::dynamic::object;
   ecmpEgress[kEgressId] = getID();
   folly::dynamic paths = folly::dynamic::array;
-  for (auto path: paths_) {
+  for (const auto& path : paths_) {
     paths.push_back(path);
   }
   ecmpEgress[kPaths] = std::move(paths);

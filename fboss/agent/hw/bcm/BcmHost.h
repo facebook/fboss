@@ -40,8 +40,7 @@ class BcmHostTable;
 class BcmHost {
  public:
   BcmHost(const BcmSwitchIf* hw, BcmHostKey key)
-    : hw_(hw), key_(std::move(key)) {
-  }
+      : hw_(hw), key_(std::move(key)) {}
 
   virtual ~BcmHost();
   bool isProgrammed() const {
@@ -271,8 +270,8 @@ class BcmHostTable {
    * Host entries from warm boot cache synced
    */
   void warmBootHostEntriesSynced();
-  using Paths = BcmEcmpEgress::Paths;
 
+  using EgressIdSet = BcmEcmpEgress::EgressIdSet;
   /*
    * Release all host entries. Should only
    * be called when we are about to reset/destroy
@@ -298,14 +297,14 @@ class BcmHostTable {
   }
 
   void egressResolutionChangedHwLocked(
-      const Paths& affectedPaths,
+      const EgressIdSet& affectedEgressIds,
       BcmEcmpEgress::Action action);
   void egressResolutionChangedHwLocked(
       opennsl_if_t affectedPath,
       BcmEcmpEgress::Action action) {
-    BcmEcmpEgress::Paths affectedPaths;
-    affectedPaths.insert(affectedPath);
-    egressResolutionChangedHwLocked(affectedPaths, action);
+    EgressIdSet affectedEgressIds;
+    affectedEgressIds.insert(affectedPath);
+    egressResolutionChangedHwLocked(affectedEgressIds, action);
   }
 
  private:
@@ -315,15 +314,15 @@ class BcmHostTable {
   void linkStateChangedMaybeLocked(opennsl_port_t port, bool up, bool locked);
   static void egressResolutionChangedHwNotLocked(
       int unit,
-      const Paths& affectedPaths,
+      const EgressIdSet& affectedEgressIds,
       bool up);
   // Callback for traversal in egressResolutionChangedHwNotLocked
   static int removeAllEgressesFromEcmpCallback(
       int unit,
-      opennsl_l3_egress_ecmp_t* ecmp,
-      int intfCount,
-      opennsl_if_t* intfArray,
-      void* userData);
+      opennsl_l3_egress_ecmp_t* ecmp, // ecmp object being traversed
+      int intfCount, // number of egresses in the ecmp group
+      opennsl_if_t* intfArray, // array of egresses in the ecmp group
+      void* userData); // egresses we intend to remove from the ecmp group
   void setPort2EgressIdsInternal(std::shared_ptr<PortAndEgressIdsMap> newMap);
 
   const BcmSwitchIf* hw_{nullptr};

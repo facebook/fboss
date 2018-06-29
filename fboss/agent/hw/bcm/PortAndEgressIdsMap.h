@@ -17,21 +17,22 @@ extern "C" {
 #include <folly/dynamic.h>
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/NodeMap.h"
+#include "fboss/agent/hw/bcm/BcmEgress.h"
 
 #include <boost/container/flat_set.hpp>
 
 namespace facebook { namespace fboss {
 
 struct PortAndEgressIdsFields {
-  typedef boost::container::flat_set<opennsl_if_t> EgressIds;
-  PortAndEgressIdsFields(opennsl_gport_t gport, EgressIds egressIds)
+  using EgressIdSet = BcmEcmpEgress::EgressIdSet;
+  PortAndEgressIdsFields(opennsl_gport_t gport, EgressIdSet egressIds)
       : id(gport), egressIds(std::move(egressIds)) {}
 
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
 
   const opennsl_gport_t id{0};
-  EgressIds egressIds;
+  EgressIdSet egressIds;
 };
 
 /*
@@ -40,21 +41,21 @@ struct PortAndEgressIdsFields {
 class PortAndEgressIds: public NodeBaseT<PortAndEgressIds,
   PortAndEgressIdsFields> {
  public:
-    typedef PortAndEgressIdsFields::EgressIds EgressIds;
-    PortAndEgressIds(opennsl_gport_t gport, EgressIds egressIds)
+    typedef PortAndEgressIdsFields::EgressIdSet EgressIdSet;
+    PortAndEgressIds(opennsl_gport_t gport, EgressIdSet egressIds)
         : NodeBaseT(gport, std::move(egressIds)) {}
 
     opennsl_gport_t getID() const {
       return getFields()->id;
   }
-  const EgressIds& getEgressIds() const {
+  const EgressIdSet& getEgressIds() const {
     return getFields()->egressIds;
   }
 
   bool empty() const {
     return getEgressIds().size() == 0;
   }
-  void setEgressIds(EgressIds egressIds) {
+  void setEgressIds(EgressIdSet egressIds) {
     writableFields()->egressIds = std::move(egressIds);
   }
 
@@ -74,7 +75,7 @@ class PortAndEgressIds: public NodeBaseT<PortAndEgressIds,
   static std::shared_ptr<PortAndEgressIds> fromFollyDynamic(
       const folly::dynamic& /*json*/) {
     CHECK(0); // Not needed yet
-    return std::make_shared<PortAndEgressIds>(0, EgressIds());
+    return std::make_shared<PortAndEgressIds>(0, EgressIdSet());
   }
 
  private:

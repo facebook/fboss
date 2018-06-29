@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <folly/String.h>
+
 namespace facebook { namespace fboss {
 
 auto constexpr kCpuPortName = "cpu";
@@ -30,5 +32,9 @@ auto constexpr kRouteTable = "routeTable";
 auto constexpr kSwSwitch = "swSwitch";
 auto constexpr kVrf = "vrf";
 auto constexpr kWarmBootCache = "warmBootCache";
+
+inline folly::StringPiece constexpr kWeight() {
+  return "weight";
+}
 
 }}

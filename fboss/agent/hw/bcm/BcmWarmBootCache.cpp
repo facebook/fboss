@@ -8,6 +8,7 @@
  *
  */
 #include "BcmWarmBootCache.h"
+#include <sstream>
 #include <string>
 #include <utility>
 
@@ -221,8 +222,8 @@ void BcmWarmBootCache::programmed(Range2BcmHandlerItr itr) {
   }
 }
 
-const BcmWarmBootCache::EgressIds&
-BcmWarmBootCache::getPathsForEcmp(EgressId ecmp) const {
+const BcmWarmBootCache::EgressIds& BcmWarmBootCache::getPathsForEcmp(
+    EgressId ecmp) const {
   static const EgressIds kEmptyEgressIds;
   if (hwSwitchEcmp2EgressIds_.empty()) {
     // We may have empty hwSwitchEcmp2EgressIds_ when
@@ -246,7 +247,7 @@ folly::dynamic BcmWarmBootCache::toFollyDynamic() const {
     folly::dynamic ecmp = folly::dynamic::object;
     ecmp[kEcmpEgressId] = ecmpAndEgressIds.first;
     folly::dynamic paths = folly::dynamic::array;
-    for (auto path : ecmpAndEgressIds.second) {
+    for (const auto& path : ecmpAndEgressIds.second) {
       paths.push_back(path);
     }
     ecmp[kPaths] = std::move(paths);
@@ -277,7 +278,8 @@ void BcmWarmBootCache::populateFromWarmBootState(const folly::dynamic&
     }
     // If the entry is valid, then there must be paths associated with it.
     for (auto path : ecmpEntry[kEcmpEgress][kPaths]) {
-      hwSwitchEcmp2EgressIds_[ecmpEgressId].insert(path.asInt());
+      EgressId e = path.asInt();
+      hwSwitchEcmp2EgressIds_[ecmpEgressId].insert(e);
     }
   }
   // Extract ecmps from dumped warm boot cache. We
@@ -286,8 +288,9 @@ void BcmWarmBootCache::populateFromWarmBootState(const folly::dynamic&
   for (const auto& ecmpEntry : ecmpObjects) {
     auto ecmpEgressId = ecmpEntry[kEcmpEgressId].asInt();
     CHECK(ecmpEgressId != BcmEgressBase::INVALID);
-    for (auto path : ecmpEntry[kPaths]) {
-      hwSwitchEcmp2EgressIds_[ecmpEgressId].emplace(path.asInt());
+    for (const auto& path : ecmpEntry[kPaths]) {
+      EgressId e = path.asInt();
+      hwSwitchEcmp2EgressIds_[ecmpEgressId].insert(e);
     }
   }
   XLOG(DBG1) << "Reconstructed following ecmp path map ";
@@ -596,13 +599,13 @@ int BcmWarmBootCache::ecmpEgressTraversalCallback(
 }
 
 std::string BcmWarmBootCache::toEgressIdsStr(const EgressIds& egressIds) {
-  string egressStr;
+  std::stringstream ss;
   int i = 0;
-  for (auto egressId : egressIds) {
-    egressStr += folly::to<string>(egressId);
-    egressStr += ++i < egressIds.size() ?  ", " : "";
+  for (const auto& egressId : egressIds) {
+    ss << egressId;
+    ss << (++i < egressIds.size() ?  ", " : "");
   }
-  return egressStr;
+  return ss.str();
 }
 
 void BcmWarmBootCache::clear() {
