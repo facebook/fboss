@@ -200,6 +200,7 @@ void BcmSwitch::resetTablesImpl(std::unique_lock<std::mutex>& /*lock*/) {
   trunkTable_.reset();
   controlPlane_.reset();
   coppAclEntries_.clear();
+  rtag7LoadBalancer_.reset();
   // Reset warmboot cache last in case Bcm object destructors
   // access it during object deletion.
   warmBootCache_.reset();
@@ -235,6 +236,7 @@ void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   trunkTable_ = std::make_unique<BcmTrunkTable>(this);
   sFlowExporterTable_ = std::make_unique<BcmSflowExporterTable>();
   controlPlane_ = std::make_unique<BcmControlPlane>(this);
+  rtag7LoadBalancer_ = std::make_unique<BcmRtag7LoadBalancer>(this);
   warmBootCache_ = std::make_unique<BcmWarmBootCache>(this);
   warmBootCache_->populate(folly::Optional<folly::dynamic>(warmBootState));
   setupToCpuEgress();
