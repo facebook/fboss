@@ -9,6 +9,7 @@
  */
 #include "BcmWarmBootCache.h"
 #include <sstream>
+#include <algorithm>
 #include <string>
 #include <utility>
 
@@ -29,6 +30,7 @@
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/LoadBalancerMap.h"
 #include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/NeighborEntry.h"
 #include "fboss/agent/state/Port.h"
@@ -207,6 +209,11 @@ BcmWarmBootCache::reconstructRouteTables() const {
 std::shared_ptr<AclMap>
 BcmWarmBootCache::reconstructAclMap() const {
   return dumpedSwSwitchState_->getAcls();
+}
+
+std::shared_ptr<LoadBalancerMap> BcmWarmBootCache::reconstructLoadBalancers()
+    const {
+  return dumpedSwSwitchState_->getLoadBalancers();
 }
 
 void BcmWarmBootCache::programmed(Range2BcmHandlerItr itr) {
@@ -439,6 +446,8 @@ void BcmWarmBootCache::populate(folly::Optional<folly::dynamic> warmBootState) {
   // populate acls and acl ranges
   populateAcls(kACLFieldGroupID, this->aclRange2BcmAclRangeHandle_,
     this->priority2BcmAclEntryHandle_);
+
+  populateRtag7State();
 }
 
 bool BcmWarmBootCache::fillVlanPortInfo(Vlan* vlan) {
@@ -739,6 +748,60 @@ void BcmWarmBootCache::clear() {
     removeBcmAclRange(aclRangeItr.second.first);
   }
   aclRange2BcmAclRangeHandle_.clear();
+}
+
+void BcmWarmBootCache::populateRtag7State() {
+  auto unit = hw_->getUnit();
+
+  moduleAState_ = BcmRtag7Module::retrieveRtag7ModuleState(
+      unit, BcmRtag7Module::kModuleAControl());
+  moduleBState_ = BcmRtag7Module::retrieveRtag7ModuleState(
+      unit, BcmRtag7Module::kModuleBControl());
+}
+
+bool BcmWarmBootCache::unitControlMatches(
+    char module,
+    opennsl_switch_control_t switchControl,
+    int arg) const {
+  const BcmRtag7Module::ModuleState* state = nullptr;
+
+  switch (module) {
+    case 'A':
+      state = &moduleAState_;
+      break;
+    case 'B':
+      state = &moduleBState_;
+      break;
+    default:
+      throw FbossError("Invalid module identifier ", module);
+  }
+
+  CHECK(state);
+  auto it = state->find(switchControl);
+
+  return it != state->end() && it->second == arg;
+}
+
+void BcmWarmBootCache::programmed(
+    char module,
+    opennsl_switch_control_t switchControl) {
+  BcmRtag7Module::ModuleState* state = nullptr;
+
+  switch (module) {
+    case 'A':
+      state = &moduleAState_;
+      break;
+    case 'B':
+      state = &moduleBState_;
+      break;
+    default:
+      throw FbossError("Invalid module identifier ", module);
+  }
+
+  CHECK(state);
+  auto numErased = state->erase(switchControl);
+
+  CHECK_EQ(numErased, 1);
 }
 
 }}

@@ -32,6 +32,12 @@ class LoadBalancerMap
 
   std::shared_ptr<LoadBalancer> getLoadBalancerIf(LoadBalancerID id) const;
 
+  void addLoadBalancer(std::shared_ptr<LoadBalancer> loadBalancer);
+
+  folly::dynamic toFollyDynamic() const override;
+  static std::shared_ptr<LoadBalancerMap> fromFollyDynamic(
+      const folly::dynamic& serializedLoadBalancers);
+
  private:
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;

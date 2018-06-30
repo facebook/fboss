@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmRtag7Module.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
 #include <folly/logging/xlog.h>
 
@@ -351,6 +352,67 @@ void BcmRtag7Module::programFieldControl() {
   //    of tunneling.
   auto rv = setUnitControl(opennslSwitchHashSelectControl, kDefault);
   bcmCheckError(rv, "failed to program RTAG7 field control");
+}
+
+int BcmRtag7Module::getUnitControl(int unit, opennsl_switch_control_t type) {
+  int val = 0;
+
+  int rv = opennsl_switch_control_get(unit, type, &val);
+  bcmCheckError(rv, "failed to retrieve value for ", type);
+
+  return val;
+}
+
+template <typename ModuleControlType>
+int BcmRtag7Module::setUnitControl(ModuleControlType controlType, int arg) {
+  auto wbCache = hw_->getWarmBootCache();
+
+  if (wbCache->unitControlMatches(
+          moduleControl_.module, controlType, arg)) {
+    XLOG(DBG2) << "Skipping assigning " << arg << " to " << controlType;
+
+    wbCache->programmed(moduleControl_.module, controlType);
+
+    return OPENNSL_E_NONE;
+  }
+
+  return opennsl_switch_control_set(hw_->getUnit(), controlType, arg);
+}
+
+BcmRtag7Module::ModuleState BcmRtag7Module::retrieveRtag7ModuleState(
+    int unit,
+    ModuleControl control) {
+  ModuleState state;
+
+  // TODO(samank): the names in ModuleControl read a bit awkwardly now that
+  // they're not only passed to setUnitControl. I will change them to be read/
+  // write neutral eg., s/enablePreprocessing/preprocessing.
+  state[control.enablePreprocessing] =
+      BcmRtag7Module::getUnitControl(unit, control.enablePreprocessing);
+  state[control.setSeed] =
+      BcmRtag7Module::getUnitControl(unit, control.setSeed);
+  state[control.ipv4NonTcpUdpFieldSelection] =
+      BcmRtag7Module::getUnitControl(unit, control.ipv4NonTcpUdpFieldSelection);
+  state[control.ipv4TcpUdpPortsUnequalFieldSelection] =
+      BcmRtag7Module::getUnitControl(
+          unit, control.ipv4TcpUdpPortsUnequalFieldSelection);
+  state[control.ipv4TcpUdpPortsEqualFieldSelection] =
+      BcmRtag7Module::getUnitControl(
+          unit, control.ipv4TcpUdpPortsEqualFieldSelection);
+  state[control.ipv6NonTcpUdpFieldSelection] =
+      BcmRtag7Module::getUnitControl(unit, control.ipv6NonTcpUdpFieldSelection);
+  state[control.ipv6TcpUdpPortsUnequalFieldSelection] =
+      BcmRtag7Module::getUnitControl(
+          unit, control.ipv6TcpUdpPortsUnequalFieldSelection);
+  state[control.ipv6TcpUdpPortsEqualFieldSelection] =
+      BcmRtag7Module::getUnitControl(
+          unit, control.ipv6TcpUdpPortsEqualFieldSelection);
+  state[control.hashFunction1] =
+      BcmRtag7Module::getUnitControl(unit, control.hashFunction1);
+  state[control.hashFunction2] =
+      BcmRtag7Module::getUnitControl(unit, control.hashFunction2);
+
+  return state;
 }
 
 } // namespace fboss

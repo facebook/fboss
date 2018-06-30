@@ -24,6 +24,35 @@ std::shared_ptr<LoadBalancer> LoadBalancerMap::getLoadBalancerIf(
   return getNodeIf(id);
 }
 
+void LoadBalancerMap::addLoadBalancer(
+    std::shared_ptr<LoadBalancer> loadBalancer) {
+  addNode(loadBalancer);
+}
+
+folly::dynamic LoadBalancerMap::toFollyDynamic() const {
+  folly::dynamic serializedLoadBalancers = folly::dynamic::array;
+
+  for (const auto& loadBalancer : *this) {
+    auto serializedLoadBalancer = loadBalancer->toFollyDynamic();
+    serializedLoadBalancers.push_back(serializedLoadBalancer);
+  }
+
+  return serializedLoadBalancers;
+}
+
+std::shared_ptr<LoadBalancerMap> LoadBalancerMap::fromFollyDynamic(
+    const folly::dynamic& serializedLoadBalancers) {
+  auto deserializedLoadBalancers = std::make_shared<LoadBalancerMap>();
+
+  for (const auto& serializedLoadBalancer : serializedLoadBalancers) {
+    auto deserializedLoadBalancer =
+        LoadBalancer::fromFollyDynamic(serializedLoadBalancer);
+    deserializedLoadBalancers->addLoadBalancer(deserializedLoadBalancer);
+  }
+
+  return deserializedLoadBalancers;
+}
+
 FBOSS_INSTANTIATE_NODE_MAP(LoadBalancerMap, LoadBalancerMapTraits);
 
 } // namespace fboss

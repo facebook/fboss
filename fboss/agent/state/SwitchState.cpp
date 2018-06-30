@@ -45,6 +45,7 @@ constexpr auto kNdpTimeout = "ndpTimeout";
 constexpr auto kArpAgerInterval = "arpAgerInterval";
 constexpr auto kMaxNeighborProbes = "maxNeighborProbes";
 constexpr auto kStaleEntryInterval = "staleEntryInterval";
+constexpr auto kLoadBalancers = "loadBalancers";
 }
 
 namespace facebook { namespace fboss {
@@ -70,6 +71,7 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kSflowCollectors] = sFlowCollectors->toFollyDynamic();
   switchState[kDefaultVlan] = static_cast<uint32_t>(defaultVlan);
   switchState[kControlPlane] = controlPlane->toFollyDynamic();
+  switchState[kLoadBalancers] = loadBalancers->toFollyDynamic();
   return switchState;
 }
 
@@ -91,6 +93,10 @@ SwitchStateFields::fromFollyDynamic(const folly::dynamic& swJson) {
   if (swJson.find(kControlPlane) != swJson.items().end()) {
     switchState.controlPlane = ControlPlane::fromFollyDynamic(
       swJson[kControlPlane]);
+  }
+  if (swJson.find(kLoadBalancers) != swJson.items().end()) {
+    switchState.loadBalancers =
+        LoadBalancerMap::fromFollyDynamic(swJson[kLoadBalancers]);
   }
   //TODO verify that created state here is internally consistent t4155406
   return switchState;

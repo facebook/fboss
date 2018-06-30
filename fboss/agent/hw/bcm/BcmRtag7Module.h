@@ -14,6 +14,7 @@
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/types.h"
 
+#include <folly/Range.h>
 #include <boost/serialization/strong_typedef.hpp>
 
 extern "C" {
@@ -144,6 +145,17 @@ class BcmRtag7Module {
   static const ModuleControl kModuleAControl();
   static const ModuleControl kModuleBControl();
 
+  using ModuleState = boost::container::flat_map<opennsl_switch_control_t, int>;
+  using ModuleStateRange = folly::Range<ModuleState::iterator>;
+  using ModuleStateConstRange = folly::Range<ModuleState::const_iterator>;
+
+  // getUnitControl is a wrapper around opennsl_switch_control_get(...). Its
+  // only use is in BcmWarmBootCache.cpp, where it is used to retrieve settings
+  // related to RTAG7. Because at that callsite there is no instance of
+  // BcmRtag7Module, it is a static method on BcmRtag7Module.
+  static int getUnitControl(int unit, opennsl_switch_control_t type);
+  static ModuleState retrieveRtag7ModuleState(int unit, ModuleControl control);
+
   BcmRtag7Module(
       ModuleControl moduleControl,
       opennsl_switch_control_t offset,
@@ -185,9 +197,7 @@ class BcmRtag7Module {
   // This is a small warpper around opennsl_switch_control_set(unit, ...) that
   // defaults the unit to HwSwitch::getUnit()
   template <typename ModuleControlType>
-  int setUnitControl(ModuleControlType controlType, int arg) {
-    return opennsl_switch_control_set(hw_->getUnit(), controlType, arg);
-  }
+  int setUnitControl(ModuleControlType controlType, int arg);
 
   ModuleControl moduleControl_;
   opennsl_switch_control_t offset_;

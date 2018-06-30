@@ -413,3 +413,69 @@ TEST(LoadBalancerMap, updateLoadBalancer) {
       startEcmpLoadBalancer->getIPv6Fields(),
       LoadBalancer::TransportFieldsRange());
 }
+
+TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
+  auto aggPortOrigLoadBalancerID = LoadBalancerID::AGGREGATE_PORT;
+  auto aggPortOrigHash = cfg::HashingAlgorithm::CRC16_CCITT;
+  uint32_t aggPortOrigSeed = 0xA51C5EED;
+  LoadBalancer::IPv4Fields aggPortOrigV4Src(
+      {LoadBalancer::IPv4Field::SOURCE_ADDRESS});
+  LoadBalancer::IPv6Fields aggPortOrigV6Dst(
+      {LoadBalancer::IPv6Field::DESTINATION_ADDRESS});
+  LoadBalancer::TransportFields aggPortOrigTransportSrcAndDst(
+      {LoadBalancer::TransportField::SOURCE_PORT,
+       LoadBalancer::TransportField::DESTINATION_PORT});
+
+  auto ecmpOrigLoadBalancerID = LoadBalancerID::ECMP;
+  auto ecmpOrigHash = cfg::HashingAlgorithm::CRC16_CCITT;
+  uint32_t ecmpOrigSeed = 0xA51C5EED;
+  LoadBalancer::IPv4Fields ecmpOrigV4Dst(
+      {LoadBalancer::IPv4Field::DESTINATION_ADDRESS});
+  LoadBalancer::IPv6Fields ecmpOrigV6Src(
+      {LoadBalancer::IPv6Field::SOURCE_ADDRESS});
+  LoadBalancer::TransportFields ecmpOrigTransportSrcAndDst(
+      {LoadBalancer::TransportField::SOURCE_PORT,
+       LoadBalancer::TransportField::DESTINATION_PORT});
+
+  LoadBalancerMap loadBalancerMap;
+  loadBalancerMap.addLoadBalancer(std::make_shared<LoadBalancer>(
+      aggPortOrigLoadBalancerID,
+      aggPortOrigHash,
+      aggPortOrigSeed,
+      aggPortOrigV4Src,
+      aggPortOrigV6Dst,
+      aggPortOrigTransportSrcAndDst));
+  loadBalancerMap.addLoadBalancer(std::make_shared<LoadBalancer>(
+      ecmpOrigLoadBalancerID,
+      ecmpOrigHash,
+      ecmpOrigSeed,
+      ecmpOrigV4Dst,
+      ecmpOrigV6Src,
+      ecmpOrigTransportSrcAndDst));
+
+  auto serializedLoadBalancerMap = loadBalancerMap.toFollyDynamic();
+  auto deserializedLoadBalancerMapPtr =
+      LoadBalancerMap::fromFollyDynamic(serializedLoadBalancerMap);
+
+  checkLoadBalancer(
+      deserializedLoadBalancerMapPtr->getLoadBalancerIf(
+          LoadBalancerID::AGGREGATE_PORT),
+      aggPortOrigLoadBalancerID,
+      aggPortOrigHash,
+      aggPortOrigSeed,
+      folly::range(aggPortOrigV4Src.begin(), aggPortOrigV4Src.end()),
+      folly::range(aggPortOrigV6Dst.begin(), aggPortOrigV6Dst.end()),
+      folly::range(
+          aggPortOrigTransportSrcAndDst.begin(),
+          aggPortOrigTransportSrcAndDst.end()));
+  checkLoadBalancer(
+      deserializedLoadBalancerMapPtr->getLoadBalancerIf(LoadBalancerID::ECMP),
+      ecmpOrigLoadBalancerID,
+      ecmpOrigHash,
+      ecmpOrigSeed,
+      folly::range(ecmpOrigV4Dst.begin(), ecmpOrigV4Dst.end()),
+      folly::range(ecmpOrigV6Src.begin(), ecmpOrigV6Src.end()),
+      folly::range(
+          ecmpOrigTransportSrcAndDst.begin(),
+          ecmpOrigTransportSrcAndDst.end()));
+}

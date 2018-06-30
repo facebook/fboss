@@ -27,6 +27,7 @@ extern "C" {
 #include <memory>
 #include <string>
 #include <vector>
+#include "fboss/agent/hw/bcm/BcmRtag7Module.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/types.h"
 
@@ -37,10 +38,11 @@ class AclMap;
 class BcmSwitch;
 class BcmSwitchIf;
 class InterfaceMap;
+class LoadBalancerMap;
 class RouteTableMap;
+class SwitchState;
 class Vlan;
 class VlanMap;
-class SwitchState;
 
 class BcmWarmBootCache {
  public:
@@ -95,6 +97,7 @@ class BcmWarmBootCache {
    * Reconstruct acl map
    */
   std::shared_ptr<AclMap> reconstructAclMap() const;
+  std::shared_ptr<LoadBalancerMap> reconstructLoadBalancers() const;
 
   /*
    * Get all cached ecmp egress Ids
@@ -171,6 +174,8 @@ class BcmWarmBootCache {
   void removeBcmAcl(BcmAclEntryHandle handle);
   // remove bcm acl range directly from h/w
   void removeBcmAclRange(BcmAclRangeHandle handle);
+
+  void populateRtag7State();
 
  public:
   /*
@@ -376,6 +381,12 @@ class BcmWarmBootCache {
   }
   void programmed(Range2BcmHandlerItr itr);
 
+  bool unitControlMatches(
+      char module,
+      opennsl_switch_control_t switchControl,
+      int arg) const;
+  void programmed(char module, opennsl_switch_control_t switchControl);
+
   /*
    * owner is done programming its entries remove any entries
    * from hw that had owner as their only remaining owner
@@ -453,6 +464,9 @@ class BcmWarmBootCache {
   // acls and acl ranges
   AclRange2BcmAclRangeHandle aclRange2BcmAclRangeHandle_;
   Priority2BcmAclEntryHandle priority2BcmAclEntryHandle_;
+
+  BcmRtag7Module::ModuleState moduleAState_;
+  BcmRtag7Module::ModuleState moduleBState_;
 
   std::unique_ptr<SwitchState> dumpedSwSwitchState_;
 };
