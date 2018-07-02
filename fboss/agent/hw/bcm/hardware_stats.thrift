@@ -28,6 +28,7 @@ struct HwPortStats {
   18: i64 outCongestionDiscardPkts_ = STAT_UNINITIALIZED;
   19: list<i64> queueOutDiscardBytes_ = []
   20: list<i64> queueOutBytes_ = []
+  21: i64 outEcnCounter_ = STAT_UNINITIALIZED
 }
 
 struct HwTrunkStats {
@@ -52,4 +53,5 @@ struct HwTrunkStats {
   17: i64 outErrors_ = STAT_UNINITIALIZED
   18: i64 outPause_ = STAT_UNINITIALIZED
   19: i64 outCongestionDiscardPkts_ = STAT_UNINITIALIZED
+  20: i64 outEcnCounter_ = STAT_UNINITIALIZED
 }

@@ -47,6 +47,7 @@ void BcmTrunkStats::initialize(
   initializeCounter(kOutErrors());
   initializeCounter(kOutPause());
   initializeCounter(kOutCongestionDiscards());
+  initializeCounter(kOutEcnCounter());
 }
 
 void BcmTrunkStats::initializeCounter(folly::StringPiece counterKey) {
@@ -231,6 +232,7 @@ void BcmTrunkStats::update() {
   updateCounter(then, kOutPause(), stats.outPause_);
   updateCounter(
       then, kOutCongestionDiscards(), stats.outCongestionDiscardPkts_);
+  updateCounter(then, kOutEcnCounter(), stats.outEcnCounter_);
 }
 
 std::string BcmTrunkStats::constructCounterName(

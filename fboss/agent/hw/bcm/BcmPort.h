@@ -186,6 +186,7 @@ class BcmPort {
                   folly::StringPiece statName,
                   opennsl_stat_val_t type,
                   int64_t* portStatVal);
+  void updateBcmStats(std::chrono::seconds now, HwPortStats* curPortStats);
   void updatePktLenHist(std::chrono::seconds now,
                         stats::ExportedHistogramMapImpl::LockableHistogram* hist,
                         const std::vector<opennsl_stat_val_t>& stats);

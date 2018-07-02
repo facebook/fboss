@@ -169,6 +169,7 @@ void BcmPort::reinitPortStats() {
   reinitPortStat(kOutDiscards());
   reinitPortStat(kOutErrors());
   reinitPortStat(kOutPause());
+  reinitPortStat(kOutEcnCounter());
 
   queueManager_->setupQueueCounters();
 
@@ -647,6 +648,8 @@ void BcmPort::updateStats() {
       kOutPause(),
       opennsl_spl_snmpDot3OutPauseFrames,
       &curPortStats.outPause_);
+
+  updateBcmStats(now, &curPortStats);
 
   setAdditionalStats(now, &curPortStats);
 

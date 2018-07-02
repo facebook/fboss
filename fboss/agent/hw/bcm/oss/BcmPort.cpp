@@ -71,4 +71,9 @@ bool BcmPort::getDesiredFECEnabledStatus(
     const std::shared_ptr<Port>& /*swPort*/) {
   return false;
 }
+
+void BcmPort::updateBcmStats(std::chrono::seconds /*now*/,
+                             HwPortStats* /*curPortStats*/) {
+}
+
 }} // namespace facebook::fboss
