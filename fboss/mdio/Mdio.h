@@ -63,6 +63,8 @@ class Mdio {
 template <typename IO>
 class MdioController {
  public:
+  using LockedPtr = typename folly::Synchronized<IO, std::mutex>::LockedPtr;
+
   template <typename... Args>
   explicit MdioController(Args&&... args)
       : io_(IO(std::forward<Args>(args)...)) {}
@@ -89,7 +91,7 @@ class MdioController {
   //   io->write(...);
   //   io->read(...);
   // }
-  auto lock() {
+  LockedPtr lock() {
     return io_.lock();
   }
 
