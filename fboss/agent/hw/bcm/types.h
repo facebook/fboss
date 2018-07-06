@@ -7,15 +7,17 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#pragma once
 
-#include "fboss/agent/hw/bcm/BcmAclEntry.h"
+#include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+FBOSS_STRONG_TYPE(int, BcmAclStatHandle);
 
-BcmAclEntry::BcmAclEntry(
-    BcmSwitch* /*hw*/,
-    int /*gid*/,
-    const std::shared_ptr<AclEntry>& /*acl*/) {}
-BcmAclEntry::~BcmAclEntry() {}
+namespace facebook {
+namespace fboss {
 
-}} // facebook::fboss
+using BcmAclEntryHandle = int;
+using BcmAclRangeHandle = uint32_t;
+
+} // namespace fboss
+} // namespace facebook

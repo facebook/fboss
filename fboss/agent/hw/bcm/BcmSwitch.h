@@ -112,6 +112,8 @@ class BcmSwitchIf : public HwSwitch {
 
   virtual BcmHostTable* writableHostTable() const = 0;
 
+  virtual BcmAclTable* writableAclTable() const = 0;
+
   virtual BcmWarmBootCache* getWarmBootCache() const = 0;
 
   virtual void dumpState() const = 0;
@@ -324,6 +326,7 @@ class BcmSwitch : public BcmSwitchIf {
   void fetchL2Table(std::vector<L2EntryThrift> *l2Table) override;
 
   BcmHostTable* writableHostTable() const override { return hostTable_.get(); }
+  BcmAclTable* writableAclTable() const override { return aclTable_.get(); }
   BcmWarmBootCache* getWarmBootCache() const override {
     return warmBootCache_.get();
   }

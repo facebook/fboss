@@ -56,8 +56,6 @@ FBOSS_STRONG_TYPE(uint32_t, ClientID)
  */
 FBOSS_STRONG_TYPE(uint64_t, NodeID)
 
-#undef FBOSS_STRONG_TYPE
-
 namespace facebook {
 namespace fboss {
 

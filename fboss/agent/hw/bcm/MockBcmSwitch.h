@@ -70,6 +70,7 @@ class MockBcmSwitch : public BcmSwitchIf {
   MOCK_CONST_METHOD0(getCosMgr, BcmCosManager*());
   MOCK_METHOD1(fetchL2Table, void(std::vector<L2EntryThrift>* l2Table));
   MOCK_CONST_METHOD0(writableHostTable, BcmHostTable*());
+  MOCK_CONST_METHOD0(writableAclTable, BcmAclTable*());
   MOCK_CONST_METHOD0(getWarmBootCache, BcmWarmBootCache*());
   MOCK_CONST_METHOD0(dumpState, void());
   MOCK_CONST_METHOD0(exitFatal, void());

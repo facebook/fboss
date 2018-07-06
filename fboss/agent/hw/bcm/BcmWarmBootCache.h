@@ -29,7 +29,7 @@ extern "C" {
 #include <vector>
 #include "fboss/agent/hw/bcm/BcmRtag7Module.h"
 #include "fboss/agent/state/RouteTypes.h"
-#include "fboss/agent/types.h"
+#include "fboss/agent/hw/bcm/types.h"
 
 #include "fboss/agent/hw/bcm/BcmAclRange.h"
 
@@ -139,13 +139,18 @@ class BcmWarmBootCache {
   using HostTableInWarmBootFile = boost::container::flat_map<HostKey, EgressId>;
 
   // current h/w acl ranges: value = <BcmAclRangeHandle, ref_count>
-  using BcmAclRangeHandle = uint32_t;
-  using BcmAclEntryHandle = int;
   using AclRange2BcmAclRangeHandle = boost::container::flat_map<
         AclRange, std::pair<BcmAclRangeHandle, uint32_t>>;
   // current h/w acls: key = priority, value = BcmAclEntryHandle
   using Priority2BcmAclEntryHandle = boost::container::flat_map<
         int, BcmAclEntryHandle>;
+  struct AclStatStatus {
+    BcmAclStatHandle stat{-1};
+    bool claimed{false};
+  };
+  // current h/w acl stats: key = BcmAclEntryHandle, value = AclStatStatus
+  using AclEntry2AclStat = boost::container::flat_map<
+    BcmAclEntryHandle, AclStatStatus>;
 
   /*
    * Callbacks for traversing entries in BCM h/w tables
@@ -166,14 +171,21 @@ class BcmWarmBootCache {
    */
   // retrieve all bcm acls of the specified group
   void populateAcls(const int groupId, AclRange2BcmAclRangeHandle& ranges,
+                    AclEntry2AclStat& stats,
                     Priority2BcmAclEntryHandle& acls);
   // retrieve bcm acl ranges for the specified acl
   void populateAclRanges(const BcmAclEntryHandle acl,
                          AclRange2BcmAclRangeHandle& ranges);
+  void populateAclStats(const BcmAclEntryHandle acl,
+                        AclEntry2AclStat& stats);
   // remove bcm acl directly from h/w
   void removeBcmAcl(BcmAclEntryHandle handle);
   // remove bcm acl range directly from h/w
   void removeBcmAclRange(BcmAclRangeHandle handle);
+  // remove bcm acl stat directly from h/w
+  void removeBcmAclStat(BcmAclStatHandle handle);
+  void detachBcmAclStat(BcmAclEntryHandle aclHandle,
+                        BcmAclStatHandle aclStatHandle);
 
   void populateRtag7State();
 
@@ -351,7 +363,7 @@ class BcmWarmBootCache {
   }
 
   /*
-   * Iterators and find functions for acls and aclRanges
+   * Iterators and find functions for acls, aclRanges and acl stats
    */
   using Prio2BcmAclItr = Priority2BcmAclEntryHandle::const_iterator;
   Prio2BcmAclItr priority2BcmAclEntryHandle_begin() {
@@ -386,6 +398,14 @@ class BcmWarmBootCache {
       opennsl_switch_control_t switchControl,
       int arg) const;
   void programmed(char module, opennsl_switch_control_t switchControl);
+  using AclEntry2AclStatItr = AclEntry2AclStat::iterator;
+  AclEntry2AclStatItr AclEntry2AclStat_end() {
+    return aclEntry2AclStat_.end();
+  }
+  AclEntry2AclStatItr findAclStat(const BcmAclEntryHandle& bcmAclEntry) {
+    return aclEntry2AclStat_.find(bcmAclEntry);
+  }
+  void programmed(AclEntry2AclStatItr itr);
 
   /*
    * owner is done programming its entries remove any entries
@@ -467,6 +487,9 @@ class BcmWarmBootCache {
 
   BcmRtag7Module::ModuleState moduleAState_;
   BcmRtag7Module::ModuleState moduleBState_;
+
+  // acl stats
+  AclEntry2AclStat aclEntry2AclStat_;
 
   std::unique_ptr<SwitchState> dumpedSwSwitchState_;
 };

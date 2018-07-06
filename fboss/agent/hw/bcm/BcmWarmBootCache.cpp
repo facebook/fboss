@@ -229,6 +229,11 @@ void BcmWarmBootCache::programmed(Range2BcmHandlerItr itr) {
   }
 }
 
+void BcmWarmBootCache::programmed(AclEntry2AclStatItr itr) {
+  XLOG(DBG1) << "Programmed acl stat=" << itr->second.stat;
+  itr->second.claimed = true;
+}
+
 const BcmWarmBootCache::EgressIds& BcmWarmBootCache::getPathsForEcmp(
     EgressId ecmp) const {
   static const EgressIds kEmptyEgressIds;
@@ -443,8 +448,9 @@ void BcmWarmBootCache::populate(folly::Optional<folly::dynamic> warmBootState) {
   opennsl_l3_egress_ecmp_traverse(hw_->getUnit(), ecmpEgressTraversalCallback,
       this);
 
-  // populate acls and acl ranges
+  // populate acls, acl stats and acl ranges
   populateAcls(kACLFieldGroupID, this->aclRange2BcmAclRangeHandle_,
+    this->aclEntry2AclStat_,
     this->priority2BcmAclEntryHandle_);
 
   populateRtag7State();
@@ -730,6 +736,33 @@ void BcmWarmBootCache::clear() {
 
   egressIdsFromBcmHostInWarmBootFile_.clear();
   vrfIp2EgressFromBcmHostInWarmBootFile_.clear();
+
+  // Detach the unclaimed bcm acl stats
+  flat_set<BcmAclStatHandle> statsUsed;
+  for (auto aclStatItr = aclEntry2AclStat_.begin();
+       aclStatItr != aclEntry2AclStat_.end(); ++aclStatItr) {
+    auto& aclStatStatus = aclStatItr->second;
+    if (!aclStatStatus.claimed) {
+      XLOG(DBG1) << "Detaching unclaimed acl_stat=" << aclStatStatus.stat <<
+        "from acl=" << aclStatItr->first;
+      detachBcmAclStat(aclStatItr->first, aclStatStatus.stat);
+    } else {
+      statsUsed.insert(aclStatStatus.stat);
+    }
+  }
+
+  // Delete the unclaimed bcm acl stats
+  for (auto statItr : aclEntry2AclStat_) {
+    auto statHandle = statItr.second.stat;
+    if (statsUsed.find(statHandle) == statsUsed.end()) {
+      XLOG(DBG1) << "Deleting unclaimed acl_stat=" << statHandle;
+      removeBcmAclStat(statHandle);
+      // add the stat to the set to prevent this loop from attempting to
+      // delete the same stat twice
+      statsUsed.insert(statHandle);
+    }
+  }
+  aclEntry2AclStat_.clear();
 
   // Delete acls and acl ranges, since acl(field process) doesn't support
   // opennsl, we call BcmAclTable to remove the unclaimed acls

@@ -16,13 +16,23 @@ namespace facebook { namespace fboss {
 
 void BcmWarmBootCache::populateAcls(
   const int /*groupId*/, AclRange2BcmAclRangeHandle& /*ranges*/,
+  AclEntry2AclStat& /*stats*/,
   Priority2BcmAclEntryHandle& /*acls*/) {}
 
 void BcmWarmBootCache::populateAclRanges(
   const BcmAclEntryHandle /*acl*/,
   AclRange2BcmAclRangeHandle& /*ranges*/) {}
 
+void BcmWarmBootCache::populateAclStats(const BcmAclEntryHandle /*acl*/,
+  AclEntry2AclStat& /*stats*/) {}
+
 void BcmWarmBootCache::removeBcmAcl(BcmAclEntryHandle /*handle*/) {}
 
 void BcmWarmBootCache::removeBcmAclRange(BcmAclRangeHandle /*handle*/) {}
+
+void BcmWarmBootCache::removeBcmAclStat(BcmAclStatHandle /*handle*/) {}
+
+void BcmWarmBootCache::detachBcmAclStat(BcmAclEntryHandle /*acl handle*/,
+  BcmAclStatHandle /*stat handle*/) {}
+
 }} // facebook::fboss

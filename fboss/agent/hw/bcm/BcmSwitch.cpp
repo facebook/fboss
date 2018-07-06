@@ -193,7 +193,6 @@ void BcmSwitch::resetTablesImpl(std::unique_lock<std::mutex>& /*lock*/) {
   intfTable_.reset();
   toCPUEgress_.reset();
   portTable_.reset();
-  bcmStatUpdater_.reset();
   aclTable_->releaseAcls();
   aclTable_.reset();
   bcmTableStats_.reset();
@@ -201,6 +200,7 @@ void BcmSwitch::resetTablesImpl(std::unique_lock<std::mutex>& /*lock*/) {
   controlPlane_.reset();
   coppAclEntries_.clear();
   rtag7LoadBalancer_.reset();
+  bcmStatUpdater_.reset();
   // Reset warmboot cache last in case Bcm object destructors
   // access it during object deletion.
   warmBootCache_.reset();
@@ -226,12 +226,12 @@ void BcmSwitch::resetTables() {
 
 void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   std::lock_guard<std::mutex> g(lock_);
+  bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(unit_);
   portTable_ = std::make_unique<BcmPortTable>(this);
   intfTable_ = std::make_unique<BcmIntfTable>(this);
   hostTable_ = std::make_unique<BcmHostTable>(this);
   routeTable_ = std::make_unique<BcmRouteTable>(this);
   aclTable_ = std::make_unique<BcmAclTable>(this);
-  bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(unit_);
   bcmTableStats_ = std::make_unique<BcmTableStats>(this, isAlpmEnabled());
   trunkTable_ = std::make_unique<BcmTrunkTable>(this);
   sFlowExporterTable_ = std::make_unique<BcmSflowExporterTable>();

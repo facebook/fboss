@@ -11,7 +11,8 @@
 
 namespace facebook { namespace fboss {
 
-BcmAclStat::BcmAclStat(BcmSwitch* hw, int /*gid*/) : hw_(hw) {}
+BcmAclStat::BcmAclStat(BcmSwitch* hw, int /* gid */)
+  : hw_(hw) {}
 BcmAclStat::~BcmAclStat() {}
 
 }} // facebook::fboss

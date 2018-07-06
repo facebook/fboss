@@ -13,14 +13,12 @@
 #include <string>
 #include <tuple>
 
+#include "fboss/agent/hw/bcm/types.h"
+
 namespace facebook {
 namespace fboss {
 
 class BcmSwitch;
-
-// We define the handle type for open source code
-// The handle types should match the types defined by the switch sdk
-using BcmAclRangeHandle = uint32_t;
 
 /**
  * AclRange is the class that contains a range's value for range checker

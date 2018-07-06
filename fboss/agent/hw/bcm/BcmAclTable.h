@@ -55,12 +55,15 @@ class BcmAclTable {
   uint32_t getAclStatRefCount(const std::string& name) const;
   uint32_t getAclStatCount() const;
 
- private:
-  BcmAclRange* incRefOrCreateBcmAclRange(const AclRange& range);
-  BcmAclRange* derefBcmAclRange(const AclRange& range);
-  BcmAclStat* incRefOrCreateBcmAclStat(int groupId, const std::string& name);
+  BcmAclStat* incRefOrCreateBcmAclStat(const std::string& counterName, int gid);
+  BcmAclStat* incRefOrCreateBcmAclStat(
+    const std::string& counterName,
+    BcmAclStatHandle statHandle);
   void derefBcmAclStat(const std::string& name);
+  BcmAclRange* incRefOrCreateBcmAclRange(const AclRange& range);
+  void derefBcmAclRange(const AclRange& range);
 
+ private:
   // map from acl range to bcm acl range and its reference count
   using BcmAclRangeMap = boost::container::flat_map<AclRange,
     std::pair<std::unique_ptr<BcmAclRange>, uint32_t>>;

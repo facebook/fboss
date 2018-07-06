@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/types.h"
+#include "fboss/agent/hw/bcm/types.h"
 #include "common/stats/MonotonicCounter.h"
 
 #include <queue>
@@ -24,8 +25,6 @@ class BcmSwitch;
 
 class BcmStatUpdater {
  public:
-  using BcmAclStatHandle = int;
-
   explicit BcmStatUpdater(int unit);
   ~BcmStatUpdater() {}
 

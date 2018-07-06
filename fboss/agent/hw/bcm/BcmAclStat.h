@@ -10,7 +10,7 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/types.h"
+#include "fboss/agent/hw/bcm/types.h"
 
 namespace facebook { namespace fboss {
 
@@ -21,13 +21,22 @@ class BcmSwitch;
  */
 class BcmAclStat {
  public:
-  using BcmAclStatHandle = int;
   BcmAclStat(BcmSwitch* hw, int gid);
+  BcmAclStat(BcmSwitch* hw, BcmAclStatHandle statHandle)
+    : hw_(hw), handle_(statHandle) {}
   ~BcmAclStat();
 
   BcmAclStatHandle getHandle() const {
     return handle_;
   }
+
+  /**
+   * Check whether the acl details of handle in h/w matches the s/w acl and
+   * ranges
+   */
+  static bool isStateSame(BcmSwitch* hw, BcmAclStatHandle statHandle,
+    cfg::PacketCounterMatchAction& action);
+
  private:
   BcmSwitch* hw_;
   BcmAclStatHandle handle_;
