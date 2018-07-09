@@ -121,7 +121,7 @@ def setup_logging(options):
 class FbossBaseSystemTest(unittest.TestCase):
     """ This Class is the base class of all Fboss System Tests """
     _format = "%(asctime)s.%(msecs)03d  %(name)-10s: %(levelname)-8s: %(message)s"
-    _datefmt = "%H:%M:%S"
+    _datefmt = "%m/%d/%Y-%H:%M:%S"
 
     TopologyIsSane = True
 
