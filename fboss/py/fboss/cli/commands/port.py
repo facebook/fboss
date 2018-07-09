@@ -247,7 +247,7 @@ class PortStatsCmd(cmds.FbossCmd):
 
 
 class PortStatusCmd(cmds.FbossCmd):
-    def run(self, detail, ports, verbose, internal):
+    def run(self, detail, ports, verbose, internal, all):
         self._client = self._create_agent_client()
         try:
             self._qsfp_client = self._create_qsfp_client()
@@ -259,6 +259,8 @@ class PortStatusCmd(cmds.FbossCmd):
             ).get_detail_status()
         elif internal:
             self.list_ports(ports, internal_port=True)
+        elif all:
+            self.list_ports(ports, all=True)
         else:
             self.list_ports(ports)
 
@@ -275,7 +277,7 @@ class PortStatusCmd(cmds.FbossCmd):
             print('-' * 59)
         return field_fmt
 
-    def list_ports(self, ports, internal_port=False):
+    def list_ports(self, ports, internal_port=False, all=False):
         field_fmt = self._get_field_format(internal_port)
         port_status_map = self._client.getPortStatus(ports)
         qsfp_info_map = utils.get_qsfp_info_map(
@@ -312,6 +314,15 @@ class PortStatusCmd(cmds.FbossCmd):
                     attrs['link_status'],
                     attrs['present'],
                     speed))
+            elif all:
+                name = port_info.name if port_info.name else port_id
+                print(field_fmt.format(
+                    name,
+                    attrs['admin_status'],
+                    attrs['color_align'],
+                    attrs['link_status'],
+                    attrs['present'],
+                    attrs['speed']))
             elif status.enabled:
                 name = port_info.name if port_info.name else port_id
                 print(field_fmt.format(

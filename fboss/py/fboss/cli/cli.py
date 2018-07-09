@@ -293,6 +293,7 @@ class PortCli(object):
         self.port.add_command(self._disable, name='disable')
         self.port.add_command(self._stats, name='stats')
         self.port.add_command(self._description, name='description')
+        self.port.add_command(self._stats, name='all')
 
     @click.group(cls=AliasedGroup)
     def port():
@@ -330,14 +331,15 @@ class PortCli(object):
     @click.command()
     @click.argument('ports', nargs=-1, type=PortType())
     @click.option('--detail', is_flag=True, help='Display detailed port status')
+    @click.option('--all', is_flag=True, help='Display Disabled ports')
     @click.option('--internal', is_flag=True,
                   help='Display all ports info with internal ID')
     @click.option('-v', '--verbose', is_flag=True,
                     help='Show flags and thresholds as well as details')
     @click.pass_obj
-    def _status(cli_opts, detail, ports, verbose, internal):
+    def _status(cli_opts, detail, ports, verbose, internal, all):
         ''' Show port status '''
-        port.PortStatusCmd(cli_opts).run(detail, ports, verbose, internal)
+        port.PortStatusCmd(cli_opts).run(detail, ports, verbose, internal, all)
 
     @click.command()
     @click.argument('ports', nargs=-1, type=PortType())
