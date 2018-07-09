@@ -10,7 +10,6 @@ from neteng.fboss.ctrl.ttypes import PortOperState
 
 
 @test_tags("port", "run-on-diff", "trunk-stable")
-@unittest.skip("Test broken (T30794911)")
 class PortStatusTest(FbossBaseSystemTest):
     """ Verify that for each port, that the internal state agrees with fb303 """
 

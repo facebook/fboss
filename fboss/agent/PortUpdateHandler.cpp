@@ -43,9 +43,17 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
             PortStats* portStats = switchStats.port(newPort->getID());
             if (portStats) {
               portStats->setPortName(newPort->getName());
+              portStats->setPortStatus(newPort->isUp());
             }
           }
-          sw_->portStats(newPort->getID())->setPortStatus(newPort->isUp());
+        }
+        if (oldPort->isUp() != newPort->isUp()) {
+          for (SwitchStats& switchStats : sw_->getAllThreadsSwitchStats()) {
+            PortStats* portStats = switchStats.port(newPort->getID());
+            if (portStats) {
+              portStats->setPortStatus(newPort->isUp());
+            }
+          }
         }
       },
       [&](const std::shared_ptr<Port>& newPort) {
