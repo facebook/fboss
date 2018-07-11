@@ -108,6 +108,8 @@ void WedgeProductInfo::initMode() {
       mode_ = WedgePlatformMode::GALAXY_FC;
     } else if (modelName.find("MINIPACK") == 0) {
       mode_ = WedgePlatformMode::MINIPACK;
+    } else if (modelName.find("YAMP") == 0) {
+      mode_ = WedgePlatformMode::YAMP;
     } else {
       throw std::runtime_error("invalid model name " + modelName);
     }
@@ -122,6 +124,8 @@ void WedgeProductInfo::initMode() {
       mode_ = WedgePlatformMode::GALAXY_FC;
     } else if (FLAGS_mode == "minipack") {
       mode_ = WedgePlatformMode::MINIPACK;
+    } else if (FLAGS_mode == "yamp") {
+      mode_ = WedgePlatformMode::YAMP;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }
