@@ -7,21 +7,80 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-
+#include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include <boost/container/flat_map.hpp>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
 using std::make_shared;
 using std::shared_ptr;
 
-shared_ptr<ControlPlane> generateDefaultControlPlane() {
-  shared_ptr<ControlPlane> controlPlane = make_shared<ControlPlane>();
+namespace {
+constexpr auto kNumCPUQueues = 48;
 
+std::vector<cfg::PortQueue> getConfigCPUQueues() {
+  std::vector<cfg::PortQueue> cpuQueues;
+  cfg::PortQueue high;
+  high.id = 9;
+  high.name = "cpuQueue-high";
+  high.__isset.name = true;
+  high.streamType = cfg::StreamType::MULTICAST;
+  high.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  high.weight = 4;
+  high.__isset.weight = true;
+  cpuQueues.push_back(high);
+
+  cfg::PortQueue mid;
+  mid.id = 2;
+  mid.name = "cpuQueue-mid";
+  mid.__isset.name = true;
+  mid.streamType = cfg::StreamType::MULTICAST;
+  mid.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  mid.weight = 2;
+  mid.__isset.weight = true;
+  cpuQueues.push_back(mid);
+
+  cfg::PortQueue defaultQ;
+  defaultQ.id = 1;
+  defaultQ.name = "cpuQueue-default";
+  defaultQ.__isset.name = true;
+  defaultQ.streamType = cfg::StreamType::MULTICAST;
+  defaultQ.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  defaultQ.weight = 1;
+  defaultQ.__isset.weight = true;
+  defaultQ.packetsPerSec = 200;
+  defaultQ.__isset.packetsPerSec = true;
+  defaultQ.reservedBytes = 1040;
+  defaultQ.__isset.reservedBytes = true;
+  defaultQ.sharedBytes = 10192;
+  defaultQ.__isset.sharedBytes = true;
+  cpuQueues.push_back(defaultQ);
+
+  cfg::PortQueue low;
+  low.id = 0;
+  low.name = "cpuQueue-low";
+  low.__isset.name = true;
+  low.streamType = cfg::StreamType::MULTICAST;
+  low.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  low.weight = 1;
+  low.__isset.weight = true;
+  low.packetsPerSec = 100;
+  low.__isset.packetsPerSec = true;
+  low.reservedBytes = 1040;
+  low.__isset.reservedBytes = true;
+  low.sharedBytes = 10192;
+  low.__isset.sharedBytes = true;
+  cpuQueues.push_back(low);
+  return cpuQueues;
+}
+
+QueueConfig genCPUQueues() {
   QueueConfig queues;
   shared_ptr<PortQueue> high = make_shared<PortQueue>(9);
   high->setName("cpuQueue-high");
@@ -57,7 +116,23 @@ shared_ptr<ControlPlane> generateDefaultControlPlane() {
   low->setSharedBytes(10192);
   queues.push_back(low);
 
-  controlPlane->resetQueues(queues);
+  return queues;
+}
+
+boost::container::flat_map<int, shared_ptr<PortQueue>> getCPUQueuesMap() {
+  QueueConfig queues = genCPUQueues();
+  boost::container::flat_map<int, shared_ptr<PortQueue>> queueMap;
+  for (const auto& queue: queues) {
+    queueMap.emplace(queue->getID(), queue);
+  }
+  return queueMap;
+}
+
+shared_ptr<ControlPlane> generateControlPlane() {
+  shared_ptr<ControlPlane> controlPlane = make_shared<ControlPlane>();
+
+  auto cpuQueues = genCPUQueues();
+  controlPlane->resetQueues(cpuQueues);
 
   ControlPlane::RxReasonToQueue reasons = {
    {cfg::PacketRxReason::ARP, 9},
@@ -74,9 +149,26 @@ shared_ptr<ControlPlane> generateDefaultControlPlane() {
   return controlPlane;
 }
 
+shared_ptr<SwitchState> genCPUSwitchState() {
+  auto stateV0 = make_shared<SwitchState>();
+  auto cpu = make_shared<ControlPlane>();
+  // the default unconfigured cpu queue settings will be obtained during init.
+  QueueConfig cpuQueues;
+  for (int i = 0; i < kNumCPUQueues; i++) {
+    auto queue = std::make_shared<PortQueue>(i);
+    queue->setStreamType(cfg::StreamType::MULTICAST);
+    cpuQueues.push_back(queue);
+  }
+  cpu->resetQueues(cpuQueues);
+  stateV0->resetControlPlane(cpu);
+
+  return stateV0;
+}
+}
+
 
 TEST(ControlPlane, serialize) {
-  auto controlPlane = generateDefaultControlPlane();
+  auto controlPlane = generateControlPlane();
   // to folly dynamic
   auto serialized = controlPlane->toFollyDynamic();
   // back to ControlPlane object
@@ -90,7 +182,7 @@ TEST(ControlPlane, modify) {
   // modify unpublished state
   EXPECT_EQ(controlPlane.get(), controlPlane->modify(&state));
 
-  controlPlane = generateDefaultControlPlane();
+  controlPlane = generateControlPlane();
   state->resetControlPlane(controlPlane);
   // modify unpublished state
   EXPECT_EQ(controlPlane.get(), controlPlane->modify(&state));
@@ -99,4 +191,134 @@ TEST(ControlPlane, modify) {
   auto modifiedCP = controlPlane->modify(&state);
   EXPECT_NE(controlPlane.get(), modifiedCP);
   EXPECT_TRUE(*controlPlane == *modifiedCP);
+}
+
+TEST(ControlPlane, applyDefaultConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = genCPUSwitchState();
+
+  // apply default cpu 4 queues settings
+  auto cfgCpuQueues = getConfigCPUQueues();
+  cfg::SwitchConfig config;
+  config.cpuQueues = cfgCpuQueues;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+
+  auto newQueues = stateV1->getControlPlane()->getQueues();
+  // it should always generate all queues
+  EXPECT_EQ(newQueues.size(), kNumCPUQueues);
+  auto cpu4QueuesMap = getCPUQueuesMap();
+  for (const auto& queue: newQueues) {
+    if (cpu4QueuesMap.find(queue->getID()) == cpu4QueuesMap.end()) {
+      // if it's not one of those 4 queues, it should have default value
+      auto unconfiguredQueue = std::make_shared<PortQueue>(queue->getID());
+      unconfiguredQueue->setStreamType(cfg::StreamType::MULTICAST);
+      EXPECT_TRUE(*unconfiguredQueue == *queue);
+    } else {
+      auto& cpuQueue = cpu4QueuesMap.find(queue->getID())->second;
+      EXPECT_TRUE(*cpuQueue == *queue);
+    }
+  }
+}
+
+TEST(ControlPlane, applySameConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = genCPUSwitchState();
+
+  // apply default cpu 4 queues settings
+  auto cfgCpuQueues = getConfigCPUQueues();
+  cfg::SwitchConfig config;
+  config.cpuQueues = cfgCpuQueues;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  EXPECT_EQ(nullptr, stateV2);
+}
+
+TEST(ControlPlane, resetLowPrioQueue) {
+  auto platform = createMockPlatform();
+  auto stateV0 = genCPUSwitchState();
+
+  // apply default cpu 4 queues settings
+  auto cfgCpuQueues = getConfigCPUQueues();
+  cfg::SwitchConfig config;
+  config.cpuQueues = cfgCpuQueues;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+
+  auto newCfgCpuQueues = getConfigCPUQueues();
+  newCfgCpuQueues.erase(newCfgCpuQueues.begin() + 3);
+  cfg::SwitchConfig newConfig;
+  newConfig.cpuQueues = newCfgCpuQueues;
+  auto stateV2 = publishAndApplyConfig(stateV1, &newConfig, platform.get());
+  EXPECT_NE(nullptr, stateV2);
+
+  auto newQueues = stateV2->getControlPlane()->getQueues();
+  // it should always generate all queues
+  EXPECT_EQ(newQueues.size(), kNumCPUQueues);
+  auto cpu4QueuesMap = getCPUQueuesMap();
+  // low-prio has been removed
+  cpu4QueuesMap.erase(cpu4QueuesMap.find(0));
+  for (const auto& queue: newQueues) {
+    if (cpu4QueuesMap.find(queue->getID()) == cpu4QueuesMap.end()) {
+      // if it's not one of those 4 queues, it should have default value
+      // also since low-prio has been removed, it should be checked in here.
+      auto unconfiguredQueue = std::make_shared<PortQueue>(queue->getID());
+      unconfiguredQueue->setStreamType(cfg::StreamType::MULTICAST);
+      EXPECT_TRUE(*unconfiguredQueue == *queue);
+    } else {
+      auto& cpuQueue = cpu4QueuesMap.find(queue->getID())->second;
+      EXPECT_TRUE(*cpuQueue == *queue);
+    }
+  }
+}
+
+TEST(ControlPlane, changeLowPrioQueue) {
+  auto platform = createMockPlatform();
+  auto stateV0 = genCPUSwitchState();
+
+  // apply default cpu 4 queues settings
+  auto cfgCpuQueues = getConfigCPUQueues();
+  cfg::SwitchConfig config;
+  config.cpuQueues = cfgCpuQueues;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+
+  auto newCfgCpuQueues = getConfigCPUQueues();
+  // change low queue pps from 100 to 1000. the last one is low queue
+  auto& lowQueue = newCfgCpuQueues.at(newCfgCpuQueues.size() - 1);
+  lowQueue.packetsPerSec = 1000;
+  cfg::SwitchConfig newConfig;
+  newConfig.cpuQueues = newCfgCpuQueues;
+  auto stateV2 = publishAndApplyConfig(stateV1, &newConfig, platform.get());
+  EXPECT_NE(nullptr, stateV2);
+
+  auto newQueues = stateV2->getControlPlane()->getQueues();
+  // it should always generate all queues
+  EXPECT_EQ(newQueues.size(), kNumCPUQueues);
+  auto cpu4QueuesMap = getCPUQueuesMap();
+  // low-prio has been changed(pps from 100->1000)
+  cpu4QueuesMap.find(0)->second->setPacketsPerSec(1000);
+  for (const auto& queue: newQueues) {
+    if (cpu4QueuesMap.find(queue->getID()) == cpu4QueuesMap.end()) {
+      // if it's not one of those 4 queues, it should have default value
+      auto unconfiguredQueue = std::make_shared<PortQueue>(queue->getID());
+      unconfiguredQueue->setStreamType(cfg::StreamType::MULTICAST);
+      EXPECT_TRUE(*unconfiguredQueue == *queue);
+    } else {
+      auto& cpuQueue = cpu4QueuesMap.find(queue->getID())->second;
+      EXPECT_TRUE(*cpuQueue == *queue);
+    }
+  }
+}
+
+TEST(ControlPlane, checkSwConfPortQueueMatch) {
+  auto cfgCpuQueues = getConfigCPUQueues();
+  auto swCpuQueuesMap = getCPUQueuesMap();
+  for (const auto& cfgQueue: cfgCpuQueues) {
+    auto swQueueItr = swCpuQueuesMap.find(cfgQueue.id);
+    EXPECT_NE(swQueueItr, swCpuQueuesMap.end());
+    EXPECT_TRUE(checkSwConfPortQueueMatch(swQueueItr->second, &cfgQueue));
+  }
 }
