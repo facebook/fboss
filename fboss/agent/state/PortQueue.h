@@ -70,7 +70,7 @@ class PortQueue :
            getFields()->aqms == queue.getAqms() &&
            getFields()->packetsPerSec == queue.getPacketsPerSec();
   }
-  bool operator!=(const PortQueue& queue) {
+  bool operator!=(const PortQueue& queue) const {
     return !(*this == queue);
   }
 
@@ -80,6 +80,9 @@ class PortQueue :
 
   void setScheduling(cfg::QueueScheduling scheduling) {
     writableFields()->scheduling = scheduling;
+    if (scheduling == cfg::QueueScheduling::STRICT_PRIORITY) {
+      writableFields()->weight = 0;
+    }
   }
 
   cfg::QueueScheduling getScheduling() const {
@@ -99,7 +102,9 @@ class PortQueue :
   }
 
   void setWeight(int weight) {
-    writableFields()->weight = weight;
+    if (getFields()->scheduling != cfg::QueueScheduling::STRICT_PRIORITY) {
+      writableFields()->weight = weight;
+    }
   }
 
   folly::Optional<int> getReservedBytes() const {
