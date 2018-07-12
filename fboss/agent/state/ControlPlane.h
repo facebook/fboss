@@ -12,17 +12,16 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/PortQueue.h"
 
 #include <boost/container/flat_map.hpp>
 #include <vector>
 
 namespace facebook { namespace fboss {
 
-class PortQueue;
 class SwitchState;
 
 struct ControlPlaneFields {
-  using CPUQueueConfig = std::vector<std::shared_ptr<PortQueue>>;
   using RxReasonToQueue =
     boost::container::flat_map<cfg::PacketRxReason, uint8_t>;
 
@@ -34,7 +33,7 @@ struct ControlPlaneFields {
   folly::dynamic toFollyDynamic() const;
   static ControlPlaneFields fromFollyDynamic(const folly::dynamic& json);
 
-  CPUQueueConfig queues;
+  QueueConfig queues;
   RxReasonToQueue rxReasonToQueue;
 };
 
@@ -44,7 +43,6 @@ struct ControlPlaneFields {
  */
 class ControlPlane : public NodeBaseT<ControlPlane, ControlPlaneFields> {
 public:
-  using CPUQueueConfig = ControlPlaneFields::CPUQueueConfig;
   using RxReasonToQueue = ControlPlaneFields::RxReasonToQueue;
 
   ControlPlane() {}
@@ -59,10 +57,10 @@ public:
     return getFields()->toFollyDynamic();
   }
 
-  const CPUQueueConfig& getQueues() const {
+  const QueueConfig& getQueues() const {
     return getFields()->queues;
   }
-  void resetQueues(CPUQueueConfig& queues) {
+  void resetQueues(QueueConfig& queues) {
     writableFields()->queues.swap(queues);
   }
 

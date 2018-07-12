@@ -107,24 +107,6 @@ PortQueueFields PortQueueFields::fromThrift(
 PortQueue::PortQueue(uint8_t id) : ThriftyBaseT(id) {
 }
 
-bool checkSwConfPortQueueMatch(
-    const std::shared_ptr<PortQueue>& swQueue,
-    const cfg::PortQueue* cfgQueue) {
-  return swQueue->getStreamType() == cfgQueue->streamType &&
-         swQueue->getScheduling() == cfgQueue->scheduling &&
-         (cfgQueue->scheduling == cfg::QueueScheduling::STRICT_PRIORITY ||
-          swQueue->getWeight() == cfgQueue->weight) &&
-         isPortQueueOptionalAttributeSame(swQueue->getReservedBytes(),
-           cfgQueue->__isset.reservedBytes, cfgQueue->reservedBytes) &&
-         isPortQueueOptionalAttributeSame(swQueue->getScalingFactor(),
-           cfgQueue->__isset.scalingFactor, cfgQueue->scalingFactor) &&
-         isPortQueueOptionalAttributeSame(swQueue->getPacketsPerSec(),
-           cfgQueue->__isset.packetsPerSec, cfgQueue->packetsPerSec) &&
-         isPortQueueOptionalAttributeSame(swQueue->getSharedBytes(),
-           cfgQueue->__isset.sharedBytes, cfgQueue->sharedBytes) &&
-         comparePortQueueAQMs(swQueue->getAqms(), cfgQueue->aqms);
-}
-
 bool comparePortQueueAQMs(
     const PortQueue::AQMMap& aqmMap,
     const std::vector<cfg::ActiveQueueManagement>& aqms) {
@@ -138,6 +120,25 @@ bool comparePortQueueAQMs(
     }
   }
   return true;
+}
+
+bool checkSwConfPortQueueMatch(
+    const std::shared_ptr<PortQueue>& swQueue,
+    const cfg::PortQueue* cfgQueue) {
+  return swQueue->getID() == cfgQueue->id &&
+         swQueue->getStreamType() == cfgQueue->streamType &&
+         swQueue->getScheduling() == cfgQueue->scheduling &&
+         (cfgQueue->scheduling == cfg::QueueScheduling::STRICT_PRIORITY ||
+          swQueue->getWeight() == cfgQueue->weight) &&
+         isPortQueueOptionalAttributeSame(swQueue->getReservedBytes(),
+           cfgQueue->__isset.reservedBytes, cfgQueue->reservedBytes) &&
+         isPortQueueOptionalAttributeSame(swQueue->getScalingFactor(),
+           cfgQueue->__isset.scalingFactor, cfgQueue->scalingFactor) &&
+         isPortQueueOptionalAttributeSame(swQueue->getPacketsPerSec(),
+           cfgQueue->__isset.packetsPerSec, cfgQueue->packetsPerSec) &&
+         isPortQueueOptionalAttributeSame(swQueue->getSharedBytes(),
+           cfgQueue->__isset.sharedBytes, cfgQueue->sharedBytes) &&
+         comparePortQueueAQMs(swQueue->getAqms(), cfgQueue->aqms);
 }
 
 template class NodeBaseT<PortQueue, PortQueueFields>;

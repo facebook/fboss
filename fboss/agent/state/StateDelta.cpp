@@ -13,6 +13,7 @@
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
+#include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/SflowCollector.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/Port.h"
@@ -86,6 +87,11 @@ NodeMapDelta<SflowCollectorMap> StateDelta::getSflowCollectorsDelta() const {
 NodeMapDelta<LoadBalancerMap> StateDelta::getLoadBalancersDelta() const {
   return NodeMapDelta<LoadBalancerMap>(
       old_->getLoadBalancers().get(), new_->getLoadBalancers().get());
+}
+
+DeltaValue<ControlPlane> StateDelta::getControlPlaneDelta() const {
+  return DeltaValue<ControlPlane>(old_->getControlPlane(),
+                                  new_->getControlPlane());
 }
 
 std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {

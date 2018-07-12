@@ -437,6 +437,12 @@ bool BcmSwitch::isPortUp(PortID port) const {
 
 std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   auto bootState = make_shared<SwitchState>();
+  // get cpu queue settings
+  auto cpu = make_shared<ControlPlane>();
+  auto cpuQueues = controlPlane_->getMulticastQueueSettings();
+  cpu->resetQueues(cpuQueues);
+  bootState->resetControlPlane(cpu);
+
   // On cold boot all ports are in Vlan 1
   auto vlan = make_shared<Vlan>(VlanID(1), "InitVlan");
   Vlan::MemberPorts memberPorts;
@@ -778,6 +784,7 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   // Add all new interfaces
   forEachAdded(delta.getIntfsDelta(), &BcmSwitch::processAddedIntf, this);
 
+  processControlPlaneChanges(delta);
   reconfigureCoPP(delta);
 
   // Any neighbor changes, and modify appliedState if some changes fail to apply
@@ -1694,4 +1701,22 @@ void BcmSwitch::processRemovedLoadBalancer(
   rtag7LoadBalancer_->deleteLoadBalancer(loadBalancer);
 }
 
+void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
+  const auto controlPlaneDelta = delta.getControlPlaneDelta();
+  const auto& oldCPU = controlPlaneDelta.getOld();
+  const auto& newCPU = controlPlaneDelta.getNew();
+
+  // first make sure queue settings changes applied
+  for (const auto newQueue: newCPU->getQueues()) {
+    if (oldCPU->getQueues().size() > 0 &&
+        *(oldCPU->getQueues().at(newQueue->getID())) == *newQueue) {
+      continue;
+    }
+    XLOG(DBG1) << "New cos queue settings on cpu queue "
+               << static_cast<int>(newQueue->getID());
+    controlPlane_->setupQueue(newQueue);
+  }
+
+  // TODO(joseph5wu) Add reason-port mapping and cpu acls
+}
 }} // facebook::fboss

@@ -27,6 +27,7 @@
 namespace facebook { namespace fboss {
 
 class SwitchState;
+class ControlPlane;
 
 /*
  * StateDelta contains code for examining the differences between two
@@ -56,6 +57,7 @@ class StateDelta {
   NodeMapDelta<AggregatePortMap> getAggregatePortsDelta() const;
   NodeMapDelta<SflowCollectorMap> getSflowCollectorsDelta() const;
   NodeMapDelta<LoadBalancerMap> getLoadBalancersDelta() const;
+  DeltaValue<ControlPlane> getControlPlaneDelta() const;
 
  private:
   // Forbidden copy constructor and assignment operator

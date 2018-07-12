@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/state/ControlPlane.h"
-#include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/state/NodeBase-defs.h"
@@ -73,8 +72,8 @@ ControlPlane* ControlPlane::modify(std::shared_ptr<SwitchState>* state) {
 
 bool ControlPlane::operator==(const ControlPlane& controlPlane) const {
   // TODO(joseph5wu) Will add QueueConfig struct in the future diff.
-  auto compareQueues = [&] (const CPUQueueConfig& queues1,
-                            const CPUQueueConfig& queues2)
+  auto compareQueues = [&] (const QueueConfig& queues1,
+                            const QueueConfig& queues2)
                        -> bool {
     if (queues1.size() != queues2.size()) {
       return false;

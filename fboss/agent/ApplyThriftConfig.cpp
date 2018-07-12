@@ -158,8 +158,12 @@ class ThriftConfigApplier {
   std::shared_ptr<Port> updatePort(const std::shared_ptr<Port>& orig,
                                    const cfg::Port* cfg);
   QueueConfig updatePortQueues(
-      const std::shared_ptr<Port>& orig,
-      const cfg::Port* cfg);
+      const std::vector<std::shared_ptr<PortQueue>>& origPortQueues,
+      const std::vector<cfg::PortQueue>& cfgPortQueues);
+  // update cfg port queue attribute to state port queue object
+  void setPortQueue(
+      std::shared_ptr<PortQueue> newQueue,
+      const cfg::PortQueue* cfg);
   std::shared_ptr<PortQueue> updatePortQueue(
       const std::shared_ptr<PortQueue>& orig,
       const cfg::PortQueue* cfg);
@@ -587,17 +591,25 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
     checkPortQueueAQMValid(cfg->aqms);
     queue->resetAqms(cfg->aqms);
   }
+  if (cfg->__isset.sharedBytes) {
+    queue->setSharedBytes(cfg->sharedBytes);
+  }
+  if (cfg->__isset.packetsPerSec) {
+    queue->setPacketsPerSec(cfg->packetsPerSec);
+  }
+  if (cfg->__isset.name) {
+    queue->setName(cfg->name);
+  }
   return queue;
 }
 
 QueueConfig ThriftConfigApplier::updatePortQueues(
-    const std::shared_ptr<Port>& orig,
-    const cfg::Port* cfg) {
-  auto origPortQueues = orig->getPortQueues();
+    const QueueConfig& origPortQueues,
+    const std::vector<cfg::PortQueue>& cfgPortQueues) {
   QueueConfig newPortQueues;
 
   flat_map<int, const cfg::PortQueue*> newQueues;
-  for (const auto& queue : cfg->queues) {
+  for (const auto& queue : cfgPortQueues) {
     newQueues.emplace(std::make_pair(queue.id, &queue));
   }
 
@@ -609,6 +621,7 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
   for (int i = 0; i < origPortQueues.size(); i++) {
     auto newQueueIter = newQueues.find(i);
     auto newQueue = std::make_shared<PortQueue>(i);
+    newQueue->setStreamType(origPortQueues.at(i)->getStreamType());
     if (newQueueIter != newQueues.end()) {
       newQueue = updatePortQueue(origPortQueues.at(i), newQueueIter->second);
       newQueues.erase(newQueueIter);
@@ -629,7 +642,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
 
   auto vlans = portVlans_[orig->getID()];
 
-  auto portQueues = updatePortQueues(orig, portConf);
+  auto portQueues = updatePortQueues(orig->getPortQueues(), portConf->queues);
   bool queuesUnchanged = portQueues.size() == orig->getPortQueues().size();
   for (int i=0; i<portQueues.size() && queuesUnchanged; i++) {
     if (*(portQueues.at(i)) != *(orig->getPortQueues().at(i))) {
@@ -1464,8 +1477,23 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
 }
 
 shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
-  // TODO(joseph5wu) Add processing cpu queue setting and reason mapping logics
-  return nullptr;
+  auto origCPU = orig_->getControlPlane();
+  // first check whether queue setting changed
+  auto newQueues = updatePortQueues(origCPU->getQueues(), cfg_->cpuQueues);
+  bool queuesUnchanged = newQueues.size() == origCPU->getQueues().size();
+  for (int i = 0; i < newQueues.size() && queuesUnchanged; i++) {
+    if (*(newQueues.at(i)) != *(origCPU->getQueues().at(i))) {
+      queuesUnchanged = false;
+    }
+  }
+
+  if (queuesUnchanged) {
+    return nullptr;
+  }
+
+  auto newCPU = origCPU->clone();
+  newCPU->resetQueues(newQueues);
+  return newCPU;
 }
 
 std::string

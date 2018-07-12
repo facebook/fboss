@@ -22,27 +22,39 @@ using std::shared_ptr;
 shared_ptr<ControlPlane> generateDefaultControlPlane() {
   shared_ptr<ControlPlane> controlPlane = make_shared<ControlPlane>();
 
-  ControlPlane::CPUQueueConfig queues;
+  QueueConfig queues;
   shared_ptr<PortQueue> high = make_shared<PortQueue>(9);
+  high->setName("cpuQueue-high");
   high->setStreamType(cfg::StreamType::MULTICAST);
+  high->setScheduling(cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
   high->setWeight(4);
   queues.push_back(high);
 
   shared_ptr<PortQueue> mid = make_shared<PortQueue>(2);
+  mid->setName("cpuQueue-mid");
   mid->setStreamType(cfg::StreamType::MULTICAST);
+  mid->setScheduling(cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
   mid->setWeight(2);
   queues.push_back(mid);
 
   shared_ptr<PortQueue> defaultQ = make_shared<PortQueue>(1);
+  defaultQ->setName("cpuQueue-default");
   defaultQ->setStreamType(cfg::StreamType::MULTICAST);
+  defaultQ->setScheduling(cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
   defaultQ->setWeight(1);
-  defaultQ->setReservedBytes(1000);
+  defaultQ->setPacketsPerSec(200);
+  defaultQ->setReservedBytes(1040);
+  defaultQ->setSharedBytes(10192);
   queues.push_back(defaultQ);
 
   shared_ptr<PortQueue> low = make_shared<PortQueue>(0);
+  low->setName("cpuQueue-low");
   low->setStreamType(cfg::StreamType::MULTICAST);
+  low->setScheduling(cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
   low->setWeight(1);
-  low->setReservedBytes(1000);
+  low->setPacketsPerSec(100);
+  low->setReservedBytes(1040);
+  low->setSharedBytes(10192);
   queues.push_back(low);
 
   controlPlane->resetQueues(queues);
