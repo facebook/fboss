@@ -27,6 +27,7 @@ Defaults = {
     "tags": user_requested_tags,
     "list_tests": False,
     "test_dirs": ["tests"],
+    "sdk_list": ["chef"],
 }
 
 
@@ -79,6 +80,10 @@ def generate_default_test_argparse(**kwargs):
                         help="List all tests without running them",
                         action="store_true",
                         default=Defaults['list_tests'])
+    parser.add_argument('--sdk_list', action='append',
+                        help="SDKs to test against\n"
+                             "('chef' for switch default SDK)",
+                        default=Defaults['sdk_list'])
 
     return parser
 
