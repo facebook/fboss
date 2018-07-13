@@ -251,7 +251,6 @@ void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   setupCos();
   stateChangedImpl(
       StateDelta(make_shared<SwitchState>(), getWarmBootSwitchState()));
-  bcmStatUpdater_->refresh();
   setupLinkscan();
   setupPacketRx();
 }
@@ -728,8 +727,6 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChanged(const StateDelta& delta) {
   std::lock_guard<std::mutex> g(lock_);
   auto appliedState = stateChangedImpl(delta);
   appliedState->publish();
-  bcmTableStats_->refresh();
-  bcmStatUpdater_->refresh();
   return appliedState;
 }
 
@@ -818,6 +815,9 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   // ports are correctly configured. Note that this will also set the
   // ingressVlan and speed correctly before enabling.
   processEnabledPorts(delta);
+
+  bcmTableStats_->refresh();
+  bcmStatUpdater_->refresh();
 
   return appliedState;
 }
