@@ -25,7 +25,6 @@ class NeighborUpdaterImpl;
 class SwitchState;
 class StateDelta;
 class Vlan;
-class UnresolvedNhopsProber;
 
 enum ArpOpCode : uint16_t;
 enum ICMPv6Type : uint8_t;
