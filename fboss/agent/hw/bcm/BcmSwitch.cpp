@@ -177,6 +177,15 @@ BcmSwitch::BcmSwitch(
   exportSdkVersion();
 }
 
+BcmSwitch::BcmSwitch(
+    BcmPlatform* platform,
+    unique_ptr<BcmUnit> unit,
+    uint32_t featuresDesired)
+    : BcmSwitch(platform, FULL_HASH, featuresDesired) {
+  unitObject_ = std::move(unit);
+  unit_ = unitObject_->getNumber();
+}
+
 BcmSwitch::~BcmSwitch() {
   XLOG(ERR) << "Destroying BcmSwitch";
 }
@@ -214,6 +223,10 @@ unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
   // to make sure they clean up their state now before we reset unit_.
   BcmSwitchEventUtils::resetUnit(unit_);
   resetTablesImpl(lk);
+  // We don't maintain a BcmVlan data structure, so the
+  // vlans need to be destroyed explicity
+  auto rv = opennsl_vlan_destroy_all(unit_);
+  bcmCheckError(rv, "failed to destroy all VLANs");
   unit_ = -1;
   unitObject_->setCookie(nullptr);
   return std::move(unitObject_);
@@ -510,31 +523,25 @@ void BcmSwitch::setupLinkscan() {
   bcmCheckError(rv, "failed to enable linkscan");
 
 }
+
 HwInitResult BcmSwitch::init(Callback* callback) {
   HwInitResult ret;
 
   std::lock_guard<std::mutex> g(lock_);
 
-  CHECK(!unitObject_);
-  unitObject_ = BcmAPI::initOnlyUnit(platform_);
-  unit_ = unitObject_->getNumber();
-  platform_->onUnitCreate(unit_);
-  unitObject_->setCookie(this);
-  callback_ = callback;
-
   steady_clock::time_point begin = steady_clock::now();
+  if (!unitObject_) {
+    unitObject_ = BcmAPI::initOnlyUnit(platform_);
+  }
+  unit_ = unitObject_->getNumber();
+  unitObject_->setCookie(this);
 
   bootType_ = platform_->getWarmBootHelper()->canWarmBoot()
       ? BootType::WARM_BOOT
       : BootType::COLD_BOOT;
   auto warmBoot = bootType_ == BootType::WARM_BOOT;
-  if (warmBoot) {
-    unitObject_->warmBootAttach();
-  } else {
-    unitObject_->coldBootAttach();
-  }
+  callback_ = callback;
 
-  platform_->onUnitAttach(unit_);
   // Possibly run pre-init bcm shell script before ASIC init.
   runBcmScriptPreAsicInit();
 

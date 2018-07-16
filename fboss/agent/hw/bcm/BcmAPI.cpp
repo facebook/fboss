@@ -10,7 +10,9 @@
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 
 #include <folly/Memory.h>
 #include <folly/String.h>
@@ -42,6 +44,13 @@ std::unique_ptr<BcmUnit> BcmAPI::initUnit(
                                               std::memory_order_acq_rel)) {
     throw FbossError("a BcmUnit already exists for unit number ", unit);
   }
+  platform->onUnitCreate(unit);
+  if (platform->getWarmBootHelper()->canWarmBoot()) {
+    unitObj->warmBootAttach();
+  } else {
+    unitObj->coldBootAttach();
+  }
+  platform->onUnitAttach(unit);
   return unitObj;
 }
 

@@ -150,6 +150,18 @@ class BcmSwitch : public BcmSwitchIf {
        HashMode hashMode = FULL_HASH,
        uint32_t featuresDesired = (PACKET_RX_DESIRED | LINKSCAN_DESIRED));
 
+   /*
+    * Construct a new BcmSwitch for an existing BCM unit.
+    *
+    * This version assumes the BCM SDK has already been initialized, and uses
+    * the specified BCM unit.  The BCM unit is not reset, but is used in its
+    * current state.  Note that BcmSwitch::init() must still be called.
+    */
+   BcmSwitch(
+       BcmPlatform* platform,
+       std::unique_ptr<BcmUnit> unit,
+       uint32_t featuresDesired);
+
    ~BcmSwitch() override;
 
    /*
