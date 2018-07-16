@@ -31,11 +31,32 @@ void NdpCache::sentNeighborSolicitation(folly::IPAddressV6 ip) {
   setPendingEntry(ip);
 }
 
-void NdpCache::receivedNdpMine(folly::IPAddressV6 ip,
-                               folly::MacAddress mac,
-                               PortDescriptor port,
-                               ICMPv6Type type,
-                               uint32_t flags) {
+void NdpCache::receivedNeighborSolicitationMine(
+    folly::IPAddressV6 ip,
+    folly::MacAddress mac,
+    PortDescriptor port,
+    ICMPv6Type type) {
+  CHECK_EQ(type, ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION);
+
+  auto fields = cloneEntryFields(ip);
+  bool fieldsMatch = fields && fields->mac == mac && fields->port == port;
+
+  // if we receive a neighbor solicitation that has different
+  // fields, replace the entry with a new STALE entry with the
+  // new fields
+  if (!fields || !fieldsMatch) {
+    setEntry(ip, mac, port, NeighborEntryState::STALE);
+  }
+}
+
+void NdpCache::receivedNeighborAdvertisementMine(
+    folly::IPAddressV6 ip,
+    folly::MacAddress mac,
+    PortDescriptor port,
+    ICMPv6Type type,
+    uint32_t flags) {
+  CHECK_EQ(type, ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT);
+
   bool override = flags & ND_NA_FLAG_OVERRIDE;
   bool solicited = flags & ND_NA_FLAG_SOLICITED;
 
@@ -43,31 +64,38 @@ void NdpCache::receivedNdpMine(folly::IPAddressV6 ip,
   bool fieldsMatch = fields && fields->mac == mac && fields->port == port;
   bool isIncomplete = fields && fields->state == NeighborState::PENDING;
 
-  if (type == ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT) {
-    if (!fields || isIncomplete || override) {
-      if (solicited) {
-        setEntry(ip, mac, port, NeighborEntryState::REACHABLE);
-      } else {
-        setEntry(ip, mac, port, NeighborEntryState::STALE);
-      }
-    } else if (!override) {
-      if (solicited) {
-        if (fieldsMatch) {
-          updateEntryState(ip, NeighborEntryState::REACHABLE);
-        } else {
-          updateEntryState(ip, NeighborEntryState::STALE);
-        }
-      }
-    }
-  } else if (type == ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION) {
-    // if we receive a neighbor solicitation that has different
-    // fields, replace the entry with a new STALE entry with the
-    // new fields
-    if (!fields || !fieldsMatch) {
+  if (!fields || isIncomplete || override) {
+    if (solicited) {
+      setEntry(ip, mac, port, NeighborEntryState::REACHABLE);
+    } else {
       setEntry(ip, mac, port, NeighborEntryState::STALE);
     }
-  } else {
-    throw FbossError("Unexpected NDP packet type ", type);
+  } else if (!override) {
+    if (solicited) {
+      if (fieldsMatch) {
+        updateEntryState(ip, NeighborEntryState::REACHABLE);
+      } else {
+        updateEntryState(ip, NeighborEntryState::STALE);
+      }
+    }
+  }
+}
+
+void NdpCache::receivedNdpMine(
+    folly::IPAddressV6 ip,
+    folly::MacAddress mac,
+    PortDescriptor port,
+    ICMPv6Type type,
+    uint32_t flags) {
+  switch (type) {
+    case ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT:
+      receivedNeighborAdvertisementMine(ip, mac, port, type, flags);
+      break;
+    case ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION:
+      receivedNeighborSolicitationMine(ip, mac, port, type);
+      break;
+    default:
+      throw FbossError("Unexpected NDP packet type ", type);
   }
 }
 

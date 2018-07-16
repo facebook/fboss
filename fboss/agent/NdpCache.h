@@ -44,6 +44,18 @@ class NdpCache : public NeighborCache<NdpTable> {
 
   std::list<NdpEntryThrift> getNdpCacheData();
 
+ private:
+  void receivedNeighborAdvertisementMine(
+      folly::IPAddressV6 ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      ICMPv6Type type,
+      uint32_t flags);
+  void receivedNeighborSolicitationMine(
+      folly::IPAddressV6 ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      ICMPv6Type type);
 };
 
 }} // facebook::fboss
