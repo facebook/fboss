@@ -118,23 +118,6 @@ void LinkAggregationManager::stateUpdated(const StateDelta& delta) {
 
   folly::SharedMutexWritePriority::WriteHolder writeGuard(&controllersLock_);
 
-  if (!initialized_) {
-    bool inserted;
-    for (const auto& port : *(delta.newState()->getPorts())) {
-      // TODO(samank): use try_emplace once OSS build uses boost >1.63.0
-      std::tie(std::ignore, inserted) = portToController_.insert(std::make_pair(
-          port->getID(),
-          std::make_shared<LacpController>(
-              port->getID(), sw_->getLacpEvb(), this)));
-      CHECK(inserted);
-    }
-
-    for (const auto& portAndController : portToController_) {
-      portAndController.second->startMachines();
-    }
-    initialized_ = true;
-  }
-
   DeltaFunctions::forEachChanged(
       delta.getAggregatePortsDelta(),
       &LinkAggregationManager::aggregatePortChanged,
@@ -152,22 +135,23 @@ void LinkAggregationManager::stateUpdated(const StateDelta& delta) {
 void LinkAggregationManager::aggregatePortAdded(
     const std::shared_ptr<AggregatePort>& aggPort) {
   PortIDToController::iterator it;
+  bool inserted;
 
   for (const auto& subport : aggPort->sortedSubports()) {
-    it = portToController_.find(subport.portID);
-    CHECK_NE(it, portToController_.end());
-    it->second->stopMachines();
-    it->second.reset(new LacpController(
+    std::tie(it, inserted) = portToController_.emplace(
         subport.portID,
-        sw_->getLacpEvb(),
-        subport.priority,
-        subport.rate,
-        subport.activity,
-        aggPort->getID(),
-        aggPort->getSystemPriority(),
-        aggPort->getSystemID(),
-        aggPort->getMinimumLinkCount(),
-        this));
+        std::make_shared<LacpController>(
+            subport.portID,
+            sw_->getLacpEvb(),
+            subport.priority,
+            subport.rate,
+            subport.activity,
+            aggPort->getID(),
+            aggPort->getSystemPriority(),
+            aggPort->getSystemID(),
+            aggPort->getMinimumLinkCount(),
+            this));
+    CHECK(inserted);
     it->second->startMachines();
   }
 }
@@ -179,9 +163,7 @@ void LinkAggregationManager::aggregatePortRemoved(
     it = portToController_.find(subport.portID);
     CHECK_NE(it, portToController_.end());
     it->second->stopMachines();
-    it->second.reset(
-        new LacpController(subport.portID, sw_->getLacpEvb(), this));
-    it->second->startMachines();
+    portToController_.erase(it);
   }
 }
 
@@ -202,6 +184,7 @@ void LinkAggregationManager::aggregatePortChanged(
     return;
   }
 
+  aggregatePortRemoved(oldAggPort);
   aggregatePortAdded(newAggPort);
 }
 

@@ -83,7 +83,6 @@ class LinkAggregationManager : public AutoRegisterStateObserver,
 
   PortIDToController portToController_;
   mutable folly::SharedMutexWritePriority controllersLock_;
-  bool initialized_{false};
   SwSwitch* sw_{nullptr};
 };
 } // namespace fboss
