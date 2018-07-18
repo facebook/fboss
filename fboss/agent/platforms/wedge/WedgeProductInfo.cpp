@@ -108,7 +108,7 @@ void WedgeProductInfo::initMode() {
       mode_ = WedgePlatformMode::GALAXY_FC;
     } else if (modelName.find("MINIPACK") == 0) {
       mode_ = WedgePlatformMode::MINIPACK;
-    } else if (modelName.find("YAMP") == 0) {
+    } else if (modelName.find("DCS-7368") == 0 || modelName.find("YAMP") == 0) {
       mode_ = WedgePlatformMode::YAMP;
     } else {
       throw std::runtime_error("invalid model name " + modelName);
