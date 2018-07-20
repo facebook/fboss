@@ -198,8 +198,7 @@ class ThriftConfigApplier {
   bool updateDhcpOverrides(Vlan* vlan, const cfg::Vlan* config);
   std::shared_ptr<InterfaceMap> updateInterfaces();
   std::shared_ptr<RouteTableMap> updateInterfaceRoutes();
-  std::shared_ptr<RouteTableMap> updateStaticRoutes(
-      const std::shared_ptr<RouteTableMap>& curRoutingTables);
+  std::shared_ptr<RouteTableMap> syncStaticRoutes();
   shared_ptr<Interface> createInterface(const cfg::Interface* config,
                                         const Interface::Addresses& addrs);
   shared_ptr<Interface> updateInterface(const shared_ptr<Interface>& orig,
@@ -306,8 +305,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       newState->resetRouteTables(newTables);
       changed = true;
     }
-    auto newerTables = updateStaticRoutes(newTables ? newTables :
-        orig_->getRouteTables());
+    auto newerTables = syncStaticRoutes();
     if (newerTables) {
       newState->resetRouteTables(std::move(newerTables));
       changed = true;
@@ -1319,11 +1317,85 @@ shared_ptr<RouteTableMap> ThriftConfigApplier::updateInterfaceRoutes() {
   return updater.updateDone();
 }
 
-
-std::shared_ptr<RouteTableMap> ThriftConfigApplier::updateStaticRoutes(
-    const std::shared_ptr<RouteTableMap>& curRoutingTables) {
-  RouteUpdater updater(curRoutingTables);
-  updater.updateStaticRoutes(*cfg_, *prevCfg_);
+/**
+ * syncStaticRoutes:
+ *
+ * A long note about why we "sync" static routes from config file.
+ * To set the stage, we come here in one of two ways:
+ * (a) Switch is coming up after a warm or cold boot and is loading config
+ * (b) "reloadConfig" has been issued from thrift API
+ *
+ * In both cases, there may already exist static routes in our SwitchState.
+ * (In the case of warm boot, we read and reload our state from the warm
+ * boot file.)
+ *
+ * The intent of this function is that after we applyUpdate(), the static
+ * routes in our new SwitchState will be exactly what is in the new config,
+ * no more no less.  Note that this means that any static routes added using
+ * addUnicastRoute() API will be removed after we reloadConfig, or when we
+ * come up after restart.  This is by design.
+ *
+ * There are two ways to do the above.  One way would be to go through the
+ * existing static routes in SwitchState and "reconcile" with that in
+ * config.  I.e., add, delete, modify, or leave unchanged, as necessary.
+ *
+ * The second approach, the one we adopt here, not very intuitive but a lot
+ * cleaner to code, is to simply delete all static routes in current state,
+ * and to add back static routes from config file.  This works because the
+ * "delete" in this step does not take immediate effect.  It is only the
+ * state delta, after all processing is done, that is sent to the hardware
+ * switch.
+ *
+ * As a side note, there is a third (incorrect) approach that was tried, but
+ * does not work.  The old approach was to compute the delta between old and
+ * new config files, and to only apply that delta.  This would work for
+ * "reloadConfig", but does not work when the switch restarts, because we do
+ * not save the old config.  In particular, it does not work in the case of
+ * "delete", i.e., the new config does not have an entry that was there in
+ * the old config, because there is no old config to compare with.
+ */
+std::shared_ptr<RouteTableMap> ThriftConfigApplier::syncStaticRoutes() {
+  RouteUpdater updater(orig_->getRouteTables());
+  auto staticClientId = StdClientIds2ClientID(StdClientIds::STATIC_ROUTE);
+  auto staticAdminDistance = AdminDistance::STATIC_ROUTE;
+  updater.removeAllRoutesForClient(RouterID(0), staticClientId);
+  if (cfg_->__isset.staticRoutesToNull) {
+    for (const auto& route : cfg_->staticRoutesToNull) {
+      auto prefix = folly::IPAddress::createNetwork(route.prefix);
+      updater.addRoute(RouterID(route.routerID), prefix.first, prefix.second,
+                       staticClientId,
+                       RouteNextHopEntry(RouteForwardAction::DROP,
+                                         staticAdminDistance));
+    }
+  }
+  if (cfg_->__isset.staticRoutesToCPU) {
+    for (const auto& route : cfg_->staticRoutesToCPU) {
+      auto prefix = folly::IPAddress::createNetwork(route.prefix);
+      updater.addRoute(RouterID(route.routerID), prefix.first, prefix.second,
+                       staticClientId,
+                       RouteNextHopEntry(RouteForwardAction::TO_CPU,
+                                         staticAdminDistance));
+    }
+  }
+  if (cfg_->__isset.staticRoutesWithNhops) {
+    for (const auto& route : cfg_->staticRoutesWithNhops) {
+      auto prefix = folly::IPAddress::createNetwork(route.prefix);
+      RouteNextHopSet nhops;
+      // NOTE: Static routes use the default UCMP weight so that they can be
+      // compatible with UCMP, i.e., so that we can do ucmp where the next
+      // hops resolve to a static route.  If we define recursive static
+      // routes, that may lead to unexpected behavior where some interface
+      // gets more traffic.  If necessary, in the future, we can make it
+      // possible to configure strictly ECMP static routes
+      for (auto& nhopStr : route.nexthops) {
+        nhops.emplace(UnresolvedNextHop(folly::IPAddress(nhopStr),
+                                        UCMP_DEFAULT_WEIGHT));
+      }
+      updater.addRoute(RouterID(route.routerID), prefix.first, prefix.second,
+                       staticClientId, RouteNextHopEntry(std::move(nhops),
+                                                         staticAdminDistance));
+    }
+  }
   return updater.updateDone();
 }
 

@@ -449,11 +449,11 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   // route
   RouteUpdater updater(initialStateDesired->getRouteTables());
   updater.addRoute(RouterID(0), folly::IPAddressV4("0.0.0.0"), 0,
-      StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
+      StdClientIds2ClientID(StdClientIds::STATIC_INTERNAL),
       RouteNextHopEntry(RouteForwardAction::DROP,
         AdminDistance::MAX_ADMIN_DISTANCE));
   updater.addRoute(RouterID(0), folly::IPAddressV6("::"), 0,
-      StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
+      StdClientIds2ClientID(StdClientIds::STATIC_INTERNAL),
       RouteNextHopEntry(RouteForwardAction::DROP,
         AdminDistance::MAX_ADMIN_DISTANCE));
   auto newRt = updater.updateDone();
