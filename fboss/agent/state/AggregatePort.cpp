@@ -10,6 +10,7 @@
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/RxPacket.h"
 
 #include <folly/MacAddress.h>
 
@@ -168,6 +169,45 @@ AggregatePort* AggregatePort::modify(std::shared_ptr<SwitchState>* state) {
   auto* ptr = newAggPort.get();
   aggPorts->updateAggregatePort(std::move(newAggPort));
   return ptr;
+}
+
+// The physical port on which "packet" ingressed can fall into one of 3
+// conditions.
+// The physical ingress port
+// case A: is CONFIGURED as a member of an AggregatePort AND is PROGRAMMED as a
+//         member of that AggregatePort
+// case B: is CONFIGURED as a member of an AggregatePort BUT is not PROGRAMMED
+//         as a member of that AggregatePort
+// case C: is not CONFIGURED as a member of any AggregatePort
+bool AggregatePort::isIngressValid(
+    const std::shared_ptr<SwitchState>& state,
+    const std::unique_ptr<RxPacket>& packet) {
+  auto physicalIngressPort = packet->getSrcPort();
+  auto owningAggregatePort =
+      state->getAggregatePorts()->getAggregatePortIf(physicalIngressPort);
+
+  if (!owningAggregatePort) {
+    // case C
+    return true;
+  }
+
+  CHECK(owningAggregatePort);
+  auto physicalIngressForwardingState =
+      owningAggregatePort->getForwardingState(physicalIngressPort);
+
+  bool isValid;
+  switch (physicalIngressForwardingState) {
+    case AggregatePort::Forwarding::ENABLED:
+      // case A
+      isValid = true;
+      break;
+    case AggregatePort::Forwarding::DISABLED:
+      // case B
+      isValid = false;
+      break;
+  }
+
+  return isValid;
 }
 
 template class NodeBaseT<AggregatePort, AggregatePortFields>;

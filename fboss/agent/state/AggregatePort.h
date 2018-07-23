@@ -21,6 +21,7 @@
 namespace facebook {
 namespace fboss {
 
+class RxPacket;
 class SwitchState;
 
 struct AggregatePortFields {
@@ -252,6 +253,10 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
   bool isMemberPort(PortID port) const;
 
   AggregatePort* modify(std::shared_ptr<SwitchState>* state);
+
+  static bool isIngressValid(
+      const std::shared_ptr<SwitchState>& state,
+      const std::unique_ptr<RxPacket>& packet);
 
  private:
   // Inherit the constructors required for clone()

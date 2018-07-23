@@ -26,6 +26,7 @@
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/NDP.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/NdpResponseTable.h"
@@ -394,6 +395,12 @@ void IPv6Handler::handleNeighborSolicitation(unique_ptr<RxPacket> pkt,
     updater->receivedNdpNotMine(vlan->getID(), hdr.ipv6->srcAddr, hdr.src,
                                 PortDescriptor::fromRxPacket(*pkt.get()),
                                 type, 0);
+    return;
+  }
+
+  if (!AggregatePort::isIngressValid(state, pkt)) {
+    XLOG(INFO) << "Dropping invalid NS ingressing on port " << pkt->getSrcPort()
+               << " on vlan " << vlan << " for " << targetIP;
     return;
   }
 

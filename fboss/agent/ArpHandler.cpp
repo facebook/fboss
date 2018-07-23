@@ -22,6 +22,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/ArpTable.h"
@@ -60,8 +61,11 @@ void ArpHandler::handlePacket(
     MacAddress /*dst*/,
     MacAddress /*src*/,
     Cursor cursor) {
-  PortID port = pkt->getSrcPort();
   auto stats = sw_->stats();
+  CHECK(stats);
+  PortID port = pkt->getSrcPort();
+  CHECK(stats->port(port));
+
   stats->port(port)->arpPkt();
   // Read htype, ptype, hlen, and plen
   auto htype = cursor.readBE<uint16_t>();
@@ -123,6 +127,21 @@ void ArpHandler::handlePacket(
     return;
   }
 
+  if (op == ARP_OP_REQUEST) {
+    stats->port(port)->arpRequestRx();
+  } else {
+    CHECK(op == ARP_OP_REPLY);
+    stats->port(port)->arpReplyRx();
+  }
+
+  if (op == ARP_OP_REQUEST &&
+      !AggregatePort::isIngressValid(state, pkt)) {
+    XLOG(INFO) << "Dropping invalid ARP request ingressing on port "
+               << pkt->getSrcPort() << " on vlan " << pkt->getSrcVlan()
+               << " for " << targetIP;
+    return;
+  }
+
   // This ARP packet is destined to us.
   // Update the sender IP --> sender MAC entry in the ARP table.
   updater->receivedArpMine(vlan->getID(), senderIP, senderMac,
@@ -130,14 +149,9 @@ void ArpHandler::handlePacket(
 
   // Send a reply if this is an ARP request.
   if (op == ARP_OP_REQUEST) {
-    stats->port(port)->arpRequestRx();
     sendArpReply(pkt->getSrcVlan(), pkt->getSrcPort(),
                  entry.value().mac, targetIP,
                  senderMac, senderIP);
-    return;
-  } else {
-    stats->port(port)->arpReplyRx();
-    return;
   }
 
   (void)targetMac; // unused
