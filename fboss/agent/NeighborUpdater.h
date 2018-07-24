@@ -95,6 +95,9 @@ class NeighborUpdater : public AutoRegisterStateObserver {
   void portChanged(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  void aggregatePortChanged(
+    const std::shared_ptr<AggregatePort>& oldAggPort,
+    const std::shared_ptr<AggregatePort>& newAggPort);
 
   void sendNeighborUpdates(const VlanDelta& delta);
 

@@ -248,6 +248,10 @@ void NeighborUpdater::stateUpdated(const StateDelta& delta) {
   }
 
   forEachChanged(delta.getPortsDelta(), &NeighborUpdater::portChanged, this);
+  forEachChanged(
+      delta.getAggregatePortsDelta(),
+      &NeighborUpdater::aggregatePortChanged,
+      this);
 }
 
 template<typename T>
@@ -365,20 +369,31 @@ void NeighborUpdater::portChanged(
     auto portId = newPort->getID();
 
     sw_->getBackgroundEvb()->runInEventBaseThread([this, portId]() {
-      auto aggPort =
-          sw_->getState()->getAggregatePorts()->getAggregatePortIf(portId);
-      if (aggPort) {
-        if (aggPort->forwardingSubportCount() <
-            aggPort->getMinimumLinkCount()) {
-          auto aggPortID = aggPort->getID();
-          XLOG(INFO) << "Purging neighbor entry for aggregate port "
-                     << aggPortID;
-          portDown(PortDescriptor(aggPortID));
-        }
-      } else {
-        XLOG(INFO) << "Purging neighbor entry for physical port " << portId;
-        portDown(PortDescriptor(portId));
-      }
+      XLOG(INFO) << "Purging neighbor entry for physical port " << portId;
+      portDown(PortDescriptor(portId));
+    });
+  }
+}
+
+void NeighborUpdater::aggregatePortChanged(
+    const std::shared_ptr<AggregatePort>& oldAggPort,
+    const std::shared_ptr<AggregatePort>& newAggPort) {
+  CHECK_EQ(oldAggPort->getID(), newAggPort->getID());
+
+  auto oldSubportRange = oldAggPort->sortedSubports();
+
+  bool transitionedToDown = oldAggPort->isUp() && !newAggPort->isUp();
+  bool membershipChanged = !std::equal(
+      oldSubportRange.begin(),
+      oldSubportRange.end(),
+      newAggPort->sortedSubports().begin());
+
+  if (transitionedToDown || membershipChanged) {
+    auto aggregatePortID = newAggPort->getID();
+    sw_->getBackgroundEvb()->runInEventBaseThread([this, aggregatePortID]() {
+      XLOG(INFO) << "Purging neighbor entry for aggregate port "
+                 << aggregatePortID;
+      portDown(PortDescriptor(aggregatePortID));
     });
   }
 }

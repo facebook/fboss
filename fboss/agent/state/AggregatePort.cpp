@@ -210,6 +210,10 @@ bool AggregatePort::isIngressValid(
   return isValid;
 }
 
+bool AggregatePort::isUp() const {
+  return forwardingSubportCount() >= getMinimumLinkCount();
+}
+
 template class NodeBaseT<AggregatePort, AggregatePortFields>;
 
 } // namespace fboss

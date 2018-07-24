@@ -258,6 +258,8 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
       const std::shared_ptr<SwitchState>& state,
       const std::unique_ptr<RxPacket>& packet);
 
+  bool isUp() const;
+
  private:
   // Inherit the constructors required for clone()
   using NodeBaseT::NodeBaseT;
