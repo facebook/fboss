@@ -771,6 +771,11 @@ struct SwitchConfig {
    */
   22: optional string dhcpReplySrcOverrideV4
   23: optional string dhcpReplySrcOverrideV6
+  /*
+   * TODO: Deprecate globalEgressTrafficPolicy in favor of
+   * dataPlaneTrafficPolicy once thrift with that field is
+   * rolled out to the fleet
+   */
   24: optional TrafficPolicyConfig globalEgressTrafficPolicy
   25: optional string config_version
   26: list<SflowCollector> sFlowCollectors = []
@@ -778,4 +783,5 @@ struct SwitchConfig {
   28: list<PortQueue> cpuQueues = []
   29: optional CPUTrafficPolicyConfig cpuTrafficPolicy
   30: list<LoadBalancer> loadBalancers = []
+  31: optional TrafficPolicyConfig dataPlaneTrafficPolicy
 }
