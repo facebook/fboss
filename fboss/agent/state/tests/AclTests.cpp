@@ -117,16 +117,16 @@ TEST(Acl, applyConfig) {
   configV1.acls[0].dstL4PortRange.max = 4;
   configV1.acls[0].__isset.dstL4PortRange = true;
   // Make sure it's used so that it isn't ignored
-  configV1.globalEgressTrafficPolicy = cfg::TrafficPolicyConfig();
-  configV1.__isset.globalEgressTrafficPolicy = true;
-  configV1.globalEgressTrafficPolicy.matchToAction.resize(1,
+  configV1.dataPlaneTrafficPolicy = cfg::TrafficPolicyConfig();
+  configV1.__isset.dataPlaneTrafficPolicy = true;
+  configV1.dataPlaneTrafficPolicy.matchToAction.resize(1,
       cfg::MatchToAction());
-  configV1.globalEgressTrafficPolicy.matchToAction[0].matcher = "acl3";
-  configV1.globalEgressTrafficPolicy.matchToAction[0].action =
+  configV1.dataPlaneTrafficPolicy.matchToAction[0].matcher = "acl3";
+  configV1.dataPlaneTrafficPolicy.matchToAction[0].action =
       cfg::MatchAction();
-  configV1.globalEgressTrafficPolicy.matchToAction[0].action.sendToQueue =
+  configV1.dataPlaneTrafficPolicy.matchToAction[0].action.sendToQueue =
       cfg::QueueMatchAction();
-  configV1.globalEgressTrafficPolicy.matchToAction[0]
+  configV1.dataPlaneTrafficPolicy.matchToAction[0]
       .action.sendToQueue.queueId = 1;
 
   auto stateV3 = publishAndApplyConfig(stateV2, &configV1, platform.get());
@@ -161,16 +161,16 @@ TEST(Acl, applyConfig) {
   configV2.acls.resize(1);
   configV2.acls[0].name = "acl3";
   // Make sure it's used so that it isn't ignored
-  configV2.globalEgressTrafficPolicy = cfg::TrafficPolicyConfig();
-  configV2.__isset.globalEgressTrafficPolicy = true;
-  configV2.globalEgressTrafficPolicy.matchToAction.resize(1,
+  configV2.dataPlaneTrafficPolicy = cfg::TrafficPolicyConfig();
+  configV2.__isset.dataPlaneTrafficPolicy = true;
+  configV2.dataPlaneTrafficPolicy.matchToAction.resize(1,
       cfg::MatchToAction());
-  configV2.globalEgressTrafficPolicy.matchToAction[0].matcher = "acl3";
-  configV2.globalEgressTrafficPolicy.matchToAction[0].action =
+  configV2.dataPlaneTrafficPolicy.matchToAction[0].matcher = "acl3";
+  configV2.dataPlaneTrafficPolicy.matchToAction[0].action =
       cfg::MatchAction();
-  configV2.globalEgressTrafficPolicy.matchToAction[0].action.sendToQueue =
+  configV2.dataPlaneTrafficPolicy.matchToAction[0].action.sendToQueue =
       cfg::QueueMatchAction();
-  configV2.globalEgressTrafficPolicy.matchToAction[0]
+  configV2.dataPlaneTrafficPolicy.matchToAction[0]
       .action.sendToQueue.queueId = 1;
 
   // set pkt length range
@@ -375,22 +375,22 @@ TEST(Acl, AclGeneration) {
   config.acls[3].name = "acl4";
   config.acls[3].actionType = cfg::AclActionType::DENY;
 
-  config.__isset.globalEgressTrafficPolicy = true;
-  config.globalEgressTrafficPolicy.matchToAction.resize(2,
+  config.__isset.dataPlaneTrafficPolicy = true;
+  config.dataPlaneTrafficPolicy.matchToAction.resize(2,
       cfg::MatchToAction());
-  config.globalEgressTrafficPolicy.matchToAction[0].matcher = "acl2";
-  config.globalEgressTrafficPolicy.matchToAction[0].action =
+  config.dataPlaneTrafficPolicy.matchToAction[0].matcher = "acl2";
+  config.dataPlaneTrafficPolicy.matchToAction[0].action =
       cfg::MatchAction();
-  config.globalEgressTrafficPolicy.matchToAction[0].action.sendToQueue =
+  config.dataPlaneTrafficPolicy.matchToAction[0].action.sendToQueue =
       cfg::QueueMatchAction();
-  config.globalEgressTrafficPolicy.matchToAction[0]
+  config.dataPlaneTrafficPolicy.matchToAction[0]
       .action.sendToQueue.queueId = 1;
-  config.globalEgressTrafficPolicy.matchToAction[1].matcher = "acl3";
-  config.globalEgressTrafficPolicy.matchToAction[1].action =
+  config.dataPlaneTrafficPolicy.matchToAction[1].matcher = "acl3";
+  config.dataPlaneTrafficPolicy.matchToAction[1].action =
       cfg::MatchAction();
-  config.globalEgressTrafficPolicy.matchToAction[1].action.sendToQueue =
+  config.dataPlaneTrafficPolicy.matchToAction[1].action.sendToQueue =
       cfg::QueueMatchAction();
-  config.globalEgressTrafficPolicy.matchToAction[1]
+  config.dataPlaneTrafficPolicy.matchToAction[1]
       .action.sendToQueue.queueId = 2;
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());

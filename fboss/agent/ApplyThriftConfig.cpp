@@ -1020,10 +1020,15 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
     return entries;
   };
 
-  // Add the global acls in defined
-  if (cfg_->__isset.globalEgressTrafficPolicy) {
-    folly::gen::from(addToAcls(cfg_->globalEgressTrafficPolicy, ""))
-      | folly::gen::appendTo(newAcls);;
+  // Add the global acls
+  // TODO: stop looking at globalEgressTrafficPolicy once we retire
+  // it from our templates - T31804070
+  if (cfg_->__isset.dataPlaneTrafficPolicy) {
+    folly::gen::from(addToAcls(cfg_->dataPlaneTrafficPolicy, "")) |
+        folly::gen::appendTo(newAcls);
+  } else if (cfg_->__isset.globalEgressTrafficPolicy) {
+    folly::gen::from(addToAcls(cfg_->globalEgressTrafficPolicy, "")) |
+        folly::gen::appendTo(newAcls);
   }
 
   if (numExistingProcessed != orig_->getAcls()->size()) {
