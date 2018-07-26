@@ -1504,17 +1504,30 @@ void SwSwitch::applyConfig(const std::string& reason) {
           rval = applyThriftConfigDefault(state, platform_.get(),
               &curConfig_);
         }
-        if (!isValidStateUpdate(StateDelta(state, rval.first))) {
-          throw FbossError("Invalid config passed in, skipping");
-        }
+
+        auto& newState = rval.first;
         curConfigStr_ = rval.second;
+        if (!newState) {
+          return nullptr;
+        }
+
         apache::thrift::SimpleJSONSerializer::deserialize<cfg::SwitchConfig>(
             curConfigStr_.c_str(), curConfig_);
 
+        if (!isValidStateUpdate(StateDelta(state, newState))) {
+          throw FbossError("Invalid config passed in, skipping");
+        }
+
         // Set oper status of interfaces in SwitchState
-        auto& newState = rval.first;
-        for (auto const& port : *newState->getPorts()) {
-          port->setOperState(hw_->isPortUp(port->getID()));
+        for (const auto& portCfg : curConfig_.ports) {
+          PortID portId(portCfg.logicalID);
+          auto* port = newState->getPorts()->getPortIf(portId).get();
+          if (!port) {
+            throw FbossError(
+                "Port ", portId, " doesn't exists in SwitchState.");
+          }
+          port = port->modify(&newState);
+          port->setOperState(hw_->isPortUp(portId));
         }
 
         return newState;

@@ -378,10 +378,6 @@ class ReloadConfigCli(object):
     @click.pass_obj
     def reloadconfig(cli_opts):
         ''' Reload agent configuration file  '''
-        # Disable this command because it currently results in wedge_agent
-        # crash.  See T24768677.
-        print("reloadconfig command is currently disabled")
-        return
         config.ReloadConfigCmd(cli_opts).run()
 
 
