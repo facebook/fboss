@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/lib/PhysicalMemory.h"
+#include <cstdint>
 
 namespace facebook {
 namespace fboss {
