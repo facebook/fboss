@@ -63,6 +63,7 @@ enum TransmitterTechnology {
   UNKNOWN = 0,
   COPPER = 1,
   OPTICAL = 2,
+  BACKPLANE = 3,
 }
 /*
  * QSFP and SFP units specify length as a byte;  a value of 255 indicates
