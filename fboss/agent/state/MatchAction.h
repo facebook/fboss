@@ -27,12 +27,14 @@ class MatchAction {
    */
   using SendToQueue = std::pair<cfg::QueueMatchAction, bool>;
   using PacketCounter = cfg::PacketCounterMatchAction;
+  using SetDscp = cfg::SetDscpMatchAction;
 
   MatchAction() {}
 
   MatchAction(const MatchAction& action)
-    : sendToQueue_(action.sendToQueue_),
-      packetCounter_(action.packetCounter_) {}
+      : sendToQueue_(action.sendToQueue_),
+        packetCounter_(action.packetCounter_),
+        setDscp_(action.setDscp_) {}
 
   folly::Optional<SendToQueue> getSendToQueue() const {
     return sendToQueue_;
@@ -50,14 +52,24 @@ class MatchAction {
     packetCounter_ = packetCounter;
   }
 
+  folly::Optional<SetDscp> getSetDscp() const {
+    return setDscp_;
+  }
+
+  void setSetDscp(const SetDscp& setDscp) {
+    setDscp_ = setDscp;
+  }
+
   bool operator==(const MatchAction& action) const {
     return sendToQueue_ == action.sendToQueue_ &&
-      packetCounter_ == action.packetCounter_;
+        packetCounter_ == action.packetCounter_ &&
+        setDscp_ == action.setDscp_;
   }
 
   MatchAction& operator=(const MatchAction& action) {
     sendToQueue_ = action.sendToQueue_;
     packetCounter_ = action.packetCounter_;
+    setDscp_ = action.setDscp_;
     return *this;
   }
 
@@ -67,6 +79,7 @@ class MatchAction {
  private:
   folly::Optional<SendToQueue> sendToQueue_{folly::none};
   folly::Optional<PacketCounter> packetCounter_{folly::none};
+  folly::Optional<SetDscp> setDscp_{folly::none};
 };
 
 }} // facebook::fboss

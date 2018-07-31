@@ -224,9 +224,14 @@ struct PacketCounterMatchAction {
   1: string counterName
 }
 
+struct SetDscpMatchAction {
+  1: byte dscpValue;
+}
+
 struct MatchAction {
   1: optional QueueMatchAction sendToQueue
   2: optional PacketCounterMatchAction packetCounter
+  3: optional SetDscpMatchAction setDscp;
 }
 
 struct MatchToAction {

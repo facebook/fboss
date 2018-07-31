@@ -1012,6 +1012,9 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
       if (mta.action.__isset.packetCounter) {
         matchAction.setPacketCounter(mta.action.packetCounter);
       }
+      if (mta.action.__isset.setDscp) {
+          matchAction.setSetDscp(mta.action.setDscp);
+      }
 
       auto acl = updateAcl(aclCfg, priority++, &numExistingProcessed,
         &changed, &matchAction);

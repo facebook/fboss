@@ -355,7 +355,7 @@ TEST(Acl, AclGeneration) {
   config.ports[1].name = "port2";
   config.ports[1].state = cfg::PortState::ENABLED;
 
-  config.acls.resize(4);
+  config.acls.resize(5);
   config.acls[0].name = "acl1";
   config.acls[0].actionType = cfg::AclActionType::DENY;
   config.acls[0].__isset.srcIp = true;
@@ -374,9 +374,15 @@ TEST(Acl, AclGeneration) {
   config.acls[2].__isset.dscp = true;
   config.acls[3].name = "acl4";
   config.acls[3].actionType = cfg::AclActionType::DENY;
+  config.acls[4].name = "acl5";
+  config.acls[4].__isset.srcIp = true;
+  config.acls[4].srcIp = "2401:db00:21:7147:face:0:7:0/128";
+  config.acls[4].__isset.srcPort = true;
+  config.acls[4].srcPort = 5;
+
 
   config.__isset.dataPlaneTrafficPolicy = true;
-  config.dataPlaneTrafficPolicy.matchToAction.resize(2,
+  config.dataPlaneTrafficPolicy.matchToAction.resize(3,
       cfg::MatchToAction());
   config.dataPlaneTrafficPolicy.matchToAction[0].matcher = "acl2";
   config.dataPlaneTrafficPolicy.matchToAction[0].action =
@@ -392,6 +398,14 @@ TEST(Acl, AclGeneration) {
       cfg::QueueMatchAction();
   config.dataPlaneTrafficPolicy.matchToAction[1]
       .action.sendToQueue.queueId = 2;
+  config.dataPlaneTrafficPolicy.matchToAction[2].matcher = "acl5";
+  config.dataPlaneTrafficPolicy.matchToAction[2].action = cfg::MatchAction();
+  config.dataPlaneTrafficPolicy.matchToAction[2].action.setDscp =
+      cfg::SetDscpMatchAction();
+  config.dataPlaneTrafficPolicy.matchToAction[2].action.__isset.setDscp=
+      true;
+  config.dataPlaneTrafficPolicy.matchToAction[2].action.setDscp.dscpValue =
+      8;
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(stateV1, nullptr);
@@ -400,6 +414,7 @@ TEST(Acl, AclGeneration) {
   EXPECT_NE(acls->getEntryIf("acl1"), nullptr);
   EXPECT_NE(acls->getEntryIf("system:acl2"), nullptr);
   EXPECT_NE(acls->getEntryIf("system:acl3"), nullptr);
+  EXPECT_NE(acls->getEntryIf("system:acl5"), nullptr);
 
   EXPECT_EQ(acls->getEntryIf("acl1")->getPriority(), kAclStartPriority);
   EXPECT_EQ(acls->getEntryIf("acl4")->getPriority(), kAclStartPriority + 1);
@@ -407,6 +422,19 @@ TEST(Acl, AclGeneration) {
       kAclStartPriority + 2);
   EXPECT_EQ(acls->getEntryIf("system:acl3")->getPriority(),
       kAclStartPriority + 3);
+  EXPECT_EQ(acls->getEntryIf("system:acl5")->getPriority(),
+      kAclStartPriority + 4);
+
+  // Ensure that the global actions in global traffic policy has been added to
+  // the ACL entries
+  EXPECT_TRUE(acls->getEntryIf("system:acl5")->getAclAction().hasValue());
+  EXPECT_EQ(
+      8,
+      acls->getEntryIf("system:acl5")
+          ->getAclAction()
+          ->getSetDscp()
+          .value()
+          .dscpValue);
 }
 
 TEST(Acl, SerializeAclEntry) {
@@ -458,6 +486,22 @@ TEST(Acl, SerializeAclEntry) {
   aclAction = entryBack->getAclAction().value();
   EXPECT_TRUE(aclAction.getPacketCounter());
   EXPECT_EQ(aclAction.getPacketCounter().value().counterName, "stat0.c");
+
+  // Test SetDscpMatchAction
+  entry = std::make_unique<AclEntry>(0, "DspNew");
+  action = MatchAction();
+  auto setDscpMatchAction = cfg::SetDscpMatchAction();
+  setDscpMatchAction.dscpValue = 8;
+  action.setSetDscp(setDscpMatchAction);
+  entry->setAclAction(action);
+
+  serialized = entry->toFollyDynamic();
+  entryBack = AclEntry::fromFollyDynamic(serialized);
+  EXPECT_TRUE(*entry == *entryBack);
+  EXPECT_TRUE(entryBack->getAclAction());
+  aclAction = entryBack->getAclAction().value();
+  EXPECT_TRUE(aclAction.getSetDscp());
+  EXPECT_EQ(aclAction.getSetDscp().value().dscpValue, 8);
 }
 
 TEST(Acl, Ttl) {
