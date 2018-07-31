@@ -653,7 +653,8 @@ TEST(ICMPTest, PacketTooBigV6) {
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ptb.sum", 1);
+  counters.checkDelta(
+      SwitchStats::kCounterPrefix + "trapped.packet_too_big.sum", 1);
 }
 
 } // namespace

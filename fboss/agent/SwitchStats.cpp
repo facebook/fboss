@@ -179,7 +179,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           map,
           kCounterPrefix + "update_stats_exceptions",
           SUM),
-      trapPktTooBig_(map, kCounterPrefix + "trapped.ptb", SUM, RATE) {}
+      trapPktTooBig_(
+          map,
+          kCounterPrefix + "trapped.packet_too_big",
+          SUM,
+          RATE) {}
 
 PortStats* FOLLY_NULLABLE SwitchStats::port(PortID portID) {
   auto it = ports_.find(portID);
