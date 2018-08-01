@@ -109,7 +109,7 @@ class ServerPortFlap(FbossBaseSystemTest):
                 pass
 
 
-@test_tags("port", "run-on-diff")
+@test_tags("port", "run-on-diff", "trunk-stable")
 class PortFECCheck(FbossBaseSystemTest):
     """ FEC should be enabled for all 100G ports """
     def test_fec_check_for_100g(self):

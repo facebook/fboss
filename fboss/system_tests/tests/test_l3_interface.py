@@ -67,7 +67,7 @@ class L3InterfacesTest(FbossBaseSystemTest):
                         self.assertTrue(client.ping(ip))
 
 
-@test_tags("l3pairping", "run-on-diff")
+@test_tags("l3pairping", "run-on-diff", "trunk-stable")
 class L3AllPairsPing(FbossBaseSystemTest):
     """ Make sure each host can ping every other host """
     def test_all_pairs_ping(self):
