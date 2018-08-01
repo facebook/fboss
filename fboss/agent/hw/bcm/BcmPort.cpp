@@ -466,7 +466,17 @@ void BcmPort::setInterfaceMode(const shared_ptr<Port>& swPort) {
   bcmCheckError(ret, "Failed to get current interface setting for port ",
                      swPort->getID());
 
-  if (curMode != desiredMode) {
+  // HACK: we cannot call speed_set w/out also
+  // calling interface_mode_set, otherwise the
+  // interface mode may change unexpectedly (details
+  // on T32158588). We call set_speed when the port
+  // is down, so also set mode here.
+  //
+  // TODO(aeckert): evaluate if we still need to set
+  // speed on down ports.
+
+  bool portUp = swPort->isPortUp();
+  if (curMode != desiredMode || !portUp) {
     // Changes to the interface setting only seem to take effect on the next
     // call to opennsl_port_speed_set()
     ret = opennsl_port_interface_set(unit_, port_, desiredMode);
