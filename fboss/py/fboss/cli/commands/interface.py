@@ -127,8 +127,12 @@ class InterfaceSummaryCmd(cmds.FbossCmd):
         )
         vlan_port_map: Dict = {}
         for port in all_port_info_map.values():
+            vlan_count = len(port.vlans)
+            # unconfigured ports can be skipped
+            if vlan_count == 0:
+                continue
             # fboss ports currently only support a single vlan
-            assert len(port.vlans) == 1
+            assert vlan_count == 1
             vlan = port.vlans[0]
             # root port is the parent physical port
             match = re.match(r"(.*)\/\d+$", port.name)
