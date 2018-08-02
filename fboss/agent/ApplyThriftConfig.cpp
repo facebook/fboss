@@ -198,7 +198,8 @@ class ThriftConfigApplier {
   bool updateDhcpOverrides(Vlan* vlan, const cfg::Vlan* config);
   std::shared_ptr<InterfaceMap> updateInterfaces();
   std::shared_ptr<RouteTableMap> updateInterfaceRoutes();
-  std::shared_ptr<RouteTableMap> syncStaticRoutes();
+  std::shared_ptr<RouteTableMap> syncStaticRoutes(
+    const std::shared_ptr<RouteTableMap>& routes);
   shared_ptr<Interface> createInterface(const cfg::Interface* config,
                                         const Interface::Addresses& addrs);
   shared_ptr<Interface> updateInterface(const shared_ptr<Interface>& orig,
@@ -299,13 +300,24 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
 
   // Note: updateInterfaces() must be called before updateInterfaceRoutes(),
   // as updateInterfaces() populates the intfRouteTables_ data structure.
+  // Also, updateInterfaceRoutes() should be the first call for updating
+  // RouteTable as this will take the RouteTable from orig_ and add Interface
+  // routes. Calling this after other RouteTable updates will result in other
+  // routes getting removed during updateInterfaceRoutes()
   {
     auto newTables = updateInterfaceRoutes();
     if (newTables) {
       newState->resetRouteTables(newTables);
       changed = true;
     }
-    auto newerTables = syncStaticRoutes();
+  }
+
+  {
+    // Retrieve RouteTableMap from newState as this will have
+    // all the routes updated until now. Pass this to syncStaticRoutes
+    // so that routes added until now would not be excluded.
+    auto updatedRoutes = newState->getRouteTables();
+    auto newerTables = syncStaticRoutes(updatedRoutes);
     if (newerTables) {
       newState->resetRouteTables(std::move(newerTables));
       changed = true;
@@ -1362,8 +1374,12 @@ shared_ptr<RouteTableMap> ThriftConfigApplier::updateInterfaceRoutes() {
  * "delete", i.e., the new config does not have an entry that was there in
  * the old config, because there is no old config to compare with.
  */
-std::shared_ptr<RouteTableMap> ThriftConfigApplier::syncStaticRoutes() {
-  RouteUpdater updater(orig_->getRouteTables());
+std::shared_ptr<RouteTableMap> ThriftConfigApplier::syncStaticRoutes(
+    const std::shared_ptr<RouteTableMap>& routes) {
+  CHECK(routes != nullptr) << "RouteTableMap can not be null";
+  // RouteUpdater should be able to handle nullptr and convert that into
+  // into RouteTableMap. Investigate why we shouldn't do that TODO(krishnakn)
+  RouteUpdater updater(routes);
   auto staticClientId = StdClientIds2ClientID(StdClientIds::STATIC_ROUTE);
   auto staticAdminDistance = AdminDistance::STATIC_ROUTE;
   updater.removeAllRoutesForClient(RouterID(0), staticClientId);
