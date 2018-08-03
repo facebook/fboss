@@ -41,12 +41,8 @@ class BcmTrunkTable {
       const std::shared_ptr<AggregatePort>& newAggPort);
   void deleteTrunk(const std::shared_ptr<AggregatePort>& aggPort);
 
-  opennsl_trunk_t getBcmTrunkId(AggregatePortID id) const {
-    return static_cast<opennsl_trunk_t>(id);
-  }
-  AggregatePortID getAggregatePortId(opennsl_trunk_t trunk) const {
-    return AggregatePortID(trunk);
-  }
+  opennsl_trunk_t getBcmTrunkId(AggregatePortID id) const;
+  AggregatePortID getAggregatePortId(opennsl_trunk_t trunk) const;
 
   // TODO(samank): Fill in method
   // Serialize to folly::dynamic

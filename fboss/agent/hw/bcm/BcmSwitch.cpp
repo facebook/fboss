@@ -1636,20 +1636,20 @@ void BcmSwitch::processChangedAggregatePort(
     const std::shared_ptr<AggregatePort>& newAggPort) {
   CHECK_EQ(oldAggPort->getID(), newAggPort->getID());
 
-  XLOG(DBG2) << "reprogramming trunk " << oldAggPort->getID();
+  XLOG(DBG2) << "reprogramming AggregatePort " << oldAggPort->getID();
   trunkTable_->programTrunk(oldAggPort, newAggPort);
 }
 
 void BcmSwitch::processAddedAggregatePort(
     const std::shared_ptr<AggregatePort>& aggPort) {
-  XLOG(DBG2) << "creating trunk " << aggPort->getID() << " with "
+  XLOG(DBG2) << "creating AggregatePort " << aggPort->getID() << " with "
              << aggPort->subportsCount() << " ports";
   trunkTable_->addTrunk(aggPort);
 }
 
 void BcmSwitch::processRemovedAggregatePort(
     const std::shared_ptr<AggregatePort>& aggPort) {
-  XLOG(DBG2) << "deleting trunk " << aggPort->getID();
+  XLOG(DBG2) << "deleting AggregatePort " << aggPort->getID();
   trunkTable_->deleteTrunk(aggPort);
 }
 
