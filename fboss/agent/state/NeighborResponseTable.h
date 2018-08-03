@@ -38,9 +38,6 @@ struct NeighborResponseEntry {
    */
   static NeighborResponseEntry fromFollyDynamic(const folly::dynamic& entry);
 
-  static constexpr auto kMac = "mac";
-  static constexpr auto kIntf = "interfaceId";
-
   folly::MacAddress mac;
   InterfaceID interfaceID{0};
 };

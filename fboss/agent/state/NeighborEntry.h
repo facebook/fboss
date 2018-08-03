@@ -57,10 +57,6 @@ struct NeighborEntryFields {
    */
   static NeighborEntryFields fromFollyDynamic(const folly::dynamic& entryJson);
 
-  static constexpr auto kIpAddr = "ipaddress";
-  static constexpr auto kMac = "mac";
-  static constexpr auto kPort = "portId";
-  static constexpr auto kInterface = "interfaceId";
   AddressType ip;
   folly::MacAddress mac;
   PortDescriptor port;
@@ -95,6 +91,17 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
 
   folly::dynamic toFollyDynamic() const override {
     return this->getFields()->toFollyDynamic();
+  }
+
+  bool operator==(const NeighborEntry& other) const {
+    return getIP() == other.getIP() &&
+           getMac() == other.getMac() &&
+           getPort() == other.getPort() &&
+           getIntfID() == other.getIntfID() &&
+           getState() == other.getState();
+  }
+  bool operator!=(const NeighborEntry& other) const {
+    return !operator==(other);
   }
 
   AddressType getIP() const {

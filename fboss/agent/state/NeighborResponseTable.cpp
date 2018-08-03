@@ -10,6 +10,11 @@
 
 #include "fboss/agent/state/NeighborResponseTable.h"
 
+namespace {
+constexpr auto kMac = "mac";
+constexpr auto kIntf = "interfaceId";
+}
+
 namespace facebook { namespace fboss {
 
 folly::dynamic NeighborResponseEntry::toFollyDynamic() const {

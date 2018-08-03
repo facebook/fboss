@@ -13,6 +13,13 @@
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/types.h"
 
+namespace {
+constexpr auto kIpAddr = "ipaddress";
+constexpr auto kMac = "mac";
+constexpr auto kPort = "portId";
+constexpr auto kInterface = "interfaceId";
+}
+
 namespace facebook { namespace fboss {
 
 template<typename IPADDR>
