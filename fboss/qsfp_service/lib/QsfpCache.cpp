@@ -159,7 +159,8 @@ folly::Future<folly::Unit> QsfpCache::doSync(PortMapThrift&& toSync) {
   activeReq_ = folly::SharedPromise<folly::Unit>();
 
   auto baseFut = (remoteAliveSince_ < 0) ? confirmAlive() : folly::makeFuture();
-  return baseFut.then([evb = evb_]() { return QsfpClient::createClient(evb); })
+  return std::move(baseFut)
+      .then([evb = evb_]() { return QsfpClient::createClient(evb); })
       .then(evb_, syncPorts)
       .then(evb_, onSuccess)
       .onError([this](const std::exception& e) {
@@ -215,9 +216,8 @@ folly::Future<TransceiverInfo> QsfpCache::futureGet(TransceiverID tcvrId) {
     // if active request, query cache when request is
     // fulfilled. Otherwise query now.
     auto baseFut = (activeReq_) ? activeReq_->getFuture() : folly::makeFuture();
-    return baseFut.then([this, tcvrId]() {
-      return this->get(tcvrId);
-    });
+    return std::move(baseFut).then(
+        [this, tcvrId]() { return this->get(tcvrId); });
   });
 }
 
