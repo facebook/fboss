@@ -282,6 +282,37 @@ class PortType(click.ParamType):
         except (ValueError, KeyError):
             self.fail('%s is not a valid Port' % value, param, ctx)
 
+
+class Stats(object):
+    ''' Port stats sub-commands '''
+
+    def __init__(self):
+        self.stats.add_command(self._show, name='show')
+        self.stats.add_command(self._clear, name='clear')
+
+    @click.group(cls=AliasedGroup)
+    def stats():
+        ''' Show/clear Port stats '''
+        pass
+
+    @click.command()
+    @click.argument('ports', nargs=-1, type=PortType())
+    @click.option('--detail',
+                  is_flag=True,
+                  help='Display detailed port stats with lldp')
+    @click.pass_obj
+    def _show(cli_opts, detail, ports):
+        ''' Show port statistics '''
+        port.PortStatsCmd(cli_opts).run(detail, ports)
+
+    @click.command()
+    @click.argument('ports', nargs=-1, type=PortType())
+    @click.pass_obj
+    def _clear(cli_opts, ports):
+        ''' Clear stats'''
+        port.PortStatsClearCmd(cli_opts).run(ports)
+
+
 class PortCli(object):
     ''' Port sub-commands '''
 
@@ -291,9 +322,8 @@ class PortCli(object):
         self.port.add_command(self._status, name='status')
         self.port.add_command(self._enable, name='enable')
         self.port.add_command(self._disable, name='disable')
-        self.port.add_command(self._stats, name='stats')
         self.port.add_command(self._description, name='description')
-        self.port.add_command(self._stats, name='all')
+        self.port.add_command(Stats().stats)
 
     @click.group(cls=AliasedGroup)
     def port():
@@ -340,16 +370,6 @@ class PortCli(object):
     def _status(cli_opts, detail, ports, verbose, internal, all):
         ''' Show port status '''
         port.PortStatusCmd(cli_opts).run(detail, ports, verbose, internal, all)
-
-    @click.command()
-    @click.argument('ports', nargs=-1, type=PortType())
-    @click.option('--detail',
-                  is_flag=True,
-                  help='Display detailed port stats with lldp')
-    @click.pass_obj
-    def _stats(cli_opts, detail, ports):
-        ''' Show port statistics '''
-        port.PortStatsCmd(cli_opts).run(detail, ports)
 
     @click.command()
     @click.argument('ports', nargs=-1, type=PortType())
