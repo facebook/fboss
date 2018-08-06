@@ -21,7 +21,7 @@ class FbossPortStatsCmdline(FbossBaseSystemTest):
     def _get_port_stats(self, port):
         cmd = [FbossPortStatsCmdline.FBOSS_CMD,
                 "-H", self.test_topology.switch.name,
-                "port", "stats", str(port)]
+                "port", "stats", "show", str(port)]
 
         output = subprocess.check_output(cmd, encoding='utf-8')
         output = output.splitlines()
@@ -33,6 +33,13 @@ class FbossPortStatsCmdline(FbossBaseSystemTest):
                 int(stats[FbossPortStatsCmdline.OUTBYTES_COL]),\
                 int(stats[FbossPortStatsCmdline.OUTPKTS_COL])
 
+    def _clear_port_stats(self, port):
+        cmd = [FbossPortStatsCmdline.FBOSS_CMD,
+                "-H", self.test_topology.switch.name,
+                "port", "stats", "clear", str(port)]
+
+        subprocess.run(cmd, encoding='utf-8')
+
     def test_fboss_port_stats_cmd(self):
 
         """
@@ -43,6 +50,8 @@ class FbossPortStatsCmdline(FbossBaseSystemTest):
             - Run iperf traffic from server (port under test) to another server.
             - Query in/out bytes/packets port stats for same sever port.
             - Stat counters should have been incremented.
+            - Clear stats.
+            - Stat counters should be lower than previous query.
         """
 
         self.test_topology.min_hosts_or_skip(2)
@@ -61,3 +70,9 @@ class FbossPortStatsCmdline(FbossBaseSystemTest):
 
         self.assertTrue(inBytes2 > inBytes1 and inPkts2 > inPkts1 and
                 outBytes2 > outBytes1 and outPkts2 > outPkts1)
+
+        self._clear_port_stats(port1)
+        inBytes3, inPkts3, outBytes3, outPkts3 = self._get_port_stats(port1)
+
+        self.assertTrue(inBytes3 <= inBytes2 and inPkts3 <= inPkts2 and
+                outBytes3 <= outBytes2 and outPkts3 <= outPkts2)
