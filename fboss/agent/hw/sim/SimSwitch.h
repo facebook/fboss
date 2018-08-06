@@ -76,6 +76,9 @@ class SimSwitch : public HwSwitch {
     return true;
   }
 
+  void clearPortStats(
+      const std::unique_ptr<std::vector<int32_t>>& /*ports*/) override {}
+
  private:
   // Forbidden copy constructor and assignment operator
   SimSwitch(SimSwitch const &) = delete;

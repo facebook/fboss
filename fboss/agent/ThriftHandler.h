@@ -119,6 +119,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
                                           int32_t interfaceId) override;
   void getPortInfo(PortInfoThrift& portInfo, int32_t portId) override;
   void getAllPortInfo(std::map<int32_t, PortInfoThrift>& portInfo) override;
+  void clearPortStats(std::unique_ptr<std::vector<int32_t>> ports) override;
   void getPortStats(PortInfoThrift& portInfo, int32_t portId) override;
   void getAllPortStats(std::map<int32_t, PortInfoThrift>& portInfo) override;
   void getRunningConfig(std::string& configStr) override;

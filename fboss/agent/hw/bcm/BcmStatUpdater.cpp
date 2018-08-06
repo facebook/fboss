@@ -83,4 +83,17 @@ MonotonicCounter* FOLLY_NULLABLE BcmStatUpdater::getCounterIf(
   return iter->second.get();
 }
 
+void BcmStatUpdater::clearPortStats(
+    const std::unique_ptr<std::vector<int32_t>>& ports) {
+  // XXX clear per queue stats and, BST stats as well.
+  for (auto port : *ports) {
+    auto ret = opennsl_stat_clear(unit_, port);
+    if (OPENNSL_FAILURE(ret)) {
+      XLOG(ERR) << "Clear Failed for port " << port << " :"
+        << opennsl_errmsg(ret);
+      return;
+    }
+  }
+}
+
 }} // facebook::fboss

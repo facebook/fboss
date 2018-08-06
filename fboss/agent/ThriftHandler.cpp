@@ -579,6 +579,11 @@ void ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
   }
 }
 
+void ThriftHandler::clearPortStats(unique_ptr<vector<int32_t>> ports) {
+  ensureConfigured();
+  sw_->clearPortStats(ports);
+}
+
 void ThriftHandler::getPortStats(PortInfoThrift& portInfo, int32_t portId) {
   getPortInfo(portInfo, portId);
 }

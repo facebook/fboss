@@ -1581,4 +1581,10 @@ AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {
 
   return static_cast<AdminDistance>(distance->second);
 }
+
+void SwSwitch::clearPortStats(
+    const std::unique_ptr<std::vector<int32_t>>& ports) {
+  getHw()->clearPortStats(ports);
+}
+
 }} // facebook::fboss

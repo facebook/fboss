@@ -684,6 +684,11 @@ class BcmSwitch : public BcmSwitchIf {
   void exportDeviceBufferUsage();
 
   /*
+   * Clear statistics for a list of ports.
+   */
+  void clearPortStats(const std::unique_ptr<std::vector<int32_t>>& ports) override;
+
+  /*
    * Member variables
    */
   BcmPlatform* platform_{nullptr};

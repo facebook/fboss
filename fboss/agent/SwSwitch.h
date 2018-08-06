@@ -648,6 +648,11 @@ class SwSwitch : public HwSwitch::Callback {
   void publishRxPacket(RxPacket* packet, uint16_t ethertype);
   void publishTxPacket(TxPacket* packet, uint16_t ethertype);
 
+  /*
+   * Clear PortStats of the specified port.
+   */
+  void clearPortStats(const std::unique_ptr<std::vector<int32_t>>& ports);
+
  private:
   void queueStateUpdateForGettingHwInSync(
       folly::StringPiece name,

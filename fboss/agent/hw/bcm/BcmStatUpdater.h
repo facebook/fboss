@@ -56,6 +56,8 @@ class BcmStatUpdater {
   /* Functions to be called during stats collection (UpdateStatsThread) */
   void updateStats();
 
+  void clearPortStats(const std::unique_ptr<std::vector<int32_t>>& ports);
+
  private:
   void updateAclStat(int unit, BcmAclStatHandle handle,
     std::chrono::seconds now, MonotonicCounter* counter);

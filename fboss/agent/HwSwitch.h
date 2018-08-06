@@ -232,10 +232,17 @@ class HwSwitch {
    */
   virtual bool getAndClearNeighborHit(RouterID vrf,
                                       folly::IPAddress& ip) = 0;
- private:
-  // Forbidden copy constructor and assignment operator
-  HwSwitch(HwSwitch const &) = delete;
-  HwSwitch& operator=(HwSwitch const &) = delete;
+
+  /*
+   * Clear port stats for specified port
+   */
+  virtual void clearPortStats(
+      const std::unique_ptr<std::vector<int32_t>>& ports) = 0;
+
+   private:
+    // Forbidden copy constructor and assignment operator
+    HwSwitch(HwSwitch const&) = delete;
+    HwSwitch& operator=(HwSwitch const&) = delete;
 };
 
 }} // facebook::fboss

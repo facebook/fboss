@@ -57,6 +57,8 @@ MockableHwSwitch::MockableHwSwitch(MockPlatform *platform, HwSwitch* realHw)
     .WillByDefault(Invoke(realHw_, &HwSwitch::isValidStateUpdate));
   ON_CALL(*this, isPortUp(_))
     .WillByDefault(Invoke(realHw_, &HwSwitch::isPortUp));
+  ON_CALL(*this, clearPortStats(_))
+    .WillByDefault(Invoke(realHw_, &HwSwitch::clearPortStats));
 }
 
 std::unique_ptr<TxPacket> MockableHwSwitch::allocatePacket(uint32_t size) {

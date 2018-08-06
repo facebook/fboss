@@ -1726,4 +1726,10 @@ void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
 
   // TODO(joseph5wu) Add reason-port mapping and cpu acls
 }
+
+void BcmSwitch::clearPortStats(
+    const std::unique_ptr<std::vector<int32_t>>& ports) {
+  bcmStatUpdater_->clearPortStats(ports);
+}
+
 }} // facebook::fboss

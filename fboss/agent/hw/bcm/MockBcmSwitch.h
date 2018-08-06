@@ -79,6 +79,9 @@ class MockBcmSwitch : public BcmSwitchIf {
       bool(RouterID vrf, folly::IPAddress& ip));
   MOCK_CONST_METHOD1(isValidStateUpdate, bool(const StateDelta& delta));
   MOCK_CONST_METHOD0(getControlPlane, BcmControlPlane*());
+  MOCK_METHOD1(
+      clearPortStats,
+      void(const std::unique_ptr<std::vector<int32_t>>&));
 };
 
 } // namespace fboss
