@@ -79,3 +79,12 @@ def modify_file_path_on_device(asset_name, username, password,
             # pah and do a copy of file
             sftp.remove(new_file_path)
             sftp.rename(current_file_path, new_file_path)
+
+
+def is_device_ssh_reachable(hostname, username, password):
+    with ParamikoClient() as client:
+        try:
+            connect_to_client(client, hostname, username, password)
+        except paramiko.SSHException:
+            return False
+        return True
