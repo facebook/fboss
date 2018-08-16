@@ -128,8 +128,6 @@ class FbossBaseSystemTest(unittest.TestCase):
     _format = "%(asctime)s.%(msecs)03d  %(name)-10s: %(levelname)-8s: %(message)s"
     _datefmt = "%m/%d/%Y-%H:%M:%S"
 
-    TopologyIsSane = True
-
     def setUp(self):
         if self.options is None:
             raise Exception("options not set - did you call run_tests()?")
@@ -156,24 +154,27 @@ class FbossBaseSystemTest(unittest.TestCase):
         # We have seen cases where previous testcase brings down the system
         # and all following testcaes fails. Instead we should skip a testcase
         # if system went to bad state.
-        if not self.TopologyIsSane:
-            raise unittest.SkipTest("Topology is in bad state, Skip Test")
+        if not self._verify_topology_state():
+            self.skipTest("Topology is in bad state, Skip Test")
 
     def tearDown(self):
         '''
         Make sure our topology is still in healthy state
         and no hosts got busted during test
         '''
-        if self.TopologyIsSane:     # don't test if things are already broken
-            self.log.info("Testing connection to switch")
-            self.TopologyIsSane = self.test_topology.verify_switch(log=self.log)
-            self.assertTrue(self.TopologyIsSane)
-            self.log.info("Testing connection to hosts")
-            self.TopologyIsSane = \
-                self.test_topology.verify_hosts(min_hosts=self.options.min_hosts,
-                                                log=self.log)
-            self.assertTrue(self.TopologyIsSane,
-                            "Test broke connectivity to hosts?")
+        if not self._verify_topology_state():
+            self.fail("Test Case broke topology healthy state")
+
+    def _verify_topology_state(self):
+        self.log.info("Testing connection to switch")
+        if not self.test_topology.verify_switch(log=self.log):
+            self.log.info("Switch is not in good state")
+            return False
+        if not self.test_topology.verify_hosts(
+           min_hosts=self.options.min_hosts, log=self.log):
+            self.log.info("Hosts are not in good state")
+            return False
+        return True
 
 
 def frob_options_into_tests(suite, options):
