@@ -34,6 +34,8 @@ std::unique_ptr<TransceiverManager> createTransceiverManager() {
     return std::make_unique<GalaxyManager>();
   } else if (mode == WedgePlatformMode::MINIPACK) {
     return createFBTransceiverManager(std::move(productInfo));
+  } else if (mode == WedgePlatformMode::YAMP) {
+    return createYampTransceiverManager();
   }
   return std::make_unique<Wedge40Manager>();
 }

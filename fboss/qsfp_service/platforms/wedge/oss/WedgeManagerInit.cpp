@@ -16,4 +16,8 @@ std::unique_ptr<TransceiverManager> createFBTransceiverManager(
     std::unique_ptr<WedgeProductInfo> /*productInfo*/) {
   return std::unique_ptr<TransceiverManager>{};
 }
+
+std::unique_ptr<TransceiverManager> createYampTransceiverManager() {
+  return std::unique_ptr<TransceiverManager>{};
+}
 }} // facebook::fboss
