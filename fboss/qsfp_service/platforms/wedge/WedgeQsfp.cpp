@@ -9,7 +9,6 @@
  */
 
 #include "WedgeQsfp.h"
-#include "fboss/lib/usb/UsbError.h"
 #include <folly/Conv.h>
 #include <folly/Memory.h>
 
@@ -40,7 +39,7 @@ bool WedgeQsfp::detectTransceiver() {
   try {
     wedgeI2CBusLock_->moduleRead(module_ + 1, TransceiverI2CApi::ADDR_QSFP,
                                  0, sizeof(buf), buf);
-  } catch (const UsbError& ex) {
+  } catch (const I2cError& ex) {
     /*
      * This can either mean that we failed to open the USB device
      * because it was already in use, or that the I2C read failed.
@@ -57,7 +56,7 @@ int WedgeQsfp::readTransceiver(int dataAddress, int offset,
   try {
     wedgeI2CBusLock_->moduleRead(module_ + 1, dataAddress, offset, len,
                                   fieldValue);
-  } catch (const UsbError& ex) {
+  } catch (const I2cError& ex) {
     XLOG(ERR) << "Read from transceiver " << module_ << " at offset " << offset
               << " with length " << len << " failed: " << ex.what();
     StatsPublisher::bumpReadFailure();
@@ -71,7 +70,7 @@ int WedgeQsfp::writeTransceiver(int dataAddress, int offset,
   try {
     wedgeI2CBusLock_->moduleWrite(module_ + 1, dataAddress, offset, len,
                                    fieldValue);
-  } catch (const UsbError& ex) {
+  } catch (const I2cError& ex) {
     XLOG(ERR) << "Write to transceiver " << module_ << " at offset " << offset
               << " with length " << len
               << " failed: " << folly::exceptionStr(ex);
