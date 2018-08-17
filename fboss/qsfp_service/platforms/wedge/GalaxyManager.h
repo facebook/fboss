@@ -17,6 +17,6 @@ class GalaxyManager : public WedgeManager {
   GalaxyManager(GalaxyManager const &) = delete;
   GalaxyManager& operator=(GalaxyManager const &) = delete;
  protected:
-  std::unique_ptr<BaseWedgeI2CBus> getI2CBus() override;
+  std::unique_ptr<TransceiverI2CApi> getI2CBus() override;
 };
 }} // facebook::fboss

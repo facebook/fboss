@@ -15,16 +15,16 @@ void WedgeManager::initTransceiverMap() {
   // create the QSFP objects;  this is likely to be a permanent
   // error.
   try {
-    wedgeI2CBusLock_ = std::make_unique<WedgeI2CBusLock>(getI2CBus());
+    wedgeI2cBus_ = getI2CBus();
   } catch (const I2cError& ex) {
-    XLOG(ERR) << "failed to initialize USB to I2C interface";
+    XLOG(ERR) << "failed to initialize I2C interface: " << ex.what();
     return;
   }
 
   // Wedge port 0 is the CPU port, so the first port associated with
   // a QSFP+ is port 1.  We start the transceiver IDs with 0, though.
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
-    auto qsfpImpl = std::make_unique<WedgeQsfp>(idx, wedgeI2CBusLock_.get());
+    auto qsfpImpl = std::make_unique<WedgeQsfp>(idx, wedgeI2cBus_.get());
     auto qsfp = std::make_unique<QsfpModule>(
         std::move(qsfpImpl), numPortsPerTransceiver());
     qsfp->refresh();
@@ -102,7 +102,7 @@ void WedgeManager::refreshTransceivers() {
   }
 }
 
-std::unique_ptr<BaseWedgeI2CBus> WedgeManager::getI2CBus() {
+std::unique_ptr<TransceiverI2CApi> WedgeManager::getI2CBus() {
   return std::make_unique<WedgeI2CBus>();
 }
 

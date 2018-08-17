@@ -24,9 +24,8 @@ using std::unique_ptr;
 
 namespace facebook { namespace fboss {
 
-WedgeQsfp::WedgeQsfp(int module, WedgeI2CBusLock* wedgeI2CBus)
-  : module_(module),
-    wedgeI2CBusLock_(wedgeI2CBus) {
+WedgeQsfp::WedgeQsfp(int module, TransceiverI2CApi* wedgeI2CBus)
+    : module_(module), wedgeI2CBusLock_(wedgeI2CBus) {
   moduleName_ = folly::to<std::string>(module);
 }
 

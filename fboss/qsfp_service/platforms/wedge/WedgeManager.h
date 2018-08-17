@@ -33,8 +33,9 @@ class WedgeManager : public TransceiverManager {
   void refreshTransceivers() override;
 
  protected:
-  virtual std::unique_ptr<BaseWedgeI2CBus> getI2CBus();
-  std::unique_ptr<WedgeI2CBusLock> wedgeI2CBusLock_;
+  virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
+  std::unique_ptr<TransceiverI2CApi>
+      wedgeI2cBus_; /* thread safe handle to access bus */
 
  private:
   // Forbidden copy constructor and assignment operator

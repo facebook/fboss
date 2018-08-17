@@ -21,7 +21,7 @@ namespace facebook { namespace fboss {
  */
 class WedgeQsfp : public TransceiverImpl {
  public:
-  WedgeQsfp(int module, WedgeI2CBusLock* i2c);
+  WedgeQsfp(int module, TransceiverI2CApi* i2c);
 
   ~WedgeQsfp() override;
 
@@ -44,7 +44,7 @@ class WedgeQsfp : public TransceiverImpl {
  private:
   int module_;
   std::string moduleName_;
-  WedgeI2CBusLock* wedgeI2CBusLock_;
+  TransceiverI2CApi* wedgeI2CBusLock_;
 };
 
 }} // namespace facebook::fboss

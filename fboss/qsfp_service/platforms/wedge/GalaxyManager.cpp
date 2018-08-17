@@ -7,7 +7,7 @@ namespace facebook { namespace fboss {
 GalaxyManager::GalaxyManager(){
 }
 
-std::unique_ptr<BaseWedgeI2CBus> GalaxyManager::getI2CBus() {
-  return std::make_unique<GalaxyI2CBus>();
+std::unique_ptr<TransceiverI2CApi> GalaxyManager::getI2CBus() {
+  return std::make_unique<WedgeI2CBusLock>(std::make_unique<GalaxyI2CBus>());
 }
 }} // facebook::fboss
