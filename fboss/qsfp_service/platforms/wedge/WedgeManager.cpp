@@ -3,7 +3,6 @@
 #include <folly/gen/Base.h>
 
 #include <folly/logging/xlog.h>
-#include "fboss/lib/usb/UsbError.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
 #include "fboss/qsfp_service/sff/QsfpModule.h"
 
@@ -17,7 +16,7 @@ void WedgeManager::initTransceiverMap() {
   // error.
   try {
     wedgeI2CBusLock_ = std::make_unique<WedgeI2CBusLock>(getI2CBus());
-  } catch (const LibusbError& ex) {
+  } catch (const I2cError& ex) {
     XLOG(ERR) << "failed to initialize USB to I2C interface";
     return;
   }

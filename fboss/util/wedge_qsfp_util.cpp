@@ -4,7 +4,6 @@
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/lib/usb/Wedge100I2CBus.h"
 #include "fboss/lib/usb/GalaxyI2CBus.h"
-#include "fboss/lib/usb/UsbError.h"
 
 #include <chrono>
 #include <folly/init/Init.h>
@@ -62,7 +61,7 @@ bool overrideLowPower(
   uint8_t buf[1] = {value};
   try {
     bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 93, 1, buf);
-  } catch (const UsbError& ex) {
+  } catch (const I2cError& ex) {
     // This generally means the QSFP module is not present.
     fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
     return false;
@@ -79,7 +78,7 @@ bool setCdr(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   try {
     bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 129,
                       1, supported);
-  } catch (const UsbError& ex) {
+  } catch (const I2cError& ex) {
     fprintf(stderr, "Port %d: Unable to determine whether CDR supported\n",
         port);
     return false;
@@ -95,7 +94,7 @@ bool setCdr(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   uint8_t buf[1] = {value};
   try {
     bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 98, 1, buf);
-  } catch (const UsbError& ex) {
+  } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: Failed to set CDR\n", port);
     return false;
   }
@@ -110,7 +109,7 @@ bool rateSelect(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   try {
     bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 141,
                       1, version);
-  } catch (const UsbError& ex) {
+  } catch (const I2cError& ex) {
     fprintf(stderr,
         "Port %d: Unable to determine rate select version in use, defaulting \
         to V1\n",
@@ -128,7 +127,7 @@ bool rateSelect(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   try {
     bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 87, 1, buf);
     bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 88, 1, buf);
-  } catch (const UsbError& ex) {
+  } catch (const I2cError& ex) {
     // This generally means the QSFP module is not present.
     fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
     return false;
@@ -140,7 +139,7 @@ bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   uint8_t buf[1] = {value};
   try {
     bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 86, 1, buf);
-  } catch (const UsbError& ex) {
+  } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
     return false;
   }
@@ -206,7 +205,7 @@ void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
     }
     bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 128,
                     128, buf + 128);
-  } catch (const UsbError& ex) {
+  } catch (const I2cError& ex) {
     // This generally means the QSFP module is not present.
     fprintf(stderr, "Port %d: not present\n", port);
     return;

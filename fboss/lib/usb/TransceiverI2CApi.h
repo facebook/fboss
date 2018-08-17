@@ -10,8 +10,22 @@
 #pragma once
 
 #include <cstdint>
+#include <stdexcept>
+#include <string>
 
 namespace facebook { namespace fboss {
+
+class I2cError : public std::exception {
+ public:
+  I2cError(const std::string& what) : what_(what) {}
+
+  const char* what() const noexcept override {
+    return what_.c_str();
+  }
+
+ private:
+  std::string what_;
+};
 
 /*
  * Abstract away some of the details of handling the I2C bus to query

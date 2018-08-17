@@ -15,20 +15,15 @@
 #include <string>
 #include <stdexcept>
 
+#include "fboss/lib/usb/TransceiverI2CApi.h"
+
 namespace facebook { namespace fboss {
 
-class UsbError : public std::exception {
+class UsbError : public I2cError {
  public:
-  template<typename... Args>
+  template <typename... Args>
   explicit UsbError(const Args&... args)
-    : what_(folly::to<std::string>(args...)) {}
-
-  const char* what() const noexcept override {
-    return what_.c_str();
-  }
-
- private:
-  std::string what_;
+      : I2cError(folly::to<std::string>(args...)) {}
 };
 
 class LibusbError : public UsbError {

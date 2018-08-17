@@ -17,7 +17,6 @@
 #include "fboss/qsfp_service/sff/SffFieldInfo.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
-#include "fboss/lib/usb/UsbError.h"
 
 #include <folly/io/IOBuf.h>
 #include <folly/logging/xlog.h>
@@ -815,7 +814,7 @@ void QsfpModule::refreshLocked() {
 
     // assign
     info_.wlock()->assign(parseDataLocked());
-  } catch (const UsbError& ex) {
+  } catch (const I2cError& ex) {
     XLOG(ERR) << "Error during refreshLocked(): " << ex.what();
   }
 }
@@ -878,7 +877,7 @@ void QsfpModule::updateQsfpData(bool allPages) {
         qsfpImpl_->readTransceiver(TransceiverI2CApi::ADDR_QSFP, 128,
             sizeof(page3_), page3_);
       }
-    } catch (const UsbError& ex) {
+    } catch (const I2cError& ex) {
       dirty_ = true;
       XLOG(WARNING) << "Error reading data for transceiver:"
                     << folly::to<std::string>(qsfpImpl_->getName()) << ": "
