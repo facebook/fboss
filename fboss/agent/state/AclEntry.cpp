@@ -29,12 +29,7 @@ constexpr auto kSrcPort = "srcPort";
 constexpr auto kDstPort = "dstPort";
 constexpr auto kSrcL4PortRange = "srcL4PortRange";
 constexpr auto kDstL4PortRange = "dstL4PortRange";
-constexpr auto kL4PortRangeMin = "min";
-constexpr auto kL4PortRangeMax = "max";
-constexpr auto kL4PortMax = 65535;
 constexpr auto kPktLenRange = "pktLenRange";
-constexpr auto kPktLenRangeMin = "min";
-constexpr auto kPktLenRangeMax = "max";
 constexpr auto kIpFrag = "ipFrag";
 constexpr auto kIcmpCode = "icmpCode";
 constexpr auto kIcmpType = "icmpType";
@@ -49,69 +44,6 @@ constexpr auto kAclAction = "aclAction";
 }
 
 namespace facebook { namespace fboss {
-
-folly::dynamic AclL4PortRange::toFollyDynamic() const {
-  folly::dynamic range = folly::dynamic::object;
-  range[kL4PortRangeMin] = static_cast<uint16_t>(min_);
-  range[kL4PortRangeMax] = static_cast<uint16_t>(max_);
-  return range;
-}
-
-AclL4PortRange AclL4PortRange::fromFollyDynamic(
-  const folly::dynamic& rangeJson) {
-  checkFollyDynamic(rangeJson);
-  uint16_t min = rangeJson[kL4PortRangeMin].asInt();
-  uint16_t max = rangeJson[kL4PortRangeMax].asInt();
-  return AclL4PortRange(min, max);
-}
-
-void AclL4PortRange::checkFollyDynamic(const folly::dynamic& rangeJson) {
-  if (rangeJson.find(kL4PortRangeMin) == rangeJson.items().end()) {
-    throw FbossError("a L4 port range should have min value set");
-  }
-  if (rangeJson.find(kL4PortRangeMax) == rangeJson.items().end()) {
-    throw FbossError("a L4 port range should have max value set");
-  }
-  uint16_t pMin = rangeJson[kL4PortRangeMin].asInt();
-  uint16_t pMax = rangeJson[kL4PortRangeMax].asInt();
-  if (pMin > kL4PortMax || pMax > kL4PortMax){
-        throw FbossError("Range value exceeds ", std::to_string(kL4PortMax));
-  }
-  if (pMin > pMax) {
-    throw FbossError("Min. port value is larger than ",
-                     "max. port value");
-  }
-}
-
-folly::dynamic AclPktLenRange::toFollyDynamic() const {
-  folly::dynamic range = folly::dynamic::object;
-  range[kPktLenRangeMin] = static_cast<uint16_t>(min_);
-  range[kPktLenRangeMax] = static_cast<uint16_t>(max_);
-  return range;
-}
-
-AclPktLenRange AclPktLenRange::fromFollyDynamic(
-  const folly::dynamic& rangeJson) {
-  checkFollyDynamic(rangeJson);
-  uint16_t min = rangeJson[kPktLenRangeMin].asInt();
-  uint16_t max = rangeJson[kPktLenRangeMax].asInt();
-  return AclPktLenRange(min, max);
-}
-
-void AclPktLenRange::checkFollyDynamic(const folly::dynamic& rangeJson) {
-  if (rangeJson.find(kPktLenRangeMin) == rangeJson.items().end()) {
-    throw FbossError("a packet length range should have min value set");
-  }
-  if (rangeJson.find(kPktLenRangeMax) == rangeJson.items().end()) {
-    throw FbossError("a packet length range should have max value set");
-  }
-  uint16_t pMin = rangeJson[kPktLenRangeMin].asInt();
-  uint16_t pMax = rangeJson[kPktLenRangeMax].asInt();
-  if (pMin > pMax) {
-    throw FbossError("Min. packet length value is larger than ",
-                     "max. packet length value");
-  }
-}
 
 folly::dynamic AclTtl::toFollyDynamic() const {
   folly::dynamic ttl = folly::dynamic::object;

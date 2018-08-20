@@ -1078,11 +1078,11 @@ std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
 void ThriftConfigApplier::checkAcl(const cfg::AclEntry *config) const {
   // check l4 port range
   if (config->__isset.srcL4PortRange &&
-      (config->srcL4PortRange.min > AclL4PortRange::kMaxPort)) {
+      (config->srcL4PortRange.min > AclL4PortRange::getUpperLimit())) {
     throw FbossError("src's L4 port range has a min value larger than 65535");
   }
   if (config->__isset.srcL4PortRange &&
-      (config->srcL4PortRange.max > AclL4PortRange::kMaxPort)) {
+      (config->srcL4PortRange.max > AclL4PortRange::getUpperLimit())) {
     throw FbossError("src's L4 port range has a max value larger than 65535");
   }
   if (config->__isset.srcL4PortRange &&
@@ -1091,11 +1091,11 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry *config) const {
       "its max value");
   }
   if (config->__isset.dstL4PortRange &&
-      (config->dstL4PortRange.min > AclL4PortRange::kMaxPort)) {
+      (config->dstL4PortRange.min > AclL4PortRange::getUpperLimit())) {
     throw FbossError("dst's L4 port range has a min value larger than 65535");
   }
   if (config->__isset.dstL4PortRange &&
-      (config->dstL4PortRange.max > AclL4PortRange::kMaxPort)) {
+      (config->dstL4PortRange.max > AclL4PortRange::getUpperLimit())) {
     throw FbossError("dst's L4 port range has a max value larger than 65535");
   }
   if (config->__isset.dstL4PortRange &&

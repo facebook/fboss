@@ -23,62 +23,86 @@
 
 namespace facebook { namespace fboss {
 
-class AclL4PortRange {
+template<typename T>
+class GenericAclRange {
 public:
-  AclL4PortRange(const AclL4PortRange& range) {
-    min_ = range.min_;
-    max_ = range.max_;
-  }
-
-  AclL4PortRange(const uint16_t min, const uint16_t max) {
-    min_ = min;
-    max_ = max;
-  }
-
-  uint16_t getMin() const {
+  GenericAclRange(const T min, const T max) : min_(min), max_(max) {}
+  GenericAclRange(const GenericAclRange& range) :
+    GenericAclRange(range.min_, range.max_) {}
+  T getMin() const {
     return min_;
   }
-
-  void setMin(const uint16_t min) {
+  void setMin(const T min) {
     min_ = min;
   }
-
-  uint16_t getMax() const {
+  T getMax() const {
     return max_;
   }
-
-  void setMax(const uint16_t max) {
+  void setMax(const T max) {
     max_ = max;
   }
-
   bool isExactMatch() const {
     return min_ == max_;
   }
-
-  bool operator<(const AclL4PortRange& r) const {
+  bool operator<(const GenericAclRange& r) const {
     return std::tie(min_, max_) < std::tie(r.min_, r.max_);
   }
-
-  bool operator==(const AclL4PortRange& r) const {
+  bool operator==(const GenericAclRange& r) const {
     return std::tie(min_, max_) == std::tie(r.min_, r.max_);
   }
-
-  AclL4PortRange& operator=(const AclL4PortRange& r) {
+  GenericAclRange& operator=(const GenericAclRange& r) {
     min_ = r.min_;
     max_ = r.max_;
     return *this;
   }
+  folly::dynamic toFollyDynamic() const {
+    folly::dynamic range = folly::dynamic::object;
+    range[kAclRangeMin] = static_cast<T>(min_);
+    range[kAclRangeMax] = static_cast<T>(max_);
+    return range;
+  }
+  static T getLowerLimit() {
+    return std::numeric_limits<T>::min();
+  }
+  static T getUpperLimit() {
+    return std::numeric_limits<T>::max();
+  }
+  static GenericAclRange fromFollyDynamic(const folly::dynamic& rangeJson) {
+    checkFollyDynamic(rangeJson);
+    T min = rangeJson[kAclRangeMin].asInt();
+    T max = rangeJson[kAclRangeMax].asInt();
+    return GenericAclRange(min, max);
+  }
+  static void checkFollyDynamic(const folly::dynamic& rangeJson) {
+    if (rangeJson.find(kAclRangeMin) == rangeJson.items().end()) {
+      throw FbossError("a range should have min value set");
+    }
+    if (rangeJson.find(kAclRangeMin) == rangeJson.items().end()) {
+      throw FbossError("a range should have max value set");
+    }
+    T pMin = rangeJson[kAclRangeMin].asInt();
+    T pMax = rangeJson[kAclRangeMax].asInt();
+    if (pMin > getUpperLimit() || pMax > getUpperLimit()) {
+      throw FbossError("Range value exceeds ", std::to_string(getUpperLimit()));
+    }
+    if (pMin < getLowerLimit() || pMax < getLowerLimit()) {
+      throw FbossError("Range value lower than ",
+        std::to_string(getLowerLimit()));
+    }
+    if (pMin > pMax) {
+      throw FbossError("Min. value is larger than max. value");
+    }
+  }
 
-  folly::dynamic toFollyDynamic() const;
-  static AclL4PortRange fromFollyDynamic(const folly::dynamic& rangeJson);
-  static void checkFollyDynamic(const folly::dynamic& rangeJson);
-
-  const static uint32_t kMaxPort = 65535;
-
-private:
-  uint16_t min_;
-  uint16_t max_;
+protected:
+  T min_;
+  T max_;
+  static constexpr auto kAclRangeMin = "min";
+  static constexpr auto kAclRangeMax = "max";
 };
+
+using AclL4PortRange = GenericAclRange<uint16_t>;
+using AclPktLenRange = GenericAclRange<uint16_t>;
 
 class AclTtl {
 public:
@@ -133,56 +157,6 @@ public:
 private:
   uint16_t value_;
   uint16_t mask_;
-};
-
-class AclPktLenRange {
-public:
-  AclPktLenRange(const AclPktLenRange& range) {
-    min_ = range.min_;
-    max_ = range.max_;
-  }
-
-  AclPktLenRange(const uint16_t min, const uint16_t max) {
-    min_ = min;
-    max_ = max;
-  }
-
-  uint16_t getMin() const {
-    return min_;
-  }
-
-  void setMin(const uint16_t min) {
-    min_ = min;
-  }
-
-  uint16_t getMax() const {
-    return max_;
-  }
-
-  void setMax(const uint16_t max) {
-    max_ = max;
-  }
-
-  bool operator<(const AclPktLenRange& r) const {
-    return std::tie(min_, max_) < std::tie(r.min_, r.max_);
-  }
-
-  bool operator==(const AclPktLenRange& r) const {
-    return std::tie(min_, max_) == std::tie(r.min_, r.max_);
-  }
-
-  AclPktLenRange& operator=(const AclPktLenRange& r) {
-    min_ = r.min_;
-    max_ = r.max_;
-    return *this;
-  }
-
-  folly::dynamic toFollyDynamic() const;
-  static AclPktLenRange fromFollyDynamic(const folly::dynamic& rangeJson);
-  static void checkFollyDynamic(const folly::dynamic& rangeJson);
-private:
-  uint16_t min_;
-  uint16_t max_;
 };
 
 struct AclEntryFields {
