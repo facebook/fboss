@@ -29,6 +29,16 @@ enum AdminDistance {
   MAX_ADMIN_DISTANCE = 255
 }
 
+// SwSwitch run states. SwSwitch moves forward from a
+// lower numbered state to the next
+enum SwitchRunState {
+  UNINITIALIZED = 0,
+  INITIALIZED = 1,
+  CONFIGURED = 2,
+  FIB_SYNCED = 3,
+  EXITING = 4
+}
+
 struct IpPrefix {
   1: required Address.BinaryAddress ip,
   2: required i16 prefixLength,
@@ -635,6 +645,12 @@ service FbossCtrl extends fb303.FacebookService {
    * a valid JSON object string
    */
   void patchCurrentStateJSON(1: string jsonPointer, 2: string jsonPatch)
+
+  /*
+  * Switch run state
+  */
+  SwitchRunState getSwitchRunState()
+
 }
 
 service NeighborListenerClient extends fb303.FacebookService {

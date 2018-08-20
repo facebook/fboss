@@ -1207,4 +1207,8 @@ void ThriftHandler::getAllLacpPartnerPairs(
   lagManager->populatePartnerPairs(lacpPartnerPairs);
 }
 
+SwitchRunState ThriftHandler::getSwitchRunState() {
+  return sw_->getSwitchRunState();
+}
+
 }} // facebook::fboss

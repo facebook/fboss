@@ -293,7 +293,7 @@ void SwSwitch::setSwitchRunState(SwitchRunState runState) {
   logSwitchRunStateChange(oldState, runState);
 }
 
-SwSwitch::SwitchRunState SwSwitch::getSwitchRunState() const {
+SwitchRunState SwSwitch::getSwitchRunState() const {
   return runState_.load(std::memory_order_acquire);
 }
 
@@ -1540,21 +1540,8 @@ bool SwSwitch::isValidStateUpdate(
 }
 
 std::string SwSwitch::switchRunStateStr(
-  facebook::fboss::SwSwitch::SwitchRunState runState) const {
-  switch (runState) {
-    case facebook::fboss::SwSwitch::SwitchRunState::UNINITIALIZED:
-      return "UNINITIALIZED";
-    case facebook::fboss::SwSwitch::SwitchRunState::INITIALIZED:
-      return "INITIALIZED";
-    case facebook::fboss::SwSwitch::SwitchRunState::CONFIGURED:
-      return "CONFIGURED";
-    case facebook::fboss::SwSwitch::SwitchRunState::FIB_SYNCED:
-      return "FIB_SYNCED";
-    case facebook::fboss::SwSwitch::SwitchRunState::EXITING:
-      return "EXITING";
-    default:
-      return "Unknown";
-  }
+  facebook::fboss::SwitchRunState runState) const {
+  return _SwitchRunState_VALUES_TO_NAMES.find(runState)->second;
 }
 
 AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {

@@ -233,6 +233,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::unique_ptr<std::string> jsonPointer,
       std::unique_ptr<std::string> jsonPatch) override;
 
+  SwitchRunState getSwitchRunState() override;
  protected:
   void ensureConfigured(folly::StringPiece function);
   void ensureConfigured() {

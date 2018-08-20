@@ -80,16 +80,6 @@ inline SwitchFlags operator|=(SwitchFlags& a, const SwitchFlags b) {
  */
 class SwSwitch : public HwSwitch::Callback {
  public:
-  // Ordered set of run states for SwSwitch,
-  // SwSwitch can only move forward from a
-  // lower numbered state to the next
-  enum class SwitchRunState: int {
-    UNINITIALIZED,
-    INITIALIZED,
-    CONFIGURED,
-    FIB_SYNCED,
-    EXITING
-  };
 
   typedef std::function<
     std::shared_ptr<SwitchState>(const std::shared_ptr<SwitchState>&)>
@@ -652,6 +642,7 @@ class SwSwitch : public HwSwitch::Callback {
    * Clear PortStats of the specified port.
    */
   void clearPortStats(const std::unique_ptr<std::vector<int32_t>>& ports);
+  SwitchRunState getSwitchRunState() const;
 
  private:
   void queueStateUpdateForGettingHwInSync(
@@ -685,7 +676,6 @@ class SwSwitch : public HwSwitch::Callback {
   void publishPortInfo();
   void publishRouteStats();
   void publishSwitchInfo(struct HwInitResult hwInitRet);
-  SwitchRunState getSwitchRunState() const;
   void setSwitchRunState(SwitchRunState desiredState);
   SwitchStats* createSwitchStats();
   void handlePacket(std::unique_ptr<RxPacket> pkt);
