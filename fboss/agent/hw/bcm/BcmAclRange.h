@@ -49,28 +49,12 @@ public:
     return flags_;
   }
 
-  void setFlags(const uint32_t flags) {
-    flags_ = flags;
-  }
-
   uint32_t getMin() const {
     return min_;
   }
 
-  void setMin(const uint32_t min) {
-    min_ = min;
-  }
-
   uint32_t getMax() const {
     return max_;
-  }
-
-  void setMax(const uint32_t max) {
-    max_ = max;
-  }
-
-  bool isExactMatch() const {
-    return max_ == min_;
   }
 
   std::string str() const;
