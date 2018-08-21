@@ -231,25 +231,37 @@ TxMatchFn checkNeighborAdvert(MacAddress srcMac, IPAddressV6 srcIP,
                         checkPayload);
 }
 
-TxMatchFn checkNeighborSolicitation(MacAddress srcMac, IPAddressV6 srcIP,
-                                    MacAddress dstMac, IPAddressV6 dstIP,
-                                    IPAddressV6 targetIP, VlanID vlan) {
+TxMatchFn checkNeighborSolicitation(
+    MacAddress srcMac,
+    IPAddressV6 srcIP,
+    MacAddress dstMac,
+    IPAddressV6 dstIP,
+    IPAddressV6 targetIP,
+    VlanID vlan,
+    bool hasOption = true) {
   auto checkPayload = [=](Cursor* cursor, uint32_t /*length*/) {
     auto reserved = cursor->read<uint32_t>();
     checkField(0, reserved, "NS reserved field");
     auto parsedTargetIP = PktUtil::readIPv6(cursor);
     checkField(targetIP, parsedTargetIP, "target IP");
 
-    auto optionType = cursor->read<uint8_t>();
-    checkField(1, optionType, "source MAC option type");
-    auto optionLength = cursor->read<uint8_t>();
-    checkField(1, optionLength, "source MAC option length");
-    auto srcMacOption = PktUtil::readMac(cursor);
-    checkField(srcMac, srcMacOption, "source MAC option value");
+    if (hasOption) {
+      auto optionType = cursor->read<uint8_t>();
+      checkField(1, optionType, "source MAC option type");
+      auto optionLength = cursor->read<uint8_t>();
+      checkField(1, optionLength, "source MAC option length");
+      auto srcMacOption = PktUtil::readMac(cursor);
+      checkField(srcMac, srcMacOption, "source MAC option value");
+    }
   };
-  return checkICMPv6Pkt(srcMac, srcIP, dstMac, dstIP, vlan,
-                        ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
-                        checkPayload);
+  return checkICMPv6Pkt(
+      srcMac,
+      srcIP,
+      dstMac,
+      dstIP,
+      vlan,
+      ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
+      checkPayload);
 }
 
 typedef std::vector<std::pair<IPAddressV6, uint8_t>> PrefixVector;
@@ -1060,7 +1072,6 @@ TEST(NdpTest, NdpExpiration) {
         IPAddressV6("ff02::1:ff01:0"),
         targetIP,
         vlanID));
-
   // Send the packet to the SwSwitch
   handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), vlanID);
 
@@ -1180,30 +1191,45 @@ TEST(NdpTest, NdpExpiration) {
   EXPECT_EQ(entry3->isPending(), false);
 
   // We should send two more neighbor solicitations for entry 2 & 3
-  // before we expire them
-  EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
-        MacAddress("02:01:02:03:04:05"),
-        IPAddressV6("fe80::0001:02ff:fe03:0405"),
-        MacAddress("33:33:ff:00:00:01"),
-        IPAddressV6("ff02::1:ff00:1"),
-        targetIP2,
-        VlanID(5)));
 
-  EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
-        MacAddress("02:01:02:03:04:05"),
-        IPAddressV6("fe80::0001:02ff:fe03:0405"),
-        MacAddress("33:33:ff:00:00:02"),
-        IPAddressV6("ff02::1:ff00:2"),
-        targetIP3,
-        VlanID(5)));
+  // before we expire them, but this time they're unicast as they're being
+  // probed
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPort_(
+          TxPacketMatcher::createMatcher(
+              "neighbor solicitation",
+              checkNeighborSolicitation(
+                  MacAddress("02:01:02:03:04:05"),
+                  IPAddressV6("2401:db00:2110:3004::"),
+                  MacAddress("02:10:20:30:40:23"),
+                  targetIP2,
+                  targetIP2,
+                  VlanID(5),
+                  false)),
+          PortID(1)));
 
- // Wait for the second and third entries to expire.
- // We wait 2.5 seconds(plus change):
- // Up to 1.5 seconds for lifetime.
- // 1 more second for probe
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPort_(
+          TxPacketMatcher::createMatcher(
+              "neighbor solicitation",
+              checkNeighborSolicitation(
+                  MacAddress("02:01:02:03:04:05"),
+                  IPAddressV6("2401:db00:2110:3004::"),
+                  MacAddress("02:10:20:30:40:24"),
+                  targetIP3,
+                  targetIP3,
+                  VlanID(5),
+                  false)),
+          PortID(1)));
+
+  // Wait for the second and third entries to expire.
+  // We wait 2.5 seconds(plus change):
+  // Up to 1.5 seconds for lifetime.
+  // 1 more second for probe
   WaitForNdpEntryExpiration expire1(sw, targetIP2, vlanID);
   WaitForNdpEntryExpiration expire2(sw, targetIP3, vlanID);
-
   std::promise<bool> done;
   auto* evb = sw->getBackgroundEvb();
   evb->runInEventBaseThread([&]() {
@@ -1230,15 +1256,22 @@ TEST(NdpTest, NdpExpiration) {
     .WillRepeatedly(testing::Return(true));
 
   // We should see one more solicitation for entry 1 before we expire it
-  EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
-        MacAddress("02:01:02:03:04:05"),
-        IPAddressV6("fe80::0001:02ff:fe03:0405"),
-        MacAddress("33:33:ff:01:00:00"),
-        IPAddressV6("ff02::1:ff01:0"),
-        targetIP,
-        vlanID));
 
- // Wait for the first entry to expire
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPort_(
+          TxPacketMatcher::createMatcher(
+              "neighbor solicitation",
+              checkNeighborSolicitation(
+                  MacAddress("02:01:02:03:04:05"),
+                  IPAddressV6("2401:db00:2110:3004::"),
+                  MacAddress("02:10:20:30:40:22"),
+                  targetIP,
+                  targetIP,
+                  vlanID,
+                  false)),
+          PortID(1)));
+  // Wait for the first entry to expire
   WaitForNdpEntryExpiration expire0(sw, targetIP, vlanID);
   std::promise<bool> done2;
   evb->runInEventBaseThread([&]() {

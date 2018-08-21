@@ -312,7 +312,13 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
   void probeIfProbesLeft() {
     DCHECK(isProbing());
     if (hasProbesLeft()) {
-      cache_->probeFor(getIP());
+      if (state_ == NeighborEntryState::INCOMPLETE) {
+        /* entry is INCOMPLETE, issue multicast probe */
+        cache_->probeFor(getIP());
+      } else {
+        /* entry is PROBE, issue unicast probe */
+        cache_->checkReachability(getIP(), getMac(), getPort());
+      }
       --probesLeft_;
     } else {
       state_ = NeighborEntryState::EXPIRED;

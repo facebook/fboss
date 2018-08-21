@@ -38,6 +38,11 @@ class ArpCache : public NeighborCache<ArpTable> {
                           PortDescriptor port,
                           ArpOpCode op);
 
+  void checkReachability(
+      folly::IPAddressV4 targetIP,
+      folly::MacAddress targetMac,
+      PortDescriptor port) const override;
+
   void probeFor(folly::IPAddressV4 ip) const override;
 
   std::list<ArpEntryThrift> getArpCacheData();

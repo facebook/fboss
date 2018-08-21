@@ -43,6 +43,11 @@ class NdpCache : public NeighborCache<NdpTable> {
       ICMPv6Type type,
       uint32_t flags);
 
+  void checkReachability(
+      folly::IPAddressV6 targetIP,
+      folly::MacAddress targetMac,
+      PortDescriptor port) const override;
+
   void probeFor(folly::IPAddressV6 ip) const override;
 
   std::list<NdpEntryThrift> getNdpCacheData();

@@ -49,6 +49,13 @@ void ArpCache::receivedArpNotMine(
   setExistingEntry(ip, mac, port, NeighborEntryState::REACHABLE);
 }
 
+inline void ArpCache::checkReachability(
+    folly::IPAddressV4 targetIP,
+    folly::MacAddress /*targetMac*/,
+    PortDescriptor /*port*/) const {
+  return probeFor(targetIP);
+}
+
 inline void ArpCache::probeFor(folly::IPAddressV4 ip) const {
   auto vlan = getSw()->getState()->getVlans()->getVlanIf(getVlanID());
   if (!vlan) {

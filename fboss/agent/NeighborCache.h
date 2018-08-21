@@ -178,7 +178,17 @@ class NeighborCache {
 
  private:
   // This should only be called by a NeighborCacheEntry
+  virtual void checkReachability(
+      AddressType /*targetIP*/,
+      folly::MacAddress /*targetMac*/,
+      PortDescriptor /* portID */) const {
+    // send unicast probe to see if neighbor is still reachable on known
+    // L2 address
+    XLOG(DFATAL) << " Only derived class probeFor should ever be called";
+  }
+
   virtual void probeFor(AddressType /*ip*/) const {
+    // send multicast probes to find L2 address for given L3 address
     XLOG(DFATAL) << " Only derived class probeFor should ever be called";
   }
 

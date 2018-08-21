@@ -111,12 +111,35 @@ void NdpCache::receivedNdpNotMine(
   // discard the packet if the target IP isn't ours.
 }
 
+inline void NdpCache::checkReachability(
+    folly::IPAddressV6 targetIP,
+    folly::MacAddress targetMac,
+    PortDescriptor port) const {
+  const auto state = getSw()->getState();
+  auto vlan = state->getVlans()->getVlanIf(getVlanID());
+  if (!vlan) {
+    XLOG(DBG2) << "Vlan " << getVlanID() << " not found. Skip sending probe";
+    return;
+  }
+  auto srcIntf = state->getInterfaces()->getInterfaceIf(vlan->getInterfaceID());
+  // srcIntf must/can never be nullptr
+  folly::MacAddress srcMac = srcIntf->getMac();
+  folly::IPAddressV6 srcIP(folly::IPAddressV6::LINK_LOCAL, srcMac);
+  if (srcIntf->canReachAddress(targetIP)) {
+    srcIP = srcIntf->getAddressToReach(targetIP)->first.asV6();
+  }
+  // unicast solicitation
+  IPv6Handler::sendNeighborSolicitation(
+      getSw(), targetIP, targetMac, srcIP, srcMac, vlan->getID(), port);
+}
+
 inline void NdpCache::probeFor(folly::IPAddressV6 ip) const {
   auto vlan = getSw()->getState()->getVlans()->getVlanIf(getVlanID());
   if (!vlan) {
     XLOG(DBG2) << "Vlan " << getVlanID() << " not found. Skip sending probe";
     return;
   }
+  // multicast solicitation
   IPv6Handler::sendNeighborSolicitation(getSw(), ip, vlan);
 }
 

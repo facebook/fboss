@@ -70,6 +70,15 @@ class IPv6Handler : public AutoRegisterStateObserver {
                                        const folly::IPAddressV6& targetIP,
                                        const std::shared_ptr<Vlan>& vlan);
 
+  static void sendNeighborSolicitation(
+      SwSwitch* sw,
+      const folly::IPAddressV6& targetIP,
+      const folly::MacAddress& targetMac,
+      const folly::IPAddressV6& srcIP,
+      const folly::MacAddress& srcMac,
+      const VlanID& vlanID,
+      const PortDescriptor& port);
+
  private:
   struct ICMPHeaders;
   typedef boost::container::flat_map<InterfaceID, IPv6RouteAdvertiser> RAMap;

@@ -49,17 +49,18 @@ using std::shared_ptr;
 
 namespace facebook { namespace fboss {
 
-template<typename BodyFn>
-std::unique_ptr<TxPacket> createICMPv6Pkt(SwSwitch* sw,
-                                          folly::MacAddress dstMac,
-                                          folly::MacAddress srcMac,
-                                          VlanID vlan,
-                                          folly::IPAddressV6& dstIP,
-                                          folly::IPAddressV6& srcIP,
-                                          ICMPv6Type icmp6Type,
-                                          ICMPv6Code icmp6Code,
-                                          uint32_t bodyLength,
-                                          BodyFn serializeBody) {
+template <typename BodyFn>
+std::unique_ptr<TxPacket> createICMPv6Pkt(
+    SwSwitch* sw,
+    folly::MacAddress dstMac,
+    folly::MacAddress srcMac,
+    VlanID vlan,
+    const folly::IPAddressV6& dstIP,
+    const folly::IPAddressV6& srcIP,
+    ICMPv6Type icmp6Type,
+    ICMPv6Code icmp6Code,
+    uint32_t bodyLength,
+    BodyFn serializeBody) {
   IPv6Hdr ipv6(srcIP, dstIP);
   ipv6.trafficClass = 0xe0; // CS7 precedence (network control)
   ipv6.payloadLength = ICMPHdr::SIZE + bodyLength;
@@ -651,6 +652,44 @@ void IPv6Handler::sendNeighborSolicitation(SwSwitch* sw,
   XLOG(DBG4) << "sending neighbor solicitation for " << targetIP << " on vlan "
              << vlanID;
   sw->sendPacketSwitched(std::move(pkt));
+}
+
+/* unicast neighbor solicitation */
+void IPv6Handler::sendNeighborSolicitation(
+    SwSwitch* sw,
+    const folly::IPAddressV6& targetIP,
+    const folly::MacAddress& targetMac,
+    const folly::IPAddressV6& srcIP,
+    const folly::MacAddress& srcMac,
+    const VlanID& vlanID,
+    const PortDescriptor& port) {
+  uint32_t bodyLength = 4 + 16;
+  auto serializeBody = [&](RWPrivateCursor* cursor) {
+    cursor->writeBE<uint32_t>(0); // reserved
+    cursor->push(targetIP.bytes(), 16);
+  };
+
+  auto pkt = createICMPv6Pkt(
+      sw,
+      targetMac,
+      srcMac,
+      vlanID,
+      targetIP,
+      srcIP,
+      ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
+      ICMPV6_CODE_NDP_MESSAGE_CODE,
+      bodyLength,
+      serializeBody);
+  XLOG(DBG4) << "sending unicast neighbor solicitation to " << targetIP << "("
+             << targetMac << ")"
+             << " on vlan " << vlanID << " from " << srcIP << "(" << srcMac
+             << ")";
+
+  if (port.isPhysicalPort()) {
+    sw->sendPacketOutOfPort(std::move(pkt), port.phyPortID());
+  } else {
+    sw->sendPacketOutOfPort(std::move(pkt), port.aggPortID());
+  }
 }
 
 void IPv6Handler::sendNeighborSolicitation(SwSwitch* sw,
