@@ -386,15 +386,25 @@ void IPv6Handler::handleNeighborSolicitation(unique_ptr<RxPacket> pkt,
     return;
   }
 
+  // exctract NDP options to update cache only  with value of
+  // Source LinkLayer Address option, if present
+  NDPOptions options = NDPOptions::getAll(cursor);
+
   auto updater = sw_->getNeighborUpdater();
   auto type = ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION;
 
-  // Check to see if this IP address is in our NDP response table.
-  auto entry = vlan->getNdpResponseTable()->getEntry(targetIP);
-  if (!entry) {
-    updater->receivedNdpNotMine(vlan->getID(), hdr.ipv6->srcAddr, hdr.src,
-                                PortDescriptor::fromRxPacket(*pkt.get()),
-                                type, 0);
+  if ((!options.sourceLinkLayerAddress.hasValue() &&
+       hdr.ipv6->dstAddr.isMulticast()) ||
+      (options.sourceLinkLayerAddress.hasValue() &&
+       hdr.ipv6->srcAddr.isZero())) {
+    /* rfc 4861 -  must not be included when the source IP address is the
+      unspecified address.  must be included in multicast solicitations a
+    */
+    XLOG(DBG6) << "bad IPv6 neighbor solicitation request:"
+               << " either multicast solicitation is missing source link layer"
+               << " option or notification has source link layer address but"
+               << " source is unspecified";
+    sw_->portStats(pkt)->ipv6NdpBad();
     return;
   }
 
@@ -404,17 +414,44 @@ void IPv6Handler::handleNeighborSolicitation(unique_ptr<RxPacket> pkt,
     return;
   }
 
-  updater->receivedNdpMine(vlan->getID(), hdr.ipv6->srcAddr, hdr.src,
-                           PortDescriptor::fromRxPacket(*pkt.get()),
-                           type, 0);
+  auto entry = vlan->getNdpResponseTable()->getEntry(targetIP);
+  if (options.sourceLinkLayerAddress.hasValue())
+  {
+    /* rfc 4861 - if the source address is not the unspecified address and,
+    on link layers that have addresses, the solicitation includes a Source
+    Link-Layer Address option, then the recipient should create or update
+    the Neighbor Cache entry for the IP Source Address of the solicitation.
+    */
+    if (!entry) {
+      // if this IP address not is in NDP response table.
+      updater->receivedNdpNotMine(
+          vlan->getID(),
+          hdr.ipv6->srcAddr,
+          options.sourceLinkLayerAddress.value(),
+          PortDescriptor::fromRxPacket(*pkt.get()),
+          type,
+          0);
+      return;
+    }
 
+    updater->receivedNdpMine(
+        vlan->getID(),
+        hdr.ipv6->srcAddr,
+        options.sourceLinkLayerAddress.value(),
+        PortDescriptor::fromRxPacket(*pkt.get()),
+        type,
+        0);
+  }
   // TODO: It might be nice to support duplicate address detection, and track
   // whether our IP is tentative or not.
 
   // Send the response
-  sendNeighborAdvertisement(pkt->getSrcVlan(),
-                            entry.value().mac, targetIP,
-                            hdr.src, hdr.ipv6->srcAddr);
+  sendNeighborAdvertisement(
+      pkt->getSrcVlan(),
+      entry.value().mac,
+      targetIP,
+      hdr.src,
+      hdr.ipv6->srcAddr);
 }
 
 void IPv6Handler::handleNeighborAdvertisement(unique_ptr<RxPacket> pkt,
@@ -597,7 +634,7 @@ void IPv6Handler::sendNeighborSolicitation(SwSwitch* sw,
     cursor->writeBE<uint32_t>(0); // reserved
     cursor->push(targetIP.bytes(), 16);
     cursor->write<uint8_t>(1); // Source link layer address option
-    cursor->write<uint8_t>(1); // Option l5ength = 1 (x8)
+    cursor->write<uint8_t>(1); // Option length = 1 (x8)
     cursor->push(srcMac.bytes(), MacAddress::SIZE);
   };
 

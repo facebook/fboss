@@ -9,10 +9,11 @@
  */
 #pragma once
 
-#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/NeighborCache.h"
-#include "fboss/agent/types.h"
+#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/types.h"
 
 #include <folly/MacAddress.h>
 #include <folly/IPAddressV6.h>
@@ -29,16 +30,18 @@ class NdpCache : public NeighborCache<NdpTable> {
            VlanID vlanID, std::string vlanName, InterfaceID intfID);
 
   void sentNeighborSolicitation(folly::IPAddressV6 ip);
-  void receivedNdpMine(folly::IPAddressV6 ip,
-                       folly::MacAddress mac,
-                       PortDescriptor port,
-                       ICMPv6Type type,
-                       uint32_t flags);
-  void receivedNdpNotMine(folly::IPAddressV6 ip,
-                          folly::MacAddress mac,
-                          PortDescriptor port,
-                          ICMPv6Type type,
-                          uint32_t flags);
+  void receivedNdpMine(
+      folly::IPAddressV6 ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      ICMPv6Type type,
+      uint32_t flags);
+  void receivedNdpNotMine(
+      folly::IPAddressV6 ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      ICMPv6Type type,
+      uint32_t flags);
 
   void probeFor(folly::IPAddressV6 ip) const override;
 

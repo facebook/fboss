@@ -402,14 +402,14 @@ TEST(NdpTest, UnsolicitedRequest) {
       "3a ff"
       // src addr (::0)
       "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
-      // dst addr (ff02::1:ff00:000a)
-      "ff 02 00 00 00 00 00 00 00 00 00 01 ff 00 00 0a"
+      // dst addr (2401:db00:2110:3004::a)
+      "24 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a"
       // type: neighbor solicitation
       "87"
       // code
       "00"
       // checksum
-      "2a 7e"
+      "d8 6c"
       // reserved
       "00 00 00 00"
       // target address (2401:db00:2110:3004::a)

@@ -12,8 +12,9 @@
 #include <stdexcept>
 
 #include <folly/IPAddress.h>
-#include "fboss/agent/packet/Ethertype.h"
+#include <folly/logging/xlog.h>
 #include "fboss/agent/packet/EthHdr.h"
+#include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/HdrParseError.h"
 #include "fboss/agent/packet/IPProto.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
@@ -108,4 +109,61 @@ uint32_t ICMPHdr::computeTotalLengthV6(uint32_t payloadLength) {
   return payloadLength + ICMPHdr::SIZE + IPv6Hdr::SIZE + EthHdr::SIZE;
 }
 
+NDPOptionHdr::NDPOptionHdr(folly::io::Cursor& cursor) {
+  try {
+    type_ = static_cast<ICMPv6NDPOptionType>(cursor.read<uint8_t>());
+    length_ = cursor.read<uint8_t>();
+  } catch (const std::out_of_range& e) {
+    throw HdrParseError("NDP Option is not present");
+  }
+}
+
+uint32_t NDPOptions::getMtu(folly::io::Cursor& cursor) {
+  try {
+    auto reserved = cursor.read<uint16_t>();
+    if (reserved != 0) {
+      throw HdrParseError("NDP MTU Option has non zero reserved field");
+    }
+    return cursor.read<uint32_t>();
+  } catch (const std::out_of_range& e) {
+    throw HdrParseError("NDP MTU option is too small");
+  }
+}
+folly::MacAddress NDPOptions::getSourceLinkLayerAddress(
+    folly::io::Cursor& cursor) {
+  try {
+    return PktUtil::readMac(&cursor);
+  } catch (const std::out_of_range& e) {
+    throw HdrParseError("NDP Source Link Layer option is too small");
+  }
+}
+
+NDPOptions NDPOptions::getAll(folly::io::Cursor& cursor) {
+  NDPOptions options;
+  try {
+    while (cursor.data()) {
+      auto hdr = NDPOptionHdr(cursor);
+      switch (hdr.type()) {
+        case ICMPV6_NDP_OPTION_MTU:
+          options.mtu.emplace(getMtu(cursor));
+          break;
+        case ICMPV6_NDP_OPTION_SOURCE_LINK_LAYER_ADDRESS:
+          options.sourceLinkLayerAddress.emplace(
+              getSourceLinkLayerAddress(cursor));
+          break;
+        case ICMPV6_NDP_OPTION_REDIRECTED_HEADER:
+        case ICMPV6_NDP_OPTION_PREFIX_INFORMATION:
+        case ICMPV6_NDP_OPTION_TARGET_LINK_LAYER_ADDRESS:
+          XLOG(WARNING) << "Ignoring NDP Option: " << hdr.type();
+          break;
+        default:
+          XLOG(WARNING) << "Ignoring unknown NDP Option: " << hdr.type();
+          break;
+      }
+    }
+  } catch (const HdrParseError& e) {
+    XLOG(WARNING) << e.what();
+  }
+  return options;
+}
 }}

@@ -16,9 +16,8 @@
 #include "fboss/agent/state/NeighborEntry.h"
 #include "fboss/agent/state/PortDescriptor.h"
 
-#include <chrono>
-#include <folly/MacAddress.h>
 #include <folly/IPAddress.h>
+#include <folly/Optional.h>
 #include <folly/Random.h>
 #include <list>
 #include <string>
@@ -115,6 +114,9 @@ class NeighborCacheImpl {
 
   template <typename NeighborEntryThrift>
   std::list<NeighborEntryThrift> getCacheData() const;
+
+  template <typename NeighborEntryThrift>
+  folly::Optional<NeighborEntryThrift> getCacheData(AddressType ip) const;
 
   void clearEntries();
 

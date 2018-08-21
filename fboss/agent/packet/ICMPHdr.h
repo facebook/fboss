@@ -167,6 +167,16 @@ enum ICMPv6ErrorDestinationUnreachable : uint8_t {
 };
 
 /*
+ * ICMPv6 Neighbor Discovery options RFC 4861 (sec 4.6)
+ */
+enum ICMPv6NDPOptionType : uint8_t {
+  ICMPV6_NDP_OPTION_SOURCE_LINK_LAYER_ADDRESS = 1,
+  ICMPV6_NDP_OPTION_TARGET_LINK_LAYER_ADDRESS = 2,
+  ICMPV6_NDP_OPTION_PREFIX_INFORMATION = 3,
+  ICMPV6_NDP_OPTION_REDIRECTED_HEADER = 4,
+  ICMPV6_NDP_OPTION_MTU = 5,
+};
+/*
  * An ICMP Header for both IPv4 and IPv6.
  * The payload is not represented here.
  */
@@ -352,4 +362,29 @@ inline bool operator!=(const ICMPHdr& lhs, const ICMPHdr& rhs) {
   return !operator==(lhs, rhs);
 }
 
+class NDPOptionHdr {
+ public:
+  ICMPv6NDPOptionType type() {
+    return type_;
+  }
+  uint8_t length() {
+    return length_;
+  }
+
+  explicit NDPOptionHdr(folly::io::Cursor& cursor);
+
+ private:
+  ICMPv6NDPOptionType type_;
+  uint8_t length_;
+};
+
+struct NDPOptions {
+  folly::Optional<uint32_t> mtu;
+  folly::Optional<folly::MacAddress> sourceLinkLayerAddress;
+  static NDPOptions getAll(folly::io::Cursor& cursor);
+
+ private:
+  static uint32_t getMtu(folly::io::Cursor& cursor);
+  static folly::MacAddress getSourceLinkLayerAddress(folly::io::Cursor& cursor);
+};
 }} // facebook::fboss

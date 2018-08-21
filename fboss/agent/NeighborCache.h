@@ -73,6 +73,12 @@ class NeighborCache {
     return impl_->template getCacheData<NeighborEntryThrift>();
   }
 
+  template <typename NeighborEntryThrift>
+  folly::Optional<NeighborEntryThrift> getCacheData(AddressType ip) {
+    std::lock_guard<std::mutex> g(cacheLock_);
+    return impl_->template getCacheData<NeighborEntryThrift>(ip);
+  }
+
   void setTimeout(std::chrono::seconds timeout) {
     timeout_ = timeout;
   }

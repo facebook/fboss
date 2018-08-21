@@ -394,4 +394,17 @@ std::list<NeighborEntryThrift> NeighborCacheImpl<NTable>::getCacheData() const {
   return thriftEntries;
 }
 
+template <typename NTable>
+template <typename NeighborEntryThrift>
+folly::Optional<NeighborEntryThrift> NeighborCacheImpl<NTable>::getCacheData(
+    AddressType ip) const {
+  folly::Optional<NeighborEntryThrift> cachedNeighborEntry;
+  auto entry = getCacheEntry(ip);
+  if (entry) {
+    NeighborEntryThrift thriftEntry;
+    entry->populateThriftEntry(thriftEntry);
+    cachedNeighborEntry.assign(thriftEntry);
+  }
+  return cachedNeighborEntry;
+}
 }} // facebook::fboss

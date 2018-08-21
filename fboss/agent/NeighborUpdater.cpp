@@ -125,22 +125,24 @@ void NeighborUpdater::sentNeighborSolicitation(VlanID vlan,
   cache->sentNeighborSolicitation(ip);
 }
 
-void NeighborUpdater::receivedNdpMine(VlanID vlan,
-                                      IPAddressV6 ip,
-                                      MacAddress mac,
-                                      PortDescriptor port,
-                                      ICMPv6Type type,
-                                      uint32_t flags) {
+void NeighborUpdater::receivedNdpMine(
+    VlanID vlan,
+    IPAddressV6 ip,
+    MacAddress mac,
+    PortDescriptor port,
+    ICMPv6Type type,
+    uint32_t flags) {
   auto cache = getNdpCacheFor(vlan);
   cache->receivedNdpMine(ip, mac, port, type, flags);
 }
 
-void NeighborUpdater::receivedNdpNotMine(VlanID vlan,
-                                         IPAddressV6 ip,
-                                         MacAddress mac,
-                                         PortDescriptor port,
-                                         ICMPv6Type type,
-                                         uint32_t flags) {
+void NeighborUpdater::receivedNdpNotMine(
+    VlanID vlan,
+    IPAddressV6 ip,
+    MacAddress mac,
+    PortDescriptor port,
+    ICMPv6Type type,
+    uint32_t flags) {
   auto cache = getNdpCacheFor(vlan);
   cache->receivedNdpNotMine(ip, mac, port, type, flags);
 }
