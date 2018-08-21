@@ -9,9 +9,10 @@
  */
 #pragma once
 
-#include "fboss/agent/types.h"
-#include "fboss/agent/ndp/IPv6RouteAdvertiser.h"
 #include "fboss/agent/StateObserver.h"
+#include "fboss/agent/ndp/IPv6RouteAdvertiser.h"
+#include "fboss/agent/packet/ICMPHdr.h"
+#include "fboss/agent/types.h"
 
 #include <memory>
 #include <boost/container/flat_map.hpp>
@@ -52,8 +53,9 @@ class IPv6Handler : public AutoRegisterStateObserver {
    * TODO(aeckert): 17949183 unify packet handling pipeline and then
    * make this private again.
    */
-  void sendNeighborSolicitations(PortID ingressPort,
-                                 const folly::IPAddressV6& targetIP);
+  void sendMulticastNeighborSolicitations(
+      PortID ingressPort,
+      const folly::IPAddressV6& targetIP);
 
   /*
    * These two static methods are for sending out an NDP solicitation.
@@ -62,22 +64,25 @@ class IPv6Handler : public AutoRegisterStateObserver {
    * does not access the SwitchState so should be preferred where
    * possible.
    */
-  static void sendNeighborSolicitation(SwSwitch* sw,
-                                       const folly::IPAddressV6& targetIP,
-                                       const folly::MacAddress& srcMac,
-                                       const VlanID vlanID);
-  static void sendNeighborSolicitation(SwSwitch* sw,
-                                       const folly::IPAddressV6& targetIP,
-                                       const std::shared_ptr<Vlan>& vlan);
+  static void sendMulticastNeighborSolicitation(
+      SwSwitch* sw,
+      const folly::IPAddressV6& targetIP,
+      const folly::MacAddress& srcMac,
+      const VlanID& vlanID);
+  static void sendMulticastNeighborSolicitation(
+      SwSwitch* sw,
+      const folly::IPAddressV6& targetIP,
+      const std::shared_ptr<Vlan>& vlan);
 
-  static void sendNeighborSolicitation(
+  static void sendUnicastNeighborSolicitation(
       SwSwitch* sw,
       const folly::IPAddressV6& targetIP,
       const folly::MacAddress& targetMac,
       const folly::IPAddressV6& srcIP,
       const folly::MacAddress& srcMac,
       const VlanID& vlanID,
-      const PortDescriptor& port);
+      const folly::Optional<PortDescriptor>& portDescriptor =
+          folly::Optional<PortDescriptor>());
 
  private:
   struct ICMPHeaders;
@@ -150,6 +155,18 @@ class IPv6Handler : public AutoRegisterStateObserver {
       folly::MacAddress dst,
       folly::MacAddress src,
       folly::io::Cursor cursor);
+
+  static void sendNeighborSolicitaion(
+      SwSwitch* sw,
+      const folly::IPAddressV6& dstIP,
+      const folly::MacAddress& dstMac,
+      const folly::IPAddressV6& srcIP,
+      const folly::MacAddress& srcMac,
+      const folly::IPAddressV6& neighborIP,
+      const VlanID& vlanID,
+      const folly::Optional<PortDescriptor>& portDescriptor =
+          folly::Optional<PortDescriptor>(),
+      const NDPOptions& options = NDPOptions());
 
   SwSwitch* sw_{nullptr};
   RAMap routeAdvertisers_;

@@ -1435,7 +1435,7 @@ void SwSwitch::sendL3Packet(
         } catch (...) {
           // We don't have dstAddr in our NDP table. Request solicitation for
           // it and let this packet be dropped.
-          IPv6Handler::sendNeighborSolicitation(
+          IPv6Handler::sendMulticastNeighborSolicitation(
               this, dstAddrV6, srcMac, vlanID);
           throw;
         } // try
@@ -1451,7 +1451,7 @@ void SwSwitch::sendL3Packet(
       // will do the RIB lookup and then probe for any unresolved nexthops
       // of the route.
       if (dstAddr.isV6()) {
-        ipv6_->sendNeighborSolicitations(PortID(0), dstAddr.asV6());
+        ipv6_->sendMulticastNeighborSolicitations(PortID(0), dstAddr.asV6());
       } else {
         ipv4_->resolveMac(state.get(), PortID(0), dstAddr.asV4());
       }

@@ -122,15 +122,30 @@ inline void NdpCache::checkReachability(
     return;
   }
   auto srcIntf = state->getInterfaces()->getInterfaceIf(vlan->getInterfaceID());
-  // srcIntf must/can never be nullptr
+
+  if (!srcIntf) {
+    // srcIntf must/can never be nullptr
+    XLOG(DBG2) << "No interface found for vlan " << getVlanID()
+               << ". Skip sending probe";
+    return;
+  }
+
   folly::MacAddress srcMac = srcIntf->getMac();
   folly::IPAddressV6 srcIP(folly::IPAddressV6::LINK_LOCAL, srcMac);
   if (srcIntf->canReachAddress(targetIP)) {
     srcIP = srcIntf->getAddressToReach(targetIP)->first.asV6();
   }
   // unicast solicitation
-  IPv6Handler::sendNeighborSolicitation(
-      getSw(), targetIP, targetMac, srcIP, srcMac, vlan->getID(), port);
+  folly::Optional<PortDescriptor> portDescriptor;
+  portDescriptor.emplace(port);
+  IPv6Handler::sendUnicastNeighborSolicitation(
+      getSw(),
+      targetIP,
+      targetMac,
+      srcIP,
+      srcMac,
+      vlan->getID(),
+      portDescriptor);
 }
 
 inline void NdpCache::probeFor(folly::IPAddressV6 ip) const {
@@ -140,7 +155,7 @@ inline void NdpCache::probeFor(folly::IPAddressV6 ip) const {
     return;
   }
   // multicast solicitation
-  IPv6Handler::sendNeighborSolicitation(getSw(), ip, vlan);
+  IPv6Handler::sendMulticastNeighborSolicitation(getSw(), ip, vlan);
 }
 
 std::list<NdpEntryThrift> NdpCache::getNdpCacheData() {
