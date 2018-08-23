@@ -44,7 +44,7 @@ class WedgeQsfp : public TransceiverImpl {
  private:
   int module_;
   std::string moduleName_;
-  TransceiverI2CApi* wedgeI2CBusLock_;
+  TransceiverI2CApi* threadSafeI2CBus_;
 };
 
 }} // namespace facebook::fboss

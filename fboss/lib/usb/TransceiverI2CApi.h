@@ -42,6 +42,23 @@ class TransceiverI2CApi {
   virtual void moduleWrite(unsigned int module, uint8_t i2cAddress,
                            int offset, int len, const uint8_t* buf) = 0;
 
+  virtual bool isPresent(unsigned int module) {
+    uint8_t buf = 0;
+    try {
+      moduleRead(module, TransceiverI2CApi::ADDR_QSFP,
+                                   0, sizeof(buf), &buf);
+    } catch (const I2cError& ex) {
+      /*
+       * This can either mean that we failed to open the USB device
+       * because it was already in use, or that the I2C read failed.
+       * At some point we might want to return more a more accurate
+       * status value to higher-level functions.
+       */
+      return false;
+    }
+    return true;
+  }
+
   // Addresses to be queried by external callers:
   enum : uint8_t {
     ADDR_QSFP = 0x50,
