@@ -268,7 +268,8 @@ void NetlinkManager::addRouteViaFbossThrift(
   eb_->runInEventBaseThread([this, unicastRoute]() {
     FbossClient fbossClient = getFbossClient(FLAGS_ip, FLAGS_fboss_port);
     fbossClient->future_addUnicastRoute(FBOSS_CLIENT_ID, unicastRoute)
-        .then([]() { VLOG(2) << "NetlinkManager route add success"; })
+        .thenValue(
+            [](auto&&) { VLOG(2) << "NetlinkManager route add success"; })
         .onError([unicastRoute](const std::exception& ex) {
           BinaryAddress binaryDst = unicastRoute.dest.ip;
           VLOG(2) << folly::sformat(
@@ -285,7 +286,8 @@ void NetlinkManager::deleteRouteViaFbossThrift(struct nl_addr* nlDst) {
   eb_->runInEventBaseThread([this, prefix]() {
     FbossClient fbossClient = getFbossClient(FLAGS_ip, FLAGS_fboss_port);
     fbossClient->future_deleteUnicastRoute(FBOSS_CLIENT_ID, prefix)
-        .then([]() { VLOG(2) << "NetlinkManager route delete success"; })
+        .thenValue(
+            [](auto&&) { VLOG(2) << "NetlinkManager route delete success"; })
         .onError([prefix](const std::exception& ex) {
           BinaryAddress binaryDst = prefix.ip;
           VLOG(2) << folly::sformat(

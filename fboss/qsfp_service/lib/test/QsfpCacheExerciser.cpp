@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
       if ((folly::Random::rand32() % 10) == 0) {
         XLOG(INFO) << "querying for transceiver " << i;
         auto fut = qc.futureGet(facebook::fboss::TransceiverID(i))
-                       .then([i](auto&& info) {
+                       .thenValue([i](auto&& info) {
                          XLOG(INFO) << "Successfully got transceiver " << i;
                          return info;
                        })
@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
       }
     }
     if (futs.size() > 0) {
-      folly::collectAllSemiFuture(futs).toUnsafeFuture().then([]() {
+      folly::collectAllSemiFuture(futs).toUnsafeFuture().thenValue([](auto&&) {
         XLOG(INFO) << "Retrieved all desired transceivers from cache";
       });
     }
