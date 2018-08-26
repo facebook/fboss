@@ -141,7 +141,7 @@ folly::MacAddress NDPOptions::getSourceLinkLayerAddress(
 NDPOptions NDPOptions::getAll(folly::io::Cursor& cursor) {
   NDPOptions options;
   try {
-    while (cursor.data()) {
+    while (cursor.length()) {
       auto hdr = NDPOptionHdr(cursor);
       switch (hdr.type()) {
         case ICMPV6_NDP_OPTION_MTU:
