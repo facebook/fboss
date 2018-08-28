@@ -26,4 +26,6 @@ void StatsPublisher::bumpWriteFailure() {
 //static
 void StatsPublisher::missingPorts(TransceiverID /* unused */) {
 }
+// static
+void StatsPublisher::bumpModuleErrors() {}
 }}

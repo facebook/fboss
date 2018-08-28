@@ -22,36 +22,7 @@ using namespace facebook::fboss;
 using std::make_unique;
 
 namespace {
-
-/*
- * This is the Wedge Platform Specific Class
- * and contains all the Wedge QSFP Specific Functions
- */
-class SffTransceiver : public TransceiverImpl {
- public:
-  explicit SffTransceiver(int module) : module_(module) {
-    moduleName_ = folly::to<std::string>(module);
-  } ;
-
-  /* This function is used to read the SFP EEprom */
-  int readTransceiver(int dataAddress, int offset,
-                      int len, uint8_t* fieldValue) override;
-  /* write to the eeprom (usually to change the page setting) */
-  int writeTransceiver(int dataAddress, int offset,
-                       int len, uint8_t* fieldValue) override;
-  /* This function detects if a SFP is present on the particular port */
-  bool detectTransceiver() override;
-  /* Returns the name for the port */
-  folly::StringPiece getName() override;
-  int getNum() const override;
-
- private:
-  int module_;
-  std::string moduleName_;
-  int page_{0};
-};
-
-static uint8_t pageLower[] = {
+static std::array<uint8_t, 128> kPageLower = {
   0x0d, 0x00, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1f, 0x04,
@@ -70,7 +41,26 @@ static uint8_t pageLower[] = {
   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
 };
 
-static uint8_t page0[] = {
+static std::array<uint8_t, 128> kBadPageLower = {
+  0x0d, 0xff, 0xff, 0x0c, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1f, 0x04,
+  0x00, 0x00, 0x80, 0xdd, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
+};
+
+static std::array<uint8_t, 128> kPage0 = {
   0x0d, 0x10, 0x0c, 0x04, 0x00, 0x00, 0x00, 0x40,
   0x40, 0x02, 0x00, 0x05, 0x67, 0x00, 0x00, 0x32,
   0x00, 0x00, 0x00, 0x00, 0x46, 0x41, 0x43, 0x45,
@@ -91,7 +81,7 @@ static uint8_t page0[] = {
 
 /* These are not supposed to be the same!? */
 
-static uint8_t page3[] = {
+static std::array<uint8_t, 128> kPage3 = {
   0x4b, 0x00, 0xfb, 0x00, 0x46, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x94, 0x70, 0x6e, 0xf0, 0x86, 0xc4, 0x7b, 0x0c,
@@ -111,6 +101,42 @@ static uint8_t page3[] = {
 };
 
 
+/*
+ * This is the Wedge Platform Specific Class
+ * and contains all the Wedge QSFP Specific Functions
+ */
+class SffTransceiver : public TransceiverImpl {
+ public:
+  explicit SffTransceiver(int module) : module_(module) {
+    moduleName_ = folly::to<std::string>(module);
+    std::copy(kPageLower.begin(), kPageLower.end(), pageLower_.begin());
+    std::copy(kPage0.begin(), kPage0.end(), page0_.begin());
+    std::copy(kPage3.begin(), kPage3.end(), page3_.begin());
+  }
+
+  /* This function is used to read the SFP EEprom */
+  int readTransceiver(int dataAddress, int offset,
+                      int len, uint8_t* fieldValue) override;
+  /* write to the eeprom (usually to change the page setting) */
+  int writeTransceiver(int dataAddress, int offset,
+                       int len, uint8_t* fieldValue) override;
+  /* This function detects if a SFP is present on the particular port */
+  bool detectTransceiver() override;
+  /* Returns the name for the port */
+  folly::StringPiece getName() override;
+  int getNum() const override;
+
+protected:
+  std::array<uint8_t, 128> pageLower_;
+
+private:
+  int module_{0};
+  std::string moduleName_;
+  int page_{0};
+  std::array<uint8_t, 128> page0_;
+  std::array<uint8_t, 128> page3_;
+};
+
 bool SffTransceiver::detectTransceiver() {
   return true;
 }
@@ -124,15 +150,21 @@ int SffTransceiver::readTransceiver(int dataAddress, int offset,
     if (QsfpModule::MAX_QSFP_PAGE_SIZE - offset < len) {
       read = QsfpModule::MAX_QSFP_PAGE_SIZE - offset;
     }
-    memcpy(fieldValue, pageLower + offset, read);
+    std::copy(pageLower_.begin() + offset, pageLower_.begin() + offset + read,
+              fieldValue);
     len -= read;
     offset = QsfpModule::MAX_QSFP_PAGE_SIZE;
   }
   if (len > 0 && offset >= QsfpModule::MAX_QSFP_PAGE_SIZE) {
-    uint8_t *dataPage = (page_ == 0) ? page0 : page3;
     offset -= QsfpModule::MAX_QSFP_PAGE_SIZE;
     EXPECT_LE(len + offset, QsfpModule::MAX_QSFP_PAGE_SIZE);
-    memcpy(fieldValue + read, dataPage + offset, len);
+    if (page_ == 0) {
+      std::copy(page0_.begin() + offset, page0_.begin() + offset + len,
+                fieldValue + read);
+    } else {
+      std::copy(page3_.begin() + offset, page3_.begin() + offset + len,
+                fieldValue + read);
+    }
     read += len;
   }
   return read;
@@ -162,6 +194,13 @@ int SffTransceiver::getNum() const {
   return module_;
 }
 
+class BadSffTransceiver : public SffTransceiver {
+public:
+  explicit BadSffTransceiver(int module) : SffTransceiver(module) {
+    std::copy(kBadPageLower.begin(), kBadPageLower.end(), pageLower_.begin());
+  }
+};
+
 
 TEST(SffTest, simpleRead) {
   int idx = 1;
@@ -181,6 +220,16 @@ TEST(SffTest, simpleRead) {
   EXPECT_DOUBLE_EQ(-5.0, info.thresholds.temp.alarm.low);
   EXPECT_TRUE(info.channels[0].sensors.txBias.flags.alarm.low);
   EXPECT_FALSE(info.channels[1].sensors.txBias.flags.alarm.low);
+}
+
+TEST(BadSffTest, simpleRead) {
+  int idx = 1;
+  std::unique_ptr<BadSffTransceiver> qsfpImpl =
+    std::make_unique<BadSffTransceiver>(idx);
+  std::unique_ptr<QsfpModule> qsfp =
+    std::make_unique<QsfpModule>(std::move(qsfpImpl), 4);
+
+  EXPECT_THROW(qsfp->refresh(), QsfpModuleError);
 }
 
 } // namespace facebook::fboss

@@ -23,6 +23,7 @@ class StatsPublisher {
   static void bumpPciLockHeld();
   static void bumpReadFailure();
   static void bumpWriteFailure();
+  static void bumpModuleErrors();
   static void missingPorts(TransceiverID module);
 
  private:

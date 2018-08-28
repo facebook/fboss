@@ -38,6 +38,22 @@ class TransceiverImpl;
 void getQsfpFieldAddress(SffField field, int &dataAddress,
                         int &offset, int &length);
 
+/**
+ * This is the QSFP module error which should be throw only if it's module
+ * related issue.
+ */
+class QsfpModuleError : public std::exception {
+public:
+  explicit QsfpModuleError(const std::string& what) : what_(what) {}
+
+  const char* what() const noexcept override {
+    return what_.c_str();
+  }
+
+private:
+  std::string what_;
+};
+
 /*
  * This is the QSFP class which will be storing the QSFP EEPROM
  * data from the address 0xA0 which is static data. The class
