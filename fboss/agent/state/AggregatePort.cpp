@@ -195,7 +195,7 @@ bool AggregatePort::isIngressValid(
   auto physicalIngressForwardingState =
       owningAggregatePort->getForwardingState(physicalIngressPort);
 
-  bool isValid;
+  bool isValid{false};
   switch (physicalIngressForwardingState) {
     case AggregatePort::Forwarding::ENABLED:
       // case A
