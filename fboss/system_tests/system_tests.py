@@ -12,6 +12,8 @@ import unittest
 
 
 from fboss.system_tests.testutils.system_tests_runner import SystemTestsRunner
+from fboss.system_tests.facebook.utils.ensemble_health_check_utils import (
+    get_ensemble_attr, block_ensemble_and_create_task)
 
 user_requested_tags = []
 
@@ -163,7 +165,7 @@ class FbossBaseSystemTest(unittest.TestCase):
         # We have seen cases where previous testcase brings down the system
         # and all following testcaes fails. Instead we should skip a testcase
         # if system went to bad state.
-        if not self._verify_topology_state():
+        if not self._verify_topo_and_block_bad_ensemble():
             self.skipTest("Topology is in bad state, Skip Test")
 
     def tearDown(self):
@@ -171,19 +173,30 @@ class FbossBaseSystemTest(unittest.TestCase):
         Make sure our topology is still in healthy state
         and no hosts got busted during test
         '''
-        if not self._verify_topology_state():
+        if not self._verify_topo_and_block_bad_ensemble():
             self.fail("Test Case broke topology healthy state")
 
-    def _verify_topology_state(self):
+    def _verify_topo_and_block_bad_ensemble(self):
+        state, reason = self._get_topology_state()
+        if not state:
+            if not get_ensemble_attr(self.options.ensemble, 'task-id'):
+                self.options.ensemble=block_ensemble_and_create_task(
+                    self.options.ensemble,
+                    reason=reason,
+                    logger=self.log)
+            return False
+        return True
+
+    def _get_topology_state(self):
         self.log.info("Testing connection to switch")
         if not self.test_topology.verify_switch(log=self.log):
             self.log.info("Switch is not in good state")
-            return False
+            return False, "Switch is not in good state"
         if not self.test_topology.verify_hosts(
            min_hosts=self.options.min_hosts, log=self.log):
             self.log.info("Hosts are not in good state")
-            return False
-        return True
+            return False, "Hosts are not in good state"
+        return True, ''
 
 
 def frob_options_into_tests(suite, options):
