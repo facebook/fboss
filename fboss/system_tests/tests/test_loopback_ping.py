@@ -12,6 +12,7 @@ from neteng.fboss.ctrl.ttypes import UnicastRoute
 from fboss.system_tests.test.ttypes import DeviceType
 from neteng.fboss.ttypes import FbossBaseError
 from libfb.py.decorators import retryable
+from thrift.transport.TTransport import TTransportException
 
 
 @test_tags("loopback", "run-on-diff", "trunk-stable")
@@ -27,6 +28,7 @@ class LoopbackPing(FbossBaseSystemTest):
         for host in hosts:
             self._test_each_host(host, hosts, loopback_address)
 
+    @retryable(num_tries=3, sleep_time=10, retryable_exs=[TTransportException])
     def _test_each_host(self, host, hosts, loopback_address):
         self._setup_loopback_interface_in_host(host, loopback_address)
         unicast_route = self._add_route_to_switch(host, loopback_address)
