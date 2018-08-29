@@ -98,6 +98,7 @@ class PortDetailsCmd(cmds.FbossCmd):
         lines = [
             ('Name', port_info.name.strip()),
             ('Port ID', str(port_info.portId)),
+            ('Description', port_info.description or ""),
             ('Admin State', admin_status),
             ('Link State', oper_status),
             ('Speed', '{:.0f} {}'.format(speed, suffix)),
@@ -143,8 +144,6 @@ class PortDetailsCmd(cmds.FbossCmd):
                         ecn = "DISABLED"
                     attrs1.append("{}={}".format("ecn", ecn))
                     print('{:<5}{}'.format('', ",".join(attrs1)))
-
-        print(fmt.format('Description', port_info.description or ""))
 
     def _print_port_counters(self, port_info):
         pass
