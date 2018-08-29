@@ -7,6 +7,8 @@ from fboss.thrift_clients import FbossAgentClient, QsfpServiceClient
 from fboss.netlink_manager.netlink_manager_client import NetlinkManagerClient
 from fboss.system_tests.testutils.test_client import TestClient
 from neteng.fboss.ttypes import FbossBaseError
+from fboss.system_tests.facebook.utils.ensemble_health_check_utils import (
+    is_host_ping_reachable)
 
 from thrift.transport.TTransport import TTransportException
 
@@ -152,9 +154,15 @@ class FBOSSTestTopology(object):
                                     (n_hosts))
 
     def verify_switch(self, log=None):
-        """ Verify the switch is THRIFT reachable """
         if not log:
             log = self.log
+        """ Verfiy that both userver and agent are reachable """
+        # check if userver is reachable, tests can bring down userver
+        # Example: T33276019
+        if not is_host_ping_reachable(self.switch.name, log):
+            return False
+
+        """ Verify the switch is THRIFT reachable """
         try:
             with FbossAgentClient(self.switch.name, self.port) as client:
                 client.keepalive()  # will throw FbossBaseError on failure
