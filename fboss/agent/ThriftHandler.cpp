@@ -545,7 +545,7 @@ void ThriftHandler::getPortInfoHelper(
       PortAdminState(port->getAdminState() == cfg::PortState::ENABLED);
   portInfo.operState =
       PortOperState(port->getOperState() == Port::OperState::UP);
-  portInfo.fecEnabled = sw_->getHw()->getPortFECConfig(port->getID());
+  portInfo.fecEnabled = port->getFEC() == cfg::PortFEC::ON;
 
   auto pause = port->getPause();
   portInfo.txPause = pause.tx;
