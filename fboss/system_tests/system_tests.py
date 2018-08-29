@@ -17,8 +17,8 @@ user_requested_tags = []
 
 Defaults = {
     "config": 'test_topologies/example_topology.py',
-    "console_log_level": logging.INFO,   # very terse, for console log_level
-    "file_log_level": logging.DEBUG,  # result/test-foo.log, more verbose
+    "console_log_level": 'info',   # very terse, for console log_level
+    "file_log_level": 'debug',  # result/test-foo.log, more verbose
     "log_dir": "results",
     "log_file": "{dir}/result-{test}.log",
     "test_topology": None,
@@ -52,6 +52,7 @@ def generate_default_test_argparse(**kwargs):
     on them.
     """
     global Defaults
+    log_levels = ['debug', 'info', 'warning', 'error', 'critical']
     parser = argparse.ArgumentParser(description='FBOSS System Tests', **kwargs)
     parser.add_argument('tests', nargs='*',
                         help="List of test classes to run. For example:\n"
@@ -68,8 +69,14 @@ def generate_default_test_argparse(**kwargs):
     parser.add_argument('--log_dir', default=Defaults['log_dir'])
     parser.add_argument('--log_file', default=Defaults['log_file'])
     parser.add_argument('--min_hosts', type=int, default=Defaults['min_hosts'])
-    parser.add_argument('--console_log_level', default=Defaults['console_log_level'])
-    parser.add_argument('--file_log_level', default=Defaults['file_log_level'])
+    parser.add_argument(
+        '--console_log_level', type=str, default=Defaults['console_log_level'],
+        choices=log_levels,
+        help='Console log level ({})'.format(', '.join(log_levels)))
+    parser.add_argument(
+        '--file_log_level', type=str, default=Defaults['file_log_level'],
+        choices=log_levels,
+        help='File log level ({})'.format(', '.join(log_levels)))
     parser.add_argument('--repeat-tests', help="Times to repeatedly run tests",
                             type=int, default=Defaults['repeat-tests'])
     parser.add_argument('--tags',
@@ -120,7 +127,8 @@ def setup_logging(options):
         # setup the console log if not done already
         # this is different from the per test file log
         options.log = logging.getLogger("__main__")
-        options.log.setLevel(options.console_log_level)
+        options.log.setLevel(
+            getattr(logging, options.console_log_level.upper()))
 
 
 class FbossBaseSystemTest(unittest.TestCase):
@@ -147,7 +155,8 @@ class FbossBaseSystemTest(unittest.TestCase):
             handler.close()
         # open one unique for each test class
         handler = logging.FileHandler(logfile, mode='w+')
-        handler.setLevel(self.options.file_log_level)
+        handler.setLevel(
+            getattr(logging, self.options.file_log_level.upper()))
         handler.setFormatter(logging.Formatter(self._format, self._datefmt))
         self.log.addHandler(handler)
         self.test_hosts_in_topo = self.test_topology.number_of_hosts()
