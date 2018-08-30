@@ -36,6 +36,7 @@ include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_BUILD_DIR})
 
 find_package(folly CONFIG REQUIRED)
+find_package(fizz CONFIG REQUIRED)
 find_package(wangle CONFIG REQUIRED)
 find_package(FBThrift CONFIG REQUIRED)
 
