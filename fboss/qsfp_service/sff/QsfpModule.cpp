@@ -557,7 +557,7 @@ void QsfpModule::setQsfpIdprom() {
   int dataAddress;
 
   if (!present_) {
-    throw FbossError("QSFP IDProm set failed as QSFP is not present");
+    throw FbossError("Failed setting QSFP IDProm: QSFP is not present");
   }
 
   // Check if the data is ready
@@ -566,7 +566,7 @@ void QsfpModule::setQsfpIdprom() {
   getQsfpValue(dataAddress, offset, length, status);
   if (status[1] & (1 << 0)) {
     StatsPublisher::bumpModuleErrors();
-    throw QsfpModuleError("QSFP IDProm failed as QSFP is not ready");
+    throw QsfpModuleError("Failed setting QSFP IDProm: QSFP is not ready");
   }
   flatMem_ = status[1] & (1 << 2);
   XLOG(DBG3) << "Detected QSFP " << qsfpImpl_->getName()
