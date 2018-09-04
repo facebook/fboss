@@ -678,7 +678,8 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
 
 void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
   ensureConfigured();
-  for (const auto& routeTable : (*sw_->getAppliedState()->getRouteTables())) {
+  auto appliedState = sw_->getAppliedState();
+  for (const auto& routeTable : (*appliedState->getRouteTables())) {
     for (const auto& ipv4 : *(routeTable->getRibV4()->routes())) {
       UnicastRoute tempRoute;
       if (!ipv4->isResolved()) {
