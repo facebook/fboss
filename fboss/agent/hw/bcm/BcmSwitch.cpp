@@ -108,6 +108,8 @@ DEFINE_bool(flexports, false,
             "Load the agent with flexport support enabled");
 DEFINE_bool(enable_fine_grained_buffer_stats, false,
             "Enable fine grained buffer stats collection by default");
+DEFINE_bool(force_init_fp, true, "Force full field processor initialization");
+
 enum : uint8_t {
   kRxCallbackPriority = 1,
 };
@@ -617,7 +619,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   // Setup hash functions for ECMP
   ecmpHashSetup();
 
-  if (!warmBoot || haveMissingOrQSetChangedFPGroups()) {
+  if (FLAGS_force_init_fp || !warmBoot || haveMissingOrQSetChangedFPGroups()) {
     initFieldProcessor();
     setupFPGroups();
   }
