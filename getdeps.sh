@@ -118,6 +118,7 @@ NPROC=$(grep -c processor /proc/cpuinfo)
     # iproute2 v4.4.0
     update https://git.kernel.org/pub/scm/linux/kernel/git/shemminger/iproute2.git 7ca63aef7d1b0c808da0040c6b366ef7a61f38c1
     update https://github.com/facebook/folly.git
+    update https://github.com/jedisct1/libsodium.git
     update https://github.com/facebookincubator/fizz.git
     update https://github.com/facebook/wangle.git
     update https://github.com/facebook/fbthrift.git
@@ -128,6 +129,7 @@ NPROC=$(grep -c processor /proc/cpuinfo)
     build_make zstd || die "Failed to build zstd"
     build_autoconf iproute2 || die "Failed to build iproute2"
     build_cmake folly || die "Failed to build folly"
+    build_autoconf libsodium || die "Failed to build sodium"
     build_cmake fizz/fizz || die "Failed to build fizz"
     build_cmake wangle/wangle || die "Failed to build wangle"
     build_cmake fbthrift/ || die "Failed to build thrift"
