@@ -36,21 +36,6 @@ BcmControlPlaneQueueManager::getCurrentQueueSettings() const {
   return BcmPortQueueConfig({}, std::move(multicastQueues));
 }
 
-int BcmControlPlaneQueueManager::getNumQueues(
-    cfg::StreamType streamType) const {
-  // if platform doesn't support cosq, return maxCPUQueue_
-  if (!hw_->getPlatform()->isCosSupported()) {
-      return maxCPUQueue_;
-  }
-  // cpu only has multicast
-  if (streamType == cfg::StreamType::MULTICAST) {
-    return cosQueueGports_.multicast.size();
-  }
-  throw FbossError(
-    "Failed to retrieve queue size because unsupported StreamType: ",
-    cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second);
-}
-
 opennsl_gport_t BcmControlPlaneQueueManager::getQueueGPort(
     cfg::StreamType streamType,
     opennsl_cos_queue_t cosQ) const {

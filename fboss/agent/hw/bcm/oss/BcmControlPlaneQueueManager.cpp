@@ -8,6 +8,8 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmControlPlaneQueueManager.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmPlatform.h"
 
 namespace facebook { namespace fboss {
 BcmControlPlaneQueueManager::BcmControlPlaneQueueManager(
@@ -40,4 +42,20 @@ void BcmControlPlaneQueueManager::programReservedBytes(
     opennsl_gport_t /*gport*/,
     int /*queueIdx*/,
     const std::shared_ptr<PortQueue>& /*queue*/) {}
+
+int BcmControlPlaneQueueManager::getNumQueues(
+    cfg::StreamType streamType) const {
+  // if platform doesn't support cosq, return maxCPUQueue_
+  if (!hw_->getPlatform()->isCosSupported()) {
+    return maxCPUQueue_;
+  }
+  // cpu only has multicast
+  if (streamType == cfg::StreamType::MULTICAST) {
+    return cosQueueGports_.multicast.size();
+  }
+  throw FbossError(
+      "Failed to retrieve queue size because unsupported StreamType: ",
+      cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second);
+}
+
 }} //facebook::fboss
