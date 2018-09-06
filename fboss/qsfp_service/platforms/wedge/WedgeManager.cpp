@@ -103,7 +103,7 @@ void WedgeManager::refreshTransceivers() {
 }
 
 std::unique_ptr<TransceiverI2CApi> WedgeManager::getI2CBus() {
-  return std::make_unique<WedgeI2CBus>();
+  return std::make_unique<WedgeI2CBusLock>(std::make_unique<WedgeI2CBus>());
 }
 
 }} // facebook::fboss
