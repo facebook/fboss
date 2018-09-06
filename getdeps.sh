@@ -32,6 +32,8 @@ function build_autoconf() {
     fi
     ./configure || die "Configure failed for $1"
     make -j "$NPROC" || die "Make failed for $1"
+    make install prefix="$INSTALL_DIR" || \
+        die "Failed to install $1 to $INSTALL_DIR"
     )
 }
 
@@ -118,7 +120,7 @@ NPROC=$(grep -c processor /proc/cpuinfo)
     # iproute2 v4.4.0
     update https://git.kernel.org/pub/scm/linux/kernel/git/shemminger/iproute2.git 7ca63aef7d1b0c808da0040c6b366ef7a61f38c1
     update https://github.com/facebook/folly.git
-    update https://github.com/jedisct1/libsodium.git
+    update https://github.com/jedisct1/libsodium.git stable
     update https://github.com/facebookincubator/fizz.git
     update https://github.com/facebook/wangle.git
     update https://github.com/facebook/fbthrift.git
