@@ -44,6 +44,7 @@ class BcmTrunkTable {
   opennsl_trunk_t getBcmTrunkId(AggregatePortID id) const;
   AggregatePortID getAggregatePortId(opennsl_trunk_t trunk) const;
 
+  size_t numTrunkPorts() const { return trunks_.size(); }
   // TODO(samank): Fill in method
   // Serialize to folly::dynamic
   folly::dynamic toFollyDynamic() const;
