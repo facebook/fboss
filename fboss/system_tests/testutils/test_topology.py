@@ -7,6 +7,7 @@ from fboss.thrift_clients import FbossAgentClient, QsfpServiceClient
 from fboss.netlink_manager.netlink_manager_client import NetlinkManagerClient
 from fboss.system_tests.testutils.test_client import TestClient
 from neteng.fboss.ttypes import FbossBaseError
+from neteng.fboss.ctrl.ttypes import SwitchRunState
 from fboss.system_tests.facebook.utils.ensemble_health_check_utils import (
     is_host_ping_reachable)
 
@@ -167,10 +168,7 @@ class FBOSSTestTopology(object):
         for retry in range(retries):  # don't use @retry, this is OSS
             try:
                 with FbossAgentClient(self.switch.name, self.port) as client:
-                    client.keepalive()  # simple check, will pass if agent is up
-                    # this actually checks that agent is in a ready state
-                    client.getAllPortInfo()  # will throw FbossBaseError
-                    return True
+                    return client.getSwitchRunState() == SwitchRunState.FIB_SYNCED
             except (FbossBaseError, TTransportException) as e:
                 log.warning("Switch failed to thrift verify (try #%d): %s"
                                 % (retry, str(e)))
