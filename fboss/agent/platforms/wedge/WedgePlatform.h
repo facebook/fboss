@@ -93,7 +93,7 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   WedgePlatform& operator=(WedgePlatform const &) = delete;
 
   void initLocalMac();
-  void initLEDs();
+  virtual void initLEDs();
   virtual std::map<std::string, std::string> loadConfig();
 
   virtual std::unique_ptr<BaseWedgeI2CBus> getI2CBus();

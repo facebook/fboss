@@ -80,6 +80,12 @@ void WedgePlatform::onHwInitialized(SwSwitch* sw) {
   // could populate with initial ports here, but should get taken care
   // of through state changes sent to the stateUpdated method.
   initLEDs();
+  // Make sure the initial status of the LEDs reflects the current port
+  // settings.
+  for (const auto& entry : *portMapping_) {
+    bool up = hw_->isPortUp(entry.first);
+    entry.second->linkStatusChanged(up, true);
+  }
   qsfpCache_->init(sw->getQsfpCacheEvb());
   sw->registerStateObserver(this, "WedgePlatform");
 }
