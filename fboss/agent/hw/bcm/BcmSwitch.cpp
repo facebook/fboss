@@ -109,6 +109,8 @@ DEFINE_bool(flexports, false,
 DEFINE_bool(enable_fine_grained_buffer_stats, false,
             "Enable fine grained buffer stats collection by default");
 DEFINE_bool(force_init_fp, true, "Force full field processor initialization");
+DEFINE_bool(enable_linkscan_bottom_half, false,
+            "Schedule linkscan work to occur asynchronously");
 
 enum : uint8_t {
   kRxCallbackPriority = 1,
@@ -518,12 +520,16 @@ void BcmSwitch::setupLinkscan() {
     XLOG(DBG1) << " Skipping linkscan registeration as the feature is disabled";
     return;
   }
+  // TODO(samank): name thread
+  if (FLAGS_enable_linkscan_bottom_half) {
+    linkScanBottomHalfThread_ = std::make_unique<std::thread>(
+        [=] { linkScanBottomHalfEventBase_.loopForever(); });
+  }
   auto rv = opennsl_linkscan_register(unit_, linkscanCallback);
   bcmCheckError(rv, "failed to register for linkscan events");
   flags_ |= LINKSCAN_REGISTERED;
   rv = opennsl_linkscan_enable_set(unit_, FLAGS_linkscan_interval_us);
   bcmCheckError(rv, "failed to enable linkscan");
-
 }
 
 HwInitResult BcmSwitch::init(Callback* callback) {
@@ -1478,13 +1484,23 @@ void BcmSwitch::processAddedChangedRoutes(
   }
 }
 
-void BcmSwitch::linkscanCallback(int unit,
-                                 opennsl_port_t bcmPort,
-                                 opennsl_port_info_t* info) {
+void BcmSwitch::linkscanCallback(
+    int unit,
+    opennsl_port_t bcmPort,
+    opennsl_port_info_t* info) {
   try {
     BcmUnit* unitObj = BcmAPI::getUnit(unit);
     BcmSwitch* sw = static_cast<BcmSwitch*>(unitObj->getCookie());
-    sw->linkStateChangedHwNotLocked(bcmPort, info);
+    bool up = info->linkstatus == OPENNSL_PORT_LINK_STATUS_UP;
+
+    if (FLAGS_enable_linkscan_bottom_half) {
+      sw->linkScanBottomHalfEventBase_.runInEventBaseThread(
+          [sw, bcmPort, up]() {
+            sw->linkStateChangedHwNotLocked(bcmPort, up);
+          });
+    } else {
+      sw->linkStateChangedHwNotLocked(bcmPort, up);
+    }
   } catch (const std::exception& ex) {
     XLOG(ERR) << "unhandled exception while processing linkscan callback "
               << "for unit " << unit << " port " << bcmPort << ": "
@@ -1494,11 +1510,11 @@ void BcmSwitch::linkscanCallback(int unit,
 
 void BcmSwitch::linkStateChangedHwNotLocked(
     opennsl_port_t bcmPortId,
-    opennsl_port_info_t* info) {
-  // TODO: We should eventually define a more robust hardware independent
-  // LinkStatus enum, so we can expose more detailed information to to the
-  // callback about why the link is down.
-  bool up = info->linkstatus == OPENNSL_PORT_LINK_STATUS_UP;
+    bool up) {
+  if (FLAGS_enable_linkscan_bottom_half) {
+    CHECK(linkScanBottomHalfEventBase_.inRunningEventBaseThread());
+  }
+
   if (!up) {
     auto trunk = trunkTable_->linkDownHwNotLocked(bcmPortId);
     if (trunk != BcmTrunk::INVALID) {

@@ -13,11 +13,12 @@
 #include "fboss/agent/types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include <folly/dynamic.h>
-
+#include <folly/io/async/EventBase.h>
 #include <gtest/gtest_prod.h>
 
 #include <memory>
 #include <mutex>
+#include <thread>
 #include <boost/container/flat_map.hpp>
 
 extern "C" {
@@ -519,8 +520,7 @@ class BcmSwitch : public BcmSwitchIf {
    * holding that lock.
    * Back traces from deadlocked process here https://phabricator.fb.com/P20042479
    */
-  void linkStateChangedHwNotLocked(opennsl_port_t port,
-      opennsl_port_info_t* info);
+  void linkStateChangedHwNotLocked(opennsl_port_t port, bool up);
 
   /*
    * For any actions that require a lock or might need to
@@ -717,6 +717,9 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmSflowExporterTable> sFlowExporterTable_;
   std::unique_ptr<BcmControlPlane> controlPlane_;
   std::unique_ptr<BcmRtag7LoadBalancer> rtag7LoadBalancer_;
+
+  std::unique_ptr<std::thread> linkScanBottomHalfThread_;
+  folly::EventBase linkScanBottomHalfEventBase_;
 
   /*
    * TODO - Right now we setup copp using logic embedded in code.
