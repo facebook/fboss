@@ -26,7 +26,7 @@ std::string BcmPlatform::getHwConfigDumpFile() const {
 }
 
 std::string BcmPlatform::getScriptPreAsicInit() const {
-  return getVolatileStateDir() + "/" + FLAGS_script_pre_asic_init;
+  return getPersistentStateDir() + "/" + FLAGS_script_pre_asic_init;
 }
 
 bool BcmPlatform::isBcmShellSupported() const {
