@@ -9,6 +9,13 @@
  */
 #pragma once
 #include <memory>
+
+namespace apache {
+namespace thrift {
+class ThriftServer;
+}
+} // namespace apache
+
 namespace facebook { namespace fboss {
 
 class Platform;
@@ -17,5 +24,6 @@ typedef std::unique_ptr<Platform> (*PlatformInitFn)();
 int fbossMain(int argc, char** argv, PlatformInitFn initPlatform);
 void fbossInit(int argc, char** argv);
 void fbossFinalize();
+void additionalThriftServerSetup(apache::thrift::ThriftServer& server);
 
 }} // facebook::fboss

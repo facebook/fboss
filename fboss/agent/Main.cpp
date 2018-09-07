@@ -302,6 +302,9 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   server.getEventBaseManager()->setEventBase(&eventBase, false);
   server.setInterface(handler);
   server.setDuplex(true);
+
+  additionalThriftServerSetup(server);
+
   handler->setEventBaseManager(server.getEventBaseManager());
 
   // When a thrift connection closes, we need to clean up the associated
