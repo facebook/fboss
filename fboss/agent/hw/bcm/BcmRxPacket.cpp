@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
-
 extern "C" {
 #include <opennsl/rx.h>
 }
@@ -31,6 +30,7 @@ BcmRxPacket::BcmRxPacket(const opennsl_pkt_t* pkt)
   // The BCM RX code always uses a single buffer.
   // As long as there is just a single buffer, we don't need to allocate
   // a separate array of opennsl_pkt_blk_t objects.
+
   CHECK_EQ(pkt->blk_count, 1);
   CHECK_EQ(pkt->pkt_data, &pkt->_pkt_data);
 
