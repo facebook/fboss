@@ -44,6 +44,10 @@ void PciDevice::open() {
     return;
   }
 
+  // Setup device mask - Need to make sure whole struct is
+  // initialized to 0, so that appropriate fields
+  // are a don't care when the iterator searches for devices.
+  memset(&deviceMask, 0, sizeof(deviceMask));
   deviceMask.vendor_id = vendorId_;
   deviceMask.device_id = deviceId_;
   deviceMask.subvendor_id = PCI_MATCH_ANY;
