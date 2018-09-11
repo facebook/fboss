@@ -34,6 +34,7 @@ list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external.install")
 
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_BUILD_DIR})
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/external.install/lib)
 
 find_package(folly CONFIG REQUIRED)
 find_package(fizz CONFIG REQUIRED)
@@ -165,6 +166,7 @@ find_library(PCAP pcap)
 find_library(NETLINK3 nl-3)
 find_library(NETLINKROUTE3 nl-route-3)
 find_library(CURL curl)
+find_library(SODIUM sodium)
 
 find_library(OPENNSL opennsl
              PATHS ${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge-trident)
@@ -447,6 +449,7 @@ target_link_libraries(
     ${NETLINK3}
     ${NETLINKROUTE3}
     ${CURL}
+    ${SODIUM}
 )
 
 target_link_libraries(wedge_agent fboss_agent)
