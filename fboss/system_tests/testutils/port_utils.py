@@ -39,7 +39,7 @@ class DownAllPorts(DelayedSignalManager):
             ports = switch_thrift.getAllPortInfo()
             # first pass, down all of the ports without waiting
             for port, port_state in ports.items():
-                if port_state.operState:
+                if port_state.adminState:
                     self.test.log.info("Downing port %s  -- id=%d" %
                                         (port_state.name, port))
                     self.downed_ports.append(port)
@@ -51,7 +51,7 @@ class DownAllPorts(DelayedSignalManager):
     def _set_port_admin_state(self, port, switch_thrift, enabled, quick=False):
         # first, get the state to see if this is a NOOP
         state = switch_thrift.getPortInfo(port)
-        if state.operState == enabled:
+        if state.adminState == enabled:
             return
         switch_thrift.setPortState(port, enabled)
         dir = "Up" if enabled else "Down"
@@ -61,7 +61,7 @@ class DownAllPorts(DelayedSignalManager):
         # don't use FB internal retryable library because this is OSS
         for i in range(self.retry):
             state = switch_thrift.getPortInfo(port)
-            if state.operState == enabled:
+            if state.adminState == enabled:
                 break
             self.test.log.info("#%d: Waiting for 1 second for port %d to come %s"
                                 % (i, port, dir))
