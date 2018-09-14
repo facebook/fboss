@@ -32,7 +32,9 @@ function build_autoconf() {
     fi
     ./configure || die "Configure failed for $1"
     make -j "$NPROC" || die "Make failed for $1"
-    make install prefix="$INSTALL_DIR" || \
+    # do NOT quote "\$2" here because it passes an empty filename
+    # to make as a target
+    make install prefix="$INSTALL_DIR" $2 || \
         die "Failed to install $1 to $INSTALL_DIR"
     )
 }
@@ -110,6 +112,7 @@ NPROC=$(grep -c processor /proc/cpuinfo)
     EXT=$(pwd)
     # build and install everything to this dir
     INSTALL_DIR="$EXT.install"
+    for p in bin sbin lib include; do mkdir -p "$INSTALL_DIR/$p" ; done
     if [ $GET_OPENNSL == 1 ] ; then
       # We hard code OpenNSL to OpenNSL-6.4.6.6 release, later releases seem to
       # SIGSEV in opennsl_pkt_alloc()
@@ -129,7 +132,7 @@ NPROC=$(grep -c processor /proc/cpuinfo)
     update https://github.com/google/googletest.git release-1.8.0
     build_cmake mstch || die "Failed to build mstch"
     build_make zstd || die "Failed to build zstd"
-    build_autoconf iproute2 || die "Failed to build iproute2"
+    build_autoconf iproute2 "DESTDIR=$INSTALL_DIR" || die "Failed to build iproute2"
     build_cmake folly || die "Failed to build folly"
     build_autoconf libsodium || die "Failed to build sodium"
     build_cmake fizz/fizz || die "Failed to build fizz"
