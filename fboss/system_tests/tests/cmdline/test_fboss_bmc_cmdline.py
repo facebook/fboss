@@ -10,7 +10,7 @@ from fboss.system_tests.testutils.cmdline_tests_helper import (
     check_binary_exist, check_subprocess_output)
 
 
-@test_tags("cmdline", "run-on-diff", "trunk-stable")
+@test_tags("cmdline", "new-test")
 class FbossBmcCmdline(FbossBaseSystemTest):
 
     FBOSS_CMD = '/usr/local/bin/fboss'
