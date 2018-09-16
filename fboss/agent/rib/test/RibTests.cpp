@@ -7,7 +7,10 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/rib/RouteNextHop.h"
 #include "fboss/agent/rib/RouteTypes.h"
+
+#include <folly/IPAddress.h>
 
 #include <gtest/gtest.h>
 
@@ -16,4 +19,12 @@ using namespace facebook::fboss;
 TEST(RoutePrefix, Initialization) {
   RoutePrefixV4 v4Prefix;
   RoutePrefixV6 v6Prefix;
+}
+
+TEST(NextHop, Initialization) {
+  folly::IPAddress addr("255.0.0.255");
+  NextHopWeight weight(80);
+
+  UnresolvedNextHop(addr, weight);
+  ResolvedNextHop(addr, InterfaceID(1), weight);
 }
