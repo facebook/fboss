@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/rib/RouteNextHop.h"
 #include "fboss/agent/rib/RouteNextHopEntry.h"
+#include "fboss/agent/rib/RouteNextHopsMulti.h"
 #include "fboss/agent/rib/RouteTypes.h"
 
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -35,4 +36,8 @@ TEST(NextHop, Initialization) {
 TEST(NextHopEntry, Initialization) {
   RouteNextHopEntry entry(
       RouteForwardAction::TO_CPU, AdminDistance::STATIC_ROUTE);
+}
+
+TEST(RouteNextHopsMulti, Initialization) {
+  RouteNextHopsMulti multipleClients;
 }
