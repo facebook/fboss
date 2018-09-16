@@ -8,7 +8,10 @@
  *
  */
 #include "fboss/agent/rib/RouteNextHop.h"
+#include "fboss/agent/rib/RouteNextHopEntry.h"
 #include "fboss/agent/rib/RouteTypes.h"
+
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 #include <folly/IPAddress.h>
 
@@ -27,4 +30,9 @@ TEST(NextHop, Initialization) {
 
   UnresolvedNextHop(addr, weight);
   ResolvedNextHop(addr, InterfaceID(1), weight);
+}
+
+TEST(NextHopEntry, Initialization) {
+  RouteNextHopEntry entry(
+      RouteForwardAction::TO_CPU, AdminDistance::STATIC_ROUTE);
 }
