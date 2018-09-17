@@ -88,3 +88,24 @@ def is_device_ssh_reachable(hostname, username, password):
         except paramiko.SSHException:
             return False
         return True
+
+
+def create_file(asset_name, username, password, filepath, filename):
+    with ParamikoClient() as client:
+        connect_to_client(client, asset_name, username, password)
+        client.exec_command('mkdir -p ' + filepath, timeout=10)
+        client.exec_command('touch ' + os.path.join(filepath, filename),
+                timeout=10)
+
+
+def delete_file(asset_name, username, password, filepath, filename):
+    with ParamikoClient() as client:
+        connect_to_client(client, asset_name, username, password)
+        client.exec_command('rm -rf ' + os.path.join(filepath, filename),
+                timeout=10)
+
+
+def warmboot_agent(asset_name, username, password):
+    with ParamikoClient() as client:
+        connect_to_client(client, asset_name, username, password)
+        client.exec_command('systemctl restart wedge_agent', timeout=10)
