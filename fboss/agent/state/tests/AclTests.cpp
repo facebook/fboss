@@ -115,6 +115,7 @@ TEST(Acl, applyConfig) {
   configV1.acls[0].__isset.srcL4PortRange = true;
   configV1.acls[0].dstL4PortRange.min = 3;
   configV1.acls[0].dstL4PortRange.max = 4;
+  configV1.acls[0].dstL4PortRange.invert = true;
   configV1.acls[0].__isset.dstL4PortRange = true;
   // Make sure it's used so that it isn't ignored
   configV1.dataPlaneTrafficPolicy = cfg::TrafficPolicyConfig();
@@ -140,9 +141,11 @@ TEST(Acl, applyConfig) {
   EXPECT_FALSE(!aclV3->getSrcL4PortRange());
   EXPECT_EQ(aclV3->getSrcL4PortRange().value().getMin(), 1);
   EXPECT_EQ(aclV3->getSrcL4PortRange().value().getMax(), 2);
+  EXPECT_EQ(aclV3->getSrcL4PortRange().value().getInvert(), false);
   EXPECT_FALSE(!aclV3->getDstL4PortRange());
   EXPECT_EQ(aclV3->getDstL4PortRange().value().getMin(), 3);
   EXPECT_EQ(aclV3->getDstL4PortRange().value().getMax(), 4);
+  EXPECT_EQ(aclV3->getDstL4PortRange().value().getInvert(), true);
 
   // test min > max case
   configV1.acls[0].srcL4PortRange.min = 3;

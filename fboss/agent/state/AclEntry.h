@@ -26,11 +26,12 @@ namespace facebook { namespace fboss {
 template<typename T>
 class GenericAclRange {
 public:
-  GenericAclRange(const T min, const T max) : min_(min), max_(max) {}
-  GenericAclRange(const GenericAclRange& range) :
-    GenericAclRange(range.min_, range.max_) {}
-  T getMin() const {
-    return min_;
+ GenericAclRange(const T& min, const T& max, bool invert)
+     : min_(min), max_(max), invert_(invert) {}
+ GenericAclRange(const GenericAclRange& range)
+     : GenericAclRange(range.min_, range.max_, range.invert_) {}
+ T getMin() const {
+   return min_;
   }
   void setMin(const T min) {
     min_ = min;
@@ -41,24 +42,32 @@ public:
   void setMax(const T max) {
     max_ = max;
   }
+  void setInvert(const bool invert) {
+    invert_ = invert;
+  }
+  bool getInvert() const {
+    return invert_;
+  }
   bool isExactMatch() const {
-    return min_ == max_;
+    return !invert_ && min_ == max_;
   }
   bool operator<(const GenericAclRange& r) const {
-    return std::tie(min_, max_) < std::tie(r.min_, r.max_);
+    return std::tie(min_, max_, invert_) < std::tie(r.min_, r.max_, r.invert_);
   }
   bool operator==(const GenericAclRange& r) const {
-    return std::tie(min_, max_) == std::tie(r.min_, r.max_);
+    return std::tie(min_, max_, invert_) == std::tie(r.min_, r.max_, r.invert_);
   }
   GenericAclRange& operator=(const GenericAclRange& r) {
     min_ = r.min_;
     max_ = r.max_;
+    invert_ = r.invert_;
     return *this;
   }
   folly::dynamic toFollyDynamic() const {
     folly::dynamic range = folly::dynamic::object;
     range[kAclRangeMin] = static_cast<T>(min_);
     range[kAclRangeMax] = static_cast<T>(max_);
+    range[kAclRangeInvert] = static_cast<bool>(invert_);
     return range;
   }
   static T getLowerLimit() {
@@ -71,7 +80,8 @@ public:
     checkFollyDynamic(rangeJson);
     T min = rangeJson[kAclRangeMin].asInt();
     T max = rangeJson[kAclRangeMax].asInt();
-    return GenericAclRange(min, max);
+    bool invert = rangeJson[kAclRangeInvert].asBool();
+    return GenericAclRange(min, max, invert);
   }
   static void checkFollyDynamic(const folly::dynamic& rangeJson) {
     if (rangeJson.find(kAclRangeMin) == rangeJson.items().end()) {
@@ -97,8 +107,10 @@ public:
 protected:
   T min_;
   T max_;
+  bool invert_;
   static constexpr auto kAclRangeMin = "min";
   static constexpr auto kAclRangeMax = "max";
+  static constexpr auto kAclRangeInvert = "invert";
 };
 
 using AclL4PortRange = GenericAclRange<uint16_t>;

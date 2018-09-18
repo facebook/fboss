@@ -87,6 +87,7 @@ enum PortFEC {
 struct L4PortRange {
   1: i32 min
   2: i32 max
+  3: bool invert = false
 }
 
 /**
@@ -96,6 +97,7 @@ struct L4PortRange {
 struct PktLenRange {
   1: i16 min
   2: i16 max
+  3: bool invert = false
 }
 
 enum IpType {

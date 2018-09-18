@@ -1172,16 +1172,22 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
     newAcl->setDstPort(config->dstPort);
   }
   if (config->__isset.srcL4PortRange) {
-    newAcl->setSrcL4PortRange(AclL4PortRange(config->srcL4PortRange.min,
-      config->srcL4PortRange.max));
+    newAcl->setSrcL4PortRange(AclL4PortRange(
+        config->srcL4PortRange.min,
+        config->srcL4PortRange.max,
+        config->srcL4PortRange.invert));
   }
   if (config->__isset.dstL4PortRange) {
-    newAcl->setDstL4PortRange(AclL4PortRange(config->dstL4PortRange.min,
-      config->dstL4PortRange.max));
+    newAcl->setDstL4PortRange(AclL4PortRange(
+        config->dstL4PortRange.min,
+        config->dstL4PortRange.max,
+        config->dstL4PortRange.invert));
   }
   if (config->__isset.pktLenRange) {
-    newAcl->setPktLenRange(AclPktLenRange(config->pktLenRange.min,
-      config->pktLenRange.max));
+    newAcl->setPktLenRange(AclPktLenRange(
+        config->pktLenRange.min,
+        config->pktLenRange.max,
+        config->pktLenRange.invert));
   }
   if (config->__isset.ipFrag) {
     newAcl->setIpFrag(config->ipFrag);
