@@ -234,6 +234,15 @@ void BcmWarmBootCache::programmed(AclEntry2AclStatItr itr) {
   itr->second.claimed = true;
 }
 
+BcmWarmBootCache::AclEntry2AclStatItr BcmWarmBootCache::findAclStat(
+    const BcmAclEntryHandle& bcmAclEntry) {
+  auto aclStatItr = aclEntry2AclStat_.find(bcmAclEntry);
+  if (aclStatItr != aclEntry2AclStat_.end() && aclStatItr->second.claimed) {
+    return aclEntry2AclStat_.end();
+  }
+  return aclStatItr;
+}
+
 const BcmWarmBootCache::EgressIds& BcmWarmBootCache::getPathsForEcmp(
     EgressId ecmp) const {
   static const EgressIds kEmptyEgressIds;

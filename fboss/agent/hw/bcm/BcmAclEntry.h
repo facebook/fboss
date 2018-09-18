@@ -39,7 +39,6 @@ public:
                           const std::shared_ptr<AclEntry>& acl);
 
 private:
-  bool getAclEntryFromWarmBootCache();
   void createNewAclEntry();
   void createAclQualifiers();
   void createAclActions();

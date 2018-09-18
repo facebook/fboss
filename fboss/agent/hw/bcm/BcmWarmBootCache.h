@@ -402,9 +402,7 @@ class BcmWarmBootCache {
   AclEntry2AclStatItr AclEntry2AclStat_end() {
     return aclEntry2AclStat_.end();
   }
-  AclEntry2AclStatItr findAclStat(const BcmAclEntryHandle& bcmAclEntry) {
-    return aclEntry2AclStat_.find(bcmAclEntry);
-  }
+  AclEntry2AclStatItr findAclStat(const BcmAclEntryHandle& bcmAclEntry);
   void programmed(AclEntry2AclStatItr itr);
 
   /*
