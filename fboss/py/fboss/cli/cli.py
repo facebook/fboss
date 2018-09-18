@@ -338,11 +338,12 @@ class PortCli(object):
         port.PortDetailsCmd(cli_opts).run(ports)
 
     @click.command()
-    @click.argument('ports', nargs=-1, required=True, type=PortType())
+    @click.argument('ports', nargs=-1, type=PortType())
+    @click.option('--all', is_flag=True, help='Flap all Present but Down ports')
     @click.pass_obj
-    def _flap(cli_opts, ports):
+    def _flap(cli_opts, ports, all):
         ''' Flap given [port(s)] '''
-        port.PortFlapCmd(cli_opts).run(ports)
+        port.PortFlapCmd(cli_opts).run(ports, all)
 
     @click.command()
     @click.argument('ports', nargs=-1, required=True, type=PortType())

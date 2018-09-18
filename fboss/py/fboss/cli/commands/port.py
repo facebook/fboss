@@ -150,16 +150,24 @@ class PortDetailsCmd(cmds.FbossCmd):
 
 
 class PortFlapCmd(cmds.FbossCmd):
-    def run(self, ports):
+    FLAP_TIME = 1
+
+    def run(self, ports, all):
         try:
-            if not ports:
+            if all:
+                try:
+                    self._qsfp_client = self._create_qsfp_client()
+                except TTransportException:
+                    self._qsfp_client = None
+                self.flap_all_ports()
+            elif not ports:
                 print("Hmm, how did we get here?")
             else:
                 self.flap_ports(ports)
         except FbossBaseError as e:
             raise SystemExit('Fboss Error: ' + e)
 
-    def flap_ports(self, ports, flap_time=1):
+    def flap_ports(self, ports, flap_time=FLAP_TIME):
         self._client = self._create_agent_client()
         resp = self._client.getPortStatus(ports)
         for port, status in resp.items():
@@ -174,6 +182,28 @@ class PortFlapCmd(cmds.FbossCmd):
             if status.enabled:
                 print("Enabling port %d" % (port))
                 self._client.setPortState(port, True)
+
+    def flap_all_ports(self, flap_time=FLAP_TIME):
+        self._client = self._create_agent_client()
+        qsfp_info_map = utils.get_qsfp_info_map(
+            self._qsfp_client, None, continue_on_error=True)
+        resp = self._client.getPortStatus()
+        flapped_ports = []
+        for port, status in resp.items():
+            if status.enabled and not status.up:
+                qsfp_present = False
+                if status.transceiverIdx and self._qsfp_client:
+                    qsfp_info = qsfp_info_map.get(
+                        status.transceiverIdx.transceiverId)
+                    qsfp_present = qsfp_info.present if qsfp_info else False
+                if qsfp_present:
+                    print("Disabling port %d" % (port))
+                    self._client.setPortState(port, False)
+                    flapped_ports.append(port)
+        time.sleep(flap_time)
+        for port in flapped_ports:
+            print("Enabling port %d" % (port))
+            self._client.setPortState(port, True)
 
 
 class PortSetStatusCmd(cmds.FbossCmd):
