@@ -70,6 +70,7 @@ struct PortFields {
   int64_t sFlowEgressRate{0};
   QueueConfig queues;
   cfg::PortFEC fec{cfg::PortFEC::OFF};  // TODO: should this default to ON?
+  cfg::PortLoopbackMode loopbackMode{cfg::PortLoopbackMode::NONE};
 };
 
 /*
@@ -188,6 +189,12 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
     writableFields()->fec = fec;
   }
 
+  cfg::PortLoopbackMode getLoopbackMode() const {
+    return getFields()->loopbackMode;
+  }
+  void setLoopbackMode(cfg::PortLoopbackMode loopbackMode) {
+    writableFields()->loopbackMode = loopbackMode;
+  }
 
   int64_t getSflowIngressRate() const {
     return getFields()->sFlowIngressRate;

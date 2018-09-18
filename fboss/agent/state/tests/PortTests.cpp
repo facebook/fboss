@@ -170,7 +170,8 @@ TEST(Port, ToFromJSON) {
           "ingressVlan" : 2000,
           "portSpeed" : "XG",
           "portFEC" : "OFF",
-          "txPause" : true
+          "txPause" : true,
+          "portLoopbackMode" : "PHY"
         }
   )";
   auto port = Port::fromJson(jsonStr);
@@ -190,6 +191,7 @@ TEST(Port, ToFromJSON) {
   EXPECT_EQ(cfg::PortSpeed::XG, port->getSpeed());
   EXPECT_EQ(cfg::PortFEC::OFF, port->getFEC());
   EXPECT_TRUE(port->getPause().tx);
+  EXPECT_EQ(cfg::PortLoopbackMode::PHY, port->getLoopbackMode());
 
   auto queues = port->getPortQueues();
   EXPECT_EQ(4, queues.size());
@@ -229,6 +231,59 @@ TEST(Port, ToFromJSON) {
 
   auto dyn1 = port->toFollyDynamic();
   auto dyn2 = folly::parseJson(jsonStr);
+
+  EXPECT_EQ(dyn1, dyn2);
+}
+
+TEST(Port, ToFromJSONLoopbackModeMissingFromJson) {
+  std::string jsonStr = R"(
+        {
+          "queues" : [
+          ],
+          "sFlowIngressRate" : 100,
+          "vlanMemberShips" : {
+            "2000" : {
+              "tagged" : true
+            }
+          },
+          "rxPause" : true,
+          "portState" : "ENABLED",
+          "sFlowEgressRate" : 200,
+          "portDescription" : "TEST",
+          "portName" : "eth1/1/1",
+          "portId" : 100,
+          "portOperState" : true,
+          "portMaxSpeed" : "XG",
+          "ingressVlan" : 2000,
+          "portSpeed" : "XG",
+          "portFEC" : "OFF",
+          "txPause" : true
+        }
+  )";
+  auto port = Port::fromJson(jsonStr);
+
+  EXPECT_EQ(100, port->getSflowIngressRate());
+  EXPECT_EQ(200, port->getSflowEgressRate());
+  auto vlans = port->getVlans();
+  EXPECT_EQ(1, vlans.size());
+  EXPECT_TRUE(vlans.at(VlanID(2000)).tagged);
+  EXPECT_TRUE(port->getPause().rx);
+  EXPECT_EQ(cfg::PortState::ENABLED, port->getAdminState());
+  EXPECT_EQ("TEST", port->getDescription());
+  EXPECT_EQ("eth1/1/1", port->getName());
+  EXPECT_EQ(PortID{100}, port->getID());
+  EXPECT_EQ(PortFields::OperState::UP, port->getOperState());
+  EXPECT_EQ(VlanID(2000), port->getIngressVlan());
+  EXPECT_EQ(cfg::PortSpeed::XG, port->getSpeed());
+  EXPECT_EQ(cfg::PortFEC::OFF, port->getFEC());
+  EXPECT_TRUE(port->getPause().tx);
+  EXPECT_EQ(cfg::PortLoopbackMode::NONE, port->getLoopbackMode());
+
+  auto queues = port->getPortQueues();
+  EXPECT_EQ(0, queues.size());
+
+  auto dyn1 = port->toFollyDynamic();
+  auto dyn2 = Port::fromJson(jsonStr)->toFollyDynamic();
 
   EXPECT_EQ(dyn1, dyn2);
 }
@@ -302,6 +357,52 @@ TEST(Port, pauseConfig) {
   expected.tx = true;
   expected.rx = true;
   changePause(expected);
+}
+
+TEST(Port, loopbackModeConfig) {
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+  state->registerPort(PortID(1), "port1");
+  auto verifyLoopbackMode = [&state](cfg::PortLoopbackMode expectLoopbackMode) {
+    auto port = state->getPort(PortID(1));
+    auto loopbackMode = port->getLoopbackMode();
+    EXPECT_EQ(expectLoopbackMode, loopbackMode);
+  };
+
+  auto changeAndVerifyLoopbackMode =
+      [&](cfg::PortLoopbackMode newLoopbackMode) {
+        auto oldLoopbackMode = state->getPort(PortID(1))->getLoopbackMode();
+        cfg::SwitchConfig config;
+        config.ports.resize(1);
+        config.ports[0].logicalID = 1;
+        config.ports[0].name = "port1";
+        config.ports[0].state = cfg::PortState::DISABLED;
+        config.ports[0].loopbackMode = newLoopbackMode;
+        auto newState = publishAndApplyConfig(state, &config, platform.get());
+
+        if (oldLoopbackMode != newLoopbackMode) {
+          EXPECT_NE(nullptr, newState);
+          state = newState;
+          verifyLoopbackMode(newLoopbackMode);
+        } else {
+          EXPECT_EQ(nullptr, newState);
+        }
+      };
+
+  // Verify the default loopback mode is NONE
+  cfg::PortLoopbackMode expected{cfg::PortLoopbackMode::NONE};
+  verifyLoopbackMode(expected);
+
+  // Now change it each time
+
+  expected = cfg::PortLoopbackMode::PHY;
+  changeAndVerifyLoopbackMode(expected);
+
+  expected = cfg::PortLoopbackMode::MAC;
+  changeAndVerifyLoopbackMode(expected);
+
+  expected = cfg::PortLoopbackMode::NONE;
+  changeAndVerifyLoopbackMode(expected);
 }
 
 TEST(PortMap, registerPorts) {

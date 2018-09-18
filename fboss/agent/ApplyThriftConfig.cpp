@@ -670,7 +670,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
       portConf->description == orig->getDescription() &&
       vlans == orig->getVlans() &&
       portConf->fec == orig->getFEC() &&
-      queuesUnchanged) {
+      queuesUnchanged &&
+      portConf->loopbackMode == orig->getLoopbackMode()) {
     return nullptr;
   }
 
@@ -685,6 +686,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
   newPort->setName(portConf->name);
   newPort->setDescription(portConf->description);
   newPort->setFEC(portConf->fec);
+  newPort->setLoopbackMode(portConf->loopbackMode);
   newPort->resetPortQueues(portQueues);
   return newPort;
 }

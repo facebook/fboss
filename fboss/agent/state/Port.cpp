@@ -71,6 +71,17 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
       << "Unexpected FEC value: " << portThrift.portFEC;
   port.fec = cfg::PortFEC(itrPortFec->second);
 
+  if (portThrift.portLoopbackMode.empty()) {
+    // Backward compatibility for when we were not serializing loopback mode
+    port.loopbackMode = cfg::PortLoopbackMode::NONE;
+  } else {
+    auto itrPortLoopbackMode = cfg::_PortLoopbackMode_NAMES_TO_VALUES.find(
+        portThrift.portLoopbackMode.c_str());
+    CHECK(itrPortLoopbackMode != cfg::_PortLoopbackMode_NAMES_TO_VALUES.end())
+      << "Unexpected loopback mode value: " << portThrift.portLoopbackMode;
+    port.loopbackMode = cfg::PortLoopbackMode(itrPortLoopbackMode->second);
+  }
+
   port.pause.tx = portThrift.txPause;
   port.pause.rx = portThrift.rxPause;
 
@@ -120,6 +131,12 @@ state::PortFields PortFields::toThrift() const {
   CHECK(itrPortFec != cfg::_PortFEC_VALUES_TO_NAMES.end())
       << "Unexpected port FEC: " << static_cast<int>(fec);
   port.portFEC = itrPortFec->second;
+
+  auto itrPortLoopbackMode =
+      cfg::_PortLoopbackMode_VALUES_TO_NAMES.find(loopbackMode);
+  CHECK(itrPortLoopbackMode != cfg::_PortLoopbackMode_VALUES_TO_NAMES.end())
+      << "Unexpected port LoopbackMode: " << static_cast<int>(loopbackMode);
+  port.portLoopbackMode = itrPortLoopbackMode->second;
 
   port.txPause = pause.tx;
   port.rxPause = pause.rx;

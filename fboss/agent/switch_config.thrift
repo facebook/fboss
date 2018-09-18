@@ -355,6 +355,12 @@ enum PacketRxReason {
   CPU_IS_NHOP  = 7 // The CPU port is the next-hop in the routing table
 }
 
+enum PortLoopbackMode {
+  NONE  = 0
+  PHY   = 1
+  MAC   = 2
+}
+
 /**
  * Configuration for a single logical port
  */
@@ -438,6 +444,11 @@ struct Port {
    * Should FEC be on for this port?
    */
   16: PortFEC fec = PortFEC.OFF
+
+  /*
+   * Setup port in loopback mode
+   */
+   17: PortLoopbackMode loopbackMode = PortLoopbackMode.NONE
 }
 
 enum LacpPortRate {
