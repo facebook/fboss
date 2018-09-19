@@ -22,13 +22,20 @@ class L2TableCmd(cmds.FbossCmd):
             print("No L2 Entries Found")
             return
         resp = sorted(resp, key=lambda x: (x.port, x.vlanID, x.mac))
-        tmpl = "{:18} {:>4}  {}"
+        tmpl = "{:18} {:>17}  {}"
 
-        print(tmpl.format("MAC Address", "Port", "VLAN"))
-        for port_info in sorted(port_map.values(), key=utils.port_sort_fn):
-            for entry in resp:
-                port_data = port_info.portId
-                if port_data == entry.port:
-                    if port_info.name:
-                        port_data = port_info.name
-                    print(tmpl.format(entry.mac, port_data, entry.vlanID))
+        print(tmpl.format("MAC Address", "Port/Trunk", "VLAN"))
+        for entry in resp:
+            if entry.trunk:
+                port_data = f"{entry.trunk} (Trunk)"
+            else:
+                port_info = port_map.get(entry.port, None)
+                if not port_info:
+                    # Skip ports for which we could not lookup port_info
+                    # This is typically the entries associated with CPU
+                    # port, all of which just point to the MAC address
+                    # we assigned to they configured vlans.
+                    continue
+                port_data = port_info.name if port_info.name else entry.port
+
+            print(tmpl.format(entry.mac, port_data, entry.vlanID))
