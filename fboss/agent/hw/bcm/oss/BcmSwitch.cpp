@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
+#include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/BufferStatsLogger.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
@@ -17,6 +18,7 @@
 #include <folly/logging/xlog.h>
 
 extern "C" {
+#include <opennsl/l2.h>
 #include <opennsl/link.h>
 #include <opennsl/error.h>
 }
@@ -92,12 +94,6 @@ int BcmSwitch::getHighresSamplers(
 
 void BcmSwitch::exportSdkVersion() const {}
 
-#ifdef OPENNSL_6_4_6_6_ODP
-void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift>* /*l2Table*/) {
-  return;
-}
-#endif
-
 void BcmSwitch::initFieldProcessor() const {
   // API not available in opennsl
 }
@@ -143,4 +139,25 @@ std::unique_ptr<BufferStatsLogger> BcmSwitch::createBufferStatsLogger() {
 void BcmSwitch::printDiagCmd(const std::string& /*cmd*/) const {}
 
 void BcmSwitch::forceLinkscanOn(opennsl_pbmp_t /*ports*/) {}
+
+static int _addL2Entry(int /*unit*/, opennsl_l2_addr_t* l2addr,
+                       void* user_data) {
+  L2EntryThrift entry;
+  auto l2Table = static_cast<std::vector<L2EntryThrift>*>(user_data);
+  entry.mac = folly::sformat("{0:02x}:{1:02x}:{2:02x}:{3:02x}:{4:02x}:{5:02x}",
+                             l2addr->mac[0], l2addr->mac[1], l2addr->mac[2],
+                             l2addr->mac[3], l2addr->mac[4], l2addr->mac[5]);
+  entry.vlanID = l2addr->vid;
+  entry.port = l2addr->port;
+  XLOG(DBG6) << "L2 entry: Mac:" << entry.mac << " Vid:" << entry.vlanID
+             << " Port:" << entry.port;
+  l2Table->push_back(entry);
+  return 0;
+}
+
+void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift> *l2Table) {
+  int rv = opennsl_l2_traverse(unit_, _addL2Entry, l2Table);
+  bcmCheckError(rv, "opennsl_l2_traverse failed");
+}
+
 }} //facebook::fboss

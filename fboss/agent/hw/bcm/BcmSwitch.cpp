@@ -1689,31 +1689,6 @@ void BcmSwitch::processRemovedAggregatePort(
   trunkTable_->deleteTrunk(aggPort);
 }
 
-#ifndef OPENNSL_6_4_6_6_ODP
-static int _addL2Entry(int /*unit*/, opennsl_l2_addr_t* l2addr,
-                       void* user_data) {
-  L2EntryThrift entry;
-  std::vector<L2EntryThrift> *l2Table =
-    (std::vector<L2EntryThrift> *) user_data;
-  entry.mac = folly::sformat("{0:02x}:{1:02x}:{2:02x}:{3:02x}:{4:02x}:{5:02x}",
-                             l2addr->mac[0], l2addr->mac[1], l2addr->mac[2],
-                             l2addr->mac[3], l2addr->mac[4], l2addr->mac[5]);
-  entry.port = l2addr->port;
-  entry.vlanID = l2addr->vid;
-  XLOG(DBG6) << "L2 entry: Mac:" << entry.mac << " Vid:" << entry.vlanID
-             << " Port:" << entry.port;
-  l2Table->push_back(entry);
-  return 0;
-}
-
-void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift> *l2Table) {
-  int rv = opennsl_l2_traverse(unit_, _addL2Entry, l2Table);
-  if (rv < 0) {
-    XLOG(ERR) << "oepnnsl_l2_traverse failed";
-  }
-}
-#endif
-
 void BcmSwitch::processLoadBalancerChanges(const StateDelta& delta) {
   forEachChanged(
       delta.getLoadBalancersDelta(),

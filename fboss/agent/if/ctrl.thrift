@@ -101,6 +101,10 @@ struct L2EntryThrift {
   1: string mac,
   2: i32 port,
   3: i32 vlanID,
+  // Add information about l2 entries associated with
+  // trunk ports. Only one of port, trunk is valid. If
+  // trunk is set we look at that.
+  4: optional i32 trunk
 }
 
 enum LacpPortRateThrift {
