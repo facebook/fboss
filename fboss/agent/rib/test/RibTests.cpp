@@ -7,12 +7,14 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/rib/Route.h"
 #include "fboss/agent/rib/RouteNextHop.h"
 #include "fboss/agent/rib/RouteNextHopEntry.h"
 #include "fboss/agent/rib/RouteNextHopsMulti.h"
 #include "fboss/agent/rib/RouteTypes.h"
 
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
 
@@ -40,4 +42,12 @@ TEST(NextHopEntry, Initialization) {
 
 TEST(RouteNextHopsMulti, Initialization) {
   RouteNextHopsMulti multipleClients;
+}
+
+TEST(Route, Initialization) {
+  RoutePrefixV6 prefix;
+  RouteNextHopEntry entry(
+      RouteForwardAction::TO_CPU, AdminDistance::STATIC_ROUTE);
+
+  RouteV6 route(prefix, ClientID(1), entry);
 }
