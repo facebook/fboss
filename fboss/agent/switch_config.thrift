@@ -125,6 +125,76 @@ enum IpFragMatch {
   MATCH_ANY_FRAGMENT = 4
 }
 
+/*
+ * Mirror destination
+ * At least one of the below paramaters must be set
+ *
+ *  egressPort - name of port from which mirror traffic egresses
+ *               required for SPAN
+ *               optional for ERSPAN port mirroring
+ *  ip - mirror to remote (ipv4) destination
+ *               required and used only for ERSPAN
+ *
+ */
+struct MirrorDestination {
+  1: optional string egressPort
+  2: optional string ip
+}
+
+/*
+ * Ingress or egress traffic mirroring
+ */
+enum MirrorDirection {
+  BOTH = 0,
+  INGRESS = 1,
+  EGRESS = 2,
+}
+
+/*
+ * Mirror,
+ *   - name, a logical identifier of mirror
+ *   - destination, to deliver mirrored traffic
+ *   - direction of a traffic to mirror
+ *
+ * Mirroring allows replication of data plane traffic to another destination
+ * This destination can be specified either as an egress port, an egress port
+ * and a remote routable ip (v4) address, or only remote routable ip (v4)
+ * address.
+ *
+ * If only egress port is specified, then mirrored data-plane traffic egresses
+ * the specified port.
+ *
+ * If egress port & remote ip are specified, then mirrored data-plane traffic
+ * egresses the specified port and is delivered to destination ip address.
+ *
+ * If only remote ip is specified, then mirrored data-plane traffic is delivered
+ * to the destination ip address via any possible egress port.
+ *
+ * traffic delivered to remote ip address is ERSPAN (type 1) encapsulated.
+ * this is basically a "gre" tunnel with protocol type 0x88be
+ * L2 frame is encapsulated in gre tunnel and delivered to remote routable
+ * destination.
+ *
+ * A traffic to mirror, can be selected using twowways
+ *    1) a traffic ingressing or egressing a particular port
+ *    2) a traffic ingressing or egressing that meets "acl" criteria,
+ *    (this mirrors a traffic ingressing/egressing switch's acl engine)
+ *
+ *  mirror direction if INGRESS, only ingressing traffic is mirrored
+ *  mirror direction if EGRESS, only egressing traffic is mirrored
+ *  mirror direction if BOTH, both ingress/egress traffic is mirrored
+ *
+ * Only four mirror destinations are possible
+ *
+ * Mirroring should be used with caution and in circumstances to debug traffic
+ * issues, as this feature duplicates traffic and so doubles traffic load.
+ */
+struct Mirror {
+  1: string name
+  2: MirrorDestination destination
+  3: MirrorDirection direction
+}
+
 /**
  * The action for an access control entry
  */
@@ -233,7 +303,8 @@ struct SetDscpMatchAction {
 struct MatchAction {
   1: optional QueueMatchAction sendToQueue
   2: optional PacketCounterMatchAction packetCounter
-  3: optional SetDscpMatchAction setDscp;
+  3: optional SetDscpMatchAction setDscp
+  4: optional string mirror
 }
 
 struct MatchToAction {
@@ -449,6 +520,10 @@ struct Port {
    * Setup port in loopback mode
    */
    17: PortLoopbackMode loopbackMode = PortLoopbackMode.NONE
+  /**
+   * if port is mirrored?
+   */
+  18: optional string mirror
 }
 
 enum LacpPortRate {
@@ -802,4 +877,5 @@ struct SwitchConfig {
   29: optional CPUTrafficPolicyConfig cpuTrafficPolicy
   30: list<LoadBalancer> loadBalancers = []
   31: optional TrafficPolicyConfig dataPlaneTrafficPolicy
+  32: list<Mirror> mirrors = []
 }
