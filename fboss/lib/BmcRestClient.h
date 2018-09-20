@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/agent/RestClient.h"
+#include "fboss/lib/RestClient.h"
 
 namespace facebook { namespace fboss {
 

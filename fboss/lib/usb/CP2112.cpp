@@ -27,7 +27,7 @@
  */
 #include "fboss/lib/usb/CP2112.h"
 #include "fboss/lib/usb/UsbError.h"
-#include "fboss/agent/BmcRestClient.h"
+#include "fboss/lib/BmcRestClient.h"
 
 #include <folly/lang/Bits.h>
 #include <folly/ScopeGuard.h>

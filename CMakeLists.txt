@@ -215,7 +215,6 @@ add_library(fboss_agent STATIC
     fboss/agent/ApplyThriftConfig.cpp
     fboss/agent/ArpCache.cpp
     fboss/agent/ArpHandler.cpp
-    fboss/agent/BmcRestClient.cpp
     fboss/agent/capture/PcapFile.cpp
     fboss/agent/capture/PcapPkt.cpp
     fboss/agent/capture/PcapQueue.cpp
@@ -349,7 +348,6 @@ add_library(fboss_agent STATIC
     fboss/agent/PortRemediator.cpp
     fboss/agent/PortStats.cpp
     fboss/agent/PortUpdateHandler.cpp
-    fboss/agent/RestClient.cpp
     fboss/agent/RouteUpdateLogger.cpp
     fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
     fboss/agent/state/AclEntry.cpp
@@ -404,6 +402,8 @@ add_library(fboss_agent STATIC
     fboss/lib/usb/GalaxyI2CBus.cpp
     fboss/lib/usb/BaseWedgeI2CBus.cpp
     fboss/lib/usb/BaseWedgeI2CBus.h
+    fboss/lib/RestClient.cpp
+    fboss/lib/BmcRestClient.cpp
     fboss/lib/usb/CP2112.cpp
     fboss/lib/usb/CP2112.h
     fboss/lib/usb/PCA9548.cpp
