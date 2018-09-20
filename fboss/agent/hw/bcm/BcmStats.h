@@ -53,8 +53,18 @@ class BcmStats {
     txPktAllocErrors_.addValue(1);
   }
 
-  void parityError() {
+  void corrParityError() {
     parityErrors_.addValue(1);
+    corrParityErrors_.addValue(1);
+  }
+
+  void uncorrParityError() {
+    parityErrors_.addValue(1);
+    uncorrParityErrors_.addValue(1);
+  }
+
+  void asicError() {
+    asicErrors_.addValue(1);
   }
 
  private:
@@ -86,6 +96,11 @@ class BcmStats {
 
   // parity errors
   TLTimeseries parityErrors_;
+  TLTimeseries corrParityErrors_;
+  TLTimeseries uncorrParityErrors_;
+
+  // Other ASIC errors
+  TLTimeseries asicErrors_;
 
   static folly::ThreadLocalPtr<BcmStats> stats_;
 };

@@ -124,39 +124,47 @@ void callbackDispatch(
   }
 }
 
+std::string getAlarmName(const opennsl_switch_event_t eventID) {
+  switch (eventID) {
+    case OPENNSL_SWITCH_EVENT_STABLE_FULL:
+      return "OPENNSL_SWITCH_EVENT_STABLE_FULL";
+    case OPENNSL_SWITCH_EVENT_STABLE_ERROR:
+      return "OPENNSL_SWITCH_EVENT_STABLE_ERROR";
+    case OPENNSL_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN:
+      return "OPENNSL_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN";
+    case OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE:
+      return "OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE";
+    case OPENNSL_SWITCH_EVENT_PARITY_ERROR:
+      return "OPENNSL_SWITCH_EVENT_PARITY_ERROR";
+    case OPENNSL_SWITCH_EVENT_MMU_BST_TRIGGER:
+      return "OPENNSL_SWITCH_EVENT_MMU_BST_TRIGGER";
+    default:
+      return "UNKNOWN";
+  }
+}
+
+
 // default switch event behavior -- log warning and return
 // to preserve original system behavior, don't terminate the program
 void defaultCallback(const int unit, const opennsl_switch_event_t eventID,
                      const uint32_t arg1, const uint32_t arg2,
                      const uint32_t arg3) {
-  std::string alarm;
-
-  switch (eventID) {
-    case OPENNSL_SWITCH_EVENT_PARITY_ERROR:
-      alarm = "OPENNSL_SWITCH_EVENT_PARITY_ERROR";
-      break;
-    case OPENNSL_SWITCH_EVENT_STABLE_FULL:
-      alarm = "OPENNSL_SWITCH_EVENT_STABLE_FULL";
-      break;
-    case OPENNSL_SWITCH_EVENT_STABLE_ERROR:
-      alarm = "OPENNSL_SWITCH_EVENT_STABLE_ERROR";
-      break;
-    case OPENNSL_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN:
-      alarm = "OPENNSL_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN";
-      break;
-    case OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE:
-      alarm = "OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE";
-      break;
-    case OPENNSL_SWITCH_EVENT_MMU_BST_TRIGGER:
-      alarm = "OPENNSL_SWITCH_EVENT_MMU_BST_TRIGGER";
-      break;
-    default:
-      alarm = "UNKNOWN";
-  }
-
+  std::string alarm = getAlarmName(eventID);
   XLOG(ERR) << "BCM Unhandled switch event " << alarm << "(" << eventID
             << ") on hw unit " << unit << " with params: (" << arg1 << ", "
             << arg2 << ", " << arg3 << ")";
+}
+
+void exportEventCounters(const opennsl_switch_event_t eventID, bool fatal) {
+  if (eventID != OPENNSL_SWITCH_EVENT_PARITY_ERROR) {
+      BcmStats::get()->asicError();
+  } else {
+      if (fatal) {
+          BcmStats::get()->uncorrParityError();
+      } else {
+          BcmStats::get()->corrParityError();
+      }
+  }
 }
 
 }}}

@@ -39,7 +39,13 @@ BcmStats::BcmStats(ThreadLocalStatsMap *map)
       txQueued_(map, SwitchStats::kCounterPrefix + "bcm.tx.pkt.queued_us",
                 100, 0, 1000),
       parityErrors_(map, SwitchStats::kCounterPrefix + "bcm.parity.errors",
-                    SUM, RATE) {
+                    SUM, RATE),
+      corrParityErrors_(map, SwitchStats::kCounterPrefix + "bcm.parity.corr",
+                        SUM, RATE),
+      uncorrParityErrors_(map, SwitchStats::kCounterPrefix +
+                          "bcm.parity.uncorr", SUM, RATE),
+      asicErrors_(map, SwitchStats::kCounterPrefix +
+                  "bcm.asic.error", SUM, RATE) {
 }
 
 BcmStats* BcmStats::createThreadStats() {

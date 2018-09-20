@@ -15,6 +15,7 @@
 #include <folly/Synchronized.h>
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/bcm/BcmStats.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
 
 extern "C" {
@@ -51,9 +52,16 @@ namespace BcmSwitchEventUtils {
                         uint32_t arg1, uint32_t arg2, uint32_t arg3,
                         void* instance);
 
+  // Return the name of the alarm
+  std::string getAlarmName(const opennsl_switch_event_t eventID);
+
   // default callback for non-handled switch events.
   void defaultCallback(const int unit, const opennsl_switch_event_t eventID,
                        const uint32_t arg1, const uint32_t arg2,
                        const uint32_t arg3);
+
+  // Export counters
+void exportEventCounters(const opennsl_switch_event_t eventID, bool fatal);
+
 }
 }} // facebook::fboss
