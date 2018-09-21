@@ -7,7 +7,7 @@ from fboss.thrift_clients import FbossAgentClient, QsfpServiceClient
 from fboss.netlink_manager.netlink_manager_client import NetlinkManagerClient
 from fboss.system_tests.testutils.test_client import TestClient
 from neteng.fboss.ttypes import FbossBaseError
-from fboss.system_tests.facebook.utils.ensemble_health_check_utils import (
+from fboss.system_tests.facebook.utils.ensemble_requirements import (
     is_host_ping_reachable)
 
 from thrift.transport.TTransport import TTransportException
