@@ -120,7 +120,8 @@ class FBOSSTestTopology(object):
         For now, this is just for single switch testing.
     """
 
-    def __init__(self, switch, port=None, qsfp_port=None):
+    def __init__(self, switch, ensemble, min_hosts,
+            port=None, qsfp_port=None):
         if port is None:
             port = FbossAgentClient.DEFAULT_PORT
         if qsfp_port is None:
@@ -131,6 +132,8 @@ class FBOSSTestTopology(object):
         self.switch = switch
         self.test_hosts = {}
         self.role_type = RoleType.SINGLE_SWITCH
+        self.ensemble = ensemble
+        self.min_hosts = min_hosts
 
     def add_host(self, host):
         """ This host is physically connected to this switch. """

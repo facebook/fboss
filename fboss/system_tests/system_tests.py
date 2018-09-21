@@ -139,18 +139,14 @@ class FbossBaseSystemTest(unittest.TestCase):
     _datefmt = "%m/%d/%Y-%H:%M:%S"
 
     def setUp(self):
-        if self.options is None:
-            raise Exception("options not set - did you call run_tests()?")
-        if (not hasattr(self.options, 'test_topology') or
-                    self.options.test_topology is None):
-            raise Exception("options.test_topology not set - " +
+        if not self.test_topology:
+            raise Exception("optitest_topology not set - " +
                             "did you call run_tests()?")
-        self.test_topology = self.options.test_topology  # save typing
         my_name = str(self.__class__.__name__ + "." + self._testMethodName)
         self.log = logging.getLogger(my_name)
         self.log.setLevel(logging.DEBUG)  # logging controlled by handlers
-        logfile_opts = {'test': my_name, 'dir': self.options.log_dir}
-        logfile = self.options.log_file.format(**logfile_opts)
+        logfile_opts = {'test': my_name, 'dir': self.log_dir}
+        logfile = self.log_file.format(**logfile_opts)
         # close old log files
         for handler in self.log.handlers:
             self.log.removeHandler(handler)
@@ -158,7 +154,7 @@ class FbossBaseSystemTest(unittest.TestCase):
         # open one unique for each test class
         handler = logging.FileHandler(logfile, mode='w+')
         handler.setLevel(
-            getattr(logging, self.options.file_log_level.upper()))
+            getattr(logging, self.file_log_level.upper()))
         handler.setFormatter(logging.Formatter(self._format, self._datefmt))
         self.log.addHandler(handler)
         self.test_hosts_in_topo = self.test_topology.number_of_hosts()
@@ -178,10 +174,11 @@ class FbossBaseSystemTest(unittest.TestCase):
 
     def _verify_topo_and_block_bad_ensemble(self):
         state, reason = self._get_topology_state()
+        ensemble = self.test_topology.ensemble
         if not state:
-            if not get_ensemble_attr(self.options.ensemble, 'task-id'):
-                self.options.ensemble=block_ensemble_and_create_task(
-                    self.options.ensemble,
+            if not get_ensemble_attr(ensemble, 'task-id'):
+                ensemble=block_ensemble_and_create_task(
+                    ensemble,
                     reason=reason,
                     logger=self.log)
             return False
@@ -193,7 +190,7 @@ class FbossBaseSystemTest(unittest.TestCase):
             self.log.info("Switch is not in good state")
             return False, "Switch is not in good state"
         if not self.test_topology.verify_hosts(
-           min_hosts=self.options.min_hosts, log=self.log):
+           min_hosts=self.test_topology.min_hosts, log=self.log):
             self.log.info("Hosts are not in good state")
             return False, "Hosts are not in good state"
         return True, ''
@@ -210,7 +207,10 @@ def frob_options_into_tests(suite, options):
             # recursively iterate through all of the TestSuites
             frob_options_into_tests(test, options)
         else:
-            test.options = options
+            test.test_topology = options.test_topology
+            test.log_file = options.log_file
+            test.file_log_level = options.file_log_level
+            test.log_dir = options.log_dir
 
 
 def add_interested_tests_to_test_suite(tests, suite):
