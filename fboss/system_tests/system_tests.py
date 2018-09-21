@@ -13,7 +13,9 @@ import unittest
 
 from fboss.system_tests.testutils.system_tests_runner import SystemTestsRunner
 from fboss.system_tests.facebook.utils.ensemble_health_check_utils import (
-    get_ensemble_attr, block_ensemble_and_create_task)
+    block_ensemble_and_create_task,
+)
+from neteng.netcastle.utils.basset_utils import BassetButler
 
 user_requested_tags = []
 
@@ -176,7 +178,7 @@ class FbossBaseSystemTest(unittest.TestCase):
         state, reason = self._get_topology_state()
         ensemble = self.test_topology.ensemble
         if not state:
-            if not get_ensemble_attr(ensemble, 'task-id'):
+            if not BassetButler().get_attr(ensemble, 'task-id'):
                 ensemble=block_ensemble_and_create_task(
                     ensemble,
                     reason=reason,
