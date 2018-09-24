@@ -672,6 +672,11 @@ TransceiverInfo QsfpModule::parseDataLocked() {
   } else {
     info.channels.clear();
   }
+
+  if (getTransceiverStats(info.stats)) {
+    info.__isset.stats = true;
+  }
+
   return info;
 }
 
@@ -1133,6 +1138,15 @@ void QsfpModule::ensureTxEnabled(time_t cooldown) {
       TransceiverI2CApi::ADDR_QSFP, offset, 1, buf.data());
     lastTxEnable_ = std::time(nullptr);
   }
+}
+
+bool QsfpModule::getTransceiverStats(TransceiverStats& stats) {
+  auto transceiverStats = qsfpImpl_->getTransceiverStats();
+  if (!transceiverStats.hasValue()) {
+    return false;
+  }
+  stats = transceiverStats.value();
+  return true;
 }
 
 }} //namespace facebook::fboss
