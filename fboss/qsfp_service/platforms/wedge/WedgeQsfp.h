@@ -9,11 +9,57 @@
  */
 #pragma once
 
+#include <chrono>
 #include <cstdint>
-#include "fboss/qsfp_service/sff/TransceiverImpl.h"
+#include <mutex>
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
+#include "fboss/qsfp_service/sff/TransceiverImpl.h"
 
 namespace facebook { namespace fboss {
+
+class WedgeQsfpStats {
+  using time_point = std::chrono::steady_clock::time_point;
+  using seconds = std::chrono::seconds;
+
+ public:
+  WedgeQsfpStats() {}
+  ~WedgeQsfpStats() {}
+
+  void updateReadDownTime() {
+    std::lock_guard<std::mutex> g(statsMutex_);
+    stats_.readDownTime = downTimeLocked(lastSuccessfulRead_);
+  }
+
+  void updateWriteDownTime() {
+    std::lock_guard<std::mutex> g(statsMutex_);
+    stats_.writeDownTime = downTimeLocked(lastSuccessfulWrite_);
+  }
+
+  void recordReadSuccess() {
+    std::lock_guard<std::mutex> g(statsMutex_);
+    lastSuccessfulRead_ = std::chrono::steady_clock::now();
+  }
+
+  void recordWriteSuccess() {
+    std::lock_guard<std::mutex> g(statsMutex_);
+    lastSuccessfulWrite_ = std::chrono::steady_clock::now();
+  }
+
+  TransceiverStats getStats() {
+    std::lock_guard<std::mutex> g(statsMutex_);
+    return stats_;
+  }
+
+ private:
+  double downTimeLocked(const time_point& lastSuccess) {
+    auto now = std::chrono::steady_clock::now();
+    return std::chrono::duration_cast<seconds>(now - lastSuccess).count();
+  }
+  TransceiverStats stats_;
+  std::mutex statsMutex_;
+  time_point lastSuccessfulRead_;
+  time_point lastSuccessfulWrite_;
+};
 
 /*
  * This is the Wedge Platform Specific Class
@@ -41,10 +87,13 @@ class WedgeQsfp : public TransceiverImpl {
 
   int getNum() const override;
 
+  folly::Optional<TransceiverStats> getTransceiverStats() override;
+
  private:
   int module_;
   std::string moduleName_;
   TransceiverI2CApi* threadSafeI2CBus_;
+  WedgeQsfpStats wedgeQsfpstats_;
 };
 
 }} // namespace facebook::fboss

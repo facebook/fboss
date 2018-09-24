@@ -11,6 +11,7 @@
 #include "WedgeQsfp.h"
 #include <folly/Conv.h>
 #include <folly/Memory.h>
+#include <folly/ScopeGuard.h>
 
 #include <folly/logging/xlog.h>
 #include "fboss/qsfp_service/StatsPublisher.h"
@@ -41,27 +42,46 @@ bool WedgeQsfp::detectTransceiver() {
 int WedgeQsfp::readTransceiver(int dataAddress, int offset,
                                int len, uint8_t* fieldValue) {
   try {
+    SCOPE_EXIT {
+      wedgeQsfpstats_.updateReadDownTime();
+    };
+    SCOPE_FAIL {
+      StatsPublisher::bumpReadFailure();
+    };
+    SCOPE_SUCCESS {
+      wedgeQsfpstats_.recordReadSuccess();
+    };
     threadSafeI2CBus_->moduleRead(module_ + 1, dataAddress, offset, len,
                                   fieldValue);
-  } catch (const I2cError& ex) {
+  } catch (const std::exception& ex) {
     XLOG(ERR) << "Read from transceiver " << module_ << " at offset " << offset
               << " with length " << len << " failed: " << ex.what();
-    StatsPublisher::bumpReadFailure();
     throw;
   }
   return len;
 }
 
-int WedgeQsfp::writeTransceiver(int dataAddress, int offset,
-                            int len, uint8_t* fieldValue) {
+int WedgeQsfp::writeTransceiver(
+    int dataAddress,
+    int offset,
+    int len,
+    uint8_t* fieldValue) {
   try {
-    threadSafeI2CBus_->moduleWrite(module_ + 1, dataAddress, offset, len,
-                                   fieldValue);
-  } catch (const I2cError& ex) {
+    SCOPE_EXIT {
+      wedgeQsfpstats_.updateWriteDownTime();
+    };
+    SCOPE_FAIL {
+      StatsPublisher::bumpWriteFailure();
+    };
+    SCOPE_SUCCESS {
+      wedgeQsfpstats_.recordWriteSuccess();
+    };
+    threadSafeI2CBus_->moduleWrite(
+        module_ + 1, dataAddress, offset, len, fieldValue);
+  } catch (const std::exception& ex) {
     XLOG(ERR) << "Write to transceiver " << module_ << " at offset " << offset
               << " with length " << len
               << " failed: " << folly::exceptionStr(ex);
-    StatsPublisher::bumpWriteFailure();
     throw;
   }
   return len;
@@ -75,4 +95,9 @@ int WedgeQsfp::getNum() const {
   return module_;
 }
 
+folly::Optional<TransceiverStats> WedgeQsfp::getTransceiverStats() {
+  auto result = folly::Optional<TransceiverStats>();
+  result.assign(wedgeQsfpstats_.getStats());
+  return result;
+}
 }}
