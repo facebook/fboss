@@ -374,6 +374,7 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   // Update Tx Setting if needed.
   setTxSetting(port);
   setSflowRates(port);
+  setLoopbackMode(port);
 }
 
 void BcmPort::linkStatusChanged(const std::shared_ptr<Port>& port) {

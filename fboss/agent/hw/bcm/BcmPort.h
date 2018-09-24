@@ -208,6 +208,8 @@ class BcmPort {
   void setFEC(const std::shared_ptr<Port>& swPort);
   void setPause(const std::shared_ptr<Port>& swPort);
   void setTxSetting(const std::shared_ptr<Port>& swPort);
+  void setLoopbackMode(const std::shared_ptr<Port>& swPort);
+
   bool isMmuLossy() const;
   uint8_t determinePipe() const;
 

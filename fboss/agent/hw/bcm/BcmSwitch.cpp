@@ -922,8 +922,13 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
       auto fecChanged = oldPort->getFEC() != newPort->getFEC();
       XLOG_IF(DBG1, fecChanged) << "New FEC settings on port " << id;
 
+      auto loopbackChanged =
+          oldPort->getLoopbackMode() != newPort->getLoopbackMode();
+      XLOG_IF(DBG1, loopbackChanged)
+          << "New loopback mode settings on port " << id;
+
       if (speedChanged || vlanChanged || pauseChanged || sFlowChanged ||
-          fecChanged) {
+          fecChanged || loopbackChanged) {
         bcmPort->program(newPort);
       }
 
