@@ -23,17 +23,17 @@ class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
   static
   std::shared_ptr<NodeT> fromFollyDynamic(folly::dynamic const& dyn) {
     auto const jsonStr = folly::toJson(dyn);
+    return fromJson(jsonStr);
+  }
+
+  static
+  std::shared_ptr<NodeT> fromJson(const folly::fbstring& jsonStr) {
     auto inBuf =
         folly::IOBuf::wrapBufferAsValue(jsonStr.data(), jsonStr.size());
     auto obj = apache::thrift::SimpleJSONSerializer::deserialize<ThriftT>(
         folly::io::Cursor{&inBuf});
     auto fields = FieldsT::fromThrift(obj);
     return std::make_shared<NodeT>(fields);
-  }
-
-  static
-  std::shared_ptr<NodeT> fromJson(const folly::fbstring& jsonStr) {
-    return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
   folly::dynamic toFollyDynamic() const override {
