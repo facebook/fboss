@@ -793,6 +793,72 @@ TEST(Route, MultipleAddressInterface) {
   }
 }
 
+// Test interface + static routes
+TEST(Route, InterfaceAndStatic) {
+  auto platform = createMockPlatform();
+  RouterID rid = RouterID(0);
+  auto stateV0 = make_shared<SwitchState>();
+  auto tablesV0 = stateV0->getRouteTables();
+
+  cfg::SwitchConfig config;
+  config.vlans.resize(2);
+  config.vlans[0].id = 1;
+  config.vlans[1].id = 2;
+
+  config.interfaces.resize(2);
+  config.interfaces[0].intfID = 1;
+  config.interfaces[0].vlanID = 1;
+  config.interfaces[0].routerID = 0;
+  config.interfaces[0].__isset.mac = true;
+  config.interfaces[0].mac = "00:00:00:00:00:11";
+  config.interfaces[0].ipAddresses.resize(2);
+  config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
+  config.interfaces[0].ipAddresses[1] = "1::1/48";
+  config.interfaces[1].intfID = 2;
+  config.interfaces[1].vlanID = 2;
+  config.interfaces[1].routerID = 0;
+  config.interfaces[1].__isset.mac = true;
+  config.interfaces[1].mac = "00:00:00:00:00:22";
+  config.interfaces[1].ipAddresses.resize(2);
+  config.interfaces[1].ipAddresses[0] = "2.2.2.2/24";
+  config.interfaces[1].ipAddresses[1] = "2::1/48";
+  // Add v4/v6 static routes with nhops
+  config.__isset.staticRoutesWithNhops = true;
+  config.staticRoutesWithNhops.resize(2);
+  config.staticRoutesWithNhops[0].nexthops.resize(1);
+  config.staticRoutesWithNhops[0].prefix = "2001::/64";
+  config.staticRoutesWithNhops[0].nexthops[0] = "2::2";
+  config.staticRoutesWithNhops[1].nexthops.resize(1);
+  config.staticRoutesWithNhops[1].prefix = "20.20.20.0/24";
+  config.staticRoutesWithNhops[1].nexthops[0] = "2.2.2.3";
+
+  auto insertStaticNoNhopRoutes = [=](auto& staticRouteNoNhops,
+                                      int prefixStartIdx) {
+    staticRouteNoNhops.resize(2);
+    staticRouteNoNhops[0].prefix = folly::sformat("240{}::/64", prefixStartIdx);
+    staticRouteNoNhops[1].prefix =
+        folly::sformat("30.30.{}.0/24", prefixStartIdx);
+  };
+  // Add v4/v6 static routes to CPU/NULL
+  config.__isset.staticRoutesToCPU = true;
+  insertStaticNoNhopRoutes(config.staticRoutesToCPU, 1);
+  config.__isset.staticRoutesToNull = true;
+  insertStaticNoNhopRoutes(config.staticRoutesToNull, 2);
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  stateV1->publish();
+  auto tablesV1 = stateV1->getRouteTables();
+  EXPECT_NODEMAP_MATCH(tablesV1);
+  EXPECT_NE(tablesV0, tablesV1);
+  // 5 = 2 (interface routes) + 1 (static routes with nhops) +
+  // 1 static routes to CPU) + 1 (static routes to NULL)
+  EXPECT_EQ(5, tablesV1->getRouteTableIf(rid)->getRibV4()->size());
+  // 6 = 2 (interface routes) + 1 (static routes with nhops) +
+  // 1 (static routes to CPU) + 1 (static routes to NULL) + 1 (link local route)
+  EXPECT_EQ(6, tablesV1->getRouteTableIf(rid)->getRibV6()->size());
+}
+
 namespace TEMP {
 struct Route {
   uint32_t vrf;
