@@ -13,23 +13,23 @@
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
+#include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/ControlPlane.h"
-#include "fboss/agent/state/SflowCollector.h"
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
-#include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/VlanMap.h"
-#include "fboss/agent/state/VlanMapDelta.h"
-#include "fboss/agent/state/Interface.h"
-#include "fboss/agent/state/InterfaceMap.h"
-#include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/RouteTableRib.h"
-#include "fboss/agent/state/LoadBalancer.h"
+#include "fboss/agent/state/SflowCollector.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/state/VlanMap.h"
+#include "fboss/agent/state/VlanMapDelta.h"
 
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 
@@ -94,6 +94,11 @@ DeltaValue<ControlPlane> StateDelta::getControlPlaneDelta() const {
                                   new_->getControlPlane());
 }
 
+NodeMapDelta<MirrorMap> StateDelta::getMirrorsDelta() const {
+  return NodeMapDelta<MirrorMap>(
+      old_->getMirrors().get(), new_->getMirrors().get());
+}
+
 std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
   // Leverage the folly::dynamic printing facilities
   folly::dynamic diff = folly::dynamic::object;
@@ -137,5 +142,5 @@ template class NodeMapDelta<SflowCollectorMap>;
 template class NodeMapDelta<RouteTableRibNodeMap<folly::IPAddressV4>>;
 template class NodeMapDelta<RouteTableRibNodeMap<folly::IPAddressV6>>;
 template class NodeMapDelta<LoadBalancerMap>;
-
+template class NodeMapDelta<MirrorMap>;
 }} // facebook::fboss
