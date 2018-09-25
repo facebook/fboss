@@ -130,13 +130,18 @@ def _get_first_router_ip(test, interface, v6):
     return ip_addr_to_str(dst_ips[0].ip)
 
 
-def _wait_for_counter_to_stop(test, switch_thrift, counter, delay):
+def _wait_for_counter_to_stop(test, switch_thrift, counter, delay,
+        max_queue_time=2.5):
     # wait for counter to stop incrementing,
     # so no old/queued packets corrupt our test data
+    # 2.5 is a bit of a mgaic number because of the current
+    # counter bump queuing delay of 2 seconcs as described at the
+    # top of this file
     npkts_start = switch_thrift.getCounter(counter)
     start = time.time()
     while (start + delay) > time.time():
-        time.sleep(1)  # assume no packets queued for more than 1 sec
+        # assume no packets queued for more than max_queue seconds
+        time.sleep(max_queue_time)
         npkts_before = switch_thrift.getCounter(counter)
         if npkts_before != npkts_start:
             # need to wait longer
