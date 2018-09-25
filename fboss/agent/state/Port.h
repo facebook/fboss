@@ -11,9 +11,10 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
-#include "fboss/agent/types.h"
-#include "fboss/agent/state/Thrifty.h"
+#include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/PortQueue.h"
+#include "fboss/agent/state/Thrifty.h"
+#include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
 #include <string>
@@ -71,6 +72,8 @@ struct PortFields {
   QueueConfig queues;
   cfg::PortFEC fec{cfg::PortFEC::OFF};  // TODO: should this default to ON?
   cfg::PortLoopbackMode loopbackMode{cfg::PortLoopbackMode::NONE};
+  folly::Optional<std::string> ingressMirror;
+  folly::Optional<std::string> egressMirror;
 };
 
 /*
@@ -208,6 +211,22 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
   }
   void setSflowEgressRate(int64_t egressRate) {
     writableFields()->sFlowEgressRate = egressRate;
+  }
+
+  folly::Optional<std::string> getIngressMirror() const {
+    return getFields()->ingressMirror;
+  }
+
+  void setIngressMirror(folly::Optional<std::string> mirror) {
+    writableFields()->ingressMirror.assign(mirror);
+  }
+
+  folly::Optional<std::string> getEgressMirror() const {
+    return getFields()->egressMirror;
+  }
+
+  void setEgressMirror(folly::Optional<std::string> mirror) {
+    writableFields()->egressMirror.assign(mirror);
   }
 
   Port* modify(std::shared_ptr<SwitchState>* state);

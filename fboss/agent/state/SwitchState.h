@@ -20,6 +20,7 @@
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
+#include "fboss/agent/state/MirrorMap.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/RouteTableMap.h"
@@ -65,6 +66,8 @@ struct SwitchStateFields {
   std::shared_ptr<SflowCollectorMap> sFlowCollectors;
   std::shared_ptr<ControlPlane> controlPlane;
   std::shared_ptr<LoadBalancerMap> loadBalancers;
+  std::shared_ptr<MirrorMap> mirrors;
+
   VlanID defaultVlan{0};
 
 
@@ -269,6 +272,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   }
 
   const std::shared_ptr<LoadBalancerMap>& getLoadBalancers() const;
+  const std::shared_ptr<MirrorMap>& getMirrors() const;
 
   /*
    * The following functions modify the static state.
@@ -293,6 +297,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
       const std::shared_ptr<SflowCollectorMap>& collectors);
   void resetControlPlane(std::shared_ptr<ControlPlane> cpu);
   void resetLoadBalancers(std::shared_ptr<LoadBalancerMap> loadBalancers);
+  void resetMirrors(std::shared_ptr<MirrorMap> mirrors);
 
  private:
   // Inherit the constructor required for clone()

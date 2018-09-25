@@ -125,11 +125,16 @@ enum IpFragMatch {
   MATCH_ANY_FRAGMENT = 4
 }
 
+union MirrorEgressPort {
+  1: string name
+  2: i32 logicalID
+}
+
 /*
  * Mirror destination
  * At least one of the below paramaters must be set
  *
- *  egressPort - name of port from which mirror traffic egresses
+ *  egressPort - name or ID of port from which mirror traffic egresses
  *               required for SPAN
  *               optional for ERSPAN port mirroring
  *  ip - mirror to remote (ipv4) destination
@@ -137,17 +142,8 @@ enum IpFragMatch {
  *
  */
 struct MirrorDestination {
-  1: optional string egressPort
+  1: optional MirrorEgressPort egressPort
   2: optional string ip
-}
-
-/*
- * Ingress or egress traffic mirroring
- */
-enum MirrorDirection {
-  BOTH = 0,
-  INGRESS = 1,
-  EGRESS = 2,
 }
 
 /*
@@ -192,7 +188,6 @@ enum MirrorDirection {
 struct Mirror {
   1: string name
   2: MirrorDestination destination
-  3: MirrorDirection direction
 }
 
 /**
@@ -304,7 +299,8 @@ struct MatchAction {
   1: optional QueueMatchAction sendToQueue
   2: optional PacketCounterMatchAction packetCounter
   3: optional SetDscpMatchAction setDscp
-  4: optional string mirror
+  4: optional string ingressMirror
+  5: optional string egressMirror
 }
 
 struct MatchToAction {
@@ -523,7 +519,8 @@ struct Port {
   /**
    * if port is mirrored?
    */
-  18: optional string mirror
+  18: optional string ingressMirror
+  19: optional string egressMirror
 }
 
 enum LacpPortRate {

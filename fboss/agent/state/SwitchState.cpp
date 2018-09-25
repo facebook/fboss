@@ -46,6 +46,7 @@ constexpr auto kArpAgerInterval = "arpAgerInterval";
 constexpr auto kMaxNeighborProbes = "maxNeighborProbes";
 constexpr auto kStaleEntryInterval = "staleEntryInterval";
 constexpr auto kLoadBalancers = "loadBalancers";
+constexpr auto kMirrors = "mirrors";
 }
 
 namespace facebook { namespace fboss {
@@ -59,7 +60,8 @@ SwitchStateFields::SwitchStateFields()
       acls(make_shared<AclMap>()),
       sFlowCollectors(make_shared<SflowCollectorMap>()),
       controlPlane(make_shared<ControlPlane>()),
-      loadBalancers(make_shared<LoadBalancerMap>()) {}
+      loadBalancers(make_shared<LoadBalancerMap>()),
+      mirrors(make_shared<MirrorMap>()) {}
 
 folly::dynamic SwitchStateFields::toFollyDynamic() const {
   folly::dynamic switchState = folly::dynamic::object;
@@ -72,6 +74,7 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kDefaultVlan] = static_cast<uint32_t>(defaultVlan);
   switchState[kControlPlane] = controlPlane->toFollyDynamic();
   switchState[kLoadBalancers] = loadBalancers->toFollyDynamic();
+  switchState[kMirrors] = mirrors->toFollyDynamic();
   return switchState;
 }
 
@@ -97,6 +100,9 @@ SwitchStateFields::fromFollyDynamic(const folly::dynamic& swJson) {
   if (swJson.find(kLoadBalancers) != swJson.items().end()) {
     switchState.loadBalancers =
         LoadBalancerMap::fromFollyDynamic(swJson[kLoadBalancers]);
+  }
+  if (swJson.find(kMirrors) != swJson.items().end()) {
+    switchState.mirrors = MirrorMap::fromFollyDynamic(swJson[kMirrors]);
   }
   //TODO verify that created state here is internally consistent t4155406
   return switchState;
@@ -231,6 +237,14 @@ void SwitchState::resetLoadBalancers(
 
 const std::shared_ptr<LoadBalancerMap>& SwitchState::getLoadBalancers() const {
   return getFields()->loadBalancers;
+}
+
+void SwitchState::resetMirrors(std::shared_ptr<MirrorMap> mirrors) {
+  writableFields()->mirrors.swap(mirrors);
+}
+
+const std::shared_ptr<MirrorMap>& SwitchState::getMirrors() const {
+  return getFields()->mirrors;
 }
 
 template class NodeBaseT<SwitchState, SwitchStateFields>;

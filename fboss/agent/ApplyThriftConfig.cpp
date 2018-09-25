@@ -23,22 +23,23 @@
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/ControlPlane.h"
-#include "fboss/agent/state/SflowCollector.h"
-#include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/NdpResponseTable.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/Route.h"
+#include "fboss/agent/state/RouteTable.h"
+#include "fboss/agent/state/RouteTableMap.h"
+#include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/state/RouteTypes.h"
+#include "fboss/agent/state/RouteUpdater.h"
+#include "fboss/agent/state/SflowCollector.h"
+#include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
-#include "fboss/agent/state/Route.h"
-#include "fboss/agent/state/RouteTableRib.h"
-#include "fboss/agent/state/RouteTable.h"
-#include "fboss/agent/state/RouteTableMap.h"
-#include "fboss/agent/state/RouteUpdater.h"
 
 #include <algorithm>
 #include <boost/container/flat_set.hpp>
@@ -215,8 +216,14 @@ class ThriftConfigApplier {
       const shared_ptr<SflowCollector>& orig,
       const cfg::SflowCollector* config);
   shared_ptr<ControlPlane> updateControlPlane();
+  std::shared_ptr<MirrorMap> updateMirrors();
+  std::shared_ptr<Mirror> createMirror(const cfg::Mirror* config);
+  std::shared_ptr<Mirror> updateMirror(
+      const std::shared_ptr<Mirror>& orig,
+      const cfg::Mirror* config);
 
   std::shared_ptr<SwitchState> orig_;
+  std::shared_ptr<SwitchState> new_;
   const cfg::SwitchConfig* cfg_{nullptr};
   const Platform* platform_{nullptr};
   const cfg::SwitchConfig* prevCfg_{nullptr};
@@ -243,13 +250,13 @@ class ThriftConfigApplier {
 };
 
 shared_ptr<SwitchState> ThriftConfigApplier::run() {
-  auto newState = orig_->clone();
+  new_ = orig_->clone();
   bool changed = false;
 
   {
     auto newControlPlane = updateControlPlane();
     if (newControlPlane) {
-      newState->resetControlPlane(std::move(newControlPlane));
+      new_->resetControlPlane(std::move(newControlPlane));
       changed = true;
     }
   }
@@ -257,17 +264,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   processVlanPorts();
 
   {
-    auto newAcls = updateAcls();
-    if (newAcls) {
-      newState->resetAcls(std::move(newAcls));
-      changed = true;
-    }
-  }
-
-  {
     auto newPorts = updatePorts();
     if (newPorts) {
-      newState->resetPorts(std::move(newPorts));
+      new_->resetPorts(std::move(newPorts));
       changed = true;
     }
   }
@@ -275,7 +274,25 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newAggPorts = updateAggregatePorts();
     if (newAggPorts) {
-      newState->resetAggregatePorts(std::move(newAggPorts));
+      new_->resetAggregatePorts(std::move(newAggPorts));
+      changed = true;
+    }
+  }
+
+  // updateMirrors must be called after updatePorts, mirror needs ports!
+  {
+    auto newMirrors = updateMirrors();
+    if (newMirrors) {
+      new_->resetMirrors(std::move(newMirrors));
+      changed = true;
+    }
+  }
+
+  // updateAcls must be called after updateMirrors, acls may need mirror!
+  {
+    auto newAcls = updateAcls();
+    if (newAcls) {
+      new_->resetAcls(std::move(newAcls));
       changed = true;
     }
   }
@@ -283,7 +300,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newIntfs = updateInterfaces();
     if (newIntfs) {
-      newState->resetIntfs(std::move(newIntfs));
+      new_->resetIntfs(std::move(newIntfs));
       changed = true;
     }
   }
@@ -293,7 +310,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newVlans = updateVlans();
     if (newVlans) {
-      newState->resetVlans(std::move(newVlans));
+      new_->resetVlans(std::move(newVlans));
       changed = true;
     }
   }
@@ -307,30 +324,30 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newTables = updateInterfaceRoutes();
     if (newTables) {
-      newState->resetRouteTables(newTables);
+      new_->resetRouteTables(newTables);
       changed = true;
     }
   }
 
   {
-    // Retrieve RouteTableMap from newState as this will have
+    // Retrieve RouteTableMap from new_ as this will have
     // all the routes updated until now. Pass this to syncStaticRoutes
     // so that routes added until now would not be excluded.
-    auto updatedRoutes = newState->getRouteTables();
+    auto updatedRoutes = new_->getRouteTables();
     auto newerTables = syncStaticRoutes(updatedRoutes);
     if (newerTables) {
-      newState->resetRouteTables(std::move(newerTables));
+      new_->resetRouteTables(std::move(newerTables));
       changed = true;
     }
   }
 
-  auto newVlans = newState->getVlans();
+  auto newVlans = new_->getVlans();
   VlanID dfltVlan(cfg_->defaultVlan);
   if (orig_->getDefaultVlan() != dfltVlan) {
     if (newVlans->getVlanIf(dfltVlan) == nullptr) {
       throw FbossError("Default VLAN ", dfltVlan, " does not exist");
     }
-    newState->setDefaultVlan(dfltVlan);
+    new_->setDefaultVlan(dfltVlan);
     changed = true;
   }
 
@@ -345,7 +362,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     // Remove this sanity check if multiple interfaces are allowed per vlans
     auto& entry = vlanInterfaces_[vlanInfo.first];
     if (entry.interfaces.size() != 1) {
-      auto cpu_vlan = newState->getDefaultVlan();
+      auto cpu_vlan = new_->getDefaultVlan();
       if (vlanInfo.first != cpu_vlan) {
         throw FbossError("Vlan ", vlanInfo.first, " refers to ",
                        entry.interfaces.size(), " interfaces ");
@@ -355,23 +372,23 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
 
   std::chrono::seconds arpAgerInterval(cfg_->arpAgerInterval);
   if (orig_->getArpAgerInterval() != arpAgerInterval) {
-    newState->setArpAgerInterval(arpAgerInterval);
+    new_->setArpAgerInterval(arpAgerInterval);
     changed = true;
   }
 
   std::chrono::seconds arpTimeout(cfg_->arpTimeoutSeconds);
   if (orig_->getArpTimeout() != arpTimeout) {
-    newState->setArpTimeout(arpTimeout);
+    new_->setArpTimeout(arpTimeout);
 
     // TODO(aeckert): add ndpTimeout field to SwitchConfig. For now use the same
     // timeout for both ARP and NDP
-    newState->setNdpTimeout(arpTimeout);
+    new_->setNdpTimeout(arpTimeout);
     changed = true;
   }
 
   uint32_t maxNeighborProbes(cfg_->maxNeighborProbes);
   if (orig_->getMaxNeighborProbes() != maxNeighborProbes) {
-    newState->setMaxNeighborProbes(maxNeighborProbes);
+    new_->setMaxNeighborProbes(maxNeighborProbes);
     changed = true;
   }
 
@@ -379,7 +396,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   auto newDhcpV4RelaySrc = cfg_->__isset.dhcpRelaySrcOverrideV4 ?
     IPAddressV4(cfg_->dhcpRelaySrcOverrideV4) : IPAddressV4();
   if (oldDhcpV4RelaySrc != newDhcpV4RelaySrc) {
-    newState->setDhcpV4RelaySrc(newDhcpV4RelaySrc);
+    new_->setDhcpV4RelaySrc(newDhcpV4RelaySrc);
     changed = true;
   }
 
@@ -387,7 +404,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   auto newDhcpV6RelaySrc = cfg_->__isset.dhcpRelaySrcOverrideV6 ?
     IPAddressV6(cfg_->dhcpRelaySrcOverrideV6) : IPAddressV6("::");
   if (oldDhcpV6RelaySrc != newDhcpV6RelaySrc) {
-    newState->setDhcpV6RelaySrc(newDhcpV6RelaySrc);
+    new_->setDhcpV6RelaySrc(newDhcpV6RelaySrc);
     changed = true;
   }
 
@@ -395,7 +412,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   auto newDhcpV4ReplySrc = cfg_->__isset.dhcpReplySrcOverrideV4 ?
     IPAddressV4(cfg_->dhcpReplySrcOverrideV4) : IPAddressV4();
   if (oldDhcpV4ReplySrc != newDhcpV4ReplySrc) {
-    newState->setDhcpV4ReplySrc(newDhcpV4ReplySrc);
+    new_->setDhcpV4ReplySrc(newDhcpV4ReplySrc);
     changed = true;
   }
 
@@ -403,13 +420,13 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   auto newDhcpV6ReplySrc = cfg_->__isset.dhcpReplySrcOverrideV6 ?
     IPAddressV6(cfg_->dhcpReplySrcOverrideV6) : IPAddressV6("::");
   if (oldDhcpV6ReplySrc != newDhcpV6ReplySrc) {
-    newState->setDhcpV6ReplySrc(newDhcpV6ReplySrc);
+    new_->setDhcpV6ReplySrc(newDhcpV6ReplySrc);
     changed = true;
   }
 
   std::chrono::seconds staleEntryInterval(cfg_->staleEntryInterval);
   if (orig_->getStaleEntryInterval() != staleEntryInterval) {
-    newState->setStaleEntryInterval(staleEntryInterval);
+    new_->setStaleEntryInterval(staleEntryInterval);
     changed = true;
   }
 
@@ -417,7 +434,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newCollectors = updateSflowCollectors();
     if (newCollectors) {
-      newState->resetSflowCollectors(std::move(newCollectors));
+      new_->resetSflowCollectors(std::move(newCollectors));
       changed = true;
     }
   }
@@ -427,7 +444,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         orig_->getLoadBalancers(), cfg_->get_loadBalancers(), platform_);
     auto newLoadBalancers = loadBalancerConfigApplier.updateLoadBalancers();
     if (newLoadBalancers) {
-      newState->resetLoadBalancers(std::move(newLoadBalancers));
+      new_->resetLoadBalancers(std::move(newLoadBalancers));
       changed = true;
     }
   }
@@ -435,7 +452,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   if (!changed) {
     return nullptr;
   }
-  return newState;
+  return new_;
 }
 
 void ThriftConfigApplier::processVlanPorts() {
@@ -660,6 +677,19 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
     }
   }
 
+  const auto& oldIngressMirror = orig->getIngressMirror();
+  const auto& oldEgressMirror = orig->getEgressMirror();
+  auto newIngressMirror = folly::Optional<std::string>();
+  auto newEgressMirror = folly::Optional<std::string>();
+  if (portConf->__isset.ingressMirror) {
+    newIngressMirror.assign(portConf->ingressMirror);
+  }
+  if (portConf->__isset.egressMirror) {
+    newEgressMirror.assign(portConf->egressMirror);
+  }
+  bool mirrorsUnChanged = (oldIngressMirror == newIngressMirror) &&
+      (oldEgressMirror == newEgressMirror);
+
   if (portConf->state == orig->getAdminState() &&
       VlanID(portConf->ingressVlan) == orig->getIngressVlan() &&
       portConf->speed == orig->getSpeed() &&
@@ -668,10 +698,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
       portConf->sFlowEgressRate == orig->getSflowEgressRate() &&
       portConf->name == orig->getName() &&
       portConf->description == orig->getDescription() &&
-      vlans == orig->getVlans() &&
-      portConf->fec == orig->getFEC() &&
-      queuesUnchanged &&
-      portConf->loopbackMode == orig->getLoopbackMode()) {
+      vlans == orig->getVlans() && portConf->fec == orig->getFEC() &&
+      queuesUnchanged && portConf->loopbackMode == orig->getLoopbackMode()
+      && mirrorsUnChanged) {
     return nullptr;
   }
 
@@ -688,6 +717,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
   newPort->setFEC(portConf->fec);
   newPort->setLoopbackMode(portConf->loopbackMode);
   newPort->resetPortQueues(portQueues);
+  newPort->setIngressMirror(newIngressMirror);
+  newPort->setEgressMirror(newEgressMirror);
   return newPort;
 }
 
@@ -1029,9 +1060,28 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
       if (mta.action.__isset.setDscp) {
           matchAction.setSetDscp(mta.action.setDscp);
       }
+      if (mta.action.__isset.ingressMirror) {
+        matchAction.setIngressMirror(mta.action.ingressMirror);
+      }
+      if (mta.action.__isset.egressMirror) {
+        matchAction.setEgressMirror(mta.action.egressMirror);
+      }
 
       auto acl = updateAcl(aclCfg, priority++, &numExistingProcessed,
         &changed, &matchAction);
+
+      if (acl->getAclAction().hasValue()) {
+        const auto& inMirror = acl->getAclAction().value().getIngressMirror();
+        const auto& egMirror = acl->getAclAction().value().getIngressMirror();
+        if (inMirror.hasValue() &&
+            !new_->getMirrors()->getMirrorIf(inMirror.value())) {
+          throw FbossError("Mirror ", inMirror.value(), " is undefined");
+        }
+        if (egMirror.hasValue() &&
+            !new_->getMirrors()->getMirrorIf(egMirror.value())) {
+          throw FbossError("Mirror ", egMirror.value(), " is undefined");
+        }
+      }
       entries.push_back(std::make_pair(acl->getID(), acl));
     }
     return entries;
@@ -1667,6 +1717,130 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
   }
 
   return addrs;
+}
+
+std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
+  if (cfg_->mirrors.size() > 4) {
+    throw FbossError("More than four mirrors can not be configured");
+  }
+  const auto& origMirrors = orig_->getMirrors();
+  MirrorMap::NodeContainer newMirrors;
+  bool changed = false;
+
+  size_t numExistingProcessed = 0;
+  for (const auto& mirrorCfg : cfg_->mirrors) {
+    auto origMirror = origMirrors->getMirrorIf(mirrorCfg.name);
+    std::shared_ptr<Mirror> newMirror;
+    if (origMirror) {
+      newMirror = updateMirror(origMirror, &mirrorCfg);
+      ++numExistingProcessed;
+    } else {
+      newMirror = createMirror(&mirrorCfg);
+    }
+    changed |= updateMap(&newMirrors, origMirror, newMirror);
+  }
+
+  if (numExistingProcessed != origMirrors->size()) {
+    // Some existing Mirrors were removed.
+    CHECK_LT(numExistingProcessed, origMirrors->size());
+    changed = true;
+  }
+
+  for (auto& port : *(new_->getPorts())) {
+    auto portInMirror = port->getIngressMirror();
+    auto portEgMirror = port->getEgressMirror();
+    if (portInMirror.hasValue() &&
+        newMirrors.find(portInMirror.value()) == newMirrors.end()) {
+      throw FbossError(
+          "Mirror ", portInMirror.value(), " for port is not found");
+    }
+    if (portEgMirror.hasValue() &&
+        newMirrors.find(portEgMirror.value()) == newMirrors.end()) {
+      throw FbossError(
+          "Mirror ", portEgMirror.value(), " for port is not found");
+    }
+  }
+
+  if (!changed) {
+    return nullptr;
+  }
+
+  return origMirrors->clone(std::move(newMirrors));
+}
+
+std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
+    const cfg::Mirror* mirrorConfig) {
+  if (!mirrorConfig->destination.__isset.egressPort &&
+      !mirrorConfig->destination.__isset.ip) {
+    /*
+     * At least one of the egress port or remote ip is needed.
+     */
+    throw FbossError(
+        "Must provide either egressPort or tunnel endpoint ip for mirror");
+  }
+
+  folly::Optional<PortID> mirrorEgressPort;
+  folly::Optional<folly::IPAddress> tunnelDestinationIp;
+
+  if (mirrorConfig->destination.__isset.egressPort) {
+    std::shared_ptr<Port> mirrorToPort{nullptr};
+    auto egressPort = mirrorConfig->destination.egressPort;
+    switch (egressPort.getType()) {
+      case cfg::MirrorEgressPort::Type::name:
+        for (auto& port : *(new_->getPorts())) {
+          if (port->getName() == egressPort.get_name()) {
+            mirrorToPort = port;
+            break;
+          }
+        }
+        break;
+      case cfg::MirrorEgressPort::Type::logicalID:
+        mirrorToPort =
+            new_->getPorts()->getPortIf(PortID(egressPort.get_logicalID()));
+        break;
+      case cfg::MirrorEgressPort::Type::__EMPTY__:
+        throw FbossError(
+            "Must set either name or logicalID for MirrorEgressPort");
+    }
+    if (mirrorToPort &&
+        mirrorToPort->getIngressMirror() != mirrorConfig->name &&
+        mirrorToPort->getEgressMirror() != mirrorConfig->name) {
+      mirrorEgressPort.assign(PortID(mirrorToPort->getID()));
+    } else {
+      throw FbossError("Invalid port name or ID");
+    }
+  }
+
+  if (mirrorConfig->destination.__isset.ip) {
+    tunnelDestinationIp.assign(folly::IPAddress(mirrorConfig->destination.ip));
+  }
+
+  auto mirror = make_shared<Mirror>(
+      mirrorConfig->name,
+      mirrorEgressPort,
+      tunnelDestinationIp);
+  return mirror;
+}
+
+std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
+    const std::shared_ptr<Mirror>& orig,
+    const cfg::Mirror* mirrorConfig) {
+  auto newMirror = createMirror(mirrorConfig);
+  if (*newMirror == *orig) {
+    return nullptr;
+  }
+  if (!orig->isResolved() ||
+      !newMirror->getMirrorTunnelDestinationIp().hasValue()) {
+    return newMirror;
+  }
+  if (newMirror->getMirrorTunnelDestinationIp() ==
+          orig->getMirrorTunnelDestinationIp() &&
+      (newMirror->configHasEgressPort() ||
+       newMirror->getMirrorEgressPort() == orig->getMirrorEgressPort())) {
+    newMirror->setMirrorTunnel(orig->getMirrorTunnel().value());
+    newMirror->setMirrorEgressPort(orig->getMirrorEgressPort().value());
+  }
+  return newMirror;
 }
 
 shared_ptr<SwitchState> applyThriftConfig(

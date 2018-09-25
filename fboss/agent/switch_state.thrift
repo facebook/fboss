@@ -53,4 +53,6 @@ struct PortFields {
  14: i32 sFlowEgressRate
  15: list<PortQueueFields> queues
  16: string portLoopbackMode
+ 17: optional string ingressMirror
+ 18: optional string egressMirror
 }

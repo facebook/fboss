@@ -18,6 +18,8 @@ constexpr auto kPacketCounterMatchAction = "packetCounterMatchAction";
 constexpr auto kCounterName = "counterName";
 constexpr auto kSetDscpMatchAction = "setDscpMatchAction";
 constexpr auto kDscpValue = "dscpValue";
+constexpr auto kIngressMirror = "ingressMirror";
+constexpr auto kEgressMirror = "engressMirror";
 }
 
 namespace facebook { namespace fboss {
@@ -38,6 +40,12 @@ folly::dynamic MatchAction::toFollyDynamic() const {
   if (setDscp_) {
     matchAction[kSetDscpMatchAction] = folly::dynamic::object;
     matchAction[kSetDscpMatchAction][kDscpValue] = setDscp_.value().dscpValue;
+  }
+  if (ingressMirror_) {
+    matchAction[kIngressMirror] = ingressMirror_.value();
+  }
+  if (egressMirror_) {
+    matchAction[kEgressMirror] = egressMirror_.value();
   }
   return matchAction;
 }
@@ -62,6 +70,12 @@ MatchAction MatchAction::fromFollyDynamic(
     setDscpMatchAction.dscpValue=
         actionJson[kSetDscpMatchAction][kDscpValue].asInt();
     matchAction.setSetDscp(setDscpMatchAction);
+  }
+  if (actionJson.find(kIngressMirror) != actionJson.items().end()) {
+    matchAction.setIngressMirror(actionJson[kIngressMirror].asString());
+  }
+  if (actionJson.find(kEgressMirror) != actionJson.items().end()) {
+    matchAction.setEgressMirror(actionJson[kEgressMirror].asString());
   }
   return matchAction;
 }
