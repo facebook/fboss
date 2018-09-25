@@ -69,8 +69,6 @@ DEFINE_bool(enable_lldp, true,
             "Run LLDP protocol in agent");
 DEFINE_bool(publish_boot_type, true,
             "Publish boot type on startup");
-DEFINE_bool(enable_nhops_prober, true,
-            "Enables prober for unresolved next hops");
 DEFINE_int32(flush_warmboot_cache_secs, 60,
     "Seconds to wait before flushing warm boot cache");
 using facebook::fboss::SwSwitch;
@@ -134,9 +132,6 @@ class Initializer {
     }
     if (FLAGS_publish_boot_type) {
       flags |= SwitchFlags::PUBLISH_STATS;
-    }
-    if (FLAGS_enable_nhops_prober) {
-      flags |= SwitchFlags::ENABLE_NHOPS_PROBER;
     }
     return flags;
   }
