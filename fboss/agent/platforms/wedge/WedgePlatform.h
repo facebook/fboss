@@ -35,7 +35,7 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   explicit WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo);
   ~WedgePlatform() override;
 
-  void init();
+  virtual void init();
   InitPortMap initPorts() override;
 
   void stateUpdated(const StateDelta& /*delta*/) override;
