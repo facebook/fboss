@@ -65,6 +65,13 @@ class Platform {
   virtual void onHwInitialized(SwSwitch* sw) = 0;
 
   /*
+   * onInitialConfigApplied() will be called after the initial
+   * configuration has been applied.  Platform-specific initialization
+   * that needs to happen after this can be performed here.
+   */
+  virtual void onInitialConfigApplied(SwSwitch* sw) = 0;
+
+  /*
    * Create the ThriftHandler.
    *
    * This will be invoked by fbossMain() during the initialization process.

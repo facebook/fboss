@@ -53,6 +53,7 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   void onUnitCreate(int unit) override;
   void onUnitAttach(int unit) override;
   void getProductInfo(ProductInfo& info) override;
+  void onInitialConfigApplied(SwSwitch* sw) override {}
 
   bool canUseHostTableForHostRoutes() const override {
     return FLAGS_enable_routes_in_host_table;

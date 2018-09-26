@@ -556,6 +556,8 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
 void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
   // notify the hw
   hw_->initialConfigApplied();
+  platform_->onInitialConfigApplied(this);
+
   setSwitchRunState(SwitchRunState::CONFIGURED);
 
   if (tunMgr_) {
