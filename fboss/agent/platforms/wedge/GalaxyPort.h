@@ -20,9 +20,8 @@ class GalaxyPort : public WedgePort {
  public:
   GalaxyPort(PortID id,
              WedgePlatform* platform,
-             folly::Optional<TransceiverID> frontPanelPort,
-             folly::Optional<ChannelID> channel) :
-      WedgePort(id, platform, frontPanelPort, channel) {}
+             folly::Optional<FrontPanelResources> frontPanel) :
+      WedgePort(id, platform, frontPanel) {}
 
   LaneSpeeds supportedLaneSpeeds() const override {
     LaneSpeeds speeds;
@@ -45,7 +44,7 @@ class GalaxyPort : public WedgePort {
   void prepareForGracefulExit() override {}
   void linkStatusChanged(bool up, bool adminUp) override;
   bool isBackplanePort() const {
-    return !frontPanelPort_.hasValue();
+    return !frontPanel_.hasValue();
   }
   bool shouldDisableFEC() const override {
     // Only disable FEC if this is a backplane port

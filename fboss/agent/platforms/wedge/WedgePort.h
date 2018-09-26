@@ -23,12 +23,21 @@ namespace facebook { namespace fboss {
 
 class WedgePlatform;
 
+struct FrontPanelResources {
+  FrontPanelResources(
+      TransceiverID transceiver,
+      std::vector<ChannelID> channels)
+      : transceiver(transceiver), channels(std::move(channels)) {}
+
+  TransceiverID transceiver;
+  std::vector<ChannelID> channels;
+};
+
 class WedgePort : public BcmPlatformPort {
  protected:
   WedgePort(PortID id,
             WedgePlatform* platform,
-            folly::Optional<TransceiverID> frontPanelPort,
-            folly::Optional<ChannelID> channel);
+            folly::Optional<FrontPanelResources> frontPanel);
 
  public:
   PortID getPortID() const override { return id_; }
@@ -52,16 +61,18 @@ class WedgePort : public BcmPlatformPort {
   PortStatus toThrift(const std::shared_ptr<Port>& port);
 
   folly::Optional<TransceiverID> getTransceiverID() const override {
-    return frontPanelPort_;
+    if (!frontPanel_) {
+      return folly::none;
+    }
+    return frontPanel_->transceiver;
   }
 
   bool supportsTransceiver() const override {
-    return getTransceiverID().hasValue();
+    return frontPanel_.hasValue();
   }
 
-  virtual folly::Optional<ChannelID> getChannel() const {
-    return channel_;
-  }
+  // TODO: deprecate this
+  virtual folly::Optional<ChannelID> getChannel() const;
 
   std::vector<int32_t> getChannels() const;
 
@@ -86,8 +97,7 @@ class WedgePort : public BcmPlatformPort {
   PortID id_{0};
   WedgePlatform* platform_{nullptr};
   cfg::PortSpeed speed_{cfg::PortSpeed::DEFAULT};
-  folly::Optional<TransceiverID> frontPanelPort_;
-  folly::Optional<ChannelID> channel_;
+  folly::Optional<FrontPanelResources> frontPanel_;
   BcmPort* bcmPort_{nullptr};
 
  private:

@@ -18,6 +18,7 @@
 
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
+#include "fboss/agent/platforms/wedge/WedgePortMapping.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
@@ -26,12 +27,10 @@ namespace facebook { namespace fboss {
 WedgePort::WedgePort(
   PortID id,
   WedgePlatform* platform,
-  folly::Optional<TransceiverID> frontPanelPort,
-  folly::Optional<ChannelID> channel) :
+  folly::Optional<FrontPanelResources> frontPanel) :
     id_(id),
     platform_(platform),
-    frontPanelPort_(frontPanelPort),
-    channel_(channel) {
+    frontPanel_(frontPanel) {
 }
 
 void WedgePort::setBcmPort(BcmPort* port) {
@@ -156,14 +155,22 @@ bool WedgePort::isInSingleMode() const {
   return bcmPort_->getPortGroup()->laneMode() == BcmPortGroup::LaneMode::SINGLE;
 }
 
+folly::Optional<ChannelID> WedgePort::getChannel() const {
+    if (!frontPanel_) {
+      return folly::none;
+    }
+    return frontPanel_->channels[0];
+}
+
 std::vector<int32_t> WedgePort::getChannels() const {
   // TODO(aeckert): this is pretty hacky... we should really model
   // port groups in switch state somehow so this can be served purely
   // from switch state.
-  if (!getChannel().hasValue()) {
+  if (!frontPanel_.hasValue()) {
     return {};
   }
 
+  // TODO: change to combining frontPanel_->channels in all member ports
   auto base = static_cast<int32_t>(*getChannel());
 
   uint8_t numChannels = 1;

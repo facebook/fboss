@@ -10,14 +10,15 @@
 
 #pragma once
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
-#include "fboss/agent/FbossError.h"
 
 #include <boost/container/flat_map.hpp>
 #include <folly/Optional.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * This class begins encapsulating all port mapping logic in a more
@@ -33,22 +34,37 @@ class WedgePortMapping {
  public:
   enum : uint8_t { CHANNELS_IN_QSFP28 = 4 };
 
-  typedef std::map<PortID, folly::Optional<TransceiverID>> PortTransceiverMap;
-  typedef boost::container::flat_map<
-    PortID, std::unique_ptr<WedgePort>>::iterator MappingIterator;
-  typedef boost::container::flat_map<
-    PortID, std::unique_ptr<WedgePort>>::const_iterator ConstMappingIterator;
+  using PortTransceiverMap = std::map<PortID, folly::Optional<TransceiverID>>;
+  using PortFrontPanelResourceMap =
+      std::map<PortID, folly::Optional<FrontPanelResources>>;
+  using MappingIterator =
+      boost::container::flat_map<PortID, std::unique_ptr<WedgePort>>::iterator;
+  using ConstMappingIterator = boost::container::
+      flat_map<PortID, std::unique_ptr<WedgePort>>::const_iterator;
 
   explicit WedgePortMapping(WedgePlatform* platform) : platform_(platform) {}
   virtual ~WedgePortMapping() = default;
 
-  template<typename MappingT>
+  template <typename MappingT>
   static std::unique_ptr<WedgePortMapping> create(
-      WedgePlatform* platform, const PortTransceiverMap& portMapping,
+      WedgePlatform* platform,
+      const PortTransceiverMap& portMapping,
       int numPortsPerTransceiver = CHANNELS_IN_QSFP28) {
     auto mapping = std::make_unique<MappingT>(platform);
     for (auto& kv : portMapping) {
-      mapping->addPorts(kv.first, numPortsPerTransceiver, kv.second);
+      mapping->addSequentialPorts(kv.first, numPortsPerTransceiver, kv.second);
+    }
+    return std::move(mapping);
+  }
+
+  template<typename MappingT>
+  static std::unique_ptr<WedgePortMapping> createFull(
+      WedgePlatform* platform, const PortFrontPanelResourceMap& portMapping) {
+    auto mapping = std::make_unique<MappingT>(platform);
+    for (const auto& kv : portMapping) {
+      auto port = kv.first;
+      auto frontPanel = kv.second;
+      mapping->addPort(port, frontPanel);
     }
     return std::move(mapping);
   }
@@ -61,8 +77,8 @@ class WedgePortMapping {
     return iter->second.get();
   }
   WedgePort* getPort(const TransceiverID fpPort) const {
-    auto iter = frontPanelMap_.find(fpPort);
-    if (iter == frontPanelMap_.end()) {
+    auto iter = transceiverMap_.find(fpPort);
+    if (iter == transceiverMap_.end()) {
       throw FbossError("Cannot find the port ID for front panel port ", fpPort);
     }
     return iter->second;
@@ -85,50 +101,61 @@ class WedgePortMapping {
   WedgePlatform* platform_{nullptr};
 
  private:
-  virtual std::unique_ptr<WedgePort> constructPort (
-    const PortID port,
-    const folly::Optional<TransceiverID>,
-    const folly::Optional<ChannelID>) const = 0;
+  virtual std::unique_ptr<WedgePort> constructPort(
+      const PortID port,
+      const folly::Optional<FrontPanelResources> frontPanel) const = 0;
 
   /* Helper to add associated ports to the port mapping.
    * Optionally specify a front panel port mapping if this
    * controlling port is associated w/ a front panel port.
    */
-  void addPorts(
-      const PortID start, int count,
-      const folly::Optional<TransceiverID> frontPanel = folly::none) {
+  void addSequentialPorts(
+      const PortID start,
+      int count,
+      const folly::Optional<TransceiverID> transceiver = folly::none) {
+    folly::Optional<FrontPanelResources> frontPanel = folly::none;
     for (int num = 0; num < count; ++num) {
-      folly::Optional<ChannelID> channel;
-      if (frontPanel) {
-        channel = ChannelID(num);
-      }
       PortID id(start + num);
-      ports_[id] = constructPort(id, frontPanel, channel);
+      if (transceiver) {
+        frontPanel = FrontPanelResources(*transceiver, {ChannelID(num)});
+      }
+      ports_[id] = constructPort(id, frontPanel);
     }
-    if (frontPanel) {
+    if (transceiver) {
       // register the controlling port in the transceiver map
-      frontPanelMap_[*frontPanel] = ports_[start].get();
+      transceiverMap_[*transceiver] = ports_[start].get();
+    }
+  }
+
+  void addPort(
+      PortID port,
+      const folly::Optional<FrontPanelResources> frontPanel) {
+    ports_[port] = constructPort(port, frontPanel);
+
+    if (frontPanel) {
+      // TODO: this is a lie. There can be multiple ports per
+      // transceiver and we should reflect that.
+      transceiverMap_[frontPanel->transceiver] = ports_[port].get();
     }
   }
 
   boost::container::flat_map<PortID, std::unique_ptr<WedgePort>> ports_;
-  boost::container::flat_map<TransceiverID, WedgePort*> frontPanelMap_;
+  boost::container::flat_map<TransceiverID, WedgePort*> transceiverMap_;
 };
 
-template<typename WedgePortT>
+template <typename WedgePortT>
 class WedgePortMappingT : public WedgePortMapping {
  public:
-  explicit WedgePortMappingT(WedgePlatform* platform) :
-      WedgePortMapping(platform) {}
+  explicit WedgePortMappingT(WedgePlatform* platform)
+      : WedgePortMapping(platform) {}
 
  private:
   std::unique_ptr<WedgePort> constructPort(
       PortID port,
-      folly::Optional<TransceiverID> transceiver,
-      folly::Optional<ChannelID> channel) const override {
-    return std::make_unique<WedgePortT>(port, platform_, transceiver, channel);
+      folly::Optional<FrontPanelResources> frontPanel) const override {
+    return std::make_unique<WedgePortT>(port, platform_, frontPanel);
   }
-
 };
 
-}} //facebook::fboss
+} // namespace fboss
+} // namespace facebook

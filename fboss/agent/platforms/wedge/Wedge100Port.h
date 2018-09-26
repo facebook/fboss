@@ -33,9 +33,8 @@ class Wedge100Port : public WedgePort {
  public:
   Wedge100Port(PortID id,
                WedgePlatform* platform,
-               folly::Optional<TransceiverID> frontPanelPort,
-               folly::Optional<ChannelID> channel) :
-      WedgePort(id, platform, frontPanelPort, channel) {}
+               folly::Optional<FrontPanelResources> frontPanel) :
+      WedgePort(id, platform, std::move(frontPanel)) {}
 
   LaneSpeeds supportedLaneSpeeds() const override {
     LaneSpeeds speeds;
@@ -63,7 +62,7 @@ class Wedge100Port : public WedgePort {
 
  private:
   bool isTop() {
-    return frontPanelPort_ ? !(*frontPanelPort_ & 0x1) : false;
+    return frontPanel_ ? !(frontPanel_->transceiver & 0x1) : false;
   }
 
   TxOverrides getTxOverrides() const override;
