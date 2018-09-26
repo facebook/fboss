@@ -1093,11 +1093,7 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
   if (cfg_->__isset.dataPlaneTrafficPolicy) {
     folly::gen::from(addToAcls(cfg_->dataPlaneTrafficPolicy, "")) |
         folly::gen::appendTo(newAcls);
-  } else if (cfg_->__isset.globalEgressTrafficPolicy) {
-    folly::gen::from(addToAcls(cfg_->globalEgressTrafficPolicy, "")) |
-        folly::gen::appendTo(newAcls);
   }
-
   if (numExistingProcessed != orig_->getAcls()->size()) {
     // Some existing ACLs were removed.
     changed = true;
