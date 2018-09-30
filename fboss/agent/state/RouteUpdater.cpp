@@ -12,7 +12,8 @@
 
 #include <numeric>
 
-#include <boost/math/common_factor.hpp>
+#include <boost/integer/common_factor.hpp>
+
 #include <folly/logging/xlog.h>
 
 #include "fboss/agent/FbossError.h"
@@ -260,7 +261,7 @@ NextHopWeight totalWeightsLcm(const NextHopForwardInfos& nhToFwds) {
       [](NextHopWeight l,
          std::pair<NextHop, RouteNextHopSet> nhToFwd) -> NextHopWeight {
     auto t = totalWeight(nhToFwd.second);
-    return boost::math::lcm(l, t);
+    return boost::integer::lcm(l, t);
   };
   return std::accumulate(nhToFwds.begin(), nhToFwds.end(), 1, lcmAccumFn);
 }
@@ -359,7 +360,7 @@ RouteNextHopSet optimizeWeights(const NextHopCombinedWeights& cws) {
   auto gcdAccumFn = [](NextHopWeight g,
                        const std::pair<NextHopKey, NextHopWeight>& cw) {
     NextHopWeight w = cw.second;
-    return (g ? boost::math::gcd(g, w) : w);
+    return (g ? boost::integer::gcd(g, w) : w);
   };
   auto fwdWeightGcd = std::accumulate(cws.begin(), cws.end(), 0, gcdAccumFn);
   for (const auto& cw : cws) {
