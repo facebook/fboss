@@ -249,7 +249,7 @@ TEST_F(MirrorTest, AclMirror) {
   configureAcl("acl0");
   configureAclMirror("acl0", "mirror0");
   publishWithStateUpdate();
-  auto entry = state_->getAcls()->getEntryIf("system:acl0");
+  auto entry = state_->getAcls()->getEntryIf("acl0");
   EXPECT_NE(entry, nullptr);
   auto action = entry->getAclAction();
   ASSERT_EQ(action.hasValue(), true);
@@ -350,8 +350,7 @@ TEST_F(MirrorTest, AddAclAndPortToMirror) {
   }
 
   for (int i=0; i<2; i++) {
-    auto aclName = "system:" + acls[i];
-    auto entry = state_->getAcls()->getEntryIf(aclName);
+    auto entry = state_->getAcls()->getEntryIf(acls[i]);
     EXPECT_NE(entry, nullptr);
     auto action = entry->getAclAction();
     ASSERT_EQ(action.hasValue(), true);
@@ -397,8 +396,7 @@ TEST_F(MirrorTest, DeleleteAclAndPortToMirror) {
   publishWithStateUpdate();
 
   for (int i=0; i<2; i++) {
-    auto aclName = "system:" + acls[i];
-    auto entry = state_->getAcls()->getEntryIf(aclName);
+    auto entry = state_->getAcls()->getEntryIf(acls[i]);
     if (i) {
       EXPECT_EQ(entry, nullptr);
       auto port = state_->getPorts()->getPortIf(ports[i]);

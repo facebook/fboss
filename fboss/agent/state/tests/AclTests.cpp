@@ -133,7 +133,7 @@ TEST(Acl, applyConfig) {
   auto stateV3 = publishAndApplyConfig(stateV2, &configV1, platform.get());
   EXPECT_NE(nullptr, stateV3);
   auto acls = stateV3->getAcls();
-  auto aclV3 = stateV3->getAcl("system:acl3");
+  auto aclV3 = stateV3->getAcl("acl3");
   ASSERT_NE(nullptr, aclV3);
   EXPECT_NE(aclV0, aclV3);
   EXPECT_EQ(0 + kAclStartPriority, aclV3->getPriority());
@@ -183,7 +183,7 @@ TEST(Acl, applyConfig) {
 
   auto stateV4 = publishAndApplyConfig(stateV3, &configV2, platform.get());
   EXPECT_NE(nullptr, stateV4);
-  auto aclV4 = stateV4->getAcl("system:acl3");
+  auto aclV4 = stateV4->getAcl("acl3");
   ASSERT_NE(nullptr, aclV4);
   EXPECT_TRUE(aclV4->getPktLenRange());
   EXPECT_EQ(aclV4->getPktLenRange().value().getMin(), 34);
@@ -195,7 +195,7 @@ TEST(Acl, applyConfig) {
 
   auto stateV5 = publishAndApplyConfig(stateV4, &configV2, platform.get());
   EXPECT_NE(nullptr, stateV5);
-  auto aclV5 = stateV5->getAcl("system:acl3");
+  auto aclV5 = stateV5->getAcl("acl3");
   EXPECT_NE(nullptr, aclV5);
   EXPECT_EQ(aclV5->getIpFrag().value(), cfg::IpFragMatch::MATCH_NOT_FRAGMENTED);
 
@@ -206,7 +206,7 @@ TEST(Acl, applyConfig) {
 
   auto stateV6 = publishAndApplyConfig(stateV5, &configV2, platform.get());
   EXPECT_NE(nullptr, stateV6);
-  auto aclV6 = stateV6->getAcl("system:acl3");
+  auto aclV6 = stateV6->getAcl("acl3");
   EXPECT_NE(nullptr, aclV6);
 
   EXPECT_EQ(MacAddress(dstMacStr), aclV6->getDstMac());
@@ -215,7 +215,7 @@ TEST(Acl, applyConfig) {
 
   auto stateV7 = publishAndApplyConfig(stateV6, &configV2, platform.get());
   EXPECT_NE(nullptr, stateV7);
-  auto aclV7 = stateV7->getAcl("system:acl3");
+  auto aclV7 = stateV7->getAcl("acl3");
   EXPECT_NE(nullptr, aclV7);
 
   EXPECT_FALSE(aclV7->getDstMac());
@@ -415,25 +415,25 @@ TEST(Acl, AclGeneration) {
   auto acls = stateV1->getAcls();
   EXPECT_NE(acls, nullptr);
   EXPECT_NE(acls->getEntryIf("acl1"), nullptr);
-  EXPECT_NE(acls->getEntryIf("system:acl2"), nullptr);
-  EXPECT_NE(acls->getEntryIf("system:acl3"), nullptr);
-  EXPECT_NE(acls->getEntryIf("system:acl5"), nullptr);
+  EXPECT_NE(acls->getEntryIf("acl2"), nullptr);
+  EXPECT_NE(acls->getEntryIf("acl3"), nullptr);
+  EXPECT_NE(acls->getEntryIf("acl5"), nullptr);
 
   EXPECT_EQ(acls->getEntryIf("acl1")->getPriority(), kAclStartPriority);
   EXPECT_EQ(acls->getEntryIf("acl4")->getPriority(), kAclStartPriority + 1);
-  EXPECT_EQ(acls->getEntryIf("system:acl2")->getPriority(),
+  EXPECT_EQ(acls->getEntryIf("acl2")->getPriority(),
       kAclStartPriority + 2);
-  EXPECT_EQ(acls->getEntryIf("system:acl3")->getPriority(),
+  EXPECT_EQ(acls->getEntryIf("acl3")->getPriority(),
       kAclStartPriority + 3);
-  EXPECT_EQ(acls->getEntryIf("system:acl5")->getPriority(),
+  EXPECT_EQ(acls->getEntryIf("acl5")->getPriority(),
       kAclStartPriority + 4);
 
   // Ensure that the global actions in global traffic policy has been added to
   // the ACL entries
-  EXPECT_TRUE(acls->getEntryIf("system:acl5")->getAclAction().hasValue());
+  EXPECT_TRUE(acls->getEntryIf("acl5")->getAclAction().hasValue());
   EXPECT_EQ(
       8,
-      acls->getEntryIf("system:acl5")
+      acls->getEntryIf("acl5")
           ->getAclAction()
           ->getSetDscp()
           .value()

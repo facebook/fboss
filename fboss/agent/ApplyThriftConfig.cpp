@@ -1018,8 +1018,7 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
 
   // Generates new acls from template
   auto addToAcls = [&] (const cfg::TrafficPolicyConfig& policy,
-      const std::string& name,
-      int dstPortID=-1)
+                        bool isCoppAcl=false)
       -> const std::vector<std::pair<std::string, std::shared_ptr<AclEntry>>> {
     std::vector<std::pair<std::string, std::shared_ptr<AclEntry>>> entries;
     for (const auto& mta : policy.matchToAction) {
@@ -1030,29 +1029,17 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
       }
 
       auto aclCfg = *(a->second);
-      if (dstPortID != -1 && aclCfg.__isset.dstPort && aclCfg.dstPort !=
-          dstPortID) {
-        throw FbossError("Invalid port traffic policy acl: ",
-              aclCfg.name, " - dstPort is set to ", aclCfg.dstPort,
-              " but set on port ", dstPortID);
-      }
 
       // We've already added any DENY acls
       if (aclCfg.actionType == cfg::AclActionType::DENY) {
         continue;
       }
 
-      aclCfg.name = folly::to<std::string>("system:", name, mta.matcher);
-      if (dstPortID != -1) {
-        aclCfg.dstPort = dstPortID;
-        aclCfg.__isset.dstPort = true;
-      }
-
       // Here is sending to regular port queue action
       MatchAction matchAction = MatchAction();
       if (mta.action.__isset.sendToQueue) {
         matchAction.setSendToQueue(
-          std::make_pair(mta.action.sendToQueue, false));
+          std::make_pair(mta.action.sendToQueue, isCoppAcl));
       }
       if (mta.action.__isset.packetCounter) {
         matchAction.setPacketCounter(mta.action.packetCounter);
@@ -1087,11 +1074,9 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
     return entries;
   };
 
-  // Add the global acls
-  // TODO: stop looking at globalEgressTrafficPolicy once we retire
-  // it from our templates - T31804070
+  // Add dataPlane traffic acls
   if (cfg_->__isset.dataPlaneTrafficPolicy) {
-    folly::gen::from(addToAcls(cfg_->dataPlaneTrafficPolicy, "")) |
+    folly::gen::from(addToAcls(cfg_->dataPlaneTrafficPolicy)) |
         folly::gen::appendTo(newAcls);
   }
   if (numExistingProcessed != orig_->getAcls()->size()) {
