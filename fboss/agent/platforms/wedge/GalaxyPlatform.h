@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/wedge/WedgePlatform.h"
+#include "fboss/agent/platforms/wedge/WedgeTomahawkPlatform.h"
 #include "fboss/lib/usb/GalaxyI2CBus.h"
 
 #include <folly/Range.h>
@@ -20,16 +20,13 @@ namespace facebook { namespace fboss {
 
 class WedgeProductInfo;
 
-class GalaxyPlatform : public WedgePlatform {
+class GalaxyPlatform : public WedgeTomahawkPlatform {
  public:
   explicit GalaxyPlatform(std::unique_ptr<WedgeProductInfo> productInfo) :
-      WedgePlatform(std::move(productInfo)) {}
+      WedgeTomahawkPlatform(std::move(productInfo)) {}
 
   ~GalaxyPlatform() override {}
 
-  bool isBufferStatsCollectionSupported() const override {
-    return true;
-  }
  private:
   GalaxyPlatform(GalaxyPlatform const &) = delete;
   GalaxyPlatform& operator=(GalaxyPlatform const &) = delete;

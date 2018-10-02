@@ -66,20 +66,11 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
     return warmBootHelper_.get();
   }
 
-  uint32_t getMMUBufferBytes() const override {
-    // All wedge platforms have 16MB MMU buffer
-    return 16 * 1024 * 1024;
-  }
-  uint32_t getMMUCellBytes() const override {
-    // All wedge platforms have 208 byte cells
-    return 208;
-  }
-  bool isCosSupported() const override {
-    return true;
-  }
-
   QsfpCache* getQsfpCache() const {
     return qsfpCache_.get();
+  }
+  bool isBufferStatsCollectionSupported() const override {
+    return true;
   }
 
  protected:

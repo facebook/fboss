@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/wedge/WedgePlatform.h"
+#include "fboss/agent/platforms/wedge/WedgeTomahawkPlatform.h"
 
 #include <folly/Range.h>
 #include <memory>
@@ -20,10 +20,10 @@ class BcmSwitch;
 class Wedge100Port;
 class WedgeProductInfo;
 
-class Wedge100Platform : public WedgePlatform {
+class Wedge100Platform : public WedgeTomahawkPlatform {
  public:
   explicit Wedge100Platform(std::unique_ptr<WedgeProductInfo> productInfo) :
-      WedgePlatform(std::move(productInfo)) {}
+      WedgeTomahawkPlatform(std::move(productInfo)) {}
 
   std::unique_ptr<WedgePortMapping> createPortMapping() override;
   void onHwInitialized(SwSwitch* sw) override;
