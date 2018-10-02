@@ -12,20 +12,8 @@
 #include <folly/Format.h>
 #include <folly/Range.h>
 #include <folly/logging/xlog.h>
-#include <folly/system/ThreadName.h>
 
 namespace facebook { namespace fboss {
-
-void SwSwitch::initThread(folly::StringPiece name) {
-  // We need a null-terminated string to pass to folly::setThreadName().
-  // The pthread name can be at most 15 bytes long, so truncate it if necessary
-  // when creating the string.
-  size_t pthreadLength = std::min(name.size(), (size_t)15);
-  char pthreadName[pthreadLength + 1];
-  memcpy(pthreadName, name.begin(), pthreadLength);
-  pthreadName[pthreadLength] = '\0';
-  folly::setThreadName(pthreadName);
-}
 
 void SwSwitch::publishInitTimes(std::string /*name*/, const float& /*time*/) {}
 

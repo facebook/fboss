@@ -688,7 +688,6 @@ class SwSwitch : public HwSwitch::Callback {
   void startThreads();
   void stopThreads();
   void stop();
-  void initThread(folly::StringPiece name);
   void threadLoop(folly::StringPiece name, folly::EventBase* eventBase);
 
   /*

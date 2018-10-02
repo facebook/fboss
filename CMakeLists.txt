@@ -314,6 +314,7 @@ add_library(fboss_agent STATIC
     fboss/agent/oss/Main.cpp
     fboss/agent/oss/RouteUpdateLogger.cpp
     fboss/agent/oss/SwSwitch.cpp
+    fboss/agent/oss/Utils.cpp
     fboss/agent/packet/ArpHdr.cpp
     fboss/agent/packet/DHCPv4Packet.cpp
     fboss/agent/packet/DHCPv6Packet.cpp

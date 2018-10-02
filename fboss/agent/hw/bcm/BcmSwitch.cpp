@@ -520,10 +520,11 @@ void BcmSwitch::setupLinkscan() {
     XLOG(DBG1) << " Skipping linkscan registeration as the feature is disabled";
     return;
   }
-  // TODO(samank): name thread
   if (FLAGS_enable_linkscan_bottom_half) {
-    linkScanBottomHalfThread_ = std::make_unique<std::thread>(
-        [=] { linkScanBottomHalfEventBase_.loopForever(); });
+    linkScanBottomHalfThread_ = std::make_unique<std::thread>([=]() {
+      initThread("fbossLinkScanBH");
+      linkScanBottomHalfEventBase_.loopForever();
+    });
   }
   auto rv = opennsl_linkscan_register(unit_, linkscanCallback);
   bcmCheckError(rv, "failed to register for linkscan events");

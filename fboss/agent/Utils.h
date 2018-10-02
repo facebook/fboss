@@ -87,4 +87,6 @@ static inline ClientID StdClientIds2ClientID(StdClientIds id) {
  */
 std::string getLocalHostname();
 
+void initThread(folly::StringPiece name);
+
 }} // facebook::fboss
