@@ -16,6 +16,7 @@ from fboss.system_tests.facebook.utils.ensemble_health_check_utils import (
     block_ensemble_and_create_task,
 )
 from neteng.netcastle.utils.basset_utils import BassetButler
+from neteng.netcastle.test_case import test_tags
 
 user_requested_tags = []
 
@@ -33,22 +34,6 @@ Defaults = {
     "test_dirs": ["tests"],
     "sdk_list": ["chef"],
 }
-
-
-def _test_has_user_requested_tag(test_tags):
-    for tag in test_tags:
-        if tag in user_requested_tags:
-            return True
-    return False
-
-
-def test_tags(*args):
-    def fn(cls):
-        if _test_has_user_requested_tag(list(args)):
-            cls.valid_tags = True
-        return cls
-    return fn
-
 
 def generate_default_test_argparse(**kwargs):
     """ Put all command line args into a function, so that other
@@ -217,18 +202,16 @@ def frob_options_into_tests(suite, options):
 
 def add_interested_tests_to_test_suite(tests, suite):
     if not isinstance(tests, unittest.suite.TestSuite):
-        # If user uses tag and there is an import error on a test
-        # the "valid_tags" attributes are never added,
         # so the test would not be run and there is no error.
         # The next 2 lines is to explicitly add these tests
         if isinstance(tests, unittest.loader._FailedTest):
             suite.addTest(tests)
             return
-        # when user provides a tag , add testcases which has
-        # valid tags and add all testcases when user do not
-        # provide any tags
-        if hasattr(tests, "valid_tags") or not user_requested_tags:
-            suite.addTest(tests)
+        # Add testcase which has user provided tag
+        tags = test_tags.get_tags(tests)
+        for tag in tags:
+            if tag in user_requested_tags:
+                suite.addTest(tests)
         return
 
     for test in tests:
