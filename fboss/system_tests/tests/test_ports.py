@@ -6,6 +6,7 @@ import unittest
 
 from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 from fboss.system_tests.testutils.ip_conversion import ip_str_to_addr
+from fboss.system_tests.testutils.fb303_utils import get_fb303_counter
 from neteng.fboss.ctrl.ttypes import PortOperState
 
 
@@ -20,7 +21,8 @@ class PortStatusTest(FbossBaseSystemTest):
             all_port_info = sw_client.getAllPortInfo()
             for _pnum, pstate in all_port_info.items():
                 is_port_up = pstate.operState == PortOperState.UP
-                fb303_counter = sw_client.getCounter('%s.up' % (pstate.name))
+                fb303_counter = get_fb303_counter(sw_client,
+                                                  '%s.up' % (pstate.name))
                 fb303_is_port_up = fb303_counter == 1
                 if is_port_up != fb303_is_port_up:
                     mismatch_ports.append(
