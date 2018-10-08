@@ -35,6 +35,7 @@ Defaults = {
     "sdk_list": ["chef"],
 }
 
+
 def generate_default_test_argparse(**kwargs):
     """ Put all command line args into a function, so that other
     programs (e.g., internal automation) can start with these args and build
@@ -164,7 +165,7 @@ class FbossBaseSystemTest(unittest.TestCase):
         ensemble = self.test_topology.ensemble
         if not state:
             if not BassetButler().get_attr(ensemble, 'task-id'):
-                ensemble=block_ensemble_and_create_task(
+                ensemble = block_ensemble_and_create_task(
                     ensemble,
                     reason=reason,
                     logger=self.log)
@@ -205,7 +206,7 @@ def add_interested_tests_to_test_suite(tests, suite):
     if not isinstance(tests, unittest.suite.TestSuite):
         # so the test would not be run and there is no error.
         # The next 2 lines is to explicitly add these tests
-        if isinstance(tests, unittest.loader._FailedTest):
+        if isinstance(tests, unittest.loader._FailedTest) or not user_requested_tags:
             suite.addTest(tests)
             return
         # Add testcase which has user provided tag
