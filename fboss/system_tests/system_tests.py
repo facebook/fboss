@@ -168,6 +168,7 @@ class FbossBaseSystemTest(unittest.TestCase):
                     ensemble,
                     reason=reason,
                     logger=self.log)
+                self.test_topology.ensemble = ensemble
             return False
         return True
 
