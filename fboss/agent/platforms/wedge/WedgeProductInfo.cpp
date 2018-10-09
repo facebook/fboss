@@ -46,6 +46,9 @@ constexpr auto kFabricLocationRight = "RIGHT";
 
 DEFINE_string(mode, "",
               "The mode the FBOSS controller is running as, wedge, lc, or fc");
+DEFINE_string(fruid_filepath,
+              "/var/facebook/fboss/fruid.json",
+              "File for storing the fruid data");
 
 namespace facebook { namespace fboss {
 
@@ -64,7 +67,8 @@ void WedgeProductInfo::initialize() {
     folly::readFile(path_.str().c_str(), data);
     parse(data);
   } catch (const std::exception& err) {
-    XLOG(ERR) << err.what();
+    XLOG(ERR) << "Failed initializing WedgeProductInfo from " << path_
+              << ", fall back to use fbwhoami: " << err.what();
     // if fruid info fails fall back to fbwhoami
     initFromFbWhoAmI();
   }

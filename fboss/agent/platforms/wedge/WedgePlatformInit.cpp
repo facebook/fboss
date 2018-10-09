@@ -18,10 +18,6 @@
 #include "fboss/agent/platforms/wedge/Wedge40Platform.h"
 #include "fboss/agent/platforms/wedge/Wedge100Platform.h"
 
-DEFINE_string(fruid_filepath,
-              "/var/facebook/fboss/fruid.json",
-              "File for storing the fruid data");
-
 namespace facebook { namespace fboss {
 
 std::unique_ptr<WedgePlatform> chooseWedgePlatform() {

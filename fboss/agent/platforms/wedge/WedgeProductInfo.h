@@ -12,6 +12,8 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include <folly/Range.h>
 
+DECLARE_string(fruid_filepath);
+
 namespace facebook { namespace fboss {
 
 enum class WedgePlatformMode {

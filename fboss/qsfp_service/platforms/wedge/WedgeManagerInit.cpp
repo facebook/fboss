@@ -14,11 +14,6 @@
 #include "fboss/qsfp_service/platforms/wedge/Wedge40Manager.h"
 #include "fboss/qsfp_service/platforms/wedge/Wedge100Manager.h"
 
-DEFINE_string(
-    fruid_filepath,
-    "/dev/shm/fboss/fruid.json",
-    "File for storing the fruid data");
-
 namespace facebook { namespace fboss {
 
 std::unique_ptr<TransceiverManager> createTransceiverManager() {
