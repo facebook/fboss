@@ -109,8 +109,6 @@ DEFINE_bool(flexports, false,
 DEFINE_bool(enable_fine_grained_buffer_stats, false,
             "Enable fine grained buffer stats collection by default");
 DEFINE_bool(force_init_fp, true, "Force full field processor initialization");
-DEFINE_bool(enable_linkscan_bottom_half, false,
-            "Schedule linkscan work to occur asynchronously");
 
 enum : uint8_t {
   kRxCallbackPriority = 1,
@@ -520,12 +518,10 @@ void BcmSwitch::setupLinkscan() {
     XLOG(DBG1) << " Skipping linkscan registeration as the feature is disabled";
     return;
   }
-  if (FLAGS_enable_linkscan_bottom_half) {
-    linkScanBottomHalfThread_ = std::make_unique<std::thread>([=]() {
-      initThread("fbossLinkScanBH");
-      linkScanBottomHalfEventBase_.loopForever();
-    });
-  }
+  linkScanBottomHalfThread_ = std::make_unique<std::thread>([=]() {
+    initThread("fbossLinkScanBH");
+    linkScanBottomHalfEventBase_.loopForever();
+  });
   auto rv = opennsl_linkscan_register(unit_, linkscanCallback);
   bcmCheckError(rv, "failed to register for linkscan events");
   flags_ |= LINKSCAN_REGISTERED;
@@ -1499,14 +1495,8 @@ void BcmSwitch::linkscanCallback(
     BcmSwitch* sw = static_cast<BcmSwitch*>(unitObj->getCookie());
     bool up = info->linkstatus == OPENNSL_PORT_LINK_STATUS_UP;
 
-    if (FLAGS_enable_linkscan_bottom_half) {
-      sw->linkScanBottomHalfEventBase_.runInEventBaseThread(
-          [sw, bcmPort, up]() {
-            sw->linkStateChangedHwNotLocked(bcmPort, up);
-          });
-    } else {
-      sw->linkStateChangedHwNotLocked(bcmPort, up);
-    }
+    sw->linkScanBottomHalfEventBase_.runInEventBaseThread(
+        [sw, bcmPort, up]() { sw->linkStateChangedHwNotLocked(bcmPort, up); });
   } catch (const std::exception& ex) {
     XLOG(ERR) << "unhandled exception while processing linkscan callback "
               << "for unit " << unit << " port " << bcmPort << ": "
@@ -1517,9 +1507,7 @@ void BcmSwitch::linkscanCallback(
 void BcmSwitch::linkStateChangedHwNotLocked(
     opennsl_port_t bcmPortId,
     bool up) {
-  if (FLAGS_enable_linkscan_bottom_half) {
-    CHECK(linkScanBottomHalfEventBase_.inRunningEventBaseThread());
-  }
+  CHECK(linkScanBottomHalfEventBase_.inRunningEventBaseThread());
 
   if (!up) {
     auto trunk = trunkTable_->linkDownHwNotLocked(bcmPortId);
