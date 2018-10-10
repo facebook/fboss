@@ -92,7 +92,7 @@ class QsfpModule : public Transceiver {
   /*
    * Get the QSFP EEPROM Field
    */
-  int getFieldValue(SffField fieldName, uint8_t* fieldValue);
+  void getFieldValue(SffField fieldName, uint8_t* fieldValue);
 
   /*
    * Customize QSPF fields as necessary
