@@ -305,6 +305,7 @@ add_library(fboss_agent STATIC
     fboss/agent/LldpManager.cpp
     fboss/agent/LoadBalancerConfigApplier.cpp
     fboss/agent/Main.cpp
+    fboss/agent/SetupThrift.cpp
     fboss/agent/ndp/IPv6RouteAdvertiser.cpp
     fboss/agent/NdpCache.cpp
     fboss/agent/NeighborListenerClient.cpp
@@ -312,6 +313,7 @@ add_library(fboss_agent STATIC
     fboss/agent/NexthopToRouteCount.cpp
     fboss/agent/oss/ApplyThriftConfig.cpp
     fboss/agent/oss/Main.cpp
+    fboss/agent/oss/SetupThrift.cpp
     fboss/agent/oss/RouteUpdateLogger.cpp
     fboss/agent/oss/SwSwitch.cpp
     fboss/agent/oss/Utils.cpp

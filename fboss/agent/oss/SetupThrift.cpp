@@ -7,18 +7,10 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/Main.h"
-#include "common/stats/ServiceData.h"
-
-#include <folly/init/Init.h>
-#include <gflags/gflags.h>
+#include "fboss/agent/SetupThrift.h"
 
 namespace facebook { namespace fboss {
 
-void fbossInit(int argc, char** argv) {
-  folly::init(&argc, &argv, true);
-}
-
-void fbossFinalize() {}
+void serverSSLSetup(apache::thrift::ThriftServer& /*server*/) {}
 
 }} // facebook::fboss

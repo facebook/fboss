@@ -28,6 +28,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
+#include "fboss/agent/SetupThrift.h"
 
 #include <chrono>
 #include <condition_variable>
@@ -57,10 +58,6 @@ DEFINE_int32(port, 5909, "The thrift server port");
 DEFINE_int32(stat_publish_interval_ms, 1000,
              "How frequently to publish thread-local stats back to the "
              "global store.  This should generally be less than 1 second.");
-DEFINE_int32(thrift_idle_timeout, 60, "Thrift idle timeout in seconds.");
-// Programming 16K routes can take 20+ seconds
-DEFINE_int32(thrift_task_expire_timeout, 30,
-    "Thrift task expire timeout in seconds.");
 DEFINE_bool(tun_intf, true,
             "Create tun interfaces to allow other processes to "
             "send and receive traffic via the switch ports");
@@ -71,6 +68,8 @@ DEFINE_bool(publish_boot_type, true,
             "Publish boot type on startup");
 DEFINE_int32(flush_warmboot_cache_secs, 60,
     "Seconds to wait before flushing warm boot cache");
+DECLARE_int32(thrift_idle_timeout);
+
 using facebook::fboss::SwSwitch;
 using facebook::fboss::ThriftHandler;
 
@@ -288,30 +287,12 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   auto handler =
       std::shared_ptr<ThriftHandler>(platformPtr->createHandler(&sw));
 
+  handler->setIdleTimeout(FLAGS_thrift_idle_timeout);
   EventBase eventBase;
 
   // Start the thrift server
-  ThriftServer server;
-  server.setTaskExpireTime(std::chrono::milliseconds(
-        FLAGS_thrift_task_expire_timeout * 1000));
-  server.getEventBaseManager()->setEventBase(&eventBase, false);
-  server.setInterface(handler);
-  server.setDuplex(true);
-
-  additionalThriftServerSetup(server);
-
-  handler->setEventBaseManager(server.getEventBaseManager());
-
-  // When a thrift connection closes, we need to clean up the associated
-  // callbacks.
-  server.setServerEventHandler(handler);
-
-  SocketAddress address;
-  address.setFromLocalPort(FLAGS_port);
-  server.setAddress(address);
-  server.setIdleTimeout(std::chrono::seconds(FLAGS_thrift_idle_timeout));
-  handler->setIdleTimeout(FLAGS_thrift_idle_timeout);
-  server.setup();
+  auto server = setupThriftServer(
+      eventBase, handler, FLAGS_port, true /*isDuplex*/, true /*setupSSL*/);
 
   // Create an Initializer to initialize the switch in a background thread.
   Initializer init(&sw, platformPtr);
@@ -334,7 +315,7 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   };
   SignalHandler signalHandler(&eventBase, &sw, stopServices);
 
-  SCOPE_EXIT { server.cleanUp(); };
+  SCOPE_EXIT { server->cleanUp(); };
   XLOG(INFO) << "serving on localhost on port " << FLAGS_port;
 
   // Run the EventBase main loop

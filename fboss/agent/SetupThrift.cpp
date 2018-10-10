@@ -7,18 +7,13 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/Main.h"
-#include "common/stats/ServiceData.h"
+#include "fboss/agent/SetupThrift.h"
 
-#include <folly/init/Init.h>
+#include <folly/io/async/EventBase.h>
+#include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <gflags/gflags.h>
 
-namespace facebook { namespace fboss {
-
-void fbossInit(int argc, char** argv) {
-  folly::init(&argc, &argv, true);
-}
-
-void fbossFinalize() {}
-
-}} // facebook::fboss
+DEFINE_int32(thrift_idle_timeout, 60, "Thrift idle timeout in seconds.");
+// Programming 16K routes can take 20+ seconds
+DEFINE_int32(thrift_task_expire_timeout, 30,
+    "Thrift task expire timeout in seconds.");
