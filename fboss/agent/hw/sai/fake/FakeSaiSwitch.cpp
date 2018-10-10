@@ -1,0 +1,75 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+#include "FakeSai.h"
+#include "FakeSaiSwitch.h"
+
+#include <folly/logging/xlog.h>
+
+using facebook::fboss::FakeSai;
+
+sai_status_t set_switch_attribute_fn(
+    sai_object_id_t /* switch_id */,
+    const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  sai_status_t res;
+  switch (attr->id) {
+    case SAI_SWITCH_ATTR_SRC_MAC_ADDRESS:
+      fs->sw.setSrcMac(attr->value.mac);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    default:
+      res = SAI_STATUS_INVALID_PARAMETER;
+      break;
+  }
+  return res;
+}
+
+sai_status_t get_switch_attribute_fn(
+    sai_object_id_t /* switch_id */,
+    uint32_t attr_count,
+    sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr[i].id) {
+      case SAI_SWITCH_ATTR_PORT_NUMBER:
+        attr[i].value.u32 = fs->pm.numPorts();
+        break;
+      case SAI_SWITCH_ATTR_PORT_LIST:
+        {
+        attr[i].value.objlist.count = fs->pm.numPorts();
+        int j = 0;
+        for (const auto& p : fs->pm.portMap()) {
+          attr[i].value.objlist.list[j++] = p.first;
+        }
+        }
+        break;
+      case SAI_SWITCH_ATTR_SRC_MAC_ADDRESS:
+        memcpy(attr[i].value.mac, fs->sw.srcMac().bytes(), 6);
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+namespace facebook {
+namespace fboss {
+
+static sai_switch_api_t _switch_api;
+
+void populate_switch_api(sai_switch_api_t** switch_api) {
+  _switch_api.set_switch_attribute = &set_switch_attribute_fn;
+  _switch_api.get_switch_attribute = &get_switch_attribute_fn;
+  *switch_api = &_switch_api;
+}
+
+}
+}
