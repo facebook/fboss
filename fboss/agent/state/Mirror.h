@@ -31,6 +31,20 @@ struct MirrorTunnel {
         ttl(255),
         greProtocol(0x88be) {}
 
+  MirrorTunnel(
+      const folly::IPAddress& srcIp,
+      const folly::IPAddress& dstIp,
+      const folly::MacAddress& srcMac,
+      const folly::MacAddress& dstMac,
+      const NextHop& nextHop)
+      : srcIp(srcIp),
+        dstIp(dstIp),
+        srcMac(srcMac),
+        dstMac(dstMac),
+        ttl(255),
+        greProtocol(0x88be),
+        nextHop(nextHop) {}
+
   bool operator==(const MirrorTunnel& rhs) const {
     return srcIp == rhs.srcIp && dstIp == rhs.dstIp && srcMac == rhs.srcMac &&
         dstMac == rhs.dstMac && ttl == rhs.ttl &&
@@ -46,7 +60,7 @@ struct MirrorFields {
       : name_(name),
         egressPort_(mirrorEgressPort),
         tunnelDestinationIp_(tunnelDestinationIp) {
-    if (tunnelDestinationIp_.hasValue() && !egressPort_.hasValue()) {
+    if (egressPort_.hasValue()) {
       configHasEgressPort_ = true;
     }
   }
@@ -86,9 +100,9 @@ class Mirror : public NodeBaseT<Mirror, MirrorFields> {
 
  private:
   // Inherit the constructors required for clone()
+
   using NodeBaseT::NodeBaseT;
   friend class CloneAllocator;
 };
-
 } // namespace fboss
 } // namespace facebook

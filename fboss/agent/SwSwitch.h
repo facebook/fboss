@@ -52,6 +52,7 @@ class RouteUpdateLogger;
 class StateObserver;
 class TunManager;
 class PortRemediator;
+class MirrorManager;
 
 enum SwitchFlags : int {
   DEFAULT = 0,
@@ -841,6 +842,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<IPv6Handler> ipv6_;
   std::unique_ptr<NeighborUpdater> nUpdater_;
   std::unique_ptr<PktCaptureManager> pcapMgr_;
+  std::unique_ptr<MirrorManager> mirrorManager_;
   std::unique_ptr<RouteUpdateLogger> routeUpdateLogger_;
   std::unique_ptr<LinkAggregationManager> lagManager_;
 

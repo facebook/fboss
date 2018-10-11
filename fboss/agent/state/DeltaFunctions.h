@@ -125,4 +125,24 @@ forEachRemoved(const Delta& delta, RemovedFn removedFn, const Args&... args) {
   return LoopAction::CONTINUE;
 }
 
+/*
+ * Delta is empty
+ */
+template<typename Delta>
+bool isEmpty(const Delta& delta) {
+  using NodePtr = std::shared_ptr<typename Delta::Node>;
+  bool empty = true;
+  auto hasChanged = [&empty](const NodePtr&, const NodePtr&) {
+    empty = false;
+    return LoopAction::BREAK;
+  };
+  auto hasAdded = [&empty](const NodePtr&){
+    empty = false;
+    return LoopAction::BREAK;
+  };
+  auto hasRemoved = hasAdded;
+  forEachChanged(delta, hasChanged, hasAdded, hasRemoved);
+  return empty;
+}
+
 }}} // facebook::fboss::DeltaFunctions

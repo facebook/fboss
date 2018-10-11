@@ -2,6 +2,7 @@
 
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/state/Port.h"
 
 namespace facebook {
 namespace fboss {
@@ -47,7 +48,8 @@ bool Mirror::operator==(const Mirror& rhs) const {
   return getID() == rhs.getID() &&
       (configHasEgressPort() == rhs.configHasEgressPort() ||
        getMirrorEgressPort() == rhs.getMirrorEgressPort()) &&
-      getMirrorTunnelDestinationIp() == rhs.getMirrorTunnelDestinationIp();
+      getMirrorTunnelDestinationIp() == rhs.getMirrorTunnelDestinationIp() &&
+      getMirrorTunnel() == rhs.getMirrorTunnel();
 }
 
 bool Mirror::isResolved() const {

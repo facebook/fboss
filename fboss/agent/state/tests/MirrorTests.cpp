@@ -167,7 +167,7 @@ TEST_F(MirrorTest, MirrorWithPort) {
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
-  EXPECT_EQ(mirror->configHasEgressPort(), false);
+  EXPECT_EQ(mirror->configHasEgressPort(), true);
   auto port = mirror->getMirrorEgressPort();
   EXPECT_EQ(port.hasValue(), true);
   EXPECT_EQ(port.value(), mirrorEgressPort);
@@ -179,7 +179,7 @@ TEST_F(MirrorTest, MirrorWithPortId) {
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
-  EXPECT_EQ(mirror->configHasEgressPort(), false);
+  EXPECT_EQ(mirror->configHasEgressPort(), true);
   auto port = mirror->getMirrorEgressPort();
   EXPECT_EQ(port.hasValue(), true);
   EXPECT_EQ(port.value(), mirrorEgressPort);
@@ -191,7 +191,7 @@ TEST_F(MirrorTest, MirrorWithIp) {
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
-  EXPECT_EQ(mirror->configHasEgressPort(), true);
+  EXPECT_EQ(mirror->configHasEgressPort(), false);
   auto port = mirror->getMirrorEgressPort();
   EXPECT_EQ(port.hasValue(), false);
   auto ip = mirror->getMirrorTunnelDestinationIp();
@@ -209,7 +209,7 @@ TEST_F(MirrorTest, MirrorWithPortAndIp) {
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
-  EXPECT_EQ(mirror->configHasEgressPort(), false);
+  EXPECT_EQ(mirror->configHasEgressPort(), true);
   auto port = mirror->getMirrorEgressPort();
   EXPECT_EQ(port.hasValue(), true);
   EXPECT_EQ(port.value(), mirrorEgressPort);
@@ -226,7 +226,7 @@ TEST_F(MirrorTest, MirrorWithPortIdAndIp) {
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
-  EXPECT_EQ(mirror->configHasEgressPort(), false);
+  EXPECT_EQ(mirror->configHasEgressPort(), true);
   auto port = mirror->getMirrorEgressPort();
   EXPECT_EQ(port.hasValue(), true);
   EXPECT_EQ(port.value(), mirrorEgressPort);
@@ -326,7 +326,7 @@ TEST_F(MirrorTest, WithStateChange) {
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
-  EXPECT_EQ(mirror->configHasEgressPort(), true);
+  EXPECT_EQ(mirror->configHasEgressPort(), false);
   auto port = mirror->getMirrorEgressPort();
   EXPECT_EQ(port.hasValue(), false);
   auto ip = mirror->getMirrorTunnelDestinationIp();

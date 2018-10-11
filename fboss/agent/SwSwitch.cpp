@@ -38,6 +38,7 @@
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/LldpManager.h"
+#include "fboss/agent/MirrorManager.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/PortRemediator.h"
@@ -155,17 +156,18 @@ class ChannelCloser : public CloseCallback {
 };
 
 SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
-  : hw_(platform->getHwSwitch()),
-    platform_(std::move(platform)),
-    portRemediator_(new PortRemediator(this)),
-    closer_(new ChannelCloser(this)),
-    arp_(new ArpHandler(this)),
-    ipv4_(new IPv4Handler(this)),
-    ipv6_(new IPv6Handler(this)),
-    nUpdater_(new NeighborUpdater(this)),
-    pcapMgr_(new PktCaptureManager(this)),
-    routeUpdateLogger_(new RouteUpdateLogger(this)),
-    portUpdateHandler_(new PortUpdateHandler(this)) {
+    : hw_(platform->getHwSwitch()),
+      platform_(std::move(platform)),
+      portRemediator_(new PortRemediator(this)),
+      closer_(new ChannelCloser(this)),
+      arp_(new ArpHandler(this)),
+      ipv4_(new IPv4Handler(this)),
+      ipv6_(new IPv6Handler(this)),
+      nUpdater_(new NeighborUpdater(this)),
+      pcapMgr_(new PktCaptureManager(this)),
+      mirrorManager_(new MirrorManager(this)),
+      routeUpdateLogger_(new RouteUpdateLogger(this)),
+      portUpdateHandler_(new PortUpdateHandler(this)) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());

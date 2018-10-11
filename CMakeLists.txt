@@ -306,6 +306,8 @@ add_library(fboss_agent STATIC
     fboss/agent/LoadBalancerConfigApplier.cpp
     fboss/agent/Main.cpp
     fboss/agent/SetupThrift.cpp
+    fboss/agent/MirrorManager.cpp
+    fboss/agent/MirrorManagerImpl.cpp
     fboss/agent/ndp/IPv6RouteAdvertiser.cpp
     fboss/agent/NdpCache.cpp
     fboss/agent/NeighborListenerClient.cpp
