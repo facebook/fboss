@@ -72,7 +72,7 @@ void checkAggPort(
     if (actual < expected) {
       return testing::AssertionFailure() << actual << " unexpected";
     } else {
-      ASSERT(actual > expected);
+      DCHECK(actual > expected);
       return testing::AssertionFailure() << expected << " missing";
     }
   };
@@ -742,7 +742,7 @@ TEST(AggregatePort, serializationInverseOfDeserialization) {
   auto serializedAggPort = aggPort->toFollyDynamic();
   auto deserializedAggPort = AggregatePort::fromFollyDynamic(serializedAggPort);
 
-  ASSERT(deserializedAggPort);
+  ASSERT_TRUE(deserializedAggPort);
   EXPECT_EQ(aggPort->getID(), deserializedAggPort->getID());
   EXPECT_EQ(aggPort->getName(), deserializedAggPort->getName());
   EXPECT_EQ(aggPort->getDescription(), deserializedAggPort->getDescription());

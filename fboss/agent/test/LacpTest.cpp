@@ -404,7 +404,7 @@ TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
   ASSERT_EQ(
       duEventInterceptor.lastPartnerStateTransmitted(duPort),
       eswActorInfo.state);
-  ASSERT(duEventInterceptor.isForwarding(duPort));
+  ASSERT_TRUE(duEventInterceptor.isForwarding(duPort));
 
   /*** Third Round Trip ***/
   eswActorState = eswActorStateBase | LacpState::IN_SYNC |
@@ -450,7 +450,7 @@ TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
       eswActorInfo.state);
   // TODO(samank): really we should check that forwarding hasn't changed, even
   // twice
-  ASSERT(duEventInterceptor.isForwarding(duPort));
+  ASSERT_TRUE(duEventInterceptor.isForwarding(duPort));
 
   duControllerPtr->stopMachines();
 }
@@ -691,7 +691,7 @@ TEST_F(LacpTest, UUColdBootReconvergenceWithDR) {
 
     // Having received the MATCHED signal in MuxState::ATTACHED, the MuxMachine
     // transitions to MuxState::COLLECTING_DISTRIBUTING.
-    ASSERT(uuEventInterceptor.isForwarding(uuPortIdxToPortID[portIdx]));
+    ASSERT_TRUE(uuEventInterceptor.isForwarding(uuPortIdxToPortID[portIdx]));
   }
 
   std::this_thread::sleep_for(PeriodicTransmissionMachine::SHORT_PERIOD * 2);

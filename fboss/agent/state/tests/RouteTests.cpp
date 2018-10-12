@@ -1470,7 +1470,7 @@ TEST(Route, PruneChangedRoutes) {
   auto revertedEntry =
       state4->getRouteTables()->getRouteTable(rid0)->getRibV6()->longestMatch(
           prefix42.network);
-  ASSERT(revertedEntry->isToCPU());
+  ASSERT_TRUE(revertedEntry->isToCPU());
   EXPECT_NODEMAP_MATCH(state4->getRouteTables());
 }
 
