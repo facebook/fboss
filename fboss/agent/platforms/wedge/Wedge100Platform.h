@@ -43,7 +43,6 @@ class Wedge100Platform : public WedgeTomahawkPlatform {
     TWELVE_BIT_MODE = 0x6,
   };
 
-  std::map<std::string, std::string> loadConfig() override;
   std::unique_ptr<BaseWedgeI2CBus> getI2CBus() override;
 
   folly::ByteRange defaultLed0Code() override;

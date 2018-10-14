@@ -20,6 +20,7 @@ std::unique_ptr<ThriftHandler> WedgePlatform::createHandler(SwSwitch* sw) {
 }
 
 std::map<std::string, std::string> WedgePlatform::loadConfig() {
+  // TODO: use opennsl config to support more expressive configuration
   std::map<std::string, std::string> config;
   return config;
 }

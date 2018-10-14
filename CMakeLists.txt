@@ -120,6 +120,12 @@ add_thrift_cpp2_library(
     ctrl_cpp2
 )
 add_thrift_cpp2_library(
+  bcm_config_cpp2
+  fboss/agent/hw/bcm/bcm_config.thrift
+  OPTIONS
+    json
+)
+add_thrift_cpp2_library(
   packettrace_cpp2
   fboss/agent/hw/bcm/packettrace.thrift
 )
@@ -229,6 +235,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmAclRange.cpp
     fboss/agent/hw/bcm/BcmAclTable.cpp
     fboss/agent/hw/bcm/BcmAPI.cpp
+    fboss/agent/hw/bcm/BcmConfig.cpp
     fboss/agent/hw/bcm/BcmControlPlaneQueueManager.cpp
     fboss/agent/hw/bcm/BcmCosQueueManager.cpp
     fboss/agent/hw/bcm/BcmEgress.cpp

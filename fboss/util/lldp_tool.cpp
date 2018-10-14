@@ -9,7 +9,7 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
-#include "fboss/agent/hw/bcm/facebook/gen-cpp2/bcm_config_types.h"
+#include "fboss/agent/hw/bcm/gen-cpp2/bcm_config_types.h"
 #include "fboss/agent/lldp/LinkNeighbor.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/PktUtil.h"

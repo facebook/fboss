@@ -7,22 +7,27 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/wedge/Wedge100Platform.h"
+#pragma once
 
+#include <map>
+#include <string>
 #include <folly/Range.h>
 
 namespace facebook { namespace fboss {
 
-folly::ByteRange Wedge100Platform::defaultLed0Code() {
-  return folly::ByteRange();
-}
+class BcmConfig {
+ public:
+  typedef std::map<std::string, std::string> ConfigMap;
 
-folly::ByteRange Wedge100Platform::defaultLed1Code() {
-  return defaultLed0Code();
-}
+  /*
+   * Load the Broadcom configuration.
+   *
+   */
+  static ConfigMap loadFromFile(const std::string& path);
+  static ConfigMap loadDefaultConfig();
 
-void Wedge100Platform::setPciPreemphasis(int /*unit*/) const {
-  //stubbed out
-}
+ private:
+  static ConfigMap parseBcmStyleConfig(folly::StringPiece data);
+};
 
 }} // facebook::fboss

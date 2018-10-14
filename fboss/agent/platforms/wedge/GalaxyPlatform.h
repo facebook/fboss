@@ -35,8 +35,6 @@ class GalaxyPlatform : public WedgeTomahawkPlatform {
     return std::make_unique<GalaxyI2CBus>();
   }
 
-  std::map<std::string, std::string> loadConfig() override;
-
   folly::ByteRange defaultLed0Code() override;
   folly::ByteRange defaultLed1Code() override;
 };

@@ -12,11 +12,6 @@
 
 namespace facebook { namespace fboss {
 
-std::map<std::string, std::string> GalaxyPlatform::loadConfig() {
-  std::map<std::string, std::string> config;
-  return config;
-}
-
 folly::ByteRange GalaxyPlatform::defaultLed0Code() {
   return folly::ByteRange();
 }
