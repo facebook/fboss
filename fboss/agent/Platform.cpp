@@ -11,6 +11,7 @@
 #include "fboss/agent/Platform.h"
 
 #include <string>
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/state/SwitchState.h"
 
 DEFINE_string(crash_switch_state_file, "crash_switch_state",
@@ -21,12 +22,33 @@ DEFINE_string(crash_hw_state_file, "crash_hw_state",
 
 namespace facebook { namespace fboss {
 
+Platform::Platform() {}
+Platform::~Platform() {}
+
 std::string Platform::getCrashHwStateFile() const {
   return getCrashInfoDir() + "/" + FLAGS_crash_hw_state_file;
 }
 
 std::string Platform::getCrashSwitchStateFile() const {
   return getCrashInfoDir() + "/" + FLAGS_crash_switch_state_file;
+}
+
+const AgentConfig* Platform::config() {
+  if (!config_) {
+    return reloadConfig();
+  }
+  return config_.get();
+}
+
+const AgentConfig* Platform::reloadConfig() {
+    config_ = AgentConfig::fromDefaultFile();
+    return config_.get();
+}
+
+void Platform::init(std::unique_ptr<AgentConfig> config) {
+  // take ownership of the config if passed in
+  config_ = std::move(config);
+  initImpl();
 }
 
 }} //facebook::fboss

@@ -51,6 +51,8 @@ class MockPlatform : public Platform {
   void createTmpDir();
   void cleanupTmpDir();
 
+  void initImpl() override {}
+
   /*
    * A temporary directory that contains the volatile and persistent state
    * directories.

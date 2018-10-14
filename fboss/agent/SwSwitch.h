@@ -254,7 +254,7 @@ class SwSwitch : public HwSwitch::Callback {
    *          What is the reson for applying config. This will be printed for
    *          logging purposes.
    */
-  void applyConfig(const std::string& reason);
+  void applyConfig(const std::string& reason, bool reload = false);
 
   /**
    * Get a set of high resolution samplers that we can query quickly.

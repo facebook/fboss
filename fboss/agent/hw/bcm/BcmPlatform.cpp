@@ -21,6 +21,8 @@ DEFINE_string(script_pre_asic_init, "script_pre_asic_init",
 
 namespace facebook { namespace fboss {
 
+BcmPlatform::BcmPlatform() {}
+
 std::string BcmPlatform::getHwConfigDumpFile() const {
   return getVolatileStateDir() + "/" + FLAGS_hw_config_file;
 }

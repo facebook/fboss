@@ -30,7 +30,7 @@ class BcmPlatform : public Platform {
  public:
   typedef std::map<opennsl_port_t, BcmPlatformPort*> InitPortMap;
 
-  BcmPlatform() {}
+  BcmPlatform();
 
   /*
    * onUnitCreate() will be called by the BcmSwitch code immediately after

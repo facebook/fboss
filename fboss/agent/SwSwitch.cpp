@@ -1490,12 +1490,12 @@ bool SwSwitch::sendPacketToHost(
   }
 }
 
-void SwSwitch::applyConfig(const std::string& reason) {
+void SwSwitch::applyConfig(const std::string& reason, bool reload) {
   // We don't need to hold a lock here. updateStateBlocking() does that for us.
   updateStateBlocking(
       reason,
       [&](const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
-        auto target = AgentConfig::fromDefaultFile();
+        auto target = reload ? platform_->reloadConfig() : platform_->config();
 
         const auto& newConfig = target->thrift.swConfig;
         auto newState =

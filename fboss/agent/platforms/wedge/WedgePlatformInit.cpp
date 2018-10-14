@@ -11,6 +11,7 @@
 
 #include <memory>
 
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/platforms/wedge/GalaxyLCPlatform.h"
 #include "fboss/agent/platforms/wedge/GalaxyFCPlatform.h"
@@ -40,10 +41,10 @@ std::unique_ptr<WedgePlatform> chooseWedgePlatform() {
   return createFBWedgePlatform(std::move(productInfo));
 }
 
-std::unique_ptr<Platform> initWedgePlatform() {
+std::unique_ptr<Platform> initWedgePlatform(
+    std::unique_ptr<AgentConfig> config) {
   auto platform = chooseWedgePlatform();
-  platform->init();
+  platform->init(std::move(config));
   return std::move(platform);
 }
-
 }}

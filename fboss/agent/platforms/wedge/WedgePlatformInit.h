@@ -13,12 +13,14 @@
 
 namespace facebook { namespace fboss {
 
+class AgentConfig;
 class Platform;
 class WedgePlatform;
 class WedgeProductInfo;
 
 std::unique_ptr<WedgePlatform> createWedgePlatform();
-std::unique_ptr<Platform> initWedgePlatform();
+std::unique_ptr<Platform> initWedgePlatform(
+    std::unique_ptr<AgentConfig> config = nullptr);
 
 /**
  * This function should return derived WedgePlatform which is still in dev.

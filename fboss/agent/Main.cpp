@@ -21,6 +21,7 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include "common/stats/ServiceData.h"
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
@@ -86,8 +87,6 @@ void updateStats(SwSwitch *swSwitch) {
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
 namespace facebook { namespace fboss {
-
-
 
 class Initializer {
  public:
@@ -255,7 +254,17 @@ class SignalHandler : public AsyncSignalHandler {
   StopServices stopServices_;
 };
 
+std::unique_ptr<AgentConfig> parseConfig(int argc, char** argv) {
+  // one pass over flags, but don't clear argc/argv. We only do this
+  // to extract the 'config' arg.
+  gflags::ParseCommandLineFlags(&argc, &argv, false);
+
+  return AgentConfig::fromDefaultFile();
+}
+
+
 int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
+  auto config = parseConfig(argc, argv);
 
   fbossInit(argc, argv);
 
@@ -279,7 +288,7 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   freopen("/dev/null", "r", stdin);
 
   // Now that we have parsed the command line flags, create the Platform object
-  unique_ptr<Platform> platform = initPlatform();
+  unique_ptr<Platform> platform = initPlatform(std::move(config));
 
   // Create the SwSwitch and thrift handler
   SwSwitch sw(std::move(platform));

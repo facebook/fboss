@@ -8,6 +8,7 @@
  *
  */
 #include <folly/Memory.h>
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Main.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SwSwitch.h"
@@ -27,7 +28,8 @@ DEFINE_string(local_mac, "02:00:00:00:00:01",
 
 namespace facebook { namespace fboss {
 
-unique_ptr<Platform> initSimPlatform() {
+unique_ptr<Platform> initSimPlatform(
+    std::unique_ptr<AgentConfig> config = nullptr) {
   // Disable the tun interface code by default.
   // We normally don't want the sim switch to create real interfaces
   // on the host.
@@ -35,9 +37,10 @@ unique_ptr<Platform> initSimPlatform() {
       "tun_intf", "no", gflags::SET_FLAGS_DEFAULT);
 
   MacAddress localMac(FLAGS_local_mac);
-  return make_unique<SimPlatform>(localMac, FLAGS_num_ports);
+  auto platform = make_unique<SimPlatform>(localMac, FLAGS_num_ports);
+  platform->init(std::move(config));
+  return std::move(platform);
 }
-
 }}
 
 int main(int argc, char* argv[]) {

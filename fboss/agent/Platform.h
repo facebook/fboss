@@ -23,6 +23,7 @@
 
 namespace facebook { namespace fboss {
 
+class AgentConfig;
 class HwSwitch;
 class SwSwitch;
 class ThriftHandler;
@@ -46,8 +47,29 @@ struct ProductInfo;
  */
 class Platform {
  public:
-  Platform() {}
-  virtual ~Platform() {}
+  Platform();
+  virtual ~Platform();
+
+  /*
+   * Initialize this platform. We use a two-phase initialization
+   * scheme since we often need fine grained control of when to
+   * initialized the platform.
+   *
+   * The platform should also store an owning reference of the config
+   * passed in. Passing it in through init makes it possible to
+   * control platform initialization using the same config mechanism
+   * as other parts of the agent.
+   */
+  void init(std::unique_ptr<AgentConfig> config);
+
+  /*
+   * Two ways to get the configuration of the switch. config() will
+   * pull current running config, reload( ) will also reload the
+   * latest config from the default source for this platform before
+   * returning.
+   */
+  const AgentConfig* config();
+  const AgentConfig* reloadConfig();
 
   /*
    * Get the HwSwitch for this platform.
@@ -77,7 +99,6 @@ class Platform {
    * This will be invoked by fbossMain() during the initialization process.
    */
   virtual std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) = 0;
-
 
   /*
    * Get the local MAC address for the switch.
@@ -154,6 +175,17 @@ class Platform {
   };
 
  private:
+  /*
+   * Subclasses can override this to do custom initialization. This is
+   * called from init() and will be invoked before trying to
+   * initialize SwSwitch or other objects. Usually this is where
+   * vendor-specific APIs are instantiated and where a platform
+   * creates the HwSwitch instance it must serve back to SwSwitch.
+   */
+  virtual void initImpl() = 0;
+
+  std::unique_ptr<AgentConfig> config_;
+
   // Forbidden copy constructor and assignment operator
   Platform(Platform const &) = delete;
   Platform& operator=(Platform const &) = delete;

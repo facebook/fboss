@@ -1180,7 +1180,8 @@ int32_t ThriftHandler::getIdleTimeout() {
 }
 
 void ThriftHandler::reloadConfig() {
-  return sw_->applyConfig("reload config initiated by thrift call");
+  ensureConfigured();
+  return sw_->applyConfig("reload config initiated by thrift call", true);
 }
 
 void ThriftHandler::getLacpPartnerPair(

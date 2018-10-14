@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/types.h"
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/platforms/wedge/WedgeProductInfo.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
@@ -35,7 +36,7 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   explicit WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo);
   ~WedgePlatform() override;
 
-  virtual void init();
+  void initImpl() override;
   InitPortMap initPorts() override;
 
   void stateUpdated(const StateDelta& /*delta*/) override;

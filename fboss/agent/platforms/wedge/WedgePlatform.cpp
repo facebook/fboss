@@ -50,9 +50,8 @@ WedgePlatform::WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo)
     : productInfo_(std::move(productInfo)),
       qsfpCache_(std::make_unique<QsfpCache>()) {}
 
-void WedgePlatform::init() {
-  auto config = loadConfig();
-  BcmAPI::init(config);
+void WedgePlatform::initImpl() {
+  BcmAPI::init(loadConfig());
   initLocalMac();
   auto mode = getMode();
   bool isLc = (mode == WedgePlatformMode::GALAXY_LC);
