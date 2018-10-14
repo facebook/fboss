@@ -68,6 +68,15 @@ add_thrift_cpp2_library(
     json
 )
 add_thrift_cpp2_library(
+  agent_config_cpp2
+  fboss/agent/agent_config.thrift
+  OPTIONS
+    json
+  DEPENDS
+    bcm_config_cpp2
+    switch_config_cpp2
+)
+add_thrift_cpp2_library(
   switch_state_cpp2
   fboss/agent/switch_state.thrift
   OPTIONS
@@ -218,6 +227,7 @@ add_executable(qsfp_service
 add_library(fboss_agent STATIC
     common/stats/ServiceData.cpp
 
+    fboss/agent/AgentConfig.cpp
     fboss/agent/ApplyThriftConfig.cpp
     fboss/agent/ArpCache.cpp
     fboss/agent/ArpHandler.cpp
@@ -441,6 +451,8 @@ add_library(fboss_agent STATIC
 )
 target_link_libraries(
   fboss_agent PUBLIC
+    agent_config_cpp2
+    switch_config_cpp2
     switch_state_cpp2
     sflow_cpp2
     ctrl_cpp2

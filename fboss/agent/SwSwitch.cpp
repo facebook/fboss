@@ -28,6 +28,7 @@
 #include <exception>
 #include <tuple>
 #include "common/stats/ServiceData.h"
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/Constants.h"
@@ -87,7 +88,6 @@ using namespace apache::thrift::protocol;
 using namespace apache::thrift::async;
 
 
-DEFINE_string(config, "", "The path to the local JSON configuration file");
 DEFINE_int32(thread_heartbeat_ms, 1000, "Thread heartbeat interval (ms)");
 DEFINE_int32(
     distribution_timeout_ms,
@@ -1495,19 +1495,18 @@ void SwSwitch::applyConfig(const std::string& reason) {
   updateStateBlocking(
       reason,
       [&](const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
-        std::string configFilename = FLAGS_config;
-        CHECK(!configFilename.empty());
+        auto target = AgentConfig::fromDefaultFile();
 
-        std::shared_ptr<SwitchState> newState;
-        XLOG(INFO) << "Loading config from local config file "
-                   << configFilename;
-        std::tie(newState, curConfigStr_) = applyThriftConfigFile(
-            state, configFilename, platform_.get(), &curConfig_);
+        const auto& newConfig = target->thrift.swConfig;
+        auto newState =
+          applyThriftConfig(state, &newConfig, platform_.get(), &curConfig_);
+
         if (!isValidStateUpdate(StateDelta(state, newState))) {
           throw FbossError("Invalid config passed in, skipping");
         }
-        apache::thrift::SimpleJSONSerializer::deserialize<cfg::SwitchConfig>(
-            curConfigStr_.c_str(), curConfig_);
+
+        curConfig_ = newConfig;
+        curConfigStr_ = target->swConfigRaw();
 
         if (!newState) {
           return nullptr;

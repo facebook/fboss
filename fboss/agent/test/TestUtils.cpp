@@ -137,21 +137,6 @@ shared_ptr<SwitchState> publishAndApplyConfig(
   return applyThriftConfig(state, config, platform, prevCfg);
 }
 
-shared_ptr<SwitchState> publishAndApplyConfigFile(
-    shared_ptr<SwitchState>& state,
-    StringPiece path,
-    const Platform* platform,
-    std::string prevConfigStr) {
-  state->publish();
-  // Parse the prev JSON config.
-  cfg::SwitchConfig prevConfig;
-  if (prevConfigStr.size()) {
-    apache::thrift::SimpleJSONSerializer::deserialize<cfg::SwitchConfig>(
-        prevConfigStr.c_str(), prevConfig);
-  }
-  return applyThriftConfigFile(state, path, platform, &prevConfig).first;
-}
-
 unique_ptr<MockPlatform> createMockPlatform() {
   if (!FLAGS_switch_hw) {
     return make_unique<testing::NiceMock<MockPlatform>>();

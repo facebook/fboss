@@ -59,12 +59,6 @@ std::shared_ptr<SwitchState> publishAndApplyConfig(
     const Platform* platform,
     const cfg::SwitchConfig* prevCfg=nullptr);
 
-std::shared_ptr<SwitchState> publishAndApplyConfigFile(
-    std::shared_ptr<SwitchState>& state,
-    folly::StringPiece path,
-    const Platform* platform,
-    std::string prevCfgStr="");
-
 /*
  * Create a SwSwitch for testing purposes, with the specified initial state.
  *
