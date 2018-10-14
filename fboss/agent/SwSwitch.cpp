@@ -1496,42 +1496,25 @@ void SwSwitch::applyConfig(const std::string& reason) {
       reason,
       [&](const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
         std::string configFilename = FLAGS_config;
-        std::pair<shared_ptr<SwitchState>, std::string> rval;
-        if (!configFilename.empty()) {
-          XLOG(INFO) << "Loading config from local config file "
-                     << configFilename;
-          rval = applyThriftConfigFile(state, configFilename, platform_.get(),
-              &curConfig_);
-        } else {
-          // Loading config from default location. The message will be printed
-          // there.
-          rval = applyThriftConfigDefault(state, platform_.get(),
-              &curConfig_);
-        }
+        CHECK(!configFilename.empty());
 
-        auto& newState = rval.first;
-        curConfigStr_ = rval.second;
-        if (!newState) {
-          return nullptr;
-        }
-
-        apache::thrift::SimpleJSONSerializer::deserialize<cfg::SwitchConfig>(
-            curConfigStr_.c_str(), curConfig_);
-
+        std::shared_ptr<SwitchState> newState;
+        XLOG(INFO) << "Loading config from local config file "
+                   << configFilename;
+        std::tie(newState, curConfigStr_) = applyThriftConfigFile(
+            state, configFilename, platform_.get(), &curConfig_);
         if (!isValidStateUpdate(StateDelta(state, newState))) {
           throw FbossError("Invalid config passed in, skipping");
         }
+        apache::thrift::SimpleJSONSerializer::deserialize<cfg::SwitchConfig>(
+            curConfigStr_.c_str(), curConfig_);
 
-        // Set oper status of interfaces in SwitchState
-        for (const auto& portCfg : curConfig_.ports) {
-          PortID portId(portCfg.logicalID);
-          auto* port = newState->getPorts()->getPortIf(portId).get();
-          if (!port) {
-            throw FbossError(
-                "Port ", portId, " doesn't exists in SwitchState.");
-          }
-          port = port->modify(&newState);
-          port->setOperState(hw_->isPortUp(portId));
+        if (!newState) {
+          return nullptr;
+        }
+        // TODO(aeckert): this should be unneeded. Remove this
+        for (auto const& port : *newState->getPorts()) {
+          port->setOperState(hw_->isPortUp(port->getID()));
         }
 
         return newState;
