@@ -258,22 +258,34 @@ std::unique_ptr<AgentConfig> parseConfig(int argc, char** argv) {
   // one pass over flags, but don't clear argc/argv. We only do this
   // to extract the 'config' arg.
   gflags::ParseCommandLineFlags(&argc, &argv, false);
-
   return AgentConfig::fromDefaultFile();
 }
 
-
-int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
-  auto config = parseConfig(argc, argv);
-
-  fbossInit(argc, argv);
-
+void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
   // Internally we use a modified version of gflags that only shows VLOG
   // messages if --minloglevel is set to 0.  We pretty much always want to see
   // VLOG messages, so set minloglevel to 0 by default, unless overridden on
   // the command line.
   gflags::SetCommandLineOptionWithMode(
       "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
+
+  for (auto item : defaults) {
+    // logging not initialized yet, need to use std::cerr
+    std::cerr << "Overriding default flag from config: " << item.first.c_str()
+              << "=" << item.second.c_str() << std::endl;
+    gflags::SetCommandLineOptionWithMode(
+        item.first.c_str(), item.second.c_str(), gflags::SET_FLAGS_DEFAULT);
+  }
+}
+
+int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
+  setVersionInfo();
+
+  // Read the config and set default command line arguments
+  auto config = parseConfig(argc, argv);
+  initFlagDefaults(config->thrift.defaultCommandLineArgs);
+
+  fbossInit(argc, argv);
 
   // Allow the fb303 setOption() call to update the command line flag
   // settings.  This allows us to change the log levels on the fly using
