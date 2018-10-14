@@ -142,6 +142,13 @@ class Platform {
   }
 
   /*
+   * Get location we dump the running config of the switch
+   */
+  std::string getRunningConfigDumpFile() const {
+    return getPersistentStateDir() + "/running-agent.conf";
+  }
+
+  /*
    * Get the directory where warm boot state is stored.
    */
   std::string getWarmBootDir() const {

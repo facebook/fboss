@@ -1507,6 +1507,7 @@ void SwSwitch::applyConfig(const std::string& reason, bool reload) {
 
         curConfig_ = newConfig;
         curConfigStr_ = target->swConfigRaw();
+        target->dumpConfig(platform_->getRunningConfigDumpFile());
 
         if (!newState) {
           return nullptr;

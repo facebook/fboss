@@ -69,5 +69,9 @@ const std::string AgentConfig::swConfigRaw() const {
       thrift.swConfig);
 }
 
+void AgentConfig::dumpConfig(folly::StringPiece path) const {
+  folly::writeFile(raw, path.data());
+}
+
 } // namespace fboss
 } // namespace facebook

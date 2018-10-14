@@ -29,6 +29,8 @@ struct AgentConfig {
   // serialize just the swConfig component
   const std::string swConfigRaw() const;
 
+  void dumpConfig(folly::StringPiece path) const;
+
   const cfg::AgentConfig thrift;
   const std::string raw;
 };
