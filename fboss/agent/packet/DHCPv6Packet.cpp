@@ -45,7 +45,8 @@ void DHCPv6Option::parse(DHCPv6Packet::Options& optionsIn, int index) {
 }
 
 bool DHCPv6Packet::isDHCPv6Relay() const {
-  return (type == DHCPv6_RELAY_FORWARD || type == DHCPv6_RELAY_REPLY);
+  return (static_cast<DHCPv6Type>(type) == DHCPv6Type::DHCPv6_RELAY_FORWARD ||
+          static_cast<DHCPv6Type>(type) == DHCPv6Type::DHCPv6_RELAY_REPLY);
 }
 
 void DHCPv6Packet::addRelayMessageOption(const DHCPv6Packet& dhcpPktIn) {
@@ -57,11 +58,14 @@ void DHCPv6Packet::addRelayMessageOption(const DHCPv6Packet& dhcpPktIn) {
   dhcpPktIn.write(&cursor);
 
   // append the option
-  appendOption(DHCPv6_OPTION_RELAY_MSG, totalLength, buf->data());
+  appendOption(
+      static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_RELAY_MSG),
+      totalLength,
+      buf->data());
 }
 
 void DHCPv6Packet::addInterfaceIDOption(MacAddress macAddr) {
-  appendOption(DHCPv6_OPTION_INTERFACE_ID, MacAddress::SIZE, macAddr.bytes());
+  appendOption(static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_INTERFACE_ID), MacAddress::SIZE, macAddr.bytes());
 }
 
 /**

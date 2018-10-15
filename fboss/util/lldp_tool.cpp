@@ -217,7 +217,7 @@ void processPacket(IOBuf* buf,
 
     LinkNeighbor neighbor;
     bool parsed{false};
-    if (ethertype == ETHERTYPE_LLDP) {
+    if (ethertype == static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_LLDP)) {
       parsed = neighbor.parseLldpPdu(srcPort, srcVlan, srcMac,
                                      ethertype, &cursor);
     } else if (destMac == MAC_CDP) {

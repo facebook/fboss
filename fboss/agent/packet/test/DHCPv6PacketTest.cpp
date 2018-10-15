@@ -34,7 +34,7 @@ using folly::MacAddress;
 using std::unique_ptr;
 
 DHCPv6Packet makeDHCPv6Packet() {
-  DHCPv6Packet dhcp(DHCPv6_SOLICIT, 1000);
+  DHCPv6Packet dhcp(static_cast<uint8_t>(DHCPv6Type::DHCPv6_SOLICIT), 1000);
   dhcp.addInterfaceIDOption(MacAddress("33:33:33:00:00:01"));
   return dhcp;
 }
@@ -42,7 +42,8 @@ DHCPv6Packet makeDHCPv6Packet() {
 DHCPv6Packet makeDHCPv6RelayFwdPacket(DHCPv6Packet& dhcpPktIn) {
   IPAddressV6 la("::");
   IPAddressV6 pa("fe08::01:1");
-  DHCPv6Packet dhcpPktOut(DHCPv6_RELAY_FORWARD, 0, la, pa);
+  DHCPv6Packet dhcpPktOut(
+      static_cast<uint8_t>(DHCPv6Type::DHCPv6_RELAY_FORWARD), 0, la, pa);
   dhcpPktOut.addInterfaceIDOption(MacAddress("33:33:33:00:00:01"));
   dhcpPktOut.addRelayMessageOption(dhcpPktIn);
   return dhcpPktOut;
@@ -50,7 +51,7 @@ DHCPv6Packet makeDHCPv6RelayFwdPacket(DHCPv6Packet& dhcpPktIn) {
 
 TEST(DHCPv6PacketTest, testWrite) {
   auto dhcp = makeDHCPv6Packet();
-  EXPECT_EQ(DHCPv6_SOLICIT, dhcp.type);
+  EXPECT_EQ(static_cast<uint8_t>(DHCPv6Type::DHCPv6_SOLICIT), dhcp.type);
   EXPECT_EQ(1000, dhcp.transactionId);
   EXPECT_EQ(MacAddress::SIZE + 4, dhcp.options.size());
 
@@ -70,7 +71,9 @@ TEST(DHCPv6PacketTest, testWrite) {
   EXPECT_EQ(dhcp.type, dhcp2.type);
   EXPECT_EQ(dhcp.transactionId, dhcp2.transactionId);
   EXPECT_EQ(dhcp.options.size(), dhcp2.options.size());
-  EXPECT_EQ(DHCPv6_OPTION_INTERFACE_ID, options[0].op);
+  EXPECT_EQ(
+      static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_INTERFACE_ID),
+      options[0].op);
   EXPECT_EQ(6, options[0].len);
   MacAddress mac = MacAddress::fromBinary(
       folly::ByteRange(options[0].data, MacAddress::SIZE));
@@ -82,7 +85,9 @@ TEST(DHCPv6PacketTest, testRelayForward) {
   auto dhcpRelayFwd = makeDHCPv6RelayFwdPacket(dhcpPktIn);
 
   // check the relay forward packet
-  EXPECT_EQ(DHCPv6_RELAY_FORWARD, dhcpRelayFwd.type);
+  EXPECT_EQ(
+      static_cast<uint8_t>(DHCPv6Type::DHCPv6_RELAY_FORWARD),
+      dhcpRelayFwd.type);
   EXPECT_EQ(0, dhcpRelayFwd.hopCount);
   // interface ID option + relay message option
   auto optionLen = MacAddress::SIZE + 4 +
@@ -105,14 +110,18 @@ TEST(DHCPv6PacketTest, testRelayForward) {
   std::unordered_set<uint16_t> selectAll;
   auto options = dhcp2.extractOptions(selectAll);
   // check the interface id option
-  EXPECT_EQ(DHCPv6_OPTION_INTERFACE_ID, options[0].op);
+  EXPECT_EQ(
+      static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_INTERFACE_ID),
+      options[0].op);
   EXPECT_EQ(6, options[0].len);
   MacAddress mac = MacAddress::fromBinary(
       folly::ByteRange(options[0].data, MacAddress::SIZE));
   EXPECT_EQ(mac, MacAddress("33:33:33:00:00:01"));
 
   // check the relay message option
-  EXPECT_EQ(DHCPv6_OPTION_RELAY_MSG, options[1].op);
+  EXPECT_EQ(
+      static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_RELAY_MSG),
+      options[1].op);
   EXPECT_EQ(dhcpPktIn.computePacketLength(), options[1].len);
   auto buf2 = IOBuf::wrapBuffer(options[1].data, options[1].len);
   Cursor innerCursor(buf2.get());

@@ -281,10 +281,13 @@ IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
   IPv6Hdr ipv6(srcIP, dstIP);
   ipv6.trafficClass = 0xe0; // CS7 precedence (network control)
   ipv6.payloadLength = ICMPHdr::SIZE + bodyLength;
-  ipv6.nextHeader = IP_PROTO_IPV6_ICMP;
+  ipv6.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
   ipv6.hopLimit = 255;
 
-  ICMPHdr icmp6(ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT, 0, 0);
+  ICMPHdr icmp6(
+      static_cast<uint8_t>(ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT),
+      0,
+      0);
 
   icmp6.serializeFullPacket(cursor, dstMac, intf->getMac(), intf->getVlanID(),
                             ipv6, bodyLength, serializeBody);

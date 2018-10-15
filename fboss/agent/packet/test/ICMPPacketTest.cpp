@@ -51,7 +51,7 @@ IPv4Hdr makeIPv4Hdr() {
   const bool moreFragments = false;
   const uint16_t fragmentOffset = 0;
   const uint8_t ttl = 1;
-  const uint8_t protocol = IP_PROTO_ICMP;
+  const uint8_t protocol = static_cast<uint8_t>(IP_PROTO::IP_PROTO_ICMP);
   const uint16_t csum = 0;
   IPAddressV4 srcAddr("10.0.0.15");
   IPAddressV4 dstAddr("10.0.0.1");
@@ -68,7 +68,7 @@ IPv6Hdr makeIPv6Hdr() {
 
   ipv6.trafficClass = 0xe0;
   ipv6.payloadLength = ICMPHdr::SIZE;
-  ipv6.nextHeader = IP_PROTO_IPV6_ICMP;
+  ipv6.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
   ipv6.hopLimit = 255;
 
   return ipv6;
@@ -76,9 +76,11 @@ IPv6Hdr makeIPv6Hdr() {
 
 TEST(ICMPv4Packet, serializeFullPacket) {
   auto ipv4 = makeIPv4Hdr();
-  ICMPHdr icmp4(ICMPV4_TYPE_DESTINATION_UNREACHABLE,
-                ICMPV4_CODE_DESTINATION_UNREACHABLE_NET_UNREACHABLE,
-                0);
+  ICMPHdr icmp4(
+      static_cast<uint8_t>(ICMPv4Type::ICMPV4_TYPE_DESTINATION_UNREACHABLE),
+      static_cast<uint8_t>(
+          ICMPv4Code::ICMPV4_CODE_DESTINATION_UNREACHABLE_NET_UNREACHABLE),
+      0);
   auto totalLength = icmp4.computeTotalLengthV4(0);
   auto buf = IOBuf(IOBuf::CREATE, totalLength);
   buf.append(totalLength);
@@ -131,7 +133,10 @@ TEST(ICMPv4Packet, serializeFullPacket) {
 
 TEST(ICMPv6Packet, serializeFullPacket) {
   auto ipv6 = makeIPv6Hdr();
-  ICMPHdr icmp6(ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION, 0, 0);
+  ICMPHdr icmp6(
+      static_cast<uint8_t>(ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION),
+      0,
+      0);
 
   auto totalLength = icmp6.computeTotalLengthV6(0);
   auto buf = IOBuf(IOBuf::CREATE, totalLength);

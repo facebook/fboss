@@ -27,23 +27,23 @@
 
 namespace facebook { namespace fboss {
 
-enum ARP_HTYPE : uint16_t {
+enum class ARP_HTYPE : uint16_t {
   ARP_HTYPE_ETHERNET = 1,
 };
 
-enum ARP_PTYPE : uint16_t {
+enum class ARP_PTYPE : uint16_t {
   ARP_PTYPE_IPV4 = 0x0800,
 };
 
-enum ARP_HLEN : uint8_t {
+enum class ARP_HLEN : uint8_t {
   ARP_HLEN_ETHERNET = 6,
 };
 
-enum ARP_PLEN: uint8_t {
+enum class ARP_PLEN: uint8_t {
   ARP_PLEN_IPV4 = 4,
 };
 
-enum ARP_OPER : uint16_t {
+enum class ARP_OPER : uint16_t {
   ARP_OPER_REQUEST = 1,
   ARP_OPER_REPLY = 2,
 };

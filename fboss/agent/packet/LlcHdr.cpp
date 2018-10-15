@@ -17,11 +17,11 @@ LlcHdr::LlcHdr(Cursor& cursor) {
   try {
     dsap = cursor.read<uint8_t>();
     ssap = cursor.read<uint8_t>();
-    if (ssap == LLC_SAP_GLOBAL) {
+    if (ssap == static_cast<uint8_t>(LLC_SAP_ADDR::LLC_SAP_GLOBAL)) {
       throw HdrParseError("LLC: SSAP cannot be the global address (0xFF)");
     }
     control = cursor.read<uint8_t>();
-    if (control != LLC_CONTROL_UI) {
+    if (control != static_cast<uint8_t>(LLC_CONTROL::LLC_CONTROL_UI)) {
       throw HdrParseError("LLC: only Type 1 'UI' PDUs are supported");
     }
   } catch (const std::out_of_range& e) {

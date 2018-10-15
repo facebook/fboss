@@ -19,7 +19,7 @@
 
 namespace facebook { namespace fboss {
 
-enum ETHERTYPE : uint16_t {
+enum class ETHERTYPE : uint16_t {
 
   // Internet Protocol (version 4)
   ETHERTYPE_IPV4  = 0x0800,

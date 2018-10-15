@@ -231,9 +231,12 @@ TxMatchFn checkDHCPPkt(MacAddress dstMac, VlanID vlan,
       throw FbossError("expected vlan to be ", vlan,
           "; got ", VlanID(ethHdr.vlanTags[0].vid()));
     }
-    if (ethHdr.etherType != ETHERTYPE_IPV4) {
-      throw FbossError("expected ether type to be ", ETHERTYPE_IPV4,
-          "; got ", ethHdr.etherType);
+    if (ethHdr.etherType != static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4)) {
+      throw FbossError(
+          "expected ether type to be ",
+          static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4),
+          "; got ",
+          ethHdr.etherType);
     }
     IPv4Hdr ipHdr(c);
     if (ipHdr.srcAddr != srcIp) {

@@ -42,11 +42,11 @@ TEST(ArpHdrTest, default_constructor) {
 }
 
 TEST(ArpHdrTest, copy_constructor) {
-  uint16_t htype = ARP_HTYPE_ETHERNET;
-  uint16_t ptype = ARP_PTYPE_IPV4;
-  uint8_t hlen = ARP_HLEN_ETHERNET;
-  uint8_t plen = ARP_PLEN_IPV4;
-  uint16_t oper = ARP_OPER_REQUEST;
+  uint16_t htype = static_cast<uint16_t>(ARP_HTYPE::ARP_HTYPE_ETHERNET);
+  uint16_t ptype = static_cast<uint16_t>(ARP_PTYPE::ARP_PTYPE_IPV4);
+  uint8_t hlen = static_cast<uint8_t>(ARP_HLEN::ARP_HLEN_ETHERNET);
+  uint8_t plen = static_cast<uint8_t>(ARP_PLEN::ARP_PLEN_IPV4);
+  uint16_t oper = static_cast<uint16_t>(ARP_OPER::ARP_OPER_REQUEST);
   MacAddress sha("10:dd:b1:bb:5a:ef");
   IPAddressV4 spa("10.0.0.15");
   MacAddress tha("ff:ff:ff:ff:ff:ff");
@@ -57,11 +57,11 @@ TEST(ArpHdrTest, copy_constructor) {
 }
 
 TEST(ArpHdrTest, parameterized_data_constructor) {
-  uint16_t htype = ARP_HTYPE_ETHERNET;
-  uint16_t ptype = ARP_PTYPE_IPV4;
-  uint8_t hlen = ARP_HLEN_ETHERNET;
-  uint8_t plen = ARP_PLEN_IPV4;
-  uint16_t oper = ARP_OPER_REQUEST;
+  uint16_t htype = static_cast<uint16_t>(ARP_HTYPE::ARP_HTYPE_ETHERNET);
+  uint16_t ptype = static_cast<uint16_t>(ARP_PTYPE::ARP_PTYPE_IPV4);
+  uint8_t hlen = static_cast<uint8_t>(ARP_HLEN::ARP_HLEN_ETHERNET);
+  uint8_t plen = static_cast<uint8_t>(ARP_PLEN::ARP_PLEN_IPV4);
+  uint16_t oper = static_cast<uint16_t>(ARP_OPER::ARP_OPER_REQUEST);
   MacAddress sha("10:dd:b1:bb:5a:ef");
   IPAddressV4 spa("10.0.0.15");
   MacAddress tha("ff:ff:ff:ff:ff:ff");
@@ -79,11 +79,11 @@ TEST(ArpHdrTest, parameterized_data_constructor) {
 }
 
 TEST(ArpHdrTest, cursor_data_constructor) {
-  uint16_t htype = ARP_HTYPE_ETHERNET;
-  uint16_t ptype = ARP_PTYPE_IPV4;
-  uint8_t hlen = ARP_HLEN_ETHERNET;
-  uint8_t plen = ARP_PLEN_IPV4;
-  uint16_t oper = ARP_OPER_REQUEST;
+  uint16_t htype = static_cast<uint16_t>(ARP_HTYPE::ARP_HTYPE_ETHERNET);
+  uint16_t ptype = static_cast<uint16_t>(ARP_PTYPE::ARP_PTYPE_IPV4);
+  uint8_t hlen = static_cast<uint8_t>(ARP_HLEN::ARP_HLEN_ETHERNET);
+  uint8_t plen = static_cast<uint8_t>(ARP_PLEN::ARP_PLEN_IPV4);
+  uint16_t oper = static_cast<uint16_t>(ARP_OPER::ARP_OPER_REQUEST);
   MacAddress sha("10:dd:b1:bb:5a:ef");
   IPAddressV4 spa("10.0.0.15");
   MacAddress tha("ff:ff:ff:ff:ff:ff");
@@ -131,11 +131,11 @@ TEST(ArpHdrTest, cursor_data_constructor_too_small) {
 }
 
 TEST(ArpHdrTest, assignment_operator) {
-  uint16_t htype = ARP_HTYPE_ETHERNET;
-  uint16_t ptype = ARP_PTYPE_IPV4;
-  uint8_t hlen = ARP_HLEN_ETHERNET;
-  uint8_t plen = ARP_PLEN_IPV4;
-  uint16_t oper = ARP_OPER_REQUEST;
+  uint16_t htype = static_cast<uint16_t>(ARP_HTYPE::ARP_HTYPE_ETHERNET);
+  uint16_t ptype = static_cast<uint16_t>(ARP_PTYPE::ARP_PTYPE_IPV4);
+  uint8_t hlen = static_cast<uint8_t>(ARP_HLEN::ARP_HLEN_ETHERNET);
+  uint8_t plen = static_cast<uint8_t>(ARP_PLEN::ARP_PLEN_IPV4);
+  uint16_t oper = static_cast<uint16_t>(ARP_OPER::ARP_OPER_REQUEST);
   MacAddress sha("10:dd:b1:bb:5a:ef");
   IPAddressV4 spa("10.0.0.15");
   MacAddress tha("ff:ff:ff:ff:ff:ff");
@@ -146,11 +146,11 @@ TEST(ArpHdrTest, assignment_operator) {
 }
 
 TEST(ArpHdrTest, equality_operator) {
-  uint16_t htype = ARP_HTYPE_ETHERNET;
-  uint16_t ptype = ARP_PTYPE_IPV4;
-  uint8_t hlen = ARP_HLEN_ETHERNET;
-  uint8_t plen = ARP_PLEN_IPV4;
-  uint16_t oper = ARP_OPER_REQUEST;
+  uint16_t htype = static_cast<uint16_t>(ARP_HTYPE::ARP_HTYPE_ETHERNET);
+  uint16_t ptype = static_cast<uint16_t>(ARP_PTYPE::ARP_PTYPE_IPV4);
+  uint8_t hlen = static_cast<uint8_t>(ARP_HLEN::ARP_HLEN_ETHERNET);
+  uint8_t plen = static_cast<uint8_t>(ARP_PLEN::ARP_PLEN_IPV4);
+  uint16_t oper = static_cast<uint16_t>(ARP_OPER::ARP_OPER_REQUEST);
   MacAddress sha("10:dd:b1:bb:5a:ef");
   IPAddressV4 spa("10.0.0.15");
   MacAddress tha("ff:ff:ff:ff:ff:ff");
@@ -161,11 +161,11 @@ TEST(ArpHdrTest, equality_operator) {
 }
 
 TEST(ArpHdrTest, inequality_operator) {
-  uint16_t htype = ARP_HTYPE_ETHERNET;
-  uint16_t ptype = ARP_PTYPE_IPV4;
-  uint8_t hlen = ARP_HLEN_ETHERNET;
-  uint8_t plen = ARP_PLEN_IPV4;
-  uint16_t oper = ARP_OPER_REQUEST;
+  uint16_t htype = static_cast<uint16_t>(ARP_HTYPE::ARP_HTYPE_ETHERNET);
+  uint16_t ptype = static_cast<uint16_t>(ARP_PTYPE::ARP_PTYPE_IPV4);
+  uint8_t hlen = static_cast<uint8_t>(ARP_HLEN::ARP_HLEN_ETHERNET);
+  uint8_t plen = static_cast<uint8_t>(ARP_PLEN::ARP_PLEN_IPV4);
+  uint16_t oper = static_cast<uint16_t>(ARP_OPER::ARP_OPER_REQUEST);
   MacAddress sha("10:dd:b1:bb:5a:ef");
   IPAddressV4 spa("10.0.0.15");
   MacAddress tha("ff:ff:ff:ff:ff:ff");

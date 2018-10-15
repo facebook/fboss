@@ -54,12 +54,17 @@ void sendDHCPv6Packet(SwSwitch* sw, MacAddress dstMac, MacAddress srcMac,
     DHCPBodyFn serializeDhcp) {
   // construct EthHdr,
   VlanTags_t vlanTags;
-  vlanTags.push_back(VlanTag(vlan, ETHERTYPE_VLAN));
-  EthHdr ethHdr(dstMac, srcMac, vlanTags, ETHERTYPE_IPV6);
+  vlanTags.push_back(
+      VlanTag(vlan, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
+  EthHdr ethHdr(
+      dstMac,
+      srcMac,
+      vlanTags,
+      static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6));
 
   // IPv6Hdr
   IPv6Hdr ipHdr(srcIp, dstIp);
-  ipHdr.nextHeader = IP_PROTO_UDP;
+  ipHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
   ipHdr.trafficClass = 0x00;
   ipHdr.payloadLength = UDPHeader::size() + dhcpLength;
   ipHdr.hopLimit = 255;
@@ -128,12 +133,13 @@ void DHCPv6Handler::handlePacket(
      sw->portStats(pkt->getSrcPort())->dhcpV6BadPkt();
      throw; // Rethrow
   }
-  if (dhcp6Pkt.type == DHCPv6_RELAY_FORWARD) {
+  if (dhcp6Pkt.type == static_cast<uint8_t>(DHCPv6Type::DHCPv6_RELAY_FORWARD)) {
     XLOG(DBG4) << "Received DHCPv6 relay forward packet: "
                << dhcp6Pkt.toString();
     processDHCPv6RelayForward(sw, std::move(pkt), srcMac, dstMac,
                              ipHdr, dhcp6Pkt);
-  } else if (dhcp6Pkt.type == DHCPv6_RELAY_REPLY) {
+  } else if (
+      dhcp6Pkt.type == static_cast<uint8_t>(DHCPv6Type::DHCPv6_RELAY_REPLY)) {
     XLOG(DBG4) << "Received DHCPv6 relay reply packet: " << dhcp6Pkt.toString();
     processDHCPv6RelayReply(sw, std::move(pkt), srcMac, dstMac,
                              ipHdr, dhcp6Pkt);
@@ -189,7 +195,8 @@ void DHCPv6Handler::processDHCPv6Packet(
   IPAddressV6 la("::");
   // ip src -> peer-address
   IPAddressV6 pa = ipHdr.srcAddr;
-  DHCPv6Packet relayFwdPkt(DHCPv6_RELAY_FORWARD, 0, la, pa);
+  DHCPv6Packet relayFwdPkt(
+      static_cast<uint8_t>(DHCPv6Type::DHCPv6_RELAY_FORWARD), 0, la, pa);
 
   // use the client src mac address as the interface id
   relayFwdPkt.addInterfaceIDOption(srcMac);
@@ -267,15 +274,19 @@ void DHCPv6Handler::processDHCPv6RelayReply(
   MacAddress destMac;
   const uint8_t* relayData = nullptr;
   uint16_t relayLen = 0;
-  std::unordered_set<uint16_t> selector = { DHCPv6_OPTION_INTERFACE_ID,
-    DHCPv6_OPTION_RELAY_MSG };
+  std::unordered_set<uint16_t> selector = {
+    static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_INTERFACE_ID),
+    static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_RELAY_MSG) };
   auto dhcpOptions = dhcpPacket.extractOptions(selector);
   for(int i = 0; i < dhcpOptions.size(); i++) {
-    if (dhcpOptions[i].op == DHCPv6_OPTION_INTERFACE_ID) {
+    if (dhcpOptions[i].op ==
+        static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_INTERFACE_ID)) {
       DCHECK(dhcpOptions[i].len == MacAddress::SIZE);
       destMac = MacAddress::fromBinary(
           folly::ByteRange(dhcpOptions[i].data, MacAddress::SIZE));
-    } else if (dhcpOptions[i].op == DHCPv6_OPTION_RELAY_MSG) {
+    } else if (
+        dhcpOptions[i].op ==
+        static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_RELAY_MSG)) {
       relayData = dhcpOptions[i].data;
       relayLen = dhcpOptions[i].len;
     }

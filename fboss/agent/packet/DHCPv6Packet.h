@@ -25,7 +25,7 @@ class Cursor;
 
 namespace facebook { namespace fboss {
 
-enum DHCPv6Type : uint8_t {
+enum class DHCPv6Type : uint8_t {
   DHCPv6_SOLICIT = 1,
   DHCPv6_ADVERTISE = 2,
   DHCPv6_REQUEST = 3,
@@ -41,7 +41,7 @@ enum DHCPv6Type : uint8_t {
   DHCPv6_RELAY_REPLY = 13,
 };
 
-enum DHCPv6OptionType : uint16_t {
+enum class DHCPv6OptionType : uint16_t {
   DHCPv6_OPTION_RELAY_MSG = 9,
   DHCPv6_OPTION_INTERFACE_ID = 18,
 };

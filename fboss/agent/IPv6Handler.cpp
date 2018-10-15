@@ -64,10 +64,11 @@ std::unique_ptr<TxPacket> createICMPv6Pkt(
   IPv6Hdr ipv6(srcIP, dstIP);
   ipv6.trafficClass = 0xe0; // CS7 precedence (network control)
   ipv6.payloadLength = ICMPHdr::SIZE + bodyLength;
-  ipv6.nextHeader = IP_PROTO_IPV6_ICMP;
+  ipv6.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
   ipv6.hopLimit = 255;
 
-  ICMPHdr icmp6(icmp6Type, icmp6Code, 0);
+  ICMPHdr icmp6(
+      static_cast<uint8_t>(icmp6Type), static_cast<uint8_t>(icmp6Code), 0);
 
   uint32_t pktLen = icmp6.computeTotalLengthV6(bodyLength);
   auto pkt = sw->allocatePacket(pktLen);
@@ -147,7 +148,7 @@ void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
 
   // NOTE: DHCPv6 solicit packet from client has hoplimit set to 1,
   // we need to handle it before send the ICMPv6 TTL exceeded
-  if (ipv6.nextHeader == IP_PROTO_UDP) {
+  if (ipv6.nextHeader == static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
     UDPHeader udpHdr;
     Cursor udpCursor(cursor);
     udpHdr.parse(sw_, port, &udpCursor);
@@ -211,7 +212,7 @@ void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
       sw_->portStats(portID)->pktDropped();
       return;
     }
-    if (ipv6.nextHeader == IP_PROTO_IPV6_ICMP) {
+    if (ipv6.nextHeader == static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP)) {
       pkt = handleICMPv6Packet(std::move(pkt), dst, src, ipv6, cursor);
       if (pkt == nullptr) {
         // packet has been handled
@@ -253,20 +254,21 @@ unique_ptr<RxPacket> IPv6Handler::handleICMPv6Packet(
   }
 
   ICMPHeaders hdr{dst, src, &ipv6, &icmp6};
-  switch (icmp6.type) {
-    case ICMPV6_TYPE_NDP_ROUTER_SOLICITATION:
+  ICMPv6Type type = static_cast<ICMPv6Type>(icmp6.type);
+  switch (type) {
+    case ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_SOLICITATION:
       handleRouterSolicitation(std::move(pkt), hdr, cursor);
       return nullptr;
-    case ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT:
+    case ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT:
       handleRouterAdvertisement(std::move(pkt), hdr, cursor);
       return nullptr;
-    case ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION:
+    case ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION:
       handleNeighborSolicitation(std::move(pkt), hdr, cursor);
       return nullptr;
-    case ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT:
+    case ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT:
       handleNeighborAdvertisement(std::move(pkt), hdr, cursor);
       return nullptr;
-    case ICMPV6_TYPE_NDP_REDIRECT_MESSAGE:
+    case ICMPv6Type::ICMPV6_TYPE_NDP_REDIRECT_MESSAGE:
       sw_->portStats(pkt)->ipv6NdpPkt();
       // TODO: Do we need to bother handling this yet?
       sw_->portStats(pkt)->pktDropped();
@@ -392,7 +394,7 @@ void IPv6Handler::handleNeighborSolicitation(unique_ptr<RxPacket> pkt,
   NDPOptions options = NDPOptions::getAll(cursor);
 
   auto updater = sw_->getNeighborUpdater();
-  auto type = ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION;
+  auto type = ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION;
 
   if ((!options.sourceLinkLayerAddress.hasValue() &&
        hdr.ipv6->dstAddr.isMulticast()) ||
@@ -508,7 +510,7 @@ void IPv6Handler::handleNeighborAdvertisement(unique_ptr<RxPacket> pkt,
              << targetMac << ")";
 
   auto updater = sw_->getNeighborUpdater();
-  auto type = ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT;
+  auto type = ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT;
 
   // Check to see if this IP address is in our NDP response table.
   auto entry = vlan->getNdpResponseTable()->getEntry(hdr.ipv6->dstAddr);
@@ -549,11 +551,17 @@ void IPv6Handler::sendICMPv6TimeExceeded(VlanID srcVlan,
   };
 
   IPAddressV6 srcIp = getSwitchVlanIPv6(state, srcVlan);
-  auto icmpPkt = createICMPv6Pkt(sw_, dst, src, srcVlan,
-                             v6Hdr.srcAddr, srcIp,
-                             ICMPV6_TYPE_TIME_EXCEEDED,
-                             ICMPV6_CODE_TIME_EXCEEDED_HOPLIMIT_EXCEEDED,
-                             bodyLength, serializeBody);
+  auto icmpPkt = createICMPv6Pkt(
+      sw_,
+      dst,
+      src,
+      srcVlan,
+      v6Hdr.srcAddr,
+      srcIp,
+      ICMPv6Type::ICMPV6_TYPE_TIME_EXCEEDED,
+      ICMPv6Code::ICMPV6_CODE_TIME_EXCEEDED_HOPLIMIT_EXCEEDED,
+      bodyLength,
+      serializeBody);
   XLOG(DBG4) << "sending ICMPv6 Time Exceeded with srcMac  " << src
              << " dstMac: " << dst << " vlan: " << srcVlan
              << " dstIp: " << v6Hdr.srcAddr.str() << " srcIP: " << srcIp.str()
@@ -591,8 +599,8 @@ void IPv6Handler::sendICMPv6PacketTooBig(
   IPAddressV6 srcIp = getSwitchVlanIPv6(state, srcVlan);
   auto icmpPkt = createICMPv6Pkt(sw_, dst, src, srcVlan,
                              v6Hdr.srcAddr, srcIp,
-                             ICMPV6_TYPE_PACKET_TOO_BIG,
-                             ICMPV6_CODE_PACKET_TOO_BIG,
+                             ICMPv6Type::ICMPV6_TYPE_PACKET_TOO_BIG,
+                             ICMPv6Code::ICMPV6_CODE_PACKET_TOO_BIG,
                              bodyLength, serializeBody);
 
   XLOG(DBG4) << "sending ICMPv6 Packet Too Big with srcMac  " << src
@@ -860,8 +868,8 @@ void IPv6Handler::sendNeighborAdvertisement(VlanID vlan,
   };
 
   auto pkt = createICMPv6Pkt(sw_, dstMac, srcMac, vlan, dstIP, srcIP,
-                             ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-                             ICMPV6_CODE_NDP_MESSAGE_CODE,
+                             ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+                             ICMPv6Code::ICMPV6_CODE_NDP_MESSAGE_CODE,
                              bodyLength, serializeBody);
   sw_->sendPacketSwitched(std::move(pkt));
 }
@@ -905,8 +913,8 @@ void IPv6Handler::sendNeighborSolicitaion(
       vlanID,
       dstIP,
       srcIP,
-      ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
-      ICMPV6_CODE_NDP_MESSAGE_CODE,
+      ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
+      ICMPv6Code::ICMPV6_CODE_NDP_MESSAGE_CODE,
       bodyLength,
       serializeBody);
 

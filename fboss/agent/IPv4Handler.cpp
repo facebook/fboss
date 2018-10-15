@@ -62,11 +62,12 @@ std::unique_ptr<TxPacket> createICMPv4Pkt(SwSwitch* sw,
                                           ICMPv4Code icmpCode,
                                           uint32_t bodyLength,
                                           BodyFn serializeBody) {
-  IPv4Hdr ipv4(srcIP, dstIP, IP_PROTO_ICMP,
+  IPv4Hdr ipv4(srcIP, dstIP, static_cast<uint8_t>(IP_PROTO::IP_PROTO_ICMP),
                ICMPHdr::SIZE + bodyLength);
   ipv4.computeChecksum();
 
-  ICMPHdr icmp4(icmpType, icmpCode, 0);
+  ICMPHdr icmp4(
+      static_cast<uint8_t>(icmpType), static_cast<uint8_t>(icmpCode), 0);
   uint32_t pktLen = icmp4.computeTotalLengthV4(bodyLength);
 
   auto pkt = sw->allocatePacket(pktLen);
@@ -100,8 +101,8 @@ void IPv4Handler::sendICMPTimeExceeded(VlanID srcVlan,
   IPAddressV4 srcIp = getSwitchVlanIP(state, srcVlan);
   auto icmpPkt = createICMPv4Pkt(sw_, dst, src, srcVlan,
                              v4Hdr.srcAddr, srcIp,
-                             ICMPV4_TYPE_TIME_EXCEEDED,
-                             ICMPV4_CODE_TIME_EXCEEDED_TTL_EXCEEDED,
+                             ICMPv4Type::ICMPV4_TYPE_TIME_EXCEEDED,
+                             ICMPv4Code::ICMPV4_CODE_TIME_EXCEEDED_TTL_EXCEEDED,
                              bodyLength, serializeBody);
   XLOG(DBG4) << "sending ICMP Time Exceeded with srcMac " << src
              << " dstMac: " << dst << " vlan: " << srcVlan
@@ -134,7 +135,7 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
     return;
   }
 
-  if (v4Hdr.protocol == IPPROTO_UDP) {
+  if (v4Hdr.protocol == static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
     Cursor udpCursor(cursor);
     UDPHeader udpHdr;
     udpHdr.parse(sw_, port, &udpCursor);

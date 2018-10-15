@@ -58,7 +58,7 @@ IPv4Hdr makeIpv4Header(IPAddressV4 srcIp, IPAddressV4 dstIp, uint8_t ttl,
       false, // More fragments
       0, // Fragment offset
       ttl, // TTL
-      IP_PROTO::IP_PROTO_UDP, // Protocol
+      static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP), // Protocol
       0, // Checksum
       srcIp, // Source
       dstIp // Destination IP
@@ -69,8 +69,13 @@ IPv4Hdr makeIpv4Header(IPAddressV4 srcIp, IPAddressV4 dstIp, uint8_t ttl,
 
 EthHdr makeEthHdr(MacAddress srcMac, MacAddress dstMac, VlanID vlan) {
   VlanTags_t vlanTags;
-  vlanTags.push_back(VlanTag(vlan, ETHERTYPE_VLAN));
-  return EthHdr(dstMac, srcMac, vlanTags, ETHERTYPE_IPV4);
+  vlanTags.push_back(
+      VlanTag(vlan, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
+  return EthHdr(
+      dstMac,
+      srcMac,
+      vlanTags,
+      static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4));
 }
 
 void sendDHCPPacket(SwSwitch* sw, const EthHdr& ethHdr, const IPv4Hdr& ipHdr,

@@ -22,7 +22,7 @@
 
 namespace facebook { namespace fboss {
 
-enum ICMPv6Type : uint8_t;
+enum class ICMPv6Type : uint8_t;
 
 class NdpCache : public NeighborCache<NdpTable> {
  public:

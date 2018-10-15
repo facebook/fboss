@@ -175,20 +175,29 @@ TxMatchFn checkICMPv6Pkt(MacAddress srcMac, IPAddressV6 srcIP,
     auto parsedSrcMac = PktUtil::readMac(&c);
     checkField(srcMac, parsedSrcMac, "src mac");
     auto vlanType = c.readBE<uint16_t>();
-    checkField(ETHERTYPE_VLAN, vlanType, "VLAN ethertype");
+    checkField(
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN),
+        vlanType,
+        "VLAN ethertype");
     auto vlanTag = c.readBE<uint16_t>();
     checkField(static_cast<uint16_t>(vlan), vlanTag, "VLAN tag");
     auto ethertype = c.readBE<uint16_t>();
-    checkField(ETHERTYPE_IPV6, ethertype, "ethertype");
+    checkField(
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6),
+        ethertype,
+        "ethertype");
     IPv6Hdr ipv6(c);
-    checkField(IP_PROTO_IPV6_ICMP, ipv6.nextHeader, "IPv6 protocol");
+    checkField(
+        static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP),
+        ipv6.nextHeader,
+        "IPv6 protocol");
     checkField(srcIP, ipv6.srcAddr, "src IP");
     checkField(dstIP, ipv6.dstAddr, "dst IP");
 
     Cursor ipv6PayloadStart(c);
     ICMPHdr icmp6(c);
     checkField(icmp6.computeChecksum(ipv6, c), icmp6.csum, "ICMPv6 checksum");
-    checkField(type, icmp6.type, "ICMPv6 type");
+    checkField(static_cast<uint8_t>(type), icmp6.type, "ICMPv6 type");
     checkField(0, icmp6.code, "ICMPv6 code");
 
     checkPayload(&c, ipv6.payloadLength - ICMPHdr::SIZE);
@@ -227,7 +236,7 @@ TxMatchFn checkNeighborAdvert(MacAddress srcMac, IPAddressV6 srcIP,
     return;
   };
   return checkICMPv6Pkt(srcMac, srcIP, dstMac, dstIP, vlan,
-                        ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+                        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
                         checkPayload);
 }
 
@@ -260,7 +269,7 @@ TxMatchFn checkNeighborSolicitation(
       dstMac,
       dstIP,
       vlan,
-      ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
+      ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
       checkPayload);
 }
 
@@ -353,8 +362,14 @@ TxMatchFn checkRouterAdvert(MacAddress srcMac, IPAddressV6 srcIP,
       throw FbossError("mismatching advertised prefixes");
     }
   };
-  return checkICMPv6Pkt(srcMac, srcIP, dstMac, dstIP, vlan,
-                        ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT, checkPayload);
+  return checkICMPv6Pkt(
+      srcMac,
+      srcIP,
+      dstMac,
+      dstIP,
+      vlan,
+      ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT,
+      checkPayload);
 }
 
 void sendNeighborAdvertisement(HwTestHandle* handle, StringPiece ipStr,
@@ -371,7 +386,7 @@ void sendNeighborAdvertisement(HwTestHandle* handle, StringPiece ipStr,
   IPv6Hdr ipv6(srcIP, dstIP);
   ipv6.trafficClass = 0xe0;
   ipv6.payloadLength = ICMPHdr::SIZE + plen;
-  ipv6.nextHeader = IP_PROTO_IPV6_ICMP;
+  ipv6.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
   ipv6.hopLimit = 255;
 
   size_t totalLen = EthHdr::SIZE + IPv6Hdr::SIZE + ipv6.payloadLength;
@@ -384,7 +399,10 @@ void sendNeighborAdvertisement(HwTestHandle* handle, StringPiece ipStr,
     c->push(srcIP.bytes(), IPAddressV6::byteCount());
   };
 
-  ICMPHdr icmp6(ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT, 0, 0);
+  ICMPHdr icmp6(
+      static_cast<uint8_t>(ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT),
+      0,
+      0);
   icmp6.serializeFullPacket(&cursor, dstMac, srcMac, vlan, ipv6, plen, bodyFn);
 
   // Send the packet to the switch

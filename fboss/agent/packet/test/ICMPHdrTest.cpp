@@ -36,7 +36,7 @@ TEST(ICMPHdrTest, default_constructor) {
 }
 
 TEST(ICMPHdrTest, copy_constructor) {
-  ICMPv6Type type = ICMPV6_TYPE_ECHO_REQUEST;
+  uint8_t type = static_cast<uint8_t>(ICMPv6Type::ICMPV6_TYPE_ECHO_REQUEST);
   uint8_t code = 0;
   uint16_t csum = 0; // Obviously wrong
   ICMPHdr lhs(type, code, csum);
@@ -45,7 +45,7 @@ TEST(ICMPHdrTest, copy_constructor) {
 }
 
 TEST(ICMPHdrTest, parameterized_data_constructor) {
-  ICMPv6Type type = ICMPV6_TYPE_ECHO_REQUEST;
+  uint8_t type = static_cast<uint8_t>(ICMPv6Type::ICMPV6_TYPE_ECHO_REQUEST);
   uint8_t code = 0;
   uint16_t csum = 0; // Obviously wrong
   ICMPHdr lhs(type, code, csum);
@@ -55,7 +55,7 @@ TEST(ICMPHdrTest, parameterized_data_constructor) {
 }
 
 TEST(ICMPHdrTest, cursor_data_constructor) {
-  ICMPv6Type type = ICMPV6_TYPE_ECHO_REQUEST;
+  uint8_t type = static_cast<uint8_t>(ICMPv6Type::ICMPV6_TYPE_ECHO_REQUEST);
   uint8_t code = 0;
   uint16_t csum = 0; // Obviously wrong
   auto pkt = MockRxPacket::fromHex(
@@ -83,7 +83,7 @@ TEST(ICMPHdrTest, cursor_data_constructor_too_small) {
 }
 
 TEST(ICMPHdrTest, assignment_operator) {
-  ICMPv6Type type = ICMPV6_TYPE_ECHO_REQUEST;
+  uint8_t type = static_cast<uint8_t>(ICMPv6Type::ICMPV6_TYPE_ECHO_REQUEST);
   uint8_t code = 0;
   uint16_t csum = 0; // Obviously wrong
   ICMPHdr lhs(type, code, csum);
@@ -92,7 +92,7 @@ TEST(ICMPHdrTest, assignment_operator) {
 }
 
 TEST(ICMPHdrTest, equality_operator) {
-  ICMPv6Type type = ICMPV6_TYPE_ECHO_REQUEST;
+  uint8_t type = static_cast<uint8_t>(ICMPv6Type::ICMPV6_TYPE_ECHO_REQUEST);
   uint8_t code = 02;
   uint16_t csum = 0; // Obviously wrong
   ICMPHdr lhs(type, code, csum);
@@ -101,7 +101,7 @@ TEST(ICMPHdrTest, equality_operator) {
 }
 
 TEST(ICMPHdrTest, inequality_operator) {
-  ICMPv6Type type = ICMPV6_TYPE_ECHO_REQUEST;
+  uint8_t type = static_cast<uint8_t>(ICMPv6Type::ICMPV6_TYPE_ECHO_REQUEST);
   uint8_t code = 0;
   uint16_t csum1 = 0; // Obviously wrong
   uint16_t csum2 = 1; // Obviously wrong

@@ -87,23 +87,32 @@ TxMatchFn checkICMPv4Pkt(MacAddress srcMac, IPAddressV4 srcIP,
     auto parsedSrcMac = PktUtil::readMac(&c);
     checkField(srcMac, parsedSrcMac, "src mac");
     auto vlanType = c.readBE<uint16_t>();
-    checkField(ETHERTYPE_VLAN, vlanType, "VLAN ethertype");
+    checkField(
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN),
+        vlanType,
+        "VLAN ethertype");
     auto vlanTag = c.readBE<uint16_t>();
     checkField(static_cast<uint16_t>(vlan), vlanTag, "VLAN tag");
     auto ethertype = c.readBE<uint16_t>();
-    checkField(ETHERTYPE_IPV4, ethertype, "ethertype");
+    checkField(
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4),
+        ethertype,
+        "ethertype");
 
     Cursor ipv4HdrStart(c);
     IPv4Hdr ipv4(c);
-    checkField(IP_PROTO_ICMP, ipv4.protocol, "IPv4 protocol");
+    checkField(
+        static_cast<uint8_t>(IP_PROTO::IP_PROTO_ICMP),
+        ipv4.protocol,
+        "IPv4 protocol");
     checkField(srcIP, ipv4.srcAddr, "src IP");
     checkField(dstIP, ipv4.dstAddr, "dst IP");
 
     ICMPHdr icmp4(c);
     checkField(icmp4.computeChecksum(c, c.length()), icmp4.csum,
         "ICMPv4 checksum");
-    checkField(type, icmp4.type, "ICMPv4 type");
-    checkField(code, icmp4.code, "ICMPv4 code");
+    checkField(static_cast<uint8_t>(type), icmp4.type, "ICMPv4 type");
+    checkField(static_cast<uint8_t>(code), icmp4.code, "ICMPv4 code");
 
     checkPayload(&c, ipv4.length - IPv4Hdr::minSize() - ICMPHdr::SIZE);
 
@@ -129,21 +138,30 @@ TxMatchFn checkICMPv6Pkt(MacAddress srcMac, IPAddressV6 srcIP,
     auto parsedSrcMac = PktUtil::readMac(&c);
     checkField(srcMac, parsedSrcMac, "src mac");
     auto vlanType = c.readBE<uint16_t>();
-    checkField(ETHERTYPE_VLAN, vlanType, "VLAN ethertype");
+    checkField(
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN),
+        vlanType,
+        "VLAN ethertype");
     auto vlanTag = c.readBE<uint16_t>();
     checkField(static_cast<uint16_t>(vlan), vlanTag, "VLAN tag");
     auto ethertype = c.readBE<uint16_t>();
-    checkField(ETHERTYPE_IPV6, ethertype, "ethertype");
+    checkField(
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6),
+        ethertype,
+        "ethertype");
     IPv6Hdr ipv6(c);
-    checkField(IP_PROTO_IPV6_ICMP, ipv6.nextHeader, "IPv6 protocol");
+    checkField(
+        static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP),
+        ipv6.nextHeader,
+        "IPv6 protocol");
     checkField(srcIP, ipv6.srcAddr, "src IP");
     checkField(dstIP, ipv6.dstAddr, "dst IP");
 
     Cursor ipv6PayloadStart(c);
     ICMPHdr icmp6(c);
     checkField(icmp6.computeChecksum(ipv6, c), icmp6.csum, "ICMPv6 checksum");
-    checkField(type, icmp6.type, "ICMPv6 type");
-    checkField(code, icmp6.code, "ICMPv6 code");
+    checkField(static_cast<uint8_t>(type), icmp6.type, "ICMPv6 type");
+    checkField(static_cast<uint8_t>(code), icmp6.code, "ICMPv6 code");
 
     checkPayload(&c, ipv6.payloadLength - ICMPHdr::SIZE);
 
@@ -177,8 +195,8 @@ TxMatchFn checkICMPv4TTLExceeded(MacAddress srcMac, IPAddressV4 srcIP,
     return;
   };
   return checkICMPv4Pkt(srcMac, srcIP, dstMac, dstIP, vlan,
-                        ICMPV4_TYPE_TIME_EXCEEDED,
-                        ICMPV4_CODE_TIME_EXCEEDED_TTL_EXCEEDED,
+                        ICMPv4Type::ICMPV4_TYPE_TIME_EXCEEDED,
+                        ICMPv4Code::ICMPV4_CODE_TIME_EXCEEDED_TTL_EXCEEDED,
                         checkPayload);
 }
 
@@ -201,8 +219,8 @@ TxMatchFn checkICMPv6TTLExceeded(MacAddress srcMac, IPAddressV6 srcIP,
     return;
   };
   return checkICMPv6Pkt(srcMac, srcIP, dstMac, dstIP, vlan,
-                        ICMPV6_TYPE_TIME_EXCEEDED,
-                        ICMPV6_CODE_TIME_EXCEEDED_HOPLIMIT_EXCEEDED,
+                        ICMPv6Type::ICMPV6_TYPE_TIME_EXCEEDED,
+                        ICMPv6Code::ICMPV6_CODE_TIME_EXCEEDED_HOPLIMIT_EXCEEDED,
                         checkPayload);
 }
 
@@ -237,8 +255,8 @@ TxMatchFn checkICMPv6PacketTooBig(
       dstMac,
       dstIP,
       vlan,
-      ICMPV6_TYPE_PACKET_TOO_BIG,
-      ICMPV6_CODE_PACKET_TOO_BIG,
+      ICMPv6Type::ICMPV6_TYPE_PACKET_TOO_BIG,
+      ICMPv6Code::ICMPV6_CODE_PACKET_TOO_BIG,
       checkPayload);
 }
 

@@ -29,7 +29,7 @@ namespace facebook { namespace fboss {
 /**
  * ICMPv4 type and code definition, RFC 792
  */
-enum ICMPv4Type : uint8_t {
+enum class ICMPv4Type : uint8_t {
   ICMPV4_TYPE_ECHO_REPLY = 0,
   ICMPV4_TYPE_DESTINATION_UNREACHABLE = 3,
   ICMPV4_TYPE_REDIRECT = 5,
@@ -41,7 +41,7 @@ enum ICMPv4Type : uint8_t {
   //NOTE: all deprecated type definitions are removed
 };
 
-enum ICMPv4Code : uint8_t {
+enum class ICMPv4Code : uint8_t {
   // destination unreachable error code
   ICMPV4_CODE_DESTINATION_UNREACHABLE_NET_UNREACHABLE = 0,
   ICMPV4_CODE_DESTINATION_UNREACHABLE_HOST_UNREACHABLE = 1,
@@ -77,7 +77,7 @@ enum ICMPv4Code : uint8_t {
 /**
  * ICMPv6 type and code definition, RFC 4443
  */
-enum ICMPv6Type : uint8_t {
+enum class ICMPv6Type : uint8_t {
   // Error Messages: 0-127
   ICMPV6_TYPE_RESERVED_0 = 0,
 
@@ -135,7 +135,7 @@ enum ICMPv6Type : uint8_t {
   ICMPV6_TYPE_RESERVED_255 = 255,
 };
 
-enum ICMPv6Code : uint8_t {
+enum class ICMPv6Code : uint8_t {
   // code for time exceeded messages
   ICMPV6_CODE_TIME_EXCEEDED_HOPLIMIT_EXCEEDED = 0,
   ICMPV6_CODE_TIME_EXCEEDED_FRAG_REASSEMBLE_TIME_EXCCEDED = 1,
@@ -156,7 +156,7 @@ enum ICMPv6Code : uint8_t {
   ICMPV6_CODE_ECHO_REPLY = 0,
 };
 
-enum ICMPv6ErrorDestinationUnreachable : uint8_t {
+enum class ICMPv6ErrorDestinationUnreachable : uint8_t {
   ICMPV6_ERROR_DESTINATION_UNREACHABLE_NO_ROUTE_TO_DESTINATION = 0,
   ICMPV6_ERROR_DESTINATION_UNREACHABLE_COMMUNICATION_PROHIBITED = 1,
   ICMPV6_ERROR_DESTINATION_UNREACHABLE_BEYOND_SCOPE_OF_SOURCE_ADDRESS = 2,
@@ -169,7 +169,7 @@ enum ICMPv6ErrorDestinationUnreachable : uint8_t {
 /*
  * ICMPv6 Neighbor Discovery options RFC 4861 (sec 4.6)
  */
-enum ICMPv6NDPOptionType : uint8_t {
+enum class ICMPv6NDPOptionType : uint8_t {
   ICMPV6_NDP_OPTION_SOURCE_LINK_LAYER_ADDRESS = 1,
   ICMPV6_NDP_OPTION_TARGET_LINK_LAYER_ADDRESS = 2,
   ICMPV6_NDP_OPTION_PREFIX_INFORMATION = 3,

@@ -57,7 +57,7 @@ TEST(IPv4HdrTest, copy_constructor) {
   bool moreFragments = false;
   uint16_t fragmentOffset = 0;
   uint8_t ttl = 1;
-  uint8_t protocol = IP_PROTO_TCP;
+  uint8_t protocol = static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP);
   uint16_t csum = 0;
   IPAddressV4 srcAddr("10.0.0.15");
   IPAddressV4 dstAddr("10.0.0.1");
@@ -78,7 +78,7 @@ TEST(IPv4HdrTest, parameterized_data_constructor) {
   bool moreFragments = false;
   uint16_t fragmentOffset = 0;
   uint8_t ttl = 1;
-  uint8_t protocol = IP_PROTO_TCP;
+  uint8_t protocol = static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP);
   uint16_t csum = 0;
   IPAddressV4 srcAddr("10.0.0.15");
   IPAddressV4 dstAddr("10.0.0.1");
@@ -111,7 +111,7 @@ TEST(IPv4HdrTest, cursor_data_constructor) {
   bool moreFragments = false;
   uint16_t fragmentOffset = 0;
   uint8_t ttl = 1;
-  uint8_t protocol = IP_PROTO_TCP;
+  uint8_t protocol = static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP);
   uint16_t csum = 0;
   IPAddressV4 srcAddr("10.0.0.15");
   IPAddressV4 dstAddr("10.0.0.1");
@@ -254,7 +254,7 @@ TEST(IPv4HdrTest, write_to_buffer) {
   bool moreFragments = false;
   uint16_t fragmentOffset = 0;
   uint8_t ttl = 1;
-  uint8_t protocol = IP_PROTO_TCP;
+  uint8_t protocol = static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP);
   uint16_t csum = 0;
   IPAddressV4 srcAddr("10.0.0.15");
   IPAddressV4 dstAddr("10.0.0.1");
@@ -280,7 +280,7 @@ TEST(IPv4HdrTest, assignment_operator) {
   bool moreFragments = false;
   uint16_t fragmentOffset = 0;
   uint8_t ttl = 1;
-  uint8_t protocol = IP_PROTO_TCP;
+  uint8_t protocol = static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP);
   uint16_t csum = 0;
   IPAddressV4 srcAddr("10.0.0.15");
   IPAddressV4 dstAddr("10.0.0.1");
@@ -301,7 +301,7 @@ TEST(IPv4HdrTest, equality_operator) {
   bool moreFragments = false;
   uint16_t fragmentOffset = 0;
   uint8_t ttl = 1;
-  uint8_t protocol = IP_PROTO_TCP;
+  uint8_t protocol = static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP);
   uint16_t csum = 0;
   IPAddressV4 srcAddr("10.0.0.15");
   IPAddressV4 dstAddr("10.0.0.1");
@@ -324,7 +324,7 @@ TEST(IPv4HdrTest, inequality_operator) {
   uint16_t fragmentOffset = 0;
   uint8_t ttl1 = 1;
   uint8_t ttl2 = 2;
-  uint8_t protocol = IP_PROTO_TCP;
+  uint8_t protocol = static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP);
   uint16_t csum = 0;
   IPAddressV4 srcAddr("10.0.0.15");
   IPAddressV4 dstAddr("10.0.0.1");

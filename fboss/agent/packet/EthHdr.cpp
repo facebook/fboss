@@ -30,8 +30,8 @@ EthHdr::EthHdr(Cursor& cursor) {
     etherType = (static_cast<uint16_t>(buf[12]) << 8)
               |  static_cast<uint16_t>(buf[13]);
     // Look for VLAN tags.
-    while (etherType == ETHERTYPE_VLAN
-       ||  etherType == ETHERTYPE_QINQ) {
+    while (etherType == static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)
+       ||  etherType == static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_QINQ)) {
       cursor.pull(buf, 4);
       uint32_t tag = (static_cast<uint32_t>(etherType) << 16)
                    | (static_cast<uint32_t>(buf[0]) << 8)

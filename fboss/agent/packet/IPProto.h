@@ -18,7 +18,7 @@
 
 namespace facebook { namespace fboss {
 
-enum IP_PROTO : uint8_t {
+enum class IP_PROTO : uint8_t {
 
   // RFC 2460: IPv6 Hop-by-Hop Option
   IP_PROTO_IPV6_HOPOPT = 0x00,

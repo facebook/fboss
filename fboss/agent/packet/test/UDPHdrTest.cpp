@@ -30,7 +30,7 @@ TEST(UDP, IPv4Checksum) {
   uint32_t bodyLength = sizeof(body) + UDPHeader::size();
 
   IPv4Hdr ip(IPAddressV4("10.78.75.41"), IPAddressV4("10.212.50.21"),
-             IP_PROTO::IP_PROTO_UDP, bodyLength);
+             static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP), bodyLength);
   ip.dscp = 0x10;
   ip.dontFragment = true;
   ip.ttl = 88;
@@ -62,7 +62,7 @@ TEST(UDP, IPv4ChecksumZero) {
   uint32_t bodyLength = sizeof(body) + UDPHeader::size();
 
   IPv4Hdr ip(IPAddressV4("10.5.172.23"), IPAddressV4("10.5.172.25"),
-             IP_PROTO::IP_PROTO_UDP, bodyLength);
+             static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP), bodyLength);
   ip.id = 0x3538;
   ip.dontFragment = true;
   ip.ttl = 96;
@@ -93,7 +93,7 @@ TEST(UDP, IPv6Checksum) {
   };
   uint32_t bodyLength = sizeof(body) + UDPHeader::size();
 
-  IPv6Hdr ip(6, 0, 0, 72, IP_PROTO::IP_PROTO_UDP, 64,
+  IPv6Hdr ip(6, 0, 0, 72, static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP), 64,
              IPAddressV6("2401:db00:20:702c:face:0:1:0"),
              IPAddressV6("2401:db00:20:702c:face:0:5:0"));
 
@@ -121,7 +121,7 @@ TEST(UDP, IPv6ChecksumZero) {
   };
   uint32_t bodyLength = sizeof(body) + UDPHeader::size();
 
-  IPv6Hdr ip(6, 0, 0, 72, IP_PROTO::IP_PROTO_UDP, 64,
+  IPv6Hdr ip(6, 0, 0, 72, static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP), 64,
              IPAddressV6("2401:db00:20:702c:face:0:1:0"),
              IPAddressV6("2401:db00:20:702c:face:0:5:0"));
 

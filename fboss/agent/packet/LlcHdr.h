@@ -40,7 +40,7 @@ namespace facebook { namespace fboss {
  * References:
  *   http://www.wildpackets.com/resources/compendium/reference/sap_numbers
  */
-enum LLC_SAP_ADDR : uint8_t {
+enum class LLC_SAP_ADDR : uint8_t {
   LLC_SAP_NULL                    = 0x00,
   LLC_SAP_LLC_SUBLAYER_MANAGEMENT = 0x02,
   LLC_SAP_IBM_SNA_PATH_CONTROL    = 0x04,
@@ -69,7 +69,7 @@ enum LLC_SAP_ADDR : uint8_t {
  * References:
  *   http://www.wildpackets.com/resources/compendium/llc/type1_commands
  */
-enum LLC_CONTROL : uint16_t {
+enum class LLC_CONTROL : uint16_t {
   // Type I: Connectionless/unreliable
   LLC_CONTROL_UI    = 0x03,  // Unnumbered Information
   LLC_CONTROL_XID   = 0xAF,  // Exchange Identification

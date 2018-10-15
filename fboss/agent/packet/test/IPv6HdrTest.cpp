@@ -45,7 +45,7 @@ TEST(IPv6HdrTest, copy_constructor) {
   uint8_t trafficClass = 0;
   uint32_t flowLabel = 0;
   uint16_t payloadLength = 0;
-  uint8_t nextHeader = IP_PROTO_IPV6_NONXT;
+  uint8_t nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_NONXT);
   uint8_t hopLimit = 1;
   IPAddressV6 srcAddr("2620:0:1cfe:face:b00c::3");
   IPAddressV6 dstAddr("2620:0:1cfe:face:b00c::4");
@@ -60,7 +60,7 @@ TEST(IPv6HdrTest, parameterized_data_constructor) {
   uint8_t trafficClass = 0;
   uint32_t flowLabel = 0;
   uint16_t payloadLength = 0;
-  uint8_t nextHeader = IP_PROTO_IPV6_NONXT;
+  uint8_t nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_NONXT);
   uint8_t hopLimit = 1;
   IPAddressV6 srcAddr("2620:0:1cfe:face:b00c::3");
   IPAddressV6 dstAddr("2620:0:1cfe:face:b00c::4");
@@ -81,7 +81,7 @@ TEST(IPv6HdrTest, cursor_data_constructor) {
   uint8_t trafficClass = 0;
   uint32_t flowLabel = 0;
   uint16_t payloadLength = 0;
-  uint8_t nextHeader = IP_PROTO_IPV6_NONXT;
+  uint8_t nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_NONXT);
   uint8_t hopLimit = 1;
   IPAddressV6 srcAddr("2620:0:1cfe:face:b00c::3");
   IPAddressV6 dstAddr("2620:0:1cfe:face:b00c::4");
@@ -135,7 +135,8 @@ TEST(IPv6HdrTest, parseBroadcast) {
   EXPECT_EQ(0, hdr.trafficClass);
   EXPECT_EQ(0, hdr.flowLabel);
   EXPECT_EQ(0, hdr.payloadLength);
-  EXPECT_EQ(IP_PROTO_IPV6_NONXT, hdr.nextHeader);
+  EXPECT_EQ(
+      static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_NONXT), hdr.nextHeader);
   EXPECT_EQ(0xff, hdr.hopLimit);
   EXPECT_EQ(IPAddressV6("::0"), hdr.srcAddr);
   EXPECT_EQ(IPAddressV6("ff02::1"), hdr.dstAddr);
@@ -206,7 +207,7 @@ TEST(IPv6HdrTest, assignment_operator) {
   uint8_t trafficClass = 0;
   uint32_t flowLabel = 0;
   uint16_t payloadLength = 0;
-  uint8_t nextHeader = IP_PROTO_IPV6_NONXT;
+  uint8_t nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_NONXT);
   uint8_t hopLimit = 1;
   IPAddressV6 srcAddr("2620:0:1cfe:face:b00c::3");
   IPAddressV6 dstAddr("2620:0:1cfe:face:b00c::4");
@@ -221,7 +222,7 @@ TEST(IPv6HdrTest, equality_operator) {
   uint8_t trafficClass = 0;
   uint32_t flowLabel = 0;
   uint16_t payloadLength = 0;
-  uint8_t nextHeader = IP_PROTO_IPV6_NONXT;
+  uint8_t nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_NONXT);
   uint8_t hopLimit = 1;
   IPAddressV6 srcAddr("2620:0:1cfe:face:b00c::3");
   IPAddressV6 dstAddr("2620:0:1cfe:face:b00c::4");
@@ -237,7 +238,7 @@ TEST(IPv6HdrTest, inequality_operator) {
   uint8_t trafficClass = 0;
   uint32_t flowLabel = 0;
   uint16_t payloadLength = 0;
-  uint8_t nextHeader = IP_PROTO_IPV6_NONXT;
+  uint8_t nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_NONXT);
   uint8_t hopLimit = 1;
   IPAddressV6 srcAddr("2620:0:1cfe:face:b00c::3");
   IPAddressV6 dstAddr1("2620:0:1cfe:face:b00c::4");

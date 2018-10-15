@@ -27,7 +27,7 @@ class StateDelta;
 class Vlan;
 
 enum ArpOpCode : uint16_t;
-enum ICMPv6Type : uint8_t;
+enum class ICMPv6Type : uint8_t;
 
 /**
  * This class handles all updates to neighbor entries. Whenever we perform an

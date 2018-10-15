@@ -31,18 +31,18 @@ TEST(LlcHdrTest, default_constructor) {
 }
 
 TEST(LlcHdrTest, copy_constructor) {
-  uint8_t dsap = LLC_SAP_STP;
-  uint8_t ssap = LLC_SAP_STP;
-  uint8_t control = LLC_CONTROL_UI;
+  uint8_t dsap = static_cast<uint8_t>(LLC_SAP_ADDR::LLC_SAP_STP);
+  uint8_t ssap = static_cast<uint8_t>(LLC_SAP_ADDR::LLC_SAP_STP);
+  uint8_t control = static_cast<uint8_t>(LLC_CONTROL::LLC_CONTROL_UI);
   LlcHdr lhs(dsap, ssap, control);
   LlcHdr rhs(lhs);
   EXPECT_EQ(lhs, rhs);
 }
 
 TEST(LlcHdrTest, parameterized_data_constructor) {
-  uint8_t dsap = LLC_SAP_STP;
-  uint8_t ssap = LLC_SAP_STP;
-  uint8_t control = LLC_CONTROL_UI;
+  uint8_t dsap = static_cast<uint8_t>(LLC_SAP_ADDR::LLC_SAP_STP);
+  uint8_t ssap = static_cast<uint8_t>(LLC_SAP_ADDR::LLC_SAP_STP);
+  uint8_t control = static_cast<uint8_t>(LLC_CONTROL::LLC_CONTROL_UI);
   LlcHdr llcHdr(dsap, ssap, control);
   EXPECT_EQ(dsap, llcHdr.dsap);
   EXPECT_EQ(ssap, llcHdr.ssap);
@@ -50,9 +50,9 @@ TEST(LlcHdrTest, parameterized_data_constructor) {
 }
 
 TEST(LlcHdrTest, cursor_data_constructor) {
-  uint8_t dsap = LLC_SAP_STP;
-  uint8_t ssap = LLC_SAP_STP;
-  uint8_t control = LLC_CONTROL_UI;
+  uint8_t dsap = static_cast<uint8_t>(LLC_SAP_ADDR::LLC_SAP_STP);
+  uint8_t ssap = static_cast<uint8_t>(LLC_SAP_ADDR::LLC_SAP_STP);
+  uint8_t control = static_cast<uint8_t>(LLC_CONTROL::LLC_CONTROL_UI);
   auto pkt = MockRxPacket::fromHex(
     // LLC Header
     "42" // DSAP: STP
@@ -100,28 +100,28 @@ TEST(LlcHdrTest, cursor_data_constructor_control_unsupported) {
 }
 
 TEST(LlcHdrTest, assignment_operator) {
-  uint8_t dsap = LLC_SAP_STP;
-  uint8_t ssap = LLC_SAP_STP;
-  uint8_t control = LLC_CONTROL_UI;
+  uint8_t dsap = static_cast<uint8_t>(LLC_SAP_ADDR::LLC_SAP_STP);
+  uint8_t ssap = static_cast<uint8_t>(LLC_SAP_ADDR::LLC_SAP_STP);
+  uint8_t control = static_cast<uint8_t>(LLC_CONTROL::LLC_CONTROL_UI);
   LlcHdr lhs(dsap, ssap, control);
   LlcHdr rhs = lhs;
   EXPECT_EQ(lhs, rhs);
 }
 
 TEST(LlcHdrTest, equality_operator) {
-  uint8_t dsap = LLC_SAP_STP;
-  uint8_t ssap = LLC_SAP_STP;
-  uint8_t control = LLC_CONTROL_UI;
+  uint8_t dsap = static_cast<uint8_t>(LLC_SAP_ADDR::LLC_SAP_STP);
+  uint8_t ssap = static_cast<uint8_t>(LLC_SAP_ADDR::LLC_SAP_STP);
+  uint8_t control = static_cast<uint8_t>(LLC_CONTROL::LLC_CONTROL_UI);
   LlcHdr lhs(dsap, ssap, control);
   LlcHdr rhs(dsap, ssap, control);
   EXPECT_EQ(lhs, rhs);
 }
 
 TEST(LlcHdrTest, inequality_operator) {
-  uint8_t dsap1 = LLC_SAP_STP;
-  uint8_t dsap2 = LLC_SAP_GLOBAL;
-  uint8_t ssap = LLC_SAP_STP;
-  uint8_t control = LLC_CONTROL_UI;
+  uint8_t dsap1 = static_cast<uint8_t>(LLC_SAP_ADDR::LLC_SAP_STP);
+  uint8_t dsap2 = static_cast<uint8_t>(LLC_SAP_ADDR::LLC_SAP_GLOBAL);
+  uint8_t ssap = static_cast<uint8_t>(LLC_SAP_ADDR::LLC_SAP_STP);
+  uint8_t control = static_cast<uint8_t>(LLC_CONTROL::LLC_CONTROL_UI);
   LlcHdr lhs(dsap1, ssap, control);
   LlcHdr rhs(dsap2, ssap, control);
   EXPECT_NE(lhs, rhs);

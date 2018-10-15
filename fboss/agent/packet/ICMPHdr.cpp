@@ -75,11 +75,11 @@ void ICMPHdr::serializePktHdr(folly::io::RWPrivateCursor* cursor,
                                 const IPv4Hdr& ipv4) {
   cursor->push(dstMac.bytes(), folly::MacAddress::SIZE);
   cursor->push(srcMac.bytes(), folly::MacAddress::SIZE);
-  cursor->writeBE<uint16_t>(ETHERTYPE_VLAN);
+  cursor->writeBE<uint16_t>(static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN));
   cursor->writeBE<uint16_t>(vlan);
-  cursor->writeBE<uint16_t>(ETHERTYPE_IPV4);
+  cursor->writeBE<uint16_t>(static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4));
 
-  DCHECK_EQ(ipv4.protocol, IP_PROTO_ICMP);
+  DCHECK_EQ(ipv4.protocol, static_cast<uint8_t>(IP_PROTO::IP_PROTO_ICMP));
   ipv4.write(cursor);
 }
 
@@ -96,12 +96,13 @@ void ICMPHdr::serializePktHdr(folly::io::RWPrivateCursor* cursor,
   // TODO: clean up the EthHdr code and use EthHdr here
   cursor->push(dstMac.bytes(), folly::MacAddress::SIZE);
   cursor->push(srcMac.bytes(), folly::MacAddress::SIZE);
-  cursor->writeBE<uint16_t>(ETHERTYPE_VLAN);
+  cursor->writeBE<uint16_t>(static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN));
   cursor->writeBE<uint16_t>(vlan);
-  cursor->writeBE<uint16_t>(ETHERTYPE_IPV6);
+  cursor->writeBE<uint16_t>(static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6));
 
   DCHECK_EQ(ipv6.payloadLength, ICMPHdr::SIZE + payloadLength);
-  DCHECK_EQ(ipv6.nextHeader, IP_PROTO_IPV6_ICMP);
+  DCHECK_EQ(
+      ipv6.nextHeader, static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP));
   ipv6.serialize(cursor);
 }
 
@@ -143,21 +144,24 @@ NDPOptions NDPOptions::getAll(folly::io::Cursor& cursor) {
   try {
     while (cursor.length()) {
       auto hdr = NDPOptionHdr(cursor);
-      switch (hdr.type()) {
-        case ICMPV6_NDP_OPTION_MTU:
+      ICMPv6NDPOptionType hdr_type = hdr.type();
+      switch (hdr_type) {
+        case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_MTU:
           options.mtu.emplace(getMtu(cursor));
           break;
-        case ICMPV6_NDP_OPTION_SOURCE_LINK_LAYER_ADDRESS:
+        case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_SOURCE_LINK_LAYER_ADDRESS:
           options.sourceLinkLayerAddress.emplace(
               getSourceLinkLayerAddress(cursor));
           break;
-        case ICMPV6_NDP_OPTION_REDIRECTED_HEADER:
-        case ICMPV6_NDP_OPTION_PREFIX_INFORMATION:
-        case ICMPV6_NDP_OPTION_TARGET_LINK_LAYER_ADDRESS:
-          XLOG(WARNING) << "Ignoring NDP Option: " << hdr.type();
+        case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_REDIRECTED_HEADER:
+        case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_PREFIX_INFORMATION:
+        case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_TARGET_LINK_LAYER_ADDRESS:
+          XLOG(WARNING) << "Ignoring NDP Option: "
+                        << static_cast<uint8_t>(hdr.type());
           break;
         default:
-          XLOG(WARNING) << "Ignoring unknown NDP Option: " << hdr.type();
+          XLOG(WARNING) << "Ignoring unknown NDP Option: "
+                        << static_cast<uint8_t>(hdr.type());
           break;
       }
     }
