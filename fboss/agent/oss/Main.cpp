@@ -21,7 +21,6 @@ void fbossInit(int argc, char** argv) {
 
 void fbossFinalize() {}
 
-void additionalThriftServerSetup(apache::thrift::ThriftServer& /*server*/) {}
 void setVersionInfo() {}
 
 }} // facebook::fboss
