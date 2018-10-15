@@ -590,7 +590,7 @@ void MuxMachine::matched() {
     case MuxState::DETACHED:
     case MuxState::WAITING:
     case MuxState::COLLECTING_DISTRIBUTING:
-      XLOG(WARNING) << "MuxMachine[" << controller_.portID()
+      XLOG(DBG4) << "MuxMachine[" << controller_.portID()
                     << "]: Ignoring MATCHED in " << state_;
       break;
     case MuxState::ATTACHED:
