@@ -259,7 +259,7 @@ void IPv4Hdr::write(CursorType* cursor) const {
   // If extra options are present, serialize them back blindly
   if (UNLIKELY(ihl > 5)) {
     CHECK_LE(ihl, 15) << "Corrupted ihl value";
-    cursor->template push(optionBuf, (ihl - 5) * 4);
+    cursor->push(optionBuf, (ihl - 5) * 4);
   }
 }
 
