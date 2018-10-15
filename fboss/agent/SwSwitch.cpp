@@ -42,7 +42,6 @@
 #include "fboss/agent/MirrorManager.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/Platform.h"
-#include "fboss/agent/PortRemediator.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/PortUpdateHandler.h"
 #include "fboss/agent/RouteUpdateLogger.h"
@@ -158,7 +157,6 @@ class ChannelCloser : public CloseCallback {
 SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
     : hw_(platform->getHwSwitch()),
       platform_(std::move(platform)),
-      portRemediator_(new PortRemediator(this)),
       closer_(new ChannelCloser(this)),
       arp_(new ArpHandler(this)),
       ipv4_(new IPv4Handler(this)),
@@ -231,8 +229,6 @@ void SwSwitch::stop() {
   // this is not the case for ipv6_ and tunMgr_, which may be accessed in a
   // packet handling callback as well while stopping the switch.
   //
-  portRemediator_.reset();
-
   nUpdater_.reset();
 
   if (lldpManager_) {
@@ -547,8 +543,6 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
         stats()->neighborCacheHeartbeatDelay(delay);
         stats()->neighborCacheEventBacklog(backlog);
       });
-
-  portRemediator_->init();
 
   setSwitchRunState(SwitchRunState::INITIALIZED);
 

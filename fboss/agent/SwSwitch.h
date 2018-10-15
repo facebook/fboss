@@ -51,7 +51,6 @@ class NeighborUpdater;
 class RouteUpdateLogger;
 class StateObserver;
 class TunManager;
-class PortRemediator;
 class MirrorManager;
 
 enum SwitchFlags : int {
@@ -829,8 +828,6 @@ class SwSwitch : public HwSwitch::Callback {
    * locking when we access the container during a state update.
    */
   std::map<StateObserver*, std::string> stateObservers_;
-
-  std::unique_ptr<PortRemediator> portRemediator_;
 
   std::unique_ptr<ChannelCloser> closer_; // must be before pcapPusher_
   std::unique_ptr<PcapPushSubscriberAsyncClient> pcapPusher_;
