@@ -138,12 +138,16 @@ def _wait_for_counter_to_stop(test, switch_thrift, counter, delay,
     # 2.5 is a bit of a mgaic number because of the current
     # counter bump queuing delay of 2 seconcs as described at the
     # top of this file
-    npkts_start = get_fb303_counter(switch_thrift, counter)
+    npkts_start = get_fb303_counter(switch_thrift,
+                                    counter,
+                                    test.log)
     start = time.time()
     while (start + delay) > time.time():
         # assume no packets queued for more than max_queue seconds
         time.sleep(max_queue_time)
-        npkts_before = get_fb303_counter(switch_thrift, counter)
+        npkts_before = get_fb303_counter(switch_thrift,
+                                         counter,
+                                         test.log)
         if npkts_before != npkts_start:
             # need to wait longer
             npkts_start = npkts_before
@@ -160,7 +164,9 @@ def _wait_for_pkts_to_be_counted(test, switch_thrift, counter, sent_pkts,
         start = time.time()
         found = False
         while not found and (start + delay) > time.time():
-            npkts_after = get_fb303_counter(switch_thrift, counter)
+            npkts_after = get_fb303_counter(switch_thrift,
+                                            counter,
+                                            test.log)
             if npkts_after >= npkts_before + sent_pkts:
                 found = True
             else:
