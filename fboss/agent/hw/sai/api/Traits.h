@@ -8,6 +8,7 @@
  *
  */
 #pragma once
+#include <type_traits>
 
 namespace facebook {
 namespace fboss {
@@ -40,6 +41,21 @@ struct apiUsesEntry : public std::false_type {};
  */
 template <typename ApiTypes>
 struct apiHasMembers : public std::false_type {};
+
+/*
+ * isDuplicateValueType<T>::value is true if T is a placeholder
+ * type for a duplicate sai_attribute_t union value type. An example
+ * is sai_object_id_t which is an alias of uint64_t, so the oid and u64
+ * template specializations conflict.
+ */
+class SaiObjectIdT {};
+template <typename T>
+struct isDuplicateValueType : public std::false_type {};
+
+template <>
+struct isDuplicateValueType<SaiObjectIdT> : public std::true_type {};
+
+
 
 } // namespace fboss
 } // namespace facebook

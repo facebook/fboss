@@ -164,3 +164,18 @@ TEST(Attribute, lifetimeList) {
   std::vector<sai_object_id_t> v{0, 1, 4, 9};
   EXPECT_EQ(v, v2);
 }
+
+using ObjAttr = SaiAttribute<sai_attr_id_t, 0, sai_object_id_t, SaiObjectIdT>;
+using UInt64TAttr = SaiAttribute<sai_attr_id_t, 0, sai_uint64_t>;
+TEST(Attribute, dupeType) {
+  ObjAttr oa(42);
+  EXPECT_EQ(oa.value(), 42);
+  static_assert(
+      std::is_same<ObjAttr::ValueType, uint64_t>::value,
+      "sai_object_id_t attr ValueT should be uint64_t");
+  UInt64TAttr ua(43);
+  EXPECT_EQ(ua.value(), 43);
+  static_assert(
+      std::is_same<UInt64TAttr::ValueType, uint64_t>::value,
+      "uint64_t attr ValueT should be uint64_t");
+}

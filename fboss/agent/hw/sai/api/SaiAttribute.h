@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include "Traits.h"
+
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
 #include <folly/logging/xlog.h>
@@ -137,6 +139,7 @@ _extract(const sai_attribute_t& sai_attribute) {                  \
   return sai_attribute.value._field;                              \
 }
 
+using facebook::fboss::SaiObjectIdT;
 
 DEFINE_extract(bool, booldata);
 DEFINE_extract(char[32], chardata);
@@ -153,7 +156,7 @@ DEFINE_extract_wrapper_v(sai_ip4_t, folly::IPAddressV4, ip4);
 DEFINE_extract(sai_ip6_t, ip6);
 DEFINE_extract(sai_ip_address_t, ipaddr);
 DEFINE_extract(sai_ip_prefix_t, ipprefix);
-//DEFINE_extract(sai_object_id_t, oid);
+DEFINE_extract_wrapper_v(sai_object_id_t, SaiObjectIdT, oid);
 DEFINE_extract(sai_object_list_t, objlist);
 DEFINE_extract(sai_u8_list_t, u8list);
 DEFINE_extract(sai_u16_list_t, u16list);
@@ -236,10 +239,12 @@ class SaiAttribute<
     AttrEnum,
     DataT,
     ValueT,
-    typename std::enable_if<std::is_same<DataT, ValueT>::value>::type> {
+    typename std::enable_if<
+        std::is_same<DataT, ValueT>::value ||
+        isDuplicateValueType<ValueT>::value>::type> {
  public:
   using DataType = DataT;
-  using ValueType = ValueT;
+  using ValueType = DataT;
 
   SaiAttribute() {
     saiAttr_.id = AttrEnum;
@@ -289,7 +294,9 @@ class SaiAttribute<
     AttrEnum,
     DataT,
     ValueT,
-    typename std::enable_if<!std::is_same<DataT, ValueT>::value>::type> {
+    typename std::enable_if<
+        !std::is_same<DataT, ValueT>::value &&
+        !isDuplicateValueType<ValueT>::value>::type> {
  public:
   using DataType = DataT;
   using ValueType = ValueT;
