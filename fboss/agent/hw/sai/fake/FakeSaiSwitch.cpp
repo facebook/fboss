@@ -14,12 +14,19 @@
 
 using facebook::fboss::FakeSai;
 
+namespace {
+static constexpr uint64_t defaultVlanId = 1;
+}
+
 sai_status_t set_switch_attribute_fn(
     sai_object_id_t switch_id,
     const sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
   auto& sw = fs->swm.get(switch_id);
   sai_status_t res;
+  if (!attr) {
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
   switch (attr->id) {
     case SAI_SWITCH_ATTR_SRC_MAC_ADDRESS:
       sw.setSrcMac(attr->value.mac);
@@ -40,6 +47,9 @@ sai_status_t get_switch_attribute_fn(
   const auto& sw = fs->swm.get(switch_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
+      case SAI_SWITCH_ATTR_DEFAULT_VLAN_ID:
+        attr[i].value.oid = defaultVlanId;
+        break;
       case SAI_SWITCH_ATTR_PORT_NUMBER:
         attr[i].value.u32 = fs->pm.map().size();
         break;

@@ -27,6 +27,11 @@ namespace fboss {
 struct SwitchTypes {
   struct Attributes {
     using EnumType = sai_switch_attr_t;
+    using DefaultVlanId = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_DEFAULT_VLAN_ID,
+        sai_object_id_t,
+        SaiObjectIdT>;
     using PortNumber =
         SaiAttribute<EnumType, SAI_SWITCH_ATTR_PORT_NUMBER, sai_uint32_t>;
     using PortList = SaiAttribute<
@@ -40,8 +45,11 @@ struct SwitchTypes {
         sai_mac_t,
         folly::MacAddress>;
   };
-  using AttributeType = boost::
-      variant<Attributes::PortNumber, Attributes::PortList, Attributes::SrcMac>;
+  using AttributeType = boost::variant<
+      Attributes::DefaultVlanId,
+      Attributes::PortNumber,
+      Attributes::PortList,
+      Attributes::SrcMac>;
   struct MemberAttributes {};
   using MemberAttributeType = boost::variant<boost::blank>;
   struct EntryType {};

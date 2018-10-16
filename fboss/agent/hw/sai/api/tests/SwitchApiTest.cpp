@@ -61,3 +61,17 @@ TEST_F(SwitchApiTest, testSetMac) {
   SwitchTypes::Attributes::SrcMac blank;
   EXPECT_EQ(switchApi->getAttribute(blank, switchId), newSrcMac);
 }
+
+TEST_F(SwitchApiTest, getDefaultVlanId) {
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          SwitchTypes::Attributes::DefaultVlanId(), switchId),
+      1);
+}
+
+TEST_F(SwitchApiTest, setDefaultVlanId) {
+  EXPECT_EQ(
+      switchApi->setAttribute(
+          SwitchTypes::Attributes::DefaultVlanId(42), switchId),
+      SAI_STATUS_INVALID_PARAMETER);
+}

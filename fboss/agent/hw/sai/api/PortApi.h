@@ -27,11 +27,19 @@ struct PortTypes {
   struct Attributes {
     using EnumType = sai_port_attr_t;
     using AdminState = SaiAttribute<EnumType, SAI_PORT_ATTR_ADMIN_STATE, bool>;
+    using HwLaneList = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_HW_LANE_LIST,
+        sai_u32_list_t,
+        std::vector<uint32_t>>;
     using Speed = SaiAttribute<EnumType, SAI_PORT_ATTR_SPEED, sai_uint32_t>;
     using Type = SaiAttribute<EnumType, SAI_PORT_ATTR_TYPE, sai_int32_t>;
   };
-  using AttributeType = boost::
-      variant<Attributes::AdminState, Attributes::Speed, Attributes::Type>;
+  using AttributeType = boost::variant<
+      Attributes::AdminState,
+      Attributes::HwLaneList,
+      Attributes::Speed,
+      Attributes::Type>;
   struct MemberAttributes {};
   using MemberAttributeType = boost::variant<boost::blank>;
   struct EntryType {};
