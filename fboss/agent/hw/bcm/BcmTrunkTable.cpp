@@ -47,15 +47,11 @@ AggregatePortID BcmTrunkTable::getAggregatePortId(opennsl_trunk_t trunk) const {
 }
 
 void BcmTrunkTable::setupTrunking() {
-  if (!isBcmHWTrunkInitialized_) {
-    auto rv = opennsl_trunk_init(hw_->getUnit());
-    bcmCheckError(rv, "Failed to initialize trunking machinery");
-    isBcmHWTrunkInitialized_ = true;
-  }
+  auto rv = opennsl_trunk_init(hw_->getUnit());
+  bcmCheckError(rv, "Failed to initialize trunking machinery");
 }
 
 void BcmTrunkTable::addTrunk(const std::shared_ptr<AggregatePort>& aggPort) {
-  setupTrunking();
   auto trunk = std::make_unique<BcmTrunk>(hw_);
   trunk->init(aggPort);
   auto trunkID = trunk->id();

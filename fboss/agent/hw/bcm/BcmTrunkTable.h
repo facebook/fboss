@@ -52,6 +52,8 @@ class BcmTrunkTable {
   opennsl_trunk_t linkDownHwNotLocked(opennsl_port_t port);
 
   void updateStats();
+  // Setup trunking machinery
+  void setupTrunking();
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -62,11 +64,6 @@ class BcmTrunkTable {
       trunks_;
   const BcmSwitch* const hw_{nullptr};
 
-  // Setup trunking machinery
-  void setupTrunking();
-
-  // State that stores if the BCM trunk has been initialized.
-  bool isBcmHWTrunkInitialized_ = false;
 
   TrunkToMinimumLinkCountMap trunkToMinLinkCount_;
 };

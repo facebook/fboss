@@ -659,6 +659,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
     startFineGrainedBufferStatLogging();
   }
 
+  trunkTable_->setupTrunking();
   setupLinkscan();
   // If warm booting, force a scan of all ports. Unfortunately
   // opennsl_enable_set will enable all of the ports and return before
