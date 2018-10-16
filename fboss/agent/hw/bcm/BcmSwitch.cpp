@@ -10,7 +10,6 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 #include <boost/cast.hpp>
-
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
 #include <folly/Memory.h>
@@ -156,11 +155,9 @@ bool BcmSwitch::getPortFECConfig(PortID port) const {
 
 BcmSwitch::BcmSwitch(
     BcmPlatform* platform,
-    HashMode hashMode,
     uint32_t featuresDesired)
     : platform_(platform),
       featuresDesired_(featuresDesired),
-      hashMode_(hashMode),
       fineGrainedBufferStatsEnabled_(FLAGS_enable_fine_grained_buffer_stats),
       mmuBufferBytes_(platform->getMMUBufferBytes()),
       mmuCellBytes_(platform->getMMUCellBytes()),
@@ -183,7 +180,7 @@ BcmSwitch::BcmSwitch(
     BcmPlatform* platform,
     unique_ptr<BcmUnit> unit,
     uint32_t featuresDesired)
-    : BcmSwitch(platform, FULL_HASH, featuresDesired) {
+    : BcmSwitch(platform, featuresDesired) {
   unitObject_ = std::move(unit);
   unit_ = unitObject_->getNumber();
 }
@@ -291,121 +288,6 @@ void BcmSwitch::unregisterCallbacks() {
     stopLinkscanThread();
     flags_ &= ~LINKSCAN_REGISTERED;
   }
-}
-
-void BcmSwitch::ecmpHashSetup() {
-  int arg;
-  int rv;
-
-  // enable preprocessing for both hash module A and B
-  rv = opennsl_switch_control_set(unit_,
-      opennslSwitchHashField0PreProcessEnable, 1);
-  bcmCheckError(rv, "failed to enable pre-processing A");
-  rv = opennsl_switch_control_set(unit_,
-      opennslSwitchHashField1PreProcessEnable, 1);
-  bcmCheckError(rv, "failed to enable pre-processing B");
-
-  // set the seed
-  // We do not want the traffic flow hashing is changed cross process restart,
-  // therefore We need to generate consistent seeds for this box.
-  // Here, we use the local MAC base (lower 32b as they are mostly NIC ID) to
-  // generate two different hashes to set to seed0 and seed1.
-  auto mac64 = platform_->getLocalMac().u64HBO();
-  uint32_t mac32 = static_cast<uint32_t>(mac64 & 0xFFFFFFFF);
-  rv = opennsl_switch_control_set(unit_, opennslSwitchHashSeed0,
-                              folly::hash::jenkins_rev_mix32(mac32));
-  bcmCheckError(rv, "failed to set hash seed 0");
-  rv = opennsl_switch_control_set(unit_, opennslSwitchHashSeed1,
-                              folly::hash::twang_32from64(mac64));
-  bcmCheckError(rv, "failed to set hash seed 1");
-
-  // First, field selection:
-  // For both IPv4 and IPv6, depending on whether this is full mode
-  // or half mode hash we use for hashing either
-  // a) src IP, dst IP, src port, and dst port - full mode
-  // b) src IP and dst IP - half mode
-  // We alternate b/w full and half modes in layers of n/w tiers
-  // So if tier n uses full mode, tier n + 1 would use half mode and
-  // so on. This is done to avoid hash polarization
-  arg = OPENNSL_HASH_FIELD_IP4SRC_LO | OPENNSL_HASH_FIELD_IP4SRC_HI
-    | OPENNSL_HASH_FIELD_IP4DST_LO | OPENNSL_HASH_FIELD_IP4DST_HI;
-  if (hashMode_ == FULL_HASH) {
-    // We are using full mode hash, add src, dst ports
-    arg |= OPENNSL_HASH_FIELD_SRCL4 | OPENNSL_HASH_FIELD_DSTL4;
-  }
-  rv = opennsl_switch_control_set(unit_, opennslSwitchHashIP4Field0, arg);
-  bcmCheckError(rv, "failed to config field selection");
-  rv = opennsl_switch_control_set(unit_, opennslSwitchHashIP4Field1, arg);
-  bcmCheckError(rv, "failed to config field selection");
-  rv = opennsl_switch_control_set(unit_, opennslSwitchHashIP4TcpUdpField0, arg);
-  bcmCheckError(rv, "failed to config field selection");
-  rv = opennsl_switch_control_set(unit_, opennslSwitchHashIP4TcpUdpField1, arg);
-  bcmCheckError(rv, "failed to config field selection");
-  rv = opennsl_switch_control_set(
-      unit_, opennslSwitchHashIP4TcpUdpPortsEqualField0, arg);
-  bcmCheckError(rv, "failed to config field selection");
-  rv = opennsl_switch_control_set(
-      unit_, opennslSwitchHashIP4TcpUdpPortsEqualField1, arg);
-  bcmCheckError(rv, "failed to config field selection");
-  // v6
-  arg = OPENNSL_HASH_FIELD_IP6SRC_LO | OPENNSL_HASH_FIELD_IP6SRC_HI
-    | OPENNSL_HASH_FIELD_IP6DST_LO | OPENNSL_HASH_FIELD_IP6DST_HI;
-  if (hashMode_ == FULL_HASH) {
-    // We are using full mode hash, add src, dst ports
-    arg |= OPENNSL_HASH_FIELD_SRCL4 | OPENNSL_HASH_FIELD_DSTL4;
-  }
-  rv = opennsl_switch_control_set(unit_, opennslSwitchHashIP6Field0, arg);
-  bcmCheckError(rv, "failed to config field selection");
-  rv = opennsl_switch_control_set(unit_, opennslSwitchHashIP6Field1, arg);
-  bcmCheckError(rv, "failed to config field selection");
-  rv = opennsl_switch_control_set(unit_, opennslSwitchHashIP6TcpUdpField0, arg);
-  bcmCheckError(rv, "failed to config field selection");
-  rv = opennsl_switch_control_set(unit_, opennslSwitchHashIP6TcpUdpField1, arg);
-  bcmCheckError(rv, "failed to config field selection");
-  rv = opennsl_switch_control_set(
-      unit_, opennslSwitchHashIP6TcpUdpPortsEqualField0, arg);
-  bcmCheckError(rv, "failed to config field selection");
-  rv = opennsl_switch_control_set(
-      unit_, opennslSwitchHashIP6TcpUdpPortsEqualField1, arg);
-  bcmCheckError(rv, "failed to config field selection");
-
-  // Second: hash algorithm.
-  // Always use CRC-16 using CCITT polynomial
-  arg = OPENNSL_HASH_FIELD_CONFIG_CRC16CCITT;
-  rv = opennsl_switch_control_set(unit_, opennslSwitchHashField0Config, arg);
-  bcmCheckError(rv, "failed to config CRC16-CCITT to A0");
-  rv = opennsl_switch_control_set(unit_, opennslSwitchHashField0Config1, arg);
-  bcmCheckError(rv, "failed to config CRC16-CCITT to A1");
-  rv = opennsl_switch_control_set(unit_, opennslSwitchHashField1Config, arg);
-  bcmCheckError(rv, "failed to config CRC16-CCITT to B0");
-  rv = opennsl_switch_control_set(unit_, opennslSwitchHashField1Config1, arg);
-  bcmCheckError(rv, "failed to config CRC16-CCITT to B1");
-
-  // Third, choose the ECMP set to use.
-  // Use the default offset (0), which means HASH_A0 will be selected.
-  // (refer: opennsl_esw_switch_control_port_set())
-  rv = opennsl_switch_control_set(unit_, opennslSwitchECMPHashSet0Offset, 0);
-  bcmCheckError(rv, "failed to set ECMP set 0");
-
-  configureAdditionalEcmpHashSets();
-
-  // Take default for RTAG7 hash control
-  rv = opennsl_switch_control_set(unit_, opennslSwitchHashSelectControl, 0);
-  bcmCheckError(rv, "failed to set default RTAG7 hash control");
-
-  // Enable macro flow hash
-  rv = opennsl_switch_control_set(unit_,
-      opennslSwitchEcmpMacroFlowHashEnable, 1);
-  if (rv == OPENNSL_E_UNAVAIL) {
-    XLOG(INFO) << "Macro flow feature is not available on this hw";
-  } else {
-    bcmCheckError(rv, "failed to enable macro flow hash");
-  }
-
-  // Enable RTAG7 hash
-  arg = OPENNSL_HASH_CONTROL_ECMP_ENHANCE;
-  rv = opennsl_switch_control_set(unit_, opennslSwitchHashControl, arg);
-  bcmCheckError(rv, "failed to enable RTAG7");
 }
 
 void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
@@ -619,8 +501,6 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   // TODO: We may want to trap NDP on a per-port or per-VLAN basis.
   rv = opennsl_switch_control_set(unit_, opennslSwitchNdPktToCpu, 1);
   bcmCheckError(rv, "failed to set NDP trapping");
-  // Setup hash functions for ECMP
-  ecmpHashSetup();
 
   if (FLAGS_force_init_fp || !warmBoot || haveMissingOrQSetChangedFPGroups()) {
     initFieldProcessor();

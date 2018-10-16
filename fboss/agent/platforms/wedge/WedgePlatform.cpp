@@ -53,15 +53,7 @@ WedgePlatform::WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo)
 void WedgePlatform::initImpl() {
   BcmAPI::init(loadConfig());
   initLocalMac();
-  auto mode = getMode();
-  bool isLc = (mode == WedgePlatformMode::GALAXY_LC);
-  bool isMinipack = (mode == WedgePlatformMode::MINIPACK);
-  bool isYamp = (mode == WedgePlatformMode::YAMP);
-  // HACK - looking at mode == LC or isDu or minipack or yamp to determine HASH mode
-  // How to set up hashing should really come from config - T21721301
-  auto hashMode = (isLc || isDu() || isMinipack || isYamp) ?
-                  BcmSwitch::HALF_HASH : BcmSwitch::FULL_HASH;
-  hw_.reset(new BcmSwitch(this, hashMode));
+  hw_.reset(new BcmSwitch(this));
 }
 
 WedgePlatform::~WedgePlatform() {}

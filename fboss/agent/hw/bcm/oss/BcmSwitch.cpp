@@ -32,8 +32,6 @@ std::unique_ptr<BcmRxPacket> BcmSwitch::createRxPacket(opennsl_pkt_t* pkt) {
   return std::make_unique<BcmRxPacket>(pkt);
 }
 
-void BcmSwitch::configureAdditionalEcmpHashSets() {}
-
 bool BcmSwitch::isAlpmEnabled() {
   return false;
 }

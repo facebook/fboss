@@ -126,10 +126,6 @@ class BcmSwitchIf : public HwSwitch {
  */
 class BcmSwitch : public BcmSwitchIf {
  public:
-   enum HashMode {
-     FULL_HASH, // Full hash - use src IP, dst IP, src port, dst port
-     HALF_HASH  // Half hash - user src IP, dst IP
-   };
    enum class MmuState {
     UNKNOWN,
     MMU_LOSSLESS,
@@ -148,7 +144,6 @@ class BcmSwitch : public BcmSwitchIf {
    */
    explicit BcmSwitch(
        BcmPlatform* platform,
-       HashMode hashMode = FULL_HASH,
        uint32_t featuresDesired = (PACKET_RX_DESIRED | LINKSCAN_DESIRED));
 
    /*
@@ -561,11 +556,6 @@ class BcmSwitch : public BcmSwitchIf {
    */
   void updateGlobalStats();
 
-  /**
-   * ECMP hash setup
-   */
-  void ecmpHashSetup();
-
   /*
    * Drop IPv6 Router Advertisements.
    */
@@ -616,11 +606,6 @@ class BcmSwitch : public BcmSwitchIf {
    * Configure rate limiting of packets sent to the CPU.
    */
   void configureRxRateLimiting();
-
-  /*
-   * Configures any additional ecmp hash sets if applicable.
-   */
-  void configureAdditionalEcmpHashSets();
 
   /*
    * Stop linkscan thread. This should only be done on shutdown.
@@ -696,7 +681,6 @@ class BcmSwitch : public BcmSwitchIf {
   int unit_{-1};
   uint32_t flags_{0};
   uint32_t featuresDesired_{PACKET_RX_DESIRED | LINKSCAN_DESIRED};
-  HashMode hashMode_;
   MmuState mmuState_{MmuState::UNKNOWN};
   bool bufferStatsEnabled_{false};
   bool fineGrainedBufferStatsEnabled_{false};
