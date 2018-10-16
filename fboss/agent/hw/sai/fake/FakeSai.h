@@ -24,7 +24,7 @@ namespace fboss {
 struct FakeSai {
   static std::shared_ptr<FakeSai> getInstance();
   FakePortManager pm;
-  FakeSwitch sw;
+  FakeSwitchManager swm;
   bool initialized = false;
 };
 

@@ -21,11 +21,11 @@ sai_status_t create_port_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  *port_id = fs->pm.addPort(FakePort());
+  *port_id = fs->pm.create(FakePort());
   for (int i = 0; i < attr_count; ++i) {
     sai_status_t res = set_port_attribute_fn(*port_id, &attr_list[i]);
     if (res != SAI_STATUS_SUCCESS) {
-      fs->pm.deletePort(*port_id);
+      fs->pm.remove(*port_id);
       return res;
     }
   }
@@ -34,7 +34,7 @@ sai_status_t create_port_fn(
 
 sai_status_t remove_port_fn(sai_object_id_t port_id) {
   auto fs = FakeSai::getInstance();
-  fs->pm.deletePort(port_id);
+  fs->pm.remove(port_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -42,7 +42,7 @@ sai_status_t set_port_attribute_fn(
     sai_object_id_t port_id,
     const sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto& port = fs->pm.getPort(port_id);
+  auto& port = fs->pm.get(port_id);
   sai_status_t res;
   switch (attr->id) {
     case SAI_PORT_ATTR_ADMIN_STATE:
@@ -65,7 +65,7 @@ sai_status_t get_port_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto port = fs->pm.getPort(port_id);
+  auto port = fs->pm.get(port_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:

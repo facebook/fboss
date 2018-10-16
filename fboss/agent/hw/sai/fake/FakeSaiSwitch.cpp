@@ -15,13 +15,14 @@
 using facebook::fboss::FakeSai;
 
 sai_status_t set_switch_attribute_fn(
-    sai_object_id_t /* switch_id */,
+    sai_object_id_t switch_id,
     const sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
+  auto& sw = fs->swm.get(switch_id);
   sai_status_t res;
   switch (attr->id) {
     case SAI_SWITCH_ATTR_SRC_MAC_ADDRESS:
-      fs->sw.setSrcMac(attr->value.mac);
+      sw.setSrcMac(attr->value.mac);
       res = SAI_STATUS_SUCCESS;
       break;
     default:
@@ -32,26 +33,27 @@ sai_status_t set_switch_attribute_fn(
 }
 
 sai_status_t get_switch_attribute_fn(
-    sai_object_id_t /* switch_id */,
+    sai_object_id_t switch_id,
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
+  const auto& sw = fs->swm.get(switch_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_SWITCH_ATTR_PORT_NUMBER:
-        attr[i].value.u32 = fs->pm.numPorts();
+        attr[i].value.u32 = fs->pm.map().size();
         break;
       case SAI_SWITCH_ATTR_PORT_LIST:
         {
-        attr[i].value.objlist.count = fs->pm.numPorts();
+        attr[i].value.objlist.count = fs->pm.map().size();
         int j = 0;
-        for (const auto& p : fs->pm.portMap()) {
+        for (const auto& p : fs->pm.map()) {
           attr[i].value.objlist.list[j++] = p.first;
         }
         }
         break;
       case SAI_SWITCH_ATTR_SRC_MAC_ADDRESS:
-        memcpy(attr[i].value.mac, fs->sw.srcMac().bytes(), 6);
+        memcpy(attr[i].value.mac, sw.srcMac().bytes(), 6);
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
