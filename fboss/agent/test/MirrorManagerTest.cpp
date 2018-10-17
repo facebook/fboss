@@ -99,8 +99,7 @@ class MirrorManagerTest : public ::testing::Test {
   }
 
   void verifyStateUpdate(Func func) {
-    runInUpdateEventBase(std::move(func));
-    schedulePendingTestStateUpdates();
+    runInUpdateEventBaseAndWait(std::move(func));
   }
 
   void TearDown() override {
@@ -218,15 +217,13 @@ class MirrorManagerTest : public ::testing::Test {
   }
 
  protected:
-  void runInUpdateEventBase(Func func) {
+  void runInUpdateEventBaseAndWait(Func func) {
     auto* evb = sw_->getUpdateEvb();
-    evb->runInEventBaseThread(std::move(func));
+    ASSERT_TRUE(evb->runInEventBaseThreadAndWait(std::move(func)));
   }
 
   void schedulePendingTestStateUpdates() {
-    folly::Baton<> baton;
-    runInUpdateEventBase([&baton]() { baton.post(); });
-    baton.wait();
+    runInUpdateEventBaseAndWait([](){});
   }
 
   std::unique_ptr<HwTestHandle> handle_;
@@ -241,7 +238,7 @@ TYPED_TEST(MirrorManagerTest, CanNotUpdateMirrors) {
   auto params = MirrorManagerTestParams<TypeParam>::getParams();
 
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "CanNotUpdateMirrors", [=](const std::shared_ptr<SwitchState>& state) {
         return this->addErspanMirror(
             state, kMirrorName, params.mirrorDestination);
       });
@@ -257,7 +254,8 @@ TYPED_TEST(MirrorManagerTest, CanNotUpdateMirrors) {
 TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithoutRoutes) {
   auto params = MirrorManagerTestParams<TypeParam>::getParams();
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "ResolveNoMirrorWithoutRoutes",
+      [=](const std::shared_ptr<SwitchState>& state) {
         auto updatedState =
             this->addErspanMirror(state, kMirrorName, params.mirrorDestination);
         return this->addNeighbor(
@@ -279,7 +277,8 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithoutRoutes) {
 TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithoutArpEntry) {
   auto params = MirrorManagerTestParams<TypeParam>::getParams();
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "ResolveNoMirrorWithoutArpEntry",
+      [=](const std::shared_ptr<SwitchState>& state) {
         auto updatedState =
             this->addErspanMirror(state, kMirrorName, params.mirrorDestination);
         RouteNextHopSet nextHops = {params.nextHop(0), params.nextHop(1)};
@@ -296,7 +295,8 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithoutArpEntry) {
 
 TYPED_TEST(MirrorManagerTest, LocalMirrorAlreadyResolved) {
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "LocalMirrorAlreadyResolved",
+      [=](const std::shared_ptr<SwitchState>& state) {
         return this->addSpanMirror(state, kMirrorName, kMirrorEgressPort);
       });
 
@@ -312,7 +312,8 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithoutEgressPort) {
   const auto params = MirrorManagerTestParams<TypeParam>::getParams();
 
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "ResolveMirrorWithoutEgressPort",
+      [=](const std::shared_ptr<SwitchState>& state) {
         auto updatedState =
             this->addErspanMirror(state, kMirrorName, params.mirrorDestination);
         updatedState = this->addNeighbor(
@@ -351,7 +352,8 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithEgressPort) {
   const auto params = MirrorManagerTestParams<TypeParam>::getParams();
 
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "ResolveMirrorWithEgressPort",
+      [=](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addErspanMirror(
             state,
             kMirrorName,
@@ -402,7 +404,8 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithEgressPort) {
   const auto params = MirrorManagerTestParams<TypeParam>::getParams();
 
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "ResolveNoMirrorWithEgressPort",
+      [=](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addErspanMirror(
             state, kMirrorName, params.mirrorDestination, PortID(9));
         updatedState = this->addNeighbor(
@@ -437,7 +440,8 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithDirectlyConnectedRoute) {
   const auto params = MirrorManagerTestParams<TypeParam>::getParams();
 
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "ResolveMirrorWithDirectlyConnectedRoute",
+      [=](const std::shared_ptr<SwitchState>& state) {
         auto updatedState =
             this->addErspanMirror(state, kMirrorName, params.neighborIPs[0]);
         return this->addNeighbor(
@@ -474,7 +478,8 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithDirectlyConnectedRoute) {
 TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithDirectlyConnectedRoute) {
   const auto params = MirrorManagerTestParams<TypeParam>::getParams();
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "ResolveNoMirrorWithDirectlyConnectedRoute",
+      [=](const std::shared_ptr<SwitchState>& state) {
         return this->addErspanMirror(state, kMirrorName, params.neighborIPs[0]);
       });
 
@@ -492,7 +497,8 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithDirectlyConnectedRoute) {
 TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
   const auto params = MirrorManagerTestParams<TypeParam>::getParams();
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "UpdateMirrorOnRouteDelete: addMirror",
+      [=](const std::shared_ptr<SwitchState>& state) {
         auto updatedState =
             this->addErspanMirror(state, kMirrorName, params.mirrorDestination);
         updatedState = this->addNeighbor(
@@ -540,7 +546,8 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
   });
 
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "UpdateMirrorOnRouteDelete: delNeighbor",
+      [=](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->delNeighbor(
             state, params.interfaces[0], params.neighborIPs[0]);
         return this->delRoute(updatedState, params.longerPrefix);
@@ -573,7 +580,8 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
 TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
   const auto params = MirrorManagerTestParams<TypeParam>::getParams();
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "UpdateMirrorOnRouteAdd: addMirror",
+      [=](const std::shared_ptr<SwitchState>& state) {
         auto updatedState =
             this->addErspanMirror(state, kMirrorName, params.mirrorDestination);
         updatedState = this->addNeighbor(
@@ -611,7 +619,8 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
   });
 
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "UpdateMirrorOnRouteAdd: addRoute",
+      [=](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addNeighbor(
             state,
             params.interfaces[0],
@@ -651,7 +660,8 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteDel) {
   const auto params = MirrorManagerTestParams<TypeParam>::getParams();
 
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "UpdateNoMirrorWithEgressPortOnRouteDel",
+      [=](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addErspanMirror(
             state,
             kMirrorName,
@@ -699,7 +709,8 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteDel) {
   });
 
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "UpdateNoMirrorWithEgressPortOnRouteDel: delNeighbor",
+      [=](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->delNeighbor(
             state, params.interfaces[0], params.neighborIPs[0]);
         return this->delRoute(updatedState, params.longerPrefix);
@@ -720,7 +731,8 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteAdd) {
   const auto params = MirrorManagerTestParams<TypeParam>::getParams();
 
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "UpdateNoMirrorWithEgressPortOnRouteAdd",
+      [=](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addErspanMirror(
             state,
             kMirrorName,
@@ -760,7 +772,8 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteAdd) {
 TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
   const auto params = MirrorManagerTestParams<TypeParam>::getParams();
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "UpdateMirrorOnNeighborChange: addMirror",
+      [=](const std::shared_ptr<SwitchState>& state) {
         auto updatedState =
             this->addErspanMirror(state, kMirrorName, params.mirrorDestination);
         updatedState = this->addNeighbor(
@@ -808,7 +821,8 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
   });
 
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "UpdateMirrorOnNeighborChange: delNeighbor",
+      [=](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->delNeighbor(
             state, params.interfaces[0], params.neighborIPs[0]);
         updatedState = this->delNeighbor(
@@ -858,7 +872,7 @@ TYPED_TEST(MirrorManagerTest, EmptyDelta) {
   const auto oldState = this->sw_->getState();
 
   this->updateState(
-      __FUNCTION__, [=](const std::shared_ptr<SwitchState>& state) {
+      "EmptyDelta", [=](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addNeighbor(
             state,
             params.interfaces[0],
