@@ -226,8 +226,8 @@ add_executable(qsfp_service
 
 add_library(fboss_agent STATIC
     common/stats/ServiceData.cpp
-
     fboss/agent/AgentConfig.cpp
+    fboss/agent/AlpmUtils.cpp
     fboss/agent/ApplyThriftConfig.cpp
     fboss/agent/ArpCache.cpp
     fboss/agent/ArpHandler.cpp
