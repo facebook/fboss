@@ -75,5 +75,17 @@ TEST(AlpmUtilsTests, DefaultNullRoutesNotReAdded) {
   auto alpmAgainState = setupAlpmState(alpmInitState);
   EXPECT_EQ(nullptr, alpmAgainState);
 }
+
+TEST(AlpmUtilsTests, minAlpmRouteCount) {
+  EXPECT_EQ(2, numMinAlpmRoutes());
+}
+
+TEST(AlpmUtilsTests, minAlpmV4RouteCount) {
+  EXPECT_EQ(1, numMinAlpmV4Routes());
+}
+
+TEST(AlpmUtilsTests, minAlpmV6RouteCount) {
+  EXPECT_EQ(1, numMinAlpmV6Routes());
+}
 } // namespace fboss
 } // namespace facebook

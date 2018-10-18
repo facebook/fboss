@@ -10,13 +10,28 @@
 
 #include "AlpmUtils.h"
 
+#include <utility>
+
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
+#include <folly/Optional.h>
 
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/SwitchState.h"
+
+using facebook::fboss::SwitchState;
+using facebook::fboss::getMinimumAlpmState;
+
+namespace {
+
+std::pair<uint64_t, uint64_t> numMinV4AndV6AlpmRoutes() {
+  uint64_t v4Routes{0}, v6Routes{0};
+  getMinimumAlpmState()->getRouteTables()->getRouteCount(&v4Routes, &v6Routes);
+  return std::make_pair(v4Routes, v6Routes);
+}
+} // namespace
 
 namespace facebook {
 namespace fboss {
@@ -46,6 +61,23 @@ std::shared_ptr<SwitchState> setupAlpmState(
     return newState;
   }
   return nullptr;
+}
+
+std::shared_ptr<SwitchState> getMinimumAlpmState() {
+  return setupAlpmState(std::make_shared<SwitchState>());
+}
+
+uint64_t numMinAlpmRoutes() {
+  auto v4AndV6 = numMinV4AndV6AlpmRoutes();
+  return v4AndV6.first + v4AndV6.second;
+}
+
+uint64_t numMinAlpmV4Routes() {
+  return numMinV4AndV6AlpmRoutes().first;
+}
+
+uint64_t numMinAlpmV6Routes() {
+  return numMinV4AndV6AlpmRoutes().second;
 }
 
 } // namespace fboss
