@@ -43,6 +43,7 @@ class ParamikoClient(object):
 def connect_to_client(client, asset_name, username, password):
     keyfiles = _get_keyfiles()
     # timeout cannot be 0 for connect
+    print("Connect to client : ", asset_name)
     client.connect(hostname=asset_name, username=username,
                    password=password, key_filename=keyfiles,
                    timeout=DEFAULT_SSH_TIMEOUT,
@@ -89,7 +90,8 @@ def is_device_ssh_reachable(hostname, username, password):
     with ParamikoClient() as client:
         try:
             connect_to_client(client, hostname, username, password)
-        except paramiko.SSHException:
+        except Exception as err :
+            print("Failed to connect with error : ", str(err))
             return False
         return True
 
