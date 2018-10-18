@@ -14,9 +14,13 @@ DEFAULT_SSH_TIMEOUT = 5
 @memoize_forever
 def _get_keyfiles():
     keyfiles = []
-    cert_path = ['/var/facebook/credentials/{user}/ssh/id_rsa-cert.pub'.
-                 format(user=os.getenv('USER', 'root')),
-                 '/root/.ssh/id_rsa-cert.pub']
+    cert_path = [
+        '/var/facebook/credentials/{user}/ssh/id_rsa-cert.pub'.
+        format(user=os.getenv('USER', 'root')),
+        '/root/.ssh/id_rsa-cert.pub',
+        # https://fburl.com/wiki/psdjjyxx
+        '/dev/shm/sandcastle_ssh/id_rsa-cert.pub',
+    ]
     for path in cert_path:
         if os.path.isfile(path):
             keyfiles.append(path)
