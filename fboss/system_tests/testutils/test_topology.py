@@ -156,10 +156,11 @@ class FBOSSTestTopology(object):
             raise unittest.SkipTest("Not able to find %d good hosts" %
                                     (n_hosts))
 
-    def verify_switch(self, retries=10, log=None):
+    def verify_switch(self, retries=10, log=None, port=None):
         """ Verify the switch is THRIFT reachable """
         if not log:
             log = self.log
+        port = port or self.port
         """ Verfiy that both userver and agent are reachable """
         # check if userver is reachable, tests can bring down userver
         # Example: T33276019
@@ -169,7 +170,7 @@ class FBOSSTestTopology(object):
         """ Verify the switch is THRIFT reachable """
         for retry in range(retries):  # don't use @retry, this is OSS
             try:
-                with FbossAgentClient(self.switch.name, self.port) as client:
+                with FbossAgentClient(self.switch.name, port) as client:
                     client.keepalive()  # simple check, will pass if agent is up
                     # this actually checks that agent is in a ready state
                     client.getAllPortInfo()  # will throw FbossBaseError
@@ -204,8 +205,9 @@ class FBOSSTestTopology(object):
                     self.remove_host(host_name)
         return len(self.test_hosts) >= min_hosts
 
-    def switch_thrift(self):
-        return FbossAgentClient(self.switch.name, self.port)
+    def switch_thrift(self, port=None):
+        port = port or self.port
+        return FbossAgentClient(self.switch.name, port=port)
 
     def qsfp_thrift(self):
         return QsfpServiceClient(self.switch.name, self.qsfp_port)
