@@ -26,7 +26,7 @@ struct AgentConfig {
   static std::unique_ptr<AgentConfig> fromRawConfig(
       const std::string& contents);
 
-  // serialize just the swConfig component
+  // serialize just the sw component
   const std::string swConfigRaw() const;
 
   void dumpConfig(folly::StringPiece path) const;

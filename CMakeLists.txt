@@ -73,8 +73,16 @@ add_thrift_cpp2_library(
   OPTIONS
     json
   DEPENDS
-    bcm_config_cpp2
+    platform_config_cpp2
     switch_config_cpp2
+)
+add_thrift_cpp2_library(
+  platform_config_cpp2
+  fboss/agent/platform_config.thrift
+  OPTIONS
+    json
+  DEPENDS
+    bcm_config_cpp2
 )
 add_thrift_cpp2_library(
   switch_state_cpp2

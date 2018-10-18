@@ -48,17 +48,17 @@ std::unique_ptr<AgentConfig> AgentConfig::fromRawConfig(
   // this is crappy, but because we don't annotate the json with
   // numbers, we have to use the SimpleJSONSerializer, which is
   // extremely permissive about unexpected keys and never throws.  To
-  // determine if we parsed anything, we check if the swConfig member
+  // determine if we parsed anything, we check if the sw member
   // has any differences with a default-constructed SwitchConfig. If
   // not, we fall back to treating the config as a SwitchConfig
   // directly.
-  if (agentConfig.swConfig != cfg::SwitchConfig()) {
+  if (agentConfig.sw != cfg::SwitchConfig()) {
     std::cerr << "Parsed config successfully as AgentConfig" << std::endl;
   } else {
     std::cerr << "Not valid AgentConfig, fallback to parsing as SwitchConfig..."
               << std::endl;
     apache::thrift::SimpleJSONSerializer::deserialize<cfg::SwitchConfig>(
-        configStr.c_str(), agentConfig.swConfig);
+        configStr.c_str(), agentConfig.sw);
   }
 
   return std::make_unique<AgentConfig>(std::move(agentConfig), configStr);
@@ -66,7 +66,7 @@ std::unique_ptr<AgentConfig> AgentConfig::fromRawConfig(
 
 const std::string AgentConfig::swConfigRaw() const {
   return apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-      thrift.swConfig);
+      thrift.sw);
 }
 
 void AgentConfig::dumpConfig(folly::StringPiece path) const {

@@ -75,7 +75,7 @@ cfg::SwitchConfig createSwitchConfig() {
 
 cfg::AgentConfig createAgentConfig() {
   cfg::AgentConfig config;
-  config.swConfig = createSwitchConfig();
+  config.sw = createSwitchConfig();
   return config;
 }
 

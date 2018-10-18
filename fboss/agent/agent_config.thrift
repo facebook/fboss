@@ -6,11 +6,7 @@ namespace py.asyncio neteng.fboss.asyncio.agent_config
 namespace cpp2 facebook.fboss.cfg
 
 include "fboss/agent/switch_config.thrift"
-include "fboss/agent/hw/bcm/bcm_config.thrift"
-
-union ChipConfig {
-  1: bcm_config.BcmConfig bcm,
-}
+include "fboss/agent/platform_config.thrift"
 
 struct AgentConfig {
   // This is used to override the default command line arguments we
@@ -19,8 +15,10 @@ struct AgentConfig {
 
   // This contains all of the hardware-independent configuration for a
   // single switch/router in the network.
-  2: switch_config.SwitchConfig swConfig,
+  2: switch_config.SwitchConfig sw,
 
-  // Chip-specific configuration.
-  3: optional ChipConfig chipConfig;
+  // All configuration for the platform. This includes the chip
+  // configuration (e.g broadcom config), as well as low-level port
+  // tuning params.
+  3: optional platform_config.PlatformConfig platform,
 }

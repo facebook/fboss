@@ -1476,7 +1476,7 @@ void SwSwitch::applyConfig(const std::string& reason, bool reload) {
       [&](const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
         auto target = reload ? platform_->reloadConfig() : platform_->config();
 
-        const auto& newConfig = target->thrift.swConfig;
+        const auto& newConfig = target->thrift.sw;
         auto newState =
           applyThriftConfig(state, &newConfig, platform_.get(), &curConfig_);
 
