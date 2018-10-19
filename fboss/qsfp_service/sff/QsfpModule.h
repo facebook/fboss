@@ -249,6 +249,9 @@ class QsfpModule : public Transceiver {
    * caller needs to check if DOM is supported or not
    */
   std::string getQsfpString(SffField flag) const;
+
+  bool validateQsfpString(const std::string& value) const;
+
   /*
    * Fills in values for alarm and warning thresholds based on field name
    */

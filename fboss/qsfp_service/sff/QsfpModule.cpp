@@ -485,7 +485,9 @@ std::string QsfpModule::getQsfpString(SffField field) const {
   while (length > 0 && data[length - 1] == ' ') {
     --length;
   }
-  return std::string(reinterpret_cast<const char*>(data), length);
+
+  std::string value (reinterpret_cast<const char*>(data), length);
+  return validateQsfpString(value) ? value : "UNKNOWN";
 }
 
 double QsfpModule::getQsfpSensor(SffField field,

@@ -16,4 +16,8 @@ QsfpModule::getDACCableOverride() const {
   return folly::none;
 }
 
+bool QsfpModule::validateQsfpString(const std::string& /*value*/) const {
+  return true;
+}
+
 }} //namespace facebook::fboss
