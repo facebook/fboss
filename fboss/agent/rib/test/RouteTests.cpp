@@ -2235,68 +2235,6 @@ TEST(Route, nextHopTest) {
   EXPECT_TRUE(unh < rnh && rnh > unh);
 }
 
-TEST(Route, nodeMapMatchesRadixTree) {
-  auto stateV1 = applyInitConfig();
-  ASSERT_NE(nullptr, stateV1);
-  auto tables1 = stateV1->getRouteTables();
-
-  auto rid = RouterID(0);
-  RouteNextHopSet nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
-  RouteNextHopSet nhop2 = makeNextHops({"2.2.2.10"}); // resolved by intf 2
-  RouteNextHopSet nonResolvedHops = makeNextHops({"1.1.3.10"}); // Non-resolved
-
-  RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
-  RouteV4::Prefix r2{IPAddressV4("20.1.1.0"), 24};
-  RouteV6::Prefix r3{IPAddressV6("1001::0"), 48};
-  RouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
-  RouteV4::Prefix r5{IPAddressV4("8.8.8.0"), 24};
-  RouteV4::Prefix r6{IPAddressV4("1.1.3.0"), 24};
-
-  // add route case
-  RouteUpdater u1(tables1);
-  u1.addRoute(
-      rid, r1.network, r1.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
-  u1.addRoute(
-      rid, r2.network, r2.mask, CLIENT_A, RouteNextHopEntry(nhop2, DISTANCE));
-  u1.addRoute(
-      rid, r3.network, r3.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
-  u1.addRoute(
-      rid, r4.network, r4.mask, CLIENT_A, RouteNextHopEntry(nhop2, DISTANCE));
-  u1.addRoute(
-      rid,
-      r5.network,
-      r5.mask,
-      CLIENT_A,
-      RouteNextHopEntry(nonResolvedHops, DISTANCE));
-  auto tables2 = u1.updateDone();
-  ASSERT_NE(nullptr, tables2);
-  // check every node in nodeMap_ also matches node in rib_, and every node
-  // should be published after the routeTable is published
-  EXPECT_NODEMAP_MATCH(tables2);
-  // make sure new change won't affect the initial state
-  EXPECT_NO_ROUTE(tables1, rid, r5.str());
-
-  // del route case
-  RouteUpdater u2(tables2);
-  u2.delRoute(rid, r2.network, r2.mask, CLIENT_A);
-  auto tables3 = u2.updateDone();
-  ASSERT_NE(nullptr, tables3);
-  EXPECT_NODEMAP_MATCH(tables3);
-
-  // update route case, resolve previous nonResolved route with prefix r5
-  RouteUpdater u3(tables3);
-  u3.addRoute(
-      rid, r6.network, r6.mask, CLIENT_A, RouteNextHopEntry(nhop1, DISTANCE));
-  auto tables4 = u3.updateDone();
-  EXPECT_NODEMAP_MATCH(tables4);
-  ASSERT_NE(nullptr, tables4);
-  // make sure new change won't affect the initial state
-  EXPECT_NO_ROUTE(tables1, rid, r6.str());
-  // both r5 and r6 should be unpublished now
-  ASSERT_FALSE(GET_ROUTE_V4(tables4, rid, r5)->isPublished());
-  ASSERT_FALSE(GET_ROUTE_V4(tables4, rid, r6)->isPublished());
-}
-
 /*
  * Class that makes it easy to run tests with the following
  * configurable entities:
