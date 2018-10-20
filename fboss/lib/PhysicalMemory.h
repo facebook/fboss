@@ -36,6 +36,14 @@ class PhysicalMemory : public boost::noncopyable {
    */
   void mmap();
 
+  uint64_t getPhyAddress() const {
+    return phyAddr_;
+  }
+
+  uint32_t getSize() const {
+    return size_;
+  }
+
  protected:
   const uint64_t phyAddr_{0};
   const uint32_t size_{0};

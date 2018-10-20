@@ -75,7 +75,8 @@ void PhysicalMemory::mmap() {
     virtAddr_ = nullptr;
     auto errnoCopy = errno;
     folly::throwSystemErrorExplicit(
-        errnoCopy, folly::sformat("Cannot mmap {:#x} with size {:#x}"));
+        errnoCopy,
+        folly::sformat("Cannot mmap {:#x} with size {:#x}", phyAddr_, size_));
   }
 
   XLOG(DBG1) << folly::format(
