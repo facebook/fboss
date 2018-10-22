@@ -126,6 +126,45 @@ class SaiApi {
     return impl()._setAttr(attr.saiAttr(), std::forward<Args>(args)...);
   }
 
+  template <typename AttrT, typename... Args>
+  typename std::remove_reference<AttrT>::type::ValueType getMemberAttribute(
+      AttrT&& attr,
+      Args&&... args) {
+    sai_status_t res =
+        impl()._getMemberAttr(attr.saiAttr(), std::forward<Args>(args)...);
+    if (res != SAI_STATUS_SUCCESS) {
+      throw SaiApiError(res);
+    }
+    return attr.value();
+  }
+
+  template <typename AttrT, typename... Args>
+  sai_status_t setMemberAttribute(const AttrT& attr, Args&&... args) {
+    return impl()._setMemberAttr(attr.saiAttr(), std::forward<Args>(args)...);
+  }
+
+  template <typename T = ApiTypes, typename... Args>
+  typename std::enable_if<apiHasMembers<T>::value, sai_object_id_t>::type
+  createMember(
+      const std::vector<typename T::MemberAttributeType>& attributes,
+      Args&&... args) {
+    std::vector<sai_attribute_t> saiAttributeTs = getSaiAttributeTs(attributes);
+    sai_object_id_t id;
+    sai_status_t res = impl()._createMember(
+        &id,
+        saiAttributeTs.data(),
+        saiAttributeTs.size(),
+        std::forward<Args>(args)...);
+    if (res != SAI_STATUS_SUCCESS) {
+      throw SaiApiError(res);
+    }
+    return id;
+  }
+
+  sai_status_t removeMember(sai_object_id_t id) {
+    return impl()._removeMember(id);
+  }
+
  private:
   // boost visitor that takes a SaiAttribute and returns a copy of the
   // underlying sai_attribute_t.
