@@ -55,6 +55,11 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
           (sai_switch_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_API_VIRTUAL_ROUTER:
+      facebook::fboss::populate_virtual_router_api(
+          (sai_virtual_router_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_API_VLAN:
       facebook::fboss::populate_vlan_api(
           (sai_vlan_api_t**)api_method_table);

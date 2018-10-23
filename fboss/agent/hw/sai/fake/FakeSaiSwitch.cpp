@@ -83,5 +83,5 @@ void populate_switch_api(sai_switch_api_t** switch_api) {
   *switch_api = &_switch_api;
 }
 
-}
-}
+} // namespace fboss
+} // namespace facebook
