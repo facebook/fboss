@@ -105,5 +105,5 @@ void populate_port_api(sai_port_api_t** port_api) {
   *port_api = &_port_api;
 }
 
-}
-}
+} // namespace fboss
+} // namespace facebook

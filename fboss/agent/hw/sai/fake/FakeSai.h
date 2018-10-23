@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "FakeSaiBridge.h"
 #include "FakeSaiPort.h"
 #include "FakeSaiSwitch.h"
 
@@ -23,6 +24,7 @@ namespace fboss {
 
 struct FakeSai {
   static std::shared_ptr<FakeSai> getInstance();
+  FakeBridgeManager brm;
   FakePortManager pm;
   FakeSwitchManager swm;
   bool initialized = false;

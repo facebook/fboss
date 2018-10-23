@@ -41,6 +41,11 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
   }
   sai_status_t res;
   switch (sai_api_id) {
+    case SAI_API_BRIDGE:
+      facebook::fboss::populate_bridge_api(
+          (sai_bridge_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_API_SWITCH:
       facebook::fboss::populate_switch_api(
           (sai_switch_api_t**)api_method_table);

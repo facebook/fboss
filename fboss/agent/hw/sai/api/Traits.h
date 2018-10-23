@@ -42,6 +42,10 @@ struct apiUsesEntry : public std::false_type {};
 template <typename ApiTypes>
 struct apiHasMembers : public std::false_type {};
 
+class BridgeTypes;
+template <>
+struct apiHasMembers<BridgeTypes> : public std::true_type {};
+
 /*
  * isDuplicateValueType<T>::value is true if T is a placeholder
  * type for a duplicate sai_attribute_t union value type. An example
