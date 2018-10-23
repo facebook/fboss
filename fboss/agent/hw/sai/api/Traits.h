@@ -41,10 +41,12 @@ struct apiUsesEntry : public std::false_type {};
  */
 template <typename ApiTypes>
 struct apiHasMembers : public std::false_type {};
-
 class BridgeTypes;
+class VlanTypes;
 template <>
 struct apiHasMembers<BridgeTypes> : public std::true_type {};
+template <>
+struct apiHasMembers<VlanTypes> : public std::true_type {};
 
 /*
  * isDuplicateValueType<T>::value is true if T is a placeholder
@@ -55,7 +57,6 @@ struct apiHasMembers<BridgeTypes> : public std::true_type {};
 class SaiObjectIdT {};
 template <typename T>
 struct isDuplicateValueType : public std::false_type {};
-
 template <>
 struct isDuplicateValueType<SaiObjectIdT> : public std::true_type {};
 

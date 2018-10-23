@@ -12,6 +12,7 @@
 #include "FakeSaiBridge.h"
 #include "FakeSaiPort.h"
 #include "FakeSaiSwitch.h"
+#include "FakeSaiVlan.h"
 
 #include <memory>
 
@@ -27,6 +28,7 @@ struct FakeSai {
   FakeBridgeManager brm;
   FakePortManager pm;
   FakeSwitchManager swm;
+  FakeVlanManager vm;
   bool initialized = false;
 };
 
