@@ -83,27 +83,27 @@ void LACPDU::to(CursorType* c) const {
   c->template writeBE<LACPDU::TLVLength>(actorInfoLength);
   actorInfo.to(c);
 
-  c->template push(
+  c->push(
       folly::ByteRange(actorReserved.begin(), actorReserved.end()));
 
   c->template writeBE<LACPDU::TLVType>(partnerType);
   c->template writeBE<LACPDU::TLVLength>(partnerInfoLength);
   partnerInfo.to(c);
 
-  c->template push(
+  c->push(
       folly::ByteRange(partnerReserved.begin(), partnerReserved.end()));
 
   c->template writeBE<LACPDU::TLVType>(collectorType);
   c->template writeBE<LACPDU::TLVLength>(collectorLength);
   c->template writeBE<LACPDU::Delay>(maxDelay);
 
-  c->template push(
+  c->push(
       folly::ByteRange(collectorReserved.begin(), collectorReserved.end()));
 
   c->template writeBE<LACPDU::TLVType>(terminatorType);
   c->template writeBE<LACPDU::TLVLength>(terminatorLength);
 
-  c->template push(
+  c->push(
       folly::ByteRange(terminatorReserved.begin(), terminatorReserved.end()));
 }
 } // namespace fboss
