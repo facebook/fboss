@@ -43,6 +43,7 @@ class RouteTableMap;
 class SwitchState;
 class Vlan;
 class VlanMap;
+class MirrorMap;
 
 class BcmWarmBootCache {
  public:
@@ -98,6 +99,12 @@ class BcmWarmBootCache {
    */
   std::shared_ptr<AclMap> reconstructAclMap() const;
   std::shared_ptr<LoadBalancerMap> reconstructLoadBalancers() const;
+
+  /*
+   * Reconstruct mirror table
+   */
+  std::shared_ptr<MirrorMap> reconstructMirrors() const;
+
 
   /*
    * Get all cached ecmp egress Ids

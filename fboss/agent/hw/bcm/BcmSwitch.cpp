@@ -31,6 +31,7 @@
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
+#include "fboss/agent/hw/bcm/BcmMirrorTable.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
@@ -171,7 +172,8 @@ BcmSwitch::BcmSwitch(
       bufferStatsLogger_(createBufferStatsLogger()),
       trunkTable_(new BcmTrunkTable(this)),
       sFlowExporterTable_(new BcmSflowExporterTable()),
-      rtag7LoadBalancer_(new BcmRtag7LoadBalancer(this)) {
+      rtag7LoadBalancer_(new BcmRtag7LoadBalancer(this)),
+      mirrorTable_(new BcmMirrorTable(this)) {
   dumpConfigMap(BcmAPI::getHwConfig(), platform->getHwConfigDumpFile());
   exportSdkVersion();
 }
@@ -208,6 +210,7 @@ void BcmSwitch::resetTablesImpl(std::unique_lock<std::mutex>& /*lock*/) {
   controlPlane_.reset();
   coppAclEntries_.clear();
   rtag7LoadBalancer_.reset();
+  mirrorTable_.reset();
   bcmStatUpdater_.reset();
   // Reset warmboot cache last in case Bcm object destructors
   // access it during object deletion.
@@ -249,6 +252,7 @@ void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   sFlowExporterTable_ = std::make_unique<BcmSflowExporterTable>();
   controlPlane_ = std::make_unique<BcmControlPlane>(this);
   rtag7LoadBalancer_ = std::make_unique<BcmRtag7LoadBalancer>(this);
+  mirrorTable_ = std::make_unique<BcmMirrorTable>(this);
   warmBootCache_ = std::make_unique<BcmWarmBootCache>(this);
   warmBootCache_->populate(folly::Optional<folly::dynamic>(warmBootState));
   setupToCpuEgress();
@@ -474,6 +478,8 @@ HwInitResult BcmSwitch::init(Callback* callback) {
       memberPorts.insert(make_pair(PortID(idx), false));
     }
     vlan->setPorts(memberPorts);
+    /* initialize mirroring module */
+    initMirrorModule();
   } else {
     LOG (INFO) << "Performing warm boot ";
   }
@@ -719,6 +725,7 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   }
 
   processChangedPorts(delta);
+
   pickupLinkStatusChanges(delta);
 
   // As the last step, enable newly enabled ports.  Doing this as the
@@ -726,6 +733,8 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   // ports are correctly configured. Note that this will also set the
   // ingressVlan and speed correctly before enabling.
   processEnabledPorts(delta);
+
+  processMirrorChanges(delta);
 
   bcmTableStats_->refresh();
   bcmStatUpdater_->refresh();
@@ -1611,6 +1620,15 @@ void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
   }
 
   // TODO(joseph5wu) Add reason-port mapping and cpu acls
+}
+
+void BcmSwitch::processMirrorChanges(const StateDelta& delta) {
+  forEachChanged(
+      delta.getMirrorsDelta(),
+      &BcmMirrorTable::processChangedMirror,
+      &BcmMirrorTable::processAddedMirror,
+      &BcmMirrorTable::processRemovedMirror,
+      writableBcmMirrorTable());
 }
 
 void BcmSwitch::clearPortStats(

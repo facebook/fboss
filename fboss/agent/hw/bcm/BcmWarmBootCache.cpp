@@ -31,6 +31,7 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
+#include "fboss/agent/state/MirrorMap.h"
 #include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/NeighborEntry.h"
 #include "fboss/agent/state/Port.h"
@@ -214,6 +215,11 @@ BcmWarmBootCache::reconstructAclMap() const {
 std::shared_ptr<LoadBalancerMap> BcmWarmBootCache::reconstructLoadBalancers()
     const {
   return dumpedSwSwitchState_->getLoadBalancers();
+}
+
+std::shared_ptr<MirrorMap> BcmWarmBootCache::reconstructMirrors()
+    const {
+  return dumpedSwSwitchState_->getMirrors();
 }
 
 void BcmWarmBootCache::programmed(Range2BcmHandlerItr itr) {

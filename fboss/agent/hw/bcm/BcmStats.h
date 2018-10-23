@@ -67,6 +67,14 @@ class BcmStats {
     asicErrors_.addValue(1);
   }
 
+  void mirrorAdded() {
+    activeMirrors_.incrementValue(1);
+  }
+
+  void mirrorRemoved() {
+    activeMirrors_.incrementValue(-1);
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmStats(BcmStats const &) = delete;
@@ -76,6 +84,7 @@ class BcmStats {
   stats::ThreadCachedServiceData::ThreadLocalStatsMap ThreadLocalStatsMap;
   typedef stats::ThreadCachedServiceData::TLTimeseries TLTimeseries;
   typedef stats::ThreadCachedServiceData::TLHistogram TLHistogram;
+  typedef stats::ThreadCachedServiceData::TLCounter TLCounter;
 
   explicit BcmStats(ThreadLocalStatsMap *map);
 
@@ -101,6 +110,9 @@ class BcmStats {
 
   // Other ASIC errors
   TLTimeseries asicErrors_;
+
+  // Number of active mirrors
+  TLCounter activeMirrors_;
 
   static folly::ThreadLocalPtr<BcmStats> stats_;
 };

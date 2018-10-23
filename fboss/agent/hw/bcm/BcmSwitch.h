@@ -62,6 +62,9 @@ class PortStats;
 class Vlan;
 class VlanMap;
 class BufferStatsLogger;
+class Mirror;
+class BcmMirror;
+class BcmMirrorTable;
 
 /*
  * Virtual interface to BcmSwitch, primarily for mocking/testing
@@ -116,6 +119,10 @@ class BcmSwitchIf : public HwSwitch {
   virtual BcmAclTable* writableAclTable() const = 0;
 
   virtual BcmWarmBootCache* getWarmBootCache() const = 0;
+
+  virtual const BcmMirrorTable* getBcmMirrorTable() const = 0;
+
+  virtual BcmMirrorTable* writableBcmMirrorTable() const = 0;
 
   virtual void dumpState() const = 0;
 };
@@ -341,6 +348,13 @@ class BcmSwitch : public BcmSwitchIf {
 
   BcmRouteTable* writableRouteTable() const { return routeTable_.get(); }
 
+  const BcmMirrorTable* getBcmMirrorTable() const override {
+    return mirrorTable_.get();
+  }
+  BcmMirrorTable* writableBcmMirrorTable() const override {
+    return mirrorTable_.get();
+  }
+
   /**
    * Log the hardware state for the switch
    */
@@ -499,6 +513,7 @@ class BcmSwitch : public BcmSwitchIf {
 
   void processControlPlaneChanges(const StateDelta& delta);
 
+  void processMirrorChanges(const StateDelta& delta);
   /*
    * linkStateChangedHwNotLocked is in the call chain started by link scan
    * thread while invoking our link state handler. Link scan thread
@@ -632,6 +647,8 @@ class BcmSwitch : public BcmSwitchIf {
 
   void initFieldProcessor() const;
 
+  void initMirrorModule() const;
+
   /**
    * Setup COS manager
    */
@@ -701,6 +718,7 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmSflowExporterTable> sFlowExporterTable_;
   std::unique_ptr<BcmControlPlane> controlPlane_;
   std::unique_ptr<BcmRtag7LoadBalancer> rtag7LoadBalancer_;
+  std::unique_ptr<BcmMirrorTable> mirrorTable_;
 
   std::unique_ptr<std::thread> linkScanBottomHalfThread_;
   folly::EventBase linkScanBottomHalfEventBase_;

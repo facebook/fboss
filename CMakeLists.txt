@@ -260,6 +260,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmHost.cpp
     fboss/agent/hw/bcm/BcmHostKey.cpp
     fboss/agent/hw/bcm/BcmIntf.cpp
+    fboss/agent/hw/bcm/BcmMirrorTable.cpp
     fboss/agent/hw/bcm/BcmPlatform.cpp
     fboss/agent/hw/bcm/BcmPort.cpp
     fboss/agent/hw/bcm/BcmPortGroup.cpp
@@ -289,6 +290,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmCosQueueManager.cpp
     fboss/agent/hw/bcm/oss/BcmEgress.cpp
     fboss/agent/hw/bcm/oss/BcmHost.cpp
+    fboss/agent/hw/bcm/oss/BcmMirror.cpp
     fboss/agent/hw/bcm/oss/BcmPort.cpp
     fboss/agent/hw/bcm/oss/BcmPortGroup.cpp
     fboss/agent/hw/bcm/oss/BcmPortQueueManager.cpp

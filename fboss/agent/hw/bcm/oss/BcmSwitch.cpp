@@ -44,6 +44,8 @@ void BcmSwitch::setupCos() {}
 
 void BcmSwitch::setupFPGroups() {}
 
+void BcmSwitch::initMirrorModule() const {}
+
 bool BcmSwitch::haveMissingOrQSetChangedFPGroups() const {
   return false;
 }

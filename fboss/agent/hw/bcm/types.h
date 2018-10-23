@@ -18,6 +18,7 @@ namespace fboss {
 
 using BcmAclEntryHandle = int;
 using BcmAclRangeHandle = uint32_t;
+using BcmMirrorHandle = int;
 
 } // namespace fboss
 } // namespace facebook

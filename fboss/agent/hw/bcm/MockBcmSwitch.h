@@ -82,6 +82,8 @@ class MockBcmSwitch : public BcmSwitchIf {
   MOCK_METHOD1(
       clearPortStats,
       void(const std::unique_ptr<std::vector<int32_t>>&));
+  MOCK_CONST_METHOD0(getBcmMirrorTable, const BcmMirrorTable*());
+  MOCK_CONST_METHOD0(writableBcmMirrorTable, BcmMirrorTable*());
 };
 
 } // namespace fboss
