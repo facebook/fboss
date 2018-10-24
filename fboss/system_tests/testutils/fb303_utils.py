@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 
-from logging import Logger
 from libfb.py.decorators import retryable
 from thrift.transport.TTransport import TTransportException
-from fboss.thrift_clients import FbossAgentClient
+from fboss.system_tests.system_tests import FbossBaseSystemTest
 
 
 @retryable(num_tries=5,
            sleep_time=5,
            retryable_exs=[TTransportException])
-def get_fb303_counter(switch_thrift: FbossAgentClient,
+def get_fb303_counter(test: FbossBaseSystemTest,
                       counter: str,
-                      log: Logger,
                       try_number: int):
     """
     @param switch_thrift: FbossAgentClient object that is part of test topology
@@ -22,7 +20,8 @@ def get_fb303_counter(switch_thrift: FbossAgentClient,
     getCounter will raise an exception on failure. For now we only retry on the
     list of known exceptions above. If any other exception happens, we die
     """
-    log.info(
+    test.log.info(
         f"Trying to get counter {counter}, try #{try_number}"
     )
-    return switch_thrift.getCounter(counter)
+    with test.test_topology.switch_thrift() as switch_thrift:
+        return switch_thrift.getCounter(counter)

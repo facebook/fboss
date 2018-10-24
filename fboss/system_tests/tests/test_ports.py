@@ -21,9 +21,7 @@ class PortStatusTest(FbossBaseSystemTest):
             all_port_info = sw_client.getAllPortInfo()
             for _pnum, pstate in all_port_info.items():
                 is_port_up = pstate.operState == PortOperState.UP
-                fb303_counter = get_fb303_counter(sw_client,
-                                                  '%s.up' % (pstate.name),
-                                                  self.log)
+                fb303_counter = get_fb303_counter(self, '%s.up' % (pstate.name))
                 fb303_is_port_up = fb303_counter == 1
                 if is_port_up != fb303_is_port_up:
                     mismatch_ports.append(
