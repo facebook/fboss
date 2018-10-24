@@ -12,6 +12,9 @@
 #include <string>
 #include <type_traits> // To use 'std::integral_constant'.
 
+#include <boost/container/flat_map.hpp>
+#include <boost/iterator/filter_iterator.hpp>
+
 #include <folly/lang/Bits.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
@@ -89,4 +92,32 @@ std::string getLocalHostname();
 
 void initThread(folly::StringPiece name);
 
+/*
+ * Utility wrapper around filter iterator
+ */
+template <
+    typename Key,
+    typename Value,
+    typename Map = boost::container::flat_map<Key, Value>>
+class MapFilter {
+ public:
+  using Predicate = std::function<bool(const std::pair<Key, Value>&)>;
+  using Iterator = typename Map::const_iterator;
+  using FilterIterator = boost::iterators::filter_iterator<Predicate, Iterator>;
+
+  MapFilter(const Map& map, Predicate pred)
+      : map_(map), pred_(std::move(pred)) {}
+
+  FilterIterator begin() {
+    return boost::make_filter_iterator(pred_, map_.begin(), map_.end());
+  }
+
+  FilterIterator end() {
+    return boost::make_filter_iterator(pred_, map_.end(), map_.end());
+  }
+
+ private:
+  const Map& map_;
+  Predicate pred_;
+};
 }} // facebook::fboss
