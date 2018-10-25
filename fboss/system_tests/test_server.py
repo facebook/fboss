@@ -244,8 +244,9 @@ class TestServer(TestService.Iface):
 
     def add_interface(self, ifName, deviceType):
         if ifName in self.added_interfaces:
-            raise FbossBaseError(
-                "Device {} already exists".format(ifName))
+            self.log.debug("Device {} already exists".format(ifName))
+            return True
+
 
         strDeviceType = self.DEVICE_TYPE_ENUM_TO_STRING.get(deviceType)
         if not strDeviceType:
