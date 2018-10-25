@@ -319,7 +319,6 @@ add_library(fboss_agent STATIC
     fboss/agent/lldp/LinkNeighborDB.cpp
     fboss/agent/ndp/IPv6RouteAdvertiser.cpp
     fboss/agent/HwSwitch.cpp
-    fboss/agent/I2c.cpp
     fboss/agent/IPHeaderV4.cpp
     fboss/agent/IPv4Handler.cpp
     fboss/agent/IPv6Handler.cpp
