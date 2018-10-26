@@ -21,7 +21,7 @@ namespace facebook {
 namespace fboss {
 
 template <typename AddrT>
-Route<AddrT>::Route() {}
+Route<AddrT>::Route(const Prefix& prefix) : prefix_(prefix) {}
 
 template <typename AddrT>
 bool Route<AddrT>::operator==(const Route& rf) const {
@@ -42,8 +42,7 @@ folly::dynamic Route<AddrT>::toFollyDynamic() const {
 
 template <typename AddrT>
 Route<AddrT> Route<AddrT>::fromFollyDynamic(const folly::dynamic& routeJson) {
-  Route route;
-  route.prefix_ = Prefix::fromFollyDynamic(routeJson[kPrefix]);
+  Route route(Prefix::fromFollyDynamic(routeJson[kPrefix]));
   route.nexthopsmulti =
       RouteNextHopsMulti::fromFollyDynamic(routeJson[kNextHopsMulti]);
   route.fwd = RouteNextHopEntry::fromFollyDynamic(routeJson[kFwdInfo]);

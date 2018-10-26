@@ -43,10 +43,6 @@ RouteForwardAction str2ForwardAction(const std::string& action) {
   }
 }
 
-//
-// RoutePrefix<> Class
-//
-
 template <typename AddrT>
 bool RoutePrefix<AddrT>::operator<(const RoutePrefix& p2) const {
   if (mask < p2.mask) {
@@ -84,11 +80,11 @@ RoutePrefix<AddrT> RoutePrefix<AddrT>::fromFollyDynamic(
   return pfx;
 }
 
-void toAppend(const RoutePrefixV4& prefix, std::string* result) {
+void toAppend(const PrefixV4& prefix, std::string* result) {
   result->append(prefix.str());
 }
 
-void toAppend(const RoutePrefixV6& prefix, std::string* result) {
+void toAppend(const PrefixV6& prefix, std::string* result) {
   result->append(prefix.str());
 }
 

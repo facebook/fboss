@@ -63,11 +63,11 @@ struct RoutePrefix {
   typedef AddrT AddressT;
 };
 
-typedef RoutePrefix<folly::IPAddressV4> RoutePrefixV4;
-typedef RoutePrefix<folly::IPAddressV6> RoutePrefixV6;
+using PrefixV4 = RoutePrefix<folly::IPAddressV4>;
+using PrefixV6 = RoutePrefix<folly::IPAddressV6>;
 
-void toAppend(const RoutePrefixV4& prefix, std::string* result);
-void toAppend(const RoutePrefixV6& prefix, std::string* result);
+void toAppend(const PrefixV4& prefix, std::string* result);
+void toAppend(const PrefixV6& prefix, std::string* result);
 
 } // namespace fboss
 } // namespace facebook

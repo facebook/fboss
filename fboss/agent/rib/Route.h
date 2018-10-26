@@ -29,7 +29,7 @@ class Route {
  public:
   using Prefix = RoutePrefix<AddrT>;
 
-  Route();
+  explicit Route(const Prefix& prefix);
   Route(const Prefix& prefix, ClientID clientId, RouteNextHopEntry entry)
       : prefix_(prefix) {
     nexthopsmulti.update(clientId, entry);
@@ -108,6 +108,7 @@ class Route {
 
   void update(ClientID clientId, RouteNextHopEntry entry);
 
+  void addEntryForClient();
   void delEntryForClient(ClientID clientId);
 
   bool operator==(const Route& rf) const;
