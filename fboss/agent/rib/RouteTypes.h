@@ -52,6 +52,8 @@ struct RoutePrefix {
    */
   static RoutePrefix fromFollyDynamic(const folly::dynamic& prefixJson);
 
+  static RoutePrefix fromString(std::string str);
+
   bool operator<(const RoutePrefix&) const;
   bool operator>(const RoutePrefix&) const;
   bool operator==(const RoutePrefix& p2) const {

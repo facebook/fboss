@@ -9,6 +9,10 @@
  */
 #include "RouteTypes.h"
 
+#include <folly/gen/String.h>
+
+#include <vector>
+
 namespace {
 constexpr auto kAddress = "address";
 constexpr auto kMask = "mask";
@@ -78,6 +82,18 @@ RoutePrefix<AddrT> RoutePrefix<AddrT>::fromFollyDynamic(
   pfx.network = AddrT(pfxJson[kAddress].stringPiece());
   pfx.mask = pfxJson[kMask].asInt();
   return pfx;
+}
+
+template <typename AddrT>
+RoutePrefix<AddrT> RoutePrefix<AddrT>::fromString(std::string str) {
+  std::vector<std::string> vec;
+
+  folly::split("/", str, vec);
+  CHECK_EQ(2, vec.size());
+
+  auto prefix = RoutePrefix{AddrT(vec.at(0)), folly::to<uint8_t>(vec.at(1))};
+
+  return prefix;
 }
 
 void toAppend(const PrefixV4& prefix, std::string* result) {
