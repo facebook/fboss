@@ -23,6 +23,7 @@ class MockTestHandle : public HwTestHandle {
   MockTestHandle(std::unique_ptr<SwSwitch> sw, MockPlatform* platform) :
       HwTestHandle(std::move(sw)),
       platform_(platform) {}
+  ~MockTestHandle() {}
 
   void rxPacket(
     std::unique_ptr<folly::IOBuf> buf, PortID srcPort, VlanID srcVlan) override;
