@@ -113,9 +113,9 @@ class WedgePortMapping {
       const PortID start,
       int count,
       const folly::Optional<TransceiverID> transceiver = folly::none) {
-    folly::Optional<FrontPanelResources> frontPanel = folly::none;
     for (int num = 0; num < count; ++num) {
       PortID id(start + num);
+      folly::Optional<FrontPanelResources> frontPanel = folly::none;
       if (transceiver) {
         frontPanel = FrontPanelResources(*transceiver, {ChannelID(num)});
       }
