@@ -1480,6 +1480,13 @@ void SwSwitch::applyConfig(const std::string& reason, bool reload) {
         auto newState =
           applyThriftConfig(state, &newConfig, platform_.get(), &curConfig_);
 
+        if (!newState) {
+          // if config is not updated, the new state will return null
+          // in such a case return here, to prevent possible crash.
+          XLOG(WARNING) << "Applying config did not cause state change";
+          return nullptr;
+        }
+
         if (!isValidStateUpdate(StateDelta(state, newState))) {
           throw FbossError("Invalid config passed in, skipping");
         }
@@ -1488,12 +1495,12 @@ void SwSwitch::applyConfig(const std::string& reason, bool reload) {
         curConfigStr_ = target->swConfigRaw();
         target->dumpConfig(platform_->getRunningConfigDumpFile());
 
-        if (!newState) {
-          return nullptr;
-        }
         // TODO(aeckert): this should be unneeded. Remove this
-        for (auto const& port : *newState->getPorts()) {
-          port->setOperState(hw_->isPortUp(port->getID()));
+        for (auto& port : *newState->getPorts()) {
+          if (!port->isPublished()) {
+            /* port has been changed */
+            port->setOperState(hw_->isPortUp(port->getID()));
+          }
         }
 
         return newState;
