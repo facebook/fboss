@@ -17,6 +17,50 @@
 namespace facebook {
 namespace fboss {
 
+LoadBalancerID LoadBalancerConfigParser::parseLoadBalancerID(
+    const cfg::LoadBalancer& loadBalancerConfig) const {
+  // LoadBalancerID is an alias for the type of loadBalancerConfig.id so no
+  // validation is necessary
+  return loadBalancerConfig.id;
+}
+
+std::tuple<
+    LoadBalancer::IPv4Fields,
+    LoadBalancer::IPv6Fields,
+    LoadBalancer::TransportFields>
+LoadBalancerConfigParser::parseFields(
+    const cfg::LoadBalancer& loadBalancer) const {
+  LoadBalancer::IPv4Fields v4Fields(
+      loadBalancer.fieldSelection.ipv4Fields.begin(),
+      loadBalancer.fieldSelection.ipv4Fields.end());
+  LoadBalancer::IPv6Fields v6Fields(
+      loadBalancer.fieldSelection.ipv6Fields.begin(),
+      loadBalancer.fieldSelection.ipv6Fields.end());
+  LoadBalancer::TransportFields transportFields(
+      loadBalancer.fieldSelection.transportFields.begin(),
+      loadBalancer.fieldSelection.transportFields.end());
+
+  return std::make_tuple(v4Fields, v6Fields, transportFields);
+}
+
+std::shared_ptr<LoadBalancer> LoadBalancerConfigParser::parse(
+    const cfg::LoadBalancer& cfg) const {
+  auto loadBalancerID = parseLoadBalancerID(cfg);
+  auto fields = parseFields(cfg);
+  auto algorithm = cfg.algorithm; // TODO(samank): handle not being set
+  auto seed = cfg.__isset.seed
+      ? cfg.seed
+      : LoadBalancer::generateDeterministicSeed(loadBalancerID, platform_);
+
+  return std::make_shared<LoadBalancer>(
+      loadBalancerID,
+      algorithm,
+      seed,
+      std::get<0>(fields),
+      std::get<1>(fields),
+      std::get<2>(fields));
+}
+
 LoadBalancerConfigApplier::LoadBalancerConfigApplier(
     const std::shared_ptr<LoadBalancerMap>& originalLoadBalancers,
     const std::vector<cfg::LoadBalancer>& loadBalancersConfig,
@@ -48,7 +92,8 @@ LoadBalancerConfigApplier::updateLoadBalancers() {
   boost::container::flat_set<LoadBalancerID> loadBalancerIDs;
   size_t numExistingProcessed = 0;
   for (const auto& loadBalancerConfig : loadBalancersConfig_) {
-    auto newLoadBalancer = createLoadBalancer(loadBalancerConfig);
+    auto newLoadBalancer =
+        LoadBalancerConfigParser(platform_).parse(loadBalancerConfig);
 
     auto rtn = loadBalancerIDs.insert(newLoadBalancer->getID());
     if (!rtn.second) {
@@ -102,50 +147,5 @@ LoadBalancerConfigApplier::updateLoadBalancers() {
 
   return originalLoadBalancers_->clone(newLoadBalancers);
 }
-
-LoadBalancerID LoadBalancerConfigApplier::parseLoadBalancerID(
-    const cfg::LoadBalancer& loadBalancerConfig) const {
-  // LoadBalancerID is an alias for the type of loadBalancerConfig.id so no
-  // validation is necessary
-  return loadBalancerConfig.id;
-}
-
-std::tuple<
-    LoadBalancer::IPv4Fields,
-    LoadBalancer::IPv6Fields,
-    LoadBalancer::TransportFields>
-LoadBalancerConfigApplier::parseFields(
-    const cfg::LoadBalancer& loadBalancer) const {
-  LoadBalancer::IPv4Fields v4Fields(
-      loadBalancer.fieldSelection.ipv4Fields.begin(),
-      loadBalancer.fieldSelection.ipv4Fields.end());
-  LoadBalancer::IPv6Fields v6Fields(
-      loadBalancer.fieldSelection.ipv6Fields.begin(),
-      loadBalancer.fieldSelection.ipv6Fields.end());
-  LoadBalancer::TransportFields transportFields(
-      loadBalancer.fieldSelection.transportFields.begin(),
-      loadBalancer.fieldSelection.transportFields.end());
-
-  return std::make_tuple(v4Fields, v6Fields, transportFields);
-}
-
-std::shared_ptr<LoadBalancer> LoadBalancerConfigApplier::createLoadBalancer(
-    const cfg::LoadBalancer& cfg) const {
-  auto loadBalancerID = parseLoadBalancerID(cfg);
-  auto fields = parseFields(cfg);
-  auto algorithm = cfg.algorithm; // TODO(samank): handle not being set
-  auto seed = cfg.__isset.seed
-      ? cfg.seed
-      : LoadBalancer::generateDeterministicSeed(loadBalancerID, platform_);
-
-  return std::make_shared<LoadBalancer>(
-      loadBalancerID,
-      algorithm,
-      seed,
-      std::get<0>(fields),
-      std::get<1>(fields),
-      std::get<2>(fields));
-}
-
 } // namespace fboss
 } // namespace facebook

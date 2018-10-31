@@ -24,6 +24,26 @@ class Platform;
 namespace facebook {
 namespace fboss {
 
+class LoadBalancerConfigParser {
+ public:
+  explicit LoadBalancerConfigParser(const Platform* platform)
+      : platform_(platform) {}
+  // The newly created LoadBalancer is returned via std::shared_ptr.
+  // Caller is sole owner of the newly constructed LoadBalancer.
+  std::shared_ptr<LoadBalancer> parse(
+      const cfg::LoadBalancer& cfg) const;
+ private:
+  LoadBalancerID parseLoadBalancerID(
+      const cfg::LoadBalancer& loadBalancerID) const;
+  std::tuple<
+      LoadBalancer::IPv4Fields,
+      LoadBalancer::IPv6Fields,
+      LoadBalancer::TransportFields>
+  parseFields(const cfg::LoadBalancer& cfg) const;
+
+  const Platform* platform_;
+};
+
 /* LoadBalancerConfigApplier parses and validates a list of LoadBalancer Thrift
  * config structures and constructs a LoadBalancerMap SwitchState node
  * corresponding to this config.
@@ -50,19 +70,6 @@ class LoadBalancerConfigApplier {
   LoadBalancerConfigApplier& operator=(const LoadBalancerConfigApplier&) =
       delete;
 
-  LoadBalancerID parseLoadBalancerID(
-      const cfg::LoadBalancer& loadBalancerID) const;
-  std::tuple<
-      LoadBalancer::IPv4Fields,
-      LoadBalancer::IPv6Fields,
-      LoadBalancer::TransportFields>
-  parseFields(const cfg::LoadBalancer& cfg) const;
-
-  // The newly created LoadBalancer is returned via std::shared_ptr out of
-  // convenience (see callsite in updateLoadBalancer()); the caller is the
-  // sole owner of the newly constructed LoadBalancer.
-  std::shared_ptr<LoadBalancer> createLoadBalancer(
-      const cfg::LoadBalancer& cfg) const;
   void appendToLoadBalancerContainer(
       LoadBalancerMap::NodeContainer* loadBalancerContainer,
       std::shared_ptr<LoadBalancer> loadBalancer) const;
