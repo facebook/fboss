@@ -5,20 +5,21 @@
 #include "fboss/lib/usb/Wedge100I2CBus.h"
 #include "fboss/lib/usb/GalaxyI2CBus.h"
 
-#include <chrono>
-#include <folly/init/Init.h>
 #include <folly/Conv.h>
-#include <folly/Memory.h>
-#include <folly/FileUtil.h>
 #include <folly/Exception.h>
+#include <folly/FileUtil.h>
+#include <folly/Memory.h>
+#include <folly/init/Init.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
+#include <chrono>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sysexits.h>
 
+#include <thread>
 #include <vector>
 #include <utility>
 
@@ -163,6 +164,34 @@ StringPiece sfpString(const uint8_t* buf, size_t offset, size_t len) {
   return StringPiece(reinterpret_cast<const char*>(start), len);
 }
 
+void printThresholds(
+    const std::string& name,
+    uint8_t* data,
+    std::function<double(uint16_t)> conversionCb) {
+  std::array<std::array<uint8_t, 2>, 4> byteOffset{{
+      {0, 1},
+      {2, 3},
+      {4, 5},
+      {6, 7},
+  }};
+
+  printf("\n");
+  const std::array<std::string, 4> thresholds{
+      "High Alarm", "Low Alarm", "High Warning", "Low Warning"};
+
+  for (auto row = 0; row < 4; row++) {
+    uint16_t u16 = 0;
+    for (auto col = 0; col < 2; col++) {
+      u16 = (u16 << 8 | data[byteOffset[row][col]]);
+    }
+    printf(
+        "%10s %12s %f\n",
+        name.c_str(),
+        thresholds[row].c_str(),
+        conversionCb(u16));
+  }
+}
+
 void printChannelMonitor(unsigned int index,
                          const uint8_t* buf,
                          unsigned int rxMSB,
@@ -189,7 +218,9 @@ void printChannelMonitor(unsigned int index,
 }
 
 void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
-  uint8_t buf[256];
+  uint8_t buf[256]; // lower 128 bytes + page0(128 bytes)
+  uint8_t page3_buffer[256] = {0}; // lower 128 bytes + page3(128 bytes)
+  uint8_t page3_supported = 0;
   try {
     // Read the lower 128 bytes.
     bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 0, 128, buf);
@@ -205,6 +236,22 @@ void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
     }
     bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 128,
                     128, buf + 128);
+
+    // read page 3
+    uint8_t page3 = 0x3;
+    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page3);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    bus->moduleRead(
+        port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page3_supported);
+    if (page3_supported == 0x3) {
+      // If the host attempts to write a page select value which is not
+      // supported in a particular module, the page select will revert to 00h
+      // (Ref SFF-8636 Rev 2.6, 6.2.11)
+      bus->moduleRead(
+          port, TransceiverI2CApi::ADDR_QSFP, 128, 128, page3_buffer + 128);
+    } else {
+      fprintf(stderr, "Page 3 is not supported in this module\n");
+    }
   } catch (const I2cError& ex) {
     // This generally means the QSFP module is not present.
     fprintf(stderr, "Port %d: not present\n", port);
@@ -327,6 +374,38 @@ void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
   printf("  Vendor Rev: %s\n", vendorRev.str().c_str());
   printf("  Vendor SN: %s\n", vendorSN.str().c_str());
   printf("  Date Code: %s\n", vendorDate.str().c_str());
+
+  // print page3 values
+  if (page3_supported != 0x3) {
+    return;
+  }
+
+  printThresholds("Temp", &page3_buffer[128], [](const uint16_t u16_temp) {
+    double data;
+    data = u16_temp / 256.0;
+    if (data > 128) {
+      data = data - 256;
+    }
+    return data;
+  });
+
+  printThresholds("Vcc", &page3_buffer[144], [](const uint16_t u16_vcc) {
+    double data;
+    data = u16_vcc / 10000.0;
+    return data;
+  });
+
+  printThresholds("Rx Power", &page3_buffer[176], [](const uint16_t u16_rxpwr) {
+    double data;
+    data = u16_rxpwr * 0.1 / 1000;
+    return data;
+  });
+
+  printThresholds("Tx Bias", &page3_buffer[184], [](const uint16_t u16_txbias) {
+    double data;
+    data = u16_txbias * 2.0 / 1000;
+    return data;
+  });
 }
 
 bool isTrident2() {
