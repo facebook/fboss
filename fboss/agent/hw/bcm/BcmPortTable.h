@@ -14,8 +14,9 @@ extern "C" {
 #include <opennsl/port.h>
 }
 
-#include "fboss/agent/types.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
+#include "fboss/agent/types.h"
 
 #include <mutex>
 #include <boost/container/flat_map.hpp>
@@ -31,7 +32,10 @@ class BcmPortTable {
   ~BcmPortTable();
 
   typedef boost::container::flat_map<PortID, BcmPort*> FbossPortMap;
-
+  using FilterIterator = MapFilter<PortID, BcmPort*>;
+  using Filter = MapFilter<PortID, BcmPort*>::Predicate;
+  using FilterEntry = MapFilter<PortID, BcmPort*>::Entry;
+  using FilterAction = std::function<void(const FilterEntry&)>;
   /*
    * Initialize the port table from the list of physical switch ports.
    *
@@ -82,6 +86,11 @@ class BcmPortTable {
       portIdAndBcmPort.second->prepareForGracefulExit();
     }
   }
+
+  /*
+   * for every map entry which meets given predicate, execute given action */
+  void forFilteredEach(Filter predicate, FilterAction action) const;
+
  private:
   /* Initialize all the port groups that exist. A port group is a set of ports
    * that can act as either a single port or multiple ports.

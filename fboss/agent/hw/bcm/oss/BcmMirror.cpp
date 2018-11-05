@@ -28,13 +28,15 @@ BcmMirror::~BcmMirror() {}
 
 void BcmMirror::program() {}
 
-void applyPortMirrorAction(
+void BcmMirror::applyPortMirrorAction(
     PortID /*port*/,
     MirrorAction /*action*/,
     MirrorDirection /*direction*/) {}
-void applyAclMirrorAction(
+void BcmMirror::applyAclMirrorAction(
     BcmAclEntryHandle /* aclEntryHandle*/,
     MirrorAction /*action*/,
     MirrorDirection /*direction*/) {}
+
+void BcmMirror::applyPortMirrorActions(MirrorAction /*action*/) {}
 } // namespace fboss
 } // namespace facebook

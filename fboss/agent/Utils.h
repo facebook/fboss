@@ -101,7 +101,8 @@ template <
     typename Map = boost::container::flat_map<Key, Value>>
 class MapFilter {
  public:
-  using Predicate = std::function<bool(const std::pair<Key, Value>&)>;
+  using Entry = std::pair<Key, Value>;
+  using Predicate = std::function<bool(const Entry&)>;
   using Iterator = typename Map::const_iterator;
   using FilterIterator = boost::iterators::filter_iterator<Predicate, Iterator>;
 

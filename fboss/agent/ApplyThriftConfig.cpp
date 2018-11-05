@@ -1702,6 +1702,12 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
 
 std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
   if (cfg_->mirrors.size() > 4) {
+    /* TODO : (pshaikh) replace magic number with a better mechanism
+     * this should happen in "isValidStateUpdate", ideally the check
+     * should happen down in the HwSwitch, where HW Switch would throw _E_FULL
+     * error and the switch state will be restored. This means, config update
+     * should always lead to blocking state update.
+     */
     throw FbossError("More than four mirrors can not be configured");
   }
   const auto& origMirrors = orig_->getMirrors();
@@ -1816,7 +1822,7 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
   }
   if (newMirror->getMirrorTunnelDestinationIp() ==
           orig->getMirrorTunnelDestinationIp() &&
-      (newMirror->configHasEgressPort() ||
+      (!newMirror->configHasEgressPort() ||
        newMirror->getMirrorEgressPort() == orig->getMirrorEgressPort())) {
     newMirror->setMirrorTunnel(orig->getMirrorTunnel().value());
     newMirror->setMirrorEgressPort(orig->getMirrorEgressPort().value());

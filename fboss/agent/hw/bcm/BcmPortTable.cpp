@@ -109,4 +109,9 @@ void BcmPortTable::updatePortStats() {
  }
 }
 
+void BcmPortTable::forFilteredEach(Filter predicate, FilterAction action)
+    const {
+  auto iterator = FilterIterator(fbossPhysicalPorts_, predicate);
+  std::for_each(iterator.begin(), iterator.end(), action);
+}
 }} // namespace facebook::fboss

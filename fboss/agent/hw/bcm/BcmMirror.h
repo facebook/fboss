@@ -48,6 +48,7 @@ class BcmMirror {
     return destination_ != nullptr;
   }
  private:
+  void applyPortMirrorActions(MirrorAction action);
   BcmSwitch* hw_;
   std::shared_ptr<Mirror> mirror_;
 

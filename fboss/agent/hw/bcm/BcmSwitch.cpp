@@ -193,6 +193,7 @@ BcmSwitch::~BcmSwitch() {
 
 void BcmSwitch::resetTablesImpl(std::unique_lock<std::mutex>& /*lock*/) {
   unregisterCallbacks();
+  mirrorTable_.reset();
   routeTable_.reset();
   // Release host entries before reseting switch's host table
   // entries so that if host try to refer to look up host table
@@ -210,7 +211,6 @@ void BcmSwitch::resetTablesImpl(std::unique_lock<std::mutex>& /*lock*/) {
   controlPlane_.reset();
   coppAclEntries_.clear();
   rtag7LoadBalancer_.reset();
-  mirrorTable_.reset();
   bcmStatUpdater_.reset();
   // Reset warmboot cache last in case Bcm object destructors
   // access it during object deletion.
@@ -704,6 +704,17 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   // Any neighbor changes, and modify appliedState if some changes fail to apply
   processNeighborChanges(delta, &appliedState);
 
+  // Add/update mirrors before processing Acl and port changes
+  // This is to ensure that port and acls can access latest mirrors
+  forEachAdded(
+      delta.getMirrorsDelta(),
+      &BcmMirrorTable::processAddedMirror,
+      writableBcmMirrorTable());
+  forEachChanged(
+      delta.getMirrorsDelta(),
+      &BcmMirrorTable::processChangedMirror,
+      writableBcmMirrorTable());
+
   // Any ACL changes
   processAclChanges(delta);
 
@@ -726,6 +737,12 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
 
   processChangedPorts(delta);
 
+  // delete any removed mirrors after processing port and acl changes
+  forEachRemoved(
+      delta.getMirrorsDelta(),
+      &BcmMirrorTable::processRemovedMirror,
+      writableBcmMirrorTable());
+
   pickupLinkStatusChanges(delta);
 
   // As the last step, enable newly enabled ports.  Doing this as the
@@ -733,8 +750,6 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   // ports are correctly configured. Note that this will also set the
   // ingressVlan and speed correctly before enabling.
   processEnabledPorts(delta);
-
-  processMirrorChanges(delta);
 
   bcmTableStats_->refresh();
   bcmStatUpdater_->refresh();
@@ -855,8 +870,13 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
       XLOG_IF(DBG1, loopbackChanged)
           << "New loopback mode settings on port " << id;
 
+      auto mirrorChanged =
+          (oldPort->getIngressMirror() != newPort->getIngressMirror()) ||
+          (oldPort->getEgressMirror() != newPort->getEgressMirror());
+      XLOG_IF(DBG1, mirrorChanged) << "New mirror settings on port " << id;
+
       if (speedChanged || vlanChanged || pauseChanged || sFlowChanged ||
-          fecChanged || loopbackChanged) {
+          fecChanged || loopbackChanged || mirrorChanged) {
         bcmPort->program(newPort);
       }
 

@@ -36,6 +36,8 @@ namespace facebook { namespace fboss {
 class BcmSwitch;
 class BcmPortGroup;
 class SwitchState;
+enum class MirrorDirection;
+enum class MirrorAction;
 
 /**
  * BcmPort is the class to abstract the physical port in BcmSwitch.
@@ -157,6 +159,13 @@ class BcmPort {
     return queueManager_.get();
   }
 
+  folly::Optional<std::string> getIngressPortMirror() const {
+    return ingressMirror_;
+  }
+  folly::Optional<std::string> getEgressPortMirror() const {
+    return egressMirror_;
+  }
+
  private:
   class BcmPortStats {
     // All actions or instantiations of this class need to be done in a
@@ -201,6 +210,9 @@ class BcmPort {
                                             const std::string& name);
   bool getDesiredFECEnabledStatus(const std::shared_ptr<Port>& swPort);
   TransmitterTechnology getTransmitterTechnology(const std::string& name);
+  void updateMirror(
+      const folly::Optional<std::string>& swMirrorName,
+      MirrorDirection direction);
 
   opennsl_pbmp_t getPbmp();
 
@@ -213,6 +225,11 @@ class BcmPort {
   bool isMmuLossy() const;
   uint8_t determinePipe() const;
 
+  void applyMirrorAction(
+      const folly::Optional<std::string>& mirrorName,
+      MirrorAction action,
+      MirrorDirection direction);
+
   BcmSwitch* const hw_{nullptr};
   const opennsl_port_t port_;    // Broadcom physical port number
   // The gport_ is logically a const, but needs to be initialized as a parameter
@@ -222,6 +239,8 @@ class BcmPort {
   BcmPlatformPort* const platformPort_{nullptr};
   int unit_{-1};
   std::string portName_{""};
+  folly::Optional<std::string> ingressMirror_;
+  folly::Optional<std::string> egressMirror_;
   TransmitterTechnology transmitterTechnology_{TransmitterTechnology::UNKNOWN};
 
   // The port group this port is a part of

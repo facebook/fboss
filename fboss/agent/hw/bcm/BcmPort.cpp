@@ -18,17 +18,17 @@
 #include "common/stats/ServiceData.h"
 
 #include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/PortMap.h"
-#include "fboss/agent/state/Port.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmMirrorTable.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
-#include "fboss/agent/hw/bcm/BcmStatsConstants.h"
-#include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
+#include "fboss/agent/hw/bcm/BcmStatsConstants.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/hardware_stats_constants.h"
-
+#include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/SwitchState.h"
 
 extern "C" {
 #include <opennsl/link.h>
@@ -370,6 +370,12 @@ void BcmPort::program(const shared_ptr<Port>& port) {
     // may still need to enable FEC
     setFEC(port);
   }
+
+  /* update mirrors for port, mirror add/update must happen earlier than
+   * updating mirrors for port */
+  updateMirror(port->getIngressMirror(), MirrorDirection::INGRESS);
+  updateMirror(port->getEgressMirror(), MirrorDirection::EGRESS);
+
   setPause(port);
   // Update Tx Setting if needed.
   setTxSetting(port);
@@ -796,6 +802,35 @@ std::chrono::seconds BcmPort::getTimeRetrieved() const {
   return lastPortStats_.rlock()->timeRetrieved();
 }
 
+void BcmPort::applyMirrorAction(
+    const folly::Optional<std::string>& mirrorName,
+    MirrorAction action,
+    MirrorDirection direction) {
+  if (!mirrorName) {
+    return;
+  }
+  auto* bcmMirror = hw_->getBcmMirrorTable()->getMirrorIf(mirrorName.value());
+  CHECK(bcmMirror != nullptr);
+  bcmMirror->applyPortMirrorAction(getPortID(), action, direction);
+}
+
+void BcmPort::updateMirror(
+    const folly::Optional<std::string>& swMirrorName,
+    MirrorDirection direction) {
+  applyMirrorAction(
+      direction == MirrorDirection::INGRESS ? ingressMirror_ : egressMirror_,
+      MirrorAction::STOP,
+      direction);
+  if (direction == MirrorDirection::INGRESS) {
+    ingressMirror_ = swMirrorName;
+  } else {
+    egressMirror_ = swMirrorName;
+  }
+  applyMirrorAction(
+      direction == MirrorDirection::INGRESS ? ingressMirror_ : egressMirror_,
+      MirrorAction::START,
+      direction);
+}
 /**
   * TODO(rsher)
   * comment back in when we move to the newer OpenNSL
