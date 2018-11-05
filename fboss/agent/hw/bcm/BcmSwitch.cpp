@@ -1475,7 +1475,7 @@ opennsl_rx_t BcmSwitch::packetReceived(opennsl_pkt_t* pkt) noexcept {
   return OPENNSL_RX_HANDLED_OWNED;
 }
 
-bool BcmSwitch::sendPacketSwitched(unique_ptr<TxPacket> pkt) noexcept {
+bool BcmSwitch::sendPacketSwitchedAsync(unique_ptr<TxPacket> pkt) noexcept {
   unique_ptr<BcmTxPacket> bcmPkt(
       boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
 
@@ -1483,12 +1483,12 @@ bool BcmSwitch::sendPacketSwitched(unique_ptr<TxPacket> pkt) noexcept {
   return OPENNSL_SUCCESS(rv);
 }
 
-bool BcmSwitch::sendPacketOutOfPort(unique_ptr<TxPacket> pkt,
+bool BcmSwitch::sendPacketOutOfPortAsync(unique_ptr<TxPacket> pkt,
                                     PortID portID) noexcept {
   unique_ptr<BcmTxPacket> bcmPkt(
       boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
   bcmPkt->setDestModPort(getPortTable()->getBcmPortId(portID));
-  XLOG(DBG4) << "sendPacketOutOfPort for"
+  XLOG(DBG4) << "sendPacketOutOfPortAsync for"
              << getPortTable()->getBcmPortId(portID);
   auto rv = BcmTxPacket::sendAsync(std::move(bcmPkt));
   return OPENNSL_SUCCESS(rv);

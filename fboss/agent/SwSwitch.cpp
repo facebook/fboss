@@ -1235,7 +1235,7 @@ std::unique_ptr<TxPacket> SwSwitch::allocateL3TxPacket(uint32_t l3Len) {
   return pkt;
 }
 
-void SwSwitch::sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
+void SwSwitch::sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
                                    PortID portID) noexcept {
   pcapMgr_->packetSent(pkt.get());
 
@@ -1254,7 +1254,7 @@ void SwSwitch::sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
     publishTxPacket(pkt.get(), ethertype);
   }
 
-  if (!hw_->sendPacketOutOfPort(std::move(pkt), portID)) {
+  if (!hw_->sendPacketOutOfPortAsync(std::move(pkt), portID)) {
     // Just log an error for now.  There's not much the caller can do about
     // send failures--even on successful return from sendPacket*() the
     // send may ultimately fail since it occurs asynchronously in the
@@ -1263,7 +1263,7 @@ void SwSwitch::sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
   }
 }
 
-void SwSwitch::sendPacketOutOfPort(
+void SwSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     AggregatePortID aggPortID) noexcept {
   auto aggPort = getState()->getAggregatePorts()->getAggregatePortIf(aggPortID);
@@ -1296,7 +1296,7 @@ void SwSwitch::sendPacketOutOfPort(
   for (auto elem : subportAndFwdStates) {
     std::tie(subport, fwdState) = elem;
     if (fwdState == AggregatePort::Forwarding::ENABLED) {
-      sendPacketOutOfPort(std::move(pkt), subport);
+      sendPacketOutOfPortAsync(std::move(pkt), subport);
       return;
     }
   }
@@ -1304,12 +1304,12 @@ void SwSwitch::sendPacketOutOfPort(
              << ": aggregate port has no enabled physical ports";
 }
 
-void SwSwitch::sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept {
+void SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
   pcapMgr_->packetSent(pkt.get());
-  if (!hw_->sendPacketSwitched(std::move(pkt))) {
+  if (!hw_->sendPacketSwitchedAsync(std::move(pkt))) {
     // Just log an error for now.  There's not much the caller can do about
-    // send failures--even on successful return from sendPacketSwitched() the
-    // send may ultimately fail since it occurs asynchronously in the
+    // send failures--even on successful return from sendPacketSwitchedAsync()
+    // the send may ultimately fail since it occurs asynchronously in the
     // background.
     XLOG(ERR) << "failed to send L2 switched packet";
   }
@@ -1453,7 +1453,7 @@ void SwSwitch::sendL3Packet(
     // the packet out to the HW. The HW will drop the packet if the vlan is
     // deleted.
     stats()->pktFromHost(l3Len);
-    sendPacketSwitched(std::move(pkt));
+    sendPacketSwitchedAsync(std::move(pkt));
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Failed to send out L3 packet :" << folly::exceptionStr(ex);
   }

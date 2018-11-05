@@ -1005,7 +1005,7 @@ void ThriftHandler::txPkt(int32_t port, unique_ptr<fbstring> data) {
   RWPrivateCursor cursor(pkt->buf());
   cursor.push(StringPiece(*data));
 
-  sw_->sendPacketOutOfPort(std::move(pkt), PortID(port));
+  sw_->sendPacketOutOfPortAsync(std::move(pkt), PortID(port));
 }
 
 void ThriftHandler::txPktL2(unique_ptr<fbstring> data) {
@@ -1015,7 +1015,7 @@ void ThriftHandler::txPktL2(unique_ptr<fbstring> data) {
   RWPrivateCursor cursor(pkt->buf());
   cursor.push(StringPiece(*data));
 
-  sw_->sendPacketSwitched(std::move(pkt));
+  sw_->sendPacketSwitchedAsync(std::move(pkt));
 }
 
 void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {

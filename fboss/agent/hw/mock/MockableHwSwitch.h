@@ -57,8 +57,8 @@ class MockableHwSwitch : public MockHwSwitch {
    * convert back to a unique_ptr so we match the real interface (and
    * the packet memory is safely owned).
    */
-  bool sendPacketSwitchedAdaptor(TxPacket* pkt) noexcept;
-  bool sendPacketOutOfPortAdaptor(TxPacket* pkt, PortID port) noexcept;
+  bool sendPacketSwitchedAsyncAdaptor(TxPacket* pkt) noexcept;
+  bool sendPacketOutOfPortAsyncAdaptor(TxPacket* pkt, PortID port) noexcept;
 
  private:
   // Forbidden copy constructor and assignment operator

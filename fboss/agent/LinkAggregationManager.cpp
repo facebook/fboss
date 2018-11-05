@@ -282,7 +282,7 @@ bool LinkAggregationManager::transmit(LACPDU lacpdu, PortID portID) {
 
   lacpdu.to(&writer);
 
-  sw_->sendPacketOutOfPort(std::move(pkt), portID);
+  sw_->sendPacketOutOfPortAsync(std::move(pkt), portID);
 
   return true;
 }

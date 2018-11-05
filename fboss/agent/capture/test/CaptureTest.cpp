@@ -206,7 +206,7 @@ TEST(CaptureTest, FullCapture) {
   // Receive a packet for which we don't have an ARP entry
   // This should trigger the switch to send an ARP request
   // and set a pending entry.
-  EXPECT_HW_CALL(sw, sendPacketSwitched_(_)).Times(1);
+  EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(1);
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(1);
   sw->packetReceived(ipPkt.clone());
   waitForStateUpdates(sw);

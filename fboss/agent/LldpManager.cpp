@@ -187,7 +187,7 @@ void LldpManager::sendLldpInfo(
   // Fill the padding with 0s
   memset(cursor.writableData(), 0, cursor.length());
   // this LLDP packet HAS to exit out of the port specified here.
-  sw->sendPacketOutOfPort(std::move(pkt), thisPortID);
+  sw->sendPacketOutOfPortAsync(std::move(pkt), thisPortID);
   XLOG(DBG4) << "sent LLDP "
              << " on port " << port->getID() << " with CPU MAC "
              << cpuMac.toString() << " port id " << port->getName()

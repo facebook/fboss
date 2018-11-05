@@ -108,7 +108,7 @@ void IPv4Handler::sendICMPTimeExceeded(VlanID srcVlan,
              << " dstMac: " << dst << " vlan: " << srcVlan
              << " dstIp: " << v4Hdr.srcAddr.str() << " srcIp: " << srcIp.str()
              << " bodyLength: " << bodyLength;
-  sw_->sendPacketSwitched(std::move(icmpPkt));
+  sw_->sendPacketSwitchedAsync(std::move(icmpPkt));
 }
 
 void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,

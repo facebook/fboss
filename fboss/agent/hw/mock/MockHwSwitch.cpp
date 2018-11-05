@@ -27,10 +27,10 @@ MockHwSwitch::MockHwSwitch(MockPlatform *platform) :
   // support move-only types and if we pass in a shared_ptr we cannot
   // delegate to a function that takes a unique_ptr. This is
   // definitely hacky, but it makes the interface more flexible.
-  ON_CALL(*this, sendPacketSwitched_(_))
+  ON_CALL(*this, sendPacketSwitchedAsync_(_))
     .WillByDefault(Invoke([=](TxPacket* pkt) -> bool {
           delete pkt; return true; } ));
-  ON_CALL(*this, sendPacketOutOfPort_(_, _))
+  ON_CALL(*this, sendPacketOutOfPortAsync_(_, _))
       .WillByDefault(Invoke([=](TxPacket* pkt, PortID /*port*/) -> bool {
         delete pkt;
         return true;
@@ -41,17 +41,18 @@ std::unique_ptr<TxPacket> MockHwSwitch::allocatePacket(uint32_t size) {
   return make_unique<MockTxPacket>(size);
 }
 
-bool MockHwSwitch::sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept {
+bool MockHwSwitch::sendPacketSwitchedAsync(
+    std::unique_ptr<TxPacket> pkt) noexcept {
   TxPacket* raw(pkt.release());
-  sendPacketSwitched_(raw);
+  sendPacketSwitchedAsync_(raw);
   return true;
 }
 
-bool MockHwSwitch::sendPacketOutOfPort(
+bool MockHwSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     facebook::fboss::PortID portID) noexcept {
   TxPacket* raw(pkt.release());
-  sendPacketOutOfPort_(raw, portID);
+  sendPacketOutOfPortAsync_(raw, portID);
   return true;
 }
 

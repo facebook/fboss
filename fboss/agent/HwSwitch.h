@@ -145,7 +145,8 @@ class HwSwitch {
    *
    * @return If the packet is successfully sent to HW.
    */
-  virtual bool sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept = 0;
+  virtual bool sendPacketSwitchedAsync(
+      std::unique_ptr<TxPacket> pkt) noexcept = 0;
 
   /*
    * Send a packet, using switching logic to send it out the correct port(s)
@@ -153,7 +154,7 @@ class HwSwitch {
    *
    * @return If the packet is successfully sent to HW.
    */
-  virtual bool sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
+  virtual bool sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
                                    PortID portID) noexcept = 0;
 
   /*

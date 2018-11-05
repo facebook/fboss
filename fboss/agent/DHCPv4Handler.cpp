@@ -109,7 +109,7 @@ void sendDHCPPacket(SwSwitch* sw, const EthHdr& ethHdr, const IPv4Hdr& ipHdr,
              << " Eth header : " << ethHdr << " IPv4 Header : " << ipHdr
              << " UDP Header : " << udpHdr;
   // Send packet
-  sw->sendPacketSwitched(std::move(txPacket));
+  sw->sendPacketSwitchedAsync(std::move(txPacket));
 }
 
 int processOption(const DHCPv4Packet::Options& optionsIn, int optIndex,

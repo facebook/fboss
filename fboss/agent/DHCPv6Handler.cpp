@@ -103,7 +103,7 @@ void sendDHCPv6Packet(SwSwitch* sw, MacAddress dstMac, MacAddress srcMac,
              << " UDP Header: " << udpHdr.toString()
              << " dhcpLength: " << dhcpLength;
   // Send packet
-  sw->sendPacketSwitched(std::move(txPacket));
+  sw->sendPacketSwitchedAsync(std::move(txPacket));
 }
 
 }

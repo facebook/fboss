@@ -429,7 +429,7 @@ TEST(ArpTest, TableUpdates) {
   ));
 
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
-  EXPECT_HW_CALL(sw, sendPacketSwitched_(_)).Times(0);
+  EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
   handle->rxPacket(std::move(buf), PortID(1), vlanID);
 
   counters.update();
@@ -466,7 +466,7 @@ TEST(ArpTest, TableUpdates) {
   ));
 
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(1);
-  EXPECT_HW_CALL(sw, sendPacketSwitched_(_)).Times(0);
+  EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
   handle->rxPacket(std::move(buf), PortID(2), vlanID);
   waitForStateUpdates(sw);
 
@@ -1278,7 +1278,7 @@ TEST(ArpTest, receivedPacketWithNoRouteToDestination) {
   // Receiving this packet should not trigger a ARP request out,
   // because no interface is able to reach that subnet
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
-  EXPECT_HW_CALL(sw, sendPacketSwitched_(_)).Times(0);
+  EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
 
   handle->rxPacket(std::move(buf), PortID(1), vlanID);
 

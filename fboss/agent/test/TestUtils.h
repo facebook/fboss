@@ -243,11 +243,11 @@ void EXPECT_NO_ROUTE(const std::shared_ptr<RouteTableMap>& tables,
  * to call both filters on a packet to see which one it is.
  */
 #define EXPECT_PKT(sw, name, matchFn) \
-  EXPECT_HW_CALL(sw, sendPacketSwitched_( \
+  EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_( \
                  TxPacketMatcher::createMatcher(name, matchFn)))
 
 #define EXPECT_MANY_PKTS(sw, name, matchFn) \
-  EXPECT_MANY_HW_CALLS(sw, sendPacketSwitched_( \
+  EXPECT_MANY_HW_CALLS(sw, sendPacketSwitchedAsync_( \
                  TxPacketMatcher::createMatcher(name, matchFn)))
 
 /**

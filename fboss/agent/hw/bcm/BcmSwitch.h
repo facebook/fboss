@@ -206,8 +206,8 @@ class BcmSwitch : public BcmSwitchIf {
   uint64_t getMMUCellBytes() const { return mmuCellBytes_; }
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
-  bool sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept override;
-  bool sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
+  bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
+  bool sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
                            PortID portID) noexcept override;
   std::unique_ptr<PacketTraceInfo> getPacketTrace(
       std::unique_ptr<MockRxPacket> pkt) override;

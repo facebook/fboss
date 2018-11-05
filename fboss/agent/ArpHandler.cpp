@@ -195,7 +195,7 @@ static void sendArp(SwSwitch *sw,
   // Fill the padding with 0s
   memset(cursor.writableData(), 0, cursor.length());
 
-  sw->sendPacketSwitched(std::move(pkt));
+  sw->sendPacketSwitchedAsync(std::move(pkt));
 }
 
 void ArpHandler::floodGratuituousArp() {

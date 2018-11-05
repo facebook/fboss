@@ -51,13 +51,14 @@ std::unique_ptr<TxPacket> SimSwitch::allocatePacket(uint32_t size) {
   return make_unique<MockTxPacket>(size);
 }
 
-bool SimSwitch::sendPacketSwitched(std::unique_ptr<TxPacket> /*pkt*/) noexcept {
+bool SimSwitch::sendPacketSwitchedAsync(
+    std::unique_ptr<TxPacket> /*pkt*/) noexcept {
   // TODO
   ++txCount_;
   return true;
 }
 
-bool SimSwitch::sendPacketOutOfPort(
+bool SimSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> /*pkt*/,
     PortID /*portID*/) noexcept {
   // TODO

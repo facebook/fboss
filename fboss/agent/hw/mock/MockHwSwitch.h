@@ -39,11 +39,13 @@ class MockHwSwitch : public HwSwitch {
 
   // gmock currently doesn't support move-only types, so we have to
   // use some janky work-arounds.
-  MOCK_METHOD1(sendPacketSwitched_, bool(TxPacket*));
-  bool sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept override;
+  MOCK_METHOD1(sendPacketSwitchedAsync_, bool(TxPacket*));
+  bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
 
-  MOCK_METHOD2(sendPacketOutOfPort_, bool(TxPacket*, facebook::fboss::PortID));
-  bool sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
+  MOCK_METHOD2(
+      sendPacketOutOfPortAsync_,
+      bool(TxPacket*, facebook::fboss::PortID));
+  bool sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
                           facebook::fboss::PortID portID) noexcept override;
   std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta) override;
 

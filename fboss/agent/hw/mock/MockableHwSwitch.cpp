@@ -25,10 +25,12 @@ MockableHwSwitch::MockableHwSwitch(MockPlatform *platform, HwSwitch* realHw)
       realHw_(realHw) {
   // new functions added to HwSwitch should invoke the corresponding function on
   // the real implementation here.
-  ON_CALL(*this, sendPacketSwitched_(_))
-    .WillByDefault(Invoke(this, &MockableHwSwitch::sendPacketSwitchedAdaptor));
-  ON_CALL(*this, sendPacketOutOfPort_(_, _))
-    .WillByDefault(Invoke(this, &MockableHwSwitch::sendPacketOutOfPortAdaptor));
+  ON_CALL(*this, sendPacketSwitchedAsync_(_))
+      .WillByDefault(
+          Invoke(this, &MockableHwSwitch::sendPacketSwitchedAsyncAdaptor));
+  ON_CALL(*this, sendPacketOutOfPortAsync_(_, _))
+      .WillByDefault(
+          Invoke(this, &MockableHwSwitch::sendPacketOutOfPortAsyncAdaptor));
   ON_CALL(*this, init(_))
     .WillByDefault(Invoke(realHw_, &HwSwitch::init));
   ON_CALL(*this, stateChangedMock(_))
@@ -65,15 +67,15 @@ std::unique_ptr<TxPacket> MockableHwSwitch::allocatePacket(uint32_t size) {
   return realHw_->allocatePacket(size);
 }
 
-bool MockableHwSwitch::sendPacketSwitchedAdaptor(TxPacket* pkt) noexcept {
+bool MockableHwSwitch::sendPacketSwitchedAsyncAdaptor(TxPacket* pkt) noexcept {
   std::unique_ptr<TxPacket> up(pkt);
-  return realHw_->sendPacketSwitched(std::move(up));
+  return realHw_->sendPacketSwitchedAsync(std::move(up));
 }
 
-bool MockableHwSwitch::sendPacketOutOfPortAdaptor(
+bool MockableHwSwitch::sendPacketOutOfPortAsyncAdaptor(
     TxPacket* pkt, PortID port) noexcept {
   std::unique_ptr<TxPacket> up(pkt);
-  return realHw_->sendPacketOutOfPort(std::move(up), port);
+  return realHw_->sendPacketOutOfPortAsync(std::move(up), port);
 }
 
 std::shared_ptr<SwitchState>

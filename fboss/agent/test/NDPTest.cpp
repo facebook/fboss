@@ -1214,7 +1214,7 @@ TEST(NdpTest, NdpExpiration) {
   // probed
   EXPECT_HW_CALL(
       sw,
-      sendPacketOutOfPort_(
+      sendPacketOutOfPortAsync_(
           TxPacketMatcher::createMatcher(
               "neighbor solicitation",
               checkNeighborSolicitation(
@@ -1229,7 +1229,7 @@ TEST(NdpTest, NdpExpiration) {
 
   EXPECT_HW_CALL(
       sw,
-      sendPacketOutOfPort_(
+      sendPacketOutOfPortAsync_(
           TxPacketMatcher::createMatcher(
               "neighbor solicitation",
               checkNeighborSolicitation(
@@ -1277,7 +1277,7 @@ TEST(NdpTest, NdpExpiration) {
 
   EXPECT_HW_CALL(
       sw,
-      sendPacketOutOfPort_(
+      sendPacketOutOfPortAsync_(
           TxPacketMatcher::createMatcher(
               "neighbor solicitation",
               checkNeighborSolicitation(

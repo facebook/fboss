@@ -452,17 +452,17 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::unique_ptr<TxPacket> allocateL3TxPacket(uint32_t l3Len);
 
-  void sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
+  void sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
                            PortID portID) noexcept;
 
-  void sendPacketOutOfPort(std::unique_ptr<TxPacket> pkt,
+  void sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
                            AggregatePortID aggPortID) noexcept;
 
   /*
    * Send a packet, using switching logic to send it out the correct port(s)
    * for the specified VLAN and destination MAC.
    */
-  void sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept;
+  void sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept;
 
   /**
    * Send out L3 packet through HW

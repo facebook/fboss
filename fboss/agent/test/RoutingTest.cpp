@@ -749,7 +749,7 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
 
     // NDP Neighbor solicitation request will be sent and the actual packet
     // will be dropped.
-    EXPECT_HW_CALL(sw, sendPacketSwitched_(_)).Times(1);
+    EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(1);
     sw->sendL3Packet(std::move(pkt), InterfaceID(1));
 
     counters.update();

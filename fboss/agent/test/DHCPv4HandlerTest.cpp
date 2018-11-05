@@ -530,7 +530,7 @@ TEST(DHCPv4HandlerTest, DHCPBadRequest) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
-  EXPECT_HW_CALL(sw, sendPacketSwitched_(_)).Times(0);
+  EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
     WillRepeatedly(Return(kPlatformMac));
 

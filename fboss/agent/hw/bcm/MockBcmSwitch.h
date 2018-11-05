@@ -22,18 +22,20 @@ class MockBcmSwitch : public BcmSwitchIf {
   MOCK_METHOD0(unregisterCallbacks, void());
   MOCK_METHOD1(allocatePacket, std::unique_ptr<TxPacket>(uint32_t size));
   // hackery, since GMOCK does no support forwarding
-  bool sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept override {
-    return sendPacketSwitchedImpl(pkt.get());
+  bool sendPacketSwitchedAsync(
+      std::unique_ptr<TxPacket> pkt) noexcept override {
+    return sendPacketSwitchedAsyncImpl(pkt.get());
   }
-  GMOCK_METHOD1_(, noexcept, , sendPacketSwitchedImpl, bool(TxPacket* pkt));
+  GMOCK_METHOD1_(, noexcept, , sendPacketSwitchedAsyncImpl,
+      bool(TxPacket* pkt));
   // ditto for the other method
-  bool sendPacketOutOfPort(
+  bool sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       PortID portID) noexcept override {
-    return sendPacketOutOfPortImpl(pkt.get(), portID);
+    return sendPacketOutOfPortAsyncImpl(pkt.get(), portID);
   }
   GMOCK_METHOD2_(, noexcept, ,
-      sendPacketOutOfPortImpl,
+      sendPacketOutOfPortAsyncImpl,
       bool(TxPacket* pkt, PortID portID));
   // and another one
   std::unique_ptr<PacketTraceInfo> getPacketTrace(

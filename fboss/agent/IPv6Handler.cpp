@@ -337,7 +337,7 @@ void IPv6Handler::handleRouterSolicitation(unique_ptr<RxPacket> pkt,
   RWPrivateCursor respCursor(resp->buf());
   IPv6RouteAdvertiser::createAdvertisementPacket(
     intf.get(), &respCursor, dstMac, dstIP);
-  sw_->sendPacketSwitched(std::move(resp));
+  sw_->sendPacketSwitchedAsync(std::move(resp));
 }
 
 void IPv6Handler::handleRouterAdvertisement(
@@ -566,7 +566,7 @@ void IPv6Handler::sendICMPv6TimeExceeded(VlanID srcVlan,
              << " dstMac: " << dst << " vlan: " << srcVlan
              << " dstIp: " << v6Hdr.srcAddr.str() << " srcIP: " << srcIp.str()
              << " bodyLength: " << bodyLength;
-  sw_->sendPacketSwitched(std::move(icmpPkt));
+  sw_->sendPacketSwitchedAsync(std::move(icmpPkt));
 }
 
 void IPv6Handler::sendICMPv6PacketTooBig(
@@ -609,7 +609,7 @@ void IPv6Handler::sendICMPv6PacketTooBig(
           << " dstIp: " << v6Hdr.srcAddr.str()
           << " srcIP: " << srcIp.str()
           << " bodyLength: " << bodyLength;
-  sw_->sendPacketSwitched(std::move(icmpPkt));
+  sw_->sendPacketSwitchedAsync(std::move(icmpPkt));
   sw_->portStats(srcPort)->pktTooBig();
 }
 
@@ -871,7 +871,7 @@ void IPv6Handler::sendNeighborAdvertisement(VlanID vlan,
                              ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
                              ICMPv6Code::ICMPV6_CODE_NDP_MESSAGE_CODE,
                              bodyLength, serializeBody);
-  sw_->sendPacketSwitched(std::move(pkt));
+  sw_->sendPacketSwitchedAsync(std::move(pkt));
 }
 
 void IPv6Handler::sendNeighborSolicitaion(
@@ -921,12 +921,12 @@ void IPv6Handler::sendNeighborSolicitaion(
   if (portDescriptor.hasValue()) {
     auto port = portDescriptor.value();
     if (port.isPhysicalPort()) {
-      sw->sendPacketOutOfPort(std::move(pkt), port.phyPortID());
+      sw->sendPacketOutOfPortAsync(std::move(pkt), port.phyPortID());
     } else {
-      sw->sendPacketOutOfPort(std::move(pkt), port.aggPortID());
+      sw->sendPacketOutOfPortAsync(std::move(pkt), port.aggPortID());
     }
   } else {
-    sw->sendPacketSwitched(std::move(pkt));
+    sw->sendPacketSwitchedAsync(std::move(pkt));
   }
 }
 }} // facebook::fboss

@@ -23,8 +23,8 @@ class SimSwitch : public HwSwitch {
   HwInitResult init(Callback* callback) override;
   std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta) override;
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
-  bool sendPacketSwitched(std::unique_ptr<TxPacket> pkt) noexcept override;
-  bool sendPacketOutOfPort(
+  bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
+  bool sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       PortID portID) noexcept override;
 
