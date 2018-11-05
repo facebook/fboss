@@ -1494,6 +1494,19 @@ bool BcmSwitch::sendPacketOutOfPortAsync(unique_ptr<TxPacket> pkt,
   return OPENNSL_SUCCESS(rv);
 }
 
+bool BcmSwitch::sendPacketSwitchedSync(unique_ptr<TxPacket> pkt) noexcept {
+  // TODO - implement this
+  CHECK(false);
+  return true;
+}
+
+bool BcmSwitch::sendPacketOutOfPortSync(unique_ptr<TxPacket> pkt,
+                                    PortID portID) noexcept {
+  // TODO - implement this
+  CHECK(false);
+  return true;
+}
+
 void BcmSwitch::updateStats(SwitchStats *switchStats) {
   // Update thread-local switch statistics.
   updateThreadLocalSwitchStats(switchStats);

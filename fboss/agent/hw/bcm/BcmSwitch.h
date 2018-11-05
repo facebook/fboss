@@ -209,6 +209,10 @@ class BcmSwitch : public BcmSwitchIf {
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
   bool sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
                            PortID portID) noexcept override;
+  bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept override;
+  bool sendPacketOutOfPortSync(
+      std::unique_ptr<TxPacket> pkt,
+      PortID portID) noexcept override;
   std::unique_ptr<PacketTraceInfo> getPacketTrace(
       std::unique_ptr<MockRxPacket> pkt) override;
 

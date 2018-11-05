@@ -34,6 +34,16 @@ class MockBcmSwitch : public BcmSwitchIf {
       PortID portID) noexcept override {
     return sendPacketOutOfPortAsyncImpl(pkt.get(), portID);
   }
+  // hackery, since GMOCK does no support forwarding
+  bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept override {
+    return sendPacketSwitchedAsyncImpl(pkt.get());
+  }
+  // ditto for the other method
+  bool sendPacketOutOfPortSync(
+      std::unique_ptr<TxPacket> pkt,
+      PortID portID) noexcept override {
+    return sendPacketOutOfPortAsyncImpl(pkt.get(), portID);
+  }
   GMOCK_METHOD2_(, noexcept, ,
       sendPacketOutOfPortAsyncImpl,
       bool(TxPacket* pkt, PortID portID));

@@ -47,6 +47,15 @@ class MockHwSwitch : public HwSwitch {
       bool(TxPacket*, facebook::fboss::PortID));
   bool sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
                           facebook::fboss::PortID portID) noexcept override;
+  MOCK_METHOD1(sendPacketSwitchedSync_, bool(TxPacket*));
+  bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept override;
+
+  MOCK_METHOD2(
+      sendPacketOutOfPortSync_,
+      bool(TxPacket*, facebook::fboss::PortID));
+  bool sendPacketOutOfPortSync(
+      std::unique_ptr<TxPacket> pkt,
+      facebook::fboss::PortID portID) noexcept override;
   std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta) override;
 
   MOCK_METHOD1(updateStats, void(SwitchStats* switchStats));

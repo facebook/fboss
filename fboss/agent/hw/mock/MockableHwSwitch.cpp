@@ -31,6 +31,12 @@ MockableHwSwitch::MockableHwSwitch(MockPlatform *platform, HwSwitch* realHw)
   ON_CALL(*this, sendPacketOutOfPortAsync_(_, _))
       .WillByDefault(
           Invoke(this, &MockableHwSwitch::sendPacketOutOfPortAsyncAdaptor));
+  ON_CALL(*this, sendPacketSwitchedSync_(_))
+      .WillByDefault(
+          Invoke(this, &MockableHwSwitch::sendPacketSwitchedSyncAdaptor));
+  ON_CALL(*this, sendPacketOutOfPortSync_(_, _))
+      .WillByDefault(
+          Invoke(this, &MockableHwSwitch::sendPacketOutOfPortSyncAdaptor));
   ON_CALL(*this, init(_))
     .WillByDefault(Invoke(realHw_, &HwSwitch::init));
   ON_CALL(*this, stateChangedMock(_))
@@ -76,6 +82,17 @@ bool MockableHwSwitch::sendPacketOutOfPortAsyncAdaptor(
     TxPacket* pkt, PortID port) noexcept {
   std::unique_ptr<TxPacket> up(pkt);
   return realHw_->sendPacketOutOfPortAsync(std::move(up), port);
+}
+
+bool MockableHwSwitch::sendPacketSwitchedSyncAdaptor(TxPacket* pkt) noexcept {
+  std::unique_ptr<TxPacket> up(pkt);
+  return realHw_->sendPacketSwitchedSync(std::move(up));
+}
+
+bool MockableHwSwitch::sendPacketOutOfPortSyncAdaptor(
+    TxPacket* pkt, PortID port) noexcept {
+  std::unique_ptr<TxPacket> up(pkt);
+  return realHw_->sendPacketOutOfPortSync(std::move(up), port);
 }
 
 std::shared_ptr<SwitchState>

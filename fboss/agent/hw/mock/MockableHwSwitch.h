@@ -59,6 +59,8 @@ class MockableHwSwitch : public MockHwSwitch {
    */
   bool sendPacketSwitchedAsyncAdaptor(TxPacket* pkt) noexcept;
   bool sendPacketOutOfPortAsyncAdaptor(TxPacket* pkt, PortID port) noexcept;
+  bool sendPacketSwitchedSyncAdaptor(TxPacket* pkt) noexcept;
+  bool sendPacketOutOfPortSyncAdaptor(TxPacket* pkt, PortID port) noexcept;
 
  private:
   // Forbidden copy constructor and assignment operator

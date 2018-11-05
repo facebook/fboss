@@ -27,7 +27,10 @@ class SimSwitch : public HwSwitch {
   bool sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       PortID portID) noexcept override;
-
+  bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept override;
+  bool sendPacketOutOfPortSync(
+      std::unique_ptr<TxPacket> pkt,
+      PortID portID) noexcept override;
   void gracefulExit(folly::dynamic& /*switchState*/) override {}
 
   folly::dynamic toFollyDynamic() const override;

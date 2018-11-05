@@ -140,7 +140,7 @@ class HwSwitch {
   virtual std::unique_ptr<TxPacket> allocatePacket(uint32_t size) = 0;
 
   /*
-   * Send a packet, using switching logic to send it out the correct port(s)
+   * Send a packet, use switching logic to send it out the correct port(s)
    * for the specified VLAN and destination MAC.
    *
    * @return If the packet is successfully sent to HW.
@@ -149,12 +149,30 @@ class HwSwitch {
       std::unique_ptr<TxPacket> pkt) noexcept = 0;
 
   /*
-   * Send a packet, using switching logic to send it out the correct port(s)
-   * for the specified VLAN and destination MAC.
+   * Send a packet, send it out the specified port, use
+   * VLAN and destination MAC from packet
    *
    * @return If the packet is successfully sent to HW.
    */
   virtual bool sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
+                                   PortID portID) noexcept = 0;
+
+  /*
+   * Send a packet, use switching logic to send it out the correct port(s)
+   * for the specified VLAN and destination MAC.
+   *
+   * @return If the packet is successfully sent to HW.
+   */
+  virtual bool sendPacketSwitchedSync(
+      std::unique_ptr<TxPacket> pkt) noexcept = 0;
+
+  /*
+   * Send a packet, send it out the specified port, use
+   * VLAN and destination MAC from packet
+   *
+   * @return If the packet is successfully sent to HW.
+   */
+  virtual bool sendPacketOutOfPortSync(std::unique_ptr<TxPacket> pkt,
                                    PortID portID) noexcept = 0;
 
   /*

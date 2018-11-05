@@ -35,6 +35,14 @@ MockHwSwitch::MockHwSwitch(MockPlatform *platform) :
         delete pkt;
         return true;
       }));
+  ON_CALL(*this, sendPacketSwitchedSync_(_))
+    .WillByDefault(Invoke([=](TxPacket* pkt) -> bool {
+          delete pkt; return true; } ));
+  ON_CALL(*this, sendPacketOutOfPortSync_(_, _))
+      .WillByDefault(Invoke([=](TxPacket* pkt, PortID /*port*/) -> bool {
+        delete pkt;
+        return true;
+      }));
 }
 
 std::unique_ptr<TxPacket> MockHwSwitch::allocatePacket(uint32_t size) {
@@ -53,6 +61,21 @@ bool MockHwSwitch::sendPacketOutOfPortAsync(
     facebook::fboss::PortID portID) noexcept {
   TxPacket* raw(pkt.release());
   sendPacketOutOfPortAsync_(raw, portID);
+  return true;
+}
+
+bool MockHwSwitch::sendPacketSwitchedSync(
+    std::unique_ptr<TxPacket> pkt) noexcept {
+  TxPacket* raw(pkt.release());
+  sendPacketSwitchedSync_(raw);
+  return true;
+}
+
+bool MockHwSwitch::sendPacketOutOfPortSync(
+    std::unique_ptr<TxPacket> pkt,
+    facebook::fboss::PortID portID) noexcept {
+  TxPacket* raw(pkt.release());
+  sendPacketOutOfPortSync_(raw, portID);
   return true;
 }
 

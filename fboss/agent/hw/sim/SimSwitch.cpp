@@ -65,6 +65,21 @@ bool SimSwitch::sendPacketOutOfPortAsync(
   ++txCount_;
   return true;
 }
+
+bool SimSwitch::sendPacketSwitchedSync(
+    std::unique_ptr<TxPacket> /*pkt*/) noexcept {
+  // TODO
+  ++txCount_;
+  return true;
+}
+
+bool SimSwitch::sendPacketOutOfPortSync(
+    std::unique_ptr<TxPacket> /*pkt*/,
+    PortID /*portID*/) noexcept {
+  // TODO
+  ++txCount_;
+  return true;
+}
 void SimSwitch::injectPacket(std::unique_ptr<RxPacket> pkt) {
   callback_->packetReceived(std::move(pkt));
 }
