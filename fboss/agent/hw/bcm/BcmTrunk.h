@@ -56,7 +56,10 @@ class BcmTrunk {
 
   BcmTrunkStats& stats();
 
- private:
+private:
+  static int rtag7();
+  void suppressTrunkInternalFlood(
+    const std::shared_ptr<AggregatePort>& aggPort);
   void programForwardingState(
       AggregatePort::SubportAndForwardingStateConstRange oldRange,
       AggregatePort::SubportAndForwardingStateConstRange newRange);

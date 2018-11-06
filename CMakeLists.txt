@@ -275,6 +275,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmStatUpdater.cpp
     fboss/agent/hw/bcm/BcmSwitch.cpp
     fboss/agent/hw/bcm/BcmSwitchEventUtils.cpp
+    fboss/agent/hw/bcm/BcmTrunk.cpp
     fboss/agent/hw/bcm/BcmTrunkStats.cpp
     fboss/agent/hw/bcm/BcmTrunkTable.cpp
     fboss/agent/hw/bcm/BcmTxPacket.cpp

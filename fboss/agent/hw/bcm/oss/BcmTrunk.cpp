@@ -12,33 +12,11 @@
 namespace facebook {
 namespace fboss {
 
-BcmTrunk::BcmTrunk(const BcmSwitch* hw) : hw_(hw), trunkStats_(hw) {}
-BcmTrunk::~BcmTrunk() {}
-void BcmTrunk::init(const std::shared_ptr<AggregatePort>& /*aggPort*/) {}
-void BcmTrunk::program(
-    const std::shared_ptr<AggregatePort>& /*oldAggPort*/,
-    const std::shared_ptr<AggregatePort>& /*newAggPort*/) {}
-void BcmTrunk::modifyMemberPort(bool /* added */, PortID /* memberPort */) {}
-
-void BcmTrunk::programForwardingState(
-    AggregatePort::SubportAndForwardingStateConstRange /* oldRange */,
-    AggregatePort::SubportAndForwardingStateConstRange /* newRange */) {}
-
-void BcmTrunk::shrinkTrunkGroupHwNotLocked(
-    int /* unit */,
-    opennsl_trunk_t /* trunk */,
-    opennsl_port_t /* toDisable */) {}
 int BcmTrunk::getEnabledMemberPortsCountHwNotLocked(
     int /* unit */,
     opennsl_trunk_t /* trunk */,
     opennsl_port_t /* port */) {
   return 0;
-}
-folly::Optional<int> BcmTrunk::findTrunk(
-    int /* unit */,
-    opennsl_module_t /* modid */,
-    opennsl_port_t /* port */) {
-  return folly::none;
 }
 
 opennsl_gport_t BcmTrunk::asGPort(opennsl_trunk_t /* trunk */) {
@@ -48,10 +26,14 @@ bool BcmTrunk::isValidTrunkPort(opennsl_gport_t /* gPort */) {
   return false;
 }
 
-BcmTrunkStats& BcmTrunk::stats() {
-  return trunkStats_;
+int BcmTrunk::rtag7() {
+  return 0;
 }
 
+void BcmTrunk::suppressTrunkInternalFlood(
+  const std::shared_ptr<AggregatePort>& aggPort) {
+  return;
+}
 
 } // namespace fboss
 } // namespace facebook
