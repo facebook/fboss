@@ -51,6 +51,11 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
           (sai_neighbor_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_API_NEXT_HOP:
+      facebook::fboss::populate_next_hop_api(
+          (sai_next_hop_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_API_PORT:
       facebook::fboss::populate_port_api((sai_port_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;

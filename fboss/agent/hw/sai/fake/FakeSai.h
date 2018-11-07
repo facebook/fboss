@@ -10,6 +10,7 @@
 #pragma once
 
 #include "FakeSaiBridge.h"
+#include "FakeSaiNextHop.h"
 #include "FakeSaiNeighbor.h"
 #include "FakeSaiPort.h"
 #include "FakeSaiRouterInterface.h"
@@ -30,6 +31,7 @@ struct FakeSai {
   static std::shared_ptr<FakeSai> getInstance();
   FakeBridgeManager brm;
   FakeNeighborManager nm;
+  FakeNextHopManager nhm;
   FakePortManager pm;
   FakeRouterInterfaceManager rim;
   FakeSwitchManager swm;

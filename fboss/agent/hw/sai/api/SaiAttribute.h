@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "AddressUtil.h"
 #include "Traits.h"
 
 #include <folly/IPAddress.h>
@@ -154,7 +155,7 @@ DEFINE_extract(sai_int64_t, s64);
 DEFINE_extract(sai_mac_t, mac);
 DEFINE_extract_wrapper_v(sai_ip4_t, folly::IPAddressV4, ip4);
 DEFINE_extract(sai_ip6_t, ip6);
-DEFINE_extract(sai_ip_address_t, ipaddr);
+DEFINE_extract_wrapper_v(sai_ip_address_t, folly::IPAddress, ipaddr);
 DEFINE_extract(sai_ip_prefix_t, ipprefix);
 DEFINE_extract_wrapper_v(sai_object_id_t, SaiObjectIdT, oid);
 DEFINE_extract(sai_object_list_t, objlist);
@@ -190,14 +191,20 @@ _fill(const SrcT& src, DstT& dst) {
   dst = src;
 }
 
+void _fill(const folly::IPAddress& src, sai_ip_address_t& dst) {
+  dst = facebook::fboss::toSaiIpAddress(src);
+}
+
+void _fill(const sai_ip_address_t& src, folly::IPAddress& dst) {
+  dst = facebook::fboss::fromSaiIpAddress(src);
+}
+
 void _fill(const folly::MacAddress& src, sai_mac_t& dst) {
-  folly::ByteRange r(src.bytes(), 6);
-  std::copy(std::begin(r), std::end(r), std::begin(dst));
+  facebook::fboss::toSaiMacAddress(src, dst);
 }
 
 void _fill(const sai_mac_t& src, folly::MacAddress& dst) {
-  folly::ByteRange r(std::begin(src), std::end(src));
-  dst.setFromBinary(r);
+  dst = facebook::fboss::fromSaiMacAddress(src);
 }
 
 template <typename SaiListT, typename T>
