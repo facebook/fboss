@@ -12,6 +12,7 @@
 #include "FakeSai.h"
 
 #include <folly/logging/xlog.h>
+#include <folly/Optional.h>
 
 using facebook::fboss::FakeVlan;
 using facebook::fboss::FakeVlanMember;
@@ -23,11 +24,11 @@ sai_status_t create_vlan_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  *vlan_id = fs->vm.addVlan(FakeVlan());
+  *vlan_id = fs->vm.create();
   for (int i = 0; i < attr_count; ++i) {
     sai_status_t res = set_vlan_attribute_fn(*vlan_id, &attr_list[i]);
     if (res != SAI_STATUS_SUCCESS) {
-      fs->vm.deleteVlan(*vlan_id);
+      fs->vm.remove(*vlan_id);
       return res;
     }
   }
@@ -36,7 +37,7 @@ sai_status_t create_vlan_fn(
 
 sai_status_t remove_vlan_fn(sai_object_id_t vlan_id) {
   auto fs = FakeSai::getInstance();
-  fs->vm.deleteVlan(vlan_id);
+  fs->vm.remove(vlan_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -45,12 +46,12 @@ sai_status_t get_vlan_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  const auto& vlan = fs->vm.getVlan(vlan_id);
+  const auto& vlan = fs->vm.get(vlan_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_VLAN_ATTR_MEMBER_LIST:
         {
-        const auto& vlanMemberMap = fs->vm.getVlan(vlan_id).memberMap();
+        const auto& vlanMemberMap = fs->vm.get(vlan_id).fm().map();
         attr[i].value.objlist.count = vlanMemberMap.size();
         int j = 0;
         for (const auto& m : vlanMemberMap) {
@@ -84,24 +85,22 @@ sai_status_t create_vlan_member_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  sai_object_id_t vlanId;
-  bool foundVlanId = false;
+  folly::Optional<sai_object_id_t> vlanId;
   for (int i = 0; i < attr_count; ++i) {
     if (attr_list[i].id == SAI_VLAN_MEMBER_ATTR_VLAN_ID) {
       vlanId = attr_list[i].value.oid;
-      foundVlanId = true;
       break;
     }
   }
-  if (!foundVlanId) {
+  if (!vlanId) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  *vlan_member_id = fs->vm.addVlanMember(vlanId, FakeVlanMember());
+  *vlan_member_id = fs->vm.createMember(vlanId.value(), vlanId.value());
   for (int i = 0; i < attr_count; ++i) {
     sai_status_t res =
         set_vlan_member_attribute_fn(*vlan_member_id, &attr_list[i]);
     if (res != SAI_STATUS_SUCCESS) {
-      fs->vm.deleteVlanMember(*vlan_member_id);
+      fs->vm.removeMember(*vlan_member_id);
       return res;
     }
   }
@@ -110,7 +109,7 @@ sai_status_t create_vlan_member_fn(
 
 sai_status_t remove_vlan_member_fn(sai_object_id_t vlan_member_id) {
   auto fs = FakeSai::getInstance();
-  fs->vm.deleteVlanMember(vlan_member_id);
+  fs->vm.removeMember(vlan_member_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -119,7 +118,7 @@ sai_status_t get_vlan_member_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto& vlanMember = fs->vm.getVlanMember(vlan_member_id);
+  auto& vlanMember = fs->vm.getMember(vlan_member_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_VLAN_MEMBER_ATTR_VLAN_ID:
@@ -139,7 +138,7 @@ sai_status_t set_vlan_member_attribute_fn(
     sai_object_id_t vlan_member_id,
     const sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto& vlanMember = fs->vm.getVlanMember(vlan_member_id);
+  auto& vlanMember = fs->vm.getMember(vlan_member_id);
   sai_status_t res;
   if (!attr) {
     return SAI_STATUS_INVALID_PARAMETER;

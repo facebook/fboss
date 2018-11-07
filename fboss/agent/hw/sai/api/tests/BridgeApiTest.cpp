@@ -27,15 +27,13 @@ class BridgeApiTest : public ::testing::Test {
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<BridgeApi> bridgeApi;
   void checkBridge(const sai_object_id_t& bridgeId) {
-    EXPECT_NE(0, bridgeId);
-    auto fb = fs->brm.getBridge(bridgeId);
+    auto fb = fs->brm.get(bridgeId);
     EXPECT_EQ(fb.id, bridgeId);
   }
   void checkBridgePort(
       const sai_object_id_t& bridgeId,
       const sai_object_id_t& bridgePortId) {
-    EXPECT_NE(0, bridgePortId);
-    auto fbp = fs->brm.getBridgePort(bridgePortId);
+    auto fbp = fs->brm.getMember(bridgePortId);
     EXPECT_EQ(fbp.bridgeId, bridgeId);
     EXPECT_EQ(fbp.id, bridgePortId);
   }
@@ -49,7 +47,9 @@ TEST_F(BridgeApiTest, createBridge) {
 TEST_F(BridgeApiTest, removeBridge) {
   auto bridgeId = bridgeApi->create({}, 0);
   checkBridge(bridgeId);
+  EXPECT_EQ(fs->brm.map().size(), 1);
   bridgeApi->remove(bridgeId);
+  EXPECT_EQ(fs->brm.map().size(), 0);
 }
 
 TEST_F(BridgeApiTest, createBridgePort) {
@@ -68,5 +68,7 @@ TEST_F(BridgeApiTest, removeBridgePort) {
       BridgeTypes::MemberAttributes::BridgeId(bridgeId);
   auto bridgePortId = bridgeApi->createMember({bridgeIdAttribute}, 0);
   checkBridgePort(bridgeId, bridgePortId);
-  bridgeApi->remove(bridgePortId);
+  EXPECT_EQ(fs->brm.get(bridgeId).fm().map().size(), 1);
+  bridgeApi->removeMember(bridgePortId);
+  EXPECT_EQ(fs->brm.get(bridgeId).fm().map().size(), 0);
 }

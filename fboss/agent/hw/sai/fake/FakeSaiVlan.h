@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <unordered_map>
+#include "fboss/agent/hw/sai/fake/FakeManager.h"
 
 extern "C" {
   #include <sai.h>
@@ -54,82 +54,27 @@ namespace fboss {
 
 class FakeVlanMember {
  public:
-  sai_object_id_t bridgePortId;
+  explicit FakeVlanMember(sai_object_id_t vlanId) : vlanId(vlanId) {}
   sai_object_id_t vlanId;
+  sai_object_id_t bridgePortId;
   sai_object_id_t id;
 };
 
 class FakeVlan {
  public:
   sai_object_id_t id;
-  std::unordered_map<sai_object_id_t, FakeVlanMember>& memberMap() {
-    return memberMap_;
+  FakeManager<sai_object_id_t, FakeVlanMember>& fm() {
+    return fm_;
   }
-  const std::unordered_map<sai_object_id_t, FakeVlanMember>& memberMap() const {
-    return memberMap_;
-  }
-
- private:
-  std::unordered_map<sai_object_id_t, FakeVlanMember> memberMap_;
-};
-
-class FakeVlanManager {
- public:
-  sai_object_id_t addVlan(const FakeVlan& b) {
-    auto ins = vlanMap_.insert({++vlanId, b});
-    ins.first->second.id = vlanId;
-    return vlanId;
-  }
-  void deleteVlan(sai_object_id_t vlanId) {
-    size_t erased = vlanMap_.erase(vlanId);
-    if (!erased) {
-      //TODO
-    }
-  }
-  FakeVlan& getVlan(const sai_object_id_t& vlanId) {
-    return vlanMap_.at(vlanId);
-  }
-  const FakeVlan& getVlan(const sai_object_id_t& vlanId) const {
-    return vlanMap_.at(vlanId);
-  }
-  sai_object_id_t addVlanMember(
-      sai_object_id_t vlanId,
-      const FakeVlanMember& bp) {
-    auto& vlanMemberMap = getVlan(vlanId).memberMap();
-    auto ins = vlanMemberMap.insert({++vlanMemberId, bp});
-    ins.first->second.id = vlanMemberId;
-    vlanMemberToVlanMap_.insert({vlanMemberId, vlanId});
-    return vlanMemberId;
-  }
-  void deleteVlanMember(sai_object_id_t vlanMemberId) {
-    auto vlanId = vlanMemberToVlanMap_.at(vlanMemberId);
-    vlanMemberToVlanMap_.erase(vlanMemberId);
-    auto& vlanMemberMap = getVlan(vlanId).memberMap();
-    size_t erased = vlanMemberMap.erase(vlanMemberId);
-    if (!erased) {
-      //TODO
-    }
-  }
-
-  FakeVlanMember& getVlanMember(const sai_object_id_t& vlanMemberId) {
-    auto vlanId = vlanMemberToVlanMap_.at(vlanMemberId);
-    auto& vlanMemberMap = getVlan(vlanId).memberMap();
-    return vlanMemberMap.at(vlanMemberId);
-  }
-
-  const FakeVlanMember& getVlanMember(
-      const sai_object_id_t& vlanMemberId) const {
-    auto vlanId = vlanMemberToVlanMap_.at(vlanMemberId);
-    auto vlanMemberMap = getVlan(vlanId).memberMap();
-    return vlanMemberMap.at(vlanMemberId);
+  const FakeManager<sai_object_id_t, FakeVlanMember>& fm() const {
+    return fm_;
   }
 
  private:
-  size_t vlanId = 0;
-  size_t vlanMemberId = 0;
-  std::unordered_map<sai_object_id_t, sai_object_id_t> vlanMemberToVlanMap_;
-  std::unordered_map<sai_object_id_t, FakeVlan> vlanMap_;
+  FakeManager<sai_object_id_t, FakeVlanMember> fm_;
 };
+
+using FakeVlanManager = FakeManagerWithMembers<FakeVlan, FakeVlanMember>;
 
 void populate_vlan_api(sai_vlan_api_t** vlan_api);
 } // namespace fboss

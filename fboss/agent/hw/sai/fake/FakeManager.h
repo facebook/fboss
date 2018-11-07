@@ -60,5 +60,41 @@ class FakeManager {
   std::unordered_map<K, T> map_;
 };
 
+/*
+ * For managing fakes of sai apis that have a membership concept, we will
+ * nest fake managers. In this class template, GroupT denotes an owning "group"
+ * fake object for something like a vlan or a bridge. MemberT is the fake for
+ * the member type, like a vlan member or a bridge port.
+ *
+ * The parent fake needs to have a FakeManager<sai_object_id_t, MemberT> of its
+ * own for managing its members, exposed by the function fm()
+ */
+template <typename GroupT, typename MemberT>
+class FakeManagerWithMembers : public FakeManager<sai_object_id_t, GroupT> {
+ public:
+  template <typename... Args>
+  sai_object_id_t createMember(sai_object_id_t groupId, Args&&... args) {
+    GroupT& group = this->get(groupId);
+    sai_object_id_t memberId = group.fm().create(std::forward<Args>(args)...);
+    memberToGroupMap_[memberId] = groupId;
+    return memberId;
+  }
+  size_t removeMember(sai_object_id_t memberId) {
+    GroupT& group = this->get(memberToGroupMap_.at(memberId));
+    return group.fm().remove(memberId);
+  }
+  MemberT& getMember(sai_object_id_t memberId) {
+    GroupT& group = this->get(memberToGroupMap_.at(memberId));
+    return group.fm().get(memberId);
+  }
+  const MemberT& getMember(sai_object_id_t memberId) const {
+    const GroupT& group = this->get(memberToGroupMap_.at(memberId));
+    return group.fm().get(memberId);
+  }
+
+ private:
+  std::unordered_map<sai_object_id_t, sai_object_id_t> memberToGroupMap_;
+};
+
 } // namespace fboss
 } // namespace facebook

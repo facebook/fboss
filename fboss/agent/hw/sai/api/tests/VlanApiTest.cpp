@@ -25,15 +25,13 @@ class VlanApiTest : public ::testing::Test {
     vlanApi = std::make_unique<VlanApi>();
   }
   void checkVlan(const sai_object_id_t& vlanId) const {
-    EXPECT_NE(0, vlanId);
-    EXPECT_EQ(vlanId, fs->vm.getVlan(vlanId).id);
+    EXPECT_EQ(vlanId, fs->vm.get(vlanId).id);
   }
   void checkVlanMember(
       const sai_object_id_t& vlanId,
       const sai_object_id_t& vlanMemberId) const {
-    EXPECT_NE(0, vlanMemberId);
-    EXPECT_EQ(vlanMemberId, fs->vm.getVlanMember(vlanMemberId).id);
-    EXPECT_EQ(vlanId, fs->vm.getVlanMember(vlanMemberId).vlanId);
+    EXPECT_EQ(vlanMemberId, fs->vm.getMember(vlanMemberId).id);
+    EXPECT_EQ(vlanId, fs->vm.getMember(vlanMemberId).vlanId);
   }
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<VlanApi> vlanApi;

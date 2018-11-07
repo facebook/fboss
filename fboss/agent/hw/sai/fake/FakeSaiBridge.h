@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <unordered_map>
+#include "fboss/agent/hw/sai/fake/FakeManager.h"
 
 extern "C" {
   #include <sai.h>
@@ -54,6 +54,7 @@ namespace fboss {
 
 class FakeBridgePort {
  public:
+  explicit FakeBridgePort(sai_object_id_t bridgeId) : bridgeId(bridgeId) {}
   sai_object_id_t bridgeId;
   sai_object_id_t id;
   sai_object_id_t portId;
@@ -63,73 +64,18 @@ class FakeBridgePort {
 class FakeBridge {
  public:
   sai_object_id_t id;
-  std::unordered_map<sai_object_id_t, FakeBridgePort>& portMap() {
-    return portMap_;
+  FakeManager<sai_object_id_t, FakeBridgePort>& fm() {
+    return fm_;
   }
-  const std::unordered_map<sai_object_id_t, FakeBridgePort>& portMap() const {
-    return portMap_;
-  }
-
- private:
-  std::unordered_map<sai_object_id_t, FakeBridgePort> portMap_;
-};
-
-class FakeBridgeManager {
- public:
-  sai_object_id_t addBridge(const FakeBridge& b) {
-    auto ins = bridgeMap_.insert({++bridgeId, b});
-    ins.first->second.id = bridgeId;
-    return bridgeId;
-  }
-  void deleteBridge(sai_object_id_t bridgeId) {
-    size_t erased = bridgeMap_.erase(bridgeId);
-    if (!erased) {
-      //TODO
-    }
-  }
-  FakeBridge& getBridge(const sai_object_id_t& bridgeId) {
-    return bridgeMap_.at(bridgeId);
-  }
-  const FakeBridge& getBridge(const sai_object_id_t& bridgeId) const {
-    return bridgeMap_.at(bridgeId);
-  }
-  sai_object_id_t addBridgePort(
-      sai_object_id_t bridgeId,
-      const FakeBridgePort& bp) {
-    auto& bridgePortMap = getBridge(bridgeId).portMap();
-    auto ins = bridgePortMap.insert({++bridgePortId, bp});
-    ins.first->second.id = bridgePortId;
-    bridgePortToBridgeMap_.insert({bridgePortId, bridgeId});
-    return bridgePortId;
-  }
-  void deleteBridgePort(sai_object_id_t bridgePortId) {
-    auto bridgeId = bridgePortToBridgeMap_.at(bridgePortId);
-    auto& bridgePortMap = getBridge(bridgeId).portMap();
-    size_t erased = bridgePortMap.erase(bridgePortId);
-    if (!erased) {
-      //TODO
-    }
-  }
-
-  FakeBridgePort& getBridgePort(const sai_object_id_t& bridgePortId) {
-    auto bridgeId = bridgePortToBridgeMap_.at(bridgePortId);
-    auto& bridgePortMap = getBridge(bridgeId).portMap();
-    return bridgePortMap.at(bridgePortId);
-  }
-
-  const FakeBridgePort& getBridgePort(
-      const sai_object_id_t& bridgePortId) const {
-    auto bridgeId = bridgePortToBridgeMap_.at(bridgePortId);
-    auto bridgePortMap = getBridge(bridgeId).portMap();
-    return bridgePortMap.at(bridgePortId);
+  const FakeManager<sai_object_id_t, FakeBridgePort>& fm() const {
+    return fm_;
   }
 
  private:
-  size_t bridgeId = 0;
-  size_t bridgePortId = 0;
-  std::unordered_map<sai_object_id_t, sai_object_id_t> bridgePortToBridgeMap_;
-  std::unordered_map<sai_object_id_t, FakeBridge> bridgeMap_;
+  FakeManager<sai_object_id_t, FakeBridgePort> fm_;
 };
+
+using FakeBridgeManager = FakeManagerWithMembers<FakeBridge, FakeBridgePort>;
 
 void populate_bridge_api(sai_bridge_api_t** bridge_api);
 } // namespace fboss
