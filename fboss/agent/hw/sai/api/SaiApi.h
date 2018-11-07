@@ -91,7 +91,7 @@ class SaiApi {
         "AttributeType or EntryTypes must come from correct ApiTypes");
     std::vector<sai_attribute_t> saiAttributeTs = getSaiAttributeTs(attributes);
     sai_status_t res = impl()._create(
-        &entry,
+        entry,
         saiAttributeTs.data(),
         saiAttributeTs.size(),
         std::forward<Args>(args)...);
@@ -102,10 +102,6 @@ class SaiApi {
 
   template <typename T>
   sai_status_t remove(const T& t) {
-    static_assert(
-        std::is_same<T, sai_object_id_t>::value ||
-            std::is_same<T, typename ApiTypes::EntryType>::value,
-        "remove takes sai_object_id_t or ApiTypes::EntryType");
     return impl()._remove(t);
   }
 
@@ -201,7 +197,7 @@ class SaiApi {
   ApiT& impl() {
     return static_cast<ApiT&>(*this);
   }
-};
+  };
 
 } // namespace fboss
 } // namespace facebook
