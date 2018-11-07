@@ -63,7 +63,7 @@ sai_status_t get_switch_attribute_fn(
         }
         break;
       case SAI_SWITCH_ATTR_SRC_MAC_ADDRESS:
-        memcpy(attr[i].value.mac, sw.srcMac().bytes(), 6);
+        std::copy_n(sw.srcMac().bytes(), 6, std::begin(attr[i].value.mac));
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

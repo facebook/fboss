@@ -11,6 +11,7 @@
 
 #include "FakeSaiBridge.h"
 #include "FakeSaiPort.h"
+#include "FakeSaiRouterInterface.h"
 #include "FakeSaiSwitch.h"
 #include "FakeSaiVirtualRouter.h"
 #include "FakeSaiVlan.h"
@@ -28,6 +29,7 @@ struct FakeSai {
   static std::shared_ptr<FakeSai> getInstance();
   FakeBridgeManager brm;
   FakePortManager pm;
+  FakeRouterInterfaceManager rim;
   FakeSwitchManager swm;
   FakeVirtualRouterManager vrm;
   FakeVlanManager vm;
