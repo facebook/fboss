@@ -1498,9 +1498,7 @@ opennsl_rx_t BcmSwitch::packetReceived(opennsl_pkt_t* pkt) noexcept {
 bool BcmSwitch::sendPacketSwitchedAsync(unique_ptr<TxPacket> pkt) noexcept {
   unique_ptr<BcmTxPacket> bcmPkt(
       boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
-
-  auto rv = BcmTxPacket::sendAsync(std::move(bcmPkt));
-  return OPENNSL_SUCCESS(rv);
+  return OPENNSL_SUCCESS(BcmTxPacket::sendAsync(std::move(bcmPkt)));
 }
 
 bool BcmSwitch::sendPacketOutOfPortAsync(unique_ptr<TxPacket> pkt,
@@ -1510,21 +1508,23 @@ bool BcmSwitch::sendPacketOutOfPortAsync(unique_ptr<TxPacket> pkt,
   bcmPkt->setDestModPort(getPortTable()->getBcmPortId(portID));
   XLOG(DBG4) << "sendPacketOutOfPortAsync for"
              << getPortTable()->getBcmPortId(portID);
-  auto rv = BcmTxPacket::sendAsync(std::move(bcmPkt));
-  return OPENNSL_SUCCESS(rv);
+  return OPENNSL_SUCCESS(BcmTxPacket::sendAsync(std::move(bcmPkt)));
 }
 
 bool BcmSwitch::sendPacketSwitchedSync(unique_ptr<TxPacket> pkt) noexcept {
-  // TODO - implement this
-  CHECK(false);
-  return true;
+  unique_ptr<BcmTxPacket> bcmPkt(
+      boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
+  return OPENNSL_SUCCESS(BcmTxPacket::sendSync(std::move(bcmPkt)));
 }
 
 bool BcmSwitch::sendPacketOutOfPortSync(unique_ptr<TxPacket> pkt,
                                     PortID portID) noexcept {
-  // TODO - implement this
-  CHECK(false);
-  return true;
+  unique_ptr<BcmTxPacket> bcmPkt(
+      boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
+  bcmPkt->setDestModPort(getPortTable()->getBcmPortId(portID));
+  XLOG(DBG4) << "sendPacketOutOfPortSync for"
+             << getPortTable()->getBcmPortId(portID);
+  return OPENNSL_SUCCESS(BcmTxPacket::sendSync(std::move(bcmPkt)));
 }
 
 void BcmSwitch::updateStats(SwitchStats *switchStats) {

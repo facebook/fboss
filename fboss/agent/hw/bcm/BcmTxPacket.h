@@ -10,6 +10,8 @@
 #pragma once
 
 #include <chrono>
+#include <mutex>
+#include <condition_variable>
 
 #include "fboss/agent/TxPacket.h"
 
@@ -57,13 +59,32 @@ class BcmTxPacket : public TxPacket {
    * Returns an OpenNSL error code.
    */
   static int sendAsync(std::unique_ptr<BcmTxPacket> pkt) noexcept;
-
+  /*
+   * Send a BcmTxPacket synchronously.
+   *
+   * This is a static function rather than a regular method so that
+   * it can accept the packet in a unique_ptr.  This function assumes ownership
+   * of the packet, and will automatically delete it when the sync send
+   * completes.
+   *
+   * Returns an OpenNSL error code.
+   */
+  static int sendSync(std::unique_ptr<BcmTxPacket> pkt) noexcept;
 
  private:
+  inline static int sendImpl(std::unique_ptr<BcmTxPacket> pkt) noexcept;
+  static void txCallbackAsync(int unit, opennsl_pkt_t* pkt, void* cookie);
+  static void txCallbackSync(int unit, opennsl_pkt_t* pkt, void* cookie);
+
   // Forbidden copy constructor and assignment operator
   BcmTxPacket(BcmTxPacket const &) = delete;
   BcmTxPacket& operator=(BcmTxPacket const &) = delete;
   void enableHiGigHeader();
+
+  // Synchronization around synchrnous packet sending
+  static std::mutex& syncPktMutex();
+  static std::condition_variable& syncPktCV();
+  static bool& syncPacketSent();
 
   opennsl_pkt_t* pkt_{nullptr};
 
