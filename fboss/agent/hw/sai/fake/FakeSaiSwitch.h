@@ -43,7 +43,7 @@ class FakeSwitch {
   folly::MacAddress srcMac_;
 };
 
-using FakeSwitchManager = FakeManager<FakeSwitch>;
+using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;
 
 void populate_switch_api(sai_switch_api_t** switch_api);
 }

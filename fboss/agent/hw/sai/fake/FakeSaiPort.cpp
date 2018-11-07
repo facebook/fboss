@@ -21,7 +21,7 @@ sai_status_t create_port_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  *port_id = fs->pm.create(FakePort());
+  *port_id = fs->pm.create();
   fs->pm.get(*port_id).lane_id = *port_id;
   for (int i = 0; i < attr_count; ++i) {
     sai_status_t res = set_port_attribute_fn(*port_id, &attr_list[i]);

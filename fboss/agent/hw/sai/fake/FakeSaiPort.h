@@ -57,7 +57,7 @@ class FakePort {
   }
 };
 
-using FakePortManager = FakeManager<FakePort>;
+using FakePortManager = FakeManager<sai_object_id_t, FakePort>;
 
 void populate_port_api(sai_port_api_t** port_api);
 } // namespace fboss

@@ -58,7 +58,8 @@ class FakeRouterInterface {
  private:
   folly::MacAddress srcMac_;
 };
-using FakeRouterInterfaceManager = FakeManager<FakeRouterInterface>;
+using FakeRouterInterfaceManager =
+    FakeManager<sai_object_id_t, FakeRouterInterface>;
 
 void populate_router_interface_api(
     sai_router_interface_api_t** router_interface_api);

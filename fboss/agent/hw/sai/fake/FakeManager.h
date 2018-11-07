@@ -18,40 +18,46 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
-template <typename T>
+template <typename K, typename T>
 class FakeManager {
  public:
-  sai_object_id_t create(const T& t) {
-    auto ins = map_.insert({++id_, t});
-    ins.first->second.id = id_;
-    return id_;
-  }
-  sai_object_id_t create(T&& t) {
-    auto ins = map_.insert({++id_, std::move(t)});
-    ins.first->second.id = id_;
-    return id_;
-  }
-
-  size_t remove(const sai_object_id_t id) {
-    return map_.erase(id);
+  template <typename E = K, typename... Args>
+  typename std::
+      enable_if<std::is_same<E, sai_object_id_t>::value, sai_object_id_t>::type
+      create(Args&&... args) {
+    sai_object_id_t id = static_cast<sai_object_id_t>(count_++);
+    auto ins = map_.emplace(id, T{std::forward<Args>(args)...});
+    ins.first->second.id = id;
+    return id;
   }
 
-  T& get(const sai_object_id_t& id) {
-    return map_.at(id);
-  }
-  const T& get(const sai_object_id_t& id) const {
-    return map_.at(id);
+  template <typename E = K, typename... Args>
+  typename std::enable_if<!std::is_same<E, sai_object_id_t>::value, void>::type
+  create(const K& k, Args&&... args) {
+    auto ins = map_.emplace(k, T{std::forward<Args>(args)...});
+    count_++;
   }
 
-  std::unordered_map<sai_object_id_t, T>& map() {
+  size_t remove(const K& k) {
+    return map_.erase(k);
+  }
+
+  T& get(const K& k) {
+    return map_.at(k);
+  }
+  const T& get(const K& k) const {
+    return map_.at(k);
+  }
+
+  std::unordered_map<K, T>& map() {
     return map_;
   }
-  const std::unordered_map<sai_object_id_t, T>& map() const {
+  const std::unordered_map<K, T>& map() const {
     return map_;
   }
  private:
-  size_t id_ = 0;
-  std::unordered_map<sai_object_id_t, T> map_;
+  size_t count_ = 0;
+  std::unordered_map<K, T> map_;
 };
 
 } // namespace fboss
