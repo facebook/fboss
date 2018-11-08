@@ -29,11 +29,8 @@ void WedgeManager::initTransceiverMap() {
         std::move(qsfpImpl), numPortsPerTransceiver());
     try {
       qsfp->refresh();
-    } catch (const I2cError& ex) {
-      XLOG(ERR) << "Transceiver " << static_cast<int>(qsfp->getID())
-                << ": Error calling refresh(): " << ex.what();
-    } catch (const QsfpModuleError& ex) {
-      XLOG(ERR) << "Transceiver " << static_cast<int>(qsfp->getID())
+    } catch (const std::exception& ex) {
+      XLOG(DBG2) << "Transceiver " << idx
                 << ": Error calling refresh(): " << ex.what();
     }
     transceivers_.push_back(move(qsfp));
@@ -55,11 +52,8 @@ void WedgeManager::getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
     if (isValidTransceiver(i)) {
       try {
         trans = transceivers_[TransceiverID(i)]->getTransceiverInfo();
-      } catch (const I2cError& ex) {
-        XLOG(ERR) << "Transceiver " << i
-                  << ": Error calling getTransceiverInfo(): " << ex.what();
-      } catch (const QsfpModuleError& ex) {
-        XLOG(ERR) << "Transceiver " << i
+      } catch (const std::exception& ex) {
+        XLOG(DBG2) << "Transceiver " << i
                   << ": Error calling getTransceiverInfo(): " << ex.what();
       }
     }
@@ -81,11 +75,8 @@ void WedgeManager::getTransceiversRawDOMData(
     if (isValidTransceiver(i)) {
       try {
         data = transceivers_[TransceiverID(i)]->getRawDOMData();
-      } catch (const I2cError& ex) {
-        XLOG(ERR) << "Transceiver " << i
-                  << ": Error calling getRawDOMData(): " << ex.what();
-      } catch (const QsfpModuleError& ex) {
-        XLOG(ERR) << "Transceiver " << i
+      } catch (const std::exception& ex) {
+        XLOG(DBG2) << "Transceiver " << i
                   << ": Error calling getRawDOMData(): " << ex.what();
       }
     }
@@ -118,12 +109,9 @@ void WedgeManager::syncPorts(
       auto transceiver = transceivers_.at(transceiverIdx).get();
       transceiver->transceiverPortsChanged(group.values());
       info[transceiverIdx] = transceiver->getTransceiverInfo();
-    } catch (const I2cError& ex) {
-      XLOG(ERR) << "Transceiver " << transceiverIdx
-                << ": Error during syncPorts(): " << ex.what();
-    } catch (const QsfpModuleError& ex) {
-      XLOG(ERR) << "Transceiver " << transceiverIdx
-                << ": Error during syncPorts(): " << ex.what();
+    } catch (const std::exception& ex) {
+      XLOG(DBG2) << "Transceiver " << transceiverIdx
+                << ": Error calling syncPorts(): " << ex.what();
     }
   }
 }
@@ -132,11 +120,8 @@ void WedgeManager::refreshTransceivers() {
   for (const auto& transceiver : transceivers_) {
     try {
       transceiver->refresh();
-    } catch (const I2cError& ex) {
-      XLOG(ERR) << "Transceiver " << static_cast<int>(transceiver->getID())
-                << ": Error calling refresh(): " << ex.what();
-    } catch (const QsfpModuleError& ex) {
-      XLOG(ERR) << "Transceiver " << static_cast<int>(transceiver->getID())
+    } catch (const std::exception& ex) {
+      XLOG(DBG2) << "Transceiver " << static_cast<int>(transceiver->getID())
                 << ": Error calling refresh(): " << ex.what();
     }
   }
