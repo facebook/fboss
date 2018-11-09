@@ -41,5 +41,7 @@ class WedgeManager : public TransceiverManager {
   // Forbidden copy constructor and assignment operator
   WedgeManager(WedgeManager const &) = delete;
   WedgeManager& operator=(WedgeManager const &) = delete;
+
+  std::mutex mutex_;
 };
 }} // facebook::fboss

@@ -23,6 +23,7 @@ void WedgeManager::initTransceiverMap() {
 
   // Wedge port 0 is the CPU port, so the first port associated with
   // a QSFP+ is port 1.  We start the transceiver IDs with 0, though.
+  std::lock_guard<std::mutex> g(mutex_);
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
     auto qsfpImpl = std::make_unique<WedgeQsfp>(idx, wedgeI2cBus_.get());
     auto qsfp = std::make_unique<QsfpModule>(
@@ -30,8 +31,8 @@ void WedgeManager::initTransceiverMap() {
     try {
       qsfp->refresh();
     } catch (const std::exception& ex) {
-      XLOG(DBG2) << "Transceiver " << idx
-                << ": Error calling refresh(): " << ex.what();
+      XLOG(ERR) << "Transceiver " << idx
+                << ": Error populating initial data: " << ex.what();
     }
     transceivers_.push_back(move(qsfp));
     XLOG(INFO) << "making QSFP for " << idx;
@@ -53,7 +54,7 @@ void WedgeManager::getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
       try {
         trans = transceivers_[TransceiverID(i)]->getTransceiverInfo();
       } catch (const std::exception& ex) {
-        XLOG(DBG2) << "Transceiver " << i
+        XLOG(ERR) << "Transceiver " << i
                   << ": Error calling getTransceiverInfo(): " << ex.what();
       }
     }
@@ -76,7 +77,7 @@ void WedgeManager::getTransceiversRawDOMData(
       try {
         data = transceivers_[TransceiverID(i)]->getRawDOMData();
       } catch (const std::exception& ex) {
-        XLOG(DBG2) << "Transceiver " << i
+        XLOG(ERR) << "Transceiver " << i
                   << ": Error calling getRawDOMData(): " << ex.what();
       }
     }
@@ -101,6 +102,7 @@ void WedgeManager::syncPorts(
       })
     | folly::gen::as<std::vector>();
 
+  std::lock_guard<std::mutex> g(mutex_);
   for (auto& group : groups) {
     int32_t transceiverIdx = group.key();
     XLOG(INFO) << "Syncing ports of transceiver " << transceiverIdx;
@@ -110,13 +112,14 @@ void WedgeManager::syncPorts(
       transceiver->transceiverPortsChanged(group.values());
       info[transceiverIdx] = transceiver->getTransceiverInfo();
     } catch (const std::exception& ex) {
-      XLOG(DBG2) << "Transceiver " << transceiverIdx
+      XLOG(ERR) << "Transceiver " << transceiverIdx
                 << ": Error calling syncPorts(): " << ex.what();
     }
   }
 }
 
 void WedgeManager::refreshTransceivers() {
+  std::lock_guard<std::mutex> g(mutex_);
   for (const auto& transceiver : transceivers_) {
     try {
       transceiver->refresh();
