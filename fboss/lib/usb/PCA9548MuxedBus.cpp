@@ -19,17 +19,24 @@ void MuxChannel::select() {
 void QsfpMux::clear(bool force) {
   // factor in selected channel
   auto selected = mux_.selected();
-  if (!selected && force) {
-    // nothing is selected, but clear was called with
-    // force=true. Let's clear everything in this case.
+  if (force) {
+    // clear was called with force=true. Let's clear everything in
+    // this case.
     selected = 0b11111111;
-  } else if (!selected) {
+  }
+
+  if (!selected) {
     return;
   }
 
   for (uint8_t channel = 0; selected; selected >>= 1, ++channel) {
     if (selected % 2 == 1) {
-      pca9548_helpers::clearLayer(children(channel));
+      if (children(channel).size() > 0) {
+        if (!mux_.isSelected(channel)) {
+          select(channel);
+        }
+        pca9548_helpers::clearLayer(children(channel), force);
+      }
     }
   }
 
