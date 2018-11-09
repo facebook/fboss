@@ -5,11 +5,14 @@
 #include "fboss/lib/usb/Wedge100I2CBus.h"
 #include "fboss/lib/usb/GalaxyI2CBus.h"
 
+#include "fboss/qsfp_service/lib/QsfpClient.h"
+
 #include <folly/Conv.h>
 #include <folly/Exception.h>
 #include <folly/FileUtil.h>
 #include <folly/Memory.h>
 #include <folly/init/Init.h>
+#include <folly/io/async/EventBase.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 #include <chrono>
@@ -52,6 +55,8 @@ DEFINE_bool(cdr_enable, false, "Set the CDR bits if transceiver supports it");
 DEFINE_bool(cdr_disable, false,
     "Clear the CDR bits if transceiver supports it");
 DEFINE_int32(open_timeout, 30, "Number of seconds to wait to open bus");
+DEFINE_bool(direct_i2c, false,
+    "Read Transceiver info from i2c bus instead of qsfp_service");
 
 bool overrideLowPower(
     TransceiverI2CApi* bus,
@@ -147,6 +152,58 @@ bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   return true;
 }
 
+std::map<int32_t, RawDOMData> fetchDataFromQsfpService(
+    const std::vector<int32_t>& ports) {
+  folly::EventBase evb;
+  auto qsfpServiceClient = QsfpClient::createClient(&evb);
+  return std::move(qsfpServiceClient)
+      .thenValue([&ports](std::unique_ptr<QsfpServiceAsyncClient> client) {
+        auto options = QsfpClient::getRpcOptions();
+        return client->future_getTransceiverRawDOMData(
+            options, ports);
+      }).getVia(&evb);
+  }
+
+RawDOMData fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port) {
+  RawDOMData rawDOMData;
+
+  // Read the lower 128 bytes.
+  bus->moduleRead(
+      port, TransceiverI2CApi::ADDR_QSFP, 0,
+      128, rawDOMData.lower.writableData());
+
+  // Read page 0 from the upper 128 bytes.
+  // First see if we need to select page 0.
+  if ((rawDOMData.lower.data()[2] & (1 << 2)) == 0) {
+    uint8_t page0 = 0;
+    if (rawDOMData.lower.data()[127] != page0) {
+      bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP,
+                       127, 1, &page0);
+    }
+  }
+  bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 128,
+                  128, rawDOMData.page0.writableData());
+
+  // read page 3
+  uint8_t page3 = 0x3;
+  uint8_t page3_supported = 0;
+  bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page3);
+  bus->moduleRead(
+      port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page3_supported);
+  if (page3_supported == 0x3) {
+    // If the host attempts to write a page select value which is not
+    // supported in a particular module, the page select will revert to 00h
+    // (Ref SFF-8636 Rev 2.6, 6.2.11)
+    bus->moduleRead(
+        port, TransceiverI2CApi::ADDR_QSFP, 128,
+        128, rawDOMData.page3.writableData());
+    rawDOMData.__isset.page3 = true;
+  } else {
+    fprintf(stderr, "Page 3 is not supported in this module\n");
+  }
+  return rawDOMData;
+}
+
 void printPortSummary(TransceiverI2CApi*) {
   // TODO: Implement code for showing a summary of all ports.
   // At the moment I haven't tested this since my test switch has some
@@ -166,7 +223,7 @@ StringPiece sfpString(const uint8_t* buf, size_t offset, size_t len) {
 
 void printThresholds(
     const std::string& name,
-    uint8_t* data,
+    const uint8_t* data,
     std::function<double(uint16_t)> conversionCb) {
   std::array<std::array<uint8_t, 2>, 4> byteOffset{{
       {0, 1},
@@ -217,100 +274,75 @@ void printChannelMonitor(unsigned int index,
          index, rxPower, txPower, txBias);
 }
 
-void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
-  uint8_t buf[256]; // lower 128 bytes + page0(128 bytes)
-  uint8_t page3_buffer[256] = {0}; // lower 128 bytes + page3(128 bytes)
-  uint8_t page3_supported = 0;
-  try {
-    // Read the lower 128 bytes.
-    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 0, 128, buf);
+void printPortDetail(const RawDOMData& rawDOMData, unsigned int port) {
 
-    // Read page 0 from the upper 128 bytes.
-    // First see if we need to select page 0.
-    if ((buf[2] & (1 << 2)) == 0) {
-      uint8_t page0 = 0;
-      if (buf[127] != page0) {
-        bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP,
-                         127, 1, &page0);
-      }
-    }
-    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 128,
-                    128, buf + 128);
+  auto lowerBuf = rawDOMData.lower.data();
+  auto page0Buf = rawDOMData.page0.data();
 
-    // read page 3
-    uint8_t page3 = 0x3;
-    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page3);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    bus->moduleRead(
-        port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page3_supported);
-    if (page3_supported == 0x3) {
-      // If the host attempts to write a page select value which is not
-      // supported in a particular module, the page select will revert to 00h
-      // (Ref SFF-8636 Rev 2.6, 6.2.11)
-      bus->moduleRead(
-          port, TransceiverI2CApi::ADDR_QSFP, 128, 128, page3_buffer + 128);
-    } else {
-      fprintf(stderr, "Page 3 is not supported in this module\n");
-    }
-  } catch (const I2cError& ex) {
-    // This generally means the QSFP module is not present.
-    fprintf(stderr, "Port %d: not present\n", port);
+  // Temporarily we use the first byte in status to determine whether the port
+  // is missing or not. More explicit way can be done when we have the present
+  // field added in the rawDOMData and set on the server side.
+  if (lowerBuf[1] == 0) {
+    fprintf(stderr, "Port %d is not present.\n", port);
     return;
   }
 
   printf("Port %d\n", port);
-  printf("  ID: %#04x\n", buf[0]);
-  printf("  Status: 0x%02x 0x%02x\n", buf[1], buf[2]);
+  printf("  ID: %#04x\n", lowerBuf[0]);
+  printf("  Status: 0x%02x 0x%02x\n", lowerBuf[1], lowerBuf[2]);
 
   printf("  Interrupt Flags:\n");
-  printf("    LOS: 0x%02x\n", buf[3]);
-  printf("    Fault: 0x%02x\n", buf[4]);
-  printf("    Temp: 0x%02x\n", buf[6]);
-  printf("    Vcc: 0x%02x\n", buf[7]);
-  printf("    Rx Power: 0x%02x 0x%02x\n", buf[9], buf[10]);
-  printf("    Tx Power: 0x%02x 0x%02x\n", buf[13], buf[14]);
-  printf("    Tx Bias: 0x%02x 0x%02x\n", buf[11], buf[12]);
-  printf("    Reserved Set 4: 0x%02x 0x%02x\n", buf[15], buf[16]);
-  printf("    Reserved Set 5: 0x%02x 0x%02x\n", buf[17], buf[18]);
+  printf("    LOS: 0x%02x\n", lowerBuf[3]);
+  printf("    Fault: 0x%02x\n", lowerBuf[4]);
+  printf("    Temp: 0x%02x\n", lowerBuf[6]);
+  printf("    Vcc: 0x%02x\n", lowerBuf[7]);
+  printf("    Rx Power: 0x%02x 0x%02x\n", lowerBuf[9], lowerBuf[10]);
+  printf("    Tx Power: 0x%02x 0x%02x\n", lowerBuf[13], lowerBuf[14]);
+  printf("    Tx Bias: 0x%02x 0x%02x\n", lowerBuf[11], lowerBuf[12]);
+  printf("    Reserved Set 4: 0x%02x 0x%02x\n",
+          lowerBuf[15], lowerBuf[16]);
+  printf("    Reserved Set 5: 0x%02x 0x%02x\n",
+          lowerBuf[17], lowerBuf[18]);
   printf("    Vendor Defined: 0x%02x 0x%02x 0x%02x\n",
-         buf[19], buf[20], buf[21]);
+         lowerBuf[19], lowerBuf[20], lowerBuf[21]);
 
-  auto temp = static_cast<int8_t>(buf[22]) + (buf[23] / 256.0);
+  auto temp = static_cast<int8_t>
+              (lowerBuf[22]) + (lowerBuf[23] / 256.0);
   printf("  Temperature: %f C\n", temp);
-  uint16_t voltage = (buf[26] << 8) | buf[27];
+  uint16_t voltage = (lowerBuf[26] << 8) | lowerBuf[27];
   printf("  Supply Voltage: %f V\n", voltage / 10000.0);
 
   printf("  Channel Data:  %12s    %12s    %12s\n",
          "RX Power", "TX Power", "TX Bias");
-  printChannelMonitor(1, buf, 34, 35, 42, 43, 50, 51);
-  printChannelMonitor(2, buf, 36, 37, 44, 45, 52, 53);
-  printChannelMonitor(3, buf, 38, 39, 46, 47, 54, 55);
-  printChannelMonitor(4, buf, 40, 41, 48, 49, 56, 57);
+  printChannelMonitor(1, lowerBuf, 34, 35, 42, 43, 50, 51);
+  printChannelMonitor(2, lowerBuf, 36, 37, 44, 45, 52, 53);
+  printChannelMonitor(3, lowerBuf, 38, 39, 46, 47, 54, 55);
+  printChannelMonitor(4, lowerBuf, 40, 41, 48, 49, 56, 57);
   printf("    Power measurement is %s\n",
-         (buf[220] & 0x04) ? "supported" : "unsupported");
+         (page0Buf[92] & 0x04) ? "supported" : "unsupported");
   printf("    Reported RX Power is %s\n",
-         (buf[220] & 0x08) ? "average power" : "OMA");
+         (page0Buf[92] & 0x08) ? "average power" : "OMA");
 
   printf("  Power set:  0x%02x\tExtended ID:  0x%02x\t"
          "Ethernet Compliance:  0x%02x\n",
-         buf[93], buf[129], buf[131]);
-  printf("  TX disable bits: 0x%02x\n", buf[86]);
+         lowerBuf[93], page0Buf[1], page0Buf[3]);
+  printf("  TX disable bits: 0x%02x\n", lowerBuf[86]);
   printf("  Rate select is %s\n",
-      (buf[221] & 0x0c) ? "supported" : "unsupported");
-  printf("  RX rate select bits: 0x%02x\n", buf[87]);
-  printf("  TX rate select bits: 0x%02x\n", buf[88]);
+      (page0Buf[93] & 0x0c) ? "supported" : "unsupported");
+  printf("  RX rate select bits: 0x%02x\n", lowerBuf[87]);
+  printf("  TX rate select bits: 0x%02x\n", lowerBuf[88]);
   printf("  CDR support:  TX: %s\tRX: %s\n",
-      (buf[129] & (1 << 3)) ? "supported" : "unsupported",
-      (buf[129] & (1 << 2)) ? "supported" : "unsupported");
-  printf("  CDR bits: 0x%02x\n", buf[98]);
+      (page0Buf[1] & (1 << 3)) ? "supported" : "unsupported",
+      (page0Buf[1] & (1 << 2)) ? "supported" : "unsupported");
+  printf("  CDR bits: 0x%02x\n", lowerBuf[98]);
 
-  auto vendor = sfpString(buf, 148, 16);
-  auto vendorPN = sfpString(buf, 168, 16);
-  auto vendorRev = sfpString(buf, 184, 2);
-  auto vendorSN = sfpString(buf, 196, 16);
-  auto vendorDate = sfpString(buf, 212, 8);
+  auto vendor = sfpString(page0Buf, 20, 16);
+  auto vendorPN = sfpString(page0Buf, 40, 16);
+  auto vendorRev = sfpString(page0Buf, 56, 2);
+  auto vendorSN = sfpString(page0Buf, 68, 16);
+  auto vendorDate = sfpString(page0Buf, 84, 8);
 
-  int gauge = buf[237];
+  int gauge = page0Buf[109];
   auto cableGauge = gauge;
   if (gauge == eePromDefault && gauge > maxGauge) {
     // gauge implemented as hexadecimal (why?). Convert to decimal
@@ -319,68 +351,72 @@ void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
     cableGauge = 0;
   }
 
-  printf("  Connector: 0x%02x\n", buf[130]);
+  printf("  Connector: 0x%02x\n", page0Buf[2]);
   printf("  Spec compliance: "
          "0x%02x 0x%02x 0x%02x 0x%02x"
          "0x%02x 0x%02x 0x%02x 0x%02x\n",
-         buf[131], buf[132], buf[133], buf[134],
-         buf[135], buf[136], buf[137], buf[138]);
-  printf("  Encoding: 0x%02x\n", buf[139]);
-  printf("  Nominal Bit Rate: %d MBps\n", buf[140] * 100);
-  printf("  Ext rate select compliance: 0x%02x\n", buf[141]);
-  printf("  Length (SMF): %d km\n", buf[142]);
-  printf("  Length (OM3): %d m\n", buf[143] * 2);
-  printf("  Length (OM2): %d m\n", buf[144]);
-  printf("  Length (OM1): %d m\n", buf[145]);
-  printf("  Length (Copper): %d m\n", buf[146]);
-  if (buf[236] != eePromDefault) {
-    auto fractional = buf[236] * .1;
-    auto effective = fractional >= 1 ? fractional : buf[146];
+         page0Buf[3], page0Buf[4], page0Buf[5], page0Buf[6],
+         page0Buf[7], page0Buf[8], page0Buf[9], page0Buf[10]);
+  printf("  Encoding: 0x%02x\n", page0Buf[11]);
+  printf("  Nominal Bit Rate: %d MBps\n", page0Buf[12] * 100);
+  printf("  Ext rate select compliance: 0x%02x\n", page0Buf[13]);
+  printf("  Length (SMF): %d km\n", page0Buf[14]);
+  printf("  Length (OM3): %d m\n", page0Buf[15] * 2);
+  printf("  Length (OM2): %d m\n", page0Buf[16]);
+  printf("  Length (OM1): %d m\n", page0Buf[17]);
+  printf("  Length (Copper): %d m\n", page0Buf[18]);
+  if (page0Buf[108] != eePromDefault) {
+    auto fractional = page0Buf[108] * .1;
+    auto effective = fractional >= 1 ? fractional : page0Buf[18];
     printf("  Length (Copper dM): %.1f m\n", fractional);
     printf("  Length (Copper effective): %.1f m\n", effective);
   }
   if (cableGauge > 0){
     printf("  DAC Cable Gauge: %d\n", cableGauge);
   }
-  printf("  Device Tech: 0x%02x\n", buf[147]);
-  printf("  Ext Module: 0x%02x\n", buf[164]);
-  printf("  Wavelength tolerance: 0x%02x 0x%02x\n", buf[188], buf[189]);
-  printf("  Max case temp: %dC\n", buf[190]);
-  printf("  CC_BASE: 0x%02x\n", buf[191]);
+  printf("  Device Tech: 0x%02x\n", page0Buf[19]);
+  printf("  Ext Module: 0x%02x\n", page0Buf[36]);
+  printf("  Wavelength tolerance: 0x%02x 0x%02x\n",
+         page0Buf[60], page0Buf[61]);
+  printf("  Max case temp: %dC\n", page0Buf[62]);
+  printf("  CC_BASE: 0x%02x\n", page0Buf[63]);
   printf("  Options: 0x%02x 0x%02x 0x%02x 0x%02x\n",
-         buf[192], buf[193], buf[194], buf[195]);
-  printf("  DOM Type: 0x%02x\n", buf[220]);
-  printf("  Enhanced Options: 0x%02x\n", buf[221]);
-  printf("  Reserved: 0x%02x\n", buf[222]);
-  printf("  CC_EXT: 0x%02x\n", buf[223]);
+         page0Buf[64], page0Buf[65],
+         page0Buf[66], page0Buf[67]);
+  printf("  DOM Type: 0x%02x\n", page0Buf[92]);
+  printf("  Enhanced Options: 0x%02x\n", page0Buf[93]);
+  printf("  Reserved: 0x%02x\n", page0Buf[94]);
+  printf("  CC_EXT: 0x%02x\n", page0Buf[95]);
   printf("  Vendor Specific:\n");
   printf("    %02x %02x %02x %02x %02x %02x %02x %02x"
          "  %02x %02x %02x %02x %02x %02x %02x %02x\n",
-         buf[224], buf[225], buf[226], buf[227],
-         buf[228], buf[229], buf[230], buf[231],
-         buf[232], buf[233], buf[234], buf[235],
-         buf[236], buf[237], buf[238], buf[239]);
+         page0Buf[96], page0Buf[97], page0Buf[98], page0Buf[99],
+         page0Buf[100], page0Buf[101], page0Buf[102], page0Buf[103],
+         page0Buf[104], page0Buf[105], page0Buf[106], page0Buf[107],
+         page0Buf[108], page0Buf[109], page0Buf[110], page0Buf[111]);
   printf("    %02x %02x %02x %02x %02x %02x %02x %02x"
          "  %02x %02x %02x %02x %02x %02x %02x %02x\n",
-         buf[240], buf[241], buf[242], buf[243],
-         buf[244], buf[245], buf[246], buf[247],
-         buf[248], buf[249], buf[250], buf[251],
-         buf[252], buf[253], buf[254], buf[255]);
+         page0Buf[112], page0Buf[113], page0Buf[114], page0Buf[115],
+         page0Buf[116], page0Buf[117], page0Buf[118], page0Buf[119],
+         page0Buf[120], page0Buf[121], page0Buf[122], page0Buf[123],
+         page0Buf[124], page0Buf[125], page0Buf[126], page0Buf[127]);
 
   printf("  Vendor: %s\n", vendor.str().c_str());
-  printf("  Vendor OUI: %02x:%02x:%02x\n",
-         buf[165 - 128], buf[166 - 128], buf[167 - 128]);
+  printf("  Vendor OUI: %02x:%02x:%02x\n", lowerBuf[165 - 128],
+          lowerBuf[166 - 128], lowerBuf[167 - 128]);
   printf("  Vendor PN: %s\n", vendorPN.str().c_str());
   printf("  Vendor Rev: %s\n", vendorRev.str().c_str());
   printf("  Vendor SN: %s\n", vendorSN.str().c_str());
   printf("  Date Code: %s\n", vendorDate.str().c_str());
 
   // print page3 values
-  if (page3_supported != 0x3) {
+  if (!rawDOMData.__isset.page3) {
     return;
   }
 
-  printThresholds("Temp", &page3_buffer[128], [](const uint16_t u16_temp) {
+  auto page3Buf = rawDOMData.page3.data();
+
+  printThresholds("Temp", &page3Buf[0], [](const uint16_t u16_temp) {
     double data;
     data = u16_temp / 256.0;
     if (data > 128) {
@@ -389,19 +425,19 @@ void printPortDetail(TransceiverI2CApi* bus, unsigned int port) {
     return data;
   });
 
-  printThresholds("Vcc", &page3_buffer[144], [](const uint16_t u16_vcc) {
+  printThresholds("Vcc", &page3Buf[16], [](const uint16_t u16_vcc) {
     double data;
     data = u16_vcc / 10000.0;
     return data;
   });
 
-  printThresholds("Rx Power", &page3_buffer[176], [](const uint16_t u16_rxpwr) {
+  printThresholds("Rx Power", &page3Buf[48], [](const uint16_t u16_rxpwr) {
     double data;
     data = u16_rxpwr * 0.1 / 1000;
     return data;
   });
 
-  printThresholds("Tx Bias", &page3_buffer[184], [](const uint16_t u16_txbias) {
+  printThresholds("Tx Bias", &page3Buf[56], [](const uint16_t u16_txbias) {
     double data;
     data = u16_txbias * 2.0 / 1000;
     return data;
@@ -479,11 +515,30 @@ int main(int argc, char* argv[]) {
   }
   auto bus = std::move(busAndError.first);
 
-  try {
-    tryOpenBus(bus.get());
-  } catch (const std::exception& ex) {
-      fprintf(stderr, "error: unable to open device: %s\n", ex.what());
-      return EX_IOERR;
+  bool printInfo = !(FLAGS_clear_low_power || FLAGS_tx_disable ||
+                     FLAGS_tx_enable || FLAGS_set_100g || FLAGS_set_40g ||
+                     FLAGS_cdr_enable || FLAGS_cdr_disable ||
+                     FLAGS_set_low_power);
+
+  if (FLAGS_direct_i2c || !printInfo) {
+    try {
+      tryOpenBus(bus.get());
+    } catch (const std::exception& ex) {
+        fprintf(stderr, "error: unable to open device: %s\n", ex.what());
+        return EX_IOERR;
+    }
+  } else {
+    try {
+      std::vector<int32_t> idx(ports.begin(), ports.end());
+      auto rawDOMData = fetchDataFromQsfpService(idx);
+      for (auto& kv : rawDOMData) {
+        printPortDetail(kv.second, kv.first);
+      }
+      return EX_OK;
+    } catch (const std::exception& e) {
+      fprintf(stderr, "Exception talking to qsfp_service: %s\n", e.what());
+      return EX_SOFTWARE;
+    }
   }
 
   if (ports.empty()) {
@@ -496,10 +551,6 @@ int main(int argc, char* argv[]) {
     return EX_OK;
   }
 
-  bool printInfo = !(FLAGS_clear_low_power || FLAGS_tx_disable ||
-                     FLAGS_tx_enable || FLAGS_set_100g || FLAGS_set_40g ||
-                     FLAGS_cdr_enable || FLAGS_cdr_disable ||
-                     FLAGS_set_low_power);
   int retcode = EX_OK;
   for (unsigned int portNum : ports) {
     if (FLAGS_clear_low_power && overrideLowPower(bus.get(), portNum, 0x5)) {
@@ -530,9 +581,13 @@ int main(int argc, char* argv[]) {
       printf("QSFP %d: CDR disabled\n", portNum);
     }
 
-    if (printInfo) {
+    if (FLAGS_direct_i2c && printInfo) {
       try {
-        printPortDetail(bus.get(), portNum);
+        printPortDetail(fetchDataFromLocalI2CBus(bus.get(), portNum), portNum);
+      } catch (const I2cError& ex) {
+        // This generally means the QSFP module is not present.
+        fprintf(stderr, "Port %d: not present\n", portNum);
+        retcode = EX_SOFTWARE;
       } catch (const std::exception& ex) {
         fprintf(stderr, "error parsing QSFP data %u: %s\n", portNum, ex.what());
         retcode = EX_SOFTWARE;
