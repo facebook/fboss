@@ -32,6 +32,8 @@ class WedgeI2CBusLock : public TransceiverI2CApi {
   void read(uint8_t i2cAddress, int offset, int len, uint8_t* buf);
   void write(uint8_t i2cAddress, int offset, int len, const uint8_t* buf);
 
+  void verifyBus(bool autoReset);
+
  private:
   // Forbidden copy constructor and assignment operator
   WedgeI2CBusLock(WedgeI2CBusLock const &) = delete;

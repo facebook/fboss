@@ -42,6 +42,8 @@ class TransceiverI2CApi {
   virtual void moduleWrite(unsigned int module, uint8_t i2cAddress,
                            int offset, int len, const uint8_t* buf) = 0;
 
+  virtual void verifyBus(bool autoReset) = 0;
+
   virtual bool isPresent(unsigned int module) {
     uint8_t buf = 0;
     try {

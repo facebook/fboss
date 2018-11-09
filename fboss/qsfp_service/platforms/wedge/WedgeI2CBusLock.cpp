@@ -41,6 +41,11 @@ void WedgeI2CBusLock::close() {
   closeLocked();
 }
 
+void WedgeI2CBusLock::verifyBus(bool autoReset) {
+  BusGuard g(this);
+  wedgeI2CBus_->verifyBus(autoReset);
+}
+
 void WedgeI2CBusLock::moduleRead(unsigned int module, uint8_t address,
                              int offset, int len, uint8_t *buf) {
   BusGuard g(this);

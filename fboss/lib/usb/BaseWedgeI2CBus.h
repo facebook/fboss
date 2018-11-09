@@ -51,7 +51,6 @@ class BaseWedgeI2CBus : public TransceiverI2CApi {
   };
 
   virtual void initBus() = 0;
-  virtual void verifyBus(bool autoReset = true) = 0;
   virtual void selectQsfpImpl(unsigned int module) = 0;
 
   std::unique_ptr<CP2112Intf> dev_;

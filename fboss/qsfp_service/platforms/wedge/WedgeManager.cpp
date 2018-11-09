@@ -120,6 +120,9 @@ void WedgeManager::syncPorts(
 
 void WedgeManager::refreshTransceivers() {
   std::lock_guard<std::mutex> g(mutex_);
+
+  wedgeI2cBus_->verifyBus(false);
+
   for (const auto& transceiver : transceivers_) {
     try {
       transceiver->refresh();

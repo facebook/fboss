@@ -20,7 +20,7 @@ void BaseWedgeI2CBus::open() {
   dev_->open();
 
   selectedPort_ = NO_PORT;
-  verifyBus();
+  verifyBus(true);
   initBus();
 
   VLOG(4) << "successfully opened wedge CP2112 I2C bus";
@@ -79,6 +79,9 @@ void BaseWedgeI2CBus::moduleRead(unsigned int module, uint8_t address,
   CHECK_NE(selectedPort_, NO_PORT);
 
   read(address, offset, len, buf);
+
+  // TODO: remove this after we ensure exclusive access to cp2112 chip
+  unselectQsfp();
 }
 
 void BaseWedgeI2CBus::moduleWrite(unsigned int module, uint8_t address,
@@ -87,6 +90,9 @@ void BaseWedgeI2CBus::moduleWrite(unsigned int module, uint8_t address,
   CHECK_NE(selectedPort_, NO_PORT);
 
   write(address, offset, len, buf);
+
+  // TODO: remove this after we ensure exclusive access to cp2112 chip
+  unselectQsfp();
 }
 
 void BaseWedgeI2CBus::selectQsfp(unsigned int port) {

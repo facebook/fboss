@@ -103,6 +103,13 @@ class PCA9548MuxedBus : public BaseWedgeI2CBus {
     return NUM_PORTS;
   }
 
+  void verifyBus(bool /* autoReset */) override {
+    // Hacky bus verification for now that removes any assumptions
+    // about what the currently selected path is. We should probably
+    // extend this to do more bus health checking in the future.
+    selectedPort_ = NO_PORT;
+  }
+
  protected:
   using PortLeaves = std::array<MuxChannel, NUM_PORTS>;
 
@@ -122,16 +129,11 @@ class PCA9548MuxedBus : public BaseWedgeI2CBus {
     }
   }
 
-  MuxLayer roots_;
-
- protected:
   void initBus() override {
     roots_ = createMuxes();
     wireUpPorts(leaves_);
     ensureNothingSelected();
   }
-
-  void verifyBus(bool /* autoReset */ = true) override {}
 
   void selectQsfpImpl(unsigned int port) override {
     VLOG(5) << "setting port to " << port << " from " << selectedPort_;
@@ -156,6 +158,8 @@ class PCA9548MuxedBus : public BaseWedgeI2CBus {
 
     selectedPort_ = port;
   }
+
+  MuxLayer roots_;
 
  private:
   void changePath(Path existingPath, Path newPath) {
