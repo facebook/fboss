@@ -82,11 +82,16 @@ bool setCdr(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   // Check if CDR is supported
   uint8_t supported[1];
   try {
+    // ensure we have page0 selected
+    uint8_t page0 = 0;
+    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP,
+                     127, 1, &page0);
+
     bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 129,
                       1, supported);
   } catch (const I2cError& ex) {
-    fprintf(stderr, "Port %d: Unable to determine whether CDR supported\n",
-        port);
+    fprintf(stderr, "Port %d: Unable to determine whether CDR supported: %s\n",
+            port, ex.what());
     return false;
   }
   // If 2nd and 3rd bits are set, CDR is supported.
@@ -113,6 +118,11 @@ bool rateSelect(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   // 0b00 - 10G channels
   uint8_t version[1];
   try {
+    // ensure we have page0 selected
+    uint8_t page0 = 0;
+    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP,
+                     127, 1, &page0);
+
     bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 141,
                       1, version);
   } catch (const I2cError& ex) {
