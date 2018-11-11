@@ -176,15 +176,18 @@ std::map<int32_t, RawDOMData> fetchDataFromQsfpService(
 
 RawDOMData fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port) {
   RawDOMData rawDOMData;
+  rawDOMData.lower = IOBuf(IOBuf::CREATE, 128);
+  rawDOMData.page0 = IOBuf(IOBuf::CREATE, 128);
 
   // Read the lower 128 bytes.
-  bus->moduleRead(
-      port, TransceiverI2CApi::ADDR_QSFP, 0,
-      128, rawDOMData.lower.writableData());
+  bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 0,
+    128, rawDOMData.lower.writableData());
+
+  uint8_t flatMem = rawDOMData.lower.data()[2] & (1 << 2);
 
   // Read page 0 from the upper 128 bytes.
   // First see if we need to select page 0.
-  if ((rawDOMData.lower.data()[2] & (1 << 2)) == 0) {
+  if (!flatMem) {
     uint8_t page0 = 0;
     if (rawDOMData.lower.data()[127] != page0) {
       bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP,
@@ -192,24 +195,18 @@ RawDOMData fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port) {
     }
   }
   bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 128,
-                  128, rawDOMData.page0.writableData());
+    128, rawDOMData.page0.writableData());
 
-  // read page 3
-  uint8_t page3 = 0x3;
-  uint8_t page3_supported = 0;
-  bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page3);
-  bus->moduleRead(
-      port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page3_supported);
-  if (page3_supported == 0x3) {
-    // If the host attempts to write a page select value which is not
-    // supported in a particular module, the page select will revert to 00h
-    // (Ref SFF-8636 Rev 2.6, 6.2.11)
-    bus->moduleRead(
-        port, TransceiverI2CApi::ADDR_QSFP, 128,
-        128, rawDOMData.page3.writableData());
+  // Make sure page3 exist
+  if (!flatMem) {
+    rawDOMData.page3 = IOBuf(IOBuf::CREATE, 128);
+    uint8_t page3 = 0x3;
+    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page3);
+
+    // read page 3
+    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 128,
+      128, rawDOMData.page3.writableData());
     rawDOMData.__isset.page3 = true;
-  } else {
-    fprintf(stderr, "Page 3 is not supported in this module\n");
   }
   return rawDOMData;
 }
@@ -539,10 +536,15 @@ int main(int argc, char* argv[]) {
     }
   } else {
     try {
-      std::vector<int32_t> idx(ports.begin(), ports.end());
+      std::vector<int32_t> idx;
+      for(auto i : ports) {
+        // Direct I2C bus starts from 1 instead of 0, however qsfp_service index
+        // starts from 0. So here we try to comply to match that behavior.
+        idx.push_back(i-1);
+      }
       auto rawDOMData = fetchDataFromQsfpService(idx);
       for (auto& kv : rawDOMData) {
-        printPortDetail(kv.second, kv.first);
+        printPortDetail(kv.second, kv.first+1);
       }
       return EX_OK;
     } catch (const std::exception& e) {
@@ -596,7 +598,7 @@ int main(int argc, char* argv[]) {
         printPortDetail(fetchDataFromLocalI2CBus(bus.get(), portNum), portNum);
       } catch (const I2cError& ex) {
         // This generally means the QSFP module is not present.
-        fprintf(stderr, "Port %d: not present\n", portNum);
+        fprintf(stderr, "Port %d: not present: %s\n", portNum, ex.what());
         retcode = EX_SOFTWARE;
       } catch (const std::exception& ex) {
         fprintf(stderr, "error parsing QSFP data %u: %s\n", portNum, ex.what());
