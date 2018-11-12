@@ -10,11 +10,25 @@
 #include "RouteNextHopEntry.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+
+#include <vector>
 
 namespace {
 constexpr auto kNexthops = "nexthops";
 constexpr auto kAction = "action";
 constexpr auto kAdminDistance = "adminDistance";
+
+std::vector<facebook::fboss::NextHopThrift> thriftNextHopsFromAddresses(
+    const std::vector<facebook::network::thrift::BinaryAddress>& addrs) {
+  std::vector<facebook::fboss::NextHopThrift> nhs;
+  nhs.reserve(addrs.size());
+  for (const auto& addr : addrs) {
+    nhs.emplace_back(apache::thrift::FRAGILE, addr, 0);
+  }
+  return nhs;
+}
+
 } // namespace
 
 namespace facebook {
@@ -149,6 +163,26 @@ RouteNextHopEntry RouteNextHopEntry::fromFollyDynamic(
     entry.nhopSet_.insert(util::nextHopFromFollyDynamic(nhop));
   }
   return entry;
+}
+
+RouteNextHopEntry RouteNextHopEntry::from(
+    const UnicastRoute& route,
+    AdminDistance defaultAdminDistance) {
+  std::vector<NextHopThrift> nhts;
+  if (route.nextHops.empty() && !route.nextHopAddrs.empty()) {
+    nhts = thriftNextHopsFromAddresses(route.nextHopAddrs);
+  } else {
+    nhts = route.nextHops;
+  }
+
+  RouteNextHopSet nexthops = util::toRouteNextHopSet(nhts);
+
+  auto adminDistance =
+      route.__isset.adminDistance ? route.adminDistance : defaultAdminDistance;
+
+  return nexthops.size()
+      ? RouteNextHopEntry(std::move(nexthops), adminDistance)
+      : RouteNextHopEntry(RouteForwardAction::DROP, adminDistance);
 }
 
 } // namespace fboss

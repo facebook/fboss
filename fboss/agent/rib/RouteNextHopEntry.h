@@ -21,6 +21,8 @@
 namespace facebook {
 namespace fboss {
 
+class UnicastRoute;
+
 class RouteNextHopEntry {
  public:
   using Action = RouteForwardAction;
@@ -81,6 +83,10 @@ class RouteNextHopEntry {
     nhopSet_.clear();
     action_ = Action::DROP;
   }
+
+  static RouteNextHopEntry from(
+      const UnicastRoute& route,
+      AdminDistance defaultAdminDistance);
 
  private:
   AdminDistance adminDistance_;

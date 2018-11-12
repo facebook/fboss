@@ -1334,7 +1334,6 @@ TEST(Route, serializeRouteTable) {
   EXPECT_ROUTES_MATCH(origV6Routes, newV6Routes.get());
 }
 
-// TODO(samank):
 // Test utility functions for converting RouteNextHopSet to thrift and back
 TEST(RouteTypes, toFromRouteNextHops) {
   RouteNextHopSet nhs;
