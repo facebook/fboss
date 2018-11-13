@@ -27,5 +27,20 @@ bool BcmHwTableStatManager::refreshFPStats(BcmHwTableStats*) {
   return false;
 }
 
+void BcmHwTableStatManager::updateBcmStateChangeStats(
+    facebook::fboss::StateDelta const&,
+    facebook::fboss::BcmHwTableStats*) {}
+
+void BcmHwTableStatManager::decrementBcmMirrorStat(
+    const std::shared_ptr<Mirror>& /*removedMirror*/,
+    BcmHwTableStats* /*stats*/) {}
+void BcmHwTableStatManager::incrementBcmMirrorStat(
+    const std::shared_ptr<Mirror>& /*addedMirror*/,
+    BcmHwTableStats* /*stats*/) {}
+
 void BcmHwTableStatManager::publish(BcmHwTableStats) const {}
+
+void BcmHwTableStatManager::refresh(
+    const StateDelta& /*delta*/,
+    BcmHwTableStats* /*stats*/) {}
 }}

@@ -34,8 +34,8 @@ void BcmStatUpdater::toBeRemovedAclStat(BcmAclStatHandle handle) {
   toBeRemovedAclStats_.emplace(handle);
 }
 
-void BcmStatUpdater::refresh() {
-  refreshHwTableStats();
+void BcmStatUpdater::refreshPostBcmStateChange(const StateDelta& delta) {
+  refreshHwTableStats(delta);
   refreshAclStats();
 }
 
@@ -83,9 +83,9 @@ void BcmStatUpdater::clearPortStats(
   }
 }
 
-void BcmStatUpdater::refreshHwTableStats() {
+void BcmStatUpdater::refreshHwTableStats(const StateDelta& delta) {
   auto stats = tableStats_.wlock();
-  bcmTableStatsManager_->refresh(&(*stats));
+  bcmTableStatsManager_->refresh(delta, &(*stats));
 }
 
 void BcmStatUpdater::refreshAclStats() {

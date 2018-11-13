@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/hw/bcm/gen-cpp2/bcmswitch_types.h"
+#include "fboss/agent/state/StateDelta.h"
 
 namespace facebook { namespace fboss {
 
@@ -21,14 +22,8 @@ class BcmHwTableStatManager {
       const BcmSwitch* hw,
       bool isAlpmEnabled = false)
       : hw_(hw), isAlpmEnabled_(isAlpmEnabled) {}
-  void refresh(BcmHwTableStats* stats) {
-    stats->hw_table_stats_stale =
-        !(refreshHwStatusStats(stats) && refreshLPMStats(stats) &&
-          refreshFPStats(stats));
-    if (!isAlpmEnabled_) {
-      stats->hw_table_stats_stale |= !(refreshLPMOnlyStats(stats));
-    }
-  }
+
+  void refresh(const StateDelta& delta, BcmHwTableStats* stats);
   void publish(BcmHwTableStats stats) const;
 
  private:
@@ -39,6 +34,18 @@ class BcmHwTableStatManager {
   bool refreshLPMOnlyStats(BcmHwTableStats* stats);
   // Stats pertaining to FP
   bool refreshFPStats(BcmHwTableStats* stats);
+
+  void updateBcmStateChangeStats(
+      const StateDelta& delta,
+      BcmHwTableStats* stats);
+
+  void decrementBcmMirrorStat(
+      const std::shared_ptr<Mirror>& removedMirror,
+      BcmHwTableStats* stats);
+  void incrementBcmMirrorStat(
+      const std::shared_ptr<Mirror>& addedMirror,
+      BcmHwTableStats* stats);
+
   const BcmSwitch* hw_{nullptr};
 
   BcmHwTableStats stats_;

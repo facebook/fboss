@@ -748,7 +748,7 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   // ingressVlan and speed correctly before enabling.
   processEnabledPorts(delta);
 
-  bcmStatUpdater_->refresh();
+  bcmStatUpdater_->refreshPostBcmStateChange(delta);
 
   return appliedState;
 }

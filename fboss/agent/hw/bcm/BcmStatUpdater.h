@@ -23,6 +23,7 @@ namespace facebook { namespace fboss {
 using facebook::stats::MonotonicCounter;
 
 class BcmSwitch;
+class StateDelta;
 
 class BcmStatUpdater {
  public:
@@ -52,7 +53,7 @@ class BcmStatUpdater {
   /* Functions to be called during state update */
   void toBeAddedAclStat(BcmAclStatHandle handle, const std::string& name);
   void toBeRemovedAclStat(BcmAclStatHandle handle);
-  void refresh();
+  void refreshPostBcmStateChange(const StateDelta& delta);
 
   /* Functions to be called during stats collection (UpdateStatsThread) */
   void updateStats();
@@ -69,7 +70,7 @@ class BcmStatUpdater {
 
   void updateAclStats();
   void updateHwTableStats();
-  void refreshHwTableStats();
+  void refreshHwTableStats(const StateDelta& delta);
   void refreshAclStats();
 
   BcmSwitch* hw_;
