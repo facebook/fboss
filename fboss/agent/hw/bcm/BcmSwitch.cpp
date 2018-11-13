@@ -168,7 +168,6 @@ BcmSwitch::BcmSwitch(
       hostTable_(new BcmHostTable(this)),
       routeTable_(new BcmRouteTable(this)),
       aclTable_(new BcmAclTable(this)),
-      bcmTableStats_(new BcmTableStats(this, isAlpmEnabled())),
       bufferStatsLogger_(createBufferStatsLogger()),
       trunkTable_(new BcmTrunkTable(this)),
       sFlowExporterTable_(new BcmSflowExporterTable()),
@@ -206,7 +205,6 @@ void BcmSwitch::resetTablesImpl(std::unique_lock<std::mutex>& /*lock*/) {
   portTable_.reset();
   aclTable_->releaseAcls();
   aclTable_.reset();
-  bcmTableStats_.reset();
   trunkTable_.reset();
   controlPlane_.reset();
   coppAclEntries_.clear();
@@ -241,13 +239,12 @@ void BcmSwitch::resetTables() {
 
 void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   std::lock_guard<std::mutex> g(lock_);
-  bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(unit_);
+  bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(this, isAlpmEnabled());
   portTable_ = std::make_unique<BcmPortTable>(this);
   intfTable_ = std::make_unique<BcmIntfTable>(this);
   hostTable_ = std::make_unique<BcmHostTable>(this);
   routeTable_ = std::make_unique<BcmRouteTable>(this);
   aclTable_ = std::make_unique<BcmAclTable>(this);
-  bcmTableStats_ = std::make_unique<BcmTableStats>(this, isAlpmEnabled());
   trunkTable_ = std::make_unique<BcmTrunkTable>(this);
   sFlowExporterTable_ = std::make_unique<BcmSflowExporterTable>();
   controlPlane_ = std::make_unique<BcmControlPlane>(this);
@@ -458,7 +455,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
       unit_, OPENNSL_SWITCH_EVENT_PARITY_ERROR, nonFatalCob);
 
   // Create bcmStatUpdater to cache the stat ids
-  bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(unit_);
+  bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(this, isAlpmEnabled());
 
   // Additional switch configuration
   auto state = make_shared<SwitchState>();
@@ -751,7 +748,6 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   // ingressVlan and speed correctly before enabling.
   processEnabledPorts(delta);
 
-  bcmTableStats_->refresh();
   bcmStatUpdater_->refresh();
 
   return appliedState;
@@ -1568,7 +1564,6 @@ void BcmSwitch::updateThreadLocalPortStats(
 void BcmSwitch::updateGlobalStats() {
   portTable_->updatePortStats();
   trunkTable_->updateStats();
-  bcmTableStats_->publish();
   bcmStatUpdater_->updateStats();
   if (isBufferStatCollectionEnabled()) {
     exportDeviceBufferUsage();

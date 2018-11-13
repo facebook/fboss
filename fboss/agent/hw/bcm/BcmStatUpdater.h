@@ -9,9 +9,10 @@
  */
 #pragma once
 
-#include "fboss/agent/types.h"
-#include "fboss/agent/hw/bcm/types.h"
 #include "common/stats/MonotonicCounter.h"
+#include "fboss/agent/hw/bcm/BcmTableStats.h"
+#include "fboss/agent/hw/bcm/types.h"
+#include "fboss/agent/types.h"
 
 #include <queue>
 #include <folly/Synchronized.h>
@@ -25,7 +26,7 @@ class BcmSwitch;
 
 class BcmStatUpdater {
  public:
-  explicit BcmStatUpdater(int unit);
+  explicit BcmStatUpdater(BcmSwitch* hw, bool isAlpmEnabled);
   ~BcmStatUpdater() {}
 
   /* Thread safety:
@@ -58,17 +59,28 @@ class BcmStatUpdater {
 
   void clearPortStats(const std::unique_ptr<std::vector<int32_t>>& ports);
 
+  BcmHwTableStats getHwTableStats() {
+    return *tableStats_.rlock();
+  }
+
  private:
   void updateAclStat(int unit, BcmAclStatHandle handle,
     std::chrono::seconds now, MonotonicCounter* counter);
 
-  int unit_;
+  void updateAclStats();
+  void updateHwTableStats();
+  void refreshHwTableStats();
+  void refreshAclStats();
+
+  BcmSwitch* hw_;
+  std::unique_ptr<BcmHwTableStatManager> bcmTableStatsManager_;
 
   /* ACL stats */
   std::queue<BcmAclStatHandle> toBeRemovedAclStats_;
   std::queue<std::pair<BcmAclStatHandle, std::string>> toBeAddedAclStats_;
   folly::Synchronized<boost::container::flat_map<BcmAclStatHandle,
     std::unique_ptr<MonotonicCounter>>> aclStats_;
+  folly::Synchronized<BcmHwTableStats> tableStats_;
 };
 
 }} // facebook::fboss

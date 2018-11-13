@@ -11,21 +11,21 @@
 
 namespace facebook { namespace fboss {
 
-bool BcmTableStats::refreshLPMOnlyStats() {
+bool BcmHwTableStatManager::refreshLPMOnlyStats(BcmHwTableStats*) {
   return false;
 }
 
-bool BcmTableStats::refreshHwStatusStats() {
+bool BcmHwTableStatManager::refreshHwStatusStats(BcmHwTableStats*) {
   return false;
 }
 
-bool BcmTableStats::refreshLPMStats() {
+bool BcmHwTableStatManager::refreshLPMStats(BcmHwTableStats*) {
   return false;
 }
 
-bool BcmTableStats::refreshFPStats() {
+bool BcmHwTableStatManager::refreshFPStats(BcmHwTableStats*) {
   return false;
 }
 
-void BcmTableStats::publish() const {}
+void BcmHwTableStatManager::publish(BcmHwTableStats) const {}
 }}

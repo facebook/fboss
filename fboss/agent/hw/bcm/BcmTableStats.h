@@ -15,27 +15,30 @@ namespace facebook { namespace fboss {
 
 class BcmSwitch;
 
-class BcmTableStats {
+class BcmHwTableStatManager {
  public:
-  explicit BcmTableStats(const BcmSwitch* hw, bool isAlpmEnabled=false) : hw_(hw),
-    isAlpmEnabled_(isAlpmEnabled) {}
-  void refresh() {
-    stats_.hw_table_stats_stale =
-        !(refreshHwStatusStats() && refreshLPMStats() && refreshFPStats());
+  explicit BcmHwTableStatManager(
+      const BcmSwitch* hw,
+      bool isAlpmEnabled = false)
+      : hw_(hw), isAlpmEnabled_(isAlpmEnabled) {}
+  void refresh(BcmHwTableStats* stats) {
+    stats->hw_table_stats_stale =
+        !(refreshHwStatusStats(stats) && refreshLPMStats(stats) &&
+          refreshFPStats(stats));
     if (!isAlpmEnabled_) {
-      stats_.hw_table_stats_stale |= !(refreshLPMOnlyStats());
+      stats->hw_table_stats_stale |= !(refreshLPMOnlyStats(stats));
     }
   }
-  void publish() const;
+  void publish(BcmHwTableStats stats) const;
 
  private:
-  bool refreshHwStatusStats();
+  bool refreshHwStatusStats(BcmHwTableStats* stats);
   // Stats for both LPM and ALPM mode
-  bool refreshLPMStats();
+  bool refreshLPMStats(BcmHwTableStats* stats);
   // Stats only supported in LPM mode
-  bool refreshLPMOnlyStats();
+  bool refreshLPMOnlyStats(BcmHwTableStats* stats);
   // Stats pertaining to FP
-  bool refreshFPStats();
+  bool refreshFPStats(BcmHwTableStats* stats);
   const BcmSwitch* hw_{nullptr};
 
   BcmHwTableStats stats_;

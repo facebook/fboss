@@ -45,7 +45,6 @@ class BcmRouteTable;
 class BcmRxPacket;
 class BcmStatUpdater;
 class BcmSwitchEventCallback;
-class BcmTableStats;
 class BcmTrunkTable;
 class BcmUnit;
 class BcmWarmBootCache;
@@ -743,7 +742,6 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmAclTable> aclTable_;
   std::unique_ptr<BcmStatUpdater> bcmStatUpdater_;
   std::unique_ptr<BcmCosManager> cosManager_;
-  std::unique_ptr<BcmTableStats> bcmTableStats_;
   std::unique_ptr<BufferStatsLogger> bufferStatsLogger_;
   std::unique_ptr<BcmTrunkTable> trunkTable_;
   std::unique_ptr<BcmSflowExporterTable> sFlowExporterTable_;
