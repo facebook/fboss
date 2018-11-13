@@ -126,6 +126,8 @@ class IPv6Hdr {
   uint32_t pseudoHdrPartialCsum(uint32_t length) const;
   std::string toString() const;
 
+  size_t static size() { return SIZE; }
+
  public:
   /*
    * Always 0x6
