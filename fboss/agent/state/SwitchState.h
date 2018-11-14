@@ -18,6 +18,7 @@
 
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AggregatePortMap.h"
+#include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
 #include "fboss/agent/state/MirrorMap.h"
@@ -47,6 +48,7 @@ struct SwitchStateFields {
     fn(routeTables.get());
     fn(acls.get());
     fn(loadBalancers.get());
+    fn(fibs.get());
   }
   /*
    * Serialize to folly::dynamic
@@ -67,6 +69,7 @@ struct SwitchStateFields {
   std::shared_ptr<ControlPlane> controlPlane;
   std::shared_ptr<LoadBalancerMap> loadBalancers;
   std::shared_ptr<MirrorMap> mirrors;
+  std::shared_ptr<ForwardingInformationBaseMap> fibs;
 
   VlanID defaultVlan{0};
 
