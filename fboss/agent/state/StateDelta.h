@@ -10,12 +10,14 @@
 #pragma once
 
 #include <functional>
-#include <ostream>
 #include <memory>
+#include <ostream>
 
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/ForwardingInformationBaseDelta.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
 #include "fboss/agent/state/Mirror.h"
@@ -26,7 +28,8 @@
 #include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/VlanMapDelta.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwitchState;
 class ControlPlane;
@@ -38,10 +41,10 @@ class ControlPlane;
 class StateDelta {
  public:
   StateDelta() {}
-  StateDelta(std::shared_ptr<SwitchState> oldState,
-             std::shared_ptr<SwitchState> newState)
-    : old_(oldState),
-      new_(newState) {}
+  StateDelta(
+      std::shared_ptr<SwitchState> oldState,
+      std::shared_ptr<SwitchState> newState)
+      : old_(oldState), new_(newState) {}
   virtual ~StateDelta();
 
   const std::shared_ptr<SwitchState>& oldState() const {
@@ -61,11 +64,12 @@ class StateDelta {
   NodeMapDelta<LoadBalancerMap> getLoadBalancersDelta() const;
   DeltaValue<ControlPlane> getControlPlaneDelta() const;
   NodeMapDelta<MirrorMap> getMirrorsDelta() const;
+  ForwardingInformationBaseMapDelta getFibsDelta() const;
 
  private:
   // Forbidden copy constructor and assignment operator
-  StateDelta(StateDelta const &) = delete;
-  StateDelta& operator=(StateDelta const &) = delete;
+  StateDelta(StateDelta const&) = delete;
+  StateDelta& operator=(StateDelta const&) = delete;
 
   std::shared_ptr<SwitchState> old_;
   std::shared_ptr<SwitchState> new_;
@@ -73,4 +77,5 @@ class StateDelta {
 
 std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta);
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

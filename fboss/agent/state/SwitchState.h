@@ -276,6 +276,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
 
   const std::shared_ptr<LoadBalancerMap>& getLoadBalancers() const;
   const std::shared_ptr<MirrorMap>& getMirrors() const;
+  const std::shared_ptr<ForwardingInformationBaseMap>& getFibs() const;
 
   /*
    * The following functions modify the static state.

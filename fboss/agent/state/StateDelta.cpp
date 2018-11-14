@@ -99,6 +99,11 @@ NodeMapDelta<MirrorMap> StateDelta::getMirrorsDelta() const {
       old_->getMirrors().get(), new_->getMirrors().get());
 }
 
+ForwardingInformationBaseMapDelta StateDelta::getFibsDelta() const {
+  return ForwardingInformationBaseMapDelta(
+      old_->getFibs().get(), new_->getFibs().get());
+}
+
 std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
   // Leverage the folly::dynamic printing facilities
   folly::dynamic diff = folly::dynamic::object;
@@ -143,4 +148,9 @@ template class NodeMapDelta<RouteTableRibNodeMap<folly::IPAddressV4>>;
 template class NodeMapDelta<RouteTableRibNodeMap<folly::IPAddressV6>>;
 template class NodeMapDelta<LoadBalancerMap>;
 template class NodeMapDelta<MirrorMap>;
+template class NodeMapDelta<
+    ForwardingInformationBaseMap,
+    ForwardingInformationBaseContainerDelta>;
+template class NodeMapDelta<ForwardingInformationBaseV4>;
+template class NodeMapDelta<ForwardingInformationBaseV6>;
 }} // facebook::fboss

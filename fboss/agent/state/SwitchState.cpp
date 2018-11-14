@@ -248,6 +248,11 @@ const std::shared_ptr<MirrorMap>& SwitchState::getMirrors() const {
   return getFields()->mirrors;
 }
 
+const std::shared_ptr<ForwardingInformationBaseMap>& SwitchState::getFibs()
+    const {
+  return getFields()->fibs;
+}
+
 template class NodeBaseT<SwitchState, SwitchStateFields>;
 
 }} // facebook::fboss
