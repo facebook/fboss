@@ -36,11 +36,15 @@ class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
     return std::make_shared<NodeT>(fields);
   }
 
-  folly::dynamic toFollyDynamic() const override {
+  std::string str() const {
     auto obj = this->getFields()->toThrift();
     std::string jsonStr;
     apache::thrift::SimpleJSONSerializer::serialize(obj, &jsonStr);
-    return folly::parseJson(jsonStr);
+    return jsonStr;
+  }
+
+  folly::dynamic toFollyDynamic() const override {
+    return folly::parseJson(this->str());
   }
 };
 
