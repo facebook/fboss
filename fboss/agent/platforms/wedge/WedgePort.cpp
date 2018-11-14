@@ -16,6 +16,7 @@
 #include <folly/io/async/EventBaseManager.h>
 #include <folly/logging/xlog.h>
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
@@ -139,6 +140,27 @@ void WedgePort::linkStatusChanged(bool /*up*/, bool /*adminUp*/) {}
 void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
   // Cache the current set speed
   speed_ = speed;
+}
+
+folly::Optional<cfg::PlatformPortSettings> WedgePort::getPlatformPortSettings(
+    cfg::PortSpeed speed) {
+  auto platformSettings = platform_->config()->thrift.get_platform();
+  if (!platformSettings) {
+    return folly::none;
+  }
+
+  auto portsIter = platformSettings->ports.find(id_);
+  if (portsIter == platformSettings->ports.end()) {
+    return folly::none;
+  }
+
+  auto portConfig = portsIter->second;
+  auto speedIter = portConfig.supportedSpeeds.find(speed);
+  if (speedIter == portConfig.supportedSpeeds.end()) {
+    throw FbossError("Port ", id_, " does not support speed ", speed);
+  }
+
+  return speedIter->second;
 }
 
 bool WedgePort::isControllingPort() const {

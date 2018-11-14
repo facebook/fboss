@@ -9,9 +9,10 @@
  */
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 
+#include <folly/logging/xlog.h>
 #include <folly/Memory.h>
 #include <folly/Subprocess.h>
-#include <glog/logging.h>
+
 #include "fboss/lib/usb/UsbError.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/agent/SwSwitch.h"
@@ -21,6 +22,7 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
@@ -93,6 +95,9 @@ void WedgePlatform::stateUpdated(const StateDelta& delta) {
       if (platformPort->supportsTransceiver()) {
         changedPorts[newPort->getID()] = platformPort->toThrift(newPort);
       }
+
+      // notify platform port of the change
+      platformPort->portChanged(entry.getNew());
     }
   }
   qsfpCache_->portsChanged(changedPorts);
