@@ -69,13 +69,13 @@ class RouteUpdater {
   void
   delRoute(const folly::IPAddress& network, uint8_t mask, ClientID clientID);
   void delLinkLocalRoutes();
-  void removeAllRoutesForClient(ClientID clientId);
+  void removeAllRoutesForClient(ClientID clientID);
 
   void updateDone();
 
  private:
-  IPv4NetworkToRouteMap* v4Routes_;
-  IPv6NetworkToRouteMap* v6Routes_;
+  IPv4NetworkToRouteMap* v4Routes_{nullptr};
+  IPv6NetworkToRouteMap* v6Routes_{nullptr};
 
   // TODO(samank): rename in original file
   template <typename AddressT>

@@ -99,10 +99,8 @@ void RouteUpdater::addInterfaceRoute(
 }
 
 void RouteUpdater::addLinkLocalRoutes() {
-  // NOTE: v4 link-local route is not added because currently fboss handles
-  // v4 link-locals as normal routes.
-
-  // Add v6 link-local route
+  // 169.254/16 is treated as link-local only by convention. Like other vendors,
+  // we choose to route 169.254/16.
   addRouteImpl(
       kIPv6LinkLocalPrefix,
       v6Routes_,
@@ -112,7 +110,6 @@ void RouteUpdater::addLinkLocalRoutes() {
 }
 
 void RouteUpdater::delLinkLocalRoutes() {
-  // Delete v6 link-local route
   delRouteImpl(
       kIPv6LinkLocalPrefix,
       v6Routes_,
