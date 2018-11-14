@@ -83,6 +83,7 @@ add_thrift_cpp2_library(
     json
   DEPENDS
     bcm_config_cpp2
+    external_phy_cpp2
 )
 add_thrift_cpp2_library(
   switch_state_cpp2
@@ -90,6 +91,14 @@ add_thrift_cpp2_library(
   OPTIONS
     json
     optionals
+  DEPENDS
+    switch_config_cpp2
+)
+add_thrift_cpp2_library(
+  external_phy_cpp2
+  fboss/lib/phy/external_phy.thrift
+  OPTIONS
+    json
   DEPENDS
     switch_config_cpp2
 )

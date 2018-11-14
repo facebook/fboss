@@ -2,7 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
 namespace py neteng.fboss.external_phy
-namespace py3 neteng.fboss.external_phy
+namespace py.asyncio neteng.fboss.asyncio.external_phy
 namespace cpp2 facebook.fboss.phy
 
 include "fboss/agent/switch_config.thrift"
@@ -28,24 +28,25 @@ enum Loopback {
   OFF = 2,
 }
 
+
 struct TxSettings {
-  i16 pre = 0
-  i16 pre2 = 0
-  i16 main = 0
-  i16 post = 0
-  i16 post2 = 0
-  i16 post3 = 0
-  i16 amp = 0
+  1: i16 pre = 0
+  2: i16 pre2 = 0
+  3: i16 main = 0
+  4: i16 post = 0
+  5: i16 post2 = 0
+  6: i16 post3 = 0
+  7: i16 amp = 0
 }
 
 struct RxSettings {
-  i16 peaking = 0
+  1: i16 peaking = 0
   // TODO: expand this?
 }
 
 struct PolaritySwap {
-  bool rx = 0
-  bool tx = 0
+  1: bool rx = 0
+  2: bool tx = 0
 }
 
 struct LaneSettings {
