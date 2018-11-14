@@ -104,8 +104,7 @@ public:
   virtual const std::vector<BcmCosQueueCounterType>&
   getQueueCounterTypes() const = 0;
 
-  void setupQueueCounters(
-      const folly::Optional<QueueConfig>& queueConfig = nullptr);
+  void setupQueueCounters();
   void updateQueueStats(std::chrono::seconds now,
                         HwPortStats* portStats = nullptr);
 
@@ -162,14 +161,10 @@ private:
   BcmCosQueueManager(BcmCosQueueManager const &) = delete;
   BcmCosQueueManager& operator=(BcmCosQueueManager const &) = delete;
 
-  void fillOrReplaceCounter(
-      const BcmCosQueueCounterType& type,
-      QueueStatCounters& counters,
-      const folly::Optional<QueueConfig>& queueConfig = nullptr);
+  void fillOrReplaceCounter(const BcmCosQueueCounterType& type,
+                           QueueStatCounters& counters);
 
-  void setupQueueCounter(
-      const BcmCosQueueCounterType& type,
-      const folly::Optional<QueueConfig>& queueConfig = nullptr);
+  void setupQueueCounter(const BcmCosQueueCounterType& type);
 
   void updateQueueAggregatedStat(const BcmCosQueueCounterType& type,
                                  facebook::stats::MonotonicCounter* counter,
