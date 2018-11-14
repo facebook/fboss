@@ -823,6 +823,10 @@ void BcmSwitch::processChangedPortQueues(
                << static_cast<int>(newQueue->getID());
     bcmPort->setupQueue(newQueue);
   }
+
+  if (isPortQueueNameChanged(oldPort, newPort)) {
+    bcmPort->getQueueManager()->setupQueueCounters(newPort->getPortQueues());
+  }
 }
 
 void BcmSwitch::processChangedPorts(const StateDelta& delta) {
@@ -832,12 +836,6 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
       auto bcmPort = portTable_->getBcmPort(id);
       if (oldPort->getName() != newPort->getName()) {
         bcmPort->updateName(newPort->getName());
-      }
-
-      if (platform_->isCosSupported() &&
-          isPortQueueNameChanged(oldPort, newPort)) {
-        bcmPort->getQueueManager()->setupQueueCounters(
-            newPort->getPortQueues());
       }
 
       if (!oldPort->isEnabled() && !newPort->isEnabled()) {
