@@ -20,7 +20,7 @@ using folly::to;
 using std::string;
 
 namespace {
-constexpr auto kIntfId = "interfaceId";
+constexpr auto kInterfaceId = "interfaceId";
 constexpr auto kRouterId = "routerId";
 constexpr auto kVlanId = "vlanId";
 constexpr auto kName = "name";
@@ -37,7 +37,7 @@ namespace facebook { namespace fboss {
 InterfaceFields InterfaceFields::fromFollyDynamic(const folly::dynamic& json) {
   auto intfFields =
     InterfaceFields(
-        InterfaceID(json[kIntfId].asInt()),
+        InterfaceID(json[kInterfaceId].asInt()),
         RouterID(json[kRouterId].asInt()),
         VlanID(json[kVlanId].asInt()),
         json[kName].asString(),
@@ -58,7 +58,7 @@ InterfaceFields InterfaceFields::fromFollyDynamic(const folly::dynamic& json) {
 
 folly::dynamic InterfaceFields::toFollyDynamic() const {
   folly::dynamic intf = folly::dynamic::object;
-  intf[kIntfId] = static_cast<uint32_t>(id);
+  intf[kInterfaceId] = static_cast<uint32_t>(id);
   intf[kRouterId] = static_cast<uint32_t>(routerID);
   intf[kVlanId] = static_cast<uint16_t>(vlanID);
   intf[kName] = name;
