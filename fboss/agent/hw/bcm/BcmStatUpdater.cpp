@@ -25,9 +25,24 @@ BcmStatUpdater::BcmStatUpdater(BcmSwitch* hw, bool isAlpmEnabled)
       bcmTableStatsManager_(
           std::make_unique<BcmHwTableStatManager>(hw, isAlpmEnabled)) {}
 
-void BcmStatUpdater::toBeAddedAclStat(BcmAclStatHandle handle,
-  const std::string& name) {
-  toBeAddedAclStats_.emplace(handle, name);
+std::string BcmStatUpdater::counterTypeToString(cfg::CounterType type) {
+  switch (type) {
+    case cfg::CounterType::PACKETS:
+      return "packets";
+    case cfg::CounterType::BYTES:
+      return "bytes";
+  }
+  throw FbossError("Unsupported Counter Type");
+}
+
+void BcmStatUpdater::toBeAddedAclStat(
+    BcmAclStatHandle handle,
+    const std::string& name,
+    const std::vector<cfg::CounterType>& counterTypes) {
+  for (auto type : counterTypes) {
+    std::string counterName = name + "." + counterTypeToString(type);
+    toBeAddedAclStats_.emplace(counterName, AclCounterDescriptor(handle, type));
+  }
 }
 
 void BcmStatUpdater::toBeRemovedAclStat(BcmAclStatHandle handle) {
@@ -48,7 +63,12 @@ void BcmStatUpdater::updateAclStats() {
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   auto lockedAclStats = aclStats_.wlock();
   for (auto& entry : *lockedAclStats) {
-    updateAclStat(hw_->getUnit(), entry.first, now, entry.second.get());
+    updateAclStat(
+        hw_->getUnit(),
+        entry.first.handle,
+        entry.first.counterType,
+        now,
+        entry.second.get());
   }
 }
 
@@ -60,14 +80,11 @@ size_t BcmStatUpdater::getCounterCount() const {
   return aclStats_.rlock()->size();
 }
 
-MonotonicCounter* FOLLY_NULLABLE BcmStatUpdater::getCounterIf(
-  BcmAclStatHandle handle) {
+MonotonicCounter* FOLLY_NULLABLE
+BcmStatUpdater::getCounterIf(BcmAclStatHandle handle, cfg::CounterType type) {
   auto lockedAclStats = aclStats_.rlock();
-  auto iter = lockedAclStats->find(handle);
-  if (iter == lockedAclStats->end()) {
-      return nullptr;
-  }
-  return iter->second.get();
+  auto iter = lockedAclStats->find(AclCounterDescriptor(handle, type));
+  return iter != lockedAclStats->end() ? iter->second.get() : nullptr;
 }
 
 void BcmStatUpdater::clearPortStats(
@@ -97,22 +114,29 @@ void BcmStatUpdater::refreshAclStats() {
 
   while (!toBeRemovedAclStats_.empty()) {
     BcmAclStatHandle handle = toBeRemovedAclStats_.front();
-    auto erased = lockedAclStats->erase(handle);
-    if (!erased) {
-      throw FbossError("Trying to remove non-existent, handle=", handle);
+    auto itr = lockedAclStats->begin();
+    while (itr != lockedAclStats->end()) {
+      if (itr->first.handle == handle) {
+        lockedAclStats->erase(itr++);
+      } else {
+        ++itr;
+      }
     }
     toBeRemovedAclStats_.pop();
   }
 
   while (!toBeAddedAclStats_.empty()) {
-    BcmAclStatHandle handle = toBeAddedAclStats_.front().first;
-    const std::string& name = toBeAddedAclStats_.front().second;
+    const std::string& name = toBeAddedAclStats_.front().first;
+    auto aclCounterDescriptor = toBeAddedAclStats_.front().second;
     auto inserted = lockedAclStats->emplace(
-        handle,
+        aclCounterDescriptor,
         std::make_unique<MonotonicCounter>(name, stats::SUM, stats::RATE));
     if (!inserted.second) {
       throw FbossError(
-          "Duplicate ACL stat handle, handle=", handle, ", name=", name);
+          "Duplicate ACL stat handle, handle=",
+          aclCounterDescriptor.handle,
+          ", name=",
+          name);
     }
     toBeAddedAclStats_.pop();
   }

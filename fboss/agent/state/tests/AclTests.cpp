@@ -672,4 +672,8 @@ TEST(Acl, TrafficCounterCompatibility) {
   ASSERT_NE(nullptr, refState->getAcl("acl0"));
   ASSERT_NE(nullptr, newState->getAcl("acl0"));
   ASSERT_EQ(*(refState->getAcl("acl0")), *(newState->getAcl("acl0")));
+  auto aclAction = newState->getAcl("acl0")->getAclAction().value();
+  EXPECT_EQ(aclAction.getTrafficCounter()->name, "stat0");
+  EXPECT_EQ(aclAction.getTrafficCounter()->types.size(), 1);
+  EXPECT_EQ(aclAction.getTrafficCounter()->types[0], cfg::CounterType::PACKETS);
 }

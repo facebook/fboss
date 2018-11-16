@@ -21,7 +21,10 @@ class BcmSwitch;
  */
 class BcmAclStat {
  public:
-  BcmAclStat(BcmSwitch* hw, int gid);
+  BcmAclStat(
+      BcmSwitch* hw,
+      int gid,
+      const std::vector<cfg::CounterType>& counters);
   BcmAclStat(BcmSwitch* hw, BcmAclStatHandle statHandle)
     : hw_(hw), handle_(statHandle) {}
   ~BcmAclStat();

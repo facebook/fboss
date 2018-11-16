@@ -47,11 +47,16 @@ class BcmStatUpdater {
    *  thread safety.
    */
 
-  MonotonicCounter* getCounterIf(BcmAclStatHandle handle);
+  MonotonicCounter* getCounterIf(
+      BcmAclStatHandle handle,
+      cfg::CounterType type);
   size_t getCounterCount() const;
 
   /* Functions to be called during state update */
-  void toBeAddedAclStat(BcmAclStatHandle handle, const std::string& name);
+  void toBeAddedAclStat(
+      BcmAclStatHandle handle,
+      const std::string& name,
+      const std::vector<cfg::CounterType>& counterTypes);
   void toBeRemovedAclStat(BcmAclStatHandle handle);
   void refreshPostBcmStateChange(const StateDelta& delta);
 
@@ -65,8 +70,14 @@ class BcmStatUpdater {
   }
 
  private:
-  void updateAclStat(int unit, BcmAclStatHandle handle,
-    std::chrono::seconds now, MonotonicCounter* counter);
+  void updateAclStat(
+      int unit,
+      BcmAclStatHandle handle,
+      cfg::CounterType counterType,
+      std::chrono::seconds now,
+      MonotonicCounter* counter);
+
+  std::string counterTypeToString(cfg::CounterType type);
 
   void updateAclStats();
   void updateHwTableStats();
@@ -77,11 +88,21 @@ class BcmStatUpdater {
   std::unique_ptr<BcmHwTableStatManager> bcmTableStatsManager_;
 
   /* ACL stats */
-  std::queue<BcmAclStatHandle> toBeRemovedAclStats_;
-  std::queue<std::pair<BcmAclStatHandle, std::string>> toBeAddedAclStats_;
-  folly::Synchronized<boost::container::flat_map<BcmAclStatHandle,
-    std::unique_ptr<MonotonicCounter>>> aclStats_;
+  struct AclCounterDescriptor {
+    AclCounterDescriptor(BcmAclStatHandle hdl, cfg::CounterType type)
+        : handle(hdl), counterType(type) {}
+    bool operator<(const AclCounterDescriptor& d) const {
+      return std::tie(handle, counterType) < std::tie(d.handle, d.counterType);
+    }
+    BcmAclStatHandle handle;
+    cfg::CounterType counterType;
+  };
   folly::Synchronized<BcmHwTableStats> tableStats_;
+  std::queue<BcmAclStatHandle> toBeRemovedAclStats_;
+  std::queue<std::pair<std::string, AclCounterDescriptor>> toBeAddedAclStats_;
+  folly::Synchronized<
+      std::map<AclCounterDescriptor, std::unique_ptr<MonotonicCounter>>>
+      aclStats_;
 };
 
 }} // facebook::fboss

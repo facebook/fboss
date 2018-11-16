@@ -145,14 +145,16 @@ void BcmAclTable::derefBcmAclRange(const AclRange& range) {
 }
 
 BcmAclStat* BcmAclTable::incRefOrCreateBcmAclStat(
-  const std::string& counterName,
-  BcmAclStatHandle statHandle) {
+    const std::string& counterName,
+    const std::vector<cfg::CounterType>& counterTypes,
+    BcmAclStatHandle statHandle) {
   auto aclStatItr = aclStatMap_.find(counterName);
   if (aclStatItr == aclStatMap_.end()) {
     auto newStat = std::make_unique<BcmAclStat>(hw_, statHandle);
     auto stat = newStat.get();
     aclStatMap_.emplace(counterName, std::make_pair(std::move(newStat), 1));
-    hw_->getStatUpdater()->toBeAddedAclStat(stat->getHandle(), counterName);
+    hw_->getStatUpdater()->toBeAddedAclStat(
+        stat->getHandle(), counterName, counterTypes);
     return stat;
   } else {
     CHECK(statHandle == aclStatItr->second.first->getHandle());
@@ -162,14 +164,16 @@ BcmAclStat* BcmAclTable::incRefOrCreateBcmAclStat(
 }
 
 BcmAclStat* BcmAclTable::incRefOrCreateBcmAclStat(
-  const std::string& counterName,
-  int gid) {
+    const std::string& counterName,
+    const std::vector<cfg::CounterType>& counterTypes,
+    int gid) {
   auto aclStatItr = aclStatMap_.find(counterName);
   if (aclStatItr == aclStatMap_.end()) {
-    auto newStat = std::make_unique<BcmAclStat>(hw_, gid);
+    auto newStat = std::make_unique<BcmAclStat>(hw_, gid, counterTypes);
     auto stat = newStat.get();
     aclStatMap_.emplace(counterName, std::make_pair(std::move(newStat), 1));
-    hw_->getStatUpdater()->toBeAddedAclStat(stat->getHandle(), counterName);
+    hw_->getStatUpdater()->toBeAddedAclStat(
+        stat->getHandle(), counterName, counterTypes);
     return stat;
   } else {
     aclStatItr->second.second++;

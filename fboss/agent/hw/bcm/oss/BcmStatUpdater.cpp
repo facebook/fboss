@@ -14,9 +14,9 @@ namespace facebook { namespace fboss {
 using facebook::stats::MonotonicCounter;
 
 void BcmStatUpdater::updateAclStat(
-  int /*unit*/,
-  BcmAclStatHandle /*handle*/,
-  std::chrono::seconds /*now*/,
-  MonotonicCounter* /*counter*/) {}
-
+    int /*unit*/,
+    BcmAclStatHandle /*handle*/,
+    cfg::CounterType /*counterType*/,
+    std::chrono::seconds /*now*/,
+    MonotonicCounter* /*counter*/) {}
 }} // facebook::fboss

@@ -55,10 +55,14 @@ class BcmAclTable {
   uint32_t getAclStatRefCount(const std::string& name) const;
   uint32_t getAclStatCount() const;
 
-  BcmAclStat* incRefOrCreateBcmAclStat(const std::string& counterName, int gid);
   BcmAclStat* incRefOrCreateBcmAclStat(
-    const std::string& counterName,
-    BcmAclStatHandle statHandle);
+      const std::string& counterName,
+      const std::vector<cfg::CounterType>& counterTypes,
+      int gid);
+  BcmAclStat* incRefOrCreateBcmAclStat(
+      const std::string& counterName,
+      const std::vector<cfg::CounterType>& counterTypes,
+      BcmAclStatHandle statHandle);
   void derefBcmAclStat(const std::string& name);
   BcmAclRange* incRefOrCreateBcmAclRange(const AclRange& range);
   void derefBcmAclRange(const AclRange& range);
