@@ -473,12 +473,12 @@ TEST(Acl, SerializeAclEntry) {
   EXPECT_EQ(aclAction.getSendToQueue().value().second, true);
   EXPECT_EQ(aclAction.getSendToQueue().value().first.queueId, 3);
 
-  // Test PacketCounterAction
+  // Test TrafficCounter
   entry = std::make_unique<AclEntry>(0, "stat0");
   action = MatchAction();
-  auto packetCounterAction = cfg::PacketCounterMatchAction();
-  packetCounterAction.counterName = "stat0.c";
-  action.setPacketCounter(packetCounterAction);
+  auto counter = cfg::TrafficCounter();
+  counter.name = "stat0.c";
+  action.setTrafficCounter(counter);
   entry->setAclAction(action);
 
   serialized = entry->toFollyDynamic();
@@ -487,8 +487,8 @@ TEST(Acl, SerializeAclEntry) {
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getAclAction());
   aclAction = entryBack->getAclAction().value();
-  EXPECT_TRUE(aclAction.getPacketCounter());
-  EXPECT_EQ(aclAction.getPacketCounter().value().counterName, "stat0.c");
+  EXPECT_TRUE(aclAction.getTrafficCounter());
+  EXPECT_EQ(aclAction.getTrafficCounter()->name, "stat0.c");
 
   // Test SetDscpMatchAction
   entry = std::make_unique<AclEntry>(0, "DspNew");
@@ -548,9 +548,9 @@ TEST(Acl, TtlSerialization) {
   auto entry = std::make_unique<AclEntry>(0, "stat0");
   entry->setTtl(AclTtl(42, 0xff));
   auto action = MatchAction();
-  auto packetCounterAction = cfg::PacketCounterMatchAction();
-  packetCounterAction.counterName = "stat0.c";
-  action.setPacketCounter(packetCounterAction);
+  auto counter = cfg::TrafficCounter();
+  counter.name = "stat0.c";
+  action.setTrafficCounter(counter);
   entry->setAclAction(action);
 
   auto serialized = entry->toFollyDynamic();
@@ -590,4 +590,70 @@ TEST(Acl, IpType) {
   EXPECT_NE(nullptr, aclV1);
   EXPECT_TRUE(aclV1->getIpType());
   EXPECT_EQ(aclV1->getIpType().value(), ipType);
+}
+
+TEST(Acl, InvalidTrafficCounter) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  config.acls.resize(1);
+  config.acls[0].name = "acl0";
+  config.acls[0].actionType = cfg::AclActionType::PERMIT;
+  config.__isset.dataPlaneTrafficPolicy = true;
+  config.dataPlaneTrafficPolicy.matchToAction.resize(1);
+  config.dataPlaneTrafficPolicy.matchToAction[0].matcher = "acl0";
+  config.dataPlaneTrafficPolicy.matchToAction[0].action.counter = "stat0";
+  config.dataPlaneTrafficPolicy.matchToAction[0].action.__isset.counter = true;
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
+// TODO(adrs): deprecate packetCounter and remove this test
+TEST(Acl, TrafficCounterCompatibility) {
+  cfg::SwitchConfig config;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  // Create a state with 1 Acl and 1 counter
+  config.acls.resize(1);
+  config.acls[0].name = "acl0";
+  config.acls[0].actionType = cfg::AclActionType::PERMIT;
+  config.__isset.dataPlaneTrafficPolicy = true;
+  config.dataPlaneTrafficPolicy.matchToAction.resize(1);
+  auto& mta = config.dataPlaneTrafficPolicy.matchToAction[0];
+  mta.matcher = "acl0";
+  config.trafficCounters.resize(1);
+  config.trafficCounters[0].name = "stat0";
+  mta.action.counter = "stat0";
+  mta.action.__isset.counter = true;
+  auto refState = publishAndApplyConfig(stateV0, &config, platform.get());
+
+  // Manually craft the deprecated state with the 'packetCounter' field
+  auto jsonStateV0 = stateV0->toFollyDynamic();
+  jsonStateV0["acls"]["entries"].push_back(folly::dynamic::object(
+      "name", "acl0")("actionType", "PERMIT")("priority", 10000));
+  jsonStateV0["dataPlaneTrafficPolicy"] = folly::dynamic::object(
+      "matchToAction",
+      folly::dynamic::array(folly::dynamic::object("matcher", "acl0")(
+          "action",
+          folly::dynamic::object(
+              "packetCounter",
+              folly::dynamic::object("counterName", "stat0")))));
+  auto deprecatedState = SwitchState::fromFollyDynamic(jsonStateV0);
+  ASSERT_NE(nullptr, deprecatedState);
+  // MirrorMap::fromFollyDynamic() isn't implemented (yet) and always return
+  // nullptr.
+  // publishAndApplyConfig() isn't happy with the nullptr, so reset the mirrors
+  // with an empty map
+  deprecatedState->resetMirrors(std::make_shared<MirrorMap>());
+  auto newState =
+      publishAndApplyConfig(deprecatedState, &config, platform.get());
+
+  ASSERT_NE(nullptr, refState);
+  ASSERT_NE(nullptr, newState);
+  ASSERT_NE(nullptr, refState->getAcl("acl0"));
+  ASSERT_NE(nullptr, newState->getAcl("acl0"));
+  ASSERT_EQ(*(refState->getAcl("acl0")), *(newState->getAcl("acl0")));
 }

@@ -26,14 +26,13 @@ class MatchAction {
    * SendToQueue.second is the old `sendToCPU` value.
    */
   using SendToQueue = std::pair<cfg::QueueMatchAction, bool>;
-  using PacketCounter = cfg::PacketCounterMatchAction;
   using SetDscp = cfg::SetDscpMatchAction;
 
   MatchAction() {}
 
   MatchAction(const MatchAction& action)
       : sendToQueue_(action.sendToQueue_),
-        packetCounter_(action.packetCounter_),
+        trafficCounter_(action.trafficCounter_),
         setDscp_(action.setDscp_),
         ingressMirror_(action.ingressMirror_),
         egressMirror_(action.egressMirror_) {}
@@ -46,12 +45,12 @@ class MatchAction {
     sendToQueue_ = sendToQueue;
   }
 
-  folly::Optional<PacketCounter> getPacketCounter() const {
-    return packetCounter_;
+  folly::Optional<cfg::TrafficCounter> getTrafficCounter() const {
+    return trafficCounter_;
   }
 
-  void setPacketCounter(const PacketCounter& packetCounter) {
-    packetCounter_ = packetCounter;
+  void setTrafficCounter(const cfg::TrafficCounter& trafficCounter) {
+    trafficCounter_ = trafficCounter;
   }
 
   folly::Optional<SetDscp> getSetDscp() const {
@@ -80,15 +79,15 @@ class MatchAction {
 
   bool operator==(const MatchAction& action) const {
     return sendToQueue_ == action.sendToQueue_ &&
-        packetCounter_ == action.packetCounter_ &&
-        setDscp_ == action.setDscp_ &&
         ingressMirror_ == action.ingressMirror_ &&
-        egressMirror_ == action.egressMirror_;
+        egressMirror_ == action.egressMirror_ &&
+        trafficCounter_ == action.trafficCounter_ &&
+        setDscp_ == action.setDscp_;
   }
 
   MatchAction& operator=(const MatchAction& action) {
     sendToQueue_ = action.sendToQueue_;
-    packetCounter_ = action.packetCounter_;
+    trafficCounter_ = action.trafficCounter_;
     setDscp_ = action.setDscp_;
     ingressMirror_ = action.ingressMirror_;
     egressMirror_ = action.egressMirror_;
@@ -100,7 +99,7 @@ class MatchAction {
 
  private:
   folly::Optional<SendToQueue> sendToQueue_{folly::none};
-  folly::Optional<PacketCounter> packetCounter_{folly::none};
+  folly::Optional<cfg::TrafficCounter> trafficCounter_{folly::none};
   folly::Optional<SetDscp> setDscp_{folly::none};
   folly::Optional<std::string> ingressMirror_{folly::none};
   folly::Optional<std::string> egressMirror_{folly::none};

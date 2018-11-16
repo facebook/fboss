@@ -14,12 +14,12 @@ namespace {
 constexpr auto kQueueMatchAction = "queueMatchAction";
 constexpr auto kQueueId = "queueId";
 constexpr auto kSendToCPU = "sendToCPU";
-constexpr auto kPacketCounterMatchAction = "packetCounterMatchAction";
-constexpr auto kCounterName = "counterName";
 constexpr auto kSetDscpMatchAction = "setDscpMatchAction";
 constexpr auto kDscpValue = "dscpValue";
 constexpr auto kIngressMirror = "ingressMirror";
 constexpr auto kEgressMirror = "engressMirror";
+constexpr auto kCounter = "counter";
+constexpr auto kCounterName = "name";
 }
 
 namespace facebook { namespace fboss {
@@ -32,10 +32,9 @@ folly::dynamic MatchAction::toFollyDynamic() const {
       sendToQueue_.value().first.queueId;
     matchAction[kQueueMatchAction][kSendToCPU] = sendToQueue_.value().second;
   }
-  if (packetCounter_) {
-    matchAction[kPacketCounterMatchAction] = folly::dynamic::object;
-    matchAction[kPacketCounterMatchAction][kCounterName] =
-      packetCounter_.value().counterName;
+  if (trafficCounter_) {
+    matchAction[kCounter] = folly::dynamic::object;
+    matchAction[kCounter][kCounterName] = trafficCounter_.value().name;
   }
   if (setDscp_) {
     matchAction[kSetDscpMatchAction] = folly::dynamic::object;
@@ -59,12 +58,21 @@ MatchAction MatchAction::fromFollyDynamic(
     bool sendToCPU = actionJson[kQueueMatchAction][kSendToCPU].asBool();
     matchAction.setSendToQueue(std::make_pair(queueAction, sendToCPU));
   }
-  if (actionJson.find(kPacketCounterMatchAction) != actionJson.items().end()) {
-    auto packetCounterAction = cfg::PacketCounterMatchAction();
-    packetCounterAction.counterName =
-        actionJson[kPacketCounterMatchAction][kCounterName].asString();
-    matchAction.setPacketCounter(packetCounterAction);
+  if (actionJson.find(kCounter) != actionJson.items().end()) {
+    auto counter = cfg::TrafficCounter();
+    counter.name = actionJson[kCounter][kCounterName].asString();
+    matchAction.setTrafficCounter(counter);
   }
+  // TODO(adrs): get rid of this (backward compatibility)
+  constexpr auto kPacketCounterMatchAction = "packetCounterMatchAction";
+  constexpr auto kCounterName = "counterName";
+  if (actionJson.find(kPacketCounterMatchAction) != actionJson.items().end()) {
+    auto counter = cfg::TrafficCounter();
+    counter.name =
+        actionJson[kPacketCounterMatchAction][kCounterName].asString();
+    matchAction.setTrafficCounter(counter);
+  }
+
   if (actionJson.find(kSetDscpMatchAction) != actionJson.items().end()) {
     auto setDscpMatchAction= cfg::SetDscpMatchAction();
     setDscpMatchAction.dscpValue=

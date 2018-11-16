@@ -1016,6 +1016,13 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
       })
     | folly::gen::appendTo(aclByName);
 
+  flat_map<std::string, const cfg::TrafficCounter*> counterByName;
+  folly::gen::from(cfg_->trafficCounters) |
+      folly::gen::map([](const cfg::TrafficCounter& counter) {
+        return std::make_pair(counter.name, &counter);
+      }) |
+      folly::gen::appendTo(counterByName);
+
   // Generates new acls from template
   auto addToAcls = [&] (const cfg::TrafficPolicyConfig& policy,
                         bool isCoppAcl=false)
@@ -1041,8 +1048,15 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
         matchAction.setSendToQueue(
           std::make_pair(mta.action.sendToQueue, isCoppAcl));
       }
-      if (mta.action.__isset.packetCounter) {
-        matchAction.setPacketCounter(mta.action.packetCounter);
+      if (mta.action.__isset.counter) {
+        auto counter = counterByName.find(mta.action.counter);
+        if (counter == counterByName.end()) {
+          throw FbossError(
+              "Invalid config: No counter named ",
+              mta.action.counter,
+              " found.");
+        }
+        matchAction.setTrafficCounter(*(counter->second));
       }
       if (mta.action.__isset.setDscp) {
           matchAction.setSetDscp(mta.action.setDscp);

@@ -297,10 +297,11 @@ struct SetDscpMatchAction {
 
 struct MatchAction {
   1: optional QueueMatchAction sendToQueue
-  2: optional PacketCounterMatchAction packetCounter
+  2: optional PacketCounterMatchAction packetCounter_DEPRECATED
   3: optional SetDscpMatchAction setDscp
   4: optional string ingressMirror
   5: optional string egressMirror
+  6: optional string counter
 }
 
 struct MatchToAction {
@@ -786,6 +787,10 @@ struct LoadBalancer {
   4: optional i32 seed
 }
 
+struct TrafficCounter {
+  1: string name
+}
+
 /**
  * The configuration for a switch.
  *
@@ -870,4 +875,5 @@ struct SwitchConfig {
   30: list<LoadBalancer> loadBalancers = []
   31: optional TrafficPolicyConfig dataPlaneTrafficPolicy
   32: list<Mirror> mirrors = []
+  33: list<TrafficCounter> trafficCounters = []
 }

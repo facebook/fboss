@@ -233,7 +233,7 @@ class AclEntry :
     return getFields()->toFollyDynamic();
   }
 
-  bool operator==(const AclEntry& acl) {
+  bool operator==(const AclEntry& acl) const {
     return getFields()->priority == acl.getPriority() &&
            getFields()->name == acl.getID() &&
            getFields()->actionType == acl.getActionType() &&

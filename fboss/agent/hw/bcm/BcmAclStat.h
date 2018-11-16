@@ -34,8 +34,10 @@ class BcmAclStat {
    * Check whether the acl details of handle in h/w matches the s/w acl and
    * ranges
    */
-  static bool isStateSame(BcmSwitch* hw, BcmAclStatHandle statHandle,
-    cfg::PacketCounterMatchAction& action);
+  static bool isStateSame(
+      BcmSwitch* hw,
+      BcmAclStatHandle statHandle,
+      cfg::TrafficCounter& counter);
 
  private:
   BcmSwitch* hw_;
