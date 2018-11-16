@@ -472,23 +472,26 @@ TEST(Acl, SerializeAclEntry) {
   EXPECT_TRUE(aclAction.getSendToQueue());
   EXPECT_EQ(aclAction.getSendToQueue().value().second, true);
   EXPECT_EQ(aclAction.getSendToQueue().value().first.queueId, 3);
+}
 
-  // Test TrafficCounter
-  entry = std::make_unique<AclEntry>(0, "stat0");
-  action = MatchAction();
+TEST(Acl, SerializePacketCounter) {
+  auto entry = std::make_unique<AclEntry>(0, "stat0");
+  MatchAction action = MatchAction();
   auto counter = cfg::TrafficCounter();
   counter.name = "stat0.c";
   action.setTrafficCounter(counter);
   entry->setAclAction(action);
 
-  serialized = entry->toFollyDynamic();
-  entryBack = AclEntry::fromFollyDynamic(serialized);
+  auto serialized = entry->toFollyDynamic();
+  auto entryBack = AclEntry::fromFollyDynamic(serialized);
 
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getAclAction());
-  aclAction = entryBack->getAclAction().value();
+  auto aclAction = entryBack->getAclAction().value();
   EXPECT_TRUE(aclAction.getTrafficCounter());
   EXPECT_EQ(aclAction.getTrafficCounter()->name, "stat0.c");
+  EXPECT_EQ(aclAction.getTrafficCounter()->types.size(), 1);
+  EXPECT_EQ(aclAction.getTrafficCounter()->types[0], cfg::CounterType::PACKETS);
 
   // Test SetDscpMatchAction
   entry = std::make_unique<AclEntry>(0, "DspNew");
@@ -505,6 +508,19 @@ TEST(Acl, SerializeAclEntry) {
   aclAction = entryBack->getAclAction().value();
   EXPECT_TRUE(aclAction.getSetDscp());
   EXPECT_EQ(aclAction.getSetDscp().value().dscpValue, 8);
+
+  // Set 2 counter types
+  counter.types = {cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  action.setTrafficCounter(counter);
+  entry->setAclAction(action);
+
+  serialized = entry->toFollyDynamic();
+  entryBack = AclEntry::fromFollyDynamic(serialized);
+
+  EXPECT_TRUE(*entry == *entryBack);
+  aclAction = entryBack->getAclAction().value();
+  EXPECT_EQ(aclAction.getTrafficCounter()->types.size(), 2);
+  EXPECT_EQ(aclAction.getTrafficCounter()->types, counter.types);
 }
 
 TEST(Acl, Ttl) {

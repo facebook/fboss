@@ -20,6 +20,7 @@ constexpr auto kIngressMirror = "ingressMirror";
 constexpr auto kEgressMirror = "engressMirror";
 constexpr auto kCounter = "counter";
 constexpr auto kCounterName = "name";
+constexpr auto kCounterTypes = "types";
 }
 
 namespace facebook { namespace fboss {
@@ -35,6 +36,10 @@ folly::dynamic MatchAction::toFollyDynamic() const {
   if (trafficCounter_) {
     matchAction[kCounter] = folly::dynamic::object;
     matchAction[kCounter][kCounterName] = trafficCounter_.value().name;
+    matchAction[kCounter][kCounterTypes] = folly::dynamic::array;
+    for (const auto& type : trafficCounter_.value().types) {
+      matchAction[kCounter][kCounterTypes].push_back(static_cast<int>(type));
+    }
   }
   if (setDscp_) {
     matchAction[kSetDscpMatchAction] = folly::dynamic::object;
@@ -61,6 +66,10 @@ MatchAction MatchAction::fromFollyDynamic(
   if (actionJson.find(kCounter) != actionJson.items().end()) {
     auto counter = cfg::TrafficCounter();
     counter.name = actionJson[kCounter][kCounterName].asString();
+    counter.types.clear();
+    for (const auto& type : actionJson[kCounter][kCounterTypes]) {
+      counter.types.push_back(static_cast<cfg::CounterType>(type.asInt()));
+    }
     matchAction.setTrafficCounter(counter);
   }
   // TODO(adrs): get rid of this (backward compatibility)
@@ -70,6 +79,7 @@ MatchAction MatchAction::fromFollyDynamic(
     auto counter = cfg::TrafficCounter();
     counter.name =
         actionJson[kPacketCounterMatchAction][kCounterName].asString();
+    counter.types = {cfg::CounterType::PACKETS};
     matchAction.setTrafficCounter(counter);
   }
 

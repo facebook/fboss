@@ -787,8 +787,14 @@ struct LoadBalancer {
   4: optional i32 seed
 }
 
+enum CounterType {
+  PACKETS = 0,
+  BYTES = 1,
+}
+
 struct TrafficCounter {
   1: string name
+  2: list<CounterType> types = [PACKETS]
 }
 
 /**
