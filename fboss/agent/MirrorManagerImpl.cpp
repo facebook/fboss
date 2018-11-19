@@ -25,14 +25,14 @@ template <typename AddrT>
 std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
     const std::shared_ptr<Mirror>& mirror) {
   const AddrT destinationIp =
-      getIPAddress<AddrT>(mirror->getMirrorTunnelDestinationIp().value());
+      getIPAddress<AddrT>(mirror->getDestinationIp().value());
   const auto state = sw_->getState();
   const auto nexthops = resolveMirrorNextHops(state, destinationIp);
 
   auto newMirror = std::make_shared<Mirror>(
       mirror->getID(),
-      mirror->getMirrorEgressPort(),
-      mirror->getMirrorTunnelDestinationIp());
+      mirror->getEgressPort(),
+      mirror->getDestinationIp());
 
   for (const auto& nexthop : nexthops) {
     const auto entry =
@@ -45,7 +45,7 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
     const auto egressPort = entry->getPort().phyPortID();
     newMirror->setMirrorTunnel(
         resolveMirrorTunnel(state, destinationIp, nexthop, entry));
-    newMirror->setMirrorEgressPort(egressPort);
+    newMirror->setEgressPort(egressPort);
     break;
   }
 
@@ -98,7 +98,7 @@ MirrorManagerImpl<AddrT>::resolveMirrorNextHopNeighbor(
       !neighbor->getPort().isPhysicalPort() ||
       (mirror->configHasEgressPort() &&
        neighbor->getPort().phyPortID() !=
-           mirror->getMirrorEgressPort().value())) {
+           mirror->getEgressPort().value())) {
     /* TODO: support mirroring over LAG port */
     return std::shared_ptr<NeighborEntryT>(nullptr);
   }
@@ -118,8 +118,7 @@ MirrorTunnel MirrorManagerImpl<AddrT>::resolveMirrorTunnel(
       iter->first,
       destinationIp,
       interface->getMac(),
-      neighbor->getMac(),
-      nextHop);
+      neighbor->getMac());
 }
 
 template class MirrorManagerImpl<folly::IPAddressV4>;

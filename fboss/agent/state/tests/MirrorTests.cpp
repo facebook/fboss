@@ -152,37 +152,37 @@ class MirrorTest : public ::testing::Test {
   std::shared_ptr<Platform> platform_;
   cfg::SwitchConfig config_;
   static const folly::IPAddress tunnelDestination;
-  static const char* mirrorEgressPortName;
-  static const PortID mirrorEgressPort;
+  static const char* egressPortName;
+  static const PortID egressPort;
 };
 
 const folly::IPAddress MirrorTest::tunnelDestination =
     folly::IPAddress("10.0.0.1");
-const char* MirrorTest::mirrorEgressPortName = "port5";
-const PortID MirrorTest::mirrorEgressPort = PortID(5);
+const char* MirrorTest::egressPortName = "port5";
+const PortID MirrorTest::egressPort = PortID(5);
 
 TEST_F(MirrorTest, MirrorWithPort) {
-  configureMirror("mirror0", MirrorTest::mirrorEgressPortName);
+  configureMirror("mirror0", MirrorTest::egressPortName);
   publishWithStateUpdate();
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
-  auto port = mirror->getMirrorEgressPort();
+  auto port = mirror->getEgressPort();
   EXPECT_EQ(port.hasValue(), true);
-  EXPECT_EQ(port.value(), mirrorEgressPort);
+  EXPECT_EQ(port.value(), egressPort);
 }
 
 TEST_F(MirrorTest, MirrorWithPortId) {
-  configureMirror("mirror0", MirrorTest::mirrorEgressPort);
+  configureMirror("mirror0", MirrorTest::egressPort);
   publishWithStateUpdate();
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
-  auto port = mirror->getMirrorEgressPort();
+  auto port = mirror->getEgressPort();
   EXPECT_EQ(port.hasValue(), true);
-  EXPECT_EQ(port.value(), mirrorEgressPort);
+  EXPECT_EQ(port.value(), egressPort);
 }
 
 TEST_F(MirrorTest, MirrorWithIp) {
@@ -192,9 +192,9 @@ TEST_F(MirrorTest, MirrorWithIp) {
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), false);
-  auto port = mirror->getMirrorEgressPort();
+  auto port = mirror->getEgressPort();
   EXPECT_EQ(port.hasValue(), false);
-  auto ip = mirror->getMirrorTunnelDestinationIp();
+  auto ip = mirror->getDestinationIp();
   EXPECT_EQ(ip.hasValue(), true);
   EXPECT_EQ(ip.value(), MirrorTest::tunnelDestination);
   EXPECT_EQ(mirror->isResolved(), false);
@@ -204,16 +204,16 @@ TEST_F(MirrorTest, MirrorWithPortAndIp) {
   configureMirror(
       "mirror0",
       MirrorTest::tunnelDestination,
-      MirrorTest::mirrorEgressPortName);
+      MirrorTest::egressPortName);
   publishWithStateUpdate();
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
-  auto port = mirror->getMirrorEgressPort();
+  auto port = mirror->getEgressPort();
   EXPECT_EQ(port.hasValue(), true);
-  EXPECT_EQ(port.value(), mirrorEgressPort);
-  auto ip = mirror->getMirrorTunnelDestinationIp();
+  EXPECT_EQ(port.value(), egressPort);
+  auto ip = mirror->getDestinationIp();
   EXPECT_EQ(ip.hasValue(), true);
   EXPECT_EQ(ip.value(), MirrorTest::tunnelDestination);
   EXPECT_EQ(mirror->isResolved(), false);
@@ -221,16 +221,16 @@ TEST_F(MirrorTest, MirrorWithPortAndIp) {
 
 TEST_F(MirrorTest, MirrorWithPortIdAndIp) {
   configureMirror(
-      "mirror0", MirrorTest::tunnelDestination, MirrorTest::mirrorEgressPort);
+      "mirror0", MirrorTest::tunnelDestination, MirrorTest::egressPort);
   publishWithStateUpdate();
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
-  auto port = mirror->getMirrorEgressPort();
+  auto port = mirror->getEgressPort();
   EXPECT_EQ(port.hasValue(), true);
-  EXPECT_EQ(port.value(), mirrorEgressPort);
-  auto ip = mirror->getMirrorTunnelDestinationIp();
+  EXPECT_EQ(port.value(), egressPort);
+  auto ip = mirror->getDestinationIp();
   EXPECT_EQ(ip.hasValue(), true);
   EXPECT_EQ(ip.value(), MirrorTest::tunnelDestination);
   EXPECT_EQ(mirror->isResolved(), false);
@@ -327,9 +327,9 @@ TEST_F(MirrorTest, WithStateChange) {
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), false);
-  auto port = mirror->getMirrorEgressPort();
+  auto port = mirror->getEgressPort();
   EXPECT_EQ(port.hasValue(), false);
-  auto ip = mirror->getMirrorTunnelDestinationIp();
+  auto ip = mirror->getDestinationIp();
   EXPECT_EQ(ip.hasValue(), true);
   EXPECT_EQ(ip.value(), folly::IPAddress("10.0.0.2"));
   EXPECT_EQ(mirror->isResolved(), false);
@@ -451,9 +451,9 @@ TEST_F(MirrorTest, PortMirrorDelete) {
 
 TEST_F(MirrorTest, MirrorMirrorEgressPort) {
   configureMirror(
-      "mirror0", MirrorTest::tunnelDestination, MirrorTest::mirrorEgressPort);
+      "mirror0", MirrorTest::tunnelDestination, MirrorTest::egressPort);
   publishWithStateUpdate();
-  configurePortMirror("mirror0", MirrorTest::mirrorEgressPort);
+  configurePortMirror("mirror0", MirrorTest::egressPort);
   publishWithFbossError();
 }
 

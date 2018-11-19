@@ -332,8 +332,8 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithoutEgressPort) {
     auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    ASSERT_TRUE(mirror->getMirrorEgressPort().hasValue());
-    auto egressPort = mirror->getMirrorEgressPort().value();
+    ASSERT_TRUE(mirror->getEgressPort().hasValue());
+    auto egressPort = mirror->getEgressPort().value();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
     ASSERT_TRUE(mirror->getMirrorTunnel().hasValue());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -381,8 +381,8 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithEgressPort) {
     auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    ASSERT_TRUE(mirror->getMirrorEgressPort().hasValue());
-    auto egressPort = mirror->getMirrorEgressPort();
+    ASSERT_TRUE(mirror->getEgressPort().hasValue());
+    auto egressPort = mirror->getEgressPort();
     EXPECT_EQ(egressPort.value(), params.neighborPorts[1]);
     ASSERT_TRUE(mirror->getMirrorTunnel().hasValue());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -430,8 +430,8 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithEgressPort) {
     auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getMirrorEgressPort().hasValue());
-    EXPECT_EQ(mirror->getMirrorEgressPort().value(), PortID(9));
+    EXPECT_TRUE(mirror->getEgressPort().hasValue());
+    EXPECT_EQ(mirror->getEgressPort().value(), PortID(9));
     EXPECT_FALSE(mirror->getMirrorTunnel().hasValue());
   });
 }
@@ -456,8 +456,8 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithDirectlyConnectedRoute) {
     auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getMirrorEgressPort().hasValue());
-    auto egressPort = mirror->getMirrorEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPort().hasValue());
+    auto egressPort = mirror->getEgressPort().value();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
     ASSERT_TRUE(mirror->getMirrorTunnel().hasValue());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -489,7 +489,7 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithDirectlyConnectedRoute) {
     auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->isResolved());
-    EXPECT_FALSE(mirror->getMirrorEgressPort().hasValue());
+    EXPECT_FALSE(mirror->getEgressPort().hasValue());
     ASSERT_FALSE(mirror->getMirrorTunnel().hasValue());
   });
 }
@@ -527,8 +527,8 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
     auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getMirrorEgressPort().hasValue());
-    auto egressPort = mirror->getMirrorEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPort().hasValue());
+    auto egressPort = mirror->getEgressPort().value();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
     ASSERT_TRUE(mirror->getMirrorTunnel().hasValue());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -558,8 +558,8 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
     auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getMirrorEgressPort().hasValue());
-    auto egressPort = mirror->getMirrorEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPort().hasValue());
+    auto egressPort = mirror->getEgressPort().value();
     EXPECT_EQ(egressPort, params.neighborPorts[1]);
     ASSERT_TRUE(mirror->getMirrorTunnel().hasValue());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -600,8 +600,8 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
     auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getMirrorEgressPort().hasValue());
-    auto egressPort = mirror->getMirrorEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPort().hasValue());
+    auto egressPort = mirror->getEgressPort().value();
     EXPECT_EQ(egressPort, params.neighborPorts[1]);
     ASSERT_TRUE(mirror->getMirrorTunnel().hasValue());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -637,8 +637,8 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
     auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getMirrorEgressPort().hasValue());
-    auto egressPort = mirror->getMirrorEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPort().hasValue());
+    auto egressPort = mirror->getEgressPort().value();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
     ASSERT_TRUE(mirror->getMirrorTunnel().hasValue());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -690,8 +690,8 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteDel) {
     auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getMirrorEgressPort().hasValue());
-    auto egressPort = mirror->getMirrorEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPort().hasValue());
+    auto egressPort = mirror->getEgressPort().value();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
     ASSERT_TRUE(mirror->getMirrorTunnel().hasValue());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -721,8 +721,8 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteDel) {
     auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getMirrorEgressPort().hasValue());
-    EXPECT_EQ(mirror->getMirrorEgressPort().value(), params.neighborPorts[0]);
+    EXPECT_TRUE(mirror->getEgressPort().hasValue());
+    EXPECT_EQ(mirror->getEgressPort().value(), params.neighborPorts[0]);
     EXPECT_FALSE(mirror->getMirrorTunnel().hasValue());
   });
 }
@@ -762,8 +762,8 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteAdd) {
     auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getMirrorEgressPort().hasValue());
-    auto egressPort = mirror->getMirrorEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPort().hasValue());
+    auto egressPort = mirror->getEgressPort().value();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
     EXPECT_FALSE(mirror->getMirrorTunnel().hasValue());
   });
@@ -802,8 +802,8 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
     auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getMirrorEgressPort().hasValue());
-    auto egressPort = mirror->getMirrorEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPort().hasValue());
+    auto egressPort = mirror->getEgressPort().value();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
     ASSERT_TRUE(mirror->getMirrorTunnel().hasValue());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -847,8 +847,8 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
     auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getMirrorEgressPort().hasValue());
-    auto egressPort = mirror->getMirrorEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPort().hasValue());
+    auto egressPort = mirror->getEgressPort().value();
     EXPECT_EQ(egressPort, params.neighborPorts[1]);
     ASSERT_TRUE(mirror->getMirrorTunnel().hasValue());
     auto tunnel = mirror->getMirrorTunnel().value();

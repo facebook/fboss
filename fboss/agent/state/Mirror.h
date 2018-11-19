@@ -23,72 +23,71 @@ struct MirrorTunnel {
   folly::MacAddress srcMac, dstMac;
   uint8_t ttl;
   uint16_t greProtocol;
-  NextHop nextHop;
+  static constexpr auto kTTL = 255;
+  static constexpr auto kProto = 0x88be;
 
   MirrorTunnel()
       : srcMac(folly::MacAddress::ZERO),
         dstMac(folly::MacAddress::ZERO),
-        ttl(255),
-        greProtocol(0x88be) {}
+        ttl(kTTL),
+        greProtocol(kProto) {}
 
   MirrorTunnel(
       const folly::IPAddress& srcIp,
       const folly::IPAddress& dstIp,
       const folly::MacAddress& srcMac,
       const folly::MacAddress& dstMac,
-      const NextHop& nextHop)
+      uint8_t ttl = kTTL,
+      uint16_t proto = kProto)
       : srcIp(srcIp),
         dstIp(dstIp),
         srcMac(srcMac),
         dstMac(dstMac),
-        ttl(255),
-        greProtocol(0x88be),
-        nextHop(nextHop) {}
+        ttl(ttl),
+        greProtocol(proto) {}
 
   bool operator==(const MirrorTunnel& rhs) const {
-    return srcIp == rhs.srcIp && dstIp == rhs.dstIp && srcMac == rhs.srcMac &&
-        dstMac == rhs.dstMac && ttl == rhs.ttl &&
-        greProtocol == rhs.greProtocol && nextHop == rhs.nextHop;
+    return srcIp == rhs.srcIp && dstIp == rhs.dstIp &&
+        srcMac == rhs.srcMac && dstMac == rhs.dstMac && ttl == rhs.ttl &&
+        greProtocol == rhs.greProtocol;
   }
 };
 
 struct MirrorFields {
   MirrorFields(
       std::string name,
-      folly::Optional<PortID> mirrorEgressPort,
-      folly::Optional<folly::IPAddress> tunnelDestinationIp)
-      : name_(name),
-        egressPort_(mirrorEgressPort),
-        tunnelDestinationIp_(tunnelDestinationIp) {
-    if (egressPort_.hasValue()) {
-      configHasEgressPort_ = true;
+      folly::Optional<PortID> egressPort,
+      folly::Optional<folly::IPAddress> destinationIp)
+      : name(name),
+        egressPort(egressPort),
+        destinationIp(destinationIp) {
+    if (egressPort.hasValue()) {
+      configHasEgressPort = true;
     }
   }
 
   template <typename Fn>
   void forEachChild(Fn /* unused */) {}
 
-  std::string name_;
-  folly::Optional<PortID> egressPort_;
-  folly::Optional<folly::IPAddress> tunnelDestinationIp_;
-  folly::Optional<MirrorTunnel> resolvedTunnel_;
-  bool configHasEgressPort_{false};
+  std::string name;
+  folly::Optional<PortID> egressPort;
+  folly::Optional<folly::IPAddress> destinationIp;
+  folly::Optional<MirrorTunnel> resolvedTunnel;
+  bool configHasEgressPort{false};
 };
 
 class Mirror : public NodeBaseT<Mirror, MirrorFields> {
  public:
   Mirror(
       std::string name,
-      folly::Optional<PortID> mirrorEgressPort,
-      folly::Optional<folly::IPAddress> tunnelDestinationIp);
+      folly::Optional<PortID> egressPort,
+      folly::Optional<folly::IPAddress> destinationIp);
   std::string getID() const;
-  folly::Optional<PortID> getMirrorEgressPort() const;
-  folly::Optional<folly::IPAddress> getMirrorTunnelDestinationIp() const;
+  folly::Optional<PortID> getEgressPort() const;
+  folly::Optional<folly::IPAddress> getDestinationIp() const;
   folly::Optional<MirrorTunnel> getMirrorTunnel() const;
-  void setMirrorEgressPort(PortID egressPort);
-  void setMirrorTunnel(MirrorTunnel tunnel);
-  const flat_set<PortID>& getMirrorPortsRef() const;
-  const flat_set<std::shared_ptr<AclEntry>>& getFlowsRef() const;
+  void setEgressPort(PortID egressPort);
+  void setMirrorTunnel(const MirrorTunnel& tunnel);
   bool configHasEgressPort() const;
   bool isResolved() const;
 

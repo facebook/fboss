@@ -1781,7 +1781,7 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
   }
 
   folly::Optional<PortID> mirrorEgressPort;
-  folly::Optional<folly::IPAddress> tunnelDestinationIp;
+  folly::Optional<folly::IPAddress> destinationIp;
 
   if (mirrorConfig->destination.__isset.egressPort) {
     std::shared_ptr<Port> mirrorToPort{nullptr};
@@ -1813,13 +1813,13 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
   }
 
   if (mirrorConfig->destination.__isset.ip) {
-    tunnelDestinationIp.assign(folly::IPAddress(mirrorConfig->destination.ip));
+    destinationIp.assign(folly::IPAddress(mirrorConfig->destination.ip));
   }
 
   auto mirror = make_shared<Mirror>(
       mirrorConfig->name,
       mirrorEgressPort,
-      tunnelDestinationIp);
+      destinationIp);
   return mirror;
 }
 
@@ -1831,15 +1831,15 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
     return nullptr;
   }
   if (!orig->isResolved() ||
-      !newMirror->getMirrorTunnelDestinationIp().hasValue()) {
+      !newMirror->getDestinationIp().hasValue()) {
     return newMirror;
   }
-  if (newMirror->getMirrorTunnelDestinationIp() ==
-          orig->getMirrorTunnelDestinationIp() &&
+  if (newMirror->getDestinationIp() ==
+          orig->getDestinationIp() &&
       (!newMirror->configHasEgressPort() ||
-       newMirror->getMirrorEgressPort() == orig->getMirrorEgressPort())) {
+       newMirror->getEgressPort() == orig->getEgressPort())) {
     newMirror->setMirrorTunnel(orig->getMirrorTunnel().value());
-    newMirror->setMirrorEgressPort(orig->getMirrorEgressPort().value());
+    newMirror->setEgressPort(orig->getEgressPort().value());
   }
   return newMirror;
 }

@@ -9,28 +9,28 @@ namespace fboss {
 
 Mirror::Mirror(
     std::string name,
-    folly::Optional<PortID> mirrorEgressPort,
-    folly::Optional<folly::IPAddress> tunnelDestinationIp)
-    : NodeBaseT(name, mirrorEgressPort, tunnelDestinationIp) {}
+    folly::Optional<PortID> egressPort,
+    folly::Optional<folly::IPAddress> destinationIp)
+    : NodeBaseT(name, egressPort, destinationIp) {}
 
 std::string Mirror::getID() const {
-  return getFields()->name_;
+  return getFields()->name;
 }
 
-folly::Optional<PortID> Mirror::getMirrorEgressPort() const {
-  return getFields()->egressPort_;
+folly::Optional<PortID> Mirror::getEgressPort() const {
+  return getFields()->egressPort;
 }
 
 folly::Optional<MirrorTunnel> Mirror::getMirrorTunnel() const {
-  return getFields()->resolvedTunnel_;
+  return getFields()->resolvedTunnel;
 }
 
-void Mirror::setMirrorEgressPort(PortID egressPort) {
-  writableFields()->egressPort_.assign(egressPort);
+void Mirror::setEgressPort(PortID egressPort) {
+  writableFields()->egressPort.assign(egressPort);
 }
 
-void Mirror::setMirrorTunnel(MirrorTunnel tunnel) {
-  writableFields()->resolvedTunnel_.assign(tunnel);
+void Mirror::setMirrorTunnel(const MirrorTunnel& tunnel) {
+  writableFields()->resolvedTunnel.assign(tunnel);
 }
 
 folly::dynamic Mirror::toFollyDynamic() const {
@@ -47,14 +47,14 @@ std::shared_ptr<Mirror> Mirror::fromFollyDynamic(
 bool Mirror::operator==(const Mirror& rhs) const {
   return getID() == rhs.getID() &&
       (configHasEgressPort() == rhs.configHasEgressPort() ||
-       getMirrorEgressPort() == rhs.getMirrorEgressPort()) &&
-      getMirrorTunnelDestinationIp() == rhs.getMirrorTunnelDestinationIp() &&
+       getEgressPort() == rhs.getEgressPort()) &&
+      getDestinationIp() == rhs.getDestinationIp() &&
       getMirrorTunnel() == rhs.getMirrorTunnel();
 }
 
 bool Mirror::isResolved() const {
   return getMirrorTunnel().hasValue() ||
-      !getMirrorTunnelDestinationIp().hasValue();
+      !getDestinationIp().hasValue();
 }
 
 bool Mirror::operator!=(const Mirror& rhs) const {
@@ -62,11 +62,11 @@ bool Mirror::operator!=(const Mirror& rhs) const {
 }
 
 bool Mirror::configHasEgressPort() const {
-  return getFields()->configHasEgressPort_;
+  return getFields()->configHasEgressPort;
 }
 
-folly::Optional<folly::IPAddress> Mirror::getMirrorTunnelDestinationIp() const {
-  return getFields()->tunnelDestinationIp_;
+folly::Optional<folly::IPAddress> Mirror::getDestinationIp() const {
+  return getFields()->destinationIp;
 }
 
 template class NodeBaseT<Mirror, MirrorFields>;

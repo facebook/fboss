@@ -36,11 +36,11 @@ std::shared_ptr<SwitchState> MirrorManager::resolveMirrors(
   bool mirrorsUpdated = false;
 
   for (const auto& mirror : *state->getMirrors()) {
-    if (!mirror->getMirrorTunnelDestinationIp()) {
+    if (!mirror->getDestinationIp()) {
       /* SPAN mirror does not require resolving */
       continue;
     }
-    const auto destinationIp = mirror->getMirrorTunnelDestinationIp().value();
+    const auto destinationIp = mirror->getDestinationIp().value();
     std::shared_ptr<Mirror> updatedMirror = destinationIp.isV4()
         ? v4Manager_->updateMirror(mirror)
         : v6Manager_->updateMirror(mirror);
