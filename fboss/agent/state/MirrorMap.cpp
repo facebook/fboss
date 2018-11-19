@@ -24,17 +24,6 @@ void MirrorMap::addMirror(const std::shared_ptr<Mirror>& mirror) {
   return addNode(mirror);
 }
 
-folly::dynamic MirrorMap::toFollyDynamic() const {
-  /* TODO - implement this */
-  return folly::dynamic();
-};
-
-std::shared_ptr<MirrorMap> MirrorMap::fromFollyDynamic(
-    const folly::dynamic& /*serializedMirrors*/) {
-  /* TODO - implement this */
-  return nullptr;
-}
-
 FBOSS_INSTANTIATE_NODE_MAP(MirrorMap, MirrorMapTraits);
 
 } // namespace fboss

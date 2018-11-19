@@ -23,11 +23,6 @@ class MirrorMap : public NodeMapT<MirrorMap, MirrorMapTraits> {
 
   void addMirror(const std::shared_ptr<Mirror>& mirror);
 
-  folly::dynamic toFollyDynamic() const override;
-
-  static std::shared_ptr<MirrorMap> fromFollyDynamic(
-      const folly::dynamic& serializedLoadBalancers);
-
  private:
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;

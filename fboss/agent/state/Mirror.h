@@ -51,6 +51,10 @@ struct MirrorTunnel {
         srcMac == rhs.srcMac && dstMac == rhs.dstMac && ttl == rhs.ttl &&
         greProtocol == rhs.greProtocol;
   }
+
+  folly::dynamic toFollyDynamic() const;
+
+  static MirrorTunnel fromFollyDynamic(const folly::dynamic& json);
 };
 
 struct MirrorFields {
@@ -74,6 +78,8 @@ struct MirrorFields {
   folly::Optional<folly::IPAddress> destinationIp;
   folly::Optional<MirrorTunnel> resolvedTunnel;
   bool configHasEgressPort{false};
+
+  folly::dynamic toFollyDynamic() const;
 };
 
 class Mirror : public NodeBaseT<Mirror, MirrorFields> {

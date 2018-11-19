@@ -457,5 +457,35 @@ TEST_F(MirrorTest, MirrorMirrorEgressPort) {
   publishWithFbossError();
 }
 
+TEST_F(MirrorTest, ToAndFromDynamic) {
+  configureMirror("span", MirrorTest::egressPort);
+  configureMirror(
+      "unresolved", MirrorTest::tunnelDestination);
+  configureMirror(
+      "resolved", MirrorTest::tunnelDestination);
+  publishWithStateUpdate();
+  auto span = state_->getMirrors()->getMirrorIf("span");
+  auto unresolved = state_->getMirrors()->getMirrorIf("unresolved");
+  auto resolved = state_->getMirrors()->getMirrorIf("resolved");
+  resolved->setEgressPort(MirrorTest::egressPort);
+  resolved->setMirrorTunnel(MirrorTunnel(
+      folly::IPAddress("1.1.1.1"),
+      folly::IPAddress("2.2.2.2"),
+      folly::MacAddress("1:1:1:1:1:1"),
+      folly::MacAddress("2:2:2:2:2:2")));
+
+  auto reconstructedState =
+      SwitchState::fromFollyDynamic(state_->toFollyDynamic());
+  EXPECT_EQ(
+      *(reconstructedState->getMirrors()->getMirrorIf("span")),
+      *(state_->getMirrors()->getMirrorIf("span")));
+  EXPECT_EQ(
+      *(reconstructedState->getMirrors()->getMirrorIf("unresolved")),
+      *(state_->getMirrors()->getMirrorIf("unresolved")));
+  EXPECT_EQ(
+      *(reconstructedState->getMirrors()->getMirrorIf("resolved")),
+      *(state_->getMirrors()->getMirrorIf("resolved")));
+}
+
 } // namespace fboss
 } // namespace facebook
