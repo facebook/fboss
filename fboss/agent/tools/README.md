@@ -1,41 +1,48 @@
-FBOSS Python Tools
-=========================
+# FBOSS Python Tools
 
-Requirements:
+__Prerequisites__
 
-	apt-get install python-ipaddr python-thrift thrift-compiler
-	export FBOSS=/path/to/base/of/code
+FBOSS and its external dependencies are supposed to be compiled in order to build FBOSS Python Tools. See [facebook/fboss/build.md](https://github.com/facebook/fboss/blob/master/BUILD.md)
 
-Generate the python bindings from the thrift files:
+__Install dependencies__
 
-	cd $FBOSS/fboss/agent/if
-	for p in *.thrift; do
-		thrift -I $FBOSS -r --gen py $p
-		echo $p done
-	done
+```
+apt install -y python-ipaddr python-pip
+pip install future futures
+```
 
+__Install Facebook thrift python lib__
 
-######
-# Apply a couple of fixups (fixups or ???)
+```
+export FBOSS=/opt/fboss
+cd $FBOSS/external/fbthrift/thrift/lib/py/
+pip install .
+```
 
-Dodge the "can't find generator 'cpp2' error"
+__Generate the python bindings from the thrift files__
 
- sed -i -e 's/^namespace cpp2 facebook.fboss/#namespace cpp2 facebook.fboss/' \
-		$FBOSS/fboss/agent/if/*.thrift
-fboss.agent doesn't exist, but fboss.ctrl does
+```
+alias thrift="$FBOSS/external/fbthrift/build/bin/thrift1"
 
-	sed -i -e 's/^from fboss.agent/from fboss.ctrl/' \
-		$FBOSS/fboss/agent/tools/fboss_route.py
+for d in $FBOSS/fboss/agent/if $FBOSS/fboss/qsfp_service/if ; do
+  cd $d
+  for p in *.thrift; do
+    thrift -I $FBOSS -r --gen py $p
+    echo "$p done"
+  done
+done
+```
 
+__Set Python library path__
 
-Now run the fboss_route command:
+```
+export PYTHONPATH=$FBOSS/fboss/agent/if/gen-py/neteng:$FBOSS/fboss/qsfp_service/if/gen-py:$FBOSS/external/fbthrift/thrift/lib/py:$FBOSS/fboss/agent/if/gen-py
+```
 
-	export FBOSS_IF=$FBOSS/fboss/agent/if/gen-py
-	PYTHONPATH=$FBOSS_IF/neteng/:$FBOSS/external/fbthrift/thrift/lib/py:$FBOSS_IF/:$FBOSS/external/fbthrift/thrift/lib/py         python fboss_route.py
+__Run the fboss_route command__
 
+For example
 
-For example:
-
-	export FBOSS_IF=$FBOSS/fboss/agent/if/gen-py
-	export PYTHONPATH=$FBOSS_IF/neteng/:$FBOSS/external/fbthrift/thrift/lib/py:$FBOSS_IF/:$FBOSS/external/fbthrift/thrift/lib/py
-	python fboss_route.py host add 172.31.0.0/24 172.16.1.1
+```
+python $FBOSS/fboss/agent/tools/fboss_route.py host add 172.31.0.0/24 172.16.1.1
+```

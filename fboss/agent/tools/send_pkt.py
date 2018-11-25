@@ -10,7 +10,7 @@ import contextlib
 import re
 import sys
 
-from fboss.agent import FbossCtrl
+from fboss.ctrl import FbossCtrl
 from thrift.transport import TSocket
 from thrift.protocol import TBinaryProtocol
 
