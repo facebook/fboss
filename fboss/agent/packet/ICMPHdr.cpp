@@ -124,11 +124,9 @@ NDPOptionHdr::NDPOptionHdr(folly::io::Cursor& cursor) {
 
 uint32_t NDPOptions::getMtu(folly::io::Cursor& cursor) {
   try {
-    auto reserved = cursor.read<uint16_t>();
-    if (reserved != 0) {
-      throw HdrParseError("NDP MTU Option has non zero reserved field");
-    }
-    return cursor.read<uint32_t>();
+    // This reserved field *must* be ignored by the receiver (RFC4861 4.6.4)
+    cursor.skip(2);
+    return cursor.readBE<uint32_t>();
   } catch (const std::out_of_range& e) {
     throw HdrParseError("NDP MTU option is too small");
   }
