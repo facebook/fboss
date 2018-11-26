@@ -24,6 +24,21 @@ void MirrorMap::addMirror(const std::shared_ptr<Mirror>& mirror) {
   return addNode(mirror);
 }
 
+std::shared_ptr<MirrorMap> MirrorMap::fromFollyDynamic(
+    const folly::dynamic& json) {
+  /* TODO (pshaikh) can remove this function after push of agent that has
+  correct "toFollyDynamic" implementation */
+  auto mirrors = std::make_shared<MirrorMap>();
+  if (json.isNull()) {
+    return mirrors;
+  }
+  for (const auto& entry :
+       json[NodeMapT<MirrorMap, MirrorMapTraits>::kEntries]) {
+    mirrors->addNode(Mirror::fromFollyDynamic(entry));
+  }
+  return mirrors;
+}
+
 FBOSS_INSTANTIATE_NODE_MAP(MirrorMap, MirrorMapTraits);
 
 } // namespace fboss
