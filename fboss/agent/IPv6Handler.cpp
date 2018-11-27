@@ -669,6 +669,15 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
     const folly::MacAddress& srcMac,
     const VlanID& vlanID,
     const folly::Optional<PortDescriptor>& portDescriptor) {
+  auto state = sw->getState();
+  auto vlan = state->getVlans()->getVlanIf(vlanID);
+  if (!Interface::isIpAttached(targetIP, vlan->getInterfaceID(), state)) {
+    XLOG(DBG2) << "unicast neighbor solicitation not sent, neighbor address: "
+               << targetIP << ", is not in the subnets of interface: "
+               << vlan->getInterfaceID() << " for vlan:" << vlanID;
+    return;
+  }
+
   XLOG(DBG4) << "sending unicast neighbor solicitation to " << targetIP << "("
              << targetMac << ")"
              << " on vlan " << vlanID << " from " << srcIP << "(" << srcMac
@@ -885,10 +894,6 @@ void IPv6Handler::sendNeighborSolicitaion(
     const folly::Optional<PortDescriptor>& portDescriptor,
     const NDPOptions& options) {
   auto state = sw->getState();
-  auto vlan = state->getVlans()->getVlanIf(vlanID);
-  if (!vlan || !Interface::isIpAttached(dstIP, vlan->getInterfaceID(), state)) {
-    XLOG(DBG0) << "Can not reach " << dstIP << " on vlan " << vlanID;
-  }
 
   uint32_t bodyLength = 4 + 16;
   if (options.sourceLinkLayerAddress.hasValue()) {
