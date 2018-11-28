@@ -106,8 +106,9 @@ TEST(LldpManagerTest, LldpSend) {
 
   EXPECT_HW_CALL(
       sw,
-      sendPacketOutOfPortAsync_(TxPacketMatcher::createMatcher(
-                             "Lldp PDU", checkLldpPDU()), _)).Times(AtLeast(1));
+      sendPacketOutOfPortAsync_(
+          TxPacketMatcher::createMatcher("Lldp PDU", checkLldpPDU()), _, _))
+      .Times(AtLeast(1));
   LldpManager lldpManager(sw);
   lldpManager.sendLldpOnAllPorts(false);
 }

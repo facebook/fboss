@@ -60,7 +60,8 @@ bool SimSwitch::sendPacketSwitchedAsync(
 
 bool SimSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> /*pkt*/,
-    PortID /*portID*/) noexcept {
+    PortID /*portID*/,
+    folly::Optional<uint8_t> /* cos */) noexcept {
   // TODO
   ++txCount_;
   return true;

@@ -14,6 +14,8 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
+#include <folly/Optional.h>
+
 namespace facebook { namespace fboss {
 
 class MockPlatform;
@@ -58,7 +60,10 @@ class MockableHwSwitch : public MockHwSwitch {
    * the packet memory is safely owned).
    */
   bool sendPacketSwitchedAsyncAdaptor(TxPacket* pkt) noexcept;
-  bool sendPacketOutOfPortAsyncAdaptor(TxPacket* pkt, PortID port) noexcept;
+  bool sendPacketOutOfPortAsyncAdaptor(
+      TxPacket* pkt,
+      PortID port,
+      folly::Optional<uint8_t> cos = folly::none) noexcept;
   bool sendPacketSwitchedSyncAdaptor(TxPacket* pkt) noexcept;
   bool sendPacketOutOfPortSyncAdaptor(TxPacket* pkt, PortID port) noexcept;
 

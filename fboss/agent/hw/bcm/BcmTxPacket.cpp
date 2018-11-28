@@ -138,4 +138,8 @@ int BcmTxPacket::sendSync(unique_ptr<BcmTxPacket> pkt) noexcept {
   syncPktCV().wait(lock, [] { return syncPacketSent(); });
   return rv;
 }
+
+void BcmTxPacket::setCos(uint8_t cos) {
+  pkt_->cos = cos;
+}
 }} // facebook::fboss

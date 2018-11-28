@@ -1236,7 +1236,8 @@ std::unique_ptr<TxPacket> SwSwitch::allocateL3TxPacket(uint32_t l3Len) {
 }
 
 void SwSwitch::sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
-                                   PortID portID) noexcept {
+                                        PortID portID,
+                                        folly::Optional<uint8_t> cos) noexcept {
   pcapMgr_->packetSent(pkt.get());
 
   Cursor c(pkt->buf());
@@ -1254,7 +1255,7 @@ void SwSwitch::sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
     publishTxPacket(pkt.get(), ethertype);
   }
 
-  if (!hw_->sendPacketOutOfPortAsync(std::move(pkt), portID)) {
+  if (!hw_->sendPacketOutOfPortAsync(std::move(pkt), portID, cos)) {
     // Just log an error for now.  There's not much the caller can do about
     // send failures--even on successful return from sendPacket*() the
     // send may ultimately fail since it occurs asynchronously in the

@@ -15,6 +15,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 #include <folly/IPAddress.h>
+#include <folly/Optional.h>
 
 #include <memory>
 #include <utility>
@@ -154,8 +155,10 @@ class HwSwitch {
    *
    * @return If the packet is successfully sent to HW.
    */
-  virtual bool sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
-                                   PortID portID) noexcept = 0;
+  virtual bool sendPacketOutOfPortAsync(
+      std::unique_ptr<TxPacket> pkt,
+      PortID portID,
+      folly::Optional<uint8_t> cos = folly::none) noexcept = 0;
 
   /*
    * Send a packet, use switching logic to send it out the correct port(s)

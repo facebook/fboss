@@ -14,6 +14,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include <folly/dynamic.h>
 #include <folly/io/async/EventBase.h>
+#include <folly/Optional.h>
 #include <gtest/gtest_prod.h>
 
 #include <memory>
@@ -205,8 +206,11 @@ class BcmSwitch : public BcmSwitchIf {
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
-  bool sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
-                           PortID portID) noexcept override;
+  bool sendPacketOutOfPortAsync(
+      std::unique_ptr<TxPacket> pkt,
+      PortID portID,
+      folly::Optional<uint8_t> cos = folly::none) noexcept override;
+
   bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept override;
   bool sendPacketOutOfPortSync(
       std::unique_ptr<TxPacket> pkt,

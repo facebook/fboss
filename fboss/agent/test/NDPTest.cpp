@@ -1225,7 +1225,7 @@ TEST(NdpTest, NdpExpiration) {
                   targetIP2,
                   VlanID(5),
                   false)),
-          PortID(1)));
+          PortID(1), _));
 
   EXPECT_HW_CALL(
       sw,
@@ -1240,7 +1240,7 @@ TEST(NdpTest, NdpExpiration) {
                   targetIP3,
                   VlanID(5),
                   false)),
-          PortID(1)));
+          PortID(1), _));
 
   // Wait for the second and third entries to expire.
   // We wait 2.5 seconds(plus change):
@@ -1288,7 +1288,7 @@ TEST(NdpTest, NdpExpiration) {
                   targetIP,
                   vlanID,
                   false)),
-          PortID(1)));
+          PortID(1), _));
   // Wait for the first entry to expire
   WaitForNdpEntryExpiration expire0(sw, targetIP, vlanID);
   std::promise<bool> done2;

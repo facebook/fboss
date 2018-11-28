@@ -23,6 +23,7 @@
 #include <folly/Range.h>
 #include <folly/ThreadLocal.h>
 #include <folly/io/async/EventBase.h>
+#include <folly/Optional.h>
 
 #include <atomic>
 #include <memory>
@@ -452,8 +453,10 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::unique_ptr<TxPacket> allocateL3TxPacket(uint32_t l3Len);
 
-  void sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
-                           PortID portID) noexcept;
+  void sendPacketOutOfPortAsync(
+      std::unique_ptr<TxPacket> pkt,
+      PortID portID,
+      folly::Optional<uint8_t> cos = folly::none) noexcept;
 
   void sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
                            AggregatePortID aggPortID) noexcept;

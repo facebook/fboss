@@ -48,6 +48,8 @@ class BcmTxPacket : public TxPacket {
     OPENNSL_PBMP_PORT_SET(pkt_->tx_upbmp, port);
   }
 
+  void setCos(uint8_t cos);
+
   /*
    * Send a BcmTxPacket asynchronously.
    *

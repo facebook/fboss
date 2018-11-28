@@ -14,6 +14,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/Constants.h"
 
+#include <folly/Optional.h>
 #include <gmock/gmock.h>
 
 namespace facebook { namespace fboss {
@@ -42,11 +43,13 @@ class MockHwSwitch : public HwSwitch {
   MOCK_METHOD1(sendPacketSwitchedAsync_, bool(TxPacket*));
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
 
-  MOCK_METHOD2(
+  MOCK_METHOD3(
       sendPacketOutOfPortAsync_,
-      bool(TxPacket*, facebook::fboss::PortID));
-  bool sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
-                          facebook::fboss::PortID portID) noexcept override;
+      bool(TxPacket*, facebook::fboss::PortID, folly::Optional<uint8_t> cos));
+  bool sendPacketOutOfPortAsync(
+      std::unique_ptr<TxPacket> pkt,
+      facebook::fboss::PortID portID,
+      folly::Optional<uint8_t> cos = folly::none) noexcept override;
   MOCK_METHOD1(sendPacketSwitchedSync_, bool(TxPacket*));
   bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept override;
 
