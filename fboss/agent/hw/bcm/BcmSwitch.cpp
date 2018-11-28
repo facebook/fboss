@@ -1497,6 +1497,16 @@ bool BcmSwitch::sendPacketOutOfPortSync(unique_ptr<TxPacket> pkt,
   return OPENNSL_SUCCESS(BcmTxPacket::sendSync(std::move(bcmPkt)));
 }
 
+bool BcmSwitch::sendPacketOutOfPortSync(unique_ptr<TxPacket> pkt,
+                                        PortID portID,
+                                       uint8_t cos) noexcept {
+  unique_ptr<BcmTxPacket> bcmPkt(
+      boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
+  bcmPkt->setCos(cos);
+
+  return sendPacketOutOfPortSync(std::move(bcmPkt), portID);
+}
+
 void BcmSwitch::updateStats(SwitchStats *switchStats) {
   // Update thread-local switch statistics.
   updateThreadLocalSwitchStats(switchStats);

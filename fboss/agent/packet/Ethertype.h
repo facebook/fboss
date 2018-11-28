@@ -50,6 +50,9 @@ enum class ETHERTYPE : uint16_t {
 
   // Link Layer Discovery Protocol
   ETHERTYPE_LLDP  = 0x88CC,
+
+  // Link Aggregation Control Protocol and Marker Protocol
+  ETHERTYPE_SLOW_PROTOCOLS = 0x8809,
 };
 
 }} // facebook::fboss
