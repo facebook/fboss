@@ -282,7 +282,11 @@ bool LinkAggregationManager::transmit(LACPDU lacpdu, PortID portID) {
 
   lacpdu.to(&writer);
 
-  sw_->sendPacketOutOfPortAsync(std::move(pkt), portID);
+  // TODO(samank): Control this via configuration by adding a "PacketTxReason"
+  // that can be matched on. This will be analogous to "PacketRxReason".
+  static const uint8_t kStrictPriorityClassOfService = 7;
+  sw_->sendPacketOutOfPortAsync(
+      std::move(pkt), portID, kStrictPriorityClassOfService);
 
   return true;
 }
