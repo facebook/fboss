@@ -47,13 +47,16 @@ class BcmMirror {
     /* if this is programmed in hardware */
     return destination_ != nullptr;
   }
+
+
  private:
-  void applyPortMirrorActions(MirrorAction action);
   BcmSwitch* hw_;
   std::shared_ptr<Mirror> mirror_;
 
   std::unique_ptr<BcmMirrorDestination> destination_;
   void program();
+  void applyAclMirrorActions(MirrorAction action);
+  void applyPortMirrorActions(MirrorAction action);
 };
 
 } // namespace fboss

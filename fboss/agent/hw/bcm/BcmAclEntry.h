@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include "fboss/agent/hw/bcm/BcmAclStat.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/bcm/BcmAclStat.h"
 #include "fboss/agent/hw/bcm/types.h"
 
 namespace facebook { namespace fboss {
@@ -18,7 +18,8 @@ namespace facebook { namespace fboss {
 class BcmSwitch;
 class AclEntry;
 class BcmAclRange;
-
+enum class MirrorAction;
+enum class MirrorDirection;
 
 /**
  * BcmAclEntry is the class to abstract an acl's resources in BcmSwitch
@@ -37,8 +38,15 @@ public:
    */
   static bool isStateSame(BcmSwitch* hw, int gid, BcmAclEntryHandle handle,
                           const std::shared_ptr<AclEntry>& acl);
+  folly::Optional<std::string> getIngressAclMirror();
+  folly::Optional<std::string> getEgressAclMirror();
 
-private:
+  void applyMirrorAction(
+      const std::string& mirrorName,
+      MirrorAction action,
+      MirrorDirection direction);
+
+ private:
   void createNewAclEntry();
   void createAclQualifiers();
   void createAclActions();

@@ -18,4 +18,16 @@ BcmAclEntry::BcmAclEntry(
     const std::shared_ptr<AclEntry>& /*acl*/) {}
 BcmAclEntry::~BcmAclEntry() {}
 
+folly::Optional<std::string> BcmAclEntry::getIngressAclMirror() {
+  return folly::Optional<std::string>();
+}
+
+folly::Optional<std::string> BcmAclEntry::getEgressAclMirror() {
+  return folly::Optional<std::string>();
+}
+
+void BcmAclEntry::applyMirrorAction(
+    const std::string& /*mirrorName*/,
+    MirrorAction /*action*/,
+    MirrorDirection /*direction*/) {}
 }} // facebook::fboss

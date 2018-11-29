@@ -69,8 +69,16 @@ class MatchAction {
     ingressMirror_.assign(mirror);
   }
 
+  void unsetIngressMirror() {
+    ingressMirror_.clear();
+  }
+
   folly::Optional<std::string> getEgressMirror() const {
     return egressMirror_;
+  }
+
+  void unsetEgressMirror() {
+    egressMirror_.clear();
   }
 
   void setEgressMirror(const std::string& mirror) {

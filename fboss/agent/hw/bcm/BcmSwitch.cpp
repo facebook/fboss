@@ -192,7 +192,6 @@ BcmSwitch::~BcmSwitch() {
 
 void BcmSwitch::resetTablesImpl(std::unique_lock<std::mutex>& /*lock*/) {
   unregisterCallbacks();
-  mirrorTable_.reset();
   routeTable_.reset();
   // Release host entries before reseting switch's host table
   // entries so that if host try to refer to look up host table
@@ -205,6 +204,7 @@ void BcmSwitch::resetTablesImpl(std::unique_lock<std::mutex>& /*lock*/) {
   portTable_.reset();
   aclTable_->releaseAcls();
   aclTable_.reset();
+  mirrorTable_.reset();
   trunkTable_.reset();
   controlPlane_.reset();
   coppAclEntries_.clear();

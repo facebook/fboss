@@ -38,5 +38,6 @@ void BcmMirror::applyAclMirrorAction(
     MirrorDirection /*direction*/) {}
 
 void BcmMirror::applyPortMirrorActions(MirrorAction /*action*/) {}
+void BcmMirror::applyAclMirrorActions(MirrorAction /*action*/) {}
 } // namespace fboss
 } // namespace facebook

@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/agent/state/AclEntry.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
 #include "fboss/agent/hw/bcm/BcmAclRange.h"
 #include "fboss/agent/hw/bcm/BcmAclStat.h"
@@ -27,6 +27,14 @@ class BcmAclRange;
  */
 class BcmAclTable {
  public:
+  using FilterIterator =
+      MapFilter<int, std::unique_ptr<BcmAclEntry>>;
+  using Filter =
+      MapFilter<int, std::unique_ptr<BcmAclEntry>>::Predicate;
+  using FilterEntry =
+      MapFilter<int, std::unique_ptr<BcmAclEntry>>::Entry;
+  using FilterAction = std::function<void(const FilterEntry&)>;
+
   explicit BcmAclTable(BcmSwitch* hw) : hw_(hw) {}
   ~BcmAclTable() {}
   void processAddedAcl(const int groupId, const std::shared_ptr<AclEntry>& acl);
@@ -66,6 +74,9 @@ class BcmAclTable {
   void derefBcmAclStat(const std::string& name);
   BcmAclRange* incRefOrCreateBcmAclRange(const AclRange& range);
   void derefBcmAclRange(const AclRange& range);
+
+  /* for every map entry which meets given predicate, execute given action */
+  void forFilteredEach(Filter predicate, FilterAction action) const;
 
  private:
   // map from acl range to bcm acl range and its reference count

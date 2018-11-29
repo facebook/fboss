@@ -1,7 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "BcmMirrorTable.h"
-#include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 namespace facebook {
@@ -10,9 +9,9 @@ void BcmMirrorTable::processAddedMirror(const std::shared_ptr<Mirror>& mirror) {
   if (mirrorEntryMap_.find(mirror->getID()) != mirrorEntryMap_.end()) {
     throw FbossError("Mirror ", mirror->getID(), " already exists");
   }
-  auto bcmMirror = std::make_unique<BcmMirror>(hw_, mirror);
+  auto mirrorEntry = std::make_unique<BcmMirror>(hw_, mirror);
   const auto& entry =
-      mirrorEntryMap_.emplace(mirror->getID(), std::move(bcmMirror));
+      mirrorEntryMap_.emplace(mirror->getID(), std::move(mirrorEntry));
   if (!entry.second) {
     throw FbossError("Failed to add an mirror entry ", mirror->getID());
   }
@@ -52,7 +51,6 @@ BcmMirrorTable::getMirrorIf(const std::string& mirrorName) const {
   }
   return iter->second.get();
 }
-
 
 } // namespace fboss
 } // namespace facebook

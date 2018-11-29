@@ -52,6 +52,7 @@ class BcmPort {
    * actual initialization logic should be performed there.
    */
   BcmPort(BcmSwitch* hw, opennsl_port_t port, BcmPlatformPort* platformPort);
+  ~BcmPort();
 
   void init(bool warmBoot);
 

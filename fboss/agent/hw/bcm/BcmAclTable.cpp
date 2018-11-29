@@ -226,4 +226,8 @@ uint32_t BcmAclTable::getAclStatCount() const {
   return aclStatMap_.size();
 }
 
+void BcmAclTable::forFilteredEach(Filter predicate, FilterAction action) const {
+  auto iterator = FilterIterator(aclEntryMap_, predicate);
+  std::for_each(iterator.begin(), iterator.end(), action);
+}
 }} // facebook::fboss

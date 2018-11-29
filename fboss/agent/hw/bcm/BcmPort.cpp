@@ -218,6 +218,12 @@ BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
              << ", FBOSS PortID:" << platformPort_->getPortID();
 }
 
+BcmPort::~BcmPort() {
+  applyMirrorAction(
+      ingressMirror_, MirrorAction::STOP, MirrorDirection::INGRESS);
+  applyMirrorAction(egressMirror_, MirrorAction::STOP, MirrorDirection::EGRESS);
+}
+
 void BcmPort::init(bool warmBoot) {
   bool up = false;
   if (warmBoot) {
