@@ -18,6 +18,7 @@
 #include "fboss/agent/packet/HdrParseError.h"
 #include "fboss/agent/packet/IPProto.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
+#include "fboss/agent/packet/NDP.h"
 #include "fboss/agent/packet/PktUtil.h"
 
 namespace facebook { namespace fboss {
@@ -120,24 +121,29 @@ NDPOptionHdr::NDPOptionHdr(folly::io::Cursor& cursor) {
   if (length_ == 0) {
     throw HdrParseError("Invalid NDP Option header: length is 0");
   }
+  if (!cursor.canAdvance(payloadLength())) {
+    throw HdrParseError("NDP Option payload is too small");
+  }
 }
 
-uint32_t NDPOptions::getMtu(folly::io::Cursor& cursor) {
-  try {
-    // This reserved field *must* be ignored by the receiver (RFC4861 4.6.4)
-    cursor.skip(2);
-    return cursor.readBE<uint32_t>();
-  } catch (const std::out_of_range& e) {
-    throw HdrParseError("NDP MTU option is too small");
-  }
-}
-folly::MacAddress NDPOptions::getSourceLinkLayerAddress(
+uint32_t NDPOptions::getMtu(
+    const NDPOptionHdr& ndpHdr,
     folly::io::Cursor& cursor) {
-  try {
-    return PktUtil::readMac(&cursor);
-  } catch (const std::out_of_range& e) {
-    throw HdrParseError("NDP Source Link Layer option is too small");
+  if (ndpHdr.length() != NDPOptionLength::MTU) {
+    throw HdrParseError("Bad length for NDP option MTU");
   }
+  // This reserved field *must* be ignored by the receiver (RFC4861 4.6.4)
+  cursor.skip(2);
+  return cursor.readBE<uint32_t>();
+}
+
+folly::MacAddress NDPOptions::getSourceLinkLayerAddress(
+    const NDPOptionHdr& ndpHdr,
+    folly::io::Cursor& cursor) {
+  if (ndpHdr.length() != NDPOptionLength::SRC_LL_ADDRESS_IEEE802) {
+    throw HdrParseError("Bad length for NDP option SrcLLAdr");
+  }
+  return PktUtil::readMac(&cursor);
 }
 
 void NDPOptions::skipOption(
@@ -146,41 +152,43 @@ void NDPOptions::skipOption(
   cursor += ndpHdr.payloadLength();
 }
 
-NDPOptions NDPOptions::getAll(folly::io::Cursor& cursor) {
+NDPOptions NDPOptions::tryGetAll(folly::io::Cursor& cursor) {
   NDPOptions options;
-  try {
-    while (cursor.length()) {
-      auto hdr = NDPOptionHdr(cursor);
-      ICMPv6NDPOptionType hdr_type = hdr.type();
-      XLOG(DBG4) << "NDP Option: " << static_cast<int>(hdr_type);
-      if (!cursor.canAdvance(hdr.payloadLength())) {
-        throw HdrParseError("NDP packet is too small");
-      }
-      switch (hdr_type) {
-        case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_MTU:
-          options.mtu.emplace(getMtu(cursor));
-          break;
-        case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_SOURCE_LINK_LAYER_ADDRESS:
-          options.sourceLinkLayerAddress.emplace(
-              getSourceLinkLayerAddress(cursor));
-          break;
-        case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_REDIRECTED_HEADER:
-        case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_PREFIX_INFORMATION:
-        case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_TARGET_LINK_LAYER_ADDRESS:
-          XLOG(WARNING) << "Ignoring NDP Option: "
-                        << static_cast<int>(hdr.type());
-          skipOption(hdr, cursor);
-          break;
-        default:
-          XLOG(WARNING) << "Ignoring unknown NDP Option: "
-                        << static_cast<int>(hdr.type());
-          skipOption(hdr, cursor);
-          break;
-      }
+  while (cursor.length()) {
+    auto hdr = NDPOptionHdr(cursor);
+    ICMPv6NDPOptionType hdr_type = hdr.type();
+    XLOG(DBG4) << "NDP Option: " << static_cast<int>(hdr_type);
+    switch (hdr_type) {
+      case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_MTU:
+        options.mtu.emplace(getMtu(hdr, cursor));
+        break;
+      case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_SOURCE_LINK_LAYER_ADDRESS:
+        options.sourceLinkLayerAddress.emplace(
+            getSourceLinkLayerAddress(hdr, cursor));
+        break;
+      case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_REDIRECTED_HEADER:
+      case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_PREFIX_INFORMATION:
+      case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_TARGET_LINK_LAYER_ADDRESS:
+        XLOG(WARNING) << "Ignoring NDP Option: "
+                      << static_cast<int>(hdr.type());
+        skipOption(hdr, cursor);
+        break;
+      default:
+        XLOG(WARNING) << "Ignoring unknown NDP Option: "
+                      << static_cast<int>(hdr.type());
+        skipOption(hdr, cursor);
+        break;
     }
+  }
+  return options;
+}
+
+NDPOptions NDPOptions::getAll(folly::io::Cursor& cursor) {
+  try {
+    return tryGetAll(cursor);
   } catch (const HdrParseError& e) {
     XLOG(WARNING) << e.what();
   }
-  return options;
+  return NDPOptions();
 }
 }}
