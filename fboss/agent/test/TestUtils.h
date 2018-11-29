@@ -68,7 +68,7 @@ std::shared_ptr<SwitchState> publishAndApplyConfig(
  */
 std::unique_ptr<HwTestHandle> createTestHandle(
   const std::shared_ptr<SwitchState>& = nullptr,
-  const folly::Optional<folly::MacAddress>& = nullptr,
+  const folly::Optional<folly::MacAddress>& = folly::none,
   SwitchFlags flags = DEFAULT);
 std::unique_ptr<HwTestHandle> createTestHandle(
     cfg::SwitchConfig* cfg,
