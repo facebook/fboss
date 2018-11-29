@@ -267,51 +267,40 @@ TEST(ICMPTest, TTLExceededV4) {
   PortID portID(1);
   VlanID vlanID(1);
 
+  const std::string ipHdr =
+      // Version(4), IHL(5), DSCP(7), ECN(1), Total Length(20+8+8=36)
+      "45 1d 00 24"
+      // Identification(0x3456), Flags(0x1), Fragment offset(0x1345)
+      "34 56 53 45"
+      // TTL(1), Protocol(11), Checksum (0x1234, fake)
+      "01 11 12 34"
+      // Source IP (1.2.3.4)
+      "01 02 03 04"
+      // Destination IP (10.1.0.10)
+      "0a 01 00 0a";
+
+  const std::string udpHdr =
+      // UDP
+      // Source port (69), destination port (70)
+      "00 45 00 46"
+      // Length (16), checksum (0x1234, faked)
+      "00 10 12 34";
+
+  const std::string payload = "01 02 03 04 05 06 07 08";
+
   // create an IPv4 packet with TTL = 1
   auto pkt = PktUtil::parseHexData(
-    // dst mac, src mac
-    "00 02 00 00 00 01  02 00 02 01 02 03"
-    // 802.1q, VLAN 1
-    "81 00 00 01"
-    // IPv4
-    "08 00"
-    // Version(4), IHL(5), DSCP(7), ECN(1), Total Length(20)
-    "45 1d 00 14"
-    // Identification(0x3456), Flags(0x1), Fragment offset(0x1345)
-    "34 56 53 45"
-    // TTL(1), Protocol(11), Checksum (0x1234, fake)
-    "01 11 12 34"
-    // Source IP (1.2.3.4)
-    "01 02 03 04"
-    // Destination IP (10.1.0.10)
-    "0a 01 00 0a"
-    // Source port (69), destination port (70)
-    "00 45 00 46"
-    // Length (8), checksum (0x1234, faked)
-    "00 08 12 34"
-  );
-  PktUtil::padToLength(&pkt, 68);
+      // dst mac, src mac
+      "00 02 00 00 00 01  02 00 02 01 02 03"
+      // 802.1q, VLAN 1
+      "81 00 00 01"
+      // IPv4
+      "08 00" +
+      ipHdr + udpHdr + payload);
 
-  // a copy of origin packet to comparison (only IP packet included)
   auto icmpPayload = PktUtil::parseHexData(
-    // icmp padding for unused field
-    "00 00 00 00"
-    // Version(4), IHL(5), DSCP(7), ECN(1), Total Length(20)
-    "45 1d 00 14"
-    // Identification(0x3456), Flags(0x1), Fragment offset(0x1345)
-    "34 56 53 45"
-    // TTL(1), Protocol(11), Checksum (0x1234, fake)
-    "01 11 12 34"
-    // Source IP (1.2.3.4)
-    "01 02 03 04"
-    // Destination IP (10.1.0.10)
-    "0a 01 00 0a"
-    // Source port (69), destination port (70)
-    "00 45 00 46"
-    // Length (8), checksum (0x1234, faked)
-    "00 08 12 34"
-  );
-
+      // icmp padding for unused field
+      "00 00 00 00" + ipHdr + udpHdr + payload);
 
   // Cache the current stats
   CounterCache counters(sw);
@@ -348,58 +337,44 @@ TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
 
   // TODO: If actual parsing of IPv4 options is implemented at some point
   //       the bogus option bytes will need to be replaced with valid options
+  //
+  const std::string ethHdr =
+      // dst mac, src mac
+      "00 02 00 00 00 01  02 00 02 01 02 03"
+      // 802.1q, VLAN 1
+      "81 00 00 01"
+      // IPv4
+      "08 00";
 
   // create an IPv4 packet with TTL = 1 and ihl != 5
-  auto pkt = PktUtil::parseHexData(
-    // dst mac, src mac
-    "00 02 00 00 00 01  02 00 02 01 02 03"
-    // 802.1q, VLAN 1
-    "81 00 00 01"
-    // IPv4
-    "08 00"
-    // Version(4), IHL(15), DSCP(7), ECN(1), Total Length(60) <------ N.B. IHL
-    "4f 1d 00 3c"
-    // Identification(0x3456), Flags(0x1), Fragment offset(0x1345)
-    "34 56 53 45"
-    // TTL(1), Protocol(11), Checksum (0x1234, fake)
-    "01 11 12 34"
-    // Source IP (1.2.3.4)
-    "01 02 03 04"
-    // Destination IP (10.1.0.10)
-    "0a 01 00 0a"
-    // Maximum amount of options, bogus values here
-    "11 22 33 44 11 22 33 44 11 22 33 44 11 22 33 44 11 22 33 44"
-    "aa bb cc dd aa bb cc dd aa bb cc dd aa bb cc dd aa bb cc dd"
-    // Source port (69), destination port (70)
-    "00 45 00 46"
-    // Length (8), checksum (0x1234, faked)
-    "00 08 12 34"
-  );
-  PktUtil::padToLength(&pkt, 108);
+  const std::string ipHdr =
+      // Version(4), IHL(15), DSCP(7), ECN(1), Total Length(60 + 8 + * = 76)
+      "4f 1d 00 4c"
+      // Identification(0x3456), Flags(0x1), Fragment offset(0x1345)
+      "34 56 53 45"
+      // TTL(1), Protocol(11), Checksum (0x1234, fake)
+      "01 11 12 34"
+      // Source IP (1.2.3.4)
+      "01 02 03 04"
+      // Destination IP (10.1.0.10)
+      "0a 01 00 0a"
+      // Maximum amount of options, bogus values here
+      "11 22 33 44 11 22 33 44 11 22 33 44 11 22 33 44 11 22 33 44"
+      "aa bb cc dd aa bb cc dd aa bb cc dd aa bb cc dd aa bb cc dd";
 
-  // a copy of origin packet to comparison (only IP packet included)
+  const std::string udpHdr =
+      // UDP
+      // Source port (69), destination port (70)
+      "00 45 00 46"
+      // Length (16), checksum (0x1234, faked)
+      "00 10 12 34";
+
+  const std::string payload = "01 02 03 04 05 06 07 08";
+
+  auto pkt = PktUtil::parseHexData(ethHdr + ipHdr + udpHdr + payload);
   auto icmpPayload = PktUtil::parseHexData(
-    // icmp padding for unused field
-    "00 00 00 00"
-    // Version(4), IHL(15), DSCP(7), ECN(1), Total Length(60) <------ N.B. IHL
-    "4f 1d 00 3c"
-    // Identification(0x3456), Flags(0x1), Fragment offset(0x1345)
-    "34 56 53 45"
-    // TTL(1), Protocol(11), Checksum (0x1234, fake)
-    "01 11 12 34"
-    // Source IP (1.2.3.4)
-    "01 02 03 04"
-    // Destination IP (10.1.0.10)
-    "0a 01 00 0a"
-    // Maximum amount of options, bogus values here
-    "11 22 33 44 11 22 33 44 11 22 33 44 11 22 33 44 11 22 33 44"
-    "aa bb cc dd aa bb cc dd aa bb cc dd aa bb cc dd aa bb cc dd"
-    // Source port (69), destination port (70)
-    "00 45 00 46"
-    // Length (8), checksum (0x1234, faked)
-    "00 08 12 34"
-
-  );
+      // icmp padding for unused field
+      "00 00 00 00" + ipHdr + udpHdr + payload);
 
   EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).

@@ -114,98 +114,111 @@ void sendDHCPPacket(
   replace(chaddr.begin(), chaddr.end(), ':', ' ');
   // Pad 10 zero bytes to fill in 16 byte chaddr
   chaddr += "00 00 00 00 00 00 00 00 00 00";
+
+  constexpr auto ethHdrSize = 16;
+  constexpr auto ipHdrSize = 20;
+  constexpr auto udpHdrSize = 8;
+  auto payloadSize = 248 + PktUtil::parseHexData(appendOptions).length();
+  std::string ipHdrLengthStr =
+      folly::sformat("{0:04x}", ipHdrSize + udpHdrSize + payloadSize);
+  std::string udpHdrLengthStr =
+      folly::sformat("{0:04x}", +udpHdrSize + payloadSize);
+
   auto buf = make_unique<folly::IOBuf>(PktUtil::parseHexData(
-    // Ethernet header
-    dstMac + srcMac +
-    "81 00" + vlan +
-    // Ether type
-    "08 00" +
-    // IPv4 Header
-    // Version, IHL, DSCP, ECN, Length (262)
-    "45  00  01  06"
-    // Id, Flags, frag offset,
-    "00  00  00  00"
-    //TTL, Protocol (UDP), checksum
-    "ff  11  00  00" +
-    // UDP Header
-    srcIp + dstIp +
-    srcPort + dstPort +
-    // Length (252), checksum
-    "00  fc  00  00" +
-    //DHCPv4 Packet
-    // op(1),htype(1), hlen(6), hops(1)
-    bootpOp + "01  06  01"
-    // xid (10.10.10.1)
-    "0a  0a  0a  01"
-    // secs(10) flags(0x0000)
-    "00  0a  00  00"
-    // ciaddr (10.10.10.2)
-    "0a  0a  0a  02"
-    // yiaddr
-    + yiaddr +
-    // siaddr (10.10.10.4)
-    "0a  0a  0a  04"
-    // giaddr (10.10.10.5)
-    "0a  0a  0a  05"
-    + chaddr +
-    // Sname (abcd)
-    "61  62  63  64"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    // File (defg)
-    "65  66  67  68"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    "00  00  00  00"
-    //DHCP Cookie {99, 130, 83, 99};
-    "63  82  53 63"
-    // DHCP msg type option + 1 byte pad
-    + dhcpMsgTypeOpt
-    // Other options to append
-    + appendOptions +
-    // 3 X Pad, 1 X end
-    "00  00  00 ff"));
+      // Ethernet header
+      dstMac + srcMac + "81 00" + vlan +
+      // Ether type
+      "08 00" +
+      // IPv4 Header
+      // Version, IHL, DSCP, ECN, Length (272)
+      "45  00" + ipHdrLengthStr +
+      // Id, Flags, frag offset,
+      "00  00  00  00"
+      // TTL, Protocol (UDP), checksum
+      "ff  11  00  00" +
+      // UDP Header
+      srcIp + dstIp + srcPort + dstPort +
+      // Length (252), checksum
+      udpHdrLengthStr + "00  00" +
+      // DHCPv4 Packet
+      // op(1),htype(1), hlen(6), hops(1)
+      bootpOp +
+      "01  06  01"
+      // xid (10.10.10.1)
+      "0a  0a  0a  01"
+      // secs(10) flags(0x0000)
+      "00  0a  00  00"
+      // ciaddr (10.10.10.2)
+      "0a  0a  0a  02"
+      // yiaddr
+      + yiaddr +
+      // siaddr (10.10.10.4)
+      "0a  0a  0a  04"
+      // giaddr (10.10.10.5)
+      "0a  0a  0a  05" +
+      chaddr +
+      // Sname (abcd)
+      "61  62  63  64"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      // File (defg)
+      "65  66  67  68"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      "00  00  00  00"
+      // DHCP Cookie {99, 130, 83, 99};
+      "63  82  53 63"
+      // DHCP msg type option + 1 byte pad
+      + dhcpMsgTypeOpt
+      // Other options to append
+      + appendOptions +
+      // 3 X Pad, 1 X end
+      "00  00  00 ff"));
+  ASSERT_EQ(
+      payloadSize + udpHdrSize + ipHdrSize + ethHdrSize + /*'\0'*/ 1,
+      buf->length())
+      << "Don't forget to adjust the headers' length";
   handle->rxPacket(std::move(buf), PortID(1), VlanID(1));
 }
 
