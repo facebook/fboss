@@ -96,6 +96,8 @@ class BcmPlatform : public Platform {
     return true;
   }
 
+  virtual bool v6MirrorTunnelSupported() const = 0;
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmPlatform(BcmPlatform const &) = delete;

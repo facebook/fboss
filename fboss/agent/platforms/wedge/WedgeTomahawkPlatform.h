@@ -34,6 +34,9 @@ class WedgeTomahawkPlatform : public WedgePlatform {
   bool isCosSupported() const override {
     return true;
   }
+  bool v6MirrorTunnelSupported() const override {
+    return false;
+  }
 };
 
 } // namespace fboss
