@@ -40,12 +40,14 @@ class BridgeApiTest : public ::testing::Test {
 };
 
 TEST_F(BridgeApiTest, createBridge) {
-  auto bridgeId = bridgeApi->create({}, 0);
+  BridgeTypes::Attributes::Type bridgeType(SAI_BRIDGE_TYPE_1Q);
+  auto bridgeId = bridgeApi->create({bridgeType}, 0);
   checkBridge(bridgeId);
 }
 
 TEST_F(BridgeApiTest, removeBridge) {
-  auto bridgeId = bridgeApi->create({}, 0);
+  BridgeTypes::Attributes::Type bridgeType(SAI_BRIDGE_TYPE_1Q);
+  auto bridgeId = bridgeApi->create({bridgeType}, 0);
   checkBridge(bridgeId);
   EXPECT_EQ(fs->brm.map().size(), 1);
   bridgeApi->remove(bridgeId);
@@ -53,7 +55,8 @@ TEST_F(BridgeApiTest, removeBridge) {
 }
 
 TEST_F(BridgeApiTest, createBridgePort) {
-  auto bridgeId = bridgeApi->create({}, 0);
+  BridgeTypes::Attributes::Type bridgeType(SAI_BRIDGE_TYPE_1Q);
+  auto bridgeId = bridgeApi->create({bridgeType}, 0);
   checkBridge(bridgeId);
   BridgeTypes::MemberAttributeType bridgeIdAttribute =
       BridgeTypes::MemberAttributes::BridgeId(bridgeId);

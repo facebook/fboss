@@ -31,8 +31,12 @@ struct BridgeTypes {
         SAI_BRIDGE_ATTR_PORT_LIST,
         sai_object_list_t,
         std::vector<sai_object_id_t>>;
+    using Type = SaiAttribute<
+        EnumType,
+        SAI_BRIDGE_ATTR_TYPE,
+        int32_t>;
   };
-  using AttributeType = boost::variant<Attributes::PortList>;
+  using AttributeType = boost::variant<Attributes::PortList, Attributes::Type>;
   struct MemberAttributes {
     using EnumType = sai_bridge_port_attr_t;
     using BridgeId = SaiAttribute<
