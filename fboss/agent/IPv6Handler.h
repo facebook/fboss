@@ -157,7 +157,7 @@ class IPv6Handler : public AutoRegisterStateObserver {
       folly::MacAddress src,
       folly::io::Cursor cursor);
 
-  static void sendNeighborSolicitaion(
+  static void sendNeighborSolicitation(
       SwSwitch* sw,
       const folly::IPAddressV6& dstIP,
       const folly::MacAddress& dstMac,

@@ -242,7 +242,7 @@ void SwSwitch::stop() {
   // Need to destroy IPv6Handler as it is a state observer,
   // but we must do it after we've stopped TunManager.
   // Otherwise, we might attempt to call sendL3Packet which
-  // calls ipv6_->sendNeighborSolicitaion which will then segfault
+  // calls ipv6_->sendNeighborSolicitation which will then segfault
   ipv6_.reset();
 
   routeUpdateLogger_.reset();
