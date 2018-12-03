@@ -71,12 +71,16 @@ class NDPOptionHdr {
 struct NDPOptions {
   folly::Optional<uint32_t> mtu;
   folly::Optional<folly::MacAddress> sourceLinkLayerAddress;
+  folly::Optional<folly::MacAddress> targetLinkLayerAddress;
   static NDPOptions getAll(folly::io::Cursor& cursor);
   static NDPOptions tryGetAll(folly::io::Cursor& cursor);
 
  private:
   static uint32_t getMtu(const NDPOptionHdr& ndpHdr, folly::io::Cursor& cursor);
   static folly::MacAddress getSourceLinkLayerAddress(
+      const NDPOptionHdr& ndpHdr,
+      folly::io::Cursor& cursor);
+  static folly::MacAddress getTargetLinkLayerAddress(
       const NDPOptionHdr& ndpHdr,
       folly::io::Cursor& cursor);
   static void skipOption(const NDPOptionHdr& ndpHdr, folly::io::Cursor& cursor);

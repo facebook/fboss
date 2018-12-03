@@ -308,30 +308,15 @@ void IPv6Handler::handleRouterSolicitation(unique_ptr<RxPacket> pkt,
   }
 
   MacAddress dstMac = hdr.src;
-  // TODO(adrs): use the NDP options parser
-  while (cursor.totalLength() != 0) {
-    auto optionType = cursor.read<uint8_t>();
-    auto optionLength = cursor.read<uint8_t>();
-    if (optionLength == 0) {
-      XLOG(DBG3) << "NDP option length is 0";
-      cursor.advanceToEnd();
-      sw_->portStats(pkt)->pktDropped();
-      return;
+  try {
+    auto ndpOptions = NDPOptions::tryGetAll(cursor);
+    if (ndpOptions.sourceLinkLayerAddress) {
+      dstMac = *ndpOptions.sourceLinkLayerAddress;
     }
-    if (optionType == NDPOptionType::SRC_LL_ADDRESS) {
-      // target mac address
-      if (optionLength != NDPOptionLength::SRC_LL_ADDRESS_IEEE802) {
-        XLOG(DBG3) << "bad option length "
-                   << static_cast<unsigned int>(optionLength)
-                   << " for source MAC address in IPv6 router solicitation";
-        sw_->portStats(pkt)->pktDropped();
-        return;
-      }
-      dstMac = PktUtil::readMac(&cursor);
-    } else {
-      // Unknown option.  Just skip over it.
-      cursor.skip(optionLength * 8 - 2);
-    }
+  } catch (const HdrParseError& e) {
+    XLOG(WARNING) << e.what();
+    sw_->portStats(pkt)->pktDropped();
+    return;
   }
 
   // Send the response
@@ -479,33 +464,16 @@ void IPv6Handler::handleNeighborAdvertisement(unique_ptr<RxPacket> pkt,
   auto flags = cursor.read<uint32_t>();
   IPAddressV6 targetIP = PktUtil::readIPv6(&cursor);
 
-  // Check for options fields.  The target MAC address may be specified here.
-  // If it isn't, we use the source MAC from the ethernet header.
   MacAddress targetMac = hdr.src;
-  // TODO(adrs): use the NDP options parser
-  while (cursor.totalLength() != 0) {
-    auto optionType = cursor.read<uint8_t>();
-    auto optionLength = cursor.read<uint8_t>();
-    if (optionLength == 0) {
-      XLOG(DBG3) << "NDP option length is 0";
-      cursor.advanceToEnd();
-      sw_->portStats(pkt)->pktDropped();
-      return;
+  try {
+    auto ndpOptions = NDPOptions::tryGetAll(cursor);
+    if (ndpOptions.targetLinkLayerAddress) {
+      targetMac = *ndpOptions.targetLinkLayerAddress;
     }
-    if (optionType == NDPOptionType::TARGET_LL_ADDRESS) {
-      // target mac address
-      if (optionLength != NDPOptionLength::TARGET_LL_ADDRESS_IEEE802) {
-        XLOG(DBG3) << "bad option length "
-                   << static_cast<unsigned int>(optionLength)
-                   << " for target MAC address in IPv6 neighbor advertisement";
-        sw_->portStats(pkt)->pktDropped();
-        return;
-      }
-      targetMac = PktUtil::readMac(&cursor);
-    } else {
-      // Unknown option.  Just skip over it.
-      cursor.skip(optionLength * 8 - 2);
-    }
+  } catch (const HdrParseError& e) {
+    XLOG(WARNING) << e.what();
+    sw_->portStats(pkt)->pktDropped();
+    return;
   }
 
   if (targetMac.isMulticast() || targetMac.isBroadcast()) {

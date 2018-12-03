@@ -56,6 +56,15 @@ folly::MacAddress NDPOptions::getSourceLinkLayerAddress(
   return PktUtil::readMac(&cursor);
 }
 
+folly::MacAddress NDPOptions::getTargetLinkLayerAddress(
+    const NDPOptionHdr& ndpHdr,
+    folly::io::Cursor& cursor) {
+  if (ndpHdr.length() != NDPOptionLength::TARGET_LL_ADDRESS_IEEE802) {
+    throw HdrParseError("Bad length for NDP option TargetLLAdr");
+  }
+  return PktUtil::readMac(&cursor);
+}
+
 void NDPOptions::skipOption(
     const NDPOptionHdr& ndpHdr,
     folly::io::Cursor& cursor) {
@@ -76,6 +85,9 @@ NDPOptions NDPOptions::tryGetAll(folly::io::Cursor& cursor) {
             getSourceLinkLayerAddress(hdr, cursor));
         break;
       case NDPOptionType::TARGET_LL_ADDRESS:
+        options.targetLinkLayerAddress.emplace(
+            getTargetLinkLayerAddress(hdr, cursor));
+        break;
       case NDPOptionType::PREFIX_INFO:
       case NDPOptionType::REDIRECTED_HEADER:
         XLOG(WARNING) << "Ignoring NDP Option: " << hdr.type();
