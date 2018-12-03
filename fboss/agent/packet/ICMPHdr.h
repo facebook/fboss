@@ -167,16 +167,6 @@ enum class ICMPv6ErrorDestinationUnreachable : uint8_t {
 };
 
 /*
- * ICMPv6 Neighbor Discovery options RFC 4861 (sec 4.6)
- */
-enum class ICMPv6NDPOptionType : uint8_t {
-  ICMPV6_NDP_OPTION_SOURCE_LINK_LAYER_ADDRESS = 1,
-  ICMPV6_NDP_OPTION_TARGET_LINK_LAYER_ADDRESS = 2,
-  ICMPV6_NDP_OPTION_PREFIX_INFORMATION = 3,
-  ICMPV6_NDP_OPTION_REDIRECTED_HEADER = 4,
-  ICMPV6_NDP_OPTION_MTU = 5,
-};
-/*
  * An ICMP Header for both IPv4 and IPv6.
  * The payload is not represented here.
  */

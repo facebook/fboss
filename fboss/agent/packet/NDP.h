@@ -17,7 +17,7 @@
 namespace facebook { namespace fboss {
 
 /**
- * Constants for NDP option type fields
+ * Constants for NDP option type fields (RFC 4861 (sec 4.6))
  *
  * We're using a nested enum inside a class to get "enum class" like syntax,
  * but without the strict type checking, so we can still easily convert to and
@@ -48,7 +48,7 @@ struct NDPOptionLength {
 
 class NDPOptionHdr {
  public:
-  ICMPv6NDPOptionType type() const {
+  uint8_t type() const {
     return type_;
   }
   uint8_t length() const {
@@ -64,7 +64,7 @@ class NDPOptionHdr {
   explicit NDPOptionHdr(folly::io::Cursor& cursor);
 
  private:
-  ICMPv6NDPOptionType type_;
+  uint8_t type_;
   uint8_t length_;
 };
 

@@ -23,7 +23,7 @@ using folly::io::Cursor;
 
 NDPOptionHdr::NDPOptionHdr(folly::io::Cursor& cursor) {
   try {
-    type_ = static_cast<ICMPv6NDPOptionType>(cursor.read<uint8_t>());
+    type_ = cursor.read<uint8_t>();
     length_ = cursor.read<uint8_t>();
   } catch (const std::out_of_range& e) {
     throw HdrParseError("NDP Option header is not present");
@@ -66,26 +66,23 @@ NDPOptions NDPOptions::tryGetAll(folly::io::Cursor& cursor) {
   NDPOptions options;
   while (cursor.length()) {
     auto hdr = NDPOptionHdr(cursor);
-    ICMPv6NDPOptionType hdr_type = hdr.type();
-    XLOG(DBG4) << "NDP Option: " << static_cast<int>(hdr_type);
-    switch (hdr_type) {
-      case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_MTU:
+    XLOG(DBG4) << "NDP Option: " << hdr.type();
+    switch (hdr.type()) {
+      case NDPOptionType::MTU:
         options.mtu.emplace(getMtu(hdr, cursor));
         break;
-      case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_SOURCE_LINK_LAYER_ADDRESS:
+      case NDPOptionType::SRC_LL_ADDRESS:
         options.sourceLinkLayerAddress.emplace(
             getSourceLinkLayerAddress(hdr, cursor));
         break;
-      case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_REDIRECTED_HEADER:
-      case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_PREFIX_INFORMATION:
-      case ICMPv6NDPOptionType::ICMPV6_NDP_OPTION_TARGET_LINK_LAYER_ADDRESS:
-        XLOG(WARNING) << "Ignoring NDP Option: "
-                      << static_cast<int>(hdr.type());
+      case NDPOptionType::TARGET_LL_ADDRESS:
+      case NDPOptionType::PREFIX_INFO:
+      case NDPOptionType::REDIRECTED_HEADER:
+        XLOG(WARNING) << "Ignoring NDP Option: " << hdr.type();
         skipOption(hdr, cursor);
         break;
       default:
-        XLOG(WARNING) << "Ignoring unknown NDP Option: "
-                      << static_cast<int>(hdr.type());
+        XLOG(WARNING) << "Ignoring unknown NDP Option: " << hdr.type();
         skipOption(hdr, cursor);
         break;
     }
