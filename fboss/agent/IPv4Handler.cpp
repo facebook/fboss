@@ -125,6 +125,11 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
              << " --> " << v4Hdr.dstAddr.str() << " proto: 0x" << std::hex
              << static_cast<int>(v4Hdr.protocol);
 
+  // Additional data (such as FCS) may be appended after the IP payload
+  auto payload =
+      folly::IOBuf::wrapBuffer(cursor.data(), v4Hdr.length - v4Hdr.size());
+  cursor.reset(payload.get());
+
   // retrieve the current switch state
   auto state = sw_->getState();
   // Need to check if the packet is for self or not. We store our IP

@@ -142,6 +142,10 @@ void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
              << " dst: " << ipv6.dstAddr.str() << " (" << dst << ")"
              << " nextHeader: " << static_cast<int>(ipv6.nextHeader);
 
+  // Additional data (such as FCS) may be appended after the IP payload
+  auto payload = folly::IOBuf::wrapBuffer(cursor.data(), ipv6.payloadLength);
+  cursor.reset(payload.get());
+
   // retrieve the current switch state
   auto state = sw_->getState();
   PortID port = pkt->getSrcPort();

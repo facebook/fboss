@@ -436,9 +436,8 @@ TEST(ICMPTest, ExtraFrameCheckSequenceAtEnd) {
   pktWithChecksum->setSrcPort(portID);
   pktWithChecksum->setSrcVlan(vlanID);
 
-  EXPECT_THROW(
-    sw->packetReceivedThrowExceptionOnError(std::move(pktWithChecksum)),
-      std::out_of_range);
+  EXPECT_NO_THROW(
+      sw->packetReceivedThrowExceptionOnError(std::move(pktWithChecksum)));
   EXPECT_NO_THROW(
     sw->packetReceivedThrowExceptionOnError(std::move(pktWithoutChecksum)));
 }
