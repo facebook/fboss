@@ -362,6 +362,7 @@ add_library(fboss_agent STATIC
     fboss/agent/packet/IPv4Hdr.cpp
     fboss/agent/packet/IPv6Hdr.cpp
     fboss/agent/packet/LlcHdr.cpp
+    fboss/agent/packet/NDP.cpp
     fboss/agent/packet/NDPRouterAdvertisement.cpp
     fboss/agent/packet/PktUtil.cpp
     fboss/agent/Platform.cpp

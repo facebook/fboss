@@ -12,6 +12,7 @@
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/ndp/IPv6RouteAdvertiser.h"
 #include "fboss/agent/packet/ICMPHdr.h"
+#include "fboss/agent/packet/NDP.h"
 #include "fboss/agent/types.h"
 
 #include <memory>

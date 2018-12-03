@@ -8,7 +8,7 @@
  *
  */
 #include "fboss/agent/hw/mock/MockRxPacket.h"
-#include "fboss/agent/packet/ICMPHdr.h"
+#include "fboss/agent/packet/NDP.h"
 
 #include <folly/io/Cursor.h>
 #include <gtest/gtest.h>

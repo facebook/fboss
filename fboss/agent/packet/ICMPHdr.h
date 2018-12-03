@@ -361,40 +361,4 @@ inline bool operator==(const ICMPHdr& lhs, const ICMPHdr& rhs) {
 inline bool operator!=(const ICMPHdr& lhs, const ICMPHdr& rhs) {
   return !operator==(lhs, rhs);
 }
-
-class NDPOptionHdr {
- public:
-  ICMPv6NDPOptionType type() const {
-    return type_;
-  }
-  uint8_t length() const {
-    return length_;
-  }
-  uint16_t payloadLength() const {
-    return sizeof(uint64_t) * length() - hdrLength();
-  }
-  static constexpr uint8_t hdrLength() {
-    return 2;
-  }
-
-  explicit NDPOptionHdr(folly::io::Cursor& cursor);
-
- private:
-  ICMPv6NDPOptionType type_;
-  uint8_t length_;
-};
-
-struct NDPOptions {
-  folly::Optional<uint32_t> mtu;
-  folly::Optional<folly::MacAddress> sourceLinkLayerAddress;
-  static NDPOptions getAll(folly::io::Cursor& cursor);
-  static NDPOptions tryGetAll(folly::io::Cursor& cursor);
-
- private:
-  static uint32_t getMtu(const NDPOptionHdr& ndpHdr, folly::io::Cursor& cursor);
-  static folly::MacAddress getSourceLinkLayerAddress(
-      const NDPOptionHdr& ndpHdr,
-      folly::io::Cursor& cursor);
-  static void skipOption(const NDPOptionHdr& ndpHdr, folly::io::Cursor& cursor);
-};
 }} // facebook::fboss
