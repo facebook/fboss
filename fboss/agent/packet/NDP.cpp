@@ -36,33 +36,35 @@ NDPOptionHdr::NDPOptionHdr(folly::io::Cursor& cursor) {
   }
 }
 
-uint32_t NDPOptions::getMtu(
-    const NDPOptionHdr& ndpHdr,
-    folly::io::Cursor& cursor) {
+NDPOptions::NDPOptions(folly::io::Cursor& cursor) {
+  tryParse(cursor);
+}
+
+void NDPOptions::getMtu(const NDPOptionHdr& ndpHdr, folly::io::Cursor& cursor) {
   if (ndpHdr.length() != NDPOptionLength::MTU) {
     throw HdrParseError("Bad length for NDP option MTU");
   }
   // This reserved field *must* be ignored by the receiver (RFC4861 4.6.4)
   cursor.skip(sizeof(uint16_t));
-  return cursor.readBE<uint32_t>();
+  mtu = cursor.readBE<uint32_t>();
 }
 
-folly::MacAddress NDPOptions::getSourceLinkLayerAddress(
+void NDPOptions::getSourceLinkLayerAddress(
     const NDPOptionHdr& ndpHdr,
     folly::io::Cursor& cursor) {
   if (ndpHdr.length() != NDPOptionLength::SRC_LL_ADDRESS_IEEE802) {
     throw HdrParseError("Bad length for NDP option SrcLLAdr");
   }
-  return PktUtil::readMac(&cursor);
+  sourceLinkLayerAddress = PktUtil::readMac(&cursor);
 }
 
-folly::MacAddress NDPOptions::getTargetLinkLayerAddress(
+void NDPOptions::getTargetLinkLayerAddress(
     const NDPOptionHdr& ndpHdr,
     folly::io::Cursor& cursor) {
   if (ndpHdr.length() != NDPOptionLength::TARGET_LL_ADDRESS_IEEE802) {
     throw HdrParseError("Bad length for NDP option TargetLLAdr");
   }
-  return PktUtil::readMac(&cursor);
+  targetLinkLayerAddress = PktUtil::readMac(&cursor);
 }
 
 void NDPOptions::skipOption(
@@ -71,22 +73,19 @@ void NDPOptions::skipOption(
   cursor += ndpHdr.payloadLength();
 }
 
-NDPOptions NDPOptions::tryGetAll(folly::io::Cursor& cursor) {
-  NDPOptions options;
+void NDPOptions::tryParse(folly::io::Cursor& cursor) {
   while (cursor.length()) {
     auto hdr = NDPOptionHdr(cursor);
     XLOG(DBG4) << "NDP Option: " << hdr.type();
     switch (hdr.type()) {
       case NDPOptionType::MTU:
-        options.mtu.emplace(getMtu(hdr, cursor));
+        getMtu(hdr, cursor);
         break;
       case NDPOptionType::SRC_LL_ADDRESS:
-        options.sourceLinkLayerAddress.emplace(
-            getSourceLinkLayerAddress(hdr, cursor));
+        getSourceLinkLayerAddress(hdr, cursor);
         break;
       case NDPOptionType::TARGET_LL_ADDRESS:
-        options.targetLinkLayerAddress.emplace(
-            getTargetLinkLayerAddress(hdr, cursor));
+        getTargetLinkLayerAddress(hdr, cursor);
         break;
       case NDPOptionType::PREFIX_INFO:
       case NDPOptionType::REDIRECTED_HEADER:
@@ -99,16 +98,32 @@ NDPOptions NDPOptions::tryGetAll(folly::io::Cursor& cursor) {
         break;
     }
   }
-  return options;
 }
 
-NDPOptions NDPOptions::getAll(folly::io::Cursor& cursor) {
-  try {
-    return tryGetAll(cursor);
-  } catch (const HdrParseError& e) {
-    XLOG(WARNING) << e.what();
+void NDPOptions::serialize(folly::io::RWPrivateCursor* cursor) const {
+  if (mtu) {
+    cursor->write<uint8_t>(NDPOptionType::MTU);
+    cursor->write<uint8_t>(NDPOptionLength::MTU);
+    cursor->writeBE<uint16_t>(0);
+    cursor->writeBE<uint32_t>(*mtu);
   }
-  return NDPOptions();
+  if (sourceLinkLayerAddress) {
+    cursor->write<uint8_t>(NDPOptionType::SRC_LL_ADDRESS);
+    cursor->write<uint8_t>(NDPOptionLength::SRC_LL_ADDRESS_IEEE802);
+    cursor->push(sourceLinkLayerAddress->bytes(), MacAddress::SIZE);
+  }
+  if (targetLinkLayerAddress) {
+    cursor->write<uint8_t>(NDPOptionType::TARGET_LL_ADDRESS);
+    cursor->write<uint8_t>(NDPOptionLength::TARGET_LL_ADDRESS_IEEE802);
+    cursor->push(targetLinkLayerAddress->bytes(), MacAddress::SIZE);
+  }
+}
+
+size_t NDPOptions::computeTotalLength() const {
+  return 8 *
+      ((!!mtu * NDPOptionLength::MTU) +
+       (!!sourceLinkLayerAddress * NDPOptionLength::SRC_LL_ADDRESS_IEEE802) +
+       (!!targetLinkLayerAddress * NDPOptionLength::TARGET_LL_ADDRESS_IEEE802));
 }
 
 } // namespace fboss

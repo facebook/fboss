@@ -309,7 +309,7 @@ void IPv6Handler::handleRouterSolicitation(unique_ptr<RxPacket> pkt,
 
   MacAddress dstMac = hdr.src;
   try {
-    auto ndpOptions = NDPOptions::tryGetAll(cursor);
+    auto ndpOptions = NDPOptions(cursor);
     if (ndpOptions.sourceLinkLayerAddress) {
       dstMac = *ndpOptions.sourceLinkLayerAddress;
     }
@@ -387,14 +387,21 @@ void IPv6Handler::handleNeighborSolicitation(unique_ptr<RxPacket> pkt,
 
   // exctract NDP options to update cache only  with value of
   // Source LinkLayer Address option, if present
-  NDPOptions options = NDPOptions::getAll(cursor);
+  NDPOptions ndpOptions;
+  try {
+    ndpOptions.tryParse(cursor);
+  } catch (const HdrParseError& e) {
+    XLOG(DBG6) << e.what();
+    sw_->portStats(pkt)->ipv6NdpBad();
+    return;
+  }
 
   auto updater = sw_->getNeighborUpdater();
   auto type = ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION;
 
-  if ((!options.sourceLinkLayerAddress.hasValue() &&
+  if ((!ndpOptions.sourceLinkLayerAddress.hasValue() &&
        hdr.ipv6->dstAddr.isMulticast()) ||
-      (options.sourceLinkLayerAddress.hasValue() &&
+      (ndpOptions.sourceLinkLayerAddress.hasValue() &&
        hdr.ipv6->srcAddr.isZero())) {
     /* rfc 4861 -  must not be included when the source IP address is the
       unspecified address.  must be included in multicast solicitations a
@@ -414,8 +421,7 @@ void IPv6Handler::handleNeighborSolicitation(unique_ptr<RxPacket> pkt,
   }
 
   auto entry = vlan->getNdpResponseTable()->getEntry(targetIP);
-  if (options.sourceLinkLayerAddress.hasValue())
-  {
+  if (ndpOptions.sourceLinkLayerAddress.hasValue()) {
     /* rfc 4861 - if the source address is not the unspecified address and,
     on link layers that have addresses, the solicitation includes a Source
     Link-Layer Address option, then the recipient should create or update
@@ -426,7 +432,7 @@ void IPv6Handler::handleNeighborSolicitation(unique_ptr<RxPacket> pkt,
       updater->receivedNdpNotMine(
           vlan->getID(),
           hdr.ipv6->srcAddr,
-          options.sourceLinkLayerAddress.value(),
+          ndpOptions.sourceLinkLayerAddress.value(),
           PortDescriptor::fromRxPacket(*pkt.get()),
           type,
           0);
@@ -436,7 +442,7 @@ void IPv6Handler::handleNeighborSolicitation(unique_ptr<RxPacket> pkt,
     updater->receivedNdpMine(
         vlan->getID(),
         hdr.ipv6->srcAddr,
-        options.sourceLinkLayerAddress.value(),
+        ndpOptions.sourceLinkLayerAddress.value(),
         PortDescriptor::fromRxPacket(*pkt.get()),
         type,
         0);
@@ -466,13 +472,13 @@ void IPv6Handler::handleNeighborAdvertisement(unique_ptr<RxPacket> pkt,
 
   MacAddress targetMac = hdr.src;
   try {
-    auto ndpOptions = NDPOptions::tryGetAll(cursor);
+    auto ndpOptions = NDPOptions(cursor);
     if (ndpOptions.targetLinkLayerAddress) {
       targetMac = *ndpOptions.targetLinkLayerAddress;
     }
   } catch (const HdrParseError& e) {
-    XLOG(WARNING) << e.what();
-    sw_->portStats(pkt)->pktDropped();
+    XLOG(DBG3) << e.what();
+    sw_->portStats(pkt)->ipv6NdpBad();
     return;
   }
 
@@ -628,8 +634,9 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
   MacAddress dstMac = MacAddress::createMulticast(solicitedNodeAddr);
   // For now, we always use our link local IP as the source.
   IPAddressV6 srcIP(IPAddressV6::LINK_LOCAL, srcMac);
-  NDPOptions options;
-  options.sourceLinkLayerAddress.emplace(srcMac);
+
+  NDPOptions ndpOptions;
+  ndpOptions.sourceLinkLayerAddress.emplace(srcMac);
 
   XLOG(DBG4) << "sending neighbor solicitation for " << targetIP << " on vlan "
              << vlanID;
@@ -643,7 +650,7 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
       targetIP,
       vlanID,
       folly::Optional<PortDescriptor>(),
-      options);
+      ndpOptions);
 }
 
 /* unicast neighbor solicitation */
@@ -844,22 +851,25 @@ void IPv6Handler::sendNeighborAdvertisement(VlanID vlan,
   XLOG(DBG4) << "sending neighbor advertisement to " << dstIP.str() << " ("
              << dstMac << "): for " << srcIP << " (" << srcMac << ")";
 
-  uint32_t flags = 0xa0000000; // router, override
+  uint32_t flags =
+      NeighborAdvertisementFlags::ROUTER | NeighborAdvertisementFlags::OVERRIDE;
   if (dstIP.isZero()) {
     // TODO: add a constructor that doesn't require string processing
     dstIP = IPAddressV6("ff01::1");
   } else {
-    // Set the solicited flag
-    flags |= 0x40000000;
+    flags |= NeighborAdvertisementFlags::SOLICITED;
   }
 
-  uint32_t bodyLength = 4 + 16 + 8;
+  NDPOptions ndpOptions;
+  ndpOptions.targetLinkLayerAddress.emplace(srcMac);
+
+  uint32_t bodyLength = ICMPHdr::ICMPV6_UNUSED_LEN + IPAddressV6::byteCount() +
+      ndpOptions.computeTotalLength();
+
   auto serializeBody = [&](RWPrivateCursor* cursor) {
     cursor->writeBE<uint32_t>(flags);
     cursor->push(srcIP.bytes(), IPAddressV6::byteCount());
-    cursor->write<uint8_t>(NDPOptionType::TARGET_LL_ADDRESS);
-    cursor->write<uint8_t>(NDPOptionLength::TARGET_LL_ADDRESS_IEEE802);
-    cursor->push(srcMac.bytes(), MacAddress::SIZE);
+    ndpOptions.serialize(cursor);
   };
 
   auto pkt = createICMPv6Pkt(sw_, dstMac, srcMac, vlan, dstIP, srcIP,
@@ -878,23 +888,16 @@ void IPv6Handler::sendNeighborSolicitation(
     const folly::IPAddressV6& neighborIP,
     const VlanID& vlanID,
     const folly::Optional<PortDescriptor>& portDescriptor,
-    const NDPOptions& options) {
+    const NDPOptions& ndpOptions) {
   auto state = sw->getState();
 
-  uint32_t bodyLength = 4 + 16;
-  if (options.sourceLinkLayerAddress.hasValue()) {
-    bodyLength += 8;
-  }
+  uint32_t bodyLength = ICMPHdr::ICMPV6_UNUSED_LEN + IPAddressV6::byteCount() +
+      ndpOptions.computeTotalLength();
 
   auto serializeBody = [&](RWPrivateCursor* cursor) {
     cursor->writeBE<uint32_t>(0); // reserved
-    cursor->push(neighborIP.bytes(), 16);
-    if (options.sourceLinkLayerAddress.hasValue()) {
-      cursor->write<uint8_t>(1); // Source link layer address option
-      cursor->write<uint8_t>(1); // Option length = 1 (x8)
-      cursor->push(
-          options.sourceLinkLayerAddress.value().bytes(), MacAddress::SIZE);
-    }
+    cursor->push(neighborIP.bytes(), IPAddressV6::byteCount());
+    ndpOptions.serialize(cursor);
   };
 
   auto pkt = createICMPv6Pkt(

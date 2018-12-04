@@ -21,7 +21,7 @@ namespace {
 NDPOptions parseNdpOptions(const std::string& pktHex) {
   auto ndp = MockRxPacket::fromHex(pktHex);
   Cursor cursor(ndp->buf());
-  return NDPOptions::tryGetAll(cursor);
+  return NDPOptions(cursor);
 }
 } // namespace
 

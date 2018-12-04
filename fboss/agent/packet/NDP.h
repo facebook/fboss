@@ -46,6 +46,14 @@ struct NDPOptionLength {
   };
 };
 
+struct NeighborAdvertisementFlags {
+  enum Values : uint32_t {
+    ROUTER = 1UL << 31,
+    SOLICITED = 1UL << 30,
+    OVERRIDE = 1UL << 29,
+  };
+};
+
 class NDPOptionHdr {
  public:
   uint8_t type() const {
@@ -68,21 +76,28 @@ class NDPOptionHdr {
   uint8_t length_;
 };
 
-struct NDPOptions {
-  folly::Optional<uint32_t> mtu;
-  folly::Optional<folly::MacAddress> sourceLinkLayerAddress;
-  folly::Optional<folly::MacAddress> targetLinkLayerAddress;
-  static NDPOptions getAll(folly::io::Cursor& cursor);
-  static NDPOptions tryGetAll(folly::io::Cursor& cursor);
+class NDPOptions {
+ public:
+  folly::Optional<uint32_t> mtu{folly::none};
+  folly::Optional<folly::MacAddress> sourceLinkLayerAddress{folly::none};
+  folly::Optional<folly::MacAddress> targetLinkLayerAddress{folly::none};
+
+  NDPOptions() {}
+  explicit NDPOptions(folly::io::Cursor& cursor);
+
+  void tryParse(folly::io::Cursor& cursor);
+
+  void serialize(folly::io::RWPrivateCursor* cursor) const;
+  size_t computeTotalLength() const;
 
  private:
-  static uint32_t getMtu(const NDPOptionHdr& ndpHdr, folly::io::Cursor& cursor);
-  static folly::MacAddress getSourceLinkLayerAddress(
+  void getMtu(const NDPOptionHdr& ndpHdr, folly::io::Cursor& cursor);
+  void getSourceLinkLayerAddress(
       const NDPOptionHdr& ndpHdr,
       folly::io::Cursor& cursor);
-  static folly::MacAddress getTargetLinkLayerAddress(
+  void getTargetLinkLayerAddress(
       const NDPOptionHdr& ndpHdr,
       folly::io::Cursor& cursor);
-  static void skipOption(const NDPOptionHdr& ndpHdr, folly::io::Cursor& cursor);
+  void skipOption(const NDPOptionHdr& ndpHdr, folly::io::Cursor& cursor);
 };
 }} // facebook::fboss
