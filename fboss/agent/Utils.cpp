@@ -55,7 +55,7 @@ IPAddressV4 getSwitchVlanIP(const std::shared_ptr<SwitchState>& state,
 IPAddressV6 getSwitchVlanIPv6(const std::shared_ptr<SwitchState>& state,
                               VlanID vlan) {
   IPAddressV6 switchIp;
-  auto vlanInterface = state->getInterfaces()->getInterfaceInVlanIf(vlan);
+  auto vlanInterface = state->getInterfaces()->getInterfaceInVlan(vlan);
   auto& addresses = vlanInterface->getAddresses();
   for (const auto& address: addresses) {
     if (address.first.isV6()) {
