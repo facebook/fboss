@@ -788,6 +788,47 @@ void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
     });
 }
 
+bool BcmSwitch::isPortQueueNameChanged(
+    const shared_ptr<Port>& oldPort,
+    const shared_ptr<Port>& newPort) {
+  if (oldPort->getPortQueues().size() != newPort->getPortQueues().size()) {
+    return true;
+  }
+
+  for (const auto& newQueue : newPort->getPortQueues()) {
+    auto oldQueue = oldPort->getPortQueues().at(newQueue->getID());
+    if (oldQueue->getName() != newQueue->getName()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+void BcmSwitch::processChangedPortQueues(
+    const shared_ptr<Port>& oldPort,
+    const shared_ptr<Port>& newPort) {
+  auto id = newPort->getID();
+  auto bcmPort = portTable_->getBcmPort(id);
+
+  // We expect the number of port queues to remain constant because this is
+  // defined by the hardware
+  for (const auto& newQueue : newPort->getPortQueues()) {
+    if (oldPort->getPortQueues().size() > 0 &&
+        *(oldPort->getPortQueues().at(newQueue->getID())) == *newQueue) {
+      continue;
+    }
+
+    XLOG(DBG1) << "New cos queue settings on port " << id << " queue "
+               << static_cast<int>(newQueue->getID());
+    bcmPort->setupQueue(newQueue);
+  }
+
+  if (isPortQueueNameChanged(oldPort, newPort)) {
+    bcmPort->getQueueManager()->setupQueueCounters(newPort->getPortQueues());
+  }
+}
+
 void BcmSwitch::processChangedPorts(const StateDelta& delta) {
   forEachChanged(delta.getPortsDelta(),
     [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
@@ -841,18 +882,8 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
             "this platform");
       }
 
-      // We expect the number of port queues to remain constant because this is
-      // defined by the hardware
-      for (const auto& newQueue : newPort->getPortQueues()) {
-        if (oldPort->getPortQueues().size() > 0 &&
-            *(oldPort->getPortQueues().at(newQueue->getID())) == *newQueue) {
-          continue;
-        }
+      processChangedPortQueues(oldPort, newPort);
 
-        XLOG(DBG1) << "New cos queue settings on port " << id << " queue "
-                   << static_cast<int>(newQueue->getID());
-        bcmPort->setupQueue(newQueue);
-      }
     });
 }
 
@@ -1646,11 +1677,25 @@ void BcmSwitch::processRemovedLoadBalancer(
   rtag7LoadBalancer_->deleteLoadBalancer(loadBalancer);
 }
 
-void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
-  const auto controlPlaneDelta = delta.getControlPlaneDelta();
-  const auto& oldCPU = controlPlaneDelta.getOld();
-  const auto& newCPU = controlPlaneDelta.getNew();
+bool BcmSwitch::isControlPlaneQueueNameChanged(
+    const shared_ptr<ControlPlane>& oldCPU,
+    const shared_ptr<ControlPlane>& newCPU) {
+  if ((oldCPU->getQueues().size() != newCPU->getQueues().size())) {
+    return true;
+  }
 
+  for (const auto& newQueue : newCPU->getQueues()) {
+    auto oldQueue = oldCPU->getQueues().at(newQueue->getID());
+    if (newQueue->getName() != oldQueue->getName()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void BcmSwitch::processChangedControlPlaneQueues(
+    const shared_ptr<ControlPlane>& oldCPU,
+    const shared_ptr<ControlPlane>& newCPU) {
   // first make sure queue settings changes applied
   for (const auto newQueue: newCPU->getQueues()) {
     if (oldCPU->getQueues().size() > 0 &&
@@ -1662,6 +1707,17 @@ void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
     controlPlane_->setupQueue(newQueue);
   }
 
+  if (isControlPlaneQueueNameChanged(oldCPU, newCPU)) {
+    controlPlane_->getQueueManager()->setupQueueCounters(newCPU->getQueues());
+  }
+}
+
+void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
+  const auto controlPlaneDelta = delta.getControlPlaneDelta();
+  const auto& oldCPU = controlPlaneDelta.getOld();
+  const auto& newCPU = controlPlaneDelta.getNew();
+
+  processChangedControlPlaneQueues(oldCPU, newCPU);
   // TODO(joseph5wu) Add reason-port mapping and cpu acls
 }
 
@@ -1678,5 +1734,5 @@ void BcmSwitch::clearPortStats(
     const std::unique_ptr<std::vector<int32_t>>& ports) {
   bcmStatUpdater_->clearPortStats(ports);
 }
-
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

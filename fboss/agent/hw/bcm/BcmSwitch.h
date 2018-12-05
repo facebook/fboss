@@ -65,6 +65,7 @@ class BufferStatsLogger;
 class Mirror;
 class BcmMirror;
 class BcmMirrorTable;
+class ControlPlane;
 
 /*
  * Virtual interface to BcmSwitch, primarily for mocking/testing
@@ -701,6 +702,32 @@ class BcmSwitch : public BcmSwitchIf {
    */
   void clearPortStats(const std::unique_ptr<std::vector<int32_t>>& ports) override;
 
+  /*
+   * Return true if any of the port's queue names changed, false otherwise.
+   */
+  bool isPortQueueNameChanged(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
+
+  /*
+   * Process changes to port queues
+   */
+  void processChangedPortQueues(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
+  /*
+   * Returns true if a CPU queue name has changed, false otherwise.
+   */
+  bool isControlPlaneQueueNameChanged(
+      const std::shared_ptr<ControlPlane>& oldCPU,
+      const std::shared_ptr<ControlPlane>& newCPU);
+
+  /*
+   * Process changes to control plane queues
+   */
+  void processChangedControlPlaneQueues(
+      const std::shared_ptr<ControlPlane>& oldCPU,
+      const std::shared_ptr<ControlPlane>& newCPU);
   /*
    * Member variables
    */
