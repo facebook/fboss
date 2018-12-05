@@ -2,6 +2,9 @@
 
 import fboss.system_tests.testutils.packet as packet
 from fboss.system_tests.testutils.ip_conversion import ip_addr_to_str
+from fboss.system_tests.testutils.setup_helper import (
+    check_fib_synced,
+    retry_old_counter_names)
 
 HIGH_PRI_QUEUE = 9
 MID_PRI_QUEUE = 2
@@ -23,20 +26,33 @@ class CoppBase(object):
         same file as CoppTest or similar classes because it confuses the
         test discovery tool and causes tests to run multiple times.
     """
+
+    def setUp(self):
+        super().setUp()
+        check_fib_synced(self)
+
+        self.cpu_high_pri_queue_prefix = (
+            "cpu.queue%d.cpuQueue-high" % HIGH_PRI_QUEUE)
+        self.cpu_mid_pri_queue_prefix = (
+            "cpu.queue%d.cpuQueue-mid" % MID_PRI_QUEUE)
+
+    @retry_old_counter_names
     def test_bgp_copp(self):
         """ Copp Map BGP traffic (dport=179) to high-priority
         """
         pkt = packet.gen_pkt_to_switch(self, dst_port=179)
-        counter = "cpu.queue%d.in_pkts.sum" % HIGH_PRI_QUEUE
-        self.send_pkt_verify_counter_bump(pkt, counter)
+        self.send_pkt_verify_counter_bump(pkt,
+                self.cpu_high_pri_queue_prefix + ".in_pkts.sum")
 
+    @retry_old_counter_names
     def test_nonbgp_router_copp(self):
         """ Copp Map non-BGP traffic (dport!=179) to mid-pri
         """
         pkt = packet.gen_pkt_to_switch(self, dst_port=12345)
-        counter = "cpu.queue%d.in_pkts.sum" % MID_PRI_QUEUE
-        self.send_pkt_verify_counter_bump(pkt, counter)
+        self.send_pkt_verify_counter_bump(pkt,
+                self.cpu_mid_pri_queue_prefix + ".in_pkts.sum")
 
+    @retry_old_counter_names
     def test_all_router_ips(self):
         """ Does every router IP get COPP classified correctly?
         """
@@ -55,9 +71,7 @@ class CoppBase(object):
                                          dst_port=12345))
         # make sure each bgp-like pkt bumps the hi-pri counter
         self.send_pkts_verify_counter_bump(test_bgp_pkts,
-                                           "cpu.queue%d.in_pkts.sum" %
-                                                        HIGH_PRI_QUEUE)
+                self.cpu_high_pri_queue_prefix + ".in_pkts.sum")
         # make sure each non-bgp pkt bumps the mid-pri counter
         self.send_pkts_verify_counter_bump(test_non_bgp_pkts,
-                                           "cpu.queue%d.in_pkts.sum" %
-                                                        MID_PRI_QUEUE)
+                self.cpu_mid_pri_queue_prefix + ".in_pkts.sum")
