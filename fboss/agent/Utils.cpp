@@ -41,7 +41,7 @@ void utilCreateDir(folly::StringPiece path) {
 IPAddressV4 getSwitchVlanIP(const std::shared_ptr<SwitchState>& state,
                             VlanID vlan) {
   IPAddressV4 switchIp;
-  auto vlanInterface = state->getInterfaces()->getInterfaceInVlanIf(vlan);
+  auto vlanInterface = state->getInterfaces()->getInterfaceInVlan(vlan);
   auto& addresses = vlanInterface->getAddresses();
   for (const auto& address: addresses) {
     if (address.first.isV4()) {
