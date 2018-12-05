@@ -68,7 +68,8 @@ class PortQueue :
            getFields()->scalingFactor == queue.getScalingFactor() &&
            getFields()->scheduling == queue.getScheduling() &&
            getFields()->aqms == queue.getAqms() &&
-           getFields()->packetsPerSec == queue.getPacketsPerSec();
+           getFields()->packetsPerSec == queue.getPacketsPerSec() &&
+           getFields()->name == queue.getName();
   }
   bool operator!=(const PortQueue& queue) const {
     return !(*this == queue);

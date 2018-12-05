@@ -138,7 +138,8 @@ bool checkSwConfPortQueueMatch(
            cfgQueue->__isset.packetsPerSec, cfgQueue->packetsPerSec) &&
          isPortQueueOptionalAttributeSame(swQueue->getSharedBytes(),
            cfgQueue->__isset.sharedBytes, cfgQueue->sharedBytes) &&
-         comparePortQueueAQMs(swQueue->getAqms(), cfgQueue->aqms);
+         comparePortQueueAQMs(swQueue->getAqms(), cfgQueue->aqms) &&
+         swQueue->getName() == cfgQueue->name;
 }
 
 template class NodeBaseT<PortQueue, PortQueueFields>;
