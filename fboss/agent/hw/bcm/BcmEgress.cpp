@@ -142,7 +142,7 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
           " ", (mac) ? mac->toString() : "ToCPU",
           " on port ", port,
           " on unit ", hw_->getUnit());
-      XLOG(DBG3) << "programmed L3 egress object " << id_ << " for "
+      XLOG(DBG2) << "programmed L3 egress object " << id_ << " for "
                  << ((mac) ? mac->toString() : "to CPU") << " on unit "
                  << hw_->getUnit() << " for ip: " << ip << " @ brcmif "
                  << intfId << " flags " << eObj.flags << " towards port "
@@ -185,7 +185,7 @@ void BcmEgress::programToCPU() {
   auto rc = opennsl_l3_egress_create(hw_->getUnit(), flags, &eObj, &id_);
   bcmCheckError(rc, "failed to program L3 egress object ", id_,
                 " to CPU on unit ", hw_->getUnit());
-  XLOG(DBG3) << "programmed L3 egress object " << id_ << " to CPU on unit "
+  XLOG(DBG2) << "programmed L3 egress object " << id_ << " to CPU on unit "
              << hw_->getUnit();
 }
 
@@ -196,7 +196,7 @@ BcmEgress::~BcmEgress() {
   auto rc = opennsl_l3_egress_destroy(hw_->getUnit(), id_);
   bcmLogFatal(rc, hw_, "failed to destroy L3 egress object ",
       id_, " on unit ", hw_->getUnit());
-  XLOG(DBG3) << "destroyed L3 egress object " << id_ << " on unit "
+  XLOG(DBG2) << "destroyed L3 egress object " << id_ << " on unit "
              << hw_->getUnit();
 }
 
@@ -243,6 +243,16 @@ void BcmEcmpEgress::program() {
                    << "programming ECMP group ";
       }
     }
+
+    XLOG(DBG2) << "Programming L3 ECMP egress object "
+               << ((id_ != INVALID) ? folly::to<std::string>(id_) :
+                   "(invalid id)")
+               << " for "
+               << paths_.size() << " paths"
+               << ((obj.flags & OPENNSL_L3_REPLACE) ? " replace" :
+                   " noreplace")
+               << ((obj.flags & OPENNSL_L3_WITH_ID) ? " with id" :
+                   " without id");
     auto ret = opennsl_l3_egress_ecmp_create(hw_->getUnit(), &obj, index,
                                              pathsArray);
     bcmCheckError(ret, "failed to program L3 ECMP egress object ", id_,
@@ -264,7 +274,7 @@ BcmEcmpEgress::~BcmEcmpEgress() {
   auto ret = opennsl_l3_egress_ecmp_destroy(hw_->getUnit(), &obj);
   bcmLogFatal(ret, hw_, "failed to destroy L3 ECMP egress object ",
       id_, " on unit ", hw_->getUnit());
-  XLOG(DBG3) << "Destroyed L3 ECMP egress object " << id_ << " on unit "
+  XLOG(DBG2) << "Destroyed L3 ECMP egress object " << id_ << " on unit "
              << hw_->getUnit();
 }
 
@@ -333,7 +343,7 @@ void BcmEgress::programToTrunk(opennsl_if_t intfId, opennsl_vrf_t /* vrf */,
         " on unit ",
         hw_->getUnit());
     bcmCheckError(rc, "failed to program ", desc);
-    XLOG(DBG3) << "programmed " << desc;
+    XLOG(DBG2) << "programmed " << desc;
   }
 
   intfId_ = intfId;
