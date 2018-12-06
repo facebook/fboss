@@ -34,7 +34,7 @@ struct BridgeTypes {
     using Type = SaiAttribute<
         EnumType,
         SAI_BRIDGE_ATTR_TYPE,
-        int32_t>;
+        sai_int32_t>;
   };
   using AttributeType = boost::variant<Attributes::PortList, Attributes::Type>;
   struct MemberAttributes {
@@ -49,7 +49,7 @@ struct BridgeTypes {
         SAI_BRIDGE_PORT_ATTR_PORT_ID,
         sai_object_id_t,
         SaiObjectIdT>;
-    using Type = SaiAttribute<EnumType, SAI_BRIDGE_PORT_ATTR_TYPE, int32_t>;
+    using Type = SaiAttribute<EnumType, SAI_BRIDGE_PORT_ATTR_TYPE, sai_int32_t>;
   };
   using MemberAttributeType = boost::variant<
       MemberAttributes::BridgeId,

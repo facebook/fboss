@@ -22,8 +22,24 @@ sai_status_t create_bridge_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  *bridge_id = fs->brm.create();
+  folly::Optional<sai_bridge_type_t> bridgeType;
+  // See if we have a bridge type.
   for (int i = 0; i < attr_count; ++i) {
+    if (attr_list[i].id == SAI_BRIDGE_ATTR_TYPE) {
+      bridgeType = static_cast<sai_bridge_type_t>(attr_list[i].value.s32);
+      break;
+    }
+  }
+  // Create bridge based on the input.
+  if (!bridgeType) {
+    *bridge_id = fs->brm.create();
+  } else {
+    *bridge_id = fs->brm.create(bridgeType.value());
+  }
+  for (int i = 0; i < attr_count; ++i) {
+    if (attr_list[i].id ==  SAI_BRIDGE_ATTR_TYPE) {
+      continue;
+    }
     sai_status_t res = set_bridge_attribute_fn(*bridge_id, &attr_list[i]);
     if (res != SAI_STATUS_SUCCESS) {
       fs->brm.remove(*bridge_id);

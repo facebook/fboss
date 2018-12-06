@@ -63,7 +63,11 @@ class FakeBridgePort {
 
 class FakeBridge {
  public:
+  explicit FakeBridge(sai_bridge_type_t type) : type(type) {}
+  // Default bridge type is 1Q.
+  FakeBridge() : type(SAI_BRIDGE_TYPE_1Q) {}
   sai_object_id_t id;
+  sai_bridge_type_t type;
   FakeManager<sai_object_id_t, FakeBridgePort>& fm() {
     return fm_;
   }
