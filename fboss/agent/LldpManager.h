@@ -41,21 +41,12 @@ class LldpManager : private folly::AsyncTimeout {
                     TLV_LENGTH_BITS_LENGTH = 9,
                     TLV_TYPE_LEFT_SHIFT_OFFSET = 9,
                     TLV_LENGTH_LEFT_SHIFT_OFFSET = 1,
-                    CHASSIS_TLV_TYPE = 0x01,
                     CHASSIS_TLV_LENGTH = 0x07,
-                    CHASSIS_TLV_SUB_TYPE_MAC = 0x04,
-                    PORT_TLV_TYPE = 0x02,
-                    PORT_TLV_SUB_TYPE_INTERFACE = 0x5,
-                    SYSTEM_NAME_TLV_TYPE = 0x5,
-                    SYSTEM_DESCRIPTION_TLV_TYPE = 0x6,
-                    SYSTEM_CAPABILITY_TLV_TYPE = 0x7,
                     SYSTEM_CAPABILITY_TLV_LENGTH = 0x4,
                     SYSTEM_CAPABILITY_SWITCH = 1 << 2, // 3rd bit for switch
                     SYSTEM_CAPABILITY_ROUTER = 1 << 4, // 5th bit for router
-                    TTL_TLV_TYPE = 0x3,
                     TTL_TLV_LENGTH = 0x2,
                     TTL_TLV_VALUE = 120,
-                    PDU_END_TLV_TYPE = 0,
                     PDU_END_TLV_LENGTH = 0};
   explicit LldpManager(SwSwitch* sw);
   ~LldpManager() override;

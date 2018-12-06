@@ -88,7 +88,7 @@ TxMatchFn checkLldpPDU() {
      // verify the TLVs here.
      auto chassisTLVType = c.readBE<uint16_t>();
      uint16_t expectedChassisTLVTypeLength = (
-             (LldpManager::CHASSIS_TLV_TYPE <<
+             (static_cast<uint16_t>(LldpTlvType::CHASSIS) <<
               LldpManager::TLV_TYPE_LEFT_SHIFT_OFFSET) |
              LldpManager::CHASSIS_TLV_LENGTH );
      if (chassisTLVType != expectedChassisTLVTypeLength) {

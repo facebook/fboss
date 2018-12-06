@@ -99,12 +99,12 @@ uint16_t tlvHeader(uint16_t type, uint16_t length) {
   return (type << 9) | length;
 }
 
-void writeTl(uint16_t type, uint16_t length, RWPrivateCursor* cursor) {
-  uint16_t typeLength = tlvHeader(type, length);
+void writeTl(LldpTlvType type, uint16_t length, RWPrivateCursor* cursor) {
+  uint16_t typeLength = tlvHeader(static_cast<uint16_t>(type), length);
   cursor->writeBE<uint16_t>(typeLength);
 }
 
-void writeTlv(uint16_t type, uint8_t subType, const ByteRange& buf,
+void writeTlv(LldpTlvType type, uint8_t subType, const ByteRange& buf,
               RWPrivateCursor* cursor) {
   uint16_t length = buf.size() + 1;
   writeTl(type, length, cursor);
@@ -112,18 +112,28 @@ void writeTlv(uint16_t type, uint8_t subType, const ByteRange& buf,
   cursor->push(buf.data(), (size_t)buf.size());
 }
 
-void writeTlv(uint16_t type, uint16_t value,
+void writeTlv(LldpTlvType type, LldpChassisIdType subType,
+              const ByteRange& buf, RWPrivateCursor* cursor) {
+  writeTlv(type, static_cast<uint8_t>(subType), buf, cursor);
+}
+
+void writeTlv(LldpTlvType type, LldpPortIdType subType,
+              const ByteRange& buf, RWPrivateCursor* cursor) {
+  writeTlv(type, static_cast<uint8_t>(subType), buf, cursor);
+}
+
+void writeTlv(LldpTlvType type, uint16_t value,
               RWPrivateCursor* cursor) {
   writeTl(type, 2, cursor);
   cursor->writeBE<uint16_t>(value);
 }
 
-void writeTlv(uint16_t type, uint32_t value, RWPrivateCursor* cursor) {
+void writeTlv(LldpTlvType type, uint32_t value, RWPrivateCursor* cursor) {
   writeTl(type, 4, cursor);
   cursor->writeBE<uint32_t>(value);
 }
 
-void writeTlv(uint16_t type, const ByteRange& value,
+void writeTlv(LldpTlvType type, const ByteRange& value,
               RWPrivateCursor* cursor) {
   writeTl(type, value.size(), cursor);
   cursor->push(value.data(), value.size());
@@ -153,36 +163,36 @@ void LldpManager::sendLldpInfo(
   pkt->writeEthHeader(&cursor, LLDP_DEST_MAC,
                       cpuMac, port->getIngressVlan(), ETHERTYPE_LLDP);
   // now write chassis ID TLV
-  writeTlv(CHASSIS_TLV_TYPE, CHASSIS_TLV_SUB_TYPE_MAC,
+  writeTlv(LldpTlvType::CHASSIS, LldpChassisIdType::MAC_ADDRESS,
            ByteRange(cpuMac.bytes(), 6), &cursor);
 
   // now write port ID TLV
   /* using StringPiece here to bridge chars in string to unsigned chars in
    * ByteRange.
    */
-  writeTlv(PORT_TLV_TYPE, PORT_TLV_SUB_TYPE_INTERFACE,
+  writeTlv(LldpTlvType::PORT, LldpPortIdType::INTERFACE_NAME,
            StringPiece(port->getName()), &cursor);
 
   // now write TTL TLV
-  writeTlv(TTL_TLV_TYPE, (uint16_t) TTL_TLV_VALUE, &cursor);
+  writeTlv(LldpTlvType::TTL, (uint16_t) TTL_TLV_VALUE, &cursor);
 
   // now write optional TLVs
   // system name TLV
   if (strlen(hostname) > 0) {
-    writeTlv(SYSTEM_NAME_TLV_TYPE,
+    writeTlv(LldpTlvType::SYSTEM_NAME,
              StringPiece(hostname), &cursor);
   }
 
   // system description TLV
-  writeTlv(SYSTEM_DESCRIPTION_TLV_TYPE, StringPiece("FBOSS"), &cursor);
+  writeTlv(LldpTlvType::SYSTEM_DESCRIPTION, StringPiece("FBOSS"), &cursor);
 
   // system capability TLV
   uint16_t capability = SYSTEM_CAPABILITY_ROUTER;
   uint32_t systemAndEnabledCapability = (capability << 16) | capability;
-  writeTlv(SYSTEM_CAPABILITY_TLV_TYPE, systemAndEnabledCapability, &cursor);
+  writeTlv(LldpTlvType::SYSTEM_CAPABILITY, systemAndEnabledCapability, &cursor);
 
   // now write PDU End TLV
-  writeTl(PDU_END_TLV_TYPE, PDU_END_TLV_LENGTH, &cursor);
+  writeTl(LldpTlvType::PDU_END, PDU_END_TLV_LENGTH, &cursor);
 
   // Fill the padding with 0s
   memset(cursor.writableData(), 0, cursor.length());
