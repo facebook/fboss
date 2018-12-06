@@ -677,3 +677,23 @@ TEST(Acl, TrafficCounterCompatibility) {
   EXPECT_EQ(aclAction.getTrafficCounter()->types.size(), 1);
   EXPECT_EQ(aclAction.getTrafficCounter()->types[0], cfg::CounterType::PACKETS);
 }
+
+TEST(Acl, DstIpLocal) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  config.acls.resize(1);
+  config.acls[0].name = "acl1";
+  config.acls[0].actionType = cfg::AclActionType::DENY;
+  // set dstLocalIp
+  config.acls[0].__isset.dstIpLocal = true;
+  config.acls[0].dstIpLocal = true;
+
+  // publish and read back to make sure it's all sane
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto aclV1 = stateV1->getAcl("acl1");
+  EXPECT_NE(nullptr, aclV1);
+  EXPECT_TRUE(aclV1->getDstIpLocal());
+}
