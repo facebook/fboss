@@ -127,7 +127,8 @@ folly::Future<folly::Unit> QsfpCache::confirmAlive() {
     }
   };
 
-  return QsfpClient::createClient(evb_).thenValue(getAliveSince).then(storeIt);
+  return QsfpClient::createClient(evb_).thenValue(
+     getAliveSince).thenValue(storeIt);
 }
 
 folly::Future<folly::Unit> QsfpCache::doSync(PortMapThrift&& toSync) {
