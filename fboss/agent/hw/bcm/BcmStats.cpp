@@ -45,8 +45,7 @@ BcmStats::BcmStats(ThreadLocalStatsMap *map)
       uncorrParityErrors_(map, SwitchStats::kCounterPrefix +
                           "bcm.parity.uncorr", SUM, RATE),
       asicErrors_(map, SwitchStats::kCounterPrefix +
-                  "bcm.asic.error", SUM, RATE),
-      activeMirrors_(map, SwitchStats::kCounterPrefix + "bcm.mirrors.count") {
+                  "bcm.asic.error", SUM, RATE) {
 }
 
 BcmStats* BcmStats::createThreadStats() {

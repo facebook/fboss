@@ -67,14 +67,6 @@ class BcmStats {
     asicErrors_.addValue(1);
   }
 
-  void mirrorAdded() {
-    activeMirrors_.incrementValue(1);
-  }
-
-  void mirrorRemoved() {
-    activeMirrors_.incrementValue(-1);
-  }
-
  private:
   // Forbidden copy constructor and assignment operator
   BcmStats(BcmStats const &) = delete;
@@ -110,9 +102,6 @@ class BcmStats {
 
   // Other ASIC errors
   TLTimeseries asicErrors_;
-
-  // Number of active mirrors
-  TLCounter activeMirrors_;
 
   static folly::ThreadLocalPtr<BcmStats> stats_;
 };
