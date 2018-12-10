@@ -52,6 +52,17 @@ struct MirrorTunnel {
         greProtocol == rhs.greProtocol;
   }
 
+  bool operator<(const MirrorTunnel& rhs) const {
+    return std::tie(srcIp, dstIp, srcMac, dstMac, ttl, greProtocol) <
+        std::tie(
+               rhs.srcIp,
+               rhs.dstIp,
+               rhs.srcMac,
+               rhs.dstMac,
+               rhs.ttl,
+               rhs.greProtocol);
+  }
+
   folly::dynamic toFollyDynamic() const;
 
   static MirrorTunnel fromFollyDynamic(const folly::dynamic& json);

@@ -381,6 +381,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
   warmBootState->resetRouteTables(warmBootCache_->reconstructRouteTables());
   warmBootState->resetAcls(warmBootCache_->reconstructAclMap());
   warmBootState->resetLoadBalancers(warmBootCache_->reconstructLoadBalancers());
+  warmBootState->resetMirrors(warmBootCache_->reconstructMirrors());
   return warmBootState;
 }
 

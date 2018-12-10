@@ -35,4 +35,19 @@ void BcmWarmBootCache::removeBcmAclStat(BcmAclStatHandle /*handle*/) {}
 void BcmWarmBootCache::detachBcmAclStat(BcmAclEntryHandle /*acl handle*/,
   BcmAclStatHandle /*stat handle*/) {}
 
+void BcmWarmBootCache::populateMirrors() {}
+
+void BcmWarmBootCache:: populateMirroredPorts() {}
+
+void BcmWarmBootCache::populateMirroredPort(opennsl_gport_t /*port*/) {}
+void BcmWarmBootCache::populateMirroredAcl(BcmAclEntryHandle /*handle*/) {}
+void BcmWarmBootCache::stopUnclaimedPortMirroring(
+    opennsl_gport_t /*port*/,
+    MirrorDirection /*direction*/,
+    BcmMirrorHandle /*mirror*/) {}
+void BcmWarmBootCache::stopUnclaimedAclMirroring(
+    BcmAclEntryHandle /*aclEntry*/,
+    MirrorDirection /*direction*/,
+    BcmMirrorHandle /*mirror*/) {}
+void BcmWarmBootCache::removeUnclaimedMirror(BcmMirrorHandle /*mirror*/) {}
 }} // facebook::fboss

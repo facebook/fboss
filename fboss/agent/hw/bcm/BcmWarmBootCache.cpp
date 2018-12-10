@@ -469,6 +469,8 @@ void BcmWarmBootCache::populate(folly::Optional<folly::dynamic> warmBootState) {
     this->priority2BcmAclEntryHandle_);
 
   populateRtag7State();
+  populateMirrors();
+  populateMirroredPorts();
 }
 
 bool BcmWarmBootCache::fillVlanPortInfo(Vlan* vlan) {
@@ -796,6 +798,9 @@ void BcmWarmBootCache::clear() {
     removeBcmAclRange(aclRangeItr.second.first);
   }
   aclRange2BcmAclRangeHandle_.clear();
+
+  /* remove unclaimed mirrors and mirrored ports/acls, if any */
+  removeUnclaimedMirrors();
 }
 
 void BcmWarmBootCache::populateRtag7State() {
@@ -852,4 +857,110 @@ void BcmWarmBootCache::programmed(
   CHECK_EQ(numErased, 1);
 }
 
+BcmWarmBootCache::MirrorEgressPath2HandleCitr BcmWarmBootCache::findMirror(
+    opennsl_gport_t port,
+    const folly::Optional<MirrorTunnel>& tunnel) const {
+  return mirrorEgressPath2Handle_.find(std::make_pair(port, tunnel));
+}
+
+BcmWarmBootCache::MirrorEgressPath2HandleCitr BcmWarmBootCache::mirrorsBegin()
+    const {
+  return mirrorEgressPath2Handle_.begin();
+}
+BcmWarmBootCache::MirrorEgressPath2HandleCitr BcmWarmBootCache::mirrorsEnd()
+    const {
+  return mirrorEgressPath2Handle_.end();
+}
+
+void BcmWarmBootCache::programmedMirror(MirrorEgressPath2HandleCitr itr) {
+  const auto key = itr->first;
+  const auto port = key.first;
+  const auto& tunnel = key.second;
+  if (tunnel) {
+    XLOG(DBG1) << "Programmed ERSPAN mirror egressing through: " << port
+               << " with "
+               << "proto=" << tunnel->greProtocol
+               << "source ip=" << tunnel->srcIp.str()
+               << "source mac=" << tunnel->srcMac.toString()
+               << "destination ip=" << tunnel->dstIp.str()
+               << "destination mac=" << tunnel->dstMac.toString()
+               << ", removing from warm boot cache";
+  } else {
+    XLOG(DBG1) << "Programmed SPAN mirror egressing through: " << port
+               << ", removing from warm boot cache";
+  }
+  mirrorEgressPath2Handle_.erase(itr);
+}
+
+BcmWarmBootCache::MirroredPort2HandleCitr BcmWarmBootCache::mirroredPortsBegin()
+    const {
+  return mirroredPort2Handle_.begin();
+}
+
+BcmWarmBootCache::MirroredPort2HandleCitr BcmWarmBootCache::mirroredPortsEnd()
+    const {
+  return mirroredPort2Handle_.end();
+}
+
+BcmWarmBootCache::MirroredPort2HandleCitr BcmWarmBootCache::findMirroredPort(
+    opennsl_gport_t port,
+    MirrorDirection direction) const {
+  return mirroredPort2Handle_.find(std::make_pair(port, direction));
+}
+
+void BcmWarmBootCache::programmedMirroredPort(MirroredPort2HandleCitr itr) {
+  mirroredPort2Handle_.erase(itr);
+}
+
+BcmWarmBootCache::MirroredAcl2HandleCitr BcmWarmBootCache::mirroredAclsBegin()
+    const {
+  return mirroredAcl2Handle_.begin();
+}
+
+BcmWarmBootCache::MirroredAcl2HandleCitr BcmWarmBootCache::mirroredAclsEnd()
+    const {
+  return mirroredAcl2Handle_.end();
+}
+
+BcmWarmBootCache::MirroredAcl2HandleCitr BcmWarmBootCache::findMirroredAcl(
+    BcmAclEntryHandle entry,
+    MirrorDirection direction) const {
+  return mirroredAcl2Handle_.find(std::make_pair(entry, direction));
+}
+
+void BcmWarmBootCache::programmedMirroredAcl(MirroredAcl2HandleCitr itr) {
+  mirroredAcl2Handle_.erase(itr);
+}
+
+void BcmWarmBootCache::removeUnclaimedMirrors() {
+  XLOG(DBG1) << "Unclaimed mirrored port count=" << mirroredPort2Handle_.size()
+             << ", unclaimed mirrored acl count=" << mirroredAcl2Handle_.size()
+             << ", unclaimed mirror count=" << mirrorEgressPath2Handle_.size();
+  std::for_each(
+      mirroredPort2Handle_.begin(),
+      mirroredPort2Handle_.end(),
+      [this](const auto& mirroredPort2Handle) {
+        this->stopUnclaimedPortMirroring(
+            mirroredPort2Handle.first.first,
+            mirroredPort2Handle.first.second,
+            mirroredPort2Handle.second);
+      });
+
+  std::for_each(
+      mirroredAcl2Handle_.begin(),
+      mirroredAcl2Handle_.end(),
+      [this](const auto& mirroredAcl2Handle) {
+        this->stopUnclaimedAclMirroring(
+            mirroredAcl2Handle.first.first,
+            mirroredAcl2Handle.first.second,
+            mirroredAcl2Handle.second);
+      });
+
+  std::for_each(
+      mirrorEgressPath2Handle_.begin(),
+      mirrorEgressPath2Handle_.end(),
+      [this](const auto& mirrorEgressPath2Handle) {
+        this->removeUnclaimedMirror(mirrorEgressPath2Handle.second);
+      });
+}
 }}

@@ -27,6 +27,7 @@ extern "C" {
 #include <memory>
 #include <string>
 #include <vector>
+#include "fboss/agent/hw/bcm/BcmMirror.h"
 #include "fboss/agent/hw/bcm/BcmRtag7Module.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/hw/bcm/types.h"
@@ -42,6 +43,7 @@ class LoadBalancerMap;
 class RouteTableMap;
 class SwitchState;
 class Vlan;
+struct MirrorTunnel;
 class VlanMap;
 class MirrorMap;
 
@@ -151,6 +153,14 @@ class BcmWarmBootCache {
   // current h/w acls: key = priority, value = BcmAclEntryHandle
   using Priority2BcmAclEntryHandle = boost::container::flat_map<
         int, BcmAclEntryHandle>;
+  using MirrorEgressPath2Handle = boost::container::flat_map<
+      std::pair<opennsl_gport_t, folly::Optional<MirrorTunnel>>,
+      BcmMirrorHandle>;
+  using MirroredPort2Handle = boost::container::
+      flat_map<std::pair<opennsl_gport_t, MirrorDirection>, BcmMirrorHandle>;
+  using MirroredAcl2Handle = boost::container::
+      flat_map<std::pair<BcmAclEntryHandle, MirrorDirection>, BcmMirrorHandle>;
+
   struct AclStatStatus {
     BcmAclStatHandle stat{-1};
     bool claimed{false};
@@ -195,6 +205,22 @@ class BcmWarmBootCache {
                         BcmAclStatHandle aclStatHandle);
 
   void populateRtag7State();
+
+  void populateMirrors();
+  void populateMirroredPorts();
+  void populateMirroredPort(opennsl_gport_t port);
+  void populateMirroredAcl(BcmAclEntryHandle handle);
+
+  void removeUnclaimedMirrors();
+  void stopUnclaimedPortMirroring(
+      opennsl_gport_t port,
+      MirrorDirection direction,
+      BcmMirrorHandle mirror);
+  void stopUnclaimedAclMirroring(
+      BcmAclEntryHandle aclEntry,
+      MirrorDirection direction,
+      BcmMirrorHandle mirror);
+  void removeUnclaimedMirror(BcmMirrorHandle mirror);
 
  public:
   /*
@@ -427,6 +453,31 @@ class BcmWarmBootCache {
     return hw_;
   }
 
+  using MirrorEgressPath2HandleCitr =
+      typename MirrorEgressPath2Handle::const_iterator;
+  MirrorEgressPath2HandleCitr mirrorsBegin() const;
+  MirrorEgressPath2HandleCitr mirrorsEnd() const;
+  MirrorEgressPath2HandleCitr findMirror(
+      opennsl_gport_t port,
+      const folly::Optional<MirrorTunnel>& tunnel) const;
+  void programmedMirror(MirrorEgressPath2HandleCitr itr);
+
+  using MirroredPort2HandleCitr = typename MirroredPort2Handle::const_iterator;
+  MirroredPort2HandleCitr mirroredPortsBegin() const;
+  MirroredPort2HandleCitr mirroredPortsEnd() const;
+  MirroredPort2HandleCitr findMirroredPort(
+      opennsl_gport_t port,
+      MirrorDirection direction) const;
+  void programmedMirroredPort(MirroredPort2HandleCitr itr);
+
+  using MirroredAcl2HandleCitr = typename MirroredAcl2Handle::const_iterator;
+  MirroredAcl2HandleCitr mirroredAclsBegin() const;
+  MirroredAcl2HandleCitr mirroredAclsEnd() const;
+  MirroredAcl2HandleCitr findMirroredAcl(
+      BcmAclEntryHandle entry,
+      MirrorDirection direction) const;
+  void programmedMirroredAcl(MirroredAcl2HandleCitr itr);
+
  private:
   /*
    * Get egress ids for a ECMP Id. Will throw FbossError
@@ -497,5 +548,8 @@ class BcmWarmBootCache {
   AclEntry2AclStat aclEntry2AclStat_;
 
   std::unique_ptr<SwitchState> dumpedSwSwitchState_;
+  MirrorEgressPath2Handle mirrorEgressPath2Handle_;
+  MirroredPort2Handle mirroredPort2Handle_;
+  MirroredAcl2Handle mirroredAcl2Handle_;
 };
 }} // facebook::fboss
