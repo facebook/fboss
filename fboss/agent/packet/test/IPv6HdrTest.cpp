@@ -78,8 +78,8 @@ TEST(IPv6HdrTest, parameterized_data_constructor) {
 
 TEST(IPv6HdrTest, cursor_data_constructor) {
   uint8_t version = IPV6_VERSION;
-  uint8_t trafficClass = 0;
-  uint32_t flowLabel = 0;
+  uint8_t trafficClass = 0xff;
+  uint32_t flowLabel = 0xfffff;
   uint16_t payloadLength = 0;
   uint8_t nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_NONXT);
   uint8_t hopLimit = 1;
@@ -88,8 +88,8 @@ TEST(IPv6HdrTest, cursor_data_constructor) {
   auto pkt = MockRxPacket::fromHex(
     // IPv6 Header
     "6"      // VERSION: 6
-    "00"     // Traffic Class
-    "00000"  // Flow Label
+    "ff"     // Traffic Class
+    "fffff"  // Flow Label
     "00 00"  // Payload Length
     "3B"     // Next Header: No Next Header
     "01"     // Hop Limit: 1

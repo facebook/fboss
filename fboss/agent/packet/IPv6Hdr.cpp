@@ -34,8 +34,7 @@ IPv6Hdr::IPv6Hdr(Cursor& cursor) {
     if (version != IPV6_VERSION) {
       throw HdrParseError("IPv6: version != 6");
     }
-    trafficClass = ((buf[0] & 0x0F) << 4)
-                 |  (buf[1] & 0xF0);
+    trafficClass = ((buf[0] & 0x0F) << 4) | ((buf[1] & 0xF0) >> 4);
     flowLabel = (static_cast<uint32_t>(buf[1] & 0x0F) << 16)
               | (static_cast<uint32_t>(buf[2]) << 8)
               |  static_cast<uint32_t>(buf[3]);
