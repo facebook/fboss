@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/types.h"
 
 namespace facebook {
@@ -23,6 +22,8 @@ class BcmMirrorDestination {
       int unit,
       BcmPort* egressPort,
       const MirrorTunnel& mirrorTunnel);
+  BcmMirrorDestination(int unit, BcmMirrorHandle handle)
+      : unit_(unit), handle_(handle) {}
   ~BcmMirrorDestination();
   BcmMirrorHandle getHandle();
 
@@ -47,7 +48,11 @@ class BcmMirror {
     /* if this is programmed in hardware */
     return destination_ != nullptr;
   }
-
+  folly::Optional<BcmMirrorHandle> getHandle() {
+    return destination_
+        ? folly::Optional<BcmMirrorHandle>(destination_->getHandle())
+        : folly::none;
+  }
 
  private:
   BcmSwitch* hw_;
