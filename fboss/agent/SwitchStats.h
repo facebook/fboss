@@ -276,6 +276,13 @@ class SwitchStats : public boost::noncopyable {
     trapPktTooBig_.addValue(1);
   }
 
+  void LldpRecvdPkt() {
+    LldpRecvdPkt_.addValue(1);
+  }
+  void LldpBadPkt() {
+    LldpBadPkt_.addValue(1);
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   SwitchStats(SwitchStats const &) = delete;
@@ -456,6 +463,11 @@ class SwitchStats : public boost::noncopyable {
 
   // Number of packet too big ICMPv6 triggered
   TLTimeseries trapPktTooBig_;
+
+  // Number of LLDP packets.
+  TLTimeseries LldpRecvdPkt_;
+  // Number of bad LLDP packets.
+  TLTimeseries LldpBadPkt_;
 };
 
 }} // facebook::fboss

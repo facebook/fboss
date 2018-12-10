@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 
 using folly::MacAddress;
@@ -55,11 +56,15 @@ void LldpManager::handlePacket(
     folly::MacAddress src,
     folly::io::Cursor cursor) {
   LinkNeighbor neighbor;
+
+  sw_->stats()->LldpRecvdPkt();
+
   bool ret = neighbor.parseLldpPdu(pkt->getSrcPort(), pkt->getSrcVlan(),
                                    src, ETHERTYPE_LLDP, &cursor);
   if (!ret) {
     // LinkNeighbor will have already logged a message about the error.
     // Just ignore the packet.
+    sw_->stats()->LldpBadPkt();
     return;
   }
 
