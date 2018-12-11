@@ -72,6 +72,16 @@ class LldpManager : private folly::AsyncTimeout {
                     folly::MacAddress src,
                     folly::io::Cursor cursor);
 
+  // Create an LLDP packet
+  static std::unique_ptr<TxPacket>
+  createLldpPkt(SwSwitch* sw,
+                const folly::MacAddress macaddr,
+                VlanID,
+                const std::string& hostname,
+                const std::string& portname,
+                const uint16_t ttl,
+                const uint16_t capabilities);
+
   // This function is internal.  It is only public for use in unit tests.
   void sendLldpOnAllPorts(bool checkPortStatusFlag);
 
@@ -85,8 +95,7 @@ class LldpManager : private folly::AsyncTimeout {
 
  private:
   void timeoutExpired() noexcept override;
-  void sendLldpInfo(SwSwitch* sw, const std::shared_ptr<SwitchState>& swState,
-                    const std::shared_ptr<Port>& port);
+  void sendLldpInfo(const std::shared_ptr<Port>& port);
 
   SwSwitch* sw_{nullptr};
   std::chrono::milliseconds interval_;

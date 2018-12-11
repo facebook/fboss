@@ -61,6 +61,7 @@ void LldpManager::handlePacket(
 
   bool ret = neighbor.parseLldpPdu(pkt->getSrcPort(), pkt->getSrcVlan(),
                                    src, ETHERTYPE_LLDP, &cursor);
+
   if (!ret) {
     // LinkNeighbor will have already logged a message about the error.
     // Just ignore the packet.
@@ -90,7 +91,7 @@ void LldpManager::sendLldpOnAllPorts(bool checkPortStatusFlag) {
   std::shared_ptr<SwitchState> state = sw_->getState();
   for (const auto& port : *state->getPorts()) {
     if (checkPortStatusFlag == false || port->isPortUp()) {
-      sendLldpInfo(sw_, state, port);
+      sendLldpInfo(port);
     } else {
       XLOG(DBG5) << "Skipping LLDP send as this port is disabled "
                  << port->getID();
@@ -144,46 +145,40 @@ void writeTlv(LldpTlvType type, const ByteRange& value,
   cursor->push(value.data(), value.size());
 }
 
-void LldpManager::sendLldpInfo(
-    SwSwitch* sw,
-    const std::shared_ptr<SwitchState>& /*swState*/,
-    const std::shared_ptr<Port>& port) {
-  MacAddress cpuMac = sw->getPlatform()->getLocalMac();
-  const size_t kMaxLen = 64;
-  char hostname[kMaxLen];
+std::unique_ptr<TxPacket>
+LldpManager::createLldpPkt(SwSwitch* sw,
+                           const MacAddress macaddr,
+                           VlanID vlanid,
+                           const std::string& hostname,
+                           const std::string& portname,
+                           const uint16_t ttl,
+                           const uint16_t capabilities) {
 
-  if (0 == gethostname(hostname, kMaxLen)) {
-    // make sure it is null terminated
-    hostname[kMaxLen - 1] = '\0';
-  } else {
-    hostname[0] = '\0';
-  }
 
   // The minimum packet length is 64.We use 68 on the assumption that
   // the packet will go out untagged, which will remove 4 bytes.
   uint32_t frameLen = 98;
   auto pkt = sw->allocatePacket(frameLen);
-  PortID thisPortID = port->getID();
   RWPrivateCursor cursor(pkt->buf());
   pkt->writeEthHeader(&cursor, LLDP_DEST_MAC,
-                      cpuMac, port->getIngressVlan(), ETHERTYPE_LLDP);
+                      macaddr, vlanid, ETHERTYPE_LLDP);
   // now write chassis ID TLV
   writeTlv(LldpTlvType::CHASSIS, LldpChassisIdType::MAC_ADDRESS,
-           ByteRange(cpuMac.bytes(), 6), &cursor);
+           ByteRange(macaddr.bytes(), 6), &cursor);
 
   // now write port ID TLV
   /* using StringPiece here to bridge chars in string to unsigned chars in
    * ByteRange.
    */
   writeTlv(LldpTlvType::PORT, LldpPortIdType::INTERFACE_NAME,
-           StringPiece(port->getName()), &cursor);
+           StringPiece(portname), &cursor);
 
   // now write TTL TLV
-  writeTlv(LldpTlvType::TTL, (uint16_t) TTL_TLV_VALUE, &cursor);
+  writeTlv(LldpTlvType::TTL, ttl, &cursor);
 
   // now write optional TLVs
   // system name TLV
-  if (strlen(hostname) > 0) {
+  if (hostname.size() > 0) {
     writeTlv(LldpTlvType::SYSTEM_NAME,
              StringPiece(hostname), &cursor);
   }
@@ -192,17 +187,39 @@ void LldpManager::sendLldpInfo(
   writeTlv(LldpTlvType::SYSTEM_DESCRIPTION, StringPiece("FBOSS"), &cursor);
 
   // system capability TLV
-  uint16_t capability = SYSTEM_CAPABILITY_ROUTER;
-  uint32_t systemAndEnabledCapability = (capability << 16) | capability;
-  writeTlv(LldpTlvType::SYSTEM_CAPABILITY, systemAndEnabledCapability, &cursor);
+  uint32_t enabledCapabilities = (capabilities << 16) | capabilities;
+  writeTlv(LldpTlvType::SYSTEM_CAPABILITY, enabledCapabilities, &cursor);
 
   // now write PDU End TLV
   writeTl(LldpTlvType::PDU_END, PDU_END_TLV_LENGTH, &cursor);
 
   // Fill the padding with 0s
   memset(cursor.writableData(), 0, cursor.length());
+
+  return pkt;
+}
+
+void LldpManager::sendLldpInfo(const std::shared_ptr<Port>& port) {
+  MacAddress cpuMac = sw_->getPlatform()->getLocalMac();
+  PortID thisPortID = port->getID();
+
+  const size_t kMaxLen = 64;
+  std::array<char, kMaxLen> hostname;
+  if (0 == gethostname(hostname.data(), kMaxLen)) {
+    // make sure it is null terminated
+    hostname[kMaxLen - 1] = '\0';
+  } else {
+    hostname[0] = '\0';
+  }
+
+  auto pkt = LldpManager::createLldpPkt(sw_, cpuMac, port->getIngressVlan(),
+                                        std::string(hostname.data()),
+                                        port->getName(),
+                                        TTL_TLV_VALUE,
+                                        SYSTEM_CAPABILITY_ROUTER);
+
   // this LLDP packet HAS to exit out of the port specified here.
-  sw->sendPacketOutOfPortAsync(std::move(pkt), thisPortID);
+  sw_->sendPacketOutOfPortAsync(std::move(pkt), thisPortID);
   XLOG(DBG4) << "sent LLDP "
              << " on port " << port->getID() << " with CPU MAC "
              << cpuMac.toString() << " port id " << port->getName()
