@@ -166,13 +166,27 @@ std::map<int32_t, RawDOMData> fetchDataFromQsfpService(
     const std::vector<int32_t>& ports) {
   folly::EventBase evb;
   auto qsfpServiceClient = QsfpClient::createClient(&evb);
-  return std::move(qsfpServiceClient)
-      .thenValue([&ports](std::unique_ptr<QsfpServiceAsyncClient> client) {
-        auto options = QsfpClient::getRpcOptions();
-        return client->future_getTransceiverRawDOMData(
-            options, ports);
-      }).getVia(&evb);
+  auto client = std::move(qsfpServiceClient).getVia(&evb);
+
+  std::map<int32_t, TransceiverInfo> qsfpInfoMap;
+
+  client->sync_getTransceiverInfo(qsfpInfoMap, ports);
+
+  std::vector<int32_t> presentPorts;
+  for(auto& qsfpInfo : qsfpInfoMap) {
+    if(qsfpInfo.second.present) {
+      presentPorts.push_back(qsfpInfo.first);
+    }
   }
+
+  std::map<int32_t, RawDOMData> rawDOMDataMap;
+
+  if(!presentPorts.empty()) {
+    client->sync_getTransceiverRawDOMData(rawDOMDataMap, presentPorts);
+  }
+
+  return rawDOMDataMap;
+}
 
 RawDOMData fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port) {
   RawDOMData rawDOMData;
@@ -285,14 +299,6 @@ void printPortDetail(const RawDOMData& rawDOMData, unsigned int port) {
 
   auto lowerBuf = rawDOMData.lower.data();
   auto page0Buf = rawDOMData.page0.data();
-
-  // Temporarily we use the first byte in status to determine whether the port
-  // is missing or not. More explicit way can be done when we have the present
-  // field added in the rawDOMData and set on the server side.
-  if (lowerBuf[1] == 0) {
-    fprintf(stderr, "Port %d is not present.\n", port);
-    return;
-  }
 
   printf("Port %d\n", port);
   printf("  ID: %#04x\n", lowerBuf[0]);
@@ -537,14 +543,20 @@ int main(int argc, char* argv[]) {
   } else {
     try {
       std::vector<int32_t> idx;
-      for(auto i : ports) {
+      for(auto port : ports) {
         // Direct I2C bus starts from 1 instead of 0, however qsfp_service index
         // starts from 0. So here we try to comply to match that behavior.
-        idx.push_back(i-1);
+        idx.push_back(port - 1);
       }
-      auto rawDOMData = fetchDataFromQsfpService(idx);
-      for (auto& kv : rawDOMData) {
-        printPortDetail(kv.second, kv.first+1);
+      auto rawDOMDataMap = fetchDataFromQsfpService(idx);
+      for (auto& i : idx) {
+        auto iter = rawDOMDataMap.find(i);
+        if(iter == rawDOMDataMap.end()) {
+          fprintf(stderr, "Port %d is not present.\n", i + 1);
+        }
+        else {
+          printPortDetail(iter->second, iter->first + 1);
+        }
       }
       return EX_OK;
     } catch (const std::exception& e) {
