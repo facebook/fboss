@@ -15,8 +15,6 @@
 
 #include <gtest/gtest.h>
 
-#include <vector>
-
 using namespace facebook::fboss;
 
 static constexpr folly::StringPiece str4 = "42.42.12.34";
@@ -42,16 +40,18 @@ TEST_F(NeighborApiTest, createV4Neighbor) {
   NeighborTypes::AttributeType dstMacAttribute =
       NeighborTypes::Attributes::DstMac(dstMac);
   NeighborTypes::NeighborEntry n(0, 0, ip4);
+  FakeNeighborEntry fn = std::make_tuple(0, 0, ip4);
   neighborApi->create(n, {dstMacAttribute});
-  EXPECT_EQ(fs->nm.get(n).dstMac, dstMac);
+  EXPECT_EQ(fs->nm.get(fn).dstMac, dstMac);
 }
 
 TEST_F(NeighborApiTest, createV6Neighbor) {
   NeighborTypes::AttributeType dstMacAttribute =
       NeighborTypes::Attributes::DstMac(dstMac);
   NeighborTypes::NeighborEntry n(0, 0, ip6);
+  FakeNeighborEntry fn = std::make_tuple(0, 0, ip6);
   neighborApi->create(n, {dstMacAttribute});
-  EXPECT_EQ(fs->nm.get(n).dstMac, dstMac);
+  EXPECT_EQ(fs->nm.get(fn).dstMac, dstMac);
 }
 
 TEST_F(NeighborApiTest, removeV4Neighbor) {

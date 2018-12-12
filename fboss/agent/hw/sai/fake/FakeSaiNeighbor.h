@@ -9,13 +9,12 @@
  */
 #pragma once
 
-#include "fboss/agent/hw/sai/api/NeighborApi.h"
 #include "fboss/agent/hw/sai/fake/FakeManager.h"
 
+#include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
 
-#include <unordered_map>
-#include <vector>
+#include <tuple>
 
 extern "C" {
   #include <sai.h>
@@ -46,8 +45,9 @@ struct FakeNeighbor {
   folly::MacAddress dstMac;
 };
 
-using FakeNeighborManager =
-    FakeManager<NeighborTypes::NeighborEntry, FakeNeighbor>;
+using FakeNeighborEntry =
+    std::tuple<sai_object_id_t, sai_object_id_t, folly::IPAddress>;
+using FakeNeighborManager = FakeManager<FakeNeighborEntry, FakeNeighbor>;
 
 void populate_neighbor_api(sai_neighbor_api_t** neighbor_api);
 } // namespace fboss

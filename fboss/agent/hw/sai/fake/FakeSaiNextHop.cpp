@@ -9,6 +9,7 @@
  */
 #include "FakeSai.h"
 #include "FakeSaiPort.h"
+#include "fboss/agent/hw/sai/api/AddressUtil.h"
 
 #include <folly/logging/xlog.h>
 #include <folly/Optional.h>

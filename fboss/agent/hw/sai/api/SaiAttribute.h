@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include "AddressUtil.h"
-#include "Traits.h"
+#include "fboss/agent/hw/sai/api/AddressUtil.h"
+#include "fboss/agent/hw/sai/api/Traits.h"
 
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
