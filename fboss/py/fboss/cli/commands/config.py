@@ -38,7 +38,7 @@ class ReloadConfigCmd(cmds.FbossCmd):
             self._client = self._create_agent_client()
             self._client.reloadConfig()
             print("Config reloaded")
-            return
+            return 0
         except FbossBaseError as e:
             print('Fboss Error: ' + e)
             return 2
