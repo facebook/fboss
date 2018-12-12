@@ -125,7 +125,9 @@ class BcmSwitchIf : public HwSwitch {
 
   virtual BcmMirrorTable* writableBcmMirrorTable() const = 0;
 
-  virtual void dumpState() const = 0;
+  virtual std::string gatherSdkState() const = 0;
+
+  virtual void dumpState(const std::string& path) const = 0;
 };
 
 /*
@@ -367,10 +369,12 @@ class BcmSwitch : public BcmSwitchIf {
     return mirrorTable_.get();
   }
 
+  std::string gatherSdkState() const override;
+
   /**
    * Log the hardware state for the switch
    */
-  void dumpState() const override;
+  void dumpState(const std::string& path) const override;
 
   /*
    * Handle a fatal crash.

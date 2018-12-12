@@ -37,6 +37,9 @@ class BcmWarmBootHelper {
   virtual bool storeWarmBootState(const folly::dynamic& switchState) = 0;
   virtual folly::dynamic getWarmBootState() const = 0;
 
+  virtual std::string startupSdkDumpFile() const = 0;
+  virtual std::string shutdownSdkDumpFile() const = 0;
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmWarmBootHelper(BcmWarmBootHelper const&) = delete;
@@ -57,6 +60,9 @@ class DiscBackedBcmWarmBootHelper: public BcmWarmBootHelper {
   void warmBootWrite(const uint8_t* buf, int offset, int nbytes) override;
   bool storeWarmBootState(const folly::dynamic& switchState) override;
   folly::dynamic getWarmBootState() const override;
+
+  std::string startupSdkDumpFile() const override;
+  std::string shutdownSdkDumpFile() const override;
 
  private:
   // Forbidden copy constructor and assignment operator

@@ -304,6 +304,11 @@ void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
   }
 
   std::lock_guard<std::mutex> g(lock_);
+
+  // This will run some common shell commands to give more info about
+  // the underlying bcm sdk state
+  dumpState(platform_->getWarmBootHelper()->shutdownSdkDumpFile());
+
   switchState[kHwSwitch] = toFollyDynamic();
   unitObject_->detachAndSetupWarmBoot(switchState);
   unitObject_.reset();
@@ -481,6 +486,9 @@ HwInitResult BcmSwitch::init(Callback* callback) {
     initMirrorModule();
   } else {
     LOG (INFO) << "Performing warm boot ";
+
+    // This dumps debug info about initial sdk state. Useful after warm boot.
+    dumpState(platform_->getWarmBootHelper()->startupSdkDumpFile());
   }
 
   rv = opennsl_switch_control_set(unit_, opennslSwitchL3EgressMode, 1);
@@ -1614,7 +1622,8 @@ bool BcmSwitch::getAndClearNeighborHit(
 }
 
 void BcmSwitch::exitFatal() const {
-  dumpState();
+  utilCreateDir(platform_->getCrashInfoDir());
+  dumpState(platform_->getCrashHwStateFile());
   callback_->exitFatal();
 }
 
@@ -1740,5 +1749,13 @@ void BcmSwitch::clearPortStats(
     const std::unique_ptr<std::vector<int32_t>>& ports) {
   bcmStatUpdater_->clearPortStats(ports);
 }
+
+void BcmSwitch::dumpState(const std::string& path) const {
+  auto stateString = gatherSdkState();
+  if (stateString.length() > 0) {
+    folly::writeFile(stateString, path.c_str());
+  }
+}
+
 } // namespace fboss
 } // namespace facebook

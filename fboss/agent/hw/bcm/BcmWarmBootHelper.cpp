@@ -23,6 +23,8 @@ namespace {
 constexpr auto wbFlagPrefix = "can_warm_boot_";
 constexpr auto wbDataPrefix = "bcm_sdk_state_";
 constexpr auto forceColdBootPrefix = "cold_boot_once_";
+constexpr auto shutdownDumpPrefix = "sdk_shutdown_dump_";
+constexpr auto startupDumpPrefix = "sdk_startup_dump_";
 
 /*
  * Remove the given file. Return true if file exists and
@@ -98,6 +100,14 @@ std::string DiscBackedBcmWarmBootHelper::forceColdBootOnceFlag() const {
   return folly::to<string>(warmBootDir_, "/", forceColdBootPrefix, unit_);
 }
 
+std::string DiscBackedBcmWarmBootHelper::startupSdkDumpFile() const {
+  return folly::to<string>(warmBootDir_, "/", startupDumpPrefix, unit_);
+}
+
+std::string DiscBackedBcmWarmBootHelper::shutdownSdkDumpFile() const {
+  return folly::to<string>(warmBootDir_, "/", shutdownDumpPrefix, unit_);
+}
+
 void DiscBackedBcmWarmBootHelper::setCanWarmBoot() {
   auto wbFlag = warmBootFlag();
   auto updateFd = creat(wbFlag.c_str(),
@@ -130,5 +140,6 @@ folly::dynamic DiscBackedBcmWarmBootHelper::getWarmBootState() const {
       ret, "Unable to read switch state from : ", warmBootSwitchStateFile());
   return folly::parseJson(warmBootJson);
 }
+
 } // namespace fboss
 } // namespace facebook

@@ -71,7 +71,9 @@ bool BcmSwitch::handleSflowPacket(opennsl_pkt_t* /* pkt */) noexcept {
   return false;
 }
 
-void BcmSwitch::dumpState() const {}
+std::string BcmSwitch::gatherSdkState() const {
+  return "";
+}
 
 void BcmSwitch::stopLinkscanThread() {
     // Disable the linkscan thread
