@@ -301,15 +301,6 @@ TEST_F(MirrorTest, MirrorWrongPortId) {
   publishWithFbossError();
 }
 
-TEST_F(MirrorTest, MirrorLimitExceeded) {
-  configureMirror("mirror0", MirrorTest::tunnelDestination);
-  configureMirror("mirror1", MirrorTest::tunnelDestination);
-  configureMirror("mirror2", MirrorTest::tunnelDestination);
-  configureMirror("mirror3", MirrorTest::tunnelDestination);
-  configureMirror("mirror4", MirrorTest::tunnelDestination);
-  publishWithFbossError();
-}
-
 TEST_F(MirrorTest, NoStateChange) {
   configureMirror("mirror0", MirrorTest::tunnelDestination);
   publishWithStateUpdate();

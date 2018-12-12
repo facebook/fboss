@@ -49,6 +49,7 @@
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
+#include "fboss/agent/hw/bcm/gen-cpp2/bcmswitch_constants.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/ArpEntry.h"
@@ -984,6 +985,8 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
           isValid = false;
       }
   });
+  isValid = isValid &&
+      (newState->getMirrors()->size() <= bcmswitch_constants::MAX_MIRRORS_);
   return isValid;
 }
 
