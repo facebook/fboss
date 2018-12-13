@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/state/NodeMap.h"
+#include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/QosPolicy.h"
 #include "fboss/agent/types.h"
 
@@ -36,6 +37,8 @@ class QosPolicyMap : public NodeMapT<QosPolicyMap, QosPolicyMapTraits> {
   using NodeMapT::NodeMapT;
   friend class CloneAllocator;
 };
+
+using QosPolicyMapDelta = NodeMapDelta<QosPolicyMap>;
 
 } // namespace fboss
 } // namespace facebook

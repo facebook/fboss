@@ -24,6 +24,7 @@
 #include "fboss/agent/state/MirrorMap.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/RouteDelta.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/VlanMapDelta.h"
@@ -59,6 +60,7 @@ class StateDelta {
   NodeMapDelta<InterfaceMap> getIntfsDelta() const;
   RTMapDelta getRouteTablesDelta() const;
   AclMapDelta getAclsDelta() const;
+  QosPolicyMapDelta getQosPoliciesDelta() const;
   NodeMapDelta<AggregatePortMap> getAggregatePortsDelta() const;
   NodeMapDelta<SflowCollectorMap> getSflowCollectorsDelta() const;
   NodeMapDelta<LoadBalancerMap> getLoadBalancersDelta() const;

@@ -74,6 +74,11 @@ AclMapDelta StateDelta::getAclsDelta() const {
   return AclMapDelta(std::move(oldAcls), std::move(newAcls));
 }
 
+QosPolicyMapDelta StateDelta::getQosPoliciesDelta() const {
+  return QosPolicyMapDelta(
+      old_->getQosPolicies().get(), new_->getQosPolicies().get());
+}
+
 NodeMapDelta<AggregatePortMap> StateDelta::getAggregatePortsDelta() const {
   return NodeMapDelta<AggregatePortMap>(
       old_->getAggregatePorts().get(), new_->getAggregatePorts().get());
@@ -142,6 +147,7 @@ template class NodeMapDelta<InterfaceMap>;
 template class NodeMapDelta<PortMap>;
 template class NodeMapDelta<RouteTableMap>;
 template class NodeMapDelta<AclMap>;
+template class NodeMapDelta<QosPolicyMap>;
 template class NodeMapDelta<AggregatePortMap>;
 template class NodeMapDelta<SflowCollectorMap>;
 template class NodeMapDelta<RouteTableRibNodeMap<folly::IPAddressV4>>;
