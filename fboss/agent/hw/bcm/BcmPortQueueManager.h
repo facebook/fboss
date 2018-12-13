@@ -48,7 +48,10 @@ public:
   const std::vector<BcmCosQueueCounterType>&
   getQueueCounterTypes() const override;
 
-protected:
+  static int CosQToBcmInternalPriority(opennsl_cos_queue_t cosQ);
+  static opennsl_cos_queue_t bcmInternalPriorityToCosQ(int prio);
+
+ protected:
   void getReservedBytes(opennsl_gport_t gport,
                         opennsl_cos_queue_t cosQ,
                         std::shared_ptr<PortQueue> queue) const override;
@@ -89,5 +92,10 @@ private:
     opennsl_cos_queue_t cosQ,
     cfg::QueueCongestionBehavior behavior,
     folly::Optional<cfg::QueueCongestionDetection> detection);
+
+  void programInternalPriorityToCosQ(
+      opennsl_gport_t queueGport,
+      opennsl_cos_queue_t cosQ,
+      int prio);
 };
 }} // facebook::fboss
