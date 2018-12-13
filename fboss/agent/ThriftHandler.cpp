@@ -690,6 +690,7 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
       tempRoute.dest.ip = toBinaryAddress(ipv4->prefix().network);
       tempRoute.dest.prefixLength = ipv4->prefix().mask;
       tempRoute.nextHopAddrs = util::fromFwdNextHops(fwdInfo.getNextHopSet());
+      tempRoute.nextHops = util::fromRouteNextHopSet(fwdInfo.getNextHopSet());
       routes.emplace_back(std::move(tempRoute));
     }
     for (const auto& ipv6 : *(routeTable->getRibV6()->routes())) {
@@ -702,6 +703,7 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
       tempRoute.dest.ip = toBinaryAddress(ipv6->prefix().network);
       tempRoute.dest.prefixLength = ipv6->prefix().mask;
       tempRoute.nextHopAddrs = util::fromFwdNextHops(fwdInfo.getNextHopSet());
+      tempRoute.nextHops = util::fromRouteNextHopSet(fwdInfo.getNextHopSet());
       routes.emplace_back(std::move(tempRoute));
     }
   }

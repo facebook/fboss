@@ -90,6 +90,7 @@ RouteDetails RouteFields<AddrT>::toRouteDetails() const {
     ifAndIp.interfaceID = nh.intf();
     ifAndIp.ip = toBinaryAddress(nh.addr());
     rd.fwdInfo.push_back(ifAndIp);
+    rd.nextHops.push_back(nh.toThrift());
   }
 
   // Add the multi-nexthops

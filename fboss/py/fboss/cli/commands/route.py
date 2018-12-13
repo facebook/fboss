@@ -38,7 +38,14 @@ def printRouteDetailEntry(entry):
         for nextHop in clAndNxthops.nextHopAddrs:
             print("    %s" % nexthop_to_str(nextHop))
     print("  Action: %s" % entry.action)
-    if len(entry.fwdInfo) > 0:
+    if len(entry.nextHops) > 0:
+        print("  Forwarding via:")
+        for nextHop in entry.nextHops:
+            w = "x{}".format(nextHop.weight) if nextHop.weight else ""
+            print("    (i/f %s) %s%s" % (nextHop.address.ifName,
+                                         utils.ip_ntop(nextHop.address.addr),
+                                         w))
+    elif len(entry.fwdInfo) > 0:
         print("  Forwarding via:")
         for ifAndIp in entry.fwdInfo:
             print("    (i/f %d) %s" % (ifAndIp.interfaceID,
@@ -140,8 +147,14 @@ class RouteTableCmd(cmds.FbossCmd):
                                     (utils.ip_ntop(entry.dest.ip.addr),
                                                 entry.dest.prefixLength))
                 # Need to check the nextHopAddresses
-                for nextHop in entry.nextHopAddrs:
-                    print("\tvia %s" % nexthop_to_str(nextHop))
+                if entry.nextHops:
+                    for nextHop in entry.nextHops:
+                        w = "x{}".format(nextHop.weight) if nextHop.weight else ""
+                        print("\tvia %s%s" % (nexthop_to_str(nextHop.address),
+                                              w))
+                else:
+                    for nextHop in entry.nextHopAddrs:
+                        print("\tvia %s" % nexthop_to_str(nextHop))
 
 
 class RouteTableDetailsCmd(cmds.FbossCmd):

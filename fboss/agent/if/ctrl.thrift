@@ -81,10 +81,12 @@ struct IfAndIP {
 struct RouteDetails {
   1: required IpPrefix dest,
   2: required string action,
+  // Deprecated in favor of '7: nextHops'
   3: required list<IfAndIP> fwdInfo,
   4: required list<ClientAndNextHops> nextHopMulti,
   5: required bool isConnected,
   6: optional AdminDistance adminDistance,
+  7: list<NextHopThrift> nextHops,
 }
 
 struct ArpEntryThrift {
