@@ -29,6 +29,7 @@
 #include "fboss/agent/state/NdpResponseTable.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableMap.h"
@@ -195,6 +196,12 @@ class ThriftConfigApplier {
     const MatchAction* action = nullptr);
   // check the acl provided by config is valid
   void checkAcl(const cfg::AclEntry* config) const;
+  std::shared_ptr<QosPolicyMap> updateQosPolicies();
+  std::shared_ptr<QosPolicy> updateQosPolicy(
+      cfg::QosPolicy& qosPolicy,
+      int* numExistingProcessed,
+      bool* changed);
+  shared_ptr<QosPolicy> createQosPolicy(const cfg::QosPolicy& qosPolicy);
   bool updateNeighborResponseTables(Vlan* vlan, const cfg::Vlan* config);
   bool updateDhcpOverrides(Vlan* vlan, const cfg::Vlan* config);
   std::shared_ptr<InterfaceMap> updateInterfaces();
@@ -293,6 +300,14 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newAcls = updateAcls();
     if (newAcls) {
       new_->resetAcls(std::move(newAcls));
+      changed = true;
+    }
+  }
+
+  {
+    auto newQosPolicies = updateQosPolicies();
+    if (newQosPolicies) {
+      new_->resetQosPolicies(std::move(newQosPolicies));
       changed = true;
     }
   }
@@ -689,6 +704,11 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
   }
   bool mirrorsUnChanged = (oldIngressMirror == newIngressMirror) &&
       (oldEgressMirror == newEgressMirror);
+  auto newQosPolicy = folly::Optional<std::string>();
+  if (cfg_->__isset.dataPlaneTrafficPolicy &&
+      cfg_->dataPlaneTrafficPolicy.__isset.defaultQosPolicy) {
+    newQosPolicy = cfg_->dataPlaneTrafficPolicy.defaultQosPolicy;
+  }
 
   if (portConf->state == orig->getAdminState() &&
       VlanID(portConf->ingressVlan) == orig->getIngressVlan() &&
@@ -699,8 +719,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
       portConf->name == orig->getName() &&
       portConf->description == orig->getDescription() &&
       vlans == orig->getVlans() && portConf->fec == orig->getFEC() &&
-      queuesUnchanged && portConf->loopbackMode == orig->getLoopbackMode()
-      && mirrorsUnChanged) {
+      queuesUnchanged && portConf->loopbackMode == orig->getLoopbackMode() &&
+      mirrorsUnChanged && newQosPolicy == orig->getQosPolicy()) {
     return nullptr;
   }
 
@@ -719,6 +739,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
   newPort->resetPortQueues(portQueues);
   newPort->setIngressMirror(newIngressMirror);
   newPort->setEgressMirror(newEgressMirror);
+  newPort->setQosPolicy(newQosPolicy);
   return newPort;
 }
 
@@ -987,6 +1008,63 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(const shared_ptr<Vlan>& orig,
   newVlan->setDhcpV4Relay(newDhcpV4Relay);
   newVlan->setDhcpV6Relay(newDhcpV6Relay);
   return newVlan;
+}
+
+std::shared_ptr<QosPolicyMap> ThriftConfigApplier::updateQosPolicies() {
+  QosPolicyMap::NodeContainer newQosPolicies;
+  bool changed = false;
+  int numExistingProcessed = 0;
+
+  auto qosPolicies = cfg_->qosPolicies;
+  for (auto& qosPolicy : qosPolicies) {
+    auto newQosPolicy =
+        updateQosPolicy(qosPolicy, &numExistingProcessed, &changed);
+    if (!newQosPolicies.emplace(qosPolicy.name, newQosPolicy).second) {
+      throw FbossError(
+          "Invalid config: Qos Policy \"", qosPolicy.name, "\" already exists");
+    }
+  }
+  if (numExistingProcessed != orig_->getQosPolicies()->size()) {
+    // Some existing Qos Policies were removed.
+    changed = true;
+  }
+  if (!changed) {
+    return nullptr;
+  }
+  return orig_->getQosPolicies()->clone(std::move(newQosPolicies));
+}
+
+std::shared_ptr<QosPolicy> ThriftConfigApplier::updateQosPolicy(
+    cfg::QosPolicy& qosPolicy,
+    int* numExistingProcessed,
+    bool* changed) {
+  auto origQosPolicy = orig_->getQosPolicies()->getQosPolicyIf(qosPolicy.name);
+  auto newQosPolicy = createQosPolicy(qosPolicy);
+  if (origQosPolicy) {
+    ++(*numExistingProcessed);
+    if (*origQosPolicy == *newQosPolicy) {
+      return origQosPolicy;
+    }
+  }
+  *changed = true;
+  return newQosPolicy;
+}
+
+shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
+    const cfg::QosPolicy& qosPolicy) {
+  std::set<QosRule> rules;
+  for (const auto& qosRule : qosPolicy.rules) {
+    if (qosRule.dscp.empty()) {
+      throw FbossError("Invalid config: qosPolicy: empty dscp list");
+    }
+    for (const auto& dscpValue : qosRule.dscp) {
+      if (dscpValue < 0 || dscpValue > 63) {
+        throw FbossError("dscp value is invalid (must be [0, 63])");
+      }
+      rules.emplace(QosRule(qosRule.queueId, dscpValue));
+    }
+  }
+  return make_shared<QosPolicy>(qosPolicy.name, rules);
 }
 
 std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {

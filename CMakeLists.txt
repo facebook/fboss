@@ -416,6 +416,8 @@ add_library(fboss_agent STATIC
     fboss/agent/state/Port.cpp
     fboss/agent/state/PortMap.cpp
     fboss/agent/state/PortQueue.cpp
+    fboss/agent/state/QosPolicy.cpp
+    fboss/agent/state/QosPolicyMap.cpp
     fboss/agent/state/Route.cpp
     fboss/agent/state/RouteDelta.cpp
     fboss/agent/state/RouteNextHop.cpp

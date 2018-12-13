@@ -74,6 +74,7 @@ struct PortFields {
   cfg::PortLoopbackMode loopbackMode{cfg::PortLoopbackMode::NONE};
   folly::Optional<std::string> ingressMirror;
   folly::Optional<std::string> egressMirror;
+  folly::Optional<std::string> qosPolicy;
 };
 
 /*
@@ -227,6 +228,14 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
 
   void setEgressMirror(folly::Optional<std::string> mirror) {
     writableFields()->egressMirror.assign(mirror);
+  }
+
+  folly::Optional<std::string> getQosPolicy() const {
+    return getFields()->qosPolicy;
+  }
+
+  void setQosPolicy(folly::Optional<std::string> qosPolicy) {
+    writableFields()->qosPolicy.assign(qosPolicy);
   }
 
   Port* modify(std::shared_ptr<SwitchState>* state);

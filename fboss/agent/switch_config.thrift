@@ -410,9 +410,21 @@ struct PortQueue {
   11: optional list<ActiveQueueManagement> aqms;
 }
 
+struct QosRule {
+  1: i16 queueId
+  2: list<i16> dscp = []
+}
+
+struct QosPolicy {
+  1: string name
+  2: list<QosRule> rules
+}
+
 struct TrafficPolicyConfig {
   // Order of entries determines priority of acls when applied
   1: list<MatchToAction> matchToAction = []
+  2: optional string defaultQosPolicy
+  //TODO(adrs): add 'map<portID, string>' to override the default config
 }
 
 struct CPUTrafficPolicyConfig {
@@ -890,4 +902,5 @@ struct SwitchConfig {
   31: optional TrafficPolicyConfig dataPlaneTrafficPolicy
   32: list<Mirror> mirrors = []
   33: list<TrafficCounter> trafficCounters = []
+  34: list<QosPolicy> qosPolicies = []
 }
