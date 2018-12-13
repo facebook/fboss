@@ -24,7 +24,6 @@
 #include "fboss/agent/hw/BufferStatsLogger.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
-#include "fboss/agent/hw/bcm/BcmCosManager.h"
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
 #include "fboss/agent/hw/bcm/BcmCosManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
@@ -36,8 +35,9 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
-#include "fboss/agent/hw/bcm/BcmRtag7LoadBalancer.h"
+#include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmRoute.h"
+#include "fboss/agent/hw/bcm/BcmRtag7LoadBalancer.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
 #include "fboss/agent/hw/bcm/BcmSflowExporter.h"
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
@@ -58,7 +58,6 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
-#include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/Port.h"
@@ -155,9 +154,7 @@ bool BcmSwitch::getPortFECConfig(PortID port) const {
   return getPortTable()->getBcmPort(port)->isFECEnabled();
 }
 
-BcmSwitch::BcmSwitch(
-    BcmPlatform* platform,
-    uint32_t featuresDesired)
+BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
     : platform_(platform),
       featuresDesired_(featuresDesired),
       fineGrainedBufferStatsEnabled_(FLAGS_enable_fine_grained_buffer_stats),
@@ -168,6 +165,7 @@ BcmSwitch::BcmSwitch(
       intfTable_(new BcmIntfTable(this)),
       hostTable_(new BcmHostTable(this)),
       routeTable_(new BcmRouteTable(this)),
+      qosPolicyTable_(new BcmQosPolicyTable(this)),
       aclTable_(new BcmAclTable(this)),
       bufferStatsLogger_(createBufferStatsLogger()),
       trunkTable_(new BcmTrunkTable(this)),
@@ -203,6 +201,7 @@ void BcmSwitch::resetTablesImpl(std::unique_lock<std::mutex>& /*lock*/) {
   intfTable_.reset();
   toCPUEgress_.reset();
   portTable_.reset();
+  qosPolicyTable_.reset();
   aclTable_->releaseAcls();
   aclTable_.reset();
   mirrorTable_.reset();
@@ -242,6 +241,7 @@ void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   std::lock_guard<std::mutex> g(lock_);
   bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(this, isAlpmEnabled());
   portTable_ = std::make_unique<BcmPortTable>(this);
+  qosPolicyTable_ = std::make_unique<BcmQosPolicyTable>(this);
   intfTable_ = std::make_unique<BcmIntfTable>(this);
   hostTable_ = std::make_unique<BcmHostTable>(this);
   routeTable_ = std::make_unique<BcmRouteTable>(this);
@@ -734,6 +734,9 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   // Process any new routes or route changes
   processAddedChangedRoutes(delta, &appliedState);
 
+  // Any changes to the Qos maps of the ports
+  processQosChanges(delta);
+
   processAggregatePortChanges(delta);
 
   // Reconfigure port groups in case we are changing between using a port as
@@ -883,8 +886,12 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
           (oldPort->getEgressMirror() != newPort->getEgressMirror());
       XLOG_IF(DBG1, mirrorChanged) << "New mirror settings on port " << id;
 
+      auto qosPolicyChanged =
+          oldPort->getQosPolicy() != newPort->getQosPolicy();
+      XLOG_IF(DBG1, qosPolicyChanged) << "New Qos Policy on port " << id;
+
       if (speedChanged || vlanChanged || pauseChanged || sFlowChanged ||
-          fecChanged || loopbackChanged || mirrorChanged) {
+          fecChanged || loopbackChanged || mirrorChanged || qosPolicyChanged) {
         bcmPort->program(newPort);
       }
 
@@ -1134,6 +1141,15 @@ void BcmSwitch::processAddedIntf(const shared_ptr<Interface>& intf) {
 void BcmSwitch::processRemovedIntf(const shared_ptr<Interface>& intf) {
   XLOG(DBG2) << "deleting interface " << intf->getID();
   intfTable_->deleteIntf(intf);
+}
+
+void BcmSwitch::processQosChanges(const StateDelta& delta) {
+  forEachChanged(
+      delta.getQosPoliciesDelta(),
+      &BcmQosPolicyTable::processChangedQosPolicy,
+      &BcmQosPolicyTable::processAddedQosPolicy,
+      &BcmQosPolicyTable::processRemovedQosPolicy,
+      qosPolicyTable_.get());
 }
 
 void BcmSwitch::processAclChanges(const StateDelta& delta) {

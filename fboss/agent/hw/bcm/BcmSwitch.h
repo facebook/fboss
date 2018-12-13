@@ -42,6 +42,7 @@ class BcmHostTable;
 class BcmIntfTable;
 class BcmPlatform;
 class BcmPortTable;
+class BcmQosPolicyTable;
 class BcmRouteTable;
 class BcmRxPacket;
 class BcmStatUpdater;
@@ -59,6 +60,7 @@ class MockRxPacket;
 class Interface;
 class Port;
 class PortStats;
+class QosPolicy;
 class Vlan;
 class VlanMap;
 class BufferStatsLogger;
@@ -102,6 +104,8 @@ class BcmSwitchIf : public HwSwitch {
   virtual const BcmHostTable* getHostTable() const = 0;
 
   virtual const BcmAclTable* getAclTable() const = 0;
+
+  virtual const BcmQosPolicyTable* getQosPolicyTable() const = 0;
 
   virtual const BcmTrunkTable* getTrunkTable() const = 0;
 
@@ -255,6 +259,9 @@ class BcmSwitch : public BcmSwitchIf {
   }
   const BcmHostTable* getHostTable() const override {
     return hostTable_.get();
+  }
+  const BcmQosPolicyTable* getQosPolicyTable() const override {
+    return qosPolicyTable_.get();
   }
   const BcmAclTable* getAclTable() const override {
     return aclTable_.get();
@@ -491,6 +498,8 @@ class BcmSwitch : public BcmSwitchIf {
   void processAddedChangedRoutes(
       const StateDelta& delta,
       std::shared_ptr<SwitchState>* appliedState);
+
+  void processQosChanges(const StateDelta& delta);
 
   void processAclChanges(const StateDelta& delta);
   void processChangedAcl(const std::shared_ptr<AclEntry>& oldAcl,
@@ -751,6 +760,7 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmIntfTable> intfTable_;
   std::unique_ptr<BcmHostTable> hostTable_;
   std::unique_ptr<BcmRouteTable> routeTable_;
+  std::unique_ptr<BcmQosPolicyTable> qosPolicyTable_;
   std::unique_ptr<BcmAclTable> aclTable_;
   std::unique_ptr<BcmStatUpdater> bcmStatUpdater_;
   std::unique_ptr<BcmCosManager> cosManager_;

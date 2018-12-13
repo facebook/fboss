@@ -275,6 +275,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmPortGroup.cpp
     fboss/agent/hw/bcm/BcmPortQueueManager.cpp
     fboss/agent/hw/bcm/BcmPortTable.cpp
+    fboss/agent/hw/bcm/BcmQosPolicyTable.cpp
     fboss/agent/hw/bcm/BcmRoute.cpp
     fboss/agent/hw/bcm/BcmRtag7LoadBalancer.cpp
     fboss/agent/hw/bcm/BcmRtag7Module.cpp
@@ -305,6 +306,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmPortGroup.cpp
     fboss/agent/hw/bcm/oss/BcmPortQueueManager.cpp
     fboss/agent/hw/bcm/oss/BcmPortTable.cpp
+    fboss/agent/hw/bcm/oss/BcmQosPolicy.cpp
     fboss/agent/hw/bcm/oss/BcmRtag7LoadBalancer.cpp
     fboss/agent/hw/bcm/oss/BcmRtag7Module.cpp
     fboss/agent/hw/bcm/oss/BcmStatUpdater.cpp

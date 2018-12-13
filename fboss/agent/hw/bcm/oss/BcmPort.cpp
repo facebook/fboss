@@ -66,6 +66,10 @@ QueueConfig BcmPort::getCurrentQueueSettings() {
 void BcmPort::setupQueue(const std::shared_ptr<PortQueue>& /*queue*/) {
 }
 
+void BcmPort::attachIngressQosPolicy(const std::string& /*name*/) {}
+
+void BcmPort::detachIngressQosPolicy() {}
+
 void BcmPort::setPortResource(const std::shared_ptr<Port>& /*swPort*/) {}
 
 bool BcmPort::getDesiredFECEnabledStatus(

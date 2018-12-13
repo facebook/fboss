@@ -382,6 +382,12 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   updateMirror(port->getIngressMirror(), MirrorDirection::INGRESS);
   updateMirror(port->getEgressMirror(), MirrorDirection::EGRESS);
 
+  if (port->getQosPolicy()) {
+    attachIngressQosPolicy(port->getQosPolicy().value());
+  } else {
+    detachIngressQosPolicy();
+  }
+
   setPause(port);
   // Update Tx Setting if needed.
   setTxSetting(port);

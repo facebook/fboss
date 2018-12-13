@@ -12,6 +12,7 @@
 #include "fboss/agent/types.h"
 
 FBOSS_STRONG_TYPE(int, BcmAclStatHandle);
+FBOSS_STRONG_TYPE(int, BcmQosPolicyHandle);
 
 namespace facebook {
 namespace fboss {
