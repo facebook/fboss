@@ -7,12 +7,13 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include <algorithm>
-#include <string>
 #include <folly/Memory.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
+#include <algorithm>
+#include <string>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
@@ -22,21 +23,21 @@
 #include "fboss/agent/packet/DHCPv4Packet.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/Ethertype.h"
+#include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/IPProto.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
-#include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/ArpTable.h"
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
-#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/TestUtils.h"
-#include "fboss/agent/state/RouteUpdater.h"
 
 #include <boost/cast.hpp>
 #include <gtest/gtest.h>
@@ -71,6 +72,33 @@ unique_ptr<HwTestHandle> setupTestHandle() {
   vlans->getVlan(VlanID(1))->setArpResponseTable(respTable1);
   return createTestHandle(state);
 }
+
+std::string genICMPv6EchoRequest(int hopLimit, size_t payloadSize) {
+  auto hopLimitStr = folly::sformat("{0:02x}", hopLimit);
+  auto payloadLenStr = folly::sformat("{0:04x}", payloadSize + 8);
+  auto payload = std::string(payloadSize * 2, 'f');
+  return std::string(
+      // Version 6, traffic class, flow label
+      "60 00 00 00" +
+      // Payload length
+      payloadLenStr +
+      // Next Header: 58 (ICMPv6), Hop Limit (1)
+      "3a " + hopLimitStr +
+      // src addr (2401:db00:2110:3004::a)
+      "24 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a"
+      // dst addr (fe02::1:ff00:000a) (Non multicast address)
+      "fe 02 00 00 00 00 00 00 00 00 00 01 ff 00 00 0a"
+      // type: echo request
+      "80"
+      // code
+      "00"
+      // checksum (faked)
+      "42 42"
+      // identifier(2004), sequence (01)
+      "20 04 00 01" +
+      payload);
+}
+
 } // unnamed namespace
 
 typedef std::function<void(Cursor* cursor, uint32_t length)> PayloadCheckFn;
@@ -206,9 +234,11 @@ TxMatchFn checkICMPv6TTLExceeded(MacAddress srcMac, IPAddressV6 srcIP,
                               size_t payloadLengthLimit) {
   auto checkPayload = [=](Cursor* cursor, uint32_t length) {
     if (length > payloadLengthLimit) {
-      throw FbossError("ICMPv4 TTL Exceeded payload too long, cursor length ",
-                       length, "but payloadLengthLimit is ",
-                       payloadLengthLimit);
+      throw FbossError(
+          "ICMPv6 TTL Exceeded payload too long, cursor length ",
+          length,
+          "but payloadLengthLimit is ",
+          payloadLengthLimit);
     }
     const uint8_t* cursorData = cursor->data();
     for(int i = 0; i < length; i++) {
@@ -442,66 +472,30 @@ TEST(ICMPTest, ExtraFrameCheckSequenceAtEnd) {
     sw->packetReceivedThrowExceptionOnError(std::move(pktWithoutChecksum)));
 }
 
-TEST(ICMPTest, TTLExceededV6) {
+void runTTLExceededV6Test(size_t requestedPayloadSize) {
   auto handle = setupTestHandle();
   auto sw = handle->getSw();
-
   PortID portID(1);
   VlanID vlanID(1);
 
-  // a testing IPv6 packet with hop limit 1
+  auto icmp6Pkt = genICMPv6EchoRequest(1, requestedPayloadSize);
+  constexpr size_t kMaxPayloadSize = IPv6Handler::IPV6_MIN_MTU - IPv6Hdr::SIZE -
+      ICMPHdr::SIZE - // IPv6 ICMP TTL Exceed
+      IPv6Hdr::SIZE - ICMPHdr::SIZE; // IPv6 ICMP Echo Request
+  size_t expectedPayloadSize = std::min(requestedPayloadSize, kMaxPayloadSize);
+
   auto pkt = PktUtil::parseHexData(
       // dst mac, src mac
       "33 33 ff 00 00 0a  02 05 73 f9 46 fc"
       // 802.1q, VLAN 5
       "81 00 00 05"
       // IPv6
-      "86 dd"
-      // Version 6, traffic class, flow label
-      "6e 00 00 00"
-      // Payload length: 24
-      "00 18"
-      // Next Header: 58 (ICMPv6), Hop Limit (1)
-      "3a 01"
-      // src addr (2401:db00:2110:3004::a)
-      "24 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a"
-      // dst addr (fe02::1:ff00:000a) (Non multicast address)
-      "fe 02 00 00 00 00 00 00 00 00 00 01 ff 00 00 0a"
-      // type: neighbor solicitation
-      "87"
-      // code
-      "00"
-      // checksum
-      "2a 7e"
-      // reserved
-      "00 00 00 00"
-      // target address (2401:db00:2110:3004::a)
-      "24 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a");
-
-  // keep a copy of the ip packet for icmp payload comparison
-  auto icmp6Payload = PktUtil::parseHexData(
-      // icmp6 padding for unused field
-      "00 00 00 00"
-      // Version 6, traffic class, flow label
-      "6e 00 00 00"
-      // Payload length: 24
-      "00 18"
-      // Next Header: 58 (ICMPv6), Hop Limit (1)
-      "3a 01"
-      // src addr (2401:db00:2110:3004::a)
-      "24 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a"
-      // dst addr (ff02::1:ff00:000a)
-      "fe 02 00 00 00 00 00 00 00 00 00 01 ff 00 00 0a"
-      // type: neighbor solicitation
-      "87"
-      // code
-      "00"
-      // checksum
-      "2a 7e"
-      // reserved
-      "00 00 00 00"
-      // target address (2401:db00:2110:3004::a)
-      "24 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a");
+      "86 dd" +
+      icmp6Pkt);
+  auto expectedPayload = PktUtil::parseHexData(
+      "00 00 00 00" + // icmp6 padding for unused field
+      icmp6Pkt);
+  expectedPayload.trimEnd(requestedPayloadSize - expectedPayloadSize);
 
   // Cache the current stats
   CounterCache counters(sw);
@@ -511,12 +505,17 @@ TEST(ICMPTest, TTLExceededV6) {
     WillRepeatedly(Return(kPlatformMac));
 
   // We should get a ICMPv6 TTL exceeded back
-  EXPECT_PKT(sw, "ICMP TTL Exceeded",
-             checkICMPv6TTLExceeded(kPlatformMac,
-                                 IPAddressV6("2401:db00:2110:3001::0001"),
-                                 kPlatformMac,
-                                 IPAddressV6("2401:db00:2110:3004::a"),
-                                 VlanID(1), icmp6Payload.data(), 68));
+  EXPECT_PKT(
+      sw,
+      "ICMP TTL Exceeded",
+      checkICMPv6TTLExceeded(
+          kPlatformMac,
+          IPAddressV6("2401:db00:2110:3001::0001"),
+          kPlatformMac,
+          IPAddressV6("2401:db00:2110:3004::a"),
+          VlanID(1),
+          expectedPayload.data(),
+          expectedPayload.length()));
 
   handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
 
@@ -524,6 +523,18 @@ TEST(ICMPTest, TTLExceededV6) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv6.hop_exceeded.sum", 1);
+}
+
+TEST(ICMPTest, TTLExceededV6) {
+  runTTLExceededV6Test(8);
+}
+
+TEST(ICMPTest, TTLExceededV6MaxSize) {
+  runTTLExceededV6Test(1184);
+}
+
+TEST(ICMPTest, TTLExceededV6Truncated) {
+  runTTLExceededV6Test(1300);
 }
 
 TEST(ICMPTest, PacketTooBigV6) {
