@@ -47,7 +47,7 @@ class VirtualRouterApi : public SaiApi<VirtualRouterApi, VirtualRouterTypes> {
     }
   }
   VirtualRouterApi(const VirtualRouterApi& other) = delete;
- protected:
+ private:
   sai_status_t _create(
       sai_object_id_t* virtual_router_id,
       sai_attribute_t* attr_list,
@@ -65,8 +65,6 @@ class VirtualRouterApi : public SaiApi<VirtualRouterApi, VirtualRouterTypes> {
   sai_status_t _setAttr(const sai_attribute_t* attr, sai_object_id_t handle) {
     return api_->set_virtual_router_attribute(handle, attr);
   }
-
- private:
   sai_virtual_router_api_t* api_;
   friend class SaiApi<VirtualRouterApi, VirtualRouterTypes>;
 };

@@ -54,7 +54,7 @@ class PortApi : public SaiApi<PortApi, PortTypes> {
       throw SaiApiError(res);
     }
   }
- protected:
+ private:
   sai_status_t _create(
       sai_object_id_t* port_id,
       sai_attribute_t* attr_list,
@@ -71,8 +71,6 @@ class PortApi : public SaiApi<PortApi, PortTypes> {
   sai_status_t _setAttr(const sai_attribute_t* attr, sai_object_id_t handle) {
     return api_->set_port_attribute(handle, attr);
   }
-
- private:
   sai_port_api_t* api_;
   friend class SaiApi<PortApi, PortTypes>;
 };

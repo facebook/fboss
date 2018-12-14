@@ -64,7 +64,7 @@ class SwitchApi : public SaiApi<SwitchApi, SwitchTypes> {
         throw SaiApiError(res);
     }
   }
- protected:
+ private:
   sai_status_t _create(
       sai_object_id_t* switch_id,
       sai_attribute_t* attr_list,
@@ -83,8 +83,6 @@ class SwitchApi : public SaiApi<SwitchApi, SwitchTypes> {
       sai_object_id_t switch_id) {
     return api_->set_switch_attribute(switch_id, attr);
   }
-
- private:
   sai_switch_api_t* api_;
   friend class SaiApi<SwitchApi, SwitchTypes>;
 };

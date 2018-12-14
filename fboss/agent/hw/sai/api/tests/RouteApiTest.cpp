@@ -41,16 +41,18 @@ class RouteApiTest : public ::testing::Test {
 TEST_F(RouteApiTest, createV4Route) {
   folly::CIDRNetwork prefix(ip4, 24);
   RouteTypes::RouteEntry r(0, 0, prefix);
-  RouteTypes::AttributeType rnha = RouteTypes::Attributes::NextHopId(5);
-  routeApi->create(r, {rnha});
+  RouteTypes::AttributeType nextHopIdAttribute =
+      RouteTypes::Attributes::NextHopId(5);
+  routeApi->create(r, {nextHopIdAttribute});
   EXPECT_EQ(routeApi->getAttribute(RouteTypes::Attributes::NextHopId(), r), 5);
 }
 
 TEST_F(RouteApiTest, createV6Route) {
   folly::CIDRNetwork prefix(ip6, 64);
   RouteTypes::RouteEntry r(0, 0, prefix);
-  RouteTypes::AttributeType rnha = RouteTypes::Attributes::NextHopId(5);
-  routeApi->create(r, {rnha});
+  RouteTypes::AttributeType nextHopIdAttribute =
+      RouteTypes::Attributes::NextHopId(5);
+  routeApi->create(r, {nextHopIdAttribute});
   EXPECT_EQ(routeApi->getAttribute(RouteTypes::Attributes::NextHopId(), r), 5);
 }
 
@@ -58,10 +60,10 @@ TEST_F(RouteApiTest, setRouteNextHop) {
   folly::CIDRNetwork prefix(ip4, 24);
   RouteTypes::RouteEntry r(0, 0, prefix);
   routeApi->create(r, {});
-  RouteTypes::Attributes::NextHopId rnha(0);
-  routeApi->setAttribute(rnha, r);
+  RouteTypes::Attributes::NextHopId nextHopIdAttribute(0);
+  routeApi->setAttribute(nextHopIdAttribute, r);
   EXPECT_EQ(routeApi->getAttribute(RouteTypes::Attributes::NextHopId(), r), 0);
-  RouteTypes::Attributes::NextHopId rnha2(42);
-  routeApi->setAttribute(rnha2, r);
+  RouteTypes::Attributes::NextHopId nextHopIdAttribute2(42);
+  routeApi->setAttribute(nextHopIdAttribute2, r);
   EXPECT_EQ(routeApi->getAttribute(RouteTypes::Attributes::NextHopId(), r), 42);
 }

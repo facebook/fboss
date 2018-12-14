@@ -66,7 +66,7 @@ class RouterInterfaceApi
   }
   RouterInterfaceApi(const RouterInterfaceApi& other) = delete;
 
- protected:
+ private:
   sai_status_t _create(
       sai_object_id_t* router_interface_id,
       sai_attribute_t* attr_list,
@@ -84,8 +84,6 @@ class RouterInterfaceApi
   sai_status_t _setAttr(const sai_attribute_t* attr, sai_object_id_t handle) {
     return api_->set_router_interface_attribute(handle, attr);
   }
-
- private:
   sai_router_interface_api_t* api_;
   friend class SaiApi<RouterInterfaceApi, RouterInterfaceTypes>;
 };

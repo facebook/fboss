@@ -54,7 +54,7 @@ class NextHopApi : public SaiApi<NextHopApi, NextHopTypes> {
       throw SaiApiError(res);
     }
   }
- protected:
+ private:
   sai_status_t _create(
       sai_object_id_t* next_hop_id,
       sai_attribute_t* attr_list,
@@ -71,8 +71,6 @@ class NextHopApi : public SaiApi<NextHopApi, NextHopTypes> {
   sai_status_t _setAttr(const sai_attribute_t* attr, sai_object_id_t id) {
     return api_->set_next_hop_attribute(id, attr);
   }
-
- private:
   sai_next_hop_api_t* api_;
   friend class SaiApi<NextHopApi, NextHopTypes>;
 };

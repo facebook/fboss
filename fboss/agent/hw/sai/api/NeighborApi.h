@@ -85,7 +85,7 @@ class NeighborApi : public SaiApi<NeighborApi, NeighborTypes> {
       throw SaiApiError(res);
     }
   }
- protected:
+ private:
   sai_status_t _create(
       const NeighborTypes::NeighborEntry& neighborEntry,
       sai_attribute_t* attr_list,
@@ -105,8 +105,6 @@ class NeighborApi : public SaiApi<NeighborApi, NeighborTypes> {
       const NeighborTypes::NeighborEntry& neighborEntry) {
     return api_->set_neighbor_entry_attribute(neighborEntry.entry(), attr);
   }
-
- private:
   sai_neighbor_api_t* api_;
   friend class SaiApi<NeighborApi, NeighborTypes>;
 };
