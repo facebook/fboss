@@ -9,6 +9,30 @@
  */
 
 #include "AddressUtil.h"
+#include <folly/String.h>
+
+#include <folly/logging/xlog.h>
+
+namespace {
+constexpr auto kFullMaskV4 = folly::StringPiece("255.255.255.255");
+constexpr auto kFullMaskV6 =
+    folly::StringPiece("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF");
+
+// To calculate the mask length for an IPAddress representing a mask,
+// (assumming that the mask address is in network byte order and
+// takes the form 1111...0000) start at the least significant bit and walk
+// towards the most significant bit until we find a 1.
+uint8_t calculateMaskLengthFromIPAsMask(const folly::IPAddress& mask) {
+  auto bit = mask.bitCount() - 1;
+  while (bit >= 0) {
+    if (mask.getNthMSBit(bit)) {
+      break;
+    }
+    --bit;
+  }
+  return bit + 1;
+}
+} // namespace
 
 #include <folly/lang/Assume.h>
 
@@ -51,6 +75,49 @@ sai_ip_address_t toSaiIpAddress(const folly::IPAddressV6& addr) {
   out.addr_family = SAI_IP_ADDR_FAMILY_IPV6;
   folly::ByteRange r = addr.toBinary();
   std::copy(std::begin(r), std::end(r), std::begin(out.addr.ip6));
+  return out;
+}
+
+folly::CIDRNetwork fromSaiIpPrefix(const sai_ip_prefix_t& prefix) {
+  folly::IPAddress outAddr;
+  folly::IPAddress mask;
+  uint8_t maskLength;
+  switch (prefix.addr_family) {
+    case SAI_IP_ADDR_FAMILY_IPV4:
+      outAddr = fromSaiIpAddress(prefix.addr.ip4);
+      mask = fromSaiIpAddress(prefix.mask.ip4);
+      maskLength = calculateMaskLengthFromIPAsMask(mask);
+      break;
+    case SAI_IP_ADDR_FAMILY_IPV6:
+      outAddr = fromSaiIpAddress(prefix.addr.ip6);
+      mask = fromSaiIpAddress(prefix.mask.ip6);
+      maskLength = calculateMaskLengthFromIPAsMask(mask);
+      break;
+    default:
+      // error
+      break;
+  }
+  return {outAddr, maskLength};
+}
+
+sai_ip_prefix_t toSaiIpPrefix(const folly::CIDRNetwork& prefix) {
+  sai_ip_prefix_t out;
+  bool v4 = prefix.first.isV4();
+  folly::IPAddress mask =
+      (v4 ? folly::IPAddress(kFullMaskV4) : folly::IPAddress(kFullMaskV6))
+          .mask(prefix.second);
+  sai_ip_address_t saiAddr = toSaiIpAddress(prefix.first);
+  sai_ip_address_t saiMask = toSaiIpAddress(mask);
+  out.addr_family = saiAddr.addr_family;
+  if (v4) {
+    out.addr_family = SAI_IP_ADDR_FAMILY_IPV4;
+    out.addr.ip4 = saiAddr.addr.ip4;
+    out.mask.ip4 = saiMask.addr.ip4;
+  } else {
+    out.addr_family = SAI_IP_ADDR_FAMILY_IPV6;
+    std::copy(saiAddr.addr.ip6, saiAddr.addr.ip6 + 16, out.addr.ip6);
+    std::copy(saiMask.addr.ip6, saiMask.addr.ip6 + 16, out.mask.ip6);
+  }
   return out;
 }
 

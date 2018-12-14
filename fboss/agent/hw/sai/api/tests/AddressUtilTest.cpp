@@ -14,6 +14,7 @@
 
 #include <gtest/gtest.h>
 
+#include <limits>
 #include <vector>
 
 using namespace facebook::fboss;
@@ -23,33 +24,52 @@ static constexpr folly::StringPiece str6 =
     "4242:4242:4242:4242:1234:1234:1234:1234";
 static constexpr folly::StringPiece strMac = "42:42:42:12:34:56";
 
-TEST(AddressUtilTest, IPAddress) {
-  folly::IPAddress ip4(str4);
+class AddressUtilTest : public ::testing::Test {
+ public:
+  void SetUp() override {}
+  folly::IPAddress ip4{str4};
+  folly::CIDRNetwork net4{ip4, 24};
+  folly::IPAddress ip6{str6};
+  folly::CIDRNetwork net6{ip6, 64};
+  folly::MacAddress mac{strMac};
+};
+
+TEST_F(AddressUtilTest, IPAddress) {
   sai_ip_address_t sai4 = toSaiIpAddress(ip4);
   folly::IPAddress reverse4 = fromSaiIpAddress(sai4);
   EXPECT_EQ(ip4, reverse4);
-  folly::IPAddress ip6(str6);
   sai_ip_address_t sai6 = toSaiIpAddress(ip6);
   folly::IPAddress reverse6 = fromSaiIpAddress(sai6);
   EXPECT_EQ(ip6, reverse6);
 }
 
-TEST(AddressUtilTest, IPAddressV4) {
-  folly::IPAddressV4 ip4(str4);
+TEST_F(AddressUtilTest, IPAddressV4) {
   sai_ip_address_t sai4 = toSaiIpAddress(ip4);
   folly::IPAddressV4 reverse4 = fromSaiIpAddress(sai4.addr.ip4);
   EXPECT_EQ(ip4, reverse4);
 }
 
-TEST(AddressUtilTest, IPAddressV6) {
-  folly::IPAddressV6 ip6(str6);
+TEST_F(AddressUtilTest, IPAddressV6) {
   sai_ip_address_t sai6 = toSaiIpAddress(ip6);
   folly::IPAddressV6 reverse6 = fromSaiIpAddress(sai6.addr.ip6);
   EXPECT_EQ(ip6, reverse6);
 }
 
-TEST(AddressUtilTest, MacAddress) {
-  folly::MacAddress mac(strMac);
+TEST_F(AddressUtilTest, PrefixV4) {
+  sai_ip_prefix_t saiPrefix4 = toSaiIpPrefix(net4);
+  EXPECT_EQ(saiPrefix4.addr_family, SAI_IP_ADDR_FAMILY_IPV4);
+  folly::CIDRNetwork reverseNet4 = fromSaiIpPrefix(saiPrefix4);
+  EXPECT_EQ(net4, reverseNet4);
+}
+
+TEST_F(AddressUtilTest, PrefixV6) {
+  sai_ip_prefix_t saiPrefix6 = toSaiIpPrefix(net6);
+  EXPECT_EQ(saiPrefix6.addr_family, SAI_IP_ADDR_FAMILY_IPV6);
+  folly::CIDRNetwork reverseNet6 = fromSaiIpPrefix(saiPrefix6);
+  EXPECT_EQ(net6, reverseNet6);
+}
+
+TEST_F(AddressUtilTest, MacAddress) {
   sai_mac_t saiMac;
   toSaiMacAddress(mac, saiMac);
   folly::MacAddress reverseMac = fromSaiMacAddress(saiMac);
