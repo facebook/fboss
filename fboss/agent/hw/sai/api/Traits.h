@@ -34,10 +34,15 @@ struct apiUsesObjectId : public std::true_type {};
 template <typename ApiTypes>
 struct apiUsesEntry : public std::false_type {};
 class NeighborTypes;
+class RouteTypes;
 template <>
 struct apiUsesObjectId<NeighborTypes> : public std::false_type {};
 template <>
+struct apiUsesObjectId<RouteTypes> : public std::false_type {};
+template <>
 struct apiUsesEntry<NeighborTypes> : public std::true_type {};
+template <>
+struct apiUsesEntry<RouteTypes> : public std::true_type {};
 
 /*
  * apiHasMembers<T>::value is true if T is an ApiTypes which
