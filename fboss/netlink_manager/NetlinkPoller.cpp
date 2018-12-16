@@ -12,7 +12,7 @@ NetlinkPoller::NetlinkPoller(
   DCHECK(eb) << "NULL pointer to EventBase";
   if (fd == -1) {
     int mngrFd = nl_cache_mngr_get_fd(manager);
-    changeHandlerFD(mngrFd);
+    changeHandlerFD(folly::NetworkSocket::fromFd(mngrFd));
   }
   registerHandler(folly::EventHandler::READ | folly::EventHandler::PERSIST);
 }

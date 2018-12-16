@@ -174,7 +174,7 @@ void TunIntf::stop() {
 
 void TunIntf::start() {
   if (fd_ != -1 && !isHandlerRegistered()) {
-    changeHandlerFD(fd_);
+    changeHandlerFD(folly::NetworkSocket::fromFd(fd_));
     registerHandler(folly::EventHandler::READ | folly::EventHandler::PERSIST);
   }
 }
