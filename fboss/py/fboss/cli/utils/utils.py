@@ -20,6 +20,7 @@ AGENT_KEYWORD = 'agent'
 BGP_KEYWORD = 'bgp'
 COOP_KEYWORD = 'coop'
 SDK_KEYWORD = 'sdk'
+SSL_KEYWORD = 'ssl'
 
 
 def get_colors() -> Tuple[str, str, str]:
