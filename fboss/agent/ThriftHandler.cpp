@@ -1104,7 +1104,7 @@ void ThriftHandler::ensureFibSynced(StringPiece function) {
   }
 
   if (!function.empty()) {
-    VLOG_EVERY_MS(1, 1000) << "failing thrift prior to FIB Sync: " << function;
+    XLOG_EVERY_MS(DBG1, 1000) << "failing thrift prior to FIB Sync: " << function;
   }
   throw FbossError("switch is still initializing, FIB not synced yet");
 }

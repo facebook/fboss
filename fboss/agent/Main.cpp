@@ -262,13 +262,6 @@ std::unique_ptr<AgentConfig> parseConfig(int argc, char** argv) {
 }
 
 void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
-  // Internally we use a modified version of gflags that only shows VLOG
-  // messages if --minloglevel is set to 0.  We pretty much always want to see
-  // VLOG messages, so set minloglevel to 0 by default, unless overridden on
-  // the command line.
-  gflags::SetCommandLineOptionWithMode(
-      "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
-
   for (auto item : defaults) {
     // logging not initialized yet, need to use std::cerr
     std::cerr << "Overriding default flag from config: " << item.first.c_str()
