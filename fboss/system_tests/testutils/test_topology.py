@@ -3,7 +3,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from fboss.thrift_clients import FbossAgentClient, QsfpServiceClient
+from fboss.fb_thrift_clients import FbossAgentClient, QsfpServiceClient
+from fboss.thrift_clients import FbossAgentClient as PlainTextFbossAgentClient
+from fboss.thrift_clients import QsfpServiceClient as PlainTextQsfpServiceClient
 from fboss.netlink_manager.netlink_manager_client import NetlinkManagerClient
 from fboss.system_tests.testutils.test_client import TestClient
 from neteng.fboss.ttypes import FbossBaseError
@@ -123,9 +125,9 @@ class FBOSSTestTopology(object):
     def __init__(self, switch, ensemble, min_hosts,
             port=None, qsfp_port=None):
         if port is None:
-            port = FbossAgentClient.DEFAULT_PORT
+            port = PlainTextFbossAgentClient.DEFAULT_PORT
         if qsfp_port is None:
-            qsfp_port = QsfpServiceClient.DEFAULT_PORT
+            qsfp_port = PlainTextQsfpServiceClient.DEFAULT_PORT
         self.port = port
         self.qsfp_port = qsfp_port
         self.log = logging.getLogger("__main__")
@@ -209,6 +211,10 @@ class FBOSSTestTopology(object):
         port = port or self.port
         return FbossAgentClient(self.switch.name, port=port)
 
+    def switch_thrift_plaintext(self, port=None):
+        port = port or self.port
+        return PlainTextFbossAgentClient(self.switch.name, port=port)
+
     def qsfp_thrift(self):
         return QsfpServiceClient(self.switch.name, self.qsfp_port)
 
@@ -253,9 +259,9 @@ class FBOSSChassisTestTopology(object):
 
     def __init__(self, chassis, cards, port=None, qsfp_port=None):
         if port is None:
-            port = FbossAgentClient.DEFAULT_PORT
+            port = PlainTextFbossAgentClient.DEFAULT_PORT
         if qsfp_port is None:
-            qsfp_port = QsfpServiceClient.DEFAULT_PORT
+            qsfp_port = PlainTextQsfpServiceClient.DEFAULT_PORT
         self.port = port
         self.qsfp_port = qsfp_port
         self.log = logging.getLogger("__main__")
