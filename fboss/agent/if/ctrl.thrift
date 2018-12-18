@@ -39,6 +39,12 @@ enum SwitchRunState {
   EXITING = 4
 }
 
+enum SSLType {
+  DISABLED = 0,
+  PERMITTED = 1,
+  REQUIRED = 2,
+}
+
 struct IpPrefix {
   1: required Address.BinaryAddress ip,
   2: required i16 prefixLength,
@@ -657,6 +663,8 @@ service FbossCtrl extends fb303.FacebookService {
   */
   SwitchRunState getSwitchRunState()
 
+  SSLType getSSLPolicy()
+    throws (1: fboss.FbossBaseError error)
 }
 
 service NeighborListenerClient extends fb303.FacebookService {

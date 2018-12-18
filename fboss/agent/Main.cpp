@@ -308,6 +308,8 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   auto server = setupThriftServer(
       eventBase, handler, FLAGS_port, true /*isDuplex*/, true /*setupSSL*/);
 
+  handler->setSSLPolicy(server->getSSLPolicy());
+
   // Create an Initializer to initialize the switch in a background thread.
   Initializer init(&sw, platformPtr);
 

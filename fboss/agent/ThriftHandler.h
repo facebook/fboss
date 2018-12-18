@@ -26,6 +26,7 @@
 #include <folly/String.h>
 #include <thrift/lib/cpp/server/TServerEventHandler.h>
 #include <thrift/lib/cpp2/async/DuplexChannel.h>
+#include <thrift/lib/cpp2/server/ThriftServer.h>
 
 namespace facebook { namespace fboss {
 
@@ -234,6 +235,13 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::unique_ptr<std::string> jsonPatch) override;
 
   SwitchRunState getSwitchRunState() override;
+
+  void setSSLPolicy(apache::thrift::SSLPolicy sslPolicy) {
+    sslPolicy_ = sslPolicy;
+  }
+
+  SSLType getSSLPolicy() override;
+
  protected:
   void ensureConfigured(folly::StringPiece function);
   void ensureConfigured() {
@@ -320,5 +328,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   folly::Synchronized<
       std::unordered_map<const apache::thrift::server::TConnectionContext*,
                          std::shared_ptr<Signal>>> highresKillSwitches_;
+
+  apache::thrift::SSLPolicy sslPolicy_;
 };
 }} // facebook::fboss

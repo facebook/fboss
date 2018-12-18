@@ -1215,4 +1215,19 @@ SwitchRunState ThriftHandler::getSwitchRunState() {
   return sw_->getSwitchRunState();
 }
 
+SSLType ThriftHandler::getSSLPolicy() {
+  SSLType sslType = SSLType::PERMITTED;
+
+  if (sslPolicy_ == apache::thrift::SSLPolicy::DISABLED) {
+    sslType = SSLType::DISABLED;
+  } else if (sslPolicy_ == apache::thrift::SSLPolicy::PERMITTED) {
+    sslType = SSLType::PERMITTED;
+  } else if (sslPolicy_ == apache::thrift::SSLPolicy::REQUIRED) {
+    sslType = SSLType::REQUIRED;
+  } else {
+    throw FbossError("Invalid SSL Policy");
+  }
+
+  return sslType;
+}
 }} // facebook::fboss
