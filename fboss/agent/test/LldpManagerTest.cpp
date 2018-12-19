@@ -123,7 +123,6 @@ TEST(LldpManagerTest, NotEnabledTest) {
   auto handle = setupTestHandle();
   auto sw = handle->getSw();
 
-
   PortID portID(1);
   VlanID vlanID(1);
 
@@ -144,8 +143,31 @@ TEST(LldpManagerTest, NotEnabledTest) {
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.unhandled.sum", 1);
-
+  counters.checkDelta(SwitchStats::kCounterPrefix + "lldp.recvd.sum", 0);
 }
 
+TEST(LldpManagerTest, LldpParse) {
+  cfg::SwitchConfig config = testConfigA();
+  config.ports[0].routable = true;
 
+  auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
+  auto sw = handle->getSw();
+
+  // Cache the current stats
+  CounterCache counters(sw);
+
+  auto pkt = LldpManager::createLldpPkt(sw, MacAddress("2:2:2:2:2:10"),
+                                        VlanID(1),
+                                        "somesysname0", "portname",
+                                        "someportdesc0",
+                                        1,
+                                        LldpManager::SYSTEM_CAPABILITY_ROUTER);
+
+  handle->rxPacket(std::make_unique<folly::IOBuf>(*pkt->buf()),
+                   PortID(1), VlanID(1));
+
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.unhandled.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "lldp.recvd.sum", 1);
+}
 } // unnamed namespace
