@@ -79,6 +79,7 @@ class LldpManager : private folly::AsyncTimeout {
                 VlanID,
                 const std::string& hostname,
                 const std::string& portname,
+                const std::string& portdesc,
                 const uint16_t ttl,
                 const uint16_t capabilities);
 

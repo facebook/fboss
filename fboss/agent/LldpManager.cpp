@@ -145,19 +145,40 @@ void writeTlv(LldpTlvType type, const ByteRange& value,
   cursor->push(value.data(), value.size());
 }
 
+
 std::unique_ptr<TxPacket>
 LldpManager::createLldpPkt(SwSwitch* sw,
                            const MacAddress macaddr,
                            VlanID vlanid,
                            const std::string& hostname,
                            const std::string& portname,
+                           const std::string& portdesc,
                            const uint16_t ttl,
                            const uint16_t capabilities) {
 
+  static std::string lldpSysDescStr("FBOSS");
+  uint32_t frameLen =
+           // ethernet header
+           (6 * 2) + 2 + 2
+           // LLDP TLVs
+           // Chassis MAC
+           + 2 + 1 + 6
+           // Port ID: Name
+           + 2 + portname.size() + 1
+           // TTL
+           + 2 + 2
+           // Add Port-Description length
+           + 2 + portdesc.size() + 1
+           // system name
+           + 2 + hostname.size() + 1
+           // System description
+           + 2 + lldpSysDescStr.size() + 1
+           // Capabilities
+           + 2 + 2 + 2
+           // End of LLDPDU
+           + 2
+           ;
 
-  // The minimum packet length is 64.We use 68 on the assumption that
-  // the packet will go out untagged, which will remove 4 bytes.
-  uint32_t frameLen = 98;
   auto pkt = sw->allocatePacket(frameLen);
   RWPrivateCursor cursor(pkt->buf());
   pkt->writeEthHeader(&cursor, LLDP_DEST_MAC,
@@ -183,8 +204,13 @@ LldpManager::createLldpPkt(SwSwitch* sw,
              StringPiece(hostname), &cursor);
   }
 
+  // Port description
+  writeTlv(LldpTlvType::PORT_DESC, StringPiece(portdesc), &cursor);
+
   // system description TLV
-  writeTlv(LldpTlvType::SYSTEM_DESCRIPTION, StringPiece("FBOSS"), &cursor);
+  writeTlv(
+    LldpTlvType::SYSTEM_DESCRIPTION, StringPiece(lldpSysDescStr), &cursor
+  );
 
   // system capability TLV
   uint32_t enabledCapabilities = (capabilities << 16) | capabilities;
@@ -214,7 +240,7 @@ void LldpManager::sendLldpInfo(const std::shared_ptr<Port>& port) {
 
   auto pkt = LldpManager::createLldpPkt(sw_, cpuMac, port->getIngressVlan(),
                                         std::string(hostname.data()),
-                                        port->getName(),
+                                        port->getName(), port->getDescription(),
                                         TTL_TLV_VALUE,
                                         SYSTEM_CAPABILITY_ROUTER);
 

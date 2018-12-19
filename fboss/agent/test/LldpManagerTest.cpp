@@ -55,7 +55,10 @@ TxMatchFn checkLldpPDU() {
    return [=](const TxPacket* pkt) {
      const auto* buf = pkt->buf();
      // create a large enough packet buffer to fill up all LLDP fields
-     EXPECT_EQ(98, buf->computeChainDataLength());
+     // portname may be "portX" or "portXX", so length can vary accordingly.
+     const auto chainlen = buf->computeChainDataLength();
+     EXPECT_LE(85, chainlen);
+     EXPECT_LE(chainlen, 86);
 
      Cursor c(buf);
 
