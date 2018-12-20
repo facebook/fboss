@@ -13,6 +13,7 @@ from fboss.system_tests.facebook.utils.ensemble_requirements import (
     is_host_ping_reachable)
 
 from thrift.transport.TTransport import TTransportException
+from ServiceRouter import TServiceRouterException
 
 import logging
 import time
@@ -158,7 +159,7 @@ class FBOSSTestTopology(object):
             raise unittest.SkipTest("Not able to find %d good hosts" %
                                     (n_hosts))
 
-    def verify_switch(self, retries=10, log=None, port=None):
+    def verify_switch(self, retries=30, log=None, port=None):
         """ Verify the switch is THRIFT reachable """
         if not log:
             log = self.log
@@ -177,13 +178,14 @@ class FBOSSTestTopology(object):
                     # this actually checks that agent is in a ready state
                     client.getAllPortInfo()  # will throw FbossBaseError
                     return True
-            except (FbossBaseError, TTransportException) as e:
+            except (FbossBaseError, TTransportException,
+                    TServiceRouterException) as e:
                 log.warning("Switch failed to thrift verify (try #%d): %s"
                                 % (retry, str(e)))
                 time.sleep(1)
         return False
 
-    def verify_hosts(self, fail_on_error=False, min_hosts=0, retries=10,
+    def verify_hosts(self, fail_on_error=False, min_hosts=0, retries=30,
                      log=None):
         """ Verify each host is thrift reachable
                 if fail_on_error is false, just remove unreachable

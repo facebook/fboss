@@ -13,6 +13,7 @@ from fboss.system_tests.test.ttypes import DeviceType
 from neteng.fboss.ttypes import FbossBaseError
 from libfb.py.decorators import retryable
 from thrift.transport.TTransport import TTransportException
+from ServiceRouter import TServiceRouterException
 
 
 @test_tags("loopback", "run-on-diff", "trunk-stable")
@@ -39,14 +40,16 @@ class LoopbackPing(FbossBaseSystemTest):
 
         self._cleanup(host, unicast_route)
 
-    @retryable(num_tries=3, sleep_time=10, retryable_exs=[TTransportException])
+    @retryable(num_tries=3, sleep_time=10, retryable_exs=[TTransportException,
+        TServiceRouterException])
     def _test_ping_over_loopback(self, host, other_host, loopback_address):
         # Make sure each other host can ping that loopback address
         with other_host.thrift_client() as other_host_client:
             response = other_host_client.ping(loopback_address)
             self.assertTrue(response)
 
-    @retryable(num_tries=3, sleep_time=10, retryable_exs=[TTransportException])
+    @retryable(num_tries=3, sleep_time=10, retryable_exs=[TTransportException,
+        TServiceRouterException])
     def _setup_loopback_interface_in_host(self, host, loopback_address):
         # Set up the loop1 loopback interface and add the loopback_address
         with host.thrift_client() as host_client:
@@ -55,7 +58,8 @@ class LoopbackPing(FbossBaseSystemTest):
             response = host_client.add_address(loopback_address, "loop1")
             self.assertTrue(response)
 
-    @retryable(num_tries=3, sleep_time=10, retryable_exs=[TTransportException])
+    @retryable(num_tries=3, sleep_time=10, retryable_exs=[TTransportException,
+        TServiceRouterException])
     def _delete_loopback_interface_in_host(self, host):
         # Delete loop1 loopback interface
         with host.thrift_client() as host_client:
@@ -73,13 +77,15 @@ class LoopbackPing(FbossBaseSystemTest):
         unicast_route = UnicastRoute(dest=prefix, nextHopAddrs=nexthops)
         return self._add_unicast_route(unicast_route)
 
-    @retryable(num_tries=3, retryable_exs=[FbossBaseError])
+    @retryable(num_tries=3, retryable_exs=[FbossBaseError,
+        TServiceRouterException])
     def _add_unicast_route(self, unicast_route):
         with self.test_topology.switch_thrift() as client:
             client.addUnicastRoute(1, unicast_route)
         return unicast_route
 
-    @retryable(num_tries=3, retryable_exs=[FbossBaseError])
+    @retryable(num_tries=3, retryable_exs=[FbossBaseError,
+        TServiceRouterException])
     def _delete_unicast_route(self, unicast_route):
         with self.test_topology.switch_thrift() as client:
             client.deleteUnicastRoute(1, unicast_route.dest)

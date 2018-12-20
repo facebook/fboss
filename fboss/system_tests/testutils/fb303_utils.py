@@ -3,11 +3,12 @@
 from libfb.py.decorators import retryable
 from thrift.transport.TTransport import TTransportException
 from fboss.system_tests.system_tests import FbossBaseSystemTest
+from ServiceRouter import TServiceRouterException
 
 
 @retryable(num_tries=5,
            sleep_time=5,
-           retryable_exs=[TTransportException])
+           retryable_exs=[TTransportException, TServiceRouterException])
 def get_fb303_counter(test: FbossBaseSystemTest,
                       counter: str,
                       try_number: int):
