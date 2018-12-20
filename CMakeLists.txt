@@ -402,6 +402,7 @@ add_library(fboss_agent STATIC
     fboss/agent/state/ControlPlane.cpp
     fboss/agent/state/ForwardingInformationBase.cpp
     fboss/agent/state/ForwardingInformationBaseContainer.cpp
+    fboss/agent/state/ForwardingInformationBaseDelta.cpp
     fboss/agent/state/ForwardingInformationBaseMap.cpp
     fboss/agent/state/Interface.cpp
     fboss/agent/state/InterfaceMap.cpp
