@@ -94,6 +94,13 @@ class LldpManager : private folly::AsyncTimeout {
     db_.portDown(port);
   }
 
+  // Helper to calculate the packet size which createLldpPkt will allocate.
+  // Required for unit testing, if nothing else.
+  static uint32_t LldpPktSize(const std::string& hostname,
+                         const std::string& portname,
+                         const std::string& portdesc,
+                         const std::string& sysDesc);
+
  private:
   void timeoutExpired() noexcept override;
   void sendLldpInfo(const std::shared_ptr<Port>& port);

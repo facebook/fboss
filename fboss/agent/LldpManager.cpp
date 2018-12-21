@@ -145,6 +145,34 @@ void writeTlv(LldpTlvType type, const ByteRange& value,
   cursor->push(value.data(), value.size());
 }
 
+uint32_t
+LldpManager::LldpPktSize(const std::string& hostname,
+                         const std::string& portname,
+                         const std::string& portdesc,
+                         const std::string& sysDesc) {
+  return
+   // ethernet header
+   (6 * 2) + 2 + 2
+   // LLDP TLVs
+   // Chassis MAC
+   + 2 + 1 + 6
+   // Port ID: Name
+   + 2 + portname.size() + 1
+   // TTL
+   + 2 + 2
+   // Add Port-Description length
+   + 2 + portdesc.size() + 1
+   // system name
+   + 2 + hostname.size() + 1
+   // System description
+   + 2 + sysDesc.size() + 1
+   // Capabilities
+   + 2 + 2 + 2
+   // End of LLDPDU
+   + 2
+   ;
+
+}
 
 std::unique_ptr<TxPacket>
 LldpManager::createLldpPkt(SwSwitch* sw,
@@ -157,27 +185,8 @@ LldpManager::createLldpPkt(SwSwitch* sw,
                            const uint16_t capabilities) {
 
   static std::string lldpSysDescStr("FBOSS");
-  uint32_t frameLen =
-           // ethernet header
-           (6 * 2) + 2 + 2
-           // LLDP TLVs
-           // Chassis MAC
-           + 2 + 1 + 6
-           // Port ID: Name
-           + 2 + portname.size() + 1
-           // TTL
-           + 2 + 2
-           // Add Port-Description length
-           + 2 + portdesc.size() + 1
-           // system name
-           + 2 + hostname.size() + 1
-           // System description
-           + 2 + lldpSysDescStr.size() + 1
-           // Capabilities
-           + 2 + 2 + 2
-           // End of LLDPDU
-           + 2
-           ;
+  uint32_t frameLen
+    = LldpPktSize (hostname, portname, portdesc, lldpSysDescStr);
 
   auto pkt = sw->allocatePacket(frameLen);
   RWPrivateCursor cursor(pkt->buf());

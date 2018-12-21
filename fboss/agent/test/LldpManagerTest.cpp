@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include <limits.h>
 #include "fboss/agent/LldpManager.h"
 #include <folly/Memory.h>
 #include <folly/io/Cursor.h>
@@ -57,8 +58,18 @@ TxMatchFn checkLldpPDU() {
      // create a large enough packet buffer to fill up all LLDP fields
      // portname may be "portX" or "portXX", so length can vary accordingly.
      const auto chainlen = buf->computeChainDataLength();
-     EXPECT_LE(85, chainlen);
-     EXPECT_LE(chainlen, 86);
+     const auto minlen = LldpManager::LldpPktSize(std::string(""),
+                                                  std::string("portX"),
+                                                  std::string(""),
+                                                  std::string(""));
+     const auto maxlen
+       = LldpManager::LldpPktSize(std::string(HOST_NAME_MAX, 'x'),
+                                  std::string("portXX"),
+                                  std::string(255, 'x'),
+                                  std::string("FBOSS"));
+
+     EXPECT_LE(minlen, chainlen);
+     EXPECT_LE(chainlen, maxlen);
 
      Cursor c(buf);
 
