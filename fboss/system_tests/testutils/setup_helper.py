@@ -5,11 +5,15 @@ from fboss.system_tests.system_tests import FbossBaseSystemTest
 from neteng.fboss.ctrl.ttypes import SwitchRunState
 
 
-@retryable(num_tries=3, sleep_time=5)
-def check_fib_synced(test: FbossBaseSystemTest):
+@retryable(num_tries=20, sleep_time=1)
+def check_switch_configured(test: FbossBaseSystemTest):
     with test.test_topology.switch_thrift() as switch_thrift:
-        test.assertEqual(switch_thrift.getSwitchRunState(),
-                SwitchRunState.FIB_SYNCED)
+        current_state = switch_thrift.getSwitchRunState()
+        # Any state after CONFIGURED is also considered to be configured
+        test.assertTrue(
+            current_state == SwitchRunState.CONFIGURED or
+            current_state == SwitchRunState.FIB_SYNCED
+        )
 
 
 LOW_PRI_QUEUE = 0

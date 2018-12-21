@@ -3,7 +3,7 @@
 import fboss.system_tests.testutils.packet as packet
 from fboss.system_tests.testutils.ip_conversion import ip_addr_to_str
 from fboss.system_tests.testutils.setup_helper import (
-    check_fib_synced,
+    check_switch_configured,
     retry_old_counter_names)
 
 HIGH_PRI_QUEUE = 9
@@ -29,7 +29,7 @@ class CoppBase(object):
 
     def setUp(self):
         super().setUp()
-        check_fib_synced(self)
+        check_switch_configured(self)
 
         self.cpu_high_pri_queue_prefix = (
             "cpu.queue%d.cpuQueue-high" % HIGH_PRI_QUEUE)
