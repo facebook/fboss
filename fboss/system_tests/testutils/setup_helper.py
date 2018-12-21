@@ -5,7 +5,7 @@ from fboss.system_tests.system_tests import FbossBaseSystemTest
 from neteng.fboss.ctrl.ttypes import SwitchRunState
 
 
-@retryable(num_tries=20, sleep_time=1)
+@retryable(num_tries=30, sleep_time=1)
 def check_switch_configured(test: FbossBaseSystemTest):
     with test.test_topology.switch_thrift() as switch_thrift:
         current_state = switch_thrift.getSwitchRunState()
