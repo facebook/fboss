@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import unittest
 
 from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 from fboss.system_tests.testutils.packet import run_iperf
@@ -8,6 +9,7 @@ import subprocess
 
 
 @test_tags("cmdline", "new-test")
+@unittest.skip("Test is flaky - T38384504")
 class FbossPortStatsCmdline(FbossBaseSystemTest):
     FBOSS_CMD = '/usr/local/bin/fboss'
     PORT_STATS_HEADER = 'Port Name   +Id In           bytes           uPkts \

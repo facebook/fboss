@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import unittest
 
 from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 
@@ -31,6 +32,7 @@ def _verify_icmp6_type(self, icmp6_type, max_retries=10):
 
 
 @test_tags("ndp", "new-test")   # see T31145754
+@unittest.skip("Test is flaky - T38383797")
 class V6NeightborAdvertisement(FbossBaseSystemTest):
     """ Verify we receive well-formatted IPv6 neighbor advertisments
         On all hosts, on all interfaces
@@ -40,6 +42,7 @@ class V6NeightborAdvertisement(FbossBaseSystemTest):
 
 
 @test_tags("ndp", "run-on-diff", "trunk-stable")
+@unittest.skip("Test is flaky - T38383797")
 class V6RouteAdvertisement(FbossBaseSystemTest):
     """ Verify we receive well-formatted IPv6 route advertisments
         On all hosts, on all interfaces

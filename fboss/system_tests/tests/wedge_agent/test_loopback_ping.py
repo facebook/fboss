@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+import unittest
 
 from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 from fboss.system_tests.testutils.ip_conversion import ip_str_to_addr
@@ -17,6 +18,7 @@ from ServiceRouter import TServiceRouterException
 
 
 @test_tags("loopback", "run-on-diff", "trunk-stable")
+@unittest.skip("Test is flaky - T38383753")
 class LoopbackPing(FbossBaseSystemTest):
     """ Test whether host can ping other hosts' loopback interface
         """

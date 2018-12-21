@@ -20,6 +20,7 @@ def _append_outgoing_interface(ip, host_intf, is_ipv4=True):
 # By the time we get here, connectivity to the switch
 # and the hosts has been verified
 @test_tags("l3interface", "run-on-diff", "trunk-stable")
+@unittest.skip("Test is flaky - T38383714")
 class L3InterfacesTest(FbossBaseSystemTest):
     """
     Ping Each L3 Interface from Each host
@@ -68,6 +69,7 @@ class L3InterfacesTest(FbossBaseSystemTest):
 
 
 @test_tags("l3pairping", "run-on-diff", "trunk-stable")
+@unittest.skip("Test is flaky - T38383680")
 class L3AllPairsPing(FbossBaseSystemTest):
     """ Make sure each host can ping every other host """
     def test_all_pairs_ping(self):

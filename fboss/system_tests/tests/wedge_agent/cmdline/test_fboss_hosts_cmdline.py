@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-
+import unittest
 import os
 import subprocess
 
@@ -10,6 +10,7 @@ from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 
 
 @test_tags("cmdline", "run-on-diff", "trunk-stable")
+@unittest.skip("Test is flaky - T38384781")
 class FbossHostsCmdline(FbossBaseSystemTest):
     """ Does the 'fboss' tool work correctly? """
     FBOSS_CMD = '/usr/local/bin/fboss'

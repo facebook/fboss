@@ -2,12 +2,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+import unittest
 
 from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 from fboss.system_tests.testutils.packet import run_iperf
 
 
 @test_tags("iperf", "run-on-diff", "trunk-stable")
+@unittest.skip("Tests is flaky - T38383504")
 class Iperf3AllPairs(FbossBaseSystemTest):
     """ Make sure each host can ping every other host """
     def test_pair_iperf3(self):

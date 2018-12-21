@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import unittest
 
 from fboss.system_tests.system_tests import FbossBaseSystemTest, test_tags
 import fboss.system_tests.testutils.packet as packet
@@ -6,6 +7,7 @@ from fboss.system_tests.tests.wedge_agent.copp_base import CoppBase
 
 
 @test_tags("new-test")
+@unittest.skip("Test is flaky - T38384443")
 class CoppTest(CoppBase, FbossBaseSystemTest):
     """ Test that packets sent to CPU get the correct control plane policy
         applied.

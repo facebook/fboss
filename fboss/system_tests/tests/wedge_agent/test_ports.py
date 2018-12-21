@@ -11,6 +11,7 @@ from neteng.fboss.ctrl.ttypes import PortOperState
 
 
 @test_tags("port", "run-on-diff", "trunk-stable")
+@unittest.skip("Test is flaky - T38384864")
 class PortStatusTest(FbossBaseSystemTest):
     """ Verify that for each port, that the internal state agrees with fb303 """
 
@@ -111,6 +112,7 @@ class ServerPortFlap(FbossBaseSystemTest):
 
 
 @test_tags("port", "new-test")
+@unittest.skip("Test is flaky - T38384923")
 class PortFECCheck(FbossBaseSystemTest):
     """ FEC should be enabled for all 100G ports """
     def test_fec_check_for_100g(self):
