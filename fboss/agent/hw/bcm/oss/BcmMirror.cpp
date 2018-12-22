@@ -26,7 +26,7 @@ BcmMirror::BcmMirror(
 
 BcmMirror::~BcmMirror() {}
 
-void BcmMirror::program() {}
+void BcmMirror::program(const std::shared_ptr<Mirror>& /*mirror*/) {}
 
 void BcmMirror::applyPortMirrorAction(
     PortID /*port*/,

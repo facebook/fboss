@@ -56,10 +56,10 @@ class BcmMirror {
 
  private:
   BcmSwitch* hw_;
-  std::shared_ptr<Mirror> mirror_;
+  std::string mirrorName_;
 
   std::unique_ptr<BcmMirrorDestination> destination_;
-  void program();
+  void program(const std::shared_ptr<Mirror>& mirror);
   void applyAclMirrorActions(MirrorAction action);
   void applyPortMirrorActions(MirrorAction action);
 };
