@@ -25,6 +25,7 @@
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmStatsConstants.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
@@ -843,6 +844,16 @@ void BcmPort::updateMirror(
       MirrorAction::START,
       direction);
 }
+
+void BcmPort::setIngressPortMirror(const std::string& mirrorName) {
+  ingressMirror_.assign(mirrorName);
+}
+
+void BcmPort::setEgressPortMirror(const std::string& mirrorName) {
+  egressMirror_.assign(mirrorName);
+}
+
+
 /**
   * TODO(rsher)
   * comment back in when we move to the newer OpenNSL

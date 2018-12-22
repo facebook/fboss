@@ -963,4 +963,20 @@ void BcmWarmBootCache::removeUnclaimedMirrors() {
         this->removeUnclaimedMirror(mirrorEgressPath2Handle.second);
       });
 }
+
+void BcmWarmBootCache::reconstructPortMirrors(
+    std::shared_ptr<SwitchState>* state) {
+  auto* ports = (*state)->getPorts()->modify(state);
+  for (const auto& cachedPort : *dumpedSwSwitchState_->getPorts()) {
+    auto id = cachedPort->getID();
+    auto port = ports->getPort(id);
+    if (cachedPort->getIngressMirror()) {
+      port->setIngressMirror(cachedPort->getIngressMirror());
+    }
+    if (cachedPort->getEgressMirror()) {
+      port->setEgressMirror(cachedPort->getEgressMirror());
+    }
+  }
+}
+
 }}

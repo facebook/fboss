@@ -107,6 +107,7 @@ class BcmWarmBootCache {
    */
   std::shared_ptr<MirrorMap> reconstructMirrors() const;
 
+  void reconstructPortMirrors(std::shared_ptr<SwitchState>* state);
 
   /*
    * Get all cached ecmp egress Ids

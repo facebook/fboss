@@ -173,6 +173,9 @@ class BcmPort {
     return egressMirror_;
   }
 
+  void setIngressPortMirror(const std::string& mirrorName);
+  void setEgressPortMirror(const std::string& mirrorName);
+
  private:
   class BcmPortStats {
     // All actions or instantiations of this class need to be done in a

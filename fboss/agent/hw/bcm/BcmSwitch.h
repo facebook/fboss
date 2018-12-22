@@ -693,6 +693,11 @@ class BcmSwitch : public BcmSwitchIf {
    */
   void setupPacketRx();
 
+  /*
+   * Setup port mirrors
+   */
+  void restorePortSettings(const std::shared_ptr<SwitchState>& state);
+
  /*
   * Check if state, speed update for this port port would
   * be permissible in the hardware.

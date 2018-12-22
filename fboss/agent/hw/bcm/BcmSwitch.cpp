@@ -263,8 +263,9 @@ void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   portTable_->initPorts(&pcfg, true);
 
   setupCos();
-  stateChangedImpl(
+  auto switchState = stateChangedImpl(
       StateDelta(make_shared<SwitchState>(), getWarmBootSwitchState()));
+  restorePortSettings(switchState);
   setupLinkscan();
   setupPacketRx();
 }
@@ -388,6 +389,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
   warmBootState->resetAcls(warmBootCache_->reconstructAclMap());
   warmBootState->resetLoadBalancers(warmBootCache_->reconstructLoadBalancers());
   warmBootState->resetMirrors(warmBootCache_->reconstructMirrors());
+  warmBootCache_->reconstructPortMirrors(&warmBootState);
   return warmBootState;
 }
 
@@ -579,7 +581,9 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   if (warmBoot) {
     auto warmBootState = getWarmBootSwitchState();
-    stateChangedImpl(StateDelta(make_shared<SwitchState>(), warmBootState));
+    warmBootState =
+        stateChangedImpl(StateDelta(make_shared<SwitchState>(), warmBootState));
+    restorePortSettings(warmBootState);
     hostTable_->warmBootHostEntriesSynced();
     ret.switchState = warmBootState;
   } else {
@@ -1773,5 +1777,29 @@ void BcmSwitch::dumpState(const std::string& path) const {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+void BcmSwitch::restorePortSettings(const std::shared_ptr<SwitchState>& state) {
+  /*
+  Dumped Switch state(newState) already has ports. However, state delta
+  processing only handles enabled/disabled ports & changed ports. It does not
+  adds ports to oldState. That is what led to hack this function in.
+
+  After warmboot, there may be some settings of BcmPort which may never get
+  applied, because of above. In that case, restore those settings.
+
+  TODO - handle ports in state delta processing, do not not handle init/creating
+  BcmPort outside of state delta processing, instead incorporate processing of
+  added/removed ports in state delta handling. Doing this will render this
+  function unnecessary and can be removed.
+  */
+  for (auto port : *state->getPorts()) {
+    if (port->getIngressMirror()) {
+      portTable_->getBcmPort(port->getID())
+          ->setIngressPortMirror(port->getIngressMirror().value());
+    }
+    if (port->getEgressMirror()) {
+      portTable_->getBcmPort(port->getID())
+          ->setEgressPortMirror(port->getEgressMirror().value());
+    }
+  }
+}
+}} // facebook::fboss

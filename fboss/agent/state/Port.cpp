@@ -99,8 +99,12 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
         std::make_shared<PortQueue>(PortQueueFields::fromThrift(queue)));
   }
 
-  port.ingressMirror.assign(portThrift.ingressMirror);
-  port.egressMirror.assign(portThrift.egressMirror);
+  if (portThrift.ingressMirror) {
+    port.ingressMirror = portThrift.ingressMirror;
+  }
+  if (portThrift.egressMirror) {
+    port.egressMirror = portThrift.egressMirror;
+  }
 
   return port;
 }
@@ -156,8 +160,12 @@ state::PortFields PortFields::toThrift() const {
     port.queues.push_back(queue->getFields()->toThrift());
   }
 
-  port.ingressMirror.assign(ingressMirror);
-  port.egressMirror.assign(egressMirror);
+  if (ingressMirror) {
+    port.ingressMirror = ingressMirror;
+  }
+  if (egressMirror) {
+    port.egressMirror = egressMirror;
+  }
 
   return port;
 }
