@@ -35,6 +35,7 @@ struct ControlPlaneFields {
 
   QueueConfig queues;
   RxReasonToQueue rxReasonToQueue;
+  folly::Optional<std::string> qosPolicy;
 };
 
 /*
@@ -69,6 +70,13 @@ public:
   }
   void resetRxReasonToQueue(RxReasonToQueue& rxReasonToQueue) {
     writableFields()->rxReasonToQueue.swap(rxReasonToQueue);
+  }
+
+  const folly::Optional<std::string>& getQosPolicy() const {
+    return getFields()->qosPolicy;
+  }
+  void resetQosPolicy(folly::Optional<std::string>& qosPolicy) {
+    writableFields()->qosPolicy.swap(qosPolicy);
   }
 
   ControlPlane* modify(std::shared_ptr<SwitchState>* state);

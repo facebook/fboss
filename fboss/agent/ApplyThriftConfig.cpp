@@ -1717,12 +1717,23 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
     }
   }
 
-  if (queuesUnchanged) {
+  folly::Optional<std::string> qosPolicy;
+  if (auto cpuTrafficPolicy = cfg_->cpuTrafficPolicy_ref()) {
+    if (auto trafficPolicy = cpuTrafficPolicy->trafficPolicy_ref()) {
+      if (auto defaultQosPolicy = trafficPolicy->defaultQosPolicy_ref()) {
+        qosPolicy = *defaultQosPolicy;
+      }
+    }
+  }
+  bool qosPolicyUnchanged = qosPolicy == origCPU->getQosPolicy();
+
+  if (queuesUnchanged && qosPolicyUnchanged) {
     return nullptr;
   }
 
   auto newCPU = origCPU->clone();
   newCPU->resetQueues(newQueues);
+  newCPU->resetQosPolicy(qosPolicy);
   return newCPU;
 }
 

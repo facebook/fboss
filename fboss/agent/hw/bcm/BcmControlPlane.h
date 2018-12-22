@@ -48,6 +48,8 @@ public:
    */
   void setupRxReasonToQueue(const ControlPlane::RxReasonToQueue& reasonToQueue);
 
+  void setupIngressQosPolicy(const folly::Optional<std::string>& qosPolicyName);
+
   void updateQueueCounters();
 
   QueueConfig getMulticastQueueSettings() {

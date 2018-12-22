@@ -21,4 +21,6 @@ void BcmControlPlane::setupRxReasonToQueue(
 
 void BcmControlPlane::updateQueueCounters() {}
 
+void BcmControlPlane::setupIngressQosPolicy(
+    const folly::Optional<std::string>& /*qosPolicyName*/) {}
 }} // facebook::fboss

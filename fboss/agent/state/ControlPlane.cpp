@@ -15,6 +15,7 @@
 namespace {
 constexpr auto kQueues = "queues";
 constexpr auto kRxReasonToQueue = "rxReasonToQueue";
+constexpr auto kQosPolicy = "defaultQosPolicy";
 }
 
 namespace facebook { namespace fboss {
@@ -33,6 +34,11 @@ folly::dynamic ControlPlaneFields::toFollyDynamic() const {
     CHECK(reason != cfg::_PacketRxReason_VALUES_TO_NAMES.end());
     controlPlane[kRxReasonToQueue][reason->second] = reasonToQueue.second;
   }
+
+  if (qosPolicy) {
+    controlPlane[kQosPolicy] = *qosPolicy;
+  }
+
   return controlPlane;
 }
 
@@ -53,6 +59,9 @@ ControlPlaneFields ControlPlaneFields::fromFollyDynamic(
       controlPlane.rxReasonToQueue.emplace(reason->second,
                                   reasonToQueueJson.second.asInt());
     }
+  }
+  if (json.find(kQosPolicy) != json.items().end()) {
+    controlPlane.qosPolicy = json[kQosPolicy].asString();
   }
   return controlPlane;
 }
@@ -87,7 +96,8 @@ bool ControlPlane::operator==(const ControlPlane& controlPlane) const {
   };
 
   return compareQueues(getFields()->queues, controlPlane.getQueues()) &&
-         getFields()->rxReasonToQueue == controlPlane.getRxReasonToQueue();
+      getFields()->rxReasonToQueue == controlPlane.getRxReasonToQueue() &&
+      getFields()->qosPolicy == controlPlane.getQosPolicy();
 }
 
 template class NodeBaseT<ControlPlane, ControlPlaneFields>;

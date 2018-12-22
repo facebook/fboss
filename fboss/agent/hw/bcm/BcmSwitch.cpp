@@ -709,6 +709,9 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   // Add all new interfaces
   forEachAdded(delta.getIntfsDelta(), &BcmSwitch::processAddedIntf, this);
 
+  // Any changes to the Qos maps
+  processQosChanges(delta);
+
   processControlPlaneChanges(delta);
   reconfigureCoPP(delta);
 
@@ -737,9 +740,6 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
 
   // Process any new routes or route changes
   processAddedChangedRoutes(delta, &appliedState);
-
-  // Any changes to the Qos maps of the ports
-  processQosChanges(delta);
 
   processAggregatePortChanges(delta);
 
@@ -1753,6 +1753,9 @@ void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
   const auto& newCPU = controlPlaneDelta.getNew();
 
   processChangedControlPlaneQueues(oldCPU, newCPU);
+  if (oldCPU->getQosPolicy() != newCPU->getQosPolicy()) {
+    controlPlane_->setupIngressQosPolicy(newCPU->getQosPolicy());
+  }
   // TODO(joseph5wu) Add reason-port mapping and cpu acls
 }
 

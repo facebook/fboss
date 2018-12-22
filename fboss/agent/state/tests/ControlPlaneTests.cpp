@@ -146,6 +146,9 @@ shared_ptr<ControlPlane> generateControlPlane() {
   };
   controlPlane->resetRxReasonToQueue(reasons);
 
+  folly::Optional<std::string> qosPolicy("qp1");
+  controlPlane->resetQosPolicy(qosPolicy);
+
   return controlPlane;
 }
 
