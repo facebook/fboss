@@ -34,18 +34,15 @@ BcmRxPacket::BcmRxPacket(const opennsl_pkt_t* pkt)
   CHECK_EQ(pkt->blk_count, 1);
   CHECK_EQ(pkt->pkt_data, &pkt->_pkt_data);
 
-  // The packet contains Ethernet FCS (frame check sequence) at the end before
-  // interpacket gap, which we are not interested in.
-  uint32_t length = std::max(pkt->pkt_len - 4, 0);
   buf_ = IOBuf::takeOwnership(
       pkt->pkt_data->data,             // void* buf
-      length,
+      pkt->pkt_len,
       freeRxBuf,                       // FreeFunction freeFn
       reinterpret_cast<void*>(unit_)); // void* userData
 
   srcPort_ = PortID(pkt->src_port);
   srcVlan_ = VlanID(pkt->vlan);
-  len_ = length;
+  len_ = pkt->pkt_len;
 }
 
 BcmRxPacket::~BcmRxPacket() {
