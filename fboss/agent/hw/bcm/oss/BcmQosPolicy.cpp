@@ -25,6 +25,10 @@ void BcmQosPolicy::BcmQosPolicy::update(
 BcmQosPolicyHandle BcmQosPolicy::getHandle() const {
   return static_cast<BcmQosPolicyHandle>(0);
 }
+bool BcmQosPolicy::policyMatches(
+    const std::shared_ptr<QosPolicy>& /*qosPolicy*/) const {
+  return false;
+}
 
 } // namespace fboss
 } // namespace facebook

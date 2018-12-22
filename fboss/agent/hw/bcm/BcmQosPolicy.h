@@ -28,6 +28,7 @@ class BcmQosPolicy {
       const std::shared_ptr<QosPolicy>& oldQosPolicy,
       const std::shared_ptr<QosPolicy>& newQosPolicy);
   BcmQosPolicyHandle getHandle() const;
+  bool policyMatches(const std::shared_ptr<QosPolicy>& qosPolicy) const;
 
  private:
   std::unique_ptr<BcmQosMap> qosMap_;
