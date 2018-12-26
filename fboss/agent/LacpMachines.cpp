@@ -303,8 +303,14 @@ void ReceiveMachine::recordPDU(LACPDU& lacpdu) {
   // TODO(samank): needs to be moved after
   controller_.setActorState(controller_.actorState() & ~LacpState::DEFAULTED);
 
-  if (((lacpdu.partnerInfo == controller_.actorInfo()) ||
-       ((lacpdu.actorInfo.state & LacpState::AGGREGATABLE) == 0)) &&
+  bool matched = lacpdu.partnerInfo.systemPriority ==
+          controller_.actorInfo().systemPriority &&
+      lacpdu.partnerInfo.systemID == controller_.actorInfo().systemID &&
+      lacpdu.partnerInfo.key == controller_.actorInfo().key &&
+      lacpdu.partnerInfo.portPriority == controller_.actorInfo().portPriority &&
+      lacpdu.partnerInfo.port == controller_.actorInfo().port;
+
+  if ((matched || ((lacpdu.actorInfo.state & LacpState::AGGREGATABLE) == 0)) &&
       (lacpdu.actorInfo.state & LacpState::IN_SYNC)) {
     partnerInfo_.state |= LacpState::IN_SYNC;
     controller_.matched();

@@ -140,6 +140,15 @@ class LacpServiceInterceptor : public LacpServicerIf {
 
     return partnerStateTransmitted;
   }
+  LACPDU lastLacpduTransmitted(PortID portID) {
+    LACPDU lacpduTransmitted;
+
+    lacpEvb_->runInEventBaseThreadAndWait([this, portID, &lacpduTransmitted]() {
+      lacpduTransmitted = portToLastTransmission_.rlock()->at(portID);
+    });
+
+    return lacpduTransmitted;
+  }
   bool isForwarding(PortID portID) {
     bool forwarding = false;
 
@@ -711,4 +720,150 @@ TEST_F(LacpTest, UUColdBootReconvergenceWithDR) {
   for (const auto& controllerPtr : controllerPtrs) {
     controllerPtr->stopMachines();
   }
+}
+
+TEST_F(LacpTest, selfInteroperability) {
+  LacpServiceInterceptor uuEventInterceptor(lacpEvb());
+  LacpServiceInterceptor duEventInterceptor(lacpEvb());
+
+  PortID uuPort(static_cast<uint16_t>(0xA));
+  PortID duPort(static_cast<uint16_t>(0xD));
+
+  ParticipantInfo uuInfo;
+  uuInfo.systemPriority = 65535;
+  uuInfo.systemID = {{0x02, 0x90, 0xfb, 0x5e, 0x1e, 0x85}};
+  uuInfo.key = uuPort;
+  uuInfo.portPriority = 32768;
+  uuInfo.port = uuPort;
+  uuInfo.state = LacpState::NONE;
+  ParticipantInfo duInfo;
+  duInfo.systemPriority = 65535;
+  duInfo.systemID = {{0x02, 0x90, 0xfb, 0x5e, 0x24, 0x28}};
+  duInfo.key = duPort;
+  duInfo.portPriority = 32768;
+  duInfo.port = duPort;
+  duInfo.state = LacpState::NONE;
+
+  auto uuControllerPtr = std::make_shared<LacpController>(
+      uuPort,
+      lacpEvb(),
+      uuInfo.portPriority,
+      cfg::LacpPortRate::FAST,
+      cfg::LacpPortActivity::ACTIVE,
+      AggregatePortID(uuInfo.key),
+      uuInfo.systemPriority,
+      MacAddress::fromBinary(
+          folly::ByteRange(uuInfo.systemID.cbegin(), uuInfo.systemID.cend())),
+      1 /* minimum-link count */,
+      &uuEventInterceptor);
+  uuEventInterceptor.addController(uuControllerPtr);
+  auto duControllerPtr = std::make_shared<LacpController>(
+      duPort,
+      lacpEvb(),
+      duInfo.portPriority,
+      cfg::LacpPortRate::FAST,
+      cfg::LacpPortActivity::ACTIVE,
+      AggregatePortID(duInfo.key),
+      duInfo.systemPriority,
+      MacAddress::fromBinary(
+          folly::ByteRange(duInfo.systemID.cbegin(), duInfo.systemID.cend())),
+      1 /* minimum-link count */,
+      &duEventInterceptor);
+  duEventInterceptor.addController(duControllerPtr);
+
+  LACPDU uuTransmission;
+  LACPDU duTransmission;
+
+  uuControllerPtr->startMachines();
+  uuControllerPtr->portUp();
+
+  std::this_thread::sleep_for(PeriodicTransmissionMachine::SHORT_PERIOD * 2);
+  /*
+   *   actorInfo=(SystemPriority 65535,
+   *              SystemID 02:90:fb:5e:1e:85,
+   *              Key 10,
+   *              PortPriority 32768,
+   *              Port 10,
+   *              State ACTIVE | SHORT_TIMEOUT | AGGREGATABLE | DEFAULTED
+   *                    EXPIRED)
+   * partnerInfo=(SystemPriority 0,
+   *              SystemID 0,
+   *              Key 0,
+   *              PortPriority 0,
+   *              Port 0,
+   *              State SHORT_TIMEOUT)
+   */
+  uuTransmission = uuEventInterceptor.lastLacpduTransmitted(uuPort);
+
+  // By starting the controller here, it's as if the du was cold-booted
+  // while the uu was up
+  duControllerPtr->startMachines();
+  duControllerPtr->portUp();
+
+  duControllerPtr->received(uuTransmission);
+  /*
+   * actorInfo=(SystemPriority 65535,
+   *            SystemID 02:90:fb:5e:24:28,
+   *            Key 13,
+   *            PortPriority 32768,
+   *            Port 13,
+   *            State ACTIVE | SHORT_TIMEOUT | AGGREGATABLE | EXPIRED)
+   * partnerInfo=(SystemPriority 65535,
+   *              SystemID 02:90:fb:5e:1e:85,
+   *              Key 10,
+   *              PortPriority 32768,
+   *              Port 10,
+   *              State ACTIVE | SHORT_TIMEOUT | AGGREGATABLE | DEFAULTED
+   *                    EXPIRED)
+   */
+  duTransmission = duEventInterceptor.lastLacpduTransmitted(duPort);
+
+  uuControllerPtr->received(duTransmission);
+  /*
+   * actorInfo=(SystemPriority 65535,
+   *            SystemID 02:90:fb:5e:1e:85,
+   *            Key 10,
+   *            PortPriority 32768,
+   *            Port 10,
+   *            State ACTIVE | SHORT_TIMEOUT | AGGREGATABLE | IN_SYNC
+                    | COLLECTING | DISTRIBUTING)
+   * parnterInfo=(SystemPriority 65535,
+   *            SystemID 02:90:fb:5e:24:28,
+   *            Key 13,
+   *            PortPriority 32768,
+   *            Port 13,
+   *            State ACTIVE | SHORT_TIMEOUT | AGGREGATABLE)
+   */
+  uuTransmission = uuEventInterceptor.lastLacpduTransmitted(uuPort);
+
+  duControllerPtr->received(uuTransmission);
+  /*
+   * actorInfo=(SystemPriority 65535,
+   *            SystemID 02:90:fb:5e:24:28,
+   *            Key 13,
+   *            PortPriority 32768,
+   *            Port 13,
+   *            State ACTIVE | SHORT_TIMEOUT | AGGREGATABLE | IN_SYNC
+   *                | COLLECTING | DISTRIBUTING)
+   * partnerInfo=(SystemPriority 65535,
+   *            SystemID 02:90:fb:5e:1e:85,
+   *            Key 10,
+   *            PortPriority 32768,
+   *            Port 10,
+   *            State ACTIVE | SHORT_TIMEOUT | AGGREGATABLE | IN_SYNC
+   *            | COLLECTING | DISTRIBUTING)
+   */
+  duTransmission = duEventInterceptor.lastLacpduTransmitted(duPort);
+
+  // TODO(samank): check this is a no-op on the UU endpoint
+  uuControllerPtr->received(duTransmission);
+
+  ASSERT_EQ(
+      duEventInterceptor.lastActorStateTransmitted(duPort),
+      LacpState::AGGREGATABLE | LacpState::ACTIVE | LacpState::SHORT_TIMEOUT |
+          LacpState::IN_SYNC | LacpState::COLLECTING | LacpState::DISTRIBUTING);
+  ASSERT_EQ(
+      uuEventInterceptor.lastActorStateTransmitted(uuPort),
+      LacpState::AGGREGATABLE | LacpState::ACTIVE | LacpState::SHORT_TIMEOUT |
+          LacpState::IN_SYNC | LacpState::COLLECTING | LacpState::DISTRIBUTING);
 }
