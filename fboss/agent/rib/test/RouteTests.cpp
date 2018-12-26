@@ -33,7 +33,13 @@ const ClientID kClientD = ClientID(1004);
 const ClientID kClientE = ClientID(1005);
 } // namespace
 
-using namespace facebook::fboss;
+using facebook::fboss::rib::IPv4NetworkToRouteMap;
+using facebook::fboss::rib::IPv6NetworkToRouteMap;
+using facebook::fboss::rib::Route;
+using facebook::fboss::rib::RouteNextHopEntry;
+using facebook::fboss::rib::RouteNextHopSet;
+using facebook::fboss::rib::RouteUpdater;
+
 using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
@@ -43,26 +49,29 @@ constexpr AdminDistance kDistance = AdminDistance::MAX_ADMIN_DISTANCE;
 namespace {
 // TODO(samank): move helpers into test fixture
 template <typename AddressT>
-Route<AddressT>* getRoute(
-    NetworkToRouteMap<AddressT>& routes,
+facebook::fboss::rib::Route<AddressT>* getRoute(
+    facebook::fboss::rib::NetworkToRouteMap<AddressT>& routes,
     std::string prefixAsString) {
-  auto prefix = RoutePrefix<AddressT>::fromString(prefixAsString);
+  auto prefix =
+      facebook::fboss::rib::RoutePrefix<AddressT>::fromString(prefixAsString);
   auto it = routes.exactMatch(prefix.network, prefix.mask);
 
   return &(it->value());
 }
 
-RouteNextHopSet makeNextHops(std::vector<std::string> ipsAsStrings) {
-  RouteNextHopSet nhops;
+facebook::fboss::rib::RouteNextHopSet makeNextHops(
+    std::vector<std::string> ipsAsStrings) {
+  facebook::fboss::rib::RouteNextHopSet nhops;
   for (const std::string& ipAsString : ipsAsStrings) {
-    nhops.emplace(UnresolvedNextHop(IPAddress(ipAsString), ECMP_WEIGHT));
+    nhops.emplace(facebook::fboss::rib::UnresolvedNextHop(
+        IPAddress(ipAsString), facebook::fboss::rib::ECMP_WEIGHT));
   }
   return nhops;
 }
 
 template <typename AddrT>
 void EXPECT_FWD_INFO(
-    const Route<AddrT>* route,
+    const facebook::fboss::rib::Route<AddrT>* route,
     InterfaceID interfaceID,
     std::string ipAsString) {
   const auto& fwds = route->getForwardInfo().getNextHopSet();
@@ -73,7 +82,7 @@ void EXPECT_FWD_INFO(
 }
 
 template <typename AddrT>
-void EXPECT_RESOLVED(const Route<AddrT>* route) {
+void EXPECT_RESOLVED(const facebook::fboss::rib::Route<AddrT>* route) {
   EXPECT_TRUE(route->isResolved());
   EXPECT_FALSE(route->isUnresolvable());
   EXPECT_FALSE(route->needResolve());
@@ -81,8 +90,8 @@ void EXPECT_RESOLVED(const Route<AddrT>* route) {
 
 template <typename AddrT>
 void EXPECT_ROUTES_MATCH(
-    const NetworkToRouteMap<AddrT>* routesA,
-    const NetworkToRouteMap<AddrT>* routesB) {
+    const facebook::fboss::rib::NetworkToRouteMap<AddrT>* routesA,
+    const facebook::fboss::rib::NetworkToRouteMap<AddrT>* routesB) {
   EXPECT_EQ(routesA->size(), routesB->size());
   for (const auto& iterA : *routesA) {
     auto routeA = iterA->value();
@@ -97,8 +106,8 @@ void EXPECT_ROUTES_MATCH(
 }
 
 template <typename AddressT>
-Route<AddressT>* longestMatch(
-    NetworkToRouteMap<AddressT>& routes,
+facebook::fboss::rib::Route<AddressT>* longestMatch(
+    facebook::fboss::rib::NetworkToRouteMap<AddressT>& routes,
     AddressT address) {
   auto it = routes.longestMatch(address, address.bitCount());
   CHECK(it != routes.end());
@@ -106,6 +115,10 @@ Route<AddressT>* longestMatch(
 }
 
 } // namespace
+
+namespace facebook {
+namespace fboss {
+namespace rib {
 
 /* The following method updates the RIB with routes that would result from a
  * config with the following interfaces:
@@ -1359,7 +1372,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
       FbossError);
 
   // Convert to thrift object
-  auto nhts = util::fromRouteNextHopSet(nhs);
+  auto nhts = facebook::fboss::rib::util::fromRouteNextHopSet(nhs);
   ASSERT_EQ(4, nhts.size());
 
   auto verify = [&](const std::string& ipaddr,
@@ -1367,7 +1380,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
     auto bAddr = facebook::network::toBinaryAddress(folly::IPAddress(ipaddr));
     if (intf.hasValue()) {
       bAddr.__isset.ifName = true;
-      bAddr.ifName = util::createTunIntfName(intf.value());
+      bAddr.ifName = facebook::fboss::util::createTunIntfName(intf.value());
     }
     bool found = false;
     for (const auto& entry : nhts) {
@@ -1390,7 +1403,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
   verify("fe80::1", InterfaceID(4));
 
   // Convert back to RouteNextHopSet
-  auto newNhs = util::toRouteNextHopSet(nhts);
+  auto newNhs = facebook::fboss::rib::util::toRouteNextHopSet(nhts);
   EXPECT_EQ(nhs, newNhs);
 
   //
@@ -1405,7 +1418,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
   NextHopThrift nht;
   nht.address = addr;
   {
-    NextHop nh = util::fromThrift(nht);
+    NextHop nh = facebook::fboss::rib::util::fromThrift(nht);
     EXPECT_EQ(folly::IPAddress("10.0.0.1"), nh.addr());
     EXPECT_EQ(folly::none, nh.intfID());
   }
@@ -1415,7 +1428,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
   addr.ifName = "fboss10";
   nht.address = addr;
   {
-    NextHop nh = util::fromThrift(nht);
+    NextHop nh = facebook::fboss::rib::util::fromThrift(nht);
     EXPECT_EQ(folly::IPAddress("face::1"), nh.addr());
     EXPECT_EQ(folly::none, nh.intfID());
   }
@@ -1425,7 +1438,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
   addr.ifName = "fboss10";
   nht.address = addr;
   {
-    NextHop nh = util::fromThrift(nht);
+    NextHop nh = facebook::fboss::rib::util::fromThrift(nht);
     EXPECT_EQ(folly::IPAddress("fe80::1"), nh.addr());
     EXPECT_EQ(InterfaceID(10), nh.intfID());
   }
@@ -1716,3 +1729,7 @@ TEST_F(UcmpTest, Twenty) {
 TEST_F(UcmpTest, Ten) {
   runVaryFromHundredTest(10, {10, 10, 10, 1});
 }
+
+} // namespace rib
+} // namespace fboss
+} // namespace facebook

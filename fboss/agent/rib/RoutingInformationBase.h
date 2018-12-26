@@ -21,6 +21,7 @@
 
 namespace facebook {
 namespace fboss {
+namespace rib {
 
 class RoutingInformationBase {
  public:
@@ -58,5 +59,6 @@ class RoutingInformationBase {
   SynchronizedRouteTables synchronizedRouteTables_;
 };
 
+} // namespace rib
 } // namespace fboss
 } // namespace facebook

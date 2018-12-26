@@ -33,6 +33,7 @@ std::vector<facebook::fboss::NextHopThrift> thriftNextHopsFromAddresses(
 
 namespace facebook {
 namespace fboss {
+namespace rib {
 
 namespace util {
 
@@ -166,7 +167,7 @@ RouteNextHopEntry RouteNextHopEntry::fromFollyDynamic(
 }
 
 RouteNextHopEntry RouteNextHopEntry::from(
-    const UnicastRoute& route,
+    const facebook::fboss::UnicastRoute& route,
     AdminDistance defaultAdminDistance) {
   std::vector<NextHopThrift> nhts;
   if (route.nextHops.empty() && !route.nextHopAddrs.empty()) {
@@ -185,5 +186,6 @@ RouteNextHopEntry RouteNextHopEntry::from(
       : RouteNextHopEntry(RouteForwardAction::DROP, adminDistance);
 }
 
+} // namespace rib
 } // namespace fboss
 } // namespace facebook

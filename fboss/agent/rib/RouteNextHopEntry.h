@@ -20,8 +20,13 @@
 
 namespace facebook {
 namespace fboss {
-
 class UnicastRoute;
+} // namespace fboss
+} // namespace facebook
+
+namespace facebook {
+namespace fboss {
+namespace rib {
 
 class RouteNextHopEntry {
  public:
@@ -85,7 +90,7 @@ class RouteNextHopEntry {
   }
 
   static RouteNextHopEntry from(
-      const UnicastRoute& route,
+      const facebook::fboss::UnicastRoute& route,
       AdminDistance defaultAdminDistance);
 
  private:
@@ -124,5 +129,6 @@ RouteNextHopSet toRouteNextHopSet(std::vector<NextHopThrift> const& nhts);
 std::vector<NextHopThrift> fromRouteNextHopSet(RouteNextHopSet const& nhs);
 } // namespace util
 
+} // namespace rib
 } // namespace fboss
 } // namespace facebook

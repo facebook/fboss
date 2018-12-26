@@ -19,6 +19,7 @@ constexpr auto kFlags = "flags";
 
 namespace facebook {
 namespace fboss {
+namespace rib {
 
 template <typename AddrT>
 Route<AddrT>::Route(const Prefix& prefix) : prefix_(prefix) {}
@@ -143,5 +144,6 @@ void Route<AddrT>::clearForward() {
 template class Route<folly::IPAddressV4>;
 template class Route<folly::IPAddressV6>;
 
+} // namespace rib
 } // namespace fboss
 } // namespace facebook

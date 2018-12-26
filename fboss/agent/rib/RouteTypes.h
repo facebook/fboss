@@ -18,6 +18,7 @@
 
 namespace facebook {
 namespace fboss {
+namespace rib {
 
 /**
  * Route forward actions
@@ -71,5 +72,6 @@ using PrefixV6 = RoutePrefix<folly::IPAddressV6>;
 void toAppend(const PrefixV4& prefix, std::string* result);
 void toAppend(const PrefixV6& prefix, std::string* result);
 
+} // namespace rib
 } // namespace fboss
 } // namespace facebook

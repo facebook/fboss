@@ -23,6 +23,7 @@ constexpr auto kRoutes = "routes";
 
 namespace facebook {
 namespace fboss {
+namespace rib {
 
 template <typename AddressT>
 class NetworkToRouteMap
@@ -56,5 +57,6 @@ class NetworkToRouteMap
 using IPv4NetworkToRouteMap = NetworkToRouteMap<folly::IPAddressV4>;
 using IPv6NetworkToRouteMap = NetworkToRouteMap<folly::IPAddressV6>;
 
+} // namespace rib
 } // namespace fboss
 } // namespace facebook

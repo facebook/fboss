@@ -15,6 +15,7 @@
 
 namespace facebook {
 namespace fboss {
+namespace rib {
 
 namespace util {
 NextHop fromThrift(const NextHopThrift& nht) {
@@ -25,8 +26,8 @@ NextHop fromThrift(const NextHopThrift& nht) {
   // is a v6 link-local. Otherwise, consume it as an unresolved
   // next hop and let route resolution populate the interface.
   if (nht.address.get_ifName() and v6LinkLocal) {
-    InterfaceID intfID =
-        util::getIDFromTunIntfName(*(nht.address.get_ifName()));
+    InterfaceID intfID = facebook::fboss::util::getIDFromTunIntfName(
+        *(nht.address.get_ifName()));
     return ResolvedNextHop(std::move(address), intfID, weight);
   } else {
     return UnresolvedNextHop(std::move(address), weight);
@@ -130,5 +131,7 @@ UnresolvedNextHop::UnresolvedNextHop(
         "Missing interface scoping for link-local nexthop ", addr.str());
   }
 }
+
+} // namespace rib
 } // namespace fboss
 } // namespace facebook

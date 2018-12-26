@@ -22,6 +22,7 @@
 
 namespace facebook {
 namespace fboss {
+namespace rib {
 
 /**
  * Expected behavior of RouteUpdater::resolve():
@@ -114,5 +115,6 @@ class RouteUpdater {
       RouteNextHopSet& fwd);
 };
 
+} // namespace rib
 } // namespace fboss
 } // namespace facebook

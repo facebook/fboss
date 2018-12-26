@@ -14,10 +14,12 @@
 
 namespace facebook {
 namespace fboss {
+namespace rib {
 
 inline folly::StringPiece constexpr kWeight() {
   return "weight";
 }
 
+} // namespace rib
 } // namespace fboss
 } // namespace facebook

@@ -23,6 +23,7 @@ constexpr auto kNexthops = "Nexthops";
 
 namespace facebook {
 namespace fboss {
+namespace rib {
 
 std::string forwardActionStr(RouteForwardAction action) {
   switch (action) {
@@ -107,5 +108,6 @@ void toAppend(const PrefixV6& prefix, std::string* result) {
 template class RoutePrefix<folly::IPAddressV4>;
 template class RoutePrefix<folly::IPAddressV6>;
 
+} // namespace rib
 } // namespace fboss
 } // namespace facebook

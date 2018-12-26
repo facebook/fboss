@@ -21,6 +21,7 @@
 
 namespace facebook {
 namespace fboss {
+namespace rib {
 
 /**
  * Class relationship:
@@ -82,5 +83,6 @@ class RouteNextHopsMulti {
   bool isSame(ClientID clientId, const RouteNextHopEntry& nhe) const;
 };
 
+} // namespace rib
 } // namespace fboss
 } // namespace facebook

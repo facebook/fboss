@@ -20,7 +20,13 @@
 #include <algorithm>
 #include <vector>
 
-using namespace facebook::fboss;
+using namespace facebook::fboss::rib;
+
+using facebook::fboss::AdminDistance;
+using facebook::fboss::InterfaceID;
+using facebook::fboss::IpPrefix;
+using facebook::fboss::NextHopThrift;
+using facebook::fboss::UnicastRoute;
 
 namespace {
 

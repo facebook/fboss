@@ -19,6 +19,7 @@ constexpr auto kNexthopDelim = "@";
 
 namespace facebook {
 namespace fboss {
+namespace rib {
 
 //
 // RouteNextHop Class
@@ -56,7 +57,8 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
       if (nh.intfID().hasValue()) {
         auto& nhAddr = destPair.nextHopAddrs.back();
         nhAddr.__isset.ifName = true;
-        nhAddr.ifName = util::createTunIntfName(nh.intfID().value());
+        nhAddr.ifName =
+            facebook::fboss::util::createTunIntfName(nh.intfID().value());
       }
     }
     list.push_back(destPair);
@@ -157,5 +159,6 @@ std::pair<ClientID, const RouteNextHopEntry*> RouteNextHopsMulti::getBestEntry()
   }
 }
 
+} // namespace rib
 } // namespace fboss
 } // namespace facebook

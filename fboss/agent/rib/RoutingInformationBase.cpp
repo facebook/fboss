@@ -17,6 +17,7 @@
 
 namespace facebook {
 namespace fboss {
+namespace rib {
 
 void RoutingInformationBase::update(
     RouterID routerID,
@@ -65,5 +66,6 @@ void RoutingInformationBase::update(
   updater.updateDone();
 }
 
+} // namespace rib
 } // namespace fboss
 } // namespace facebook
