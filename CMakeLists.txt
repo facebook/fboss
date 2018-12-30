@@ -350,7 +350,6 @@ add_library(fboss_agent STATIC
     fboss/agent/NdpCache.cpp
     fboss/agent/NeighborListenerClient.cpp
     fboss/agent/NeighborUpdater.cpp
-    fboss/agent/NexthopToRouteCount.cpp
     fboss/agent/oss/Main.cpp
     fboss/agent/oss/SetupThrift.cpp
     fboss/agent/oss/RouteUpdateLogger.cpp
