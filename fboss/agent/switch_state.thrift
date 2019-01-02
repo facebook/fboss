@@ -55,4 +55,5 @@ struct PortFields {
  16: string portLoopbackMode
  17: optional string ingressMirror
  18: optional string egressMirror
+ 19: optional string qosPolicy
 }

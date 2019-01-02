@@ -65,9 +65,6 @@ class BcmPort {
 
   void attachIngressQosPolicy(const std::string& name);
   void detachIngressQosPolicy();
-  const folly::Optional<std::string>& getQosPolicyName() const {
-    return qosPolicyName_;
-  }
 
   /*
    * Getters.
@@ -251,7 +248,6 @@ class BcmPort {
   std::string portName_{""};
   folly::Optional<std::string> ingressMirror_;
   folly::Optional<std::string> egressMirror_;
-  folly::Optional<std::string> qosPolicyName_;
   TransmitterTechnology transmitterTechnology_{TransmitterTechnology::UNKNOWN};
 
   // The port group this port is a part of

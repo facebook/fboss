@@ -105,6 +105,7 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
   if (portThrift.egressMirror) {
     port.egressMirror = portThrift.egressMirror;
   }
+  port.qosPolicy.assign(portThrift.qosPolicy);
 
   return port;
 }
@@ -166,6 +167,7 @@ state::PortFields PortFields::toThrift() const {
   if (egressMirror) {
     port.egressMirror = egressMirror;
   }
+  port.qosPolicy.assign(qosPolicy);
 
   return port;
 }
