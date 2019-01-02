@@ -87,13 +87,6 @@ std::unique_ptr<PacketTraceInfo> BcmSwitch::getPacketTrace(
   return nullptr;
 }
 
-int BcmSwitch::getHighresSamplers(
-    HighresSamplerList* /*samplers*/,
-    const std::string& /*namespaceString*/,
-    const std::set<CounterRequest>& /*counterSet*/) {
-  return 0;
-}
-
 void BcmSwitch::exportSdkVersion() const {}
 
 void BcmSwitch::initFieldProcessor() const {

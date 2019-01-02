@@ -45,13 +45,6 @@ class SimSwitch : public HwSwitch {
   // TODO
   void updateStats(SwitchStats* /*switchStats*/) override {}
 
-  int getHighresSamplers(
-      HighresSamplerList* /*samplers*/,
-      const std::string& /*namespaceString*/,
-      const std::set<CounterRequest>& /*counterSet*/) override {
-    return 0;
-  }
-
   void fetchL2Table(std::vector<L2EntryThrift>* /*l2Table*/) override {
     return;
   }

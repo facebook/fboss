@@ -11,6 +11,8 @@
 #include "fboss/agent/hw/bcm/BcmStatsConstants.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
+#include "folly/logging/xlog.h"
+
 namespace facebook { namespace fboss {
 const std::vector<BcmCosQueueCounterType>&
 BcmPortQueueManager::getQueueCounterTypes() const {

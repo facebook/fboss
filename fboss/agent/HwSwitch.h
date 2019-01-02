@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include "fboss/agent/HighresCounterUtil.h"
 #include "fboss/agent/types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -183,23 +182,6 @@ class HwSwitch {
    */
   virtual void updateStats(SwitchStats* switchStats) = 0;
 
-  /*
-   * Returns a hardware-specific sampler based on a namespace string and list of
-   * counters within that namespace.  This assumes that a single sampler
-   * instance will never need to handle counters from different namespaces.
-   *
-   * @return     How many counters were added from this namespace.
-   * @param[out] samplers         A vector of high-resolution samplers.  We will
-   *                              append new samplers to this list.
-   * @param[in]  namespaceString  A string respresentation of the current
-   *                              counter namespace.
-   * @param[in]  counterSet       The set of requested counters within the
-   *                              current namespace.
-   */
-  virtual int getHighresSamplers(HighresSamplerList* samplers,
-                                 const std::string& namespaceString,
-                                 const std::set<CounterRequest>& counterSet)
-                                 = 0;
 
   virtual void fetchL2Table(std::vector<L2EntryThrift> *l2Table) = 0;
 

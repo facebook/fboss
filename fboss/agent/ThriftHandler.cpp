@@ -15,7 +15,6 @@
 #include "common/stats/ServiceData.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ArpHandler.h"
-#include "fboss/agent/HighresCounterSubscriptionHandler.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/LldpManager.h"
@@ -1116,61 +1115,6 @@ void ThriftHandler::connectionDestroyed(TConnectionContext* ctx) {
   // Port status notifications
   if (listeners_) {
     listeners_->clients.erase(ctx);
-  }
-
-  // If there is an ongoing high-resolution counter subscription, kill it. Don't
-  // grab a write lock if there are no active calls
-  if (!as_const(highresKillSwitches_)->empty()) {
-    SYNCHRONIZED(highresKillSwitches_) {
-      auto killSwitchIter = highresKillSwitches_.find(ctx);
-
-      if (killSwitchIter != highresKillSwitches_.end()) {
-        killSwitchIter->second->set();
-        highresKillSwitches_.erase(killSwitchIter);
-      }
-    }
-  }
-}
-
-void ThriftHandler::async_tm_subscribeToCounters(
-    ThriftCallback<bool> callback, unique_ptr<CounterSubscribeRequest> req) {
-
-  // Grab the requested samplers from the underlying switch implementation
-  auto samplers = make_unique<HighresSamplerList>();
-  auto numCounters = sw_->getHighresSamplers(samplers.get(), req->counterSet);
-
-  if (numCounters > 0) {
-    // Grab the connection context and create a kill switch
-    auto ctx = callback->getConnectionContext()->getConnectionContext();
-    auto killSwitch = std::make_shared<Signal>();
-    SYNCHRONIZED(highresKillSwitches_) {
-      highresKillSwitches_[ctx] = killSwitch;
-    }
-
-    // Create the sender
-    auto client = ctx->getDuplexClient<FbossHighresClientAsyncClient>();
-    auto eventBase = callback->getEventBase();
-    auto sender = std::make_shared<SampleSender>(std::move(client), killSwitch,
-                                                 eventBase, numCounters);
-
-    // Create the sample producer and send it on its way
-    auto producer = make_unique<SampleProducer>(
-        std::move(samplers), std::move(sender), std::move(killSwitch),
-        eventBase, *req.get(), numCounters);
-    auto wrappedProducer = folly::makeMoveWrapper(std::move(producer));
-    auto veryNice = req->veryNice;
-    std::thread producerThread([wrappedProducer, veryNice]() mutable {
-      if (veryNice) {
-        incNiceValue(20);
-      }
-      (*wrappedProducer)->produce();
-    });
-    producerThread.detach();
-
-    callback->result(true);
-  } else {
-    XLOG(ERR) << "None of the requested counters were valid.";
-    callback->result(false);
   }
 }
 

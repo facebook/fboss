@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include "fboss/agent/HighresCounterUtil.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/StateUpdate.h"
@@ -255,26 +254,6 @@ class SwSwitch : public HwSwitch::Callback {
    *          logging purposes.
    */
   void applyConfig(const std::string& reason, bool reload = false);
-
-  /**
-   * Get a set of high resolution samplers that we can query quickly.
-   *
-   * @return        The number of counters we've added samplers for.
-   * @param[out]    samplers    A vector of high-resolution samplers.  We will
-   *                            append new samplers to this list.
-   * @param[in]     counters    The requested counters.  We will try to return a
-   *                            set of samplers that handle all requested
-   *                            counters.
-   *
-   * Note that the set of returned samplers will not include invalid counters
-   * and may not be a 1:1 mapping with the requested counters---some samplers
-   * handle multiple counters
-   *
-   * The mapping between requested counters and returned samplers (as well as
-   * which counters are even valid) is hardware-specific.
-   */
-  int getHighresSamplers(HighresSamplerList* samplers,
-                         const std::set<CounterRequest>& counters);
 
   /*
    * Registers an observer of all state updates. An observer will be notified of

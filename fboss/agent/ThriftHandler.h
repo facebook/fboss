@@ -17,7 +17,6 @@
 #include "common/fb303/cpp/FacebookBase2.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/types.h"
-#include "fboss/agent/HighresCounterSubscriptionHandler.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -169,20 +168,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       apache::thrift::server::TConnectionContext* ctx) override;
 
   /*
-   * Thrift handler for subscriptions to high-resolution counters.  The callback
-   * result is a boolean that designates whether or not any samplers were
-   * found.
-   *
-   * @param[in]    callback    The callback for after we finish processing the
-   *                           request.
-   * @param[in]    req         The subscription request, which specifies the
-   *                           counter names, timeouts, sampling intervals, etc.
-   */
-  void async_tm_subscribeToCounters(
-      ThriftCallback<bool> callback,
-      std::unique_ptr<CounterSubscribeRequest> req) override;
-
-  /*
    * Thrift handler for keepalive messages.  It's a no-op, but prevents the
    * server from hitting an idle timeout while it's still publishing samples.
    *
@@ -322,12 +307,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   int thriftIdleTimeout_;
   std::vector<const TConnectionContext*> brokenClients_;
-
-  // A thread-safe data structure that helps the thrift handler map connection
-  // contexts to high resolution connection information
-  folly::Synchronized<
-      std::unordered_map<const apache::thrift::server::TConnectionContext*,
-                         std::shared_ptr<Signal>>> highresKillSwitches_;
 
   apache::thrift::SSLPolicy sslPolicy_;
 };

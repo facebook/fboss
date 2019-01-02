@@ -10,7 +10,6 @@ include "fboss/agent/if/fboss.thrift"
 include "common/fb303/if/fb303.thrift"
 include "common/network/if/Address.thrift"
 include "fboss/agent/if/optic.thrift"
-include "fboss/agent/if/highres.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 
 typedef binary (cpp2.type = "::folly::fbstring") fbbinary
@@ -613,12 +612,6 @@ service FbossCtrl extends fb303.FacebookService {
   void stopPktCapture(1: string name)
     throws (1: fboss.FbossBaseError error)
   void stopAllPktCaptures()
-    throws (1: fboss.FbossBaseError error)
-
-  /*
-   * Subscribe to a set of high-resolution counters
-   */
-  bool subscribeToCounters(1: highres.CounterSubscribeRequest req)
     throws (1: fboss.FbossBaseError error)
 
   /*

@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
+#include <fstream>
+
 #include <boost/cast.hpp>
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>

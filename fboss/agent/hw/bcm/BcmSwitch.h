@@ -333,20 +333,6 @@ class BcmSwitch : public BcmSwitchIf {
   void updateStats(SwitchStats* switchStats) override;
 
   /*
-   * Get Broadcom-specific samplers.
-   *
-   * @return     The number of requested counters we can handle.
-   * @param[out] samplers         A vector of high-resolution samplers.  We will
-   *                              append new samplers to this list.
-   * @param[in]  namespaceString  A string respresentation of the current
-   *                              counter namespace.
-   * @param[in]  counterSet       The set of requested Broadcom counters.
-   */
-  int getHighresSamplers(HighresSamplerList* samplers,
-                         const std::string& namespaceString,
-                         const std::set<CounterRequest>& counterSet) override;
-
-  /*
    * Wrapper functions to register and unregister a BCM event callbacks.  These
    * just forward the call.
    */

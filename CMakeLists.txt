@@ -56,12 +56,6 @@ add_thrift_cpp2_library(
   common/network/if/Address.thrift
 )
 add_thrift_cpp2_library(
-  highres_cpp2
-  fboss/agent/if/highres.thrift
-  SERVICES
-    FbossHighresClient
-)
-add_thrift_cpp2_library(
   switch_config_cpp2
   fboss/agent/switch_config.thrift
   OPTIONS

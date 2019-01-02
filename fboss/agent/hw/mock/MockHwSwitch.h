@@ -62,11 +62,6 @@ class MockHwSwitch : public HwSwitch {
   std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta) override;
 
   MOCK_METHOD1(updateStats, void(SwitchStats* switchStats));
-  MOCK_METHOD3(
-      getHighresSamplers,
-      int(HighresSamplerList* samplers,
-          const std::string& namespaceString,
-          const std::set<CounterRequest>& counterSet));
   MOCK_METHOD1(fetchL2Table, void(std::vector<L2EntryThrift>* l2Table));
   MOCK_METHOD1(gracefulExit, void(folly::dynamic& switchState));
   MOCK_CONST_METHOD0(toFollyDynamic, folly::dynamic());

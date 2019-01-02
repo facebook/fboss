@@ -828,49 +828,6 @@ void SwSwitch::handlePendingUpdates() {
   }
 }
 
-int SwSwitch::getHighresSamplers(HighresSamplerList* samplers,
-                                 const set<CounterRequest>& counters) {
-  int numCountersAdded = 0;
-
-  // Group the counters by namespace to make it easier to get samplers
-  map<string, set<CounterRequest>> groupedCounters;
-  for (const auto& c : counters) {
-    groupedCounters[c.namespaceName].insert(c);
-  }
-
-  for (const auto& namespaceGroup : groupedCounters) {
-    const auto& namespaceString = namespaceGroup.first;
-    const auto& counterSet = namespaceGroup.second;
-    unique_ptr<HighresSampler> sampler;
-
-    // Check for cross-platform samplers
-    if (namespaceString == DumbCounterSampler::kIdentifier) {
-      sampler = make_unique<DumbCounterSampler>(counterSet);
-    } else if (namespaceString == InterfaceRateSampler::kIdentifier) {
-      sampler = make_unique<InterfaceRateSampler>(counterSet);
-    }
-
-    if (sampler) {
-      if (sampler->numCounters() > 0) {
-        numCountersAdded += sampler->numCounters();
-        samplers->push_back(std::move(sampler));
-      } else {
-        XLOG(WARNING) << "Cannot use " << namespaceString;
-      }
-    } else {
-      // Otherwise, check if the hwSwitch knows which samplers to add
-      auto n = hw_->getHighresSamplers(samplers, namespaceString, counterSet);
-      if (n > 0) {
-        numCountersAdded += n;
-      } else {
-        XLOG(WARNING) << "No counters added for namespace: " << namespaceString;
-      }
-    }
-  }
-
-  return numCountersAdded;
-}
-
 void SwSwitch::setStateInternal(
     std::shared_ptr<SwitchState> newAppliedState,
     std::shared_ptr<SwitchState> newDesiredState) {
