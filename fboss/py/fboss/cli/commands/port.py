@@ -758,8 +758,8 @@ class PortStatusDetailCmd(object):
 class PortDescriptionCmd(cmds.FbossCmd):
     def run(self, ports, show_down=True):
         try:
-            self._client = self._create_agent_client()
-            resp = self._client.getAllPortInfo()
+            with self._create_agent_client() as client:
+                resp = client.getAllPortInfo()
 
         except FbossBaseError as e:
             raise SystemExit('Fboss Error: ' + str(e))

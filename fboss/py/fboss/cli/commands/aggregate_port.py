@@ -90,10 +90,10 @@ class AggregatePortCmd(cmds.FbossCmd):
             print(f"Invalid aggregate port name: {port}")
             return
 
-        self._client = self._create_agent_client()
-        agg_port_table = self._client.getAggregatePortTable()
+        with self._create_agent_client() as client:
+            agg_port_table = client.getAggregatePortTable()
 
-        port_details = self._client.getAllPortInfo()
+            port_details = client.getAllPortInfo()
 
         if not agg_port_table:
             print("No Aggregate Port Entries Found")

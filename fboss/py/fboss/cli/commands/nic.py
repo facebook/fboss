@@ -20,14 +20,13 @@ class NicCmd(cmds.PrintNeighborTableCmd):
     _UNKNOWN_VENDOR_MESSAGE = "Unknown NIC Vendor."
 
     def run(self, detail, verbose):
-        self._client = self._create_agent_client()
+        with self._create_agent_client() as client:
+            # Get the MAC addresses for IPV4.
+            arp_table_detailed = client.getArpTable()
+            # Get the MAC addresses for IPV6.
+            ndp_table_detailed = client.getNdpTable()
 
-        # Get the MAC addresses for IPV4.
-        arp_table_detailed = self._client.getArpTable()
         arp_mac_addresses = [arp_mac.mac for arp_mac in arp_table_detailed]
-
-        # Get the MAC addresses for IPV6.
-        ndp_table_detailed = self._client.getNdpTable()
         ndp_mac_addresses = [ndp_mac.mac for ndp_mac in ndp_table_detailed]
 
         mac_address_set = set(arp_mac_addresses + ndp_mac_addresses)

@@ -59,13 +59,11 @@ class NeighborFlushSubnetCmd(FbossCmd):
     def _flush_entry(self, ip, vlan):
         bin_ip = utils.ip_to_binary(ip)
         vlan_id = vlan
-        client = self._create_agent_client()
-        num_entries = client.flushNeighborEntry(bin_ip, vlan_id)
+        with self._create_agent_client() as client:
+            num_entries = client.flushNeighborEntry(bin_ip, vlan_id)
         print('Flushed {} entries'.format(num_entries))
 
     def run(self, flushType, network, vlan):
-        client = self._create_agent_client()
-
         if (isinstance(network, ipaddress.IPv6Network) and
                 network.prefixlen == 128) or                    \
            (isinstance(network, ipaddress.IPv4Network) and
@@ -73,27 +71,27 @@ class NeighborFlushSubnetCmd(FbossCmd):
             self._flush_entry(str(network.network_address), vlan)
             return
 
-        if flushType == FlushType.arp:
-            table = client.getArpTable()
-        elif flushType == FlushType.ndp:
-            table = client.getNdpTable()
-        else:
-            print("Invaid flushType")
-            exit(1)
+        with self._create_agent_client() as client:
+            if flushType == FlushType.arp:
+                table = client.getArpTable()
+            elif flushType == FlushType.ndp:
+                table = client.getNdpTable()
+            else:
+                print("Invaid flushType")
+                exit(1)
 
-        num_entries = 0
-        for entry in table:
-            if (ipaddress.ip_address(utils.ip_ntop(entry.ip.addr)) in
-                ipaddress.ip_network(network)) and                           \
-                    (vlan is 0 or vlan == entry.vlanID):
-                num_entries += client.flushNeighborEntry(entry.ip, entry.vlanID)
+            num_entries = 0
+            for entry in table:
+                if (ipaddress.ip_address(utils.ip_ntop(entry.ip.addr)) in
+                    ipaddress.ip_network(network)) and                           \
+                        (vlan is 0 or vlan == entry.vlanID):
+                    num_entries += client.flushNeighborEntry(entry.ip,
+                            entry.vlanID)
 
         print('Flushed {} entries'.format(num_entries))
 
 class PrintNeighborTableCmd(FbossCmd):
-    def print_table(self, entries, name, width, client=None):
-        if client is None:
-            client = self._create_agent_client()
+    def print_table(self, entries, name, width, client):
         tmpl = "{:" + str(width) + "} {:18} {:<10}  {:18} {!s:12} {}"
         print(tmpl.format(
             "IP Address", "MAC Address", "Port", "VLAN", "State", "TTL"))
@@ -113,5 +111,5 @@ class PrintNeighborTableCmd(FbossCmd):
 
 class VerbosityCmd(FbossCmd):
     def run(self, verbosity):
-        client = self._create_agent_client()
-        client.setOption('v', verbosity)
+        with self._create_agent_client() as client:
+            client.setOption('v', verbosity)

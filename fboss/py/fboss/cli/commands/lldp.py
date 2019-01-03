@@ -16,9 +16,9 @@ from fboss.cli.commands import commands as cmds
 
 class LldpCmd(cmds.FbossCmd):
     def run(self, lldp_port, verbosity):
-        self._client = self._create_agent_client()
-        resp = self._client.getLldpNeighbors()
-        self._AllPortsInfo = self._client.getAllPortInfo()
+        with self._create_agent_client() as client:
+            resp = client.getLldpNeighbors()
+            self._AllPortsInfo = client.getAllPortInfo()
         if not resp:
             print("No neighbors found")
             return

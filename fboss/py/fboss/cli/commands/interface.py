@@ -32,26 +32,26 @@ class Interface(NamedTuple):
 class InterfaceShowCmd(cmds.FbossCmd):
     ''' Show interface information '''
     def run(self, interfaces):
-        try:
-            self._client = self._create_agent_client()
-            if not interfaces:
-                self._all_interface_info()
-            else:
-                for interface in interfaces:
-                    self._interface_details(interface)
-        except FbossBaseError as e:
-            raise SystemExit('Fboss Error: {}'.format(e))
+        with self._create_agent_client() as client:
+            try:
+                if not interfaces:
+                    self._all_interface_info(client)
+                else:
+                    for interface in interfaces:
+                        self._interface_details(client, interface)
+            except FbossBaseError as e:
+                raise SystemExit('Fboss Error: {}'.format(e))
 
-    def _all_interface_info(self):
-        resp = self._client.getInterfaceList()
+    def _all_interface_info(self, client):
+        resp = client.getInterfaceList()
         if not resp:
             print("No Interfaces Found")
             return
         for entry in resp:
             print(entry)
 
-    def _interface_details(self, interface):
-        resp = self._client.getInterfaceDetail(interface)
+    def _interface_details(self, client, interface):
+        resp = client.getInterfaceDetail(interface)
         if not resp:
             print("No interface details found for interface")
             return
@@ -104,26 +104,26 @@ class InterfaceSummaryCmd(cmds.FbossCmd):
         return None
 
     @retryable(num_tries=3, sleep_time=0.1)
-    def vlan_aggregate_port_map(self) -> Dict:
+    def vlan_aggregate_port_map(self, client) -> Dict:
         ''' fetch aggregate port table and map vlan -> port channel name'''
-        aggregate_port_table = self._client.getAggregatePortTable()
+        aggregate_port_table = client.getAggregatePortTable()
         vlan_aggregate_port_map: Dict = {}
         for aggregate_port in aggregate_port_table:
             agg_port_name = aggregate_port.name
             for member_port in aggregate_port.memberPorts:
-                vlans = self._client.getPortInfo(member_port.memberPortID).vlans
+                vlans = client.getPortInfo(member_port.memberPortID).vlans
                 assert len(vlans) == 1
                 vlan = vlans[0]
                 vlan_aggregate_port_map[vlan] = agg_port_name
         return vlan_aggregate_port_map
 
     @retryable(num_tries=3, sleep_time=0.1)
-    def get_vlan_port_map(self) -> Dict:
+    def get_vlan_port_map(self, agent_client, qsfp_client) -> Dict:
         ''' fetch port info and map vlan -> ports '''
-        all_port_info_map = self._client.getAllPortInfo()
-        port_status_map = self._client.getPortStatus()
+        all_port_info_map = agent_client.getAllPortInfo()
+        port_status_map = agent_client.getPortStatus()
         qsfp_info_map = utils.get_qsfp_info_map(
-            self._qsfp_client, None, continue_on_error=True
+            qsfp_client, None, continue_on_error=True
         )
         vlan_port_map: Dict = {}
         for port in all_port_info_map.values():
@@ -195,39 +195,40 @@ class InterfaceSummaryCmd(cmds.FbossCmd):
 
     def run(self) -> None:
         ''' fetch data and populate interface summary list '''
-        self._client = self._create_agent_client()
-        self._qsfp_client = self._create_qsfp_client()
-        vlan_port_map = self.get_vlan_port_map()
-        vlan_aggregate_port_map = self.vlan_aggregate_port_map()
-        interface_summary: List[Interface] = []
-        for interface in self._client.getAllInterfaces().values():
-            # build the addresses variable for this interface
-            addresses = '\n'.join([
-                self.convert_address(address.ip.addr) +
-                '/' + str(address.prefixLength)
-                for address in interface.address
-            ])
-            # build the ports variable for this interface
-            ports: str = ''
-            if interface.vlanId in vlan_port_map.keys():
-                for root_port in sorted(
-                    vlan_port_map[interface.vlanId].keys(), key=self.sort_key,
-                ):
-                    port_list = vlan_port_map[interface.vlanId][root_port]
-                    ports += ' '.join(port_list) + '\n'
-            vlan = interface.vlanId
-            interface_name = interface.interfaceName
-            mtu = interface.mtu
-            # check if aggregate
-            if vlan in vlan_aggregate_port_map.keys():
-                interface_name = (
-                    f'{interface.interfaceName}\n({vlan_aggregate_port_map[vlan]})'
-                )
-            interface_summary.append(Interface(
-                vlan=vlan,
-                name=interface_name,
-                mtu=mtu,
-                addresses=addresses,
-                ports=ports,
-            ))
-        self.print_table(interface_summary)
+        with self._create_agent_client() as agent_client, \
+                self._create_qsfp_client() as qsfp_client:
+            vlan_port_map = self.get_vlan_port_map(agent_client,
+                    qsfp_client)
+            vlan_aggregate_port_map = self.vlan_aggregate_port_map(agent_client)
+            interface_summary: List[Interface] = []
+            for interface in agent_client.getAllInterfaces().values():
+                # build the addresses variable for this interface
+                addresses = '\n'.join([
+                    self.convert_address(address.ip.addr) +
+                    '/' + str(address.prefixLength)
+                    for address in interface.address
+                ])
+                # build the ports variable for this interface
+                ports: str = ''
+                if interface.vlanId in vlan_port_map.keys():
+                    for root_port in sorted(
+                        vlan_port_map[interface.vlanId].keys(), key=self.sort_key,
+                    ):
+                        port_list = vlan_port_map[interface.vlanId][root_port]
+                        ports += ' '.join(port_list) + '\n'
+                vlan = interface.vlanId
+                interface_name = interface.interfaceName
+                mtu = interface.mtu
+                # check if aggregate
+                if vlan in vlan_aggregate_port_map.keys():
+                    interface_name = (
+                        f'{interface.interfaceName}\n({vlan_aggregate_port_map[vlan]})'
+                    )
+                interface_summary.append(Interface(
+                    vlan=vlan,
+                    name=interface_name,
+                    mtu=mtu,
+                    addresses=addresses,
+                    ports=ports,
+                ))
+            self.print_table(interface_summary)

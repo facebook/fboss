@@ -16,9 +16,11 @@ from neteng.fboss.ttypes import FbossBaseError
 
 class GetConfigCmd(cmds.FbossCmd):
     def run(self, config_type):
-        if config_type == AGENT_KEYWORD:
-            self._client = self._create_agent_client()
-        resp = self._client.getRunningConfig()
+        if config_type != AGENT_KEYWORD:
+            print("No Config Info Found")
+
+        with self._create_agent_client() as client:
+            resp = client.getRunningConfig()
 
         if not resp:
             print("No Config Info Found")
@@ -34,11 +36,11 @@ class ReloadConfigCmd(cmds.FbossCmd):
     but without restarting.
     """
     def run(self):
-        try:
-            self._client = self._create_agent_client()
-            self._client.reloadConfig()
-            print("Config reloaded")
-            return 0
-        except FbossBaseError as e:
-            print('Fboss Error: ' + e)
-            return 2
+        with self._create_agent_client() as client:
+            try:
+                client.reloadConfig()
+                print("Config reloaded")
+                return 0
+            except FbossBaseError as e:
+                print('Fboss Error: ' + e)
+                return 2

@@ -14,9 +14,9 @@ from fboss.cli.utils import utils
 
 class L2TableCmd(cmds.FbossCmd):
     def run(self):
-        self._client = self._create_agent_client()
-        resp = self._client.getL2Table()
-        port_map = self._client.getAllPortInfo()
+        with self._create_agent_client() as client:
+            resp = client.getL2Table()
+            port_map = client.getAllPortInfo()
 
         if not resp:
             print("No L2 Entries Found")

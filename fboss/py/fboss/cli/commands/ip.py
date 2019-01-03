@@ -14,8 +14,8 @@ from fboss.cli.commands import commands as cmds
 
 class IpCmd(cmds.FbossCmd):
     def run(self, interface):
-        self._client = self._create_agent_client()
-        resp = self._client.getInterfaceDetail(interface)
+        with self._create_agent_client() as client:
+            resp = client.getInterfaceDetail(interface)
         if not resp:
             print("No interface details found for interface")
             return
