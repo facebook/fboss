@@ -269,8 +269,8 @@ class PortType(click.ParamType):
     def convert(self, value, param, ctx):
         try:
             if self.port_info_map is None:
-                client = FbossAgentClient(ctx.obj.hostname)
-                self.port_info_map = client.getAllPortInfo()
+                with FbossAgentClient(ctx.obj.hostname) as client:
+                    self.port_info_map = client.getAllPortInfo()
             if value.isdigit():
                 port = self.port_info_map[int(value)]
                 return port.portId
