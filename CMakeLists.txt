@@ -127,7 +127,6 @@ add_thrift_cpp2_library(
     fb303_cpp2
     network_address_cpp2
     optic_cpp2
-    highres_cpp2
     transceiver_cpp2
 )
 add_thrift_cpp2_library(
@@ -250,8 +249,6 @@ add_library(fboss_agent STATIC
     fboss/agent/capture/PktCaptureManager.cpp
     fboss/agent/DHCPv4Handler.cpp
     fboss/agent/DHCPv6Handler.cpp
-    fboss/agent/HighresCounterSubscriptionHandler.cpp
-    fboss/agent/HighresCounterUtil.cpp
     fboss/agent/hw/BufferStatsLogger.cpp
     fboss/agent/hw/bcm/BcmAclRange.cpp
     fboss/agent/hw/bcm/BcmAclTable.cpp
