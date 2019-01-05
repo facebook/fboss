@@ -13,6 +13,7 @@
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/platforms/wedge/FakeWedge40Platform.h"
 #include "fboss/agent/platforms/wedge/GalaxyLCPlatform.h"
 #include "fboss/agent/platforms/wedge/GalaxyFCPlatform.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
@@ -34,6 +35,8 @@ std::unique_ptr<WedgePlatform> chooseWedgePlatform() {
     return std::make_unique<GalaxyLCPlatform>(std::move(productInfo));
   } else if (mode == WedgePlatformMode::GALAXY_FC) {
     return std::make_unique<GalaxyFCPlatform>(std::move(productInfo));
+  } else if (mode == WedgePlatformMode::FAKE_WEDGE40) {
+    return std::make_unique<FakeWedge40Platform>(std::move(productInfo));
   }
 
   // mode is neither of the offical platforms above, consider it as a Facebook

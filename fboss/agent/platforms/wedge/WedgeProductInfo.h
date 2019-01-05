@@ -24,6 +24,7 @@ enum class WedgePlatformMode {
   FAKE_WEDGE,
   MINIPACK,
   YAMP,
+  FAKE_WEDGE40,
 };
 
 class WedgeProductInfo {

@@ -371,6 +371,7 @@ add_library(fboss_agent STATIC
     fboss/agent/platforms/wedge/wedge_agent.cpp
     fboss/agent/platforms/wedge/WedgePlatform.cpp
     fboss/agent/platforms/wedge/Wedge40Platform.cpp
+    fboss/agent/platforms/wedge/FakeWedge40Platform.cpp
     fboss/agent/platforms/wedge/Wedge100Platform.cpp
     fboss/agent/platforms/wedge/GalaxyLCPlatform.cpp
     fboss/agent/platforms/wedge/GalaxyFCPlatform.cpp
