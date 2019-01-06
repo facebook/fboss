@@ -10,19 +10,18 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/bcm/BcmQosMap.h"
 #include "fboss/agent/hw/bcm/types.h"
 
 namespace facebook {
 namespace fboss {
 
-class BcmQosMap;
 class BcmSwitch;
 class QosPolicy;
 
 class BcmQosPolicy {
  public:
   BcmQosPolicy(BcmSwitch* hw, const std::shared_ptr<QosPolicy>& qosPolicy);
-  ~BcmQosPolicy();
 
   void update(
       const std::shared_ptr<QosPolicy>& oldQosPolicy,
