@@ -195,7 +195,6 @@ class L2Cli(object):
 
     def __init__(self):
         self.l2.add_command(self._table, name='table')
-        self.l2.add_command(self._flush, name='flush')
 
     @click.group(cls=AliasedGroup)
     def l2():
@@ -207,15 +206,6 @@ class L2Cli(object):
     def _table(cli_opts):
         ''' Show the L2 table '''
         l2.L2TableCmd(cli_opts).run()
-
-    @click.command()
-    @click.option('-V', '--vlan', type=int, default=0,
-                    help='Only flush the IP from the specified VLAN')
-    @click.argument('ip')
-    @click.pass_obj
-    def _flush(cli_opts, ip, vlan):
-        ''' Flush an ARP entry by [IP]'''
-        cmds.NeighborFlushCmd(cli_opts).run(ip, vlan)
 
 
 class LldpCli(object):
