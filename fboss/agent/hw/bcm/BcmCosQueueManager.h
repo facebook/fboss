@@ -94,8 +94,10 @@ public:
   virtual void program(const std::shared_ptr<PortQueue>& queue) = 0;
 
   struct QueueStatCounters {
-    facebook::stats::MonotonicCounter* aggregated = nullptr;
-    boost::container::flat_map<int, facebook::stats::MonotonicCounter*> queues;
+    std::unique_ptr<facebook::stats::MonotonicCounter> aggregated = nullptr;
+    boost::container::
+        flat_map<int, std::unique_ptr<facebook::stats::MonotonicCounter>>
+            queues;
   };
   const std::map<BcmCosQueueCounterType, QueueStatCounters>&
   getQueueCounters() const {

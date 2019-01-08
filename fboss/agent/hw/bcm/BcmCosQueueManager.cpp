@@ -50,16 +50,17 @@ void BcmCosQueueManager::fillOrReplaceCounter(
       }
       else {
         counters.queues.emplace(
-          queue,
-          new facebook::stats::MonotonicCounter(name, stats::SUM, stats::RATE));
+            queue,
+            std::make_unique<facebook::stats::MonotonicCounter>(
+                name, stats::SUM, stats::RATE));
       }
     }
   }
   if (type.isScopeAggregated()) {
-    counters.aggregated = new facebook::stats::MonotonicCounter(
-      folly::to<std::string>(portName_, ".", type.name),
-      stats::SUM, stats::RATE
-    );
+    counters.aggregated = std::make_unique<facebook::stats::MonotonicCounter>(
+        folly::to<std::string>(portName_, ".", type.name),
+        stats::SUM,
+        stats::RATE);
   }
 }
 
@@ -88,16 +89,20 @@ void BcmCosQueueManager::setupQueueCounters(
 void BcmCosQueueManager::updateQueueStats(
     std::chrono::seconds now,
     HwPortStats* portStats) {
-  for (auto cntr: queueCounters_) {
+  for (const auto& cntr: queueCounters_) {
     if (cntr.first.isScopeQueues()) {
       for (auto& countersItr: cntr.second.queues) {
-        updateQueueStat(countersItr.first, cntr.first, countersItr.second,
-                        now, portStats);
+        updateQueueStat(
+            countersItr.first,
+            cntr.first,
+            countersItr.second.get(),
+            now,
+            portStats);
       }
     }
     if (cntr.first.isScopeAggregated()) {
-      updateQueueAggregatedStat(cntr.first, cntr.second.aggregated,
-                                now, portStats);
+      updateQueueAggregatedStat(
+          cntr.first, cntr.second.aggregated.get(), now, portStats);
     }
   }
 }
