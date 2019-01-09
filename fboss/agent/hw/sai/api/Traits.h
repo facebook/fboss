@@ -54,10 +54,13 @@ struct apiHasMembers : public std::false_type {};
 
 class BridgeTypes;
 class VlanTypes;
+class LagTypes;
 template <>
 struct apiHasMembers<BridgeTypes> : public std::true_type {};
 template <>
 struct apiHasMembers<VlanTypes> : public std::true_type {};
+template <>
+struct apiHasMembers<LagTypes> : public std::true_type {};
 
 /*
  * isDuplicateValueType<T>::value is true if T is a placeholder

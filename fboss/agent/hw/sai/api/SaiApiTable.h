@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/BridgeApi.h"
+#include "fboss/agent/hw/sai/api/LagApi.h"
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
 #include "fboss/agent/hw/sai/api/PortApi.h"
@@ -17,6 +18,7 @@
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 #include "fboss/agent/hw/sai/api/VlanApi.h"
+
 
 #include <memory>
 
@@ -34,6 +36,13 @@ class SaiApiTable {
   }
   const BridgeApi& bridgeApi() const {
     return *bridgeApi_;
+  }
+
+  LagApi& lagApi() {
+    return *lagApi_;
+  }
+  const LagApi& lagApi() const {
+    return *lagApi_;
   }
 
   NextHopApi& nextHopApi() {
@@ -87,6 +96,7 @@ class SaiApiTable {
 
  private:
   std::unique_ptr<BridgeApi> bridgeApi_;
+  std::unique_ptr<LagApi> lagApi_;
   std::unique_ptr<NextHopApi> nextHopApi_;
   std::unique_ptr<NeighborApi> neighborApi_;
   std::unique_ptr<PortApi> portApi_;
@@ -94,6 +104,7 @@ class SaiApiTable {
   std::unique_ptr<SwitchApi> switchApi_;
   std::unique_ptr<VirtualRouterApi> virtualRouterApi_;
   std::unique_ptr<VlanApi> vlanApi_;
+
 };
 
 } // namespace fboss

@@ -56,9 +56,12 @@ class FakeManager {
     return map_;
   }
  private:
-  size_t count_ = 0;
+  static size_t count_;
   std::unordered_map<K, T> map_;
 };
+
+template <typename K, typename T>
+size_t FakeManager<K, T>::count_ = 0;
 
 /*
  * For managing fakes of sai apis that have a membership concept, we will
