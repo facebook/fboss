@@ -79,12 +79,12 @@ struct NeighborTypes {
 
 class NeighborApi : public SaiApi<NeighborApi, NeighborTypes> {
  public:
-    NeighborApi() {
-    sai_status_t res = sai_api_query(SAI_API_NEIGHBOR, (void**)&api_);
-    if (res != SAI_STATUS_SUCCESS) {
-      throw SaiApiError(res);
-    }
+  NeighborApi() {
+    sai_status_t status =
+        sai_api_query(SAI_API_NEIGHBOR, reinterpret_cast<void**>(&api_));
+    saiCheckError(status, "Failed to query for neighbor api");
   }
+
  private:
   sai_status_t _create(
       const NeighborTypes::NeighborEntry& neighborEntry,

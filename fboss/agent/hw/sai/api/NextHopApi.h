@@ -48,11 +48,9 @@ struct NextHopTypes {
 class NextHopApi : public SaiApi<NextHopApi, NextHopTypes> {
  public:
   NextHopApi() {
-    sai_status_t res =
+    sai_status_t status =
         sai_api_query(SAI_API_NEXT_HOP, reinterpret_cast<void**>(&api_));
-    if (res != SAI_STATUS_SUCCESS) {
-      throw SaiApiError(res);
-    }
+    saiCheckError(status, "Failed to query for next hop api");
   }
  private:
   sai_status_t _create(

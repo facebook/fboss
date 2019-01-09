@@ -58,11 +58,9 @@ class RouterInterfaceApi
     : public SaiApi<RouterInterfaceApi, RouterInterfaceTypes> {
  public:
   RouterInterfaceApi() {
-    sai_status_t res = sai_api_query(
+    sai_status_t status = sai_api_query(
         SAI_API_ROUTER_INTERFACE, reinterpret_cast<void**>(&api_));
-    if (res != SAI_STATUS_SUCCESS) {
-      throw SaiApiError(res);
-    }
+    saiCheckError(status, "Failed to query for router interface api");
   }
   RouterInterfaceApi(const RouterInterfaceApi& other) = delete;
 

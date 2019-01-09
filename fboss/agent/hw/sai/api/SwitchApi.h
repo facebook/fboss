@@ -58,11 +58,9 @@ struct SwitchTypes {
 class SwitchApi : public SaiApi<SwitchApi, SwitchTypes> {
  public:
     SwitchApi() {
-      sai_status_t res =
+      sai_status_t status =
           sai_api_query(SAI_API_SWITCH, reinterpret_cast<void**>(&api_));
-      if (res != SAI_STATUS_SUCCESS) {
-        throw SaiApiError(res);
-    }
+    saiCheckError(status, "Failed to query for switch api");
   }
  private:
   sai_status_t _create(

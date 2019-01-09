@@ -41,10 +41,9 @@ struct VirtualRouterTypes {
 class VirtualRouterApi : public SaiApi<VirtualRouterApi, VirtualRouterTypes> {
  public:
   VirtualRouterApi() {
-    sai_status_t res = sai_api_query(SAI_API_VIRTUAL_ROUTER, (void**)&api_);
-    if (res != SAI_STATUS_SUCCESS) {
-      throw SaiApiError(res);
-    }
+    sai_status_t status =
+        sai_api_query(SAI_API_VIRTUAL_ROUTER, reinterpret_cast<void**>(&api_));
+    saiCheckError(status, "Failed to query for virtual router api");
   }
   VirtualRouterApi(const VirtualRouterApi& other) = delete;
  private:

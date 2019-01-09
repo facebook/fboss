@@ -77,10 +77,9 @@ struct RouteTypes {
 class RouteApi : public SaiApi<RouteApi, RouteTypes> {
  public:
     RouteApi() {
-    sai_status_t res = sai_api_query(SAI_API_ROUTE, (void**)&api_);
-    if (res != SAI_STATUS_SUCCESS) {
-      throw SaiApiError(res);
-    }
+      sai_status_t status =
+          sai_api_query(SAI_API_ROUTE, reinterpret_cast<void**>(&api_));
+      saiCheckError(status, "Failed to query for route api");
   }
  private:
   sai_status_t _create(

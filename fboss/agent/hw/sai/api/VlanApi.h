@@ -56,10 +56,9 @@ struct VlanTypes {
 class VlanApi : public SaiApi<VlanApi, VlanTypes> {
  public:
   VlanApi() {
-    sai_status_t res = sai_api_query(SAI_API_VLAN, (void**)&api_);
-    if (res != SAI_STATUS_SUCCESS) {
-      throw SaiApiError(res);
-    }
+    sai_status_t status =
+        sai_api_query(SAI_API_VLAN, reinterpret_cast<void**>(&api_));
+    saiCheckError(status, "Failed to query for bridge api");
   }
   VlanApi(const VlanApi& other) = delete;
  private:

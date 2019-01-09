@@ -61,10 +61,9 @@ struct BridgeTypes {
 class BridgeApi : public SaiApi<BridgeApi, BridgeTypes> {
  public:
   BridgeApi() {
-    sai_status_t res = sai_api_query(SAI_API_BRIDGE, (void**)&api_);
-    if (res != SAI_STATUS_SUCCESS) {
-      throw SaiApiError(res);
-    }
+    sai_status_t status =
+        sai_api_query(SAI_API_BRIDGE, reinterpret_cast<void**>(&api_));
+    saiCheckError(status, "Failed to query for bridge api");
   }
  private:
   sai_status_t _create(

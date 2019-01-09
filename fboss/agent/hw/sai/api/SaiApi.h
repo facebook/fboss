@@ -10,7 +10,8 @@
 #pragma once
 
 #include "SaiAttribute.h"
-#include "Traits.h"
+#include "fboss/agent/hw/sai/api/Traits.h"
+#include "fboss/agent/hw/sai/api/SaiApiError.h"
 
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>
@@ -28,20 +29,6 @@ extern "C" {
 
 namespace facebook {
 namespace fboss {
-
-// TODO(borisb): make this use FbossError, and consume more arguments
-// to provide a more useful message
-class SaiApiError : public std::runtime_error {
- public:
-  SaiApiError(sai_status_t status)
-      : std::runtime_error(folly::sformat("SaiApiError: {}", status)),
-        status_(status) {}
-  sai_status_t getSaiStatus() const {
-    return status_;
-  }
- private:
-  sai_status_t status_;
-};
 
 template <typename ApiT, typename ApiTypes>
 class SaiApi {
@@ -70,14 +57,12 @@ class SaiApi {
         "AttributeType must come from correct ApiTypes");
     sai_object_id_t id;
     std::vector<sai_attribute_t> saiAttributeTs = getSaiAttributeTs(attributes);
-    sai_status_t res = impl()._create(
+    sai_status_t status = impl()._create(
         &id,
         saiAttributeTs.data(),
         saiAttributeTs.size(),
         std::forward<Args>(args)...);
-    if (res != SAI_STATUS_SUCCESS) {
-      throw SaiApiError(res);
-    }
+    saiCheckError(status, "Failed to create sai entity");
     return id;
   }
 
@@ -90,30 +75,27 @@ class SaiApi {
         std::is_same<T, ApiTypes>::value,
         "AttributeType or EntryTypes must come from correct ApiTypes");
     std::vector<sai_attribute_t> saiAttributeTs = getSaiAttributeTs(attributes);
-    sai_status_t res = impl()._create(
+    sai_status_t status = impl()._create(
         entry,
         saiAttributeTs.data(),
         saiAttributeTs.size(),
         std::forward<Args>(args)...);
-    if (res != SAI_STATUS_SUCCESS) {
-      throw SaiApiError(res);
-    }
+    saiCheckError(status, "Failed to create sai entity");
   }
 
   template <typename T>
-  sai_status_t remove(const T& t) {
-    return impl()._remove(t);
+  void remove(const T& t) {
+    sai_status_t status = impl()._remove(t);
+    saiCheckError(status, "Failed to remove sai entity");
   }
 
   template <typename AttrT, typename... Args>
   typename std::remove_reference<AttrT>::type::ValueType getAttribute(
       AttrT&& attr,
       Args&&... args) {
-    sai_status_t res =
+    sai_status_t status =
         impl()._getAttr(attr.saiAttr(), std::forward<Args>(args)...);
-    if (res != SAI_STATUS_SUCCESS) {
-      throw SaiApiError(res);
-    }
+    saiCheckError(status, "Failed to get sai attribute");
     return attr.value();
   }
 
@@ -126,17 +108,17 @@ class SaiApi {
   typename std::remove_reference<AttrT>::type::ValueType getMemberAttribute(
       AttrT&& attr,
       Args&&... args) {
-    sai_status_t res =
+    sai_status_t status =
         impl()._getMemberAttr(attr.saiAttr(), std::forward<Args>(args)...);
-    if (res != SAI_STATUS_SUCCESS) {
-      throw SaiApiError(res);
-    }
+    saiCheckError(status, "Failed to get sai member attribute");
     return attr.value();
   }
 
   template <typename AttrT, typename... Args>
-  sai_status_t setMemberAttribute(const AttrT& attr, Args&&... args) {
-    return impl()._setMemberAttr(attr.saiAttr(), std::forward<Args>(args)...);
+  void setMemberAttribute(const AttrT& attr, Args&&... args) {
+    sai_status_t status =
+        impl()._setMemberAttr(attr.saiAttr(), std::forward<Args>(args)...);
+    saiCheckError(status, "Failed to set sai attribute");
   }
 
   template <typename T = ApiTypes, typename... Args>
@@ -146,19 +128,18 @@ class SaiApi {
       Args&&... args) {
     std::vector<sai_attribute_t> saiAttributeTs = getSaiAttributeTs(attributes);
     sai_object_id_t id;
-    sai_status_t res = impl()._createMember(
+    sai_status_t status = impl()._createMember(
         &id,
         saiAttributeTs.data(),
         saiAttributeTs.size(),
         std::forward<Args>(args)...);
-    if (res != SAI_STATUS_SUCCESS) {
-      throw SaiApiError(res);
-    }
+    saiCheckError(status, "Failed to create sai member entity");
     return id;
   }
 
-  sai_status_t removeMember(sai_object_id_t id) {
-    return impl()._removeMember(id);
+  void removeMember(sai_object_id_t id) {
+    sai_status_t status = impl()._removeMember(id);
+    saiCheckError(status, "Failed to remove sai member entity");
   }
 
  private:
