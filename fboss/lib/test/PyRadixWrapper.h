@@ -2,8 +2,12 @@
 
 #pragma once
 
+// HACK: This is referencing a python library's (py-radix)
+// C code implementation
 extern "C" {
 #include "radix.h"
+  void* PyMem_Malloc(size_t n) { return malloc(n); }
+  void PyMem_Free(void *p) { free(p); }
 }
 #include <memory>
 #include <folly/IPAddressV4.h>
