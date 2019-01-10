@@ -107,7 +107,7 @@ public:
   getQueueCounterTypes() const = 0;
 
   void setupQueueCounters(
-      const folly::Optional<QueueConfig>& queueConfig = nullptr);
+    const folly::Optional<QueueConfig>& queueConfig = folly::none);
   void updateQueueStats(std::chrono::seconds now,
                         HwPortStats* portStats = nullptr);
 
@@ -167,11 +167,11 @@ private:
   void fillOrReplaceCounter(
       const BcmCosQueueCounterType& type,
       QueueStatCounters& counters,
-      const folly::Optional<QueueConfig>& queueConfig = nullptr);
+      const folly::Optional<QueueConfig>& queueConfig = folly::none);
 
   void setupQueueCounter(
       const BcmCosQueueCounterType& type,
-      const folly::Optional<QueueConfig>& queueConfig = nullptr);
+      const folly::Optional<QueueConfig>& queueConfig = folly::none);
 
   void updateQueueAggregatedStat(const BcmCosQueueCounterType& type,
                                  facebook::stats::MonotonicCounter* counter,
