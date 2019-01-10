@@ -15,13 +15,13 @@
 namespace facebook {
 namespace fboss {
 
-class BcmSwitch;
+class BcmSwitchIf;
 class BcmQosMapEntry;
 
 class BcmQosMap {
  public:
-  explicit BcmQosMap(BcmSwitch* hw);
-  BcmQosMap(BcmSwitch* hw, int flags, int mapHandle);
+  explicit BcmQosMap(const BcmSwitchIf* hw);
+  BcmQosMap(const BcmSwitchIf* hw, int flags, int mapHandle);
   ~BcmQosMap();
 
   void clear();
@@ -40,7 +40,7 @@ class BcmQosMap {
   BcmQosMap(const BcmQosMap&) = delete;
   BcmQosMap& operator=(const BcmQosMap&) = delete;
 
-  BcmSwitch* hw_;
+  const BcmSwitchIf* hw_;
   int flags_;
   int handle_;
   std::map<QosRule, std::unique_ptr<BcmQosMapEntry>> entries_;

@@ -48,6 +48,7 @@ struct SwitchStateFields {
     fn(interfaces.get());
     fn(routeTables.get());
     fn(acls.get());
+    fn(qosPolicies.get());
     fn(loadBalancers.get());
     fn(fibs.get());
   }

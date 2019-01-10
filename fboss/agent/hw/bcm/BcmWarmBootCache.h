@@ -28,9 +28,11 @@ extern "C" {
 #include <string>
 #include <vector>
 #include "fboss/agent/hw/bcm/BcmMirror.h"
+#include "fboss/agent/hw/bcm/BcmQosMap.h"
 #include "fboss/agent/hw/bcm/BcmRtag7Module.h"
-#include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/hw/bcm/types.h"
+#include "fboss/agent/state/QosPolicy.h"
+#include "fboss/agent/state/RouteTypes.h"
 
 #include "fboss/agent/hw/bcm/BcmAclRange.h"
 
@@ -40,6 +42,7 @@ class BcmSwitch;
 class BcmSwitchIf;
 class InterfaceMap;
 class LoadBalancerMap;
+class QosPolicyMap;
 class RouteTableMap;
 class SwitchState;
 class Vlan;
@@ -101,6 +104,7 @@ class BcmWarmBootCache {
    */
   std::shared_ptr<AclMap> reconstructAclMap() const;
   std::shared_ptr<LoadBalancerMap> reconstructLoadBalancers() const;
+  std::shared_ptr<QosPolicyMap> reconstructQosPolicies() const;
 
   /*
    * Reconstruct mirror table
@@ -161,6 +165,8 @@ class BcmWarmBootCache {
       flat_map<std::pair<opennsl_gport_t, MirrorDirection>, BcmMirrorHandle>;
   using MirroredAcl2Handle = boost::container::
       flat_map<std::pair<BcmAclEntryHandle, MirrorDirection>, BcmMirrorHandle>;
+  using IngressQosMaps = std::vector<std::unique_ptr<BcmQosMap>>;
+  using IngressQosMapsItr = IngressQosMaps::iterator;
 
   struct AclStatStatus {
     BcmAclStatHandle stat{-1};
@@ -206,6 +212,7 @@ class BcmWarmBootCache {
                         BcmAclStatHandle aclStatHandle);
 
   void populateRtag7State();
+  void populateIngressQosMaps();
 
   void populateMirrors();
   void populateMirroredPorts();
@@ -439,6 +446,12 @@ class BcmWarmBootCache {
   AclEntry2AclStatItr findAclStat(const BcmAclEntryHandle& bcmAclEntry);
   void programmed(AclEntry2AclStatItr itr);
 
+  IngressQosMapsItr findIngressQosMap(const std::set<QosRule>& qosRules);
+  IngressQosMapsItr ingressQosMaps_end() {
+    return ingressQosMaps_.end();
+  }
+  void programmed(IngressQosMapsItr itr);
+
   /*
    * owner is done programming its entries remove any entries
    * from hw that had owner as their only remaining owner
@@ -547,6 +560,9 @@ class BcmWarmBootCache {
 
   // acl stats
   AclEntry2AclStat aclEntry2AclStat_;
+
+  // QoS maps
+  IngressQosMaps ingressQosMaps_;
 
   std::unique_ptr<SwitchState> dumpedSwSwitchState_;
   MirrorEgressPath2Handle mirrorEgressPath2Handle_;

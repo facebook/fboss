@@ -50,4 +50,5 @@ void BcmWarmBootCache::stopUnclaimedAclMirroring(
     MirrorDirection /*direction*/,
     BcmMirrorHandle /*mirror*/) {}
 void BcmWarmBootCache::removeUnclaimedMirror(BcmMirrorHandle /*mirror*/) {}
+void BcmWarmBootCache::populateIngressQosMaps() {}
 }} // facebook::fboss

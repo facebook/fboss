@@ -212,6 +212,10 @@ BcmWarmBootCache::reconstructAclMap() const {
   return dumpedSwSwitchState_->getAcls();
 }
 
+std::shared_ptr<QosPolicyMap> BcmWarmBootCache::reconstructQosPolicies() const {
+  return dumpedSwSwitchState_->getQosPolicies();
+}
+
 std::shared_ptr<LoadBalancerMap> BcmWarmBootCache::reconstructLoadBalancers()
     const {
   return dumpedSwSwitchState_->getLoadBalancers();
@@ -471,6 +475,7 @@ void BcmWarmBootCache::populate(folly::Optional<folly::dynamic> warmBootState) {
   populateRtag7State();
   populateMirrors();
   populateMirroredPorts();
+  populateIngressQosMaps();
 }
 
 bool BcmWarmBootCache::fillVlanPortInfo(Vlan* vlan) {
@@ -801,6 +806,7 @@ void BcmWarmBootCache::clear() {
 
   /* remove unclaimed mirrors and mirrored ports/acls, if any */
   removeUnclaimedMirrors();
+  ingressQosMaps_.clear();
 }
 
 void BcmWarmBootCache::populateRtag7State() {
@@ -979,4 +985,18 @@ void BcmWarmBootCache::reconstructPortMirrors(
   }
 }
 
+BcmWarmBootCache::IngressQosMapsItr BcmWarmBootCache::findIngressQosMap(
+    const std::set<QosRule>& qosRules) {
+  return std::find_if(
+      ingressQosMaps_.begin(),
+      ingressQosMaps_.end(),
+      [&](const std::unique_ptr<BcmQosMap>& qosMap) -> bool {
+        return qosMap->rulesMatch(qosRules);
+      });
+}
+
+void BcmWarmBootCache::programmed(IngressQosMapsItr itr) {
+  XLOG(DBG1) << "Programmed QosMap, removing from warm boot cache.";
+  ingressQosMaps_.erase(itr);
+}
 }}

@@ -15,8 +15,8 @@ namespace fboss {
 
 class BcmQosMapEntry {};
 
-BcmQosMap::BcmQosMap(BcmSwitch* hw) : hw_(hw), flags_(0) {}
-BcmQosMap::BcmQosMap(BcmSwitch* hw, int flags, int mapHandle)
+BcmQosMap::BcmQosMap(const BcmSwitchIf* hw) : hw_(hw), flags_(0) {}
+BcmQosMap::BcmQosMap(const BcmSwitchIf* hw, int flags, int mapHandle)
     : hw_(hw), flags_(flags), handle_(mapHandle) {}
 BcmQosMap::~BcmQosMap() {}
 void BcmQosMap::addRule(const QosRule& /*qosRule*/) {}

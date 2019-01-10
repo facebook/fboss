@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/bcm/BcmQosMap.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/state/QosPolicy.h"
 
 namespace facebook {
@@ -18,10 +19,17 @@ namespace fboss {
 
 BcmQosPolicy::BcmQosPolicy(
     BcmSwitch* hw,
-    const std::shared_ptr<QosPolicy>& qosPolicy)
-    : qosMap_(std::make_unique<BcmQosMap>(hw)) {
-  for (const auto& qosRule : qosPolicy->getRules()) {
-    qosMap_->addRule(qosRule);
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  auto warmBootCache = hw->getWarmBootCache();
+  auto qosMapItr = warmBootCache->findIngressQosMap(qosPolicy->getRules());
+  if (qosMapItr != warmBootCache->ingressQosMaps_end()) {
+    qosMap_ = std::move(*qosMapItr);
+    warmBootCache->programmed(qosMapItr);
+  } else {
+    qosMap_ = std::make_unique<BcmQosMap>(hw);
+    for (const auto& qosRule : qosPolicy->getRules()) {
+      qosMap_->addRule(qosRule);
+    }
   }
 }
 
