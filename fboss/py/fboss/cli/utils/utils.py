@@ -55,7 +55,7 @@ def port_sort_fn(port):
 
 
 def port_name_sort_fn(port_name):
-    m = re.match('([a-z][a-z][a-z])(\d+)/(\d+)/(\d)', port_name)
+    m = re.match(r'([a-z][a-z][a-z])(\d+)/(\d+)/(\d)', port_name)
     if not m:
         return '', 0, 0, 0
     return m.group(1), int(m.group(2)), int(m.group(3)), int(m.group(4))
