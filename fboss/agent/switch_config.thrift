@@ -424,7 +424,7 @@ struct TrafficPolicyConfig {
   // Order of entries determines priority of acls when applied
   1: list<MatchToAction> matchToAction = []
   2: optional string defaultQosPolicy
-  //TODO(adrs): add 'map<portID, string>' to override the default config
+  3: optional map<i32, string> portIdToQosPolicy
 }
 
 struct CPUTrafficPolicyConfig {

@@ -704,10 +704,20 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
   }
   bool mirrorsUnChanged = (oldIngressMirror == newIngressMirror) &&
       (oldEgressMirror == newEgressMirror);
+
   auto newQosPolicy = folly::Optional<std::string>();
-  if (cfg_->__isset.dataPlaneTrafficPolicy &&
-      cfg_->dataPlaneTrafficPolicy.__isset.defaultQosPolicy) {
-    newQosPolicy = cfg_->dataPlaneTrafficPolicy.defaultQosPolicy;
+  if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy_ref()) {
+    if (auto defaultQosPolicy =
+            dataPlaneTrafficPolicy->defaultQosPolicy_ref()) {
+      newQosPolicy = *defaultQosPolicy;
+    }
+    if (auto portIdToQosPolicy =
+            dataPlaneTrafficPolicy->portIdToQosPolicy_ref()) {
+      auto qosPolicyItr = portIdToQosPolicy->find(portConf->logicalID);
+      if (qosPolicyItr != portIdToQosPolicy->end()) {
+        newQosPolicy = qosPolicyItr->second;
+      }
+    }
   }
 
   if (portConf->state == orig->getAdminState() &&

@@ -226,23 +226,48 @@ TEST(QosPolicy, PortDefaultQosPolicy) {
 
   config.ports.resize(2);
   config.ports[0].logicalID = 1;
-  config.ports[0].name = "port1";
+  config.ports[0].name_ref() = "port1";
   config.ports[1].logicalID = 2;
-  config.ports[1].name = "port2";
+  config.ports[1].name_ref() = "port2";
   config.qosPolicies.resize(1);
   config.qosPolicies[0].name = "qp1";
   config.qosPolicies[0].rules = dscpRules({{0, {44, 45, 46}}});
   cfg::TrafficPolicyConfig trafficPolicy;
-  config.__isset.dataPlaneTrafficPolicy = true;
-  trafficPolicy.defaultQosPolicy = "qp1";
-  trafficPolicy.__isset.defaultQosPolicy = true;
-  config.dataPlaneTrafficPolicy = trafficPolicy;
+  trafficPolicy.defaultQosPolicy_ref() = "qp1";
+  config.dataPlaneTrafficPolicy_ref() = trafficPolicy;
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   for (auto& portId : {1, 2}) {
     auto port = stateV1->getPort(PortID(portId));
     ASSERT_EQ("qp1", port->getQosPolicy().value());
   }
+}
+
+TEST(QosPolicy, PortQosPolicyOverride) {
+  cfg::SwitchConfig config;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  stateV0->registerPort(PortID(1), "port1");
+  stateV0->registerPort(PortID(2), "port2");
+
+  config.ports.resize(2);
+  config.ports[0].logicalID = 1;
+  config.ports[0].name_ref() = "port1";
+  config.ports[1].logicalID = 2;
+  config.ports[1].name_ref() = "port2";
+  config.qosPolicies.resize(2);
+  config.qosPolicies[0].name = "qp1";
+  config.qosPolicies[0].rules = dscpRules({{0, {46}}});
+  config.qosPolicies[1].name = "qp2";
+  config.qosPolicies[1].rules = dscpRules({{1, {46}}});
+  cfg::TrafficPolicyConfig trafficPolicy;
+  trafficPolicy.defaultQosPolicy_ref() = "qp1";
+  trafficPolicy.portIdToQosPolicy_ref() = {{1, "qp2"}};
+  config.dataPlaneTrafficPolicy_ref() = trafficPolicy;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_EQ("qp2", stateV1->getPort(PortID(1))->getQosPolicy().value());
+  ASSERT_EQ("qp1", stateV1->getPort(PortID(2))->getQosPolicy().value());
 }
 
 TEST(QosPolicy, QosPolicyDelta) {
