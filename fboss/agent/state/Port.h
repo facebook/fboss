@@ -157,6 +157,10 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
     writableFields()->vlans.swap(vlans);
   }
 
+  void addVlan(VlanID id, bool tagged) {
+    writableFields()->vlans.emplace(std::make_pair(id, VlanInfo(tagged)));
+  }
+
   const QueueConfig& getPortQueues() {
     return getFields()->queues;
   }

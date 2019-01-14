@@ -393,6 +393,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
   warmBootState->resetLoadBalancers(warmBootCache_->reconstructLoadBalancers());
   warmBootState->resetMirrors(warmBootCache_->reconstructMirrors());
   warmBootCache_->reconstructPortMirrors(&warmBootState);
+  warmBootCache_->reconstructPortVlans(&warmBootState);
   return warmBootState;
 }
 

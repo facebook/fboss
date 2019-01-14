@@ -49,6 +49,7 @@ class Vlan;
 struct MirrorTunnel;
 class VlanMap;
 class MirrorMap;
+class PortMap;
 
 class BcmWarmBootCache {
  public:
@@ -110,6 +111,11 @@ class BcmWarmBootCache {
    * Reconstruct mirror table
    */
   std::shared_ptr<MirrorMap> reconstructMirrors() const;
+
+  /*
+   * Reconstruct port vlan membership
+   */
+  void reconstructPortVlans(std::shared_ptr<SwitchState>* state) const;
 
   void reconstructPortMirrors(std::shared_ptr<SwitchState>* state);
 

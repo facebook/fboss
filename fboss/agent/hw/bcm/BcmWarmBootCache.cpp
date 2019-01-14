@@ -103,6 +103,17 @@ shared_ptr<InterfaceMap> BcmWarmBootCache::reconstructInterfaceMap() const {
   return intfMap;
 }
 
+void BcmWarmBootCache::reconstructPortVlans(
+  std::shared_ptr<SwitchState>* state) const {
+  for (auto port : *dumpedSwSwitchState_->getPorts()) {
+    auto newPort = (*state)->getPorts()->getPort(port->getID());
+    for (auto vlanMember : port->getVlans()) {
+      VlanID vlanID(vlanMember.first);
+      newPort->addVlan(vlanID, vlanMember.second.tagged);
+    }
+  }
+}
+
 shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
   std::shared_ptr<VlanMap> dumpedVlans = dumpedSwSwitchState_->getVlans();
   auto vlans = make_shared<VlanMap>();
