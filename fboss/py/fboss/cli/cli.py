@@ -30,8 +30,10 @@ from fboss.cli.commands import ndp
 from fboss.cli.commands import nic
 from fboss.cli.commands import port
 from fboss.cli.commands import route
+from fboss.cli.commands import agent
 from fboss.cli.commands.commands import FlushType
 from fboss.cli.utils.utils import AGENT_KEYWORD
+from fboss.cli.utils.utils import KEYWORD_CONFIG_SHOW, KEYWORD_CONFIG_RELOAD
 from thrift.Thrift import TApplicationException
 from thrift.transport.TTransport import TTransportException
 from neteng.fboss.ttypes import FbossBaseError
@@ -491,6 +493,43 @@ class VerbosityCli(object):
         cmds.VerbosityCmd(cli_opt).run(verbosity)
 
 
+class AgentConfig(object):
+    ''' Agent config sub-commands '''
+
+    def __init__(self):
+        self.config.add_command(self._show, name='show')
+        self.config.add_command(self._reload, name='reload')
+
+    @click.group(cls=AliasedGroup)  # noqa: B902
+    def config():
+        ''' Agent config commands'''
+        pass
+
+    @click.command()
+    @click.pass_obj
+    def _show(cli_opts):  # noqa: B902
+        ''' Show running config '''
+        agent.AgentConfigCmd(cli_opts).run(KEYWORD_CONFIG_SHOW)
+
+    @click.command()
+    @click.pass_obj
+    def _reload(cli_opts):  # noqa: B902
+        ''' Reload agent configuration file '''
+        agent.AgentConfigCmd(cli_opts).run(KEYWORD_CONFIG_RELOAD)
+
+
+class AgentCli(object):
+    ''' Agent sub-commands '''
+
+    def __init__(self):
+        self.agent.add_command(AgentConfig().config)
+
+    @click.group(cls=AliasedGroup)  # noqa: B902
+    def agent():
+        ''' agent commands '''
+        pass
+
+
 # -- Main Command Group -- #
 @click.group(cls=AliasedGroup)
 @click.option('--hostname', '-H', default='::1',
@@ -525,6 +564,7 @@ def add_modules(main_func):
     main_func.add_command(ReloadConfigCli().reloadconfig)
     main_func.add_command(RouteCli().route)
     main_func.add_command(VerbosityCli().set)
+    main_func.add_command(AgentCli().agent)
 
 if __name__ == '__main__':
 

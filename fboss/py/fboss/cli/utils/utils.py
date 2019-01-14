@@ -22,6 +22,11 @@ COOP_KEYWORD = 'coop'
 SDK_KEYWORD = 'sdk'
 SSL_KEYWORD = 'ssl'
 
+KEYWORD_CONFIG = 'config'
+
+KEYWORD_CONFIG_SHOW = 'show'
+KEYWORD_CONFIG_RELOAD = 'reload'
+
 
 def get_colors() -> Tuple[str, str, str]:
     if sys.stdout.isatty():
