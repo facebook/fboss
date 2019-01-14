@@ -19,7 +19,6 @@ import ipaddress
 
 from fboss.cli.commands import arp
 from fboss.cli.commands import aggregate_port
-from fboss.cli.commands import config
 from fboss.cli.commands import commands as cmds
 from fboss.cli.commands import interface
 from fboss.cli.commands import info
@@ -151,7 +150,8 @@ class GetConfigCli(object):
     @click.pass_obj
     def _agent(cli_opts):
         ''' Show controller running config '''
-        config.GetConfigCmd(cli_opts).run(AGENT_KEYWORD)
+        raise Exception(''' D13645809 reorganized commands:
+            fboss config agent => fboss agent config show ''')
 
 
 class IpCli(object):
@@ -391,7 +391,8 @@ class ReloadConfigCli(object):
     @click.pass_obj
     def reloadconfig(cli_opts):
         ''' Reload agent configuration file  '''
-        config.ReloadConfigCmd(cli_opts).run()
+        raise Exception(''' D13645809 reorganized commands:
+            fboss reloadconfig => fboss agent config reload ''')
 
 
 class RouteCli(object):
