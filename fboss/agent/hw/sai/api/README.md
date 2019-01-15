@@ -115,11 +115,14 @@ attrs[0].value.u32 = 25000;
 attrs[1].id = SAI_PORT_ATTR_LANE_LIST;
 attrs[1].value.u32list.count = 1;
 *attrs[1].value.u32list.list = 0;
-port_api->create_port(&port_id, switch_id, 2, attrs);
+status = port_api->create_port(&port_id, switch_id, 2, attrs);
+if (status != SAI_STATUS_SUCCESS) {
+  exit(status);
+}
 
 sai_attribute_t admin_state_attr;
 admin_state_attr.id = SAI_PORT_ATTR_ADMIN_STATE;
-status = port_api->get_port_attribute(port_id, 1, admin_state_attr);
+status = port_api->get_port_attribute(port_id, 1, &admin_state_attr);
 if (status != SAI_STATUS_SUCCESS) {
   exit(status);
 }
@@ -127,7 +130,7 @@ bool admin_state = admin_state_attr.value.booldata;
 
 admin_state_attr.id = SAI_PORT_ATTR_ADMIN_STATE;
 admin_state_attr.booldata = true;
-status = port_api->set_port_attribute(port_id, 1, admin_state_attr);
+status = port_api->set_port_attribute(port_id, 1, &admin_state_attr);
 if (status != SAI_STATUS_SUCCESS) {
   exit(status);
 }
@@ -165,7 +168,7 @@ if (status != SAI_STATUS_SUCCESS) {
 // Likewise, assume ip2, sz2, and rif_id2 are the appropriate ip, rif for the
 // second next hop
 attrs[1].value.ipaddr.addr_family = SAI_IP_ADDR_FAMILY_IPV4;
-attrs[1].value.ipaddr.addr.ip4 = 1; // 32 bit int representation for 0.0.0.1
+attrs[1].value.ipaddr.addr.ip4 = htonl(1); // 32 bit int representation for 0.0.0.1
 attrs[2].value.oid = rif_id2;
 status = next_hop_api->create_next_hop(&next_hop_id2, switch_id, 3, attrs);
 if (status != SAI_STATUS_SUCCESS) {
@@ -176,7 +179,7 @@ sai_attribute_t next_hop_group_type_attr;
 next_hop_group_type_attr.id = SAI_NEXT_HOP_GROUP_ATTR_TYPE;
 next_hop_group_type.attr.value.s32 = SAI_NEXT_HOP_GROUP_TYPE_ECMP;
 status = next_hop_group_api->create_next_hop_group(
-  &next_hop_group_id, switch_id, 1, next_hop_group_type_attr);
+  &next_hop_group_id, switch_id, 1, &next_hop_group_type_attr);
 if (status != SAI_STATUS_SUCCESS) {
   exit(status);
 }
@@ -215,7 +218,7 @@ sai_neighbor_entry_t neighbor_entry;
 neighbor_entry.switch_id = switch_id;
 neighbor_entry.rif_id = rif_id;
 neighbor_entry.ip_address.addr_family = SAI_IP_ADDR_FAMILY_IPV4;
-neighbor_entry.ip_address.addr.ip4 = 1; // 0.0.0.1
+neighbor_entry.ip_address.addr.ip4 = htonl(1); // 0.0.0.1
 sai_attribute_t dst_mac_attr;
 dst_mac_attr.id = SAI_NEIGHBOR_ATTR_DST_MAC;
 // fill in dst_mac_attr.value.mac with data representing the mac;
@@ -223,6 +226,47 @@ status = neighbor_api->create_neighbor(neighbor_entry, 1, &dst_mac_attr);
 if (status != SAI_STATUS_SUCCESS) {
   exit(status);
 }
+```
+
+## Code Samples
+In this section, we will re-write the three examples from the raw SAI examples
+above using the library to demonstrate how it can be of help. The library
+constructs are further explained in the "Design" section that follows.
+
+Create and modify a port:
+```c++
+sai_object_id_t switchId = 0;
+SaiPortApi portApi;
+std::vector<uint32_t> lanes{0};
+auto portId = portApi.create({lanes, 25000}, switchId); // create a port
+bool adminState = portApi.getAttribute(
+  PortTypes::Attributes::AdminState(), portId); // get its admin state
+PortTypes::Attributes::AdminState adminStateAttribute{true};
+portApi.setAttribute(adminStateAttribute, portId); // set admin state to true
+```
+
+Create and populate a next hop group:
+```c++
+sai_object_id_t switchId = 0;
+SaiNextHopApi nextHopApi;
+SaiNextHopGroupApi nextHopGroupApi;
+auto nextHopId1 = nextHopApi.create(
+  {SAI_NEXT_HOP_TYPE_IP, rifId1, folly::IPAddress("0.0.0.0")}, switchId);
+auto nextHopId2 = nextHopApi.create(
+  {SAI_NEXT_HOP_TYPE_IP, rifId2, folly::IPAddress("0.0.0.1")}, switchId);
+auto nextHopGroupId = nextHopGroupApi.create(
+  {SAI_NEXT_HOP_GROUP_TYPE_ECMP}, switchId);
+nextHopGroupApi.createMember({nextHopGroupId, nextHopId1}, switchId);
+nextHopGroupApi.createMember({nextHopGroupId, nextHopId2}, switchId);
+```
+
+Create a neighbor:
+```c++
+sai_object_id_t switchId = 0;
+sai_object_id_t rifId; // from elsewhere
+SaiNeighborApi neighborApi;
+NeighborTypes::EntryType entry(switchId, rifId, folly::IPAddress("0.0.0.1"));
+neighborApi.create(entry, {folly::MacAddress("00:00:00:00:00:01")}, switchId);
 ```
 
 ## Design
@@ -351,42 +395,3 @@ which allows us to shorten the above code for convenience:
 auto nextHopId = nextHopApi.create({SAI_NEXT_HOP_GROUP_TYPE_ECMP}, switch_id);
 ```
 
-## Code Samples
-In this section, we will re-write the three examples form the raw SAI examples
-above using the library to demonstrate how it can be of help.
-
-Create and modify a port:
-```c++
-sai_object_id_t switchId = 0;
-SaiPortApi portApi;
-std::vector<uint32_t> lanes{0};
-auto portId = portApi.create({lanes, 25000}, switchId); // create a port
-bool adminState = portApi.getAttribute(
-  PortTypes::Attributes::AdminState(), portId); // get its admin state
-PortTypes::Attributes::AdminState adminStateAttribute{true};
-portApi.setAttribute(adminStateAttribute, portId); // set admin state to true
-```
-
-Create and populate a next hop group:
-```c++
-sai_object_id_t switchId = 0;
-SaiNextHopApi nextHopApi;
-SaiNextHopGroupApi nextHopGroupApi;
-auto nextHopId1 = nextHopApi.create(
-  {SAI_NEXT_HOP_TYPE_IP, rifId1, folly::IPAddress("0.0.0.0")}, switchId);
-auto nextHopId2 = nextHopApi.create(
-  {SAI_NEXT_HOP_TYPE_IP, rifId2, folly::IPAddress("0.0.0.1")}, switchId);
-auto nextHopGroupId = nextHopGroupApi.create(
-  {SAI_NEXT_HOP_GROUP_TYPE_ECMP}, switchId);
-nextHopGroupApi.createMember({nextHopGroupId, nextHopId1}, switchId);
-nextHopGroupApi.createMember({nextHopGroupId, nextHopId2}, switchId);
-```
-
-Create a neighbor:
-```c++
-sai_object_id_t switchId = 0;
-sai_object_id_t rifId; // from elsewhere
-SaiNeighborApi neighborApi;
-NeighborTypes::EntryType entry(switchId, rifId, folly::IPAddress("0.0.0.1"));
-neighborApi.create(entry, {folly::MacAddress("00:00:00:00:00:01")}, switchId);
-```
