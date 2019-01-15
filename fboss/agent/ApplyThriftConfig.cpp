@@ -1345,9 +1345,6 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (config->__isset.ttl) {
       newAcl->setTtl(AclTtl(config->ttl.value, config->ttl.mask));
   }
-  if (config->__isset.dstIpLocal) {
-      newAcl->setDstIpLocal(config->get_dstIpLocal());
-  }
   return newAcl;
 }
 

@@ -205,7 +205,6 @@ struct AclEntryFields {
   folly::Optional<cfg::IpType> ipType{folly::none};
   folly::Optional<AclTtl> ttl{folly::none};
   folly::Optional<folly::MacAddress> dstMac{folly::none};
-  folly::Optional<bool> dstIpLocal{folly::none};
 
   cfg::AclActionType actionType{cfg::AclActionType::PERMIT};
   folly::Optional<MatchAction> aclAction{folly::none};
@@ -254,8 +253,7 @@ class AclEntry :
            getFields()->dscp == acl.getDscp() &&
            getFields()->dstMac == acl.getDstMac() &&
            getFields()->ipType == acl.getIpType() &&
-           getFields()->ttl == acl.getTtl() &&
-           getFields()->dstIpLocal == acl.getDstIpLocal();
+           getFields()->ttl == acl.getTtl();
   }
 
   int getPriority() const {
@@ -408,14 +406,6 @@ class AclEntry :
 
   void setDstMac(const folly::MacAddress& dstMac) {
     writableFields()->dstMac = dstMac;
-  }
-
-  folly::Optional<bool> getDstIpLocal() const {
-    return getFields()->dstIpLocal;
-  }
-
-  void setDstIpLocal(const bool isLocalIP) {
-    writableFields()->dstIpLocal = isLocalIP;
   }
 
  private:

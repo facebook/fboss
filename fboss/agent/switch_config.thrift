@@ -273,14 +273,6 @@ struct AclEntry {
   /* IP type (IPv4, IPv6, ARP, MPLS... */
   21: optional IpType ipType
 
-  /*
-   * If set and true, match the set of destination IP addresses that the
-   * HwSwitch has marked as LOCAL (e.g., local Interface addresses).
-   * If set and false, match all the destination IP addresses that are not
-   * marked LOCAL
-   */
-  22: optional bool dstIpLocal
-
 }
 
 /*

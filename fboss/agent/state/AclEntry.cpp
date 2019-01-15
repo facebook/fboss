@@ -41,7 +41,6 @@ constexpr auto kTtl = "ttl";
 constexpr auto kTtlValue = "value";
 constexpr auto kTtlMask = "mask";
 constexpr auto kAclAction = "aclAction";
-constexpr auto kDstIpLocal = "dstIpLocal";
 }
 
 namespace facebook { namespace fboss {
@@ -114,9 +113,6 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   }
   if (ttl) {
     aclEntry[kTtl] = ttl.value().toFollyDynamic();
-  }
-  if (dstIpLocal) {
-    aclEntry[kDstIpLocal] = static_cast<bool>(dstIpLocal.value());
   }
   auto itr_action = cfg::_AclActionType_VALUES_TO_NAMES.find(actionType);
   CHECK(itr_action != cfg::_AclActionType_VALUES_TO_NAMES.end());
@@ -193,9 +189,6 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   }
   if (aclEntryJson.find(kIpType) != aclEntryJson.items().end()) {
     aclEntry.ipType = static_cast<cfg::IpType>(aclEntryJson[kIpType].asInt());
-  }
-  if (aclEntryJson.find(kDstIpLocal) != aclEntryJson.items().end()) {
-    aclEntry.dstIpLocal = static_cast<bool>(aclEntryJson[kDstIpLocal].asBool());
   }
   if (aclEntryJson.find(kTtl) != aclEntryJson.items().end()) {
     aclEntry.ttl = AclTtl::fromFollyDynamic(aclEntryJson[kTtl]);
