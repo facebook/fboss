@@ -6,13 +6,10 @@ from __future__ import unicode_literals
 
 import argparse
 import binascii
-import contextlib
 import re
 import sys
 
-from fboss.agent import FbossCtrl
-from thrift.transport import TSocket
-from thrift.protocol import TBinaryProtocol
+from fboss.thrift_clients import FbossAgentClient
 
 
 def load_hex_file(path):
@@ -35,24 +32,13 @@ def load_raw_file(path):
         return f.read()
 
 
-@contextlib.contextmanager
-def get_client(host, port, timeout=5.0):
-    socket = TSocket.TSocket(host, port)
-    protocol = TBinaryProtocol.TBinaryProtocol(socket)
-    transport = protocol.trans
-    transport.open()
-    client = FbossCtrl.Client(protocol)
-    yield client
-    transport.close()
-
-
-def main():
+def main(get_client):
     ap = argparse.ArgumentParser()
     ap.add_argument('-s', '--sim-host',
                     default='::1',
                     help='The thrift host the simulator is listening on')
     ap.add_argument('-p', '--sim-port',
-                    type=int, default=5909,
+                    type=int, default=None,
                     help='The thrift port the simulator is listening on')
     ap.add_argument('-P', '--port',
                     type=int, default=1,
@@ -80,5 +66,5 @@ def main():
 
 
 if __name__ == '__main__':
-    rc = main()
+    rc = main(FbossAgentClient)
     sys.exit(rc)
