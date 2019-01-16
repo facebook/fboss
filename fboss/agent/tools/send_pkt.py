@@ -32,7 +32,7 @@ def load_raw_file(path):
         return f.read()
 
 
-def main(get_client):
+def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('-s', '--sim-host',
                     default='::1',
@@ -61,10 +61,10 @@ def main(get_client):
     else:
         ap.error('must specify either --hex-file or --raw-file')
 
-    with get_client(args.sim_host, args.sim_port) as client:
+    with FbossAgentClient(args.sim_host, args.sim_port) as client:
         client.sendPkt(args.port, args.vlan, data)
 
 
 if __name__ == '__main__':
-    rc = main(FbossAgentClient)
+    rc = main()
     sys.exit(rc)
