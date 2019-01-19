@@ -470,6 +470,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   // Create bcmStatUpdater to cache the stat ids
   bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(this, isAlpmEnabled());
 
+  XLOG(INFO) <<" Is ALPM enabled: " << isAlpmEnabled();
   // Additional switch configuration
   auto state = make_shared<SwitchState>();
   opennsl_port_config_t pcfg;
