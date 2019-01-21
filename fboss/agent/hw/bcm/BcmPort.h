@@ -144,8 +144,8 @@ class BcmPort {
   void prepareForGracefulExit();
 
   /**
-   * return true iff the port has Forward Error Correction (FEC)
-   * enabled
+   * return true if the port has Forward Error Correction (FEC)
+   * enabled or if CL91 FEC is enabled
    */
   bool isFECEnabled();
 
@@ -190,6 +190,8 @@ class BcmPort {
     std::chrono::seconds timeRetrieved_;
   };
 
+  uint32_t getCL91FECStatus() const;
+  bool isCL91FECApplicable() const;
   // no copy or assignment
   BcmPort(BcmPort const &) = delete;
   BcmPort& operator=(BcmPort const &) = delete;

@@ -381,7 +381,7 @@ class BcmSwitch : public BcmSwitchIf {
   bool getAndClearNeighborHit(RouterID vrf,
                               folly::IPAddress& ip) override;
 
-  bool getPortFECConfig(PortID port) const override;
+  bool getPortFECEnabled(PortID port) const override;
 
   bool isValidStateUpdate(const StateDelta& delta) const override;
 

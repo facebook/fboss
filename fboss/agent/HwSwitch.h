@@ -228,7 +228,7 @@ class HwSwitch {
    * ports as first class citizens (hwPort?) and then move all of these
    * functions into the hwPort abstraction
    */
-   virtual bool getPortFECConfig(PortID /* unused */ ) const { return false; }
+   virtual bool getPortFECEnabled(PortID /* unused */ ) const { return false; }
 
   /*
    * Returns true if the arp/ndp entry for the passed in ip/intf has been hit

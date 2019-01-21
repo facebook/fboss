@@ -151,7 +151,7 @@ namespace facebook { namespace fboss {
  * cfg::PortSpeed
  */
 
-bool BcmSwitch::getPortFECConfig(PortID port) const {
+bool BcmSwitch::getPortFECEnabled(PortID port) const {
   // relies on getBcmPort() to throw an if not found
   return getPortTable()->getBcmPort(port)->isFECEnabled();
 }
