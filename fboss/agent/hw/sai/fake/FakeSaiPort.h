@@ -40,21 +40,12 @@ namespace fboss {
 
 class FakePort {
  public:
-  FakePort(bool adminState = true, sai_uint32_t speed = 100000)
-      : adminState(adminState), speed(speed) {
-  }
+  FakePort(std::vector<uint32_t> lanes, sai_uint32_t speed)
+      : lanes(lanes), speed(speed) {}
   sai_object_id_t id;
-  // lanes ids are in a different space from sai port ids
-  // for now, we can just treat them as 1:1 but we can improve
-  // the support in the future as we support configuring different
-  // break-out modes. At that point, FakeSaiPort will model some
-  // underlying ids for lanes and not rely on the "sai id"
-  uint32_t lane_id{0};
   bool adminState{false};
+  std::vector<uint32_t> lanes;
   uint32_t speed{0};
-  std::vector<uint32_t> lanes() const {
-    return {lane_id};
-  }
 };
 
 using FakePortManager = FakeManager<sai_object_id_t, FakePort>;

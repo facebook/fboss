@@ -11,6 +11,7 @@
 #include "FakeSaiPort.h"
 
 #include <folly/logging/xlog.h>
+#include <folly/Optional.h>
 
 using facebook::fboss::FakeSai;
 using facebook::fboss::FakePort;
@@ -21,14 +22,35 @@ sai_status_t create_port_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  *port_id = fs->pm.create();
-  fs->pm.get(*port_id).lane_id = *port_id;
+  folly::Optional<bool> adminState;
+  std::vector<uint32_t> lanes;
+  folly::Optional<sai_uint32_t> speed;
   for (int i = 0; i < attr_count; ++i) {
-    sai_status_t res = set_port_attribute_fn(*port_id, &attr_list[i]);
-    if (res != SAI_STATUS_SUCCESS) {
-      fs->pm.remove(*port_id);
-      return res;
+    switch(attr_list[i].id) {
+      case SAI_PORT_ATTR_ADMIN_STATE:
+        adminState = attr_list[i].value.booldata;
+        break;
+      case SAI_PORT_ATTR_HW_LANE_LIST:
+        {
+          for (int j = 0; j < attr_list[i].value.u32list.count; ++j) {
+            lanes.push_back(attr_list[i].value.u32list.list[j]);
+          }
+        }
+        break;
+      case SAI_PORT_ATTR_SPEED:
+        speed = attr_list[i].value.u32;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
     }
+  }
+  if (lanes.empty() || !speed) {
+      return SAI_STATUS_INVALID_PARAMETER;
+  }
+  *port_id = fs->pm.create(lanes, speed.value());
+  if (adminState) {
+    auto& port = fs->pm.get(*port_id);
+    port.adminState = adminState.value();
   }
   return SAI_STATUS_SUCCESS;
 }
@@ -53,6 +75,16 @@ sai_status_t set_port_attribute_fn(
       port.adminState = attr->value.booldata;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_PORT_ATTR_HW_LANE_LIST:
+      {
+        auto& lanes = port.lanes;
+        lanes.clear();
+        for (int j = 0; j < attr->value.u32list.count; ++j) {
+          lanes.push_back(attr->value.u32list.list[j]);
+        }
+      }
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_PORT_ATTR_SPEED:
       port.speed = attr->value.u32;
       res = SAI_STATUS_SUCCESS;
@@ -70,17 +102,16 @@ sai_status_t get_port_attribute_fn(
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
   auto port = fs->pm.get(port_id);
-  auto lanes = port.lanes();
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
         attr[i].value.booldata = port.adminState;
         break;
       case SAI_PORT_ATTR_HW_LANE_LIST:
-        for (int j = 0; j < lanes.size(); ++j) {
-          attr[i].value.u32list.list[j] = lanes[j];
+        for (int j = 0; j < port.lanes.size(); ++j) {
+          attr[i].value.u32list.list[j] = port.lanes[j];
         }
-        attr[i].value.u32list.count = lanes.size();
+        attr[i].value.u32list.count = port.lanes.size();
         break;
       case SAI_PORT_ATTR_SPEED:
         attr[i].value.u32 = port.speed;

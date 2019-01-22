@@ -26,18 +26,25 @@ class PortApiTest : public ::testing::Test {
     portApi = std::make_unique<PortApi>();
   }
 
-  sai_object_id_t createPort(uint32_t speed, bool adminState) const {
-    PortTypes::AttributeType asa =
+  sai_object_id_t createPort(
+      uint32_t speed,
+      const std::vector<uint32_t>& lanes,
+      bool adminState) const {
+    PortTypes::AttributeType adminStateAttribute =
         PortTypes::Attributes::AdminState(adminState);
-    PortTypes::AttributeType sa = PortTypes::Attributes::Speed(speed);
-    return portApi->create({asa, sa}, 0);
+    PortTypes::AttributeType hwLaneListAttribute =
+        PortTypes::Attributes::HwLaneList(lanes);
+    PortTypes::AttributeType speedAttribute =
+        PortTypes::Attributes::Speed(speed);
+    return portApi->create(
+        {adminStateAttribute, hwLaneListAttribute, speedAttribute}, 0);
   }
 
   std::vector<sai_object_id_t> createFourPorts() const {
     std::vector<sai_object_id_t> portIds;
-    portIds.push_back(createPort(100000, true));
-    for (int i = 0; i < 3; ++i) {
-      portIds.push_back(createPort(25000, false));
+    portIds.push_back(createPort(100000, {0, 1, 2, 3}, true));
+    for (uint32_t i = 4; i < 8; ++i) {
+      portIds.push_back(createPort(25000, {i}, false));
     }
     for (const auto& portId : portIds) {
       checkPort(portId);
@@ -46,13 +53,18 @@ class PortApiTest : public ::testing::Test {
   }
 
   void checkPort(sai_object_id_t portId) const {
-    PortTypes::Attributes::AdminState asa;
-    PortTypes::Attributes::Speed sa;
-    auto gotAdminState = portApi->getAttribute(asa, portId);
-    auto gotSpeed = portApi->getAttribute(sa, portId);
+    PortTypes::Attributes::AdminState adminStateAttribute;
+    std::vector<uint32_t> ls;
+    ls.resize(4);
+    PortTypes::Attributes::HwLaneList hwLaneListAttribute(ls);
+    PortTypes::Attributes::Speed speedAttribute;
+    auto gotAdminState = portApi->getAttribute(adminStateAttribute, portId);
+    auto gotSpeed = portApi->getAttribute(speedAttribute, portId);
+    auto lanes = portApi->getAttribute(hwLaneListAttribute, portId);
     EXPECT_EQ(fs->pm.get(portId).adminState, gotAdminState);
     EXPECT_EQ(fs->pm.get(portId).speed, gotSpeed);
     EXPECT_EQ(fs->pm.get(portId).id, portId);
+    EXPECT_EQ(fs->pm.get(portId).lanes, lanes);
   }
 
   std::shared_ptr<FakeSai> fs;
@@ -60,11 +72,17 @@ class PortApiTest : public ::testing::Test {
 };
 
 TEST_F(PortApiTest, onePort) {
-  auto id = createPort(100000, true);
+  auto id = createPort(100000, {42}, true);
   PortTypes::Attributes::AdminState as_blank;
+  std::vector<uint32_t> ls;
+  ls.resize(1);
+  PortTypes::Attributes::HwLaneList l_blank(ls);
   PortTypes::Attributes::Speed s_blank;
   EXPECT_EQ(portApi->getAttribute(as_blank, id), true);
   EXPECT_EQ(portApi->getAttribute(s_blank, id), 100000);
+  auto lanes = portApi->getAttribute(l_blank, id);
+  EXPECT_EQ(lanes.size(), 1);
+  EXPECT_EQ(lanes[0], 42);
 }
 
 TEST_F(PortApiTest, fourPorts) {
@@ -100,17 +118,17 @@ TEST_F(PortApiTest, setPortAttributes) {
 TEST_F(PortApiTest, removePort) {
   {
     // basic remove
-    auto portId = createPort(25000, true);
+    auto portId = createPort(25000, {42}, true);
     portApi->remove(portId);
   }
   {
     // remove a const portId
-    const auto portId = createPort(25000, true);
+    const auto portId = createPort(25000, {42}, true);
     portApi->remove(portId);
   }
   {
     // remove rvalue id
-    portApi->remove(createPort(25000, true));
+    portApi->remove(createPort(25000, {42}, true));
   }
   {
     // remove in "canonical" for-loop

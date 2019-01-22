@@ -32,18 +32,18 @@ class SwitchApiTest : public ::testing::Test {
 TEST_F(SwitchApiTest, getNumPorts) {
   SwitchTypes::Attributes::PortNumber pn;
   EXPECT_EQ(switchApi->getAttribute(pn, switchId), 0);
-  fs->pm.create(FakePort{true, 100000});
-  fs->pm.create(FakePort{false, 25000});
-  fs->pm.create(FakePort{false, 25000});
-  fs->pm.create(FakePort{false, 25000});
+  fs->pm.create(FakePort{{0}, 100000});
+  fs->pm.create(FakePort{{1}, 25000});
+  fs->pm.create(FakePort{{2}, 25000});
+  fs->pm.create(FakePort{{3}, 25000});
   EXPECT_EQ(switchApi->getAttribute(pn, switchId), 4);
 }
 
 TEST_F(SwitchApiTest, testGetPortIds) {
-  fs->pm.create(FakePort{true, 100000});
-  fs->pm.create(FakePort{false, 25000});
-  fs->pm.create(FakePort{false, 25000});
-  fs->pm.create(FakePort{false, 25000});
+  fs->pm.create(FakePort{{0}, 100000});
+  fs->pm.create(FakePort{{1}, 25000});
+  fs->pm.create(FakePort{{2}, 25000});
+  fs->pm.create(FakePort{{3}, 25000});
   SwitchTypes::Attributes::PortNumber pn;
   auto numPorts =
       switchApi->getAttribute(SwitchTypes::Attributes::PortNumber(), switchId);

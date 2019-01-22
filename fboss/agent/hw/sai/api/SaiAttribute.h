@@ -222,7 +222,7 @@ void _fill(const SaiListT& src, std::vector<T>& dst) {
       std::is_same<decltype(src.list), T*>::value,
       "pointer in sai list doesn't match vector type");
   dst.resize(src.count);
-  std::memcpy(dst.data(), src.list, src.count * sizeof(T));
+  std::copy(src.list, src.list + src.count, std::begin(dst));
 }
 } // namespace
 
