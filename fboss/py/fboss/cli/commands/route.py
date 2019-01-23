@@ -38,7 +38,7 @@ def printRouteDetailEntry(entry):
         for nextHop in clAndNxthops.nextHopAddrs:
             print("    %s" % nexthop_to_str(nextHop))
     print("  Action: %s" % entry.action)
-    if len(entry.nextHops) > 0:
+    if entry.nextHops and len(entry.nextHops) > 0:
         print("  Forwarding via:")
         for nextHop in entry.nextHops:
             w = "x{}".format(nextHop.weight) if nextHop.weight else ""
