@@ -70,4 +70,14 @@ void WedgeI2CBusLock::write(uint8_t address, int offset,
   wedgeI2CBus_->write(address, offset, len, buf);
 }
 
+bool WedgeI2CBusLock::isPresent(unsigned int module) {
+  BusGuard g(this);
+  return wedgeI2CBus_->isPresent(module);
+}
+
+void WedgeI2CBusLock::ensureOutOfReset(unsigned int module) {
+  BusGuard g(this);
+  wedgeI2CBus_->ensureOutOfReset(module);
+}
+
 }} // facebook::fboss

@@ -41,6 +41,12 @@ class TransceiverImpl {
   virtual bool detectTransceiver() = 0;
 
   /*
+   * In an implementation where newly inserted transceivers needs to be cleared
+   * out of reset. This is the function to do it.
+   */
+  virtual void ensureOutOfReset(){};
+
+  /*
    * Returns the name of the port
    */
   virtual folly::StringPiece getName() = 0;

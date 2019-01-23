@@ -39,6 +39,10 @@ bool WedgeQsfp::detectTransceiver() {
   return threadSafeI2CBus_->isPresent(module_ + 1);
 }
 
+void WedgeQsfp::ensureOutOfReset() {
+  threadSafeI2CBus_->ensureOutOfReset(module_ + 1);
+}
+
 int WedgeQsfp::readTransceiver(int dataAddress, int offset,
                                int len, uint8_t* fieldValue) {
   try {

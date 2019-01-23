@@ -95,6 +95,23 @@ void BaseWedgeI2CBus::moduleWrite(unsigned int module, uint8_t address,
   unselectQsfp();
 }
 
+bool BaseWedgeI2CBus::isPresent(unsigned int module) {
+  uint8_t buf = 0;
+  try {
+    moduleRead(module, TransceiverI2CApi::ADDR_QSFP,
+                                 0, sizeof(buf), &buf);
+  } catch (const I2cError& ex) {
+    /*
+     * This can either mean that we failed to open the USB device
+     * because it was already in use, or that the I2C read failed.
+     * At some point we might want to return more a more accurate
+     * status value to higher-level functions.
+     */
+    return false;
+  }
+  return true;
+}
+
 void BaseWedgeI2CBus::selectQsfp(unsigned int port) {
   VLOG(4) << "selecting QSFP " << port;
   CHECK_GT(port, 0);

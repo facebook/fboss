@@ -82,6 +82,9 @@ class WedgeQsfp : public TransceiverImpl {
   /* This function detects if a SFP is present on the particular port */
   bool detectTransceiver() override;
 
+  /* This function unset the reset status of Qsfp */
+  void ensureOutOfReset() override;
+
   /* Returns the name for the port */
   folly::StringPiece getName() override;
 

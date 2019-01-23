@@ -33,6 +33,8 @@ class WedgeI2CBusLock : public TransceiverI2CApi {
   void write(uint8_t i2cAddress, int offset, int len, const uint8_t* buf);
 
   void verifyBus(bool autoReset);
+  bool isPresent(unsigned int module) override;
+  void ensureOutOfReset(unsigned int module) override;
 
  private:
   // Forbidden copy constructor and assignment operator

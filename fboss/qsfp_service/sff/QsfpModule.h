@@ -365,6 +365,12 @@ class QsfpModule : public Transceiver {
   bool shouldRefresh(time_t cooldown) const;
 
   /*
+   * In the case of Minipack using Facebook FPGA, we need to clear the reset
+   * register of QSFP whenever it is newly inserted.
+   */
+  void ensureOutOfReset() const;
+
+  /*
    * Determine set speed of enabled member ports.
    */
   cfg::PortSpeed getPortSpeed() const;

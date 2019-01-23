@@ -45,6 +45,8 @@ class BaseWedgeI2CBus : public TransceiverI2CApi {
   void read(uint8_t i2cAddress, int offset, int len, uint8_t* buf);
   void write(uint8_t i2cAddress, int offset, int len, const uint8_t* buf);
 
+  bool isPresent(unsigned int module) override;
+
  protected:
   enum : unsigned int {
     NO_PORT = 0,

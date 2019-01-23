@@ -737,6 +737,11 @@ bool QsfpModule::shouldRefresh(time_t cooldown) const {
   return std::time(nullptr) - lastRefreshTime_ >= cooldown;
 }
 
+void QsfpModule::ensureOutOfReset() const {
+  qsfpImpl_->ensureOutOfReset();
+  XLOG(DBG3) << "Cleared the reset register of QSFP.";
+}
+
 cfg::PortSpeed QsfpModule::getPortSpeed() const {
   cfg::PortSpeed speed = cfg::PortSpeed::DEFAULT;
   for (const auto& port : ports_) {
@@ -796,6 +801,7 @@ void QsfpModule::refreshLocked() {
 
   if (dirty_) {
     // make sure data is up to date before trying to customize.
+    ensureOutOfReset();
     updateQsfpData(true);
   }
 
