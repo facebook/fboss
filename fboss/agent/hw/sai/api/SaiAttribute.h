@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
+#include "fboss/agent/hw/sai/api/SaiApiError.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
 
 #include <folly/IPAddress.h>
@@ -257,11 +258,11 @@ class SaiAttribute<
     saiAttr_.id = AttrEnum;
   }
 
-  explicit SaiAttribute(const ValueType& value) : SaiAttribute() {
+  /* implicit */ SaiAttribute(const ValueType& value) : SaiAttribute() {
     data() = value;
   }
 
-  explicit SaiAttribute(ValueType&& value) : SaiAttribute() {
+  /* implicit */ SaiAttribute(ValueType&& value) : SaiAttribute() {
     data() = std::move(value);
   }
 
@@ -279,6 +280,18 @@ class SaiAttribute<
 
   const sai_attribute_t* saiAttr() const {
     return &saiAttr_;
+  }
+
+  std::vector<sai_attribute_t> saiAttrV() const {
+    return {saiAttr_};
+  }
+
+  bool operator==(const SaiAttribute& other) const {
+    return other.value() == value();
+  }
+
+  bool operator!=(const SaiAttribute& other) const {
+    return !(*this == other);
   }
 
  private:
@@ -315,7 +328,7 @@ class SaiAttribute<
   /* value_ may be (and in fact almost certainly is) some complicated
    * heap stored type like std::vector, std::string, etc... For this
    * reason, we need to implement a deep copying copy ctor and copy
-   * assignment operator, so that destruction of the implict copy
+   * assignment operator, so that destruction of the implicit copy
    * source doesn't invalidate the copy target.
    *
    * e.g.:
@@ -332,7 +345,15 @@ class SaiAttribute<
     // NOTE: use copy assignment to implement copy ctor
     *this = other;
   }
+  SaiAttribute(SaiAttribute&& other) {
+    *this = std::move(other);
+  }
   SaiAttribute& operator=(const SaiAttribute& other) {
+    saiAttr_.id = other.saiAttr_.id;
+    setValue(other.value());
+    return *this;
+  }
+  SaiAttribute& operator=(SaiAttribute&& other) {
     saiAttr_.id = other.saiAttr_.id;
     setValue(other.value());
     return *this;
@@ -346,10 +367,10 @@ class SaiAttribute<
    * VecAttr a(v);
    * api.getAttribute(a); // uses v as storage for sai get_attribute call
    */
-  explicit SaiAttribute(const ValueType& value) : SaiAttribute() {
+  /* implicit */ SaiAttribute(const ValueType& value) : SaiAttribute() {
     setValue(value);
   }
-  explicit SaiAttribute(ValueType&& value) : SaiAttribute() {
+  /* implicit */ SaiAttribute(ValueType&& value) : SaiAttribute() {
     setValue(std::move(value));
   }
 
@@ -372,6 +393,18 @@ class SaiAttribute<
     return &saiAttr_;
   }
 
+  std::vector<sai_attribute_t> saiAttrV() const {
+    return {saiAttr_};
+  }
+
+  bool operator==(const SaiAttribute& other) const {
+    return other.value() == value();
+  }
+
+  bool operator!=(const SaiAttribute& other) const {
+    return !(*this == other);
+  }
+
  private:
   void setValue(const ValueType& value) {
     value_ = value;
@@ -390,6 +423,5 @@ class SaiAttribute<
   sai_attribute_t saiAttr_;
   ValueType value_;
 };
-
 } // namespace fboss
 } // namespace facebook
