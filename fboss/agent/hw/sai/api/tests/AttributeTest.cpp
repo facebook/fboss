@@ -94,6 +94,8 @@ TEST(Attribute, ctorMac) {
   expect_deadbeef(a.saiAttr()->value.mac);
 }
 
+// MacAttr/mac going out of scope should not affect macs
+// extracted from it with value()
 TEST(Attribute, lifetimeMac) {
   folly::MacAddress mac2;
   {
@@ -105,6 +107,22 @@ TEST(Attribute, lifetimeMac) {
   }
   folly::MacAddress mac("DE:AD:BE:EF:42:42");
   EXPECT_EQ(mac2, mac);
+}
+
+// MacAttr going out of scope should not affect MacAttrs
+// copied from it, nor macs copied into it
+TEST(Attribute, lifetimeMacAttr) {
+  folly::MacAddress mac("DE:AD:BE:EF:42:42");
+  MacAttr a2;
+  {
+    MacAttr a(mac);
+    EXPECT_EQ(a.value(), mac);
+    expect_deadbeef(a.saiAttr()->value.mac);
+    a2 = a;
+  }
+  folly::MacAddress mac2("DE:AD:BE:EF:42:42");
+  EXPECT_EQ(mac2, mac);
+  EXPECT_EQ(mac2, a2.value());
 }
 
 TEST(Attribute, fnReturnMac) {
@@ -126,15 +144,15 @@ TEST(Attribute, constMacAttribute) {
   EXPECT_EQ(getConstAttrValue(a), mac);
 }
 
-using ListAttr = SaiAttribute<
+using VecAttr = SaiAttribute<
     sai_attr_id_t,
     0,
     sai_object_list_t,
     std::vector<sai_object_id_t>>;
-TEST(Attribute, getList) {
+TEST(Attribute, getVec) {
   std::vector<sai_object_id_t> v;
   v.resize(4);
-  ListAttr a(v);
+  VecAttr a(v);
   a.saiAttr()->value.objlist.count = 4;
   for (int i = 0; i < 4; ++i) {
     a.saiAttr()->value.objlist.list[i] = i * i;
@@ -146,23 +164,37 @@ TEST(Attribute, getList) {
   }
 }
 
-TEST(Attribute, ctorList) {
+TEST(Attribute, ctorVec) {
   std::vector<sai_object_id_t> v{0, 1, 4, 9};
-  ListAttr a(v);
+  VecAttr a(v);
   for (int i = 0; i < a.saiAttr()->value.objlist.count; ++i) {
     EXPECT_EQ(a.saiAttr()->value.objlist.list[i], i * i);
   }
 }
 
-TEST(Attribute, lifetimeList) {
+TEST(Attribute, lifetimeVec) {
   std::vector<sai_object_id_t> v2;
   {
     std::vector<sai_object_id_t> v{0, 1, 4, 9};
-    ListAttr a(v);
+    VecAttr a(v);
     v2 = a.value();
   }
   std::vector<sai_object_id_t> v{0, 1, 4, 9};
-  EXPECT_EQ(v, v2);
+  EXPECT_EQ(v2, v);
+}
+
+TEST(Attribute, lifetimeVecAttr) {
+  std::vector<sai_object_id_t> v{0, 1, 4, 9};
+  VecAttr a2(v);
+  VecAttr a3;
+  {
+    VecAttr a(v);
+    a3 = a;
+  }
+  std::vector<sai_object_id_t> v2{0, 1, 4, 9};
+  EXPECT_EQ(v2, v);
+  EXPECT_EQ(v2, a2.value());
+  EXPECT_EQ(v2, a3.value());
 }
 
 using ObjAttr = SaiAttribute<sai_attr_id_t, 0, sai_object_id_t, SaiObjectIdT>;

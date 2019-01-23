@@ -312,14 +312,45 @@ class SaiAttribute<
     saiAttr_.id = AttrEnum;
   }
 
-  explicit SaiAttribute(const ValueType& value) : SaiAttribute() {
-    value_ = value;
-    _fill(value_, data());
+  /* value_ may be (and in fact almost certainly is) some complicated
+   * heap stored type like std::vector, std::string, etc... For this
+   * reason, we need to implement a deep copying copy ctor and copy
+   * assignment operator, so that destruction of the implict copy
+   * source doesn't invalidate the copy target.
+   *
+   * e.g.:
+   * std::vector<uint32_t> v;
+   * v.resize(10);
+   * FooAttribute a2;
+   * {
+   * FooAttribute a1(v);
+   * a2 = a1;
+   * }
+   * a2.value() // uh-oh
+   */
+  SaiAttribute(const SaiAttribute& other) {
+    // NOTE: use copy assignment to implement copy ctor
+    *this = other;
   }
-
+  SaiAttribute& operator=(const SaiAttribute& other) {
+    saiAttr_.id = other.saiAttr_.id;
+    setValue(other.value());
+    return *this;
+  }
+  /*
+   * Constructors that take a value type. Important for cases where
+   * the value type must be initialized before a call to api.getAttribute()
+   * e.g.
+   * std::vector<uint32_t> v;
+   * v.resize(10);
+   * VecAttr a(v);
+   * api.getAttribute(a); // uses v as storage for sai get_attribute call
+   */
+  explicit SaiAttribute(const ValueType& value) : SaiAttribute() {
+    setValue(value);
+  }
   explicit SaiAttribute(ValueType&& value) : SaiAttribute() {
-    value_ = std::move(value);
-    _fill(value_, data());
+    setValue(std::move(value));
   }
 
   const ValueType& value() {
@@ -342,6 +373,14 @@ class SaiAttribute<
   }
 
  private:
+  void setValue(const ValueType& value) {
+    value_ = value;
+    _fill(value_, data());
+  }
+  void setValue(ValueType&& value) {
+    value_ = std::move(value);
+    _fill(value_, data());
+  }
   DataType& data() {
     return _extract<SaiAttribute>(saiAttr_);
   }
