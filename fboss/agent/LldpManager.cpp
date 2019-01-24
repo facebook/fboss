@@ -121,7 +121,10 @@ void LldpManager::handlePacket(
                     cfg::LLDPTag::PORT_DESC,
                     neighbor.getPortDescription()))) {
     sw_->stats()->LldpValidateMisMatch();
-    plport->externalState(PlatformPort::ExternalState::CABLING_ERROR);
+    // TODO(pjakma): Figure out how to mock plport
+    if (plport) {
+      plport->externalState(PlatformPort::ExternalState::CABLING_ERROR);
+    }
     XLOG(DBG4) << "LLDP expected/recvd value mismatch!";
   }
   db_.update(neighbor);
