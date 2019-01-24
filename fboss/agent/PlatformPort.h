@@ -138,10 +138,27 @@ class PlatformPort {
    */
   virtual bool shouldDisableFEC() const = 0;
 
+  enum class ExternalState : uint32_t {
+    NONE = 0,
+    CABLING_ERROR,  // Port has been detected as mis-cabled
+  };
+
+  /**
+   * External conditions, outside of the port itself, may have significance
+   * for the port.  Calling this function allows the port to take any debug
+   * or diagnostic action needed, as appropriate.
+   *
+   * - For CABLING_ERROR, the platform-port sub-class may set the LEDs
+   *   in some way to signal the issue to physically present operators.
+   */
+ virtual void externalState(ExternalState) = 0;
+
  private:
   // Forbidden copy constructor and assignment operator
   PlatformPort(PlatformPort const &) = delete;
   PlatformPort& operator=(PlatformPort const &) = delete;
 };
+
+std::ostream& operator<<(std::ostream&, PlatformPort::ExternalState);
 
 }} // facebook::fboss

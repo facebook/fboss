@@ -360,6 +360,7 @@ add_library(fboss_agent STATIC
     fboss/agent/packet/NDPRouterAdvertisement.cpp
     fboss/agent/packet/PktUtil.cpp
     fboss/agent/Platform.cpp
+    fboss/agent/PlatformPort.cpp
     fboss/agent/platforms/wedge/oss/GalaxyPlatform.cpp
     fboss/agent/platforms/wedge/oss/GalaxyPort.cpp
     fboss/agent/platforms/wedge/oss/WedgePlatform.cpp

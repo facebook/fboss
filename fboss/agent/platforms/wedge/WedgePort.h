@@ -59,6 +59,7 @@ class WedgePort : public BcmPlatformPort {
                         bool discards, bool errors) override;
   void linkSpeedChanged(const cfg::PortSpeed& speed) override;
   void linkStatusChanged(bool up, bool adminUp) override;
+  void externalState(ExternalState) override;
 
   PortStatus toThrift(const std::shared_ptr<Port>& port);
 

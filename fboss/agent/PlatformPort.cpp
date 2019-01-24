@@ -8,17 +8,20 @@
  *
  */
 
-#include "fboss/agent/platforms/wedge/GalaxyPort.h"
-#include <folly/logging/xlog.h>
+#include "fboss/agent/PlatformPort.h"
 
 namespace facebook { namespace fboss {
 
-void GalaxyPort::linkStatusChanged(bool up, bool adminUp) {
-  WedgePort::linkStatusChanged(up, adminUp);
+std::ostream& operator<<(std::ostream& os, PlatformPort::ExternalState lfs) {
+  switch (lfs) {
+    case PlatformPort::ExternalState::NONE:
+      os << "None";
+      break;
+    case PlatformPort::ExternalState::CABLING_ERROR:
+      os << "Cabling Error";
+      break;
+  }
+  return os;
 }
 
-void GalaxyPort::externalState(ExternalState lfs) {
-  XLOG(DBG1) << lfs;
-}
-
-}}
+}} // facebook::fboss

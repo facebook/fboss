@@ -43,6 +43,8 @@ class GalaxyPort : public WedgePort {
 
   void prepareForGracefulExit() override {}
   void linkStatusChanged(bool up, bool adminUp) override;
+  void externalState(ExternalState) override;
+
   bool isBackplanePort() const {
     return !frontPanel_.hasValue();
   }

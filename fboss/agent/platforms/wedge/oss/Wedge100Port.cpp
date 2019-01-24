@@ -9,12 +9,19 @@
  */
 #include "fboss/agent/platforms/wedge/Wedge100Port.h"
 
+#include <folly/logging/xlog.h>
+
 namespace facebook { namespace fboss {
 
 // stubbed out
 void Wedge100Port::linkStatusChanged(bool up, bool adminUp) {
   WedgePort::linkStatusChanged(up, adminUp);
 }
+
+void Wedge100Port::externalState(ExternalState lfs) {
+  XLOG(DBG1) << lfs;
+}
+
 
 void Wedge100Port::prepareForGracefulExit() {}
 
