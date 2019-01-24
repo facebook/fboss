@@ -19,6 +19,7 @@
 #include <boost/container/flat_map.hpp>
 #include <string>
 #include <vector>
+#include <map>
 
 namespace facebook { namespace fboss {
 
@@ -39,6 +40,7 @@ struct PortFields {
   };
 
   using VlanMembership = boost::container::flat_map<VlanID, VlanInfo>;
+  using LLDPValidations = std::map<cfg::LLDPTag, std::string>;
 
   enum class OperState {
     DOWN = 0,
@@ -75,6 +77,7 @@ struct PortFields {
   folly::Optional<std::string> ingressMirror;
   folly::Optional<std::string> egressMirror;
   folly::Optional<std::string> qosPolicy;
+  LLDPValidations expectedLLDPValues;
 };
 
 /*
@@ -85,6 +88,7 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
   using VlanInfo = PortFields::VlanInfo;
   using VlanMembership = PortFields::VlanMembership;
   using OperState = PortFields::OperState;
+  using LLDPValidations = PortFields::LLDPValidations;
 
   Port(PortID id, const std::string& name);
 
@@ -240,6 +244,14 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
 
   void setQosPolicy(folly::Optional<std::string> qosPolicy) {
     writableFields()->qosPolicy.assign(qosPolicy);
+  }
+
+  const LLDPValidations& getLLDPValidations() const {
+    return getFields()->expectedLLDPValues;
+  }
+
+  void setExpectedLLDPValues(LLDPValidations vals) {
+    writableFields()->expectedLLDPValues.swap(vals);
   }
 
   Port* modify(std::shared_ptr<SwitchState>* state);

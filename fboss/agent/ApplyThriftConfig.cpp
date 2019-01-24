@@ -720,6 +720,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
     }
   }
 
+  // Ensure portConf has actually changed, before applying
   if (portConf->state == orig->getAdminState() &&
       VlanID(portConf->ingressVlan) == orig->getIngressVlan() &&
       portConf->speed == orig->getSpeed() &&
@@ -730,11 +731,19 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
       portConf->description == orig->getDescription() &&
       vlans == orig->getVlans() && portConf->fec == orig->getFEC() &&
       queuesUnchanged && portConf->loopbackMode == orig->getLoopbackMode() &&
-      mirrorsUnChanged && newQosPolicy == orig->getQosPolicy()) {
+      mirrorsUnChanged && newQosPolicy == orig->getQosPolicy() &&
+      portConf->expectedLLDPValues == orig->getLLDPValidations()
+      ) {
     return nullptr;
   }
 
   auto newPort = orig->clone();
+
+  auto lldpmap = newPort->getLLDPValidations();
+  for (const auto& tag : portConf->expectedLLDPValues) {
+    lldpmap[tag.first] = tag.second;
+  }
+
   newPort->setAdminState(portConf->state);
   newPort->setIngressVlan(VlanID(portConf->ingressVlan));
   newPort->setVlans(vlans);
@@ -750,6 +759,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
   newPort->setIngressMirror(newIngressMirror);
   newPort->setEgressMirror(newEgressMirror);
   newPort->setQosPolicy(newQosPolicy);
+  newPort->setExpectedLLDPValues(lldpmap);
   return newPort;
 }
 
