@@ -282,6 +282,9 @@ class SwitchStats : public boost::noncopyable {
   void LldpBadPkt() {
     LldpBadPkt_.addValue(1);
   }
+  void LldpValidateMisMatch() {
+    LldpValidateMisMatch_.addValue(1);
+  }
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -468,6 +471,8 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries LldpRecvdPkt_;
   // Number of bad LLDP packets.
   TLTimeseries LldpBadPkt_;
+  // Number of LLDP packets that did not match configured, expected values.
+  TLTimeseries LldpValidateMisMatch_;
 };
 
 }} // facebook::fboss

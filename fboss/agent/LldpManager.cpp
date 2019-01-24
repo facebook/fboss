@@ -20,6 +20,8 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/state/Port.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 using folly::MacAddress;
 using folly::io::RWPrivateCursor;
@@ -27,6 +29,33 @@ using folly::ByteRange;
 using folly::StringPiece;
 using std::shared_ptr;
 
+/**
+ * False if the given LLDP tag has an Expected value configured, and
+ * the value received was not as expected.
+ *
+ * True otherwise.
+ */
+bool
+checkTag(facebook::fboss::PortID id,
+         const facebook::fboss::Port::LLDPValidations& lldpmap,
+         facebook::fboss::cfg::LLDPTag tag, const std::string& val) {
+  auto res = lldpmap.find(tag);
+
+  if (res == lldpmap.end()) {
+    return true;
+  }
+
+  auto expect = res->second;
+  if (expect.compare(val) == 0) {
+    return true;
+  }
+
+  XLOG(WARNING) << "Port " << id
+                << ", LLDP tag " << std::to_string(static_cast<int>(tag))
+                << ", expected: \"" << expect << "\", got: \"" << val
+                << "\"";
+  return false;
+}
 
 namespace facebook { namespace fboss {
 
@@ -73,6 +102,28 @@ void LldpManager::handlePacket(
              << " chassis=" << neighbor.humanReadableChassisId()
              << " port=" << neighbor.humanReadablePortId()
              << " name=" << neighbor.getSystemName();
+
+  auto plport = sw_->getPlatform()->getPlatformPort(pkt->getSrcPort());
+  auto port = sw_->getState()->getPorts()->getPortIf(pkt->getSrcPort());
+  PortID pid = pkt->getSrcPort();
+
+  XLOG(DBG4) << "Port " << pid
+             << ", local name: " << port->getName()
+             << ", local desc: " << port->getDescription()
+             << ", LLDP systemname: " << neighbor.getSystemName()
+             << ", LLDP hrPort: " << neighbor.humanReadablePortId()
+             << ", LLDP dsc: " << neighbor.getPortDescription();
+
+  auto lldpmap = port->getLLDPValidations();
+  if (!(checkTag (pid, lldpmap,
+            cfg::LLDPTag::SYSTEM_NAME, neighbor.getSystemName())
+       && checkTag (pid, lldpmap,
+                    cfg::LLDPTag::PORT_DESC,
+                    neighbor.getPortDescription()))) {
+    sw_->stats()->LldpValidateMisMatch();
+    plport->externalState(PlatformPort::ExternalState::CABLING_ERROR);
+    XLOG(DBG4) << "LLDP expected/recvd value mismatch!";
+  }
   db_.update(neighbor);
 }
 

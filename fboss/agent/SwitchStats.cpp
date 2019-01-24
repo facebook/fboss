@@ -185,7 +185,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           SUM,
           RATE),
       LldpRecvdPkt_(map, kCounterPrefix + "lldp.recvd", SUM, RATE),
-      LldpBadPkt_(map, kCounterPrefix + "lldp.recv_bad", SUM, RATE)
+      LldpBadPkt_(map, kCounterPrefix + "lldp.recv_bad", SUM, RATE),
+      LldpValidateMisMatch_(
+        map,
+        kCounterPrefix + "lldp.validate_mismatch",
+        SUM, RATE)
       {}
 
 PortStats* FOLLY_NULLABLE SwitchStats::port(PortID portID) {
