@@ -441,6 +441,16 @@ enum PortLoopbackMode {
   MAC   = 2
 }
 
+enum LLDPTag {
+  PDU_END     = 0,
+  CHASSIS     = 1,
+  PORT        = 2,
+  TTL         = 3,
+  PORT_DESC   = 4,
+  SYSTEM_NAME = 5,
+  SYSTEM_DESC = 6,
+}
+
 /**
  * Configuration for a single logical port
  */
@@ -534,6 +544,18 @@ struct Port {
    */
   18: optional string ingressMirror
   19: optional string egressMirror
+
+  /**
+   * The LLDP values we expect to receive on this port, to validate
+   * against the actual values received from the neighbour.
+   *
+   * Only LLDP tags with a string representation, or a clear transform to
+   * a string (e.g. uint16_t) can be specified.
+   *
+   * For composite tags, such as Port/Chassis ID, only the string portion
+   * is compared.
+   */
+  20: map<LLDPTag, string> expectedLLDPValues
 }
 
 enum LacpPortRate {
