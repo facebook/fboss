@@ -18,6 +18,7 @@
 #include <folly/Optional.h>
 #include <folly/hash/Hash.h>
 #include <folly/logging/xlog.h>
+#include "common/time/Time.h"
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
@@ -51,6 +52,7 @@
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
+#include "fboss/agent/hw/bcm/BcmBstStatsMgr.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/bcmswitch_constants.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AggregatePort.h"
@@ -108,8 +110,10 @@ DEFINE_int32(linkscan_interval_us, 250000,
              "The Broadcom linkscan interval");
 DEFINE_bool(flexports, false,
             "Load the agent with flexport support enabled");
-DEFINE_bool(enable_fine_grained_buffer_stats, false,
-            "Enable fine grained buffer stats collection by default");
+DEFINE_int32(
+    update_bststats_interval_s,
+    60,
+    "Update BST stats for ODS interval in seconds");
 DEFINE_bool(force_init_fp, true, "Force full field processor initialization");
 
 enum : uint8_t {
@@ -159,7 +163,6 @@ bool BcmSwitch::getPortFECEnabled(PortID port) const {
 BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
     : platform_(platform),
       featuresDesired_(featuresDesired),
-      fineGrainedBufferStatsEnabled_(FLAGS_enable_fine_grained_buffer_stats),
       mmuBufferBytes_(platform->getMMUBufferBytes()),
       mmuCellBytes_(platform->getMMUCellBytes()),
       warmBootCache_(new BcmWarmBootCache(this)),
@@ -169,11 +172,11 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       routeTable_(new BcmRouteTable(this)),
       qosPolicyTable_(new BcmQosPolicyTable(this)),
       aclTable_(new BcmAclTable(this)),
-      bufferStatsLogger_(createBufferStatsLogger()),
       trunkTable_(new BcmTrunkTable(this)),
       sFlowExporterTable_(new BcmSflowExporterTable()),
       rtag7LoadBalancer_(new BcmRtag7LoadBalancer(this)),
-      mirrorTable_(new BcmMirrorTable(this)) {
+      mirrorTable_(new BcmMirrorTable(this)),
+      bstStatsMgr_(new BcmBstStatsMgr(this)) {
   dumpConfigMap(BcmAPI::getHwConfig(), platform->getHwConfigDumpFile());
   exportSdkVersion();
 }
@@ -212,6 +215,7 @@ void BcmSwitch::resetTablesImpl(std::unique_lock<std::mutex>& /*lock*/) {
   coppAclEntries_.clear();
   rtag7LoadBalancer_.reset();
   bcmStatUpdater_.reset();
+  bstStatsMgr_.reset();
   // Reset warmboot cache last in case Bcm object destructors
   // access it during object deletion.
   warmBootCache_.reset();
@@ -255,6 +259,8 @@ void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   mirrorTable_ = std::make_unique<BcmMirrorTable>(this);
   warmBootCache_ = std::make_unique<BcmWarmBootCache>(this);
   warmBootCache_->populate(folly::Optional<folly::dynamic>(warmBootState));
+  bstStatsMgr_ = std::make_unique<BcmBstStatsMgr>(this);
+
   setupToCpuEgress();
 
   // We should always initPorts for portTable_ during init/initTables, Otherwise
@@ -302,9 +308,7 @@ void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
   // SwSwitch, but it does not really matter at the graceful exit time. If
   // this is a concern, this can be moved to the updateEventBase_ of SwSwitch.
   portTable_->preparePortsForGracefulExit();
-  if (isBufferStatCollectionEnabled()) {
-    stopBufferStatCollection();
-  }
+  bstStatsMgr_->stopBufferStatCollection();
 
   std::lock_guard<std::mutex> g(lock_);
 
@@ -555,9 +559,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   setupCos();
   configureRxRateLimiting();
-  if (fineGrainedBufferStatsEnabled_) {
-    startFineGrainedBufferStatLogging();
-  }
+  bstStatsMgr_->startBufferStatCollection();
 
   trunkTable_->setupTrunking();
   setupLinkscan();
@@ -1617,8 +1619,12 @@ void BcmSwitch::updateGlobalStats() {
   portTable_->updatePortStats();
   trunkTable_->updateStats();
   bcmStatUpdater_->updateStats();
-  if (isBufferStatCollectionEnabled()) {
-    exportDeviceBufferUsage();
+
+  auto now = WallClockUtil::NowInSecFast();
+  if ((now - bstStatsUpdateTime_ >= FLAGS_update_bststats_interval_s) ||
+      bstStatsMgr_->isFineGrainedBufferStatLoggingEnabled()) {
+    bstStatsUpdateTime_ = now;
+    bstStatsMgr_->updateStats();
   }
 }
 
@@ -1650,19 +1656,6 @@ void BcmSwitch::exitFatal() const {
   utilCreateDir(platform_->getCrashInfoDir());
   dumpState(platform_->getCrashHwStateFile());
   callback_->exitFatal();
-}
-
-bool BcmSwitch::startFineGrainedBufferStatLogging() {
-  if (startBufferStatCollection()) {
-    fineGrainedBufferStatsEnabled_ = true;
-  }
-  return fineGrainedBufferStatsEnabled_;
-}
-
-bool BcmSwitch::stopFineGrainedBufferStatLogging() {
-  stopBufferStatCollection();
-  fineGrainedBufferStatsEnabled_ = false;
-  return !fineGrainedBufferStatsEnabled_;
 }
 
 void BcmSwitch::processChangedAggregatePort(

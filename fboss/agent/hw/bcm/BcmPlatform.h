@@ -86,8 +86,6 @@ class BcmPlatform : public Platform {
 
   virtual BcmWarmBootHelper* getWarmBootHelper() = 0;
 
-  virtual bool isBufferStatsCollectionSupported() const = 0;
-
   virtual bool isBcmShellSupported() const;
 
   virtual bool isCosSupported() const = 0;

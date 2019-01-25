@@ -10,7 +10,6 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 #include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/BufferStatsLogger.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 
@@ -115,20 +114,6 @@ BcmSwitch::MmuState BcmSwitch::queryMmuState() const {
 opennsl_gport_t BcmSwitch::getCpuGPort() const {
   // API not available in opennsl
   return 0;
-}
-
-bool BcmSwitch::startBufferStatCollection() {
-  XLOG(INFO) << "Buffer stats collection not supported";
-  return bufferStatsEnabled_;
-}
-bool BcmSwitch::stopBufferStatCollection() {
-  XLOG(INFO) << "no op, buffer stats collection is not supported";
-  return !bufferStatsEnabled_;
-}
-void BcmSwitch::exportDeviceBufferUsage() {}
-
-std::unique_ptr<BufferStatsLogger> BcmSwitch::createBufferStatsLogger() {
-  return std::make_unique<GlogBufferStatsLogger>();
 }
 
 void BcmSwitch::printDiagCmd(const std::string& /*cmd*/) const {}

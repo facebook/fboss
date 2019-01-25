@@ -310,6 +310,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmWarmBootCache.cpp
     fboss/agent/hw/bcm/oss/BcmWarmBootHelper.cpp
     fboss/agent/hw/bcm/oss/BcmTableStats.cpp
+    fboss/agent/hw/bcm/oss/BcmBstStatsMgr.cpp
     fboss/agent/hw/bcm/BcmAddressFBConvertors.cpp
     fboss/agent/hw/mock/MockHwSwitch.cpp
     fboss/agent/hw/mock/MockPlatform.cpp

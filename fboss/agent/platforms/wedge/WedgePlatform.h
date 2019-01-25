@@ -70,9 +70,6 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   QsfpCache* getQsfpCache() const {
     return qsfpCache_.get();
   }
-  bool isBufferStatsCollectionSupported() const override {
-    return true;
-  }
 
  protected:
   WedgePlatformMode getMode() const;

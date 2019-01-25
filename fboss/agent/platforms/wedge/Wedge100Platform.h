@@ -29,10 +29,6 @@ class Wedge100Platform : public WedgeTomahawkPlatform {
   void onHwInitialized(SwSwitch* sw) override;
   void onUnitAttach(int unit) override;
 
-  bool isBufferStatsCollectionSupported() const override {
-    return true;
-  }
-
  private:
   Wedge100Platform(Wedge100Platform const &) = delete;
   Wedge100Platform& operator=(Wedge100Platform const &) = delete;

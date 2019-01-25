@@ -63,11 +63,11 @@ class PortStats;
 class QosPolicy;
 class Vlan;
 class VlanMap;
-class BufferStatsLogger;
 class Mirror;
 class BcmMirror;
 class BcmMirrorTable;
 class ControlPlane;
+class BcmBstStatsMgr;
 
 /*
  * Virtual interface to BcmSwitch, primarily for mocking/testing
@@ -210,6 +210,7 @@ class BcmSwitch : public BcmSwitchIf {
   }
   MmuState getMmuState() const { return mmuState_; }
   uint64_t getMMUCellBytes() const { return mmuCellBytes_; }
+  uint64_t getMMUBufferBytes() const { return mmuBufferBytes_; }
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
@@ -268,9 +269,6 @@ class BcmSwitch : public BcmSwitchIf {
   }
   BcmStatUpdater* getStatUpdater() const override {
     return bcmStatUpdater_.get();
-  }
-  BufferStatsLogger* getBufferStatsLogger() {
-    return bufferStatsLogger_.get();
   }
   const BcmTrunkTable* getTrunkTable() const override {
     return trunkTable_.get();
@@ -385,17 +383,6 @@ class BcmSwitch : public BcmSwitchIf {
 
   bool isValidStateUpdate(const StateDelta& delta) const override;
 
-  bool startBufferStatCollection();
-  bool stopBufferStatCollection();
-  bool startFineGrainedBufferStatLogging();
-  bool stopFineGrainedBufferStatLogging();
-  bool isBufferStatCollectionEnabled() const {
-    return bufferStatsEnabled_;
-  }
-  bool isFineGrainedBufferStatLoggingEnabled() const {
-    return fineGrainedBufferStatsEnabled_;
-  }
-
   opennsl_gport_t getCpuGPort() const;
   /*
    * Calls linkStateChanged. Invoked by linkscan thread
@@ -408,6 +395,11 @@ class BcmSwitch : public BcmSwitchIf {
   BootType getBootType() const {
     return bootType_;
   }
+
+  BcmBstStatsMgr *getBstStatsMgr() const {
+    return bstStatsMgr_.get();
+  }
+
   /*
    * Friend tests. We want the abilty to test private methods
    * without comprimising encapsulation for code generally.
@@ -666,11 +658,6 @@ class BcmSwitch : public BcmSwitchIf {
   void setupCos();
 
   /*
-   * Create buffer stats logger
-   */
-  std::unique_ptr<BufferStatsLogger> createBufferStatsLogger();
-
-  /*
    * Setup linkscan unless its explicitly disabled via featuresDesired_ flag
    */
   void setupLinkscan();
@@ -741,8 +728,6 @@ class BcmSwitch : public BcmSwitchIf {
   uint32_t flags_{0};
   uint32_t featuresDesired_{PACKET_RX_DESIRED | LINKSCAN_DESIRED};
   MmuState mmuState_{MmuState::UNKNOWN};
-  bool bufferStatsEnabled_{false};
-  bool fineGrainedBufferStatsEnabled_{false};
   uint64_t mmuBufferBytes_{0};
   uint64_t mmuCellBytes_{0};
   std::unique_ptr<BcmWarmBootCache> warmBootCache_;
@@ -755,12 +740,12 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmAclTable> aclTable_;
   std::unique_ptr<BcmStatUpdater> bcmStatUpdater_;
   std::unique_ptr<BcmCosManager> cosManager_;
-  std::unique_ptr<BufferStatsLogger> bufferStatsLogger_;
   std::unique_ptr<BcmTrunkTable> trunkTable_;
   std::unique_ptr<BcmSflowExporterTable> sFlowExporterTable_;
   std::unique_ptr<BcmControlPlane> controlPlane_;
   std::unique_ptr<BcmRtag7LoadBalancer> rtag7LoadBalancer_;
   std::unique_ptr<BcmMirrorTable> mirrorTable_;
+  std::unique_ptr<BcmBstStatsMgr> bstStatsMgr_;
 
   std::unique_ptr<std::thread> linkScanBottomHalfThread_;
   folly::EventBase linkScanBottomHalfEventBase_;
@@ -775,6 +760,7 @@ class BcmSwitch : public BcmSwitchIf {
   std::vector<std::shared_ptr<AclEntry>> coppAclEntries_;
   std::unique_ptr<BcmUnit> unitObject_;
   BootType bootType_{BootType::UNINITIALIZED};
+  int64_t bstStatsUpdateTime_{0};
 
   /*
    * Lock to synchronize access to all BCM* data structures

@@ -101,6 +101,7 @@ class BcmPort {
     const std::shared_ptr<SwitchState>& state) const;
 
   PortID getPortID() const;
+  std::string getPortName() const { return portName_; }
   LaneSpeeds supportedLaneSpeeds() const;
 
   bool supportsSpeed(cfg::PortSpeed speed);
