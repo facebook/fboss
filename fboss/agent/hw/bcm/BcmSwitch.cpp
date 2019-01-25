@@ -802,12 +802,24 @@ void BcmSwitch::processDisabledPorts(const StateDelta& delta) {
     });
 }
 
+void BcmSwitch::processEnabledPortQueues(const shared_ptr<Port>& port) {
+  auto id = port->getID();
+  auto bcmPort = portTable_->getBcmPort(id);
+
+  for (const auto& queue : port->getPortQueues()) {
+    XLOG(DBG1) << "Enable cos queue settings on port " << port->getID()
+              << " queue: " << static_cast<int>(queue->getID());
+    bcmPort->setupQueue(queue);
+  }
+}
+
 void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
   forEachChanged(delta.getPortsDelta(),
     [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
       if (!oldPort->isEnabled() && newPort->isEnabled()) {
         auto bcmPort = portTable_->getBcmPort(newPort->getID());
         bcmPort->enable(newPort);
+        processEnabledPortQueues(newPort);
       }
     });
 }

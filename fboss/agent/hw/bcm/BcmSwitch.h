@@ -706,6 +706,12 @@ class BcmSwitch : public BcmSwitchIf {
   void processChangedPortQueues(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+
+  /*
+   * Process enabled port queues
+   */
+  void processEnabledPortQueues(const std::shared_ptr<Port>& port);
+
   /*
    * Returns true if a CPU queue name has changed, false otherwise.
    */
