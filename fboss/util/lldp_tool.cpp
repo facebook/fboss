@@ -365,12 +365,13 @@ void BcmProcessor::configurePort(opennsl_port_t port, opennsl_vlan_t vlan) {
     }
 
     if (itr->second.__isset.portSpeedMbps) {
-      auto desiredSpeed = static_cast<int>(itr->second.portSpeedMbps);
+      auto desiredSpeed =
+          static_cast<int>(itr->second.portSpeedMbps_ref().value_unchecked());
       rv = opennsl_port_speed_set(unit_, port, desiredSpeed);
       bcmCheckError(rv, "failed to set desired speed for port: ", port);
     }
     if (itr->second.__isset.disableFEC) {
-      disableFEC = itr->second.disableFEC;
+      disableFEC = itr->second.disableFEC_ref().value_unchecked();
     }
   }
   // Enable the port

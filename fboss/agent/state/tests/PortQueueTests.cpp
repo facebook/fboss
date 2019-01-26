@@ -47,26 +47,21 @@ cfg::SwitchConfig generateTestConfig() {
   cfg::SwitchConfig config;
   config.ports.resize(1);
   config.ports[0].logicalID = 1;
-  config.ports[0].name = "port1";
+  config.ports[0].name_ref().value_unchecked() = "port1";
   config.ports[0].state = cfg::PortState::ENABLED;
   // we just need to test the any queue and set every setting
   cfg::PortQueue queue1;
   queue1.id = 1;
-  queue1.name = "queue1";
+  queue1.name_ref().value_unchecked() = "queue1";
   queue1.streamType = cfg::StreamType::UNICAST;
   queue1.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue1.weight = 9;
-  queue1.__isset.weight = true;
-  queue1.scalingFactor =  cfg::MMUScalingFactor::EIGHT;
-  queue1.__isset.scalingFactor = true;
-  queue1.reservedBytes = 19968;
-  queue1.__isset.reservedBytes = true;
-  queue1.sharedBytes = 19968;
-  queue1.__isset.sharedBytes = true;
-  queue1.packetsPerSec = 100;
-  queue1.__isset.packetsPerSec = true;
-  queue1.aqms.push_back(getEarlyDropAqmConfig());
-  queue1.aqms.push_back(getECNAqmConfig());
+  queue1.weight_ref() = 9;
+  queue1.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
+  queue1.reservedBytes_ref() = 19968;
+  queue1.sharedBytes_ref() = 19968;
+  queue1.packetsPerSec_ref() = 100;
+  queue1.aqms_ref().value_unchecked().push_back(getEarlyDropAqmConfig());
+  queue1.aqms_ref().value_unchecked().push_back(getECNAqmConfig());
   queue1.__isset.aqms = true;
 
   config.ports[0].queues.push_back(queue1);
@@ -181,13 +176,12 @@ TEST(PortQueue, stateDelta) {
   cfg::SwitchConfig config;
   config.ports.resize(1);
   config.ports[0].logicalID = 1;
-  config.ports[0].name = "port1";
+  config.ports[0].name_ref().value_unchecked() = "port1";
   config.ports[0].state = cfg::PortState::ENABLED;
   for (int i = 0; i < kStateTestDefaultNumPortQueues; i++) {
     cfg::PortQueue queue;
     queue.id = i;
-    queue.weight = i;
-    queue.__isset.weight = true;
+    queue.weight_ref() = i;
     config.ports[0].queues.push_back(queue);
   }
 
@@ -196,7 +190,7 @@ TEST(PortQueue, stateDelta) {
   auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(kStateTestDefaultNumPortQueues, queues1.size());
 
-  config.ports[0].queues[0].weight = 5;
+  config.ports[0].queues[0].weight_ref().value_unchecked() = 5;
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
@@ -212,8 +206,7 @@ TEST(PortQueue, stateDelta) {
 
   cfg::PortQueue queueExtra;
   queueExtra.id = 11;
-  queueExtra.weight = 5;
-  queueExtra.__isset.weight = true;
+  queueExtra.weight_ref() = 5;
   config.ports[0].queues.push_back(queueExtra);
   EXPECT_THROW(publishAndApplyConfig(stateV3, &config, platform.get()),
       FbossError);
@@ -226,12 +219,12 @@ TEST(PortQueue, aqmState) {
   cfg::SwitchConfig config;
   config.ports.resize(1);
   config.ports[0].logicalID = 1;
-  config.ports[0].name = "port1";
+  config.ports[0].name_ref().value_unchecked() = "port1";
   config.ports[0].state = cfg::PortState::ENABLED;
   cfg::PortQueue queue;
   queue.id = 0;
-  queue.weight = 1;
-  queue.aqms.push_back(getEarlyDropAqmConfig());
+  queue.weight_ref().value_unchecked() = 1;
+  queue.aqms_ref().value_unchecked().push_back(getEarlyDropAqmConfig());
   queue.__isset.aqms = true;
   config.ports[0].queues.push_back(queue);
 
@@ -252,17 +245,17 @@ TEST(PortQueue, aqmBadState) {
   cfg::SwitchConfig config;
   config.ports.resize(1);
   config.ports[0].logicalID = 1;
-  config.ports[0].name = "port1";
+  config.ports[0].name_ref().value_unchecked() = "port1";
   config.ports[0].state = cfg::PortState::ENABLED;
   cfg::PortQueue queue;
   queue.id = 0;
-  queue.weight = 1;
+  queue.weight_ref().value_unchecked() = 1;
 
   // create bad ECN AQM state w/o specifying thresholds
   cfg::ActiveQueueManagement ecnAQM;
   ecnAQM.behavior = cfg::QueueCongestionBehavior::ECN;
-  queue.aqms.push_back(getEarlyDropAqmConfig());
-  queue.aqms.push_back(ecnAQM);
+  queue.aqms_ref().value_unchecked().push_back(getEarlyDropAqmConfig());
+  queue.aqms_ref().value_unchecked().push_back(ecnAQM);
   queue.__isset.aqms = true;
 
   config.ports[0].queues.push_back(queue);
@@ -307,7 +300,7 @@ TEST(PortQueue, resetPartOfConfigs) {
     EXPECT_NE(nullptr, stateV1);
 
     // reset aqm
-    config.ports[0].queues[0].aqms.clear();
+    config.ports[0].queues[0].aqms_ref().value_unchecked().clear();
     config.ports[0].queues[0].__isset.aqms = false;
 
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());

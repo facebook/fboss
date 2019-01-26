@@ -63,7 +63,8 @@ void unicastRouteToRtnlRoute(
   }
 
   struct rtnl_nexthop* nextHop = rtnl_route_nh_alloc();
-  unsigned int ifindex = if_nametoindex(unicastRoute.dest.ip.ifName.c_str());
+  unsigned int ifindex = if_nametoindex(
+      unicastRoute.dest.ip.ifName_ref().value_unchecked().c_str());
   struct nl_addr* nlGateway;
   for (auto const& binaryNexthop : unicastRoute.nextHopAddrs) {
     nlGateway = binAddrToNlAddr(binaryNexthop, family);

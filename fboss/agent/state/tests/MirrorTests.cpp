@@ -24,8 +24,8 @@ class MirrorTest : public ::testing::Test {
       folly::IPAddress ip,
       const std::string& portName) {
     cfg::MirrorDestination destination;
-    destination.ip = ip.str();
-    destination.egressPort.set_name(portName);
+    destination.ip_ref().value_unchecked() = ip.str();
+    destination.egressPort_ref().value_unchecked().set_name(portName);
     destination.__isset.ip = true;
     destination.__isset.egressPort = true;
     auto mirrorCount = config_.mirrors.size() + 1;
@@ -41,8 +41,8 @@ class MirrorTest : public ::testing::Test {
       folly::IPAddress ip,
       const PortID& portID) {
     cfg::MirrorDestination destination;
-    destination.ip = ip.str();
-    destination.egressPort.set_logicalID(portID);
+    destination.ip_ref().value_unchecked() = ip.str();
+    destination.egressPort_ref().value_unchecked().set_logicalID(portID);
     destination.__isset.ip = true;
     destination.__isset.egressPort = true;
     auto mirrorCount = config_.mirrors.size() + 1;
@@ -56,7 +56,7 @@ class MirrorTest : public ::testing::Test {
   void configureMirror(const std::string& name, const std::string& portName) {
     cfg::MirrorDestination destination;
     destination.__isset.egressPort = true;
-    destination.egressPort.set_name(portName);
+    destination.egressPort_ref().value_unchecked().set_name(portName);
 
     auto mirrorCount = config_.mirrors.size() + 1;
     config_.mirrors.resize(mirrorCount);
@@ -69,7 +69,7 @@ class MirrorTest : public ::testing::Test {
   void configureMirror(const std::string& name, const PortID& portID) {
     cfg::MirrorDestination destination;
     destination.__isset.egressPort = true;
-    destination.egressPort.set_logicalID(portID);
+    destination.egressPort_ref().value_unchecked().set_logicalID(portID);
 
     auto mirrorCount = config_.mirrors.size() + 1;
     config_.mirrors.resize(mirrorCount);
@@ -88,8 +88,7 @@ class MirrorTest : public ::testing::Test {
 
   void configureMirror(const std::string& name, folly::IPAddress ip) {
     cfg::MirrorDestination destination;
-    destination.ip = ip.str();
-    destination.__isset.ip = true;
+    destination.ip_ref() = ip.str();
 
     auto mirrorCount = config_.mirrors.size() + 1;
     config_.mirrors.resize(mirrorCount);
@@ -105,35 +104,41 @@ class MirrorTest : public ::testing::Test {
     config_.acls.resize(aclCount);
     config_.acls[aclCount-1].name = name;
     config_.acls[aclCount-1].actionType = cfg::AclActionType::PERMIT;
-    config_.acls[aclCount-1].dstL4PortRange.min = dstL4Port;
-    config_.acls[aclCount-1].dstL4PortRange.max = dstL4Port;
+    config_.acls[aclCount - 1].dstL4PortRange_ref().value_unchecked().min =
+        dstL4Port;
+    config_.acls[aclCount - 1].dstL4PortRange_ref().value_unchecked().max =
+        dstL4Port;
     config_.acls[aclCount-1].__isset.dstL4PortRange = true;
   }
 
   void configurePortMirror(const std::string& mirror, PortID port) {
     int portIndex = int(port) - 1;
     config_.ports[portIndex].__isset.ingressMirror = true;
-    config_.ports[portIndex].ingressMirror = mirror;
+    config_.ports[portIndex].ingressMirror_ref().value_unchecked() = mirror;
     config_.ports[portIndex].__isset.egressMirror = true;
-    config_.ports[portIndex].egressMirror = mirror;
+    config_.ports[portIndex].egressMirror_ref().value_unchecked() = mirror;
   }
 
   void configureAclMirror(
       const std::string& name,
       const std::string& mirror) {
     cfg::MatchAction action;
-    action.__isset.ingressMirror = true;
-    action.ingressMirror = mirror;
-    action.__isset.egressMirror = true;
-    action.egressMirror = mirror;
+    action.ingressMirror_ref() = mirror;
+    action.egressMirror_ref() = mirror;
 
     cfg::MatchToAction mirrorAction;
     mirrorAction.matcher = name;
     mirrorAction.action = action;
     config_.__isset.dataPlaneTrafficPolicy = true;
-    auto count = config_.dataPlaneTrafficPolicy.matchToAction.size() + 1;
-    config_.dataPlaneTrafficPolicy.matchToAction.resize(count);
-    config_.dataPlaneTrafficPolicy.matchToAction[count-1] = mirrorAction;
+    auto count = config_.dataPlaneTrafficPolicy_ref()
+                     .value_unchecked()
+                     .matchToAction.size() +
+        1;
+    config_.dataPlaneTrafficPolicy_ref().value_unchecked().matchToAction.resize(
+        count);
+    config_.dataPlaneTrafficPolicy_ref()
+        .value_unchecked()
+        .matchToAction[count - 1] = mirrorAction;
   }
 
   void publishWithStateUpdate() {
@@ -304,14 +309,15 @@ TEST_F(MirrorTest, MirrorWrongPortId) {
 TEST_F(MirrorTest, NoStateChange) {
   configureMirror("mirror0", MirrorTest::tunnelDestination);
   publishWithStateUpdate();
-  config_.mirrors[0].destination.ip = MirrorTest::tunnelDestination.str();
+  config_.mirrors[0].destination.ip_ref().value_unchecked() =
+      MirrorTest::tunnelDestination.str();
   publishWithNoStateUpdate();
 }
 
 TEST_F(MirrorTest, WithStateChange) {
   configureMirror("mirror0", MirrorTest::tunnelDestination);
   publishWithStateUpdate();
-  config_.mirrors[0].destination.ip = "10.0.0.2";
+  config_.mirrors[0].destination.ip_ref().value_unchecked() = "10.0.0.2";
   publishWithStateUpdate();
 
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
@@ -377,12 +383,14 @@ TEST_F(MirrorTest, DeleleteAclAndPortToMirror) {
 
   auto portIndex = int(PortID(4)) - 1;
   config_.ports[portIndex].__isset.ingressMirror = false;
-  config_.ports[portIndex].ingressMirror = "";
+  config_.ports[portIndex].ingressMirror_ref().value_unchecked() = "";
   config_.ports[portIndex].__isset.egressMirror = false;
-  config_.ports[portIndex].egressMirror = "";
+  config_.ports[portIndex].egressMirror_ref().value_unchecked() = "";
 
   config_.acls.pop_back();
-  config_.dataPlaneTrafficPolicy.matchToAction.pop_back();
+  config_.dataPlaneTrafficPolicy_ref()
+      .value_unchecked()
+      .matchToAction.pop_back();
 
   publishWithStateUpdate();
 

@@ -92,15 +92,15 @@ void WedgeManager::customizeTransceiver(int32_t idx, cfg::PortSpeed speed) {
 void WedgeManager::syncPorts(
     std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::map<int32_t, PortStatus>> ports) {
-
-  auto groups = folly::gen::from(*ports)
-    | folly::gen::filter([](const std::pair<int32_t, PortStatus>& item) {
+  auto groups =
+      folly::gen::from(*ports) |
+      folly::gen::filter([](const std::pair<int32_t, PortStatus>& item) {
         return item.second.__isset.transceiverIdx;
-      })
-    | folly::gen::groupBy([](const std::pair<int32_t, PortStatus>& item) {
-        return item.second.transceiverIdx.transceiverId;
-      })
-    | folly::gen::as<std::vector>();
+      }) |
+      folly::gen::groupBy([](const std::pair<int32_t, PortStatus>& item) {
+        return item.second.transceiverIdx_ref().value_unchecked().transceiverId;
+      }) |
+      folly::gen::as<std::vector>();
 
   std::lock_guard<std::mutex> g(mutex_);
   for (auto& group : groups) {

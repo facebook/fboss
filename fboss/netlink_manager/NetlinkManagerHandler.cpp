@@ -80,7 +80,7 @@ int32_t NetlinkManagerHandler::updateRoute(
       errCode = rtnl_route_add(sock, route, 0);
       if (errCode < 0) {
         err_msg = std::string(nl_geterror(errCode));
-        VLOG(0) << unicastRoute.dest.ip.ifName;
+        VLOG(0) << unicastRoute.dest.ip.ifName_ref().value_unchecked();
         VLOG(0) << "rtnl_route_add failed. Error message: " << err_msg;
       }
       break;

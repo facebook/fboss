@@ -129,9 +129,10 @@ facebook::fboss::PortStatus fillInPortStatus(
   status.speedMbps = static_cast<int>(port.getSpeed());
 
   try {
-    status.transceiverIdx = sw->getPlatform()->getPortMapping(port.getID());
+    status.transceiverIdx_ref().value_unchecked() =
+        sw->getPlatform()->getPortMapping(port.getID());
     status.__isset.transceiverIdx =
-      status.transceiverIdx.__isset.transceiverId;
+        status.transceiverIdx_ref().value_unchecked().__isset.transceiverId;
   } catch (const facebook::fboss::FbossError& err) {
     // No problem, we just don't set the other info
   }

@@ -119,7 +119,7 @@ TEST(ThriftTest, LinkLocalRoutes) {
   config.interfaces[0].vlanID = 1;
   config.interfaces[0].routerID = 0;
   config.interfaces[0].__isset.mac = true;
-  config.interfaces[0].mac = "00:02:00:00:00:01";
+  config.interfaces[0].mac_ref().value_unchecked() = "00:02:00:00:00:01";
   config.interfaces[0].ipAddresses.resize(3);
   config.interfaces[0].ipAddresses[0] = "10.0.0.1/24";
   config.interfaces[0].ipAddresses[1] = "192.168.0.1/24";
@@ -151,7 +151,7 @@ makeUnicastRoute(std::string prefixStr, std::string nxtHop,
   nr->dest.ip = toBinaryAddress(IPAddress(vec.at(0)));
   nr->dest.prefixLength = folly::to<uint8_t>(vec.at(1));
   nr->nextHopAddrs.push_back(toBinaryAddress(IPAddress(nxtHop)));
-  nr->adminDistance = distance;
+  nr->adminDistance_ref().value_unchecked() = distance;
   nr->__isset.adminDistance = true;
   return nr;
 }
@@ -169,7 +169,7 @@ TEST(ThriftTest, syncFib) {
   config.interfaces[0].vlanID = 1;
   config.interfaces[0].routerID = 0;
   config.interfaces[0].__isset.mac = true;
-  config.interfaces[0].mac = "00:02:00:00:00:01";
+  config.interfaces[0].mac_ref().value_unchecked() = "00:02:00:00:00:01";
   config.interfaces[0].ipAddresses.resize(3);
   config.interfaces[0].ipAddresses[0] = "10.0.0.1/24";
   config.interfaces[0].ipAddresses[1] = "192.168.0.19/24";

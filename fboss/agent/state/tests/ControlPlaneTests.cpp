@@ -28,54 +28,40 @@ std::vector<cfg::PortQueue> getConfigCPUQueues() {
   std::vector<cfg::PortQueue> cpuQueues;
   cfg::PortQueue high;
   high.id = 9;
-  high.name = "cpuQueue-high";
-  high.__isset.name = true;
+  high.name_ref() = "cpuQueue-high";
   high.streamType = cfg::StreamType::MULTICAST;
   high.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  high.weight = 4;
-  high.__isset.weight = true;
+  high.weight_ref() = 4;
   cpuQueues.push_back(high);
 
   cfg::PortQueue mid;
   mid.id = 2;
-  mid.name = "cpuQueue-mid";
-  mid.__isset.name = true;
+  mid.name_ref() = "cpuQueue-mid";
   mid.streamType = cfg::StreamType::MULTICAST;
   mid.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  mid.weight = 2;
-  mid.__isset.weight = true;
+  mid.weight_ref() = 2;
   cpuQueues.push_back(mid);
 
   cfg::PortQueue defaultQ;
   defaultQ.id = 1;
-  defaultQ.name = "cpuQueue-default";
-  defaultQ.__isset.name = true;
+  defaultQ.name_ref() = "cpuQueue-default";
   defaultQ.streamType = cfg::StreamType::MULTICAST;
   defaultQ.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  defaultQ.weight = 1;
-  defaultQ.__isset.weight = true;
-  defaultQ.packetsPerSec = 200;
-  defaultQ.__isset.packetsPerSec = true;
-  defaultQ.reservedBytes = 1040;
-  defaultQ.__isset.reservedBytes = true;
-  defaultQ.sharedBytes = 10192;
-  defaultQ.__isset.sharedBytes = true;
+  defaultQ.weight_ref() = 1;
+  defaultQ.packetsPerSec_ref() = 200;
+  defaultQ.reservedBytes_ref() = 1040;
+  defaultQ.sharedBytes_ref() = 10192;
   cpuQueues.push_back(defaultQ);
 
   cfg::PortQueue low;
   low.id = 0;
-  low.name = "cpuQueue-low";
-  low.__isset.name = true;
+  low.name_ref() = "cpuQueue-low";
   low.streamType = cfg::StreamType::MULTICAST;
   low.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  low.weight = 1;
-  low.__isset.weight = true;
-  low.packetsPerSec = 100;
-  low.__isset.packetsPerSec = true;
-  low.reservedBytes = 1040;
-  low.__isset.reservedBytes = true;
-  low.sharedBytes = 10192;
-  low.__isset.sharedBytes = true;
+  low.weight_ref() = 1;
+  low.packetsPerSec_ref() = 100;
+  low.reservedBytes_ref() = 1040;
+  low.sharedBytes_ref() = 10192;
   cpuQueues.push_back(low);
   return cpuQueues;
 }
@@ -291,7 +277,7 @@ TEST(ControlPlane, changeLowPrioQueue) {
   auto newCfgCpuQueues = getConfigCPUQueues();
   // change low queue pps from 100 to 1000. the last one is low queue
   auto& lowQueue = newCfgCpuQueues.at(newCfgCpuQueues.size() - 1);
-  lowQueue.packetsPerSec = 1000;
+  lowQueue.packetsPerSec_ref().value_unchecked() = 1000;
   cfg::SwitchConfig newConfig;
   newConfig.cpuQueues = newCfgCpuQueues;
   auto stateV2 = publishAndApplyConfig(stateV1, &newConfig, platform.get());

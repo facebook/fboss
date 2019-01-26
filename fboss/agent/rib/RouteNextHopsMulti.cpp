@@ -56,8 +56,7 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
       destPair.nextHopAddrs.push_back(network::toBinaryAddress(nh.addr()));
       if (nh.intfID().hasValue()) {
         auto& nhAddr = destPair.nextHopAddrs.back();
-        nhAddr.__isset.ifName = true;
-        nhAddr.ifName =
+        nhAddr.ifName_ref() =
             facebook::fboss::util::createTunIntfName(nh.intfID().value());
       }
     }

@@ -109,8 +109,7 @@ void registerPortsAndPopulateConfig(
     auto& portObj = config.ports[index++];
     int portInt = int(portAndVlan.first);
     portObj.logicalID = portInt;
-    portObj.name = folly::to<std::string>("port", portInt);
-    portObj.__isset.name = true;
+    portObj.name_ref() = folly::to<std::string>("port", portInt);
   }
 
   index = 0;
@@ -120,7 +119,8 @@ void registerPortsAndPopulateConfig(
     int vlanInt = int(vlanTyped);
     vlanObj.id = vlanInt;
     vlanObj.name = folly::to<std::string>("vlan", vlanInt);
-    vlanObj.intfID = vlanInt; // interface and vlan ids are the same
+    vlanObj.intfID_ref().value_unchecked() =
+        vlanInt; // interface and vlan ids are the same
   }
 
   config.vlanPorts.resize(port2Vlan.size());
@@ -145,8 +145,7 @@ void registerPortsAndPopulateConfig(
       // If the map is provided, it should have outgoing mac for each
       // interface!
       auto macStr = (*vlan2MacPtr)[vlanTyped].toString();
-      interfaceObj.mac = macStr;
-      interfaceObj.__isset.mac = true;
+      interfaceObj.mac_ref() = macStr;
     }
   }
   return;

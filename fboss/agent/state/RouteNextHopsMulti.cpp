@@ -53,8 +53,7 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
       destPair.nextHopAddrs.push_back(network::toBinaryAddress(nh.addr()));
       if (nh.intfID().hasValue()) {
         auto& nhAddr = destPair.nextHopAddrs.back();
-        nhAddr.__isset.ifName = true;
-        nhAddr.ifName = util::createTunIntfName(nh.intfID().value());
+        nhAddr.ifName_ref() = util::createTunIntfName(nh.intfID().value());
       }
     }
     list.push_back(destPair);

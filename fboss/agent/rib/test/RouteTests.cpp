@@ -1379,8 +1379,8 @@ TEST(RouteTypes, toFromRouteNextHops) {
                     folly::Optional<InterfaceID> intf) {
     auto bAddr = facebook::network::toBinaryAddress(folly::IPAddress(ipaddr));
     if (intf.hasValue()) {
-      bAddr.__isset.ifName = true;
-      bAddr.ifName = facebook::fboss::util::createTunIntfName(intf.value());
+      bAddr.ifName_ref() =
+          facebook::fboss::util::createTunIntfName(intf.value());
     }
     bool found = false;
     for (const auto& entry : nhts) {
@@ -1413,8 +1413,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
   facebook::network::thrift::BinaryAddress addr;
 
   addr = facebook::network::toBinaryAddress(folly::IPAddress("10.0.0.1"));
-  addr.__isset.ifName = true;
-  addr.ifName = "fboss10";
+  addr.ifName_ref() = "fboss10";
   NextHopThrift nht;
   nht.address = addr;
   {
@@ -1424,8 +1423,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
   }
 
   addr = facebook::network::toBinaryAddress(folly::IPAddress("face::1"));
-  addr.__isset.ifName = true;
-  addr.ifName = "fboss10";
+  addr.ifName_ref() = "fboss10";
   nht.address = addr;
   {
     NextHop nh = facebook::fboss::rib::util::fromThrift(nht);
@@ -1434,8 +1432,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
   }
 
   addr = facebook::network::toBinaryAddress(folly::IPAddress("fe80::1"));
-  addr.__isset.ifName = true;
-  addr.ifName = "fboss10";
+  addr.ifName_ref() = "fboss10";
   nht.address = addr;
   {
     NextHop nh = facebook::fboss::rib::util::fromThrift(nht);

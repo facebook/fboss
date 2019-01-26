@@ -100,8 +100,7 @@ fromFwdNextHops(RouteNextHopSet const& nexthops) {
   nhs.reserve(nexthops.size());
   for (auto const& nexthop : nexthops) {
     auto addr = network::toBinaryAddress(nexthop.addr());
-    addr.__isset.ifName = true;
-    addr.ifName = util::createTunIntfName(nexthop.intf());
+    addr.ifName_ref() = util::createTunIntfName(nexthop.intf());
     nhs.emplace_back(std::move(addr));
   }
   return nhs;
@@ -263,8 +262,9 @@ void ThriftHandler::updateUnicastRoutesImpl(
     for (const auto& route : *routes) {
       folly::IPAddress network = toIPAddress(route.dest.ip);
       uint8_t mask = static_cast<uint8_t>(route.dest.prefixLength);
-      auto adminDistance = route.__isset.adminDistance ? route.adminDistance :
-        clientIdToAdmin;
+      auto adminDistance = route.__isset.adminDistance
+          ? route.adminDistance_ref().value_unchecked()
+          : clientIdToAdmin;
       std::vector<NextHopThrift> nhts;
       if (route.nextHops.empty() && !route.nextHopAddrs.empty()) {
         nhts = util::thriftNextHopsFromAddresses(route.nextHopAddrs);
@@ -503,17 +503,15 @@ void ThriftHandler::getPortInfoHelper(
     pq.mode = cfg::_QueueScheduling_VALUES_TO_NAMES.find(
         queue->getScheduling())->second;
     if (queue->getScheduling() == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
-      pq.weight = queue->getWeight();
-      pq.__isset.weight = true;
+      pq.weight_ref() = queue->getWeight();
     }
     if (queue->getReservedBytes()) {
-      pq.reservedBytes = queue->getReservedBytes().value();
-      pq.__isset.reservedBytes = true;
+      pq.reservedBytes_ref() = queue->getReservedBytes().value();
     }
     if (queue->getScalingFactor()) {
-      pq.scalingFactor = cfg::_MMUScalingFactor_VALUES_TO_NAMES.find(
-          queue->getScalingFactor().value())->second;
-      pq.__isset.scalingFactor = true;
+      pq.scalingFactor_ref() = cfg::_MMUScalingFactor_VALUES_TO_NAMES
+                                   .find(queue->getScalingFactor().value())
+                                   ->second;
     }
     if (!queue->getAqms().empty()) {
       std::vector<ActiveQueueManagement> aqms;
@@ -521,9 +519,9 @@ void ThriftHandler::getPortInfoHelper(
         ActiveQueueManagement aqmThrift;
         switch (aqm.second.detection.getType()) {
           case cfg::QueueCongestionDetection::Type::linear:
-            aqmThrift.detection.linear.minimumLength =
+            aqmThrift.detection.linear_ref().value_unchecked().minimumLength =
                 aqm.second.detection.get_linear().minimumLength;
-            aqmThrift.detection.linear.maximumLength =
+            aqmThrift.detection.linear_ref().value_unchecked().maximumLength =
                 aqm.second.detection.get_linear().maximumLength;
             aqmThrift.detection.__isset.linear = true;
             break;
@@ -534,7 +532,7 @@ void ThriftHandler::getPortInfoHelper(
         aqmThrift.behavior = QueueCongestionBehavior(aqm.first);
         aqms.push_back(aqmThrift);
       }
-      pq.aqms.swap(aqms);
+      pq.aqms_ref().value_unchecked().swap(aqms);
       pq.__isset.aqms = true;
     }
     portInfo.portQueues.push_back(pq);
@@ -838,16 +836,13 @@ static LinkNeighborThrift thriftLinkNeighbor(const LinkNeighbor& n,
   tn.ttlSecondsLeft =
     duration_cast<seconds>(n.getExpirationTime() - now).count();
   if (!n.getSystemName().empty()) {
-    tn.systemName = n.getSystemName();
-    tn.__isset.systemName = true;
+    tn.systemName_ref() = n.getSystemName();
   }
   if (!n.getSystemDescription().empty()) {
-    tn.systemDescription = n.getSystemDescription();
-    tn.__isset.systemDescription = true;
+    tn.systemDescription_ref() = n.getSystemDescription();
   }
   if (!n.getPortDescription().empty()) {
-    tn.portDescription = n.getPortDescription();
-    tn.__isset.portDescription = true;
+    tn.portDescription_ref() = n.getPortDescription();
   }
   return tn;
 }

@@ -408,32 +408,36 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   auto oldDhcpV4RelaySrc = orig_->getDhcpV4RelaySrc();
-  auto newDhcpV4RelaySrc = cfg_->__isset.dhcpRelaySrcOverrideV4 ?
-    IPAddressV4(cfg_->dhcpRelaySrcOverrideV4) : IPAddressV4();
+  auto newDhcpV4RelaySrc = cfg_->__isset.dhcpRelaySrcOverrideV4
+      ? IPAddressV4(cfg_->dhcpRelaySrcOverrideV4_ref().value_unchecked())
+      : IPAddressV4();
   if (oldDhcpV4RelaySrc != newDhcpV4RelaySrc) {
     new_->setDhcpV4RelaySrc(newDhcpV4RelaySrc);
     changed = true;
   }
 
   auto oldDhcpV6RelaySrc = orig_->getDhcpV6RelaySrc();
-  auto newDhcpV6RelaySrc = cfg_->__isset.dhcpRelaySrcOverrideV6 ?
-    IPAddressV6(cfg_->dhcpRelaySrcOverrideV6) : IPAddressV6("::");
+  auto newDhcpV6RelaySrc = cfg_->__isset.dhcpRelaySrcOverrideV6
+      ? IPAddressV6(cfg_->dhcpRelaySrcOverrideV6_ref().value_unchecked())
+      : IPAddressV6("::");
   if (oldDhcpV6RelaySrc != newDhcpV6RelaySrc) {
     new_->setDhcpV6RelaySrc(newDhcpV6RelaySrc);
     changed = true;
   }
 
   auto oldDhcpV4ReplySrc = orig_->getDhcpV4ReplySrc();
-  auto newDhcpV4ReplySrc = cfg_->__isset.dhcpReplySrcOverrideV4 ?
-    IPAddressV4(cfg_->dhcpReplySrcOverrideV4) : IPAddressV4();
+  auto newDhcpV4ReplySrc = cfg_->__isset.dhcpReplySrcOverrideV4
+      ? IPAddressV4(cfg_->dhcpReplySrcOverrideV4_ref().value_unchecked())
+      : IPAddressV4();
   if (oldDhcpV4ReplySrc != newDhcpV4ReplySrc) {
     new_->setDhcpV4ReplySrc(newDhcpV4ReplySrc);
     changed = true;
   }
 
   auto oldDhcpV6ReplySrc = orig_->getDhcpV6ReplySrc();
-  auto newDhcpV6ReplySrc = cfg_->__isset.dhcpReplySrcOverrideV6 ?
-    IPAddressV6(cfg_->dhcpReplySrcOverrideV6) : IPAddressV6("::");
+  auto newDhcpV6ReplySrc = cfg_->__isset.dhcpReplySrcOverrideV6
+      ? IPAddressV6(cfg_->dhcpReplySrcOverrideV6_ref().value_unchecked())
+      : IPAddressV6("::");
   if (oldDhcpV6ReplySrc != newDhcpV6ReplySrc) {
     new_->setDhcpV6ReplySrc(newDhcpV6ReplySrc);
     changed = true;
@@ -621,23 +625,23 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
   queue->setStreamType(cfg->streamType);
   queue->setScheduling(cfg->scheduling);
   if (cfg->__isset.weight) {
-    queue->setWeight(cfg->weight);
+    queue->setWeight(cfg->weight_ref().value_unchecked());
   }
   if (cfg->__isset.reservedBytes) {
-    queue->setReservedBytes(cfg->reservedBytes);
+    queue->setReservedBytes(cfg->reservedBytes_ref().value_unchecked());
   }
   if (cfg->__isset.scalingFactor) {
-    queue->setScalingFactor(cfg->scalingFactor);
+    queue->setScalingFactor(cfg->scalingFactor_ref().value_unchecked());
   }
   if (cfg->__isset.aqms) {
     checkPortQueueAQMValid(cfg->aqms);
-    queue->resetAqms(cfg->aqms);
+    queue->resetAqms(cfg->aqms_ref().value_unchecked());
   }
   if (cfg->__isset.sharedBytes) {
-    queue->setSharedBytes(cfg->sharedBytes);
+    queue->setSharedBytes(cfg->sharedBytes_ref().value_unchecked());
   }
   if (cfg->__isset.packetsPerSec) {
-    queue->setPacketsPerSec(cfg->packetsPerSec);
+    queue->setPacketsPerSec(cfg->packetsPerSec_ref().value_unchecked());
   }
   if (cfg->__isset.name) {
     queue->setName(cfg->name);
@@ -727,8 +731,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
       portConf->pause == orig->getPause() &&
       portConf->sFlowIngressRate == orig->getSflowIngressRate() &&
       portConf->sFlowEgressRate == orig->getSflowEgressRate() &&
-      portConf->name == orig->getName() &&
-      portConf->description == orig->getDescription() &&
+      portConf->name_ref().value_unchecked() == orig->getName() &&
+      portConf->description_ref().value_unchecked() == orig->getDescription() &&
       vlans == orig->getVlans() && portConf->fec == orig->getFEC() &&
       queuesUnchanged && portConf->loopbackMode == orig->getLoopbackMode() &&
       mirrorsUnChanged && newQosPolicy == orig->getQosPolicy() &&
@@ -882,8 +886,8 @@ ThriftConfigApplier::getSystemLacpConfig() {
   uint16_t systemPriority;
 
   if (cfg_->__isset.lacp) {
-    systemID = MacAddress(cfg_->lacp.systemID);
-    systemPriority = cfg_->lacp.systemPriority;
+    systemID = MacAddress(cfg_->lacp_ref().value_unchecked().systemID);
+    systemPriority = cfg_->lacp_ref().value_unchecked().systemPriority;
   } else {
     // If the system LACP configuration parameters were not specified,
     // we fall back to default parameters. Since the default system ID
@@ -974,7 +978,7 @@ shared_ptr<Vlan> ThriftConfigApplier::createVlan(const cfg::Vlan* config) {
   /* TODO t7153326: Following code is added for backward compatibility
   Remove it once coop generates config with */
   if (config->__isset.intfID) {
-    vlan->setInterfaceID(InterfaceID(config->intfID));
+    vlan->setInterfaceID(InterfaceID(config->intfID_ref().value_unchecked()));
   } else {
     auto& entry = vlanInterfaces_[VlanID(config->id)];
     if (!entry.interfaces.empty()) {
@@ -994,18 +998,20 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(const shared_ptr<Vlan>& orig,
       updateNeighborResponseTables(newVlan.get(), config);
   bool changed_dhcp_overrides = updateDhcpOverrides(newVlan.get(), config);
   auto oldDhcpV4Relay = orig->getDhcpV4Relay();
-  auto newDhcpV4Relay = config->__isset.dhcpRelayAddressV4 ?
-    IPAddressV4(config->dhcpRelayAddressV4) : IPAddressV4();
+  auto newDhcpV4Relay = config->__isset.dhcpRelayAddressV4
+      ? IPAddressV4(config->dhcpRelayAddressV4_ref().value_unchecked())
+      : IPAddressV4();
 
   auto oldDhcpV6Relay = orig->getDhcpV6Relay();
-  auto newDhcpV6Relay = config->__isset.dhcpRelayAddressV6 ?
-    IPAddressV6(config->dhcpRelayAddressV6) : IPAddressV6("::");
+  auto newDhcpV6Relay = config->__isset.dhcpRelayAddressV6
+      ? IPAddressV6(config->dhcpRelayAddressV6_ref().value_unchecked())
+      : IPAddressV6("::");
   /* TODO t7153326: Following code is added for backward compatibility
   Remove it once coop generates config with intfID */
   auto oldIntfID = orig->getInterfaceID();
   auto newIntfID = InterfaceID(0);
   if (config->__isset.intfID) {
-    newIntfID = InterfaceID(config->intfID);
+    newIntfID = InterfaceID(config->intfID_ref().value_unchecked());
   } else {
     auto& entry = vlanInterfaces_[VlanID(config->id)];
     if (!entry.interfaces.empty()) {
@@ -1143,15 +1149,15 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
       // Here is sending to regular port queue action
       MatchAction matchAction = MatchAction();
       if (mta.action.__isset.sendToQueue) {
-        matchAction.setSendToQueue(
-          std::make_pair(mta.action.sendToQueue, isCoppAcl));
+        matchAction.setSendToQueue(std::make_pair(
+            mta.action.sendToQueue_ref().value_unchecked(), isCoppAcl));
       }
       if (mta.action.__isset.counter) {
         auto counter = counterByName.find(mta.action.counter);
         if (counter == counterByName.end()) {
           throw FbossError(
               "Invalid config: No counter named ",
-              mta.action.counter,
+              mta.action.counter_ref().value_unchecked(),
               " found.");
         }
         matchAction.setTrafficCounter(*(counter->second));
@@ -1188,7 +1194,8 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
 
   // Add dataPlane traffic acls
   if (cfg_->__isset.dataPlaneTrafficPolicy) {
-    folly::gen::from(addToAcls(cfg_->dataPlaneTrafficPolicy)) |
+    folly::gen::from(
+        addToAcls(cfg_->dataPlaneTrafficPolicy_ref().value_unchecked())) |
         folly::gen::appendTo(newAcls);
   }
   if (numExistingProcessed != orig_->getAcls()->size()) {
@@ -1223,33 +1230,40 @@ std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
 void ThriftConfigApplier::checkAcl(const cfg::AclEntry *config) const {
   // check l4 port range
   if (config->__isset.srcL4PortRange &&
-      (config->srcL4PortRange.min > AclL4PortRange::getUpperLimit())) {
+      (config->srcL4PortRange_ref().value_unchecked().min >
+       AclL4PortRange::getUpperLimit())) {
     throw FbossError("src's L4 port range has a min value larger than 65535");
   }
   if (config->__isset.srcL4PortRange &&
-      (config->srcL4PortRange.max > AclL4PortRange::getUpperLimit())) {
+      (config->srcL4PortRange_ref().value_unchecked().max >
+       AclL4PortRange::getUpperLimit())) {
     throw FbossError("src's L4 port range has a max value larger than 65535");
   }
   if (config->__isset.srcL4PortRange &&
-      (config->srcL4PortRange.min > config->srcL4PortRange.max)) {
+      (config->srcL4PortRange_ref().value_unchecked().min >
+       config->srcL4PortRange_ref().value_unchecked().max)) {
     throw FbossError("src's L4 port range has a min value larger than ",
       "its max value");
   }
   if (config->__isset.dstL4PortRange &&
-      (config->dstL4PortRange.min > AclL4PortRange::getUpperLimit())) {
+      (config->dstL4PortRange_ref().value_unchecked().min >
+       AclL4PortRange::getUpperLimit())) {
     throw FbossError("dst's L4 port range has a min value larger than 65535");
   }
   if (config->__isset.dstL4PortRange &&
-      (config->dstL4PortRange.max > AclL4PortRange::getUpperLimit())) {
+      (config->dstL4PortRange_ref().value_unchecked().max >
+       AclL4PortRange::getUpperLimit())) {
     throw FbossError("dst's L4 port range has a max value larger than 65535");
   }
   if (config->__isset.dstL4PortRange &&
-      (config->dstL4PortRange.min > config->dstL4PortRange.max)) {
+      (config->dstL4PortRange_ref().value_unchecked().min >
+       config->dstL4PortRange_ref().value_unchecked().max)) {
     throw FbossError("dst's L4 port range has a min value larger than ",
       "its max value");
   }
   if (config->__isset.pktLenRange &&
-      (config->pktLenRange.min > config->pktLenRange.max)) {
+      (config->pktLenRange_ref().value_unchecked().min >
+       config->pktLenRange_ref().value_unchecked().max)) {
     throw FbossError("the min. packet length cannot exceed"
       " the max. packet length");
   }
@@ -1257,34 +1271,37 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry *config) const {
     throw FbossError("icmp type must be set when icmp code is set");
   }
   if (config->__isset.icmpType &&
-      (config->icmpType < 0 ||
-        config->icmpType > AclEntryFields::kMaxIcmpType)) {
+      (config->icmpType_ref().value_unchecked() < 0 ||
+       config->icmpType_ref().value_unchecked() >
+           AclEntryFields::kMaxIcmpType)) {
     throw FbossError("icmp type value must be between 0 and ",
       std::to_string(AclEntryFields::kMaxIcmpType));
   }
   if (config->__isset.icmpCode &&
-      (config->icmpCode < 0 ||
-        config->icmpCode > AclEntryFields::kMaxIcmpCode)) {
+      (config->icmpCode_ref().value_unchecked() < 0 ||
+       config->icmpCode_ref().value_unchecked() >
+           AclEntryFields::kMaxIcmpCode)) {
     throw FbossError("icmp type value must be between 0 and ",
       std::to_string(AclEntryFields::kMaxIcmpCode));
   }
   if (config->__isset.icmpType &&
       (!config->__isset.proto ||
-        !(config->proto == AclEntryFields::kProtoIcmp ||
-          config->proto == AclEntryFields::kProtoIcmpv6))) {
+       !(config->proto_ref().value_unchecked() == AclEntryFields::kProtoIcmp ||
+         config->proto_ref().value_unchecked() ==
+             AclEntryFields::kProtoIcmpv6))) {
     throw FbossError("proto must be either icmp or icmpv6 ",
       "if icmp type is set");
   }
-  if (config->__isset.ttl && config->ttl.value > 255) {
+  if (config->__isset.ttl && config->ttl_ref().value_unchecked().value > 255) {
     throw FbossError("ttl value is larger than 255");
   }
-  if (config->__isset.ttl && config->ttl.value < 0) {
+  if (config->__isset.ttl && config->ttl_ref().value_unchecked().value < 0) {
     throw FbossError("ttl value is less than 0");
   }
-  if (config->__isset.ttl && config->ttl.mask > 255) {
+  if (config->__isset.ttl && config->ttl_ref().value_unchecked().mask > 255) {
     throw FbossError("ttl mask is larger than 255");
   }
-  if (config->__isset.ttl && config->ttl.mask < 0) {
+  if (config->__isset.ttl && config->ttl_ref().value_unchecked().mask < 0) {
     throw FbossError("ttl mask is less than 0");
   }
 }
@@ -1299,61 +1316,65 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
     newAcl->setAclAction(*action);
   }
   if (config->__isset.srcIp) {
-    newAcl->setSrcIp(IPAddress::createNetwork(config->srcIp));
+    newAcl->setSrcIp(
+        IPAddress::createNetwork(config->srcIp_ref().value_unchecked()));
   }
   if (config->__isset.dstIp) {
-    newAcl->setDstIp(IPAddress::createNetwork(config->dstIp));
+    newAcl->setDstIp(
+        IPAddress::createNetwork(config->dstIp_ref().value_unchecked()));
   }
   if (config->__isset.proto) {
-    newAcl->setProto(config->proto);
+    newAcl->setProto(config->proto_ref().value_unchecked());
   }
   if (config->__isset.tcpFlagsBitMap) {
-    newAcl->setTcpFlagsBitMap(config->tcpFlagsBitMap);
+    newAcl->setTcpFlagsBitMap(config->tcpFlagsBitMap_ref().value_unchecked());
   }
   if (config->__isset.srcPort) {
-    newAcl->setSrcPort(config->srcPort);
+    newAcl->setSrcPort(config->srcPort_ref().value_unchecked());
   }
   if (config->__isset.dstPort) {
-    newAcl->setDstPort(config->dstPort);
+    newAcl->setDstPort(config->dstPort_ref().value_unchecked());
   }
   if (config->__isset.srcL4PortRange) {
     newAcl->setSrcL4PortRange(AclL4PortRange(
-        config->srcL4PortRange.min,
-        config->srcL4PortRange.max,
-        config->srcL4PortRange.invert));
+        config->srcL4PortRange_ref().value_unchecked().min,
+        config->srcL4PortRange_ref().value_unchecked().max,
+        config->srcL4PortRange_ref().value_unchecked().invert));
   }
   if (config->__isset.dstL4PortRange) {
     newAcl->setDstL4PortRange(AclL4PortRange(
-        config->dstL4PortRange.min,
-        config->dstL4PortRange.max,
-        config->dstL4PortRange.invert));
+        config->dstL4PortRange_ref().value_unchecked().min,
+        config->dstL4PortRange_ref().value_unchecked().max,
+        config->dstL4PortRange_ref().value_unchecked().invert));
   }
   if (config->__isset.pktLenRange) {
     newAcl->setPktLenRange(AclPktLenRange(
-        config->pktLenRange.min,
-        config->pktLenRange.max,
-        config->pktLenRange.invert));
+        config->pktLenRange_ref().value_unchecked().min,
+        config->pktLenRange_ref().value_unchecked().max,
+        config->pktLenRange_ref().value_unchecked().invert));
   }
   if (config->__isset.ipFrag) {
     newAcl->setIpFrag(config->ipFrag);
   }
   if (config->__isset.icmpType) {
-    newAcl->setIcmpType(config->icmpType);
+    newAcl->setIcmpType(config->icmpType_ref().value_unchecked());
   }
   if (config->__isset.icmpCode) {
-    newAcl->setIcmpCode(config->icmpCode);
+    newAcl->setIcmpCode(config->icmpCode_ref().value_unchecked());
   }
   if (config->__isset.dscp) {
-    newAcl->setDscp(config->dscp);
+    newAcl->setDscp(config->dscp_ref().value_unchecked());
   }
   if (config->__isset.dstMac) {
-    newAcl->setDstMac(MacAddress(config->dstMac));
+    newAcl->setDstMac(MacAddress(config->dstMac_ref().value_unchecked()));
   }
   if (config->__isset.ipType) {
       newAcl->setIpType(config->ipType);
   }
   if (config->__isset.ttl) {
-      newAcl->setTtl(AclTtl(config->ttl.value, config->ttl.mask));
+    newAcl->setTtl(AclTtl(
+        config->ttl_ref().value_unchecked().value,
+        config->ttl_ref().value_unchecked().mask));
   }
   return newAcl;
 }
@@ -1361,7 +1382,8 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
 bool ThriftConfigApplier::updateDhcpOverrides(Vlan* vlan,
                                               const cfg::Vlan* config) {
   DhcpV4OverrideMap newDhcpV4OverrideMap;
-  for (const auto& pair : config->dhcpRelayOverridesV4) {
+  for (const auto& pair :
+       config->dhcpRelayOverridesV4_ref().value_unchecked()) {
     try {
       newDhcpV4OverrideMap[MacAddress(pair.first)] = IPAddressV4(pair.second);
     } catch (const IPAddressFormatException& ex) {
@@ -1371,7 +1393,8 @@ bool ThriftConfigApplier::updateDhcpOverrides(Vlan* vlan,
   }
 
   DhcpV6OverrideMap newDhcpV6OverrideMap;
-  for (const auto& pair : config->dhcpRelayOverridesV6) {
+  for (const auto& pair :
+       config->dhcpRelayOverridesV6_ref().value_unchecked()) {
     try {
       newDhcpV6OverrideMap[MacAddress(pair.first)] = IPAddressV6(pair.second);
     } catch (const IPAddressFormatException& ex) {
@@ -1615,7 +1638,8 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
     const Interface::Addresses& addrs) {
   auto name = getInterfaceName(config);
   auto mac = getInterfaceMac(config);
-  auto mtu = config->__isset.mtu ? config->mtu : Interface::kDefaultMtu;
+  auto mtu = config->__isset.mtu ? config->mtu_ref().value_unchecked()
+                                 : Interface::kDefaultMtu;
   auto intf = make_shared<Interface>(InterfaceID(config->intfID),
                                      RouterID(config->routerID),
                                      VlanID(config->vlanID),
@@ -1692,11 +1716,12 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
 
   cfg::NdpConfig ndp;
   if (config->__isset.ndp) {
-    ndp = config->ndp;
+    ndp = config->ndp_ref().value_unchecked();
   }
   auto name = getInterfaceName(config);
   auto mac = getInterfaceMac(config);
-  auto mtu = config->__isset.mtu ? config->mtu : Interface::kDefaultMtu;
+  auto mtu = config->__isset.mtu ? config->mtu_ref().value_unchecked()
+                                 : Interface::kDefaultMtu;
   if (orig->getRouterID() == RouterID(config->routerID) &&
       orig->getVlanID() == VlanID(config->vlanID) &&
       orig->getName() == name &&
@@ -1757,14 +1782,14 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
 std::string
 ThriftConfigApplier::getInterfaceName(const cfg::Interface* config) {
   if (config->__isset.name) {
-    return config->name;
+    return config->name_ref().value_unchecked();
   }
   return folly::to<std::string>("Interface ", config->intfID);
 }
 
 MacAddress ThriftConfigApplier::getInterfaceMac(const cfg::Interface* config) {
   if (config->__isset.mac) {
-    return MacAddress(config->mac);
+    return MacAddress(config->mac_ref().value_unchecked());
   }
   return platform_->getLocalMac();
 }
@@ -1777,7 +1802,7 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
   // have more link-local addresses if needed.
   folly::MacAddress macAddr;
   if (config->__isset.mac) {
-    macAddr = folly::MacAddress(config->mac);
+    macAddr = folly::MacAddress(config->mac_ref().value_unchecked());
   } else {
     macAddr = platform_->getLocalMac();
   }
@@ -1885,7 +1910,8 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
 
   if (mirrorConfig->destination.__isset.egressPort) {
     std::shared_ptr<Port> mirrorToPort{nullptr};
-    auto egressPort = mirrorConfig->destination.egressPort;
+    auto egressPort =
+        mirrorConfig->destination.egressPort_ref().value_unchecked();
     switch (egressPort.getType()) {
       case cfg::MirrorEgressPort::Type::name:
         for (auto& port : *(new_->getPorts())) {
@@ -1913,7 +1939,8 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
   }
 
   if (mirrorConfig->destination.__isset.ip) {
-    destinationIp.assign(folly::IPAddress(mirrorConfig->destination.ip));
+    destinationIp.assign(
+        folly::IPAddress(mirrorConfig->destination.ip_ref().value_unchecked()));
   }
 
   auto mirror = make_shared<Mirror>(

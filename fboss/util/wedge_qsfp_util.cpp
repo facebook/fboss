@@ -213,13 +213,17 @@ RawDOMData fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port) {
 
   // Make sure page3 exist
   if (!flatMem) {
-    rawDOMData.page3 = IOBuf(IOBuf::CREATE, 128);
+    rawDOMData.page3_ref().value_unchecked() = IOBuf(IOBuf::CREATE, 128);
     uint8_t page3 = 0x3;
     bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page3);
 
     // read page 3
-    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 128,
-      128, rawDOMData.page3.writableData());
+    bus->moduleRead(
+        port,
+        TransceiverI2CApi::ADDR_QSFP,
+        128,
+        128,
+        rawDOMData.page3_ref().value_unchecked().writableData());
     rawDOMData.__isset.page3 = true;
   }
   return rawDOMData;
@@ -427,7 +431,7 @@ void printPortDetail(const RawDOMData& rawDOMData, unsigned int port) {
     return;
   }
 
-  auto page3Buf = rawDOMData.page3.data();
+  auto page3Buf = rawDOMData.page3_ref().value_unchecked().data();
 
   printThresholds("Temp", &page3Buf[0], [](const uint16_t u16_temp) {
     double data;

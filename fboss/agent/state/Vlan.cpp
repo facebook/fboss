@@ -152,24 +152,27 @@ Vlan::Vlan(VlanID id, string name)
 }
 
 Vlan::Vlan(const cfg::Vlan* config, MemberPorts ports)
-  : NodeBaseT(VlanID(config->id),
-              config->name,
-              (config->__isset.intfID? InterfaceID(config->intfID) :
-               InterfaceID(0)),
-              (config->__isset.dhcpRelayAddressV4 ?
-               IPAddressV4(config->dhcpRelayAddressV4) : IPAddressV4()),
-              (config->__isset.dhcpRelayAddressV6 ?
-               IPAddressV6(config->dhcpRelayAddressV6) : IPAddressV6()),
-               std::move(ports)) {
-
+    : NodeBaseT(
+          VlanID(config->id),
+          config->name,
+          (config->__isset.intfID
+               ? InterfaceID(config->intfID_ref().value_unchecked())
+               : InterfaceID(0)),
+          (config->__isset.dhcpRelayAddressV4
+               ? IPAddressV4(config->dhcpRelayAddressV4_ref().value_unchecked())
+               : IPAddressV4()),
+          (config->__isset.dhcpRelayAddressV6
+               ? IPAddressV6(config->dhcpRelayAddressV6_ref().value_unchecked())
+               : IPAddressV6()),
+          std::move(ports)) {
   DhcpV4OverrideMap map4;
-  for (const auto& o: config->dhcpRelayOverridesV4) {
+  for (const auto& o : config->dhcpRelayOverridesV4_ref().value_unchecked()) {
     map4[MacAddress(o.first)] = folly::IPAddressV4(o.second);
   }
   setDhcpV4RelayOverrides(map4);
 
   DhcpV6OverrideMap map6;
-  for (const auto& o: config->dhcpRelayOverridesV6) {
+  for (const auto& o : config->dhcpRelayOverridesV6_ref().value_unchecked()) {
     map6[MacAddress(o.first)] = folly::IPAddressV6(o.second);
   }
   setDhcpV6RelayOverrides(map6);

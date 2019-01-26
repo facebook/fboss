@@ -185,10 +185,12 @@ int QsfpModule::getQsfpDACGauge() const {
 bool QsfpModule::getSensorInfo(GlobalSensors& info) {
   info.temp.value = getQsfpSensor(SffField::TEMPERATURE,
                                   SffFieldInfo::getTemp);
-  info.temp.flags = getQsfpSensorFlags(SffField::TEMPERATURE_ALARMS);
+  info.temp.flags_ref().value_unchecked() =
+      getQsfpSensorFlags(SffField::TEMPERATURE_ALARMS);
   info.temp.__isset.flags = true;
   info.vcc.value = getQsfpSensor(SffField::VCC, SffFieldInfo::getVcc);
-  info.vcc.flags = getQsfpSensorFlags(SffField::VCC_ALARMS);
+  info.vcc.flags_ref().value_unchecked() =
+      getQsfpSensorFlags(SffField::VCC_ALARMS);
   info.vcc.__isset.flags = true;
   return true;
 }
@@ -207,16 +209,18 @@ void QsfpModule::getCableInfo(Cable &cable) {
   cable.transmitterTech = getQsfpTransmitterTechnology();
   cable.__isset.transmitterTech = true;
 
-  cable.singleMode = getQsfpCableLength(SffField::LENGTH_SM_KM);
-  cable.__isset.singleMode = (cable.singleMode != 0);
-  cable.om3 = getQsfpCableLength(SffField::LENGTH_OM3);
-  cable.__isset.om3 = (cable.om3 != 0);
-  cable.om2 = getQsfpCableLength(SffField::LENGTH_OM2);
-  cable.__isset.om2 = (cable.om2 != 0);
-  cable.om1 = getQsfpCableLength(SffField::LENGTH_OM1);
-  cable.__isset.om1 = (cable.om1 != 0);
-  cable.copper = getQsfpCableLength(SffField::LENGTH_COPPER);
-  cable.__isset.copper = (cable.copper != 0);
+  cable.singleMode_ref().value_unchecked() =
+      getQsfpCableLength(SffField::LENGTH_SM_KM);
+  cable.__isset.singleMode = (cable.singleMode_ref().value_unchecked() != 0);
+  cable.om3_ref().value_unchecked() = getQsfpCableLength(SffField::LENGTH_OM3);
+  cable.__isset.om3 = (cable.om3_ref().value_unchecked() != 0);
+  cable.om2_ref().value_unchecked() = getQsfpCableLength(SffField::LENGTH_OM2);
+  cable.__isset.om2 = (cable.om2_ref().value_unchecked() != 0);
+  cable.om1_ref().value_unchecked() = getQsfpCableLength(SffField::LENGTH_OM1);
+  cable.__isset.om1 = (cable.om1_ref().value_unchecked() != 0);
+  cable.copper_ref().value_unchecked() =
+      getQsfpCableLength(SffField::LENGTH_COPPER);
+  cable.__isset.copper = (cable.copper_ref().value_unchecked() != 0);
 
   if (!cable.__isset.copper) {
     // length and gauge fields currently only supported for copper
@@ -226,14 +230,14 @@ void QsfpModule::getCableInfo(Cable &cable) {
 
   auto overrideDacCableInfo = getDACCableOverride();
   if (overrideDacCableInfo) {
-    cable.length = overrideDacCableInfo->first;
-    cable.gauge = overrideDacCableInfo->second;
+    cable.length_ref().value_unchecked() = overrideDacCableInfo->first;
+    cable.gauge_ref().value_unchecked() = overrideDacCableInfo->second;
   } else {
-    cable.length = getQsfpDACLength();
-    cable.gauge = getQsfpDACGauge();
+    cable.length_ref().value_unchecked() = getQsfpDACLength();
+    cable.gauge_ref().value_unchecked() = getQsfpDACGauge();
   }
-  cable.__isset.length = (cable.length != 0);
-  cable.__isset.gauge = (cable.gauge != 0);
+  cable.__isset.length = (cable.length_ref().value_unchecked() != 0);
+  cable.__isset.gauge = (cable.gauge_ref().value_unchecked() != 0);
 }
 
 /*
@@ -410,8 +414,8 @@ bool QsfpModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   const uint8_t *data = getQsfpValuePtr(dataAddress, offset, length);
 
   for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
-    channels[channel].sensors.rxPwr.flags =
-      getQsfpFlags(data + byteOffset[channel], bitOffset[channel]);
+    channels[channel].sensors.rxPwr.flags_ref().value_unchecked() =
+        getQsfpFlags(data + byteOffset[channel], bitOffset[channel]);
     channels[channel].sensors.rxPwr.__isset.flags = true;
   }
 
@@ -420,8 +424,8 @@ bool QsfpModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   data = getQsfpValuePtr(dataAddress, offset, length);
 
   for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
-    channels[channel].sensors.txBias.flags =
-      getQsfpFlags(data + byteOffset[channel], bitOffset[channel]);
+    channels[channel].sensors.txBias.flags_ref().value_unchecked() =
+        getQsfpFlags(data + byteOffset[channel], bitOffset[channel]);
     channels[channel].sensors.txBias.__isset.flags = true;
   }
 
@@ -430,8 +434,8 @@ bool QsfpModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   data = getQsfpValuePtr(dataAddress, offset, length);
 
   for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
-    channels[channel].sensors.txPwr.flags =
-      getQsfpFlags(data + byteOffset[channel], bitOffset[channel]);
+    channels[channel].sensors.txPwr.flags_ref().value_unchecked() =
+        getQsfpFlags(data + byteOffset[channel], bitOffset[channel]);
     channels[channel].sensors.txPwr.__isset.flags = true;
   }
 
@@ -683,8 +687,7 @@ RawDOMData QsfpModule::getRawDOMData() {
     data.lower = IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
     data.page0 = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
     if (!flatMem_) {
-      data.__isset.page3 = true;
-      data.page3 = IOBuf::wrapBufferAsValue(page3_, MAX_QSFP_PAGE_SIZE);
+      data.page3_ref() = IOBuf::wrapBufferAsValue(page3_, MAX_QSFP_PAGE_SIZE);
     }
   }
   return data;

@@ -46,17 +46,17 @@ unique_ptr<HwTestHandle> setupTestHandle() {
   cfg::Vlan thriftVlan;
   thriftVlan.name = "Vlan1";
   thriftVlan.id = 1;
-  thriftVlan.intfID = 1;
+  thriftVlan.intfID_ref().value_unchecked() = 1;
   thriftVlan.routable = true;
   thriftVlan.ipAddresses = {"10.0.0.1"};
-  thriftVlan.dhcpRelayAddressV4 = "10.1.2.3";
+  thriftVlan.dhcpRelayAddressV4_ref().value_unchecked() = "10.1.2.3";
   thriftCfg.vlans.push_back(thriftVlan);
 
   cfg::Interface thriftIface;
   thriftIface.intfID = 1;
   thriftIface.vlanID = 1;
   thriftIface.ipAddresses.push_back("10.0.0.1/24");
-  thriftIface.mac = "02:01:02:03:04:05";
+  thriftIface.mac_ref().value_unchecked() = "02:01:02:03:04:05";
   thriftIface.__isset.mac = "02:01:02:03:04:05";
   thriftCfg.interfaces.push_back(thriftIface);
 
