@@ -64,6 +64,10 @@ class PortDescriptor {
          (type_ == PortType::AGGREGATE &&
           aggregatePortID_ == rhs.aggregatePortID_));
   }
+  bool operator<(const PortDescriptor& rhs) const {
+    return std::tie(type_, physicalPortID_, aggregatePortID_) <
+           std::tie(rhs.type_, rhs.physicalPortID_, rhs.aggregatePortID_);
+  }
   bool operator!=(const PortDescriptor& rhs) const {
     return !(*this == rhs);
   }
