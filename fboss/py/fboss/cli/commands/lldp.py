@@ -15,11 +15,17 @@ from fboss.cli.commands import commands as cmds
 
 
 class LldpCmd(cmds.FbossCmd):
-    def run(self, lldp_port, verbosity):
+    def _get_lldp_neighbors(self):
         with self._create_agent_client() as client:
-            resp = client.getLldpNeighbors()
-            self._AllPortsInfo = client.getAllPortInfo()
-        if not resp:
+            lldp_nbrs = client.getLldpNeighbors()
+            self._allPortsInfo = client.getAllPortInfo()
+
+        return sorted(lldp_nbrs, key=self._port_sort_fn) if lldp_nbrs else None
+
+    def run(self, lldp_port, verbosity):
+        lldp_nbrs = self._get_lldp_neighbors()
+
+        if not lldp_nbrs:
             print("No neighbors found")
             return
 
@@ -44,7 +50,7 @@ class LldpCmd(cmds.FbossCmd):
                           for key, value in headers.items())
 
         entries = []
-        for neighbor in sorted(resp, key=self._port_sort_fn):
+        for neighbor in lldp_nbrs:
             if (lldp_port and not neighbor.localPort == lldp_port):
                 continue
             fields = self._get_fields(neighbor)
@@ -64,7 +70,7 @@ class LldpCmd(cmds.FbossCmd):
             self._print_verbose(entries, headers)
 
     def _port_sort_fn(self, neighbor):
-        port_name = self._AllPortsInfo[neighbor.localPort].name
+        port_name = self._allPortsInfo[neighbor.localPort].name
         return utils.port_name_sort_fn(port_name)
 
     def _print_fields(self, selected, fields, headers, max_widths):
@@ -125,7 +131,7 @@ class LldpCmd(cmds.FbossCmd):
 
     def _get_fields(self, neighbor):
         fields = {}
-        fields['local_port'] = self._AllPortsInfo[neighbor.localPort].name
+        fields['local_port'] = self._allPortsInfo[neighbor.localPort].name
         fields['local_vlan'] = neighbor.localVlan
         fields['mac'] = neighbor.srcMac
         fields['chassis'] = neighbor.printableChassisId
