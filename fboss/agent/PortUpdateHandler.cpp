@@ -31,8 +31,8 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
       delta.getPortsDelta(),
       [&](const std::shared_ptr<Port>& oldPort,
           const std::shared_ptr<Port>& newPort) {
-
-        if (oldPort->isUp() && !newPort->isUp()) {
+        if ((oldPort->isUp() && !newPort->isUp()) ||
+            (oldPort->isEnabled() && !newPort->isEnabled())) {
           if (sw_->getLldpMgr()) {
             sw_->getLldpMgr()->portDown(newPort->getID());
           }
@@ -63,9 +63,9 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
         for (SwitchStats& switchStats : sw_->getAllThreadsSwitchStats()) {
           switchStats.deletePortStats(oldPort->getID());
         }
-          if (sw_->getLldpMgr()) {
-            sw_->getLldpMgr()->portDown(oldPort->getID());
-          }
+        if (sw_->getLldpMgr()) {
+          sw_->getLldpMgr()->portDown(oldPort->getID());
+        }
       });
 }
 }}
