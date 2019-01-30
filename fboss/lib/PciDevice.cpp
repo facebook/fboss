@@ -86,7 +86,7 @@ void PciDevice::open() {
   }
 
   // All is good, device created correctly
-  XLOG(INFO) << folly::format("Created PCI access for {:04x}:{:04x}",
+  XLOG(DBG1) << folly::format("Created PCI access for {:04x}:{:04x}",
                               vendorId_,
                               deviceId_);
 }
