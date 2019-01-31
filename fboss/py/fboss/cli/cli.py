@@ -371,6 +371,17 @@ class PortTransceiver(object):
                 verbose=True, internal=False, all=all)
 
 
+def raise_exception_port_command_reorg():
+    raise Exception(''' D13745157 reorganized/renamed commands:
+
+        fboss port status [--all]       => fboss port state show [--all]
+        fboss port enable               => fboss port state enable
+        fboss port disable              => fboss port state disable
+        fboss port flap [--all]         => fboss port state flap [--all]
+
+        port port status --verbose      => fboss port transceiver show  ''')
+
+
 class PortCli(object):
     ''' Port sub-commands '''
 
@@ -404,21 +415,21 @@ class PortCli(object):
     @click.pass_obj
     def _flap(cli_opts, ports, all):
         ''' Flap given [port(s)] '''
-        port.PortFlapCmd(cli_opts).run(ports, all)
+        raise_exception_port_command_reorg()
 
     @click.command()
     @click.argument('ports', nargs=-1, required=True, type=PortType())
     @click.pass_obj
     def _enable(cli_opts, ports):
         ''' Enable given [port(s)] '''
-        port.PortSetStatusCmd(cli_opts).run(ports, True)
+        raise_exception_port_command_reorg()
 
     @click.command()
     @click.argument('ports', nargs=-1, required=True, type=PortType())
     @click.pass_obj
     def _disable(cli_opts, ports):
         ''' Disable given [port(s)] '''
-        port.PortSetStatusCmd(cli_opts).run(ports, False)
+        raise_exception_port_command_reorg()
 
     @click.command()
     @click.argument('ports', nargs=-1, type=PortType())
@@ -431,7 +442,7 @@ class PortCli(object):
     @click.pass_obj
     def _status(cli_opts, detail, ports, verbose, internal, all):
         ''' Show port status '''
-        port.PortStatusCmd(cli_opts).run(detail, ports, verbose, internal, all)
+        raise_exception_port_command_reorg()
 
     @click.command()
     @click.argument('ports', nargs=-1, type=PortType())
