@@ -305,6 +305,72 @@ class Stats(object):
         port.PortStatsClearCmd(cli_opts).run(ports)
 
 
+class PortState(object):
+    ''' Port state sub-commands '''
+
+    def __init__(self):
+        self.state.add_command(self._show, name='show')
+        self.state.add_command(self._enable, name='enable')
+        self.state.add_command(self._disable, name='disable')
+        self.state.add_command(self._flap, name='flap')
+
+    @click.group(cls=AliasedGroup)  # noqa: B902
+    def state():
+        ''' Port state commands '''
+        pass
+
+    @click.command()
+    @click.argument('ports', nargs=-1, type=PortType())
+    @click.option('--all', is_flag=True, help='Display Disabled ports')
+    @click.pass_obj
+    def _show(cli_opts, ports, all):  # noqa: B902
+        ''' Show port state for given [port(s)] '''
+        port.PortStatusCmd(cli_opts).run(detail=False, ports=ports,
+                verbose=False, internal=False, all=all)
+
+    @click.command()
+    @click.argument('ports', nargs=-1, type=PortType())
+    @click.pass_obj
+    def _enable(cli_opts, ports):  # noqa: B902
+        ''' Enable port state for given [port(s)] '''
+        port.PortSetStatusCmd(cli_opts).run(ports, True)
+
+    @click.command()
+    @click.argument('ports', nargs=-1, type=PortType())
+    @click.pass_obj
+    def _disable(cli_opts, ports):  # noqa: B902
+        ''' Disable port state for given [port(s)] '''
+        port.PortSetStatusCmd(cli_opts).run(ports, False)
+
+    @click.command()
+    @click.argument('ports', nargs=-1, type=PortType())
+    @click.option('--all', is_flag=True, help='Flap all Present but Down ports')
+    @click.pass_obj
+    def _flap(cli_opts, ports, all):  # noqa: B902
+        ''' Flap port state for given [port(s)] '''
+        port.PortFlapCmd(cli_opts).run(ports, all)
+
+
+class PortTransceiver(object):
+    ''' Port transceiver sub-commands '''
+
+    def __init__(self):
+        self.transceiver.add_command(self._transceiver, name='show')
+
+    @click.group(cls=AliasedGroup)  # noqa: B902
+    def transceiver():
+        ''' Port transceiver commands '''
+        pass
+
+    @click.command()
+    @click.argument('ports', nargs=-1, type=PortType())
+    @click.pass_obj
+    def _transceiver(cli_opts, ports):  # noqa: B902
+        ''' Show port transceiver for given [port(s)] '''
+        port.PortStatusCmd(cli_opts).run(detail=False, ports=ports,
+                verbose=True, internal=False, all=all)
+
+
 class PortCli(object):
     ''' Port sub-commands '''
 
@@ -315,6 +381,9 @@ class PortCli(object):
         self.port.add_command(self._enable, name='enable')
         self.port.add_command(self._disable, name='disable')
         self.port.add_command(self._description, name='description')
+
+        self.port.add_command(PortState().state)
+        self.port.add_command(PortTransceiver().transceiver)
         self.port.add_command(Stats().stats)
 
     @click.group(cls=AliasedGroup)
