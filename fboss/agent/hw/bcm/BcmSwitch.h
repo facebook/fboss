@@ -352,6 +352,7 @@ class BcmSwitch : public BcmSwitchIf {
   }
 
   BcmRouteTable* writableRouteTable() const { return routeTable_.get(); }
+  const BcmRouteTable* routeTable() const { return routeTable_.get(); }
 
   const BcmMirrorTable* getBcmMirrorTable() const override {
     return mirrorTable_.get();

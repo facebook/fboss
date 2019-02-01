@@ -46,6 +46,10 @@ class BcmRoute {
                                   uint8_t prefixLength);
   folly::dynamic toFollyDynamic() const;
 
+  opennsl_if_t getEgressId() const {
+    return egressId_;
+  }
+
  private:
   void programHostRoute(opennsl_if_t egressId,
                         const RouteNextHopEntry& fwd,
