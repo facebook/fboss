@@ -142,6 +142,11 @@ void checkField(const ExpectedType& expected, const ActualType& actual,
  *       2401:db00:2110:3055::0001/64
  */
 std::shared_ptr<SwitchState> testStateA();
+/*
+ * Same as testStateA but with all ports
+ * enabled and up
+ */
+std::shared_ptr<SwitchState> testStateAWithPortsUp();
 
 /*
  * Test may want to tweak default configuration
@@ -170,6 +175,11 @@ cfg::SwitchConfig testConfigA();
  */
 std::shared_ptr<SwitchState> testStateB();
 
+/*
+ * Same as testStateA but with all ports
+ * enabled and up
+ */
+std::shared_ptr<SwitchState> testStateBWithPortsUp();
 /*
  * Convenience macro that wraps EXPECT_CALL() on the underlying MockHwSwitch
  */

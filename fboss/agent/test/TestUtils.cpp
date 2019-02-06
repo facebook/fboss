@@ -55,7 +55,7 @@ using ::testing::NiceMock;
 
 DEFINE_bool(switch_hw, false, "Run tests for actual hw");
 
-namespace facebook { namespace fboss {
+using namespace facebook::fboss;
 
 namespace {
 
@@ -127,7 +127,19 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithHW(
   return sw;
 }
 
+shared_ptr<SwitchState> bringAllPortsUp(const shared_ptr<SwitchState>& in) {
+  auto newState = in->clone();
+  auto newPortMap = newState->getPorts()->modify(&newState);
+  for (auto port : *newPortMap) {
+    port->setOperState(true /* up */);
+    port->setAdminState(cfg::PortState::ENABLED);
+  }
+  return newState;
 }
+}
+
+namespace facebook { namespace fboss {
+
 
 shared_ptr<SwitchState> publishAndApplyConfig(
     shared_ptr<SwitchState>& state,
@@ -428,6 +440,10 @@ shared_ptr<SwitchState> testStateA() {
   return state;
 }
 
+shared_ptr<SwitchState> testStateAWithPortsUp() {
+  return bringAllPortsUp(testStateA());
+}
+
 shared_ptr<SwitchState> testStateB() {
   // Setup a default state object
   auto state = make_shared<SwitchState>();
@@ -462,6 +478,10 @@ shared_ptr<SwitchState> testStateB() {
   auto newRt = updater.updateDone();
   state->resetRouteTables(newRt);
   return state;
+}
+
+shared_ptr<SwitchState> testStateBWithPortsUp() {
+  return bringAllPortsUp(testStateB());
 }
 
 std::string fbossHexDump(const IOBuf* buf) {
