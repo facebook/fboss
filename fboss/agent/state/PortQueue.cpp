@@ -64,7 +64,8 @@ state::PortQueueFields PortQueueFields::toThrift() const {
 // static, public
 PortQueueFields PortQueueFields::fromThrift(
     state::PortQueueFields const& queueThrift) {
-  PortQueueFields queue(static_cast<uint8_t>(queueThrift.id));
+  PortQueueFields queue;
+  queue.id = static_cast<uint8_t>(queueThrift.id);
 
   auto const itrStreamType = cfg::_StreamType_NAMES_TO_VALUES.find(
       queueThrift.streamType.c_str());
@@ -102,9 +103,6 @@ PortQueueFields PortQueueFields::fromThrift(
   }
 
   return queue;
-}
-
-PortQueue::PortQueue(uint8_t id) : ThriftyBaseT(id) {
 }
 
 bool comparePortQueueAQMs(

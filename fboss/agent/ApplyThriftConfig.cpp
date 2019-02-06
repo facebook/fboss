@@ -621,7 +621,7 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
 
 std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
     const cfg::PortQueue* cfg) {
-  auto queue = std::make_shared<PortQueue>(cfg->id);
+  auto queue = std::make_shared<PortQueue>(static_cast<uint8_t>(cfg->id));
   queue->setStreamType(cfg->streamType);
   queue->setScheduling(cfg->scheduling);
   if (cfg->__isset.weight) {
@@ -666,7 +666,7 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
   // Otherwise we reset it to the default values for this queue type
   for (int i = 0; i < origPortQueues.size(); i++) {
     auto newQueueIter = newQueues.find(i);
-    auto newQueue = std::make_shared<PortQueue>(i);
+    auto newQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(i));
     newQueue->setStreamType(origPortQueues.at(i)->getStreamType());
     if (newQueueIter != newQueues.end()) {
       newQueue = updatePortQueue(origPortQueues.at(i), newQueueIter->second);

@@ -69,7 +69,7 @@ cfg::SwitchConfig generateTestConfig() {
 }
 
 PortQueue* generatePortQueue() {
-  PortQueue* pqObject = new PortQueue(5);
+  PortQueue* pqObject = new PortQueue(static_cast<uint8_t>(5));
   pqObject->setScheduling(cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
   pqObject->setStreamType(cfg::StreamType::UNICAST);
   pqObject->setWeight(5);
@@ -86,7 +86,7 @@ PortQueue* generatePortQueue() {
 }
 
 PortQueue* generateProdPortQueue() {
-  PortQueue* pqObject = new PortQueue(0);
+  PortQueue* pqObject = new PortQueue(static_cast<uint8_t>(0));
   pqObject->setWeight(1);
   pqObject->setStreamType(cfg::StreamType::UNICAST);
   pqObject->setReservedBytes(3328);
@@ -96,7 +96,7 @@ PortQueue* generateProdPortQueue() {
 }
 
 PortQueue* generateProdCPUPortQueue() {
-  PortQueue* pqObject = new PortQueue(1);
+  PortQueue* pqObject = new PortQueue(static_cast<uint8_t>(1));
   pqObject->setName("cpuQueue-default");
   pqObject->setStreamType(cfg::StreamType::MULTICAST);
   pqObject->setWeight(1);
@@ -109,7 +109,7 @@ PortQueue* generateProdCPUPortQueue() {
 
 PortQueue* generateDefaultPortQueue() {
   // Most of the queues in our system are using default values
-  PortQueue* pqObject = new PortQueue(1);
+  PortQueue* pqObject = new PortQueue(static_cast<uint8_t>(1));
   return pqObject;
 }
 
@@ -119,7 +119,7 @@ std::shared_ptr<SwitchState> applyInitConfig() {
   stateV0->registerPort(PortID(1), "port1");
   auto port0 = stateV0->getPort(PortID(1));
   QueueConfig initialQueues;
-  for (int i = 0; i < kStateTestDefaultNumPortQueues; i++) {
+  for (uint8_t i = 0; i < kStateTestDefaultNumPortQueues; i++) {
     auto q = std::make_shared<PortQueue>(i);
     q->setScheduling(cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
     q->setWeight(1);
