@@ -809,7 +809,17 @@ struct Fields {
 }
 
 enum HashingAlgorithm {
-  CRC16_CCITT = 1
+  CRC16_CCITT = 1,
+  CRC16_XOR8  = 2,
+
+  CRC32_LO = 3,
+  CRC32_HI = 4,
+
+  CRC32_ETHERNET_LO = 5,
+  CRC32_ETHERNET_HI = 6,
+
+  CRC32_KOOPMAN_LO  = 7,
+  CRC32_KOOPMAN_HI  = 8,
 }
 
 struct LoadBalancer {

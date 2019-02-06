@@ -193,6 +193,7 @@ class BcmRtag7Module {
 
   void enableFlowLabelSelection();
   int getFlowLabelSubfields() const;
+  int getBcmHashingAlgorithm(cfg::HashingAlgorithm algorithm) const;
 
   // This is a small warpper around opennsl_switch_control_set(unit, ...) that
   // defaults the unit to HwSwitch::getUnit()

@@ -22,5 +22,14 @@ void BcmRtag7Module::enableFlowLabelSelection() {
   throw FbossError("Flow label symbols not exported by OpenNSL");
 }
 
+int BcmRtag7Module::getBcmHashingAlgorithm(
+    cfg::HashingAlgorithm algorithm) const {
+  if (algorithm == cfg::HashingAlgorithm::CRC16_CCITT) {
+    return OPENNSL_HASH_FIELD_CONFIG_CRC16CCITT;
+  }
+
+  throw FbossError("Unrecognized HashingAlgorithm");
+}
+
 } // namespace fboss
 } // namespace facebook

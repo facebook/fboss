@@ -94,13 +94,8 @@ void BcmRtag7Module::programPreprocessing(bool enable) {
 
 void BcmRtag7Module::programAlgorithm(cfg::HashingAlgorithm algorithm) {
   int rv;
-  int arg;
 
-  if (algorithm == cfg::HashingAlgorithm::CRC16_CCITT) {
-    arg = OPENNSL_HASH_FIELD_CONFIG_CRC16CCITT;
-  } else {
-    throw FbossError("Unrecognized HashingAlgorithm");
-  }
+  int arg = getBcmHashingAlgorithm(algorithm);
 
   // Each block calculates two 16-bit hashes using two different functions. We
   // currently do not leverage the second hash value so we set its function to

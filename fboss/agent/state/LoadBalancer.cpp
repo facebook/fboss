@@ -97,6 +97,13 @@ std::shared_ptr<LoadBalancer> LoadBalancer::fromFollyDynamic(
   auto algorithm = static_cast<cfg::HashingAlgorithm>(json[kAlgorithm].asInt());
   switch (algorithm) {
     case cfg::HashingAlgorithm::CRC16_CCITT:
+    case cfg::HashingAlgorithm::CRC16_XOR8:
+    case cfg::HashingAlgorithm::CRC32_LO:
+    case cfg::HashingAlgorithm::CRC32_HI:
+    case cfg::HashingAlgorithm::CRC32_ETHERNET_LO:
+    case cfg::HashingAlgorithm::CRC32_ETHERNET_HI:
+    case cfg::HashingAlgorithm::CRC32_KOOPMAN_LO:
+    case cfg::HashingAlgorithm::CRC32_KOOPMAN_HI:
       // valid
       break;
     default:
