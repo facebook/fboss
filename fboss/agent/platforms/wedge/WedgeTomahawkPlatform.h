@@ -37,6 +37,10 @@ class WedgeTomahawkPlatform : public WedgePlatform {
   bool v6MirrorTunnelSupported() const override {
     return false;
   }
+  const PortQueue& getDefaultPortQueueSettings(
+    cfg::StreamType streamType) const override;
+  const PortQueue& getDefaultControlPlaneQueueSettings(
+    cfg::StreamType streamType) const override;
 };
 
 } // namespace fboss

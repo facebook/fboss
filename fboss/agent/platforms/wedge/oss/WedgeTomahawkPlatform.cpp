@@ -7,27 +7,17 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/wedge/Wedge40Platform.h"
-
-#include <folly/Range.h>
+#include "fboss/agent/platforms/wedge/WedgeTomahawkPlatform.h"
 
 namespace facebook { namespace fboss {
-
-folly::ByteRange Wedge40Platform::defaultLed0Code() {
-  return folly::ByteRange();
-}
-
-folly::ByteRange Wedge40Platform::defaultLed1Code() {
-  return defaultLed0Code();
-}
-
-const PortQueue& Wedge40Platform::getDefaultPortQueueSettings(
+const PortQueue& WedgeTomahawkPlatform::getDefaultPortQueueSettings(
     cfg::StreamType /*streamType*/) const {
   throw FbossError("PortQueue setting is not supported");
 }
 
-const PortQueue& Wedge40Platform::getDefaultControlPlaneQueueSettings(
+const PortQueue&
+WedgeTomahawkPlatform::getDefaultControlPlaneQueueSettings(
     cfg::StreamType /*streamType*/) const {
-  throw FbossError("ControlPlaneQueue setting is not supported");
+  throw FbossError("PortQueue setting is not supported");
 }
-}} // facebook::fboss
+}}

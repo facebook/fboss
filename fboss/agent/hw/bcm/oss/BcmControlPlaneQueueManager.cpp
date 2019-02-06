@@ -34,15 +34,6 @@ void BcmControlPlaneQueueManager::updateQueueStat(
     std::chrono::seconds /*now*/,
     HwPortStats* /*portStats*/) {}
 
-void BcmControlPlaneQueueManager::getReservedBytes(
-    opennsl_gport_t /*gport*/,
-    int /*queueIdx*/,
-    std::shared_ptr<PortQueue> /*queue*/) const {}
-void BcmControlPlaneQueueManager::programReservedBytes(
-    opennsl_gport_t /*gport*/,
-    int /*queueIdx*/,
-    const std::shared_ptr<PortQueue>& /*queue*/) {}
-
 int BcmControlPlaneQueueManager::getNumQueues(
     cfg::StreamType streamType) const {
   // if platform doesn't support cosq, return maxCPUQueue_

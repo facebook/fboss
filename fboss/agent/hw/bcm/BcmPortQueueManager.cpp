@@ -8,6 +8,8 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
+
+#include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmStatsConstants.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
@@ -83,4 +85,8 @@ BcmPortQueueConfig BcmPortQueueManager::getCurrentQueueSettings() const {
                             std::move(multicastQueues));
 }
 
+const PortQueue& BcmPortQueueManager::getDefaultQueueSettings(
+    cfg::StreamType streamType) const {
+  return hw_->getPlatform()->getDefaultPortQueueSettings(streamType);
+}
 }} // facebook::fboss

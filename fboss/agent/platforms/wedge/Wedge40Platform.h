@@ -40,6 +40,10 @@ class Wedge40Platform : public WedgePlatform {
   uint32_t getMMUCellBytes() const override {
     return 208;
   }
+  const PortQueue& getDefaultPortQueueSettings(
+    cfg::StreamType streamType) const override;
+  const PortQueue& getDefaultControlPlaneQueueSettings(
+    cfg::StreamType streamType) const override;
 
  private:
   Wedge40Platform(Wedge40Platform const &) = delete;

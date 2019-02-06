@@ -51,4 +51,9 @@ opennsl_gport_t BcmControlPlaneQueueManager::getQueueGPort(
     "Failed to retrieve queue gport because unsupported StreamType: ",
     cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second);
 }
+
+const PortQueue& BcmControlPlaneQueueManager::getDefaultQueueSettings(
+    cfg::StreamType streamType) const {
+  return hw_->getPlatform()->getDefaultControlPlaneQueueSettings(streamType);
+}
 }} //facebook::fboss

@@ -76,6 +76,8 @@ class PortQueue :
     return !(*this == queue);
   }
 
+  std::string toString() const;
+
   uint8_t getID() const {
     return getFields()->id;
   }

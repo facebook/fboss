@@ -10,6 +10,7 @@
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include <folly/Conv.h>
+#include <sstream>
 
 namespace {
 template<typename Param>
@@ -103,6 +104,44 @@ PortQueueFields PortQueueFields::fromThrift(
   }
 
   return queue;
+}
+
+std::string PortQueue::toString() const {
+  std::stringstream ss;
+  ss << "Queue id=" << static_cast<int>(getID())
+     << ", streamType=" << cfg::_StreamType_VALUES_TO_NAMES.at(getStreamType())
+     << ", scheduling="
+     << cfg::_QueueScheduling_VALUES_TO_NAMES.at(getScheduling())
+     << ", weight=" << getWeight();
+  if (getReservedBytes()) {
+    ss << ", reservedBytes=" << getReservedBytes().value();
+  }
+  if (getSharedBytes()) {
+    ss << ", sharedBytes=" << getSharedBytes().value();
+  }
+  if (getPacketsPerSec()) {
+    ss << ", packetsPerSec=" << getPacketsPerSec().value();
+  }
+  if (getScalingFactor()) {
+    ss << ", scalingFactor="
+       << cfg::_MMUScalingFactor_VALUES_TO_NAMES.at(getScalingFactor().value());
+  }
+  if (!getAqms().empty()) {
+    ss << ", aqms=[";
+    for (const auto& aqm: getAqms()) {
+      ss << "(behavior="
+         << cfg::_QueueCongestionBehavior_VALUES_TO_NAMES.at(aqm.first)
+         << ", detection=[min="
+         << aqm.second.get_detection().get_linear().minimumLength
+         << ", max=" << aqm.second.get_detection().get_linear().maximumLength
+         << "]), ";
+    }
+    ss << "]";
+  }
+  if (getName()) {
+    ss << ", name=" << getName().value();
+  }
+  return ss.str();
 }
 
 bool comparePortQueueAQMs(

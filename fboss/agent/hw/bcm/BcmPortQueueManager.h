@@ -51,13 +51,9 @@ public:
   static int CosQToBcmInternalPriority(opennsl_cos_queue_t cosQ);
   static opennsl_cos_queue_t bcmInternalPriorityToCosQ(int prio);
 
- protected:
-  void getReservedBytes(opennsl_gport_t gport,
-                        opennsl_cos_queue_t cosQ,
-                        std::shared_ptr<PortQueue> queue) const override;
-  void programReservedBytes(opennsl_gport_t gport,
-                            opennsl_cos_queue_t cosQ,
-                            const std::shared_ptr<PortQueue>& queue) override;
+protected:
+  const PortQueue& getDefaultQueueSettings(
+    cfg::StreamType streamType) const override;
 
 private:
   // Forbidden copy constructor and assignment operator

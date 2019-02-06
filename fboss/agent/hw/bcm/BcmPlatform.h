@@ -21,6 +21,7 @@ namespace facebook { namespace fboss {
 
 class BcmPlatformPort;
 class BcmWarmBootHelper;
+class PortQueue;
 
 /*
  * BcmPlatform specifies additional APIs that must be provided by platforms
@@ -83,6 +84,12 @@ class BcmPlatform : public Platform {
    * and accounting of MMU resources.
    */
   virtual uint32_t getMMUCellBytes() const = 0;
+
+  virtual const PortQueue&
+  getDefaultPortQueueSettings(cfg::StreamType streamType) const = 0;
+
+  virtual const PortQueue&
+  getDefaultControlPlaneQueueSettings(cfg::StreamType streamType) const = 0;
 
   virtual BcmWarmBootHelper* getWarmBootHelper() = 0;
 

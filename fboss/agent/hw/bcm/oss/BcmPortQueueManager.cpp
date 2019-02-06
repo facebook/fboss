@@ -53,13 +53,4 @@ void BcmPortQueueManager::programAqm(
     int /*queueIdx*/,
     cfg::QueueCongestionBehavior /*behavior*/,
     folly::Optional<cfg::QueueCongestionDetection> /*detection*/) {}
-
-void BcmPortQueueManager::getReservedBytes(
-    opennsl_gport_t /*gport*/,
-    int /*queueIdx*/,
-    std::shared_ptr<PortQueue> /*queue*/) const {}
-void BcmPortQueueManager::programReservedBytes(
-    opennsl_gport_t /*gport*/,
-    int /*queueIdx*/,
-    const std::shared_ptr<PortQueue>& /*queue*/) {}
 }} // facebook::fboss

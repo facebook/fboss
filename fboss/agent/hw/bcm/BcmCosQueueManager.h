@@ -112,6 +112,13 @@ public:
                         HwPortStats* portStats = nullptr);
 
 protected:
+  void getSchedulingAndWeight(opennsl_gport_t gport,
+                              opennsl_cos_queue_t cosQ,
+                              std::shared_ptr<PortQueue> queue) const;
+  void programSchedulingAndWeight(opennsl_gport_t gport,
+                                  opennsl_cos_queue_t cosQ,
+                                  const std::shared_ptr<PortQueue>& queue);
+
   int getControlValue(cfg::StreamType streamType,
                       opennsl_gport_t gport,
                       opennsl_cos_queue_t cosQ,
@@ -123,20 +130,12 @@ protected:
                            BcmCosQueueControlType ctrlType,
                            int value);
 
-  void getSchedulingAndWeight(opennsl_gport_t gport,
-                              opennsl_cos_queue_t cosQ,
-                              std::shared_ptr<PortQueue> queue) const;
-  void programSchedulingAndWeight(opennsl_gport_t gport,
-                                  opennsl_cos_queue_t cosQ,
-                                  const std::shared_ptr<PortQueue>& queue);
-
-  virtual void getReservedBytes(opennsl_gport_t gport,
-                                opennsl_cos_queue_t cosQ,
-                                std::shared_ptr<PortQueue> queue) const = 0;
-  virtual void programReservedBytes(
-    opennsl_gport_t gport,
-    opennsl_cos_queue_t cosQ,
-    const std::shared_ptr<PortQueue>& queue) = 0;
+  void getReservedBytes(opennsl_gport_t gport,
+                        opennsl_cos_queue_t cosQ,
+                        std::shared_ptr<PortQueue> queue) const;
+  void programReservedBytes(opennsl_gport_t gport,
+                            opennsl_cos_queue_t cosQ,
+                            const std::shared_ptr<PortQueue>& queue);
 
   void getSharedBytes(opennsl_gport_t gport,
                       opennsl_cos_queue_t cosQ,
@@ -151,6 +150,9 @@ protected:
   void programBandwidth(opennsl_gport_t gport,
                         opennsl_cos_queue_t cosQ,
                         const std::shared_ptr<PortQueue>& queue);
+
+  virtual const PortQueue& getDefaultQueueSettings(
+    cfg::StreamType streamType) const = 0;
 
   const BcmSwitch* hw_;
   // owner port name of this cosq manager

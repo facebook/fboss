@@ -41,12 +41,8 @@ public:
   getQueueCounterTypes() const override;
 
 protected:
-  void getReservedBytes(opennsl_gport_t gport,
-                        int queueIdx,
-                        std::shared_ptr<PortQueue> queue) const override;
-  void programReservedBytes(opennsl_gport_t gport,
-                            int queueIdx,
-                            const std::shared_ptr<PortQueue>& queue) override;
+  const PortQueue& getDefaultQueueSettings(
+    cfg::StreamType streamType) const override;
 
 private:
   // Forbidden copy constructor and assignment operator
