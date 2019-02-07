@@ -22,27 +22,28 @@ from thrift.transport.TTransport import TTransportException
 
 class PortDetailsCmd(cmds.FbossCmd):
     def run(self, ports, show_down=True):
-        try:
-            self._client = self._create_agent_client()
-            resp = self._client.getAllPortInfo()
 
-        except FbossBaseError as e:
-            raise SystemExit('Fboss Error: ' + str(e))
-        except Exception as e:
-            raise Exception('Error: ' + str(e))
+        with self._create_agent_client() as client:
+            try:
+                resp = client.getAllPortInfo()
 
-        def use_port(port):
-            return (show_down or port.operState == 1) and \
-                   (not ports or port.portId in ports or port.name in ports)
+            except FbossBaseError as e:
+                raise SystemExit('Fboss Error: ' + str(e))
+            except Exception as e:
+                raise Exception('Error: ' + str(e))
 
-        port_details = {k: v for k, v in resp.items() if use_port(v)}
+            def use_port(port):
+                return (show_down or port.operState == 1) and \
+                       (not ports or port.portId in ports or port.name in ports)
 
-        if not port_details:
-            print("No ports found")
+            port_details = {k: v for k, v in resp.items() if use_port(v)}
 
-        for port in sorted(port_details.values(), key=utils.port_sort_fn):
-            self._print_port_details(port)
-            self._print_port_counters(port)
+            if not port_details:
+                print("No ports found")
+
+            for port in sorted(port_details.values(), key=utils.port_sort_fn):
+                self._print_port_details(port)
+                self._print_port_counters(client, port)
 
     def _convert_bps(self, bps):
         ''' convert bps to human readable form
@@ -145,7 +146,7 @@ class PortDetailsCmd(cmds.FbossCmd):
                     attrs1.append("{}={}".format("ecn", ecn))
                     print('{:<5}{}'.format('', ",".join(attrs1)))
 
-    def _print_port_counters(self, port_info):
+    def _print_port_counters(self, client, port_info):
         pass
 
 
