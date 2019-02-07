@@ -29,7 +29,6 @@
 #include <boost/cast.hpp>
 #include "gmock/gmock.h"
 #include <gtest/gtest.h>
-#include <thread>
 
 using ::testing::AtLeast;
 
@@ -46,12 +45,14 @@ using ::testing::_;
 namespace {
 
 const MacAddress testLocalMac = MacAddress("00:00:00:00:00:02");
-unique_ptr<HwTestHandle> setupTestHandle() {
+unique_ptr<HwTestHandle> setupTestHandle(bool enableLldp=false) {
   // Setup a default state object
   // reusing this, as this seems to be legit RSW config under which we should
   // do any unit tests.
+  auto switchFlags =
+      enableLldp ? SwitchFlags::ENABLE_LLDP : SwitchFlags::DEFAULT;
   auto state = testStateAWithPortsUp();
-  return createTestHandle(state, testLocalMac);
+  return createTestHandle(state, testLocalMac, switchFlags);
 }
 
 TxMatchFn checkLldpPDU() {
@@ -141,6 +142,30 @@ TEST(LldpManagerTest, LldpSendPeriodic) {
   LldpManager lldpManager(sw);
   lldpManager.start();
   lldpManager.stop();
+}
+
+TEST(LldpManagerTest, NoLldpPktsIfSwitchConfigured) {
+  auto handle = setupTestHandle(true /*enableLldp*/);
+  auto sw = handle->getSw();
+
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPortAsync_(
+          TxPacketMatcher::createMatcher("Lldp PDU", checkLldpPDU()), _, _))
+      .Times(AtLeast(0));
+}
+
+TEST(LldpManagerTest, LldpPktsPostConfigured) {
+  auto handle = setupTestHandle(true /*enableLldp*/);
+  auto sw = handle->getSw();
+
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPortAsync_(
+          TxPacketMatcher::createMatcher("Lldp PDU", checkLldpPDU()), _, _))
+      .Times(AtLeast(1));
+  // Initial state applied, no more config to apply
+  sw->initialConfigApplied(std::chrono::steady_clock::now());
 }
 
 TEST(LldpManagerTest, NotEnabledTest) {
