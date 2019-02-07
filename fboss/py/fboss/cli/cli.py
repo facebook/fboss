@@ -326,7 +326,7 @@ class PortState(object):
     def _show(cli_opts, ports, all):  # noqa: B902
         ''' Show port state for given [port(s)] '''
         port.PortStatusCmd(cli_opts).run(detail=False, ports=ports,
-                verbose=False, internal=False, all=all)
+                verbose=False, internal=True, all=all)
 
     @click.command()
     @click.argument('ports', nargs=-1, type=PortType())

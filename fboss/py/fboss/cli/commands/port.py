@@ -98,7 +98,7 @@ class PortDetailsCmd(cmds.FbossCmd):
         fmt = '{:.<50}{}'
         lines = [
             ('Name', port_info.name.strip()),
-            ('Port ID', str(port_info.portId)),
+            ('ID', str(port_info.portId)),
             ('Description', port_info.description or ""),
             ('Admin State', admin_status),
             ('Link State', oper_status),
@@ -309,13 +309,13 @@ class PortStatusCmd(cmds.FbossCmd):
 
     def _get_field_format(self, internal_port):
         if internal_port:
-            field_fmt = '{:>6} {:<11} {:>12}  {}{:>10}  {:>12}  {:>6}'
-            print(field_fmt.format('Port ID', 'Port Name', 'Admin State', '',
-                                   'Link State', 'Transceiver', 'Speed'))
-            print('-' * 68)
+            field_fmt = '{:<6} {:>11} {:>12}  {}{:>10}  {:>12}  {:>6}'
+            print(field_fmt.format('ID', 'Name', 'AdminState', '',
+                                   'LinkState', 'Transceiver', 'Speed'))
+            print('-' * 67)
         else:
             field_fmt = '{:<11} {:>12}  {}{:>10}  {:>12}  {:>6}'
-            print(field_fmt.format('Port', 'Admin State', '', 'Link State',
+            print(field_fmt.format('Name', 'Admin State', '', 'Link State',
                                    'Transceiver', 'Speed'))
             print('-' * 59)
         return field_fmt
