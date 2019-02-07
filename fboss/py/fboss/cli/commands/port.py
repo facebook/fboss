@@ -168,43 +168,46 @@ class PortFlapCmd(cmds.FbossCmd):
         except FbossBaseError as e:
             raise SystemExit('Fboss Error: ' + e)
 
+        if hasattr(self, '_qsfp_client') and self._qsfp_client:
+            self._qsfp_client.__exit__(exec, None, None)
+
     def flap_ports(self, ports, flap_time=FLAP_TIME):
-        self._client = self._create_agent_client()
-        resp = self._client.getPortStatus(ports)
-        for port, status in resp.items():
-            if not status.enabled:
-                print("Port %d is disabled by configuration, cannot flap" %
-                      (port))
-                continue
-            print("Disabling port %d" % (port))
-            self._client.setPortState(port, False)
-        time.sleep(flap_time)
-        for port, status in resp.items():
-            if status.enabled:
-                print("Enabling port %d" % (port))
-                self._client.setPortState(port, True)
+        with self._create_agent_client() as client:
+            resp = client.getPortStatus(ports)
+            for port, status in resp.items():
+                if not status.enabled:
+                    print("Port %d is disabled by configuration, cannot flap" %
+                          (port))
+                    continue
+                print("Disabling port %d" % (port))
+                client.setPortState(port, False)
+            time.sleep(flap_time)
+            for port, status in resp.items():
+                if status.enabled:
+                    print("Enabling port %d" % (port))
+                    client.setPortState(port, True)
 
     def flap_all_ports(self, flap_time=FLAP_TIME):
-        self._client = self._create_agent_client()
-        qsfp_info_map = utils.get_qsfp_info_map(
-            self._qsfp_client, None, continue_on_error=True)
-        resp = self._client.getPortStatus()
-        flapped_ports = []
-        for port, status in resp.items():
-            if status.enabled and not status.up:
-                qsfp_present = False
-                if status.transceiverIdx and self._qsfp_client:
-                    qsfp_info = qsfp_info_map.get(
-                        status.transceiverIdx.transceiverId)
-                    qsfp_present = qsfp_info.present if qsfp_info else False
-                if qsfp_present:
-                    print("Disabling port %d" % (port))
-                    self._client.setPortState(port, False)
-                    flapped_ports.append(port)
-        time.sleep(flap_time)
-        for port in flapped_ports:
-            print("Enabling port %d" % (port))
-            self._client.setPortState(port, True)
+        with self._create_agent_client() as client:
+            qsfp_info_map = utils.get_qsfp_info_map(
+                self._qsfp_client, None, continue_on_error=True)
+            resp = client.getPortStatus()
+            flapped_ports = []
+            for port, status in resp.items():
+                if status.enabled and not status.up:
+                    qsfp_present = False
+                    if status.transceiverIdx and self._qsfp_client:
+                        qsfp_info = qsfp_info_map.get(
+                            status.transceiverIdx.transceiverId)
+                        qsfp_present = qsfp_info.present if qsfp_info else False
+                    if qsfp_present:
+                        print("Disabling port %d" % (port))
+                        client.setPortState(port, False)
+                        flapped_ports.append(port)
+            time.sleep(flap_time)
+            for port in flapped_ports:
+                print("Enabling port %d" % (port))
+                client.setPortState(port, True)
 
 
 class PortSetStatusCmd(cmds.FbossCmd):
@@ -215,11 +218,11 @@ class PortSetStatusCmd(cmds.FbossCmd):
             raise SystemExit('Fboss Error: ' + e)
 
     def set_status(self, ports, status):
-        self._client = self._create_agent_client()
-        for port in ports:
-            status_str = 'Enabling' if status else 'Disabling'
-            print("{} port {}".format(status_str, port))
-            self._client.setPortState(port, status)
+        with self._create_agent_client() as client:
+            for port in ports:
+                status_str = 'Enabling' if status else 'Disabling'
+                print("{} port {}".format(status_str, port))
+                client.setPortState(port, status)
 
 
 class PortStatsCmd(cmds.FbossCmd):
@@ -285,21 +288,24 @@ class PortStatsClearCmd(cmds.FbossCmd):
 
 class PortStatusCmd(cmds.FbossCmd):
     def run(self, detail, ports, verbose, internal, all):
-        self._client = self._create_agent_client()
-        try:
-            self._qsfp_client = self._create_qsfp_client()
-        except TTransportException:
-            self._qsfp_client = None
-        if detail or verbose:
-            PortStatusDetailCmd(
-                self._client, ports, self._qsfp_client, verbose
-            ).get_detail_status()
-        elif internal:
-            self.list_ports(ports, internal_port=True)
-        elif all:
-            self.list_ports(ports, all=True)
-        else:
-            self.list_ports(ports)
+        with self._create_agent_client() as client:
+            try:
+                self._qsfp_client = self._create_qsfp_client()
+            except TTransportException:
+                self._qsfp_client = None
+            if detail or verbose:
+                PortStatusDetailCmd(
+                    client, ports, self._qsfp_client, verbose
+                ).get_detail_status()
+            elif internal:
+                self.list_ports(client, ports, internal_port=True)
+            elif all:
+                self.list_ports(client, ports, all=True)
+            else:
+                self.list_ports(client, ports)
+
+        if hasattr(self, '_qsfp_client') and self._qsfp_client:
+            self._qsfp_client.__exit__(exec, None, None)
 
     def _get_field_format(self, internal_port):
         if internal_port:
@@ -314,12 +320,12 @@ class PortStatusCmd(cmds.FbossCmd):
             print('-' * 59)
         return field_fmt
 
-    def list_ports(self, ports, internal_port=False, all=False):
+    def list_ports(self, client, ports, internal_port=False, all=False):
         field_fmt = self._get_field_format(internal_port)
-        port_status_map = self._client.getPortStatus(ports)
+        port_status_map = client.getPortStatus(ports)
         qsfp_info_map = utils.get_qsfp_info_map(
             self._qsfp_client, None, continue_on_error=True)
-        port_info_map = self._client.getAllPortInfo()
+        port_info_map = client.getAllPortInfo()
         missing_port_status = []
         for port_info in sorted(port_info_map.values(), key=utils.port_sort_fn):
             port_id = port_info.portId
