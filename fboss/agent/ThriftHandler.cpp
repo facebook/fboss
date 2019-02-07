@@ -480,7 +480,8 @@ void ThriftHandler::fillPortStats(PortInfoThrift& portInfo, int numPortQs) {
   for (int i=0; i<numPortQs; i++) {
     auto queue = folly::to<std::string>("queue", i, ".");
     QueueStats stats;
-    stats.congestionDiscards = getSumStat(queue, "out_congestion_discards");
+    stats.congestionDiscards =
+        getSumStat(queue, "out_congestion_discards_bytes");
     stats.outBytes = getSumStat(queue, "out_bytes");
     portInfo.output.unicast.push_back(stats);
   }

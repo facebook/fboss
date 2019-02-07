@@ -256,11 +256,11 @@ class PortStatsCmd(cmds.FbossCmd):
                                    self._get_lldp_string(port_id, n2ports, details)))
 
     def _get_counter_string(self, counters):
-        # bytes uPts mPts bPts err disc
+        # bytes uPkts mPkts bPkts errPkts discPkts
         field_fmt = '{:>15} {:>15} {:>10} {:>10} {:>10} {:>10}'
         if counters is None:
             return field_fmt.format("bytes", "uPkts", "mcPkts", "bcPkts",
-                                    "errs", "disc")
+                                    "errsPkts", "discPkts")
         else:
             return field_fmt.format(counters.bytes, counters.ucastPkts,
                                     counters.multicastPkts,
