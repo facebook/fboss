@@ -29,6 +29,8 @@
 #include <boost/cast.hpp>
 #include "gmock/gmock.h"
 #include <gtest/gtest.h>
+#include <thread>
+
 using ::testing::AtLeast;
 
 
@@ -125,6 +127,20 @@ TEST(LldpManagerTest, LldpSend) {
       .Times(AtLeast(1));
   LldpManager lldpManager(sw);
   lldpManager.sendLldpOnAllPorts();
+}
+
+TEST(LldpManagerTest, LldpSendPeriodic) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  EXPECT_HW_CALL(
+      sw,
+      sendPacketOutOfPortAsync_(
+          TxPacketMatcher::createMatcher("Lldp PDU", checkLldpPDU()), _, _))
+      .Times(AtLeast(1));
+  LldpManager lldpManager(sw);
+  lldpManager.start();
+  lldpManager.stop();
 }
 
 TEST(LldpManagerTest, NotEnabledTest) {

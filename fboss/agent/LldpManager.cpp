@@ -62,9 +62,9 @@ namespace facebook { namespace fboss {
 const MacAddress LldpManager::LLDP_DEST_MAC("01:80:c2:00:00:0e");
 
 LldpManager::LldpManager(SwSwitch* sw)
-  : folly::AsyncTimeout(sw->getBackgroundEvb()),
-    sw_(sw),
-    interval_(LLDP_INTERVAL) {}
+    : folly::AsyncTimeout(sw->getBackgroundEvb()),
+      sw_(sw),
+      intervalMsecs_(LLDP_INTERVAL) {}
 
 LldpManager::~LldpManager() {}
 
@@ -137,7 +137,7 @@ void LldpManager::timeoutExpired() noexcept {
     XLOG(ERR) << "Failed to send LLDP on all ports. Error:"
               << folly::exceptionStr(ex);
   }
-  scheduleTimeout(interval_);
+  scheduleTimeout(intervalMsecs_);
 }
 
 void LldpManager::sendLldpOnAllPorts() {

@@ -48,7 +48,8 @@ class LldpManager : private folly::AsyncTimeout {
                     TTL_TLV_LENGTH = 0x2,
                     TTL_TLV_VALUE = 120,
                     PDU_END_TLV_LENGTH = 0};
-  explicit LldpManager(SwSwitch* sw);
+  explicit LldpManager(
+      SwSwitch* sw);
   ~LldpManager() override;
   static const folly::MacAddress LLDP_DEST_MAC;
 
@@ -62,10 +63,14 @@ class LldpManager : private folly::AsyncTimeout {
   /*
    * Stop sending LLDP packets.
    *
-   * This must be called before while the SwSwitch background thread is still
+   * This must be called while the SwSwitch background thread is still
    * running.
    */
   void stop();
+
+  const std::chrono::milliseconds& getInterval() const {
+    return intervalMsecs_;
+  }
 
   void handlePacket(std::unique_ptr<RxPacket> pkt,
                     folly::MacAddress dst,
@@ -106,7 +111,7 @@ class LldpManager : private folly::AsyncTimeout {
   void sendLldpInfo(const std::shared_ptr<Port>& port);
 
   SwSwitch* sw_{nullptr};
-  std::chrono::milliseconds interval_;
+  std::chrono::milliseconds intervalMsecs_;
   LinkNeighborDB db_;
 };
 
