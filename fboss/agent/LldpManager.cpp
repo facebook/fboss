@@ -132,7 +132,7 @@ void LldpManager::handlePacket(
 
 void LldpManager::timeoutExpired() noexcept {
   try {
-    sendLldpOnAllPorts(true);
+    sendLldpOnAllPorts();
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Failed to send LLDP on all ports. Error:"
               << folly::exceptionStr(ex);
@@ -140,11 +140,11 @@ void LldpManager::timeoutExpired() noexcept {
   scheduleTimeout(interval_);
 }
 
-void LldpManager::sendLldpOnAllPorts(bool checkPortStatusFlag) {
+void LldpManager::sendLldpOnAllPorts() {
   // send lldp frames through all the ports here.
   std::shared_ptr<SwitchState> state = sw_->getState();
   for (const auto& port : *state->getPorts()) {
-    if (checkPortStatusFlag == false || port->isPortUp()) {
+    if (port->isPortUp()) {
       sendLldpInfo(port);
     } else {
       XLOG(DBG5) << "Skipping LLDP send as this port is disabled "

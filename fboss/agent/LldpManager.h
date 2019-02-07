@@ -84,7 +84,7 @@ class LldpManager : private folly::AsyncTimeout {
                 const uint16_t capabilities);
 
   // This function is internal.  It is only public for use in unit tests.
-  void sendLldpOnAllPorts(bool checkPortStatusFlag);
+  void sendLldpOnAllPorts();
 
   LinkNeighborDB* getDB() {
     return &db_;

@@ -48,7 +48,7 @@ unique_ptr<HwTestHandle> setupTestHandle() {
   // Setup a default state object
   // reusing this, as this seems to be legit RSW config under which we should
   // do any unit tests.
-  auto state = testStateA();
+  auto state = testStateAWithPortsUp();
   return createTestHandle(state, testLocalMac);
 }
 
@@ -124,7 +124,7 @@ TEST(LldpManagerTest, LldpSend) {
           TxPacketMatcher::createMatcher("Lldp PDU", checkLldpPDU()), _, _))
       .Times(AtLeast(1));
   LldpManager lldpManager(sw);
-  lldpManager.sendLldpOnAllPorts(false);
+  lldpManager.sendLldpOnAllPorts();
 }
 
 TEST(LldpManagerTest, NotEnabledTest) {
