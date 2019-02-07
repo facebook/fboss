@@ -90,6 +90,10 @@ inline folly::StringPiece constexpr kOutCongestionDiscards() {
   return "out_congestion_discards";
 }
 
+inline folly::StringPiece constexpr kOutCongestionDiscardsBytes() {
+  return "out_congestion_discards_bytes";
+}
+
 inline folly::StringPiece constexpr kOutEcnCounter() {
   return "out_ecn_counter";
 }

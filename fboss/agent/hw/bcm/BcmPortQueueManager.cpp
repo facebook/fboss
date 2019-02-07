@@ -19,12 +19,26 @@ namespace facebook { namespace fboss {
 const std::vector<BcmCosQueueCounterType>&
 BcmPortQueueManager::getQueueCounterTypes() const {
   static const std::vector<BcmCosQueueCounterType> types = {
-    {cfg::StreamType::UNICAST, BcmCosQueueStatType::DROPPED_BYTES,
-     BcmCosQueueCounterScope::QUEUES, kOutCongestionDiscards()},
-    {cfg::StreamType::UNICAST, BcmCosQueueStatType::OUT_BYTES,
-     BcmCosQueueCounterScope::QUEUES, kOutBytes()},
-    {cfg::StreamType::UNICAST, BcmCosQueueStatType::DROPPED_PACKETS,
-     BcmCosQueueCounterScope::AGGREGATED, kOutCongestionDiscards()}
+      {cfg::StreamType::UNICAST,
+       BcmCosQueueStatType::DROPPED_PACKETS,
+       BcmCosQueueCounterScope::QUEUES,
+       kOutCongestionDiscards()},
+      {cfg::StreamType::UNICAST,
+       BcmCosQueueStatType::DROPPED_BYTES,
+       BcmCosQueueCounterScope::QUEUES,
+       kOutCongestionDiscardsBytes()},
+      {cfg::StreamType::UNICAST,
+       BcmCosQueueStatType::OUT_BYTES,
+       BcmCosQueueCounterScope::QUEUES,
+       kOutBytes()},
+      {cfg::StreamType::UNICAST,
+       BcmCosQueueStatType::DROPPED_PACKETS,
+       BcmCosQueueCounterScope::AGGREGATED,
+       kOutCongestionDiscards()},
+      {cfg::StreamType::UNICAST,
+       BcmCosQueueStatType::DROPPED_BYTES,
+       BcmCosQueueCounterScope::AGGREGATED,
+       kOutCongestionDiscardsBytes()},
   };
   return types;
 }
