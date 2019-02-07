@@ -23,7 +23,6 @@ void WedgeManager::initTransceiverMap() {
 
   // Wedge port 0 is the CPU port, so the first port associated with
   // a QSFP+ is port 1.  We start the transceiver IDs with 0, though.
-  std::lock_guard<std::mutex> g(mutex_);
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
     auto qsfpImpl = std::make_unique<WedgeQsfp>(idx, wedgeI2cBus_.get());
     auto qsfp = std::make_unique<QsfpModule>(
@@ -102,7 +101,6 @@ void WedgeManager::syncPorts(
       }) |
       folly::gen::as<std::vector>();
 
-  std::lock_guard<std::mutex> g(mutex_);
   for (auto& group : groups) {
     int32_t transceiverIdx = group.key();
     XLOG(INFO) << "Syncing ports of transceiver " << transceiverIdx;
@@ -119,8 +117,6 @@ void WedgeManager::syncPorts(
 }
 
 void WedgeManager::refreshTransceivers() {
-  std::lock_guard<std::mutex> g(mutex_);
-
   wedgeI2cBus_->verifyBus(false);
 
   for (const auto& transceiver : transceivers_) {
