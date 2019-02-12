@@ -68,10 +68,6 @@ class LldpManager : private folly::AsyncTimeout {
    */
   void stop();
 
-  const std::chrono::milliseconds& getInterval() const {
-    return intervalMsecs_;
-  }
-
   void handlePacket(std::unique_ptr<RxPacket> pkt,
                     folly::MacAddress dst,
                     folly::MacAddress src,
