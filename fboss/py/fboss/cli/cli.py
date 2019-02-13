@@ -379,7 +379,7 @@ def raise_exception_port_command_reorg():
         fboss port disable              => fboss port state disable
         fboss port flap [--all]         => fboss port state flap [--all]
 
-        port port status --verbose      => fboss port transceiver show  ''')
+        fboss port status --verbose      => fboss port transceiver show  ''')
 
 
 class PortCli(object):
