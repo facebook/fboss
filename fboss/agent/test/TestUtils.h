@@ -152,6 +152,11 @@ std::shared_ptr<SwitchState> testStateAWithPortsUp();
  * Test may want to tweak default configuration
  */
 std::shared_ptr<SwitchState> testState(cfg::SwitchConfig config);
+/*
+ * Bring all ports up for a given input state
+ */
+std::shared_ptr<SwitchState> bringAllPortsUp(
+    const std::shared_ptr<SwitchState>& in);
 
 /*
  * The returned configuration object, if applied to a SwitchState with ports

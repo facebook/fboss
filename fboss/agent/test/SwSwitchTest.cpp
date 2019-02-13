@@ -21,6 +21,8 @@
 
 using namespace facebook::fboss;
 using std::string;
+using ::testing::_;
+using ::testing::Return;
 
 class SwSwitchTest: public ::testing::Test {
 public:
@@ -65,6 +67,7 @@ ACTION(ThrowException)
 {
   throw std::exception();
 }
+
 TEST_F(SwSwitchTest, UpdateStatsExceptionCounter){
   CounterCache counters(sw);
 
@@ -78,4 +81,34 @@ TEST_F(SwSwitchTest, UpdateStatsExceptionCounter){
   counters.checkDelta(
     SwitchStats::kCounterPrefix + "update_stats_exceptions.sum.60", 1);
 
+}
+
+TEST_F(SwSwitchTest, HwRejectsUpdateThenAccepts) {
+  CounterCache counters(sw);
+  // applied and desired state in sync before we begin
+  EXPECT_EQ(sw->getAppliedState(), sw->getDesiredState());
+  auto origState = sw->getAppliedState();
+  auto newState = bringAllPortsUp(sw->getAppliedState()->clone());
+  // Have HwSwitch reject this state update. In current implementation
+  // this happens only in case of table overflow. However at the SwSwitch
+  // layer we don't care *why* the HwSwitch rejected this update, just
+  // that it did
+  EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(origState));
+  auto stateUpdateFn = [=](const std::shared_ptr<SwitchState>& /*state*/) {
+    return newState;
+  };
+  sw->updateState("Reject update", stateUpdateFn);
+  waitForStateUpdates(sw);
+  EXPECT_NE(sw->getAppliedState(), sw->getDesiredState());
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "hw_out_of_sync", 1);
+  EXPECT_EQ(1, counters.value(SwitchStats::kCounterPrefix + "hw_out_of_sync"));
+  // Have HwSwitch now accept this update
+  EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(newState));
+  sw->updateState("Accept update", stateUpdateFn);
+  waitForStateUpdates(sw);
+  EXPECT_EQ(sw->getAppliedState(), sw->getDesiredState());
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "hw_out_of_sync", -1);
+  EXPECT_EQ(0, counters.value(SwitchStats::kCounterPrefix + "hw_out_of_sync"));
 }
