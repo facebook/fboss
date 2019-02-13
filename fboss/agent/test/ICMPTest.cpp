@@ -335,7 +335,7 @@ TEST(ICMPTest, TTLExceededV4) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
     WillRepeatedly(Return(kPlatformMac));
 
@@ -406,7 +406,7 @@ TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
       // icmp padding for unused field
       "00 00 00 00" + ipHdr + udpHdr + payload);
 
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
     WillRepeatedly(Return(kPlatformMac));
 
@@ -500,7 +500,7 @@ void runTTLExceededV6Test(size_t requestedPayloadSize) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
     WillRepeatedly(Return(kPlatformMac));
 
@@ -636,7 +636,7 @@ TEST(ICMPTest, PacketTooBigV6) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
   EXPECT_PKT(
       sw,

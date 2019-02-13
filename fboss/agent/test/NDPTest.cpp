@@ -774,7 +774,7 @@ TEST(NdpTest, FlushEntry) {
   EXPECT_TRUE(neighbor2Expire.wait());
 
   // Try flushing 2401:db00:2110:3004::c again (should be a no-op)
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
   binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
   numFlushed =
       thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 5);
@@ -860,7 +860,7 @@ TEST(NdpTest, PendingNdp) {
   // Verify that we don't ever overwrite a valid entry with a pending one.
   // Receive the same packet again, no state update and the entry should still
   // be valid
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
 
   // Send the packet to the SwSwitch
   handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), vlanID);
@@ -1487,7 +1487,7 @@ TEST(NdpTest, PortFlapRecover) {
   EXPECT_EQ(entry3->isPending(), false);
 
   // send a port down event to the switch for port 1
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(testing::AtLeast(1));
   WaitForNdpEntryPending neigbor0Pending(sw, targetIP, vlanID);
   WaitForNdpEntryPending neigbor1Pending(sw, targetIP2, vlanID);
 
@@ -1518,7 +1518,7 @@ TEST(NdpTest, PortFlapRecover) {
   EXPECT_EQ(entry3->isPending(), false);
 
   // send a port up event to the switch for port 1
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(testing::AtLeast(1));
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(testing::AtLeast(1));
   sw->linkStateChanged(PortID(1), true);
 
   sendNeighborAdvertisement(handle.get(), targetIP.str(),

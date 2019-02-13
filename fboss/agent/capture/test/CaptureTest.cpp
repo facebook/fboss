@@ -207,13 +207,13 @@ TEST(CaptureTest, FullCapture) {
   // This should trigger the switch to send an ARP request
   // and set a pending entry.
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(1);
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(1);
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
   sw->packetReceived(ipPkt.clone());
   waitForStateUpdates(sw);
 
   // Receive an ARP reply for the desired IP. This should cause the
   // arp entry to change from pending to active
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(1);
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
   sw->packetReceived(arpPkt.clone());
   waitForStateUpdates(sw);
 

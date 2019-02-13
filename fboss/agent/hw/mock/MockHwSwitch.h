@@ -32,8 +32,8 @@ class MockHwSwitch : public HwSwitch {
 
   MOCK_METHOD1(init, HwInitResult(Callback*));
   MOCK_METHOD1(
-      stateChangedMock,
-      std::shared_ptr<SwitchState>(const StateDelta&));
+      stateChanged,
+      std::shared_ptr<SwitchState>(const StateDelta& delta));
   MOCK_METHOD2(getAndClearNeighborHit, bool(RouterID, folly::IPAddress&));
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
@@ -59,7 +59,6 @@ class MockHwSwitch : public HwSwitch {
   bool sendPacketOutOfPortSync(
       std::unique_ptr<TxPacket> pkt,
       facebook::fboss::PortID portID) noexcept override;
-  std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta) override;
 
   MOCK_METHOD1(updateStats, void(SwitchStats* switchStats));
   MOCK_METHOD1(fetchL2Table, void(std::vector<L2EntryThrift>* l2Table));

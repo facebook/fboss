@@ -154,7 +154,7 @@ TEST(IPv4Test, Parse) {
     "0a 00 00 0a"
   );
 
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
   handle->rxPacket(make_unique<folly::IOBuf>(buf), portID, vlanID);
   counters.update();
@@ -187,7 +187,7 @@ TEST(IPv4Test, Parse) {
     "0a 00 00 01"
   );
 
-  EXPECT_HW_CALL(sw, stateChangedMock(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
   handle->rxPacket(make_unique<folly::IOBuf>(buf), portID, vlanID);
   counters.update();

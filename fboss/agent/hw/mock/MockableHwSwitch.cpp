@@ -39,7 +39,7 @@ MockableHwSwitch::MockableHwSwitch(MockPlatform *platform, HwSwitch* realHw)
           Invoke(this, &MockableHwSwitch::sendPacketOutOfPortSyncAdaptor));
   ON_CALL(*this, init(_))
     .WillByDefault(Invoke(realHw_, &HwSwitch::init));
-  ON_CALL(*this, stateChangedMock(_))
+  ON_CALL(*this, stateChanged(_))
     .WillByDefault(Invoke(realHw_, &HwSwitch::stateChanged));
   ON_CALL(*this, getAndClearNeighborHit(_, _))
     .WillByDefault(Invoke(realHw_, &HwSwitch::getAndClearNeighborHit));
@@ -93,12 +93,6 @@ bool MockableHwSwitch::sendPacketOutOfPortSyncAdaptor(
     TxPacket* pkt, PortID port) noexcept {
   std::unique_ptr<TxPacket> up(pkt);
   return realHw_->sendPacketOutOfPortSync(std::move(up), port);
-}
-
-std::shared_ptr<SwitchState>
-MockableHwSwitch::stateChanged(const StateDelta& delta) {
-  stateChangedMock(delta);
-  return delta.newState();
 }
 
 }} // facebook::fboss
