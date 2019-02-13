@@ -282,7 +282,7 @@ class SaiAttribute<
     return &saiAttr_;
   }
 
-  std::vector<sai_attribute_t> saiAttrV() const {
+  std::vector<sai_attribute_t> saiAttrs() const {
     return {saiAttr_};
   }
 
@@ -393,7 +393,7 @@ class SaiAttribute<
     return &saiAttr_;
   }
 
-  std::vector<sai_attribute_t> saiAttrV() const {
+  std::vector<sai_attribute_t> saiAttrs() const {
     return {saiAttr_};
   }
 

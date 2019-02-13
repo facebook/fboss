@@ -10,8 +10,8 @@
 #pragma once
 
 #include "SaiAttribute.h"
-#include "fboss/agent/hw/sai/api/Traits.h"
 #include "fboss/agent/hw/sai/api/SaiApiError.h"
+#include "fboss/agent/hw/sai/api/Traits.h"
 
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>
@@ -24,13 +24,13 @@
 #include <vector>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 namespace facebook {
 namespace fboss {
 
-template <typename ApiT, typename ApiTypes>
+template <typename ApiT, typename ApiParameters>
 class SaiApi {
  public:
   virtual ~SaiApi() = default;
@@ -47,14 +47,14 @@ class SaiApi {
    * of sai_attribute_t pointers passed to SAI. To avoid this copying, if
    * needed, it is probably best to use the underlying SAI API directly.
    */
-  template <typename T = ApiTypes, typename... Args>
+  template <typename T = ApiParameters, typename... Args>
   typename std::enable_if<apiUsesObjectId<T>::value, sai_object_id_t>::type
   create(
       const std::vector<typename T::AttributeType>& attributes,
       Args&&... args) {
     static_assert(
-        std::is_same<T, ApiTypes>::value,
-        "AttributeType must come from correct ApiTypes");
+        std::is_same<T, ApiParameters>::value,
+        "AttributeType must come from correct ApiParameters");
     sai_object_id_t id;
     std::vector<sai_attribute_t> saiAttributeTs = getSaiAttributeTs(attributes);
     sai_status_t status = impl()._create(
@@ -66,14 +66,14 @@ class SaiApi {
     return id;
   }
 
-  template <typename T = ApiTypes, typename... Args>
+  template <typename T = ApiParameters, typename... Args>
   typename std::enable_if<apiUsesEntry<T>::value, void>::type create(
       const typename T::EntryType& entry,
       const std::vector<typename T::AttributeType>& attributes,
       Args&&... args) {
     static_assert(
-        std::is_same<T, ApiTypes>::value,
-        "AttributeType or EntryTypes must come from correct ApiTypes");
+        std::is_same<T, ApiParameters>::value,
+        "AttributeType or EntryTypes must come from correct ApiParameters");
     std::vector<sai_attribute_t> saiAttributeTs = getSaiAttributeTs(attributes);
     sai_status_t status = impl()._create(
         entry,
@@ -81,6 +81,28 @@ class SaiApi {
         saiAttributeTs.size(),
         std::forward<Args>(args)...);
     saiCheckError(status, "Failed to create sai entity");
+  }
+
+  // Note: we need to parameterize by T = ApiParameters, then immediately
+  // statically check that T = ApiParameters in order to enable type
+  // deduction to allow the use of SFINAE to select this method rather
+  // than the version that expects an EntryType and has no return value
+  template <typename T = ApiParameters, typename... Args>
+  sai_object_id_t create2(
+      const typename T::Attributes::CreateAttributes& createAttrs,
+      Args&&... args) {
+    static_assert(
+        std::is_same<T, ApiParameters>::value,
+        "Attributes must come from correct ApiParameters");
+    sai_object_id_t id;
+    std::vector<sai_attribute_t> saiAttributeTs = createAttrs.saiAttrs();
+    sai_status_t status = impl()._create(
+        &id,
+        saiAttributeTs.data(),
+        saiAttributeTs.size(),
+        std::forward<Args>(args)...);
+    saiCheckError(status, "Failed to create2 sai entity");
+    return id;
   }
 
   template <typename T>
@@ -121,7 +143,7 @@ class SaiApi {
     saiCheckError(status, "Failed to set sai attribute");
   }
 
-  template <typename T = ApiTypes, typename... Args>
+  template <typename T = ApiParameters, typename... Args>
   typename std::enable_if<apiHasMembers<T>::value, sai_object_id_t>::type
   createMember(
       const std::vector<typename T::MemberAttributeType>& attributes,
@@ -143,20 +165,25 @@ class SaiApi {
   }
 
  private:
-  // boost visitor that takes a SaiAttribute and returns a copy of the
+  // boost visitor that takes a SaiAttribute and returns a pointer to the
   // underlying sai_attribute_t.
-  class getSaiAttributeVisitor : public boost::static_visitor<sai_attribute_t> {
+  class getSaiAttributeVisitor
+      : public boost::static_visitor<const sai_attribute_t*> {
    public:
     template <typename AttrT>
-    sai_attribute_t operator()(const AttrT& attr) const {
-      return *(attr.saiAttr());
+    const sai_attribute_t* operator()(const AttrT& attr) const {
+      return attr.saiAttr();
+    }
+    const sai_attribute_t* operator()(const boost::blank& blank) const {
+      return nullptr;
     }
   };
 
   // Given a vector of SaiAttribute boost variant wrapper objects
-  // (ApiTypes::AttributeType or ApiTypes::MemberAttributeType), return a vector
-  // of the underlying sai_attribute_t structs. Helper function for various
-  // methods of SaiApi that take multiple attributes, particularly create()
+  // (ApiParameters::AttributeType or ApiParameters::MemberAttributeType),
+  // return a vector of the underlying sai_attribute_t structs. Helper function
+  // for various methods of SaiApi that take multiple attributes, particularly
+  // create()
   // TODO(borisb): In the future, we can create an AttributeList class that
   // provides this behavior more directly and stores the sai_attribute_t structs
   // inline to prevent unnecessary copying
@@ -164,13 +191,14 @@ class SaiApi {
   std::vector<sai_attribute_t> getSaiAttributeTs(
       const std::vector<AttrT>& attributes) const {
     static_assert(
-        std::is_same<AttrT, typename ApiTypes::AttributeType>::value ||
-            std::is_same<AttrT, typename ApiTypes::MemberAttributeType>::value,
+        std::is_same<AttrT, typename ApiParameters::AttributeType>::value ||
+            std::is_same<AttrT, typename ApiParameters::MemberAttributeType>::
+                value,
         "Type we get sai_attribute_t from must be a SaiAttribute in the API");
     std::vector<sai_attribute_t> saiAttributeTs;
     for (const auto& attribute : attributes) {
       saiAttributeTs.push_back(
-          boost::apply_visitor(getSaiAttributeVisitor(), attribute));
+          *(boost::apply_visitor(getSaiAttributeVisitor(), attribute)));
     }
     return saiAttributeTs;
   }
@@ -178,7 +206,7 @@ class SaiApi {
   ApiT& impl() {
     return static_cast<ApiT&>(*this);
   }
-  };
+};
 
 } // namespace fboss
 } // namespace facebook

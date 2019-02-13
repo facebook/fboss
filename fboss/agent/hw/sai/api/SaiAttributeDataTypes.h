@@ -58,7 +58,7 @@ class SaiAttributeTuple {
 
   // TODO: once all *Apis move to the new model, stop calling this
   // saiAttrV and takeover saiAttr
-  std::vector<sai_attribute_t> saiAttrV() const {
+  std::vector<sai_attribute_t> saiAttrs() const {
     return saiAttrVector();
   }
 
@@ -82,7 +82,7 @@ class SaiAttributeTuple {
       std::index_sequence<I...>) const {
     std::vector<sai_attribute_t> saiAttrs;
     std::vector<std::vector<sai_attribute_t>> saiAttrVs{
-        std::get<I>(tuple_).saiAttrV()...};
+        std::get<I>(tuple_).saiAttrs()...};
     std::for_each(
         saiAttrVs.begin(),
         saiAttrVs.end(),
@@ -116,7 +116,7 @@ class SaiAttributeVariant {
   ValueType value() const {
     return boost::apply_visitor(valueVisitor(), variant_);
   }
-  std::vector<sai_attribute_t> saiAttrV() const {
+  std::vector<sai_attribute_t> saiAttrs() const {
     return boost::apply_visitor(saiAttrVisitor(), variant_);
   }
   bool operator==(const SaiAttributeVariant& other) {
@@ -131,7 +131,7 @@ class SaiAttributeVariant {
    public:
     template <typename AttrT>
     std::vector<sai_attribute_t> operator()(const AttrT& attr) const {
-      return attr.saiAttrV();
+      return attr.saiAttrs();
     }
     template <>
     std::vector<sai_attribute_t> operator()(
@@ -179,11 +179,11 @@ class SaiAttributeOptional {
     }
     return optional_.value().value();
   }
-  std::vector<sai_attribute_t> saiAttrV() const {
+  std::vector<sai_attribute_t> saiAttrs() const {
     if (!optional_) {
       return std::vector<sai_attribute_t>{};
     }
-    return optional_.value().saiAttrV();
+    return optional_.value().saiAttrs();
   }
   bool operator==(const SaiAttributeOptional& other) const {
     return optional_ == other.optional_;

@@ -45,7 +45,7 @@ sai_status_t create_port_fn(
     }
   }
   if (lanes.empty() || !speed) {
-      return SAI_STATUS_INVALID_PARAMETER;
+    return SAI_STATUS_INVALID_PARAMETER;
   }
   *port_id = fs->pm.create(lanes, speed.value());
   if (adminState) {

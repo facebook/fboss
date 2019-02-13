@@ -233,7 +233,7 @@ TEST(Attribute, attributeTupleGetSaiAttr) {
   std::vector<sai_object_id_t> vec;
   vec.resize(42);
   AttrTuple at{B{true}, I{42}, VecAttr{vec}};
-  std::vector<sai_attribute_t> saiAttrs = at.saiAttrV();
+  std::vector<sai_attribute_t> saiAttrs = at.saiAttrs();
   EXPECT_EQ(saiAttrs.size(), 3);
   EXPECT_TRUE(saiAttrs[0].value.booldata);
   EXPECT_EQ(saiAttrs[1].value.s32, 42);
@@ -256,11 +256,11 @@ TEST(Attribute, attributeVariantGetSaiAttr) {
   std::vector<sai_object_id_t> vec;
   vec.resize(42);
   AttrVariant v3{VecAttr{vec}};
-  std::vector<sai_attribute_t> saiAttrs1 = v1.saiAttrV();
+  std::vector<sai_attribute_t> saiAttrs1 = v1.saiAttrs();
   EXPECT_EQ(saiAttrs1.size(), 1);
-  std::vector<sai_attribute_t> saiAttrs2 = v2.saiAttrV();
+  std::vector<sai_attribute_t> saiAttrs2 = v2.saiAttrs();
   EXPECT_EQ(saiAttrs2.size(), 1);
-  std::vector<sai_attribute_t> saiAttrs3 = v3.saiAttrV();
+  std::vector<sai_attribute_t> saiAttrs3 = v3.saiAttrs();
   EXPECT_EQ(saiAttrs3.size(), 1);
   EXPECT_TRUE(saiAttrs1[0].value.booldata);
   EXPECT_EQ(saiAttrs2[0].value.s32, 42);
@@ -332,7 +332,7 @@ TEST(Attribute, attributeVariantWrongAttributeRightValueType) {
 
 TEST(Attribute, attributeOptionalGetSaiAttr) {
   AttrOptional o(I{42});
-  std::vector<sai_attribute_t> v = o.saiAttrV();
+  std::vector<sai_attribute_t> v = o.saiAttrs();
   EXPECT_EQ(v.size(), 1);
 }
 
@@ -348,7 +348,7 @@ TEST(Attribute, attributeOptionalGetSaiAttrNone) {
 
 TEST(Attribute, attributeOptionalGetValueNone) {
   AttrOptional o;
-  std::vector<sai_attribute_t> v = o.saiAttrV();
+  std::vector<sai_attribute_t> v = o.saiAttrs();
   EXPECT_EQ(v.size(), 0);
 }
 

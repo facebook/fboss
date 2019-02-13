@@ -240,8 +240,8 @@ SaiPortApi portApi;
 std::vector<uint32_t> lanes{0};
 auto portId = portApi.create({lanes, 25000}, switchId); // create a port
 bool adminState = portApi.getAttribute(
-  PortTypes::Attributes::AdminState(), portId); // get its admin state
-PortTypes::Attributes::AdminState adminStateAttribute{true};
+  PortApiTypes::Attributes::AdminState(), portId); // get its admin state
+PortApiTypes::Attributes::AdminState adminStateAttribute{true};
 portApi.setAttribute(adminStateAttribute, portId); // set admin state to true
 ```
 
@@ -265,7 +265,7 @@ Create a neighbor:
 sai_object_id_t switchId = 0;
 sai_object_id_t rifId; // from elsewhere
 SaiNeighborApi neighborApi;
-NeighborTypes::EntryType entry(switchId, rifId, folly::IPAddress("0.0.0.1"));
+NeighborApiTypes::EntryType entry(switchId, rifId, folly::IPAddress("0.0.0.1"));
 neighborApi.create(entry, {folly::MacAddress("00:00:00:00:00:01")}, switchId);
 ```
 
@@ -274,8 +274,8 @@ The api library has two main components: SaiApis and SaiAttributes, which wrap
 the corresponding raw SAI concepts.
 Developers create one of each SaiApi, then create and pass in the associated
 SaiAttributes to do get and set operations as in raw SAI. For create, each
-SaiApi defines a `Create` SaiAttributeTuple which will encode the supported
-and mandatory attributes for object creation.
+SaiApi defines a `CreateAttributes` SaiAttributeTuple which will encode the
+supported and mandatory attributes for object creation.
 
 SaiApiTable conveniently creates all the sai apis and provides read-only
 and read-write references to them.
@@ -303,8 +303,8 @@ defines the attributes, called the Types class. For example:
 class RouteApi : public SaiApi<RouteApi, RouteTypes> { /* ... */ };
 ```
 The various Types classes define a nested Attributes class which contains
-aliases for the supported SaiAttributes, and an alias called Create which
-defines the SaiAttributeTuple required for creating an object in this api.
+aliases for the supported SaiAttributes, and an alias called CreateAttributes
+which defines the SaiAttributeTuple required for creating an object in this api.
 If the api supports members, there is a parallel MemberAttributes class.
 
 ### SaiAttribute
@@ -321,7 +321,7 @@ SAI, so you need to store it in the `s32` member of the union. The same sort
 of coupling exists when extracting values after a get call. SaiAttribute ties
 these two concepts together inextricably. The C++ code for instantiating the
 SaiAttribute class for `SAI_NEXT_HOP_GROUP_ATTR_TYPE` and naming it `Type`
-in NextHopGroupTypes::Attributes is:
+in NextHopGroupApiTypes::Attributes is:
 ```c++
 struct NextHopGroupTypes {
   struct Attributes {
@@ -335,13 +335,13 @@ struct NextHopGroupTypes {
 Subsequently, we can get it using a NextHopGroupApi with code like:
 ```c++
 NextHopGroupApi nextHopGroupApi; // corresponds to sai_api_query code
-NextHopGroupTypes::Attributes::Type t;
+NextHopGroupApiTypes::Attributes::Type t;
 sai_object_id_t saiId; // needs to be set to a correct id, of course
 auto type = nextHopGroupApi.getAttribute(t, saiId); // actual "get_attribute"
 ```
 and we can set it with:
 ```c++
-NextHopGroupTypes::Attributes::Type t(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
+NextHopGroupApiTypes::Attributes::Type t(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
 nextHopGroupApi.setAttribute(t, saiId);
 ```
 Note that in both of those examples, we did not have to know that `s32` was
@@ -359,25 +359,26 @@ SAI objects less error-prone as you must create each mandatory attribute
 or else the program will not compile. Conversely, there is no place for
 illegal or ignored attributes during object creation.
 
-More specifically, each Api's Types class defines a Create which is an alias
-to a SaiAttributeTuple consisting of the mandatory SaiAttributes and
+More specifically, each Api's Types class defines a CreateAttributes which
+is an alias to a SaiAttributeTuple consisting of the mandatory SaiAttributes and
 SaiAttributeOptionals of the optional SaiAttributes.
 
 For example, to create a route, we must pass in a packet action attribute,
 which can be set to mean forward, drop, or trap. If it is forward, we
 also need a next hop id attribute, but not if the action is trap or drop.
-For that reason, the next hop id attribute is optional in the Create tuple:
+For that reason, the next hop id attribute is optional in the CreateAttributes
+tuple:
 ```c++
 struct RouteTypes {
   struct Attributes {
     using PacketAction = SaiAttribute<...>;
     using NextHopId = SaiAttribute<...>;
-    using Create =
+    using CreateAttributes =
       SaiAttributeTuple<PacketAction, SaiAttributeOptional<NextHopId>>;
   }
 }
 ```
-The create() method of the SaiApis takes the corresponding Create and
+The create() method of the SaiApis takes the corresponding CreateAttributes and
 passes an array of `sai_attribute_t` down to raw SAI.
 
 To return to studying the next hop group api from the example, we can create a
@@ -385,7 +386,7 @@ next hop group like so:
 ```c++
 NextHopGroupApi nextHopGroupApi;
 NextHopGroupApi::Attributes::Type t(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
-NextHopGroupApi::Attributes::Create c(t);
+NextHopGroupApi::Attributes::CreateAttributes c(t);
 sai_object_id_t nextHopId = nextHopApi.create(c, switch_id);
 ```
 

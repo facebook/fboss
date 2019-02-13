@@ -9,8 +9,9 @@
  */
 #pragma once
 
-#include "SaiApi.h"
-#include "SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiApi.h"
+#include "fboss/agent/hw/sai/api/SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
 #include <folly/logging/xlog.h>
 
@@ -23,7 +24,7 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
-struct PortTypes {
+struct PortApiParameters {
   struct Attributes {
     using EnumType = sai_port_attr_t;
     using AdminState = SaiAttribute<EnumType, SAI_PORT_ATTR_ADMIN_STATE, bool>;
@@ -34,6 +35,25 @@ struct PortTypes {
         std::vector<uint32_t>>;
     using Speed = SaiAttribute<EnumType, SAI_PORT_ATTR_SPEED, sai_uint32_t>;
     using Type = SaiAttribute<EnumType, SAI_PORT_ATTR_TYPE, sai_int32_t>;
+
+    using CreateAttributes =
+        SaiAttributeTuple<HwLaneList, Speed, SaiAttributeOptional<AdminState>>;
+
+    Attributes(const CreateAttributes& attrs) {
+      std::tie(hwLaneList, speed, adminState) = attrs.value();
+    }
+    CreateAttributes attrs() const {
+      return {hwLaneList, speed, adminState};
+    }
+    bool operator==(const Attributes& other) const {
+      return attrs() == other.attrs();
+    }
+    bool operator!=(const Attributes& other) const {
+      return !(*this == other);
+    }
+    typename HwLaneList::ValueType hwLaneList;
+    typename Speed::ValueType speed;
+    folly::Optional<typename AdminState::ValueType> adminState;
   };
   using AttributeType = boost::variant<
       Attributes::AdminState,
@@ -45,7 +65,7 @@ struct PortTypes {
   struct EntryType {};
 };
 
-class PortApi : public SaiApi<PortApi, PortTypes> {
+class PortApi : public SaiApi<PortApi, PortApiParameters> {
  public:
   PortApi() {
     sai_status_t status =
@@ -63,14 +83,14 @@ class PortApi : public SaiApi<PortApi, PortTypes> {
   sai_status_t _remove(sai_object_id_t port_id) {
     return api_->remove_port(port_id);
   }
-  sai_status_t _getAttr(sai_attribute_t* attr, sai_object_id_t handle) const {
-    return api_->get_port_attribute(handle, 1, attr);
+  sai_status_t _getAttr(sai_attribute_t* attr, sai_object_id_t id) const {
+    return api_->get_port_attribute(id, 1, attr);
   }
-  sai_status_t _setAttr(const sai_attribute_t* attr, sai_object_id_t handle) {
-    return api_->set_port_attribute(handle, attr);
+  sai_status_t _setAttr(const sai_attribute_t* attr, sai_object_id_t id) {
+    return api_->set_port_attribute(id, attr);
   }
   sai_port_api_t* api_;
-  friend class SaiApi<PortApi, PortTypes>;
+  friend class SaiApi<PortApi, PortApiParameters>;
 };
 
 } // namespace fboss
