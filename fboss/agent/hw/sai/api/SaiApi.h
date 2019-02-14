@@ -159,6 +159,25 @@ class SaiApi {
     return id;
   }
 
+  template <typename T = ApiTypes, typename... Args>
+  typename std::enable_if<apiHasMembers<T>::value, sai_object_id_t>::type
+  createMember2(
+      const typename T::MemberAttributes::CreateAttributes& createAttrs,
+      Args&&... args) {
+    static_assert(
+        std::is_same<T, ApiTypes>::value,
+        "MemberAttributes must come from correct ApiTypes");
+    sai_object_id_t id;
+    std::vector<sai_attribute_t> saiAttributeTs = createAttrs.saiAttrs();
+    sai_status_t status = impl()._createMember(
+        &id,
+        saiAttributeTs.data(),
+        saiAttributeTs.size(),
+        std::forward<Args>(args)...);
+    saiCheckError(status, "Failed to create2 sai entity member");
+    return id;
+  }
+
   void removeMember(sai_object_id_t id) {
     sai_status_t status = impl()._removeMember(id);
     saiCheckError(status, "Failed to remove sai member entity");
