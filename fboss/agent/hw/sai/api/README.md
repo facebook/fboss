@@ -240,8 +240,8 @@ SaiPortApi portApi;
 std::vector<uint32_t> lanes{0};
 auto portId = portApi.create({lanes, 25000}, switchId); // create a port
 bool adminState = portApi.getAttribute(
-  PortApiTypes::Attributes::AdminState(), portId); // get its admin state
-PortApiTypes::Attributes::AdminState adminStateAttribute{true};
+  PortApiParameters::Attributes::AdminState(), portId); // get its admin state
+PortApiParameters::Attributes::AdminState adminStateAttribute{true};
 portApi.setAttribute(adminStateAttribute, portId); // set admin state to true
 ```
 

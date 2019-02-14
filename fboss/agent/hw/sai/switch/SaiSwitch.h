@@ -12,7 +12,12 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 
+#include <memory>
+
 namespace facebook { namespace fboss {
+
+class SaiApiTable;
+class SaiManagerTable;
 
 class SaiSwitch : public HwSwitch {
  public:
@@ -42,7 +47,8 @@ class SaiSwitch : public HwSwitch {
   void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) override;
  private:
-  SaiApiTable saiApiTable_;
+  std::unique_ptr<SaiApiTable> saiApiTable_;
+  std::unique_ptr<SaiManagerTable> managerTable_;
 };
 
 } // namespace fboss

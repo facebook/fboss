@@ -8,15 +8,20 @@
  *
  */
 
-#include "SaiSwitch.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
-
 #include <memory>
 
 namespace facebook {
 namespace fboss {
+
+using facebook::fboss::DeltaFunctions::forEachAdded;
 
 class SaiTxPacket : public TxPacket {
  public:
@@ -24,6 +29,8 @@ class SaiTxPacket : public TxPacket {
 };
 
 HwInitResult SaiSwitch::init(Callback* /* callback */) noexcept {
+  saiApiTable_ = std::make_unique<SaiApiTable>();
+  managerTable_ = std::make_unique<SaiManagerTable>(saiApiTable_.get());
   return HwInitResult();
 }
 void SaiSwitch::unregisterCallbacks() noexcept {}
@@ -32,7 +39,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(
   return std::make_shared<SwitchState>();
 }
 bool SaiSwitch::isValidStateUpdate(const StateDelta& /* delta */) const {
-  return false;
+  return true;
 }
 std::unique_ptr<TxPacket> SaiSwitch::allocatePacket(uint32_t /* size */) {
   return std::make_unique<SaiTxPacket>();

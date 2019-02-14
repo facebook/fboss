@@ -42,6 +42,7 @@ struct PortApiParameters {
     Attributes(const CreateAttributes& attrs) {
       std::tie(hwLaneList, speed, adminState) = attrs.value();
     }
+
     CreateAttributes attrs() const {
       return {hwLaneList, speed, adminState};
     }
