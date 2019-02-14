@@ -159,6 +159,12 @@ std::shared_ptr<SwitchState> bringAllPortsUp(
     const std::shared_ptr<SwitchState>& in);
 
 /*
+ * Bring all ports down for a given input state
+ */
+std::shared_ptr<SwitchState> bringAllPortsDown(
+    const std::shared_ptr<SwitchState>& in);
+
+/*
  * The returned configuration object, if applied to a SwitchState with ports
  * 1-20, will yield the same SwitchState as that returned by testStateA().
  */

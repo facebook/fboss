@@ -127,20 +127,29 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithHW(
   return sw;
 }
 
+shared_ptr<SwitchState> setAllPortState(
+    const shared_ptr<SwitchState>& in,
+    bool up) {
+  auto newState = in->clone();
+  auto newPortMap = newState->getPorts()->modify(&newState);
+  for (auto port : *newPortMap) {
+    auto newPort = port->clone();
+    newPort->setOperState(up);
+    newPort->setAdminState(
+        up ? cfg::PortState::ENABLED : cfg::PortState::DISABLED);
+    newPortMap->updatePort(newPort);
+  }
+  return newState;
+}
 }
 
 namespace facebook { namespace fboss {
 
 shared_ptr<SwitchState> bringAllPortsUp(const shared_ptr<SwitchState>& in) {
-  auto newState = in->clone();
-  auto newPortMap = newState->getPorts()->modify(&newState);
-  for (auto port : *newPortMap) {
-    auto newPort = port->clone();
-    newPort->setOperState(true /* up */);
-    newPort->setAdminState(cfg::PortState::ENABLED);
-    newPortMap->updatePort(newPort);
-  }
-  return newState;
+  return setAllPortState(in, true);
+}
+shared_ptr<SwitchState> bringAllPortsDown(const shared_ptr<SwitchState>& in) {
+  return setAllPortState(in, false);
 }
 
 shared_ptr<SwitchState> publishAndApplyConfig(
