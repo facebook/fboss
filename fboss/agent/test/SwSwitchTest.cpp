@@ -10,19 +10,30 @@
 
 #include <gtest/gtest.h>
 
+#include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/Main.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PortStats.h"
+#include "fboss/agent/state/ArpTable.h"
+#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/CounterCache.h"
 
+#include <folly/IPAddressV4.h>
+#include <folly/MacAddress.h>
+
+
 using namespace facebook::fboss;
 using std::string;
 using ::testing::_;
 using ::testing::Return;
+using folly::IPAddressV4;
+using folly::MacAddress;
 
 class SwSwitchTest: public ::testing::Test {
 public:
@@ -111,4 +122,48 @@ TEST_F(SwSwitchTest, HwRejectsUpdateThenAccepts) {
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "hw_out_of_sync", -1);
   EXPECT_EQ(0, counters.value(SwitchStats::kCounterPrefix + "hw_out_of_sync"));
+}
+
+TEST_F(SwSwitchTest, TestStateNonCoalescing) {
+  const PortID kPort1{1};
+  const VlanID kVlan1{1};
+  auto verifyReachableCnt = [=](int expectedReachableNbrCnt) {
+    auto arpTable =
+        sw->getAppliedState()->getVlans()->getVlan(kVlan1)->getArpTable();
+    auto reachableCnt = 0;
+    for (const auto entry : *arpTable) {
+      if (entry->getState() == NeighborState::REACHABLE) {
+        ++reachableCnt;
+      }
+    }
+    EXPECT_EQ(expectedReachableNbrCnt, reachableCnt);
+  };
+  // No neighbor entries expected
+  verifyReachableCnt(0);
+  auto origState = sw->getAppliedState();
+  auto bringPortsUpUpdateFn = [=](const std::shared_ptr<SwitchState>& state) {
+    return bringAllPortsUp(state);
+  };
+  sw->updateState("Bring Ports Up", bringPortsUpUpdateFn);
+  sw->getNeighborUpdater()->receivedArpMine(
+      kVlan1,
+      IPAddressV4("10.0.0.2"),
+      MacAddress("01:02:03:04:05:06"),
+      PortDescriptor(kPort1),
+      ArpOpCode::ARP_OP_REPLY);
+  waitForStateUpdates(sw);
+  // 1 neighbor entries expected
+  verifyReachableCnt(1);
+  // Now flap the port. This should schedule non coalescing updates.
+  sw->linkStateChanged(kPort1, false);
+  sw->linkStateChanged(kPort1, true);
+  waitForStateUpdates(sw);
+  // Neighbor purge is scheduled on BG thread. Wait for it to be scheduled.
+  waitForBackgroundThread(sw);
+  // And wait for purge to happen. Test ensures that
+  // purge is not skipped due to port down/up being coalesced
+  waitForStateUpdates(sw);
+
+  // 0 neighbor entries expected, i.e. entries must be purged
+  verifyReachableCnt(0);
 }
