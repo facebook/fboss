@@ -25,7 +25,10 @@
 #include "fboss/agent/test/CounterCache.h"
 
 #include <folly/IPAddressV4.h>
+#include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
+
+#include <algorithm>
 
 
 using namespace facebook::fboss;
@@ -33,6 +36,7 @@ using std::string;
 using ::testing::_;
 using ::testing::Return;
 using folly::IPAddressV4;
+using folly::IPAddressV6;
 using folly::MacAddress;
 
 class SwSwitchTest: public ::testing::Test {
@@ -127,21 +131,29 @@ TEST_F(SwSwitchTest, HwRejectsUpdateThenAccepts) {
 TEST_F(SwSwitchTest, TestStateNonCoalescing) {
   const PortID kPort1{1};
   const VlanID kVlan1{1};
-  auto verifyReachableCnt = [=](int expectedReachableNbrCnt) {
+
+  auto verifyReachableCnt = [kVlan1, this](int expectedReachableNbrCnt) {
+    auto getReachableCount = [](auto nbrTable) {
+      auto reachableCnt = 0;
+      for (const auto entry : *nbrTable) {
+        if (entry->getState() == NeighborState::REACHABLE) {
+          ++reachableCnt;
+        }
+      }
+      return reachableCnt;
+    };
     auto arpTable =
         sw->getAppliedState()->getVlans()->getVlan(kVlan1)->getArpTable();
-    auto reachableCnt = 0;
-    for (const auto entry : *arpTable) {
-      if (entry->getState() == NeighborState::REACHABLE) {
-        ++reachableCnt;
-      }
-    }
+    auto ndpTable =
+        sw->getAppliedState()->getVlans()->getVlan(kVlan1)->getNdpTable();
+    auto reachableCnt =
+        getReachableCount(arpTable) + getReachableCount(ndpTable);
     EXPECT_EQ(expectedReachableNbrCnt, reachableCnt);
   };
   // No neighbor entries expected
   verifyReachableCnt(0);
   auto origState = sw->getAppliedState();
-  auto bringPortsUpUpdateFn = [=](const std::shared_ptr<SwitchState>& state) {
+  auto bringPortsUpUpdateFn = [](const std::shared_ptr<SwitchState>& state) {
     return bringAllPortsUp(state);
   };
   sw->updateState("Bring Ports Up", bringPortsUpUpdateFn);
@@ -151,9 +163,16 @@ TEST_F(SwSwitchTest, TestStateNonCoalescing) {
       MacAddress("01:02:03:04:05:06"),
       PortDescriptor(kPort1),
       ArpOpCode::ARP_OP_REPLY);
+  sw->getNeighborUpdater()->receivedNdpMine(
+      kVlan1,
+      IPAddressV6("2401:db00:2110:3001::0002"),
+      MacAddress("01:02:03:04:05:06"),
+      PortDescriptor(kPort1),
+      ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+      0);
   waitForStateUpdates(sw);
-  // 1 neighbor entries expected
-  verifyReachableCnt(1);
+  // 2 neighbor entries expected
+  verifyReachableCnt(2);
   // Now flap the port. This should schedule non coalescing updates.
   sw->linkStateChanged(kPort1, false);
   sw->linkStateChanged(kPort1, true);
