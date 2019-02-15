@@ -159,14 +159,14 @@ class SaiApi {
     return id;
   }
 
-  template <typename T = ApiTypes, typename... Args>
+  template <typename T = ApiParameters, typename... Args>
   typename std::enable_if<apiHasMembers<T>::value, sai_object_id_t>::type
   createMember2(
       const typename T::MemberAttributes::CreateAttributes& createAttrs,
       Args&&... args) {
     static_assert(
-        std::is_same<T, ApiTypes>::value,
-        "MemberAttributes must come from correct ApiTypes");
+        std::is_same<T, ApiParameters>::value,
+        "MemberAttributes must come from correct ApiParameters");
     sai_object_id_t id;
     std::vector<sai_attribute_t> saiAttributeTs = createAttrs.saiAttrs();
     sai_status_t status = impl()._createMember(
