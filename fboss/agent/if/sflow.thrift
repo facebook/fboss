@@ -26,4 +26,10 @@ struct SflowPacketInfo {
 
   // The packet itself
   7: binary packetData
+
+  // Frame length
+  8: i32 frameLength,
+
+  // Payload removed
+  9: i32 payloadRemoved
 }
