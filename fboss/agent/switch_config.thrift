@@ -810,7 +810,6 @@ struct Fields {
 
 enum HashingAlgorithm {
   CRC16_CCITT = 1,
-  CRC16_XOR8  = 2,
 
   CRC32_LO = 3,
   CRC32_HI = 4,
