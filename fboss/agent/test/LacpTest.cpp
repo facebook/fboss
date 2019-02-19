@@ -159,7 +159,7 @@ class LacpServiceInterceptor : public LacpServicerIf {
     return forwarding;
   }
 
-  ~LacpServiceInterceptor() {
+  ~LacpServiceInterceptor() override {
     lacpEvb_->runInEventBaseThreadAndWait([this]() {
       for (auto& controller : controllers_) {
         controller.reset();
