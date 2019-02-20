@@ -91,11 +91,20 @@ class NeighborFlushSubnetCmd(FbossCmd):
         print('Flushed {} entries'.format(num_entries))
 
 class PrintNeighborTableCmd(FbossCmd):
-    def print_table(self, entries, name, width, client):
+    def __init__(self, cli_opts):
+        super(PrintNeighborTableCmd, self).__init__(cli_opts)
+        self.nbr_table = None
+
+    def run(self):
+        with self._create_agent_client() as client:
+            self.nbr_table = self._get_nbr_table(client)
+            ports = client.getAllPortInfo()
+        self._print_table(self.nbr_table, self.WIDTH, ports)
+
+    def _print_table(self, entries, width, ports):
         tmpl = "{:" + str(width) + "} {:18} {:<10}  {:18} {!s:12} {}"
         print(tmpl.format(
             "IP Address", "MAC Address", "Port", "VLAN", "State", "TTL"))
-        ports = client.getAllPortInfo()
 
         for entry in sorted(entries, key=lambda e: e.ip.addr):
             port_identifier = entry.port

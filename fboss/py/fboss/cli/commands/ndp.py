@@ -11,9 +11,7 @@
 from fboss.cli.commands import commands as cmds
 
 class NdpTableCmd(cmds.PrintNeighborTableCmd):
-    def run(self):
-        with self._create_agent_client() as client:
-            resp = client.getNdpTable()
-            name = 'NDP'
-            width = 40
-            self.print_table(resp, name, width, client)
+    WIDTH = 40
+
+    def _get_nbr_table(self, client):
+        return client.getNdpTable()
