@@ -20,6 +20,7 @@
 namespace facebook {
 namespace fboss {
 
+class SaiBridgePort;
 class SaiManagerTable;
 
 class SaiPort {
@@ -47,12 +48,16 @@ class SaiPort {
   sai_object_id_t id() const {
     return id_;
   }
+  const SaiBridgePort* getBridgePort() const {
+    return bridgePort_.get();
+  }
 
  private:
-  sai_object_id_t id_;
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   PortApiParameters::Attributes attributes_;
+  sai_object_id_t id_;
+  std::unique_ptr<SaiBridgePort> bridgePort_;
 };
 
 class SaiPortManager {

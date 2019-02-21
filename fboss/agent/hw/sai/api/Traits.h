@@ -52,11 +52,11 @@ struct apiUsesEntry<RouteTypes> : public std::true_type {};
 template <typename ApiTypes>
 struct apiHasMembers : public std::false_type {};
 
-class BridgeTypes;
+class BridgeApiParameters;
 class VlanTypes;
 class LagTypes;
 template <>
-struct apiHasMembers<BridgeTypes> : public std::true_type {};
+struct apiHasMembers<BridgeApiParameters> : public std::true_type {};
 template <>
 struct apiHasMembers<VlanTypes> : public std::true_type {};
 template <>

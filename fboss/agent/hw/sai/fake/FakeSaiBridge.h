@@ -54,11 +54,11 @@ namespace fboss {
 
 class FakeBridgePort {
  public:
-  explicit FakeBridgePort(sai_object_id_t bridgeId) : bridgeId(bridgeId) {}
-  sai_object_id_t bridgeId;
+  explicit FakeBridgePort(int32_t type, sai_object_id_t portId)
+      : type(type), portId(portId) {}
   sai_object_id_t id;
-  sai_object_id_t portId;
   int32_t type;
+  sai_object_id_t portId;
 };
 
 class FakeBridge {

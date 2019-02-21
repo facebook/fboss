@@ -31,53 +31,41 @@ class BridgeApiTest : public ::testing::Test {
     EXPECT_EQ(fb.id, bridgeId);
   }
   void checkBridgePort(
-      const sai_object_id_t& bridgeId,
       const sai_object_id_t& bridgePortId) {
     auto fbp = fs->brm.getMember(bridgePortId);
-    EXPECT_EQ(fbp.bridgeId, bridgeId);
     EXPECT_EQ(fbp.id, bridgePortId);
   }
 };
 
 TEST_F(BridgeApiTest, createBridge) {
-  BridgeTypes::Attributes::Type bridgeType(SAI_BRIDGE_TYPE_1Q);
+  BridgeApiParameters::Attributes::Type bridgeType(SAI_BRIDGE_TYPE_1Q);
   auto bridgeId = bridgeApi->create({bridgeType}, 0);
   checkBridge(bridgeId);
-  // Bridge ID should be 0, as it is the first one created.
-  EXPECT_EQ(bridgeId, 0);
 }
 
 TEST_F(BridgeApiTest, removeBridge) {
-  BridgeTypes::Attributes::Type bridgeType(SAI_BRIDGE_TYPE_1Q);
+  BridgeApiParameters::Attributes::Type bridgeType(SAI_BRIDGE_TYPE_1Q);
   auto bridgeId = bridgeApi->create({bridgeType}, 0);
   checkBridge(bridgeId);
-  // Bridge ID should be 0, as it is the first one created.
-  EXPECT_EQ(bridgeId, 0);
-  EXPECT_EQ(fs->brm.map().size(), 1);
+  // account for default bridge
+  EXPECT_EQ(fs->brm.map().size(), 2);
   bridgeApi->remove(bridgeId);
-  EXPECT_EQ(fs->brm.map().size(), 0);
+  EXPECT_EQ(fs->brm.map().size(), 1);
 }
 
 TEST_F(BridgeApiTest, createBridgePort) {
-  BridgeTypes::Attributes::Type bridgeType(SAI_BRIDGE_TYPE_1Q);
-  auto bridgeId = bridgeApi->create({bridgeType}, 0);
-  checkBridge(bridgeId);
-  // Bridge ID should be 0, as it is the first one created.
-  EXPECT_EQ(bridgeId, 0);
-  BridgeTypes::MemberAttributeType bridgeIdAttribute =
-      BridgeTypes::MemberAttributes::BridgeId(bridgeId);
-  auto bridgePortId = bridgeApi->createMember({bridgeIdAttribute}, 0);
-  checkBridgePort(bridgeId, bridgePortId);
+  BridgeApiParameters::MemberAttributes::CreateAttributes c{
+      SAI_BRIDGE_PORT_TYPE_PORT, 42};
+  auto bridgePortId = bridgeApi->createMember2(c, 0);
+  checkBridgePort(bridgePortId);
 }
 
 TEST_F(BridgeApiTest, removeBridgePort) {
-  auto bridgeId = bridgeApi->create({}, 0);
-  checkBridge(bridgeId);
-  BridgeTypes::MemberAttributeType bridgeIdAttribute =
-      BridgeTypes::MemberAttributes::BridgeId(bridgeId);
-  auto bridgePortId = bridgeApi->createMember({bridgeIdAttribute}, 0);
-  checkBridgePort(bridgeId, bridgePortId);
-  EXPECT_EQ(fs->brm.get(bridgeId).fm().map().size(), 1);
+  BridgeApiParameters::MemberAttributes::CreateAttributes c{
+      SAI_BRIDGE_PORT_TYPE_PORT, 42};
+  auto bridgePortId = bridgeApi->createMember2(c, 0);
+  checkBridgePort(bridgePortId);
+  EXPECT_EQ(fs->brm.get(0).fm().map().size(), 1);
   bridgeApi->removeMember(bridgePortId);
-  EXPECT_EQ(fs->brm.get(bridgeId).fm().map().size(), 0);
+  EXPECT_EQ(fs->brm.get(0).fm().map().size(), 0);
 }

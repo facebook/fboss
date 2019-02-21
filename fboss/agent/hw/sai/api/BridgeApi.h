@@ -10,7 +10,8 @@
 #pragma once
 
 #include "SaiApi.h"
-#include "SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
 #include <folly/logging/xlog.h>
 
@@ -23,7 +24,7 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
-struct BridgeTypes {
+struct BridgeApiParameters {
   struct Attributes {
     using EnumType = sai_bridge_attr_t;
     using PortList = SaiAttribute<
@@ -50,15 +51,28 @@ struct BridgeTypes {
         sai_object_id_t,
         SaiObjectIdT>;
     using Type = SaiAttribute<EnumType, SAI_BRIDGE_PORT_ATTR_TYPE, sai_int32_t>;
+
+    using CreateAttributes = SaiAttributeTuple<Type, PortId>;
+    MemberAttributes(const CreateAttributes& attrs) {
+      std::tie(type, portId) = attrs.value();
+    }
+    CreateAttributes attrs() const {
+      return {type, portId};
+    }
+    bool operator==(const MemberAttributes& other) const {
+      return attrs() == other.attrs();
+    }
+    bool operator!=(const MemberAttributes& other) const {
+      return !(*this == other);
+    }
+    Type::ValueType type;
+    PortId::ValueType portId;
   };
-  using MemberAttributeType = boost::variant<
-      MemberAttributes::BridgeId,
-      MemberAttributes::PortId,
-      MemberAttributes::Type>;
+  using MemberAttributeType = boost::variant<boost::blank>;
   struct EntryType {};
 };
 
-class BridgeApi : public SaiApi<BridgeApi, BridgeTypes> {
+class BridgeApi : public SaiApi<BridgeApi, BridgeApiParameters> {
  public:
   BridgeApi() {
     sai_status_t status =
@@ -103,7 +117,7 @@ class BridgeApi : public SaiApi<BridgeApi, BridgeTypes> {
     return api_->remove_bridge_port(bridge_port_id);
   }
   sai_bridge_api_t* api_;
-  friend class SaiApi<BridgeApi, BridgeTypes>;
+  friend class SaiApi<BridgeApi, BridgeApiParameters>;
 };
 
 } // namespace fboss

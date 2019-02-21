@@ -15,15 +15,20 @@ namespace facebook {
 namespace fboss {
 
 class SaiApiTable;
+class SaiBridgeManager;
 class SaiPortManager;
 
 class SaiManagerTable {
  public:
   explicit SaiManagerTable(SaiApiTable* apiTable);
   ~SaiManagerTable();
+  SaiBridgeManager& bridgeManager();
+  const SaiBridgeManager& bridgeManager() const;
   SaiPortManager& portManager();
   const SaiPortManager& portManager() const;
+
  private:
+  std::unique_ptr<SaiBridgeManager> bridgeManager_;
   std::unique_ptr<SaiPortManager> portManager_;
   SaiApiTable* apiTable_;
 };

@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 
 #include <folly/logging/xlog.h>
@@ -116,6 +117,7 @@ SaiPort::SaiPort(
       attributes_(attributes) {
   auto& portApi = apiTable_->portApi();
   id_ = portApi.create2(attributes_.attrs(), 0);
+  bridgePort_ = managerTable_->bridgeManager().addBridgePort(id_);
 }
 
 void SaiPort::setAttributes(
@@ -141,6 +143,7 @@ void SaiPort::setAttributes(
 }
 
 SaiPort::~SaiPort() {
+  bridgePort_.reset();
   apiTable_->portApi().remove(id_);
 }
 

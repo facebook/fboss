@@ -11,16 +11,24 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
 namespace facebook {
 namespace fboss {
 
 SaiManagerTable::SaiManagerTable(SaiApiTable* apiTable) : apiTable_(apiTable) {
+  bridgeManager_ = std::make_unique<SaiBridgeManager>(apiTable_, this);
   portManager_ = std::make_unique<SaiPortManager>(apiTable_, this);
 }
 SaiManagerTable::~SaiManagerTable() {}
 
+SaiBridgeManager& SaiManagerTable::bridgeManager() {
+  return *bridgeManager_;
+}
+const SaiBridgeManager& SaiManagerTable::bridgeManager() const {
+  return *bridgeManager_;
+}
 SaiPortManager& SaiManagerTable::portManager() {
   return *portManager_;
 }

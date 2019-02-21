@@ -74,25 +74,24 @@ sai_status_t create_bridge_port_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  folly::Optional<sai_object_id_t> bridgeId;
+  folly::Optional<sai_object_id_t> portId;
+  folly::Optional<int32_t> type;
   for (int i = 0; i < attr_count; ++i) {
-    if (attr_list[i].id == SAI_BRIDGE_PORT_ATTR_BRIDGE_ID) {
-      bridgeId = attr_list[i].value.oid;
-      break;
+    switch (attr_list[i].id) {
+      case SAI_BRIDGE_PORT_ATTR_PORT_ID:
+        portId = attr_list[i].value.oid;
+        break;
+      case SAI_BRIDGE_PORT_ATTR_TYPE:
+        type = attr_list[i].value.s32;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
     }
   }
-  if (!bridgeId) {
+  if (!portId || !type) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  *bridge_port_id = fs->brm.createMember(bridgeId.value(), bridgeId.value());
-  for (int i = 0; i < attr_count; ++i) {
-    sai_status_t res =
-        set_bridge_port_attribute_fn(*bridge_port_id, &attr_list[i]);
-    if (res != SAI_STATUS_SUCCESS) {
-      fs->brm.removeMember(*bridge_port_id);
-      return res;
-    }
-  }
+  *bridge_port_id = fs->brm.createMember(0, type.value(), portId.value());
   return SAI_STATUS_SUCCESS;
 }
 
@@ -111,7 +110,7 @@ sai_status_t get_bridge_port_attribute_fn(
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_BRIDGE_PORT_ATTR_BRIDGE_ID:
-        attr[i].value.oid = bridgePort.bridgeId;
+        attr[i].value.oid = 0;
         break;
       case SAI_BRIDGE_PORT_ATTR_PORT_ID:
         attr[i].value.oid = bridgePort.portId;
@@ -136,10 +135,6 @@ sai_status_t set_bridge_port_attribute_fn(
     return SAI_STATUS_INVALID_PARAMETER;
   }
   switch (attr->id) {
-    case SAI_BRIDGE_PORT_ATTR_BRIDGE_ID:
-      bridgePort.bridgeId = attr->value.oid;
-      res = SAI_STATUS_SUCCESS;
-      break;
     case SAI_BRIDGE_PORT_ATTR_PORT_ID:
       bridgePort.portId = attr->value.oid;
       res = SAI_STATUS_SUCCESS;

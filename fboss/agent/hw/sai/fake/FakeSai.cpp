@@ -30,6 +30,10 @@ sai_status_t sai_api_initialize(
   if (fs->initialized) {
     return SAI_STATUS_FAILURE;
   }
+
+  // Create the default 1Q bridge per the SAI spec
+  fs->brm.create();
+
   fs->initialized = true;
   return SAI_STATUS_SUCCESS;
 }
