@@ -114,12 +114,13 @@ class PortDetailsCmd(cmds.FbossCmd):
         if hasattr(port_info, 'portQueues'):
             print(fmt.format("Unicast queues", len(port_info.portQueues)))
             for queue in port_info.portQueues:
-                name = "({})".format(+queue.name) if queue.name != "" else ""
+                name = "({})".format(queue.name) if queue.name != "" else ""
                 attrs = [queue.mode]
                 for val in ("weight", "reservedBytes", "scalingFactor"):
                     if hasattr(queue, val) and getattr(queue, val):
                         attrs.append("{}={}".format(val, getattr(queue, val)))
-                print("    Queue {}{:30}{}".format(queue.id, name, ",".join(attrs)))
+                print("    Queue {} {:29}{}".format(
+                    queue.id, name, ",".join(attrs)))
                 if hasattr(queue, "aqm") and getattr(queue, "aqm"):
                     aqm = getattr(queue, "aqm")
                     attrs1 = []

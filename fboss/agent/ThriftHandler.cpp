@@ -536,6 +536,9 @@ void ThriftHandler::getPortInfoHelper(
       pq.aqms_ref().value_unchecked().swap(aqms);
       pq.__isset.aqms = true;
     }
+    if (queue->getName()) {
+      pq.name = queue->getName().value();
+    }
     portInfo.portQueues.push_back(pq);
   }
 
