@@ -9,21 +9,22 @@
  */
 #pragma once
 
-#include "SaiApi.h"
-#include "SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiApi.h"
+#include "fboss/agent/hw/sai/api/SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
 #include <folly/logging/xlog.h>
 
 #include <boost/variant.hpp>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 namespace facebook {
 namespace fboss {
 
-struct VirtualRouterTypes {
+struct VirtualRouterApiParameters {
   struct Attributes {
     using EnumType = sai_virtual_router_attr_t;
     using SrcMac = SaiAttribute<
@@ -31,6 +32,17 @@ struct VirtualRouterTypes {
         SAI_VIRTUAL_ROUTER_ATTR_SRC_MAC_ADDRESS,
         sai_mac_t,
         folly::MacAddress>;
+    using CreateAttributes = SaiAttributeTuple<>;
+    Attributes(const CreateAttributes& create) {}
+    CreateAttributes attrs() const {
+      return CreateAttributes{};
+    }
+    bool operator==(const Attributes& other) const {
+      return attrs() == other.attrs();
+    }
+    bool operator!=(const Attributes& other) const {
+      return !(*this == other);
+    }
   };
   using AttributeType = boost::variant<Attributes::SrcMac>;
   struct MemberAttributes {};
@@ -38,7 +50,8 @@ struct VirtualRouterTypes {
   struct EntryType {};
 };
 
-class VirtualRouterApi : public SaiApi<VirtualRouterApi, VirtualRouterTypes> {
+class VirtualRouterApi
+    : public SaiApi<VirtualRouterApi, VirtualRouterApiParameters> {
  public:
   VirtualRouterApi() {
     sai_status_t status =
@@ -46,6 +59,7 @@ class VirtualRouterApi : public SaiApi<VirtualRouterApi, VirtualRouterTypes> {
     saiCheckError(status, "Failed to query for virtual router api");
   }
   VirtualRouterApi(const VirtualRouterApi& other) = delete;
+
  private:
   sai_status_t _create(
       sai_object_id_t* virtual_router_id,
@@ -65,7 +79,7 @@ class VirtualRouterApi : public SaiApi<VirtualRouterApi, VirtualRouterTypes> {
     return api_->set_virtual_router_attribute(handle, attr);
   }
   sai_virtual_router_api_t* api_;
-  friend class SaiApi<VirtualRouterApi, VirtualRouterTypes>;
+  friend class SaiApi<VirtualRouterApi, VirtualRouterApiParameters>;
 };
 
 } // namespace fboss

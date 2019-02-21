@@ -31,8 +31,12 @@ sai_status_t sai_api_initialize(
     return SAI_STATUS_FAILURE;
   }
 
+  // Create the default switch per the SAI spec
+  fs->swm.create();
   // Create the default 1Q bridge per the SAI spec
   fs->brm.create();
+  // Create the default virtual router per the SAI spec
+  fs->vrm.create();
 
   fs->initialized = true;
   return SAI_STATUS_SUCCESS;

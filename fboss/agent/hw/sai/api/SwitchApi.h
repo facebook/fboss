@@ -27,6 +27,11 @@ namespace fboss {
 struct SwitchTypes {
   struct Attributes {
     using EnumType = sai_switch_attr_t;
+    using DefaultVirtualRouterId = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_DEFAULT_VIRTUAL_ROUTER_ID,
+        sai_object_id_t,
+        SaiObjectIdT>;
     using DefaultVlanId = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_DEFAULT_VLAN_ID,

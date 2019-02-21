@@ -16,6 +16,7 @@ using facebook::fboss::FakeSai;
 
 namespace {
 static constexpr uint64_t defaultVlanId = 1;
+static constexpr uint64_t defaultVirtualRouterId = 0;
 }
 
 sai_status_t set_switch_attribute_fn(
@@ -47,6 +48,9 @@ sai_status_t get_switch_attribute_fn(
   const auto& sw = fs->swm.get(switch_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
+      case SAI_SWITCH_ATTR_DEFAULT_VIRTUAL_ROUTER_ID:
+        attr[i].value.oid = defaultVirtualRouterId;
+        break;
       case SAI_SWITCH_ATTR_DEFAULT_VLAN_ID:
         attr[i].value.oid = defaultVlanId;
         break;

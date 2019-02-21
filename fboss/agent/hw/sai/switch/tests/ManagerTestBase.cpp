@@ -20,6 +20,7 @@ void ManagerTestBase::SetUp() {
   fs = FakeSai::getInstance();
   saiApiTable = std::make_unique<SaiApiTable>();
   saiManagerTable = std::make_unique<SaiManagerTable>(saiApiTable.get());
+  sai_api_initialize(0, nullptr);
 }
 
 sai_object_id_t ManagerTestBase::addPort(

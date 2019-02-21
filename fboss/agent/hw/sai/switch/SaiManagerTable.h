@@ -17,19 +17,26 @@ namespace fboss {
 class SaiApiTable;
 class SaiBridgeManager;
 class SaiPortManager;
+class SaiVirtualRouterManager;
 
 class SaiManagerTable {
  public:
   explicit SaiManagerTable(SaiApiTable* apiTable);
   ~SaiManagerTable();
+
   SaiBridgeManager& bridgeManager();
   const SaiBridgeManager& bridgeManager() const;
+
   SaiPortManager& portManager();
   const SaiPortManager& portManager() const;
+
+  SaiVirtualRouterManager& virtualRouterManager();
+  const SaiVirtualRouterManager& virtualRouterManager() const;
 
  private:
   std::unique_ptr<SaiBridgeManager> bridgeManager_;
   std::unique_ptr<SaiPortManager> portManager_;
+  std::unique_ptr<SaiVirtualRouterManager> virtualRouterManager_;
   SaiApiTable* apiTable_;
 };
 

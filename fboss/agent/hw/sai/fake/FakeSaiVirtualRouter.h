@@ -35,7 +35,13 @@ sai_status_t get_virtual_router_attribute_fn(
 namespace facebook {
 namespace fboss {
 
-class FakeVirtualRouterManager {};
+class FakeVirtualRouter {
+ public:
+  sai_object_id_t id;
+};
+
+using FakeVirtualRouterManager =
+    FakeManager<sai_object_id_t, FakeVirtualRouter>;
 
 void populate_virtual_router_api(sai_virtual_router_api_t** virtual_router_api);
 
