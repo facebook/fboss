@@ -24,14 +24,21 @@ sai_status_t create_vlan_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  *vlan_id = fs->vm.create();
+  folly::Optional<uint16_t> vlanId;
   for (int i = 0; i < attr_count; ++i) {
-    sai_status_t res = set_vlan_attribute_fn(*vlan_id, &attr_list[i]);
-    if (res != SAI_STATUS_SUCCESS) {
-      fs->vm.remove(*vlan_id);
-      return res;
+    switch (attr_list[i].id) {
+      case SAI_VLAN_ATTR_VLAN_ID:
+        vlanId = attr_list[i].value.u16;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+        break;
     }
   }
+  if (!vlanId) {
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+  *vlan_id = fs->vm.create(vlanId.value());
   return SAI_STATUS_SUCCESS;
 }
 
@@ -60,7 +67,7 @@ sai_status_t get_vlan_attribute_fn(
         }
         break;
       case SAI_VLAN_ATTR_VLAN_ID:
-        attr[i].value.u16 = vlan.id;
+        attr[i].value.u16 = vlan.vlanId;
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;

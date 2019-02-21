@@ -18,6 +18,7 @@ class SaiApiTable;
 class SaiBridgeManager;
 class SaiPortManager;
 class SaiVirtualRouterManager;
+class SaiVlanManager;
 
 class SaiManagerTable {
  public:
@@ -33,10 +34,14 @@ class SaiManagerTable {
   SaiVirtualRouterManager& virtualRouterManager();
   const SaiVirtualRouterManager& virtualRouterManager() const;
 
+  SaiVlanManager& vlanManager();
+  const SaiVlanManager& vlanManager() const;
+
  private:
   std::unique_ptr<SaiBridgeManager> bridgeManager_;
   std::unique_ptr<SaiPortManager> portManager_;
   std::unique_ptr<SaiVirtualRouterManager> virtualRouterManager_;
+  std::unique_ptr<SaiVlanManager> vlanManager_;
   SaiApiTable* apiTable_;
 };
 

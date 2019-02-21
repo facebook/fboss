@@ -20,15 +20,27 @@
 
 #include <gtest/gtest.h>
 
+extern "C" {
+#include <sai.h>
+}
+
 namespace facebook {
 namespace fboss {
+
+class Vlan;
 
 class ManagerTestBase : public ::testing::Test {
  public:
   void SetUp() override;
 
-  sai_object_id_t
-  addPort(const PortID& swId, const std::string& name, bool enabled);
+  sai_object_id_t addPort(uint16_t id, bool enabled);
+
+  std::shared_ptr<Vlan> makeVlan(
+      uint16_t id,
+      const std::vector<uint16_t>& memberPorts) const;
+  sai_object_id_t addVlan(
+      uint16_t id,
+      const std::vector<uint16_t>& memberPorts);
 
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<SaiApiTable> saiApiTable;

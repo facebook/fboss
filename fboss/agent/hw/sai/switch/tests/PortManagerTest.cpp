@@ -46,23 +46,23 @@ class PortManagerTest : public ManagerTestBase {
 };
 
 TEST_F(PortManagerTest, addPort) {
-  auto saiId = addPort(PortID(42), std::string("port42"), true);
+  auto saiId = addPort(42, true);
   checkPort(PortID(42), saiId, true);
 }
 
 TEST_F(PortManagerTest, addTwoPorts) {
-  addPort(PortID(42), std::string("port42"), true);
-  auto saiId2 = addPort(PortID(43), std::string("port43"), false);
+  addPort(42, true);
+  auto saiId2 = addPort(43, false);
   checkPort(PortID(43), saiId2, false);
 }
 
 TEST_F(PortManagerTest, addDupIdPorts) {
-  addPort(PortID(42), std::string("port42"), true);
-  EXPECT_THROW(addPort(PortID(42), std::string("port43"), false), FbossError);
+  addPort(42, true);
+  EXPECT_THROW(addPort(42, false), FbossError);
 }
 
 TEST_F(PortManagerTest, getBySwId) {
-  addPort(PortID(42), std::string("port42"), true);
+  addPort(42, true);
   SaiPort* port = saiManagerTable->portManager().getPort(PortID(42));
   EXPECT_TRUE(port);
   EXPECT_EQ(port->attributes().adminState, true);
@@ -72,13 +72,13 @@ TEST_F(PortManagerTest, getBySwId) {
 }
 
 TEST_F(PortManagerTest, getNonExistent) {
-  addPort(PortID(42), std::string("port42"), true);
+  addPort(42, true);
   SaiPort* port = saiManagerTable->portManager().getPort(PortID(43));
   EXPECT_FALSE(port);
 }
 
 TEST_F(PortManagerTest, removePort) {
-  addPort(PortID(42), std::string("port42"), true);
+  addPort(42, true);
   SaiPort* port = saiManagerTable->portManager().getPort(PortID(42));
   EXPECT_TRUE(port);
   saiManagerTable->portManager().removePort(PortID(42));
@@ -87,7 +87,7 @@ TEST_F(PortManagerTest, removePort) {
 }
 
 TEST_F(PortManagerTest, removeNonExistentPort) {
-  addPort(PortID(42), std::string("port42"), true);
+  addPort(42, true);
   SaiPort* port = saiManagerTable->portManager().getPort(PortID(42));
   EXPECT_TRUE(port);
   EXPECT_THROW(
@@ -95,7 +95,7 @@ TEST_F(PortManagerTest, removeNonExistentPort) {
 }
 
 TEST_F(PortManagerTest, changePortAdminState) {
-  auto saiId = addPort(PortID(42), std::string("port42"), true);
+  auto saiId = addPort(42, true);
   auto swPort = std::make_shared<Port>(PortID(42), std::string("port42"));
   swPort->setSpeed(cfg::PortSpeed::TWENTYFIVEG);
   swPort->setAdminState(cfg::PortState::DISABLED);
@@ -104,7 +104,7 @@ TEST_F(PortManagerTest, changePortAdminState) {
 }
 
 TEST_F(PortManagerTest, changePortNoChange) {
-  auto saiId = addPort(PortID(42), std::string("port42"), true);
+  auto saiId = addPort(42, true);
   auto swPort = std::make_shared<Port>(PortID(42), std::string("port42"));
   swPort->setSpeed(cfg::PortSpeed::TWENTYFIVEG);
   swPort->setAdminState(cfg::PortState::ENABLED);
@@ -113,7 +113,7 @@ TEST_F(PortManagerTest, changePortNoChange) {
 }
 
 TEST_F(PortManagerTest, changeNonExistentPort) {
-  addPort(PortID(42), std::string("port42"), true);
+  addPort(42, true);
   auto swPort = std::make_shared<Port>(PortID(43), std::string("port42"));
   swPort->setSpeed(cfg::PortSpeed::TWENTYFIVEG);
   EXPECT_THROW(saiManagerTable->portManager().changePort(swPort), FbossError);

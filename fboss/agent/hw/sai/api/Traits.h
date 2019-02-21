@@ -53,12 +53,12 @@ template <typename ApiTypes>
 struct apiHasMembers : public std::false_type {};
 
 class BridgeApiParameters;
-class VlanTypes;
+class VlanApiParameters;
 class LagTypes;
 template <>
 struct apiHasMembers<BridgeApiParameters> : public std::true_type {};
 template <>
-struct apiHasMembers<VlanTypes> : public std::true_type {};
+struct apiHasMembers<VlanApiParameters> : public std::true_type {};
 template <>
 struct apiHasMembers<LagTypes> : public std::true_type {};
 

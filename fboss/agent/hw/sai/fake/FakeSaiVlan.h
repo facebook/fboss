@@ -62,6 +62,8 @@ class FakeVlanMember {
 
 class FakeVlan {
  public:
+  explicit FakeVlan(uint16_t vlanId) : vlanId(vlanId) {}
+  uint16_t vlanId;
   sai_object_id_t id;
   FakeManager<sai_object_id_t, FakeVlanMember>& fm() {
     return fm_;

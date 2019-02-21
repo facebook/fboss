@@ -10,7 +10,8 @@
 #pragma once
 
 #include "SaiApi.h"
-#include "SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
 #include <folly/logging/xlog.h>
 
@@ -23,7 +24,7 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
-struct VlanTypes {
+struct VlanApiParameters {
   struct Attributes {
     using EnumType = sai_vlan_attr_t;
     using VlanId = SaiAttribute<EnumType, SAI_VLAN_ATTR_VLAN_ID, sai_uint16_t>;
@@ -32,6 +33,20 @@ struct VlanTypes {
         SAI_VLAN_ATTR_MEMBER_LIST,
         sai_object_list_t,
         std::vector<sai_object_id_t>>;
+    using CreateAttributes = SaiAttributeTuple<VlanId>;
+    Attributes(const CreateAttributes& attrs) {
+      std::tie(vlanId) = attrs.value();
+    }
+    CreateAttributes attrs() const {
+      return {vlanId};
+    }
+    bool operator==(const Attributes& other) const {
+      return attrs() == other.attrs();
+    }
+    bool operator!=(const Attributes& other) const {
+      return !(*this == other);
+    }
+    typename VlanId::ValueType vlanId;
   };
   using AttributeType =
       boost::variant<Attributes::VlanId, Attributes::MemberList>;
@@ -47,13 +62,28 @@ struct VlanTypes {
         SAI_VLAN_MEMBER_ATTR_VLAN_ID,
         sai_object_id_t,
         SaiObjectIdT>;
+    using CreateAttributes = SaiAttributeTuple<VlanId, BridgePortId>;
+    MemberAttributes(const CreateAttributes& attrs) {
+      std::tie(vlanId, bridgePortId) = attrs.value();
+    }
+    CreateAttributes attrs() const {
+      return {vlanId, bridgePortId};
+    }
+    bool operator==(const MemberAttributes& other) const {
+      return attrs() == other.attrs();
+    }
+    bool operator!=(const MemberAttributes& other) const {
+      return !(*this == other);
+    }
+    typename VlanId::ValueType vlanId;
+    typename BridgePortId::ValueType bridgePortId;
   };
   using MemberAttributeType =
       boost::variant<MemberAttributes::BridgePortId, MemberAttributes::VlanId>;
   struct EntryType {};
 };
 
-class VlanApi : public SaiApi<VlanApi, VlanTypes> {
+class VlanApi : public SaiApi<VlanApi, VlanApiParameters> {
  public:
   VlanApi() {
     sai_status_t status =
@@ -99,7 +129,7 @@ class VlanApi : public SaiApi<VlanApi, VlanTypes> {
     return api_->set_vlan_member_attribute(handle, attr);
   }
   sai_vlan_api_t* api_;
-  friend class SaiApi<VlanApi, VlanTypes>;
+  friend class SaiApi<VlanApi, VlanApiParameters>;
 };
 
 } // namespace fboss

@@ -38,52 +38,52 @@ class VlanApiTest : public ::testing::Test {
 };
 
 TEST_F(VlanApiTest, createVlan) {
-  auto vlanId = vlanApi->create({}, 0);
+  auto vlanId = vlanApi->create2({42}, 0);
   checkVlan(vlanId);
 }
 
 TEST_F(VlanApiTest, removeVlan) {
-  auto vlanId = vlanApi->create({}, 0);
+  auto vlanId = vlanApi->create2({42}, 0);
   checkVlan(vlanId);
   vlanApi->remove(vlanId);
 }
 
 TEST_F(VlanApiTest, createVlanMember) {
-  auto vlanId = vlanApi->create({}, 0);
+  auto vlanId = vlanApi->create2({42}, 0);
   checkVlan(vlanId);
-  VlanTypes::MemberAttributeType vlanIdAttribute =
-      VlanTypes::MemberAttributes::VlanId(vlanId);
+  VlanApiParameters::MemberAttributeType vlanIdAttribute =
+      VlanApiParameters::MemberAttributes::VlanId(vlanId);
   auto vlanMemberId = vlanApi->createMember({vlanIdAttribute}, 0);
   checkVlanMember(vlanId, vlanMemberId);
 }
 
 TEST_F(VlanApiTest, multipleVlan) {
-  auto vlanId1 = vlanApi->create({}, 0);
-  auto vlanId2 = vlanApi->create({}, 0);
+  auto vlanId1 = vlanApi->create2({42}, 0);
+  auto vlanId2 = vlanApi->create2({42}, 0);
   checkVlan(vlanId1);
   checkVlan(vlanId2);
   EXPECT_NE(vlanId1, vlanId2);
-  VlanTypes::MemberAttributeType vlanIdAttribute =
-      VlanTypes::MemberAttributes::VlanId(vlanId2);
+  VlanApiParameters::MemberAttributeType vlanIdAttribute =
+      VlanApiParameters::MemberAttributes::VlanId(vlanId2);
   auto vlanMemberId = vlanApi->createMember({vlanIdAttribute}, 0);
   checkVlanMember(vlanId2, vlanMemberId);
 }
 
 TEST_F(VlanApiTest, removeVlanMember) {
-  auto vlanId = vlanApi->create({}, 0);
+  auto vlanId = vlanApi->create2({42}, 0);
   checkVlan(vlanId);
-  VlanTypes::MemberAttributeType vlanIdAttribute =
-      VlanTypes::MemberAttributes::VlanId(vlanId);
+  VlanApiParameters::MemberAttributeType vlanIdAttribute =
+      VlanApiParameters::MemberAttributes::VlanId(vlanId);
   auto vlanMemberId = vlanApi->createMember({vlanIdAttribute}, 0);
   checkVlanMember(vlanId, vlanMemberId);
   vlanApi->removeMember(vlanMemberId);
 }
 
 TEST_F(VlanApiTest, multipleVlanMembers) {
-  auto vlanId = vlanApi->create({}, 0);
+  auto vlanId = vlanApi->create2({42}, 0);
   checkVlan(vlanId);
-  VlanTypes::MemberAttributeType vlanIdAttribute =
-      VlanTypes::MemberAttributes::VlanId(vlanId);
+  VlanApiParameters::MemberAttributeType vlanIdAttribute =
+      VlanApiParameters::MemberAttributes::VlanId(vlanId);
   auto vlanMemberId1 = vlanApi->createMember({vlanIdAttribute}, 0);
   auto vlanMemberId2 = vlanApi->createMember({vlanIdAttribute}, 0);
   checkVlanMember(vlanId, vlanMemberId1);
@@ -92,36 +92,37 @@ TEST_F(VlanApiTest, multipleVlanMembers) {
 }
 
 TEST_F(VlanApiTest, getVlanAttribute) {
-  auto vlanId = vlanApi->create({}, 0);
+  auto vlanId = vlanApi->create2({42}, 0);
   checkVlan(vlanId);
   auto vlanIdGot =
-      vlanApi->getAttribute(VlanTypes::Attributes::VlanId(), vlanId);
-  EXPECT_EQ(vlanId, vlanIdGot);
+      vlanApi->getAttribute(VlanApiParameters::Attributes::VlanId(), vlanId);
+  EXPECT_EQ(42, vlanIdGot);
 }
 
 TEST_F(VlanApiTest, getVlanMemberAttribute) {
-  auto vlanId = vlanApi->create({}, 0);
+  auto vlanId = vlanApi->create2({42}, 0);
   checkVlan(vlanId);
-  VlanTypes::MemberAttributeType vlanIdAttribute =
-      VlanTypes::MemberAttributes::VlanId(vlanId);
+  VlanApiParameters::MemberAttributeType vlanIdAttribute =
+      VlanApiParameters::MemberAttributes::VlanId(vlanId);
   auto vlanMemberId = vlanApi->createMember({vlanIdAttribute}, 0);
   checkVlanMember(vlanId, vlanMemberId);
   auto vlanIdGot = vlanApi->getMemberAttribute(
-      VlanTypes::MemberAttributes::VlanId(), vlanMemberId);
+      VlanApiParameters::MemberAttributes::VlanId(), vlanMemberId);
   EXPECT_EQ(vlanId, vlanIdGot);
 }
 
 TEST_F(VlanApiTest, setVlanMemberAttribute) {
-  auto vlanId = vlanApi->create({}, 0);
+  auto vlanId = vlanApi->create2({42}, 0);
   checkVlan(vlanId);
-  VlanTypes::MemberAttributeType vlanIdAttribute =
-      VlanTypes::MemberAttributes::VlanId(vlanId);
+  VlanApiParameters::MemberAttributeType vlanIdAttribute =
+      VlanApiParameters::MemberAttributes::VlanId(vlanId);
   auto vlanMemberId = vlanApi->createMember({vlanIdAttribute}, 0);
   checkVlanMember(vlanId, vlanMemberId);
   auto bridgePortId = 42;
-  VlanTypes::MemberAttributes::BridgePortId bridgePortIdAttribute(bridgePortId);
+  VlanApiParameters::MemberAttributes::BridgePortId bridgePortIdAttribute(
+      bridgePortId);
   vlanApi->setMemberAttribute(bridgePortIdAttribute, vlanMemberId);
   auto bridgePortIdGot = vlanApi->getMemberAttribute(
-      VlanTypes::MemberAttributes::BridgePortId(), vlanMemberId);
+      VlanApiParameters::MemberAttributes::BridgePortId(), vlanMemberId);
   EXPECT_EQ(bridgePortId, bridgePortIdGot);
 }
