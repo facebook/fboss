@@ -33,6 +33,10 @@ DEFINE_int32(
     tx_enable_interval,
     300,
     "seconds between ensuring tx is enabled on down ports");
+DEFINE_int32(
+    reset_lpmode_interval,
+    300,
+    "seconds between flapping lpmode on down ports to try to recover");
 
 using std::memcpy;
 using std::mutex;
@@ -1080,12 +1084,14 @@ void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
              << std::hex << (int)*ether << " Desired power control "
              << _PowerControlState_VALUES_TO_NAMES.find(desiredSetting)->second;
 
-  if (currentState == desiredSetting) {
+  if (currentState == desiredSetting &&
+      std::time(nullptr) - lastPowerClassReset_ < FLAGS_reset_lpmode_interval) {
     XLOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
                << " Power override already correctly set, doing nothing";
     return;
   }
 
+  uint8_t lowPower = uint8_t(PowerControl::POWER_LPMODE);
   uint8_t power = uint8_t(PowerControl::POWER_OVERRIDE);
   if (desiredSetting == PowerControlState::HIGH_POWER_OVERRIDE) {
     power = uint8_t(PowerControl::HIGH_POWER_OVERRIDE);
@@ -1093,10 +1099,21 @@ void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
     power = uint8_t(PowerControl::POWER_LPMODE);
   }
 
-  getQsfpFieldAddress(SffField::POWER_CONTROL, dataAddress,
-                      offset, length);
-  qsfpImpl_->writeTransceiver(TransceiverI2CApi::ADDR_QSFP,
-      offset, sizeof(power), &power);
+  getQsfpFieldAddress(SffField::POWER_CONTROL, dataAddress, offset, length);
+
+  // first set to low power
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, sizeof(lowPower), &lowPower);
+
+  // then enable target power class
+  if (lowPower != power) {
+    qsfpImpl_->writeTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, offset, sizeof(power), &power);
+  }
+
+  // update last time we reset the power class
+  lastPowerClassReset_ = std::time(nullptr);
+
   XLOG(INFO) << "Port " << portStr << ": QSFP set to power setting "
              << _PowerControlState_VALUES_TO_NAMES.find(desiredSetting)->second
              << " (" << int(power) << ")";

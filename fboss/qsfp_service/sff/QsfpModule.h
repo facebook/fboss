@@ -174,6 +174,7 @@ class QsfpModule : public Transceiver {
   time_t lastRefreshTime_{0};
   time_t lastCustomizeTime_{0};
   time_t lastTxEnable_{0};
+  time_t lastPowerClassReset_{0};
 
   /*
    * Perform transceiver customization
