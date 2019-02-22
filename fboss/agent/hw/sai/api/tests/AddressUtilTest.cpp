@@ -29,8 +29,10 @@ class AddressUtilTest : public ::testing::Test {
   void SetUp() override {}
   folly::IPAddress ip4{str4};
   folly::CIDRNetwork net4{ip4, 24};
+  folly::CIDRNetwork ones4{ip4, 32};
   folly::IPAddress ip6{str6};
   folly::CIDRNetwork net6{ip6, 64};
+  folly::CIDRNetwork ones6{ip6, 128};
   folly::MacAddress mac{strMac};
 };
 
@@ -67,6 +69,20 @@ TEST_F(AddressUtilTest, PrefixV6) {
   EXPECT_EQ(saiPrefix6.addr_family, SAI_IP_ADDR_FAMILY_IPV6);
   folly::CIDRNetwork reverseNet6 = fromSaiIpPrefix(saiPrefix6);
   EXPECT_EQ(net6, reverseNet6);
+}
+
+TEST_F(AddressUtilTest, PrefixAllOnes4) {
+  sai_ip_prefix_t saiPrefix4 = toSaiIpPrefix(ones4);
+  EXPECT_EQ(saiPrefix4.addr_family, SAI_IP_ADDR_FAMILY_IPV4);
+  folly::CIDRNetwork reverseNet4 = fromSaiIpPrefix(saiPrefix4);
+  EXPECT_EQ(ones4, reverseNet4);
+}
+
+TEST_F(AddressUtilTest, PrefixAllOnes6) {
+  sai_ip_prefix_t saiPrefix6 = toSaiIpPrefix(ones6);
+  EXPECT_EQ(saiPrefix6.addr_family, SAI_IP_ADDR_FAMILY_IPV6);
+  folly::CIDRNetwork reverseNet6 = fromSaiIpPrefix(saiPrefix6);
+  EXPECT_EQ(ones6, reverseNet6);
 }
 
 TEST_F(AddressUtilTest, MacAddress) {

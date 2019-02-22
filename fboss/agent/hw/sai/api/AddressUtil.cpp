@@ -20,17 +20,17 @@ constexpr auto kFullMaskV6 =
 
 // To calculate the mask length for an IPAddress representing a mask,
 // (assumming that the mask address is in network byte order and
-// takes the form 1111...0000) start at the least significant bit and walk
-// towards the most significant bit until we find a 1.
+// takes the form 1111...0000) start at the most significant bit and walk
+// towards the least significant bit until we find a 0.
 uint8_t calculateMaskLengthFromIPAsMask(const folly::IPAddress& mask) {
-  auto bit = mask.bitCount() - 1;
-  while (bit >= 0) {
-    if (mask.getNthMSBit(bit)) {
+  size_t bit = 0;
+  while (bit < mask.bitCount()) {
+    if (!mask.getNthMSBit(bit)) {
       break;
     }
-    --bit;
+    ++bit;
   }
-  return bit + 1;
+  return bit;
 }
 } // namespace
 
