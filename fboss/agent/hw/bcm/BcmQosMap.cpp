@@ -15,10 +15,6 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/state/QosPolicy.h"
 
-namespace {
-constexpr auto kDefaultQueue = 0;
-}
-
 namespace facebook {
 namespace fboss {
 
@@ -43,18 +39,10 @@ int BcmQosMap::getHandle() const {
 }
 
 bool BcmQosMap::rulesMatch(const std::set<QosRule>& qosRules) const {
-  int qosRuleWithNonDefaultQueue = 0;
-  for (const auto& qosRule : qosRules) {
-    // Skip rules with the default queue
-    if (qosRule.queueId == kDefaultQueue) {
-      continue;
-    }
-    if (!ruleExists(qosRule)) {
-      return false;
-    }
-    ++qosRuleWithNonDefaultQueue;
-  }
-  return qosRuleWithNonDefaultQueue == size();
+  return qosRules.size() == size() &&
+      all_of(qosRules.begin(), qosRules.end(), [=](const QosRule& qosRule) {
+           return this->ruleExists(qosRule);
+         });
 }
 
 } // namespace fboss
