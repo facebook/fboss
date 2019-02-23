@@ -1025,6 +1025,20 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
   });
   isValid = isValid &&
       (newState->getMirrors()->size() <= bcmswitch_constants::MAX_MIRRORS_);
+
+  forEachAdded(
+      delta.getQosPoliciesDelta(),
+      [&](const std::shared_ptr<QosPolicy>& qosPolicy) {
+        isValid = isValid && BcmQosPolicyTable::isValid(qosPolicy);
+      });
+
+  forEachChanged(
+      delta.getQosPoliciesDelta(),
+      [&](const std::shared_ptr<QosPolicy>& oldQosPolicy,
+          const std::shared_ptr<QosPolicy>& newQosPolicy) {
+        isValid = isValid && BcmQosPolicyTable::isValid(newQosPolicy);
+      });
+
   return isValid;
 }
 

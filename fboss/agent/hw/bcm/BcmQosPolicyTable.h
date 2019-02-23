@@ -35,6 +35,8 @@ class BcmQosPolicyTable {
   // return nullptr if not found
   BcmQosPolicy* getQosPolicyIf(const std::string& name) const;
 
+  static bool isValid(const std::shared_ptr<QosPolicy>& qosPolicy);
+
  private:
   using BcmQosPolicyMap =
       boost::container::flat_map<std::string, std::unique_ptr<BcmQosPolicy>>;

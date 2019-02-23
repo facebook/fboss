@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/bcm/BcmQosPolicy.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/types.h"
+#include <folly/logging/xlog.h>
 
 namespace facebook {
 namespace fboss {
@@ -60,6 +61,36 @@ void BcmQosPolicyTable::processRemovedQosPolicy(
     throw FbossError("BcmQosPolicy=", qosPolicy->getName(), " does not exist");
   }
   qosPolicyMap_.erase(iter);
+}
+
+/*
+ * Broadcom requires explicitly configuring QoS map for default queue
+ * (queue 0) or else, the packets wll be processed by default queue as
+ * expected, but the dscp marking will be removed (dscp set to 0).
+ * Thus, QoSPolicy validation verifies if all 64 dscp to queue mappings are
+ * configured.
+ */
+bool BcmQosPolicyTable::isValid(const std::shared_ptr<QosPolicy>& qosPolicy) {
+  auto kDscpValueMin = 0;
+  auto kDscpValueMax = 63;
+  auto kDscpValueMaxCnt = kDscpValueMax - kDscpValueMin + 1;
+  std::set<uint8_t> dscpSet;
+
+  for (const auto& qosRule : qosPolicy->getRules()) {
+    if (qosRule.dscp < kDscpValueMin || qosRule.dscp > kDscpValueMax) {
+      return false;
+    }
+    dscpSet.emplace(qosRule.dscp);
+  }
+
+  // we have alredy validated that values are in range [0, 63]
+  auto isValid = dscpSet.size() == kDscpValueMaxCnt;
+  if (!isValid) {
+    XLOG(ERR) << "QosPolicy provides: " << dscpSet.size()
+              << " mappings, must provide ALL [0, 64]";
+  }
+
+  return isValid;
 }
 
 } // namespace fboss
