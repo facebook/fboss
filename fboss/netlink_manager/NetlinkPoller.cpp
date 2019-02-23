@@ -8,7 +8,8 @@ NetlinkPoller::NetlinkPoller(
     folly::EventBase* eb,
     int fd,
     struct nl_cache_mngr* manager)
-    : folly::EventHandler(eb, fd), manager_(manager) {
+    : folly::EventHandler(eb, folly::NetworkSocket::fromFd(fd)),
+      manager_(manager) {
   DCHECK(eb) << "NULL pointer to EventBase";
   if (fd == -1) {
     int mngrFd = nl_cache_mngr_get_fd(manager);
