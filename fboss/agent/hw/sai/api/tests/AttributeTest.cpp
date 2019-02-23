@@ -338,7 +338,8 @@ TEST(Attribute, attributeOptionalGetSaiAttr) {
 
 TEST(Attribute, attributeOptionalGetValue) {
   AttrOptional o(I{42});
-  EXPECT_EQ(o.value().value(), 42);
+  folly::Optional<int32_t> v = o.value();
+  EXPECT_EQ(v.value(), 42);
 }
 
 TEST(Attribute, attributeOptionalGetSaiAttrNone) {
@@ -351,6 +352,20 @@ TEST(Attribute, attributeOptionalGetValueNone) {
   std::vector<sai_attribute_t> v = o.saiAttrs();
   EXPECT_EQ(v.size(), 0);
 }
+
+TEST(Attribute, optionalConstructFromFollyOptional) {
+  folly::Optional<int32_t> follyOptional{42};
+  AttrOptional o(follyOptional);
+  folly::Optional<int32_t> v = o.value();
+  EXPECT_EQ(v.value(), 42);
+}
+
+TEST(Attribute, optionalConstructFromFollyNone) {
+  folly::Optional<int32_t> follyOptional = folly::none;
+  AttrOptional o(follyOptional);
+  EXPECT_EQ(o.value(), folly::none);
+}
+
 
 // Tests for a mix of various SaiAttribute wrapper types
 TEST(Attribute, variantInTuple) {

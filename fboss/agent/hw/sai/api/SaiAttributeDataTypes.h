@@ -168,10 +168,12 @@ class SaiAttributeOptional {
   /* implicit */ SaiAttributeOptional(const folly::None&) {}
   /* implicit */ SaiAttributeOptional(const typename AttrT::ValueType& v)
       : SaiAttributeOptional(AttrT{v}) {}
-  /* implicit */ SaiAttributeOptional(const ValueType& v)
-      : SaiAttributeOptional(AttrT{v.value()}) {}
-  /* implicit */ SaiAttributeOptional(const AttrT& attr) : optional_(attr) {
+  /* implicit */ SaiAttributeOptional(const ValueType& v) {
+    if (v) {
+      optional_ = AttrT{v.value()};
+    }
   }
+  /* implicit */ SaiAttributeOptional(const AttrT& attr) : optional_(attr) {}
 
   ValueType value() const {
     if (!optional_) {
