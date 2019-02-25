@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "SaiApi.h"
+#include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 

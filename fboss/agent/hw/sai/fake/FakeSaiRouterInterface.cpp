@@ -11,6 +11,7 @@
 #include "FakeSaiRouterInterface.h"
 #include "FakeSai.h"
 
+#include <folly/Optional.h>
 #include <folly/logging/xlog.h>
 
 using facebook::fboss::FakeSai;
@@ -22,13 +23,10 @@ sai_status_t create_router_interface_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  int32_t type;
-  bool gotType = false;
-  sai_object_id_t vrId;
-  bool gotVr = false;
-  sai_object_id_t vlanId;
-  bool gotVlan = false;
-  folly::MacAddress mac;
+  folly::Optional<int32_t> type;
+  folly::Optional<sai_object_id_t> vlanId;
+  folly::Optional<sai_object_id_t> vrId;
+  folly::Optional<folly::MacAddress> mac;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS:
@@ -38,25 +36,26 @@ sai_status_t create_router_interface_fn(
         break;
       case SAI_ROUTER_INTERFACE_ATTR_TYPE:
         type = attr_list[i].value.s32;
-        gotType = true;
         break;
       case SAI_ROUTER_INTERFACE_ATTR_VIRTUAL_ROUTER_ID:
         vrId = attr_list[i].value.oid;
-        gotVr = true;
         break;
       case SAI_ROUTER_INTERFACE_ATTR_VLAN_ID:
         vlanId = attr_list[i].value.oid;
-        gotVlan = true;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
   }
-  if (gotType && gotVr && gotVlan) {
-    *router_interface_id =
-        fs->rim.create(FakeRouterInterface(type, vrId, vlanId));
+  if (vrId && type && vlanId) {
+    *router_interface_id = fs->rim.create(
+        FakeRouterInterface(vrId.value(), type.value(), vlanId.value()));
   } else {
     return SAI_STATUS_INVALID_PARAMETER;
+  }
+  if (mac) {
+    auto& ri = fs->rim.get(*router_interface_id);
+    ri.setSrcMac(mac.value());
   }
   return SAI_STATUS_SUCCESS;
 }

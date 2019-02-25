@@ -9,8 +9,9 @@
  */
 #pragma once
 
-#include "SaiApi.h"
-#include "SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiApi.h"
+#include "fboss/agent/hw/sai/api/SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
 #include <folly/logging/xlog.h>
 
@@ -23,7 +24,7 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
-struct RouterInterfaceTypes {
+struct RouterInterfaceApiParameters {
   struct Attributes {
     using EnumType = sai_router_interface_attr_t;
     using SrcMac = SaiAttribute<
@@ -43,6 +44,27 @@ struct RouterInterfaceTypes {
         SAI_ROUTER_INTERFACE_ATTR_VLAN_ID,
         sai_object_id_t,
         SaiObjectIdT>;
+    using CreateAttributes = SaiAttributeTuple<
+        VirtualRouterId,
+        Type,
+        VlanId,
+        SaiAttributeOptional<SrcMac>>;
+    Attributes(const CreateAttributes& attrs) {
+      std::tie(virtualRouterId, type, vlanId, srcMac) = attrs.value();
+    }
+    CreateAttributes attrs() const {
+      return {virtualRouterId, type, vlanId, srcMac};
+    }
+    bool operator==(const Attributes& other) const {
+      return attrs() == other.attrs();
+    }
+    bool operator!=(const Attributes& other) const {
+      return !(*this == other);
+    }
+    VirtualRouterId::ValueType virtualRouterId;
+    Type::ValueType type;
+    VlanId::ValueType vlanId;
+    folly::Optional<SrcMac::ValueType> srcMac;
   };
   using AttributeType = boost::variant<
       Attributes::SrcMac,
@@ -55,7 +77,7 @@ struct RouterInterfaceTypes {
 };
 
 class RouterInterfaceApi
-    : public SaiApi<RouterInterfaceApi, RouterInterfaceTypes> {
+    : public SaiApi<RouterInterfaceApi, RouterInterfaceApiParameters> {
  public:
   RouterInterfaceApi() {
     sai_status_t status = sai_api_query(
@@ -83,7 +105,7 @@ class RouterInterfaceApi
     return api_->set_router_interface_attribute(handle, attr);
   }
   sai_router_interface_api_t* api_;
-  friend class SaiApi<RouterInterfaceApi, RouterInterfaceTypes>;
+  friend class SaiApi<RouterInterfaceApi, RouterInterfaceApiParameters>;
 };
 
 } // namespace fboss

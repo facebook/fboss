@@ -120,7 +120,13 @@ SaiVlanManager::SaiVlanManager(
     : apiTable_(apiTable), managerTable_(managerTable) {}
 
 sai_object_id_t SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
-  VlanApiParameters::Attributes::VlanId vlanIdAttribute{swVlan->getID()};
+  VlanID swVlanId = swVlan->getID();
+  auto existingVlan = getVlan(swVlanId);
+  if (existingVlan) {
+    throw FbossError(
+        "attempted to add a duplicate vlan with VlanID: ", swVlanId);
+  }
+  VlanApiParameters::Attributes::VlanId vlanIdAttribute{swVlanId};
   VlanApiParameters::Attributes attributes{{vlanIdAttribute}};
   auto saiVlan =
       std::make_unique<SaiVlan>(apiTable_, managerTable_, attributes);
@@ -129,18 +135,14 @@ sai_object_id_t SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
     PortID swPortId = memberPort.first;
     saiVlan->addMember(swPortId);
   }
-  auto ins = vlans_.insert(std::make_pair(swVlan->getID(), std::move(saiVlan)));
-  if (!ins.second) {
-    throw FbossError(
-        "attempted to add a duplicate vlan with VlanID: ", swVlan->getID());
-  }
+  vlans_.insert(std::make_pair(swVlanId, std::move(saiVlan)));
   return saiId;
 }
 
-void SaiVlanManager::removeVlan(const VlanID& swId) {
-  const auto citr = vlans_.find(swId);
+void SaiVlanManager::removeVlan(const VlanID& swVlanId) {
+  const auto citr = vlans_.find(swVlanId);
   if (citr == vlans_.cend()) {
-    throw FbossError("attempted to remove a vlan which does not exist: ", swId);
+    throw FbossError("attempted to remove a vlan which does not exist: ", swVlanId);
   }
   vlans_.erase(citr);
 }
@@ -184,19 +186,19 @@ void SaiVlanManager::changeVlan(
   }
 }
 
-SaiVlan* SaiVlanManager::getVlan(VlanID swId) {
-  return getVlanImpl(swId);
+SaiVlan* SaiVlanManager::getVlan(VlanID swVlanId) {
+  return getVlanImpl(swVlanId);
 }
-const SaiVlan* SaiVlanManager::getVlan(VlanID swId) const {
-  return getVlanImpl(swId);
+const SaiVlan* SaiVlanManager::getVlan(VlanID swVlanId) const {
+  return getVlanImpl(swVlanId);
 }
-SaiVlan* SaiVlanManager::getVlanImpl(VlanID swId) const {
-  auto itr = vlans_.find(swId);
+SaiVlan* SaiVlanManager::getVlanImpl(VlanID swVlanId) const {
+  auto itr = vlans_.find(swVlanId);
   if (itr == vlans_.end()) {
     return nullptr;
   }
   if (!itr->second) {
-    XLOG(FATAL) << "invalid null VLAN for VlanID: " << swId;
+    XLOG(FATAL) << "invalid null VLAN for VlanID: " << swVlanId;
   }
   return itr->second.get();
 }

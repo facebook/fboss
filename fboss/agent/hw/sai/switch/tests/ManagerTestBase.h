@@ -27,12 +27,20 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
+class Interface;
+class Port;
 class Vlan;
 
 class ManagerTestBase : public ::testing::Test {
  public:
   void SetUp() override;
 
+  std::shared_ptr<Interface> makeInterface(
+      uint32_t id,
+      const folly::MacAddress& srcMac) const;
+  sai_object_id_t addInterface(uint32_t id, const folly::MacAddress& srcMac);
+
+  std::shared_ptr<Port> makePort(uint16_t id, bool enabled) const;
   sai_object_id_t addPort(uint16_t id, bool enabled);
 
   std::shared_ptr<Vlan> makeVlan(

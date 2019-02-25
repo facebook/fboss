@@ -26,12 +26,13 @@ class RouterInterfaceApiTest : public ::testing::Test {
   sai_object_id_t createRouterInterface(
       sai_object_id_t vr = 42,
       sai_object_id_t vlan = 43) {
-    RouterInterfaceTypes::AttributeType typeAttribute =
-        RouterInterfaceTypes::Attributes::Type(SAI_ROUTER_INTERFACE_TYPE_VLAN);
-    RouterInterfaceTypes::AttributeType virtualRouterIdAttribute =
-        RouterInterfaceTypes::Attributes::VirtualRouterId(vr);
-    RouterInterfaceTypes::AttributeType vlanIdAttribute =
-        RouterInterfaceTypes::Attributes::VlanId(vlan);
+    RouterInterfaceApiParameters::AttributeType typeAttribute =
+        RouterInterfaceApiParameters::Attributes::Type(
+            SAI_ROUTER_INTERFACE_TYPE_VLAN);
+    RouterInterfaceApiParameters::AttributeType virtualRouterIdAttribute =
+        RouterInterfaceApiParameters::Attributes::VirtualRouterId(vr);
+    RouterInterfaceApiParameters::AttributeType vlanIdAttribute =
+        RouterInterfaceApiParameters::Attributes::VlanId(vlan);
     auto rifId = routerInterfaceApi->create(
         {typeAttribute, virtualRouterIdAttribute, vlanIdAttribute}, 0);
     EXPECT_EQ(rifId, fs->rim.get(rifId).id);
@@ -49,12 +50,13 @@ TEST_F(RouterInterfaceApiTest, create) {
 }
 
 TEST_F(RouterInterfaceApiTest, badCreate) {
-  RouterInterfaceTypes::AttributeType typeAttribute =
-      RouterInterfaceTypes::Attributes::Type(SAI_ROUTER_INTERFACE_TYPE_VLAN);
-  RouterInterfaceTypes::AttributeType virtualRouterIdAttribute =
-      RouterInterfaceTypes::Attributes::VirtualRouterId(0);
-  RouterInterfaceTypes::AttributeType vlanIdAttribute =
-      RouterInterfaceTypes::Attributes::VlanId(0);
+  RouterInterfaceApiParameters::AttributeType typeAttribute =
+      RouterInterfaceApiParameters::Attributes::Type(
+          SAI_ROUTER_INTERFACE_TYPE_VLAN);
+  RouterInterfaceApiParameters::AttributeType virtualRouterIdAttribute =
+      RouterInterfaceApiParameters::Attributes::VirtualRouterId(0);
+  RouterInterfaceApiParameters::AttributeType vlanIdAttribute =
+      RouterInterfaceApiParameters::Attributes::VlanId(0);
   EXPECT_THROW(routerInterfaceApi->create({}, 0), SaiApiError);
   EXPECT_THROW(routerInterfaceApi->create({vlanIdAttribute}, 0), SaiApiError);
   EXPECT_THROW(
@@ -77,8 +79,8 @@ TEST_F(RouterInterfaceApiTest, badCreate) {
 TEST_F(RouterInterfaceApiTest, setSrcMac) {
   auto rifId = createRouterInterface();
   folly::MacAddress mac("42:42:42:42:42:42");
-  RouterInterfaceTypes::Attributes::SrcMac ma(mac);
-  RouterInterfaceTypes::Attributes::SrcMac ma2;
+  RouterInterfaceApiParameters::Attributes::SrcMac ma(mac);
+  RouterInterfaceApiParameters::Attributes::SrcMac ma2;
   EXPECT_NE(mac, routerInterfaceApi->getAttribute(ma2, rifId));
   routerInterfaceApi->setAttribute(ma, rifId);
   EXPECT_EQ(mac, routerInterfaceApi->getAttribute(ma2, rifId));
@@ -86,9 +88,10 @@ TEST_F(RouterInterfaceApiTest, setSrcMac) {
 
 TEST_F(RouterInterfaceApiTest, setVrId) {
   auto rifId = createRouterInterface();
-  RouterInterfaceTypes::Attributes::VirtualRouterId virtualRouterIdAttribute(
-      10);
-  RouterInterfaceTypes::Attributes::VirtualRouterId virtualRouterIdAttribute2;
+  RouterInterfaceApiParameters::Attributes::VirtualRouterId
+      virtualRouterIdAttribute(10);
+  RouterInterfaceApiParameters::Attributes::VirtualRouterId
+      virtualRouterIdAttribute2;
   EXPECT_EQ(
       42, routerInterfaceApi->getAttribute(virtualRouterIdAttribute2, rifId));
   EXPECT_EQ(
@@ -100,8 +103,8 @@ TEST_F(RouterInterfaceApiTest, setVrId) {
 
 TEST_F(RouterInterfaceApiTest, setVlanId) {
   auto rifId = createRouterInterface();
-  RouterInterfaceTypes::Attributes::VlanId vlanIdAttribute(10);
-  RouterInterfaceTypes::Attributes::VlanId vlanIdAttribute2;
+  RouterInterfaceApiParameters::Attributes::VlanId vlanIdAttribute(10);
+  RouterInterfaceApiParameters::Attributes::VlanId vlanIdAttribute2;
   EXPECT_EQ(43, routerInterfaceApi->getAttribute(vlanIdAttribute2, rifId));
   EXPECT_EQ(
       SAI_STATUS_INVALID_PARAMETER,

@@ -19,8 +19,6 @@
 
 #include <string>
 
-#include <gtest/gtest.h>
-
 using namespace facebook::fboss;
 
 /*

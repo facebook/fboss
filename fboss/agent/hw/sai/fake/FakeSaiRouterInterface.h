@@ -40,19 +40,22 @@ namespace fboss {
 class FakeRouterInterface {
  public:
   FakeRouterInterface(
-      int32_t type,
       const sai_object_id_t& virtualRouterId,
+      int32_t type,
       const sai_object_id_t vlanId)
-      : type(type), virtualRouterId(virtualRouterId), vlanId(vlanId) {}
+      : virtualRouterId(virtualRouterId), type(type), vlanId(vlanId) {}
   void setSrcMac(const sai_mac_t& mac) {
     folly::ByteRange r(std::begin(mac), std::end(mac));
     srcMac_ = folly::MacAddress::fromBinary(r);
   }
+  void setSrcMac(const folly::MacAddress& mac) {
+    srcMac_ = mac;
+  }
   folly::MacAddress srcMac() const {
     return srcMac_;
   }
-  int32_t type;
   sai_object_id_t virtualRouterId;
+  int32_t type;
   sai_object_id_t vlanId;
   sai_object_id_t id;
  private:

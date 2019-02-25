@@ -88,16 +88,16 @@ class SaiVlanManager {
  public:
   SaiVlanManager(SaiApiTable* apiTable, SaiManagerTable* managerTable);
   sai_object_id_t addVlan(const std::shared_ptr<Vlan>& swVlan);
-  void removeVlan(const VlanID& id);
+  void removeVlan(const VlanID& swVlanId);
   void changeVlan(
       const std::shared_ptr<Vlan>& swVlanOld,
       const std::shared_ptr<Vlan>& swVlanNew);
 
-  SaiVlan* getVlan(VlanID swId);
-  const SaiVlan* getVlan(VlanID swId) const;
+  SaiVlan* getVlan(VlanID swVlanId);
+  const SaiVlan* getVlan(VlanID swVlanId) const;
 
  private:
-  SaiVlan* getVlanImpl(VlanID swId) const;
+  SaiVlan* getVlanImpl(VlanID swVlanId) const;
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   std::unordered_map<VlanID, std::unique_ptr<SaiVlan>> vlans_;

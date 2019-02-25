@@ -61,7 +61,7 @@ SaiVirtualRouterManager::SaiVirtualRouterManager(
 
 sai_object_id_t SaiVirtualRouterManager::addVirtualRouter(
     const RouterID& /* routerId */) {
-  XLOG(FATAL) << "Adding new virtual routers is not supported";
+  throw FbossError("Adding new virtual routers is not supported");
   folly::assume_unreachable();
 }
 
