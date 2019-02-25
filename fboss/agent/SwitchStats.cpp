@@ -173,7 +173,6 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           50,
           100),
       linkStateChange_(map, kCounterPrefix + "link_state.flap", SUM),
-      hwOutOfSync_(map, kCounterPrefix + "hw_out_of_sync"),
       pcapDistFailure_(map, kCounterPrefix + "pcap_dist_failure.error"),
       updateStatsExceptions_(
           map,

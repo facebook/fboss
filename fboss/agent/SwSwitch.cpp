@@ -753,7 +753,6 @@ void SwSwitch::handlePendingUpdates() {
   std::shared_ptr<SwitchState> oldDesiredState;
   // Call all of the update functions to prepare the new SwitchState
   std::tie(oldAppliedState, oldDesiredState) = getStates();
-  bool oldOutOfSync = (oldAppliedState != oldDesiredState);
   // We start with the old applied state, and apply state updates one at a
   // time. The first state update applied is one from oldAppliedState ->
   // oldDesiredState. This is the one we always enqueue at the front of the
@@ -795,6 +794,7 @@ void SwSwitch::handlePendingUpdates() {
     auto newAppliedState = applyUpdate(oldAppliedState, newDesiredState);
     // Stick the initial applied->desired in the beginning
     bool newOutOfSync = (newAppliedState != newDesiredState);
+    fbData->setCounter("hw_out_of_sync", newOutOfSync);
     if (newOutOfSync) {
       // If we could not apply the whole delta successfully, put the difference
       // as a state update at the beginning
@@ -809,13 +809,6 @@ void SwSwitch::handlePendingUpdates() {
             hwOutOfSyncState->inheritGeneration(*newAppliedState);
             return hwOutOfSyncState;
           });
-      if (!isExiting() && !oldOutOfSync) {
-        stats()->setHwOutOfSync();
-      }
-    } else {
-      if (!isExiting() && oldOutOfSync) {
-        stats()->clearHwOutOfSync();
-      }
     }
   }
 

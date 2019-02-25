@@ -256,14 +256,6 @@ class SwitchStats : public boost::noncopyable {
     linkStateChange_.addValue(1);
   }
 
-  void setHwOutOfSync() {
-    hwOutOfSync_.incrementValue(1);
-  }
-
-  void clearHwOutOfSync() {
-    hwOutOfSync_.incrementValue(-1);
-  }
-
   void pcapDistFailure(){
     pcapDistFailure_.incrementValue(1);
   }
@@ -448,12 +440,6 @@ class SwitchStats : public boost::noncopyable {
    * Link state up/down change count
    */
   TLTimeseries linkStateChange_;
-
-  /**
-   * The counter is >0 if hardware state is out of sync from software state.
-   * Value of 0 would mean they are in sync.
-   */
-  TLCounter hwOutOfSync_;
 
   // Individual port stats objects, indexed by PortID
   PortStatsMap ports_;
