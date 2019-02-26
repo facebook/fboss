@@ -373,7 +373,8 @@ TxMatchFn checkRouterAdvert(MacAddress srcMac, IPAddressV6 srcIP,
 }
 
 void sendNeighborAdvertisement(HwTestHandle* handle, StringPiece ipStr,
-                               StringPiece macStr, int port, int vlanID) {
+                               StringPiece macStr, int port, int vlanID,
+                               bool solicited = true) {
   IPAddressV6 srcIP(ipStr);
   MacAddress srcMac(macStr);
   VlanID vlan(vlanID);
@@ -394,8 +395,9 @@ void sendNeighborAdvertisement(HwTestHandle* handle, StringPiece ipStr,
   buf->append(totalLen);
   folly::io::RWPrivateCursor cursor(buf.get());
 
-  auto bodyFn = [&] (folly::io::RWPrivateCursor *c) {
-    c->write<uint32_t>(ND_NA_FLAG_OVERRIDE | ND_NA_FLAG_SOLICITED);
+  auto bodyFn = [&](folly::io::RWPrivateCursor* c) {
+    c->write<uint32_t>(
+        ND_NA_FLAG_OVERRIDE | (solicited ? ND_NA_FLAG_SOLICITED : 0));
     c->push(srcIP.bytes(), IPAddressV6::byteCount());
   };
 
@@ -710,6 +712,26 @@ TEST(NdpTest, RouterAdvertisement) {
                                IPAddressV6("ff02::1"),
                                VlanID(5), intfConfig->getNdpConfig(),
                                9000, expectedPrefixes));
+}
+
+TEST(NdpTest, receiveNeighborAdvertisementUnsolicited) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  // Send two unsolicited neighbor advertisements, state should update at
+  // least once
+  WaitForNdpEntryCreation neighbor1Create(
+      sw, IPAddressV6("2401:db00:2110:3004::b"), VlanID(5));
+
+  sendNeighborAdvertisement(handle.get(), "2401:db00:2110:3004::b",
+                            "02:05:73:f9:46:fb", 1, 5, false);
+  EXPECT_TRUE(neighbor1Create.wait());
+  ThriftHandler thriftHandler(sw);
+  auto binAddr = toBinaryAddress(
+    IPAddressV6("2401:db00:2110:3004::b"));
+  auto numFlushed = thriftHandler.flushNeighborEntry(
+    make_unique<BinaryAddress>(binAddr), 5);
+  EXPECT_EQ(numFlushed, 1);
 }
 
 TEST(NdpTest, FlushEntry) {
