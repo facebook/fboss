@@ -164,15 +164,7 @@ IPv6RouteAdvertiser::IPv6RouteAdvertiser(SwSwitch* sw,
                                          const SwitchState* state,
                                          const Interface* intf) {
   adv_ = new IPv6RAImpl(sw, state, intf);
-  bool ret = sw->getBackgroundEvb()->runInEventBaseThread(
-      IPv6RAImpl::start, adv_);
-  if (!ret) {
-    delete adv_;
-    adv_ = nullptr;
-    throw FbossError("failed to start IPv6 route advertiser for interface ",
-                     intf->getID());
-
-  }
+  sw->getBackgroundEvb()->runInEventBaseThread(IPv6RAImpl::start, adv_);
 }
 
 IPv6RouteAdvertiser::IPv6RouteAdvertiser(IPv6RouteAdvertiser&& other) noexcept
@@ -184,11 +176,8 @@ IPv6RouteAdvertiser::~IPv6RouteAdvertiser() {
   if (!adv_) {
     return;
   }
-  bool ret = adv_->getSw()->getBackgroundEvb()->runInEventBaseThread(
+  adv_->getSw()->getBackgroundEvb()->runInEventBaseThread(
       IPv6RAImpl::stop, adv_);
-  if (!ret) {
-    XLOG(ERR) << "failed to stop IPv6 route advertiser";
-  }
 }
 
 IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
