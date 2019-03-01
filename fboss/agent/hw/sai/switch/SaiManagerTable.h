@@ -16,6 +16,7 @@ namespace fboss {
 
 class SaiApiTable;
 class SaiBridgeManager;
+class SaiNeighborManager;
 class SaiPortManager;
 class SaiRouterInterfaceManager;
 class SaiVirtualRouterManager;
@@ -41,8 +42,12 @@ class SaiManagerTable {
   SaiVlanManager& vlanManager();
   const SaiVlanManager& vlanManager() const;
 
+  SaiNeighborManager& neighborManager();
+  const SaiNeighborManager& neighborManager() const;
+
  private:
   std::unique_ptr<SaiBridgeManager> bridgeManager_;
+  std::unique_ptr<SaiNeighborManager> neighborManager_;
   std::unique_ptr<SaiPortManager> portManager_;
   std::unique_ptr<SaiRouterInterfaceManager> routerInterfaceManager_;
   std::unique_ptr<SaiVirtualRouterManager> virtualRouterManager_;

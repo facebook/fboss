@@ -5,8 +5,8 @@
 #include <functional>
 
 namespace std {
-size_t hash<facebook::fboss::NeighborTypes::NeighborEntry>::operator()(
-    const facebook::fboss::NeighborTypes::NeighborEntry& n) const {
+size_t hash<facebook::fboss::NeighborApiParameters::NeighborEntry>::operator()(
+    const facebook::fboss::NeighborApiParameters::NeighborEntry& n) const {
   size_t seed = 0;
   boost::hash_combine(seed, n.switchId());
   boost::hash_combine(seed, n.routerInterfaceId());

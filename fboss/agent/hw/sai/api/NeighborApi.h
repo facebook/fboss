@@ -9,10 +9,11 @@
  */
 #pragma once
 
-#include "SaiApi.h"
+#include "fboss/agent/hw/sai/api/SaiApi.h"
 
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
 #include <folly/logging/xlog.h>
 #include <folly/IPAddress.h>
@@ -28,7 +29,7 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
-struct NeighborTypes {
+struct NeighborApiParameters {
   struct Attributes {
     using EnumType = sai_neighbor_entry_attr_t;
     using DstMac = SaiAttribute<
@@ -36,8 +37,21 @@ struct NeighborTypes {
         SAI_NEIGHBOR_ENTRY_ATTR_DST_MAC_ADDRESS,
         sai_mac_t,
         folly::MacAddress>;
+    using CreateAttributes = SaiAttributeTuple<DstMac>;
+    /* implicit */ Attributes(const CreateAttributes& create) {
+      std::tie(dstMac) = create.value();
+    }
+    CreateAttributes attrs() const {
+      return {dstMac};
+    }
+    bool operator==(const Attributes& other) const {
+      return attrs() == other.attrs();
+    }
+    bool operator!=(const Attributes& other) const {
+      return !(*this == other);
+    }
+    DstMac::ValueType dstMac;
   };
-
   using AttributeType = boost::variant<typename Attributes::DstMac>;
 
   class NeighborEntry {
@@ -50,6 +64,7 @@ struct NeighborTypes {
       neighbor_entry.rif_id = routerInterfaceId;
       neighbor_entry.ip_address = toSaiIpAddress(ip);
     }
+    // TODO MAYBE: parameterize (this? whole API?) by IP?
     folly::IPAddress ip() const {
       return fromSaiIpAddress(neighbor_entry.ip_address);
     }
@@ -68,7 +83,6 @@ struct NeighborTypes {
           routerInterfaceId() == other.routerInterfaceId() &&
           ip() == other.ip());
     }
-
    private:
     sai_neighbor_entry_t neighbor_entry;
   };
@@ -77,7 +91,7 @@ struct NeighborTypes {
   using MemberAttributeType = boost::variant<boost::blank>;
 };
 
-class NeighborApi : public SaiApi<NeighborApi, NeighborTypes> {
+class NeighborApi : public SaiApi<NeighborApi, NeighborApiParameters> {
  public:
   NeighborApi() {
     sai_status_t status =
@@ -87,26 +101,27 @@ class NeighborApi : public SaiApi<NeighborApi, NeighborTypes> {
 
  private:
   sai_status_t _create(
-      const NeighborTypes::NeighborEntry& neighborEntry,
+      const NeighborApiParameters::NeighborEntry& neighborEntry,
       sai_attribute_t* attr_list,
       size_t count) {
     return api_->create_neighbor_entry(neighborEntry.entry(), count, attr_list);
   }
-  sai_status_t _remove(const NeighborTypes::NeighborEntry& neighborEntry) {
+  sai_status_t _remove(
+      const NeighborApiParameters::NeighborEntry& neighborEntry) {
     return api_->remove_neighbor_entry(neighborEntry.entry());
   }
   sai_status_t _getAttr(
       sai_attribute_t* attr,
-      const NeighborTypes::NeighborEntry& neighborEntry) const {
+      const NeighborApiParameters::NeighborEntry& neighborEntry) const {
     return api_->get_neighbor_entry_attribute(neighborEntry.entry(), 1, attr);
   }
   sai_status_t _setAttr(
       const sai_attribute_t* attr,
-      const NeighborTypes::NeighborEntry& neighborEntry) {
+      const NeighborApiParameters::NeighborEntry& neighborEntry) {
     return api_->set_neighbor_entry_attribute(neighborEntry.entry(), attr);
   }
   sai_neighbor_api_t* api_;
-  friend class SaiApi<NeighborApi, NeighborTypes>;
+  friend class SaiApi<NeighborApi, NeighborApiParameters>;
 };
 
 } // namespace fboss
@@ -114,8 +129,8 @@ class NeighborApi : public SaiApi<NeighborApi, NeighborTypes> {
 
 namespace std {
 template <>
-struct hash<facebook::fboss::NeighborTypes::NeighborEntry> {
+struct hash<facebook::fboss::NeighborApiParameters::NeighborEntry> {
   size_t operator()(
-      const facebook::fboss::NeighborTypes::NeighborEntry& n) const;
+      const facebook::fboss::NeighborApiParameters::NeighborEntry& n) const;
 };
 } // namespace std

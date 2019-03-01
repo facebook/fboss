@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
+#include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
@@ -28,6 +29,7 @@ SaiManagerTable::SaiManagerTable(SaiApiTable* apiTable) : apiTable_(apiTable) {
   vlanManager_ = std::make_unique<SaiVlanManager>(apiTable_, this);
   routerInterfaceManager_ =
       std::make_unique<SaiRouterInterfaceManager>(apiTable_, this);
+  neighborManager_ = std::make_unique<SaiNeighborManager>(apiTable_, this);
 }
 SaiManagerTable::~SaiManagerTable() {}
 
@@ -36,6 +38,13 @@ SaiBridgeManager& SaiManagerTable::bridgeManager() {
 }
 const SaiBridgeManager& SaiManagerTable::bridgeManager() const {
   return *bridgeManager_;
+}
+
+SaiNeighborManager& SaiManagerTable::neighborManager() {
+  return *neighborManager_;
+}
+const SaiNeighborManager& SaiManagerTable::neighborManager() const {
+  return *neighborManager_;
 }
 
 SaiPortManager& SaiManagerTable::portManager() {

@@ -27,6 +27,7 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
+class ArpEntry;
 class Interface;
 class Port;
 class Vlan;
@@ -35,8 +36,17 @@ class ManagerTestBase : public ::testing::Test {
  public:
   void SetUp() override;
 
+  std::shared_ptr<ArpEntry> makeArpEntry(
+      uint16_t id,
+      const folly::IPAddressV4& ip,
+      const folly::MacAddress& dstMac) const;
+  void addArpEntry(
+      uint16_t id,
+      const folly::IPAddressV4& ip,
+      const folly::MacAddress& dstMac);
+
   std::shared_ptr<Interface> makeInterface(
-      uint32_t id,
+      uint16_t id,
       const folly::MacAddress& srcMac) const;
   sai_object_id_t addInterface(uint32_t id, const folly::MacAddress& srcMac);
 

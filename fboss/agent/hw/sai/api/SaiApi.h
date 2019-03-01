@@ -88,7 +88,8 @@ class SaiApi {
   // deduction to allow the use of SFINAE to select this method rather
   // than the version that expects an EntryType and has no return value
   template <typename T = ApiParameters, typename... Args>
-  sai_object_id_t create2(
+  typename std::enable_if<apiUsesObjectId<T>::value, sai_object_id_t>::type
+  create2(
       const typename T::Attributes::CreateAttributes& createAttrs,
       Args&&... args) {
     static_assert(
@@ -103,6 +104,23 @@ class SaiApi {
         std::forward<Args>(args)...);
     saiCheckError(status, "Failed to create2 sai entity");
     return id;
+  }
+
+  template <typename T = ApiParameters, typename... Args>
+  typename std::enable_if<apiUsesEntry<T>::value, void>::type create2(
+      const typename T::EntryType& entry,
+      const typename T::Attributes::CreateAttributes& createAttrs,
+      Args&&... args) {
+    static_assert(
+        std::is_same<T, ApiParameters>::value,
+        "Attributes and EntryType must come from correct ApiParameters");
+    std::vector<sai_attribute_t> saiAttributeTs = createAttrs.saiAttrs();
+    sai_status_t status = impl()._create(
+        entry,
+        saiAttributeTs.data(),
+        saiAttributeTs.size(),
+        std::forward<Args>(args)...);
+    saiCheckError(status, "Failed to create2 sai entity");
   }
 
   template <typename T>

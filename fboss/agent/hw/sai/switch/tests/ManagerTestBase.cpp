@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 
+#include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
@@ -27,8 +28,23 @@ void ManagerTestBase::SetUp() {
   sai_api_initialize(0, nullptr);
 }
 
+std::shared_ptr<ArpEntry> ManagerTestBase::makeArpEntry(
+    uint16_t id,
+    const folly::IPAddressV4& ip,
+    const folly::MacAddress& dstMac) const {
+  return std::make_shared<ArpEntry>(
+      ip, dstMac, PortDescriptor(PortID(id)), InterfaceID(id));
+}
+
+void ManagerTestBase::addArpEntry(
+    uint16_t id,
+    const folly::IPAddressV4& ip,
+    const folly::MacAddress& dstMac) {
+  saiManagerTable->neighborManager().addNeighbor(makeArpEntry(id, ip, dstMac));
+}
+
 std::shared_ptr<Interface> ManagerTestBase::makeInterface(
-    uint32_t id,
+    uint16_t id,
     const folly::MacAddress& srcMac) const {
   return std::make_shared<Interface>(
       InterfaceID(id),

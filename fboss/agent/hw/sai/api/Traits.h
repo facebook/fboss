@@ -33,14 +33,14 @@ struct apiUsesObjectId : public std::true_type {};
  */
 template <typename ApiTypes>
 struct apiUsesEntry : public std::false_type {};
-class NeighborTypes;
+class NeighborApiParameters;
 class RouteTypes;
 template <>
-struct apiUsesObjectId<NeighborTypes> : public std::false_type {};
+struct apiUsesObjectId<NeighborApiParameters> : public std::false_type {};
 template <>
 struct apiUsesObjectId<RouteTypes> : public std::false_type {};
 template <>
-struct apiUsesEntry<NeighborTypes> : public std::true_type {};
+struct apiUsesEntry<NeighborApiParameters> : public std::true_type {};
 template <>
 struct apiUsesEntry<RouteTypes> : public std::true_type {};
 
