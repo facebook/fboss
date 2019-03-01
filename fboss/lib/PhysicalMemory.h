@@ -10,8 +10,6 @@
 #pragma once
 
 #include <boost/noncopyable.hpp>
-#include <glog/logging.h>
-
 #include <folly/File.h>
 
 namespace facebook {

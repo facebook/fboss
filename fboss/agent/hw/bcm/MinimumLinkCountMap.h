@@ -11,8 +11,6 @@
 #pragma once
 
 #include <boost/container/flat_map.hpp>
-#include <glog/logging.h>
-
 #include <utility>
 
 #include <folly/Optional.h>

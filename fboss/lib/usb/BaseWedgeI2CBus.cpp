@@ -9,9 +9,6 @@
  */
 
 #include "fboss/lib/usb/BaseWedgeI2CBus.h"
-
-#include <glog/logging.h>
-
 #include "fboss/lib/usb/UsbError.h"
 
 using folly::MutableByteRange;
