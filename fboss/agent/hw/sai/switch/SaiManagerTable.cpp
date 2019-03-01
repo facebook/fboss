@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
+#include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
@@ -29,6 +30,7 @@ SaiManagerTable::SaiManagerTable(SaiApiTable* apiTable) : apiTable_(apiTable) {
   vlanManager_ = std::make_unique<SaiVlanManager>(apiTable_, this);
   routerInterfaceManager_ =
       std::make_unique<SaiRouterInterfaceManager>(apiTable_, this);
+  nextHopManager_ = std::make_unique<SaiNextHopManager>(apiTable_, this);
   neighborManager_ = std::make_unique<SaiNeighborManager>(apiTable_, this);
 }
 SaiManagerTable::~SaiManagerTable() {}
@@ -45,6 +47,13 @@ SaiNeighborManager& SaiManagerTable::neighborManager() {
 }
 const SaiNeighborManager& SaiManagerTable::neighborManager() const {
   return *neighborManager_;
+}
+
+SaiNextHopManager& SaiManagerTable::nextHopManager() {
+  return *nextHopManager_;
+}
+const SaiNextHopManager& SaiManagerTable::nextHopManager() const {
+  return *nextHopManager_;
 }
 
 SaiPortManager& SaiManagerTable::portManager() {

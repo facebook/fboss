@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/DeltaFunctions.h"
@@ -29,11 +30,14 @@ SaiNeighbor::SaiNeighbor(
       attributes_(attributes) {
   auto& neighborApi = apiTable_->neighborApi();
   neighborApi.create2(entry_, attributes.attrs());
+  nextHop_ = managerTable_->nextHopManager().addNextHop(
+      entry_.routerInterfaceId(), entry_.ip());
 }
 
 SaiNeighbor::~SaiNeighbor() {
   auto& neighborApi = apiTable_->neighborApi();
   neighborApi.remove(entry_);
+  nextHop_.reset();
 }
 
 bool SaiNeighbor::operator==(const SaiNeighbor& other) const {
@@ -42,6 +46,10 @@ bool SaiNeighbor::operator==(const SaiNeighbor& other) const {
 
 bool SaiNeighbor::operator!=(const SaiNeighbor& other) const {
   return !(*this == other);
+}
+
+sai_object_id_t SaiNeighbor::nextHopId() const {
+  return nextHop_->id();
 }
 
 SaiNeighborManager::SaiNeighborManager(

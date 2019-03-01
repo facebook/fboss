@@ -22,6 +22,7 @@ namespace facebook {
 namespace fboss {
 
 class SaiManagerTable;
+class SaiNextHop;
 
 class SaiNeighbor {
  public:
@@ -41,12 +42,14 @@ class SaiNeighbor {
   const NeighborApiParameters::Attributes attributes() const {
     return attributes_;
   }
+  sai_object_id_t nextHopId() const;
 
  private:
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   NeighborApiParameters::EntryType entry_;
   NeighborApiParameters::Attributes attributes_;
+  std::unique_ptr<SaiNextHop> nextHop_;
 };
 
 class SaiNeighborManager {

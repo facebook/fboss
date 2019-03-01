@@ -9,8 +9,9 @@
  */
 #pragma once
 
-#include "SaiApi.h"
-#include "SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiApi.h"
+#include "fboss/agent/hw/sai/api/SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
 #include <folly/logging/xlog.h>
 
@@ -23,7 +24,7 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
-struct NextHopTypes {
+struct NextHopApiParameters {
   struct Attributes {
     using EnumType = sai_next_hop_attr_t;
     using Ip = SaiAttribute<
@@ -37,6 +38,22 @@ struct NextHopTypes {
         sai_object_id_t,
         SaiObjectIdT>;
     using Type = SaiAttribute<EnumType, SAI_NEXT_HOP_ATTR_TYPE, sai_int32_t>;
+    using CreateAttributes = SaiAttributeTuple<Type, RouterInterfaceId, Ip>;
+    Attributes(const CreateAttributes& attrs) {
+      std::tie(type, routerInterfaceId, ip) = attrs.value();
+    }
+    CreateAttributes attrs() const {
+      return {type, routerInterfaceId, ip};
+    }
+    bool operator==(const Attributes& other) const {
+      return attrs() == other.attrs();
+    }
+    bool operator!=(const Attributes& other) const {
+      return !(*this == other);
+    }
+    Type::ValueType type;
+    RouterInterfaceId::ValueType routerInterfaceId;
+    Ip::ValueType ip;
   };
   using AttributeType = boost::
       variant<Attributes::Ip, Attributes::RouterInterfaceId, Attributes::Type>;
@@ -45,7 +62,7 @@ struct NextHopTypes {
   struct EntryType {};
 };
 
-class NextHopApi : public SaiApi<NextHopApi, NextHopTypes> {
+class NextHopApi : public SaiApi<NextHopApi, NextHopApiParameters> {
  public:
   NextHopApi() {
     sai_status_t status =
@@ -70,7 +87,7 @@ class NextHopApi : public SaiApi<NextHopApi, NextHopTypes> {
     return api_->set_next_hop_attribute(id, attr);
   }
   sai_next_hop_api_t* api_;
-  friend class SaiApi<NextHopApi, NextHopTypes>;
+  friend class SaiApi<NextHopApi, NextHopApiParameters>;
 };
 
 } // namespace fboss
