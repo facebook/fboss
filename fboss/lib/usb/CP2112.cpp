@@ -29,6 +29,8 @@
 #include "fboss/lib/usb/UsbError.h"
 #include "fboss/lib/BmcRestClient.h"
 
+#include <glog/logging.h>
+
 #include <folly/lang/Bits.h>
 #include <folly/ScopeGuard.h>
 #include <libusb-1.0/libusb.h>

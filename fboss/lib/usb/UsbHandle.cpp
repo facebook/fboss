@@ -11,6 +11,7 @@
 
 #include <folly/ScopeGuard.h>
 
+#include <glog/logging.h>
 #include <libusb-1.0/libusb.h>
 
 #include "fboss/lib/usb/UsbError.h"
