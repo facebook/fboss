@@ -292,6 +292,8 @@ void BcmRoute::programLpmRoute(opennsl_if_t egressId,
   rt.l3a_intf = egressId;
   if (fwd.getNextHopSet().size() > 1) {         // multipath
     rt.l3a_flags |= OPENNSL_L3_MULTIPATH;
+  } else if (fwd.getAction() == RouteForwardAction::DROP) {
+    rt.l3a_flags |= OPENNSL_L3_DST_DISCARD;
   }
 
   bool addRoute = false;
