@@ -321,9 +321,9 @@ SAI, so you need to store it in the `s32` member of the union. The same sort
 of coupling exists when extracting values after a get call. SaiAttribute ties
 these two concepts together inextricably. The C++ code for instantiating the
 SaiAttribute class for `SAI_NEXT_HOP_GROUP_ATTR_TYPE` and naming it `Type`
-in NextHopGroupApiTypes::Attributes is:
+in NextHopGroupApiParameters::Attributes is:
 ```c++
-struct NextHopGroupTypes {
+struct NextHopGroupApiParameters {
   struct Attributes {
     using Type = SaiAttribute<
       sai_next_hop_group_attr_t, // type of the next hop group attribute enum
@@ -335,13 +335,13 @@ struct NextHopGroupTypes {
 Subsequently, we can get it using a NextHopGroupApi with code like:
 ```c++
 NextHopGroupApi nextHopGroupApi; // corresponds to sai_api_query code
-NextHopGroupApiTypes::Attributes::Type t;
+NextHopGroupApiParameters::Attributes::Type t;
 sai_object_id_t saiId; // needs to be set to a correct id, of course
 auto type = nextHopGroupApi.getAttribute(t, saiId); // actual "get_attribute"
 ```
 and we can set it with:
 ```c++
-NextHopGroupApiTypes::Attributes::Type t(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
+NextHopGroupApiParameters::Attributes::Type t(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
 nextHopGroupApi.setAttribute(t, saiId);
 ```
 Note that in both of those examples, we did not have to know that `s32` was

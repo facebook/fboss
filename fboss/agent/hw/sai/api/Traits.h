@@ -55,12 +55,15 @@ struct apiHasMembers : public std::false_type {};
 class BridgeApiParameters;
 class VlanApiParameters;
 class LagTypes;
+class NextHopGroupApiParameters;
 template <>
 struct apiHasMembers<BridgeApiParameters> : public std::true_type {};
 template <>
 struct apiHasMembers<VlanApiParameters> : public std::true_type {};
 template <>
 struct apiHasMembers<LagTypes> : public std::true_type {};
+template <>
+struct apiHasMembers<NextHopGroupApiParameters> : public std::true_type {};
 
 /*
  * isDuplicateValueType<T>::value is true if T is a placeholder

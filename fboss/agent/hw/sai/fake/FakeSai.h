@@ -11,8 +11,9 @@
 
 #include "FakeSaiBridge.h"
 #include "FakeSaiLag.h"
-#include "FakeSaiNextHop.h"
 #include "FakeSaiNeighbor.h"
+#include "FakeSaiNextHop.h"
+#include "FakeSaiNextHopGroup.h"
 #include "FakeSaiPort.h"
 #include "FakeSaiRoute.h"
 #include "FakeSaiRouterInterface.h"
@@ -35,6 +36,7 @@ struct FakeSai {
   FakeLagManager lm;
   FakeNeighborManager nm;
   FakeNextHopManager nhm;
+  FakeNextHopGroupManager nhgm;
   FakePortManager pm;
   FakeRouteManager rm;
   FakeRouterInterfaceManager rim;
