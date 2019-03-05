@@ -243,6 +243,7 @@ void BcmPort::init(bool warmBoot) {
     auto rv = opennsl_port_enable_set(unit_, port_, false);
     bcmCheckError(rv, "failed to set port to known state: ", port_);
   }
+  initCustomStats();
 
   // Notify platform port of initial state/speed
   getPlatformPort()->linkSpeedChanged(getSpeed());

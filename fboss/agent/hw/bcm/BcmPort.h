@@ -209,6 +209,7 @@ class BcmPort {
   void updatePktLenHist(std::chrono::seconds now,
                         stats::ExportedHistogramMapImpl::LockableHistogram* hist,
                         const std::vector<opennsl_stat_val_t>& stats);
+  void initCustomStats() const;
   // Set stats that are either FB specific, not available in
   // open source opennsl release.
   void setAdditionalStats(std::chrono::seconds now, HwPortStats* curPortStats);

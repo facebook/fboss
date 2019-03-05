@@ -31,6 +31,8 @@ bool BcmPort::isFECEnabled() {
 void BcmPort::setSflowRates(const std::shared_ptr<Port>& /* swPort */) {}
 void BcmPort::disableSflow() {}
 
+void BcmPort::initCustomStats() const {}
+
 void BcmPort::setAdditionalStats(
     std::chrono::seconds /*now*/,
     HwPortStats* /*curPortStats*/) {}
