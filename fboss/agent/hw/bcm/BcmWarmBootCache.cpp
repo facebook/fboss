@@ -21,15 +21,16 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
+#include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
-#include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
 #include "fboss/agent/state/MirrorMap.h"
 #include "fboss/agent/state/NdpTable.h"
@@ -827,6 +828,10 @@ void BcmWarmBootCache::populateRtag7State() {
       unit, BcmRtag7Module::kModuleAControl());
   moduleBState_ = BcmRtag7Module::retrieveRtag7ModuleState(
       unit, BcmRtag7Module::kModuleBControl());
+  ecmpOutputSelectionState_ = BcmRtag7Module::retrieveRtag7OutputState(
+      unit, BcmRtag7Module::kEcmpOutputSelectionControl());
+  trunkOutputSelectionState_ = BcmRtag7Module::retrieveRtag7OutputState(
+      unit, BcmRtag7Module::kTrunkOutputSelectionControl());
 }
 
 bool BcmWarmBootCache::unitControlMatches(
@@ -856,7 +861,6 @@ void BcmWarmBootCache::programmed(
     char module,
     opennsl_switch_control_t switchControl) {
   BcmRtag7Module::ModuleState* state = nullptr;
-
   switch (module) {
     case 'A':
       state = &moduleAState_;
@@ -866,6 +870,47 @@ void BcmWarmBootCache::programmed(
       break;
     default:
       throw FbossError("Invalid module identifier ", module);
+  }
+
+  CHECK(state);
+  auto numErased = state->erase(switchControl);
+
+  CHECK_EQ(numErased, 1);
+}
+
+bool BcmWarmBootCache::unitControlMatches(
+    LoadBalancerID loadBalancerID,
+    int switchControl,
+    int arg) const {
+  const BcmRtag7Module::OutputSelectionState* state = nullptr;
+
+  switch (loadBalancerID) {
+    case cfg::LoadBalancerID::ECMP:
+      state = &ecmpOutputSelectionState_;
+      break;
+    case cfg::LoadBalancerID::AGGREGATE_PORT:
+      state = &trunkOutputSelectionState_;
+      break;
+  }
+
+  CHECK(state);
+  auto it = state->find(switchControl);
+
+  return it != state->end() && it->second == arg;
+}
+
+void BcmWarmBootCache::programmed(
+    LoadBalancerID loadBalancerID,
+    int switchControl) {
+  BcmRtag7Module::OutputSelectionState* state = nullptr;
+
+  switch (loadBalancerID) {
+    case cfg::LoadBalancerID::ECMP:
+      state = &ecmpOutputSelectionState_;
+      break;
+    case cfg::LoadBalancerID::AGGREGATE_PORT:
+      state = &trunkOutputSelectionState_;
+      break;
   }
 
   CHECK(state);

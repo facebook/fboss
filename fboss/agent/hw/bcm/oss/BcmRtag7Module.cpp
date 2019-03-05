@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmRtag7Module.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/bcm/BcmError.h"
 
 namespace facebook {
 namespace fboss {
@@ -49,6 +50,22 @@ int BcmRtag7Module::getMacroFlowIDHashingAlgorithm() {
 int BcmRtag7Module::setUnitControl(int controlType, int arg) {
   return opennsl_switch_control_set(
       hw_->getUnit(), static_cast<opennsl_switch_control_t>(controlType), arg);
+}
+
+int BcmRtag7Module::getUnitControl(int unit, int type) {
+  int val;
+
+  int rv = opennsl_switch_control_get(
+      unit, static_cast<opennsl_switch_control_t>(type), &val);
+  bcmCheckError(rv, "failed to retrieve value for ", type);
+
+  return val;
+}
+
+BcmRtag7Module::OutputSelectionState BcmRtag7Module::retrieveRtag7OutputState(
+    int /* unit */,
+    OutputSelectionControl /* control */) {
+  return OutputSelectionState();
 }
 
 } // namespace fboss

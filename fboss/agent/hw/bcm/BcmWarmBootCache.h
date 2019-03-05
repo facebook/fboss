@@ -445,6 +445,12 @@ class BcmWarmBootCache {
       opennsl_switch_control_t switchControl,
       int arg) const;
   void programmed(char module, opennsl_switch_control_t switchControl);
+  bool unitControlMatches(
+      LoadBalancerID loadBalancerID,
+      int switchControl,
+      int arg) const;
+  void programmed(LoadBalancerID loadBalancerID, int switchControl);
+
   using AclEntry2AclStatItr = AclEntry2AclStat::iterator;
   AclEntry2AclStatItr AclEntry2AclStat_end() {
     return aclEntry2AclStat_.end();
@@ -563,6 +569,8 @@ class BcmWarmBootCache {
 
   BcmRtag7Module::ModuleState moduleAState_;
   BcmRtag7Module::ModuleState moduleBState_;
+  BcmRtag7Module::OutputSelectionState ecmpOutputSelectionState_;
+  BcmRtag7Module::OutputSelectionState trunkOutputSelectionState_;
 
   // acl stats
   AclEntry2AclStat aclEntry2AclStat_;

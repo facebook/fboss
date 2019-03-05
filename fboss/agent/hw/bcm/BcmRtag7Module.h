@@ -155,6 +155,8 @@ class BcmRtag7Module {
    * support (a).
    */
   struct OutputSelectionControl {
+    LoadBalancerID id;
+
     // "Flow-Based Hash Function Selection"
     int flowBasedOutputSelection;
 
@@ -172,12 +174,23 @@ class BcmRtag7Module {
   using ModuleStateRange = folly::Range<ModuleState::iterator>;
   using ModuleStateConstRange = folly::Range<ModuleState::const_iterator>;
 
+  using OutputSelectionState = boost::container::flat_map<int, int>;
+  using OutputSelectionStateRange =
+      folly::Range<OutputSelectionState::iterator>;
+  using OutputSelectionStateConstRange =
+      folly::Range<OutputSelectionState::const_iterator>;
+
   // getUnitControl is a wrapper around opennsl_switch_control_get(...). Its
   // only use is in BcmWarmBootCache.cpp, where it is used to retrieve settings
   // related to RTAG7. Because at that callsite there is no instance of
   // BcmRtag7Module, it is a static method on BcmRtag7Module.
   static int getUnitControl(int unit, opennsl_switch_control_t type);
+  static int getUnitControl(int unit, int type);
+
   static ModuleState retrieveRtag7ModuleState(int unit, ModuleControl control);
+  static OutputSelectionState retrieveRtag7OutputState(
+      int unit,
+      OutputSelectionControl control);
 
   BcmRtag7Module(
       ModuleControl moduleControl,
