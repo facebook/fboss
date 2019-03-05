@@ -394,13 +394,13 @@ void SwSwitch::publishRxPacket(RxPacket* pkt, uint16_t ethertype){
   folly::IOBuf buf_copy;
   pkt->buf()->cloneInto(buf_copy);
   pubPkt.packetData = buf_copy.moveToFbString();
-  auto onError = [&](std::runtime_error& /* unused */) {
+  auto onError = [&](const folly::exception_wrapper& /* unused */) {
     stats()->pcapDistFailure();
     FB_LOG_EVERY_MS(ERROR, 1000)
         << "Unable to push packet to distribution service\n";
   };
   pcapPusher_->future_receiveRxPacket(pubPkt, ethertype)
-      .onError(std::move(onError));
+      .thenError(std::move(onError));
 }
 
 void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype){
@@ -408,13 +408,13 @@ void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype){
   folly::IOBuf copy_buf;
   pkt->buf()->cloneInto(copy_buf);
   pubPkt.packetData = copy_buf.moveToFbString();
-  auto onError = [&](std::runtime_error& /* unused */) {
+  auto onError = [&](const folly::exception_wrapper& /* unused */) {
     stats()->pcapDistFailure();
     FB_LOG_EVERY_MS(ERROR, 1000)
         << "Unable to push packet to distribution service\n";
   };
   pcapPusher_->future_receiveTxPacket(pubPkt, ethertype)
-      .onError(std::move(onError));
+      .thenError(std::move(onError));
 }
 
 void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {

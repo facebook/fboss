@@ -163,7 +163,7 @@ void NeighborCacheImpl<NTable>::clearEntries() {
     auto entry = item.second;
     stopTasks.push_back(
         Entry::destroy(std::move(entry), evb_)
-            .onError([=](const std::exception& /*e*/) {
+            .thenError([=](const folly::exception_wrapper& /*e*/) {
               XLOG(FATAL) << "failed to stop NeighborCacheEntry w/ addr "
                           << addr;
             }));

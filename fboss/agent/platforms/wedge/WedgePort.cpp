@@ -82,13 +82,14 @@ folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
     }
     return TransmitterTechnology::UNKNOWN;
   };
-  auto handleError = [transID](const std::exception& e) {
+  auto handleError = [transID](const folly::exception_wrapper& e) {
     XLOG(ERR) << "Error retrieving info for transceiver " << transID
               << " Exception: " << folly::exceptionStr(e);
     return TransmitterTechnology::UNKNOWN;
   };
-  return getTransceiverInfo().then(evb, getTech).onError(
-      std::move(handleError));
+  return getTransceiverInfo()
+      .then(evb, getTech)
+      .thenError(std::move(handleError));
 }
 
 // Get correct transmitter setting.
@@ -131,7 +132,9 @@ folly::Future<folly::Optional<TxSettings>> WedgePort::getTxSettings(
               << " Exception: " << folly::exceptionStr(e);
     return folly::Optional<TxSettings>();
   };
-  return getTransceiverInfo().then(evb, getTx).onError(std::move(handleErr));
+  return getTransceiverInfo()
+      .then(evb, getTx)
+      .thenError<std::exception>(std::move(handleErr));
 }
 
 void WedgePort::statusIndication(
