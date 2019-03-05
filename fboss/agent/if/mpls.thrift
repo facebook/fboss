@@ -1,7 +1,7 @@
 namespace cpp2 facebook.fboss
 namespace d neteng.fboss.mpls
 namespace go neteng.fboss.mpls
-namespace php fboss
+namespace php fboss_mpls
 namespace py neteng.fboss.mpls
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.mpls
