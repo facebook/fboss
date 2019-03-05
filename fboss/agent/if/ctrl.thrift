@@ -44,6 +44,19 @@ enum SSLType {
   REQUIRED = 2,
 }
 
+enum MplsActionCode {
+  PUSH = 0,
+  SWAP = 1,
+  PHP = 2,      # Pen-ultimate hop popping => POP and FORWARD
+  POP_AND_LOOKUP = 3,
+}
+
+struct MplsAction {
+  1: MplsActionCode action,
+  2: optional i32 swapLabel,          // Required if action == SWAP
+  3: optional list<i32> pushLabels,   // Required if action == PUSH
+}
+
 struct IpPrefix {
   1: required Address.BinaryAddress ip,
   2: required i16 prefixLength,
@@ -61,6 +74,8 @@ struct NextHopThrift {
   //    0 being populated even with strange behavior in the client language
   //    which is consistent with C++
   2: i32 weight = 0,
+  // MPLS encapsulation information for IP->MPLS and MPLS routes
+  3: optional MplsAction mplsAction,
 }
 
 struct UnicastRoute {
@@ -69,6 +84,12 @@ struct UnicastRoute {
   // fully deprecating it, we need to be extra careful and
   // ensure we don't crash clients/servers that still see it as required.
   2: list<Address.BinaryAddress> nextHopAddrs,
+  3: optional AdminDistance adminDistance,
+  4: list<NextHopThrift> nextHops,
+}
+
+struct MplsRoute {
+  1: required i32 topLabel,
   3: optional AdminDistance adminDistance,
   4: list<NextHopThrift> nextHops,
 }
@@ -537,6 +558,29 @@ service FbossCtrl extends fb303.FacebookService {
     throws (1: fboss.FbossBaseError error)
   InterfaceDetail getInterfaceDetail(1: i32 interfaceId)
     throws (1: fboss.FbossBaseError error)
+
+  /* MPLS route API */
+   void addMplsRoutes(
+     1: i16 clientId,
+     2: list<MplsRoute> routes,
+   ) throws (1: fboss.FbossBaseError error)
+
+   void deleteMplsRoutes(
+     1: i16 clientId,
+     2: list<i32> topLabels,
+   ) throws (1: fboss.FbossBaseError error)
+
+   /* Flush previous routes and install new routes without disturbing traffic.
+    * Similar to syncFib API */
+   void syncMplsFib(
+     1: i16 clientId,
+     2: list<MplsRoute> routes,
+   ) throws (1: fboss.FbossBaseError error)
+
+   /* Retrieve list of MPLS routes per client */
+   list<MplsRoute> getMplsRouteTableByClient(
+     1: i16 clientId
+   ) throws (1: fboss.FbossBaseError error)
 
   /*
    * Return the admin and oper state of ports in the list (all ports

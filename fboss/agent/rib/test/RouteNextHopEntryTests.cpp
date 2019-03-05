@@ -26,6 +26,7 @@ using facebook::fboss::AdminDistance;
 using facebook::fboss::InterfaceID;
 using facebook::fboss::IpPrefix;
 using facebook::fboss::NextHopThrift;
+using facebook::fboss::MplsAction;
 using facebook::fboss::UnicastRoute;
 
 namespace {
@@ -68,19 +69,17 @@ facebook::network::thrift::BinaryAddress createV6LinkLocalNextHop(
 }
 
 // These are the Thrift representations of nextHopAddr{1,2,3}.
-const std::vector<NextHopThrift> nextHopsThrift = {
-    NextHopThrift(
-        apache::thrift::FRAGILE,
-        createV6LinkLocalNextHop(nextHopAddr1),
-        static_cast<int32_t>(ECMP_WEIGHT)),
-    NextHopThrift(
-        apache::thrift::FRAGILE,
-        facebook::network::toBinaryAddress(nextHopAddr2),
-        static_cast<int32_t>(ECMP_WEIGHT)),
-    NextHopThrift(
-        apache::thrift::FRAGILE,
-        facebook::network::toBinaryAddress(nextHopAddr3),
-        static_cast<int32_t>(ECMP_WEIGHT))};
+std::vector<NextHopThrift> nextHopsThrift() {
+  std::vector<NextHopThrift> nexthops;
+  std::vector<folly::IPAddress> addrs{nextHopAddr1, nextHopAddr2, nextHopAddr3};
+  for (const auto& addr: addrs) {
+    NextHopThrift nexthop;
+    nexthop.address = createV6LinkLocalNextHop(addr);
+    nexthop.weight = static_cast<int32_t>(ECMP_WEIGHT);
+    nexthops.emplace_back(std::move(nexthop));
+  }
+  return nexthops;
+}
 
 // These are the _deprecated_ Thrift representations of nextHopAddr{1,2,3}.
 const std::vector<facebook::network::thrift::BinaryAddress>
@@ -97,7 +96,7 @@ TEST(RouteNextHopEntry, FromNextHopsThrift) {
   // passed both nextHopAddrs and nextHops
   UnicastRoute route;
   route.set_dest(kPrefix);
-  route.set_nextHops(nextHopsThrift);
+  route.set_nextHops(nextHopsThrift());
 
   auto nextHopEntry = RouteNextHopEntry::from(route, kDefaultAdminDistance);
 
@@ -136,7 +135,7 @@ TEST(RouteNextHopEntry, FromBinaryAddresses) {
 TEST(RouteNextHopEntry, OverrideDefaultAdminDistance) {
   UnicastRoute route;
   route.set_dest(kPrefix);
-  route.set_nextHops(nextHopsThrift);
+  route.set_nextHops(nextHopsThrift());
   route.set_adminDistance(AdminDistance::IBGP);
 
   auto nextHopEntry = RouteNextHopEntry::from(route, kDefaultAdminDistance);

@@ -24,7 +24,10 @@ std::vector<facebook::fboss::NextHopThrift> thriftNextHopsFromAddresses(
   std::vector<facebook::fboss::NextHopThrift> nhs;
   nhs.reserve(addrs.size());
   for (const auto& addr : addrs) {
-    nhs.emplace_back(apache::thrift::FRAGILE, addr, 0);
+    facebook::fboss::NextHopThrift nh;
+    nh.address = addr;
+    nh.weight = 0;
+    nhs.emplace_back(std::move(nh));
   }
   return nhs;
 }
