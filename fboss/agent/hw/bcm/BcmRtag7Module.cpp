@@ -33,8 +33,8 @@ const BcmRtag7Module::ModuleControl BcmRtag7Module::kModuleAControl() {
       'A',
       PreprocessingControl(opennslSwitchHashField0PreProcessEnable),
       SeedControl(opennslSwitchHashSeed0),
-      0, // BCM_TH_HASH_BIN_A0
-      6, // BCM_TH_HASH_BIN_A1
+      {0, 15}, // A_0
+      {68, 83}, // A_1
       IPv4NonTcpUdpFieldSelectionControl(opennslSwitchHashIP4Field0),
       IPv6NonTcpUdpFieldSelectionControl(opennslSwitchHashIP6Field0),
       IPv4TcpUdpFieldSelectionControl(opennslSwitchHashIP4TcpUdpField0),
@@ -53,8 +53,8 @@ const BcmRtag7Module::ModuleControl BcmRtag7Module::kModuleBControl() {
       'B',
       PreprocessingControl(opennslSwitchHashField1PreProcessEnable),
       SeedControl(opennslSwitchHashSeed1),
-      1, // BCM_TH_HASH_BIN_B0
-      7, // BCM_TH_HASH_BIN_B1
+      {16, 31}, // B_0
+      {84, 99}, // B_1
       IPv4NonTcpUdpFieldSelectionControl(opennslSwitchHashIP4Field1),
       IPv6NonTcpUdpFieldSelectionControl(opennslSwitchHashIP6Field1),
       IPv4TcpUdpFieldSelectionControl(opennslSwitchHashIP4TcpUdpField1),
@@ -72,18 +72,13 @@ bool BcmRtag7Module::fieldControlProgrammed_ = false;
 
 BcmRtag7Module::BcmRtag7Module(
     BcmRtag7Module::ModuleControl moduleControl,
-    opennsl_switch_control_t offset,
+    BcmRtag7Module::OutputSelectionControl outputControl,
     const BcmSwitch* hw)
-    : moduleControl_(moduleControl), offset_(offset), hw_(hw) {}
+    : moduleControl_(moduleControl), outputControl_(outputControl), hw_(hw) {}
 
 BcmRtag7Module::~BcmRtag7Module() {
   // There's no work necessary to clean up an RTAG7 module as on next use it
   // it will be re-programmed
-}
-
-void BcmRtag7Module::programMacroFlowHashing(bool enable) {
-  auto rv = setUnitControl(opennslSwitchEcmpMacroFlowHashEnable, enable);
-  bcmCheckError(rv, "failed to ", enable, "program macro flow hashing");
 }
 
 void BcmRtag7Module::programPreprocessing(bool enable) {
@@ -120,11 +115,56 @@ void BcmRtag7Module::programAlgorithm(cfg::HashingAlgorithm algorithm) {
 }
 
 void BcmRtag7Module::programOutputSelection() {
+  programFlowBasedOutputSelection();
+}
+
+void BcmRtag7Module::programFlowBasedOutputSelection() {
+  enableFlowBasedOutputSelection();
+
+  programMacroFlowIDSelection();
+
+  programFlowBasedHashTable();
+}
+
+void BcmRtag7Module::enableFlowBasedOutputSelection() {
+  int rv = setUnitControl(outputControl_.flowBasedOutputSelection, kEnable);
+  bcmCheckError(rv, "failed to enable flow-based output selection");
+}
+
+void BcmRtag7Module::programMacroFlowIDSelection() {
+  // Note that this is a global configuration ie. it is shared between both
+  // module A and module B
+
+  // The following settings are not user-controllable
+  auto hashFunction = BcmRtag7Module::getMacroFlowIDHashingAlgorithm();
+  int rv =
+      setUnitControl(outputControl_.macroFlowIDFunctionControl, hashFunction);
+  bcmCheckError(rv, "failed to set macro-flow ID function");
+
+  const int moreSignificantByte = 1;
+  rv = setUnitControl(
+      outputControl_.macroFlowIDIndexControl, moreSignificantByte);
+  bcmCheckError(rv, "failed to set macro-flow ID byte selection");
+}
+
+void BcmRtag7Module::programFlowBasedHashTable() {
   // Because both outputs are programmed with the same hashing algorithm (see
   // BcmRtag7Modlue::programAlgorithm), it does not matter which output we
   // use. For simplicity, the first output is always selected.
-  int rv = setUnitControl(offset_, moduleControl_.selectFirstOutput);
-  bcmCheckError(rv, "failed to select first output on ", moduleControl_.module);
+  int rv = setUnitControl(
+      outputControl_.flowBasedHashTableStartingBitIndex,
+      moduleControl_.selectFirstOutput.first);
+  bcmCheckError(rv, "failed to program flow hash table starting index");
+
+  rv = setUnitControl(
+      outputControl_.flowBasedHashTableEndingBitIndex,
+      moduleControl_.selectFirstOutput.second);
+  bcmCheckError(rv, "failed to program flow hash table ending index");
+
+  const int stride = 1;
+  rv = setUnitControl(
+      outputControl_.flowBasedHashTableBarrelShiftStride, stride);
+  bcmCheckError(rv, "failed to program flow hash table barrel shift stride");
 }
 
 void BcmRtag7Module::programFieldSelection(
@@ -198,7 +238,8 @@ void BcmRtag7Module::enableRtag7(LoadBalancerID loadBalancerID) {
       bcmCheckError(rv, "failed to enable RTAG7 for ECMP");
       break;
     case LoadBalancerID::AGGREGATE_PORT:
-      // RTAG7 for trunks is enabled via bcm_trunk_info_t.psc
+      // RTAG7 for trunks is enabled via bcm_trunk_info_t.psc for unicast
+      // traffic
       break;
   }
 }
@@ -222,12 +263,6 @@ void BcmRtag7Module::init(const std::shared_ptr<LoadBalancer>& loadBalancer) {
     programFieldControl();
     fieldControlProgrammed_ = true;
   }
-
-  // Macro-flow hashing was originally enabled to work around a bug on the
-  // Trident+ chipset (see D1223184 for details). Because the bug may also
-  // affect Trident2 and Tomahawk chipsets, we unconditionally enable it.
-  // TODO(samank): figure out if bug affects Trident2 and Tomahawk chipsets
-  programMacroFlowHashing(kEnable);
 
   enableRtag7(loadBalancer->getID());
 }
@@ -362,8 +397,7 @@ template <typename ModuleControlType>
 int BcmRtag7Module::setUnitControl(ModuleControlType controlType, int arg) {
   auto wbCache = hw_->getWarmBootCache();
 
-  if (wbCache->unitControlMatches(
-          moduleControl_.module, controlType, arg)) {
+  if (wbCache->unitControlMatches(moduleControl_.module, controlType, arg)) {
     XLOG(DBG2) << "Skipping assigning " << arg << " to " << controlType;
 
     wbCache->programmed(moduleControl_.module, controlType);

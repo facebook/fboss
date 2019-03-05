@@ -27,23 +27,23 @@ BcmRtag7LoadBalancer::~BcmRtag7LoadBalancer() {}
 void BcmRtag7LoadBalancer::addLoadBalancer(
     const std::shared_ptr<LoadBalancer>& loadBalancer) {
   BcmRtag7Module::ModuleControl moduleControl;
-  opennsl_switch_control_t offset;
+  BcmRtag7Module::OutputSelectionControl outputSelectionControl;
 
   // The assignment of module A to ECMP and module B to LAG is arbitrary with
   // the exception that it maintains backwards-compatibility.
   switch (loadBalancer->getID()) {
     case LoadBalancerID::ECMP:
       moduleControl = BcmRtag7Module::kModuleAControl();
-      offset = opennslSwitchECMPHashSet0Offset;
+      outputSelectionControl = BcmRtag7Module::kEcmpOutputSelectionControl();
       break;
     case LoadBalancerID::AGGREGATE_PORT:
       moduleControl = BcmRtag7Module::kModuleBControl();
-      // TODO(samank): confirm set1 is not to be used
-      offset = trunkHashSet0UnicastOffset();
+      outputSelectionControl = BcmRtag7Module::kTrunkOutputSelectionControl();
       break;
   }
 
-  auto module = std::make_unique<BcmRtag7Module>(moduleControl, offset, hw_);
+  auto module = std::make_unique<BcmRtag7Module>(
+      moduleControl, outputSelectionControl, hw_);
   module->init(loadBalancer);
 
   bool inserted;

@@ -14,8 +14,9 @@
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/types.h"
 
-#include <folly/Range.h>
 #include <boost/serialization/strong_typedef.hpp>
+#include <folly/Range.h>
+#include <utility>
 
 extern "C" {
 #include <opennsl/switch.h>
@@ -118,10 +119,11 @@ class BcmRtag7Module {
 
     SeedControl setSeed;
 
-    // The values for these constants are determined by those used in
-    // opennsl_esw_switch_control_port_set().
-    int selectFirstOutput;
-    int selectSecondOutput;
+    // The following two (selectFirstOutput and selectSecondOutput) values are
+    // unlike the rest because they are values passed to a control rather than
+    // the control itself. Their values are derived from internal SDK constants.
+    std::pair<int, int> selectFirstOutput;
+    std::pair<int, int> selectSecondOutput;
 
     // Field selection for IPv4/IPv6 packets which are neither TCP nor UDP
     IPv4NonTcpUdpFieldSelectionControl ipv4NonTcpUdpFieldSelection;
@@ -145,6 +147,27 @@ class BcmRtag7Module {
   static const ModuleControl kModuleAControl();
   static const ModuleControl kModuleBControl();
 
+  /* There are two modes of selecting output from the RTAG7 engine:
+   * a) port-based
+   * b) flow-based (aka macro-flow)
+   *
+   * OutputSelectionControl solely has to do with (b). FBOSS doesn't
+   * support (a).
+   */
+  struct OutputSelectionControl {
+    // "Flow-Based Hash Function Selection"
+    int flowBasedOutputSelection;
+
+    int macroFlowIDFunctionControl;
+    int macroFlowIDIndexControl;
+
+    int flowBasedHashTableStartingBitIndex;
+    int flowBasedHashTableEndingBitIndex;
+    int flowBasedHashTableBarrelShiftStride;
+  };
+  static const OutputSelectionControl kEcmpOutputSelectionControl();
+  static const OutputSelectionControl kTrunkOutputSelectionControl();
+
   using ModuleState = boost::container::flat_map<opennsl_switch_control_t, int>;
   using ModuleStateRange = folly::Range<ModuleState::iterator>;
   using ModuleStateConstRange = folly::Range<ModuleState::const_iterator>;
@@ -158,7 +181,7 @@ class BcmRtag7Module {
 
   BcmRtag7Module(
       ModuleControl moduleControl,
-      opennsl_switch_control_t offset,
+      OutputSelectionControl outputControl,
       const BcmSwitch* hw);
   ~BcmRtag7Module();
 
@@ -167,16 +190,22 @@ class BcmRtag7Module {
       const std::shared_ptr<LoadBalancer>& oldLoadBalancer,
       const std::shared_ptr<LoadBalancer>& newLoadBalancer);
 
+  // Made public for use by BcmRtag7Test.cpp
+  static int getMacroFlowIDHashingAlgorithm();
+
  private:
   void programPreprocessing(bool enable);
   void programAlgorithm(cfg::HashingAlgorithm algorithm);
   void programOutputSelection();
+  void programFlowBasedOutputSelection();
+  void enableFlowBasedOutputSelection();
+  void programMacroFlowIDSelection();
+  void programFlowBasedHashTable();
   void programFieldSelection(
       LoadBalancer::IPv4FieldsRange v4FieldsRange,
       LoadBalancer::IPv6FieldsRange v6FieldsRange,
       LoadBalancer::TransportFieldsRange transportFieldsRange);
   void programSeed(uint32_t seed);
-  void programMacroFlowHashing(bool enable);
   void enableRtag7(LoadBalancerID);
   void programIPv4FieldSelection(
       LoadBalancer::IPv4FieldsRange v4FieldsRange,
@@ -199,9 +228,10 @@ class BcmRtag7Module {
   // defaults the unit to HwSwitch::getUnit()
   template <typename ModuleControlType>
   int setUnitControl(ModuleControlType controlType, int arg);
+  int setUnitControl(int controlType, int arg);
 
   ModuleControl moduleControl_;
-  opennsl_switch_control_t offset_;
+  OutputSelectionControl outputControl_;
   const BcmSwitch* const hw_;
 
   static bool fieldControlProgrammed_;

@@ -13,6 +13,16 @@
 namespace facebook {
 namespace fboss {
 
+const BcmRtag7Module::OutputSelectionControl
+BcmRtag7Module::kEcmpOutputSelectionControl() {
+  throw FbossError("Flow-based ECMP output selection not exported by OpenNSL");
+}
+
+const BcmRtag7Module::OutputSelectionControl
+BcmRtag7Module::kTrunkOutputSelectionControl() {
+  throw FbossError("Flow-based trunk output selection not exported by OpenNSL");
+}
+
 int BcmRtag7Module::getFlowLabelSubfields() const {
   throw FbossError("Flow label symbols not exported by OpenNSL");
   return 0;
@@ -29,6 +39,16 @@ int BcmRtag7Module::getBcmHashingAlgorithm(
   }
 
   throw FbossError("Unrecognized HashingAlgorithm");
+}
+
+int BcmRtag7Module::getMacroFlowIDHashingAlgorithm() {
+  throw FbossError("No XOR-folded hash functions exported by OpenNSL");
+  return 0;
+}
+
+int BcmRtag7Module::setUnitControl(int controlType, int arg) {
+  return opennsl_switch_control_set(
+      hw_->getUnit(), static_cast<opennsl_switch_control_t>(controlType), arg);
 }
 
 } // namespace fboss
