@@ -9,6 +9,7 @@ namespace py.asyncio neteng.fboss.asyncio.ctrl
 include "fboss/agent/if/fboss.thrift"
 include "common/fb303/if/fb303.thrift"
 include "common/network/if/Address.thrift"
+include "fboss/agent/if/mpls.thrift"
 include "fboss/agent/if/optic.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 
@@ -44,19 +45,6 @@ enum SSLType {
   REQUIRED = 2,
 }
 
-enum MplsActionCode {
-  PUSH = 0,
-  SWAP = 1,
-  PHP = 2,      # Pen-ultimate hop popping => POP and FORWARD
-  POP_AND_LOOKUP = 3,
-}
-
-struct MplsAction {
-  1: MplsActionCode action,
-  2: optional i32 swapLabel,          // Required if action == SWAP
-  3: optional list<i32> pushLabels,   // Required if action == PUSH
-}
-
 struct IpPrefix {
   1: required Address.BinaryAddress ip,
   2: required i16 prefixLength,
@@ -75,7 +63,7 @@ struct NextHopThrift {
   //    which is consistent with C++
   2: i32 weight = 0,
   // MPLS encapsulation information for IP->MPLS and MPLS routes
-  3: optional MplsAction mplsAction,
+  3: optional mpls.MplsAction mplsAction,
 }
 
 struct UnicastRoute {
@@ -89,7 +77,7 @@ struct UnicastRoute {
 }
 
 struct MplsRoute {
-  1: required i32 topLabel,
+  1: required mpls.MplsLabel topLabel,
   3: optional AdminDistance adminDistance,
   4: list<NextHopThrift> nextHops,
 }

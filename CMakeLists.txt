@@ -117,6 +117,10 @@ add_thrift_cpp2_library(
   fboss/agent/if/sflow.thrift
 )
 add_thrift_cpp2_library(
+  mpls_cpp2
+  fboss/agent/if/mpls.thrift
+)
+add_thrift_cpp2_library(
   ctrl_cpp2
   fboss/agent/if/ctrl.thrift
   SERVICES
@@ -125,6 +129,7 @@ add_thrift_cpp2_library(
   DEPENDS
     fboss_cpp2
     fb303_cpp2
+    mpls_cpp2
     network_address_cpp2
     optic_cpp2
     transceiver_cpp2
