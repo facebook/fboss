@@ -162,6 +162,7 @@ void BcmPort::reinitPortStats() {
   reinitPortStat(kInIpv4HdrErrors());
   reinitPortStat(kInIpv6HdrErrors());
   reinitPortStat(kInNonPauseDiscards());
+  reinitPortStat(kInDstBlackholeDiscards());
 
   reinitPortStat(kOutBytes());
   reinitPortStat(kOutUnicastPkts());

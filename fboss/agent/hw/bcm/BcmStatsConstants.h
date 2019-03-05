@@ -58,6 +58,10 @@ inline folly::StringPiece constexpr kInNonPauseDiscards() {
   return "in_non_pause_discards";
 }
 
+inline folly::StringPiece constexpr kInDstBlackholeDiscards() {
+  return "in_dst_blackhole_discards";
+}
+
 inline folly::StringPiece constexpr kOutBytes() {
   return "out_bytes";
 }
