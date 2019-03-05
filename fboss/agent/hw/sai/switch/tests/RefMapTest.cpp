@@ -21,21 +21,30 @@ struct A {
 };
 
 TEST(RefMap, incRefOrEmplaceNew) {
-  RefMap<int, A> identityMap;
-  std::shared_ptr<A> a = identityMap.refOrEmplace(42, 42);
+  UnorderedRefMap<int, A> identityMap;
+  bool ins;
+  std::shared_ptr<A> a;
+  std::tie(a, ins) = identityMap.refOrEmplace(42, 42);
+  EXPECT_EQ(ins, true);
   EXPECT_EQ(a->x, 42);
   EXPECT_EQ(a.use_count(), 1);
   EXPECT_EQ(identityMap.size(), 1);
 }
 
 TEST(RefMap, incRefOrEmplaceExisting) {
-  RefMap<int, A> identityMap;
-  std::shared_ptr<A> a1 = identityMap.refOrEmplace(42, 42);
+  UnorderedRefMap<int, A> identityMap;
+  bool ins1;
+  std::shared_ptr<A> a1;
+  std::tie(a1, ins1) = identityMap.refOrEmplace(42, 42);
+  EXPECT_EQ(ins1, true);
   EXPECT_EQ(a1->x, 42);
   EXPECT_EQ(a1.use_count(), 1);
   EXPECT_EQ(identityMap.size(), 1);
   // second emplace should get ref to previous value
-  std::shared_ptr<A> a2 = identityMap.refOrEmplace(42, 420);
+  bool ins2;
+  std::shared_ptr<A> a2;
+  std::tie(a2, ins2) = identityMap.refOrEmplace(42, 420);
+  EXPECT_EQ(ins2, false);
   EXPECT_EQ(a2->x, 42);
   EXPECT_EQ(a1.use_count(), 2);
   EXPECT_EQ(a2.use_count(), 2);
@@ -44,26 +53,38 @@ TEST(RefMap, incRefOrEmplaceExisting) {
 }
 
 TEST(RefMap, incRefOrEmplaceMultiple) {
-  RefMap<int, A> identityMap;
-  std::shared_ptr<A> a1 = identityMap.refOrEmplace(42, 42);
+  UnorderedRefMap<int, A> identityMap;
+  bool ins1;
+  std::shared_ptr<A> a1;
+  std::tie(a1, ins1) = identityMap.refOrEmplace(42, 42);
+  EXPECT_EQ(ins1, true);
   EXPECT_EQ(a1->x, 42);
   EXPECT_EQ(a1.use_count(), 1);
   EXPECT_EQ(identityMap.size(), 1);
-  std::shared_ptr<A> a2 = identityMap.refOrEmplace(420, 420);
+  bool ins2;
+  std::shared_ptr<A> a2;
+  std::tie(a2, ins2) = identityMap.refOrEmplace(420, 420);
+  EXPECT_EQ(ins2, true);
   EXPECT_EQ(a2->x, 420);
   EXPECT_EQ(a2.use_count(), 1);
   EXPECT_EQ(identityMap.size(), 2);
 }
 
 TEST(RefMap, deref) {
-  RefMap<int, A> identityMap;
+  UnorderedRefMap<int, A> identityMap;
   {
-    std::shared_ptr<A> a1 = identityMap.refOrEmplace(42, 42);
+    bool ins1;
+    std::shared_ptr<A> a1;
+    std::tie(a1, ins1) = identityMap.refOrEmplace(42, 42);
+    EXPECT_EQ(ins1, true);
     EXPECT_EQ(a1->x, 42);
     EXPECT_EQ(a1.use_count(), 1);
     EXPECT_EQ(identityMap.size(), 1);
     {
-      std::shared_ptr<A> a2 = identityMap.refOrEmplace(42, 420);
+      bool ins2;
+      std::shared_ptr<A> a2;
+      std::tie(a2, ins2) = identityMap.refOrEmplace(42, 420);
+      EXPECT_EQ(ins2, false);
       EXPECT_EQ(a2->x, 42);
       EXPECT_EQ(a1.use_count(), 2);
       EXPECT_EQ(a2.use_count(), 2);
@@ -77,8 +98,11 @@ TEST(RefMap, deref) {
 }
 
 TEST(RefMap, get) {
-  RefMap<int, A> identityMap;
-  std::shared_ptr<A> a1 = identityMap.refOrEmplace(42, 42);
+  UnorderedRefMap<int, A> identityMap;
+  bool ins;
+  std::shared_ptr<A> a1;
+  std::tie(a1, ins) = identityMap.refOrEmplace(42, 42);
+  EXPECT_EQ(ins, true);
   EXPECT_EQ(a1->x, 42);
   EXPECT_EQ(a1.use_count(), 1);
   EXPECT_EQ(identityMap.size(), 1);
@@ -89,8 +113,11 @@ TEST(RefMap, get) {
 }
 
 TEST(RefMap, getNonExistent) {
-  RefMap<int, A> identityMap;
-  std::shared_ptr<A> a1 = identityMap.refOrEmplace(42, 42);
+  UnorderedRefMap<int, A> identityMap;
+  bool ins;
+  std::shared_ptr<A> a1;
+  std::tie(a1, ins) = identityMap.refOrEmplace(42, 42);
+  EXPECT_EQ(ins, true);
   EXPECT_EQ(a1->x, 42);
   EXPECT_EQ(a1.use_count(), 1);
   EXPECT_EQ(identityMap.size(), 1);

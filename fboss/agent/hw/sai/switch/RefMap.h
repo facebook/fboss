@@ -13,6 +13,8 @@
 #include <memory>
 #include <unordered_map>
 
+#include <boost/container/flat_map.hpp>
+
 namespace facebook {
 namespace fboss {
 
@@ -28,20 +30,33 @@ namespace fboss {
  * which uses the next hop, but many routes would want to reuse the same next
  * hop. When no more routes refer to a next hop, it should be deleted.
  */
+
+namespace {
 template <typename K, typename V>
+using RefMapUMap = std::unordered_map<K, V>;
+
+template <typename K, typename V>
+using RefMapFlatMap = boost::container::flat_map<K, V>;
+};
+
+template <template <class, class> class M, typename K, typename V>
 class RefMap {
  public:
-  using MapType = std::unordered_map<K, std::weak_ptr<V>>;
+  //using MapType = std::unordered_map<K, std::weak_ptr<V>>;
+  //using MapType = boost::container::flat_map<K, std::weak_ptr<V>>;
+  using MapType = M<K, std::weak_ptr<V>>;
   RefMap() {}
   RefMap(const RefMap& other) = delete;
   RefMap& operator=(const RefMap& other) = delete;
 
   template <typename... Args>
-  std::shared_ptr<V> refOrEmplace(const K& k, Args&&... args) {
+  std::pair<std::shared_ptr<V>, bool> refOrEmplace(const K& k, Args&&... args) {
     std::shared_ptr<V> vsp;
+    bool ins;
     auto itr = map_.find(k);
     if (itr != map_.end()) {
       vsp = itr->second.lock();
+      ins = false;
     } else {
       auto del = [&m = map_, k](V* v) {
         m.erase(k);
@@ -49,8 +64,9 @@ class RefMap {
       };
       vsp = std::shared_ptr<V>(new V(std::forward<Args>(args)...), del);
       map_[k] = vsp;
+      ins = true;
     }
-    return vsp;
+    return {vsp, ins};
   }
 
   std::size_t size() const {
@@ -76,5 +92,12 @@ class RefMap {
 
   MapType map_;
 };
+
+template <typename K, typename V>
+using UnorderedRefMap = RefMap<RefMapUMap, K, V>;
+
+template <typename K, typename V>
+using FlatRefMap = RefMap<RefMapFlatMap, K, V>;
+
 } // namespace fboss
 } // namespace facebook
