@@ -445,6 +445,11 @@ class BcmSwitch : public BcmSwitchIf {
   void processAddedIntf(const std::shared_ptr<Interface>& intf);
   void processRemovedIntf(const std::shared_ptr<Interface>& intf);
 
+  template <typename AddrT>
+  void processNeighborTableDelta(
+      const StateDelta& stateDelta,
+      std::shared_ptr<SwitchState>* appliedState);
+
   template <typename DELTA, typename ParentClassT>
   void processNeighborEntryDelta(
       const DELTA& delta,
@@ -462,19 +467,21 @@ class BcmSwitch : public BcmSwitchIf {
   template <typename RouteT>
   void processChangedRoute(
       const RouterID& id,
-      std::shared_ptr<SwitchState>* appliedState,
       const std::shared_ptr<RouteT>& oldRoute,
       const std::shared_ptr<RouteT>& newRoute);
   template <typename RouteT>
   void processAddedRoute(
       const RouterID& id,
-      std::shared_ptr<SwitchState>* appliedState,
       const std::shared_ptr<RouteT>& route);
   template <typename RouteT>
   void processRemovedRoute(
       const RouterID id, const std::shared_ptr<RouteT>& route);
   void processRemovedRoutes(const StateDelta& delta);
   void processAddedChangedRoutes(
+      const StateDelta& delta,
+      std::shared_ptr<SwitchState>* appliedState);
+  template <typename AddrT>
+  void processRouteTableDelta(
       const StateDelta& delta,
       std::shared_ptr<SwitchState>* appliedState);
 

@@ -25,6 +25,10 @@ class RouteTablesDelta : public DeltaValue<RouteTable> {
   using RoutesV6Delta = NodeMapDelta<NodeMapRibV6>;
 
   using DeltaValue<RouteTable>::DeltaValue;
+  template<typename AddrT>
+  using RoutesDeltaT = std::conditional_t<
+      std::is_same<AddrT, folly::IPAddressV4>::value,
+      RoutesV4Delta, RoutesV6Delta>;
 
   RoutesV4Delta getRoutesV4Delta() const {
     return RoutesV4Delta(
@@ -36,6 +40,8 @@ class RouteTablesDelta : public DeltaValue<RouteTable> {
       getOld() ? getOld()->getRibV6()->routes().get() : nullptr,
       getNew() ? getNew()->getRibV6()->routes().get() : nullptr);
   }
+  template <typename AddrT>
+  RoutesDeltaT<AddrT> getRoutesDelta() const;
 };
 
 typedef NodeMapDelta<RouteTableMap, RouteTablesDelta> RTMapDelta;

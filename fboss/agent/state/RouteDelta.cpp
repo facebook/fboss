@@ -22,4 +22,16 @@ template class NodeMapDelta<NodeMapRibV4>;
 
 using NodeMapRibV6 = RouteTableRibNodeMap<folly::IPAddressV6>;
 template class NodeMapDelta<NodeMapRibV6>;
+
+template <>
+RouteTablesDelta::RoutesDeltaT<folly::IPAddressV4>
+    RouteTablesDelta::getRoutesDelta<folly::IPAddressV4>() const {
+  return getRoutesV4Delta();
+}
+
+template <>
+RouteTablesDelta::RoutesDeltaT<folly::IPAddressV6>
+    RouteTablesDelta::getRoutesDelta<folly::IPAddressV6>() const {
+  return getRoutesV6Delta();
+}
 }}

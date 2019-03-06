@@ -1310,21 +1310,9 @@ void BcmSwitch::processNeighborEntryDelta(
     if (newEntry->isPending()) {
       XLOG(DBG3) << "adding pending neighbor entry to "
                  << newEntry->getIP().str();
-      try {
-        host->programToCPU(intf->getBcmIfId());
-      } catch (const BcmError& error) {
-        rethrowIfHwNotFull(error);
-        SwitchState::revertNewNeighborEntry<EntryT, ParentClassT>(
-            delta.getNew(), nullptr, appliedState);
-      }
+      host->programToCPU(intf->getBcmIfId());
     } else {
-      try {
-        program("adding", host);
-      } catch (const BcmError& error) {
-        rethrowIfHwNotFull(error);
-        SwitchState::revertNewNeighborEntry<EntryT, ParentClassT>(
-            delta.getNew(), nullptr, appliedState);
-      }
+      program("adding", host);
     }
   } else if (!newEntry) {
     XLOG(DBG3) << "deleting neighbor entry " << oldEntry->getIP().str();
@@ -1341,18 +1329,12 @@ void BcmSwitch::processNeighborEntryDelta(
     getIntfAndVrf(newEntry->getIntfID());
     auto host = hostTable_->getBcmHost(
         BcmHostKey(vrf, IPAddress(newEntry->getIP()), newEntry->getIntfID()));
-    try {
-      if (newEntry->isPending()) {
-        XLOG(DBG3) << "changing neighbor entry " << oldEntry->getIP().str()
-                   << " to pending";
-        host->programToCPU(intf->getBcmIfId());
-      } else {
-        program("changing", host);
-      }
-    } catch (const BcmError& error) {
-      rethrowIfHwNotFull(error);
-      SwitchState::revertNewNeighborEntry<EntryT, ParentClassT>(
-          delta.getOld(), delta.getNew(), appliedState);
+    if (newEntry->isPending()) {
+      XLOG(DBG3) << "changing neighbor entry " << oldEntry->getIP().str()
+                 << " to pending";
+      host->programToCPU(intf->getBcmIfId());
+    } else {
+      program("changing", host);
     }
   }
 }
@@ -1360,22 +1342,47 @@ void BcmSwitch::processNeighborEntryDelta(
 void BcmSwitch::processNeighborChanges(
     const StateDelta& delta,
     std::shared_ptr<SwitchState>* appliedState) {
-  for (const auto& vlanDelta : delta.getVlansDelta()) {
-    for (const auto& arpDelta : vlanDelta.getArpDelta()) {
-      using DeltaT = DeltaValue<ArpEntry>;
-      processNeighborEntryDelta<DeltaT, ArpTable>(arpDelta, appliedState);
+  processNeighborTableDelta<folly::IPAddressV4>(delta, appliedState);
+  processNeighborTableDelta<folly::IPAddressV6>(delta, appliedState);
+}
+
+template <typename AddrT>
+void BcmSwitch::processNeighborTableDelta(
+    const StateDelta& stateDelta,
+    std::shared_ptr<SwitchState>* appliedState) {
+  using NeighborTableT = std::conditional_t<
+      std::is_same<AddrT, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
+  using NeighborEntryT = typename NeighborTableT::Entry;
+  using NeighborEntryDeltaT = DeltaValue<NeighborEntryT>;
+  std::vector<NeighborEntryDeltaT> discardedNeighborEntryDelta;
+
+  for (const auto& vlanDelta : stateDelta.getVlansDelta()) {
+    auto oldVlan = vlanDelta.getOld();
+    auto newVlan = vlanDelta.getNew();
+
+    for (const auto& delta :
+         vlanDelta.template getNeighborDelta<NeighborTableT>()) {
+      try {
+        processNeighborEntryDelta<NeighborEntryDeltaT, NeighborTableT>(delta,
+            appliedState);
+      } catch (const BcmError& error) {
+        rethrowIfHwNotFull(error);
+        discardedNeighborEntryDelta.push_back(delta);
+      }
     }
-    for (const auto& ndpDelta : vlanDelta.getNdpDelta()) {
-      using DeltaT = DeltaValue<NdpEntry>;
-      processNeighborEntryDelta<DeltaT, NdpTable>(ndpDelta, appliedState);
-    }
+  }
+
+  for (const auto& delta : discardedNeighborEntryDelta) {
+    SwitchState::revertNewNeighborEntry<NeighborEntryT, NeighborTableT>(
+        delta.getNew(), delta.getOld(), appliedState);
   }
 }
 
 template <typename RouteT>
 void BcmSwitch::processChangedRoute(
     const RouterID& id,
-    std::shared_ptr<SwitchState>* appliedState,
     const shared_ptr<RouteT>& oldRoute,
     const shared_ptr<RouteT>& newRoute) {
   std::string routeMessage;
@@ -1393,19 +1400,13 @@ void BcmSwitch::processChangedRoute(
     XLOG(DBG1) << "Non-resolved route HW programming is skipped";
     processRemovedRoute(id, oldRoute);
   } else {
-    try {
-      routeTable_->addRoute(getBcmVrfId(id), newRoute.get());
-    } catch (const BcmError& error) {
-      rethrowIfHwNotFull(error);
-      SwitchState::revertNewRouteEntry(id, newRoute, oldRoute, appliedState);
-    }
+    routeTable_->addRoute(getBcmVrfId(id), newRoute.get());
   }
 }
 
 template <typename RouteT>
 void BcmSwitch::processAddedRoute(
     const RouterID& id,
-    std::shared_ptr<SwitchState>* appliedState,
     const shared_ptr<RouteT>& route) {
   std::string routeMessage;
   folly::toAppend(
@@ -1416,13 +1417,7 @@ void BcmSwitch::processAddedRoute(
     XLOG(DBG1) << "Non-resolved route HW programming is skipped";
     return;
   }
-  try {
-    routeTable_->addRoute(getBcmVrfId(id), route.get());
-  } catch (const BcmError& error) {
-    rethrowIfHwNotFull(error);
-    using AddrT = typename RouteT::Addr;
-    SwitchState::revertNewRouteEntry<AddrT>(id, route, nullptr, appliedState);
-  }
+  routeTable_->addRoute(getBcmVrfId(id), route.get());
 }
 
 template <typename RouteT>
@@ -1459,6 +1454,17 @@ void BcmSwitch::processRemovedRoutes(const StateDelta& delta) {
 void BcmSwitch::processAddedChangedRoutes(
     const StateDelta& delta,
     std::shared_ptr<SwitchState>* appliedState) {
+  processRouteTableDelta<folly::IPAddressV4>(delta, appliedState);
+  processRouteTableDelta<folly::IPAddressV6>(delta, appliedState);
+}
+
+template <typename AddrT>
+void BcmSwitch::processRouteTableDelta(
+    const StateDelta& delta,
+    std::shared_ptr<SwitchState>* appliedState) {
+  using RouteT = Route<AddrT>;
+  using PrefixT = typename Route<AddrT>::Prefix;
+  std::map<RouterID, std::vector<PrefixT>> discardedPrefixes;
   for (auto const& rtDelta : delta.getRouteTablesDelta()) {
     if (!rtDelta.getNew()) {
       // no new route table, must not have added or changed route, skip
@@ -1466,27 +1472,47 @@ void BcmSwitch::processAddedChangedRoutes(
     }
     RouterID id = rtDelta.getNew()->getID();
     forEachChanged(
-        rtDelta.getRoutesV4Delta(),
-        &BcmSwitch::processChangedRoute<RouteV4>,
-        &BcmSwitch::processAddedRoute<RouteV4>,
-        [&](BcmSwitch*,
-            const RouterID&,
-            std::shared_ptr<SwitchState>*,
-            const shared_ptr<RouteV4>&) {},
-        this,
-        id,
-        appliedState);
-    forEachChanged(
-        rtDelta.getRoutesV6Delta(),
-        &BcmSwitch::processChangedRoute<RouteV6>,
-        &BcmSwitch::processAddedRoute<RouteV6>,
-        [&](BcmSwitch*,
-            const RouterID&,
-            std::shared_ptr<SwitchState>*,
-            const shared_ptr<RouteV6>&) {},
-        this,
-        id,
-        appliedState);
+        rtDelta.template getRoutesDelta<AddrT>(),
+        [&](const shared_ptr<RouteT>& oldRoute,
+            const shared_ptr<RouteT>& newRoute) {
+          try {
+            processChangedRoute(id, oldRoute, newRoute);
+          } catch (const BcmError& e) {
+            rethrowIfHwNotFull(e);
+            discardedPrefixes[id].push_back(oldRoute->prefix());
+          }
+        },
+        [&](const shared_ptr<RouteT>& addedRoute) {
+          try {
+            processAddedRoute(id, addedRoute);
+          } catch (const BcmError& e) {
+            rethrowIfHwNotFull(e);
+            discardedPrefixes[id].push_back(addedRoute->prefix());
+          }
+        },
+        [](const shared_ptr<RouteT>& /*deletedRoute*/) {
+          // do nothing
+        });
+  }
+
+  // discard  routes
+  for (const auto& entry : discardedPrefixes) {
+    const auto id = entry.first;
+    for(const auto& prefix : entry.second) {
+      const auto newRoute = delta.newState()
+                          ->getRouteTables()
+                          ->getRouteTable(id)
+                          ->template getRib<AddrT>()
+                          ->routes()
+                          ->getRouteIf(prefix);
+      const auto oldRoute = delta.oldState()
+                          ->getRouteTables()
+                          ->getRouteTable(id)
+                          ->template getRib<AddrT>()
+                          ->routes()
+                          ->getRouteIf(prefix);
+      SwitchState::revertNewRouteEntry(id, newRoute, oldRoute, appliedState);
+    }
   }
 }
 
