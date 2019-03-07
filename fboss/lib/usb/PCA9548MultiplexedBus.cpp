@@ -9,6 +9,8 @@
  */
 #include "fboss/lib/usb/PCA9548MultiplexedBus.h"
 
+#include <glog/logging.h>
+
 #include "fboss/lib/usb/UsbError.h"
 
 using folly::MutableByteRange;

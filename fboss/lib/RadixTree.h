@@ -11,6 +11,9 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include <glog/logging.h>
+
 #include <folly/Conv.h>
 #include <folly/Memory.h>
 #include <folly/Optional.h>
