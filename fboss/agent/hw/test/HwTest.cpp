@@ -115,18 +115,10 @@ void HwTest::exitFatal() const noexcept {
   // No special behavior on a fatal from HwTest
 }
 
-
 std::shared_ptr<SwitchState> HwTest::applyNewConfig(
     const cfg::SwitchConfig& config) {
-
-  auto newState = applyThriftConfig(programmedState_, &config, getPlatform());
-  CHECK(newState);
-  // Call stateChanged()
-  newState->publish();
-  StateDelta delta(programmedState_, newState);
-  getHwSwitch()->stateChanged(delta);
-  programmedState_ = newState;
-  return newState;
+  return applyNewState(
+      applyThriftConfig(programmedState_, &config, getPlatform()));
 }
 
 std::shared_ptr<SwitchState> HwTest::applyNewState(
