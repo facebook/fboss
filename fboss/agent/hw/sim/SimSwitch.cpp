@@ -37,7 +37,8 @@ HwInitResult SimSwitch::init(HwSwitch::Callback* callback) {
     auto name = folly::to<string>("Port", idx);
     state->registerPort(PortID(idx), name);
   }
-  ret.bootType = BootType::COLD_BOOT;
+  bootType_ = BootType::COLD_BOOT;
+  ret.bootType = bootType_;
   ret.switchState = state;
   return ret;
 }

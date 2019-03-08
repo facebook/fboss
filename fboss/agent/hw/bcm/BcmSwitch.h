@@ -368,7 +368,7 @@ class BcmSwitch : public BcmSwitchIf {
                                opennsl_port_t port,
                                opennsl_port_info_t* info);
 
-  BootType getBootType() const {
+  BootType getBootType() const override {
     return bootType_;
   }
 

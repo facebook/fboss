@@ -243,10 +243,12 @@ class HwSwitch {
   virtual void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) = 0;
 
-   private:
-    // Forbidden copy constructor and assignment operator
-    HwSwitch(HwSwitch const&) = delete;
-    HwSwitch& operator=(HwSwitch const&) = delete;
+  virtual BootType getBootType() const = 0;
+
+ private:
+  // Forbidden copy constructor and assignment operator
+  HwSwitch(HwSwitch const&) = delete;
+  HwSwitch& operator=(HwSwitch const&) = delete;
 };
 
 }} // facebook::fboss

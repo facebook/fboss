@@ -78,6 +78,9 @@ class SimSwitch : public HwSwitch {
   void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& /*ports*/) override {}
 
+  virtual BootType getBootType() const override {
+    return bootType_;
+  }
  private:
   // Forbidden copy constructor and assignment operator
   SimSwitch(SimSwitch const &) = delete;
@@ -86,6 +89,7 @@ class SimSwitch : public HwSwitch {
   HwSwitch::Callback* callback_{nullptr};
   uint32_t numPorts_{0};
   uint64_t txCount_{0};
+  BootType bootType_{BootType::UNINITIALIZED};
 };
 
 }} // facebook::fboss

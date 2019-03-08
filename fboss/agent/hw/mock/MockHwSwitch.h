@@ -73,6 +73,7 @@ class MockHwSwitch : public HwSwitch {
   MOCK_METHOD1(
       clearPortStats,
       void(const std::unique_ptr<std::vector<int32_t>>&));
+  MOCK_CONST_METHOD0(getBootType, BootType());
 
  private:
   MockPlatform* platform_;

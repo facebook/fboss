@@ -46,9 +46,13 @@ class SaiSwitch : public HwSwitch {
   bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip) override;
   void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) override;
+  virtual BootType getBootType() const override {
+    return bootType_;
+  }
  private:
   std::unique_ptr<SaiApiTable> saiApiTable_;
   std::unique_ptr<SaiManagerTable> managerTable_;
+  BootType bootType_{BootType::UNINITIALIZED};
 };
 
 } // namespace fboss

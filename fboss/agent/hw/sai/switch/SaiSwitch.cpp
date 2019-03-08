@@ -31,6 +31,7 @@ class SaiTxPacket : public TxPacket {
 HwInitResult SaiSwitch::init(Callback* /* callback */) noexcept {
   saiApiTable_ = std::make_unique<SaiApiTable>();
   managerTable_ = std::make_unique<SaiManagerTable>(saiApiTable_.get());
+  bootType_ = BootType::COLD_BOOT;
   return HwInitResult();
 }
 void SaiSwitch::unregisterCallbacks() noexcept {}
