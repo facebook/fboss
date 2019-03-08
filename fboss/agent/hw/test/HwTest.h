@@ -115,6 +115,10 @@ class HwTest : public ::testing::Test, public HwSwitch::Callback {
   std::shared_ptr<SwitchState> applyNewState(
       std::shared_ptr<SwitchState> newState);
 
+  std::shared_ptr<SwitchState> getProgrammedState() const {
+    return programmedState_;
+  }
+
  private:
   std::shared_ptr<SwitchState> initHwSwitch();
 
@@ -140,9 +144,6 @@ class HwTest : public ::testing::Test, public HwSwitch::Callback {
   std::unique_ptr<HwSwitch> hwSwitch_;
   std::unique_ptr<Platform> platform_;
   std::unique_ptr<std::thread> thriftThread_;
-
- protected:
-  // TODO - make programmed state private
   std::shared_ptr<SwitchState> programmedState_{nullptr};
 };
 
