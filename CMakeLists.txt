@@ -452,6 +452,10 @@ add_library(fboss_agent STATIC
     fboss/agent/UDPHeader.cpp
     fboss/agent/Utils.cpp
 
+    fboss/agent/hw/bcm/tests/platforms/BcmTestPlatform.cpp
+    fboss/agent/hw/bcm/tests/platforms/BcmTestPort.cpp
+
+
     fboss/lib/usb/GalaxyI2CBus.cpp
     fboss/lib/usb/BaseWedgeI2CBus.cpp
     fboss/lib/usb/BaseWedgeI2CBus.h
