@@ -181,20 +181,13 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
   exportSdkVersion();
 }
 
-BcmSwitch::BcmSwitch(
-    BcmPlatform* platform,
-    unique_ptr<BcmUnit> unit,
-    uint32_t featuresDesired)
-    : BcmSwitch(platform, featuresDesired) {
-  unitObject_ = std::move(unit);
-  unit_ = unitObject_->getNumber();
-}
-
 BcmSwitch::~BcmSwitch() {
   XLOG(ERR) << "Destroying BcmSwitch";
+  resetTables();
 }
 
-void BcmSwitch::resetTablesImpl(std::unique_lock<std::mutex>& /*lock*/) {
+void BcmSwitch::resetTables() {
+  std::unique_lock<std::mutex> lk(lock_);
   unregisterCallbacks();
   routeTable_.reset();
   // Release host entries before reseting switch's host table
@@ -220,27 +213,6 @@ void BcmSwitch::resetTablesImpl(std::unique_lock<std::mutex>& /*lock*/) {
   // access it during object deletion.
   warmBootCache_.reset();
 
-}
-
-unique_ptr<BcmUnit> BcmSwitch::releaseUnit() {
-  std::unique_lock<std::mutex> lk(lock_);
-
-  // Destroy all of our member variables that track state,
-  // to make sure they clean up their state now before we reset unit_.
-  BcmSwitchEventUtils::resetUnit(unit_);
-  resetTablesImpl(lk);
-  // We don't maintain a BcmVlan data structure, so the
-  // vlans need to be destroyed explicity
-  auto rv = opennsl_vlan_destroy_all(unit_);
-  bcmCheckError(rv, "failed to destroy all VLANs");
-  unit_ = -1;
-  unitObject_->setCookie(nullptr);
-  return std::move(unitObject_);
-}
-
-void BcmSwitch::resetTables() {
-  std::unique_lock<std::mutex> lk(lock_);
-  resetTablesImpl(lk);
 }
 
 void BcmSwitch::initTables(const folly::dynamic& warmBootState) {

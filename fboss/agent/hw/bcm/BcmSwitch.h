@@ -75,10 +75,6 @@ class BcmBstStatsMgr;
 class BcmSwitchIf : public HwSwitch {
  public:
   /*
-   * Flush internal tables and release ASIC/unit for destruction
-   */
-  virtual std::unique_ptr<BcmUnit> releaseUnit() = 0;
-  /*
    * Flush internal tables w/o but remain attached to ASIC/Unit
    */
   virtual void resetTables() = 0;
@@ -160,29 +156,8 @@ class BcmSwitch : public BcmSwitchIf {
        BcmPlatform* platform,
        uint32_t featuresDesired = (PACKET_RX_DESIRED | LINKSCAN_DESIRED));
 
-   /*
-    * Construct a new BcmSwitch for an existing BCM unit.
-    *
-    * This version assumes the BCM SDK has already been initialized, and uses
-    * the specified BCM unit.  The BCM unit is not reset, but is used in its
-    * current state.  Note that BcmSwitch::init() must still be called.
-    */
-   BcmSwitch(
-       BcmPlatform* platform,
-       std::unique_ptr<BcmUnit> unit,
-       uint32_t featuresDesired);
-
    ~BcmSwitch() override;
 
-   /*
-    * Release the BcmUnit used by this BcmSwitch.
-    *
-    * This returns the BcmUnit used by this switch.  This can be used to
-    * destroy the BcmSwitch without also detaching the underlying BcmUnit.
-    * Once this method has called no other BcmSwitch methods should be accessed
-    * before destroying the BcmSwitch object.
-    */
-   std::unique_ptr<BcmUnit> releaseUnit() override;
    /*
     * Flush tables tracking ASIC state. Without releasing the ASIC/unit for
     * destruction/detaching. Primarily used for testing, where we flush state
@@ -408,7 +383,6 @@ class BcmSwitch : public BcmSwitchIf {
    */
   FRIEND_TEST(BcmTest, fpNoMissingOrQsetChangedGrpsPostInit);
  private:
-  void resetTablesImpl(std::unique_lock<std::mutex>& lock);
 
   enum Flags : uint32_t {
     RX_REGISTERED = 0x01,
