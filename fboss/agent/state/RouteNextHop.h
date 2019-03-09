@@ -18,8 +18,9 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/agent/types.h"
+#include "fboss/agent/state/LabelForwardingAction.h"
 #include "fboss/agent/state/StateUtils.h"
+#include "fboss/agent/types.h"
 
 namespace facebook { namespace fboss {
 
@@ -29,6 +30,10 @@ inline folly::StringPiece constexpr kInterface() {
 
 inline folly::StringPiece constexpr kNexthop() {
   return "nexthop";
+}
+
+inline folly::StringPiece constexpr kLabelForwardingAction() {
+  return "label_forwarding_action";
 }
 
 using NextHopWeight = uint64_t;
@@ -54,6 +59,10 @@ struct INextHop {
       return folly::poly_call<2>(*this);
     }
 
+    folly::Optional<LabelForwardingAction> labelForwardingAction() const {
+      return folly::poly_call<3>(*this);
+    }
+
     bool isResolved() const {
       return intfID().hasValue();
     }
@@ -69,6 +78,10 @@ struct INextHop {
       if (isResolved()) {
         nh[kInterface()] = static_cast<uint32_t>(intf());
       }
+      if (labelForwardingAction()) {
+        nh[kLabelForwardingAction()] =
+            labelForwardingAction()->toFollyDynamic();
+      }
       return nh;
     }
 
@@ -78,6 +91,9 @@ struct INextHop {
       nht.weight = weight();
       if (isResolved()) {
         nht.address.set_ifName(util::createTunIntfName(intf()));
+      }
+      if (labelForwardingAction()) {
+        nht.mplsAction_ref() = labelForwardingAction()->toThrift();
       }
       return nht;
     }
@@ -90,7 +106,11 @@ struct INextHop {
   };
 
   template <class T>
-  using Members = FOLLY_POLY_MEMBERS(&T::intfID, &T::addr, &T::weight);
+  using Members = FOLLY_POLY_MEMBERS(
+      &T::intfID,
+      &T::addr,
+      &T::weight,
+      &T::labelForwardingAction);
 };
 
 
@@ -114,34 +134,58 @@ class ResolvedNextHop {
   ResolvedNextHop(
       const folly::IPAddress& addr,
       InterfaceID intfID,
-      const NextHopWeight& weight)
-      : addr_(addr), intfID_(intfID), weight_(weight) {}
+      const NextHopWeight& weight,
+      const folly::Optional<LabelForwardingAction>& action = folly::none)
+      : addr_(addr),
+        intfID_(intfID),
+        weight_(weight),
+        labelForwardingAction_(action) {}
   ResolvedNextHop(
       folly::IPAddress&& addr,
       InterfaceID intfID,
-      const NextHopWeight& weight)
-      : addr_(std::move(addr)), intfID_(intfID), weight_(weight) {}
+      const NextHopWeight& weight,
+      folly::Optional<LabelForwardingAction>&& action = folly::none)
+      : addr_(std::move(addr)),
+        intfID_(intfID),
+        weight_(weight),
+        labelForwardingAction_(std::move(action)) {}
   folly::Optional<InterfaceID> intfID() const { return intfID_; }
   folly::IPAddress addr() const { return addr_; }
   NextHopWeight weight() const { return weight_; }
+  folly::Optional<LabelForwardingAction> labelForwardingAction() const {
+    return labelForwardingAction_;
+  }
+
  private:
   folly::IPAddress addr_;
   InterfaceID intfID_;
   NextHopWeight weight_;
+  folly::Optional<LabelForwardingAction> labelForwardingAction_;
 };
 
 bool operator==(const ResolvedNextHop& a, const ResolvedNextHop& b);
 
 class UnresolvedNextHop {
  public:
-  UnresolvedNextHop(const folly::IPAddress& addr, const NextHopWeight& weight);
-  UnresolvedNextHop(folly::IPAddress&& addr, const NextHopWeight& weight);
+  UnresolvedNextHop(
+      const folly::IPAddress& addr,
+      const NextHopWeight& weight,
+      const folly::Optional<LabelForwardingAction>& action = folly::none);
+  UnresolvedNextHop(
+      folly::IPAddress&& addr,
+      const NextHopWeight& weight,
+      folly::Optional<LabelForwardingAction>&& action = folly::none);
   folly::Optional<InterfaceID> intfID() const { return folly::none; }
   folly::IPAddress addr() const { return addr_; }
   NextHopWeight weight() const { return weight_; }
+  folly::Optional<LabelForwardingAction> labelForwardingAction() const {
+    return labelForwardingAction_;
+  }
+
  private:
   folly::IPAddress addr_;
   NextHopWeight weight_;
+  folly::Optional<LabelForwardingAction> labelForwardingAction_;
 };
 
 bool operator==(const UnresolvedNextHop& a, const UnresolvedNextHop& b);

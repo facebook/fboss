@@ -84,6 +84,8 @@ bool operator<(const NextHop& a, const NextHop& b) {
     return a.intfID() < b.intfID();
   } else if (a.addr() != b.addr()) {
     return a.addr() < b.addr();
+  } else if (a.labelForwardingAction() != b.labelForwardingAction()) {
+    return a.labelForwardingAction() < b.labelForwardingAction();
   } else {
     return a.weight() < b.weight();
   }
@@ -104,7 +106,8 @@ bool operator>=(const NextHop& a, const NextHop& b) {
 bool operator==(const NextHop& a, const NextHop& b) {
   return (
       a.intfID() == b.intfID() && a.addr() == b.addr() &&
-      a.weight() == b.weight());
+      a.weight() == b.weight() &&
+      a.labelForwardingAction() == b.labelForwardingAction());
 }
 
 bool operator!=(const NextHop& a, const NextHop& b) {
@@ -113,8 +116,9 @@ bool operator!=(const NextHop& a, const NextHop& b) {
 
 UnresolvedNextHop::UnresolvedNextHop(
     const folly::IPAddress& addr,
-    const NextHopWeight& weight)
-    : addr_(addr), weight_(weight) {
+    const NextHopWeight& weight,
+    const folly::Optional<LabelForwardingAction>& action)
+    : addr_(addr), weight_(weight), labelForwardingAction_(action) {
   if (addr.isV6() and addr.isLinkLocal()) {
     throw FbossError(
         "Missing interface scoping for link-local nexthop ", addr.str());
@@ -123,8 +127,11 @@ UnresolvedNextHop::UnresolvedNextHop(
 
 UnresolvedNextHop::UnresolvedNextHop(
     folly::IPAddress&& addr,
-    const NextHopWeight& weight)
-    : addr_(std::move(addr)), weight_(weight) {
+    const NextHopWeight& weight,
+    folly::Optional<LabelForwardingAction>&& action)
+    : addr_(std::move(addr)),
+      weight_(weight),
+      labelForwardingAction_(std::move(action)) {
   if (addr.isV6() and addr.isLinkLocal()) {
     throw FbossError(
         "Missing interface scoping for link-local nexthop ", addr.str());

@@ -33,6 +33,9 @@ class Route {
   explicit Route(const Prefix& prefix);
   Route(const Prefix& prefix, ClientID clientId, RouteNextHopEntry entry)
       : prefix_(prefix) {
+    if (!entry.isValid(false)) {
+      throw FbossError("Invalid label forwarding action for IP route");
+    }
     nexthopsmulti.update(clientId, entry);
   }
 

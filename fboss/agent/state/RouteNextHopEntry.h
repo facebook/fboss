@@ -79,6 +79,8 @@ class RouteNextHopEntry {
     action_ = Action::DROP;
   }
 
+  bool isValid(bool forMplsRoute = false) const;
+
  private:
   AdminDistance adminDistance_;
   Action action_{Action::DROP};

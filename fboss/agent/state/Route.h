@@ -75,6 +75,9 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   // Constructor for a route
   Route(const Prefix& prefix, ClientID clientId, RouteNextHopEntry entry)
     : RouteBase(prefix) {
+    if (!entry.isValid(false)) {
+      throw FbossError("Invalid label forwarding action for IP route");
+    }
     update(clientId, std::move(entry));
   }
 

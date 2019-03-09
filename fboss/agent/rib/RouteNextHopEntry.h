@@ -93,6 +93,8 @@ class RouteNextHopEntry {
       const facebook::fboss::UnicastRoute& route,
       AdminDistance defaultAdminDistance);
 
+  bool isValid(bool forMplsRoute = false) const;
+
  private:
   AdminDistance adminDistance_;
   Action action_{Action::DROP};

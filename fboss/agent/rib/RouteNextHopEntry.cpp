@@ -11,6 +11,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/state/LabelForwardingAction.h"
 
 #include <vector>
 
@@ -188,6 +189,24 @@ RouteNextHopEntry RouteNextHopEntry::from(
   return nexthops.size()
       ? RouteNextHopEntry(std::move(nexthops), adminDistance)
       : RouteNextHopEntry(RouteForwardAction::DROP, adminDistance);
+}
+
+bool RouteNextHopEntry::isValid(bool forMplsRoute) const {
+  bool valid = true;
+  if (!forMplsRoute) {
+    /* for ip2mpls routes, next hop label forwarding action must be push */
+    for (const auto& nexthop : nhopSet_) {
+      if (action_ != Action::NEXTHOPS) {
+        continue;
+      }
+      if (nexthop.labelForwardingAction() &&
+          nexthop.labelForwardingAction()->type() !=
+              LabelForwardingAction::LabelForwardingType::PUSH) {
+        return !valid;
+      }
+    }
+  }
+  return valid;
 }
 
 } // namespace rib

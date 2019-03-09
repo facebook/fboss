@@ -29,6 +29,7 @@
 #include "fboss/agent/state/SwitchState-defs.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
+#include <folly/Optional.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
@@ -2293,6 +2294,144 @@ TEST(Route, nodeMapMatchesRadixTree) {
   ASSERT_FALSE(GET_ROUTE_V4(tables4, rid, r6)->isPublished());
 }
 
+TEST(Route, withLabelForwardingAction) {
+  auto rid = RouterID(0);
+
+  std::array<folly::IPAddressV4, 4> nextHopAddrs{
+      folly::IPAddressV4("1.1.1.0"),
+      folly::IPAddressV4("1.1.2.0"),
+      folly::IPAddressV4("1.1.3.0"),
+      folly::IPAddressV4("1.1.4.0"),
+  };
+
+  std::array<LabelForwardingAction::LabelStack, 4> nextHopStacks{
+      LabelForwardingAction::LabelStack({101, 201, 301}),
+      LabelForwardingAction::LabelStack({102, 202, 302}),
+      LabelForwardingAction::LabelStack({103, 203, 303}),
+      LabelForwardingAction::LabelStack({104, 204, 304}),
+  };
+
+  std::map<folly::IPAddressV4, LabelForwardingAction::LabelStack>
+      labeledNextHops;
+  RouteNextHopSet nexthops;
+
+  for (auto i = 0; i < 4; i++) {
+    labeledNextHops.emplace(std::make_pair(nextHopAddrs[i], nextHopStacks[i]));
+    nexthops.emplace(UnresolvedNextHop(
+        nextHopAddrs[i],
+        1,
+        folly::make_optional<LabelForwardingAction>(
+            LabelForwardingAction::LabelForwardingType::PUSH,
+            nextHopStacks[i])));
+  }
+
+  auto state = applyInitConfig();
+  ASSERT_NE(nullptr, state);
+  auto tables = state->getRouteTables();
+
+  RouteUpdater updater(tables);
+  updater.addRoute(
+      rid,
+      folly::IPAddressV4("1.1.0.0"),
+      16,
+      CLIENT_A,
+      RouteNextHopEntry(nexthops, DISTANCE));
+
+  tables = updater.updateDone();
+  EXPECT_NODEMAP_MATCH(tables);
+  const auto& route = tables->getRouteTableIf(rid)->getRibV4()->longestMatch(
+      folly::IPAddressV4("1.1.2.2"));
+
+  EXPECT_EQ(route->has(CLIENT_A, RouteNextHopEntry(nexthops, DISTANCE)), true);
+  auto entry = route->getBestEntry();
+  for (const auto& nh : entry.second->getNextHopSet()) {
+    EXPECT_EQ(nh.labelForwardingAction().hasValue(), true);
+    EXPECT_EQ(
+        nh.labelForwardingAction()->type(),
+        LabelForwardingAction::LabelForwardingType::PUSH);
+    EXPECT_EQ(nh.labelForwardingAction()->pushStack().hasValue(), true);
+    EXPECT_EQ(nh.labelForwardingAction()->pushStack()->size(), 3);
+    EXPECT_EQ(
+        labeledNextHops[nh.addr().asV4()],
+        nh.labelForwardingAction()->pushStack().value());
+  }
+}
+
+TEST(Route, withNoLabelForwardingAction) {
+  auto rid = RouterID(0);
+
+  auto state = applyInitConfig();
+  ASSERT_NE(nullptr, state);
+  auto tables = state->getRouteTables();
+
+  auto routeNextHopEntry = RouteNextHopEntry(
+      makeNextHops({"1.1.1.1", "1.1.2.1", "1.1.3.1", "1.1.4.1"}), DISTANCE);
+  RouteUpdater updater(tables);
+  updater.addRoute(
+      rid, folly::IPAddressV4("1.1.0.0"), 16, CLIENT_A, routeNextHopEntry);
+
+  tables = updater.updateDone();
+  EXPECT_NODEMAP_MATCH(tables);
+  const auto& route = tables->getRouteTableIf(rid)->getRibV4()->longestMatch(
+      folly::IPAddressV4("1.1.2.2"));
+
+  EXPECT_EQ(route->has(CLIENT_A, routeNextHopEntry), true);
+  auto entry = route->getBestEntry();
+  for (const auto& nh : entry.second->getNextHopSet()) {
+    EXPECT_EQ(nh.labelForwardingAction().hasValue(), false);
+  }
+  EXPECT_EQ(*entry.second, routeNextHopEntry);
+}
+
+TEST(Route, withInvalidLabelForwardingAction) {
+  auto rid = RouterID(0);
+
+  std::array<folly::IPAddressV4, 5> nextHopAddrs{
+      folly::IPAddressV4("1.1.1.0"),
+      folly::IPAddressV4("1.1.2.0"),
+      folly::IPAddressV4("1.1.3.0"),
+      folly::IPAddressV4("1.1.4.0"),
+      folly::IPAddressV4("1.1.5.0"),
+  };
+
+  std::array<LabelForwardingAction, 5> nextHopLabelActions{
+      LabelForwardingAction(
+          LabelForwardingAction::LabelForwardingType::PUSH,
+          LabelForwardingAction::LabelStack({101, 201, 301})),
+      LabelForwardingAction(
+          LabelForwardingAction::LabelForwardingType::SWAP,
+          LabelForwardingAction::Label{202}),
+      LabelForwardingAction(LabelForwardingAction::LabelForwardingType::NOOP),
+      LabelForwardingAction(
+          LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP),
+      LabelForwardingAction(LabelForwardingAction::LabelForwardingType::PHP),
+  };
+
+  std::map<folly::IPAddressV4, LabelForwardingAction::LabelStack>
+      labeledNextHops;
+  RouteNextHopSet nexthops;
+
+  for (auto i = 0; i < 5; i++) {
+    nexthops.emplace(
+        UnresolvedNextHop(nextHopAddrs[i], 1, nextHopLabelActions[i]));
+  }
+
+  auto state = applyInitConfig();
+  ASSERT_NE(nullptr, state);
+  auto tables = state->getRouteTables();
+
+  RouteUpdater updater(tables);
+  EXPECT_THROW(
+      {
+        updater.addRoute(
+            rid,
+            folly::IPAddressV4("1.1.0.0"),
+            16,
+            CLIENT_A,
+            RouteNextHopEntry(nexthops, DISTANCE));
+      },
+      FbossError);
+}
 /*
  * Class that makes it easy to run tests with the following
  * configurable entities:

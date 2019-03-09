@@ -150,4 +150,21 @@ RouteNextHopEntry::fromFollyDynamic(const folly::dynamic& entryJson) {
   return entry;
 }
 
+bool RouteNextHopEntry::isValid(bool forMplsRoute) const {
+  bool valid = true;
+  if (!forMplsRoute) {
+    /* for ip2mpls routes, next hop label forwarding action must be push */
+    for (const auto& nexthop : nhopSet_) {
+      if (action_ != Action::NEXTHOPS) {
+        continue;
+      }
+      if (nexthop.labelForwardingAction() &&
+          nexthop.labelForwardingAction()->type() !=
+              LabelForwardingAction::LabelForwardingType::PUSH) {
+        return !valid;
+      }
+    }
+  }
+  return valid;
+}
 }}
