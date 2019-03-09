@@ -2432,6 +2432,24 @@ TEST(Route, withInvalidLabelForwardingAction) {
       },
       FbossError);
 }
+
+TEST(Route, nexthopFromThriftAndDynamic) {
+  IPAddressV6 ip{"fe80::1"};
+  NextHopThrift nexthop;
+  nexthop.address.addr.append(
+      reinterpret_cast<const char*>(ip.bytes()),
+      folly::IPAddressV6::byteCount());
+  nexthop.address.ifName_ref() = "fboss100";
+  MplsAction action;
+  action.action = MplsActionCode::PUSH;
+  action.pushLabels_ref() = MplsLabelStack{501, 502, 503};
+  EXPECT_EQ(util::fromThrift(nexthop).toThrift(), nexthop);
+  EXPECT_EQ(
+      util::nextHopFromFollyDynamic(
+          util::fromThrift(nexthop).toFollyDynamic()),
+      util::fromThrift(nexthop));
+}
+
 /*
  * Class that makes it easy to run tests with the following
  * configurable entities:

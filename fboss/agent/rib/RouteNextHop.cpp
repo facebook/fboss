@@ -19,6 +19,11 @@ namespace rib {
 
 namespace util {
 NextHop fromThrift(const NextHopThrift& nht) {
+  folly::Optional<LabelForwardingAction> action = folly::none;
+  if (nht.mplsAction_ref()) {
+    action.assign(LabelForwardingAction::fromThrift(
+        nht.mplsAction_ref().value_unchecked()));
+  }
   auto address = network::toIPAddress(nht.address);
   NextHopWeight weight = static_cast<NextHopWeight>(nht.weight);
   bool v6LinkLocal = address.isV6() and address.isLinkLocal();
@@ -28,14 +33,19 @@ NextHop fromThrift(const NextHopThrift& nht) {
   if (nht.address.get_ifName() and v6LinkLocal) {
     InterfaceID intfID = facebook::fboss::util::getIDFromTunIntfName(
         *(nht.address.get_ifName()));
-    return ResolvedNextHop(std::move(address), intfID, weight);
+    return ResolvedNextHop(std::move(address), intfID, weight, action);
   } else {
-    return UnresolvedNextHop(std::move(address), weight);
+    return UnresolvedNextHop(std::move(address), weight, action);
   }
 }
 NextHop nextHopFromFollyDynamic(const folly::dynamic& nhopJson) {
   folly::IPAddress address(nhopJson[kNexthop()].stringPiece());
   auto it = nhopJson.find(kInterface());
+  folly::Optional<LabelForwardingAction> action = folly::none;
+  auto labelAction = nhopJson.find(kLabelForwardingAction());
+  if (labelAction != nhopJson.items().end()) {
+    action.assign(LabelForwardingAction::fromFollyDynamic(labelAction->second));
+  }
   // NOTE: we use the ECMP weight (0) as the default here for proper
   // forward/backward compatibility. A quick explanation of the cases:
   // 1) Warm boot from agent with no notion of weight to one with a notion of
@@ -61,9 +71,9 @@ NextHop nextHopFromFollyDynamic(const folly::dynamic& nhopJson) {
       throw FbossError("stored InterfaceID exceeds uint32_t limit");
     }
     InterfaceID intfID = InterfaceID(it->second.asInt());
-    return ResolvedNextHop(std::move(address), intfID, weight);
+    return ResolvedNextHop(std::move(address), intfID, weight, action);
   } else {
-    return UnresolvedNextHop(std::move(address), weight);
+    return UnresolvedNextHop(std::move(address), weight, action);
   }
 }
 } // namespace util
