@@ -654,8 +654,8 @@ class SwSwitch : public HwSwitch::Callback {
   void setDesiredState(std::shared_ptr<SwitchState> newDesiredState);
 
   void publishInitTimes(std::string name, const float& time);
-  void publishPortInfo();
-  void publishRouteStats();
+  void updatePortInfo();
+  void updateRouteStats();
   void publishSwitchInfo(struct HwInitResult hwInitRet);
   void setSwitchRunState(SwitchRunState desiredState);
   SwitchStats* createSwitchStats();

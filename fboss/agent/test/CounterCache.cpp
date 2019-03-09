@@ -10,14 +10,13 @@
 #include "fboss/agent/test/CounterCache.h"
 
 #include "common/stats/ServiceData.h"
+#include "common/stats/ThreadCachedServiceData.h"
 #include "fboss/agent/SwSwitch.h"
 
 namespace facebook { namespace fboss {
 
 void CounterCache::update() {
-  if (sw_) {
-    sw_->publishStats();
-  }
+  stats::ThreadCachedServiceData::get()->publishStats();
   prev_.swap(current_);
   current_.clear();
   fbData->getCounters(current_);

@@ -17,7 +17,8 @@ namespace facebook { namespace fboss {
 
 void SwSwitch::publishInitTimes(std::string /*name*/, const float& /*time*/) {}
 
-void SwSwitch::publishStats() {}
+void SwSwitch::updateRouteStats() {}
+void SwSwitch::updatePortInfo() {}
 
 void SwSwitch::publishSwitchInfo(struct HwInitResult /*hwInitRet*/) {}
 

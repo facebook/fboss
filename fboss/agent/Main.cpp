@@ -15,7 +15,6 @@
 #include <folly/String.h>
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/io/async/AsyncSignalHandler.h>
-#include <folly/io/async/AsyncTimeout.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
@@ -44,7 +43,6 @@
 using folly::FunctionScheduler;
 using apache::thrift::ThriftServer;
 using folly::AsyncSignalHandler;
-using folly::AsyncTimeout;
 using folly::EventBase;
 using folly::SocketAddress;
 using std::shared_ptr;
@@ -196,28 +194,6 @@ class Initializer {
   condition_variable initCondition_;
 };
 
-class StatsPublisher : public AsyncTimeout {
- public:
-  StatsPublisher(EventBase* eventBase, SwSwitch* sw,
-                 std::chrono::milliseconds interval)
-    : AsyncTimeout(eventBase),
-      sw_(sw),
-      interval_(interval) {}
-
-  void start() {
-    scheduleTimeout(interval_);
-  }
-
-  void timeoutExpired() noexcept override {
-    sw_->publishStats();
-    scheduleTimeout(interval_);
-  }
-
- private:
-  SwSwitch* sw_{nullptr};
-  std::chrono::milliseconds interval_;
-};
-
 /*
  */
 class SignalHandler : public AsyncSignalHandler {
@@ -318,14 +294,15 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   // Thrift port 5909
   init.start();
 
-  // Create a timeout to call sw->publishStats() once every second.
-  StatsPublisher statsPublisher(
-      &eventBase, &sw,
+  /*
+   * Updating stats could be expensive as each update must acquire lock. To
+   * avoid this overhead, we use ThreadLocal version for updating stats, and
+   * start a publish thread to aggregate the counters periodically.
+   */
+  facebook::stats::ThreadCachedServiceData::get()->startPublishThread(
       std::chrono::milliseconds(FLAGS_stat_publish_interval_ms));
-  statsPublisher.start();
 
   auto stopServices = [&]() {
-    statsPublisher.cancelTimeout();
     init.stopFunctionScheduler();
     fbossFinalize();
   };

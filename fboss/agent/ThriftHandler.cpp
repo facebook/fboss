@@ -179,7 +179,7 @@ void ThriftHandler::flushCountersNow() {
   // Depending on how we design the HW-specific stats interface,
   // we may also need to make a separate call to force immediate collection of
   // hardware stats.
-  sw_->publishStats();
+  stats::ThreadCachedServiceData::get()->publishStats();
 }
 
 void ThriftHandler::addUnicastRoute(

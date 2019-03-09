@@ -336,7 +336,10 @@ void SwSwitch::gracefulExit() {
 void SwSwitch::getProductInfo(ProductInfo& productInfo) const {
   platform_->getProductInfo(productInfo);
 }
-void SwSwitch::updateStats(){
+
+void SwSwitch::updateStats() {
+  updateRouteStats();
+  updatePortInfo();
   try {
     getHw()->updateStats(stats());
   } catch (const std::exception& ex) {
