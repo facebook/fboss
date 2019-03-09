@@ -335,7 +335,7 @@ TEST_F(MirrorTest, WithStateChange) {
 TEST_F(MirrorTest, AddAclAndPortToMirror) {
   std::array<std::string, 2> acls {"acl0", "acl1"};
   std::array<PortID, 2> ports {PortID(3), PortID(4)};
-  uint16 l4port = 1234;
+  uint16_t l4port = 1234;
   configureMirror("mirror0", MirrorTest::tunnelDestination);
   publishWithStateUpdate();
 
@@ -372,7 +372,7 @@ TEST_F(MirrorTest, DeleleteAclAndPortToMirror) {
 
   std::array<std::string, 2> acls {"acl0", "acl1"};
   std::array<PortID, 2> ports {PortID(3), PortID(4)};
-  uint16 l4port = 1234;
+  uint16_t l4port = 1234;
 
   for (int i=0; i<2; i++) {
     configureAcl(acls[i], l4port+i);
