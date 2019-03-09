@@ -1177,4 +1177,29 @@ SSLType ThriftHandler::getSSLPolicy() {
 
   return sslType;
 }
+
+void ThriftHandler::addMplsRoutes(
+    int16_t /* clientId */,
+    std::unique_ptr<std::vector<MplsRoute>> /* mplsRoutes */) {
+  // TODO: implement this
+  throw FbossError("Unimplemented");
+}
+void ThriftHandler::deleteMplsRoutes(
+    int16_t /* client */,
+    std::unique_ptr<std::vector<int32_t>> /* topLabels */) {
+  // TODO: implement this
+  throw FbossError("Unimplemented");
+}
+void ThriftHandler::syncMplsFib(
+    int16_t /* client */,
+    std::unique_ptr<std::vector<MplsRoute>> /* mplsRoutes */) {
+  // TODO: implement this
+  throw FbossError("Unimplemented");
+}
+void ThriftHandler::getMplsRouteTableByClient(
+    std::vector<MplsRoute>& /*mplsRoutes*/,
+    int16_t /* clientId */) {
+  // TODO: implement this
+  throw FbossError("Unimplemented");
+}
 }} // facebook::fboss

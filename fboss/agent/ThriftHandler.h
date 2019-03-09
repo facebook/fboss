@@ -72,6 +72,20 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       int16_t client,
       std::unique_ptr<std::vector<UnicastRoute>> routes) override;
 
+  /* MPLS routes */
+  void addMplsRoutes(
+      int16_t clientId,
+      std::unique_ptr<std::vector<MplsRoute>> mplsRoutes) override;
+  void deleteMplsRoutes(
+      int16_t client,
+      std::unique_ptr<std::vector<int32_t>> topLabels) override;
+  void syncMplsFib(
+      int16_t client,
+      std::unique_ptr<std::vector<MplsRoute>> mplsRoutes) override;
+  void getMplsRouteTableByClient(
+      std::vector<MplsRoute>& mplsRoutes,
+      int16_t clientId) override;
+
   SwSwitch* getSw() const {
     return sw_;
   }
