@@ -32,6 +32,8 @@ class LabelForwardingInformationBase
   static std::shared_ptr<LabelForwardingInformationBase> fromFollyDynamic(
       const folly::dynamic& json);
 
+  LabelForwardingInformationBase* modify(std::shared_ptr<SwitchState>* state);
+
  private:
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;

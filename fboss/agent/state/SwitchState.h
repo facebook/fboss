@@ -20,6 +20,7 @@
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
 #include "fboss/agent/state/MirrorMap.h"
 #include "fboss/agent/state/NodeBase.h"
@@ -36,7 +37,6 @@ class Interface;
 template <typename AddressT> class Route;
 class SflowCollector;
 class SflowCollectorMap;
-class LabelForwardingInformationBase;
 
 struct SwitchStateFields {
   SwitchStateFields();
@@ -52,6 +52,7 @@ struct SwitchStateFields {
     fn(qosPolicies.get());
     fn(loadBalancers.get());
     fn(fibs.get());
+    fn(labelFib.get());
   }
   /*
    * Serialize to folly::dynamic

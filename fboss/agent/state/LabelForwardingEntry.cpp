@@ -1,7 +1,9 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/state/LabelForwardingEntry.h"
+#include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/state/SwitchState.h"
 
 #include <folly/dynamic.h>
 
@@ -19,6 +21,21 @@ LabelForwardingEntry::LabelForwardingEntry(
     ClientID clientId,
     LabelNextHopEntry nexthop)
     : NodeBaseT(topLabel, clientId, std::move(nexthop)) {}
+
+LabelForwardingEntry* LabelForwardingEntry::modify(
+    std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  LabelForwardingInformationBase* labelFib =
+      (*state)->getLabelForwardingInformationBase()->modify(state);
+  auto newEntry = clone();
+  auto* ptr = newEntry.get();
+  labelFib->updateNode(std::move(newEntry));
+  return ptr;
+}
 
 const LabelNextHopEntry* FOLLY_NULLABLE
 LabelForwardingEntry::getEntryForClient(ClientID clientId) const {

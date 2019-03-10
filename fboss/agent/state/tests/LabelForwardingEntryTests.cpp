@@ -2,7 +2,9 @@
 
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/LabelForwardingUtils.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <folly/dynamic.h>
 #include <gtest/gtest.h>
@@ -147,4 +149,42 @@ TEST(LabelForwardingEntryTests, getBestEntry) {
       clientNextHopsEntry[StdClientIds::INTERFACE_ROUTE](
           AdminDistance::DIRECTLY_CONNECTED),
       entry->getLabelNextHop());
+}
+
+TEST(LabelForwardingEntryTests, modify) {
+  auto oldState = testStateA();
+  auto lFib = std::make_shared<LabelForwardingInformationBase>();
+  lFib->addNode(std::make_shared<LabelForwardingEntry>(
+      5001,
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED)));
+
+  auto newState = oldState->clone();
+  newState->resetLabelForwardingInformationBase(lFib);
+  newState->publish();
+
+  auto publishedLfib = newState->getLabelForwardingInformationBase();
+  auto publishedEntry = publishedLfib->getLabelForwardingEntryIf(5001);
+  ASSERT_NE(nullptr, publishedEntry);
+  EXPECT_EQ(true, publishedLfib->isPublished());
+  EXPECT_EQ(true, publishedEntry->isPublished());
+
+  auto newerState = newState->clone();
+  auto* modifiedEntry = publishedEntry->modify(&newerState);
+  EXPECT_NE(newerState.get(), newState.get());
+  EXPECT_NE(
+      newerState->getLabelForwardingInformationBase().get(),
+      publishedLfib.get());
+  EXPECT_NE(modifiedEntry, publishedEntry.get());
+
+  EXPECT_EQ(modifiedEntry, modifiedEntry->modify(&newerState));
+  EXPECT_EQ(false, newerState->isPublished());
+  EXPECT_EQ(false, modifiedEntry->isPublished());
+  EXPECT_EQ(
+      false, newerState->getLabelForwardingInformationBase()->isPublished());
+  EXPECT_EQ(
+      false,
+      newerState->getLabelForwardingInformationBase()
+          ->getLabelForwardingEntryIf(5001)
+          ->isPublished());
 }

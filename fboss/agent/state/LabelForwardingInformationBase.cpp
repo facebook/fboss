@@ -2,6 +2,7 @@
 
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/NodeMap-defs.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook {
 namespace fboss {
@@ -32,6 +33,19 @@ LabelForwardingInformationBase::fromFollyDynamic(const folly::dynamic& json) {
     labelFib->addNode(LabelForwardingEntry::fromFollyDynamic(entry));
   }
   return labelFib;
+}
+
+LabelForwardingInformationBase* LabelForwardingInformationBase::modify(
+    std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  auto newFib = clone();
+  auto* ptr = newFib.get();
+  (*state)->resetLabelForwardingInformationBase(std::move(newFib));
+  return ptr;
 }
 
 FBOSS_INSTANTIATE_NODE_MAP(

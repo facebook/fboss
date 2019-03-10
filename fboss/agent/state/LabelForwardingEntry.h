@@ -75,6 +75,8 @@ class LabelForwardingEntry
 
   bool operator==(const LabelForwardingEntry& rhs) const;
 
+  LabelForwardingEntry* modify(std::shared_ptr<SwitchState>* state);
+
  private:
   void updateLabelNextHop();
   // Inherit the constructors required for clone()
