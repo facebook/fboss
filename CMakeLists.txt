@@ -409,6 +409,7 @@ add_library(fboss_agent STATIC
     fboss/agent/state/Interface.cpp
     fboss/agent/state/InterfaceMap.cpp
     fboss/agent/state/LabelForwardingAction.cpp
+    fboss/agent/state/LabelForwardingEntry.cpp
     fboss/agent/state/LoadBalancer.cpp
     fboss/agent/state/LoadBalancerMap.cpp
     fboss/agent/state/Mirror.cpp
