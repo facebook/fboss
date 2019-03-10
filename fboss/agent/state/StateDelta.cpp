@@ -109,6 +109,13 @@ ForwardingInformationBaseMapDelta StateDelta::getFibsDelta() const {
       old_->getFibs().get(), new_->getFibs().get());
 }
 
+NodeMapDelta<LabelForwardingInformationBase>
+StateDelta::getLabelForwardingInformationBaseDelta() const {
+  return NodeMapDelta<LabelForwardingInformationBase>(
+      old_->getLabelForwardingInformationBase().get(),
+      new_->getLabelForwardingInformationBase().get());
+}
+
 std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
   // Leverage the folly::dynamic printing facilities
   folly::dynamic diff = folly::dynamic::object;
@@ -159,4 +166,5 @@ template class NodeMapDelta<
     ForwardingInformationBaseContainerDelta>;
 template class NodeMapDelta<ForwardingInformationBaseV4>;
 template class NodeMapDelta<ForwardingInformationBaseV6>;
+template class NodeMapDelta<LabelForwardingInformationBase>;
 }} // facebook::fboss

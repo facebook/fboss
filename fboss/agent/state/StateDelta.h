@@ -16,9 +16,10 @@
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
-#include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/ForwardingInformationBaseDelta.h"
+#include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/MirrorMap.h"
@@ -67,6 +68,8 @@ class StateDelta {
   DeltaValue<ControlPlane> getControlPlaneDelta() const;
   NodeMapDelta<MirrorMap> getMirrorsDelta() const;
   ForwardingInformationBaseMapDelta getFibsDelta() const;
+  NodeMapDelta<LabelForwardingInformationBase>
+  getLabelForwardingInformationBaseDelta() const;
 
  private:
   // Forbidden copy constructor and assignment operator

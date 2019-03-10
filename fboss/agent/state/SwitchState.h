@@ -36,6 +36,7 @@ class Interface;
 template <typename AddressT> class Route;
 class SflowCollector;
 class SflowCollectorMap;
+class LabelForwardingInformationBase;
 
 struct SwitchStateFields {
   SwitchStateFields();
@@ -73,6 +74,7 @@ struct SwitchStateFields {
   std::shared_ptr<LoadBalancerMap> loadBalancers;
   std::shared_ptr<MirrorMap> mirrors;
   std::shared_ptr<ForwardingInformationBaseMap> fibs;
+  std::shared_ptr<LabelForwardingInformationBase> labelFib;
 
   VlanID defaultVlan{0};
 
@@ -288,6 +290,10 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   const std::shared_ptr<LoadBalancerMap>& getLoadBalancers() const;
   const std::shared_ptr<MirrorMap>& getMirrors() const;
   const std::shared_ptr<ForwardingInformationBaseMap>& getFibs() const;
+  const std::shared_ptr<LabelForwardingInformationBase>&
+  getLabelForwardingInformationBase() const {
+    return getFields()->labelFib;
+  }
 
   /*
    * The following functions modify the static state.
@@ -314,6 +320,8 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void resetControlPlane(std::shared_ptr<ControlPlane> cpu);
   void resetLoadBalancers(std::shared_ptr<LoadBalancerMap> loadBalancers);
   void resetMirrors(std::shared_ptr<MirrorMap> mirrors);
+  void resetLabelForwardingInformationBase(
+      std::shared_ptr<LabelForwardingInformationBase> labelFib);
 
  private:
   // Inherit the constructor required for clone()

@@ -17,6 +17,7 @@
 #include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/QosPolicyMap.h"
@@ -49,6 +50,7 @@ constexpr auto kMaxNeighborProbes = "maxNeighborProbes";
 constexpr auto kStaleEntryInterval = "staleEntryInterval";
 constexpr auto kLoadBalancers = "loadBalancers";
 constexpr auto kMirrors = "mirrors";
+constexpr auto kLabelForwardingInformationBase = "labelFib";
 }
 
 namespace facebook { namespace fboss {
@@ -65,7 +67,8 @@ SwitchStateFields::SwitchStateFields()
       controlPlane(make_shared<ControlPlane>()),
       loadBalancers(make_shared<LoadBalancerMap>()),
       mirrors(make_shared<MirrorMap>()),
-      fibs(make_shared<ForwardingInformationBaseMap>()) {}
+      fibs(make_shared<ForwardingInformationBaseMap>()),
+      labelFib(make_shared<LabelForwardingInformationBase>()) {}
 
 folly::dynamic SwitchStateFields::toFollyDynamic() const {
   folly::dynamic switchState = folly::dynamic::object;
@@ -80,6 +83,7 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kControlPlane] = controlPlane->toFollyDynamic();
   switchState[kLoadBalancers] = loadBalancers->toFollyDynamic();
   switchState[kMirrors] = mirrors->toFollyDynamic();
+  switchState[kLabelForwardingInformationBase] = labelFib->toFollyDynamic();
   return switchState;
 }
 
@@ -112,6 +116,10 @@ SwitchStateFields::fromFollyDynamic(const folly::dynamic& swJson) {
   }
   if (swJson.find(kMirrors) != swJson.items().end()) {
     switchState.mirrors = MirrorMap::fromFollyDynamic(swJson[kMirrors]);
+  }
+  if (swJson.find(kLabelForwardingInformationBase) != swJson.items().end()) {
+    switchState.labelFib = LabelForwardingInformationBase::fromFollyDynamic(
+        swJson[kLabelForwardingInformationBase]);
   }
   //TODO verify that created state here is internally consistent t4155406
   return switchState;
@@ -263,6 +271,11 @@ const std::shared_ptr<MirrorMap>& SwitchState::getMirrors() const {
 const std::shared_ptr<ForwardingInformationBaseMap>& SwitchState::getFibs()
     const {
   return getFields()->fibs;
+}
+
+void SwitchState::resetLabelForwardingInformationBase(
+    std::shared_ptr<LabelForwardingInformationBase> labelFib) {
+  writableFields()->labelFib.swap(labelFib);
 }
 
 template class NodeBaseT<SwitchState, SwitchStateFields>;

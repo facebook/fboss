@@ -2,7 +2,9 @@
 
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/LabelForwardingUtils.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -88,4 +90,113 @@ TEST(LabelFIBTests, toAndFromFollyDynamic) {
   EXPECT_EQ(
       *lFib->getLabelForwardingEntry(5002),
       *generated->getLabelForwardingEntry(5002));
+}
+
+TEST(LabelFIBTests, forEachAdded) {
+  using facebook::fboss::DeltaFunctions::forEachAdded;
+
+  auto state = testStateA();
+  auto labelFib = state->getLabelForwardingInformationBase();
+  labelFib = labelFib->clone();
+  auto entry = std::make_shared<LabelForwardingEntry>(
+      5001,
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+  labelFib->addNode(entry);
+  auto newState = state->clone();
+  newState->resetLabelForwardingInformationBase(labelFib);
+  newState->publish();
+
+  const auto& delta = StateDelta(state, newState);
+  const auto& labelFibDelta = delta.getLabelForwardingInformationBaseDelta();
+
+  forEachAdded(
+      labelFibDelta,
+      [=](const std::shared_ptr<LabelForwardingEntry>& addedEntry,
+          const std::shared_ptr<LabelForwardingEntry> newEntry) {
+        EXPECT_EQ(*newEntry, *addedEntry);
+      },
+      entry);
+}
+
+TEST(LabelFIBTests, forEachRemoved) {
+  using facebook::fboss::DeltaFunctions::forEachRemoved;
+
+  auto state = testStateA();
+  auto labelFib = state->getLabelForwardingInformationBase();
+  labelFib = labelFib->clone();
+  auto entry = std::make_shared<LabelForwardingEntry>(
+      5001,
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+  labelFib->addNode(entry);
+
+  auto oldState = state->clone();
+  oldState->resetLabelForwardingInformationBase(labelFib);
+  oldState->publish();
+
+  labelFib = oldState->getLabelForwardingInformationBase();
+  labelFib = labelFib->clone();
+  labelFib->removeNode(5001);
+
+  auto newState = oldState->clone();
+  newState->resetLabelForwardingInformationBase(labelFib);
+  newState->publish();
+
+  const auto& delta = StateDelta(oldState, newState);
+  const auto& labelFibDelta = delta.getLabelForwardingInformationBaseDelta();
+
+  forEachRemoved(
+      labelFibDelta,
+      [=](const std::shared_ptr<LabelForwardingEntry>& removedEntry,
+          const std::shared_ptr<LabelForwardingEntry> oldEntry) {
+        EXPECT_EQ(*oldEntry, *removedEntry);
+      },
+      entry);
+}
+
+TEST(LabelFIBTests, forEachChanged) {
+  using facebook::fboss::DeltaFunctions::forEachChanged;
+
+  auto state = testStateA();
+  auto labelFib = state->getLabelForwardingInformationBase();
+  labelFib = labelFib->clone();
+  auto oldEntry = std::make_shared<LabelForwardingEntry>(
+      5001,
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+  labelFib->addNode(oldEntry);
+
+  auto oldState = state->clone();
+  oldState->resetLabelForwardingInformationBase(labelFib);
+  oldState->publish();
+
+  labelFib = oldState->getLabelForwardingInformationBase();
+  labelFib = labelFib->clone();
+
+  auto newEntry = labelFib->getLabelForwardingEntry(5001);
+  newEntry = newEntry->clone();
+  newEntry->update(
+      StdClientIds2ClientID(StdClientIds::BGPD),
+      util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+  labelFib->updateNode(newEntry);
+
+  auto newState = oldState->clone();
+  newState->resetLabelForwardingInformationBase(labelFib);
+  newState->publish();
+
+  const auto& delta = StateDelta(oldState, newState);
+  const auto& labelFibDelta = delta.getLabelForwardingInformationBaseDelta();
+
+  forEachChanged(
+      labelFibDelta,
+      [=](const std::shared_ptr<LabelForwardingEntry>& oldEntry,
+          const std::shared_ptr<LabelForwardingEntry>& newEntry,
+          const std::shared_ptr<LabelForwardingEntry>& removedEntry,
+          const std::shared_ptr<LabelForwardingEntry>& addedEntry) {
+        EXPECT_EQ(*oldEntry, *removedEntry);
+        EXPECT_EQ(*newEntry, *addedEntry);
+      },
+      oldEntry,
+      newEntry);
 }
