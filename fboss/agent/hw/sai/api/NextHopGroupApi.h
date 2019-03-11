@@ -27,6 +27,11 @@ namespace fboss {
 struct NextHopGroupApiParameters {
   struct Attributes {
     using EnumType = sai_next_hop_group_attr_t;
+    using NextHopMemberList = SaiAttribute<
+        EnumType,
+        SAI_NEXT_HOP_GROUP_ATTR_NEXT_HOP_MEMBER_LIST,
+        sai_object_list_t,
+        std::vector<sai_object_id_t>>;
     using Type =
         SaiAttribute<EnumType, SAI_NEXT_HOP_GROUP_ATTR_TYPE, sai_int32_t>;
     using CreateAttributes = SaiAttributeTuple<Type>;
