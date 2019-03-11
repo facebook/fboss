@@ -81,6 +81,7 @@ enum PortFEC {
 }
 
 /**
+ *  [DEPRECATED] TODO(joseph5wu)
  *  A Range for L4 port range checker
  *  Define a range bewteen [min, max]
  */
@@ -91,6 +92,7 @@ struct L4PortRange {
 }
 
 /**
+ *  [DEPRECATED] TODO(joseph5wu)
  *  A Range for packet length
  *  Define a packet length range [min, max]
  */
@@ -99,6 +101,7 @@ struct PktLenRange {
   2: i16 max
   3: bool invert = false
 }
+
 
 enum IpType {
   ANY = 0,
@@ -209,6 +212,7 @@ struct AclEntry {
   4: optional string dstIp
 
   /**
+   * [DEPRECATED] TODO(joseph5wu)
    * L4 port ranges (TCP/UDP)
    */
   5: optional L4PortRange srcL4PortRange
@@ -237,6 +241,7 @@ struct AclEntry {
   11: optional i16 dstPort
 
   /**
+   * [DEPRECATED] TODO(joseph5wu)
    * Packet length range
    */
   12: optional PktLenRange pktLenRange
@@ -273,6 +278,11 @@ struct AclEntry {
   /* IP type (IPv4, IPv6, ARP, MPLS... */
   21: optional IpType ipType
 
+  /**
+   * L4 port (TCP/UDP)
+   */
+  22: optional i32 l4SrcPort
+  23: optional i32 l4DstPort
 }
 
 /*
