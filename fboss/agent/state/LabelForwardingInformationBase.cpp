@@ -4,6 +4,8 @@
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include <folly/logging/xlog.h>
+
 namespace facebook {
 namespace fboss {
 
@@ -33,6 +35,40 @@ LabelForwardingInformationBase::fromFollyDynamic(const folly::dynamic& json) {
     labelFib->addNode(LabelForwardingEntry::fromFollyDynamic(entry));
   }
   return labelFib;
+}
+
+LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
+    std::shared_ptr<SwitchState>* state,
+    Label label,
+    ClientID client,
+    AdminDistance distance,
+    LabelNextHopSet nexthops) {
+  for (const auto& nexthop : nexthops) {
+    if (!nexthop.isResolved()) {
+      throw FbossError("invalid label next hop");
+    }
+  }
+
+  auto* writableLabelFib = this;
+  if (!isPublished()) {
+    writableLabelFib = modify(state);
+  }
+  auto entry = writableLabelFib->getLabelForwardingEntryIf(label);
+
+  if (!entry) {
+    XLOG(DBG1) << "programmed label:" << label
+               << " in label forwarding information base for client:" << client;
+
+    writableLabelFib->addNode(std::make_shared<LabelForwardingEntry>(
+        label, client, LabelNextHopEntry(std::move(nexthops), distance)));
+  } else {
+    auto* entryToUpdate = entry->modify(state);
+    entryToUpdate->update(
+        client, LabelNextHopEntry(std::move(nexthops), distance));
+    XLOG(DBG1) << "updated label:" << label
+               << " in label forwarding information base for client:" << client;
+  }
+  return writableLabelFib;
 }
 
 LabelForwardingInformationBase* LabelForwardingInformationBase::modify(

@@ -11,6 +11,22 @@
 using namespace ::testing;
 using namespace facebook::fboss;
 
+namespace {
+void addOrUpdateEntryWithProgramLabel(
+    std::shared_ptr<SwitchState>* state,
+    ClientID client,
+    LabelForwardingEntry* entry) {
+  SwitchState::modify(state);
+  (*state)->getLabelForwardingInformationBase()->programLabel(
+      state,
+      entry->getID(),
+      client,
+      AdminDistance::DIRECTLY_CONNECTED,
+      entry->getEntryForClient(client)->getNextHopSet());
+}
+
+} // namespace
+
 TEST(LabelFIBTests, addLabelForwardingEntry) {
   auto lFib = std::make_shared<LabelForwardingInformationBase>();
   auto entry = lFib->getLabelForwardingEntryIf(5001);
@@ -199,4 +215,50 @@ TEST(LabelFIBTests, forEachChanged) {
       },
       oldEntry,
       newEntry);
+}
+
+TEST(LabelFIBTests, programLabel) {
+  auto stateA = testStateA();
+  auto entryToAdd = std::make_shared<LabelForwardingEntry>(
+      5001,
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+
+  addOrUpdateEntryWithProgramLabel(
+      &stateA, StdClientIds2ClientID(StdClientIds::OPENR), entryToAdd.get());
+  stateA->publish();
+  auto entryAdded =
+      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
+          5001);
+  EXPECT_EQ(*entryAdded, *entryToAdd);
+}
+
+TEST(LabelFIBTests, updateLabel) {
+  auto stateA = testStateA();
+  auto entryToAdd = std::make_shared<LabelForwardingEntry>(
+      5001,
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+
+  addOrUpdateEntryWithProgramLabel(
+      &stateA, StdClientIds2ClientID(StdClientIds::OPENR), entryToAdd.get());
+  stateA->publish();
+
+  auto entryToUpdate = std::make_shared<LabelForwardingEntry>(
+      5001,
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+
+  /* updating entry for 5001 for OpenR */
+  addOrUpdateEntryWithProgramLabel(
+      &stateA, StdClientIds2ClientID(StdClientIds::OPENR), entryToUpdate.get());
+  auto entryUpdated =
+      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
+          5001);
+
+  EXPECT_EQ(
+      *entryToUpdate->getEntryForClient(
+          StdClientIds2ClientID(StdClientIds::OPENR)),
+      *entryUpdated->getEntryForClient(
+          StdClientIds2ClientID(StdClientIds::OPENR)));
 }
