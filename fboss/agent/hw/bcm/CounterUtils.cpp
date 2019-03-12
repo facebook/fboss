@@ -14,41 +14,42 @@
 
 #include <folly/logging/xlog.h>
 
+#include <numeric>
+
 namespace facebook {
 namespace fboss {
 namespace utility {
+
+CounterPrevAndCur::CounterPrevAndCur(int64_t prev, int64_t cur)
+    : prev_(prev), cur_(cur) {
+  if (curUninitialized()) {
+    // Current in reality should never be uninit. So this could be a FATAL.
+    // But to be defensive, if this assumption is ever wrong, lets find
+    // that out in a error message rather than crashing a portion of the fleet.
+    XLOG(ERR) << "Current counter values cannot be uninitialized";
+  }
+}
+
+int64_t CounterPrevAndCur::incrementFromPrev() const {
+  // If any value was uninitialized or counter rolled over. We cannot compute
+  // increment so return 0. Else compute increment
+  return (anyUninitialized() || rolledOver()) ? 0 : cur_ - prev_;
+}
 
 bool CounterPrevAndCur::counterUninitialized(const int64_t& val) const {
   return val == hardware_stats_constants::STAT_UNINITIALIZED();
 }
 
-int64_t getDerivedCounterIncrement(
+int64_t subtractIncrements(
     const CounterPrevAndCur& counterRaw,
     const std::vector<CounterPrevAndCur>& countersToSubtract) {
-  auto constexpr kUninit = hardware_stats_constants::STAT_UNINITIALIZED();
-  if (counterRaw.curUninitialized()) {
-    XLOG(FATAL) << "Current counter values cannot be uninitialized";
-  }
-  if (counterRaw.prevUninitialized() || counterRaw.rolledOver()) {
-    // If previous was uninitialized or counter rolled over return 0
-    return 0;
-  }
-  auto increment = counterRaw.cur - counterRaw.prev;
-  DCHECK_GE(increment, 0);
-  for (const auto& counterToSub : countersToSubtract) {
-    if (counterToSub.curUninitialized()) {
-      XLOG(FATAL) << "Current counter values cannot be uninitialized";
-    }
-    if (counterToSub.prevUninitialized() || counterToSub.rolledOver()) {
-      // If previous was uninitialized or counter rolled over return 0
-      // If we ever need to be smarter here - we could also pass in bit
-      // lengths of each of the above countersin h/w and then compute
-      // exact increment given the prev and now rolled
-      // over value.
-      return 0;
-    }
-    increment -= (counterToSub.cur - counterToSub.prev);
-  }
+  auto increment = std::accumulate(
+      begin(countersToSubtract),
+      end(countersToSubtract),
+      counterRaw.incrementFromPrev(),
+      [](auto const& inc, const auto& counterToSub) {
+        return inc - counterToSub.incrementFromPrev();
+      });
   // Since counters collection is not atomic, account for the fact
   // that counterToSubCur maybe > counterRawCur. Imagine a case
   // where all increments to raw counter are coming from counters
@@ -59,15 +60,6 @@ int64_t getDerivedCounterIncrement(
   return std::max(0L, increment);
 }
 
-int64_t getDerivedCounterIncrement(
-    int64_t counterRawPrev,
-    int64_t counterRawCur,
-    int64_t counterToSubPrev,
-    int64_t counterToSubCur) {
-  return getDerivedCounterIncrement(
-      CounterPrevAndCur{counterRawPrev, counterRawCur},
-      {{CounterPrevAndCur{counterToSubPrev, counterToSubCur}}});
-}
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

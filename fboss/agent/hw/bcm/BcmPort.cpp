@@ -703,7 +703,7 @@ void BcmPort::updateStats() {
     toSubtractFromInDiscardsRaw.emplace_back(
         lastPortStats.inPause_, curPortStats.inPause_);
   }
-  curPortStats.inDiscards_ += utility::getDerivedCounterIncrement(
+  curPortStats.inDiscards_ += utility::subtractIncrements(
       {lastPortStats.inDiscardsRaw_, curPortStats.inDiscardsRaw_},
       toSubtractFromInDiscardsRaw);
 

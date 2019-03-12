@@ -13,39 +13,38 @@
 #include <cstdint>
 #include <vector>
 
-
 namespace facebook {
 namespace fboss {
 namespace utility {
 
-struct CounterPrevAndCur {
-  CounterPrevAndCur(int64_t _prev, int64_t _cur) : prev(_prev), cur(_cur) {}
-  bool rolledOver() const {
-    return cur < prev;
-  }
-  bool curUninitialized() const {
-    return counterUninitialized(cur);
-  }
-  bool prevUninitialized() const {
-    return counterUninitialized(prev);
-  }
+class CounterPrevAndCur {
+ public:
+  CounterPrevAndCur(int64_t _prev, int64_t _cur);
+  int64_t incrementFromPrev() const;
 
  private:
+  bool rolledOver() const {
+    return cur_ < prev_;
+  }
+  bool curUninitialized() const {
+    return counterUninitialized(cur_);
+  }
+  bool prevUninitialized() const {
+    return counterUninitialized(prev_);
+  }
+  bool anyUninitialized() const {
+    return curUninitialized() || prevUninitialized();
+  }
+
   bool counterUninitialized(const int64_t& val) const;
- public:
-  int64_t prev;
-  int64_t cur;
+  int64_t prev_;
+  int64_t cur_;
 };
 
-int64_t getDerivedCounterIncrement(
+int64_t subtractIncrements(
     const CounterPrevAndCur& counterRaw,
     const std::vector<CounterPrevAndCur>& countersToSubtract);
 
-int64_t getDerivedCounterIncrement(
-    int64_t counterRawPrev,
-    int64_t counterRawCur,
-    int64_t counterToSubPrev,
-    int64_t counterToSubCur);
-}
+} // namespace utility
 } // namespace fboss
 } // namespace facebook
