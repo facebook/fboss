@@ -1218,11 +1218,25 @@ std::shared_ptr<SwitchState> ThriftHandler::addMplsRoutesImpl(
 }
 
 void ThriftHandler::deleteMplsRoutes(
-    int16_t /* client */,
-    std::unique_ptr<std::vector<int32_t>> /* topLabels */) {
-  // TODO: implement this
-  throw FbossError("Unimplemented");
+    int16_t clientId,
+    std::unique_ptr<std::vector<int32_t>> topLabels) {
+  ensureConfigured();
+  auto updateFn = [=, topLabels = std::move(*topLabels)](
+                      const std::shared_ptr<SwitchState>& state) {
+    auto newState = state->clone();
+    auto labelFib = state->getLabelForwardingInformationBase().get();
+    for (const auto topLabel : topLabels) {
+      if (topLabel > mpls_constants::MAX_MPLS_LABEL_) {
+        throw FbossError("invalid value for label ", topLabel);
+      }
+      labelFib =
+          labelFib->unprogramLabel(&newState, topLabel, ClientID(clientId));
+    }
+    return newState;
+  };
+  sw_->updateStateBlocking("deleteMplsRoutes", updateFn);
 }
+
 void ThriftHandler::syncMplsFib(
     int16_t /* client */,
     std::unique_ptr<std::vector<MplsRoute>> /* mplsRoutes */) {

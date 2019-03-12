@@ -64,5 +64,58 @@ TEST_F(LabelForwardingTest, addMplsRoutes) {
   }
 }
 
+TEST_F(LabelForwardingTest, deleteMplsRoutes) {
+  std::array<ClientID, 2> clients{
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      StdClientIds2ClientID(StdClientIds::BGPD),
+  };
+  std::array<std::vector<MplsRoute>, 2> routes{
+      util::getTestRoutes(0, 4),
+      util::getTestRoutes(4, 4),
+  };
+
+  for (auto i = 0; i < 2; i++) {
+    thriftHandler->addMplsRoutes(
+        clients[i], std::make_unique<std::vector<MplsRoute>>(routes[i]));
+  }
+
+  waitForStateUpdates(sw);
+
+  std::array<std::vector<MplsLabel>, 2> routesToRemove;
+  std::array<std::vector<MplsRoute>, 2> routesToRetain;
+
+  for (auto i = 0; i < 2; i++) {
+    for (const auto& route : routes[i]) {
+      if (route.topLabel % 2) {
+        routesToRemove[i].push_back(route.topLabel);
+      }
+    }
+  }
+  for (auto i = 0; i < 2; i++) {
+    thriftHandler->deleteMplsRoutes(
+        clients[i],
+        std::make_unique<std::vector<MplsLabel>>(routesToRemove[i]));
+  }
+
+  auto labelFib = sw->getState()->getLabelForwardingInformationBase();
+
+  for (auto i = 0; i < 2; i++) {
+    for (const auto& label : routesToRemove[i]) {
+      const auto labelFibEntry = labelFib->getLabelForwardingEntryIf(label);
+      EXPECT_EQ(nullptr, labelFibEntry);
+    }
+    for (const auto& route : routesToRetain[i]) {
+      const auto& labelFibEntry =
+          labelFib->getLabelForwardingEntry(route.topLabel);
+      const auto* labelFibEntryForClient =
+          labelFibEntry->getEntryForClient(clients[i]);
+      EXPECT_NE(nullptr, labelFibEntryForClient);
+      EXPECT_EQ(
+          util::toRouteNextHopSet(route.nextHops),
+          labelFibEntryForClient->getNextHopSet());
+    }
+  }
+}
+
 } // namespace fboss
 } // namespace facebook
