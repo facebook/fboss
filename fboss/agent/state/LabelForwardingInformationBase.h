@@ -41,6 +41,11 @@ class LabelForwardingInformationBase
       AdminDistance distance,
       LabelNextHopSet nexthops);
 
+  LabelForwardingInformationBase* unprogramLabel(
+      std::shared_ptr<SwitchState>* state,
+      Label label,
+      ClientID client);
+
  private:
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;

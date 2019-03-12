@@ -56,7 +56,7 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
   auto entry = writableLabelFib->getLabelForwardingEntryIf(label);
 
   if (!entry) {
-    XLOG(DBG1) << "programmed label:" << label
+    XLOG(DBG3) << "programmed label:" << label
                << " in label forwarding information base for client:" << client;
 
     writableLabelFib->addNode(std::make_shared<LabelForwardingEntry>(
@@ -65,8 +65,32 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
     auto* entryToUpdate = entry->modify(state);
     entryToUpdate->update(
         client, LabelNextHopEntry(std::move(nexthops), distance));
-    XLOG(DBG1) << "updated label:" << label
+    XLOG(DBG3) << "updated label:" << label
                << " in label forwarding information base for client:" << client;
+  }
+  return writableLabelFib;
+}
+
+LabelForwardingInformationBase* LabelForwardingInformationBase::unprogramLabel(
+    std::shared_ptr<SwitchState>* state,
+    Label label,
+    ClientID client) {
+  auto* writableLabelFib = modify(state);
+  auto entry = writableLabelFib->getLabelForwardingEntryIf(label);
+  if (!entry) {
+    throw FbossError(
+        "request to delete a label ",
+        label,
+        " which does not exist in Label Information Base");
+  }
+  auto* entryToUpdate = entry->modify(state);
+  entryToUpdate->delEntryForClient(client);
+  XLOG(DBG3) << "removed label:" << label
+             << " from label forwarding information base for client:" << client;
+
+  if (entryToUpdate->isEmpty()) {
+    XLOG(DBG3) << "Purging empty forwarding entry for label:" << label;
+    writableLabelFib->removeNode(entry);
   }
   return writableLabelFib;
 }

@@ -25,6 +25,14 @@ void addOrUpdateEntryWithProgramLabel(
       entry->getEntryForClient(client)->getNextHopSet());
 }
 
+void removeEntryWithUnprogramLabel(
+    std::shared_ptr<SwitchState>* state,
+    LabelForwardingEntry::Label label,
+    ClientID client) {
+  SwitchState::modify(state);
+  (*state)->getLabelForwardingInformationBase()->unprogramLabel(
+      state, label, client);
+}
 } // namespace
 
 TEST(LabelFIBTests, addLabelForwardingEntry) {
@@ -261,4 +269,41 @@ TEST(LabelFIBTests, updateLabel) {
           StdClientIds2ClientID(StdClientIds::OPENR)),
       *entryUpdated->getEntryForClient(
           StdClientIds2ClientID(StdClientIds::OPENR)));
+}
+
+TEST(LabelFIBTests, unprogramLabel) {
+  auto stateA = testStateA();
+  auto entryToAdd5001 = std::make_shared<LabelForwardingEntry>(
+      5001,
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+  auto entryToAdd5002 = std::make_shared<LabelForwardingEntry>(
+      5002,
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+
+  addOrUpdateEntryWithProgramLabel(
+      &stateA,
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      entryToAdd5001.get());
+  addOrUpdateEntryWithProgramLabel(
+      &stateA,
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      entryToAdd5002.get());
+  stateA->publish();
+
+  removeEntryWithUnprogramLabel(
+      &stateA, 5002, StdClientIds2ClientID(StdClientIds::OPENR));
+  stateA->publish();
+
+  auto entry5001 =
+      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
+          5001);
+  EXPECT_EQ(*entry5001, *entryToAdd5001);
+
+  auto entry5002 =
+      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntryIf(
+          5002);
+  EXPECT_EQ(nullptr, entry5002);
+
 }
