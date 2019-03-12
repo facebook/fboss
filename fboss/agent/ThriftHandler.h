@@ -33,6 +33,7 @@ class AggregatePort;
 class Port;
 class SwSwitch;
 class Vlan;
+class SwitchState;
 
 class ThriftHandler : virtual public FbossCtrlSvIf,
                       public fb303::FacebookBase2,
@@ -76,6 +77,11 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void addMplsRoutes(
       int16_t clientId,
       std::unique_ptr<std::vector<MplsRoute>> mplsRoutes) override;
+  std::shared_ptr<SwitchState> addMplsRoutesImpl(
+      std::shared_ptr<SwitchState>* state,
+      ClientID clientId,
+      const std::vector<MplsRoute>& mplsRoutes) const;
+
   void deleteMplsRoutes(
       int16_t client,
       std::unique_ptr<std::vector<int32_t>> topLabels) override;

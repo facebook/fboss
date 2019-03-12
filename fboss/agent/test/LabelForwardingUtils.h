@@ -23,6 +23,8 @@ LabelNextHopEntry getPhpLabelNextHopEntry(AdminDistance distance);
 
 LabelNextHopEntry getPopLabelNextHopEntry(AdminDistance distance);
 
+std::vector<MplsRoute> getTestRoutes(int base = 0, int count = 4);
+
 } // namespace util
 } // namespace fboss
 } // namespace facebook

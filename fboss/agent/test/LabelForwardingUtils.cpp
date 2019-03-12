@@ -79,6 +79,40 @@ LabelNextHopEntry getPopLabelNextHopEntry(AdminDistance distance) {
   return LabelNextHopEntry(std::move(nexthops), distance);
 }
 
+NextHopThrift getSwapNextHopThrift(int offset) {
+  auto nexthopIp = folly::IPAddressV6::tryFromString(
+      folly::to<std::string>("fe80::", offset));
+  NextHopThrift nexthop;
+  nexthop.address.addr.append(
+      reinterpret_cast<const char*>(nexthopIp->bytes()),
+      folly::IPAddressV6::byteCount());
+  nexthop.address.ifName_ref() = folly::to<std::string>("fboss0", offset);
+  MplsAction action;
+  action.action = MplsActionCode::SWAP;
+  action.swapLabel_ref() = 601;
+  return nexthop;
+}
+
+MplsRoute getMplsRoute(MplsLabel label, AdminDistance distance) {
+  MplsRoute route;
+  route.topLabel = label;
+  route.adminDistance_ref() = distance;
+  for (auto i = 1; i < 5; i++) {
+    route.nextHops.emplace_back(getSwapNextHopThrift(i));
+  }
+  return route;
+}
+
+std::vector<MplsRoute> getTestRoutes(int base, int count) {
+  // TODO - put this in resource generator
+  std::vector<MplsRoute> routes;
+  for (auto i = base; i < base + count; i++) {
+    routes.emplace_back(
+        getMplsRoute(501 + i, AdminDistance::DIRECTLY_CONNECTED));
+  }
+  return routes;
+}
+
 } // namespace util
 } // namespace fboss
 } // namespace facebook

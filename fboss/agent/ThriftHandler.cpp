@@ -18,23 +18,25 @@
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/LldpManager.h"
-#include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/TxPacket.h"
-#include "fboss/agent/Utils.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/RouteUpdateLogger.h"
+#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/TxPacket.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/capture/PktCapture.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
+#include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
-#include "fboss/agent/state/NdpTable.h"
+#include "fboss/agent/state/LabelForwardingEntry.h"
 #include "fboss/agent/state/NdpEntry.h"
+#include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/Route.h"
@@ -45,7 +47,6 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
-#include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
 
 #include <folly/MoveWrapper.h>
 #include <folly/Range.h>
@@ -1179,11 +1180,43 @@ SSLType ThriftHandler::getSSLPolicy() {
 }
 
 void ThriftHandler::addMplsRoutes(
-    int16_t /* clientId */,
-    std::unique_ptr<std::vector<MplsRoute>> /* mplsRoutes */) {
-  // TODO: implement this
-  throw FbossError("Unimplemented");
+    int16_t clientId,
+    std::unique_ptr<std::vector<MplsRoute>> mplsRoutes) {
+  ensureConfigured();
+  auto updateFn = [=, routes = std::move(*mplsRoutes)](
+                      const std::shared_ptr<SwitchState>& state) {
+    auto newState = state->clone();
+    return addMplsRoutesImpl(&newState, ClientID(clientId), routes);
+  };
+  sw_->updateStateBlocking("addMplsRoutes", updateFn);
 }
+
+std::shared_ptr<SwitchState> ThriftHandler::addMplsRoutesImpl(
+    std::shared_ptr<SwitchState>* state,
+    ClientID clientId,
+    const std::vector<MplsRoute>& mplsRoutes) const {
+  auto labelFib =
+      (*state)->getLabelForwardingInformationBase().get()->modify(state);
+  for (const auto& mplsRoute : mplsRoutes) {
+    auto topLabel = mplsRoute.topLabel;
+    if (topLabel > mpls_constants::MAX_MPLS_LABEL_) {
+      throw FbossError("invalid value for label ", topLabel);
+    }
+    auto adminDistance = mplsRoute.adminDistance_ref().has_value()
+        ? mplsRoute.adminDistance_ref().value()
+        : sw_->clientIdToAdminDistance(ClientID(clientId));
+    LabelNextHopSet nexthops = util::toRouteNextHopSet(mplsRoute.nextHops);
+    // validate top label
+    labelFib = labelFib->programLabel(
+        state,
+        topLabel,
+        ClientID(clientId),
+        adminDistance,
+        std::move(nexthops));
+  }
+  return *state;
+}
+
 void ThriftHandler::deleteMplsRoutes(
     int16_t /* client */,
     std::unique_ptr<std::vector<int32_t>> /* topLabels */) {
