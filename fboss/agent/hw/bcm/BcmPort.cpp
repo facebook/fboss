@@ -26,6 +26,7 @@
 #include "fboss/agent/hw/bcm/BcmStatsConstants.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
+#include "fboss/agent/hw/bcm/CounterUtils.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
@@ -690,34 +691,26 @@ void BcmPort::updateStats() {
 
   // Compute non pause discards
   const auto kUninit = hardware_stats_constants::STAT_UNINITIALIZED();
-  if (isMmuLossy() && lastPortStats.inDiscards_ != kUninit &&
-      lastPortStats.inPause_ != kUninit) {
+  if (lastPortStats.inNonPauseDiscards_ == kUninit) {
+    curPortStats.inNonPauseDiscards_ = 0;
+  }
+  if (isMmuLossy()) {
     // If MMU setup as lossy, all incoming pause frames will be
     // discarded and will count towards in discards. This makes in discards
     // counter somewhat useless. So instead calculate "in_non_pause_discards",
-    // as std::max(0, (inDiscardsSincePrev - inPauseSincePrev)).
-    // std::max(..) is used, since stats from  h/w are synced non atomically,
-    // So depending on what get synced later # of pause maybe be slightly
-    // higher than # of discards.
-    auto inPauseSincePrev = curPortStats.inPause_ - lastPortStats.inPause_;
-    auto inDiscardsSincePrev =
-        curPortStats.inDiscards_ - lastPortStats.inDiscards_;
-    if (inPauseSincePrev >= 0 && inDiscardsSincePrev >= 0) {
-      // Account for counter rollover.
-      auto inNonPauseDiscardsSincePrev =
-          std::max(0L, (inDiscardsSincePrev - inPauseSincePrev));
-      // Init current port stats from prev value or 0
-      curPortStats.inNonPauseDiscards_ =
-          (lastPortStats.inNonPauseDiscards_ == kUninit
-               ? 0
-               : lastPortStats.inNonPauseDiscards_);
-      // Counters are cumalative
-      curPortStats.inNonPauseDiscards_ += inNonPauseDiscardsSincePrev;
-      auto inNonPauseDiscards = getPortCounterIf(kInNonPauseDiscards());
-      inNonPauseDiscards->updateValue(now, curPortStats.inNonPauseDiscards_);
-    }
+    // by subtracting the pause frames received from in_discards.
+    // TODO: Test if this is true when rx pause is enabled
+    curPortStats.inNonPauseDiscards_ += utility::getDerivedCounterIncrement(
+        lastPortStats.inDiscards_,
+        curPortStats.inDiscards_,
+        lastPortStats.inPause_,
+        curPortStats.inPause_);
+  } else {
+    curPortStats.inNonPauseDiscards_ = curPortStats.inDiscards_;
   }
 
+  auto inNonPauseDiscards = getPortCounterIf(kInNonPauseDiscards());
+  inNonPauseDiscards->updateValue(now, curPortStats.inNonPauseDiscards_);
   {
     auto lockedLastPortStatsPtr = lastPortStats_.wlock();
     *lockedLastPortStatsPtr = BcmPortStats(curPortStats, now);
