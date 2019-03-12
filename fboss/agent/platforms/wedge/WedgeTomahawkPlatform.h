@@ -41,6 +41,10 @@ class WedgeTomahawkPlatform : public WedgePlatform {
     cfg::StreamType streamType) const override;
   const PortQueue& getDefaultControlPlaneQueueSettings(
     cfg::StreamType streamType) const override;
+
+  bool useQueueGportForCos() const override {
+    return true;
+  }
 };
 
 } // namespace fboss

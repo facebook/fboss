@@ -47,6 +47,10 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
     return 208;
   }
 
+  bool useQueueGportForCos() const override {
+    return false;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedge40Platform(BcmTestWedge40Platform const&) = delete;

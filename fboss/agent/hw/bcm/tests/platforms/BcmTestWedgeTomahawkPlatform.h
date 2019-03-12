@@ -43,6 +43,10 @@ public:
     return 208;
   }
 
+  bool useQueueGportForCos() const override {
+    return true;
+  }
+
 private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedgeTomahawkPlatform(BcmTestWedgeTomahawkPlatform const&) = delete;

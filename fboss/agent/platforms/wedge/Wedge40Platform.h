@@ -45,6 +45,10 @@ class Wedge40Platform : public WedgePlatform {
   const PortQueue& getDefaultControlPlaneQueueSettings(
     cfg::StreamType streamType) const override;
 
+  bool useQueueGportForCos() const override {
+    return false;
+  }
+
  private:
   Wedge40Platform(Wedge40Platform const &) = delete;
   Wedge40Platform& operator=(Wedge40Platform const &) = delete;
