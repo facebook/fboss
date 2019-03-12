@@ -180,7 +180,9 @@ class BcmPort {
     // thread-safe way (for example, the way that locking is done on
     // lastPortStats_) - the class itself does not guarantee this on it's own
    public:
-    BcmPortStats() {}
+    BcmPortStats() {
+      portStats_.inDiscards_ = portStats_.inNonPauseDiscards_ = 0;
+    }
     explicit BcmPortStats(int numUnicastQueues);
     BcmPortStats(HwPortStats portStats, std::chrono::seconds seconds);
     HwPortStats portStats() const;

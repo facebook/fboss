@@ -27,7 +27,6 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/bcm/CounterUtils.h"
-#include "fboss/agent/hw/bcm/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -157,6 +156,7 @@ void BcmPort::reinitPortStats() {
   reinitPortStat(kInUnicastPkts());
   reinitPortStat(kInMulticastPkts());
   reinitPortStat(kInBroadcastPkts());
+  reinitPortStat(kInDiscardsRaw());
   reinitPortStat(kInDiscards());
   reinitPortStat(kInErrors());
   reinitPortStat(kInPause());
@@ -196,8 +196,10 @@ void BcmPort::reinitPortStats() {
   }
 }
 
-BcmPort::BcmPort(BcmSwitch* hw, opennsl_port_t port,
-                 BcmPlatformPort* platformPort)
+BcmPort::BcmPort(
+    BcmSwitch* hw,
+    opennsl_port_t port,
+    BcmPlatformPort* platformPort)
     : hw_(hw),
       port_(port),
       platformPort_(platformPort),
@@ -629,9 +631,9 @@ void BcmPort::updateStats() {
       &curPortStats.inBroadcastPkts_);
   updateStat(
       now,
-      kInDiscards(),
+      kInDiscardsRaw(),
       opennsl_spl_snmpIfInDiscards,
-      &curPortStats.inDiscards_);
+      &curPortStats.inDiscardsRaw_);
   updateStat(
       now, kInErrors(), opennsl_spl_snmpIfInErrors, &curPortStats.inErrors_);
   updateStat(
@@ -689,28 +691,29 @@ void BcmPort::updateStats() {
 
   auto lastPortStats = lastPortStats_.rlock()->portStats();
 
-  // Compute non pause discards
-  const auto kUninit = hardware_stats_constants::STAT_UNINITIALIZED();
-  if (lastPortStats.inNonPauseDiscards_ == kUninit) {
-    curPortStats.inNonPauseDiscards_ = 0;
-  }
+  std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
+      {lastPortStats.inDstBlackholeDiscards_,
+       curPortStats.inDstBlackholeDiscards_}};
   if (isMmuLossy()) {
     // If MMU setup as lossy, all incoming pause frames will be
     // discarded and will count towards in discards. This makes in discards
     // counter somewhat useless. So instead calculate "in_non_pause_discards",
     // by subtracting the pause frames received from in_discards.
     // TODO: Test if this is true when rx pause is enabled
-    curPortStats.inNonPauseDiscards_ += utility::getDerivedCounterIncrement(
-        lastPortStats.inDiscards_,
-        curPortStats.inDiscards_,
-        lastPortStats.inPause_,
-        curPortStats.inPause_);
-  } else {
-    curPortStats.inNonPauseDiscards_ = curPortStats.inDiscards_;
+    toSubtractFromInDiscardsRaw.emplace_back(
+        lastPortStats.inPause_, curPortStats.inPause_);
   }
+  curPortStats.inDiscards_ += utility::getDerivedCounterIncrement(
+      {lastPortStats.inDiscardsRaw_, curPortStats.inDiscardsRaw_},
+      toSubtractFromInDiscardsRaw);
 
+  auto inDiscards = getPortCounterIf(kInDiscards());
+  inDiscards->updateValue(now, curPortStats.inDiscards_);
+  // TODO: Deprecate in_non_pause_discards
+  curPortStats.inNonPauseDiscards_ = curPortStats.inDiscards_;
   auto inNonPauseDiscards = getPortCounterIf(kInNonPauseDiscards());
   inNonPauseDiscards->updateValue(now, curPortStats.inNonPauseDiscards_);
+
   {
     auto lockedLastPortStatsPtr = lastPortStats_.wlock();
     *lockedLastPortStatsPtr = BcmPortStats(curPortStats, now);
@@ -784,7 +787,7 @@ void BcmPort::updatePktLenHist(
   }
 }
 
-BcmPort::BcmPortStats::BcmPortStats(int numUnicastQueues) {
+BcmPort::BcmPortStats::BcmPortStats(int numUnicastQueues) : BcmPortStats() {
   portStats_.set_queueOutDiscardBytes_(
       std::vector<int64_t>(numUnicastQueues, 0));
   portStats_.set_queueOutBytes_(std::vector<int64_t>(numUnicastQueues, 0));
@@ -793,7 +796,10 @@ BcmPort::BcmPortStats::BcmPortStats(int numUnicastQueues) {
 BcmPort::BcmPortStats::BcmPortStats(
     HwPortStats portStats,
     std::chrono::seconds timeRetrieved)
-    : portStats_(portStats), timeRetrieved_(timeRetrieved) {}
+    : BcmPortStats() {
+  portStats_ = portStats;
+  timeRetrieved_ = timeRetrieved;
+}
 
 HwPortStats BcmPort::BcmPortStats::portStats() const {
   return portStats_;

@@ -34,10 +34,6 @@ inline folly::StringPiece constexpr kInBroadcastPkts() {
   return "in_broadcast_pkts";
 }
 
-inline folly::StringPiece constexpr kInDiscards() {
-  return "in_discards";
-}
-
 inline folly::StringPiece constexpr kInErrors() {
   return "in_errors";
 }
@@ -56,6 +52,14 @@ inline folly::StringPiece constexpr kInIpv6HdrErrors() {
 
 inline folly::StringPiece constexpr kInNonPauseDiscards() {
   return "in_non_pause_discards";
+}
+
+inline folly::StringPiece constexpr kInDiscardsRaw() {
+  return "in_discards_raw";
+}
+
+inline folly::StringPiece constexpr kInDiscards() {
+  return "in_discards";
 }
 
 inline folly::StringPiece constexpr kInDstBlackholeDiscards() {
