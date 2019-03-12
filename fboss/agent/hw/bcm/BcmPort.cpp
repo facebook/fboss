@@ -163,7 +163,7 @@ void BcmPort::reinitPortStats() {
   reinitPortStat(kInIpv4HdrErrors());
   reinitPortStat(kInIpv6HdrErrors());
   reinitPortStat(kInNonPauseDiscards());
-  reinitPortStat(kInDstBlackholeDiscards());
+  reinitPortStat(kInDstNullDiscards());
 
   reinitPortStat(kOutBytes());
   reinitPortStat(kOutUnicastPkts());
@@ -692,8 +692,8 @@ void BcmPort::updateStats() {
   auto lastPortStats = lastPortStats_.rlock()->portStats();
 
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
-      {lastPortStats.inDstBlackholeDiscards_,
-       curPortStats.inDstBlackholeDiscards_}};
+      {lastPortStats.inDstNullDiscards_,
+       curPortStats.inDstNullDiscards_}};
   if (isMmuLossy()) {
     // If MMU setup as lossy, all incoming pause frames will be
     // discarded and will count towards in discards. This makes in discards

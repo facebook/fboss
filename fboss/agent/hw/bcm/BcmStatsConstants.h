@@ -62,8 +62,8 @@ inline folly::StringPiece constexpr kInDiscards() {
   return "in_discards";
 }
 
-inline folly::StringPiece constexpr kInDstBlackholeDiscards() {
-  return "in_dst_blackhole_discards";
+inline folly::StringPiece constexpr kInDstNullDiscards() {
+  return "in_dst_null_discards";
 }
 
 inline folly::StringPiece constexpr kOutBytes() {

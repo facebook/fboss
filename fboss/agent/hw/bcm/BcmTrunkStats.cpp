@@ -39,7 +39,7 @@ void BcmTrunkStats::initialize(
   initializeCounter(kInIpv4HdrErrors());
   initializeCounter(kInIpv6HdrErrors());
   initializeCounter(kInNonPauseDiscards());
-  initializeCounter(kInDstBlackholeDiscards());
+  initializeCounter(kInDstNullDiscards());
 
   initializeCounter(kOutBytes());
   initializeCounter(kOutUnicastPkts());
@@ -144,8 +144,8 @@ BcmTrunkStats::accumulateMemberStats() const {
       cumulativeSum.inIpv6HdrErrors_ += memberStats.inIpv6HdrErrors_;
       cumulativeSum.inNonPauseDiscards_ += memberStats.inNonPauseDiscards_;
       cumulativeSum.inDiscardsRaw_ += memberStats.inDiscardsRaw_;
-      cumulativeSum.inDstBlackholeDiscards_ +=
-          memberStats.inDstBlackholeDiscards_;
+      cumulativeSum.inDstNullDiscards_ +=
+          memberStats.inDstNullDiscards_;
 
       cumulativeSum.outBytes_ += memberStats.outBytes_;
       cumulativeSum.outUnicastPkts_ += memberStats.outUnicastPkts_;
@@ -179,7 +179,7 @@ void BcmTrunkStats::clearHwTrunkStats(HwTrunkStats& stats) {
   stats.inIpv6HdrErrors_    = 0;
   stats.inNonPauseDiscards_ = 0;
   stats.inDiscardsRaw_      = 0;
-  stats.inDstBlackholeDiscards_ = 0;
+  stats.inDstNullDiscards_ = 0;
 
   stats.outBytes_                 = 0;
   stats.outUnicastPkts_           = 0;
