@@ -20,7 +20,9 @@ LabelForwardingEntry::LabelForwardingEntry(
     Label topLabel,
     ClientID clientId,
     LabelNextHopEntry nexthop)
-    : NodeBaseT(topLabel, clientId, std::move(nexthop)) {}
+    : NodeBaseT(topLabel, clientId, std::move(nexthop)) {
+  updateLabelNextHop();
+}
 
 LabelForwardingEntry* LabelForwardingEntry::modify(
     std::shared_ptr<SwitchState>* state) {

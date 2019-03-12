@@ -188,3 +188,13 @@ TEST(LabelForwardingEntryTests, modify) {
           ->getLabelForwardingEntryIf(5001)
           ->isPublished());
 }
+
+TEST(LabelForwardingEntryTests, HasLabelNextHop) {
+  auto entry =
+      std::make_shared<LabelForwardingEntry>(
+          5001,
+          StdClientIds2ClientID(StdClientIds::OPENR),
+          util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+  const auto& nexthop = entry->getLabelNextHop();
+  EXPECT_NE(nexthop.getNextHopSet().size(), 0);
+}
