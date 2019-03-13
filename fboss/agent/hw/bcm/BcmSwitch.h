@@ -53,6 +53,7 @@ class BcmWarmBootCache;
 class BcmWarmBootHelper;
 class BcmRtag7LoadBalancer;
 class BcmSflowExporterTable;
+class LabelForwardingEntry;
 class LoadBalancer;
 class PacketTraceInfo;
 class SflowCollector;
@@ -499,6 +500,16 @@ class BcmSwitch : public BcmSwitchIf {
   void processControlPlaneChanges(const StateDelta& delta);
 
   void processMirrorChanges(const StateDelta& delta);
+
+  void processAddedLabelForwardingEntry(
+      const std::shared_ptr<LabelForwardingEntry>& addedEntry);
+  void processRemovedLabelForwardingEntry(
+      const std::shared_ptr<LabelForwardingEntry>& deletedEntry);
+  void processChangedLabelForwardingEntry(
+      const std::shared_ptr<LabelForwardingEntry>& oldEntry,
+      const std::shared_ptr<LabelForwardingEntry>& newEntry);
+  void processChangedLabelForwardingChanges(const StateDelta& delta);
+
   /*
    * linkStateChangedHwNotLocked is in the call chain started by link scan
    * thread while invoking our link state handler. Link scan thread

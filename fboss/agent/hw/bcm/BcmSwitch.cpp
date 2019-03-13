@@ -1827,4 +1827,23 @@ void BcmSwitch::restorePortSettings(const std::shared_ptr<SwitchState>& state) {
     }
   }
 }
+
+void BcmSwitch::processChangedLabelForwardingChanges(const StateDelta& delta) {
+  forEachChanged(
+      delta.getLabelForwardingInformationBaseDelta(),
+      &BcmSwitch::processChangedLabelForwardingEntry,
+      &BcmSwitch::processAddedLabelForwardingEntry,
+      &BcmSwitch::processRemovedLabelForwardingEntry,
+      this);
+}
+
+void BcmSwitch::processAddedLabelForwardingEntry(
+    const std::shared_ptr<LabelForwardingEntry>& /*addedEntry*/) {}
+
+void BcmSwitch::processRemovedLabelForwardingEntry(
+    const std::shared_ptr<LabelForwardingEntry>& /*deletedEntry*/) {}
+
+void BcmSwitch::processChangedLabelForwardingEntry(
+    const std::shared_ptr<LabelForwardingEntry>& /*oldEntry*/,
+    const std::shared_ptr<LabelForwardingEntry>& /*newEntry*/) {}
 }} // facebook::fboss
