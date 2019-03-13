@@ -189,5 +189,45 @@ TEST_F(LabelForwardingTest, syncMplsFib) {
   }
 }
 
+TEST_F(LabelForwardingTest, getMplsRouteTableByClient) {
+  std::array<ClientID, 2> clients{
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      StdClientIds2ClientID(StdClientIds::BGPD),
+  };
+  std::array<std::vector<MplsRoute>, 2> inRoutes{
+      util::getTestRoutes(0, 4),
+      util::getTestRoutes(4, 4),
+  };
+
+  auto sortByLabel = [](const MplsRoute& route1, const MplsRoute& route2) {
+    return route1.topLabel < route2.topLabel;
+  };
+
+  for (auto i = 0; i < 2; i++) {
+    std::sort(inRoutes[i].begin(), inRoutes[i].end(), sortByLabel);
+
+    thriftHandler->addMplsRoutes(
+        clients[i], std::make_unique<std::vector<MplsRoute>>(inRoutes[i]));
+  }
+
+  std::array<std::vector<MplsRoute>, 2> outRoutes;
+
+  for (auto i = 0; i < 2; i++) {
+    thriftHandler->getMplsRouteTableByClient(outRoutes[i], clients[i]);
+    std::sort(outRoutes[i].begin(), outRoutes[i].end(), sortByLabel);
+  }
+
+  for (auto i = 0; i < 2; i++) {
+    auto in = inRoutes[i].begin();
+    auto out = outRoutes[i].begin();
+    for (; in != inRoutes[i].end() && out != outRoutes[i].end(); in++, out++) {
+      EXPECT_EQ(in->topLabel, out->topLabel);
+      EXPECT_EQ(
+          util::toRouteNextHopSet(in->nextHops),
+          util::toRouteNextHopSet(out->nextHops));
+      EXPECT_EQ(in->adminDistance, out->adminDistance);
+    }
+  }
+}
 } // namespace fboss
 } // namespace facebook

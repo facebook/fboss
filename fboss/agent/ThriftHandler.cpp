@@ -1253,9 +1253,20 @@ void ThriftHandler::syncMplsFib(
 }
 
 void ThriftHandler::getMplsRouteTableByClient(
-    std::vector<MplsRoute>& /*mplsRoutes*/,
-    int16_t /* clientId */) {
-  // TODO: implement this
-  throw FbossError("Unimplemented");
+    std::vector<MplsRoute>& mplsRoutes,
+    int16_t clientId) {
+  auto labelFib = sw_->getState()->getLabelForwardingInformationBase();
+  for (const auto& entry : *labelFib) {
+    auto* labelNextHopEntry = entry->getEntryForClient(ClientID(clientId));
+    if (!labelNextHopEntry) {
+      continue;
+    }
+    MplsRoute mplsRoute;
+    mplsRoute.topLabel = entry->getID();
+    mplsRoute.adminDistance_ref() = labelNextHopEntry->getAdminDistance();
+    mplsRoute.nextHops =
+        util::fromRouteNextHopSet(labelNextHopEntry->getNextHopSet());
+    mplsRoutes.emplace_back(std::move(mplsRoute));
+  }
 }
 }} // facebook::fboss
