@@ -46,6 +46,10 @@ class LabelForwardingInformationBase
       Label label,
       ClientID client);
 
+  LabelForwardingInformationBase* purgeEntriesForClient(
+      std::shared_ptr<SwitchState>* state,
+      ClientID client);
+
  private:
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;

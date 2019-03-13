@@ -95,6 +95,30 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::unprogramLabel(
   return writableLabelFib;
 }
 
+LabelForwardingInformationBase*
+LabelForwardingInformationBase::purgeEntriesForClient(
+    std::shared_ptr<SwitchState>* state,
+    ClientID client) {
+  auto* writableLabelFib = modify(state);
+
+  auto iter = writableLabelFib->writableNodes().begin();
+  while (iter != writableLabelFib->writableNodes().end()) {
+    if (iter->second->getEntryForClient(client)) {
+      auto* entry = iter->second->modify(state);
+      entry->delEntryForClient(client);
+      if (entry->isEmpty()) {
+        XLOG(DBG1) << "Purging empty forwarding entry for label:"
+                   << entry->getID();
+        iter = writableLabelFib->writableNodes().erase(iter);
+        continue;
+      }
+    }
+    ++iter;
+  }
+
+  return writableLabelFib;
+}
+
 LabelForwardingInformationBase* LabelForwardingInformationBase::modify(
     std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {
