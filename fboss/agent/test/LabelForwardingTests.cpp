@@ -117,5 +117,77 @@ TEST_F(LabelForwardingTest, deleteMplsRoutes) {
   }
 }
 
+TEST_F(LabelForwardingTest, syncMplsFib) {
+  std::array<ClientID, 2> clients{
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      StdClientIds2ClientID(StdClientIds::BGPD),
+  };
+  std::array<std::vector<MplsRoute>, 2> routes{
+      util::getTestRoutes(0, 4),
+      util::getTestRoutes(4, 4),
+  };
+
+  for (auto i = 0; i < 2; i++) {
+    thriftHandler->addMplsRoutes(
+        clients[i], std::make_unique<std::vector<MplsRoute>>(routes[i]));
+  }
+
+  waitForStateUpdates(sw);
+
+  auto moreOpenrRoutes = util::getTestRoutes(8, 4);
+  thriftHandler->addMplsRoutes(
+      clients[0], std::make_unique<std::vector<MplsRoute>>(moreOpenrRoutes));
+
+  waitForStateUpdates(sw);
+
+  routes[0].insert(
+      std::end(routes[0]),
+      std::begin(moreOpenrRoutes),
+      std::end(moreOpenrRoutes));
+
+  auto labelFib = sw->getState()->getLabelForwardingInformationBase();
+
+  for (auto i = 0; i < 2; i++) {
+    for (const auto& route : routes[i]) {
+      const auto& labelFibEntry =
+          labelFib->getLabelForwardingEntry(route.topLabel);
+      const auto* labelFibEntryForClient =
+          labelFibEntry->getEntryForClient(clients[i]);
+
+      EXPECT_NE(nullptr, labelFibEntryForClient);
+      EXPECT_EQ(
+          util::toRouteNextHopSet(route.nextHops),
+          labelFibEntryForClient->getNextHopSet());
+    }
+  }
+
+  thriftHandler->syncMplsFib(
+      clients[0],
+      std::make_unique<std::vector<MplsRoute>>(
+          std::begin(routes[0]), std::begin(routes[0]) + 4));
+
+  waitForStateUpdates(sw);
+
+  labelFib =  sw->getState()->getLabelForwardingInformationBase();
+
+  for (auto i = 0; i < 8; i++) {
+    if (i < 4) {
+      const auto& labelFibEntry =
+          labelFib->getLabelForwardingEntry(routes[0][i].topLabel);
+      const auto* labelFibEntryForClient =
+          labelFibEntry->getEntryForClient(clients[0]);
+
+      EXPECT_NE(nullptr, labelFibEntryForClient);
+      EXPECT_EQ(
+          util::toRouteNextHopSet(routes[0][i].nextHops),
+          labelFibEntryForClient->getNextHopSet());
+    } else {
+      auto labelFibEntry =
+          labelFib->getLabelForwardingEntryIf(routes[0][i].topLabel);
+      EXPECT_EQ(nullptr, labelFibEntry);
+    }
+  }
+}
+
 } // namespace fboss
 } // namespace facebook
