@@ -202,6 +202,14 @@ enum AclActionType {
 }
 
 /**
+ * The look up class for an acl
+ */
+enum AclLookupClass {
+  DST_CLASS_L3_LOCAL_IP4 = 1
+  DST_CLASS_L3_LOCAL_IP6 = 2
+}
+
+/**
  * An access control entry
  */
 struct AclEntry {
@@ -283,6 +291,9 @@ struct AclEntry {
    */
   22: optional i32 l4SrcPort
   23: optional i32 l4DstPort
+
+  /* dstClassL3 */
+  24: optional AclLookupClass lookupClass;
 }
 
 /*
