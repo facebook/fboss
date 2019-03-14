@@ -43,6 +43,12 @@ using std::mutex;
 using std::lock_guard;
 using folly::IOBuf;
 
+namespace {
+
+constexpr int kUsecBetweenPowerModeFlap = 100000;
+
+}
+
 namespace facebook { namespace fboss {
 
 // As per SFF-8636
@@ -1107,6 +1113,11 @@ void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
 
   // then enable target power class
   if (lowPower != power) {
+    // Transceivers need a bit of time to handle the low power setting
+    // we just sent. We should be able to use the status register to be
+    // smarter about this, but just sleeping 0.1s for now.
+    usleep(kUsecBetweenPowerModeFlap);
+
     qsfpImpl_->writeTransceiver(
         TransceiverI2CApi::ADDR_QSFP, offset, sizeof(power), &power);
   }
