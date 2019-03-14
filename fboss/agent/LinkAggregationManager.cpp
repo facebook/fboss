@@ -66,8 +66,8 @@ std::shared_ptr<SwitchState> ProgramForwardingState::operator()(
     return nullptr;
   }
 
-  XLOG(DBG4) << "Updating AggregatePort " << aggPort->getID()
-             << ": ForwardingState[" << portID_ << "] --> "
+  XLOG(DBG2) << "Updating " << aggPort->getName() << ": ForwardingState["
+             << nextState->getPorts()->getPort(portID_)->getName() << "] --> "
              << (forwardingState_ == AggregatePort::Forwarding::ENABLED
                      ? "ENABLED"
                      : "DISABLED");
