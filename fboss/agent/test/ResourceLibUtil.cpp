@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/state/RouteTypes.h"
 
 namespace facebook {
 namespace fboss {
