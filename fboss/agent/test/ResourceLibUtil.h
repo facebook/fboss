@@ -3,6 +3,7 @@
 #pragma once
 
 #include <folly/IPAddressV4.h>
+#include <folly/IPAddressV6.h>
 #include <folly/Singleton.h>
 #include <cstdint>
 #include <type_traits>
@@ -26,10 +27,13 @@ class ResourceCursor {
   IdT current_;
 };
 
+using IdV6 = typename std::pair<uint64_t, uint64_t>;
 template <typename AddrT>
 struct IdT {
-  using type = std::
-      enable_if_t<std::is_same<AddrT, folly::IPAddressV4>::value, uint32_t>;
+  using type = std::conditional_t<
+      std::is_same<AddrT, folly::IPAddressV4>::value,
+      uint32_t,
+      IdV6>;
 };
 
 template <typename AddrT>
@@ -66,7 +70,7 @@ class IPAddressGenerator : private ResourceCursor<typename IdT<AddrT>::type> {
   }
 
  private:
-  ResourceT getIP(uint32_t id) const;
+  ResourceT getIP(IdT id) const;
 };
 
 template <typename AddrT, uint8_t mask>
@@ -78,8 +82,7 @@ class PrefixGenerator : private ResourceCursor<typename IdT<AddrT>::type> {
 
   /* simply generate a prefix at cursor position id, doesn't update cursor */
   ResourceT get(IdT id) const {
-    return ResourceT{ipGenerator_.get(id << (AddrT::bitCount() - kMask)),
-                     kMask};
+    return ResourceT{ipGenerator_.get(getPrefixId(id)), kMask};
   }
 
   /* generate an ip and update cursor */
@@ -115,13 +118,50 @@ class PrefixGenerator : private ResourceCursor<typename IdT<AddrT>::type> {
     return BaseT::getCursorPosition();
   }
 
+  template <typename IdT>
+  std::enable_if_t<std::is_same<IdT, uint32_t>::value, uint32_t> getPrefixId(
+      IdT id) const {
+    CHECK_LE(kMask, folly::IPAddressV4::bitCount());
+    return id << (folly::IPAddressV4::bitCount() - kMask);
+  }
+
+  template <typename IdT>
+  std::enable_if_t<std::is_same<IdT, IdV6>::value, IdV6> getPrefixId(
+      IdT id) const {
+    CHECK_LE(kMask, folly::IPAddressV6::bitCount());
+    const auto kShift = folly::IPAddressV6::bitCount() - kMask;
+    if (!kShift) {
+      return id;
+    }
+    /* 128 bit id for IPv6 is represented as pair of 64 bit intgers,
+      kShift >= 64,
+         - In this case, shift id.second by (kMask - 64) bits
+         - id.first = id.second & id.second becomes zero
+      kShift < 64,
+          - both id.first and id.second will shift by kShift
+          - Most (64-kShift) significant bits in id.second will be carried over
+            in least significant (64-kShift) bits in id.first
+    */
+    if (kShift >= 64) {
+      id.second <<= (kShift - 64);
+      id.first = id.second;
+      id.second = 0;
+    } else {
+      uint64_t mostSignificantBitsOfSecond = (id.second >> (64 - kShift));
+      id.second <<= kShift;
+      id.first <<= kShift;
+      id.first |= mostSignificantBitsOfSecond;
+    }
+    return id;
+  }
+
  private:
   static constexpr auto kMask{mask};
   IPAddressGenerator<AddrT> ipGenerator_;
 };
 
 using HostPrefixV4Generator = PrefixGenerator<folly::IPAddressV4, 32>;
-
+using HostPrefixV6Generator = PrefixGenerator<folly::IPAddressV6, 128>;
 } // namespace utility
 } // namespace fboss
 } // namespace facebook
