@@ -40,6 +40,9 @@ class Wedge40Platform : public WedgePlatform {
   uint32_t getMMUCellBytes() const override {
     return 208;
   }
+  uint32_t maxLabelStackDepth() const override {
+    return 2;
+  }
   const PortQueue& getDefaultPortQueueSettings(
     cfg::StreamType streamType) const override;
   const PortQueue& getDefaultControlPlaneQueueSettings(

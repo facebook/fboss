@@ -55,6 +55,10 @@ public:
     return true;
   }
 
+  uint32_t maxLabelStackDepth() const override {
+    return 9;
+  }
+
 private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedgeTomahawk3Platform(BcmTestWedgeTomahawk3Platform const&) = delete;

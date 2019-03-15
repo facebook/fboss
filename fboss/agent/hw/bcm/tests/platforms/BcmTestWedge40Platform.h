@@ -51,6 +51,10 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
     return false;
   }
 
+  uint32_t maxLabelStackDepth() const override {
+    return 2;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedge40Platform(BcmTestWedge40Platform const&) = delete;
