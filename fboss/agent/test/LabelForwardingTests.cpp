@@ -9,6 +9,7 @@
 #include "fboss/agent/test/TestUtils.h"
 
 using namespace ::testing;
+
 namespace facebook {
 namespace fboss {
 class LabelForwardingTest : public ::testing::Test {
@@ -21,6 +22,8 @@ class LabelForwardingTest : public ::testing::Test {
     thriftHandler = std::make_unique<ThriftHandler>(sw);
     sw->initialConfigApplied(std::chrono::steady_clock::now());
     waitForStateUpdates(sw);
+    ON_CALL(*getMockHw(sw), isValidStateUpdate(_))
+        .WillByDefault(testing::Return(true));
   }
 
   void TearDown() override {

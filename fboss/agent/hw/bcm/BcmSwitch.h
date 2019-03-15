@@ -509,6 +509,7 @@ class BcmSwitch : public BcmSwitchIf {
       const std::shared_ptr<LabelForwardingEntry>& oldEntry,
       const std::shared_ptr<LabelForwardingEntry>& newEntry);
   void processChangedLabelForwardingChanges(const StateDelta& delta);
+  bool isValidLabelForwardingEntry(const LabelForwardingEntry* entry) const;
 
   /*
    * linkStateChangedHwNotLocked is in the call chain started by link scan

@@ -1186,12 +1186,17 @@ void ThriftHandler::addMplsRoutes(
   auto updateFn = [=, routes = std::move(*mplsRoutes)](
                       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
-    return addMplsRoutesImpl(&newState, ClientID(clientId), routes);
+
+    addMplsRoutesImpl(&newState, ClientID(clientId), routes);
+    if (!sw_->isValidStateUpdate(StateDelta(state, newState))) {
+      throw FbossError("Invalid MPLS routes");
+    }
+    return newState;
   };
   sw_->updateStateBlocking("addMplsRoutes", updateFn);
 }
 
-std::shared_ptr<SwitchState> ThriftHandler::addMplsRoutesImpl(
+void ThriftHandler::addMplsRoutesImpl(
     std::shared_ptr<SwitchState>* state,
     ClientID clientId,
     const std::vector<MplsRoute>& mplsRoutes) const {
@@ -1214,7 +1219,6 @@ std::shared_ptr<SwitchState> ThriftHandler::addMplsRoutesImpl(
         adminDistance,
         std::move(nexthops));
   }
-  return *state;
 }
 
 void ThriftHandler::deleteMplsRoutes(
@@ -1247,7 +1251,11 @@ void ThriftHandler::syncMplsFib(
     auto labelFib = newState->getLabelForwardingInformationBase();
 
     labelFib->purgeEntriesForClient(&newState, ClientID(clientId));
-    return addMplsRoutesImpl(&newState, ClientID(clientId), routes);
+    addMplsRoutesImpl(&newState, ClientID(clientId), routes);
+    if (!sw_->isValidStateUpdate(StateDelta(state, newState))) {
+      throw FbossError("Invalid MPLS routes");
+    }
+    return newState;
   };
   sw_->updateStateBlocking("syncMplsFib", updateFn);
 }

@@ -140,4 +140,8 @@ void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift> *l2Table) {
   bcmCheckError(rv, "opennsl_l2_traverse failed");
 }
 
+bool BcmSwitch::isValidLabelForwardingEntry(
+    const LabelForwardingEntry* /*entry*/) const {
+  return true;
+}
 }} //facebook::fboss

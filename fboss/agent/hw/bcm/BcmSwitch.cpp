@@ -1011,6 +1011,21 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
         isValid = isValid && BcmQosPolicyTable::isValid(newQosPolicy);
       });
 
+  forEachChanged(
+      delta.getLabelForwardingInformationBaseDelta(),
+      [&](const std::shared_ptr<LabelForwardingEntry>& /*oldEntry*/,
+          const std::shared_ptr<LabelForwardingEntry>& newEntry) {
+        // changed Fn
+        isValid = isValid && isValidLabelForwardingEntry(newEntry.get());
+      },
+      [&](const std::shared_ptr<LabelForwardingEntry>& newEntry) {
+        // added Fn
+        isValid = isValid && isValidLabelForwardingEntry(newEntry.get());
+      },
+      [](const std::shared_ptr<LabelForwardingEntry>& /*oldEntry*/) {
+        // removed Fn
+      });
+
   return isValid;
 }
 

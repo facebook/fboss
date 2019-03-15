@@ -77,7 +77,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void addMplsRoutes(
       int16_t clientId,
       std::unique_ptr<std::vector<MplsRoute>> mplsRoutes) override;
-  std::shared_ptr<SwitchState> addMplsRoutesImpl(
+  void addMplsRoutesImpl(
       std::shared_ptr<SwitchState>* state,
       ClientID clientId,
       const std::vector<MplsRoute>& mplsRoutes) const;

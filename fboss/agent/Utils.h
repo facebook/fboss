@@ -85,6 +85,8 @@ static inline ClientID StdClientIds2ClientID(StdClientIds id) {
   return ClientID{static_cast<uint32_t>(id)};
 }
 
+std::vector<ClientID> StdClientIds2AllClientIDs();
+
 /*
  * Report our hostname
  */

@@ -104,4 +104,15 @@ std::string getLocalHostname() {
   return hostname;
 }
 
+std::vector<ClientID> StdClientIds2AllClientIDs() {
+  return std::vector<ClientID>{
+      StdClientIds2ClientID(StdClientIds::BGPD),
+      StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
+      StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE),
+      StdClientIds2ClientID(StdClientIds::LINKLOCAL_ROUTE),
+      StdClientIds2ClientID(StdClientIds::NETLINK_LISTENER),
+      StdClientIds2ClientID(StdClientIds::STATIC_INTERNAL),
+      StdClientIds2ClientID(StdClientIds::OPENR),
+  };
+}
 }} // facebook::fboss
