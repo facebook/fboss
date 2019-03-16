@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/tests/platforms/BcmTestPlatform.h"
 
+#include "fboss/agent/hw/bcm/tests/ConfigFactory.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/ThriftHandler.h"
 
@@ -23,8 +24,7 @@ namespace facebook {
 namespace fboss {
 
 MacAddress BcmTestPlatform::kLocalCpuMac() {
-  static const MacAddress kLocalMac("02:00:00:00:00:01");
-  return kLocalMac;
+  return utility::kLocalCpuMac();
 }
 
 BcmTestPlatform::BcmTestPlatform(
