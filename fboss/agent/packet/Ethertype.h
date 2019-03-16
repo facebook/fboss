@@ -53,6 +53,9 @@ enum class ETHERTYPE : uint16_t {
 
   // Link Aggregation Control Protocol and Marker Protocol
   ETHERTYPE_SLOW_PROTOCOLS = 0x8809,
+
+  // Ethernet passive optical n/ws. Used for pause frames
+  ETHERTYPE_EPON = 0x8808,
 };
 
 }} // facebook::fboss
