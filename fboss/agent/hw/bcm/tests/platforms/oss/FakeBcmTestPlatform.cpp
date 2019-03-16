@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/hw/bcm/tests/platforms/FakeBcmTestPlatform.h"
-
 #include "fboss/agent/state/PortQueue.h"
 
 namespace facebook {
