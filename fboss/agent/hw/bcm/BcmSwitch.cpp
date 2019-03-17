@@ -467,6 +467,8 @@ HwInitResult BcmSwitch::init(Callback* callback) {
     vlan->setPorts(memberPorts);
     /* initialize mirroring module */
     initMirrorModule();
+    /* initialize MPLS */
+    initMplsModule();
   } else {
     LOG (INFO) << "Performing warm boot ";
 

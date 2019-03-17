@@ -45,6 +45,10 @@ void BcmSwitch::setupFPGroups() {}
 
 void BcmSwitch::initMirrorModule() const {}
 
+void BcmSwitch::initMplsModule() const {
+}
+
+
 bool BcmSwitch::haveMissingOrQSetChangedFPGroups() const {
   return false;
 }

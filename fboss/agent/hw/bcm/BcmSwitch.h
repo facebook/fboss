@@ -646,6 +646,8 @@ class BcmSwitch : public BcmSwitchIf {
 
   void initMirrorModule() const;
 
+  void initMplsModule() const;
+
   /**
    * Setup COS manager
    */
