@@ -1766,7 +1766,20 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
         qosPolicy = *defaultQosPolicy;
       }
     }
+  } else {
+    /*
+     * if cpuTrafficPolicy is not configured default to dataPlaneTrafficPolicy
+     * default i.e. with regards to QoS map configuration, treat CPU port like
+     * any front panel port.
+     */
+    if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy_ref()) {
+      if (auto defaultQosPolicy =
+              dataPlaneTrafficPolicy->defaultQosPolicy_ref()) {
+        qosPolicy = *defaultQosPolicy;
+      }
+    }
   }
+
   bool qosPolicyUnchanged = qosPolicy == origCPU->getQosPolicy();
 
   if (queuesUnchanged && qosPolicyUnchanged) {
