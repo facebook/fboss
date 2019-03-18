@@ -9,10 +9,11 @@
  */
 #pragma once
 
-#include "SaiApi.h"
+#include "fboss/agent/hw/sai/api/SaiApi.h"
 
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
 #include <folly/logging/xlog.h>
 #include <folly/IPAddress.h>
@@ -26,7 +27,7 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
-struct RouteTypes {
+struct RouteApiParameters {
   struct Attributes {
     using EnumType = sai_route_entry_attr_t;
     using NextHopId = SaiAttribute<
@@ -34,6 +35,24 @@ struct RouteTypes {
         SAI_ROUTE_ENTRY_ATTR_NEXT_HOP_ID,
         sai_object_id_t,
         SaiObjectIdT>;
+    using PacketAction =
+        SaiAttribute<EnumType, SAI_ROUTE_ENTRY_ATTR_PACKET_ACTION, sai_int32_t>;
+    using CreateAttributes =
+        SaiAttributeTuple<PacketAction, SaiAttributeOptional<NextHopId>>;
+    /* implicit */ Attributes(const CreateAttributes& create) {
+      std::tie(packetAction, nextHopId) = create.value();
+    }
+    CreateAttributes attrs() const {
+      return {packetAction, nextHopId};
+    }
+    bool operator==(const Attributes& other) const {
+      return attrs() == other.attrs();
+    }
+    bool operator!=(const Attributes& other) const {
+      return !(*this == other);
+    }
+    PacketAction::ValueType packetAction;
+    folly::Optional<NextHopId::ValueType> nextHopId;
   };
   using AttributeType = boost::variant<Attributes::NextHopId>;
 
@@ -74,7 +93,7 @@ struct RouteTypes {
   using MemberAttributeType = boost::variant<boost::blank>;
 };
 
-class RouteApi : public SaiApi<RouteApi, RouteTypes> {
+class RouteApi : public SaiApi<RouteApi, RouteApiParameters> {
  public:
     RouteApi() {
       sai_status_t status =
@@ -83,26 +102,26 @@ class RouteApi : public SaiApi<RouteApi, RouteTypes> {
   }
  private:
   sai_status_t _create(
-      const RouteTypes::RouteEntry& routeEntry,
+      const RouteApiParameters::RouteEntry& routeEntry,
       sai_attribute_t* attr_list,
       size_t count) {
     return api_->create_route_entry(routeEntry.entry(), count, attr_list);
   }
-  sai_status_t _remove(const RouteTypes::RouteEntry& routeEntry) {
+  sai_status_t _remove(const RouteApiParameters::RouteEntry& routeEntry) {
     return api_->remove_route_entry(routeEntry.entry());
   }
   sai_status_t _getAttr(
       sai_attribute_t* attr,
-      const RouteTypes::RouteEntry& routeEntry) const {
+      const RouteApiParameters::RouteEntry& routeEntry) const {
     return api_->get_route_entry_attribute(routeEntry.entry(), 1, attr);
   }
   sai_status_t _setAttr(
       const sai_attribute_t* attr,
-      const RouteTypes::RouteEntry& routeEntry) {
+      const RouteApiParameters::RouteEntry& routeEntry) {
     return api_->set_route_entry_attribute(routeEntry.entry(), attr);
   }
   sai_route_api_t* api_;
-  friend class SaiApi<RouteApi, RouteTypes>;
+  friend class SaiApi<RouteApi, RouteApiParameters>;
 };
 
 } // namespace fboss
@@ -110,7 +129,8 @@ class RouteApi : public SaiApi<RouteApi, RouteTypes> {
 
 namespace std {
 template <>
-struct hash<facebook::fboss::RouteTypes::RouteEntry> {
-  size_t operator()(const facebook::fboss::RouteTypes::RouteEntry& n) const;
+struct hash<facebook::fboss::RouteApiParameters::RouteEntry> {
+  size_t operator()(
+      const facebook::fboss::RouteApiParameters::RouteEntry& n) const;
 };
 } // namespace std

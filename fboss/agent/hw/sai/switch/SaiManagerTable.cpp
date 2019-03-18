@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
@@ -29,6 +30,7 @@ SaiManagerTable::SaiManagerTable(SaiApiTable* apiTable) : apiTable_(apiTable) {
   virtualRouterManager_ =
       std::make_unique<SaiVirtualRouterManager>(apiTable_, this);
   vlanManager_ = std::make_unique<SaiVlanManager>(apiTable_, this);
+  routeManager_ = std::make_unique<SaiRouteManager>(apiTable_, this);
   routerInterfaceManager_ =
       std::make_unique<SaiRouterInterfaceManager>(apiTable_, this);
   nextHopManager_ = std::make_unique<SaiNextHopManager>(apiTable_, this);
@@ -36,7 +38,12 @@ SaiManagerTable::SaiManagerTable(SaiApiTable* apiTable) : apiTable_(apiTable) {
       std::make_unique<SaiNextHopGroupManager>(apiTable_, this);
   neighborManager_ = std::make_unique<SaiNeighborManager>(apiTable_, this);
 }
-SaiManagerTable::~SaiManagerTable() {}
+
+SaiManagerTable::~SaiManagerTable() {
+  // Need to destroy routes before destroying other managers, as the
+  // route destructor will trigger calls in those managers
+  routeManager().clear();
+}
 
 SaiBridgeManager& SaiManagerTable::bridgeManager() {
   return *bridgeManager_;
@@ -71,6 +78,13 @@ SaiPortManager& SaiManagerTable::portManager() {
 }
 const SaiPortManager& SaiManagerTable::portManager() const {
   return *portManager_;
+}
+
+SaiRouteManager& SaiManagerTable::routeManager() {
+  return *routeManager_;
+}
+const SaiRouteManager& SaiManagerTable::routeManager() const {
+  return *routeManager_;
 }
 
 SaiRouterInterfaceManager& SaiManagerTable::routerInterfaceManager() {

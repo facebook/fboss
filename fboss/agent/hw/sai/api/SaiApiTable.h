@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 #include "fboss/agent/hw/sai/api/PortApi.h"
+#include "fboss/agent/hw/sai/api/RouteApi.h"
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
@@ -73,6 +74,12 @@ class SaiApiTable {
     return *portApi_;
   }
 
+  RouteApi& routeApi() {
+    return *routeApi_;
+  }
+  const RouteApi& routeApi() const {
+    return *routeApi_;
+  }
   RouterInterfaceApi& routerInterfaceApi() {
     return *routerInterfaceApi_;
   }
@@ -108,6 +115,7 @@ class SaiApiTable {
   std::unique_ptr<NextHopGroupApi> nextHopGroupApi_;
   std::unique_ptr<NeighborApi> neighborApi_;
   std::unique_ptr<PortApi> portApi_;
+  std::unique_ptr<RouteApi> routeApi_;
   std::unique_ptr<RouterInterfaceApi> routerInterfaceApi_;
   std::unique_ptr<SwitchApi> switchApi_;
   std::unique_ptr<VirtualRouterApi> virtualRouterApi_;

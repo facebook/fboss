@@ -20,6 +20,7 @@ class SaiNeighborManager;
 class SaiNextHopManager;
 class SaiNextHopGroupManager;
 class SaiPortManager;
+class SaiRouteManager;
 class SaiRouterInterfaceManager;
 class SaiVirtualRouterManager;
 class SaiVlanManager;
@@ -44,6 +45,9 @@ class SaiManagerTable {
   SaiPortManager& portManager();
   const SaiPortManager& portManager() const;
 
+  SaiRouteManager& routeManager();
+  const SaiRouteManager& routeManager() const;
+
   SaiRouterInterfaceManager& routerInterfaceManager();
   const SaiRouterInterfaceManager& routerInterfaceManager() const;
 
@@ -59,6 +63,7 @@ class SaiManagerTable {
   std::unique_ptr<SaiNextHopManager> nextHopManager_;
   std::unique_ptr<SaiNextHopGroupManager> nextHopGroupManager_;
   std::unique_ptr<SaiPortManager> portManager_;
+  std::unique_ptr<SaiRouteManager> routeManager_;
   std::unique_ptr<SaiRouterInterfaceManager> routerInterfaceManager_;
   std::unique_ptr<SaiVirtualRouterManager> virtualRouterManager_;
   std::unique_ptr<SaiVlanManager> vlanManager_;

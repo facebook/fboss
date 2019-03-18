@@ -5,8 +5,8 @@
 #include <functional>
 
 namespace std {
-size_t hash<facebook::fboss::RouteTypes::RouteEntry>::operator()(
-    const facebook::fboss::RouteTypes::RouteEntry& r) const {
+size_t hash<facebook::fboss::RouteApiParameters::RouteEntry>::operator()(
+    const facebook::fboss::RouteApiParameters::RouteEntry& r) const {
   size_t seed = 0;
   boost::hash_combine(seed, r.switchId());
   boost::hash_combine(seed, r.virtualRouterId());

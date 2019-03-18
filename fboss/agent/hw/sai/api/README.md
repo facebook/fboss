@@ -300,7 +300,7 @@ polymorphism. The base class is SaiApi and is parameterized by the specific
 api class, like PortApi, RouteApi, etc... as well as a helper class which
 defines the attributes, called the Types class. For example:
 ```c++
-class RouteApi : public SaiApi<RouteApi, RouteTypes> { /* ... */ };
+class RouteApi : public SaiApi<RouteApi, RouteApiParameters> { /* ... */ };
 ```
 The various Types classes define a nested Attributes class which contains
 aliases for the supported SaiAttributes, and an alias called CreateAttributes
@@ -369,7 +369,7 @@ also need a next hop id attribute, but not if the action is trap or drop.
 For that reason, the next hop id attribute is optional in the CreateAttributes
 tuple:
 ```c++
-struct RouteTypes {
+struct RouteApiParameters {
   struct Attributes {
     using PacketAction = SaiAttribute<...>;
     using NextHopId = SaiAttribute<...>;
