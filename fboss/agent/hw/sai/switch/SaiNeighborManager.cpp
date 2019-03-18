@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
+#include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/DeltaFunctions.h"
@@ -92,7 +93,10 @@ void SaiNeighborManager::addNeighbor(
   NeighborApiParameters::Attributes attributes{{swEntry->getMac()}};
   auto neighbor = std::make_unique<SaiNeighbor>(
       apiTable_, managerTable_, saiEntry, attributes);
+  sai_object_id_t nextHopId = neighbor->nextHopId();
   neighbors_.insert(std::make_pair(saiEntry, std::move(neighbor)));
+  managerTable_->nextHopGroupManager().handleResolvedNeighbor(
+      saiEntry, nextHopId);
 }
 
 template <typename NeighborEntryT>

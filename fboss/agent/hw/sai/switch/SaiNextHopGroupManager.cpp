@@ -156,6 +156,7 @@ void SaiNextHopGroupManager::handleResolvedNeighbor(
   if (itr == nextHopsByNeighbor_.end()) {
     XLOG(INFO) << "No next hop group using newly resolved neighbor "
                << neighborEntry.ip();
+    return;
   }
   for (const auto& nextHopSet : itr->second) {
     SaiNextHopGroup* nextHopGroup = nextHopGroups_.get(nextHopSet);

@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
+#include "fboss/agent/hw/sai/api/RouteApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
