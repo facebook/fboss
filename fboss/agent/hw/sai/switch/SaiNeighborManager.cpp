@@ -78,30 +78,54 @@ NeighborApiParameters::EntryType SaiNeighborManager::saiEntryFromSwEntry(
 
 template <typename NeighborEntryT>
 void SaiNeighborManager::changeNeighbor(
-    const std::shared_ptr<NeighborEntryT>& /* oldSwEntry */,
-    const std::shared_ptr<NeighborEntryT>& /* newSwEntry */) {}
+    const std::shared_ptr<NeighborEntryT>& oldSwEntry,
+    const std::shared_ptr<NeighborEntryT>& newSwEntry) {
+  if (oldSwEntry->isPending() && newSwEntry->isPending()) {
+  }
+  if (oldSwEntry->isPending() && !newSwEntry->isPending()) {
+    XLOG(INFO) << "BO: previously unresolved neighbor is now resolved";
+    removeNeighbor(oldSwEntry);
+    addNeighbor(newSwEntry);
+  }
+  if (!oldSwEntry->isPending() && newSwEntry->isPending()) {
+    XLOG(INFO) << "BO: previously resolved neighbor is now unresolved";
+    removeNeighbor(oldSwEntry);
+    addNeighbor(newSwEntry);
+  }
+  if (!oldSwEntry->isPending() && !newSwEntry->isPending()) {
+  }
+}
 
 template <typename NeighborEntryT>
 void SaiNeighborManager::addNeighbor(
     const std::shared_ptr<NeighborEntryT>& swEntry) {
+  // Handle pending()
+  XLOG(INFO) << "addNeighbor " << swEntry->getIP();
   auto saiEntry = saiEntryFromSwEntry(swEntry);
   auto existingSaiNeighbor = getNeighbor(saiEntry);
   if (existingSaiNeighbor) {
     throw FbossError(
         "Attempted to add duplicate neighbor: ", swEntry->getIP().str());
   }
-  NeighborApiParameters::Attributes attributes{{swEntry->getMac()}};
-  auto neighbor = std::make_unique<SaiNeighbor>(
-      apiTable_, managerTable_, saiEntry, attributes);
-  sai_object_id_t nextHopId = neighbor->nextHopId();
-  neighbors_.insert(std::make_pair(saiEntry, std::move(neighbor)));
-  managerTable_->nextHopGroupManager().handleResolvedNeighbor(
-      saiEntry, nextHopId);
+  if (swEntry->isPending()) {
+    XLOG(INFO) << "add unresolved neighbor";
+    unresolvedNeighbors_.insert(saiEntry);
+  } else {
+    XLOG(INFO) << "add resolved neighbor";
+    NeighborApiParameters::Attributes attributes{{swEntry->getMac()}};
+    auto neighbor = std::make_unique<SaiNeighbor>(
+        apiTable_, managerTable_, saiEntry, attributes);
+    sai_object_id_t nextHopId = neighbor->nextHopId();
+    neighbors_.insert(std::make_pair(saiEntry, std::move(neighbor)));
+    managerTable_->nextHopGroupManager().handleResolvedNeighbor(
+        saiEntry, nextHopId);
+  }
 }
 
 template <typename NeighborEntryT>
 void SaiNeighborManager::removeNeighbor(
     const std::shared_ptr<NeighborEntryT>& swEntry) {
+  XLOG(INFO) << "removeNeighbor " << swEntry->getIP();
   auto saiEntry = saiEntryFromSwEntry(swEntry);
   auto count = neighbors_.erase(saiEntry);
   if (count == 0) {
@@ -110,7 +134,7 @@ void SaiNeighborManager::removeNeighbor(
   }
 }
 
-void SaiNeighborManager::processNeighborChanges(const StateDelta& delta) {
+void SaiNeighborManager::processNeighborDelta(const StateDelta& delta) {
   for (const auto& vlanDelta : delta.getVlansDelta()) {
     auto processChanged = [this](auto oldNeighbor, auto newNeighbor) -> void {
       changeNeighbor(oldNeighbor, newNeighbor);

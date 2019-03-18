@@ -13,6 +13,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
@@ -43,6 +44,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(
     const StateDelta& delta) {
   managerTable_->vlanManager().processVlanDelta(delta.getVlansDelta());
   managerTable_->routerInterfaceManager().processInterfaceDelta(delta);
+  managerTable_->neighborManager().processNeighborDelta(delta);
   return delta.newState();
 }
 bool SaiSwitch::isValidStateUpdate(const StateDelta& /* delta */) const {

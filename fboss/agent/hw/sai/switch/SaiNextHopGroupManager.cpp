@@ -108,6 +108,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
       swNextHops, apiTable_, managerTable_, attrs, swNextHops);
   std::shared_ptr<SaiNextHopGroup> nextHopGroup = ins.first;
   if (!ins.second) {
+    XLOG(INFO) << "BO: nhg already added";
     return nextHopGroup;
   }
   for (const auto& swNextHop : swNextHops) {

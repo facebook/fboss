@@ -78,13 +78,14 @@ class SaiNeighborManager {
   const SaiNeighbor* getNeighbor(
       const NeighborApiParameters::EntryType& entry) const;
 
-  void processNeighborChanges(const StateDelta& delta);
+  void processNeighborDelta(const StateDelta& delta);
 
  private:
   SaiNeighbor* getNeighborImpl(
       const NeighborApiParameters::EntryType& entry) const;
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
+  std::unordered_set<NeighborApiParameters::EntryType> unresolvedNeighbors_;
   std::unordered_map<
       NeighborApiParameters::EntryType,
       std::unique_ptr<SaiNeighbor>>
