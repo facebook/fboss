@@ -150,11 +150,11 @@ void SaiVlanManager::removeVlan(const VlanID& swVlanId) {
 void SaiVlanManager::changeVlan(
     const std::shared_ptr<Vlan>& swVlanOld,
     const std::shared_ptr<Vlan>& swVlanNew) {
-  SaiVlan* vlan = getVlan(swVlanOld->getID());
+  VlanID swVlanId = swVlanNew->getID();
+  SaiVlan* vlan = getVlan(swVlanId);
   if (!vlan) {
     throw FbossError(
-        "attempted to change a vlan which does not exist: ",
-        swVlanOld->getID());
+        "attempted to change a vlan which does not exist: ", swVlanId);
   }
   const VlanFields::MemberPorts& oldPorts = swVlanOld->getPorts();
   auto compareIds = [](const std::pair<PortID, VlanFields::PortInfo>& p1,
@@ -184,6 +184,20 @@ void SaiVlanManager::changeVlan(
   for (const auto& swPortId : added) {
     vlan->addMember(swPortId.first);
   }
+}
+
+void SaiVlanManager::processVlanDelta(const VlanMapDelta& delta) {
+  auto processChanged = [this] (auto oldVlan, auto newVlan) -> void {
+    changeVlan(oldVlan, newVlan);
+  };
+  auto processAdded = [this] (auto newVlan) -> void {
+    addVlan(newVlan);
+  };
+  auto processRemoved = [this] (auto oldVlan) -> void {
+    removeVlan(oldVlan->getID());
+  };
+  DeltaFunctions::forEachChanged(
+      delta, processChanged, processAdded, processRemoved);
 }
 
 SaiVlan* SaiVlanManager::getVlan(VlanID swVlanId) {

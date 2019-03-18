@@ -13,9 +13,12 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+
 #include <memory>
 
 namespace facebook {
@@ -36,8 +39,9 @@ HwInitResult SaiSwitch::init(Callback* /* callback */) noexcept {
 }
 void SaiSwitch::unregisterCallbacks() noexcept {}
 std::shared_ptr<SwitchState> SaiSwitch::stateChanged(
-    const StateDelta& /* delta */) {
-  return std::make_shared<SwitchState>();
+    const StateDelta& delta) {
+  managerTable_->vlanManager().processVlanDelta(delta.getVlansDelta());
+  return delta.newState();
 }
 bool SaiSwitch::isValidStateUpdate(const StateDelta& /* delta */) const {
   return true;

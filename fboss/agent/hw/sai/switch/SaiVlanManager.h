@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/VlanApi.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/types.h"
 
@@ -92,6 +93,7 @@ class SaiVlanManager {
   void changeVlan(
       const std::shared_ptr<Vlan>& swVlanOld,
       const std::shared_ptr<Vlan>& swVlanNew);
+  void processVlanDelta(const VlanMapDelta& delta);
 
   SaiVlan* getVlan(VlanID swVlanId);
   const SaiVlan* getVlan(VlanID swVlanId) const;
