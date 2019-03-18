@@ -115,5 +115,21 @@ SaiRouterInterface* SaiRouterInterfaceManager::getRouterInterfaceImpl(
   return itr->second.get();
 }
 
+void SaiRouterInterfaceManager::processInterfaceDelta(
+    const StateDelta& stateDelta) {
+  auto delta = stateDelta.getIntfsDelta();
+  auto processChanged = [this](auto oldInterface, auto newInterface) {
+    // TODO
+  };
+  auto processAdded = [this] (auto newInterface) {
+    addRouterInterface(newInterface);
+  };
+  auto processRemoved = [this] (auto oldInterface) {
+    removeRouterInterface(oldInterface->getID());
+  };
+  DeltaFunctions::forEachChanged(
+      delta, processChanged, processAdded, processRemoved);
+}
+
 } // namespace fboss
 } // namespace facebook

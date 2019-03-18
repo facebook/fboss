@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -41,6 +42,7 @@ void SaiSwitch::unregisterCallbacks() noexcept {}
 std::shared_ptr<SwitchState> SaiSwitch::stateChanged(
     const StateDelta& delta) {
   managerTable_->vlanManager().processVlanDelta(delta.getVlansDelta());
+  managerTable_->routerInterfaceManager().processInterfaceDelta(delta);
   return delta.newState();
 }
 bool SaiSwitch::isValidStateUpdate(const StateDelta& /* delta */) const {

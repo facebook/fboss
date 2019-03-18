@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 
 #include "folly/MacAddress.h"
@@ -63,6 +64,8 @@ class SaiRouterInterfaceManager {
   void removeRouterInterface(const InterfaceID& swId);
   SaiRouterInterface* getRouterInterface(const InterfaceID& swId);
   const SaiRouterInterface* getRouterInterface(const InterfaceID& swId) const;
+
+  void processInterfaceDelta(const StateDelta& stateDelta);
 
  private:
   SaiRouterInterface* getRouterInterfaceImpl(const InterfaceID& swId) const;
