@@ -37,6 +37,8 @@ cfg::SwitchConfig genPortVlanCfg(
   auto portItr = ports.begin();
   int portIndex = 0;
   for (; portItr != ports.end(); portItr++, portIndex++) {
+    config.ports[portIndex].name_ref() =
+        "eth1/" + std::to_string(*portItr) + "/1";
     config.ports[portIndex].logicalID = *portItr;
     config.ports[portIndex].speed = maxPortSpeed(unit, *portItr);
     config.ports[portIndex].state = cfg::PortState::ENABLED;
