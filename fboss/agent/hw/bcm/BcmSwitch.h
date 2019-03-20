@@ -69,6 +69,7 @@ class BcmMirror;
 class BcmMirrorTable;
 class ControlPlane;
 class BcmBstStatsMgr;
+class BcmLabelMap;
 
 /*
  * Virtual interface to BcmSwitch, primarily for mocking/testing
@@ -508,7 +509,7 @@ class BcmSwitch : public BcmSwitchIf {
   void processChangedLabelForwardingEntry(
       const std::shared_ptr<LabelForwardingEntry>& oldEntry,
       const std::shared_ptr<LabelForwardingEntry>& newEntry);
-  void processChangedLabelForwardingChanges(const StateDelta& delta);
+  void processChangedLabelForwardingInformationBase(const StateDelta& delta);
   bool isValidLabelForwardingEntry(const LabelForwardingEntry* entry) const;
 
   /*
@@ -737,6 +738,7 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmEgress> toCPUEgress_;
   std::unique_ptr<BcmIntfTable> intfTable_;
   std::unique_ptr<BcmHostTable> hostTable_;
+  std::unique_ptr<BcmLabelMap> labelMap_;
   std::unique_ptr<BcmRouteTable> routeTable_;
   std::unique_ptr<BcmQosPolicyTable> qosPolicyTable_;
   std::unique_ptr<BcmAclTable> aclTable_;

@@ -27,12 +27,14 @@
 #include "fboss/agent/hw/BufferStatsLogger.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
+#include "fboss/agent/hw/bcm/BcmBstStatsMgr.h"
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
 #include "fboss/agent/hw/bcm/BcmCosManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
+#include "fboss/agent/hw/bcm/BcmLabelMap.h"
 #include "fboss/agent/hw/bcm/BcmMirrorTable.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
@@ -52,7 +54,6 @@
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
-#include "fboss/agent/hw/bcm/BcmBstStatsMgr.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/bcmswitch_constants.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AggregatePort.h"
@@ -169,6 +170,7 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       portTable_(new BcmPortTable(this)),
       intfTable_(new BcmIntfTable(this)),
       hostTable_(new BcmHostTable(this)),
+      labelMap_(new BcmLabelMap(this)),
       routeTable_(new BcmRouteTable(this)),
       qosPolicyTable_(new BcmQosPolicyTable(this)),
       aclTable_(new BcmAclTable(this)),
@@ -190,6 +192,7 @@ void BcmSwitch::resetTables() {
   std::unique_lock<std::mutex> lk(lock_);
   unregisterCallbacks();
   routeTable_.reset();
+  labelMap_.reset();
   // Release host entries before reseting switch's host table
   // entries so that if host try to refer to look up host table
   // via the BCM switch during their destruction the pointer
@@ -222,6 +225,7 @@ void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   qosPolicyTable_ = std::make_unique<BcmQosPolicyTable>(this);
   intfTable_ = std::make_unique<BcmIntfTable>(this);
   hostTable_ = std::make_unique<BcmHostTable>(this);
+  labelMap_ = std::make_unique<BcmLabelMap>(this);
   routeTable_ = std::make_unique<BcmRouteTable>(this);
   aclTable_ = std::make_unique<BcmAclTable>(this);
   trunkTable_ = std::make_unique<BcmTrunkTable>(this);
@@ -1845,7 +1849,8 @@ void BcmSwitch::restorePortSettings(const std::shared_ptr<SwitchState>& state) {
   }
 }
 
-void BcmSwitch::processChangedLabelForwardingChanges(const StateDelta& delta) {
+void BcmSwitch::processChangedLabelForwardingInformationBase(
+    const StateDelta& delta) {
   forEachChanged(
       delta.getLabelForwardingInformationBaseDelta(),
       &BcmSwitch::processChangedLabelForwardingEntry,
