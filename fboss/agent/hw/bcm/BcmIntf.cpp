@@ -31,24 +31,6 @@ using std::make_pair;
 using folly::MacAddress;
 using folly::IPAddress;
 
-class BcmStation {
- public:
-  // L2 station can be used to filter based on MAC, VLAN, or Port.
-  // We only use it to filter based on the MAC to enable the L3 processing.
-  explicit BcmStation(const BcmSwitch* hw) : hw_(hw) {}
-  ~BcmStation();
-  void program(MacAddress mac, int id);
- private:
-  // no copy or assignment
-  BcmStation(BcmStation const &) = delete;
-  BcmStation& operator=(BcmStation const &) = delete;
-  enum : int {
-    INVALID = -1,
-  };
-  const BcmSwitch *hw_;
-  int id_{INVALID};
-};
-
 BcmStation::~BcmStation() {
   if (id_ == INVALID) {
     return;
@@ -64,8 +46,8 @@ void BcmStation::program(MacAddress mac, int id) {
   opennsl_l2_station_t_init(&params);
   memcpy(&params.dst_mac, mac.bytes(), sizeof(params.dst_mac));
   memset(&params.dst_mac_mask, 0xFF, sizeof(params.dst_mac_mask));
-  params.flags |= OPENNSL_L2_STATION_IPV4|OPENNSL_L2_STATION_IPV6
-    |OPENNSL_L2_STATION_ARP_RARP;
+  params.flags |= OPENNSL_L2_STATION_IPV4 | OPENNSL_L2_STATION_IPV6 |
+      OPENNSL_L2_STATION_ARP_RARP | BcmStation::getAdditionalFlags();
   if (id != INVALID) {
     params.flags |= OPENNSL_L2_STATION_WITH_ID;
   }

@@ -26,8 +26,27 @@ namespace facebook { namespace fboss {
 
 class Interface;
 class BcmSwitch;
-class BcmStation;
 class BcmHost;
+
+class BcmStation {
+ public:
+  // L2 station can be used to filter based on MAC, VLAN, or Port.
+  // We only use it to filter based on the MAC to enable the L3 processing.
+  explicit BcmStation(const BcmSwitch* hw) : hw_(hw) {}
+  ~BcmStation();
+  void program(folly::MacAddress mac, int id);
+  static uint32_t getAdditionalFlags();
+
+ private:
+  // no copy or assignment
+  BcmStation(BcmStation const&) = delete;
+  BcmStation& operator=(BcmStation const&) = delete;
+  enum : int {
+    INVALID = -1,
+  };
+  const BcmSwitch* hw_;
+  int id_{INVALID};
+};
 
 /**
  *  BcmIntf is the class to abstract the L3 interface in BcmSwitch

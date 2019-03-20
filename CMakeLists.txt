@@ -300,6 +300,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmCosQueueManager.cpp
     fboss/agent/hw/bcm/oss/BcmEgress.cpp
     fboss/agent/hw/bcm/oss/BcmHost.cpp
+    fboss/agent/hw/bcm/oss/BcmIntf.cpp
     fboss/agent/hw/bcm/oss/BcmMirror.cpp
     fboss/agent/hw/bcm/oss/BcmPort.cpp
     fboss/agent/hw/bcm/oss/BcmPortGroup.cpp
