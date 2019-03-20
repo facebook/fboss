@@ -27,7 +27,11 @@ SaiPortManager::SaiPortManager(
 sai_object_id_t SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   SaiPort* existingPort = getPort(swPort->getID());
   if (existingPort) {
-    throw FbossError("Attempted to add port which already exists");
+    throw FbossError(
+        "Attempted to add port which already exists: ",
+        swPort->getID(),
+        " SAI id: ",
+        existingPort->id());
   }
   PortApiParameters::Attributes attributes = attributesFromSwPort(swPort);
   auto saiPort =

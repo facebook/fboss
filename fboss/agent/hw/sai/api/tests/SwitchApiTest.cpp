@@ -30,7 +30,7 @@ class SwitchApiTest : public ::testing::Test {
 };
 
 TEST_F(SwitchApiTest, getNumPorts) {
-  SwitchTypes::Attributes::PortNumber pn;
+  SwitchApiParameters::Attributes::PortNumber pn;
   EXPECT_EQ(switchApi->getAttribute(pn, switchId), 0);
   fs->pm.create(FakePort{{0}, 100000});
   fs->pm.create(FakePort{{1}, 25000});
@@ -44,34 +44,34 @@ TEST_F(SwitchApiTest, testGetPortIds) {
   fs->pm.create(FakePort{{1}, 25000});
   fs->pm.create(FakePort{{2}, 25000});
   fs->pm.create(FakePort{{3}, 25000});
-  SwitchTypes::Attributes::PortNumber pn;
-  auto numPorts =
-      switchApi->getAttribute(SwitchTypes::Attributes::PortNumber(), switchId);
+  SwitchApiParameters::Attributes::PortNumber pn;
+  auto numPorts = switchApi->getAttribute(
+      SwitchApiParameters::Attributes::PortNumber(), switchId);
   std::vector<sai_object_id_t> v;
   v.resize(numPorts);
-  SwitchTypes::Attributes::PortList pl(v);
+  SwitchApiParameters::Attributes::PortList pl(v);
   auto portIds = switchApi->getAttribute(pl, switchId);
   EXPECT_EQ(portIds.size(), numPorts);
 }
 
 TEST_F(SwitchApiTest, testSetMac) {
   folly::MacAddress newSrcMac("DE:AD:BE:EF:42:42");
-  SwitchTypes::Attributes::SrcMac ma(newSrcMac);
+  SwitchApiParameters::Attributes::SrcMac ma(newSrcMac);
   switchApi->setAttribute(ma, switchId);
-  SwitchTypes::Attributes::SrcMac blank;
+  SwitchApiParameters::Attributes::SrcMac blank;
   EXPECT_EQ(switchApi->getAttribute(blank, switchId), newSrcMac);
 }
 
 TEST_F(SwitchApiTest, getDefaultVlanId) {
   EXPECT_EQ(
       switchApi->getAttribute(
-          SwitchTypes::Attributes::DefaultVlanId(), switchId),
+          SwitchApiParameters::Attributes::DefaultVlanId(), switchId),
       1);
 }
 
 TEST_F(SwitchApiTest, setDefaultVlanId) {
   EXPECT_EQ(
       switchApi->setAttribute(
-          SwitchTypes::Attributes::DefaultVlanId(42), switchId),
+          SwitchApiParameters::Attributes::DefaultVlanId(42), switchId),
       SAI_STATUS_INVALID_PARAMETER);
 }

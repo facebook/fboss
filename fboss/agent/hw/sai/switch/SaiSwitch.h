@@ -11,13 +11,11 @@
 
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 
 #include <memory>
 
 namespace facebook { namespace fboss {
-
-class SaiApiTable;
-class SaiManagerTable;
 
 class SaiSwitch : public HwSwitch {
  public:

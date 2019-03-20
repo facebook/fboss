@@ -24,7 +24,7 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
-struct SwitchTypes {
+struct SwitchApiParameters {
   struct Attributes {
     using EnumType = sai_switch_attr_t;
     using DefaultVirtualRouterId = SaiAttribute<
@@ -60,13 +60,20 @@ struct SwitchTypes {
   struct EntryType {};
 };
 
-class SwitchApi : public SaiApi<SwitchApi, SwitchTypes> {
+class SwitchApi : public SaiApi<SwitchApi, SwitchApiParameters> {
  public:
-    SwitchApi() {
-      sai_status_t status =
-          sai_api_query(SAI_API_SWITCH, reinterpret_cast<void**>(&api_));
+  SwitchApi() {
+    sai_status_t status =
+        sai_api_query(SAI_API_SWITCH, reinterpret_cast<void**>(&api_));
     saiCheckError(status, "Failed to query for switch api");
   }
+  const sai_switch_api_t* api() const {
+    return api_;
+  }
+  sai_switch_api_t* api() {
+    return api_;
+  }
+
  private:
   sai_status_t _create(
       sai_object_id_t* switch_id,
@@ -87,7 +94,7 @@ class SwitchApi : public SaiApi<SwitchApi, SwitchTypes> {
     return api_->set_switch_attribute(switch_id, attr);
   }
   sai_switch_api_t* api_;
-  friend class SaiApi<SwitchApi, SwitchTypes>;
+  friend class SaiApi<SwitchApi, SwitchApiParameters>;
 };
 
 } // namespace fboss

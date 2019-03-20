@@ -23,7 +23,7 @@ SaiVirtualRouter::SaiVirtualRouter(SaiApiTable* apiTable)
     : apiTable_(apiTable), attributes_({}) {
   default_ = true;
   id_ = apiTable_->switchApi().getAttribute(
-      SwitchTypes::Attributes::DefaultVirtualRouterId(), 0);
+      SwitchApiParameters::Attributes::DefaultVirtualRouterId(), 0);
   // TODO(borisb): implement attributes_ via get apis for default VR
 }
 
