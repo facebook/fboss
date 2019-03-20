@@ -16,3 +16,4 @@ script:
 notifications:
   email:
     - rsher@fb.com
+  webhooks: https://code.facebook.com/travis/webhook
