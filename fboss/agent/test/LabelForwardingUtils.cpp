@@ -5,7 +5,7 @@
 namespace {
 using namespace facebook::fboss;
 
-const std::array<folly::IPAddress, 2> kNextHopAddrs{
+const std::vector<folly::IPAddress> kNextHopAddrs{
     folly::IPAddress("10.0.0.1"),
     folly::IPAddress("10.0.0.2"),
 };
@@ -34,47 +34,59 @@ LabelForwardingAction getPushAction(LabelForwardingAction::LabelStack stack) {
       LabelForwardingAction::LabelForwardingType::PUSH, std::move(stack));
 }
 
-LabelNextHopEntry getSwapLabelNextHopEntry(AdminDistance distance) {
+LabelNextHopEntry getSwapLabelNextHopEntry(
+    AdminDistance distance,
+    InterfaceID intfId,
+    std::vector<folly::IPAddress> addrs
+) {
   LabelNextHopSet nexthops;
-  for (auto i = 0; i < kNextHopAddrs.size(); i++) {
+  auto& nexthopAddrs = addrs.size() > 0 ? addrs : kNextHopAddrs;
+  for (auto i = 0; i < nexthopAddrs.size(); i++) {
     nexthops.emplace(ResolvedNextHop(
-        kNextHopAddrs[i],
-        InterfaceID(i + 1),
+        nexthopAddrs[i],
+        intfId,
         ECMP_WEIGHT,
         getSwapAction(kLabelStacks[i][0])));
   }
   return LabelNextHopEntry(std::move(nexthops), distance);
 }
 
-LabelNextHopEntry getPushLabelNextHopEntry(AdminDistance distance) {
+LabelNextHopEntry getPushLabelNextHopEntry(
+    AdminDistance distance,
+    InterfaceID intfId,
+    std::vector<folly::IPAddress> addrs
+  ) {
   LabelNextHopSet nexthops;
-  for (auto i = 0; i < kNextHopAddrs.size(); i++) {
+  auto& nexthopAddrs = addrs.size() > 0 ? addrs : kNextHopAddrs;
+  for (auto i = 0; i < nexthopAddrs.size(); i++) {
     nexthops.emplace(ResolvedNextHop(
-        kNextHopAddrs[i],
-        InterfaceID(i + 1),
-        ECMP_WEIGHT,
-        getPushAction(kLabelStacks[i])));
+        nexthopAddrs[i], intfId, ECMP_WEIGHT, getPushAction(kLabelStacks[i])));
   }
   return LabelNextHopEntry(std::move(nexthops), distance);
 }
 
-LabelNextHopEntry getPhpLabelNextHopEntry(AdminDistance distance) {
+LabelNextHopEntry getPhpLabelNextHopEntry(
+    AdminDistance distance,
+    InterfaceID intfId,
+    std::vector<folly::IPAddress> addrs) {
   LabelNextHopSet nexthops;
-  for (auto i = 0; i < kNextHopAddrs.size(); i++) {
-    nexthops.emplace(ResolvedNextHop(
-        kNextHopAddrs[i], InterfaceID(i + 1), ECMP_WEIGHT, getPhpAction()));
+  auto& nexthopAddrs = addrs.size() > 0 ? addrs : kNextHopAddrs;
+  for (auto i = 0; i < nexthopAddrs.size(); i++) {
+    nexthops.emplace(
+        ResolvedNextHop(nexthopAddrs[i], intfId, ECMP_WEIGHT, getPhpAction()));
   }
   return LabelNextHopEntry(std::move(nexthops), distance);
 }
 
-LabelNextHopEntry getPopLabelNextHopEntry(AdminDistance distance) {
+LabelNextHopEntry getPopLabelNextHopEntry(
+    AdminDistance distance,
+    InterfaceID intfId,
+    std::vector<folly::IPAddress> addrs) {
   LabelNextHopSet nexthops;
-  for (auto i = 0; i < kNextHopAddrs.size(); i++) {
+  auto& nexthopAddrs = addrs.size() > 0 ? addrs : kNextHopAddrs;
+  for (auto i = 0; i < nexthopAddrs.size(); i++) {
     nexthops.emplace(ResolvedNextHop(
-        kNextHopAddrs[i],
-        InterfaceID(i + 1),
-        ECMP_WEIGHT,
-        getPhpAction(false)));
+        nexthopAddrs[i], intfId, ECMP_WEIGHT, getPhpAction(false)));
   }
   return LabelNextHopEntry(std::move(nexthops), distance);
 }
