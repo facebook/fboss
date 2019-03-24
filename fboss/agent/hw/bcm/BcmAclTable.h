@@ -11,16 +11,13 @@
 
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
-#include "fboss/agent/hw/bcm/BcmAclRange.h"
 #include "fboss/agent/hw/bcm/BcmAclStat.h"
 
 #include <boost/container/flat_map.hpp>
 
 namespace facebook { namespace fboss {
 
-class AclRange;
 class BcmSwitch;
-class BcmAclRange;
 
 /**
  * A class to keep state related to acl entries in BcmSwitch
@@ -46,16 +43,6 @@ class BcmAclTable {
   // return nullptr if not found
   BcmAclEntry* getAclIf(int priority) const;
   // Throw exception if not found
-  BcmAclRange*  getAclRange(const AclRange& range) const;
-  // return nullptr if not found
-  BcmAclRange*  getAclRangeIf(const AclRange& range) const;
-  // return 0 if range does not exist
-  uint32_t getAclRangeRefCount(const AclRange& range) const;
-  // if range doesn't exist, return folly::none
-  folly::Optional<uint32_t> getAclRangeRefCountIf(
-    BcmAclRangeHandle handle) const;
-  uint32_t getAclRangeCount() const;
-  // Throw exception if not found
   BcmAclStat* getAclStat(const std::string& name) const;
   // return nullptr if not found
   BcmAclStat* getAclStatIf(const std::string& name) const;
@@ -72,23 +59,17 @@ class BcmAclTable {
       const std::vector<cfg::CounterType>& counterTypes,
       BcmAclStatHandle statHandle);
   void derefBcmAclStat(const std::string& name);
-  BcmAclRange* incRefOrCreateBcmAclRange(const AclRange& range);
-  void derefBcmAclRange(const AclRange& range);
 
   /* for every map entry which meets given predicate, execute given action */
   void forFilteredEach(Filter predicate, FilterAction action) const;
 
  private:
-  // map from acl range to bcm acl range and its reference count
-  using BcmAclRangeMap = boost::container::flat_map<AclRange,
-    std::pair<std::unique_ptr<BcmAclRange>, uint32_t>>;
   using BcmAclEntryMap = boost::container::flat_map<int,
     std::unique_ptr<BcmAclEntry>>;
   using BcmAclStatMap = boost::container::flat_map<std::string,
     std::pair<std::unique_ptr<BcmAclStat>, uint32_t>>;
 
   BcmSwitch* hw_;
-  BcmAclRangeMap aclRangeMap_;
   BcmAclEntryMap aclEntryMap_;
   BcmAclStatMap aclStatMap_;
 };

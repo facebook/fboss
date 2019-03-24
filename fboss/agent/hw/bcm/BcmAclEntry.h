@@ -17,7 +17,6 @@ namespace facebook { namespace fboss {
 
 class BcmSwitch;
 class AclEntry;
-class BcmAclRange;
 enum class MirrorAction;
 enum class MirrorDirection;
 
@@ -51,7 +50,6 @@ public:
   void createAclQualifiers();
   void createAclActions();
   void createAclStat();
-  void createAclRanges();
 
   BcmSwitch* hw_;
   int gid_;

@@ -34,8 +34,6 @@ extern "C" {
 #include "fboss/agent/state/QosPolicy.h"
 #include "fboss/agent/state/RouteTypes.h"
 
-#include "fboss/agent/hw/bcm/BcmAclRange.h"
-
 namespace facebook { namespace fboss {
 class AclMap;
 class BcmSwitch;
@@ -158,9 +156,6 @@ class BcmWarmBootCache {
   using EgressId2Egress = boost::container::flat_map<EgressId, Egress>;
   using HostTableInWarmBootFile = boost::container::flat_map<HostKey, EgressId>;
 
-  // current h/w acl ranges: value = <BcmAclRangeHandle, ref_count>
-  using AclRange2BcmAclRangeHandle = boost::container::flat_map<
-        AclRange, std::pair<BcmAclRangeHandle, uint32_t>>;
   // current h/w acls: key = priority, value = BcmAclEntryHandle
   using Priority2BcmAclEntryHandle = boost::container::flat_map<
         int, BcmAclEntryHandle>;
@@ -196,22 +191,17 @@ class BcmWarmBootCache {
       void *user_data);
 
   /**
-   * Helper functions for populate AclEntry and AclRange since we don't have
+   * Helper functions for populate AclEntry since we don't have
    * OpenNSL support for Field Processor
    */
   // retrieve all bcm acls of the specified group
-  void populateAcls(const int groupId, AclRange2BcmAclRangeHandle& ranges,
+  void populateAcls(const int groupId,
                     AclEntry2AclStat& stats,
                     Priority2BcmAclEntryHandle& acls);
-  // retrieve bcm acl ranges for the specified acl
-  void populateAclRanges(const BcmAclEntryHandle acl,
-                         AclRange2BcmAclRangeHandle& ranges);
   void populateAclStats(const BcmAclEntryHandle acl,
                         AclEntry2AclStat& stats);
   // remove bcm acl directly from h/w
   void removeBcmAcl(BcmAclEntryHandle handle);
-  // remove bcm acl range directly from h/w
-  void removeBcmAclRange(BcmAclRangeHandle handle);
   // remove bcm acl stat directly from h/w
   void removeBcmAclStat(BcmAclStatHandle handle);
   void detachBcmAclStat(BcmAclEntryHandle aclHandle,
@@ -410,7 +400,7 @@ class BcmWarmBootCache {
   }
 
   /*
-   * Iterators and find functions for acls, aclRanges and acl stats
+   * Iterators and find functions for acls and acl stats
    */
   using Prio2BcmAclItr = Priority2BcmAclEntryHandle::const_iterator;
   Prio2BcmAclItr priority2BcmAclEntryHandle_begin() {
@@ -427,18 +417,6 @@ class BcmWarmBootCache {
                << "priority=" << itr->first << " acl entry=" << itr->second;
     priority2BcmAclEntryHandle_.erase(itr);
   }
-
-  using Range2BcmHandlerItr = AclRange2BcmAclRangeHandle::iterator;
-  Range2BcmHandlerItr aclRange2BcmAclRangeHandle_begin() {
-    return aclRange2BcmAclRangeHandle_.begin();
-  }
-  Range2BcmHandlerItr aclRange2BcmAclRangeHandle_end() {
-    return aclRange2BcmAclRangeHandle_.end();
-  }
-  Range2BcmHandlerItr findBcmAclRange(const AclRange& aclRange) {
-    return aclRange2BcmAclRangeHandle_.find(aclRange);
-  }
-  void programmed(Range2BcmHandlerItr itr);
 
   bool unitControlMatches(
       char module,
@@ -563,8 +541,7 @@ class BcmWarmBootCache {
   // The delay can be multiple seconds.
   Ecmp2EgressIds hwSwitchEcmp2EgressIds_;
 
-  // acls and acl ranges
-  AclRange2BcmAclRangeHandle aclRange2BcmAclRangeHandle_;
+  // acls
   Priority2BcmAclEntryHandle priority2BcmAclEntryHandle_;
 
   BcmRtag7Module::ModuleState moduleAState_;

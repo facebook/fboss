@@ -23,99 +23,6 @@
 
 namespace facebook { namespace fboss {
 
-template<typename T>
-class GenericAclRange {
-public:
- GenericAclRange(const T& min, const T& max, bool invert)
-     : min_(min), max_(max), invert_(invert) {}
- GenericAclRange(const GenericAclRange& range)
-     : GenericAclRange(range.min_, range.max_, range.invert_) {}
- T getMin() const {
-   return min_;
-  }
-  void setMin(const T min) {
-    min_ = min;
-  }
-  T getMax() const {
-    return max_;
-  }
-  void setMax(const T max) {
-    max_ = max;
-  }
-  void setInvert(const bool invert) {
-    invert_ = invert;
-  }
-  bool getInvert() const {
-    return invert_;
-  }
-  bool isExactMatch() const {
-    return !invert_ && min_ == max_;
-  }
-  bool operator<(const GenericAclRange& r) const {
-    return std::tie(min_, max_, invert_) < std::tie(r.min_, r.max_, r.invert_);
-  }
-  bool operator==(const GenericAclRange& r) const {
-    return std::tie(min_, max_, invert_) == std::tie(r.min_, r.max_, r.invert_);
-  }
-  GenericAclRange& operator=(const GenericAclRange& r) {
-    min_ = r.min_;
-    max_ = r.max_;
-    invert_ = r.invert_;
-    return *this;
-  }
-  folly::dynamic toFollyDynamic() const {
-    folly::dynamic range = folly::dynamic::object;
-    range[kAclRangeMin] = static_cast<T>(min_);
-    range[kAclRangeMax] = static_cast<T>(max_);
-    range[kAclRangeInvert] = static_cast<bool>(invert_);
-    return range;
-  }
-  static T getLowerLimit() {
-    return std::numeric_limits<T>::min();
-  }
-  static T getUpperLimit() {
-    return std::numeric_limits<T>::max();
-  }
-  static GenericAclRange fromFollyDynamic(const folly::dynamic& rangeJson) {
-    checkFollyDynamic(rangeJson);
-    T min = rangeJson[kAclRangeMin].asInt();
-    T max = rangeJson[kAclRangeMax].asInt();
-    bool invert = rangeJson[kAclRangeInvert].asBool();
-    return GenericAclRange(min, max, invert);
-  }
-  static void checkFollyDynamic(const folly::dynamic& rangeJson) {
-    if (rangeJson.find(kAclRangeMin) == rangeJson.items().end()) {
-      throw FbossError("a range should have min value set");
-    }
-    if (rangeJson.find(kAclRangeMin) == rangeJson.items().end()) {
-      throw FbossError("a range should have max value set");
-    }
-    T pMin = rangeJson[kAclRangeMin].asInt();
-    T pMax = rangeJson[kAclRangeMax].asInt();
-    if (pMin > getUpperLimit() || pMax > getUpperLimit()) {
-      throw FbossError("Range value exceeds ", std::to_string(getUpperLimit()));
-    }
-    if (pMin < getLowerLimit() || pMax < getLowerLimit()) {
-      throw FbossError("Range value lower than ",
-        std::to_string(getLowerLimit()));
-    }
-    if (pMin > pMax) {
-      throw FbossError("Min. value is larger than max. value");
-    }
-  }
-
-protected:
-  T min_;
-  T max_;
-  bool invert_;
-  static constexpr auto kAclRangeMin = "min";
-  static constexpr auto kAclRangeMax = "max";
-  static constexpr auto kAclRangeInvert = "invert";
-};
-
-using AclL4PortRange = GenericAclRange<uint16_t>;
-using AclPktLenRange = GenericAclRange<uint16_t>;
-
 class AclTtl {
 public:
   AclTtl(const AclTtl& ttl) {
@@ -165,7 +72,7 @@ public:
   }
 
   folly::dynamic toFollyDynamic() const;
-  static AclTtl fromFollyDynamic(const folly::dynamic& rangeJson);
+  static AclTtl fromFollyDynamic(const folly::dynamic& ttlJson);
 private:
   uint16_t value_;
   uint16_t mask_;
@@ -176,6 +83,8 @@ struct AclEntryFields {
   static const uint8_t kProtoIcmpv6 = 58;
   static const uint8_t kMaxIcmpType = 0xFF;
   static const uint8_t kMaxIcmpCode = 0xFF;
+  static const uint16_t kMaxL4Port = 65535;
+
   explicit AclEntryFields(int priority, const std::string& name)
     : priority(priority),
       name(name) {}
@@ -186,7 +95,6 @@ struct AclEntryFields {
   folly::dynamic toFollyDynamic() const;
   static AclEntryFields fromFollyDynamic(const folly::dynamic& json);
   static void checkFollyDynamic(const folly::dynamic& json);
-  static void checkFollyDynamicPortRange(const folly::dynamic& json);
   int priority{0};
   std::string name{nullptr};
   folly::CIDRNetwork srcIp{std::make_pair(folly::IPAddress(), 0)};
@@ -195,9 +103,6 @@ struct AclEntryFields {
   folly::Optional<uint8_t> tcpFlagsBitMap{folly::none};
   folly::Optional<uint16_t> srcPort{folly::none};
   folly::Optional<uint16_t> dstPort{folly::none};
-  folly::Optional<AclL4PortRange> srcL4PortRange{folly::none};
-  folly::Optional<AclL4PortRange> dstL4PortRange{folly::none};
-  folly::Optional<AclPktLenRange> pktLenRange{folly::none};
   folly::Optional<cfg::IpFragMatch> ipFrag{folly::none};
   folly::Optional<uint8_t> icmpType{folly::none};
   folly::Optional<uint8_t> icmpCode{folly::none};
@@ -205,6 +110,8 @@ struct AclEntryFields {
   folly::Optional<cfg::IpType> ipType{folly::none};
   folly::Optional<AclTtl> ttl{folly::none};
   folly::Optional<folly::MacAddress> dstMac{folly::none};
+  folly::Optional<uint16_t> l4SrcPort{folly::none};
+  folly::Optional<uint16_t> l4DstPort{folly::none};
 
   cfg::AclActionType actionType{cfg::AclActionType::PERMIT};
   folly::Optional<MatchAction> aclAction{folly::none};
@@ -244,16 +151,15 @@ class AclEntry :
            getFields()->tcpFlagsBitMap == acl.getTcpFlagsBitMap() &&
            getFields()->srcPort == acl.getSrcPort() &&
            getFields()->dstPort == acl.getDstPort() &&
-           getFields()->srcL4PortRange == acl.getSrcL4PortRange() &&
-           getFields()->dstL4PortRange == acl.getDstL4PortRange() &&
-           getFields()->pktLenRange == acl.getPktLenRange() &&
            getFields()->ipFrag == acl.getIpFrag() &&
            getFields()->icmpType == acl.getIcmpType() &&
            getFields()->icmpCode == acl.getIcmpCode() &&
            getFields()->dscp == acl.getDscp() &&
            getFields()->dstMac == acl.getDstMac() &&
            getFields()->ipType == acl.getIpType() &&
-           getFields()->ttl == acl.getTtl();
+           getFields()->ttl == acl.getTtl() &&
+           getFields()->l4SrcPort == acl.getL4SrcPort() &&
+           getFields()->l4DstPort == acl.getL4DstPort();
   }
 
   int getPriority() const {
@@ -328,30 +234,6 @@ class AclEntry :
     writableFields()->dstPort = port;
   }
 
-  void setSrcL4PortRange(const AclL4PortRange& r) {
-    writableFields()->srcL4PortRange = r;
-  }
-
-  folly::Optional<AclL4PortRange> getSrcL4PortRange() const {
-    return getFields()->srcL4PortRange;
-  }
-
-  void setDstL4PortRange(const AclL4PortRange& r) {
-    writableFields()->dstL4PortRange = r;
-  }
-
-  folly::Optional<AclL4PortRange> getDstL4PortRange() const {
-    return getFields()->dstL4PortRange;
-  }
-
-  folly::Optional<AclPktLenRange> getPktLenRange() const {
-    return getFields()->pktLenRange;
-  }
-
-  void setPktLenRange(const AclPktLenRange& r) {
-    writableFields()->pktLenRange = r;
-  }
-
   folly::Optional<cfg::IpFragMatch> getIpFrag() const {
     return getFields()->ipFrag;
   }
@@ -406,6 +288,22 @@ class AclEntry :
 
   void setDstMac(const folly::MacAddress& dstMac) {
     writableFields()->dstMac = dstMac;
+  }
+
+  folly::Optional<uint16_t> getL4SrcPort() const {
+    return getFields()->l4SrcPort;
+  }
+
+  void setL4SrcPort(const uint16_t port) {
+    writableFields()->l4SrcPort = port;
+  }
+
+  folly::Optional<uint16_t> getL4DstPort() const {
+    return getFields()->l4DstPort;
+  }
+
+  void setL4DstPort(const uint16_t port) {
+    writableFields()->l4DstPort = port;
   }
 
  private:

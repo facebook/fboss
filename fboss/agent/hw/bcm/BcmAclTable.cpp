@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
-#include "fboss/agent/hw/bcm/BcmAclRange.h"
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
@@ -21,14 +20,13 @@
 namespace facebook { namespace fboss {
 
 /*
- * Release all acl, stat and range entries.
+ * Release all acl, stat entries.
  * Should only be called when we are about to reset/destroy the acl table
  */
 void BcmAclTable::releaseAcls() {
   // AclEntries must be removed before the AclStats
   aclEntryMap_.clear();
   aclStatMap_.clear();
-  aclRangeMap_.clear();
 }
 
 void BcmAclTable::processAddedAcl(
@@ -69,79 +67,6 @@ BcmAclEntry* BcmAclTable::getAcl(int priority) const {
     throw FbossError("Acl with priority: ", priority, " does not exist");
   }
   return acl;
-}
-
-
-BcmAclRange* FOLLY_NULLABLE BcmAclTable::getAclRangeIf(
-  const AclRange& range) const {
-  auto iter = aclRangeMap_.find(range);
-  if (iter == aclRangeMap_.end()) {
-    return nullptr;
-  } else {
-    return iter->second.first.get();
-  }
-}
-
-BcmAclRange* BcmAclTable::getAclRange(const AclRange& range) const {
-  auto bcmRange = getAclRangeIf(range);
-  if (!bcmRange) {
-    throw FbossError("Range: ", range, " does not exist");
-  }
-  return bcmRange;
-}
-
-uint32_t BcmAclTable::getAclRangeRefCount(const AclRange& range) const {
-  auto iter = aclRangeMap_.find(range);
-  if (iter == aclRangeMap_.end()) {
-    return 0;
-  } else {
-    return iter->second.second;
-  }
-}
-
-folly::Optional<uint32_t> BcmAclTable::getAclRangeRefCountIf(
-    BcmAclRangeHandle handle) const {
-  folly::Optional<uint32_t> refCount{folly::none};
-  for (auto iter = aclRangeMap_.begin(); iter != aclRangeMap_.end(); iter++) {
-    if (iter->second.first->getHandle() == handle) {
-      refCount = iter->second.second;
-      break;
-    }
-  }
-  return refCount;
-}
-
-uint32_t BcmAclTable::getAclRangeCount() const {
-  return aclRangeMap_.size();
-}
-
-BcmAclRange* BcmAclTable::incRefOrCreateBcmAclRange(const AclRange& range) {
-  auto iter = aclRangeMap_.find(range);
-  if (iter == aclRangeMap_.end()) {
-    // If the range does not exist yet, create a new BcmAclRange
-    auto newRange = std::make_unique<BcmAclRange>(hw_, range);
-    auto r = newRange.get();
-    aclRangeMap_.emplace(range, std::make_pair(std::move(newRange), 1));
-    return r;
-  } else {
-    // Increase the reference count of the existing entry in BcmAclTable
-    iter->second.second++;
-    return iter->second.first.get();
-  }
-}
-
-void BcmAclTable::derefBcmAclRange(const AclRange& range) {
-  auto iter = aclRangeMap_.find(range);
-  if (iter == aclRangeMap_.end()) {
-    throw FbossError("decrease reference count on a non-existing BcmAclRange");
-  }
-  if (iter->second.second == 0) {
-    throw FbossError("dereference a BcmAclRange whose reference is 0");
-  }
-  iter->second.second--;
-  if (iter->second.second == 0) {
-    aclRangeMap_.erase(iter);
-  }
 }
 
 BcmAclStat* BcmAclTable::incRefOrCreateBcmAclStat(

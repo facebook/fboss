@@ -109,14 +109,8 @@ TEST(Acl, applyConfig) {
   configV1.acls.resize(1);
   configV1.acls[0].name = "acl3";
 
-  // set ranges
-  configV1.acls[0].srcL4PortRange.min = 1;
-  configV1.acls[0].srcL4PortRange.max = 2;
-  configV1.acls[0].__isset.srcL4PortRange = true;
-  configV1.acls[0].dstL4PortRange.min = 3;
-  configV1.acls[0].dstL4PortRange.max = 4;
-  configV1.acls[0].dstL4PortRange.invert = true;
-  configV1.acls[0].__isset.dstL4PortRange = true;
+  configV1.acls[0].l4SrcPort_ref() = 1;
+  configV1.acls[0].l4DstPort_ref() = 3;
   // Make sure it's used so that it isn't ignored
   configV1.dataPlaneTrafficPolicy = cfg::TrafficPolicyConfig();
   configV1.__isset.dataPlaneTrafficPolicy = true;
@@ -138,24 +132,16 @@ TEST(Acl, applyConfig) {
   EXPECT_NE(aclV0, aclV3);
   EXPECT_EQ(0 + kAclStartPriority, aclV3->getPriority());
   EXPECT_EQ(cfg::AclActionType::PERMIT, aclV3->getActionType());
-  EXPECT_FALSE(!aclV3->getSrcL4PortRange());
-  EXPECT_EQ(aclV3->getSrcL4PortRange().value().getMin(), 1);
-  EXPECT_EQ(aclV3->getSrcL4PortRange().value().getMax(), 2);
-  EXPECT_EQ(aclV3->getSrcL4PortRange().value().getInvert(), false);
-  EXPECT_FALSE(!aclV3->getDstL4PortRange());
-  EXPECT_EQ(aclV3->getDstL4PortRange().value().getMin(), 3);
-  EXPECT_EQ(aclV3->getDstL4PortRange().value().getMax(), 4);
-  EXPECT_EQ(aclV3->getDstL4PortRange().value().getInvert(), true);
+  EXPECT_FALSE(!aclV3->getL4SrcPort());
+  EXPECT_EQ(aclV3->getL4SrcPort().value(), 1);
+  EXPECT_FALSE(!aclV3->getL4DstPort());
+  EXPECT_EQ(aclV3->getL4DstPort().value(), 3);
 
-  // test min > max case
-  configV1.acls[0].srcL4PortRange.min = 3;
-  EXPECT_THROW(publishAndApplyConfig(stateV3, &configV1, platform.get()),
-    FbossError);
   // test max > 65535 case
-  configV1.acls[0].srcL4PortRange.max = 65536;
+  configV1.acls[0].l4SrcPort_ref() = 65536;
   EXPECT_THROW(publishAndApplyConfig(stateV3, &configV1, platform.get()),
     FbossError);
-  // set packet length rangeJson
+
   cfg::SwitchConfig configV2;
   configV2.ports.resize(1);
   configV2.ports[0].logicalID = 1;
@@ -176,24 +162,11 @@ TEST(Acl, applyConfig) {
   configV2.dataPlaneTrafficPolicy.matchToAction[0]
       .action.sendToQueue.queueId = 1;
 
-  // set pkt length range
-  configV2.acls[0].pktLenRange.min = 34;
-  configV2.acls[0].pktLenRange.max = 1500;
-  configV2.acls[0].__isset.pktLenRange = true;
-
-  auto stateV4 = publishAndApplyConfig(stateV3, &configV2, platform.get());
-  EXPECT_NE(nullptr, stateV4);
-  auto aclV4 = stateV4->getAcl("acl3");
-  ASSERT_NE(nullptr, aclV4);
-  EXPECT_TRUE(aclV4->getPktLenRange());
-  EXPECT_EQ(aclV4->getPktLenRange().value().getMin(), 34);
-  EXPECT_EQ(aclV4->getPktLenRange().value().getMax(), 1500);
-
   // set the ip frag option
   configV2.acls[0].ipFrag = cfg::IpFragMatch::MATCH_NOT_FRAGMENTED;
   configV2.acls[0].__isset.ipFrag = true;
 
-  auto stateV5 = publishAndApplyConfig(stateV4, &configV2, platform.get());
+  auto stateV5 = publishAndApplyConfig(stateV3, &configV2, platform.get());
   EXPECT_NE(nullptr, stateV5);
   auto aclV5 = stateV5->getAcl("acl3");
   EXPECT_NE(nullptr, aclV5);
@@ -443,6 +416,8 @@ TEST(Acl, AclGeneration) {
 TEST(Acl, SerializeAclEntry) {
   auto entry = std::make_unique<AclEntry>(0, "dscp1");
   entry->setDscp(1);
+  entry->setL4SrcPort(179);
+  entry->setL4DstPort(179);
   MatchAction action = MatchAction();
   cfg::QueueMatchAction queueAction = cfg::QueueMatchAction();
   queueAction.queueId = 3;

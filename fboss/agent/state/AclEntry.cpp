@@ -27,9 +27,6 @@ constexpr auto kProto = "proto";
 constexpr auto kTcpFlagsBitMap = "tcpFlagsBitMap";
 constexpr auto kSrcPort = "srcPort";
 constexpr auto kDstPort = "dstPort";
-constexpr auto kSrcL4PortRange = "srcL4PortRange";
-constexpr auto kDstL4PortRange = "dstL4PortRange";
-constexpr auto kPktLenRange = "pktLenRange";
 constexpr auto kIpFrag = "ipFrag";
 constexpr auto kIcmpCode = "icmpCode";
 constexpr auto kIcmpType = "icmpType";
@@ -85,15 +82,6 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   if (dstPort) {
     aclEntry[kDstPort] = static_cast<uint16_t>(dstPort.value());
   }
-  if (srcL4PortRange) {
-    aclEntry[kSrcL4PortRange] = srcL4PortRange.value().toFollyDynamic();
-  }
-  if (dstL4PortRange) {
-    aclEntry[kDstL4PortRange] = dstL4PortRange.value().toFollyDynamic();
-  }
-  if (pktLenRange) {
-    aclEntry[kPktLenRange] = pktLenRange.value().toFollyDynamic();
-  }
   if (ipFrag) {
     auto itr_ipFrag = cfg::_IpFragMatch_VALUES_TO_NAMES.find(ipFrag.value());
     CHECK(itr_ipFrag != cfg::_IpFragMatch_VALUES_TO_NAMES.end());
@@ -113,6 +101,12 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   }
   if (ttl) {
     aclEntry[kTtl] = ttl.value().toFollyDynamic();
+  }
+  if (l4SrcPort) {
+    aclEntry[kL4SrcPort] = static_cast<uint16_t>(l4SrcPort.value());
+  }
+  if (l4DstPort) {
+    aclEntry[kL4DstPort] = static_cast<uint16_t>(l4DstPort.value());
   }
   auto itr_action = cfg::_AclActionType_VALUES_TO_NAMES.find(actionType);
   CHECK(itr_action != cfg::_AclActionType_VALUES_TO_NAMES.end());
@@ -161,17 +155,11 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   if (aclEntryJson.find(kDstPort) != aclEntryJson.items().end()) {
     aclEntry.dstPort = aclEntryJson[kDstPort].asInt();
   }
-  if (aclEntryJson.find(kSrcL4PortRange) != aclEntryJson.items().end()) {
-    aclEntry.srcL4PortRange = AclL4PortRange::fromFollyDynamic(
-      aclEntryJson[kSrcL4PortRange]);
+  if (aclEntryJson.find(kL4SrcPort) != aclEntryJson.items().end()) {
+    aclEntry.l4SrcPort = aclEntryJson[kL4SrcPort].asInt();
   }
-  if (aclEntryJson.find(kDstL4PortRange) != aclEntryJson.items().end()) {
-    aclEntry.dstL4PortRange = AclL4PortRange::fromFollyDynamic(
-      aclEntryJson[kDstL4PortRange]);
-  }
-  if (aclEntryJson.find(kPktLenRange) != aclEntryJson.items().end()) {
-    aclEntry.pktLenRange = AclPktLenRange::fromFollyDynamic(
-      aclEntryJson[kPktLenRange]);
+  if (aclEntryJson.find(kL4DstPort) != aclEntryJson.items().end()) {
+    aclEntry.l4DstPort = aclEntryJson[kL4DstPort].asInt();
   }
   if (aclEntryJson.find(kIpFrag) != aclEntryJson.items().end()) {
     auto itr_ipFrag = cfg::_IpFragMatch_NAMES_TO_VALUES.find(
@@ -263,6 +251,20 @@ void AclEntryFields::checkFollyDynamic(const folly::dynamic& aclEntryJson) {
          aclEntryJson[kProto] == kProtoIcmpv6))) {
     throw FbossError("proto must be either icmp or icmpv6 ",
       "if icmp type is set");
+  }
+
+  if (aclEntryJson.find(kL4SrcPort) != aclEntryJson.items().end() &&
+      (aclEntryJson[kL4SrcPort].asInt() < 0 ||
+       aclEntryJson[kL4SrcPort].asInt() > kMaxL4Port)) {
+    throw FbossError("L4 source port must be between 0 and ",
+      std::to_string(kMaxL4Port));
+  }
+
+  if (aclEntryJson.find(kL4DstPort) != aclEntryJson.items().end() &&
+      (aclEntryJson[kL4DstPort].asInt() < 0 ||
+       aclEntryJson[kL4DstPort].asInt() > kMaxL4Port)) {
+    throw FbossError("L4 destination port must be between 0 and ",
+      std::to_string(kMaxL4Port));
   }
 }
 

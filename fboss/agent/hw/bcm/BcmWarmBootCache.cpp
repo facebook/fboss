@@ -238,19 +238,6 @@ std::shared_ptr<MirrorMap> BcmWarmBootCache::reconstructMirrors()
   return dumpedSwSwitchState_->getMirrors();
 }
 
-void BcmWarmBootCache::programmed(Range2BcmHandlerItr itr) {
-  XLOG(DBG1) << "Programmed AclRange, removing from warm boot cache."
-             << " flags=" << itr->first.getFlags()
-             << " min=" << itr->first.getMin() << " max=" << itr->first.getMax()
-             << " handle= " << itr->second.first
-             << " current ref count=" << itr->second.second;
-  if (itr->second.second > 1) {
-    itr->second.second--;
-  } else {
-    aclRange2BcmAclRangeHandle_.erase(itr);
-  }
-}
-
 void BcmWarmBootCache::programmed(AclEntry2AclStatItr itr) {
   XLOG(DBG1) << "Programmed acl stat=" << itr->second.stat;
   itr->second.claimed = true;
@@ -479,8 +466,9 @@ void BcmWarmBootCache::populate(folly::Optional<folly::dynamic> warmBootState) {
   opennsl_l3_egress_ecmp_traverse(hw_->getUnit(), ecmpEgressTraversalCallback,
       this);
 
-  // populate acls, acl stats and acl ranges
-  populateAcls(kACLFieldGroupID, this->aclRange2BcmAclRangeHandle_,
+  // populate acls, acl stats
+  populateAcls(
+    kACLFieldGroupID,
     this->aclEntry2AclStat_,
     this->priority2BcmAclEntryHandle_);
 
@@ -798,7 +786,7 @@ void BcmWarmBootCache::clear() {
   }
   aclEntry2AclStat_.clear();
 
-  // Delete acls and acl ranges, since acl(field process) doesn't support
+  // Delete acls, since acl(field process) doesn't support
   // opennsl, we call BcmAclTable to remove the unclaimed acls
   XLOG(DBG1) << "Unclaimed acl count=" << priority2BcmAclEntryHandle_.size();
   for (auto aclItr: priority2BcmAclEntryHandle_) {
@@ -807,14 +795,6 @@ void BcmWarmBootCache::clear() {
     removeBcmAcl(aclItr.second);
   }
   priority2BcmAclEntryHandle_.clear();
-  XLOG(DBG1) << "Unclaimed acl range count="
-             << aclRange2BcmAclRangeHandle_.size();
-  for (auto aclRangeItr: aclRange2BcmAclRangeHandle_) {
-    XLOG(DBG1) << "Deleting unclaimed acl range=" << aclRangeItr.first.str()
-               << ", handle=" << aclRangeItr.second.first;
-    removeBcmAclRange(aclRangeItr.second.first);
-  }
-  aclRange2BcmAclRangeHandle_.clear();
 
   /* remove unclaimed mirrors and mirrored ports/acls, if any */
   removeUnclaimedMirrors();

@@ -104,11 +104,7 @@ class MirrorTest : public ::testing::Test {
     config_.acls.resize(aclCount);
     config_.acls[aclCount-1].name = name;
     config_.acls[aclCount-1].actionType = cfg::AclActionType::PERMIT;
-    config_.acls[aclCount - 1].dstL4PortRange_ref().value_unchecked().min =
-        dstL4Port;
-    config_.acls[aclCount - 1].dstL4PortRange_ref().value_unchecked().max =
-        dstL4Port;
-    config_.acls[aclCount-1].__isset.dstL4PortRange = true;
+    config_.acls[aclCount - 1].l4DstPort_ref() = dstL4Port;
   }
 
   void configurePortMirror(const std::string& mirror, PortID port) {

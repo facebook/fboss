@@ -255,7 +255,6 @@ add_library(fboss_agent STATIC
     fboss/agent/DHCPv4Handler.cpp
     fboss/agent/DHCPv6Handler.cpp
     fboss/agent/hw/BufferStatsLogger.cpp
-    fboss/agent/hw/bcm/BcmAclRange.cpp
     fboss/agent/hw/bcm/BcmAclTable.cpp
     fboss/agent/hw/bcm/BcmAPI.cpp
     fboss/agent/hw/bcm/BcmConfig.cpp
@@ -292,7 +291,6 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/CounterUtils.cpp
     fboss/agent/hw/bcm/PortAndEgressIdsMap.cpp
     fboss/agent/hw/bcm/oss/BcmAclEntry.cpp
-    fboss/agent/hw/bcm/oss/BcmAclRange.cpp
     fboss/agent/hw/bcm/oss/BcmAclStat.cpp
     fboss/agent/hw/bcm/oss/BcmAPI.cpp
     fboss/agent/hw/bcm/oss/BcmControlPlane.cpp

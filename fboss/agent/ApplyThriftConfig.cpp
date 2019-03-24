@@ -1228,44 +1228,53 @@ std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
 }
 
 void ThriftConfigApplier::checkAcl(const cfg::AclEntry *config) const {
+  // TODO(joseph5wu) The following RangeCheck needs to be deprecated once we
+  // have coop rolled out to use the exact match l4 port struct everywhere.
   // check l4 port range
   if (config->__isset.srcL4PortRange &&
       (config->srcL4PortRange_ref().value_unchecked().min >
-       AclL4PortRange::getUpperLimit())) {
+       AclEntryFields::kMaxL4Port)) {
     throw FbossError("src's L4 port range has a min value larger than 65535");
   }
   if (config->__isset.srcL4PortRange &&
       (config->srcL4PortRange_ref().value_unchecked().max >
-       AclL4PortRange::getUpperLimit())) {
+       AclEntryFields::kMaxL4Port)) {
     throw FbossError("src's L4 port range has a max value larger than 65535");
   }
   if (config->__isset.srcL4PortRange &&
-      (config->srcL4PortRange_ref().value_unchecked().min >
+      (config->srcL4PortRange_ref().value_unchecked().min !=
        config->srcL4PortRange_ref().value_unchecked().max)) {
-    throw FbossError("src's L4 port range has a min value larger than ",
-      "its max value");
+    throw FbossError("Only support src L4 port range min value == max value");
   }
   if (config->__isset.dstL4PortRange &&
       (config->dstL4PortRange_ref().value_unchecked().min >
-       AclL4PortRange::getUpperLimit())) {
+       AclEntryFields::kMaxL4Port)) {
     throw FbossError("dst's L4 port range has a min value larger than 65535");
   }
   if (config->__isset.dstL4PortRange &&
       (config->dstL4PortRange_ref().value_unchecked().max >
-       AclL4PortRange::getUpperLimit())) {
+       AclEntryFields::kMaxL4Port)) {
     throw FbossError("dst's L4 port range has a max value larger than 65535");
   }
   if (config->__isset.dstL4PortRange &&
-      (config->dstL4PortRange_ref().value_unchecked().min >
+      (config->dstL4PortRange_ref().value_unchecked().min !=
        config->dstL4PortRange_ref().value_unchecked().max)) {
-    throw FbossError("dst's L4 port range has a min value larger than ",
-      "its max value");
+    throw FbossError("Only support dst L4 port range min value == max value");
   }
-  if (config->__isset.pktLenRange &&
-      (config->pktLenRange_ref().value_unchecked().min >
-       config->pktLenRange_ref().value_unchecked().max)) {
-    throw FbossError("the min. packet length cannot exceed"
-      " the max. packet length");
+  // check l4 port
+  if (config->__isset.l4SrcPort &&
+      (config->l4SrcPort_ref().value_unchecked() < 0 ||
+       config->l4SrcPort_ref().value_unchecked() >
+       AclEntryFields::kMaxL4Port)) {
+    throw FbossError("L4 source port must be between 0 and ",
+                     std::to_string(AclEntryFields::kMaxL4Port));
+  }
+  if (config->__isset.l4DstPort &&
+      (config->l4DstPort_ref().value_unchecked() < 0 ||
+       config->l4DstPort_ref().value_unchecked() >
+       AclEntryFields::kMaxL4Port)) {
+    throw FbossError("L4 destination port must be between 0 and ",
+                     std::to_string(AclEntryFields::kMaxL4Port));
   }
   if (config->__isset.icmpCode && !config->__isset.icmpType) {
     throw FbossError("icmp type must be set when icmp code is set");
@@ -1335,23 +1344,19 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (config->__isset.dstPort) {
     newAcl->setDstPort(config->dstPort_ref().value_unchecked());
   }
+  // TODO(joseph5wu) The following RangeCheck needs to be deprecated once we
+  // have coop rolled out to use the exact match l4 port struct everywhere.
   if (config->__isset.srcL4PortRange) {
-    newAcl->setSrcL4PortRange(AclL4PortRange(
-        config->srcL4PortRange_ref().value_unchecked().min,
-        config->srcL4PortRange_ref().value_unchecked().max,
-        config->srcL4PortRange_ref().value_unchecked().invert));
+    newAcl->setL4SrcPort(config->srcL4PortRange_ref().value_unchecked().min);
   }
   if (config->__isset.dstL4PortRange) {
-    newAcl->setDstL4PortRange(AclL4PortRange(
-        config->dstL4PortRange_ref().value_unchecked().min,
-        config->dstL4PortRange_ref().value_unchecked().max,
-        config->dstL4PortRange_ref().value_unchecked().invert));
+    newAcl->setL4DstPort(config->dstL4PortRange_ref().value_unchecked().min);
   }
-  if (config->__isset.pktLenRange) {
-    newAcl->setPktLenRange(AclPktLenRange(
-        config->pktLenRange_ref().value_unchecked().min,
-        config->pktLenRange_ref().value_unchecked().max,
-        config->pktLenRange_ref().value_unchecked().invert));
+  if (config->__isset.l4SrcPort) {
+    newAcl->setL4SrcPort(config->l4SrcPort_ref().value_unchecked());
+  }
+  if (config->__isset.l4DstPort) {
+    newAcl->setL4DstPort(config->l4DstPort_ref().value_unchecked());
   }
   if (config->__isset.ipFrag) {
     newAcl->setIpFrag(config->ipFrag);
