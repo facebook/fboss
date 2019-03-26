@@ -27,6 +27,21 @@ using std::make_unique;
 using folly::StringPiece;
 using std::string;
 
+/*
+ * bde_create() must be defined as a symbol when linking against BRCM libs.
+ * It should never be invoked in our setup though. So return a error
+ */
+extern "C" int bde_create() {
+  XLOG(ERR) << "unexpected call to bde_create(): probe invoked "
+               "via diag shell command?";
+  return OPENNSL_E_UNAVAIL;
+}
+/*
+ * We don't set any default values.
+ */
+extern "C" void sal_config_init_defaults() {
+}
+
 namespace facebook { namespace fboss {
 
 static std::atomic<bool> bcmInitialized{false};

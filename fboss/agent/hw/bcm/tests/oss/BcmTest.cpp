@@ -10,23 +10,6 @@
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 
 #include "fboss/agent/FbossError.h"
-/*
- * Linking with BCM libs requires us to define these symbols in our
- * application. For actual wedge_agent code we define these in
- * BcmFacebookAPI.cpp. For test functions, rather than pulling in
- * all BCM  api code just define these symbols here and have tests link
- */
-
-extern "C" {
-struct ibde_t;
-ibde_t* bde;
-
-int bde_create() {
-  return 0;
-}
-void sal_config_init_defaults() {
-}
-}
 namespace facebook {
 namespace fboss {
 

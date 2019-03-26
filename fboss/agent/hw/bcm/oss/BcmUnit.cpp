@@ -60,7 +60,9 @@ void BcmUnit::attach(bool warmBoot) {
   if (attached_.load(std::memory_order_acquire)) {
     throw FbossError("unit ", unit_, " already initialized");
   }
-
+#ifdef OPENNSL_VERSION_3_7_0_1_ODP
+  opennsl_driver_init(nullptr);
+#else
   /*
    * FIXME(aeckert): unsetenv and setenv are not thread safe. This will
    * be called after the thrift thread has already started so this is
@@ -70,12 +72,14 @@ void BcmUnit::attach(bool warmBoot) {
    * FIXME(orib): This assumes that we only ever have one unit set up,
    * and that as a result, opennsl_driver_init() will only be called once.
    */
+
   unsetenv(wbEnvVar);
   if(warmBoot) {
     setenv(wbEnvVar, wbFlag, 1);
   }
 
   opennsl_driver_init();
+#endif
 
   attached_.store(true, std::memory_order_release);
 }

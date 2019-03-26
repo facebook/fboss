@@ -13,6 +13,18 @@
 #include <folly/Memory.h>
 
 #include <stdlib.h>
+extern "C" {
+#include <sal/driver.h>
+}
+
+/*
+ * Linking with BCM libs requires us to define a ibde_t*
+ */
+
+extern "C" {
+struct ibde_t;
+ibde_t* bde;
+}
 
 namespace facebook { namespace fboss {
 
@@ -25,7 +37,8 @@ std::atomic<BcmUnit*> bcmUnits[NUM_UNITS];
  *
  * This must be called before using any other Broadcom SDK functions.
  */
-void BcmAPI::initImpl(const std::map<std::string, std::string>& /*config*/) {}
+void BcmAPI::initImpl(const std::map<std::string, std::string>& /*config*/) {
+}
 
 /*
  * Get the number of Broadcom switching devices in this system.
