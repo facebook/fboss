@@ -239,6 +239,37 @@ add_executable(qsfp_service
     fboss/qsfp_service/platforms/wedge/oss/WedgeManagerInit.cpp
 )
 
+add_executable(bcm_test
+    fboss/agent/hw/test/HwTest.cpp
+    fboss/agent/hw/bcm/tests/BcmTest.cpp
+    fboss/agent/hw/bcm/tests/BcmPortUtils.cpp
+    fboss/agent/hw/bcm/tests/ConfigFactory.cpp
+    fboss/agent/hw/bcm/tests/BcmVlanTests.cpp
+    fboss/agent/hw/bcm/tests/Main.cpp
+    fboss/agent/hw/bcm/tests/platforms/BcmTestPort.cpp
+    fboss/agent/hw/bcm/tests/platforms/BcmTestPlatform.cpp
+    fboss/agent/hw/bcm/tests/platforms/BcmTestWedgePlatform.cpp
+    fboss/agent/hw/bcm/tests/platforms/BcmTestWedge40Platform.cpp
+    fboss/agent/hw/bcm/tests/platforms/BcmTestWedge40Port.cpp
+    fboss/agent/hw/bcm/tests/platforms/BcmTestWedge100Platform.cpp
+    fboss/agent/hw/bcm/tests/platforms/BcmTestWedge100Port.cpp
+    fboss/agent/hw/bcm/tests/platforms/BcmTestGalaxyPlatform.cpp
+    fboss/agent/hw/bcm/tests/platforms/BcmTestGalaxyPort.cpp
+    fboss/agent/hw/bcm/tests/platforms/BcmTestMinipack16QPlatform.cpp
+    fboss/agent/hw/bcm/tests/platforms/BcmTestYamp16QPlatform.cpp
+    fboss/agent/hw/bcm/tests/platforms/FakeBcmTestPlatform.cpp
+    fboss/agent/hw/bcm/tests/platforms/FakeBcmTestPort.cpp
+    fboss/agent/hw/bcm/tests/platforms/BcmTestPlatform.cpp
+    fboss/agent/hw/bcm/tests/platforms/BcmTestPort.cpp
+    fboss/agent/hw/bcm/tests/oss/BcmTest.cpp
+    fboss/agent/hw/bcm/tests/oss/BcmPortUtils.cpp
+    fboss/agent/hw/bcm/tests/platforms/oss/BcmTestWedgeTomahawkPlatform.cpp
+    fboss/agent/hw/bcm/tests/platforms/oss/BcmTestWedgeTomahawk3Platform.cpp
+    fboss/agent/hw/bcm/tests/platforms/oss/BcmTestWedge40Platform.cpp
+    fboss/agent/hw/bcm/tests/platforms/oss/FakeBcmTestPlatform.cpp
+)
+
+
 add_library(fboss_agent STATIC
     common/stats/ServiceData.cpp
     fboss/agent/AgentConfig.cpp
@@ -455,10 +486,6 @@ add_library(fboss_agent STATIC
     fboss/agent/UDPHeader.cpp
     fboss/agent/Utils.cpp
 
-    fboss/agent/hw/bcm/tests/platforms/BcmTestPlatform.cpp
-    fboss/agent/hw/bcm/tests/platforms/BcmTestPort.cpp
-
-
     fboss/lib/usb/GalaxyI2CBus.cpp
     fboss/lib/usb/BaseWedgeI2CBus.cpp
     fboss/lib/usb/BaseWedgeI2CBus.h
@@ -516,6 +543,10 @@ target_link_libraries(
 target_link_libraries(wedge_agent fboss_agent)
 target_link_libraries(netlink_manager fboss_agent)
 target_link_libraries(qsfp_service fboss_agent)
+target_link_libraries(bcm_test
+  fboss_agent
+  gtest
+)
 
 
 # TODO(rsher)

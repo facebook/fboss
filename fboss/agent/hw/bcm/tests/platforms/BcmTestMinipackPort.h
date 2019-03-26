@@ -18,7 +18,7 @@ public:
 
   LaneSpeeds supportedLaneSpeeds() const override {
     // TODO(joseph5wu) We haven't support flexport and portgroup for TH3
-    return {};
+    return LaneSpeeds();
   }
 
   bool shouldUsePortResourceAPIs() const override {
