@@ -18,6 +18,7 @@
 # Last updated: September 11, 2017.
 # This needs to be updated when the standard is updated.
 
+import logging
 import re
 
 
@@ -30,13 +31,17 @@ def oui(mac):
     return m.group('oui')
 
 
-def vendors_for_macs(macs):
+def vendors_for_macs(macs, ignore_unknown=False):
     vendors = set()
     ouis = {oui(mac) for mac in macs}
 
     for o in ouis:
         if o not in NIC_VENDOR_OUI_MAP:
-            raise KeyError("Unknown MAC OUI: {}".format(o))
+            msg = f"Unknown MAC OUI: {o}"
+            if ignore_unknown:
+                logging.error(msg)
+            else:
+                raise KeyError(msg)
         vendors.add(NIC_VENDOR_OUI_MAP[o])
     return vendors
 
