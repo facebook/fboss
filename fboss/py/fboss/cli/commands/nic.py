@@ -9,7 +9,7 @@
 
 
 from fboss.cli.commands import commands as cmds
-from fboss.cli.data.oui_to_vendor_ieee import NIC_VENDOR_OUI_MAP
+from fboss.cli.data.oui_to_vendor_ieee import oui_vendor_map
 
 
 class NicCmd(cmds.PrintNeighborTableCmd):
@@ -40,8 +40,9 @@ class NicCmd(cmds.PrintNeighborTableCmd):
         mac_nic_dictionary = {}
         for mac in mac_address_set:
             oui = mac[:self._LENGTH_OF_OUI].upper()
-            if oui in NIC_VENDOR_OUI_MAP.keys():
-                mac_nic_dictionary[mac] = NIC_VENDOR_OUI_MAP[oui]
+            nic_vendor_map = oui_vendor_map()
+            if oui in nic_vendor_map.keys():
+                mac_nic_dictionary[mac] = nic_vendor_map[oui]
             else:
                 mac_nic_dictionary[mac] = self._UNKNOWN_VENDOR_MESSAGE
 
