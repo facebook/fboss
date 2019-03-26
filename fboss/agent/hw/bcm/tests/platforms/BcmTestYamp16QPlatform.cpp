@@ -8,7 +8,7 @@
  *
  */
 #include "fboss/agent/hw/bcm/tests/platforms/BcmTestYamp16QPlatform.h"
-#include "fboss/agent/hw/bcm/tests/facebook/platforms/BcmTestYampPort.h"
+#include "fboss/agent/hw/bcm/tests/platforms/BcmTestYampPort.h"
 
 namespace {
 static const std::array<int, 128> kMasterLogicalPortIds = {
