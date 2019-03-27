@@ -132,10 +132,20 @@ int BcmTxPacket::sendSync(unique_ptr<BcmTxPacket> pkt) noexcept {
   opennsl_pkt_t* bcmPkt = pkt->pkt_;
   DCHECK(bcmPkt->call_back == nullptr);
   bcmPkt->call_back = BcmTxPacket::txCallbackSync;
-  std::unique_lock<std::mutex> lock{syncPktMutex()};
-  syncPacketSent() = false;
+  {
+    std::lock_guard<std::mutex> lk{syncPktMutex()};
+    syncPacketSent() = false;
+  }
+  // Give up the lock when calling sendPacketImpl. Callback
+  // on packet send complete, maybe invoked immediately on
+  // the same thread. Since the callback needs to acquire
+  // the same lock (to mark send as done). We need to give
+  // up the lock here to avoid deadlock. Further since
+  // sendImpl does not update any shared data structures
+  // its optimal to give up the lock anyways.
   auto rv = sendImpl(std::move(pkt));
-  syncPktCV().wait(lock, [] { return syncPacketSent(); });
+  std::unique_lock<std::mutex> lk{syncPktMutex()};
+  syncPktCV().wait(lk, [] { return syncPacketSent(); });
   return rv;
 }
 
