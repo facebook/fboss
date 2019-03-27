@@ -25,6 +25,7 @@
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmStatsConstants.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/bcm/CounterUtils.h"
 #include "fboss/agent/state/Port.h"
