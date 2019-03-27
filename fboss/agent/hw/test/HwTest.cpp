@@ -117,8 +117,8 @@ void HwTest::exitFatal() const noexcept {
 
 std::shared_ptr<SwitchState> HwTest::applyNewConfig(
     const cfg::SwitchConfig& config) {
-  return applyNewState(
-      applyThriftConfig(programmedState_, &config, getPlatform()));
+  auto newState = applyThriftConfig(programmedState_, &config, getPlatform());
+  return newState ? applyNewState(newState) : getProgrammedState();
 }
 
 std::shared_ptr<SwitchState> HwTest::applyNewState(
@@ -126,8 +126,7 @@ std::shared_ptr<SwitchState> HwTest::applyNewState(
   // Call stateChanged()
   newState->publish();
   StateDelta delta(programmedState_, newState);
-  getHwSwitch()->stateChanged(delta);
-  programmedState_ = newState;
-  return newState;
+  programmedState_ = getHwSwitch()->stateChanged(delta);
+  return programmedState_;
 }
 }} // facebook::fboss
