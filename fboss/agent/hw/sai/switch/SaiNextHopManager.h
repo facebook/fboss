@@ -12,7 +12,6 @@
 
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
-#include "fboss/agent/hw/sai/switch/RefMap.h"
 #include "fboss/agent/types.h"
 
 #include "folly/IPAddress.h"

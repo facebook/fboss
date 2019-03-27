@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/hw/sai/switch/RefMap.h"
+#include "fboss/lib/RefMap.h"
 
 #include <gtest/gtest.h>
 
