@@ -8,8 +8,25 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmEgress.h"
+#include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 namespace facebook { namespace fboss {
+
+bool operator==(
+    const opennsl_l3_egress_t& lhs,
+    const opennsl_l3_egress_t& rhs) {
+  bool sameMacs = !memcmp(lhs.mac_addr, rhs.mac_addr, sizeof(lhs.mac_addr));
+  bool lhsTrunk = lhs.flags & OPENNSL_L3_TGID;
+  bool rhsTrunk = rhs.flags & OPENNSL_L3_TGID;
+  bool sameTrunks = lhsTrunk && rhsTrunk && lhs.trunk == rhs.trunk;
+  bool samePhysicalPorts = !lhsTrunk && !rhsTrunk && rhs.port == lhs.port;
+  bool samePorts = sameTrunks || samePhysicalPorts;
+  return sameMacs && samePorts && rhs.intf == lhs.intf &&
+      rhs.flags == lhs.flags;
+}
+
+void BcmEgress::setLabel(opennsl_l3_egress_t* /*egress*/) const {}
 
 bool BcmEcmpEgress::removeEgressIdHwNotLocked(
     int /*unit*/,
@@ -25,5 +42,4 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
     opennsl_if_t /*toAdd*/) {
   return false; // Not supported in opennsl
 }
-
 }}

@@ -23,19 +23,6 @@ namespace facebook { namespace fboss {
 using folly::IPAddress;
 using folly::MacAddress;
 
-bool operator==(
-    const opennsl_l3_egress_t& lhs,
-    const opennsl_l3_egress_t& rhs) {
-  bool sameMacs = !memcmp(lhs.mac_addr, rhs.mac_addr, sizeof(lhs.mac_addr));
-  bool lhsTrunk = lhs.flags & OPENNSL_L3_TGID;
-  bool rhsTrunk = rhs.flags & OPENNSL_L3_TGID;
-  bool sameTrunks = lhsTrunk && rhsTrunk && lhs.trunk == rhs.trunk;
-  bool samePhysicalPorts = !lhsTrunk && !rhsTrunk && rhs.port == lhs.port;
-  bool samePorts = sameTrunks || samePhysicalPorts;
-  return sameMacs && samePorts && rhs.intf == lhs.intf &&
-      rhs.flags == lhs.flags;
-}
-
 bool BcmEgress::alreadyExists(const opennsl_l3_egress_t& newEgress) const {
   if (id_ == INVALID) {
     return false;
@@ -62,6 +49,42 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
     RouteForwardAction action) {
   opennsl_l3_egress_t eObj;
   opennsl_l3_egress_t_init(&eObj);
+  auto failedToProgramMsg = folly::to<std::string>(
+      "failed to program L3 egress object ",
+      id_,
+      " ",
+      (mac) ? mac->toString() : "ToCPU",
+      " on port ",
+      port,
+      " on unit ",
+      hw_->getUnit());
+  auto succeededToProgramMsg = folly::to<std::string>(
+      "programmed L3 egress object ",
+      id_,
+      " for ",
+      ((mac) ? mac->toString() : "to CPU"),
+      " on unit ",
+      hw_->getUnit(),
+      " for ip: ",
+      ip,
+      " @ brcmif ",
+      intfId);
+  auto alreadyExistsMsg = folly::to<std::string>(
+      "Identical egress object for : ",
+      ip,
+      " @ brcmif ",
+      intfId,
+      " pointing to ",
+      (mac ? mac->toString() : "CPU "),
+      " skipping egress programming");
+
+  if (hasLabel()) {
+    auto withLabelMsg = folly::to<std::string>(" with label ", getLabel(), " ");
+    failedToProgramMsg.append(withLabelMsg);
+    succeededToProgramMsg.append(withLabelMsg);
+    alreadyExistsMsg.append(withLabelMsg);
+  }
+
   if (mac == nullptr) {
     if (action == TO_CPU) {
       eObj.flags |= (OPENNSL_L3_L2TOCPU | OPENNSL_L3_COPY_TO_CPU);
@@ -73,9 +96,11 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
     eObj.port = port;
   }
   eObj.intf = intfId;
+  setLabel(&eObj);
   bool addOrUpdateEgress = false;
   const auto warmBootCache = hw_->getWarmBootCache();
   CHECK(warmBootCache);
+  // TODO(pshaikh) : look for labeled egress in warmboot cache
   auto egressId2EgressCitr = warmBootCache->findEgressFromHost(vrf, ip, intfId);
   if (egressId2EgressCitr != warmBootCache->egressId2Egress_end()) {
     // Lambda to compare with existing egress to know if should reprogram
@@ -90,10 +115,7 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
       if (!puntToCPU(newEgress) && !puntToCPU(existingEgress)) {
         // Both new and existing egress point to a valid nexthop
         // Compare mac, port and interface of egress objects
-        return !memcmp(newEgress.mac_addr, existingEgress.mac_addr,
-          sizeof(newEgress.mac_addr)) &&
-          existingEgress.intf == newEgress.intf &&
-          existingEgress.port == newEgress.port;
+        return newEgress == existingEgress;
       }
       if (puntToCPU(existingEgress)) {
         // If existing entry and new entry both point to CPU we
@@ -137,24 +159,15 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
        *  the corresponding IP address sometimes broke. BCM issue is being
        *  tracked in t4324084
        */
-      auto rc = opennsl_l3_egress_create(hw_->getUnit(), flags, &eObj, &id_);
-      bcmCheckError(rc, "failed to program L3 egress object ", id_,
-          " ", (mac) ? mac->toString() : "ToCPU",
-          " on port ", port,
-          " on unit ", hw_->getUnit());
-      XLOG(DBG2) << "programmed L3 egress object " << id_ << " for "
-                 << ((mac) ? mac->toString() : "to CPU") << " on unit "
-                 << hw_->getUnit() << " for ip: " << ip << " @ brcmif "
-                 << intfId << " flags " << eObj.flags << " towards port "
-                 << eObj.port;
+      auto rc = createEgress(hw_->getUnit(), flags, &eObj);
+      bcmCheckError(rc, failedToProgramMsg);
+      XLOG(DBG2) << succeededToProgramMsg << " flags " << eObj.flags
+                 << " towards port " << eObj.port;
     } else {
       // This could happen when neighbor entry is confirmed with the same MAC
       // after warmboot, as it will trigger another egress programming with the
       // same MAC.
-      XLOG(DBG1) << "Identical egress object for : " << ip << " @ brcmif "
-                 << intfId << " pointing to "
-                 << (mac ? mac->toString() : "CPU ") << " already exists "
-                 << "skipping egress programming ";
+      XLOG(DBG1) << alreadyExistsMsg;
     }
   }
   // update our internal fields

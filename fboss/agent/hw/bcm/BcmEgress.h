@@ -18,6 +18,7 @@ extern "C" {
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
 #include "fboss/agent/types.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/RouteTypes.h"
 
 #include <boost/noncopyable.hpp>
@@ -40,6 +41,8 @@ class BcmEgressBase : public boost::noncopyable {
   virtual ~BcmEgressBase() {}
   virtual folly::dynamic toFollyDynamic() const = 0;
   virtual bool isEcmp() const = 0;
+  virtual bool hasLabel() const = 0;
+  virtual opennsl_mpls_label_t getLabel() const = 0;
  protected:
   explicit BcmEgressBase(const BcmSwitchIf* hw) : hw_(hw) {}
   // this is used for unittesting
@@ -108,11 +111,31 @@ class BcmEgress : public BcmEgressBase {
     return egr.flags & OPENNSL_L3_DST_DISCARD;
   }
 
+  bool hasLabel() const override {
+    return false;
+  }
+
+  opennsl_mpls_label_t getLabel() const override {
+    throw FbossError("labeled requested on unlabeled egress");
+  }
+
+  virtual void setLabel(opennsl_l3_egress_t* egress) const;
+
  private:
-  bool alreadyExists(const  opennsl_l3_egress_t& newEgress) const;
-  void program(opennsl_if_t intfId, opennsl_vrf_t vrf,
-      const folly::IPAddress& ip, const folly::MacAddress* mac,
-      opennsl_port_t port, RouteForwardAction action);
+  bool alreadyExists(const opennsl_l3_egress_t& newEgress) const;
+  virtual int createEgress(
+      int unit,
+      uint32_t flags,
+      opennsl_l3_egress_t* egr) {
+    return opennsl_l3_egress_create(unit, flags, egr, &id_);
+  }
+  void program(
+      opennsl_if_t intfId,
+      opennsl_vrf_t vrf,
+      const folly::IPAddress& ip,
+      const folly::MacAddress* mac,
+      opennsl_port_t port,
+      RouteForwardAction action);
   folly::MacAddress mac_;
   opennsl_if_t intfId_{INVALID};
 };
@@ -133,6 +156,12 @@ class BcmEcmpEgress : public BcmEgressBase {
   }
   bool isEcmp() const override {
     return true;
+  }
+  bool hasLabel() const override {
+    return false;
+  }
+  opennsl_mpls_label_t getLabel() const override {
+    throw FbossError("labeled requested on multipath egress");
   }
   /*
    * Serialize to folly::dynamic
@@ -155,5 +184,7 @@ class BcmEcmpEgress : public BcmEgressBase {
   void program();
   const Paths paths_;
 };
+
+bool operator==(const opennsl_l3_egress_t& lhs, const opennsl_l3_egress_t& rhs);
 
 }}
