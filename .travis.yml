@@ -24,4 +24,6 @@ script:
 notifications:
   email:
     - rsher@fb.com
-  webhooks: https://code.facebook.com/travis/webhook
+ # TODO - uncomment webhooks once Travis build of fboss-oss is stable. That will enable Travis bot
+ # to post on diffs if OSS build fails.
+ # webhooks: https://code.facebook.com/travis/webhook
