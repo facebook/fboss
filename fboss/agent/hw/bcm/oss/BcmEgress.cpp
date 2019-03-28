@@ -42,4 +42,8 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
     opennsl_if_t /*toAdd*/) {
   return false; // Not supported in opennsl
 }
+opennsl_mpls_label_t getLabel(const opennsl_l3_egress_t& /*egress*/) {
+  return 0xffffffff;
+}
+
 }}

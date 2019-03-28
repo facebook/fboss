@@ -186,5 +186,6 @@ class BcmEcmpEgress : public BcmEgressBase {
 };
 
 bool operator==(const opennsl_l3_egress_t& lhs, const opennsl_l3_egress_t& rhs);
+opennsl_mpls_label_t getLabel(const opennsl_l3_egress_t& egress);
 
 }}

@@ -115,7 +115,14 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
       if (!puntToCPU(newEgress) && !puntToCPU(existingEgress)) {
         // Both new and existing egress point to a valid nexthop
         // Compare mac, port and interface of egress objects
-        return newEgress == existingEgress;
+        return !memcmp(
+                   newEgress.mac_addr,
+                   existingEgress.mac_addr,
+                   sizeof(newEgress.mac_addr)) &&
+            existingEgress.intf == newEgress.intf &&
+            existingEgress.port == newEgress.port &&
+            facebook::fboss::getLabel(existingEgress) ==
+            facebook::fboss::getLabel(newEgress);
       }
       if (puntToCPU(existingEgress)) {
         // If existing entry and new entry both point to CPU we
