@@ -354,11 +354,12 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
 
 std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
   auto warmBootState = getColdBootSwitchState();
-  for (auto port :  *warmBootState->getPorts()) {
+  for (auto port : *warmBootState->getPorts()) {
     auto bcmPort = portTable_->getBcmPort(port->getID());
     port->setOperState(bcmPort->isUp());
-    port->setAdminState(bcmPort->isEnabled() ?
-                        cfg::PortState::ENABLED : cfg::PortState::DISABLED);
+    port->setAdminState(
+        bcmPort->isEnabled() ? cfg::PortState::ENABLED
+                             : cfg::PortState::DISABLED);
 
     XLOG(DBG1) << "Recovered port " << port->getID() << " after warm boot."
                << " AdminState="
@@ -372,8 +373,26 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
   warmBootState->resetQosPolicies(warmBootCache_->reconstructQosPolicies());
   warmBootState->resetLoadBalancers(warmBootCache_->reconstructLoadBalancers());
   warmBootState->resetMirrors(warmBootCache_->reconstructMirrors());
-  warmBootCache_->reconstructPortMirrors(&warmBootState);
-  warmBootCache_->reconstructPortVlans(&warmBootState);
+
+  const auto& dumpedSwSwitchState = warmBootCache_->getDumpedSwSwitchState();
+  auto* ports = warmBootState->getPorts()->modify(&warmBootState);
+  for (const auto& cachedPort : *dumpedSwSwitchState.getPorts()) {
+    auto id = cachedPort->getID();
+    auto port = ports->getPort(id);
+    for (auto vlanMember : cachedPort->getVlans()) {
+      VlanID vlanID(vlanMember.first);
+      port->addVlan(vlanID, vlanMember.second.tagged);
+    }
+    port->setIngressMirror(cachedPort->getIngressMirror());
+    port->setEgressMirror(cachedPort->getEgressMirror());
+    port->setSflowIngressRate(cachedPort->getSflowIngressRate());
+    port->setSflowEgressRate(cachedPort->getSflowEgressRate());
+    if (port->getSflowIngressRate()) {
+      XLOG(INFO) << "Port : " << port->getID()
+                 << " Ingress rate : " << port->getSflowIngressRate();
+    }
+  }
+
   return warmBootState;
 }
 

@@ -104,17 +104,6 @@ shared_ptr<InterfaceMap> BcmWarmBootCache::reconstructInterfaceMap() const {
   return intfMap;
 }
 
-void BcmWarmBootCache::reconstructPortVlans(
-  std::shared_ptr<SwitchState>* state) const {
-  for (auto port : *dumpedSwSwitchState_->getPorts()) {
-    auto newPort = (*state)->getPorts()->getPort(port->getID());
-    for (auto vlanMember : port->getVlans()) {
-      VlanID vlanID(vlanMember.first);
-      newPort->addVlan(vlanID, vlanMember.second.tagged);
-    }
-  }
-}
-
 shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
   std::shared_ptr<VlanMap> dumpedVlans = dumpedSwSwitchState_->getVlans();
   auto vlans = make_shared<VlanMap>();
@@ -1004,21 +993,6 @@ void BcmWarmBootCache::removeUnclaimedMirrors() {
       [this](const auto& mirrorEgressPath2Handle) {
         this->removeUnclaimedMirror(mirrorEgressPath2Handle.second);
       });
-}
-
-void BcmWarmBootCache::reconstructPortMirrors(
-    std::shared_ptr<SwitchState>* state) {
-  auto* ports = (*state)->getPorts()->modify(state);
-  for (const auto& cachedPort : *dumpedSwSwitchState_->getPorts()) {
-    auto id = cachedPort->getID();
-    auto port = ports->getPort(id);
-    if (cachedPort->getIngressMirror()) {
-      port->setIngressMirror(cachedPort->getIngressMirror());
-    }
-    if (cachedPort->getEgressMirror()) {
-      port->setEgressMirror(cachedPort->getEgressMirror());
-    }
-  }
 }
 
 BcmWarmBootCache::IngressQosMapsItr BcmWarmBootCache::findIngressQosMap(

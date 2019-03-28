@@ -111,13 +111,6 @@ class BcmWarmBootCache {
   std::shared_ptr<MirrorMap> reconstructMirrors() const;
 
   /*
-   * Reconstruct port vlan membership
-   */
-  void reconstructPortVlans(std::shared_ptr<SwitchState>* state) const;
-
-  void reconstructPortMirrors(std::shared_ptr<SwitchState>* state);
-
-  /*
    * Get all cached ecmp egress Ids
    */
   const Ecmp2EgressIds&  ecmp2EgressIds() const {
@@ -457,6 +450,8 @@ class BcmWarmBootCache {
     return hw_;
   }
 
+
+
   using MirrorEgressPath2HandleCitr =
       typename MirrorEgressPath2Handle::const_iterator;
   MirrorEgressPath2HandleCitr mirrorsBegin() const;
@@ -481,6 +476,10 @@ class BcmWarmBootCache {
       BcmAclEntryHandle entry,
       MirrorDirection direction) const;
   void programmedMirroredAcl(MirroredAcl2HandleCitr itr);
+
+  const SwitchState& getDumpedSwSwitchState() const  {
+    return *dumpedSwSwitchState_;
+  }
 
  private:
   /*
