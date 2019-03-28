@@ -195,38 +195,6 @@ shared_ptr<VlanMap> BcmWarmBootCache::reconstructVlanMap() const {
   return vlans;
 }
 
-std::shared_ptr<RouteTableMap>
-BcmWarmBootCache::reconstructRouteTables() const {
-  // This reconstruction is done from dumped state
-  // rather than the HW tables as the host routes
-  // are programmed into host tables on some platforms.
-  // In the SwState (dumpedSwitchState_) these rightly
-  // show up as routes, but in the HW host table there
-  // is no way to distinguish a host entry from a host
-  // route. Since we want to get all routes here (host
-  // and LPM) we just get it from the dumped switch state.
-  return dumpedSwSwitchState_->getRouteTables();
-}
-
-std::shared_ptr<AclMap>
-BcmWarmBootCache::reconstructAclMap() const {
-  return dumpedSwSwitchState_->getAcls();
-}
-
-std::shared_ptr<QosPolicyMap> BcmWarmBootCache::reconstructQosPolicies() const {
-  return dumpedSwSwitchState_->getQosPolicies();
-}
-
-std::shared_ptr<LoadBalancerMap> BcmWarmBootCache::reconstructLoadBalancers()
-    const {
-  return dumpedSwSwitchState_->getLoadBalancers();
-}
-
-std::shared_ptr<MirrorMap> BcmWarmBootCache::reconstructMirrors()
-    const {
-  return dumpedSwSwitchState_->getMirrors();
-}
-
 void BcmWarmBootCache::programmed(AclEntry2AclStatItr itr) {
   XLOG(DBG1) << "Programmed acl stat=" << itr->second.stat;
   itr->second.claimed = true;

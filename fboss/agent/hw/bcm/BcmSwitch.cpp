@@ -368,13 +368,16 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
   }
   warmBootState->resetIntfs(warmBootCache_->reconstructInterfaceMap());
   warmBootState->resetVlans(warmBootCache_->reconstructVlanMap());
-  warmBootState->resetRouteTables(warmBootCache_->reconstructRouteTables());
-  warmBootState->resetAcls(warmBootCache_->reconstructAclMap());
-  warmBootState->resetQosPolicies(warmBootCache_->reconstructQosPolicies());
-  warmBootState->resetLoadBalancers(warmBootCache_->reconstructLoadBalancers());
-  warmBootState->resetMirrors(warmBootCache_->reconstructMirrors());
-
+  // Reconstruct remaining state from deserialized switch state.
+  // TODO: recover ports, interfaces and VLANs from deserialized switch
+  // state as well.
   const auto& dumpedSwSwitchState = warmBootCache_->getDumpedSwSwitchState();
+  warmBootState->resetRouteTables(dumpedSwSwitchState.getRouteTables());
+  warmBootState->resetAcls(dumpedSwSwitchState.getAcls());
+  warmBootState->resetQosPolicies(dumpedSwSwitchState.getQosPolicies());
+  warmBootState->resetLoadBalancers(dumpedSwSwitchState.getLoadBalancers());
+  warmBootState->resetMirrors(dumpedSwSwitchState.getMirrors());
+
   auto* ports = warmBootState->getPorts()->modify(&warmBootState);
   for (const auto& cachedPort : *dumpedSwSwitchState.getPorts()) {
     auto id = cachedPort->getID();
@@ -387,10 +390,6 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
     port->setEgressMirror(cachedPort->getEgressMirror());
     port->setSflowIngressRate(cachedPort->getSflowIngressRate());
     port->setSflowEgressRate(cachedPort->getSflowEgressRate());
-    if (port->getSflowIngressRate()) {
-      XLOG(INFO) << "Port : " << port->getID()
-                 << " Ingress rate : " << port->getSflowIngressRate();
-    }
   }
 
   return warmBootState;

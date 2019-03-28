@@ -94,21 +94,6 @@ class BcmWarmBootCache {
    * Reconstruct vlan map from contents of warm boot cache
    */
   std::shared_ptr<VlanMap> reconstructVlanMap() const;
-  /*
-   * Reconstruct route table map
-   */
-  std::shared_ptr<RouteTableMap> reconstructRouteTables() const;
-  /*
-   * Reconstruct acl map
-   */
-  std::shared_ptr<AclMap> reconstructAclMap() const;
-  std::shared_ptr<LoadBalancerMap> reconstructLoadBalancers() const;
-  std::shared_ptr<QosPolicyMap> reconstructQosPolicies() const;
-
-  /*
-   * Reconstruct mirror table
-   */
-  std::shared_ptr<MirrorMap> reconstructMirrors() const;
 
   /*
    * Get all cached ecmp egress Ids
