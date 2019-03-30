@@ -250,9 +250,6 @@ class BcmSwitch : public BcmSwitchIf {
   const BcmTrunkTable* getTrunkTable() const override {
     return trunkTable_.get();
   }
-  const std::vector<std::shared_ptr<AclEntry>> getCoppAcls() const {
-    return coppAclEntries_;
-  }
 
   bool isPortUp(PortID port) const override;
 
@@ -749,14 +746,6 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<std::thread> linkScanBottomHalfThread_;
   folly::EventBase linkScanBottomHalfEventBase_;
 
-  /*
-   * TODO - Right now we setup copp using logic embedded in code.
-   * So we need to remember what is already setup and what needs
-   * to be done now. Ideally CoPP setup should just be done via
-   * config - t14668101, once that is done, get rid of this member
-   * variable.
-   */
-  std::vector<std::shared_ptr<AclEntry>> coppAclEntries_;
   std::unique_ptr<BcmUnit> unitObject_;
   BootType bootType_{BootType::UNINITIALIZED};
   int64_t bstStatsUpdateTime_{0};

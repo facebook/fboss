@@ -55,9 +55,6 @@ class BcmTest : public HwTest {
   int getUnit() const;
 
  protected:
-  int getNumCoppAcls() {
-    return getHwSwitch()->getCoppAcls().size();
-  }
   virtual cfg::SwitchConfig initialConfig() const {
     return cfg::SwitchConfig();
   }

@@ -1098,6 +1098,7 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
   bool changed = false;
   int numExistingProcessed = 0;
   int priority = kAclStartPriority;
+  int cpuPriority = 1;
 
   // Start with the DROP acls, these should have highest priority
   auto acls = folly::gen::from(cfg_->acls)
@@ -1172,8 +1173,12 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
         matchAction.setEgressMirror(mta.action.egressMirror);
       }
 
-      auto acl = updateAcl(aclCfg, priority++, &numExistingProcessed,
-        &changed, &matchAction);
+      auto acl = updateAcl(
+        aclCfg,
+        isCoppAcl ? cpuPriority++ : priority++,
+        &numExistingProcessed,
+        &changed,
+        &matchAction);
 
       if (acl->getAclAction().hasValue()) {
         const auto& inMirror = acl->getAclAction().value().getIngressMirror();
@@ -1191,6 +1196,14 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
     }
     return entries;
   };
+
+  // Add controlPlane traffic acls
+  if (cfg_->cpuTrafficPolicy_ref() &&
+      cfg_->cpuTrafficPolicy_ref()->trafficPolicy_ref()) {
+    folly::gen::from(
+        addToAcls(*cfg_->cpuTrafficPolicy_ref()->trafficPolicy_ref(), true)) |
+        folly::gen::appendTo(newAcls);
+  }
 
   // Add dataPlane traffic acls
   if (cfg_->__isset.dataPlaneTrafficPolicy) {
@@ -1380,6 +1393,9 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
     newAcl->setTtl(AclTtl(
         config->ttl_ref().value_unchecked().value,
         config->ttl_ref().value_unchecked().mask));
+  }
+  if (config->__isset.lookupClass) {
+    newAcl->setLookupClass(config->lookupClass_ref().value_unchecked());
   }
   return newAcl;
 }

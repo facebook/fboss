@@ -208,7 +208,6 @@ void BcmSwitch::resetTables() {
   mirrorTable_.reset();
   trunkTable_.reset();
   controlPlane_.reset();
-  coppAclEntries_.clear();
   rtag7LoadBalancer_.reset();
   bcmStatUpdater_.reset();
   bstStatsMgr_.reset();
