@@ -112,6 +112,7 @@ struct AclEntryFields {
   folly::Optional<folly::MacAddress> dstMac{folly::none};
   folly::Optional<uint16_t> l4SrcPort{folly::none};
   folly::Optional<uint16_t> l4DstPort{folly::none};
+  folly::Optional<cfg::AclLookupClass> lookupClass{folly::none};
 
   cfg::AclActionType actionType{cfg::AclActionType::PERMIT};
   folly::Optional<MatchAction> aclAction{folly::none};
@@ -159,7 +160,8 @@ class AclEntry :
            getFields()->ipType == acl.getIpType() &&
            getFields()->ttl == acl.getTtl() &&
            getFields()->l4SrcPort == acl.getL4SrcPort() &&
-           getFields()->l4DstPort == acl.getL4DstPort();
+           getFields()->l4DstPort == acl.getL4DstPort() &&
+           getFields()->lookupClass == acl.getLookupClass();
   }
 
   int getPriority() const {
@@ -304,6 +306,13 @@ class AclEntry :
 
   void setL4DstPort(const uint16_t port) {
     writableFields()->l4DstPort = port;
+  }
+
+  folly::Optional<cfg::AclLookupClass> getLookupClass() const {
+    return getFields()->lookupClass;
+  }
+  void setLookupClass(const cfg::AclLookupClass& lookupClass) {
+    writableFields()->lookupClass = lookupClass;
   }
 
  private:

@@ -12,6 +12,7 @@
 #include "fboss/agent/state/StateUtils.h"
 #include <folly/Conv.h>
 #include <folly/MacAddress.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 using folly::IPAddress;
 
@@ -37,6 +38,7 @@ constexpr auto kIpType = "IpType";
 constexpr auto kTtl = "ttl";
 constexpr auto kTtlValue = "value";
 constexpr auto kTtlMask = "mask";
+constexpr auto kLookupClass = "lookupClass";
 constexpr auto kAclAction = "aclAction";
 }
 
@@ -107,6 +109,11 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   }
   if (l4DstPort) {
     aclEntry[kL4DstPort] = static_cast<uint16_t>(l4DstPort.value());
+  }
+  if (lookupClass) {
+    auto lookupClassName = apache::thrift::util::enumName(*lookupClass);
+    CHECK(lookupClassName != nullptr);
+    aclEntry[kLookupClass] = lookupClassName;
   }
   auto itr_action = cfg::_AclActionType_VALUES_TO_NAMES.find(actionType);
   CHECK(itr_action != cfg::_AclActionType_VALUES_TO_NAMES.end());
@@ -180,6 +187,11 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   }
   if (aclEntryJson.find(kTtl) != aclEntryJson.items().end()) {
     aclEntry.ttl = AclTtl::fromFollyDynamic(aclEntryJson[kTtl]);
+  }
+  if (aclEntryJson.find(kLookupClass) != aclEntryJson.items().end()) {
+    auto lookupClassItr = cfg::_AclLookupClass_NAMES_TO_VALUES.find(
+      aclEntryJson[kLookupClass].asString().c_str());
+    aclEntry.lookupClass = cfg::AclLookupClass(lookupClassItr->second);
   }
   aclEntry.actionType =
       cfg::_AclActionType_NAMES_TO_VALUES
