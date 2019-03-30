@@ -718,7 +718,8 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
 void ThriftHandler::getRouteTableByClient(
     std::vector<UnicastRoute>& routes, int16_t client) {
   ensureConfigured();
-  for (const auto& routeTable : (*sw_->getState()->getRouteTables())) {
+  auto state = sw_->getState();
+  for (const auto& routeTable : (*state->getRouteTables())) {
     for (const auto& ipv4 : *(routeTable->getRibV4()->routes())) {
       auto entry = ipv4->getEntryForClient(ClientID(client));
       if (not entry) {
@@ -755,7 +756,8 @@ void ThriftHandler::getRouteTableByClient(
 
 void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
   ensureConfigured();
-  for (const auto& routeTable : (*sw_->getState()->getRouteTables())) {
+  auto state = sw_->getState();
+  for (const auto& routeTable : *(state->getRouteTables())) {
     for (const auto& ipv4 : *(routeTable->getRibV4()->routes())) {
       RouteDetails rd = ipv4->toRouteDetails();
       routes.emplace_back(std::move(rd));
