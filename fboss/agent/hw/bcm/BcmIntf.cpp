@@ -16,6 +16,7 @@ extern "C" {
 #include <folly/IPAddress.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/hw/bcm/BcmAclEntry.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
@@ -233,6 +234,12 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
         hw_->writableHostTable()->derefBcmHost(hostKey);
         hosts_.erase(ret.first);
       };
+      // Add dstClassL3Id for local ip
+      if (addr.isV4()) {
+        host->setLookupClassId(BcmAclEntry::kLocalIp4DstClassL3Id);
+      } else {
+        host->setLookupClassId(BcmAclEntry::kLocalIp6DstClassL3Id);
+      }
       host->programToCPU(bcmIfId_);
     } catch (const std::exception& ex) {
       XLOG(ERR) << "failed to allocate BcmHost for " << addr

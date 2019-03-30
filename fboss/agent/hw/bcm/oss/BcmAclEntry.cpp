@@ -11,6 +11,8 @@
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
 
 namespace facebook { namespace fboss {
+constexpr int BcmAclEntry::kLocalIp4DstClassL3Id;
+constexpr int BcmAclEntry::kLocalIp6DstClassL3Id;
 
 BcmAclEntry::BcmAclEntry(
     BcmSwitch* /*hw*/,

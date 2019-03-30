@@ -25,6 +25,9 @@ enum class MirrorDirection;
  */
 class BcmAclEntry {
 public:
+  static constexpr int kLocalIp4DstClassL3Id = 1;
+  static constexpr int kLocalIp6DstClassL3Id = 2;
+
   BcmAclEntry(BcmSwitch* hw, int gid, const std::shared_ptr<AclEntry>& acl);
   ~BcmAclEntry();
   BcmAclEntryHandle getHandle() const {
