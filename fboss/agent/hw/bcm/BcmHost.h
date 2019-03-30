@@ -94,6 +94,21 @@ class BcmHost {
     }
   }
 
+  const BcmHostKey& getHostKey() const {
+    return key_;
+  }
+  int getLookupClassId() const {
+    return lookupClassId_;
+  }
+  void setLookupClassId(int lookupClassId) {
+    lookupClassId_ = lookupClassId;
+  }
+  static int getLookupClassFromL3Host(const opennsl_l3_host_t& host);
+  static std::string l3HostToString(const opennsl_l3_host_t& host);
+  static bool matchLookupClass(
+    const opennsl_l3_host_t& newHost,
+    const opennsl_l3_host_t& existingHost);
+
  private:
   // no copy or assignment
   BcmHost(BcmHost const &) = delete;
@@ -102,6 +117,9 @@ class BcmHost {
                opennsl_port_t port, RouteForwardAction action);
   void initHostCommon(opennsl_l3_host_t *host) const;
   bool isTrunk() const;
+
+  void setLookupClassToL3Host(opennsl_l3_host_t* host) const;
+
   const BcmSwitchIf* hw_;
   BcmHostKey key_;
   // Port that the corresponding egress object references.
@@ -112,6 +130,7 @@ class BcmHost {
   opennsl_trunk_t trunk_{BcmTrunk::INVALID};
   opennsl_if_t egressId_{BcmEgressBase::INVALID};
   bool addedInHW_{false}; // if added to the HW host(ARP) table or not
+  int lookupClassId_{0}; // DST Lookup Class
 };
 
 /**
@@ -168,6 +187,13 @@ class BcmHostTable {
   // return nullptr if not found
   BcmHost* getBcmHostIf(const BcmHostKey& key) const noexcept;
   BcmEcmpHost* getBcmEcmpHostIf(const BcmEcmpHostKey& key) const noexcept;
+
+  int getNumBcmHost() const {
+    return hosts_.size();
+  }
+  int getNumBcmEcmpHost() const {
+    return ecmpHosts_.size();
+  }
 
   /*
    * The following functions will modify the object. They rely on the global

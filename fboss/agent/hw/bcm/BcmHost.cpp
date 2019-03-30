@@ -25,15 +25,6 @@ namespace {
 constexpr auto kIntf = "intf";
 constexpr auto kPort = "port";
 constexpr auto kNextHops = "nexthops";
-
-std::string hostStr(const opennsl_l3_host_t& host) {
-  std::ostringstream os;
-  os << "is v6: " << (host.l3a_flags & OPENNSL_L3_IP6 ? "yes" : "no")
-    << ", is multipath: "
-    << (host.l3a_flags & OPENNSL_L3_MULTIPATH ? "yes": "no")
-    << ", vrf: " << host.l3a_vrf << ", intf: " << host.l3a_intf;
-  return os.str();
-}
 }
 
 namespace facebook { namespace fboss {
@@ -48,6 +39,16 @@ using std::unique_ptr;
 using std::shared_ptr;
 using folly::MacAddress;
 using folly::IPAddress;
+
+std::string BcmHost::l3HostToString(const opennsl_l3_host_t& host) {
+  std::ostringstream os;
+  os << "is v6: " << (host.l3a_flags & OPENNSL_L3_IP6 ? "yes" : "no")
+    << ", is multipath: "
+    << (host.l3a_flags & OPENNSL_L3_MULTIPATH ? "yes": "no")
+    << ", vrf: " << host.l3a_vrf << ", intf: " << host.l3a_intf
+    << ", lookupClass: " << getLookupClassFromL3Host(host);
+  return os.str();
+}
 
 void BcmHost::setEgressId(opennsl_if_t eid) {
   if (eid == egressId_) {
@@ -82,6 +83,7 @@ void BcmHost::initHostCommon(opennsl_l3_host_t *host) const {
   }
   host->l3a_vrf = key_.getVrf();
   host->l3a_intf = getEgressId();
+  setLookupClassToL3Host(host);
 }
 
 void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
@@ -102,6 +104,8 @@ void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
   if (replace) {
     host.l3a_flags |= OPENNSL_L3_REPLACE;
   }
+
+  bool needToAddInHw = true;
   const auto warmBootCache = hw_->getWarmBootCache();
   auto vrfIp2HostCitr = warmBootCache->findHost(key_.getVrf(), addr);
   if (vrfIp2HostCitr != warmBootCache->vrfAndIP2Host_end()) {
@@ -116,24 +120,37 @@ void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
           (newHost.l3a_flags & OPENNSL_L3_IP6) &&
           (existingHost.l3a_flags & OPENNSL_L3_MULTIPATH) ==
           (newHost.l3a_flags & OPENNSL_L3_MULTIPATH));
-      return flagsEqual && existingHost.l3a_vrf == newHost.l3a_vrf &&
-        existingHost.l3a_intf == newHost.l3a_intf;
+      return flagsEqual &&
+             existingHost.l3a_vrf == newHost.l3a_vrf &&
+             existingHost.l3a_intf == newHost.l3a_intf &&
+             matchLookupClass(host, existingHost);
     };
-    if (!equivalent(host, vrfIp2HostCitr->second)) {
-      XLOG(FATAL) << "Host entries should never change, addr: " << addr
-                  << " existing: " << hostStr(vrfIp2HostCitr->second)
-                  << " new: " << hostStr(host);
-    } else {
+    const auto& existingHost = vrfIp2HostCitr->second;
+    if (equivalent(host, existingHost)) {
       XLOG(DBG1) << "Host entry for " << addr << " already exists";
+      needToAddInHw = false;
+    } else {
+      XLOG(DBG1) << "Different host attributes, addr:" << addr
+                 << ", existing: " << l3HostToString(existingHost)
+                 << ", new: " << l3HostToString(host)
+                 << ", need to replace the existing one";
+      // make sure replace flag is set
+      host.l3a_flags |= OPENNSL_L3_REPLACE;
     }
-    warmBootCache->programmed(vrfIp2HostCitr);
-  } else {
-    XLOG(DBG3) << "Adding host entry for : " << addr;
+  }
+
+  if (needToAddInHw) {
+    XLOG(DBG3) << (host.l3a_flags & OPENNSL_L3_REPLACE ? "Replacing" : "Adding")
+               << "host entry for : " << addr;
     auto rc = opennsl_l3_host_add(hw_->getUnit(), &host);
     bcmCheckError(rc, "failed to program L3 host object for ", key_.str(),
       " @egress ", getEgressId());
-    XLOG(DBG3) << "created L3 host object for " << key_.str() << " @egress "
+    XLOG(DBG3) << "Programmed L3 host object for " << key_.str() << " @egress "
                << getEgressId();
+  }
+  // make sure we clear warmboot cache after programming to HW
+  if (vrfIp2HostCitr != warmBootCache->vrfAndIP2Host_end()) {
+    warmBootCache->programmed(vrfIp2HostCitr);
   }
   addedInHW_ = true;
 }
