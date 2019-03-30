@@ -591,11 +591,6 @@ class BcmSwitch : public BcmSwitchIf {
   void copyIPv6LinkLocalMcastPackets();
 
   /*
-   * (re) configure control plane policing based on new StateDelta
-   */
-  void reconfigureCoPP(const StateDelta& delta);
-
-  /*
    * Create ACL group
    */
   void createAclGroup();

@@ -96,10 +96,6 @@ void BcmSwitch::initFieldProcessor() const {
   // API not available in opennsl
 }
 
-void BcmSwitch::reconfigureCoPP(const StateDelta&) {
-  // API not available in opennsl
-}
-
 void BcmSwitch::createAclGroup() {
   // API not available in opennsl
 }
@@ -148,4 +144,6 @@ bool BcmSwitch::isValidLabelForwardingEntry(
     const LabelForwardingEntry* /*entry*/) const {
   return true;
 }
+
+void BcmSwitch::processControlPlaneChanges(const StateDelta& /*delta*/) {}
 }} //facebook::fboss

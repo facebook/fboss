@@ -716,7 +716,6 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   processQosChanges(delta);
 
   processControlPlaneChanges(delta);
-  reconfigureCoPP(delta);
 
   // Any neighbor changes, and modify appliedState if some changes fail to apply
   processNeighborChanges(delta, &appliedState);
@@ -1806,18 +1805,6 @@ void BcmSwitch::processChangedControlPlaneQueues(
   if (isControlPlaneQueueNameChanged(oldCPU, newCPU)) {
     controlPlane_->getQueueManager()->setupQueueCounters(newCPU->getQueues());
   }
-}
-
-void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
-  const auto controlPlaneDelta = delta.getControlPlaneDelta();
-  const auto& oldCPU = controlPlaneDelta.getOld();
-  const auto& newCPU = controlPlaneDelta.getNew();
-
-  processChangedControlPlaneQueues(oldCPU, newCPU);
-  if (oldCPU->getQosPolicy() != newCPU->getQosPolicy()) {
-    controlPlane_->setupIngressQosPolicy(newCPU->getQosPolicy());
-  }
-  // TODO(joseph5wu) Add reason-port mapping and cpu acls
 }
 
 void BcmSwitch::processMirrorChanges(const StateDelta& delta) {
