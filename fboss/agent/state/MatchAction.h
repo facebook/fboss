@@ -45,6 +45,10 @@ class MatchAction {
     sendToQueue_ = sendToQueue;
   }
 
+  bool isSendToCpuQueue() const {
+    return sendToQueue_ && sendToQueue_.value().second;
+  }
+
   folly::Optional<cfg::TrafficCounter> getTrafficCounter() const {
     return trafficCounter_;
   }

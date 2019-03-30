@@ -37,4 +37,6 @@ void SwSwitch::logSwitchRunStateChange(
       switchRunStateStr(newState));
   XLOG(DBG2) << logMsg;
 }
+
+void SwSwitch::updateAclsForWarmboot(folly::dynamic& /*switchState*/) const {}
 }} // facebook::fboss
