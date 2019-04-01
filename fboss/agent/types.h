@@ -50,6 +50,7 @@ FBOSS_STRONG_TYPE(uint32_t, RouterID)
 FBOSS_STRONG_TYPE(uint32_t, InterfaceID)
 FBOSS_STRONG_TYPE(int, VrfID)
 FBOSS_STRONG_TYPE(uint32_t, ClientID)
+FBOSS_STRONG_TYPE(uint16_t, SwitchID);
 
 /*
  * A unique ID identifying a node in our state tree.
