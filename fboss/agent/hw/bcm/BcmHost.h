@@ -119,6 +119,7 @@ class BcmHost {
 
   void setLookupClassToL3Host(opennsl_l3_host_t* host) const;
 
+  std::unique_ptr<BcmEgress> createEgress();
   const BcmSwitchIf* hw_;
   HostKey key_;
   // Port that the corresponding egress object references.
@@ -180,11 +181,11 @@ class BcmHostTable {
   virtual ~BcmHostTable();
 
   // throw an exception if not found
-  BcmHost* getBcmHost(const BcmHostKey& key) const;
+  BcmHost* getBcmHost(const HostKey& key) const;
   BcmEcmpHost* getBcmEcmpHost(const BcmEcmpHostKey& key) const;
 
   // return nullptr if not found
-  BcmHost* getBcmHostIf(const BcmHostKey& key) const noexcept;
+  BcmHost* getBcmHostIf(const HostKey& key) const noexcept;
   BcmEcmpHost* getBcmEcmpHostIf(const BcmEcmpHostKey& key) const noexcept;
 
   int getNumBcmHost() const {
@@ -210,7 +211,7 @@ class BcmHostTable {
    *
    * @return The BcmHost/BcmEcmpHost pointer just created or found.
    */
-  BcmHost* incRefOrCreateBcmHost(const BcmHostKey& hostKey);
+  BcmHost* incRefOrCreateBcmHost(const HostKey& hostKey);
   BcmEcmpHost* incRefOrCreateBcmEcmpHost(const BcmEcmpHostKey& key);
 
   /**
@@ -223,10 +224,10 @@ class BcmHostTable {
    *         decreased by 1, but the object is still valid as it is
    *         still referred in somewhere else
    */
-  BcmHost* derefBcmHost(const BcmHostKey& key) noexcept;
+  BcmHost* derefBcmHost(const HostKey& key) noexcept;
   BcmEcmpHost* derefBcmEcmpHost(const BcmEcmpHostKey& key) noexcept;
 
-  uint32_t getReferenceCount(const BcmHostKey& key) const noexcept;
+  uint32_t getReferenceCount(const HostKey& key) const noexcept;
   uint32_t getReferenceCount(const BcmEcmpHostKey& key) const noexcept;
 
   /*
@@ -395,6 +396,7 @@ class BcmHostTable {
       const KeyT& key) const noexcept;
 
   HostMap<BcmHostKey, BcmHost> hosts_;
+  HostMap<BcmLabeledHostKey, BcmHost> labeledHosts_;
   HostMap<BcmEcmpHostKey, BcmEcmpHost> ecmpHosts_;
 };
 

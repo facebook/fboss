@@ -78,28 +78,6 @@ bool operator<(const BcmLabeledHostKey& lhs, const BcmLabeledHostKey& rhs) {
       std::tie(rhs.vrf_, rhs.label_, rhs.intfID_, rhs.addr_, lhs.labels_);
 }
 
-opennsl_mpls_label_t BcmLabeledHostKey::getNextHopLabel(
-    const NextHop& nexthop) {
-  opennsl_mpls_label_t label = static_cast<uint32_t>(-1);
-  if (!nexthop.labelForwardingAction()) {
-    throw FbossError("labeled host key requested for next hop without label");
-  }
-  switch (nexthop.labelForwardingAction()->type()) {
-    case LabelForwardingAction::LabelForwardingType::SWAP:
-      label = nexthop.labelForwardingAction()->swapWith().value();
-      break;
-    case LabelForwardingAction::LabelForwardingType::PUSH:
-      label = nexthop.labelForwardingAction()->pushStack()->front();
-      break;
-    case LabelForwardingAction::LabelForwardingType::PHP:
-    case LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP:
-    case LabelForwardingAction::LabelForwardingType::NOOP:
-      throw FbossError(
-          "labeled host key requested for invalid label switch action");
-  }
-  return label;
-}
-
 template <class SelfType>
 bool operator<(SelfType const& lhs, SelfType const& rhs) {
   return folly::poly_call<6>(lhs, rhs);
@@ -108,5 +86,31 @@ bool operator<(SelfType const& lhs, SelfType const& rhs) {
 template <class SelfType>
 bool operator==(SelfType const& lhs, SelfType const& rhs) {
   return folly::poly_call<7>(lhs, rhs);
+}
+
+HostKey getNextHopKey(opennsl_vrf_t vrf, const NextHop& nexthop) {
+  if (!nexthop.labelForwardingAction() || !nexthop.isResolved() ||
+      nexthop.labelForwardingAction()->type() !=
+          LabelForwardingAction::LabelForwardingType::SWAP ||
+      nexthop.labelForwardingAction()->type() !=
+          LabelForwardingAction::LabelForwardingType::PUSH) {
+    // unlabaled next hop
+    return BcmHostKey(vrf, nexthop);
+  }
+  if (nexthop.labelForwardingAction()->type() ==
+      LabelForwardingAction::LabelForwardingType::SWAP) {
+    // labeled next hop for swap
+    return BcmLabeledHostKey(
+        vrf,
+        nexthop.labelForwardingAction()->swapWith().value(),
+        nexthop.addr(),
+        nexthop.intfID().value());
+  }
+  // labeled next hop for push
+  return BcmLabeledHostKey(
+      vrf,
+      nexthop.labelForwardingAction()->pushStack().value(),
+      nexthop.addr(),
+      nexthop.intfID().value());
 }
 }}

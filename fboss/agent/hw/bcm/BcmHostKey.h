@@ -182,7 +182,6 @@ class BcmLabeledHostKey {
       const BcmLabeledHostKey& lhs);
 
  private:
-  static opennsl_mpls_label_t getNextHopLabel(const NextHop& nexthop);
   opennsl_vrf_t vrf_;
   uint32_t label_;
   LabelForwardingAction::LabelStack labels_;
@@ -190,6 +189,7 @@ class BcmLabeledHostKey {
   InterfaceID intfID_;
 };
 
+HostKey getNextHopKey(opennsl_vrf_t vrf, const NextHop& nexthop);
 void toAppend(const HostKey& key, std::string* result);
 std::ostream& operator<<(std::ostream& os, const HostKey& key);
 }}

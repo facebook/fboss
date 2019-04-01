@@ -29,4 +29,7 @@ void BcmHost::setLookupClassToL3Host(opennsl_l3_host_t* /*host*/) const {}
 int BcmHost::getLookupClassFromL3Host(const opennsl_l3_host_t& /*host*/) {
   return 0;
 }
+std::unique_ptr<BcmEgress> BcmHost::createEgress() {
+  return std::make_unique<BcmEgress>(hw_);
+}
 }} // facebook::fboss

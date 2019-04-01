@@ -165,7 +165,7 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
   if (egressId_ == BcmEgressBase::INVALID) {
     XLOG(DBG3) << "Host entry for " << key_.str()
                << " does not have an egress, create one.";
-    createdEgress = std::make_unique<BcmEgress>(hw_);
+    createdEgress = createEgress();
     egressPtr = createdEgress.get();
   } else {
     egressPtr = dynamic_cast<BcmEgress*>(
@@ -339,13 +339,13 @@ BcmEcmpHost::BcmEcmpHost(const BcmSwitchIf *hw,
   std::vector<const NextHop *> prog;
   SCOPE_FAIL {
     for (auto nhopPtr : prog) {
-      table->derefBcmHost(BcmHostKey(vrf_, *nhopPtr));
+      table->derefBcmHost(getNextHopKey(vrf_, *nhopPtr));
     }
   };
   // allocate a BcmHost object for each path in this ECMP
   int total = 0;
   for (const auto& nhop : fwd) {
-    auto host = table->incRefOrCreateBcmHost(BcmHostKey(vrf_, nhop));
+    auto host = table->incRefOrCreateBcmHost(getNextHopKey(vrf_, nhop));
     prog.push_back(&nhop);
     // TODO:
     // Ideally, we should have the nexthop resolved already and programmed in
@@ -379,7 +379,7 @@ BcmEcmpHost::~BcmEcmpHost() {
   hw_->writableHostTable()->derefEgress(ecmpEgressId_);
   BcmHostTable *table = hw_->writableHostTable();
   for (const auto& nhop : fwd_) {
-    table->derefBcmHost(BcmHostKey(vrf_, nhop));
+    table->derefBcmHost(getNextHopKey(vrf_, nhop));
   }
 }
 
@@ -414,8 +414,13 @@ HostT* BcmHostTable::incRefOrCreateBcmHostImpl(
   return hostPtr;
 }
 
-BcmHost* BcmHostTable::incRefOrCreateBcmHost(const BcmHostKey& hostKey) {
-  return incRefOrCreateBcmHostImpl(&hosts_, hostKey);
+BcmHost* BcmHostTable::incRefOrCreateBcmHost(const HostKey& hostKey) {
+  if (!hostKey.hasLabel()) {
+    return incRefOrCreateBcmHostImpl(
+        &hosts_, folly::poly_cast<BcmHostKey>(hostKey));
+  }
+  return incRefOrCreateBcmHostImpl(
+      &labeledHosts_, folly::poly_cast<BcmLabeledHostKey>(hostKey));
 }
 
 BcmEcmpHost* BcmHostTable::incRefOrCreateBcmEcmpHost(
@@ -428,9 +433,12 @@ uint32_t BcmHostTable::getReferenceCount(const BcmEcmpHostKey& key)
   return getReferenceCountImpl(&ecmpHosts_, key);
 }
 
-uint32_t BcmHostTable::getReferenceCount(const BcmHostKey& key)
-    const noexcept {
-  return getReferenceCountImpl(&hosts_, key);
+uint32_t BcmHostTable::getReferenceCount(const HostKey& key) const noexcept {
+  if (!key.hasLabel()) {
+    return getReferenceCountImpl(&hosts_, folly::poly_cast<BcmHostKey>(key));
+  }
+  return getReferenceCountImpl(
+      &labeledHosts_, folly::poly_cast<BcmLabeledHostKey>(key));
 }
 
 template<typename KeyT, typename HostT>
@@ -455,8 +463,7 @@ HostT* BcmHostTable::getBcmHostIfImpl(
   return iter->second.first.get();
 }
 
-BcmHost* BcmHostTable::getBcmHost(
-    const BcmHostKey& key) const {
+BcmHost* BcmHostTable::getBcmHost(const HostKey& key) const {
   auto host = getBcmHostIf(key);
   if (!host) {
     throw FbossError("Cannot find BcmHost key=", key);
@@ -474,9 +481,11 @@ BcmEcmpHost* BcmHostTable::getBcmEcmpHost(
   return host;
 }
 
-BcmHost* BcmHostTable::getBcmHostIf(
-    const BcmHostKey& key) const noexcept {
-  return getBcmHostIfImpl(&hosts_, key);
+BcmHost* BcmHostTable::getBcmHostIf(const HostKey& key) const noexcept {
+  return !key.hasLabel()
+      ? getBcmHostIfImpl(&hosts_, folly::poly_cast<BcmHostKey>(key))
+      : getBcmHostIfImpl(
+            &labeledHosts_, folly::poly_cast<BcmLabeledHostKey>(key));
 }
 
 BcmEcmpHost* BcmHostTable::getBcmEcmpHostIf(
@@ -504,9 +513,11 @@ HostT* BcmHostTable::derefBcmHostImpl(
   return entry.first.get();
 }
 
-BcmHost* BcmHostTable::derefBcmHost(
-    const BcmHostKey& key) noexcept {
-  return derefBcmHostImpl(&hosts_, key);
+BcmHost* BcmHostTable::derefBcmHost(const HostKey& key) noexcept {
+  return !key.hasLabel()
+      ? derefBcmHostImpl(&hosts_, folly::poly_cast<BcmHostKey>(key))
+      : derefBcmHostImpl(
+            &labeledHosts_, folly::poly_cast<BcmLabeledHostKey>(key));
 }
 
 BcmEcmpHost* BcmHostTable::derefBcmEcmpHost(
