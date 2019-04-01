@@ -39,8 +39,7 @@ class BcmHostTable;
 
 class BcmHost {
  public:
-  BcmHost(const BcmSwitchIf* hw, BcmHostKey key)
-      : hw_(hw), key_(std::move(key)) {}
+  BcmHost(const BcmSwitchIf* hw, HostKey key) : hw_(hw), key_(std::move(key)) {}
 
   virtual ~BcmHost();
   bool isProgrammed() const {
@@ -94,7 +93,7 @@ class BcmHost {
     }
   }
 
-  const BcmHostKey& getHostKey() const {
+  const HostKey& getHostKey() const {
     return key_;
   }
   int getLookupClassId() const {
@@ -121,7 +120,7 @@ class BcmHost {
   void setLookupClassToL3Host(opennsl_l3_host_t* host) const;
 
   const BcmSwitchIf* hw_;
-  BcmHostKey key_;
+  HostKey key_;
   // Port that the corresponding egress object references.
   // Only set for actual host entries that point a non
   // drop/CPU egress object. Set to 0 for host routes as

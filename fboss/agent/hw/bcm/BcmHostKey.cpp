@@ -54,12 +54,59 @@ bool operator< (const BcmHostKey& a, const BcmHostKey& b) {
   }
 }
 
-void toAppend(const BcmHostKey& key, std::string *result) {
+void toAppend(const HostKey& key, std::string* result) {
   result->append(key.str());
 }
 
-std::ostream& operator<<(std::ostream& os, const BcmHostKey& key) {
+std::ostream& operator<<(std::ostream& os, const HostKey& key) {
   return os << key.str();
 }
 
+std::string BcmLabeledHostKey::str() const {
+  return folly::to<std::string>(
+      "BcmHost: ", addr_, "@I", intfID_, "@label", getLabel());
+}
+
+bool operator==(const BcmLabeledHostKey& lhs, const BcmLabeledHostKey& rhs) {
+  return lhs.getVrf() == rhs.getVrf() && lhs.getLabel() == rhs.getLabel() &&
+      lhs.addr() == rhs.addr() && lhs.intfID() == rhs.intfID() &&
+      lhs.labels_ == rhs.labels_;
+}
+
+bool operator<(const BcmLabeledHostKey& lhs, const BcmLabeledHostKey& rhs) {
+  return std::tie(lhs.vrf_, lhs.label_, lhs.intfID_, lhs.addr_, lhs.labels_) <
+      std::tie(rhs.vrf_, rhs.label_, rhs.intfID_, rhs.addr_, lhs.labels_);
+}
+
+opennsl_mpls_label_t BcmLabeledHostKey::getNextHopLabel(
+    const NextHop& nexthop) {
+  opennsl_mpls_label_t label = static_cast<uint32_t>(-1);
+  if (!nexthop.labelForwardingAction()) {
+    throw FbossError("labeled host key requested for next hop without label");
+  }
+  switch (nexthop.labelForwardingAction()->type()) {
+    case LabelForwardingAction::LabelForwardingType::SWAP:
+      label = nexthop.labelForwardingAction()->swapWith().value();
+      break;
+    case LabelForwardingAction::LabelForwardingType::PUSH:
+      label = nexthop.labelForwardingAction()->pushStack()->front();
+      break;
+    case LabelForwardingAction::LabelForwardingType::PHP:
+    case LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP:
+    case LabelForwardingAction::LabelForwardingType::NOOP:
+      throw FbossError(
+          "labeled host key requested for invalid label switch action");
+  }
+  return label;
+}
+
+template <class SelfType>
+bool operator<(SelfType const& lhs, SelfType const& rhs) {
+  return folly::poly_call<6>(lhs, rhs);
+}
+
+template <class SelfType>
+bool operator==(SelfType const& lhs, SelfType const& rhs) {
+  return folly::poly_call<7>(lhs, rhs);
+}
 }}
