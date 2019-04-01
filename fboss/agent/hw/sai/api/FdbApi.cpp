@@ -8,19 +8,19 @@
  *
  */
 
-#include "fboss/agent/hw/sai/api/NeighborApi.h"
+#include "fboss/agent/hw/sai/api/FdbApi.h"
 
 #include <boost/functional/hash.hpp>
 
 #include <functional>
 
 namespace std {
-size_t hash<facebook::fboss::NeighborApiParameters::NeighborEntry>::operator()(
-    const facebook::fboss::NeighborApiParameters::NeighborEntry& n) const {
+size_t hash<facebook::fboss::FdbApiParameters::FdbEntry>::operator()(
+    const facebook::fboss::FdbApiParameters::FdbEntry& fdbEntry) const {
   size_t seed = 0;
-  boost::hash_combine(seed, n.switchId());
-  boost::hash_combine(seed, n.routerInterfaceId());
-  boost::hash_combine(seed, std::hash<folly::IPAddress>()(n.ip()));
+  boost::hash_combine(seed, fdbEntry.switchId());
+  boost::hash_combine(seed, fdbEntry.bridgeId());
+  boost::hash_combine(seed, std::hash<folly::MacAddress>()(fdbEntry.mac()));
   return seed;
 }
 } // namespace std

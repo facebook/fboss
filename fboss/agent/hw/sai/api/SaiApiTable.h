@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/BridgeApi.h"
+#include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/api/LagApi.h"
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
@@ -37,6 +38,13 @@ class SaiApiTable {
   }
   const BridgeApi& bridgeApi() const {
     return *bridgeApi_;
+  }
+
+  FdbApi& fdbApi() {
+    return *fdbApi_;
+  }
+  const FdbApi& fdbApi() const {
+    return *fdbApi_;
   }
 
   LagApi& lagApi() {
@@ -110,6 +118,7 @@ class SaiApiTable {
 
  private:
   std::unique_ptr<BridgeApi> bridgeApi_;
+  std::unique_ptr<FdbApi> fdbApi_;
   std::unique_ptr<LagApi> lagApi_;
   std::unique_ptr<NextHopApi> nextHopApi_;
   std::unique_ptr<NextHopGroupApi> nextHopGroupApi_;

@@ -8,7 +8,7 @@
  *
  */
 
-#include "SaiApiTable.h"
+#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 
 extern "C" {
   #include <sai.h>
@@ -19,6 +19,7 @@ namespace fboss {
 SaiApiTable::SaiApiTable() {
   sai_api_initialize(0, nullptr);
   bridgeApi_ = std::make_unique<BridgeApi>();
+  fdbApi_ = std::make_unique<FdbApi>();
   nextHopApi_ = std::make_unique<NextHopApi>();
   nextHopGroupApi_ = std::make_unique<NextHopGroupApi>();
   neighborApi_ = std::make_unique<NeighborApi>();
