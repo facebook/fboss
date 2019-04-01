@@ -21,10 +21,10 @@ using namespace facebook::fboss;
 class NeighborManagerTest : public ManagerTestBase {
  public:
   void SetUp() override {
+    setupStage = SetupStage::PORT | SetupStage::VLAN | SetupStage::INTERFACE;
     ManagerTestBase::SetUp();
-    addPort(1, true);
-    addVlan(1, {});
-    addInterface(1, folly::MacAddress("42:42:42:42:42:42"));
+    intf0 = testInterfaces[0];
+    h0 = intf0.remoteHosts[0];
   }
 
   template <typename NeighborEntryT>
@@ -48,20 +48,20 @@ class NeighborManagerTest : public ManagerTestBase {
     EXPECT_FALSE(saiNeighbor);
   }
 
-  folly::IPAddressV4 ip4{"41.41.41.41"};
-  folly::MacAddress dstMac{"41:41:41:41:41:41"};
+  TestInterface intf0;
+  TestRemoteHost h0;
 };
 
 TEST_F(NeighborManagerTest, addResolvedNeighbor) {
-  auto arpEntry = makeArpEntry(1, ip4, dstMac);
+  auto arpEntry = makeArpEntry(intf0.id, h0);
   saiManagerTable->neighborManager().addNeighbor(arpEntry);
-  checkEntry(arpEntry, dstMac);
+  checkEntry(arpEntry, h0.mac);
 }
 
 TEST_F(NeighborManagerTest, removeResolvedNeighbor) {
-  auto arpEntry = makeArpEntry(1, ip4, dstMac);
+  auto arpEntry = makeArpEntry(intf0.id, h0);
   saiManagerTable->neighborManager().addNeighbor(arpEntry);
-  checkEntry(arpEntry, dstMac);
+  checkEntry(arpEntry, h0.mac);
   saiManagerTable->neighborManager().removeNeighbor(arpEntry);
   checkMissing(arpEntry);
 }
@@ -83,18 +83,18 @@ TEST_F(NeighborManagerTest, unresolveNeighbor) {
 }
 
 TEST_F(NeighborManagerTest, getNonexistentNeighbor) {
-  auto arpEntry = makeArpEntry(1, ip4, dstMac);
+  auto arpEntry = makeArpEntry(intf0.id, h0);
   checkMissing(arpEntry);
 }
 
 TEST_F(NeighborManagerTest, removeNonexistentNeighbor) {
-  auto arpEntry = makeArpEntry(1, ip4, dstMac);
+  auto arpEntry = makeArpEntry(intf0.id, h0);
   EXPECT_THROW(
       saiManagerTable->neighborManager().removeNeighbor(arpEntry), FbossError);
 }
 
 TEST_F(NeighborManagerTest, addDuplicateResolvedNeighbor) {
-  auto arpEntry = makeArpEntry(1, ip4, dstMac);
+  auto arpEntry = makeArpEntry(intf0.id, h0);
   saiManagerTable->neighborManager().addNeighbor(arpEntry);
   EXPECT_THROW(
       saiManagerTable->neighborManager().addNeighbor(arpEntry), FbossError);

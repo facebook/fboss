@@ -27,9 +27,10 @@ using namespace facebook::fboss;
 class RouterInterfaceManagerTest : public ManagerTestBase {
  public:
   void SetUp() override {
+    setupStage = SetupStage::PORT | SetupStage::VLAN;
     ManagerTestBase::SetUp();
-    saiVlanId1 = addVlan(vlanId1, {});
-    saiVlanId2 = addVlan(vlanId2, {});
+    intf0 = testInterfaces[0];
+    intf1 = testInterfaces[1];
   }
 
   void checkRouterInterface(
@@ -46,42 +47,50 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
     EXPECT_EQ(srcMacGot, expectedSrcMac);
   }
 
-  static constexpr uint16_t vlanId1 = 1;
-  static constexpr uint16_t vlanId2 = 2;
-  sai_object_id_t saiVlanId1;
-  sai_object_id_t saiVlanId2;
-  folly::MacAddress srcMac1{"AA:BB:CC:DD:EE:11"};
-  folly::MacAddress srcMac2{"AA:BB:CC:DD:EE:22"};
+  TestInterface intf0;
+  TestInterface intf1;
 };
 
 TEST_F(RouterInterfaceManagerTest, addRouterInterface) {
-  auto saiId = addInterface(1, srcMac1);
-  checkRouterInterface(saiId, saiVlanId1, srcMac1);
+  auto swInterface = makeInterface(intf0);
+  auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
+      swInterface);
+  checkRouterInterface(saiId, intf0.id, intf0.routerMac);
 }
 
 TEST_F(RouterInterfaceManagerTest, addTwoRouterInterfaces) {
-  auto saiId1 = addInterface(1, srcMac1);
-  auto saiId2 = addInterface(2, srcMac2);
-  checkRouterInterface(saiId1, saiVlanId1, srcMac1);
-  checkRouterInterface(saiId2, saiVlanId2, srcMac2);
+  auto swInterface0 = makeInterface(intf0);
+  auto saiId0 = saiManagerTable->routerInterfaceManager().addRouterInterface(
+      swInterface0);
+  auto swInterface1 = makeInterface(intf1);
+  auto saiId1 = saiManagerTable->routerInterfaceManager().addRouterInterface(
+      swInterface1);
+  checkRouterInterface(saiId0, intf0.id, intf0.routerMac);
+  checkRouterInterface(saiId1, intf1.id, intf1.routerMac);
 }
 
 TEST_F(RouterInterfaceManagerTest, addDupRouterInterface) {
-  auto saiId = addInterface(1, srcMac1);
-  EXPECT_THROW(addInterface(1, srcMac1), FbossError);
+  auto swInterface = makeInterface(intf0);
+  saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+  EXPECT_THROW(
+      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface),
+      FbossError);
 }
 
 TEST_F(RouterInterfaceManagerTest, getRouterInterface) {
-  auto saiId = addInterface(1, srcMac1);
+  auto swInterface = makeInterface(intf0);
+  auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
+      swInterface);
   auto routerInterface =
       saiManagerTable->routerInterfaceManager().getRouterInterface(
-          InterfaceID(1));
+          InterfaceID(0));
   EXPECT_TRUE(routerInterface);
   EXPECT_EQ(routerInterface->id(), saiId);
 }
 
 TEST_F(RouterInterfaceManagerTest, getNonexistentRouterInterface) {
-  auto saiId = addInterface(1, srcMac1);
+  auto swInterface = makeInterface(intf0);
+  saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
   auto routerInterface =
       saiManagerTable->routerInterfaceManager().getRouterInterface(
           InterfaceID(2));
@@ -89,7 +98,8 @@ TEST_F(RouterInterfaceManagerTest, getNonexistentRouterInterface) {
 }
 
 TEST_F(RouterInterfaceManagerTest, removeRouterInterface) {
-  auto saiId = addInterface(1, srcMac1);
+  auto swInterface = makeInterface(intf1);
+  saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
   auto& routerInterfaceManager = saiManagerTable->routerInterfaceManager();
   InterfaceID swId(1);
   routerInterfaceManager.removeRouterInterface(swId);
@@ -99,7 +109,8 @@ TEST_F(RouterInterfaceManagerTest, removeRouterInterface) {
 }
 
 TEST_F(RouterInterfaceManagerTest, removeNonexistentRouterInterface) {
-  auto saiId = addInterface(1, srcMac1);
+  auto swInterface = makeInterface(intf1);
+  saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
   auto& routerInterfaceManager = saiManagerTable->routerInterfaceManager();
   InterfaceID swId(2);
   EXPECT_THROW(routerInterfaceManager.removeRouterInterface(swId), FbossError);

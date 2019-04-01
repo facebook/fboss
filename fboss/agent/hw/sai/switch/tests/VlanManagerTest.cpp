@@ -28,17 +28,12 @@ using namespace facebook::fboss;
 class VlanManagerTest : public ManagerTestBase {
  public:
   void SetUp() override {
+    setupStage = SetupStage::PORT;
     ManagerTestBase::SetUp();
-    setupPorts();
+    intf0 = testInterfaces[0];
+    intf1 = testInterfaces[1];
   }
-
-  void setupPorts() {
-    for (int i = 0; i < 4; ++i) {
-      addPort(i, true);
-    }
-  }
-
-  /*
+    /*
    * This assumes one lane ports where the HwLaneList attribute
    * has the port id in "expectedPorts"
    */
@@ -66,50 +61,59 @@ class VlanManagerTest : public ManagerTestBase {
     }
     EXPECT_EQ(observedPorts, expectedPorts);
   }
+  TestInterface intf0;
+  TestInterface intf1;
 };
 
 TEST_F(VlanManagerTest, addVlan) {
-  auto saiId = addVlan(42, {});
+  std::shared_ptr<Vlan> swVlan = makeVlan(intf0);
+  sai_object_id_t saiId = saiManagerTable->vlanManager().addVlan(swVlan);
   auto swId = saiApiTable->vlanApi().getAttribute(
       VlanApiParameters::Attributes::VlanId(), saiId);
-  EXPECT_EQ(swId, 42);
+  EXPECT_EQ(swId, 0);
 }
 
 TEST_F(VlanManagerTest, addTwoVlans) {
-  auto saiId = addVlan(42, {});
+  std::shared_ptr<Vlan> swVlan = makeVlan(intf0);
+  sai_object_id_t saiId = saiManagerTable->vlanManager().addVlan(swVlan);
   auto swId = saiApiTable->vlanApi().getAttribute(
       VlanApiParameters::Attributes::VlanId(), saiId);
-  EXPECT_EQ(swId, 42);
-  saiId = addVlan(43, {});
-  swId = saiApiTable->vlanApi().getAttribute(
-      VlanApiParameters::Attributes::VlanId(), saiId);
-  EXPECT_EQ(swId, 43);
+  EXPECT_EQ(swId, 0);
+  std::shared_ptr<Vlan> swVlan2 = makeVlan(intf1);
+  sai_object_id_t saiId2 = saiManagerTable->vlanManager().addVlan(swVlan2);
+  auto swId2 = saiApiTable->vlanApi().getAttribute(
+      VlanApiParameters::Attributes::VlanId(), saiId2);
+  EXPECT_EQ(swId2, 1);
 }
 
 TEST_F(VlanManagerTest, addDupVlan) {
-  auto saiId = addVlan(42, {});
-  EXPECT_THROW(addVlan(42, {}), FbossError);
+  std::shared_ptr<Vlan> swVlan = makeVlan(intf0);
+  saiManagerTable->vlanManager().addVlan(swVlan);
+  EXPECT_THROW(saiManagerTable->vlanManager().addVlan(swVlan), FbossError);
 }
 
 TEST_F(VlanManagerTest, getVlan) {
-  auto saiId = addVlan(42, {});
-  auto swId = VlanID(42);
+  std::shared_ptr<Vlan> swVlan = makeVlan(intf0);
+  saiManagerTable->vlanManager().addVlan(swVlan);
+  auto swId = VlanID(0);
   auto& vlanManager = saiManagerTable->vlanManager();
   SaiVlan* vlan = vlanManager.getVlan(swId);
   EXPECT_TRUE(vlan);
 }
 
 TEST_F(VlanManagerTest, getNonexistentVlan) {
-  auto saiId = addVlan(42, {});
-  auto swId = VlanID(43);
+  std::shared_ptr<Vlan> swVlan = makeVlan(intf0);
+  saiManagerTable->vlanManager().addVlan(swVlan);
+  auto swId = VlanID(10);
   auto& vlanManager = saiManagerTable->vlanManager();
   SaiVlan* vlan = vlanManager.getVlan(swId);
   EXPECT_FALSE(vlan);
 }
 
 TEST_F(VlanManagerTest, removeVlan) {
-  auto saiId = addVlan(42, {});
-  auto swId = VlanID(42);
+  std::shared_ptr<Vlan> swVlan = makeVlan(intf0);
+  saiManagerTable->vlanManager().addVlan(swVlan);
+  auto swId = VlanID(0);
   auto& vlanManager = saiManagerTable->vlanManager();
   vlanManager.removeVlan(swId);
   SaiVlan* vlan = vlanManager.getVlan(swId);
@@ -117,27 +121,32 @@ TEST_F(VlanManagerTest, removeVlan) {
 }
 
 TEST_F(VlanManagerTest, removeNonexistentVlan) {
-  auto saiId = addVlan(42, {});
-  auto swId = VlanID(43);
+  std::shared_ptr<Vlan> swVlan = makeVlan(intf0);
+  saiManagerTable->vlanManager().addVlan(swVlan);
+  auto swId = VlanID(10);
   auto& vlanManager = saiManagerTable->vlanManager();
   EXPECT_THROW(vlanManager.removeVlan(swId), FbossError);
 }
 
 TEST_F(VlanManagerTest, addVlanMember) {
-  auto saiId = addVlan(42, {0, 2, 3});
-  checkVlanMembers(saiId, {0, 2, 3});
-  auto swId = VlanID(42);
+  TestInterface intf{0, 2};
+  std::shared_ptr<Vlan> swVlan = makeVlan(intf);
+  sai_object_id_t saiId = saiManagerTable->vlanManager().addVlan(swVlan);
+  checkVlanMembers(saiId, {0, 1});
+  auto swId = VlanID(0);
   auto& vlanManager = saiManagerTable->vlanManager();
   SaiVlan* vlan = vlanManager.getVlan(swId);
   EXPECT_TRUE(vlan);
-  vlan->addMember(PortID(1));
-  checkVlanMembers(saiId, {0, 1, 2, 3});
+  vlan->addMember(PortID(3));
+  checkVlanMembers(saiId, {0, 1, 3});
 }
 
 TEST_F(VlanManagerTest, removeVlanMember) {
-  auto saiId = addVlan(42, {0, 1, 2, 3});
+  TestInterface intf{0, 4};
+  std::shared_ptr<Vlan> swVlan = makeVlan(intf);
+  sai_object_id_t saiId = saiManagerTable->vlanManager().addVlan(swVlan);
   checkVlanMembers(saiId, {0, 1, 2, 3});
-  auto swId = VlanID(42);
+  auto swId = VlanID(0);
   auto& vlanManager = saiManagerTable->vlanManager();
   SaiVlan* vlan = vlanManager.getVlan(swId);
   EXPECT_TRUE(vlan);
@@ -146,26 +155,33 @@ TEST_F(VlanManagerTest, removeVlanMember) {
 }
 
 TEST_F(VlanManagerTest, changeVlanAddMembers) {
-  auto oldVlan = makeVlan(42, {0, 2});
-  auto newVlan = makeVlan(42, {0, 1, 2, 3});
-  auto saiId = saiManagerTable->vlanManager().addVlan(oldVlan);
-  checkVlanMembers(saiId, {0, 2});
+  TestInterface intf{0, 2};
+  std::shared_ptr<Vlan> oldVlan = makeVlan(intf);
+  sai_object_id_t saiId = saiManagerTable->vlanManager().addVlan(oldVlan);
+  checkVlanMembers(saiId, {0, 1});
+  std::shared_ptr<Vlan> newVlan = makeVlan(intf0);
   saiManagerTable->vlanManager().changeVlan(oldVlan, newVlan);
   checkVlanMembers(saiId, {0, 1, 2, 3});
 }
 
 TEST_F(VlanManagerTest, changeVlanRemoveMembers) {
-  auto oldVlan = makeVlan(42, {0, 1, 2, 3});
-  auto newVlan = makeVlan(42, {0, 1, 3});
+  TestInterface intf{0, 3};
+  std::shared_ptr<Vlan> oldVlan = makeVlan(intf0);
+  std::shared_ptr<Vlan> newVlan = makeVlan(intf);
   auto saiId = saiManagerTable->vlanManager().addVlan(oldVlan);
   checkVlanMembers(saiId, {0, 1, 2, 3});
   saiManagerTable->vlanManager().changeVlan(oldVlan, newVlan);
-  checkVlanMembers(saiId, {0, 1, 3});
+  checkVlanMembers(saiId, {0, 1, 2});
 }
 
 TEST_F(VlanManagerTest, changeVlanAddRemoveMembers) {
-  auto oldVlan = makeVlan(42, {0, 1, 3});
-  auto newVlan = makeVlan(42, {1, 2, 3});
+  TestInterface intf{0, 3};
+  intf.remoteHosts[2].port.id=3;
+  std::shared_ptr<Vlan> oldVlan = makeVlan(intf);
+  intf.remoteHosts[0].port.id = 1;
+  intf.remoteHosts[1].port.id = 2;
+  intf.remoteHosts[2].port.id = 3;
+  std::shared_ptr<Vlan> newVlan = makeVlan(intf);
   auto saiId = saiManagerTable->vlanManager().addVlan(oldVlan);
   checkVlanMembers(saiId, {0, 1, 3});
   saiManagerTable->vlanManager().changeVlan(oldVlan, newVlan);
@@ -173,21 +189,25 @@ TEST_F(VlanManagerTest, changeVlanAddRemoveMembers) {
 }
 
 TEST_F(VlanManagerTest, removeVlanWithMembers) {
-  auto saiId = addVlan(42, {0, 1, 2, 3});
+  std::shared_ptr<Vlan> swVlan = makeVlan(intf0);
+  auto saiId = saiManagerTable->vlanManager().addVlan(swVlan);
   checkVlanMembers(saiId, {0, 1, 2, 3});
-  auto swId = VlanID(42);
+  auto swId = VlanID(0);
   auto& vlanManager = saiManagerTable->vlanManager();
   vlanManager.removeVlan(swId);
   EXPECT_FALSE(vlanManager.getVlan(swId));
 }
 
 TEST_F(VlanManagerTest, addBadVlanMember) {
-  EXPECT_THROW(addVlan(42, {0, 1, 2, 4}), FbossError);
+  TestInterface intf{0, 5};
+  std::shared_ptr<Vlan> swVlan = makeVlan(intf);
+  EXPECT_THROW(saiManagerTable->vlanManager().addVlan(swVlan), FbossError);
 }
 
 TEST_F(VlanManagerTest, removeNonexistentVlanMember) {
-  auto saiId = addVlan(42, {0, 1, 2, 3});
-  auto swId = VlanID(42);
+  std::shared_ptr<Vlan> swVlan = makeVlan(intf0);
+  saiManagerTable->vlanManager().addVlan(swVlan);
+  auto swId = VlanID(0);
   auto& vlanManager = saiManagerTable->vlanManager();
   SaiVlan* vlan = vlanManager.getVlan(swId);
   EXPECT_TRUE(vlan);

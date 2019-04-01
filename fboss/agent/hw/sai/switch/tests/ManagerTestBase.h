@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/types.h"
 
+#include <array>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -34,35 +35,87 @@ class Vlan;
 
 class ManagerTestBase : public ::testing::Test {
  public:
+  // Using a plain enum (rather than enum class) because the setup treats
+  // them as a bitmask.
+  enum SetupStage : uint32_t {
+    BLANK = 0,
+    PORT = 1,
+    VLAN = 2,
+    INTERFACE = 4,
+    NEIGHBOR = 8,
+  };
+
+  /*
+   * TestPort, TestRemoteHost, and TestInterface are helper structs for
+   * creating a really basic test setup consistently across the SAI manager
+   * tests. They are not strictly necessary at all, but housing the data this
+   * way made writing quick setup methods easier than config or creating
+   * SwitchState objects directly. If these start getting complex, we
+   * SHOULD get rid of them and use one of those clumsier, but more direct
+   * interfaces directly.
+   */
+  struct TestPort {
+    int id{0};
+    bool enabled{true};
+  };
+  struct TestRemoteHost {
+    int id{0};
+    TestPort port;
+    folly::IPAddress ip;
+    folly::MacAddress mac;
+  };
+  struct TestInterface {
+    int id{0};
+    folly::MacAddress routerMac;
+    folly::IPAddress routerIp;
+    folly::CIDRNetwork subnet;
+    std::vector<TestRemoteHost> remoteHosts;
+    TestInterface() {}
+    TestInterface(int id, size_t numHosts) : id(id) {
+      if (id > 9) {
+        XLOG(FATAL) << "TestInterface doesn't support id >9";
+      }
+      if (numHosts > 9) {
+        XLOG(FATAL) << "TestInterface doesn't support >9 attached hosts";
+      }
+      routerMac = folly::MacAddress{folly::sformat("42:42:42:42:42:0{}", id)};
+      auto subnetBase = folly::sformat("10.10.1{}", id);
+      routerIp = folly::IPAddress{folly::sformat("{}.0", subnetBase)};
+      subnet = folly::CIDRNetwork{routerIp, 24};
+      remoteHosts.resize(numHosts);
+      size_t count = 0;
+      for (auto& remoteHost : remoteHosts) {
+        remoteHost.ip =
+            folly::IPAddress{folly::sformat("{}.{}", subnetBase, count)};
+        remoteHost.mac =
+            folly::MacAddress{folly::sformat("10:10:10:10:10:0{}", count)};
+        remoteHost.port.id = id * 10 + count;
+        ++count;
+      }
+    }
+    explicit TestInterface(int id) : TestInterface(id, 1) {}
+  };
+
   void SetUp() override;
 
   std::shared_ptr<ArpEntry> makeArpEntry(
-      uint16_t id,
-      const folly::IPAddressV4& ip,
-      const folly::MacAddress& dstMac) const;
-  void addArpEntry(
-      uint16_t id,
-      const folly::IPAddressV4& ip,
-      const folly::MacAddress& dstMac);
+      int id,
+      const TestRemoteHost& testRemoteHost) const;
 
   std::shared_ptr<Interface> makeInterface(
-      uint16_t id,
-      const folly::MacAddress& srcMac) const;
-  sai_object_id_t addInterface(uint32_t id, const folly::MacAddress& srcMac);
+      const TestInterface& testInterface) const;
 
-  std::shared_ptr<Port> makePort(uint16_t id, bool enabled) const;
-  sai_object_id_t addPort(uint16_t id, bool enabled);
+  std::shared_ptr<Port> makePort(const TestPort& testPort) const;
 
   std::shared_ptr<Vlan> makeVlan(
-      uint16_t id,
-      const std::vector<uint16_t>& memberPorts) const;
-  sai_object_id_t addVlan(
-      uint16_t id,
-      const std::vector<uint16_t>& memberPorts);
+      const TestInterface& testInterface) const;
 
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<SaiApiTable> saiApiTable;
   std::unique_ptr<SaiManagerTable> saiManagerTable;
+
+  std::array<TestInterface, 10> testInterfaces;
+  uint32_t setupStage{SetupStage::BLANK};
 };
 
 } // namespace fboss
