@@ -10,6 +10,7 @@
 #pragma once
 
 #include "FakeSaiBridge.h"
+#include "FakeSaiFdb.h"
 #include "FakeSaiLag.h"
 #include "FakeSaiNeighbor.h"
 #include "FakeSaiNextHop.h"
@@ -33,6 +34,7 @@ namespace fboss {
 struct FakeSai {
   static std::shared_ptr<FakeSai> getInstance();
   FakeBridgeManager brm;
+  FakeFdbManager fdbm;
   FakeLagManager lm;
   FakeNeighborManager nm;
   FakeNextHopManager nhm;

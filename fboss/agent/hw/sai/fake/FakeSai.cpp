@@ -54,6 +54,11 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
           (sai_bridge_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
+      case SAI_API_FDB:
+        facebook::fboss::populate_fdb_api(
+            (sai_fdb_api_t**)api_method_table);
+        res = SAI_STATUS_SUCCESS;
+        break;
       case SAI_API_LAG:
         facebook::fboss::populate_lag_api(
             (sai_lag_api_t**)api_method_table);
