@@ -9,8 +9,9 @@
  */
 #pragma once
 
-#include "SaiApi.h"
-#include "SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiApi.h"
+#include "fboss/agent/hw/sai/api/SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
 #include <folly/logging/xlog.h>
 #include <folly/MacAddress.h>
@@ -49,6 +50,28 @@ struct SwitchApiParameters {
         SAI_SWITCH_ATTR_SRC_MAC_ADDRESS,
         sai_mac_t,
         folly::MacAddress>;
+    // TODO (srikrishnagopu): There is an enum incompatiblity with the SDK.
+    // Revisit once the SAI version is updated
+    using HwInfo = SaiAttribute<
+        uint32_t,
+        0x67,
+        sai_s8_list_t,
+        std::vector<int8_t>>;
+    using CreateAttributes = SaiAttributeTuple<HwInfo>;
+    Attributes() {}
+    Attributes(const CreateAttributes& attrs) {
+      std::tie(hwInfo) = attrs.value();
+    }
+    CreateAttributes attrs() const {
+      return {hwInfo};
+    }
+    bool operator==(const Attributes& other) const {
+      return attrs() == other.attrs();
+    }
+    bool operator!=(const Attributes& other) const {
+      return !(*this == other);
+    }
+    typename HwInfo::ValueType hwInfo;
   };
   using AttributeType = boost::variant<
       Attributes::DefaultVlanId,
@@ -79,10 +102,10 @@ class SwitchApi : public SaiApi<SwitchApi, SwitchApiParameters> {
       sai_object_id_t* switch_id,
       sai_attribute_t* attr_list,
       size_t attr_count) {
-    return SAI_STATUS_FAILURE;
+      return api_->create_switch(switch_id, attr_count, attr_list);
   }
   sai_status_t _remove(sai_object_id_t switch_id) {
-    return SAI_STATUS_FAILURE;
+    return api_->remove_switch(switch_id);
   }
   sai_status_t _getAttr(sai_attribute_t* attr, sai_object_id_t switch_id)
       const {
