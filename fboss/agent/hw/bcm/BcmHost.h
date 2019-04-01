@@ -400,4 +400,34 @@ class BcmHostTable {
   HostMap<BcmEcmpHostKey, BcmEcmpHost> ecmpHosts_;
 };
 
+class BcmHostReference {
+ public:
+  ~BcmHostReference();
+
+  BcmHost* getBcmHost();
+
+  BcmEcmpHost* getBcmEcmpHost();
+
+  opennsl_if_t getEgressId();
+
+  static std::unique_ptr<BcmHostReference>
+  get(BcmSwitch* hw, opennsl_vrf_t vrf, NextHop nexthop);
+
+  static std::unique_ptr<BcmHostReference>
+  get(BcmSwitch* hw, opennsl_vrf_t vrf, RouteNextHopSet nexthops);
+
+ private:
+  BcmHostReference(BcmSwitch* hw, HostKey key);
+  BcmHostReference(BcmSwitch* hw, BcmEcmpHostKey key);
+  BcmHostReference(const BcmHostReference&) = delete;
+  BcmHostReference(BcmHostReference&&) = delete;
+  BcmHostReference& operator=(const BcmHostReference&) = delete;
+  BcmHostReference& operator=(const BcmHostReference&&) = delete;
+
+  BcmSwitch* hw_{nullptr};
+  folly::Optional<HostKey> hostKey_;
+  folly::Optional<BcmEcmpHostKey> ecmpHostKey_;
+  BcmHost* host_{nullptr};
+  BcmEcmpHost* ecmpHost_{nullptr};
+};
 }}

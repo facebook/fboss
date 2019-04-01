@@ -821,4 +821,63 @@ void BcmHostTable::egressResolutionChangedHwLocked(
   }
 }
 
+BcmHostReference::BcmHostReference(BcmSwitch* hw, HostKey key)
+    : hw_(hw), hostKey_(std::move(key)) {}
+
+BcmHostReference::BcmHostReference(BcmSwitch* hw, BcmEcmpHostKey key)
+    : hw_(hw), ecmpHostKey_(std::move(key)) {}
+
+std::unique_ptr<BcmHostReference>
+BcmHostReference::get(BcmSwitch* hw, opennsl_vrf_t vrf, NextHop nexthop) {
+  struct _ : public BcmHostReference {
+    _(BcmSwitch* hw, opennsl_vrf_t vrf, NextHop nexthop)
+        : BcmHostReference(hw, getNextHopKey(vrf, std::move(nexthop))) {}
+  };
+  return std::make_unique<_>(hw, vrf, std::move(nexthop));
+}
+
+std::unique_ptr<BcmHostReference> BcmHostReference::get(
+    BcmSwitch* hw,
+    opennsl_vrf_t vrf,
+    RouteNextHopSet nexthops) {
+  if (nexthops.size() == 1) {
+    return BcmHostReference::get(hw, vrf, *nexthops.begin());
+  }
+  struct _ : public BcmHostReference {
+    _(BcmSwitch* hw, opennsl_vrf_t vrf, RouteNextHopSet nexthops)
+        : BcmHostReference(hw, std::make_pair(vrf, nexthops)) {}
+  };
+  return std::make_unique<_>(hw, vrf, std::move(nexthops));
+}
+
+BcmHostReference::~BcmHostReference() {
+  if (hostKey_ && host_) {
+    hw_->writableHostTable()->derefBcmHost(hostKey_.value());
+  }
+  if (ecmpHostKey_ && ecmpHost_) {
+    hw_->writableHostTable()->derefBcmEcmpHost(ecmpHostKey_.value());
+  }
+}
+
+BcmHost* BcmHostReference::getBcmHost() {
+  if (host_ || !hostKey_) {
+    return host_;
+  }
+  host_ = hw_->writableHostTable()->incRefOrCreateBcmHost(hostKey_.value());
+  return host_;
+}
+
+BcmEcmpHost* BcmHostReference::getBcmEcmpHost() {
+  if (ecmpHost_ || !ecmpHostKey_) {
+    return ecmpHost_;
+  }
+  ecmpHost_ =
+      hw_->writableHostTable()->incRefOrCreateBcmEcmpHost(ecmpHostKey_.value());
+  return ecmpHost_;
+}
+
+opennsl_if_t BcmHostReference::getEgressId() {
+  return hostKey_ ? getBcmHost()->getEgressId()
+                  : getBcmEcmpHost()->getEgressId();
+}
 }}
