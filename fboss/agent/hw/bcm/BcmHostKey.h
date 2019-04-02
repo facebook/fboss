@@ -44,6 +44,14 @@ struct IHostKey {
       return folly::poly_call<5>(*this);
     }
 
+    bool needsTunnel() const {
+      return folly::poly_call<8>(*this);
+    }
+
+    LabelForwardingAction::LabelStack tunnelLabelStack() const {
+      return folly::poly_call<9>(*this);
+    }
+
     template <class SelfType>
     friend bool operator<(SelfType const& lhs, SelfType const& rhs);
 
@@ -70,7 +78,9 @@ struct IHostKey {
       &T::getLabel,
       &T::str,
       &eq<T>,
-      &lt<T>);
+      &lt<T>,
+      &T::needsTunnel,
+      &T::tunnelLabelStack);
 }; // struct IHostKey
 
 using HostKey = folly::Poly<IHostKey>;
@@ -112,6 +122,15 @@ class BcmHostKey {
   uint32_t getLabel() const {
     throw FbossError("unlabeled host key has no label");
     return 0;
+  }
+
+  bool needsTunnel() const {
+    return false;
+  }
+
+  LabelForwardingAction::LabelStack tunnelLabelStack() const {
+    throw FbossError("unlabeled host key has no label stack");
+    folly::assume_unreachable();
   }
 
   std::string str() const;
@@ -169,6 +188,20 @@ class BcmLabeledHostKey {
 
   uint32_t getLabel() const {
     return labels_.size() == 0 ? label_ : labels_.front();
+  }
+
+  bool needsTunnel() const {
+    return labels_.size() > 1;
+  }
+
+  LabelForwardingAction::LabelStack tunnelLabelStack() const {
+    if (!needsTunnel()) {
+      throw FbossError(
+          "tunnel label stack requested for next hop that doesn't require "
+          "labels");
+    }
+    return LabelForwardingAction::LabelStack(
+        labels_.begin() + 1, labels_.end());
   }
 
   std::string str() const;

@@ -23,6 +23,10 @@ void verifyUnlabeledHostKey(
   } else {
     EXPECT_EQ(key.intfID(), hostKey.intf());
   }
+  EXPECT_EQ(key.needsTunnel(), hostKey.needsTunnel());
+  EXPECT_EQ(key.needsTunnel(), false);
+  EXPECT_THROW(key.tunnelLabelStack(), FbossError);
+  EXPECT_THROW(hostKey.tunnelLabelStack(), FbossError);
 }
 
 void verifyLabeledHostKey(
@@ -34,6 +38,13 @@ void verifyLabeledHostKey(
   EXPECT_EQ(key.hasLabel(), hostKey.hasLabel());
   EXPECT_EQ(key.getLabel(), hostKey.getLabel());
   EXPECT_EQ(key.intfID().value(), hostKey.intf());
+  ASSERT_EQ(key.needsTunnel(), hostKey.needsTunnel());
+  if (key.needsTunnel()) {
+    EXPECT_EQ(key.tunnelLabelStack(), hostKey.tunnelLabelStack());
+  } else {
+    EXPECT_THROW(key.tunnelLabelStack(), FbossError);
+    EXPECT_THROW(hostKey.tunnelLabelStack(), FbossError);
+  }
 }
 
 } // namespace
@@ -74,6 +85,21 @@ TEST(BcmHostKey, labeledNextHopWithPush) {
       InterfaceID(1),
       0,
       util::getPushAction(LabelForwardingAction::LabelStack{201, 202}));
+  auto bcmLabeledHostKey = BcmLabeledHostKey(
+      0,
+      nexthop.labelForwardingAction()->pushStack().value(),
+      nexthop.addr(),
+      nexthop.intfID().value());
+
+  verifyLabeledHostKey(bcmLabeledHostKey, bcmLabeledHostKey);
+}
+
+TEST(BcmHostKey, labeledNextHopWithPushOnlyOne) {
+  auto nexthop = ResolvedNextHop(
+      folly::IPAddressV6(kLinkLocal),
+      InterfaceID(1),
+      0,
+      util::getPushAction(LabelForwardingAction::LabelStack{201}));
   auto bcmLabeledHostKey = BcmLabeledHostKey(
       0,
       nexthop.labelForwardingAction()->pushStack().value(),
