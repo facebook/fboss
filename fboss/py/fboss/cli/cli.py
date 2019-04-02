@@ -36,7 +36,8 @@ from fboss.cli.utils.utils import KEYWORD_CONFIG_SHOW, KEYWORD_CONFIG_RELOAD
 from thrift.Thrift import TApplicationException
 from thrift.transport.TTransport import TTransportException
 from neteng.fboss.ttypes import FbossBaseError
-from fboss.thrift_clients import FbossAgentClient
+from fboss.thrift_clients import (PlainTextFbossAgentClientDontUseInFb as
+    PlainTextFbossAgentClient)
 
 DEFAULT_CLIENTID = 1
 
@@ -261,7 +262,7 @@ class PortType(click.ParamType):
     def convert(self, value, param, ctx):
         try:
             if self.port_info_map is None:
-                with FbossAgentClient(ctx.obj.hostname) as client:
+                with PlainTextFbossAgentClient(ctx.obj.hostname) as client:
                     self.port_info_map = client.getAllPortInfo()
             if value.isdigit():
                 port = self.port_info_map[int(value)]

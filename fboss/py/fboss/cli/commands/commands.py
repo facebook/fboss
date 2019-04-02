@@ -9,7 +9,9 @@
 #
 
 from fboss.cli.utils import utils
-from fboss.thrift_clients import FbossAgentClient, QsfpServiceClient
+from fboss.thrift_clients import (
+    PlainTextFbossAgentClientDontUseInFb as PlainTextFbossAgentClient)
+from fboss.thrift_clients import QsfpServiceClient
 import pickle
 import ipaddress
 
@@ -43,7 +45,7 @@ class FbossCmd(object):
                 print("Please specify the host the snapshot was taken of")
                 exit(0)
 
-        return FbossAgentClient(*args)
+        return PlainTextFbossAgentClient(*args)
 
     def _create_qsfp_client(self):
         args = [self._hostname, self._port]

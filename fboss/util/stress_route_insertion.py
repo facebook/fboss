@@ -9,7 +9,8 @@ import random
 import time
 
 from fboss.cli.utils import utils
-from fboss.thrift_clients import FbossAgentClient
+from fboss.thrift_clients import (
+    PlainTextFbossAgentClientDontUseInFb as PlainTextFbossAgentClient)
 from neteng.fboss.ctrl.ttypes import IpPrefix
 from neteng.fboss.ctrl.ttypes import UnicastRoute
 
@@ -56,7 +57,7 @@ class StressRouteInsertion(object):
             raise Exception("Error: this tool is not yet smart" +
                             " enough to do maxprefix > 120")
         random.seed(self.randseed)
-        self.client = FbossAgentClient(host=self.host, port=self.port)
+        self.client = PlainTextFbossAgentClient(host=self.host, port=self.port)
         # a list of next hops; all routes point to same one: DROP
         self.nexthops = [utils.ip_to_binary(nh) for nh in []]
         self.client_id = 31336      # ID for our routes

@@ -9,7 +9,8 @@ import binascii
 import re
 import sys
 
-from fboss.thrift_clients import FbossAgentClient
+from fboss.thrift_clients import (
+    PlainTextFbossAgentClientDontUseInFb as PlainTextFbossAgentClient)
 
 
 def load_hex_file(path):
@@ -66,5 +67,5 @@ def main(get_client):
 
 
 if __name__ == '__main__':
-    rc = main(FbossAgentClient)
+    rc = main(PlainTextFbossAgentClient)
     sys.exit(rc)

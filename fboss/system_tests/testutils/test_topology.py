@@ -4,7 +4,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from fboss.fb_thrift_clients import FbossAgentClient, QsfpServiceClient
-from fboss.thrift_clients import FbossAgentClient as PlainTextFbossAgentClient
+from fboss.thrift_clients import (
+    PlainTextFbossAgentClientDontUseInFb as PlainTextFbossAgentClient)
 from fboss.thrift_clients import QsfpServiceClient as PlainTextQsfpServiceClient
 from fboss.netlink_manager.netlink_manager_client import NetlinkManagerClient
 from fboss.system_tests.testutils.test_client import TestClient

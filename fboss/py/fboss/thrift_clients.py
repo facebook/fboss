@@ -25,11 +25,11 @@ from thrift.transport.TSocket import TSocket
 # here.
 #
 # For example:
-#     with FbossAgentClient(host) as client:
+#     with PlainTextFbossAgentClientDontUseInFb(host) as client:
 #        print(client.getAllPortInfo())    # dump all of the port stats
 
 
-class FbossAgentClient(FbossCtrl.Client):
+class PlainTextFbossAgentClientDontUseInFb(FbossCtrl.Client):
     DEFAULT_PORT = 5909
 
     def __init__(self, host, port=None, timeout=5.0):
