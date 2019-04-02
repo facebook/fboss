@@ -127,6 +127,8 @@ class BcmSwitchIf : public HwSwitch {
 
   virtual BcmMirrorTable* writableBcmMirrorTable() const = 0;
 
+  virtual BcmLabelMap* writableLabelMap() const = 0;
+
   virtual std::string gatherSdkState() const = 0;
 
   virtual void dumpState(const std::string& path) const = 0;
@@ -333,6 +335,10 @@ class BcmSwitch : public BcmSwitchIf {
   }
   BcmMirrorTable* writableBcmMirrorTable() const override {
     return mirrorTable_.get();
+  }
+
+  BcmLabelMap* writableLabelMap() const override {
+    return labelMap_.get();
   }
 
   std::string gatherSdkState() const override;

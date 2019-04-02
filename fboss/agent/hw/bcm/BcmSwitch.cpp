@@ -719,6 +719,9 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   // Any neighbor changes, and modify appliedState if some changes fail to apply
   processNeighborChanges(delta, &appliedState);
 
+  // process label forwarding changes after neighbor entries are updated
+  processChangedLabelForwardingInformationBase(delta);
+
   // Add/update mirrors before processing Acl and port changes
   // This is to ensure that port and acls can access latest mirrors
   forEachAdded(
@@ -1864,12 +1867,20 @@ void BcmSwitch::processChangedLabelForwardingInformationBase(
 }
 
 void BcmSwitch::processAddedLabelForwardingEntry(
-    const std::shared_ptr<LabelForwardingEntry>& /*addedEntry*/) {}
+    const std::shared_ptr<LabelForwardingEntry>& addedEntry) {
+  writableLabelMap()->processAddedLabelSwitchAction(
+      addedEntry->getID(), addedEntry->getLabelNextHop());
+}
 
 void BcmSwitch::processRemovedLabelForwardingEntry(
-    const std::shared_ptr<LabelForwardingEntry>& /*deletedEntry*/) {}
+    const std::shared_ptr<LabelForwardingEntry>& deletedEntry) {
+  writableLabelMap()->processRemovedLabelSwitchAction(deletedEntry->getID());
+}
 
 void BcmSwitch::processChangedLabelForwardingEntry(
     const std::shared_ptr<LabelForwardingEntry>& /*oldEntry*/,
-    const std::shared_ptr<LabelForwardingEntry>& /*newEntry*/) {}
+    const std::shared_ptr<LabelForwardingEntry>& newEntry) {
+  writableLabelMap()->processChangedLabelSwitchAction(
+      newEntry->getID(), newEntry->getLabelNextHop());
+}
 }} // facebook::fboss
