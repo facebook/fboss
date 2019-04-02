@@ -24,7 +24,7 @@ class BcmLabelMap {
 
  private:
   using BcmLabelSwitchActionMap = boost::container::
-      flat_map<BcmLabel, BcmLabelSwitchAction>;
+      flat_map<BcmLabel, std::unique_ptr<BcmLabelSwitchAction>>;
 
   BcmSwitch* hw_;
   BcmLabelSwitchActionMap labelMap_;
