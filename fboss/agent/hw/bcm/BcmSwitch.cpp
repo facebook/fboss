@@ -428,9 +428,8 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   std::lock_guard<std::mutex> g(lock_);
 
   steady_clock::time_point begin = steady_clock::now();
-  if (!unitObject_) {
-    unitObject_ = BcmAPI::initOnlyUnit(platform_);
-  }
+  CHECK(!unitObject_);
+  unitObject_ = BcmAPI::initOnlyUnit(platform_);
   unit_ = unitObject_->getNumber();
   unitObject_->setCookie(this);
 
