@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
+#include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 
 namespace facebook {
@@ -95,16 +96,46 @@ void SaiRouteManager::addRoute(
     const std::shared_ptr<Route<AddrT>>& swRoute) {
   RouteApiParameters::EntryType entry =
       routeEntryFromSwRoute(routerId, swRoute);
+  auto itr = routes_.find(entry);
+  if (itr != routes_.end()) {
+    throw FbossError(
+        "Failure to add route. A route already exists to ",
+        swRoute->prefix().str());
+  }
   auto fwd = swRoute->getForwardInfo();
   sai_int32_t packetAction = getSaiPacketAction(fwd.getAction());
+  folly::Optional<sai_object_id_t> nextHopIdOpt;
   std::shared_ptr<SaiNextHopGroup> nextHopGroup;
-  folly::Optional<sai_object_id_t> nextHopGroupIdOpt;
   if (packetAction == SAI_PACKET_ACTION_FORWARD) {
-    nextHopGroup = managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
-        fwd.getNextHopSet());
-    nextHopGroupIdOpt = nextHopGroup->id();
+    /*
+     * A Route which satisfies isConnected() is an interface subnet route.
+     * It will have one NextHop with the ip configured for the interface
+     * and with the configured InterfaceID.
+     * We can use that InterfaceID to lookup the SAI id of the corresponding
+     * router_interface which is the proper next hop for the subnet route.
+     * (see sairoute.h for an explanation of router_interface_id as next hop)
+     */
+    if (swRoute->isConnected()) {
+      CHECK_EQ(fwd.getNextHopSet().size(), 1);
+      InterfaceID interfaceId{fwd.getNextHopSet().begin()->intf()};
+      SaiRouterInterface* saiInterface =
+          managerTable_->routerInterfaceManager().getRouterInterface(
+              interfaceId);
+      if (!saiInterface) {
+        throw FbossError(
+            "cannot create subnet route without a sai_router_interface "
+            "for InterfaceID: ",
+            interfaceId);
+      }
+      nextHopIdOpt = saiInterface->id();
+    } else {
+      nextHopGroup =
+          managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
+              fwd.getNextHopSet());
+      nextHopIdOpt = nextHopGroup->id();
+    }
   }
-  RouteApiParameters::Attributes attributes{{packetAction, nextHopGroupIdOpt}};
+  RouteApiParameters::Attributes attributes{{packetAction, nextHopIdOpt}};
   auto route = std::make_unique<SaiRoute>(
       apiTable_, managerTable_, entry, attributes, nextHopGroup);
   routes_.emplace(std::make_pair(entry, std::move(route)));
@@ -114,7 +145,13 @@ template <typename AddrT>
 void SaiRouteManager::removeRoute(
     RouterID routerId,
     const std::shared_ptr<Route<AddrT>>& swRoute) {
-  routes_.erase(routeEntryFromSwRoute(routerId, swRoute));
+  RouteApiParameters::EntryType entry =
+      routeEntryFromSwRoute(routerId, swRoute);
+  size_t count = routes_.erase(entry);
+  if (!count) {
+    throw FbossError(
+        "Failed to remove non-existent route to ", swRoute->prefix().str());
+  }
 }
 
 void SaiRouteManager::processRouteDelta(const StateDelta& delta) {

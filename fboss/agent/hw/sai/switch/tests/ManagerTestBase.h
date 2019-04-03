@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/state/Route.h"
 #include "fboss/agent/types.h"
 
 #include <array>
@@ -31,6 +32,7 @@ namespace fboss {
 class ArpEntry;
 class Interface;
 class Port;
+class ResolvedNextHop;
 class Vlan;
 
 class ManagerTestBase : public ::testing::Test {
@@ -95,6 +97,10 @@ class ManagerTestBase : public ::testing::Test {
     }
     explicit TestInterface(int id) : TestInterface(id, 1) {}
   };
+  struct TestRoute {
+    folly::CIDRNetwork destination;
+    std::vector<TestInterface> nextHopInterfaces;
+  };
 
   void SetUp() override;
 
@@ -105,7 +111,12 @@ class ManagerTestBase : public ::testing::Test {
   std::shared_ptr<Interface> makeInterface(
       const TestInterface& testInterface) const;
 
+  ResolvedNextHop makeNextHop(const TestInterface& testInterface) const;
+
   std::shared_ptr<Port> makePort(const TestPort& testPort) const;
+
+  std::shared_ptr<Route<folly::IPAddressV4>> makeRoute(
+      const TestRoute& route) const;
 
   std::shared_ptr<Vlan> makeVlan(
       const TestInterface& testInterface) const;

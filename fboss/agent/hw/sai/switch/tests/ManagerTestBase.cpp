@@ -118,5 +118,27 @@ std::shared_ptr<ArpEntry> ManagerTestBase::makeArpEntry(
       InterfaceID(id));
 }
 
+ResolvedNextHop ManagerTestBase::makeNextHop(
+    const TestInterface& testInterface) const {
+  const auto& remote = testInterface.remoteHosts.at(0);
+  return ResolvedNextHop{remote.ip, InterfaceID(testInterface.id), ECMP_WEIGHT};
+}
+
+std::shared_ptr<Route<folly::IPAddressV4>> ManagerTestBase::makeRoute(
+    const TestRoute& route) const {
+  RouteFields<folly::IPAddressV4>::Prefix destination;
+  destination.network = route.destination.first.asV4();
+  destination.mask = route.destination.second;
+  RouteNextHopEntry::NextHopSet swNextHops{};
+  for (const auto& testInterface : route.nextHopInterfaces) {
+    swNextHops.emplace(makeNextHop(testInterface));
+  }
+  RouteNextHopEntry entry(swNextHops, AdminDistance::STATIC_ROUTE);
+  auto r = std::make_shared<Route<folly::IPAddressV4>>(destination);
+  r->update(ClientID{42}, entry);
+  r->setResolved(entry);
+  return r;
+}
+
 } // namespace fboss
 } // namespace facebook
