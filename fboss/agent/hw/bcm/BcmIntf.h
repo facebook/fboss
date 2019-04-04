@@ -20,7 +20,9 @@ extern "C" {
 #include <set>
 
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
+#include "fboss/agent/hw/bcm/BcmLabeledTunnel.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/RefMap.h"
 
 namespace facebook { namespace fboss {
 
@@ -53,7 +55,11 @@ class BcmStation {
  */
 class BcmIntf {
  public:
-  explicit BcmIntf(const BcmSwitch* hw);
+  using BcmLabeledTunnelTableKey = LabelForwardingAction::LabelStack;
+  using BcmLabeledTunnelMap =
+      FlatRefMap<BcmLabeledTunnelTableKey, BcmLabeledTunnel>;
+
+  explicit BcmIntf(BcmSwitch* hw);
   virtual ~BcmIntf();
   opennsl_if_t getBcmIfId() const {
     return bcmIfId_;
@@ -64,6 +70,9 @@ class BcmIntf {
   void program(const std::shared_ptr<Interface>& intf);
   folly::dynamic toFollyDynamic() const;
 
+  std::shared_ptr<BcmLabeledTunnel> getBcmLabeledTunnel(
+      const LabelForwardingAction::LabelStack& stack);
+
  private:
   // no copy or assignment
   BcmIntf(BcmIntf const &) = delete;
@@ -71,7 +80,7 @@ class BcmIntf {
   enum : opennsl_if_t {
     INVALID = -1,
   };
-  const BcmSwitch *hw_;
+  BcmSwitch* hw_;
   std::shared_ptr<Interface> intf_;
   opennsl_if_t bcmIfId_{INVALID};
   // TODO: we now generate one station entry per interface, even if all
@@ -81,11 +90,12 @@ class BcmIntf {
   std::unique_ptr<BcmStation> station_;
   // The interface addresses that have BcmHost object created
   std::set<BcmHostKey> hosts_;
+  BcmLabeledTunnelMap map_;
 };
 
 class BcmIntfTable {
  public:
-  explicit BcmIntfTable(const BcmSwitch *hw);
+  explicit BcmIntfTable(BcmSwitch* hw);
   virtual ~BcmIntfTable();
 
   // throw an error if not found
@@ -105,7 +115,7 @@ class BcmIntfTable {
   // Serialize to folly::dynamic
   folly::dynamic toFollyDynamic() const;
  private:
-  const BcmSwitch* hw_;
+  BcmSwitch* hw_;
   // There are two mapping tables with different index types.
   // Both are mapped to the BcmIntf. The BcmIntf object's life is
   // controlled by table with InterfaceID as the index (intfs_).

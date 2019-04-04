@@ -103,8 +103,7 @@ auto constexpr kIntfs = "intfs";
 auto constexpr kVlan = "vlan";
 }
 
-BcmIntf::BcmIntf(const BcmSwitch *hw) : hw_(hw) {
-}
+BcmIntf::BcmIntf(BcmSwitch* hw) : hw_(hw) {}
 
 void BcmIntf::program(const shared_ptr<Interface>& intf) {
   const auto& oldIntf = intf_;
@@ -325,11 +324,19 @@ folly::dynamic BcmIntf::toFollyDynamic() const {
     intf[kMtu] = intf_->getMtu();
   }
   intf[kIntfId] = getBcmIfId();
+  // TODO(pshaikh) - iterate over RefMap to get tunnels in folly dynamic
   return intf;
 }
 
-BcmIntfTable::BcmIntfTable(const BcmSwitch *hw) : hw_(hw) {
+std::shared_ptr<BcmLabeledTunnel> BcmIntf::getBcmLabeledTunnel(
+    const LabelForwardingAction::LabelStack& stack) {
+  std::shared_ptr<BcmLabeledTunnel> tunnel;
+  bool created = false;
+  std::tie(tunnel, created) = map_.refOrEmplace(stack, hw_, bcmIfId_, stack);
+  return tunnel;
 }
+
+BcmIntfTable::BcmIntfTable(BcmSwitch* hw) : hw_(hw) {}
 
 BcmIntfTable::~BcmIntfTable() {
 }
