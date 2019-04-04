@@ -23,7 +23,6 @@ class MockTunManager : public TunManager {
   MockTunManager(SwSwitch *sw, folly::EventBase *evb);
   ~MockTunManager() override {}
 
-  MOCK_METHOD0(startProbe, void());
   MOCK_METHOD0(startObservingUpdates, void());
   MOCK_METHOD1(stateUpdated, void(const StateDelta& delta));
   MOCK_METHOD1(sync, void(std::shared_ptr<SwitchState>));
