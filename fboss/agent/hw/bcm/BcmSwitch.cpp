@@ -373,6 +373,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
   const auto& dumpedSwSwitchState = warmBootCache_->getDumpedSwSwitchState();
   warmBootState->resetRouteTables(dumpedSwSwitchState.getRouteTables());
   warmBootState->resetAcls(dumpedSwSwitchState.getAcls());
+  warmBootState->resetSflowCollectors(dumpedSwSwitchState.getSflowCollectors());
   warmBootState->resetQosPolicies(dumpedSwSwitchState.getQosPolicies());
   warmBootState->resetLoadBalancers(dumpedSwSwitchState.getLoadBalancers());
   warmBootState->resetMirrors(dumpedSwSwitchState.getMirrors());
