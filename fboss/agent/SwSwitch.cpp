@@ -440,6 +440,15 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   initialStateDesired->publish();
   setStateInternal(initialState, initialStateDesired);
 
+  if (flags & SwitchFlags::ENABLE_TUN) {
+    if (tunMgr) {
+      tunMgr_ = std::move(tunMgr);
+    } else {
+      tunMgr_ = std::make_unique<TunManager>(this, &packetTxEventBase_);
+    }
+    tunMgr_->probe();
+  }
+
   platform_->onHwInitialized(this);
 
   // Notify the state observers of the initial state
@@ -457,14 +466,6 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
         [alpmInitState, initialStateDesired, this]() {
           applyUpdate(initialStateDesired, alpmInitState);
         });
-  }
-
-  if (flags & SwitchFlags::ENABLE_TUN) {
-    if (tunMgr) {
-      tunMgr_ = std::move(tunMgr);
-    } else {
-      tunMgr_ = std::make_unique<TunManager>(this, &packetTxEventBase_);
-    }
   }
 
   startThreads();
@@ -1275,6 +1276,11 @@ void SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
 void SwSwitch::sendL3Packet(
     std::unique_ptr<TxPacket> pkt,
     folly::Optional<InterfaceID> maybeIfID) noexcept {
+
+  if (!isFullyConfigured()) {
+    XLOG(INFO) << " Dropping L3 packet since device not yet configured";
+    return;
+  }
 
   // Buffer should not be shared.
   folly::IOBuf *buf = pkt->buf();

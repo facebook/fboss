@@ -73,6 +73,11 @@ class TunManager : public StateObserver {
    */
   virtual void startObservingUpdates();
 
+  /*
+   * Probe linux for tun interfaces already configured
+   */
+  virtual void probe();
+
  private:
   // no copy to assign
   TunManager(const TunManager &) = delete;

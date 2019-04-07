@@ -521,6 +521,11 @@ void TunManager::addressProcessor(struct nl_object *obj, void *data) {
   );
 }
 
+void TunManager::probe() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  doProbe(lock);
+}
+
 void TunManager::doProbe(std::lock_guard<std::mutex>& /* lock */) {
   const auto startTs = std::chrono::steady_clock::now();
   SCOPE_EXIT {

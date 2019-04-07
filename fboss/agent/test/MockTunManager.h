@@ -24,6 +24,7 @@ class MockTunManager : public TunManager {
   ~MockTunManager() override {}
 
   MOCK_METHOD0(startObservingUpdates, void());
+  MOCK_METHOD0(probe, void());
   MOCK_METHOD1(stateUpdated, void(const StateDelta& delta));
   MOCK_METHOD1(sync, void(std::shared_ptr<SwitchState>));
 
