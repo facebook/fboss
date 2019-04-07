@@ -284,7 +284,7 @@ class RoutingFixture : public ::testing::Test {
 
     // Get TunManager pointer
     tunMgr = dynamic_cast<MockTunManager*>(sw->getTunManager());
-    ASSERT_NE(tunMgr, static_cast<void*>(nullptr));
+    ASSERT_NE(tunMgr, nullptr);
 
     // Add some ARP/NDP entries so that link-local addresses can be routed
     // as well.

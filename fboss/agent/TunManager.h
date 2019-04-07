@@ -182,7 +182,7 @@ class TunManager : public StateObserver {
   /**
    * Lookup host for existing Tun interfaces and their addresses.
    */
-  void doProbe(std::lock_guard<std::mutex>& mutex);
+  virtual void doProbe(std::lock_guard<std::mutex>& mutex);
 
   /**
    * Add an address to a TUN interface during probe process.

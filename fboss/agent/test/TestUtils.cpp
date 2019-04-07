@@ -69,13 +69,64 @@ void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
     //
     // TODO(aeckert): Have MockTunManager hit the real TunManager
     // implementation if testing on actual hw
-    auto mockTunMgr = new MockTunManager(sw, sw->getBackgroundEvb());
-    std::unique_ptr<TunManager> tunMgr(mockTunMgr);
-    sw->init(std::move(tunMgr), flags);
+    auto mockTunMgr = std::make_unique<MockTunManager>(sw, sw->getBackgroundEvb());
+    EXPECT_CALL(*mockTunMgr.get(), doProbe(_)).Times(1);
+    sw->init(std::move(mockTunMgr), flags);
   } else {
     sw->init(nullptr, flags);
   }
 }
+
+unique_ptr<SwSwitch> createMockSw(
+    const shared_ptr<SwitchState>& state,
+    const folly::Optional<MacAddress>& mac,
+    SwitchFlags flags) {
+  auto platform = createMockPlatform();
+  if (mac) {
+    EXPECT_CALL(*platform.get(), getLocalMac()).WillRepeatedly(
+      Return(mac.value()));
+  }
+
+  if (FLAGS_switch_hw) {
+    return setupMockSwitchWithHW(std::move(platform), state, flags);
+  }
+  return setupMockSwitchWithoutHW(std::move(platform), state, flags);
+}
+
+shared_ptr<SwitchState> setAllPortState(
+    const shared_ptr<SwitchState>& in,
+    bool up) {
+  auto newState = in->clone();
+  auto newPortMap = newState->getPorts()->modify(&newState);
+  for (auto port : *newPortMap) {
+    auto newPort = port->clone();
+    newPort->setOperState(up);
+    newPort->setAdminState(
+        up ? cfg::PortState::ENABLED : cfg::PortState::DISABLED);
+    newPortMap->updatePort(newPort);
+  }
+  return newState;
+}
+}
+
+namespace facebook { namespace fboss {
+
+shared_ptr<SwitchState> bringAllPortsUp(const shared_ptr<SwitchState>& in) {
+  return setAllPortState(in, true);
+}
+shared_ptr<SwitchState> bringAllPortsDown(const shared_ptr<SwitchState>& in) {
+  return setAllPortState(in, false);
+}
+
+shared_ptr<SwitchState> publishAndApplyConfig(
+    shared_ptr<SwitchState>& state,
+    const cfg::SwitchConfig* config,
+    const Platform* platform,
+    const cfg::SwitchConfig* prevCfg) {
+  state->publish();
+  return applyThriftConfig(state, config, platform, prevCfg);
+}
+
 
 std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
     std::unique_ptr<MockPlatform> platform,
@@ -127,40 +178,6 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithHW(
   return sw;
 }
 
-shared_ptr<SwitchState> setAllPortState(
-    const shared_ptr<SwitchState>& in,
-    bool up) {
-  auto newState = in->clone();
-  auto newPortMap = newState->getPorts()->modify(&newState);
-  for (auto port : *newPortMap) {
-    auto newPort = port->clone();
-    newPort->setOperState(up);
-    newPort->setAdminState(
-        up ? cfg::PortState::ENABLED : cfg::PortState::DISABLED);
-    newPortMap->updatePort(newPort);
-  }
-  return newState;
-}
-}
-
-namespace facebook { namespace fboss {
-
-shared_ptr<SwitchState> bringAllPortsUp(const shared_ptr<SwitchState>& in) {
-  return setAllPortState(in, true);
-}
-shared_ptr<SwitchState> bringAllPortsDown(const shared_ptr<SwitchState>& in) {
-  return setAllPortState(in, false);
-}
-
-shared_ptr<SwitchState> publishAndApplyConfig(
-    shared_ptr<SwitchState>& state,
-    const cfg::SwitchConfig* config,
-    const Platform* platform,
-    const cfg::SwitchConfig* prevCfg) {
-  state->publish();
-  return applyThriftConfig(state, config, platform, prevCfg);
-}
-
 unique_ptr<MockPlatform> createMockPlatform() {
   if (!FLAGS_switch_hw) {
     return make_unique<testing::NiceMock<MockPlatform>>();
@@ -168,22 +185,6 @@ unique_ptr<MockPlatform> createMockPlatform() {
 
   std::shared_ptr<Platform> platform(initWedgePlatform().release());
   return make_unique<testing::NiceMock<MockablePlatform>>(platform);
-}
-
-unique_ptr<SwSwitch> createMockSw(
-    const shared_ptr<SwitchState>& state,
-    const folly::Optional<MacAddress>& mac,
-    SwitchFlags flags) {
-  auto platform = createMockPlatform();
-  if (mac) {
-    EXPECT_CALL(*platform.get(), getLocalMac()).WillRepeatedly(
-      Return(mac.value()));
-  }
-
-  if (FLAGS_switch_hw) {
-    return setupMockSwitchWithHW(std::move(platform), state, flags);
-  }
-  return setupMockSwitchWithoutHW(std::move(platform), state, flags);
 }
 
 unique_ptr<HwTestHandle> createTestHandle(

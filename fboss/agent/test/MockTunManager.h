@@ -24,13 +24,13 @@ class MockTunManager : public TunManager {
   ~MockTunManager() override {}
 
   MOCK_METHOD0(startObservingUpdates, void());
-  MOCK_METHOD0(probe, void());
   MOCK_METHOD1(stateUpdated, void(const StateDelta& delta));
   MOCK_METHOD1(sync, void(std::shared_ptr<SwitchState>));
 
   MOCK_METHOD1(sendPacketToHost_, bool(
         std::tuple<InterfaceID, std::shared_ptr<RxPacket>>));
   bool sendPacketToHost(InterfaceID, std::unique_ptr<RxPacket> pkt) override;
+  MOCK_METHOD1(doProbe, void(std::lock_guard<std::mutex>&));
 };
 
 }}  // namespace facebook::fboss

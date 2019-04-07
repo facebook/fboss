@@ -78,9 +78,16 @@ std::unique_ptr<HwTestHandle> createTestHandle(
     cfg::SwitchConfig* cfg,
     SwitchFlags flags = DEFAULT);
 
-
 std::unique_ptr<MockPlatform> createMockPlatform();
+std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
+    std::unique_ptr<MockPlatform> platform,
+    const std::shared_ptr<SwitchState>& state,
+    SwitchFlags flags);
 
+std::unique_ptr<SwSwitch> setupMockSwitchWithHW(
+    std::unique_ptr<MockPlatform> platform,
+    const std::shared_ptr<SwitchState>& state,
+    SwitchFlags flags);
 /*
  * Get the MockHwSwitch from a SwSwitch.
  */
