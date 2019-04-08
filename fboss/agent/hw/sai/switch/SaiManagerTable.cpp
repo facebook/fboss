@@ -19,6 +19,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 
@@ -26,6 +27,7 @@ namespace facebook {
 namespace fboss {
 
 SaiManagerTable::SaiManagerTable(SaiApiTable* apiTable) : apiTable_(apiTable) {
+  switchManager_ = std::make_unique<SaiSwitchManager>(apiTable_, this);
   bridgeManager_ = std::make_unique<SaiBridgeManager>(apiTable_, this);
   fdbManager_ = std::make_unique<SaiFdbManager>(apiTable_, this);
   portManager_ = std::make_unique<SaiPortManager>(apiTable_, this);
@@ -45,6 +47,11 @@ SaiManagerTable::~SaiManagerTable() {
   // Need to destroy routes before destroying other managers, as the
   // route destructor will trigger calls in those managers
   routeManager().clear();
+  routerInterfaceManager_.reset();
+  portManager_.reset();
+  bridgeManager_.reset();
+  vlanManager_.reset();
+  switchManager_.reset();
 }
 
 SaiBridgeManager& SaiManagerTable::bridgeManager() {
@@ -102,6 +109,13 @@ SaiRouterInterfaceManager& SaiManagerTable::routerInterfaceManager() {
 const SaiRouterInterfaceManager& SaiManagerTable::routerInterfaceManager()
     const {
   return *routerInterfaceManager_;
+}
+
+SaiSwitchManager& SaiManagerTable::switchManager() {
+  return *switchManager_;
+}
+const SaiSwitchManager& SaiManagerTable::switchManager() const {
+  return *switchManager_;
 }
 
 SaiVirtualRouterManager& SaiManagerTable::virtualRouterManager() {
