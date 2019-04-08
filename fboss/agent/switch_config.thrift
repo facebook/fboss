@@ -529,6 +529,8 @@ struct Port {
   /**
    * There are multiple queues per port
    * This allows defining their attributes
+   *
+   * If defined, this overrides defaultPortQueues in SwitchConfig.
    */
   12: list<PortQueue> queues = []
 
@@ -947,4 +949,5 @@ struct SwitchConfig {
   32: list<Mirror> mirrors = []
   33: list<TrafficCounter> trafficCounters = []
   34: list<QosPolicy> qosPolicies = []
+  35: list<PortQueue> defaultPortQueues = []
 }
