@@ -19,6 +19,18 @@ static constexpr uint64_t defaultVlanId = 1;
 static constexpr uint64_t defaultVirtualRouterId = 0;
 }
 
+sai_status_t create_switch_fn(
+  sai_object_id_t* /* switch_id */,
+  uint32_t /* attr_count */,
+  const sai_attribute_t* /* attr_list */) {
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_switch_fn(
+  sai_object_id_t /* switch_id */) {
+    return SAI_STATUS_SUCCESS;
+}
+
 sai_status_t set_switch_attribute_fn(
     sai_object_id_t switch_id,
     const sai_attribute_t* attr) {
@@ -82,6 +94,8 @@ namespace fboss {
 static sai_switch_api_t _switch_api;
 
 void populate_switch_api(sai_switch_api_t** switch_api) {
+  _switch_api.create_switch = &create_switch_fn;
+  _switch_api.remove_switch = &remove_switch_fn;
   _switch_api.set_switch_attribute = &set_switch_attribute_fn;
   _switch_api.get_switch_attribute = &get_switch_attribute_fn;
   *switch_api = &_switch_api;
