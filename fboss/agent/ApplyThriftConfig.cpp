@@ -654,9 +654,19 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
     const std::vector<cfg::PortQueue>& cfgPortQueues) {
   QueueConfig newPortQueues;
 
+  /*
+   * By default, queue config is picked from defaultPortQueues. However, per
+   * port queue config, if specified, overrides it.
+   */
   flat_map<int, const cfg::PortQueue*> newQueues;
   for (const auto& queue : cfgPortQueues) {
     newQueues.emplace(std::make_pair(queue.id, &queue));
+  }
+
+  if (newQueues.empty()) {
+    for (const auto& queue : cfg_->defaultPortQueues) {
+      newQueues.emplace(std::make_pair(queue.id, &queue));
+    }
   }
 
   // Process all supplied queues
