@@ -23,8 +23,8 @@ void verifyUnlabeledHostKey(
   } else {
     EXPECT_EQ(key.intfID(), hostKey.intf());
   }
-  EXPECT_EQ(key.needsTunnel(), hostKey.needsTunnel());
-  EXPECT_EQ(key.needsTunnel(), false);
+  EXPECT_EQ(key.needsMplsTunnel(), hostKey.needsMplsTunnel());
+  EXPECT_EQ(key.needsMplsTunnel(), false);
   EXPECT_THROW(key.tunnelLabelStack(), FbossError);
   EXPECT_THROW(hostKey.tunnelLabelStack(), FbossError);
 }
@@ -38,8 +38,8 @@ void verifyLabeledHostKey(
   EXPECT_EQ(key.hasLabel(), hostKey.hasLabel());
   EXPECT_EQ(key.getLabel(), hostKey.getLabel());
   EXPECT_EQ(key.intfID().value(), hostKey.intf());
-  ASSERT_EQ(key.needsTunnel(), hostKey.needsTunnel());
-  if (key.needsTunnel()) {
+  ASSERT_EQ(key.needsMplsTunnel(), hostKey.needsMplsTunnel());
+  if (key.needsMplsTunnel()) {
     EXPECT_EQ(key.tunnelLabelStack(), hostKey.tunnelLabelStack());
   } else {
     EXPECT_THROW(key.tunnelLabelStack(), FbossError);

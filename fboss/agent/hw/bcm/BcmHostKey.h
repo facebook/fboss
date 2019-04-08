@@ -44,7 +44,7 @@ struct IHostKey {
       return folly::poly_call<5>(*this);
     }
 
-    bool needsTunnel() const {
+    bool needsMplsTunnel() const {
       return folly::poly_call<8>(*this);
     }
 
@@ -79,7 +79,7 @@ struct IHostKey {
       &T::str,
       &eq<T>,
       &lt<T>,
-      &T::needsTunnel,
+      &T::needsMplsTunnel,
       &T::tunnelLabelStack);
 }; // struct IHostKey
 
@@ -124,7 +124,7 @@ class BcmHostKey {
     return 0;
   }
 
-  bool needsTunnel() const {
+  bool needsMplsTunnel() const {
     return false;
   }
 
@@ -190,12 +190,12 @@ class BcmLabeledHostKey {
     return labels_.size() == 0 ? label_ : labels_.front();
   }
 
-  bool needsTunnel() const {
+  bool needsMplsTunnel() const {
     return labels_.size() > 1;
   }
 
   LabelForwardingAction::LabelStack tunnelLabelStack() const {
-    if (!needsTunnel()) {
+    if (!needsMplsTunnel()) {
       throw FbossError(
           "tunnel label stack requested for next hop that doesn't require "
           "labels");
