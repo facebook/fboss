@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
+#include "fboss/agent/state/PortDescriptor.h"
 
 #include <memory>
 #include <unordered_map>
@@ -24,6 +25,7 @@ namespace fboss {
 
 class SaiManagerTable;
 class SaiNextHop;
+class SaiFdbEntry;
 
 class SaiNeighbor {
  public:
@@ -31,7 +33,8 @@ class SaiNeighbor {
       SaiApiTable* apiTable,
       SaiManagerTable* managerTable,
       const NeighborApiParameters::EntryType& entry,
-      const NeighborApiParameters::Attributes& attributes);
+      const NeighborApiParameters::Attributes& attributes,
+      std::unique_ptr<SaiFdbEntry> fdbEntry);
   ~SaiNeighbor();
   SaiNeighbor(const SaiNeighbor& other) = delete;
   SaiNeighbor(SaiNeighbor&& other) = delete;
@@ -51,6 +54,7 @@ class SaiNeighbor {
   NeighborApiParameters::EntryType entry_;
   NeighborApiParameters::Attributes attributes_;
   std::unique_ptr<SaiNextHop> nextHop_;
+  std::unique_ptr<SaiFdbEntry> fdbEntry_;
 };
 
 class SaiNeighborManager {

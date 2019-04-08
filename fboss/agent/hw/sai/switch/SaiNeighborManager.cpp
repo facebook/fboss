@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
@@ -24,11 +25,13 @@ SaiNeighbor::SaiNeighbor(
     SaiApiTable* apiTable,
     SaiManagerTable* managerTable,
     const NeighborApiParameters::EntryType& entry,
-    const NeighborApiParameters::Attributes& attributes)
+    const NeighborApiParameters::Attributes& attributes,
+    std::unique_ptr<SaiFdbEntry> fdbEntry)
     : apiTable_(apiTable),
       managerTable_(managerTable),
       entry_(entry),
-      attributes_(attributes) {
+      attributes_(attributes),
+      fdbEntry_(std::move(fdbEntry)) {
   auto& neighborApi = apiTable_->neighborApi();
   neighborApi.create2(entry_, attributes.attrs());
   nextHop_ = managerTable_->nextHopManager().addNextHop(
@@ -37,8 +40,9 @@ SaiNeighbor::SaiNeighbor(
 
 SaiNeighbor::~SaiNeighbor() {
   auto& neighborApi = apiTable_->neighborApi();
-  neighborApi.remove(entry_);
+  fdbEntry_.reset();
   nextHop_.reset();
+  neighborApi.remove(entry_);
 }
 
 bool SaiNeighbor::operator==(const SaiNeighbor& other) const {
@@ -113,8 +117,12 @@ void SaiNeighborManager::addNeighbor(
   } else {
     XLOG(INFO) << "add resolved neighbor";
     NeighborApiParameters::Attributes attributes{{swEntry->getMac()}};
+    auto fdbEntry = managerTable_->fdbManager().addFdbEntry(
+      swEntry->getIntfID(),
+      swEntry->getMac(),
+      swEntry->getPort());
     auto neighbor = std::make_unique<SaiNeighbor>(
-        apiTable_, managerTable_, saiEntry, attributes);
+        apiTable_, managerTable_, saiEntry, attributes, std::move(fdbEntry));
     sai_object_id_t nextHopId = neighbor->nextHopId();
     neighbors_.insert(std::make_pair(saiEntry, std::move(neighbor)));
     managerTable_->nextHopGroupManager().handleResolvedNeighbor(
