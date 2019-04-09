@@ -13,13 +13,17 @@ namespace fboss {
 
 class BcmLabeledEgress : public BcmEgress {
  public:
- public:
   BcmLabeledEgress(const BcmSwitchIf* hw, opennsl_mpls_label_t label)
       : BcmEgress(hw), label_(label) {}
   /*
    * Serialize to folly::dynamic
    */
-  folly::dynamic toFollyDynamic() const override;
+  folly::dynamic toFollyDynamic() const override {
+    auto constexpr kLabel = "label";
+    folly::dynamic egress = BcmEgress::toFollyDynamic();
+    egress[kLabel] = label_;
+    return egress;
+  }
 
   bool hasLabel() const override {
     return true;

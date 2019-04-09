@@ -87,7 +87,7 @@ void BcmHost::initHostCommon(opennsl_l3_host_t *host) const {
 }
 
 void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
-  if (addedInHW_) {
+  if (addedInHW_ || key_.hasLabel()) {
     return;
   }
   const auto& addr = key_.addr();

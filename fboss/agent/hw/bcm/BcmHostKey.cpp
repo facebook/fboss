@@ -75,7 +75,7 @@ bool operator==(const BcmLabeledHostKey& lhs, const BcmLabeledHostKey& rhs) {
 
 bool operator<(const BcmLabeledHostKey& lhs, const BcmLabeledHostKey& rhs) {
   return std::tie(lhs.vrf_, lhs.label_, lhs.intfID_, lhs.addr_, lhs.labels_) <
-      std::tie(rhs.vrf_, rhs.label_, rhs.intfID_, rhs.addr_, lhs.labels_);
+      std::tie(rhs.vrf_, rhs.label_, rhs.intfID_, rhs.addr_, rhs.labels_);
 }
 
 template <class SelfType>

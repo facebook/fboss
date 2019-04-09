@@ -332,7 +332,8 @@ std::shared_ptr<BcmLabeledTunnel> BcmIntf::getBcmLabeledTunnel(
     const LabelForwardingAction::LabelStack& stack) {
   std::shared_ptr<BcmLabeledTunnel> tunnel;
   bool created = false;
-  std::tie(tunnel, created) = map_.refOrEmplace(stack, hw_, bcmIfId_, stack);
+  std::tie(tunnel, created) =
+      labelStack2MplsTunnel_.refOrEmplace(stack, hw_, bcmIfId_, stack);
   return tunnel;
 }
 

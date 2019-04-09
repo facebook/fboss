@@ -73,6 +73,11 @@ class BcmIntf {
   std::shared_ptr<BcmLabeledTunnel> getBcmLabeledTunnel(
       const LabelForwardingAction::LabelStack& stack);
 
+  // for tests
+  size_t getLabeledTunnelCount() const {
+    return labelStack2MplsTunnel_.size();
+  }
+
  private:
   // no copy or assignment
   BcmIntf(BcmIntf const &) = delete;
@@ -90,7 +95,7 @@ class BcmIntf {
   std::unique_ptr<BcmStation> station_;
   // The interface addresses that have BcmHost object created
   std::set<BcmHostKey> hosts_;
-  BcmLabeledTunnelMap map_;
+  BcmLabeledTunnelMap labelStack2MplsTunnel_;
 };
 
 class BcmIntfTable {
