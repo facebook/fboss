@@ -26,3 +26,10 @@ struct MplsAction {
   2: optional MplsLabel swapLabel,         // Required if action == SWAP
   3: optional MplsLabelStack pushLabels,   // Required if action == PUSH
 }
+
+struct MplsNextHop {
+  /* nexthop */
+  1: string nexthop
+  /* label forwarding action towards nexthop */
+  2: MplsAction labelForwardingAction
+}

@@ -56,10 +56,18 @@ add_thrift_cpp2_library(
   common/network/if/Address.thrift
 )
 add_thrift_cpp2_library(
+  mpls_cpp2
+  fboss/agent/if/mpls.thrift
+  OPTIONS
+    json
+)
+add_thrift_cpp2_library(
   switch_config_cpp2
   fboss/agent/switch_config.thrift
   OPTIONS
     json
+  DEPENDS
+    mpls_cpp2
 )
 add_thrift_cpp2_library(
   agent_config_cpp2
@@ -99,8 +107,6 @@ add_thrift_cpp2_library(
 add_thrift_cpp2_library(
   transceiver_cpp2
   fboss/qsfp_service/if/transceiver.thrift
-  DEPENDS
-    switch_config_cpp2
 )
 add_thrift_cpp2_library(
   optic_cpp2
@@ -115,10 +121,6 @@ add_thrift_cpp2_library(
 add_thrift_cpp2_library(
   sflow_cpp2
   fboss/agent/if/sflow.thrift
-)
-add_thrift_cpp2_library(
-  mpls_cpp2
-  fboss/agent/if/mpls.thrift
 )
 add_thrift_cpp2_library(
   ctrl_cpp2
@@ -179,6 +181,7 @@ add_thrift_cpp2_library(
     fboss_cpp2
     transceiver_cpp2
     switch_config_cpp2
+    mpls_cpp2
 )
 add_thrift_cpp2_library(
   netlink_manager_service_cpp2
@@ -526,6 +529,7 @@ target_link_libraries(
     packettrace_cpp2
     bcmswitch_cpp2
     hardware_stats_cpp2
+    mpls_cpp2
     pcap_pubsub_cpp2
     qsfp_cpp2
     netlink_manager_service_cpp2

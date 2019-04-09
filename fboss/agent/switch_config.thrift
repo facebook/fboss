@@ -6,6 +6,7 @@ namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.switch_config
 namespace cpp2 facebook.fboss.cfg
 
+include "fboss/agent/if/mpls.thrift"
 
 /**
  * Administrative port state. ie "should the port be enabled?"
@@ -799,6 +800,26 @@ struct StaticRouteNoNextHops {
 }
 
 
+struct StaticIp2MplsRoute {
+  /** The VRF where the static route belongs to */
+  1: i32 routerID = 0
+  /* Prefix in the format like 10.0.0.0/8 */
+  2: string prefix
+  /* mpls next hops with push labels */
+  3: list<mpls.MplsNextHop > nexthops
+}
+
+struct StaticMplsRouteWithNextHops {
+  /* Look up MPLS packet based on label */
+  1: mpls.MplsLabel  ingressLabel
+  /* forward MPLS packet to nexthops */
+  2: list<mpls.MplsNextHop > nexthop
+}
+
+struct StaticMplsRouteNoNextHops {
+  1: mpls.MplsLabel  ingressLabel
+}
+
 struct SflowCollector {
   1: string ip
   2: i16 port
@@ -950,4 +971,12 @@ struct SwitchConfig {
   33: list<TrafficCounter> trafficCounters = []
   34: list<QosPolicy> qosPolicies = []
   35: list<PortQueue> defaultPortQueues = []
+  // Static MPLS routes with next hops
+  36: list<StaticMplsRouteWithNextHops> staticMplsRoutesWithNhops = []
+  // MPLS labels for which to drop traffic
+  37: list<StaticMplsRouteNoNextHops> staticMplsoutesToNull = []
+  // MPLS labels for which to send traffic to CPU
+  38: list<StaticMplsRouteNoNextHops> staticMplsRoutesToCPU = []
+  // ingress LER routes
+  39: list<StaticIp2MplsRoute> staticIp2MplsRoutes = []
 }
