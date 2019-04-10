@@ -22,7 +22,6 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
   cfg::PortSpeed getMaxPortSpeed() override {
     return cfg::PortSpeed::FORTYG;
   }
-  std::unique_ptr<BcmTestPort> getPlatformPort(PortID id) override;
 
   bool isCosSupported() const override {
     return false;
@@ -59,6 +58,8 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
   // Forbidden copy constructor and assignment operator
   BcmTestWedge40Platform(BcmTestWedge40Platform const&) = delete;
   BcmTestWedge40Platform& operator=(BcmTestWedge40Platform const&) = delete;
+
+  std::unique_ptr<BcmTestPort> createTestPort(PortID id) const override;
 };
 } // namespace fboss
 } // namespace facebook

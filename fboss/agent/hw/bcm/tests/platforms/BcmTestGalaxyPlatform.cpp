@@ -10,8 +10,6 @@
 #include "fboss/agent/hw/bcm/tests/platforms/BcmTestGalaxyPlatform.h"
 #include "fboss/agent/hw/bcm/tests/platforms/BcmTestGalaxyPort.h"
 
-using std::make_unique;
-
 namespace {
 static const std::array<int, 32> kMasterLogicalPortIds = {
   118, 122, 126, 130, 1, 5, 9, 13, 17, 21, 25, 29, 34, 38, 42, 46, 50, 54, 58,
@@ -30,9 +28,9 @@ BcmTestGalaxyPlatform::BcmTestGalaxyPlatform()
               kMasterLogicalPortIds.end()),
           kNumPortsPerTransceiver) {}
 
-std::unique_ptr<BcmTestPort> BcmTestGalaxyPlatform::getPlatformPort(
-    PortID id) {
-  return make_unique<BcmTestGalaxyPort>(id);
+std::unique_ptr<BcmTestPort> BcmTestGalaxyPlatform::createTestPort(
+    PortID id) const {
+  return std::make_unique<BcmTestGalaxyPort>(id);
 }
 
 } // namespace fboss

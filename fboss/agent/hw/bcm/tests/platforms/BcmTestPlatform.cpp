@@ -17,7 +17,6 @@
 #include <folly/logging/xlog.h>
 
 using folly::MacAddress;
-using std::make_unique;
 using std::string;
 
 namespace facebook {
@@ -74,15 +73,13 @@ BcmTestPlatform::InitPortMap BcmTestPlatform::initPorts() {
   InitPortMap ports;
 
   for (int logicalPortId : logicalPortIds_) {
-    ports[logicalPortId] = createPort(logicalPortId);
+    PortID id(logicalPortId);
+
+    auto rtn = ports_.emplace(id, createTestPort(id));
+
+    ports.emplace(logicalPortId, rtn.first->second.get());
   }
   return ports;
-}
-
-BcmTestPort* BcmTestPlatform::createPort(int number) {
-  PortID id(number);
-  ports_[id] = getPlatformPort(id);
-  return ports_[id].get();
 }
 
 std::vector<int> BcmTestPlatform::getAllPortsinGroup(int portID) {
@@ -94,6 +91,11 @@ std::vector<int> BcmTestPlatform::getAllPortsinGroup(int portID) {
     allPortsinGroup.push_back(portID + i);
   }
   return allPortsinGroup;
+}
+
+PlatformPort* BcmTestPlatform::getPlatformPort(PortID portID) const {
+  auto it = ports_.find(portID);
+  return it == ports_.end() ? nullptr : it->second.get();
 }
 
 } // namespace fboss

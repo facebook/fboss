@@ -41,8 +41,8 @@ BcmTestYamp16QPlatform::BcmTestYamp16QPlatform()
         kMasterLogicalPortIds.end()),
       kNumPortsPerTransceiver) {}
 
-std::unique_ptr<BcmTestPort> BcmTestYamp16QPlatform::getPlatformPort(
-    PortID id) {
+std::unique_ptr<BcmTestPort> BcmTestYamp16QPlatform::createTestPort(
+    PortID id) const {
   return std::make_unique<BcmTestYampPort>(id);
 }
 }} // facebook::fboss

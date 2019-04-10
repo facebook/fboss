@@ -16,11 +16,12 @@ class BcmTestYamp16QPlatform : public BcmTestWedgeTomahawk3Platform {
 public:
   BcmTestYamp16QPlatform();
   ~BcmTestYamp16QPlatform() override {}
-  std::unique_ptr<BcmTestPort> getPlatformPort(PortID id) override;
 
-private:
+ private:
   // Forbidden copy constructor and assignment operator
   BcmTestYamp16QPlatform(BcmTestYamp16QPlatform const&) = delete;
   BcmTestYamp16QPlatform& operator=(BcmTestYamp16QPlatform const&) = delete;
+
+  std::unique_ptr<BcmTestPort> createTestPort(PortID id) const override;
 };
 }} // facebook::fboss

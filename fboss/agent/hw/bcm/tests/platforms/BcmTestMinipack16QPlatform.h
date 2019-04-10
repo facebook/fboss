@@ -16,12 +16,13 @@ class BcmTestMinipack16QPlatform : public BcmTestWedgeTomahawk3Platform {
 public:
   BcmTestMinipack16QPlatform();
   ~BcmTestMinipack16QPlatform() override {}
-  std::unique_ptr<BcmTestPort> getPlatformPort(PortID id) override;
 
-private:
+ private:
   // Forbidden copy constructor and assignment operator
   BcmTestMinipack16QPlatform(BcmTestMinipack16QPlatform const&) = delete;
   BcmTestMinipack16QPlatform& operator=(
     BcmTestMinipack16QPlatform const&) = delete;
+
+  std::unique_ptr<BcmTestPort> createTestPort(PortID id) const override;
 };
 }} // facebook::fboss

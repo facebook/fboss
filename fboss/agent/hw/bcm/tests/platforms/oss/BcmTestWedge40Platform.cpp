@@ -25,5 +25,6 @@ const PortQueue& BcmTestWedge40Platform::getDefaultControlPlaneQueueSettings(
   static const PortQueue kQueue;
   return kQueue;
 }
+
 } // namespace fboss
 } // namespace facebook

@@ -41,8 +41,8 @@ BcmTestMinipack16QPlatform::BcmTestMinipack16QPlatform()
         kMasterLogicalPortIds.end()),
       kNumPortsPerTransceiver) {}
 
-std::unique_ptr<BcmTestPort> BcmTestMinipack16QPlatform::getPlatformPort(
-    PortID id) {
+std::unique_ptr<BcmTestPort> BcmTestMinipack16QPlatform::createTestPort(
+    PortID id) const {
   return std::make_unique<BcmTestMinipackPort>(id);
 }
 }} // facebook::fboss

@@ -12,8 +12,6 @@
 
 #include "fboss/agent/hw/bcm/tests/platforms/BcmTestWedge100Port.h"
 
-using std::make_unique;
-
 namespace {
 static const std::array<int, 32> kMasterLogicalPortIds = {
   118, 122, 126, 130, 1, 5, 9, 13, 17, 21, 25, 29, 34, 38, 42, 46, 50, 54, 58,
@@ -32,9 +30,9 @@ BcmTestWedge100Platform::BcmTestWedge100Platform()
               kMasterLogicalPortIds.end()),
           kNumPortsPerTransceiver) {}
 
-std::unique_ptr<BcmTestPort> BcmTestWedge100Platform::getPlatformPort(
-    PortID id) {
-  return make_unique<BcmTestWedge100Port>(id);
+std::unique_ptr<BcmTestPort> BcmTestWedge100Platform::createTestPort(
+    PortID id) const {
+  return std::make_unique<BcmTestWedge100Port>(id);
 }
 
 } // namespace fboss

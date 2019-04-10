@@ -61,15 +61,9 @@ class BcmTestPlatform : public BcmPlatform {
   TransceiverIdxThrift getPortMapping(PortID /* unused */) const override {
     return TransceiverIdxThrift();
   }
-  PlatformPort* getPlatformPort(PortID /* unused */) const override {
-    return nullptr;
-  }
-
   bool isBcmShellSupported() const override {
     return true;
   }
-
-  virtual std::unique_ptr<BcmTestPort> getPlatformPort(PortID id) = 0;
 
   const std::vector<int>& logicalPortIds() const {
     return logicalPortIds_;
@@ -83,6 +77,8 @@ class BcmTestPlatform : public BcmPlatform {
     return warmBootHelper_.get();
   }
 
+  PlatformPort* getPlatformPort(PortID portID) const override;
+
  protected:
   // Each platform should have their own logical ports list.
   std::vector<int> logicalPortIds_;
@@ -95,9 +91,9 @@ class BcmTestPlatform : public BcmPlatform {
   // Forbidden copy constructor and assignment operator
   BcmTestPlatform(BcmTestPlatform const &) = delete;
   BcmTestPlatform& operator=(BcmTestPlatform const &) = delete;
-  BcmTestPort* createPort(int number);
 
   void initImpl() override {}
+  virtual std::unique_ptr<BcmTestPort> createTestPort(PortID portID) const = 0;
 
   std::map<PortID, std::unique_ptr<BcmTestPort>> ports_;
   std::unique_ptr<BcmWarmBootHelper> warmBootHelper_;

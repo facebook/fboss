@@ -23,7 +23,6 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
   cfg::PortSpeed getMaxPortSpeed() override {
     return cfg::PortSpeed::HUNDREDG;
   }
-  std::unique_ptr<BcmTestPort> getPlatformPort(PortID id) override;
 
   bool isCosSupported() const override {
     return true;
@@ -74,6 +73,8 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
   // Forbidden copy constructor and assignment operator
   FakeBcmTestPlatform(FakeBcmTestPlatform const&) = delete;
   FakeBcmTestPlatform& operator=(FakeBcmTestPlatform const&) = delete;
+
+  std::unique_ptr<BcmTestPort> createTestPort(PortID id) const override;
 
   folly::test::TemporaryDirectory tmpDir_;
 };

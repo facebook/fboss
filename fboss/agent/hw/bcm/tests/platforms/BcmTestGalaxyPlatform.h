@@ -17,7 +17,6 @@ class BcmTestGalaxyPlatform : public BcmTestWedgeTomahawkPlatform {
  public:
   BcmTestGalaxyPlatform();
   ~BcmTestGalaxyPlatform() override {}
-  std::unique_ptr<BcmTestPort> getPlatformPort(PortID id) override;
 
   std::list<FlexPortMode> getSupportedFlexPortModes() const override {
     return {FlexPortMode::ONEX100G};
@@ -27,6 +26,8 @@ class BcmTestGalaxyPlatform : public BcmTestWedgeTomahawkPlatform {
   // Forbidden copy constructor and assignment operator
   BcmTestGalaxyPlatform(BcmTestGalaxyPlatform const&) = delete;
   BcmTestGalaxyPlatform& operator=(BcmTestGalaxyPlatform const&) = delete;
+
+  std::unique_ptr<BcmTestPort> createTestPort(PortID id) const override;
 };
 } // namespace fboss
 } // namespace facebook
