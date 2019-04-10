@@ -304,6 +304,7 @@ class BcmHostTable {
    * the host table
    */
   void releaseHosts() {
+    labeledHosts_.clear();
     ecmpHosts_.clear();
     hosts_.clear();
   }
@@ -409,6 +410,12 @@ class BcmHostReference {
   BcmEcmpHost* getBcmEcmpHost();
 
   opennsl_if_t getEgressId();
+
+  static std::unique_ptr<BcmHostReference> get(BcmSwitch* hw, HostKey key);
+
+  static std::unique_ptr<BcmHostReference> get(
+      BcmSwitch* hw,
+      BcmEcmpHostKey key);
 
   static std::unique_ptr<BcmHostReference>
   get(BcmSwitch* hw, opennsl_vrf_t vrf, NextHop nexthop);

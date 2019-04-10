@@ -25,15 +25,18 @@ extern "C" {
 namespace facebook { namespace fboss {
 
 class BcmSwitch;
-class BcmHost;
+class BcmHostReference;
 
 /**
  * BcmRoute represents a L3 route object.
  */
 class BcmRoute {
  public:
-  BcmRoute(const BcmSwitch* hw, opennsl_vrf_t vrf,
-           const folly::IPAddress& addr, uint8_t len);
+  BcmRoute(
+      BcmSwitch* hw,
+      opennsl_vrf_t vrf,
+      const folly::IPAddress& addr,
+      uint8_t len);
   ~BcmRoute();
   void program(const RouteNextHopEntry& fwd);
   static bool deleteLpmRoute(int unit,
@@ -51,9 +54,10 @@ class BcmRoute {
   }
 
  private:
-  void programHostRoute(opennsl_if_t egressId,
-                        const RouteNextHopEntry& fwd,
-                        bool replace);
+  std::unique_ptr<BcmHostReference> programHostRoute(
+      opennsl_if_t egressId,
+      const RouteNextHopEntry& fwd,
+      bool replace);
   void programLpmRoute(opennsl_if_t egressId, const RouteNextHopEntry& fwd);
   /*
    * Check whether we can use the host route table. BCM platforms
@@ -64,7 +68,7 @@ class BcmRoute {
   // no copy or assign
   BcmRoute(const BcmRoute &) = delete;
   BcmRoute& operator=(const BcmRoute &) = delete;
-  const BcmSwitch* hw_;
+  BcmSwitch* hw_;
   opennsl_vrf_t vrf_;
   folly::IPAddress prefix_;
   uint8_t len_;
@@ -73,11 +77,14 @@ class BcmRoute {
   bool added_{false}; // if the route added to HW or not
   opennsl_if_t egressId_{-1};
   void initL3RouteT(opennsl_l3_route_t* rt) const;
+  std::unique_ptr<BcmHostReference>
+      nextHopHostReference; // reference to nexthops
+  std::unique_ptr<BcmHostReference> hostRouteHostReference_; // for host routes
 };
 
 class BcmRouteTable {
  public:
-  explicit BcmRouteTable(const BcmSwitch* hw);
+  explicit BcmRouteTable(BcmSwitch* hw);
   ~BcmRouteTable();
   // throw an error if not found
   BcmRoute* getBcmRoute(
@@ -103,7 +110,7 @@ class BcmRouteTable {
     bool operator<(const Key& k2) const;
   };
 
-  const BcmSwitch *hw_;
+  BcmSwitch* hw_;
 
   boost::container::flat_map<Key, std::unique_ptr<BcmRoute>> fib_;
 };

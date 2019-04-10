@@ -90,10 +90,10 @@ bool operator==(SelfType const& lhs, SelfType const& rhs) {
 
 HostKey getNextHopKey(opennsl_vrf_t vrf, const NextHop& nexthop) {
   if (!nexthop.labelForwardingAction() || !nexthop.isResolved() ||
+      (nexthop.labelForwardingAction()->type() !=
+          LabelForwardingAction::LabelForwardingType::SWAP &&
       nexthop.labelForwardingAction()->type() !=
-          LabelForwardingAction::LabelForwardingType::SWAP ||
-      nexthop.labelForwardingAction()->type() !=
-          LabelForwardingAction::LabelForwardingType::PUSH) {
+          LabelForwardingAction::LabelForwardingType::PUSH)) {
     // unlabaled next hop
     return BcmHostKey(vrf, nexthop);
   }

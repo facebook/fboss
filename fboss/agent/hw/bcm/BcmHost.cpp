@@ -850,6 +850,25 @@ std::unique_ptr<BcmHostReference> BcmHostReference::get(
   return std::make_unique<_>(hw, vrf, std::move(nexthops));
 }
 
+std::unique_ptr<BcmHostReference> BcmHostReference::get(
+    BcmSwitch* hw,
+    HostKey key) {
+  struct _ : public BcmHostReference {
+    _(BcmSwitch* hw, HostKey key) : BcmHostReference(hw, std::move(key)) {}
+  };
+  return std::make_unique<_>(hw, std::move(key));
+}
+
+std::unique_ptr<BcmHostReference> BcmHostReference::get(
+    BcmSwitch* hw,
+    BcmEcmpHostKey key) {
+  struct _ : public BcmHostReference {
+    _(BcmSwitch* hw, BcmEcmpHostKey key)
+        : BcmHostReference(hw, std::move(key)) {}
+  };
+  return std::make_unique<_>(hw, std::move(key));
+}
+
 BcmHostReference::~BcmHostReference() {
   if (hostKey_ && host_) {
     hw_->writableHostTable()->derefBcmHost(hostKey_.value());
