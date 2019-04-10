@@ -1010,6 +1010,55 @@ bool BcmSwitch::isValidPortUpdate(const shared_ptr<Port>& oldPort,
   return true;
 }
 
+template <typename AddrT>
+bool BcmSwitch::isRouteUpdateValid(const StateDelta& delta) const {
+  using RouteT = Route<AddrT>;
+
+  auto maxLabelStackDepth = getPlatform()->maxLabelStackDepth();
+  auto validateLabeledRoute = [maxLabelStackDepth](const auto& route) {
+    for (const auto& nhop : route->getForwardInfo().getNextHopSet()) {
+      if (!nhop.labelForwardingAction()) {
+        continue;
+      }
+      if (nhop.labelForwardingAction()->type() !=
+          LabelForwardingAction::LabelForwardingType::PUSH) {
+        return false;
+      } else {
+        if (nhop.labelForwardingAction()->pushStack()->size() >
+            maxLabelStackDepth) {
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  bool isValid = true;
+  for (const auto& rDelta : delta.getRouteTablesDelta()) {
+    forEachChanged(
+        rDelta.template getRoutesDelta<AddrT>(),
+        [&isValid, validateLabeledRoute](
+            const std::shared_ptr<RouteT>& /*oldRoute*/,
+            const std::shared_ptr<RouteT>& newRoute) {
+          if (!validateLabeledRoute(newRoute)) {
+            isValid = false;
+            return LoopAction::BREAK;
+          }
+          return LoopAction::CONTINUE;
+        },
+        [&isValid,
+         validateLabeledRoute](const std::shared_ptr<RouteT>& addedRoute) {
+          if (!validateLabeledRoute(addedRoute)) {
+            isValid = false;
+            return LoopAction::BREAK;
+          }
+          return LoopAction::CONTINUE;
+        },
+        [](const std::shared_ptr<RouteT>& /*removedRoute*/) {});
+  }
+  return isValid;
+}
+
 bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
   auto newState = delta.newState();
   auto isValid = true;
@@ -1050,6 +1099,9 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
       [](const std::shared_ptr<LabelForwardingEntry>& /*oldEntry*/) {
         // removed Fn
       });
+
+  isValid = isValid && isRouteUpdateValid<folly::IPAddressV4>(delta);
+  isValid = isValid && isRouteUpdateValid<folly::IPAddressV6>(delta);
 
   return isValid;
 }
@@ -1477,6 +1529,10 @@ void BcmSwitch::processRouteTableDelta(
   using RouteT = Route<AddrT>;
   using PrefixT = typename Route<AddrT>::Prefix;
   std::map<RouterID, std::vector<PrefixT>> discardedPrefixes;
+  if (!isRouteUpdateValid<AddrT>(delta)) {
+    // typically indicate label stack depth exceeded.
+    throw FbossError("invalid route update");
+  }
   for (auto const& rtDelta : delta.getRouteTablesDelta()) {
     if (!rtDelta.getNew()) {
       // no new route table, must not have added or changed route, skip

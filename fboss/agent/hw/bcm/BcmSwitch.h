@@ -463,6 +463,8 @@ class BcmSwitch : public BcmSwitchIf {
   void processRouteTableDelta(
       const StateDelta& delta,
       std::shared_ptr<SwitchState>* appliedState);
+  template <typename AddrT>
+  bool isRouteUpdateValid(const StateDelta& delta) const;
 
   void processQosChanges(const StateDelta& delta);
 
