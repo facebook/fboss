@@ -78,10 +78,6 @@ NextHop nextHopFromFollyDynamic(const folly::dynamic& nhopJson) {
 }
 } // namespace util
 
-NextHopKey nextHopKey(const NextHop& nh) {
-  return {nh.addr(), nh.intf()};
-}
-
 void toAppend(const NextHop& nhop, std::string* result) {
   folly::toAppend(nhop.str(), result);
 }

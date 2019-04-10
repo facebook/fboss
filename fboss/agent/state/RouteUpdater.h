@@ -134,6 +134,7 @@ class RouteUpdater {
       RtRibT* nRib,
       ClonedRib* ribCloned,
       const AddrT& nh,
+      const folly::Optional<LabelForwardingAction>& labelAction,
       bool* hasToCpu,
       bool* hasDrop,
       RouteNextHopSet& fwd);

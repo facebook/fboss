@@ -187,8 +187,26 @@ void RouteUpdater::removeAllRoutesForClient(ClientID clientID) {
 namespace {
 using NextHopForwardInfos =
     boost::container::flat_map<NextHop, RouteNextHopSet>;
+
+struct NextHopCombinedWeightsKey {
+  explicit NextHopCombinedWeightsKey(NextHop nhop)
+      : ip(nhop.addr()),
+        intfId(nhop.intf()), // must be resolved next hop
+        action(nhop.labelForwardingAction()) {
+    /* "weightless" next hop, consider all attrs of L3 next hop except its
+     * weight, this is used in computing number of required paths to next hop,
+     * for correct programming of unequal cost multipath */
+  }
+  bool operator<(const NextHopCombinedWeightsKey& other) const {
+    return std::tie(ip, intfId, action) <
+        std::tie(other.ip, other.intfId, other.action);
+  }
+  folly::IPAddress ip;
+  InterfaceID intfId;
+  folly::Optional<LabelForwardingAction> action;
+};
 using NextHopCombinedWeights =
-    boost::container::flat_map<NextHopKey, NextHopWeight>;
+    boost::container::flat_map<NextHopCombinedWeightsKey, NextHopWeight>;
 
 NextHopWeight totalWeightsLcm(const NextHopForwardInfos& nhToFwds) {
   auto lcmAccumFn =
@@ -233,7 +251,8 @@ RouteNextHopSet mergeForwardInfosEcmp(
             << " to ECMP because the next hop being resolved has weight 0: "
             << nh;
       }
-      fwd.emplace(ResolvedNextHop(fnh.addr(), fnh.intf(), ECMP_WEIGHT));
+      fwd.emplace(ResolvedNextHop(
+          fnh.addr(), fnh.intf(), ECMP_WEIGHT, fnh.labelForwardingAction()));
     }
   }
   return fwd;
@@ -279,7 +298,7 @@ NextHopCombinedWeights combineWeights(
                       << " tree uses ECMP.";
         loggedEcmpDefault = true;
       }
-      cws[nextHopKey(fnh)] += w;
+      cws[NextHopCombinedWeightsKey(fnh)] += w;
     }
   }
   return cws;
@@ -291,17 +310,19 @@ NextHopCombinedWeights combineWeights(
  */
 RouteNextHopSet optimizeWeights(const NextHopCombinedWeights& cws) {
   RouteNextHopSet fwd;
-  auto gcdAccumFn = [](NextHopWeight g,
-                       const std::pair<NextHopKey, NextHopWeight>& cw) {
-    NextHopWeight w = cw.second;
-    return (g ? boost::integer::gcd(g, w) : w);
-  };
+  auto gcdAccumFn =
+      [](NextHopWeight g,
+         const std::pair<NextHopCombinedWeightsKey, NextHopWeight>& cw) {
+        NextHopWeight w = cw.second;
+        return (g ? boost::integer::gcd(g, w) : w);
+      };
   auto fwdWeightGcd = std::accumulate(cws.begin(), cws.end(), 0, gcdAccumFn);
   for (const auto& cw : cws) {
-    const folly::IPAddress& addr = cw.first.first;
-    const InterfaceID& intf = cw.first.second;
+    const folly::IPAddress& addr = cw.first.ip;
+    const InterfaceID& intf = cw.first.intfId;
+    const auto& action = cw.first.action;
     NextHopWeight w = fwdWeightGcd ? cw.second / fwdWeightGcd : 0;
-    fwd.emplace(ResolvedNextHop(addr, intf, w));
+    fwd.emplace(ResolvedNextHop(addr, intf, w, action));
   }
   return fwd;
 }
@@ -373,6 +394,7 @@ template <typename AddressT>
 void RouteUpdater::getFwdInfoFromNhop(
     NetworkToRouteMap<AddressT>* routes,
     const AddressT& nh,
+    const folly::Optional<LabelForwardingAction>& labelAction,
     bool* hasToCpu,
     bool* hasDrop,
     RouteNextHopSet& fwd) {
@@ -403,9 +425,22 @@ void RouteUpdater::getFwdInfoFromNhop(
         // NOTE: we need to use a UCMP compatible weight so that this can
         // be a leaf in the recursive resolution defined in the comment
         // describing mergeForwardInfos above.
-        fwd.emplace(ResolvedNextHop(nh, rtNh.intf(), UCMP_DEFAULT_WEIGHT));
+        fwd.emplace(ResolvedNextHop(
+            nh,
+            rtNh.intf(),
+            UCMP_DEFAULT_WEIGHT,
+            LabelForwardingAction::combinePushLabelStack(
+                labelAction, rtNh.labelForwardingAction())));
       } else {
-        fwd.insert(nhops.begin(), nhops.end());
+        std::for_each(
+            nhops.begin(), nhops.end(), [&fwd, labelAction](const auto& nhop) {
+              fwd.insert(ResolvedNextHop(
+                  nhop.addr(),
+                  nhop.intf(),
+                  nhop.weight(),
+                  LabelForwardingAction::combinePushLabelStack(
+                      labelAction, nhop.labelForwardingAction())));
+            });
       }
     }
   }
@@ -450,11 +485,21 @@ void RouteUpdater::resolveOne(Route<AddressT>* route) {
 
       if (addr.isV4()) {
         getFwdInfoFromNhop(
-            v4Routes_, nh.addr().asV4(), &hasToCpu, &hasDrop, nhToFwds[nh]);
+            v4Routes_,
+            nh.addr().asV4(),
+            nh.labelForwardingAction(),
+            &hasToCpu,
+            &hasDrop,
+            nhToFwds[nh]);
       } else {
         CHECK(addr.isV6());
         getFwdInfoFromNhop(
-            v6Routes_, nh.addr().asV6(), &hasToCpu, &hasDrop, nhToFwds[nh]);
+            v6Routes_,
+            nh.addr().asV6(),
+            nh.labelForwardingAction(),
+            &hasToCpu,
+            &hasDrop,
+            nhToFwds[nh]);
       }
     }
 

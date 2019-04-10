@@ -101,6 +101,10 @@ class LabelForwardingAction {
 
   bool operator<(const LabelForwardingAction& rhs) const;
 
+  static folly::Optional<LabelForwardingAction> combinePushLabelStack(
+      const folly::Optional<LabelForwardingAction>& tunnelStack,
+      const folly::Optional<LabelForwardingAction>& adjacencyLabels);
+
  private:
   LabelForwardingType type_{LabelForwardingType::NOOP};
   folly::Optional<Label> swapWith_;

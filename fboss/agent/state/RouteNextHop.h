@@ -116,9 +116,6 @@ struct INextHop {
 
 using NextHop = folly::Poly<INextHop>;
 
-using NextHopKey = std::pair<folly::IPAddress, InterfaceID>;
-NextHopKey nextHopKey(const NextHop& nh);
-
 void toAppend(const NextHop& nhop, std::string *result);
 std::ostream& operator<<(std::ostream& os, const NextHop& nhop);
 

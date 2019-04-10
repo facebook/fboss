@@ -41,6 +41,41 @@ using std::make_shared;
 using std::shared_ptr;
 using ::testing::Return;
 
+namespace {
+const auto kPrefix =
+    RouteV6::Prefix{folly::IPAddressV6("2401:bad:cad:dad::"), 64};
+const auto kDestAddress = folly::IPAddressV6("2401:bad:cad:dad::beef");
+
+// bgp next hops
+const std::array<folly::IPAddressV6, 4> kBgpNextHopAddrs{
+    folly::IPAddressV6("2801::1"),
+    folly::IPAddressV6("2802::1"),
+    folly::IPAddressV6("2803::1"),
+    folly::IPAddressV6("2804::1"),
+};
+
+// igp next hops
+const std::array<folly::IPAddressV6, 4> kIgpAddrs{
+    folly::IPAddressV6("fe80::101"),
+    folly::IPAddressV6("fe80::102"),
+    folly::IPAddressV6("fe80::103"),
+    folly::IPAddressV6("fe80::104"),
+};
+
+// label stacks
+const std::array<LabelForwardingAction::LabelStack, 4> kLabelStacks{
+    LabelForwardingAction::LabelStack({101, 201, 301}),
+    LabelForwardingAction::LabelStack({102, 202, 302}),
+    LabelForwardingAction::LabelStack({103, 203, 303}),
+    LabelForwardingAction::LabelStack({104, 204, 304}),
+};
+const std::array<InterfaceID, 4> kInterfaces{
+    InterfaceID(1),
+    InterfaceID(2),
+    InterfaceID(3),
+    InterfaceID(4),
+};
+} // namespace
 //
 // Helper functions
 //
@@ -2354,6 +2389,423 @@ TEST(Route, withLabelForwardingAction) {
     EXPECT_EQ(
         labeledNextHops[nh.addr().asV4()],
         nh.labelForwardingAction()->pushStack().value());
+  }
+}
+
+TEST(Route, unresolvedWithRouteLabels) {
+  auto rid = RouterID(0);
+  RouteNextHopSet bgpNextHops;
+
+  for (auto i = 0; i < 4; i++) {
+    // bgp next hops with some labels, for some prefix
+    bgpNextHops.emplace(UnresolvedNextHop(
+        kBgpNextHopAddrs[i],
+        1,
+        folly::make_optional<LabelForwardingAction>(
+            LabelForwardingAction::LabelForwardingType::PUSH,
+            LabelForwardingAction::LabelStack{kLabelStacks[i].begin(),
+                                              kLabelStacks[i].end()})));
+  }
+
+  auto state = applyInitConfig();
+  ASSERT_NE(nullptr, state);
+  auto tables = state->getRouteTables();
+
+  RouteUpdater updater(tables);
+  // routes to remote prefix to bgp next hops
+  updater.addRoute(
+      rid,
+      kPrefix.network,
+      kPrefix.mask,
+      StdClientIds2ClientID(StdClientIds::BGPD),
+      RouteNextHopEntry(bgpNextHops, DISTANCE));
+
+  tables = updater.updateDone();
+  EXPECT_NODEMAP_MATCH(tables);
+
+  // route to remote destination under kPrefix advertised by bgp
+  const auto& route =
+      tables->getRouteTableIf(rid)->getRibV6()->longestMatch(kDestAddress);
+
+  EXPECT_EQ(
+      route->has(
+          StdClientIds2ClientID(StdClientIds::BGPD),
+          RouteNextHopEntry(bgpNextHops, DISTANCE)),
+      true);
+
+  EXPECT_FALSE(route->isResolved());
+}
+
+TEST(Route, withTunnelAndRouteLabels) {
+  auto rid = RouterID(0);
+  RouteNextHopSet bgpNextHops;
+
+  for (auto i = 0; i < 4; i++) {
+    // bgp next hops with some labels, for some prefix
+    bgpNextHops.emplace(UnresolvedNextHop(
+        kBgpNextHopAddrs[i],
+        1,
+        folly::make_optional<LabelForwardingAction>(
+            LabelForwardingAction::LabelForwardingType::PUSH,
+            LabelForwardingAction::LabelStack{kLabelStacks[i].begin(),
+                                              kLabelStacks[i].begin() + 2})));
+  }
+
+  auto state = applyInitConfig();
+  ASSERT_NE(nullptr, state);
+  auto tables = state->getRouteTables();
+
+  RouteUpdater updater(tables);
+  // routes to remote prefix to bgp next hops
+  updater.addRoute(
+      rid,
+      kPrefix.network,
+      kPrefix.mask,
+      StdClientIds2ClientID(StdClientIds::BGPD),
+      RouteNextHopEntry(bgpNextHops, DISTANCE));
+
+  std::vector<ResolvedNextHop> igpNextHops;
+  for (auto i = 0; i < 4; i++) {
+    igpNextHops.push_back(ResolvedNextHop(
+        kIgpAddrs[i],
+        kInterfaces[i],
+        ECMP_WEIGHT,
+        LabelForwardingAction(
+            LabelForwardingAction::LabelForwardingType::PUSH,
+            LabelForwardingAction::LabelStack{kLabelStacks[i].begin() + 2,
+                                              kLabelStacks[i].begin() + 3})));
+  }
+
+  // igp routes to bgp nexthops,
+  for (auto i = 0; i < 4; i++) {
+    updater.addRoute(
+        rid,
+        kBgpNextHopAddrs[i],
+        64,
+        StdClientIds2ClientID(StdClientIds::OPENR),
+        RouteNextHopEntry(igpNextHops[i], AdminDistance::DIRECTLY_CONNECTED));
+  }
+
+  tables = updater.updateDone();
+  EXPECT_NODEMAP_MATCH(tables);
+
+  // route to remote destination under kPrefix advertised by bgp
+  const auto& route =
+      tables->getRouteTableIf(rid)->getRibV6()->longestMatch(kDestAddress);
+
+  EXPECT_EQ(
+      route->has(
+          StdClientIds2ClientID(StdClientIds::BGPD),
+          RouteNextHopEntry(bgpNextHops, DISTANCE)),
+      true);
+
+  EXPECT_TRUE(route->isResolved());
+
+  for (const auto& nhop : route->getForwardInfo().getNextHopSet()) {
+    EXPECT_TRUE(nhop.isResolved());
+    EXPECT_TRUE(nhop.labelForwardingAction().hasValue());
+    EXPECT_EQ(
+        nhop.labelForwardingAction()->type(),
+        LabelForwardingAction::LabelForwardingType::PUSH);
+
+    ASSERT_TRUE(
+        nhop.intf() == kInterfaces[0] || nhop.intf() == kInterfaces[1] ||
+        nhop.intf() == kInterfaces[2] || nhop.intf() == kInterfaces[3]);
+
+    if (nhop.intf() == kInterfaces[0]) {
+      EXPECT_EQ(
+          nhop.labelForwardingAction()->pushStack().value(), kLabelStacks[0]);
+    } else if (nhop.intf() == kInterfaces[1]) {
+      EXPECT_EQ(
+          nhop.labelForwardingAction()->pushStack().value(), kLabelStacks[1]);
+    } else if (nhop.intf() == kInterfaces[2]) {
+      EXPECT_EQ(
+          nhop.labelForwardingAction()->pushStack().value(), kLabelStacks[2]);
+    } else if (nhop.intf() == kInterfaces[3]) {
+      EXPECT_EQ(
+          nhop.labelForwardingAction()->pushStack().value(), kLabelStacks[3]);
+    }
+  }
+}
+
+TEST(Route, withOnlyTunnelLabels) {
+  auto rid = RouterID(0);
+  RouteNextHopSet bgpNextHops;
+
+  for (auto i = 0; i < 4; i++) {
+    // bgp next hops with some labels, for some prefix
+    bgpNextHops.emplace(UnresolvedNextHop(kBgpNextHopAddrs[i], 1));
+  }
+
+  auto state = applyInitConfig();
+  ASSERT_NE(nullptr, state);
+  auto tables = state->getRouteTables();
+
+  RouteUpdater updater(tables);
+  // routes to remote prefix to bgp next hops
+  updater.addRoute(
+      rid,
+      kPrefix.network,
+      kPrefix.mask,
+      StdClientIds2ClientID(StdClientIds::BGPD),
+      RouteNextHopEntry(bgpNextHops, DISTANCE));
+
+  std::vector<ResolvedNextHop> igpNextHops;
+  for (auto i = 0; i < 4; i++) {
+    igpNextHops.push_back(ResolvedNextHop(
+        kIgpAddrs[i],
+        kInterfaces[i],
+        ECMP_WEIGHT,
+        LabelForwardingAction(
+            LabelForwardingAction::LabelForwardingType::PUSH,
+            LabelForwardingAction::LabelStack{kLabelStacks[i].begin(),
+                                              kLabelStacks[i].end()})));
+  }
+
+  // igp routes to bgp nexthops,
+  for (auto i = 0; i < 4; i++) {
+    updater.addRoute(
+        rid,
+        kBgpNextHopAddrs[i],
+        64,
+        StdClientIds2ClientID(StdClientIds::OPENR),
+        RouteNextHopEntry(igpNextHops[i], AdminDistance::DIRECTLY_CONNECTED));
+  }
+
+  tables = updater.updateDone();
+  EXPECT_NODEMAP_MATCH(tables);
+
+  // route to remote destination under kPrefix advertised by bgp
+  const auto& route =
+      tables->getRouteTableIf(rid)->getRibV6()->longestMatch(kDestAddress);
+
+  EXPECT_EQ(
+      route->has(
+          StdClientIds2ClientID(StdClientIds::BGPD),
+          RouteNextHopEntry(bgpNextHops, DISTANCE)),
+      true);
+
+  EXPECT_TRUE(route->isResolved());
+
+  for (const auto& nhop : route->getForwardInfo().getNextHopSet()) {
+    EXPECT_TRUE(nhop.isResolved());
+    EXPECT_TRUE(nhop.labelForwardingAction().hasValue());
+    EXPECT_EQ(
+        nhop.labelForwardingAction()->type(),
+        LabelForwardingAction::LabelForwardingType::PUSH);
+
+    ASSERT_TRUE(
+        nhop.intf() == kInterfaces[0] || nhop.intf() == kInterfaces[1] ||
+        nhop.intf() == kInterfaces[2] || nhop.intf() == kInterfaces[3]);
+
+    if (nhop.intf() == kInterfaces[0]) {
+      EXPECT_EQ(
+          nhop.labelForwardingAction()->pushStack().value(), kLabelStacks[0]);
+    } else if (nhop.intf() == kInterfaces[1]) {
+      EXPECT_EQ(
+          nhop.labelForwardingAction()->pushStack().value(), kLabelStacks[1]);
+    } else if (nhop.intf() == kInterfaces[2]) {
+      EXPECT_EQ(
+          nhop.labelForwardingAction()->pushStack().value(), kLabelStacks[2]);
+    } else if (nhop.intf() == kInterfaces[3]) {
+      EXPECT_EQ(
+          nhop.labelForwardingAction()->pushStack().value(), kLabelStacks[3]);
+    }
+  }
+}
+
+TEST(Route, updateTunnelLabels) {
+  auto rid = RouterID(0);
+  RouteNextHopSet bgpNextHops;
+  bgpNextHops.emplace(UnresolvedNextHop(
+      kBgpNextHopAddrs[0],
+      1,
+      folly::make_optional<LabelForwardingAction>(
+          LabelForwardingAction::LabelForwardingType::PUSH,
+          LabelForwardingAction::LabelStack{kLabelStacks[0].begin(),
+                                            kLabelStacks[0].begin() + 2})));
+
+  auto state = applyInitConfig();
+  ASSERT_NE(nullptr, state);
+  auto tables = state->getRouteTables();
+
+  RouteUpdater updater(tables);
+  // routes to remote prefix to bgp next hops
+  updater.addRoute(
+      rid,
+      kPrefix.network,
+      kPrefix.mask,
+      StdClientIds2ClientID(StdClientIds::BGPD),
+      RouteNextHopEntry(bgpNextHops, DISTANCE));
+
+  ResolvedNextHop igpNextHop{
+      kIgpAddrs[0],
+      kInterfaces[0],
+      ECMP_WEIGHT,
+      LabelForwardingAction(
+          LabelForwardingAction::LabelForwardingType::PUSH,
+          LabelForwardingAction::LabelStack{kLabelStacks[0].begin() + 2,
+                                            kLabelStacks[0].begin() + 3})};
+  // igp routes to bgp nexthops,
+  updater.addRoute(
+      rid,
+      kBgpNextHopAddrs[0],
+      64,
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      RouteNextHopEntry(igpNextHop, AdminDistance::DIRECTLY_CONNECTED));
+
+  tables = updater.updateDone();
+  EXPECT_NODEMAP_MATCH(tables);
+
+  // igp next hop is updated
+  ResolvedNextHop updatedIgpNextHop{
+      kIgpAddrs[0],
+      kInterfaces[0],
+      ECMP_WEIGHT,
+      LabelForwardingAction(
+          LabelForwardingAction::LabelForwardingType::PUSH,
+          LabelForwardingAction::LabelStack{kLabelStacks[1].begin() + 2,
+                                            kLabelStacks[1].begin() + 3})};
+
+  RouteUpdater anotherUpdater(tables);
+  anotherUpdater.delRoute(
+      rid, kBgpNextHopAddrs[0], 64, StdClientIds2ClientID(StdClientIds::OPENR));
+  anotherUpdater.addRoute(
+      rid,
+      kBgpNextHopAddrs[0],
+      64,
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      RouteNextHopEntry(updatedIgpNextHop, AdminDistance::DIRECTLY_CONNECTED));
+
+  tables = anotherUpdater.updateDone();
+  EXPECT_NODEMAP_MATCH(tables);
+
+  LabelForwardingAction::LabelStack updatedStack;
+  updatedStack.push_back(*kLabelStacks[0].begin());
+  updatedStack.push_back(*(kLabelStacks[0].begin() + 1));
+  updatedStack.push_back(*(kLabelStacks[1].begin() + 2));
+
+  // route to remote destination under kPrefix advertised by bgp
+  const auto& route =
+      tables->getRouteTableIf(rid)->getRibV6()->longestMatch(kDestAddress);
+
+  EXPECT_EQ(
+      route->has(
+          StdClientIds2ClientID(StdClientIds::BGPD),
+          RouteNextHopEntry(bgpNextHops, DISTANCE)),
+      true);
+
+  EXPECT_TRUE(route->isResolved());
+
+  for (const auto& nhop : route->getForwardInfo().getNextHopSet()) {
+    EXPECT_TRUE(nhop.isResolved());
+    EXPECT_TRUE(nhop.labelForwardingAction().hasValue());
+    EXPECT_EQ(
+        nhop.labelForwardingAction()->type(),
+        LabelForwardingAction::LabelForwardingType::PUSH);
+
+    ASSERT_TRUE(nhop.intf() == kInterfaces[0]);
+
+    EXPECT_EQ(nhop.labelForwardingAction()->pushStack().value(), updatedStack);
+  }
+}
+
+TEST(Route, updateRouteLabels) {
+  auto rid = RouterID(0);
+  RouteNextHopSet bgpNextHops;
+  bgpNextHops.emplace(UnresolvedNextHop(
+      kBgpNextHopAddrs[0],
+      1,
+      folly::make_optional<LabelForwardingAction>(
+          LabelForwardingAction::LabelForwardingType::PUSH,
+          LabelForwardingAction::LabelStack{kLabelStacks[0].begin(),
+                                            kLabelStacks[0].begin() + 2})));
+
+  auto state = applyInitConfig();
+  ASSERT_NE(nullptr, state);
+  auto tables = state->getRouteTables();
+
+  RouteUpdater updater(tables);
+  // routes to remote prefix to bgp next hops
+  updater.addRoute(
+      rid,
+      kPrefix.network,
+      kPrefix.mask,
+      StdClientIds2ClientID(StdClientIds::BGPD),
+      RouteNextHopEntry(bgpNextHops, DISTANCE));
+
+  ResolvedNextHop igpNextHop{
+      kIgpAddrs[0],
+      kInterfaces[0],
+      ECMP_WEIGHT,
+      LabelForwardingAction(
+          LabelForwardingAction::LabelForwardingType::PUSH,
+          LabelForwardingAction::LabelStack{kLabelStacks[0].begin() + 2,
+                                            kLabelStacks[0].begin() + 3})};
+  // igp routes to bgp nexthops,
+  updater.addRoute(
+      rid,
+      kBgpNextHopAddrs[0],
+      64,
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      RouteNextHopEntry(igpNextHop, AdminDistance::DIRECTLY_CONNECTED));
+
+  tables = updater.updateDone();
+  EXPECT_NODEMAP_MATCH(tables);
+
+  // igp next hop is updated
+  UnresolvedNextHop updatedBgpNextHop{
+      kBgpNextHopAddrs[0],
+      1,
+      folly::make_optional<LabelForwardingAction>(
+          LabelForwardingAction::LabelForwardingType::PUSH,
+          LabelForwardingAction::LabelStack{kLabelStacks[1].begin(),
+                                            kLabelStacks[1].begin() + 2})};
+
+  RouteUpdater anotherUpdater(tables);
+  anotherUpdater.delRoute(
+      rid,
+      kPrefix.network,
+      kPrefix.mask,
+      StdClientIds2ClientID(StdClientIds::BGPD));
+
+  anotherUpdater.addRoute(
+      rid,
+      kPrefix.network,
+      kPrefix.mask,
+      StdClientIds2ClientID(StdClientIds::BGPD),
+      RouteNextHopEntry(updatedBgpNextHop, DISTANCE));
+
+  tables = anotherUpdater.updateDone();
+  EXPECT_NODEMAP_MATCH(tables);
+
+  LabelForwardingAction::LabelStack updatedStack;
+  updatedStack.push_back(*kLabelStacks[1].begin());
+  updatedStack.push_back(*(kLabelStacks[1].begin() + 1));
+  updatedStack.push_back(*(kLabelStacks[0].begin() + 2));
+
+  // route to remote destination under kPrefix advertised by bgp
+  const auto& route =
+      tables->getRouteTableIf(rid)->getRibV6()->longestMatch(kDestAddress);
+
+  EXPECT_EQ(
+      route->has(
+          StdClientIds2ClientID(StdClientIds::BGPD),
+          RouteNextHopEntry(updatedBgpNextHop, DISTANCE)),
+      true);
+
+  EXPECT_TRUE(route->isResolved());
+
+  for (const auto& nhop : route->getForwardInfo().getNextHopSet()) {
+    EXPECT_TRUE(nhop.isResolved());
+    EXPECT_TRUE(nhop.labelForwardingAction().hasValue());
+    EXPECT_EQ(
+        nhop.labelForwardingAction()->type(),
+        LabelForwardingAction::LabelForwardingType::PUSH);
+
+    ASSERT_TRUE(nhop.intf() == kInterfaces[0]);
+
+    EXPECT_EQ(nhop.labelForwardingAction()->pushStack().value(), updatedStack);
   }
 }
 
