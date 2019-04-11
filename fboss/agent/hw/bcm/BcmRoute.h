@@ -78,7 +78,7 @@ class BcmRoute {
   opennsl_if_t egressId_{-1};
   void initL3RouteT(opennsl_l3_route_t* rt) const;
   std::unique_ptr<BcmHostReference>
-      nextHopHostReference; // reference to nexthops
+      nextHopHostReference_; // reference to nexthops
   std::unique_ptr<BcmHostReference> hostRouteHostReference_; // for host routes
 };
 

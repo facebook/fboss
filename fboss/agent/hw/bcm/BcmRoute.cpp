@@ -249,7 +249,7 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
   } else {
     programLpmRoute(egressId, fwd);
   }
-  nextHopHostReference = std::move(nexthopReference);
+  nextHopHostReference_ = std::move(nexthopReference);
   egressId_ = egressId;
   fwd_ = fwd;
 
