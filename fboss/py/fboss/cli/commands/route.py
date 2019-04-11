@@ -9,6 +9,7 @@
 #
 
 import ipaddress
+import typing as t
 
 from facebook.network.Address.ttypes import Address, AddressType
 from fboss.cli.utils import utils
@@ -60,6 +61,21 @@ def parse_prefix(prefix):
     network = ipaddress.ip_network(prefix)
     return IpPrefix(ip=BinaryAddress(addr=network.network_address.packed),
                     prefixLength=network.prefixlen)
+
+
+def is_ucmp_active(next_hops: t.Iterator[NextHopThrift]) -> bool:
+    """
+    Whether or not UCMP is considered active.
+
+    UCMP is considered inactive when all weight are the same
+    for a given set of next hops, and active when they differ.
+    """
+
+    # Let's avoid crashing the CLI when next_hops is blank ;)
+    if not next_hops:
+        return False
+
+    return not all(next_hops[0].weight == nh.weight for nh in next_hops)
 
 
 def parse_nexthops(nexthops):
@@ -143,15 +159,19 @@ class RouteTableCmd(cmds.FbossCmd):
                     continue
                 if ipv4 and not ipv6 and len(entry.dest.ip.addr) == 16:
                     continue
-                print("Network Address: %s/%d" %
-                                    (utils.ip_ntop(entry.dest.ip.addr),
-                                                entry.dest.prefixLength))
+
+                prefix = utils.ip_ntop(entry.dest.ip.addr)
+                prefix_mask_len = entry.dest.prefixLength
+                ucmp_active = " (UCMP Active)" if is_ucmp_active(entry.nextHops) else ""
+                print(f"Network Address: {prefix}/{prefix_mask_len}{ucmp_active}")
+
                 # Need to check the nextHopAddresses
                 if entry.nextHops:
                     for nextHop in entry.nextHops:
-                        w = "x{}".format(nextHop.weight) if nextHop.weight else ""
+                        weight = " - weight {}".format(
+                            nextHop.weight) if ucmp_active else ""
                         print("\tvia %s%s" % (nexthop_to_str(nextHop.address),
-                                              w))
+                                              weight))
                 else:
                     for nextHop in entry.nextHopAddrs:
                         print("\tvia %s" % nexthop_to_str(nextHop))
