@@ -26,6 +26,7 @@ class BcmWarmBootHelper {
    * always a no-op for now.
    */
   virtual void setCanWarmBoot() = 0;
+  virtual bool warmBootStateWritten() const = 0;
   static int
   warmBootReadCallback(int unit, uint8_t* buf, int offset, int nbytes);
   static int
@@ -59,6 +60,7 @@ class DiscBackedBcmWarmBootHelper: public BcmWarmBootHelper {
   void warmBootRead(uint8_t* buf, int offset, int nbytes) override;
   void warmBootWrite(const uint8_t* buf, int offset, int nbytes) override;
   bool storeWarmBootState(const folly::dynamic& switchState) override;
+  bool warmBootStateWritten() const override { return warmBootStateWritten_; }
   folly::dynamic getWarmBootState() const override;
 
   std::string startupSdkDumpFile() const override;
@@ -94,6 +96,7 @@ class DiscBackedBcmWarmBootHelper: public BcmWarmBootHelper {
   std::string warmBootDir_;
   int warmBootFd_{-1};
   bool canWarmBoot_{false};
+  bool warmBootStateWritten_{false};
 };
 
 }} // facebook::fboss

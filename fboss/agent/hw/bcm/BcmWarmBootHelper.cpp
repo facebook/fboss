@@ -130,7 +130,9 @@ bool DiscBackedBcmWarmBootHelper::checkAndClearWarmBootFlags() {
 
 bool DiscBackedBcmWarmBootHelper::storeWarmBootState(
     const folly::dynamic& switchState) {
-  return dumpStateToFile(warmBootSwitchStateFile(), switchState);
+  warmBootStateWritten_ =
+      dumpStateToFile(warmBootSwitchStateFile(), switchState);
+  return warmBootStateWritten_;
 }
 
 folly::dynamic DiscBackedBcmWarmBootHelper::getWarmBootState() const {
