@@ -27,6 +27,7 @@ class AggregatePortStats {
       std::string aggregatePortName);
 
   void flapped();
+  void aggregatePortNameChanged(const std::string& name);
 
   // TODO(samank): use friend functionality
   static void recordStatistics(

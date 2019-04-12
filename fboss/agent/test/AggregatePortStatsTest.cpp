@@ -14,6 +14,7 @@
 #include "fboss/agent/AggregatePortStats.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/LinkAggregationManager.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
@@ -143,4 +144,60 @@ TEST(AggregatePortStats, FlapTwice) {
   counters.update();
   EXPECT_TRUE(counters.checkExist(flapsCounterName));
   counters.checkDelta(flapsCounterName, 2);
+}
+
+TEST(AggregatePortStats, UpdateAggregatePortName) {
+  const AggregatePortID aggregatePortID = AggregatePortID(1);
+
+  const auto initialAggregatePortName = "Port-Channel1";
+  const auto initialFlapsCounterName = "Port-Channel1.flaps.sum";
+
+  const auto updatedAggregatePortName = "Port-Channel001";
+  const auto updatedFlapsCounterName = "Port-Channel001.flaps.sum";
+
+  SwSwitch* sw = nullptr;
+
+  std::shared_ptr<AggregatePort> baseAggPort = nullptr;
+  auto config = createConfig(aggregatePortID, initialAggregatePortName);
+  auto handle = createTestHandle(&config);
+  sw = handle->getSw();
+  baseAggPort = getAggregatePort(sw, aggregatePortID);
+
+  CounterCache counters(sw);
+
+  std::shared_ptr<AggregatePort> initialAggPort = nullptr;
+  ProgramForwardingState addPort1ToAggregatePort(
+      PortID(1), aggregatePortID, AggregatePort::Forwarding::ENABLED);
+  sw->updateStateNoCoalescing(
+      "Adding first port to AggregatePort", addPort1ToAggregatePort);
+
+  ProgramForwardingState addPort2ToAggregatePort(
+      PortID(2), aggregatePortID, AggregatePort::Forwarding::ENABLED);
+  sw->updateStateNoCoalescing(
+      "Adding second port tn AggregatePort", addPort2ToAggregatePort);
+
+  waitForStateUpdates(sw);
+  initialAggPort = getAggregatePort(sw, aggregatePortID);
+
+  AggregatePortStats::recordStatistics(sw, baseAggPort, initialAggPort);
+  counters.update();
+  EXPECT_TRUE(counters.checkExist(initialFlapsCounterName));
+
+  std::shared_ptr<AggregatePort> updatedAggPort = nullptr;
+  sw->stats()
+      ->aggregatePort(aggregatePortID)
+      ->aggregatePortNameChanged(updatedAggregatePortName);
+
+  ProgramForwardingState removePort2FromAggregatePort(
+      PortID(2), aggregatePortID, AggregatePort::Forwarding::DISABLED);
+  sw->updateStateNoCoalescing(
+      "Removing second port from AggregatePort", removePort2FromAggregatePort);
+
+  waitForStateUpdates(sw);
+  updatedAggPort = getAggregatePort(sw, aggregatePortID);
+
+  AggregatePortStats::recordStatistics(sw, initialAggPort, updatedAggPort);
+  counters.update();
+  EXPECT_FALSE(counters.checkExist(initialFlapsCounterName));
+  EXPECT_TRUE(counters.checkExist(updatedFlapsCounterName));
 }

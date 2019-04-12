@@ -173,6 +173,23 @@ void LinkAggregationManager::aggregatePortChanged(
 
   aggregatePortRemoved(oldAggPort);
   aggregatePortAdded(newAggPort);
+
+  updateAggregatePortStats(oldAggPort, newAggPort);
+}
+
+void LinkAggregationManager::updateAggregatePortStats(
+    const std::shared_ptr<AggregatePort>& oldAggPort,
+    const std::shared_ptr<AggregatePort>& newAggPort) {
+  if (oldAggPort->getName() == newAggPort->getName()) {
+    return;
+  }
+
+  auto aggregatePortStats = sw_->stats()->aggregatePort(newAggPort->getID());
+  if (!aggregatePortStats) {
+    return;
+  }
+
+  aggregatePortStats->aggregatePortNameChanged(newAggPort->getName());
 }
 
 void LinkAggregationManager::portChanged(

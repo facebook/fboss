@@ -7,8 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-
 #include "fboss/agent/AggregatePortStats.h"
+#include "common/stats/ServiceData.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/AggregatePort.h"

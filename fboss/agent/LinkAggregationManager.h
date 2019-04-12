@@ -87,6 +87,10 @@ class LinkAggregationManager : public AutoRegisterStateObserver,
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
 
+  void updateAggregatePortStats(
+      const std::shared_ptr<AggregatePort>& oldAggPort,
+      const std::shared_ptr<AggregatePort>& newAggPort);
+
   // Forbidden copy constructor and assignment operator
   LinkAggregationManager(LinkAggregationManager const&) = delete;
   LinkAggregationManager& operator=(LinkAggregationManager const&) = delete;
