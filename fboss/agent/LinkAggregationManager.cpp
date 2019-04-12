@@ -47,7 +47,7 @@ class ProgramForwardingState {
 
  private:
   PortID portID_;
-  AggregatePortID aggegatePortID_;
+  AggregatePortID aggregatePortID_;
   AggregatePort::Forwarding forwardingState_;
 };
 
@@ -55,13 +55,16 @@ ProgramForwardingState::ProgramForwardingState(
     PortID portID,
     AggregatePortID aggPortID,
     AggregatePort::Forwarding fwdState)
-    : portID_(portID), aggegatePortID_(aggPortID), forwardingState_(fwdState) {}
+    : portID_(portID),
+      aggregatePortID_(aggPortID),
+      forwardingState_(fwdState) {}
 
 std::shared_ptr<SwitchState> ProgramForwardingState::operator()(
     const std::shared_ptr<SwitchState>& state) {
   std::shared_ptr<SwitchState> nextState(state);
-  auto* aggPort =
-      nextState->getAggregatePorts()->getAggregatePortIf(aggegatePortID_).get();
+  auto* aggPort = nextState->getAggregatePorts()
+                      ->getAggregatePortIf(aggregatePortID_)
+                      .get();
   if (!aggPort) {
     return nullptr;
   }
