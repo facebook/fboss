@@ -40,6 +40,7 @@ class BcmCosManager;
 class BcmEgress;
 class BcmHostTable;
 class BcmIntfTable;
+class BcmNeighborTable;
 class BcmPlatform;
 class BcmPortTable;
 class BcmQosPolicyTable;
@@ -738,6 +739,7 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmEgress> toCPUEgress_;
   std::unique_ptr<BcmIntfTable> intfTable_;
   std::unique_ptr<BcmHostTable> hostTable_;
+  std::unique_ptr<BcmNeighborTable> neighborTable_;
   std::unique_ptr<BcmLabelMap> labelMap_;
   std::unique_ptr<BcmRouteTable> routeTable_;
   std::unique_ptr<BcmQosPolicyTable> qosPolicyTable_;

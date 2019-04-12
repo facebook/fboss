@@ -170,6 +170,7 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       portTable_(new BcmPortTable(this)),
       intfTable_(new BcmIntfTable(this)),
       hostTable_(new BcmHostTable(this)),
+      neighborTable_(new BcmNeighborTable(this)),
       labelMap_(new BcmLabelMap(this)),
       routeTable_(new BcmRouteTable(this)),
       qosPolicyTable_(new BcmQosPolicyTable(this)),
@@ -198,6 +199,8 @@ void BcmSwitch::resetTables() {
   // via the BCM switch during their destruction the pointer
   // access is still valid.
   hostTable_->releaseHosts();
+  // reset neighbors before resetting host table
+  neighborTable_.reset();
   // reset interfaces before host table, as interfaces have
   // host references now.
   intfTable_.reset();
@@ -1370,7 +1373,8 @@ void BcmSwitch::processNeighborEntryDelta(
 
   if (!oldEntry) {
     getIntfAndVrf(newEntry->getIntfID());
-    auto host = hostTable_->incRefOrCreateBcmHost(
+
+    auto* host = neighborTable_->registerNeighbor(
         BcmHostKey(vrf, IPAddress(newEntry->getIP()), newEntry->getIntfID()));
 
     if (newEntry->isPending()) {
@@ -1383,7 +1387,7 @@ void BcmSwitch::processNeighborEntryDelta(
   } else if (!newEntry) {
     XLOG(DBG3) << "deleting neighbor entry " << oldEntry->getIP().str();
     getIntfAndVrf(oldEntry->getIntfID());
-    auto host = hostTable_->derefBcmHost(
+    auto* host = neighborTable_->unregisterNeighbor(
         BcmHostKey(vrf, IPAddress(oldEntry->getIP()), oldEntry->getIntfID()));
     if (host) {
         host->programToCPU(intf->getBcmIfId());
@@ -1393,7 +1397,7 @@ void BcmSwitch::processNeighborEntryDelta(
   } else {
     CHECK_EQ(oldEntry->getIP(), newEntry->getIP());
     getIntfAndVrf(newEntry->getIntfID());
-    auto host = hostTable_->getBcmHost(
+    auto host = neighborTable_->getNeighbor(
         BcmHostKey(vrf, IPAddress(newEntry->getIP()), newEntry->getIntfID()));
     if (newEntry->isPending()) {
       XLOG(DBG3) << "changing neighbor entry " << oldEntry->getIP().str()

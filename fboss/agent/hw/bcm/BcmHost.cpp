@@ -383,7 +383,7 @@ BcmEcmpHost::~BcmEcmpHost() {
   }
 }
 
-BcmHostTable::BcmHostTable(const BcmSwitchIf *hw) : hw_(hw) {
+BcmHostTable::BcmHostTable(const BcmSwitchIf* hw) : hw_(hw) {
   auto port2EgressIds = std::make_shared<PortAndEgressIdsMap>();
   port2EgressIds->publish();
   setPort2EgressIdsInternal(port2EgressIds);
@@ -819,6 +819,35 @@ void BcmHostTable::egressResolutionChangedHwLocked(
       }
     }
   }
+}
+
+BcmHost* BcmNeighborTable::registerNeighbor(const BcmHostKey& neighbor) {
+  auto result = neighborHostReferences_.emplace(
+      neighbor, BcmHostReference::get(hw_, neighbor));
+  return result.first->second->getBcmHost();
+}
+
+BcmHost* FOLLY_NULLABLE
+BcmNeighborTable::unregisterNeighbor(const BcmHostKey& neighbor) {
+  neighborHostReferences_.erase(neighbor);
+  return hw_->getHostTable()->getBcmHostIf(neighbor);
+}
+
+BcmHost* BcmNeighborTable::getNeighbor(const BcmHostKey& neighbor) const {
+  auto* host = getNeighborIf(neighbor);
+  if (!host) {
+    throw FbossError("neighbor entry not found for :", neighbor.str());
+  }
+  return host;
+}
+
+BcmHost* FOLLY_NULLABLE
+BcmNeighborTable::getNeighborIf(const BcmHostKey& neighbor) const {
+  auto iter = neighborHostReferences_.find(neighbor);
+  if (iter == neighborHostReferences_.end()) {
+    return nullptr;
+  }
+  return iter->second->getBcmHost();
 }
 
 BcmHostReference::BcmHostReference(BcmSwitch* hw, HostKey key)

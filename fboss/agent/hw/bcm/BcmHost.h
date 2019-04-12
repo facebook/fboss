@@ -36,6 +36,7 @@ class BcmEcmpEgress;
 class BcmEgress;
 class BcmSwitchIf;
 class BcmHostTable;
+class BcmHostReference;
 
 class BcmHost {
  public:
@@ -177,7 +178,7 @@ class BcmEcmpHost {
 
 class BcmHostTable {
  public:
-  explicit BcmHostTable(const BcmSwitchIf *hw);
+  explicit BcmHostTable(const BcmSwitchIf* hw);
   virtual ~BcmHostTable();
 
   // throw an exception if not found
@@ -304,7 +305,6 @@ class BcmHostTable {
    * the host table
    */
   void releaseHosts() {
-    labeledHosts_.clear();
     ecmpHosts_.clear();
     labeledHosts_.clear();
     hosts_.clear();
@@ -437,5 +437,19 @@ class BcmHostReference {
   folly::Optional<BcmEcmpHostKey> ecmpHostKey_;
   BcmHost* host_{nullptr};
   BcmEcmpHost* ecmpHost_{nullptr};
+};
+
+class BcmNeighborTable {
+ public:
+  explicit BcmNeighborTable(BcmSwitch* hw) : hw_(hw) {}
+  BcmHost* registerNeighbor(const BcmHostKey& neighbor);
+  BcmHost* unregisterNeighbor(const BcmHostKey& neighbor);
+  BcmHost* getNeighbor(const BcmHostKey& neighbor) const;
+  BcmHost* getNeighborIf(const BcmHostKey& neighbor) const;
+
+ private:
+  BcmSwitch* hw_;
+  boost::container::flat_map<BcmHostKey, std::unique_ptr<BcmHostReference>>
+      neighborHostReferences_;
 };
 }}
