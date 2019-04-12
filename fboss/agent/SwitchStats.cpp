@@ -201,6 +201,13 @@ PortStats* FOLLY_NULLABLE SwitchStats::port(PortID portID) {
   return nullptr;
 }
 
+AggregatePortStats* FOLLY_NULLABLE
+SwitchStats::aggregatePort(AggregatePortID aggregatePortID) {
+  auto it = aggregatePortIDToStats_.find(aggregatePortID);
+
+  return it == aggregatePortIDToStats_.end() ? nullptr : it->second.get();
+}
+
 PortStats* SwitchStats::createPortStats(PortID portID, std::string portName) {
   auto rv = ports_.emplace(portID,
                            std::make_unique<PortStats>(portID, portName, this));
@@ -209,4 +216,16 @@ PortStats* SwitchStats::createPortStats(PortID portID, std::string portName) {
   return it->second.get();
 }
 
+AggregatePortStats* SwitchStats::createAggregatePortStats(
+    AggregatePortID id,
+    std::string name) {
+  bool inserted = false;
+  AggregatePortStatsMap::iterator it = aggregatePortIDToStats_.end();
+
+  std::tie(it, inserted) = aggregatePortIDToStats_.emplace(
+      id, std::make_unique<AggregatePortStats>(id, name));
+  CHECK(inserted);
+
+  return it->second.get();
+}
 }} // facebook::fboss

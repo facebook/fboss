@@ -9,19 +9,18 @@
  */
 #include "fboss/agent/LinkAggregationManager.h"
 
-#include "fboss/agent/Platform.h"
-#include "fboss/agent/state/AggregatePortMap.h"
+#include "fboss/agent/AggregatePortStats.h"
 #include "fboss/agent/LacpController.h"
-#include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LacpTypes-defs.h"
-#include "fboss/agent/state/Port.h"
-#include "fboss/agent/state/PortMap.h"
-#include "fboss/agent/TxPacket.h"
-#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/LacpTypes.h"
+#include "fboss/agent/Platform.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/TxPacket.h"
+#include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/io/async/EventBase.h>
@@ -34,22 +33,6 @@
 
 namespace facebook {
 namespace fboss {
-
-namespace {
-class ProgramForwardingState {
- public:
-  ProgramForwardingState(
-      PortID portID,
-      AggregatePortID aggPortID,
-      AggregatePort::Forwarding fwdState);
-  std::shared_ptr<SwitchState> operator()(
-      const std::shared_ptr<SwitchState>& state);
-
- private:
-  PortID portID_;
-  AggregatePortID aggregatePortID_;
-  AggregatePort::Forwarding forwardingState_;
-};
 
 ProgramForwardingState::ProgramForwardingState(
     PortID portID,
@@ -80,7 +63,6 @@ std::shared_ptr<SwitchState> ProgramForwardingState::operator()(
 
   return nextState;
 }
-} // namespace
 
 // Needed for CHECK_* macros to work with PortIDToController::iterator
 std::ostream& operator<<(
@@ -174,6 +156,8 @@ void LinkAggregationManager::aggregatePortChanged(
     const std::shared_ptr<AggregatePort>& oldAggPort,
     const std::shared_ptr<AggregatePort>& newAggPort) {
   CHECK_EQ(oldAggPort->getID(), newAggPort->getID());
+
+  AggregatePortStats::recordStatistics(sw_, oldAggPort, newAggPort);
 
   auto oldSubportRange = oldAggPort->sortedSubports();
   if (oldAggPort->getName() == newAggPort->getName() &&
@@ -343,5 +327,6 @@ LinkAggregationManager::getControllersFor(
 }
 
 LinkAggregationManager::~LinkAggregationManager() {}
+
 } // namespace fboss
 } // namespace facebook

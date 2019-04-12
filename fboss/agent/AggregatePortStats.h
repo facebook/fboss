@@ -1,0 +1,53 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+#pragma once
+
+#include "common/stats/ThreadCachedServiceData.h"
+#include "fboss/agent/types.h"
+
+#include <string>
+
+namespace facebook {
+namespace fboss {
+
+class AggregatePort;
+class SwSwitch;
+
+class AggregatePortStats {
+ public:
+  AggregatePortStats(
+      AggregatePortID aggregatePortID,
+      std::string aggregatePortName);
+
+  void flapped();
+
+  // TODO(samank): use friend functionality
+  static void recordStatistics(
+      SwSwitch* sw,
+      const std::shared_ptr<AggregatePort>& oldAggPort,
+      const std::shared_ptr<AggregatePort>& newAggPort);
+
+ private:
+  std::string constructCounterName(
+      const std::string& aggregatePortName,
+      const std::string& counter) const;
+
+  // Forbidden copy constructor and assignment operator
+  AggregatePortStats(const AggregatePortStats&) = delete;
+  AggregatePortStats& operator=(const AggregatePortStats&) = delete;
+
+  AggregatePortID aggregatePortID_;
+  std::string aggregatePortName_;
+
+  stats::ThreadCachedServiceData::TLTimeseries flaps_;
+};
+
+} // namespace fboss
+} // namespace facebook

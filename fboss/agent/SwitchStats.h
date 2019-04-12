@@ -9,10 +9,11 @@
  */
 #pragma once
 
-#include <chrono>
 #include <boost/container/flat_map.hpp>
 #include <boost/noncopyable.hpp>
+#include <chrono>
 #include "common/stats/ThreadCachedServiceData.h"
+#include "fboss/agent/AggregatePortStats.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/types.h"
 
@@ -22,6 +23,8 @@ class PortStats;
 
 typedef boost::container::flat_map<PortID,
           std::unique_ptr<PortStats>> PortStatsMap;
+using AggregatePortStatsMap = boost::container::
+    flat_map<AggregatePortID, std::unique_ptr<AggregatePortStats>>;
 
 class SwitchStats : public boost::noncopyable {
  public:
@@ -37,6 +40,9 @@ class SwitchStats : public boost::noncopyable {
    */
   PortStats* FOLLY_NULLABLE port(PortID portID);
 
+  AggregatePortStats* FOLLY_NULLABLE
+  aggregatePort(AggregatePortID aggregatePortID);
+
   /*
    * Getters.
    */
@@ -49,6 +55,9 @@ class SwitchStats : public boost::noncopyable {
 
   // Create a PortStats object for the given PortID
   PortStats* createPortStats(PortID portID, std::string portName);
+  AggregatePortStats* createAggregatePortStats(
+      AggregatePortID id,
+      std::string name);
 
   void deletePortStats(PortID portID) {
     ports_.erase(portID);
@@ -444,6 +453,8 @@ class SwitchStats : public boost::noncopyable {
   // Individual port stats objects, indexed by PortID
   PortStatsMap ports_;
 
+  AggregatePortStatsMap aggregatePortIDToStats_;
+
   // Number of packets dropped by the PCAP distribution service
   TLCounter pcapDistFailure_;
 
@@ -460,5 +471,4 @@ class SwitchStats : public boost::noncopyable {
   // Number of LLDP packets that did not match configured, expected values.
   TLTimeseries LldpValidateMisMatch_;
 };
-
 }} // facebook::fboss

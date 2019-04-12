@@ -9,9 +9,10 @@
  */
 #pragma once
 
-#include "fboss/agent/types.h"
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/StateObserver.h"
+#include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
 
@@ -41,6 +42,21 @@ struct LacpServicerIf {
   // necessary
   virtual std::vector<std::shared_ptr<LacpController>> getControllersFor(
       folly::Range<std::vector<PortID>::const_iterator> ports) = 0;
+};
+
+class ProgramForwardingState {
+ public:
+  ProgramForwardingState(
+      PortID portID,
+      AggregatePortID aggPortID,
+      AggregatePort::Forwarding fwdState);
+  std::shared_ptr<SwitchState> operator()(
+      const std::shared_ptr<SwitchState>& state);
+
+ private:
+  PortID portID_;
+  AggregatePortID aggregatePortID_;
+  AggregatePort::Forwarding forwardingState_;
 };
 
 class LinkAggregationManager : public AutoRegisterStateObserver,
