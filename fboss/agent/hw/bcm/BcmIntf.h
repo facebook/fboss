@@ -28,13 +28,13 @@ namespace facebook { namespace fboss {
 
 class Interface;
 class BcmSwitch;
-class BcmHost;
+class BcmHostReference;
 
 class BcmStation {
  public:
   // L2 station can be used to filter based on MAC, VLAN, or Port.
   // We only use it to filter based on the MAC to enable the L3 processing.
-  explicit BcmStation(const BcmSwitch* hw) : hw_(hw) {}
+  explicit BcmStation(BcmSwitch* hw) : hw_(hw) {}
   ~BcmStation();
   void program(folly::MacAddress mac, int id);
   static uint32_t getAdditionalFlags();
@@ -46,7 +46,7 @@ class BcmStation {
   enum : int {
     INVALID = -1,
   };
-  const BcmSwitch* hw_;
+  BcmSwitch* hw_;
   int id_{INVALID};
 };
 
@@ -85,7 +85,7 @@ class BcmIntf {
   enum : opennsl_if_t {
     INVALID = -1,
   };
-  BcmSwitch* hw_;
+  BcmSwitch *hw_;
   std::shared_ptr<Interface> intf_;
   opennsl_if_t bcmIfId_{INVALID};
   // TODO: we now generate one station entry per interface, even if all
@@ -94,13 +94,13 @@ class BcmIntf {
   //       the small number of interfaces we have, no gain for that now.
   std::unique_ptr<BcmStation> station_;
   // The interface addresses that have BcmHost object created
-  std::set<BcmHostKey> hosts_;
   BcmLabeledTunnelMap labelStack2MplsTunnel_;
+  std::unordered_set<std::unique_ptr<BcmHostReference>> hosts_;
 };
 
 class BcmIntfTable {
  public:
-  explicit BcmIntfTable(BcmSwitch* hw);
+  explicit BcmIntfTable(BcmSwitch *hw);
   virtual ~BcmIntfTable();
 
   // throw an error if not found

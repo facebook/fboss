@@ -306,6 +306,7 @@ class BcmHostTable {
   void releaseHosts() {
     labeledHosts_.clear();
     ecmpHosts_.clear();
+    labeledHosts_.clear();
     hosts_.clear();
   }
 

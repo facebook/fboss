@@ -198,8 +198,10 @@ void BcmSwitch::resetTables() {
   // via the BCM switch during their destruction the pointer
   // access is still valid.
   hostTable_->releaseHosts();
-  hostTable_.reset();
+  // reset interfaces before host table, as interfaces have
+  // host references now.
   intfTable_.reset();
+  hostTable_.reset();
   toCPUEgress_.reset();
   portTable_.reset();
   qosPolicyTable_.reset();

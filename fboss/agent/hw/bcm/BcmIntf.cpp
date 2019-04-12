@@ -223,74 +223,34 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
     CHECK_NE(bcmIfId_, INVALID);
   }
 
-  auto createHost = [&](const IPAddress& addr, InterfaceID intfID) {
-    try {
-      auto hostKey = BcmHostKey(vrf, addr, intfID);
-      auto host = hw_->writableHostTable()->incRefOrCreateBcmHost(hostKey);
-      auto ret = hosts_.insert(hostKey);
-      CHECK(ret.second);
-      SCOPE_FAIL {
-        hw_->writableHostTable()->derefBcmHost(hostKey);
-        hosts_.erase(ret.first);
-      };
-      // Add dstClassL3Id for local ip
-      if (addr.isV4()) {
-        host->setLookupClassId(BcmAclEntry::kLocalIp4DstClassL3Id);
-      } else {
-        host->setLookupClassId(BcmAclEntry::kLocalIp6DstClassL3Id);
-      }
-      host->programToCPU(bcmIfId_);
-    } catch (const std::exception& ex) {
-      XLOG(ERR) << "failed to allocate BcmHost for " << addr
-                << " Error:" << folly::exceptionStr(ex);
-    }
-  };
-  auto removeHost = [&](const IPAddress& addr, InterfaceID intfID) {
-    auto hostKey = BcmHostKey(vrf, addr, intfID);
-    auto iter = hosts_.find(hostKey);
-    if (iter == hosts_.cend()) {
-      return;
-    }
-    hw_->writableHostTable()->derefBcmHost(hostKey);
-    hosts_.erase(iter);
-  };
-
-  if (!oldIntf) {
-    // create host entries for all network IP addresses
-    for (const auto& addr : intf->getAddresses()) {
-      createHost(addr.first, intf->getID());
-    }
-  } else {
+  if (oldIntf) {
     auto oldIfParams = intftoIfparam(oldIntf);
     if (updateIntfIfNeeded(ifParams, oldIfParams)) {
       auto rc = opennsl_l3_intf_create(hw_->getUnit(), &ifParams);
       bcmCheckError(rc, "failed to update L3 interface ", intf->getID());
     }
-    // address change
-    auto oldIter = oldIntf->getAddresses().begin();
-    auto newIter = intf->getAddresses().begin();
-    while (oldIter != oldIntf->getAddresses().end()
-           && newIter != intf->getAddresses().end()) {
-      if (oldIter->first == newIter->first) {
-        oldIter++;
-        newIter++;
-        continue;
-      }
-      if (oldIter->first < newIter->first) {
-        removeHost(oldIter->first, oldIntf->getID());
-        oldIter++;
-      } else {
-        createHost(newIter->first, intf->getID());
-        newIter++;
-      }
-    }
-    for (; oldIter != oldIntf->getAddresses().end(); oldIter++) {
-      removeHost(oldIter->first, oldIntf->getID());
-    }
-    for (; newIter != intf->getAddresses().end(); newIter++) {
-      createHost(newIter->first, intf->getID());
-    }
   }
+  std::unordered_set<std::unique_ptr<BcmHostReference>> hosts;
+  for (const auto& addr : intf->getAddresses()) {
+      auto hostReference = BcmHostReference::get(
+          hw_, BcmHostKey(vrf, addr.first, intf->getID()));
+      auto* host = hostReference->getBcmHost();
+      CHECK(host);
+      if (!host->isProgrammed()) {
+        // new host has been created
+        if (addr.first.isV4()) {
+          host->setLookupClassId(BcmAclEntry::kLocalIp4DstClassL3Id);
+        } else {
+          host->setLookupClassId(BcmAclEntry::kLocalIp6DstClassL3Id);
+        }
+        host->programToCPU(bcmIfId_);
+      }
+      hosts.emplace(std::move(hostReference));
+  }
+  // create new host entries and discard updated or deleted ones,
+  // existing host entries are not "deleted", they carry over.
+  hosts_ = std::move(hosts);
+
   // all new info have been programmed, store the interface configuration
   intf_ = intf;
   XLOG(DBG3) << "updated L3 interface " << bcmIfId_ << " for interface ID "
@@ -302,11 +262,7 @@ BcmIntf::~BcmIntf() {
     return;
   }
   // remove all BcmHost objects
-  if (hw_->writableHostTable() != nullptr) {
-    for (const auto& key : hosts_) {
-      hw_->writableHostTable()->derefBcmHost(key);
-    }
-  }
+  hosts_.clear();
   opennsl_l3_intf_t ifParams;
   opennsl_l3_intf_t_init(&ifParams);
   ifParams.l3a_intf_id = bcmIfId_;
