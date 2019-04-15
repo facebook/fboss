@@ -52,21 +52,23 @@ void PcapDistributor::unsubscribe(const string& hostname, int port) {
 
 void PcapDistributor::distributeRxPacket(RxPacketData* packetData) {
   auto locked_map = subs_.rlock();
-  auto onError = [](runtime_error& e) {
+  auto onError = [](runtime_error&& e) {
     FB_LOG_EVERY_MS(ERROR, 1000) << e.what();
   };
   for (auto& i : *locked_map) {
-    i.second->future_receiveRxPacket(*packetData).onError(move(onError));
+    i.second->future_receiveRxPacket(*packetData)
+        .thenError(folly::tag_t<std::runtime_error>{}, move(onError));
   }
 }
 
 void PcapDistributor::distributeTxPacket(TxPacketData* packetData) {
   auto locked_map = subs_.rlock();
-  auto onError = [](runtime_error& e) {
+  auto onError = [](runtime_error&& e) {
     FB_LOG_EVERY_MS(ERROR, 1000) << e.what();
   };
   for (auto& i : *locked_map) {
-    i.second->future_receiveTxPacket(*packetData).onError(move(onError));
+    i.second->future_receiveTxPacket(*packetData)
+        .thenError(folly::tag_t<std::runtime_error>{}, move(onError));
   }
 }
 }}

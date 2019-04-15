@@ -162,10 +162,12 @@ folly::Future<folly::Unit> QsfpCache::doSync(PortMapThrift&& toSync) {
       .thenValue([evb = evb_](auto&&) { return QsfpClient::createClient(evb); })
       .then(evb_, syncPorts)
       .then(evb_, onSuccess)
-      .onError([this](const std::exception& e) {
-        XLOG(ERR) << "Exception talking to qsfp_service: " << e.what();
-        this->maybeSync();
-      })
+      .thenError(
+          folly::tag_t<std::exception>{},
+          [this](const std::exception& e) {
+            XLOG(ERR) << "Exception talking to qsfp_service: " << e.what();
+            this->maybeSync();
+          })
       .ensure([this]() {
         // make sure we allow other requests in again
         activeReq_->setValue();

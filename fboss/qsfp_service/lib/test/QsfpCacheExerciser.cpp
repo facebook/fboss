@@ -73,11 +73,13 @@ int main(int argc, char** argv) {
                          XLOG(INFO) << "Successfully got transceiver " << i;
                          return info;
                        })
-                       .onError([i](std::runtime_error exc) {
-                         XLOG(ERR) << "Error retrieving info for tcvr " << i
-                                   << ": " << exc.what();
-                         return facebook::fboss::TransceiverInfo();
-                       });
+                       .thenError(
+                           folly::tag_t<std::runtime_error>{},
+                           [i](std::runtime_error exc) {
+                             XLOG(ERR) << "Error retrieving info for tcvr " << i
+                                       << ": " << exc.what();
+                             return facebook::fboss::TransceiverInfo();
+                           });
         futs.push_back(std::move(fut));
       }
     }

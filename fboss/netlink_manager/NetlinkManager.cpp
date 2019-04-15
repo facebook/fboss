@@ -270,13 +270,15 @@ void NetlinkManager::addRouteViaFbossThrift(
     fbossClient->future_addUnicastRoute(FBOSS_CLIENT_ID, unicastRoute)
         .thenValue(
             [](auto&&) { VLOG(2) << "NetlinkManager route add success"; })
-        .onError([unicastRoute](const std::exception& ex) {
-          BinaryAddress binaryDst = unicastRoute.dest.ip;
-          VLOG(2) << folly::sformat(
-              "Route add failed for destination {}. Error sending thrift calls to FBOSS agent: {}",
-              binAddrToStr(binaryDst),
-              ex.what());
-        });
+        .thenError(
+            folly::tag_t<std::exception>{},
+            [unicastRoute](const std::exception& ex) {
+              BinaryAddress binaryDst = unicastRoute.dest.ip;
+              VLOG(2) << folly::sformat(
+                  "Route add failed for destination {}. Error sending thrift calls to FBOSS agent: {}",
+                  binAddrToStr(binaryDst),
+                  ex.what());
+            });
   });
 }
 
@@ -288,7 +290,7 @@ void NetlinkManager::deleteRouteViaFbossThrift(struct nl_addr* nlDst) {
     fbossClient->future_deleteUnicastRoute(FBOSS_CLIENT_ID, prefix)
         .thenValue(
             [](auto&&) { VLOG(2) << "NetlinkManager route delete success"; })
-        .onError([prefix](const std::exception& ex) {
+        .thenError(folly::tag_t<std::exception>{}, [prefix](const std::exception& ex) {
           BinaryAddress binaryDst = prefix.ip;
           VLOG(2) << folly::sformat(
               "Route delete failed for destination {}. Error sending thrift calls to FBOSS agent: {}",
