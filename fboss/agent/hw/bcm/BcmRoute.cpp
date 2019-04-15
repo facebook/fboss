@@ -237,6 +237,7 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
       XLOG(DBG3) << "Dereferencing host prefix for " << prefix_ << "/"
                  << static_cast<int>(len_) << " host egress Id : "
                  << hostRouteHostReference_->getEgressId();
+      hostRouteHostReference_.reset();
     }
     hostRouteHostReference_ =
         programHostRoute(egressId, fwd, entryExistsInRouteTable);
