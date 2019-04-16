@@ -9,18 +9,19 @@
  */
 #pragma once
 
-#include "FakeSaiBridge.h"
-#include "FakeSaiFdb.h"
-#include "FakeSaiLag.h"
-#include "FakeSaiNeighbor.h"
-#include "FakeSaiNextHop.h"
-#include "FakeSaiNextHopGroup.h"
-#include "FakeSaiPort.h"
-#include "FakeSaiRoute.h"
-#include "FakeSaiRouterInterface.h"
-#include "FakeSaiSwitch.h"
-#include "FakeSaiVirtualRouter.h"
-#include "FakeSaiVlan.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiBridge.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiFdb.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiLag.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiHostif.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiNeighbor.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiNextHop.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiNextHopGroup.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiPort.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiRoute.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiRouterInterface.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiSwitch.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiVirtualRouter.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiVlan.h"
 
 #include <memory>
 
