@@ -14,6 +14,8 @@ enum IpModulation {
 
 enum FecMode {
   NONE = 1,
+  CL74 = 74,
+  CL91 = 91,
   RS528 = 528,
   RS544 = 544,
 }
