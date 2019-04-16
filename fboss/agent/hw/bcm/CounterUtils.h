@@ -12,6 +12,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <string>
 
 namespace facebook {
 namespace fboss {
@@ -44,6 +45,8 @@ class CounterPrevAndCur {
 int64_t subtractIncrements(
     const CounterPrevAndCur& counterRaw,
     const std::vector<CounterPrevAndCur>& countersToSubtract);
+
+void deleteCounter(const std::string& oldCounterName);
 
 } // namespace utility
 } // namespace fboss

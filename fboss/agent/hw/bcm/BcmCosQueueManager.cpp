@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmCosQueueManager.h"
+#include "fboss/agent/hw/bcm/CounterUtils.h"
 
 namespace facebook { namespace fboss {
 
@@ -47,6 +48,7 @@ void BcmCosQueueManager::fillOrReplaceCounter(
         facebook::stats::MonotonicCounter newCounter{
           name, stats::SUM, stats::RATE};
         countersItr->second->swap(newCounter);
+        utility::deleteCounter(newCounter.getName());
       }
       else {
         counters.queues.emplace(

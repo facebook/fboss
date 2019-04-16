@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmStatsConstants.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/CounterUtils.h"
 
 #include <folly/logging/xlog.h>
 #include <chrono>
@@ -61,6 +62,7 @@ void BcmTrunkStats::initializeCounter(folly::StringPiece counterKey) {
 
   if (oldCounter) {
     oldCounter->swap(newCounter);
+    utility::deleteCounter(newCounter.getName());
   } else {
     counters_.emplace(counterKey.str(), std::move(newCounter));
   }
