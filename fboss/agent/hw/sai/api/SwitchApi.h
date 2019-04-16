@@ -50,13 +50,16 @@ struct SwitchApiParameters {
         SAI_SWITCH_ATTR_SRC_MAC_ADDRESS,
         sai_mac_t,
         folly::MacAddress>;
-    // TODO (srikrishnagopu): There is an enum incompatiblity with the SDK.
-    // Revisit once the SAI version is updated
     using HwInfo = SaiAttribute<
         uint32_t,
-        0x67,
+        SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO,
         sai_s8_list_t,
         std::vector<int8_t>>;
+    using Default1QBridgeId = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_DEFAULT_1Q_BRIDGE_ID,
+        sai_object_id_t,
+        SaiObjectIdT>;
     using CreateAttributes = SaiAttributeTuple<HwInfo>;
     Attributes() {}
     Attributes(const CreateAttributes& attrs) {

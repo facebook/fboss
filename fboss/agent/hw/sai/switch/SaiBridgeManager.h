@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/api/BridgeApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/types.h"
 
 #include <memory>
 #include <unordered_map>
@@ -20,6 +21,32 @@ namespace facebook {
 namespace fboss {
 
 class SaiManagerTable;
+
+class SaiBridge {
+ public:
+  SaiBridge(
+    SaiApiTable* apiTable,
+    const BridgeApiParameters::Attributes& attributes);
+  ~SaiBridge();
+  SaiBridge(const SaiBridge& other) = delete;
+  SaiBridge(SaiBridge&& other) = delete;
+  SaiBridge& operator=(const SaiBridge& other) = delete;
+  SaiBridge& operator=(SaiBridge&& other) = delete;
+  bool operator==(const SaiBridge& other) const;
+  bool operator!=(const SaiBridge& other) const;
+
+  const BridgeApiParameters::Attributes attributes() const {
+    return attributes_;
+  }
+  sai_object_id_t id() const {
+    return id_;
+  }
+
+ private:
+  SaiApiTable* apiTable_;
+  BridgeApiParameters::Attributes attributes_;
+  sai_object_id_t id_;
+};
 
 class SaiBridgePort {
  public:
@@ -55,6 +82,7 @@ class SaiBridgeManager {
  private:
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
+  std::unordered_map<BridgeID, std::unique_ptr<SaiBridge>> bridges_;
 };
 
 } // namespace fboss

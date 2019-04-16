@@ -36,7 +36,17 @@ struct BridgeApiParameters {
         EnumType,
         SAI_BRIDGE_ATTR_TYPE,
         sai_int32_t>;
+
+    using CreateAttributes = SaiAttributeTuple<Type>;
+    Attributes(const CreateAttributes& attrs) {
+      std::tie(type) = attrs.value();
+    }
+    CreateAttributes attrs() const {
+      return {type};
+    }
+    Type::ValueType type;
   };
+
   using AttributeType = boost::variant<Attributes::PortList, Attributes::Type>;
   struct MemberAttributes {
     using EnumType = sai_bridge_port_attr_t;
