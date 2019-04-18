@@ -17,7 +17,7 @@ using namespace facebook::fboss::utility;
 
 namespace {
 
-cfg::PortSpeed maxPortSpeed(int unit, opennsl_port_t port) {
+cfg::PortSpeed maxPortSpeed(int unit, int port) {
   int maxSpeed;
   auto ret = opennsl_port_speed_max(unit, port, &maxSpeed);
   bcmCheckError(ret, "Unable to get max speed of : ", port);
@@ -94,7 +94,7 @@ folly::MacAddress kLocalCpuMac() {
   return kLocalMac;
 }
 
-cfg::SwitchConfig onePortConfig(int unit, opennsl_port_t port) {
+cfg::SwitchConfig onePortConfig(int unit, int port) {
   std::map<int, int> port2vlan;
   std::vector<int> ports;
   port2vlan[port] = kDefaultVlanId;
@@ -103,14 +103,14 @@ cfg::SwitchConfig onePortConfig(int unit, opennsl_port_t port) {
 }
 
 cfg::SwitchConfig
-oneL3IntfConfig(int unit, opennsl_port_t port, cfg::PortLoopbackMode lbMode) {
+oneL3IntfConfig(int unit, int port, cfg::PortLoopbackMode lbMode) {
   std::vector<int> ports{port};
   return oneL3IntfNPortConfig(unit, ports, lbMode);
 }
 
 cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
     int unit,
-    opennsl_port_t port,
+    int port,
     cfg::PortLoopbackMode lbMode) {
   std::vector<int> ports{port};
   return oneL3IntfNPortConfig(
@@ -119,16 +119,16 @@ cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
 
 cfg::SwitchConfig oneL3IntfTwoPortConfig(
     int unit,
-    opennsl_port_t port1,
-    opennsl_port_t port2,
+    int port1,
+    int port2,
     cfg::PortLoopbackMode lbMode) {
-  std::vector<opennsl_port_t> ports{port1, port2};
+  std::vector<int> ports{port1, port2};
   return oneL3IntfNPortConfig(unit, ports, lbMode);
 }
 
 cfg::SwitchConfig oneL3IntfNPortConfig(
     int unit,
-    const std::vector<opennsl_port_t>& ports,
+    const std::vector<int>& ports,
     cfg::PortLoopbackMode lbMode,
     bool interfaceHasSubnet) {
   std::map<int, int> port2vlan;
@@ -156,7 +156,7 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
 
 cfg::SwitchConfig onePortPerVlanConfig(
     int unit,
-    const std::vector<opennsl_port_t>& ports,
+    const std::vector<int>& ports,
     cfg::PortLoopbackMode lbMode,
     bool interfaceHasSubnet) {
   std::map<int, int> port2vlan;
@@ -189,8 +189,7 @@ cfg::SwitchConfig onePortPerVlanConfig(
   return config;
 }
 
-cfg::SwitchConfig
-twoL3IntfConfig(int unit, opennsl_port_t port1, opennsl_port_t port2) {
+cfg::SwitchConfig twoL3IntfConfig(int unit, int port1, int port2) {
   std::map<int, int> port2vlan;
   std::vector<int> ports;
   port2vlan[port1] = kBaseVlanId;
@@ -224,7 +223,7 @@ twoL3IntfConfig(int unit, opennsl_port_t port1, opennsl_port_t port2) {
 
 cfg::SwitchConfig multiplePortSingleVlanConfig(
     int unit,
-    const std::vector<opennsl_port_t>& ports) {
+    const std::vector<int>& ports) {
   std::map<int, int> port2vlan;
   auto portItr = ports.begin();
   for (; portItr != ports.end(); portItr++) {

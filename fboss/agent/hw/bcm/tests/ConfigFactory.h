@@ -16,10 +16,6 @@
 
 #include <vector>
 
-
-extern "C" {
-#include <opennsl/port.h>
-}
 /*
  * This utility is to provide utils for bcm test.
  */
@@ -42,34 +38,33 @@ auto constexpr kDefaultVlanId = 1;
 
 folly::MacAddress kLocalCpuMac();
 
-cfg::SwitchConfig onePortConfig(int unit, opennsl_port_t port);
+cfg::SwitchConfig onePortConfig(int unit, int port);
 cfg::SwitchConfig oneL3IntfConfig(
     int unit,
-    opennsl_port_t port,
+    int port,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
 cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
-    int unit, opennsl_port_t port,
+    int unit, int port,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
 cfg::SwitchConfig oneL3IntfTwoPortConfig(int unit,
-    opennsl_port_t port1, opennsl_port_t port2,
+    int port1, int port2,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
 cfg::SwitchConfig oneL3IntfNPortConfig(
     int unit,
-    const std::vector<opennsl_port_t>& ports,
+    const std::vector<int>& ports,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
     bool interfaceHasSubnet=true);
 
 cfg::SwitchConfig onePortPerVlanConfig(
     int unit,
-    const std::vector<opennsl_port_t>& ports,
+    const std::vector<int>& ports,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
     bool interfaceHasSubnet=true);
 
-cfg::SwitchConfig twoL3IntfConfig(int unit,
-    opennsl_port_t port1, opennsl_port_t port2);
+cfg::SwitchConfig twoL3IntfConfig(int unit, int port1, int port2);
 cfg::SwitchConfig multiplePortSingleVlanConfig(
     int unit,
-    const std::vector<opennsl_port_t>& ports);
+    const std::vector<int>& ports);
 } // namespace utility
 } // namespace fboss
 } // namespace facebook
