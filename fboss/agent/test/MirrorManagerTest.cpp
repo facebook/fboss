@@ -185,7 +185,8 @@ class MirrorManagerTest : public ::testing::Test {
         folly::Optional<PortID>(egressPort),
         folly::Optional<IPAddress>());
     auto newState = state->isPublished() ? state->clone() : state;
-    newState->getMirrors()->addMirror(mirror);
+    auto mirrors = newState->getMirrors()->modify(&newState);
+    mirrors->addMirror(mirror);
     return newState;
   }
 
@@ -197,7 +198,8 @@ class MirrorManagerTest : public ::testing::Test {
         name, folly::Optional<PortID>(), folly::Optional<IPAddress>(remoteIp));
 
     auto newState = state->isPublished() ? state->clone() : state;
-    newState->getMirrors()->addMirror(mirror);
+    auto mirrors = newState->getMirrors()->modify(&newState);
+    mirrors->addMirror(mirror);
     return newState;
   }
 
@@ -212,7 +214,8 @@ class MirrorManagerTest : public ::testing::Test {
         folly::Optional<IPAddress>(remoteIp));
 
     auto newState = state->isPublished() ? state->clone() : state;
-    newState->getMirrors()->addMirror(mirror);
+    auto mirrors = newState->getMirrors()->modify(&newState);
+    mirrors->addMirror(mirror);
     return newState;
   }
 

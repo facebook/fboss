@@ -3,6 +3,7 @@
 #include "fboss/agent/state/MirrorMap.h"
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/NodeMap-defs.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook {
 namespace fboss {
@@ -37,6 +38,19 @@ std::shared_ptr<MirrorMap> MirrorMap::fromFollyDynamic(
     mirrors->addNode(Mirror::fromFollyDynamic(entry));
   }
   return mirrors;
+}
+
+MirrorMap* MirrorMap::modify(std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  SwitchState::modify(state);
+  auto newMirrors = clone();
+  auto* ptr = newMirrors.get();
+  (*state)->resetMirrors(std::move(newMirrors));
+  return ptr;
 }
 
 FBOSS_INSTANTIATE_NODE_MAP(MirrorMap, MirrorMapTraits);

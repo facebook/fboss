@@ -19,6 +19,7 @@ class MirrorMap : public NodeMapT<MirrorMap, MirrorMapTraits> {
   MirrorMap();
   ~MirrorMap();
 
+  MirrorMap* modify(std::shared_ptr<SwitchState>* state);
   std::shared_ptr<Mirror> getMirrorIf(const std::string& name) const;
 
   void addMirror(const std::shared_ptr<Mirror>& mirror);

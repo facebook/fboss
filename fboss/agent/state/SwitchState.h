@@ -18,6 +18,7 @@
 
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AggregatePortMap.h"
+#include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
@@ -27,6 +28,7 @@
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/RouteTableMap.h"
+#include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/types.h"
 
@@ -49,8 +51,11 @@ struct SwitchStateFields {
     fn(interfaces.get());
     fn(routeTables.get());
     fn(acls.get());
+    fn(sFlowCollectors.get());
     fn(qosPolicies.get());
+    fn(controlPlane.get());
     fn(loadBalancers.get());
+    fn(mirrors.get());
     fn(fibs.get());
     fn(labelFib.get());
   }
