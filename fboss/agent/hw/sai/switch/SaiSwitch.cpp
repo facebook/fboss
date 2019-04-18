@@ -104,6 +104,13 @@ bool SaiSwitch::isPortUp(PortID /* port */) const {
   return false;
 }
 
+cfg::PortSpeed SaiSwitch::getPortMaxSpeed(PortID /* port */) const {
+  // TODO (srikrishnagopu): Use the read-only attribute
+  // SAI_PORT_ATTR_SUPPORTED_SPEED to query the list of supported speeds
+  // and return the maximum supported speed.
+  return cfg::PortSpeed::HUNDREDG;
+}
+
 bool SaiSwitch::getAndClearNeighborHit(
     RouterID /* vrf */,
     folly::IPAddress& /* ip */) {

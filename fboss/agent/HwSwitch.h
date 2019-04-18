@@ -245,6 +245,8 @@ class HwSwitch {
 
   virtual BootType getBootType() const = 0;
 
+  virtual cfg::PortSpeed getPortMaxSpeed(PortID /* port */) const = 0;
+
  private:
   // Forbidden copy constructor and assignment operator
   HwSwitch(HwSwitch const&) = delete;

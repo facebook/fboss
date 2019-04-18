@@ -70,6 +70,7 @@ class MockHwSwitch : public HwSwitch {
   MOCK_METHOD0(unregisterCallbacks, void());
   MOCK_CONST_METHOD1(isValidStateUpdate, bool(const StateDelta& delta));
   MOCK_CONST_METHOD1(isPortUp, bool(PortID port));
+  MOCK_CONST_METHOD1(getPortMaxSpeed, cfg::PortSpeed(PortID port));
   MOCK_METHOD1(
       clearPortStats,
       void(const std::unique_ptr<std::vector<int32_t>>&));

@@ -70,6 +70,7 @@ class MockBcmSwitch : public BcmSwitchIf {
   MOCK_CONST_METHOD0(getStatUpdater, BcmStatUpdater*());
   MOCK_CONST_METHOD0(getTrunkTable, const BcmTrunkTable*());
   MOCK_CONST_METHOD1(isPortUp, bool(PortID port));
+  MOCK_CONST_METHOD1(getPortMaxSpeed, cfg::PortSpeed(PortID port));
   MOCK_CONST_METHOD0(getDropEgressId, opennsl_if_t());
   MOCK_CONST_METHOD0(getToCPUEgressId, opennsl_if_t());
   MOCK_METHOD1(

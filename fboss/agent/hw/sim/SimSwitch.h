@@ -71,6 +71,10 @@ class SimSwitch : public HwSwitch {
     return true;
   }
 
+  cfg::PortSpeed getPortMaxSpeed(PortID /* port */) const override {
+    return cfg::PortSpeed::HUNDREDG;
+  }
+
   bool isValidStateUpdate(const StateDelta& /*delta*/) const override {
     return true;
   }

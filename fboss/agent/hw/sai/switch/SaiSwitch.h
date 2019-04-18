@@ -44,6 +44,7 @@ class SaiSwitch : public HwSwitch {
   bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip) override;
   void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) override;
+  cfg::PortSpeed getPortMaxSpeed(PortID port) const override;
   virtual BootType getBootType() const override {
     return bootType_;
   }

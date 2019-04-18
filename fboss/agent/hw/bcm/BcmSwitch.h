@@ -363,6 +363,8 @@ class BcmSwitch : public BcmSwitchIf {
 
   bool getPortFECEnabled(PortID port) const override;
 
+  cfg::PortSpeed getPortMaxSpeed(PortID port) const override;
+
   bool isValidStateUpdate(const StateDelta& delta) const override;
 
   opennsl_gport_t getCpuGPort() const;

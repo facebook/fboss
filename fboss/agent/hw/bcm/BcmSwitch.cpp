@@ -161,6 +161,10 @@ bool BcmSwitch::getPortFECEnabled(PortID port) const {
   return getPortTable()->getBcmPort(port)->isFECEnabled();
 }
 
+cfg::PortSpeed BcmSwitch::getPortMaxSpeed(PortID port) const {
+  return getPortTable()->getBcmPort(port)->getMaxSpeed();
+}
+
 BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
     : platform_(platform),
       featuresDesired_(featuresDesired),
