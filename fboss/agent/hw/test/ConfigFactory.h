@@ -10,6 +10,7 @@
 
 #pragma once
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/types.h"
 
 #include <folly/MacAddress.h>
@@ -17,7 +18,7 @@
 #include <vector>
 
 /*
- * This utility is to provide utils for bcm test.
+ * This utility is to provide utils for test.
  */
 namespace facebook {
 namespace fboss {
@@ -38,32 +39,33 @@ auto constexpr kDefaultVlanId = 1;
 
 folly::MacAddress kLocalCpuMac();
 
-cfg::SwitchConfig onePortConfig(int unit, int port);
+cfg::SwitchConfig onePortConfig(const HwSwitch *hwSwitch, int port);
 cfg::SwitchConfig oneL3IntfConfig(
-    int unit,
+    const HwSwitch *hwSwitch,
     int port,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
 cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
-    int unit, int port,
+    const HwSwitch *hwSwitch, int port,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
-cfg::SwitchConfig oneL3IntfTwoPortConfig(int unit,
+cfg::SwitchConfig oneL3IntfTwoPortConfig(const HwSwitch *hwSwitch,
     int port1, int port2,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
 cfg::SwitchConfig oneL3IntfNPortConfig(
-    int unit,
+    const HwSwitch *hwSwitch,
     const std::vector<int>& ports,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
     bool interfaceHasSubnet=true);
 
 cfg::SwitchConfig onePortPerVlanConfig(
-    int unit,
+    const HwSwitch *hwSwitch,
     const std::vector<int>& ports,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
     bool interfaceHasSubnet=true);
 
-cfg::SwitchConfig twoL3IntfConfig(int unit, int port1, int port2);
+cfg::SwitchConfig twoL3IntfConfig(
+  const HwSwitch *hwSwitch, int port1, int port2);
 cfg::SwitchConfig multiplePortSingleVlanConfig(
-    int unit,
+    const HwSwitch *hwSwitch,
     const std::vector<int>& ports);
 } // namespace utility
 } // namespace fboss

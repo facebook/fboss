@@ -20,7 +20,8 @@
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/tests/BcmPortUtils.h"
-#include "fboss/agent/hw/bcm/tests/ConfigFactory.h"
+
+#include "fboss/agent/hw/test/ConfigFactory.h"
 
 #include <string>
 
@@ -53,7 +54,7 @@ namespace fboss {
 class BcmVlanTest : public BcmTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    return utility::twoL3IntfConfig(getUnit(),
+    return utility::twoL3IntfConfig(getHwSwitch(),
       masterLogicalPortIds()[0], masterLogicalPortIds()[1]);
   }
 };

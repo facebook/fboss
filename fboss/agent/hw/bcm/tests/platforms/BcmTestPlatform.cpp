@@ -9,9 +9,10 @@
  */
 #include "fboss/agent/hw/bcm/tests/platforms/BcmTestPlatform.h"
 
-#include "fboss/agent/hw/bcm/tests/ConfigFactory.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/ThriftHandler.h"
+
+#include "fboss/agent/hw/test/ConfigFactory.h"
 
 #include <folly/Memory.h>
 #include <folly/logging/xlog.h>

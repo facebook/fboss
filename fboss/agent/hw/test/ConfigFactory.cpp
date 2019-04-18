@@ -7,8 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/tests/ConfigFactory.h"
-#include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
 
 #include <folly/Format.h>
 
@@ -17,15 +16,12 @@ using namespace facebook::fboss::utility;
 
 namespace {
 
-cfg::PortSpeed maxPortSpeed(int unit, int port) {
-  int maxSpeed;
-  auto ret = opennsl_port_speed_max(unit, port, &maxSpeed);
-  bcmCheckError(ret, "Unable to get max speed of : ", port);
-  return cfg::PortSpeed(maxSpeed);
+cfg::PortSpeed maxPortSpeed(const HwSwitch *hwSwitch, int port) {
+  return hwSwitch->getPortMaxSpeed(PortID(port));
 }
 
 cfg::SwitchConfig genPortVlanCfg(
-    int unit,
+    const HwSwitch *hwSwitch,
     const std::vector<int>& ports,
     const std::map<int, int>& port2vlan,
     const std::vector<int>& vlans,
@@ -40,7 +36,7 @@ cfg::SwitchConfig genPortVlanCfg(
     config.ports[portIndex].name_ref() =
         "eth1/" + std::to_string(*portItr) + "/1";
     config.ports[portIndex].logicalID = *portItr;
-    config.ports[portIndex].speed = maxPortSpeed(unit, *portItr);
+    config.ports[portIndex].speed = maxPortSpeed(hwSwitch, *portItr);
     config.ports[portIndex].state = cfg::PortState::ENABLED;
     config.ports[portIndex].loopbackMode = lbMode;
     config.ports[portIndex].ingressVlan = port2vlan.find(*portItr)->second;
@@ -78,11 +74,9 @@ cfg::SwitchConfig genPortVlanCfg(
   return config;
 }
 
-
 std::string getLocalCpuMacStr() {
   return kLocalCpuMac().toString();
 }
-
 } // unnamed namespace
 
 namespace facebook {
@@ -94,40 +88,40 @@ folly::MacAddress kLocalCpuMac() {
   return kLocalMac;
 }
 
-cfg::SwitchConfig onePortConfig(int unit, int port) {
+cfg::SwitchConfig onePortConfig(const HwSwitch *hwSwitch, int port) {
   std::map<int, int> port2vlan;
   std::vector<int> ports;
   port2vlan[port] = kDefaultVlanId;
   ports.push_back(port);
-  return genPortVlanCfg(unit, ports, port2vlan, std::vector<int>({}));
+  return genPortVlanCfg(hwSwitch, ports, port2vlan, std::vector<int>({}));
 }
 
-cfg::SwitchConfig
-oneL3IntfConfig(int unit, int port, cfg::PortLoopbackMode lbMode) {
+cfg::SwitchConfig oneL3IntfConfig(
+  const HwSwitch *hwSwitch, int port, cfg::PortLoopbackMode lbMode) {
   std::vector<int> ports{port};
-  return oneL3IntfNPortConfig(unit, ports, lbMode);
+  return oneL3IntfNPortConfig(hwSwitch, ports, lbMode);
 }
 
 cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
-    int unit,
+    const HwSwitch *hwSwitch,
     int port,
     cfg::PortLoopbackMode lbMode) {
   std::vector<int> ports{port};
   return oneL3IntfNPortConfig(
-      unit, ports, lbMode, false /*interfaceHasSubnet*/);
+      hwSwitch, ports, lbMode, false /*interfaceHasSubnet*/);
 }
 
 cfg::SwitchConfig oneL3IntfTwoPortConfig(
-    int unit,
+    const HwSwitch *hwSwitch,
     int port1,
     int port2,
     cfg::PortLoopbackMode lbMode) {
   std::vector<int> ports{port1, port2};
-  return oneL3IntfNPortConfig(unit, ports, lbMode);
+  return oneL3IntfNPortConfig(hwSwitch, ports, lbMode);
 }
 
 cfg::SwitchConfig oneL3IntfNPortConfig(
-    int unit,
+    const HwSwitch *hwSwitch,
     const std::vector<int>& ports,
     cfg::PortLoopbackMode lbMode,
     bool interfaceHasSubnet) {
@@ -138,7 +132,7 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
     port2vlan[port] = kBaseVlanId;
     vlanPorts.push_back(port);
   }
-  auto config = genPortVlanCfg(unit, vlanPorts, port2vlan, vlans, lbMode);
+  auto config = genPortVlanCfg(hwSwitch, vlanPorts, port2vlan, vlans, lbMode);
 
   config.interfaces.resize(1);
   config.interfaces[0].intfID = kBaseVlanId;
@@ -155,7 +149,7 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
 }
 
 cfg::SwitchConfig onePortPerVlanConfig(
-    int unit,
+    const HwSwitch *hwSwitch,
     const std::vector<int>& ports,
     cfg::PortLoopbackMode lbMode,
     bool interfaceHasSubnet) {
@@ -169,7 +163,7 @@ cfg::SwitchConfig onePortPerVlanConfig(
     vlans.push_back(vlan);
     vlanPorts.push_back(port);
   }
-  auto config = genPortVlanCfg(unit, vlanPorts, port2vlan, vlans, lbMode);
+  auto config = genPortVlanCfg(hwSwitch, vlanPorts, port2vlan, vlans, lbMode);
   config.interfaces.resize(vlans.size());
   for (auto i = 0; i < vlans.size(); ++i) {
     config.interfaces[i].intfID = kBaseVlanId + i;
@@ -189,7 +183,8 @@ cfg::SwitchConfig onePortPerVlanConfig(
   return config;
 }
 
-cfg::SwitchConfig twoL3IntfConfig(int unit, int port1, int port2) {
+cfg::SwitchConfig twoL3IntfConfig(
+  const HwSwitch *hwSwitch, int port1, int port2) {
   std::map<int, int> port2vlan;
   std::vector<int> ports;
   port2vlan[port1] = kBaseVlanId;
@@ -197,7 +192,7 @@ cfg::SwitchConfig twoL3IntfConfig(int unit, int port1, int port2) {
   ports.push_back(port1);
   ports.push_back(port2);
   std::vector<int> vlans = {kBaseVlanId, kBaseVlanId + 1};
-  auto config = genPortVlanCfg(unit, ports, port2vlan, vlans);
+  auto config = genPortVlanCfg(hwSwitch, ports, port2vlan, vlans);
 
   config.interfaces.resize(2);
   config.interfaces[0].intfID = kBaseVlanId;
@@ -222,14 +217,14 @@ cfg::SwitchConfig twoL3IntfConfig(int unit, int port1, int port2) {
 }
 
 cfg::SwitchConfig multiplePortSingleVlanConfig(
-    int unit,
+    const HwSwitch *hwSwitch,
     const std::vector<int>& ports) {
   std::map<int, int> port2vlan;
   auto portItr = ports.begin();
   for (; portItr != ports.end(); portItr++) {
     port2vlan[*portItr] = kDefaultVlanId;
   }
-  return genPortVlanCfg(unit, ports, port2vlan, std::vector<int>({}));
+  return genPortVlanCfg(hwSwitch, ports, port2vlan, std::vector<int>({}));
 }
 
 } // namespace utility
