@@ -22,7 +22,7 @@ namespace facebook {
 namespace fboss {
 FakeBcmTestPlatform::FakeBcmTestPlatform()
     : BcmTestPlatform(
-          std::vector<int>(
+          std::vector<PortID>(
               kMasterLogicalPortIds.begin(),
               kMasterLogicalPortIds.end()),
           kNumPortsPerTransceiver) {}

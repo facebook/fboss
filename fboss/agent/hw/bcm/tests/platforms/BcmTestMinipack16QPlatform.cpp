@@ -36,7 +36,7 @@ constexpr uint8_t kNumPortsPerTransceiver = 1;
 namespace facebook { namespace fboss {
 BcmTestMinipack16QPlatform::BcmTestMinipack16QPlatform()
   : BcmTestWedgeTomahawk3Platform(
-      std::vector<int>(
+      std::vector<PortID>(
         kMasterLogicalPortIds.begin(),
         kMasterLogicalPortIds.end()),
       kNumPortsPerTransceiver) {}

@@ -15,7 +15,7 @@ namespace facebook { namespace fboss {
 class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
 public:
   BcmTestWedgeTomahawk3Platform(
-    std::vector<int> masterLogicalPortIds,
+    std::vector<PortID> masterLogicalPortIds,
     int numPortsPerTranceiver)
     : BcmTestWedgePlatform(masterLogicalPortIds, numPortsPerTranceiver) {}
   ~BcmTestWedgeTomahawk3Platform() override {}

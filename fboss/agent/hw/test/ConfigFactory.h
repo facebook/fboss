@@ -39,34 +39,34 @@ auto constexpr kDefaultVlanId = 1;
 
 folly::MacAddress kLocalCpuMac();
 
-cfg::SwitchConfig onePortConfig(const HwSwitch *hwSwitch, int port);
+cfg::SwitchConfig onePortConfig(const HwSwitch *hwSwitch, PortID port);
 cfg::SwitchConfig oneL3IntfConfig(
     const HwSwitch *hwSwitch,
-    int port,
+    PortID port,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
 cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
-    const HwSwitch *hwSwitch, int port,
+    const HwSwitch *hwSwitch, PortID port,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
 cfg::SwitchConfig oneL3IntfTwoPortConfig(const HwSwitch *hwSwitch,
-    int port1, int port2,
+    PortID port1, PortID port2,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
 cfg::SwitchConfig oneL3IntfNPortConfig(
     const HwSwitch *hwSwitch,
-    const std::vector<int>& ports,
+    const std::vector<PortID>& ports,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
     bool interfaceHasSubnet=true);
 
 cfg::SwitchConfig onePortPerVlanConfig(
     const HwSwitch *hwSwitch,
-    const std::vector<int>& ports,
+    const std::vector<PortID>& ports,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
     bool interfaceHasSubnet=true);
 
 cfg::SwitchConfig twoL3IntfConfig(
-  const HwSwitch *hwSwitch, int port1, int port2);
+  const HwSwitch *hwSwitch, PortID port1, PortID port2);
 cfg::SwitchConfig multiplePortSingleVlanConfig(
     const HwSwitch *hwSwitch,
-    const std::vector<int>& ports);
+    const std::vector<PortID>& ports);
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

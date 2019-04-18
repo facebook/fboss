@@ -28,13 +28,13 @@ MacAddress BcmTestPlatform::kLocalCpuMac() {
 }
 
 BcmTestPlatform::BcmTestPlatform(
-    std::vector<int> masterLogicalPorts,
+    std::vector<PortID> masterLogicalPorts,
     int numPortsPerTranceiver)
     : masterLogicalPortIds_(std::move(masterLogicalPorts)) {
   numPortsPerTranceiver_ = numPortsPerTranceiver;
-  for (int masterPort : masterLogicalPortIds_) {
+  for (auto masterPort : masterLogicalPortIds_) {
     for (int i = 0; i < numPortsPerTranceiver; ++i) {
-      logicalPortIds_.push_back(masterPort + i);
+      logicalPortIds_.push_back(PortID(masterPort + i));
     }
   }
 }
@@ -83,13 +83,13 @@ BcmTestPlatform::InitPortMap BcmTestPlatform::initPorts() {
   return ports;
 }
 
-std::vector<int> BcmTestPlatform::getAllPortsinGroup(int portID) {
-  std::vector<int> allPortsinGroup;
+std::vector<PortID> BcmTestPlatform::getAllPortsinGroup(PortID portID) {
+  std::vector<PortID> allPortsinGroup;
   auto portItr = std::find(
       masterLogicalPortIds_.begin(), masterLogicalPortIds_.end(), portID);
   CHECK(portItr != masterLogicalPortIds_.end());
   for (int i = 0; i < numPortsPerTranceiver_; ++i) {
-    allPortsinGroup.push_back(portID + i);
+    allPortsinGroup.push_back(PortID(portID + i));
   }
   return allPortsinGroup;
 }

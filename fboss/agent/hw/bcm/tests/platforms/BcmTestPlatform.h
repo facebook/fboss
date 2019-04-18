@@ -32,7 +32,7 @@ enum class FlexPortMode {
 class BcmTestPlatform : public BcmPlatform {
  public:
   BcmTestPlatform(
-      std::vector<int> masterLogicalPortIds,
+      std::vector<PortID> masterLogicalPortIds,
       int numPortsPerTranceiver);
   ~BcmTestPlatform() override;
 
@@ -65,13 +65,13 @@ class BcmTestPlatform : public BcmPlatform {
     return true;
   }
 
-  const std::vector<int>& logicalPortIds() const {
+  const std::vector<PortID>& logicalPortIds() const {
     return logicalPortIds_;
   }
-  const std::vector<int>& masterLogicalPortIds() const {
+  const std::vector<PortID>& masterLogicalPortIds() const {
     return masterLogicalPortIds_;
   }
-  std::vector<int> getAllPortsinGroup(int portID);
+  std::vector<PortID> getAllPortsinGroup(PortID portID);
 
   BcmWarmBootHelper* getWarmBootHelper() override {
     return warmBootHelper_.get();
@@ -81,10 +81,10 @@ class BcmTestPlatform : public BcmPlatform {
 
  protected:
   // Each platform should have their own logical ports list.
-  std::vector<int> logicalPortIds_;
+  std::vector<PortID> logicalPortIds_;
   // List of controlling ports on platform. Each of these then
   // have subports that can be used when using flex ports
-  std::vector<int> masterLogicalPortIds_;
+  std::vector<PortID> masterLogicalPortIds_;
   int numPortsPerTranceiver_;
 
  private:

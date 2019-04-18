@@ -22,7 +22,7 @@ namespace fboss {
 
 BcmTestWedge40Platform::BcmTestWedge40Platform()
     : BcmTestWedgePlatform(
-          std::vector<int>(
+          std::vector<PortID>(
               kMasterLogicalPortIds.begin(),
               kMasterLogicalPortIds.end()),
           kNumPortsPerTransceiver) {}

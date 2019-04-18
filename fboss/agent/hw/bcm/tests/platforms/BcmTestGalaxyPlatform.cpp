@@ -23,7 +23,7 @@ namespace facebook {
 namespace fboss {
 BcmTestGalaxyPlatform::BcmTestGalaxyPlatform()
     : BcmTestWedgeTomahawkPlatform(
-          std::vector<int>(
+          std::vector<PortID>(
               kMasterLogicalPortIds.begin(),
               kMasterLogicalPortIds.end()),
           kNumPortsPerTransceiver) {}

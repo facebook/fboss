@@ -17,7 +17,7 @@ namespace fboss {
 class BcmTestWedgePlatform : public BcmTestPlatform {
  public:
   BcmTestWedgePlatform(
-      std::vector<int> masterLogicalPortIds,
+      std::vector<PortID> masterLogicalPortIds,
       int numPortsPerTranceiver);
   ~BcmTestWedgePlatform() override {}
 

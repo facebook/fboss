@@ -137,15 +137,15 @@ int BcmTest::getUnit() const {
   return getHwSwitch()->getUnit();
 }
 
-const std::vector<int>& BcmTest::logicalPortIds() const {
+const std::vector<PortID>& BcmTest::logicalPortIds() const {
   return getPlatform()->logicalPortIds();
 }
 
-const std::vector<int>& BcmTest::masterLogicalPortIds() const {
+const std::vector<PortID>& BcmTest::masterLogicalPortIds() const {
   return getPlatform()->masterLogicalPortIds();
 }
 
-std::vector<int> BcmTest::getAllPortsinGroup(int portID) {
+std::vector<PortID> BcmTest::getAllPortsinGroup(PortID portID) {
   return getPlatform()->getAllPortsinGroup(portID);
 }
 
