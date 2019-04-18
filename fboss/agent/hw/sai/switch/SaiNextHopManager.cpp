@@ -12,6 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 #include <folly/logging/xlog.h>
 
@@ -20,10 +21,11 @@ namespace fboss {
 
 SaiNextHop::SaiNextHop(
     SaiApiTable* apiTable,
-    const NextHopApiParameters::Attributes& attributes)
+    const NextHopApiParameters::Attributes& attributes,
+    const sai_object_id_t& switchId)
     : apiTable_(apiTable), attributes_(attributes) {
   auto& nextHopApi = apiTable_->nextHopApi();
-  id_ = nextHopApi.create2(attributes_.attrs(), 0);
+  id_ = nextHopApi.create2(attributes_.attrs(), switchId);
 }
 
 SaiNextHop::~SaiNextHop() {
@@ -43,7 +45,8 @@ std::unique_ptr<SaiNextHop> SaiNextHopManager::addNextHop(
     const folly::IPAddress& ip) {
   NextHopApiParameters::Attributes attributes{
       {SAI_NEXT_HOP_TYPE_IP, routerInterfaceId, ip}};
-  return std::make_unique<SaiNextHop>(apiTable_, attributes);
+  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  return std::make_unique<SaiNextHop>(apiTable_, attributes, switchId);
 }
 
 SaiNextHopManager::SaiNextHopManager(

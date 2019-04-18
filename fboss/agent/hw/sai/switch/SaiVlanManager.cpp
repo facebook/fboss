@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 #include <folly/logging/xlog.h>
 
@@ -24,10 +25,11 @@ namespace fboss {
 
 SaiVlanMember::SaiVlanMember(
     SaiApiTable* apiTable,
-    const VlanApiParameters::MemberAttributes& attributes)
+    const VlanApiParameters::MemberAttributes& attributes,
+    const sai_object_id_t& switchId)
     : apiTable_(apiTable), attributes_(attributes) {
   auto& vlanApi = apiTable_->vlanApi();
-  id_ = vlanApi.createMember2(attributes_.attrs(), 0);
+  id_ = vlanApi.createMember2(attributes_.attrs(), switchId);
 }
 
 SaiVlanMember::~SaiVlanMember() {
@@ -51,7 +53,8 @@ SaiVlan::SaiVlan(
       managerTable_(managerTable),
       attributes_(attributes) {
   auto& vlanApi = apiTable_->vlanApi();
-  id_ = vlanApi.create2(attributes_.attrs(), 0);
+  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  id_ = vlanApi.create2(attributes_.attrs(), switchId);
 }
 
 SaiVlan::~SaiVlan() {
@@ -63,6 +66,7 @@ SaiVlan::~SaiVlan() {
 void SaiVlan::addMember(PortID swPortId) {
   VlanApiParameters::MemberAttributes::VlanId vlanIdMemberAttribute{id()};
   SaiPort* port = managerTable_->portManager().getPort(swPortId);
+  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
   if (!port) {
     throw FbossError(
         "Failed to add vlan member: no port matching vlan member port: ",
@@ -73,7 +77,8 @@ void SaiVlan::addMember(PortID swPortId) {
       bridgePortId};
   VlanApiParameters::MemberAttributes memberAttributes{
       {vlanIdMemberAttribute, bridgePortIdAttribute}};
-  auto member = std::make_unique<SaiVlanMember>(apiTable_, memberAttributes);
+  auto member =
+    std::make_unique<SaiVlanMember>(apiTable_, memberAttributes, switchId);
   sai_object_id_t memberId = member->id();
   members_.insert(std::make_pair(memberId, std::move(member)));
   memberIdMap_.insert(std::make_pair(memberAttributes.bridgePortId, memberId));

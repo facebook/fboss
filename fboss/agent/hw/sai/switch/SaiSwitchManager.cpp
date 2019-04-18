@@ -75,5 +75,15 @@ SaiSwitchInstance* SaiSwitchManager::getSwitch(
   return itr->second.get();
 }
 
+sai_object_id_t SaiSwitchManager::getSwitchSaiId(
+  const SwitchID& switchId) {
+  auto switchInstance = getSwitch(switchId);
+  if (!switchInstance) {
+    throw FbossError(
+        "Attempted to query non-existing switch: ", switchId);
+  }
+  return switchInstance->id();
+}
+
 } // namespace fboss
 } // namespace facebook

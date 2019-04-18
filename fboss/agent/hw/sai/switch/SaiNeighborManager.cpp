@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/NdpEntry.h"
@@ -77,7 +78,8 @@ NeighborApiParameters::EntryType SaiNeighborManager::saiEntryFromSwEntry(
         "No SaiRouterInterface for InterfaceID: ",
         swEntry->getIntfID());
   }
-  return NeighborApiParameters::EntryType(0, routerInterface->id(), ip);
+  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  return NeighborApiParameters::EntryType(switchId, routerInterface->id(), ip);
 }
 
 template <typename NeighborEntryT>
@@ -158,6 +160,10 @@ void SaiNeighborManager::processNeighborDelta(const StateDelta& delta) {
     DeltaFunctions::forEachChanged(
         vlanDelta.getNdpDelta(), processChanged, processAdded, processRemoved);
   }
+}
+
+void SaiNeighborManager::clear() {
+  neighbors_.clear();
 }
 
 const SaiNeighbor* SaiNeighborManager::getNeighbor(

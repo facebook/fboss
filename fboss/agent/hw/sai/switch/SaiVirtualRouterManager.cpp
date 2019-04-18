@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
@@ -19,20 +20,29 @@
 namespace facebook {
 namespace fboss {
 
-SaiVirtualRouter::SaiVirtualRouter(SaiApiTable* apiTable)
+SaiVirtualRouter::SaiVirtualRouter(
+  SaiApiTable* apiTable, sai_object_id_t& switchId)
     : apiTable_(apiTable), attributes_({}) {
   default_ = true;
-  id_ = apiTable_->switchApi().getAttribute(
-      SwitchApiParameters::Attributes::DefaultVirtualRouterId(), 0);
-  // TODO(borisb): implement attributes_ via get apis for default VR
+  try {
+    // TODO(borisb): implement attributes_ via get apis for default VR
+    id_ = apiTable_->switchApi().getAttribute(
+      SwitchApiParameters::Attributes::DefaultVirtualRouterId(), switchId);
+  } catch (const facebook::fboss::SaiApiError& ex) {
+    // Create a default vritaul router if the SAI adapter
+    // did not create a default virtual router and throws an exception.
+    auto& virtualRouterApi = apiTable_->virtualRouterApi();
+    id_ = virtualRouterApi.create2(attributes_.attrs(), switchId);
+  }
 }
 
 SaiVirtualRouter::SaiVirtualRouter(
     SaiApiTable* apiTable,
-    const VirtualRouterApiParameters::Attributes& attributes)
+    const VirtualRouterApiParameters::Attributes& attributes,
+    const sai_object_id_t& switchId)
     : apiTable_(apiTable), attributes_(attributes) {
   auto& virtualRouterApi = apiTable_->virtualRouterApi();
-  id_ = virtualRouterApi.create2(attributes_.attrs(), 0);
+  id_ = virtualRouterApi.create2(attributes_.attrs(), switchId);
 }
 
 SaiVirtualRouter::~SaiVirtualRouter() {
@@ -54,7 +64,9 @@ SaiVirtualRouterManager::SaiVirtualRouterManager(
     SaiApiTable* apiTable,
     SaiManagerTable* managerTable)
     : apiTable_(apiTable), managerTable_(managerTable) {
-  auto defaultVirtualRouter = std::make_unique<SaiVirtualRouter>(apiTable_);
+  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  auto defaultVirtualRouter =
+    std::make_unique<SaiVirtualRouter>(apiTable_, switchId);
   virtualRouters_.emplace(
       std::make_pair(RouterID(0), std::move(defaultVirtualRouter)));
 }

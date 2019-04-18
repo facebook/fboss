@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 #include <folly/logging/xlog.h>
 
@@ -22,10 +23,11 @@ namespace fboss {
 
 SaiRouterInterface::SaiRouterInterface(
     SaiApiTable* apiTable,
-    const RouterInterfaceApiParameters::Attributes& attributes)
+    const RouterInterfaceApiParameters::Attributes& attributes,
+    const sai_object_id_t& switchID)
     : apiTable_(apiTable), attributes_(attributes) {
   auto& routerInterfaceApi = apiTable_->routerInterfaceApi();
-  id_ = routerInterfaceApi.create2(attributes_.attrs(), 0);
+  id_ = routerInterfaceApi.create2(attributes_.attrs(), switchID);
 }
 
 SaiRouterInterface::~SaiRouterInterface() {
@@ -49,6 +51,7 @@ sai_object_id_t SaiRouterInterfaceManager::addRouterInterface(
     const std::shared_ptr<Interface>& swInterface) {
   InterfaceID swId(swInterface->getID());
   auto itr = routerInterfaces_.find(swId);
+  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
   if (itr != routerInterfaces_.end()) {
     throw FbossError(
         "Attempted to add duplicate router interface with InterfaceID ", swId);
@@ -79,7 +82,7 @@ sai_object_id_t SaiRouterInterfaceManager::addRouterInterface(
                                                        vlanIdAttribute,
                                                        srcMacAttribute}};
   auto routerInterface =
-      std::make_unique<SaiRouterInterface>(apiTable_, attributes);
+      std::make_unique<SaiRouterInterface>(apiTable_, attributes, switchId);
   sai_object_id_t saiId = routerInterface->id();
   routerInterfaces_.insert(std::make_pair(swId, std::move(routerInterface)));
   return saiId;

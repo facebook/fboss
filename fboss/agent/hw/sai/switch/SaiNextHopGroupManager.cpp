@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 #include <folly/logging/xlog.h>
 
@@ -25,10 +26,11 @@ namespace fboss {
 
 SaiNextHopGroupMember::SaiNextHopGroupMember(
     SaiApiTable* apiTable,
-    const NextHopGroupApiParameters::MemberAttributes& attributes)
+    const NextHopGroupApiParameters::MemberAttributes& attributes,
+    const sai_object_id_t &switchId)
     : apiTable_(apiTable), attributes_(attributes) {
   auto& nextHopGroupApi = apiTable_->nextHopGroupApi();
-  id_ = nextHopGroupApi.createMember2(attributes_.attrs(), 0);
+  id_ = nextHopGroupApi.createMember2(attributes_.attrs(), switchId);
 }
 
 SaiNextHopGroupMember::~SaiNextHopGroupMember() {
@@ -56,7 +58,8 @@ SaiNextHopGroup::SaiNextHopGroup(
       attributes_(attributes),
       swNextHops_(swNextHops) {
   auto& nextHopGroupApi = apiTable_->nextHopGroupApi();
-  id_ = nextHopGroupApi.create2(attributes_.attrs(), 0);
+  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  id_ = nextHopGroupApi.create2(attributes_.attrs(), switchId);
 }
 
 SaiNextHopGroup::~SaiNextHopGroup() {
@@ -84,7 +87,9 @@ bool SaiNextHopGroup::empty() const {
 
 void SaiNextHopGroup::addMember(sai_object_id_t nextHopId) {
   NextHopGroupApiParameters::MemberAttributes attributes{{id_, nextHopId}};
-  auto member = std::make_unique<SaiNextHopGroupMember>(apiTable_, attributes);
+  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  auto member = std::make_unique<SaiNextHopGroupMember>
+    (apiTable_, attributes, switchId);
   sai_object_id_t memberId = member->id();
   members_.emplace(std::make_pair(memberId, std::move(member)));
   memberIdMap_.emplace(std::make_pair(memberId, id_));
@@ -118,8 +123,9 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
       throw FbossError("Missing SAI router interface for ", interfaceId);
     }
     folly::IPAddress ip = swNextHop.addr();
+    auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
     NeighborApiParameters::EntryType neighborEntry{
-        0, routerInterface->id(), ip};
+        switchId, routerInterface->id(), ip};
     nextHopsByNeighbor_[neighborEntry].insert(swNextHops);
     auto neighbor = managerTable_->neighborManager().getNeighbor(neighborEntry);
     if (!neighbor) {
@@ -143,8 +149,9 @@ void SaiNextHopGroupManager::unregisterNeighborResolutionHandling(
       continue;
     }
     folly::IPAddress ip = swNextHop.addr();
+    auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
     NeighborApiParameters::EntryType neighborEntry{
-        0, routerInterface->id(), ip};
+        switchId, routerInterface->id(), ip};
     nextHopsByNeighbor_[neighborEntry].erase(swNextHops);
   }
 }

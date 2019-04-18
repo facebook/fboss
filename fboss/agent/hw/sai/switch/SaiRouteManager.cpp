@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
@@ -72,6 +73,7 @@ template <typename AddrT>
 RouteApiParameters::EntryType SaiRouteManager::routeEntryFromSwRoute(
     RouterID routerId,
     const std::shared_ptr<Route<AddrT>>& swRoute) const {
+  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
   folly::IPAddress prefixNetwork{swRoute->prefix().network};
   folly::CIDRNetwork prefix{prefixNetwork, swRoute->prefix().mask};
   SaiVirtualRouter* virtualRouter =
@@ -79,7 +81,7 @@ RouteApiParameters::EntryType SaiRouteManager::routeEntryFromSwRoute(
   if (!virtualRouter) {
     throw FbossError("No virtual router with id ", routerId);
   }
-  return RouteApiParameters::EntryType{0, virtualRouter->id(), prefix};
+  return RouteApiParameters::EntryType{switchId, virtualRouter->id(), prefix};
 }
 
 template <typename AddrT>

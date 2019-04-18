@@ -12,6 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 
 #include <folly/logging/xlog.h>
@@ -120,7 +121,8 @@ SaiPort::SaiPort(
       managerTable_(managerTable),
       attributes_(attributes) {
   auto& portApi = apiTable_->portApi();
-  id_ = portApi.create2(attributes_.attrs(), 0);
+  auto switchId = managerTable->switchManager().getSwitchSaiId(SwitchID(0));
+  id_ = portApi.create2(attributes_.attrs(), switchId);
   bridgePort_ = managerTable_->bridgeManager().addBridgePort(id_);
 }
 

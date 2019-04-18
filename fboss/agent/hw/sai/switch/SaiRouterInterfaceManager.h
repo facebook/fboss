@@ -32,7 +32,8 @@ class SaiRouterInterface {
  public:
   SaiRouterInterface(
       SaiApiTable* apiTable,
-      const RouterInterfaceApiParameters::Attributes& attributes);
+      const RouterInterfaceApiParameters::Attributes& attributes,
+      const sai_object_id_t& switchID);
   ~SaiRouterInterface();
   SaiRouterInterface(const SaiRouterInterface& other) = delete;
   SaiRouterInterface(SaiRouterInterface&& other) = delete;

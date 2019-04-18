@@ -37,7 +37,7 @@ class FdbManagerTest : public ManagerTestBase {
     const PortDescriptor& portDesc) {
       auto vlanId = VlanID(intfId);
       auto portId = portDesc.phyPortID();
-      FdbApiParameters::EntryType entry{0, vlanId, mac};
+      FdbApiParameters::EntryType entry{1, vlanId, mac};
       auto port = saiManagerTable->portManager().getPort(portId);
       auto expectedBridgePortId = port->getBridgePort()->id();
       auto bridgePortId = saiApiTable->fdbApi().getAttribute(

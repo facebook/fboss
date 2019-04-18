@@ -26,7 +26,8 @@ class SaiBridge {
  public:
   SaiBridge(
     SaiApiTable* apiTable,
-    const BridgeApiParameters::Attributes& attributes);
+    const BridgeApiParameters::Attributes& attributes,
+    const sai_object_id_t& switchId);
   ~SaiBridge();
   SaiBridge(const SaiBridge& other) = delete;
   SaiBridge(SaiBridge&& other) = delete;
@@ -52,7 +53,8 @@ class SaiBridgePort {
  public:
   SaiBridgePort(
       SaiApiTable* apiTable,
-      const BridgeApiParameters::MemberAttributes& attributes);
+      const BridgeApiParameters::MemberAttributes& attributes,
+      const sai_object_id_t& switchId);
   ~SaiBridgePort();
   SaiBridgePort(const SaiBridgePort& other) = delete;
   SaiBridgePort(SaiBridgePort&& other) = delete;

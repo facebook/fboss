@@ -27,11 +27,12 @@ class SaiManagerTable;
 class SaiVirtualRouter {
  public:
   // Default virtual router
-  explicit SaiVirtualRouter(SaiApiTable* apiTable);
+  explicit SaiVirtualRouter(SaiApiTable* apiTable, sai_object_id_t& switchId);
   // SaiSwitch managed virtual router
   SaiVirtualRouter(
       SaiApiTable* apiTable,
-      const VirtualRouterApiParameters::Attributes& attributes);
+      const VirtualRouterApiParameters::Attributes& attributes,
+      const sai_object_id_t& switchId);
   ~SaiVirtualRouter();
   SaiVirtualRouter(const SaiVirtualRouter& other) = delete;
   SaiVirtualRouter(SaiVirtualRouter&& other) = delete;

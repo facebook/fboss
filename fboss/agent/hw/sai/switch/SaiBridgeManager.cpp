@@ -21,14 +21,18 @@ namespace fboss {
 
 SaiBridge::SaiBridge(
     SaiApiTable* apiTable,
-    const BridgeApiParameters::Attributes& attributes)
+    const BridgeApiParameters::Attributes& attributes,
+    const sai_object_id_t& switchId)
     : apiTable_(apiTable), attributes_(attributes) {
   try {
     id_ = apiTable_->switchApi().getAttribute(
-          SwitchApiParameters::Attributes::Default1QBridgeId(), 0);
-  } catch (const std::exception& ex) {
+          SwitchApiParameters::Attributes::Default1QBridgeId(),
+          switchId);
+  } catch (const facebook::fboss::SaiApiError& ex) {
+    // Create a default 1Q Bridge if the SAI sdk adapter
+    // did not return a default 1Q bridge and throws an exception.
     auto& bridgeApi = apiTable_->bridgeApi();
-    id_ = bridgeApi.create2(attributes_.attrs(), 0);
+    id_ = bridgeApi.create2(attributes_.attrs(), switchId);
   }
 }
 
@@ -39,10 +43,11 @@ SaiBridge::~SaiBridge() {
 
 SaiBridgePort::SaiBridgePort(
     SaiApiTable* apiTable,
-    const BridgeApiParameters::MemberAttributes& attributes)
+    const BridgeApiParameters::MemberAttributes& attributes,
+    const sai_object_id_t& switchId)
         : apiTable_(apiTable), attributes_(attributes) {
   auto& bridgeApi = apiTable_->bridgeApi();
-  id_ = bridgeApi.createMember2(attributes_.attrs(), 0);
+  id_ = bridgeApi.createMember2(attributes_.attrs(), switchId);
 }
 
 SaiBridgePort::~SaiBridgePort() {
@@ -59,17 +64,20 @@ bool SaiBridgePort::operator!=(const SaiBridgePort& other) const {
 
 std::unique_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
     sai_object_id_t portId) {
+  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
   BridgeApiParameters::MemberAttributes attributes{
       {SAI_BRIDGE_PORT_TYPE_PORT, portId}};
-  return std::make_unique<SaiBridgePort>(apiTable_, attributes);
+  return std::make_unique<SaiBridgePort>(apiTable_, attributes, switchId);
 }
 
 SaiBridgeManager::SaiBridgeManager(
     SaiApiTable* apiTable,
     SaiManagerTable* managerTable)
     : apiTable_(apiTable), managerTable_(managerTable) {
+  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
   BridgeApiParameters::Attributes attributes{{SAI_BRIDGE_TYPE_1Q}};
-  auto defaultBridge = std::make_unique<SaiBridge>(apiTable_, attributes);
+  auto defaultBridge =
+    std::make_unique<SaiBridge>(apiTable_, attributes, switchId);
   bridges_.emplace(std::make_pair(BridgeID(0), std::move(defaultBridge)));
 }
 } // namespace fboss

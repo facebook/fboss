@@ -20,14 +20,18 @@ static constexpr uint64_t defaultVirtualRouterId = 0;
 }
 
 sai_status_t create_switch_fn(
-  sai_object_id_t* /* switch_id */,
+  sai_object_id_t*  switch_id,
   uint32_t /* attr_count */,
   const sai_attribute_t* /* attr_list */) {
+  auto fs = FakeSai::getInstance();
+  *switch_id = fs->swm.create();
   return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t remove_switch_fn(
-  sai_object_id_t /* switch_id */) {
+  sai_object_id_t switch_id) {
+    auto fs = FakeSai::getInstance();
+    fs->swm.remove(switch_id);
     return SAI_STATUS_SUCCESS;
 }
 

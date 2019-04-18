@@ -67,8 +67,9 @@ std::unique_ptr<SaiFdbEntry> SaiFdbManager::addFdbEntry(
     throw FbossError(
       "Attempted to add non-existent port to Fdb: ", portId);
   }
+  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
   auto bridgePortId = port->getBridgePort()->id();
-  FdbApiParameters::EntryType entry{0, vlanId, mac};
+  FdbApiParameters::EntryType entry{switchId, vlanId, mac};
   FdbApiParameters::Attributes attributes{{
     SAI_FDB_ENTRY_TYPE_STATIC, bridgePortId}};
   return std::make_unique<SaiFdbEntry>(apiTable_, entry, attributes);

@@ -83,6 +83,7 @@ class SaiNeighborManager {
       const NeighborApiParameters::EntryType& entry) const;
 
   void processNeighborDelta(const StateDelta& delta);
+  void clear();
 
  private:
   SaiNeighbor* getNeighborImpl(

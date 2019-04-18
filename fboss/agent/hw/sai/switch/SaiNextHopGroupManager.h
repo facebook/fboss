@@ -31,7 +31,8 @@ class SaiNextHopGroupMember {
  public:
   SaiNextHopGroupMember(
       SaiApiTable* apiTable,
-      const NextHopGroupApiParameters::MemberAttributes& attributes);
+      const NextHopGroupApiParameters::MemberAttributes& attributes,
+      const sai_object_id_t &switchID);
   ~SaiNextHopGroupMember();
   SaiNextHopGroupMember(const SaiNextHopGroupMember& other) = delete;
   SaiNextHopGroupMember(SaiNextHopGroupMember&& other) = delete;

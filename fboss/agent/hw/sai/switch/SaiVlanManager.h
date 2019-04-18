@@ -28,7 +28,8 @@ class SaiVlanMember {
  public:
   SaiVlanMember(
       SaiApiTable* apiTable,
-      const VlanApiParameters::MemberAttributes& attributes);
+      const VlanApiParameters::MemberAttributes& attributes,
+      const sai_object_id_t& switchId);
   ~SaiVlanMember();
   SaiVlanMember(const SaiVlanMember& other) = delete;
   SaiVlanMember(SaiVlanMember&& other) = delete;

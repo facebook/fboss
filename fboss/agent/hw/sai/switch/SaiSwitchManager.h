@@ -55,6 +55,7 @@ class SaiSwitchManager {
  public:
   SaiSwitchManager(SaiApiTable* apiTable, SaiManagerTable* managerTable);
   SaiSwitchInstance* getSwitch(const SwitchID& switchId);
+  sai_object_id_t getSwitchSaiId(const SwitchID& switchId);
 
  private:
   SaiApiTable* apiTable_;
