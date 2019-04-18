@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 #include <folly/logging/xlog.h>
 
@@ -85,6 +86,11 @@ PortApiParameters::Attributes SaiPortManager::attributesFromSwPort(
     case cfg::PortSpeed::TWENTYFIVEG:
       speed = static_cast<uint32_t>(swPort->getSpeed());
       hwLaneList.push_back(swPort->getID());
+      break;
+    case cfg::PortSpeed::HUNDREDG:
+      speed = static_cast<uint32_t>(swPort->getSpeed());
+      hwLaneList.push_back(swPort->getID());
+      hwLaneList.push_back(swPort->getID() + 1);
       break;
     default:
       speed = 0;
