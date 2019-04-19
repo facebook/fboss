@@ -45,17 +45,6 @@ BcmUnit::~BcmUnit() {
   BcmAPI::unitDestroyed(this);
 }
 
-void BcmUnit::detachAndSetupWarmBoot(
-    const folly::dynamic& /*switchState*/) {
-  attached_.store(false, std::memory_order_release);
-
-  // Clean up SDK state, without touching the hardware
-  auto rv = _opennsl_shutdown(unit_);
-  bcmCheckError(rv, "failed to clean up BCM state during warm boot shutdown");
-
-  warmBootHelper()->setCanWarmBoot();
-}
-
 void BcmUnit::attach(bool warmBoot) {
   if (attached_.load(std::memory_order_acquire)) {
     throw FbossError("unit ", unit_, " already initialized");
@@ -91,4 +80,7 @@ void BcmUnit::rawRegisterWrite(
   // stubbed out
 }
 
+void BcmUnit::detachAndCleanupSDKUnit() {
+  // not supported
+}
 }} // facebook::fboss

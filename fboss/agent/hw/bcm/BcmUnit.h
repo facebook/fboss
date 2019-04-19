@@ -44,15 +44,21 @@ class BcmUnit {
   void coldBootAttach() {
     attach(false);
   }
+  /*
+   * Detach bcm unit and clean up unit data structures from SDK.
+   * In normal operations, just calling the shutdown routines
+   * on SDK is enough. But we also support a mode where user
+   * can run multiple tests on ASIC w/o restarting the test
+   * binary. This method is used in that mode to do additional
+   * cleanup of data structures, to facilitate multiple initialization
+   * of unit w/o restarting the binary.
+   */
+  void detachAndCleanupSDKUnit();
 
   /*
-   * Flush warm boot state to disk, and then detach from the hardware
-   * device, without changing any hardware state.
-   *
-   * Once detachAndSetupWarmBoot has been called no other methods other than the
-   * BcmUnit destructor should be invoked.
+   * Flush warm boot state to disk,
    */
-  void detachAndSetupWarmBoot(const folly::dynamic& switchState);
+  void writeWarmBootState(const folly::dynamic& switchState);
 
   bool isAttached() const {
     return attached_.load(std::memory_order_acquire);

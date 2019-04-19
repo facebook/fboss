@@ -191,6 +191,7 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
 BcmSwitch::~BcmSwitch() {
   XLOG(ERR) << "Destroying BcmSwitch";
   resetTables();
+  unitObject_->detachAndCleanupSDKUnit();
 }
 
 void BcmSwitch::resetTables() {
@@ -223,7 +224,6 @@ void BcmSwitch::resetTables() {
   // Reset warmboot cache last in case Bcm object destructors
   // access it during object deletion.
   warmBootCache_.reset();
-
 }
 
 void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
@@ -301,7 +301,7 @@ void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
   dumpState(platform_->getWarmBootHelper()->shutdownSdkDumpFile());
 
   switchState[kHwSwitch] = toFollyDynamic();
-  unitObject_->detachAndSetupWarmBoot(switchState);
+  unitObject_->writeWarmBootState(switchState);
   unitObject_.reset();
   XLOG(INFO)
       << "[Exit] BRCM Graceful Exit time "

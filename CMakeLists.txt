@@ -322,6 +322,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmTrunkStats.cpp
     fboss/agent/hw/bcm/BcmTrunkTable.cpp
     fboss/agent/hw/bcm/BcmTxPacket.cpp
+    fboss/agent/hw/bcm/BcmUnit.cpp
     fboss/agent/hw/bcm/BcmWarmBootCache.cpp
     fboss/agent/hw/bcm/BcmWarmBootHelper.cpp
     fboss/agent/hw/bcm/CounterUtils.cpp
