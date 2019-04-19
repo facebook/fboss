@@ -233,6 +233,7 @@ void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   qosPolicyTable_ = std::make_unique<BcmQosPolicyTable>(this);
   intfTable_ = std::make_unique<BcmIntfTable>(this);
   hostTable_ = std::make_unique<BcmHostTable>(this);
+  neighborTable_ = std::make_unique<BcmNeighborTable>(this);
   labelMap_ = std::make_unique<BcmLabelMap>(this);
   routeTable_ = std::make_unique<BcmRouteTable>(this);
   aclTable_ = std::make_unique<BcmAclTable>(this);
