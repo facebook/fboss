@@ -104,6 +104,8 @@ class BcmSwitchIf : public HwSwitch {
 
   virtual const BcmHostTable* getHostTable() const = 0;
 
+  virtual const BcmNeighborTable* getNeighborTable() const = 0;
+
   virtual const BcmAclTable* getAclTable() const = 0;
 
   virtual const BcmQosPolicyTable* getQosPolicyTable() const = 0;
@@ -242,6 +244,9 @@ class BcmSwitch : public BcmSwitchIf {
   }
   const BcmHostTable* getHostTable() const override {
     return hostTable_.get();
+  }
+  const BcmNeighborTable* getNeighborTable() const override {
+    return neighborTable_.get();
   }
   const BcmQosPolicyTable* getQosPolicyTable() const override {
     return qosPolicyTable_.get();
