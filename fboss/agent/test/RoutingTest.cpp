@@ -37,6 +37,7 @@
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/MockTunManager.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/TestPacketFactory.h"
 #include "fboss/agent/test/HwTestHandle.h"
 
 using namespace facebook::fboss;
@@ -91,56 +92,6 @@ const folly::MacAddress kIPv4MacAddr("01:00:5E:00:00:01");
 const folly::MacAddress kIPv6MacAddr("33:33:00:00:00:01");
 
 /**
- * Some constants for easy creation of packets
- */
-
-const std::string kL2PacketHeader = \
-  // Source MAC, Destination MAC (will be overwritten)
-  "00 00 00 00 00 00  00 00 00 00 00 00"
-  // 802.1q, VLAN 0 (Not used)
-  "81 00  00 00"
-  // Next header code (Will be overwritten)
-  "00 00";
-
-// length 20 bytes
-const std::string kIPv4PacketHeader = \
-  // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20 + 123)
-  "45  00  00 8F"
-  // Identification(0), Flags(0), Fragment offset(0)
-  "00 00  00 00"
-  // TTL(31), Protocol(11, UDP), Checksum (0, fake)
-  "1F  11  00 00"
-  // Source IP (will be overwritten)
-  "00 00 00 00"
-  // Destination IP (will be overwritten)
-  "00 00 00 00";
-
-// length 24 bytes
-const std::string kIPv6PacketHeader = \
-  // Version 6, traffic class, flow label
-  "6e 00 00 00"
-  // Payload length (123)
-  "00 7b"
-  // Next header: 17 (UDP), Hop Limit (255)
-  "11 ff"
-  // Source IP (wil be overwritten)
-  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
-  // Destination IP (will be overwritten)
-  "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00";
-
-// length 123 bytes
-const std::string kPayload = \
-  "1a 0a 1a 0a 00 7b 58 75"
-  "1c 1c 68 0a 74 65 72 72 61 67 72 61 70 68 08 02"
-  "0b 63 73 77 32 33 61 2e 73 6e 63 31 15 e0 d4 03"
-  "18 20 08 87 b2 a8 6f e8 48 71 f7 35 93 38 b6 8e"
-  "b2 df de 66 e1 e5 9b 32 da 95 8a a7 51 4e 78 eb"
-  "9e 14 1c 18 10 fe 80 00 00 00 00 00 00 02 1c 73"
-  "ff fe ea d4 73 00 1c 18 04 0a 2e 01 48 00 00 26"
-  "c2 9a c6 03 1b 00 16 84 c0 d5 a9 ac f9 9d 05 00"
-  "18 00 00";
-
-/**
  * Utility function to create V4 packet based on src/dst addresses.
  */
 const IOBuf createV4UnicastPacket(
@@ -148,22 +99,7 @@ const IOBuf createV4UnicastPacket(
     const folly::IPAddressV4& dstAddr,
     const folly::MacAddress& srcMac = kPlatformMac,
     const folly::MacAddress& dstMac = kPlatformMac) {
-  auto pkt = PktUtil::parseHexData(
-      kL2PacketHeader + kIPv4PacketHeader + kPayload);
-
-  // Write L2 header
-  folly::io::RWPrivateCursor rwCursor(&pkt);
-  TxPacket::writeEthHeader(
-      &rwCursor, dstMac, srcMac, VlanID(0), IPv4Handler::ETHERTYPE_IPV4);
-
-  // Write L3 src/dst IP Addresses
-  rwCursor.skip(12);
-  rwCursor.write<uint32_t>(srcAddr.toLong());
-  rwCursor.write<uint32_t>(dstAddr.toLong());
-
-  XLOG(DBG2) << "\n" << folly::hexDump(pkt.data(), pkt.length());
-
-  return pkt;
+  return createV4Packet(srcAddr, dstAddr, srcMac, dstMac);
 }
 
 /**
@@ -174,22 +110,7 @@ const IOBuf createV6UnicastPacket(
     const folly::IPAddressV6& dstAddr,
     const folly::MacAddress& srcMac = kPlatformMac,
     const folly::MacAddress& dstMac = kPlatformMac) {
-  auto pkt = PktUtil::parseHexData(
-      kL2PacketHeader + kIPv6PacketHeader + kPayload);
-
-  // Write L2 header
-  folly::io::RWPrivateCursor rwCursor(&pkt);
-  TxPacket::writeEthHeader(
-      &rwCursor, dstMac, srcMac, VlanID(0), IPv6Handler::ETHERTYPE_IPV6);
-
-  // Write L3 src/dst IP addresses
-  rwCursor.skip(8);
-  rwCursor.push(srcAddr.bytes(), IPAddressV6::byteCount());
-  rwCursor.push(dstAddr.bytes(), IPAddressV6::byteCount());
-
-  XLOG(DBG2) << "\n" << folly::hexDump(pkt.data(), pkt.length());
-
-  return pkt;
+  return createV6Packet(srcAddr, dstAddr, srcMac, dstMac);
 }
 
 /**
@@ -198,12 +119,12 @@ const IOBuf createV6UnicastPacket(
  */
 const IOBuf createV4MulticastPacket(
     const folly::IPAddressV4& srcAddr) {
-  return createV4UnicastPacket(
+  return createV4Packet(
       srcAddr, kIPv4McastAddr, kPlatformMac, kIPv4MacAddr);
 }
 const IOBuf createV6MulticastPacket(
     const folly::IPAddressV6& srcAddr) {
-  return createV6UnicastPacket(
+  return createV6Packet(
       srcAddr, kIPv6McastAddr, kPlatformMac, kIPv6MacAddr);
 }
 
@@ -252,24 +173,6 @@ TxMatchFn matchTxPacket(
     return;
   };
 }
-
-/**
- * Convenience function to copy a buffer to a TxPacket.
- * L2 Header is advanced from RxPacket but headroom is provided in TxPacket.
- */
-std::unique_ptr<TxPacket> createTxPacket(SwSwitch* sw, const IOBuf& buf) {
-  auto txPkt = sw->allocatePacket(buf.length());
-  auto txBuf = txPkt->buf();
-  txBuf->trimStart(EthHdr::SIZE);
-  memcpy(
-    txBuf->writableData(),
-    buf.data() + EthHdr::SIZE,
-    buf.length() - EthHdr::SIZE);
-  XLOG(DBG2) << "\n" << folly::hexDump(txBuf->data(), txBuf->length());
-
-  return txPkt;
-}
-
 /**
  * Common stuff for testing software routing for packets flowing between Switch
  * and Linux host. We use same switch setup (VLANs, Interfaces) for all
