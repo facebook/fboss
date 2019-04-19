@@ -38,7 +38,9 @@ class BcmAclTable;
 class BcmControlPlane;
 class BcmCosManager;
 class BcmEgress;
+class BcmHostKey;
 class BcmHostTable;
+class BcmIntf;
 class BcmIntfTable;
 class BcmNeighborTable;
 class BcmPlatform;
@@ -439,6 +441,20 @@ class BcmSwitch : public BcmSwitchIf {
   void processNeighborChanges(
       const StateDelta& delta,
       std::shared_ptr<SwitchState>* appliedState);
+  template <typename NeighborEntryT>
+  void processAddedNeighborEntry(const NeighborEntryT* addedEntry);
+  template <typename NeighborEntryT>
+  void processChangedNeighborEntry(
+      const NeighborEntryT* oldEntry,
+      const NeighborEntryT* newEntry);
+  template <typename NeighborEntryT>
+  void processRemovedNeighborEntry(const NeighborEntryT* removedEntry);
+
+  template <typename NeighborEntryT>
+  void processAddedAndChangedNeighbor(
+      const BcmHostKey& key,
+      const BcmIntf* intf,
+      const NeighborEntryT* entry);
 
   void processDisabledPorts(const StateDelta& delta);
   void processEnabledPorts(const StateDelta& delta);

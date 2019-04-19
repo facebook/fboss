@@ -850,6 +850,41 @@ BcmNeighborTable::getNeighborIf(const BcmHostKey& neighbor) const {
   return iter->second->getBcmHost();
 }
 
+void BcmHostTable::programHostsToTrunk(
+    const BcmHostKey& key,
+    opennsl_if_t intf,
+    const MacAddress& mac,
+    opennsl_trunk_t trunk) {
+  auto iter = hosts_.find(key);
+  if (iter == hosts_.end()) {
+    throw FbossError("host not found to program to trunk");
+  }
+  auto* host = iter->second.first.get();
+  host->programToTrunk(intf, mac, trunk);
+}
+
+void BcmHostTable::programHostsToPort(
+    const BcmHostKey& key,
+    opennsl_if_t intf,
+    const MacAddress& mac,
+    opennsl_port_t port) {
+  auto iter = hosts_.find(key);
+  if (iter == hosts_.end()) {
+    throw FbossError("host not found to program to port");
+  }
+  auto* host = iter->second.first.get();
+  host->program(intf, mac, port);
+}
+
+void BcmHostTable::programHostsToCPU(const BcmHostKey& key, opennsl_if_t intf) {
+  auto iter = hosts_.find(key);
+  if (iter == hosts_.end()) {
+    throw FbossError("host not found to program to cpu");
+  }
+  auto* host = iter->second.first.get();
+  host->programToCPU(intf);
+}
+
 BcmHostReference::BcmHostReference(BcmSwitch* hw, HostKey key)
     : hw_(hw), hostKey_(std::move(key)) {}
 

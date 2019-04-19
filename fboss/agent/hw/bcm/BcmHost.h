@@ -335,6 +335,19 @@ class BcmHostTable {
     egressResolutionChangedHwLocked(affectedEgressIds, action);
   }
 
+
+  void programHostsToTrunk(
+      const BcmHostKey& key,
+      opennsl_if_t intf,
+      const MacAddress& mac,
+      opennsl_trunk_t trunk);
+  void programHostsToPort(
+      const BcmHostKey& key,
+      opennsl_if_t intf,
+      const MacAddress& mac,
+      opennsl_port_t port);
+  void programHostsToCPU(const BcmHostKey& key, opennsl_if_t intf);
+
  private:
   /*
    * Called both while holding and not holding the hw lock.

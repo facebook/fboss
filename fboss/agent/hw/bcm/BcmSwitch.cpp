@@ -1346,72 +1346,107 @@ void BcmSwitch::processNeighborEntryDelta(
   const auto* oldEntry = delta.getOld().get();
   const auto* newEntry = delta.getNew().get();
 
-  const BcmIntf *intf;
-  opennsl_vrf_t vrf;
-  auto getIntfAndVrf = [&](InterfaceID id) {
-    intf = getIntfTable()->getBcmIntf(id);
-    vrf = getBcmVrfId(intf->getInterface()->getRouterID());
-  };
-
-  auto program = [&](std::string op, BcmHost* host) {
-    CHECK(newEntry);
-
-    auto isTrunk = newEntry->getPort().isAggregatePort();
-
-    XLOG(DBG3) << op << " neighbor entry " << newEntry->getIP().str() << " to "
-               << newEntry->getMac().toString();
-
-    if (isTrunk) {
-      auto trunk = newEntry->getPort().aggPortID();
-      host->programToTrunk(
-          intf->getBcmIfId(),
-          newEntry->getMac(),
-          getTrunkTable()->getBcmTrunkId(trunk));
-    } else {
-      auto port = newEntry->getPort().phyPortID();
-      host->program(
-          intf->getBcmIfId(),
-          newEntry->getMac(),
-          getPortTable()->getBcmPortId(port));
-    }
-  };
-
   if (!oldEntry) {
-    getIntfAndVrf(newEntry->getIntfID());
-
-    auto* host = neighborTable_->registerNeighbor(
-        BcmHostKey(vrf, IPAddress(newEntry->getIP()), newEntry->getIntfID()));
-
-    if (newEntry->isPending()) {
-      XLOG(DBG3) << "adding pending neighbor entry to "
-                 << newEntry->getIP().str();
-      host->programToCPU(intf->getBcmIfId());
-    } else {
-      program("adding", host);
-    }
+    processAddedNeighborEntry(newEntry);
   } else if (!newEntry) {
-    XLOG(DBG3) << "deleting neighbor entry " << oldEntry->getIP().str();
-    getIntfAndVrf(oldEntry->getIntfID());
-    auto* host = neighborTable_->unregisterNeighbor(
-        BcmHostKey(vrf, IPAddress(oldEntry->getIP()), oldEntry->getIntfID()));
-    if (host) {
-        host->programToCPU(intf->getBcmIfId());
-        // This should not fail. Not catching exceptions. If the delete fails,
-        // it is probably not because of TCAM being full.
-    }
+    processRemovedNeighborEntry(oldEntry);
   } else {
-    CHECK_EQ(oldEntry->getIP(), newEntry->getIP());
-    getIntfAndVrf(newEntry->getIntfID());
-    auto host = neighborTable_->getNeighbor(
-        BcmHostKey(vrf, IPAddress(newEntry->getIP()), newEntry->getIntfID()));
-    if (newEntry->isPending()) {
-      XLOG(DBG3) << "changing neighbor entry " << oldEntry->getIP().str()
-                 << " to pending";
-      host->programToCPU(intf->getBcmIfId());
-    } else {
-      program("changing", host);
-    }
+    processChangedNeighborEntry(oldEntry, newEntry);
   }
+}
+
+template <typename NeighborEntryT>
+void BcmSwitch::processAddedAndChangedNeighbor(
+    const BcmHostKey& neighborKey,
+    const BcmIntf* intf,
+    const NeighborEntryT* entry) {
+  auto* neighbor = neighborTable_->getNeighbor(neighborKey);
+  CHECK(neighbor);
+  if (entry->isPending()) {
+    hostTable_->programHostsToCPU(neighborKey, intf->getBcmIfId());
+    return;
+  }
+  auto neighborMac = entry->getMac();
+  auto isTrunk = entry->getPort().isAggregatePort();
+  if (isTrunk) {
+    auto trunk = entry->getPort().aggPortID();
+    hostTable_->programHostsToTrunk(
+        neighborKey,
+        intf->getBcmIfId(),
+        neighborMac,
+        getTrunkTable()->getBcmTrunkId(trunk));
+  } else {
+    auto port = entry->getPort().phyPortID();
+    hostTable_->programHostsToPort(
+        neighborKey,
+        intf->getBcmIfId(),
+        neighborMac,
+        getPortTable()->getBcmPortId(port));
+  }
+}
+
+template <typename NeighborEntryT>
+void BcmSwitch::processAddedNeighborEntry(const NeighborEntryT* addedEntry) {
+  CHECK(addedEntry);
+  if (addedEntry->isPending()) {
+    XLOG(DBG3) << "adding pending neighbor entry to "
+               << addedEntry->getIP().str();
+  } else {
+    XLOG(DBG3) << "adding neighbor entry " << addedEntry->getIP().str()
+               << " to " << addedEntry->getMac().toString();
+  }
+
+  const auto* intf = getIntfTable()->getBcmIntf(addedEntry->getIntfID());
+  auto vrf = getBcmVrfId(intf->getInterface()->getRouterID());
+
+  auto neighborKey =
+      BcmHostKey(vrf, IPAddress(addedEntry->getIP()), addedEntry->getIntfID());
+  neighborTable_->registerNeighbor(neighborKey);
+  processAddedAndChangedNeighbor(neighborKey, intf, addedEntry);
+}
+
+template <typename NeighborEntryT>
+void BcmSwitch::processChangedNeighborEntry(
+    const NeighborEntryT* oldEntry,
+    const NeighborEntryT* newEntry) {
+  CHECK(oldEntry);
+  CHECK(newEntry);
+  CHECK_EQ(oldEntry->getIP(), newEntry->getIP());
+  if (newEntry->isPending()) {
+    XLOG(DBG3) << "changing neighbor entry " << newEntry->getIP().str()
+               << " to pending";
+
+  } else {
+    XLOG(DBG3) << "changing neighbor entry " << newEntry->getIP().str()
+               << " to " << newEntry->getMac().toString();
+  }
+
+  const auto* intf = getIntfTable()->getBcmIntf(newEntry->getIntfID());
+  auto vrf = getBcmVrfId(intf->getInterface()->getRouterID());
+
+  auto neighborKey =
+      BcmHostKey(vrf, IPAddress(newEntry->getIP()), newEntry->getIntfID());
+
+  processAddedAndChangedNeighbor(neighborKey, intf, newEntry);
+}
+
+template <typename NeighborEntryT>
+void BcmSwitch::processRemovedNeighborEntry(
+    const NeighborEntryT* removedEntry) {
+  CHECK(removedEntry);
+  XLOG(DBG3) << "deleting neighbor entry " << removedEntry->getIP().str();
+
+  const auto* intf = getIntfTable()->getBcmIntf(removedEntry->getIntfID());
+  auto vrf = getBcmVrfId(intf->getInterface()->getRouterID());
+
+  auto neighborKey = BcmHostKey(
+      vrf, IPAddress(removedEntry->getIP()), removedEntry->getIntfID());
+  neighborTable_->unregisterNeighbor(neighborKey);
+  auto* host = neighborTable_->getNeighborIf(neighborKey);
+  if (!host) {
+    return;
+  }
+  hostTable_->programHostsToCPU(neighborKey, intf->getBcmIfId());
 }
 
 void BcmSwitch::processNeighborChanges(
