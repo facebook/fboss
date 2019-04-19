@@ -54,10 +54,12 @@ class SaiSwitchInstance {
 class SaiSwitchManager {
  public:
   SaiSwitchManager(SaiApiTable* apiTable, SaiManagerTable* managerTable);
+  const SaiSwitchInstance* getSwitch(const SwitchID& switchId) const;
   SaiSwitchInstance* getSwitch(const SwitchID& switchId);
-  sai_object_id_t getSwitchSaiId(const SwitchID& switchId);
+  sai_object_id_t getSwitchSaiId(const SwitchID& switchId) const;
 
  private:
+  SaiSwitchInstance* getSwitchImpl(const SwitchID& switchId) const;
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   std::unordered_map<SwitchID, std::unique_ptr<SaiSwitchInstance>> switches_;

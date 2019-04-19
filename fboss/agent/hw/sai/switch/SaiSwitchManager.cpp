@@ -63,8 +63,8 @@ SaiSwitchManager::SaiSwitchManager(
   switches_.emplace(std::make_pair(SwitchID(0), std::move(defaultSwitch)));
 }
 
-SaiSwitchInstance* SaiSwitchManager::getSwitch(
-    const SwitchID& switchId) {
+SaiSwitchInstance* SaiSwitchManager::getSwitchImpl(
+    const SwitchID& switchId) const {
   auto itr = switches_.find(switchId);
   if (itr == switches_.end()) {
     return nullptr;
@@ -75,8 +75,17 @@ SaiSwitchInstance* SaiSwitchManager::getSwitch(
   return itr->second.get();
 }
 
+const SaiSwitchInstance* SaiSwitchManager::getSwitch(
+    const SwitchID& switchId) const {
+  return getSwitchImpl(switchId);
+}
+
+SaiSwitchInstance* SaiSwitchManager::getSwitch(const SwitchID& switchId) {
+  return getSwitchImpl(switchId);
+}
+
 sai_object_id_t SaiSwitchManager::getSwitchSaiId(
-  const SwitchID& switchId) {
+    const SwitchID& switchId) const {
   auto switchInstance = getSwitch(switchId);
   if (!switchInstance) {
     throw FbossError(
