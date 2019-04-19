@@ -31,7 +31,6 @@ struct VlanApiParameters {
     using MemberList = SaiAttribute<
         EnumType,
         SAI_VLAN_ATTR_MEMBER_LIST,
-        sai_object_list_t,
         std::vector<sai_object_id_t>>;
     using CreateAttributes = SaiAttributeTuple<VlanId>;
     Attributes(const CreateAttributes& attrs) {
@@ -55,13 +54,9 @@ struct VlanApiParameters {
     using BridgePortId = SaiAttribute<
         EnumType,
         SAI_VLAN_MEMBER_ATTR_BRIDGE_PORT_ID,
-        sai_object_id_t,
         SaiObjectIdT>;
-    using VlanId = SaiAttribute<
-        EnumType,
-        SAI_VLAN_MEMBER_ATTR_VLAN_ID,
-        sai_object_id_t,
-        SaiObjectIdT>;
+    using VlanId =
+        SaiAttribute<EnumType, SAI_VLAN_MEMBER_ATTR_VLAN_ID, SaiObjectIdT>;
     using CreateAttributes = SaiAttributeTuple<VlanId, BridgePortId>;
     MemberAttributes(const CreateAttributes& attrs) {
       std::tie(vlanId, bridgePortId) = attrs.value();

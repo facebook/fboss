@@ -29,23 +29,16 @@ struct LagTypes {
     using MemberList = SaiAttribute<
         EnumType,
         SAI_LAG_ATTR_PORT_LIST,
-        sai_object_list_t,
         std::vector<sai_object_id_t>>;
   };
   using AttributeType = boost::variant<Attributes::MemberList>;
 
   struct MemberAttributes {
     using EnumType = sai_lag_member_attr_t;
-    using LagId = SaiAttribute<
-        EnumType,
-        SAI_LAG_MEMBER_ATTR_LAG_ID,
-        sai_object_id_t,
-        SaiObjectIdT>;
-    using PortId = SaiAttribute<
-        EnumType,
-        SAI_LAG_MEMBER_ATTR_PORT_ID,
-        sai_object_id_t,
-        SaiObjectIdT>;
+    using LagId =
+        SaiAttribute<EnumType, SAI_LAG_MEMBER_ATTR_LAG_ID, SaiObjectIdT>;
+    using PortId =
+        SaiAttribute<EnumType, SAI_LAG_MEMBER_ATTR_PORT_ID, SaiObjectIdT>;
   };
   using MemberAttributeType =
       boost::variant<MemberAttributes::LagId, MemberAttributes::PortId>;

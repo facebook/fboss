@@ -30,12 +30,8 @@ struct BridgeApiParameters {
     using PortList = SaiAttribute<
         EnumType,
         SAI_BRIDGE_ATTR_PORT_LIST,
-        sai_object_list_t,
         std::vector<sai_object_id_t>>;
-    using Type = SaiAttribute<
-        EnumType,
-        SAI_BRIDGE_ATTR_TYPE,
-        sai_int32_t>;
+    using Type = SaiAttribute<EnumType, SAI_BRIDGE_ATTR_TYPE, sai_int32_t>;
 
     using CreateAttributes = SaiAttributeTuple<Type>;
     Attributes(const CreateAttributes& attrs) {
@@ -50,16 +46,10 @@ struct BridgeApiParameters {
   using AttributeType = boost::variant<Attributes::PortList, Attributes::Type>;
   struct MemberAttributes {
     using EnumType = sai_bridge_port_attr_t;
-    using BridgeId = SaiAttribute<
-        EnumType,
-        SAI_BRIDGE_PORT_ATTR_BRIDGE_ID,
-        sai_object_id_t,
-        SaiObjectIdT>;
-    using PortId = SaiAttribute<
-        EnumType,
-        SAI_BRIDGE_PORT_ATTR_PORT_ID,
-        sai_object_id_t,
-        SaiObjectIdT>;
+    using BridgeId =
+        SaiAttribute<EnumType, SAI_BRIDGE_PORT_ATTR_BRIDGE_ID, SaiObjectIdT>;
+    using PortId =
+        SaiAttribute<EnumType, SAI_BRIDGE_PORT_ATTR_PORT_ID, SaiObjectIdT>;
     using Type = SaiAttribute<EnumType, SAI_BRIDGE_PORT_ATTR_TYPE, sai_int32_t>;
 
     using CreateAttributes = SaiAttributeTuple<Type, PortId>;

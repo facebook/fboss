@@ -30,7 +30,6 @@ struct NextHopGroupApiParameters {
     using NextHopMemberList = SaiAttribute<
         EnumType,
         SAI_NEXT_HOP_GROUP_ATTR_NEXT_HOP_MEMBER_LIST,
-        sai_object_list_t,
         std::vector<sai_object_id_t>>;
     using Type =
         SaiAttribute<EnumType, SAI_NEXT_HOP_GROUP_ATTR_TYPE, sai_int32_t>;
@@ -55,12 +54,10 @@ struct NextHopGroupApiParameters {
     using NextHopId = SaiAttribute<
         EnumType,
         SAI_NEXT_HOP_GROUP_MEMBER_ATTR_NEXT_HOP_ID,
-        sai_object_id_t,
         SaiObjectIdT>;
     using NextHopGroupId = SaiAttribute<
         EnumType,
         SAI_NEXT_HOP_GROUP_MEMBER_ATTR_NEXT_HOP_GROUP_ID,
-        sai_object_id_t,
         SaiObjectIdT>;
     using CreateAttributes = SaiAttributeTuple<NextHopGroupId, NextHopId>;
     MemberAttributes(const CreateAttributes& attrs) {

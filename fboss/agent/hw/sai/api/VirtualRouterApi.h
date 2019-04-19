@@ -30,7 +30,6 @@ struct VirtualRouterApiParameters {
     using SrcMac = SaiAttribute<
         EnumType,
         SAI_VIRTUAL_ROUTER_ATTR_SRC_MAC_ADDRESS,
-        sai_mac_t,
         folly::MacAddress>;
     using CreateAttributes = SaiAttributeTuple<>;
     Attributes(const CreateAttributes& create) {}

@@ -32,14 +32,9 @@ namespace fboss {
 struct FdbApiParameters {
   struct Attributes {
     using EnumType = sai_fdb_entry_attr_t;
-    using Type = SaiAttribute<
-        EnumType,
-        SAI_FDB_ENTRY_ATTR_TYPE,
-        sai_int32_t>;
-    using BridgePortId = SaiAttribute<
-        EnumType,
-        SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID,
-        sai_object_id_t>;
+    using Type = SaiAttribute<EnumType, SAI_FDB_ENTRY_ATTR_TYPE, sai_int32_t>;
+    using BridgePortId =
+        SaiAttribute<EnumType, SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID, SaiObjectIdT>;
 
     using CreateAttributes = SaiAttributeTuple<Type, BridgePortId>;
     /* implicit */ Attributes(const CreateAttributes& create) {

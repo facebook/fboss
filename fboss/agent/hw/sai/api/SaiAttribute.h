@@ -107,38 +107,20 @@ namespace {
  * for setting up callback functions, so we plan to provide a special direct
  * interface for that, for now, rather than using this generic mechanism.
  */
-#define DEFINE_extract(_type, _field)                     \
-template <typename AttrT>                                 \
-typename std::enable_if<                                  \
-    std::is_same<typename AttrT::DataType, _type>::value, \
-    typename AttrT::DataType>::type&                      \
-_extract(sai_attribute_t& sai_attribute) {                \
-  return sai_attribute.value._field;                      \
-}                                                         \
-template <typename AttrT>                                 \
-const typename std::enable_if<                            \
-    std::is_same<typename AttrT::DataType, _type>::value, \
-    typename AttrT::DataType>::type&                      \
-_extract(const sai_attribute_t& sai_attribute) {          \
-  return sai_attribute.value._field;                      \
-}
-
-#define DEFINE_extract_wrapper_v(_type, _valueType, _field)       \
-template <typename AttrT>                                         \
-typename std::enable_if<                                          \
-    std::is_same<typename AttrT::DataType, _type>::value &&       \
-      std::is_same<typename AttrT::ValueType, _valueType>::value, \
-    typename AttrT::DataType>::type&                              \
-_extract(sai_attribute_t& sai_attribute) {                        \
-  return sai_attribute.value._field;                              \
-}                                                                 \
-template <typename AttrT>                                         \
-const typename std::enable_if<                                    \
-    std::is_same<typename AttrT::DataType, _type>::value &&       \
-      std::is_same<typename AttrT::ValueType, _valueType>::value, \
-    typename AttrT::DataType>::type&                              \
-_extract(const sai_attribute_t& sai_attribute) {                  \
-  return sai_attribute.value._field;                              \
+#define DEFINE_extract(_type, _field)                                 \
+template <typename AttrT>                                             \
+typename std::enable_if<                                              \
+    std::is_same<typename AttrT::ExtractSelectionType, _type>::value, \
+    typename AttrT::DataType>::type&                                  \
+_extract(sai_attribute_t& sai_attribute) {                            \
+  return sai_attribute.value._field;                                  \
+}                                                                     \
+template <typename AttrT>                                             \
+const typename std::enable_if<                                        \
+    std::is_same<typename AttrT::ExtractSelectionType, _type>::value, \
+    typename AttrT::DataType>::type&                                  \
+_extract(const sai_attribute_t& sai_attribute) {                      \
+  return sai_attribute.value._field;                                  \
 }
 
 using facebook::fboss::SaiObjectIdT;
@@ -153,19 +135,20 @@ DEFINE_extract(sai_int8_t, s8);
 DEFINE_extract(sai_int16_t, s16);
 DEFINE_extract(sai_int32_t, s32);
 DEFINE_extract(sai_int64_t, s64);
-DEFINE_extract(sai_mac_t, mac);
-DEFINE_extract_wrapper_v(sai_ip4_t, folly::IPAddressV4, ip4);
-DEFINE_extract(sai_ip6_t, ip6);
-DEFINE_extract_wrapper_v(sai_ip_address_t, folly::IPAddress, ipaddr);
-DEFINE_extract(sai_ip_prefix_t, ipprefix);
-DEFINE_extract_wrapper_v(sai_object_id_t, SaiObjectIdT, oid);
-DEFINE_extract(sai_object_list_t, objlist);
-DEFINE_extract(sai_u8_list_t, u8list);
-DEFINE_extract(sai_u16_list_t, u16list);
-DEFINE_extract(sai_u32_list_t, u32list);
-DEFINE_extract(sai_s8_list_t, s8list);
-DEFINE_extract(sai_s16_list_t, s16list);
-DEFINE_extract(sai_s32_list_t, s32list);
+DEFINE_extract(folly::MacAddress, mac);
+DEFINE_extract(folly::IPAddressV4, ip4);
+DEFINE_extract(folly::IPAddressV6, ip6);
+DEFINE_extract(folly::IPAddress, ipaddr);
+DEFINE_extract(folly::CIDRNetwork, ipprefix);
+DEFINE_extract(SaiObjectIdT, oid);
+DEFINE_extract(std::vector<sai_object_id_t>, objlist);
+DEFINE_extract(std::vector<sai_uint8_t>, u8list);
+DEFINE_extract(std::vector<sai_uint16_t>, u16list);
+DEFINE_extract(std::vector<sai_uint32_t>, u32list);
+DEFINE_extract(std::vector<sai_int8_t>, s8list);
+DEFINE_extract(std::vector<sai_int16_t>, s16list);
+DEFINE_extract(std::vector<sai_int32_t>, s32list);
+// TODO:
 DEFINE_extract(sai_u32_range_t, u32range);
 DEFINE_extract(sai_s32_range_t, s32range);
 DEFINE_extract(sai_vlan_list_t, vlanlist);
@@ -197,6 +180,14 @@ void _fill(const folly::IPAddress& src, sai_ip_address_t& dst) {
 }
 
 void _fill(const sai_ip_address_t& src, folly::IPAddress& dst) {
+  dst = facebook::fboss::fromSaiIpAddress(src);
+}
+
+void _fill(const folly::IPAddressV4& src, sai_ip4_t& dst) {
+  dst = facebook::fboss::toSaiIpAddress(src).addr.ip4;
+}
+
+void _fill(const sai_ip4_t& src, folly::IPAddressV4& dst) {
   dst = facebook::fboss::fromSaiIpAddress(src);
 }
 
@@ -233,29 +224,23 @@ template <
     typename AttrEnumT,
     AttrEnumT AttrEnum,
     typename DataT,
-    typename ValueT = DataT,
     typename Enable = void>
 class SaiAttribute;
 
-template <
-    typename AttrEnumT,
-    AttrEnumT AttrEnum,
-    typename DataT,
-    typename ValueT>
+template <typename AttrEnumT, AttrEnumT AttrEnum, typename DataT>
 class SaiAttribute<
     AttrEnumT,
     AttrEnum,
     DataT,
-    ValueT,
-    typename std::enable_if<
-        std::is_same<DataT, ValueT>::value ||
-        isDuplicateValueType<ValueT>::value>::type> {
+    typename std::enable_if<!IsSaiTypeWrapper<DataT>::value>::type> {
  public:
-  using DataType = DataT;
-  using ValueType = DataT;
+  using DataType = typename DuplicateTypeFixer<DataT>::value;
+  using ValueType = DataType;
+  using ExtractSelectionType = DataT;
+  static constexpr AttrEnumT Id = AttrEnum;
 
   SaiAttribute() {
-    saiAttr_.id = AttrEnum;
+    saiAttr_.id = Id;
   }
 
   /* implicit */ SaiAttribute(const ValueType& value) : SaiAttribute() {
@@ -304,25 +289,20 @@ class SaiAttribute<
   sai_attribute_t saiAttr_;
 };
 
-template <
-    typename AttrEnumT,
-    AttrEnumT AttrEnum,
-    typename DataT,
-    typename ValueT>
+template <typename AttrEnumT, AttrEnumT AttrEnum, typename DataT>
 class SaiAttribute<
     AttrEnumT,
     AttrEnum,
     DataT,
-    ValueT,
-    typename std::enable_if<
-        !std::is_same<DataT, ValueT>::value &&
-        !isDuplicateValueType<ValueT>::value>::type> {
+    typename std::enable_if<IsSaiTypeWrapper<DataT>::value>::type> {
  public:
-  using DataType = DataT;
-  using ValueType = ValueT;
+  using DataType = typename WrappedSaiType<DataT>::value;
+  using ValueType = DataT;
+  using ExtractSelectionType = DataT;
+  static constexpr AttrEnumT Id = AttrEnum;
 
   SaiAttribute() {
-    saiAttr_.id = AttrEnum;
+    saiAttr_.id = Id;
   }
 
   /* value_ may be (and in fact almost certainly is) some complicated
@@ -355,7 +335,7 @@ class SaiAttribute<
   }
   SaiAttribute& operator=(SaiAttribute&& other) {
     saiAttr_.id = other.saiAttr_.id;
-    setValue(other.value());
+    setValue(std::move(other).value());
     return *this;
   }
   /*

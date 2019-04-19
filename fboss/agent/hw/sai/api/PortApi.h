@@ -31,7 +31,6 @@ struct PortApiParameters {
     using HwLaneList = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_HW_LANE_LIST,
-        sai_u32_list_t,
         std::vector<uint32_t>>;
     using Speed = SaiAttribute<EnumType, SAI_PORT_ATTR_SPEED, sai_uint32_t>;
     using Type = SaiAttribute<EnumType, SAI_PORT_ATTR_TYPE, sai_int32_t>;

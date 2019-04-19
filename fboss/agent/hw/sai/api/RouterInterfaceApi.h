@@ -30,20 +30,15 @@ struct RouterInterfaceApiParameters {
     using SrcMac = SaiAttribute<
         EnumType,
         SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS,
-        sai_mac_t,
         folly::MacAddress>;
     using Type =
         SaiAttribute<EnumType, SAI_ROUTER_INTERFACE_ATTR_TYPE, sai_int32_t>;
     using VirtualRouterId = SaiAttribute<
         EnumType,
         SAI_ROUTER_INTERFACE_ATTR_VIRTUAL_ROUTER_ID,
-        sai_object_id_t,
         SaiObjectIdT>;
-    using VlanId = SaiAttribute<
-        EnumType,
-        SAI_ROUTER_INTERFACE_ATTR_VLAN_ID,
-        sai_object_id_t,
-        SaiObjectIdT>;
+    using VlanId =
+        SaiAttribute<EnumType, SAI_ROUTER_INTERFACE_ATTR_VLAN_ID, SaiObjectIdT>;
     using CreateAttributes = SaiAttributeTuple<
         VirtualRouterId,
         Type,

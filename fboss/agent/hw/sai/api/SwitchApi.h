@@ -31,34 +31,26 @@ struct SwitchApiParameters {
     using DefaultVirtualRouterId = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_DEFAULT_VIRTUAL_ROUTER_ID,
-        sai_object_id_t,
         SaiObjectIdT>;
-    using DefaultVlanId = SaiAttribute<
-        EnumType,
-        SAI_SWITCH_ATTR_DEFAULT_VLAN_ID,
-        sai_object_id_t,
-        SaiObjectIdT>;
+    using DefaultVlanId =
+        SaiAttribute<EnumType, SAI_SWITCH_ATTR_DEFAULT_VLAN_ID, SaiObjectIdT>;
     using PortNumber =
         SaiAttribute<EnumType, SAI_SWITCH_ATTR_PORT_NUMBER, sai_uint32_t>;
     using PortList = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_PORT_LIST,
-        sai_object_list_t,
         std::vector<sai_object_id_t>>;
     using SrcMac = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_SRC_MAC_ADDRESS,
-        sai_mac_t,
         folly::MacAddress>;
     using HwInfo = SaiAttribute<
-        uint32_t,
+        EnumType,
         SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO,
-        sai_s8_list_t,
         std::vector<int8_t>>;
     using Default1QBridgeId = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_DEFAULT_1Q_BRIDGE_ID,
-        sai_object_id_t,
         SaiObjectIdT>;
     using CreateAttributes = SaiAttributeTuple<HwInfo>;
     Attributes() {}

@@ -30,11 +30,8 @@ namespace fboss {
 struct RouteApiParameters {
   struct Attributes {
     using EnumType = sai_route_entry_attr_t;
-    using NextHopId = SaiAttribute<
-        EnumType,
-        SAI_ROUTE_ENTRY_ATTR_NEXT_HOP_ID,
-        sai_object_id_t,
-        SaiObjectIdT>;
+    using NextHopId =
+        SaiAttribute<EnumType, SAI_ROUTE_ENTRY_ATTR_NEXT_HOP_ID, SaiObjectIdT>;
     using PacketAction =
         SaiAttribute<EnumType, SAI_ROUTE_ENTRY_ATTR_PACKET_ACTION, sai_int32_t>;
     using CreateAttributes =

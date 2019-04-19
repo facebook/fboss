@@ -35,7 +35,6 @@ struct NeighborApiParameters {
     using DstMac = SaiAttribute<
         EnumType,
         SAI_NEIGHBOR_ENTRY_ATTR_DST_MAC_ADDRESS,
-        sai_mac_t,
         folly::MacAddress>;
     using CreateAttributes = SaiAttributeTuple<DstMac>;
     /* implicit */ Attributes(const CreateAttributes& create) {

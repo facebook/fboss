@@ -27,15 +27,10 @@ namespace fboss {
 struct NextHopApiParameters {
   struct Attributes {
     using EnumType = sai_next_hop_attr_t;
-    using Ip = SaiAttribute<
-        EnumType,
-        SAI_NEXT_HOP_ATTR_IP,
-        sai_ip_address_t,
-        folly::IPAddress>;
+    using Ip = SaiAttribute<EnumType, SAI_NEXT_HOP_ATTR_IP, folly::IPAddress>;
     using RouterInterfaceId = SaiAttribute<
         EnumType,
         SAI_NEXT_HOP_ATTR_ROUTER_INTERFACE_ID,
-        sai_object_id_t,
         SaiObjectIdT>;
     using Type = SaiAttribute<EnumType, SAI_NEXT_HOP_ATTR_TYPE, sai_int32_t>;
     using CreateAttributes = SaiAttributeTuple<Type, RouterInterfaceId, Ip>;
