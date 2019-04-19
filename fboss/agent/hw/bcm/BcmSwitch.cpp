@@ -1442,10 +1442,6 @@ void BcmSwitch::processRemovedNeighborEntry(
   auto neighborKey = BcmHostKey(
       vrf, IPAddress(removedEntry->getIP()), removedEntry->getIntfID());
   neighborTable_->unregisterNeighbor(neighborKey);
-  auto* host = neighborTable_->getNeighborIf(neighborKey);
-  if (!host) {
-    return;
-  }
   hostTable_->programHostsToCPU(neighborKey, intf->getBcmIfId());
 }
 

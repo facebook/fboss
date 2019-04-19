@@ -178,6 +178,10 @@ class BcmEcmpHost {
 
 class BcmHostTable {
  public:
+  template <typename KeyT, typename HostT>
+  using HostMap = boost::container::
+      flat_map<KeyT, std::pair<std::unique_ptr<HostT>, uint32_t>>;
+
   explicit BcmHostTable(const BcmSwitchIf* hw);
   virtual ~BcmHostTable();
 
@@ -390,9 +394,6 @@ class BcmHostTable {
       std::pair<std::unique_ptr<BcmEgressBase>, uint32_t>>
       egressMap_;
 
-  template <typename KeyT, typename HostT>
-  using HostMap = boost::container::
-    flat_map<KeyT, std::pair<std::unique_ptr<HostT>, uint32_t>>;
   template <typename KeyT, typename HostT>
   HostT* incRefOrCreateBcmHostImpl(
       HostMap<KeyT, HostT>* map,

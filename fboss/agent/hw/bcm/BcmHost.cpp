@@ -25,6 +25,30 @@ namespace {
 constexpr auto kIntf = "intf";
 constexpr auto kPort = "port";
 constexpr auto kNextHops = "nexthops";
+
+struct BcmHostKeyComparator {
+  using BcmHost = facebook::fboss::BcmHost;
+  using BcmHostKey = facebook::fboss::BcmHostKey;
+  using BcmLabeledHostKey = facebook::fboss::BcmLabeledHostKey;
+  using BcmLabeledHostMap =
+      facebook::fboss::BcmHostTable::HostMap<BcmLabeledHostKey, BcmHost>;
+
+  bool operator()(
+      const BcmLabeledHostMap::value_type& entry,
+      const BcmHostKey& bcmHostkey) {
+    return BcmHostKey(
+               entry.first.getVrf(), entry.first.addr(), entry.first.intfID()) <
+        bcmHostkey;
+  }
+
+  bool operator()(
+      const BcmHostKey& bcmHostkey,
+      const BcmLabeledHostMap::value_type& entry) {
+    return bcmHostkey <
+        BcmHostKey(
+               entry.first.getVrf(), entry.first.addr(), entry.first.intfID());
+  }
+};
 }
 
 namespace facebook { namespace fboss {
@@ -861,6 +885,16 @@ void BcmHostTable::programHostsToTrunk(
   }
   auto* host = iter->second.first.get();
   host->programToTrunk(intf, mac, trunk);
+
+  auto ret = std::equal_range(
+      std::begin(labeledHosts_),
+      std::end(labeledHosts_),
+      key,
+      BcmHostKeyComparator());
+  std::for_each(ret.first, ret.second, [=](auto& entry) {
+    auto* labeledHost = entry.second.first.get();
+    labeledHost->programToTrunk(intf, mac, trunk);
+  });
 }
 
 void BcmHostTable::programHostsToPort(
@@ -874,15 +908,33 @@ void BcmHostTable::programHostsToPort(
   }
   auto* host = iter->second.first.get();
   host->program(intf, mac, port);
+
+  auto ret = std::equal_range(
+      std::begin(labeledHosts_),
+      std::end(labeledHosts_),
+      key,
+      BcmHostKeyComparator());
+  std::for_each(ret.first, ret.second, [=](auto& entry) {
+    auto* labeledHost = entry.second.first.get();
+    labeledHost->program(intf, mac, port);
+  });
 }
 
 void BcmHostTable::programHostsToCPU(const BcmHostKey& key, opennsl_if_t intf) {
   auto iter = hosts_.find(key);
-  if (iter == hosts_.end()) {
-    throw FbossError("host not found to program to cpu");
+  if (iter != hosts_.end()) {
+    auto* host = iter->second.first.get();
+    host->programToCPU(intf);
   }
-  auto* host = iter->second.first.get();
-  host->programToCPU(intf);
+  auto ret = std::equal_range(
+      std::begin(labeledHosts_),
+      std::end(labeledHosts_),
+      key,
+      BcmHostKeyComparator());
+  std::for_each(ret.first, ret.second, [=](auto& entry) {
+    auto* labeledHost = entry.second.first.get();
+    labeledHost->programToCPU(intf);
+  });
 }
 
 BcmHostReference::BcmHostReference(BcmSwitch* hw, HostKey key)
