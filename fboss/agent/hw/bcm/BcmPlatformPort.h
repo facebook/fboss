@@ -85,6 +85,8 @@ class BcmPlatformPort : public PlatformPort {
   virtual bool shouldUsePortResourceAPIs() const = 0;
   virtual bool shouldSetupPortGroup() const = 0;
 
+  virtual void updateStats() {}
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmPlatformPort(BcmPlatformPort const &) = delete;

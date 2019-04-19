@@ -738,6 +738,9 @@ void BcmPort::updateStats() {
   // Update the packet length histograms
   updatePktLenHist(now, &inPktLengths_, kInPktLengthStats);
   updatePktLenHist(now, &outPktLengths_, kOutPktLengthStats);
+
+  // Update any platform specific port counters
+  getPlatformPort()->updateStats();
 };
 
 void BcmPort::updateStat(
