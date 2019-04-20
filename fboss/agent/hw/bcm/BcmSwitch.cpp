@@ -125,19 +125,9 @@ namespace {
 constexpr auto kHostTable = "hostTable";
 constexpr int kLogBcmErrorFreqMs = 3000;
 /*
- * Dump map containing switch h/w config as a key, value pair
- * to a file. Create parent directories of file if needed.
- * The actual format of config in the file is JSON for easy
- * serialization/desrialization
+ * Key to determine whether alpm is enabled
  */
-void dumpConfigMap(const facebook::fboss::BcmAPI::HwConfigMap& config,
-    const std::string& filename) {
-  folly::dynamic json = folly::dynamic::object;
-  for (const auto& kv : config) {
-    json[kv.first] = kv.second;
-  }
-  folly::writeFile(toPrettyJson(json), filename.c_str());
-}
+constexpr folly::StringPiece kAlpmSetting = "l3_alpm_enable";
 
 void rethrowIfHwNotFull(const facebook::fboss::BcmError& error) {
   if (error.getBcmError() != OPENNSL_E_FULL) {
@@ -184,7 +174,6 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       rtag7LoadBalancer_(new BcmRtag7LoadBalancer(this)),
       mirrorTable_(new BcmMirrorTable(this)),
       bstStatsMgr_(new BcmBstStatsMgr(this)) {
-  dumpConfigMap(BcmAPI::getHwConfig(), platform->getHwConfigDumpFile());
   exportSdkVersion();
 }
 
@@ -1981,4 +1970,19 @@ void BcmSwitch::processChangedLabelForwardingEntry(
   writableLabelMap()->processChangedLabelSwitchAction(
       newEntry->getID(), newEntry->getLabelNextHop());
 }
+
+bool BcmSwitch::isAlpmEnabled() {
+  return BcmAPI::getConfigValue(kAlpmSetting);
+}
+
+BcmSwitch::MmuState BcmSwitch::queryMmuState() const {
+  auto lossless = BcmAPI::getConfigValue("mmu_lossless");
+  if (!lossless) {
+    return MmuState::UNKNOWN;
+  }
+  return std::string(lossless) == "0x1" ? MmuState::MMU_LOSSLESS :
+    MmuState::MMU_LOSSY;
+}
+
+
 }} // facebook::fboss

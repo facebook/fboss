@@ -18,7 +18,6 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
-#include "fboss/agent/hw/bcm/BcmConfig.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/state/Port.h"
@@ -119,7 +118,9 @@ string WedgePlatform::getPersistentStateDir() const {
 void WedgePlatform::onUnitCreate(int unit) {
   warmBootHelper_ =
       std::make_unique<DiscBackedBcmWarmBootHelper>(unit, getWarmBootDir());
+  dumpHwConfig();
 }
+
 void WedgePlatform::onUnitAttach(int /*unit*/) {}
 
 void WedgePlatform::getProductInfo(ProductInfo& info) {

@@ -9,10 +9,13 @@
  */
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 
+#include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
+#include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 
 #include <folly/dynamic.h>
+#include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 
 #include <chrono>
@@ -30,6 +33,11 @@ using std::chrono::steady_clock;
 
 namespace facebook {
 namespace fboss {
+
+BcmUnit::BcmUnit(int deviceIndex, BcmPlatform* platform)
+    : deviceIndex_(deviceIndex), platform_(platform) {
+  unit_ = createHwUnit();
+}
 
 void BcmUnit::writeWarmBootState(const folly::dynamic& switchState) {
   steady_clock::time_point begin = steady_clock::now();

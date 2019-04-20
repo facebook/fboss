@@ -31,10 +31,6 @@ std::unique_ptr<BcmRxPacket> BcmSwitch::createRxPacket(opennsl_pkt_t* pkt) {
   return std::make_unique<BcmRxPacket>(pkt);
 }
 
-bool BcmSwitch::isAlpmEnabled() {
-  return false;
-}
-
 void BcmSwitch::dropDhcpPackets() {}
 
 void BcmSwitch::setL3MtuFailPackets() {}
@@ -106,10 +102,6 @@ void BcmSwitch::processChangedAcl(
     const std::shared_ptr<AclEntry>& /*newAcl*/) {}
 void BcmSwitch::processAddedAcl(const std::shared_ptr<AclEntry>& /*acl*/) {}
 void BcmSwitch::processRemovedAcl(const std::shared_ptr<AclEntry>& /*acl*/) {}
-
-BcmSwitch::MmuState BcmSwitch::queryMmuState() const {
-  return MmuState::UNKNOWN;
-}
 
 opennsl_gport_t BcmSwitch::getCpuGPort() const {
   // API not available in opennsl

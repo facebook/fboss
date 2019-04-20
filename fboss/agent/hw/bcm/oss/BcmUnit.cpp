@@ -29,10 +29,10 @@ constexpr auto wbEnvVar = "SOC_BOOT_FLAGS";
 constexpr auto wbFlag = "0x200000";
 }
 
-BcmUnit::BcmUnit(int /*deviceIndex*/, BcmPlatform* /*platform*/) {
+int BcmUnit::createHwUnit()  {
   // For now we assume that the unit number is 0. This will be changed once
   // opennsl exposes interfaces to determine which units are on the system
-  unit_ = 0;
+  return 0;
 }
 
 BcmUnit::~BcmUnit() {

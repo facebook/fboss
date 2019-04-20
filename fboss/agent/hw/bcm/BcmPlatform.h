@@ -104,7 +104,14 @@ class BcmPlatform : public Platform {
 
   virtual bool useQueueGportForCos() const = 0;
   virtual uint32_t maxLabelStackDepth() const = 0;
+ protected:
 
+/*
+ * Dump map containing switch h/w config as a key, value pair
+ * to a file. We dump in format that name, value pair format that
+ * the SDK can read. Later this map is used to initialize the chip
+ */
+  void dumpHwConfig() const;
  private:
   // Forbidden copy constructor and assignment operator
   BcmPlatform(BcmPlatform const &) = delete;

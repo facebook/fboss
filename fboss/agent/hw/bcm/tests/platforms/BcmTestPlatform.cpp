@@ -50,6 +50,7 @@ HwSwitch* BcmTestPlatform::getHwSwitch() const {
 void BcmTestPlatform::onUnitCreate(int unit) {
   warmBootHelper_ =
       std::make_unique<DiscBackedBcmWarmBootHelper>(unit, getWarmBootDir());
+  dumpHwConfig();
 }
 
 void BcmTestPlatform::onHwInitialized(SwSwitch* /*sw*/) {}

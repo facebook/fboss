@@ -37,8 +37,7 @@ std::atomic<BcmUnit*> bcmUnits[NUM_UNITS];
  *
  * This must be called before using any other Broadcom SDK functions.
  */
-void BcmAPI::initImpl(const std::map<std::string, std::string>& /*config*/) {
-}
+void BcmAPI::initImpl() {}
 
 /*
  * Get the number of Broadcom switching devices in this system.
@@ -61,10 +60,4 @@ std::string BcmAPI::getThreadName() {
   return "";
 }
 
-/*
- * Get hw config
- */
-BcmAPI::HwConfigMap BcmAPI::getHwConfig() {
-  return HwConfigMap();
-}
 }}

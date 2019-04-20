@@ -10,6 +10,12 @@
 
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 
+#include <folly/FileUtil.h>
+
+#include "fboss/agent/SysError.h"
+#include "fboss/agent/hw/bcm/BcmAPI.h"
+#include "fboss/agent/hw/bcm/BcmConfig.h"
+
 DEFINE_string(hw_config_file, "hw_config",
               "File for dumping HW config on startup");
 DEFINE_bool(enable_routes_in_host_table,
@@ -35,4 +41,15 @@ bool BcmPlatform::isBcmShellSupported() const {
   return true;
 }
 
+void BcmPlatform::dumpHwConfig() const {
+  std::vector<std::string> nameValStrs;
+  for (const auto& kv : BcmAPI::getHwConfig()) {
+    nameValStrs.emplace_back(folly::to<std::string>(kv.first, '=', kv.second));
+  }
+  auto bcmConf = folly::join('\n', nameValStrs);
+  auto hwConfigFile = getHwConfigDumpFile();
+  if (!folly::writeFile(bcmConf, hwConfigFile.c_str())) {
+    throw facebook::fboss::SysError(errno, "error writing bcm config ");
+  }
+}
 }} //facebook::fboss

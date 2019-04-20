@@ -97,6 +97,7 @@ class BcmUnit {
 
  private:
   void attach(bool warmBoot);
+  int createHwUnit();
   // Forbidden copy constructor and assignment operator
   BcmUnit(BcmUnit const &) = delete;
   BcmUnit& operator=(BcmUnit const &) = delete;

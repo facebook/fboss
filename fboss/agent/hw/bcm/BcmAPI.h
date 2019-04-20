@@ -97,12 +97,28 @@ class BcmAPI {
   static std::string getThreadName();
 
   /*
+   * Get a configuration property.
+   *
+   * Returns the configuration value, as specified in the map supplied
+   * to BcmAPI::init().
+   *
+   * The returned StringPiece will point to null data if no value
+   * is set for the specified property.
+   */
+  static const char* getConfigValue(folly::StringPiece name);
+  /*
    * Get hw config
    */
   typedef folly::StringKeyedUnorderedMap<std::string> HwConfigMap;
   static HwConfigMap getHwConfig();
 
  private:
+  /*
+   * Initialize the BcmConfig to hold the config values passed in.
+   * We use these values to keep an idea of the bcm configuration
+   * values we are currently using and provide these to the sdk.
+   */
+  static void initConfig(const std::map<std::string, std::string>& config);
   /*
    * Create a BcmUnit.
    *
@@ -122,9 +138,10 @@ class BcmAPI {
   BcmAPI(BcmAPI const &) = delete;
   BcmAPI& operator=(BcmAPI const &) = delete;
 
-  static void initImpl(const std::map<std::string, std::string>& config);
+  static void initImpl();
 
   static std::unique_ptr<BcmAPI> singleton_;
+  HwConfigMap bcmConfig_;
 };
 
 }} // facebook::fboss

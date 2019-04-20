@@ -45,9 +45,32 @@ extern "C" void sal_config_init_defaults() {
 namespace facebook { namespace fboss {
 
 static std::atomic<bool> bcmInitialized{false};
+static BcmAPI::HwConfigMap bcmConfig;
+
 extern std::atomic<BcmUnit*> bcmUnits[];
 
 std::unique_ptr<BcmAPI> BcmAPI::singleton_;
+
+void BcmAPI::initConfig(
+  const std::map<std::string, std::string>& config) {
+  // Store the configuration settings
+  bcmConfig.clear();
+  for (const auto& entry : config) {
+    bcmConfig.emplace(entry.first, entry.second);
+  }
+}
+
+const char* BcmAPI::getConfigValue(StringPiece name) {
+  auto it = bcmConfig.find(name);
+  if (it == bcmConfig.end()) {
+    return nullptr;
+  }
+  return it->second.c_str();
+}
+
+BcmAPI::HwConfigMap BcmAPI::getHwConfig() {
+  return bcmConfig;
+}
 
 std::unique_ptr<BcmUnit> BcmAPI::initUnit(
     int deviceIndex,
@@ -74,7 +97,8 @@ void BcmAPI::init(const std::map<std::string, std::string>& config) {
       return;
     }
 
-    BcmAPI::initImpl(config);
+    initConfig(config);
+    BcmAPI::initImpl();
 
     bcmInitialized.store(true, std::memory_order_release);
 }
