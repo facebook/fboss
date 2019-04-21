@@ -17,6 +17,8 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/Utils.h"
 
+#include "fboss/agent/rib/RoutingInformationBase.h"
+
 #include <folly/SpinLock.h>
 #include <folly/IntrusiveList.h>
 #include <folly/Range.h>
@@ -533,6 +535,10 @@ class SwSwitch : public HwSwitch::Callback {
     return lagManager_.get();
   }
 
+  rib::RoutingInformationBase* rib() {
+    return rib_.get();
+  }
+
   /*
    * Gets the flags the SwSwitch was initialized with.
    */
@@ -826,6 +832,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<MirrorManager> mirrorManager_;
   std::unique_ptr<RouteUpdateLogger> routeUpdateLogger_;
   std::unique_ptr<LinkAggregationManager> lagManager_;
+  std::unique_ptr<rib::RoutingInformationBase> rib_{nullptr};
 
   BootType bootType_{BootType::UNINITIALIZED};
   std::unique_ptr<LldpManager> lldpManager_;

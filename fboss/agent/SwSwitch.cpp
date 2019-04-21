@@ -166,6 +166,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       pcapMgr_(new PktCaptureManager(this)),
       mirrorManager_(new MirrorManager(this)),
       routeUpdateLogger_(new RouteUpdateLogger(this)),
+      rib_(new rib::RoutingInformationBase()),
       portUpdateHandler_(new PortUpdateHandler(this)) {
   // Create the platform-specific state directories if they
   // don't exist already.
@@ -175,7 +176,6 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
   // doesnt need to be guarded, only accessed by 1 event base
   pcapPusher_ = nullptr;
 }
-
 
 void SwSwitch::destroyPushClient(){
   distributionServiceReady_.store(false);
@@ -253,6 +253,7 @@ void SwSwitch::stop() {
   packetTxThreadHeartbeat_.reset();
   lacpThreadHeartbeat_.reset();
   neighborCacheThreadHeartbeat_.reset();
+  rib_.reset();
 
   // stops the background and update threads.
   stopThreads();
