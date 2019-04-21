@@ -60,7 +60,8 @@ enum SwitchFlags : int {
   ENABLE_TUN = 1,
   ENABLE_LLDP = 2,
   PUBLISH_STATS = 4,
-  ENABLE_LACP = 8
+  ENABLE_LACP = 8,
+  ENABLE_STANDALONE_RIB = 16
 };
 
 inline SwitchFlags operator|=(SwitchFlags& a, const SwitchFlags b) {

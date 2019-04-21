@@ -68,6 +68,10 @@ DEFINE_bool(publish_boot_type, true,
 DEFINE_int32(flush_warmboot_cache_secs, 60,
     "Seconds to wait before flushing warm boot cache");
 DECLARE_int32(thrift_idle_timeout);
+DEFINE_bool(
+    enable_standalone_rib,
+    false,
+    "Place the RIB under the control of the RoutingInformationBase object");
 
 using facebook::fboss::SwSwitch;
 using facebook::fboss::ThriftHandler;
@@ -128,6 +132,9 @@ class Initializer {
     }
     if (FLAGS_publish_boot_type) {
       flags |= SwitchFlags::PUBLISH_STATS;
+    }
+    if (FLAGS_enable_standalone_rib) {
+      flags |= SwitchFlags::ENABLE_STANDALONE_RIB;
     }
     return flags;
   }
