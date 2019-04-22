@@ -202,7 +202,7 @@ find_library(CURL curl)
 find_library(SODIUM sodium)
 
 find_library(OPENNSL opennsl
-             PATHS ${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge-trident)
+             PATHS ${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge)
 find_library(IPROUTE2 netlink PATHS ${CMAKE_SOURCE_DIR}/external/iproute2/lib)
 
 include_directories(${CMAKE_SOURCE_DIR}/external/OpenNSL/include)
