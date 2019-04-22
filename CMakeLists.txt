@@ -293,6 +293,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmAclTable.cpp
     fboss/agent/hw/bcm/BcmAPI.cpp
     fboss/agent/hw/bcm/BcmConfig.cpp
+    fboss/agent/hw/bcm/BcmControlPlane.cpp
     fboss/agent/hw/bcm/BcmControlPlaneQueueManager.cpp
     fboss/agent/hw/bcm/BcmCosQueueManager.cpp
     fboss/agent/hw/bcm/BcmEgress.cpp

@@ -9,18 +9,12 @@
  */
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
 
-namespace facebook { namespace fboss {
-
-BcmControlPlane::BcmControlPlane(BcmSwitch* hw)
-  : hw_(hw), gport_(0) {}
-
-void BcmControlPlane::setupQueue(const std::shared_ptr<PortQueue>& /*queue*/) {}
-
-void BcmControlPlane::setupRxReasonToQueue(
-  const ControlPlane::RxReasonToQueue& /*reasonToQueue*/) {}
+namespace facebook {
+namespace fboss {
 
 void BcmControlPlane::updateQueueCounters() {}
 
 void BcmControlPlane::setupIngressQosPolicy(
     const folly::Optional<std::string>& /*qosPolicyName*/) {}
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

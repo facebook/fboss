@@ -11,6 +11,8 @@
 
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
+#include "fboss/agent/hw/bcm/BcmControlPlane.h"
+#include "fboss/agent/hw/bcm/BcmCosManager.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 
 #include <folly/Memory.h>
@@ -35,7 +37,10 @@ void BcmSwitch::dropDhcpPackets() {}
 
 void BcmSwitch::setL3MtuFailPackets() {}
 
-void BcmSwitch::setupCos() {}
+void BcmSwitch::setupCos() {
+  cosManager_.reset(new BcmCosManager());
+  controlPlane_.reset(new BcmControlPlane(this));
+}
 
 void BcmSwitch::setupFPGroups() {}
 
