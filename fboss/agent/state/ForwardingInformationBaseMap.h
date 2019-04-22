@@ -26,6 +26,8 @@ class ForwardingInformationBaseMap : public NodeMapT<
   ForwardingInformationBaseMap();
   ~ForwardingInformationBaseMap() override;
 
+  std::pair<uint64_t, uint64_t> getRouteCount() const;
+
  private:
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;

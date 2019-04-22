@@ -17,6 +17,19 @@ ForwardingInformationBaseMap::ForwardingInformationBaseMap() {}
 
 ForwardingInformationBaseMap::~ForwardingInformationBaseMap() {}
 
+std::pair<uint64_t, uint64_t> ForwardingInformationBaseMap::getRouteCount()
+    const {
+  uint64_t v4Count = 0;
+  uint64_t v6Count = 0;
+
+  for (const auto& fibContainer : *this) {
+    v4Count += fibContainer->getFibV4()->size();
+    v6Count += fibContainer->getFibV6()->size();
+  }
+
+  return std::make_pair(v4Count, v6Count);
+}
+
 FBOSS_INSTANTIATE_NODE_MAP(
     ForwardingInformationBaseMap,
     ForwardingInformationBaseMapTraits);
