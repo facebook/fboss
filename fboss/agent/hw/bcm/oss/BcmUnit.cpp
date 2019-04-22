@@ -41,6 +41,7 @@ BcmUnit::~BcmUnit() {
     CHECK(OPENNSL_SUCCESS(rv)) <<
         "failed to detach BCM unit " << unit_ << ": " << opennsl_errmsg(rv);
   }
+  opennsl_driver_exit();
   // Unregister ourselves from BcmAPI.
   BcmAPI::unitDestroyed(this);
 }
@@ -49,8 +50,15 @@ void BcmUnit::attach(bool warmBoot) {
   if (attached_.load(std::memory_order_acquire)) {
     throw FbossError("unit ", unit_, " already initialized");
   }
-  // FIXME: Pass in initial config and warm boot flags
-  opennsl_driver_init(nullptr);
+  auto hwConfigFile = platform_->getHwConfigDumpFile();
+  opennsl_init_t initParam = {
+      .cfg_fname = const_cast<char*>(hwConfigFile.c_str()),
+      .flags = 0,
+      .wb_fname = nullptr,
+      .rmcfg_fname = nullptr,
+      .cfg_post_fname = nullptr,
+      .opennsl_flags = 0};
+  opennsl_driver_init(&initParam);
 
   attached_.store(true, std::memory_order_release);
 }
