@@ -16,12 +16,18 @@ namespace fboss {
 
 const BcmRtag7Module::OutputSelectionControl
 BcmRtag7Module::kEcmpOutputSelectionControl() {
-  throw FbossError("Flow-based ECMP output selection not exported by OpenNSL");
+  static const OutputSelectionControl ecmpOutputSelectionControl = {
+      LoadBalancerID::ECMP,
+  };
+  return ecmpOutputSelectionControl;
 }
 
 const BcmRtag7Module::OutputSelectionControl
 BcmRtag7Module::kTrunkOutputSelectionControl() {
-  throw FbossError("Flow-based trunk output selection not exported by OpenNSL");
+  static const OutputSelectionControl trunkOutputSelectionControl = {
+    LoadBalancerID::AGGREGATE_PORT,
+  };
+  return trunkOutputSelectionControl;
 }
 
 int BcmRtag7Module::getFlowLabelSubfields() const {

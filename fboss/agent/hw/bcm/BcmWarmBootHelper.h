@@ -65,6 +65,7 @@ class DiscBackedBcmWarmBootHelper: public BcmWarmBootHelper {
 
   std::string startupSdkDumpFile() const override;
   std::string shutdownSdkDumpFile() const override;
+  std::string warmBootDataPath() const;
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -73,7 +74,6 @@ class DiscBackedBcmWarmBootHelper: public BcmWarmBootHelper {
       delete;
 
   std::string warmBootFlag() const;
-  std::string warmBootDataPath() const;
   std::string forceColdBootOnceFlag() const;
   std::string warmBootSwitchStateFile() const;
 
