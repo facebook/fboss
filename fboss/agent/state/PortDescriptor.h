@@ -92,6 +92,7 @@ class PortDescriptor {
       case PortType::AGGREGATE:
         return static_cast<int32_t>(aggregatePortID_);
     }
+    XLOG(FATAL) << "Unknown port type";
   }
   folly::dynamic toFollyDynamic() const {
     switch (type()) {
@@ -100,6 +101,7 @@ class PortDescriptor {
       case PortType::AGGREGATE:
         return folly::dynamic(static_cast<uint16_t>(aggregatePortID_));
     }
+    XLOG(FATAL) << "Unknown port type";
   }
   static PortDescriptor fromFollyDynamic(const folly::dynamic& descJSON) {
     // Until warm-boot support is implemented for aggregate ports, we assume

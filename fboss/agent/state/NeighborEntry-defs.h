@@ -47,7 +47,7 @@ NeighborEntryFields<IPADDR> NeighborEntryFields<IPADDR>::fromFollyDynamic(
   // entries as UNVERIFIFED and unreolved ones as PENDING
   bool isResolved =
       port.isPhysicalPort() && port.getPhysicalPortOrThrow() != PortID(0);
-  NeighborEntryState state =
+  NeighborState state =
       isResolved ? NeighborState::UNVERIFIED : NeighborState::PENDING;
   if (entryJson.find(kNeighborEntryState) != entryJson.items().end()) {
     state = NeighborState(entryJson[kNeighborEntryState].asInt());
