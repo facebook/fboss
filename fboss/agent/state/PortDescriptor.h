@@ -58,11 +58,8 @@ class PortDescriptor {
   }
 
   bool operator==(const PortDescriptor& rhs) const {
-    return type_ == rhs.type_ &&
-        ((type_ == PortType::PHYSICAL &&
-          physicalPortID_ == rhs.physicalPortID_) ||
-         (type_ == PortType::AGGREGATE &&
-          aggregatePortID_ == rhs.aggregatePortID_));
+    return std::tie(type_, physicalPortID_, aggregatePortID_) ==
+        std::tie(rhs.type_, rhs.physicalPortID_, rhs.aggregatePortID_);
   }
   bool operator<(const PortDescriptor& rhs) const {
     return std::tie(type_, physicalPortID_, aggregatePortID_) <
@@ -94,8 +91,6 @@ class PortDescriptor {
         return static_cast<int32_t>(physicalPortID_);
       case PortType::AGGREGATE:
         return static_cast<int32_t>(aggregatePortID_);
-      default:
-        XLOG(FATAL) << "PortDescriptor matching not exhaustive";
     }
   }
   folly::dynamic toFollyDynamic() const {
@@ -104,8 +99,6 @@ class PortDescriptor {
         return folly::dynamic(static_cast<uint16_t>(physicalPortID_));
       case PortType::AGGREGATE:
         return folly::dynamic(static_cast<uint16_t>(aggregatePortID_));
-      default:
-        XLOG(FATAL) << "PortDescriptor matching not exhaustive";
     }
   }
   static PortDescriptor fromFollyDynamic(const folly::dynamic& descJSON) {
@@ -122,17 +115,14 @@ class PortDescriptor {
     return physicalPortID_;
   }
   std::string str() const {
-    if (type_ == PortType::AGGREGATE) {
-      return folly::to<std::string>("AggregatePort-", aggregatePortID_);
-    } else {
-      return folly::to<std::string>("PhysicalPort-", physicalPortID_);
-    }
+    return isPhysicalPort()
+        ? folly::to<std::string>("PhysicalPort-", physicalPortID_)
+        : folly::to<std::string>("AggregatePort-", aggregatePortID_);
   }
-
  private:
   PortType type_;
-  PortID physicalPortID_;
-  AggregatePortID aggregatePortID_;
+  PortID physicalPortID_{0};
+  AggregatePortID aggregatePortID_{0};
 };
 
 // helper so port descriptors work directly in folly::to<string> expressions.

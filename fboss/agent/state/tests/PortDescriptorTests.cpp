@@ -26,6 +26,7 @@ TEST(PortDescriptor, TestPhysicalNotEqualPhysical) {
   facebook::fboss::PortDescriptor pd1(p1);
   facebook::fboss::PortDescriptor pd2(p2);
   EXPECT_NE(pd1, pd2);
+  EXPECT_LT(pd1, pd2);
 }
 
 TEST(PortDescriptor, TestAggregateEqualAggregate) {
@@ -42,6 +43,7 @@ TEST(PortDescriptor, TestAggregateNotEqualAggregate) {
   facebook::fboss::PortDescriptor pd1(ap1);
   facebook::fboss::PortDescriptor pd2(ap2);
   EXPECT_NE(pd1, pd2);
+  EXPECT_LT(pd1, pd2);
 }
 
 TEST(PortDescriptor, TestPhysicalNotEqualAggregate) {
@@ -50,4 +52,5 @@ TEST(PortDescriptor, TestPhysicalNotEqualAggregate) {
   facebook::fboss::PortDescriptor pd1(p);
   facebook::fboss::PortDescriptor pd2(ap);
   EXPECT_NE(pd1, pd2);
+  EXPECT_LT(pd1, pd2);
 }
