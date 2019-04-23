@@ -18,6 +18,7 @@ constexpr auto kIpAddr = "ipaddress";
 constexpr auto kMac = "mac";
 constexpr auto kPort = "portId";
 constexpr auto kInterface = "interfaceId";
+constexpr auto kNeighborEntryState = "state";
 }
 
 namespace facebook { namespace fboss {
@@ -29,19 +30,29 @@ folly::dynamic NeighborEntryFields<IPADDR>::toFollyDynamic() const {
   entry[kMac] = mac.toString();
   entry[kPort] = port.toFollyDynamic();
   entry[kInterface] = static_cast<uint32_t>(interfaceID);
+  entry[kNeighborEntryState] = static_cast<int>(state);
   return entry;
 }
 
-template<typename IPADDR>
-NeighborEntryFields<IPADDR>
-NeighborEntryFields<IPADDR>::fromFollyDynamic(
+template <typename IPADDR>
+NeighborEntryFields<IPADDR> NeighborEntryFields<IPADDR>::fromFollyDynamic(
     const folly::dynamic& entryJson) {
   IPADDR ip(entryJson[kIpAddr].stringPiece());
   folly::MacAddress mac(entryJson[kMac].stringPiece());
   auto port = PortDescriptor::fromFollyDynamic(entryJson[kPort]);
   InterfaceID intf(entryJson[kInterface].asInt());
-  // Any entry we deserialize should come back in the UNVERIFIED state
-  return NeighborEntryFields(ip, mac, port, intf, NeighborState::UNVERIFIED);
+
+  // TODO: deprecate this, after next agent push - when neighbor entry
+  // state serialization makes it everywhere. Before that start resolved
+  // entries as UNVERIFIFED and unreolved ones as PENDING
+  bool isResolved =
+      port.isPhysicalPort() && port.getPhysicalPortOrThrow() != PortID(0);
+  NeighborEntryState state =
+      isResolved ? NeighborState::UNVERIFIED : NeighborState::PENDING;
+  if (entryJson.find(kNeighborEntryState) != entryJson.items().end()) {
+    state = NeighborState(entryJson[kNeighborEntryState].asInt());
+  }
+  return NeighborEntryFields(ip, mac, port, intf, state);
 }
 
 template<typename IPADDR, typename SUBCLASS>
