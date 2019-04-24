@@ -40,6 +40,9 @@ const folly::IPAddressV4 kIPv4Addr1("10.0.0.1");
 const folly::IPAddressV4 kIPv4Addr2("10.0.0.2");
 const folly::IPAddressV6 kIPv6Addr1("face:b00c::1");
 const folly::IPAddressV6 kIPv6Addr2("face:b00c::2");
+//Multicast addresses
+const folly::IPAddressV4 kIPv4McastAddr("224.0.0.1");
+const folly::IPAddressV6 kIPv6McastAddr("ff00::1");
 // Link local addresses
 const folly::IPAddressV4 kllIPv4Addr1("169.254.1.1");
 const folly::IPAddressV4 kllIPv4Addr2("169.254.2.2");
@@ -69,7 +72,7 @@ class ColdBootPacketHandlingFixture : public ::testing::Test {
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
   }
-  void unicastPacketSendNoInterface(const folly::IOBuf& buf) {
+  void nonLinkLocalPacketSendNoInterface(const folly::IOBuf& buf) {
     CounterCache counters(getSw());
     auto pkt = createTxPacket(getSw(), buf);
     // We expect a single call to sendPacketSwitchedAsync. In response to this
@@ -113,11 +116,21 @@ TEST_F(ColdBootPacketHandlingFixture, v6PacketUnknownInterface) {
 }
 
 TEST_F(ColdBootPacketHandlingFixture, v4PacketNoInterface) {
-  unicastPacketSendNoInterface(
+  nonLinkLocalPacketSendNoInterface(
       createV4Packet(kIPv4Addr1, kIPv4Addr2, kMac1, kPlatformMac));
 }
 
 TEST_F(ColdBootPacketHandlingFixture, v6PacketNoInterface) {
-  unicastPacketSendNoInterface(
+  nonLinkLocalPacketSendNoInterface(
       createV6Packet(kIPv6Addr1, kIPv6Addr2, kMac1, kPlatformMac));
+}
+
+TEST_F(ColdBootPacketHandlingFixture, v4McastPacketNoInterface) {
+  nonLinkLocalPacketSendNoInterface(
+      createV4Packet(kIPv4Addr1, kIPv4McastAddr, kMac1, kPlatformMac));
+}
+
+TEST_F(ColdBootPacketHandlingFixture, v6McastPacketNoInterface) {
+  nonLinkLocalPacketSendNoInterface(
+      createV6Packet(kIPv6Addr1, kIPv6McastAddr, kMac1, kPlatformMac));
 }
