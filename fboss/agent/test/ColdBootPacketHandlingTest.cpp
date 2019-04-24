@@ -44,10 +44,8 @@ const folly::IPAddressV6 kIPv6Addr2("face:b00c::2");
 const folly::IPAddressV4 kIPv4McastAddr("224.0.0.1");
 const folly::IPAddressV6 kIPv6McastAddr("ff00::1");
 // Link local addresses
-const folly::IPAddressV4 kllIPv4Addr1("169.254.1.1");
-const folly::IPAddressV4 kllIPv4Addr2("169.254.2.2");
-const folly::IPAddressV6 kllIPv6Addr1("fe80::1");
-const folly::IPAddressV6 kllIPv6Addr2("fe80::2");
+const folly::IPAddressV4 kIPv4LinkLocalAddr("169.254.1.1");
+const folly::IPAddressV6 kIPv6LinkLocalAddr("fe80::1");
 } // namespace
 
 class ColdBootPacketHandlingFixture : public ::testing::Test {
@@ -83,6 +81,20 @@ class ColdBootPacketHandlingFixture : public ::testing::Test {
     getSw()->sendL3Packet(std::move(pkt));
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 1);
+  }
+  void linkLocalPacketSendNoInterface(const folly::IOBuf& buf) {
+    CounterCache counters(getSw());
+    auto pkt = createTxPacket(getSw(), buf);
+
+    // We expect a no calls to sendPacketSwitchedAsync. Since no interface was
+    // specified, we will use the CPU vlan for sending this packet out. Since
+    // CPU VLAN does no exist in our state, we drop the packet on the floor.
+    // This is fine, you can't expect us to switch a link local interface without
+    // getting VLAN/L3 interface as input.
+    EXPECT_HW_CALL(getSw(), sendPacketSwitchedAsync_(_)).Times(0);
+    getSw()->sendL3Packet(std::move(pkt));
+    counters.update();
+    counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 0);
   }
 
  private:
@@ -133,4 +145,14 @@ TEST_F(ColdBootPacketHandlingFixture, v4McastPacketNoInterface) {
 TEST_F(ColdBootPacketHandlingFixture, v6McastPacketNoInterface) {
   nonLinkLocalPacketSendNoInterface(
       createV6Packet(kIPv6Addr1, kIPv6McastAddr, kMac1, kPlatformMac));
+}
+
+TEST_F(ColdBootPacketHandlingFixture, v4LinkLocalPacketNoInterface) {
+  linkLocalPacketSendNoInterface(
+      createV4Packet(kIPv4Addr1, kIPv4LinkLocalAddr, kMac1, kPlatformMac));
+}
+
+TEST_F(ColdBootPacketHandlingFixture, v6LinkLocalPacketNoInterface) {
+  linkLocalPacketSendNoInterface(
+      createV6Packet(kIPv6Addr1, kIPv6LinkLocalAddr, kMac1, kPlatformMac));
 }
