@@ -1280,6 +1280,7 @@ void SwSwitch::sendL3Packet(
 
   if (!isFullyInitialized()) {
     XLOG(INFO) <<" Dropping L3 packet since device not yet initialized";
+    stats()->pktDropped();
     return;
   }
 
@@ -1298,6 +1299,7 @@ void SwSwitch::sendL3Packet(
     XLOG(ERR) << "Packet is not big enough headroom=" << buf->headroom()
               << " required=" << l2Len << ", tailroom=" << buf->tailroom()
               << " required=" << tailRoom;
+    stats()->pktError();
     return;
   }
 
@@ -1309,6 +1311,7 @@ void SwSwitch::sendL3Packet(
     auto intf = state->getInterfaces()->getInterfaceIf(*maybeIfID);
     if (!intf) {
       XLOG(ERR) << "Interface " << *maybeIfID << " doesn't exists in state.";
+      stats()->pktDropped();
       return;
     }
 
