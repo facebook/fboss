@@ -27,7 +27,7 @@ SaiFdbEntry::SaiFdbEntry(
       entry_(entry),
       attributes_(attributes) {
   auto& fdbApi = apiTable_->fdbApi();
-  fdbApi.create2(entry_, attributes.attrs());
+  fdbApi.create(entry_, attributes.attrs());
 }
 
 SaiFdbEntry::~SaiFdbEntry() {

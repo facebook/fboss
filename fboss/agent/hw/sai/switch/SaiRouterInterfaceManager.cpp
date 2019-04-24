@@ -27,7 +27,7 @@ SaiRouterInterface::SaiRouterInterface(
     const sai_object_id_t& switchID)
     : apiTable_(apiTable), attributes_(attributes) {
   auto& routerInterfaceApi = apiTable_->routerInterfaceApi();
-  id_ = routerInterfaceApi.create2(attributes_.attrs(), switchID);
+  id_ = routerInterfaceApi.create(attributes_.attrs(), switchID);
 }
 
 SaiRouterInterface::~SaiRouterInterface() {

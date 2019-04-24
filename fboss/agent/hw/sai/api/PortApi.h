@@ -55,13 +55,7 @@ struct PortApiParameters {
     typename Speed::ValueType speed;
     folly::Optional<typename AdminState::ValueType> adminState;
   };
-  using AttributeType = boost::variant<
-      Attributes::AdminState,
-      Attributes::HwLaneList,
-      Attributes::Speed,
-      Attributes::Type>;
   struct MemberAttributes {};
-  using MemberAttributeType = boost::variant<boost::blank>;
   struct EntryType {};
 };
 

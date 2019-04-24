@@ -28,14 +28,12 @@ class NextHopApiTest : public ::testing::Test {
     nextHopApi = std::make_unique<NextHopApi>();
   }
   sai_object_id_t createNextHop(folly::IPAddress ip) {
-    NextHopApiParameters::AttributeType typeAttribute =
-        NextHopApiParameters::Attributes::Type(SAI_NEXT_HOP_TYPE_IP);
-    NextHopApiParameters::AttributeType ipAttribute =
-        NextHopApiParameters::Attributes::Ip(ip4);
-    NextHopApiParameters::AttributeType routerInterfaceIdAttribute =
-        NextHopApiParameters::Attributes::RouterInterfaceId(0);
+    NextHopApiParameters::Attributes::Type typeAttribute(SAI_NEXT_HOP_TYPE_IP);
+    NextHopApiParameters::Attributes::RouterInterfaceId
+        routerInterfaceIdAttribute(0);
+    NextHopApiParameters::Attributes::Ip ipAttribute(ip4);
     auto nextHopId = nextHopApi->create(
-        {typeAttribute, ipAttribute, routerInterfaceIdAttribute}, 0);
+        {typeAttribute, routerInterfaceIdAttribute, ipAttribute}, 0);
     auto fnh = fs->nhm.get(nextHopId);
     EXPECT_EQ(SAI_NEXT_HOP_TYPE_IP, fnh.type);
     EXPECT_EQ(ip, fnh.ip);
@@ -49,10 +47,6 @@ class NextHopApiTest : public ::testing::Test {
 
 TEST_F(NextHopApiTest, createNextHop) {
   createNextHop(ip4);
-}
-
-TEST_F(NextHopApiTest, badCreate) {
-  EXPECT_THROW(nextHopApi->create({}, 0), SaiApiError);
 }
 
 TEST_F(NextHopApiTest, removeNextHop) {

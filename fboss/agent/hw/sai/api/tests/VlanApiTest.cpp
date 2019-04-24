@@ -38,61 +38,67 @@ class VlanApiTest : public ::testing::Test {
 };
 
 TEST_F(VlanApiTest, createVlan) {
-  auto vlanId = vlanApi->create2({42}, 0);
+  auto vlanId = vlanApi->create({42}, 0);
   checkVlan(vlanId);
 }
 
 TEST_F(VlanApiTest, removeVlan) {
-  auto vlanId = vlanApi->create2({42}, 0);
+  auto vlanId = vlanApi->create({42}, 0);
   checkVlan(vlanId);
   vlanApi->remove(vlanId);
 }
 
 TEST_F(VlanApiTest, createVlanMember) {
-  auto vlanId = vlanApi->create2({42}, 0);
+  auto vlanId = vlanApi->create({42}, 0);
   checkVlan(vlanId);
-  VlanApiParameters::MemberAttributeType vlanIdAttribute =
-      VlanApiParameters::MemberAttributes::VlanId(vlanId);
-  auto vlanMemberId = vlanApi->createMember({vlanIdAttribute}, 0);
+  VlanApiParameters::MemberAttributes::VlanId vlanIdAttribute{vlanId};
+  VlanApiParameters::MemberAttributes::BridgePortId bridgePortIdAttribute{0};
+  auto vlanMemberId =
+      vlanApi->createMember({vlanIdAttribute, bridgePortIdAttribute}, 0);
   checkVlanMember(vlanId, vlanMemberId);
 }
 
 TEST_F(VlanApiTest, multipleVlan) {
-  auto vlanId1 = vlanApi->create2({42}, 0);
-  auto vlanId2 = vlanApi->create2({42}, 0);
+  auto vlanId1 = vlanApi->create({42}, 0);
+  auto vlanId2 = vlanApi->create({42}, 0);
   checkVlan(vlanId1);
   checkVlan(vlanId2);
   EXPECT_NE(vlanId1, vlanId2);
-  VlanApiParameters::MemberAttributeType vlanIdAttribute =
-      VlanApiParameters::MemberAttributes::VlanId(vlanId2);
-  auto vlanMemberId = vlanApi->createMember({vlanIdAttribute}, 0);
+  VlanApiParameters::MemberAttributes::VlanId vlanIdAttribute{vlanId2};
+  VlanApiParameters::MemberAttributes::BridgePortId bridgePortIdAttribute{0};
+  auto vlanMemberId =
+      vlanApi->createMember({vlanIdAttribute, bridgePortIdAttribute}, 0);
   checkVlanMember(vlanId2, vlanMemberId);
 }
 
 TEST_F(VlanApiTest, removeVlanMember) {
-  auto vlanId = vlanApi->create2({42}, 0);
+  auto vlanId = vlanApi->create({42}, 0);
   checkVlan(vlanId);
-  VlanApiParameters::MemberAttributeType vlanIdAttribute =
-      VlanApiParameters::MemberAttributes::VlanId(vlanId);
-  auto vlanMemberId = vlanApi->createMember({vlanIdAttribute}, 0);
+  VlanApiParameters::MemberAttributes::VlanId vlanIdAttribute{vlanId};
+  VlanApiParameters::MemberAttributes::BridgePortId bridgePortIdAttribute{0};
+  auto vlanMemberId =
+      vlanApi->createMember({vlanIdAttribute, bridgePortIdAttribute}, 0);
   checkVlanMember(vlanId, vlanMemberId);
   vlanApi->removeMember(vlanMemberId);
 }
 
 TEST_F(VlanApiTest, multipleVlanMembers) {
-  auto vlanId = vlanApi->create2({42}, 0);
+  auto vlanId = vlanApi->create({42}, 0);
   checkVlan(vlanId);
-  VlanApiParameters::MemberAttributeType vlanIdAttribute =
-      VlanApiParameters::MemberAttributes::VlanId(vlanId);
-  auto vlanMemberId1 = vlanApi->createMember({vlanIdAttribute}, 0);
-  auto vlanMemberId2 = vlanApi->createMember({vlanIdAttribute}, 0);
+  VlanApiParameters::MemberAttributes::VlanId vlanIdAttribute{vlanId};
+  VlanApiParameters::MemberAttributes::BridgePortId bridgePortIdAttribute1{0};
+  auto vlanMemberId1 =
+      vlanApi->createMember({vlanIdAttribute, bridgePortIdAttribute1}, 0);
+  VlanApiParameters::MemberAttributes::BridgePortId bridgePortIdAttribute2{1};
+  auto vlanMemberId2 =
+      vlanApi->createMember({vlanIdAttribute, bridgePortIdAttribute2}, 0);
   checkVlanMember(vlanId, vlanMemberId1);
   checkVlanMember(vlanId, vlanMemberId2);
   EXPECT_NE(vlanMemberId1, vlanMemberId2);
 }
 
 TEST_F(VlanApiTest, getVlanAttribute) {
-  auto vlanId = vlanApi->create2({42}, 0);
+  auto vlanId = vlanApi->create({42}, 0);
   checkVlan(vlanId);
   auto vlanIdGot =
       vlanApi->getAttribute(VlanApiParameters::Attributes::VlanId(), vlanId);
@@ -100,11 +106,12 @@ TEST_F(VlanApiTest, getVlanAttribute) {
 }
 
 TEST_F(VlanApiTest, getVlanMemberAttribute) {
-  auto vlanId = vlanApi->create2({42}, 0);
+  auto vlanId = vlanApi->create({42}, 0);
   checkVlan(vlanId);
-  VlanApiParameters::MemberAttributeType vlanIdAttribute =
-      VlanApiParameters::MemberAttributes::VlanId(vlanId);
-  auto vlanMemberId = vlanApi->createMember({vlanIdAttribute}, 0);
+  VlanApiParameters::MemberAttributes::VlanId vlanIdAttribute{vlanId};
+  VlanApiParameters::MemberAttributes::BridgePortId bridgePortIdAttribute{0};
+  auto vlanMemberId =
+      vlanApi->createMember({vlanIdAttribute, bridgePortIdAttribute}, 0);
   checkVlanMember(vlanId, vlanMemberId);
   auto vlanIdGot = vlanApi->getMemberAttribute(
       VlanApiParameters::MemberAttributes::VlanId(), vlanMemberId);
@@ -112,16 +119,17 @@ TEST_F(VlanApiTest, getVlanMemberAttribute) {
 }
 
 TEST_F(VlanApiTest, setVlanMemberAttribute) {
-  auto vlanId = vlanApi->create2({42}, 0);
+  auto vlanId = vlanApi->create({42}, 0);
   checkVlan(vlanId);
-  VlanApiParameters::MemberAttributeType vlanIdAttribute =
-      VlanApiParameters::MemberAttributes::VlanId(vlanId);
-  auto vlanMemberId = vlanApi->createMember({vlanIdAttribute}, 0);
+  VlanApiParameters::MemberAttributes::VlanId vlanIdAttribute{vlanId};
+  VlanApiParameters::MemberAttributes::BridgePortId bridgePortIdAttribute{0};
+  auto vlanMemberId =
+      vlanApi->createMember({vlanIdAttribute, bridgePortIdAttribute}, 0);
   checkVlanMember(vlanId, vlanMemberId);
   auto bridgePortId = 42;
-  VlanApiParameters::MemberAttributes::BridgePortId bridgePortIdAttribute(
+  VlanApiParameters::MemberAttributes::BridgePortId bridgePortIdAttribute2(
       bridgePortId);
-  vlanApi->setMemberAttribute(bridgePortIdAttribute, vlanMemberId);
+  vlanApi->setMemberAttribute(bridgePortIdAttribute2, vlanMemberId);
   auto bridgePortIdGot = vlanApi->getMemberAttribute(
       VlanApiParameters::MemberAttributes::BridgePortId(), vlanMemberId);
   EXPECT_EQ(bridgePortId, bridgePortIdGot);

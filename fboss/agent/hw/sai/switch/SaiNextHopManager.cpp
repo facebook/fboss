@@ -25,7 +25,7 @@ SaiNextHop::SaiNextHop(
     const sai_object_id_t& switchId)
     : apiTable_(apiTable), attributes_(attributes) {
   auto& nextHopApi = apiTable_->nextHopApi();
-  id_ = nextHopApi.create2(attributes_.attrs(), switchId);
+  id_ = nextHopApi.create(attributes_.attrs(), switchId);
 }
 
 SaiNextHop::~SaiNextHop() {

@@ -50,10 +50,7 @@ struct NextHopApiParameters {
     RouterInterfaceId::ValueType routerInterfaceId;
     Ip::ValueType ip;
   };
-  using AttributeType = boost::
-      variant<Attributes::Ip, Attributes::RouterInterfaceId, Attributes::Type>;
   struct MemberAttributes {};
-  using MemberAttributeType = boost::variant<boost::blank>;
   struct EntryType {};
 };
 

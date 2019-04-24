@@ -36,18 +36,16 @@ class NeighborApiTest : public ::testing::Test {
   folly::MacAddress dstMac{strMac};
 };
 
-TEST_F(NeighborApiTest, createV4Neighbor) {
-  NeighborApiParameters::AttributeType dstMacAttribute =
-      NeighborApiParameters::Attributes::DstMac(dstMac);
+TEST_F(NeighborApiTest, create2V4Neighbor) {
+  NeighborApiParameters::Attributes::DstMac dstMacAttribute(dstMac);
   NeighborApiParameters::NeighborEntry n(0, 0, ip4);
   FakeNeighborEntry fn = std::make_tuple(0, 0, ip4);
   neighborApi->create(n, {dstMacAttribute});
   EXPECT_EQ(fs->nm.get(fn).dstMac, dstMac);
 }
 
-TEST_F(NeighborApiTest, createV6Neighbor) {
-  NeighborApiParameters::AttributeType dstMacAttribute =
-      NeighborApiParameters::Attributes::DstMac(dstMac);
+TEST_F(NeighborApiTest, create2V6Neighbor) {
+  NeighborApiParameters::Attributes::DstMac dstMacAttribute(dstMac);
   NeighborApiParameters::NeighborEntry n(0, 0, ip6);
   FakeNeighborEntry fn = std::make_tuple(0, 0, ip6);
   neighborApi->create(n, {dstMacAttribute});
@@ -55,8 +53,7 @@ TEST_F(NeighborApiTest, createV6Neighbor) {
 }
 
 TEST_F(NeighborApiTest, removeV4Neighbor) {
-  NeighborApiParameters::AttributeType dstMacAttribute =
-      NeighborApiParameters::Attributes::DstMac(dstMac);
+  NeighborApiParameters::Attributes::DstMac dstMacAttribute(dstMac);
   NeighborApiParameters::NeighborEntry n(0, 0, ip4);
   neighborApi->create(n, {dstMacAttribute});
   EXPECT_EQ(fs->nm.map().size(), 1);
@@ -65,8 +62,7 @@ TEST_F(NeighborApiTest, removeV4Neighbor) {
 }
 
 TEST_F(NeighborApiTest, removeV6Neighbor) {
-  NeighborApiParameters::AttributeType dstMacAttribute =
-      NeighborApiParameters::Attributes::DstMac(dstMac);
+  NeighborApiParameters::Attributes::DstMac dstMacAttribute(dstMac);
   NeighborApiParameters::NeighborEntry n(0, 0, ip6);
   neighborApi->create(n, {dstMacAttribute});
   EXPECT_EQ(fs->nm.map().size(), 1);
@@ -75,8 +71,7 @@ TEST_F(NeighborApiTest, removeV6Neighbor) {
 }
 
 TEST_F(NeighborApiTest, getV4DstMac) {
-  NeighborApiParameters::AttributeType dstMacAttribute =
-      NeighborApiParameters::Attributes::DstMac(dstMac);
+  NeighborApiParameters::Attributes::DstMac dstMacAttribute(dstMac);
   NeighborApiParameters::NeighborEntry n(0, 0, ip4);
   neighborApi->create(n, {dstMacAttribute});
   auto gotMac =
@@ -85,8 +80,7 @@ TEST_F(NeighborApiTest, getV4DstMac) {
 }
 
 TEST_F(NeighborApiTest, setV4DstMac) {
-  NeighborApiParameters::AttributeType dstMacAttribute =
-      NeighborApiParameters::Attributes::DstMac(dstMac);
+  NeighborApiParameters::Attributes::DstMac dstMacAttribute(dstMac);
   NeighborApiParameters::NeighborEntry n(0, 0, ip4);
   neighborApi->create(n, {dstMacAttribute});
   folly::MacAddress dstMac2("22:22:22:22:22:22");
@@ -98,8 +92,7 @@ TEST_F(NeighborApiTest, setV4DstMac) {
 }
 
 TEST_F(NeighborApiTest, setV6DstMac) {
-  NeighborApiParameters::AttributeType dstMacAttribute =
-      NeighborApiParameters::Attributes::DstMac(dstMac);
+  NeighborApiParameters::Attributes::DstMac dstMacAttribute(dstMac);
   NeighborApiParameters::NeighborEntry n(0, 0, ip6);
   neighborApi->create(n, {dstMacAttribute});
   folly::MacAddress dstMac2("22:22:22:22:22:22");

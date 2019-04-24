@@ -31,7 +31,7 @@ class PortApiTest : public ::testing::Test {
       const std::vector<uint32_t>& lanes,
       bool adminState) const {
     PortApiParameters::Attributes a{{lanes, speed, adminState}};
-    return portApi->create2(a.attrs(), 0);
+    return portApi->create(a.attrs(), 0);
   }
 
   std::vector<sai_object_id_t> createFourPorts() const {

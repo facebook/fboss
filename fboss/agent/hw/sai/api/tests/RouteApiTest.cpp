@@ -38,23 +38,25 @@ class RouteApiTest : public ::testing::Test {
   folly::MacAddress dstMac{strMac};
 };
 
-TEST_F(RouteApiTest, createV4Route) {
+TEST_F(RouteApiTest, create2V4Route) {
   folly::CIDRNetwork prefix(ip4, 24);
   RouteApiParameters::RouteEntry r(0, 0, prefix);
-  RouteApiParameters::AttributeType nextHopIdAttribute =
-      RouteApiParameters::Attributes::NextHopId(5);
-  routeApi->create(r, {nextHopIdAttribute});
+  RouteApiParameters::Attributes::PacketAction packetActionAttribute{
+      SAI_PACKET_ACTION_FORWARD};
+  RouteApiParameters::Attributes::NextHopId nextHopIdAttribute(5);
+  routeApi->create(r, {packetActionAttribute, nextHopIdAttribute});
   EXPECT_EQ(
       routeApi->getAttribute(RouteApiParameters::Attributes::NextHopId(), r),
       5);
 }
 
-TEST_F(RouteApiTest, createV6Route) {
+TEST_F(RouteApiTest, create2V6Route) {
   folly::CIDRNetwork prefix(ip6, 64);
   RouteApiParameters::RouteEntry r(0, 0, prefix);
-  RouteApiParameters::AttributeType nextHopIdAttribute =
-      RouteApiParameters::Attributes::NextHopId(5);
-  routeApi->create(r, {nextHopIdAttribute});
+  RouteApiParameters::Attributes::PacketAction packetActionAttribute{
+      SAI_PACKET_ACTION_FORWARD};
+  RouteApiParameters::Attributes::NextHopId nextHopIdAttribute(5);
+  routeApi->create(r, {packetActionAttribute, nextHopIdAttribute});
   EXPECT_EQ(
       routeApi->getAttribute(RouteApiParameters::Attributes::NextHopId(), r),
       5);
@@ -63,14 +65,17 @@ TEST_F(RouteApiTest, createV6Route) {
 TEST_F(RouteApiTest, setRouteNextHop) {
   folly::CIDRNetwork prefix(ip4, 24);
   RouteApiParameters::RouteEntry r(0, 0, prefix);
-  routeApi->create(r, {});
-  RouteApiParameters::Attributes::NextHopId nextHopIdAttribute(0);
-  routeApi->setAttribute(nextHopIdAttribute, r);
+  RouteApiParameters::Attributes::PacketAction packetActionAttribute{
+      SAI_PACKET_ACTION_FORWARD};
+  RouteApiParameters::Attributes::NextHopId nextHopIdAttribute(5);
+  routeApi->create(r, {packetActionAttribute, nextHopIdAttribute});
+  RouteApiParameters::Attributes::NextHopId nextHopIdAttribute2(0);
+  routeApi->setAttribute(nextHopIdAttribute2, r);
   EXPECT_EQ(
       routeApi->getAttribute(RouteApiParameters::Attributes::NextHopId(), r),
       0);
-  RouteApiParameters::Attributes::NextHopId nextHopIdAttribute2(42);
-  routeApi->setAttribute(nextHopIdAttribute2, r);
+  RouteApiParameters::Attributes::NextHopId nextHopIdAttribute3(42);
+  routeApi->setAttribute(nextHopIdAttribute3, r);
   EXPECT_EQ(
       routeApi->getAttribute(RouteApiParameters::Attributes::NextHopId(), r),
       42);

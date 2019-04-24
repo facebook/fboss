@@ -32,7 +32,7 @@ SaiBridge::SaiBridge(
     // Create a default 1Q Bridge if the SAI sdk adapter
     // did not return a default 1Q bridge and throws an exception.
     auto& bridgeApi = apiTable_->bridgeApi();
-    id_ = bridgeApi.create2(attributes_.attrs(), switchId);
+    id_ = bridgeApi.create(attributes_.attrs(), switchId);
   }
 }
 
@@ -47,7 +47,7 @@ SaiBridgePort::SaiBridgePort(
     const sai_object_id_t& switchId)
         : apiTable_(apiTable), attributes_(attributes) {
   auto& bridgeApi = apiTable_->bridgeApi();
-  id_ = bridgeApi.createMember2(attributes_.attrs(), switchId);
+  id_ = bridgeApi.createMember(attributes_.attrs(), switchId);
 }
 
 SaiBridgePort::~SaiBridgePort() {

@@ -32,7 +32,7 @@ SaiSwitchInstance::SaiSwitchInstance(SaiApiTable* apiTable)
   SwitchApiParameters::Attributes::HwInfo hwInfo(getConnectionHandle());
   SwitchApiParameters::Attributes attributes_{{hwInfo}};
   auto& switchApi = apiTable_->switchApi();
-  id_ = switchApi.create2(attributes_.attrs());
+  id_ = switchApi.create(attributes_.attrs());
 }
 
 SaiSwitchInstance::SaiSwitchInstance(
@@ -40,7 +40,7 @@ SaiSwitchInstance::SaiSwitchInstance(
     const SwitchApiParameters::Attributes& attributes)
     : apiTable_(apiTable), attributes_(attributes) {
   auto& switchApi = apiTable_->switchApi();
-  id_ = switchApi.create2(attributes_.attrs());
+  id_ = switchApi.create(attributes_.attrs());
 }
 
 SaiSwitchInstance::~SaiSwitchInstance() {

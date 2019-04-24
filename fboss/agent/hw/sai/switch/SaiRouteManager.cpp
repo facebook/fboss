@@ -30,7 +30,7 @@ SaiRoute::SaiRoute(
       attributes_(attributes),
       nextHopGroup_(nextHopGroup) {
   auto& routeApi = apiTable_->routeApi();
-  routeApi.create2(entry_, attributes.attrs());
+  routeApi.create(entry_, attributes.attrs());
 }
 
 SaiRoute::~SaiRoute() {

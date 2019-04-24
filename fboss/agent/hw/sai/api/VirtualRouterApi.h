@@ -43,9 +43,7 @@ struct VirtualRouterApiParameters {
       return !(*this == other);
     }
   };
-  using AttributeType = boost::variant<Attributes::SrcMac>;
   struct MemberAttributes {};
-  using MemberAttributeType = boost::variant<boost::blank>;
   struct EntryType {};
 };
 

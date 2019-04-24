@@ -48,7 +48,6 @@ struct NextHopGroupApiParameters {
     }
     Type::ValueType type;
   };
-  using AttributeType = boost::variant<boost::blank>;
   struct MemberAttributes {
     using EnumType = sai_next_hop_group_member_attr_t;
     using NextHopId = SaiAttribute<
@@ -75,7 +74,6 @@ struct NextHopGroupApiParameters {
     NextHopGroupId::ValueType nextHopGroupId;
     NextHopId::ValueType nextHopId;
   };
-  using MemberAttributeType = boost::variant<boost::blank>;
   struct EntryType {};
 };
 

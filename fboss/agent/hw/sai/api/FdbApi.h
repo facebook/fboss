@@ -52,9 +52,6 @@ struct FdbApiParameters {
     Type::ValueType type;
     BridgePortId::ValueType bridgePortId;
   };
-  using AttributeType = boost::variant<
-    typename Attributes::Type,
-    typename Attributes::BridgePortId>;
 
   class FdbEntry {
    public:
@@ -90,7 +87,6 @@ struct FdbApiParameters {
   };
   using EntryType = FdbEntry;
   struct MemberAttributes {};
-  using MemberAttributeType = boost::variant<boost::blank>;
 };
 
 class FdbApi : public SaiApi<FdbApi, FdbApiParameters> {

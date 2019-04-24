@@ -34,7 +34,7 @@ SaiNeighbor::SaiNeighbor(
       attributes_(attributes),
       fdbEntry_(std::move(fdbEntry)) {
   auto& neighborApi = apiTable_->neighborApi();
-  neighborApi.create2(entry_, attributes.attrs());
+  neighborApi.create(entry_, attributes.attrs());
   nextHop_ = managerTable_->nextHopManager().addNextHop(
       entry_.routerInterfaceId(), entry_.ip());
 }

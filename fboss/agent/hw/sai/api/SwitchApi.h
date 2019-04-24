@@ -68,13 +68,7 @@ struct SwitchApiParameters {
     }
     typename HwInfo::ValueType hwInfo;
   };
-  using AttributeType = boost::variant<
-      Attributes::DefaultVlanId,
-      Attributes::PortNumber,
-      Attributes::PortList,
-      Attributes::SrcMac>;
   struct MemberAttributes {};
-  using MemberAttributeType = boost::variant<boost::blank>;
   struct EntryType {};
 };
 

@@ -42,34 +42,34 @@ class NextHopGroupApiTest : public ::testing::Test {
 
 TEST_F(NextHopGroupApiTest, createNextHopGroup) {
   auto nextHopGroupId =
-      nextHopGroupApi->create2({SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
+      nextHopGroupApi->create({SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
   checkNextHopGroup(nextHopGroupId);
 }
 
 TEST_F(NextHopGroupApiTest, removeNextHopGroup) {
   auto nextHopGroupId =
-      nextHopGroupApi->create2({SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
+      nextHopGroupApi->create({SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
   checkNextHopGroup(nextHopGroupId);
   nextHopGroupApi->remove(nextHopGroupId);
 }
 
 TEST_F(NextHopGroupApiTest, createNextHopGroupMember) {
   auto nextHopGroupId =
-      nextHopGroupApi->create2({SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
+      nextHopGroupApi->create({SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
   checkNextHopGroup(nextHopGroupId);
   sai_object_id_t nextHopId = 42;
   auto nextHopGroupMemberId =
-      nextHopGroupApi->createMember2({nextHopGroupId, nextHopId}, 0);
+      nextHopGroupApi->createMember({nextHopGroupId, nextHopId}, 0);
   checkNextHopGroupMember(nextHopGroupId, nextHopGroupMemberId);
 }
 
 TEST_F(NextHopGroupApiTest, removeNextHopGroupMember) {
   auto nextHopGroupId =
-      nextHopGroupApi->create2({SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
+      nextHopGroupApi->create({SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
   checkNextHopGroup(nextHopGroupId);
   sai_object_id_t nextHopId = 42;
   auto nextHopGroupMemberId =
-      nextHopGroupApi->createMember2({nextHopGroupId, nextHopId}, 0);
+      nextHopGroupApi->createMember({nextHopGroupId, nextHopId}, 0);
   checkNextHopGroupMember(nextHopGroupId, nextHopGroupMemberId);
   nextHopGroupApi->removeMember(nextHopGroupMemberId);
 }

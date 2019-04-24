@@ -32,7 +32,7 @@ SaiVirtualRouter::SaiVirtualRouter(
     // Create a default vritaul router if the SAI adapter
     // did not create a default virtual router and throws an exception.
     auto& virtualRouterApi = apiTable_->virtualRouterApi();
-    id_ = virtualRouterApi.create2(attributes_.attrs(), switchId);
+    id_ = virtualRouterApi.create(attributes_.attrs(), switchId);
   }
 }
 
@@ -42,7 +42,7 @@ SaiVirtualRouter::SaiVirtualRouter(
     const sai_object_id_t& switchId)
     : apiTable_(apiTable), attributes_(attributes) {
   auto& virtualRouterApi = apiTable_->virtualRouterApi();
-  id_ = virtualRouterApi.create2(attributes_.attrs(), switchId);
+  id_ = virtualRouterApi.create(attributes_.attrs(), switchId);
 }
 
 SaiVirtualRouter::~SaiVirtualRouter() {

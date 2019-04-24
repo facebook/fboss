@@ -30,7 +30,7 @@ SaiNextHopGroupMember::SaiNextHopGroupMember(
     const sai_object_id_t &switchId)
     : apiTable_(apiTable), attributes_(attributes) {
   auto& nextHopGroupApi = apiTable_->nextHopGroupApi();
-  id_ = nextHopGroupApi.createMember2(attributes_.attrs(), switchId);
+  id_ = nextHopGroupApi.createMember(attributes_.attrs(), switchId);
 }
 
 SaiNextHopGroupMember::~SaiNextHopGroupMember() {
@@ -59,7 +59,7 @@ SaiNextHopGroup::SaiNextHopGroup(
       swNextHops_(swNextHops) {
   auto& nextHopGroupApi = apiTable_->nextHopGroupApi();
   auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
-  id_ = nextHopGroupApi.create2(attributes_.attrs(), switchId);
+  id_ = nextHopGroupApi.create(attributes_.attrs(), switchId);
 }
 
 SaiNextHopGroup::~SaiNextHopGroup() {

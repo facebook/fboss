@@ -51,7 +51,6 @@ struct RouteApiParameters {
     PacketAction::ValueType packetAction;
     folly::Optional<NextHopId::ValueType> nextHopId;
   };
-  using AttributeType = boost::variant<Attributes::NextHopId>;
 
   class RouteEntry {
    public:
@@ -87,7 +86,6 @@ struct RouteApiParameters {
   };
   using EntryType = RouteEntry;
   struct MemberAttributes {};
-  using MemberAttributeType = boost::variant<boost::blank>;
 };
 
 class RouteApi : public SaiApi<RouteApi, RouteApiParameters> {

@@ -61,13 +61,7 @@ struct RouterInterfaceApiParameters {
     VlanId::ValueType vlanId;
     folly::Optional<SrcMac::ValueType> srcMac;
   };
-  using AttributeType = boost::variant<
-      Attributes::SrcMac,
-      Attributes::Type,
-      Attributes::VirtualRouterId,
-      Attributes::VlanId>;
   struct MemberAttributes {};
-  using MemberAttributeType = boost::variant<boost::blank>;
   struct EntryType {};
 };
 

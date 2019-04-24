@@ -51,7 +51,6 @@ struct NeighborApiParameters {
     }
     DstMac::ValueType dstMac;
   };
-  using AttributeType = boost::variant<typename Attributes::DstMac>;
 
   class NeighborEntry {
    public:
@@ -87,7 +86,6 @@ struct NeighborApiParameters {
   };
   using EntryType = NeighborEntry;
   struct MemberAttributes {};
-  using MemberAttributeType = boost::variant<boost::blank>;
 };
 
 class NeighborApi : public SaiApi<NeighborApi, NeighborApiParameters> {

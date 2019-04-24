@@ -38,58 +38,13 @@ class SaiApi {
   SaiApi(const SaiApi& other) = delete;
   SaiApi& operator=(const SaiApi& other) = delete;
 
-  /*
-   * Because there are objects with attributes which MUST be set on create,
-   * we must be able to take a list of attributes for create. This means
-   * that we have to wrap individual attributes in a type that can live
-   * in a container. We use boost::variant for this. The visitor copies
-   * out the POD sai_attribute_t from the SaiAttribute into the array
-   * of sai_attribute_t pointers passed to SAI. To avoid this copying, if
-   * needed, it is probably best to use the underlying SAI API directly.
-   */
-  template <typename T = ApiParameters, typename... Args>
-  typename std::enable_if<apiUsesObjectId<T>::value, sai_object_id_t>::type
-  create(
-      const std::vector<typename T::AttributeType>& attributes,
-      Args&&... args) {
-    static_assert(
-        std::is_same<T, ApiParameters>::value,
-        "AttributeType must come from correct ApiParameters");
-    sai_object_id_t id;
-    std::vector<sai_attribute_t> saiAttributeTs = getSaiAttributeTs(attributes);
-    sai_status_t status = impl()._create(
-        &id,
-        saiAttributeTs.data(),
-        saiAttributeTs.size(),
-        std::forward<Args>(args)...);
-    saiCheckError(status, "Failed to create sai entity");
-    return id;
-  }
-
-  template <typename T = ApiParameters, typename... Args>
-  typename std::enable_if<apiUsesEntry<T>::value, void>::type create(
-      const typename T::EntryType& entry,
-      const std::vector<typename T::AttributeType>& attributes,
-      Args&&... args) {
-    static_assert(
-        std::is_same<T, ApiParameters>::value,
-        "AttributeType or EntryTypes must come from correct ApiParameters");
-    std::vector<sai_attribute_t> saiAttributeTs = getSaiAttributeTs(attributes);
-    sai_status_t status = impl()._create(
-        entry,
-        saiAttributeTs.data(),
-        saiAttributeTs.size(),
-        std::forward<Args>(args)...);
-    saiCheckError(status, "Failed to create sai entity");
-  }
-
   // Note: we need to parameterize by T = ApiParameters, then immediately
   // statically check that T = ApiParameters in order to enable type
   // deduction to allow the use of SFINAE to select this method rather
   // than the version that expects an EntryType and has no return value
   template <typename T = ApiParameters, typename... Args>
   typename std::enable_if<apiUsesObjectId<T>::value, sai_object_id_t>::type
-  create2(
+  create(
       const typename T::Attributes::CreateAttributes& createAttrs,
       Args&&... args) {
     static_assert(
@@ -107,7 +62,7 @@ class SaiApi {
   }
 
   template <typename T = ApiParameters, typename... Args>
-  typename std::enable_if<apiUsesEntry<T>::value, void>::type create2(
+  typename std::enable_if<apiUsesEntry<T>::value, void>::type create(
       const typename T::EntryType& entry,
       const typename T::Attributes::CreateAttributes& createAttrs,
       Args&&... args) {
@@ -164,22 +119,6 @@ class SaiApi {
   template <typename T = ApiParameters, typename... Args>
   typename std::enable_if<apiHasMembers<T>::value, sai_object_id_t>::type
   createMember(
-      const std::vector<typename T::MemberAttributeType>& attributes,
-      Args&&... args) {
-    std::vector<sai_attribute_t> saiAttributeTs = getSaiAttributeTs(attributes);
-    sai_object_id_t id;
-    sai_status_t status = impl()._createMember(
-        &id,
-        saiAttributeTs.data(),
-        saiAttributeTs.size(),
-        std::forward<Args>(args)...);
-    saiCheckError(status, "Failed to create sai member entity");
-    return id;
-  }
-
-  template <typename T = ApiParameters, typename... Args>
-  typename std::enable_if<apiHasMembers<T>::value, sai_object_id_t>::type
-  createMember2(
       const typename T::MemberAttributes::CreateAttributes& createAttrs,
       Args&&... args) {
     static_assert(

@@ -47,8 +47,6 @@ struct VlanApiParameters {
     }
     typename VlanId::ValueType vlanId;
   };
-  using AttributeType =
-      boost::variant<Attributes::VlanId, Attributes::MemberList>;
   struct MemberAttributes {
     using EnumType = sai_vlan_member_attr_t;
     using BridgePortId = SaiAttribute<
@@ -73,8 +71,6 @@ struct VlanApiParameters {
     typename VlanId::ValueType vlanId;
     typename BridgePortId::ValueType bridgePortId;
   };
-  using MemberAttributeType =
-      boost::variant<MemberAttributes::BridgePortId, MemberAttributes::VlanId>;
   struct EntryType {};
 };
 

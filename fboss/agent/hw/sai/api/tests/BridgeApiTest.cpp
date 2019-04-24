@@ -56,14 +56,14 @@ TEST_F(BridgeApiTest, removeBridge) {
 TEST_F(BridgeApiTest, createBridgePort) {
   BridgeApiParameters::MemberAttributes::CreateAttributes c{
       SAI_BRIDGE_PORT_TYPE_PORT, 42};
-  auto bridgePortId = bridgeApi->createMember2(c, 0);
+  auto bridgePortId = bridgeApi->createMember(c, 0);
   checkBridgePort(bridgePortId);
 }
 
 TEST_F(BridgeApiTest, removeBridgePort) {
   BridgeApiParameters::MemberAttributes::CreateAttributes c{
       SAI_BRIDGE_PORT_TYPE_PORT, 42};
-  auto bridgePortId = bridgeApi->createMember2(c, 0);
+  auto bridgePortId = bridgeApi->createMember(c, 0);
   checkBridgePort(bridgePortId);
   EXPECT_EQ(fs->brm.get(0).fm().map().size(), 1);
   bridgeApi->removeMember(bridgePortId);

@@ -29,7 +29,7 @@ SaiVlanMember::SaiVlanMember(
     const sai_object_id_t& switchId)
     : apiTable_(apiTable), attributes_(attributes) {
   auto& vlanApi = apiTable_->vlanApi();
-  id_ = vlanApi.createMember2(attributes_.attrs(), switchId);
+  id_ = vlanApi.createMember(attributes_.attrs(), switchId);
 }
 
 SaiVlanMember::~SaiVlanMember() {
@@ -54,7 +54,7 @@ SaiVlan::SaiVlan(
       attributes_(attributes) {
   auto& vlanApi = apiTable_->vlanApi();
   auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
-  id_ = vlanApi.create2(attributes_.attrs(), switchId);
+  id_ = vlanApi.create(attributes_.attrs(), switchId);
 }
 
 SaiVlan::~SaiVlan() {

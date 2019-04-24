@@ -43,7 +43,6 @@ struct BridgeApiParameters {
     Type::ValueType type;
   };
 
-  using AttributeType = boost::variant<Attributes::PortList, Attributes::Type>;
   struct MemberAttributes {
     using EnumType = sai_bridge_port_attr_t;
     using BridgeId =
@@ -68,7 +67,6 @@ struct BridgeApiParameters {
     Type::ValueType type;
     PortId::ValueType portId;
   };
-  using MemberAttributeType = boost::variant<boost::blank>;
   struct EntryType {};
 };
 
