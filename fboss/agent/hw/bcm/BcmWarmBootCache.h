@@ -87,15 +87,6 @@ class BcmWarmBootCache {
   }
   static std::string toEgressIdsStr(const EgressIds& egressIds);
   /*
-   * Reconstruct interface map from contents of warm boot cache
-   */
-  std::shared_ptr<InterfaceMap> reconstructInterfaceMap() const;
-  /*
-   * Reconstruct vlan map from contents of warm boot cache
-   */
-  std::shared_ptr<VlanMap> reconstructVlanMap() const;
-
-  /*
    * Get all cached ecmp egress Ids
    */
   const Ecmp2EgressIds&  ecmp2EgressIds() const {

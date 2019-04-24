@@ -351,47 +351,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
 }
 
 std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
-  auto warmBootState = getColdBootSwitchState();
-  for (auto port : *warmBootState->getPorts()) {
-    auto bcmPort = portTable_->getBcmPort(port->getID());
-    port->setOperState(bcmPort->isUp());
-    port->setAdminState(
-        bcmPort->isEnabled() ? cfg::PortState::ENABLED
-                             : cfg::PortState::DISABLED);
-
-    XLOG(DBG1) << "Recovered port " << port->getID() << " after warm boot."
-               << " AdminState="
-               << ((port->isEnabled()) ? "Enabled" : "Disabled")
-               << " OperState=" << ((port->isUp()) ? "Up" : "Down");
-  }
-  warmBootState->resetIntfs(warmBootCache_->reconstructInterfaceMap());
-  warmBootState->resetVlans(warmBootCache_->reconstructVlanMap());
-  // Reconstruct remaining state from deserialized switch state.
-  // TODO: recover ports, interfaces and VLANs from deserialized switch
-  // state as well.
-  const auto& dumpedSwSwitchState = warmBootCache_->getDumpedSwSwitchState();
-  warmBootState->resetRouteTables(dumpedSwSwitchState.getRouteTables());
-  warmBootState->resetAcls(dumpedSwSwitchState.getAcls());
-  warmBootState->resetSflowCollectors(dumpedSwSwitchState.getSflowCollectors());
-  warmBootState->resetQosPolicies(dumpedSwSwitchState.getQosPolicies());
-  warmBootState->resetLoadBalancers(dumpedSwSwitchState.getLoadBalancers());
-  warmBootState->resetMirrors(dumpedSwSwitchState.getMirrors());
-
-  auto* ports = warmBootState->getPorts()->modify(&warmBootState);
-  for (const auto& cachedPort : *dumpedSwSwitchState.getPorts()) {
-    auto id = cachedPort->getID();
-    auto port = ports->getPort(id);
-    for (auto vlanMember : cachedPort->getVlans()) {
-      VlanID vlanID(vlanMember.first);
-      port->addVlan(vlanID, vlanMember.second.tagged);
-    }
-    port->setIngressMirror(cachedPort->getIngressMirror());
-    port->setEgressMirror(cachedPort->getEgressMirror());
-    port->setSflowIngressRate(cachedPort->getSflowIngressRate());
-    port->setSflowEgressRate(cachedPort->getSflowEgressRate());
-  }
-
-  return warmBootState;
+  return  warmBootCache_->getDumpedSwSwitchState().clone();
 }
 
 void BcmSwitch::runBcmScriptPreAsicInit() const {
