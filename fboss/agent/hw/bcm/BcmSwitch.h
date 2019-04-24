@@ -300,7 +300,7 @@ class BcmSwitch : public BcmSwitchIf {
    * Start any services that make sense only
    * after initial configuration has been applied
    */
-  void initialConfigApplied() override;
+  void initialConfigApplied() override {}
   /*
    * Signal to warm boot cache that this
    * owner is done programming the h/w and we

@@ -433,6 +433,9 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   unit_ = unitObject_->getNumber();
   unitObject_->setCookie(this);
 
+  // TODO: Experiment with early packet tx/rx and start
+  // RX even earlier.
+  setupPacketRx();
   bootType_ = platform_->getWarmBootHelper()->canWarmBoot()
       ? BootType::WARM_BOOT
       : BootType::COLD_BOOT;
@@ -644,11 +647,6 @@ void BcmSwitch::setupPacketRx() {
     rv = opennsl_rx_start(unit_, &rxCfg);
   }
   bcmCheckError(rv, "failed to start broadcom packet rx API");
-}
-
-void BcmSwitch::initialConfigApplied() {
-  std::lock_guard<std::mutex> g(lock_);
-  setupPacketRx();
 }
 
 std::shared_ptr<SwitchState> BcmSwitch::stateChanged(const StateDelta& delta) {

@@ -449,7 +449,6 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
     }
     tunMgr_->probe();
   }
-
   platform_->onHwInitialized(this);
 
   // Notify the state observers of the initial state
@@ -983,6 +982,7 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   // packets since the individual handlers, h/w sdk data structures
   // may not be ready or may already be (partially) destroyed
   if (!isFullyInitialized()) {
+    XLOG(INFO) <<" Dropping received packets received on UNINITIALIZED switch";
     return;
   }
   PortID port = pkt->getSrcPort();
@@ -1278,8 +1278,8 @@ void SwSwitch::sendL3Packet(
     std::unique_ptr<TxPacket> pkt,
     folly::Optional<InterfaceID> maybeIfID) noexcept {
 
-  if (!isFullyConfigured()) {
-    XLOG(INFO) << " Dropping L3 packet since device not yet configured";
+  if (!isFullyInitialized()) {
+    XLOG(INFO) <<" Dropping L3 packet since device not yet initialized";
     return;
   }
 
