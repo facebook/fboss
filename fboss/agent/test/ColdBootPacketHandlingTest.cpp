@@ -10,38 +10,42 @@
 
 #include <gtest/gtest.h>
 
-
 #include <memory>
 #include <utility>
 
 #include <folly/logging/xlog.h>
 
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/test/CounterCache.h"
+#include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestPacketFactory.h"
 #include "fboss/agent/test/TestUtils.h"
-#include "fboss/agent/test/HwTestHandle.h"
-
 
 using namespace facebook::fboss;
-using std::make_shared;
 using std::make_pair;
+using std::make_shared;
 
 using ::testing::_;
 
 namespace {
 
 const folly::MacAddress kPlatformMac("02:01:02:03:04:05");
+const folly::MacAddress kMac1("02:01:02:04:06:08");
 const folly::IPAddressV4 kIPv4Addr1("10.0.0.1");
 const folly::IPAddressV4 kIPv4Addr2("10.0.0.2");
 const folly::IPAddressV6 kIPv6Addr1("face:b00c::1");
 const folly::IPAddressV6 kIPv6Addr2("face:b00c::2");
-}
+// Link local addresses
+const folly::IPAddressV4 kllIPv4Addr1("169.254.1.1");
+const folly::IPAddressV4 kllIPv4Addr2("169.254.2.2");
+const folly::IPAddressV6 kllIPv6Addr1("fe80::1");
+const folly::IPAddressV6 kllIPv6Addr2("fe80::2");
+} // namespace
 
 class ColdBootPacketHandlingFixture : public ::testing::Test {
  public:
@@ -51,7 +55,10 @@ class ColdBootPacketHandlingFixture : public ::testing::Test {
   void TearDown() override {
     handle_.reset();
   }
-  SwSwitch* getSw() { return handle_->getSw(); }
+  SwSwitch* getSw() {
+    return handle_->getSw();
+  }
+
  protected:
   void packetSendUnknownInterface(const folly::IOBuf& buf) {
     CounterCache counters(getSw());
@@ -61,6 +68,18 @@ class ColdBootPacketHandlingFixture : public ::testing::Test {
     getSw()->sendL3Packet(std::move(pkt), InterfaceID(2000));
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
+  }
+  void unicastPacketSendNoInterface(const folly::IOBuf& buf) {
+    CounterCache counters(getSw());
+    auto pkt = createTxPacket(getSw(), buf);
+    // We expect a single call to sendPacketSwitchedAsync. In response to this
+    // packet, neighbor resolution is triggered, but since we won't find any
+    // next hops for the dst address here. No ARP/Neighbor solicitation request
+    // is generated
+    EXPECT_HW_CALL(getSw(), sendPacketSwitchedAsync_(_)).Times(1);
+    getSw()->sendL3Packet(std::move(pkt));
+    counters.update();
+    counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 1);
   }
 
  private:
@@ -91,4 +110,14 @@ TEST_F(ColdBootPacketHandlingFixture, v4PacketUnknownInterface) {
 TEST_F(ColdBootPacketHandlingFixture, v6PacketUnknownInterface) {
   packetSendUnknownInterface(
       createV6Packet(kIPv6Addr1, kIPv6Addr2, kPlatformMac, kPlatformMac));
+}
+
+TEST_F(ColdBootPacketHandlingFixture, v4PacketNoInterface) {
+  unicastPacketSendNoInterface(
+      createV4Packet(kIPv4Addr1, kIPv4Addr2, kMac1, kPlatformMac));
+}
+
+TEST_F(ColdBootPacketHandlingFixture, v6PacketNoInterface) {
+  unicastPacketSendNoInterface(
+      createV6Packet(kIPv6Addr1, kIPv6Addr2, kMac1, kPlatformMac));
 }
