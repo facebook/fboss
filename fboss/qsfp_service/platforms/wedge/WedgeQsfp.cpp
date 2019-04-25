@@ -104,4 +104,8 @@ folly::Optional<TransceiverStats> WedgeQsfp::getTransceiverStats() {
   result.assign(wedgeQsfpstats_.getStats());
   return result;
 }
+
+folly::EventBase* WedgeQsfp::getI2cEventBase() {
+  return threadSafeI2CBus_->getEventBase(module_ + 1);
+}
 }}

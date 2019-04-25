@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <folly/io/async/EventBase.h>
 #include <chrono>
 #include <cstdint>
 #include <mutex>
@@ -91,6 +92,8 @@ class WedgeQsfp : public TransceiverImpl {
   int getNum() const override;
 
   folly::Optional<TransceiverStats> getTransceiverStats() override;
+
+  folly::EventBase* getI2cEventBase() override;
 
  private:
   int module_;

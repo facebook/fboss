@@ -9,13 +9,13 @@
  */
 #pragma once
 
-#include <cstdint>
 #include <folly/Optional.h>
 #include <folly/String.h>
-#include "fboss/agent/types.h"
+#include <folly/io/async/EventBase.h>
+#include <cstdint>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
-
 
 namespace facebook { namespace fboss {
 
@@ -55,6 +55,17 @@ class TransceiverImpl {
 
   virtual folly::Optional<TransceiverStats> getTransceiverStats() {
     return folly::Optional<TransceiverStats>();
+  }
+
+  /*
+   * Function that returns the eventbase that suppose to execute the I2C txn
+   * associated with the module. At this moment, only Minipack and Yamp which
+   * are the models using FPGA has the ability of doing I2C txn parallelly.
+   * Other models that has single I2C bus will return nullptr by default which
+   * means no relevant eventbase.
+   */
+  virtual folly::EventBase* getI2cEventBase() {
+    return nullptr;
   }
 
  private:
