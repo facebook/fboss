@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <folly/io/async/EventBase.h>
+
 #include <cstdint>
 #include <stdexcept>
 #include <string>
@@ -51,6 +53,17 @@ class TransceiverI2CApi {
    * detected plugging in.
    */
   virtual void ensureOutOfReset(unsigned int module) {};
+
+  /*
+   * Function that returns the eventbase that suppose to execute the I2C txn
+   * associated with the module. At this moment, only Minipack and Yamp which
+   * are the models using FPGA has the ability of doing I2C txn parallelly.
+   * Other models that has single I2C bus will return nullptr by default which
+   * means no relevant eventbase.
+   */
+  virtual folly::EventBase* getEventBase(unsigned int module) {
+    return nullptr;
+  };
 
   // Addresses to be queried by external callers:
   enum : uint8_t {

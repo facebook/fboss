@@ -80,4 +80,7 @@ void WedgeI2CBusLock::ensureOutOfReset(unsigned int module) {
   wedgeI2CBus_->ensureOutOfReset(module);
 }
 
+folly::EventBase* WedgeI2CBusLock::getEventBase(unsigned int module) {
+  return wedgeI2CBus_->getEventBase(module);
+}
 }} // facebook::fboss

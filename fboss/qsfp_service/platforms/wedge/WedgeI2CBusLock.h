@@ -36,6 +36,8 @@ class WedgeI2CBusLock : public TransceiverI2CApi {
   bool isPresent(unsigned int module) override;
   void ensureOutOfReset(unsigned int module) override;
 
+  folly::EventBase* getEventBase(unsigned int module) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   WedgeI2CBusLock(WedgeI2CBusLock const &) = delete;
