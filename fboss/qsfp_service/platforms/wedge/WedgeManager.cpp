@@ -27,15 +27,11 @@ void WedgeManager::initTransceiverMap() {
     auto qsfpImpl = std::make_unique<WedgeQsfp>(idx, wedgeI2cBus_.get());
     auto qsfp = std::make_unique<QsfpModule>(
         std::move(qsfpImpl), numPortsPerTransceiver());
-    try {
-      qsfp->refresh();
-    } catch (const std::exception& ex) {
-      XLOG(ERR) << "Transceiver " << idx
-                << ": Error populating initial data: " << ex.what();
-    }
     transceivers_.push_back(move(qsfp));
     XLOG(INFO) << "making QSFP for " << idx;
   }
+
+  refreshTransceivers();
 }
 
 void WedgeManager::getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
@@ -117,16 +113,23 @@ void WedgeManager::syncPorts(
 }
 
 void WedgeManager::refreshTransceivers() {
-  wedgeI2cBus_->verifyBus(false);
+  try {
+    wedgeI2cBus_->verifyBus(false);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Error calling verifyBus(): " << ex.what();
+    return;
+  }
+
+  std::vector<folly::Future<folly::Unit>> futs;
+  XLOG(DBG2) << "Start refreshing all transceivers...";
 
   for (const auto& transceiver : transceivers_) {
-    try {
-      transceiver->refresh();
-    } catch (const std::exception& ex) {
-      XLOG(DBG2) << "Transceiver " << static_cast<int>(transceiver->getID())
-                << ": Error calling refresh(): " << ex.what();
-    }
+    XLOG(DBG3) << "Fired to refresh transceiver " << transceiver->getID();
+    futs.push_back(transceiver->futureRefresh());
   }
+
+  folly::collectAll(futs.begin(), futs.end()).wait();
+  XLOG(DBG2) << "Finished refreshing all transceivers";
 }
 
 std::unique_ptr<TransceiverI2CApi> WedgeManager::getI2CBus() {
