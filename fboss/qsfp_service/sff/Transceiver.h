@@ -14,6 +14,8 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
+#include <folly/futures/Future.h>
+
 namespace facebook { namespace fboss {
 
 /* Virtual class to handle the different transceivers our equipment is likely
@@ -43,6 +45,7 @@ class Transceiver {
    * Check if the transceiver is present or not and refresh data.
    */
   virtual void refresh() = 0;
+  virtual folly::Future<folly::Unit> futureRefresh() = 0;
 
   /*
    * Return all of the transceiver information

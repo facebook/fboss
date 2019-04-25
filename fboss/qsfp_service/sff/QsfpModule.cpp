@@ -19,6 +19,7 @@
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 
 #include <folly/io/IOBuf.h>
+#include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
 
 DEFINE_int32(
@@ -801,6 +802,28 @@ void QsfpModule::transceiverPortsChanged(
 void QsfpModule::refresh() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   refreshLocked();
+}
+
+folly::Future<folly::Unit> QsfpModule::futureRefresh() {
+  auto i2cEvb = qsfpImpl_->getI2cEventBase();
+  if (!i2cEvb) {
+    try {
+      refresh();
+    } catch (const std::exception& ex) {
+      XLOG(DBG2) << "Transceiver " << static_cast<int>(this->getID())
+                 << ": Error calling refresh(): " << ex.what();
+    }
+    return folly::makeFuture();
+  }
+
+  return via(i2cEvb).thenValue([&](auto&&) mutable {
+    try {
+      this->refresh();
+    } catch (const std::exception& ex) {
+      XLOG(DBG2) << "Transceiver " << static_cast<int>(this->getID())
+                 << ": Error calling refresh(): " << ex.what();
+    }
+  });
 }
 
 void QsfpModule::refreshLocked() {

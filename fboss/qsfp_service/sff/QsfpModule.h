@@ -16,6 +16,7 @@
 
 #include <folly/Optional.h>
 #include <folly/Synchronized.h>
+#include <folly/futures/Future.h>
 
 namespace facebook { namespace fboss {
 
@@ -87,6 +88,7 @@ class QsfpModule : public Transceiver {
   TransceiverInfo parseDataLocked();
 
   virtual void refresh() override;
+  folly::Future<folly::Unit> futureRefresh() override;
   void refreshLocked();
 
   /*
