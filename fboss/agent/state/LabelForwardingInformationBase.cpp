@@ -49,10 +49,7 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
     }
   }
 
-  auto* writableLabelFib = this;
-  if (!isPublished()) {
-    writableLabelFib = modify(state);
-  }
+  auto* writableLabelFib = modify(state);
   auto entry = writableLabelFib->getLabelForwardingEntryIf(label);
 
   if (!entry) {
