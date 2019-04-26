@@ -83,7 +83,8 @@ LabelNextHopEntry getPopLabelNextHopEntry(
     InterfaceID intfId,
     std::vector<folly::IPAddress> addrs) {
   LabelNextHopSet nexthops;
-  auto& nexthopAddrs = addrs.size() > 0 ? addrs : kNextHopAddrs;
+  std::vector<folly::IPAddress>  popAddrs{folly::IPAddress("::")};
+  auto& nexthopAddrs = addrs.size() > 0 ? addrs : popAddrs;
   for (auto i = 0; i < nexthopAddrs.size(); i++) {
     nexthops.emplace(ResolvedNextHop(
         nexthopAddrs[i], intfId, ECMP_WEIGHT, getPhpAction(false)));
@@ -102,6 +103,7 @@ NextHopThrift getSwapNextHopThrift(int offset) {
   MplsAction action;
   action.action = MplsActionCode::SWAP;
   action.swapLabel_ref() = 601;
+  nexthop.mplsAction_ref() = action;
   return nexthop;
 }
 

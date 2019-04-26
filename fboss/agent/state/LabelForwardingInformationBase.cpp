@@ -44,8 +44,24 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
     AdminDistance distance,
     LabelNextHopSet nexthops) {
   for (const auto& nexthop : nexthops) {
+    if (!nexthop.labelForwardingAction()) {
+      throw FbossError(
+          "label next hop ", nexthop.str(), " has no forwarding action");
+    }
+    if (nexthop.labelForwardingAction()->type() ==
+        LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
+      /* pop and lookup forwarding action does not have and need interface id
+      as well as next hop address, accordingly it is always valid. however
+      there must be only one next hop with pop and lookup */
+      if (nexthops.size() > 1) {
+        throw FbossError("pop label forwarding action with multiple next hops");
+      } else {
+        continue;
+      }
+    }
+
     if (!nexthop.isResolved()) {
-      throw FbossError("invalid label next hop");
+      throw FbossError("invalid label next hop", nexthop.str());
     }
   }
 
