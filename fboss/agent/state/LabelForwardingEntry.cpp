@@ -92,10 +92,9 @@ bool LabelForwardingEntry::operator==(const LabelForwardingEntry& rhs) const {
 
 void LabelForwardingEntryFields::validateLabelNextHopEntry(
     const LabelNextHopEntry& entry) {
-  for (const auto nexthop : entry.getNextHopSet()) {
-    if (!nexthop.isResolved()) {
-      throw FbossError("next hop for label forwarding entry must be resolved");
-    }
+  if (!LabelForwardingInformationBase::isValidNextHopSet(
+          entry.getNextHopSet())) {
+    throw FbossError("invalid label forwarding entry");
   }
 }
 template class NodeBaseT<LabelForwardingEntry, LabelForwardingEntryFields>;

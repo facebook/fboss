@@ -69,6 +69,12 @@ struct INextHop {
       return intfID().hasValue();
     }
 
+    bool isPopAndLookup() const {
+      return labelForwardingAction().hasValue() &&
+          labelForwardingAction()->type() ==
+          LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP;
+    }
+
     InterfaceID intf() const {
       return intfID().value();
     }

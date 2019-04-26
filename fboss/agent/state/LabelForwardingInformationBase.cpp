@@ -43,26 +43,8 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
     ClientID client,
     AdminDistance distance,
     LabelNextHopSet nexthops) {
-  for (const auto& nexthop : nexthops) {
-    if (!nexthop.labelForwardingAction()) {
-      throw FbossError(
-          "label next hop ", nexthop.str(), " has no forwarding action");
-    }
-    if (nexthop.labelForwardingAction()->type() ==
-        LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
-      /* pop and lookup forwarding action does not have and need interface id
-      as well as next hop address, accordingly it is always valid. however
-      there must be only one next hop with pop and lookup */
-      if (nexthops.size() > 1) {
-        throw FbossError("pop label forwarding action with multiple next hops");
-      } else {
-        continue;
-      }
-    }
-
-    if (!nexthop.isResolved()) {
-      throw FbossError("invalid label next hop", nexthop.str());
-    }
+  if (!isValidNextHopSet(nexthops)) {
+    throw FbossError("invalid label next hop");
   }
 
   auto* writableLabelFib = modify(state);
@@ -143,6 +125,27 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::modify(
   auto* ptr = newFib.get();
   (*state)->resetLabelForwardingInformationBase(std::move(newFib));
   return ptr;
+}
+
+bool LabelForwardingInformationBase::isValidNextHopSet(
+    const LabelNextHopSet& nexthops) {
+  for (const auto& nexthop : nexthops) {
+    if (!nexthop.labelForwardingAction()) {
+      XLOG(ERR) << "missing label forwarding action in " << nexthop.str();
+      return false;
+    }
+    if (nexthop.isPopAndLookup() && nexthops.size() > 1) {
+      /* pop and lookup forwarding action does not have and need interface id
+      as well as next hop address, accordingly it is always valid. however
+      there must be only one next hop with pop and lookup */
+      XLOG(ERR) << "nexthop set with pop and lookup exceed size 1";
+      return false;
+    } else if (!nexthop.isPopAndLookup() && !nexthop.isResolved()) {
+      XLOG(ERR) << "next hop is not resolved, " << nexthop.str();
+      return false;
+    }
+  }
+  return true;
 }
 
 FBOSS_INSTANTIATE_NODE_MAP(

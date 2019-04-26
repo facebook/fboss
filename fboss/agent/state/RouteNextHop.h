@@ -71,6 +71,12 @@ struct INextHop {
       return intfID().value();
     }
 
+    bool isPopAndLookup() const {
+      return labelForwardingAction().hasValue() &&
+          labelForwardingAction()->type() ==
+          LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP;
+    }
+
     folly::dynamic toFollyDynamic() const {
       folly::dynamic nh = folly::dynamic::object;
       nh[kNexthop()] = addr().str();

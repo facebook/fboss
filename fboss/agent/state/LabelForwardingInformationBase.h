@@ -50,6 +50,8 @@ class LabelForwardingInformationBase
       std::shared_ptr<SwitchState>* state,
       ClientID client);
 
+  static bool isValidNextHopSet(const LabelNextHopSet& nexthops);
+
  private:
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;
