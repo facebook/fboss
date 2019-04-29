@@ -13,13 +13,6 @@
 
 namespace facebook { namespace fboss {
 
-// TODO(joseph5wu) Temporarily add this enum, will move it to config so we can
-// reuse it everywhere
-enum class AqmBehavior {
-  EARLY_DROP,
-  ECN
-};
-
 class BcmSwitch;
 
 class BcmPortQueueManager : public BcmCosQueueManager {
