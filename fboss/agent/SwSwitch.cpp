@@ -982,7 +982,7 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   // packets since the individual handlers, h/w sdk data structures
   // may not be ready or may already be (partially) destroyed
   if (!isFullyInitialized()) {
-    XLOG(INFO) <<" Dropping received packets received on UNINITIALIZED switch";
+    XLOG(DBG3) << "Dropping received packets received on UNINITIALIZED switch";
     return;
   }
   PortID port = pkt->getSrcPort();
