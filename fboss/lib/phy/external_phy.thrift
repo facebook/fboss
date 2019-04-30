@@ -41,11 +41,6 @@ struct TxSettings {
   7: i16 amp = 0
 }
 
-struct RxSettings {
-  1: i16 peaking = 0
-  // TODO: expand this?
-}
-
 struct PolaritySwap {
   1: bool rx = 0
   2: bool tx = 0
@@ -57,7 +52,6 @@ struct LaneSettings {
   // TODO: may need to extend this to be a mapping from speed to tx/rx
   // settings to support dynamically changing speed
   1: optional TxSettings tx
-  2: optional RxSettings rx
   3: PolaritySwap polaritySwap = NO_POLARITY_SWAP
 }
 
