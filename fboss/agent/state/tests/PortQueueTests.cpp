@@ -144,31 +144,6 @@ TEST(PortQueue, serialization) {
   }
 }
 
-TEST(PortQueue, serializationBadForm) {
-  auto pqObject = generatePortQueue();
-
-  auto serialized = pqObject->toFollyDynamic();
-
-  auto noBehavior = serialized;
-  noBehavior["aqms"][0].erase("behavior");
-  EXPECT_THROW(PortQueue::fromFollyDynamic(noBehavior), std::exception);
-
-  auto noDetection = serialized;
-  noDetection["aqms"][0].erase("detection");
-  EXPECT_THROW(PortQueue::fromFollyDynamic(noDetection), std::exception);
-
-  auto noLinearMaximumThreshold = serialized;
-  noLinearMaximumThreshold["aqms"][0]["detection"]["linear"].erase(
-    "maximumLength");
-  EXPECT_THROW(
-      PortQueue::fromFollyDynamic(noLinearMaximumThreshold), std::exception);
-
-  auto noLinearMinimumThreshold = serialized;
-  noLinearMinimumThreshold["aqms"][0]["detection"]["linear"].erase("minimumLength");
-  EXPECT_THROW(
-      PortQueue::fromFollyDynamic(noLinearMinimumThreshold), std::exception);
-}
-
 TEST(PortQueue, stateDelta) {
   auto platform = createMockPlatform();
   auto stateV0 = applyInitConfig();
