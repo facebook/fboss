@@ -12,6 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
@@ -31,8 +32,17 @@ SaiRouterInterface::SaiRouterInterface(
 }
 
 SaiRouterInterface::~SaiRouterInterface() {
+  toMeRoutes_.clear();
   auto& routerInterfaceApi = apiTable_->routerInterfaceApi();
   routerInterfaceApi.remove(id_);
+}
+
+void SaiRouterInterface::addToMeRoutes(
+    std::vector<std::unique_ptr<SaiRoute>>&& toMeRoutes) {
+  toMeRoutes_.insert(
+      toMeRoutes_.end(),
+      std::make_move_iterator(toMeRoutes.begin()),
+      std::make_move_iterator(toMeRoutes.end()));
 }
 
 bool SaiRouterInterface::operator==(const SaiRouterInterface& other) const {
@@ -83,6 +93,9 @@ sai_object_id_t SaiRouterInterfaceManager::addRouterInterface(
                                                        srcMacAttribute}};
   auto routerInterface =
       std::make_unique<SaiRouterInterface>(apiTable_, attributes, switchId);
+  auto toMeRoutes =
+      managerTable_->routeManager().makeInterfaceToMeRoutes(swInterface);
+  routerInterface->addToMeRoutes(std::move(toMeRoutes));
   sai_object_id_t saiId = routerInterface->id();
   routerInterfaces_.insert(std::make_pair(swId, std::move(routerInterface)));
   return saiId;

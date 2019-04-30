@@ -158,3 +158,26 @@ TEST_F(RouteManagerTest, removeNonexistentRoute) {
       saiManagerTable->routeManager().removeRoute(RouterID(0), r2),
       FbossError);
 }
+
+/*
+ * Test for ToMe routes doesn't want to do all the setup, because
+ * setting up the router interfaces will result in creating ToMeRoutes
+ * which conflicts with this more targeted test.
+ */
+class ToMeRouteTest : public ManagerTestBase {
+ public:
+  void SetUp() override {
+    setupStage = SetupStage::BLANK;
+    ManagerTestBase::SetUp();
+  }
+};
+
+TEST_F(ToMeRouteTest, toMeRoutes) {
+  auto swInterface = makeInterface(testInterfaces.at(0));
+  auto toMeRoutes =
+      saiManagerTable->routeManager().makeInterfaceToMeRoutes(swInterface);
+  EXPECT_EQ(toMeRoutes.size(), 1);
+  const auto& toMeRoute = toMeRoutes.at(0);
+  EXPECT_EQ(toMeRoute->attributes().packetAction, SAI_PACKET_ACTION_TRAP);
+  EXPECT_EQ(toMeRoute->attributes().nextHopId, folly::none);
+}
