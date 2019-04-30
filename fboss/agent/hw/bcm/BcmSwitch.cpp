@@ -763,7 +763,7 @@ void BcmSwitch::processEnabledPortQueues(const shared_ptr<Port>& port) {
   for (const auto& queue : port->getPortQueues()) {
     XLOG(DBG1) << "Enable cos queue settings on port " << port->getID()
               << " queue: " << static_cast<int>(queue->getID());
-    bcmPort->setupQueue(queue);
+    bcmPort->setupQueue(*queue);
   }
 }
 
@@ -811,7 +811,7 @@ void BcmSwitch::processChangedPortQueues(
 
     XLOG(DBG1) << "New cos queue settings on port " << id << " queue "
                << static_cast<int>(newQueue->getID());
-    bcmPort->setupQueue(newQueue);
+    bcmPort->setupQueue(*newQueue);
   }
 }
 
@@ -1846,7 +1846,7 @@ void BcmSwitch::processChangedControlPlaneQueues(
     }
     XLOG(DBG1) << "New cos queue settings on cpu queue "
                << static_cast<int>(newQueue->getID());
-    controlPlane_->setupQueue(newQueue);
+    controlPlane_->setupQueue(*newQueue);
   }
 
   if (isControlPlaneQueueNameChanged(oldCPU, newCPU)) {

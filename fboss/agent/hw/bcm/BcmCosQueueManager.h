@@ -91,7 +91,7 @@ public:
     cfg::StreamType streamType,
     opennsl_cos_queue_t cosQ) const = 0;
 
-  virtual void program(const std::shared_ptr<PortQueue>& queue) = 0;
+  virtual void program(const PortQueue& queue) = 0;
 
   struct QueueStatCounters {
     std::unique_ptr<facebook::stats::MonotonicCounter> aggregated = nullptr;
@@ -117,7 +117,7 @@ protected:
                               PortQueue* queue) const;
   void programSchedulingAndWeight(opennsl_gport_t gport,
                                   opennsl_cos_queue_t cosQ,
-                                  const std::shared_ptr<PortQueue>& queue);
+                                  const PortQueue& queue);
 
   int getControlValue(cfg::StreamType streamType,
                       opennsl_gport_t gport,
@@ -135,21 +135,21 @@ protected:
                         PortQueue* queue) const;
   void programReservedBytes(opennsl_gport_t gport,
                             opennsl_cos_queue_t cosQ,
-                            const std::shared_ptr<PortQueue>& queue);
+                            const PortQueue& queue);
 
   void getSharedBytes(opennsl_gport_t gport,
                       opennsl_cos_queue_t cosQ,
                       PortQueue* queue) const;
   void programSharedBytes(opennsl_gport_t gport,
                           opennsl_cos_queue_t cosQ,
-                          const std::shared_ptr<PortQueue>& queue);
+                          const PortQueue& queue);
 
   void getBandwidth(opennsl_gport_t gport,
                     opennsl_cos_queue_t cosQ,
                     PortQueue* queue) const;
   void programBandwidth(opennsl_gport_t gport,
                         opennsl_cos_queue_t cosQ,
-                        const std::shared_ptr<PortQueue>& queue);
+                        const PortQueue& queue);
 
   virtual const PortQueue& getDefaultQueueSettings(
     cfg::StreamType streamType) const = 0;

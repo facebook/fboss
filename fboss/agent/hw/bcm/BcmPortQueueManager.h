@@ -36,7 +36,7 @@ public:
     cfg::StreamType streamType,
     opennsl_cos_queue_t cosQ) const override;
 
-  void program(const std::shared_ptr<PortQueue>& queue) override;
+  void program(const PortQueue& queue) override;
 
   const std::vector<BcmCosQueueCounterType>&
   getQueueCounterTypes() const override;
@@ -64,7 +64,7 @@ private:
                  PortQueue* queue) const;
    void programAlpha(opennsl_gport_t gport,
                      opennsl_cos_queue_t cosQ,
-                     const std::shared_ptr<PortQueue>& queue);
+                     const PortQueue& queue);
 
    void getAqms(
        opennsl_gport_t gport,
@@ -74,7 +74,7 @@ private:
    void programAqms(
        opennsl_gport_t gport,
        opennsl_cos_queue_t cosQ,
-       const std::shared_ptr<PortQueue>& queue);
+       const PortQueue& queue);
 
    // if detection is null, the aqm for such behavior will be reset to default
    void programAqm(

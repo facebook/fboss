@@ -41,7 +41,7 @@ public:
   /**
    * Set up the corresponding cos queue for ControlPlane
    */
-  void setupQueue(const std::shared_ptr<PortQueue>& queue);
+  void setupQueue(const PortQueue& queue);
 
   /**
    * Set up the rx packet reason to queue mapping

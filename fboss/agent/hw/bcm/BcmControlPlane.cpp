@@ -26,7 +26,7 @@ BcmControlPlane::BcmControlPlane(BcmSwitch* hw)
       gport_(OPENNSL_GPORT_LOCAL_CPU),
       queueManager_(new BcmControlPlaneQueueManager(hw_, kCPUName, gport_)) {}
 
-void BcmControlPlane::setupQueue(const std::shared_ptr<PortQueue>& queue) {
+void BcmControlPlane::setupQueue(const PortQueue& queue) {
   queueManager_->program(queue);
 }
 

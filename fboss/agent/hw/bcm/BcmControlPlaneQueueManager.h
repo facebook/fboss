@@ -35,7 +35,7 @@ public:
     cfg::StreamType streamType,
     opennsl_cos_queue_t cosQ) const override;
 
-  void program(const std::shared_ptr<PortQueue>& queue) override;
+  void program(const PortQueue& queue) override;
 
   const std::vector<BcmCosQueueCounterType>&
   getQueueCounterTypes() const override;

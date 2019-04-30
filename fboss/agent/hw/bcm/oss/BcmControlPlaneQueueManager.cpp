@@ -25,7 +25,7 @@ std::shared_ptr<PortQueue> BcmControlPlaneQueueManager::getCurrentQueueSettings(
 }
 
 void BcmControlPlaneQueueManager::program(
-    const std::shared_ptr<PortQueue>& /*queue*/) {}
+    const PortQueue& /*queue*/) {}
 
 void BcmControlPlaneQueueManager::updateQueueStat(
     opennsl_cos_queue_t /*cosQ*/,

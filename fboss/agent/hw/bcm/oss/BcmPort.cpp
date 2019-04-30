@@ -65,7 +65,7 @@ QueueConfig BcmPort::getCurrentQueueSettings() {
   return QueueConfig();
 }
 
-void BcmPort::setupQueue(const std::shared_ptr<PortQueue>& /*queue*/) {
+void BcmPort::setupQueue(const PortQueue& /*queue*/) {
 }
 
 void BcmPort::attachIngressQosPolicy(const std::string& /*name*/) {}

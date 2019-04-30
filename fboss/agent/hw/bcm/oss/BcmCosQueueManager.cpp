@@ -33,7 +33,7 @@ void BcmCosQueueManager::getSchedulingAndWeight(
 void BcmCosQueueManager::programSchedulingAndWeight(
     opennsl_gport_t /*gport*/,
     opennsl_cos_queue_t /*cosQ*/,
-    const std::shared_ptr<PortQueue>& /*queue*/) {}
+    const PortQueue& /*queue*/) {}
 
 void BcmCosQueueManager::getReservedBytes(
     opennsl_gport_t /*gport*/,
@@ -42,7 +42,7 @@ void BcmCosQueueManager::getReservedBytes(
 void BcmCosQueueManager::programReservedBytes(
     opennsl_gport_t /*gport*/,
     int /*queueIdx*/,
-    const std::shared_ptr<PortQueue>& /*queue*/) {}
+    const PortQueue& /*queue*/) {}
 
 void BcmCosQueueManager::getSharedBytes(
     opennsl_gport_t /*gport*/,
@@ -51,7 +51,7 @@ void BcmCosQueueManager::getSharedBytes(
 void BcmCosQueueManager::programSharedBytes(
     opennsl_gport_t /*gport*/,
     int /*queueIdx*/,
-    const std::shared_ptr<PortQueue>& /*queue*/) {}
+    const PortQueue& /*queue*/) {}
 
 void BcmCosQueueManager::getBandwidth(
     opennsl_gport_t /*gport*/,
@@ -60,7 +60,7 @@ void BcmCosQueueManager::getBandwidth(
 void BcmCosQueueManager::programBandwidth(
     opennsl_gport_t /*gport*/,
     opennsl_cos_queue_t /*cosQ*/,
-    const std::shared_ptr<PortQueue>& /*queue*/) {}
+    const PortQueue& /*queue*/) {}
 
 void BcmCosQueueManager::updateQueueAggregatedStat(
     const BcmCosQueueCounterType& /*type*/,

@@ -61,7 +61,7 @@ class BcmPort {
   void disable(const std::shared_ptr<Port>& swPort);
   void disableLinkscan();
   void program(const std::shared_ptr<Port>& swPort);
-  void setupQueue(const std::shared_ptr<PortQueue>& queue);
+  void setupQueue(const PortQueue& queue);
 
   void attachIngressQosPolicy(const std::string& name);
   void detachIngressQosPolicy();

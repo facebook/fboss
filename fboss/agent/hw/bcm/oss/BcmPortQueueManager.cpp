@@ -17,7 +17,7 @@ std::shared_ptr<PortQueue> BcmPortQueueManager::getCurrentQueueSettings(
 }
 
 void BcmPortQueueManager::program(
-  const std::shared_ptr<PortQueue>& /*queue*/) {}
+  const PortQueue& /*queue*/) {}
 
 void BcmPortQueueManager::updateQueueStat(
     opennsl_cos_queue_t /*cosQ*/,
@@ -34,7 +34,7 @@ void BcmPortQueueManager::getAlpha(
 void BcmPortQueueManager::programAlpha(
     opennsl_gport_t /*gport*/,
     opennsl_cos_queue_t /*cosQ*/,
-    const std::shared_ptr<PortQueue>& /*queue*/) {}
+    const PortQueue& /*queue*/) {}
 
 void BcmPortQueueManager::getAqms(
     opennsl_gport_t /*gport*/,
@@ -44,7 +44,7 @@ void BcmPortQueueManager::getAqms(
 void BcmPortQueueManager::programAqms(
     opennsl_gport_t /*gport*/,
     opennsl_cos_queue_t /*cosQ*/,
-    const std::shared_ptr<PortQueue>& /*queue*/) {}
+    const PortQueue& /*queue*/) {}
 
 void BcmPortQueueManager::programAqm(
     opennsl_gport_t /*gport*/,
