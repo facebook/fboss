@@ -1,8 +1,8 @@
 #
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
-namespace py neteng.fboss.external_phy
-namespace py.asyncio neteng.fboss.asyncio.external_phy
+namespace py neteng.fboss.phy
+namespace py.asyncio neteng.fboss.asyncio.phy
 namespace cpp2 facebook.fboss.phy
 
 include "fboss/agent/switch_config.thrift"
@@ -55,7 +55,7 @@ struct LaneSettings {
   3: PolaritySwap polaritySwap = NO_POLARITY_SWAP
 }
 
-struct ExternalPhyPortSideSettings {
+struct PhyPortSideSettings {
   // map of lanes that are part of this port, along with any
   // lane-specific settings
   1: map<i16, LaneSettings> lanes
@@ -63,10 +63,10 @@ struct ExternalPhyPortSideSettings {
   3: FecMode fec
 }
 
-struct ExternalPhyPortSettings {
+struct PhyPortSettings {
   1: switch_config.PortSpeed speed
-  2: ExternalPhyPortSideSettings line
-  3: ExternalPhyPortSideSettings system
+  2: PhyPortSideSettings line
+  3: PhyPortSideSettings system
   4: i16 phyID
 }
 
@@ -75,11 +75,11 @@ struct PhyFwVersion {
   2: i32 crc
 }
 
-struct ExternalPhySettings {
-  1: list<ExternalPhyPortSettings> ports = []
+struct PhySettings {
+  1: list<PhyPortSettings> ports = []
   2: optional PhyFwVersion expectedFw
 }
 
-struct ExternalPhys {
-  1: map<i16, ExternalPhySettings> phys,
+struct Phys {
+  1: map<i16, PhySettings> phys,
 }
