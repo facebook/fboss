@@ -168,10 +168,6 @@ class PortQueue :
 
 using QueueConfig = std::vector<std::shared_ptr<PortQueue>>;
 
-bool comparePortQueueAQMs(
-  const PortQueue::AQMMap& aqmMap,
-  const std::vector<cfg::ActiveQueueManagement>& aqms);
-
 bool checkSwConfPortQueueMatch(
   const std::shared_ptr<PortQueue>& swQueue,
   const cfg::PortQueue* cfgQueue);

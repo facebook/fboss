@@ -114,7 +114,7 @@ public:
 protected:
   void getSchedulingAndWeight(opennsl_gport_t gport,
                               opennsl_cos_queue_t cosQ,
-                              std::shared_ptr<PortQueue> queue) const;
+                              PortQueue* queue) const;
   void programSchedulingAndWeight(opennsl_gport_t gport,
                                   opennsl_cos_queue_t cosQ,
                                   const std::shared_ptr<PortQueue>& queue);
@@ -132,21 +132,21 @@ protected:
 
   void getReservedBytes(opennsl_gport_t gport,
                         opennsl_cos_queue_t cosQ,
-                        std::shared_ptr<PortQueue> queue) const;
+                        PortQueue* queue) const;
   void programReservedBytes(opennsl_gport_t gport,
                             opennsl_cos_queue_t cosQ,
                             const std::shared_ptr<PortQueue>& queue);
 
   void getSharedBytes(opennsl_gport_t gport,
                       opennsl_cos_queue_t cosQ,
-                      std::shared_ptr<PortQueue> queue) const;
+                      PortQueue* queue) const;
   void programSharedBytes(opennsl_gport_t gport,
                           opennsl_cos_queue_t cosQ,
                           const std::shared_ptr<PortQueue>& queue);
 
   void getBandwidth(opennsl_gport_t gport,
                     opennsl_cos_queue_t cosQ,
-                    std::shared_ptr<PortQueue> queue) const;
+                    PortQueue* queue) const;
   void programBandwidth(opennsl_gport_t gport,
                         opennsl_cos_queue_t cosQ,
                         const std::shared_ptr<PortQueue>& queue);

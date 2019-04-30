@@ -61,30 +61,31 @@ private:
 
    void getAlpha(opennsl_gport_t gport,
                  opennsl_cos_queue_t cosQ,
-                 std::shared_ptr<PortQueue> queue) const;
+                 PortQueue* queue) const;
    void programAlpha(opennsl_gport_t gport,
                      opennsl_cos_queue_t cosQ,
                      const std::shared_ptr<PortQueue>& queue);
 
-  std::vector<cfg::ActiveQueueManagement> getAqms(
-    opennsl_gport_t gport,
-    opennsl_cos_queue_t cosQ,
-    std::shared_ptr<PortQueue> queue) const;
+   void getAqms(
+       opennsl_gport_t gport,
+       opennsl_cos_queue_t cosQ,
+       PortQueue* queue) const;
 
-   void programAqms(opennsl_gport_t gport,
-                    opennsl_cos_queue_t cosQ,
-                    const std::shared_ptr<PortQueue>& queue);
+   void programAqms(
+       opennsl_gport_t gport,
+       opennsl_cos_queue_t cosQ,
+       const std::shared_ptr<PortQueue>& queue);
 
-  // if detection is null, the aqm for such behavior will be reset to default
-  void programAqm(
-    opennsl_gport_t gport,
-    opennsl_cos_queue_t cosQ,
-    cfg::QueueCongestionBehavior behavior,
-    folly::Optional<cfg::QueueCongestionDetection> detection);
+   // if detection is null, the aqm for such behavior will be reset to default
+   void programAqm(
+       opennsl_gport_t gport,
+       opennsl_cos_queue_t cosQ,
+       cfg::QueueCongestionBehavior behavior,
+       folly::Optional<cfg::QueueCongestionDetection> detection);
 
-  void programInternalPriorityToCosQ(
-      opennsl_gport_t queueGport,
-      opennsl_cos_queue_t cosQ,
-      int prio);
+   void programInternalPriorityToCosQ(
+       opennsl_gport_t queueGport,
+       opennsl_cos_queue_t cosQ,
+       int prio);
 };
 }} // facebook::fboss

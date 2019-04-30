@@ -26,6 +26,27 @@ bool isPortQueueOptionalAttributeSame(
   }
   return false;
 }
+
+bool comparePortQueueAQMs(
+    const facebook::fboss::PortQueue::AQMMap& aqmMap,
+    const std::vector<facebook::fboss::cfg::ActiveQueueManagement>& aqms) {
+  auto sortedAqms = aqms;
+  std::sort(
+      sortedAqms.begin(),
+      sortedAqms.end(),
+      [](const auto& lhs, const auto& rhs) {
+        return lhs.behavior < rhs.behavior;
+      });
+  return std::equal(
+      aqmMap.begin(),
+      aqmMap.end(),
+      sortedAqms.begin(),
+      sortedAqms.end(),
+      [](const auto& behaviorAndAqm, const auto& aqm) {
+        return behaviorAndAqm.second == aqm;
+      });
+}
+
 } // unnamed namespace
 
 namespace facebook { namespace fboss {
@@ -142,21 +163,6 @@ std::string PortQueue::toString() const {
     ss << ", name=" << getName().value();
   }
   return ss.str();
-}
-
-bool comparePortQueueAQMs(
-    const PortQueue::AQMMap& aqmMap,
-    const std::vector<cfg::ActiveQueueManagement>& aqms) {
-  if (aqmMap.size() != aqms.size()) {
-    return false;
-  }
-  for (const auto& aqm: aqms) {
-    auto aqmMapItr = aqmMap.find(aqm.behavior);
-    if (aqmMapItr == aqmMap.end() || aqmMapItr->second != aqm) {
-      return false;
-    }
-  }
-  return true;
 }
 
 bool checkSwConfPortQueueMatch(

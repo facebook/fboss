@@ -50,21 +50,21 @@ cfg::SwitchConfig generateTestConfig() {
   config.ports[0].name_ref().value_unchecked() = "port1";
   config.ports[0].state = cfg::PortState::ENABLED;
   // we just need to test the any queue and set every setting
-  cfg::PortQueue queue1;
-  queue1.id = 1;
-  queue1.name_ref().value_unchecked() = "queue1";
-  queue1.streamType = cfg::StreamType::UNICAST;
-  queue1.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue1.weight_ref() = 9;
-  queue1.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
-  queue1.reservedBytes_ref() = 19968;
-  queue1.sharedBytes_ref() = 19968;
-  queue1.packetsPerSec_ref() = 100;
-  queue1.aqms_ref().value_unchecked().push_back(getEarlyDropAqmConfig());
-  queue1.aqms_ref().value_unchecked().push_back(getECNAqmConfig());
-  queue1.__isset.aqms = true;
+  cfg::PortQueue queue0;
+  queue0.id = 0;
+  queue0.name_ref() = "queue0";
+  queue0.streamType = cfg::StreamType::UNICAST;
+  queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue0.weight_ref() = 9;
+  queue0.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
+  queue0.reservedBytes_ref() = 19968;
+  queue0.sharedBytes_ref() = 19968;
+  queue0.packetsPerSec_ref() = 100;
+  queue0.aqms_ref().value_unchecked().push_back(getECNAqmConfig());
+  queue0.aqms_ref().value_unchecked().push_back(getEarlyDropAqmConfig());
+  queue0.__isset.aqms = true;
 
-  config.ports[0].queues.push_back(queue1);
+  config.ports[0].queues.push_back(queue0);
   return config;
 }
 
@@ -233,9 +233,9 @@ TEST(PortQueue, aqmState) {
   auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
   // change one queue, won't affect the other queues
   EXPECT_EQ(kStateTestDefaultNumPortQueues, queues1.size());
-  std::vector<cfg::ActiveQueueManagement> aqms;
-  aqms.push_back(getEarlyDropAqmConfig());
-  EXPECT_TRUE(comparePortQueueAQMs(queues1.at(0)->getAqms(), aqms));
+  PortQueue::AQMMap aqms{
+      {cfg::QueueCongestionBehavior::EARLY_DROP, getEarlyDropAqmConfig()}};
+  EXPECT_EQ(queues1.at(0)->getAqms(), aqms);
 }
 
 TEST(PortQueue, aqmBadState) {
@@ -272,6 +272,8 @@ TEST(PortQueue, resetPartOfConfigs) {
     auto config = generateTestConfig();
     auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
     EXPECT_NE(nullptr, stateV1);
+    auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
+    EXPECT_TRUE(queues1.at(0)->getReservedBytes().hasValue());
 
     // reset reservedBytes
     config.ports[0].queues[0].__isset.reservedBytes = false;
@@ -285,6 +287,8 @@ TEST(PortQueue, resetPartOfConfigs) {
     auto config = generateTestConfig();
     auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
     EXPECT_NE(nullptr, stateV1);
+    auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
+    EXPECT_TRUE(queues1.at(0)->getScalingFactor().hasValue());
 
     // reset scalingFactor
     config.ports[0].queues[0].__isset.scalingFactor = false;
@@ -298,6 +302,8 @@ TEST(PortQueue, resetPartOfConfigs) {
     auto config = generateTestConfig();
     auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
     EXPECT_NE(nullptr, stateV1);
+    auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
+    EXPECT_EQ(2, queues1.at(0)->getAqms().size());
 
     // reset aqm
     config.ports[0].queues[0].aqms_ref().value_unchecked().clear();
@@ -308,4 +314,17 @@ TEST(PortQueue, resetPartOfConfigs) {
     auto queues2 = stateV2->getPort(PortID(1))->getPortQueues();
     EXPECT_TRUE(queues2.at(0)->getAqms().empty());
   }
+}
+
+
+TEST(PortQueue, checkSwConfPortQueueMatch) {
+  auto platform = createMockPlatform();
+  auto stateV0 = applyInitConfig();
+
+  auto config = generateTestConfig();
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto& swQueues = stateV1->getPort(PortID(1))->getPortQueues();
+  auto& cfgQueue = config.ports[0].queues[0];
+  EXPECT_TRUE(checkSwConfPortQueueMatch(swQueues.at(0), &cfgQueue));
 }
