@@ -33,8 +33,6 @@ struct PortQueueFields {
   state::PortQueueFields toThrift() const;
   static PortQueueFields fromThrift(state::PortQueueFields const&);
 
-  folly::dynamic toFollyDynamic() const;
-  static PortQueueFields fromFollyDynamic(const folly::dynamic& json);
   uint8_t id{0};
   cfg::QueueScheduling scheduling{cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN};
   cfg::StreamType streamType{cfg::StreamType::UNICAST};
