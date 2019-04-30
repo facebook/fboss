@@ -8,7 +8,6 @@ namespace cpp2 facebook.fboss.cfg
 include "fboss/agent/hw/bcm/bcm_config.thrift"
 include "fboss/lib/phy/external_phy.thrift"
 include "fboss/agent/switch_config.thrift"
-include "fboss/qsfp_service/if/transceiver.thrift"
 
 union ChipConfig {
   1: bcm_config.BcmConfig bcm,
@@ -17,20 +16,6 @@ union ChipConfig {
 struct FrontPanelResources {
   1: i32 transceiverId,
   2: list<i16> channels,
-}
-
-struct AsicTxSettings {
-  // TX equalizer settings for the asic internal phy
-  1: optional external_phy.TxSettings tx,
-
-  // which type of fec should be enabled
-  2: optional external_phy.FecMode fec,
-}
-
-struct TxConfig {
-  1: map<transceiver.TransmitterTechnology, AsicTxSettings> settings,
-
-  // TODO: Support overriding tx/fec settings by length/gauge?
 }
 
 struct PlatformPortSettings {
@@ -43,13 +28,14 @@ struct PlatformPortSettings {
   // Ports that are subsumed and cannot be enabled at this speed
   3: list<i32> subsumedPorts = [],
 
-  // Settings for asic side tx
-  4: optional TxConfig tx,
+  // Settings for asic side internal phy
+  4: optional external_phy.ExternalPhyPortSideSettings iphy,
 }
 
 struct PlatformPort {
   1: i32 id,
   2: string name,
+  // may need to extend this map to be keyed on speed + tranmsitter tech...
   3: map<switch_config.PortSpeed, PlatformPortSettings> supportedSpeeds,
 }
 
