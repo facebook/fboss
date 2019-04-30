@@ -51,12 +51,14 @@ struct PolaritySwap {
   2: bool tx = 0
 }
 
+const PolaritySwap NO_POLARITY_SWAP = {}
+
 struct LaneSettings {
   // TODO: may need to extend this to be a mapping from speed to tx/rx
   // settings to support dynamically changing speed
   1: optional TxSettings tx
   2: optional RxSettings rx
-  3: optional PolaritySwap polaritySwap
+  3: PolaritySwap polaritySwap = NO_POLARITY_SWAP
 }
 
 struct ExternalPhyPortSideSettings {
