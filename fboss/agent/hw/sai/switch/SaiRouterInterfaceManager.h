@@ -25,7 +25,6 @@ namespace facebook {
 namespace fboss {
 
 class SaiManagerTable;
-class SaiRoute;
 class SaiRouterInterface;
 class SaiVirtualRouter;
 
@@ -43,8 +42,6 @@ class SaiRouterInterface {
   bool operator==(const SaiRouterInterface& other) const;
   bool operator!=(const SaiRouterInterface& other) const;
 
-  void addToMeRoutes(std::vector<std::unique_ptr<SaiRoute>>&& toMeRoutes);
-
   const RouterInterfaceApiParameters::Attributes attributes() const {
     return attributes_;
   }
@@ -55,7 +52,6 @@ class SaiRouterInterface {
  private:
   SaiApiTable* apiTable_;
   RouterInterfaceApiParameters::Attributes attributes_;
-  std::vector<std::unique_ptr<SaiRoute>> toMeRoutes_;
   sai_object_id_t id_;
 };
 
