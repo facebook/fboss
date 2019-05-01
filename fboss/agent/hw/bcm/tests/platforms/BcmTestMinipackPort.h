@@ -28,6 +28,13 @@ public:
     return false;
   }
 
+  folly::Future<TransmitterTechnology> getTransmitterTech(
+      folly::EventBase* /*evb*/) const override {
+    // For Tomahawk3 port, we always use BACKPLANE
+    return folly::makeFuture<TransmitterTechnology>(
+        TransmitterTechnology::BACKPLANE);
+  }
+
 private:
   // Forbidden copy constructor and assignment operator
   BcmTestMinipackPort(BcmTestMinipackPort const&) = delete;
