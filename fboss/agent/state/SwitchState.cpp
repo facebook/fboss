@@ -51,7 +51,23 @@ constexpr auto kStaleEntryInterval = "staleEntryInterval";
 constexpr auto kLoadBalancers = "loadBalancers";
 constexpr auto kMirrors = "mirrors";
 constexpr auto kLabelForwardingInformationBase = "labelFib";
+
+// TODO: remove validator when oss gflags supports DEFINE_uint32 directly
+bool ValidateEcmpWidth(const char* flagname, int32_t value) {
+  if (value < 0) {
+    printf("Invalid negative value for --%s: %d\n", flagname, value);
+    return false;
+  }
+  return true;
 }
+}
+
+// TODO: it might be worth splitting up limits for ecmp/ucmp
+DEFINE_int32(
+    ecmp_width,
+    64,
+    "Max ecmp width. Also implies ucmp normalization factor");
+DEFINE_validator(ecmp_width, &ValidateEcmpWidth);
 
 namespace facebook { namespace fboss {
 

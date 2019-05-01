@@ -16,6 +16,8 @@
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteTypes.h"
 
+DECLARE_int32(ecmp_width);
+
 namespace facebook { namespace fboss {
 
 class RouteNextHopEntry {
@@ -46,6 +48,8 @@ class RouteNextHopEntry {
   const NextHopSet& getNextHopSet() const {
     return nhopSet_;
   }
+
+  NextHopSet normalizedNextHops() const;
 
   // Get the sum of the weights of all the nexthops in the entry
   NextHopWeight getTotalWeight() const;

@@ -28,29 +28,6 @@ extern "C" {
 
 #include "fboss/agent/state/RouteTypes.h"
 
-#include <gflags/gflags.h>
-#include <numeric>
-
-namespace {
-
-// TODO: remove validator when oss gflags supports DEFINE_uint32 directly
-bool ValidateEcmpWidth(const char* flagname, int32_t value) {
-  if (value < 0) {
-    printf("Invalid negative value for --%s: %d\n", flagname, value);
-    return false;
-  }
-  return true;
-}
-
-}
-
-// TODO: it might be worth splitting up limits for ecmp/ucmp
-DEFINE_int32(
-    ecmp_width,
-    64,
-    "Max ecmp width. Also implies ucmp normalization factor");
-DEFINE_validator(ecmp_width, &ValidateEcmpWidth);
-
 namespace facebook { namespace fboss {
 
 namespace {
@@ -63,98 +40,6 @@ auto constexpr kRoutes = "routes";
 
 // TODO: Assumes we have only one VRF
 auto constexpr kDefaultVrf = 0;
-
-// Next hops coming from the SwSwitch need to be normalized
-// in two ways:
-// 1) Weight=0 (ECMP that does not support UCMP) needs to be treated
-//    the same as Weight=1
-// 2) If the total weights of the next hops exceed the ECMP group width,
-//    we need to scale them down to within the ECMP group width.
-RouteNextHopEntry::NextHopSet normalizeNextHops(
-    const RouteNextHopEntry::NextHopSet& unnormalizedNextHops) {
-  RouteNextHopEntry::NextHopSet normalizedNextHops;
-  // 1)
-  for (const auto& nhop : unnormalizedNextHops) {
-    normalizedNextHops.insert(ResolvedNextHop(
-        nhop.addr(),
-        nhop.intf(),
-        std::max(nhop.weight(), NextHopWeight(1)),
-        nhop.labelForwardingAction()));
-  }
-  // 2)
-  // Calculate the totalWeight. If that exceeds the max ecmp width, we use the
-  // following heuristic algorithm:
-  // 2a) Calculate the scaled factor FLAGS_ecmp_width/totalWeight.
-  //     Without rounding, multiplying each weight by this will still yield
-  //     correct weight ratios between the next hops.
-  // 2b) Scale each next hop by the scaling factor, rounding down by default
-  //     except for when weights go below 1. In that case, add them in as
-  //     weight 1. At this point, we might _still_ be above FLAGS_ecmp_width,
-  //     because we could have rounded too many 0s up to 1.
-  // 2c) Do a final pass where we make up any remaining excess weight above
-  //     FLAGS_ecmp_width by iteratively decrementing the max weight. If there
-  //     are more than FLAGS_ecmp_width next hops, this cannot possibly succeed.
-  NextHopWeight totalWeight = std::accumulate(
-      normalizedNextHops.begin(),
-      normalizedNextHops.end(),
-      0,
-      [](NextHopWeight w, const NextHop& nh) { return w + nh.weight(); });
-  // Total weight after applying the scaling factor
-  // FLAGS_ecmp_width/totalWeight to all next hops.
-  NextHopWeight scaledTotalWeight = 0;
-  if (totalWeight > FLAGS_ecmp_width) {
-    XLOG(DBG2) << "Total weight of next hops exceeds max ecmp width: "
-               << totalWeight << " > " << FLAGS_ecmp_width << " ("
-               << normalizedNextHops << ")";
-    // 2a)
-    double factor = FLAGS_ecmp_width / static_cast<double>(totalWeight);
-    RouteNextHopEntry::NextHopSet scaledNextHops;
-    // 2b)
-    for (const auto& nhop : normalizedNextHops) {
-      NextHopWeight w = std::max(
-          static_cast<NextHopWeight>(nhop.weight() * factor), NextHopWeight(1));
-      scaledNextHops.insert(ResolvedNextHop(
-          nhop.addr(), nhop.intf(), w, nhop.labelForwardingAction()));
-      scaledTotalWeight += w;
-    }
-    // 2c)
-    if (scaledTotalWeight > FLAGS_ecmp_width) {
-      XLOG(WARNING) << "Total weight of scaled next hops STILL exceeds max "
-                    << "ecmp width: " << scaledTotalWeight << " > "
-                    << FLAGS_ecmp_width << " (" << scaledNextHops << ")";
-      // calculate number of times we need to decrement the max next hop
-      NextHopWeight overflow = scaledTotalWeight - FLAGS_ecmp_width;
-      for (int i = 0; i < overflow; ++i) {
-        // find the max weight next hop
-        auto maxItr = std::max_element(
-            scaledNextHops.begin(),
-            scaledNextHops.end(),
-            [](const NextHop& n1, const NextHop& n2) {
-              return n1.weight() < n2.weight();
-            });
-        XLOG(DBG2) << "Decrementing the weight of next hop: " << *maxItr;
-        // create a clone of the max weight next hop with weight decremented
-        ResolvedNextHop decMax = ResolvedNextHop(
-            maxItr->addr(),
-            maxItr->intf(),
-            maxItr->weight() - 1,
-            maxItr->labelForwardingAction());
-        // remove the max weight next hop and replace with the
-        // decremented version, if the decremented version would
-        // not have weight 0. If it would have weight 0, that means
-        // that we have > FLAGS_ecmp_width next hops.
-        scaledNextHops.erase(maxItr);
-        if (decMax.weight() > 0) {
-          scaledNextHops.insert(decMax);
-        }
-      }
-    }
-    XLOG(DBG2) << "Scaled next hops from " << unnormalizedNextHops << " to "
-               << scaledNextHops;
-    normalizedNextHops = scaledNextHops;
-  }
-  return normalizedNextHops;
-}
 }
 
 BcmRoute::BcmRoute(
@@ -438,8 +323,7 @@ void BcmRouteTable::addRoute(opennsl_vrf_t vrf, const RouteT *route) {
   CHECK(route->isResolved());
   RouteNextHopEntry fwd(route->getForwardInfo());
   if (fwd.getAction() == RouteForwardAction::NEXTHOPS) {
-    RouteNextHopSet nhops = normalizeNextHops(fwd.getNextHopSet());
-    fwd = RouteNextHopEntry(nhops, fwd.getAdminDistance());
+    fwd = RouteNextHopEntry(fwd.normalizedNextHops(), fwd.getAdminDistance());
   }
   ret.first->second->program(fwd);
 }
