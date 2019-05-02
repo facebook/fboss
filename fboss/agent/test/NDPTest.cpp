@@ -606,22 +606,27 @@ TEST(NdpTest, RouterAdvertisement) {
     { IPAddressV6("2401:db00:2110:3004::"), 64 },
     { IPAddressV6("fe80::"), 64 },
   };
+  // Multicast router advertisement use switched api
   EXPECT_SWITCHED_PKT(sw, "router advertisement",
-             checkRouterAdvert(kPlatformMac,
-                               IPAddressV6("fe80::1:02ff:fe03:0405"),
-                               MacAddress("33:33:00:00:00:01"),
-                               IPAddressV6("ff02::1"),
-                               VlanID(5), intfConfig->getNdpConfig(),
-                               9000, expectedPrefixes));
+                      checkRouterAdvert(kPlatformMac,
+                                       IPAddressV6("fe80::1:02ff:fe03:0405"),
+                                       MacAddress("33:33:00:00:00:01"),
+                                       IPAddressV6("ff02::1"),
+                                       VlanID(5), intfConfig->getNdpConfig(),
+                                       9000, expectedPrefixes));
 
   // Send the router solicitation packet
-  EXPECT_SWITCHED_PKT(sw, "router advertisement",
-             checkRouterAdvert(kPlatformMac,
-                               IPAddressV6("fe80::1:02ff:fe03:0405"),
-                               MacAddress("02:05:73:f9:46:fc"),
-                               IPAddressV6("2401:db00:2110:1234::1:0"),
-                               VlanID(5), intfConfig->getNdpConfig(),
-                               9000, expectedPrefixes));
+  EXPECT_OUT_OF_PORT_PKT(
+    sw,
+    "router advertisement",
+    checkRouterAdvert(kPlatformMac,
+                      IPAddressV6("fe80::1:02ff:fe03:0405"),
+                      MacAddress("02:05:73:f9:46:fc"),
+                      IPAddressV6("2401:db00:2110:1234::1:0"),
+                      VlanID(5), intfConfig->getNdpConfig(),
+                      9000, expectedPrefixes),
+    PortID(1),
+    folly::Optional<uint8_t>(kNCStrictPriorityQueue));
 
   auto pkt = PktUtil::parseHexData(
     // dst mac, src mac
@@ -656,13 +661,17 @@ TEST(NdpTest, RouterAdvertisement) {
   // which differs from MAC address in ethernet header. The switch should use
   // the MAC address in options field.
 
-  EXPECT_SWITCHED_PKT(sw, "router advertisement",
-             checkRouterAdvert(kPlatformMac,
-                               IPAddressV6("fe80::1:02ff:fe03:0405"),
-                               MacAddress("02:ab:73:f9:46:fc"),
-                               IPAddressV6("2401:db00:2110:1234::1:0"),
-                               VlanID(5), intfConfig->getNdpConfig(),
-                               9000, expectedPrefixes));
+  EXPECT_OUT_OF_PORT_PKT(
+    sw,
+    "router advertisement",
+    checkRouterAdvert(kPlatformMac,
+                      IPAddressV6("fe80::1:02ff:fe03:0405"),
+                      MacAddress("02:ab:73:f9:46:fc"),
+                      IPAddressV6("2401:db00:2110:1234::1:0"),
+                      VlanID(5), intfConfig->getNdpConfig(),
+                      9000, expectedPrefixes),
+    PortID(1),
+    folly::Optional<uint8_t>(kNCStrictPriorityQueue));
 
   auto pkt2 = PktUtil::parseHexData(
     // dst mac, src mac
@@ -710,13 +719,14 @@ TEST(NdpTest, RouterAdvertisement) {
   done.get_future().wait();
   // We send RA packets just before switch controller shutdown,
   // so expect RA packet.
+  // Multicast router advertisement use switched api
   EXPECT_SWITCHED_PKT(sw, "router advertisement",
-             checkRouterAdvert(kPlatformMac,
-                               IPAddressV6("fe80::1:02ff:fe03:0405"),
-                               MacAddress("33:33:00:00:00:01"),
-                               IPAddressV6("ff02::1"),
-                               VlanID(5), intfConfig->getNdpConfig(),
-                               9000, expectedPrefixes));
+                      checkRouterAdvert(kPlatformMac,
+                                        IPAddressV6("fe80::1:02ff:fe03:0405"),
+                                        MacAddress("33:33:00:00:00:01"),
+                                        IPAddressV6("ff02::1"),
+                                        VlanID(5), intfConfig->getNdpConfig(),
+                                        9000, expectedPrefixes));
 }
 
 TEST(NdpTest, receiveNeighborAdvertisementUnsolicited) {

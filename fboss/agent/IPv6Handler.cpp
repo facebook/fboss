@@ -333,7 +333,13 @@ void IPv6Handler::handleRouterSolicitation(unique_ptr<RxPacket> pkt,
   RWPrivateCursor respCursor(resp->buf());
   IPv6RouteAdvertiser::createAdvertisementPacket(
     intf.get(), &respCursor, dstMac, dstIP);
-  sw_->sendPacketSwitchedAsync(std::move(resp));
+  // Based on the router solicidtation and advertisement mechanism, the
+  // advertisement should send back to who request such solicidation. Besides,
+  // right now, only servers send RSW router solicidation. It's kinda safe to
+  // send router advertisement back to the src port.
+  sw_->sendNetworkControlPacketAsync(
+    std::move(resp),
+    PortDescriptor::fromRxPacket(*pkt.get()));
 }
 
 void IPv6Handler::handleRouterAdvertisement(

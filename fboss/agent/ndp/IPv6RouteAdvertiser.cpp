@@ -157,7 +157,7 @@ void IPv6RAImpl::sendRouteAdvertisement() {
   RWPrivateCursor cursor(pkt->buf());
   cursor.push(buf_.data(), buf_.length());
 
-  sw_->sendPacketSwitchedAsync(std::move(pkt));
+  sw_->sendNetworkControlPacketAsync(std::move(pkt), folly::none);
 }
 
 IPv6RouteAdvertiser::IPv6RouteAdvertiser(SwSwitch* sw,
