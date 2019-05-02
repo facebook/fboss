@@ -29,7 +29,7 @@ class SimSwitch : public HwSwitch {
   bool sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       PortID portID,
-      folly::Optional<uint8_t> cos = folly::none) noexcept override;
+      folly::Optional<uint8_t> queue = folly::none) noexcept override;
   bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept override;
   bool sendPacketOutOfPortSync(
       std::unique_ptr<TxPacket> pkt,

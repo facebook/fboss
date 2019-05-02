@@ -43,6 +43,7 @@ class PcapPushSubscriberAsyncClient;
 class PktCaptureManager;
 class Platform;
 class Port;
+class PortDescriptor;
 class PortStats;
 class PortUpdateHandler;
 class RxPacket;
@@ -435,13 +436,22 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::unique_ptr<TxPacket> allocateL3TxPacket(uint32_t l3Len);
 
+  /**
+   * All FBOSS Network Control packets should use this API to send out
+   */
+  void sendNetworkControlPacketAsync(
+      std::unique_ptr<TxPacket> pkt,
+      folly::Optional<PortDescriptor> port) noexcept;
+
   void sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       PortID portID,
       folly::Optional<uint8_t> cos = folly::none) noexcept;
 
-  void sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
-                           AggregatePortID aggPortID) noexcept;
+  void sendPacketOutOfPortAsync(
+      std::unique_ptr<TxPacket> pkt,
+      AggregatePortID aggPortID,
+      folly::Optional<uint8_t> cos = folly::none) noexcept;
 
   /*
    * Send a packet, using switching logic to send it out the correct port(s)

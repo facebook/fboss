@@ -62,9 +62,9 @@ bool MockHwSwitch::sendPacketSwitchedAsync(
 bool MockHwSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     facebook::fboss::PortID portID,
-    folly::Optional<uint8_t> cos) noexcept {
+    folly::Optional<uint8_t> queue) noexcept {
   TxPacket* raw(pkt.release());
-  sendPacketOutOfPortAsync_(raw, portID, cos);
+  sendPacketOutOfPortAsync_(raw, portID, queue);
   return true;
 }
 

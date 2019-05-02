@@ -69,7 +69,7 @@ bool SaiSwitch::sendPacketSwitchedAsync(
 bool SaiSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> /* pkt */,
     PortID /* portID */,
-    folly::Optional<uint8_t> /* cos */) noexcept {
+    folly::Optional<uint8_t> /* queue */) noexcept {
   return true;
 }
 

@@ -1193,9 +1193,33 @@ std::unique_ptr<TxPacket> SwSwitch::allocateL3TxPacket(uint32_t l3Len) {
   return pkt;
 }
 
-void SwSwitch::sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
-                                        PortID portID,
-                                        folly::Optional<uint8_t> cos) noexcept {
+void SwSwitch::sendNetworkControlPacketAsync(
+    std::unique_ptr<TxPacket> pkt,
+    folly::Optional<PortDescriptor> port) noexcept {
+  if (port) {
+    // TODO(joseph5wu): Control this by distinguishing the highest priority
+    // queue from the config.
+    static const uint8_t kNCStrictPriorityQueue = 7;
+    auto portVal = *port;
+    switch(portVal.type()) {
+      case PortDescriptor::PortType::PHYSICAL:
+        sendPacketOutOfPortAsync(
+          std::move(pkt), portVal.phyPortID(), kNCStrictPriorityQueue);
+        break;
+      case PortDescriptor::PortType::AGGREGATE:
+        sendPacketOutOfPortAsync(
+          std::move(pkt), portVal.aggPortID(), kNCStrictPriorityQueue);
+        break;
+    };
+  } else {
+    this->sendPacketSwitchedAsync(std::move(pkt));
+  }
+}
+
+void SwSwitch::sendPacketOutOfPortAsync(
+    std::unique_ptr<TxPacket> pkt,
+    PortID portID,
+    folly::Optional<uint8_t> queue) noexcept {
   pcapMgr_->packetSent(pkt.get());
 
   Cursor c(pkt->buf());
@@ -1213,7 +1237,7 @@ void SwSwitch::sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
     publishTxPacket(pkt.get(), ethertype);
   }
 
-  if (!hw_->sendPacketOutOfPortAsync(std::move(pkt), portID, cos)) {
+  if (!hw_->sendPacketOutOfPortAsync(std::move(pkt), portID, queue)) {
     // Just log an error for now.  There's not much the caller can do about
     // send failures--even on successful return from sendPacket*() the
     // send may ultimately fail since it occurs asynchronously in the
@@ -1224,7 +1248,8 @@ void SwSwitch::sendPacketOutOfPortAsync(std::unique_ptr<TxPacket> pkt,
 
 void SwSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
-    AggregatePortID aggPortID) noexcept {
+    AggregatePortID aggPortID,
+    folly::Optional<uint8_t> queue) noexcept {
   auto aggPort = getState()->getAggregatePorts()->getAggregatePortIf(aggPortID);
   if (!aggPort) {
     XLOG(ERR) << "failed to send packet out aggregate port " << aggPortID
@@ -1255,7 +1280,7 @@ void SwSwitch::sendPacketOutOfPortAsync(
   for (auto elem : subportAndFwdStates) {
     std::tie(subport, fwdState) = elem;
     if (fwdState == AggregatePort::Forwarding::ENABLED) {
-      sendPacketOutOfPortAsync(std::move(pkt), subport);
+      sendPacketOutOfPortAsync(std::move(pkt), subport, queue);
       return;
     }
   }

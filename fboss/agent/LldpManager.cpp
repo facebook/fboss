@@ -21,6 +21,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 using folly::MacAddress;
@@ -308,7 +309,9 @@ void LldpManager::sendLldpInfo(const std::shared_ptr<Port>& port) {
                                         SYSTEM_CAPABILITY_ROUTER);
 
   // this LLDP packet HAS to exit out of the port specified here.
-  sw_->sendPacketOutOfPortAsync(std::move(pkt), thisPortID);
+  sw_->sendNetworkControlPacketAsync(
+    std::move(pkt), PortDescriptor(thisPortID));
+
   XLOG(DBG4) << "sent LLDP "
              << " on port " << port->getID() << " with CPU MAC "
              << cpuMac.toString() << " port id " << port->getName()

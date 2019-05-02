@@ -61,7 +61,7 @@ class MockableHwSwitch : public MockHwSwitch {
   bool sendPacketOutOfPortAsyncAdaptor(
       TxPacket* pkt,
       PortID port,
-      folly::Optional<uint8_t> cos = folly::none) noexcept;
+      folly::Optional<uint8_t> queue = folly::none) noexcept;
   bool sendPacketSwitchedSyncAdaptor(TxPacket* pkt) noexcept;
   bool sendPacketOutOfPortSyncAdaptor(TxPacket* pkt, PortID port) noexcept;
 

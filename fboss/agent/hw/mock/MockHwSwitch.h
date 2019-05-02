@@ -45,11 +45,11 @@ class MockHwSwitch : public HwSwitch {
 
   MOCK_METHOD3(
       sendPacketOutOfPortAsync_,
-      bool(TxPacket*, facebook::fboss::PortID, folly::Optional<uint8_t> cos));
+      bool(TxPacket*, facebook::fboss::PortID, folly::Optional<uint8_t> queue));
   bool sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       facebook::fboss::PortID portID,
-      folly::Optional<uint8_t> cos = folly::none) noexcept override;
+      folly::Optional<uint8_t> queue = folly::none) noexcept override;
   MOCK_METHOD1(sendPacketSwitchedSync_, bool(TxPacket*));
   bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept override;
 

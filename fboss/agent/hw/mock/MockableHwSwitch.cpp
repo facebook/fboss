@@ -79,9 +79,9 @@ bool MockableHwSwitch::sendPacketSwitchedAsyncAdaptor(TxPacket* pkt) noexcept {
 bool MockableHwSwitch::sendPacketOutOfPortAsyncAdaptor(
     TxPacket* pkt,
     PortID port,
-    folly::Optional<uint8_t> cos) noexcept {
+    folly::Optional<uint8_t> queue) noexcept {
   std::unique_ptr<TxPacket> up(pkt);
-  return realHw_->sendPacketOutOfPortAsync(std::move(up), port, cos);
+  return realHw_->sendPacketOutOfPortAsync(std::move(up), port, queue);
 }
 
 bool MockableHwSwitch::sendPacketSwitchedSyncAdaptor(TxPacket* pkt) noexcept {

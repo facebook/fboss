@@ -915,16 +915,6 @@ void IPv6Handler::sendNeighborSolicitation(
       ICMPv6Code::ICMPV6_CODE_NDP_MESSAGE_CODE,
       bodyLength,
       serializeBody);
-
-  if (portDescriptor.hasValue()) {
-    auto port = portDescriptor.value();
-    if (port.isPhysicalPort()) {
-      sw->sendPacketOutOfPortAsync(std::move(pkt), port.phyPortID());
-    } else {
-      sw->sendPacketOutOfPortAsync(std::move(pkt), port.aggPortID());
-    }
-  } else {
-    sw->sendPacketSwitchedAsync(std::move(pkt));
-  }
+  sw->sendNetworkControlPacketAsync(std::move(pkt), portDescriptor);
 }
 }} // facebook::fboss

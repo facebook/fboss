@@ -55,7 +55,8 @@ using std::chrono::seconds;
 using ::testing::_;
 
 namespace {
-
+// TODO(joseph5wu) Network control strict priority queue
+const uint8_t kNCStrictPriorityQueue = 7;
 const MacAddress kPlatformMac("02:01:02:03:04:05");
 
 cfg::SwitchConfig createSwitchConfig(seconds raInterval, seconds ndpTimeout) {
@@ -1247,7 +1248,8 @@ TEST(NdpTest, NdpExpiration) {
                   targetIP2,
                   VlanID(5),
                   false)),
-          PortID(1), _));
+          PortID(1),
+          folly::Optional<uint8_t>(kNCStrictPriorityQueue)));
 
   EXPECT_HW_CALL(
       sw,
@@ -1262,7 +1264,8 @@ TEST(NdpTest, NdpExpiration) {
                   targetIP3,
                   VlanID(5),
                   false)),
-          PortID(1), _));
+          PortID(1),
+          folly::Optional<uint8_t>(kNCStrictPriorityQueue)));
 
   // Wait for the second and third entries to expire.
   // We wait 2.5 seconds(plus change):
@@ -1310,7 +1313,8 @@ TEST(NdpTest, NdpExpiration) {
                   targetIP,
                   vlanID,
                   false)),
-          PortID(1), _));
+          PortID(1),
+          folly::Optional<uint8_t>(kNCStrictPriorityQueue)));
   // Wait for the first entry to expire
   WaitForNdpEntryExpiration expire0(sw, targetIP, vlanID);
   std::promise<bool> done2;

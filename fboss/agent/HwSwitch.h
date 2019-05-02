@@ -157,7 +157,7 @@ class HwSwitch {
   virtual bool sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       PortID portID,
-      folly::Optional<uint8_t> cos = folly::none) noexcept = 0;
+      folly::Optional<uint8_t> queue = folly::none) noexcept = 0;
 
   /*
    * Send a packet, use switching logic to send it out the correct port(s)

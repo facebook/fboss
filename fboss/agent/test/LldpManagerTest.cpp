@@ -43,7 +43,8 @@ using std::unique_ptr;
 using ::testing::_;
 
 namespace {
-
+// TODO(joseph5wu) Network control strict priority queue
+const uint8_t kNCStrictPriorityQueue = 7;
 const MacAddress testLocalMac = MacAddress("00:00:00:00:00:02");
 unique_ptr<HwTestHandle> setupTestHandle(bool enableLldp=false) {
   // Setup a default state object
@@ -124,7 +125,9 @@ TEST(LldpManagerTest, LldpSend) {
   EXPECT_HW_CALL(
       sw,
       sendPacketOutOfPortAsync_(
-          TxPacketMatcher::createMatcher("Lldp PDU", checkLldpPDU()), _, _))
+          TxPacketMatcher::createMatcher("Lldp PDU", checkLldpPDU()),
+          _,
+          folly::Optional<uint8_t>(kNCStrictPriorityQueue)))
       .Times(AtLeast(1));
   LldpManager lldpManager(sw);
   lldpManager.sendLldpOnAllPorts();
@@ -137,7 +140,9 @@ TEST(LldpManagerTest, LldpSendPeriodic) {
   EXPECT_HW_CALL(
       sw,
       sendPacketOutOfPortAsync_(
-          TxPacketMatcher::createMatcher("Lldp PDU", checkLldpPDU()), _, _))
+          TxPacketMatcher::createMatcher("Lldp PDU", checkLldpPDU()),
+          _,
+          folly::Optional<uint8_t>(kNCStrictPriorityQueue)))
       .Times(AtLeast(1));
   LldpManager lldpManager(sw);
   lldpManager.start();
@@ -151,7 +156,9 @@ TEST(LldpManagerTest, NoLldpPktsIfSwitchConfigured) {
   EXPECT_HW_CALL(
       sw,
       sendPacketOutOfPortAsync_(
-          TxPacketMatcher::createMatcher("Lldp PDU", checkLldpPDU()), _, _))
+          TxPacketMatcher::createMatcher("Lldp PDU", checkLldpPDU()),
+          _,
+          folly::Optional<uint8_t>(kNCStrictPriorityQueue)))
       .Times(AtLeast(0));
 }
 
@@ -162,7 +169,9 @@ TEST(LldpManagerTest, LldpPktsPostConfigured) {
   EXPECT_HW_CALL(
       sw,
       sendPacketOutOfPortAsync_(
-          TxPacketMatcher::createMatcher("Lldp PDU", checkLldpPDU()), _, _))
+          TxPacketMatcher::createMatcher("Lldp PDU", checkLldpPDU()),
+          _,
+          folly::Optional<uint8_t>(kNCStrictPriorityQueue)))
       .Times(AtLeast(1));
   // Initial state applied, no more config to apply
   sw->initialConfigApplied(std::chrono::steady_clock::now());

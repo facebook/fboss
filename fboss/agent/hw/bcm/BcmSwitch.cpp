@@ -1650,12 +1650,12 @@ bool BcmSwitch::sendPacketSwitchedAsync(unique_ptr<TxPacket> pkt) noexcept {
 bool BcmSwitch::sendPacketOutOfPortAsync(
     unique_ptr<TxPacket> pkt,
     PortID portID,
-    folly::Optional<uint8_t> cos) noexcept {
+    folly::Optional<uint8_t> queue) noexcept {
   unique_ptr<BcmTxPacket> bcmPkt(
       boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
   bcmPkt->setDestModPort(getPortTable()->getBcmPortId(portID));
-  if (cos) {
-    bcmPkt->setCos(*cos);
+  if (queue) {
+    bcmPkt->setCos(*queue);
   }
   XLOG(DBG4) << "sendPacketOutOfPortAsync for"
              << getPortTable()->getBcmPortId(portID);

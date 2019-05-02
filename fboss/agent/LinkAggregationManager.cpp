@@ -286,11 +286,9 @@ bool LinkAggregationManager::transmit(LACPDU lacpdu, PortID portID) {
 
   lacpdu.to(&writer);
 
-  // TODO(samank): Control this via configuration by adding a "PacketTxReason"
-  // that can be matched on. This will be analogous to "PacketRxReason".
-  static const uint8_t kStrictPriorityClassOfService = 7;
-  sw_->sendPacketOutOfPortAsync(
-      std::move(pkt), portID, kStrictPriorityClassOfService);
+  // TODO(joseph5wu) Actually LACP should be multicast pkt, and using
+  // OutOfPacket will actually send the packet to unicast queue.
+  sw_->sendNetworkControlPacketAsync(std::move(pkt), PortDescriptor(portID));
 
   return true;
 }
