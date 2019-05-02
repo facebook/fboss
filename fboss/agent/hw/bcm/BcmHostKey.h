@@ -191,7 +191,7 @@ class BcmLabeledHostKey {
   }
 
   bool needsMplsTunnel() const {
-    return labels_.size() > 1;
+    return labels_.size() > 0;
   }
 
   LabelForwardingAction::LabelStack tunnelLabelStack() const {
@@ -200,8 +200,7 @@ class BcmLabeledHostKey {
           "tunnel label stack requested for next hop that doesn't require "
           "labels");
     }
-    return LabelForwardingAction::LabelStack(
-        labels_.begin() + 1, labels_.end());
+    return labels_;
   }
 
   std::string str() const;
