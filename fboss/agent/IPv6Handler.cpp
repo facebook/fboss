@@ -421,6 +421,7 @@ void IPv6Handler::handleNeighborSolicitation(unique_ptr<RxPacket> pkt,
   }
 
   auto entry = vlan->getNdpResponseTable()->getEntry(targetIP);
+  auto srcPortDescriptor = PortDescriptor::fromRxPacket(*pkt.get());
   if (ndpOptions.sourceLinkLayerAddress.hasValue()) {
     /* rfc 4861 - if the source address is not the unspecified address and,
     on link layers that have addresses, the solicitation includes a Source
@@ -433,7 +434,7 @@ void IPv6Handler::handleNeighborSolicitation(unique_ptr<RxPacket> pkt,
           vlan->getID(),
           hdr.ipv6->srcAddr,
           ndpOptions.sourceLinkLayerAddress.value(),
-          PortDescriptor::fromRxPacket(*pkt.get()),
+          srcPortDescriptor,
           type,
           0);
       return;
@@ -443,20 +444,22 @@ void IPv6Handler::handleNeighborSolicitation(unique_ptr<RxPacket> pkt,
         vlan->getID(),
         hdr.ipv6->srcAddr,
         ndpOptions.sourceLinkLayerAddress.value(),
-        PortDescriptor::fromRxPacket(*pkt.get()),
+        srcPortDescriptor,
         type,
         0);
   }
   // TODO: It might be nice to support duplicate address detection, and track
   // whether our IP is tentative or not.
 
-  // Send the response
+  // Send the response. To reply the neighbor solicitation, we can use the
+  // src port of such packet to send back the neighbor advertisement.
   sendNeighborAdvertisement(
       pkt->getSrcVlan(),
       entry.value().mac,
       targetIP,
       hdr.src,
-      hdr.ipv6->srcAddr);
+      hdr.ipv6->srcAddr,
+      srcPortDescriptor);
 }
 
 void IPv6Handler::handleNeighborAdvertisement(unique_ptr<RxPacket> pkt,
@@ -847,11 +850,13 @@ void IPv6Handler::floodNeighborAdvertisements() {
   }
 }
 
-void IPv6Handler::sendNeighborAdvertisement(VlanID vlan,
-                                            MacAddress srcMac,
-                                            IPAddressV6 srcIP,
-                                            MacAddress dstMac,
-                                            IPAddressV6 dstIP) {
+void IPv6Handler::sendNeighborAdvertisement(
+    VlanID vlan,
+    MacAddress srcMac,
+    IPAddressV6 srcIP,
+    MacAddress dstMac,
+    IPAddressV6 dstIP,
+    const folly::Optional<PortDescriptor>& portDescriptor) {
   XLOG(DBG4) << "sending neighbor advertisement to " << dstIP.str() << " ("
              << dstMac << "): for " << srcIP << " (" << srcMac << ")";
 
@@ -880,7 +885,7 @@ void IPv6Handler::sendNeighborAdvertisement(VlanID vlan,
                              ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
                              ICMPv6Code::ICMPV6_CODE_NDP_MESSAGE_CODE,
                              bodyLength, serializeBody);
-  sw_->sendPacketSwitchedAsync(std::move(pkt));
+  sw_->sendNetworkControlPacketAsync(std::move(pkt), portDescriptor);
 }
 
 void IPv6Handler::sendNeighborSolicitation(

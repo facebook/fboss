@@ -452,12 +452,16 @@ TEST(NdpTest, UnsolicitedRequest) {
   CounterCache counters(sw);
 
   // We should get a neighbor advertisement back
-  EXPECT_SWITCHED_PKT(sw, "neighbor advertisement",
-             checkNeighborAdvert(kPlatformMac,
-                                 IPAddressV6("2401:db00:2110:3004::a"),
-                                 MacAddress("02:05:73:f9:46:fc"),
-                                 IPAddressV6("ff01::1"),
-                                 VlanID(5), 0xa0));
+  EXPECT_OUT_OF_PORT_PKT(
+     sw,
+     "neighbor advertisement",
+     checkNeighborAdvert(kPlatformMac,
+                         IPAddressV6("2401:db00:2110:3004::a"),
+                         MacAddress("02:05:73:f9:46:fc"),
+                         IPAddressV6("ff01::1"),
+                         VlanID(5), 0xa0),
+     PortID(1),
+     folly::Optional<uint8_t>(kNCStrictPriorityQueue));
 
   // Send the packet to the SwSwitch
   handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), VlanID(5));

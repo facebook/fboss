@@ -144,11 +144,14 @@ class IPv6Handler : public AutoRegisterStateObserver {
   bool checkNdpPacket(const ICMPHeaders& hdr,
                       const RxPacket* pkt) const;
 
-  void sendNeighborAdvertisement(VlanID vlan,
-                                 folly::MacAddress srcMac,
-                                 folly::IPAddressV6 srcIP,
-                                 folly::MacAddress dstMac,
-                                 folly::IPAddressV6 dstIP);
+  void sendNeighborAdvertisement(
+      VlanID vlan,
+      folly::MacAddress srcMac,
+      folly::IPAddressV6 srcIP,
+      folly::MacAddress dstMac,
+      folly::IPAddressV6 dstIP,
+      const folly::Optional<PortDescriptor>& portDescriptor =
+          folly::Optional<PortDescriptor>());
 
   void resolveDestAndHandlePacket(
       IPv6Hdr hdr,
