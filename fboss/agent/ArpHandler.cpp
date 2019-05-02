@@ -157,13 +157,15 @@ void ArpHandler::handlePacket(
   (void)targetMac; // unused
 }
 
-static void sendArp(SwSwitch *sw,
-                    VlanID vlan,
-                    ArpOpCode op,
-                    MacAddress senderMac,
-                    IPAddressV4 senderIP,
-                    MacAddress targetMac,
-                    IPAddressV4 targetIP) {
+static void sendArp(
+    SwSwitch *sw,
+    VlanID vlan,
+    ArpOpCode op,
+    MacAddress senderMac,
+    IPAddressV4 senderIP,
+    MacAddress targetMac,
+    IPAddressV4 targetIP,
+    const folly::Optional<PortDescriptor>& portDesc = folly::none) {
   XLOG(DBG4) << "sending ARP " << ((op == ARP_OP_REQUEST) ? "request" : "reply")
              << " on vlan " << vlan << " to " << targetIP.str() << " ("
              << targetMac << "): " << senderIP.str() << " is " << senderMac;
@@ -180,7 +182,7 @@ static void sendArp(SwSwitch *sw,
   RWPrivateCursor cursor(pkt->buf());
 
   pkt->writeEthHeader(&cursor, targetMac, senderMac, vlan,
-                      ArpHandler::ETHERTYPE_ARP);
+                     ArpHandler::ETHERTYPE_ARP);
   cursor.writeBE<uint16_t>(ARP_HTYPE_ETHERNET);
   cursor.writeBE<uint16_t>(ARP_PTYPE_IPV4);
   cursor.writeBE<uint8_t>(ARP_HLEN_ETHERNET);
@@ -188,14 +190,14 @@ static void sendArp(SwSwitch *sw,
   cursor.writeBE<uint16_t>(op);
   cursor.push(senderMac.bytes(), MacAddress::SIZE);
   cursor.write<uint32_t>(senderIP.toLong());
-  cursor.push(((op == ARP_OP_REQUEST)
-               ? MacAddress::ZERO.bytes() : targetMac.bytes()),
-              MacAddress::SIZE);
+  cursor.push(((op == ARP_OP_REQUEST) ? MacAddress::ZERO.bytes() :
+                                        targetMac.bytes()),
+               MacAddress::SIZE);
   cursor.write<uint32_t>(targetIP.toLong());
   // Fill the padding with 0s
   memset(cursor.writableData(), 0, cursor.length());
 
-  sw->sendPacketSwitchedAsync(std::move(pkt));
+  sw->sendNetworkControlPacketAsync(std::move(pkt), portDesc);
 }
 
 void ArpHandler::floodGratuituousArp() {
@@ -221,7 +223,19 @@ void ArpHandler::sendArpReply(VlanID vlan,
                               MacAddress targetMac,
                               IPAddressV4 targetIP) {
   sw_->portStats(port)->arpReplyTx();
-  sendArp(sw_, vlan, ARP_OP_REPLY, senderMac, senderIP, targetMac, targetIP);
+  // Before sending Arp reply, we've already programmed the IP to be reachable
+  // over this port with the given mac by updater->receivedArpMine(). This is
+  // what makes our assumption of sending ArpReply out of the same port
+  // kind of safe.
+  sendArp(
+    sw_,
+    vlan,
+    ARP_OP_REPLY,
+    senderMac,
+    senderIP,
+    targetMac,
+    targetIP,
+    PortDescriptor(port));
 }
 
 void ArpHandler::sendArpRequest(SwSwitch* sw,

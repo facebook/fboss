@@ -59,6 +59,7 @@ using std::unique_ptr;
 using ::testing::_;
 
 namespace {
+const uint8_t kNCStrictPriorityQueue = 7;
 
 unique_ptr<HwTestHandle> setupTestHandle(
     std::chrono::seconds arpTimeout = std::chrono::seconds(0),
@@ -225,11 +226,11 @@ void testSendArpRequest(SwSwitch* sw, VlanID vlanID,
   // Expect ARP entry to be created
   WaitForArpEntryCreation arpCreate(sw, targetIP);
   if (state->getMaxNeighborProbes() > 1) {
-    EXPECT_MANY_PKTS(sw, "ARP request",
+    EXPECT_MANY_SWITCHED_PKTS(sw, "ARP request",
                checkArpRequest(senderIP, intf->getMac(), targetIP, vlanID));
   }
   else {
-    EXPECT_PKT(sw, "ARP request",
+    EXPECT_SWITCHED_PKT(sw, "ARP request",
                checkArpRequest(senderIP, intf->getMac(), targetIP, vlanID));
   }
   ArpHandler::sendArpRequest(sw, vlan->getID(), intf->getMac(),
@@ -269,7 +270,7 @@ TEST(ArpTest, BasicSendRequest) {
 
   // Sending an ARP request will trigger state update for setting pending entry
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(2);
-  EXPECT_PKT(sw, "ARP request",
+  EXPECT_SWITCHED_PKT(sw, "ARP request",
              checkArpRequest(senderIP, intf->getMac(), targetIP, vlanID));
 
   ArpHandler::sendArpRequest(sw, vlan->getID(), intf->getMac(),
@@ -319,10 +320,14 @@ TEST(ArpTest, TableUpdates) {
   // Sending the ARP request to the switch should not trigger an update to the
   // ArpTable for VLAN 1, but will send a reply packet
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PKT(sw, "ARP reply",
-             checkArpReply("10.0.0.1", "00:02:00:00:00:01",
-                           "10.0.1.15", "00:02:00:01:02:03",
-                           vlanID));
+  EXPECT_OUT_OF_PORT_PKT(
+    sw,
+    "ARP reply",
+    checkArpReply("10.0.0.1", "00:02:00:00:00:01",
+                  "10.0.1.15", "00:02:00:01:02:03",
+                  vlanID),
+    PortID(1),
+    folly::Optional<uint8_t>(kNCStrictPriorityQueue));
 
   // Inform the SwSwitch of the ARP request
   handle->rxPacket(std::move(buf), PortID(1), vlanID);
@@ -357,10 +362,14 @@ TEST(ArpTest, TableUpdates) {
   // Sending the ARP request to the switch should trigger an update to the
   // ArpTable for VLAN 1, and will then send a reply packet
   EXPECT_HW_CALL(sw, stateChanged(_));
-  EXPECT_PKT(sw, "ARP reply",
-             checkArpReply("10.0.0.1", "00:02:00:00:00:01",
-                           "10.0.0.15", "00:02:00:01:02:03",
-                           vlanID));
+  EXPECT_OUT_OF_PORT_PKT(
+    sw,
+    "ARP reply",
+    checkArpReply("10.0.0.1", "00:02:00:00:00:01",
+                  "10.0.0.15", "00:02:00:01:02:03",
+                  vlanID),
+    PortID(1),
+    folly::Optional<uint8_t>(kNCStrictPriorityQueue));
 
   // Inform the SwSwitch of the ARP request
   handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
@@ -390,10 +399,14 @@ TEST(ArpTest, TableUpdates) {
   // Sending the same packet again should generate another response,
   // but not another table update.
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PKT(sw, "ARP reply",
-             checkArpReply("10.0.0.1", "00:02:00:00:00:01",
-                           "10.0.0.15", "00:02:00:01:02:03",
-                           vlanID));
+  EXPECT_OUT_OF_PORT_PKT(
+    sw,
+    "ARP reply",
+    checkArpReply("10.0.0.1", "00:02:00:00:00:01",
+                  "10.0.0.15", "00:02:00:01:02:03",
+                  vlanID),
+    PortID(1),
+    folly::Optional<uint8_t>(kNCStrictPriorityQueue));
   handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
 
   // Check the counters again
@@ -510,10 +523,14 @@ TEST(ArpTest, TableUpdates) {
   ));
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
-  EXPECT_PKT(sw, "ARP reply",
-             checkArpReply("10.0.0.1", "00:02:00:00:00:01",
-                           "10.0.0.20", "00:02:00:01:02:23",
-                           vlanID));
+  EXPECT_OUT_OF_PORT_PKT(
+    sw,
+    "ARP reply",
+    checkArpReply("10.0.0.1", "00:02:00:00:00:01",
+                  "10.0.0.20", "00:02:00:01:02:23",
+                  vlanID),
+    PortID(1),
+    folly::Optional<uint8_t>(kNCStrictPriorityQueue));
   handle->rxPacket(std::move(buf), PortID(1), vlanID);
   waitForStateUpdates(sw);
 
@@ -560,10 +577,14 @@ TEST(ArpTest, TableUpdates) {
   ));
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
-  EXPECT_PKT(sw, "ARP reply",
-             checkArpReply("192.168.0.1", "00:02:00:00:00:01",
-                           "192.168.0.20", "00:02:00:55:66:77",
-                           vlanID));
+  EXPECT_OUT_OF_PORT_PKT(
+    sw,
+    "ARP reply",
+    checkArpReply("192.168.0.1", "00:02:00:00:00:01",
+                  "192.168.0.20", "00:02:00:55:66:77",
+                  vlanID),
+    PortID(5),
+    folly::Optional<uint8_t>(kNCStrictPriorityQueue));
   handle->rxPacket(std::move(buf), PortID(5), vlanID);
   waitForStateUpdates(sw);
 
@@ -821,7 +842,7 @@ TEST(ArpTest, PendingArp) {
   // Receiving this packet should trigger an ARP request out,
   // and the state should now include a pending arp entry.
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
-  EXPECT_PKT(sw, "ARP request",
+  EXPECT_SWITCHED_PKT(sw, "ARP request",
              checkArpRequest(senderIP, MacAddress("00:02:00:00:00:01"),
                              IPAddressV4("10.0.0.10"), vlanID));
 
@@ -1024,7 +1045,7 @@ TEST(ArpTest, ArpExpiration) {
   // Expect one more probe to be sent out before targetIP[1] is expired
   auto intfs = sw->getState()->getInterfaces();
   auto intf = intfs->getInterfaceIf(RouterID(0), senderIP);
-  EXPECT_PKT(
+  EXPECT_SWITCHED_PKT(
       sw,
       "ARP request",
       checkArpRequest(senderIP, intf->getMac(), targetIP[1], vlanID));
@@ -1066,7 +1087,7 @@ TEST(ArpTest, ArpExpiration) {
       .WillRepeatedly(testing::Return(true));
 
   // Expect one more probe to be sent out before targetIP is expired
-  EXPECT_PKT(
+  EXPECT_SWITCHED_PKT(
       sw,
       "ARP request",
       checkArpRequest(senderIP, intf->getMac(), targetIP[0], vlanID));
@@ -1221,7 +1242,7 @@ TEST(ArpTest, receivedPacketWithDirectlyConnectedDestination) {
   ));
 
   // Receiving this packet should trigger an ARP request out.
-  EXPECT_PKT(sw, "ARP request",
+  EXPECT_SWITCHED_PKT(sw, "ARP request",
              checkArpRequest(senderIP, MacAddress("00:02:00:00:00:01"),
                              targetIP, vlanID));
   // The state will be updated twice: once to create a pending ARP entry and
@@ -1343,7 +1364,7 @@ TEST(ArpTest, receivedPacketWithRouteToDestination) {
   // 10.0.0.23, which causes pending arp entries to be added to the state.
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(testing::AtLeast(2));
   for (auto nexthop : nextHops) {
-    EXPECT_PKT(
+    EXPECT_SWITCHED_PKT(
         sw,
         "ARP request",
         checkArpRequest(

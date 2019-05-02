@@ -370,7 +370,7 @@ TEST(DHCPv4HandlerTest, DHCPRequest) {
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
     WillRepeatedly(Return(kPlatformMac));
 
-  EXPECT_PKT(sw, "DHCP request", checkDHCPReq());
+  EXPECT_SWITCHED_PKT(sw, "DHCP request", checkDHCPReq());
 
   sendDHCPPacket(handle.get(), senderMac, targetMac, vlan,
       senderIP, targetIP, srcPort, dstPort, bootpOp, dhcpMsgTypeOpt);
@@ -402,7 +402,7 @@ TEST(DHCPv4HandlerOverrideTest, DHCPRequest) {
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
     WillRepeatedly(Return(kPlatformMac));
 
-  EXPECT_PKT(sw, "DHCP request", checkDHCPReq(kDhcpOverride));
+  EXPECT_SWITCHED_PKT(sw, "DHCP request", checkDHCPReq(kDhcpOverride));
 
   sendDHCPPacket(handle.get(), senderMac, targetMac, vlan,
       senderIP, targetIP, srcPort, dstPort, bootpOp, dhcpMsgTypeOpt);
@@ -430,7 +430,7 @@ TEST(DHCPv4RelaySrcTest, DHCPRequest) {
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
     WillRepeatedly(Return(kPlatformMac));
 
-  EXPECT_PKT(sw, "DHCP request",
+  EXPECT_SWITCHED_PKT(sw, "DHCP request",
              checkDHCPReq(kDhcpOverride, kDhcpV4RelaySrc));
 
   sendDHCPPacket(handle.get(), senderMac, targetMac, vlan,
@@ -469,7 +469,7 @@ TEST(DHCPv4HandlerTest, DHCPReply) {
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).
     WillRepeatedly(Return(kPlatformMac));
 
-  EXPECT_PKT(sw, "DHCP reply", checkDHCPReply());
+  EXPECT_SWITCHED_PKT(sw, "DHCP reply", checkDHCPReply());
 
   sendDHCPPacket(handle.get(), senderMac, targetMac, vlan,
       senderIP, targetIP, srcPort, dstPort, bootpOp, dhcpMsgTypeOpt,
@@ -513,7 +513,8 @@ TEST(DHCPv4ReplySrcTest, DHCPReply) {
     WillRepeatedly(Return(kPlatformMac));
 
   // DHCP reply source is override to interface55's address
-  EXPECT_PKT(sw, "DHCP reply", checkDHCPReply(kDhcpV4ReplySrc, VlanID(55)));
+  EXPECT_SWITCHED_PKT(
+    sw, "DHCP reply", checkDHCPReply(kDhcpV4ReplySrc, VlanID(55)));
 
   sendDHCPPacket(handle.get(), senderMac, targetMac, vlan,
       senderIP, targetIP, srcPort, dstPort, bootpOp, dhcpMsgTypeOpt,

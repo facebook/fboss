@@ -452,7 +452,7 @@ TEST(NdpTest, UnsolicitedRequest) {
   CounterCache counters(sw);
 
   // We should get a neighbor advertisement back
-  EXPECT_PKT(sw, "neighbor advertisement",
+  EXPECT_SWITCHED_PKT(sw, "neighbor advertisement",
              checkNeighborAdvert(kPlatformMac,
                                  IPAddressV6("2401:db00:2110:3004::a"),
                                  MacAddress("02:05:73:f9:46:fc"),
@@ -505,7 +505,7 @@ TEST(NdpTest, TriggerSolicitation) {
   CounterCache counters(sw);
 
   // We should get a neighbor solicitation back
-  EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
+  EXPECT_SWITCHED_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
         MacAddress("33:33:ff:01:00:00"),
@@ -553,7 +553,7 @@ TEST(NdpTest, TriggerSolicitation) {
       "2a 7e");
 
   // We should get a neighbor solicitation back
-  EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
+  EXPECT_SWITCHED_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
         MacAddress("33:33:ff:00:00:01"),
@@ -561,7 +561,7 @@ TEST(NdpTest, TriggerSolicitation) {
         IPAddressV6("2401:db00:2110:3004::1"),
         VlanID(5)));
 
-  EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
+  EXPECT_SWITCHED_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
         MacAddress("33:33:ff:00:00:02"),
@@ -602,7 +602,7 @@ TEST(NdpTest, RouterAdvertisement) {
     { IPAddressV6("2401:db00:2110:3004::"), 64 },
     { IPAddressV6("fe80::"), 64 },
   };
-  EXPECT_PKT(sw, "router advertisement",
+  EXPECT_SWITCHED_PKT(sw, "router advertisement",
              checkRouterAdvert(kPlatformMac,
                                IPAddressV6("fe80::1:02ff:fe03:0405"),
                                MacAddress("33:33:00:00:00:01"),
@@ -611,7 +611,7 @@ TEST(NdpTest, RouterAdvertisement) {
                                9000, expectedPrefixes));
 
   // Send the router solicitation packet
-  EXPECT_PKT(sw, "router advertisement",
+  EXPECT_SWITCHED_PKT(sw, "router advertisement",
              checkRouterAdvert(kPlatformMac,
                                IPAddressV6("fe80::1:02ff:fe03:0405"),
                                MacAddress("02:05:73:f9:46:fc"),
@@ -652,7 +652,7 @@ TEST(NdpTest, RouterAdvertisement) {
   // which differs from MAC address in ethernet header. The switch should use
   // the MAC address in options field.
 
-  EXPECT_PKT(sw, "router advertisement",
+  EXPECT_SWITCHED_PKT(sw, "router advertisement",
              checkRouterAdvert(kPlatformMac,
                                IPAddressV6("fe80::1:02ff:fe03:0405"),
                                MacAddress("02:ab:73:f9:46:fc"),
@@ -706,7 +706,7 @@ TEST(NdpTest, RouterAdvertisement) {
   done.get_future().wait();
   // We send RA packets just before switch controller shutdown,
   // so expect RA packet.
-  EXPECT_PKT(sw, "router advertisement",
+  EXPECT_SWITCHED_PKT(sw, "router advertisement",
              checkRouterAdvert(kPlatformMac,
                                IPAddressV6("fe80::1:02ff:fe03:0405"),
                                MacAddress("33:33:00:00:00:01"),
@@ -844,7 +844,7 @@ TEST(NdpTest, PendingNdp) {
   // to add the pending entry
   WaitForNdpEntryCreation neighborEntryCreate(
       sw, IPAddressV6("2401:db00:2110:3004::1:0"), vlanID);
-  EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
+  EXPECT_SWITCHED_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
         MacAddress("33:33:ff:01:00:00"),
@@ -938,7 +938,7 @@ TEST(NdpTest, PendingNdpCleanup) {
   // to add the pending entry
   WaitForNdpEntryCreation neighborEntryCreate(
       sw, IPAddressV6("2401:db00:2110:3004::1:0"), vlanID);
-  EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
+  EXPECT_SWITCHED_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
         MacAddress("33:33:ff:01:00:00"),
@@ -993,7 +993,7 @@ TEST(NdpTest, PendingNdpCleanup) {
   WaitForNdpEntryCreation nexthop2Create(
       sw, IPAddressV6("2401:db00:2110:3004::2"), vlanID);
 
-  EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
+  EXPECT_SWITCHED_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
         MacAddress("33:33:ff:00:00:01"),
@@ -1001,7 +1001,7 @@ TEST(NdpTest, PendingNdpCleanup) {
         IPAddressV6("2401:db00:2110:3004::1"),
         VlanID(5)));
 
-  EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
+  EXPECT_SWITCHED_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
         MacAddress("33:33:ff:00:00:02"),
@@ -1106,7 +1106,7 @@ TEST(NdpTest, NdpExpiration) {
   // We should get a neighbor solicitation back and the state should change once
   // to add the pending entry
   WaitForNdpEntryCreation neighbor0Create(sw, targetIP, vlanID);
-  EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
+  EXPECT_SWITCHED_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
         MacAddress("33:33:ff:01:00:00"),
@@ -1158,7 +1158,7 @@ TEST(NdpTest, NdpExpiration) {
   WaitForNdpEntryCreation neighbor1Create(sw, targetIP2, vlanID);
   WaitForNdpEntryCreation neighbor2Create(sw, targetIP3, vlanID);
 
-  EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
+  EXPECT_SWITCHED_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
         MacAddress("33:33:ff:00:00:01"),
@@ -1166,7 +1166,7 @@ TEST(NdpTest, NdpExpiration) {
         targetIP2,
         VlanID(5)));
 
-  EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
+  EXPECT_SWITCHED_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
         MacAddress("33:33:ff:00:00:02"),
@@ -1235,37 +1235,33 @@ TEST(NdpTest, NdpExpiration) {
 
   // before we expire them, but this time they're unicast as they're being
   // probed
-  EXPECT_HW_CALL(
+  EXPECT_OUT_OF_PORT_PKT(
       sw,
-      sendPacketOutOfPortAsync_(
-          TxPacketMatcher::createMatcher(
-              "neighbor solicitation",
-              checkNeighborSolicitation(
-                  MacAddress("02:01:02:03:04:05"),
-                  IPAddressV6("2401:db00:2110:3004::"),
-                  MacAddress("02:10:20:30:40:23"),
-                  targetIP2,
-                  targetIP2,
-                  VlanID(5),
-                  false)),
-          PortID(1),
-          folly::Optional<uint8_t>(kNCStrictPriorityQueue)));
+      "neighbor solicitation",
+      checkNeighborSolicitation(
+          MacAddress("02:01:02:03:04:05"),
+          IPAddressV6("2401:db00:2110:3004::"),
+          MacAddress("02:10:20:30:40:23"),
+          targetIP2,
+          targetIP2,
+          VlanID(5),
+          false),
+      PortID(1),
+      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
 
-  EXPECT_HW_CALL(
+  EXPECT_OUT_OF_PORT_PKT(
       sw,
-      sendPacketOutOfPortAsync_(
-          TxPacketMatcher::createMatcher(
-              "neighbor solicitation",
-              checkNeighborSolicitation(
-                  MacAddress("02:01:02:03:04:05"),
-                  IPAddressV6("2401:db00:2110:3004::"),
-                  MacAddress("02:10:20:30:40:24"),
-                  targetIP3,
-                  targetIP3,
-                  VlanID(5),
-                  false)),
-          PortID(1),
-          folly::Optional<uint8_t>(kNCStrictPriorityQueue)));
+      "neighbor solicitation",
+      checkNeighborSolicitation(
+          MacAddress("02:01:02:03:04:05"),
+          IPAddressV6("2401:db00:2110:3004::"),
+          MacAddress("02:10:20:30:40:24"),
+          targetIP3,
+          targetIP3,
+          VlanID(5),
+          false),
+      PortID(1),
+      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
 
   // Wait for the second and third entries to expire.
   // We wait 2.5 seconds(plus change):
@@ -1300,21 +1296,19 @@ TEST(NdpTest, NdpExpiration) {
 
   // We should see one more solicitation for entry 1 before we expire it
 
-  EXPECT_HW_CALL(
+  EXPECT_OUT_OF_PORT_PKT(
       sw,
-      sendPacketOutOfPortAsync_(
-          TxPacketMatcher::createMatcher(
-              "neighbor solicitation",
-              checkNeighborSolicitation(
-                  MacAddress("02:01:02:03:04:05"),
-                  IPAddressV6("2401:db00:2110:3004::"),
-                  MacAddress("02:10:20:30:40:22"),
-                  targetIP,
-                  targetIP,
-                  vlanID,
-                  false)),
-          PortID(1),
-          folly::Optional<uint8_t>(kNCStrictPriorityQueue)));
+      "neighbor solicitation",
+      checkNeighborSolicitation(
+          MacAddress("02:01:02:03:04:05"),
+          IPAddressV6("2401:db00:2110:3004::"),
+          MacAddress("02:10:20:30:40:22"),
+          targetIP,
+          targetIP,
+          vlanID,
+          false),
+      PortID(1),
+      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
   // Wait for the first entry to expire
   WaitForNdpEntryExpiration expire0(sw, targetIP, vlanID);
   std::promise<bool> done2;
@@ -1387,7 +1381,7 @@ TEST(NdpTest, PortFlapRecover) {
   // We should get a neighbor solicitation back and the state should change once
   // to add the pending entry
   WaitForNdpEntryCreation neighbor0Create(sw, targetIP, vlanID);
-  EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
+  EXPECT_SWITCHED_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
         MacAddress("33:33:ff:01:00:00"),
@@ -1440,7 +1434,7 @@ TEST(NdpTest, PortFlapRecover) {
   // We should send two more neighbor solicitations
   WaitForNdpEntryCreation neighbor1Create(sw, targetIP2, vlanID);
   WaitForNdpEntryCreation neighbor2Create(sw, targetIP3, vlanID);
-  EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
+  EXPECT_SWITCHED_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
         MacAddress("33:33:ff:00:00:01"),
@@ -1448,7 +1442,7 @@ TEST(NdpTest, PortFlapRecover) {
         targetIP2,
         VlanID(5)));
 
-  EXPECT_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
+  EXPECT_SWITCHED_PKT(sw, "neighbor solicitation", checkNeighborSolicitation(
         MacAddress("02:01:02:03:04:05"),
         IPAddressV6("fe80::0001:02ff:fe03:0405"),
         MacAddress("33:33:ff:00:00:02"),

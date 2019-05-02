@@ -264,19 +264,23 @@ void EXPECT_NO_ROUTE(const std::shared_ptr<RouteTableMap>& tables,
  * packet will not arrive and match the filter.  For instance, consider the
  * following code:
  *
- *   EXPECT_PKT(sw, "ARP reply", arpReplyChecker).Times(1);
- *   EXPECT_PKT(sw, "ICMP packet", icmpChecker).Times(1);
+ *   EXPECT_SWITCHED_PKT(sw, "ARP reply", arpReplyChecker).Times(1);
+ *   EXPECT_SWITCHED_PKT(sw, "ICMP packet", icmpChecker).Times(1);
  *
  * The code expects to see one ARP reply and one ICMP packet, but it may have
  * to call both filters on a packet to see which one it is.
  */
-#define EXPECT_PKT(sw, name, matchFn) \
+#define EXPECT_SWITCHED_PKT(sw, name, matchFn) \
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_( \
                  TxPacketMatcher::createMatcher(name, matchFn)))
 
-#define EXPECT_MANY_PKTS(sw, name, matchFn) \
+#define EXPECT_MANY_SWITCHED_PKTS(sw, name, matchFn) \
   EXPECT_MANY_HW_CALLS(sw, sendPacketSwitchedAsync_( \
                  TxPacketMatcher::createMatcher(name, matchFn)))
+
+#define EXPECT_OUT_OF_PORT_PKT(sw, name, matchFn, portID, cos) \
+  EXPECT_HW_CALL(sw, sendPacketOutOfPortAsync_( \
+                 TxPacketMatcher::createMatcher(name, matchFn), portID, cos))
 
 /**
  * Convenience macro for expecting RxPacket to be transmitted by TunManager.

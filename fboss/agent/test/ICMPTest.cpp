@@ -340,7 +340,7 @@ TEST(ICMPTest, TTLExceededV4) {
     WillRepeatedly(Return(kPlatformMac));
 
   // We should get a ICMPv4 TTL exceeded back
-  EXPECT_PKT(sw, "ICMP TTL Exceeded",
+  EXPECT_SWITCHED_PKT(sw, "ICMP TTL Exceeded",
              checkICMPv4TTLExceeded(kPlatformMac,
                                  IPAddressV4("10.0.0.1"),
                                  kPlatformMac,
@@ -411,7 +411,7 @@ TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
     WillRepeatedly(Return(kPlatformMac));
 
   // We should get a ICMPv4 TTL exceeded back
-  EXPECT_PKT(sw, "ICMP TTL Exceeded",
+  EXPECT_SWITCHED_PKT(sw, "ICMP TTL Exceeded",
              checkICMPv4TTLExceeded(kPlatformMac,
                                  IPAddressV4("10.0.0.1"),
                                  kPlatformMac,
@@ -505,7 +505,7 @@ void runTTLExceededV6Test(size_t requestedPayloadSize) {
     WillRepeatedly(Return(kPlatformMac));
 
   // We should get a ICMPv6 TTL exceeded back
-  EXPECT_PKT(
+  EXPECT_SWITCHED_PKT(
       sw,
       "ICMP TTL Exceeded",
       checkICMPv6TTLExceeded(
@@ -638,7 +638,7 @@ TEST(ICMPTest, PacketTooBigV6) {
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
   EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
-  EXPECT_PKT(
+  EXPECT_SWITCHED_PKT(
       sw,
       "ICMPv6 Packet Too Big",
       checkICMPv6PacketTooBig(

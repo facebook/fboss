@@ -565,7 +565,7 @@ TEST_F(RoutingFixture, HostToSwitchUnicast) {
 
     auto bufCopy = IOBuf::copyBuffer(
       pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
-    EXPECT_PKT(sw, "V4 UcastPkt", matchTxPacket(
+    EXPECT_SWITCHED_PKT(sw, "V4 UcastPkt", matchTxPacket(
         kPlatformMac,
         kPlatformMac,
         VlanID(1),
@@ -584,7 +584,7 @@ TEST_F(RoutingFixture, HostToSwitchUnicast) {
 
     auto bufCopy = IOBuf::copyBuffer(
       pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
-    EXPECT_PKT(sw, "V6 UcastPkt", matchTxPacket(
+    EXPECT_SWITCHED_PKT(sw, "V6 UcastPkt", matchTxPacket(
         kPlatformMac,
         kPlatformMac,
         VlanID(2),
@@ -612,7 +612,7 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
 
     auto bufCopy = IOBuf::copyBuffer(
       pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
-    EXPECT_PKT(sw, "V4 UcastPkt", matchTxPacket(
+    EXPECT_SWITCHED_PKT(sw, "V4 UcastPkt", matchTxPacket(
         kPlatformMac,
         kPlatformMac, // NOTE: no neighbor mac address resolution like v6
         VlanID(1),
@@ -631,7 +631,7 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
 
     auto bufCopy = IOBuf::copyBuffer(
       pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
-    EXPECT_PKT(sw, "V6 UcastPkt", matchTxPacket(
+    EXPECT_SWITCHED_PKT(sw, "V6 UcastPkt", matchTxPacket(
         kPlatformMac,
         kNbhMacAddr2,   // because vlan-id = 2
         VlanID(2),
@@ -668,7 +668,7 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
 
     auto bufCopy = IOBuf::copyBuffer(
       pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
-    EXPECT_PKT(sw, "V4 UcastPkt", matchTxPacket(
+    EXPECT_SWITCHED_PKT(sw, "V4 UcastPkt", matchTxPacket(
         kPlatformMac,
         kPlatformMac, // NOTE: no neighbor mac address resolution like v6
         VlanID(1),
@@ -699,7 +699,7 @@ TEST_F(RoutingFixture, HostToSwitchMulticast) {
 
     auto bufCopy = IOBuf::copyBuffer(
       pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
-    EXPECT_PKT(sw, "V4 McastPkt", matchTxPacket(
+    EXPECT_SWITCHED_PKT(sw, "V4 McastPkt", matchTxPacket(
         kPlatformMac,
         kIPv4MacAddr,
         VlanID(1),
@@ -718,7 +718,7 @@ TEST_F(RoutingFixture, HostToSwitchMulticast) {
 
     auto bufCopy = IOBuf::copyBuffer(
       pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
-    EXPECT_PKT(sw, "V6 McastPkt", matchTxPacket(
+    EXPECT_SWITCHED_PKT(sw, "V6 McastPkt", matchTxPacket(
         kPlatformMac,
         kIPv6MacAddr,
         VlanID(2),

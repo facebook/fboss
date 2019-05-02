@@ -446,12 +446,12 @@ class SwSwitch : public HwSwitch::Callback {
   void sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       PortID portID,
-      folly::Optional<uint8_t> cos = folly::none) noexcept;
+      folly::Optional<uint8_t> queue = folly::none) noexcept;
 
   void sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       AggregatePortID aggPortID,
-      folly::Optional<uint8_t> cos = folly::none) noexcept;
+      folly::Optional<uint8_t> queue = folly::none) noexcept;
 
   /*
    * Send a packet, using switching logic to send it out the correct port(s)
