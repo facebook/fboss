@@ -126,3 +126,40 @@ TEST(RefMap, getNonExistent) {
   EXPECT_EQ(a1.use_count(), 1);
   EXPECT_EQ(identityMap.size(), 1);
 }
+
+TEST(RefMap, IteratorTest) {
+  UnorderedRefMap<int, A> unOrderedRedMap;
+  FlatRefMap<int, A> flatRefMap;
+
+  std::vector<int> vec{10, 20, 30, 40};
+  std::vector<std::shared_ptr<A>> retainedSharedPtr;
+
+  retainedSharedPtr.resize(2 * vec.size());
+  auto retainedSharedPtrIndex = 0;
+
+  for (auto i = 0; i < vec.size(); i++) {
+    bool inserted = false;
+    std::tie(retainedSharedPtr[retainedSharedPtrIndex++], inserted) =
+        unOrderedRedMap.refOrEmplace(vec[i], vec[i]);
+
+    std::tie(retainedSharedPtr[retainedSharedPtrIndex++], inserted) =
+        flatRefMap.refOrEmplace(vec[i], vec[i]);
+  }
+
+  EXPECT_EQ(unOrderedRedMap.size(), vec.size());
+  EXPECT_EQ(flatRefMap.size(), vec.size());
+
+  for (auto key : vec) {
+    auto iterUnorderedRedMap = std::find_if(
+        std::begin(unOrderedRedMap),
+        std::end(unOrderedRedMap),
+        [key](const auto& entry) { return entry.first == key; });
+    EXPECT_NE(iterUnorderedRedMap, std::end(unOrderedRedMap));
+
+    auto iterFlatRefMap = std::find_if(
+        flatRefMap.begin(), flatRefMap.end(), [key](const auto& entry) {
+          return entry.first == key;
+        });
+    EXPECT_NE(iterFlatRefMap, std::end(flatRefMap));
+  }
+}

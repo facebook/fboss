@@ -45,6 +45,8 @@ class RefMap {
   //using MapType = std::unordered_map<K, std::weak_ptr<V>>;
   //using MapType = boost::container::flat_map<K, std::weak_ptr<V>>;
   using MapType = M<K, std::weak_ptr<V>>;
+  using KeyType = K;
+  using ValueType = std::weak_ptr<V>;
   RefMap() {}
   RefMap(const RefMap& other) = delete;
   RefMap& operator=(const RefMap& other) = delete;
@@ -79,6 +81,14 @@ class RefMap {
 
   const V* get(const K& k) const {
     return getImpl(k);
+  }
+
+  typename MapType::iterator begin() {
+    return map_.begin();
+  }
+
+  typename MapType::iterator end() {
+    return map_.end();
   }
 
  private:
