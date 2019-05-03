@@ -613,7 +613,8 @@ void BcmPort::updateStats() {
     return;
   }
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
-  HwPortStats curPortStats;
+  auto lastPortStats = lastPortStats_.rlock()->portStats();
+  HwPortStats curPortStats{lastPortStats};
   updateStat(
       now, kInBytes(), opennsl_spl_snmpIfHCInOctets, &curPortStats.inBytes_);
   updateStat(
@@ -690,8 +691,6 @@ void BcmPort::updateStats() {
   updateBcmStats(now, &curPortStats);
 
   setAdditionalStats(now, &curPortStats);
-
-  auto lastPortStats = lastPortStats_.rlock()->portStats();
 
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
       {lastPortStats.inDstNullDiscards_,
