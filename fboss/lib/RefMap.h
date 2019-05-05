@@ -91,6 +91,22 @@ class RefMap {
     return map_.end();
   }
 
+  typename MapType::const_iterator begin() const {
+    return map_.cbegin();
+  }
+
+  typename MapType::const_iterator end() const {
+    return map_.cend();
+  }
+
+  typename MapType::const_iterator cbegin() const {
+    return map_.cbegin();
+  }
+
+  typename MapType::const_iterator cend() const {
+    return map_.cend();
+  }
+
  private:
   V* getImpl(const K& k) const {
     auto itr = map_.find(k);
