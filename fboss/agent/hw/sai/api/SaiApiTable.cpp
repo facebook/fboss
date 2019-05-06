@@ -20,6 +20,7 @@ SaiApiTable::SaiApiTable() {
   sai_api_initialize(0, nullptr);
   bridgeApi_ = std::make_unique<BridgeApi>();
   fdbApi_ = std::make_unique<FdbApi>();
+  hostifPacketApi_ = std::make_unique<HostifPacketApi>();
   nextHopApi_ = std::make_unique<NextHopApi>();
   nextHopGroupApi_ = std::make_unique<NextHopGroupApi>();
   neighborApi_ = std::make_unique<NeighborApi>();
