@@ -20,11 +20,33 @@ from neteng.fboss.ctrl.ttypes import UnicastRoute
 from facebook.network.Address.ttypes import BinaryAddress
 
 
-def nexthop_to_str(nh):
+def nexthop_to_str(
+    nh: NextHopThrift,
+    vlan_aggregate_port_map: t.Dict[str, str] = None,
+    vlan_port_map: t.DefaultDict[str, t.DefaultDict[str, t.List[str]]] = None
+) -> str:
     ip_str = utils.ip_ntop(nh.addr)
     if not nh.ifName:
         return ip_str
-    return "{}%{}".format(ip_str, nh.ifName)
+
+    if vlan_port_map:
+        vlan_id = int(nh.ifName.replace("fboss", ""))
+
+        # For agg ports it's better to display the agg port name,
+        # rather than the phy
+        if vlan_id in vlan_aggregate_port_map.keys():
+            via = vlan_aggregate_port_map[vlan_id]
+        else:
+            port_names = []
+            for ports in vlan_port_map[vlan_id].values():
+                for port in ports:
+                    port_names.append(port)
+
+            via = ", ".join(port_names)
+    else:
+        via = nh.ifName
+
+    return "{}%{}".format(ip_str, via)
 
 
 def printRouteDetailEntry(entry):
@@ -145,15 +167,24 @@ class RouteIpCmd(cmds.FbossCmd):
 
 
 class RouteTableCmd(cmds.FbossCmd):
+
     def run(self, client_id, ipv4, ipv6):
-        with self._create_agent_client() as client:
+        with self._create_agent_client() as agent_client, \
+                self._create_qsfp_client() as qsfp_client:
             if client_id is None:
-                resp = client.getRouteTable()
+                resp = agent_client.getRouteTable()
             else:
-                resp = client.getRouteTableByClient(client_id)
+                resp = agent_client.getRouteTableByClient(client_id)
             if not resp:
                 print("No Route Table Entries Found")
                 return
+
+            # Getting the port/agg to VLAN map in order to display them
+            vlan_port_map = utils.get_vlan_port_map(
+                agent_client, qsfp_client, colors=False, details=False
+            )
+            vlan_aggregate_port_map = utils.get_vlan_aggregate_port_map(agent_client)
+
             for entry in resp:
                 if ipv6 and not ipv4 and len(entry.dest.ip.addr) == 4:
                     continue
@@ -169,9 +200,12 @@ class RouteTableCmd(cmds.FbossCmd):
                 if entry.nextHops:
                     for nextHop in entry.nextHops:
                         weight = " - weight {}".format(
-                            nextHop.weight) if ucmp_active else ""
-                        print("\tvia %s%s" % (nexthop_to_str(nextHop.address),
-                                              weight))
+                            nextHop.weight
+                        ) if ucmp_active else ""
+                        print("\tvia %s%s" % (nexthop_to_str(nextHop.address,
+                            vlan_aggregate_port_map=vlan_aggregate_port_map,
+                            vlan_port_map=vlan_port_map),
+                            weight))
                 else:
                     for nextHop in entry.nextHopAddrs:
                         print("\tvia %s" % nexthop_to_str(nextHop))
