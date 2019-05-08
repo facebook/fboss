@@ -13,10 +13,27 @@ opennsl_if_t BcmL3NextHop::getEgressId() const {
   return hostReference_->getEgressId();
 }
 
+void BcmL3NextHop::programToCPU(opennsl_if_t intf) {
+  auto* host = hostReference_->getBcmHost();
+  host->programToCPU(intf);
+}
+
+bool BcmL3NextHop::isProgrammed() const {
+  return getEgressId() != BcmEgressBase::INVALID;
+}
+
 opennsl_if_t BcmMplsNextHop::getEgressId() const {
   return hostReference_->getEgressId();
 }
 
+void BcmMplsNextHop::programToCPU(opennsl_if_t intf) {
+  auto* host = hostReference_->getBcmHost();
+  host->programToCPU(intf);
+}
+
+bool BcmMplsNextHop::isProgrammed() const {
+  return getEgressId() != BcmEgressBase::INVALID;
+}
 
 BcmL3NextHop::BcmL3NextHop(BcmSwitch* hw, BcmHostKey key)
     : hw_(hw), key_(std::move(key)) {

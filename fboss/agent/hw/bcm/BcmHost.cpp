@@ -16,6 +16,8 @@
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
+#include "fboss/agent/hw/bcm/BcmNextHop.h"
+#include "fboss/agent/hw/bcm/BcmNextHopTable-defs.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
@@ -353,6 +355,16 @@ BcmHost::~BcmHost() {
   hw_->writableHostTable()->derefEgress(egressId_);
 }
 
+std::shared_ptr<BcmNextHop> BcmEcmpHost::refOrEmplaceNextHop(
+    const HostKey& key) {
+  if (key.hasLabel()) {
+    return hw_->writableMplsNextHopTable()->referenceOrEmplaceNextHop(
+        folly::poly_cast<facebook::fboss::BcmLabeledHostKey>(key));
+  }
+  return hw_->writableL3NextHopTable()->referenceOrEmplaceNextHop(
+      folly::poly_cast<facebook::fboss::BcmHostKey>(key));
+}
+
 BcmEcmpHost::BcmEcmpHost(const BcmSwitchIf *hw,
                          BcmEcmpHostKey key)
     : hw_(hw), vrf_(key.first) {
@@ -360,29 +372,26 @@ BcmEcmpHost::BcmEcmpHost(const BcmSwitchIf *hw,
   CHECK_GT(fwd.size(), 0);
   BcmHostTable *table = hw_->writableHostTable();
   BcmEcmpEgress::Paths paths;
-  std::vector<const NextHop *> prog;
-  SCOPE_FAIL {
-    for (auto nhopPtr : prog) {
-      table->derefBcmHost(getNextHopKey(vrf_, *nhopPtr));
-    }
-  };
+  std::vector<std::shared_ptr<BcmNextHop>> nexthops;
   // allocate a BcmHost object for each path in this ECMP
   int total = 0;
   for (const auto& nhop : fwd) {
-    auto host = table->incRefOrCreateBcmHost(getNextHopKey(vrf_, nhop));
-    prog.push_back(&nhop);
+    auto nexthopSharedPtr = refOrEmplaceNextHop(getNextHopKey(vrf_, nhop));
+    auto* nexthop = nexthopSharedPtr.get();
     // TODO:
+    // Below comment appplies for L3 Nexthop only
     // Ideally, we should have the nexthop resolved already and programmed in
     // HW. If not, SW can preemptively trigger neighbor discovery and then
     // do the HW programming. For now, we program the egress object to punt
     // to CPU. Any traffic going to CPU will trigger the neighbor discovery.
-    if (!host->isProgrammed()) {
+    if (!nexthop->isProgrammed()) {
       const auto intf = hw->getIntfTable()->getBcmIntf(nhop.intf());
-      host->programToCPU(intf->getBcmIfId());
+      nexthop->programToCPU(intf->getBcmIfId());
     }
     for (int i=0; i<nhop.weight(); ++i) {
-      paths.insert(host->getEgressId());
+      paths.insert(nexthop->getEgressId());
     }
+    nexthops.push_back(std::move(nexthopSharedPtr));
   }
   if (paths.size() == 1) {
     // just one path. No BcmEcmpEgress object this case.
@@ -394,6 +403,7 @@ BcmEcmpHost::BcmEcmpHost(const BcmSwitchIf *hw,
     hw_->writableHostTable()->insertBcmEgress(std::move(ecmp));
   }
   fwd_ = std::move(fwd);
+  nexthops_ = std::move(nexthops);
 }
 
 BcmEcmpHost::~BcmEcmpHost() {
@@ -401,10 +411,6 @@ BcmEcmpHost::~BcmEcmpHost() {
   // to egress entries.
   XLOG(DBG3) << "Decremented reference for egress object for " << fwd_;
   hw_->writableHostTable()->derefEgress(ecmpEgressId_);
-  BcmHostTable *table = hw_->writableHostTable();
-  for (const auto& nhop : fwd_) {
-    table->derefBcmHost(getNextHopKey(vrf_, nhop));
-  }
 }
 
 BcmHostTable::BcmHostTable(const BcmSwitchIf* hw) : hw_(hw) {
@@ -529,6 +535,26 @@ HostT* BcmHostTable::derefBcmHostImpl(
   CHECK_GT(entry.second, 0);
   if (--entry.second == 0) {
     XLOG(DBG3) << "erase host " << key << " from host map";
+    /*
+     * moving unique ptr outside of ECMP host map before calling an erase
+     * this is important for following:
+     * Consider for ECMP host, deref leads to 0 ref count, and  ECMP host is
+     * erased from its map (without moving ownership out), following events
+     * happen
+     *
+     * 1) BcmEcmpHost's destructor is invoked,
+     * 2) In BcmEcmpHost's destructor BcmHost member's ref count are decremented
+     * 3) If one of BcmHost ref count leads to 0, then BcmHost is also be
+     *    erased from map,
+     * 4) BcmHost's destrucor is invoked
+     * 5) BcmHost's destructor now wants to update ECMP groups to which it
+     *    may belongs
+     * 6) BcmHost's destructor iterates over ECMP host map, which now is in
+     *    "bad state" (because map.erase has still not returned and iterator is
+     *      not yet reset)
+     * This activity leads to crash
+     */
+    auto ptr = std::move(iter->second.first);
     map->erase(iter);
     return nullptr;
   }
@@ -886,6 +912,7 @@ void BcmHostTable::programHostsToTrunk(
   auto* host = iter->second.first.get();
   host->programToTrunk(intf, mac, trunk);
 
+  // program labeled next hops to the host
   auto ret = std::equal_range(
       std::begin(labeledHosts_),
       std::end(labeledHosts_),
@@ -909,6 +936,7 @@ void BcmHostTable::programHostsToPort(
   auto* host = iter->second.first.get();
   host->program(intf, mac, port);
 
+  // program labeled next hops to the host
   auto ret = std::equal_range(
       std::begin(labeledHosts_),
       std::end(labeledHosts_),
@@ -926,6 +954,8 @@ void BcmHostTable::programHostsToCPU(const BcmHostKey& key, opennsl_if_t intf) {
     auto* host = iter->second.first.get();
     host->programToCPU(intf);
   }
+
+  // program labeled next hops to the host
   auto ret = std::equal_range(
       std::begin(labeledHosts_),
       std::end(labeledHosts_),

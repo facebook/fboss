@@ -20,6 +20,8 @@ class BcmNextHop {
  public:
   virtual ~BcmNextHop() {}
   virtual opennsl_if_t getEgressId() const = 0;
+  virtual void programToCPU(opennsl_if_t intf) = 0;
+  virtual bool isProgrammed() const = 0;
 };
 
 class BcmL3NextHop : public BcmNextHop {
@@ -29,6 +31,10 @@ class BcmL3NextHop : public BcmNextHop {
   ~BcmL3NextHop() override {}
 
   opennsl_if_t getEgressId() const override;
+
+  void programToCPU(opennsl_if_t intf) override;
+
+  bool isProgrammed() const override;
 
  private:
   BcmSwitch* hw_;
@@ -41,6 +47,10 @@ class BcmMplsNextHop : public BcmNextHop {
   BcmMplsNextHop(BcmSwitch* hw, BcmLabeledHostKey key);
 
   opennsl_if_t getEgressId() const override;
+
+  void programToCPU(opennsl_if_t intf) override;
+
+  bool isProgrammed() const override;
 
  private:
   BcmSwitch* hw_;

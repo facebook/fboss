@@ -146,6 +146,7 @@ class BcmHost {
  * or BcmEcmpEgress).
  */
 using BcmEcmpHostKey = std::pair<opennsl_vrf_t, RouteNextHopSet>;
+class BcmNextHop;
 
 class BcmEcmpHost {
  public:
@@ -158,7 +159,10 @@ class BcmEcmpHost {
     return ecmpEgressId_;
   }
   folly::dynamic toFollyDynamic() const;
+
  private:
+  std::shared_ptr<BcmNextHop> refOrEmplaceNextHop(const HostKey& key);
+
   const BcmSwitchIf* hw_;
   opennsl_vrf_t vrf_;
   /**
@@ -174,6 +178,7 @@ class BcmEcmpHost {
   opennsl_if_t egressId_{BcmEgressBase::INVALID};
   opennsl_if_t ecmpEgressId_{BcmEgressBase::INVALID};
   RouteNextHopSet fwd_;
+  std::vector<std::shared_ptr<BcmNextHop>> nexthops_;
 };
 
 class BcmHostTable {
