@@ -31,12 +31,14 @@ class SwitchApiTest : public ::testing::Test {
 
 TEST_F(SwitchApiTest, getNumPorts) {
   SwitchApiParameters::Attributes::PortNumber pn;
-  EXPECT_EQ(switchApi->getAttribute(pn, switchId), 0);
+  // expect the one global cpu port
+  EXPECT_EQ(switchApi->getAttribute(pn, switchId), 1);
   fs->pm.create(FakePort{{0}, 100000});
   fs->pm.create(FakePort{{1}, 25000});
   fs->pm.create(FakePort{{2}, 25000});
   fs->pm.create(FakePort{{3}, 25000});
-  EXPECT_EQ(switchApi->getAttribute(pn, switchId), 4);
+  // expect 4 created ports plus global cpu port
+  EXPECT_EQ(switchApi->getAttribute(pn, switchId), 5);
 }
 
 TEST_F(SwitchApiTest, testGetPortIds) {
@@ -66,7 +68,7 @@ TEST_F(SwitchApiTest, getDefaultVlanId) {
   EXPECT_EQ(
       switchApi->getAttribute(
           SwitchApiParameters::Attributes::DefaultVlanId(), switchId),
-      1);
+      0);
 }
 
 TEST_F(SwitchApiTest, setDefaultVlanId) {
@@ -74,4 +76,10 @@ TEST_F(SwitchApiTest, setDefaultVlanId) {
       switchApi->setAttribute(
           SwitchApiParameters::Attributes::DefaultVlanId(42), switchId),
       SAI_STATUS_INVALID_PARAMETER);
+}
+
+TEST_F(SwitchApiTest, getCpuPort) {
+  auto cpuPort = switchApi->getAttribute(
+      SwitchApiParameters::Attributes::CpuPort{}, switchId);
+  EXPECT_EQ(cpuPort, 0);
 }

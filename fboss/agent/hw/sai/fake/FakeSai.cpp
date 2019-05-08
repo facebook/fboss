@@ -38,6 +38,12 @@ sai_status_t sai_api_initialize(
   // Create the default virtual router per the SAI spec
   fs->vrm.create();
 
+  // Create the CPU port
+  std::vector<uint32_t> cpuPortLanes;
+  cpuPortLanes.push_back(42);
+  uint32_t cpuPortSpeed = 0;
+  sai_object_id_t cpuPortId = fs->pm.create(cpuPortLanes, cpuPortSpeed);
+
   fs->initialized = true;
   return SAI_STATUS_SUCCESS;
 }

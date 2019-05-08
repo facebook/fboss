@@ -28,6 +28,8 @@ namespace fboss {
 struct SwitchApiParameters {
   struct Attributes {
     using EnumType = sai_switch_attr_t;
+    using CpuPort =
+        SaiAttribute<EnumType, SAI_SWITCH_ATTR_CPU_PORT, SaiObjectIdT>;
     using DefaultVirtualRouterId = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_DEFAULT_VIRTUAL_ROUTER_ID,
