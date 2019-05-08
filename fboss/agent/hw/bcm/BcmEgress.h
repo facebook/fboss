@@ -43,6 +43,8 @@ class BcmEgressBase : public boost::noncopyable {
   virtual bool isEcmp() const = 0;
   virtual bool hasLabel() const = 0;
   virtual opennsl_mpls_label_t getLabel() const = 0;
+  virtual folly::MacAddress getMac() const = 0;
+
  protected:
   explicit BcmEgressBase(const BcmSwitchIf* hw) : hw_(hw) {}
   // this is used for unittesting
@@ -121,6 +123,10 @@ class BcmEgress : public BcmEgressBase {
 
   virtual void setLabel(opennsl_l3_egress_t* egress) const;
 
+  folly::MacAddress getMac() const override {
+    return mac_;
+  }
+
  private:
   bool alreadyExists(const opennsl_l3_egress_t& newEgress) const;
   virtual int createEgress(
@@ -162,6 +168,9 @@ class BcmEcmpEgress : public BcmEgressBase {
   }
   opennsl_mpls_label_t getLabel() const override {
     throw FbossError("labeled requested on multipath egress");
+  }
+  folly::MacAddress getMac() const override {
+    throw FbossError("mac requested on multipath egress");
   }
   /*
    * Serialize to folly::dynamic
