@@ -15,12 +15,15 @@
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTxPacket.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+
+#include "fboss/agent/hw/sai/api/HostifApi.h"
 
 #include <iomanip>
 #include <memory>
@@ -62,8 +65,8 @@ std::unique_ptr<TxPacket> SaiSwitch::allocatePacket(uint32_t size) {
 }
 
 bool SaiSwitch::sendPacketSwitchedAsync(
-    std::unique_ptr<TxPacket> /* pkt */) noexcept {
-  return true;
+    std::unique_ptr<TxPacket> pkt) noexcept {
+    return sendPacketSwitchedSync(std::move(pkt));
 }
 
 bool SaiSwitch::sendPacketOutOfPortAsync(
@@ -74,13 +77,43 @@ bool SaiSwitch::sendPacketOutOfPortAsync(
 }
 
 bool SaiSwitch::sendPacketSwitchedSync(
-    std::unique_ptr<TxPacket> /* pkt */) noexcept {
+    std::unique_ptr<TxPacket> pkt) noexcept {
+  HostifApiParameters::TxPacketAttributes::TxType
+    txType(SAI_HOSTIF_TX_TYPE_PIPELINE_LOOKUP);
+  HostifApiParameters::TxPacketAttributes attributes{{txType, 0}};
+  HostifApiParameters::HostifApiPacket txPacket{
+    reinterpret_cast<void *>(pkt->buf()->writableData()),
+    pkt->buf()->length()};
+  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  auto& hostifPacketApi = saiApiTable_->hostifPacketApi();
+  hostifPacketApi.send(
+    attributes.attrs(),
+    switchId,
+    txPacket);
   return true;
 }
 
 bool SaiSwitch::sendPacketOutOfPortSync(
-    std::unique_ptr<TxPacket> /* pkt */,
-    PortID /* portID */) noexcept {
+    std::unique_ptr<TxPacket> pkt,
+    PortID portID) noexcept {
+  auto port = managerTable_->portManager().getPort(portID);
+  if (!port) {
+    throw FbossError("Failed to send packet on invalid port: ", portID);
+  }
+  HostifApiParameters::HostifApiPacket txPacket{
+    reinterpret_cast<void *>(pkt->buf()->writableData()),
+    pkt->buf()->length()};
+  HostifApiParameters::TxPacketAttributes::EgressPortOrLag
+    egressPort(port->id());
+  HostifApiParameters::TxPacketAttributes::TxType
+    txType(SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
+  HostifApiParameters::TxPacketAttributes attributes{{txType, egressPort}};
+  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  auto& hostifPacketApi = saiApiTable_->hostifPacketApi();
+  hostifPacketApi.send(
+    attributes.attrs(),
+    switchId,
+    txPacket);
   return true;
 }
 

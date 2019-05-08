@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiTxPacket.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
 #include <folly/io/IOBuf.h>
 
@@ -19,6 +20,5 @@ SaiTxPacket::SaiTxPacket(uint32_t size) {
   buf_ = folly::IOBuf::createSeparate(size);
   buf_->append(size);
 }
-
-}
-}
+} // namespace fboss
+} // namespace facebook

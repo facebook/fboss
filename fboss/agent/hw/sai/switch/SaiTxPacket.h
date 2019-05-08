@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+
 #include "fboss/agent/TxPacket.h"
 
 namespace facebook {
@@ -18,6 +20,5 @@ class SaiTxPacket : public TxPacket {
  public:
   explicit SaiTxPacket(uint32_t size);
 };
-
 } // namespace fboss
 } // namespace facebook
