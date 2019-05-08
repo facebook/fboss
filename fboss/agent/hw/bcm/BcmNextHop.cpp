@@ -13,7 +13,18 @@ opennsl_if_t BcmL3NextHop::getEgressId() const {
   return hostReference_->getEgressId();
 }
 
+opennsl_if_t BcmMplsNextHop::getEgressId() const {
+  return hostReference_->getEgressId();
+}
+
+
 BcmL3NextHop::BcmL3NextHop(BcmSwitch* hw, BcmHostKey key)
+    : hw_(hw), key_(std::move(key)) {
+  hostReference_ = BcmHostReference::get(hw_, key_);
+  hostReference_->getEgressId(); // load reference
+}
+
+BcmMplsNextHop::BcmMplsNextHop(BcmSwitch* hw, BcmLabeledHostKey key)
     : hw_(hw), key_(std::move(key)) {
   hostReference_ = BcmHostReference::get(hw_, key_);
   hostReference_->getEgressId(); // load reference

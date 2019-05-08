@@ -167,6 +167,7 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       hostTable_(new BcmHostTable(this)),
       neighborTable_(new BcmNeighborTable(this)),
       l3NextHopTable_(new BcmL3NextHopTable(this)),
+      mplsNextHopTable_(new BcmMplsNextHopTable(this)),
       labelMap_(new BcmLabelMap(this)),
       routeTable_(new BcmRouteTable(this)),
       qosPolicyTable_(new BcmQosPolicyTable(this)),
@@ -191,6 +192,7 @@ void BcmSwitch::resetTables() {
   routeTable_.reset();
   labelMap_.reset();
   l3NextHopTable_.reset();
+  mplsNextHopTable_.reset();
   // Release host entries before reseting switch's host table
   // entries so that if host try to refer to look up host table
   // via the BCM switch during their destruction the pointer
@@ -228,6 +230,7 @@ void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   neighborTable_ = std::make_unique<BcmNeighborTable>(this);
   l3NextHopTable_ =
       std::make_unique<BcmL3NextHopTable>(this);
+  mplsNextHopTable_ = std::make_unique<BcmMplsNextHopTable>(this);
   labelMap_ = std::make_unique<BcmLabelMap>(this);
   routeTable_ = std::make_unique<BcmRouteTable>(this);
   aclTable_ = std::make_unique<BcmAclTable>(this);

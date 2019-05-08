@@ -36,6 +36,18 @@ class BcmL3NextHop : public BcmNextHop {
   std::unique_ptr<BcmHostReference> hostReference_;
 };
 
+class BcmMplsNextHop : public BcmNextHop {
+ public:
+  BcmMplsNextHop(BcmSwitch* hw, BcmLabeledHostKey key);
+
+  opennsl_if_t getEgressId() const override;
+
+ private:
+  BcmSwitch* hw_;
+  BcmLabeledHostKey key_;
+  std::unique_ptr<BcmHostReference> hostReference_;
+};
+
 template <typename NextHopKeyT, typename NextHopT>
 class BcmNextHopTable {
  public:
@@ -51,5 +63,6 @@ class BcmNextHopTable {
 };
 
 using BcmL3NextHopTable = BcmNextHopTable<BcmHostKey, BcmL3NextHop>;
+using BcmMplsNextHopTable = BcmNextHopTable<BcmLabeledHostKey, BcmMplsNextHop>;
 } // namespace fboss
 } // namespace facebook
