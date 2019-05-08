@@ -433,9 +433,6 @@ class BcmHostReference {
       BcmEcmpHostKey key);
 
   static std::unique_ptr<BcmHostReference>
-  get(BcmSwitch* hw, opennsl_vrf_t vrf, NextHop nexthop);
-
-  static std::unique_ptr<BcmHostReference>
   get(BcmSwitch* hw, opennsl_vrf_t vrf, RouteNextHopSet nexthops);
 
  private:
