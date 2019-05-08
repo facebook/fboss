@@ -36,6 +36,7 @@
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmLabelMap.h"
 #include "fboss/agent/hw/bcm/BcmMirrorTable.h"
+#include "fboss/agent/hw/bcm/BcmNextHop.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
@@ -165,6 +166,7 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       intfTable_(new BcmIntfTable(this)),
       hostTable_(new BcmHostTable(this)),
       neighborTable_(new BcmNeighborTable(this)),
+      l3NextHopTable_(new BcmL3NextHopTable(this)),
       labelMap_(new BcmLabelMap(this)),
       routeTable_(new BcmRouteTable(this)),
       qosPolicyTable_(new BcmQosPolicyTable(this)),
@@ -188,6 +190,7 @@ void BcmSwitch::resetTables() {
   unregisterCallbacks();
   routeTable_.reset();
   labelMap_.reset();
+  l3NextHopTable_.reset();
   // Release host entries before reseting switch's host table
   // entries so that if host try to refer to look up host table
   // via the BCM switch during their destruction the pointer
@@ -223,6 +226,8 @@ void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   intfTable_ = std::make_unique<BcmIntfTable>(this);
   hostTable_ = std::make_unique<BcmHostTable>(this);
   neighborTable_ = std::make_unique<BcmNeighborTable>(this);
+  l3NextHopTable_ =
+      std::make_unique<BcmL3NextHopTable>(this);
   labelMap_ = std::make_unique<BcmLabelMap>(this);
   routeTable_ = std::make_unique<BcmRouteTable>(this);
   aclTable_ = std::make_unique<BcmAclTable>(this);

@@ -42,7 +42,10 @@ class BcmHostKey;
 class BcmHostTable;
 class BcmIntf;
 class BcmIntfTable;
+class BcmL3NextHop;
 class BcmNeighborTable;
+template <class K, class V>
+class BcmNextHopTable;
 class BcmPlatform;
 class BcmPortTable;
 class BcmQosPolicyTable;
@@ -105,6 +108,12 @@ class BcmSwitchIf : public HwSwitch {
   virtual const BcmHostTable* getHostTable() const = 0;
 
   virtual const BcmNeighborTable* getNeighborTable() const = 0;
+
+  virtual const BcmNextHopTable<BcmHostKey, BcmL3NextHop>* getL3NextHopTable()
+      const = 0;
+
+  virtual BcmNextHopTable<BcmHostKey, BcmL3NextHop>* writableL3NextHopTable()
+      const = 0;
 
   virtual const BcmAclTable* getAclTable() const = 0;
 
@@ -247,6 +256,14 @@ class BcmSwitch : public BcmSwitchIf {
   }
   const BcmNeighborTable* getNeighborTable() const override {
     return neighborTable_.get();
+  }
+  const BcmNextHopTable<BcmHostKey, BcmL3NextHop>* getL3NextHopTable()
+      const override {
+    return l3NextHopTable_.get();
+  }
+  BcmNextHopTable<BcmHostKey, BcmL3NextHop>* writableL3NextHopTable()
+      const override {
+    return l3NextHopTable_.get();
   }
   const BcmQosPolicyTable* getQosPolicyTable() const override {
     return qosPolicyTable_.get();
@@ -763,6 +780,7 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmIntfTable> intfTable_;
   std::unique_ptr<BcmHostTable> hostTable_;
   std::unique_ptr<BcmNeighborTable> neighborTable_;
+  std::unique_ptr<BcmNextHopTable<BcmHostKey, BcmL3NextHop>> l3NextHopTable_;
   std::unique_ptr<BcmLabelMap> labelMap_;
   std::unique_ptr<BcmRouteTable> routeTable_;
   std::unique_ptr<BcmQosPolicyTable> qosPolicyTable_;
