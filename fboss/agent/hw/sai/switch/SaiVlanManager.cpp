@@ -73,6 +73,7 @@ void SaiVlan::addMember(PortID swPortId) {
         swPortId);
   }
   sai_object_id_t bridgePortId = port->getBridgePort()->id();
+  port->setPortVlan(managerTable_->vlanManager().getVlanID(id()));
   VlanApiParameters::MemberAttributes::BridgePortId bridgePortIdAttribute{
       bridgePortId};
   VlanApiParameters::MemberAttributes memberAttributes{
@@ -140,6 +141,7 @@ sai_object_id_t SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
     PortID swPortId = memberPort.first;
     saiVlan->addMember(swPortId);
   }
+  vlanSaiIds_.emplace(std::make_pair(saiVlan->id(), swVlanId));
   vlans_.insert(std::make_pair(swVlanId, std::move(saiVlan)));
   return saiId;
 }
@@ -147,8 +149,10 @@ sai_object_id_t SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
 void SaiVlanManager::removeVlan(const VlanID& swVlanId) {
   const auto citr = vlans_.find(swVlanId);
   if (citr == vlans_.cend()) {
-    throw FbossError("attempted to remove a vlan which does not exist: ", swVlanId);
+    throw FbossError(
+      "attempted to remove a vlan which does not exist: ", swVlanId);
   }
+  vlanSaiIds_.erase(citr->second->id());
   vlans_.erase(citr);
 }
 
@@ -220,6 +224,14 @@ SaiVlan* SaiVlanManager::getVlanImpl(VlanID swVlanId) const {
     XLOG(FATAL) << "invalid null VLAN for VlanID: " << swVlanId;
   }
   return itr->second.get();
+}
+
+VlanID SaiVlanManager::getVlanID(sai_object_id_t saiVlanId) {
+  auto itr = vlanSaiIds_.find(saiVlanId);
+  if (itr == vlanSaiIds_.end()) {
+    return VlanID(0);
+  }
+  return itr->second;
 }
 
 } // namespace fboss

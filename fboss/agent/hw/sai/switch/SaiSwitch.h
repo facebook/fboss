@@ -12,11 +12,11 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
 
 #include <memory>
 
 namespace facebook { namespace fboss {
-
 class SaiSwitch : public HwSwitch {
  public:
   HwInitResult init(Callback* callback) noexcept override;
@@ -45,13 +45,21 @@ class SaiSwitch : public HwSwitch {
   void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) override;
   cfg::PortSpeed getPortMaxSpeed(PortID port) const override;
+  void packetReceived(std::unique_ptr<SaiRxPacket> rxPacket);
   virtual BootType getBootType() const override {
     return bootType_;
+  }
+  SaiManagerTable* managerTable() {
+    return managerTable_.get();
+  }
+  SaiApiTable* apiTable() {
+    return saiApiTable_.get();
   }
  private:
   std::unique_ptr<SaiApiTable> saiApiTable_;
   std::unique_ptr<SaiManagerTable> managerTable_;
   BootType bootType_{BootType::UNINITIALIZED};
+  Callback* callback_{nullptr};
 };
 
 } // namespace fboss

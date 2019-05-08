@@ -86,6 +86,14 @@ class SwitchApi : public SaiApi<SwitchApi, SwitchApiParameters> {
     return api_;
   }
 
+  sai_status_t registerRxCallback(
+    sai_object_id_t switch_id, sai_packet_event_notification_fn rx_cb) {
+    sai_attribute_t attr;
+    attr.id = SAI_SWITCH_ATTR_PACKET_EVENT_NOTIFY;
+    attr.value.ptr = (void *) rx_cb;
+    return _setAttr(&attr, switch_id);
+  }
+
  private:
   sai_status_t _create(
       sai_object_id_t* switch_id,

@@ -8,9 +8,9 @@
  *
  */
 
-#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -18,12 +18,12 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTxPacket.h"
+#include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
-
-#include "fboss/agent/hw/sai/api/HostifApi.h"
 
 #include <iomanip>
 #include <memory>
@@ -32,19 +32,59 @@
 namespace facebook {
 namespace fboss {
 
+static SaiSwitch *hwSwitch;
+
+void packetRxCallback(
+  sai_object_id_t switch_id,
+  sai_size_t buffer_size,
+  const void *buffer,
+  uint32_t attr_count,
+  const sai_attribute_t *attr_list) {
+  sai_object_id_t saiPortId = 0;
+  for (auto index = 0; index < attr_count; index++) {
+    const sai_attribute_t *attr = &attr_list[index];
+    switch (attr->id) {
+      case SAI_HOSTIF_PACKET_ATTR_INGRESS_PORT:
+        saiPortId = attr->value.oid;
+        break;
+      case SAI_HOSTIF_PACKET_ATTR_INGRESS_LAG:
+      case SAI_HOSTIF_PACKET_ATTR_HOSTIF_TRAP_ID:
+        break;
+      default:
+        XLOG(INFO) << "invalid attribute received";
+    }
+  }
+  CHECK_NE(saiPortId, 0);
+  auto portId = hwSwitch->managerTable()->portManager().getPortID(saiPortId);
+  auto port = hwSwitch->managerTable()->portManager().getPort(portId);
+  auto vlanId = port->getPortVlan();
+  auto rxPacket = std::make_unique<SaiRxPacket>
+    (buffer_size, buffer, portId, vlanId);
+  hwSwitch->packetReceived(std::move(rxPacket));
+}
+
 using facebook::fboss::DeltaFunctions::forEachAdded;
 
-HwInitResult SaiSwitch::init(Callback* /* callback */) noexcept {
+HwInitResult SaiSwitch::init(Callback* callback) noexcept {
   HwInitResult ret;
   ret.bootType = BootType::COLD_BOOT;
   bootType_ = BootType::COLD_BOOT;
 
   saiApiTable_ = std::make_unique<SaiApiTable>();
   managerTable_ = std::make_unique<SaiManagerTable>(saiApiTable_.get());
+  callback_ = callback;
 
   auto state = std::make_shared<SwitchState>();
   ret.switchState = state;
+  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  auto& switchApi = saiApiTable_->switchApi();
+  switchApi.registerRxCallback(switchId, packetRxCallback);
+  hwSwitch = this;
   return ret;
+}
+
+void SaiSwitch::packetReceived(std::unique_ptr<SaiRxPacket> rxPacket) {
+  callback_->packetReceived(std::move(rxPacket));
 }
 
 void SaiSwitch::unregisterCallbacks() noexcept {}

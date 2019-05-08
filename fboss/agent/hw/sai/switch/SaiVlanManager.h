@@ -98,12 +98,14 @@ class SaiVlanManager {
 
   SaiVlan* getVlan(VlanID swVlanId);
   const SaiVlan* getVlan(VlanID swVlanId) const;
+  VlanID getVlanID(sai_object_id_t vlanSaiId);
 
  private:
   SaiVlan* getVlanImpl(VlanID swVlanId) const;
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   std::unordered_map<VlanID, std::unique_ptr<SaiVlan>> vlans_;
+  std::unordered_map<sai_object_id_t, VlanID> vlanSaiIds_;
 };
 
 } // namespace fboss

@@ -40,6 +40,7 @@ sai_object_id_t SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
       std::make_unique<SaiPort>(apiTable_, managerTable_, attributes);
   sai_object_id_t saiId = saiPort->id();
   ports_.emplace(std::make_pair(swPort->getID(), std::move(saiPort)));
+  portSaiIds_.emplace(std::make_pair(saiId, swPort->getID()));
   return saiId;
 }
 
@@ -48,6 +49,7 @@ void SaiPortManager::removePort(PortID swId) {
   if (itr == ports_.end()) {
     throw FbossError("Attempted to remove non-existent port: ", swId);
   }
+  portSaiIds_.erase(itr->second->id());
   ports_.erase(itr);
 }
 
@@ -119,6 +121,14 @@ SaiPort* SaiPortManager::getPort(PortID swId) {
   return getPortImpl(swId);
 }
 
+PortID SaiPortManager::getPortID(sai_object_id_t saiId) {
+  auto itr = portSaiIds_.find(saiId);
+  if (itr == portSaiIds_.end()) {
+    return PortID(0);
+  }
+  return itr->second;
+}
+
 SaiPort::SaiPort(
     SaiApiTable* apiTable,
     SaiManagerTable* managerTable,
@@ -164,6 +174,14 @@ bool SaiPort::operator==(const SaiPort& other) const {
 }
 bool SaiPort::operator!=(const SaiPort& other) const {
   return !(*this == other);
+}
+
+void SaiPort::setPortVlan(VlanID vlanId) {
+  vlanId_ = vlanId;
+}
+
+VlanID SaiPort::getPortVlan() {
+  return vlanId_;
 }
 
 } // namespace fboss

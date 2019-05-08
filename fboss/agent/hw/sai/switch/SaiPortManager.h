@@ -51,12 +51,15 @@ class SaiPort {
   const SaiBridgePort* getBridgePort() const {
     return bridgePort_.get();
   }
+  void setPortVlan(VlanID vlanId);
+  VlanID getPortVlan();
 
  private:
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   PortApiParameters::Attributes attributes_;
   sai_object_id_t id_;
+  VlanID vlanId_{0};
   std::unique_ptr<SaiBridgePort> bridgePort_;
 };
 
@@ -71,12 +74,14 @@ class SaiPortManager {
       const std::shared_ptr<Port>& swPort) const;
   const SaiPort* getPort(PortID swId) const;
   SaiPort* getPort(PortID swId);
+  PortID getPortID(sai_object_id_t saiId);
 
  private:
   SaiPort* getPortImpl(PortID swId) const;
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   std::unordered_map<PortID, std::unique_ptr<SaiPort>> ports_;
+  std::unordered_map<sai_object_id_t, PortID> portSaiIds_;
 };
 
 } // namespace fboss
