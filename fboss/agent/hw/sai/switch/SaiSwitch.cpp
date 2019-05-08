@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
@@ -93,6 +94,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(
   managerTable_->vlanManager().processVlanDelta(delta.getVlansDelta());
   managerTable_->routerInterfaceManager().processInterfaceDelta(delta);
   managerTable_->neighborManager().processNeighborDelta(delta);
+  managerTable_->routeManager().processRouteDelta(delta);
   return delta.newState();
 }
 

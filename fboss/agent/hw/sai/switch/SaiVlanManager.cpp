@@ -196,13 +196,11 @@ void SaiVlanManager::changeVlan(
 }
 
 void SaiVlanManager::processVlanDelta(const VlanMapDelta& delta) {
-  auto processChanged = [this] (auto oldVlan, auto newVlan) -> void {
+  auto processChanged = [this](const auto& oldVlan, const auto& newVlan) {
     changeVlan(oldVlan, newVlan);
   };
-  auto processAdded = [this] (auto newVlan) -> void {
-    addVlan(newVlan);
-  };
-  auto processRemoved = [this] (auto oldVlan) -> void {
+  auto processAdded = [this](const auto& newVlan) { addVlan(newVlan); };
+  auto processRemoved = [this](const auto& oldVlan) {
     removeVlan(oldVlan->getID());
   };
   DeltaFunctions::forEachChanged(

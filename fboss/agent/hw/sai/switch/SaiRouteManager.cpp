@@ -165,13 +165,13 @@ void SaiRouteManager::processRouteDelta(const StateDelta& delta) {
       routerId = routeDelta.getNew()->getID();
     }
     auto processChanged = [this, routerId](
-                              auto oldRoute, auto newRoute) {
+                              const auto& oldRoute, const auto& newRoute) {
       changeRoute(routerId, oldRoute, newRoute);
     };
-    auto processAdded = [this, routerId](auto newRoute) {
+    auto processAdded = [this, routerId](const auto& newRoute) {
       addRoute(routerId, newRoute);
     };
-    auto processRemoved = [this, routerId](auto oldRoute) {
+    auto processRemoved = [this, routerId](const auto& oldRoute) {
       removeRoute(routerId, oldRoute);
     };
     DeltaFunctions::forEachChanged(

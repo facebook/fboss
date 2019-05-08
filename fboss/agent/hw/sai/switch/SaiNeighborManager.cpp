@@ -146,13 +146,14 @@ void SaiNeighborManager::removeNeighbor(
 
 void SaiNeighborManager::processNeighborDelta(const StateDelta& delta) {
   for (const auto& vlanDelta : delta.getVlansDelta()) {
-    auto processChanged = [this](auto oldNeighbor, auto newNeighbor) -> void {
-      changeNeighbor(oldNeighbor, newNeighbor);
-    };
-    auto processAdded = [this](auto newNeighbor) -> void {
+    auto processChanged =
+        [this](const auto& oldNeighbor, const auto& newNeighbor) {
+          changeNeighbor(oldNeighbor, newNeighbor);
+        };
+    auto processAdded = [this](const auto& newNeighbor) {
       addNeighbor(newNeighbor);
     };
-    auto processRemoved = [this](auto oldNeighbor) -> void {
+    auto processRemoved = [this](const auto& oldNeighbor) {
       removeNeighbor(oldNeighbor);
     };
     DeltaFunctions::forEachChanged(

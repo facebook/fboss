@@ -96,6 +96,12 @@ void SaiRouterInterfaceManager::removeRouterInterface(const InterfaceID& swId) {
   routerInterfaces_.erase(itr);
 }
 
+void SaiRouterInterfaceManager::changeRouterInterface(
+    const std::shared_ptr<Interface>& /* oldInterface */,
+    const std::shared_ptr<Interface>& /* newInterface */) {
+  throw FbossError("Not implemented");
+}
+
 SaiRouterInterface* SaiRouterInterfaceManager::getRouterInterface(
     const InterfaceID& swId) {
   return getRouterInterfaceImpl(swId);
@@ -121,13 +127,14 @@ SaiRouterInterface* SaiRouterInterfaceManager::getRouterInterfaceImpl(
 void SaiRouterInterfaceManager::processInterfaceDelta(
     const StateDelta& stateDelta) {
   auto delta = stateDelta.getIntfsDelta();
-  auto processChanged = [this](auto oldInterface, auto newInterface) {
-    // TODO
-  };
-  auto processAdded = [this] (auto newInterface) {
+  auto processChanged =
+      [this](const auto& oldInterface, const auto& newInterface) {
+        changeRouterInterface(oldInterface, newInterface);
+      };
+  auto processAdded = [this](const auto& newInterface) {
     addRouterInterface(newInterface);
   };
-  auto processRemoved = [this] (auto oldInterface) {
+  auto processRemoved = [this](const auto& oldInterface) {
     removeRouterInterface(oldInterface->getID());
   };
   DeltaFunctions::forEachChanged(
