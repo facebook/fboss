@@ -137,11 +137,11 @@ sai_object_id_t SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
   auto saiVlan =
       std::make_unique<SaiVlan>(apiTable_, managerTable_, attributes);
   sai_object_id_t saiId = saiVlan->id();
+  vlanSaiIds_.emplace(std::make_pair(saiVlan->id(), swVlanId));
   for (const auto& memberPort : swVlan->getPorts()) {
     PortID swPortId = memberPort.first;
     saiVlan->addMember(swPortId);
   }
-  vlanSaiIds_.emplace(std::make_pair(saiVlan->id(), swVlanId));
   vlans_.insert(std::make_pair(swVlanId, std::move(saiVlan)));
   return saiId;
 }
