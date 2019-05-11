@@ -19,7 +19,8 @@ from neteng.fboss.ctrl.ttypes import NextHopThrift
 from neteng.fboss.ctrl.ttypes import UnicastRoute
 from facebook.network.Address.ttypes import BinaryAddress
 
-def printRouteDetailEntry(entry):
+
+def printRouteDetailEntry(entry, vlan_aggregate_port_map, vlan_port_map):
     suffix = ""
     if (entry.isConnected):
         suffix += " (connected)"
@@ -28,16 +29,15 @@ def printRouteDetailEntry(entry):
            suffix))
     for clAndNxthops in entry.nextHopMulti:
         print("  Nexthops from client %d" % clAndNxthops.clientId)
-        for nextHop in clAndNxthops.nextHopAddrs:
-            print("    %s" % utils.nexthop_to_str(nextHop))
+        for address in clAndNxthops.nextHopAddrs:
+            print("    %s" % utils.nexthop_to_str(NextHopThrift(address=address)))
     print("  Action: %s" % entry.action)
     if entry.nextHops and len(entry.nextHops) > 0:
         print("  Forwarding via:")
         for nextHop in entry.nextHops:
-            w = "x{}".format(nextHop.weight) if nextHop.weight else ""
-            print("    (i/f %s) %s%s" % (nextHop.address.ifName,
-                                         utils.ip_ntop(nextHop.address.addr),
-                                         w))
+            print("    {}".format(
+                utils.nexthop_to_str(nextHop, vlan_aggregate_port_map, vlan_port_map))
+            )
     elif len(entry.fwdInfo) > 0:
         print("  Forwarding via:")
         for ifAndIp in entry.fwdInfo:
@@ -119,21 +119,31 @@ class RouteFlushCmd(cmds.FbossCmd):
 
 
 class RouteIpCmd(cmds.FbossCmd):
-    def printIpRouteDetails(self, client, addr, vrf):
+    def printIpRouteDetails(
+        self, client, addr, vrf, vlan_aggregate_port_map, vlan_port_map
+    ):
         resp = client.getIpRouteDetails(addr, vrf)
         if not resp.nextHopMulti:
             print('No route to ' + addr.addr + ', Vrf: %d' % vrf)
             return
         print('Route to ' + addr.addr + ', Vrf: %d' % vrf)
-        printRouteDetailEntry(resp)
+        printRouteDetailEntry(resp, vlan_aggregate_port_map, vlan_port_map)
 
     def run(self, ip, vrf):
         addr = Address(addr=ip, type=AddressType.V4)
         if not addr.addr:
             print('No ip address provided')
             return
-        with self._create_agent_client() as client:
-            self.printIpRouteDetails(client, addr, vrf)
+        with self._create_agent_client() as client, \
+                self._create_qsfp_client() as qsfp_client:
+            # Getting the port/agg to VLAN map in order to display them
+            vlan_port_map = utils.get_vlan_port_map(
+                client, qsfp_client, colors=False, details=False
+            )
+            vlan_aggregate_port_map = utils.get_vlan_aggregate_port_map(client)
+            self.printIpRouteDetails(
+                client, addr, vrf, vlan_aggregate_port_map, vlan_port_map
+            )
 
 
 class RouteTableCmd(cmds.FbossCmd):
@@ -169,21 +179,24 @@ class RouteTableCmd(cmds.FbossCmd):
                 # Need to check the nextHopAddresses
                 if entry.nextHops:
                     for nextHop in entry.nextHops:
-                        weight = " - weight {}".format(
-                            nextHop.weight
-                        ) if ucmp_active else ""
-                        print("\tvia %s%s" % (utils.nexthop_to_str(nextHop.address,
+                        print("\tvia %s" % (utils.nexthop_to_str(nextHop,
                             vlan_aggregate_port_map=vlan_aggregate_port_map,
-                            vlan_port_map=vlan_port_map),
-                            weight))
+                            vlan_port_map=vlan_port_map, ucmp_active=ucmp_active)))
                 else:
-                    for nextHop in entry.nextHopAddrs:
-                        print("\tvia %s" % utils.nexthop_to_str(nextHop))
+                    for address in entry.nextHopAddrs:
+                        print("\tvia %s" % utils.nexthop_to_str(
+                            NextHopThrift(address=address))
+                        )
 
 
 class RouteTableDetailsCmd(cmds.FbossCmd):
     def run(self, ipv4, ipv6):
-        with self._create_agent_client() as client:
+        with self._create_agent_client() as client, \
+                self._create_qsfp_client() as qsfp_client:
+            vlan_port_map = utils.get_vlan_port_map(
+                client, qsfp_client, colors=False, details=False
+            )
+            vlan_aggregate_port_map = utils.get_vlan_aggregate_port_map(client)
             resp = client.getRouteTableDetails()
             if not resp:
                 print("No Route Table Details Found")
@@ -193,4 +206,4 @@ class RouteTableDetailsCmd(cmds.FbossCmd):
                     continue
                 if ipv4 and not ipv6 and len(entry.dest.ip.addr) == 16:
                     continue
-                printRouteDetailEntry(entry)
+                printRouteDetailEntry(entry, vlan_aggregate_port_map, vlan_port_map)

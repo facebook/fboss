@@ -260,29 +260,38 @@ def get_vlan_aggregate_port_map(client) -> Dict[str, str]:
 
 
 def nexthop_to_str(
-    nh: NextHopThrift,
+    nexthop: NextHopThrift,
     vlan_aggregate_port_map: t.Dict[str, str] = None,
-    vlan_port_map: t.DefaultDict[str, t.DefaultDict[str, t.List[str]]] = None
+    vlan_port_map: t.DefaultDict[str, t.DefaultDict[str, t.List[str]]] = None,
+    ucmp_active: bool = False,
 ) -> str:
+    nh_str = ""
+    ip_str = ""
+    weight_str = ""
+    via_str = ""
+
+    if ucmp_active:
+        weight_str = " - weight {}".format(nexthop.weight)
+
+    nh = nexthop.address
     ip_str = ip_ntop(nh.addr)
-    if not nh.ifName:
-        return ip_str
+    if nh.ifName:
+        if vlan_port_map:
+            vlan_id = int(nh.ifName.replace("fboss", ""))
 
-    if vlan_port_map:
-        vlan_id = int(nh.ifName.replace("fboss", ""))
+            # For agg ports it's better to display the agg port name,
+            # rather than the phy
+            if vlan_id in vlan_aggregate_port_map.keys():
+                via_str = vlan_aggregate_port_map[vlan_id]
+            else:
+                port_names = []
+                for ports in vlan_port_map[vlan_id].values():
+                    for port in ports:
+                        port_names.append(port)
 
-        # For agg ports it's better to display the agg port name,
-        # rather than the phy
-        if vlan_id in vlan_aggregate_port_map.keys():
-            via = vlan_aggregate_port_map[vlan_id]
+                via_str = ", ".join(port_names)
         else:
-            port_names = []
-            for ports in vlan_port_map[vlan_id].values():
-                for port in ports:
-                    port_names.append(port)
+            via_str = nh.ifName
 
-            via = ", ".join(port_names)
-    else:
-        via = nh.ifName
-
-    return "{}%{}".format(ip_str, via)
+    nh_str = "{}%{}{}".format(ip_str, via_str, weight_str)
+    return nh_str
