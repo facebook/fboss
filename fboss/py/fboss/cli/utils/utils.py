@@ -11,12 +11,14 @@
 import socket
 import sys
 import re
+import typing as t
 
 from collections import defaultdict
 from typing import DefaultDict, Dict, List, Tuple
 
 from libfb.py.decorators import retryable
 from facebook.network.Address.ttypes import BinaryAddress
+from neteng.fboss.ctrl.ttypes import NextHopThrift
 
 AGENT_KEYWORD = 'agent'
 BGP_KEYWORD = 'bgp'
@@ -255,3 +257,32 @@ def get_vlan_aggregate_port_map(client) -> Dict[str, str]:
             vlan = vlans[0]
             vlan_aggregate_port_map[vlan] = agg_port_name
     return vlan_aggregate_port_map
+
+
+def nexthop_to_str(
+    nh: NextHopThrift,
+    vlan_aggregate_port_map: t.Dict[str, str] = None,
+    vlan_port_map: t.DefaultDict[str, t.DefaultDict[str, t.List[str]]] = None
+) -> str:
+    ip_str = ip_ntop(nh.addr)
+    if not nh.ifName:
+        return ip_str
+
+    if vlan_port_map:
+        vlan_id = int(nh.ifName.replace("fboss", ""))
+
+        # For agg ports it's better to display the agg port name,
+        # rather than the phy
+        if vlan_id in vlan_aggregate_port_map.keys():
+            via = vlan_aggregate_port_map[vlan_id]
+        else:
+            port_names = []
+            for ports in vlan_port_map[vlan_id].values():
+                for port in ports:
+                    port_names.append(port)
+
+            via = ", ".join(port_names)
+    else:
+        via = nh.ifName
+
+    return "{}%{}".format(ip_str, via)

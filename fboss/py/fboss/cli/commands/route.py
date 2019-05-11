@@ -19,36 +19,6 @@ from neteng.fboss.ctrl.ttypes import NextHopThrift
 from neteng.fboss.ctrl.ttypes import UnicastRoute
 from facebook.network.Address.ttypes import BinaryAddress
 
-
-def nexthop_to_str(
-    nh: NextHopThrift,
-    vlan_aggregate_port_map: t.Dict[str, str] = None,
-    vlan_port_map: t.DefaultDict[str, t.DefaultDict[str, t.List[str]]] = None
-) -> str:
-    ip_str = utils.ip_ntop(nh.addr)
-    if not nh.ifName:
-        return ip_str
-
-    if vlan_port_map:
-        vlan_id = int(nh.ifName.replace("fboss", ""))
-
-        # For agg ports it's better to display the agg port name,
-        # rather than the phy
-        if vlan_id in vlan_aggregate_port_map.keys():
-            via = vlan_aggregate_port_map[vlan_id]
-        else:
-            port_names = []
-            for ports in vlan_port_map[vlan_id].values():
-                for port in ports:
-                    port_names.append(port)
-
-            via = ", ".join(port_names)
-    else:
-        via = nh.ifName
-
-    return "{}%{}".format(ip_str, via)
-
-
 def printRouteDetailEntry(entry):
     suffix = ""
     if (entry.isConnected):
@@ -59,7 +29,7 @@ def printRouteDetailEntry(entry):
     for clAndNxthops in entry.nextHopMulti:
         print("  Nexthops from client %d" % clAndNxthops.clientId)
         for nextHop in clAndNxthops.nextHopAddrs:
-            print("    %s" % nexthop_to_str(nextHop))
+            print("    %s" % utils.nexthop_to_str(nextHop))
     print("  Action: %s" % entry.action)
     if entry.nextHops and len(entry.nextHops) > 0:
         print("  Forwarding via:")
@@ -202,13 +172,13 @@ class RouteTableCmd(cmds.FbossCmd):
                         weight = " - weight {}".format(
                             nextHop.weight
                         ) if ucmp_active else ""
-                        print("\tvia %s%s" % (nexthop_to_str(nextHop.address,
+                        print("\tvia %s%s" % (utils.nexthop_to_str(nextHop.address,
                             vlan_aggregate_port_map=vlan_aggregate_port_map,
                             vlan_port_map=vlan_port_map),
                             weight))
                 else:
                     for nextHop in entry.nextHopAddrs:
-                        print("\tvia %s" % nexthop_to_str(nextHop))
+                        print("\tvia %s" % utils.nexthop_to_str(nextHop))
 
 
 class RouteTableDetailsCmd(cmds.FbossCmd):
