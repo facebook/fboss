@@ -29,8 +29,12 @@ def printRouteDetailEntry(entry, vlan_aggregate_port_map, vlan_port_map):
            suffix))
     for clAndNxthops in entry.nextHopMulti:
         print("  Nexthops from client %d" % clAndNxthops.clientId)
-        for address in clAndNxthops.nextHopAddrs:
-            print("    %s" % utils.nexthop_to_str(NextHopThrift(address=address)))
+        if clAndNxthops.nextHopAddrs:
+            for address in clAndNxthops.nextHopAddrs:
+                print("    %s" % utils.nexthop_to_str(NextHopThrift(address=address)))
+        elif clAndNxthops.nextHops:
+            for nextHop in clAndNxthops.nextHops:
+                print("    %s" % utils.nexthop_to_str(nextHop))
     print("  Action: %s" % entry.action)
     if entry.nextHops and len(entry.nextHops) > 0:
         print("  Forwarding via:")
