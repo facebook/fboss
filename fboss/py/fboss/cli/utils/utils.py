@@ -19,6 +19,8 @@ from typing import DefaultDict, Dict, List, Tuple
 from libfb.py.decorators import retryable
 from facebook.network.Address.ttypes import BinaryAddress
 from neteng.fboss.ctrl.ttypes import NextHopThrift
+from neteng.fboss.mpls.ttypes import MplsActionCode, MplsAction
+
 
 AGENT_KEYWORD = 'agent'
 BGP_KEYWORD = 'bgp'
@@ -259,6 +261,24 @@ def get_vlan_aggregate_port_map(client) -> Dict[str, str]:
     return vlan_aggregate_port_map
 
 
+def label_forwarding_action_to_str(
+    label_forwarding_action: MplsAction
+) -> str:
+    if not label_forwarding_action:
+        return ""
+    code = MplsActionCode._VALUES_TO_NAMES[label_forwarding_action.action]
+    labels = ""
+    if label_forwarding_action.action == MplsActionCode.SWAP:
+        labels = ": " + str(label_forwarding_action.swapLabel)
+    elif label_forwarding_action.action == MplsActionCode.PUSH:
+        stack_str = "{{{}}}".format(
+            ",".join([str(element) for element in label_forwarding_action.pushLabels])
+        )
+        labels = ": {}".format(stack_str)
+
+    return " MPLS -> {} {}".format(code, labels)
+
+
 def nexthop_to_str(
     nexthop: NextHopThrift,
     vlan_aggregate_port_map: t.Dict[str, str] = None,
@@ -269,6 +289,7 @@ def nexthop_to_str(
     ip_str = ""
     weight_str = ""
     via_str = ""
+    label_str = label_forwarding_action_to_str(nexthop.mplsAction)
 
     if ucmp_active:
         weight_str = " - weight {}".format(nexthop.weight)
@@ -293,5 +314,5 @@ def nexthop_to_str(
         else:
             via_str = nh.ifName
 
-    nh_str = "{}%{}{}".format(ip_str, via_str, weight_str)
+    nh_str = "{}%{}{}{}".format(ip_str, via_str, label_str, weight_str)
     return nh_str
