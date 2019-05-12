@@ -50,11 +50,7 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
     ClientAndNextHops destPair;
     destPair.clientId = srcPair.first;
     for (const auto& nh : srcPair.second.getNextHopSet()) {
-      destPair.nextHopAddrs.push_back(network::toBinaryAddress(nh.addr()));
-      if (nh.intfID().hasValue()) {
-        auto& nhAddr = destPair.nextHopAddrs.back();
-        nhAddr.ifName_ref() = util::createTunIntfName(nh.intfID().value());
-      }
+      destPair.nextHops.push_back(nh.toThrift());
     }
     list.push_back(destPair);
   }

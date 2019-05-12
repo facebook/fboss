@@ -84,7 +84,9 @@ struct MplsRoute {
 
 struct ClientAndNextHops {
   1: required i32 clientId,
+  // Deprecated in favor of '3: nextHops'
   2: required list<Address.BinaryAddress> nextHopAddrs,
+  3: required list<NextHopThrift> nextHops,
 }
 
 struct IfAndIP {
