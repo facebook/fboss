@@ -45,6 +45,9 @@ class ForwardingInformationBaseContainer
   const std::shared_ptr<ForwardingInformationBaseV4>& getFibV4() const;
   const std::shared_ptr<ForwardingInformationBaseV6>& getFibV6() const;
 
+  ForwardingInformationBaseContainer* modify(
+      std::shared_ptr<SwitchState>* state);
+
   static std::shared_ptr<ForwardingInformationBaseContainer> fromFollyDynamic(
       const folly::dynamic& json);
   folly::dynamic toFollyDynamic() const override;

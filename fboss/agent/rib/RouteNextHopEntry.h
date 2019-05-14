@@ -16,6 +16,8 @@
 #include "fboss/agent/rib/RouteNextHop.h"
 #include "fboss/agent/rib/RouteTypes.h"
 
+#include "fboss/agent/state/RouteNextHopEntry.h"
+
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 DECLARE_int32(ecmp_width);
@@ -98,6 +100,8 @@ class RouteNextHopEntry {
       AdminDistance defaultAdminDistance);
 
   bool isValid(bool forMplsRoute = false) const;
+
+  facebook::fboss::RouteNextHopEntry toFibNextHop() const;
 
  private:
   AdminDistance adminDistance_;

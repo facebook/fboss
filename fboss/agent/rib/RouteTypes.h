@@ -26,7 +26,7 @@ namespace rib {
 enum RouteForwardAction {
   DROP, // Drop the packets
   TO_CPU, // Punt the packets to the CPU
-  NEXTHOPS, // Forward the packets to one or multiple nexthops
+  NEXTHOPS, // Forward the packets to one or more next-hops
 };
 
 std::string forwardActionStr(RouteForwardAction action);

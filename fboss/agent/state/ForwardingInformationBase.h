@@ -32,14 +32,14 @@ class ForwardingInformationBase
   ForwardingInformationBase();
   ~ForwardingInformationBase() override;
 
-  std::shared_ptr<Route<AddressT>> exactMatch(
-      const RoutePrefix<AddressT>& prefix) const;
-
- private:
   using Base = NodeMapT<
       ForwardingInformationBase<AddressT>,
       ForwardingInformationBaseTraits<AddressT>>;
 
+  std::shared_ptr<Route<AddressT>> exactMatch(
+      const RoutePrefix<AddressT>& prefix) const;
+
+ private:
   // Inherit the constructors required for clone()
   using Base::Base;
   friend class CloneAllocator;

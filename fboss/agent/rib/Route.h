@@ -20,6 +20,14 @@
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_set.hpp>
+#include <memory>
+
+namespace facebook {
+namespace fboss {
+template <typename AddressT>
+class Route;
+} // namespace fboss
+} // namespace facebook
 
 namespace facebook {
 namespace fboss {
@@ -116,6 +124,8 @@ class Route {
   void delEntryForClient(ClientID clientId);
 
   bool operator==(const Route& rf) const;
+
+  std::unique_ptr<facebook::fboss::Route<AddrT>> toFibRoute() const;
 
  private:
   /**

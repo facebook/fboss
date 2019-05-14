@@ -28,6 +28,7 @@ struct NodeMapFields {
       boost::container::flat_map<KeyType, std::shared_ptr<Node>>;
 
   NodeMapFields() {}
+  NodeMapFields(NodeContainer nodes) : nodes(std::move(nodes)) {}
   NodeMapFields(const NodeMapFields& other, NodeContainer nodes)
     : nodes(std::move(nodes)),
       extra(other.extra) {}

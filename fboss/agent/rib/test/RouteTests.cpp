@@ -47,6 +47,7 @@ using folly::IPAddressV6;
 constexpr AdminDistance kDistance = AdminDistance::MAX_ADMIN_DISTANCE;
 
 namespace {
+using namespace facebook::fboss::rib;
 // TODO(samank): move helpers into test fixture
 template <typename AddressT>
 facebook::fboss::rib::Route<AddressT>* getRoute(

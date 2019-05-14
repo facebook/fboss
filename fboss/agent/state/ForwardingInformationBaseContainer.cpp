@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook {
 namespace fboss {
@@ -46,6 +47,22 @@ ForwardingInformationBaseContainer::fromFollyDynamic(
 folly::dynamic ForwardingInformationBaseContainer::toFollyDynamic() const {
   // TODO(samank)
   return folly::dynamic::object;
+}
+
+ForwardingInformationBaseContainer* ForwardingInformationBaseContainer::modify(
+    std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  auto fibMap = (*state)->getFibs()->modify(state);
+  auto newFibContainer = clone();
+
+  auto* rtn = newFibContainer.get();
+  fibMap->updateForwardingInformationBaseContainer(std::move(newFibContainer));
+
+  return rtn;
 }
 
 template class NodeBaseT<

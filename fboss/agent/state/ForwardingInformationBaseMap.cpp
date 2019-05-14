@@ -10,12 +10,19 @@
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/NodeMap-defs.h"
 
+#include "fboss/agent/state/SwitchState.h"
+
 namespace facebook {
 namespace fboss {
 
 ForwardingInformationBaseMap::ForwardingInformationBaseMap() {}
 
 ForwardingInformationBaseMap::~ForwardingInformationBaseMap() {}
+
+std::shared_ptr<ForwardingInformationBaseContainer>
+ForwardingInformationBaseMap::getFibContainerIf(RouterID vrf) const {
+  return getNodeIf(vrf);
+}
 
 std::pair<uint64_t, uint64_t> ForwardingInformationBaseMap::getRouteCount()
     const {
@@ -28,6 +35,27 @@ std::pair<uint64_t, uint64_t> ForwardingInformationBaseMap::getRouteCount()
   }
 
   return std::make_pair(v4Count, v6Count);
+}
+
+ForwardingInformationBaseMap* ForwardingInformationBaseMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  SwitchState::modify(state);
+
+  auto newFibMap = clone();
+  auto* rtn = newFibMap.get();
+  (*state)->resetForwardingInformationBases(std::move(newFibMap));
+
+  return rtn;
+}
+
+void ForwardingInformationBaseMap::updateForwardingInformationBaseContainer(
+    const std::shared_ptr<ForwardingInformationBaseContainer>& fibContainer) {
+  updateNode(fibContainer);
 }
 
 FBOSS_INSTANTIATE_NODE_MAP(

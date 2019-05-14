@@ -328,6 +328,8 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void resetMirrors(std::shared_ptr<MirrorMap> mirrors);
   void resetLabelForwardingInformationBase(
       std::shared_ptr<LabelForwardingInformationBase> labelFib);
+  void resetForwardingInformationBases(
+      std::shared_ptr<ForwardingInformationBaseMap> fibs);
 
  private:
   // Inherit the constructor required for clone()

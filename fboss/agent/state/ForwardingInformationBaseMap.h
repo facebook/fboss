@@ -13,8 +13,12 @@
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/types.h"
 
+#include <memory>
+
 namespace facebook {
 namespace fboss {
+
+class SwitchState;
 
 using ForwardingInformationBaseMapTraits =
     NodeMapTraits<RouterID, ForwardingInformationBaseContainer>;
@@ -27,6 +31,14 @@ class ForwardingInformationBaseMap : public NodeMapT<
   ~ForwardingInformationBaseMap() override;
 
   std::pair<uint64_t, uint64_t> getRouteCount() const;
+
+  std::shared_ptr<ForwardingInformationBaseContainer> getFibContainerIf(
+      RouterID vrf) const;
+
+  ForwardingInformationBaseMap* modify(std::shared_ptr<SwitchState>* state);
+
+  void updateForwardingInformationBaseContainer(
+      const std::shared_ptr<ForwardingInformationBaseContainer>& fibContainer);
 
  private:
   // Inherit the constructors required for clone()

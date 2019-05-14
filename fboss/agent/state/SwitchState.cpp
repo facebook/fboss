@@ -294,6 +294,11 @@ void SwitchState::resetLabelForwardingInformationBase(
   writableFields()->labelFib.swap(labelFib);
 }
 
+void SwitchState::resetForwardingInformationBases(
+    std::shared_ptr<ForwardingInformationBaseMap> fibs) {
+  writableFields()->fibs.swap(fibs);
+}
+
 template class NodeBaseT<SwitchState, SwitchStateFields>;
 
 }} // facebook::fboss

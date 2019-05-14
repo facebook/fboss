@@ -11,9 +11,11 @@
 #include "fboss/agent/rib/RouteNextHopEntry.h"
 #include "fboss/agent/rib/RouteUpdater.h"
 
+#include <memory>
 #include <utility>
 
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/state/ForwardingInformationBase.h"
 
 namespace facebook {
 namespace fboss {
@@ -38,8 +40,7 @@ void RoutingInformationBase::update(
   }
 
   RouteUpdater updater(
-      &(it->second.v4NetworkToRoute),
-      &(it->second.v6NetworkToRoute));
+      &(it->second.v4NetworkToRoute), &(it->second.v6NetworkToRoute));
 
   if (resetClientsRoutes) {
     updater.removeAllRoutesForClient(clientID);
