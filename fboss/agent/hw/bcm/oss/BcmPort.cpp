@@ -37,10 +37,6 @@ void BcmPort::setAdditionalStats(
     std::chrono::seconds /*now*/,
     HwPortStats* /*curPortStats*/) {}
 
-bool BcmPort::shouldReportStats() const {
-  return true;
-}
-
 cfg::PortSpeed BcmPort::getMaxSpeed() const {
   int speed;
   auto unit = hw_->getUnit();

@@ -127,7 +127,9 @@ void BcmPort::updateName(const std::string& newName) {
   }
   portName_ = newName;
   queueManager_->setPortName(newName);
-  reinitPortStats();
+  if (statCollectionEnabled_.load()) {
+    reinitPortStats();
+  }
 }
 
 MonotonicCounter* BcmPort::getPortCounterIf(folly::StringPiece statKey) {
@@ -150,10 +152,6 @@ void BcmPort::reinitPortStat(folly::StringPiece statKey) {
 }
 
 void BcmPort::reinitPortStats() {
-  if (!shouldReportStats()) {
-    return;
-  }
-
   reinitPortStat(kInBytes());
   reinitPortStat(kInUnicastPkts());
   reinitPortStat(kInMulticastPkts());
@@ -218,9 +216,6 @@ BcmPort::BcmPort(
 
   pipe_ = determinePipe();
 
-  // Initialize our stats data structures
-  reinitPortStats();
-
   XLOG(DBG2) << "created BCM port:" << port_ << ", gport:" << gport_
              << ", FBOSS PortID:" << platformPort_->getPortID();
 }
@@ -251,9 +246,14 @@ void BcmPort::init(bool warmBoot) {
   }
   initCustomStats();
 
+  auto enabled = isEnabled();
+  if (enabled) {
+    enableStatCollection();
+  }
+
   // Notify platform port of initial state/speed
   getPlatformPort()->linkSpeedChanged(getSpeed());
-  getPlatformPort()->linkStatusChanged(up, isEnabled());
+  getPlatformPort()->linkStatusChanged(up, enabled);
   getPlatformPort()->externalState(PlatformPort::ExternalState::NONE);
 
   enableLinkscan();
@@ -290,15 +290,12 @@ void BcmPort::disable(const std::shared_ptr<Port>& swPort) {
                   swPort->getID(), " from VLAN ", entry.first);
   }
 
-  // Disable packet and byte counter statistic collection.
-  auto rv = opennsl_port_stat_enable_set(unit_, gport_, false);
-  bcmCheckError(rv, "Unexpected error disabling counter DMA on port ",
-                swPort->getID());
+  disableStatCollection();
 
   // Disable sFlow sampling
   disableSflow();
 
-  rv = opennsl_port_enable_set(unit_, port_, false);
+  auto rv = opennsl_port_enable_set(unit_, port_, false);
   bcmCheckError(rv, "failed to disable port ", swPort->getID());
 }
 
@@ -355,13 +352,7 @@ void BcmPort::enable(const std::shared_ptr<Port>& swPort) {
   // Set the speed, ingress vlan, and sFlow rates before enabling
   program(swPort);
 
-  // Enable packet and byte counter statistic collection.
-  rv = opennsl_port_stat_enable_set(unit_, gport_, true);
-  if (rv != OPENNSL_E_EXISTS) {
-    // Don't throw an error if counter collection is already enabled
-    bcmCheckError(rv, "Unexpected error enabling counter DMA on port ",
-                  swPort->getID());
-  }
+  enableStatCollection();
 
   rv = opennsl_port_enable_set(unit_, port_, true);
   bcmCheckError(rv, "failed to enable port ", swPort->getID());
@@ -612,6 +603,7 @@ void BcmPort::updateStats() {
   if (!shouldReportStats()) {
     return;
   }
+
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   auto lastPortStats = lastPortStats_.rlock()->portStats();
   HwPortStats curPortStats{lastPortStats};
@@ -859,5 +851,27 @@ void BcmPort::setEgressPortMirror(const std::string& mirrorName) {
   egressMirror_.assign(mirrorName);
 }
 
+bool BcmPort::shouldReportStats() const {
+  return statCollectionEnabled_.load();
+}
 
+void BcmPort::enableStatCollection() {
+  // Enable packet and byte counter statistic collection.
+  auto rv = opennsl_port_stat_enable_set(unit_, gport_, true);
+  if (rv != OPENNSL_E_EXISTS) {
+    // Don't throw an error if counter collection is already enabled
+    bcmCheckError(rv, "Unexpected error enabling counter DMA on port ", port_);
+  }
+
+  reinitPortStats();
+  statCollectionEnabled_.store(true);
+}
+
+void BcmPort::disableStatCollection() {
+  // Disable packet and byte counter statistic collection.
+  auto rv = opennsl_port_stat_enable_set(unit_, gport_, false);
+  bcmCheckError(rv, "Unexpected error disabling counter DMA on port ", port_);
+
+  statCollectionEnabled_.store(false);
+}
 }} // namespace facebook::fboss

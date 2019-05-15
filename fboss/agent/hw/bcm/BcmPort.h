@@ -235,6 +235,9 @@ class BcmPort {
   void setTxSetting(const std::shared_ptr<Port>& swPort);
   void setLoopbackMode(const std::shared_ptr<Port>& swPort);
 
+  void enableStatCollection();
+  void disableStatCollection();
+
   bool isMmuLossy() const;
   uint8_t determinePipe() const;
 
@@ -267,6 +270,8 @@ class BcmPort {
   stats::ExportedHistogramMapImpl::LockableHistogram outPktLengths_;
 
   folly::Synchronized<BcmPortStats> lastPortStats_;
+
+  std::atomic<bool> statCollectionEnabled_{false};
 };
 
 }} // namespace facebook::fboss
