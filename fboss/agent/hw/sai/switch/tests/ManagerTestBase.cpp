@@ -23,9 +23,9 @@ namespace fboss {
 
 void ManagerTestBase::SetUp() {
   fs = FakeSai::getInstance();
+  sai_api_initialize(0, nullptr);
   saiApiTable = std::make_unique<SaiApiTable>();
   saiManagerTable = std::make_unique<SaiManagerTable>(saiApiTable.get());
-  sai_api_initialize(0, nullptr);
 
   for (int i = 0; i < testInterfaces.size(); ++i) {
     if (i == 0) {

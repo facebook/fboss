@@ -48,7 +48,7 @@ PlatformPort* SaiPlatform::getPlatformPort(PortID /* port */) const  {
 }
 
 void SaiPlatform::initImpl() {
-  saiSwitch_ = std::make_unique<SaiSwitch>();
+  saiSwitch_ = std::make_unique<SaiSwitch>(this);
 }
 
 } // namespace fboss

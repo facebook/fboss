@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/sai/switch/SaiTxPacket.h"
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -30,6 +31,9 @@
 #include <memory>
 #include <sstream>
 
+extern "C" {
+#include <sai.h>
+}
 namespace facebook {
 namespace fboss {
 
@@ -71,6 +75,7 @@ HwInitResult SaiSwitch::init(Callback* callback) noexcept {
   ret.bootType = BootType::COLD_BOOT;
   bootType_ = BootType::COLD_BOOT;
 
+  sai_api_initialize(0, platform_->getServiceMethodTable());
   saiApiTable_ = std::make_unique<SaiApiTable>();
   managerTable_ = std::make_unique<SaiManagerTable>(saiApiTable_.get());
   callback_ = callback;

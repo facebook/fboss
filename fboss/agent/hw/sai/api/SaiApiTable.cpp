@@ -17,7 +17,6 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 SaiApiTable::SaiApiTable() {
-  sai_api_initialize(0, nullptr);
   bridgeApi_ = std::make_unique<BridgeApi>();
   fdbApi_ = std::make_unique<FdbApi>();
   hostifPacketApi_ = std::make_unique<HostifPacketApi>();

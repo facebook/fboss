@@ -32,6 +32,10 @@ class SaiPlatform : public Platform {
   std::string getVolatileStateDir() const override;
   TransceiverIdxThrift getPortMapping(PortID port) const override;
   PlatformPort* getPlatformPort(PortID port) const override;
+
+  virtual sai_service_method_table_t* getServiceMethodTable() const {
+    return nullptr;
+  }
  private:
   void initImpl() override;
   std::unique_ptr<SaiSwitch> saiSwitch_;
