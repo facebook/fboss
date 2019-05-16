@@ -105,6 +105,14 @@ struct RouteDetails {
   7: list<NextHopThrift> nextHops,
 }
 
+struct MplsRouteDetails {
+  1: mpls.MplsLabel topLabel
+  2: string action
+  3: list<ClientAndNextHops> nextHopMulti,
+  4: AdminDistance adminDistance,
+  5: list<NextHopThrift> nextHops,
+}
+
 struct ArpEntryThrift {
   1: string mac,
   2: i32 port,
@@ -571,6 +579,16 @@ service FbossCtrl extends fb303.FacebookService {
    list<MplsRoute> getMplsRouteTableByClient(
      1: i16 clientId
    ) throws (1: fboss.FbossBaseError error)
+
+   /* Retrieve list of MPLS entries */
+   list<MplsRouteDetails> getAllMplsRouteDetails() throws (
+      1: fboss.FbossBaseError error
+   )
+
+    /* Retrieve MPLS entry for given label */
+    MplsRouteDetails getMplsRouteDetails(1: mpls.MplsLabel topLabel) throws (
+       1: fboss.FbossBaseError error
+    )
 
   /*
    * Return the admin and oper state of ports in the list (all ports

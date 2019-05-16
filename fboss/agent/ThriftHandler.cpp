@@ -1279,4 +1279,15 @@ void ThriftHandler::getMplsRouteTableByClient(
     mplsRoutes.emplace_back(std::move(mplsRoute));
   }
 }
+
+void ThriftHandler::getAllMplsRouteDetails(
+    std::vector<MplsRouteDetails>& /*mplsRouteDetails*/) {
+  throw FbossError("Unimplemented");
+}
+
+void ThriftHandler::getMplsRouteDetails(
+    MplsRouteDetails& /*mplsRouteDetail*/,
+    MplsLabel /*topLabel*/) {
+  throw FbossError("Unimplemented");
+}
 }} // facebook::fboss
