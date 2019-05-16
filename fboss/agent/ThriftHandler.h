@@ -93,7 +93,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       int16_t clientId) override;
 
   void getAllMplsRouteDetails(
-      std::vector<MplsRouteDetails>& mplsRouteDetails) override;
+    std::vector<MplsRouteDetails>& mplsRouteDetails
+  ) override;
 
   void getMplsRouteDetails(
       MplsRouteDetails& mplsRouteDetail,

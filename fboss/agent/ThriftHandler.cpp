@@ -1281,13 +1281,28 @@ void ThriftHandler::getMplsRouteTableByClient(
 }
 
 void ThriftHandler::getAllMplsRouteDetails(
-    std::vector<MplsRouteDetails>& /*mplsRouteDetails*/) {
-  throw FbossError("Unimplemented");
+    std::vector<MplsRouteDetails>& mplsRouteDetails) {
+  const auto labelFib = sw_->getState()->getLabelForwardingInformationBase();
+  for (const auto& entry : *labelFib) {
+    MplsRouteDetails details;
+    getMplsRouteDetails(details, entry->getID());
+    mplsRouteDetails.push_back(details);
+  }
 }
 
 void ThriftHandler::getMplsRouteDetails(
-    MplsRouteDetails& /*mplsRouteDetail*/,
-    MplsLabel /*topLabel*/) {
-  throw FbossError("Unimplemented");
+    MplsRouteDetails& mplsRouteDetail,
+    MplsLabel topLabel) {
+  const auto entry = sw_->getState()
+                         ->getLabelForwardingInformationBase()
+                         ->getLabelForwardingEntry(topLabel);
+  mplsRouteDetail.topLabel = entry->getID();
+  mplsRouteDetail.nextHopMulti = entry->getLabelNextHopsByClient().toThrift();
+  const auto& fwd = entry->getLabelNextHop();
+  for (const auto& nh : fwd.getNextHopSet()) {
+    mplsRouteDetail.nextHops.push_back(nh.toThrift());
+  }
+  mplsRouteDetail.adminDistance = fwd.getAdminDistance();
+  mplsRouteDetail.action = forwardActionStr(fwd.getAction());
 }
 }} // facebook::fboss
