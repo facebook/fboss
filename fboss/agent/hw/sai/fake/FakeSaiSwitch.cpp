@@ -22,10 +22,13 @@ static constexpr uint64_t kCpuPort = 0;
 
 sai_status_t create_switch_fn(
   sai_object_id_t*  switch_id,
-  uint32_t /* attr_count */,
-  const sai_attribute_t* /* attr_list */) {
+  uint32_t  attr_count,
+  const sai_attribute_t*  attr_list) {
   auto fs = FakeSai::getInstance();
   *switch_id = fs->swm.create();
+  for (int i = 0; i < attr_count; ++i) {
+    set_switch_attribute_fn(*switch_id, &attr_list[i]);
+  }
   return SAI_STATUS_SUCCESS;
 }
 
@@ -48,6 +51,10 @@ sai_status_t set_switch_attribute_fn(
   switch (attr->id) {
     case SAI_SWITCH_ATTR_SRC_MAC_ADDRESS:
       sw.setSrcMac(attr->value.mac);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_SWITCH_ATTR_INIT_SWITCH:
+      sw.setInitStatus(attr->value.booldata);
       res = SAI_STATUS_SUCCESS;
       break;
     default:
@@ -88,6 +95,9 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_SRC_MAC_ADDRESS:
         std::copy_n(sw.srcMac().bytes(), 6, std::begin(attr[i].value.mac));
+        break;
+      case SAI_SWITCH_ATTR_INIT_SWITCH:
+        attr[i].value.booldata = sw.isInitialized();
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

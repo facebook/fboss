@@ -54,13 +54,16 @@ struct SwitchApiParameters {
         EnumType,
         SAI_SWITCH_ATTR_DEFAULT_1Q_BRIDGE_ID,
         SaiObjectIdT>;
-    using CreateAttributes = SaiAttributeTuple<HwInfo>;
+    using InitSwitch = SaiAttribute<EnumType,
+          SAI_SWITCH_ATTR_INIT_SWITCH,
+          bool>;
+    using CreateAttributes = SaiAttributeTuple<HwInfo, InitSwitch>;
     Attributes() {}
     Attributes(const CreateAttributes& attrs) {
-      std::tie(hwInfo) = attrs.value();
+      std::tie(hwInfo, initSwitch) = attrs.value();
     }
     CreateAttributes attrs() const {
-      return {hwInfo};
+      return {hwInfo, initSwitch};
     }
     bool operator==(const Attributes& other) const {
       return attrs() == other.attrs();
@@ -69,6 +72,7 @@ struct SwitchApiParameters {
       return !(*this == other);
     }
     typename HwInfo::ValueType hwInfo;
+    typename InitSwitch::ValueType initSwitch;
   };
   struct MemberAttributes {};
   struct EntryType {};

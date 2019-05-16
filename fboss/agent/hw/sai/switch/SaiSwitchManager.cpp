@@ -30,7 +30,8 @@ namespace fboss {
 SaiSwitchInstance::SaiSwitchInstance(SaiApiTable* apiTable)
     : apiTable_(apiTable), attributes_({}) {
   SwitchApiParameters::Attributes::HwInfo hwInfo(getConnectionHandle());
-  SwitchApiParameters::Attributes attributes_{{hwInfo}};
+  SwitchApiParameters::Attributes::InitSwitch initSwitch(true);
+  SwitchApiParameters::Attributes attributes_{{{hwInfo}, initSwitch}};
   auto& switchApi = apiTable_->switchApi();
   id_ = switchApi.create(attributes_.attrs());
 }

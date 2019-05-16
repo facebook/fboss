@@ -29,6 +29,13 @@ class SwitchApiTest : public ::testing::Test {
   sai_object_id_t switchId;
 };
 
+TEST_F(SwitchApiTest, setGetInit) {
+  SwitchApiParameters::Attributes::InitSwitch init{true};
+  switchApi->setAttribute(init, switchId);
+  SwitchApiParameters::Attributes::InitSwitch blank{false};
+  EXPECT_TRUE(switchApi->getAttribute(blank, switchId));
+}
+
 TEST_F(SwitchApiTest, getNumPorts) {
   SwitchApiParameters::Attributes::PortNumber pn;
   // expect the one global cpu port

@@ -46,9 +46,12 @@ class FakeSwitch {
   folly::MacAddress srcMac() const {
     return srcMac_;
   }
+  bool isInitialized() const { return inited_; }
+  void setInitStatus(bool inited) { inited_ = inited; }
   sai_object_id_t id;
  private:
   folly::MacAddress srcMac_;
+  bool inited_{false};
 };
 
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;
