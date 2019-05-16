@@ -31,7 +31,7 @@ public:
 
   BcmPortQueueConfig getCurrentQueueSettings() const override;
 
-  std::shared_ptr<PortQueue> getCurrentQueueSettings(
+  std::unique_ptr<PortQueue> getCurrentQueueSettings(
     cfg::StreamType streamType,
     opennsl_cos_queue_t cosQ) const override;
 

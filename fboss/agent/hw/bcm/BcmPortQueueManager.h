@@ -32,10 +32,6 @@ public:
 
   BcmPortQueueConfig getCurrentQueueSettings() const override;
 
-  std::shared_ptr<PortQueue> getCurrentQueueSettings(
-    cfg::StreamType streamType,
-    opennsl_cos_queue_t cosQ) const override;
-
   void program(const PortQueue& queue) override;
 
   const std::vector<BcmCosQueueCounterType>&
@@ -44,14 +40,17 @@ public:
   static int CosQToBcmInternalPriority(opennsl_cos_queue_t cosQ);
   static opennsl_cos_queue_t bcmInternalPriorityToCosQ(int prio);
 
-protected:
-  const PortQueue& getDefaultQueueSettings(
-    cfg::StreamType streamType) const override;
-
 private:
   // Forbidden copy constructor and assignment operator
   BcmPortQueueManager(BcmPortQueueManager const &) = delete;
   BcmPortQueueManager& operator=(BcmPortQueueManager const &) = delete;
+
+  const PortQueue& getDefaultQueueSettings(
+    cfg::StreamType streamType) const override;
+
+  std::unique_ptr<PortQueue> getCurrentQueueSettings(
+    cfg::StreamType streamType,
+    opennsl_cos_queue_t cosQ) const override;
 
   void updateQueueStat(opennsl_cos_queue_t cosQ,
                        const BcmCosQueueCounterType& type,

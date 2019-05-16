@@ -10,10 +10,10 @@
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 
 namespace facebook { namespace fboss {
-std::shared_ptr<PortQueue> BcmPortQueueManager::getCurrentQueueSettings(
+std::unique_ptr<PortQueue> BcmPortQueueManager::getCurrentQueueSettings(
     cfg::StreamType /*streamType*/,
     opennsl_cos_queue_t /*cosQ*/) const {
-  return std::shared_ptr<PortQueue>{};
+  return std::unique_ptr<PortQueue>{};
 }
 
 void BcmPortQueueManager::program(

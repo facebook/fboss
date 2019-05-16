@@ -18,10 +18,10 @@ BcmControlPlaneQueueManager::BcmControlPlaneQueueManager(
     opennsl_gport_t portGport)
   : BcmCosQueueManager(hw, portName, portGport) {}
 
-std::shared_ptr<PortQueue> BcmControlPlaneQueueManager::getCurrentQueueSettings(
+std::unique_ptr<PortQueue> BcmControlPlaneQueueManager::getCurrentQueueSettings(
     cfg::StreamType /*streamType*/,
     opennsl_cos_queue_t /*cosQ*/) const {
-  return std::shared_ptr<PortQueue>{};
+  return std::unique_ptr<PortQueue>{};
 }
 
 void BcmControlPlaneQueueManager::program(

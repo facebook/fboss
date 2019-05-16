@@ -87,10 +87,6 @@ public:
 
   virtual BcmPortQueueConfig getCurrentQueueSettings() const = 0;
 
-  virtual std::shared_ptr<PortQueue> getCurrentQueueSettings(
-    cfg::StreamType streamType,
-    opennsl_cos_queue_t cosQ) const = 0;
-
   virtual void program(const PortQueue& queue) = 0;
 
   struct QueueStatCounters {
@@ -165,6 +161,10 @@ private:
   // Forbidden copy constructor and assignment operator
   BcmCosQueueManager(BcmCosQueueManager const &) = delete;
   BcmCosQueueManager& operator=(BcmCosQueueManager const &) = delete;
+
+  virtual std::unique_ptr<PortQueue> getCurrentQueueSettings(
+    cfg::StreamType streamType,
+    opennsl_cos_queue_t cosQ) const = 0;
 
   void fillOrReplaceCounter(
       const BcmCosQueueCounterType& type,
