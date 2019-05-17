@@ -16,21 +16,20 @@ struct HwPortStats {
   7: i64 inPause_ = STAT_UNINITIALIZED;
   8: i64 inIpv4HdrErrors_ = STAT_UNINITIALIZED;
   9: i64 inIpv6HdrErrors_ = STAT_UNINITIALIZED;
-  10: i64 inNonPauseDiscards_ = STAT_UNINITIALIZED;
+  10: i64 inDstNullDiscards_ = STAT_UNINITIALIZED
+  11: i64 inDiscardsRaw_ = STAT_UNINITIALIZED
 
-  11: i64 outBytes_ = STAT_UNINITIALIZED;
-  12: i64 outUnicastPkts_ = STAT_UNINITIALIZED;
-  13: i64 outMulticastPkts_ = STAT_UNINITIALIZED;
-  14: i64 outBroadcastPkts_ = STAT_UNINITIALIZED;
-  15: i64 outDiscards_ = STAT_UNINITIALIZED;
-  16: i64 outErrors_ = STAT_UNINITIALIZED;
-  17: i64 outPause_ = STAT_UNINITIALIZED;
-  18: i64 outCongestionDiscardPkts_ = STAT_UNINITIALIZED;
-  19: list<i64> queueOutDiscardBytes_ = []
-  20: list<i64> queueOutBytes_ = []
-  21: i64 outEcnCounter_ = STAT_UNINITIALIZED
-  22: i64 inDstNullDiscards_ = STAT_UNINITIALIZED
-  23: i64 inDiscardsRaw_ = STAT_UNINITIALIZED
+  12: i64 outBytes_ = STAT_UNINITIALIZED;
+  13: i64 outUnicastPkts_ = STAT_UNINITIALIZED;
+  14: i64 outMulticastPkts_ = STAT_UNINITIALIZED;
+  15: i64 outBroadcastPkts_ = STAT_UNINITIALIZED;
+  16: i64 outDiscards_ = STAT_UNINITIALIZED;
+  17: i64 outErrors_ = STAT_UNINITIALIZED;
+  18: i64 outPause_ = STAT_UNINITIALIZED;
+  19: i64 outCongestionDiscardPkts_ = STAT_UNINITIALIZED;
+  20: list<i64> queueOutDiscardBytes_ = []
+  21: list<i64> queueOutBytes_ = []
+  22: i64 outEcnCounter_ = STAT_UNINITIALIZED
 }
 
 struct HwTrunkStats {
@@ -45,17 +44,16 @@ struct HwTrunkStats {
   8: i64 inPause_ = STAT_UNINITIALIZED
   9: i64 inIpv4HdrErrors_ = STAT_UNINITIALIZED
   10: i64 inIpv6HdrErrors_ = STAT_UNINITIALIZED
-  11: i64 inNonPauseDiscards_ = STAT_UNINITIALIZED
+  11: i64 inDstNullDiscards_ = STAT_UNINITIALIZED
+  12: i64 inDiscardsRaw_ = STAT_UNINITIALIZED
 
-  12: i64 outBytes_ = STAT_UNINITIALIZED
-  13: i64 outUnicastPkts_ = STAT_UNINITIALIZED
-  14: i64 outMulticastPkts_ = STAT_UNINITIALIZED
-  15: i64 outBroadcastPkts_ = STAT_UNINITIALIZED
-  16: i64 outDiscards_ = STAT_UNINITIALIZED
-  17: i64 outErrors_ = STAT_UNINITIALIZED
-  18: i64 outPause_ = STAT_UNINITIALIZED
-  19: i64 outCongestionDiscardPkts_ = STAT_UNINITIALIZED
-  20: i64 outEcnCounter_ = STAT_UNINITIALIZED
-  21: i64 inDstNullDiscards_ = STAT_UNINITIALIZED
-  22: i64 inDiscardsRaw_ = STAT_UNINITIALIZED
+  13: i64 outBytes_ = STAT_UNINITIALIZED
+  14: i64 outUnicastPkts_ = STAT_UNINITIALIZED
+  15: i64 outMulticastPkts_ = STAT_UNINITIALIZED
+  16: i64 outBroadcastPkts_ = STAT_UNINITIALIZED
+  17: i64 outDiscards_ = STAT_UNINITIALIZED
+  18: i64 outErrors_ = STAT_UNINITIALIZED
+  19: i64 outPause_ = STAT_UNINITIALIZED
+  20: i64 outCongestionDiscardPkts_ = STAT_UNINITIALIZED
+  21: i64 outEcnCounter_ = STAT_UNINITIALIZED
 }

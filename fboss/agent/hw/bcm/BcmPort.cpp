@@ -162,7 +162,6 @@ void BcmPort::reinitPortStats() {
   reinitPortStat(kInPause());
   reinitPortStat(kInIpv4HdrErrors());
   reinitPortStat(kInIpv6HdrErrors());
-  reinitPortStat(kInNonPauseDiscards());
   reinitPortStat(kInDstNullDiscards());
 
   reinitPortStat(kOutBytes());
@@ -702,10 +701,6 @@ void BcmPort::updateStats() {
 
   auto inDiscards = getPortCounterIf(kInDiscards());
   inDiscards->updateValue(now, curPortStats.inDiscards_);
-  // TODO: Deprecate in_non_pause_discards
-  curPortStats.inNonPauseDiscards_ = curPortStats.inDiscards_;
-  auto inNonPauseDiscards = getPortCounterIf(kInNonPauseDiscards());
-  inNonPauseDiscards->updateValue(now, curPortStats.inNonPauseDiscards_);
 
   {
     auto lockedLastPortStatsPtr = lastPortStats_.wlock();

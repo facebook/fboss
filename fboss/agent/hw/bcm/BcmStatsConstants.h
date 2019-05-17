@@ -50,10 +50,6 @@ inline folly::StringPiece constexpr kInIpv6HdrErrors() {
   return "in_ipv6_header_errors";
 }
 
-inline folly::StringPiece constexpr kInNonPauseDiscards() {
-  return "in_non_pause_discards";
-}
-
 inline folly::StringPiece constexpr kInDiscardsRaw() {
   return "in_discards_raw";
 }
