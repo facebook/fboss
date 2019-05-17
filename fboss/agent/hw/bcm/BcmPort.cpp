@@ -31,6 +31,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/hw/bcm/gen-cpp2/hardware_stats_constants.h"
 
 extern "C" {
 #include <opennsl/link.h>
@@ -606,6 +607,13 @@ void BcmPort::updateStats() {
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   auto lastPortStats = lastPortStats_.rlock()->portStats();
   HwPortStats curPortStats{lastPortStats};
+  // All stats start with a unitialized (-1) value. If there are no in discards
+  // we will just report that as the monotonic counter. Instead set it to
+  // 0 if uninintialized
+  curPortStats.inDiscards_ =
+      curPortStats.inDiscards_ == hardware_stats_constants::STAT_UNINITIALIZED()
+      ? 0
+      : curPortStats.inDiscards_;
   updateStat(
       now, kInBytes(), opennsl_spl_snmpIfHCInOctets, &curPortStats.inBytes_);
   updateStat(
