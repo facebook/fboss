@@ -107,6 +107,18 @@ class RefMap {
     return map_.cend();
   }
 
+  long referenceCount(const K& k) const {
+    auto iter = map_.find(k);
+    if (iter == map_.cend() || iter.second.expired()) {
+      return 0;
+    }
+    return iter.second.use_count();
+  }
+
+  void clear() {
+    return map_.clear();
+  }
+
  private:
   V* getImpl(const K& k) const {
     auto itr = map_.find(k);
