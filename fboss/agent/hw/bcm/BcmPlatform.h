@@ -105,10 +105,6 @@ class BcmPlatform : public Platform {
   virtual bool useQueueGportForCos() const = 0;
   virtual uint32_t maxLabelStackDepth() const = 0;
 
-  virtual bool isBufferStatsCollectionSupported() const {
-    return true;
-  }
-
  protected:
 
 /*

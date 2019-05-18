@@ -525,9 +525,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   setupCos();
   configureRxRateLimiting();
 
-  if (platform_->isBufferStatsCollectionSupported()) {
-    bstStatsMgr_->startBufferStatCollection();
-  }
+  bstStatsMgr_->startBufferStatCollection();
 
   trunkTable_->setupTrunking();
   setupLinkscan();
