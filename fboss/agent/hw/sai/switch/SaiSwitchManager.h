@@ -23,10 +23,10 @@ namespace facebook {
 namespace fboss {
 
 class SaiManagerTable;
+class SaiPlatform;
 
 class SaiSwitchInstance {
  public:
-  explicit SaiSwitchInstance(SaiApiTable* apiTable);
   SaiSwitchInstance(
       SaiApiTable* apiTable,
       const SwitchApiParameters::Attributes& attributes);
@@ -53,7 +53,8 @@ class SaiSwitchInstance {
 
 class SaiSwitchManager {
  public:
-  SaiSwitchManager(SaiApiTable* apiTable, SaiManagerTable* managerTable);
+  SaiSwitchManager(SaiApiTable* apiTable, SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
   const SaiSwitchInstance* getSwitch(const SwitchID& switchId) const;
   SaiSwitchInstance* getSwitch(const SwitchID& switchId);
   sai_object_id_t getSwitchSaiId(const SwitchID& switchId) const;

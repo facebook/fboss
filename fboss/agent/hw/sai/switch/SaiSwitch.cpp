@@ -77,7 +77,8 @@ HwInitResult SaiSwitch::init(Callback* callback) noexcept {
 
   sai_api_initialize(0, platform_->getServiceMethodTable());
   saiApiTable_ = std::make_unique<SaiApiTable>();
-  managerTable_ = std::make_unique<SaiManagerTable>(saiApiTable_.get());
+  managerTable_ =
+      std::make_unique<SaiManagerTable>(saiApiTable_.get(), platform_);
   callback_ = callback;
 
   auto state = std::make_shared<SwitchState>();

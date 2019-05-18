@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/Vlan.h"
@@ -24,8 +25,10 @@ namespace fboss {
 void ManagerTestBase::SetUp() {
   fs = FakeSai::getInstance();
   sai_api_initialize(0, nullptr);
+  saiPlatform = std::make_unique<SaiPlatform>();
   saiApiTable = std::make_unique<SaiApiTable>();
-  saiManagerTable = std::make_unique<SaiManagerTable>(saiApiTable.get());
+  saiManagerTable =
+      std::make_unique<SaiManagerTable>(saiApiTable.get(), saiPlatform.get());
 
   for (int i = 0; i < testInterfaces.size(); ++i) {
     if (i == 0) {

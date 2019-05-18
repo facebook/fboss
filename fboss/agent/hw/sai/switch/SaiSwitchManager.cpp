@@ -13,28 +13,30 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <folly/logging/xlog.h>
 
 // (TODO: srikrishnagopu) Move this to SaiPlatform ?
 namespace {
-  std::vector<int8_t> getConnectionHandle() {
-    static const char connStr[] = "/dev/testdev/socket/0.0.0.0:40000";
-    return std::vector<int8_t> {std::begin(connStr), std::end(connStr)};
-  }
+using namespace facebook::fboss;
+
+std::vector<int8_t> getConnectionHandle() {
+  static const char connStr[] = "/dev/testdev/socket/0.0.0.0:40000";
+  return std::vector<int8_t>{std::begin(connStr), std::end(connStr)};
+}
+
+SwitchApiParameters::Attributes getSwitchAttributes(
+    const SaiPlatform* platform) {
+  SwitchApiParameters::Attributes::HwInfo hwInfo(getConnectionHandle());
+  SwitchApiParameters::Attributes::SrcMac srcMac(platform->getLocalMac());
+  SwitchApiParameters::Attributes::InitSwitch initSwitch(true);
+  return {{{hwInfo}, srcMac, initSwitch}};
+}
 }
 
 namespace facebook {
 namespace fboss {
-
-SaiSwitchInstance::SaiSwitchInstance(SaiApiTable* apiTable)
-    : apiTable_(apiTable), attributes_({}) {
-  SwitchApiParameters::Attributes::HwInfo hwInfo(getConnectionHandle());
-  SwitchApiParameters::Attributes::InitSwitch initSwitch(true);
-  SwitchApiParameters::Attributes attributes_{{{hwInfo}, initSwitch}};
-  auto& switchApi = apiTable_->switchApi();
-  id_ = switchApi.create(attributes_.attrs());
-}
 
 SaiSwitchInstance::SaiSwitchInstance(
     SaiApiTable* apiTable,
@@ -58,9 +60,11 @@ bool SaiSwitchInstance::operator!=(const SaiSwitchInstance& other) const {
 
 SaiSwitchManager::SaiSwitchManager(
     SaiApiTable* apiTable,
-    SaiManagerTable* managerTable)
+    SaiManagerTable* managerTable,
+    const SaiPlatform* platform)
     : apiTable_(apiTable), managerTable_(managerTable) {
-  auto defaultSwitch = std::make_unique<SaiSwitchInstance>(apiTable_);
+  auto defaultSwitch = std::make_unique<SaiSwitchInstance>(
+      apiTable_, getSwitchAttributes(platform));
   switches_.emplace(std::make_pair(SwitchID(0), std::move(defaultSwitch)));
 }
 

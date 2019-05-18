@@ -20,6 +20,7 @@ class SaiFdbManager;
 class SaiNeighborManager;
 class SaiNextHopManager;
 class SaiNextHopGroupManager;
+class SaiPlatform;
 class SaiPortManager;
 class SaiRouteManager;
 class SaiRouterInterfaceManager;
@@ -29,7 +30,7 @@ class SaiVlanManager;
 
 class SaiManagerTable {
  public:
-  explicit SaiManagerTable(SaiApiTable* apiTable);
+  SaiManagerTable(SaiApiTable* apiTable, const SaiPlatform* platform);
   ~SaiManagerTable();
 
   SaiBridgeManager& bridgeManager();
