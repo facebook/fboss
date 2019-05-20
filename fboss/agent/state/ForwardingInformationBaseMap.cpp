@@ -37,6 +37,18 @@ std::pair<uint64_t, uint64_t> ForwardingInformationBaseMap::getRouteCount()
   return std::make_pair(v4Count, v6Count);
 }
 
+std::shared_ptr<ForwardingInformationBaseContainer>
+ForwardingInformationBaseMap::getFibContainer(RouterID vrf) const {
+  std::shared_ptr<ForwardingInformationBaseContainer> fibContainer =
+      getFibContainerIf(vrf);
+
+  if (fibContainer) {
+    return fibContainer;
+  }
+
+  throw FbossError("No ForwardingInformationBaseContainer found for VRF ", vrf);
+}
+
 ForwardingInformationBaseMap* ForwardingInformationBaseMap::modify(
     std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {

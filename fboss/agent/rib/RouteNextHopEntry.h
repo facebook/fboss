@@ -29,6 +29,12 @@ class UnicastRoute;
 } // namespace facebook
 
 namespace facebook {
+namespace cfg {
+class StaticRouteWithNextHops;
+} // namespace cfg
+} // namespace facebook
+
+namespace facebook {
 namespace fboss {
 namespace rib {
 
@@ -102,6 +108,13 @@ class RouteNextHopEntry {
   bool isValid(bool forMplsRoute = false) const;
 
   facebook::fboss::RouteNextHopEntry toFibNextHop() const;
+
+  static facebook::fboss::rib::RouteNextHopEntry createDrop(
+      AdminDistance adminDistance = AdminDistance::STATIC_ROUTE);
+  static facebook::fboss::rib::RouteNextHopEntry createToCpu(
+      AdminDistance adminDistance = AdminDistance::STATIC_ROUTE);
+  static facebook::fboss::rib::RouteNextHopEntry fromStaticRoute(
+      const cfg::StaticRouteWithNextHops& route);
 
  private:
   AdminDistance adminDistance_;

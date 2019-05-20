@@ -10,6 +10,7 @@
 #include "RouteNextHopEntry.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
 
@@ -319,6 +320,34 @@ facebook::fboss::RouteNextHopEntry RouteNextHopEntry::toFibNextHop() const {
   }
 
   XLOG(FATAL) << "Unknown RouteNextHopEntry::Action value";
+}
+
+facebook::fboss::rib::RouteNextHopEntry RouteNextHopEntry::createDrop(
+    AdminDistance adminDistance) {
+  return RouteNextHopEntry(RouteForwardAction::DROP, adminDistance);
+}
+
+facebook::fboss::rib::RouteNextHopEntry RouteNextHopEntry::createToCpu(
+    AdminDistance adminDistance) {
+  return RouteNextHopEntry(RouteForwardAction::TO_CPU, adminDistance);
+}
+
+facebook::fboss::rib::RouteNextHopEntry RouteNextHopEntry::fromStaticRoute(
+    const cfg::StaticRouteWithNextHops& route) {
+  RouteNextHopSet nhops;
+
+  // NOTE: Static routes use the default UCMP weight so that they can be
+  // compatible with UCMP, i.e., so that we can do ucmp where the next
+  // hops resolve to a static route.  If we define recursive static
+  // routes, that may lead to unexpected behavior where some interface
+  // gets more traffic.  If necessary, in the future, we can make it
+  // possible to configure strictly ECMP static routes
+  for (auto& nhopStr : route.nexthops) {
+    nhops.emplace(
+        UnresolvedNextHop(folly::IPAddress(nhopStr), UCMP_DEFAULT_WEIGHT));
+  }
+
+  return RouteNextHopEntry(std::move(nhops), AdminDistance::STATIC_ROUTE);
 }
 
 } // namespace rib

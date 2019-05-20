@@ -102,11 +102,6 @@ class Route {
 
   bool isSame(const Route* rt) const;
 
-  /*
-   * The following functions modify the route object.
-   * They should only be called on unpublished objects which are only visible
-   * to a single thread
-   */
   void setProcessing() {
     CHECK(!isProcessing());
     setFlagsProcessing();

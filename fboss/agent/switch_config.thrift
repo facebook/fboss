@@ -784,7 +784,7 @@ struct Interface {
 }
 
 struct StaticRouteWithNextHops {
-  /** The VRF where the static route belongs to */
+  /** The VRF to which the static route belongs to */
   1: i32 routerID = 0
   /* Prefix in the format like 10.0.0.0/8 */
   2: string prefix

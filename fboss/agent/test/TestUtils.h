@@ -41,6 +41,10 @@ namespace cfg {
 class SwitchConfig;
 }
 
+namespace rib {
+class RoutingInformationBase;
+}
+
 /*
  * In the non unit test code state passed to apply*Config is the state
  * returned from SwSwitch init, which is always published. However this
@@ -57,7 +61,8 @@ std::shared_ptr<SwitchState> publishAndApplyConfig(
     std::shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
-    const cfg::SwitchConfig* prevCfg=nullptr);
+    rib::RoutingInformationBase* rib = nullptr,
+    const cfg::SwitchConfig* prevCfg = nullptr);
 
 /*
  * Create a SwSwitch for testing purposes, with the specified initial state.

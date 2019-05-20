@@ -17,6 +17,7 @@
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AggregatePort.h"
@@ -81,14 +82,17 @@ namespace facebook { namespace fboss {
  */
 class ThriftConfigApplier {
  public:
-  ThriftConfigApplier(const std::shared_ptr<SwitchState>& orig,
-                      const cfg::SwitchConfig* config,
-                      const Platform* platform,
-                      const cfg::SwitchConfig* prevCfg)
-    : orig_(orig),
-      cfg_(config),
-      platform_(platform),
-      prevCfg_(prevCfg) {}
+  ThriftConfigApplier(
+      const std::shared_ptr<SwitchState>& orig,
+      const cfg::SwitchConfig* config,
+      const Platform* platform,
+      rib::RoutingInformationBase* rib,
+      const cfg::SwitchConfig* prevCfg)
+      : orig_(orig),
+        cfg_(config),
+        platform_(platform),
+        rib_(rib),
+        prevCfg_(prevCfg) {}
 
   std::shared_ptr<SwitchState> run();
 
@@ -117,9 +121,8 @@ class ThriftConfigApplier {
   }
 
   // Interface route prefix. IPAddress has mask applied
-  typedef std::pair<folly::IPAddress, uint8_t> Prefix;
   typedef std::pair<InterfaceID, folly::IPAddress> IntfAddress;
-  typedef boost::container::flat_map<Prefix, IntfAddress> IntfRoute;
+  typedef boost::container::flat_map<folly::CIDRNetwork, IntfAddress> IntfRoute;
   typedef boost::container::flat_map<RouterID, IntfRoute> IntfRouteTable;
   IntfRouteTable intfRouteTables_;
 
@@ -228,18 +231,21 @@ class ThriftConfigApplier {
   std::shared_ptr<Mirror> updateMirror(
       const std::shared_ptr<Mirror>& orig,
       const cfg::Mirror* config);
+  std::shared_ptr<ForwardingInformationBaseMap>
+  updateForwardingInformationBaseContainers();
 
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
   const cfg::SwitchConfig* cfg_{nullptr};
   const Platform* platform_{nullptr};
+  rib::RoutingInformationBase* rib_{nullptr};
   const cfg::SwitchConfig* prevCfg_{nullptr};
 
   struct VlanIpInfo {
     VlanIpInfo(uint8_t mask, MacAddress mac, InterfaceID intf)
-      : mask(mask),
-        mac(mac),
-        interfaceID(intf) {}
+        : mask(mask),
+          mac(mac),
+          interfaceID(intf) {}
 
     uint8_t mask;
     MacAddress mac;
@@ -330,21 +336,33 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
   }
 
-  // Note: updateInterfaces() must be called before updateInterfaceRoutes(),
-  // as updateInterfaces() populates the intfRouteTables_ data structure.
-  // Also, updateInterfaceRoutes() should be the first call for updating
-  // RouteTable as this will take the RouteTable from orig_ and add Interface
-  // routes. Calling this after other RouteTable updates will result in other
-  // routes getting removed during updateInterfaceRoutes()
-  {
+  if (rib_) {
+    auto newFibs = updateForwardingInformationBaseContainers();
+    if (newFibs) {
+      new_->resetForwardingInformationBases(newFibs);
+      changed = true;
+    }
+
+    rib_->reconfigure(
+        new_,
+        intfRouteTables_,
+        cfg_->staticRoutesWithNhops,
+        cfg_->staticRoutesToNull,
+        cfg_->staticRoutesToCPU);
+  } else {
+    // Note: updateInterfaces() must be called before updateInterfaceRoutes(),
+    // as updateInterfaces() populates the intfRouteTables_ data structure.
+    // Also, updateInterfaceRoutes() should be the first call for updating
+    // RouteTable as this will take the RouteTable from orig_ and add Interface
+    // routes. Calling this after other RouteTable updates will result in other
+    // routes getting removed during updateInterfaceRoutes()
+
     auto newTables = updateInterfaceRoutes();
     if (newTables) {
       new_->resetRouteTables(newTables);
       changed = true;
     }
-  }
 
-  {
     // Retrieve RouteTableMap from new_ as this will have
     // all the routes updated until now. Pass this to syncStaticRoutes
     // so that routes added until now would not be excluded.
@@ -1588,6 +1606,7 @@ std::shared_ptr<RouteTableMap> ThriftConfigApplier::syncStaticRoutes(
   auto staticClientId = StdClientIds2ClientID(StdClientIds::STATIC_ROUTE);
   auto staticAdminDistance = AdminDistance::STATIC_ROUTE;
   updater.removeAllRoutesForClient(RouterID(0), staticClientId);
+
   if (cfg_->__isset.staticRoutesToNull) {
     for (const auto& route : cfg_->staticRoutesToNull) {
       auto prefix = folly::IPAddress::createNetwork(route.prefix);
@@ -2015,21 +2034,69 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
   return newMirror;
 }
 
+std::shared_ptr<ForwardingInformationBaseMap>
+ThriftConfigApplier::updateForwardingInformationBaseContainers() {
+  auto origForwardingInformationBaseMap = orig_->getFibs();
+  ForwardingInformationBaseMap::NodeContainer newFibContainers;
+  bool changed = false;
+
+  std::size_t numExistingProcessed = 0;
+
+  for (const auto& interfaceCfg : cfg_->interfaces) {
+    RouterID vrf(interfaceCfg.routerID);
+    if (newFibContainers.find(vrf) != newFibContainers.end()) {
+      continue;
+    }
+
+    auto origFibContainer = orig_->getFibs()->getFibContainerIf(vrf);
+
+    std::shared_ptr<ForwardingInformationBaseContainer> newFibContainer{
+        nullptr};
+    if (origFibContainer) {
+      newFibContainer = origFibContainer;
+      ++numExistingProcessed;
+    } else {
+      newFibContainer =
+          std::make_shared<ForwardingInformationBaseContainer>(vrf);
+    }
+
+    changed |= updateMap(&newFibContainers, origFibContainer, newFibContainer);
+  }
+
+  if (numExistingProcessed != orig_->getFibs()->size()) {
+    CHECK_LE(numExistingProcessed, orig_->getFibs()->size());
+    changed = true;
+  }
+
+  if (!changed) {
+    return nullptr;
+  }
+
+  return origForwardingInformationBaseMap->clone(newFibContainers);
+}
+
 shared_ptr<SwitchState> applyThriftConfig(
     const shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
+    rib::RoutingInformationBase* rib,
     const cfg::SwitchConfig* prevConfig) {
   cfg::SwitchConfig emptyConfig;
-  return ThriftConfigApplier(state, config, platform,
-      prevConfig ? prevConfig : &emptyConfig).run();
+  return ThriftConfigApplier(
+             state,
+             config,
+             platform,
+             rib,
+             prevConfig ? prevConfig : &emptyConfig)
+      .run();
 }
 
 std::pair<std::shared_ptr<SwitchState>, std::string> applyThriftConfigFile(
-  const std::shared_ptr<SwitchState>& state,
-  const folly::StringPiece path,
-  const Platform* platform,
-  const cfg::SwitchConfig* prevConfig) {
+    const std::shared_ptr<SwitchState>& state,
+    const folly::StringPiece path,
+    const Platform* platform,
+    rib::RoutingInformationBase* rib,
+    const cfg::SwitchConfig* prevConfig) {
   //
   // This is basically what configerator's getConfigAndParse() code does,
   // except that we manually read the file from disk for now.
@@ -2044,7 +2111,6 @@ std::pair<std::shared_ptr<SwitchState>, std::string> applyThriftConfigFile(
       configStr.c_str(), config);
 
   return std::make_pair(
-      applyThriftConfig(state, &config, platform, prevConfig), configStr);
+      applyThriftConfig(state, &config, platform, rib, prevConfig), configStr);
 }
-
 }} // facebook::fboss

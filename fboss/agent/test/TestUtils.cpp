@@ -31,6 +31,8 @@
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/test/MockTunManager.h"
 
+#include "fboss/agent/rib/RoutingInformationBase.h"
+
 #include <chrono>
 #include <folly/Memory.h>
 #include <folly/json.h>
@@ -122,11 +124,11 @@ shared_ptr<SwitchState> publishAndApplyConfig(
     shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
+    rib::RoutingInformationBase* rib,
     const cfg::SwitchConfig* prevCfg) {
   state->publish();
-  return applyThriftConfig(state, config, platform, prevCfg);
+  return applyThriftConfig(state, config, platform, rib, prevCfg);
 }
-
 
 std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
     std::unique_ptr<MockPlatform> platform,

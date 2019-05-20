@@ -35,6 +35,9 @@ class ForwardingInformationBaseMap : public NodeMapT<
   std::shared_ptr<ForwardingInformationBaseContainer> getFibContainerIf(
       RouterID vrf) const;
 
+  std::shared_ptr<ForwardingInformationBaseContainer> getFibContainer(
+      RouterID vrf) const;
+
   ForwardingInformationBaseMap* modify(std::shared_ptr<SwitchState>* state);
 
   void updateForwardingInformationBaseContainer(

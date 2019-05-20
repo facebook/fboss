@@ -1469,8 +1469,12 @@ void SwSwitch::applyConfig(const std::string& reason, bool reload) {
         auto target = reload ? platform_->reloadConfig() : platform_->config();
 
         const auto& newConfig = target->thrift.sw;
-        auto newState =
-          applyThriftConfig(state, &newConfig, platform_.get(), &curConfig_);
+        auto newState = applyThriftConfig(
+            state,
+            &newConfig,
+            getPlatform(),
+            (getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB) ? rib() : nullptr,
+            &curConfig_);
 
         if (!newState) {
           // if config is not updated, the new state will return null
