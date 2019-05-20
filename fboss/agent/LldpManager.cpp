@@ -43,11 +43,15 @@ checkTag(facebook::fboss::PortID id,
   auto res = lldpmap.find(tag);
 
   if (res == lldpmap.end()) {
+    XLOG(DBG4) << "Port " << id << ": " << std::to_string(static_cast<int>(tag))
+               << ": Not present in config";
     return true;
   }
 
   auto expect = res->second;
   if (expect.compare(val) == 0) {
+    XLOG(DBG4) << "Port " << id << std::to_string(static_cast<int>(tag))
+                << ", matches: \"" << expect << "\", got: \"" << val << "\"";
     return true;
   }
 
@@ -119,8 +123,8 @@ void LldpManager::handlePacket(
   if (!(checkTag (pid, lldpmap,
             cfg::LLDPTag::SYSTEM_NAME, neighbor.getSystemName())
        && checkTag (pid, lldpmap,
-                    cfg::LLDPTag::PORT_DESC,
-                    neighbor.getPortDescription()))) {
+                    cfg::LLDPTag::PORT,
+                    neighbor.humanReadablePortId()))) {
     sw_->stats()->LldpValidateMisMatch();
     // TODO(pjakma): Figure out how to mock plport
     if (plport) {
