@@ -19,7 +19,9 @@
 #include "fboss/agent/hw/bcm/BcmNextHop.h"
 #include "fboss/agent/hw/bcm/BcmNextHopTable-defs.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
+#include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/state/Interface.h"
 
@@ -27,7 +29,6 @@ namespace {
 constexpr auto kIntf = "intf";
 constexpr auto kPort = "port";
 constexpr auto kNextHops = "nexthops";
-
 struct BcmHostKeyComparator {
   using BcmHost = facebook::fboss::BcmHost;
   using BcmHostKey = facebook::fboss::BcmHostKey;
@@ -280,6 +281,7 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
 
   trunk_ = BcmTrunk::INVALID;
   port_ = port;
+  action_ = action;
 }
 
 void BcmHost::programToTrunk(opennsl_if_t intf,
@@ -322,6 +324,7 @@ void BcmHost::programToTrunk(opennsl_if_t intf,
 
   port_ = 0;
   trunk_ = trunk;
+  action_ = NEXTHOPS;
 }
 
 bool BcmHost::isTrunk() const {
@@ -353,6 +356,12 @@ BcmHost::~BcmHost() {
       isPortOrTrunkSet() ? BcmEcmpEgress::Action::SHRINK
                          : BcmEcmpEgress::Action::SKIP);
   hw_->writableHostTable()->derefEgress(egressId_);
+}
+
+PortDescriptor BcmHost::portDescriptor() const {
+  return isTrunk()
+      ? PortDescriptor(hw_->getTrunkTable()->getAggregatePortId(trunk_))
+      : PortDescriptor(hw_->getPortTable()->getPortId(port_));
 }
 
 std::shared_ptr<BcmNextHop> BcmEcmpHost::refOrEmplaceNextHop(
@@ -444,13 +453,9 @@ HostT* BcmHostTable::incRefOrCreateBcmHostImpl(
   return hostPtr;
 }
 
-BcmHost* BcmHostTable::incRefOrCreateBcmHost(const HostKey& hostKey) {
-  if (!hostKey.hasLabel()) {
-    return incRefOrCreateBcmHostImpl(
-        &hosts_, folly::poly_cast<BcmHostKey>(hostKey));
-  }
-  return incRefOrCreateBcmHostImpl(
-      &labeledHosts_, folly::poly_cast<BcmLabeledHostKey>(hostKey));
+BcmHost* BcmHostTable::incRefOrCreateBcmHost(const BcmHostKey& hostKey) {
+  CHECK(!hostKey.hasLabel());
+  return incRefOrCreateBcmHostImpl(&hosts_, hostKey);
 }
 
 BcmEcmpHost* BcmHostTable::incRefOrCreateBcmEcmpHost(
@@ -463,12 +468,9 @@ uint32_t BcmHostTable::getReferenceCount(const BcmEcmpHostKey& key)
   return getReferenceCountImpl(&ecmpHosts_, key);
 }
 
-uint32_t BcmHostTable::getReferenceCount(const HostKey& key) const noexcept {
-  if (!key.hasLabel()) {
-    return getReferenceCountImpl(&hosts_, folly::poly_cast<BcmHostKey>(key));
-  }
-  return getReferenceCountImpl(
-      &labeledHosts_, folly::poly_cast<BcmLabeledHostKey>(key));
+uint32_t BcmHostTable::getReferenceCount(const BcmHostKey& key) const noexcept {
+  CHECK(!key.hasLabel());
+  return getReferenceCountImpl(&hosts_, key);
 }
 
 template<typename KeyT, typename HostT>
@@ -493,7 +495,7 @@ HostT* BcmHostTable::getBcmHostIfImpl(
   return iter->second.first.get();
 }
 
-BcmHost* BcmHostTable::getBcmHost(const HostKey& key) const {
+BcmHost* BcmHostTable::getBcmHost(const BcmHostKey& key) const {
   auto host = getBcmHostIf(key);
   if (!host) {
     throw FbossError("Cannot find BcmHost key=", key);
@@ -511,11 +513,9 @@ BcmEcmpHost* BcmHostTable::getBcmEcmpHost(
   return host;
 }
 
-BcmHost* BcmHostTable::getBcmHostIf(const HostKey& key) const noexcept {
-  return !key.hasLabel()
-      ? getBcmHostIfImpl(&hosts_, folly::poly_cast<BcmHostKey>(key))
-      : getBcmHostIfImpl(
-            &labeledHosts_, folly::poly_cast<BcmLabeledHostKey>(key));
+BcmHost* BcmHostTable::getBcmHostIf(const BcmHostKey& key) const noexcept {
+  CHECK(!key.hasLabel());
+  return getBcmHostIfImpl(&hosts_, key);
 }
 
 BcmEcmpHost* BcmHostTable::getBcmEcmpHostIf(
@@ -563,11 +563,9 @@ HostT* BcmHostTable::derefBcmHostImpl(
   return entry.first.get();
 }
 
-BcmHost* BcmHostTable::derefBcmHost(const HostKey& key) noexcept {
-  return !key.hasLabel()
-      ? derefBcmHostImpl(&hosts_, folly::poly_cast<BcmHostKey>(key))
-      : derefBcmHostImpl(
-            &labeledHosts_, folly::poly_cast<BcmLabeledHostKey>(key));
+BcmHost* BcmHostTable::derefBcmHost(const BcmHostKey& key) noexcept {
+  CHECK(!key.hasLabel());
+  return derefBcmHostImpl(&hosts_, key);
 }
 
 BcmEcmpHost* BcmHostTable::derefBcmEcmpHost(
@@ -912,16 +910,7 @@ void BcmHostTable::programHostsToTrunk(
   auto* host = iter->second.first.get();
   host->programToTrunk(intf, mac, trunk);
 
-  // program labeled next hops to the host
-  auto ret = std::equal_range(
-      std::begin(labeledHosts_),
-      std::end(labeledHosts_),
-      key,
-      BcmHostKeyComparator());
-  std::for_each(ret.first, ret.second, [=](auto& entry) {
-    auto* labeledHost = entry.second.first.get();
-    labeledHost->programToTrunk(intf, mac, trunk);
-  });
+  // (TODO) program labeled next hops to the host
 }
 
 void BcmHostTable::programHostsToPort(
@@ -936,16 +925,7 @@ void BcmHostTable::programHostsToPort(
   auto* host = iter->second.first.get();
   host->program(intf, mac, port);
 
-  // program labeled next hops to the host
-  auto ret = std::equal_range(
-      std::begin(labeledHosts_),
-      std::end(labeledHosts_),
-      key,
-      BcmHostKeyComparator());
-  std::for_each(ret.first, ret.second, [=](auto& entry) {
-    auto* labeledHost = entry.second.first.get();
-    labeledHost->program(intf, mac, port);
-  });
+  // (TODO) program labeled next hops to the host
 }
 
 void BcmHostTable::programHostsToCPU(const BcmHostKey& key, opennsl_if_t intf) {
@@ -955,19 +935,10 @@ void BcmHostTable::programHostsToCPU(const BcmHostKey& key, opennsl_if_t intf) {
     host->programToCPU(intf);
   }
 
-  // program labeled next hops to the host
-  auto ret = std::equal_range(
-      std::begin(labeledHosts_),
-      std::end(labeledHosts_),
-      key,
-      BcmHostKeyComparator());
-  std::for_each(ret.first, ret.second, [=](auto& entry) {
-    auto* labeledHost = entry.second.first.get();
-    labeledHost->programToCPU(intf);
-  });
+  // (TODO) program labeled next hops to the host
 }
 
-BcmHostReference::BcmHostReference(BcmSwitch* hw, HostKey key)
+BcmHostReference::BcmHostReference(BcmSwitch* hw, BcmHostKey key)
     : hw_(hw), hostKey_(std::move(key)) {}
 
 BcmHostReference::BcmHostReference(BcmSwitch* hw, BcmEcmpHostKey key)
@@ -986,9 +957,9 @@ std::unique_ptr<BcmHostReference> BcmHostReference::get(
 
 std::unique_ptr<BcmHostReference> BcmHostReference::get(
     BcmSwitch* hw,
-    HostKey key) {
+    BcmHostKey key) {
   struct _ : public BcmHostReference {
-    _(BcmSwitch* hw, HostKey key) : BcmHostReference(hw, std::move(key)) {}
+    _(BcmSwitch* hw, BcmHostKey key) : BcmHostReference(hw, std::move(key)) {}
   };
   return std::make_unique<_>(hw, std::move(key));
 }

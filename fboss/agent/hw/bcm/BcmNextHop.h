@@ -7,6 +7,7 @@ extern "C" {
 #include <opennsl/types.h>
 }
 
+#include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
 #include "fboss/lib/RefMap.h"
 
@@ -46,16 +47,31 @@ class BcmMplsNextHop : public BcmNextHop {
  public:
   BcmMplsNextHop(BcmSwitch* hw, BcmLabeledHostKey key);
 
+  ~BcmMplsNextHop() override;
+
   opennsl_if_t getEgressId() const override;
 
   void programToCPU(opennsl_if_t intf) override;
 
   bool isProgrammed() const override;
 
+  void program(BcmHostKey bcmHostKey);
+
+  BcmHostKey getBcmHostKey() {
+    return BcmHostKey(key_.getVrf(), key_.addr(), key_.intfID());
+  }
+
+  opennsl_gport_t getGPort();
+
  private:
+  std::unique_ptr<BcmEgress> createEgress();
+  void setPort(opennsl_port_t port);
+  void setTrunk(opennsl_trunk_t trunk);
+
   BcmSwitch* hw_;
   BcmLabeledHostKey key_;
-  std::unique_ptr<BcmHostReference> hostReference_;
+  folly::Optional<PortDescriptor> egressPort_;
+  std::unique_ptr<BcmEgress> mplsEgress_;
 };
 
 template <typename NextHopKeyT, typename NextHopT>
@@ -66,6 +82,9 @@ class BcmNextHopTable {
   const NextHopT* getNextHopIf(const NextHopKeyT& key) const;
   const NextHopT* getNextHop(const NextHopKeyT& key) const;
   std::shared_ptr<NextHopT> referenceOrEmplaceNextHop(const NextHopKeyT& key);
+  const MapT& getNextHops() const {
+    return nexthops_;
+  }
 
  private:
   BcmSwitch* hw_;

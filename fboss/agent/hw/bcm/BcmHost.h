@@ -40,7 +40,8 @@ class BcmHostReference;
 
 class BcmHost {
  public:
-  BcmHost(const BcmSwitchIf* hw, HostKey key) : hw_(hw), key_(std::move(key)) {}
+  BcmHost(const BcmSwitchIf* hw, BcmHostKey key)
+      : hw_(hw), key_(std::move(key)) {}
 
   virtual ~BcmHost();
   bool isProgrammed() const {
@@ -94,7 +95,7 @@ class BcmHost {
     }
   }
 
-  const HostKey& getHostKey() const {
+  const BcmHostKey& getHostKey() const {
     return key_;
   }
   int getLookupClassId() const {
@@ -108,6 +109,17 @@ class BcmHost {
   static bool matchLookupClass(
     const opennsl_l3_host_t& newHost,
     const opennsl_l3_host_t& existingHost);
+  PortDescriptor portDescriptor() const;
+
+  bool isProgrammedToDrop() const {
+    return action_ == DROP;
+  }
+  bool isProgrammedToCPU() const {
+    return action_ == TO_CPU;
+  }
+  bool isProgrammedToNextHops() const {
+    return action_ == NEXTHOPS;
+  }
 
  private:
   // no copy or assignment
@@ -122,7 +134,7 @@ class BcmHost {
 
   std::unique_ptr<BcmEgress> createEgress();
   const BcmSwitchIf* hw_;
-  HostKey key_;
+  BcmHostKey key_;
   // Port that the corresponding egress object references.
   // Only set for actual host entries that point a non
   // drop/CPU egress object. Set to 0 for host routes as
@@ -132,6 +144,7 @@ class BcmHost {
   opennsl_if_t egressId_{BcmEgressBase::INVALID};
   bool addedInHW_{false}; // if added to the HW host(ARP) table or not
   int lookupClassId_{0}; // DST Lookup Class
+  RouteForwardAction action_{DROP};
 };
 
 /**
@@ -191,11 +204,11 @@ class BcmHostTable {
   virtual ~BcmHostTable();
 
   // throw an exception if not found
-  BcmHost* getBcmHost(const HostKey& key) const;
+  BcmHost* getBcmHost(const BcmHostKey& key) const;
   BcmEcmpHost* getBcmEcmpHost(const BcmEcmpHostKey& key) const;
 
   // return nullptr if not found
-  BcmHost* getBcmHostIf(const HostKey& key) const noexcept;
+  BcmHost* getBcmHostIf(const BcmHostKey& key) const noexcept;
   BcmEcmpHost* getBcmEcmpHostIf(const BcmEcmpHostKey& key) const noexcept;
 
   int getNumBcmHost() const {
@@ -221,7 +234,7 @@ class BcmHostTable {
    *
    * @return The BcmHost/BcmEcmpHost pointer just created or found.
    */
-  BcmHost* incRefOrCreateBcmHost(const HostKey& hostKey);
+  BcmHost* incRefOrCreateBcmHost(const BcmHostKey& hostKey);
   BcmEcmpHost* incRefOrCreateBcmEcmpHost(const BcmEcmpHostKey& key);
 
   /**
@@ -234,10 +247,10 @@ class BcmHostTable {
    *         decreased by 1, but the object is still valid as it is
    *         still referred in somewhere else
    */
-  BcmHost* derefBcmHost(const HostKey& key) noexcept;
+  BcmHost* derefBcmHost(const BcmHostKey& key) noexcept;
   BcmEcmpHost* derefBcmEcmpHost(const BcmEcmpHostKey& key) noexcept;
 
-  uint32_t getReferenceCount(const HostKey& key) const noexcept;
+  uint32_t getReferenceCount(const BcmHostKey& key) const noexcept;
   uint32_t getReferenceCount(const BcmEcmpHostKey& key) const noexcept;
 
   /*
@@ -315,7 +328,6 @@ class BcmHostTable {
    */
   void releaseHosts() {
     ecmpHosts_.clear();
-    labeledHosts_.clear();
     hosts_.clear();
   }
 
@@ -417,7 +429,6 @@ class BcmHostTable {
       const KeyT& key) const noexcept;
 
   HostMap<BcmHostKey, BcmHost> hosts_;
-  HostMap<BcmLabeledHostKey, BcmHost> labeledHosts_;
   HostMap<BcmEcmpHostKey, BcmEcmpHost> ecmpHosts_;
 };
 
@@ -431,7 +442,7 @@ class BcmHostReference {
 
   opennsl_if_t getEgressId();
 
-  static std::unique_ptr<BcmHostReference> get(BcmSwitch* hw, HostKey key);
+  static std::unique_ptr<BcmHostReference> get(BcmSwitch* hw, BcmHostKey key);
 
   static std::unique_ptr<BcmHostReference> get(
       BcmSwitch* hw,
@@ -441,7 +452,7 @@ class BcmHostReference {
   get(BcmSwitch* hw, opennsl_vrf_t vrf, RouteNextHopSet nexthops);
 
  private:
-  BcmHostReference(BcmSwitch* hw, HostKey key);
+  BcmHostReference(BcmSwitch* hw, BcmHostKey key);
   BcmHostReference(BcmSwitch* hw, BcmEcmpHostKey key);
   BcmHostReference(const BcmHostReference&) = delete;
   BcmHostReference(BcmHostReference&&) = delete;
@@ -449,7 +460,7 @@ class BcmHostReference {
   BcmHostReference& operator=(const BcmHostReference&&) = delete;
 
   BcmSwitch* hw_{nullptr};
-  folly::Optional<HostKey> hostKey_;
+  folly::Optional<BcmHostKey> hostKey_;
   folly::Optional<BcmEcmpHostKey> ecmpHostKey_;
   BcmHost* host_{nullptr};
   BcmEcmpHost* ecmpHost_{nullptr};
