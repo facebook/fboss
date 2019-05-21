@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
         auto fut = qc.futureGet(facebook::fboss::TransceiverID(i))
                        .thenValue([i](auto&& info) {
                          XLOG(INFO) << "Successfully got transceiver " << i;
-                         return info;
+                         return std::move(info);
                        })
                        .thenError(
                            folly::tag_t<std::runtime_error>{},
