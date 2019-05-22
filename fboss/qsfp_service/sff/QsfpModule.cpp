@@ -645,6 +645,11 @@ bool QsfpModule::detectPresenceLocked() {
                << " QSFP status changed to " << currentQsfpStatus;
     dirty_ = true;
     present_ = currentQsfpStatus;
+
+    // If a transceiver went from present to missing, clear the cached data.
+    if (!present_) {
+      info_.wlock()->reset();
+    }
   }
   return currentQsfpStatus;
 }
