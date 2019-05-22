@@ -47,10 +47,20 @@ bool operator==(const BcmHostKey& a, const BcmHostKey& b) {
 bool operator< (const BcmHostKey& a, const BcmHostKey& b) {
   if (a.getVrf() != b.getVrf()) {
     return a.getVrf() < b.getVrf();
-  } else if (a.intfID() != b.intfID()) {
-    return a.intfID() < b.intfID();
-  } else {
+  } else if (a.addr() != b.addr()) {
     return a.addr() < b.addr();
+  } else {
+    if (a.intfID().has_value() && b.intfID().has_value()) {
+      return a.intfID().value() < b.intfID().value();
+    } else {
+      // We treat folly::none as the smallest value for
+      // folly::Optional<InterfaceID>:
+      // a.intfID()  b.intfID()  a.intfID() < b.intfID()
+      // InterfaceID folly::none false
+      // folly::none InterfaceID true
+      // folly::none folly::none false
+      return b.intfID().has_value();
+    }
   }
 }
 
