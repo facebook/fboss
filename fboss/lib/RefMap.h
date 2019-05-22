@@ -109,10 +109,10 @@ class RefMap {
 
   long referenceCount(const K& k) const {
     auto iter = map_.find(k);
-    if (iter == map_.cend() || iter.second.expired()) {
+    if (iter == map_.cend() || iter->second.expired()) {
       return 0;
     }
-    return iter.second.use_count();
+    return iter->second.use_count();
   }
 
   void clear() {

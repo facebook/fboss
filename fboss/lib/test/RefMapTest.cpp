@@ -163,3 +163,37 @@ TEST(RefMap, IteratorTest) {
     EXPECT_NE(iterFlatRefMap, std::end(flatRefMap));
   }
 }
+
+TEST(RefMap, FlatRefMapRefCountTest) {
+  FlatRefMap<int, A> refMap;
+  EXPECT_EQ(refMap.referenceCount(101), 0);
+  refMap.refOrEmplace(101, 1);
+  EXPECT_EQ(refMap.referenceCount(101), 0);
+  {
+    auto x = refMap.refOrEmplace(101, 1);
+    EXPECT_EQ(refMap.referenceCount(101), 1);
+    {
+      auto y = refMap.refOrEmplace(101, 1);
+      EXPECT_EQ(refMap.referenceCount(101), 2);
+    }
+    EXPECT_EQ(refMap.referenceCount(101), 1);
+  }
+  EXPECT_EQ(refMap.referenceCount(101), 0);
+}
+
+TEST(RefMap, UnorderedRefMapRefCountTest) {
+  UnorderedRefMap<int, A> refMap;
+  EXPECT_EQ(refMap.referenceCount(101), 0);
+  refMap.refOrEmplace(101, 1);
+  EXPECT_EQ(refMap.referenceCount(101), 0);
+  {
+    auto x = refMap.refOrEmplace(101, 1);
+    EXPECT_EQ(refMap.referenceCount(101), 1);
+    {
+      auto y = refMap.refOrEmplace(101, 1);
+      EXPECT_EQ(refMap.referenceCount(101), 2);
+    }
+    EXPECT_EQ(refMap.referenceCount(101), 1);
+  }
+  EXPECT_EQ(refMap.referenceCount(101), 0);
+}
