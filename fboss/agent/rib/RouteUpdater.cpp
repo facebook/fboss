@@ -136,8 +136,8 @@ void RouteUpdater::delRouteImpl(
              << "from client " << clientID;
 
   if (route.hasNoEntry()) {
-    routes->erase(it);
     XLOG(DBG3) << "...and then deleted route " << route.str();
+    routes->erase(it);
   }
 }
 
