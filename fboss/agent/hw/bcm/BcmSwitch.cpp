@@ -628,6 +628,15 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChanged(const StateDelta& delta) {
 
 std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
     const StateDelta& delta) {
+  forEachAdded(delta.getPortsDelta(), [this](const auto& newPort) {
+    if (!portTable_->getBcmPortIf(newPort->getID())) {
+      throw FbossError("Cannot add a port unknown to hardware");
+    }
+  });
+
+  forEachRemoved(delta.getPortsDelta(), [](const auto& /*oldPort*/) {
+    throw FbossError("Ports cannot be removed");
+  });
   auto appliedState = delta.newState();
   // TODO: This function contains high-level logic for how to apply the
   // StateDelta, and isn't particularly hardware-specific.  I plan to refactor
