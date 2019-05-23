@@ -57,6 +57,10 @@ sai_status_t set_switch_attribute_fn(
       sw.setInitStatus(attr->value.booldata);
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_SWITCH_ATTR_PORT_NUMBER:
+      // Number of active ports is read only
+      res = SAI_STATUS_INVALID_PARAMETER;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;

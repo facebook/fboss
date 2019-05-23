@@ -48,6 +48,12 @@ TEST_F(SwitchApiTest, getNumPorts) {
   EXPECT_EQ(switchApi->getAttribute(pn, switchId), 5);
 }
 
+TEST_F(SwitchApiTest, setNumPorts) {
+  SwitchApiParameters::Attributes::PortNumber pn{100};
+  EXPECT_THROW(
+      saiCheckError(switchApi->setAttribute(pn, switchId)), SaiApiError);
+}
+
 TEST_F(SwitchApiTest, testGetPortIds) {
   fs->pm.create(FakePort{{0}, 100000});
   fs->pm.create(FakePort{{1}, 25000});
