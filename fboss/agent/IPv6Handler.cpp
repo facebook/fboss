@@ -182,7 +182,7 @@ void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
     // Forward link-local packet directly to corresponding host interface
     // provided desAddr is assigned to that interface.
     intf = interfaceMap->getInterfaceInVlanIf(pkt->getSrcVlan());
-    if (not intf->hasAddress(ipv6.dstAddr)) {
+    if (intf && ! (intf->hasAddress(ipv6.dstAddr))) {
       intf = nullptr;
     }
   } else {
