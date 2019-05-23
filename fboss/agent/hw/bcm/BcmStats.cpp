@@ -10,7 +10,7 @@
 #include "BcmStats.h"
 
 #include "fboss/agent/SwitchStats.h"
-#include "common/stats/ExportedStatMapImpl.h"
+#include "fb303/ExportedStatMapImpl.h"
 
 using facebook::stats::SUM;
 using facebook::stats::RATE;

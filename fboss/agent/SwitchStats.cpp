@@ -10,7 +10,7 @@
 #include "fboss/agent/SwitchStats.h"
 
 #include "fboss/agent/PortStats.h"
-#include "common/stats/ExportedStatMapImpl.h"
+#include "fb303/ExportedStatMapImpl.h"
 #include <folly/Memory.h>
 
 using facebook::stats::SUM;
