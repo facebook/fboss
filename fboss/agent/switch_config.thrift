@@ -579,7 +579,7 @@ struct Port {
    * For composite tags, such as Port/Chassis ID, only the string portion
    * is compared.
    */
-  20: map<LLDPTag, string> expectedLLDPValues
+  20: map<LLDPTag, string> expectedLLDPValues = {}
 }
 
 enum LacpPortRate {
