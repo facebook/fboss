@@ -447,22 +447,12 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   if (!warmBoot) {
     LOG (INFO) << " Performing cold boot ";
-    // Cold boot - put all ports in Vlan 1
-    auto vlan = make_shared<Vlan>(VlanID(1), "InitVlan");
-    state->addVlan(vlan);
-    Vlan::MemberPorts memberPorts;
-    opennsl_port_t idx;
-    OPENNSL_PBMP_ITER(pcfg.port, idx) {
-      memberPorts.insert(make_pair(PortID(idx), false));
-    }
-    vlan->setPorts(memberPorts);
     /* initialize mirroring module */
     initMirrorModule();
     /* initialize MPLS */
     initMplsModule();
   } else {
     LOG (INFO) << "Performing warm boot ";
-
     // This dumps debug info about initial sdk state. Useful after warm boot.
     dumpState(platform_->getWarmBootHelper()->startupSdkDumpFile());
   }
