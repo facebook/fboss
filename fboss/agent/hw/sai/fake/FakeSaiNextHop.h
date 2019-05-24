@@ -14,7 +14,7 @@
 #include <folly/IPAddress.h>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 sai_status_t create_next_hop_fn(

@@ -13,13 +13,13 @@
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
-#include <folly/logging/xlog.h>
 #include <folly/MacAddress.h>
+#include <folly/logging/xlog.h>
 
 #include <vector>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 namespace facebook {
@@ -36,9 +36,8 @@ struct HostifApiParameters {
         EnumType,
         SAI_HOSTIF_PACKET_ATTR_EGRESS_PORT_OR_LAG,
         SaiObjectIdT>;
-    using TxAttributes = SaiAttributeTuple
-      <TxType,
-      SaiAttributeOptional<EgressPortOrLag>>;
+    using TxAttributes =
+        SaiAttributeTuple<TxType, SaiAttributeOptional<EgressPortOrLag>>;
     TxPacketAttributes(const TxAttributes& attrs) {
       std::tie(txType, egressPortOrLag) = attrs.value();
     }
@@ -87,7 +86,7 @@ struct HostifApiParameters {
 };
 
 class HostifPacketApi {
-public:
+ public:
   HostifPacketApi() {
     sai_status_t status =
         sai_api_query(SAI_API_HOSTIF, reinterpret_cast<void**>(&api_));
@@ -95,9 +94,9 @@ public:
   }
 
   sai_status_t send(
-    const HostifApiParameters::TxPacketAttributes::TxAttributes &attributes,
-    sai_object_id_t switch_id,
-    HostifApiParameters::HostifApiPacket &txPacket) {
+      const HostifApiParameters::TxPacketAttributes::TxAttributes& attributes,
+      sai_object_id_t switch_id,
+      HostifApiParameters::HostifApiPacket& txPacket) {
     std::vector<sai_attribute_t> saiAttributeTs = attributes.saiAttrs();
     return api_->send_hostif_packet(
         switch_id,
@@ -107,7 +106,7 @@ public:
         saiAttributeTs.data());
   }
 
-private:
+ private:
   sai_hostif_api_t* api_;
   friend class SaiApi<HostifPacketApi, HostifApiParameters>;
 };

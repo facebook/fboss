@@ -11,12 +11,12 @@
 #include "FakeSaiVlan.h"
 #include "FakeSai.h"
 
-#include <folly/logging/xlog.h>
 #include <folly/Optional.h>
+#include <folly/logging/xlog.h>
 
+using facebook::fboss::FakeSai;
 using facebook::fboss::FakeVlan;
 using facebook::fboss::FakeVlanMember;
-using facebook::fboss::FakeSai;
 
 sai_status_t create_vlan_fn(
     sai_object_id_t* vlan_id,
@@ -56,16 +56,14 @@ sai_status_t get_vlan_attribute_fn(
   const auto& vlan = fs->vm.get(vlan_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
-      case SAI_VLAN_ATTR_MEMBER_LIST:
-        {
+      case SAI_VLAN_ATTR_MEMBER_LIST: {
         const auto& vlanMemberMap = fs->vm.get(vlan_id).fm().map();
         attr[i].value.objlist.count = vlanMemberMap.size();
         int j = 0;
         for (const auto& m : vlanMemberMap) {
           attr[i].value.objlist.list[j++] = m.first;
         }
-        }
-        break;
+      } break;
       case SAI_VLAN_ATTR_VLAN_ID:
         attr[i].value.u16 = vlan.vlanId;
         break;

@@ -10,8 +10,8 @@
 
 #include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
 
-#include <cstring>
 #include <cstdio>
+#include <cstring>
 
 extern "C" {
 #include <sai.h>
@@ -21,13 +21,14 @@ extern "C" {
 
 namespace {
 const std::unordered_map<const char*, const char*> kSaiProfileValues = {
-  // FIXME - don't hard code the config.bcm path
-  {SAI_KEY_INIT_CONFIG_FILE , "/root/config.bcm"},
-  // COLD boot only for now
-  {SAI_KEY_BOOT_TYPE, "0"},
+    // FIXME - don't hard code the config.bcm path
+    {SAI_KEY_INIT_CONFIG_FILE, "/root/config.bcm"},
+    // COLD boot only for now
+    {SAI_KEY_BOOT_TYPE, "0"},
 };
 
-const char* saiProfileGetValue(sai_switch_profile_id_t /*profile_id*/,
+const char* saiProfileGetValue(
+    sai_switch_profile_id_t /*profile_id*/,
     const char* variable) {
   auto saiProfileValItr = kSaiProfileValues.find(variable);
   return saiProfileValItr != kSaiProfileValues.end() ? saiProfileValItr->second
@@ -35,9 +36,9 @@ const char* saiProfileGetValue(sai_switch_profile_id_t /*profile_id*/,
 }
 
 int saiProfileGetNextValue(
-        sai_switch_profile_id_t profile_id,
-         const char** variable,
-         const char** value) {
+    sai_switch_profile_id_t profile_id,
+    const char** variable,
+    const char** value) {
   static auto saiProfileValItr = kSaiProfileValues.begin();
   if (!value) {
     saiProfileValItr = kSaiProfileValues.begin();
@@ -53,16 +54,18 @@ int saiProfileGetNextValue(
 }
 
 sai_service_method_table_t kSaiServiceMethodTable = {
- .profile_get_value = saiProfileGetValue,
- .profile_get_next_value = saiProfileGetNextValue,
+    .profile_get_value = saiProfileGetValue,
+    .profile_get_next_value = saiProfileGetNextValue,
 };
 
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 sai_service_method_table_t* SaiBcmPlatform::getServiceMethodTable() const {
   return &kSaiServiceMethodTable;
 }
 
-}}
+} // namespace fboss
+} // namespace facebook

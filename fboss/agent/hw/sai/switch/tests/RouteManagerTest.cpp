@@ -155,6 +155,5 @@ TEST_F(RouteManagerTest, removeNonexistentRoute) {
   auto r2 = makeRoute(tr2);
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r1);
   EXPECT_THROW(
-      saiManagerTable->routeManager().removeRoute(RouterID(0), r2),
-      FbossError);
+      saiManagerTable->routeManager().removeRoute(RouterID(0), r2), FbossError);
 }

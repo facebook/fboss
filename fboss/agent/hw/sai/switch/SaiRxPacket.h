@@ -19,7 +19,10 @@ namespace fboss {
 class SaiRxPacket : public RxPacket {
  public:
   explicit SaiRxPacket(
-    size_t buffer_size, const void *buffer, PortID portID, VlanID vlanID);
+      size_t buffer_size,
+      const void* buffer,
+      PortID portID,
+      VlanID vlanID);
 };
 } // namespace fboss
 } // namespace facebook

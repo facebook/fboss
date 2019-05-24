@@ -15,13 +15,13 @@
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
-#include <folly/logging/xlog.h>
 #include <folly/IPAddress.h>
+#include <folly/logging/xlog.h>
 
 #include <iterator>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 namespace facebook {
@@ -90,11 +90,12 @@ struct RouteApiParameters {
 
 class RouteApi : public SaiApi<RouteApi, RouteApiParameters> {
  public:
-    RouteApi() {
-      sai_status_t status =
-          sai_api_query(SAI_API_ROUTE, reinterpret_cast<void**>(&api_));
-      saiCheckError(status, "Failed to query for route api");
+  RouteApi() {
+    sai_status_t status =
+        sai_api_query(SAI_API_ROUTE, reinterpret_cast<void**>(&api_));
+    saiCheckError(status, "Failed to query for route api");
   }
+
  private:
   sai_status_t _create(
       const RouteApiParameters::RouteEntry& routeEntry,

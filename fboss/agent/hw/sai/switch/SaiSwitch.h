@@ -16,7 +16,8 @@
 
 #include <memory>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 class SaiPlatform;
 
 class SaiSwitch : public HwSwitch {
@@ -58,6 +59,7 @@ class SaiSwitch : public HwSwitch {
   SaiApiTable* apiTable() {
     return saiApiTable_.get();
   }
+
  private:
   std::unique_ptr<SaiApiTable> saiApiTable_;
   std::unique_ptr<SaiManagerTable> managerTable_;

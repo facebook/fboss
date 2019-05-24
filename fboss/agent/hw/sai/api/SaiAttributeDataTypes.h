@@ -125,6 +125,7 @@ class SaiAttributeVariant {
   bool operator!=(const SaiAttributeVariant& other) {
     return !(*this == other);
   }
+
  private:
   class saiAttrVisitor
       : public boost::static_visitor<std::vector<sai_attribute_t>> {
@@ -193,6 +194,7 @@ class SaiAttributeOptional {
   bool operator!=(const SaiAttributeOptional& other) const {
     return !(*this == other);
   }
+
  private:
   folly::Optional<AttrT> optional_;
 };

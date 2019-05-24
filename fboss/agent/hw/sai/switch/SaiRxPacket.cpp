@@ -15,17 +15,17 @@
 namespace facebook {
 namespace fboss {
 
-void freeRxPacket(void * /* ptr */, void* /* arg */) {
+void freeRxPacket(void* /* ptr */, void* /* arg */) {
   // The packet is on the stack, don't "free" it.
 }
 
 SaiRxPacket::SaiRxPacket(
-  size_t buffer_size,
-  const void *buffer,
-  PortID portId,
-  VlanID vlanId) {
+    size_t buffer_size,
+    const void* buffer,
+    PortID portId,
+    VlanID vlanId) {
   buf_ = folly::IOBuf::takeOwnership(
-    const_cast<void*>(buffer), buffer_size, freeRxPacket, nullptr);
+      const_cast<void*>(buffer), buffer_size, freeRxPacket, nullptr);
   len_ = buffer_size;
   srcPort_ = portId;
   srcVlan_ = vlanId;

@@ -31,12 +31,11 @@ class HostifApiTest : public ::testing::Test {
 
 TEST_F(HostifApiTest, sendPacket) {
   HostifApiParameters::TxPacketAttributes::EgressPortOrLag egressPort(10);
-  HostifApiParameters::TxPacketAttributes::TxType
-    txType(SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
+  HostifApiParameters::TxPacketAttributes::TxType txType(
+      SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
   HostifApiParameters::TxPacketAttributes a{{txType, egressPort}};
   folly::StringPiece testPacket = "TESTPACKET";
   HostifApiParameters::HostifApiPacket txPacket{
-    (void *)(testPacket.toString().c_str()),
-    testPacket.toString().length()};
+      (void*)(testPacket.toString().c_str()), testPacket.toString().length()};
   hostifApi->send(a.attrs(), 0, txPacket);
 }

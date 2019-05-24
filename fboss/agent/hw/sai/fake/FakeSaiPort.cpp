@@ -7,14 +7,14 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "FakeSai.h"
 #include "FakeSaiPort.h"
+#include "fboss/agent/hw/sai/fake/FakeSai.h"
 
-#include <folly/logging/xlog.h>
 #include <folly/Optional.h>
+#include <folly/logging/xlog.h>
 
-using facebook::fboss::FakeSai;
 using facebook::fboss::FakePort;
+using facebook::fboss::FakeSai;
 
 sai_status_t create_port_fn(
     sai_object_id_t* port_id,
@@ -26,17 +26,15 @@ sai_status_t create_port_fn(
   std::vector<uint32_t> lanes;
   folly::Optional<sai_uint32_t> speed;
   for (int i = 0; i < attr_count; ++i) {
-    switch(attr_list[i].id) {
+    switch (attr_list[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
         adminState = attr_list[i].value.booldata;
         break;
-      case SAI_PORT_ATTR_HW_LANE_LIST:
-        {
-          for (int j = 0; j < attr_list[i].value.u32list.count; ++j) {
-            lanes.push_back(attr_list[i].value.u32list.list[j]);
-          }
+      case SAI_PORT_ATTR_HW_LANE_LIST: {
+        for (int j = 0; j < attr_list[i].value.u32list.count; ++j) {
+          lanes.push_back(attr_list[i].value.u32list.list[j]);
         }
-        break;
+      } break;
       case SAI_PORT_ATTR_SPEED:
         speed = attr_list[i].value.u32;
         break;
@@ -75,14 +73,13 @@ sai_status_t set_port_attribute_fn(
       port.adminState = attr->value.booldata;
       res = SAI_STATUS_SUCCESS;
       break;
-    case SAI_PORT_ATTR_HW_LANE_LIST:
-      {
-        auto& lanes = port.lanes;
-        lanes.clear();
-        for (int j = 0; j < attr->value.u32list.count; ++j) {
-          lanes.push_back(attr->value.u32list.list[j]);
-        }
+    case SAI_PORT_ATTR_HW_LANE_LIST: {
+      auto& lanes = port.lanes;
+      lanes.clear();
+      for (int j = 0; j < attr->value.u32list.count; ++j) {
+        lanes.push_back(attr->value.u32list.list[j]);
       }
+    }
       res = SAI_STATUS_SUCCESS;
       break;
     case SAI_PORT_ATTR_SPEED:

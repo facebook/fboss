@@ -160,14 +160,10 @@ TEST_F(NextHopGroupManagerTest, resolveNeighborAfter) {
    */
 }
 
-TEST_F(NextHopGroupManagerTest, unresolveNeighbor) {
-}
+TEST_F(NextHopGroupManagerTest, unresolveNeighbor) {}
 
-TEST_F(NextHopGroupManagerTest, derefThenResolve) {
-}
+TEST_F(NextHopGroupManagerTest, derefThenResolve) {}
 
-TEST_F(NextHopGroupManagerTest, deleteThenResolve) {
-}
+TEST_F(NextHopGroupManagerTest, deleteThenResolve) {}
 
-TEST_F(NextHopGroupManagerTest, l3UnresolvedNextHop) {
-}
+TEST_F(NextHopGroupManagerTest, l3UnresolvedNextHop) {}

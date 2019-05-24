@@ -51,13 +51,12 @@ class SaiFdbManager {
  public:
   SaiFdbManager(SaiApiTable* apiTable, SaiManagerTable* managerTable);
   std::unique_ptr<SaiFdbEntry> addFdbEntry(
-    const InterfaceID& intfId,
-    const folly::MacAddress& mac,
-    const PortDescriptor& portDesc);
+      const InterfaceID& intfId,
+      const folly::MacAddress& mac,
+      const PortDescriptor& portDesc);
 
  private:
-  SaiFdbEntry* getFdbEntryImpl(
-      const FdbApiParameters::EntryType& entry) const;
+  SaiFdbEntry* getFdbEntryImpl(const FdbApiParameters::EntryType& entry) const;
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
 };

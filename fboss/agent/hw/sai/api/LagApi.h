@@ -17,7 +17,7 @@
 #include <boost/variant.hpp>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 namespace facebook {
@@ -45,13 +45,14 @@ struct LagTypes {
 class LagApi : public SaiApi<LagApi, LagTypes> {
  public:
   LagApi() {
-    sai_status_t res = sai_api_query(
-      SAI_API_LAG, reinterpret_cast<void**>(&api_));
+    sai_status_t res =
+        sai_api_query(SAI_API_LAG, reinterpret_cast<void**>(&api_));
     if (res != SAI_STATUS_SUCCESS) {
       throw SaiApiError(res);
     }
   }
   LagApi(const LagApi& other) = delete;
+
  private:
   sai_status_t _create(
       sai_object_id_t* lag_id,
@@ -74,8 +75,7 @@ class LagApi : public SaiApi<LagApi, LagTypes> {
       sai_attribute_t* attr_list,
       size_t count,
       sai_object_id_t switch_id) {
-    return api_->create_lag_member(
-        lag_member_id, switch_id, count, attr_list);
+    return api_->create_lag_member(lag_member_id, switch_id, count, attr_list);
   }
   sai_status_t _removeMember(sai_object_id_t lag_member_id) {
     return api_->remove_lag_member(lag_member_id);

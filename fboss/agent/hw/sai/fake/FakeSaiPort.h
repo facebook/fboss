@@ -15,7 +15,7 @@
 #include <vector>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 sai_status_t create_port_fn(

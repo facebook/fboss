@@ -25,9 +25,9 @@ class SaiManagerTable;
 class SaiBridge {
  public:
   SaiBridge(
-    SaiApiTable* apiTable,
-    const BridgeApiParameters::Attributes& attributes,
-    const sai_object_id_t& switchId);
+      SaiApiTable* apiTable,
+      const BridgeApiParameters::Attributes& attributes,
+      const sai_object_id_t& switchId);
   ~SaiBridge();
   SaiBridge(const SaiBridge& other) = delete;
   SaiBridge(SaiBridge&& other) = delete;

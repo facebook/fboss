@@ -18,7 +18,8 @@
 
 #include <memory>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SaiPlatform : public Platform {
  public:
@@ -36,6 +37,7 @@ class SaiPlatform : public Platform {
   virtual sai_service_method_table_t* getServiceMethodTable() const {
     return nullptr;
   }
+
  private:
   void initImpl() override;
   std::unique_ptr<SaiSwitch> saiSwitch_;

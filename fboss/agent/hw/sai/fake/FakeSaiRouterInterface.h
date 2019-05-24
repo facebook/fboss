@@ -14,7 +14,7 @@
 #include <folly/MacAddress.h>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 sai_status_t create_router_interface_fn(
@@ -58,6 +58,7 @@ class FakeRouterInterface {
   int32_t type;
   sai_object_id_t vlanId;
   sai_object_id_t id;
+
  private:
   folly::MacAddress srcMac_;
 };

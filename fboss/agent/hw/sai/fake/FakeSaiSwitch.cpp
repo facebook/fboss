@@ -7,8 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "FakeSai.h"
 #include "FakeSaiSwitch.h"
+#include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 #include <folly/logging/xlog.h>
 
@@ -18,12 +18,12 @@ namespace {
 static constexpr uint64_t kDefaultVlanId = 0;
 static constexpr uint64_t kDefaultVirtualRouterId = 0;
 static constexpr uint64_t kCpuPort = 0;
-}
+} // namespace
 
 sai_status_t create_switch_fn(
-  sai_object_id_t*  switch_id,
-  uint32_t  attr_count,
-  const sai_attribute_t*  attr_list) {
+    sai_object_id_t* switch_id,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
   *switch_id = fs->swm.create();
   for (int i = 0; i < attr_count; ++i) {
@@ -32,11 +32,10 @@ sai_status_t create_switch_fn(
   return SAI_STATUS_SUCCESS;
 }
 
-sai_status_t remove_switch_fn(
-  sai_object_id_t switch_id) {
-    auto fs = FakeSai::getInstance();
-    fs->swm.remove(switch_id);
-    return SAI_STATUS_SUCCESS;
+sai_status_t remove_switch_fn(sai_object_id_t switch_id) {
+  auto fs = FakeSai::getInstance();
+  fs->swm.remove(switch_id);
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t set_switch_attribute_fn(
@@ -88,15 +87,13 @@ sai_status_t get_switch_attribute_fn(
       case SAI_SWITCH_ATTR_PORT_NUMBER:
         attr[i].value.u32 = fs->pm.map().size();
         break;
-      case SAI_SWITCH_ATTR_PORT_LIST:
-        {
+      case SAI_SWITCH_ATTR_PORT_LIST: {
         attr[i].value.objlist.count = fs->pm.map().size();
         int j = 0;
         for (const auto& p : fs->pm.map()) {
           attr[i].value.objlist.list[j++] = p.first;
         }
-        }
-        break;
+      } break;
       case SAI_SWITCH_ATTR_SRC_MAC_ADDRESS:
         std::copy_n(sw.srcMac().bytes(), 6, std::begin(attr[i].value.mac));
         break;

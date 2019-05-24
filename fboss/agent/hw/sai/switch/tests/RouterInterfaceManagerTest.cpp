@@ -53,8 +53,8 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
 
 TEST_F(RouterInterfaceManagerTest, addRouterInterface) {
   auto swInterface = makeInterface(intf0);
-  auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
-      swInterface);
+  auto saiId =
+      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
   checkRouterInterface(saiId, intf0.id, intf0.routerMac);
 }
 
@@ -79,8 +79,8 @@ TEST_F(RouterInterfaceManagerTest, addDupRouterInterface) {
 
 TEST_F(RouterInterfaceManagerTest, getRouterInterface) {
   auto swInterface = makeInterface(intf0);
-  auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
-      swInterface);
+  auto saiId =
+      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
   auto routerInterface =
       saiManagerTable->routerInterfaceManager().getRouterInterface(
           InterfaceID(0));

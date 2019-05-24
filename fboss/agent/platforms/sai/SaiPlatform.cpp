@@ -13,7 +13,7 @@
 namespace facebook {
 namespace fboss {
 
-HwSwitch* SaiPlatform::getHwSwitch() const  {
+HwSwitch* SaiPlatform::getHwSwitch() const {
   return saiSwitch_.get();
 }
 
@@ -29,21 +29,21 @@ folly::MacAddress SaiPlatform::getLocalMac() const {
   return folly::MacAddress("42:42:42:42:42:42");
 }
 
-std::string SaiPlatform::getPersistentStateDir() const  {
+std::string SaiPlatform::getPersistentStateDir() const {
   return std::string("/var/facebook/fboss");
 }
 
 void SaiPlatform::getProductInfo(ProductInfo& /* info */) {}
 
-std::string SaiPlatform::getVolatileStateDir() const  {
+std::string SaiPlatform::getVolatileStateDir() const {
   return std::string("/dev/shm/fboss");
 }
 
-TransceiverIdxThrift SaiPlatform::getPortMapping(PortID /* portId */) const  {
+TransceiverIdxThrift SaiPlatform::getPortMapping(PortID /* portId */) const {
   return TransceiverIdxThrift();
 }
 
-PlatformPort* SaiPlatform::getPlatformPort(PortID /* port */) const  {
+PlatformPort* SaiPlatform::getPlatformPort(PortID /* port */) const {
   return nullptr;
 }
 

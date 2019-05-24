@@ -18,7 +18,7 @@
 #include <boost/variant.hpp>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 namespace facebook {
@@ -82,6 +82,7 @@ class VlanApi : public SaiApi<VlanApi, VlanApiParameters> {
     saiCheckError(status, "Failed to query for bridge api");
   }
   VlanApi(const VlanApi& other) = delete;
+
  private:
   sai_status_t _create(
       sai_object_id_t* vlan_id,

@@ -63,17 +63,15 @@ sai_status_t get_next_hop_group_attribute_fn(
       case SAI_NEXT_HOP_GROUP_ATTR_TYPE:
         attr[i].value.s32 = nextHopGroup.id;
         break;
-      case SAI_NEXT_HOP_GROUP_ATTR_NEXT_HOP_MEMBER_LIST:
-        {
-          const auto& nextHopGroupMemberMap =
-              fs->nhgm.get(next_hop_group_id).fm().map();
-          attr[i].value.objlist.count = nextHopGroupMemberMap.size();
-          int j = 0;
-          for (const auto& m : nextHopGroupMemberMap) {
-            attr[i].value.objlist.list[j++] = m.first;
-          }
+      case SAI_NEXT_HOP_GROUP_ATTR_NEXT_HOP_MEMBER_LIST: {
+        const auto& nextHopGroupMemberMap =
+            fs->nhgm.get(next_hop_group_id).fm().map();
+        attr[i].value.objlist.count = nextHopGroupMemberMap.size();
+        int j = 0;
+        for (const auto& m : nextHopGroupMemberMap) {
+          attr[i].value.objlist.list[j++] = m.first;
         }
-        break;
+      } break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;
     }

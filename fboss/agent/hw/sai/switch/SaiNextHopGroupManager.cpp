@@ -27,7 +27,7 @@ namespace fboss {
 SaiNextHopGroupMember::SaiNextHopGroupMember(
     SaiApiTable* apiTable,
     const NextHopGroupApiParameters::MemberAttributes& attributes,
-    const sai_object_id_t &switchId)
+    const sai_object_id_t& switchId)
     : apiTable_(apiTable), attributes_(attributes) {
   auto& nextHopGroupApi = apiTable_->nextHopGroupApi();
   id_ = nextHopGroupApi.createMember(attributes_.attrs(), switchId);
@@ -88,8 +88,8 @@ bool SaiNextHopGroup::empty() const {
 void SaiNextHopGroup::addMember(sai_object_id_t nextHopId) {
   NextHopGroupApiParameters::MemberAttributes attributes{{id_, nextHopId}};
   auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
-  auto member = std::make_unique<SaiNextHopGroupMember>
-    (apiTable_, attributes, switchId);
+  auto member =
+      std::make_unique<SaiNextHopGroupMember>(apiTable_, attributes, switchId);
   sai_object_id_t memberId = member->id();
   members_.emplace(std::make_pair(memberId, std::move(member)));
   memberIdMap_.emplace(std::make_pair(memberId, id_));

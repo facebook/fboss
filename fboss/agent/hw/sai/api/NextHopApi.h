@@ -18,7 +18,7 @@
 #include <boost/variant.hpp>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 namespace facebook {
@@ -61,6 +61,7 @@ class NextHopApi : public SaiApi<NextHopApi, NextHopApiParameters> {
         sai_api_query(SAI_API_NEXT_HOP, reinterpret_cast<void**>(&api_));
     saiCheckError(status, "Failed to query for next hop api");
   }
+
  private:
   sai_status_t _create(
       sai_object_id_t* next_hop_id,

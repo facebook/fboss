@@ -15,7 +15,7 @@
 #include "fboss/agent/FbossError.h"
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 namespace facebook {
@@ -36,14 +36,14 @@ class SaiApiError : public FbossError {
   sai_status_t status_;
 };
 
-template<typename... Args>
+template <typename... Args>
 void saiCheckError(sai_status_t status, Args&&... args) {
   if (status != SAI_STATUS_SUCCESS) {
     throw SaiApiError(status, std::forward<Args>(args)...);
   }
 }
 
-template<typename... Args>
+template <typename... Args>
 void saiLogError(sai_status_t status, Args&&... args) {
   if (status != SAI_STATUS_SUCCESS) {
     XLOG(ERR) << folly::to<std::string>(std::forward<Args>(args)...) << ": "

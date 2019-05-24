@@ -8,11 +8,11 @@
  *
  */
 
-#include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
+#include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
-#include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
+#include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/state/ArpEntry.h"
@@ -120,9 +120,7 @@ void SaiNeighborManager::addNeighbor(
     XLOG(INFO) << "add resolved neighbor";
     NeighborApiParameters::Attributes attributes{{swEntry->getMac()}};
     auto fdbEntry = managerTable_->fdbManager().addFdbEntry(
-      swEntry->getIntfID(),
-      swEntry->getMac(),
-      swEntry->getPort());
+        swEntry->getIntfID(), swEntry->getMac(), swEntry->getPort());
     auto neighbor = std::make_unique<SaiNeighbor>(
         apiTable_, managerTable_, saiEntry, attributes, std::move(fdbEntry));
     sai_object_id_t nextHopId = neighbor->nextHopId();

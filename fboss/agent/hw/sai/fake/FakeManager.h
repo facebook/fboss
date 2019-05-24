@@ -12,7 +12,7 @@
 #include <unordered_map>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 namespace facebook {
@@ -55,6 +55,7 @@ class FakeManager {
   const std::unordered_map<K, T>& map() const {
     return map_;
   }
+
  private:
   static size_t count_;
   std::unordered_map<K, T> map_;

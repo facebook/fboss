@@ -16,7 +16,7 @@
 #include <tuple>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 sai_status_t create_fdb_entry_fn(
@@ -24,8 +24,7 @@ sai_status_t create_fdb_entry_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list);
 
-sai_status_t remove_fdb_entry_fn(
-    const sai_fdb_entry_t* fdb_entry);
+sai_status_t remove_fdb_entry_fn(const sai_fdb_entry_t* fdb_entry);
 
 sai_status_t set_fdb_entry_attribute_fn(
     const sai_fdb_entry_t* fdb_entry,
@@ -41,7 +40,7 @@ namespace fboss {
 
 struct FakeFdb {
   explicit FakeFdb(const sai_object_id_t bridgePortId)
-    : bridgePortId(bridgePortId) {}
+      : bridgePortId(bridgePortId) {}
   sai_object_id_t bridgePortId;
 };
 

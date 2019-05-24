@@ -138,7 +138,6 @@ class SaiApiTable {
   std::unique_ptr<SwitchApi> switchApi_;
   std::unique_ptr<VirtualRouterApi> virtualRouterApi_;
   std::unique_ptr<VlanApi> vlanApi_;
-
 };
 
 } // namespace fboss

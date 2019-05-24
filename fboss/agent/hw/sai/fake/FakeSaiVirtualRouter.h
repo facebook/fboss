@@ -9,10 +9,12 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/sai/fake/FakeManager.h"
+
 #include <folly/MacAddress.h>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 sai_status_t create_virtual_router_fn(

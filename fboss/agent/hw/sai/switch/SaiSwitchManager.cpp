@@ -33,7 +33,7 @@ SwitchApiParameters::Attributes getSwitchAttributes(
   SwitchApiParameters::Attributes::InitSwitch initSwitch(true);
   return {{{hwInfo}, srcMac, initSwitch}};
 }
-}
+} // namespace
 
 namespace facebook {
 namespace fboss {
@@ -93,8 +93,7 @@ sai_object_id_t SaiSwitchManager::getSwitchSaiId(
     const SwitchID& switchId) const {
   auto switchInstance = getSwitch(switchId);
   if (!switchInstance) {
-    throw FbossError(
-        "Attempted to query non-existing switch: ", switchId);
+    throw FbossError("Attempted to query non-existing switch: ", switchId);
   }
   return switchInstance->id();
 }

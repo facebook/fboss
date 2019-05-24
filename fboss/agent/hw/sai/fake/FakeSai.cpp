@@ -14,8 +14,8 @@
 #include <folly/logging/xlog.h>
 
 namespace {
-  struct singleton_tag_type {};
-}
+struct singleton_tag_type {};
+} // namespace
 
 using facebook::fboss::FakeSai;
 static folly::Singleton<FakeSai, singleton_tag_type> fakeSaiSingleton{};
@@ -60,21 +60,19 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
           (sai_bridge_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
-      case SAI_API_FDB:
-        facebook::fboss::populate_fdb_api(
-            (sai_fdb_api_t**)api_method_table);
-        res = SAI_STATUS_SUCCESS;
-        break;
-      case SAI_API_HOSTIF:
-        facebook::fboss::populate_hostif_api(
-            (sai_hostif_api_t**)api_method_table);
-        res = SAI_STATUS_SUCCESS;
-        break;
-      case SAI_API_LAG:
-        facebook::fboss::populate_lag_api(
-            (sai_lag_api_t**)api_method_table);
-        res = SAI_STATUS_SUCCESS;
-        break;
+    case SAI_API_FDB:
+      facebook::fboss::populate_fdb_api((sai_fdb_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_API_HOSTIF:
+      facebook::fboss::populate_hostif_api(
+          (sai_hostif_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_API_LAG:
+      facebook::fboss::populate_lag_api((sai_lag_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_API_NEIGHBOR:
       facebook::fboss::populate_neighbor_api(
           (sai_neighbor_api_t**)api_method_table);
@@ -114,8 +112,7 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
       res = SAI_STATUS_SUCCESS;
       break;
     case SAI_API_VLAN:
-      facebook::fboss::populate_vlan_api(
-          (sai_vlan_api_t**)api_method_table);
+      facebook::fboss::populate_vlan_api((sai_vlan_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
     default:

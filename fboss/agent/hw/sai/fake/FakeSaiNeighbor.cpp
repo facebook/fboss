@@ -7,16 +7,16 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "FakeSai.h"
 #include "FakeSaiNeighbor.h"
+#include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
 
-#include <folly/logging/xlog.h>
 #include <folly/Optional.h>
+#include <folly/logging/xlog.h>
 
-using facebook::fboss::FakeSai;
 using facebook::fboss::FakeNeighbor;
+using facebook::fboss::FakeSai;
 
 sai_status_t create_neighbor_entry_fn(
     const sai_neighbor_entry_t* neighbor_entry,
@@ -26,7 +26,7 @@ sai_status_t create_neighbor_entry_fn(
   auto ip = facebook::fboss::fromSaiIpAddress(neighbor_entry->ip_address);
   folly::Optional<folly::MacAddress> dstMac;
   for (int i = 0; i < attr_count; ++i) {
-    switch(attr_list[i].id) {
+    switch (attr_list[i].id) {
       case SAI_NEIGHBOR_ENTRY_ATTR_DST_MAC_ADDRESS:
         dstMac = facebook::fboss::fromSaiMacAddress(attr_list[i].value.mac);
         break;
@@ -80,7 +80,7 @@ sai_status_t get_neighbor_entry_attribute_fn(
       std::make_tuple(neighbor_entry->switch_id, neighbor_entry->rif_id, ip);
   auto& fn = fs->nm.get(n);
   for (int i = 0; i < attr_count; ++i) {
-    switch(attr_list[i].id) {
+    switch (attr_list[i].id) {
       case SAI_NEIGHBOR_ENTRY_ATTR_DST_MAC_ADDRESS:
         facebook::fboss::toSaiMacAddress(fn.dstMac, attr_list[i].value.mac);
         break;
@@ -103,7 +103,6 @@ void populate_neighbor_api(sai_neighbor_api_t** neighbor_api) {
   _neighbor_api.get_neighbor_entry_attribute = &get_neighbor_entry_attribute_fn;
   *neighbor_api = &_neighbor_api;
 }
-
 
 } // namespace fboss
 } // namespace facebook

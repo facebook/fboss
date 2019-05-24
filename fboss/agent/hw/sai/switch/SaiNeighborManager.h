@@ -13,9 +13,9 @@
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
 #include "fboss/agent/hw/sai/api/RouteApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
-#include "fboss/agent/state/PortDescriptor.h"
 
 #include <memory>
 #include <unordered_map>

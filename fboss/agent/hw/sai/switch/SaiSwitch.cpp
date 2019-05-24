@@ -8,19 +8,18 @@
  *
  */
 
-
-#include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
+#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
-#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
-#include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
-#include "fboss/agent/hw/sai/switch/SaiTxPacket.h"
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
-#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiTxPacket.h"
+#include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Port.h"
@@ -37,17 +36,17 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
-static SaiSwitch *hwSwitch;
+static SaiSwitch* hwSwitch;
 
 void packetRxCallback(
-  sai_object_id_t switch_id,
-  sai_size_t buffer_size,
-  const void *buffer,
-  uint32_t attr_count,
-  const sai_attribute_t *attr_list) {
+    sai_object_id_t switch_id,
+    sai_size_t buffer_size,
+    const void* buffer,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
   sai_object_id_t saiPortId = 0;
   for (auto index = 0; index < attr_count; index++) {
-    const sai_attribute_t *attr = &attr_list[index];
+    const sai_attribute_t* attr = &attr_list[index];
     switch (attr->id) {
       case SAI_HOSTIF_PACKET_ATTR_INGRESS_PORT:
         saiPortId = attr->value.oid;
@@ -63,8 +62,8 @@ void packetRxCallback(
   auto portId = hwSwitch->managerTable()->portManager().getPortID(saiPortId);
   auto port = hwSwitch->managerTable()->portManager().getPort(portId);
   auto vlanId = port->getPortVlan();
-  auto rxPacket = std::make_unique<SaiRxPacket>
-    (buffer_size, buffer, portId, vlanId);
+  auto rxPacket =
+      std::make_unique<SaiRxPacket>(buffer_size, buffer, portId, vlanId);
   hwSwitch->packetReceived(std::move(rxPacket));
 }
 
@@ -95,8 +94,7 @@ void SaiSwitch::packetReceived(std::unique_ptr<SaiRxPacket> rxPacket) {
 }
 
 void SaiSwitch::unregisterCallbacks() noexcept {}
-std::shared_ptr<SwitchState> SaiSwitch::stateChanged(
-    const StateDelta& delta) {
+std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
   managerTable_->vlanManager().processVlanDelta(delta.getVlansDelta());
   managerTable_->routerInterfaceManager().processInterfaceDelta(delta);
   managerTable_->neighborManager().processNeighborDelta(delta);
@@ -114,7 +112,7 @@ std::unique_ptr<TxPacket> SaiSwitch::allocatePacket(uint32_t size) {
 
 bool SaiSwitch::sendPacketSwitchedAsync(
     std::unique_ptr<TxPacket> pkt) noexcept {
-    return sendPacketSwitchedSync(std::move(pkt));
+  return sendPacketSwitchedSync(std::move(pkt));
 }
 
 bool SaiSwitch::sendPacketOutOfPortAsync(
@@ -124,20 +122,16 @@ bool SaiSwitch::sendPacketOutOfPortAsync(
   return true;
 }
 
-bool SaiSwitch::sendPacketSwitchedSync(
-    std::unique_ptr<TxPacket> pkt) noexcept {
-  HostifApiParameters::TxPacketAttributes::TxType
-    txType(SAI_HOSTIF_TX_TYPE_PIPELINE_LOOKUP);
+bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
+  HostifApiParameters::TxPacketAttributes::TxType txType(
+      SAI_HOSTIF_TX_TYPE_PIPELINE_LOOKUP);
   HostifApiParameters::TxPacketAttributes attributes{{txType, 0}};
   HostifApiParameters::HostifApiPacket txPacket{
-    reinterpret_cast<void *>(pkt->buf()->writableData()),
-    pkt->buf()->length()};
+      reinterpret_cast<void*>(pkt->buf()->writableData()),
+      pkt->buf()->length()};
   auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
   auto& hostifPacketApi = saiApiTable_->hostifPacketApi();
-  hostifPacketApi.send(
-    attributes.attrs(),
-    switchId,
-    txPacket);
+  hostifPacketApi.send(attributes.attrs(), switchId, txPacket);
   return true;
 }
 
@@ -149,19 +143,16 @@ bool SaiSwitch::sendPacketOutOfPortSync(
     throw FbossError("Failed to send packet on invalid port: ", portID);
   }
   HostifApiParameters::HostifApiPacket txPacket{
-    reinterpret_cast<void *>(pkt->buf()->writableData()),
-    pkt->buf()->length()};
-  HostifApiParameters::TxPacketAttributes::EgressPortOrLag
-    egressPort(port->id());
-  HostifApiParameters::TxPacketAttributes::TxType
-    txType(SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
+      reinterpret_cast<void*>(pkt->buf()->writableData()),
+      pkt->buf()->length()};
+  HostifApiParameters::TxPacketAttributes::EgressPortOrLag egressPort(
+      port->id());
+  HostifApiParameters::TxPacketAttributes::TxType txType(
+      SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
   HostifApiParameters::TxPacketAttributes attributes{{txType, egressPort}};
   auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
   auto& hostifPacketApi = saiApiTable_->hostifPacketApi();
-  hostifPacketApi.send(
-    attributes.attrs(),
-    switchId,
-    txPacket);
+  hostifPacketApi.send(attributes.attrs(), switchId, txPacket);
   return true;
 }
 

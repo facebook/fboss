@@ -7,25 +7,25 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiHostif.h"
+#include "fboss/agent/hw/sai/fake/FakeSai.h"
 
-#include <folly/logging/xlog.h>
 #include <folly/Optional.h>
+#include <folly/logging/xlog.h>
 
-using facebook::fboss::FakeSai;
 using facebook::fboss::FakeHostif;
+using facebook::fboss::FakeSai;
 
 sai_status_t send_hostif_fn(
     sai_object_id_t /* switch_id */,
     sai_size_t /* buffer_size */,
-    const void * /* buffer */,
+    const void* /* buffer */,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   sai_object_id_t tx_port;
   sai_hostif_tx_type_t tx_type;
   for (int i = 0; i < attr_count; ++i) {
-    switch(attr_list[i].id) {
+    switch (attr_list[i].id) {
       case SAI_HOSTIF_PACKET_ATTR_HOSTIF_TX_TYPE:
         tx_type = static_cast<sai_hostif_tx_type_t>(attr_list[i].value.s32);
         break;
@@ -33,8 +33,8 @@ sai_status_t send_hostif_fn(
         tx_port = attr_list[i].value.oid;
     }
   }
-  XLOG(INFO) << "Sending packet on port : " << std::hex << tx_port <<
-                " tx type : " << tx_type;
+  XLOG(INFO) << "Sending packet on port : " << std::hex << tx_port
+             << " tx type : " << tx_type;
 
   return SAI_STATUS_SUCCESS;
 }

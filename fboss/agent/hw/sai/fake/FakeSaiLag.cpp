@@ -11,8 +11,8 @@
 #include "FakeSaiLag.h"
 #include "FakeSai.h"
 
-#include <folly/logging/xlog.h>
 #include <folly/Optional.h>
+#include <folly/logging/xlog.h>
 
 using facebook::fboss::FakeLag;
 using facebook::fboss::FakeLagMember;
@@ -48,16 +48,14 @@ sai_status_t get_lag_attribute_fn(
   auto fs = FakeSai::getInstance();
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
-      case SAI_LAG_ATTR_PORT_LIST:
-        {
+      case SAI_LAG_ATTR_PORT_LIST: {
         const auto& lagMemberMap = fs->lm.get(lag_id).fm().map();
         attr[i].value.objlist.count = lagMemberMap.size();
         int j = 0;
         for (const auto& m : lagMemberMap) {
           attr[i].value.objlist.list[j++] = m.first;
         }
-        }
-        break;
+      } break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;
     }

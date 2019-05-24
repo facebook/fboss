@@ -17,7 +17,7 @@
 #include <tuple>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 sai_status_t create_neighbor_entry_fn(

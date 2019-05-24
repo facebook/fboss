@@ -10,10 +10,11 @@
 #pragma once
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SaiBcmPlatform : public SaiPlatform {
-public:
+ public:
   sai_service_method_table_t* getServiceMethodTable() const override;
 };
 

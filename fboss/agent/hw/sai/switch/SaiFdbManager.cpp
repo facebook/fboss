@@ -23,9 +23,7 @@ SaiFdbEntry::SaiFdbEntry(
     SaiApiTable* apiTable,
     const FdbApiParameters::EntryType& entry,
     const FdbApiParameters::Attributes& attributes)
-    : apiTable_(apiTable),
-      entry_(entry),
-      attributes_(attributes) {
+    : apiTable_(apiTable), entry_(entry), attributes_(attributes) {
   auto& fdbApi = apiTable_->fdbApi();
   fdbApi.create(entry_, attributes.attrs());
 }
@@ -49,29 +47,28 @@ SaiFdbManager::SaiFdbManager(
     : apiTable_(apiTable), managerTable_(managerTable) {}
 
 std::unique_ptr<SaiFdbEntry> SaiFdbManager::addFdbEntry(
-  const InterfaceID& intfId,
-  const folly::MacAddress& mac,
-  const PortDescriptor& portDesc) {
+    const InterfaceID& intfId,
+    const folly::MacAddress& mac,
+    const PortDescriptor& portDesc) {
   XLOG(INFO) << "addFdb " << mac;
-  SaiRouterInterface* routerInterface = managerTable_->routerInterfaceManager()
-        .getRouterInterface(intfId);
+  SaiRouterInterface* routerInterface =
+      managerTable_->routerInterfaceManager().getRouterInterface(intfId);
   if (!routerInterface) {
     throw FbossError(
-      "Attempted to add non-existent interface to Fdb: ", intfId);
+        "Attempted to add non-existent interface to Fdb: ", intfId);
   }
   auto vlanId = routerInterface->attributes().vlanId;
   // TODO(srikrishnagopu): Can it be an AGG Port ?
   auto portId = portDesc.phyPortID();
   auto port = managerTable_->portManager().getPort(portId);
   if (!port) {
-    throw FbossError(
-      "Attempted to add non-existent port to Fdb: ", portId);
+    throw FbossError("Attempted to add non-existent port to Fdb: ", portId);
   }
   auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
   auto bridgePortId = port->getBridgePort()->id();
   FdbApiParameters::EntryType entry{switchId, vlanId, mac};
-  FdbApiParameters::Attributes attributes{{
-    SAI_FDB_ENTRY_TYPE_STATIC, bridgePortId}};
+  FdbApiParameters::Attributes attributes{
+      {SAI_FDB_ENTRY_TYPE_STATIC, bridgePortId}};
   return std::make_unique<SaiFdbEntry>(apiTable_, entry, attributes);
 }
 

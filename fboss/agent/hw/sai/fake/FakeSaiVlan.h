@@ -12,7 +12,7 @@
 #include "fboss/agent/hw/sai/fake/FakeManager.h"
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 sai_status_t create_vlan_fn(

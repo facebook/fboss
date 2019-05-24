@@ -11,8 +11,8 @@
 #include "FakeSaiBridge.h"
 #include "FakeSai.h"
 
-#include <folly/logging/xlog.h>
 #include <folly/Optional.h>
+#include <folly/logging/xlog.h>
 
 using facebook::fboss::FakeSai;
 
@@ -37,7 +37,7 @@ sai_status_t create_bridge_fn(
     *bridge_id = fs->brm.create(bridgeType.value());
   }
   for (int i = 0; i < attr_count; ++i) {
-    if (attr_list[i].id ==  SAI_BRIDGE_ATTR_TYPE) {
+    if (attr_list[i].id == SAI_BRIDGE_ATTR_TYPE) {
       continue;
     }
     sai_status_t res = set_bridge_attribute_fn(*bridge_id, &attr_list[i]);

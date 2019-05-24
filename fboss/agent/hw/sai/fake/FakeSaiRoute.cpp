@@ -7,15 +7,15 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "FakeSai.h"
 #include "FakeSaiRoute.h"
+#include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
 
 #include <folly/logging/xlog.h>
 
-using facebook::fboss::FakeSai;
 using facebook::fboss::FakeRoute;
+using facebook::fboss::FakeSai;
 
 sai_status_t create_route_entry_fn(
     const sai_route_entry_t* route_entry,
@@ -33,8 +33,7 @@ sai_status_t create_route_entry_fn(
   return SAI_STATUS_SUCCESS;
 }
 
-sai_status_t remove_route_entry_fn(
-    const sai_route_entry_t* route_entry) {
+sai_status_t remove_route_entry_fn(const sai_route_entry_t* route_entry) {
   auto fs = FakeSai::getInstance();
   auto re = std::make_tuple(
       route_entry->switch_id,
@@ -76,7 +75,7 @@ sai_status_t get_route_entry_attribute_fn(
       facebook::fboss::fromSaiIpPrefix(route_entry->destination));
   const auto& fr = fs->rm.get(re);
   for (int i = 0; i < attr_count; ++i) {
-    switch(attr_list[i].id) {
+    switch (attr_list[i].id) {
       case SAI_ROUTE_ENTRY_ATTR_NEXT_HOP_ID:
         attr_list[i].value.oid = fr.nextHopId;
         break;

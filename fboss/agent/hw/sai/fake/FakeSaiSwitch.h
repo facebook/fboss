@@ -14,16 +14,15 @@
 #include <folly/MacAddress.h>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 sai_status_t create_switch_fn(
-  sai_object_id_t *switch_id,
-  uint32_t attr_count,
-  const sai_attribute_t *attr_list);
+    sai_object_id_t* switch_id,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list);
 
-sai_status_t remove_switch_fn(
-  sai_object_id_t switch_id);
+sai_status_t remove_switch_fn(sai_object_id_t switch_id);
 
 sai_status_t set_switch_attribute_fn(
     sai_object_id_t switch_id,
@@ -46,9 +45,14 @@ class FakeSwitch {
   folly::MacAddress srcMac() const {
     return srcMac_;
   }
-  bool isInitialized() const { return inited_; }
-  void setInitStatus(bool inited) { inited_ = inited; }
+  bool isInitialized() const {
+    return inited_;
+  }
+  void setInitStatus(bool inited) {
+    inited_ = inited;
+  }
   sai_object_id_t id;
+
  private:
   folly::MacAddress srcMac_;
   bool inited_{false};
@@ -57,5 +61,5 @@ class FakeSwitch {
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;
 
 void populate_switch_api(sai_switch_api_t** switch_api);
-}
+} // namespace fboss
 } // namespace facebook

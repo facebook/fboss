@@ -18,7 +18,7 @@
 #include <boost/variant.hpp>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 namespace facebook {
@@ -77,6 +77,7 @@ class BridgeApi : public SaiApi<BridgeApi, BridgeApiParameters> {
         sai_api_query(SAI_API_BRIDGE, reinterpret_cast<void**>(&api_));
     saiCheckError(status, "Failed to query for bridge api");
   }
+
  private:
   sai_status_t _create(
       sai_object_id_t* bridge_id,

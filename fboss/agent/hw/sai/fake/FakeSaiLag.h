@@ -12,7 +12,7 @@
 #include "fboss/agent/hw/sai/fake/FakeManager.h"
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 sai_status_t create_lag_fn(
@@ -54,8 +54,7 @@ namespace fboss {
 
 class FakeLagMember {
  public:
-  explicit FakeLagMember(sai_object_id_t lagId) :
-    lagId(lagId) {}
+  explicit FakeLagMember(sai_object_id_t lagId) : lagId(lagId) {}
   sai_object_id_t lagId;
   sai_object_id_t id;
   sai_object_id_t portId;

@@ -107,21 +107,21 @@ namespace {
  * for setting up callback functions, so we plan to provide a special direct
  * interface for that, for now, rather than using this generic mechanism.
  */
-#define DEFINE_extract(_type, _field)                                 \
-template <typename AttrT>                                             \
-typename std::enable_if<                                              \
-    std::is_same<typename AttrT::ExtractSelectionType, _type>::value, \
-    typename AttrT::DataType>::type&                                  \
-_extract(sai_attribute_t& sai_attribute) {                            \
-  return sai_attribute.value._field;                                  \
-}                                                                     \
-template <typename AttrT>                                             \
-const typename std::enable_if<                                        \
-    std::is_same<typename AttrT::ExtractSelectionType, _type>::value, \
-    typename AttrT::DataType>::type&                                  \
-_extract(const sai_attribute_t& sai_attribute) {                      \
-  return sai_attribute.value._field;                                  \
-}
+#define DEFINE_extract(_type, _field)                                   \
+  template <typename AttrT>                                             \
+  typename std::enable_if<                                              \
+      std::is_same<typename AttrT::ExtractSelectionType, _type>::value, \
+      typename AttrT::DataType>::type&                                  \
+  _extract(sai_attribute_t& sai_attribute) {                            \
+    return sai_attribute.value._field;                                  \
+  }                                                                     \
+  template <typename AttrT>                                             \
+  const typename std::enable_if<                                        \
+      std::is_same<typename AttrT::ExtractSelectionType, _type>::value, \
+      typename AttrT::DataType>::type&                                  \
+  _extract(const sai_attribute_t& sai_attribute) {                      \
+    return sai_attribute.value._field;                                  \
+  }
 
 using facebook::fboss::SaiObjectIdT;
 

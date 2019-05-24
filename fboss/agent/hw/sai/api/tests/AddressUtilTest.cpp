@@ -9,8 +9,8 @@
  */
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
 
-#include <folly/logging/xlog.h>
 #include <folly/String.h>
+#include <folly/logging/xlog.h>
 
 #include <gtest/gtest.h>
 

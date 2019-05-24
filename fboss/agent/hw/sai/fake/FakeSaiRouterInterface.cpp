@@ -14,8 +14,8 @@
 #include <folly/Optional.h>
 #include <folly/logging/xlog.h>
 
-using facebook::fboss::FakeSai;
 using facebook::fboss::FakeRouterInterface;
+using facebook::fboss::FakeSai;
 
 sai_status_t create_router_interface_fn(
     sai_object_id_t* router_interface_id,

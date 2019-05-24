@@ -18,7 +18,7 @@
 #include <boost/variant.hpp>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 namespace facebook {
@@ -66,6 +66,7 @@ class PortApi : public SaiApi<PortApi, PortApiParameters> {
         sai_api_query(SAI_API_PORT, reinterpret_cast<void**>(&api_));
     saiCheckError(status, "Failed to query for port api");
   }
+
  private:
   sai_status_t _create(
       sai_object_id_t* port_id,

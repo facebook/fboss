@@ -33,7 +33,7 @@ class VlanManagerTest : public ManagerTestBase {
     intf0 = testInterfaces[0];
     intf1 = testInterfaces[1];
   }
-    /*
+  /*
    * This assumes one lane ports where the HwLaneList attribute
    * has the port id in "expectedPorts"
    */
@@ -176,7 +176,7 @@ TEST_F(VlanManagerTest, changeVlanRemoveMembers) {
 
 TEST_F(VlanManagerTest, changeVlanAddRemoveMembers) {
   TestInterface intf{0, 3};
-  intf.remoteHosts[2].port.id=3;
+  intf.remoteHosts[2].port.id = 3;
   std::shared_ptr<Vlan> oldVlan = makeVlan(intf);
   intf.remoteHosts[0].port.id = 1;
   intf.remoteHosts[1].port.id = 2;

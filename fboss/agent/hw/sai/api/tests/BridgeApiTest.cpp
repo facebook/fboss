@@ -30,8 +30,7 @@ class BridgeApiTest : public ::testing::Test {
     auto fb = fs->brm.get(bridgeId);
     EXPECT_EQ(fb.id, bridgeId);
   }
-  void checkBridgePort(
-      const sai_object_id_t& bridgePortId) {
+  void checkBridgePort(const sai_object_id_t& bridgePortId) {
     auto fbp = fs->brm.getMember(bridgePortId);
     EXPECT_EQ(fbp.id, bridgePortId);
   }

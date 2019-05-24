@@ -29,7 +29,7 @@ class SaiNextHop {
   SaiNextHop(
       SaiApiTable* apiTable,
       const NextHopApiParameters::Attributes& attributes,
-      const sai_object_id_t &switchID);
+      const sai_object_id_t& switchID);
   ~SaiNextHop();
   SaiNextHop(const SaiNextHop& other) = delete;
   SaiNextHop(SaiNextHop&& other) = delete;

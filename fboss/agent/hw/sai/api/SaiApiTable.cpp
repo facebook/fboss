@@ -11,7 +11,7 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 namespace facebook {
@@ -30,5 +30,5 @@ SaiApiTable::SaiApiTable() {
   virtualRouterApi_ = std::make_unique<VirtualRouterApi>();
   vlanApi_ = std::make_unique<VlanApi>();
 }
-}
-}
+} // namespace fboss
+} // namespace facebook

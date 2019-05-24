@@ -162,8 +162,7 @@ struct IsSaiTypeWrapper {
  *
  * e.g., sai_object_id_t vs uint64_t and sai_ip4_t vs uint32_t;
  */
-struct SaiObjectIdT {
-};
+struct SaiObjectIdT {};
 
 template <typename T>
 struct DuplicateTypeFixer {

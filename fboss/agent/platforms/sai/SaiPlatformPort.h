@@ -13,7 +13,6 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
 
-
 #include <folly/Optional.h>
 
 namespace facebook {

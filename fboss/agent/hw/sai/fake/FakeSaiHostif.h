@@ -12,13 +12,13 @@
 #include "fboss/agent/hw/sai/fake/FakeManager.h"
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 sai_status_t send_hostif_packet_fn(
     sai_object_id_t switch_id,
     sai_size_t buffer_size,
-    const void *buffer,
+    const void* buffer,
     uint32_t attr_count,
     const sai_attribute_t* attr_list);
 

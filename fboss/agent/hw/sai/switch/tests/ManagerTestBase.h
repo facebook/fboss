@@ -118,8 +118,7 @@ class ManagerTestBase : public ::testing::Test {
   std::shared_ptr<Route<folly::IPAddressV4>> makeRoute(
       const TestRoute& route) const;
 
-  std::shared_ptr<Vlan> makeVlan(
-      const TestInterface& testInterface) const;
+  std::shared_ptr<Vlan> makeVlan(const TestInterface& testInterface) const;
 
   std::shared_ptr<FakeSai> fs;
   // TODO - Add FakeSaiPlatform

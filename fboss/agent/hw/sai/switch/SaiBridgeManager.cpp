@@ -26,8 +26,7 @@ SaiBridge::SaiBridge(
     : apiTable_(apiTable), attributes_(attributes) {
   try {
     id_ = apiTable_->switchApi().getAttribute(
-          SwitchApiParameters::Attributes::Default1QBridgeId(),
-          switchId);
+        SwitchApiParameters::Attributes::Default1QBridgeId(), switchId);
   } catch (const facebook::fboss::SaiApiError& ex) {
     // Create a default 1Q Bridge if the SAI sdk adapter
     // did not return a default 1Q bridge and throws an exception.
@@ -45,7 +44,7 @@ SaiBridgePort::SaiBridgePort(
     SaiApiTable* apiTable,
     const BridgeApiParameters::MemberAttributes& attributes,
     const sai_object_id_t& switchId)
-        : apiTable_(apiTable), attributes_(attributes) {
+    : apiTable_(apiTable), attributes_(attributes) {
   auto& bridgeApi = apiTable_->bridgeApi();
   id_ = bridgeApi.createMember(attributes_.attrs(), switchId);
 }
@@ -77,7 +76,7 @@ SaiBridgeManager::SaiBridgeManager(
   auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
   BridgeApiParameters::Attributes attributes{{SAI_BRIDGE_TYPE_1Q}};
   auto defaultBridge =
-    std::make_unique<SaiBridge>(apiTable_, attributes, switchId);
+      std::make_unique<SaiBridge>(apiTable_, attributes, switchId);
   bridges_.emplace(std::make_pair(BridgeID(0), std::move(defaultBridge)));
 }
 } // namespace fboss

@@ -21,13 +21,14 @@ namespace facebook {
 namespace fboss {
 
 SaiVirtualRouter::SaiVirtualRouter(
-  SaiApiTable* apiTable, sai_object_id_t& switchId)
+    SaiApiTable* apiTable,
+    sai_object_id_t& switchId)
     : apiTable_(apiTable), attributes_({}) {
   default_ = true;
   try {
     // TODO(borisb): implement attributes_ via get apis for default VR
     id_ = apiTable_->switchApi().getAttribute(
-      SwitchApiParameters::Attributes::DefaultVirtualRouterId(), switchId);
+        SwitchApiParameters::Attributes::DefaultVirtualRouterId(), switchId);
   } catch (const facebook::fboss::SaiApiError& ex) {
     // Create a default vritaul router if the SAI adapter
     // did not create a default virtual router and throws an exception.
@@ -66,7 +67,7 @@ SaiVirtualRouterManager::SaiVirtualRouterManager(
     : apiTable_(apiTable), managerTable_(managerTable) {
   auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
   auto defaultVirtualRouter =
-    std::make_unique<SaiVirtualRouter>(apiTable_, switchId);
+      std::make_unique<SaiVirtualRouter>(apiTable_, switchId);
   virtualRouters_.emplace(
       std::make_pair(RouterID(0), std::move(defaultVirtualRouter)));
 }

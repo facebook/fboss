@@ -15,15 +15,15 @@
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
-#include <folly/logging/xlog.h>
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
+#include <folly/logging/xlog.h>
 
 #include <iterator>
 #include <vector>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 namespace facebook {
@@ -81,6 +81,7 @@ struct NeighborApiParameters {
           routerInterfaceId() == other.routerInterfaceId() &&
           ip() == other.ip());
     }
+
    private:
     sai_neighbor_entry_t neighbor_entry;
   };

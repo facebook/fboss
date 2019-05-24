@@ -15,15 +15,15 @@
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
-#include <folly/logging/xlog.h>
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
+#include <folly/logging/xlog.h>
 
 #include <iterator>
 #include <vector>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 namespace facebook {
@@ -78,10 +78,10 @@ struct FdbApiParameters {
     }
     bool operator==(const FdbEntry& other) const {
       return (
-          switchId() == other.switchId() &&
-          bridgeId() == other.bridgeId() &&
+          switchId() == other.switchId() && bridgeId() == other.bridgeId() &&
           mac() == other.mac());
     }
+
    private:
     sai_fdb_entry_t fdb_entry;
   };
@@ -104,8 +104,7 @@ class FdbApi : public SaiApi<FdbApi, FdbApiParameters> {
       size_t count) {
     return api_->create_fdb_entry(fdbEntry.entry(), count, attr_list);
   }
-  sai_status_t _remove(
-      const FdbApiParameters::FdbEntry& fdbEntry) {
+  sai_status_t _remove(const FdbApiParameters::FdbEntry& fdbEntry) {
     return api_->remove_fdb_entry(fdbEntry.entry());
   }
   sai_status_t _getAttr(
@@ -126,7 +125,7 @@ class FdbApi : public SaiApi<FdbApi, FdbApiParameters> {
 } // namespace facebook
 
 namespace std {
-template<>
+template <>
 struct hash<facebook::fboss::FdbApiParameters::FdbEntry> {
   size_t operator()(
       const facebook::fboss::FdbApiParameters::FdbEntry& FdbEntry) const;

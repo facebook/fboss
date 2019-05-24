@@ -79,7 +79,7 @@ void SaiVlan::addMember(PortID swPortId) {
   VlanApiParameters::MemberAttributes memberAttributes{
       {vlanIdMemberAttribute, bridgePortIdAttribute}};
   auto member =
-    std::make_unique<SaiVlanMember>(apiTable_, memberAttributes, switchId);
+      std::make_unique<SaiVlanMember>(apiTable_, memberAttributes, switchId);
   sai_object_id_t memberId = member->id();
   members_.insert(std::make_pair(memberId, std::move(member)));
   memberIdMap_.insert(std::make_pair(memberAttributes.bridgePortId, memberId));
@@ -150,7 +150,7 @@ void SaiVlanManager::removeVlan(const VlanID& swVlanId) {
   const auto citr = vlans_.find(swVlanId);
   if (citr == vlans_.cend()) {
     throw FbossError(
-      "attempted to remove a vlan which does not exist: ", swVlanId);
+        "attempted to remove a vlan which does not exist: ", swVlanId);
   }
   vlanSaiIds_.erase(citr->second->id());
   vlans_.erase(citr);

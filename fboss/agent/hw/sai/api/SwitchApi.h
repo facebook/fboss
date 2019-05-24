@@ -13,13 +13,13 @@
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
-#include <folly/logging/xlog.h>
 #include <folly/MacAddress.h>
+#include <folly/logging/xlog.h>
 
 #include <vector>
 
 extern "C" {
-  #include <sai.h>
+#include <sai.h>
 }
 
 namespace facebook {
@@ -54,9 +54,8 @@ struct SwitchApiParameters {
         EnumType,
         SAI_SWITCH_ATTR_DEFAULT_1Q_BRIDGE_ID,
         SaiObjectIdT>;
-    using InitSwitch = SaiAttribute<EnumType,
-          SAI_SWITCH_ATTR_INIT_SWITCH,
-          bool>;
+    using InitSwitch =
+        SaiAttribute<EnumType, SAI_SWITCH_ATTR_INIT_SWITCH, bool>;
     using CreateAttributes = SaiAttributeTuple<HwInfo, SrcMac, InitSwitch>;
     Attributes() {}
     Attributes(const CreateAttributes& attrs) {
@@ -94,10 +93,11 @@ class SwitchApi : public SaiApi<SwitchApi, SwitchApiParameters> {
   }
 
   sai_status_t registerRxCallback(
-    sai_object_id_t switch_id, sai_packet_event_notification_fn rx_cb) {
+      sai_object_id_t switch_id,
+      sai_packet_event_notification_fn rx_cb) {
     sai_attribute_t attr;
     attr.id = SAI_SWITCH_ATTR_PACKET_EVENT_NOTIFY;
-    attr.value.ptr = (void *) rx_cb;
+    attr.value.ptr = (void*)rx_cb;
     return _setAttr(&attr, switch_id);
   }
 
@@ -106,7 +106,7 @@ class SwitchApi : public SaiApi<SwitchApi, SwitchApiParameters> {
       sai_object_id_t* switch_id,
       sai_attribute_t* attr_list,
       size_t attr_count) {
-      return api_->create_switch(switch_id, attr_count, attr_list);
+    return api_->create_switch(switch_id, attr_count, attr_list);
   }
   sai_status_t _remove(sai_object_id_t switch_id) {
     return api_->remove_switch(switch_id);
