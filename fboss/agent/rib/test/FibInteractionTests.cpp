@@ -123,6 +123,36 @@ TEST(Route, RibRouteToFibRoute) {
   ASSERT_EQ(fibRoute->prefix().mask, prefixMask);
 }
 
+TEST(Route, DirectlyConnectedRibRouteToFibRoute) {
+  folly::IPAddressV6 prefixAddress("1::");
+  uint8_t prefixMask = 127;
+
+  facebook::fboss::rib::PrefixV6 prefix;
+  prefix.network = prefixAddress;
+  prefix.mask = prefixMask;
+
+  folly::IPAddress nextHopAddress("2401:db00:e112:9103:1028::1b");
+  InterfaceID nextHopInterfaceID(1);
+
+  facebook::fboss::rib::RouteNextHopEntry ribResolvedNextHop(
+      facebook::fboss::rib::ResolvedNextHop(
+          nextHopAddress,
+          nextHopInterfaceID,
+          facebook::fboss::rib::ECMP_WEIGHT),
+      kDefaultAdminDistance);
+
+  facebook::fboss::rib::RouteV6 ribRoute(
+      prefix, facebook::fboss::ClientID(1), ribResolvedNextHop);
+  ribRoute.setResolved(ribResolvedNextHop);
+  ribRoute.setConnected();
+
+  auto fibRoute = ribRoute.toFibRoute();
+
+  ASSERT_EQ(fibRoute->prefix().network, prefixAddress);
+  ASSERT_EQ(fibRoute->prefix().mask, prefixMask);
+  ASSERT_TRUE(fibRoute->isConnected());
+}
+
 TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
   using namespace facebook::fboss;
 

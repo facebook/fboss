@@ -156,6 +156,9 @@ std::unique_ptr<facebook::fboss::Route<AddrT>> Route<AddrT>::toFibRoute()
   auto fibRoute = std::make_unique<facebook::fboss::Route<AddrT>>(fibPrefix);
 
   fibRoute->setResolved(getForwardInfo().toFibNextHop());
+  if (isConnected()) {
+    fibRoute->setConnected();
+  }
 
   return fibRoute;
 }
