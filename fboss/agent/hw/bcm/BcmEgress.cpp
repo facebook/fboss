@@ -10,6 +10,7 @@
 #include "BcmEgress.h"
 
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
@@ -256,7 +257,7 @@ void BcmEcmpEgress::program() {
     opennsl_if_t pathsArray[paths_.size()];
     auto index = 0;
     for (const auto& path : paths_) {
-      if (hw_->getHostTable()->egressManager()->isResolved(path)) {
+      if (hw_->getEgressManager()->isResolved(path)) {
         pathsArray[index++] = path;
       } else {
         XLOG(DBG1) << "Skipping unresolved egress : " << path << " while "

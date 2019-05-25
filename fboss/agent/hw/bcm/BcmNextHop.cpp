@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/bcm/BcmNextHop.h"
 
+#include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmLabeledEgress.h"
@@ -115,12 +116,12 @@ void BcmMplsNextHop::program(BcmHostKey bcmHostKey) {
   }
 
   if (ecmpAction == BcmEcmpEgress::Action::EXPAND) {
-    hw_->writableHostTable()->egressManager()->resolved(mplsEgress_->getID());
+    hw_->writableEgressManager()->resolved(mplsEgress_->getID());
   } else if (ecmpAction == BcmEcmpEgress::Action::SHRINK) {
-    hw_->writableHostTable()->egressManager()->unresolved(mplsEgress_->getID());
+    hw_->writableEgressManager()->unresolved(mplsEgress_->getID());
   }
   // update egress mapping and  multipath resolution
-  hw_->writableHostTable()->egressManager()->updatePortToEgressMapping(
+  hw_->writableEgressManager()->updatePortToEgressMapping(
       mplsEgress_->getID(), oldGport, newGport);
   hw_->writableHostTable()->egressResolutionChangedHwLocked(
       mplsEgress_->getID(), ecmpAction);
@@ -132,13 +133,13 @@ BcmMplsNextHop::~BcmMplsNextHop() {
   if (!mplsEgress_) {
     return;
   }
-  if (hw_->getHostTable()->egressManager()->isResolved(mplsEgress_->getID())) {
-    hw_->writableHostTable()->egressManager()->unresolved(mplsEgress_->getID());
+  if (hw_->getEgressManager()->isResolved(mplsEgress_->getID())) {
+    hw_->writableEgressManager()->unresolved(mplsEgress_->getID());
   }
   // This host mapping just went away, update the port -> egress id mapping
   bool isPortOrTrunkSet = egressPort_.hasValue();
   opennsl_gport_t gPort = getGPort();
-  hw_->writableHostTable()->egressManager()->updatePortToEgressMapping(
+  hw_->writableEgressManager()->updatePortToEgressMapping(
       mplsEgress_->getID(), gPort, BcmPort::asGPort(0));
   hw_->writableHostTable()->egressResolutionChangedHwLocked(
       mplsEgress_->getID(),

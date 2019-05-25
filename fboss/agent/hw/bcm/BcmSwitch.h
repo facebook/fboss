@@ -38,6 +38,7 @@ class BcmAclTable;
 class BcmControlPlane;
 class BcmCosManager;
 class BcmEgress;
+class BcmEgressManager;
 class BcmHostKey;
 class BcmHostTable;
 class BcmIntf;
@@ -109,6 +110,8 @@ class BcmSwitchIf : public HwSwitch {
 
   virtual const BcmHostTable* getHostTable() const = 0;
 
+  virtual const BcmEgressManager* getEgressManager() const = 0;
+
   virtual const BcmNeighborTable* getNeighborTable() const = 0;
 
   virtual const BcmNextHopTable<BcmHostKey, BcmL3NextHop>* getL3NextHopTable()
@@ -140,6 +143,8 @@ class BcmSwitchIf : public HwSwitch {
   virtual BcmCosManager* getCosMgr() const = 0;
 
   virtual BcmHostTable* writableHostTable() const = 0;
+
+  virtual BcmEgressManager* writableEgressManager() const = 0;
 
   virtual BcmAclTable* writableAclTable() const = 0;
 
@@ -262,6 +267,9 @@ class BcmSwitch : public BcmSwitchIf {
   const BcmHostTable* getHostTable() const override {
     return hostTable_.get();
   }
+  const BcmEgressManager* getEgressManager() const override {
+    return egressManager_.get();
+  }
   const BcmNeighborTable* getNeighborTable() const override {
     return neighborTable_.get();
   }
@@ -364,6 +372,9 @@ class BcmSwitch : public BcmSwitchIf {
   void fetchL2Table(std::vector<L2EntryThrift> *l2Table) override;
 
   BcmHostTable* writableHostTable() const override { return hostTable_.get(); }
+  BcmEgressManager* writableEgressManager() const override {
+    return egressManager_.get();
+  }
   BcmAclTable* writableAclTable() const override { return aclTable_.get(); }
   BcmWarmBootCache* getWarmBootCache() const override {
     return warmBootCache_.get();
@@ -796,6 +807,7 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmEgress> toCPUEgress_;
   std::unique_ptr<BcmIntfTable> intfTable_;
   std::unique_ptr<BcmHostTable> hostTable_;
+  std::unique_ptr<BcmEgressManager> egressManager_;
   std::unique_ptr<BcmNeighborTable> neighborTable_;
   std::unique_ptr<BcmNextHopTable<BcmHostKey, BcmL3NextHop>> l3NextHopTable_;
   std::unique_ptr<BcmNextHopTable<BcmLabeledHostKey, BcmMplsNextHop>>

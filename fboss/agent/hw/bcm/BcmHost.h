@@ -18,7 +18,7 @@ extern "C" {
 #include <folly/MacAddress.h>
 #include <folly/SpinLock.h>
 #include <folly/dynamic.h>
-#include "fboss/agent/hw/bcm/BcmEgressManager.h"
+#include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmTrunk.h"
@@ -202,15 +202,6 @@ class BcmHostTable {
   explicit BcmHostTable(const BcmSwitchIf* hw);
   virtual ~BcmHostTable();
 
-  BcmEgressManager* egressManager() {
-    return &egressManager_;
-  }
-
-  const BcmEgressManager* egressManager() const {
-    return &egressManager_;
-  }
-
-
   // throw an exception if not found
   BcmHost* getBcmHost(const BcmHostKey& key) const;
   BcmEcmpHost* getBcmEcmpHost(const BcmEcmpHostKey& key) const;
@@ -324,7 +315,6 @@ class BcmHostTable {
 
  private:
   const BcmSwitchIf* hw_{nullptr};
-  BcmEgressManager egressManager_;
 
   uint32_t numEcmpEgressProgrammed_{0};
 

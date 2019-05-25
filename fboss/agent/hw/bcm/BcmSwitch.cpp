@@ -30,6 +30,7 @@
 #include "fboss/agent/hw/bcm/BcmBstStatsMgr.h"
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
 #include "fboss/agent/hw/bcm/BcmCosManager.h"
+#include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
@@ -165,6 +166,7 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       portTable_(new BcmPortTable(this)),
       intfTable_(new BcmIntfTable(this)),
       hostTable_(new BcmHostTable(this)),
+      egressManager_(new BcmEgressManager(this)),
       neighborTable_(new BcmNeighborTable(this)),
       l3NextHopTable_(new BcmL3NextHopTable(this)),
       mplsNextHopTable_(new BcmMplsNextHopTable(this)),
@@ -203,6 +205,7 @@ void BcmSwitch::resetTables() {
   // reset interfaces before host table, as interfaces have
   // host references now.
   intfTable_.reset();
+  egressManager_.reset();
   hostTable_.reset();
   toCPUEgress_.reset();
   portTable_.reset();
@@ -227,6 +230,7 @@ void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   qosPolicyTable_ = std::make_unique<BcmQosPolicyTable>(this);
   intfTable_ = std::make_unique<BcmIntfTable>(this);
   hostTable_ = std::make_unique<BcmHostTable>(this);
+  egressManager_ = std::make_unique<BcmEgressManager>(this);
   neighborTable_ = std::make_unique<BcmNeighborTable>(this);
   l3NextHopTable_ =
       std::make_unique<BcmL3NextHopTable>(this);
@@ -1608,9 +1612,9 @@ void BcmSwitch::linkStateChangedHwNotLocked(
     auto trunk = trunkTable_->linkDownHwNotLocked(bcmPortId);
     if (trunk != BcmTrunk::INVALID) {
       XLOG(INFO) << "Shrinking ECMP entries egressing over trunk " << trunk;
-      hostTable_->egressManager()->trunkDownHwNotLocked(trunk);
+      writableEgressManager()->trunkDownHwNotLocked(trunk);
     }
-    hostTable_->egressManager()->linkDownHwNotLocked(bcmPortId);
+    writableEgressManager()->linkDownHwNotLocked(bcmPortId);
   } else {
     // For port up events we wait till ARP/NDP entries
     // are re resolved after port up before adding them

@@ -65,6 +65,8 @@ class MockBcmSwitch : public BcmSwitchIf {
   MOCK_CONST_METHOD0(getPortTable, const BcmPortTable*());
   MOCK_CONST_METHOD0(getIntfTable, const BcmIntfTable*());
   MOCK_CONST_METHOD0(getHostTable, const BcmHostTable*());
+  MOCK_CONST_METHOD0(getEgressManager, const BcmEgressManager*());
+  MOCK_CONST_METHOD0(writableEgressManager, BcmEgressManager*());
   MOCK_CONST_METHOD0(getNeighborTable, const BcmNeighborTable*());
   MOCK_CONST_METHOD0(
       getL3NextHopTable,
