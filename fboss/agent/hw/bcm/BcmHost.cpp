@@ -254,11 +254,11 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
   BcmEcmpEgress::Action ecmpAction;
   if (isSet && !port) {
     /* went down */
-    hw_->writableHostTable()->unresolved(egressId_);
+    hw_->writableHostTable()->egressManager()->unresolved(egressId_);
     ecmpAction = BcmEcmpEgress::Action::SHRINK;
   } else if (!isSet && port) {
     /* came up */
-    hw_->writableHostTable()->resolved(egressId_);
+    hw_->writableHostTable()->egressManager()->resolved(egressId_);
     ecmpAction = BcmEcmpEgress::Action::EXPAND;
   } else if (!isSet && !port) {
     /* stayed down */
@@ -273,7 +273,7 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
 
   // Update port mapping, for entries marked to DROP or to CPU port gets
   // set to 0, which implies no ports are associated with this entry now.
-  hw_->writableHostTable()->updatePortToEgressMapping(
+  hw_->writableHostTable()->egressManager()->updatePortToEgressMapping(
       egressPtr->getID(), getSetPortAsGPort(), BcmPort::asGPort(port));
 
   hw_->writableHostTable()->egressResolutionChangedHwLocked(
@@ -314,9 +314,9 @@ void BcmHost::programToTrunk(opennsl_if_t intf,
              << (isTrunk() ? "trunk port " : "physical port ")
              << (isTrunk() ? trunk_ : port_) << " to trunk port " << trunk;
 
-  hw_->writableHostTable()->resolved(egressId_);
+  hw_->writableHostTable()->egressManager()->resolved(egressId_);
 
-  hw_->writableHostTable()->updatePortToEgressMapping(
+  hw_->writableHostTable()->egressManager()->updatePortToEgressMapping(
       egress->getID(), getSetPortAsGPort(), BcmTrunk::asGPort(trunk));
 
   hw_->writableHostTable()->egressResolutionChangedHwLocked(
@@ -346,10 +346,10 @@ BcmHost::~BcmHost() {
     return;
   }
   if (isPortOrTrunkSet()) {
-    hw_->writableHostTable()->unresolved(egressId_);
+    hw_->writableHostTable()->egressManager()->unresolved(egressId_);
   }
   // This host mapping just went away, update the port -> egress id mapping
-  hw_->writableHostTable()->updatePortToEgressMapping(
+  hw_->writableHostTable()->egressManager()->updatePortToEgressMapping(
       egressId_, getSetPortAsGPort(), BcmPort::asGPort(0));
   hw_->writableHostTable()->egressResolutionChangedHwLocked(
       egressId_,
@@ -422,10 +422,8 @@ BcmEcmpHost::~BcmEcmpHost() {
   hw_->writableHostTable()->derefEgress(ecmpEgressId_);
 }
 
-BcmHostTable::BcmHostTable(const BcmSwitchIf* hw) : hw_(hw) {
-  auto port2EgressIds = std::make_shared<PortAndEgressIdsMap>();
-  port2EgressIds->publish();
-  setPort2EgressIdsInternal(port2EgressIds);
+BcmHostTable::BcmHostTable(const BcmSwitchIf* hw)
+    : hw_(hw), egressManager_(hw) {
 }
 
 BcmHostTable::~BcmHostTable() {
@@ -608,7 +606,7 @@ BcmEgressBase* BcmHostTable::derefEgress(opennsl_if_t egressId) {
   return it->second.first.get();
 }
 
-void BcmHostTable::updatePortToEgressMapping(
+void BcmEgressManager::updatePortToEgressMapping(
     opennsl_if_t egressId,
     opennsl_gport_t oldGPort,
     opennsl_gport_t newGPort) {
@@ -645,7 +643,7 @@ void BcmHostTable::updatePortToEgressMapping(
   setPort2EgressIdsInternal(newMapping);
 }
 
-void BcmHostTable::setPort2EgressIdsInternal(
+void BcmEgressManager::setPort2EgressIdsInternal(
     std::shared_ptr<PortAndEgressIdsMap> newMap) {
   // This is one of the only two places that should ever directly access
   // portAndEgressIdsDontUseDirectly_.  (getPortAndEgressIdsMap() being the
@@ -693,9 +691,9 @@ void BcmHostTable::warmBootHostEntriesSynced() {
     // linkUp/DownHwLocked only for ports that actually changed
     // state, but thats a minor optimization.
     if (hw_->isPortUp(PortID(idx))) {
-      linkUpHwLocked(idx);
+      egressManager()->linkUpHwLocked(idx);
     } else {
-      linkDownHwLocked(idx);
+      egressManager()->linkDownHwLocked(idx);
     }
   }
 }
@@ -749,7 +747,7 @@ folly::dynamic BcmHostTable::toFollyDynamic() const {
   return hostTable;
 }
 
-void BcmHostTable::linkStateChangedMaybeLocked(
+void BcmEgressManager::linkStateChangedMaybeLocked(
     opennsl_gport_t gport,
     bool up,
     bool locked) {
@@ -761,7 +759,7 @@ void BcmHostTable::linkStateChangedMaybeLocked(
     return;
   }
   if (locked) {
-    egressResolutionChangedHwLocked(
+    hw_->writableHostTable()->egressResolutionChangedHwLocked(
         portAndEgressIds->getEgressIds(),
         up ? BcmEcmpEgress::Action::EXPAND : BcmEcmpEgress::Action::SHRINK);
   } else {
@@ -771,7 +769,7 @@ void BcmHostTable::linkStateChangedMaybeLocked(
   }
 }
 
-int BcmHostTable::removeAllEgressesFromEcmpCallback(
+int BcmEgressManager::removeAllEgressesFromEcmpCallback(
     int unit,
     opennsl_l3_egress_ecmp_t* ecmp,
     int intfCount,
@@ -791,7 +789,7 @@ int BcmHostTable::removeAllEgressesFromEcmpCallback(
   return 0;
 }
 
-void BcmHostTable::egressResolutionChangedHwNotLocked(
+void BcmEgressManager::egressResolutionChangedHwNotLocked(
     int unit,
     const EgressIdSet& affectedEgressIds,
     bool up) {

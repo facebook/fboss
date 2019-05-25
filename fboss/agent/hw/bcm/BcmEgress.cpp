@@ -256,7 +256,7 @@ void BcmEcmpEgress::program() {
     opennsl_if_t pathsArray[paths_.size()];
     auto index = 0;
     for (const auto& path : paths_) {
-      if (hw_->getHostTable()->isResolved(path)) {
+      if (hw_->getHostTable()->egressManager()->isResolved(path)) {
         pathsArray[index++] = path;
       } else {
         XLOG(DBG1) << "Skipping unresolved egress : " << path << " while "

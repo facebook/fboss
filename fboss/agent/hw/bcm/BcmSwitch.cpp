@@ -1608,9 +1608,9 @@ void BcmSwitch::linkStateChangedHwNotLocked(
     auto trunk = trunkTable_->linkDownHwNotLocked(bcmPortId);
     if (trunk != BcmTrunk::INVALID) {
       XLOG(INFO) << "Shrinking ECMP entries egressing over trunk " << trunk;
-      hostTable_->trunkDownHwNotLocked(trunk);
+      hostTable_->egressManager()->trunkDownHwNotLocked(trunk);
     }
-    hostTable_->linkDownHwNotLocked(bcmPortId);
+    hostTable_->egressManager()->linkDownHwNotLocked(bcmPortId);
   } else {
     // For port up events we wait till ARP/NDP entries
     // are re resolved after port up before adding them
