@@ -34,6 +34,7 @@ class Port;
 class SwSwitch;
 class Vlan;
 class SwitchState;
+class AclEntry;
 
 class ThriftHandler : virtual public FbossCtrlSvIf,
                       public fb303::FacebookBase2,
@@ -153,6 +154,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getRunningConfig(std::string& configStr) override;
   void getArpTable(std::vector<ArpEntryThrift>& arpTable) override;
   void getL2Table(std::vector<L2EntryThrift>& l2Table) override;
+  void getAclTable(std::vector<AclEntryThrift>& AclTable) override;
   void getAggregatePort(
       AggregatePortThrift& aggregatePortThrift,
       int32_t aggregatePortIDThrift) override;
@@ -314,6 +316,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   static void populateAggregatePortThrift(
     const std::shared_ptr<AggregatePort>& aggregatePort,
     AggregatePortThrift& aggregatePortThrift);
+  static AclEntryThrift populateAclEntryThrift(
+        const AclEntry& aclEntry);
 
   // Forbidden copy constructor and assignment operator
   ThriftHandler(ThriftHandler const &) = delete;

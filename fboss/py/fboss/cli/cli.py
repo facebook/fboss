@@ -30,6 +30,7 @@ from fboss.cli.commands import nic
 from fboss.cli.commands import port
 from fboss.cli.commands import route
 from fboss.cli.commands import agent
+from fboss.cli.commands import acl
 from fboss.cli.commands.commands import FlushType
 from fboss.cli.utils.utils import AGENT_KEYWORD
 from fboss.cli.utils.utils import KEYWORD_CONFIG_SHOW, KEYWORD_CONFIG_RELOAD
@@ -612,6 +613,23 @@ class AgentCli(object):
         pass
 
 
+class AclCli(object):
+    ''' Show Acl sub-commands '''
+
+    def __init__(self):
+        self.acl.add_command(self._table, name='table')
+
+    @click.group(cls=AliasedGroup)
+    def acl():
+        ''' Show Acl information '''
+        pass
+
+    @click.command()
+    @click.pass_obj
+    def _table(cli_opts):
+        ''' Show the Acl table '''
+        acl.AclTableCmd(cli_opts).run()
+
 # -- Main Command Group -- #
 @click.group(cls=AliasedGroup)
 @click.option('--hostname', '-H', default='::1',
@@ -647,6 +665,7 @@ def add_modules(main_func):
     main_func.add_command(RouteCli().route)
     main_func.add_command(VerbosityCli().set)
     main_func.add_command(AgentCli().agent)
+    main_func.add_command(AclCli().acl)
 
 if __name__ == '__main__':
 

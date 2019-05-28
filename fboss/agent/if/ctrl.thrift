@@ -420,6 +420,30 @@ enum StdClientIds {
   OPENR = 786,
 }
 
+struct AclEntryThrift {
+  1: i32 priority
+  2: string name
+  3: Address.BinaryAddress srcIp
+  4: i32 srcIpPrefixLength
+  5: Address.BinaryAddress dstIp
+  6: i32 dstIpPrefixLength
+  7: optional byte proto
+  8: optional byte tcpFlagsBitMap
+  9: optional i16 srcPort
+  10: optional i16 dstPort
+  11: optional byte ipFrag
+  12: optional byte icmpType
+  13: optional byte icmpCode
+  14: optional byte dscp
+  15: optional byte ipType
+  16: optional i16 ttl
+  17: optional string dstMac
+  18: optional i16 l4SrcPort
+  19: optional i16 l4DstPort
+  20: optional byte lookupClass
+  21: string actionType
+}
+
 service FbossCtrl extends fb303.FacebookService {
   /*
    * Retrieve up-to-date counters from the hardware, and publish all
@@ -633,6 +657,8 @@ service FbossCtrl extends fb303.FacebookService {
   list<NdpEntryThrift> getNdpTable()
     throws (1: fboss.FbossBaseError error)
   list<L2EntryThrift> getL2Table()
+    throws (1: fboss.FbossBaseError error)
+  list<AclEntryThrift> getAclTable()
     throws (1: fboss.FbossBaseError error)
 
   AggregatePortThrift getAggregatePort(1: i32 aggregatePortID)

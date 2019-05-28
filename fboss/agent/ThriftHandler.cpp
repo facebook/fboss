@@ -15,6 +15,7 @@
 #include "common/stats/ServiceData.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ArpHandler.h"
+#include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/LldpManager.h"
@@ -364,6 +365,59 @@ void ThriftHandler::getL2Table(std::vector<L2EntryThrift>& l2Table) {
   ensureConfigured();
   sw_->getHw()->fetchL2Table(&l2Table);
   XLOG(DBG6) << "L2 Table size:" << l2Table.size();
+}
+
+AclEntryThrift ThriftHandler::populateAclEntryThrift(
+    const AclEntry& aclEntry) {
+    AclEntryThrift aclEntryThrift;
+    aclEntryThrift.priority = aclEntry.getPriority();
+    aclEntryThrift.name = aclEntry.getID();
+    aclEntryThrift.srcIp = toBinaryAddress(aclEntry.getSrcIp().first);
+    aclEntryThrift.srcIpPrefixLength = aclEntry.getSrcIp().second;
+    aclEntryThrift.dstIp = toBinaryAddress(aclEntry.getDstIp().first);
+    aclEntryThrift.dstIpPrefixLength = aclEntry.getDstIp().second;
+    aclEntryThrift.actionType =
+        aclEntry.getActionType() == cfg::AclActionType::DENY ?
+        "deny" : "permit";
+    if (aclEntry.getProto()) {
+      aclEntryThrift.proto_ref() = aclEntry.getProto().value();
+    }
+    if (aclEntry.getSrcPort()) {
+      aclEntryThrift.srcPort_ref() = aclEntry.getSrcPort().value();
+    }
+    if (aclEntry.getDstPort()) {
+      aclEntryThrift.dstPort_ref() = aclEntry.getDstPort().value();
+    }
+    if (aclEntry.getIcmpCode()) {
+      aclEntryThrift.icmpCode_ref() = aclEntry.getIcmpCode().value();
+    }
+    if (aclEntry.getIcmpType()) {
+      aclEntryThrift.icmpType_ref() = aclEntry.getIcmpType().value();
+    }
+    if (aclEntry.getDscp()) {
+      aclEntryThrift.dscp_ref() = aclEntry.getDscp().value();
+    }
+    if (aclEntry.getTtl()) {
+      aclEntryThrift.ttl_ref() = aclEntry.getTtl().value().getValue();
+    }
+    if (aclEntry.getL4SrcPort()) {
+      aclEntryThrift.l4SrcPort_ref() = aclEntry.getL4SrcPort().value();
+    }
+    if (aclEntry.getL4DstPort()) {
+      aclEntryThrift.l4DstPort_ref() = aclEntry.getL4DstPort().value();
+    }
+    if (aclEntry.getDstMac()) {
+      aclEntryThrift.dstMac_ref() = aclEntry.getDstMac().value().toString();
+    }
+    return aclEntryThrift;
+}
+
+void ThriftHandler::getAclTable(std::vector<AclEntryThrift>& aclTable) {
+  ensureConfigured();
+  aclTable.reserve(sw_->getState()->getAcls()->numEntries());
+  for (const auto& aclEntry : *(sw_->getState()->getAcls())) {
+    aclTable.push_back(populateAclEntryThrift(*aclEntry));
+  }
 }
 
 LacpPortRateThrift ThriftHandler::fromLacpPortRate(cfg::LacpPortRate rate) {
