@@ -92,7 +92,9 @@ void RoutingInformationBase::update(
     AdminDistance adminDistanceFromClientID,
     const std::vector<UnicastRoute>& toAdd,
     const std::vector<IpPrefix>& toDelete,
-    bool resetClientsRoutes) {
+    bool resetClientsRoutes,
+    folly::StringPiece updateType,
+    ApplyStateUpdateFunction updateStateBlockingFn) {
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
 
   auto it = lockedRouteTables->find(routerID);
@@ -130,6 +132,11 @@ void RoutingInformationBase::update(
   }
 
   updater.updateDone();
+
+  ForwardingInformationBaseUpdater fibUpdater(
+      routerID, it->second.v4NetworkToRoute, it->second.v6NetworkToRoute);
+
+  updateStateBlockingFn(updateType, std::move(fibUpdater));
 }
 
 RoutingInformationBase::RouterIDToRouteTable

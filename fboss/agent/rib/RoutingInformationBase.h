@@ -13,6 +13,7 @@
 
 #include <folly/Synchronized.h>
 #include <functional>
+#include <memory>
 #include <thread>
 #include <vector>
 
@@ -32,19 +33,33 @@ namespace rib {
 
 class RoutingInformationBase {
  public:
-  // If a UnicastRoute does not specify its admin distance, then we derive its
-  // admin distance via its clientID.  This is accomplished by a mapping from
-  // client IDs to admin distances provided in configuration. Unfortunately,
-  // this mapping is exposed via SwSwitch, which we can't a dependency on here.
-  // The adminDistanceFromClientID allows callsites to propogate admin distances
-  // per client.
+  using ApplyStateUpdateFunction = std::function<void(
+      folly::StringPiece,
+      std::function<std::shared_ptr<SwitchState>(
+          const std::shared_ptr<SwitchState>&)>)>;
+
+  /* update first acquires exclusive ownership of the RIB and executes the
+   * following sequence of actions:
+   * 1. Injects and removes routes in `toAdd` and `toDelete`, respectively.
+   * 2. Triggers recursive (IP) resolution.
+   * 3. Updates the FIB synchronously.
+   *
+   * If a UnicastRoute does not specify its admin distance, then we derive its
+   * admin distance via its clientID.  This is accomplished by a mapping from
+   * client IDs to admin distances provided in configuration. Unfortunately,
+   * this mapping is exposed via SwSwitch, which we can't a dependency on here.
+   * The adminDistanceFromClientID allows callsites to propogate admin distances
+   * per client.
+   */
   void update(
       RouterID routerID,
       ClientID clientID,
       AdminDistance adminDistanceFromClientID,
       const std::vector<UnicastRoute>& toAdd,
       const std::vector<IpPrefix>& toDelete,
-      bool resetClientsRoutes = false);
+      bool resetClientsRoutes,
+      folly::StringPiece updateType,
+      ApplyStateUpdateFunction updateStateBlockingFn);
 
   // VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
   // (RouterID, folly::CIDRNetwork) to the pair (Interface(1),
