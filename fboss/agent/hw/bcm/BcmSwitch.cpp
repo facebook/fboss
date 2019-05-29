@@ -548,8 +548,27 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   if (warmBoot) {
     auto warmBootState = getWarmBootSwitchState();
-    warmBootState =
-        stateChangedImpl(StateDelta(make_shared<SwitchState>(), warmBootState));
+
+    // Force port/queue stat counter creation by initializing currState to
+    // carry empty port/queue names. This means there is a delta between
+    // currState and warmBootState (which has correct port/queue names), and
+    // thus port/queue stats get created. This is needed as setupCos
+    // (which figures out the number of queues) is called after
+    // portTable->initPorts, and thus initPorts does not create queue counters.
+    auto currState = make_shared<SwitchState>();
+    auto portMap = warmBootState->getPorts()->clone();
+    currState->resetPorts(std::move(portMap));
+    for (auto port : *currState->getPorts()) {
+      auto newPort = port->modify(&currState);
+      newPort->setName("");
+
+      for (auto queue : port->getPortQueues()) {
+        queue->setName("");
+      }
+    }
+
+    warmBootState = stateChangedImpl(StateDelta(currState, warmBootState));
+
     restorePortSettings(warmBootState);
     hostTable_->warmBootHostEntriesSynced();
     ret.switchState = warmBootState;
