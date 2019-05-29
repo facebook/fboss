@@ -127,6 +127,35 @@ TEST(RefMap, getNonExistent) {
   EXPECT_EQ(identityMap.size(), 1);
 }
 
+TEST(RefMap, getExpired) {
+  UnorderedRefMap<int, A> identityMap;
+  {
+    std::shared_ptr<A> a1;
+    std::tie(a1, std::ignore) = identityMap.refOrEmplace(42, 42);
+    EXPECT_EQ(identityMap.referenceCount(42), 1);
+    EXPECT_NE(identityMap.get(42), nullptr);
+  }
+  // shared_ptr destructctor above should remove entry from map
+  EXPECT_EQ(identityMap.referenceCount(42), 0);
+  EXPECT_EQ(identityMap.get(42), nullptr);
+}
+
+TEST(RefMap, reinsertExpired) {
+  UnorderedRefMap<int, A> identityMap;
+  {
+    std::shared_ptr<A> a1;
+    std::tie(a1, std::ignore) = identityMap.refOrEmplace(42, 42);
+    EXPECT_EQ(identityMap.referenceCount(42), 1);
+    EXPECT_NE(identityMap.get(42), nullptr);
+  }
+  // shared_ptr destructctor above should remove entry from map.
+  // Adding entry again should cause a insert to happen
+  bool ins;
+  std::shared_ptr<A> a2;
+  std::tie(a2, ins) = identityMap.refOrEmplace(42, 42);
+  EXPECT_TRUE(ins);
+}
+
 TEST(RefMap, IteratorTest) {
   UnorderedRefMap<int, A> unOrderedRedMap;
   FlatRefMap<int, A> flatRefMap;
