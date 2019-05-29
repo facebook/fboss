@@ -1,5 +1,4 @@
 namespace cpp2 facebook.fboss
-namespace d neteng.fboss.transceiver
 namespace go neteng.fboss.transceiver
 namespace php fboss
 namespace py neteng.fboss.transceiver

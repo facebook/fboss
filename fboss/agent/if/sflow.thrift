@@ -1,5 +1,4 @@
 namespace cpp2 facebook.fboss
-namespace d neteng.fboss.sflow
 namespace py neteng.fboss.sflow
 namespace py3 neteng.fboss
 

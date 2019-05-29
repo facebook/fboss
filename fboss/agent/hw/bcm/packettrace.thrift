@@ -1,5 +1,4 @@
 namespace cpp2 facebook.fboss
-namespace d neteng.fboss.packettrace
 namespace py neteng.fboss.packettrace
 
 /*

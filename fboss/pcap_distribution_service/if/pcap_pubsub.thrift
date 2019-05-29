@@ -1,7 +1,6 @@
 namespace cpp2 facebook.fboss
 namespace py neteng.fboss.pcap_pubsub
 namespace py.asyncio neteng.fboss.asyncio.pcap_pubsub
-namespace d neteng.fboss.pcap_pubsub
 
 typedef binary (cpp2.type = "::folly::fbstring") fbbinary
 

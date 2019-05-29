@@ -1,5 +1,4 @@
 namespace cpp2 facebook.fboss
-namespace d neteng.fboss.hardware_stats
 namespace py neteng.fboss.hardware_stats
 
 

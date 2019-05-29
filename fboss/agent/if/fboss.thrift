@@ -1,6 +1,5 @@
 namespace cpp facebook.fboss.thrift
 namespace cpp2 facebook.fboss.thrift
-namespace d neteng.fboss
 namespace go neteng.fboss
 namespace php fboss
 namespace py neteng.fboss

@@ -1,5 +1,4 @@
 namespace cpp2 facebook.fboss
-namespace d neteng.fboss.ctrl
 namespace go neteng.fboss.ctrl
 namespace php fboss
 namespace py neteng.fboss.ctrl
