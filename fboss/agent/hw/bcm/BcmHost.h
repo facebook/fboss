@@ -76,7 +76,7 @@ class BcmHost {
   bool isProgrammed() const {
     // Cannot use addedInHW_, as v6 link-local will not be added
     // to the HW. Instead, check the egressId_.
-    return (egressId_ != BcmEgressBase::INVALID);
+    return (getEgressId() != BcmEgressBase::INVALID);
   }
   /*
    * program* apis get called only when for non host
@@ -105,7 +105,10 @@ class BcmHost {
   void setEgressId(opennsl_if_t eid);
 
   opennsl_if_t getEgressId() const {
-    return egressId_;
+    if (!egress_) {
+      return BcmEgressBase::INVALID;
+    }
+    return egress_->getEgressId();
   }
 
   bool getAndClearHitBit() const;
@@ -150,6 +153,13 @@ class BcmHost {
     return action_ == NEXTHOPS;
   }
 
+  BcmEgress* getEgress() const {
+    return (egress_ &&
+            egress_->type() == BcmHostEgress::BcmHostEgressType::OWNED)
+        ? static_cast<BcmEgress*>(egress_->getOwnedEgressPtr())
+        : nullptr;
+  }
+
  private:
   // no copy or assignment
   BcmHost(BcmHost const &) = delete;
@@ -170,10 +180,10 @@ class BcmHost {
   // well
   opennsl_if_t port_{0};
   opennsl_trunk_t trunk_{BcmTrunk::INVALID};
-  opennsl_if_t egressId_{BcmEgressBase::INVALID};
   bool addedInHW_{false}; // if added to the HW host(ARP) table or not
   int lookupClassId_{0}; // DST Lookup Class
   RouteForwardAction action_{DROP};
+  std::unique_ptr<BcmHostEgress> egress_;
 };
 
 /**

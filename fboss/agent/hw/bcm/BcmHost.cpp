@@ -79,7 +79,7 @@ std::string BcmHost::l3HostToString(const opennsl_l3_host_t& host) {
 }
 
 void BcmHost::setEgressId(opennsl_if_t eid) {
-  if (eid == egressId_) {
+  if (eid == getEgressId()) {
     // This could happen for loopback interface route.
     // For example, for the loopback interface address, 1.1.1.1/32.
     // The route's nexthop is 1.1.1.1. We will first create a BcmHost for
@@ -90,13 +90,13 @@ void BcmHost::setEgressId(opennsl_if_t eid) {
     // as the BcmHost object.
     return;
   }
-  if (egressId_ != BcmEgressBase::INVALID) {
-    hw_->writableHostTable()->derefEgress(egressId_);
-  }
-  hw_->writableHostTable()->incEgressReference(eid);
-  XLOG(DBG3) << "set host object for " << key_.str() << " to @egress " << eid
-             << " from @egress " << egressId_;
-  egressId_ = eid;
+
+  XLOG(DBG3) << "set host object for " << key_.str() << " to @egress "
+             << eid << " from @egress " << getEgressId();
+  egress_ = std::make_unique<BcmHostEgress>(eid);
+  // in case if both neighbor & host route prefix end up using same host entry
+  // next hops referring to it, can't refer to hostRouteEgress
+  action_ = DROP;
 }
 
 void BcmHost::initHostCommon(opennsl_l3_host_t *host) const {
@@ -190,15 +190,13 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
   const auto& addr = key_.addr();
   const auto vrf = key_.getVrf();
   // get the egress object and then update it with the new MAC
-  if (egressId_ == BcmEgressBase::INVALID) {
+  if (!egress_ || egress_->getEgressId() == BcmEgressBase::INVALID) {
     XLOG(DBG3) << "Host entry for " << key_.str()
                << " does not have an egress, create one.";
-    createdEgress = createEgress();
-    egressPtr = createdEgress.get();
-  } else {
-    egressPtr = dynamic_cast<BcmEgress*>(
-      hw_->writableHostTable()->getEgressObjectIf(egressId_));
+    egress_ = std::make_unique<BcmHostEgress>(createEgress());
   }
+  egressPtr = getEgress();
+
   CHECK(egressPtr);
   if (mac) {
     egressPtr->programToPort(intf, vrf, addr, *mac, port);
@@ -208,10 +206,6 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
     } else {
       egressPtr->programToCPU(intf, vrf, addr);
     }
-  }
-  if (createdEgress) {
-    egressId_ = createdEgress->getID();
-    hw_->writableHostTable()->insertBcmEgress(std::move(createdEgress));
   }
 
   // if no host was added already, add one pointing to the egress object
@@ -255,11 +249,11 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
   BcmEcmpEgress::Action ecmpAction;
   if (isSet && !port) {
     /* went down */
-    hw_->writableEgressManager()->unresolved(egressId_);
+    hw_->writableEgressManager()->unresolved(getEgressId());
     ecmpAction = BcmEcmpEgress::Action::SHRINK;
   } else if (!isSet && port) {
     /* came up */
-    hw_->writableEgressManager()->resolved(egressId_);
+    hw_->writableEgressManager()->resolved(getEgressId());
     ecmpAction = BcmEcmpEgress::Action::EXPAND;
   } else if (!isSet && !port) {
     /* stayed down */
@@ -278,7 +272,7 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
       egressPtr->getID(), getSetPortAsGPort(), BcmPort::asGPort(port));
 
   hw_->writableHostTable()->egressResolutionChangedHwLocked(
-      egressId_, ecmpAction);
+      getEgressId(), ecmpAction);
 
   trunk_ = BcmTrunk::INVALID;
   port_ = port;
@@ -287,24 +281,15 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
 
 void BcmHost::programToTrunk(opennsl_if_t intf,
                              const MacAddress mac, opennsl_trunk_t trunk) {
-  unique_ptr<BcmEgress> createdEgress{nullptr};
   BcmEgress* egress{nullptr};
   // get the egress object and then update it with the new MAC
-  if (egressId_ == BcmEgressBase::INVALID) {
-    createdEgress = std::make_unique<BcmEgress>(hw_);
-    egress = createdEgress.get();
-  } else {
-    egress = dynamic_cast<BcmEgress*>(
-        hw_->writableHostTable()->getEgressObjectIf(egressId_));
+  if (!egress_ || egress_->getEgressId() == BcmEgressBase::INVALID) {
+    egress_ = std::make_unique<BcmHostEgress>(std::make_unique<BcmEgress>(hw_));
   }
+  egress = getEgress();
   CHECK(egress);
 
   egress->programToTrunk(intf, key_.getVrf(), key_.addr(), mac, trunk);
-
-  if (createdEgress) {
-    egressId_ = createdEgress->getID();
-    hw_->writableHostTable()->insertBcmEgress(std::move(createdEgress));
-  }
 
   // if no host was added already, add one pointing to the egress object
   if (!addedInHW_) {
@@ -315,13 +300,13 @@ void BcmHost::programToTrunk(opennsl_if_t intf,
              << (isTrunk() ? "trunk port " : "physical port ")
              << (isTrunk() ? trunk_ : port_) << " to trunk port " << trunk;
 
-  hw_->writableEgressManager()->resolved(egressId_);
+  hw_->writableEgressManager()->resolved(getEgressId());
 
   hw_->writableEgressManager()->updatePortToEgressMapping(
-      egress->getID(), getSetPortAsGPort(), BcmTrunk::asGPort(trunk));
+      getEgressId(), getSetPortAsGPort(), BcmTrunk::asGPort(trunk));
 
   hw_->writableHostTable()->egressResolutionChangedHwLocked(
-      egressId_, BcmEcmpEgress::Action::EXPAND);
+      getEgressId(), BcmEcmpEgress::Action::EXPAND);
 
   port_ = 0;
   trunk_ = trunk;
@@ -343,20 +328,19 @@ BcmHost::~BcmHost() {
     XLOG(DBG3) << "No need to delete L3 host object for " << key_.str()
                << " as it was not added to the HW before";
   }
-  if (egressId_ == BcmEgressBase::INVALID) {
+  if (getEgressId() == BcmEgressBase::INVALID) {
     return;
   }
   if (isPortOrTrunkSet()) {
-    hw_->writableEgressManager()->unresolved(egressId_);
+    hw_->writableEgressManager()->unresolved(getEgressId());
   }
   // This host mapping just went away, update the port -> egress id mapping
   hw_->writableEgressManager()->updatePortToEgressMapping(
-      egressId_, getSetPortAsGPort(), BcmPort::asGPort(0));
+      getEgressId(), getSetPortAsGPort(), BcmPort::asGPort(0));
   hw_->writableHostTable()->egressResolutionChangedHwLocked(
-      egressId_,
+      getEgressId(),
       isPortOrTrunkSet() ? BcmEcmpEgress::Action::SHRINK
                          : BcmEcmpEgress::Action::SKIP);
-  hw_->writableHostTable()->derefEgress(egressId_);
 }
 
 PortDescriptor BcmHost::portDescriptor() const {
@@ -668,11 +652,11 @@ folly::dynamic BcmHost::toFollyDynamic() const {
     host[kIntf] = static_cast<uint32_t>(key_.intfID().value());
   }
   host[kPort] = port_;
-  host[kEgressId] = egressId_;
-  if (egressId_ != BcmEgressBase::INVALID &&
-      egressId_ != hw_->getDropEgressId()) {
-    host[kEgress] = hw_->getHostTable()
-      ->getEgressObjectIf(egressId_)->toFollyDynamic();
+  host[kEgressId] = getEgressId();
+  if (getEgressId() != BcmEgressBase::INVALID &&
+      egress_->type() == BcmHostEgress::BcmHostEgressType::OWNED) {
+    // owned egress, BcmHost entry is not host route entry.
+    host[kEgress] = egress_->getOwnedEgressPtr()->toFollyDynamic();
   }
   return host;
 }
