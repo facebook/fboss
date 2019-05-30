@@ -93,8 +93,7 @@ void BcmMplsNextHop::program(BcmHostKey bcmHostKey) {
     /* program to next hop */
     auto bcmHostPortDesc = bcmHostEntry->portDescriptor();
     auto bcmHostEgressId = bcmHostEntry->getEgressId();
-    auto* bcmHostEgress =
-        hw_->getHostTable()->getEgressObjectIf(bcmHostEgressId);
+    auto* bcmHostEgress = bcmHostEntry->getEgress();
     auto mac = bcmHostEgress->getMac();
     if (bcmHostPortDesc.isAggregatePort()) {
       // program over trunk

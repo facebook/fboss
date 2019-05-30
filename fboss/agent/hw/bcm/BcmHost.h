@@ -284,19 +284,6 @@ class BcmHostTable {
   uint32_t getReferenceCount(const BcmEcmpHostKey& key) const noexcept;
 
   /*
-   * APIs to manage egress objects. Multiple host entries can point
-   * to a egress object. Lifetime of these egress objects is thus
-   * managed via a reference count of hosts pointing to these
-   * egress objects. Once the last host pointing to a egress object
-   * goes away, the egress object is deleted.
-   */
-  void insertBcmEgress(std::unique_ptr<BcmEgressBase> egress);
-  BcmEgressBase* incEgressReference(opennsl_if_t egressId);
-  BcmEgressBase* derefEgress(opennsl_if_t egressId);
-  const BcmEgressBase*  getEgressObjectIf(opennsl_if_t egress) const;
-  BcmEgressBase* getEgressObjectIf(opennsl_if_t egress);
-
-  /*
    * Serialize toFollyDynamic
    */
   folly::dynamic toFollyDynamic() const;
