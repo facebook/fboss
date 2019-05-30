@@ -403,24 +403,23 @@ BcmEcmpHost::BcmEcmpHost(const BcmSwitchIf *hw,
     }
     nexthops.push_back(std::move(nexthopSharedPtr));
   }
-  if (paths.size() == 1) {
-    // just one path. No BcmEcmpEgress object this case.
-    egressId_ = *paths.begin();
-  } else {
-    auto ecmp = std::make_unique<BcmEcmpEgress>(hw, std::move(paths));
-    egressId_ = ecmp->getID();
-    ecmpEgressId_ = egressId_;
-    hw_->writableHostTable()->insertBcmEgress(std::move(ecmp));
+  if (paths.size() > 1) {
+    // BcmEcmpEgress object only for more than 1 paths.
+    ecmpEgress_ = std::make_unique<BcmEcmpEgress>(hw, std::move(paths));
   }
   fwd_ = std::move(fwd);
   nexthops_ = std::move(nexthops);
 }
 
+opennsl_if_t BcmEcmpHost::getEgressId() const {
+  return nexthops_.size() > 1 ? getEcmpEgressId()
+                              : nexthops_.front()->getEgressId();
+}
+
 BcmEcmpHost::~BcmEcmpHost() {
   // Deref ECMP egress first since the ECMP egress entry holds references
   // to egress entries.
-  XLOG(DBG3) << "Decremented reference for egress object for " << fwd_;
-  hw_->writableHostTable()->derefEgress(ecmpEgressId_);
+  XLOG(DBG3) << "Removing egress object for " << fwd_;
 }
 
 BcmHostTable::BcmHostTable(const BcmSwitchIf* hw) : hw_(hw) {}
@@ -570,26 +569,37 @@ BcmEcmpHost* BcmHostTable::derefBcmEcmpHost(
   return derefBcmHostImpl(&ecmpHosts_, key);
 }
 
-BcmEgressBase* BcmHostTable::incEgressReference(opennsl_if_t egressId) {
+BcmEgressBase* FOLLY_NULLABLE
+BcmHostTable::incEgressReference(opennsl_if_t egressId) {
   if (egressId == BcmEcmpEgress::INVALID ||
       egressId == hw_->getDropEgressId()) {
     return nullptr;
   }
   auto it = egressMap_.find(egressId);
-  CHECK(it != egressMap_.end());
+  if (it == egressMap_.end()) {
+    // if egress belongs to EcmpHost, its not kept in host table,
+    // this can happen when BcmHost belongs to host route and is referencing an
+    // egress to EcmpHost
+    return nullptr;
+  }
   it->second.second++;
   XLOG(DBG3) << "referenced egress " << egressId
              << ". new ref count: " << it->second.second;
   return it->second.first.get();
 }
 
-BcmEgressBase* BcmHostTable::derefEgress(opennsl_if_t egressId) {
+BcmEgressBase* FOLLY_NULLABLE BcmHostTable::derefEgress(opennsl_if_t egressId) {
   if (egressId == BcmEcmpEgress::INVALID ||
       egressId == hw_->getDropEgressId()) {
     return nullptr;
   }
   auto it = egressMap_.find(egressId);
-  CHECK(it != egressMap_.end());
+  if (it == egressMap_.end()) {
+    // if egress belongs to EcmpHost, its not kept in host table,
+    // this can happen when BcmHost belongs to host route and is referencing an
+    // egress to EcmpHost
+    return nullptr;
+  }
   CHECK_GT(it->second.second, 0);
   if (--it->second.second == 0) {
     if (it->second.first->isEcmp()) {
@@ -675,11 +685,10 @@ folly::dynamic BcmEcmpHost::toFollyDynamic() const {
     nhops.push_back(nhop.toFollyDynamic());
   }
   ecmpHost[kNextHops] = std::move(nhops);
-  ecmpHost[kEgressId] = egressId_;
-  ecmpHost[kEcmpEgressId] = ecmpEgressId_;
-  if (ecmpEgressId_ != BcmEgressBase::INVALID) {
-    ecmpHost[kEcmpEgress] = hw_->getHostTable()
-      ->getEgressObjectIf(ecmpEgressId_)->toFollyDynamic();
+  ecmpHost[kEgressId] = getEgressId();
+  ecmpHost[kEcmpEgressId] = getEcmpEgressId();
+  if (ecmpEgress_) {
+    ecmpHost[kEcmpEgress] = ecmpEgress_->toFollyDynamic();
   }
   return ecmpHost;
 }
@@ -707,16 +716,10 @@ void BcmHostTable::egressResolutionChangedHwLocked(
   }
 
   for (const auto& nextHopsAndEcmpHostInfo : ecmpHosts_) {
-    auto ecmpId = nextHopsAndEcmpHostInfo.second.first->getEcmpEgressId();
-    if (ecmpId == BcmEgressBase::INVALID) {
+    auto ecmpEgress = nextHopsAndEcmpHostInfo.second.first->getEgress();
+    if (!ecmpEgress) {
       continue;
     }
-    auto ecmpEgress = static_cast<BcmEcmpEgress*>(getEgressObjectIf(ecmpId));
-    // Must find the egress object, we could have done a slower
-    // dynamic cast check to ensure that this is the right type
-    // our map should be pointing to valid Ecmp egress object for
-    // a ecmp egress Id anyways
-    CHECK(ecmpEgress);
     for (auto egrId : affectedEgressIds) {
       switch (action) {
         case BcmEcmpEgress::Action::EXPAND:

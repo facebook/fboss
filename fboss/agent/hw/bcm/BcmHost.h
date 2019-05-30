@@ -164,33 +164,24 @@ class BcmEcmpHost {
  public:
   BcmEcmpHost(const BcmSwitchIf* hw, BcmEcmpHostKey key);
   virtual ~BcmEcmpHost();
-  opennsl_if_t getEgressId() const {
-    return egressId_;
-  }
+  opennsl_if_t getEgressId() const;
   opennsl_if_t getEcmpEgressId() const {
-    return ecmpEgressId_;
+    return ecmpEgress_ ? ecmpEgress_->getID() : BcmEgressBase::INVALID;
   }
   folly::dynamic toFollyDynamic() const;
+
+  BcmEcmpEgress* getEgress() const {
+    return ecmpEgress_.get();
+  }
 
  private:
   std::shared_ptr<BcmNextHop> refOrEmplaceNextHop(const HostKey& key);
 
   const BcmSwitchIf* hw_;
   opennsl_vrf_t vrf_;
-  /**
-   * The egress ID for this ECMP host
-   *
-   * If there is only one entry in 'fwd', there will be one BcmHost object
-   * created. The egress ID is that host's egress ID.
-   * Otherwise, one BcmEcmpEgress object is created. The egress ID is the one
-   * from this ECMP egress object. In the latter case, ecmpEgressId_ will also
-   * be set and both egressId_ and ecmpEgressId_ will be that of the ecmp egress
-   * object.
-   */
-  opennsl_if_t egressId_{BcmEgressBase::INVALID};
-  opennsl_if_t ecmpEgressId_{BcmEgressBase::INVALID};
   RouteNextHopSet fwd_;
   std::vector<std::shared_ptr<BcmNextHop>> nexthops_;
+  std::unique_ptr<BcmEcmpEgress> ecmpEgress_;
 };
 
 class BcmHostTable {
