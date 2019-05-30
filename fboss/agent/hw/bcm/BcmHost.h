@@ -37,6 +37,36 @@ class BcmSwitchIf;
 class BcmHostTable;
 class BcmHostReference;
 
+class BcmHostEgress : public boost::noncopyable {
+ public:
+  enum class BcmHostEgressType { OWNED, REFERENCED };
+
+  explicit BcmHostEgress(opennsl_if_t egressId)
+      : type_(BcmHostEgressType::REFERENCED), referencedEgressId_(egressId) {}
+  explicit BcmHostEgress(std::unique_ptr<BcmEgressBase> egress)
+      : type_(BcmHostEgressType::OWNED), ownedEgress_(std::move(egress)) {}
+
+  BcmHostEgressType type() const {
+    return type_;
+  }
+
+  BcmEgressBase* getOwnedEgressPtr() const {
+    CHECK(type_ == BcmHostEgressType::OWNED);
+    return ownedEgress_.get();
+  }
+
+  opennsl_if_t getEgressId() const {
+    CHECK_NE((ownedEgress_ != nullptr), (referencedEgressId_.hasValue()));
+    return ownedEgress_
+        ? ownedEgress_->getID() : referencedEgressId_.value();
+  }
+
+ private:
+  BcmHostEgressType type_;
+  std::unique_ptr<BcmEgressBase> ownedEgress_;
+  folly::Optional<opennsl_if_t> referencedEgressId_;
+};
+
 class BcmHost {
  public:
   BcmHost(const BcmSwitchIf* hw, BcmHostKey key)
