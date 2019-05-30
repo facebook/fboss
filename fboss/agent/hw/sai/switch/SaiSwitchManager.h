@@ -65,6 +65,7 @@ class SaiSwitchManager {
   SaiSwitchInstance* getSwitchImpl(const SwitchID& switchId) const;
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
+  const SaiPlatform* platform_;
   std::unordered_map<SwitchID, std::unique_ptr<SaiSwitchInstance>> switches_;
 };
 

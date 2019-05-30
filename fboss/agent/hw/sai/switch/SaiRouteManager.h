@@ -24,6 +24,7 @@ namespace fboss {
 
 class SaiManagerTable;
 class SaiNextHopGroup;
+class SaiPlatform;
 
 class SaiRoute {
  public:
@@ -56,7 +57,10 @@ class SaiRoute {
 
 class SaiRouteManager {
  public:
-  SaiRouteManager(SaiApiTable* apiTable, SaiManagerTable* managerTable);
+  SaiRouteManager(
+      SaiApiTable* apiTable,
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
   // Helper function to create a SAI RouteEntry from an FBOSS SwitchState
   // Route (e.g., Route<IPAddressV6>)
   template <typename AddrT>
@@ -93,6 +97,7 @@ class SaiRouteManager {
 
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
+  const SaiPlatform* platform_;
   std::unordered_map<RouteApiParameters::EntryType, std::unique_ptr<SaiRoute>>
       routes_;
 };

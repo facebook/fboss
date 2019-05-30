@@ -26,6 +26,7 @@ namespace facebook {
 namespace fboss {
 
 class SaiManagerTable;
+class SaiPlatform;
 
 class SaiNextHopGroupMember {
  public:
@@ -93,7 +94,10 @@ class SaiNextHopGroup {
 
 class SaiNextHopGroupManager {
  public:
-  SaiNextHopGroupManager(SaiApiTable* apiTable, SaiManagerTable* managerTable);
+  SaiNextHopGroupManager(
+      SaiApiTable* apiTable,
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
   std::shared_ptr<SaiNextHopGroup> incRefOrAddNextHopGroup(
       const RouteNextHopEntry::NextHopSet& swNextHops);
 
@@ -109,6 +113,7 @@ class SaiNextHopGroupManager {
  private:
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
+  const SaiPlatform* platform_;
   FlatRefMap<RouteNextHopEntry::NextHopSet, SaiNextHopGroup> nextHopGroups_;
   std::unordered_map<
       NeighborApiParameters::NeighborEntry,

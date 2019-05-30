@@ -21,6 +21,7 @@ namespace facebook {
 namespace fboss {
 
 class SaiManagerTable;
+class SaiPlatform;
 
 class SaiBridge {
  public:
@@ -78,12 +79,16 @@ class SaiBridgePort {
 
 class SaiBridgeManager {
  public:
-  SaiBridgeManager(SaiApiTable* apiTable, SaiManagerTable* managerTable);
+  SaiBridgeManager(
+      SaiApiTable* apiTable,
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
   std::unique_ptr<SaiBridgePort> addBridgePort(sai_object_id_t portId);
 
  private:
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
+  const SaiPlatform* platform_;
   std::unordered_map<BridgeID, std::unique_ptr<SaiBridge>> bridges_;
 };
 

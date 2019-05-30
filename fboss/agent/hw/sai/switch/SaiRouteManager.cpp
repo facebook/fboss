@@ -66,8 +66,9 @@ void SaiRoute::setAttributes(
 
 SaiRouteManager::SaiRouteManager(
     SaiApiTable* apiTable,
-    SaiManagerTable* managerTable)
-    : apiTable_(apiTable), managerTable_(managerTable) {}
+    SaiManagerTable* managerTable,
+    const SaiPlatform* platform)
+    : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
 
 template <typename AddrT>
 RouteApiParameters::EntryType SaiRouteManager::routeEntryFromSwRoute(

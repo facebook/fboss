@@ -26,6 +26,7 @@ namespace fboss {
 class SaiManagerTable;
 class SaiNextHop;
 class SaiFdbEntry;
+class SaiPlatform;
 
 class SaiNeighbor {
  public:
@@ -59,7 +60,10 @@ class SaiNeighbor {
 
 class SaiNeighborManager {
  public:
-  SaiNeighborManager(SaiApiTable* apiTable, SaiManagerTable* managerTable);
+  SaiNeighborManager(
+      SaiApiTable* apiTable,
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
 
   // Helper function to create a SAI NeighborEntry from an FBOSS SwitchState
   // NeighborEntry (e.g., NeighborEntry<IPAddressV6, NDPTable>)
@@ -90,6 +94,7 @@ class SaiNeighborManager {
       const NeighborApiParameters::EntryType& entry) const;
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
+  const SaiPlatform* platform_;
   std::unordered_set<NeighborApiParameters::EntryType> unresolvedNeighbors_;
   std::unordered_map<
       NeighborApiParameters::EntryType,

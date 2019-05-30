@@ -43,8 +43,9 @@ bool SaiFdbEntry::operator!=(const SaiFdbEntry& other) const {
 
 SaiFdbManager::SaiFdbManager(
     SaiApiTable* apiTable,
-    SaiManagerTable* managerTable)
-    : apiTable_(apiTable), managerTable_(managerTable) {}
+    SaiManagerTable* managerTable,
+    const SaiPlatform* platform)
+    : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
 
 std::unique_ptr<SaiFdbEntry> SaiFdbManager::addFdbEntry(
     const InterfaceID& intfId,

@@ -63,8 +63,9 @@ bool SaiVirtualRouter::operator!=(const SaiVirtualRouter& other) const {
 
 SaiVirtualRouterManager::SaiVirtualRouterManager(
     SaiApiTable* apiTable,
-    SaiManagerTable* managerTable)
-    : apiTable_(apiTable), managerTable_(managerTable) {
+    SaiManagerTable* managerTable,
+    const SaiPlatform* platform)
+    : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {
   auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
   auto defaultVirtualRouter =
       std::make_unique<SaiVirtualRouter>(apiTable_, switchId);

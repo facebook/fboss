@@ -23,6 +23,7 @@ namespace facebook {
 namespace fboss {
 
 class SaiManagerTable;
+class SaiPlatform;
 
 class SaiVlanMember {
  public:
@@ -88,7 +89,10 @@ class SaiVlan {
 
 class SaiVlanManager {
  public:
-  SaiVlanManager(SaiApiTable* apiTable, SaiManagerTable* managerTable);
+  SaiVlanManager(
+      SaiApiTable* apiTable,
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
   sai_object_id_t addVlan(const std::shared_ptr<Vlan>& swVlan);
   void removeVlan(const VlanID& swVlanId);
   void changeVlan(
@@ -104,6 +108,7 @@ class SaiVlanManager {
   SaiVlan* getVlanImpl(VlanID swVlanId) const;
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
+  const SaiPlatform* platform_;
   std::unordered_map<VlanID, std::unique_ptr<SaiVlan>> vlans_;
   std::unordered_map<sai_object_id_t, VlanID> vlanSaiIds_;
 };

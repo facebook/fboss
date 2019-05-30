@@ -23,6 +23,7 @@ namespace facebook {
 namespace fboss {
 
 class SaiManagerTable;
+class SaiPlatform;
 
 class SaiNextHop {
  public:
@@ -57,7 +58,10 @@ class SaiNextHop {
 
 class SaiNextHopManager {
  public:
-  SaiNextHopManager(SaiApiTable* apiTable, SaiManagerTable* managerTable);
+  SaiNextHopManager(
+      SaiApiTable* apiTable,
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
   std::unique_ptr<SaiNextHop> addNextHop(
       sai_object_id_t routerInterfaceId,
       const folly::IPAddress& ip);
@@ -65,6 +69,7 @@ class SaiNextHopManager {
  private:
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
+  const SaiPlatform* platform_;
 };
 
 } // namespace fboss

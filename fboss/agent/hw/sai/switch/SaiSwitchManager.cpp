@@ -62,7 +62,7 @@ SaiSwitchManager::SaiSwitchManager(
     SaiApiTable* apiTable,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : apiTable_(apiTable), managerTable_(managerTable) {
+    : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {
   auto defaultSwitch = std::make_unique<SaiSwitchInstance>(
       apiTable_, getSwitchAttributes(platform));
   switches_.emplace(std::make_pair(SwitchID(0), std::move(defaultSwitch)));

@@ -22,8 +22,9 @@ namespace fboss {
 
 SaiPortManager::SaiPortManager(
     SaiApiTable* apiTable,
-    SaiManagerTable* managerTable)
-    : apiTable_(apiTable), managerTable_(managerTable) {}
+    SaiManagerTable* managerTable,
+    const SaiPlatform* platform)
+    : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
 
 sai_object_id_t SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   SaiPort* existingPort = getPort(swPort->getID());

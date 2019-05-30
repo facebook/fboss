@@ -102,8 +102,9 @@ void SaiNextHopGroup::removeMember(sai_object_id_t nextHopId) {
 
 SaiNextHopGroupManager::SaiNextHopGroupManager(
     SaiApiTable* apiTable,
-    SaiManagerTable* managerTable)
-    : apiTable_(apiTable), managerTable_(managerTable) {}
+    SaiManagerTable* managerTable,
+    const SaiPlatform* platform)
+    : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
 
 std::shared_ptr<SaiNextHopGroup>
 SaiNextHopGroupManager::incRefOrAddNextHopGroup(

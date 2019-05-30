@@ -44,8 +44,9 @@ bool SaiRouterInterface::operator!=(const SaiRouterInterface& other) const {
 
 SaiRouterInterfaceManager::SaiRouterInterfaceManager(
     SaiApiTable* apiTable,
-    SaiManagerTable* managerTable)
-    : apiTable_(apiTable), managerTable_(managerTable) {}
+    SaiManagerTable* managerTable,
+    const SaiPlatform* platform)
+    : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
 
 sai_object_id_t SaiRouterInterfaceManager::addRouterInterface(
     const std::shared_ptr<Interface>& swInterface) {

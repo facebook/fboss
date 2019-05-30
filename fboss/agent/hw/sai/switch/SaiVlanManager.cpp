@@ -122,8 +122,9 @@ bool SaiVlan::operator!=(const SaiVlan& other) const {
 
 SaiVlanManager::SaiVlanManager(
     SaiApiTable* apiTable,
-    SaiManagerTable* managerTable)
-    : apiTable_(apiTable), managerTable_(managerTable) {}
+    SaiManagerTable* managerTable,
+    const SaiPlatform* platform)
+    : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
 
 sai_object_id_t SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
   VlanID swVlanId = swVlan->getID();

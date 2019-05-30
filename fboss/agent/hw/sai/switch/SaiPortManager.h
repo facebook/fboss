@@ -22,6 +22,7 @@ namespace fboss {
 
 class SaiBridgePort;
 class SaiManagerTable;
+class SaiPlatform;
 
 class SaiPort {
  public:
@@ -65,7 +66,10 @@ class SaiPort {
 
 class SaiPortManager {
  public:
-  SaiPortManager(SaiApiTable* apiTable, SaiManagerTable* managerTable);
+  SaiPortManager(
+      SaiApiTable* apiTable,
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
   sai_object_id_t addPort(const std::shared_ptr<Port>& swPort);
   void removePort(PortID id);
   void changePort(const std::shared_ptr<Port>& swPort);
@@ -80,6 +84,7 @@ class SaiPortManager {
   SaiPort* getPortImpl(PortID swId) const;
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
+  const SaiPlatform* platform_;
   std::unordered_map<PortID, std::unique_ptr<SaiPort>> ports_;
   std::unordered_map<sai_object_id_t, PortID> portSaiIds_;
 };

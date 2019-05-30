@@ -27,6 +27,7 @@ namespace fboss {
 class SaiManagerTable;
 class SaiRouterInterface;
 class SaiVirtualRouter;
+class SaiPlatform;
 
 class SaiRouterInterface {
  public:
@@ -59,7 +60,8 @@ class SaiRouterInterfaceManager {
  public:
   SaiRouterInterfaceManager(
       SaiApiTable* apiTable,
-      SaiManagerTable* managerTable);
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
   sai_object_id_t addRouterInterface(
       const std::shared_ptr<Interface>& swInterface);
   void removeRouterInterface(const InterfaceID& swId);
@@ -75,6 +77,7 @@ class SaiRouterInterfaceManager {
   SaiRouterInterface* getRouterInterfaceImpl(const InterfaceID& swId) const;
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
+  const SaiPlatform* platform_;
   std::unordered_map<InterfaceID, std::unique_ptr<SaiRouterInterface>>
       routerInterfaces_;
 };

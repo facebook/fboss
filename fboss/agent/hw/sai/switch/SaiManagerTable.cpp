@@ -32,19 +32,22 @@ SaiManagerTable::SaiManagerTable(
     : apiTable_(apiTable) {
   switchManager_ =
       std::make_unique<SaiSwitchManager>(apiTable_, this, platform);
-  bridgeManager_ = std::make_unique<SaiBridgeManager>(apiTable_, this);
-  fdbManager_ = std::make_unique<SaiFdbManager>(apiTable_, this);
-  portManager_ = std::make_unique<SaiPortManager>(apiTable_, this);
+  bridgeManager_ =
+      std::make_unique<SaiBridgeManager>(apiTable_, this, platform);
+  fdbManager_ = std::make_unique<SaiFdbManager>(apiTable_, this, platform);
+  portManager_ = std::make_unique<SaiPortManager>(apiTable_, this, platform);
   virtualRouterManager_ =
-      std::make_unique<SaiVirtualRouterManager>(apiTable_, this);
-  vlanManager_ = std::make_unique<SaiVlanManager>(apiTable_, this);
-  routeManager_ = std::make_unique<SaiRouteManager>(apiTable_, this);
+      std::make_unique<SaiVirtualRouterManager>(apiTable_, this, platform);
+  vlanManager_ = std::make_unique<SaiVlanManager>(apiTable_, this, platform);
+  routeManager_ = std::make_unique<SaiRouteManager>(apiTable_, this, platform);
   routerInterfaceManager_ =
-      std::make_unique<SaiRouterInterfaceManager>(apiTable_, this);
-  nextHopManager_ = std::make_unique<SaiNextHopManager>(apiTable_, this);
+      std::make_unique<SaiRouterInterfaceManager>(apiTable_, this, platform);
+  nextHopManager_ =
+      std::make_unique<SaiNextHopManager>(apiTable_, this, platform);
   nextHopGroupManager_ =
-      std::make_unique<SaiNextHopGroupManager>(apiTable_, this);
-  neighborManager_ = std::make_unique<SaiNeighborManager>(apiTable_, this);
+      std::make_unique<SaiNextHopGroupManager>(apiTable_, this, platform);
+  neighborManager_ =
+      std::make_unique<SaiNeighborManager>(apiTable_, this, platform);
 }
 
 SaiManagerTable::~SaiManagerTable() {

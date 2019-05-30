@@ -22,6 +22,7 @@ namespace facebook {
 namespace fboss {
 
 class SaiManagerTable;
+class SaiPlatform;
 
 class SaiFdbEntry {
  public:
@@ -49,7 +50,10 @@ class SaiFdbEntry {
 
 class SaiFdbManager {
  public:
-  SaiFdbManager(SaiApiTable* apiTable, SaiManagerTable* managerTable);
+  SaiFdbManager(
+      SaiApiTable* apiTable,
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
   std::unique_ptr<SaiFdbEntry> addFdbEntry(
       const InterfaceID& intfId,
       const folly::MacAddress& mac,
@@ -59,6 +63,7 @@ class SaiFdbManager {
   SaiFdbEntry* getFdbEntryImpl(const FdbApiParameters::EntryType& entry) const;
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
+  const SaiPlatform* platform_;
 };
 
 } // namespace fboss

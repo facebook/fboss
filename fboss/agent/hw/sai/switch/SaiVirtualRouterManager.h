@@ -23,6 +23,7 @@ namespace facebook {
 namespace fboss {
 
 class SaiManagerTable;
+class SaiPlatform;
 
 class SaiVirtualRouter {
  public:
@@ -59,13 +60,17 @@ class SaiVirtualRouter {
 
 class SaiVirtualRouterManager {
  public:
-  SaiVirtualRouterManager(SaiApiTable* apiTable, SaiManagerTable* managerTable);
+  SaiVirtualRouterManager(
+      SaiApiTable* apiTable,
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
   sai_object_id_t addVirtualRouter(const RouterID& routerId);
   SaiVirtualRouter* getVirtualRouter(const RouterID& routerId);
 
  private:
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
+  const SaiPlatform* platform_;
   std::unordered_map<RouterID, std::unique_ptr<SaiVirtualRouter>>
       virtualRouters_;
 };
