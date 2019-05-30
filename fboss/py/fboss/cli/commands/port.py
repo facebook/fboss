@@ -282,9 +282,9 @@ class PortStatsCmd(cmds.FbossCmd):
 
 class PortStatsClearCmd(cmds.FbossCmd):
     def run(self, ports):
-        client = self._create_agent_client()
-        client.clearPortStats(ports if ports else
-                client.getAllPortInfo().keys())
+        with self._create_agent_client() as client:
+            client.clearPortStats(ports if ports else
+                    client.getAllPortInfo().keys())
 
 
 class PortStatusCmd(cmds.FbossCmd):
