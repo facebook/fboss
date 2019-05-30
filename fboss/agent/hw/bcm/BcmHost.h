@@ -191,19 +191,19 @@ class BcmHost {
  *
  * There are 2 use cases for BCM Ecmp host
  * a) As a collection of BcmHost entries - Unlike BcmHost, in this case
- * BcmEcmpHost does not have its own HW programming. It functions as
+ * BcmMultiPathNextHop does not have its own HW programming. It functions as
  * a SW object which refers to one or multiple BcmHost objects.
- * b) As a object representing a host route. In this case the BcmEcmpHost
- * simply references another egress entry (which maybe either BcmEgress
- * or BcmEcmpEgress).
+ * b) As a object representing a host route. In this case the
+ * BcmMultiPathNextHop simply references another egress entry (which maybe
+ * either BcmEgress or BcmEcmpEgress).
  */
-using BcmEcmpHostKey = std::pair<opennsl_vrf_t, RouteNextHopSet>;
+using BcmMultiPathNextHopKey = std::pair<opennsl_vrf_t, RouteNextHopSet>;
 class BcmNextHop;
 
-class BcmEcmpHost {
+class BcmMultiPathNextHop {
  public:
-  BcmEcmpHost(const BcmSwitchIf* hw, BcmEcmpHostKey key);
-  virtual ~BcmEcmpHost();
+  BcmMultiPathNextHop(const BcmSwitchIf* hw, BcmMultiPathNextHopKey key);
+  virtual ~BcmMultiPathNextHop();
   opennsl_if_t getEgressId() const;
   opennsl_if_t getEcmpEgressId() const {
     return ecmpEgress_ ? ecmpEgress_->getID() : BcmEgressBase::INVALID;
@@ -235,16 +235,18 @@ class BcmHostTable {
 
   // throw an exception if not found
   BcmHost* getBcmHost(const BcmHostKey& key) const;
-  BcmEcmpHost* getBcmEcmpHost(const BcmEcmpHostKey& key) const;
+  BcmMultiPathNextHop* getBcmMultiPathNextHop(
+      const BcmMultiPathNextHopKey& key) const;
 
   // return nullptr if not found
   BcmHost* getBcmHostIf(const BcmHostKey& key) const noexcept;
-  BcmEcmpHost* getBcmEcmpHostIf(const BcmEcmpHostKey& key) const noexcept;
+  BcmMultiPathNextHop* getBcmMultiPathNextHopIf(
+      const BcmMultiPathNextHopKey& key) const noexcept;
 
   int getNumBcmHost() const {
     return hosts_.size();
   }
-  int getNumBcmEcmpHost() const {
+  int getNumBcmMultiPathNextHop() const {
     return ecmpHosts_.size();
   }
 
@@ -252,36 +254,39 @@ class BcmHostTable {
    * The following functions will modify the object. They rely on the global
    * HW update lock in BcmSwitch::lock_ for the protection.
    *
-   * BcmHostTable maintains a reference counter for each BcmHost/BcmEcmpHost
-   * entry allocated.
+   * BcmHostTable maintains a reference counter for each
+   * BcmHost/BcmMultiPathNextHop entry allocated.
    */
   /**
-   * Allocates a new BcmHost/BcmEcmpHost if no such one exists. For the existing
-   * entry, incRefOrCreateBcmHost() will increase the reference counter by 1.
+   * Allocates a new BcmHost/BcmMultiPathNextHop if no such one exists. For the
+   * existing entry, incRefOrCreateBcmHost() will increase the reference counter
+   * by 1.
    *
    * When a new BcmHost is created, the programming to HW is not performed,
    * until explicit BcmHost::program() or BcmHost::programToCPU() is called.
    *
-   * @return The BcmHost/BcmEcmpHost pointer just created or found.
+   * @return The BcmHost/BcmMultiPathNextHop pointer just created or found.
    */
   BcmHost* incRefOrCreateBcmHost(const BcmHostKey& hostKey);
-  BcmEcmpHost* incRefOrCreateBcmEcmpHost(const BcmEcmpHostKey& key);
+  BcmMultiPathNextHop* incRefOrCreateBcmMultiPathNextHop(
+      const BcmMultiPathNextHopKey& key);
 
   /**
-   * Decrease an existing BcmHost/BcmEcmpHost entry's reference counter by 1.
-   * Only until the reference counter is 0, the BcmHost/BcmEcmpHost entry
-   * is deleted.
+   * Decrease an existing BcmHost/BcmMultiPathNextHop entry's reference counter
+   * by 1. Only until the reference counter is 0, the
+   * BcmHost/BcmMultiPathNextHop entry is deleted.
    *
-   * @return nullptr, if the BcmHost/BcmEcmpHost entry is deleted
-   * @retrun the BcmHost/BcmEcmpHost object that has reference counter
+   * @return nullptr, if the BcmHost/BcmMultiPathNextHop entry is deleted
+   * @retrun the BcmHost/BcmMultiPathNextHop object that has reference counter
    *         decreased by 1, but the object is still valid as it is
    *         still referred in somewhere else
    */
   BcmHost* derefBcmHost(const BcmHostKey& key) noexcept;
-  BcmEcmpHost* derefBcmEcmpHost(const BcmEcmpHostKey& key) noexcept;
+  BcmMultiPathNextHop* derefBcmMultiPathNextHop(
+      const BcmMultiPathNextHopKey& key) noexcept;
 
   uint32_t getReferenceCount(const BcmHostKey& key) const noexcept;
-  uint32_t getReferenceCount(const BcmEcmpHostKey& key) const noexcept;
+  uint32_t getReferenceCount(const BcmMultiPathNextHopKey& key) const noexcept;
 
   /*
    * Serialize toFollyDynamic
@@ -359,7 +364,7 @@ class BcmHostTable {
       const KeyT& key) const noexcept;
 
   HostMap<BcmHostKey, BcmHost> hosts_;
-  HostMap<BcmEcmpHostKey, BcmEcmpHost> ecmpHosts_;
+  HostMap<BcmMultiPathNextHopKey, BcmMultiPathNextHop> ecmpHosts_;
 };
 
 class BcmHostReference {
@@ -368,7 +373,7 @@ class BcmHostReference {
 
   BcmHost* getBcmHost();
 
-  BcmEcmpHost* getBcmEcmpHost();
+  BcmMultiPathNextHop* getBcmMultiPathNextHop();
 
   opennsl_if_t getEgressId();
 
@@ -376,14 +381,14 @@ class BcmHostReference {
 
   static std::unique_ptr<BcmHostReference> get(
       BcmSwitch* hw,
-      BcmEcmpHostKey key);
+      BcmMultiPathNextHopKey key);
 
   static std::unique_ptr<BcmHostReference>
   get(BcmSwitch* hw, opennsl_vrf_t vrf, RouteNextHopSet nexthops);
 
  private:
   BcmHostReference(BcmSwitch* hw, BcmHostKey key);
-  BcmHostReference(BcmSwitch* hw, BcmEcmpHostKey key);
+  BcmHostReference(BcmSwitch* hw, BcmMultiPathNextHopKey key);
   BcmHostReference(const BcmHostReference&) = delete;
   BcmHostReference(BcmHostReference&&) = delete;
   BcmHostReference& operator=(const BcmHostReference&) = delete;
@@ -391,9 +396,9 @@ class BcmHostReference {
 
   BcmSwitch* hw_{nullptr};
   folly::Optional<BcmHostKey> hostKey_;
-  folly::Optional<BcmEcmpHostKey> ecmpHostKey_;
+  folly::Optional<BcmMultiPathNextHopKey> ecmpHostKey_;
   BcmHost* host_{nullptr};
-  BcmEcmpHost* ecmpHost_{nullptr};
+  BcmMultiPathNextHop* ecmpHost_{nullptr};
 };
 
 class BcmNeighborTable {

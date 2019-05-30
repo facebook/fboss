@@ -103,8 +103,8 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
     const auto& nhops = fwd.getNextHopSet();
     CHECK_GT(nhops.size(), 0);
     // need to get an entry from the host table for the forward info
-    nexthopReference =
-        BcmHostReference::get(hw_, BcmEcmpHostKey(vrf_, fwd.getNextHopSet()));
+    nexthopReference = BcmHostReference::get(
+        hw_, BcmMultiPathNextHopKey(vrf_, fwd.getNextHopSet()));
     egressId = nexthopReference->getEgressId();
   }
 

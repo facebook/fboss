@@ -59,8 +59,8 @@ namespace facebook { namespace fboss {
 
 std::ostream& operator<<(
     std::ostream& os,
-    const facebook::fboss::BcmEcmpHostKey& key) {
-  return os << "BcmEcmpHost: " << key.second << "@vrf " << key.first;
+    const facebook::fboss::BcmMultiPathNextHopKey& key) {
+  return os << "BcmMultiPathNextHop: " << key.second << "@vrf " << key.first;
 }
 
 using std::unique_ptr;
@@ -349,7 +349,7 @@ PortDescriptor BcmHost::portDescriptor() const {
       : PortDescriptor(hw_->getPortTable()->getPortId(port_));
 }
 
-std::shared_ptr<BcmNextHop> BcmEcmpHost::refOrEmplaceNextHop(
+std::shared_ptr<BcmNextHop> BcmMultiPathNextHop::refOrEmplaceNextHop(
     const HostKey& key) {
   if (key.hasLabel()) {
     return hw_->writableMplsNextHopTable()->referenceOrEmplaceNextHop(
@@ -359,8 +359,9 @@ std::shared_ptr<BcmNextHop> BcmEcmpHost::refOrEmplaceNextHop(
       folly::poly_cast<facebook::fboss::BcmHostKey>(key));
 }
 
-BcmEcmpHost::BcmEcmpHost(const BcmSwitchIf *hw,
-                         BcmEcmpHostKey key)
+BcmMultiPathNextHop::BcmMultiPathNextHop(
+    const BcmSwitchIf* hw,
+    BcmMultiPathNextHopKey key)
     : hw_(hw), vrf_(key.first) {
   auto& fwd = key.second;
   CHECK_GT(fwd.size(), 0);
@@ -395,12 +396,12 @@ BcmEcmpHost::BcmEcmpHost(const BcmSwitchIf *hw,
   nexthops_ = std::move(nexthops);
 }
 
-opennsl_if_t BcmEcmpHost::getEgressId() const {
+opennsl_if_t BcmMultiPathNextHop::getEgressId() const {
   return nexthops_.size() > 1 ? getEcmpEgressId()
                               : nexthops_.front()->getEgressId();
 }
 
-BcmEcmpHost::~BcmEcmpHost() {
+BcmMultiPathNextHop::~BcmMultiPathNextHop() {
   // Deref ECMP egress first since the ECMP egress entry holds references
   // to egress entries.
   XLOG(DBG3) << "Removing egress object for " << fwd_;
@@ -427,7 +428,7 @@ HostT* BcmHostTable::incRefOrCreateBcmHostImpl(
   auto hostPtr = newHost.get();
   auto ret = map->emplace(key, std::make_pair(std::move(newHost), 1));
   CHECK_EQ(ret.second, true)
-    << "must insert BcmHost/BcmEcmpHost as a new entry in this case";
+      << "must insert BcmHost/BcmMultiPathNextHop as a new entry in this case";
   XLOG(DBG3) << "created " << key
              << ". new ref count: " << ret.first->second.second;
   return hostPtr;
@@ -438,13 +439,13 @@ BcmHost* BcmHostTable::incRefOrCreateBcmHost(const BcmHostKey& hostKey) {
   return incRefOrCreateBcmHostImpl(&hosts_, hostKey);
 }
 
-BcmEcmpHost* BcmHostTable::incRefOrCreateBcmEcmpHost(
-    const BcmEcmpHostKey& key) {
+BcmMultiPathNextHop* BcmHostTable::incRefOrCreateBcmMultiPathNextHop(
+    const BcmMultiPathNextHopKey& key) {
   return incRefOrCreateBcmHostImpl(&ecmpHosts_, key);
 }
 
-uint32_t BcmHostTable::getReferenceCount(const BcmEcmpHostKey& key)
-    const noexcept {
+uint32_t BcmHostTable::getReferenceCount(
+    const BcmMultiPathNextHopKey& key) const noexcept {
   return getReferenceCountImpl(&ecmpHosts_, key);
 }
 
@@ -483,12 +484,12 @@ BcmHost* BcmHostTable::getBcmHost(const BcmHostKey& key) const {
   return host;
 }
 
-BcmEcmpHost* BcmHostTable::getBcmEcmpHost(
-    const BcmEcmpHostKey& key) const {
-  auto host = getBcmEcmpHostIf(key);
+BcmMultiPathNextHop* BcmHostTable::getBcmMultiPathNextHop(
+    const BcmMultiPathNextHopKey& key) const {
+  auto host = getBcmMultiPathNextHopIf(key);
   if (!host) {
     throw FbossError(
-        "Cannot find BcmEcmpHost vrf=", key.first, " fwd=", key.second);
+        "Cannot find BcmMultiPathNextHop vrf=", key.first, " fwd=", key.second);
   }
   return host;
 }
@@ -498,8 +499,8 @@ BcmHost* BcmHostTable::getBcmHostIf(const BcmHostKey& key) const noexcept {
   return getBcmHostIfImpl(&hosts_, key);
 }
 
-BcmEcmpHost* BcmHostTable::getBcmEcmpHostIf(
-    const BcmEcmpHostKey& key) const noexcept {
+BcmMultiPathNextHop* BcmHostTable::getBcmMultiPathNextHopIf(
+    const BcmMultiPathNextHopKey& key) const noexcept {
   return getBcmHostIfImpl(&ecmpHosts_, key);
 }
 
@@ -522,17 +523,14 @@ HostT* BcmHostTable::derefBcmHostImpl(
      * erased from its map (without moving ownership out), following events
      * happen
      *
-     * 1) BcmEcmpHost's destructor is invoked,
-     * 2) In BcmEcmpHost's destructor BcmHost member's ref count are decremented
-     * 3) If one of BcmHost ref count leads to 0, then BcmHost is also be
-     *    erased from map,
-     * 4) BcmHost's destrucor is invoked
-     * 5) BcmHost's destructor now wants to update ECMP groups to which it
-     *    may belongs
-     * 6) BcmHost's destructor iterates over ECMP host map, which now is in
-     *    "bad state" (because map.erase has still not returned and iterator is
-     *      not yet reset)
-     * This activity leads to crash
+     * 1) BcmMultiPathNextHop's destructor is invoked,
+     * 2) In BcmMultiPathNextHop's destructor BcmHost member's ref count are
+     * decremented 3) If one of BcmHost ref count leads to 0, then BcmHost is
+     * also be erased from map, 4) BcmHost's destrucor is invoked 5) BcmHost's
+     * destructor now wants to update ECMP groups to which it may belongs 6)
+     * BcmHost's destructor iterates over ECMP host map, which now is in "bad
+     * state" (because map.erase has still not returned and iterator is not yet
+     * reset) This activity leads to crash
      */
     auto ptr = std::move(iter->second.first);
     map->erase(iter);
@@ -548,8 +546,8 @@ BcmHost* BcmHostTable::derefBcmHost(const BcmHostKey& key) noexcept {
   return derefBcmHostImpl(&hosts_, key);
 }
 
-BcmEcmpHost* BcmHostTable::derefBcmEcmpHost(
-    const BcmEcmpHostKey& key) noexcept {
+BcmMultiPathNextHop* BcmHostTable::derefBcmMultiPathNextHop(
+    const BcmMultiPathNextHopKey& key) noexcept {
   return derefBcmHostImpl(&ecmpHosts_, key);
 }
 
@@ -594,7 +592,7 @@ folly::dynamic BcmHost::toFollyDynamic() const {
   return host;
 }
 
-folly::dynamic BcmEcmpHost::toFollyDynamic() const {
+folly::dynamic BcmMultiPathNextHop::toFollyDynamic() const {
   folly::dynamic ecmpHost = folly::dynamic::object;
   ecmpHost[kVrf] = vrf_;
   folly::dynamic nhops = folly::dynamic::array;
@@ -656,7 +654,7 @@ void BcmHostTable::egressResolutionChangedHwLocked(
   /*
    * We may not have done a FIB sync before ports start coming
    * up or ARP/NDP start getting resolved/unresolved. In this case
-   * we won't have BcmEcmpHost entries, so we
+   * we won't have BcmMultiPathNextHop entries, so we
    * look through the warm boot cache for ecmp egress entries.
    * Conversely post a FIB sync we won't have any ecmp egress IDs
    * in the warm boot cache
@@ -759,7 +757,7 @@ void BcmHostTable::programHostsToCPU(const BcmHostKey& key, opennsl_if_t intf) {
 BcmHostReference::BcmHostReference(BcmSwitch* hw, BcmHostKey key)
     : hw_(hw), hostKey_(std::move(key)) {}
 
-BcmHostReference::BcmHostReference(BcmSwitch* hw, BcmEcmpHostKey key)
+BcmHostReference::BcmHostReference(BcmSwitch* hw, BcmMultiPathNextHopKey key)
     : hw_(hw), ecmpHostKey_(std::move(key)) {}
 
 std::unique_ptr<BcmHostReference> BcmHostReference::get(
@@ -784,9 +782,9 @@ std::unique_ptr<BcmHostReference> BcmHostReference::get(
 
 std::unique_ptr<BcmHostReference> BcmHostReference::get(
     BcmSwitch* hw,
-    BcmEcmpHostKey key) {
+    BcmMultiPathNextHopKey key) {
   struct _ : public BcmHostReference {
-    _(BcmSwitch* hw, BcmEcmpHostKey key)
+    _(BcmSwitch* hw, BcmMultiPathNextHopKey key)
         : BcmHostReference(hw, std::move(key)) {}
   };
   return std::make_unique<_>(hw, std::move(key));
@@ -797,7 +795,7 @@ BcmHostReference::~BcmHostReference() {
     hw_->writableHostTable()->derefBcmHost(hostKey_.value());
   }
   if (ecmpHostKey_ && ecmpHost_) {
-    hw_->writableHostTable()->derefBcmEcmpHost(ecmpHostKey_.value());
+    hw_->writableHostTable()->derefBcmMultiPathNextHop(ecmpHostKey_.value());
   }
 }
 
@@ -809,17 +807,17 @@ BcmHost* BcmHostReference::getBcmHost() {
   return host_;
 }
 
-BcmEcmpHost* BcmHostReference::getBcmEcmpHost() {
+BcmMultiPathNextHop* BcmHostReference::getBcmMultiPathNextHop() {
   if (ecmpHost_ || !ecmpHostKey_) {
     return ecmpHost_;
   }
-  ecmpHost_ =
-      hw_->writableHostTable()->incRefOrCreateBcmEcmpHost(ecmpHostKey_.value());
+  ecmpHost_ = hw_->writableHostTable()->incRefOrCreateBcmMultiPathNextHop(
+      ecmpHostKey_.value());
   return ecmpHost_;
 }
 
 opennsl_if_t BcmHostReference::getEgressId() {
   return hostKey_ ? getBcmHost()->getEgressId()
-                  : getBcmEcmpHost()->getEgressId();
+                  : getBcmMultiPathNextHop()->getEgressId();
 }
 }}

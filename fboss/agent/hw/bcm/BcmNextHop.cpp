@@ -32,13 +32,13 @@ opennsl_if_t BcmMplsNextHop::getEgressId() const {
 }
 
 void BcmMplsNextHop::programToCPU(opennsl_if_t /*intf*/) {
-  /* this is called only from BcmEcmpHost, or multipath next hop, and is called
-  only if, MPLS nexthop is "not programmed". this should never happen because
-  constructor of MPLS nexthop creates egress and programs it either to drop, to
-  cpu or to appropriate port/trunk.
+  /* this is called only from BcmMultiPathNextHop, or multipath next hop, and is
+  called only if, MPLS nexthop is "not programmed". this should never happen
+  because constructor of MPLS nexthop creates egress and programs it either to
+  drop, to cpu or to appropriate port/trunk.
 
-  So call to this should never happen from BcmEcmpHost and MPLS nexthop would
-  always be programmed when it's referred in multipath next hop.
+  So call to this should never happen from BcmMultiPathNextHop and MPLS nexthop
+  would always be programmed when it's referred in multipath next hop.
   */
   CHECK(false);
 }
