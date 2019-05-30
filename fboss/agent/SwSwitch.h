@@ -713,6 +713,8 @@ class SwSwitch : public HwSwitch::Callback {
       const SwitchRunState& oldState,
       const SwitchRunState& newState);
 
+  void onSwitchRunStateChange(const SwitchRunState& newState);
+
   // Sets the counter that tracks port status
   void setPortStatusCounter(PortID port, bool up);
 

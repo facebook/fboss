@@ -24,11 +24,12 @@
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/RestartTimeTracker.h"
+#include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
-#include "fboss/agent/SetupThrift.h"
 
 #include <chrono>
 #include <condition_variable>
@@ -213,6 +214,8 @@ class SignalHandler : public AsyncSignalHandler {
     registerSignalHandler(SIGTERM);
   }
   void signalReceived(int /*signum*/) noexcept override {
+    restart_time::mark(RestartEvent::SIGNAL_RECEIVED);
+
     XLOG(INFO) << "[Exit] Signal received ";
     steady_clock::time_point begin = steady_clock::now();
     stopServices_();
@@ -229,6 +232,8 @@ class SignalHandler : public AsyncSignalHandler {
         << std::endl
         << "[Exit] Total graceful Exit time "
         << duration_cast<duration<float>>(switchGracefulExit - begin).count();
+
+    restart_time::mark(RestartEvent::SHUTDOWN);
 
     exit(0);
   }

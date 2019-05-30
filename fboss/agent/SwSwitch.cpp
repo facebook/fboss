@@ -29,6 +29,7 @@
 #include <tuple>
 #include "common/stats/ServiceData.h"
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/Constants.h"
@@ -44,13 +45,13 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/PortUpdateHandler.h"
+#include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/gen-cpp2/switch_config_types_custom_protocol.h"
@@ -290,7 +291,18 @@ bool SwSwitch::isExiting() const {
 void SwSwitch::setSwitchRunState(SwitchRunState runState) {
   auto oldState = runState_.exchange(runState, std::memory_order_acq_rel);
   CHECK(oldState <= runState);
+  onSwitchRunStateChange(runState);
   logSwitchRunStateChange(oldState, runState);
+}
+
+void SwSwitch::onSwitchRunStateChange(const SwitchRunState& newState) {
+  if (newState == SwitchRunState::INITIALIZED) {
+    restart_time::mark(RestartEvent::INITIALIZED);
+  } else if (newState == SwitchRunState::CONFIGURED) {
+    restart_time::mark(RestartEvent::CONFIGURED);
+  } else if (newState == SwitchRunState::FIB_SYNCED) {
+    restart_time::mark(RestartEvent::FIB_SYNCED);
+  }
 }
 
 SwitchRunState SwSwitch::getSwitchRunState() const {
@@ -435,6 +447,9 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
 
   XLOG(DBG0) << "hardware initialized in " << hwInitRet.bootTime
              << " seconds; applying initial config";
+
+  restart_time::init(
+      platform_->getWarmBootDir(), bootType_ == BootType::WARM_BOOT);
 
   // Store the initial state
   initialState->publish();

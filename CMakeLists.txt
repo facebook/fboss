@@ -488,6 +488,7 @@ add_library(fboss_agent STATIC
     fboss/agent/state/VlanMap.cpp
     fboss/agent/state/VlanMapDelta.cpp
     fboss/agent/types.cpp
+    fboss/agent/RestartTimeTracker.cpp
     fboss/agent/SwitchStats.cpp
     fboss/agent/SwSwitch.cpp
     fboss/agent/ThriftHandler.cpp
