@@ -787,9 +787,12 @@ void BcmPort::updatePktLenHist(
 }
 
 BcmPort::BcmPortStats::BcmPortStats(int numUnicastQueues) : BcmPortStats() {
-  portStats_.set_queueOutDiscardBytes_(
-      std::vector<int64_t>(numUnicastQueues, 0));
-  portStats_.set_queueOutBytes_(std::vector<int64_t>(numUnicastQueues, 0));
+  auto queueInitStats = folly::copy(portStats_.queueOutDiscardBytes_);
+  for (auto cosq = 0; cosq < numUnicastQueues; ++cosq) {
+    queueInitStats.emplace(cosq, 0);
+  }
+  portStats_.set_queueOutDiscardBytes_(queueInitStats);
+  portStats_.set_queueOutBytes_(queueInitStats);
 }
 
 BcmPort::BcmPortStats::BcmPortStats(
