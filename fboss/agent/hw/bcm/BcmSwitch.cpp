@@ -359,11 +359,14 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   }
   vlan->setPorts(memberPorts);
   bootState->addVlan(vlan);
+  bootState->publish();
   return bootState;
 }
 
 std::shared_ptr<SwitchState> BcmSwitch::getWarmBootSwitchState() const {
-  return  warmBootCache_->getDumpedSwSwitchState().clone();
+  auto warmBootState =  warmBootCache_->getDumpedSwSwitchState().clone();
+  warmBootState->publish();
+  return warmBootState;
 }
 
 void BcmSwitch::runBcmScriptPreAsicInit() const {
@@ -548,6 +551,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   if (warmBoot) {
     auto warmBootState = getWarmBootSwitchState();
+    CHECK(warmBootState->isPublished());
 
     // Force port/queue stat counter creation by initializing currState to
     // carry empty port/queue names. This means there is a delta between
