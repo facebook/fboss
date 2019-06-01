@@ -11,6 +11,12 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 
+namespace {
+template <typename KetT>
+std::string nextHopKeyStr(const KetT& key) {
+  return key.str();
+}
+} // namespace
 namespace facebook {
 namespace fboss {
 
@@ -184,6 +190,32 @@ void BcmMplsNextHop::setTrunk(opennsl_trunk_t trunk) {
   egressPort_.assign(
       PortDescriptor(hw_->getTrunkTable()->getAggregatePortId(trunk)));
 }
+
+template <typename NextHopKeyT, typename NextHopT>
+const NextHopT* BcmNextHopTable<NextHopKeyT, NextHopT>::getNextHop(
+    const NextHopKeyT& key) const {
+  auto rv = getNextHopIf(key);
+  if (!rv) {
+    throw FbossError("nexthop ", nextHopKeyStr(key), " not found");
+  }
+  return rv;
+}
+
+template <typename NextHopKeyT, typename NextHopT>
+std::shared_ptr<NextHopT>
+BcmNextHopTable<NextHopKeyT, NextHopT>::referenceOrEmplaceNextHop(
+    const NextHopKeyT& key) {
+  auto rv = nexthops_.refOrEmplace(key, hw_, key);
+  if (rv.second) {
+    XLOG(DBG3) << "inserted reference to next hop " << nextHopKeyStr(key);
+  } else {
+    XLOG(DBG3) << "accessed reference to next hop " << nextHopKeyStr(key);
+  }
+  return rv.first;
+}
+
+template class BcmNextHopTable<BcmHostKey, BcmL3NextHop>;
+template class BcmNextHopTable<BcmLabeledHostKey, BcmMplsNextHop>;
 
 } // namespace fboss
 } // namespace facebook

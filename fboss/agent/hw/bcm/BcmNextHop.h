@@ -78,10 +78,17 @@ template <typename NextHopKeyT, typename NextHopT>
 class BcmNextHopTable {
  public:
   using MapT = FlatRefMap<NextHopKeyT, NextHopT>;
+
   explicit BcmNextHopTable(BcmSwitch* hw) : hw_(hw) {}
-  const NextHopT* getNextHopIf(const NextHopKeyT& key) const;
+
+  const NextHopT* getNextHopIf(const NextHopKeyT& key) const {
+    return nexthops_.get(key);
+  }
+
   const NextHopT* getNextHop(const NextHopKeyT& key) const;
+
   std::shared_ptr<NextHopT> referenceOrEmplaceNextHop(const NextHopKeyT& key);
+
   const MapT& getNextHops() const {
     return nexthops_;
   }

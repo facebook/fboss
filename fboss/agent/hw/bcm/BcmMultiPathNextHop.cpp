@@ -4,7 +4,6 @@
 
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmNextHop.h"
-#include "fboss/agent/hw/bcm/BcmNextHopTable-defs.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 namespace facebook {
