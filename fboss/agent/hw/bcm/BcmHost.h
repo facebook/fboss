@@ -197,19 +197,12 @@ class BcmHostTable {
 
   // throw an exception if not found
   BcmHost* getBcmHost(const BcmHostKey& key) const;
-  BcmMultiPathNextHop* getBcmMultiPathNextHop(
-      const BcmMultiPathNextHopKey& key) const;
 
   // return nullptr if not found
   BcmHost* getBcmHostIf(const BcmHostKey& key) const noexcept;
-  BcmMultiPathNextHop* getBcmMultiPathNextHopIf(
-      const BcmMultiPathNextHopKey& key) const noexcept;
 
   int getNumBcmHost() const {
     return hosts_.size();
-  }
-  int getNumBcmMultiPathNextHop() const {
-    return ecmpHosts_.size();
   }
 
   /*
@@ -230,8 +223,6 @@ class BcmHostTable {
    * @return The BcmHost/BcmMultiPathNextHop pointer just created or found.
    */
   BcmHost* incRefOrCreateBcmHost(const BcmHostKey& hostKey);
-  BcmMultiPathNextHop* incRefOrCreateBcmMultiPathNextHop(
-      const BcmMultiPathNextHopKey& key);
 
   /**
    * Decrease an existing BcmHost/BcmMultiPathNextHop entry's reference counter
@@ -244,11 +235,8 @@ class BcmHostTable {
    *         still referred in somewhere else
    */
   BcmHost* derefBcmHost(const BcmHostKey& key) noexcept;
-  BcmMultiPathNextHop* derefBcmMultiPathNextHop(
-      const BcmMultiPathNextHopKey& key) noexcept;
 
   uint32_t getReferenceCount(const BcmHostKey& key) const noexcept;
-  uint32_t getReferenceCount(const BcmMultiPathNextHopKey& key) const noexcept;
 
   /*
    * Serialize toFollyDynamic
@@ -266,12 +254,7 @@ class BcmHostTable {
    * the host table
    */
   void releaseHosts() {
-    ecmpHosts_.clear();
     hosts_.clear();
-  }
-
-  uint32_t numEcmpEgress() const {
-    return numEcmpEgressProgrammed_;
   }
 
   void egressResolutionChangedHwLocked(
@@ -301,8 +284,6 @@ class BcmHostTable {
  private:
   const BcmSwitchIf* hw_{nullptr};
 
-  uint32_t numEcmpEgressProgrammed_{0};
-
   boost::container::flat_map<
       opennsl_if_t,
       std::pair<std::unique_ptr<BcmEgressBase>, uint32_t>>
@@ -326,7 +307,6 @@ class BcmHostTable {
       const KeyT& key) const noexcept;
 
   HostMap<BcmHostKey, BcmHost> hosts_;
-  HostMap<BcmMultiPathNextHopKey, BcmMultiPathNextHop> ecmpHosts_;
 };
 
 class BcmHostReference {
@@ -360,7 +340,7 @@ class BcmHostReference {
   folly::Optional<BcmHostKey> hostKey_;
   folly::Optional<BcmMultiPathNextHopKey> ecmpHostKey_;
   BcmHost* host_{nullptr};
-  BcmMultiPathNextHop* ecmpHost_{nullptr};
+  std::shared_ptr<BcmMultiPathNextHop> ecmpHost_;
 };
 
 class BcmNeighborTable {

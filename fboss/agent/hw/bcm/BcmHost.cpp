@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
+#include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
 #include "fboss/agent/hw/bcm/BcmNextHop.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
@@ -379,16 +380,6 @@ BcmHost* BcmHostTable::incRefOrCreateBcmHost(const BcmHostKey& hostKey) {
   return incRefOrCreateBcmHostImpl(&hosts_, hostKey);
 }
 
-BcmMultiPathNextHop* BcmHostTable::incRefOrCreateBcmMultiPathNextHop(
-    const BcmMultiPathNextHopKey& key) {
-  return incRefOrCreateBcmHostImpl(&ecmpHosts_, key);
-}
-
-uint32_t BcmHostTable::getReferenceCount(
-    const BcmMultiPathNextHopKey& key) const noexcept {
-  return getReferenceCountImpl(&ecmpHosts_, key);
-}
-
 uint32_t BcmHostTable::getReferenceCount(const BcmHostKey& key) const noexcept {
   CHECK(!key.hasLabel());
   return getReferenceCountImpl(&hosts_, key);
@@ -424,24 +415,9 @@ BcmHost* BcmHostTable::getBcmHost(const BcmHostKey& key) const {
   return host;
 }
 
-BcmMultiPathNextHop* BcmHostTable::getBcmMultiPathNextHop(
-    const BcmMultiPathNextHopKey& key) const {
-  auto host = getBcmMultiPathNextHopIf(key);
-  if (!host) {
-    throw FbossError(
-        "Cannot find BcmMultiPathNextHop vrf=", key.first, " fwd=", key.second);
-  }
-  return host;
-}
-
 BcmHost* BcmHostTable::getBcmHostIf(const BcmHostKey& key) const noexcept {
   CHECK(!key.hasLabel());
   return getBcmHostIfImpl(&hosts_, key);
-}
-
-BcmMultiPathNextHop* BcmHostTable::getBcmMultiPathNextHopIf(
-    const BcmMultiPathNextHopKey& key) const noexcept {
-  return getBcmHostIfImpl(&ecmpHosts_, key);
 }
 
 template<typename KeyT, typename HostT>
@@ -484,11 +460,6 @@ HostT* BcmHostTable::derefBcmHostImpl(
 BcmHost* BcmHostTable::derefBcmHost(const BcmHostKey& key) noexcept {
   CHECK(!key.hasLabel());
   return derefBcmHostImpl(&hosts_, key);
-}
-
-BcmMultiPathNextHop* BcmHostTable::derefBcmMultiPathNextHop(
-    const BcmMultiPathNextHopKey& key) noexcept {
-  return derefBcmHostImpl(&ecmpHosts_, key);
 }
 
 void BcmHostTable::warmBootHostEntriesSynced() {
@@ -538,8 +509,11 @@ folly::dynamic BcmHostTable::toFollyDynamic() const {
     hostsJson.push_back(vrfIpAndHost.second.first->toFollyDynamic());
   }
   folly::dynamic ecmpHostsJson = folly::dynamic::array;
-  for (const auto& vrfNhopsAndHost: ecmpHosts_) {
-    ecmpHostsJson.push_back(vrfNhopsAndHost.second.first->toFollyDynamic());
+  auto& ecmpHosts = hw_->getMultiPathNextHopTable()->getNextHops();
+  for (const auto& vrfNhopsAndHost: ecmpHosts) {
+    auto weakPtr = vrfNhopsAndHost.second;
+    auto ecmpHost = weakPtr.lock();
+    ecmpHostsJson.push_back(ecmpHost->toFollyDynamic());
   }
   folly::dynamic hostTable = folly::dynamic::object;
   hostTable[kHosts] = std::move(hostsJson);
@@ -554,8 +528,11 @@ void BcmHostTable::egressResolutionChangedHwLocked(
     return;
   }
 
-  for (const auto& nextHopsAndEcmpHostInfo : ecmpHosts_) {
-    auto ecmpEgress = nextHopsAndEcmpHostInfo.second.first->getEgress();
+  auto& ecmpHosts = hw_->getMultiPathNextHopTable()->getNextHops();
+  for (const auto& nextHopsAndEcmpHostInfo : ecmpHosts) {
+    auto weakPtr = nextHopsAndEcmpHostInfo.second;
+    auto ecmpHost = weakPtr.lock();
+    auto ecmpEgress = ecmpHost->getEgress();
     if (!ecmpEgress) {
       continue;
     }
@@ -718,9 +695,6 @@ BcmHostReference::~BcmHostReference() {
   if (hostKey_ && host_) {
     hw_->writableHostTable()->derefBcmHost(hostKey_.value());
   }
-  if (ecmpHostKey_ && ecmpHost_) {
-    hw_->writableHostTable()->derefBcmMultiPathNextHop(ecmpHostKey_.value());
-  }
 }
 
 BcmHost* BcmHostReference::getBcmHost() {
@@ -733,11 +707,11 @@ BcmHost* BcmHostReference::getBcmHost() {
 
 BcmMultiPathNextHop* BcmHostReference::getBcmMultiPathNextHop() {
   if (ecmpHost_ || !ecmpHostKey_) {
-    return ecmpHost_;
+    return ecmpHost_.get();
   }
-  ecmpHost_ = hw_->writableHostTable()->incRefOrCreateBcmMultiPathNextHop(
+  ecmpHost_ = hw_->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
       ecmpHostKey_.value());
-  return ecmpHost_;
+  return ecmpHost_.get();
 }
 
 opennsl_if_t BcmHostReference::getEgressId() {
