@@ -3,10 +3,12 @@
 #include "fboss/agent/hw/bcm/BcmNextHop.h"
 
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
+#include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmLabeledEgress.h"
 #include "fboss/agent/hw/bcm/BcmLabeledTunnelEgress.h"
+#include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
@@ -15,6 +17,15 @@ namespace {
 template <typename KetT>
 std::string nextHopKeyStr(const KetT& key) {
   return key.str();
+}
+
+std::string nextHopKeyStr(const facebook::fboss::BcmMultiPathNextHopKey& key) {
+  std::string str = folly::to<std::string>("vrf:", key.first, "->{");
+  for (const auto& nhop : key.second) {
+    str = folly::to<std::string>(nhop.str(), ",");
+  }
+  str += "}";
+  return str;
 }
 } // namespace
 namespace facebook {
@@ -216,6 +227,7 @@ BcmNextHopTable<NextHopKeyT, NextHopT>::referenceOrEmplaceNextHop(
 
 template class BcmNextHopTable<BcmHostKey, BcmL3NextHop>;
 template class BcmNextHopTable<BcmLabeledHostKey, BcmMplsNextHop>;
+template class BcmNextHopTable<BcmMultiPathNextHopKey, BcmMultiPathNextHop>;
 
 } // namespace fboss
 } // namespace facebook

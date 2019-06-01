@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
 
+#include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmNextHop.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
@@ -80,6 +81,5 @@ folly::dynamic BcmMultiPathNextHop::toFollyDynamic() const {
   }
   return ecmpHost;
 }
-
 } // namespace fboss
 } // namespace facebook

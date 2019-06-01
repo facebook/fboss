@@ -170,6 +170,7 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       neighborTable_(new BcmNeighborTable(this)),
       l3NextHopTable_(new BcmL3NextHopTable(this)),
       mplsNextHopTable_(new BcmMplsNextHopTable(this)),
+      multiPathNextHopTable_(new BcmMultiPathNextHopTable(this)),
       labelMap_(new BcmLabelMap(this)),
       routeTable_(new BcmRouteTable(this)),
       qosPolicyTable_(new BcmQosPolicyTable(this)),
@@ -206,6 +207,7 @@ void BcmSwitch::resetTables() {
   // host references now.
   intfTable_.reset();
   egressManager_.reset();
+  multiPathNextHopTable_.reset();
   hostTable_.reset();
   toCPUEgress_.reset();
   portTable_.reset();
@@ -235,6 +237,7 @@ void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   l3NextHopTable_ =
       std::make_unique<BcmL3NextHopTable>(this);
   mplsNextHopTable_ = std::make_unique<BcmMplsNextHopTable>(this);
+  multiPathNextHopTable_ = std::make_unique<BcmMultiPathNextHopTable>(this);
   labelMap_ = std::make_unique<BcmLabelMap>(this);
   routeTable_ = std::make_unique<BcmRouteTable>(this);
   aclTable_ = std::make_unique<BcmAclTable>(this);

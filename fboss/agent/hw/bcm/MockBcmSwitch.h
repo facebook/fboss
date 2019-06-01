@@ -80,6 +80,12 @@ class MockBcmSwitch : public BcmSwitchIf {
   MOCK_CONST_METHOD0(
       writableMplsNextHopTable,
       BcmNextHopTable<BcmLabeledHostKey, BcmMplsNextHop>*());
+  MOCK_CONST_METHOD0(
+      getMultiPathNextHopTable,
+      const BcmMultiPathNextHopTable*());
+  MOCK_CONST_METHOD0(
+      writableMultiPathNextHopTable,
+      BcmMultiPathNextHopTable*());
   MOCK_CONST_METHOD0(getAclTable, const BcmAclTable*());
   MOCK_CONST_METHOD0(getQosPolicyTable, const BcmQosPolicyTable*());
   MOCK_CONST_METHOD0(getStatUpdater, BcmStatUpdater*());

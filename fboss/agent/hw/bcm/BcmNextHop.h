@@ -7,13 +7,14 @@ extern "C" {
 #include <opennsl/types.h>
 }
 
-#include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
+#include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/lib/RefMap.h"
 
 namespace facebook {
 namespace fboss {
 
+class BcmEgress;
 class BcmSwitch;
 class BcmHostReference;
 
@@ -28,8 +29,6 @@ class BcmNextHop {
 class BcmL3NextHop : public BcmNextHop {
  public:
   BcmL3NextHop(BcmSwitch* hw, BcmHostKey key);
-
-  ~BcmL3NextHop() override {}
 
   opennsl_if_t getEgressId() const override;
 

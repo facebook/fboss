@@ -9,6 +9,7 @@ extern "C" {
 
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
+#include "fboss/agent/hw/bcm/BcmNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
 namespace {
@@ -55,6 +56,15 @@ class BcmMultiPathNextHop {
   RouteNextHopSet fwd_;
   std::vector<std::shared_ptr<BcmNextHop>> nexthops_;
   std::unique_ptr<BcmEcmpEgress> ecmpEgress_;
+};
+
+using BcmMultiPathNextHopTableBase =
+    BcmNextHopTable<BcmMultiPathNextHopKey, BcmMultiPathNextHop>;
+class BcmMultiPathNextHopTable : public BcmMultiPathNextHopTableBase {
+ public:
+  explicit BcmMultiPathNextHopTable(BcmSwitch* hw)
+      : BcmMultiPathNextHopTableBase(hw) {}
+  // TODO : pull ecmp resolution management from host table here.
 };
 
 } // namespace fboss
