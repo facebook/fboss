@@ -139,7 +139,7 @@ void BcmMplsNextHop::program(BcmHostKey bcmHostKey) {
   // update egress mapping and  multipath resolution
   hw_->writableEgressManager()->updatePortToEgressMapping(
       mplsEgress_->getID(), oldGport, newGport);
-  hw_->writableHostTable()->egressResolutionChangedHwLocked(
+  hw_->writableMultiPathNextHopTable()->egressResolutionChangedHwLocked(
       mplsEgress_->getID(), ecmpAction);
 
   newTrunk != BcmTrunk::INVALID ? setTrunk(newTrunk) : setPort(newPort);
@@ -157,7 +157,7 @@ BcmMplsNextHop::~BcmMplsNextHop() {
   opennsl_gport_t gPort = getGPort();
   hw_->writableEgressManager()->updatePortToEgressMapping(
       mplsEgress_->getID(), gPort, BcmPort::asGPort(0));
-  hw_->writableHostTable()->egressResolutionChangedHwLocked(
+  hw_->writableMultiPathNextHopTable()->egressResolutionChangedHwLocked(
       mplsEgress_->getID(),
       isPortOrTrunkSet ? BcmEcmpEgress::Action::SHRINK
                        : BcmEcmpEgress::Action::SKIP);

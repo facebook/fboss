@@ -92,5 +92,70 @@ long BcmMultiPathNextHopTable::getEcmpEgressCount() const {
       });
 }
 
+void BcmMultiPathNextHopTable::egressResolutionChangedHwLocked(
+    const BcmEcmpEgress::EgressIdSet& affectedEgressIds,
+    BcmEcmpEgress::Action action) {
+  if (action == BcmEcmpEgress::Action::SKIP) {
+    return;
+  }
+
+  for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
+    auto weakPtr = nextHopsAndEcmpHostInfo.second;
+    auto ecmpHost = weakPtr.lock();
+    auto ecmpEgress = ecmpHost->getEgress();
+    if (!ecmpEgress) {
+      continue;
+    }
+    for (auto egrId : affectedEgressIds) {
+      switch (action) {
+        case BcmEcmpEgress::Action::EXPAND:
+          ecmpEgress->pathReachableHwLocked(egrId);
+          break;
+        case BcmEcmpEgress::Action::SHRINK:
+          ecmpEgress->pathUnreachableHwLocked(egrId);
+          break;
+        case BcmEcmpEgress::Action::SKIP:
+          break;
+        default:
+          XLOG(FATAL) << "BcmEcmpEgress::Action matching not exhaustive";
+          break;
+      }
+    }
+  }
+  /*
+   * We may not have done a FIB sync before ports start coming
+   * up or ARP/NDP start getting resolved/unresolved. In this case
+   * we won't have BcmMultiPathNextHop entries, so we
+   * look through the warm boot cache for ecmp egress entries.
+   * Conversely post a FIB sync we won't have any ecmp egress IDs
+   * in the warm boot cache
+   */
+
+  auto* hw = getBcmSwitch();
+  for (const auto& ecmpAndEgressIds :
+       hw->getWarmBootCache()->ecmp2EgressIds()) {
+    for (auto path : affectedEgressIds) {
+      switch (action) {
+        case BcmEcmpEgress::Action::EXPAND:
+          BcmEcmpEgress::addEgressIdHwLocked(
+              hw->getUnit(),
+              ecmpAndEgressIds.first,
+              ecmpAndEgressIds.second,
+              path);
+          break;
+        case BcmEcmpEgress::Action::SHRINK:
+          BcmEcmpEgress::removeEgressIdHwLocked(
+              hw->getUnit(), ecmpAndEgressIds.first, path);
+          break;
+        case BcmEcmpEgress::Action::SKIP:
+          break;
+        default:
+          XLOG(FATAL) << "BcmEcmpEgress::Action matching not exhaustive";
+          break;
+      }
+    }
+  }
+}
+
 } // namespace fboss
 } // namespace facebook

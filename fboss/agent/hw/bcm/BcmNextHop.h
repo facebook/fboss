@@ -92,6 +92,10 @@ class BcmNextHopTable {
     return nexthops_;
   }
 
+  BcmSwitch* getBcmSwitch() {
+    return hw_;
+  }
+
 private:
   BcmSwitch* hw_;
   MapT nexthops_;

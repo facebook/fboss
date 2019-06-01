@@ -257,18 +257,6 @@ class BcmHostTable {
     hosts_.clear();
   }
 
-  void egressResolutionChangedHwLocked(
-      const EgressIdSet& affectedEgressIds,
-      BcmEcmpEgress::Action action);
-  void egressResolutionChangedHwLocked(
-      opennsl_if_t affectedPath,
-      BcmEcmpEgress::Action action) {
-    EgressIdSet affectedEgressIds;
-    affectedEgressIds.insert(affectedPath);
-    egressResolutionChangedHwLocked(affectedEgressIds, action);
-  }
-
-
   void programHostsToTrunk(
       const BcmHostKey& key,
       opennsl_if_t intf,

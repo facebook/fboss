@@ -270,7 +270,7 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
   hw_->writableEgressManager()->updatePortToEgressMapping(
       egressPtr->getID(), getSetPortAsGPort(), BcmPort::asGPort(port));
 
-  hw_->writableHostTable()->egressResolutionChangedHwLocked(
+  hw_->writableMultiPathNextHopTable()->egressResolutionChangedHwLocked(
       getEgressId(), ecmpAction);
 
   trunk_ = BcmTrunk::INVALID;
@@ -304,7 +304,7 @@ void BcmHost::programToTrunk(opennsl_if_t intf,
   hw_->writableEgressManager()->updatePortToEgressMapping(
       getEgressId(), getSetPortAsGPort(), BcmTrunk::asGPort(trunk));
 
-  hw_->writableHostTable()->egressResolutionChangedHwLocked(
+  hw_->writableMultiPathNextHopTable()->egressResolutionChangedHwLocked(
       getEgressId(), BcmEcmpEgress::Action::EXPAND);
 
   port_ = 0;
@@ -336,7 +336,7 @@ BcmHost::~BcmHost() {
   // This host mapping just went away, update the port -> egress id mapping
   hw_->writableEgressManager()->updatePortToEgressMapping(
       getEgressId(), getSetPortAsGPort(), BcmPort::asGPort(0));
-  hw_->writableHostTable()->egressResolutionChangedHwLocked(
+  hw_->writableMultiPathNextHopTable()->egressResolutionChangedHwLocked(
       getEgressId(),
       isPortOrTrunkSet() ? BcmEcmpEgress::Action::SHRINK
                          : BcmEcmpEgress::Action::SKIP);
@@ -519,71 +519,6 @@ folly::dynamic BcmHostTable::toFollyDynamic() const {
   hostTable[kHosts] = std::move(hostsJson);
   hostTable[kEcmpHosts] = std::move(ecmpHostsJson);
   return hostTable;
-}
-
-void BcmHostTable::egressResolutionChangedHwLocked(
-    const EgressIdSet& affectedEgressIds,
-    BcmEcmpEgress::Action action) {
-  if (action == BcmEcmpEgress::Action::SKIP) {
-    return;
-  }
-
-  auto& ecmpHosts = hw_->getMultiPathNextHopTable()->getNextHops();
-  for (const auto& nextHopsAndEcmpHostInfo : ecmpHosts) {
-    auto weakPtr = nextHopsAndEcmpHostInfo.second;
-    auto ecmpHost = weakPtr.lock();
-    auto ecmpEgress = ecmpHost->getEgress();
-    if (!ecmpEgress) {
-      continue;
-    }
-    for (auto egrId : affectedEgressIds) {
-      switch (action) {
-        case BcmEcmpEgress::Action::EXPAND:
-          ecmpEgress->pathReachableHwLocked(egrId);
-          break;
-        case BcmEcmpEgress::Action::SHRINK:
-          ecmpEgress->pathUnreachableHwLocked(egrId);
-          break;
-        case BcmEcmpEgress::Action::SKIP:
-          break;
-        default:
-          XLOG(FATAL) << "BcmEcmpEgress::Action matching not exhaustive";
-          break;
-      }
-    }
-  }
-  /*
-   * We may not have done a FIB sync before ports start coming
-   * up or ARP/NDP start getting resolved/unresolved. In this case
-   * we won't have BcmMultiPathNextHop entries, so we
-   * look through the warm boot cache for ecmp egress entries.
-   * Conversely post a FIB sync we won't have any ecmp egress IDs
-   * in the warm boot cache
-   */
-
-  for (const auto& ecmpAndEgressIds :
-       hw_->getWarmBootCache()->ecmp2EgressIds()) {
-    for (auto path : affectedEgressIds) {
-      switch (action) {
-        case BcmEcmpEgress::Action::EXPAND:
-          BcmEcmpEgress::addEgressIdHwLocked(
-              hw_->getUnit(),
-              ecmpAndEgressIds.first,
-              ecmpAndEgressIds.second,
-              path);
-          break;
-        case BcmEcmpEgress::Action::SHRINK:
-          BcmEcmpEgress::removeEgressIdHwLocked(
-              hw_->getUnit(), ecmpAndEgressIds.first, path);
-          break;
-        case BcmEcmpEgress::Action::SKIP:
-          break;
-        default:
-          XLOG(FATAL) << "BcmEcmpEgress::Action matching not exhaustive";
-          break;
-      }
-    }
-  }
 }
 
 BcmHost* BcmNeighborTable::registerNeighbor(const BcmHostKey& neighbor) {

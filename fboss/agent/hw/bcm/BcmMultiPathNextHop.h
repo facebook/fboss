@@ -65,7 +65,16 @@ class BcmMultiPathNextHopTable : public BcmMultiPathNextHopTableBase {
   using EgressIdSet = BcmEcmpEgress::EgressIdSet;
   explicit BcmMultiPathNextHopTable(BcmSwitch* hw)
       : BcmMultiPathNextHopTableBase(hw) {}
-  // TODO : pull ecmp resolution management from host table here.
+  void egressResolutionChangedHwLocked(
+      const EgressIdSet& affectedEgressIds,
+      BcmEcmpEgress::Action action);
+  void egressResolutionChangedHwLocked(
+      opennsl_if_t affectedPath,
+      BcmEcmpEgress::Action action) {
+    EgressIdSet affectedEgressIds;
+    affectedEgressIds.insert(affectedPath);
+    egressResolutionChangedHwLocked(affectedEgressIds, action);
+  }
 
   long getEcmpEgressCount() const;
 };

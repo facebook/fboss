@@ -66,7 +66,7 @@ void BcmEgressManager::linkStateChangedMaybeLocked(
     return;
   }
   if (locked) {
-    hw_->writableHostTable()->egressResolutionChangedHwLocked(
+    hw_->writableMultiPathNextHopTable()->egressResolutionChangedHwLocked(
         portAndEgressIds->getEgressIds(),
         up ? BcmEcmpEgress::Action::EXPAND : BcmEcmpEgress::Action::SHRINK);
   } else {
