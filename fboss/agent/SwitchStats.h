@@ -199,6 +199,19 @@ class SwitchStats : public boost::noncopyable {
     delRouteV6_.addValue(1);
   }
 
+  void addRoutesV4(uint64_t routeCount) {
+    addRouteV4_.addValue(routeCount);
+  }
+  void addRoutesV6(uint64_t routeCount) {
+    addRouteV6_.addValue(routeCount);
+  }
+  void delRoutesV4(uint64_t routeCount) {
+    delRouteV4_.addValue(routeCount);
+  }
+  void delRoutesV6(uint64_t routeCount) {
+    delRouteV6_.addValue(routeCount);
+  }
+
   void ipv4DstLookupFailure() {
     dstLookupFailureV4_.addValue(1);
     dstLookupFailure_.addValue(1);

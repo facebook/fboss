@@ -38,6 +38,14 @@ class RoutingInformationBase {
       std::function<std::shared_ptr<SwitchState>(
           const std::shared_ptr<SwitchState>&)>)>;
 
+  struct UpdateStatistics {
+    std::size_t v4RoutesAdded{0};
+    std::size_t v4RoutesDeleted{0};
+    std::size_t v6RoutesAdded{0};
+    std::size_t v6RoutesDeleted{0};
+    std::chrono::microseconds duration{0};
+  };
+
   /* update first acquires exclusive ownership of the RIB and executes the
    * following sequence of actions:
    * 1. Injects and removes routes in `toAdd` and `toDelete`, respectively.
@@ -51,7 +59,7 @@ class RoutingInformationBase {
    * The adminDistanceFromClientID allows callsites to propogate admin distances
    * per client.
    */
-  void update(
+  UpdateStatistics update(
       RouterID routerID,
       ClientID clientID,
       AdminDistance adminDistanceFromClientID,
@@ -88,6 +96,8 @@ class RoutingInformationBase {
 
     IPv4NetworkToRouteMap v4NetworkToRoute;
     IPv6NetworkToRouteMap v6NetworkToRoute;
+
+    UpdateStatistics lastUpdateStats_;
   };
 
   // Currently, route updates to separate VRFs are made to be sequential. In the

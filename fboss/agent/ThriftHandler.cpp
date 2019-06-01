@@ -221,7 +221,7 @@ void ThriftHandler::deleteUnicastRoutes(
     auto clientID = ClientID(client);
     auto defaultAdminDistance = sw_->clientIdToAdminDistance(client);
 
-    sw_->rib()->update(
+    auto stats = sw_->rib()->update(
         defaultVrf,
         clientID,
         defaultAdminDistance,
@@ -230,6 +230,14 @@ void ThriftHandler::deleteUnicastRoutes(
         false /* reset routes for client */,
         "delete unicast route",
         folly::partial(&SwSwitch::updateStateBlocking, sw_));
+
+    sw_->stats()->delRoutesV4(stats.v4RoutesDeleted);
+    sw_->stats()->delRoutesV6(stats.v6RoutesDeleted);
+
+    auto totalRouteCount = stats.v4RoutesDeleted + stats.v6RoutesDeleted;
+    sw_->stats()->routeUpdate(stats.duration, totalRouteCount);
+    XLOG(DBG0) << "Delete " << totalRouteCount << " routes took "
+               << stats.duration.count() << "us";
 
     return;
   }
@@ -277,7 +285,7 @@ void ThriftHandler::updateUnicastRoutesImpl(
     auto clientID = ClientID(client);
     auto defaultAdminDistance = sw_->clientIdToAdminDistance(client);
 
-    sw_->rib()->update(
+    auto stats = sw_->rib()->update(
         defaultVrf,
         clientID,
         defaultAdminDistance,
@@ -286,6 +294,14 @@ void ThriftHandler::updateUnicastRoutesImpl(
         sync,
         updType,
         folly::partial(&SwSwitch::updateStateBlocking, sw_));
+
+    sw_->stats()->addRoutesV4(stats.v4RoutesAdded);
+    sw_->stats()->addRoutesV6(stats.v6RoutesAdded);
+
+    auto totalRouteCount = stats.v4RoutesAdded + stats.v6RoutesAdded;
+    sw_->stats()->routeUpdate(stats.duration, totalRouteCount);
+    XLOG(DBG0) << updType << " " << totalRouteCount << " routes took "
+               << stats.duration.count() << "us";
 
     return;
   }

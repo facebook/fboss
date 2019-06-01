@@ -21,6 +21,24 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 
+namespace {
+class Timer {
+ public:
+  explicit Timer(std::chrono::microseconds* duration)
+      : duration_(duration), start_(std::chrono::steady_clock::now()) {}
+
+  ~Timer() {
+    auto end = std::chrono::steady_clock::now();
+    *duration_ =
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start_);
+  }
+
+ private:
+  std::chrono::microseconds* duration_;
+  std::chrono::time_point<std::chrono::steady_clock> start_;
+};
+} // namespace
+
 namespace facebook {
 namespace fboss {
 namespace rib {
@@ -86,7 +104,7 @@ void RoutingInformationBase::reconfigure(
   }
 }
 
-void RoutingInformationBase::update(
+RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
     RouterID routerID,
     ClientID clientID,
     AdminDistance adminDistanceFromClientID,
@@ -95,6 +113,10 @@ void RoutingInformationBase::update(
     bool resetClientsRoutes,
     folly::StringPiece updateType,
     ApplyStateUpdateFunction updateStateBlockingFn) {
+  UpdateStatistics stats;
+
+  Timer updateTimer(&stats.duration);
+
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
 
   auto it = lockedRouteTables->find(routerID);
@@ -113,6 +135,12 @@ void RoutingInformationBase::update(
     auto network = facebook::network::toIPAddress(route.dest.ip);
     auto mask = static_cast<uint8_t>(route.dest.prefixLength);
 
+    if (network.isV4()) {
+      ++stats.v4RoutesAdded;
+    } else {
+      ++stats.v6RoutesAdded;
+    }
+
     updater.addRoute(
         network,
         mask,
@@ -124,6 +152,12 @@ void RoutingInformationBase::update(
     auto network = facebook::network::toIPAddress(prefix.ip);
     auto mask = static_cast<uint8_t>(prefix.prefixLength);
 
+    if (network.isV4()) {
+      ++stats.v4RoutesDeleted;
+    } else {
+      ++stats.v6RoutesDeleted;
+    }
+
     updater.delRoute(network, mask, clientID);
   }
 
@@ -133,6 +167,8 @@ void RoutingInformationBase::update(
       routerID, it->second.v4NetworkToRoute, it->second.v6NetworkToRoute);
 
   updateStateBlockingFn(updateType, std::move(fibUpdater));
+
+  return stats;
 }
 
 RoutingInformationBase::RouterIDToRouteTable
