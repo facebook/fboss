@@ -62,9 +62,12 @@ using BcmMultiPathNextHopTableBase =
     BcmNextHopTable<BcmMultiPathNextHopKey, BcmMultiPathNextHop>;
 class BcmMultiPathNextHopTable : public BcmMultiPathNextHopTableBase {
  public:
+  using EgressIdSet = BcmEcmpEgress::EgressIdSet;
   explicit BcmMultiPathNextHopTable(BcmSwitch* hw)
       : BcmMultiPathNextHopTableBase(hw) {}
   // TODO : pull ecmp resolution management from host table here.
+
+  long getEcmpEgressCount() const;
 };
 
 } // namespace fboss

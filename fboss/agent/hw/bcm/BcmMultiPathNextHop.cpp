@@ -6,6 +6,7 @@
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmNextHop.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
 namespace facebook {
 namespace fboss {
@@ -81,5 +82,15 @@ folly::dynamic BcmMultiPathNextHop::toFollyDynamic() const {
   }
   return ecmpHost;
 }
+
+long BcmMultiPathNextHopTable::getEcmpEgressCount() const {
+  return std::count_if(
+      getNextHops().begin(),
+      getNextHops().end(),
+      [](const auto& entry) -> bool {
+        return entry.second.lock()->getEgress();
+      });
+}
+
 } // namespace fboss
 } // namespace facebook
