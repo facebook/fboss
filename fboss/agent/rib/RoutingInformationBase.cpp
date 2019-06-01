@@ -99,11 +99,7 @@ void RoutingInformationBase::update(
 
   auto it = lockedRouteTables->find(routerID);
   if (it == lockedRouteTables->end()) {
-    // We can be more strict about admitting VRFs by taking the set of valid
-    // VRFs on construction, and checking routerID belongs to that set here.
-    bool inserted = false;
-    std::tie(it, inserted) = lockedRouteTables->emplace(routerID, RouteTable());
-    CHECK(inserted);
+    throw FbossError("VRF ", routerID, " not configured");
   }
 
   RouteUpdater updater(

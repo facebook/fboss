@@ -45,6 +45,9 @@ class ForwardingInformationBaseContainer
   const std::shared_ptr<ForwardingInformationBaseV4>& getFibV4() const;
   const std::shared_ptr<ForwardingInformationBaseV6>& getFibV6() const;
 
+  template <typename AddressT>
+  const std::shared_ptr<ForwardingInformationBase<AddressT>>& getFib() const;
+
   ForwardingInformationBaseContainer* modify(
       std::shared_ptr<SwitchState>* state);
 
@@ -57,6 +60,18 @@ class ForwardingInformationBaseContainer
   using NodeBaseT::NodeBaseT;
   friend class CloneAllocator;
 };
+
+template <>
+inline const std::shared_ptr<ForwardingInformationBase<folly::IPAddressV4>>&
+ForwardingInformationBaseContainer::getFib() const {
+  return getFibV4();
+}
+
+template <>
+inline const std::shared_ptr<ForwardingInformationBase<folly::IPAddressV6>>&
+ForwardingInformationBaseContainer::getFib() const {
+  return getFibV6();
+}
 
 } // namespace fboss
 } // namespace facebook

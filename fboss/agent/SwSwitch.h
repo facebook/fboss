@@ -553,9 +553,11 @@ class SwSwitch : public HwSwitch::Callback {
   /*
    * Gets the flags the SwSwitch was initialized with.
    */
-  SwitchFlags getFlags() {
+  SwitchFlags getFlags() const {
     return flags_;
   }
+
+  bool isStandaloneRibEnabled() const;
 
   /*
    * Allow hardware to perform any cleanup needed to gracefully restart the

@@ -1558,4 +1558,7 @@ void SwSwitch::clearPortStats(
   getHw()->clearPortStats(ports);
 }
 
+bool SwSwitch::isStandaloneRibEnabled() const {
+  return getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB;
+}
 }} // facebook::fboss

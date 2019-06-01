@@ -221,7 +221,11 @@ unique_ptr<HwTestHandle> createTestHandle(cfg::SwitchConfig* config,
 
   // Apply the thrift config
   auto updateFn = [&](const shared_ptr<SwitchState>& state) {
-    return applyThriftConfig(state, config, sw->getPlatform());
+    return applyThriftConfig(
+        state,
+        config,
+        sw->getPlatform(),
+        sw->isStandaloneRibEnabled() ? sw->rib() : nullptr);
   };
   sw->updateStateBlocking("test_setup", updateFn);
   return handle;

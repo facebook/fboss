@@ -26,8 +26,14 @@
 
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
+#include "common/network/if/gen-cpp2/Address_types.h"
+#include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/test/TestUtils.h"
+
 #include <folly/IPAddress.h>
 #include <folly/Optional.h>
+#include <folly/functional/Partial.h>
 #include <gtest/gtest.h>
 
 using facebook::fboss::AdminDistance;
@@ -214,4 +220,264 @@ TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
                    ->getFibContainerIf(vrfOne)
                    ->getFibV6()
                    ->isPublished());
+}
+
+namespace {
+template <typename AddressT>
+std::shared_ptr<facebook::fboss::Route<AddressT>> getRoute(
+    const std::shared_ptr<facebook::fboss::SwitchState>& state,
+    facebook::fboss::RouterID vrf,
+    AddressT address,
+    uint8_t mask) {
+  const auto& fibs = state->getFibs();
+  const auto& fibContainer = fibs->getFibContainer(vrf);
+
+  const std::shared_ptr<facebook::fboss::ForwardingInformationBase<AddressT>>&
+      fib = fibContainer->template getFib<AddressT>();
+
+  facebook::fboss::RoutePrefix<AddressT> prefix{address, mask};
+  return fib->exactMatch(prefix);
+}
+
+template <typename AddressT>
+void EXPECT_ROUTE(
+    const std::shared_ptr<facebook::fboss::SwitchState>& state,
+    facebook::fboss::RouterID vrf,
+    AddressT address,
+    uint8_t mask) {
+  auto route = getRoute(state, vrf, address, mask);
+  EXPECT_NE(nullptr, route);
+}
+
+template <typename AddressT>
+void EXPECT_NO_ROUTE(
+    const std::shared_ptr<facebook::fboss::SwitchState>& state,
+    facebook::fboss::RouterID vrf,
+    AddressT address,
+    uint8_t mask) {
+  auto route = getRoute(state, vrf, address, mask);
+  EXPECT_EQ(nullptr, route);
+}
+
+facebook::fboss::UnicastRoute createUnicastRoute(
+    folly::IPAddress address,
+    uint8_t mask,
+    folly::IPAddress nexthop) {
+  facebook::fboss::UnicastRoute unicastRoute;
+
+  facebook::fboss::IpPrefix network;
+  network.set_ip(facebook::network::toBinaryAddress(address));
+  network.set_prefixLength(mask);
+  unicastRoute.set_dest(network);
+
+  std::vector<facebook::fboss::NextHopThrift> nexthops(1);
+  nexthops.back().set_address(facebook::network::toBinaryAddress(nexthop));
+  nexthops.back().set_weight(facebook::fboss::ECMP_WEIGHT);
+  unicastRoute.set_nextHops(std::move(nexthops));
+
+  return unicastRoute;
+}
+
+void EXPECT_FIB_SIZE(
+    const std::shared_ptr<facebook::fboss::SwitchState>& state,
+    facebook::fboss::RouterID vrf,
+    std::size_t v4FibSize,
+    std::size_t v6FibSize) {
+  const auto& fibs = state->getFibs();
+  const auto& fibContainer = fibs->getFibContainer(vrf);
+
+  EXPECT_EQ(fibContainer->getFibV4()->size(), v4FibSize);
+  EXPECT_EQ(fibContainer->getFibV6()->size(), v6FibSize);
+}
+
+} // namespace
+
+TEST(Rib, Update) {
+  using namespace facebook::fboss;
+
+  const RouterID vrfZero{0};
+  auto v4Default = folly::CIDRNetworkV4(folly::IPAddressV4("0.0.0.0"), 0);
+  auto v6Default = folly::CIDRNetworkV6(folly::IPAddressV6("::"), 0);
+
+  cfg::SwitchConfig config;
+  config.vlans.resize(1);
+  config.vlans[0].id = 1;
+  config.interfaces.resize(1);
+  config.interfaces[0].intfID = 1;
+  config.interfaces[0].vlanID = 1;
+  config.interfaces[0].routerID = 0;
+  config.interfaces[0].__isset.mac = true;
+  config.interfaces[0].mac_ref().value_unchecked() = "00:02:00:00:00:01";
+  config.interfaces[0].ipAddresses.resize(3);
+  config.interfaces[0].ipAddresses[0] = "0.0.0.0/0";
+  config.interfaces[0].ipAddresses[1] = "192.168.0.19/24";
+  config.interfaces[0].ipAddresses[2] = "::/0";
+
+  auto testHandle = createTestHandle(&config, ENABLE_STANDALONE_RIB);
+  auto sw = testHandle->getSw();
+
+  EXPECT_FIB_SIZE(sw->getState(), vrfZero, 2, 2);
+
+  auto client10Nexthop4 = folly::IPAddressV4("11.11.11.11");
+  auto client10Nexthop6 = folly::IPAddressV6("11:11::0");
+  auto client20Nexthop4 = folly::IPAddressV4("22.22.22.22");
+  auto client20Nexthop6 = folly::IPAddressV6("22:22::0");
+  auto client30Nexthop6 = folly::IPAddressV6("33:33::0");
+  auto client10Nexthop6b = folly::IPAddressV6("44:44::0");
+
+  // Prefix A will include next-hops from client 10 only
+  auto prefixA4 = folly::CIDRNetworkV4(folly::IPAddressV4("7.1.0.0"), 16);
+  auto prefixA6 = folly::CIDRNetworkV6(folly::IPAddressV6("aaaa:1::0"), 64);
+
+  std::vector<UnicastRoute> routesToPrefixA;
+  routesToPrefixA.push_back(
+      createUnicastRoute(prefixA4.first, prefixA4.second, client10Nexthop4));
+  routesToPrefixA.push_back(
+      createUnicastRoute(prefixA6.first, prefixA6.second, client10Nexthop6));
+
+  sw->rib()->update(
+      vrfZero,
+      ClientID(10),
+      AdminDistance::EBGP,
+      routesToPrefixA,
+      {},
+      false /* sync */,
+      "rib update unit test",
+      folly::partial(&SwSwitch::updateStateBlocking, sw));
+
+  EXPECT_FIB_SIZE(sw->getState(), vrfZero, 3, 3);
+
+  // Prefix B will include next-hops from clients 10 and 20
+  auto prefixB4 = folly::CIDRNetworkV4(folly::IPAddressV4("7.2.0.0"), 16);
+
+  std::vector<UnicastRoute> routeToPrefixBFromClient10;
+  routeToPrefixBFromClient10.push_back(
+      createUnicastRoute(prefixB4.first, prefixB4.second, client10Nexthop4));
+
+  sw->rib()->update(
+      vrfZero,
+      ClientID(10),
+      AdminDistance::EBGP,
+      routeToPrefixBFromClient10,
+      {},
+      false /* sync */,
+      "rib update unit test",
+      folly::partial(&SwSwitch::updateStateBlocking, sw));
+
+  std::vector<UnicastRoute> routeToPrefixBFromClient20;
+  routeToPrefixBFromClient20.push_back(
+      createUnicastRoute(prefixB4.first, prefixB4.second, client20Nexthop4));
+  sw->rib()->update(
+      vrfZero,
+      ClientID(20),
+      AdminDistance::EBGP,
+      routeToPrefixBFromClient20,
+      {},
+      false /* sync */,
+      "rib update unit test",
+      folly::partial(&SwSwitch::updateStateBlocking, sw));
+
+  EXPECT_FIB_SIZE(sw->getState(), vrfZero, 4, 3);
+
+  // Prefix C will include nexthops from clients 10, 20, and 30
+  auto prefixC6 = folly::CIDRNetworkV6(folly::IPAddressV6("aaaa:3::0"), 64);
+
+  std::vector<UnicastRoute> routeToPrefixCFromClient10;
+  routeToPrefixCFromClient10.push_back(
+      createUnicastRoute(prefixC6.first, prefixC6.second, client10Nexthop6));
+  sw->rib()->update(
+      vrfZero,
+      ClientID(10),
+      AdminDistance::EBGP,
+      routeToPrefixCFromClient10,
+      {},
+      false /* sync */,
+      "rib update unit test",
+      folly::partial(&SwSwitch::updateStateBlocking, sw));
+
+  std::vector<UnicastRoute> routeToPrefixCFromClient20;
+  routeToPrefixCFromClient20.push_back(
+      createUnicastRoute(prefixC6.first, prefixC6.second, client20Nexthop6));
+  sw->rib()->update(
+      vrfZero,
+      ClientID(20),
+      AdminDistance::EBGP,
+      routeToPrefixCFromClient20,
+      {},
+      false /* sync */,
+      "rib update unit test",
+      folly::partial(&SwSwitch::updateStateBlocking, sw));
+
+  std::vector<UnicastRoute> routeToPrefixCFromClient30;
+  routeToPrefixCFromClient30.push_back(
+      createUnicastRoute(prefixC6.first, prefixC6.second, client30Nexthop6));
+  sw->rib()->update(
+      vrfZero,
+      ClientID(30),
+      AdminDistance::EBGP,
+      routeToPrefixCFromClient30,
+      {},
+      false /* sync */,
+      "rib update unit test",
+      folly::partial(&SwSwitch::updateStateBlocking, sw));
+
+  // Make sure all the static and link-local routes are there
+  auto state = sw->getState();
+  EXPECT_ROUTE(state, vrfZero, v4Default.first, v4Default.second);
+  EXPECT_ROUTE(state, vrfZero, folly::IPAddressV4("192.168.0.0"), 24);
+  EXPECT_ROUTE(state, vrfZero, v6Default.first, v6Default.second);
+  EXPECT_ROUTE(state, vrfZero, folly::IPAddressV6("fe80::"), 64);
+  // Make sure the client 10&20&30 routes are there.
+  EXPECT_ROUTE(state, vrfZero, prefixA4.first, prefixA4.second);
+  EXPECT_ROUTE(state, vrfZero, prefixA6.first, prefixA6.second);
+  EXPECT_ROUTE(state, vrfZero, prefixB4.first, prefixB4.second);
+  EXPECT_ROUTE(state, vrfZero, prefixC6.first, prefixC6.second);
+
+  EXPECT_FIB_SIZE(sw->getState(), vrfZero, 4, 4);
+
+  //
+  // Now use syncFib to remove all the routes for client 10 and add
+  // some new ones
+  // Statics, link-locals, and clients 20 and 30 should remain unchanged.
+  //
+  auto prefixD4 = folly::CIDRNetworkV4(folly::IPAddressV4("7.4.0.0"), 16);
+  auto prefixD6 = folly::CIDRNetworkV6(folly::IPAddressV6("aaaa:4::0"), 64);
+
+  std::vector<UnicastRoute> syncFibRoutes;
+  syncFibRoutes.push_back(
+      createUnicastRoute(prefixC6.first, prefixC6.second, client10Nexthop6b));
+  syncFibRoutes.push_back(
+      createUnicastRoute(prefixD6.first, prefixD6.second, client10Nexthop6b));
+  syncFibRoutes.push_back(
+      createUnicastRoute(prefixD4.first, prefixD4.second, client10Nexthop4));
+  sw->rib()->update(
+      vrfZero,
+      ClientID(10),
+      AdminDistance::EBGP,
+      syncFibRoutes,
+      {},
+      true /* sync */,
+      "rib update unit test",
+      folly::partial(&SwSwitch::updateStateBlocking, sw));
+
+  // Make sure all the static and link-local routes are still there
+  state = sw->getState();
+  EXPECT_ROUTE(state, vrfZero, v4Default.first, v4Default.second);
+  EXPECT_ROUTE(state, vrfZero, folly::IPAddressV4("192.168.0.0"), 24);
+  EXPECT_ROUTE(state, vrfZero, v6Default.first, v6Default.second);
+  EXPECT_ROUTE(state, vrfZero, folly::IPAddressV6("fe80::"), 64);
+
+  // The prefixA* routes should have disappeared
+  EXPECT_NO_ROUTE(state, vrfZero, prefixA4.first, prefixA4.second);
+  EXPECT_NO_ROUTE(state, vrfZero, prefixA6.first, prefixA6.second);
+
+  EXPECT_ROUTE(state, vrfZero, prefixB4.first, prefixB4.second);
+
+  // The prefixD4 and prefixD6 routes should have been created
+  EXPECT_ROUTE(state, vrfZero, prefixD4.first, prefixD4.second);
+  EXPECT_ROUTE(state, vrfZero, prefixD6.first, prefixD6.second);
+
+  // Make sure there are no more routes (ie. the old ones were deleted)
+  // + the one that gets added by default
+  EXPECT_FIB_SIZE(state, vrfZero, 4, 4);
 }

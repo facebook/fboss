@@ -51,6 +51,7 @@
 
 #include <folly/MoveWrapper.h>
 #include <folly/Range.h>
+#include <folly/functional/Partial.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 #include <folly/json_pointer.h>
@@ -210,9 +211,29 @@ void ThriftHandler::getProductInfo(ProductInfo& productInfo) {
 }
 
 void ThriftHandler::deleteUnicastRoutes(
-    int16_t client, std::unique_ptr<std::vector<IpPrefix>> prefixes) {
+    int16_t client,
+    std::unique_ptr<std::vector<IpPrefix>> prefixes) {
   ensureConfigured("deleteUnicastRoutes");
   ensureFibSynced("deleteUnicastRoutes");
+
+  if (sw_->isStandaloneRibEnabled()) {
+    auto defaultVrf = RouterID(0);
+    auto clientID = ClientID(client);
+    auto defaultAdminDistance = sw_->clientIdToAdminDistance(client);
+
+    sw_->rib()->update(
+        defaultVrf,
+        clientID,
+        defaultAdminDistance,
+        {} /* routes to add */,
+        *prefixes /* prefixes to delete */,
+        false /* reset routes for client */,
+        "delete unicast route",
+        folly::partial(&SwSwitch::updateStateBlocking, sw_));
+
+    return;
+  }
+
   RouteUpdateStats stats(sw_, "Delete", prefixes->size());
   // Perform the update
   auto updateFn = [&](const shared_ptr<SwitchState>& state) {
@@ -251,6 +272,24 @@ void ThriftHandler::syncFib(
 void ThriftHandler::updateUnicastRoutesImpl(
   int16_t client, const std::unique_ptr<std::vector<UnicastRoute>>& routes,
   const std::string& updType, bool sync) {
+  if (sw_->isStandaloneRibEnabled()) {
+    auto defaultVrf = RouterID(0);
+    auto clientID = ClientID(client);
+    auto defaultAdminDistance = sw_->clientIdToAdminDistance(client);
+
+    sw_->rib()->update(
+        defaultVrf,
+        clientID,
+        defaultAdminDistance,
+        *routes /* routes to add */,
+        {} /* prefixes to delete */,
+        sync,
+        updType,
+        folly::partial(&SwSwitch::updateStateBlocking, sw_));
+
+    return;
+  }
+
   RouteUpdateStats stats(sw_, updType, routes->size());
 
   // Note that we capture routes by reference here, since it is a unique_ptr.
