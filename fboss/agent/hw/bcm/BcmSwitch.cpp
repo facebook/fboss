@@ -61,6 +61,10 @@
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/ForwardingInformationBase.h"
+#include "fboss/agent/state/ForwardingInformationBaseContainer.h"
+#include "fboss/agent/state/ForwardingInformationBaseDelta.h"
+#include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/LoadBalancer.h"
@@ -140,6 +144,19 @@ void rethrowIfHwNotFull(const facebook::fboss::BcmError& error) {
   XLOG(WARNING) << error.what();
 }
 
+bool routeTableModified(const facebook::fboss::StateDelta& delta) {
+  return delta.getRouteTablesDelta().begin() !=
+      delta.getRouteTablesDelta().end();
+}
+
+bool fibModified(const facebook::fboss::StateDelta& delta) {
+  return delta.getFibsDelta().begin() != delta.getFibsDelta().end();
+}
+
+bool bothStandAloneRibOrRouteTableRibUsed(
+    const facebook::fboss::StateDelta& delta) {
+  return routeTableModified(delta) && fibModified(delta);
+}
 }
 
 namespace facebook { namespace fboss {
@@ -662,8 +679,11 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
 
   processLoadBalancerChanges(delta);
 
+  CHECK(!bothStandAloneRibOrRouteTableRibUsed(delta));
+
   // remove all routes to be deleted
   processRemovedRoutes(delta);
+  processRemovedFibRoutes(delta);
 
   // delete all interface not existing anymore. that should stop
   // all traffic on that interface now
@@ -732,6 +752,7 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
 
   // Process any new routes or route changes
   processAddedChangedRoutes(delta, &appliedState);
+  processAddedChangedFibRoutes(delta, &appliedState);
 
   processAggregatePortChanges(delta);
 
@@ -1535,6 +1556,32 @@ void BcmSwitch::processRemovedRoutes(const StateDelta& delta) {
   }
 }
 
+void BcmSwitch::processRemovedFibRoutes(const StateDelta& delta) {
+  for (const auto& fibDelta : delta.getFibsDelta()) {
+    auto oldFib = fibDelta.getOld();
+
+    if (!oldFib) {
+      // This FIB did not exist in the previous state. Thus, all routes in it
+      // must necessarily have been _added_.
+      continue;
+    }
+
+    CHECK(oldFib);
+    RouterID vrf = oldFib->getID();
+
+    forEachRemoved(
+        fibDelta.getV4FibDelta(),
+        &BcmSwitch::processRemovedRoute<RouteV4>,
+        this,
+        vrf);
+    forEachRemoved(
+        fibDelta.getV6FibDelta(),
+        &BcmSwitch::processRemovedRoute<RouteV6>,
+        this,
+        vrf);
+  }
+}
+
 void BcmSwitch::processAddedChangedRoutes(
     const StateDelta& delta,
     std::shared_ptr<SwitchState>* appliedState) {
@@ -1601,6 +1648,39 @@ void BcmSwitch::processRouteTableDelta(
                           ->getRouteIf(prefix);
       SwitchState::revertNewRouteEntry(id, newRoute, oldRoute, appliedState);
     }
+  }
+}
+
+void BcmSwitch::processAddedChangedFibRoutes(
+    const StateDelta& delta,
+    std::shared_ptr<SwitchState>* /* appliedState */) {
+  for (auto const& fibDelta : delta.getFibsDelta()) {
+    auto newFib = fibDelta.getNew();
+
+    if (!newFib) {
+      // This FIB does not exist in the new tate. Thus, all routes in it
+      // must necessarily have been deleted.
+      continue;
+    }
+
+    CHECK(newFib);
+    RouterID vrf = newFib->getID();
+
+    forEachChanged(
+        fibDelta.getV4FibDelta(),
+        &BcmSwitch::processChangedRoute<RouteV4>,
+        &BcmSwitch::processAddedRoute<RouteV4>,
+        [&](BcmSwitch*, const RouterID&, const shared_ptr<RouteV4>&) {},
+        this,
+        vrf);
+
+    forEachChanged(
+        fibDelta.getV6FibDelta(),
+        &BcmSwitch::processChangedRoute<RouteV6>,
+        &BcmSwitch::processAddedRoute<RouteV6>,
+        [&](BcmSwitch*, const RouterID&, const shared_ptr<RouteV6>&) {},
+        this,
+        vrf);
   }
 }
 

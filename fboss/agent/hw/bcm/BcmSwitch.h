@@ -541,6 +541,10 @@ class BcmSwitch : public BcmSwitchIf {
       std::shared_ptr<SwitchState>* appliedState);
   template <typename AddrT>
   bool isRouteUpdateValid(const StateDelta& delta) const;
+  void processRemovedFibRoutes(const StateDelta& delta);
+  void processAddedChangedFibRoutes(
+      const StateDelta& delta,
+      std::shared_ptr<SwitchState>* appliedState);
 
   void processQosChanges(const StateDelta& delta);
 
