@@ -141,10 +141,11 @@ void SaiRouteManager::addRoute(
         swRoute->prefix().str());
   }
   auto fwd = swRoute->getForwardInfo();
-  sai_int32_t packetAction = getSaiPacketAction(fwd.getAction());
+  sai_int32_t packetAction;
   folly::Optional<sai_object_id_t> nextHopIdOpt;
   std::shared_ptr<SaiNextHopGroup> nextHopGroup;
-  if (packetAction == SAI_PACKET_ACTION_FORWARD) {
+  if (fwd.getAction() == NEXTHOPS) {
+    packetAction = SAI_PACKET_ACTION_FORWARD;
     /*
      * A Route which satisfies isConnected() is an interface subnet route.
      * It will have one NextHop with the ip configured for the interface
@@ -177,7 +178,17 @@ void SaiRouteManager::addRoute(
               fwd.getNextHopSet());
       nextHopIdOpt = nextHopGroup->id();
     }
+  } else if (fwd.getAction() == TO_CPU) {
+    packetAction = SAI_PACKET_ACTION_FORWARD;
+    sai_object_id_t switchId =
+        managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+    sai_object_id_t cpuPortId = apiTable_->switchApi().getAttribute(
+        SwitchApiParameters::Attributes::CpuPort{}, switchId);
+    nextHopIdOpt = cpuPortId;
+  } else if (fwd.getAction() == DROP) {
+    packetAction = SAI_PACKET_ACTION_DROP;
   }
+
   RouteApiParameters::Attributes attributes{{packetAction, nextHopIdOpt}};
   auto route = std::make_unique<SaiRoute>(
       apiTable_, managerTable_, entry, attributes, nextHopGroup);
@@ -248,19 +259,6 @@ SaiRoute* SaiRouteManager::getRouteImpl(
                 << entry.destination().second;
   }
   return itr->second.get();
-}
-
-sai_int32_t SaiRouteManager::getSaiPacketAction(
-    const RouteForwardAction& action) const {
-  switch (action) {
-    case DROP:
-      return SAI_PACKET_ACTION_DROP;
-    case TO_CPU:
-      return SAI_PACKET_ACTION_TRAP;
-    case NEXTHOPS:
-      return SAI_PACKET_ACTION_FORWARD;
-  }
-  folly::assume_unreachable();
 }
 
 void SaiRouteManager::clear() {

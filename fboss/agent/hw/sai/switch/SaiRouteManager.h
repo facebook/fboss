@@ -96,7 +96,6 @@ class SaiRouteManager {
 
  private:
   SaiRoute* getRouteImpl(const RouteApiParameters::EntryType& entry) const;
-  sai_int32_t getSaiPacketAction(const RouteForwardAction& action) const;
 
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;

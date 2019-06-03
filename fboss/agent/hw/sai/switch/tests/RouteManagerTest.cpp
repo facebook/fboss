@@ -79,6 +79,12 @@ TEST_F(RouteManagerTest, addToCpuRoute) {
   r->update(ClientID{42}, entry);
   r->setResolved(entry);
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r);
+  auto saiEntry =
+      saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r);
+  auto saiRoute = saiManagerTable->routeManager().getRoute(saiEntry);
+  // sai_object_id_t of cpu port is 0 in FakeSai
+  EXPECT_EQ(saiRoute->attributes().packetAction, SAI_PACKET_ACTION_FORWARD);
+  EXPECT_EQ(saiRoute->attributes().nextHopId.value(), 0);
 }
 
 TEST_F(RouteManagerTest, addDropRoute) {
