@@ -11,6 +11,8 @@
 #include <boost/container/flat_map.hpp>
 #include <boost/container/flat_set.hpp>
 
+#include <folly/SpinLock.h>
+
 extern "C" {
 #include <opennsl/l3.h>
 #include <opennsl/types.h>
