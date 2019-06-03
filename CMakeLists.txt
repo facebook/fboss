@@ -330,6 +330,10 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmWarmBootHelper.cpp
     fboss/agent/hw/bcm/CounterUtils.cpp
     fboss/agent/hw/bcm/PortAndEgressIdsMap.cpp
+    fboss/agent/hw/bcm/BcmEgressManager.cpp
+    fboss/agent/hw/bcm/BcmNextHop.cpp
+    fboss/agent/hw/bcm/BcmMultiPathNextHop.cpp
+    fboss/agent/hw/bcm/BcmLabeledTunnelEgress.cpp
     fboss/agent/hw/bcm/oss/BcmAclEntry.cpp
     fboss/agent/hw/bcm/oss/BcmAclStat.cpp
     fboss/agent/hw/bcm/oss/BcmAPI.cpp
@@ -358,6 +362,8 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmWarmBootHelper.cpp
     fboss/agent/hw/bcm/oss/BcmTableStats.cpp
     fboss/agent/hw/bcm/oss/BcmBstStatsMgr.cpp
+    fboss/agent/hw/bcm/oss/BcmLabeledEgress.cpp
+    fboss/agent/hw/bcm/oss/BcmLabeledTunnelEgress.cpp
     fboss/agent/hw/bcm/BcmAddressFBConvertors.cpp
     fboss/agent/hw/mock/MockHwSwitch.cpp
     fboss/agent/hw/mock/MockPlatform.cpp
@@ -497,6 +503,15 @@ add_library(fboss_agent STATIC
     fboss/agent/TunManager.cpp
     fboss/agent/UDPHeader.cpp
     fboss/agent/Utils.cpp
+    fboss/agent/rib/ConfigApplier.cpp
+    fboss/agent/rib/ForwardingInformationBaseUpdater.cpp
+    fboss/agent/rib/Route.cpp
+    fboss/agent/rib/RouteNextHop.cpp
+    fboss/agent/rib/RouteNextHopEntry.cpp
+    fboss/agent/rib/RouteNextHopsMulti.cpp
+    fboss/agent/rib/RouteTypes.cpp
+    fboss/agent/rib/RouteUpdater.cpp
+    fboss/agent/rib/RoutingInformationBase.cpp
 
     fboss/lib/usb/GalaxyI2CBus.cpp
     fboss/lib/usb/BaseWedgeI2CBus.cpp
