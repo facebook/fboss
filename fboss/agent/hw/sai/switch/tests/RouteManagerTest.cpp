@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/types.h"
@@ -156,4 +157,31 @@ TEST_F(RouteManagerTest, removeNonexistentRoute) {
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r1);
   EXPECT_THROW(
       saiManagerTable->routeManager().removeRoute(RouterID(0), r2), FbossError);
+}
+
+/*
+ * Test for ToMe routes doesn't want to do all the setup, because
+ * setting up the router interfaces will result in creating ToMeRoutes
+ * which conflicts with this more targeted test.
+ */
+class ToMeRouteTest : public ManagerTestBase {
+ public:
+  void SetUp() override {
+    setupStage = SetupStage::BLANK;
+    ManagerTestBase::SetUp();
+  }
+};
+
+TEST_F(ToMeRouteTest, toMeRoutes) {
+  auto swInterface = makeInterface(testInterfaces.at(0));
+  auto toMeRoutes =
+      saiManagerTable->routeManager().makeInterfaceToMeRoutes(swInterface);
+  EXPECT_EQ(toMeRoutes.size(), 1);
+  const auto& toMeRoute = toMeRoutes.at(0);
+  EXPECT_EQ(toMeRoute->attributes().packetAction, SAI_PACKET_ACTION_FORWARD);
+
+  auto switchId = saiManagerTable->switchManager().getSwitch(SwitchID(0))->id();
+  auto cpuPortId = saiApiTable->switchApi().getAttribute(
+      SwitchApiParameters::Attributes::CpuPort{}, switchId);
+  EXPECT_EQ(toMeRoute->attributes().nextHopId, cpuPortId);
 }

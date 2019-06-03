@@ -93,6 +93,41 @@ void SaiRouteManager::changeRoute(
   // TODO: implement modifying an existing route
 }
 
+std::vector<std::unique_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
+    const std::shared_ptr<Interface>& swInterface) {
+  std::vector<std::unique_ptr<SaiRoute>> toMeRoutes;
+  // Compute information common to all addresses in the interface:
+  // vr id
+  RouterID routerId = swInterface->getRouterID();
+  SaiVirtualRouter* virtualRouter =
+      managerTable_->virtualRouterManager().getVirtualRouter(routerId);
+  if (!virtualRouter) {
+    throw FbossError("No virtual router with id ", routerId);
+  }
+  sai_object_id_t virtualRouterId = virtualRouter->id();
+  // packet action
+  sai_packet_action_t packetAction = SAI_PACKET_ACTION_FORWARD;
+  sai_object_id_t switchId =
+      managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  sai_object_id_t cpuPortId = apiTable_->switchApi().getAttribute(
+      SwitchApiParameters::Attributes::CpuPort{}, switchId);
+
+  // Compute per-address information
+  for (const auto& address : swInterface->getAddresses()) {
+    // empty next hop group -- this route will not manage the
+    // lifetime of a next hop group
+    std::shared_ptr<SaiNextHopGroup> nextHopGroup;
+    // destination
+    folly::CIDRNetwork destination{address.first, address.first.bitCount()};
+    RouteApiParameters::EntryType entry{switchId, virtualRouterId, destination};
+    RouteApiParameters::Attributes attributes{{packetAction, cpuPortId}};
+    auto route = std::make_unique<SaiRoute>(
+        apiTable_, managerTable_, entry, attributes, nextHopGroup);
+    toMeRoutes.emplace_back(std::move(route));
+  }
+  return toMeRoutes;
+}
+
 template <typename AddrT>
 void SaiRouteManager::addRoute(
     RouterID routerId,
@@ -132,6 +167,11 @@ void SaiRouteManager::addRoute(
       }
       nextHopIdOpt = saiInterface->id();
     } else {
+      /*
+       * A Route which has NextHop(s) will create or reference an existing
+       * SaiNextHopGroup corresponding to ECMP over those next hops. When no
+       * route refers to a next hop set, it will be removed in SAI as well.
+       */
       nextHopGroup =
           managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
               fwd.getNextHopSet());

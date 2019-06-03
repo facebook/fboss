@@ -74,6 +74,9 @@ class SaiRouteManager {
       const std::shared_ptr<Route<AddrT>>& oldSwRoute,
       const std::shared_ptr<Route<AddrT>>& newSwRoute);
 
+  std::vector<std::unique_ptr<SaiRoute>> makeInterfaceToMeRoutes(
+      const std::shared_ptr<Interface>& swInterface);
+
   template <typename AddrT>
   void addRoute(
       RouterID routerId,
