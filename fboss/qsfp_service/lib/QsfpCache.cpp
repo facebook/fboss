@@ -159,9 +159,10 @@ folly::Future<folly::Unit> QsfpCache::doSync(PortMapThrift&& toSync) {
 
   auto baseFut = (remoteAliveSince_ < 0) ? confirmAlive() : folly::makeFuture();
   return std::move(baseFut)
+      .via(evb_)
       .thenValue([evb = evb_](auto&&) { return QsfpClient::createClient(evb); })
-      .then(evb_, syncPorts)
-      .then(evb_, onSuccess)
+      .thenValue(syncPorts)
+      .thenValue(onSuccess)
       .thenError(
           folly::tag_t<std::exception>{},
           [this](const std::exception& e) {

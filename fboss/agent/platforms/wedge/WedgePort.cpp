@@ -88,7 +88,8 @@ folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
     return TransmitterTechnology::UNKNOWN;
   };
   return getTransceiverInfo()
-      .then(evb, getTech)
+      .via(evb)
+      .thenValueInline(getTech)
       .thenError(std::move(handleError));
 }
 
@@ -133,7 +134,8 @@ folly::Future<folly::Optional<TxSettings>> WedgePort::getTxSettings(
     return folly::Optional<TxSettings>();
   };
   return getTransceiverInfo()
-      .then(evb, getTx)
+      .via(evb)
+      .thenValueInline(getTx)
       .thenError<std::exception>(std::move(handleErr));
 }
 
