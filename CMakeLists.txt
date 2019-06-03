@@ -249,7 +249,6 @@ add_executable(bcm_test
     fboss/agent/hw/bcm/tests/BcmPortUtils.cpp
     fboss/agent/hw/bcm/tests/BcmVlanTests.cpp
     fboss/agent/hw/bcm/tests/BcmColdBootStateTests.cpp
-    fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.cpp
     fboss/agent/hw/bcm/tests/Main.cpp
     fboss/agent/hw/bcm/tests/platforms/BcmTestPort.cpp
     fboss/agent/hw/bcm/tests/platforms/BcmTestPlatform.cpp
