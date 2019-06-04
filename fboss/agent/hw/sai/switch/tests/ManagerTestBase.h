@@ -104,6 +104,10 @@ class ManagerTestBase : public ::testing::Test {
 
   void SetUp() override;
 
+  std::shared_ptr<ArpEntry> makePendingArpEntry(
+      int id,
+      const TestRemoteHost& testRemoteHost) const;
+
   std::shared_ptr<ArpEntry> makeArpEntry(
       int id,
       const TestRemoteHost& testRemoteHost) const;

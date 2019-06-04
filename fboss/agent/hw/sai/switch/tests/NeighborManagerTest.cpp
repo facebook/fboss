@@ -67,19 +67,39 @@ TEST_F(NeighborManagerTest, removeResolvedNeighbor) {
 }
 
 TEST_F(NeighborManagerTest, addUnresolvedNeighbor) {
-  // TODO (D13604051)
+  auto pendingEntry = makePendingArpEntry(intf0.id, h0);
+  EXPECT_TRUE(pendingEntry->isPending());
+  saiManagerTable->neighborManager().addNeighbor(pendingEntry);
+  // unresolved entries will not be found by getNeighbor
+  checkMissing(pendingEntry);
 }
 
 TEST_F(NeighborManagerTest, removeUnresolvedNeighbor) {
-  // TODO (D13604051)
+  auto pendingEntry = makePendingArpEntry(intf0.id, h0);
+  EXPECT_TRUE(pendingEntry->isPending());
+  saiManagerTable->neighborManager().addNeighbor(pendingEntry);
+  checkMissing(pendingEntry);
+  saiManagerTable->neighborManager().removeNeighbor(pendingEntry);
+  checkMissing(pendingEntry);
 }
 
 TEST_F(NeighborManagerTest, resolveNeighbor) {
-  // TODO (D13604051)
+  auto pendingEntry = makePendingArpEntry(intf0.id, h0);
+  EXPECT_TRUE(pendingEntry->isPending());
+  saiManagerTable->neighborManager().addNeighbor(pendingEntry);
+  auto arpEntry = makeArpEntry(intf0.id, h0);
+  saiManagerTable->neighborManager().changeNeighbor(pendingEntry, arpEntry);
+  checkEntry(arpEntry, h0.mac);
 }
 
 TEST_F(NeighborManagerTest, unresolveNeighbor) {
-  // TODO (D13604051)
+  auto arpEntry = makeArpEntry(intf0.id, h0);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  checkEntry(arpEntry, h0.mac);
+  auto pendingEntry = makePendingArpEntry(intf0.id, h0);
+  EXPECT_TRUE(pendingEntry->isPending());
+  saiManagerTable->neighborManager().changeNeighbor(arpEntry, pendingEntry);
+  checkMissing(pendingEntry);
 }
 
 TEST_F(NeighborManagerTest, getNonexistentNeighbor) {

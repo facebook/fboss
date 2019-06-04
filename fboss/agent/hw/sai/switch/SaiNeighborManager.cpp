@@ -90,12 +90,10 @@ void SaiNeighborManager::changeNeighbor(
   if (oldSwEntry->isPending() && newSwEntry->isPending()) {
   }
   if (oldSwEntry->isPending() && !newSwEntry->isPending()) {
-    XLOG(INFO) << "BO: previously unresolved neighbor is now resolved";
     removeNeighbor(oldSwEntry);
     addNeighbor(newSwEntry);
   }
   if (!oldSwEntry->isPending() && newSwEntry->isPending()) {
-    XLOG(INFO) << "BO: previously resolved neighbor is now unresolved";
     removeNeighbor(oldSwEntry);
     addNeighbor(newSwEntry);
   }
@@ -137,6 +135,9 @@ void SaiNeighborManager::removeNeighbor(
   XLOG(INFO) << "removeNeighbor " << swEntry->getIP();
   auto saiEntry = saiEntryFromSwEntry(swEntry);
   auto count = neighbors_.erase(saiEntry);
+  if (count == 0) {
+    count = unresolvedNeighbors_.erase(saiEntry);
+  }
   if (count == 0) {
     throw FbossError(
         "Attempted to remove non-existent neighbor: ", swEntry->getIP().str());
