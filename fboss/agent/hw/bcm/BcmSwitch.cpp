@@ -383,6 +383,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
 
 std::shared_ptr<SwitchState> BcmSwitch::applyAndGetWarmBootSwitchState() {
   auto warmBootState =  warmBootCache_->getDumpedSwSwitchState().clone();
+  warmBootState->publish();
   // Force port/queue stat counter creation by initializing currState to
   // carry empty port/queue names. This means there is a delta between
   // currState and warmBootState (which has correct port/queue names), and

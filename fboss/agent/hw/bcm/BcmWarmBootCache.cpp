@@ -144,6 +144,7 @@ void BcmWarmBootCache::populateFromWarmBootState(const folly::dynamic&
 
   dumpedSwSwitchState_ =
     SwitchState::uniquePtrFromFollyDynamic(warmBootState[kSwSwitch]);
+  dumpedSwSwitchState_->publish();
   CHECK(dumpedSwSwitchState_)
       << "Was not able to recover software state after warmboot";
 
