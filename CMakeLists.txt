@@ -244,6 +244,7 @@ add_executable(qsfp_service
 
 add_executable(bcm_test
     fboss/agent/hw/test/HwTest.cpp
+    fboss/agent/hw/test/HwTestStatUtils.cpp
     fboss/agent/hw/test/ConfigFactory.cpp
     fboss/agent/hw/bcm/tests/BcmTest.cpp
     fboss/agent/hw/bcm/tests/BcmPortUtils.cpp
