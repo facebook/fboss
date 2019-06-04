@@ -1388,7 +1388,9 @@ TEST(RouteTypes, toFromRouteNextHops) {
       if (entry.address == bAddr) {
         if (intf.hasValue()) {
           EXPECT_TRUE(entry.address.__isset.ifName);
-          EXPECT_EQ(bAddr.ifName, entry.address.ifName);
+          EXPECT_EQ(
+              bAddr.ifName_ref().value_unchecked(),
+              entry.address.ifName_ref().value_unchecked());
         }
         found = true;
         break;

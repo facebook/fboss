@@ -268,9 +268,8 @@ class RoutingFixture : public ::testing::Test {
   static void initializeInterfaceConfig(cfg::Interface& intf, int32_t id) {
     intf.intfID = id;
     intf.vlanID = id;
-    intf.name = folly::sformat("Interface-{}", id);
-    intf.mtu = 9000;
-    intf.__isset.mtu = true;
+    intf.name_ref().value_unchecked() = folly::sformat("Interface-{}", id);
+    intf.mtu_ref() = 9000;
     intf.ipAddresses.resize(4);
     intf.ipAddresses[0] = folly::sformat("169.254.{}.{}/32", id, id);
     intf.ipAddresses[1] = folly::sformat("10.0.0.{}1/31", id);
@@ -291,11 +290,11 @@ class RoutingFixture : public ::testing::Test {
     config.vlans[0].name = "Vlan-1";
     config.vlans[0].id = 1;
     config.vlans[0].routable = true;
-    config.vlans[0].intfID = 1;
+    config.vlans[0].intfID_ref().value_unchecked() = 1;
     config.vlans[1].name = "Vlan-2";
     config.vlans[1].id = 2;
     config.vlans[1].routable = true;
-    config.vlans[1].intfID = 2;
+    config.vlans[1].intfID_ref().value_unchecked() = 2;
 
     // Add two ports with ID 1 and 2 associated with VLAN 1 and 2 respectively
     config.ports.resize(2);

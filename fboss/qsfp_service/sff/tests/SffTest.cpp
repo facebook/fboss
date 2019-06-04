@@ -212,14 +212,19 @@ TEST(SffTest, simpleRead) {
 
   TransceiverInfo info = qsfp->getTransceiverInfo();
 
-  EXPECT_EQ("FACETEST", info.vendor.name);
-  EXPECT_EQ(100, info.cable.om3);
-  EXPECT_DOUBLE_EQ(3.2989, info.sensor.vcc.value);
-  EXPECT_DOUBLE_EQ(31.015625, info.sensor.temp.value);
-  EXPECT_DOUBLE_EQ(75.0, info.thresholds.temp.alarm.high);
-  EXPECT_DOUBLE_EQ(-5.0, info.thresholds.temp.alarm.low);
-  EXPECT_TRUE(info.channels[0].sensors.txBias.flags.alarm.low);
-  EXPECT_FALSE(info.channels[1].sensors.txBias.flags.alarm.low);
+  EXPECT_EQ("FACETEST", info.vendor_ref().value_unchecked().name);
+  EXPECT_EQ(
+      100, info.cable_ref().value_unchecked().om3_ref().value_unchecked());
+  EXPECT_DOUBLE_EQ(3.2989, info.sensor_ref().value_unchecked().vcc.value);
+  EXPECT_DOUBLE_EQ(31.015625, info.sensor_ref().value_unchecked().temp.value);
+  EXPECT_DOUBLE_EQ(
+      75.0, info.thresholds_ref().value_unchecked().temp.alarm.high);
+  EXPECT_DOUBLE_EQ(
+      -5.0, info.thresholds_ref().value_unchecked().temp.alarm.low);
+  EXPECT_TRUE(
+      info.channels[0].sensors.txBias.flags_ref().value_unchecked().alarm.low);
+  EXPECT_FALSE(
+      info.channels[1].sensors.txBias.flags_ref().value_unchecked().alarm.low);
 }
 
 TEST(BadSffTest, simpleRead) {

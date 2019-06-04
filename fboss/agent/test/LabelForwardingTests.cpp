@@ -228,7 +228,9 @@ TEST_F(LabelForwardingTest, getMplsRouteTableByClient) {
       EXPECT_EQ(
           util::toRouteNextHopSet(in->nextHops),
           util::toRouteNextHopSet(out->nextHops));
-      EXPECT_EQ(in->adminDistance, out->adminDistance);
+      EXPECT_EQ(
+          in->adminDistance_ref().value_unchecked(),
+          out->adminDistance_ref().value_unchecked());
     }
   }
 }

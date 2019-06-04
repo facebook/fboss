@@ -785,7 +785,10 @@ void QsfpModule::transceiverPortsChanged(
   lock_guard<std::mutex> g(qsfpModuleMutex_);
 
   for (auto& it : ports) {
-    CHECK(TransceiverID(it.second.transceiverIdx.transceiverId) == getID());
+    CHECK(
+        TransceiverID(
+            it.second.transceiverIdx_ref().value_unchecked().transceiverId) ==
+        getID());
     ports_[it.first] = std::move(it.second);
   }
 

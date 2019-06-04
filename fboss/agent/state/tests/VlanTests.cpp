@@ -65,10 +65,14 @@ TEST(Vlan, applyConfig) {
   config.vlans.resize(1);
   config.vlans[0].id = 1234;
   config.vlans[0].name = kVlan1234;
-  config.vlans[0].dhcpRelayOverridesV4["02:00:00:00:00:02"] = "1.2.3.4";
-  config.vlans[0].dhcpRelayOverridesV6["02:00:00:00:00:02"] =
-    "2a03:2880:10:1f07:face:b00c:0:0";
-  config.vlans[0].intfID = 1;
+  config.vlans[0]
+      .dhcpRelayOverridesV4_ref()
+      .value_unchecked()["02:00:00:00:00:02"] = "1.2.3.4";
+  config.vlans[0]
+      .dhcpRelayOverridesV6_ref()
+      .value_unchecked()["02:00:00:00:00:02"] =
+      "2a03:2880:10:1f07:face:b00c:0:0";
+  config.vlans[0].intfID_ref().value_unchecked() = 1;
   config.vlans[0].__isset.intfID = true;
   config.vlanPorts.resize(2);
   config.vlanPorts[0].logicalPort = 1;
@@ -147,7 +151,7 @@ TEST(Vlan, applyConfig) {
   config.vlans.resize(2);
   config.vlans[1].id = 1299;
   config.vlans[1].name = kVlan1299;
-  config.vlans[1].intfID = 2;
+  config.vlans[1].intfID_ref().value_unchecked() = 2;
   config.interfaces.resize(2);
   config.interfaces[1].intfID = 2;
   config.interfaces[1].routerID = 0;
@@ -156,7 +160,7 @@ TEST(Vlan, applyConfig) {
   config.interfaces[1].ipAddresses[0] = "10.1.10.1/24";
   config.interfaces[1].ipAddresses[1] = "192.168.0.1/31";
   MacAddress intf2Mac("02:01:02:ab:cd:78");
-  config.interfaces[1].mac = intf2Mac.toString();
+  config.interfaces[1].mac_ref().value_unchecked() = intf2Mac.toString();
   config.interfaces[1].__isset.mac = true;
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto vlanV3 = stateV3->getVlans()->getVlan(VlanID(1299));
@@ -187,7 +191,7 @@ TEST(Vlan, applyConfig) {
   config.vlans.resize(3);
   config.vlans[2].id = 99;
   config.vlans[2].name = kVlan99;
-  config.vlans[2].intfID = 3;
+  config.vlans[2].intfID_ref().value_unchecked() = 3;
   config.interfaces.resize(3);
   config.interfaces[2].intfID = 3;
   config.interfaces[2].routerID = 1;
