@@ -50,8 +50,6 @@ struct NextHopApiParameters {
     RouterInterfaceId::ValueType routerInterfaceId;
     Ip::ValueType ip;
   };
-  struct MemberAttributes {};
-  struct EntryType {};
 };
 
 class NextHopApi : public SaiApi<NextHopApi, NextHopApiParameters> {

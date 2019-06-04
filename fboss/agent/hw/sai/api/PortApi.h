@@ -55,8 +55,6 @@ struct PortApiParameters {
     typename Speed::ValueType speed;
     folly::Optional<typename AdminState::ValueType> adminState;
   };
-  struct MemberAttributes {};
-  struct EntryType {};
 };
 
 class PortApi : public SaiApi<PortApi, PortApiParameters> {

@@ -39,7 +39,6 @@ struct LagTypes {
     using PortId =
         SaiAttribute<EnumType, SAI_LAG_MEMBER_ATTR_PORT_ID, SaiObjectIdT>;
   };
-  struct EntryType {};
 };
 
 class LagApi : public SaiApi<LagApi, LagTypes> {

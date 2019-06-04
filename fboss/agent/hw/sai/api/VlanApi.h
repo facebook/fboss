@@ -71,7 +71,6 @@ struct VlanApiParameters {
     typename VlanId::ValueType vlanId;
     typename BridgePortId::ValueType bridgePortId;
   };
-  struct EntryType {};
 };
 
 class VlanApi : public SaiApi<VlanApi, VlanApiParameters> {

@@ -79,10 +79,6 @@ struct HostifApiParameters {
     size_t size;
     HostifApiPacket(void* buffer, size_t size) : buffer(buffer), size(size) {}
   };
-
-  struct MemberAttributes {};
-  using MemberAttributeType = boost::variant<boost::blank>;
-  struct EntryType {};
 };
 
 class HostifPacketApi {

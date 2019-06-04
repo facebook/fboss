@@ -86,7 +86,6 @@ struct NeighborApiParameters {
     sai_neighbor_entry_t neighbor_entry;
   };
   using EntryType = NeighborEntry;
-  struct MemberAttributes {};
 };
 
 class NeighborApi : public SaiApi<NeighborApi, NeighborApiParameters> {

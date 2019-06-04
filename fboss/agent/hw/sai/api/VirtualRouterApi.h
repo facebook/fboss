@@ -43,8 +43,6 @@ struct VirtualRouterApiParameters {
       return !(*this == other);
     }
   };
-  struct MemberAttributes {};
-  struct EntryType {};
 };
 
 class VirtualRouterApi

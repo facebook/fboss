@@ -67,7 +67,6 @@ struct BridgeApiParameters {
     Type::ValueType type;
     PortId::ValueType portId;
   };
-  struct EntryType {};
 };
 
 class BridgeApi : public SaiApi<BridgeApi, BridgeApiParameters> {

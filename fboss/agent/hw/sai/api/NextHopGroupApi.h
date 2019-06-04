@@ -74,7 +74,6 @@ struct NextHopGroupApiParameters {
     NextHopGroupId::ValueType nextHopGroupId;
     NextHopId::ValueType nextHopId;
   };
-  struct EntryType {};
 };
 
 class NextHopGroupApi

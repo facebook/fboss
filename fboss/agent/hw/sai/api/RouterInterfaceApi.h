@@ -61,8 +61,6 @@ struct RouterInterfaceApiParameters {
     VlanId::ValueType vlanId;
     folly::Optional<SrcMac::ValueType> srcMac;
   };
-  struct MemberAttributes {};
-  struct EntryType {};
 };
 
 class RouterInterfaceApi

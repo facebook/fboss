@@ -74,8 +74,6 @@ struct SwitchApiParameters {
     typename SrcMac::ValueType srcMac;
     typename InitSwitch::ValueType initSwitch;
   };
-  struct MemberAttributes {};
-  struct EntryType {};
 };
 
 class SwitchApi : public SaiApi<SwitchApi, SwitchApiParameters> {

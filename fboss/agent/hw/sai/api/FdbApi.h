@@ -86,7 +86,6 @@ struct FdbApiParameters {
     sai_fdb_entry_t fdb_entry;
   };
   using EntryType = FdbEntry;
-  struct MemberAttributes {};
 };
 
 class FdbApi : public SaiApi<FdbApi, FdbApiParameters> {

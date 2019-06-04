@@ -85,7 +85,6 @@ struct RouteApiParameters {
     sai_route_entry_t route_entry;
   };
   using EntryType = RouteEntry;
-  struct MemberAttributes {};
 };
 
 class RouteApi : public SaiApi<RouteApi, RouteApiParameters> {
