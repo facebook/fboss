@@ -33,10 +33,12 @@ class LldpManager : private folly::AsyncTimeout {
    * Also, responsible for periodically sending LLDP frames on all the ports
    * to inform of this switch's presence to its neighbors. Hence inheriting
    * the AsyncTimeout class for that purpose.
+   *
+   * http://www.ieee802.org/1/files/public/docs2002/lldp-protocol-00.pdf
    */
  public:
   enum : uint16_t { ETHERTYPE_LLDP = 0x88CC,
-                    LLDP_INTERVAL = 15*1000,
+                    LLDP_INTERVAL = 5*1000,  // 5s is normal min value
                     TLV_TYPE_BITS_LENGTH = 7,
                     TLV_LENGTH_BITS_LENGTH = 9,
                     TLV_TYPE_LEFT_SHIFT_OFFSET = 9,
