@@ -53,7 +53,7 @@ class SaiPort {
     return bridgePort_.get();
   }
   void setPortVlan(VlanID vlanId);
-  VlanID getPortVlan();
+  VlanID getPortVlan() const;
 
  private:
   SaiApiTable* apiTable_;
@@ -78,7 +78,7 @@ class SaiPortManager {
       const std::shared_ptr<Port>& swPort) const;
   const SaiPort* getPort(PortID swId) const;
   SaiPort* getPort(PortID swId);
-  PortID getPortID(sai_object_id_t saiId);
+  PortID getPortID(sai_object_id_t saiId) const;
 
  private:
   SaiPort* getPortImpl(PortID swId) const;

@@ -121,7 +121,7 @@ SaiPort* SaiPortManager::getPort(PortID swId) {
   return getPortImpl(swId);
 }
 
-PortID SaiPortManager::getPortID(sai_object_id_t saiId) {
+PortID SaiPortManager::getPortID(sai_object_id_t saiId) const {
   auto itr = portSaiIds_.find(saiId);
   if (itr == portSaiIds_.end()) {
     return PortID(0);
@@ -180,7 +180,7 @@ void SaiPort::setPortVlan(VlanID vlanId) {
   vlanId_ = vlanId;
 }
 
-VlanID SaiPort::getPortVlan() {
+VlanID SaiPort::getPortVlan() const {
   return vlanId_;
 }
 
