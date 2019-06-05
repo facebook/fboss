@@ -49,7 +49,7 @@ checkTag(facebook::fboss::PortID id,
   }
 
   auto expect = res->second;
-  if (expect.compare(val) == 0) {
+  if (val.find(expect) != std::string::npos) {
     XLOG(DBG4) << "Port " << id << std::to_string(static_cast<int>(tag))
                 << ", matches: \"" << expect << "\", got: \"" << val << "\"";
     return true;
