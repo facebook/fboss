@@ -16,8 +16,6 @@ extern "C" {
 }
 
 #include "common/stats/MonotonicCounter.h"
-#include "fb303/ExportedStatMapImpl.h"
-#include <fb303/ExportedHistogramMapImpl.h>
 
 #include "fboss/agent/types.h"
 #include "fboss/agent/hw/bcm/BcmCosQueueManager.h"
