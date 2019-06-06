@@ -83,6 +83,10 @@ class RefMap {
     return getImpl(k);
   }
 
+  V* getMutable(const K& k) const {
+    return getImpl(k);
+  }
+
   typename MapType::iterator begin() {
     return map_.begin();
   }

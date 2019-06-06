@@ -25,6 +25,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmTrunk.h"
 #include "fboss/agent/state/NeighborEntry.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/RefMap.h"
 
 #include <boost/container/flat_map.hpp>
 #include <boost/container/flat_set.hpp>
@@ -188,10 +189,6 @@ class BcmHost {
 
 class BcmHostTable {
  public:
-  template <typename KeyT, typename HostT>
-  using HostMap = boost::container::
-      flat_map<KeyT, std::pair<std::unique_ptr<HostT>, uint32_t>>;
-
   explicit BcmHostTable(const BcmSwitchIf* hw);
   virtual ~BcmHostTable();
 
@@ -205,37 +202,6 @@ class BcmHostTable {
     return hosts_.size();
   }
 
-  /*
-   * The following functions will modify the object. They rely on the global
-   * HW update lock in BcmSwitch::lock_ for the protection.
-   *
-   * BcmHostTable maintains a reference counter for each
-   * BcmHost/BcmMultiPathNextHop entry allocated.
-   */
-  /**
-   * Allocates a new BcmHost/BcmMultiPathNextHop if no such one exists. For the
-   * existing entry, incRefOrCreateBcmHost() will increase the reference counter
-   * by 1.
-   *
-   * When a new BcmHost is created, the programming to HW is not performed,
-   * until explicit BcmHost::program() or BcmHost::programToCPU() is called.
-   *
-   * @return The BcmHost/BcmMultiPathNextHop pointer just created or found.
-   */
-  BcmHost* incRefOrCreateBcmHost(const BcmHostKey& hostKey);
-
-  /**
-   * Decrease an existing BcmHost/BcmMultiPathNextHop entry's reference counter
-   * by 1. Only until the reference counter is 0, the
-   * BcmHost/BcmMultiPathNextHop entry is deleted.
-   *
-   * @return nullptr, if the BcmHost/BcmMultiPathNextHop entry is deleted
-   * @retrun the BcmHost/BcmMultiPathNextHop object that has reference counter
-   *         decreased by 1, but the object is still valid as it is
-   *         still referred in somewhere else
-   */
-  BcmHost* derefBcmHost(const BcmHostKey& key) noexcept;
-
   uint32_t getReferenceCount(const BcmHostKey& key) const noexcept;
 
   /*
@@ -247,7 +213,6 @@ class BcmHostTable {
    */
   void warmBootHostEntriesSynced();
 
-  using EgressIdSet = BcmEcmpEgress::EgressIdSet;
   /*
    * Release all host entries. Should only
    * be called when we are about to reset/destroy
@@ -269,37 +234,16 @@ class BcmHostTable {
       opennsl_port_t port);
   void programHostsToCPU(const BcmHostKey& key, opennsl_if_t intf);
 
+  std::shared_ptr<BcmHost> refOrEmplace(const BcmHostKey& key);
+
  private:
   const BcmSwitchIf* hw_{nullptr};
 
-  boost::container::flat_map<
-      opennsl_if_t,
-      std::pair<std::unique_ptr<BcmEgressBase>, uint32_t>>
-      egressMap_;
-
-  template <typename KeyT, typename HostT>
-  HostT* incRefOrCreateBcmHostImpl(
-      HostMap<KeyT, HostT>* map,
-      const KeyT& key);
-  template <typename KeyT, typename HostT>
-  HostT* getBcmHostIfImpl(
-      const HostMap<KeyT, HostT>* map,
-      const KeyT& key) const noexcept;
-  template <typename KeyT, typename HostT>
-  HostT* derefBcmHostImpl(
-      HostMap<KeyT, HostT>* map,
-      const KeyT& key) noexcept;
-  template <typename KeyT, typename HostT>
-  uint32_t getReferenceCountImpl(
-      const HostMap<KeyT, HostT> *map,
-      const KeyT& key) const noexcept;
-
-  HostMap<BcmHostKey, BcmHost> hosts_;
+  FlatRefMap<BcmHostKey, BcmHost> hosts_;
 };
 
 class BcmHostReference {
  public:
-  ~BcmHostReference();
 
   BcmHost* getBcmHost();
 
@@ -327,7 +271,7 @@ class BcmHostReference {
   BcmSwitch* hw_{nullptr};
   folly::Optional<BcmHostKey> hostKey_;
   folly::Optional<BcmMultiPathNextHopKey> ecmpHostKey_;
-  BcmHost* host_{nullptr};
+  std::shared_ptr<BcmHost> host_;
   std::shared_ptr<BcmMultiPathNextHop> ecmpHost_;
 };
 

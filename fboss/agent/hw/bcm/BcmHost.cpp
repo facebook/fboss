@@ -29,29 +29,6 @@
 namespace {
 constexpr auto kIntf = "intf";
 constexpr auto kPort = "port";
-struct BcmHostKeyComparator {
-  using BcmHost = facebook::fboss::BcmHost;
-  using BcmHostKey = facebook::fboss::BcmHostKey;
-  using BcmLabeledHostKey = facebook::fboss::BcmLabeledHostKey;
-  using BcmLabeledHostMap =
-      facebook::fboss::BcmHostTable::HostMap<BcmLabeledHostKey, BcmHost>;
-
-  bool operator()(
-      const BcmLabeledHostMap::value_type& entry,
-      const BcmHostKey& bcmHostkey) {
-    return BcmHostKey(
-               entry.first.getVrf(), entry.first.addr(), entry.first.intfID()) <
-        bcmHostkey;
-  }
-
-  bool operator()(
-      const BcmHostKey& bcmHostkey,
-      const BcmLabeledHostMap::value_type& entry) {
-    return bcmHostkey <
-        BcmHostKey(
-               entry.first.getVrf(), entry.first.addr(), entry.first.intfID());
-  }
-};
 }
 
 namespace facebook { namespace fboss {
@@ -353,113 +330,22 @@ BcmHostTable::BcmHostTable(const BcmSwitchIf* hw) : hw_(hw) {}
 BcmHostTable::~BcmHostTable() {
 }
 
-template<typename KeyT, typename HostT>
-HostT* BcmHostTable::incRefOrCreateBcmHostImpl(
-    HostMap<KeyT, HostT>* map,
-    const KeyT& key) {
-  auto iter = map->find(key);
-  if (iter != map->cend()) {
-    // there was an entry already there
-    iter->second.second++;  // increase the reference counter
-    XLOG(DBG3) << "referenced " << key
-               << ". new ref count: " << iter->second.second;
-    return iter->second.first.get();
-  }
-  auto newHost = std::make_unique<HostT>(hw_, key);
-  auto hostPtr = newHost.get();
-  auto ret = map->emplace(key, std::make_pair(std::move(newHost), 1));
-  CHECK_EQ(ret.second, true)
-      << "must insert BcmHost/BcmMultiPathNextHop as a new entry in this case";
-  XLOG(DBG3) << "created " << key
-             << ". new ref count: " << ret.first->second.second;
-  return hostPtr;
-}
-
-BcmHost* BcmHostTable::incRefOrCreateBcmHost(const BcmHostKey& hostKey) {
-  CHECK(!hostKey.hasLabel());
-  return incRefOrCreateBcmHostImpl(&hosts_, hostKey);
-}
-
 uint32_t BcmHostTable::getReferenceCount(const BcmHostKey& key) const noexcept {
-  CHECK(!key.hasLabel());
-  return getReferenceCountImpl(&hosts_, key);
-}
-
-template<typename KeyT, typename HostT>
-uint32_t BcmHostTable::getReferenceCountImpl(
-    const HostMap<KeyT, HostT>* map,
-    const KeyT& key) const noexcept {
-  auto iter = map->find(key);
-  if (iter == map->cend()) {
-    return 0;
-  }
-  return iter->second.second;
-}
-
-template<typename KeyT, typename HostT>
-HostT* BcmHostTable::getBcmHostIfImpl(
-    const HostMap<KeyT, HostT>* map,
-    const KeyT& key) const noexcept {
-  auto iter = map->find(key);
-  if (iter == map->cend()) {
-    return nullptr;
-  }
-  return iter->second.first.get();
+  return hosts_.referenceCount(key);
 }
 
 BcmHost* BcmHostTable::getBcmHost(const BcmHostKey& key) const {
-  auto host = getBcmHostIf(key);
+  auto* host = getBcmHostIf(key);
+  CHECK(host);
   if (!host) {
     throw FbossError("Cannot find BcmHost key=", key);
   }
   return host;
 }
 
-BcmHost* BcmHostTable::getBcmHostIf(const BcmHostKey& key) const noexcept {
-  CHECK(!key.hasLabel());
-  return getBcmHostIfImpl(&hosts_, key);
-}
-
-template<typename KeyT, typename HostT>
-HostT* BcmHostTable::derefBcmHostImpl(
-    HostMap<KeyT, HostT>* map,
-    const KeyT& key) noexcept {
-  auto iter = map->find(key);
-  if (iter == map->cend()) {
-    return nullptr;
-  }
-  auto& entry = iter->second;
-  CHECK_GT(entry.second, 0);
-  if (--entry.second == 0) {
-    XLOG(DBG3) << "erase host " << key << " from host map";
-    /*
-     * moving unique ptr outside of ECMP host map before calling an erase
-     * this is important for following:
-     * Consider for ECMP host, deref leads to 0 ref count, and  ECMP host is
-     * erased from its map (without moving ownership out), following events
-     * happen
-     *
-     * 1) BcmMultiPathNextHop's destructor is invoked,
-     * 2) In BcmMultiPathNextHop's destructor BcmHost member's ref count are
-     * decremented 3) If one of BcmHost ref count leads to 0, then BcmHost is
-     * also be erased from map, 4) BcmHost's destrucor is invoked 5) BcmHost's
-     * destructor now wants to update ECMP groups to which it may belongs 6)
-     * BcmHost's destructor iterates over ECMP host map, which now is in "bad
-     * state" (because map.erase has still not returned and iterator is not yet
-     * reset) This activity leads to crash
-     */
-    auto ptr = std::move(iter->second.first);
-    map->erase(iter);
-    return nullptr;
-  }
-  XLOG(DBG3) << "dereferenced host " << key
-             << ". new ref count: " << entry.second;
-  return entry.first.get();
-}
-
-BcmHost* BcmHostTable::derefBcmHost(const BcmHostKey& key) noexcept {
-  CHECK(!key.hasLabel());
-  return derefBcmHostImpl(&hosts_, key);
+BcmHost* FOLLY_NULLABLE BcmHostTable::getBcmHostIf(const BcmHostKey& key) const
+    noexcept {
+  return hosts_.getMutable(key);
 }
 
 void BcmHostTable::warmBootHostEntriesSynced() {
@@ -503,10 +389,21 @@ folly::dynamic BcmHost::toFollyDynamic() const {
   return host;
 }
 
+std::shared_ptr<BcmHost> BcmHostTable::refOrEmplace(const BcmHostKey& key) {
+  auto rv = hosts_.refOrEmplace(key, hw_, key);
+  if (rv.second) {
+    XLOG(DBG3) << "inserted reference to BcmHost " << key.str();
+  } else {
+    XLOG(DBG3) << "accessed reference to BcmHost " << key.str();
+  }
+  return rv.first;
+}
+
 folly::dynamic BcmHostTable::toFollyDynamic() const {
   folly::dynamic hostsJson = folly::dynamic::array;
   for (const auto& vrfIpAndHost: hosts_) {
-    hostsJson.push_back(vrfIpAndHost.second.first->toFollyDynamic());
+    auto host = vrfIpAndHost.second.lock();
+    hostsJson.push_back(host->toFollyDynamic());
   }
   folly::dynamic ecmpHostsJson = folly::dynamic::array;
   auto& ecmpHosts = hw_->getMultiPathNextHopTable()->getNextHops();
@@ -555,13 +452,9 @@ void BcmHostTable::programHostsToTrunk(
     opennsl_if_t intf,
     const MacAddress& mac,
     opennsl_trunk_t trunk) {
-  auto iter = hosts_.find(key);
-  if (iter == hosts_.end()) {
-    throw FbossError("host not found to program to trunk");
-  }
-  auto* host = iter->second.first.get();
+  auto* host = getBcmHostIf(key);
+  CHECK(host);
   host->programToTrunk(intf, mac, trunk);
-
   // (TODO) program labeled next hops to the host
 }
 
@@ -570,23 +463,17 @@ void BcmHostTable::programHostsToPort(
     opennsl_if_t intf,
     const MacAddress& mac,
     opennsl_port_t port) {
-  auto iter = hosts_.find(key);
-  if (iter == hosts_.end()) {
-    throw FbossError("host not found to program to port");
-  }
-  auto* host = iter->second.first.get();
+  auto* host = getBcmHostIf(key);
+  CHECK(host);
   host->program(intf, mac, port);
-
   // (TODO) program labeled next hops to the host
 }
 
 void BcmHostTable::programHostsToCPU(const BcmHostKey& key, opennsl_if_t intf) {
-  auto iter = hosts_.find(key);
-  if (iter != hosts_.end()) {
-    auto* host = iter->second.first.get();
-    host->programToCPU(intf);
+  auto* host = getBcmHostIf(key);
+  if (host) {
+    return host->programToCPU(intf);
   }
-
   // (TODO) program labeled next hops to the host
 }
 
@@ -626,18 +513,12 @@ std::unique_ptr<BcmHostReference> BcmHostReference::get(
   return std::make_unique<_>(hw, std::move(key));
 }
 
-BcmHostReference::~BcmHostReference() {
-  if (hostKey_ && host_) {
-    hw_->writableHostTable()->derefBcmHost(hostKey_.value());
-  }
-}
-
 BcmHost* BcmHostReference::getBcmHost() {
   if (host_ || !hostKey_) {
-    return host_;
+    return host_.get();
   }
-  host_ = hw_->writableHostTable()->incRefOrCreateBcmHost(hostKey_.value());
-  return host_;
+  host_ = hw_->writableHostTable()->refOrEmplace(hostKey_.value());
+  return host_.get();
 }
 
 BcmMultiPathNextHop* BcmHostReference::getBcmMultiPathNextHop() {
