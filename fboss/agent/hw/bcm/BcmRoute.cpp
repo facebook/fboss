@@ -120,13 +120,13 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
         warmBootCache->findHostRouteFromRouteTable(vrf_, prefix_);
     bool entryExistsInRouteTable =
         vrfAndIP2RouteCitr != warmBootCache->vrfAndIP2Route_end();
-    if (hostRouteHostReference_) {
+    if (hostRouteEntry_) {
       XLOG(DBG3) << "Dereferencing host prefix for " << prefix_ << "/"
                  << static_cast<int>(len_) << " host egress Id : "
-                 << hostRouteHostReference_->getEgressId();
-      hostRouteHostReference_.reset();
+                 << hostRouteEntry_->getEgressId();
+      hostRouteEntry_.reset();
     }
-    hostRouteHostReference_ =
+    hostRouteEntry_ =
         programHostRoute(egressId, fwd, entryExistsInRouteTable);
     if (entryExistsInRouteTable) {
       // If the entry already exists in the route table, programHostRoute()
@@ -146,18 +146,17 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
   added_ = true;
 }
 
-std::unique_ptr<BcmHostReference> BcmRoute::programHostRoute(
+std::shared_ptr<BcmHost> BcmRoute::programHostRoute(
     opennsl_if_t egressId,
     const RouteNextHopEntry& fwd,
     bool replace) {
   XLOG(DBG3) << "creating a host route entry for " << prefix_.str()
              << " @egress " << egressId << " with " << fwd;
-  auto hostPrefixReference =
-      BcmHostReference::get(hw_, BcmHostKey(vrf_, prefix_));
-  auto* prefixHost = hostPrefixReference->getBcmHost();
+  auto prefixHost =
+      hw_->writableHostTable()->refOrEmplace(BcmHostKey(vrf_, prefix_));
   prefixHost->setEgressId(egressId);
   prefixHost->addToBcmHostTable(fwd.getNextHopSet().size() > 1, replace);
-  return hostPrefixReference;
+  return prefixHost;
 }
 
 void BcmRoute::programLpmRoute(opennsl_if_t egressId,
@@ -259,7 +258,7 @@ BcmRoute::~BcmRoute() {
     return;
   }
   if (canUseHostTable()) {
-    auto* host = hostRouteHostReference_->getBcmHost();
+    auto* host = hostRouteEntry_.get();
     CHECK(host);
     XLOG(DBG3) << "Deleting host route; derefrence host prefix for : "
                << prefix_ << "/" << static_cast<int>(len_) << " host: " << host;
