@@ -230,22 +230,21 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
       bcmCheckError(rc, "failed to update L3 interface ", intf->getID());
     }
   }
-  std::unordered_set<std::unique_ptr<BcmHostReference>> hosts;
+  std::unordered_set<std::shared_ptr<BcmHost>> hosts;
   for (const auto& addr : intf->getAddresses()) {
-      auto hostReference = BcmHostReference::get(
-          hw_, BcmHostKey(vrf, addr.first, intf->getID()));
-      auto* host = hostReference->getBcmHost();
-      CHECK(host);
-      if (!host->isProgrammed()) {
-        // new host has been created
-        if (addr.first.isV4()) {
-          host->setLookupClassId(BcmAclEntry::kLocalIp4DstClassL3Id);
-        } else {
-          host->setLookupClassId(BcmAclEntry::kLocalIp6DstClassL3Id);
-        }
-        host->programToCPU(bcmIfId_);
+    auto host = hw_->writableHostTable()->refOrEmplace(
+        BcmHostKey(vrf, addr.first, intf->getID()));
+    CHECK(host);
+    if (!host->isProgrammed()) {
+      // new host has been created
+      if (addr.first.isV4()) {
+        host->setLookupClassId(BcmAclEntry::kLocalIp4DstClassL3Id);
+      } else {
+        host->setLookupClassId(BcmAclEntry::kLocalIp6DstClassL3Id);
       }
-      hosts.emplace(std::move(hostReference));
+      host->programToCPU(bcmIfId_);
+    }
+    hosts.emplace(std::move(host));
   }
   // create new host entries and discard updated or deleted ones,
   // existing host entries are not "deleted", they carry over.
