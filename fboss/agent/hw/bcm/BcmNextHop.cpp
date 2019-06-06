@@ -32,12 +32,11 @@ namespace facebook {
 namespace fboss {
 
 opennsl_if_t BcmL3NextHop::getEgressId() const {
-  return hostReference_->getEgressId();
+  return host_->getEgressId();
 }
 
 void BcmL3NextHop::programToCPU(opennsl_if_t intf) {
-  auto* host = hostReference_->getBcmHost();
-  host->programToCPU(intf);
+  host_->programToCPU(intf);
 }
 
 bool BcmL3NextHop::isProgrammed() const {
@@ -66,8 +65,7 @@ bool BcmMplsNextHop::isProgrammed() const {
 
 BcmL3NextHop::BcmL3NextHop(BcmSwitch* hw, BcmHostKey key)
     : hw_(hw), key_(std::move(key)) {
-  hostReference_ = BcmHostReference::get(hw_, key_);
-  hostReference_->getEgressId(); // load reference
+  host_ = hw_->writableHostTable()->refOrEmplace(key);
 }
 
 BcmMplsNextHop::BcmMplsNextHop(BcmSwitch* hw, BcmLabeledHostKey key)

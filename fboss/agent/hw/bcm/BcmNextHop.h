@@ -16,7 +16,7 @@ namespace fboss {
 
 class BcmEgress;
 class BcmSwitch;
-class BcmHostReference;
+class BcmHost;
 
 class BcmNextHop {
  public:
@@ -39,7 +39,7 @@ class BcmL3NextHop : public BcmNextHop {
  private:
   BcmSwitch* hw_;
   BcmHostKey key_;
-  std::unique_ptr<BcmHostReference> hostReference_;
+  std::shared_ptr<BcmHost> host_;
 };
 
 class BcmMplsNextHop : public BcmNextHop {
