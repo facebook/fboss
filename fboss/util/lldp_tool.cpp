@@ -36,10 +36,8 @@
 
 extern "C" {
 #include <opennsl/l2.h>
-#include <bcm/l2.h>
 #include <opennsl/link.h>
 #include <opennsl/port.h>
-#include <bcm/port.h>
 #include <opennsl/rx.h>
 #include <opennsl/stg.h>
 }
@@ -329,7 +327,7 @@ void BcmProcessor::configurePort(opennsl_port_t port, opennsl_vlan_t vlan) {
   opennsl_mac_t cdpMac;
   memcpy(&cdpMac, MAC_CDP.bytes(), MacAddress::SIZE);
   opennsl_l2_addr_t_init(&l2addr, cdpMac, vlan);
-  l2addr.flags = OPENNSL_L2_STATIC | BCM_L2_COPY_TO_CPU;
+  l2addr.flags = OPENNSL_L2_STATIC | OPENNSL_L2_COPY_TO_CPU;
   l2addr.port = port;
   rv = opennsl_l2_addr_add(unit_, &l2addr);
   bcmCheckError(rv, "failed to register for CDP packets on port ", port);
@@ -389,10 +387,14 @@ void BcmProcessor::setFEC(opennsl_port_t port, bool disableFEC) {
   // Bcm takes port speeds in mb/s
   constexpr int HUNDREDG = 100000;
   auto desiredFEC =
-      ((curSpeed == HUNDREDG && !disableFEC) ? BCM_PORT_PHY_CONTROL_FEC_ON
-                                            : BCM_PORT_PHY_CONTROL_FEC_OFF);
-  bcm_port_phy_control_set(
-      unit_, port, BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION, desiredFEC);
+      ((curSpeed == HUNDREDG && !disableFEC)
+           ? OPENNSL_PORT_PHY_CONTROL_FEC_ON
+           : OPENNSL_PORT_PHY_CONTROL_FEC_OFF);
+  opennsl_port_phy_control_set(
+      unit_,
+      port,
+      OPENNSL_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION,
+      desiredFEC);
 }
 
 opennsl_rx_t BcmProcessor::lldpPktHandler(
