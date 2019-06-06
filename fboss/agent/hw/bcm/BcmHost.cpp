@@ -419,14 +419,15 @@ folly::dynamic BcmHostTable::toFollyDynamic() const {
 }
 
 BcmHost* BcmNeighborTable::registerNeighbor(const BcmHostKey& neighbor) {
-  auto result = neighborHostReferences_.emplace(
-      neighbor, BcmHostReference::get(hw_, neighbor));
-  return result.first->second->getBcmHost();
+  auto neighborHost = hw_->writableHostTable()->refOrEmplace(neighbor);
+  auto* result = neighborHost.get();
+  neighborHosts_.emplace(neighbor, std::move(neighborHost));
+  return result;
 }
 
 BcmHost* FOLLY_NULLABLE
 BcmNeighborTable::unregisterNeighbor(const BcmHostKey& neighbor) {
-  neighborHostReferences_.erase(neighbor);
+  neighborHosts_.erase(neighbor);
   return hw_->getHostTable()->getBcmHostIf(neighbor);
 }
 
@@ -440,11 +441,11 @@ BcmHost* BcmNeighborTable::getNeighbor(const BcmHostKey& neighbor) const {
 
 BcmHost* FOLLY_NULLABLE
 BcmNeighborTable::getNeighborIf(const BcmHostKey& neighbor) const {
-  auto iter = neighborHostReferences_.find(neighbor);
-  if (iter == neighborHostReferences_.end()) {
+  auto iter = neighborHosts_.find(neighbor);
+  if (iter == neighborHosts_.end()) {
     return nullptr;
   }
-  return iter->second->getBcmHost();
+  return iter->second.get();
 }
 
 void BcmHostTable::programHostsToTrunk(

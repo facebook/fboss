@@ -273,7 +273,7 @@ class BcmNeighborTable {
 
  private:
   BcmSwitch* hw_;
-  boost::container::flat_map<BcmHostKey, std::unique_ptr<BcmHostReference>>
-      neighborHostReferences_;
+  boost::container::flat_map<BcmHostKey, std::shared_ptr<BcmHost>>
+      neighborHosts_;
 };
 }}
