@@ -26,6 +26,7 @@ namespace facebook { namespace fboss {
 
 class BcmSwitch;
 class BcmHostReference;
+class BcmMultiPathNextHop;
 
 /**
  * BcmRoute represents a L3 route object.
@@ -77,7 +78,7 @@ class BcmRoute {
   bool added_{false}; // if the route added to HW or not
   opennsl_if_t egressId_{-1};
   void initL3RouteT(opennsl_l3_route_t* rt) const;
-  std::unique_ptr<BcmHostReference>
+  std::shared_ptr<BcmMultiPathNextHop>
       nextHopHostReference_; // reference to nexthops
   std::unique_ptr<BcmHostReference> hostRouteHostReference_; // for host routes
 };

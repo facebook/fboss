@@ -247,22 +247,12 @@ class BcmHostReference {
 
   BcmHost* getBcmHost();
 
-  BcmMultiPathNextHop* getBcmMultiPathNextHop();
-
   opennsl_if_t getEgressId();
 
   static std::unique_ptr<BcmHostReference> get(BcmSwitch* hw, BcmHostKey key);
 
-  static std::unique_ptr<BcmHostReference> get(
-      BcmSwitch* hw,
-      BcmMultiPathNextHopKey key);
-
-  static std::unique_ptr<BcmHostReference>
-  get(BcmSwitch* hw, opennsl_vrf_t vrf, RouteNextHopSet nexthops);
-
  private:
   BcmHostReference(BcmSwitch* hw, BcmHostKey key);
-  BcmHostReference(BcmSwitch* hw, BcmMultiPathNextHopKey key);
   BcmHostReference(const BcmHostReference&) = delete;
   BcmHostReference(BcmHostReference&&) = delete;
   BcmHostReference& operator=(const BcmHostReference&) = delete;
@@ -270,9 +260,7 @@ class BcmHostReference {
 
   BcmSwitch* hw_{nullptr};
   folly::Optional<BcmHostKey> hostKey_;
-  folly::Optional<BcmMultiPathNextHopKey> ecmpHostKey_;
   std::shared_ptr<BcmHost> host_;
-  std::shared_ptr<BcmMultiPathNextHop> ecmpHost_;
 };
 
 class BcmNeighborTable {

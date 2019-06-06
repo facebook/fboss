@@ -21,6 +21,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
+#include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
@@ -89,7 +90,7 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
   if (added_ && fwd == fwd_) {
     return;
   }
-  std::unique_ptr<BcmHostReference> nexthopReference;
+  std::shared_ptr<BcmMultiPathNextHop> nexthopReference;
 
   auto action = fwd.getAction();
   // find out the egress object ID
@@ -103,8 +104,9 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
     const auto& nhops = fwd.getNextHopSet();
     CHECK_GT(nhops.size(), 0);
     // need to get an entry from the host table for the forward info
-    nexthopReference = BcmHostReference::get(
-        hw_, BcmMultiPathNextHopKey(vrf_, fwd.getNextHopSet()));
+    nexthopReference =
+        hw_->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
+            BcmMultiPathNextHopKey(vrf_, fwd.getNextHopSet()));
     egressId = nexthopReference->getEgressId();
   }
 

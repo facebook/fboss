@@ -480,35 +480,11 @@ void BcmHostTable::programHostsToCPU(const BcmHostKey& key, opennsl_if_t intf) {
 BcmHostReference::BcmHostReference(BcmSwitch* hw, BcmHostKey key)
     : hw_(hw), hostKey_(std::move(key)) {}
 
-BcmHostReference::BcmHostReference(BcmSwitch* hw, BcmMultiPathNextHopKey key)
-    : hw_(hw), ecmpHostKey_(std::move(key)) {}
-
-std::unique_ptr<BcmHostReference> BcmHostReference::get(
-    BcmSwitch* hw,
-    opennsl_vrf_t vrf,
-    RouteNextHopSet nexthops) {
-  struct _ : public BcmHostReference {
-    _(BcmSwitch* hw, opennsl_vrf_t vrf, RouteNextHopSet nexthops)
-        : BcmHostReference(hw, std::make_pair(vrf, nexthops)) {}
-  };
-  return std::make_unique<_>(hw, vrf, std::move(nexthops));
-}
-
 std::unique_ptr<BcmHostReference> BcmHostReference::get(
     BcmSwitch* hw,
     BcmHostKey key) {
   struct _ : public BcmHostReference {
     _(BcmSwitch* hw, BcmHostKey key) : BcmHostReference(hw, std::move(key)) {}
-  };
-  return std::make_unique<_>(hw, std::move(key));
-}
-
-std::unique_ptr<BcmHostReference> BcmHostReference::get(
-    BcmSwitch* hw,
-    BcmMultiPathNextHopKey key) {
-  struct _ : public BcmHostReference {
-    _(BcmSwitch* hw, BcmMultiPathNextHopKey key)
-        : BcmHostReference(hw, std::move(key)) {}
   };
   return std::make_unique<_>(hw, std::move(key));
 }
@@ -521,17 +497,8 @@ BcmHost* BcmHostReference::getBcmHost() {
   return host_.get();
 }
 
-BcmMultiPathNextHop* BcmHostReference::getBcmMultiPathNextHop() {
-  if (ecmpHost_ || !ecmpHostKey_) {
-    return ecmpHost_.get();
-  }
-  ecmpHost_ = hw_->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
-      ecmpHostKey_.value());
-  return ecmpHost_.get();
-}
 
 opennsl_if_t BcmHostReference::getEgressId() {
-  return hostKey_ ? getBcmHost()->getEgressId()
-                  : getBcmMultiPathNextHop()->getEgressId();
+  return getBcmHost()->getEgressId();
 }
 }}
