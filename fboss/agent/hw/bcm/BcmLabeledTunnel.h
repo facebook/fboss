@@ -16,7 +16,6 @@ namespace facebook {
 namespace fboss {
 
 class BcmSwitch;
-class BcmHostReference;
 
 class BcmLabeledTunnel {
  public:

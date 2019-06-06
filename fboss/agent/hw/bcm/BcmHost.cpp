@@ -478,28 +478,4 @@ void BcmHostTable::programHostsToCPU(const BcmHostKey& key, opennsl_if_t intf) {
   // (TODO) program labeled next hops to the host
 }
 
-BcmHostReference::BcmHostReference(BcmSwitch* hw, BcmHostKey key)
-    : hw_(hw), hostKey_(std::move(key)) {}
-
-std::unique_ptr<BcmHostReference> BcmHostReference::get(
-    BcmSwitch* hw,
-    BcmHostKey key) {
-  struct _ : public BcmHostReference {
-    _(BcmSwitch* hw, BcmHostKey key) : BcmHostReference(hw, std::move(key)) {}
-  };
-  return std::make_unique<_>(hw, std::move(key));
-}
-
-BcmHost* BcmHostReference::getBcmHost() {
-  if (host_ || !hostKey_) {
-    return host_.get();
-  }
-  host_ = hw_->writableHostTable()->refOrEmplace(hostKey_.value());
-  return host_.get();
-}
-
-
-opennsl_if_t BcmHostReference::getEgressId() {
-  return getBcmHost()->getEgressId();
-}
 }}

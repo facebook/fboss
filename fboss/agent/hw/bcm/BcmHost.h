@@ -36,7 +36,6 @@ class BcmEcmpEgress;
 class BcmEgress;
 class BcmSwitchIf;
 class BcmHostTable;
-class BcmHostReference;
 
 class BcmHostEgress : public boost::noncopyable {
  public:
@@ -240,27 +239,6 @@ class BcmHostTable {
   const BcmSwitchIf* hw_{nullptr};
 
   FlatRefMap<BcmHostKey, BcmHost> hosts_;
-};
-
-class BcmHostReference {
- public:
-
-  BcmHost* getBcmHost();
-
-  opennsl_if_t getEgressId();
-
-  static std::unique_ptr<BcmHostReference> get(BcmSwitch* hw, BcmHostKey key);
-
- private:
-  BcmHostReference(BcmSwitch* hw, BcmHostKey key);
-  BcmHostReference(const BcmHostReference&) = delete;
-  BcmHostReference(BcmHostReference&&) = delete;
-  BcmHostReference& operator=(const BcmHostReference&) = delete;
-  BcmHostReference& operator=(const BcmHostReference&&) = delete;
-
-  BcmSwitch* hw_{nullptr};
-  folly::Optional<BcmHostKey> hostKey_;
-  std::shared_ptr<BcmHost> host_;
 };
 
 class BcmNeighborTable {
