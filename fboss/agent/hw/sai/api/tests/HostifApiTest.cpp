@@ -27,6 +27,28 @@ class HostifApiTest : public ::testing::Test {
   }
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<HostifApi> hostifApi;
+
+  sai_object_id_t createHostifTrap(
+      sai_hostif_trap_type_t trapId,
+      sai_object_id_t trapGroupId) {
+    HostifApiParameters::MemberAttributes::TrapType trapType(trapId);
+    HostifApiParameters::MemberAttributes::PacketAction packetAction(
+        SAI_PACKET_ACTION_TRAP);
+    HostifApiParameters::MemberAttributes::TrapGroup trapGroup(trapGroupId);
+    HostifApiParameters::MemberAttributes::TrapPriority trapPriority(
+        SAI_SWITCH_ATTR_ACL_ENTRY_MINIMUM_PRIORITY);
+    HostifApiParameters::MemberAttributes attributes{
+        {trapType, packetAction, trapPriority, trapGroup}};
+    sai_object_id_t trap = hostifApi->createMember(attributes.attrs(), 0);
+    return trap;
+  }
+
+  sai_object_id_t createHostifTrapGroup(uint32_t queueId) {
+    HostifApiParameters::Attributes::Queue queue(queueId);
+    HostifApiParameters::Attributes attributes{{queue, 0}};
+    sai_object_id_t trapGroup = hostifApi->create(attributes.attrs(), 0);
+    return trapGroup;
+  }
 };
 
 TEST_F(HostifApiTest, sendPacket) {
@@ -38,4 +60,29 @@ TEST_F(HostifApiTest, sendPacket) {
   HostifApiParameters::HostifApiPacket txPacket{
       (void*)(testPacket.toString().c_str()), testPacket.toString().length()};
   hostifApi->send(a.attrs(), 0, txPacket);
+}
+
+TEST_F(HostifApiTest, createTrap) {
+  sai_hostif_trap_type_t trapType = SAI_HOSTIF_TRAP_TYPE_LACP;
+  uint32_t queueId = 10;
+  sai_object_id_t trapGroup = createHostifTrapGroup(queueId);
+  sai_object_id_t trap = createHostifTrap(trapType, trapGroup);
+  EXPECT_EQ(fs->htm.get(trap).trapType, trapType);
+  EXPECT_EQ(fs->htm.get(trap).packetAction, SAI_PACKET_ACTION_TRAP);
+  EXPECT_EQ(fs->htgm.get(trapGroup).queueId, queueId);
+  hostifApi->remove(trapGroup);
+  hostifApi->removeMember(trap);
+}
+
+TEST_F(HostifApiTest, removeTrap) {
+  sai_hostif_trap_type_t trapType = SAI_HOSTIF_TRAP_TYPE_LACP;
+  uint32_t queueId = 10;
+  sai_object_id_t trapGroup = createHostifTrapGroup(queueId);
+  sai_object_id_t trap = createHostifTrap(trapType, trapGroup);
+  EXPECT_EQ(fs->htm.map().size(), 1);
+  EXPECT_EQ(fs->htgm.map().size(), 1);
+  hostifApi->remove(trapGroup);
+  hostifApi->removeMember(trap);
+  EXPECT_EQ(fs->htm.map().size(), 0);
+  EXPECT_EQ(fs->htgm.map().size(), 0);
 }
