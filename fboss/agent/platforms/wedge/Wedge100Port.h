@@ -71,6 +71,8 @@ class Wedge100Port : public WedgePort {
   BcmPortGroup::LaneMode laneMode();
   bool useCompactMode();
   LedColor getLedColor(bool up, bool adminUp);
+  LedColor internalLedState_;
+  void setPortLedColorMode(LedColor);
 };
 
 }} // facebook::fboss
