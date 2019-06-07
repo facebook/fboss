@@ -89,76 +89,50 @@ namespace facebook {
 namespace fboss {
 namespace utility {
 
-template <typename IPAddrT>
-EcmpSetupTargetedPorts<IPAddrT>::EcmpSetupTargetedPorts(
+template <typename AddrT, typename NextHopT>
+BaseEcmpSetupHelper<AddrT, NextHopT>::BaseEcmpSetupHelper() {}
+
+template <typename AddrT, typename NextHopT>
+std::shared_ptr<SwitchState>
+BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHops(
     const std::shared_ptr<SwitchState>& inputState,
-    folly::Optional<folly::MacAddress> nextHopMac,
-    RouterID routerId,
-    typename EcmpSetupTargetedPorts<IPAddrT>::RouteT routePrefix)
-    : routerId_(routerId), routePrefix_(routePrefix) {
-  computeNextHops(inputState, nextHopMac);
+    const boost::container::flat_set<PortDescriptor>& portDescs) const {
+  return resolveNextHopsImpl(inputState, portDescs, true);
 }
 
-template <typename IPAddrT>
-void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
+template <typename AddrT, typename NextHopT>
+std::shared_ptr<SwitchState>
+BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveNextHops(
     const std::shared_ptr<SwitchState>& inputState,
-    folly::Optional<folly::MacAddress> nextHopMac) {
-  portDesc2Vlan_ = computePortDesc2Vlan(inputState);
-  auto vlan2Subnet = computeVlan2Subnet(
-      inputState, folly::IPAddress(routePrefix_.network).isV6());
-  int offset = 0;
-  auto baseMac = folly::MacAddress("01:00:00:00:00:00").u64HBO();
-  for (const auto& portDescAndVlan : portDesc2Vlan_) {
-    auto vlan = portDescAndVlan.second;
-    auto subnetIp = IPAddrT(vlan2Subnet[vlan].first.str());
-    auto bytes = subnetIp.toByteArray();
-    // Add a offset to compute next in subnet next hop IP.
-    // Essentially for vlan/l3 intf with subnet X, we
-    // would compute next hops by incrementing last octet
-    // of subnet.
-    int lastOctet = bytes[bytes.size() - 1] + (++offset);
-    // Fail if we goto 255 at the last oct
-    CHECK_GT(255, lastOctet);
-    bytes[bytes.size() - 1] = static_cast<uint8_t>(lastOctet);
-    nhops_.push_back(EcmpNextHop(
-        IPAddrT(bytes),
-        portDescAndVlan.first,
-        nextHopMac ? MacAddress::fromHBO(nextHopMac.value().u64HBO())
-                   : MacAddress::fromHBO(baseMac + offset)));
-  }
+    const boost::container::flat_set<PortDescriptor>& portDescs) const {
+  return resolveNextHopsImpl(inputState, portDescs, false);
 }
 
-template <typename IPAddrT>
-EcmpNextHop<IPAddrT> EcmpSetupTargetedPorts<IPAddrT>::nhop(
-    PortDescriptor portDesc) const {
-  auto it = std::find_if(
-      nhops_.begin(), nhops_.end(), [portDesc](const EcmpNextHop& nh) {
-        return nh.portDesc == portDesc;
-      });
-  if (it == nhops_.end()) {
-    throw FbossError("Could not find a nhop for: ", portDesc);
-  }
-  return *it;
-}
-
-template <typename IPAddrT>
-std::vector<PortDescriptor> EcmpSetupTargetedPorts<IPAddrT>::ecmpPortDescs(
-    int width) const {
-  std::vector<PortDescriptor> portDescs;
-  for (auto i = 0; i < width; ++i) {
-    portDescs.push_back(nhops_[i].portDesc);
-  }
-  return portDescs;
-}
-
-template <typename IPAddrT>
-std::shared_ptr<SwitchState> EcmpSetupTargetedPorts<IPAddrT>::resolveNextHop(
+template <typename AddrT, typename NextHopT>
+std::shared_ptr<SwitchState>
+BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHopsImpl(
     const std::shared_ptr<SwitchState>& inputState,
-    const EcmpSetupTargetedPorts<IPAddrT>::EcmpNextHop& nhop) const {
+    const boost::container::flat_set<PortDescriptor>& portDescs,
+    bool resolve) const {
+  auto outputState{inputState};
+  for (auto nhop : nhops_) {
+    if (portDescs.find(nhop.portDesc) != portDescs.end()) {
+      outputState = resolve ? resolveNextHop(outputState, nhop)
+                            : unresolveNextHop(outputState, nhop);
+    }
+  }
+  return outputState;
+}
+
+template <typename AddrT, typename NextHopT>
+std::shared_ptr<SwitchState>
+BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHop(
+    const std::shared_ptr<SwitchState>& inputState,
+    const NextHopT& nhop) const {
   auto outputState{inputState->clone()};
   auto vlanId = portDesc2Vlan_.find(nhop.portDesc)->second;
   auto vlan = outputState->getVlans()->getVlan(vlanId);
-  auto nbrTable = vlan->template getNeighborEntryTable<IPAddrT>()->modify(
+  auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
       vlanId, &outputState);
   if (nbrTable->getEntryIf(nhop.ip)) {
     nbrTable->updateEntry(
@@ -170,47 +144,82 @@ std::shared_ptr<SwitchState> EcmpSetupTargetedPorts<IPAddrT>::resolveNextHop(
   return outputState;
 }
 
-template <typename IPAddrT>
-std::shared_ptr<SwitchState> EcmpSetupTargetedPorts<IPAddrT>::unresolveNextHop(
+template <typename AddrT, typename NextHopT>
+std::shared_ptr<SwitchState>
+BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveNextHop(
     const std::shared_ptr<SwitchState>& inputState,
-    const EcmpSetupTargetedPorts<IPAddrT>::EcmpNextHop& nhop) const {
+    const NextHopT& nhop) const {
   auto outputState{inputState->clone()};
   auto vlanId = portDesc2Vlan_.find(nhop.portDesc)->second;
   auto vlan = outputState->getVlans()->getVlan(vlanId);
-  auto nbrTable = vlan->template getNeighborEntryTable<IPAddrT>()->modify(
+  auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
       vlanId, &outputState);
   nbrTable->removeEntry(nhop.ip);
   return outputState;
 }
 
-template <typename IPAddrT>
-std::shared_ptr<SwitchState> EcmpSetupTargetedPorts<IPAddrT>::resolveNextHops(
-    const std::shared_ptr<SwitchState>& inputState,
-    const flat_set<PortDescriptor>& portDescs) const {
-  return resolveNextHopsImpl(inputState, portDescs, true);
-}
-
-template <typename IPAddrT>
-std::shared_ptr<SwitchState> EcmpSetupTargetedPorts<IPAddrT>::unresolveNextHops(
-    const std::shared_ptr<SwitchState>& inputState,
-    const flat_set<PortDescriptor>& portDescs) const {
-  return resolveNextHopsImpl(inputState, portDescs, false);
-}
-
-template <typename IPAddrT>
-std::shared_ptr<SwitchState>
-EcmpSetupTargetedPorts<IPAddrT>::resolveNextHopsImpl(
-    const std::shared_ptr<SwitchState>& inputState,
-    const flat_set<PortDescriptor>& portDescs,
-    bool resolve) const {
-  auto outputState{inputState};
-  for (auto nhop : nhops_) {
-    if (portDescs.find(nhop.portDesc) != portDescs.end()) {
-      outputState = resolve ? resolveNextHop(outputState, nhop)
-                            : unresolveNextHop(outputState, nhop);
-    }
+template <typename AddrT, typename NextHopT>
+std::vector<PortDescriptor> BaseEcmpSetupHelper<AddrT, NextHopT>::ecmpPortDescs(
+    int width) const {
+  std::vector<PortDescriptor> portDescs;
+  for (auto i = 0; i < width; ++i) {
+    portDescs.push_back(nhops_[i].portDesc);
   }
-  return outputState;
+  return portDescs;
+}
+
+template <typename IPAddrT>
+EcmpSetupTargetedPorts<IPAddrT>::EcmpSetupTargetedPorts(
+    const std::shared_ptr<SwitchState>& inputState,
+    folly::Optional<folly::MacAddress> nextHopMac,
+    RouterID routerId,
+    typename EcmpSetupTargetedPorts<IPAddrT>::RouteT routePrefix)
+    : BaseEcmpSetupHelper<IPAddrT, EcmpNextHop>(),
+      routerId_(routerId),
+      routePrefix_(routePrefix) {
+  computeNextHops(inputState, nextHopMac);
+}
+
+template <typename IPAddrT>
+void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
+    const std::shared_ptr<SwitchState>& inputState,
+    folly::Optional<folly::MacAddress> nextHopMac) {
+  BaseEcmpSetupHelperT::portDesc2Vlan_ = computePortDesc2Vlan(inputState);
+  auto vlan2Subnet = computeVlan2Subnet(
+      inputState, folly::IPAddress(routePrefix_.network).isV6());
+  int offset = 0;
+  auto baseMac = folly::MacAddress("01:00:00:00:00:00").u64HBO();
+  for (const auto& portDescAndVlan : BaseEcmpSetupHelperT::portDesc2Vlan_) {
+    auto vlan = portDescAndVlan.second;
+    auto subnetIp = IPAddrT(vlan2Subnet[vlan].first.str());
+    auto bytes = subnetIp.toByteArray();
+    // Add a offset to compute next in subnet next hop IP.
+    // Essentially for vlan/l3 intf with subnet X, we
+    // would compute next hops by incrementing last octet
+    // of subnet.
+    int lastOctet = bytes[bytes.size() - 1] + (++offset);
+    // Fail if we goto 255 at the last oct
+    CHECK_GT(255, lastOctet);
+    bytes[bytes.size() - 1] = static_cast<uint8_t>(lastOctet);
+    BaseEcmpSetupHelperT::nhops_.push_back(EcmpNextHop(
+        IPAddrT(bytes),
+        portDescAndVlan.first,
+        nextHopMac ? MacAddress::fromHBO(nextHopMac.value().u64HBO())
+                   : MacAddress::fromHBO(baseMac + offset)));
+  }
+}
+
+template <typename IPAddrT>
+EcmpNextHop<IPAddrT> EcmpSetupTargetedPorts<IPAddrT>::nhop(
+    PortDescriptor portDesc) const {
+  auto it = std::find_if(
+      BaseEcmpSetupHelperT::nhops_.begin(),
+      BaseEcmpSetupHelperT::nhops_.end(),
+      [portDesc](const EcmpNextHop& nh) { return nh.portDesc == portDesc; });
+  if (it == BaseEcmpSetupHelperT::nhops_.end()) {
+    throw FbossError("Could not find a nhop for: ", portDesc);
+  }
+  return *it;
 }
 
 template <typename IPAddrT>
@@ -234,7 +243,62 @@ EcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
   {
     auto i = 0;
     for (const auto& portDescriptor : portDescriptors) {
-      nhops.emplace(UnresolvedNextHop(ip(portDescriptor), hopWeights[i++]));
+      nhops.emplace(UnresolvedNextHop(
+          BaseEcmpSetupHelperT::ip(portDescriptor), hopWeights[i++]));
+    }
+  }
+  const auto& tables1 = outputState->getRouteTables();
+  RouteUpdater u2(tables1);
+  u2.addRoute(
+      routerId_,
+      folly::IPAddress(routePrefix_.network),
+      routePrefix_.mask,
+      ClientID(1001),
+      RouteNextHopEntry(nhops, AdminDistance::STATIC_ROUTE));
+
+  auto tables2 = u2.updateDone();
+  tables2->publish();
+
+  outputState->resetRouteTables(tables2);
+  return outputState;
+}
+
+template <typename IPAddrT>
+std::shared_ptr<SwitchState>
+EcmpSetupTargetedPorts<IPAddrT>::setupIp2MplsECMPForwarding(
+    const std::shared_ptr<SwitchState>& inputState,
+    const boost::container::flat_set<PortDescriptor>& portDescriptors,
+    std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks,
+    const std::vector<NextHopWeight>& weights) const {
+  std::vector<NextHopWeight> hopWeights;
+  std::vector<NextHopWeight> forwardingActions;
+
+  if (!weights.size()) {
+    for (auto i = 0; i < portDescriptors.size(); ++i) {
+      hopWeights.push_back(ECMP_WEIGHT);
+    }
+  } else {
+    hopWeights = weights;
+  }
+
+  CHECK_EQ(portDescriptors.size(), hopWeights.size());
+  auto outputState{inputState->clone()};
+  RouteNextHopSet nhops;
+  {
+    auto i = 0;
+    for (const auto& portDescriptor : portDescriptors) {
+      auto itr = stacks.find(portDescriptor);
+      if (itr != stacks.end()) {
+        nhops.emplace(UnresolvedNextHop(
+            BaseEcmpSetupHelperT::ip(portDescriptor),
+            hopWeights[i++],
+            LabelForwardingAction(
+                LabelForwardingAction::LabelForwardingType::PUSH,
+                itr->second)));
+      } else {
+        nhops.emplace(UnresolvedNextHop(
+            BaseEcmpSetupHelperT::ip(portDescriptor), hopWeights[i++]));
+      }
     }
   }
   const auto& tables1 = outputState->getRouteTables();
@@ -300,11 +364,135 @@ std::vector<PortDescriptor> EcmpSetupAnyNPorts<IPAddrT>::ecmpPortDescs(
   return ecmpSetupTargetedPorts_.ecmpPortDescs(width);
 }
 
+template <typename IPAddrT>
+std::shared_ptr<SwitchState>
+MplsEcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
+    const std::shared_ptr<SwitchState>& inputState,
+    const boost::container::flat_set<PortDescriptor>& portDescriptors,
+    const std::vector<NextHopWeight>& weights) const {
+  std::vector<NextHopWeight> hopWeights;
+  if (!weights.size()) {
+    for (auto i = 0; i < portDescriptors.size(); ++i) {
+      hopWeights.push_back(ECMP_WEIGHT);
+    }
+  } else {
+    hopWeights = weights;
+  }
+
+  CHECK_EQ(portDescriptors.size(), hopWeights.size());
+  auto outputState{inputState->clone()};
+  LabelNextHopSet nhops;
+  {
+    auto i = 0;
+    for (const auto& portDescriptor : portDescriptors) {
+      auto iter = BaseEcmpSetupHelperT::portDesc2Vlan_.find(portDescriptor);
+      auto vlanID = iter->second;
+      auto nexthop = nhop(portDescriptor);
+      nhops.emplace(LabelNextHop(
+          nexthop.ip, InterfaceID(vlanID), hopWeights[i], nexthop.action));
+    }
+  }
+
+  outputState->getLabelForwardingInformationBase()->programLabel(
+      &outputState,
+      topLabel_,
+      ClientID(0),
+      AdminDistance::DIRECTLY_CONNECTED,
+      std::move(nhops));
+  return outputState;
+}
+
+template <typename IPAddrT>
+void MplsEcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
+    const std::shared_ptr<SwitchState>& inputState,
+    folly::Optional<folly::MacAddress> nextHopMac) {
+  BaseEcmpSetupHelperT::portDesc2Vlan_ = computePortDesc2Vlan(inputState);
+  auto vlan2Subnet =
+      computeVlan2Subnet(inputState, BaseEcmpSetupHelperT::kIsV6);
+  int offset = 0;
+  auto baseMac = folly::MacAddress("01:00:00:00:00:00").u64HBO();
+  for (const auto& portDescAndVlan : BaseEcmpSetupHelperT::portDesc2Vlan_) {
+    auto vlan = portDescAndVlan.second;
+    auto subnetIp = IPAddrT(vlan2Subnet[vlan].first.str());
+    auto bytes = subnetIp.toByteArray();
+    // Add a offset to compute next in subnet next hop IP.
+    // Essentially for vlan/l3 intf with subnet X, we
+    // would compute next hops by incrementing last octet
+    // of subnet.
+    int lastOctet = bytes[bytes.size() - 1] + (++offset);
+    // Fail if we goto 255 at the last oct
+    CHECK_GT(255, lastOctet);
+    bytes[bytes.size() - 1] = static_cast<uint8_t>(lastOctet);
+    BaseEcmpSetupHelperT::nhops_.push_back(EcmpMplsNextHop<IPAddrT>(
+        IPAddrT(bytes),
+        portDescAndVlan.first,
+        nextHopMac ? MacAddress::fromHBO(nextHopMac.value().u64HBO())
+                   : MacAddress::fromHBO(baseMac + offset),
+        getLabelForwardingAction(portDescAndVlan.first)));
+  }
+}
+
+template <typename IPAddrT>
+EcmpMplsNextHop<IPAddrT> MplsEcmpSetupTargetedPorts<IPAddrT>::nhop(
+    PortDescriptor portDesc) const {
+  auto it = std::find_if(
+      BaseEcmpSetupHelperT::nhops_.begin(),
+      BaseEcmpSetupHelperT::nhops_.end(),
+      [portDesc](const auto& nh) { return nh.portDesc == portDesc; });
+  if (it == BaseEcmpSetupHelperT::nhops_.end()) {
+    throw FbossError("Could not find a nhop for: ", portDesc);
+  }
+  return *it;
+}
+
+template <typename IPAddrT>
+LabelForwardingAction
+MplsEcmpSetupTargetedPorts<IPAddrT>::getLabelForwardingAction(
+    PortDescriptor port) const {
+  LabelForwardingEntry::Label label =
+      port.isAggregatePort() ? port.aggPortID() : port.phyPortID();
+
+  LabelForwardingAction::LabelStack pushStack;
+  for (auto i = 1; i <= 3; i++) {
+    pushStack.push_back(label * 10 + i);
+  }
+
+  switch (actionType_) {
+    case LabelForwardingAction::LabelForwardingType::PUSH:
+      return LabelForwardingAction(actionType_, std::move(pushStack));
+
+    case LabelForwardingAction::LabelForwardingType::SWAP:
+      return LabelForwardingAction(actionType_, pushStack[0]);
+    case LabelForwardingAction::LabelForwardingType::PHP:
+    case LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP:
+    case LabelForwardingAction::LabelForwardingType::NOOP:
+      return LabelForwardingAction(actionType_);
+  }
+  return LabelForwardingAction(
+      LabelForwardingAction::LabelForwardingType::NOOP);
+}
+
+template class BaseEcmpSetupHelper<
+    folly::IPAddressV4,
+    EcmpNextHop<folly::IPAddressV4>>;
+template class BaseEcmpSetupHelper<
+    folly::IPAddressV6,
+    EcmpNextHop<folly::IPAddressV6>>;
+
+template class BaseEcmpSetupHelper<
+    folly::IPAddressV4,
+    EcmpMplsNextHop<folly::IPAddressV4>>;
+template class BaseEcmpSetupHelper<
+    folly::IPAddressV6,
+    EcmpMplsNextHop<folly::IPAddressV6>>;
+
 template class EcmpSetupTargetedPorts<folly::IPAddressV4>;
 template class EcmpSetupTargetedPorts<folly::IPAddressV6>;
 template class EcmpSetupAnyNPorts<folly::IPAddressV4>;
 template class EcmpSetupAnyNPorts<folly::IPAddressV6>;
 
+template class MplsEcmpSetupTargetedPorts<folly::IPAddressV4>;
+template class MplsEcmpSetupTargetedPorts<folly::IPAddressV6>;
 } // namespace utility
 } // namespace fboss
 } // namespace facebook
