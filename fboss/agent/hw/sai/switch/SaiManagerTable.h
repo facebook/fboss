@@ -17,6 +17,7 @@ namespace fboss {
 class SaiApiTable;
 class SaiBridgeManager;
 class SaiFdbManager;
+class SaiHostifManager;
 class SaiNeighborManager;
 class SaiNextHopManager;
 class SaiNextHopGroupManager;
@@ -38,6 +39,9 @@ class SaiManagerTable {
 
   SaiFdbManager& fdbManager();
   const SaiFdbManager& fdbManager() const;
+
+  SaiHostifManager& hostifManager();
+  const SaiHostifManager& hostifManager() const;
 
   SaiNeighborManager& neighborManager();
   const SaiNeighborManager& neighborManager() const;
@@ -69,6 +73,7 @@ class SaiManagerTable {
  private:
   std::unique_ptr<SaiBridgeManager> bridgeManager_;
   std::unique_ptr<SaiFdbManager> fdbManager_;
+  std::unique_ptr<SaiHostifManager> hostifManager_;
   std::unique_ptr<SaiNeighborManager> neighborManager_;
   std::unique_ptr<SaiNextHopManager> nextHopManager_;
   std::unique_ptr<SaiNextHopGroupManager> nextHopGroupManager_;

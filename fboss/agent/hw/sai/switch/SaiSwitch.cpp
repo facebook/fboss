@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -273,6 +274,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedLocked(
       delta);
   managerTableLocked(lock)->neighborManager().processNeighborDelta(delta);
   managerTableLocked(lock)->routeManager().processRouteDelta(delta);
+  managerTableLocked(lock)->hostifManager().processHostifDelta(delta);
   return delta.newState();
 }
 

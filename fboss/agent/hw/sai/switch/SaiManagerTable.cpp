@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
+#include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
@@ -35,6 +36,7 @@ SaiManagerTable::SaiManagerTable(
   bridgeManager_ =
       std::make_unique<SaiBridgeManager>(apiTable_, this, platform);
   fdbManager_ = std::make_unique<SaiFdbManager>(apiTable_, this, platform);
+  hostifManager_ = std::make_unique<SaiHostifManager>(apiTable_, this);
   portManager_ = std::make_unique<SaiPortManager>(apiTable_, this, platform);
   virtualRouterManager_ =
       std::make_unique<SaiVirtualRouterManager>(apiTable_, this, platform);
@@ -73,6 +75,13 @@ SaiFdbManager& SaiManagerTable::fdbManager() {
 }
 const SaiFdbManager& SaiManagerTable::fdbManager() const {
   return *fdbManager_;
+}
+
+SaiHostifManager& SaiManagerTable::hostifManager() {
+  return *hostifManager_;
+}
+const SaiHostifManager& SaiManagerTable::hostifManager() const {
+  return *hostifManager_;
 }
 
 SaiNeighborManager& SaiManagerTable::neighborManager() {
