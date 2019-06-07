@@ -36,6 +36,8 @@ struct FakeSai {
   static std::shared_ptr<FakeSai> getInstance();
   FakeBridgeManager brm;
   FakeFdbManager fdbm;
+  FakeHostifTrapManager htm;
+  FakeHostifTrapGroupManager htgm;
   FakeLagManager lm;
   FakeNeighborManager nm;
   FakeNextHopManager nhm;
