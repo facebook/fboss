@@ -47,7 +47,7 @@ constexpr auto kNumWedge40Qsfps = 16;
 
 namespace facebook { namespace fboss {
 
-WedgePlatform::WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo)
+WedgePlatform::WedgePlatform(std::unique_ptr<PlatformProductInfo> productInfo)
     : productInfo_(std::move(productInfo)),
       qsfpCache_(std::make_unique<QsfpCache>()) {}
 
@@ -127,7 +127,7 @@ void WedgePlatform::getProductInfo(ProductInfo& info) {
   productInfo_->getInfo(info);
 }
 
-WedgePlatformMode WedgePlatform::getMode() const {
+PlatformMode WedgePlatform::getMode() const {
   return productInfo_->getMode();
 }
 

@@ -16,7 +16,7 @@ namespace facebook { namespace fboss {
 class AgentConfig;
 class Platform;
 class WedgePlatform;
-class WedgeProductInfo;
+class PlatformProductInfo;
 
 std::unique_ptr<WedgePlatform> createWedgePlatform();
 std::unique_ptr<Platform> initWedgePlatform(
@@ -28,6 +28,6 @@ std::unique_ptr<Platform> initWedgePlatform(
  * well-tested WedgePlatform in createWedgePlatform().
  */
 std::unique_ptr<WedgePlatform> createFBWedgePlatform(
-  std::unique_ptr<WedgeProductInfo> productInfo);
+  std::unique_ptr<PlatformProductInfo> productInfo);
 
 }}

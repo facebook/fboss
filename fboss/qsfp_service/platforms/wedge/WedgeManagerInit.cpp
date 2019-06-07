@@ -9,7 +9,7 @@
  */
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 
-#include "fboss/agent/platforms/wedge/WedgeProductInfo.h"
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/qsfp_service/platforms/wedge/GalaxyManager.h"
 #include "fboss/qsfp_service/platforms/wedge/Wedge40Manager.h"
 #include "fboss/qsfp_service/platforms/wedge/Wedge100Manager.h"
@@ -17,19 +17,20 @@
 namespace facebook { namespace fboss {
 
 std::unique_ptr<TransceiverManager> createTransceiverManager() {
-  auto productInfo = std::make_unique<WedgeProductInfo>(FLAGS_fruid_filepath);
+  auto productInfo =
+    std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();
   auto mode = productInfo->getMode();
 
-  if (mode == WedgePlatformMode::WEDGE100) {
+  if (mode == PlatformMode::WEDGE100) {
     return std::make_unique<Wedge100Manager>();
   } else if (
-      mode == WedgePlatformMode::GALAXY_LC ||
-      mode == WedgePlatformMode::GALAXY_FC) {
+      mode == PlatformMode::GALAXY_LC ||
+      mode == PlatformMode::GALAXY_FC) {
     return std::make_unique<GalaxyManager>();
-  } else if (mode == WedgePlatformMode::MINIPACK) {
+  } else if (mode == PlatformMode::MINIPACK) {
     return createFBTransceiverManager(std::move(productInfo));
-  } else if (mode == WedgePlatformMode::YAMP) {
+  } else if (mode == PlatformMode::YAMP) {
     return createYampTransceiverManager();
   }
   return std::make_unique<Wedge40Manager>();

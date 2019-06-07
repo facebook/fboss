@@ -16,11 +16,12 @@
 namespace facebook {
 namespace fboss {
 
-class WedgeProductInfo;
+class PlatformProductInfo;
 
 class WedgeTomahawkPlatform : public WedgePlatform {
  public:
-  explicit WedgeTomahawkPlatform(std::unique_ptr<WedgeProductInfo> productInfo)
+  explicit WedgeTomahawkPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo)
       : WedgePlatform(std::move(productInfo)) {}
 
   uint32_t getMMUBufferBytes() const override {

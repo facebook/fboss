@@ -210,7 +210,7 @@ include_directories(${CMAKE_SOURCE_DIR}/external/iproute2/include)
 
 add_executable(wedge_agent
     fboss/agent/platforms/wedge/WedgePlatform.cpp
-    fboss/agent/platforms/wedge/WedgeProductInfo.cpp
+    fboss/agent/platforms/common/PlatformProductInfo.cpp
     fboss/agent/platforms/wedge/WedgePort.cpp
     fboss/agent/platforms/wedge/wedge_agent.cpp
     fboss/agent/platforms/wedge/oss/WedgePort.cpp
@@ -427,7 +427,7 @@ add_library(fboss_agent STATIC
     fboss/agent/platforms/wedge/oss/Wedge40Port.cpp
     fboss/agent/platforms/wedge/oss/Wedge100Port.cpp
     fboss/agent/platforms/wedge/oss/WedgePlatformInit.cpp
-    fboss/agent/platforms/wedge/oss/WedgeProductInfo.cpp
+    fboss/agent/platforms/common/oss/PlatformProductInfo.cpp
     fboss/agent/platforms/wedge/oss/WedgeTomahawkPlatform.cpp
     fboss/agent/platforms/wedge/wedge_agent.cpp
     fboss/agent/platforms/wedge/WedgePlatform.cpp
@@ -438,7 +438,7 @@ add_library(fboss_agent STATIC
     fboss/agent/platforms/wedge/GalaxyFCPlatform.cpp
     fboss/agent/platforms/wedge/WedgePort.cpp
     fboss/agent/platforms/wedge/Wedge100Port.cpp
-    fboss/agent/platforms/wedge/WedgeProductInfo.cpp
+    fboss/agent/platforms/common/PlatformProductInfo.cpp
     fboss/agent/platforms/wedge/WedgePlatformInit.cpp
     fboss/agent/PortStats.cpp
     fboss/agent/PortUpdateHandler.cpp

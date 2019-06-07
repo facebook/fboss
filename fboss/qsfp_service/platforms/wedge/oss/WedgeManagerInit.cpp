@@ -13,7 +13,7 @@
 
 namespace facebook { namespace fboss {
 std::unique_ptr<TransceiverManager> createFBTransceiverManager(
-    std::unique_ptr<WedgeProductInfo> /*productInfo*/) {
+    std::unique_ptr<PlatformProductInfo> /*productInfo*/) {
   return std::unique_ptr<TransceiverManager>{};
 }
 

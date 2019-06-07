@@ -41,30 +41,30 @@ DECLARE_string(bcm_config);
 DECLARE_int32(thrift_port);
 
 namespace {
-WedgePlatformMode getPlatformMode() {
+PlatformMode getPlatformMode() {
   try {
-    WedgeProductInfo productInfo(FLAGS_fruid_filepath);
+    PlatformProductInfo productInfo(FLAGS_fruid_filepath);
     productInfo.initialize();
     return productInfo.getMode();
   } catch (const FbossError& ex) {
-    return WedgePlatformMode::FAKE_WEDGE;
+    return PlatformMode::FAKE_WEDGE;
   }
 }
 
-std::unique_ptr<BcmTestPlatform> createWedgePlatform(WedgePlatformMode mode) {
-  if (mode == WedgePlatformMode::WEDGE) {
+std::unique_ptr<BcmTestPlatform> createWedgePlatform(PlatformMode mode) {
+  if (mode == PlatformMode::WEDGE) {
     return std::make_unique<BcmTestWedge40Platform>();
-  } else if (mode == WedgePlatformMode::WEDGE100){
+  } else if (mode == PlatformMode::WEDGE100){
     return std::make_unique<BcmTestWedge100Platform>();
   } else if (
-      mode == WedgePlatformMode::GALAXY_LC ||
-      mode == WedgePlatformMode::GALAXY_FC) {
+      mode == PlatformMode::GALAXY_LC ||
+      mode == PlatformMode::GALAXY_FC) {
     return std::make_unique<BcmTestGalaxyPlatform>();
-  } else if (mode == WedgePlatformMode::MINIPACK) {
+  } else if (mode == PlatformMode::MINIPACK) {
     return std::make_unique<BcmTestMinipack16QPlatform>();
-  } else if (mode == WedgePlatformMode::YAMP) {
+  } else if (mode == PlatformMode::YAMP) {
     return std::make_unique<BcmTestYamp16QPlatform>();
-  } else if (mode == WedgePlatformMode::FAKE_WEDGE) {
+  } else if (mode == PlatformMode::FAKE_WEDGE) {
     return std::make_unique<FakeBcmTestPlatform>();
   } else {
     throw std::runtime_error("invalid mode ");
@@ -95,7 +95,7 @@ namespace fboss {
 
 BcmTest::BcmTest() {
   BcmConfig::ConfigMap cfg;
-  if (getPlatformMode() == WedgePlatformMode::FAKE_WEDGE) {
+  if (getPlatformMode() == PlatformMode::FAKE_WEDGE) {
     FLAGS_flexports = true;
     for (int n = 1; n <= 125; n += 4) {
       addFlexPort(cfg, n, 40);

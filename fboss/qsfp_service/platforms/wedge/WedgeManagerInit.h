@@ -14,7 +14,7 @@
 namespace facebook { namespace fboss {
 
 class TransceiverManager;
-class WedgeProductInfo;
+class PlatformProductInfo;
 
 std::unique_ptr<TransceiverManager> createTransceiverManager();
 
@@ -22,7 +22,7 @@ std::unique_ptr<TransceiverManager> createTransceiverManager();
  * This function should return derived TransceiverManager which is still in dev.
  */
 std::unique_ptr<TransceiverManager> createFBTransceiverManager(
-  std::unique_ptr<WedgeProductInfo> productInfo);
+  std::unique_ptr<PlatformProductInfo> productInfo);
 
 std::unique_ptr<TransceiverManager> createYampTransceiverManager();
 }} //facebook::fboss

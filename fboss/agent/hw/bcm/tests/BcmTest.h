@@ -21,7 +21,7 @@
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/bcm/BcmConfig.h"
 #include "fboss/agent/hw/test/HwTest.h"
-#include "fboss/agent/platforms/wedge/WedgeProductInfo.h"
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/hw/bcm/tests/platforms/BcmTestPlatform.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/StateDelta.h"

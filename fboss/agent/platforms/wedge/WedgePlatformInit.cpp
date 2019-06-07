@@ -23,19 +23,20 @@
 namespace facebook { namespace fboss {
 
 std::unique_ptr<WedgePlatform> chooseWedgePlatform() {
-  auto productInfo = std::make_unique<WedgeProductInfo>(FLAGS_fruid_filepath);
+  auto productInfo =
+    std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();
 
   auto mode = productInfo->getMode();
-  if (mode == WedgePlatformMode::WEDGE) {
+  if (mode == PlatformMode::WEDGE) {
     return std::make_unique<Wedge40Platform>(std::move(productInfo));
-  } else if (mode == WedgePlatformMode::WEDGE100) {
+  } else if (mode == PlatformMode::WEDGE100) {
     return std::make_unique<Wedge100Platform>(std::move(productInfo));
-  } else if (mode == WedgePlatformMode::GALAXY_LC) {
+  } else if (mode == PlatformMode::GALAXY_LC) {
     return std::make_unique<GalaxyLCPlatform>(std::move(productInfo));
-  } else if (mode == WedgePlatformMode::GALAXY_FC) {
+  } else if (mode == PlatformMode::GALAXY_FC) {
     return std::make_unique<GalaxyFCPlatform>(std::move(productInfo));
-  } else if (mode == WedgePlatformMode::FAKE_WEDGE40) {
+  } else if (mode == PlatformMode::FAKE_WEDGE40) {
     return std::make_unique<FakeWedge40Platform>(std::move(productInfo));
   }
 

@@ -13,7 +13,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/StateObserver.h"
-#include "fboss/agent/platforms/wedge/WedgeProductInfo.h"
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
@@ -33,7 +33,7 @@ class WedgePort;
 
 class WedgePlatform : public BcmPlatform, public StateObserver {
  public:
-  explicit WedgePlatform(std::unique_ptr<WedgeProductInfo> productInfo);
+  explicit WedgePlatform(std::unique_ptr<PlatformProductInfo> productInfo);
   ~WedgePlatform() override;
 
   void initImpl() override;
@@ -72,7 +72,7 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   }
 
  protected:
-  WedgePlatformMode getMode() const;
+  PlatformMode getMode() const;
   std::unique_ptr<WedgePortMapping> portMapping_{nullptr};
 
  private:
@@ -92,7 +92,7 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   folly::MacAddress localMac_;
   std::unique_ptr<BcmSwitch> hw_;
 
-  const std::unique_ptr<WedgeProductInfo> productInfo_;
+  const std::unique_ptr<PlatformProductInfo> productInfo_;
   const std::unique_ptr<QsfpCache> qsfpCache_;
   std::unique_ptr<BcmWarmBootHelper> warmBootHelper_;
 };

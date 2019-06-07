@@ -18,11 +18,11 @@ namespace facebook { namespace fboss {
 
 class BcmSwitch;
 class Wedge100Port;
-class WedgeProductInfo;
+class PlatformProductInfo;
 
 class Wedge100Platform : public WedgeTomahawkPlatform {
  public:
-  explicit Wedge100Platform(std::unique_ptr<WedgeProductInfo> productInfo) :
+  explicit Wedge100Platform(std::unique_ptr<PlatformProductInfo> productInfo) :
       WedgeTomahawkPlatform(std::move(productInfo)) {}
 
   std::unique_ptr<WedgePortMapping> createPortMapping() override;
