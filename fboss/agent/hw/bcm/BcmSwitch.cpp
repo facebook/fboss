@@ -1383,6 +1383,15 @@ void BcmSwitch::processAddedAndChangedNeighbor(
         neighborMac,
         getPortTable()->getBcmPortId(port));
   }
+  std::for_each(
+      writableMplsNextHopTable()->getNextHops().begin(),
+      writableMplsNextHopTable()->getNextHops().end(),
+      [neighborKey](const auto& entry) {
+        auto nhop = entry.second.lock();
+        if (nhop->getBcmHostKey() == neighborKey) {
+          nhop->program(neighborKey);
+        }
+      });
 }
 
 template <typename NeighborEntryT>
@@ -1443,6 +1452,15 @@ void BcmSwitch::processRemovedNeighborEntry(
       vrf, IPAddress(removedEntry->getIP()), removedEntry->getIntfID());
   neighborTable_->unregisterNeighbor(neighborKey);
   hostTable_->programHostsToCPU(neighborKey, intf->getBcmIfId());
+  std::for_each(
+      writableMplsNextHopTable()->getNextHops().begin(),
+      writableMplsNextHopTable()->getNextHops().end(),
+      [neighborKey](const auto& entry) {
+        auto nhop = entry.second.lock();
+        if (nhop->getBcmHostKey() == neighborKey) {
+          nhop->program(neighborKey);
+        }
+      });
 }
 
 void BcmSwitch::processNeighborChanges(
