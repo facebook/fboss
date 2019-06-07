@@ -19,7 +19,7 @@ namespace fboss {
 SaiApiTable::SaiApiTable() {
   bridgeApi_ = std::make_unique<BridgeApi>();
   fdbApi_ = std::make_unique<FdbApi>();
-  hostifPacketApi_ = std::make_unique<HostifPacketApi>();
+  hostifApi_ = std::make_unique<HostifApi>();
   nextHopApi_ = std::make_unique<NextHopApi>();
   nextHopGroupApi_ = std::make_unique<NextHopGroupApi>();
   neighborApi_ = std::make_unique<NeighborApi>();

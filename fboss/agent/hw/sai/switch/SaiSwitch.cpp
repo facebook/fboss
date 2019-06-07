@@ -313,8 +313,8 @@ bool SaiSwitch::sendPacketSwitchedSyncLocked(
       pkt->buf()->length()};
   auto switchId =
       managerTableLocked(lock)->switchManager().getSwitchSaiId(SwitchID(0));
-  auto& hostifPacketApi = apiTableLocked(lock)->hostifPacketApi();
-  hostifPacketApi.send(attributes.attrs(), switchId, txPacket);
+  auto& hostifApi = saiApiTable_->hostifApi();
+  hostifApi.send(attributes.attrs(), switchId, txPacket);
   return true;
 }
 
@@ -336,8 +336,8 @@ bool SaiSwitch::sendPacketOutOfPortSyncLocked(
   HostifApiParameters::TxPacketAttributes attributes{{txType, egressPort}};
   auto switchId =
       managerTableLocked(lock)->switchManager().getSwitchSaiId(SwitchID(0));
-  auto& hostifPacketApi = apiTableLocked(lock)->hostifPacketApi();
-  hostifPacketApi.send(attributes.attrs(), switchId, txPacket);
+  auto& hostifApi = saiApiTable_->hostifApi();
+  hostifApi.send(attributes.attrs(), switchId, txPacket);
   return true;
 }
 

@@ -23,10 +23,10 @@ class HostifApiTest : public ::testing::Test {
   void SetUp() override {
     fs = FakeSai::getInstance();
     sai_api_initialize(0, nullptr);
-    hostifApi = std::make_unique<HostifPacketApi>();
+    hostifApi = std::make_unique<HostifApi>();
   }
   std::shared_ptr<FakeSai> fs;
-  std::unique_ptr<HostifPacketApi> hostifApi;
+  std::unique_ptr<HostifApi> hostifApi;
 };
 
 TEST_F(HostifApiTest, sendPacket) {

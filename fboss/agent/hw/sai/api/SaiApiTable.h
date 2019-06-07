@@ -48,11 +48,11 @@ class SaiApiTable {
     return *fdbApi_;
   }
 
-  HostifPacketApi& hostifPacketApi() {
-    return *hostifPacketApi_;
+  HostifApi& hostifApi() {
+    return *hostifApi_;
   }
-  const HostifPacketApi& hostifPacketApi() const {
-    return *hostifPacketApi_;
+  const HostifApi& hostifApi() const {
+    return *hostifApi_;
   }
 
   LagApi& lagApi() {
@@ -127,7 +127,7 @@ class SaiApiTable {
  private:
   std::unique_ptr<BridgeApi> bridgeApi_;
   std::unique_ptr<FdbApi> fdbApi_;
-  std::unique_ptr<HostifPacketApi> hostifPacketApi_;
+  std::unique_ptr<HostifApi> hostifApi_;
   std::unique_ptr<LagApi> lagApi_;
   std::unique_ptr<NextHopApi> nextHopApi_;
   std::unique_ptr<NextHopGroupApi> nextHopGroupApi_;

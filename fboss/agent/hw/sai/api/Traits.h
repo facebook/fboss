@@ -65,6 +65,7 @@ class BridgeApiParameters;
 class VlanApiParameters;
 class LagTypes;
 class NextHopGroupApiParameters;
+class HostifApiParameters;
 template <>
 struct apiHasMembers<BridgeApiParameters> : public std::true_type {};
 template <>
@@ -73,6 +74,8 @@ template <>
 struct apiHasMembers<LagTypes> : public std::true_type {};
 template <>
 struct apiHasMembers<NextHopGroupApiParameters> : public std::true_type {};
+template <>
+struct apiHasMembers<HostifApiParameters> : public std::true_type {};
 
 /*
  * Helper metafunctions for C++ wrappers of non-primitive SAI types.
