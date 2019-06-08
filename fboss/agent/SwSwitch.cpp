@@ -737,6 +737,13 @@ void SwSwitch::handlePendingUpdates() {
   StateUpdateList updates;
   {
     folly::SpinLockGuard guard(pendingUpdatesLock_);
+    if (pendingUpdates_.size() == 1 &&
+        pendingUpdates_.begin()->getName() == kOutOfSyncStateUpdate) {
+      // If HW out of sync is the only update here. Skip applying this to HW
+      // (since it will likely fail again), wait for at least one more update to
+      // get queued here.
+      return;
+    }
 
     // When deciding how many elements to pull off the pendingUpdates_
     // list, we pull as many as we can, while making sure we don't
@@ -761,10 +768,6 @@ void SwSwitch::handlePendingUpdates() {
     return;
   }
 
-  if (updates.size() == 1 &&
-      updates.begin()->getName() == kOutOfSyncStateUpdate) {
-    return;
-  }
 
   // This function should never be called with valid updates while we are
   // not initialized yet
