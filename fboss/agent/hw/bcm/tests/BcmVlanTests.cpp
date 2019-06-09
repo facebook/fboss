@@ -42,6 +42,9 @@ typedef std::vector<opennsl_vlan_data_t> VlanVector;
 VlanVector listVlans(int unit) {
   opennsl_vlan_data_t* vlanList = nullptr;
   int vlanCount = 0;
+  SCOPE_EXIT {
+    opennsl_vlan_list_destroy(unit, vlanList, vlanCount);
+  };
   auto rv = opennsl_vlan_list(unit, &vlanList, &vlanCount);
   facebook::fboss::bcmCheckError(rv, "failed to list all VLANs");
   return VlanVector(vlanList, vlanList + vlanCount);
