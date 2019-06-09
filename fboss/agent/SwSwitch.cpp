@@ -1238,6 +1238,14 @@ void SwSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
     folly::Optional<uint8_t> queue) noexcept {
+  auto state = getState();
+  if (!state->getPorts()->getPortIf(portID)) {
+    XLOG(ERR) << "SendPacketOutOfPortAsync: dropping packet to unexpected port "
+              << portID;
+    stats()->pktDropped();
+    return;
+  }
+
   pcapMgr_->packetSent(pkt.get());
 
   Cursor c(pkt->buf());
