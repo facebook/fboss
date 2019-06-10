@@ -106,21 +106,21 @@ void BcmMplsNextHop::program(BcmHostKey bcmHostKey) {
   } else {
     /* l3 next hop for this labeled host is known and l3 egress is resolved */
     /* program to next hop */
-    auto bcmHostPortDesc = bcmHostEntry->portDescriptor();
+    auto bcmHostPortDesc = bcmHostEntry->getEgressPortDescriptor();
+    CHECK(bcmHostPortDesc.hasValue());
     auto bcmHostEgressId = bcmHostEntry->getEgressId();
     auto* bcmHostEgress = bcmHostEntry->getEgress();
     auto mac = bcmHostEgress->getMac();
-    if (bcmHostPortDesc.isAggregatePort()) {
+    if (bcmHostPortDesc->isAggregatePort()) {
       // program over trunk
-      newTrunk =
-          hw_->getTrunkTable()->getBcmTrunkId(bcmHostPortDesc.aggPortID());
+      newTrunk = bcmHostPortDesc->aggPortID();
       newGport = BcmTrunk::asGPort(newTrunk);
       XLOG(DBG2) << "programming " << key_.str() << " to trunk " << newTrunk;
       mplsEgress_->programToTrunk(
           bcmIntfId, bcmHostKey.getVrf(), bcmHostKey.addr(), mac, newTrunk);
     } else {
       // program over port
-      newPort = hw_->getPortTable()->getBcmPortId(bcmHostPortDesc.phyPortID());
+      newPort = bcmHostPortDesc->phyPortID();
       newGport = BcmPort::asGPort(newPort);
       XLOG(DBG2) << "programming " << key_.str() << " to port " << newPort;
       mplsEgress_->programToPort(

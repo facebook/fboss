@@ -22,6 +22,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
+#include "fboss/agent/hw/bcm/BcmPortDescriptor.h"
 #include "fboss/agent/hw/bcm/BcmTrunk.h"
 #include "fboss/agent/state/NeighborEntry.h"
 #include "fboss/agent/types.h"
@@ -114,17 +115,15 @@ class BcmHost {
   bool getAndClearHitBit() const;
   void addToBcmHostTable(bool isMultipath = false, bool replace = false);
   folly::dynamic toFollyDynamic() const;
-  // TODO(samank): use getPort() instead of port_ member variable
-  opennsl_port_t getPort() const { return port_; }
+
   bool isPortOrTrunkSet() const {
-    return trunk_ != BcmTrunk::INVALID || port_ != 0;
+    return egressPort_.hasValue();
   }
-  opennsl_gport_t getSetPortAsGPort() {
-    if (trunk_ != BcmTrunk::INVALID) {
-      return BcmTrunk::asGPort(trunk_);
-    } else {
-      return BcmPort::asGPort(port_);
+  opennsl_gport_t getSetPortAsGPort() const {
+    if (!egressPort_) {
+      return BcmPort::asGPort(0);
     }
+    return egressPort_->asGPort();
   }
 
   const BcmHostKey& getHostKey() const {
@@ -141,7 +140,7 @@ class BcmHost {
   static bool matchLookupClass(
     const opennsl_l3_host_t& newHost,
     const opennsl_l3_host_t& existingHost);
-  PortDescriptor portDescriptor() const;
+  folly::Optional<BcmPortDescriptor> getEgressPortDescriptor() const;
 
   bool isProgrammedToDrop() const {
     return action_ == DROP;
@@ -167,7 +166,6 @@ class BcmHost {
   void program(opennsl_if_t intf, const folly::MacAddress *mac,
                opennsl_port_t port, RouteForwardAction action);
   void initHostCommon(opennsl_l3_host_t *host) const;
-  bool isTrunk() const;
 
   void setLookupClassToL3Host(opennsl_l3_host_t* host) const;
 
@@ -178,8 +176,7 @@ class BcmHost {
   // Only set for actual host entries that point a non
   // drop/CPU egress object. Set to 0 for host routes as
   // well
-  opennsl_if_t port_{0};
-  opennsl_trunk_t trunk_{BcmTrunk::INVALID};
+  folly::Optional<BcmPortDescriptor> egressPort_;
   bool addedInHW_{false}; // if added to the HW host(ARP) table or not
   int lookupClassId_{0}; // DST Lookup Class
   RouteForwardAction action_{DROP};

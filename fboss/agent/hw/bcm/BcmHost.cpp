@@ -29,6 +29,13 @@
 namespace {
 constexpr auto kIntf = "intf";
 constexpr auto kPort = "port";
+std::string egressPortStr(
+    const folly::Optional<facebook::fboss::BcmPortDescriptor>& port) {
+  if (!port) {
+    return "port not set";
+  }
+  return port->str();
+}
 }
 
 namespace facebook { namespace fboss {
@@ -189,11 +196,12 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
     addToBcmHostTable();
   }
 
+  auto newEgressPort = BcmPortDescriptor(BcmPortId(port));
   XLOG(DBG1) << "Updating egress " << egressPtr->getID() << " from "
-             << (isTrunk() ? "trunk port " : "physical port ")
-             << (isTrunk() ? trunk_ : port_) << " to physical port " << port;
+             << egressPortStr(egressPort_) << " to "
+             << egressPortStr(newEgressPort);
 
-  // TODO(samank): port_ or trunk_ being set is used as a proxy for whether
+  // TODO(samank): isPortOrTrunkSet set is used as a proxy for whether
   // egressId_ is in the set of resolved egresses. We should instead simply
   // consult the set of resolved egresses for this information.
   bool isSet = isPortOrTrunkSet();
@@ -250,8 +258,7 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
   hw_->writableMultiPathNextHopTable()->egressResolutionChangedHwLocked(
       getEgressId(), ecmpAction);
 
-  trunk_ = BcmTrunk::INVALID;
-  port_ = port;
+  egressPort_ = newEgressPort;
   action_ = action;
 }
 
@@ -272,9 +279,10 @@ void BcmHost::programToTrunk(opennsl_if_t intf,
     addToBcmHostTable();
   }
 
+  auto newEgressPort = BcmPortDescriptor(BcmTrunkId(trunk));
   XLOG(DBG1) << "Updating egress " << egress->getID() << " from "
-             << (isTrunk() ? "trunk port " : "physical port ")
-             << (isTrunk() ? trunk_ : port_) << " to trunk port " << trunk;
+             << egressPortStr(egressPort_) << " to "
+             << egressPortStr(newEgressPort);
 
   hw_->writableEgressManager()->resolved(getEgressId());
 
@@ -284,13 +292,8 @@ void BcmHost::programToTrunk(opennsl_if_t intf,
   hw_->writableMultiPathNextHopTable()->egressResolutionChangedHwLocked(
       getEgressId(), BcmEcmpEgress::Action::EXPAND);
 
-  port_ = 0;
-  trunk_ = trunk;
+  egressPort_ = newEgressPort;
   action_ = NEXTHOPS;
-}
-
-bool BcmHost::isTrunk() const {
-  return trunk_ != BcmTrunk::INVALID;
 }
 
 BcmHost::~BcmHost() {
@@ -319,10 +322,8 @@ BcmHost::~BcmHost() {
                          : BcmEcmpEgress::Action::SKIP);
 }
 
-PortDescriptor BcmHost::portDescriptor() const {
-  return isTrunk()
-      ? PortDescriptor(hw_->getTrunkTable()->getAggregatePortId(trunk_))
-      : PortDescriptor(hw_->getPortTable()->getPortId(port_));
+folly::Optional<BcmPortDescriptor> BcmHost::getEgressPortDescriptor() const {
+  return egressPort_;
 }
 
 BcmHostTable::BcmHostTable(const BcmSwitchIf* hw) : hw_(hw) {}
@@ -379,7 +380,17 @@ folly::dynamic BcmHost::toFollyDynamic() const {
   if (key_.intfID().hasValue()) {
     host[kIntf] = static_cast<uint32_t>(key_.intfID().value());
   }
-  host[kPort] = port_;
+  host[kPort] = 0;
+  if (egressPort_) {
+    switch (egressPort_->type()) {
+      case BcmPortDescriptor::PortType::AGGREGATE:
+        // TODO: support warmboot for trunks
+        break;
+      case BcmPortDescriptor::PortType::PHYSICAL:
+        host[kPort] = egressPort_->toFollyDynamic();
+        break;
+    }
+  }
   host[kEgressId] = getEgressId();
   if (getEgressId() != BcmEgressBase::INVALID &&
       egress_->type() == BcmHostEgress::BcmHostEgressType::OWNED) {
