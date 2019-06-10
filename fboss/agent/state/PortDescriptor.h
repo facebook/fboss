@@ -19,24 +19,17 @@
 
 namespace facebook { namespace fboss {
 
-class PortDescriptor {
+template <typename PortIdType, typename TrunkIdType>
+class PortDescriptorTemplate {
  public:
   enum class PortType {
     PHYSICAL,
     AGGREGATE,
   };
-  explicit PortDescriptor(PortID p)
+  explicit PortDescriptorTemplate(PortIdType p)
       : type_(PortType::PHYSICAL), physicalPortID_(p) {}
-  explicit PortDescriptor(AggregatePortID p)
+  explicit PortDescriptorTemplate(TrunkIdType p)
       : type_(PortType::AGGREGATE), aggregatePortID_(p) {}
-
-  static PortDescriptor fromRxPacket(const RxPacket& pkt) {
-    if (pkt.isFromAggregatePort()) {
-      return PortDescriptor(AggregatePortID(pkt.getSrcAggregatePort()));
-    } else {
-      return PortDescriptor(PortID(pkt.getSrcPort()));
-    }
-  }
 
   PortType type() const {
     return type_;
@@ -48,43 +41,43 @@ class PortDescriptor {
     return type() == PortType::AGGREGATE;
   }
 
-  PortID phyPortID() const {
+  PortIdType phyPortID() const {
     CHECK(type() == PortType::PHYSICAL);
     return physicalPortID_;
   }
-  AggregatePortID aggPortID() const {
+  TrunkIdType aggPortID() const {
     CHECK(type() == PortType::AGGREGATE);
     return aggregatePortID_;
   }
 
-  bool operator==(const PortDescriptor& rhs) const {
+  bool operator==(const PortDescriptorTemplate& rhs) const {
     return std::tie(type_, physicalPortID_, aggregatePortID_) ==
         std::tie(rhs.type_, rhs.physicalPortID_, rhs.aggregatePortID_);
   }
-  bool operator<(const PortDescriptor& rhs) const {
+  bool operator<(const PortDescriptorTemplate& rhs) const {
     return std::tie(type_, physicalPortID_, aggregatePortID_) <
            std::tie(rhs.type_, rhs.physicalPortID_, rhs.aggregatePortID_);
   }
-  bool operator!=(const PortDescriptor& rhs) const {
+  bool operator!=(const PortDescriptorTemplate& rhs) const {
     return !(*this == rhs);
   }
-  bool operator==(const PortID portID) const {
+  bool operator==(const PortIdType portID) const {
     return type_ == PortType::PHYSICAL &&
         physicalPortID_ == portID;
   }
-  bool operator!=(const PortID portID) const {
+  bool operator!=(const PortIdType portID) const {
     return !(*this == portID);
   }
-  bool operator==(const AggregatePortID aggPortID) const {
+  bool operator==(const TrunkIdType aggPortID) const {
     return type_ == PortType::AGGREGATE &&
         aggregatePortID_ == aggPortID;
   }
-  bool operator!=(const AggregatePortID aggPortID) const {
+  bool operator!=(const TrunkIdType aggPortID) const {
     return !(*this == aggPortID);
   }
   int32_t asThriftPort() const {
-    // TODO(samank): Until PortDescriptors are exposed in ctrl.ctrl
-    // (tracked in t18482977), we simply multiplex AggregatePortID's
+    // TODO(samank): Until PortDescriptorTemplates are exposed in ctrl.ctrl
+    // (tracked in t18482977), we simply multiplex TrunkIdType's
     // and PortID's over the same field.
     switch (type()) {
       case PortType::PHYSICAL:
@@ -103,13 +96,14 @@ class PortDescriptor {
     }
     XLOG(FATAL) << "Unknown port type";
   }
-  static PortDescriptor fromFollyDynamic(const folly::dynamic& descJSON) {
+  static PortDescriptorTemplate fromFollyDynamic(
+      const folly::dynamic& descJSON) {
     // Until warm-boot support is implemented for aggregate ports, we assume
     // it is undefined behavior to warm-boot across a state with configured
     // aggregate ports
-    return PortDescriptor(PortID(descJSON.asInt()));
+    return PortDescriptorTemplate(PortIdType(descJSON.asInt()));
   }
-  PortID getPhysicalPortOrThrow() const {
+  PortIdType getPhysicalPortOrThrow() const {
     if(type() != PortType::PHYSICAL) {
       throw FbossError("PortDescriptor is not physical");
     }
@@ -123,8 +117,30 @@ class PortDescriptor {
   }
  private:
   PortType type_;
-  PortID physicalPortID_{0};
-  AggregatePortID aggregatePortID_{0};
+  PortIdType physicalPortID_{0};
+  TrunkIdType aggregatePortID_{0};
+};
+
+class PortDescriptor : public PortDescriptorTemplate<PortID, AggregatePortID> {
+ public:
+  using BaseT = PortDescriptorTemplate<PortID, AggregatePortID>;
+  explicit PortDescriptor(PortID p) : BaseT(p) {}
+  explicit PortDescriptor(AggregatePortID p) : BaseT(p) {}
+
+  static PortDescriptor fromRxPacket(const RxPacket& pkt) {
+    if (pkt.isFromAggregatePort()) {
+      return PortDescriptor(AggregatePortID(pkt.getSrcAggregatePort()));
+    } else {
+      return PortDescriptor(PortID(pkt.getSrcPort()));
+    }
+  }
+
+  static PortDescriptor fromFollyDynamic(const folly::dynamic& descJSON) {
+    return PortDescriptor(BaseT::fromFollyDynamic(descJSON));
+  }
+
+ private:
+  explicit PortDescriptor(const BaseT& b) : BaseT(b) {}
 };
 
 // helper so port descriptors work directly in folly::to<string> expressions.
@@ -134,5 +150,4 @@ inline void toAppend(const PortDescriptor& pd, std::string* result) {
 inline std::ostream& operator<<(std::ostream& out, const PortDescriptor& pd) {
   return out << pd.str();
 }
-
 }} // facebook::fboss
