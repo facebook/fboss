@@ -47,27 +47,6 @@ class PhysicalMemory : public boost::noncopyable {
   }
 
  protected:
-  const uint64_t phyAddr_{0};
-  const uint32_t size_{0};
-  // lock file to prevent other process accessing the same physical memory
-  folly::File lockFile_;
-  // file to access '/dev/mem'
-  folly::File memFile_;
-  // virtual address after mmap
-  void* virtAddr_{nullptr};
-
-  virtual void munmap() noexcept;
-  void cleanup() noexcept;
-
-  template <typename ValueT>
-  auto atOffset(uint32_t offset) const {
-    CHECK_LT(offset, size_);
-    // offset must be aligned
-    CHECK(!(offset & (std::alignment_of<ValueT>::value - 1)));
-    return reinterpret_cast<volatile ValueT*>(
-        reinterpret_cast<char*>(virtAddr_) + offset);
-  }
-
   template <typename ValueT>
   ValueT readImpl(uint32_t offset) const {
     return *atOffset<ValueT>(offset);
@@ -77,6 +56,30 @@ class PhysicalMemory : public boost::noncopyable {
   void writeImpl(uint32_t offset, ValueT value) {
     *atOffset<ValueT>(offset) = value;
   }
+
+  void setVirtualAddress(void* virtAddr) {
+    virtAddr_ = virtAddr;
+  }
+
+ private:
+  template <typename ValueT>
+  auto atOffset(uint32_t offset) const {
+    CHECK_LT(offset, size_);
+    // offset must be aligned
+    CHECK(!(offset & (std::alignment_of<ValueT>::value - 1)));
+    return reinterpret_cast<volatile ValueT*>(
+        reinterpret_cast<char*>(virtAddr_) + offset);
+  }
+  void munmap() noexcept;
+  void cleanup() noexcept;
+  const uint64_t phyAddr_{0};
+  const uint32_t size_{0};
+  // lock file to prevent other process accessing the same physical memory
+  folly::File lockFile_;
+  // file to access '/dev/mem'
+  folly::File memFile_;
+  // virtual address after mmap
+  void* virtAddr_{nullptr};
 };
 
 template <typename BaseT = PhysicalMemory>

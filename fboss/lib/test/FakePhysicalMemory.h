@@ -17,24 +17,25 @@ namespace fboss {
 class FakePhysicalMemory : public PhysicalMemory {
  public:
   using PhysicalMemory::PhysicalMemory;
+  ~FakePhysicalMemory() {
+    munmap();
+  }
   void mmap() {
     if (data_) {
       delete[] data_;
     }
-    data_ = new uint8_t[size_]();
-    virtAddr_ = data_;
+    data_ = new uint8_t[getSize()]();
+    setVirtualAddress(data_);
   }
 
- protected:
-  void munmap() noexcept override {
+ private:
+  void munmap() noexcept {
     if (data_) {
       delete[] data_;
       data_ = nullptr;
     }
-    virtAddr_ = nullptr;
+    setVirtualAddress(nullptr);
   }
-
- private:
   uint8_t* data_{nullptr};
 };
 
