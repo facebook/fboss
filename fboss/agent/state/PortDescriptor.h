@@ -47,7 +47,4 @@ class PortDescriptor : public PortDescriptorTemplate<PortID, AggregatePortID> {
 inline void toAppend(const PortDescriptor& pd, std::string* result) {
   folly::toAppend(pd.str(), result);
 }
-inline std::ostream& operator<<(std::ostream& out, const PortDescriptor& pd) {
-  return out << pd.str();
-}
 }} // facebook::fboss

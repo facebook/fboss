@@ -119,5 +119,13 @@ class PortDescriptorTemplate {
   TrunkIdType aggregatePortID_{0};
 };
 
+template <typename PortIdT, typename TrunkIdT>
+inline std::ostream& operator<<(
+    std::ostream& out,
+    const PortDescriptorTemplate<PortIdT, TrunkIdT>&
+        pd) {
+  return out << pd.str();
+}
+
 } // namespace fboss
 } // namespace facebook

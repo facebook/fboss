@@ -24,11 +24,5 @@ class BcmPortDescriptor : public PortDescriptorTemplate<BcmPortId, BcmTrunkId> {
   opennsl_gport_t asGPort() const;
 };
 
-inline std::ostream& operator<<(
-    std::ostream& out,
-    const BcmPortDescriptor& pd) {
-  return out << pd.str();
-}
-
 } // namespace fboss
 } // namespace facebook
