@@ -11,6 +11,8 @@
 
 #include "fboss/lib/PhysicalMemory.h"
 
+#include <vector>
+
 namespace facebook {
 namespace fboss {
 
@@ -21,22 +23,16 @@ class FakePhysicalMemory : public PhysicalMemory {
     munmap();
   }
   void mmap() {
-    if (data_) {
-      delete[] data_;
-    }
-    data_ = new uint8_t[getSize()]();
-    setVirtualAddress(data_);
+    data_.resize(getSize());
+    setVirtualAddress(data_.data());
   }
 
  private:
   void munmap() noexcept {
-    if (data_) {
-      delete[] data_;
-      data_ = nullptr;
-    }
+    data_.clear();
     setVirtualAddress(nullptr);
   }
-  uint8_t* data_{nullptr};
+  std::vector<uint8_t> data_;
 };
 
 using FakePhysicalMemory8 = PhysicalMemory8<FakePhysicalMemory>;
