@@ -644,6 +644,12 @@ class SwSwitch : public HwSwitch::Callback {
   void clearPortStats(const std::unique_ptr<std::vector<int32_t>>& ports);
   SwitchRunState getSwitchRunState() const;
 
+  template <typename AddressT>
+  std::shared_ptr<Route<AddressT>> longestMatch(
+      std::shared_ptr<SwitchState> state,
+      const AddressT& address,
+      RouterID vrf);
+
  private:
   void queueStateUpdateForGettingHwInSync(
       folly::StringPiece name,

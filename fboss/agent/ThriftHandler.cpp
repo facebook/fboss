@@ -882,15 +882,10 @@ void ThriftHandler::getIpRoute(UnicastRoute& route,
                                 std::unique_ptr<Address> addr, int32_t vrfId) {
   ensureConfigured();
   folly::IPAddress ipAddr = toIPAddress(*addr);
-  auto routeTable = sw_->getState()->getRouteTables()->getRouteTableIf(
-      RouterID(vrfId));
-  if (!routeTable) {
-    throw FbossError("No Such VRF ", vrfId);
-  }
 
+  auto state = sw_->getState();
   if (ipAddr.isV4()) {
-    auto ripV4Rib = routeTable->getRibV4();
-    auto match = ripV4Rib->longestMatch(ipAddr.asV4());
+    auto match = sw_->longestMatch(state, ipAddr.asV4(), RouterID(vrfId));
     if (!match || !match->isResolved()) {
       route.dest.ip = toBinaryAddress(IPAddressV4("0.0.0.0"));
       route.dest.prefixLength = 0;
@@ -901,8 +896,7 @@ void ThriftHandler::getIpRoute(UnicastRoute& route,
     route.dest.prefixLength = match->prefix().mask;
     route.nextHopAddrs = util::fromFwdNextHops(fwdInfo.getNextHopSet());
   } else {
-    auto ripV6Rib = routeTable->getRibV6();
-    auto match = ripV6Rib->longestMatch(ipAddr.asV6());
+    auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (!match || !match->isResolved()) {
       route.dest.ip = toBinaryAddress(IPAddressV6("::0"));
       route.dest.prefixLength = 0;
@@ -919,21 +913,15 @@ void ThriftHandler::getIpRouteDetails(
   RouteDetails& route, std::unique_ptr<Address> addr, int32_t vrfId) {
   ensureConfigured();
   folly::IPAddress ipAddr = toIPAddress(*addr);
-  auto routeTable = sw_->getState()->getRouteTables()->getRouteTableIf(
-      RouterID(vrfId));
-  if (!routeTable) {
-    throw FbossError("No Such VRF ", vrfId);
-  }
+  auto state = sw_->getState();
 
   if (ipAddr.isV4()) {
-    auto ripV4Rib = routeTable->getRibV4();
-    auto match = ripV4Rib->longestMatch(ipAddr.asV4());
+    auto match = sw_->longestMatch(state, ipAddr.asV4(), RouterID(vrfId));
     if (match && match->isResolved()) {
       route = match->toRouteDetails();
     }
   } else {
-    auto ripV6Rib = routeTable->getRibV6();
-    auto match = ripV6Rib->longestMatch(ipAddr.asV6());
+    auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (match && match->isResolved()) {
       route = match->toRouteDetails();
     }

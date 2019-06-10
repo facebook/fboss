@@ -39,6 +39,8 @@ class ForwardingInformationBase
   std::shared_ptr<Route<AddressT>> exactMatch(
       const RoutePrefix<AddressT>& prefix) const;
 
+  std::shared_ptr<Route<AddressT>> longestMatch(const AddressT& address) const;
+
  private:
   // Inherit the constructors required for clone()
   using Base::Base;

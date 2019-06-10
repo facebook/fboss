@@ -43,9 +43,10 @@ class IPv4Handler {
    * TODO(aeckert): t17949183 unify packet handling pipeline and then
    * make this private again.
    */
-  bool resolveMac(SwitchState* state,
-                  PortID ingressPort,
-                  folly::IPAddressV4 dest);
+  bool resolveMac(
+      std::shared_ptr<SwitchState> state,
+      PortID ingressPort,
+      folly::IPAddressV4 dest);
 
  private:
   void sendICMPTimeExceeded(VlanID srcVlan,

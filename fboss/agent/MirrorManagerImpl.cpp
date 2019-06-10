@@ -59,8 +59,8 @@ template <typename AddrT>
 RouteNextHopEntry::NextHopSet MirrorManagerImpl<AddrT>::resolveMirrorNextHops(
     const std::shared_ptr<SwitchState>& state,
     const AddrT& destinationIp) {
-  const auto routeTable = state->getRouteTables()->getRouteTableIf(RouterID(0));
-  const auto route = routeTable->getRib<AddrT>()->longestMatch(destinationIp);
+  const auto route =
+      sw_->longestMatch<AddrT>(state, destinationIp, RouterID(0));
   if (!route || !route->isResolved()) {
     return RouteNextHopEntry::NextHopSet();
   }

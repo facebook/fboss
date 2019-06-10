@@ -27,6 +27,38 @@ ForwardingInformationBase<AddressT>::exactMatch(
   return ForwardingInformationBase::Base::getNodeIf(prefix);
 }
 
+template <typename AddressT>
+std::shared_ptr<Route<AddressT>>
+ForwardingInformationBase<AddressT>::longestMatch(
+    const AddressT& address) const {
+  std::shared_ptr<Route<AddressT>> longestMatchRoute = nullptr;
+  // longestCommonLength must be wider than int8_t because it needs to hold
+  // values in the range [-1, 128].
+  int16_t longestCommonLength = -1;
+
+  uint8_t currentCommonLength;
+  for (const auto& prefixAndRoute : Base::getAllNodes()) {
+    const auto& currentNetwork = prefixAndRoute.first.network;
+    const auto currentMask = prefixAndRoute.first.mask;
+
+    if (!address.inSubnet(currentNetwork, currentMask)) {
+      continue;
+    }
+
+    auto currentCommonPrefixAndLength = folly::IPAddress::longestCommonPrefix(
+        {address, address.bitCount()},
+        {prefixAndRoute.first.network, prefixAndRoute.first.mask});
+
+    currentCommonLength = currentCommonPrefixAndLength.second;
+    if (currentCommonLength > longestCommonLength) {
+      longestCommonLength = currentCommonLength;
+      longestMatchRoute = prefixAndRoute.second;
+    }
+  }
+
+  return longestMatchRoute;
+}
+
 FBOSS_INSTANTIATE_NODE_MAP(
     ForwardingInformationBase<folly::IPAddressV4>,
     ForwardingInformationBaseTraits<folly::IPAddressV4>);

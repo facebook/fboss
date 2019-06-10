@@ -721,14 +721,7 @@ void IPv6Handler::resolveDestAndHandlePacket(
   auto targetIP = hdr.dstAddr;
   auto state = sw_->getState();
 
-  // resolve the destination.
-  // TODO: assume vrf 0 now
-  auto routeTable = state->getRouteTables()->getRouteTableIf(RouterID(0));
-  if (!routeTable) {
-    return;
-  }
-
-  auto route = routeTable->getRibV6()->longestMatch(targetIP);
+  auto route = sw_->longestMatch(state, targetIP, RouterID(0));
   if (!route || !route->isResolved()) {
     sw_->portStats(ingressPort)->ipv6DstLookupFailure();
     // No way to reach targetIP
@@ -798,13 +791,7 @@ void IPv6Handler::sendMulticastNeighborSolicitations(
 
   auto state = sw_->getState();
 
-  // TODO: assume vrf 0 now
-  auto routeTable = state->getRouteTables()->getRouteTableIf(RouterID(0));
-  if (!routeTable) {
-    return;
-  }
-
-  auto route = routeTable->getRibV6()->longestMatch(targetIP);
+  auto route = sw_->longestMatch(state, targetIP, RouterID(0));
   if (!route || !route->isResolved()) {
     sw_->portStats(ingressPort)->ipv6DstLookupFailure();
     // No way to reach targetIP

@@ -1454,7 +1454,7 @@ void SwSwitch::sendL3Packet(
       if (dstAddr.isV6()) {
         ipv6_->sendMulticastNeighborSolicitations(PortID(0), dstAddr.asV6());
       } else {
-        ipv4_->resolveMac(state.get(), PortID(0), dstAddr.asV4());
+        ipv4_->resolveMac(state, PortID(0), dstAddr.asV4());
       }
     }
 
@@ -1572,4 +1572,29 @@ void SwSwitch::clearPortStats(
 bool SwSwitch::isStandaloneRibEnabled() const {
   return getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB;
 }
+
+template <typename AddressT>
+std::shared_ptr<Route<AddressT>> SwSwitch::longestMatch(
+    std::shared_ptr<SwitchState> state,
+    const AddressT& address,
+    RouterID vrf) {
+  if (isStandaloneRibEnabled()) {
+    auto fibContainer = state->getFibs()->getFibContainer(vrf);
+
+    return fibContainer->getFib<AddressT>()->longestMatch(address);
+  } else {
+    auto routeTable = state->getRouteTables()->getRouteTable(vrf);
+
+    return routeTable->getRib<AddressT>()->longestMatch(address);
+  }
+}
+
+template std::shared_ptr<Route<folly::IPAddressV4>> SwSwitch::longestMatch(
+    std::shared_ptr<SwitchState> state,
+    const folly::IPAddressV4& address,
+    RouterID vrf);
+template std::shared_ptr<Route<folly::IPAddressV6>> SwSwitch::longestMatch(
+    std::shared_ptr<SwitchState> state,
+    const folly::IPAddressV6& address,
+    RouterID vrf);
 }} // facebook::fboss
