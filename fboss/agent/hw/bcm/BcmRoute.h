@@ -54,6 +54,11 @@ class BcmRoute {
     return egressId_;
   }
 
+  /* used for tests */
+  std::shared_ptr<BcmMultiPathNextHop> getNextHop() const {
+    return nextHopHostReference_;
+  }
+
  private:
   std::shared_ptr<BcmHost> programHostRoute(
       opennsl_if_t egressId,
