@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <functional>
+
 /*
  * This file contains template helpers for implementing DeltaFunctions.
  */

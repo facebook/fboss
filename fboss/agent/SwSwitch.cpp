@@ -473,15 +473,19 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
         StateDelta(std::make_shared<SwitchState>(), initialStateDesired));
   });
 
-  auto alpmInitState = setupAlpmState(initialStateDesired);
-  if (alpmInitState) {
-    // If setupAlpmInitState caused a new switchState to get
-    // generated, applyIt
-    // send a state update to h/w
-    updateEventBase_.runInEventBaseThread(
-        [alpmInitState, initialStateDesired, this]() {
-          applyUpdate(initialStateDesired, alpmInitState);
-        });
+  if (getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB) {
+    // ALPM is enabled for the stand-alone RIB in ConfigApplier
+  } else {
+    auto alpmInitState = setupAlpmState(initialStateDesired);
+    if (alpmInitState) {
+      // If setupAlpmInitState caused a new switchState to get
+      // generated, applyIt
+      // send a state update to h/w
+      updateEventBase_.runInEventBaseThread(
+          [alpmInitState, initialStateDesired, this]() {
+            applyUpdate(initialStateDesired, alpmInitState);
+          });
+    }
   }
 
   startThreads();
@@ -1598,4 +1602,6 @@ template std::shared_ptr<Route<folly::IPAddressV6>> SwSwitch::longestMatch(
     std::shared_ptr<SwitchState> state,
     const folly::IPAddressV6& address,
     RouterID vrf);
-}} // facebook::fboss
+
+} // namespace fboss
+} // namespace facebook

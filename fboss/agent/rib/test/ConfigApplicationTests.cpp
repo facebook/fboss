@@ -193,16 +193,19 @@ TEST(ConfigApplication, InterfaceRoutes) {
   EXPECT_NE(nullptr, fibContainer);
 
   auto v4Fib = fibContainer->getFibV4();
-  EXPECT_EQ(v4Fib->size(), 1);
+  EXPECT_EQ(v4Fib->size(), 2);
+  RoutePrefixV4 v4DirectlyConnectedPrefix{folly::IPAddressV4("1.1.1.0"), 24};
+  auto v4DirectlyConnectedRoute = v4Fib->exactMatch(v4DirectlyConnectedPrefix);
+  ASSERT_NE(nullptr, v4DirectlyConnectedRoute);
   checkFibRoute(
-      *(v4Fib->begin()),
+      v4DirectlyConnectedRoute,
       folly::IPAddressV4("1.1.1.0"),
       24,
       folly::IPAddressV4("1.1.1.1"),
       InterfaceID(1));
 
   auto v6Fib = fibContainer->getFibV6();
-  EXPECT_EQ(v6Fib->size(), 2);
+  EXPECT_EQ(v6Fib->size(), 3);
   RoutePrefixV6 v6DirectlyConnectedPrefix{folly::IPAddressV6("1::"), 48};
   auto v6DirectlyConnectedRoute = v6Fib->exactMatch(v6DirectlyConnectedPrefix);
   ASSERT_NE(nullptr, v6DirectlyConnectedRoute);
@@ -216,8 +219,8 @@ TEST(ConfigApplication, InterfaceRoutes) {
   uint64_t v4RouteCount = 0;
   uint64_t v6RouteCount = 0;
   std::tie(v4RouteCount, v6RouteCount) = fibMap->getRouteCount();
-  EXPECT_EQ(v4RouteCount, 1);
-  EXPECT_EQ(v6RouteCount, 2);
+  EXPECT_EQ(v4RouteCount, 2);
+  EXPECT_EQ(v6RouteCount, 3);
 }
 
 TEST(ConfigApplication, StaticRoutesWithNextHops) {
@@ -237,7 +240,7 @@ TEST(ConfigApplication, StaticRoutesWithNextHops) {
   EXPECT_NE(nullptr, fibContainer);
 
   auto v4Fib = fibContainer->getFibV4();
-  EXPECT_EQ(v4Fib->size(), 3);
+  EXPECT_EQ(v4Fib->size(), 4);
   RoutePrefixV4 v4Prefix;
   v4Prefix.network = folly::IPAddressV4("20.20.20.0");
   v4Prefix.mask = 24;
@@ -251,7 +254,7 @@ TEST(ConfigApplication, StaticRoutesWithNextHops) {
       InterfaceID(2));
 
   auto v6Fib = fibContainer->getFibV6();
-  EXPECT_EQ(v6Fib->size(), 4);
+  EXPECT_EQ(v6Fib->size(), 5);
   RoutePrefixV6 v6Prefix;
   v6Prefix.network = folly::IPAddressV6("2001::");
   v6Prefix.mask = 64;
@@ -267,8 +270,8 @@ TEST(ConfigApplication, StaticRoutesWithNextHops) {
   uint64_t v4RouteCount = 0;
   uint64_t v6RouteCount = 0;
   std::tie(v4RouteCount, v6RouteCount) = fibMap->getRouteCount();
-  EXPECT_EQ(v4RouteCount, 3);
-  EXPECT_EQ(v6RouteCount, 4);
+  EXPECT_EQ(v4RouteCount, 4);
+  EXPECT_EQ(v6RouteCount, 5);
 }
 
 TEST(ConfigApplication, StaticRoutesWithoutNextHops) {
@@ -288,7 +291,7 @@ TEST(ConfigApplication, StaticRoutesWithoutNextHops) {
   EXPECT_NE(nullptr, fibContainer);
 
   auto v4Fib = fibContainer->getFibV4();
-  EXPECT_EQ(v4Fib->size(), 3);
+  EXPECT_EQ(v4Fib->size(), 4);
 
   RoutePrefixV4 v4PrefixToCpu{folly::IPAddressV4("2.1.0.0"), 16};
   auto v4RouteToCpu = v4Fib->exactMatch(v4PrefixToCpu);
@@ -309,7 +312,7 @@ TEST(ConfigApplication, StaticRoutesWithoutNextHops) {
       facebook::fboss::RouteForwardAction::DROP);
 
   auto v6Fib = fibContainer->getFibV6();
-  EXPECT_EQ(v6Fib->size(), 4);
+  EXPECT_EQ(v6Fib->size(), 5);
 
   RoutePrefixV6 v6PrefixToCpu{folly::IPAddressV6("2001::"), 64};
   auto v6RouteToCpu = v6Fib->exactMatch(v6PrefixToCpu);
