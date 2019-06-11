@@ -96,9 +96,6 @@ DEFINE_int32(
 
 namespace {
 
-constexpr auto kOutOfSyncStateUpdate =
-    "state update for failed hardware application";
-
 /**
  * Transforms the IPAddressV6 to MacAddress. RFC 2464
  * 33:33:xx:xx:xx:xx (lower 32 bits are copied from addr)
@@ -741,15 +738,6 @@ void SwSwitch::handlePendingUpdates() {
   // handlePendingUpdates() call processed multiple updates.
   StateUpdateList updates;
   {
-    folly::SpinLockGuard guard(pendingUpdatesLock_);
-    if (pendingUpdates_.size() == 1 &&
-        pendingUpdates_.begin()->getName() == kOutOfSyncStateUpdate) {
-      // If HW out of sync is the only update here. Skip applying this to HW
-      // (since it will likely fail again), wait for at least one more update to
-      // get queued here.
-      return;
-    }
-
     // When deciding how many elements to pull off the pendingUpdates_
     // list, we pull as many as we can, while making sure we don't
     // include any updates after an update that does not allow
@@ -828,9 +816,9 @@ void SwSwitch::handlePendingUpdates() {
       // If we could not apply the whole delta successfully, put the difference
       // as a state update at the beginning
       queueStateUpdateForGettingHwInSync(
-          kOutOfSyncStateUpdate,
-          [newDesiredState, newAppliedState](
-              const std::shared_ptr<SwitchState>& /*oldState*/) {
+          "state update for failed hardware application",
+          [newDesiredState,
+           newAppliedState](const std::shared_ptr<SwitchState>& /*oldState*/) {
             // clone the newDesiredState and then inheritGeneration from
             // newAppliedState otherwise the return state has a smaller gen#
             // than the one of appliedState
