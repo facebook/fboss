@@ -56,6 +56,10 @@ struct SwitchApiParameters {
         SaiObjectIdT>;
     using InitSwitch =
         SaiAttribute<EnumType, SAI_SWITCH_ATTR_INIT_SWITCH, bool>;
+    using MaxNumberOfSupportedPorts = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_MAX_NUMBER_OF_SUPPORTED_PORTS,
+        sai_uint32_t>;
     using CreateAttributes = SaiAttributeTuple<HwInfo, SrcMac, InitSwitch>;
     Attributes() {}
     Attributes(const CreateAttributes& attrs) {
