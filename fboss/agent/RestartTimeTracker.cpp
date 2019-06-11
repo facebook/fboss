@@ -222,6 +222,11 @@ void mark(RestartEvent event) {
   (*tracker)->newEvent(event);
 }
 
+void stop() {
+  auto tracker = impl_.lock();
+  (*tracker).reset();
+}
+
 } // namespace restart_time
 
 } // namespace fboss

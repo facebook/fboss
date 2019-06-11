@@ -204,6 +204,7 @@ void SwSwitch::killDistributionProcess(){
 
 SwSwitch::~SwSwitch() {
   stop();
+  restart_time::stop();
 }
 
 void SwSwitch::stop() {
