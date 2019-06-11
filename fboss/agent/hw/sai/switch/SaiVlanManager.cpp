@@ -93,7 +93,10 @@ void SaiVlan::removeMember(PortID swPortId) {
         swPortId);
   }
   sai_object_id_t bridgePortId = port->getBridgePort()->id();
-  members_.erase(bridgePortId);
+  auto memberEntry = memberIdMap_.find(bridgePortId);
+  if (memberEntry != memberIdMap_.end()) {
+    members_.erase(memberEntry->second);
+  }
   memberIdMap_.erase(bridgePortId);
 }
 

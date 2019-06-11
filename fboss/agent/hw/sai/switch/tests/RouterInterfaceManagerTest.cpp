@@ -43,7 +43,9 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
     auto srcMacGot = saiApiTable->routerInterfaceApi().getAttribute(
         RouterInterfaceApiParameters::Attributes::SrcMac(),
         saiRouterInterfaceId);
-    EXPECT_EQ(saiVlanIdGot, expectedSaiVlanId);
+    auto vlanIdGot = saiApiTable->vlanApi().getAttribute(
+        VlanApiParameters::Attributes::VlanId(), saiVlanIdGot);
+    EXPECT_EQ(vlanIdGot, expectedSaiVlanId);
     EXPECT_EQ(srcMacGot, expectedSrcMac);
   }
 
