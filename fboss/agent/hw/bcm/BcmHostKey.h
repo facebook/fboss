@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <folly/poly/Regular.h>
+
 extern "C" {
 #include <opennsl/types.h>
 }
@@ -17,7 +19,9 @@ extern "C" {
 
 namespace facebook { namespace fboss {
 
-struct IHostKey {
+struct IHostKey : folly::PolyExtends<
+                      folly::poly::IEqualityComparable,
+                      folly::poly::IStrictlyOrderable> {
   template <class Base>
   struct Interface : Base {
     opennsl_vrf_t getVrf() const {
@@ -45,29 +49,13 @@ struct IHostKey {
     }
 
     bool needsMplsTunnel() const {
-      return folly::poly_call<8>(*this);
+      return folly::poly_call<6>(*this);
     }
 
     LabelForwardingAction::LabelStack tunnelLabelStack() const {
-      return folly::poly_call<9>(*this);
+      return folly::poly_call<7>(*this);
     }
-
-    template <class SelfType>
-    friend bool operator<(SelfType const& lhs, SelfType const& rhs);
-
-    template <class SelfType>
-    friend bool operator==(SelfType const& lhs, SelfType const& rhs);
   }; // struct Interface
-
-  template <class T>
-  static bool eq(T const& lhs, T const& rhs) {
-    return lhs == rhs;
-  }
-
-  template <class T>
-  static bool lt(T const& lhs, T const& rhs) {
-    return lhs < rhs;
-  }
 
   template <class T>
   using Members = FOLLY_POLY_MEMBERS(
@@ -77,8 +65,6 @@ struct IHostKey {
       &T::hasLabel,
       &T::getLabel,
       &T::str,
-      &eq<T>,
-      &lt<T>,
       &T::needsMplsTunnel,
       &T::tunnelLabelStack);
 }; // struct IHostKey
