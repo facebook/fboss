@@ -49,6 +49,10 @@ class WedgeTomahawkPlatform : public WedgePlatform {
   bool useQueueGportForCos() const override {
     return true;
   }
+
+  bool isMultiPathLabelSwitchActionSupported() const override {
+    return true;
+  }
 };
 
 } // namespace fboss

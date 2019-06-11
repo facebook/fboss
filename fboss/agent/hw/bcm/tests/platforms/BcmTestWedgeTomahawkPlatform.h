@@ -51,6 +51,10 @@ public:
     return 3;
   }
 
+  bool isMultiPathLabelSwitchActionSupported() const override {
+    return true;
+  }
+
 private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedgeTomahawkPlatform(BcmTestWedgeTomahawkPlatform const&) = delete;

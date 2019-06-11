@@ -54,6 +54,10 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
     return 2;
   }
 
+  bool isMultiPathLabelSwitchActionSupported() const override {
+    return false;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedge40Platform(BcmTestWedge40Platform const&) = delete;

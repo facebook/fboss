@@ -52,6 +52,10 @@ class Wedge40Platform : public WedgePlatform {
     return false;
   }
 
+  bool isMultiPathLabelSwitchActionSupported() const override {
+    return false;
+  }
+
  private:
   Wedge40Platform(Wedge40Platform const &) = delete;
   Wedge40Platform& operator=(Wedge40Platform const &) = delete;

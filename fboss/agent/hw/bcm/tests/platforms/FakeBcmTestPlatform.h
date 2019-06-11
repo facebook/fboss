@@ -69,6 +69,10 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
     return 9;
   }
 
+  bool isMultiPathLabelSwitchActionSupported() const override {
+    return true;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   FakeBcmTestPlatform(FakeBcmTestPlatform const&) = delete;
