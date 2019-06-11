@@ -1,4 +1,12 @@
 cmake_minimum_required(VERSION 2.8)
+
+set(CMAKE_MODULE_PATH
+  # For in-fbsource builds on mac
+  "${CMAKE_CURRENT_SOURCE_DIR}/../opensource/fbcode_builder/CMake"
+  # For shipit-transformed builds
+  "${CMAKE_CURRENT_SOURCE_DIR}/build/fbcode_builder/CMake"
+  ${CMAKE_MODULE_PATH})
+
 if (POLICY CMP0054)
   # Enable CMP0054 to indicate that we want the new safer if() argument behavior
   cmake_policy(SET CMP0054 NEW)
@@ -21,25 +29,43 @@ endif()
 # building on Linux under GCC right now, so we might as well just hard
 # code the flags.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++1y")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/include/libnl3")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-sign-compare -Wno-bool-compare")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized -Wdeprecated-declarations")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=deprecated-declarations")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DINCLUDE_L3 -DLONGS_ARE_64BITS")
 
-# Tell CMake to also look in the directories where getdeps.sh installs
-# our third-party dependencies.
-list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external.install")
-
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_BUILD_DIR})
-link_directories(${CMAKE_CURRENT_SOURCE_DIR}/external.install/lib)
 
+find_package(GTest REQUIRED)
+include_directories(
+  ${GTEST_INCLUDE_DIRS}
+)
+
+find_package(GMock MODULE REQUIRED)
+find_package(Gflags CONFIG REQUIRED)
+find_package(Glog REQUIRED)
 find_package(folly CONFIG REQUIRED)
+find_package(yarpl CONFIG REQUIRED)
+find_package(rsocket CONFIG)
 find_package(fizz CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
 find_package(wangle CONFIG REQUIRED)
 find_package(FBThrift CONFIG REQUIRED)
+
+find_library(OPENNSL opennsl)
+find_path(OPENNSL_INCLUDE_DIR NAMES opennsl/tx.h)
+include_directories(${OPENNSL_INCLUDE_DIR})
+
+find_library(LIBNL nl-3)
+find_path(LIBNL_INCLUDE_DIR NAMES libnl3/netlink/socket.h)
+include_directories(${LIBNL_INCLUDE_DIR})
+include_directories(${LIBNL_INCLUDE_DIR}/libnl3)
+
+find_library(IPROUTE2 netlink)
+find_path(IPROUTE2_INCLUDE_DIR NAMES libnetlink.h)
+include_directories(${IPROUTE2_INCLUDE_DIR})
 
 # Generate thrift deps and libraries
 include(${CMAKE_SOURCE_DIR}/ThriftCppLibrary.cmake)
@@ -195,18 +221,10 @@ add_thrift_cpp2_library(
 
 # System libraries
 find_library(USB usb-1.0)
-find_library(PCAP pcap)
 find_library(NETLINK3 nl-3)
 find_library(NETLINKROUTE3 nl-route-3)
 find_library(CURL curl)
-find_library(SODIUM sodium)
-
-find_library(OPENNSL opennsl
-             PATHS ${CMAKE_SOURCE_DIR}/external/OpenNSL/bin/wedge)
-find_library(IPROUTE2 netlink PATHS ${CMAKE_SOURCE_DIR}/external/iproute2/lib)
-
-include_directories(${CMAKE_SOURCE_DIR}/external/OpenNSL/include)
-include_directories(${CMAKE_SOURCE_DIR}/external/iproute2/include)
+find_library(MNL mnl)
 
 add_executable(wedge_agent
     fboss/agent/platforms/wedge/WedgePlatform.cpp
@@ -560,23 +578,36 @@ target_link_libraries(
     wangle::wangle
     FBThrift::thriftcpp2
     ${OPENNSL}
-    ${PCAP}
     ${USB}
     ${IPROUTE2}
     ${NETLINK3}
     ${NETLINKROUTE3}
     ${CURL}
     ${SODIUM}
+    ${MNL}
 )
 
 target_link_libraries(wedge_agent fboss_agent)
 target_link_libraries(netlink_manager fboss_agent)
 target_link_libraries(qsfp_service fboss_agent)
-target_link_libraries(bcm_test
-  fboss_agent
-  gtest
+
+
+target_compile_definitions(bcm_test
+  PUBLIC
+    ${LIBGMOCK_DEFINES}
 )
 
+target_include_directories(bcm_test
+  PUBLIC
+    ${LIBGMOCK_INCLUDE_DIR}
+)
+
+target_link_libraries(bcm_test
+  PUBLIC
+    fboss_agent
+    ${GTEST}
+    ${LIBGMOCK_LIBRARIES}
+)
 
 # TODO(rsher)
 # depends on agent/hw/bcm/facebook/bcm_config.thrift
@@ -605,9 +636,6 @@ target_link_libraries(wedge_qsfp_util fboss_agent)
 add_definitions (-DIS_OSS=true)
 find_package(Threads REQUIRED)
 enable_testing()
-set(GTEST_DIR "external/googletest")
-include_directories(${GTEST_DIR}/googletest/include ${GTEST_DIR}/googlemock/include)
-add_subdirectory(${GTEST_DIR} ${GTEST_DIR}.build)
 
 # Don't include fboss/agent/test/ArpBenchmark.cpp
 # It depends on the Sim implementation and needs its own target
@@ -630,12 +658,27 @@ add_executable(agent_test
        fboss/agent/test/UDPTest.cpp
        fboss/agent/test/oss/Main.cpp
 )
+
+target_compile_definitions(agent_test
+  PUBLIC
+    ${LIBGMOCK_DEFINES}
+)
+
+target_include_directories(agent_test
+  PUBLIC
+    ${LIBGMOCK_INCLUDE_DIR}
+)
+
+
 target_link_libraries(agent_test
     fboss_agent
-    gtest
-    gmock
+    ${GTEST}
     ${CMAKE_THREAD_LIBS_INIT}
+    ${LIBGMOCK_LIBRARIES}
 )
 add_test(test agent_test)
 
 #TODO: Add tests from other folders aside from agent/test
+
+install(TARGETS bcm_test)
+install(TARGETS wedge_agent)
