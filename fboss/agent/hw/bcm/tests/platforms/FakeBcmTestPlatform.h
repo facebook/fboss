@@ -46,7 +46,7 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
     return false;
   }
   bool isBcmShellSupported() const override {
-    return true;
+    return false;
   }
   const PortQueue& getDefaultPortQueueSettings(
     cfg::StreamType streamType) const override;
