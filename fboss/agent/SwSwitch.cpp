@@ -293,7 +293,7 @@ void SwSwitch::setSwitchRunState(SwitchRunState runState) {
   logSwitchRunStateChange(oldState, runState);
 }
 
-void SwSwitch::onSwitchRunStateChange(const SwitchRunState& newState) {
+void SwSwitch::onSwitchRunStateChange(SwitchRunState newState) {
   if (newState == SwitchRunState::INITIALIZED) {
     restart_time::mark(RestartEvent::INITIALIZED);
   } else if (newState == SwitchRunState::CONFIGURED) {
@@ -301,6 +301,7 @@ void SwSwitch::onSwitchRunStateChange(const SwitchRunState& newState) {
   } else if (newState == SwitchRunState::FIB_SYNCED) {
     restart_time::mark(RestartEvent::FIB_SYNCED);
   }
+  getHw()->switchRunStateChanged(newState);
 }
 
 SwitchRunState SwSwitch::getSwitchRunState() const {

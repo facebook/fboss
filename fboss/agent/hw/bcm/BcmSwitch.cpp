@@ -343,6 +343,18 @@ void BcmSwitch::clearWarmBootCache() {
   warmBootCache_->clear();
 }
 
+void BcmSwitch::switchRunStateChanged(SwitchRunState newState) {
+  std::lock_guard<std::mutex> g(lock_);
+  switch (newState) {
+    case SwitchRunState::INITIALIZED:
+      setupLinkscan();
+      setupPacketRx();
+      break;
+    default:
+      break;
+  }
+}
+
 bool BcmSwitch::isPortUp(PortID port) const {
   int linkStatus;
   opennsl_port_link_status_get(getUnit(), port, &linkStatus);
@@ -432,6 +444,12 @@ void BcmSwitch::setupLinkscan() {
   flags_ |= LINKSCAN_REGISTERED;
   rv = opennsl_linkscan_enable_set(unit_, FLAGS_linkscan_interval_us);
   bcmCheckError(rv, "failed to enable linkscan");
+  if (getBootType() == BootType::WARM_BOOT) {
+    opennsl_port_config_t pcfg;
+    rv = opennsl_port_config_get(unit_, &pcfg);
+    bcmCheckError(rv, "failed to get port configuration");
+    forceLinkscanOn(pcfg.port);
+  }
 }
 
 HwInitResult BcmSwitch::init(Callback* callback) {
@@ -445,9 +463,6 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   unit_ = unitObject_->getNumber();
   unitObject_->setCookie(this);
 
-  // TODO: Experiment with early packet tx/rx and start
-  // RX even earlier.
-  setupPacketRx();
   bootType_ = platform_->getWarmBootHelper()->canWarmBoot()
       ? BootType::WARM_BOOT
       : BootType::COLD_BOOT;
@@ -562,15 +577,6 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   bstStatsMgr_->startBufferStatCollection();
 
   trunkTable_->setupTrunking();
-  setupLinkscan();
-  // If warm booting, force a scan of all ports. Unfortunately
-  // opennsl_enable_set will enable all of the ports and return before
-  // the first loop on the link thread has updated the link status of
-  // ports. This will guarantee we have performed at least one scan of
-  // all ports before proceeding.
-  if (warmBoot) {
-    forceLinkscanOn(pcfg.port);
-  }
 
   // Set the spanning tree state of all ports to forwarding.
   // TODO: Eventually the spanning tree state should be part of the Port
@@ -595,7 +601,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   }
 
   ret.bootTime =
-    duration_cast<duration<float>>(steady_clock::now() - begin).count();
+      duration_cast<duration<float>>(steady_clock::now() - begin).count();
   return ret;
 }
 

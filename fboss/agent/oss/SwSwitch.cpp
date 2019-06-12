@@ -29,8 +29,8 @@ void SwSwitch::logLinkStateEvent(PortID port, bool up) {
 }
 
 void SwSwitch::logSwitchRunStateChange(
-    const SwitchRunState& oldState,
-    const SwitchRunState& newState) {
+    SwitchRunState oldState,
+    SwitchRunState newState) {
   std::string logMsg = folly::sformat(
       "SwitchRunState changed from {} to {}",
       switchRunStateStr(oldState),

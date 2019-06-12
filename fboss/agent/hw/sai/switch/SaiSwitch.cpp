@@ -141,6 +141,11 @@ void SaiSwitch::clearWarmBootCache() {
   clearWarmBootCacheLocked(lock);
 }
 
+void SaiSwitch::switchRunStateChanged(SwitchRunState newState) {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  switchRunStateChangedLocked(lock, newState);
+}
+
 void SaiSwitch::exitFatal() const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   exitFatalLocked(lock);
@@ -223,11 +228,7 @@ HwInitResult SaiSwitch::initLocked(
 
   auto state = std::make_shared<SwitchState>();
   ret.switchState = state;
-  auto switchId =
-      managerTableLocked(lock)->switchManager().getSwitchSaiId(SwitchID(0));
-  auto& switchApi = apiTableLocked(lock)->switchApi();
   __gSaiSwitch = this;
-  switchApi.registerRxCallback(switchId, __gPacketRxCallback);
   return ret;
 }
 
@@ -365,6 +366,21 @@ void SaiSwitch::initialConfigAppliedLocked(
 
 void SaiSwitch::clearWarmBootCacheLocked(
     const std::lock_guard<std::mutex>& /* lock */) {}
+
+void SaiSwitch::switchRunStateChangedLocked(
+    const std::lock_guard<std::mutex>& lock,
+    SwitchRunState newState) {
+  switch (newState) {
+    case SwitchRunState::INITIALIZED: {
+      auto switchId =
+          managerTableLocked(lock)->switchManager().getSwitchSaiId(SwitchID(0));
+      auto& switchApi = apiTableLocked(lock)->switchApi();
+      switchApi.registerRxCallback(switchId, __gPacketRxCallback);
+    } break;
+    default:
+      break;
+  }
+}
 
 void SaiSwitch::exitFatalLocked(
     const std::lock_guard<std::mutex>& /* lock */) const {}

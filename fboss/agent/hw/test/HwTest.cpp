@@ -98,6 +98,7 @@ std::shared_ptr<SwitchState> HwTest::initHwSwitch() {
   if (alpmState) {
     applyNewState(alpmState);
   }
+  hwSwitch_->switchRunStateChanged(SwitchRunState::INITIALIZED);
   hwSwitch_->initialConfigApplied();
   return programmedState_;
 }

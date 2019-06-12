@@ -41,6 +41,7 @@ class SimSwitch : public HwSwitch {
   void clearWarmBootCache() override {}
   void injectPacket(std::unique_ptr<RxPacket> pkt);
   void initialConfigApplied() override {}
+  void switchRunStateChanged(SwitchRunState newState) override {}
 
   // TODO
   void updateStats(SwitchStats* /*switchStats*/) override {}

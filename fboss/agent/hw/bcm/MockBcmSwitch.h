@@ -101,6 +101,7 @@ class MockBcmSwitch : public BcmSwitchIf {
   MOCK_CONST_METHOD0(toFollyDynamic, folly::dynamic());
   MOCK_METHOD0(initialConfigApplied, void());
   MOCK_METHOD0(clearWarmBootCache, void());
+  MOCK_METHOD1(switchRunStateChanged, void(SwitchRunState newState));
   MOCK_METHOD1(updateStats, void(SwitchStats* switchStats));
   MOCK_CONST_METHOD0(getCosMgr, BcmCosManager*());
   MOCK_METHOD1(fetchL2Table, void(std::vector<L2EntryThrift>* l2Table));

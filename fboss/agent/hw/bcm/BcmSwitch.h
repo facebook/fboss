@@ -355,6 +355,7 @@ class BcmSwitch : public BcmSwitchIf {
    * after initial configuration has been applied
    */
   void initialConfigApplied() override {}
+
   /*
    * Signal to warm boot cache that this
    * owner is done programming the h/w and we
@@ -363,6 +364,12 @@ class BcmSwitch : public BcmSwitchIf {
    * owner
    */
   void clearWarmBootCache() override;
+
+  /*
+   * Handle SwitchRunState changes in SwSwitch
+   */
+  void switchRunStateChanged(SwitchRunState newState) override;
+
   /*
    * Update all statistics.
    */

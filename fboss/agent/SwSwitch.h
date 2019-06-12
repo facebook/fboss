@@ -718,10 +718,10 @@ class SwSwitch : public HwSwitch::Callback {
   void logLinkStateEvent(PortID port, bool up);
 
   void logSwitchRunStateChange(
-      const SwitchRunState& oldState,
-      const SwitchRunState& newState);
+      SwitchRunState oldState,
+      SwitchRunState newState);
 
-  void onSwitchRunStateChange(const SwitchRunState& newState);
+  void onSwitchRunStateChange(SwitchRunState newState);
 
   // Sets the counter that tracks port status
   void setPortStatusCounter(PortID port, bool up);

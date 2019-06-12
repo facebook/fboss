@@ -59,6 +59,8 @@ class SaiSwitch : public HwSwitch {
 
   void clearWarmBootCache() override;
 
+  void switchRunStateChanged(SwitchRunState newState) override;
+
   void exitFatal() const override;
 
   bool isPortUp(PortID port) const override;
@@ -163,6 +165,10 @@ class SaiSwitch : public HwSwitch {
   void initialConfigAppliedLocked(const std::lock_guard<std::mutex>& lock);
 
   void clearWarmBootCacheLocked(const std::lock_guard<std::mutex>& lock);
+
+  void switchRunStateChangedLocked(
+      const std::lock_guard<std::mutex>& lock,
+      SwitchRunState newState);
 
   void exitFatalLocked(const std::lock_guard<std::mutex>& lock) const;
 

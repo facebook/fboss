@@ -66,6 +66,7 @@ class MockHwSwitch : public HwSwitch {
   MOCK_CONST_METHOD0(toFollyDynamic, folly::dynamic());
   MOCK_METHOD0(initialConfigApplied, void());
   MOCK_METHOD0(clearWarmBootCache, void());
+  MOCK_METHOD1(switchRunStateChanged, void(SwitchRunState newState));
   MOCK_CONST_METHOD0(exitFatal, void());
   MOCK_METHOD0(unregisterCallbacks, void());
   MOCK_CONST_METHOD1(isValidStateUpdate, bool(const StateDelta& delta));

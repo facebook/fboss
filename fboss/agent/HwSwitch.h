@@ -212,6 +212,14 @@ class HwSwitch {
   virtual void clearWarmBootCache() = 0;
 
   /*
+   * When SwSwitch changes its SwitchRunState, such as when it transitions
+   * to INITIALIZED or CONFIGURED, HwSwitch may need to react. For
+   * example, clearing the warm boot cache on FIB_SYNCED, or
+   * turning on callbacks on INITIALIZED.
+   */
+  virtual void switchRunStateChanged(SwitchRunState newState) = 0;
+
+  /*
    * Defines the exit behavior when there is a crash. Allows implementations
    * to add functionality to help with debugging crashes.
    */
