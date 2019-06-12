@@ -9,10 +9,14 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+
 namespace facebook {
 namespace fboss {
 class HwSwitch;
 
 void updateHwSwitchStats(HwSwitch* hw);
+uint64_t getPortOutPkts(HwPortStats portStats);
+
 }
 } // namespace facebook

@@ -25,5 +25,11 @@ void updateHwSwitchStats(HwSwitch* hw) {
     XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);
   }
 }
+
+uint64_t getPortOutPkts(HwPortStats portStats) {
+  return portStats.outUnicastPkts_ + portStats.outMulticastPkts_ +
+      portStats.outBroadcastPkts_;
+}
+
 } // namespace fboss
 } // namespace facebook

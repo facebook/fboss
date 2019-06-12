@@ -31,7 +31,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/hw/bcm/gen-cpp2/hardware_stats_constants.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 
 extern "C" {
 #include <opennsl/link.h>

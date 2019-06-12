@@ -11,7 +11,7 @@
 
 #include "common/stats/MonotonicCounter.h"
 #include "fboss/agent/hw/bcm/BcmStatsConstants.h"
-#include "fboss/agent/hw/bcm/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_set.hpp>

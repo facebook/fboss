@@ -34,6 +34,10 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
+extern "C" {
+#include <opennsl/error.h>
+}
+
 using namespace facebook::fboss;
 
 DECLARE_bool(flexports);
@@ -147,6 +151,21 @@ const std::vector<PortID>& BcmTest::masterLogicalPortIds() const {
 
 std::vector<PortID> BcmTest::getAllPortsinGroup(PortID portID) {
   return getPlatform()->getAllPortsinGroup(portID);
+}
+
+std::map<PortID, HwPortStats> BcmTest::getLatestPortStats(
+    const std::vector<PortID>& ports) {
+  auto err = opennsl_stat_sync(getHwSwitch()->getUnit());
+  if (OPENNSL_FAILURE(err)) {
+    XLOG(ERR) << "Unable to sync stats: " << opennsl_errmsg(err) << ", " << err;
+  }
+  updateHwSwitchStats(getHwSwitch());
+  std::map<PortID, HwPortStats> mapPortStats;
+  for (const auto& port : ports) {
+    mapPortStats[port] =
+        getHwSwitch()->getPortTable()->getBcmPort(port)->getPortStats();
+  }
+  return mapPortStats;
 }
 
 } // namespace fboss

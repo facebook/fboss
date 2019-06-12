@@ -187,7 +187,7 @@ add_thrift_cpp2_library(
 )
 add_thrift_cpp2_library(
   hardware_stats_cpp2
-  fboss/agent/hw/bcm/hardware_stats.thrift
+  fboss/agent/hw/hardware_stats.thrift
 )
 add_thrift_cpp2_library(
   pcap_pubsub_cpp2

@@ -11,7 +11,7 @@
 #include "fboss/agent/hw/bcm/CounterUtils.h"
 
 #include "common/stats/ServiceData.h"
-#include "fboss/agent/hw/bcm/gen-cpp2/hardware_stats_constants.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 
 #include <folly/logging/xlog.h>
 

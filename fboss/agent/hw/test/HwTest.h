@@ -17,6 +17,8 @@
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -118,6 +120,10 @@ class HwTest : public ::testing::Test, public HwSwitch::Callback {
   std::shared_ptr<SwitchState> getProgrammedState() const {
     return programmedState_;
   }
+
+  HwPortStats getLatestPortStats(PortID port);
+  virtual std::map<PortID, HwPortStats> getLatestPortStats(
+      const std::vector<PortID>& ports) = 0;
 
  private:
   std::shared_ptr<SwitchState> initHwSwitch();

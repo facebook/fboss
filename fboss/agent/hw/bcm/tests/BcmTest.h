@@ -16,15 +16,18 @@
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/hw/bcm/BcmConfig.h"
+#include "fboss/agent/hw/bcm/BcmPort.h"
+#include "fboss/agent/hw/bcm/BcmPortTable.h"
+#include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
-#include "fboss/agent/hw/bcm/BcmStatUpdater.h"
-#include "fboss/agent/hw/bcm/BcmConfig.h"
+#include "fboss/agent/hw/bcm/tests/platforms/BcmTestPlatform.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
-#include "fboss/agent/hw/bcm/tests/platforms/BcmTestPlatform.h"
-#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook {
 namespace fboss {
@@ -58,6 +61,8 @@ class BcmTest : public HwTest {
   virtual cfg::SwitchConfig initialConfig() const {
     return cfg::SwitchConfig();
   }
+  virtual std::map<PortID, HwPortStats> getLatestPortStats(
+      const std::vector<PortID>& ports) override;
 
  private:
   std::pair<std::unique_ptr<Platform>, std::unique_ptr<HwSwitch>> createHw()

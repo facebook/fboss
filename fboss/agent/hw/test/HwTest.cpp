@@ -129,4 +129,8 @@ std::shared_ptr<SwitchState> HwTest::applyNewState(
   programmedState_ = getHwSwitch()->stateChanged(delta);
   return programmedState_;
 }
+
+HwPortStats HwTest::getLatestPortStats(PortID port) {
+  return getLatestPortStats(std::vector<PortID>{port})[port];
+}
 }} // facebook::fboss
