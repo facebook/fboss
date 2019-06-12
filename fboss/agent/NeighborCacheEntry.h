@@ -232,6 +232,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
    */
   void scheduleNextUpdate() {
     CHECK(evb_->inRunningEventBaseThread());
+
     std::chrono::milliseconds lifetime;
     switch (state_) {
       case NeighborEntryState::REACHABLE:
@@ -305,7 +306,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
         throw FbossError("Tried to create entry with invalid state");
     }
     evb_->runInEventBaseThread([this]() {
-        scheduleNextUpdate();
+      scheduleNextUpdate();
     });
   }
 

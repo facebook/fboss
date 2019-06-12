@@ -168,6 +168,29 @@ void NeighborCacheImpl<NTable>::clearEntries() {
                           << addr;
             }));
   }
+  /*
+   * There is an interesting race condition possible with a flush
+   * coming from a different thread (like a ThriftHandler processing
+   * a flush neighbor api call). In flushEntry, we run Entry::destroy
+   * which ultimately runs an asynchronous cancelTimeout on evb_. At that
+   * point, we are unable to block on the destroy call, because it could
+   * cause a deadlock.
+   *
+   * As a result, it is possible for entries_ to be empty,
+   * but for there to still be cancelTimeout lambdas scheduled. On its own
+   * this is not so bad, but it is also possible for there to be a last
+   * lambda scheduled from the AsyncTimeout itself, ahead of the cancel. If
+   * that happens, then that code can race with destroying the Cache* which
+   * can cause a use-after-free.
+   *
+   * To fix it, we ensure that stopTasks is not empty so that we definitely
+   * drain the current evb queue. Any entry missing in entries_ above will
+   * have an async Entry::destroy on the evb, so we are sure to have
+   * canceled them all.
+   */
+  if (stopTasks.empty()) {
+    stopTasks.push_back(folly::via(evb_, []() {}));
+  }
   folly::collectAllSemiFuture(stopTasks).get();
   entries_.clear();
 }
