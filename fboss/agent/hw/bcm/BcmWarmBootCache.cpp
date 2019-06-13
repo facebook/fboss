@@ -325,6 +325,7 @@ void BcmWarmBootCache::populate(folly::Optional<folly::dynamic> warmBootState) {
   populateMirrors();
   populateMirroredPorts();
   populateIngressQosMaps();
+  populateLabelSwitchActions();
 }
 
 bool BcmWarmBootCache::fillVlanPortInfo(Vlan* vlan) {

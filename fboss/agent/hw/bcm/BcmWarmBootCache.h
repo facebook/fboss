@@ -199,12 +199,8 @@ class BcmWarmBootCache {
       BcmMirrorHandle mirror);
   void removeUnclaimedMirror(BcmMirrorHandle mirror);
 
-  void populateLabelSwitchActions() {
-    // TODO(pshaikh): implement this
-  }
-  void removeUnclaimedLabelSwitchActions() {
-    // TODO(pshaikh): implement this
-  }
+  void populateLabelSwitchActions();
+  void removeUnclaimedLabelSwitchActions();
 
  public:
   /*
