@@ -65,7 +65,7 @@ bool BcmMplsNextHop::isProgrammed() const {
 
 BcmL3NextHop::BcmL3NextHop(BcmSwitch* hw, BcmHostKey key)
     : hw_(hw), key_(std::move(key)) {
-  host_ = hw_->writableHostTable()->refOrEmplace(key);
+  host_ = hw_->writableHostTable()->refOrEmplace(key_);
 }
 
 BcmMplsNextHop::BcmMplsNextHop(BcmSwitch* hw, BcmLabeledHostKey key)
