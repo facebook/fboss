@@ -30,6 +30,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmMirror.h"
 #include "fboss/agent/hw/bcm/BcmQosMap.h"
 #include "fboss/agent/hw/bcm/BcmRtag7Module.h"
+#include "fboss/agent/hw/bcm/BcmTypes.h"
 #include "fboss/agent/hw/bcm/types.h"
 #include "fboss/agent/state/QosPolicy.h"
 #include "fboss/agent/state/RouteTypes.h"
@@ -138,6 +139,9 @@ class BcmWarmBootCache {
   using IngressQosMaps = std::vector<std::unique_ptr<BcmQosMap>>;
   using IngressQosMapsItr = IngressQosMaps::iterator;
 
+  // MPLS action
+  using Label2LabelActionMap = boost::container::
+      flat_map<opennsl_mpls_label_t, std::unique_ptr<BcmMplsTunnelSwitchT>>;
   struct AclStatStatus {
     BcmAclStatHandle stat{-1};
     bool claimed{false};
@@ -194,6 +198,13 @@ class BcmWarmBootCache {
       MirrorDirection direction,
       BcmMirrorHandle mirror);
   void removeUnclaimedMirror(BcmMirrorHandle mirror);
+
+  void populateLabelSwitchActions() {
+    // TODO(pshaikh): implement this
+  }
+  void removeUnclaimedLabelSwitchActions() {
+    // TODO(pshaikh): implement this
+  }
 
  public:
   /*
@@ -457,6 +468,22 @@ class BcmWarmBootCache {
     return *dumpedSwSwitchState_;
   }
 
+  using Label2LabelActionMapCitr =
+      typename Label2LabelActionMap::const_iterator;
+  Label2LabelActionMapCitr Label2LabelActionMapBegin() const {
+    return label2LabelActions_.begin();
+  }
+  Label2LabelActionMapCitr Label2LabelActionMapEnd() const {
+    return label2LabelActions_.end();
+  }
+
+  Label2LabelActionMapCitr findLabelAction(opennsl_mpls_label_t label) const {
+    return label2LabelActions_.find(label);
+  }
+  void programmedLabelAction(Label2LabelActionMapCitr itr) {
+    label2LabelActions_.erase(itr);
+  }
+
  private:
   /*
    * Get egress ids for a ECMP Id. Will throw FbossError
@@ -534,5 +561,6 @@ class BcmWarmBootCache {
   MirrorEgressPath2Handle mirrorEgressPath2Handle_;
   MirroredPort2Handle mirroredPort2Handle_;
   MirroredAcl2Handle mirroredAcl2Handle_;
+  Label2LabelActionMap label2LabelActions_;
 };
 }} // facebook::fboss
