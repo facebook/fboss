@@ -219,12 +219,19 @@ add_thrift_cpp2_library(
     ctrl_cpp2
 )
 
-# System libraries
 find_library(USB usb-1.0)
+find_path(USB_INCLUDE_DIR NAMES libusb-1.0/libusb.h)
+include_directories(${USB_INCLUDE_DIR})
+
 find_library(NETLINK3 nl-3)
 find_library(NETLINKROUTE3 nl-route-3)
+
 find_library(CURL curl)
+find_path(CURL_INCLUDE_DIR NAMES curl/curl.h)
+include_directories(${CURL_INCLUDE_DIR})
+
 find_library(MNL mnl)
+find_library(SODIUM sodium)
 
 add_executable(wedge_agent
     fboss/agent/platforms/wedge/WedgePlatform.cpp
