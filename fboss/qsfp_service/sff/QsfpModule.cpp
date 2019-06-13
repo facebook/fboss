@@ -663,18 +663,18 @@ TransceiverInfo QsfpModule::parseDataLocked() {
     return info;
   }
 
-  if (getSensorInfo(info.sensor)) {
+  if (getSensorInfo(info.sensor_ref().value_unchecked())) {
     info.__isset.sensor = true;
   }
-  if (getVendorInfo(info.vendor)) {
+  if (getVendorInfo(info.vendor_ref().value_unchecked())) {
     info.__isset.vendor = true;
   }
-  getCableInfo(info.cable);
+  getCableInfo(info.cable_ref().value_unchecked());
   info.__isset.cable = true;
-  if (getThresholdInfo(info.thresholds)) {
+  if (getThresholdInfo(info.thresholds_ref().value_unchecked())) {
     info.__isset.thresholds = true;
   }
-  if (getTransceiverSettingsInfo(info.settings)) {
+  if (getTransceiverSettingsInfo(info.settings_ref().value_unchecked())) {
     info.__isset.settings = true;
   }
   for (int i = 0; i < CHANNEL_COUNT; i++) {
@@ -689,7 +689,7 @@ TransceiverInfo QsfpModule::parseDataLocked() {
     info.channels.clear();
   }
 
-  if (getTransceiverStats(info.stats)) {
+  if (getTransceiverStats(info.stats_ref().value_unchecked())) {
     info.__isset.stats = true;
   }
 

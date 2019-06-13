@@ -652,7 +652,7 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
     queue->setScalingFactor(cfg->scalingFactor_ref().value_unchecked());
   }
   if (cfg->__isset.aqms) {
-    checkPortQueueAQMValid(cfg->aqms);
+    checkPortQueueAQMValid(cfg->aqms_ref().value_unchecked());
     queue->resetAqms(cfg->aqms_ref().value_unchecked());
   }
   if (cfg->__isset.sharedBytes) {
@@ -662,7 +662,7 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
     queue->setPacketsPerSec(cfg->packetsPerSec_ref().value_unchecked());
   }
   if (cfg->__isset.name) {
-    queue->setName(cfg->name);
+    queue->setName(cfg->name_ref().value_unchecked());
   }
   return queue;
 }
@@ -729,10 +729,10 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
   auto newIngressMirror = folly::Optional<std::string>();
   auto newEgressMirror = folly::Optional<std::string>();
   if (portConf->__isset.ingressMirror) {
-    newIngressMirror.assign(portConf->ingressMirror);
+    newIngressMirror.assign(portConf->ingressMirror_ref().value_unchecked());
   }
   if (portConf->__isset.egressMirror) {
-    newEgressMirror.assign(portConf->egressMirror);
+    newEgressMirror.assign(portConf->egressMirror_ref().value_unchecked());
   }
   bool mirrorsUnChanged = (oldIngressMirror == newIngressMirror) &&
       (oldEgressMirror == newEgressMirror);
@@ -783,8 +783,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(const shared_ptr<Port>& orig,
   newPort->setPause(portConf->pause);
   newPort->setSflowIngressRate(portConf->sFlowIngressRate);
   newPort->setSflowEgressRate(portConf->sFlowEgressRate);
-  newPort->setName(portConf->name);
-  newPort->setDescription(portConf->description);
+  newPort->setName(portConf->name_ref().value_unchecked());
+  newPort->setDescription(portConf->description_ref().value_unchecked());
   newPort->setFEC(portConf->fec);
   newPort->setLoopbackMode(portConf->loopbackMode);
   newPort->resetPortQueues(portQueues);
@@ -1182,7 +1182,8 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
             mta.action.sendToQueue_ref().value_unchecked(), isCoppAcl));
       }
       if (mta.action.__isset.counter) {
-        auto counter = counterByName.find(mta.action.counter);
+        auto counter =
+            counterByName.find(mta.action.counter_ref().value_unchecked());
         if (counter == counterByName.end()) {
           throw FbossError(
               "Invalid config: No counter named ",
@@ -1192,13 +1193,15 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
         matchAction.setTrafficCounter(*(counter->second));
       }
       if (mta.action.__isset.setDscp) {
-          matchAction.setSetDscp(mta.action.setDscp);
+        matchAction.setSetDscp(mta.action.setDscp_ref().value_unchecked());
       }
       if (mta.action.__isset.ingressMirror) {
-        matchAction.setIngressMirror(mta.action.ingressMirror);
+        matchAction.setIngressMirror(
+            mta.action.ingressMirror_ref().value_unchecked());
       }
       if (mta.action.__isset.egressMirror) {
-        matchAction.setEgressMirror(mta.action.egressMirror);
+        matchAction.setEgressMirror(
+            mta.action.egressMirror_ref().value_unchecked());
       }
 
       auto acl = updateAcl(
@@ -1400,7 +1403,7 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
     newAcl->setL4DstPort(config->l4DstPort_ref().value_unchecked());
   }
   if (config->__isset.ipFrag) {
-    newAcl->setIpFrag(config->ipFrag);
+    newAcl->setIpFrag(config->ipFrag_ref().value_unchecked());
   }
   if (config->__isset.icmpType) {
     newAcl->setIcmpType(config->icmpType_ref().value_unchecked());
@@ -1415,7 +1418,7 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
     newAcl->setDstMac(MacAddress(config->dstMac_ref().value_unchecked()));
   }
   if (config->__isset.ipType) {
-      newAcl->setIpType(config->ipType);
+    newAcl->setIpType(config->ipType_ref().value_unchecked());
   }
   if (config->__isset.ttl) {
     newAcl->setTtl(AclTtl(
@@ -1700,7 +1703,7 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
                                      config->isStateSyncDisabled);
   intf->setAddresses(addrs);
   if (config->__isset.ndp) {
-    intf->setNdpConfig(config->ndp);
+    intf->setNdpConfig(config->ndp_ref().value_unchecked());
   }
   return intf;
 }
