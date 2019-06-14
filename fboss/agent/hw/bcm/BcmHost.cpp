@@ -403,9 +403,9 @@ folly::dynamic BcmHost::toFollyDynamic() const {
 std::shared_ptr<BcmHost> BcmHostTable::refOrEmplace(const BcmHostKey& key) {
   auto rv = hosts_.refOrEmplace(key, hw_, key);
   if (rv.second) {
-    XLOG(DBG3) << "inserted reference to BcmHost " << key.str();
+    XLOG(DBG3) << "inserted reference to " << key.str();
   } else {
-    XLOG(DBG3) << "accessed reference to BcmHost " << key.str();
+    XLOG(DBG3) << "accessed reference to " << key.str();
   }
   return rv.first;
 }

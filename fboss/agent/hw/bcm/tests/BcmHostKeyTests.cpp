@@ -116,5 +116,35 @@ TEST(BcmHostKey, unLabeledNextHopWitForLabelForwarding) {
   verifyUnlabeledHostKey(bcmHostKey, bcmHostKey, true /* resolved */);
 }
 
+TEST(BcmHostKey, LabeledKeyStr) {
+  auto swapKey =
+      BcmLabeledHostKey(0, 201, folly::IPAddress(kLinkLocal), InterfaceID(1));
+
+  auto pushOneKey = BcmLabeledHostKey(
+      0,
+      LabelForwardingAction::LabelStack{301},
+      folly::IPAddress(kLinkLocal),
+      InterfaceID(2));
+
+  auto pushManyKey = BcmLabeledHostKey(
+      0,
+      LabelForwardingAction::LabelStack{401, 402, 403, 404},
+      folly::IPAddress(kLinkLocal),
+      InterfaceID(3));
+
+  EXPECT_EQ(
+      swapKey.str(),
+      folly::to<std::string>(
+          "BcmLabeledHost: ", kLinkLocal, "@I", 1, "@label201"));
+  EXPECT_EQ(
+      pushOneKey.str(),
+      folly::to<std::string>(
+          "BcmLabeledHost: ", kLinkLocal, "@I", 2, "@stack[301]"));
+  EXPECT_EQ(
+      pushManyKey.str(),
+      folly::to<std::string>(
+          "BcmLabeledHost: ", kLinkLocal, "@I", 3, "@stack[401,402,403,404]"));
+}
+
 } // namespace fboss
 } // namespace facebook

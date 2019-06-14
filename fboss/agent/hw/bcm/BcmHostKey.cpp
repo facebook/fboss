@@ -9,6 +9,8 @@
  */
 #include "BcmHostKey.h"
 
+#include "folly/String.h"
+
 #include "fboss/agent/FbossError.h"
 
 namespace facebook { namespace fboss {
@@ -74,7 +76,13 @@ std::ostream& operator<<(std::ostream& os, const HostKey& key) {
 
 std::string BcmLabeledHostKey::str() const {
   return folly::to<std::string>(
-      "BcmHost: ", addr_, "@I", intfID_, "@label", getLabel());
+      "BcmLabeledHost: ",
+      addr_,
+      "@I",
+      intfID_,
+      ((labels_.size() > 0)
+           ? folly::to<std::string>("@stack[", folly::join(",", labels_), "]")
+           : folly::to<std::string>("@label", getLabel())));
 }
 
 bool operator==(const BcmLabeledHostKey& lhs, const BcmLabeledHostKey& rhs) {
