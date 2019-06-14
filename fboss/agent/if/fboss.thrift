@@ -5,6 +5,7 @@ namespace php fboss
 namespace py neteng.fboss
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.asyncio.fboss
+namespace rust facebook.fboss.thrift
 
 exception FbossBaseError {
   1: string message

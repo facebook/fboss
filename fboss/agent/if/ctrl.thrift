@@ -4,6 +4,7 @@ namespace php fboss
 namespace py neteng.fboss.ctrl
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.ctrl
+namespace rust facebook.fboss
 
 include "fboss/agent/if/fboss.thrift"
 include "common/fb303/if/fb303.thrift"

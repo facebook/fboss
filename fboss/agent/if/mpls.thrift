@@ -4,6 +4,7 @@ namespace php fboss_mpls
 namespace py neteng.fboss.mpls
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.mpls
+namespace rust facebook.fboss
 
 typedef i32 MplsLabel
 
