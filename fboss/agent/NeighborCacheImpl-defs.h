@@ -81,7 +81,9 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
     if (!node) {
       table = table->modify(&vlan, &newState);
       table->addEntry(fields);
-      XLOG(DBG2) << "Adding entry for " << fields.ip << " --> " << fields.mac;
+      XLOG(DBG2) << "Adding entry for " << fields.ip << " --> " << fields.mac
+                 << " on interface " << fields.interfaceID << " for vlan "
+                 << vlanID;
     } else {
       if (node->getMac() == fields.mac &&
           node->getPort() == fields.port &&
@@ -94,7 +96,8 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
       table = table->modify(&vlan, &newState);
       table->updateEntry(fields);
       XLOG(DBG2) << "Converting pending entry for " << fields.ip << " --> "
-                 << fields.mac;
+                 << fields.mac << " on interface " << fields.interfaceID
+                 << " for vlan " << vlanID;
     }
     return newState;
   };
@@ -135,7 +138,7 @@ void NeighborCacheImpl<NTable>::programPendingEntry(Entry* entry, bool force) {
     table->addPendingEntry(fields.ip, fields.interfaceID);
 
     XLOG(DBG4) << "Adding pending entry for " << fields.ip << " on interface "
-               << fields.interfaceID;
+               << fields.interfaceID << " for vlan " << vlanID;
     return newState;
   };
 
