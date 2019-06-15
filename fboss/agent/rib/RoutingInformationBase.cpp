@@ -13,13 +13,10 @@
 #include "fboss/agent/rib/RouteNextHopEntry.h"
 #include "fboss/agent/rib/RouteUpdater.h"
 
-#include "fboss/agent/state/ForwardingInformationBaseMap.h"
-
 #include <memory>
 #include <utility>
 
 #include "fboss/agent/AddressUtil.h"
-#include "fboss/agent/state/ForwardingInformationBase.h"
 
 namespace {
 class Timer {

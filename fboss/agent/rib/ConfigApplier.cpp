@@ -12,7 +12,6 @@
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/RouteUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
-#include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 
 #include <algorithm>
 
