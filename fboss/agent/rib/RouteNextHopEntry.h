@@ -20,8 +20,6 @@
 
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
-DECLARE_int32(ecmp_width);
-
 namespace facebook {
 namespace fboss {
 class UnicastRoute;
@@ -66,8 +64,6 @@ class RouteNextHopEntry {
   const NextHopSet& getNextHopSet() const {
     return nhopSet_;
   }
-
-  NextHopSet normalizedNextHops() const;
 
   // Get the sum of the weights of all the nexthops in the entry
   NextHopWeight getTotalWeight() const;
