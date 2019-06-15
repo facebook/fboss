@@ -41,11 +41,12 @@ namespace fboss {
 namespace rib {
 
 void RoutingInformationBase::reconfigure(
-    const std::shared_ptr<SwitchState>& nextState,
     const RouterIDAndNetworkToInterfaceRoutes& configRouterIDToInterfaceRoutes,
     const std::vector<cfg::StaticRouteWithNextHops>& staticRoutesWithNextHops,
     const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToNull,
-    const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToCpu) {
+    const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToCpu,
+    FibUpdateFunction updateFibCallback,
+    void* cookie) {
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
 
   // Config application is accomplished in the following sequence of steps:
@@ -95,7 +96,8 @@ void RoutingInformationBase::reconfigure(
         folly::range(staticRoutesToNull.cbegin(), staticRoutesToNull.cend()),
         folly::range(
             staticRoutesWithNextHops.cbegin(), staticRoutesWithNextHops.cend()),
-        nextState);
+        updateFibCallback,
+        cookie);
 
     configApplier.updateRibAndFib();
   }
@@ -109,7 +111,8 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
     const std::vector<IpPrefix>& toDelete,
     bool resetClientsRoutes,
     folly::StringPiece updateType,
-    ApplyStateUpdateFunction updateStateBlockingFn) {
+    FibUpdateFunction fibUpdateCallback,
+    void* cookie) {
   UpdateStatistics stats;
 
   Timer updateTimer(&stats.duration);
@@ -160,10 +163,11 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
 
   updater.updateDone();
 
-  ForwardingInformationBaseUpdater fibUpdater(
-      routerID, it->second.v4NetworkToRoute, it->second.v6NetworkToRoute);
-
-  updateStateBlockingFn(updateType, std::move(fibUpdater));
+  fibUpdateCallback(
+      routerID,
+      it->second.v4NetworkToRoute,
+      it->second.v6NetworkToRoute,
+      cookie);
 
   return stats;
 }

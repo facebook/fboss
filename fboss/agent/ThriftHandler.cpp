@@ -60,6 +60,9 @@
 
 #include <limits>
 
+#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/rib/NetworkToRouteMap.h"
+
 using apache::thrift::ClientReceiveState;
 using facebook::fb303::cpp2::fb_status;
 using folly::fbstring;
@@ -89,6 +92,20 @@ DEFINE_bool(
     enable_running_config_mutations,
     false,
     "Allow external mutations of running config");
+
+namespace {
+void dynamicFibUpdate(
+    facebook::fboss::RouterID vrf,
+    const facebook::fboss::rib::IPv4NetworkToRouteMap& v4NetworkToRoute,
+    const facebook::fboss::rib::IPv6NetworkToRouteMap& v6NetworkToRoute,
+    void* cookie) {
+  facebook::fboss::rib::ForwardingInformationBaseUpdater fibUpdater(
+      vrf, v4NetworkToRoute, v6NetworkToRoute);
+
+  auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);
+  sw->updateStateBlocking("", std::move(fibUpdater));
+}
+} // namespace
 
 namespace facebook { namespace fboss {
 
@@ -229,7 +246,8 @@ void ThriftHandler::deleteUnicastRoutes(
         *prefixes /* prefixes to delete */,
         false /* reset routes for client */,
         "delete unicast route",
-        folly::partial(&SwSwitch::updateStateBlocking, sw_));
+        &dynamicFibUpdate,
+        static_cast<void*>(sw_));
 
     sw_->stats()->delRoutesV4(stats.v4RoutesDeleted);
     sw_->stats()->delRoutesV6(stats.v6RoutesDeleted);
@@ -293,7 +311,8 @@ void ThriftHandler::updateUnicastRoutesImpl(
         {} /* prefixes to delete */,
         sync,
         updType,
-        folly::partial(&SwSwitch::updateStateBlocking, sw_));
+        &dynamicFibUpdate,
+        static_cast<void*>(sw_));
 
     sw_->stats()->addRoutesV4(stats.v4RoutesAdded);
     sw_->stats()->addRoutesV6(stats.v6RoutesAdded);

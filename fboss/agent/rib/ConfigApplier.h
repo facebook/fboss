@@ -19,13 +19,11 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/types.h"
 
 namespace facebook {
 namespace fboss {
-
-class SwitchState;
-
 namespace rib {
 
 class RouteUpdater;
@@ -54,7 +52,8 @@ class ConfigApplier {
       folly::Range<StaticRouteNoNextHopsIterator> staticCpuRouteRange,
       folly::Range<StaticRouteNoNextHopsIterator> staticDropRouteRange,
       folly::Range<StaticRouteWithNextHopsIterator> staticRouteRange,
-      const std::shared_ptr<facebook::fboss::SwitchState>& nextState);
+      RoutingInformationBase::FibUpdateFunction fibUpdateCallback,
+      void* cookie);
 
   void updateRibAndFib();
 
@@ -71,7 +70,8 @@ class ConfigApplier {
   folly::Range<StaticRouteNoNextHopsIterator> staticCpuRouteRange_;
   folly::Range<StaticRouteNoNextHopsIterator> staticDropRouteRange_;
   folly::Range<StaticRouteWithNextHopsIterator> staticRouteRange_;
-  const std::shared_ptr<facebook::fboss::SwitchState>& nextState_;
+  RoutingInformationBase::FibUpdateFunction fibUpdateCallback_;
+  void* cookie_;
 };
 
 } // namespace rib

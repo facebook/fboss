@@ -27,7 +27,8 @@ ConfigApplier::ConfigApplier(
     folly::Range<StaticRouteNoNextHopsIterator> staticCpuRouteRange,
     folly::Range<StaticRouteNoNextHopsIterator> staticDropRouteRange,
     folly::Range<StaticRouteWithNextHopsIterator> staticRouteRange,
-    const std::shared_ptr<facebook::fboss::SwitchState>& nextState)
+    RoutingInformationBase::FibUpdateFunction fibUpdateCallback,
+    void* cookie)
     : vrf_(vrf),
       v4NetworkToRoute_(v4NetworkToRoute),
       v6NetworkToRoute_(v6NetworkToRoute),
@@ -35,7 +36,8 @@ ConfigApplier::ConfigApplier(
       staticCpuRouteRange_(staticCpuRouteRange),
       staticDropRouteRange_(staticDropRouteRange),
       staticRouteRange_(staticRouteRange),
-      nextState_(nextState) {
+      fibUpdateCallback_(fibUpdateCallback),
+      cookie_(cookie) {
   CHECK_NOTNULL(v4NetworkToRoute_);
   CHECK_NOTNULL(v6NetworkToRoute_);
 }
@@ -109,10 +111,7 @@ void ConfigApplier::updateRibAndFib() {
   // Trigger recrusive resolution
   updater.updateDone();
 
-  ForwardingInformationBaseUpdater fibUpdater(
-      vrf_, *v4NetworkToRoute_, *v6NetworkToRoute_);
-
-  fibUpdater(nextState_);
+  fibUpdateCallback_(vrf_, *v4NetworkToRoute_, *v6NetworkToRoute_, cookie_);
 }
 
 void ConfigApplier::addInterfaceRoutes(

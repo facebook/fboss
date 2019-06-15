@@ -51,6 +51,9 @@
 #include <utility>
 #include <vector>
 
+#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/rib/NetworkToRouteMap.h"
+
 using boost::container::flat_map;
 using boost::container::flat_set;
 using folly::IPAddress;
@@ -68,6 +71,20 @@ namespace {
 const uint8_t kV6LinkLocalAddrMask{64};
 // Needed until CoPP is removed from code and put into config
 const int kAclStartPriority = 100000;
+
+void updateFibFromConfig(
+    facebook::fboss::RouterID vrf,
+    const facebook::fboss::rib::IPv4NetworkToRouteMap& v4NetworkToRoute,
+    const facebook::fboss::rib::IPv6NetworkToRouteMap& v6NetworkToRoute,
+    void* cookie) {
+  facebook::fboss::rib::ForwardingInformationBaseUpdater fibUpdater(
+      vrf, v4NetworkToRoute, v6NetworkToRoute);
+
+  auto nextStatePtr =
+      static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
+
+  fibUpdater(*nextStatePtr);
+}
 
 } // anonymous namespace
 
@@ -344,11 +361,12 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
 
     rib_->reconfigure(
-        new_,
         intfRouteTables_,
         cfg_->staticRoutesWithNhops,
         cfg_->staticRoutesToNull,
-        cfg_->staticRoutesToCPU);
+        cfg_->staticRoutesToCPU,
+        &updateFibFromConfig,
+        static_cast<void*>(&new_));
   } else {
     // Note: updateInterfaces() must be called before updateInterfaceRoutes(),
     // as updateInterfaces() populates the intfRouteTables_ data structure.

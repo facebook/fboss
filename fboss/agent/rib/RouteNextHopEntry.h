@@ -16,8 +16,6 @@
 #include "fboss/agent/rib/RouteNextHop.h"
 #include "fboss/agent/rib/RouteTypes.h"
 
-#include "fboss/agent/state/RouteNextHopEntry.h"
-
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 namespace facebook {
@@ -102,8 +100,6 @@ class RouteNextHopEntry {
       AdminDistance defaultAdminDistance);
 
   bool isValid(bool forMplsRoute = false) const;
-
-  facebook::fboss::RouteNextHopEntry toFibNextHop() const;
 
   static facebook::fboss::rib::RouteNextHopEntry createDrop(
       AdminDistance adminDistance = AdminDistance::STATIC_ROUTE);

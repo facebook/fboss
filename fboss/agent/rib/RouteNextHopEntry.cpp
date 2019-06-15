@@ -212,31 +212,6 @@ bool RouteNextHopEntry::isValid(bool forMplsRoute) const {
   return valid;
 }
 
-facebook::fboss::RouteNextHopEntry RouteNextHopEntry::toFibNextHop() const {
-  switch (getAction()) {
-    case facebook::fboss::rib::RouteNextHopEntry::Action::DROP:
-      return facebook::fboss::RouteNextHopEntry(
-          facebook::fboss::RouteNextHopEntry::Action::DROP, getAdminDistance());
-    case facebook::fboss::rib::RouteNextHopEntry::Action::TO_CPU:
-      return facebook::fboss::RouteNextHopEntry(
-          facebook::fboss::RouteNextHopEntry::Action::TO_CPU,
-          getAdminDistance());
-    case facebook::fboss::rib::RouteNextHopEntry::Action::NEXTHOPS: {
-      facebook::fboss::RouteNextHopEntry::NextHopSet fibNextHopSet;
-      for (const auto& ribNextHop : getNextHopSet()) {
-        fibNextHopSet.insert(facebook::fboss::ResolvedNextHop(
-            ribNextHop.addr(),
-            ribNextHop.intfID().value(),
-            ribNextHop.weight()));
-      }
-      return facebook::fboss::RouteNextHopEntry(
-          fibNextHopSet, getAdminDistance());
-    }
-  }
-
-  XLOG(FATAL) << "Unknown RouteNextHopEntry::Action value";
-}
-
 facebook::fboss::rib::RouteNextHopEntry RouteNextHopEntry::createDrop(
     AdminDistance adminDistance) {
   return RouteNextHopEntry(RouteForwardAction::DROP, adminDistance);

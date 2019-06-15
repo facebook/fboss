@@ -43,6 +43,17 @@ namespace {
 
 const AdminDistance kDefaultAdminDistance = AdminDistance::EBGP;
 
+void dynamicFibUpdate(
+    facebook::fboss::RouterID vrf,
+    const facebook::fboss::rib::IPv4NetworkToRouteMap& v4NetworkToRoute,
+    const facebook::fboss::rib::IPv6NetworkToRouteMap& v6NetworkToRoute,
+    void* cookie) {
+  facebook::fboss::rib::ForwardingInformationBaseUpdater fibUpdater(
+      vrf, v4NetworkToRoute, v6NetworkToRoute);
+
+  auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);
+  sw->updateStateBlocking("", std::move(fibUpdater));
+}
 }
 
 TEST(RouteNextHopEntry, ConvertRibDropToFibDrop) {
@@ -50,7 +61,9 @@ TEST(RouteNextHopEntry, ConvertRibDropToFibDrop) {
       facebook::fboss::rib::RouteNextHopEntry::Action::DROP,
       kDefaultAdminDistance);
 
-  facebook::fboss::RouteNextHopEntry fibDrop = ribDrop.toFibNextHop();
+  facebook::fboss::RouteNextHopEntry fibDrop =
+      facebook::fboss::rib::ForwardingInformationBaseUpdater::toFibNextHop(
+          ribDrop);
 
   ASSERT_TRUE(fibDrop.isDrop());
   ASSERT_EQ(fibDrop.getAdminDistance(), kDefaultAdminDistance);
@@ -61,7 +74,9 @@ TEST(RouteNextHopEntry, ConvertRibCpuToFibCpu) {
       facebook::fboss::rib::RouteNextHopEntry::Action::TO_CPU,
       kDefaultAdminDistance);
 
-  facebook::fboss::RouteNextHopEntry fibToCpu = ribToCpu.toFibNextHop();
+  facebook::fboss::RouteNextHopEntry fibToCpu =
+      facebook::fboss::rib::ForwardingInformationBaseUpdater::toFibNextHop(
+          ribToCpu);
 
   ASSERT_TRUE(fibToCpu.isToCPU());
   ASSERT_EQ(fibToCpu.getAdminDistance(), kDefaultAdminDistance);
@@ -77,7 +92,8 @@ TEST(RouteNextHopEntry, ConvertRibResolvedNextHopToFibResolvedNextHop) {
       kDefaultAdminDistance);
 
   facebook::fboss::RouteNextHopEntry fibResolvedNextHop =
-      ribResolvedNextHop.toFibNextHop();
+      facebook::fboss::rib::ForwardingInformationBaseUpdater::toFibNextHop(
+          ribResolvedNextHop);
 
   ASSERT_EQ(
       fibResolvedNextHop.getAction(),
@@ -98,7 +114,9 @@ TEST(RouteNextHopEntry, AttemptToConvertRibUnresolvedNextHopToFibNextHop) {
       kDefaultAdminDistance);
 
   EXPECT_THROW(
-      ribUnresolvedNextHop.toFibNextHop(), folly::OptionalEmptyException);
+      facebook::fboss::rib::ForwardingInformationBaseUpdater::toFibNextHop(
+          ribUnresolvedNextHop),
+      folly::OptionalEmptyException);
 }
 
 TEST(Route, RibRouteToFibRoute) {
@@ -123,7 +141,9 @@ TEST(Route, RibRouteToFibRoute) {
       prefix, facebook::fboss::ClientID(1), ribResolvedNextHop);
   ribRoute.setResolved(ribResolvedNextHop);
 
-  auto fibRoute = ribRoute.toFibRoute();
+  auto fibRoute =
+      facebook::fboss::rib::ForwardingInformationBaseUpdater::toFibRoute(
+          ribRoute);
 
   ASSERT_EQ(fibRoute->prefix().network, prefixAddress);
   ASSERT_EQ(fibRoute->prefix().mask, prefixMask);
@@ -152,7 +172,9 @@ TEST(Route, DirectlyConnectedRibRouteToFibRoute) {
   ribRoute.setResolved(ribResolvedNextHop);
   ribRoute.setConnected();
 
-  auto fibRoute = ribRoute.toFibRoute();
+  auto fibRoute =
+      facebook::fboss::rib::ForwardingInformationBaseUpdater::toFibRoute(
+          ribRoute);
 
   ASSERT_EQ(fibRoute->prefix().network, prefixAddress);
   ASSERT_EQ(fibRoute->prefix().mask, prefixMask);
@@ -343,7 +365,8 @@ TEST(Rib, Update) {
       {},
       false /* sync */,
       "rib update unit test",
-      folly::partial(&SwSwitch::updateStateBlocking, sw));
+      &dynamicFibUpdate,
+      static_cast<void*>(sw));
 
   EXPECT_FIB_SIZE(sw->getState(), vrfZero, 3, 3);
 
@@ -362,7 +385,8 @@ TEST(Rib, Update) {
       {},
       false /* sync */,
       "rib update unit test",
-      folly::partial(&SwSwitch::updateStateBlocking, sw));
+      &dynamicFibUpdate,
+      static_cast<void*>(sw));
 
   std::vector<UnicastRoute> routeToPrefixBFromClient20;
   routeToPrefixBFromClient20.push_back(
@@ -375,7 +399,8 @@ TEST(Rib, Update) {
       {},
       false /* sync */,
       "rib update unit test",
-      folly::partial(&SwSwitch::updateStateBlocking, sw));
+      &dynamicFibUpdate,
+      static_cast<void*>(sw));
 
   EXPECT_FIB_SIZE(sw->getState(), vrfZero, 4, 3);
 
@@ -393,7 +418,8 @@ TEST(Rib, Update) {
       {},
       false /* sync */,
       "rib update unit test",
-      folly::partial(&SwSwitch::updateStateBlocking, sw));
+      &dynamicFibUpdate,
+      static_cast<void*>(sw));
 
   std::vector<UnicastRoute> routeToPrefixCFromClient20;
   routeToPrefixCFromClient20.push_back(
@@ -406,7 +432,8 @@ TEST(Rib, Update) {
       {},
       false /* sync */,
       "rib update unit test",
-      folly::partial(&SwSwitch::updateStateBlocking, sw));
+      &dynamicFibUpdate,
+      static_cast<void*>(sw));
 
   std::vector<UnicastRoute> routeToPrefixCFromClient30;
   routeToPrefixCFromClient30.push_back(
@@ -419,7 +446,8 @@ TEST(Rib, Update) {
       {},
       false /* sync */,
       "rib update unit test",
-      folly::partial(&SwSwitch::updateStateBlocking, sw));
+      &dynamicFibUpdate,
+      static_cast<void*>(sw));
 
   // Make sure all the static and link-local routes are there
   auto state = sw->getState();
@@ -458,7 +486,8 @@ TEST(Rib, Update) {
       {},
       true /* sync */,
       "rib update unit test",
-      folly::partial(&SwSwitch::updateStateBlocking, sw));
+      &dynamicFibUpdate,
+      static_cast<void*>(sw));
 
   // Make sure all the static and link-local routes are still there
   state = sw->getState();

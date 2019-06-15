@@ -10,7 +10,6 @@
 // Copyright 2004-present Facebook.  All rights reserved.
 #include "Route.h"
 
-#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTypes.h"
 
 namespace {
@@ -142,25 +141,6 @@ template <typename AddrT>
 void Route<AddrT>::clearForward() {
   fwd.reset();
   clearForwardInFlags();
-}
-
-template <typename AddrT>
-std::unique_ptr<facebook::fboss::Route<AddrT>> Route<AddrT>::toFibRoute()
-    const {
-  CHECK(isResolved());
-
-  facebook::fboss::RoutePrefix<AddrT> fibPrefix;
-  fibPrefix.network = prefix().network;
-  fibPrefix.mask = prefix().mask;
-
-  auto fibRoute = std::make_unique<facebook::fboss::Route<AddrT>>(fibPrefix);
-
-  fibRoute->setResolved(getForwardInfo().toFibNextHop());
-  if (isConnected()) {
-    fibRoute->setConnected();
-  }
-
-  return fibRoute;
 }
 
 template class Route<folly::IPAddressV4>;

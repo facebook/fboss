@@ -13,6 +13,7 @@
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include <folly/logging/xlog.h>
 #include "fboss/agent/state/NodeMap.h"
 
 namespace facebook {
@@ -71,7 +72,7 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
     }
 
     std::unique_ptr<facebook::fboss::Route<AddressT>> fibRoute =
-        ribRoute.toFibRoute();
+        toFibRoute(ribRoute);
 
     auto prefix = fibRoute->prefix();
     updatedFib.emplace(prefix, fibRoute.release());
@@ -79,6 +80,60 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
 
   return std::make_unique<ForwardingInformationBase<AddressT>>(updatedFib);
 }
+
+facebook::fboss::RouteNextHopEntry
+ForwardingInformationBaseUpdater::toFibNextHop(
+    const RouteNextHopEntry& ribNextHopEntry) {
+  switch (ribNextHopEntry.getAction()) {
+    case facebook::fboss::rib::RouteNextHopEntry::Action::DROP:
+      return facebook::fboss::RouteNextHopEntry(
+          facebook::fboss::RouteNextHopEntry::Action::DROP,
+          ribNextHopEntry.getAdminDistance());
+    case facebook::fboss::rib::RouteNextHopEntry::Action::TO_CPU:
+      return facebook::fboss::RouteNextHopEntry(
+          facebook::fboss::RouteNextHopEntry::Action::TO_CPU,
+          ribNextHopEntry.getAdminDistance());
+    case facebook::fboss::rib::RouteNextHopEntry::Action::NEXTHOPS: {
+      facebook::fboss::RouteNextHopEntry::NextHopSet fibNextHopSet;
+      for (const auto& ribNextHop : ribNextHopEntry.getNextHopSet()) {
+        fibNextHopSet.insert(facebook::fboss::ResolvedNextHop(
+            ribNextHop.addr(),
+            ribNextHop.intfID().value(),
+            ribNextHop.weight()));
+      }
+      return facebook::fboss::RouteNextHopEntry(
+          fibNextHopSet, ribNextHopEntry.getAdminDistance());
+    }
+  }
+
+  XLOG(FATAL) << "Unknown RouteNextHopEntry::Action value";
+}
+
+template <typename AddrT>
+std::unique_ptr<facebook::fboss::Route<AddrT>>
+ForwardingInformationBaseUpdater::toFibRoute(const Route<AddrT>& ribRoute) {
+  CHECK(ribRoute.isResolved());
+
+  facebook::fboss::RoutePrefix<AddrT> fibPrefix;
+  fibPrefix.network = ribRoute.prefix().network;
+  fibPrefix.mask = ribRoute.prefix().mask;
+
+  auto fibRoute = std::make_unique<facebook::fboss::Route<AddrT>>(fibPrefix);
+
+  fibRoute->setResolved(toFibNextHop(ribRoute.getForwardInfo()));
+  if (ribRoute.isConnected()) {
+    fibRoute->setConnected();
+  }
+
+  return fibRoute;
+}
+
+template std::unique_ptr<facebook::fboss::Route<folly::IPAddressV4>>
+ForwardingInformationBaseUpdater::toFibRoute<folly::IPAddressV4>(
+    const Route<folly::IPAddressV4>&);
+template std::unique_ptr<facebook::fboss::Route<folly::IPAddressV6>>
+ForwardingInformationBaseUpdater::toFibRoute<folly::IPAddressV6>(
+    const Route<folly::IPAddressV6>&);
 
 } // namespace rib
 } // namespace fboss

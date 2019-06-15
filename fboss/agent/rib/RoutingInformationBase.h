@@ -23,20 +23,15 @@
 
 namespace facebook {
 namespace fboss {
-class SwitchState;
-} // namespace fboss
-} // namespace facebook
-
-namespace facebook {
-namespace fboss {
 namespace rib {
 
 class RoutingInformationBase {
  public:
-  using ApplyStateUpdateFunction = std::function<void(
-      folly::StringPiece,
-      std::function<std::shared_ptr<SwitchState>(
-          const std::shared_ptr<SwitchState>&)>)>;
+  using FibUpdateFunction = std::function<void(
+      RouterID vrf,
+      const IPv4NetworkToRouteMap& v4NetworkToRoute,
+      const IPv6NetworkToRouteMap& v6NetworkToRoute,
+      void* cookie)>;
 
   struct UpdateStatistics {
     std::size_t v4RoutesAdded{0};
@@ -67,7 +62,8 @@ class RoutingInformationBase {
       const std::vector<IpPrefix>& toDelete,
       bool resetClientsRoutes,
       folly::StringPiece updateType,
-      ApplyStateUpdateFunction updateStateBlockingFn);
+      FibUpdateFunction fibUpdateCallback,
+      void* cookie);
 
   // VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
   // (RouterID, folly::CIDRNetwork) to the pair (Interface(1),
@@ -83,12 +79,13 @@ class RoutingInformationBase {
           std::pair<InterfaceID, folly::IPAddress>>>;
 
   void reconfigure(
-      const std::shared_ptr<SwitchState>& nextState,
       const RouterIDAndNetworkToInterfaceRoutes&
           configRouterIDToInterfaceRoutes,
       const std::vector<cfg::StaticRouteWithNextHops>& staticRoutesWithNextHops,
       const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToNull,
-      const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToCpu);
+      const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToCpu,
+      FibUpdateFunction fibUpdateCallback,
+      void* cookie);
 
  private:
   struct RouteTable {

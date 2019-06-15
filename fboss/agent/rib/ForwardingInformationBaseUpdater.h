@@ -10,7 +10,10 @@
 #pragma once
 
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/Route.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
+#include "fboss/agent/state/Route.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/types.h"
 
 #include <memory>
@@ -25,6 +28,8 @@ namespace facebook {
 namespace fboss {
 namespace rib {
 
+class RouteNextHopEntry;
+
 class ForwardingInformationBaseUpdater {
  public:
   ForwardingInformationBaseUpdater(
@@ -34,6 +39,12 @@ class ForwardingInformationBaseUpdater {
 
   std::shared_ptr<SwitchState> operator()(
       const std::shared_ptr<SwitchState>& state);
+
+  static facebook::fboss::RouteNextHopEntry toFibNextHop(
+      const RouteNextHopEntry& ribNextHopEntry);
+  template <typename AddrT>
+  static std::unique_ptr<facebook::fboss::Route<AddrT>>
+  toFibRoute(const Route<AddrT>& ribRoute);
 
  private:
   template <typename AddressT>

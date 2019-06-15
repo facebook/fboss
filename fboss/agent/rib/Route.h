@@ -120,8 +120,6 @@ class Route {
 
   bool operator==(const Route& rf) const;
 
-  std::unique_ptr<facebook::fboss::Route<AddrT>> toFibRoute() const;
-
  private:
   /**
    * Bit definition for RouteFields<>::flags
