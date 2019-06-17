@@ -30,17 +30,17 @@ This VM will be the build environment.
 
 ## 1.2 Get FBOSS
 
-sudo yum install git
-git clone https://github.com/facebook/fboss.git
+- sudo yum install git
+- git clone https://github.com/facebook/fboss.git fboss.git
 
 ## 1.3 Upgrade kernel
 
 CentOS 7.0 comes with kernel 3.10. This upgrades the kernel to latest long term
 support kernel (currently 4.4).
 
-cd fboss
-./installer/centos-7-x86_64/upgrade-kernel.sh
-reboot # issue this command from VM console.
+- cd fboss.git
+- ./installer/centos-7-x86_64/upgrade-kernel.sh
+- reboot # issue this command from VM console.
 
 During reboot, choose the newly installed kernel (default would still be 3.10).
 On boot, run uname -a to verify the version of the kernel.
@@ -64,14 +64,14 @@ Reference: https://www.tecmint.com/install-upgrade-kernel-version-in-centos-7/
 
 Install tools needed for bulding FBOSS software.
 
-cd fboss
-./installer/centos-7-x86_64/install-tools.sh
+- cd fboss.git
+- ./installer/centos-7-x86_64/install-tools.sh
 
 ## 1.5 Build FBOSS binaries
 
-export PATH=/opt/rh/devtoolset-8/root/usr/bin/:$PATH
-cd fboss
-./build/fbcode_builder/getdeps.py build fboss
+- export PATH=/opt/rh/devtoolset-8/root/usr/bin/:$PATH
+- cd fboss.git
+- ./build/fbcode_builder/getdeps.py build fboss
 
 The built FBOSS binaries will be available here:
 /tmp/fbcode_builder_getdeps-ZhomeZ${USER}Zfboss.gitZbuildZfbcode_builder/installed/fboss/bin/{wedge_agent, bcm_test}
@@ -87,8 +87,8 @@ The built FBOSS binaries will be available here:
 - by default, fbcode_builder will use number of concurrent jobs for building to
   equal the number of cpu cores. That can be tweaked by setting --num-jobs
   e.g.:
-      cd fboss
-      ./build/fbcode_builder/getdeps.py build fboss --num-jobs 8
+      - cd fboss.git
+      - ./build/fbcode_builder/getdeps.py build fboss --num-jobs 8
 - If the build fails with below error
     c++: fatal error: Killed signal terminated program cc1plus
 
@@ -98,8 +98,8 @@ The built FBOSS binaries will be available here:
 
 ## 1.7 Building RPM packages
 
-cd fboss
-./installer/centos-7-x86_64/build-rpm.sh
+- cd fboss.git
+- ./installer/centos-7-x86_64/build-rpm.sh
 
 The built RPM package will contain the FBOSS binaries and all the dependent
 libraries. The RPM would be available here:
@@ -141,13 +141,13 @@ the switch has direct Internet connectivity, follow instructions similar to
 
 From the CentOS VM configured in section 1. Building, download the kernel RPM.
 
-yum install yum-utils   # installs yumdownloader
-yumdownloader --enablerepo=elrepo-kernel kernel-lt    # this downloads an rpm to current directory
+- yum install yum-utils   # installs yumdownloader
+- yumdownloader --enablerepo=elrepo-kernel kernel-lt    # this downloads an rpm to current directory
 
 ### 2.2.2 Install new kernel
 
-Copy the downloaded new kernel rpm from CentOS VM to the switch.
-rpm -ivh kernel-lt-4.4.181-1.el7.elrepo   # install the RPM.
+- Copy the downloaded new kernel rpm from CentOS VM to the switch.
+- rpm -ivh kernel-lt-4.4.181-1.el7.elrepo   # install the RPM.
 
 Follow instructions in "1.3 Upgrade kernel" to reboot, verify and change the
 grub boot order.
@@ -172,9 +172,9 @@ ldd /etc/fboss/bins/bcm_test # or wedge_agent
 
 ### 2.4.2 Checking install RPM, removing it
 
-rpm -qa | grep fboss    # check all installed RPMS.
-sudo rpm -e fboss_bins-1-1.el7.centos.x86_64  # remove installed RPM
-sudo rpm -ivh fboss_bins-1-1.el7.centos.x86_64.rpm # reinstall the RPM
+- rpm -qa | grep fboss    # check all installed RPMS.
+- sudo rpm -e fboss_bins-1-1.el7.centos.x86_64  # remove installed RPM
+- sudo rpm -ivh fboss_bins-1-1.el7.centos.x86_64.rpm # reinstall the RPM
 
 
 # 3. Misc
