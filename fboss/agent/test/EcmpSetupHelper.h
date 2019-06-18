@@ -105,6 +105,8 @@ class BaseEcmpSetupHelper {
       const std::shared_ptr<SwitchState>& inputState,
       const NextHopT& nhop) const;
 
+  folly::Optional<VlanID> getVlan(const PortDescriptor& port) const;
+
  protected:
   std::vector<NextHopT> nhops_;
   boost::container::flat_map<PortDescriptor, VlanID> portDesc2Vlan_;

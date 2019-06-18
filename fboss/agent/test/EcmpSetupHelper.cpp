@@ -168,6 +168,16 @@ std::vector<PortDescriptor> BaseEcmpSetupHelper<AddrT, NextHopT>::ecmpPortDescs(
   return portDescs;
 }
 
+template <typename AddrT, typename NextHopT>
+folly::Optional<VlanID> BaseEcmpSetupHelper<AddrT, NextHopT>::getVlan(
+    const PortDescriptor& port) const {
+  auto iter = portDesc2Vlan_.find(port);
+  if (iter == portDesc2Vlan_.end()) {
+    return folly::none;
+  }
+  return iter->second;
+}
+
 template <typename IPAddrT>
 EcmpSetupTargetedPorts<IPAddrT>::EcmpSetupTargetedPorts(
     const std::shared_ptr<SwitchState>& inputState,
