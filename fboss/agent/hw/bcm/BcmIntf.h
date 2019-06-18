@@ -78,6 +78,9 @@ class BcmIntf {
     return labelStack2MplsTunnel_.size();
   }
 
+  long getLabeledTunnelRefCount(
+      const LabelForwardingAction::LabelStack& stack) const;
+
  private:
   // no copy or assignment
   BcmIntf(BcmIntf const &) = delete;

@@ -289,7 +289,19 @@ std::shared_ptr<BcmLabeledTunnel> BcmIntf::getBcmLabeledTunnel(
   bool created = false;
   std::tie(tunnel, created) =
       labelStack2MplsTunnel_.refOrEmplace(stack, hw_, bcmIfId_, stack);
+  if (created) {
+    XLOG(DBG3) << "created MPLS tunnel " << tunnel->str()
+               << " over L3 interface " << getBcmIfId();
+  } else {
+    XLOG(DBG3) << "referenced MPLS tunnel " << tunnel->str()
+               << " over L3 interface " << getBcmIfId();
+  }
   return tunnel;
+}
+
+long BcmIntf::getLabeledTunnelRefCount(
+    const LabelForwardingAction::LabelStack& stack) const {
+  return labelStack2MplsTunnel_.referenceCount(stack);
 }
 
 BcmIntfTable::BcmIntfTable(BcmSwitch* hw) : hw_(hw) {}
