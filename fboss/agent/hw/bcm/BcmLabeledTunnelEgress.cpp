@@ -7,6 +7,11 @@
 
 namespace {
 auto constexpr kTunnel = "tunnel";
+facebook::fboss::LabelForwardingAction::LabelStack pushStack(
+    const facebook::fboss::LabelForwardingAction::LabelStack& stack) {
+  return facebook::fboss::LabelForwardingAction::LabelStack(
+      stack.begin() + 1, stack.end());
+}
 } // namespace
 namespace facebook {
 namespace fboss {
@@ -17,8 +22,8 @@ BcmLabeledTunnelEgress::BcmLabeledTunnelEgress(
     opennsl_if_t interface,
     const LabelForwardingAction::LabelStack& labelStack)
     : BcmLabeledEgress(hw, label),
-      tunnel_(hw->getIntfTable()->getBcmIntf(
-          interface)->getBcmLabeledTunnel(labelStack)) {
+      tunnel_(hw->getIntfTable()->getBcmIntf(interface)->getBcmLabeledTunnel(
+          pushStack(labelStack))) {
   CHECK(tunnel_);
 }
 

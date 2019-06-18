@@ -49,7 +49,6 @@ opennsl_l3_intf_t BcmLabeledTunnel::getTunnelProperties(
 
 void BcmLabeledTunnel::program(opennsl_if_t l3Intf) {
   auto intfParams = getTunnelProperties(l3Intf);
-  CHECK_GT(stack_.size(), 0);
 
   auto rv = opennsl_l3_intf_create(hw_->getUnit(), &intfParams);
   bcmCheckError(
