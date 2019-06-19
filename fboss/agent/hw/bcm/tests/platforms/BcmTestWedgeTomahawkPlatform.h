@@ -20,10 +20,6 @@ public:
     : BcmTestWedgePlatform(masterLogicalPortIds, numPortsPerTranceiver) {}
   ~BcmTestWedgeTomahawkPlatform() override {}
 
-  cfg::PortSpeed getMaxPortSpeed() override {
-    return cfg::PortSpeed::HUNDREDG;
-  }
-
   bool isCosSupported() const override {
     return true;
   }

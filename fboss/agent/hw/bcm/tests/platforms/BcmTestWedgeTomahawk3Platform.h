@@ -20,11 +20,6 @@ public:
     : BcmTestWedgePlatform(masterLogicalPortIds, numPortsPerTranceiver) {}
   ~BcmTestWedgeTomahawk3Platform() override {}
 
-  cfg::PortSpeed getMaxPortSpeed() override {
-    // right now, we only support 100G
-    return cfg::PortSpeed::HUNDREDG;
-  }
-
   bool isCosSupported() const override {
     return true;
   }

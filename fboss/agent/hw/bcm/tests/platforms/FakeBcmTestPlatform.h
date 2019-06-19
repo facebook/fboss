@@ -20,10 +20,6 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
   FakeBcmTestPlatform();
   ~FakeBcmTestPlatform() override {}
 
-  cfg::PortSpeed getMaxPortSpeed() override {
-    return cfg::PortSpeed::HUNDREDG;
-  }
-
   bool isCosSupported() const override {
     return true;
   }

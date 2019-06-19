@@ -42,7 +42,6 @@ class BcmTestPlatform : public BcmPlatform {
   std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;
 
   folly::MacAddress getLocalMac() const override;
-  virtual cfg::PortSpeed getMaxPortSpeed() = 0;
   virtual std::list<FlexPortMode> getSupportedFlexPortModes() const = 0;
 
   void onUnitCreate(int unit) override;

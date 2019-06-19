@@ -129,10 +129,6 @@ folly::dynamic BcmTest::createWarmBootSwitchState() {
   return state;
 }
 
-cfg::PortSpeed BcmTest::getMaxPortSpeed() {
-  return getPlatform()->getMaxPortSpeed();
-}
-
 std::list<FlexPortMode> BcmTest::getSupportedFlexPortModes() {
   return getPlatform()->getSupportedFlexPortModes();
 }

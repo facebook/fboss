@@ -19,10 +19,6 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
   BcmTestWedge40Platform();
   ~BcmTestWedge40Platform() override {}
 
-  cfg::PortSpeed getMaxPortSpeed() override {
-    return cfg::PortSpeed::FORTYG;
-  }
-
   bool isCosSupported() const override {
     return false;
   }
