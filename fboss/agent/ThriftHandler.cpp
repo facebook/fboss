@@ -49,6 +49,8 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 
+#include "fboss/lib/LogThriftCall.h"
+
 #include <folly/MoveWrapper.h>
 #include <folly/Range.h>
 #include <folly/functional/Partial.h>
@@ -194,6 +196,7 @@ void ThriftHandler::async_tm_getStatus(ThriftCallback<fb_status> callback) {
 }
 
 void ThriftHandler::flushCountersNow() {
+  LogThriftCall log(__func__, getConnectionContext());
   // Currently SwSwitch only contains thread local stats.
   //
   // Depending on how we design the HW-specific stats interface,
@@ -204,6 +207,7 @@ void ThriftHandler::flushCountersNow() {
 
 void ThriftHandler::addUnicastRoute(
     int16_t client, std::unique_ptr<UnicastRoute> route) {
+  LogThriftCall log(__func__, getConnectionContext());
   auto routes = std::make_unique<std::vector<UnicastRoute>>();
   routes->emplace_back(std::move(*route));
   addUnicastRoutes(client, std::move(routes));
@@ -211,6 +215,7 @@ void ThriftHandler::addUnicastRoute(
 
 void ThriftHandler::deleteUnicastRoute(
     int16_t client, std::unique_ptr<IpPrefix> prefix) {
+  LogThriftCall log(__func__, getConnectionContext());
   auto prefixes = std::make_unique<std::vector<IpPrefix>>();
   prefixes->emplace_back(std::move(*prefix));
   deleteUnicastRoutes(client, std::move(prefixes));
@@ -218,18 +223,21 @@ void ThriftHandler::deleteUnicastRoute(
 
 void ThriftHandler::addUnicastRoutes(
     int16_t client, std::unique_ptr<std::vector<UnicastRoute>> routes) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured("addUnicastRoutes");
   ensureFibSynced("addUnicastRoutes");
   updateUnicastRoutesImpl(client, routes, "addUnicastRoutes", false);
 }
 
 void ThriftHandler::getProductInfo(ProductInfo& productInfo) {
+  LogThriftCall log(__func__, getConnectionContext());
   sw_->getProductInfo(productInfo);
 }
 
 void ThriftHandler::deleteUnicastRoutes(
     int16_t client,
     std::unique_ptr<std::vector<IpPrefix>> prefixes) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured("deleteUnicastRoutes");
   ensureFibSynced("deleteUnicastRoutes");
 
@@ -288,6 +296,7 @@ void ThriftHandler::deleteUnicastRoutes(
 
 void ThriftHandler::syncFib(
     int16_t client, std::unique_ptr<std::vector<UnicastRoute>> routes) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured("syncFib");
   updateUnicastRoutesImpl(client, routes, "syncFib", true);
   if (!sw_->isFibSynced()) {
@@ -399,6 +408,7 @@ static void populateInterfaceDetail(InterfaceDetail& interfaceDetail,
 
 void ThriftHandler::getAllInterfaces(
     std::map<int32_t, InterfaceDetail>& interfaces) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   for (const auto& intf : (*sw_->getState()->getInterfaces())) {
     auto& interfaceDetail = interfaces[intf->getID()];
@@ -407,6 +417,7 @@ void ThriftHandler::getAllInterfaces(
 }
 
 void ThriftHandler::getInterfaceList(std::vector<std::string>& interfaceList) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   for (const auto& intf : (*sw_->getState()->getInterfaces())) {
     interfaceList.push_back(intf->getName());
@@ -415,6 +426,7 @@ void ThriftHandler::getInterfaceList(std::vector<std::string>& interfaceList) {
 
 void ThriftHandler::getInterfaceDetail(InterfaceDetail& interfaceDetail,
                                                         int32_t interfaceId) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   const auto& intf = sw_->getState()->getInterfaces()->getInterfaceIf(
       InterfaceID(interfaceId));
@@ -426,16 +438,19 @@ void ThriftHandler::getInterfaceDetail(InterfaceDetail& interfaceDetail,
 }
 
 void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   sw_->getNeighborUpdater()->getNdpCacheData(ndpTable);
 }
 
 void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   sw_->getNeighborUpdater()->getArpCacheData(arpTable);
 }
 
 void ThriftHandler::getL2Table(std::vector<L2EntryThrift>& l2Table) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   sw_->getHw()->fetchL2Table(&l2Table);
   XLOG(DBG6) << "L2 Table size:" << l2Table.size();
@@ -487,6 +502,7 @@ AclEntryThrift ThriftHandler::populateAclEntryThrift(
 }
 
 void ThriftHandler::getAclTable(std::vector<AclEntryThrift>& aclTable) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   aclTable.reserve(sw_->getState()->getAcls()->numEntries());
   for (const auto& aclEntry : *(sw_->getState()->getAcls())) {
@@ -548,6 +564,7 @@ void ThriftHandler::populateAggregatePortThrift(
 void ThriftHandler::getAggregatePort(
     AggregatePortThrift& aggregatePortThrift,
     int32_t aggregatePortIDThrift) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
 
   if (aggregatePortIDThrift < 0 ||
@@ -570,6 +587,7 @@ void ThriftHandler::getAggregatePort(
 
 void ThriftHandler::getAggregatePortTable(
     std::vector<AggregatePortThrift>& aggregatePortsThrift) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
 
   // Since aggregatePortsThrift is being push_back'ed to, but is an out
@@ -689,6 +707,7 @@ void ThriftHandler::getPortInfoHelper(
 }
 
 void ThriftHandler::getPortInfo(PortInfoThrift &portInfo, int32_t portId) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
 
   const auto port =
@@ -701,6 +720,7 @@ void ThriftHandler::getPortInfo(PortInfoThrift &portInfo, int32_t portId) {
 }
 
 void ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
 
   // NOTE: important to take pointer to switch state before iterating over
@@ -714,19 +734,23 @@ void ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
 }
 
 void ThriftHandler::clearPortStats(unique_ptr<vector<int32_t>> ports) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   sw_->clearPortStats(ports);
 }
 
 void ThriftHandler::getPortStats(PortInfoThrift& portInfo, int32_t portId) {
+  LogThriftCall log(__func__, getConnectionContext());
   getPortInfo(portInfo, portId);
 }
 
 void ThriftHandler::getAllPortStats(map<int32_t, PortInfoThrift>& portInfoMap) {
+  LogThriftCall log(__func__, getConnectionContext());
   getAllPortInfo(portInfoMap);
 }
 
 void ThriftHandler::getRunningConfig(std::string& configStr) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   configStr = sw_->getConfigStr();
 }
@@ -734,6 +758,7 @@ void ThriftHandler::getRunningConfig(std::string& configStr) {
 void ThriftHandler::getCurrentStateJSON(
     std::string& ret,
     std::unique_ptr<std::string> jsonPointerStr) {
+  LogThriftCall log(__func__, getConnectionContext());
   if (!jsonPointerStr) {
     return;
   }
@@ -750,6 +775,7 @@ void ThriftHandler::getCurrentStateJSON(
 void ThriftHandler::patchCurrentStateJSON(
     std::unique_ptr<std::string> jsonPointerStr,
     std::unique_ptr<std::string> jsonPatchStr) {
+  LogThriftCall log(__func__, getConnectionContext());
   if (!FLAGS_enable_running_config_mutations) {
     throw FbossError( "Running config mutations are not allowed");
   }
@@ -774,6 +800,7 @@ void ThriftHandler::patchCurrentStateJSON(
 
 void ThriftHandler::getPortStatus(map<int32_t, PortStatus>& statusMap,
                                   unique_ptr<vector<int32_t>> ports) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   if (ports->empty()) {
     statusMap = sw_->getPortStatus();
@@ -785,6 +812,7 @@ void ThriftHandler::getPortStatus(map<int32_t, PortStatus>& statusMap,
 }
 
 void ThriftHandler::setPortState(int32_t portNum, bool enable) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   PortID portId = PortID(portNum);
   const auto port = sw_->getState()->getPorts()->getPortIf(portId);
@@ -811,6 +839,7 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
 }
 
 void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   auto appliedState = sw_->getAppliedState();
   for (const auto& routeTable : (*appliedState->getRouteTables())) {
@@ -845,6 +874,7 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
 
 void ThriftHandler::getRouteTableByClient(
     std::vector<UnicastRoute>& routes, int16_t client) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   auto state = sw_->getState();
   for (const auto& routeTable : (*state->getRouteTables())) {
@@ -883,6 +913,7 @@ void ThriftHandler::getRouteTableByClient(
 }
 
 void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   auto state = sw_->getState();
   for (const auto& routeTable : *(state->getRouteTables())) {
@@ -899,6 +930,7 @@ void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
 
 void ThriftHandler::getIpRoute(UnicastRoute& route,
                                 std::unique_ptr<Address> addr, int32_t vrfId) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   folly::IPAddress ipAddr = toIPAddress(*addr);
 
@@ -930,6 +962,7 @@ void ThriftHandler::getIpRoute(UnicastRoute& route,
 
 void ThriftHandler::getIpRouteDetails(
   RouteDetails& route, std::unique_ptr<Address> addr, int32_t vrfId) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   folly::IPAddress ipAddr = toIPAddress(*addr);
   auto state = sw_->getState();
@@ -975,6 +1008,7 @@ static LinkNeighborThrift thriftLinkNeighbor(const LinkNeighbor& n,
 }
 
 void ThriftHandler::getLldpNeighbors(vector<LinkNeighborThrift>& results) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   auto lldpMgr = sw_->getLldpMgr();
   if (lldpMgr == nullptr) {
@@ -1033,6 +1067,7 @@ void ThriftHandler::async_eb_registerForNeighborChanged(
 }
 
 void ThriftHandler::startPktCapture(unique_ptr<CaptureInfo> info) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   auto* mgr = sw_->getCaptureMgr();
   auto capture = make_unique<PktCapture>(
@@ -1041,12 +1076,14 @@ void ThriftHandler::startPktCapture(unique_ptr<CaptureInfo> info) {
 }
 
 void ThriftHandler::stopPktCapture(unique_ptr<std::string> name) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   auto* mgr = sw_->getCaptureMgr();
   mgr->forgetCapture(*name);
 }
 
 void ThriftHandler::stopAllPktCaptures() {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   auto* mgr = sw_->getCaptureMgr();
   mgr->forgetAllCaptures();
@@ -1054,6 +1091,7 @@ void ThriftHandler::stopAllPktCaptures() {
 
 void ThriftHandler::startLoggingRouteUpdates(
     std::unique_ptr<RouteUpdateLoggingInfo> info) {
+  LogThriftCall log(__func__, getConnectionContext());
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   folly::IPAddress addr = toIPAddress(info->prefix.ip);
   uint8_t mask = static_cast<uint8_t>(info->prefix.prefixLength);
@@ -1065,6 +1103,7 @@ void ThriftHandler::startLoggingRouteUpdates(
 void ThriftHandler::stopLoggingRouteUpdates(
     std::unique_ptr<IpPrefix> prefix,
     std::unique_ptr<std::string> identifier) {
+  LogThriftCall log(__func__, getConnectionContext());
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   folly::IPAddress addr = toIPAddress(prefix->ip);
   uint8_t mask = static_cast<uint8_t>(prefix->prefixLength);
@@ -1073,12 +1112,14 @@ void ThriftHandler::stopLoggingRouteUpdates(
 
 void ThriftHandler::stopLoggingAnyRouteUpdates(
     std::unique_ptr<std::string> identifier) {
+  LogThriftCall log(__func__, getConnectionContext());
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   routeUpdateLogger->stopLoggingForIdentifier(*identifier);
 }
 
 void ThriftHandler::getRouteUpdateLoggingTrackedPrefixes(
     std::vector<RouteUpdateLoggingInfo>& infos) {
+  LogThriftCall log(__func__, getConnectionContext());
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   for (const auto& tracked : routeUpdateLogger->getTrackedPrefixes()) {
     RouteUpdateLoggingInfo info;
@@ -1093,16 +1134,19 @@ void ThriftHandler::getRouteUpdateLoggingTrackedPrefixes(
 }
 
 void ThriftHandler::beginPacketDump(int32_t port) {
+  LogThriftCall log(__func__, getConnectionContext());
   // Client construction is serialized via SwSwitch event base
   sw_->constructPushClient(port);
 }
 
 void ThriftHandler::killDistributionProcess(){
+  LogThriftCall log(__func__, getConnectionContext());
   sw_->killDistributionProcess();
 }
 
 void ThriftHandler::sendPkt(int32_t port, int32_t vlan,
                             unique_ptr<fbstring> data) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured("sendPkt");
   auto buf = IOBuf::copyBuffer(reinterpret_cast<const uint8_t*>(data->data()),
                                data->size());
@@ -1114,6 +1158,7 @@ void ThriftHandler::sendPkt(int32_t port, int32_t vlan,
 
 void ThriftHandler::sendPktHex(int32_t port, int32_t vlan,
                                unique_ptr<fbstring> hex) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured("sendPktHex");
   auto pkt = MockRxPacket::fromHex(StringPiece(*hex));
   pkt->setSrcPort(PortID(port));
@@ -1122,6 +1167,7 @@ void ThriftHandler::sendPktHex(int32_t port, int32_t vlan,
 }
 
 void ThriftHandler::txPkt(int32_t port, unique_ptr<fbstring> data) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured("txPkt");
 
   unique_ptr<TxPacket> pkt = sw_->allocatePacket(data->size());
@@ -1132,6 +1178,7 @@ void ThriftHandler::txPkt(int32_t port, unique_ptr<fbstring> data) {
 }
 
 void ThriftHandler::txPktL2(unique_ptr<fbstring> data) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured("txPktL2");
 
   unique_ptr<TxPacket> pkt = sw_->allocatePacket(data->size());
@@ -1142,6 +1189,7 @@ void ThriftHandler::txPktL2(unique_ptr<fbstring> data) {
 }
 
 void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured("txPktL3");
 
   unique_ptr<TxPacket> pkt = sw_->allocateL3TxPacket(payload->size());
@@ -1163,6 +1211,7 @@ Vlan* ThriftHandler::getVlan(const std::string& vlanName) {
 
 int32_t ThriftHandler::flushNeighborEntry(unique_ptr<BinaryAddress> ip,
                                           int32_t vlan) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured("flushNeighborEntry");
 
   auto parsedIP = toIPAddress(*ip);
@@ -1171,21 +1220,25 @@ int32_t ThriftHandler::flushNeighborEntry(unique_ptr<BinaryAddress> ip,
 }
 
 void ThriftHandler::getVlanAddresses(Addresses& addrs, int32_t vlan) {
+  LogThriftCall log(__func__, getConnectionContext());
   getVlanAddresses(getVlan(vlan), addrs, toAddress);
 }
 
 void ThriftHandler::getVlanAddressesByName(Addresses& addrs,
     unique_ptr<string> vlan) {
+  LogThriftCall log(__func__, getConnectionContext());
   getVlanAddresses(getVlan(*vlan), addrs, toAddress);
 }
 
 void ThriftHandler::getVlanBinaryAddresses(BinaryAddresses& addrs,
     int32_t vlan) {
+  LogThriftCall log(__func__, getConnectionContext());
   getVlanAddresses(getVlan(vlan), addrs, toBinaryAddress);
 }
 
 void ThriftHandler::getVlanBinaryAddressesByName(BinaryAddresses& addrs,
     const std::unique_ptr<std::string> vlan) {
+  LogThriftCall log(__func__, getConnectionContext());
   getVlanAddresses(getVlan(*vlan), addrs, toBinaryAddress);
 }
 
@@ -1204,6 +1257,7 @@ void ThriftHandler::getVlanAddresses(const Vlan* vlan,
 }
 
 BootType ThriftHandler::getBootType() {
+  LogThriftCall log(__func__, getConnectionContext());
   return sw_->getBootType();
 }
 
@@ -1241,6 +1295,7 @@ void ThriftHandler::connectionDestroyed(TConnectionContext* ctx) {
 }
 
 int32_t ThriftHandler::getIdleTimeout() {
+  LogThriftCall log(__func__, getConnectionContext());
   if (thriftIdleTimeout_ < 0) {
     throw FbossError("Idle timeout has not been set");
   }
@@ -1248,6 +1303,7 @@ int32_t ThriftHandler::getIdleTimeout() {
 }
 
 void ThriftHandler::reloadConfig() {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   return sw_->applyConfig("reload config initiated by thrift call", true);
 }
@@ -1255,6 +1311,7 @@ void ThriftHandler::reloadConfig() {
 void ThriftHandler::getLacpPartnerPair(
     LacpPartnerPair& lacpPartnerPair,
     int32_t portID) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
 
   auto lagManager = sw_->getLagManager();
@@ -1267,6 +1324,7 @@ void ThriftHandler::getLacpPartnerPair(
 
 void ThriftHandler::getAllLacpPartnerPairs(
     std::vector<LacpPartnerPair>& lacpPartnerPairs) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
 
   auto lagManager = sw_->getLagManager();
@@ -1278,10 +1336,12 @@ void ThriftHandler::getAllLacpPartnerPairs(
 }
 
 SwitchRunState ThriftHandler::getSwitchRunState() {
+  LogThriftCall log(__func__, getConnectionContext());
   return sw_->getSwitchRunState();
 }
 
 SSLType ThriftHandler::getSSLPolicy() {
+  LogThriftCall log(__func__, getConnectionContext());
   SSLType sslType = SSLType::PERMITTED;
 
   if (sslPolicy_ == apache::thrift::SSLPolicy::DISABLED) {
@@ -1300,6 +1360,7 @@ SSLType ThriftHandler::getSSLPolicy() {
 void ThriftHandler::addMplsRoutes(
     int16_t clientId,
     std::unique_ptr<std::vector<MplsRoute>> mplsRoutes) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   auto updateFn = [=, routes = std::move(*mplsRoutes)](
                       const std::shared_ptr<SwitchState>& state) {
@@ -1342,6 +1403,7 @@ void ThriftHandler::addMplsRoutesImpl(
 void ThriftHandler::deleteMplsRoutes(
     int16_t clientId,
     std::unique_ptr<std::vector<int32_t>> topLabels) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   auto updateFn = [=, topLabels = std::move(*topLabels)](
                       const std::shared_ptr<SwitchState>& state) {
@@ -1362,6 +1424,7 @@ void ThriftHandler::deleteMplsRoutes(
 void ThriftHandler::syncMplsFib(
     int16_t clientId,
     std::unique_ptr<std::vector<MplsRoute>> mplsRoutes) {
+  LogThriftCall log(__func__, getConnectionContext());
   ensureConfigured();
   auto updateFn = [=, routes = std::move(*mplsRoutes)](
                       const std::shared_ptr<SwitchState>& state) {
@@ -1381,6 +1444,7 @@ void ThriftHandler::syncMplsFib(
 void ThriftHandler::getMplsRouteTableByClient(
     std::vector<MplsRoute>& mplsRoutes,
     int16_t clientId) {
+  LogThriftCall log(__func__, getConnectionContext());
   auto labelFib = sw_->getState()->getLabelForwardingInformationBase();
   for (const auto& entry : *labelFib) {
     auto* labelNextHopEntry = entry->getEntryForClient(ClientID(clientId));
@@ -1398,6 +1462,7 @@ void ThriftHandler::getMplsRouteTableByClient(
 
 void ThriftHandler::getAllMplsRouteDetails(
     std::vector<MplsRouteDetails>& mplsRouteDetails) {
+  LogThriftCall log(__func__, getConnectionContext());
   const auto labelFib = sw_->getState()->getLabelForwardingInformationBase();
   for (const auto& entry : *labelFib) {
     MplsRouteDetails details;
@@ -1409,6 +1474,7 @@ void ThriftHandler::getAllMplsRouteDetails(
 void ThriftHandler::getMplsRouteDetails(
     MplsRouteDetails& mplsRouteDetail,
     MplsLabel topLabel) {
+  LogThriftCall log(__func__, getConnectionContext());
   const auto entry = sw_->getState()
                          ->getLabelForwardingInformationBase()
                          ->getLabelForwardingEntry(topLabel);
