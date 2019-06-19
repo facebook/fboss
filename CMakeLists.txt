@@ -562,6 +562,8 @@ add_library(fboss_agent STATIC
     fboss/lib/usb/WedgeI2CBus.cpp
     fboss/lib/usb/WedgeI2CBus.h
 
+    fboss/lib/LogThriftCall.cpp
+
     fboss/qsfp_service/oss/StatsPublisher.cpp
     fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
     fboss/qsfp_service/lib/QsfpClient.cpp
