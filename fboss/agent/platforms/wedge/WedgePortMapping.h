@@ -11,7 +11,6 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/platforms/wedge/WedgePlatform.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 
 #include <boost/container/flat_map.hpp>
@@ -19,6 +18,8 @@
 
 namespace facebook {
 namespace fboss {
+
+class WedgePlatform;
 
 /*
  * This class begins encapsulating all port mapping logic in a more
