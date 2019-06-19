@@ -36,8 +36,6 @@ class BcmTestPlatform : public BcmPlatform {
       int numPortsPerTranceiver);
   ~BcmTestPlatform() override;
 
-  static folly::MacAddress kLocalCpuMac();
-
   HwSwitch* getHwSwitch() const override;
   void onHwInitialized(SwSwitch* sw) override;
   void onInitialConfigApplied(SwSwitch* sw) override;

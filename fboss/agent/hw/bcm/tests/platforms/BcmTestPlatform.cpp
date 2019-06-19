@@ -23,10 +23,6 @@ using std::string;
 namespace facebook {
 namespace fboss {
 
-MacAddress BcmTestPlatform::kLocalCpuMac() {
-  return utility::kLocalCpuMac();
-}
-
 BcmTestPlatform::BcmTestPlatform(
     std::vector<PortID> masterLogicalPorts,
     int numPortsPerTranceiver)
@@ -64,7 +60,7 @@ std::unique_ptr<ThriftHandler> BcmTestPlatform::createHandler(
 }
 
 MacAddress BcmTestPlatform::getLocalMac() const {
-  return kLocalCpuMac();
+  return utility::kLocalCpuMac();
 }
 
 void BcmTestPlatform::onUnitAttach(int /*unit*/) {
