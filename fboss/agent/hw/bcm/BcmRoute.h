@@ -48,7 +48,6 @@ class BcmRoute {
                                   opennsl_vrf_t vrf,
                                   const folly::IPAddress& prefix,
                                   uint8_t prefixLength);
-  folly::dynamic toFollyDynamic() const;
 
   opennsl_if_t getEgressId() const {
     return egressId_;
@@ -107,7 +106,6 @@ class BcmRouteTable {
   void addRoute(opennsl_vrf_t vrf, const RouteT *route);
   template<typename RouteT>
   void deleteRoute(opennsl_vrf_t vrf, const RouteT *route);
-  folly::dynamic toFollyDynamic() const;
  private:
   struct Key {
     folly::IPAddress network;

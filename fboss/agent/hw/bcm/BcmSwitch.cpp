@@ -333,7 +333,6 @@ folly::dynamic BcmSwitch::toFollyDynamic() const {
   // For now we only serialize Host table
   hwSwitch[kHostTable] = hostTable_->toFollyDynamic();
   hwSwitch[kIntfTable] = intfTable_->toFollyDynamic();
-  hwSwitch[kRouteTable] = routeTable_->toFollyDynamic();
   hwSwitch[kWarmBootCache] = warmBootCache_->toFollyDynamic();
   return hwSwitch;
 }

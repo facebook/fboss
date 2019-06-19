@@ -236,23 +236,6 @@ bool BcmRoute::deleteLpmRoute(int unitNumber,
   return true;
 }
 
-folly::dynamic BcmRoute::toFollyDynamic() const {
-  folly::dynamic route = folly::dynamic::object;
-  route[kNetwork] = prefix_.str();
-  route[kMaskLen] = len_;
-  route[kAction] = forwardActionStr(fwd_.getAction());
-  // if many next hops, put ecmpEgressId = egressId
-  // else put egressId = egressId
-  if (fwd_.getNextHopSet().size() > 1) {
-    route[kEcmp] = true;
-    route[kEcmpEgressId] = egressId_;
-  } else {
-    route[kEcmp] = false;
-    route[kEgressId] = egressId_;
-  }
-  return route;
-}
-
 BcmRoute::~BcmRoute() {
   if (!added_) {
     return;
@@ -338,16 +321,6 @@ void BcmRouteTable::deleteRoute(opennsl_vrf_t vrf, const RouteT *route) {
     throw FbossError("Failed to delete a non-existing route ", route->str());
   }
   fib_.erase(iter);
-}
-
-folly::dynamic BcmRouteTable::toFollyDynamic() const {
-  folly::dynamic routesJson = folly::dynamic::array;
-  for (const auto& route : fib_) {
-    routesJson.push_back(route.second->toFollyDynamic());
-  }
-  folly::dynamic routeTable = folly::dynamic::object;
-  routeTable[kRoutes] = std::move(routesJson);
-  return routeTable;
 }
 
 template void BcmRouteTable::addRoute(opennsl_vrf_t, const RouteV4 *);
