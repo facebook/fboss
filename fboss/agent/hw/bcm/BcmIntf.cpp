@@ -271,18 +271,6 @@ BcmIntf::~BcmIntf() {
   XLOG(DBG3) << "deleted L3 interface " << bcmIfId_;
 }
 
-folly::dynamic BcmIntf::toFollyDynamic() const {
-  folly::dynamic intf = folly::dynamic::object;
-  if (intf_ != nullptr) {
-    intf[kVlan] = static_cast<uint16_t>(intf_->getVlanID());
-    intf[kMac] = intf_->getMac().toString();
-    intf[kMtu] = intf_->getMtu();
-  }
-  intf[kIntfId] = getBcmIfId();
-  // TODO(pshaikh) - iterate over RefMap to get tunnels in folly dynamic
-  return intf;
-}
-
 std::shared_ptr<BcmLabeledTunnel> BcmIntf::getBcmLabeledTunnel(
     const LabelForwardingAction::LabelStack& stack) {
   std::shared_ptr<BcmLabeledTunnel> tunnel;
@@ -367,16 +355,6 @@ void BcmIntfTable::deleteIntf(const std::shared_ptr<Interface>& intf) {
   auto bcmIfId = iter->second->getBcmIfId();
   intfs_.erase(iter);
   bcmIntfs_.erase(bcmIfId);
-}
-
-folly::dynamic BcmIntfTable::toFollyDynamic() const {
-  folly::dynamic intfsJson = folly::dynamic::array;
-  for (const auto& intf: intfs_) {
-    intfsJson.push_back(intf.second->toFollyDynamic());
-  }
-  folly::dynamic intfTable = folly::dynamic::object;
-  return intfTable[kIntfs] = std::move(intfsJson);
-  return intfTable;
 }
 
 }} // namespace facebook::fboss

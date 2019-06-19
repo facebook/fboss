@@ -68,7 +68,6 @@ class BcmIntf {
     return intf_;
   }
   void program(const std::shared_ptr<Interface>& intf);
-  folly::dynamic toFollyDynamic() const;
 
   std::shared_ptr<BcmLabeledTunnel> getBcmLabeledTunnel(
       const LabelForwardingAction::LabelStack& stack);
@@ -120,8 +119,6 @@ class BcmIntfTable {
   void programIntf(const std::shared_ptr<Interface>& intf);
   void deleteIntf(const std::shared_ptr<Interface>& intf);
 
-  // Serialize to folly::dynamic
-  folly::dynamic toFollyDynamic() const;
  private:
   BcmSwitch* hw_;
   // There are two mapping tables with different index types.
