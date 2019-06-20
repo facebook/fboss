@@ -49,10 +49,12 @@ If it boots successfully into new kernel, change the default to newly installed
 kernel as below:
 
 Check /etc/default/grub.
+
 If it has GRUB_DEFAULT=<number>,
   - edit it to GRUB_DEFAULT=0.
   - grub2-mkconfig -o /boot/grub2/grub.cfg
   - reboot # verify if default changed.
+
 else if it has GRUB_DEFAULT=saved,
   - grub2-editenv list
   - grub2-set-default 0
@@ -104,7 +106,7 @@ The built FBOSS binaries will be available here:
 The built RPM package will contain the FBOSS binaries and all the dependent
 libraries. The RPM would be available here:
 
-$HOME/rpmbulid/RPMS/x86_64/fboss_bins-1-1.el7.centos.x86_64.rpm
+$HOME/rpmbuild/RPMS/x86_64/fboss_bins-1-1.el7.centos.x86_64.rpm
 
 
 # 2. Installing FBOSS
@@ -168,7 +170,7 @@ grub boot order.
 Check dependencies using ldd.  All shared object dependencies should be
 satisified, and dependencies should be picked from /etc/fboss_bins.
 
-ldd /etc/fboss/bins/bcm_test # or wedge_agent
+ldd /etc/fboss_bins/bcm_test # or wedge_agent
 
 ### 2.4.2 Checking install RPM, removing it
 
@@ -213,7 +215,7 @@ These steps require a USB 2.0 or USB 3.0 of size >= 16GB.
 
 - Insert USB 2.0 or USB 3.0 drive into the macbook.
 - diskutil list  # find out the name of the USB disk just inserted e.g.  /dev/disk3
-- diskutil unmountDisk <disk-name> # unmount the disk e.g. diskutil unmount /dev/disk3
+- diskutil unmountDisk <disk-name> # unmount the disk e.g. diskutil unmountDisk /dev/disk3
 - time sudo dd if=CentOS-7-x86_64-DVD-1810.img.dmg of=/dev/disk3 bs=1m # this took over 25 minutes
   Note: the last step can take several minutes without reporting any progress.
   Took over 25 minutes on Macbook laptop with Interl i7 processor and 16G RAM.
@@ -224,9 +226,13 @@ Reference: http://www.myiphoneadventure.com/os-x/create-a-bootable-centos-usb-dr
 
 - Power on the switch and connect to its serial console (BMC).
 - Insert the bootable USB.
-- Login as root, and run wedge_power.sh reset # this restarts the wedge.
-- Then, run sol.sh to get serial console to the wedge to observe the wedge restart.
-- During restart, hit 'delete' to get to the BIOS.
+- Login as root using the default password.
+- From the command prompt, run "/usr/local/bin/wedge_power.sh reset"
+- Then, run "/usr/local/bin/sol.sh" to get serial console to the wedge to
+  observe the wedge restart.
+- During restart, hit 'escape' or 'delete' or 'shift delete' to get to the BIOS.
+  Depending on the environment used to connect to console, one of the above key
+  combinations should work.
 - From BIOS, select to boot from USB.
   (note: if the configuration order is changed to boot from USB, don't forget
   to change it back to boot from hard disk after the install is complete.
@@ -234,8 +240,22 @@ Reference: http://www.myiphoneadventure.com/os-x/create-a-bootable-centos-usb-dr
 - This will boot from USB and get to the Linux grub prompt.
 - By default, Linux will attempt GUI install, to prevent it, at grub prompt:
     - edit line that has 'quite' in the end to add: inst.text inst.headless console=ttyS0,57600
-    - boot using above setting, this will do text install from the console.
+    - hit 'control + x' to boot using above setting, this will do text install from the console.
+      - Set the timezone, root password
+      - Choose defaults for destination disk: "Use all of space", "LVM".
     - Note: post install step takes several minutes.
     - reboot
 - If the boot order was changed, enter BIOS again to change it back to boot
   from hard disk first.
+
+### 3.2.3 Configure Network
+
+This assumes DHCP server is present in the network.
+
+- ip addr list
+- dhclient <interface-name> or dhclient -6 <interface-name> # for IPv4 and IPv6 respectively
+- the above has to be run after every reboot, to make it persistent:
+  - ip addr list    # find out the interface name
+  - Edit /etc/sysconfig/network-scripts/ifcfg-<interface-name>
+  - e.g. for /etc/sysconfig/network-scripts/ifcfg-enp2s0 if the interface name is enp2s0
+  - Set ONBOOT=yes
