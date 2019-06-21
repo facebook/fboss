@@ -196,7 +196,9 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
     addToBcmHostTable();
   }
 
-  auto newEgressPort = BcmPortDescriptor(BcmPortId(port));
+  folly::Optional<BcmPortDescriptor> newEgressPort = (port == 0)
+      ? folly::none
+      : folly::make_optional<BcmPortDescriptor>(BcmPortId(port));
   XLOG(DBG1) << "Updating egress " << egressPtr->getID() << " from "
              << egressPortStr(egressPort_) << " to "
              << egressPortStr(newEgressPort);
@@ -279,7 +281,10 @@ void BcmHost::programToTrunk(opennsl_if_t intf,
     addToBcmHostTable();
   }
 
-  auto newEgressPort = BcmPortDescriptor(BcmTrunkId(trunk));
+  folly::Optional<BcmPortDescriptor> newEgressPort =
+      (trunk == BcmTrunk::INVALID)
+      ? folly::none
+      : folly::make_optional<BcmPortDescriptor>(BcmTrunkId(trunk));
   XLOG(DBG1) << "Updating egress " << egress->getID() << " from "
              << egressPortStr(egressPort_) << " to "
              << egressPortStr(newEgressPort);
