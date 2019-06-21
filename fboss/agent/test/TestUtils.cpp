@@ -17,10 +17,8 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/mock/MockableHwSwitch.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
-#include "fboss/agent/hw/mock/MockablePlatform.h"
 #include "fboss/agent/platforms/wedge/WedgePlatformInit.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
@@ -55,8 +53,6 @@ using ::testing::_;
 using ::testing::Return;
 using ::testing::NiceMock;
 
-DEFINE_bool(switch_hw, false, "Run tests for actual hw");
-
 using namespace facebook::fboss;
 
 namespace {
@@ -87,10 +83,6 @@ unique_ptr<SwSwitch> createMockSw(
   if (mac) {
     EXPECT_CALL(*platform.get(), getLocalMac()).WillRepeatedly(
       Return(mac.value()));
-  }
-
-  if (FLAGS_switch_hw) {
-    return setupMockSwitchWithHW(std::move(platform), state, flags);
   }
   return setupMockSwitchWithoutHW(std::move(platform), state, flags);
 }
@@ -144,49 +136,8 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
   return sw;
 }
 
-std::unique_ptr<SwSwitch> setupMockSwitchWithHW(
-    std::unique_ptr<MockPlatform> platform,
-    const std::shared_ptr<SwitchState>& state,
-    SwitchFlags flags) {
-  auto sw = make_unique<SwSwitch>(std::move(platform));
-  EXPECT_PLATFORM_CALL(sw, onHwInitialized(_)).Times(1);
-  initSwSwitchWithFlags(sw.get(), flags);
-  if (state) {
-    sw->updateState(
-      "Apply initial test state",
-      [state](const shared_ptr<SwitchState>& prev) -> shared_ptr<SwitchState> {
-        state->inheritGeneration(*prev);
-        shared_ptr<SwitchState> newState{state};
-
-        // A bit hacky, but fboss currently expects the sw port
-        // mapping to match what is in hardware. Instead of removing
-        // any ports not specified in the initial state altogether,
-        // just disable non-specified ports that exist in hw.
-        auto newPorts = newState->getPorts()->modify(&newState);
-        for (auto port : *prev->getPorts()) {
-          if (!newPorts->getPortIf(port->getID())) {
-            // port not in desired state, add it as a disabled port
-            auto newPort = port->clone();
-            newPort->setAdminState(cfg::PortState::DISABLED);
-            newPorts->addPort(newPort);
-          }
-        }
-
-        return newState;
-      });
-  }
-  sw->initialConfigApplied(std::chrono::steady_clock::now());
-  waitForStateUpdates(sw.get());
-  return sw;
-}
-
 unique_ptr<MockPlatform> createMockPlatform() {
-  if (!FLAGS_switch_hw) {
-    return make_unique<testing::NiceMock<MockPlatform>>();
-  }
-
-  std::shared_ptr<Platform> platform(initWedgePlatform().release());
-  return make_unique<testing::NiceMock<MockablePlatform>>(platform);
+  return make_unique<testing::NiceMock<MockPlatform>>();
 }
 
 unique_ptr<HwTestHandle> createTestHandle(
@@ -204,16 +155,14 @@ unique_ptr<HwTestHandle> createTestHandle(cfg::SwitchConfig* config,
                                           MacAddress mac,
                                           SwitchFlags flags) {
   shared_ptr<SwitchState> initialState{nullptr};
-  if (!FLAGS_switch_hw) {
-    // Create the initial state, which only has ports
-    initialState = make_shared<SwitchState>();
-    uint32_t maxPort{0};
-    for (const auto& port : config->ports) {
-      maxPort = std::max(static_cast<int32_t>(maxPort), port.logicalID);
-    }
-    for (uint32_t idx = 1; idx <= maxPort; ++idx) {
-      initialState->registerPort(PortID(idx), folly::to<string>("port", idx));
-    }
+  // Create the initial state, which only has ports
+  initialState = make_shared<SwitchState>();
+  uint32_t maxPort{0};
+  for (const auto& port : config->ports) {
+    maxPort = std::max(static_cast<int32_t>(maxPort), port.logicalID);
+  }
+  for (uint32_t idx = 1; idx <= maxPort; ++idx) {
+    initialState->registerPort(PortID(idx), folly::to<string>("port", idx));
   }
 
   auto handle = createTestHandle(initialState, mac, flags);

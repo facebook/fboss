@@ -398,8 +398,6 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/mock/MockRxPacket.cpp
     fboss/agent/hw/mock/MockTxPacket.cpp
     fboss/agent/hw/mock/MockTestHandle.cpp
-    fboss/agent/hw/mock/MockableHwSwitch.cpp
-    fboss/agent/hw/mock/MockablePlatform.cpp
     fboss/agent/hw/sim/SimHandler.cpp
     fboss/agent/hw/sim/SimSwitch.cpp
     fboss/agent/lldp/LinkNeighbor.cpp
