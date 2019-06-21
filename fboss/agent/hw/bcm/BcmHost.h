@@ -185,6 +185,8 @@ class BcmHost {
 
 class BcmHostTable {
  public:
+  using HostRefMap = FlatRefMap<BcmHostKey, BcmHost>;
+  using HostConstIterator = typename HostRefMap::MapType::const_iterator;
   explicit BcmHostTable(const BcmSwitchIf* hw);
   virtual ~BcmHostTable();
 
@@ -200,10 +202,6 @@ class BcmHostTable {
 
   uint32_t getReferenceCount(const BcmHostKey& key) const noexcept;
 
-  /*
-   * Serialize toFollyDynamic
-   */
-  folly::dynamic toFollyDynamic() const;
   /*
    * Host entries from warm boot cache synced
    */
@@ -232,10 +230,18 @@ class BcmHostTable {
 
   std::shared_ptr<BcmHost> refOrEmplace(const BcmHostKey& key);
 
+  HostConstIterator begin() const {
+    return hosts_.begin();
+  }
+
+  HostConstIterator end() const {
+    return hosts_.end();
+  }
+
  private:
   const BcmSwitchIf* hw_{nullptr};
 
-  FlatRefMap<BcmHostKey, BcmHost> hosts_;
+  HostRefMap hosts_;
 };
 
 class BcmNeighborTable {

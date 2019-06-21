@@ -415,25 +415,6 @@ std::shared_ptr<BcmHost> BcmHostTable::refOrEmplace(const BcmHostKey& key) {
   return rv.first;
 }
 
-folly::dynamic BcmHostTable::toFollyDynamic() const {
-  folly::dynamic hostsJson = folly::dynamic::array;
-  for (const auto& vrfIpAndHost: hosts_) {
-    auto host = vrfIpAndHost.second.lock();
-    hostsJson.push_back(host->toFollyDynamic());
-  }
-  folly::dynamic ecmpHostsJson = folly::dynamic::array;
-  auto& ecmpHosts = hw_->getMultiPathNextHopTable()->getNextHops();
-  for (const auto& vrfNhopsAndHost: ecmpHosts) {
-    auto weakPtr = vrfNhopsAndHost.second;
-    auto ecmpHost = weakPtr.lock();
-    ecmpHostsJson.push_back(ecmpHost->toFollyDynamic());
-  }
-  folly::dynamic hostTable = folly::dynamic::object;
-  hostTable[kHosts] = std::move(hostsJson);
-  hostTable[kEcmpHosts] = std::move(ecmpHostsJson);
-  return hostTable;
-}
-
 BcmHost* BcmNeighborTable::registerNeighbor(const BcmHostKey& neighbor) {
   auto neighborHost = hw_->writableHostTable()->refOrEmplace(neighbor);
   auto* result = neighborHost.get();
