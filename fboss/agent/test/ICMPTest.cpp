@@ -37,6 +37,7 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/test/CounterCache.h"
+#include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
 #include <boost/cast.hpp>

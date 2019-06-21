@@ -29,6 +29,7 @@
 #include "common/network/if/gen-cpp2/Address_types.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
 #include <folly/IPAddress.h>

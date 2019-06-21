@@ -14,6 +14,7 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockTestHandle.h"
+#include "fboss/agent/test/HwTestHandle.h"
 
 #include <gmock/gmock.h>
 

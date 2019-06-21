@@ -37,7 +37,7 @@ class MockPlatform : public Platform {
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
   std::unique_ptr<HwTestHandle> createTestHandle(
-    std::unique_ptr<SwSwitch> sw) override;
+    std::unique_ptr<SwSwitch> sw);
 
   MOCK_METHOD1(createHandler, std::unique_ptr<ThriftHandler>(SwSwitch* sw));
   MOCK_METHOD1(getProductInfo, void(ProductInfo& productInfo));

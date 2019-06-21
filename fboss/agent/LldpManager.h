@@ -24,6 +24,7 @@ class Cursor;
 
 namespace facebook { namespace fboss {
 class RxPacket;
+class TxPacket;
 
 class LldpManager : private folly::AsyncTimeout {
   /*

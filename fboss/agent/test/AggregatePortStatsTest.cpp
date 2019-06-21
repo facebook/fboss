@@ -20,6 +20,7 @@
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/CounterCache.h"
+#include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
 using namespace facebook::fboss;

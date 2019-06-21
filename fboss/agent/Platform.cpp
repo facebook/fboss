@@ -12,7 +12,6 @@
 
 #include <string>
 #include "fboss/agent/AgentConfig.h"
-#include "fboss/agent/state/SwitchState.h"
 
 DEFINE_string(crash_switch_state_file, "crash_switch_state",
               "File for dumping SwitchState state on crash");

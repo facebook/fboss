@@ -27,6 +27,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteUpdater.h"
+#include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/MockTunManager.h"
 
 #include "fboss/agent/rib/RoutingInformationBase.h"
@@ -145,7 +146,7 @@ unique_ptr<HwTestHandle> createTestHandle(
     const folly::Optional<MacAddress>& mac,
     SwitchFlags flags) {
   auto sw = createMockSw(state, mac, flags);
-  auto platform = sw->getPlatform();
+  auto platform = static_cast<MockPlatform*>(sw->getPlatform());
   auto handle = platform->createTestHandle(std::move(sw));
   handle->prepareForTesting();
   return handle;
