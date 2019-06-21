@@ -24,6 +24,7 @@
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
@@ -84,7 +85,17 @@ namespace facebook { namespace fboss {
 BcmWarmBootCache::BcmWarmBootCache(const BcmSwitchIf* hw)
     : hw_(hw),
       dropEgressId_(BcmEgressBase::INVALID),
-      toCPUEgressId_(BcmEgressBase::INVALID) {}
+      toCPUEgressId_(BcmEgressBase::INVALID),
+      bcmWarmBootState_(std::make_unique<BcmWarmBootState>(hw)) {}
+
+folly::dynamic BcmWarmBootCache::getWarmBootStateFollyDynamic() const {
+  folly::dynamic bcmWarmBootState = folly::dynamic::object;
+
+  bcmWarmBootState[kHostTable] = bcmWarmBootState_->hostTableToFollyDynamic();
+  bcmWarmBootState[kWarmBootCache] = toFollyDynamic();
+
+  return bcmWarmBootState;
+}
 
 void BcmWarmBootCache::programmed(AclEntry2AclStatItr itr) {
   XLOG(DBG1) << "Programmed acl stat=" << itr->second.stat;

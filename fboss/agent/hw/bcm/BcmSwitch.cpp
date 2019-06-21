@@ -55,6 +55,7 @@
 #include "fboss/agent/hw/bcm/BcmTxPacket.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootState.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/bcmswitch_constants.h"
 #include "fboss/agent/state/AclEntry.h"
@@ -329,11 +330,7 @@ void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
 }
 
 folly::dynamic BcmSwitch::toFollyDynamic() const {
-  folly::dynamic hwSwitch = folly::dynamic::object;
-  // For now we only serialize Host table
-  hwSwitch[kHostTable] = hostTable_->toFollyDynamic();
-  hwSwitch[kWarmBootCache] = warmBootCache_->toFollyDynamic();
-  return hwSwitch;
+  return warmBootCache_->getWarmBootStateFollyDynamic();
 }
 
 void BcmSwitch::clearWarmBootCache() {

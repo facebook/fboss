@@ -31,6 +31,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmQosMap.h"
 #include "fboss/agent/hw/bcm/BcmRtag7Module.h"
 #include "fboss/agent/hw/bcm/BcmTypes.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootState.h"
 #include "fboss/agent/hw/bcm/types.h"
 #include "fboss/agent/state/QosPolicy.h"
 #include "fboss/agent/state/RouteTypes.h"
@@ -53,6 +54,7 @@ class PortMap;
 class BcmWarmBootCache {
  public:
   explicit BcmWarmBootCache(const BcmSwitchIf* hw);
+  folly::dynamic getWarmBootStateFollyDynamic() const;
   void populate(folly::Optional<folly::dynamic> warmBootState = folly::none);
   struct VlanInfo {
     VlanInfo(VlanID _vlan, opennsl_pbmp_t _untagged, opennsl_pbmp_t _allPorts,
@@ -558,5 +560,6 @@ class BcmWarmBootCache {
   MirroredPort2Handle mirroredPort2Handle_;
   MirroredAcl2Handle mirroredAcl2Handle_;
   Label2LabelActionMap label2LabelActions_;
+  std::unique_ptr<BcmWarmBootState> bcmWarmBootState_;
 };
 }} // facebook::fboss
