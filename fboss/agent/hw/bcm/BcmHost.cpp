@@ -27,8 +27,6 @@
 #include "fboss/agent/state/Interface.h"
 
 namespace {
-constexpr auto kIntf = "intf";
-constexpr auto kPort = "port";
 std::string egressPortStr(
     const folly::Optional<facebook::fboss::BcmPortDescriptor>& port) {
   if (!port) {
@@ -376,33 +374,6 @@ void BcmHostTable::warmBootHostEntriesSynced() {
       hw_->writableEgressManager()->linkDownHwLocked(idx);
     }
   }
-}
-
-folly::dynamic BcmHost::toFollyDynamic() const {
-  folly::dynamic host = folly::dynamic::object;
-  host[kVrf] = key_.getVrf();
-  host[kIp] = key_.addr().str();
-  if (key_.intfID().hasValue()) {
-    host[kIntf] = static_cast<uint32_t>(key_.intfID().value());
-  }
-  host[kPort] = 0;
-  if (egressPort_) {
-    switch (egressPort_->type()) {
-      case BcmPortDescriptor::PortType::AGGREGATE:
-        // TODO: support warmboot for trunks
-        break;
-      case BcmPortDescriptor::PortType::PHYSICAL:
-        host[kPort] = egressPort_->toFollyDynamic();
-        break;
-    }
-  }
-  host[kEgressId] = getEgressId();
-  if (getEgressId() != BcmEgressBase::INVALID &&
-      egress_->type() == BcmHostEgress::BcmHostEgressType::OWNED) {
-    // owned egress, BcmHost entry is not host route entry.
-    host[kEgress] = egress_->getOwnedEgressPtr()->toFollyDynamic();
-  }
-  return host;
 }
 
 std::shared_ptr<BcmHost> BcmHostTable::refOrEmplace(const BcmHostKey& key) {

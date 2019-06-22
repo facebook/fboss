@@ -114,7 +114,6 @@ class BcmHost {
 
   bool getAndClearHitBit() const;
   void addToBcmHostTable(bool isMultipath = false, bool replace = false);
-  folly::dynamic toFollyDynamic() const;
 
   bool isPortOrTrunkSet() const {
     return egressPort_.hasValue();

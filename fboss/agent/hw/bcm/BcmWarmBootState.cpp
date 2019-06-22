@@ -13,7 +13,7 @@ folly::dynamic BcmWarmBootState::hostTableToFollyDynamic() const {
   folly::dynamic hostsJson = folly::dynamic::array;
   for (const auto& hostTableEntry : *hw_->getHostTable()) {
     auto host = hostTableEntry.second.lock();
-    hostsJson.push_back(host->toFollyDynamic());
+    hostsJson.push_back(bcmHostToFollyDynamic(hostTableEntry.first, host));
   }
 
   // previously, ECMP next hops were maintained as a part of BcmHostTable, even
@@ -32,6 +32,36 @@ folly::dynamic BcmWarmBootState::hostTableToFollyDynamic() const {
   hostTable[kHosts] = std::move(hostsJson);
   hostTable[kEcmpHosts] = std::move(ecmpHostsJson);
   return hostTable;
+}
+
+folly::dynamic BcmWarmBootState::bcmHostToFollyDynamic(
+    const BcmHostKey& hostKey,
+    const std::shared_ptr<BcmHost>& bcmHost) const {
+  folly::dynamic host = folly::dynamic::object;
+  host[kVrf] = hostKey.getVrf();
+  host[kIp] = hostKey.addr().str();
+  if (hostKey.intfID().hasValue()) {
+    host[kIntf] = static_cast<uint32_t>(hostKey.intfID().value());
+  }
+  host[kPort] = 0;
+  auto egressPort = bcmHost->getEgressPortDescriptor();
+  if (egressPort) {
+    switch (egressPort->type()) {
+      case BcmPortDescriptor::PortType::AGGREGATE:
+        // TODO: support warmboot for trunks
+        break;
+      case BcmPortDescriptor::PortType::PHYSICAL:
+        host[kPort] = egressPort->toFollyDynamic();
+        break;
+    }
+  }
+  host[kEgressId] = bcmHost->getEgressId();
+  auto* egress = bcmHost->getEgress();
+  if (egress) {
+    // owned egress, BcmHost entry is not host route entry.
+    host[kEgress] = egress->toFollyDynamic();
+  }
+  return host;
 }
 
 } // namespace fboss
