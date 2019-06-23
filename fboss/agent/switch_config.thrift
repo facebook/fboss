@@ -129,6 +129,10 @@ enum IpFragMatch {
   MATCH_ANY_FRAGMENT = 4
 }
 
+
+// default DSCP marking for mirrored packets
+const byte DEFAULT_MIRROR_DSCP = 0
+
 union MirrorEgressPort {
   1: string name
   2: i32 logicalID
@@ -136,7 +140,7 @@ union MirrorEgressPort {
 
 /*
  * Mirror destination
- * At least one of the below paramaters must be set
+ * At least one of egressPort and ip must be set
  *
  *  egressPort - name or ID of port from which mirror traffic egresses
  *               required for SPAN
@@ -144,6 +148,10 @@ union MirrorEgressPort {
  *  ip - mirror to remote (ipv4) destination
  *               required and used only for ERSPAN
  *
+ *  dscp - mark the mirrored packets with a Differentiated Services Code Point
+ *               (DSCP) for Quality of Service (QoS) classification. Note: DSCP
+ *               marking is only 6 bits (0-63), and only a subset of those
+ *               values are valid code points.
  */
 struct MirrorDestination {
   1: optional MirrorEgressPort egressPort
@@ -192,6 +200,7 @@ struct MirrorDestination {
 struct Mirror {
   1: string name
   2: MirrorDestination destination
+  3: byte dscp = DEFAULT_MIRROR_DSCP
 }
 
 /**
