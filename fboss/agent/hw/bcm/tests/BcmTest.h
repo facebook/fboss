@@ -22,7 +22,7 @@
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
-#include "fboss/agent/hw/bcm/tests/platforms/BcmTestPlatform.h"
+#include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"

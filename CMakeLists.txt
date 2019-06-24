@@ -277,27 +277,27 @@ add_executable(bcm_test
     fboss/agent/hw/bcm/tests/BcmColdBootStateTests.cpp
     fboss/agent/hw/bcm/tests/BcmQueueStatCollectionTests.cpp
     fboss/agent/hw/bcm/tests/Main.cpp
-    fboss/agent/hw/bcm/tests/platforms/BcmTestPort.cpp
-    fboss/agent/hw/bcm/tests/platforms/BcmTestPlatform.cpp
-    fboss/agent/hw/bcm/tests/platforms/BcmTestWedgePlatform.cpp
-    fboss/agent/hw/bcm/tests/platforms/BcmTestWedge40Platform.cpp
-    fboss/agent/hw/bcm/tests/platforms/BcmTestWedge40Port.cpp
-    fboss/agent/hw/bcm/tests/platforms/BcmTestWedge100Platform.cpp
-    fboss/agent/hw/bcm/tests/platforms/BcmTestWedge100Port.cpp
-    fboss/agent/hw/bcm/tests/platforms/BcmTestGalaxyPlatform.cpp
-    fboss/agent/hw/bcm/tests/platforms/BcmTestGalaxyPort.cpp
-    fboss/agent/hw/bcm/tests/platforms/BcmTestMinipack16QPlatform.cpp
-    fboss/agent/hw/bcm/tests/platforms/BcmTestYamp16QPlatform.cpp
-    fboss/agent/hw/bcm/tests/platforms/FakeBcmTestPlatform.cpp
-    fboss/agent/hw/bcm/tests/platforms/FakeBcmTestPort.cpp
-    fboss/agent/hw/bcm/tests/platforms/BcmTestPlatform.cpp
-    fboss/agent/hw/bcm/tests/platforms/BcmTestPort.cpp
     fboss/agent/hw/bcm/tests/oss/BcmTest.cpp
     fboss/agent/hw/bcm/tests/oss/BcmPortUtils.cpp
-    fboss/agent/hw/bcm/tests/platforms/oss/BcmTestWedgeTomahawkPlatform.cpp
-    fboss/agent/hw/bcm/tests/platforms/oss/BcmTestWedgeTomahawk3Platform.cpp
-    fboss/agent/hw/bcm/tests/platforms/oss/BcmTestWedge40Platform.cpp
-    fboss/agent/hw/bcm/tests/platforms/oss/FakeBcmTestPlatform.cpp
+    fboss/agent/platforms/test_platforms/BcmTestPort.cpp
+    fboss/agent/platforms/test_platforms/BcmTestPlatform.cpp
+    fboss/agent/platforms/test_platforms/BcmTestWedgePlatform.cpp
+    fboss/agent/platforms/test_platforms/BcmTestWedge40Platform.cpp
+    fboss/agent/platforms/test_platforms/BcmTestWedge40Port.cpp
+    fboss/agent/platforms/test_platforms/BcmTestWedge100Platform.cpp
+    fboss/agent/platforms/test_platforms/BcmTestWedge100Port.cpp
+    fboss/agent/platforms/test_platforms/BcmTestGalaxyPlatform.cpp
+    fboss/agent/platforms/test_platforms/BcmTestGalaxyPort.cpp
+    fboss/agent/platforms/test_platforms/BcmTestMinipack16QPlatform.cpp
+    fboss/agent/platforms/test_platforms/BcmTestYamp16QPlatform.cpp
+    fboss/agent/platforms/test_platforms/FakeBcmTestPlatform.cpp
+    fboss/agent/platforms/test_platforms/FakeBcmTestPort.cpp
+    fboss/agent/platforms/test_platforms/BcmTestPlatform.cpp
+    fboss/agent/platforms/test_platforms/BcmTestPort.cpp
+    fboss/agent/platforms/test_platforms/oss/BcmTestWedgeTomahawkPlatform.cpp
+    fboss/agent/platforms/test_platforms/oss/BcmTestWedgeTomahawk3Platform.cpp
+    fboss/agent/platforms/test_platforms/oss/BcmTestWedge40Platform.cpp
+    fboss/agent/platforms/test_platforms/oss/FakeBcmTestPlatform.cpp
 )
 
 

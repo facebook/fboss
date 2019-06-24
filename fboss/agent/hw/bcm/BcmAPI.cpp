@@ -9,7 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 
-#include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
