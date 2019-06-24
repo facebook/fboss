@@ -83,10 +83,10 @@ int WedgeQsfp::writeTransceiver(
     threadSafeI2CBus_->moduleWrite(
         module_ + 1, dataAddress, offset, len, fieldValue);
 
-    // Intel transceiver require 10ms delay for every write.
-    // So in the case of writing succeeded, we wait for 10ms.
+    // Intel transceiver require some delay for every write.
+    // So in the case of writing succeeded, we wait for 20ms.
     // Also this works because we do not write more than 1 byte for now.
-    usleep(10000);
+    usleep(20000);
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Write to transceiver " << module_ << " at offset " << offset
               << " with length " << len
