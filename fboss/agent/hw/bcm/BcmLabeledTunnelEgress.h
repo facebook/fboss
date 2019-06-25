@@ -22,6 +22,9 @@ class BcmLabeledTunnelEgress : public BcmLabeledEgress {
       opennsl_if_t interface,
       const LabelForwardingAction::LabelStack& labelStack);
   ~BcmLabeledTunnelEgress() override;
+  BcmLabeledTunnel* getTunnel() const {
+    return tunnel_.get();
+  }
   /*
    * Serialize to folly::dynamic
    */

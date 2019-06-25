@@ -19,10 +19,8 @@ class BcmLabeledEgress : public BcmEgress {
    * Serialize to folly::dynamic
    */
   folly::dynamic toFollyDynamic() const override {
-    auto constexpr kLabel = "label";
-    folly::dynamic egress = BcmEgress::toFollyDynamic();
-    egress[kLabel] = label_;
-    return egress;
+    CHECK(0); // TODO(pshaikh): this must not be called, remove this
+    return folly::dynamic::object;
   }
 
   bool hasLabel() const override {

@@ -6,7 +6,6 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 namespace {
-auto constexpr kTunnel = "tunnel";
 facebook::fboss::LabelForwardingAction::LabelStack pushStack(
     const facebook::fboss::LabelForwardingAction::LabelStack& stack) {
   return facebook::fboss::LabelForwardingAction::LabelStack(
@@ -30,9 +29,8 @@ BcmLabeledTunnelEgress::BcmLabeledTunnelEgress(
 BcmLabeledTunnelEgress::~BcmLabeledTunnelEgress() {}
 
 folly::dynamic BcmLabeledTunnelEgress::toFollyDynamic() const {
-  auto egress = BcmLabeledEgress::toFollyDynamic();
-  egress[kTunnel] = tunnel_->toFollyDynamic();
-  return egress;
+  CHECK(0); // TODO(pshaikh): this must not be called, remove this
+  return folly::dynamic::object;
 }
 
 } // namespace fboss

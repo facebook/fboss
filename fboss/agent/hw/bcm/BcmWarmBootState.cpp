@@ -5,6 +5,9 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
+#include "fboss/agent/hw/bcm/BcmLabeledEgress.h"
+#include "fboss/agent/hw/bcm/BcmLabeledTunnel.h"
+#include "fboss/agent/hw/bcm/BcmLabeledTunnelEgress.h"
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
@@ -29,6 +32,14 @@ folly::dynamic BcmWarmBootState::egressToFollyDynamic(
 template <>
 folly::dynamic BcmWarmBootState::egressToFollyDynamic(
     const BcmEcmpEgress* egress) const;
+
+template <>
+folly::dynamic BcmWarmBootState::egressToFollyDynamic(
+    const BcmLabeledEgress* egress) const;
+
+template <>
+folly::dynamic BcmWarmBootState::egressToFollyDynamic(
+    const BcmLabeledTunnelEgress* egress) const;
 
 folly::dynamic BcmWarmBootState::hostTableToFollyDynamic() const {
   folly::dynamic hostsJson = folly::dynamic::array;
@@ -129,6 +140,24 @@ folly::dynamic BcmWarmBootState::egressToFollyDynamic(
   }
   ecmpEgressDynamic[kPaths] = std::move(paths);
   return ecmpEgressDynamic;
+}
+
+template <>
+folly::dynamic BcmWarmBootState::egressToFollyDynamic(
+    const BcmLabeledEgress* egress) const {
+  auto egressDynamic =
+      egressToFollyDynamic(static_cast<const BcmEgress*>(egress));
+  egressDynamic[kLabel] = egress->getLabel();
+  return egressDynamic;
+}
+
+template <>
+folly::dynamic BcmWarmBootState::egressToFollyDynamic(
+    const BcmLabeledTunnelEgress* egress) const {
+  auto egressDynamic =
+      egressToFollyDynamic(static_cast<const BcmLabeledEgress*>(egress));
+  egressDynamic[kMplsTunnel] = egress->getTunnel()->toFollyDynamic();
+  return egressDynamic;
 }
 
 } // namespace fboss
