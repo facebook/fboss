@@ -26,6 +26,10 @@ template <>
 folly::dynamic BcmWarmBootState::egressToFollyDynamic(
     const BcmEgress* egress) const;
 
+template <>
+folly::dynamic BcmWarmBootState::egressToFollyDynamic(
+    const BcmEcmpEgress* egress) const;
+
 folly::dynamic BcmWarmBootState::hostTableToFollyDynamic() const {
   folly::dynamic hostsJson = folly::dynamic::array;
   for (const auto& hostTableEntry : *hw_->getHostTable()) {
@@ -97,7 +101,7 @@ folly::dynamic BcmWarmBootState::toFollyDynamic(
   ecmpHost[kEcmpEgressId] = multiPathNextHop->getEcmpEgressId();
   auto ecmpEgress = multiPathNextHop->getEgress();
   if (ecmpEgress) {
-    ecmpHost[kEcmpEgress] = ecmpEgress->toFollyDynamic();
+    ecmpHost[kEcmpEgress] = egressToFollyDynamic(ecmpEgress);
   }
   return ecmpHost;
 }
@@ -111,6 +115,20 @@ folly::dynamic BcmWarmBootState::egressToFollyDynamic(
   egressDynamic[kMac] = egress->getMac().toString();
   egressDynamic[kIntfId] = egress->getIntfId();
   return egressDynamic;
+}
+
+template <>
+folly::dynamic BcmWarmBootState::egressToFollyDynamic(
+    const BcmEcmpEgress* ecmpEgress) const {
+  CHECK(ecmpEgress);
+  folly::dynamic ecmpEgressDynamic = folly::dynamic::object;
+  ecmpEgressDynamic[kEgressId] = ecmpEgress->getID();
+  folly::dynamic paths = folly::dynamic::array;
+  for (const auto& path : ecmpEgress->paths()) {
+    paths.push_back(path);
+  }
+  ecmpEgressDynamic[kPaths] = std::move(paths);
+  return ecmpEgressDynamic;
 }
 
 } // namespace fboss

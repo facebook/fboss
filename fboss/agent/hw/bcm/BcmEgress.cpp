@@ -305,14 +305,8 @@ folly::dynamic BcmEgress::toFollyDynamic() const {
 }
 
 folly::dynamic BcmEcmpEgress::toFollyDynamic() const {
-  folly::dynamic ecmpEgress = folly::dynamic::object;
-  ecmpEgress[kEgressId] = getID();
-  folly::dynamic paths = folly::dynamic::array;
-  for (const auto& path : paths_) {
-    paths.push_back(path);
-  }
-  ecmpEgress[kPaths] = std::move(paths);
-  return ecmpEgress;
+  CHECK(0); // TODO(pshaikh): must not be called, remove this
+  return folly::dynamic::object;
 }
 
 bool BcmEcmpEgress::pathUnreachableHwLocked(EgressId path) {
