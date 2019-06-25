@@ -32,8 +32,9 @@ class BcmLabeledTunnel {
   opennsl_if_t getTunnelInterface() const {
     return labeledTunnel_;
   }
-
-  folly::dynamic toFollyDynamic() const;
+  const LabelForwardingAction::LabelStack& getTunnelStack() {
+    return stack_;
+  }
 
  private:
   opennsl_l3_intf_t getTunnelProperties(opennsl_if_t intf) const;

@@ -19,9 +19,6 @@ std::string strLabelStack(const LabelForwardingAction::LabelStack& stack) {
   out += "}";
   return out;
 }
-
-auto constexpr kStack = "stack";
-auto constexpr kIntf = "labeledTunnel";
 } // namespace
 namespace facebook {
 namespace fboss {
@@ -74,17 +71,6 @@ BcmLabeledTunnel::~BcmLabeledTunnel() {
 
 std::string BcmLabeledTunnel::str() const {
   return folly::to<std::string>(labeledTunnel_, "->", strLabelStack(stack_));
-}
-
-folly::dynamic BcmLabeledTunnel::toFollyDynamic() const {
-  folly::dynamic tunnel = folly::dynamic::object;
-  tunnel[kIntf] = labeledTunnel_;
-  folly::dynamic labels = folly::dynamic::array;
-  for (const auto& label : stack_) {
-    labels.push_back(label);
-  }
-  tunnel[kStack] = std::move(labels);
-  return tunnel;
 }
 } // namespace fboss
 } // namespace facebook

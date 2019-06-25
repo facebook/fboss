@@ -12,6 +12,7 @@ namespace fboss {
  * in hardware or SDK.
  */
 class BcmSwitchIf;
+class BcmLabeledTunnel;
 
 class BcmWarmBootState {
  public:
@@ -26,6 +27,8 @@ class BcmWarmBootState {
   folly::dynamic toFollyDynamic(
       const Key& key,
       const std::shared_ptr<Value>& value) const;
+
+  folly::dynamic mplsTunnelToFollyDynamic(BcmLabeledTunnel* tunnel) const;
 
   const BcmSwitchIf* hw_;
 };

@@ -156,9 +156,20 @@ folly::dynamic BcmWarmBootState::egressToFollyDynamic(
     const BcmLabeledTunnelEgress* egress) const {
   auto egressDynamic =
       egressToFollyDynamic(static_cast<const BcmLabeledEgress*>(egress));
-  egressDynamic[kMplsTunnel] = egress->getTunnel()->toFollyDynamic();
+  egressDynamic[kMplsTunnel] = mplsTunnelToFollyDynamic(egress->getTunnel());
   return egressDynamic;
 }
 
+folly::dynamic BcmWarmBootState::mplsTunnelToFollyDynamic(
+    BcmLabeledTunnel* tunnel) const {
+  folly::dynamic tunnelDynamic = folly::dynamic::object;
+  tunnelDynamic[kIntf] = tunnel->getTunnelInterface();
+  folly::dynamic labels = folly::dynamic::array;
+  for (const auto& label : tunnel->getTunnelStack()) {
+    labels.push_back(label);
+  }
+  tunnelDynamic[kStack] = std::move(labels);
+  return tunnelDynamic;
+}
 } // namespace fboss
 } // namespace facebook
