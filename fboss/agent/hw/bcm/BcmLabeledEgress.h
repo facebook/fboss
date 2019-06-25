@@ -15,13 +15,6 @@ class BcmLabeledEgress : public BcmEgress {
  public:
   BcmLabeledEgress(const BcmSwitchIf* hw, opennsl_mpls_label_t label)
       : BcmEgress(hw), label_(label) {}
-  /*
-   * Serialize to folly::dynamic
-   */
-  folly::dynamic toFollyDynamic() const override {
-    CHECK(0); // TODO(pshaikh): this must not be called, remove this
-    return folly::dynamic::object;
-  }
 
   bool hasLabel() const override {
     return true;

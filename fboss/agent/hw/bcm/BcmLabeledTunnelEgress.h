@@ -25,10 +25,6 @@ class BcmLabeledTunnelEgress : public BcmLabeledEgress {
   BcmLabeledTunnel* getTunnel() const {
     return tunnel_.get();
   }
-  /*
-   * Serialize to folly::dynamic
-   */
-  folly::dynamic toFollyDynamic() const override;
 
  private:
   int createEgress(int unit, uint32_t flags, opennsl_l3_egress_t* egr) override;

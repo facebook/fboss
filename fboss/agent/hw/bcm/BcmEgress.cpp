@@ -299,16 +299,6 @@ BcmEcmpEgress::~BcmEcmpEgress() {
              << hw_->getUnit();
 }
 
-folly::dynamic BcmEgress::toFollyDynamic() const {
-  CHECK(0); // TODO(pshaikh): must not be called, remove this
-  return folly::dynamic::object;
-}
-
-folly::dynamic BcmEcmpEgress::toFollyDynamic() const {
-  CHECK(0); // TODO(pshaikh): must not be called, remove this
-  return folly::dynamic::object;
-}
-
 bool BcmEcmpEgress::pathUnreachableHwLocked(EgressId path) {
   return removeEgressIdHwLocked(hw_->getUnit(), getID(), path);
 }

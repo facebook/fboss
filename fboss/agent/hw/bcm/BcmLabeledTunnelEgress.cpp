@@ -28,10 +28,5 @@ BcmLabeledTunnelEgress::BcmLabeledTunnelEgress(
 
 BcmLabeledTunnelEgress::~BcmLabeledTunnelEgress() {}
 
-folly::dynamic BcmLabeledTunnelEgress::toFollyDynamic() const {
-  CHECK(0); // TODO(pshaikh): this must not be called, remove this
-  return folly::dynamic::object;
-}
-
 } // namespace fboss
 } // namespace facebook

@@ -39,7 +39,6 @@ class BcmEgressBase : public boost::noncopyable {
     return id_;
   }
   virtual ~BcmEgressBase() {}
-  virtual folly::dynamic toFollyDynamic() const = 0;
   virtual bool isEcmp() const = 0;
   virtual bool hasLabel() const = 0;
   virtual opennsl_mpls_label_t getLabel() const = 0;
@@ -77,10 +76,6 @@ class BcmEgress : public BcmEgressBase {
   void programToTrunk(opennsl_if_t intfId, opennsl_vrf_t /* vrf */,
                       const folly::IPAddress& /* ip */, folly::MacAddress mac,
                       opennsl_trunk_t trunk);
-  /*
-   * Serialize to folly::dynamic
-   */
-  folly::dynamic toFollyDynamic() const override;
 
   bool isEcmp() const override {
     return false;
@@ -176,10 +171,6 @@ class BcmEcmpEgress : public BcmEgressBase {
   folly::MacAddress getMac() const override {
     throw FbossError("mac requested on multipath egress");
   }
-  /*
-   * Serialize to folly::dynamic
-   */
-  folly::dynamic toFollyDynamic() const override;
   /*
    * Update ecmp egress entries in HW
    */
