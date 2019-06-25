@@ -9,11 +9,16 @@
 namespace facebook {
 namespace fboss {
 
+template <>
+folly::dynamic BcmWarmBootState::toFollyDynamic(
+    const BcmHostKey& key,
+    const std::shared_ptr<BcmHost>& host) const;
+
 folly::dynamic BcmWarmBootState::hostTableToFollyDynamic() const {
   folly::dynamic hostsJson = folly::dynamic::array;
   for (const auto& hostTableEntry : *hw_->getHostTable()) {
     auto host = hostTableEntry.second.lock();
-    hostsJson.push_back(bcmHostToFollyDynamic(hostTableEntry.first, host));
+    hostsJson.push_back(toFollyDynamic(hostTableEntry.first, host));
   }
 
   // previously, ECMP next hops were maintained as a part of BcmHostTable, even
@@ -34,7 +39,8 @@ folly::dynamic BcmWarmBootState::hostTableToFollyDynamic() const {
   return hostTable;
 }
 
-folly::dynamic BcmWarmBootState::bcmHostToFollyDynamic(
+template <>
+folly::dynamic BcmWarmBootState::toFollyDynamic(
     const BcmHostKey& hostKey,
     const std::shared_ptr<BcmHost>& bcmHost) const {
   folly::dynamic host = folly::dynamic::object;
@@ -63,6 +69,7 @@ folly::dynamic BcmWarmBootState::bcmHostToFollyDynamic(
   }
   return host;
 }
+
 
 } // namespace fboss
 } // namespace facebook

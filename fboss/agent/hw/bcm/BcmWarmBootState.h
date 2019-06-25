@@ -11,9 +11,7 @@ namespace fboss {
  * from hardware or SDK APIs, either because required information is unavailable
  * in hardware or SDK.
  */
-class BcmHost;
 class BcmSwitchIf;
-class BcmHostKey;
 
 class BcmWarmBootState {
  public:
@@ -21,9 +19,10 @@ class BcmWarmBootState {
   folly::dynamic hostTableToFollyDynamic() const;
 
  private:
-  folly::dynamic bcmHostToFollyDynamic(
-      const BcmHostKey& hostKey,
-      const std::shared_ptr<BcmHost>& host) const;
+  template <typename Key, typename Value>
+  folly::dynamic toFollyDynamic(
+      const Key& key,
+      const std::shared_ptr<Value>& value) const;
   const BcmSwitchIf* hw_;
 };
 
