@@ -95,6 +95,12 @@ class BcmWarmBootCache {
   const Ecmp2EgressIds&  ecmp2EgressIds() const {
     return hwSwitchEcmp2EgressIds_;
   }
+
+  /* used in test */
+  folly::dynamic getEgressDynamic(const BcmEgress* egress) const {
+    return bcmWarmBootState_->egressToFollyDynamic(egress);
+  }
+
  private:
   using Egress = opennsl_l3_egress_t;
   using EcmpEgress = opennsl_l3_egress_ecmp_t;

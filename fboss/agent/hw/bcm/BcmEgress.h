@@ -127,6 +127,10 @@ class BcmEgress : public BcmEgressBase {
     return mac_;
   }
 
+  opennsl_if_t getIntfId() const {
+    return intfId_;
+  }
+
  private:
   bool alreadyExists(const opennsl_l3_egress_t& newEgress) const;
   virtual int createEgress(

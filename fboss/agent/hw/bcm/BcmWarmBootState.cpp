@@ -3,6 +3,7 @@
 #include "fboss/agent/hw/bcm/BcmWarmBootState.h"
 
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
@@ -20,6 +21,10 @@ template <>
 folly::dynamic BcmWarmBootState::toFollyDynamic(
     const BcmMultiPathNextHopKey& key,
     const std::shared_ptr<BcmMultiPathNextHop>& multiPathNextHop) const;
+
+template <>
+folly::dynamic BcmWarmBootState::egressToFollyDynamic(
+    const BcmEgress* egress) const;
 
 folly::dynamic BcmWarmBootState::hostTableToFollyDynamic() const {
   folly::dynamic hostsJson = folly::dynamic::array;
@@ -72,7 +77,7 @@ folly::dynamic BcmWarmBootState::toFollyDynamic(
   auto* egress = bcmHost->getEgress();
   if (egress) {
     // owned egress, BcmHost entry is not host route entry.
-    host[kEgress] = egress->toFollyDynamic();
+    host[kEgress] = egressToFollyDynamic(egress);
   }
   return host;
 }
@@ -95,6 +100,17 @@ folly::dynamic BcmWarmBootState::toFollyDynamic(
     ecmpHost[kEcmpEgress] = ecmpEgress->toFollyDynamic();
   }
   return ecmpHost;
+}
+
+template <>
+folly::dynamic BcmWarmBootState::egressToFollyDynamic(
+    const BcmEgress* egress) const {
+  CHECK(egress);
+  folly::dynamic egressDynamic = folly::dynamic::object;
+  egressDynamic[kEgressId] = egress->getID();
+  egressDynamic[kMac] = egress->getMac().toString();
+  egressDynamic[kIntfId] = egress->getIntfId();
+  return egressDynamic;
 }
 
 } // namespace fboss

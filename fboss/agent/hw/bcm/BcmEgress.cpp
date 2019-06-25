@@ -300,11 +300,8 @@ BcmEcmpEgress::~BcmEcmpEgress() {
 }
 
 folly::dynamic BcmEgress::toFollyDynamic() const {
-  folly::dynamic egress = folly::dynamic::object;
-  egress[kEgressId] = getID();
-  egress[kMac] = mac_.toString();
-  egress[kIntfId] = intfId_;
-  return egress;
+  CHECK(0); // TODO(pshaikh): must not be called, remove this
+  return folly::dynamic::object;
 }
 
 folly::dynamic BcmEcmpEgress::toFollyDynamic() const {

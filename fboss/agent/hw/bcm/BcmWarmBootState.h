@@ -18,11 +18,15 @@ class BcmWarmBootState {
   explicit BcmWarmBootState(const BcmSwitchIf* hw) : hw_(hw) {}
   folly::dynamic hostTableToFollyDynamic() const;
 
+  template <typename EgressT>
+  folly::dynamic egressToFollyDynamic(const EgressT* egress) const;
+
  private:
   template <typename Key, typename Value>
   folly::dynamic toFollyDynamic(
       const Key& key,
       const std::shared_ptr<Value>& value) const;
+
   const BcmSwitchIf* hw_;
 };
 
