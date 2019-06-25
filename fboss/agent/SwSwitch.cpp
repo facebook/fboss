@@ -739,6 +739,7 @@ void SwSwitch::handlePendingUpdates() {
   // handlePendingUpdates() call processed multiple updates.
   StateUpdateList updates;
   {
+    folly::SpinLockGuard guard(pendingUpdatesLock_);
     // When deciding how many elements to pull off the pendingUpdates_
     // list, we pull as many as we can, while making sure we don't
     // include any updates after an update that does not allow
