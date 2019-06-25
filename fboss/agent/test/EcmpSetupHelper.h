@@ -279,6 +279,10 @@ class EcmpSetupAnyNPorts {
       size_t width,
       const std::vector<NextHopWeight>& weights =
           std::vector<NextHopWeight>()) const;
+  folly::Optional<VlanID> getVlan(const PortDescriptor& port) const {
+    return ecmpSetupTargetedPorts_.getVlan(port);
+  }
+
  private:
   boost::container::flat_set<PortDescriptor> getPortDescs(int width) const;
   EcmpSetupTargetedPorts<IPAddrT> ecmpSetupTargetedPorts_;
