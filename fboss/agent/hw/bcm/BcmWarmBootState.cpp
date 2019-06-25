@@ -4,7 +4,9 @@
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
+#include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 
 namespace facebook {
 namespace fboss {
@@ -13,6 +15,11 @@ template <>
 folly::dynamic BcmWarmBootState::toFollyDynamic(
     const BcmHostKey& key,
     const std::shared_ptr<BcmHost>& host) const;
+
+template <>
+folly::dynamic BcmWarmBootState::toFollyDynamic(
+    const BcmMultiPathNextHopKey& key,
+    const std::shared_ptr<BcmMultiPathNextHop>& multiPathNextHop) const;
 
 folly::dynamic BcmWarmBootState::hostTableToFollyDynamic() const {
   folly::dynamic hostsJson = folly::dynamic::array;
@@ -28,9 +35,9 @@ folly::dynamic BcmWarmBootState::hostTableToFollyDynamic() const {
   folly::dynamic ecmpHostsJson = folly::dynamic::array;
   auto& ecmpHosts = hw_->getMultiPathNextHopTable()->getNextHops();
   for (const auto& vrfNhopsAndHost : ecmpHosts) {
-    auto weakPtr = vrfNhopsAndHost.second;
-    auto ecmpHost = weakPtr.lock();
-    ecmpHostsJson.push_back(ecmpHost->toFollyDynamic());
+    auto ecmpHost = vrfNhopsAndHost.second.lock();
+    ecmpHostsJson.push_back(
+        toFollyDynamic(vrfNhopsAndHost.first, ecmpHost));
   }
 
   folly::dynamic hostTable = folly::dynamic::object;
@@ -70,6 +77,25 @@ folly::dynamic BcmWarmBootState::toFollyDynamic(
   return host;
 }
 
+template <>
+folly::dynamic BcmWarmBootState::toFollyDynamic(
+    const BcmMultiPathNextHopKey& key,
+    const std::shared_ptr<BcmMultiPathNextHop>& multiPathNextHop) const {
+  folly::dynamic ecmpHost = folly::dynamic::object;
+  ecmpHost[kVrf] = key.first;
+  folly::dynamic nhops = folly::dynamic::array;
+  for (const auto& nhop : key.second) {
+    nhops.push_back(nhop.toFollyDynamic());
+  }
+  ecmpHost[kNextHops] = std::move(nhops);
+  ecmpHost[kEgressId] = multiPathNextHop->getEgressId();
+  ecmpHost[kEcmpEgressId] = multiPathNextHop->getEcmpEgressId();
+  auto ecmpEgress = multiPathNextHop->getEgress();
+  if (ecmpEgress) {
+    ecmpHost[kEcmpEgress] = ecmpEgress->toFollyDynamic();
+  }
+  return ecmpHost;
+}
 
 } // namespace fboss
 } // namespace facebook

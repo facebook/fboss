@@ -12,10 +12,6 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
-namespace {
-constexpr auto kNextHops = "nexthops";
-}
-
 namespace facebook {
 namespace fboss {
 
@@ -42,7 +38,6 @@ class BcmMultiPathNextHop {
   opennsl_if_t getEcmpEgressId() const {
     return ecmpEgress_ ? ecmpEgress_->getID() : BcmEgressBase::INVALID;
   }
-  folly::dynamic toFollyDynamic() const;
 
   BcmEcmpEgress* getEgress() const {
     return ecmpEgress_.get();

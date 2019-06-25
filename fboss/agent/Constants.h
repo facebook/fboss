@@ -29,6 +29,7 @@ auto constexpr kIntfId = "intfId";
 auto constexpr kIntfTable = "intfTable";
 auto constexpr kIp = "ip";
 auto constexpr kMac = "mac";
+constexpr auto kNextHops = "nexthops";
 auto constexpr kPaths = "paths";
 auto constexpr kRouteTable = "routeTable";
 auto constexpr kSwSwitch = "swSwitch";

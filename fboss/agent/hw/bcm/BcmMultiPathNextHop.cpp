@@ -67,22 +67,6 @@ BcmMultiPathNextHop::~BcmMultiPathNextHop() {
   XLOG(DBG3) << "Removing egress object for " << fwd_;
 }
 
-folly::dynamic BcmMultiPathNextHop::toFollyDynamic() const {
-  folly::dynamic ecmpHost = folly::dynamic::object;
-  ecmpHost[kVrf] = vrf_;
-  folly::dynamic nhops = folly::dynamic::array;
-  for (const auto& nhop : fwd_) {
-    nhops.push_back(nhop.toFollyDynamic());
-  }
-  ecmpHost[kNextHops] = std::move(nhops);
-  ecmpHost[kEgressId] = getEgressId();
-  ecmpHost[kEcmpEgressId] = getEcmpEgressId();
-  if (ecmpEgress_) {
-    ecmpHost[kEcmpEgress] = ecmpEgress_->toFollyDynamic();
-  }
-  return ecmpHost;
-}
-
 long BcmMultiPathNextHopTable::getEcmpEgressCount() const {
   return std::count_if(
       getNextHops().begin(),
