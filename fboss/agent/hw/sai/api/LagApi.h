@@ -23,7 +23,7 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
-struct LagTypes {
+struct LagApiParameters {
   static constexpr sai_api_t ApiType = SAI_API_LAG;
   struct Attributes {
     using EnumType = sai_lag_attr_t;
@@ -42,12 +42,13 @@ struct LagTypes {
   };
 };
 
-class LagApi : public SaiApi<LagApi, LagTypes> {
+class LagApi : public SaiApi<LagApi, LagApiParameters> {
  public:
   LagApi() {
     sai_status_t status =
         sai_api_query(SAI_API_LAG, reinterpret_cast<void**>(&api_));
-    saiApiCheckError(status, LagTypes::ApiType, "Failed to query for lag api");
+    saiApiCheckError(
+        status, LagApiParameters::ApiType, "Failed to query for lag api");
   }
   LagApi(const LagApi& other) = delete;
 
@@ -88,7 +89,7 @@ class LagApi : public SaiApi<LagApi, LagTypes> {
     return api_->set_lag_member_attribute(handle, attr);
   }
   sai_lag_api_t* api_;
-  friend class SaiApi<LagApi, LagTypes>;
+  friend class SaiApi<LagApi, LagApiParameters>;
 };
 
 } // namespace fboss

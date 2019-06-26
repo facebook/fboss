@@ -54,10 +54,10 @@ TEST_F(LagApiTest, createLagMember) {
   auto lagId = lagApi->create({}, 0);
   checkLag(lagId);
   auto portId = 21;
-  LagTypes::MemberAttributeType lagIdAttribute =
-      LagTypes::MemberAttributes::LagId(lagId);
-  LagTypes::MemberAttributeType portIdAttribute =
-      LagTypes::MemberAttributes::PortId(portId);
+  LagApiParameters::MemberAttributeType lagIdAttribute =
+      LagApiParameters::MemberAttributes::LagId(lagId);
+  LagApiParameters::MemberAttributeType portIdAttribute =
+      LagApiParameters::MemberAttributes::PortId(portId);
   auto lagMemberId = lagApi->createMember({lagIdAttribute, portIdAttribute}, 0);
   checkLagMember(lagId, lagMemberId, portId);
 }
@@ -70,18 +70,18 @@ TEST_F(LagApiTest, multipleLag) {
   EXPECT_NE(lagId1, lagId2);
 
   auto portId1 = 21;
-  LagTypes::MemberAttributeType lagIdAttribute1 =
-      LagTypes::MemberAttributes::LagId(lagId1);
-  LagTypes::MemberAttributeType portIdAttribute1 =
-      LagTypes::MemberAttributes::PortId(portId1);
+  LagApiParameters::MemberAttributeType lagIdAttribute1 =
+      LagApiParameters::MemberAttributes::LagId(lagId1);
+  LagApiParameters::MemberAttributeType portIdAttribute1 =
+      LagApiParameters::MemberAttributes::PortId(portId1);
   auto lagMemberId1 =
       lagApi->createMember({lagIdAttribute1, portIdAttribute1}, 0);
 
   auto portId2 = 22;
-  LagTypes::MemberAttributeType lagIdAttribute2 =
-      LagTypes::MemberAttributes::LagId(lagId2);
-  LagTypes::MemberAttributeType portIdAttribute2 =
-      LagTypes::MemberAttributes::PortId(portId2);
+  LagApiParameters::MemberAttributeType lagIdAttribute2 =
+      LagApiParameters::MemberAttributes::LagId(lagId2);
+  LagApiParameters::MemberAttributeType portIdAttribute2 =
+      LagApiParameters::MemberAttributes::PortId(portId2);
   auto lagMemberId2 =
       lagApi->createMember({lagIdAttribute2, portIdAttribute2}, 0);
   checkLagMember(lagId1, lagMemberId1, portId1);
@@ -92,10 +92,10 @@ TEST_F(LagApiTest, removeLagMember) {
   auto lagId = lagApi->create({}, 0);
   checkLag(lagId);
   auto portId = 21;
-  LagTypes::MemberAttributeType lagIdAttribute =
-      LagTypes::MemberAttributes::LagId(lagId);
-  LagTypes::MemberAttributeType portIdAttribute =
-      LagTypes::MemberAttributes::PortId(portId);
+  LagApiParameters::MemberAttributeType lagIdAttribute =
+      LagApiParameters::MemberAttributes::LagId(lagId);
+  LagApiParameters::MemberAttributeType portIdAttribute =
+      LagApiParameters::MemberAttributes::PortId(portId);
   auto lagMemberId = lagApi->createMember({lagIdAttribute, portIdAttribute}, 0);
   checkLagMember(lagId, lagMemberId, portId);
   lagApi->removeMember(lagMemberId);
@@ -106,11 +106,11 @@ TEST_F(LagApiTest, multipleLagMembers) {
   checkLag(lagId);
   std::vector<int> portIds = {21, 22, 23, 24};
 
-  LagTypes::MemberAttributeType lagIdAttribute =
-      LagTypes::MemberAttributes::LagId(lagId);
+  LagApiParameters::MemberAttributeType lagIdAttribute =
+      LagApiParameters::MemberAttributes::LagId(lagId);
   for (auto portId : portIds) {
-    LagTypes::MemberAttributeType portIdAttribute =
-        LagTypes::MemberAttributes::PortId(portId);
+    LagApiParameters::MemberAttributeType portIdAttribute =
+        LagApiParameters::MemberAttributes::PortId(portId);
     auto lagMemberId =
         lagApi->createMember({lagIdAttribute, portIdAttribute}, 0);
     checkLagMember(lagId, lagMemberId, portId);
@@ -121,17 +121,17 @@ TEST_F(LagApiTest, getLagMemberAttribute) {
   auto lagId = lagApi->create({}, 0);
   checkLag(lagId);
   auto portId = 21;
-  LagTypes::MemberAttributeType lagIdAttribute =
-      LagTypes::MemberAttributes::LagId(lagId);
-  LagTypes::MemberAttributeType portIdAttribute =
-      LagTypes::MemberAttributes::PortId(portId);
+  LagApiParameters::MemberAttributeType lagIdAttribute =
+      LagApiParameters::MemberAttributes::LagId(lagId);
+  LagApiParameters::MemberAttributeType portIdAttribute =
+      LagApiParameters::MemberAttributes::PortId(portId);
   auto lagMemberId = lagApi->createMember({lagIdAttribute, portIdAttribute}, 0);
   checkLagMember(lagId, lagMemberId, portId);
 
   auto lagIdGot = lagApi->getMemberAttribute(
-      LagTypes::MemberAttributes::LagId(), lagMemberId);
+      LagApiParameters::MemberAttributes::LagId(), lagMemberId);
   auto portIdGot = lagApi->getMemberAttribute(
-      LagTypes::MemberAttributes::PortId(), lagMemberId);
+      LagApiParameters::MemberAttributes::PortId(), lagMemberId);
   checkLagMember(lagIdGot, lagMemberId, portIdGot);
   EXPECT_EQ(lagId, lagIdGot);
   EXPECT_EQ(portId, portIdGot);
