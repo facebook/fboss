@@ -62,7 +62,7 @@ sai_object_id_t SaiRouterInterfaceManager::addRouterInterface(
     const std::shared_ptr<Interface>& swInterface) {
   InterfaceID swId(swInterface->getID());
   auto itr = routerInterfaces_.find(swId);
-  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  auto switchId = managerTable_->switchManager().getSwitchSaiId();
   if (itr != routerInterfaces_.end()) {
     throw FbossError(
         "Attempted to add duplicate router interface with InterfaceID ", swId);

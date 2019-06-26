@@ -45,7 +45,7 @@ std::unique_ptr<SaiNextHop> SaiNextHopManager::addNextHop(
     const folly::IPAddress& ip) {
   NextHopApiParameters::Attributes attributes{
       {SAI_NEXT_HOP_TYPE_IP, routerInterfaceId, ip}};
-  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  auto switchId = managerTable_->switchManager().getSwitchSaiId();
   return std::make_unique<SaiNextHop>(apiTable_, attributes, switchId);
 }
 

@@ -224,6 +224,7 @@ HwInitResult SaiSwitch::initLocked(
   saiApiTable_ = std::make_unique<SaiApiTable>();
   managerTable_ =
       std::make_unique<SaiManagerTable>(apiTableLocked(lock), platform_);
+  switchId_ = managerTable_->switchManager().getSwitchSaiId();
   callback_ = callback;
 
   auto state = std::make_shared<SwitchState>();
@@ -314,10 +315,8 @@ bool SaiSwitch::sendPacketSwitchedSyncLocked(
   HostifApiParameters::HostifApiPacket txPacket{
       reinterpret_cast<void*>(pkt->buf()->writableData()),
       pkt->buf()->length()};
-  auto switchId =
-      managerTableLocked(lock)->switchManager().getSwitchSaiId(SwitchID(0));
   auto& hostifApi = saiApiTable_->hostifApi();
-  hostifApi.send(attributes.attrs(), switchId, txPacket);
+  hostifApi.send(attributes.attrs(), switchId_, txPacket);
   return true;
 }
 
@@ -337,10 +336,8 @@ bool SaiSwitch::sendPacketOutOfPortSyncLocked(
   HostifApiParameters::TxPacketAttributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
   HostifApiParameters::TxPacketAttributes attributes{{txType, egressPort}};
-  auto switchId =
-      managerTableLocked(lock)->switchManager().getSwitchSaiId(SwitchID(0));
   auto& hostifApi = saiApiTable_->hostifApi();
-  hostifApi.send(attributes.attrs(), switchId, txPacket);
+  hostifApi.send(attributes.attrs(), switchId_, txPacket);
   return true;
 }
 
@@ -372,10 +369,8 @@ void SaiSwitch::switchRunStateChangedLocked(
     SwitchRunState newState) {
   switch (newState) {
     case SwitchRunState::INITIALIZED: {
-      auto switchId =
-          managerTableLocked(lock)->switchManager().getSwitchSaiId(SwitchID(0));
       auto& switchApi = apiTableLocked(lock)->switchApi();
-      switchApi.registerRxCallback(switchId, __gPacketRxCallback);
+      switchApi.registerRxCallback(switchId_, __gPacketRxCallback);
     } break;
     default:
       break;

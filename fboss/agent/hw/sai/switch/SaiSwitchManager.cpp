@@ -28,10 +28,10 @@ std::vector<int8_t> getConnectionHandle() {
 
 SwitchApiParameters::Attributes getSwitchAttributes(
     const SaiPlatform* platform) {
+  SwitchApiParameters::Attributes::InitSwitch initSwitch(true);
   SwitchApiParameters::Attributes::HwInfo hwInfo(getConnectionHandle());
   SwitchApiParameters::Attributes::SrcMac srcMac(platform->getLocalMac());
-  SwitchApiParameters::Attributes::InitSwitch initSwitch(true);
-  return {{{hwInfo}, srcMac, initSwitch}};
+  return {{initSwitch, hwInfo, srcMac}};
 }
 } // namespace
 
@@ -63,37 +63,29 @@ SaiSwitchManager::SaiSwitchManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
     : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {
-  auto defaultSwitch = std::make_unique<SaiSwitchInstance>(
+  switch_ = std::make_unique<SaiSwitchInstance>(
       apiTable_, getSwitchAttributes(platform));
-  switches_.emplace(std::make_pair(SwitchID(0), std::move(defaultSwitch)));
 }
 
-SaiSwitchInstance* SaiSwitchManager::getSwitchImpl(
-    const SwitchID& switchId) const {
-  auto itr = switches_.find(switchId);
-  if (itr == switches_.end()) {
-    return nullptr;
+SaiSwitchInstance* SaiSwitchManager::getSwitchImpl() const {
+  if (!switch_) {
+    XLOG(FATAL) << "invalid null switch";
   }
-  if (!itr->second) {
-    XLOG(FATAL) << "invalid null switch for switchID: " << switchId;
-  }
-  return itr->second.get();
+  return switch_.get();
 }
 
-const SaiSwitchInstance* SaiSwitchManager::getSwitch(
-    const SwitchID& switchId) const {
-  return getSwitchImpl(switchId);
+const SaiSwitchInstance* SaiSwitchManager::getSwitch() const {
+  return getSwitchImpl();
 }
 
-SaiSwitchInstance* SaiSwitchManager::getSwitch(const SwitchID& switchId) {
-  return getSwitchImpl(switchId);
+SaiSwitchInstance* SaiSwitchManager::getSwitch() {
+  return getSwitchImpl();
 }
 
-sai_object_id_t SaiSwitchManager::getSwitchSaiId(
-    const SwitchID& switchId) const {
-  auto switchInstance = getSwitch(switchId);
+sai_object_id_t SaiSwitchManager::getSwitchSaiId() const {
+  auto switchInstance = getSwitch();
   if (!switchInstance) {
-    throw FbossError("Attempted to query non-existing switch: ", switchId);
+    throw FbossError("failed to get switch id: switch not initialized");
   }
   return switchInstance->id();
 }

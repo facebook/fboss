@@ -63,7 +63,7 @@ bool SaiBridgePort::operator!=(const SaiBridgePort& other) const {
 
 std::unique_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
     sai_object_id_t portId) {
-  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  auto switchId = managerTable_->switchManager().getSwitchSaiId();
   BridgeApiParameters::MemberAttributes attributes{
       {SAI_BRIDGE_PORT_TYPE_PORT, portId}};
   return std::make_unique<SaiBridgePort>(apiTable_, attributes, switchId);
@@ -74,7 +74,7 @@ SaiBridgeManager::SaiBridgeManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
     : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {
-  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  auto switchId = managerTable_->switchManager().getSwitchSaiId();
   BridgeApiParameters::Attributes attributes{{SAI_BRIDGE_TYPE_1Q}};
   auto defaultBridge =
       std::make_unique<SaiBridge>(apiTable_, attributes, switchId);

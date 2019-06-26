@@ -57,16 +57,16 @@ class SaiSwitchManager {
       SaiApiTable* apiTable,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
-  const SaiSwitchInstance* getSwitch(const SwitchID& switchId) const;
-  SaiSwitchInstance* getSwitch(const SwitchID& switchId);
-  sai_object_id_t getSwitchSaiId(const SwitchID& switchId) const;
+  const SaiSwitchInstance* getSwitch() const;
+  SaiSwitchInstance* getSwitch();
+  sai_object_id_t getSwitchSaiId() const;
 
  private:
-  SaiSwitchInstance* getSwitchImpl(const SwitchID& switchId) const;
+  SaiSwitchInstance* getSwitchImpl() const;
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
-  std::unordered_map<SwitchID, std::unique_ptr<SaiSwitchInstance>> switches_;
+  std::unique_ptr<SaiSwitchInstance> switch_;
 };
 
 } // namespace fboss

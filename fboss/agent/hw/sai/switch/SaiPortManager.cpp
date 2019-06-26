@@ -137,7 +137,7 @@ SaiPort::SaiPort(
       managerTable_(managerTable),
       attributes_(attributes) {
   auto& portApi = apiTable_->portApi();
-  auto switchId = managerTable->switchManager().getSwitchSaiId(SwitchID(0));
+  auto switchId = managerTable->switchManager().getSwitchSaiId();
   id_ = portApi.create(attributes_.attrs(), switchId);
   bridgePort_ = managerTable_->bridgeManager().addBridgePort(id_);
 }

@@ -79,7 +79,7 @@ NeighborApiParameters::EntryType SaiNeighborManager::saiEntryFromSwEntry(
         "No SaiRouterInterface for InterfaceID: ",
         swEntry->getIntfID());
   }
-  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  auto switchId = managerTable_->switchManager().getSwitchSaiId();
   return NeighborApiParameters::EntryType(switchId, routerInterface->id(), ip);
 }
 

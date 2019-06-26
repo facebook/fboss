@@ -40,7 +40,7 @@ bool SaiHostifTrapGroup::operator!=(const SaiHostifTrapGroup& other) const {
 std::shared_ptr<SaiHostifTrapGroup> SaiHostifManager::addHostifTrapGroup(
     uint32_t queueId) {
   HostifApiParameters::Attributes attrs{{queueId, folly::none}};
-  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  auto switchId = managerTable_->switchManager().getSwitchSaiId();
   auto entry =
       hostifTrapGroups_.refOrEmplace(queueId, apiTable_, attrs, switchId);
   return entry.first;
@@ -96,7 +96,7 @@ sai_object_id_t SaiHostifManager::incRefOrAddHostifTrapGroup(
     cfg::PacketRxReason trapId,
     uint32_t queueId) {
   auto hostifTrapGroup = addHostifTrapGroup(queueId);
-  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  auto switchId = managerTable_->switchManager().getSwitchSaiId();
   HostifApiParameters::MemberAttributes::PacketAction packetAction{
       SAI_PACKET_ACTION_TRAP};
   HostifApiParameters::MemberAttributes::TrapType trapType{

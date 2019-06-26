@@ -219,6 +219,8 @@ class SaiSwitch : public HwSwitch {
    * 3. sai callbacks (port status, packet received)
    */
   mutable std::mutex saiSwitchMutex_;
+
+  sai_object_id_t switchId_;
 };
 
 } // namespace fboss

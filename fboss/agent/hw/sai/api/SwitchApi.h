@@ -61,13 +61,16 @@ struct SwitchApiParameters {
         EnumType,
         SAI_SWITCH_ATTR_MAX_NUMBER_OF_SUPPORTED_PORTS,
         sai_uint32_t>;
-    using CreateAttributes = SaiAttributeTuple<HwInfo, SrcMac, InitSwitch>;
+    using CreateAttributes = SaiAttributeTuple<
+        InitSwitch,
+        SaiAttributeOptional<HwInfo>,
+        SaiAttributeOptional<SrcMac>>;
     Attributes() {}
     Attributes(const CreateAttributes& attrs) {
-      std::tie(hwInfo, srcMac, initSwitch) = attrs.value();
+      std::tie(initSwitch, hwInfo, srcMac) = attrs.value();
     }
     CreateAttributes attrs() const {
-      return {hwInfo, srcMac, initSwitch};
+      return {initSwitch, hwInfo, srcMac};
     }
     bool operator==(const Attributes& other) const {
       return attrs() == other.attrs();
@@ -75,9 +78,9 @@ struct SwitchApiParameters {
     bool operator!=(const Attributes& other) const {
       return !(*this == other);
     }
-    typename HwInfo::ValueType hwInfo;
-    typename SrcMac::ValueType srcMac;
     typename InitSwitch::ValueType initSwitch;
+    typename folly::Optional<HwInfo::ValueType> hwInfo;
+    typename folly::Optional<SrcMac::ValueType> srcMac;
   };
 };
 

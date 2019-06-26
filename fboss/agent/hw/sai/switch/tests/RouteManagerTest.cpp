@@ -186,7 +186,7 @@ TEST_F(ToMeRouteTest, toMeRoutes) {
   const auto& toMeRoute = toMeRoutes.at(0);
   EXPECT_EQ(toMeRoute->attributes().packetAction, SAI_PACKET_ACTION_FORWARD);
 
-  auto switchId = saiManagerTable->switchManager().getSwitch(SwitchID(0))->id();
+  auto switchId = saiManagerTable->switchManager().getSwitchSaiId();
   auto cpuPortId = saiApiTable->switchApi().getAttribute(
       SwitchApiParameters::Attributes::CpuPort{}, switchId);
   EXPECT_EQ(toMeRoute->attributes().nextHopId, cpuPortId);

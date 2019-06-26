@@ -53,7 +53,7 @@ SaiVlan::SaiVlan(
       managerTable_(managerTable),
       attributes_(attributes) {
   auto& vlanApi = apiTable_->vlanApi();
-  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  auto switchId = managerTable_->switchManager().getSwitchSaiId();
   id_ = vlanApi.create(attributes_.attrs(), switchId);
 }
 
@@ -66,7 +66,7 @@ SaiVlan::~SaiVlan() {
 void SaiVlan::addMember(PortID swPortId) {
   VlanApiParameters::MemberAttributes::VlanId vlanIdMemberAttribute{id()};
   SaiPort* port = managerTable_->portManager().getPort(swPortId);
-  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  auto switchId = managerTable_->switchManager().getSwitchSaiId();
   if (!port) {
     throw FbossError(
         "Failed to add vlan member: no port matching vlan member port: ",

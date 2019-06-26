@@ -58,7 +58,7 @@ SaiNextHopGroup::SaiNextHopGroup(
       attributes_(attributes),
       swNextHops_(swNextHops) {
   auto& nextHopGroupApi = apiTable_->nextHopGroupApi();
-  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  auto switchId = managerTable_->switchManager().getSwitchSaiId();
   id_ = nextHopGroupApi.create(attributes_.attrs(), switchId);
 }
 
@@ -87,7 +87,7 @@ bool SaiNextHopGroup::empty() const {
 
 void SaiNextHopGroup::addMember(sai_object_id_t nextHopId) {
   NextHopGroupApiParameters::MemberAttributes attributes{{id_, nextHopId}};
-  auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+  auto switchId = managerTable_->switchManager().getSwitchSaiId();
   auto member =
       std::make_unique<SaiNextHopGroupMember>(apiTable_, attributes, switchId);
   sai_object_id_t memberId = member->id();
@@ -124,7 +124,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
       throw FbossError("Missing SAI router interface for ", interfaceId);
     }
     folly::IPAddress ip = swNextHop.addr();
-    auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+    auto switchId = managerTable_->switchManager().getSwitchSaiId();
     NeighborApiParameters::EntryType neighborEntry{
         switchId, routerInterface->id(), ip};
     nextHopsByNeighbor_[neighborEntry].insert(swNextHops);
@@ -150,7 +150,7 @@ void SaiNextHopGroupManager::unregisterNeighborResolutionHandling(
       continue;
     }
     folly::IPAddress ip = swNextHop.addr();
-    auto switchId = managerTable_->switchManager().getSwitchSaiId(SwitchID(0));
+    auto switchId = managerTable_->switchManager().getSwitchSaiId();
     NeighborApiParameters::EntryType neighborEntry{
         switchId, routerInterface->id(), ip};
     nextHopsByNeighbor_[neighborEntry].erase(swNextHops);
