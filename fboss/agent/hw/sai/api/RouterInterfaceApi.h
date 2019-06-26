@@ -25,6 +25,7 @@ namespace facebook {
 namespace fboss {
 
 struct RouterInterfaceApiParameters {
+  static constexpr sai_api_t ApiType = SAI_API_ROUTER_INTERFACE;
   struct Attributes {
     using EnumType = sai_router_interface_attr_t;
     using SrcMac = SaiAttribute<
@@ -69,7 +70,10 @@ class RouterInterfaceApi
   RouterInterfaceApi() {
     sai_status_t status = sai_api_query(
         SAI_API_ROUTER_INTERFACE, reinterpret_cast<void**>(&api_));
-    saiCheckError(status, "Failed to query for router interface api");
+    saiApiCheckError(
+        status,
+        RouterInterfaceApiParameters::ApiType,
+        "Failed to query for router interface api");
   }
   RouterInterfaceApi(const RouterInterfaceApi& other) = delete;
 

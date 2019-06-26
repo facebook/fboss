@@ -25,29 +25,48 @@ namespace fboss {
 class SaiApiError : public FbossError {
  public:
   template <typename... Args>
-  SaiApiError(sai_status_t status, Args&&... args)
-      : FbossError(std::forward<Args>(args)..., ": ", status),
-        status_(status) {}
+  SaiApiError(sai_status_t status, sai_api_t apiType, Args&&... args)
+      : FbossError(
+            "[",
+            saiApiTypeToString(apiType),
+            "] ",
+            std::forward<Args>(args)...,
+            ": ",
+            status),
+        status_(status),
+        apiType_(apiType) {}
   sai_status_t getSaiStatus() const {
     return status_;
+  }
+  sai_api_t getSaiApiType() const {
+    return apiType_;
   }
   ~SaiApiError() throw() override {}
 
  private:
   sai_status_t status_;
+  sai_api_t apiType_;
 };
 
 template <typename... Args>
-void saiCheckError(sai_status_t status, Args&&... args) {
+void saiApiCheckError(sai_status_t status, sai_api_t apiType, Args&&... args) {
   if (status != SAI_STATUS_SUCCESS) {
-    throw SaiApiError(status, std::forward<Args>(args)...);
+    throw SaiApiError(status, apiType, std::forward<Args>(args)...);
   }
 }
 
 template <typename... Args>
-void saiLogError(sai_status_t status, Args&&... args) {
+void saiCheckError(sai_status_t status, Args&&... args) {
   if (status != SAI_STATUS_SUCCESS) {
-    XLOG(ERR) << folly::to<std::string>(std::forward<Args>(args)...) << ": "
+    throw SaiApiError(status, SAI_API_UNSPECIFIED, std::forward<Args>(args)...);
+  }
+}
+
+template <typename... Args>
+void saiLogError(sai_status_t status, sai_api_t apiType, Args&&... args) {
+  if (status != SAI_STATUS_SUCCESS) {
+    XLOG(ERR) << "[" << saiApiTypeToString(apiType) << "]"
+              << folly::to<std::string>(std::forward<Args>(args)...) << ": "
               << status;
   }
 }

@@ -25,6 +25,7 @@ namespace facebook {
 namespace fboss {
 
 struct VlanApiParameters {
+  static constexpr sai_api_t ApiType = SAI_API_VLAN;
   struct Attributes {
     using EnumType = sai_vlan_attr_t;
     using VlanId = SaiAttribute<EnumType, SAI_VLAN_ATTR_VLAN_ID, sai_uint16_t>;
@@ -78,7 +79,8 @@ class VlanApi : public SaiApi<VlanApi, VlanApiParameters> {
   VlanApi() {
     sai_status_t status =
         sai_api_query(SAI_API_VLAN, reinterpret_cast<void**>(&api_));
-    saiCheckError(status, "Failed to query for bridge api");
+    saiApiCheckError(
+        status, VlanApiParameters::ApiType, "Failed to query for vlan api");
   }
   VlanApi(const VlanApi& other) = delete;
 

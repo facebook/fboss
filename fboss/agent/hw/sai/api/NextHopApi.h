@@ -25,6 +25,7 @@ namespace facebook {
 namespace fboss {
 
 struct NextHopApiParameters {
+  static constexpr sai_api_t ApiType = SAI_API_NEXT_HOP;
   struct Attributes {
     using EnumType = sai_next_hop_attr_t;
     using Ip = SaiAttribute<EnumType, SAI_NEXT_HOP_ATTR_IP, folly::IPAddress>;
@@ -57,7 +58,10 @@ class NextHopApi : public SaiApi<NextHopApi, NextHopApiParameters> {
   NextHopApi() {
     sai_status_t status =
         sai_api_query(SAI_API_NEXT_HOP, reinterpret_cast<void**>(&api_));
-    saiCheckError(status, "Failed to query for next hop api");
+    saiApiCheckError(
+        status,
+        NextHopApiParameters::ApiType,
+        "Failed to query for next hop api");
   }
 
  private:

@@ -26,6 +26,7 @@ namespace facebook {
 namespace fboss {
 
 struct SwitchApiParameters {
+  static constexpr sai_api_t ApiType = SAI_API_SWITCH;
   struct Attributes {
     using EnumType = sai_switch_attr_t;
     using CpuPort =
@@ -85,7 +86,8 @@ class SwitchApi : public SaiApi<SwitchApi, SwitchApiParameters> {
   SwitchApi() {
     sai_status_t status =
         sai_api_query(SAI_API_SWITCH, reinterpret_cast<void**>(&api_));
-    saiCheckError(status, "Failed to query for switch api");
+    saiApiCheckError(
+        status, SwitchApiParameters::ApiType, "Failed to query for switch api");
   }
   const sai_switch_api_t* api() const {
     return api_;

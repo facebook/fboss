@@ -57,7 +57,7 @@ class SaiApi {
         saiAttributeTs.data(),
         saiAttributeTs.size(),
         std::forward<Args>(args)...);
-    saiCheckError(status, "Failed to create2 sai entity");
+    saiApiCheckError(status, T::ApiType, "Failed to create2 sai entity");
     return id;
   }
 
@@ -75,13 +75,14 @@ class SaiApi {
         saiAttributeTs.data(),
         saiAttributeTs.size(),
         std::forward<Args>(args)...);
-    saiCheckError(status, "Failed to create2 sai entity");
+    saiApiCheckError(status, T::ApiType, "Failed to create2 sai entity");
   }
 
   template <typename T>
   void remove(const T& t) {
     sai_status_t status = impl()._remove(t);
-    saiCheckError(status, "Failed to remove sai entity");
+    saiApiCheckError(
+        status, ApiParameters::ApiType, "Failed to remove sai entity");
   }
 
   template <typename AttrT, typename... Args>
@@ -90,7 +91,8 @@ class SaiApi {
       Args&&... args) {
     sai_status_t status =
         impl()._getAttr(attr.saiAttr(), std::forward<Args>(args)...);
-    saiCheckError(status, "Failed to get sai attribute");
+    saiApiCheckError(
+        status, ApiParameters::ApiType, "Failed to get sai attribute");
     return attr.value();
   }
 
@@ -105,7 +107,8 @@ class SaiApi {
       Args&&... args) {
     sai_status_t status =
         impl()._getMemberAttr(attr.saiAttr(), std::forward<Args>(args)...);
-    saiCheckError(status, "Failed to get sai member attribute");
+    saiApiCheckError(
+        status, ApiParameters::ApiType, "Failed to get sai member attribute");
     return attr.value();
   }
 
@@ -113,7 +116,8 @@ class SaiApi {
   void setMemberAttribute(const AttrT& attr, Args&&... args) {
     sai_status_t status =
         impl()._setMemberAttr(attr.saiAttr(), std::forward<Args>(args)...);
-    saiCheckError(status, "Failed to set sai attribute");
+    saiApiCheckError(
+        status, ApiParameters::ApiType, "Failed to set sai attribute");
   }
 
   template <typename T = ApiParameters, typename... Args>
@@ -131,13 +135,15 @@ class SaiApi {
         saiAttributeTs.data(),
         saiAttributeTs.size(),
         std::forward<Args>(args)...);
-    saiCheckError(status, "Failed to create2 sai entity member");
+    saiApiCheckError(
+        status, T::ApiType, "Failed to create2 sai entity member");
     return id;
   }
 
   void removeMember(sai_object_id_t id) {
     sai_status_t status = impl()._removeMember(id);
-    saiCheckError(status, "Failed to remove sai member entity");
+    saiApiCheckError(
+        status, ApiParameters::ApiType, "Failed to remove sai member entity");
   }
 
  private:

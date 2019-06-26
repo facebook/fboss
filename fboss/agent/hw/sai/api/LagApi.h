@@ -24,6 +24,7 @@ namespace facebook {
 namespace fboss {
 
 struct LagTypes {
+  static constexpr sai_api_t ApiType = SAI_API_LAG;
   struct Attributes {
     using EnumType = sai_lag_attr_t;
     using MemberList = SaiAttribute<
@@ -44,11 +45,9 @@ struct LagTypes {
 class LagApi : public SaiApi<LagApi, LagTypes> {
  public:
   LagApi() {
-    sai_status_t res =
+    sai_status_t status =
         sai_api_query(SAI_API_LAG, reinterpret_cast<void**>(&api_));
-    if (res != SAI_STATUS_SUCCESS) {
-      throw SaiApiError(res);
-    }
+    saiApiCheckError(status, LagTypes::ApiType, "Failed to query for lag api");
   }
   LagApi(const LagApi& other) = delete;
 

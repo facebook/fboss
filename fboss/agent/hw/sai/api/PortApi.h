@@ -25,6 +25,7 @@ namespace facebook {
 namespace fboss {
 
 struct PortApiParameters {
+  static constexpr sai_api_t ApiType = SAI_API_PORT;
   struct Attributes {
     using EnumType = sai_port_attr_t;
     using AdminState = SaiAttribute<EnumType, SAI_PORT_ATTR_ADMIN_STATE, bool>;
@@ -62,7 +63,8 @@ class PortApi : public SaiApi<PortApi, PortApiParameters> {
   PortApi() {
     sai_status_t status =
         sai_api_query(SAI_API_PORT, reinterpret_cast<void**>(&api_));
-    saiCheckError(status, "Failed to query for port api");
+    saiApiCheckError(
+        status, PortApiParameters::ApiType, "Failed to query for port api");
   }
 
  private:

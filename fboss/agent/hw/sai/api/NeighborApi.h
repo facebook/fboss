@@ -30,6 +30,7 @@ namespace facebook {
 namespace fboss {
 
 struct NeighborApiParameters {
+  static constexpr sai_api_t ApiType = SAI_API_NEIGHBOR;
   struct Attributes {
     using EnumType = sai_neighbor_entry_attr_t;
     using DstMac = SaiAttribute<
@@ -93,7 +94,10 @@ class NeighborApi : public SaiApi<NeighborApi, NeighborApiParameters> {
   NeighborApi() {
     sai_status_t status =
         sai_api_query(SAI_API_NEIGHBOR, reinterpret_cast<void**>(&api_));
-    saiCheckError(status, "Failed to query for neighbor api");
+    saiApiCheckError(
+        status,
+        NeighborApiParameters::ApiType,
+        "Failed to query for neighbor api");
   }
 
  private:

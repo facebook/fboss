@@ -28,6 +28,7 @@ namespace facebook {
 namespace fboss {
 
 struct RouteApiParameters {
+  static constexpr sai_api_t ApiType = SAI_API_ROUTE;
   struct Attributes {
     using EnumType = sai_route_entry_attr_t;
     using NextHopId =
@@ -92,7 +93,8 @@ class RouteApi : public SaiApi<RouteApi, RouteApiParameters> {
   RouteApi() {
     sai_status_t status =
         sai_api_query(SAI_API_ROUTE, reinterpret_cast<void**>(&api_));
-    saiCheckError(status, "Failed to query for route api");
+    saiApiCheckError(
+        status, RouteApiParameters::ApiType, "Failed to query for route api");
   }
 
  private:

@@ -26,6 +26,7 @@ namespace facebook {
 namespace fboss {
 
 struct HostifApiParameters {
+  static constexpr sai_api_t ApiType = SAI_API_HOSTIF;
   struct TxPacketAttributes {
     using EnumType = sai_hostif_packet_attr_t;
     using TxType = SaiAttribute<
@@ -103,7 +104,6 @@ struct HostifApiParameters {
     bool operator!=(const Attributes& other) const {
       return !(*this == other);
     }
-
     folly::Optional<typename Queue::ValueType> queue;
     folly::Optional<typename Policer::ValueType> policer;
   };
@@ -150,7 +150,8 @@ class HostifApi : public SaiApi<HostifApi, HostifApiParameters> {
   HostifApi() {
     sai_status_t status =
         sai_api_query(SAI_API_HOSTIF, reinterpret_cast<void**>(&api_));
-    saiCheckError(status, "Failed to query for switch api");
+    saiApiCheckError(
+        status, HostifApiParameters::ApiType, "Failed to query for switch api");
   }
 
  private:

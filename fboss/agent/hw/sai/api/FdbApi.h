@@ -30,6 +30,7 @@ namespace facebook {
 namespace fboss {
 
 struct FdbApiParameters {
+  static constexpr sai_api_t ApiType = SAI_API_FDB;
   struct Attributes {
     using EnumType = sai_fdb_entry_attr_t;
     using Type = SaiAttribute<EnumType, SAI_FDB_ENTRY_ATTR_TYPE, sai_int32_t>;
@@ -49,6 +50,7 @@ struct FdbApiParameters {
     bool operator!=(const Attributes& other) const {
       return !(*this == other);
     }
+
     Type::ValueType type;
     BridgePortId::ValueType bridgePortId;
   };
@@ -93,7 +95,8 @@ class FdbApi : public SaiApi<FdbApi, FdbApiParameters> {
   FdbApi() {
     sai_status_t status =
         sai_api_query(SAI_API_FDB, reinterpret_cast<void**>(&api_));
-    saiCheckError(status, "Failed to query for fdb api");
+    saiApiCheckError(
+        status, FdbApiParameters::ApiType, "Failed to query for fdb api");
   }
 
  private:

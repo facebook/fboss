@@ -25,6 +25,7 @@ namespace facebook {
 namespace fboss {
 
 struct NextHopGroupApiParameters {
+  static constexpr sai_api_t ApiType = SAI_API_NEXT_HOP_GROUP;
   struct Attributes {
     using EnumType = sai_next_hop_group_attr_t;
     using NextHopMemberList = SaiAttribute<
@@ -82,7 +83,10 @@ class NextHopGroupApi
   NextHopGroupApi() {
     sai_status_t status =
         sai_api_query(SAI_API_NEXT_HOP_GROUP, reinterpret_cast<void**>(&api_));
-    saiCheckError(status, "Failed to query for next hop group api");
+    saiApiCheckError(
+        status,
+        NextHopGroupApiParameters::ApiType,
+        "Failed to query for next hop group api");
   }
   NextHopGroupApi(const NextHopGroupApi& other) = delete;
 

@@ -25,6 +25,7 @@ namespace facebook {
 namespace fboss {
 
 struct VirtualRouterApiParameters {
+  static constexpr sai_api_t ApiType = SAI_API_VIRTUAL_ROUTER;
   struct Attributes {
     using EnumType = sai_virtual_router_attr_t;
     using SrcMac = SaiAttribute<
@@ -51,7 +52,10 @@ class VirtualRouterApi
   VirtualRouterApi() {
     sai_status_t status =
         sai_api_query(SAI_API_VIRTUAL_ROUTER, reinterpret_cast<void**>(&api_));
-    saiCheckError(status, "Failed to query for virtual router api");
+    saiApiCheckError(
+        status,
+        VirtualRouterApiParameters::ApiType,
+        "Failed to query for virtual router api");
   }
   VirtualRouterApi(const VirtualRouterApi& other) = delete;
 

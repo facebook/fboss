@@ -25,6 +25,7 @@ namespace facebook {
 namespace fboss {
 
 struct BridgeApiParameters {
+  static constexpr sai_api_t ApiType = SAI_API_BRIDGE;
   struct Attributes {
     using EnumType = sai_bridge_attr_t;
     using PortList = SaiAttribute<
@@ -74,7 +75,8 @@ class BridgeApi : public SaiApi<BridgeApi, BridgeApiParameters> {
   BridgeApi() {
     sai_status_t status =
         sai_api_query(SAI_API_BRIDGE, reinterpret_cast<void**>(&api_));
-    saiCheckError(status, "Failed to query for bridge api");
+    saiApiCheckError(
+        status, BridgeApiParameters::ApiType, "Failed to query for bridge api");
   }
 
  private:
