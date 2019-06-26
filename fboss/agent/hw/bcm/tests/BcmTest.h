@@ -55,13 +55,13 @@ class BcmTest : public HwTest {
   std::vector<PortID> getAllPortsinGroup(PortID portID);
   int getUnit() const;
 
+  virtual std::map<PortID, HwPortStats> getLatestPortStats(
+      const std::vector<PortID>& ports) override;
+
  protected:
   virtual cfg::SwitchConfig initialConfig() const {
     return cfg::SwitchConfig();
   }
-  virtual std::map<PortID, HwPortStats> getLatestPortStats(
-      const std::vector<PortID>& ports) override;
-
  private:
   std::pair<std::unique_ptr<Platform>, std::unique_ptr<HwSwitch>> createHw()
       const override;

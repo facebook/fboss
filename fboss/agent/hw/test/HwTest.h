@@ -51,6 +51,13 @@ class HwTest : public ::testing::Test, public HwSwitch::Callback {
   void linkStateChanged(PortID port, bool up) noexcept override;
   void exitFatal() const noexcept override;
 
+  /*
+   * Sync and get current stats for port(s)
+   */
+  HwPortStats getLatestPortStats(PortID port);
+  virtual std::map<PortID, HwPortStats> getLatestPortStats(
+      const std::vector<PortID>& ports) = 0;
+
  private:
   /*
    * setupHw is a hook for each of the specific HW implementations to do the
@@ -120,10 +127,6 @@ class HwTest : public ::testing::Test, public HwSwitch::Callback {
   std::shared_ptr<SwitchState> getProgrammedState() const {
     return programmedState_;
   }
-
-  HwPortStats getLatestPortStats(PortID port);
-  virtual std::map<PortID, HwPortStats> getLatestPortStats(
-      const std::vector<PortID>& ports) = 0;
 
  private:
   std::shared_ptr<SwitchState> initHwSwitch();
