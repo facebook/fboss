@@ -13,6 +13,7 @@
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/api/LoggingUtil.h"
 
 extern "C" {
 #include <sai.h>
