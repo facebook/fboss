@@ -41,6 +41,8 @@ class BcmTest : public HwTest {
   BcmTest();
   ~BcmTest() override = default;
 
+  using HwTest::getLatestPortStats;
+
   std::list<FlexPortMode> getSupportedFlexPortModes();
 
   BcmSwitch* getHwSwitch() const override {
