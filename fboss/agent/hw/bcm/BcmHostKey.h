@@ -201,7 +201,7 @@ class BcmLabeledHostKey {
 
  private:
   opennsl_vrf_t vrf_;
-  uint32_t label_;
+  uint32_t label_{0};
   LabelForwardingAction::LabelStack labels_;
   folly::IPAddress addr_;
   InterfaceID intfID_;
