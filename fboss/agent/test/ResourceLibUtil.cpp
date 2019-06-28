@@ -11,25 +11,21 @@ template <>
 ResourceCursor<uint32_t>::ResourceCursor() : current_(0) {}
 
 template <>
-uint32_t ResourceCursor<uint32_t>::getNext() {
+uint32_t ResourceCursor<uint32_t>::getNextId() {
   return ++current_;
 }
 
 template <>
-void ResourceCursor<uint32_t>::resetCursor(uint32_t current) {
-  current_ = current;
-}
-
-template <>
-uint32_t ResourceCursor<uint32_t>::getCursorPosition() const {
-  return current_;
+uint32_t ResourceCursor<uint32_t>::getId(uint32_t startId, uint32_t offset)
+    const {
+  return startId + offset;
 }
 
 template <>
 ResourceCursor<IdV6>::ResourceCursor() : current_{0,0} {}
 
 template <>
-IdV6 ResourceCursor<IdV6>::getNext() {
+IdV6 ResourceCursor<IdV6>::getNextId() {
   if (current_.second < static_cast<uint64_t>(-1)) {
     ++current_.second;
   } else {
@@ -39,13 +35,20 @@ IdV6 ResourceCursor<IdV6>::getNext() {
 }
 
 template <>
-void ResourceCursor<IdV6>::resetCursor(IdV6 current) {
-  current_ = current;
-}
-
-template <>
-IdV6 ResourceCursor<IdV6>::getCursorPosition() const {
-  return current_;
+IdV6 ResourceCursor<IdV6>::getId(IdV6 startId, uint32_t offset) const {
+  if ((startId.second + offset) < static_cast<uint64_t>(-1)) {
+    /* if adding an offset to second doesn't exceed the uint64_t limit, then
+     * simply add it */
+    startId.second += offset;
+  } else {
+    /* if adding an offset to second exceeds the uint64_t limit, then
+     * second absorbs (max - second) units, and becomes max
+     * first absors remaining units which are (offset - units absored by second)
+     */
+    startId.first += (offset - (static_cast<uint64_t>(-1) - startId.second));
+    startId.second = static_cast<uint64_t>(-1);
+  }
+  return startId;
 }
 
 template <>
@@ -79,53 +82,7 @@ folly::IPAddressV6 IPAddressGenerator<folly::IPAddressV6>::getIP(
       folly::ByteRange(buffer.begin(), buffer.end()));
 }
 
-template <>
-std::vector<folly::IPAddressV4>
-IPAddressGenerator<folly::IPAddressV4>::getNextN(uint32_t n) {
-  std::vector<folly::IPAddressV4> resources;
-  for (auto i = 0; i < n; i++) {
-    resources.emplace_back(getNext());
-  }
-  return resources;
-}
 
-template <>
-std::vector<folly::IPAddressV6>
-IPAddressGenerator<folly::IPAddressV6>::getNextN(uint32_t n) {
-  std::vector<folly::IPAddressV6> resources;
-  for (auto i = 0; i < n; i++) {
-    resources.emplace_back(getNext());
-  }
-  return resources;
-}
-
-template <>
-std::vector<folly::IPAddressV4> IPAddressGenerator<folly::IPAddressV4>::getN(
-    uint32_t startId,
-    uint32_t n) const {
-  std::vector<folly::IPAddressV4> resources;
-  for (auto i = 0; i < n; i++) {
-    resources.emplace_back(get(startId + i));
-  }
-  return resources;
-}
-
-template <>
-std::vector<folly::IPAddressV6> IPAddressGenerator<folly::IPAddressV6>::getN(
-    IdV6 startId,
-    uint32_t n) const {
-  std::vector<folly::IPAddressV6> resources;
-  for (auto i = 0; i < n; i++) {
-    IdV6 id = startId;
-    if (startId.second < static_cast<uint64_t>(-1)) {
-      id.second += i;
-    } else {
-      id.first += i;
-    }
-    resources.emplace_back(get(id));
-  }
-  return resources;
-}
 
 template class IPAddressGenerator<folly::IPAddressV4>;
 template class IPAddressGenerator<folly::IPAddressV6>;

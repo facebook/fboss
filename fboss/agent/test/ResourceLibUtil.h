@@ -19,9 +19,14 @@ template <typename IdT>
 class ResourceCursor {
  public:
   ResourceCursor();
-  IdT getNext();
-  void resetCursor(IdT count);
-  IdT getCursorPosition() const;
+  IdT getNextId();
+  void resetCursor(IdT current) {
+    current_ = current;
+  }
+  IdT getCursorPosition() const {
+    return current_;
+  }
+  IdT getId(IdT startId, uint32_t offset) const;
 
  private:
   IdT current_;
@@ -36,61 +41,20 @@ struct IdT {
       IdV6>;
 };
 
-template <typename AddrT>
-class IPAddressGenerator : private ResourceCursor<typename IdT<AddrT>::type> {
+template <typename ResourceT, typename IdT>
+class ResourceGenerator : private ResourceCursor<IdT> {
  public:
-  using ResourceT = AddrT;
-  using BaseT = ResourceCursor<typename IdT<AddrT>::type>;
-  using IdT = typename IdT<AddrT>::type;
+  using BaseT = ResourceCursor<IdT>;
 
-  /* simply generate an ip at cursor position id, doesn't update cursor */
-  ResourceT get(IdT id) const {
-    return getIP(id);
-  }
+  virtual ResourceT get(IdT id) const = 0;
+  virtual ~ResourceGenerator() {}
 
-  /* generate an ip and update cursor */
+  /* generate an resource and update cursor */
   ResourceT getNext() {
-    return get(BaseT::getNext());
+    return get(BaseT::getNextId());
   }
 
-  /* generate next n ips, updates cursor */
-  std::vector<ResourceT> getNextN(uint32_t n);
-
-  /* generate next n ips, starting from startId, doesn't update cursor */
-  std::vector<ResourceT> getN(IdT startId,  uint32_t n) const;
-
-  /* reset cursor */
-  void startOver(IdT id) {
-    BaseT::resetCursor(id);
-  }
-
-  /* return current cursor position */
-  IdT getCursorPosition() {
-    return BaseT::getCursorPosition();
-  }
-
- private:
-  ResourceT getIP(IdT id) const;
-};
-
-template <typename AddrT, uint8_t mask>
-class PrefixGenerator : private ResourceCursor<typename IdT<AddrT>::type> {
- public:
-  using ResourceT = typename facebook::fboss::RoutePrefix<AddrT>;
-  using BaseT = ResourceCursor<typename IdT<AddrT>::type>;
-  using IdT = typename IdT<AddrT>::type;
-
-  /* simply generate a prefix at cursor position id, doesn't update cursor */
-  ResourceT get(IdT id) const {
-    return ResourceT{ipGenerator_.get(getPrefixId(id)), kMask};
-  }
-
-  /* generate an ip and update cursor */
-  ResourceT getNext() {
-    return get(BaseT::getNext());
-  }
-
-  /* generate next n prefiexes, updates cursor */
+  /* generate next n resources, updates cursor */
   std::vector<ResourceT> getNextN(uint32_t n) {
     std::vector<ResourceT> resources;
     for (auto i = 0; i < n; i++) {
@@ -99,11 +63,11 @@ class PrefixGenerator : private ResourceCursor<typename IdT<AddrT>::type> {
     return resources;
   }
 
-  /* generate next n ips, starting from startId, doesn't update cursor */
+  /* generate next n resources, starting from startId, doesn't update cursor */
   std::vector<ResourceT> getN(IdT startId, uint32_t n) const {
     std::vector<ResourceT> resources;
     for (auto i = 0; i < n; i++) {
-      resources.emplace_back(get(startId + i));
+      resources.emplace_back(getId(startId, i));
     }
     return resources;
   }
@@ -117,7 +81,38 @@ class PrefixGenerator : private ResourceCursor<typename IdT<AddrT>::type> {
   IdT getCursorPosition() {
     return BaseT::getCursorPosition();
   }
+};
 
+template <typename AddrT>
+class IPAddressGenerator
+    : public ResourceGenerator<AddrT, typename IdT<AddrT>::type> {
+ public:
+  using ResourceT = AddrT;
+  using IdT = typename IdT<AddrT>::type;
+
+  /* simply generate an ip at cursor position id, doesn't update cursor */
+  ResourceT get(IdT id) const override {
+    return getIP(id);
+  }
+
+ private:
+  ResourceT getIP(IdT id) const;
+};
+
+template <typename AddrT, uint8_t mask>
+class PrefixGenerator : public ResourceGenerator<
+                            typename facebook::fboss::RoutePrefix<AddrT>,
+                            typename IdT<AddrT>::type> {
+ public:
+  using ResourceT = typename facebook::fboss::RoutePrefix<AddrT>;
+  using IdT = typename IdT<AddrT>::type;
+
+  /* simply generate a prefix at cursor position id, doesn't update cursor */
+  ResourceT get(IdT id) const override {
+    return ResourceT{ipGenerator_.get(getPrefixId(id)), kMask};
+  }
+
+ private:
   template <typename IdT>
   std::enable_if_t<std::is_same<IdT, uint32_t>::value, uint32_t> getPrefixId(
       IdT id) const {
@@ -155,7 +150,6 @@ class PrefixGenerator : private ResourceCursor<typename IdT<AddrT>::type> {
     return id;
   }
 
- private:
   static constexpr auto kMask{mask};
   IPAddressGenerator<AddrT> ipGenerator_;
 };
