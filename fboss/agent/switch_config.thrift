@@ -490,7 +490,7 @@ struct Port {
   /*
    * Whether the port is enabled.  Set this to ENABLED for normal operation.
    */
-  2: PortState state = DISABLED
+  2: PortState state = PortState.DISABLED
   /*
    * Packets ingressing on this port will be dropped if they are smaller than
    * minFrameSize.  64 bytes is the minimum frame size allowed by ethernet.
