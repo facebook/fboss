@@ -145,10 +145,12 @@ class RestartTimeTracker {
       if (lastEvent_) {
         exportDurationCounter(*lastEvent_, *tp, stageCounterName(type));
       }
-      if (firstEvent_ && type == RestartEvent::FIB_SYNCED) {
-        // terminal state, export total counter
-        exportDurationCounter(*firstEvent_, *tp, totalCounterName());
+      if (type == RestartEvent::FIB_SYNCED) {
         completed_ = true;
+        if (firstEvent_) {
+          // terminal state, export total counter
+          exportDurationCounter(*firstEvent_, *tp, totalCounterName());
+        }
       }
       lastEvent_ = tp;
     }
