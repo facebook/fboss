@@ -224,7 +224,7 @@ find_path(USB_INCLUDE_DIR NAMES libusb-1.0/libusb.h)
 include_directories(${USB_INCLUDE_DIR})
 
 find_library(NETLINK3 nl-3)
-find_library(NETLINKROUTE3 nl-route-3)
+find_library(NETLINKROUTE3 libnl-route-3.a nl-route-3)
 
 find_library(CURL curl)
 find_path(CURL_INCLUDE_DIR NAMES curl/curl.h)

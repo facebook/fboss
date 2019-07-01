@@ -42,7 +42,6 @@ function copy_binaries() {
   cp "$FBOSS_BIN_DIR"/OpenNSL-*/lib/libopennsl.so.1 "$RPM_SOURCES_BINS_DIR"
   cp "$FBOSS_BIN_DIR"/libusb-*/lib/libusb-1.0.so.0 "$RPM_SOURCES_BINS_DIR"
   cp "$FBOSS_BIN_DIR"/libnl-*/lib/libnl-3.so.200 "$RPM_SOURCES_BINS_DIR"
-  cp "$FBOSS_BIN_DIR"/libnl-*/lib/libnl-route-3.so.200 "$RPM_SOURCES_BINS_DIR"
   cp "$FBOSS_BIN_DIR"/libcurl-*/lib/libcurl.so.4 "$RPM_SOURCES_BINS_DIR"
   cp "$FBOSS_BIN_DIR"/libsodium-*/lib/libsodium.so.23 "$RPM_SOURCES_BINS_DIR"
   cp "$FBOSS_BIN_DIR"/libmnl-*/lib/libmnl.so.0 "$RPM_SOURCES_BINS_DIR"
