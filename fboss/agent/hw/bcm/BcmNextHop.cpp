@@ -200,6 +200,16 @@ void BcmMplsNextHop::setTrunk(opennsl_trunk_t trunk) {
       PortDescriptor(hw_->getTrunkTable()->getAggregatePortId(trunk)));
 }
 
+BcmLabeledEgress* BcmMplsNextHop::getBcmLabeledEgress() const {
+  CHECK(!key_.needsMplsTunnel());
+  return static_cast<BcmLabeledEgress*>(mplsEgress_.get());
+}
+
+BcmLabeledTunnelEgress* BcmMplsNextHop::getBcmLabeledTunnelEgress() const {
+  CHECK(key_.needsMplsTunnel());
+  return static_cast<BcmLabeledTunnelEgress*>(mplsEgress_.get());
+}
+
 template <typename NextHopKeyT, typename NextHopT>
 const NextHopT* BcmNextHopTable<NextHopKeyT, NextHopT>::getNextHop(
     const NextHopKeyT& key) const {

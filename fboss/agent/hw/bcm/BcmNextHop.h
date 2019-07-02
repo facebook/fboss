@@ -17,6 +17,8 @@ namespace fboss {
 class BcmEgress;
 class BcmSwitch;
 class BcmHost;
+class BcmLabeledEgress;
+class BcmLabeledTunnelEgress;
 
 class BcmNextHop {
  public:
@@ -59,6 +61,10 @@ class BcmMplsNextHop : public BcmNextHop {
   BcmHostKey getBcmHostKey() {
     return BcmHostKey(key_.getVrf(), key_.addr(), key_.intfID());
   }
+
+  BcmLabeledEgress* getBcmLabeledEgress() const;
+
+  BcmLabeledTunnelEgress* getBcmLabeledTunnelEgress() const;
 
   opennsl_gport_t getGPort();
 

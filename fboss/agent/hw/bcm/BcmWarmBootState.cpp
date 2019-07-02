@@ -190,9 +190,36 @@ folly::dynamic BcmWarmBootState::mplsNextHopsToFollyDynamic() const {
 
 template <>
 folly::dynamic BcmWarmBootState::toFollyDynamic(
-    const BcmLabeledHostKey& /*key*/,
-    const std::shared_ptr<BcmMplsNextHop>& /*host*/) const {
-  return folly::dynamic::object;
+    const BcmLabeledHostKey& key,
+    const std::shared_ptr<BcmMplsNextHop>& nexthop) const {
+  folly::dynamic mplsNextHopDynamic = folly::dynamic::object;
+
+  mplsNextHopDynamic[kVrf] = key.getVrf();
+  mplsNextHopDynamic[kIp] = key.addr().str();
+  if (key.intfID().hasValue()) {
+    mplsNextHopDynamic[kIntf] = static_cast<uint32_t>(key.intfID().value());
+  }
+
+  mplsNextHopDynamic[kEgressId] = nexthop->getEgressId();
+  if (!key.needsMplsTunnel()) {
+    auto* egress = nexthop->getBcmLabeledEgress();
+    if (egress) {
+      mplsNextHopDynamic[kEgress] = egressToFollyDynamic(egress);
+    }
+    mplsNextHopDynamic[kLabel] = key.getLabel();
+  } else {
+    auto* egress = nexthop->getBcmLabeledTunnelEgress();
+    if (egress) {
+      mplsNextHopDynamic[kEgress] = egressToFollyDynamic(egress);
+    }
+    folly::dynamic labels = folly::dynamic::array;
+    for (const auto& label : key.tunnelLabelStack()) {
+      labels.push_back(label);
+    }
+    mplsNextHopDynamic[kStack] = std::move(labels);
+  }
+
+  return mplsNextHopDynamic;
 }
 } // namespace fboss
 } // namespace facebook
