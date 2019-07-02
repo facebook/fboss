@@ -197,7 +197,7 @@ void BcmWarmBootCache::populateFromWarmBootState(const folly::dynamic&
     if (egressId == BcmEgressBase::INVALID) {
       continue;
     }
-    egressIdsFromBcmHostInWarmBootFile_.insert(egressId);
+    egressIdsInWarmBootFile_.insert(egressId);
 
     folly::Optional<opennsl_if_t> intf{folly::none};
     auto ip = folly::IPAddress(hostEntry[kIp].stringPiece());
@@ -384,10 +384,10 @@ int BcmWarmBootCache::egressTraversalCallback(
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
   CHECK(cache->egressId2Egress_.find(egressId) == cache->egressId2Egress_.end())
       << "Double callback for egress id: " << egressId;
-  // Look up egressId in egressIdsFromBcmHostInWarmBootFile_
+  // Look up egressId in egressIdsInWarmBootFile_
   // to populate both dropEgressId_ and toCPUEgressId_.
-  auto egressIdItr = cache->egressIdsFromBcmHostInWarmBootFile_.find(egressId);
-  if (egressIdItr != cache->egressIdsFromBcmHostInWarmBootFile_.cend()) {
+  auto egressIdItr = cache->egressIdsInWarmBootFile_.find(egressId);
+  if (egressIdItr != cache->egressIdsInWarmBootFile_.cend()) {
     // May be: Add information to figure out how many host or route entry
     // reference it.
     XLOG(DBG1) << "Adding bcm egress entry for: " << *egressIdItr
@@ -619,7 +619,7 @@ void BcmWarmBootCache::clear() {
     vlanItr = vlan2VlanInfo_.erase(vlanItr);
   }
 
-  egressIdsFromBcmHostInWarmBootFile_.clear();
+  egressIdsInWarmBootFile_.clear();
   vrfIp2EgressFromBcmHostInWarmBootFile_.clear();
 
   // Detach the unclaimed bcm acl stats

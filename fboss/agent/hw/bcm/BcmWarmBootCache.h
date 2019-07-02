@@ -506,7 +506,7 @@ class BcmWarmBootCache {
   VlanAndMac2Intf vlanAndMac2Intf_;
 
   // This is the set of egress ids pointed by BcmHost in warm boot file.
-  EgressIds egressIdsFromBcmHostInWarmBootFile_;
+  EgressIds egressIdsInWarmBootFile_;
   // Mapping from <vrf, ip, intf> to the egress,
   // based on the BcmHost in warm boot file.
   HostTableInWarmBootFile vrfIp2EgressFromBcmHostInWarmBootFile_;
