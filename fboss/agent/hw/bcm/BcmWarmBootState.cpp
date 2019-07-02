@@ -26,6 +26,11 @@ folly::dynamic BcmWarmBootState::toFollyDynamic(
     const std::shared_ptr<BcmMultiPathNextHop>& multiPathNextHop) const;
 
 template <>
+folly::dynamic BcmWarmBootState::toFollyDynamic(
+    const BcmLabeledHostKey& key,
+    const std::shared_ptr<BcmMplsNextHop>& host) const;
+
+template <>
 folly::dynamic BcmWarmBootState::egressToFollyDynamic(
     const BcmEgress* egress) const;
 
@@ -170,6 +175,24 @@ folly::dynamic BcmWarmBootState::mplsTunnelToFollyDynamic(
   }
   tunnelDynamic[kStack] = std::move(labels);
   return tunnelDynamic;
+}
+
+folly::dynamic BcmWarmBootState::mplsNextHopsToFollyDynamic() const {
+  folly::dynamic mplsNextHopsJson = folly::dynamic::array;
+  for (const auto& mplsNextHopTableEntry :
+       hw_->getMplsNextHopTable()->getNextHops()) {
+    auto mplsNextHop = mplsNextHopTableEntry.second.lock();
+    mplsNextHopsJson.push_back(
+        toFollyDynamic(mplsNextHopTableEntry.first, mplsNextHop));
+  }
+  return mplsNextHopsJson;
+}
+
+template <>
+folly::dynamic BcmWarmBootState::toFollyDynamic(
+    const BcmLabeledHostKey& /*key*/,
+    const std::shared_ptr<BcmMplsNextHop>& /*host*/) const {
+  return folly::dynamic::object;
 }
 } // namespace fboss
 } // namespace facebook

@@ -38,6 +38,7 @@ auto constexpr kWarmBootCache = "warmBootCache";
 auto constexpr kLabel = "label";
 auto constexpr kMplsTunnel = "mplsTunnel";
 auto constexpr kStack = "stack";
+auto constexpr kMplsNextHops = "mplsNextHops";
 
 inline folly::StringPiece constexpr kWeight() {
   return "weight";

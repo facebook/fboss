@@ -22,6 +22,8 @@ class BcmWarmBootState {
   template <typename EgressT>
   folly::dynamic egressToFollyDynamic(const EgressT* egress) const;
 
+  folly::dynamic mplsNextHopsToFollyDynamic() const;
+
  private:
   template <typename Key, typename Value>
   folly::dynamic toFollyDynamic(
