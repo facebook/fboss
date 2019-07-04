@@ -358,6 +358,10 @@ bool BcmSwitch::isPortUp(PortID port) const {
 
 std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   auto bootState = make_shared<SwitchState>();
+  opennsl_vlan_t defaultVlan;
+  auto rv = opennsl_vlan_default_get(getUnit(), &defaultVlan);
+  bcmCheckError(rv, "Unable to get default VLAN");
+  bootState->setDefaultVlan(VlanID(defaultVlan));
   // get cpu queue settings
   auto cpu = make_shared<ControlPlane>();
   auto cpuQueues = controlPlane_->getMulticastQueueSettings();
