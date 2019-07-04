@@ -26,13 +26,15 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
     const std::shared_ptr<Mirror>& mirror) {
   const AddrT destinationIp =
       getIPAddress<AddrT>(mirror->getDestinationIp().value());
+  const uint8_t dscp = mirror->getDscp();
   const auto state = sw_->getState();
   const auto nexthops = resolveMirrorNextHops(state, destinationIp);
 
   auto newMirror = std::make_shared<Mirror>(
       mirror->getID(),
       mirror->getEgressPort(),
-      mirror->getDestinationIp());
+      mirror->getDestinationIp(),
+      dscp);
 
   for (const auto& nexthop : nexthops) {
     const auto entry =

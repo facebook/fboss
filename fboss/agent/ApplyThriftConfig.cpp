@@ -2027,10 +2027,13 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
         folly::IPAddress(mirrorConfig->destination.ip_ref().value_unchecked()));
   }
 
+  uint8_t dscpMark = mirrorConfig->get_dscp();
+
   auto mirror = make_shared<Mirror>(
       mirrorConfig->name,
       mirrorEgressPort,
-      destinationIp);
+      destinationIp,
+      dscpMark);
   return mirror;
 }
 
@@ -2047,6 +2050,7 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
   }
   if (newMirror->getDestinationIp() ==
           orig->getDestinationIp() &&
+      newMirror->getDscp() == orig->getDscp() &&
       (!newMirror->configHasEgressPort() ||
        newMirror->getEgressPort() == orig->getEgressPort())) {
     newMirror->setMirrorTunnel(orig->getMirrorTunnel().value());
