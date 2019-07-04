@@ -294,6 +294,7 @@ add_executable(bcm_test
     fboss/agent/platforms/test_platforms/FakeBcmTestPort.cpp
     fboss/agent/platforms/test_platforms/BcmTestPlatform.cpp
     fboss/agent/platforms/test_platforms/BcmTestPort.cpp
+    fboss/agent/platforms/test_platforms/CreateTestPlatform.cpp
     fboss/agent/platforms/test_platforms/oss/BcmTestWedgeTomahawkPlatform.cpp
     fboss/agent/platforms/test_platforms/oss/BcmTestWedgeTomahawk3Platform.cpp
     fboss/agent/platforms/test_platforms/oss/BcmTestWedge40Platform.cpp

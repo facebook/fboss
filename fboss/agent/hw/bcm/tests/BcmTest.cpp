@@ -25,14 +25,9 @@
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/bcm/BcmConfig.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestWedge100Platform.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestWedge40Platform.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestGalaxyPlatform.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestMinipack16QPlatform.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestYamp16QPlatform.h"
-#include "fboss/agent/platforms/test_platforms/FakeBcmTestPlatform.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/platforms/test_platforms/CreateTestPlatform.h"
 
 extern "C" {
 #include <opennsl/error.h>
@@ -45,37 +40,6 @@ DECLARE_string(bcm_config);
 DECLARE_int32(thrift_port);
 
 namespace {
-PlatformMode getPlatformMode() {
-  try {
-    PlatformProductInfo productInfo(FLAGS_fruid_filepath);
-    productInfo.initialize();
-    return productInfo.getMode();
-  } catch (const FbossError& ex) {
-    return PlatformMode::FAKE_WEDGE;
-  }
-}
-
-std::unique_ptr<BcmTestPlatform> createWedgePlatform(PlatformMode mode) {
-  if (mode == PlatformMode::WEDGE) {
-    return std::make_unique<BcmTestWedge40Platform>();
-  } else if (mode == PlatformMode::WEDGE100){
-    return std::make_unique<BcmTestWedge100Platform>();
-  } else if (
-      mode == PlatformMode::GALAXY_LC ||
-      mode == PlatformMode::GALAXY_FC) {
-    return std::make_unique<BcmTestGalaxyPlatform>();
-  } else if (mode == PlatformMode::MINIPACK) {
-    return std::make_unique<BcmTestMinipack16QPlatform>();
-  } else if (mode == PlatformMode::YAMP) {
-    return std::make_unique<BcmTestYamp16QPlatform>();
-  } else if (mode == PlatformMode::FAKE_WEDGE) {
-    return std::make_unique<FakeBcmTestPlatform>();
-  } else {
-    throw std::runtime_error("invalid mode ");
-  }
-  return nullptr;
-}
-
 void addPort(BcmConfig::ConfigMap& cfg, int port,
                       int speed, bool enabled=true) {
   auto key = folly::to<std::string>("portmap_", port);
@@ -114,8 +78,7 @@ BcmTest::BcmTest() {
 
 std::pair<std::unique_ptr<Platform>, std::unique_ptr<HwSwitch>>
 BcmTest::createHw() const {
-  auto mode = getPlatformMode();
-  auto platform = createWedgePlatform(mode);
+  auto platform = createTestPlatform();
   auto bcmSwitch =
       std::make_unique<BcmSwitch>(platform.get(), featuresDesired());
 
