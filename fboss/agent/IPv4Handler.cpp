@@ -26,7 +26,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/UDPHeader.h"
+#include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/IPv4Hdr.h"

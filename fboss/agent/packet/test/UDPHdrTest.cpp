@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/UDPHeader.h"
+#include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include <gtest/gtest.h>

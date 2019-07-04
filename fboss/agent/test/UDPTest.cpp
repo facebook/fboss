@@ -20,7 +20,7 @@
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/UDPHeader.h"
+#include "fboss/agent/packet/UDPHeader.h"
 
 #include <boost/cast.hpp>
 #include <gtest/gtest.h>

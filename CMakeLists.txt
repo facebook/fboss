@@ -443,6 +443,7 @@ add_library(fboss_agent STATIC
     fboss/agent/packet/NDPRouterAdvertisement.cpp
     fboss/agent/packet/PktUtil.cpp
     fboss/agent/packet/SflowStructs.cpp
+    fboss/agent/packet/UDPHeader.cpp
     fboss/agent/Platform.cpp
     fboss/agent/PlatformPort.cpp
     fboss/agent/platforms/wedge/oss/GalaxyPlatform.cpp
@@ -529,7 +530,6 @@ add_library(fboss_agent STATIC
     fboss/agent/ThreadHeartbeat.cpp
     fboss/agent/TunIntf.cpp
     fboss/agent/TunManager.cpp
-    fboss/agent/UDPHeader.cpp
     fboss/agent/Utils.cpp
     fboss/agent/rib/ConfigApplier.cpp
     fboss/agent/rib/ForwardingInformationBaseUpdater.cpp

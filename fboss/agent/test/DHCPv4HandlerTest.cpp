@@ -18,7 +18,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/DHCPv4Handler.h"
-#include "fboss/agent/UDPHeader.h"
+#include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
