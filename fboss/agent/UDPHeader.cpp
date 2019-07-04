@@ -11,10 +11,6 @@
 #include <sstream>
 #include <folly/io/Cursor.h>
 #include <folly/lang/Bits.h>
-#include "fboss/agent/PortStats.h"
-#include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
@@ -45,16 +41,6 @@ uint16_t UDPHeader::computeChecksumImpl(const IPHDR& ip,
     cs = 0xffff;
   }
   return cs;
-}
-
-void UDPHeader::parse(SwSwitch *sw, PortID port, Cursor* cursor) {
-  try {
-    parse(cursor);
-  } catch (std::out_of_range& e) {
-    sw->portStats(port)->udpTooSmall();
-    throw FbossError("Too small packet. Got ", cursor->length(),
-                     " bytes. Minimum ", size(), " bytes");
-  }
 }
 
 void UDPHeader::parse(Cursor* cursor) {

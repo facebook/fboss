@@ -153,9 +153,19 @@ void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
   // NOTE: DHCPv6 solicit packet from client has hoplimit set to 1,
   // we need to handle it before send the ICMPv6 TTL exceeded
   if (ipv6.nextHeader == static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
-    UDPHeader udpHdr;
     Cursor udpCursor(cursor);
-    udpHdr.parse(sw_, port, &udpCursor);
+    UDPHeader udpHdr;
+    try {
+      udpHdr.parse(&udpCursor);
+    } catch (std::out_of_range& e) {
+      sw_->stats()->port(port)->udpTooSmall();
+      throw FbossError(
+          "Too small packet. Got ",
+          udpCursor.length(),
+          " bytes. Minimum ",
+          UDPHeader::size(),
+          " bytes");
+    }
     XLOG(DBG4) << "DHCP UDP packet, source port :" << udpHdr.srcPort
                << " destination port: " << udpHdr.dstPort;
     if (DHCPv6Handler::isForDHCPv6RelayOrServer(udpHdr)) {

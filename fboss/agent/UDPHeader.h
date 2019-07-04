@@ -30,7 +30,6 @@ struct UDPHeader {
       uint16_t _csum = 0) :  srcPort(_srcPort), dstPort(_dstPort),
   length(_length), csum(_csum)  {}
 
-  void parse(SwSwitch *sw, PortID port, folly::io::Cursor* cursor);
   bool operator==(const UDPHeader& r) const;
   /*
    * Accessors
