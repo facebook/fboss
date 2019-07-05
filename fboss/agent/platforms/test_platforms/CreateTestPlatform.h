@@ -17,10 +17,10 @@
 namespace facebook {
 namespace fboss {
 
-class BcmTestPlatform;
+class Platform;
 
 PlatformMode getPlatformMode();
-std::unique_ptr<BcmTestPlatform> createTestPlatform();
+std::unique_ptr<Platform> createTestPlatform();
 
 } // namespace fboss
 } // namespace facebook

@@ -32,7 +32,7 @@ PlatformMode getPlatformMode() {
   }
 }
 
-std::unique_ptr<BcmTestPlatform> createTestPlatform() {
+std::unique_ptr<Platform> createTestPlatform() {
   auto mode = getPlatformMode();
   if (mode == PlatformMode::WEDGE) {
     return std::make_unique<BcmTestWedge40Platform>();

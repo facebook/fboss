@@ -79,8 +79,8 @@ BcmTest::BcmTest() {
 std::pair<std::unique_ptr<Platform>, std::unique_ptr<HwSwitch>>
 BcmTest::createHw() const {
   auto platform = createTestPlatform();
-  auto bcmSwitch =
-      std::make_unique<BcmSwitch>(platform.get(), featuresDesired());
+  auto bcmSwitch = std::make_unique<BcmSwitch>(
+      static_cast<BcmTestPlatform*>(platform.get()), featuresDesired());
 
   return std::make_pair(std::move(platform), std::move(bcmSwitch));
 }
