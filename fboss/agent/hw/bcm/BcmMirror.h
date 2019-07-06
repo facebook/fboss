@@ -17,11 +17,12 @@ enum class MirrorDirection { INGRESS = 1, EGRESS = 2 };
 
 class BcmMirrorDestination {
  public:
-  BcmMirrorDestination(int unit, BcmPort* egressPort);
+  BcmMirrorDestination(int unit, BcmPort* egressPort, uint8_t dscp);
   BcmMirrorDestination(
       int unit,
       BcmPort* egressPort,
-      const MirrorTunnel& mirrorTunnel);
+      const MirrorTunnel& mirrorTunnel,
+      uint8_t dscp);
   BcmMirrorDestination(int unit, BcmMirrorHandle handle)
       : unit_(unit), handle_(handle) {}
   ~BcmMirrorDestination();
