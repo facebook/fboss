@@ -101,7 +101,7 @@ The built FBOSS binaries will be available here:
 ## 1.7 Building RPM packages
 
 - cd fboss.git
-- ./installer/centos-7-x86_64/build-rpm.sh
+- /opt/rh/rh-python36/root/bin/python3.6 installer/centos-7-x86_64/build-rpm.py
 
 The built RPM package will contain the FBOSS binaries and all the dependent
 libraries. The RPM would be available here:
@@ -159,18 +159,18 @@ grub boot order.
 - Copy the built FBOSS RPM built in Section "1.7 Building RPM packages" to the switch.
 - Install the RPM
    rpm -ivh fboss_bins-1-1.el7.centos.x86_64.rpm
-- The RPM will install binaries and dependent libraries in /etc/fboss_bins/
-- export LD_LIBRARY_PATH=/etc/fboss_bins
-- Run /etc/fboss_bins/{wedge_agent, bcm_test} etc. with desired arguments.
+- The RPM will install binaries and dependent libraries in /opt/fboss/
+- export LD_LIBRARY_PATH=/opt/fboss
+- Run /opt/fboss/{wedge_agent, bcm_test} etc. with desired arguments.
 
 ## 2.4 Install tips
 
 ### 2.4.1 Checking dependencies
 
 Check dependencies using ldd.  All shared object dependencies should be
-satisified, and dependencies should be picked from /etc/fboss_bins.
+satisified, and dependencies should be picked from /opt/fboss.
 
-ldd /etc/fboss_bins/bcm_test # or wedge_agent
+ldd /opt/fboss/bcm_test # or wedge_agent
 
 ### 2.4.2 Checking install RPM, removing it
 
