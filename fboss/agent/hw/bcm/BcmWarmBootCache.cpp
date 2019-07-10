@@ -254,6 +254,13 @@ void BcmWarmBootCache::populateFromWarmBootState(const folly::dynamic&
           BcmLabeledHostKey(vrf, std::move(labels), ip, intfID), egressId);
     }
   }
+
+  // get l3 intfs for each known vlan in warmboot state file
+  const auto& intfTable = warmBootState[kHwSwitch][kIntfTable];
+  for (const auto& intfTableEntry : intfTable) {
+    vlan2BcmIfIdInWarmBootFile_.emplace(
+        VlanID(intfTableEntry[kVlan].asInt()), intfTableEntry[kIntfId].asInt());
+  }
 }
 
 BcmWarmBootCache::EgressId2EgressCitr

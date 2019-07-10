@@ -118,6 +118,9 @@ class BcmWarmBootCache {
   typedef boost::container::flat_map<VlanID, opennsl_l2_station_t> Vlan2Station;
   typedef boost::container::flat_map<VlanAndMac, opennsl_l3_intf_t>
     VlanAndMac2Intf;
+  typedef boost::container::flat_map<VlanID, opennsl_if_t>
+      Vlan2BcmIfIdInWarmBootFile;
+
   typedef boost::container::flat_map<VrfAndIP,
           opennsl_l3_host_t> VrfAndIP2Host;
   typedef boost::container::flat_map<VrfAndPrefix, opennsl_l3_route_t>
@@ -516,6 +519,7 @@ class BcmWarmBootCache {
   Vlan2VlanInfo vlan2VlanInfo_;
   Vlan2Station vlan2Station_;
   VlanAndMac2Intf vlanAndMac2Intf_;
+  Vlan2BcmIfIdInWarmBootFile vlan2BcmIfIdInWarmBootFile_;
 
   // This is the set of egress ids pointed by BcmHost in warm boot file.
   EgressIds egressIdsInWarmBootFile_;
