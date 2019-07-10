@@ -27,6 +27,13 @@ class BcmLabeledTunnelEgress : public BcmLabeledEgress {
   }
 
  private:
+  void prepareEgressObject(
+      opennsl_if_t intfId,
+      opennsl_port_t port,
+      const folly::Optional<folly::MacAddress>& mac,
+      RouteForwardAction action,
+      opennsl_l3_egress_t* eObj) const override;
+
   int createEgress(int unit, uint32_t flags, opennsl_l3_egress_t* egr) override;
 
   std::shared_ptr<BcmLabeledTunnel> tunnel_;

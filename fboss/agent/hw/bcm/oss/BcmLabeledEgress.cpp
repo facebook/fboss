@@ -9,12 +9,20 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
-void BcmLabeledEgress::setLabel(opennsl_l3_egress_t* /*egress*/) const {}
 int BcmLabeledEgress::createEgress(
     int /*unit*/,
     uint32_t /*flags*/,
     opennsl_l3_egress_t* /*egr*/) {
   return OPENNSL_E_UNAVAIL;
+}
+
+void BcmLabeledEgress::prepareEgressObject(
+    opennsl_if_t /*intfId*/,
+    opennsl_port_t /*port*/,
+    const folly::Optional<folly::MacAddress>& /*mac*/,
+    RouteForwardAction /*action*/,
+    opennsl_l3_egress_t* /*eObj*/) const {
+  CHECK(0); // no MPLS in OSS
 }
 
 } // namespace fboss

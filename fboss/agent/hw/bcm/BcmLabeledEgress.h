@@ -24,8 +24,15 @@ class BcmLabeledEgress : public BcmEgress {
     return label_;
   }
 
+ protected:
+  void prepareEgressObject(
+      opennsl_if_t intfId,
+      opennsl_port_t port,
+      const folly::Optional<folly::MacAddress>& mac,
+      RouteForwardAction action,
+      opennsl_l3_egress_t* eObj) const override;
+
  private:
-  void setLabel(opennsl_l3_egress_t* egress) const override;
   int createEgress(int unit, uint32_t flags, opennsl_l3_egress_t* egr) override;
 
   opennsl_mpls_label_t label_;

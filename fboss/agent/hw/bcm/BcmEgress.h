@@ -116,8 +116,6 @@ class BcmEgress : public BcmEgressBase {
     throw FbossError("labeled requested on unlabeled egress");
   }
 
-  virtual void setLabel(opennsl_l3_egress_t* egress) const;
-
   folly::MacAddress getMac() const override {
     return mac_;
   }
@@ -125,6 +123,14 @@ class BcmEgress : public BcmEgressBase {
   opennsl_if_t getIntfId() const {
     return intfId_;
   }
+
+ protected:
+  virtual void prepareEgressObject(
+      opennsl_if_t intfId,
+      opennsl_port_t port,
+      const folly::Optional<folly::MacAddress>& mac,
+      RouteForwardAction action,
+      opennsl_l3_egress_t* egress) const;
 
  private:
   bool alreadyExists(const opennsl_l3_egress_t& newEgress) const;
@@ -141,6 +147,7 @@ class BcmEgress : public BcmEgressBase {
       const folly::MacAddress* mac,
       opennsl_port_t port,
       RouteForwardAction action);
+
   folly::MacAddress mac_;
   opennsl_if_t intfId_{INVALID};
 };

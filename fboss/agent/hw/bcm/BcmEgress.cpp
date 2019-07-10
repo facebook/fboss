@@ -49,7 +49,6 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
     const IPAddress& ip, const MacAddress* mac, opennsl_port_t port,
     RouteForwardAction action) {
   opennsl_l3_egress_t eObj;
-  opennsl_l3_egress_t_init(&eObj);
   auto failedToProgramMsg = folly::to<std::string>(
       "failed to program L3 egress object ",
       id_,
@@ -86,18 +85,13 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
     alreadyExistsMsg.append(withLabelMsg);
   }
 
-  if (mac == nullptr) {
-    if (action == TO_CPU) {
-      eObj.flags |= (OPENNSL_L3_L2TOCPU | OPENNSL_L3_COPY_TO_CPU);
-    } else {
-      eObj.flags |= OPENNSL_L3_DST_DISCARD;
-    }
-  } else {
-    memcpy(&eObj.mac_addr, mac->bytes(), sizeof(eObj.mac_addr));
-    eObj.port = port;
-  }
-  eObj.intf = intfId;
-  setLabel(&eObj);
+  prepareEgressObject(
+      intfId,
+      port,
+      !mac ? folly::none : folly::make_optional<folly::MacAddress>(*mac),
+      action,
+      &eObj);
+
   bool addOrUpdateEgress = false;
   const auto warmBootCache = hw_->getWarmBootCache();
   CHECK(warmBootCache);
@@ -208,6 +202,27 @@ void BcmEgress::programToCPU() {
                 " to CPU on unit ", hw_->getUnit());
   XLOG(DBG2) << "programmed L3 egress object " << id_ << " to CPU on unit "
              << hw_->getUnit();
+}
+
+void BcmEgress::prepareEgressObject(
+    opennsl_if_t intfId,
+    opennsl_port_t port,
+    const folly::Optional<folly::MacAddress>& mac,
+    RouteForwardAction action,
+    opennsl_l3_egress_t* eObj) const {
+  CHECK(eObj);
+  opennsl_l3_egress_t_init(eObj);
+  if (!mac) {
+    if (action == TO_CPU) {
+      eObj->flags |= (OPENNSL_L3_L2TOCPU | OPENNSL_L3_COPY_TO_CPU);
+    } else {
+      eObj->flags |= OPENNSL_L3_DST_DISCARD;
+    }
+  } else {
+    memcpy(&(eObj->mac_addr), mac->bytes(), sizeof(eObj->mac_addr));
+    eObj->port = port;
+  }
+  eObj->intf = intfId;
 }
 
 BcmEgress::~BcmEgress() {

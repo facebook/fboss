@@ -26,8 +26,6 @@ bool operator==(
       rhs.flags == lhs.flags;
 }
 
-void BcmEgress::setLabel(opennsl_l3_egress_t* /*egress*/) const {}
-
 bool BcmEcmpEgress::removeEgressIdHwNotLocked(
     int /*unit*/,
     opennsl_if_t /*ecmpId*/,
