@@ -14,12 +14,13 @@ extern "C" {
 #include <opennsl/l3.h>
 }
 
-#include <folly/dynamic.h>
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
-#include "fboss/agent/types.h"
+#include <folly/dynamic.h>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/state/RouteTypes.h"
+#include "fboss/agent/types.h"
 
 #include <boost/noncopyable.hpp>
 #include <boost/container/flat_set.hpp>
@@ -133,6 +134,11 @@ class BcmEgress : public BcmEgressBase {
       opennsl_l3_egress_t* egress) const;
 
  private:
+  virtual BcmWarmBootCache::EgressId2EgressCitr findEgress(
+      opennsl_vrf_t vrf,
+      opennsl_if_t intfId,
+      const folly::IPAddress& ip) const;
+
   bool alreadyExists(const opennsl_l3_egress_t& newEgress) const;
   void program(
       opennsl_if_t intfId,

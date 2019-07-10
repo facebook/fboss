@@ -35,6 +35,11 @@ class BcmLabeledTunnelEgress : public BcmLabeledEgress {
       opennsl_l3_egress_t* eObj) const override;
 
  private:
+  BcmWarmBootCache::EgressId2EgressCitr findEgress(
+      opennsl_vrf_t vrf,
+      opennsl_if_t intfId,
+      const folly::IPAddress& ip) const override;
+
   std::shared_ptr<BcmLabeledTunnel> tunnel_;
 };
 

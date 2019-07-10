@@ -14,7 +14,6 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
 #include <folly/logging/xlog.h>
 #include <string>
@@ -96,7 +95,7 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
   const auto warmBootCache = hw_->getWarmBootCache();
   CHECK(warmBootCache);
   // TODO(pshaikh) : look for labeled egress in warmboot cache
-  auto egressId2EgressCitr = warmBootCache->findEgressFromHost(vrf, ip, intfId);
+  auto egressId2EgressCitr = findEgress(vrf, intfId, ip);
   if (egressId2EgressCitr != warmBootCache->egressId2Egress_end()) {
     // Lambda to compare with existing egress to know if should reprogram
     auto equivalent = [] (const opennsl_l3_egress_t& newEgress,
@@ -223,6 +222,13 @@ void BcmEgress::prepareEgressObject(
     eObj->port = port;
   }
   eObj->intf = intfId;
+}
+
+BcmWarmBootCache::EgressId2EgressCitr BcmEgress::findEgress(
+    opennsl_vrf_t vrf,
+    opennsl_if_t intfId,
+    const folly::IPAddress& ip) const {
+  return hw_->getWarmBootCache()->findEgressFromHost(vrf, ip, intfId);
 }
 
 BcmEgress::~BcmEgress() {

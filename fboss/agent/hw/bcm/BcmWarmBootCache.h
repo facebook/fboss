@@ -95,11 +95,6 @@ class BcmWarmBootCache {
     return hwSwitchEcmp2EgressIds_;
   }
 
-  /* used in test */
-  folly::dynamic getEgressDynamic(const BcmEgress* egress) const {
-    return bcmWarmBootState_->egressToFollyDynamic(egress);
-  }
-
  private:
   using Egress = opennsl_l3_egress_t;
   using EcmpEgress = opennsl_l3_egress_ecmp_t;
@@ -490,6 +485,19 @@ class BcmWarmBootCache {
   }
   void programmedLabelAction(Label2LabelActionMapCitr itr) {
     label2LabelActions_.erase(itr);
+  }
+
+  BcmWarmBootState* getBcmWarmBootState() const {
+    /*
+     * In-memory, and current BCM switch warm boot state.
+     * this is a handle to an object which can generate folly::dynamic for only
+     * pieces of subset of current BcmSwitch data structures. These are
+     * typically those pieces which are unavailable through SDK traversal APIs
+     * or which are needed to be maintained for absence of some entries in ASIC
+     * e.g. for correct egress association as link local host entries are not
+     * saved in ASIC but maintained in sofrware.
+     */
+    return bcmWarmBootState_.get();
   }
 
  private:

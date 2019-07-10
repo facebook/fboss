@@ -33,6 +33,11 @@ class BcmLabeledEgress : public BcmEgress {
       opennsl_l3_egress_t* eObj) const override;
 
  private:
+  BcmWarmBootCache::EgressId2EgressCitr findEgress(
+      opennsl_vrf_t vrf,
+      opennsl_if_t intfId,
+      const folly::IPAddress& ip) const override;
+
   opennsl_mpls_label_t label_;
 };
 
