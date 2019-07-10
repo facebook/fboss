@@ -222,6 +222,37 @@ void BcmWarmBootCache::populateFromWarmBootState(const folly::dynamic&
                                    : "None")
                << ") pointing to the egress entry, id=" << egressId;
   }
+
+  // extract MPLS next hop and its egress object from the  warm boot file
+  const auto& mplsNextHops = warmBootState[kHwSwitch][kMplsNextHops];
+
+  for (const auto& mplsNextHop : mplsNextHops) {
+    auto egressId = mplsNextHop[kEgressId].asInt();
+    if (egressId == BcmEgressBase::INVALID) {
+      continue;
+    }
+    egressIdsInWarmBootFile_.insert(egressId);
+    auto vrf = mplsNextHop[kVrf].asInt();
+    auto ip = folly::IPAddress(mplsNextHop[kIp].stringPiece());
+    auto intfID = InterfaceID(mplsNextHop[kIntf].asInt());
+    if (mplsNextHop.items().end() != mplsNextHop.find(kLabel)) {
+      // labeled egress
+      auto label = mplsNextHop[kLabel].asInt();
+      mplsNextHops2EgressIdInWarmBootFile_.emplace(
+          BcmLabeledHostKey(vrf, label, ip, intfID), egressId);
+    } else {
+      // tunneled egress
+      CHECK(mplsNextHop.items().end() != mplsNextHop.find(kStack));
+      CHECK(mplsNextHop[kStack].isArray());
+      LabelForwardingAction::LabelStack labels;
+      std::for_each(
+          std::begin(mplsNextHop[kStack]),
+          std::end(mplsNextHop[kStack]),
+          [&labels](const auto& label) { labels.push_back(label.asInt()); });
+      mplsNextHops2EgressIdInWarmBootFile_.emplace(
+          BcmLabeledHostKey(vrf, std::move(labels), ip, intfID), egressId);
+    }
+  }
 }
 
 BcmWarmBootCache::EgressId2EgressCitr

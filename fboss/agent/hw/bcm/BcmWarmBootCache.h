@@ -132,6 +132,8 @@ class BcmWarmBootCache {
       boost::container::flat_map<VrfAndIP, opennsl_l3_route_t>;
   using EgressId2Egress = boost::container::flat_map<EgressId, Egress>;
   using HostTableInWarmBootFile = boost::container::flat_map<HostKey, EgressId>;
+  using MplsNextHop2EgressIdInWarmBootFile =
+      boost::container::flat_map<BcmLabeledHostKey, EgressId>;
 
   // current h/w acls: key = priority, value = BcmAclEntryHandle
   using Priority2BcmAclEntryHandle = boost::container::flat_map<
@@ -509,6 +511,9 @@ class BcmWarmBootCache {
   // Mapping from <vrf, ip, intf> to the egress,
   // based on the BcmHost in warm boot file.
   HostTableInWarmBootFile vrfIp2EgressFromBcmHostInWarmBootFile_;
+
+  // Mapping from Labeled Host Key to Egress ID
+  MplsNextHop2EgressIdInWarmBootFile mplsNextHops2EgressIdInWarmBootFile_;
 
   // The host table in HW
   VrfAndIP2Host vrfIp2Host_;
