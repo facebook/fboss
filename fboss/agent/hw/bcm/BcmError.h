@@ -51,6 +51,8 @@ class BcmError : public FbossError {
 template<typename... Args>
 void bcmCheckError(int err, Args&&... msgArgs) {
   if (OPENNSL_FAILURE(err)) {
+    XLOG(ERR) << folly::to<std::string>(std::forward<Args>(msgArgs)...) << ": "
+              << opennsl_errmsg(err) << ", " << err;
     throw BcmError(err, std::forward<Args>(msgArgs)...);
   }
 }
