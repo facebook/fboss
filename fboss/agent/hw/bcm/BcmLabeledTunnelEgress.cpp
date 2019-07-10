@@ -4,6 +4,7 @@
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmLabeledTunnel.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/state/Interface.h"
 
 namespace {
 facebook::fboss::LabelForwardingAction::LabelStack pushStack(
@@ -29,11 +30,21 @@ BcmLabeledTunnelEgress::BcmLabeledTunnelEgress(
 BcmLabeledTunnelEgress::~BcmLabeledTunnelEgress() {}
 
 BcmWarmBootCache::EgressId2EgressCitr BcmLabeledTunnelEgress::findEgress(
-    opennsl_vrf_t /*vrf*/,
-    opennsl_if_t /*intfId*/,
-    const folly::IPAddress& /*ip*/) const {
-  // TODO(pshaikh) : support warmboot for labeled tunnel egress
-  return hw_->getWarmBootCache()->egressId2Egress_end();
+    opennsl_vrf_t vrf,
+    opennsl_if_t intfId,
+    const folly::IPAddress& ip) const {
+  const auto& tunnelStack = tunnel_->getTunnelStack();
+  LabelForwardingAction::LabelStack labels;
+  labels.push_back(getLabel());
+  std::copy(
+      std::begin(tunnelStack),
+      std::end(tunnelStack),
+      std::back_inserter(labels));
+
+  auto* bcmIntf = hw_->getIntfTable()->getBcmIntf(intfId);
+  return hw_->getWarmBootCache()->findEgressFromLabeledHostKey(
+      BcmLabeledHostKey(
+          vrf, std::move(labels), ip, bcmIntf->getInterface()->getID()));
 }
 
 } // namespace fboss
