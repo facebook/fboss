@@ -188,5 +188,49 @@ TEST(ResourceLibUtilTest, GenerateResetGenerateV6) {
   EXPECT_EQ(generator.getCursorPosition(), utility::IdV6(0,2));
 }
 
+TEST(ResourceLibUtilTest, RouteV4Generator) {
+  using IpT = folly::IPAddressV4;
+  using RoutePrefixT = RoutePrefix<folly::IPAddressV4>;
+
+  auto generator = utility::RouteGenerator<folly::IPAddressV4, 24>(
+      AdminDistance::STATIC_ROUTE,
+      folly::IPAddressV4("252.252.252.252"),
+      InterfaceID(7));
+  std::array<RoutePrefixT, 5> prefixes = {
+      RoutePrefixT{IpT("0.0.1.0"), 24},
+      RoutePrefixT{IpT("0.0.2.0"), 24},
+      RoutePrefixT{IpT("0.0.3.0"), 24},
+      RoutePrefixT{IpT("0.0.4.0"), 24},
+      RoutePrefixT{IpT("0.0.5.0"), 24},
+  };
+
+  for (int i = 0; i < 5; i++) {
+    auto generatedRoute = generator.getNext();
+    ASSERT_EQ(generatedRoute->prefix(), prefixes[i]);
+  }
+}
+
+TEST(ResourceLibUtilTest, RouteV6Generator) {
+  using IpT = folly::IPAddressV6;
+  using RoutePrefixT = RoutePrefix<folly::IPAddressV6>;
+
+  auto generator = utility::RouteGenerator<folly::IPAddressV6, 64>(
+      AdminDistance::STATIC_ROUTE,
+      folly::IPAddressV6("2401:2801::"),
+      InterfaceID(7));
+  std::array<RoutePrefixT, 5> prefixes = {
+      RoutePrefixT{IpT("0:0:0:1::"), 64},
+      RoutePrefixT{IpT("0:0:0:2::"), 64},
+      RoutePrefixT{IpT("0:0:0:3::"), 64},
+      RoutePrefixT{IpT("0:0:0:4::"), 64},
+      RoutePrefixT{IpT("0:0:0:5::"), 64},
+  };
+
+  for (int i = 0; i < 5; i++) {
+    auto generatedRoute = generator.getNext();
+    ASSERT_EQ(generatedRoute->prefix(), prefixes[i]);
+  }
+}
+
 } // namespace fboss
 } // namespace facebook

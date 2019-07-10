@@ -86,6 +86,8 @@ folly::IPAddressV6 IPAddressGenerator<folly::IPAddressV6>::getIP(
 
 template class IPAddressGenerator<folly::IPAddressV4>;
 template class IPAddressGenerator<folly::IPAddressV6>;
+template class RouteGenerator<folly::IPAddressV4, 32>;
+template class RouteGenerator<folly::IPAddressV6, 128>;
 
 } // namespace utility
 } // namespace fboss

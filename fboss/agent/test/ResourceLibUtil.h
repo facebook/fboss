@@ -15,6 +15,15 @@ namespace facebook {
 namespace fboss {
 namespace utility {
 
+template <typename AddrT>
+struct RouteResourceType {
+  using entry = typename std::conditional_t<
+      std::is_same<AddrT, folly::IPAddressV4>::value,
+      RouteV4,
+      RouteV6>;
+  using type = typename std::unique_ptr<entry>;
+};
+
 template <typename IdT>
 class ResourceCursor {
  public:
@@ -154,8 +163,45 @@ class PrefixGenerator : public ResourceGenerator<
   IPAddressGenerator<AddrT> ipGenerator_;
 };
 
+template <typename AddrT, uint8_t mask>
+class RouteGenerator : public ResourceGenerator<
+                           typename RouteResourceType<AddrT>::type,
+                           typename IdT<AddrT>::type> {
+ public:
+  using AdminDistance = facebook::fboss::AdminDistance;
+  using InterfaceID = facebook::fboss::InterfaceID;
+  using RouteT = typename RouteResourceType<AddrT>::entry;
+  using ResourceT = typename RouteResourceType<AddrT>::type;
+  using IdT = typename IdT<AddrT>::type;
+  RouteGenerator(
+      const AdminDistance distance,
+      const AddrT& nexthop,
+      InterfaceID intf)
+      : distance_(distance), nexthop_(nexthop), intf_(intf) {}
+
+  ResourceT get(IdT id) const override {
+    const typename RouteFields<AddrT>::Prefix prefix = prefixGenerator_.get(id);
+    auto route = std::make_unique<RouteT>(
+        prefix,
+        ClientID(1), // static route
+        RouteNextHopEntry(ResolvedNextHop(nexthop_, intf_, 1), distance_));
+    route->setResolved(
+        RouteNextHopEntry(ResolvedNextHop(nexthop_, intf_, 1), distance_));
+    return route;
+  }
+
+ private:
+  AdminDistance distance_;
+  AddrT nexthop_;
+  InterfaceID intf_;
+  PrefixGenerator<AddrT, mask> prefixGenerator_;
+};
+
 using HostPrefixV4Generator = PrefixGenerator<folly::IPAddressV4, 32>;
 using HostPrefixV6Generator = PrefixGenerator<folly::IPAddressV6, 128>;
+using HostRouteV4Generator =  RouteGenerator<folly::IPAddressV4, 32>;
+using HostRouteV6Generator = RouteGenerator<folly::IPAddressV6, 128>;
+
 } // namespace utility
 } // namespace fboss
 } // namespace facebook
