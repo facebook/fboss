@@ -45,10 +45,7 @@ BcmTrunk::~BcmTrunk() {
 }
 
 void BcmTrunk::init(const std::shared_ptr<AggregatePort>& aggPort) {
-  static int64_t nextAvailableTrunkID = 0;
-  bcmTrunkID_ = nextAvailableTrunkID++;
-  auto rv = opennsl_trunk_create(
-    hw_->getUnit(), OPENNSL_TRUNK_FLAG_WITH_ID, &bcmTrunkID_);
+  auto rv = opennsl_trunk_create(hw_->getUnit(), 0, &bcmTrunkID_);
   bcmCheckError(
       rv, "failed to create trunk for aggregate port ", aggPort->getID());
   XLOG(INFO) << "created trunk " << bcmTrunkID_
