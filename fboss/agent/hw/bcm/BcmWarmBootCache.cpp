@@ -94,6 +94,7 @@ folly::dynamic BcmWarmBootCache::getWarmBootStateFollyDynamic() const {
   bcmWarmBootState[kHostTable] = bcmWarmBootState_->hostTableToFollyDynamic();
   bcmWarmBootState[kMplsNextHops] =
       bcmWarmBootState_->mplsNextHopsToFollyDynamic();
+  bcmWarmBootState[kIntfTable] = bcmWarmBootState_->intfTableToFollyDynamic();
   bcmWarmBootState[kWarmBootCache] = toFollyDynamic();
 
   return bcmWarmBootState;

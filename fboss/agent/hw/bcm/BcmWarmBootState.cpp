@@ -5,11 +5,13 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
+#include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmLabeledEgress.h"
 #include "fboss/agent/hw/bcm/BcmLabeledTunnel.h"
 #include "fboss/agent/hw/bcm/BcmLabeledTunnelEgress.h"
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
 namespace facebook {
@@ -220,6 +222,19 @@ folly::dynamic BcmWarmBootState::toFollyDynamic(
   }
 
   return mplsNextHopDynamic;
+}
+
+folly::dynamic BcmWarmBootState::intfTableToFollyDynamic() const {
+  folly::dynamic intfTableDynamic = folly::dynamic::array;
+
+  for (const auto& intf : hw_->getIntfTable()->getInterfaces()) {
+    folly::dynamic intfDynamic = folly::dynamic::object;
+    intfDynamic[kIntfId] = intf.second->getBcmIfId();
+    intfDynamic[kVlan] =
+        static_cast<uint16_t>(intf.second->getInterface()->getVlanID());
+    intfTableDynamic.push_back(intfDynamic);
+  }
+  return intfTableDynamic;
 }
 } // namespace fboss
 } // namespace facebook

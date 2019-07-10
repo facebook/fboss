@@ -119,6 +119,11 @@ class BcmIntfTable {
   void programIntf(const std::shared_ptr<Interface>& intf);
   void deleteIntf(const std::shared_ptr<Interface>& intf);
 
+  const boost::container::flat_map<InterfaceID, std::unique_ptr<BcmIntf>>&
+  getInterfaces() const {
+    return intfs_;
+  }
+
  private:
   BcmSwitch* hw_;
   // There are two mapping tables with different index types.

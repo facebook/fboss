@@ -24,6 +24,8 @@ class BcmWarmBootState {
 
   folly::dynamic mplsNextHopsToFollyDynamic() const;
 
+  folly::dynamic intfTableToFollyDynamic() const;
+
  private:
   template <typename Key, typename Value>
   folly::dynamic toFollyDynamic(

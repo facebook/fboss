@@ -100,7 +100,6 @@ void BcmStation::program(MacAddress mac, int id) {
 namespace {
 auto constexpr kMtu = "mtu";
 auto constexpr kIntfs = "intfs";
-auto constexpr kVlan = "vlan";
 }
 
 BcmIntf::BcmIntf(BcmSwitch* hw) : hw_(hw) {}

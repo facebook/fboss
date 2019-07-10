@@ -39,6 +39,7 @@ auto constexpr kLabel = "label";
 auto constexpr kMplsTunnel = "mplsTunnel";
 auto constexpr kStack = "stack";
 auto constexpr kMplsNextHops = "mplsNextHops";
+auto constexpr kVlan = "vlan";
 
 inline folly::StringPiece constexpr kWeight() {
   return "weight";
