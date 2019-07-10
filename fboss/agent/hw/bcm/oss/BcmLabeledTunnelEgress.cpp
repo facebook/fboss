@@ -5,13 +5,6 @@
 namespace facebook {
 namespace fboss {
 
-int BcmLabeledTunnelEgress::createEgress(
-    int /*unit*/,
-    uint32_t /*flags*/,
-    opennsl_l3_egress_t* /*egr*/) {
-  return 0;
-}
-
 void BcmLabeledTunnelEgress::prepareEgressObject(
     opennsl_if_t /*intfId*/,
     opennsl_port_t /*port*/,

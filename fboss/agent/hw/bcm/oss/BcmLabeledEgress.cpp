@@ -9,13 +9,6 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
-int BcmLabeledEgress::createEgress(
-    int /*unit*/,
-    uint32_t /*flags*/,
-    opennsl_l3_egress_t* /*egr*/) {
-  return OPENNSL_E_UNAVAIL;
-}
-
 void BcmLabeledEgress::prepareEgressObject(
     opennsl_if_t /*intfId*/,
     opennsl_port_t /*port*/,

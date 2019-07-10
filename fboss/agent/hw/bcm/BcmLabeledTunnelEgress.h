@@ -34,8 +34,7 @@ class BcmLabeledTunnelEgress : public BcmLabeledEgress {
       RouteForwardAction action,
       opennsl_l3_egress_t* eObj) const override;
 
-  int createEgress(int unit, uint32_t flags, opennsl_l3_egress_t* egr) override;
-
+ private:
   std::shared_ptr<BcmLabeledTunnel> tunnel_;
 };
 

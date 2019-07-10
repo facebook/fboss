@@ -33,8 +33,6 @@ class BcmLabeledEgress : public BcmEgress {
       opennsl_l3_egress_t* eObj) const override;
 
  private:
-  int createEgress(int unit, uint32_t flags, opennsl_l3_egress_t* egr) override;
-
   opennsl_mpls_label_t label_;
 };
 

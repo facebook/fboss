@@ -134,12 +134,6 @@ class BcmEgress : public BcmEgressBase {
 
  private:
   bool alreadyExists(const opennsl_l3_egress_t& newEgress) const;
-  virtual int createEgress(
-      int unit,
-      uint32_t flags,
-      opennsl_l3_egress_t* egr) {
-    return opennsl_l3_egress_create(unit, flags, egr, &id_);
-  }
   void program(
       opennsl_if_t intfId,
       opennsl_vrf_t vrf,

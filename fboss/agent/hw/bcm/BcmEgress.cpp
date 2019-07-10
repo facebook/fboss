@@ -161,7 +161,7 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
        *  the corresponding IP address sometimes broke. BCM issue is being
        *  tracked in t4324084
        */
-      auto rc = createEgress(hw_->getUnit(), flags, &eObj);
+      auto rc = opennsl_l3_egress_create(hw_->getUnit(), flags, &eObj, &id_);
       bcmCheckError(rc, failedToProgramMsg);
       XLOG(DBG2) << succeededToProgramMsg << " flags " << eObj.flags
                  << " towards port " << eObj.port;
