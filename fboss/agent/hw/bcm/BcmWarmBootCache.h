@@ -288,6 +288,9 @@ class BcmWarmBootCache {
       const folly::IPAddress& addr,
       folly::Optional<opennsl_if_t> intf);
 
+  EgressId2EgressCitr findEgressFromLabeledHostKey(
+      const BcmLabeledHostKey& key);
+
   void programmed(EgressId2EgressCitr citr) {
     XLOG(DBG1) << "Programmed egress entry: " << citr->first
                << ". Removing from warmboot cache.";

@@ -278,6 +278,16 @@ BcmWarmBootCache::findEgressFromHost(
   return findEgress(it->second);
 }
 
+BcmWarmBootCache::EgressId2EgressCitr
+BcmWarmBootCache::findEgressFromLabeledHostKey(const BcmLabeledHostKey& key) {
+  // check if this MPLS next hop identified by labeld host key is saved in warm
+  // boot state file.
+  const auto iter = mplsNextHops2EgressIdInWarmBootFile_.find(key);
+  return iter == mplsNextHops2EgressIdInWarmBootFile_.cend()
+      ? egressId2Egress_.end()
+      : findEgress(iter->second);
+}
+
 void BcmWarmBootCache::populate(folly::Optional<folly::dynamic> warmBootState) {
   if (warmBootState) {
     populateFromWarmBootState(*warmBootState);
