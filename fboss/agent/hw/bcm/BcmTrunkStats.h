@@ -26,11 +26,11 @@
 namespace facebook {
 namespace fboss {
 
-class BcmSwitch;
+class BcmSwitchIf;
 
 class BcmTrunkStats {
  public:
-  explicit BcmTrunkStats(const BcmSwitch* hw);
+  explicit BcmTrunkStats(const BcmSwitchIf* hw);
 
   void initialize(AggregatePortID aggPortID, std::string trunkName);
   void update();
@@ -56,7 +56,7 @@ class BcmTrunkStats {
       int64_t value);
   std::string constructCounterName(folly::StringPiece counterKey) const;
 
-  const BcmSwitch* const hw_;
+  const BcmSwitchIf* const hw_;
   std::string trunkName_;
   AggregatePortID aggregatePortID_{0};
 

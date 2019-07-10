@@ -23,7 +23,7 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
-class BcmSwitch;
+class BcmSwitchIf;
 
 class BcmTrunk {
  public:
@@ -31,7 +31,7 @@ class BcmTrunk {
     INVALID = -1,
   };
 
-  explicit BcmTrunk(const BcmSwitch* hw);
+  explicit BcmTrunk(const BcmSwitchIf* hw);
   ~BcmTrunk();
 
   opennsl_trunk_t id() const { return bcmTrunkID_; }
@@ -70,7 +70,7 @@ private:
   BcmTrunk& operator=(const BcmTrunk&) = delete;
 
   opennsl_trunk_t bcmTrunkID_{INVALID};
-  const BcmSwitch* const hw_{nullptr};
+  const BcmSwitchIf* const hw_{nullptr};
   BcmTrunkStats trunkStats_;
 };
 }

@@ -20,7 +20,7 @@
 namespace facebook {
 namespace fboss {
 
-BcmTrunkStats::BcmTrunkStats(const BcmSwitch* hw)
+BcmTrunkStats::BcmTrunkStats(const BcmSwitchIf* hw)
     : hw_(hw), memberPortIDs_(), counters_() {}
 
 void BcmTrunkStats::initialize(
