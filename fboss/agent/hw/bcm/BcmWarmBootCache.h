@@ -38,7 +38,6 @@ extern "C" {
 
 namespace facebook { namespace fboss {
 class AclMap;
-class BcmSwitch;
 class BcmSwitchIf;
 class InterfaceMap;
 class LoadBalancerMap;
