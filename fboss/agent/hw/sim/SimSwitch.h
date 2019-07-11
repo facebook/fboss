@@ -38,7 +38,6 @@ class SimSwitch : public HwSwitch {
 
   folly::dynamic toFollyDynamic() const override;
 
-  void clearWarmBootCache() override {}
   void injectPacket(std::unique_ptr<RxPacket> pkt);
   void initialConfigApplied() override {}
   void switchRunStateChanged(SwitchRunState newState) override {}

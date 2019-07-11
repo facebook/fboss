@@ -204,13 +204,6 @@ class HwSwitch {
    */
   virtual void initialConfigApplied() = 0;
 
-   /*
-   * Tell warm boot code we are done programming
-   * the h/w. Warm boot cache then uses this to
-   * to delete entries unreferenced entries h/w tables
-   */
-  virtual void clearWarmBootCache() = 0;
-
   /*
    * When SwSwitch changes its SwitchRunState, such as when it transitions
    * to INITIALIZED or CONFIGURED, HwSwitch may need to react. For

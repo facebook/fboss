@@ -174,22 +174,7 @@ class Initializer {
     fs_->setThreadName("UpdateStatsThread");
     std::function<void()> callback(std::bind(updateStats, sw_));
     auto timeInterval = std::chrono::seconds(1);
-    const string& nameID = "updateStats";
-    fs_->addFunction(callback, timeInterval, nameID);
-    // Schedule function to signal to SwSwitch that all
-    // initial programming is now complete. We typically
-    // do that at the end of syncFib call from BGP but
-    // in case that does not arrive for 30 secs after
-    // applying config use the below function.
-    const string flushWarmboot = "flushWarmBoot";
-    auto flushWarmbootFunc = [=]() {
-      sw_->clearWarmBootCache();
-      fs_->cancelFunction(flushWarmboot);
-    };
-    // Call flushWarmBootFunc 30 seconds after applying config
-    fs_->addFunction(flushWarmbootFunc, seconds(1), flushWarmboot,
-        seconds(FLAGS_flush_warmboot_cache_secs)/*initial delay*/);
-
+    fs_->addFunction(callback, timeInterval, "updateStats");
     fs_->start();
     XLOG(INFO) << "Started background thread: UpdateStatsThread";
     initCondition_.notify_all();

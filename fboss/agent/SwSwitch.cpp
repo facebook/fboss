@@ -392,10 +392,6 @@ void SwSwitch::exitFatal() const noexcept {
   }
 }
 
-void SwSwitch::clearWarmBootCache() {
-  hw_->clearWarmBootCache();
-}
-
 void SwSwitch::publishRxPacket(RxPacket* pkt, uint16_t ethertype){
   RxPacketData pubPkt;
   pubPkt.srcPort = pkt->getSrcPort();
@@ -610,7 +606,6 @@ void SwSwitch::logRouteUpdates(
 
 void SwSwitch::fibSynced() {
   if (getBootType() == BootType::WARM_BOOT) {
-    clearWarmBootCache();
     routeUpdateLogger_->stopLoggingForIdentifier("fboss-agent-warmboot");
   }
   setSwitchRunState(SwitchRunState::FIB_SYNCED);

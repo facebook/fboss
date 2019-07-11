@@ -333,11 +333,6 @@ folly::dynamic BcmSwitch::toFollyDynamic() const {
   return warmBootCache_->getWarmBootStateFollyDynamic();
 }
 
-void BcmSwitch::clearWarmBootCache() {
-  std::lock_guard<std::mutex> g(lock_);
-  warmBootCache_->clear();
-}
-
 void BcmSwitch::switchRunStateChanged(SwitchRunState newState) {
   std::lock_guard<std::mutex> g(lock_);
   switch (newState) {
@@ -593,6 +588,8 @@ HwInitResult BcmSwitch::init(Callback* callback) {
     auto warmBootState = applyAndGetWarmBootSwitchState();
     hostTable_->warmBootHostEntriesSynced();
     ret.switchState = warmBootState;
+    // Done with warm boot, clear warm boot cache
+    warmBootCache_->clear();
   } else {
     ret.switchState = getColdBootSwitchState();
   }

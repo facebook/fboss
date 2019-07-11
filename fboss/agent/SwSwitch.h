@@ -565,14 +565,6 @@ class SwSwitch : public HwSwitch::Callback {
    */
   void gracefulExit();
 
-  /*
-   * Done with programming.
-   * This is primarily used to signal to warm boot code
-   * to delete entries from h/w tables for which this was
-   * the last owner.
-   */
-  void clearWarmBootCache();
-
   BootType getBootType() const { return bootType_; }
 
   /*

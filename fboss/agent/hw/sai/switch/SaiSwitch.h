@@ -57,8 +57,6 @@ class SaiSwitch : public HwSwitch {
 
   void initialConfigApplied() override;
 
-  void clearWarmBootCache() override;
-
   void switchRunStateChanged(SwitchRunState newState) override;
 
   void exitFatal() const override;
@@ -163,8 +161,6 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock) const;
 
   void initialConfigAppliedLocked(const std::lock_guard<std::mutex>& lock);
-
-  void clearWarmBootCacheLocked(const std::lock_guard<std::mutex>& lock);
 
   void switchRunStateChangedLocked(
       const std::lock_guard<std::mutex>& lock,

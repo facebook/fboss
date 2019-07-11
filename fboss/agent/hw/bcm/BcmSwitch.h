@@ -357,15 +357,6 @@ class BcmSwitch : public BcmSwitchIf {
   void initialConfigApplied() override {}
 
   /*
-   * Signal to warm boot cache that this
-   * owner is done programming the h/w and we
-   * should remove any unclaimed entries that
-   * just have owner as their last remaining
-   * owner
-   */
-  void clearWarmBootCache() override;
-
-  /*
    * Handle SwitchRunState changes in SwSwitch
    */
   void switchRunStateChanged(SwitchRunState newState) override;

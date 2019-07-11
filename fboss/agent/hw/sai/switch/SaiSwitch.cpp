@@ -136,11 +136,6 @@ void SaiSwitch::initialConfigApplied() {
   initialConfigAppliedLocked(lock);
 }
 
-void SaiSwitch::clearWarmBootCache() {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  clearWarmBootCacheLocked(lock);
-}
-
 void SaiSwitch::switchRunStateChanged(SwitchRunState newState) {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   switchRunStateChangedLocked(lock, newState);
@@ -359,9 +354,6 @@ folly::dynamic SaiSwitch::toFollyDynamicLocked(
 }
 
 void SaiSwitch::initialConfigAppliedLocked(
-    const std::lock_guard<std::mutex>& /* lock */) {}
-
-void SaiSwitch::clearWarmBootCacheLocked(
     const std::lock_guard<std::mutex>& /* lock */) {}
 
 void SaiSwitch::switchRunStateChangedLocked(
