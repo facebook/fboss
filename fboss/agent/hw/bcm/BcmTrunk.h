@@ -77,5 +77,5 @@ private:
   const BcmSwitchIf* const hw_{nullptr};
   BcmTrunkStats trunkStats_;
 };
-}
-} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook
