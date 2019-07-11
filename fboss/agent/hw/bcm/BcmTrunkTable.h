@@ -52,8 +52,6 @@ class BcmTrunkTable {
   opennsl_trunk_t linkDownHwNotLocked(opennsl_port_t port);
 
   void updateStats();
-  // Setup trunking machinery
-  void setupTrunking();
 
  private:
   // Forbidden copy constructor and assignment operator

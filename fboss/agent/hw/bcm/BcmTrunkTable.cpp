@@ -46,11 +46,6 @@ AggregatePortID BcmTrunkTable::getAggregatePortId(opennsl_trunk_t trunk) const {
   throw FbossError("Cannot find the aggregatePort id for trunk ", trunk);
 }
 
-void BcmTrunkTable::setupTrunking() {
-  auto rv = opennsl_trunk_init(hw_->getUnit());
-  bcmCheckError(rv, "Failed to initialize trunking machinery");
-}
-
 void BcmTrunkTable::addTrunk(const std::shared_ptr<AggregatePort>& aggPort) {
   auto trunk = std::make_unique<BcmTrunk>(hw_);
   trunk->init(aggPort);

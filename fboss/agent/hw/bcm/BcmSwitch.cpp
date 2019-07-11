@@ -575,8 +575,6 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   bstStatsMgr_->startBufferStatCollection();
 
-  trunkTable_->setupTrunking();
-
   // Set the spanning tree state of all ports to forwarding.
   // TODO: Eventually the spanning tree state should be part of the Port
   // state, and this should be handled in applyConfig().
