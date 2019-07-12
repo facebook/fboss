@@ -309,10 +309,10 @@ class PortStatusCmd(cmds.FbossCmd):
 
     def _get_field_format(self, internal_port):
         if internal_port:
-            field_fmt = '{:<6} {:>11} {:>12}  {}{:>10}  {:>12}  {:>6}'
+            field_fmt = '{:<6} {:>11} {:>12}  {}{:>10}  {:>12}  {:>6}  {:>6}'
             print(field_fmt.format('ID', 'Name', 'AdminState', '',
-                                   'LinkState', 'Transceiver', 'Speed'))
-            print('-' * 67)
+                                   'LinkState', 'Transceiver', 'TcvrId', 'Speed'))
+            print('-' * 75)
         else:
             field_fmt = '{:<11} {:>12}  {}{:>10}  {:>12}  {:>6}'
             print(field_fmt.format('Name', 'Admin State', '', 'Link State',
@@ -339,10 +339,13 @@ class PortStatusCmd(cmds.FbossCmd):
             qsfp_present = False
             # For non QSFP ports (think Fabric port) qsfp_client
             # will not return any information.
-            if status.transceiverIdx and self._qsfp_client:
+            transceiver = status.transceiverIdx
+            if transceiver and self._qsfp_client:
                 qsfp_info = qsfp_info_map.get(
-                    status.transceiverIdx.transceiverId)
+                    transceiver.transceiverId)
                 qsfp_present = qsfp_info.present if qsfp_info else False
+
+
 
             attrs = utils.get_status_strs(status, qsfp_present)
             if internal_port:
@@ -356,6 +359,7 @@ class PortStatusCmd(cmds.FbossCmd):
                     attrs['color_align'],
                     attrs['link_status'],
                     attrs['present'],
+                    transceiver.transceiverId if transceiver else '',
                     speed))
             elif all:
                 name = port_info.name if port_info.name else port_id
