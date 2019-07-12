@@ -56,7 +56,7 @@ AggregatePortFields::Subport AggregatePortFields::Subport::fromFollyDynamic(
   }
 
   cfg::LacpPortActivity activity;
-  if (json[kActivity] == "activity") {
+  if (json[kActivity] == "active") {
     activity = cfg::LacpPortActivity::ACTIVE;
   } else {
     CHECK_EQ(json[kActivity], "passive");
