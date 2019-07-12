@@ -362,6 +362,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmEgressManager.cpp
     fboss/agent/hw/bcm/BcmNextHop.cpp
     fboss/agent/hw/bcm/BcmMultiPathNextHop.cpp
+    fboss/agent/hw/bcm/BcmLabeledEgress.cpp
     fboss/agent/hw/bcm/BcmLabeledTunnelEgress.cpp
     fboss/agent/hw/bcm/oss/BcmAclEntry.cpp
     fboss/agent/hw/bcm/oss/BcmAclStat.cpp
