@@ -225,7 +225,10 @@ void BcmWarmBootCache::populateFromWarmBootState(const folly::dynamic&
   }
 
   // extract MPLS next hop and its egress object from the  warm boot file
-  const auto& mplsNextHops = warmBootState[kHwSwitch][kMplsNextHops];
+  const auto& mplsNextHops = (warmBootState[kHwSwitch].find(kMplsNextHops) !=
+                              warmBootState[kHwSwitch].items().end())
+      ? warmBootState[kHwSwitch][kMplsNextHops]
+      : folly::dynamic::array();
 
   for (const auto& mplsNextHop : mplsNextHops) {
     auto egressId = mplsNextHop[kEgressId].asInt();
@@ -256,7 +259,10 @@ void BcmWarmBootCache::populateFromWarmBootState(const folly::dynamic&
   }
 
   // get l3 intfs for each known vlan in warmboot state file
-  const auto& intfTable = warmBootState[kHwSwitch][kIntfTable];
+  const auto& intfTable = (warmBootState[kHwSwitch].find(kIntfTable) !=
+                           warmBootState[kHwSwitch].items().end())
+      ? warmBootState[kHwSwitch][kIntfTable]
+      : folly::dynamic::array();
   for (const auto& intfTableEntry : intfTable) {
     vlan2BcmIfIdInWarmBootFile_.emplace(
         VlanID(intfTableEntry[kVlan].asInt()), intfTableEntry[kIntfId].asInt());
