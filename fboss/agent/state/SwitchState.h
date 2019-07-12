@@ -337,4 +337,5 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   friend class CloneAllocator;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

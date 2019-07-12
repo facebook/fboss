@@ -847,4 +847,6 @@ class BcmSwitch : public BcmSwitchIf {
    */
   std::mutex lock_;
 };
-}} // facebook::fboss
+
+} // namespace fboss
+} // namespace facebook

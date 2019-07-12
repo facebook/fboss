@@ -65,5 +65,6 @@ class BcmTrunkTable {
 
   TrunkToMinimumLinkCountMap trunkToMinLinkCount_;
 };
-}
-} // namespace facebook::fboss
+
+} // namespace fboss
+} // namespace facebook

@@ -301,4 +301,5 @@ void SwitchState::resetForwardingInformationBases(
 
 template class NodeBaseT<SwitchState, SwitchStateFields>;
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

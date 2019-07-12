@@ -2072,5 +2072,5 @@ BcmSwitch::MmuState BcmSwitch::queryMmuState() const {
     MmuState::MMU_LOSSY;
 }
 
-
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook
