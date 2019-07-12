@@ -121,14 +121,13 @@ class PortDetailsCmd(cmds.FbossCmd):
                         attrs.append("{}={}".format(val, getattr(queue, val)))
                 print("    Queue {} {:29}{}".format(
                     queue.id, name, ",".join(attrs)))
-                if hasattr(queue, "aqm") and getattr(queue, "aqm"):
-                    aqm = getattr(queue, "aqm")
+                if hasattr(queue, "aqm") and queue.aqm:
+                    aqm = queue.aqm
                     attrs1 = []
                     attrs1.append("{}={}".format("aqm", "enabled"))
-                    if hasattr(aqm.detection, "linear") and getattr(
-                            aqm.detection, "linear"):
+                    if hasattr(aqm.detection, "linear") and aqm.detection.linear:
                         attrs1.append("{}={}".format("detection", "linear"))
-                        linear = getattr(aqm.detection, "linear")
+                        linear = aqm.detection.linear
                         attrs1.append("{}={}".format(
                             "minThresh",
                             linear.minimumLength))
