@@ -38,8 +38,8 @@ TEST(NDPRouterAdvertisementTest, copy_constructor) {
   uint16_t routerLifetime = 1800;
   uint32_t reachableTime = 0;
   uint32_t retransTimer = 0;
-  NDPRouterAdvertisement lhs(curHopLimit, flags, routerLifetime, reachableTime,
-      retransTimer);
+  NDPRouterAdvertisement lhs(
+      curHopLimit, flags, routerLifetime, reachableTime, retransTimer);
   NDPRouterAdvertisement rhs(lhs);
   EXPECT_EQ(lhs, rhs);
 }
@@ -50,8 +50,8 @@ TEST(NDPRouterAdvertisementTest, parameterized_data_constructor) {
   uint16_t routerLifetime = 1800;
   uint32_t reachableTime = 0;
   uint32_t retransTimer = 0;
-  NDPRouterAdvertisement obj(curHopLimit, flags, routerLifetime, reachableTime,
-      retransTimer);
+  NDPRouterAdvertisement obj(
+      curHopLimit, flags, routerLifetime, reachableTime, retransTimer);
   EXPECT_EQ(curHopLimit, obj.curHopLimit);
   EXPECT_EQ(flags, obj.flags);
   EXPECT_EQ(routerLifetime, obj.routerLifetime);
@@ -66,12 +66,12 @@ TEST(NDPRouterAdvertisementTest, cursor_data_constructor) {
   uint32_t reachableTime = 0;
   uint32_t retransTimer = 0;
   auto pkt = MockRxPacket::fromHex(
-    // NDP Router Advertisement
-    "40"           // Cur Hop Limit: 64
-    "08"           // Flags
-    "07 08"        // Router Lifetime
-    "00 00 00 00"  // Reachable Time
-    "00 00 00 00"  // Retrans Timer
+      // NDP Router Advertisement
+      "40" // Cur Hop Limit: 64
+      "08" // Flags
+      "07 08" // Router Lifetime
+      "00 00 00 00" // Reachable Time
+      "00 00 00 00" // Retrans Timer
   );
   Cursor cursor(pkt->buf());
   NDPRouterAdvertisement obj(cursor);
@@ -84,15 +84,15 @@ TEST(NDPRouterAdvertisementTest, cursor_data_constructor) {
 
 TEST(NDPRouterAdvertisementTest, cursor_data_constructor_too_small) {
   auto pkt = MockRxPacket::fromHex(
-    // NDP Router Advertisement
-    "40"           // Cur Hop Limit: 64
-    "08"           // Flags
-    "07 08"        // Router Lifetime
-    "00 00 00 00"  // Reachable Time
-    "00 00 00   "  // OOPS! One octet too small!
+      // NDP Router Advertisement
+      "40" // Cur Hop Limit: 64
+      "08" // Flags
+      "07 08" // Router Lifetime
+      "00 00 00 00" // Reachable Time
+      "00 00 00   " // OOPS! One octet too small!
   );
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({NDPRouterAdvertisement obj(cursor);}, HdrParseError);
+  EXPECT_THROW({ NDPRouterAdvertisement obj(cursor); }, HdrParseError);
 }
 
 TEST(NDPRouterAdvertisementTest, assignment_operator) {
@@ -101,8 +101,8 @@ TEST(NDPRouterAdvertisementTest, assignment_operator) {
   uint16_t routerLifetime = 1800;
   uint32_t reachableTime = 0;
   uint32_t retransTimer = 0;
-  NDPRouterAdvertisement lhs(curHopLimit, flags, routerLifetime, reachableTime,
-      retransTimer);
+  NDPRouterAdvertisement lhs(
+      curHopLimit, flags, routerLifetime, reachableTime, retransTimer);
   NDPRouterAdvertisement rhs = lhs;
   EXPECT_EQ(lhs, rhs);
 }
@@ -113,10 +113,10 @@ TEST(NDPRouterAdvertisementTest, equality_operator) {
   uint16_t routerLifetime = 1800;
   uint32_t reachableTime = 0;
   uint32_t retransTimer = 0;
-  NDPRouterAdvertisement lhs(curHopLimit, flags, routerLifetime, reachableTime,
-      retransTimer);
-  NDPRouterAdvertisement rhs(curHopLimit, flags, routerLifetime, reachableTime,
-      retransTimer);
+  NDPRouterAdvertisement lhs(
+      curHopLimit, flags, routerLifetime, reachableTime, retransTimer);
+  NDPRouterAdvertisement rhs(
+      curHopLimit, flags, routerLifetime, reachableTime, retransTimer);
   EXPECT_EQ(lhs, rhs);
 }
 
@@ -127,9 +127,9 @@ TEST(NDPRouterAdvertisementTest, inequality_operator) {
   uint32_t reachableTime = 0;
   uint32_t retransTimer1 = 0;
   uint32_t retransTimer2 = 1;
-  NDPRouterAdvertisement lhs(curHopLimit, flags, routerLifetime, reachableTime,
-      retransTimer1);
-  NDPRouterAdvertisement rhs(curHopLimit, flags, routerLifetime, reachableTime,
-      retransTimer2);
+  NDPRouterAdvertisement lhs(
+      curHopLimit, flags, routerLifetime, reachableTime, retransTimer1);
+  NDPRouterAdvertisement rhs(
+      curHopLimit, flags, routerLifetime, reachableTime, retransTimer2);
   EXPECT_NE(lhs, rhs);
 }

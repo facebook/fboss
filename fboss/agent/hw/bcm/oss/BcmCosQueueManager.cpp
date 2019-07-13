@@ -9,7 +9,8 @@
  */
 #include "fboss/agent/hw/bcm/BcmCosQueueManager.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 int BcmCosQueueManager::getControlValue(
     cfg::StreamType /*streamType*/,
     opennsl_gport_t /*gport*/,
@@ -67,4 +68,5 @@ void BcmCosQueueManager::updateQueueAggregatedStat(
     facebook::stats::MonotonicCounter* /*counter*/,
     std::chrono::seconds /*now*/,
     HwPortStats* /*portStats*/) {}
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

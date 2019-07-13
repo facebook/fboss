@@ -10,19 +10,22 @@
 // Copyright 2014-present Facebook. All Rights Reserved.
 #pragma once
 #include <folly/io/async/AsyncTimeout.h>
-#include <unordered_map>
 #include <memory>
+#include <unordered_map>
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/lldp/LinkNeighborDB.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"
 
-namespace folly { namespace io {
+namespace folly {
+namespace io {
 class Cursor;
-}}
+}
+} // namespace folly
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 class RxPacket;
 class TxPacket;
 
@@ -38,21 +41,22 @@ class LldpManager : private folly::AsyncTimeout {
    * http://www.ieee802.org/1/files/public/docs2002/lldp-protocol-00.pdf
    */
  public:
-  enum : uint16_t { ETHERTYPE_LLDP = 0x88CC,
-                    LLDP_INTERVAL = 5*1000,  // 5s is normal min value
-                    TLV_TYPE_BITS_LENGTH = 7,
-                    TLV_LENGTH_BITS_LENGTH = 9,
-                    TLV_TYPE_LEFT_SHIFT_OFFSET = 9,
-                    TLV_LENGTH_LEFT_SHIFT_OFFSET = 1,
-                    CHASSIS_TLV_LENGTH = 0x07,
-                    SYSTEM_CAPABILITY_TLV_LENGTH = 0x4,
-                    SYSTEM_CAPABILITY_SWITCH = 1 << 2, // 3rd bit for switch
-                    SYSTEM_CAPABILITY_ROUTER = 1 << 4, // 5th bit for router
-                    TTL_TLV_LENGTH = 0x2,
-                    TTL_TLV_VALUE = 120,
-                    PDU_END_TLV_LENGTH = 0};
-  explicit LldpManager(
-      SwSwitch* sw);
+  enum : uint16_t {
+    ETHERTYPE_LLDP = 0x88CC,
+    LLDP_INTERVAL = 5 * 1000, // 5s is normal min value
+    TLV_TYPE_BITS_LENGTH = 7,
+    TLV_LENGTH_BITS_LENGTH = 9,
+    TLV_TYPE_LEFT_SHIFT_OFFSET = 9,
+    TLV_LENGTH_LEFT_SHIFT_OFFSET = 1,
+    CHASSIS_TLV_LENGTH = 0x07,
+    SYSTEM_CAPABILITY_TLV_LENGTH = 0x4,
+    SYSTEM_CAPABILITY_SWITCH = 1 << 2, // 3rd bit for switch
+    SYSTEM_CAPABILITY_ROUTER = 1 << 4, // 5th bit for router
+    TTL_TLV_LENGTH = 0x2,
+    TTL_TLV_VALUE = 120,
+    PDU_END_TLV_LENGTH = 0
+  };
+  explicit LldpManager(SwSwitch* sw);
   ~LldpManager() override;
   static const folly::MacAddress LLDP_DEST_MAC;
 
@@ -71,21 +75,22 @@ class LldpManager : private folly::AsyncTimeout {
    */
   void stop();
 
-  void handlePacket(std::unique_ptr<RxPacket> pkt,
-                    folly::MacAddress dst,
-                    folly::MacAddress src,
-                    folly::io::Cursor cursor);
+  void handlePacket(
+      std::unique_ptr<RxPacket> pkt,
+      folly::MacAddress dst,
+      folly::MacAddress src,
+      folly::io::Cursor cursor);
 
   // Create an LLDP packet
-  static std::unique_ptr<TxPacket>
-  createLldpPkt(SwSwitch* sw,
-                const folly::MacAddress macaddr,
-                VlanID,
-                const std::string& hostname,
-                const std::string& portname,
-                const std::string& portdesc,
-                const uint16_t ttl,
-                const uint16_t capabilities);
+  static std::unique_ptr<TxPacket> createLldpPkt(
+      SwSwitch* sw,
+      const folly::MacAddress macaddr,
+      VlanID,
+      const std::string& hostname,
+      const std::string& portname,
+      const std::string& portdesc,
+      const uint16_t ttl,
+      const uint16_t capabilities);
 
   // This function is internal.  It is only public for use in unit tests.
   void sendLldpOnAllPorts();
@@ -100,10 +105,11 @@ class LldpManager : private folly::AsyncTimeout {
 
   // Helper to calculate the packet size which createLldpPkt will allocate.
   // Required for unit testing, if nothing else.
-  static uint32_t LldpPktSize(const std::string& hostname,
-                         const std::string& portname,
-                         const std::string& portdesc,
-                         const std::string& sysDesc);
+  static uint32_t LldpPktSize(
+      const std::string& hostname,
+      const std::string& portname,
+      const std::string& portdesc,
+      const std::string& sysDesc);
 
  private:
   void timeoutExpired() noexcept override;
@@ -114,4 +120,5 @@ class LldpManager : private folly::AsyncTimeout {
   LinkNeighborDB db_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

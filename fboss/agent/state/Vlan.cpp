@@ -47,9 +47,10 @@ constexpr auto kArpTable = "arpTable";
 constexpr auto kArpResponseTable = "arpResponseTable";
 constexpr auto kNdpTable = "ndpTable";
 constexpr auto kNdpResponseTable = "ndpResponseTable";
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 folly::dynamic VlanFields::PortInfo::toFollyDynamic() const {
   folly::dynamic port = folly::dynamic::object;
@@ -57,37 +58,36 @@ folly::dynamic VlanFields::PortInfo::toFollyDynamic() const {
   return port;
 }
 
-VlanFields::PortInfo
-VlanFields::PortInfo::fromFollyDynamic(const folly::dynamic& json) {
+VlanFields::PortInfo VlanFields::PortInfo::fromFollyDynamic(
+    const folly::dynamic& json) {
   return PortInfo(json[kTagged].asBool());
 }
 
 VlanFields::VlanFields(VlanID _id, string _name)
-  : id(_id),
-    name(std::move(_name)),
-    arpTable(new ArpTable),
-    arpResponseTable(new ArpResponseTable),
-    ndpTable(new NdpTable),
-    ndpResponseTable(new NdpResponseTable) {
-}
+    : id(_id),
+      name(std::move(_name)),
+      arpTable(new ArpTable),
+      arpResponseTable(new ArpResponseTable),
+      ndpTable(new NdpTable),
+      ndpResponseTable(new NdpResponseTable) {}
 
-VlanFields::VlanFields(VlanID _id,
-                       string _name,
-                       InterfaceID _intfID,
-                       IPAddressV4 v4Relay,
-                       IPAddressV6 v6Relay,
-                       MemberPorts&& ports)
-  : id(_id),
-    name(std::move(_name)),
-    intfID(_intfID),
-    dhcpV4Relay(v4Relay),
-    dhcpV6Relay(v6Relay),
-    ports(std::move(ports)),
-    arpTable(new ArpTable),
-    arpResponseTable(new ArpResponseTable),
-    ndpTable(new NdpTable),
-    ndpResponseTable(new NdpResponseTable) {
-}
+VlanFields::VlanFields(
+    VlanID _id,
+    string _name,
+    InterfaceID _intfID,
+    IPAddressV4 v4Relay,
+    IPAddressV6 v6Relay,
+    MemberPorts&& ports)
+    : id(_id),
+      name(std::move(_name)),
+      intfID(_intfID),
+      dhcpV4Relay(v4Relay),
+      dhcpV6Relay(v6Relay),
+      ports(std::move(ports)),
+      arpTable(new ArpTable),
+      arpResponseTable(new ArpResponseTable),
+      ndpTable(new NdpTable),
+      ndpResponseTable(new NdpResponseTable) {}
 
 folly::dynamic VlanFields::toFollyDynamic() const {
   folly::dynamic vlan = folly::dynamic::object;
@@ -97,15 +97,15 @@ folly::dynamic VlanFields::toFollyDynamic() const {
   vlan[kDhcpV4Relay] = dhcpV4Relay.str();
   vlan[kDhcpV6Relay] = dhcpV6Relay.str();
   vlan[kDhcpV4RelayOverrides] = folly::dynamic::object;
-  for (const auto& o: dhcpRelayOverridesV4) {
+  for (const auto& o : dhcpRelayOverridesV4) {
     vlan[kDhcpV4RelayOverrides][o.first.toString()] = o.second.str();
   }
   vlan[kDhcpV6RelayOverrides] = folly::dynamic::object;
-  for (const auto& o: dhcpRelayOverridesV6) {
+  for (const auto& o : dhcpRelayOverridesV6) {
     vlan[kDhcpV6RelayOverrides][o.first.toString()] = o.second.str();
   }
   folly::dynamic memberPorts = folly::dynamic::object;
-  for (const auto& port: ports) {
+  for (const auto& port : ports) {
     folly::dynamic portInfo = folly::dynamic::object;
     memberPorts[to<string>(static_cast<uint16_t>(port.first))] =
         port.second.toFollyDynamic();
@@ -119,37 +119,34 @@ folly::dynamic VlanFields::toFollyDynamic() const {
 }
 
 VlanFields VlanFields::fromFollyDynamic(const folly::dynamic& vlanJson) {
-  VlanFields vlan(VlanID(vlanJson[kVlanId].asInt()),
-      vlanJson[kVlanName].asString());
+  VlanFields vlan(
+      VlanID(vlanJson[kVlanId].asInt()), vlanJson[kVlanName].asString());
   vlan.intfID = InterfaceID(vlanJson[kIntfID].asInt());
-  vlan.dhcpV4Relay = folly::IPAddressV4(
-      vlanJson[kDhcpV4Relay].stringPiece());
-  vlan.dhcpV6Relay = folly::IPAddressV6(
-      vlanJson[kDhcpV6Relay].stringPiece());
-  for (const auto& o: vlanJson[kDhcpV4RelayOverrides].items()) {
+  vlan.dhcpV4Relay = folly::IPAddressV4(vlanJson[kDhcpV4Relay].stringPiece());
+  vlan.dhcpV6Relay = folly::IPAddressV6(vlanJson[kDhcpV6Relay].stringPiece());
+  for (const auto& o : vlanJson[kDhcpV4RelayOverrides].items()) {
     vlan.dhcpRelayOverridesV4[MacAddress(o.first.asString())] =
         folly::IPAddressV4(o.second.stringPiece());
   }
-  for (const auto& o: vlanJson[kDhcpV6RelayOverrides].items()) {
+  for (const auto& o : vlanJson[kDhcpV6RelayOverrides].items()) {
     vlan.dhcpRelayOverridesV6[MacAddress(o.first.asString())] =
         folly::IPAddressV6(o.second.stringPiece());
   }
-  for (const auto& portInfo: vlanJson[kMemberPorts].items()) {
-    vlan.ports.emplace(PortID(to<uint16_t>(portInfo.first.asString())),
-          PortInfo::fromFollyDynamic(portInfo.second));
+  for (const auto& portInfo : vlanJson[kMemberPorts].items()) {
+    vlan.ports.emplace(
+        PortID(to<uint16_t>(portInfo.first.asString())),
+        PortInfo::fromFollyDynamic(portInfo.second));
   }
   vlan.arpTable = ArpTable::fromFollyDynamic(vlanJson[kArpTable]);
   vlan.ndpTable = NdpTable::fromFollyDynamic(vlanJson[kNdpTable]);
-  vlan.arpResponseTable = ArpResponseTable::fromFollyDynamic(
-      vlanJson[kArpResponseTable]);
-  vlan.ndpResponseTable = NdpResponseTable::fromFollyDynamic(
-      vlanJson[kNdpResponseTable]);
+  vlan.arpResponseTable =
+      ArpResponseTable::fromFollyDynamic(vlanJson[kArpResponseTable]);
+  vlan.ndpResponseTable =
+      NdpResponseTable::fromFollyDynamic(vlanJson[kNdpResponseTable]);
   return vlan;
 }
 
-Vlan::Vlan(VlanID id, string name)
-  : NodeBaseT(id, std::move(name)) {
-}
+Vlan::Vlan(VlanID id, string name) : NodeBaseT(id, std::move(name)) {}
 
 Vlan::Vlan(const cfg::Vlan* config, MemberPorts ports)
     : NodeBaseT(
@@ -197,4 +194,5 @@ void Vlan::addPort(PortID id, bool tagged) {
 
 template class NodeBaseT<Vlan, VlanFields>;
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

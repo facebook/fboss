@@ -14,8 +14,7 @@ LabelForwardingInformationBase::LabelForwardingInformationBase() {}
 LabelForwardingInformationBase::~LabelForwardingInformationBase() {}
 
 const std::shared_ptr<LabelForwardingEntry>&
-LabelForwardingInformationBase::getLabelForwardingEntry(
-    Label labelFib) const {
+LabelForwardingInformationBase::getLabelForwardingEntry(Label labelFib) const {
   return getNode(labelFib);
 }
 

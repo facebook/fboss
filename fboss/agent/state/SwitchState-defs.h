@@ -10,10 +10,11 @@
 #pragma once
 
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/state/VlanMap.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 template <typename EntryClassT, typename NTableT>
 void SwitchState::revertNewNeighborEntry(
@@ -62,4 +63,5 @@ void SwitchState::revertNewRouteEntry(
   CHECK_EQ(clonedRib->size(), clonedRib->writableRoutesRadixTree().size());
 }
 
-}}
+} // namespace fboss
+} // namespace facebook

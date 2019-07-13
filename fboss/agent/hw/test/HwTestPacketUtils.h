@@ -13,20 +13,20 @@
 #include <memory>
 #include <vector>
 
+#include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
 #include <folly/Optional.h>
-#include <folly/IPAddressV6.h>
 
-#include "fboss/agent/types.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/Ethertype.h"
+#include "fboss/agent/types.h"
 
 namespace facebook {
 namespace fboss {
 class HwSwitch;
 class EthHdr;
 class UDPHeader;
-}
+} // namespace fboss
 } // namespace facebook
 
 namespace facebook {

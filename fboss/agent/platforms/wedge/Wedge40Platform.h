@@ -11,15 +11,16 @@
 
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class WedgePortMapping;
 class PlatformProductInfo;
 
 class Wedge40Platform : public WedgePlatform {
  public:
-  explicit Wedge40Platform(std::unique_ptr<PlatformProductInfo> productInfo) :
-      WedgePlatform(std::move(productInfo)) {}
+  explicit Wedge40Platform(std::unique_ptr<PlatformProductInfo> productInfo)
+      : WedgePlatform(std::move(productInfo)) {}
 
   std::unique_ptr<WedgePortMapping> createPortMapping() override;
 
@@ -44,9 +45,9 @@ class Wedge40Platform : public WedgePlatform {
     return 2;
   }
   const PortQueue& getDefaultPortQueueSettings(
-    cfg::StreamType streamType) const override;
+      cfg::StreamType streamType) const override;
   const PortQueue& getDefaultControlPlaneQueueSettings(
-    cfg::StreamType streamType) const override;
+      cfg::StreamType streamType) const override;
 
   bool useQueueGportForCos() const override {
     return false;
@@ -57,8 +58,9 @@ class Wedge40Platform : public WedgePlatform {
   }
 
  private:
-  Wedge40Platform(Wedge40Platform const &) = delete;
-  Wedge40Platform& operator=(Wedge40Platform const &) = delete;
+  Wedge40Platform(Wedge40Platform const&) = delete;
+  Wedge40Platform& operator=(Wedge40Platform const&) = delete;
 };
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -8,36 +8,36 @@
  *
  */
 #include "DHCPv6Packet.h"
-#include <cstring>
-#include <algorithm>
-#include <iterator>
-#include <folly/io/IOBuf.h>
-#include <folly/io/Cursor.h>
-#include "fboss/agent/FbossError.h"
-#include "fboss/agent/packet/PktUtil.h"
 #include <folly/IPAddress.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
+#include <folly/io/Cursor.h>
+#include <folly/io/IOBuf.h>
+#include <algorithm>
+#include <cstring>
 #include <iostream>
+#include <iterator>
 #include <sstream>
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/packet/PktUtil.h"
 
 using folly::IOBuf;
+using folly::IPAddressV6;
+using folly::MacAddress;
 using folly::io::Cursor;
 using folly::io::RWPrivateCursor;
-using std::vector;
+using std::back_inserter;
+using std::copy;
 using std::string;
 using std::stringstream;
-using std::copy;
-using std::back_inserter;
-using folly::MacAddress;
-using folly::IPAddressV6;
+using std::vector;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 class SwSwitch;
 
 void DHCPv6Option::parse(DHCPv6Packet::Options& optionsIn, int index) {
-  auto ioBuf = IOBuf::wrapBuffer(&optionsIn[index],
-                                 optionsIn.size() - index);
+  auto ioBuf = IOBuf::wrapBuffer(&optionsIn[index], optionsIn.size() - index);
   Cursor cursor(ioBuf.get());
   op = cursor.readBE<uint16_t>();
   len = cursor.readBE<uint16_t>();
@@ -45,8 +45,9 @@ void DHCPv6Option::parse(DHCPv6Packet::Options& optionsIn, int index) {
 }
 
 bool DHCPv6Packet::isDHCPv6Relay() const {
-  return (static_cast<DHCPv6Type>(type) == DHCPv6Type::DHCPv6_RELAY_FORWARD ||
-          static_cast<DHCPv6Type>(type) == DHCPv6Type::DHCPv6_RELAY_REPLY);
+  return (
+      static_cast<DHCPv6Type>(type) == DHCPv6Type::DHCPv6_RELAY_FORWARD ||
+      static_cast<DHCPv6Type>(type) == DHCPv6Type::DHCPv6_RELAY_REPLY);
 }
 
 void DHCPv6Packet::addRelayMessageOption(const DHCPv6Packet& dhcpPktIn) {
@@ -65,7 +66,10 @@ void DHCPv6Packet::addRelayMessageOption(const DHCPv6Packet& dhcpPktIn) {
 }
 
 void DHCPv6Packet::addInterfaceIDOption(MacAddress macAddr) {
-  appendOption(static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_INTERFACE_ID), MacAddress::SIZE, macAddr.bytes());
+  appendOption(
+      static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_INTERFACE_ID),
+      MacAddress::SIZE,
+      macAddr.bytes());
 }
 
 /**
@@ -78,8 +82,8 @@ void DHCPv6Packet::addInterfaceIDOption(MacAddress macAddr) {
    |                       option-data (variable)                  |
    +-------------------------------+-------------------------------+
 */
-size_t DHCPv6Packet::appendOption(uint16_t op, uint16_t len,
-    const uint8_t* bytes) {
+size_t
+DHCPv6Packet::appendOption(uint16_t op, uint16_t len, const uint8_t* bytes) {
   IOBuf buf(IOBuf::CREATE, 4);
   buf.append(4);
   RWPrivateCursor cursor(&buf);
@@ -124,8 +128,8 @@ void DHCPv6Packet::parse(Cursor* cursor) {
 size_t DHCPv6Packet::computePacketLength() const {
   if (isDHCPv6Relay()) {
     // type + hopcount + la + pa + options
-    return TYPE_BYTES + HOPCOUNT_BYTES + LINKADDR_BYTES +
-           PEERADDR_BYTES + options.size();
+    return TYPE_BYTES + HOPCOUNT_BYTES + LINKADDR_BYTES + PEERADDR_BYTES +
+        options.size();
   } else {
     // type + transaction id + options
     return TYPE_BYTES + TRANSACTIONID_BYTES + options.size();
@@ -157,29 +161,26 @@ string DHCPv6Packet::toString() const {
   stringstream ss;
   if (isDHCPv6Relay()) {
     ss << "DHCPv6Packet (relay) { type: " << (int)type
-       << " hopCount: " << (int)hopCount
-       << " linkAddr: " << linkAddr.str()
-       << " peerAddr: " << peerAddr.str()
-       << " option len: " << options.size()
+       << " hopCount: " << (int)hopCount << " linkAddr: " << linkAddr.str()
+       << " peerAddr: " << peerAddr.str() << " option len: " << options.size()
        << " }";
   } else {
     ss << "DHCPv6Packet { type: " << (int)type
        << " transaction id: " << transactionId
-       << " option len: " << options.size()
-       << " }";
+       << " option len: " << options.size() << " }";
   }
   return ss.str();
 }
 
 bool DHCPv6Packet::operator==(const DHCPv6Packet& r) const {
   if (isDHCPv6Relay()) {
-    return type == r.type && hopCount == r.hopCount &&
-      linkAddr == r.linkAddr && peerAddr == r.peerAddr &&
-      options == r.options;
+    return type == r.type && hopCount == r.hopCount && linkAddr == r.linkAddr &&
+        peerAddr == r.peerAddr && options == r.options;
   } else {
     return type == r.type && transactionId == r.transactionId &&
-      options == r.options;
+        options == r.options;
   }
 }
 
-}} //facebook::fboss
+} // namespace fboss
+} // namespace facebook

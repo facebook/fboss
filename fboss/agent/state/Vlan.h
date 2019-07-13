@@ -12,19 +12,20 @@
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
-#include "fboss/agent/types.h"
-#include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/NdpResponseTable.h"
 #include "fboss/agent/state/NdpTable.h"
+#include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
+#include <map>
 #include <set>
 #include <string>
-#include <map>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwitchState;
 
@@ -53,14 +54,15 @@ struct VlanFields {
   typedef boost::container::flat_map<PortID, PortInfo> MemberPorts;
 
   VlanFields(VlanID id, std::string name);
-  VlanFields(VlanID id,
-             std::string name,
-             InterfaceID intfID,
-             folly::IPAddressV4 dhcpV4Relay,
-             folly::IPAddressV6 dhcpV6Relay,
-             MemberPorts&& ports);
+  VlanFields(
+      VlanID id,
+      std::string name,
+      InterfaceID intfID,
+      folly::IPAddressV4 dhcpV4Relay,
+      folly::IPAddressV6 dhcpV6Relay,
+      MemberPorts&& ports);
 
-  template<typename Fn>
+  template <typename Fn>
   void forEachChild(Fn fn) {
     fn(arpTable.get());
     fn(arpResponseTable.get());
@@ -102,14 +104,12 @@ class Vlan : public NodeBaseT<Vlan, VlanFields> {
   Vlan(VlanID id, std::string name);
   Vlan(const cfg::Vlan* config, MemberPorts ports);
 
-  static std::shared_ptr<Vlan>
-  fromFollyDynamic(const folly::dynamic& json) {
+  static std::shared_ptr<Vlan> fromFollyDynamic(const folly::dynamic& json) {
     const auto& fields = VlanFields::fromFollyDynamic(json);
     return std::make_shared<Vlan>(fields);
   }
 
-  static std::shared_ptr<Vlan>
-  fromJson(const folly::fbstring& jsonStr) {
+  static std::shared_ptr<Vlan> fromJson(const folly::fbstring& jsonStr) {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
@@ -129,7 +129,7 @@ class Vlan : public NodeBaseT<Vlan, VlanFields> {
     return getFields()->intfID;
   }
 
-  void setInterfaceID(InterfaceID intfID ) {
+  void setInterfaceID(InterfaceID intfID) {
     writableFields()->intfID = intfID;
   }
 
@@ -191,14 +191,14 @@ class Vlan : public NodeBaseT<Vlan, VlanFields> {
     return getFields()->dhcpV4Relay;
   }
   void setDhcpV4Relay(folly::IPAddressV4 v4Relay) {
-     writableFields()->dhcpV4Relay = v4Relay;
+    writableFields()->dhcpV4Relay = v4Relay;
   }
 
   folly::IPAddressV6 getDhcpV6Relay() const {
     return getFields()->dhcpV6Relay;
   }
   void setDhcpV6Relay(folly::IPAddressV6 v6Relay) {
-     writableFields()->dhcpV6Relay = v6Relay;
+    writableFields()->dhcpV6Relay = v6Relay;
   }
 
   // dhcp overrides
@@ -247,4 +247,5 @@ template <typename NTable>
 inline const std::shared_ptr<NTable> Vlan::getNeighborTable() const {
   return this->template getNeighborEntryTable<typename NTable::AddressType>();
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

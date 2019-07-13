@@ -20,12 +20,13 @@ namespace {
 constexpr auto kNPending = "numPendingEntries";
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwitchState;
 class Vlan;
 
-template<typename IPADDR, typename ENTRY>
+template <typename IPADDR, typename ENTRY>
 struct NeighborTableTraits {
   typedef IPADDR KeyType;
   typedef ENTRY Node;
@@ -46,9 +47,9 @@ struct NeighborTableTraits {
  * maps that do not change frequently.  Our new PrefixMap implementation will
  * allow us to perform cheaper copy-on-write updates.
  */
-template<typename IPADDR, typename ENTRY, typename SUBCLASS>
+template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 class NeighborTable
-  : public NodeMapT<SUBCLASS, NeighborTableTraits<IPADDR, ENTRY>> {
+    : public NodeMapT<SUBCLASS, NeighborTableTraits<IPADDR, ENTRY>> {
  public:
   typedef IPADDR AddressType;
   typedef ENTRY Entry;
@@ -85,8 +86,7 @@ class NeighborTable
       InterfaceID intfID);
   void updateEntry(const NeighborEntryFields<AddressType>& fields);
   void updateEntry(AddressType ip, std::shared_ptr<ENTRY>);
-  void addPendingEntry(AddressType ip,
-                       InterfaceID intfID);
+  void addPendingEntry(AddressType ip, InterfaceID intfID);
 
   void removeEntry(AddressType ip);
 
@@ -95,7 +95,7 @@ class NeighborTable
   // Inherit the constructors required for clone()
   using Parent::Parent;
   friend class CloneAllocator;
-
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

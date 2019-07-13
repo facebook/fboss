@@ -9,17 +9,18 @@
  */
 #pragma once
 
-#include <folly/dynamic.h>
 #include <folly/FBString.h>
 #include <folly/IPAddress.h>
+#include <folly/dynamic.h>
 
 #include <boost/container/flat_map.hpp>
 
-#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /**
  * Class relationship:
@@ -44,9 +45,9 @@ namespace facebook { namespace fboss {
  */
 class RouteNextHopsMulti {
  protected:
-   ClientID findLowestAdminDistance();
-   boost::container::flat_map<ClientID, RouteNextHopEntry> map_;
-   ClientID lowestAdminDistanceClientId_;
+  ClientID findLowestAdminDistance();
+  boost::container::flat_map<ClientID, RouteNextHopEntry> map_;
+  ClientID lowestAdminDistanceClientId_;
 
  public:
   folly::dynamic toFollyDynamic() const;
@@ -76,9 +77,10 @@ class RouteNextHopsMulti {
   const RouteNextHopEntry* FOLLY_NULLABLE
   getEntryForClient(ClientID clientId) const;
 
-  std::pair<ClientID, const RouteNextHopEntry *> getBestEntry() const;
+  std::pair<ClientID, const RouteNextHopEntry*> getBestEntry() const;
 
   bool isSame(ClientID clientId, const RouteNextHopEntry& nhe) const;
 };
 
-}}
+} // namespace fboss
+} // namespace facebook

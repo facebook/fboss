@@ -12,7 +12,6 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmStats.h"
 
-
 extern "C" {
 #include <opennsl/tx.h>
 }
@@ -45,9 +44,10 @@ inline void txCallbackImpl(int /*unit*/, opennsl_pkt_t* pkt, void* cookie) {
       end - bcmTxPkt->getQueueTime());
   BcmStats::get()->txSentDone(duration.count());
 }
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 std::mutex& BcmTxPacket::syncPktMutex() {
   static std::mutex _syncPktMutex;
@@ -66,11 +66,11 @@ bool& BcmTxPacket::syncPacketSent() {
 
 BcmTxPacket::BcmTxPacket(int unit, uint32_t size)
     : queued_(std::chrono::time_point<std::chrono::steady_clock>::min()) {
-  int rv = opennsl_pkt_alloc(unit, size,
-                             OPENNSL_TX_CRC_APPEND | OPENNSL_TX_ETHER, &pkt_);
+  int rv = opennsl_pkt_alloc(
+      unit, size, OPENNSL_TX_CRC_APPEND | OPENNSL_TX_ETHER, &pkt_);
   bcmCheckError(rv, "Failed to allocate packet.");
-  buf_ = IOBuf::takeOwnership(pkt_->pkt_data->data, size,
-                              freeTxBuf, reinterpret_cast<void*>(pkt_));
+  buf_ = IOBuf::takeOwnership(
+      pkt_->pkt_data->data, size, freeTxBuf, reinterpret_cast<void*>(pkt_));
   BcmStats::get()->txPktAlloc();
 }
 
@@ -152,4 +152,5 @@ int BcmTxPacket::sendSync(unique_ptr<BcmTxPacket> pkt) noexcept {
 void BcmTxPacket::setCos(uint8_t cos) {
   pkt_->cos = cos;
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

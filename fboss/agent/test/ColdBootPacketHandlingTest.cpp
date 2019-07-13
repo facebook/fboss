@@ -40,7 +40,7 @@ const folly::IPAddressV4 kIPv4Addr1("10.0.0.1");
 const folly::IPAddressV4 kIPv4Addr2("10.0.0.2");
 const folly::IPAddressV6 kIPv6Addr1("face:b00c::1");
 const folly::IPAddressV6 kIPv6Addr2("face:b00c::2");
-//Multicast addresses
+// Multicast addresses
 const folly::IPAddressV4 kIPv4McastAddr("224.0.0.1");
 const folly::IPAddressV6 kIPv6McastAddr("ff00::1");
 // Link local addresses
@@ -89,8 +89,8 @@ class ColdBootPacketHandlingFixture : public ::testing::Test {
     // We expect a no calls to sendPacketSwitchedAsync. Since no interface was
     // specified, we will use the CPU vlan for sending this packet out. Since
     // CPU VLAN does no exist in our state, we drop the packet on the floor.
-    // This is fine, you can't expect us to switch a link local interface without
-    // getting VLAN/L3 interface as input.
+    // This is fine, you can't expect us to switch a link local interface
+    // without getting VLAN/L3 interface as input.
     EXPECT_HW_CALL(getSw(), sendPacketSwitchedAsync_(_)).Times(0);
     getSw()->sendL3Packet(std::move(pkt));
     counters.update();

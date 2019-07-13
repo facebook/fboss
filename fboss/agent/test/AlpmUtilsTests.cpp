@@ -11,21 +11,20 @@
 #include <gtest/gtest.h>
 
 #include "fboss/agent/AlpmUtils.h"
-#include "fboss/agent/types.h"
+#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableRib.h"
-#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/types.h"
 
-using facebook::fboss::SwitchState;
-using facebook::fboss::RouterID;
-using facebook::fboss::RouteTableRib;
 using facebook::fboss::Route;
 using facebook::fboss::RoutePrefix;
+using facebook::fboss::RouterID;
+using facebook::fboss::RouteTableRib;
+using facebook::fboss::SwitchState;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
-
 
 namespace {
 template <typename AddrType>

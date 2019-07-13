@@ -17,7 +17,8 @@
 using folly::MutableByteRange;
 using std::lock_guard;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 void BaseWedgeI2CBus::open() {
   dev_->open();
@@ -33,8 +34,7 @@ void BaseWedgeI2CBus::close() {
   dev_->close();
 }
 
-void BaseWedgeI2CBus::read(uint8_t address, int offset,
-                           int len, uint8_t* buf) {
+void BaseWedgeI2CBus::read(uint8_t address, int offset, int len, uint8_t* buf) {
   CHECK_LE(offset, 255);
 
   // CP2112 uses addresses in the on-the-wire format, while we generally
@@ -57,8 +57,11 @@ void BaseWedgeI2CBus::read(uint8_t address, int offset,
   }
 }
 
-void BaseWedgeI2CBus::write(uint8_t address, int offset,
-                            int len, const uint8_t* buf) {
+void BaseWedgeI2CBus::write(
+    uint8_t address,
+    int offset,
+    int len,
+    const uint8_t* buf) {
   CHECK_LE(offset, 255);
 
   // CP2112 uses addresses in the on-the-wire format, while we generally
@@ -76,8 +79,12 @@ void BaseWedgeI2CBus::write(uint8_t address, int offset,
   dev_->write(address, MutableByteRange(output, len + 1));
 }
 
-void BaseWedgeI2CBus::moduleRead(unsigned int module, uint8_t address,
-                                 int offset, int len, uint8_t* buf) {
+void BaseWedgeI2CBus::moduleRead(
+    unsigned int module,
+    uint8_t address,
+    int offset,
+    int len,
+    uint8_t* buf) {
   selectQsfp(module);
   CHECK_NE(selectedPort_, NO_PORT);
 
@@ -87,8 +94,12 @@ void BaseWedgeI2CBus::moduleRead(unsigned int module, uint8_t address,
   unselectQsfp();
 }
 
-void BaseWedgeI2CBus::moduleWrite(unsigned int module, uint8_t address,
-                                  int offset, int len, const uint8_t* buf) {
+void BaseWedgeI2CBus::moduleWrite(
+    unsigned int module,
+    uint8_t address,
+    int offset,
+    int len,
+    const uint8_t* buf) {
   selectQsfp(module);
   CHECK_NE(selectedPort_, NO_PORT);
 
@@ -101,8 +112,7 @@ void BaseWedgeI2CBus::moduleWrite(unsigned int module, uint8_t address,
 bool BaseWedgeI2CBus::isPresent(unsigned int module) {
   uint8_t buf = 0;
   try {
-    moduleRead(module, TransceiverI2CApi::ADDR_QSFP,
-                                 0, sizeof(buf), &buf);
+    moduleRead(module, TransceiverI2CApi::ADDR_QSFP, 0, sizeof(buf), &buf);
   } catch (const I2cError& ex) {
     /*
      * This can either mean that we failed to open the USB device
@@ -130,4 +140,5 @@ void BaseWedgeI2CBus::unselectQsfp() {
   }
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

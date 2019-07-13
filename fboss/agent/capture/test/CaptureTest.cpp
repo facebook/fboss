@@ -7,26 +7,26 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/capture/PktCapture.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/capture/test/PcapUtil.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/packet/PktUtil.h"
-#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Interface.h"
-#include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/HwTestHandle.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <folly/Memory.h>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
-using std::make_unique;
 using folly::StringPiece;
 using std::make_shared;
+using std::make_unique;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
@@ -34,7 +34,6 @@ using ::testing::_;
 using ::testing::AtLeast;
 
 namespace {
-
 
 const MacAddress kPlatformMac("02:01:02:03:04:05");
 
@@ -91,12 +90,12 @@ TEST(CaptureTest, FullCapture) {
 
   // Start a packet capture
   auto* mgr = sw->getCaptureMgr();
-  auto capture = make_unique<PktCapture>(
-      "test", 100, CaptureDirection::CAPTURE_TX_RX);
-  auto rx_capture = make_unique<PktCapture>(
-      "rx", 100, CaptureDirection::CAPTURE_ONLY_RX);
-  auto tx_capture = make_unique<PktCapture>(
-      "tx", 100, CaptureDirection::CAPTURE_ONLY_TX);
+  auto capture =
+      make_unique<PktCapture>("test", 100, CaptureDirection::CAPTURE_TX_RX);
+  auto rx_capture =
+      make_unique<PktCapture>("rx", 100, CaptureDirection::CAPTURE_ONLY_RX);
+  auto tx_capture =
+      make_unique<PktCapture>("tx", 100, CaptureDirection::CAPTURE_ONLY_TX);
 
   // start captures
   mgr->startCapture(std::move(capture));
@@ -105,103 +104,99 @@ TEST(CaptureTest, FullCapture) {
 
   // Create an IP packet for 10.0.0.10
   auto ipPktData = PktUtil::parseHexData(
-    // dst mac, src mac
-    "02 00 01 00 00 01  02 00 02 01 02 03"
-    // 802.1q, VLAN 1
-    "81 00 00 01"
-    // IPv4
-    "08 00"
-    // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
-    "45  00  00 14"
-    // Identification(0), Flags(0), Fragment offset(0)
-    "00 00  00 00"
-    // TTL(31), Protocol(6), Checksum (0, fake)
-    "1F  06  00 00"
-    // Source IP (1.2.3.4)
-    "01 02 03 04"
-    // Destination IP (10.0.0.10)
-    "0a 00 00 0a"
-    // Padding to 68 bytes
-    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
-    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
-  );
+      // dst mac, src mac
+      "02 00 01 00 00 01  02 00 02 01 02 03"
+      // 802.1q, VLAN 1
+      "81 00 00 01"
+      // IPv4
+      "08 00"
+      // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
+      "45  00  00 14"
+      // Identification(0), Flags(0), Fragment offset(0)
+      "00 00  00 00"
+      // TTL(31), Protocol(6), Checksum (0, fake)
+      "1F  06  00 00"
+      // Source IP (1.2.3.4)
+      "01 02 03 04"
+      // Destination IP (10.0.0.10)
+      "0a 00 00 0a"
+      // Padding to 68 bytes
+      "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+      "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00");
   MockRxPacket ipPkt(ipPktData.clone());
   ipPkt.setSrcPort(PortID(1));
   ipPkt.setSrcVlan(VlanID(1));
 
   // Create an arp reply packet from 10.0.0.10
   auto arpPktData = PktUtil::parseHexData(
-    // dst mac, src mac
-    "02 01 02 03 04 05  02 05 00 00 01 02"
-    // 802.1q, VLAN 1
-    "81 00  00 01"
-    // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
-    "08 06  00 01  08 00  06  04"
-    // ARP Reply
-    "00 02"
-    // Sender MAC
-    "02 05 00 00 01 02"
-    // Sender IP: 10.0.0.10
-    "0a 00 00 0a"
-    // Target MAC
-    "02 01 02 03 04 05"
-    // Target IP: 10.0.0.1
-    "0a 00 00 01"
-    // Padding to 68 bytes
-    "00 00 00 00 00 00 00 00"
-    "00 00 00 00 00 00 00 00"
-    "00 00 00 00 00 00"
-  );
+      // dst mac, src mac
+      "02 01 02 03 04 05  02 05 00 00 01 02"
+      // 802.1q, VLAN 1
+      "81 00  00 01"
+      // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
+      "08 06  00 01  08 00  06  04"
+      // ARP Reply
+      "00 02"
+      // Sender MAC
+      "02 05 00 00 01 02"
+      // Sender IP: 10.0.0.10
+      "0a 00 00 0a"
+      // Target MAC
+      "02 01 02 03 04 05"
+      // Target IP: 10.0.0.1
+      "0a 00 00 01"
+      // Padding to 68 bytes
+      "00 00 00 00 00 00 00 00"
+      "00 00 00 00 00 00 00 00"
+      "00 00 00 00 00 00");
   MockRxPacket arpPkt(arpPktData.clone());
   arpPkt.setSrcPort(PortID(3));
   arpPkt.setSrcVlan(VlanID(1));
 
   // The arp request we expect the switch to generate
   auto arpReqData = PktUtil::parseHexData(
-    // dst mac, src mac
-    "ff ff ff ff ff ff 02 01 02 03 04 05"
-    // 802.1q, VLAN 1
-    "81 00  00 01"
-    // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
-    "08 06  00 01  08 00  06  04"
-    // ARP Request
-    "00 01"
-    // Sender MAC
-    "02 01 02 03 04 05"
-    // Sender IP: 10.0.0.1
-    "0a 00 00 01"
-    // Target MAC
-    "00 00 00 00 00 00"
-    // Target IP: 10.0.0.10
-    "0a 00 00 0a"
-    // Padding to 68 bytes
-    "00 00 00 00 00 00 00 00"
-    "00 00 00 00 00 00 00 00"
-    "00 00 00 00 00 00"
-  );
+      // dst mac, src mac
+      "ff ff ff ff ff ff 02 01 02 03 04 05"
+      // 802.1q, VLAN 1
+      "81 00  00 01"
+      // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
+      "08 06  00 01  08 00  06  04"
+      // ARP Request
+      "00 01"
+      // Sender MAC
+      "02 01 02 03 04 05"
+      // Sender IP: 10.0.0.1
+      "0a 00 00 01"
+      // Target MAC
+      "00 00 00 00 00 00"
+      // Target IP: 10.0.0.10
+      "0a 00 00 0a"
+      // Padding to 68 bytes
+      "00 00 00 00 00 00 00 00"
+      "00 00 00 00 00 00 00 00"
+      "00 00 00 00 00 00");
   // The updated IP request with the updated src and destination mac, and
   // decremented TTL.
   auto updatedIpPktData = PktUtil::parseHexData(
-    // dst mac, src mac
-    "02 05 00 00 01 02  02 01 02 03 04 05"
-    // 802.1q, VLAN 1
-    "81 00 00 01"
-    // IPv4
-    "08 00"
-    // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
-    "45  00  00 14"
-    // Identification(0), Flags(0), Fragment offset(0)
-    "00 00  00 00"
-    // TTL(30), Protocol(6), Checksum (0, fake)
-    "1E  06  00 00"
-    // Source IP (1.2.3.4)
-    "01 02 03 04"
-    // Destination IP (10.0.0.10)
-    "0a 00 00 0a"
-    // Padding to 68 bytes
-    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
-    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
-  );
+      // dst mac, src mac
+      "02 05 00 00 01 02  02 01 02 03 04 05"
+      // 802.1q, VLAN 1
+      "81 00 00 01"
+      // IPv4
+      "08 00"
+      // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
+      "45  00  00 14"
+      // Identification(0), Flags(0), Fragment offset(0)
+      "00 00  00 00"
+      // TTL(30), Protocol(6), Checksum (0, fake)
+      "1E  06  00 00"
+      // Source IP (1.2.3.4)
+      "01 02 03 04"
+      // Destination IP (10.0.0.10)
+      "0a 00 00 0a"
+      // Padding to 68 bytes
+      "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+      "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00");
 
   // Receive a packet for which we don't have an ARP entry
   // This should trigger the switch to send an ARP request

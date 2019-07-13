@@ -11,7 +11,8 @@
 
 #include <stdexcept>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 using folly::io::Cursor;
 
@@ -27,4 +28,5 @@ NDPRouterAdvertisement::NDPRouterAdvertisement(Cursor& cursor) {
   }
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -11,17 +11,16 @@
 #include "PortAndEgressIdsMap.h"
 #include "fboss/agent/state/NodeMap-defs.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-PortAndEgressIdsMap::PortAndEgressIdsMap() {
-}
+PortAndEgressIdsMap::PortAndEgressIdsMap() {}
 
-PortAndEgressIdsMap::~PortAndEgressIdsMap() {
-}
+PortAndEgressIdsMap::~PortAndEgressIdsMap() {}
 
 template class NodeBaseT<PortAndEgressIds, PortAndEgressIdsFields>;
 
-FBOSS_INSTANTIATE_NODE_MAP(PortAndEgressIdsMap,
-    PortAndEgressIdsMapTraits);
+FBOSS_INSTANTIATE_NODE_MAP(PortAndEgressIdsMap, PortAndEgressIdsMapTraits);
 
-}}
+} // namespace fboss
+} // namespace facebook

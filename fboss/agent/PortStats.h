@@ -11,13 +11,14 @@
 
 #include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwitchStats;
 
 class PortStats {
  public:
-  PortStats(PortID portID, std::string portName, SwitchStats *switchStats);
+  PortStats(PortID portID, std::string portName, SwitchStats* switchStats);
   ~PortStats();
 
   void trappedPkt();
@@ -74,8 +75,8 @@ class PortStats {
 
  private:
   // Forbidden copy constructor and assignment operator
-  PortStats(PortStats const &) = delete;
-  PortStats& operator=(PortStats const &) = delete;
+  PortStats(PortStats const&) = delete;
+  PortStats& operator=(PortStats const&) = delete;
 
   std::string getCounterKey(const std::string& key);
 
@@ -91,7 +92,8 @@ class PortStats {
 
   // Pointer to main SwitchStats object so that we can forward method calls
   // that we do not want to track ourselves.
-  SwitchStats *switchStats_;
+  SwitchStats* switchStats_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

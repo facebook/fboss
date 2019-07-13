@@ -13,24 +13,27 @@
 
 #include "fboss/agent/TunManager.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class RxPacket;
 class SwitchState;
 
 class MockTunManager : public TunManager {
  public:
-  MockTunManager(SwSwitch *sw, folly::EventBase *evb);
+  MockTunManager(SwSwitch* sw, folly::EventBase* evb);
   ~MockTunManager() override {}
 
   MOCK_METHOD0(startObservingUpdates, void());
   MOCK_METHOD1(stateUpdated, void(const StateDelta& delta));
   MOCK_METHOD1(sync, void(std::shared_ptr<SwitchState>));
 
-  MOCK_METHOD1(sendPacketToHost_, bool(
-        std::tuple<InterfaceID, std::shared_ptr<RxPacket>>));
+  MOCK_METHOD1(
+      sendPacketToHost_,
+      bool(std::tuple<InterfaceID, std::shared_ptr<RxPacket>>));
   bool sendPacketToHost(InterfaceID, std::unique_ptr<RxPacket> pkt) override;
   MOCK_METHOD1(doProbe, void(std::lock_guard<std::mutex>&));
 };
 
-}}  // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

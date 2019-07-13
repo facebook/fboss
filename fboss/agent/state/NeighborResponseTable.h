@@ -15,13 +15,13 @@
 
 #include <boost/container/flat_map.hpp>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 struct NeighborResponseEntry {
   NeighborResponseEntry() {}
   NeighborResponseEntry(folly::MacAddress mac, InterfaceID interfaceID)
-    : mac(mac),
-      interfaceID(interfaceID) {}
+      : mac(mac), interfaceID(interfaceID) {}
 
   bool operator==(const NeighborResponseEntry& other) const {
     return (mac == other.mac && interfaceID == other.interfaceID);
@@ -42,7 +42,7 @@ struct NeighborResponseEntry {
   InterfaceID interfaceID{0};
 };
 
-template<typename IPADDR>
+template <typename IPADDR>
 struct NeighborResponseTableFields {
   typedef IPADDR AddressType;
   typedef boost::container::flat_map<AddressType, NeighborResponseEntry> Table;
@@ -77,9 +77,9 @@ struct NeighborResponseTableFields {
  * This information is computed from the interface configuration, but is stored
  * with each VLAN so that we can efficiently respond to ARP requests.
  */
-template<typename IPADDR, typename SUBCLASS>
+template <typename IPADDR, typename SUBCLASS>
 class NeighborResponseTable
-  : public NodeBaseT<SUBCLASS, NeighborResponseTableFields<IPADDR>> {
+    : public NodeBaseT<SUBCLASS, NeighborResponseTableFields<IPADDR>> {
  public:
   typedef IPADDR AddressType;
   typedef typename NeighborResponseTableFields<AddressType>::Table Table;
@@ -87,15 +87,14 @@ class NeighborResponseTable
   NeighborResponseTable() {}
   explicit NeighborResponseTable(Table table);
 
-  static std::shared_ptr<SUBCLASS>
-  fromFollyDynamic(const folly::dynamic& json) {
+  static std::shared_ptr<SUBCLASS> fromFollyDynamic(
+      const folly::dynamic& json) {
     const auto& fields =
-      NeighborResponseTableFields<IPADDR>::fromFollyDynamic(json);
+        NeighborResponseTableFields<IPADDR>::fromFollyDynamic(json);
     return std::make_shared<SUBCLASS>(fields);
   }
 
-  static std::shared_ptr<SUBCLASS>
-  fromJson(const folly::fbstring& jsonStr) {
+  static std::shared_ptr<SUBCLASS> fromJson(const folly::fbstring& jsonStr) {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
@@ -139,4 +138,5 @@ class NeighborResponseTable
   friend class CloneAllocator;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -13,7 +13,8 @@
 
 #include <cstdint>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * A class for representing network packets.
@@ -51,8 +52,8 @@ class Packet {
 
  private:
   // Forbidden copy constructor and assignment operator
-  Packet(Packet const &) = delete;
-  Packet& operator=(Packet const &) = delete;
+  Packet(Packet const&) = delete;
+  Packet& operator=(Packet const&) = delete;
 
  protected:
   // An IOBuf pointing to the packet data.
@@ -65,4 +66,5 @@ class Packet {
   std::unique_ptr<folly::IOBuf> buf_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

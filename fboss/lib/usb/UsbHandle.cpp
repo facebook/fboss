@@ -16,10 +16,10 @@
 
 #include "fboss/lib/usb/UsbError.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-UsbHandle::UsbHandle(UsbHandle&& other) noexcept
-  : handle_(other.handle_) {
+UsbHandle::UsbHandle(UsbHandle&& other) noexcept : handle_(other.handle_) {
   other.handle_ = nullptr;
 }
 
@@ -65,8 +65,10 @@ void UsbHandle::setAutoDetachKernelDriver(bool autoDetach) {
   int value = autoDetach;
   auto rc = libusb_set_auto_detach_kernel_driver(handle_, value);
   if (rc != 0) {
-    throw LibusbError(rc, "failed to set auto-detach driver for "
-                      "USB-to-I2C bridge");
+    throw LibusbError(
+        rc,
+        "failed to set auto-detach driver for "
+        "USB-to-I2C bridge");
   }
 }
 
@@ -78,4 +80,5 @@ void UsbHandle::claimInterface(int iface) {
   }
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

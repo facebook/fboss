@@ -9,34 +9,41 @@
  */
 #pragma once
 
-#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/NeighborCache.h"
-#include "fboss/agent/types.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/types.h"
 
-#include <folly/MacAddress.h>
 #include <folly/IPAddressV4.h>
+#include <folly/MacAddress.h>
 #include <list>
 #include <string>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 enum ArpOpCode : uint16_t;
 
 class ArpCache : public NeighborCache<ArpTable> {
  public:
-  ArpCache(SwSwitch* sw, const SwitchState* state,
-           VlanID vlanID, std::string vlanName, InterfaceID intfID);
+  ArpCache(
+      SwSwitch* sw,
+      const SwitchState* state,
+      VlanID vlanID,
+      std::string vlanName,
+      InterfaceID intfID);
 
   void sentArpRequest(folly::IPAddressV4 ip);
-  void receivedArpMine(folly::IPAddressV4 ip,
-                       folly::MacAddress mac,
-                       PortDescriptor port,
-                       ArpOpCode op);
-  void receivedArpNotMine(folly::IPAddressV4 ip,
-                          folly::MacAddress mac,
-                          PortDescriptor port,
-                          ArpOpCode op);
+  void receivedArpMine(
+      folly::IPAddressV4 ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      ArpOpCode op);
+  void receivedArpNotMine(
+      folly::IPAddressV4 ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      ArpOpCode op);
 
   void checkReachability(
       folly::IPAddressV4 targetIP,
@@ -46,7 +53,7 @@ class ArpCache : public NeighborCache<ArpTable> {
   void probeFor(folly::IPAddressV4 ip) const override;
 
   std::list<ArpEntryThrift> getArpCacheData();
-
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

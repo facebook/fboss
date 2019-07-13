@@ -9,8 +9,10 @@
  */
 #include "fboss/agent/SetupThrift.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 void serverSSLSetup(apache::thrift::ThriftServer& /*server*/) {}
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -55,7 +55,7 @@ void dynamicFibUpdate(
   auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);
   sw->updateStateBlocking("", std::move(fibUpdater));
 }
-}
+} // namespace
 
 TEST(RouteNextHopEntry, ConvertRibDropToFibDrop) {
   facebook::fboss::rib::RouteNextHopEntry ribDrop(

@@ -9,7 +9,7 @@
  */
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/DeltaFunctions.h"
@@ -19,7 +19,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>
 #include <string>
@@ -101,11 +101,13 @@ TEST(Vlan, applyConfig) {
   EXPECT_EQ(InterfaceID(1), vlanV1->getInterfaceID());
 
   auto map4 = vlanV1->getDhcpV4RelayOverrides();
-  EXPECT_EQ(IPAddressV4("1.2.3.4"),
-            IPAddressV4(map4[MacAddress("02:00:00:00:00:02")]));
+  EXPECT_EQ(
+      IPAddressV4("1.2.3.4"),
+      IPAddressV4(map4[MacAddress("02:00:00:00:00:02")]));
   auto map6 = vlanV1->getDhcpV6RelayOverrides();
-  EXPECT_EQ(IPAddressV6("2a03:2880:10:1f07:face:b00c:0:0"),
-            IPAddressV6(map6[MacAddress("02:00:00:00:00:02")]));
+  EXPECT_EQ(
+      IPAddressV6("2a03:2880:10:1f07:face:b00c:0:0"),
+      IPAddressV6(map6[MacAddress("02:00:00:00:00:02")]));
 
   // Applying the same config again should return null
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
@@ -133,18 +135,20 @@ TEST(Vlan, applyConfig) {
   // Check the ArpResponseTable
   auto arpRespTable = vlanV2->getArpResponseTable();
   ArpResponseTable expectedArpResp;
-  expectedArpResp.setEntry(IPAddressV4("10.1.1.1"), platformMac,
-                         InterfaceID(1));
+  expectedArpResp.setEntry(
+      IPAddressV4("10.1.1.1"), platformMac, InterfaceID(1));
   EXPECT_EQ(expectedArpResp.getTable(), arpRespTable->getTable());
   // Check the NdpResponseTable
   auto ndpRespTable = vlanV2->getNdpResponseTable();
   NdpResponseTable expectedNdpResp;
-  expectedNdpResp.setEntry(IPAddressV6("2a03:2880:10:1f07:face:b00c:0:0"),
-                           platformMac, InterfaceID(1));
+  expectedNdpResp.setEntry(
+      IPAddressV6("2a03:2880:10:1f07:face:b00c:0:0"),
+      platformMac,
+      InterfaceID(1));
   // The link-local IPv6 address should also have been automatically added
   // to the NDP response table.
-  expectedNdpResp.setEntry(IPAddressV6("fe80::8002:00ff:feab:cdef"),
-                           platformMac, InterfaceID(1));
+  expectedNdpResp.setEntry(
+      IPAddressV6("fe80::8002:00ff:feab:cdef"), platformMac, InterfaceID(1));
   EXPECT_EQ(expectedNdpResp.getTable(), ndpRespTable->getTable());
 
   // Add another vlan and interface
@@ -173,18 +177,16 @@ TEST(Vlan, applyConfig) {
   // Check the ArpResponseTable
   arpRespTable = vlanV3->getArpResponseTable();
   ArpResponseTable expectedTable2;
-  expectedTable2.setEntry(IPAddressV4("10.1.10.1"), intf2Mac,
-                          InterfaceID(2));
-  expectedTable2.setEntry(IPAddressV4("192.168.0.1"), intf2Mac,
-                          InterfaceID(2));
+  expectedTable2.setEntry(IPAddressV4("10.1.10.1"), intf2Mac, InterfaceID(2));
+  expectedTable2.setEntry(IPAddressV4("192.168.0.1"), intf2Mac, InterfaceID(2));
   EXPECT_EQ(expectedTable2.getTable(), arpRespTable->getTable());
   // The new interface has no IPv6 address, but the NDP table should still
   // be updated with the link-local address.
   NdpResponseTable expectedNdpResp2;
-  expectedNdpResp2.setEntry(IPAddressV6("fe80::1:02ff:feab:cd78"),
-                           intf2Mac, InterfaceID(2));
-  EXPECT_EQ(expectedNdpResp2.getTable(),
-            vlanV3->getNdpResponseTable()->getTable());
+  expectedNdpResp2.setEntry(
+      IPAddressV6("fe80::1:02ff:feab:cd78"), intf2Mac, InterfaceID(2));
+  EXPECT_EQ(
+      expectedNdpResp2.getTable(), vlanV3->getNdpResponseTable()->getTable());
 
   // Add a new VLAN with an ArpResponseTable that needs to be set up
   // when the VLAN is first created
@@ -211,12 +213,11 @@ TEST(Vlan, applyConfig) {
   EXPECT_EQ(InterfaceID(3), vlan99->getInterfaceID());
 
   ArpResponseTable expectedTable99;
-  expectedTable99.setEntry(IPAddressV4("1.2.3.4"), platformMac,
-                           InterfaceID(3));
-  expectedTable99.setEntry(IPAddressV4("10.0.0.1"), platformMac,
-                           InterfaceID(3));
-  EXPECT_EQ(expectedTable99.getTable(),
-            vlan99->getArpResponseTable()->getTable());
+  expectedTable99.setEntry(IPAddressV4("1.2.3.4"), platformMac, InterfaceID(3));
+  expectedTable99.setEntry(
+      IPAddressV4("10.0.0.1"), platformMac, InterfaceID(3));
+  EXPECT_EQ(
+      expectedTable99.getTable(), vlan99->getArpResponseTable()->getTable());
 
   // Check vlan congfig with no intfID set
   config.vlans.resize(4);
@@ -239,11 +240,12 @@ TEST(Vlan, applyConfig) {
  * Test that forEachChanged(StateDelta::getVlansDelta(), ...) invokes the
  * callback for the specified list of changed VLANs.
  */
-void checkChangedVlans(const shared_ptr<VlanMap>& oldVlans,
-                       const shared_ptr<VlanMap>& newVlans,
-                       const std::set<uint16_t> changedIDs,
-                       const std::set<uint16_t> addedIDs,
-                       const std::set<uint16_t> removedIDs) {
+void checkChangedVlans(
+    const shared_ptr<VlanMap>& oldVlans,
+    const shared_ptr<VlanMap>& newVlans,
+    const std::set<uint16_t> changedIDs,
+    const std::set<uint16_t> addedIDs,
+    const std::set<uint16_t> removedIDs) {
   auto oldState = make_shared<SwitchState>();
   oldState->resetVlans(oldVlans);
   auto newState = make_shared<SwitchState>();
@@ -253,22 +255,23 @@ void checkChangedVlans(const shared_ptr<VlanMap>& oldVlans,
   std::set<uint16_t> foundAdded;
   std::set<uint16_t> foundRemoved;
   StateDelta delta(oldState, newState);
-  DeltaFunctions::forEachChanged(delta.getVlansDelta(),
-    [&] (const shared_ptr<Vlan>& oldVlan, const shared_ptr<Vlan>& newVlan) {
-      EXPECT_EQ(oldVlan->getID(), newVlan->getID());
-      EXPECT_NE(oldVlan, newVlan);
+  DeltaFunctions::forEachChanged(
+      delta.getVlansDelta(),
+      [&](const shared_ptr<Vlan>& oldVlan, const shared_ptr<Vlan>& newVlan) {
+        EXPECT_EQ(oldVlan->getID(), newVlan->getID());
+        EXPECT_NE(oldVlan, newVlan);
 
-      auto ret = foundChanged.insert(oldVlan->getID());
-      EXPECT_TRUE(ret.second);
-    },
-    [&] (const shared_ptr<Vlan>& vlan) {
-      auto ret = foundAdded.insert(vlan->getID());
-      EXPECT_TRUE(ret.second);
-    },
-    [&] (const shared_ptr<Vlan>& vlan) {
-      auto ret = foundRemoved.insert(vlan->getID());
-      EXPECT_TRUE(ret.second);
-    });
+        auto ret = foundChanged.insert(oldVlan->getID());
+        EXPECT_TRUE(ret.second);
+      },
+      [&](const shared_ptr<Vlan>& vlan) {
+        auto ret = foundAdded.insert(vlan->getID());
+        EXPECT_TRUE(ret.second);
+      },
+      [&](const shared_ptr<Vlan>& vlan) {
+        auto ret = foundRemoved.insert(vlan->getID());
+        EXPECT_TRUE(ret.second);
+      });
 
   EXPECT_EQ(changedIDs, foundChanged);
   EXPECT_EQ(addedIDs, foundAdded);

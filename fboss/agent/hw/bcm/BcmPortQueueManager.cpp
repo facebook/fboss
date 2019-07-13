@@ -15,7 +15,8 @@
 
 #include "folly/logging/xlog.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 const std::vector<BcmCosQueueCounterType>&
 BcmPortQueueManager::getQueueCounterTypes() const {
   static const std::vector<BcmCosQueueCounterType> types = {
@@ -54,12 +55,13 @@ int BcmPortQueueManager::getNumQueues(cfg::StreamType streamType) const {
     return cosQueueGports_.multicast.size();
   }
   throw FbossError(
-    "Failed to retrieve queue size because unknown StreamType",
-    cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second);
+      "Failed to retrieve queue size because unknown StreamType",
+      cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second);
 }
 
 opennsl_gport_t BcmPortQueueManager::getQueueGPort(
-    cfg::StreamType streamType, opennsl_cos_queue_t cosQ) const {
+    cfg::StreamType streamType,
+    opennsl_cos_queue_t cosQ) const {
   if (streamType == cfg::StreamType::UNICAST) {
     return cosQueueGports_.unicast.at(cosQ);
   } else if (streamType == cfg::StreamType::MULTICAST) {
@@ -78,9 +80,8 @@ BcmPortQueueConfig BcmPortQueueManager::getCurrentQueueSettings() const {
       unicastQueues.push_back(
           getCurrentQueueSettings(cfg::StreamType::UNICAST, i));
     } catch (const facebook::fboss::FbossError& err) {
-      XLOG(ERR)
-        << "Error in getCurrentQueueSettings - unicast cosq order: "
-        << i;
+      XLOG(ERR) << "Error in getCurrentQueueSettings - unicast cosq order: "
+                << i;
     }
   }
   // Make sure that the QueueConf is in cosQ order
@@ -90,17 +91,17 @@ BcmPortQueueConfig BcmPortQueueManager::getCurrentQueueSettings() const {
       multicastQueues.push_back(
           getCurrentQueueSettings(cfg::StreamType::MULTICAST, i));
     } catch (const facebook::fboss::FbossError& err) {
-      XLOG(ERR)
-        << "Error in getCurrentQueueSettings - multicast cosq order: "
-        << i;
+      XLOG(ERR) << "Error in getCurrentQueueSettings - multicast cosq order: "
+                << i;
     }
   }
-  return BcmPortQueueConfig(std::move(unicastQueues),
-                            std::move(multicastQueues));
+  return BcmPortQueueConfig(
+      std::move(unicastQueues), std::move(multicastQueues));
 }
 
 const PortQueue& BcmPortQueueManager::getDefaultQueueSettings(
     cfg::StreamType streamType) const {
   return hw_->getPlatform()->getDefaultPortQueueSettings(streamType);
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

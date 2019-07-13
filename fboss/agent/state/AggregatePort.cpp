@@ -8,9 +8,9 @@
  *
  */
 #include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/RxPacket.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/RxPacket.h"
 
 #include <folly/MacAddress.h>
 

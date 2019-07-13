@@ -20,19 +20,17 @@
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
-#include "fboss/qsfp_service/lib/QsfpClient.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
+#include "fboss/qsfp_service/lib/QsfpClient.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 WedgePort::WedgePort(
-  PortID id,
-  WedgePlatform* platform,
-  folly::Optional<FrontPanelResources> frontPanel) :
-    id_(id),
-    platform_(platform),
-    frontPanel_(frontPanel) {
-}
+    PortID id,
+    WedgePlatform* platform,
+    folly::Optional<FrontPanelResources> frontPanel)
+    : id_(id), platform_(platform), frontPanel_(frontPanel) {}
 
 void WedgePort::setBcmPort(BcmPort* port) {
   bcmPort_ = port;
@@ -49,11 +47,9 @@ void WedgePort::preDisable(bool /*temporary*/) {}
 
 void WedgePort::postDisable(bool /*temporary*/) {}
 
-void WedgePort::preEnable() {
-}
+void WedgePort::preEnable() {}
 
-void WedgePort::postEnable() {
-}
+void WedgePort::postEnable() {}
 
 bool WedgePort::isMediaPresent() {
   return false;
@@ -87,10 +83,8 @@ folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
               << " Exception: " << folly::exceptionStr(e);
     return TransmitterTechnology::UNKNOWN;
   };
-  return getTransceiverInfo()
-      .via(evb)
-      .thenValueInline(getTech)
-      .thenError(std::move(handleError));
+  return getTransceiverInfo().via(evb).thenValueInline(getTech).thenError(
+      std::move(handleError));
 }
 
 // Get correct transmitter setting.
@@ -194,10 +188,10 @@ bool WedgePort::isInSingleMode() const {
 }
 
 folly::Optional<ChannelID> WedgePort::getChannel() const {
-    if (!frontPanel_) {
-      return folly::none;
-    }
-    return frontPanel_->channels[0];
+  if (!frontPanel_) {
+    return folly::none;
+  }
+  return frontPanel_->channels[0];
 }
 
 std::vector<int32_t> WedgePort::getChannels() const {
@@ -227,8 +221,8 @@ std::vector<int32_t> WedgePort::getChannels() const {
     }
   }
 
-  return folly::gen::range(base, base + numChannels)
-    | folly::gen::as<std::vector>();
+  return folly::gen::range(base, base + numChannels) |
+      folly::gen::as<std::vector>();
 }
 
 TransceiverIdxThrift WedgePort::getTransceiverMapping() const {
@@ -236,10 +230,10 @@ TransceiverIdxThrift WedgePort::getTransceiverMapping() const {
     return TransceiverIdxThrift();
   }
   return TransceiverIdxThrift(
-    apache::thrift::FragileConstructor::FRAGILE,
-    static_cast<int32_t>(*getTransceiverID()),
-    0,  // TODO: deprecate
-    getChannels());
+      apache::thrift::FragileConstructor::FRAGILE,
+      static_cast<int32_t>(*getTransceiverID()),
+      0, // TODO: deprecate
+      getChannels());
 }
 
 PortStatus WedgePort::toThrift(const std::shared_ptr<Port>& port) {
@@ -256,4 +250,5 @@ PortStatus WedgePort::toThrift(const std::shared_ptr<Port>& port) {
   return status;
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

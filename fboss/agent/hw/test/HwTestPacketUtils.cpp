@@ -8,32 +8,33 @@
  *
  */
 
-
 #include "HwTestPacketUtils.h"
 
+#include <folly/Range.h>
+#include <folly/String.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
-#include <folly/String.h>
-#include <folly/Range.h>
 
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/IPProto.h"
-#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/UDPHeader.h"
 
-
 using namespace facebook::fboss;
-using folly::io::RWPrivateCursor;
 using folly::MacAddress;
+using folly::io::RWPrivateCursor;
 
 namespace {
 static auto kDefaultPayload = std::vector<uint8_t>(256, 0xff);
 
-EthHdr makeEthHdr(MacAddress srcMac, MacAddress dstMac,
-    VlanID vlan, ETHERTYPE etherType) {
+EthHdr makeEthHdr(
+    MacAddress srcMac,
+    MacAddress dstMac,
+    VlanID vlan,
+    ETHERTYPE etherType) {
   EthHdr::VlanTags_t vlanTags;
   vlanTags.push_back(
       VlanTag(vlan, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
@@ -41,12 +42,11 @@ EthHdr makeEthHdr(MacAddress srcMac, MacAddress dstMac,
   return ethHdr;
 }
 
-}
+} // namespace
 
 namespace facebook {
 namespace fboss {
 namespace utility {
-
 
 std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
     HwSwitch* hw,
@@ -62,13 +62,16 @@ std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
   const auto& payloadBytes = payload.value();
   // EthHdr
   auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, etherType);
-  auto txPacket = hw->allocatePacket(
-      EthHdr::SIZE  + payloadBytes.size());
+  auto txPacket = hw->allocatePacket(EthHdr::SIZE + payloadBytes.size());
 
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
   // Write EthHdr
-  txPacket->writeEthHeader(&rwCursor, ethHdr.getDstMac(), ethHdr.getSrcMac(),
-                      vlan, ethHdr.getEtherType());
+  txPacket->writeEthHeader(
+      &rwCursor,
+      ethHdr.getDstMac(),
+      ethHdr.getSrcMac(),
+      vlan,
+      ethHdr.getEtherType());
   folly::io::Cursor payloadStart(rwCursor);
   rwCursor.push(payloadBytes.data(), payloadBytes.size());
   return txPacket;
@@ -81,7 +84,6 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     const IPHDR& ipHdr,
     const UDPHeader& udpHdr,
     const std::vector<uint8_t>& payload) {
-
   auto txPacket = hw->allocatePacket(
       EthHdr::SIZE + ipHdr.size() + udpHdr.size() + payload.size());
 
@@ -161,8 +163,11 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
   // EthHdr
   auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, ETHERTYPE::ETHERTYPE_IPV4);
   // IPv4Hdr
-  IPv4Hdr ipHdr(srcIp, dstIp, static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
-        payloadBytes.size());
+  IPv4Hdr ipHdr(
+      srcIp,
+      dstIp,
+      static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
+      payloadBytes.size());
   ipHdr.computeChecksum();
   ipHdr.dscp = 0x00;
   ipHdr.ttl = ttl;

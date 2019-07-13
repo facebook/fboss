@@ -8,8 +8,8 @@
 #include <cstdint>
 #include <type_traits>
 
-#include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/Route.h"
+#include "fboss/agent/state/RouteTypes.h"
 
 namespace facebook {
 namespace fboss {
@@ -199,7 +199,7 @@ class RouteGenerator : public ResourceGenerator<
 
 using HostPrefixV4Generator = PrefixGenerator<folly::IPAddressV4, 32>;
 using HostPrefixV6Generator = PrefixGenerator<folly::IPAddressV6, 128>;
-using HostRouteV4Generator =  RouteGenerator<folly::IPAddressV4, 32>;
+using HostRouteV4Generator = RouteGenerator<folly::IPAddressV4, 32>;
 using HostRouteV6Generator = RouteGenerator<folly::IPAddressV6, 128>;
 
 } // namespace utility

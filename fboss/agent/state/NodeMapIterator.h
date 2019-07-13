@@ -18,16 +18,15 @@
  * and not a pair of (_Id, _Node)
  */
 template <typename _Node, typename _Storage>
-class NodeMapIterator : public std::iterator<std::forward_iterator_tag,
-                                             std::shared_ptr<_Node>> {
+class NodeMapIterator
+    : public std::iterator<std::forward_iterator_tag, std::shared_ptr<_Node>> {
  private:
   typedef _Storage NodeContainer;
 
  public:
   explicit NodeMapIterator(typename NodeContainer::const_iterator it)
-    : it_(it) {}
-  NodeMapIterator()
-    : it_() {}
+      : it_(it) {}
+  NodeMapIterator() : it_() {}
 
   const std::shared_ptr<_Node>& operator*() const {
     return it_->second;
@@ -65,17 +64,16 @@ class NodeMapIterator : public std::iterator<std::forward_iterator_tag,
  * and not a pair of (_Id, _Node)
  */
 template <typename _Node, typename _Storage>
-class ReverseNodeMapIterator : public std::iterator<std::forward_iterator_tag,
-                                                    std::shared_ptr<_Node>> {
+class ReverseNodeMapIterator
+    : public std::iterator<std::forward_iterator_tag, std::shared_ptr<_Node>> {
  private:
   typedef _Storage NodeContainer;
 
  public:
   explicit ReverseNodeMapIterator(
-    typename NodeContainer::const_reverse_iterator it
-  ) : it_(it) {}
-  ReverseNodeMapIterator()
-    : it_() {}
+      typename NodeContainer::const_reverse_iterator it)
+      : it_(it) {}
+  ReverseNodeMapIterator() : it_() {}
 
   const std::shared_ptr<_Node>& operator*() const {
     return it_->second;

@@ -11,15 +11,15 @@
 
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/tests/BcmPortUtils.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
-#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/bcm/tests/BcmPortUtils.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
@@ -57,8 +57,8 @@ namespace fboss {
 class BcmVlanTest : public BcmTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    return utility::twoL3IntfConfig(getHwSwitch(),
-      masterLogicalPortIds()[0], masterLogicalPortIds()[1]);
+    return utility::twoL3IntfConfig(
+        getHwSwitch(), masterLogicalPortIds()[0], masterLogicalPortIds()[1]);
   }
 };
 
@@ -73,9 +73,7 @@ TEST_F(BcmVlanTest, VlanInit) {
 }
 
 TEST_F(BcmVlanTest, VlanApplyConfig) {
-  auto setup = [=]() {
-    return applyNewConfig(initialConfig());
-  };
+  auto setup = [=]() { return applyNewConfig(initialConfig()); };
 
   auto verify = [=]() {
     // There should be 2 VLANs
@@ -102,10 +100,9 @@ TEST_F(BcmVlanTest, VlanApplyConfig) {
       int port_count;
       OPENNSL_PBMP_COUNT(vlanData.port_bitmap, port_count);
       EXPECT_EQ(vlanItr->second, port_count);
-
     }
   };
   verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace fboss
-} // namespace
+} // namespace facebook

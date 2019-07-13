@@ -15,13 +15,14 @@ extern "C" {
 }
 
 #include <folly/dynamic.h>
+#include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/NodeMap.h"
-#include "fboss/agent/hw/bcm/BcmEgress.h"
 
 #include <boost/container/flat_set.hpp>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 struct PortAndEgressIdsFields {
   using EgressIdSet = BcmEcmpEgress::EgressIdSet;
@@ -38,15 +39,15 @@ struct PortAndEgressIdsFields {
 /*
  * Port and set of corresponding egress Ids
  */
-class PortAndEgressIds: public NodeBaseT<PortAndEgressIds,
-  PortAndEgressIdsFields> {
+class PortAndEgressIds
+    : public NodeBaseT<PortAndEgressIds, PortAndEgressIdsFields> {
  public:
-    typedef PortAndEgressIdsFields::EgressIdSet EgressIdSet;
-    PortAndEgressIds(opennsl_gport_t gport, EgressIdSet egressIds)
-        : NodeBaseT(gport, std::move(egressIds)) {}
+  typedef PortAndEgressIdsFields::EgressIdSet EgressIdSet;
+  PortAndEgressIds(opennsl_gport_t gport, EgressIdSet egressIds)
+      : NodeBaseT(gport, std::move(egressIds)) {}
 
-    opennsl_gport_t getID() const {
-      return getFields()->id;
+  opennsl_gport_t getID() const {
+    return getFields()->id;
   }
   const EgressIdSet& getEgressIds() const {
     return getFields()->egressIds;
@@ -91,19 +92,19 @@ using PortAndEgressIdsMapTraits =
  * Container for maintaining mapping from port to
  * egressIds
  */
-class PortAndEgressIdsMap: public NodeMapT<PortAndEgressIdsMap,
-  PortAndEgressIdsMapTraits> {
+class PortAndEgressIdsMap
+    : public NodeMapT<PortAndEgressIdsMap, PortAndEgressIdsMapTraits> {
  public:
-   PortAndEgressIdsMap();
-   ~PortAndEgressIdsMap() override;
+  PortAndEgressIdsMap();
+  ~PortAndEgressIdsMap() override;
   /*
    * Get the PortAndEgressIds for a  given port.
    *
    * Throws an FbossError if the mapping does not exist.
    */
-   const std::shared_ptr<PortAndEgressIds>& getPortAndEgressIds(
-       opennsl_gport_t gport) const {
-     return getNode(gport);
+  const std::shared_ptr<PortAndEgressIds>& getPortAndEgressIds(
+      opennsl_gport_t gport) const {
+    return getNode(gport);
   }
   /*
    * Get the PortAndEgressIds for a given port.
@@ -120,13 +121,13 @@ class PortAndEgressIdsMap: public NodeMapT<PortAndEgressIdsMap,
    * are only visible to a single thread.
    */
 
-  void addPortAndEgressIds(const std::shared_ptr<PortAndEgressIds>&
-      portAndEgressIds) {
+  void addPortAndEgressIds(
+      const std::shared_ptr<PortAndEgressIds>& portAndEgressIds) {
     addNode(portAndEgressIds);
   }
 
-  void updatePortAndEgressIds(const std::shared_ptr<PortAndEgressIds>&
-      portAndEgressIds) {
+  void updatePortAndEgressIds(
+      const std::shared_ptr<PortAndEgressIds>& portAndEgressIds) {
     updateNode(portAndEgressIds);
   }
 
@@ -138,7 +139,7 @@ class PortAndEgressIdsMap: public NodeMapT<PortAndEgressIdsMap,
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;
   friend class CloneAllocator;
-
 };
 
-}}
+} // namespace fboss
+} // namespace facebook

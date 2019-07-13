@@ -11,10 +11,11 @@
 
 #include <memory>
 
-#include <folly/IntrusiveList.h>
 #include <folly/FBString.h>
+#include <folly/IntrusiveList.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwitchState;
 
@@ -33,8 +34,7 @@ class SwitchState;
 class StateUpdate {
  public:
   explicit StateUpdate(folly::StringPiece name, bool allowCoalesce = true)
-      : name_(name.str()),
-        allowCoalesce_(allowCoalesce) {}
+      : name_(name.str()), allowCoalesce_(allowCoalesce) {}
   virtual ~StateUpdate() {}
 
   const std::string& getName() const {
@@ -80,8 +80,8 @@ class StateUpdate {
 
  private:
   // Forbidden copy constructor and assignment operator
-  StateUpdate(StateUpdate const &) = delete;
-  StateUpdate& operator=(StateUpdate const &) = delete;
+  StateUpdate(StateUpdate const&) = delete;
+  StateUpdate& operator=(StateUpdate const&) = delete;
 
   std::string name_;
   bool allowCoalesce_;
@@ -93,4 +93,5 @@ class StateUpdate {
   friend class SwSwitch;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

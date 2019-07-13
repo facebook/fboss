@@ -7,12 +7,12 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include <limits.h>
 #include "fboss/agent/LldpManager.h"
 #include <folly/Memory.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 #include <folly/logging/xlog.h>
+#include <limits.h>
 #include "common/stats/ServiceData.h"
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/FbossError.h"
@@ -28,11 +28,10 @@
 #include "fboss/agent/test/TestUtils.h"
 
 #include <boost/cast.hpp>
-#include "gmock/gmock.h"
 #include <gtest/gtest.h>
+#include "gmock/gmock.h"
 
 using ::testing::AtLeast;
-
 
 using namespace facebook::fboss;
 using folly::MacAddress;
@@ -47,7 +46,7 @@ namespace {
 // TODO(joseph5wu) Network control strict priority queue
 const uint8_t kNCStrictPriorityQueue = 7;
 const MacAddress testLocalMac = MacAddress("00:00:00:00:00:02");
-unique_ptr<HwTestHandle> setupTestHandle(bool enableLldp=false) {
+unique_ptr<HwTestHandle> setupTestHandle(bool enableLldp = false) {
   // Setup a default state object
   // reusing this, as this seems to be legit RSW config under which we should
   // do any unit tests.
@@ -58,65 +57,73 @@ unique_ptr<HwTestHandle> setupTestHandle(bool enableLldp=false) {
 }
 
 TxMatchFn checkLldpPDU() {
-   return [=](const TxPacket* pkt) {
-     const auto* buf = pkt->buf();
-     // create a large enough packet buffer to fill up all LLDP fields
-     // portname may be "portX" or "portXX", so length can vary accordingly.
-     const auto chainlen = buf->computeChainDataLength();
-     const auto minlen = LldpManager::LldpPktSize(std::string(""),
-                                                  std::string("portX"),
-                                                  std::string(""),
-                                                  std::string(""));
-     const auto maxlen
-       = LldpManager::LldpPktSize(std::string(HOST_NAME_MAX, 'x'),
-                                  std::string("portXX"),
-                                  std::string(255, 'x'),
-                                  std::string("FBOSS"));
+  return [=](const TxPacket* pkt) {
+    const auto* buf = pkt->buf();
+    // create a large enough packet buffer to fill up all LLDP fields
+    // portname may be "portX" or "portXX", so length can vary accordingly.
+    const auto chainlen = buf->computeChainDataLength();
+    const auto minlen = LldpManager::LldpPktSize(
+        std::string(""),
+        std::string("portX"),
+        std::string(""),
+        std::string(""));
+    const auto maxlen = LldpManager::LldpPktSize(
+        std::string(HOST_NAME_MAX, 'x'),
+        std::string("portXX"),
+        std::string(255, 'x'),
+        std::string("FBOSS"));
 
-     EXPECT_LE(minlen, chainlen);
-     EXPECT_LE(chainlen, maxlen);
+    EXPECT_LE(minlen, chainlen);
+    EXPECT_LE(chainlen, maxlen);
 
-     Cursor c(buf);
+    Cursor c(buf);
 
-     auto dstMac = PktUtil::readMac(&c);
-     if (dstMac.toString() != LldpManager::LLDP_DEST_MAC.toString()) {
-         throw FbossError("expected dest MAC to be ",
-                 LldpManager::LLDP_DEST_MAC, "; got ", dstMac);
-     }
+    auto dstMac = PktUtil::readMac(&c);
+    if (dstMac.toString() != LldpManager::LLDP_DEST_MAC.toString()) {
+      throw FbossError(
+          "expected dest MAC to be ",
+          LldpManager::LLDP_DEST_MAC,
+          "; got ",
+          dstMac);
+    }
 
-     auto srcMac = PktUtil::readMac(&c);
-     if (srcMac.toString() != testLocalMac.toString()) {
-         throw FbossError("expected source MAC to be ",
-                 testLocalMac, "; got ", srcMac);
-     }
-     auto ethertype = c.readBE<uint16_t>();
-     XLOG(DBG0) << "\ndstMac is " << dstMac.toString() << " srcMac is "
-                << srcMac.toString() << " ethertype is " << ethertype;
-     if (ethertype != 0x8100) {
-         throw FbossError(
-                 " expected VLAN tag to be present, found ethertype ",
-                 ethertype, " with srcMac-", srcMac);
-     }
+    auto srcMac = PktUtil::readMac(&c);
+    if (srcMac.toString() != testLocalMac.toString()) {
+      throw FbossError(
+          "expected source MAC to be ", testLocalMac, "; got ", srcMac);
+    }
+    auto ethertype = c.readBE<uint16_t>();
+    XLOG(DBG0) << "\ndstMac is " << dstMac.toString() << " srcMac is "
+               << srcMac.toString() << " ethertype is " << ethertype;
+    if (ethertype != 0x8100) {
+      throw FbossError(
+          " expected VLAN tag to be present, found ethertype ",
+          ethertype,
+          " with srcMac-",
+          srcMac);
+    }
 
-     auto tag = c.readBE<uint16_t>();
-     auto innerEthertype = c.readBE<uint16_t>();
-     if (innerEthertype != LldpManager::ETHERTYPE_LLDP) {
-         throw FbossError(" expected LLDP ethertype, found ",
-                 innerEthertype);
-     }
-     // verify the TLVs here.
-     auto chassisTLVType = c.readBE<uint16_t>();
-     uint16_t expectedChassisTLVTypeLength = (
-             (static_cast<uint16_t>(LldpTlvType::CHASSIS) <<
-              LldpManager::TLV_TYPE_LEFT_SHIFT_OFFSET) |
-             LldpManager::CHASSIS_TLV_LENGTH );
-     if (chassisTLVType != expectedChassisTLVTypeLength) {
-         throw FbossError("expected chassis tlv type and length -",
-                 expectedChassisTLVTypeLength, " found -", chassisTLVType);
-     }
-     XLOG(DBG0) << "\n ChassisTLV Sub-type - " << c.readBE<uint16_t>()
-                << " cpu Mac is " << PktUtil::readMac(&c);
-   };
+    auto tag = c.readBE<uint16_t>();
+    auto innerEthertype = c.readBE<uint16_t>();
+    if (innerEthertype != LldpManager::ETHERTYPE_LLDP) {
+      throw FbossError(" expected LLDP ethertype, found ", innerEthertype);
+    }
+    // verify the TLVs here.
+    auto chassisTLVType = c.readBE<uint16_t>();
+    uint16_t expectedChassisTLVTypeLength =
+        ((static_cast<uint16_t>(LldpTlvType::CHASSIS)
+          << LldpManager::TLV_TYPE_LEFT_SHIFT_OFFSET) |
+         LldpManager::CHASSIS_TLV_LENGTH);
+    if (chassisTLVType != expectedChassisTLVTypeLength) {
+      throw FbossError(
+          "expected chassis tlv type and length -",
+          expectedChassisTLVTypeLength,
+          " found -",
+          chassisTLVType);
+    }
+    XLOG(DBG0) << "\n ChassisTLV Sub-type - " << c.readBE<uint16_t>()
+               << " cpu Mac is " << PktUtil::readMac(&c);
+  };
 }
 
 TEST(LldpManagerTest, LldpSend) {
@@ -193,13 +200,13 @@ TEST(LldpManagerTest, NotEnabledTest) {
 
   // Random parseable LLDP packet found using the fuzzer
   auto pkt = PktUtil::parseHexData(
-  "02 00 01 00 00 01 02 00 02 01 02 03"
-  "81 00 00 01 88 cc 02 0d 00 14 34 56"
-  "53 0c 1f 06 12 34 01 02 03 04 0a 32"
-  "00 73 21 21 21 4a 21 02 02 06 02 02"
-  "00 00 00 00 f2 00 00 0d 0d 0d 0d 0d"
-  "00 00 00 00 00 94 94 94 94 00 00 3b"
-  "3b de 00 00");
+      "02 00 01 00 00 01 02 00 02 01 02 03"
+      "81 00 00 01 88 cc 02 0d 00 14 34 56"
+      "53 0c 1f 06 12 34 01 02 03 04 0a 32"
+      "00 73 21 21 21 4a 21 02 02 06 02 02"
+      "00 00 00 00 f2 00 00 0d 0d 0d 0d 0d"
+      "00 00 00 00 00 94 94 94 94 00 00 3b"
+      "3b de 00 00");
 
   handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
 
@@ -218,22 +225,24 @@ TEST(LldpManagerTest, LldpParse) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  auto pkt = LldpManager::createLldpPkt(sw, MacAddress("2:2:2:2:2:10"),
-                                        VlanID(1),
-                                        "somesysname0", "portname",
-                                        "someportdesc0",
-                                        1,
-                                        LldpManager::SYSTEM_CAPABILITY_ROUTER);
+  auto pkt = LldpManager::createLldpPkt(
+      sw,
+      MacAddress("2:2:2:2:2:10"),
+      VlanID(1),
+      "somesysname0",
+      "portname",
+      "someportdesc0",
+      1,
+      LldpManager::SYSTEM_CAPABILITY_ROUTER);
 
-  handle->rxPacket(std::make_unique<folly::IOBuf>(*pkt->buf()),
-                   PortID(1), VlanID(1));
+  handle->rxPacket(
+      std::make_unique<folly::IOBuf>(*pkt->buf()), PortID(1), VlanID(1));
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.unhandled.sum", 0);
   counters.checkDelta(SwitchStats::kCounterPrefix + "lldp.recvd.sum", 1);
   counters.checkDelta(
-    SwitchStats::kCounterPrefix + "lldp.validate_mismatch.sum", 0
-  );
+      SwitchStats::kCounterPrefix + "lldp.validate_mismatch.sum", 0);
 }
 
 TEST(LldpManagerTest, LldpValidationPass) {
@@ -242,10 +251,9 @@ TEST(LldpManagerTest, LldpValidationPass) {
   config.ports[0].Port::name_ref() = "FooP0";
   config.ports[0].Port::description_ref() = "FooP0 Port Description here";
 
-  config.ports[0].expectedLLDPValues[cfg::LLDPTag::SYSTEM_NAME]
-    = "somesysname0";
-  config.ports[0].expectedLLDPValues[cfg::LLDPTag::PORT_DESC]
-    = "someportdesc0";
+  config.ports[0].expectedLLDPValues[cfg::LLDPTag::SYSTEM_NAME] =
+      "somesysname0";
+  config.ports[0].expectedLLDPValues[cfg::LLDPTag::PORT_DESC] = "someportdesc0";
 
   auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
   auto sw = handle->getSw();
@@ -253,22 +261,24 @@ TEST(LldpManagerTest, LldpValidationPass) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  auto pkt = LldpManager::createLldpPkt(sw, MacAddress("2:2:2:2:2:10"),
-                                        VlanID(1),
-                                        "somesysname0", "portname",
-                                        "someportdesc0",
-                                        1,
-                                        LldpManager::SYSTEM_CAPABILITY_ROUTER);
+  auto pkt = LldpManager::createLldpPkt(
+      sw,
+      MacAddress("2:2:2:2:2:10"),
+      VlanID(1),
+      "somesysname0",
+      "portname",
+      "someportdesc0",
+      1,
+      LldpManager::SYSTEM_CAPABILITY_ROUTER);
 
-  handle->rxPacket(std::make_unique<folly::IOBuf>(*pkt->buf()),
-                   PortID(1), VlanID(1));
+  handle->rxPacket(
+      std::make_unique<folly::IOBuf>(*pkt->buf()), PortID(1), VlanID(1));
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.unhandled.sum", 0);
   counters.checkDelta(SwitchStats::kCounterPrefix + "lldp.recvd.sum", 1);
   counters.checkDelta(
-    SwitchStats::kCounterPrefix + "lldp.validate_mismatch.sum", 0
-  );
+      SwitchStats::kCounterPrefix + "lldp.validate_mismatch.sum", 0);
 }
 
 TEST(LldpManagerTest, LldpValidationFail) {
@@ -277,22 +287,18 @@ TEST(LldpManagerTest, LldpValidationFail) {
   config.ports[0].Port::name_ref() = "FooP0";
   config.ports[0].Port::description_ref() = "FooP0 Port Description here";
 
-  config.ports[0].expectedLLDPValues[cfg::LLDPTag::SYSTEM_NAME]
-    = "somesysname0";
-  config.ports[0].expectedLLDPValues[cfg::LLDPTag::PORT_DESC]
-    = "someportdesc0";
+  config.ports[0].expectedLLDPValues[cfg::LLDPTag::SYSTEM_NAME] =
+      "somesysname0";
+  config.ports[0].expectedLLDPValues[cfg::LLDPTag::PORT_DESC] = "someportdesc0";
 
-  for (const auto& v: config.ports[0].expectedLLDPValues) {
+  for (const auto& v : config.ports[0].expectedLLDPValues) {
     auto port_name = std::string("<no name set>");
     auto port_name_opt = config.ports[0].Port::name_ref();
     if (port_name_opt)
       port_name = *port_name_opt;
 
-    XLOG(DBG4) << port_name
-               << ": "
-               << std::to_string(static_cast<int>(v.first))
-               << " -> "
-               << v.second;
+    XLOG(DBG4) << port_name << ": " << std::to_string(static_cast<int>(v.first))
+               << " -> " << v.second;
   }
 
   auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
@@ -301,20 +307,23 @@ TEST(LldpManagerTest, LldpValidationFail) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  auto pkt = LldpManager::createLldpPkt(sw, MacAddress("2:2:2:2:2:10"),
-                                        VlanID(1),
-                                        "otherhost", "otherport", "otherdesc",
-                                        1,
-                                        LldpManager::SYSTEM_CAPABILITY_ROUTER);
+  auto pkt = LldpManager::createLldpPkt(
+      sw,
+      MacAddress("2:2:2:2:2:10"),
+      VlanID(1),
+      "otherhost",
+      "otherport",
+      "otherdesc",
+      1,
+      LldpManager::SYSTEM_CAPABILITY_ROUTER);
 
-  handle->rxPacket(std::make_unique<folly::IOBuf>(*pkt->buf()),
-                   PortID(1), VlanID(1));
+  handle->rxPacket(
+      std::make_unique<folly::IOBuf>(*pkt->buf()), PortID(1), VlanID(1));
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.unhandled.sum", 0);
   counters.checkDelta(SwitchStats::kCounterPrefix + "lldp.recvd.sum", 1);
   counters.checkDelta(
-    SwitchStats::kCounterPrefix + "lldp.validate_mismatch.sum", 1
-  );
+      SwitchStats::kCounterPrefix + "lldp.validate_mismatch.sum", 1);
 }
 } // unnamed namespace

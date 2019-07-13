@@ -9,9 +9,11 @@
  */
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 // stubbed out
 void BcmPortTable::initPortGroups() {}
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

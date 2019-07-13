@@ -12,12 +12,13 @@
 #include <folly/Conv.h>
 
 #include <libusb-1.0/libusb.h>
-#include <string>
 #include <stdexcept>
+#include <string>
 
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class UsbError : public I2cError {
  public:
@@ -28,10 +29,9 @@ class UsbError : public I2cError {
 
 class LibusbError : public UsbError {
  public:
-  template<typename... Args>
+  template <typename... Args>
   explicit LibusbError(int error, const Args&... args)
-    : UsbError(args..., ": ", libusb_error_name(error)),
-      error_(error) {}
+      : UsbError(args..., ": ", libusb_error_name(error)), error_(error) {}
 
   int errorCode() const {
     return error_;
@@ -43,9 +43,9 @@ class LibusbError : public UsbError {
 
 class UsbDeviceResetError : public UsbError {
  public:
-  template<typename... Args>
-  explicit UsbDeviceResetError(const Args&... args)
-    : UsbError(args...) {}
+  template <typename... Args>
+  explicit UsbDeviceResetError(const Args&... args) : UsbError(args...) {}
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

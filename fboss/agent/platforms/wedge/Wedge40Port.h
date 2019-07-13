@@ -11,14 +11,16 @@
 
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class Wedge40Port : public WedgePort {
  public:
-  Wedge40Port(PortID id,
-             WedgePlatform* platform,
-              folly::Optional<FrontPanelResources> frontPanel) :
-      WedgePort(id, platform, frontPanel) {}
+  Wedge40Port(
+      PortID id,
+      WedgePlatform* platform,
+      folly::Optional<FrontPanelResources> frontPanel)
+      : WedgePort(id, platform, frontPanel) {}
 
   LaneSpeeds supportedLaneSpeeds() const override {
     LaneSpeeds speeds;
@@ -40,4 +42,5 @@ class Wedge40Port : public WedgePort {
   }
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

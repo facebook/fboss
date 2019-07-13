@@ -16,17 +16,17 @@ using folly::IOBuf;
 
 namespace {
 
-void freeRxBuf(void *ptr, void* arg) {
+void freeRxBuf(void* ptr, void* arg) {
   intptr_t unit = reinterpret_cast<intptr_t>(arg);
   opennsl_rx_free(unit, ptr);
 }
 
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-BcmRxPacket::BcmRxPacket(const opennsl_pkt_t* pkt)
-  : unit_(pkt->unit) {
+BcmRxPacket::BcmRxPacket(const opennsl_pkt_t* pkt) : unit_(pkt->unit) {
   // The BCM RX code always uses a single buffer.
   // As long as there is just a single buffer, we don't need to allocate
   // a separate array of opennsl_pkt_blk_t objects.
@@ -35,9 +35,9 @@ BcmRxPacket::BcmRxPacket(const opennsl_pkt_t* pkt)
   CHECK_EQ(pkt->pkt_data, &pkt->_pkt_data);
 
   buf_ = IOBuf::takeOwnership(
-      pkt->pkt_data->data,             // void* buf
+      pkt->pkt_data->data, // void* buf
       pkt->pkt_len,
-      freeRxBuf,                       // FreeFunction freeFn
+      freeRxBuf, // FreeFunction freeFn
       reinterpret_cast<void*>(unit_)); // void* userData
 
   srcPort_ = PortID(pkt->src_port);
@@ -50,4 +50,5 @@ BcmRxPacket::~BcmRxPacket() {
   // to free the packet data
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

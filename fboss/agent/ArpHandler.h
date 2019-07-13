@@ -9,21 +9,24 @@
  */
 #pragma once
 
-#include "fboss/agent/types.h"
-#include "fboss/agent/state/NeighborEntry.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/NeighborEntry.h"
 #include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/types.h"
 
 #include <memory>
 
 #include <folly/IPAddressV4.h>
 #include <folly/MacAddress.h>
 
-namespace folly { namespace io {
+namespace folly {
+namespace io {
 class Cursor;
-}}
+}
+} // namespace folly
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class RxPacket;
 class SwSwitch;
@@ -41,10 +44,11 @@ class ArpHandler {
 
   explicit ArpHandler(SwSwitch* sw);
 
-  void handlePacket(std::unique_ptr<RxPacket> pkt,
-                    folly::MacAddress dst,
-                    folly::MacAddress src,
-                    folly::io::Cursor cursor);
+  void handlePacket(
+      std::unique_ptr<RxPacket> pkt,
+      folly::MacAddress dst,
+      folly::MacAddress src,
+      folly::io::Cursor cursor);
 
   /*
    * These two static methods are for sending out ARP requests.
@@ -53,14 +57,16 @@ class ArpHandler {
    * does not access the SwitchState so should be preferred where
    * possible.
    */
-  static void sendArpRequest(SwSwitch* sw,
-                             const VlanID vlan,
-                             const folly::MacAddress& srcMac,
-                             const folly::IPAddressV4& senderIP,
-                             const folly::IPAddressV4& targetIP);
-  static void sendArpRequest(SwSwitch* sw,
-                             const std::shared_ptr<Vlan>& vlan,
-                             const folly::IPAddressV4& targetIP);
+  static void sendArpRequest(
+      SwSwitch* sw,
+      const VlanID vlan,
+      const folly::MacAddress& srcMac,
+      const folly::IPAddressV4& senderIP,
+      const folly::IPAddressV4& targetIP);
+  static void sendArpRequest(
+      SwSwitch* sw,
+      const std::shared_ptr<Vlan>& vlan,
+      const folly::IPAddressV4& targetIP);
 
   /*
    * Send gratuitous arp on all vlans
@@ -69,16 +75,19 @@ class ArpHandler {
 
  private:
   // Forbidden copy constructor and assignment operator
-  ArpHandler(ArpHandler const &) = delete;
-  ArpHandler& operator=(ArpHandler const &) = delete;
+  ArpHandler(ArpHandler const&) = delete;
+  ArpHandler& operator=(ArpHandler const&) = delete;
 
-  void sendArpReply(VlanID vlan, PortID port,
-                    folly::MacAddress senderMac,
-                    folly::IPAddressV4 senderIP,
-                    folly::MacAddress targetMac,
-                    folly::IPAddressV4 targetIP);
+  void sendArpReply(
+      VlanID vlan,
+      PortID port,
+      folly::MacAddress senderMac,
+      folly::IPAddressV4 senderIP,
+      folly::MacAddress targetMac,
+      folly::IPAddressV4 targetIP);
 
   SwSwitch* sw_{nullptr};
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

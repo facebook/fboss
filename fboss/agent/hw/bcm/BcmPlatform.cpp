@@ -16,16 +16,22 @@
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmConfig.h"
 
-DEFINE_string(hw_config_file, "hw_config",
-              "File for dumping HW config on startup");
-DEFINE_bool(enable_routes_in_host_table,
-            false,
-            "Whether to program host routes in host table. If false, all "
-            "routes are programmed in route table");
-DEFINE_string(script_pre_asic_init, "script_pre_asic_init",
-              "Broadcom script file to be run before ASIC init");
+DEFINE_string(
+    hw_config_file,
+    "hw_config",
+    "File for dumping HW config on startup");
+DEFINE_bool(
+    enable_routes_in_host_table,
+    false,
+    "Whether to program host routes in host table. If false, all "
+    "routes are programmed in route table");
+DEFINE_string(
+    script_pre_asic_init,
+    "script_pre_asic_init",
+    "Broadcom script file to be run before ASIC init");
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 BcmPlatform::BcmPlatform() {}
 
@@ -52,4 +58,5 @@ void BcmPlatform::dumpHwConfig() const {
     throw facebook::fboss::SysError(errno, "error writing bcm config ");
   }
 }
-}} //facebook::fboss
+} // namespace fboss
+} // namespace facebook

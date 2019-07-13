@@ -8,11 +8,11 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
+#include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicy.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/types.h"
-#include <folly/logging/xlog.h>
 
 namespace facebook {
 namespace fboss {

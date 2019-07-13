@@ -171,7 +171,7 @@ TEST_F(LabelForwardingTest, syncMplsFib) {
 
   waitForStateUpdates(sw);
 
-  labelFib =  sw->getState()->getLabelForwardingInformationBase();
+  labelFib = sw->getState()->getLabelForwardingInformationBase();
 
   for (auto i = 0; i < 8; i++) {
     if (i < 4) {

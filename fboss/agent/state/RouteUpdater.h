@@ -10,24 +10,26 @@
 // Copyright 2004-present Facebook.  All rights reserved.
 #pragma once
 
-#include "fboss/agent/types.h"
 #include <folly/IPAddress.h>
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/RouteNextHopsMulti.h"
-#include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/RouteTableMap.h"
+#include "fboss/agent/state/RouteTypes.h"
+#include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
 #include <boost/container/flat_set.hpp>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 namespace cfg {
 class SwitchConfig;
 }
 
 class InterfaceMap;
-template<typename Addr> class RouteTableRib;
+template <typename Addr>
+class RouteTableRib;
 
 /**
  * Expected behavior of RouteUpdater::resolve():
@@ -67,12 +69,19 @@ class RouteUpdater {
   typedef RoutePrefixV6 PrefixV6;
 
   // method to add a route
-  void addRoute(RouterID id, const folly::IPAddress& network, uint8_t mask,
-                ClientID clientId, RouteNextHopEntry entry);
+  void addRoute(
+      RouterID id,
+      const folly::IPAddress& network,
+      uint8_t mask,
+      ClientID clientId,
+      RouteNextHopEntry entry);
 
   // method to delete a route from a client
-  void delRoute(RouterID id, const folly::IPAddress& network, uint8_t mask,
-                ClientID clientId);
+  void delRoute(
+      RouterID id,
+      const folly::IPAddress& network,
+      uint8_t mask,
+      ClientID clientId);
 
   // method to delete all routes from a client
   void removeAllRoutesForClient(RouterID rid, ClientID clientId);
@@ -88,10 +97,10 @@ class RouteUpdater {
   void delLinkLocalRoutes(RouterID id);
 
  private:
-  template<typename StaticRouteType>
+  template <typename StaticRouteType>
   // Forbidden copy constructor and assignment operator
-  RouteUpdater(RouteUpdater const &) = delete;
-  RouteUpdater& operator=(RouteUpdater const &) = delete;
+  RouteUpdater(RouteUpdater const&) = delete;
+  RouteUpdater& operator=(RouteUpdater const&) = delete;
 
   typedef RouteTableRib<folly::IPAddressV4> RouteTableRibV4;
   typedef RouteTableRib<folly::IPAddressV6> RouteTableRibV6;
@@ -113,21 +122,24 @@ class RouteUpdater {
   ClonedRib* createNewRib(RouterID id);
   ClonedRib::RibV4* getRibV4(RouterID id, bool createIfNotExist = true);
   ClonedRib::RibV6* getRibV6(RouterID id, bool createIfNotExist = true);
-  template<typename RibT>
+  template <typename RibT>
   auto makeClone(RibT* rib) -> decltype(rib->rib.get());
 
   // Helper functions to add or delete a route
-  template<typename PrefixT, typename RibT>
-  void addRouteImpl(const PrefixT& prefix, RibT *rib,
-                    ClientID clientId, RouteNextHopEntry entry);
-  template<typename PrefixT, typename RibT>
-  void delRouteImpl(const PrefixT& prefix, RibT *ribCloned, ClientID clientId);
-  template<typename AddrT, typename RibT>
-  void removeAllRoutesForClientImpl(RibT *ribCloned, ClientID clientId);
+  template <typename PrefixT, typename RibT>
+  void addRouteImpl(
+      const PrefixT& prefix,
+      RibT* rib,
+      ClientID clientId,
+      RouteNextHopEntry entry);
+  template <typename PrefixT, typename RibT>
+  void delRouteImpl(const PrefixT& prefix, RibT* ribCloned, ClientID clientId);
+  template <typename AddrT, typename RibT>
+  void removeAllRoutesForClientImpl(RibT* ribCloned, ClientID clientId);
 
   // resolve all routes that are not resolved yet
   void resolve();
-  template<typename RouteT>
+  template <typename RouteT>
   void resolveOne(RouteT* route, ClonedRib* clonedRib);
   template <typename RtRibT, typename AddrT>
   void getFwdInfoFromNhop(
@@ -139,9 +151,10 @@ class RouteUpdater {
       bool* hasDrop,
       RouteNextHopSet& fwd);
   // Functions to deduplicate routing tables during sync mode
-  template<typename RibT>
+  template <typename RibT>
   bool dedupRoutes(const RibT* origRib, RibT* newRib);
   std::shared_ptr<RouteTableMap> deduplicate(RouteTableMap::NodeContainer* map);
 };
 
-}}
+} // namespace fboss
+} // namespace facebook

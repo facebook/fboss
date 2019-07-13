@@ -11,7 +11,8 @@
 
 #include <stdexcept>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 using folly::IPAddressV4;
 using folly::MacAddress;
@@ -28,12 +29,12 @@ ArpHdr::ArpHdr(Cursor& cursor) {
     uint32_t ipAddress;
     cursor.pull(&macAddress, 6);
     sha = MacAddress::fromBinary(
-      folly::ByteRange(&macAddress[0], MacAddress::SIZE));
+        folly::ByteRange(&macAddress[0], MacAddress::SIZE));
     cursor.pull(&ipAddress, 4);
     spa = IPAddressV4::fromLong(ipAddress);
     cursor.pull(&macAddress, 6);
     tha = MacAddress::fromBinary(
-      folly::ByteRange(&macAddress[0], MacAddress::SIZE));
+        folly::ByteRange(&macAddress[0], MacAddress::SIZE));
     cursor.pull(&ipAddress, 4);
     tpa = IPAddressV4::fromLong(ipAddress);
   } catch (const std::out_of_range& e) {
@@ -41,4 +42,5 @@ ArpHdr::ArpHdr(Cursor& cursor) {
   }
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

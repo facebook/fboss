@@ -17,11 +17,14 @@
 #include <folly/MacAddress.h>
 #include "fboss/agent/packet/IPv4Hdr.h"
 
-namespace folly { namespace io {
+namespace folly {
+namespace io {
 class Cursor;
-}}
+}
+} // namespace folly
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class RxPacket;
 class SwitchState;
@@ -34,10 +37,11 @@ class IPv4Handler {
 
   explicit IPv4Handler(SwSwitch* sw);
 
-  void handlePacket(std::unique_ptr<RxPacket> pkt,
-                    folly::MacAddress dst,
-                    folly::MacAddress src,
-                    folly::io::Cursor cursor);
+  void handlePacket(
+      std::unique_ptr<RxPacket> pkt,
+      folly::MacAddress dst,
+      folly::MacAddress src,
+      folly::io::Cursor cursor);
 
   /*
    * TODO(aeckert): t17949183 unify packet handling pipeline and then
@@ -49,17 +53,19 @@ class IPv4Handler {
       folly::IPAddressV4 dest);
 
  private:
-  void sendICMPTimeExceeded(VlanID srcVlan,
-                            folly::MacAddress dst,
-                            folly::MacAddress src,
-                            IPv4Hdr& v4Hdr,
-                            folly::io::Cursor cursor);
+  void sendICMPTimeExceeded(
+      VlanID srcVlan,
+      folly::MacAddress dst,
+      folly::MacAddress src,
+      IPv4Hdr& v4Hdr,
+      folly::io::Cursor cursor);
 
   // Forbidden copy constructor and assignment operator
-  IPv4Handler(IPv4Handler const &) = delete;
-  IPv4Handler& operator=(IPv4Handler const &) = delete;
+  IPv4Handler(IPv4Handler const&) = delete;
+  IPv4Handler& operator=(IPv4Handler const&) = delete;
 
   SwSwitch* sw_{nullptr};
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

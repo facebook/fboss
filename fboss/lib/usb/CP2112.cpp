@@ -26,19 +26,19 @@
  *   XFER_STATUS_RESPONSE has previously indicated that the read is complete.
  */
 #include "fboss/lib/usb/CP2112.h"
-#include "fboss/lib/usb/UsbError.h"
 #include "fboss/lib/BmcRestClient.h"
+#include "fboss/lib/usb/UsbError.h"
 
 #include <glog/logging.h>
 
-#include <folly/lang/Bits.h>
 #include <folly/ScopeGuard.h>
+#include <folly/lang/Bits.h>
 #include <libusb-1.0/libusb.h>
 
 using folly::ByteRange;
 using folly::Endian;
-using folly::StringPiece;
 using folly::MutableByteRange;
+using folly::StringPiece;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::steady_clock;
@@ -60,30 +60,31 @@ struct Hid {
   };
 };
 
-template<typename INT>
+template <typename INT>
 void setBE(uint8_t* buf, INT value) {
   INT be = Endian::big<INT>(value);
   memcpy(buf, &be, sizeof(INT));
 }
 
-template<typename INT>
+template <typename INT>
 INT readBE(const uint8_t* buf) {
   INT be;
   memcpy(&be, buf, sizeof(INT));
   return Endian::big<INT>(be);
 }
 
-void vlogHex(int vlogLevel,
-             StringPiece label,
-             const uint8_t* buf,
-             size_t length) {
+void vlogHex(
+    int vlogLevel,
+    StringPiece label,
+    const uint8_t* buf,
+    size_t length) {
   if (!VLOG_IS_ON(vlogLevel)) {
     return;
   }
 
-  const size_t kLineLength = 55;  // The length of 1 line worth of output
-  const size_t hexLen = (label.size() + 1 +
-                         kLineLength * (1 + (length / 16)) + 1);
+  const size_t kLineLength = 55; // The length of 1 line worth of output
+  const size_t hexLen =
+      (label.size() + 1 + kLineLength * (1 + (length / 16)) + 1);
   char hexBuf[hexLen];
 
   size_t idx = 0;
@@ -95,8 +96,12 @@ void vlogHex(int vlogLevel,
     bufIdx += ret;
 
     for (unsigned int n = 0; n < 16 && idx < length; ++n, ++idx) {
-      ret = snprintf(hexBuf + bufIdx, hexLen - bufIdx,
-                     "%s%02x", n == 8 ? "  " : " ", buf[idx]);
+      ret = snprintf(
+          hexBuf + bufIdx,
+          hexLen - bufIdx,
+          "%s%02x",
+          n == 8 ? "  " : " ",
+          buf[idx]);
       bufIdx += ret;
     }
     hexBuf[bufIdx] = '\n';
@@ -107,23 +112,20 @@ void vlogHex(int vlogLevel,
   VLOG(vlogLevel) << hexBuf;
 }
 
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-CP2112::CP2112()
-  : ownCtx_(true) {
-  lastResetTime_ =  std::chrono::steady_clock::now();
+CP2112::CP2112() : ownCtx_(true) {
+  lastResetTime_ = std::chrono::steady_clock::now();
   int rc = libusb_init(&ctx_);
   if (rc != 0) {
     throw LibusbError(rc, "failed to initialize libusb");
   }
 }
 
-CP2112::CP2112(libusb_context* ctx)
-  : ctx_(ctx),
-    ownCtx_(false) {
-}
+CP2112::CP2112(libusb_context* ctx) : ctx_(ctx), ownCtx_(false) {}
 
 CP2112::~CP2112() {
   close();
@@ -192,9 +194,9 @@ void CP2112::resetDevice() {
   auto nowTime = std::chrono::steady_clock::now();
   if ((nowTime - lastResetTime_) < minResetInterval_) {
     std::chrono::duration<double> elapsed = nowTime - lastResetTime_;
-    throw UsbDeviceResetError("CP2112: insufficient time since last reset " +
-                              folly::to<std::string>(elapsed.count()) +
-                              " seconds ago");
+    throw UsbDeviceResetError(
+        "CP2112: insufficient time since last reset " +
+        folly::to<std::string>(elapsed.count()) + " seconds ago");
   }
   VLOG(1) << "resetting CP2112 device";
   lastResetTime_ = nowTime;
@@ -217,9 +219,11 @@ CP2112::GpioConfig CP2112::getGpioConfig() {
 
 void CP2112::setGpioConfig(GpioConfig config) {
   uint8_t buf[5]{
-    ReportID::GPIO_CONFIG,
-    config.direction, config.pushPull,
-    config.special, config.clockDivider,
+      ReportID::GPIO_CONFIG,
+      config.direction,
+      config.pushPull,
+      config.special,
+      config.clockDivider,
   };
   featureReportOut(ReportID::GPIO_CONFIG, buf, sizeof(buf));
 }
@@ -282,9 +286,7 @@ void CP2112::setSMBusConfig(SMBusConfig config) {
   featureReportOut(ReportID::SMBUS_CONFIG, buf, sizeof(buf));
 }
 
-void CP2112::read(uint8_t address,
-                  MutableByteRange buf,
-                  milliseconds timeout) {
+void CP2112::read(uint8_t address, MutableByteRange buf, milliseconds timeout) {
   if (buf.size() > 512) {
     throw UsbError("cannot read more than 512 bytes at once");
   }
@@ -334,13 +336,15 @@ void CP2112::write(uint8_t address, ByteRange buf, milliseconds timeout) {
   waitForTransfer("write", end);
 }
 
-void CP2112::writeReadUnsafe(uint8_t address,
-                             ByteRange writeBuf,
-                             MutableByteRange readBuf,
-                             milliseconds timeout) {
+void CP2112::writeReadUnsafe(
+    uint8_t address,
+    ByteRange writeBuf,
+    MutableByteRange readBuf,
+    milliseconds timeout) {
   if (writeBuf.size() > 16) {
-    throw UsbError("cannot write more than 16 bytes at once for "
-                   "read-after-write");
+    throw UsbError(
+        "cannot write more than 16 bytes at once for "
+        "read-after-write");
   }
   if (writeBuf.size() < 1) {
     throw UsbError("must write at least 1 byte for read-after-write");
@@ -450,7 +454,7 @@ void CP2112::flushTransfers() {
     try {
       intrIn(buf, sizeof(buf), milliseconds(3));
       VLOG(1) << "discarding stale USB interrupt response packet "
-        << (int)buf[0];
+              << (int)buf[0];
     } catch (const LibusbError& ex) {
       if (ex.errorCode() != LIBUSB_ERROR_TIMEOUT) {
         throw;
@@ -489,8 +493,8 @@ std::string CP2112::getStatus1Msg(uint8_t status0, uint8_t status1) {
     case 3:
       return getCompleteStatusMsg(status1);
   }
-  return folly::to<std::string>("unexpected status0=", status0,
-                                ", status1=", status1);
+  return folly::to<std::string>(
+      "unexpected status0=", status0, ", status1=", status1);
 }
 
 std::string CP2112::getBusyStatusMsg(uint8_t status1) {
@@ -571,8 +575,7 @@ void CP2112::processReadResponse(MutableByteRange buf, milliseconds timeout) {
     if (sendRead) {
       usbBuf[0] = ReportID::READ_FORCE_SEND;
       usbBuf[1] = 1;
-      intrOut("read force send", usbBuf, sizeof(usbBuf),
-              milliseconds(5));
+      intrOut("read force send", usbBuf, sizeof(usbBuf), milliseconds(5));
       sendRead = false;
     }
 
@@ -608,7 +611,8 @@ void CP2112::processReadResponse(MutableByteRange buf, milliseconds timeout) {
       // Something has gone wrong if we get anything other than READ_RESPONSE,
       // and we are out of sync with the device state.
       LOG(DFATAL) << "received unexpected interrupt response while waiting on "
-        "read response: " << (int)usbBuf[0];
+                     "read response: "
+                  << (int)usbBuf[0];
       busGood_ = false;
       throw UsbError("unexpected device status waiting on read response");
     }
@@ -616,7 +620,7 @@ void CP2112::processReadResponse(MutableByteRange buf, milliseconds timeout) {
     uint8_t status = usbBuf[1];
     uint8_t length = usbBuf[2];
     VLOG(5) << "SMBus read response: status=" << (int)status
-      << ", length=" << (int)length;
+            << ", length=" << (int)length;
 
     memcpy(buf.begin() + bytesRead, usbBuf + 3, length);
     bytesRead += length;
@@ -641,10 +645,10 @@ void CP2112::processReadResponse(MutableByteRange buf, milliseconds timeout) {
       // None of these should occur since we already got a successful
       // XFER_STATUS_RESPONSE above.
       LOG(DFATAL) << "unexpected read failure after successful "
-        << "XFER_STATUS_RESPONSE";
+                  << "XFER_STATUS_RESPONSE";
       busGood_ = false;
-      throw UsbError("unexpected status ", status,
-                     " while waiting on read response");
+      throw UsbError(
+          "unexpected status ", status, " while waiting on read response");
     }
 
     sendRead = (bytesRead < buf.size()) && (length < 61);
@@ -672,10 +676,11 @@ CP2112::TransferStatus CP2112::getTransferStatus(milliseconds timeout) {
   return status;
 }
 
-void CP2112::getTransferStatusImpl(uint8_t* usbBuf,
-                                   milliseconds timeout,
-                                   StringPiece operation,
-                                   uint32_t loopIter) {
+void CP2112::getTransferStatusImpl(
+    uint8_t* usbBuf,
+    milliseconds timeout,
+    StringPiece operation,
+    uint32_t loopIter) {
   uint16_t bufSize = 64;
 
   // Send an XFER_STATUS_REQUEST
@@ -696,10 +701,10 @@ void CP2112::getTransferStatusImpl(uint8_t* usbBuf,
     // read attempt to not read a final empty READ_RESPONSE, in which case we
     // may receive it here.
     DCHECK_EQ(usbBuf[1], 0); // status should be idle
-    DCHECK_EQ(loopIter, 1);  // This should only happen on the first loop.
+    DCHECK_EQ(loopIter, 1); // This should only happen on the first loop.
     if (usbBuf[2] != 0) {
-      throw UsbError("unexepected response length ", (int)usbBuf[2],
-                     "should be 0.");
+      throw UsbError(
+          "unexepected response length ", (int)usbBuf[2], "should be 0.");
     }
 
     // Ignore the read response, and do another ead to receive our
@@ -711,15 +716,20 @@ void CP2112::getTransferStatusImpl(uint8_t* usbBuf,
     // This shouldn't happen unless communication has gotten out of sync
     // between us and the device.
     LOG(DFATAL) << "received unexpected interrupt response while waiting on "
-      << operation << " transfer status: " << (int)usbBuf[0];
+                << operation << " transfer status: " << (int)usbBuf[0];
     busGood_ = false;
-    throw UsbError("unexpected response ", (int)usbBuf[0],
-                   "while waiting on ", operation, " transfer status");
+    throw UsbError(
+        "unexpected response ",
+        (int)usbBuf[0],
+        "while waiting on ",
+        operation,
+        " transfer status");
   }
 }
 
-milliseconds CP2112::waitForTransfer(StringPiece operation,
-                                     steady_clock::time_point end) {
+milliseconds CP2112::waitForTransfer(
+    StringPiece operation,
+    steady_clock::time_point end) {
   auto now = steady_clock::now();
   milliseconds timeLeft = duration_cast<milliseconds>(end - now);
 
@@ -734,10 +744,9 @@ milliseconds CP2112::waitForTransfer(StringPiece operation,
     // Bytes 3-4 are status2, and bytes 5-6 are status3.  However we currently
     // don't use these values other than logging them here.
     VLOG(5) << operation << " xfer status:"
-      << " status0=" << (int)status0
-      << " status1=" << (int)status1
-      << " status2=" << readBE<uint16_t>(usbBuf + 3)
-      << " status3=" << readBE<uint16_t>(usbBuf + 5);
+            << " status0=" << (int)status0 << " status1=" << (int)status1
+            << " status2=" << readBE<uint16_t>(usbBuf + 3)
+            << " status3=" << readBE<uint16_t>(usbBuf + 5);
 
     if (status0 == 2) {
       // successfully completed
@@ -749,15 +758,22 @@ milliseconds CP2112::waitForTransfer(StringPiece operation,
       // 1 is busy.  Any other status is unexpected.
       // 0 is idle, which shouldn't occur while our write is in progress.
       busGood_ = false;
-      throw UsbError("unexpected transaction status ", status0,
-                     " while waiting on ", operation, " completion");
+      throw UsbError(
+          "unexpected transaction status ",
+          status0,
+          " while waiting on ",
+          operation,
+          " completion");
     }
 
     timeLeft = updateTimeLeft(end, true);
     if (timeLeft < milliseconds(0)) {
       cancelTransfer();
-      throw UsbError("timed out waiting on ", operation, " response: ",
-                     getBusyStatusMsg(status1));
+      throw UsbError(
+          "timed out waiting on ",
+          operation,
+          " response: ",
+          getBusyStatusMsg(status1));
     }
   }
 }
@@ -774,19 +790,25 @@ milliseconds CP2112::updateTimeLeft(steady_clock::time_point end, bool sleep) {
   return timeLeft;
 }
 
-uint16_t CP2112::featureReportIn(ReportID report,
-                                 uint8_t* buf,
-                                 uint16_t length) {
+uint16_t
+CP2112::featureReportIn(ReportID report, uint8_t* buf, uint16_t length) {
   CHECK(isOpen());
-  uint8_t bRequestType = (LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS |
-                          LIBUSB_RECIPIENT_INTERFACE);
+  uint8_t bRequestType =
+      (LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS |
+       LIBUSB_RECIPIENT_INTERFACE);
   uint8_t bRequest = Hid::GET_REPORT;
   uint16_t wValue = ReportType::FEATURE | static_cast<uint16_t>(report);
   uint16_t wIndex = 0; // the interface index
   unsigned int timeoutMS = 1000;
-  int rc = libusb_control_transfer(handle_.handle(), bRequestType, bRequest,
-                                   wValue, wIndex,
-                                   buf, length, timeoutMS);
+  int rc = libusb_control_transfer(
+      handle_.handle(),
+      bRequestType,
+      bRequest,
+      wValue,
+      wIndex,
+      buf,
+      length,
+      timeoutMS);
   if (rc < 0) {
     throw LibusbError(rc, "failed to get feature report ", report);
   }
@@ -794,41 +816,61 @@ uint16_t CP2112::featureReportIn(ReportID report,
   return rc;
 }
 
-void CP2112::fullFeatureReportIn(ReportID report,
-                                 uint8_t* buf,
-                                 uint16_t length) {
+void CP2112::fullFeatureReportIn(
+    ReportID report,
+    uint8_t* buf,
+    uint16_t length) {
   auto bytesRead = featureReportIn(report, buf, length);
   if (bytesRead != length) {
-    throw UsbError("unexpected length read from USB feature report ", report,
-                   ": read ", bytesRead, ", expected ", length);
+    throw UsbError(
+        "unexpected length read from USB feature report ",
+        report,
+        ": read ",
+        bytesRead,
+        ", expected ",
+        length);
   }
 }
 
-void CP2112::featureReportOut(ReportID report,
-                              const uint8_t* buf,
-                              uint16_t length) {
-  uint8_t bRequestType = (LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS |
-                          LIBUSB_RECIPIENT_INTERFACE);
+void CP2112::featureReportOut(
+    ReportID report,
+    const uint8_t* buf,
+    uint16_t length) {
+  uint8_t bRequestType =
+      (LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS |
+       LIBUSB_RECIPIENT_INTERFACE);
   uint8_t bRequest = Hid::SET_REPORT;
   uint16_t wValue = ReportType::FEATURE | static_cast<uint16_t>(report);
   uint16_t wIndex = 0; // the interface index
   unsigned int timeoutMS = 1000;
-  int rc = libusb_control_transfer(handle_.handle(), bRequestType, bRequest,
-                                   wValue, wIndex,
-                                   const_cast<uint8_t*>(buf), length,
-                                   timeoutMS);
+  int rc = libusb_control_transfer(
+      handle_.handle(),
+      bRequestType,
+      bRequest,
+      wValue,
+      wIndex,
+      const_cast<uint8_t*>(buf),
+      length,
+      timeoutMS);
   if (rc < 0) {
     throw LibusbError(rc, "failed to set feature report ", report);
   }
   if (rc != length) {
-    throw UsbError("failed to write full USB feature report ", report,
-                   ": written ", rc, ", expected ", length);
+    throw UsbError(
+        "failed to write full USB feature report ",
+        report,
+        ": written ",
+        rc,
+        ", expected ",
+        length);
   }
 }
 
-void CP2112::intrOut(StringPiece name,
-                     const uint8_t* buf, uint16_t length,
-                     milliseconds timeout) {
+void CP2112::intrOut(
+    StringPiece name,
+    const uint8_t* buf,
+    uint16_t length,
+    milliseconds timeout) {
   // The CP2112 always uses 64-byte interrupt transfers.
   DCHECK_EQ(length, 64);
   vlogHex(6, "intr out:", buf, length);
@@ -846,17 +888,20 @@ void CP2112::intrOut(StringPiece name,
   // checks, and not inside libusb calls.
   int usbTimeout = std::max(timeout.count(), 5L);
 
-  int rc = libusb_interrupt_transfer(handle_.handle(), outEndpoint,
-                                     const_cast<uint8_t*>(buf), length,
-                                     &lenResult, usbTimeout);
+  int rc = libusb_interrupt_transfer(
+      handle_.handle(),
+      outEndpoint,
+      const_cast<uint8_t*>(buf),
+      length,
+      &lenResult,
+      usbTimeout);
   if (rc != 0) {
     busGood_ = false;
     throw LibusbError(rc, "failed to send ", name, " request");
   }
 }
 
-void CP2112::intrIn(uint8_t* buf, uint16_t length,
-                    milliseconds timeout) {
+void CP2112::intrIn(uint8_t* buf, uint16_t length, milliseconds timeout) {
   // The CP2112 always uses 64-byte interrupt transfers.
   DCHECK_EQ(length, 64);
 
@@ -868,17 +913,18 @@ void CP2112::intrIn(uint8_t* buf, uint16_t length,
   // With a timeout of 0 libusb won't even bother checking for available data,
   // it just returns a timeout error immediately.
   int usbTimeout = std::max(timeout.count(), 1L);
-  int rc = libusb_interrupt_transfer(handle_.handle(), outEndpoint,
-                                     buf, length,
-                                     &lenResult, usbTimeout);
+  int rc = libusb_interrupt_transfer(
+      handle_.handle(), outEndpoint, buf, length, &lenResult, usbTimeout);
   if (rc != 0) {
     busGood_ = false;
     throw LibusbError(rc, "error waiting for interrupt response");
   }
   if (lenResult != 64) {
     busGood_ = false;
-    throw UsbError("unexpected interrupt response length received from "
-                   "CP2112:", lenResult);
+    throw UsbError(
+        "unexpected interrupt response length received from "
+        "CP2112:",
+        lenResult);
   }
   vlogHex(6, "intr in:", buf, length);
 }
@@ -891,4 +937,5 @@ bool CP2112::SMBusConfig::operator!=(const SMBusConfig& other) const {
   return !(*this == other);
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -13,7 +13,8 @@
 #include <folly/Range.h>
 #include <folly/logging/xlog.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 void SwSwitch::publishInitTimes(std::string /*name*/, const float& /*time*/) {}
 
@@ -23,8 +24,8 @@ void SwSwitch::updatePortInfo() {}
 void SwSwitch::publishSwitchInfo(struct HwInitResult /*hwInitRet*/) {}
 
 void SwSwitch::logLinkStateEvent(PortID port, bool up) {
-  std::string logMsg = folly::sformat("LinkState: Port {0} {1}",
-                                      (uint16_t)port, (up ? "Up" : "Down"));
+  std::string logMsg = folly::sformat(
+      "LinkState: Port {0} {1}", (uint16_t)port, (up ? "Up" : "Down"));
   XLOG(DBG2) << logMsg;
 }
 
@@ -39,4 +40,5 @@ void SwSwitch::logSwitchRunStateChange(
 }
 
 void SwSwitch::updateAclsForWarmboot(folly::dynamic& /*switchState*/) const {}
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

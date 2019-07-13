@@ -18,5 +18,5 @@ class HwSwitch;
 void updateHwSwitchStats(HwSwitch* hw);
 uint64_t getPortOutPkts(HwPortStats portStats);
 
-}
+} // namespace fboss
 } // namespace facebook

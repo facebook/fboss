@@ -47,10 +47,10 @@ using namespace facebook::fboss;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 using folly::MacAddress;
-using std::make_shared;
 using folly::io::Cursor;
-using std::unique_ptr;
+using std::make_shared;
 using std::string;
+using std::unique_ptr;
 
 using ::testing::_;
 using testing::Return;
@@ -104,11 +104,15 @@ std::string genICMPv6EchoRequest(int hopLimit, size_t payloadSize) {
 
 typedef std::function<void(Cursor* cursor, uint32_t length)> PayloadCheckFn;
 
-
-TxMatchFn checkICMPv4Pkt(MacAddress srcMac, IPAddressV4 srcIP,
-                         MacAddress dstMac, IPAddressV4 dstIP,
-                         VlanID vlan, ICMPv4Type type, ICMPv4Code code,
-                         const PayloadCheckFn& checkPayload) {
+TxMatchFn checkICMPv4Pkt(
+    MacAddress srcMac,
+    IPAddressV4 srcIP,
+    MacAddress dstMac,
+    IPAddressV4 dstIP,
+    VlanID vlan,
+    ICMPv4Type type,
+    ICMPv4Code code,
+    const PayloadCheckFn& checkPayload) {
   return [=](const TxPacket* pkt) {
     Cursor c(pkt->buf());
     auto parsedDstMac = PktUtil::readMac(&c);
@@ -138,17 +142,19 @@ TxMatchFn checkICMPv4Pkt(MacAddress srcMac, IPAddressV4 srcIP,
     checkField(dstIP, ipv4.dstAddr, "dst IP");
 
     ICMPHdr icmp4(c);
-    checkField(icmp4.computeChecksum(c, c.length()), icmp4.csum,
-        "ICMPv4 checksum");
+    checkField(
+        icmp4.computeChecksum(c, c.length()), icmp4.csum, "ICMPv4 checksum");
     checkField(static_cast<uint8_t>(type), icmp4.type, "ICMPv4 type");
     checkField(static_cast<uint8_t>(code), icmp4.code, "ICMPv4 code");
 
     checkPayload(&c, ipv4.length - IPv4Hdr::minSize() - ICMPHdr::SIZE);
 
     if (ipv4.length != (c - ipv4HdrStart)) {
-      throw FbossError("IPv4 payload length mismatch: header says ",
-                       ipv4.length, " but we used ",
-                       c - ipv4HdrStart);
+      throw FbossError(
+          "IPv4 payload length mismatch: header says ",
+          ipv4.length,
+          " but we used ",
+          c - ipv4HdrStart);
     }
 
     // This is a match
@@ -156,10 +162,15 @@ TxMatchFn checkICMPv4Pkt(MacAddress srcMac, IPAddressV4 srcIP,
   };
 }
 
-TxMatchFn checkICMPv6Pkt(MacAddress srcMac, IPAddressV6 srcIP,
-                         MacAddress dstMac, IPAddressV6 dstIP,
-                         VlanID vlan, ICMPv6Type type, ICMPv6Code code,
-                         const PayloadCheckFn& checkPayload) {
+TxMatchFn checkICMPv6Pkt(
+    MacAddress srcMac,
+    IPAddressV6 srcIP,
+    MacAddress dstMac,
+    IPAddressV6 dstIP,
+    VlanID vlan,
+    ICMPv6Type type,
+    ICMPv6Code code,
+    const PayloadCheckFn& checkPayload) {
   return [=](const TxPacket* pkt) {
     Cursor c(pkt->buf());
     auto parsedDstMac = PktUtil::readMac(&c);
@@ -195,9 +206,11 @@ TxMatchFn checkICMPv6Pkt(MacAddress srcMac, IPAddressV6 srcIP,
     checkPayload(&c, ipv6.payloadLength - ICMPHdr::SIZE);
 
     if (ipv6.payloadLength != (c - ipv6PayloadStart)) {
-      throw FbossError("IPv6 payload length mismatch: header says ",
-                       ipv6.payloadLength, " but we used ",
-                       c - ipv6PayloadStart);
+      throw FbossError(
+          "IPv6 payload length mismatch: header says ",
+          ipv6.payloadLength,
+          " but we used ",
+          c - ipv6PayloadStart);
     }
 
     // This is a match
@@ -205,34 +218,49 @@ TxMatchFn checkICMPv6Pkt(MacAddress srcMac, IPAddressV6 srcIP,
   };
 }
 
-TxMatchFn checkICMPv4TTLExceeded(MacAddress srcMac, IPAddressV4 srcIP,
-                              MacAddress dstMac, IPAddressV4 dstIP,
-                              VlanID vlan, const uint8_t* payloadData,
-                              size_t payloadLengthLimit) {
+TxMatchFn checkICMPv4TTLExceeded(
+    MacAddress srcMac,
+    IPAddressV4 srcIP,
+    MacAddress dstMac,
+    IPAddressV4 dstIP,
+    VlanID vlan,
+    const uint8_t* payloadData,
+    size_t payloadLengthLimit) {
   auto checkPayload = [=](Cursor* cursor, uint32_t length) {
     if (length > payloadLengthLimit) {
-      throw FbossError("ICMPv4 TTL Exceeded payload too long, cursor length ",
-                       length, "but payloadLengthLimit is ",
-                       payloadLengthLimit);
+      throw FbossError(
+          "ICMPv4 TTL Exceeded payload too long, cursor length ",
+          length,
+          "but payloadLengthLimit is ",
+          payloadLengthLimit);
     }
     const uint8_t* cursorData = cursor->data();
-    for(int i = 0; i < length; i++) {
+    for (int i = 0; i < length; i++) {
       EXPECT_EQ(cursorData[i], payloadData[i]);
     }
     cursor->skip(length);
     // This is a match
     return;
   };
-  return checkICMPv4Pkt(srcMac, srcIP, dstMac, dstIP, vlan,
-                        ICMPv4Type::ICMPV4_TYPE_TIME_EXCEEDED,
-                        ICMPv4Code::ICMPV4_CODE_TIME_EXCEEDED_TTL_EXCEEDED,
-                        checkPayload);
+  return checkICMPv4Pkt(
+      srcMac,
+      srcIP,
+      dstMac,
+      dstIP,
+      vlan,
+      ICMPv4Type::ICMPV4_TYPE_TIME_EXCEEDED,
+      ICMPv4Code::ICMPV4_CODE_TIME_EXCEEDED_TTL_EXCEEDED,
+      checkPayload);
 }
 
-TxMatchFn checkICMPv6TTLExceeded(MacAddress srcMac, IPAddressV6 srcIP,
-                              MacAddress dstMac, IPAddressV6 dstIP,
-                              VlanID vlan, const uint8_t* payloadData,
-                              size_t payloadLengthLimit) {
+TxMatchFn checkICMPv6TTLExceeded(
+    MacAddress srcMac,
+    IPAddressV6 srcIP,
+    MacAddress dstMac,
+    IPAddressV6 dstIP,
+    VlanID vlan,
+    const uint8_t* payloadData,
+    size_t payloadLengthLimit) {
   auto checkPayload = [=](Cursor* cursor, uint32_t length) {
     if (length > payloadLengthLimit) {
       throw FbossError(
@@ -242,17 +270,22 @@ TxMatchFn checkICMPv6TTLExceeded(MacAddress srcMac, IPAddressV6 srcIP,
           payloadLengthLimit);
     }
     const uint8_t* cursorData = cursor->data();
-    for(int i = 0; i < length; i++) {
+    for (int i = 0; i < length; i++) {
       EXPECT_EQ(cursorData[i], payloadData[i]);
     }
     cursor->skip(length);
     // This is a match
     return;
   };
-  return checkICMPv6Pkt(srcMac, srcIP, dstMac, dstIP, vlan,
-                        ICMPv6Type::ICMPV6_TYPE_TIME_EXCEEDED,
-                        ICMPv6Code::ICMPV6_CODE_TIME_EXCEEDED_HOPLIMIT_EXCEEDED,
-                        checkPayload);
+  return checkICMPv6Pkt(
+      srcMac,
+      srcIP,
+      dstMac,
+      dstIP,
+      vlan,
+      ICMPv6Type::ICMPV6_TYPE_TIME_EXCEEDED,
+      ICMPv6Code::ICMPV6_CODE_TIME_EXCEEDED_HOPLIMIT_EXCEEDED,
+      checkPayload);
 }
 
 TxMatchFn checkICMPv6PacketTooBig(
@@ -337,16 +370,20 @@ TEST(ICMPTest, TTLExceededV4) {
   CounterCache counters(sw);
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).
-    WillRepeatedly(Return(kPlatformMac));
+  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   // We should get a ICMPv4 TTL exceeded back
-  EXPECT_SWITCHED_PKT(sw, "ICMP TTL Exceeded",
-             checkICMPv4TTLExceeded(kPlatformMac,
-                                 IPAddressV4("10.0.0.1"),
-                                 kPlatformMac,
-                                 IPAddressV4("1.2.3.4"),
-                                 VlanID(1), icmpPayload.data(), 32));
+  EXPECT_SWITCHED_PKT(
+      sw,
+      "ICMP TTL Exceeded",
+      checkICMPv4TTLExceeded(
+          kPlatformMac,
+          IPAddressV4("10.0.0.1"),
+          kPlatformMac,
+          IPAddressV4("1.2.3.4"),
+          VlanID(1),
+          icmpPayload.data(),
+          32));
 
   handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
 
@@ -408,16 +445,20 @@ TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
       "00 00 00 00" + ipHdr + udpHdr + payload);
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).
-    WillRepeatedly(Return(kPlatformMac));
+  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   // We should get a ICMPv4 TTL exceeded back
-  EXPECT_SWITCHED_PKT(sw, "ICMP TTL Exceeded",
-             checkICMPv4TTLExceeded(kPlatformMac,
-                                 IPAddressV4("10.0.0.1"),
-                                 kPlatformMac,
-                                 IPAddressV4("1.2.3.4"),
-                                 VlanID(1), icmpPayload.data(), 72));
+  EXPECT_SWITCHED_PKT(
+      sw,
+      "ICMP TTL Exceeded",
+      checkICMPv4TTLExceeded(
+          kPlatformMac,
+          IPAddressV4("10.0.0.1"),
+          kPlatformMac,
+          IPAddressV4("1.2.3.4"),
+          VlanID(1),
+          icmpPayload.data(),
+          72));
 
   handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
 }
@@ -470,7 +511,7 @@ TEST(ICMPTest, ExtraFrameCheckSequenceAtEnd) {
   EXPECT_NO_THROW(
       sw->packetReceivedThrowExceptionOnError(std::move(pktWithChecksum)));
   EXPECT_NO_THROW(
-    sw->packetReceivedThrowExceptionOnError(std::move(pktWithoutChecksum)));
+      sw->packetReceivedThrowExceptionOnError(std::move(pktWithoutChecksum)));
 }
 
 void runTTLExceededV6Test(size_t requestedPayloadSize) {
@@ -502,8 +543,7 @@ void runTTLExceededV6Test(size_t requestedPayloadSize) {
   CounterCache counters(sw);
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).
-    WillRepeatedly(Return(kPlatformMac));
+  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   // We should get a ICMPv6 TTL exceeded back
   EXPECT_SWITCHED_PKT(

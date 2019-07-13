@@ -9,15 +9,16 @@
  */
 #pragma once
 
-#include <folly/io/async/EventBase.h>
 #include <folly/Conv.h>
 #include <folly/MacAddress.h>
+#include <folly/io/async/EventBase.h>
 #include <memory>
-#include "fboss/agent/types.h"
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class AgentConfig;
 class HwSwitch;
@@ -179,8 +180,9 @@ class Platform {
   std::unique_ptr<AgentConfig> config_;
 
   // Forbidden copy constructor and assignment operator
-  Platform(Platform const &) = delete;
-  Platform& operator=(Platform const &) = delete;
+  Platform(Platform const&) = delete;
+  Platform& operator=(Platform const&) = delete;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

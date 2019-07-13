@@ -10,9 +10,6 @@
 #include "TunIntf.h"
 
 extern "C" {
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/ioctl.h>
 #include <fcntl.h>
 #include <libnetlink.h>
 #include <linux/if.h>
@@ -20,6 +17,9 @@ extern "C" {
 #include <linux/if_tun.h>
 #include <linux/rtnetlink.h>
 #include <netlink/route/link.h>
+#include <sys/ioctl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 }
 
 #include <folly/io/async/EventBase.h>
@@ -32,7 +32,8 @@ extern "C" {
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/EthHdr.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 namespace {
 
@@ -43,9 +44,9 @@ const int kMaxSentOneTime = 16;
 
 // Definition of `iplink_req` as it is not well defined in any header files
 struct iplink_req {
-  struct nlmsghdr         n;
-  struct ifinfomsg        i;
-  char                    buf[1024];
+  struct nlmsghdr n;
+  struct ifinfomsg i;
+  char buf[1024];
 };
 
 /**
@@ -63,8 +64,8 @@ struct iplink_req {
 } // anonymous namespace
 
 TunIntf::TunIntf(
-    SwSwitch *sw,
-    folly::EventBase *evb,
+    SwSwitch* sw,
+    folly::EventBase* evb,
     InterfaceID ifID,
     int ifIndex,
     int mtu)
@@ -93,8 +94,8 @@ TunIntf::TunIntf(
 }
 
 TunIntf::TunIntf(
-    SwSwitch *sw,
-    folly::EventBase *evb,
+    SwSwitch* sw,
+    folly::EventBase* evb,
     InterfaceID ifID,
     bool status,
     const Interface::Addresses& addr,
@@ -125,18 +126,24 @@ TunIntf::TunIntf(
   if (!sock) {
     throw SysError(errno, "failed to open libnl socket");
   }
-  SCOPE_EXIT { nl_socket_free(sock); };
+  SCOPE_EXIT {
+    nl_socket_free(sock);
+  };
 
   // Connect netlink socket.
   ret = nl_connect(sock, NETLINK_ROUTE);
   sysCheckError(ret, "failed to connect", nl_geterror(ret));
-  SCOPE_EXIT { nl_close(sock); };
+  SCOPE_EXIT {
+    nl_close(sock);
+  };
 
   // Allocate cache
-  nl_cache *cache = nullptr;
+  nl_cache* cache = nullptr;
   ret = rtnl_link_alloc_cache(sock, AF_UNSPEC, &cache);
   sysCheckError(ret, "failed to get all links: error: ", nl_geterror(ret));
-  SCOPE_EXIT { nl_cache_free(cache); };
+  SCOPE_EXIT {
+    nl_cache_free(cache);
+  };
 
   // Extract ifIndex
   ifIndex_ = rtnl_link_name2i(cache, name_.c_str());
@@ -194,7 +201,7 @@ void TunIntf::openFD() {
   bzero(ifr.ifr_name, sizeof(ifr.ifr_name));
   size_t len = std::min(name_.size(), sizeof(ifr.ifr_name));
   memmove(ifr.ifr_name, name_.c_str(), len);
-  auto ret = ioctl(fd_, TUNSETIFF, (void *) &ifr);
+  auto ret = ioctl(fd_, TUNSETIFF, (void*)&ifr);
   sysCheckError(ret, "Failed to create/attach interface ", name_);
 
   // Set configured MTU
@@ -205,14 +212,14 @@ void TunIntf::openFD() {
   sysCheckError(flags, "Failed to get flags from fd ", fd_);
   flags |= O_NONBLOCK;
   ret = fcntl(fd_, F_SETFL, flags);
-  sysCheckError(ret, "Failed to set non-blocking flags ", flags,
-                " to fd ", fd_);
+  sysCheckError(
+      ret, "Failed to set non-blocking flags ", flags, " to fd ", fd_);
   flags = fcntl(fd_, F_GETFD);
   sysCheckError(flags, "Failed to get flags from fd ", fd_);
   flags |= FD_CLOEXEC;
   ret = fcntl(fd_, F_SETFD, flags);
-  sysCheckError(ret, "Failed to set close-on-exec flags ", flags,
-                " to fd ", fd_);
+  sysCheckError(
+      ret, "Failed to set close-on-exec flags ", flags, " to fd ", fd_);
 
   XLOG(INFO) << "Create/attach to tun interface " << name_ << " @ fd " << fd_;
 }
@@ -229,9 +236,15 @@ void TunIntf::closeFD() noexcept {
 void TunIntf::addAddress(const folly::IPAddress& addr, uint8_t mask) {
   auto ret = addrs_.emplace(addr, mask);
   if (!ret.second) {
-    throw FbossError("Duplication interface address ", addr, "/",
-                     static_cast<int>(mask), " for interface ", name_,
-                     " @ index", ifIndex_);
+    throw FbossError(
+        "Duplication interface address ",
+        addr,
+        "/",
+        static_cast<int>(mask),
+        " for interface ",
+        name_,
+        " @ index",
+        ifIndex_);
   }
   XLOG(DBG3) << "Added address " << addr.str() << "/" << static_cast<int>(mask)
              << " to interface " << name_ << " @ index " << ifIndex_;
@@ -251,8 +264,14 @@ void TunIntf::setMtu(int mtu) {
   memmove(ifr.ifr_name, name_.c_str(), len);
   ifr.ifr_mtu = mtu_;
   auto ret = ioctl(sock, SIOCSIFMTU, (void*)&ifr);
-  sysCheckError(ret, "Failed to set MTU ", ifr.ifr_mtu,
-                " to fd ", fd_, " errno = ", errno);
+  sysCheckError(
+      ret,
+      "Failed to set MTU ",
+      ifr.ifr_mtu,
+      " to fd ",
+      fd_,
+      " errno = ",
+      errno);
   XLOG(DBG3) << "Set tun " << name_ << " MTU to " << mtu;
 }
 
@@ -269,7 +288,7 @@ void TunIntf::disableIPv6AddrGenMode(int ifIndex) {
   afs = addattr_nest(&req.n, sizeof(req), IFLA_AF_SPEC);
   afs6 = addattr_nest(&req.n, sizeof(req), AF_INET6);
   addattr8(
-    &req.n, sizeof(req), IFLA_INET6_ADDR_GEN_MODE, IN6_ADDR_GEN_MODE_NONE);
+      &req.n, sizeof(req), IFLA_INET6_ADDR_GEN_MODE, IN6_ADDR_GEN_MODE_NONE);
   addattr_nest_end(&req.n, afs6);
   addattr_nest_end(&req.n, afs);
 
@@ -279,7 +298,9 @@ void TunIntf::disableIPv6AddrGenMode(int ifIndex) {
   if (err != 0) {
     throw NlError(err, "can't open rtnetlink.");
   }
-  SCOPE_EXIT { rtnl_close(&rth); };
+  SCOPE_EXIT {
+    rtnl_close(&rth);
+  };
 
   err = rtnl_talk(&rth, &req.n, nullptr, 0);
   if (err != 0) {
@@ -382,4 +403,5 @@ bool TunIntf::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
   return true;
 }
 
-}}  // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

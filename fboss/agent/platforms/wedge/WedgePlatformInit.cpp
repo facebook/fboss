@@ -14,17 +14,18 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/platforms/wedge/FakeWedge40Platform.h"
-#include "fboss/agent/platforms/wedge/GalaxyLCPlatform.h"
 #include "fboss/agent/platforms/wedge/GalaxyFCPlatform.h"
-#include "fboss/agent/platforms/wedge/WedgePlatform.h"
-#include "fboss/agent/platforms/wedge/Wedge40Platform.h"
+#include "fboss/agent/platforms/wedge/GalaxyLCPlatform.h"
 #include "fboss/agent/platforms/wedge/Wedge100Platform.h"
+#include "fboss/agent/platforms/wedge/Wedge40Platform.h"
+#include "fboss/agent/platforms/wedge/WedgePlatform.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 std::unique_ptr<WedgePlatform> chooseWedgePlatform() {
   auto productInfo =
-    std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
+      std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();
 
   auto mode = productInfo->getMode();
@@ -51,4 +52,5 @@ std::unique_ptr<Platform> initWedgePlatform(
   platform->init(std::move(config));
   return std::move(platform);
 }
-}}
+} // namespace fboss
+} // namespace facebook

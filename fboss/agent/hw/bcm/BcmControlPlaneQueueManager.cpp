@@ -11,27 +11,31 @@
 
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
-#include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmStatsConstants.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 const std::vector<BcmCosQueueCounterType>&
 BcmControlPlaneQueueManager::getQueueCounterTypes() const {
   static const std::vector<BcmCosQueueCounterType> types = {
-    {cfg::StreamType::MULTICAST, BcmCosQueueStatType::DROPPED_PACKETS,
-     BcmCosQueueCounterScope::QUEUES, "in_dropped_pkts"},
-    {cfg::StreamType::MULTICAST, BcmCosQueueStatType::OUT_PACKETS,
-     BcmCosQueueCounterScope::QUEUES, "in_pkts"}
-  };
+      {cfg::StreamType::MULTICAST,
+       BcmCosQueueStatType::DROPPED_PACKETS,
+       BcmCosQueueCounterScope::QUEUES,
+       "in_dropped_pkts"},
+      {cfg::StreamType::MULTICAST,
+       BcmCosQueueStatType::OUT_PACKETS,
+       BcmCosQueueCounterScope::QUEUES,
+       "in_pkts"}};
   return types;
 }
 
-BcmPortQueueConfig
-BcmControlPlaneQueueManager::getCurrentQueueSettings() const {
+BcmPortQueueConfig BcmControlPlaneQueueManager::getCurrentQueueSettings()
+    const {
   QueueConfig multicastQueues;
   for (int i = 0; i < getNumQueues(cfg::StreamType::MULTICAST); i++) {
-    multicastQueues.push_back(getCurrentQueueSettings(
-      cfg::StreamType::MULTICAST, i));
+    multicastQueues.push_back(
+        getCurrentQueueSettings(cfg::StreamType::MULTICAST, i));
   }
   return BcmPortQueueConfig({}, std::move(multicastQueues));
 }
@@ -41,19 +45,20 @@ opennsl_gport_t BcmControlPlaneQueueManager::getQueueGPort(
     opennsl_cos_queue_t cosQ) const {
   if (!hw_->getPlatform()->isCosSupported()) {
     throw FbossError(
-      "Failed to retrieve queue gport because platform doesn't support cosq");
+        "Failed to retrieve queue gport because platform doesn't support cosq");
   }
   // cpu only have multicast
   if (streamType == cfg::StreamType::MULTICAST) {
     return cosQueueGports_.multicast.at(cosQ);
   }
   throw FbossError(
-    "Failed to retrieve queue gport because unsupported StreamType: ",
-    cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second);
+      "Failed to retrieve queue gport because unsupported StreamType: ",
+      cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second);
 }
 
 const PortQueue& BcmControlPlaneQueueManager::getDefaultQueueSettings(
     cfg::StreamType streamType) const {
   return hw_->getPlatform()->getDefaultControlPlaneQueueSettings(streamType);
 }
-}} //facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -9,7 +9,6 @@ extern "C" {
 
 #include "fboss/agent/state/RouteNextHop.h"
 
-
 #include <folly/dynamic.h>
 
 namespace facebook {

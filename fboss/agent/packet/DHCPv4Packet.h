@@ -8,16 +8,19 @@
  *
  */
 #pragma once
+#include <folly/IPAddressV4.h>
 #include <array>
 #include <memory>
 #include <vector>
-#include <folly/IPAddressV4.h>
 
-namespace folly { namespace io {
+namespace folly {
+namespace io {
 class Cursor;
-}}
+}
+} // namespace folly
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwSwitch;
 
@@ -27,8 +30,8 @@ struct DHCPv4Packet {
   typedef std::array<uint8_t, 16> Chaddr;
   typedef std::array<uint8_t, 64> Sname;
   typedef std::array<uint8_t, 128> File;
-  typedef std::vector<uint8_t>  DhcpCookie;
-  typedef std::vector<uint8_t>  Options;
+  typedef std::vector<uint8_t> DhcpCookie;
+  typedef std::vector<uint8_t> Options;
   enum : uint8_t { kOptionsCookieSize = 4 };
   enum : uint16_t { kFlagBroadcast = 0x8000 };
   enum : size_t { kFixedPartBytes = 236 };
@@ -46,7 +49,7 @@ struct DHCPv4Packet {
     return options.size();
   }
 
-  bool  hasDhcpCookie() const {
+  bool hasDhcpCookie() const {
     return dhcpCookie.size();
   }
 
@@ -58,8 +61,7 @@ struct DHCPv4Packet {
   }
   static bool isOptionWithoutLength(uint8_t op);
 
-  size_t appendOption(uint8_t op, uint8_t len,
-      const uint8_t* bytes);
+  size_t appendOption(uint8_t op, uint8_t len, const uint8_t* bytes);
 
   void appendPadding(size_t length);
 
@@ -74,43 +76,45 @@ struct DHCPv4Packet {
    * has a non zero length, fills in the option data in optionData
    * vector.
    */
-  static bool getOptionSlow(uint8_t op, const Options& options,
+  static bool getOptionSlow(
+      uint8_t op,
+      const Options& options,
       std::vector<uint8_t>& optionData);
-  template<typename CursorType>
+  template <typename CursorType>
   void write(CursorType* cursor) const;
- /* From rfc 2131
-   0                   1                   2                   3
-   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |     op (1)    |   htype (1)   |   hlen (1)    |   hops (1)    |
-   +---------------+---------------+---------------+---------------+
-   |                            xid (4)                            |
-   +-------------------------------+-------------------------------+
-   |           secs (2)            |           flags (2)           |
-   +-------------------------------+-------------------------------+
-   |                          ciaddr  (4)                          |
-   +---------------------------------------------------------------+
-   |                          yiaddr  (4)                          |
-   +---------------------------------------------------------------+
-   |                          siaddr  (4)                          |
-   +---------------------------------------------------------------+
-   |                          giaddr  (4)                          |
-   +---------------------------------------------------------------+
-   |                                                               |
-   |                          chaddr  (16)                         |
-   |                                                               |
-   |                                                               |
-   +---------------------------------------------------------------+
-   |                                                               |
-   |                          sname   (64)                         |
-   +---------------------------------------------------------------+
-   |                                                               |
-   |                          file    (128)                        |
-   +---------------------------------------------------------------+
-   |                                                               |
-   |                          options (variable)                   |
-   +---------------------------------------------------------------+
-  */
+  /* From rfc 2131
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |     op (1)    |   htype (1)   |   hlen (1)    |   hops (1)    |
+    +---------------+---------------+---------------+---------------+
+    |                            xid (4)                            |
+    +-------------------------------+-------------------------------+
+    |           secs (2)            |           flags (2)           |
+    +-------------------------------+-------------------------------+
+    |                          ciaddr  (4)                          |
+    +---------------------------------------------------------------+
+    |                          yiaddr  (4)                          |
+    +---------------------------------------------------------------+
+    |                          siaddr  (4)                          |
+    +---------------------------------------------------------------+
+    |                          giaddr  (4)                          |
+    +---------------------------------------------------------------+
+    |                                                               |
+    |                          chaddr  (16)                         |
+    |                                                               |
+    |                                                               |
+    +---------------------------------------------------------------+
+    |                                                               |
+    |                          sname   (64)                         |
+    +---------------------------------------------------------------+
+    |                                                               |
+    |                          file    (128)                        |
+    +---------------------------------------------------------------+
+    |                                                               |
+    |                          options (variable)                   |
+    +---------------------------------------------------------------+
+   */
   uint8_t op;
   uint8_t htype;
   uint8_t hlen;
@@ -122,7 +126,7 @@ struct DHCPv4Packet {
   folly::IPAddressV4 yiaddr;
   folly::IPAddressV4 siaddr;
   folly::IPAddressV4 giaddr;
-  Chaddr  chaddr;
+  Chaddr chaddr;
   Sname sname;
   File file;
   // DHCP cookie is present for DHCP packet but not
@@ -131,7 +135,7 @@ struct DHCPv4Packet {
   std::vector<uint8_t> options;
 };
 
-template<typename CursorType>
+template <typename CursorType>
 void DHCPv4Packet::write(CursorType* cursor) const {
   cursor->template write<uint8_t>(op);
   cursor->template write<uint8_t>(htype);
@@ -157,4 +161,5 @@ void DHCPv4Packet::write(CursorType* cursor) const {
   }
 }
 
-}}
+} // namespace fboss
+} // namespace facebook

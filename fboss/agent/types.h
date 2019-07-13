@@ -18,28 +18,30 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
-#define FBOSS_STRONG_TYPE(primitive, new_type) \
-  namespace facebook { namespace fboss { \
-  \
-  BOOST_STRONG_TYPEDEF(primitive, new_type);      \
-  \
-  /* Define toAppend() so folly::to<string> will work */ \
-  inline void toAppend(new_type value, std::string* result) { \
-    folly::toAppend(static_cast<primitive>(value), result); \
-  } \
+#define FBOSS_STRONG_TYPE(primitive, new_type)                    \
+  namespace facebook {                                            \
+  namespace fboss {                                               \
+                                                                  \
+  BOOST_STRONG_TYPEDEF(primitive, new_type);                      \
+                                                                  \
+  /* Define toAppend() so folly::to<string> will work */          \
+  inline void toAppend(new_type value, std::string* result) {     \
+    folly::toAppend(static_cast<primitive>(value), result);       \
+  }                                                               \
   inline void toAppend(new_type value, folly::fbstring* result) { \
-    folly::toAppend(static_cast<primitive>(value), result); \
-  } \
-  }} /* facebook::fboss */ \
-  namespace std { \
-  \
-  template <> struct hash<facebook::fboss::new_type> {  \
-    size_t operator()(const facebook::fboss::new_type & x) const {      \
-      return hash<primitive>()(static_cast<primitive>(x));      \
-    } \
-  }; \
+    folly::toAppend(static_cast<primitive>(value), result);       \
+  }                                                               \
+  }                                                               \
+  } /* facebook::fboss */                                         \
+  namespace std {                                                 \
+                                                                  \
+  template <>                                                     \
+  struct hash<facebook::fboss::new_type> {                        \
+    size_t operator()(const facebook::fboss::new_type& x) const { \
+      return hash<primitive>()(static_cast<primitive>(x));        \
+    }                                                             \
+  };                                                              \
   }
-
 
 FBOSS_STRONG_TYPE(uint8_t, ChannelID)
 FBOSS_STRONG_TYPE(uint16_t, TransceiverID)

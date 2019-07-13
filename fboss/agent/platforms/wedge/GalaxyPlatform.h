@@ -13,23 +13,24 @@
 #include "fboss/lib/usb/GalaxyI2CBus.h"
 
 #include <folly/Range.h>
-#include <memory>
 #include <map>
+#include <memory>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class PlatformProductInfo;
 
 class GalaxyPlatform : public WedgeTomahawkPlatform {
  public:
-  explicit GalaxyPlatform(std::unique_ptr<PlatformProductInfo> productInfo) :
-      WedgeTomahawkPlatform(std::move(productInfo)) {}
+  explicit GalaxyPlatform(std::unique_ptr<PlatformProductInfo> productInfo)
+      : WedgeTomahawkPlatform(std::move(productInfo)) {}
 
   ~GalaxyPlatform() override {}
 
  private:
-  GalaxyPlatform(GalaxyPlatform const &) = delete;
-  GalaxyPlatform& operator=(GalaxyPlatform const &) = delete;
+  GalaxyPlatform(GalaxyPlatform const&) = delete;
+  GalaxyPlatform& operator=(GalaxyPlatform const&) = delete;
 
   std::unique_ptr<BaseWedgeI2CBus> getI2CBus() override {
     return std::make_unique<GalaxyI2CBus>();
@@ -39,4 +40,5 @@ class GalaxyPlatform : public WedgeTomahawkPlatform {
   folly::ByteRange defaultLed1Code() override;
 };
 
-}}
+} // namespace fboss
+} // namespace facebook

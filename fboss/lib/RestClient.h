@@ -9,11 +9,12 @@
  */
 #pragma once
 
-#include <string>
-#include <chrono>
 #include <folly/IPAddress.h>
+#include <chrono>
+#include <string>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class RestClient {
  public:
@@ -29,11 +30,14 @@ class RestClient {
 
  private:
   // Forbidden copy contructor and assignment operator
-  RestClient(RestClient const &) = delete;
-  RestClient& operator=(RestClient const &) = delete;
+  RestClient(RestClient const&) = delete;
+  RestClient& operator=(RestClient const&) = delete;
 
-  static size_t writer(char *buffer, size_t size,
-                        size_t entries, std::stringbuf *writer_buffer);
+  static size_t writer(
+      char* buffer,
+      size_t size,
+      size_t entries,
+      std::stringbuf* writer_buffer);
   void createEndpoint();
   std::string hostname_;
   folly::IPAddress ipAddress_;
@@ -43,4 +47,5 @@ class RestClient {
   std::string endpoint_;
 };
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

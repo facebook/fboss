@@ -9,21 +9,22 @@
  */
 #include "fboss/agent/packet/IPv4Hdr.h"
 
-#include <string>
+#include <folly/io/Cursor.h>
+#include <folly/io/IOBuf.h>
 #include <sstream>
 #include <stdexcept>
-#include <folly/io/IOBuf.h>
-#include <folly/io/Cursor.h>
+#include <string>
 #include "fboss/agent/packet/PktUtil.h"
 using std::string;
 using std::stringstream;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-using folly::IPAddressV4;
-using folly::io::Cursor;
 using folly::IOBuf;
+using folly::IPAddressV4;
 using folly::io::Appender;
+using folly::io::Cursor;
 
 IPv4Hdr::IPv4Hdr(Cursor& cursor) {
   try {
@@ -39,24 +40,23 @@ IPv4Hdr::IPv4Hdr(Cursor& cursor) {
     }
     dscp = buf[1] >> 2;
     ecn = buf[1] & 0x03;
-    length = (static_cast<uint16_t>(buf[2]) << 8)
-           |  static_cast<uint16_t>(buf[3]);
+    length =
+        (static_cast<uint16_t>(buf[2]) << 8) | static_cast<uint16_t>(buf[3]);
     if (length < size()) {
       throw HdrParseError("IPv4: total length < ihl * 4");
     }
-    id = (static_cast<uint16_t>(buf[4]) << 8)
-       |  static_cast<uint16_t>(buf[5]);
+    id = (static_cast<uint16_t>(buf[4]) << 8) | static_cast<uint16_t>(buf[5]);
     dontFragment = static_cast<bool>(buf[6] >> 6);
     moreFragments = static_cast<bool>((buf[6] & 0x20) >> 5);
-    fragmentOffset = (static_cast<uint16_t>(buf[6] & 0x1F) << 8)
-                   |  static_cast<uint16_t>(buf[7]);
+    fragmentOffset = (static_cast<uint16_t>(buf[6] & 0x1F) << 8) |
+        static_cast<uint16_t>(buf[7]);
     ttl = buf[8];
     if (ttl == 0) {
       throw HdrParseError("IPv4: TTL == 0");
     }
     protocol = buf[9];
-    csum = (static_cast<uint16_t>(buf[10]) << 8)
-         |  static_cast<uint16_t>(buf[11]);
+    csum =
+        (static_cast<uint16_t>(buf[10]) << 8) | static_cast<uint16_t>(buf[11]);
     // TODO: check the checksum
     uint32_t srcAddrRaw = cursor.readBE<uint32_t>();
     uint32_t dstAddrRaw = cursor.readBE<uint32_t>();
@@ -72,10 +72,11 @@ IPv4Hdr::IPv4Hdr(Cursor& cursor) {
   }
 }
 
-IPv4Hdr::IPv4Hdr(const IPAddressV4& _srcAddr,
-                 const IPAddressV4& _dstAddr,
-                 uint8_t _protocol,
-                 uint16_t _bodyLength) {
+IPv4Hdr::IPv4Hdr(
+    const IPAddressV4& _srcAddr,
+    const IPAddressV4& _dstAddr,
+    uint8_t _protocol,
+    uint16_t _bodyLength) {
   version = IPV4_VERSION;
   ihl = 5;
   dscp = 0;
@@ -117,20 +118,15 @@ uint32_t IPv4Hdr::pseudoHdrPartialCsum(uint32_t payloadLength) const {
 
 string IPv4Hdr::toString() const {
   stringstream ss;
-  ss << " Version : " << (int) version
-     << " Ihl : " << (int) ihl
-     << " Dscp : " << (int) dscp
-     << " Ecn : " << (int) ecn
-     << " Length : " << length
-     << " Id : " << id
+  ss << " Version : " << (int)version << " Ihl : " << (int)ihl
+     << " Dscp : " << (int)dscp << " Ecn : " << (int)ecn
+     << " Length : " << length << " Id : " << id
      << " DontFragment : " << (dontFragment ? "True" : "False")
      << " MoreFragments : " << (moreFragments ? "True" : "False")
-     << " FragmentOffset : " << fragmentOffset
-     << " Ttl :" << (int) ttl
-     << " Protocol : " << "0x" << std::hex << (int) protocol << std::dec
-     << " Csum :" << csum
-     << " SrcAddr :" << srcAddr
-     << " DstAddr :" << dstAddr;
+     << " FragmentOffset : " << fragmentOffset << " Ttl :" << (int)ttl
+     << " Protocol : "
+     << "0x" << std::hex << (int)protocol << std::dec << " Csum :" << csum
+     << " SrcAddr :" << srcAddr << " DstAddr :" << dstAddr;
   return ss.str();
 }
 
@@ -140,4 +136,5 @@ uint32_t IPv4Hdr::addrPartialCsum(const IPAddressV4& addr) {
   return c.readBE<uint16_t>() + c.readBE<uint16_t>();
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

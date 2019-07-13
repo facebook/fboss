@@ -7,30 +7,30 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "common/stats/ServiceData.h"
+#include <folly/Memory.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
-#include <folly/Memory.h>
+#include "common/stats/ServiceData.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
+#include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/CounterCache.h"
-#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/HwTestHandle.h"
-#include "fboss/agent/FbossError.h"
-#include "fboss/agent/packet/UDPHeader.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <boost/cast.hpp>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
 using folly::IOBuf;
-using folly::io::Cursor;
 using folly::io::Appender;
-using std::make_unique;
+using folly::io::Cursor;
 using std::make_shared;
+using std::make_unique;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
@@ -38,7 +38,6 @@ using ::testing::_;
 using ::testing::Return;
 
 TEST(UDPTest, Parse) {
-
   // setup a default state object
   auto handle = createTestHandle();
   auto sw = handle->getSw();
@@ -51,11 +50,10 @@ TEST(UDPTest, Parse) {
 
   // Create an UDP packet  without IP or L2
   auto pkt = MockRxPacket::fromHex(
-    // Source port (67), destination port (68)
-    "00 43 00 44"
-    // Length (8), checksum (0x1234, faked)
-    "00 08  12 34"
-  );
+      // Source port (67), destination port (68)
+      "00 43 00 44"
+      // Length (8), checksum (0x1234, faked)
+      "00 08  12 34");
   pkt->setSrcPort(portID);
   pkt->setSrcVlan(vlanID);
 
@@ -69,9 +67,9 @@ TEST(UDPTest, Parse) {
 
   // Create a smaller than acceptable header
   pkt = MockRxPacket::fromHex(
-    // Source port (67), destination port (68)
-    "00 43 00 44"
-    // Missing length and checksum
+      // Source port (67), destination port (68)
+      "00 43 00 44"
+      // Missing length and checksum
   );
   pkt->setSrcPort(portID);
   pkt->setSrcVlan(vlanID);
@@ -79,7 +77,6 @@ TEST(UDPTest, Parse) {
   Cursor c2(pkt->buf());
   EXPECT_THROW(hdr.parse(&c2), std::out_of_range);
 }
-
 
 TEST(UDPTest, Write) {
   UDPHeader hdr1(1667, 1668, 512, 0x3412);

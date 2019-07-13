@@ -25,7 +25,7 @@ BcmRtag7Module::kEcmpOutputSelectionControl() {
 const BcmRtag7Module::OutputSelectionControl
 BcmRtag7Module::kTrunkOutputSelectionControl() {
   static const OutputSelectionControl trunkOutputSelectionControl = {
-    LoadBalancerID::AGGREGATE_PORT,
+      LoadBalancerID::AGGREGATE_PORT,
   };
   return trunkOutputSelectionControl;
 }

@@ -25,7 +25,8 @@
 #include <folly/io/Cursor.h>
 #include "fboss/agent/packet/HdrParseError.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 enum class ARP_HTYPE : uint16_t {
   ARP_HTYPE_ETHERNET = 1,
@@ -39,7 +40,7 @@ enum class ARP_HLEN : uint8_t {
   ARP_HLEN_ETHERNET = 6,
 };
 
-enum class ARP_PLEN: uint8_t {
+enum class ARP_PLEN : uint8_t {
   ARP_PLEN_IPV4 = 4,
 };
 
@@ -61,15 +62,15 @@ struct ArpHdr {
    * copy constructor
    */
   ArpHdr(const ArpHdr& rhs)
-    : htype(rhs.htype),
-      ptype(rhs.ptype),
-      hlen(rhs.hlen),
-      plen(rhs.plen),
-      oper(rhs.oper),
-      sha(rhs.sha),
-      spa(rhs.spa),
-      tha(rhs.tha),
-      tpa(rhs.tpa) {}
+      : htype(rhs.htype),
+        ptype(rhs.ptype),
+        hlen(rhs.hlen),
+        plen(rhs.plen),
+        oper(rhs.oper),
+        sha(rhs.sha),
+        spa(rhs.spa),
+        tha(rhs.tha),
+        tpa(rhs.tpa) {}
   /*
    * parameterized data constructor
    */
@@ -83,15 +84,15 @@ struct ArpHdr {
       const folly::IPAddressV4& _spa,
       const folly::MacAddress& _tha,
       const folly::IPAddressV4& _tpa)
-    : htype(_htype),
-      ptype(_ptype),
-      hlen(_hlen),
-      plen(_plen),
-      oper(_oper),
-      sha(_sha),
-      spa(_spa),
-      tha(_tha),
-      tpa(_tpa) {}
+      : htype(_htype),
+        ptype(_ptype),
+        hlen(_hlen),
+        plen(_plen),
+        oper(_oper),
+        sha(_sha),
+        spa(_spa),
+        tha(_tha),
+        tpa(_tpa) {}
   /*
    * cursor data constructor
    */
@@ -115,6 +116,7 @@ struct ArpHdr {
     tpa = rhs.tpa;
     return *this;
   }
+
  public:
   /*
    * Hardware Type
@@ -155,19 +157,15 @@ struct ArpHdr {
 };
 
 inline bool operator==(const ArpHdr& lhs, const ArpHdr& rhs) {
-  return lhs.htype == rhs.htype
-      && lhs.ptype == rhs.ptype
-      && lhs.hlen == rhs.hlen
-      && lhs.plen == rhs.plen
-      && lhs.oper == rhs.oper
-      && lhs.sha == rhs.sha
-      && lhs.spa == rhs.spa
-      && lhs.tha == rhs.tha
-      && lhs.tpa == rhs.tpa;
+  return lhs.htype == rhs.htype && lhs.ptype == rhs.ptype &&
+      lhs.hlen == rhs.hlen && lhs.plen == rhs.plen && lhs.oper == rhs.oper &&
+      lhs.sha == rhs.sha && lhs.spa == rhs.spa && lhs.tha == rhs.tha &&
+      lhs.tpa == rhs.tpa;
 }
 
 inline bool operator!=(const ArpHdr& lhs, const ArpHdr& rhs) {
   return !operator==(lhs, rhs);
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

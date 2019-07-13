@@ -9,21 +9,21 @@
  */
 #include "fboss/agent/SwitchStats.h"
 
-#include "fboss/agent/PortStats.h"
 #include <folly/Memory.h>
+#include "fboss/agent/PortStats.h"
 
-using facebook::stats::SUM;
 using facebook::stats::AVG;
 using facebook::stats::RATE;
+using facebook::stats::SUM;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 // set to empty string, we'll prepend prefix when fbagent collects counters
 std::string SwitchStats::kCounterPrefix = "";
 
 SwitchStats::SwitchStats()
-    : SwitchStats(stats::ThreadCachedServiceData::get()->getThreadStats()) {
-}
+    : SwitchStats(stats::ThreadCachedServiceData::get()->getThreadStats()) {}
 
 SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
     : trapPkts_(map, kCounterPrefix + "trapped.pkts", SUM, RATE),
@@ -177,18 +177,14 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           map,
           kCounterPrefix + "update_stats_exceptions",
           SUM),
-      trapPktTooBig_(
-          map,
-          kCounterPrefix + "trapped.packet_too_big",
-          SUM,
-          RATE),
+      trapPktTooBig_(map, kCounterPrefix + "trapped.packet_too_big", SUM, RATE),
       LldpRecvdPkt_(map, kCounterPrefix + "lldp.recvd", SUM, RATE),
       LldpBadPkt_(map, kCounterPrefix + "lldp.recv_bad", SUM, RATE),
       LldpValidateMisMatch_(
-        map,
-        kCounterPrefix + "lldp.validate_mismatch",
-        SUM, RATE)
-      {}
+          map,
+          kCounterPrefix + "lldp.validate_mismatch",
+          SUM,
+          RATE) {}
 
 PortStats* FOLLY_NULLABLE SwitchStats::port(PortID portID) {
   auto it = ports_.find(portID);
@@ -208,8 +204,8 @@ SwitchStats::aggregatePort(AggregatePortID aggregatePortID) {
 }
 
 PortStats* SwitchStats::createPortStats(PortID portID, std::string portName) {
-  auto rv = ports_.emplace(portID,
-                           std::make_unique<PortStats>(portID, portName, this));
+  auto rv = ports_.emplace(
+      portID, std::make_unique<PortStats>(portID, portName, this));
   DCHECK(rv.second);
   const auto& it = rv.first;
   return it->second.get();
@@ -227,4 +223,5 @@ AggregatePortStats* SwitchStats::createAggregatePortStats(
 
   return it->second.get();
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

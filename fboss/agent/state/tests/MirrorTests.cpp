@@ -30,10 +30,10 @@ class MirrorTest : public ::testing::Test {
     destination.__isset.egressPort = true;
     auto mirrorCount = config_.mirrors.size() + 1;
     config_.mirrors.resize(mirrorCount);
-    config_.mirrors[mirrorCount-1].name = name;
-    config_.mirrors[mirrorCount-1].destination = destination;
-    config_.mirrors[mirrorCount-1].__isset.name = true;
-    config_.mirrors[mirrorCount-1].__isset.destination = true;
+    config_.mirrors[mirrorCount - 1].name = name;
+    config_.mirrors[mirrorCount - 1].destination = destination;
+    config_.mirrors[mirrorCount - 1].__isset.name = true;
+    config_.mirrors[mirrorCount - 1].__isset.destination = true;
   }
 
   void configureMirror(
@@ -60,10 +60,10 @@ class MirrorTest : public ::testing::Test {
 
     auto mirrorCount = config_.mirrors.size() + 1;
     config_.mirrors.resize(mirrorCount);
-    config_.mirrors[mirrorCount-1].name = name;
-    config_.mirrors[mirrorCount-1].destination = destination;
-    config_.mirrors[mirrorCount-1].__isset.name = true;
-    config_.mirrors[mirrorCount-1].__isset.destination = true;
+    config_.mirrors[mirrorCount - 1].name = name;
+    config_.mirrors[mirrorCount - 1].destination = destination;
+    config_.mirrors[mirrorCount - 1].__isset.name = true;
+    config_.mirrors[mirrorCount - 1].__isset.destination = true;
   }
 
   void configureMirror(const std::string& name, const PortID& portID) {
@@ -82,8 +82,8 @@ class MirrorTest : public ::testing::Test {
   void configureMirror(const std::string& name) {
     auto mirrorCount = config_.mirrors.size() + 1;
     config_.mirrors.resize(mirrorCount);
-    config_.mirrors[mirrorCount-1].name = name;
-    config_.mirrors[mirrorCount-1].__isset.name = true;
+    config_.mirrors[mirrorCount - 1].name = name;
+    config_.mirrors[mirrorCount - 1].__isset.name = true;
   }
 
   void configureMirror(const std::string& name, folly::IPAddress ip) {
@@ -92,18 +92,18 @@ class MirrorTest : public ::testing::Test {
 
     auto mirrorCount = config_.mirrors.size() + 1;
     config_.mirrors.resize(mirrorCount);
-    config_.mirrors[mirrorCount-1].name = name;
-    config_.mirrors[mirrorCount-1].destination = destination;
-    config_.mirrors[mirrorCount-1].__isset.name = true;
-    config_.mirrors[mirrorCount-1].__isset.destination = true;
+    config_.mirrors[mirrorCount - 1].name = name;
+    config_.mirrors[mirrorCount - 1].destination = destination;
+    config_.mirrors[mirrorCount - 1].__isset.name = true;
+    config_.mirrors[mirrorCount - 1].__isset.destination = true;
   }
 
-  void configureAcl(const std::string& name, uint16_t dstL4Port=1234) {
+  void configureAcl(const std::string& name, uint16_t dstL4Port = 1234) {
     cfg::AclEntry aclEntry;
     auto aclCount = config_.acls.size() + 1;
     config_.acls.resize(aclCount);
-    config_.acls[aclCount-1].name = name;
-    config_.acls[aclCount-1].actionType = cfg::AclActionType::PERMIT;
+    config_.acls[aclCount - 1].name = name;
+    config_.acls[aclCount - 1].actionType = cfg::AclActionType::PERMIT;
     config_.acls[aclCount - 1].l4DstPort_ref() = dstL4Port;
   }
 
@@ -115,9 +115,7 @@ class MirrorTest : public ::testing::Test {
     config_.ports[portIndex].egressMirror_ref().value_unchecked() = mirror;
   }
 
-  void configureAclMirror(
-      const std::string& name,
-      const std::string& mirror) {
+  void configureAclMirror(const std::string& name, const std::string& mirror) {
     cfg::MatchAction action;
     action.ingressMirror_ref() = mirror;
     action.egressMirror_ref() = mirror;
@@ -203,9 +201,7 @@ TEST_F(MirrorTest, MirrorWithIp) {
 
 TEST_F(MirrorTest, MirrorWithPortAndIp) {
   configureMirror(
-      "mirror0",
-      MirrorTest::tunnelDestination,
-      MirrorTest::egressPortName);
+      "mirror0", MirrorTest::tunnelDestination, MirrorTest::egressPortName);
   publishWithStateUpdate();
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
@@ -329,20 +325,20 @@ TEST_F(MirrorTest, WithStateChange) {
 }
 
 TEST_F(MirrorTest, AddAclAndPortToMirror) {
-  std::array<std::string, 2> acls {"acl0", "acl1"};
-  std::array<PortID, 2> ports {PortID(3), PortID(4)};
+  std::array<std::string, 2> acls{"acl0", "acl1"};
+  std::array<PortID, 2> ports{PortID(3), PortID(4)};
   uint16_t l4port = 1234;
   configureMirror("mirror0", MirrorTest::tunnelDestination);
   publishWithStateUpdate();
 
-  for (int i=0; i<2; i++) {
-    configureAcl(acls[i], l4port+i);
+  for (int i = 0; i < 2; i++) {
+    configureAcl(acls[i], l4port + i);
     configureAclMirror(acls[i], "mirror0");
     configurePortMirror("mirror0", ports[i]);
     publishWithStateUpdate();
   }
 
-  for (int i=0; i<2; i++) {
+  for (int i = 0; i < 2; i++) {
     auto entry = state_->getAcls()->getEntryIf(acls[i]);
     EXPECT_NE(entry, nullptr);
     auto action = entry->getAclAction();
@@ -366,12 +362,12 @@ TEST_F(MirrorTest, DeleleteAclAndPortToMirror) {
   configureMirror("mirror0", MirrorTest::tunnelDestination);
   publishWithStateUpdate();
 
-  std::array<std::string, 2> acls {"acl0", "acl1"};
-  std::array<PortID, 2> ports {PortID(3), PortID(4)};
+  std::array<std::string, 2> acls{"acl0", "acl1"};
+  std::array<PortID, 2> ports{PortID(3), PortID(4)};
   uint16_t l4port = 1234;
 
-  for (int i=0; i<2; i++) {
-    configureAcl(acls[i], l4port+i);
+  for (int i = 0; i < 2; i++) {
+    configureAcl(acls[i], l4port + i);
     configureAclMirror(acls[i], "mirror0");
     configurePortMirror("mirror0", ports[i]);
   }
@@ -390,7 +386,7 @@ TEST_F(MirrorTest, DeleleteAclAndPortToMirror) {
 
   publishWithStateUpdate();
 
-  for (int i=0; i<2; i++) {
+  for (int i = 0; i < 2; i++) {
     auto entry = state_->getAcls()->getEntryIf(acls[i]);
     if (i) {
       EXPECT_EQ(entry, nullptr);
@@ -454,10 +450,8 @@ TEST_F(MirrorTest, MirrorMirrorEgressPort) {
 
 TEST_F(MirrorTest, ToAndFromDynamic) {
   configureMirror("span", MirrorTest::egressPort);
-  configureMirror(
-      "unresolved", MirrorTest::tunnelDestination);
-  configureMirror(
-      "resolved", MirrorTest::tunnelDestination);
+  configureMirror("unresolved", MirrorTest::tunnelDestination);
+  configureMirror("resolved", MirrorTest::tunnelDestination);
   publishWithStateUpdate();
   auto span = state_->getMirrors()->getMirrorIf("span");
   auto unresolved = state_->getMirrors()->getMirrorIf("unresolved");

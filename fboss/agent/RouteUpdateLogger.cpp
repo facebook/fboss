@@ -55,7 +55,9 @@ void handleAddedRoute(
 
 RouteUpdateLogger::RouteUpdateLogger(SwSwitch* sw)
     : RouteUpdateLogger(
-          sw, getDefaultV4RouteLogger(), getDefaultV6RouteLogger()) {}
+          sw,
+          getDefaultV4RouteLogger(),
+          getDefaultV6RouteLogger()) {}
 
 RouteUpdateLogger::RouteUpdateLogger(
     SwSwitch* sw,
@@ -102,9 +104,10 @@ void RouteUpdateLogger::stopLoggingForIdentifier(
   prefixTracker_.stopTracking(identifier);
 }
 
-std::vector<RouteUpdateLoggingInstance>
-RouteUpdateLogger::getTrackedPrefixes() const {
+std::vector<RouteUpdateLoggingInstance> RouteUpdateLogger::getTrackedPrefixes()
+    const {
   return prefixTracker_.getTrackedPrefixes();
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -11,7 +11,8 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 /*
  * Since bcm stats type is not OpenNSL supported, define our enums instead.
  */
@@ -23,9 +24,9 @@ enum class BcmCosQueueStatType {
 };
 
 enum class BcmCosQueueCounterScope {
-  QUEUES,                // only collect each single queue stat
-  AGGREGATED,            // only collect aggregated queue stat
-  QUEUES_AND_AGGREGATED  // collect both single queue and aggregated stats
+  QUEUES, // only collect each single queue stat
+  AGGREGATED, // only collect aggregated queue stat
+  QUEUES_AND_AGGREGATED // collect both single queue and aggregated stats
 };
 
 struct BcmCosQueueCounterType {
@@ -36,16 +37,17 @@ struct BcmCosQueueCounterType {
 
   bool operator<(const BcmCosQueueCounterType& t) const {
     return std::tie(streamType, statType, scope, name) <
-           std::tie(t.streamType, t.statType, t.scope, t.name);
+        std::tie(t.streamType, t.statType, t.scope, t.name);
   }
 
   bool isScopeQueues() const {
     return scope == BcmCosQueueCounterScope::QUEUES ||
-           scope == BcmCosQueueCounterScope::QUEUES_AND_AGGREGATED;
+        scope == BcmCosQueueCounterScope::QUEUES_AND_AGGREGATED;
   }
   bool isScopeAggregated() const {
     return scope == BcmCosQueueCounterScope::AGGREGATED ||
-           scope == BcmCosQueueCounterScope::QUEUES_AND_AGGREGATED;
+        scope == BcmCosQueueCounterScope::QUEUES_AND_AGGREGATED;
   }
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

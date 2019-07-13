@@ -13,9 +13,10 @@
 namespace {
 constexpr auto kMac = "mac";
 constexpr auto kIntf = "interfaceId";
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 folly::dynamic NeighborResponseEntry::toFollyDynamic() const {
   folly::dynamic entry = folly::dynamic::object;
@@ -26,8 +27,10 @@ folly::dynamic NeighborResponseEntry::toFollyDynamic() const {
 
 NeighborResponseEntry NeighborResponseEntry::fromFollyDynamic(
     const folly::dynamic& entry) {
-  return NeighborResponseEntry(folly::MacAddress(entry[kMac].stringPiece()),
+  return NeighborResponseEntry(
+      folly::MacAddress(entry[kMac].stringPiece()),
       InterfaceID(entry[kIntf].asInt()));
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

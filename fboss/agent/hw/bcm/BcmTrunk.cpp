@@ -19,10 +19,10 @@ extern "C" {
 #include <folly/logging/xlog.h>
 #include <vector>
 
+#include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
-#include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/state/AggregatePort.h"
 
 using std::vector;
@@ -51,8 +51,8 @@ void BcmTrunk::init(const std::shared_ptr<AggregatePort>& aggPort) {
   auto rv = opennsl_trunk_create(hw_->getUnit(), 0, &bcmTrunkID_);
   bcmCheckError(
       rv, "failed to create trunk for aggregate port ", aggPort->getID());
-  XLOG(INFO) << "created trunk " << bcmTrunkID_
-             << " for AggregatePort " << aggPort->getID();
+  XLOG(INFO) << "created trunk " << bcmTrunkID_ << " for AggregatePort "
+             << aggPort->getID();
 
   opennsl_trunk_info_t info;
   opennsl_trunk_info_t_init(&info);
@@ -89,8 +89,8 @@ void BcmTrunk::init(const std::shared_ptr<AggregatePort>& aggPort) {
 void BcmTrunk::program(
     const std::shared_ptr<AggregatePort>& oldAggPort,
     const std::shared_ptr<AggregatePort>& newAggPort) {
-  programForwardingState(oldAggPort->subportAndFwdState(),
-                         newAggPort->subportAndFwdState());
+  programForwardingState(
+      oldAggPort->subportAndFwdState(), newAggPort->subportAndFwdState());
 
   if (oldAggPort->getName() != newAggPort->getName()) {
     trunkStats_.initialize(newAggPort->getID(), newAggPort->getName());
@@ -98,8 +98,8 @@ void BcmTrunk::program(
 }
 
 void BcmTrunk::programForwardingState(
-     AggregatePort::SubportAndForwardingStateConstRange oldRange,
-     AggregatePort::SubportAndForwardingStateConstRange newRange) {
+    AggregatePort::SubportAndForwardingStateConstRange oldRange,
+    AggregatePort::SubportAndForwardingStateConstRange newRange) {
   PortID oldSubport, newSubport;
   AggregatePort::Forwarding oldFwdState, newFwdState;
 

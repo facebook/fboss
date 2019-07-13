@@ -58,9 +58,10 @@ class WedgePortMapping {
     return std::move(mapping);
   }
 
-  template<typename MappingT>
+  template <typename MappingT>
   static std::unique_ptr<WedgePortMapping> createFull(
-      WedgePlatform* platform, const PortFrontPanelResourceMap& portMapping) {
+      WedgePlatform* platform,
+      const PortFrontPanelResourceMap& portMapping) {
     auto mapping = std::make_unique<MappingT>(platform);
     for (const auto& kv : portMapping) {
       auto port = kv.first;

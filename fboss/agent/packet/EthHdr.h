@@ -17,15 +17,16 @@
  *   http://www.networksorcery.com/enp/protocol/802/ethertypes.htm
  *   https://en.wikipedia.org/wiki/EtherType
  */
-#include <ostream>
-#include <folly/MacAddress.h>
 #include <folly/Conv.h>
-#include <folly/io/Cursor.h>
+#include <folly/MacAddress.h>
 #include <folly/String.h>
+#include <folly/io/Cursor.h>
+#include <ostream>
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/HdrParseError.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * A 32-bit Ethernet VLAN tag.
@@ -51,10 +52,14 @@ class VlanTag {
   /*
    * Data constructor with individual members
    */
-  VlanTag(uint16_t vlan, uint16_t protocol,
-      uint8_t dropEligibility = 0, uint8_t priority = 0)
-    : value((protocol << 16) | ((priority & 0x7) << 13) |
-        ((dropEligibility & 0x1) << 12) | (vlan & 0xfff)) {}
+  VlanTag(
+      uint16_t vlan,
+      uint16_t protocol,
+      uint8_t dropEligibility = 0,
+      uint8_t priority = 0)
+      : value(
+            (protocol << 16) | ((priority & 0x7) << 13) |
+            ((dropEligibility & 0x1) << 12) | (vlan & 0xfff)) {}
   /*
    * destructor
    */
@@ -97,6 +102,7 @@ class VlanTag {
   }
 
   std::string toString() const;
+
  public:
   /*
    * value is stored in host byte order
@@ -105,11 +111,11 @@ class VlanTag {
 };
 
 // toAppend to make folly::to<string> work with VlanTag
-inline void toAppend(VlanTag vlan, std::string* result)  {
+inline void toAppend(VlanTag vlan, std::string* result) {
   result->append(vlan.toString());
 }
 
-inline void toAppend(VlanTag vlan, folly::fbstring* result)  {
+inline void toAppend(VlanTag vlan, folly::fbstring* result) {
   result->append(vlan.toString());
 }
 
@@ -121,20 +127,20 @@ inline bool operator!=(const VlanTag& lhs, const VlanTag& rhs) {
   return !operator==(lhs, rhs);
 }
 
-inline bool operator< (const VlanTag& lhs, const VlanTag& rhs) {
+inline bool operator<(const VlanTag& lhs, const VlanTag& rhs) {
   return lhs.value < rhs.value;
 }
 
-inline bool operator> (const VlanTag& lhs, const VlanTag& rhs) {
-  return operator< (rhs, lhs);
+inline bool operator>(const VlanTag& lhs, const VlanTag& rhs) {
+  return operator<(rhs, lhs);
 }
 
 inline bool operator<=(const VlanTag& lhs, const VlanTag& rhs) {
-  return !operator> (lhs, rhs);
+  return !operator>(lhs, rhs);
 }
 
 inline bool operator>=(const VlanTag& lhs, const VlanTag& rhs) {
-  return !operator< (lhs, rhs);
+  return !operator<(lhs, rhs);
 }
 
 /*
@@ -159,10 +165,10 @@ class EthHdr {
    * copy constructor
    */
   EthHdr(const EthHdr& rhs)
-    : dstAddr(rhs.dstAddr),
-      srcAddr(rhs.srcAddr),
-      vlanTags(rhs.vlanTags),
-      etherType(rhs.etherType) {}
+      : dstAddr(rhs.dstAddr),
+        srcAddr(rhs.srcAddr),
+        vlanTags(rhs.vlanTags),
+        etherType(rhs.etherType) {}
   /*
    * parameterized  data constructor
    */
@@ -171,10 +177,10 @@ class EthHdr {
       const folly::MacAddress& _srcAddr,
       VlanTags_t _vlanTags,
       const uint16_t _etherType)
-    : dstAddr(_dstAddr),
-      srcAddr(_srcAddr),
-      vlanTags(std::move(_vlanTags)),
-      etherType(_etherType) {}
+      : dstAddr(_dstAddr),
+        srcAddr(_srcAddr),
+        vlanTags(std::move(_vlanTags)),
+        etherType(_etherType) {}
   /*
    * cursor data constructor
    */
@@ -200,10 +206,19 @@ class EthHdr {
   /*
    * Accessors
    */
-  folly::MacAddress getSrcMac() const { return srcAddr; }
-  folly::MacAddress getDstMac() const { return dstAddr; }
-  const VlanTags_t&  getVlanTags() const { return vlanTags; }
-  uint16_t  getEtherType() const { return etherType; }
+  folly::MacAddress getSrcMac() const {
+    return srcAddr;
+  }
+  folly::MacAddress getDstMac() const {
+    return dstAddr;
+  }
+  const VlanTags_t& getVlanTags() const {
+    return vlanTags;
+  }
+  uint16_t getEtherType() const {
+    return etherType;
+  }
+
  public:
   /*
    * Destination Address
@@ -224,10 +239,8 @@ class EthHdr {
 };
 
 inline bool operator==(const EthHdr& lhs, const EthHdr& rhs) {
-  return lhs.dstAddr == rhs.dstAddr
-      && lhs.srcAddr == rhs.srcAddr
-      && lhs.vlanTags == rhs.vlanTags
-      && lhs.etherType == rhs.etherType;
+  return lhs.dstAddr == rhs.dstAddr && lhs.srcAddr == rhs.srcAddr &&
+      lhs.vlanTags == rhs.vlanTags && lhs.etherType == rhs.etherType;
 }
 
 inline bool operator!=(const EthHdr& lhs, const EthHdr& rhs) {
@@ -247,4 +260,5 @@ inline std::ostream& operator<<(std::ostream& os, const EthHdr& ethHdr) {
   os << ethHdr.toString();
   return os;
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

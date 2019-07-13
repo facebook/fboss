@@ -10,26 +10,27 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/types.h>
-#include <opennsl/stat.h>
 #include <opennsl/port.h>
+#include <opennsl/stat.h>
+#include <opennsl/types.h>
 }
 
 #include "common/stats/MonotonicCounter.h"
 
-#include "fboss/agent/types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmCosQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/types.h"
 
 #include <folly/Range.h>
 #include <folly/Synchronized.h>
 #include <mutex>
 #include <utility>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmSwitch;
 class BcmPortGroup;
@@ -87,19 +88,20 @@ class BcmPort {
   }
   QueueConfig getCurrentQueueSettings();
 
-
   /*
    * Helpers for retreiving the SwitchState node for a given
    * port. There is no great place for this so I am putting it in here
    * for now.
    */
   std::shared_ptr<Port> getSwitchStatePort(
-    const std::shared_ptr<SwitchState>& state) const;
+      const std::shared_ptr<SwitchState>& state) const;
   std::shared_ptr<Port> getSwitchStatePortIf(
-    const std::shared_ptr<SwitchState>& state) const;
+      const std::shared_ptr<SwitchState>& state) const;
 
   PortID getPortID() const;
-  std::string getPortName() const { return portName_; }
+  std::string getPortName() const {
+    return portName_;
+  }
   LaneSpeeds supportedLaneSpeeds() const;
 
   bool supportsSpeed(cfg::PortSpeed speed);
@@ -179,7 +181,7 @@ class BcmPort {
     // lastPortStats_) - the class itself does not guarantee this on it's own
    public:
     BcmPortStats() {
-      portStats_.inDiscards_  = 0;
+      portStats_.inDiscards_ = 0;
     }
     explicit BcmPortStats(int numUnicastQueues);
     BcmPortStats(HwPortStats portStats, std::chrono::seconds seconds);
@@ -194,21 +196,23 @@ class BcmPort {
   uint32_t getCL91FECStatus() const;
   bool isCL91FECApplicable() const;
   // no copy or assignment
-  BcmPort(BcmPort const &) = delete;
-  BcmPort& operator=(BcmPort const &) = delete;
+  BcmPort(BcmPort const&) = delete;
+  BcmPort& operator=(BcmPort const&) = delete;
 
   stats::MonotonicCounter* getPortCounterIf(folly::StringPiece statName);
   bool shouldReportStats() const;
   void reinitPortStats();
   void reinitPortStat(folly::StringPiece newName);
-  void updateStat(std::chrono::seconds now,
-                  folly::StringPiece statName,
-                  opennsl_stat_val_t type,
-                  int64_t* portStatVal);
+  void updateStat(
+      std::chrono::seconds now,
+      folly::StringPiece statName,
+      opennsl_stat_val_t type,
+      int64_t* portStatVal);
   void updateBcmStats(std::chrono::seconds now, HwPortStats* curPortStats);
-  void updatePktLenHist(std::chrono::seconds now,
-                        stats::ExportedHistogramMapImpl::LockableHistogram* hist,
-                        const std::vector<opennsl_stat_val_t>& stats);
+  void updatePktLenHist(
+      std::chrono::seconds now,
+      stats::ExportedHistogramMapImpl::LockableHistogram* hist,
+      const std::vector<opennsl_stat_val_t>& stats);
   void initCustomStats() const;
   // Set stats that are either FB specific, not available in
   // open source opennsl release.
@@ -216,9 +220,10 @@ class BcmPort {
   std::string statName(folly::StringPiece name) const;
 
   cfg::PortSpeed getDesiredPortSpeed(const std::shared_ptr<Port>& swPort);
-  opennsl_port_if_t getDesiredInterfaceMode(cfg::PortSpeed speed,
-                                            PortID id,
-                                            const std::string& name);
+  opennsl_port_if_t getDesiredInterfaceMode(
+      cfg::PortSpeed speed,
+      PortID id,
+      const std::string& name);
   bool getDesiredFECEnabledStatus(const std::shared_ptr<Port>& swPort);
   TransmitterTechnology getTransmitterTechnology(const std::string& name);
   void updateMirror(
@@ -245,10 +250,10 @@ class BcmPort {
       MirrorDirection direction);
 
   BcmSwitch* const hw_{nullptr};
-  const opennsl_port_t port_;    // Broadcom physical port number
+  const opennsl_port_t port_; // Broadcom physical port number
   // The gport_ is logically a const, but needs to be initialized as a parameter
   // to SDK call.
-  opennsl_gport_t gport_;  // Broadcom global port number
+  opennsl_gport_t gport_; // Broadcom global port number
   uint8_t pipe_;
   BcmPlatformPort* const platformPort_{nullptr};
   int unit_{-1};
@@ -272,4 +277,5 @@ class BcmPort {
   std::atomic<bool> statCollectionEnabled_{false};
 };
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

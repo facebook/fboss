@@ -19,11 +19,12 @@ constexpr auto kMac = "mac";
 constexpr auto kPort = "portId";
 constexpr auto kInterface = "interfaceId";
 constexpr auto kNeighborEntryState = "state";
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-template<typename IPADDR>
+template <typename IPADDR>
 folly::dynamic NeighborEntryFields<IPADDR>::toFollyDynamic() const {
   folly::dynamic entry = folly::dynamic::object;
   entry[kIpAddr] = ip.str();
@@ -55,7 +56,7 @@ NeighborEntryFields<IPADDR> NeighborEntryFields<IPADDR>::fromFollyDynamic(
   return NeighborEntryFields(ip, mac, port, intf, state);
 }
 
-template<typename IPADDR, typename SUBCLASS>
+template <typename IPADDR, typename SUBCLASS>
 NeighborEntry<IPADDR, SUBCLASS>::NeighborEntry(
     AddressType ip,
     folly::MacAddress mac,
@@ -64,11 +65,12 @@ NeighborEntry<IPADDR, SUBCLASS>::NeighborEntry(
     NeighborState state)
     : Parent(ip, mac, port, interfaceID, state) {}
 
-template<typename IPADDR, typename SUBCLASS>
-NeighborEntry<IPADDR, SUBCLASS>::NeighborEntry(AddressType ip,
-                                     InterfaceID intfID,
-                                     NeighborState ignored)
-  : Parent(ip, intfID, ignored) {}
+template <typename IPADDR, typename SUBCLASS>
+NeighborEntry<IPADDR, SUBCLASS>::NeighborEntry(
+    AddressType ip,
+    InterfaceID intfID,
+    NeighborState ignored)
+    : Parent(ip, intfID, ignored) {}
 
-
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

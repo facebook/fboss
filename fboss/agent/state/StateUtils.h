@@ -18,8 +18,8 @@ namespace fboss {
 namespace util {
 
 /**
-* Utility functions for InterfaceID <-> ifName (on host)
-*/
+ * Utility functions for InterfaceID <-> ifName (on host)
+ */
 std::string createTunIntfName(InterfaceID ifID);
 bool isTunIntfName(const std::string& ifName);
 InterfaceID getIDFromTunIntfName(const std::string& ifName);

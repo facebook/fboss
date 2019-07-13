@@ -12,12 +12,11 @@
 
 namespace {
 static const std::array<int, 32> kMasterLogicalPortIds = {
-  118, 122, 126, 130, 1, 5, 9, 13, 17, 21, 25, 29, 34, 38, 42, 46, 50, 54, 58,
-  62, 68, 72, 76, 80, 84, 88, 92, 96, 102, 106, 110, 114
-};
+    118, 122, 126, 130, 1,  5,  9,  13, 17, 21, 25, 29, 34,  38,  42,  46,
+    50,  54,  58,  62,  68, 72, 76, 80, 84, 88, 92, 96, 102, 106, 110, 114};
 
 constexpr uint8_t kNumPortsPerTransceiver = 4;
-}
+} // namespace
 
 namespace facebook {
 namespace fboss {

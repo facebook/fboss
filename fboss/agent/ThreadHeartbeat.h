@@ -14,7 +14,8 @@
 #include <folly/logging/xlog.h>
 #include <chrono>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class ThreadHeartbeat : private folly::AsyncTimeout {
   /*
@@ -23,25 +24,23 @@ class ThreadHeartbeat : private folly::AsyncTimeout {
    * and record it to ods.
    */
  public:
-  ThreadHeartbeat(folly::EventBase* evb, std::string threadName,
-                  int intervalMsecs,
-                  std::function<void(int, int)> heartbeatStatsFunc) :
-      AsyncTimeout(evb),
-      evb_(evb),
-      threadName_(threadName),
-      intervalMsecs_(intervalMsecs),
-      heartbeatStatsFunc_(heartbeatStatsFunc) {
+  ThreadHeartbeat(
+      folly::EventBase* evb,
+      std::string threadName,
+      int intervalMsecs,
+      std::function<void(int, int)> heartbeatStatsFunc)
+      : AsyncTimeout(evb),
+        evb_(evb),
+        threadName_(threadName),
+        intervalMsecs_(intervalMsecs),
+        heartbeatStatsFunc_(heartbeatStatsFunc) {
     XLOG(DBG2) << "ThreadHeartbeat intervalMsecs:" << intervalMsecs_.count();
-    evb_->runInEventBaseThread([this]() {
-        scheduleFirstHeartbeat();
-      });
+    evb_->runInEventBaseThread([this]() { scheduleFirstHeartbeat(); });
   }
 
   ~ThreadHeartbeat() override {
     evb_->runImmediatelyOrRunInEventBaseThreadAndWait(
-      [this]() {
-        cancelTimeout();
-      });
+        [this]() { cancelTimeout(); });
   }
 
  private:
@@ -58,9 +57,10 @@ class ThreadHeartbeat : private folly::AsyncTimeout {
   std::chrono::milliseconds intervalMsecs_;
   std::function<void(int, int)> heartbeatStatsFunc_;
   std::chrono::time_point<std::chrono::steady_clock> lastTime_;
-  //XXX: these thresholds could be made configurable if needed
+  // XXX: these thresholds could be made configurable if needed
   int delayThresholdMsecs_ = 1000;
   int backlogThreshold_ = 10;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

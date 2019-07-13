@@ -14,12 +14,13 @@
 #include <folly/futures/Future.h>
 #include <folly/io/async/EventBase.h>
 #include "fboss/agent/PlatformPort.h"
-#include "fboss/agent/types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/types.h"
 
 #include <gmock/gmock.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class MockPlatformPort : public PlatformPort {
  public:
@@ -46,4 +47,5 @@ class MockPlatformPort : public PlatformPort {
   MOCK_CONST_METHOD0(shouldDisableFEC, bool());
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -9,21 +9,22 @@
  */
 #include "fboss/agent/hw/sim/SimSwitch.h"
 
-#include "fboss/agent/state/StateDelta.h"
-#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/hw/mock/MockTxPacket.h"
+#include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/SwitchState.h"
 
 #include <folly/Conv.h>
-#include <folly/dynamic.h>
 #include <folly/Memory.h>
+#include <folly/dynamic.h>
 
-using std::make_unique;
 using std::make_shared;
+using std::make_unique;
 using std::shared_ptr;
 using std::string;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 SimSwitch::SimSwitch(SimPlatform* /*platform*/, uint32_t numPorts)
     : numPorts_(numPorts) {}
@@ -90,4 +91,5 @@ folly::dynamic SimSwitch::toFollyDynamic() const {
   return folly::dynamic::object;
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

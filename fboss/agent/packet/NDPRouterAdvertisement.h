@@ -21,7 +21,8 @@
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * NDP Router Advertisement message.
@@ -36,11 +37,11 @@ class NDPRouterAdvertisement {
    * copy constructor
    */
   NDPRouterAdvertisement(const NDPRouterAdvertisement& rhs)
-    : curHopLimit(rhs.curHopLimit),
-      flags(rhs.flags),
-      routerLifetime(rhs.routerLifetime),
-      reachableTime(rhs.reachableTime),
-      retransTimer(rhs.retransTimer) {}
+      : curHopLimit(rhs.curHopLimit),
+        flags(rhs.flags),
+        routerLifetime(rhs.routerLifetime),
+        reachableTime(rhs.reachableTime),
+        retransTimer(rhs.retransTimer) {}
   /*
    * parameterized data constructor
    */
@@ -50,11 +51,11 @@ class NDPRouterAdvertisement {
       uint16_t _routerLifetime,
       uint32_t _reachableTime,
       uint32_t _retransTimer)
-    : curHopLimit(_curHopLimit),
-      flags(_flags),
-      routerLifetime(_routerLifetime),
-      reachableTime(_reachableTime),
-      retransTimer(_retransTimer) {}
+      : curHopLimit(_curHopLimit),
+        flags(_flags),
+        routerLifetime(_routerLifetime),
+        reachableTime(_reachableTime),
+        retransTimer(_retransTimer) {}
   /*
    * cursor data constructor
    */
@@ -105,6 +106,7 @@ class NDPRouterAdvertisement {
   const bool proxy() const {
     return static_cast<bool>(flags & 0x04);
   }
+
  public:
   /*
    * 8-bit unsigned integer. The default value that should be placed in the
@@ -163,15 +165,17 @@ class NDPRouterAdvertisement {
 inline bool operator==(
     const NDPRouterAdvertisement& lhs,
     const NDPRouterAdvertisement& rhs) {
-  return lhs.curHopLimit == rhs.curHopLimit
-      && lhs.flags == rhs.flags
-      && lhs.routerLifetime == rhs.routerLifetime
-      && lhs.reachableTime == rhs.reachableTime
-      && lhs.retransTimer == rhs.retransTimer;
+  return lhs.curHopLimit == rhs.curHopLimit && lhs.flags == rhs.flags &&
+      lhs.routerLifetime == rhs.routerLifetime &&
+      lhs.reachableTime == rhs.reachableTime &&
+      lhs.retransTimer == rhs.retransTimer;
 }
 
-inline bool operator!=(const NDPRouterAdvertisement& lhs, const NDPRouterAdvertisement& rhs) {
+inline bool operator!=(
+    const NDPRouterAdvertisement& lhs,
+    const NDPRouterAdvertisement& rhs) {
   return !operator==(lhs, rhs);
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

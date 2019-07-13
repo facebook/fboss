@@ -10,9 +10,9 @@
 
 #include <gtest/gtest.h>
 
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/gen-cpp2/agent_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -81,16 +81,16 @@ cfg::AgentConfig createAgentConfig() {
   return config;
 }
 
-}
+} // namespace
 
 TEST(AgentConfigTest, AcceptsNewAndOldStyleConfigs) {
   auto oldStyle = createSwitchConfig();
   auto newStyle = createAgentConfig();
 
-  auto oldStyleRaw = apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-      oldStyle);
-  auto newStyleRaw = apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-      newStyle);
+  auto oldStyleRaw =
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(oldStyle);
+  auto newStyleRaw =
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(newStyle);
 
   auto fromOldStyle = AgentConfig::fromRawConfig(oldStyleRaw);
   auto fromNewStyle = AgentConfig::fromRawConfig(oldStyleRaw);

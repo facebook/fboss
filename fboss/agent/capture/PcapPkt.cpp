@@ -16,23 +16,22 @@
 
 #include "fboss/pcap_distribution_service/if/gen-cpp2/pcap_pubsub_types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-PcapPkt::PcapPkt() {
-}
+PcapPkt::PcapPkt() {}
 
 PcapPkt::PcapPkt(const RxPacket* pkt)
-  : PcapPkt(pkt, std::chrono::system_clock::now()) {
-}
+    : PcapPkt(pkt, std::chrono::system_clock::now()) {}
 
 PcapPkt::PcapPkt(const RxPacket* pkt, TimePoint timestamp)
-  : initialized_(true),
-    rx_(true),
-    port_(pkt->getSrcPort()),
-    vlan_(pkt->getSrcVlan()),
-    timestamp_(timestamp),
-    buf_(),
-    reasons_() {
+    : initialized_(true),
+      rx_(true),
+      port_(pkt->getSrcPort()),
+      vlan_(pkt->getSrcVlan()),
+      timestamp_(timestamp),
+      buf_(),
+      reasons_() {
   pkt->buf()->cloneInto(buf_);
 }
 
@@ -40,46 +39,45 @@ PcapPkt::PcapPkt(const TxPacket* pkt)
     : PcapPkt(pkt, std::chrono::system_clock::now()) {}
 
 PcapPkt::PcapPkt(const TxPacket* pkt, TimePoint timestamp)
-  : initialized_(true),
-    rx_(false),
-    port_(0),
-    vlan_(0),
-    timestamp_(timestamp),
-    buf_(),
-    reasons_() {
+    : initialized_(true),
+      rx_(false),
+      port_(0),
+      vlan_(0),
+      timestamp_(timestamp),
+      buf_(),
+      reasons_() {
   pkt->buf()->cloneInto(buf_);
 }
 
 PcapPkt::PcapPkt(const RxPacketData* pkt)
-  : PcapPkt(pkt, std::chrono::system_clock::now()){
-}
+    : PcapPkt(pkt, std::chrono::system_clock::now()) {}
 
 PcapPkt::PcapPkt(const RxPacketData* pkt, TimePoint timestamp)
-  : initialized_(true),
-    rx_(true),
-    port_(pkt->srcPort),
-    vlan_(pkt->srcVlan),
-    timestamp_(timestamp),
-    buf_(),
-    reasons_(std::move(pkt->reasons)) {
-  buf_ = std::move(*folly::IOBuf::copyBuffer(pkt->packetData.data(),
-                                             pkt->packetData.size()));
+    : initialized_(true),
+      rx_(true),
+      port_(pkt->srcPort),
+      vlan_(pkt->srcVlan),
+      timestamp_(timestamp),
+      buf_(),
+      reasons_(std::move(pkt->reasons)) {
+  buf_ = std::move(*folly::IOBuf::copyBuffer(
+      pkt->packetData.data(), pkt->packetData.size()));
 }
 
 PcapPkt::PcapPkt(const TxPacketData* pkt)
-  : PcapPkt(pkt, std::chrono::system_clock::now()){
-}
+    : PcapPkt(pkt, std::chrono::system_clock::now()) {}
 
 PcapPkt::PcapPkt(const TxPacketData* pkt, TimePoint timestamp)
-  : initialized_(true),
-    rx_(false),
-    port_(0),
-    vlan_(0),
-    timestamp_(timestamp),
-    buf_(),
-    reasons_() {
-  buf_ = std::move(*folly::IOBuf::copyBuffer(pkt->packetData.data(),
-                                             pkt->packetData.size()));
+    : initialized_(true),
+      rx_(false),
+      port_(0),
+      vlan_(0),
+      timestamp_(timestamp),
+      buf_(),
+      reasons_() {
+  buf_ = std::move(*folly::IOBuf::copyBuffer(
+      pkt->packetData.data(), pkt->packetData.size()));
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

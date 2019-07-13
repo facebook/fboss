@@ -12,22 +12,23 @@
 #include "fboss/agent/state/NeighborTable.h"
 
 #include <folly/MacAddress.h>
-#include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/NeighborEntry-defs.h"
+#include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
 #include <glog/logging.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-template<typename IPADDR, typename ENTRY, typename SUBCLASS>
-NeighborTable<IPADDR, ENTRY, SUBCLASS>::NeighborTable() {
-}
+template <typename IPADDR, typename ENTRY, typename SUBCLASS>
+NeighborTable<IPADDR, ENTRY, SUBCLASS>::NeighborTable() {}
 
-template<typename IPADDR, typename ENTRY, typename SUBCLASS>
+template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
-    Vlan** vlan, std::shared_ptr<SwitchState>* state) {
+    Vlan** vlan,
+    std::shared_ptr<SwitchState>* state) {
   if (!this->isPublished()) {
     CHECK(!(*state)->isPublished());
     return boost::polymorphic_downcast<SUBCLASS*>(this);
@@ -40,7 +41,7 @@ SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
   return ptr;
 }
 
-template<typename IPADDR, typename ENTRY, typename SUBCLASS>
+template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
     VlanID vlanId,
     std::shared_ptr<SwitchState>* state) {
@@ -50,7 +51,7 @@ SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
   }
   // Make clone of table
   auto newTable = this->clone();
-  auto *newTablePtr = newTable.get();
+  auto* newTablePtr = newTable.get();
   // Make clone of vlan
   auto vlanPtr = (*state)->getVlans()->getVlan(vlanId).get();
   vlanPtr = vlanPtr->modify(state);
@@ -58,7 +59,7 @@ SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
   return newTablePtr;
 }
 
-template<typename IPADDR, typename ENTRY, typename SUBCLASS>
+template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
     AddressType ip,
     folly::MacAddress mac,
@@ -70,14 +71,14 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
   this->addNode(entry);
 }
 
-template<typename IPADDR, typename ENTRY, typename SUBCLASS>
+template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
     const NeighborEntryFields<AddressType>& fields) {
   addEntry(
-    fields.ip, fields.mac, fields.port, fields.interfaceID, fields.state);
+      fields.ip, fields.mac, fields.port, fields.interfaceID, fields.state);
 }
 
-template<typename IPADDR, typename ENTRY, typename SUBCLASS>
+template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
     AddressType ip,
     folly::MacAddress mac,
@@ -97,7 +98,7 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
   it->second = entry;
 }
 
-template<typename IPADDR, typename ENTRY, typename SUBCLASS>
+template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
     AddressType ip,
     std::shared_ptr<ENTRY> newEntry) {
@@ -110,27 +111,27 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
   return;
 }
 
-template<typename IPADDR, typename ENTRY, typename SUBCLASS>
+template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
     const NeighborEntryFields<AddressType>& fields) {
   updateEntry(fields.ip, fields.mac, fields.port, fields.interfaceID);
 }
 
-template<typename IPADDR, typename ENTRY, typename SUBCLASS>
+template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addPendingEntry(
     IPADDR ip,
     InterfaceID intfID) {
   CHECK(!this->isPublished());
-  auto pendingEntry = std::make_shared<Entry>(
-    ip, intfID, NeighborState::PENDING);
+  auto pendingEntry =
+      std::make_shared<Entry>(ip, intfID, NeighborState::PENDING);
   this->addNode(pendingEntry);
- }
+}
 
-template<typename IPADDR, typename ENTRY, typename SUBCLASS>
-void NeighborTable<IPADDR, ENTRY, SUBCLASS>::removeEntry(
-    AddressType ip) {
+template <typename IPADDR, typename ENTRY, typename SUBCLASS>
+void NeighborTable<IPADDR, ENTRY, SUBCLASS>::removeEntry(AddressType ip) {
   CHECK(!this->isPublished());
   this->removeNode(ip);
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

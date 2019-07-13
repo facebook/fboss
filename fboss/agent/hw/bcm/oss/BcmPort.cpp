@@ -8,14 +8,15 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmPort.h"
-#include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/bcm/BcmError.h"
 
 extern "C" {
 #include <opennsl/port.h>
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 // stubbed out
 void BcmPort::prepareForGracefulExit() {}
@@ -61,8 +62,7 @@ QueueConfig BcmPort::getCurrentQueueSettings() {
   return QueueConfig();
 }
 
-void BcmPort::setupQueue(const PortQueue& /*queue*/) {
-}
+void BcmPort::setupQueue(const PortQueue& /*queue*/) {}
 
 void BcmPort::attachIngressQosPolicy(const std::string& /*name*/) {}
 
@@ -75,7 +75,8 @@ bool BcmPort::getDesiredFECEnabledStatus(
   return false;
 }
 
-void BcmPort::updateBcmStats(std::chrono::seconds /*now*/,
-                             HwPortStats* /*curPortStats*/) {
-}
-}} // namespace facebook::fboss
+void BcmPort::updateBcmStats(
+    std::chrono::seconds /*now*/,
+    HwPortStats* /*curPortStats*/) {}
+} // namespace fboss
+} // namespace facebook

@@ -13,7 +13,8 @@
 #include <memory>
 #include <type_traits>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 /*
  * A return type so that user-supplied functions can specify if they want to
  * continue to be called with more changed nodes, or if they want to stop.
@@ -22,7 +23,8 @@ enum class LoopAction : uint32_t {
   BREAK,
   CONTINUE,
 };
-}}
+} // namespace fboss
+} // namespace facebook
 
 #include "fboss/agent/state/DeltaFunctions-detail.h"
 
@@ -33,29 +35,38 @@ enum class LoopAction : uint32_t {
  * Notably, these are the forEachChanged(), forEachAdded(), and
  * forEachRemoved() functions.
  */
-namespace facebook { namespace fboss { namespace DeltaFunctions {
+namespace facebook {
+namespace fboss {
+namespace DeltaFunctions {
 
 /*
  * Invoke the specified functions for each modified, added, and removed node.
  */
-template<typename Delta,
-         typename ChangedFn, typename AddFn, typename RemoveFn,
-         typename... Args>
-detail::EnableIfChangedAddRmFn<ChangedFn, AddFn, RemoveFn,
-                               typename Delta::Node, Args...>
-forEachChanged(const Delta& delta,
-               ChangedFn changedFn,
-               AddFn addedFn,
-               RemoveFn removedFn,
-               const Args&... args) {
+template <
+    typename Delta,
+    typename ChangedFn,
+    typename AddFn,
+    typename RemoveFn,
+    typename... Args>
+detail::EnableIfChangedAddRmFn<
+    ChangedFn,
+    AddFn,
+    RemoveFn,
+    typename Delta::Node,
+    Args...>
+forEachChanged(
+    const Delta& delta,
+    ChangedFn changedFn,
+    AddFn addedFn,
+    RemoveFn removedFn,
+    const Args&... args) {
   for (const auto& entry : delta) {
     const auto& oldNode = entry.getOld();
     const auto& newNode = entry.getNew();
     LoopAction action;
     if (oldNode) {
       if (newNode) {
-        action = detail::invokeFn(changedFn, args...,
-                                  oldNode, newNode);
+        action = detail::invokeFn(changedFn, args..., oldNode, newNode);
       } else {
         action = detail::invokeFn(removedFn, args..., oldNode);
       }
@@ -72,17 +83,15 @@ forEachChanged(const Delta& delta,
 /*
  * Invoke the specified function for each modified node.
  */
-template<typename Delta, typename ChangedFn, typename... Args>
+template <typename Delta, typename ChangedFn, typename... Args>
 detail::EnableIfChangedFn<ChangedFn, typename Delta::Node, Args...>
-forEachChanged(const Delta& delta,
-               ChangedFn changedFn,
-               const Args&... args) {
+forEachChanged(const Delta& delta, ChangedFn changedFn, const Args&... args) {
   for (const auto& entry : delta) {
     const auto& oldNode = entry.getOld();
     const auto& newNode = entry.getNew();
     if (oldNode && newNode) {
-      LoopAction action = detail::invokeFn(changedFn, args...,
-                                           oldNode, newNode);
+      LoopAction action =
+          detail::invokeFn(changedFn, args..., oldNode, newNode);
       if (action == LoopAction::BREAK) {
         return action;
       }
@@ -94,7 +103,7 @@ forEachChanged(const Delta& delta,
 /*
  * Invoke the specified function for each added node.
  */
-template<typename Delta, typename AddedFn, typename... Args>
+template <typename Delta, typename AddedFn, typename... Args>
 detail::EnableIfAddRmFn<AddedFn, typename Delta::Node, Args...>
 forEachAdded(const Delta& delta, AddedFn addedFn, const Args&... args) {
   for (const auto& entry : delta) {
@@ -111,7 +120,7 @@ forEachAdded(const Delta& delta, AddedFn addedFn, const Args&... args) {
 /*
  * Invoke the specified function for each removed node.
  */
-template<typename Delta, typename RemovedFn, typename... Args>
+template <typename Delta, typename RemovedFn, typename... Args>
 detail::EnableIfAddRmFn<RemovedFn, typename Delta::Node, Args...>
 forEachRemoved(const Delta& delta, RemovedFn removedFn, const Args&... args) {
   for (const auto& entry : delta) {
@@ -128,7 +137,7 @@ forEachRemoved(const Delta& delta, RemovedFn removedFn, const Args&... args) {
 /*
  * Delta is empty
  */
-template<typename Delta>
+template <typename Delta>
 bool isEmpty(const Delta& delta) {
   using NodePtr = std::shared_ptr<typename Delta::Node>;
   bool empty = true;
@@ -136,7 +145,7 @@ bool isEmpty(const Delta& delta) {
     empty = false;
     return LoopAction::BREAK;
   };
-  auto hasAdded = [&empty](const NodePtr&){
+  auto hasAdded = [&empty](const NodePtr&) {
     empty = false;
     return LoopAction::BREAK;
   };
@@ -145,4 +154,6 @@ bool isEmpty(const Delta& delta) {
   return empty;
 }
 
-}}} // facebook::fboss::DeltaFunctions
+} // namespace DeltaFunctions
+} // namespace fboss
+} // namespace facebook

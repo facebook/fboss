@@ -25,7 +25,6 @@ void MirrorMap::addMirror(const std::shared_ptr<Mirror>& mirror) {
   return addNode(mirror);
 }
 
-
 MirrorMap* MirrorMap::modify(std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {
     CHECK(!(*state)->isPublished());

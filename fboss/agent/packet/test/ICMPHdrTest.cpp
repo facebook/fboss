@@ -59,10 +59,10 @@ TEST(ICMPHdrTest, cursor_data_constructor) {
   uint8_t code = 0;
   uint16_t csum = 0; // Obviously wrong
   auto pkt = MockRxPacket::fromHex(
-    // ICMPv6 Header
-    "80"     // Type: Echo Request
-    "00"     // Code: 0
-    "00 00"  // Checksum
+      // ICMPv6 Header
+      "80" // Type: Echo Request
+      "00" // Code: 0
+      "00 00" // Checksum
   );
   Cursor cursor(pkt->buf());
   ICMPHdr icmpv6Hdr(cursor);
@@ -73,13 +73,13 @@ TEST(ICMPHdrTest, cursor_data_constructor) {
 
 TEST(ICMPHdrTest, cursor_data_constructor_too_small) {
   auto pkt = MockRxPacket::fromHex(
-    // ICMPv6 Header
-    "80"     // Type: Echo Request
-    "00"     // Code: 0
-    "00   "  // OOPS! One octet too small!
+      // ICMPv6 Header
+      "80" // Type: Echo Request
+      "00" // Code: 0
+      "00   " // OOPS! One octet too small!
   );
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({ICMPHdr icmpv6Hdr(cursor);}, HdrParseError);
+  EXPECT_THROW({ ICMPHdr icmpv6Hdr(cursor); }, HdrParseError);
 }
 
 TEST(ICMPHdrTest, assignment_operator) {

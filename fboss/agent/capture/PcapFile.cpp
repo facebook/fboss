@@ -22,7 +22,8 @@ using folly::writevFull;
 using std::chrono::microseconds;
 using std::chrono::seconds;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 PcapFile::PktHeader::PktHeader(const PcapPkt& pkt) {
   auto ts = pkt.timestamp().time_since_epoch();
@@ -36,16 +37,12 @@ PcapFile::PktHeader::PktHeader(const PcapPkt& pkt) {
   origLen = len;
 }
 
-PcapFile::PcapFile() {
-}
+PcapFile::PcapFile() {}
 
-PcapFile::PcapFile(folly::StringPiece path,
-                   bool overwriteExisting)
-  : file_(path.str().c_str(), openFlags(overwriteExisting), 0644) {
-}
+PcapFile::PcapFile(folly::StringPiece path, bool overwriteExisting)
+    : file_(path.str().c_str(), openFlags(overwriteExisting), 0644) {}
 
-PcapFile::~PcapFile() {
-}
+PcapFile::~PcapFile() {}
 
 void PcapFile::close() {
   file_.close();
@@ -104,4 +101,5 @@ int PcapFile::openFlags(bool overwriteExisting) {
   return flags;
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -13,7 +13,8 @@
 #include <mutex>
 #include <vector>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class RxPacket;
 class TxPacket;
@@ -81,10 +82,10 @@ class PcapQueue {
 
  private:
   // Forbidden copy constructor and assignment operator
-  PcapQueue(PcapQueue const &) = delete;
-  PcapQueue& operator=(PcapQueue const &) = delete;
+  PcapQueue(PcapQueue const&) = delete;
+  PcapQueue& operator=(PcapQueue const&) = delete;
 
-  template<typename PktType>
+  template <typename PktType>
   void addPktInternal(const PktType* pkt);
 
   mutable std::mutex mutex_;
@@ -98,4 +99,5 @@ class PcapQueue {
   std::vector<PcapPkt> queue_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

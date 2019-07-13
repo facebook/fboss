@@ -9,23 +9,24 @@
  */
 #pragma once
 
-#include <memory>
-#include <functional>
 #include <gmock/gmock.h>
+#include <functional>
+#include <memory>
 
 #include <folly/Function.h>
 #include <folly/MacAddress.h>
-#include <folly/Range.h>
 #include <folly/Optional.h>
+#include <folly/Range.h>
 #include <folly/synchronization/Baton.h>
 
-#include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class MockHwSwitch;
 class MockPlatform;
@@ -72,9 +73,9 @@ std::shared_ptr<SwitchState> publishAndApplyConfig(
  * initialized.
  */
 std::unique_ptr<HwTestHandle> createTestHandle(
-  const std::shared_ptr<SwitchState>& = nullptr,
-  const folly::Optional<folly::MacAddress>& = folly::none,
-  SwitchFlags flags = DEFAULT);
+    const std::shared_ptr<SwitchState>& = nullptr,
+    const folly::Optional<folly::MacAddress>& = folly::none,
+    SwitchFlags flags = DEFAULT);
 std::unique_ptr<HwTestHandle> createTestHandle(
     cfg::SwitchConfig* cfg,
     folly::MacAddress mac,
@@ -121,12 +122,14 @@ void waitForBackgroundThread(SwSwitch* sw);
 /**
  * check the field value
  */
-template<typename ExpectedType, typename ActualType>
-void checkField(const ExpectedType& expected, const ActualType& actual,
-                folly::StringPiece fieldName) {
+template <typename ExpectedType, typename ActualType>
+void checkField(
+    const ExpectedType& expected,
+    const ActualType& actual,
+    folly::StringPiece fieldName) {
   if (expected != actual) {
-    throw FbossError("expected ", fieldName, " to be ", expected,
-                     ", but found ", actual);
+    throw FbossError(
+        "expected ", fieldName, " to be ", expected, ", but found ", actual);
     return;
   }
 }
@@ -206,8 +209,7 @@ std::shared_ptr<SwitchState> testStateBWithPortsUp();
 /*
  * Convenience macro that wraps EXPECT_CALL() on the underlying MockHwSwitch
  */
-#define EXPECT_HW_CALL(sw, method) \
-  EXPECT_CALL(*getMockHw(sw), method)
+#define EXPECT_HW_CALL(sw, method) EXPECT_CALL(*getMockHw(sw), method)
 
 #define EXPECT_MANY_HW_CALLS(sw, method) \
   EXPECT_CALL(*getMockHw(sw), method).Times(testing::AtLeast(1))
@@ -236,24 +238,30 @@ RoutePrefixV4 makePrefixV4(std::string str);
 
 RoutePrefixV6 makePrefixV6(std::string str);
 
-std::shared_ptr<Route<folly::IPAddressV4>>
-GET_ROUTE_V4(const std::shared_ptr<RouteTableMap>& tables,
-             RouterID rid, RoutePrefixV4 prefix);
+std::shared_ptr<Route<folly::IPAddressV4>> GET_ROUTE_V4(
+    const std::shared_ptr<RouteTableMap>& tables,
+    RouterID rid,
+    RoutePrefixV4 prefix);
 
-std::shared_ptr<Route<folly::IPAddressV4>>
-GET_ROUTE_V4(const std::shared_ptr<RouteTableMap>& tables,
-             RouterID rid, std::string prefixStr);
+std::shared_ptr<Route<folly::IPAddressV4>> GET_ROUTE_V4(
+    const std::shared_ptr<RouteTableMap>& tables,
+    RouterID rid,
+    std::string prefixStr);
 
-std::shared_ptr<Route<folly::IPAddressV6>>
-GET_ROUTE_V6(const std::shared_ptr<RouteTableMap>& tables,
-             RouterID rid, RoutePrefixV6 prefix);
+std::shared_ptr<Route<folly::IPAddressV6>> GET_ROUTE_V6(
+    const std::shared_ptr<RouteTableMap>& tables,
+    RouterID rid,
+    RoutePrefixV6 prefix);
 
-std::shared_ptr<Route<folly::IPAddressV6>>
-GET_ROUTE_V6(const std::shared_ptr<RouteTableMap>& tables,
-             RouterID rid, std::string prefixStr);
+std::shared_ptr<Route<folly::IPAddressV6>> GET_ROUTE_V6(
+    const std::shared_ptr<RouteTableMap>& tables,
+    RouterID rid,
+    std::string prefixStr);
 
-void EXPECT_NO_ROUTE(const std::shared_ptr<RouteTableMap>& tables,
-                     RouterID rid, std::string prefixStr);
+void EXPECT_NO_ROUTE(
+    const std::shared_ptr<RouteTableMap>& tables,
+    RouterID rid,
+    std::string prefixStr);
 
 /*
  * Convenience macro for expecting a packet to be transmitted by the switch
@@ -276,16 +284,20 @@ void EXPECT_NO_ROUTE(const std::shared_ptr<RouteTableMap>& tables,
  * to call both filters on a packet to see which one it is.
  */
 #define EXPECT_SWITCHED_PKT(sw, name, matchFn) \
-  EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_( \
-                 TxPacketMatcher::createMatcher(name, matchFn)))
+  EXPECT_HW_CALL(                              \
+      sw,                                      \
+      sendPacketSwitchedAsync_(TxPacketMatcher::createMatcher(name, matchFn)))
 
 #define EXPECT_MANY_SWITCHED_PKTS(sw, name, matchFn) \
-  EXPECT_MANY_HW_CALLS(sw, sendPacketSwitchedAsync_( \
-                 TxPacketMatcher::createMatcher(name, matchFn)))
+  EXPECT_MANY_HW_CALLS(                              \
+      sw,                                            \
+      sendPacketSwitchedAsync_(TxPacketMatcher::createMatcher(name, matchFn)))
 
 #define EXPECT_OUT_OF_PORT_PKT(sw, name, matchFn, portID, cos) \
-  EXPECT_HW_CALL(sw, sendPacketOutOfPortAsync_( \
-                 TxPacketMatcher::createMatcher(name, matchFn), portID, cos))
+  EXPECT_HW_CALL(                                              \
+      sw,                                                      \
+      sendPacketOutOfPortAsync_(                               \
+          TxPacketMatcher::createMatcher(name, matchFn), portID, cos))
 
 /**
  * Convenience macro for expecting RxPacket to be transmitted by TunManager.
@@ -293,10 +305,10 @@ void EXPECT_NO_ROUTE(const std::shared_ptr<RouteTableMap>& tables,
  *  EXPECT_TUN_PKT(tunMgr, "Unicast Packet", packetChecker).Times(1)
  */
 #define EXPECT_TUN_PKT(tun, name, dstIfID, matchFn) \
-  EXPECT_CALL( \
-    *tun, \
-    sendPacketToHost_( \
-      RxPacketMatcher::createMatcher(name, dstIfID, matchFn)))
+  EXPECT_CALL(                                      \
+      *tun,                                         \
+      sendPacketToHost_(                            \
+          RxPacketMatcher::createMatcher(name, dstIfID, matchFn)))
 
 /**
  * Templatized version of Matching function for Tx/Rx packet.
@@ -310,8 +322,7 @@ using TxMatchFn = MatchFn<TxPacket>;
  * A gmock MatcherInterface for matching TxPacket objects.
  */
 using TxPacketPtr = TxPacket*;
-class TxPacketMatcher
-  : public ::testing::MatcherInterface<TxPacketPtr> {
+class TxPacketMatcher : public ::testing::MatcherInterface<TxPacketPtr> {
  public:
   TxPacketMatcher(folly::StringPiece name, TxMatchFn fn);
 
@@ -324,9 +335,8 @@ class TxPacketMatcher
       const TxPacketPtr& pkt,
       ::testing::MatchResultListener* l) const override;
 #else
-  bool MatchAndExplain(
-      TxPacketPtr pkt,
-      ::testing::MatchResultListener* l) const override;
+  bool MatchAndExplain(TxPacketPtr pkt, ::testing::MatchResultListener* l)
+      const override;
 #endif
 
   void DescribeTo(std::ostream* os) const override;
@@ -345,19 +355,16 @@ class RxPacketMatcher : public ::testing::MatcherInterface<RxMatchFnArgs> {
  public:
   RxPacketMatcher(folly::StringPiece name, InterfaceID dstIfID, RxMatchFn fn);
 
-  static ::testing::Matcher<RxMatchFnArgs> createMatcher(
-      folly::StringPiece name,
-      InterfaceID dstIfID,
-      RxMatchFn&& fn);
+  static ::testing::Matcher<RxMatchFnArgs>
+  createMatcher(folly::StringPiece name, InterfaceID dstIfID, RxMatchFn&& fn);
 
 #ifndef IS_OSS
   bool MatchAndExplain(
       const RxMatchFnArgs& args,
       ::testing::MatchResultListener* l) const override;
 #else
-  bool MatchAndExplain(
-      RxMatchFnArgs args,
-      ::testing::MatchResultListener* l) const override;
+  bool MatchAndExplain(RxMatchFnArgs args, ::testing::MatchResultListener* l)
+      const override;
 #endif
 
   void DescribeTo(std::ostream* os) const override;
@@ -402,4 +409,5 @@ class WaitForSwitchState : public AutoRegisterStateObserver {
   bool done_{false};
   std::string name_;
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

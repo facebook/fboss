@@ -12,11 +12,12 @@
 #include <folly/futures/Future.h>
 #include <folly/io/async/EventBase.h>
 
-#include "fboss/agent/types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class PlatformPort {
  public:
@@ -119,9 +120,13 @@ class PlatformPort {
    * errors   - If any packet errors have occurred on the port since the last
    *            statusIndication() call.
    */
-  virtual void statusIndication(bool enabled, bool link,
-                                bool ingress, bool egress,
-                                bool discards, bool errors) = 0;
+  virtual void statusIndication(
+      bool enabled,
+      bool link,
+      bool ingress,
+      bool egress,
+      bool discards,
+      bool errors) = 0;
   /**
    * Do platform specific actions for the port before we are warm booting.
    */
@@ -140,7 +145,7 @@ class PlatformPort {
 
   enum class ExternalState : uint32_t {
     NONE = 0,
-    CABLING_ERROR,  // Port has been detected as mis-cabled
+    CABLING_ERROR, // Port has been detected as mis-cabled
   };
 
   /**
@@ -151,14 +156,15 @@ class PlatformPort {
    * - For CABLING_ERROR, the platform-port sub-class may set the LEDs
    *   in some way to signal the issue to physically present operators.
    */
- virtual void externalState(ExternalState) = 0;
+  virtual void externalState(ExternalState) = 0;
 
  private:
   // Forbidden copy constructor and assignment operator
-  PlatformPort(PlatformPort const &) = delete;
-  PlatformPort& operator=(PlatformPort const &) = delete;
+  PlatformPort(PlatformPort const&) = delete;
+  PlatformPort& operator=(PlatformPort const&) = delete;
 };
 
 std::ostream& operator<<(std::ostream&, PlatformPort::ExternalState);
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -1,11 +1,11 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #pragma once
 
-#include <folly/dynamic.h>
 #include <folly/Range.h>
+#include <folly/dynamic.h>
 
-namespace facebook { namespace fboss {
-
+namespace facebook {
+namespace fboss {
 
 /*
  * This class encapsulates much of the warm boot functionality for an individual
@@ -47,8 +47,7 @@ class BcmWarmBootHelper {
   BcmWarmBootHelper& operator=(BcmWarmBootHelper const&) = delete;
 };
 
-class DiscBackedBcmWarmBootHelper: public BcmWarmBootHelper {
-
+class DiscBackedBcmWarmBootHelper : public BcmWarmBootHelper {
  public:
   DiscBackedBcmWarmBootHelper(int unit, std::string warmBootDir);
   ~DiscBackedBcmWarmBootHelper() override;
@@ -60,7 +59,9 @@ class DiscBackedBcmWarmBootHelper: public BcmWarmBootHelper {
   void warmBootRead(uint8_t* buf, int offset, int nbytes) override;
   void warmBootWrite(const uint8_t* buf, int offset, int nbytes) override;
   bool storeWarmBootState(const folly::dynamic& switchState) override;
-  bool warmBootStateWritten() const override { return warmBootStateWritten_; }
+  bool warmBootStateWritten() const override {
+    return warmBootStateWritten_;
+  }
   folly::dynamic getWarmBootState() const override;
 
   std::string startupSdkDumpFile() const override;
@@ -99,4 +100,5 @@ class DiscBackedBcmWarmBootHelper: public BcmWarmBootHelper {
   bool warmBootStateWritten_{false};
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

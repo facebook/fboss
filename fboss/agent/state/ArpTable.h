@@ -12,12 +12,13 @@
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/NeighborTable.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-class ArpTable : public NeighborTable<folly::IPAddressV4, ArpEntry,
-                                      ArpTable> {
+class ArpTable : public NeighborTable<folly::IPAddressV4, ArpEntry, ArpTable> {
  public:
   using NeighborTable::NeighborTable;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

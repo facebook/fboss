@@ -9,11 +9,12 @@
  */
 #pragma once
 
+#include <folly/Range.h>
 #include <map>
 #include <string>
-#include <folly/Range.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmConfig {
  public:
@@ -30,4 +31,5 @@ class BcmConfig {
   static ConfigMap parseBcmStyleConfig(folly::StringPiece data);
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

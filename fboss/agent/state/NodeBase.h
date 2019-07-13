@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include "fboss/agent/types.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/types.h"
 
 #include <boost/cast.hpp>
 #include <boost/container/flat_map.hpp>
@@ -21,7 +21,8 @@
 #include <folly/dynamic.h>
 #include <folly/json.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * NodeBase is the base class for all nodes in our SwitchState tree.
@@ -82,7 +83,7 @@ class NodeBase {
    * created without using clone(). And then correct the generation number
    * of the new node based on the old node.
    */
-  void inheritGeneration(const NodeBase &old) {
+  void inheritGeneration(const NodeBase& old) {
     CHECK(!published_);
     generation_ = old.getGeneration() + 1;
   }
@@ -116,8 +117,7 @@ class NodeBase {
  protected:
   NodeBase();
   NodeBase(NodeID id, uint32_t generation)
-    : nodeID_(id),
-      generation_(generation) {}
+      : nodeID_(id), generation_(generation) {}
 
  private:
   NodeID nodeID_{0};
@@ -152,7 +152,7 @@ class NodeBase {
  *
  * For an example of how to use NodeBaseT, see Vlan.h or Port.h.
  */
-template<typename NodeT, typename FieldsT>
+template <typename NodeT, typename FieldsT>
 class NodeBaseT : public NodeBase {
  public:
   using Node = NodeT;
@@ -189,13 +189,13 @@ class NodeBaseT : public NodeBase {
    * SwitchState itself will also be cloned if necessary.
    */
 
-  template<typename... Args>
+  template <typename... Args>
   std::enable_if_t<
-    std::is_constructible<Fields, const Fields&, Args...>::value,
-    std::shared_ptr<Node>>
+      std::is_constructible<Fields, const Fields&, Args...>::value,
+      std::shared_ptr<Node>>
   clone(Args&&... args) const {
-    return std::allocate_shared<NodeT>(CloneAllocator(), self(),
-                                       std::forward<Args>(args)...);
+    return std::allocate_shared<NodeT>(
+        CloneAllocator(), self(), std::forward<Args>(args)...);
   }
 
   void publish() override;
@@ -224,31 +224,31 @@ class NodeBaseT : public NodeBase {
     return folly::toJson(toFollyDynamic());
   }
 
-  template<typename... Args>
+  template <typename... Args>
   explicit NodeBaseT(Args&&... args) : fields_(std::forward<Args>(args)...) {}
 
   // Create node from fields
   explicit NodeBaseT(const FieldsT& fields) : fields_(fields) {}
 
   // Constructors used by clone()
-  template<typename... Args>
+  template <typename... Args>
   NodeBaseT(const Node* orig, Args&&... args)
-    : NodeBase(orig->getNodeID(), orig->getGeneration() + 1),
-      fields_(orig->fields_, std::forward<Args>(args)...) {}
+      : NodeBase(orig->getNodeID(), orig->getGeneration() + 1),
+        fields_(orig->fields_, std::forward<Args>(args)...) {}
 
  protected:
   class CloneAllocator : public std::allocator<NodeT> {
    public:
-    template<typename... Args>
+    template <typename... Args>
     void construct(void* p, Args&&... args) {
-      new(p) NodeT(std::forward<Args>(args)...);
+      new (p) NodeT(std::forward<Args>(args)...);
     }
   };
 
  private:
   // Forbidden copy constructor and assignment operator
-  NodeBaseT(NodeBaseT const &) = delete;
-  NodeBaseT& operator=(NodeBaseT const &) = delete;
+  NodeBaseT(NodeBaseT const&) = delete;
+  NodeBaseT& operator=(NodeBaseT const&) = delete;
 
   Node* self() {
     return boost::polymorphic_downcast<Node*>(this);
@@ -260,4 +260,5 @@ class NodeBaseT : public NodeBase {
   Fields fields_;
 };
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

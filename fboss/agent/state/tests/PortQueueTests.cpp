@@ -8,12 +8,12 @@
  *
  */
 #include "fboss/agent/ApplyThriftConfig.h"
-#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -133,11 +133,12 @@ std::shared_ptr<SwitchState> applyInitConfig() {
 } // unnamed namespace
 
 TEST(PortQueue, serialization) {
-  std::vector<PortQueue*> queues = {
-    generatePortQueue(), generateProdPortQueue(), generateProdCPUPortQueue(),
-    generateDefaultPortQueue()};
+  std::vector<PortQueue*> queues = {generatePortQueue(),
+                                    generateProdPortQueue(),
+                                    generateProdCPUPortQueue(),
+                                    generateDefaultPortQueue()};
 
-  for (const auto* pqObject: queues) {
+  for (const auto* pqObject : queues) {
     auto serialized = pqObject->toFollyDynamic();
     auto deserialized = PortQueue::fromFollyDynamic(serialized);
     EXPECT_EQ(*pqObject, *deserialized);
@@ -183,8 +184,8 @@ TEST(PortQueue, stateDelta) {
   queueExtra.id = 11;
   queueExtra.weight_ref() = 5;
   config.ports[0].queues.push_back(queueExtra);
-  EXPECT_THROW(publishAndApplyConfig(stateV3, &config, platform.get()),
-      FbossError);
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV3, &config, platform.get()), FbossError);
 }
 
 TEST(PortQueue, aqmState) {
@@ -290,7 +291,6 @@ TEST(PortQueue, resetPartOfConfigs) {
     EXPECT_TRUE(queues2.at(0)->getAqms().empty());
   }
 }
-
 
 TEST(PortQueue, checkSwConfPortQueueMatch) {
   auto platform = createMockPlatform();

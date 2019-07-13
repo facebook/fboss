@@ -12,7 +12,8 @@
 #include <folly/IPAddressV4.h>
 #include "fboss/agent/state/NeighborResponseTable.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * A mapping of IPv4 --> MAC address, indicating how we should respond to ARP
@@ -22,9 +23,10 @@ namespace facebook { namespace fboss {
  * with each VLAN so that we can efficiently respond to ARP requests.
  */
 class ArpResponseTable
-  : public NeighborResponseTable<folly::IPAddressV4, ArpResponseTable> {
+    : public NeighborResponseTable<folly::IPAddressV4, ArpResponseTable> {
  public:
   using NeighborResponseTable::NeighborResponseTable;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

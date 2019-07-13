@@ -46,12 +46,12 @@ using namespace facebook::fboss;
 using facebook::network::toBinaryAddress;
 using facebook::network::toIPAddress;
 using facebook::network::thrift::BinaryAddress;
-using folly::io::Cursor;
 using folly::IOBuf;
 using folly::IPAddressV4;
-using std::make_unique;
 using folly::StringPiece;
+using folly::io::Cursor;
 using std::make_shared;
+using std::make_unique;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
@@ -98,10 +98,13 @@ unique_ptr<HwTestHandle> setupTestHandle(
   return handle;
 }
 
-TxMatchFn checkArpPkt(bool isRequest,
-                      IPAddressV4 senderIP, MacAddress senderMAC,
-                      IPAddressV4 targetIP, MacAddress targetMAC,
-                      VlanID vlan) {
+TxMatchFn checkArpPkt(
+    bool isRequest,
+    IPAddressV4 senderIP,
+    MacAddress senderMAC,
+    IPAddressV4 targetIP,
+    MacAddress targetMAC,
+    VlanID vlan) {
   return [=](const TxPacket* pkt) {
     const auto* buf = pkt->buf();
     // 64 bytes (minimum ethernet frame length),
@@ -111,21 +114,19 @@ TxMatchFn checkArpPkt(bool isRequest,
     Cursor c(buf);
     auto dstMac = PktUtil::readMac(&c);
     if (targetMAC != dstMac) {
-      throw FbossError("expected dest MAC to be ", targetMAC,
-                       "; got ", dstMac);
+      throw FbossError("expected dest MAC to be ", targetMAC, "; got ", dstMac);
     }
 
     auto srcMac = PktUtil::readMac(&c);
     EXPECT_EQ(senderMAC, srcMac);
     if (senderMAC != srcMac) {
-      throw FbossError(" expected src MAC to be ", senderMAC,
-                       "; got ", srcMac);
+      throw FbossError(" expected src MAC to be ", senderMAC, "; got ", srcMac);
     }
 
     auto ethertype = c.readBE<uint16_t>();
     if (ethertype != 0x8100) {
-      throw FbossError(" expected VLAN tag to be present, found ethertype ",
-                       ethertype);
+      throw FbossError(
+          " expected VLAN tag to be present, found ethertype ", ethertype);
     }
 
     auto tag = c.readBE<uint16_t>();
@@ -162,42 +163,50 @@ TxMatchFn checkArpPkt(bool isRequest,
     }
     auto pktSenderMAC = PktUtil::readMac(&c);
     if (pktSenderMAC != senderMAC) {
-      throw FbossError("expected sender MAC ", senderMAC,
-                       " found ", pktSenderMAC);
+      throw FbossError(
+          "expected sender MAC ", senderMAC, " found ", pktSenderMAC);
     }
     auto pktSenderIP = PktUtil::readIPv4(&c);
     if (pktSenderIP != senderIP) {
-      throw FbossError("expected sender IP ", senderIP,
-                       " found ", pktSenderIP);
+      throw FbossError("expected sender IP ", senderIP, " found ", pktSenderIP);
     }
     auto pktTargetMAC = PktUtil::readMac(&c);
     auto expectMAC = isRequest ? MacAddress::ZERO : targetMAC;
     if (pktTargetMAC != expectMAC) {
-      throw FbossError("expected target MAC ", expectMAC,
-                       " found ", pktTargetMAC);
+      throw FbossError(
+          "expected target MAC ", expectMAC, " found ", pktTargetMAC);
     }
     auto pktTargetIP = PktUtil::readIPv4(&c);
     if (pktTargetIP != targetIP) {
-      throw FbossError("expected target IP ", targetIP,
-                       " found ", pktTargetIP);
+      throw FbossError("expected target IP ", targetIP, " found ", pktTargetIP);
     }
   };
 }
 
-TxMatchFn checkArpReply(const char* senderIP, const char* senderMAC,
-                        const char* targetIP, const char* targetMAC,
-                        VlanID vlan) {
+TxMatchFn checkArpReply(
+    const char* senderIP,
+    const char* senderMAC,
+    const char* targetIP,
+    const char* targetMAC,
+    VlanID vlan) {
   bool isRequest = false;
-  return checkArpPkt(isRequest, IPAddressV4(senderIP), MacAddress(senderMAC),
-                     IPAddressV4(targetIP), MacAddress(targetMAC),
-                     vlan);
+  return checkArpPkt(
+      isRequest,
+      IPAddressV4(senderIP),
+      MacAddress(senderMAC),
+      IPAddressV4(targetIP),
+      MacAddress(targetMAC),
+      vlan);
 }
 
-TxMatchFn checkArpRequest(IPAddressV4 senderIP, MacAddress senderMAC,
-                          IPAddressV4 targetIP, VlanID vlan) {
+TxMatchFn checkArpRequest(
+    IPAddressV4 senderIP,
+    MacAddress senderMAC,
+    IPAddressV4 targetIP,
+    VlanID vlan) {
   bool isRequest = true;
-  return checkArpPkt(isRequest, senderIP, senderMAC,
-                     targetIP, MacAddress::BROADCAST, vlan);
+  return checkArpPkt(
+      isRequest, senderIP, senderMAC, targetIP, MacAddress::BROADCAST, vlan);
 }
 
 const std::shared_ptr<ArpEntry>
@@ -212,8 +221,11 @@ getArpEntry(SwSwitch* sw, IPAddressV4 ip, VlanID vlanID = VlanID(1)) {
 
 /* This helper sends an arp request for targetIP and verifies it was correctly
    sent out. */
-void testSendArpRequest(SwSwitch* sw, VlanID vlanID,
-                        IPAddressV4 senderIP, IPAddressV4 targetIP) {
+void testSendArpRequest(
+    SwSwitch* sw,
+    VlanID vlanID,
+    IPAddressV4 senderIP,
+    IPAddressV4 targetIP) {
   auto state = sw->getState();
   auto vlan = state->getVlans()->getVlanIf(vlanID);
   EXPECT_NE(vlan, nullptr);
@@ -226,15 +238,18 @@ void testSendArpRequest(SwSwitch* sw, VlanID vlanID,
   // Expect ARP entry to be created
   WaitForArpEntryCreation arpCreate(sw, targetIP);
   if (state->getMaxNeighborProbes() > 1) {
-    EXPECT_MANY_SWITCHED_PKTS(sw, "ARP request",
-               checkArpRequest(senderIP, intf->getMac(), targetIP, vlanID));
+    EXPECT_MANY_SWITCHED_PKTS(
+        sw,
+        "ARP request",
+        checkArpRequest(senderIP, intf->getMac(), targetIP, vlanID));
+  } else {
+    EXPECT_SWITCHED_PKT(
+        sw,
+        "ARP request",
+        checkArpRequest(senderIP, intf->getMac(), targetIP, vlanID));
   }
-  else {
-    EXPECT_SWITCHED_PKT(sw, "ARP request",
-               checkArpRequest(senderIP, intf->getMac(), targetIP, vlanID));
-  }
-  ArpHandler::sendArpRequest(sw, vlan->getID(), intf->getMac(),
-                             senderIP, targetIP);
+  ArpHandler::sendArpRequest(
+      sw, vlan->getID(), intf->getMac(), senderIP, targetIP);
 
   // Notify the updater that we sent an arp request
   sw->getNeighborUpdater()->sentArpRequest(vlanID, targetIP);
@@ -270,11 +285,13 @@ TEST(ArpTest, BasicSendRequest) {
 
   // Sending an ARP request will trigger state update for setting pending entry
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(2);
-  EXPECT_SWITCHED_PKT(sw, "ARP request",
-             checkArpRequest(senderIP, intf->getMac(), targetIP, vlanID));
+  EXPECT_SWITCHED_PKT(
+      sw,
+      "ARP request",
+      checkArpRequest(senderIP, intf->getMac(), targetIP, vlanID));
 
-  ArpHandler::sendArpRequest(sw, vlan->getID(), intf->getMac(),
-                             senderIP, targetIP);
+  ArpHandler::sendArpRequest(
+      sw, vlan->getID(), intf->getMac(), senderIP, targetIP);
 
   // Notify the updater that we sent an arp request
   sw->getNeighborUpdater()->sentArpRequest(vlanID, targetIP);
@@ -296,23 +313,22 @@ TEST(ArpTest, TableUpdates) {
 
   // Create an ARP request for 10.0.0.1 from an unreachable source
   auto buf = make_unique<IOBuf>(PktUtil::parseHexData(
-    // dst mac, src mac
-    "ff ff ff ff ff ff  00 02 00 01 02 03"
-    // 802.1q, VLAN 1
-    "81 00  00 01"
-    // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
-    "08 06  00 01  08 00  06  04"
-    // ARP Request
-    "00 01"
-    // Sender MAC
-    "00 02 00 01 02 03"
-    // Sender IP: 10.0.1.15
-    "0a 00 01 0f"
-    // Target MAC
-    "00 00 00 00 00 00"
-    // Target IP: 10.0.0.1
-    "0a 00 00 01"
-  ));
+      // dst mac, src mac
+      "ff ff ff ff ff ff  00 02 00 01 02 03"
+      // 802.1q, VLAN 1
+      "81 00  00 01"
+      // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
+      "08 06  00 01  08 00  06  04"
+      // ARP Request
+      "00 01"
+      // Sender MAC
+      "00 02 00 01 02 03"
+      // Sender IP: 10.0.1.15
+      "0a 00 01 0f"
+      // Target MAC
+      "00 00 00 00 00 00"
+      // Target IP: 10.0.0.1
+      "0a 00 00 01"));
 
   // Cache the current stats
   CounterCache counters(sw);
@@ -321,13 +337,16 @@ TEST(ArpTest, TableUpdates) {
   // ArpTable for VLAN 1, but will send a reply packet
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
   EXPECT_OUT_OF_PORT_PKT(
-    sw,
-    "ARP reply",
-    checkArpReply("10.0.0.1", "00:02:00:00:00:01",
-                  "10.0.1.15", "00:02:00:01:02:03",
-                  vlanID),
-    PortID(1),
-    folly::Optional<uint8_t>(kNCStrictPriorityQueue));
+      sw,
+      "ARP reply",
+      checkArpReply(
+          "10.0.0.1",
+          "00:02:00:00:00:01",
+          "10.0.1.15",
+          "00:02:00:01:02:03",
+          vlanID),
+      PortID(1),
+      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
 
   // Inform the SwSwitch of the ARP request
   handle->rxPacket(std::move(buf), PortID(1), vlanID);
@@ -338,23 +357,22 @@ TEST(ArpTest, TableUpdates) {
 
   // Create an ARP request for 10.0.0.1
   auto hex = PktUtil::parseHexData(
-    // dst mac, src mac
-    "ff ff ff ff ff ff  00 02 00 01 02 03"
-    // 802.1q, VLAN 1
-    "81 00  00 01"
-    // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
-    "08 06  00 01  08 00  06  04"
-    // ARP Request
-    "00 01"
-    // Sender MAC
-    "00 02 00 01 02 03"
-    // Sender IP: 10.0.0.15
-    "0a 00 00 0f"
-    // Target MAC
-    "00 00 00 00 00 00"
-    // Target IP: 10.0.0.1
-    "0a 00 00 01"
-  );
+      // dst mac, src mac
+      "ff ff ff ff ff ff  00 02 00 01 02 03"
+      // 802.1q, VLAN 1
+      "81 00  00 01"
+      // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
+      "08 06  00 01  08 00  06  04"
+      // ARP Request
+      "00 01"
+      // Sender MAC
+      "00 02 00 01 02 03"
+      // Sender IP: 10.0.0.15
+      "0a 00 00 0f"
+      // Target MAC
+      "00 00 00 00 00 00"
+      // Target IP: 10.0.0.1
+      "0a 00 00 01");
 
   // update counters
   counters.update();
@@ -363,13 +381,16 @@ TEST(ArpTest, TableUpdates) {
   // ArpTable for VLAN 1, and will then send a reply packet
   EXPECT_HW_CALL(sw, stateChanged(_));
   EXPECT_OUT_OF_PORT_PKT(
-    sw,
-    "ARP reply",
-    checkArpReply("10.0.0.1", "00:02:00:00:00:01",
-                  "10.0.0.15", "00:02:00:01:02:03",
-                  vlanID),
-    PortID(1),
-    folly::Optional<uint8_t>(kNCStrictPriorityQueue));
+      sw,
+      "ARP reply",
+      checkArpReply(
+          "10.0.0.1",
+          "00:02:00:00:00:01",
+          "10.0.0.15",
+          "00:02:00:01:02:03",
+          vlanID),
+      PortID(1),
+      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
 
   // Inform the SwSwitch of the ARP request
   handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
@@ -400,13 +421,16 @@ TEST(ArpTest, TableUpdates) {
   // but not another table update.
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
   EXPECT_OUT_OF_PORT_PKT(
-    sw,
-    "ARP reply",
-    checkArpReply("10.0.0.1", "00:02:00:00:00:01",
-                  "10.0.0.15", "00:02:00:01:02:03",
-                  vlanID),
-    PortID(1),
-    folly::Optional<uint8_t>(kNCStrictPriorityQueue));
+      sw,
+      "ARP reply",
+      checkArpReply(
+          "10.0.0.1",
+          "00:02:00:00:00:01",
+          "10.0.0.15",
+          "00:02:00:01:02:03",
+          vlanID),
+      PortID(1),
+      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
   handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
 
   // Check the counters again
@@ -423,23 +447,22 @@ TEST(ArpTest, TableUpdates) {
   // An ARP request from an unknown node that isn't destined for us shouldn't
   // generate a reply or a table update.
   buf = make_unique<IOBuf>(PktUtil::parseHexData(
-    // dst mac, src mac
-    "ff ff ff ff ff ff  00 02 00 01 02 04"
-    // 802.1q, VLAN 1
-    "81 00  00 01"
-    // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
-    "08 06  00 01  08 00  06  04"
-    // ARP Request
-    "00 01"
-    // Sender MAC
-    "00 02 00 01 02 04"
-    // Sender IP: 10.0.0.16
-    "0a 00 00 10"
-    // Target MAC
-    "00 00 00 00 00 00"
-    // Target IP: 10.0.0.50
-    "0a 00 00 32"
-  ));
+      // dst mac, src mac
+      "ff ff ff ff ff ff  00 02 00 01 02 04"
+      // 802.1q, VLAN 1
+      "81 00  00 01"
+      // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
+      "08 06  00 01  08 00  06  04"
+      // ARP Request
+      "00 01"
+      // Sender MAC
+      "00 02 00 01 02 04"
+      // Sender IP: 10.0.0.16
+      "0a 00 00 10"
+      // Target MAC
+      "00 00 00 00 00 00"
+      // Target IP: 10.0.0.50
+      "0a 00 00 32"));
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
@@ -460,23 +483,22 @@ TEST(ArpTest, TableUpdates) {
   // should generate a table update if the MAC is different from what we
   // already have.
   buf = make_unique<IOBuf>(PktUtil::parseHexData(
-    // dst mac, src mac
-    "ff ff ff ff ff ff  00 02 00 01 02 08"
-    // 802.1q, VLAN 1
-    "81 00  00 01"
-    // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
-    "08 06  00 01  08 00  06  04"
-    // ARP Request
-    "00 01"
-    // Sender MAC
-    "00 02 00 01 02 08"
-    // Sender IP: 10.0.0.15
-    "0a 00 00 0f"
-    // Target MAC
-    "00 00 00 00 00 00"
-    // Target IP: 10.0.0.50
-    "0a 00 00 32"
-  ));
+      // dst mac, src mac
+      "ff ff ff ff ff ff  00 02 00 01 02 08"
+      // 802.1q, VLAN 1
+      "81 00  00 01"
+      // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
+      "08 06  00 01  08 00  06  04"
+      // ARP Request
+      "00 01"
+      // Sender MAC
+      "00 02 00 01 02 08"
+      // Sender IP: 10.0.0.15
+      "0a 00 00 0f"
+      // Target MAC
+      "00 00 00 00 00 00"
+      // Target IP: 10.0.0.50
+      "0a 00 00 32"));
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
@@ -504,33 +526,35 @@ TEST(ArpTest, TableUpdates) {
   // Try another request for us from a node we haven't seen yet.
   // This should generate a reply and a table update
   buf = make_unique<IOBuf>(PktUtil::parseHexData(
-    // dst mac, src mac
-    "ff ff ff ff ff ff  00 02 00 01 02 23"
-    // 802.1q, VLAN 1
-    "81 00  00 01"
-    // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
-    "08 06  00 01  08 00  06  04"
-    // ARP Request
-    "00 01"
-    // Sender MAC
-    "00 02 00 01 02 23"
-    // Sender IP: 10.0.0.20
-    "0a 00 00 14"
-    // Target MAC
-    "00 00 00 00 00 00"
-    // Target IP: 10.0.0.1
-    "0a 00 00 01"
-  ));
+      // dst mac, src mac
+      "ff ff ff ff ff ff  00 02 00 01 02 23"
+      // 802.1q, VLAN 1
+      "81 00  00 01"
+      // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
+      "08 06  00 01  08 00  06  04"
+      // ARP Request
+      "00 01"
+      // Sender MAC
+      "00 02 00 01 02 23"
+      // Sender IP: 10.0.0.20
+      "0a 00 00 14"
+      // Target MAC
+      "00 00 00 00 00 00"
+      // Target IP: 10.0.0.1
+      "0a 00 00 01"));
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
   EXPECT_OUT_OF_PORT_PKT(
-    sw,
-    "ARP reply",
-    checkArpReply("10.0.0.1", "00:02:00:00:00:01",
-                  "10.0.0.20", "00:02:00:01:02:23",
-                  vlanID),
-    PortID(1),
-    folly::Optional<uint8_t>(kNCStrictPriorityQueue));
+      sw,
+      "ARP reply",
+      checkArpReply(
+          "10.0.0.1",
+          "00:02:00:00:00:01",
+          "10.0.0.20",
+          "00:02:00:01:02:23",
+          vlanID),
+      PortID(1),
+      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
   handle->rxPacket(std::move(buf), PortID(1), vlanID);
   waitForStateUpdates(sw);
 
@@ -558,33 +582,35 @@ TEST(ArpTest, TableUpdates) {
   // Try a request for an IP on another interface, to make sure
   // it generates an ARP entry with the correct interface ID.
   buf = make_unique<IOBuf>(PktUtil::parseHexData(
-    // dst mac, src mac
-    "ff ff ff ff ff ff  00 02 00 55 66 77"
-    // 802.1q, VLAN 1
-    "81 00  00 01"
-    // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
-    "08 06  00 01  08 00  06  04"
-    // ARP Request
-    "00 01"
-    // Sender MAC
-    "00 02 00 55 66 77"
-    // Sender IP: 192.168.0.20
-    "c0 a8 00 14"
-    // Target MAC
-    "00 00 00 00 00 00"
-    // Target IP: 192.168.0.1
-    "c0 a8 00 01"
-  ));
+      // dst mac, src mac
+      "ff ff ff ff ff ff  00 02 00 55 66 77"
+      // 802.1q, VLAN 1
+      "81 00  00 01"
+      // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
+      "08 06  00 01  08 00  06  04"
+      // ARP Request
+      "00 01"
+      // Sender MAC
+      "00 02 00 55 66 77"
+      // Sender IP: 192.168.0.20
+      "c0 a8 00 14"
+      // Target MAC
+      "00 00 00 00 00 00"
+      // Target IP: 192.168.0.1
+      "c0 a8 00 01"));
 
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
   EXPECT_OUT_OF_PORT_PKT(
-    sw,
-    "ARP reply",
-    checkArpReply("192.168.0.1", "00:02:00:00:00:01",
-                  "192.168.0.20", "00:02:00:55:66:77",
-                  vlanID),
-    PortID(5),
-    folly::Optional<uint8_t>(kNCStrictPriorityQueue));
+      sw,
+      "ARP reply",
+      checkArpReply(
+          "192.168.0.1",
+          "00:02:00:00:00:01",
+          "192.168.0.20",
+          "00:02:00:55:66:77",
+          vlanID),
+      PortID(5),
+      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
   handle->rxPacket(std::move(buf), PortID(5), vlanID);
   waitForStateUpdates(sw);
 
@@ -620,23 +646,22 @@ TEST(ArpTest, NotMine) {
 
   // Create an ARP request for 10.1.2.3
   auto buf = make_unique<IOBuf>(PktUtil::parseHexData(
-    // dst mac, src mac
-    "ff ff ff ff ff ff  00 02 00 01 02 03"
-    // 802.1q, VLAN 1
-    "81 00  00 01"
-    // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
-    "08 06  00 01  08 00  06  04"
-    // ARP Request
-    "00 01"
-    // Sender MAC
-    "00 02 00 01 02 03"
-    // Sender IP: 10.1.2.15
-    "0a 01 02 0f"
-    // Target MAC
-    "00 00 00 00 00 00"
-    // Target IP: 10.1.2.3
-    "0a 01 02 03"
-  ));
+      // dst mac, src mac
+      "ff ff ff ff ff ff  00 02 00 01 02 03"
+      // 802.1q, VLAN 1
+      "81 00  00 01"
+      // ARP, htype: ethernet, ptype: IPv4, hlen: 6, plen: 4
+      "08 06  00 01  08 00  06  04"
+      // ARP Request
+      "00 01"
+      // Sender MAC
+      "00 02 00 01 02 03"
+      // Sender IP: 10.1.2.15
+      "0a 01 02 0f"
+      // Target MAC
+      "00 00 00 00 00 00"
+      // Target IP: 10.1.2.3
+      "0a 01 02 03"));
 
   // Cache the current stats
   CounterCache counters(sw);
@@ -659,23 +684,22 @@ TEST(ArpTest, BadHlen) {
 
   // Create an ARP request with a bad hardware length specified
   auto buf = make_unique<IOBuf>(PktUtil::parseHexData(
-    // dst mac, src mac
-    "ff ff ff ff ff ff  00 02 00 01 02 03"
-    // 802.1q, VLAN 1
-    "81 00  00 01"
-    // ARP, htype: ethernet, ptype: IPv4, hlen: 2, plen: 4
-    "08 06  00 01  08 00  02  04"
-    // ARP Request
-    "00 01"
-    // Sender MAC
-    "00 02"
-    // Sender IP: 10.0.0.15
-    "0a 00 00 0f"
-    // Target MAC
-    "00 00"
-    // Target IP: 10.0.0.1
-    "0a 00 00 01"
-  ));
+      // dst mac, src mac
+      "ff ff ff ff ff ff  00 02 00 01 02 03"
+      // 802.1q, VLAN 1
+      "81 00  00 01"
+      // ARP, htype: ethernet, ptype: IPv4, hlen: 2, plen: 4
+      "08 06  00 01  08 00  02  04"
+      // ARP Request
+      "00 01"
+      // Sender MAC
+      "00 02"
+      // Sender IP: 10.0.0.15
+      "0a 00 00 0f"
+      // Target MAC
+      "00 00"
+      // Target IP: 10.0.0.1
+      "0a 00 00 01"));
 
   // Cache the current stats
   CounterCache counters(sw);
@@ -692,8 +716,11 @@ TEST(ArpTest, BadHlen) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.error.sum", 0);
 }
 
-void sendArpReply(HwTestHandle* handle, StringPiece ipStr, StringPiece macStr,
-                  int port) {
+void sendArpReply(
+    HwTestHandle* handle,
+    StringPiece ipStr,
+    StringPiece macStr,
+    int port) {
   IPAddressV4 srcIP(ipStr);
   MacAddress srcMac(macStr);
 
@@ -748,12 +775,11 @@ TEST(ArpTest, FlushEntry) {
   ASSERT_EQ(arpTable.size(), 4);
   // Sort the results so we can check the exact ordering here.
   std::sort(
-    arpTable.begin(),
-    arpTable.end(),
-    [](const ArpEntryThrift& a, const ArpEntryThrift& b) {
-      return a.port < b.port;
-    }
-  );
+      arpTable.begin(),
+      arpTable.end(),
+      [](const ArpEntryThrift& a, const ArpEntryThrift& b) {
+        return a.port < b.port;
+      });
   auto checkEntry = [&](int idx, StringPiece ip, StringPiece mac, int port) {
     SCOPED_TRACE(folly::to<string>("index ", idx));
     EXPECT_EQ(arpTable[idx].vlanID, 1);
@@ -770,8 +796,8 @@ TEST(ArpTest, FlushEntry) {
   // Via the thrift API, flush the ARP entry for 10.0.0.11
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
   auto binAddr = toBinaryAddress(IPAddressV4("10.0.0.11"));
-  auto numFlushed = thriftHandler.flushNeighborEntry(
-      make_unique<BinaryAddress>(binAddr), 1);
+  auto numFlushed =
+      thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 1);
   EXPECT_EQ(numFlushed, 1);
 
   // Now check the table again
@@ -780,12 +806,11 @@ TEST(ArpTest, FlushEntry) {
   ASSERT_EQ(arpTable.size(), 3);
   // Sort the results so we can check the exact ordering here.
   std::sort(
-    arpTable.begin(),
-    arpTable.end(),
-    [](const ArpEntryThrift& a, const ArpEntryThrift& b) {
-      return a.port < b.port;
-    }
-  );
+      arpTable.begin(),
+      arpTable.end(),
+      [](const ArpEntryThrift& a, const ArpEntryThrift& b) {
+        return a.port < b.port;
+      });
   checkEntry(0, "10.0.0.7", "02:10:20:30:40:07", 1);
   checkEntry(1, "10.0.0.15", "02:10:20:30:40:15", 3);
   checkEntry(2, "10.0.0.22", "02:10:20:30:40:22", 4);
@@ -794,19 +819,19 @@ TEST(ArpTest, FlushEntry) {
   // should do nothing and return 0
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
   binAddr = toBinaryAddress(IPAddressV4("10.0.0.254"));
-  numFlushed = thriftHandler.flushNeighborEntry(
-      make_unique<BinaryAddress>(binAddr), 1);
+  numFlushed =
+      thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 1);
   EXPECT_EQ(numFlushed, 0);
   binAddr = toBinaryAddress(IPAddressV4("1.2.3.4"));
-  numFlushed = thriftHandler.flushNeighborEntry(
-      make_unique<BinaryAddress>(binAddr), 1);
+  numFlushed =
+      thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 1);
   EXPECT_EQ(numFlushed, 0);
 
   // Calling flushNeighborEntry() with a bogus VLAN ID should throw an error.
   binAddr = toBinaryAddress(IPAddressV4("1.2.3.4"));
   auto binAddrPtr = make_unique<BinaryAddress>(binAddr);
-  EXPECT_THROW(thriftHandler.flushNeighborEntry(std::move(binAddrPtr), 123),
-               FbossError);
+  EXPECT_THROW(
+      thriftHandler.flushNeighborEntry(std::move(binAddrPtr), 123), FbossError);
 }
 
 TEST(ArpTest, PendingArp) {
@@ -821,30 +846,34 @@ TEST(ArpTest, PendingArp) {
 
   // Create an IP pkt for 10.0.0.10
   auto hex = PktUtil::parseHexData(
-    // dst mac, src mac
-    "02 00 01 00 00 01  02 00 02 01 02 03"
-    // 802.1q, VLAN 1
-    "81 00 00 01"
-    // IPv4
-    "08 00"
-    // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
-    "45  00  00 14"
-    // Identification(0), Flags(0), Fragment offset(0)
-    "00 00  00 00"
-    // TTL(31), Protocol(6), Checksum (0, fake)
-    "1F  06  00 00"
-    // Source IP (1.2.3.4)
-    "01 02 03 04"
-    // Destination IP (10.0.0.10)
-    "0a 00 00 0a"
-  );
+      // dst mac, src mac
+      "02 00 01 00 00 01  02 00 02 01 02 03"
+      // 802.1q, VLAN 1
+      "81 00 00 01"
+      // IPv4
+      "08 00"
+      // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
+      "45  00  00 14"
+      // Identification(0), Flags(0), Fragment offset(0)
+      "00 00  00 00"
+      // TTL(31), Protocol(6), Checksum (0, fake)
+      "1F  06  00 00"
+      // Source IP (1.2.3.4)
+      "01 02 03 04"
+      // Destination IP (10.0.0.10)
+      "0a 00 00 0a");
 
   // Receiving this packet should trigger an ARP request out,
   // and the state should now include a pending arp entry.
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
-  EXPECT_SWITCHED_PKT(sw, "ARP request",
-             checkArpRequest(senderIP, MacAddress("00:02:00:00:00:01"),
-                             IPAddressV4("10.0.0.10"), vlanID));
+  EXPECT_SWITCHED_PKT(
+      sw,
+      "ARP request",
+      checkArpRequest(
+          senderIP,
+          MacAddress("00:02:00:00:00:01"),
+          IPAddressV4("10.0.0.10"),
+          vlanID));
 
   handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
 
@@ -951,11 +980,8 @@ TEST(ArpTest, PendingArpCleanup) {
 
   std::promise<bool> done;
   auto* evb = sw->getBackgroundEvb();
-  evb->runInEventBaseThread([&]() {
-      evb->tryRunAfterDelay([&]() {
-        done.set_value(true);
-      }, 1010);
-    });
+  evb->runInEventBaseThread(
+      [&]() { evb->tryRunAfterDelay([&]() { done.set_value(true); }, 1010); });
   done.get_future().wait(); // Entries should be removed
 
   for (auto& arpExpiry : arpExpirations) {
@@ -1068,11 +1094,8 @@ TEST(ArpTest, ArpExpiration) {
   std::promise<bool> done;
 
   auto* evb = sw->getBackgroundEvb();
-  evb->runInEventBaseThread([&]() {
-      evb->tryRunAfterDelay([&]() {
-        done.set_value(true);
-      }, 2550);
-    });
+  evb->runInEventBaseThread(
+      [&]() { evb->tryRunAfterDelay([&]() { done.set_value(true); }, 2550); });
   done.get_future().wait();
 
   // The first entry should not be expired, but the second should be
@@ -1094,11 +1117,8 @@ TEST(ArpTest, ArpExpiration) {
 
   // Wait for the first entry to expire
   std::promise<bool> done2;
-  evb->runInEventBaseThread([&]() {
-      evb->tryRunAfterDelay([&]() {
-        done2.set_value(true);
-      }, 2050);
-    });
+  evb->runInEventBaseThread(
+      [&]() { evb->tryRunAfterDelay([&]() { done2.set_value(true); }, 2050); });
   done2.get_future().wait();
 
   // First entry should now be expired
@@ -1223,28 +1243,29 @@ TEST(ArpTest, receivedPacketWithDirectlyConnectedDestination) {
 
   // Create an IP pkt for 10.0.0.10
   auto buf = make_unique<IOBuf>(PktUtil::parseHexData(
-    // dst mac, src mac
-    "02 00 01 00 00 01  02 00 02 01 02 03"
-    // 802.1q, VLAN 1
-    "81 00 00 01"
-    // IPv4
-    "08 00"
-    // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
-    "45  00  00 14"
-    // Identification(0), Flags(0), Fragment offset(0)
-    "00 00  00 00"
-    // TTL(31), Protocol(6), Checksum (0, fake)
-    "1F  06  00 00"
-    // Source IP (1.2.3.4)
-    "01 02 03 04"
-    // Destination IP (10.0.0.10)
-    "0a 00 00 0a"
-  ));
+      // dst mac, src mac
+      "02 00 01 00 00 01  02 00 02 01 02 03"
+      // 802.1q, VLAN 1
+      "81 00 00 01"
+      // IPv4
+      "08 00"
+      // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
+      "45  00  00 14"
+      // Identification(0), Flags(0), Fragment offset(0)
+      "00 00  00 00"
+      // TTL(31), Protocol(6), Checksum (0, fake)
+      "1F  06  00 00"
+      // Source IP (1.2.3.4)
+      "01 02 03 04"
+      // Destination IP (10.0.0.10)
+      "0a 00 00 0a"));
 
   // Receiving this packet should trigger an ARP request out.
-  EXPECT_SWITCHED_PKT(sw, "ARP request",
-             checkArpRequest(senderIP, MacAddress("00:02:00:00:00:01"),
-                             targetIP, vlanID));
+  EXPECT_SWITCHED_PKT(
+      sw,
+      "ARP request",
+      checkArpRequest(
+          senderIP, MacAddress("00:02:00:00:00:01"), targetIP, vlanID));
   // The state will be updated twice: once to create a pending ARP entry and
   // once to expire the ARP entry
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(2);
@@ -1278,23 +1299,22 @@ TEST(ArpTest, receivedPacketWithNoRouteToDestination) {
 
   // Create an IP pkt for 10.0.10.10
   auto buf = make_unique<IOBuf>(PktUtil::parseHexData(
-    // dst mac, src mac
-    "02 00 01 00 00 01  02 00 02 01 02 03"
-    // 802.1q, VLAN 1
-    "81 00 00 01"
-    // IPv4
-    "08 00"
-    // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
-    "45  00  00 14"
-    // Identification(0), Flags(0), Fragment offset(0)
-    "00 00  00 00"
-    // TTL(31), Protocol(6), Checksum (0, fake)
-    "1F  06  00 00"
-    // Source IP (1.2.3.4)
-    "01 02 03 04"
-    // Destination IP (10.0.10.10)
-    "0a 00 0a 0a"
-  ));
+      // dst mac, src mac
+      "02 00 01 00 00 01  02 00 02 01 02 03"
+      // 802.1q, VLAN 1
+      "81 00 00 01"
+      // IPv4
+      "08 00"
+      // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
+      "45  00  00 14"
+      // Identification(0), Flags(0), Fragment offset(0)
+      "00 00  00 00"
+      // TTL(31), Protocol(6), Checksum (0, fake)
+      "1F  06  00 00"
+      // Source IP (1.2.3.4)
+      "01 02 03 04"
+      // Destination IP (10.0.10.10)
+      "0a 00 0a 0a"));
 
   // Receiving this packet should not trigger a ARP request out,
   // because no interface is able to reach that subnet
@@ -1342,23 +1362,22 @@ TEST(ArpTest, receivedPacketWithRouteToDestination) {
 
   // Create an IP pkt for 10.1.1.10, reachable through 10.0.0.22 and 10.0.0.23
   auto buf = make_unique<IOBuf>(PktUtil::parseHexData(
-    // dst mac, src mac
-    "02 00 01 00 00 01  02 00 02 01 02 03"
-    // 802.1q, VLAN 1
-    "81 00 00 01"
-    // IPv4
-    "08 00"
-    // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
-    "45  00  00 14"
-    // Identification(0), Flags(0), Fragment offset(0)
-    "00 00  00 00"
-    // TTL(31), Protocol(6), Checksum (0, fake)
-    "1F  06  00 00"
-    // Source IP (1.2.3.4)
-    "01 02 03 04"
-    // Destination IP (10.1.1.10)
-    "0a 01 01 0a"
-  ));
+      // dst mac, src mac
+      "02 00 01 00 00 01  02 00 02 01 02 03"
+      // 802.1q, VLAN 1
+      "81 00 00 01"
+      // IPv4
+      "08 00"
+      // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
+      "45  00  00 14"
+      // Identification(0), Flags(0), Fragment offset(0)
+      "00 00  00 00"
+      // TTL(31), Protocol(6), Checksum (0, fake)
+      "1F  06  00 00"
+      // Source IP (1.2.3.4)
+      "01 02 03 04"
+      // Destination IP (10.1.1.10)
+      "0a 01 01 0a"));
 
   // Receiving this packet should trigger an ARP request to 10.0.0.22 and
   // 10.0.0.23, which causes pending arp entries to be added to the state.

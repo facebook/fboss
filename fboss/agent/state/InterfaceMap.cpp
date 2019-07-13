@@ -8,24 +8,24 @@
  *
  */
 #include "fboss/agent/state/InterfaceMap.h"
-#include <string>
 #include <folly/Conv.h>
+#include <string>
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/NodeMap-defs.h"
 
-using std::string;
 using folly::IPAddress;
+using std::string;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-InterfaceMap::InterfaceMap() {
-}
+InterfaceMap::InterfaceMap() {}
 
-InterfaceMap::~InterfaceMap() {
-}
+InterfaceMap::~InterfaceMap() {}
 
-std::shared_ptr<Interface>
-InterfaceMap::getInterfaceIf(RouterID router, const IPAddress& ip) const {
+std::shared_ptr<Interface> InterfaceMap::getInterfaceIf(
+    RouterID router,
+    const IPAddress& ip) const {
   for (auto itr = begin(); itr != end(); ++itr) {
     if ((*itr)->getRouterID() == router && (*itr)->hasAddress(ip)) {
       return *itr;
@@ -34,8 +34,9 @@ InterfaceMap::getInterfaceIf(RouterID router, const IPAddress& ip) const {
   return nullptr;
 }
 
-const std::shared_ptr<Interface>&
-InterfaceMap::getInterface(RouterID router, const IPAddress& ip) const {
+const std::shared_ptr<Interface>& InterfaceMap::getInterface(
+    RouterID router,
+    const IPAddress& ip) const {
   for (auto itr = begin(); itr != end(); ++itr) {
     if ((*itr)->getRouterID() == router && (*itr)->hasAddress(ip)) {
       return *itr;
@@ -44,18 +45,18 @@ InterfaceMap::getInterface(RouterID router, const IPAddress& ip) const {
   throw FbossError("No interface with ip : ", ip);
 }
 
-std::shared_ptr<Interface>
-InterfaceMap::getInterfaceInVlanIf(VlanID vlan) const {
+std::shared_ptr<Interface> InterfaceMap::getInterfaceInVlanIf(
+    VlanID vlan) const {
   for (auto itr = begin(); itr != end(); ++itr) {
-    if ((*itr)->getVlanID() == vlan ) {
+    if ((*itr)->getVlanID() == vlan) {
       return *itr;
     }
   }
   return nullptr;
 }
 
-const std::shared_ptr<Interface>
-InterfaceMap::getInterfaceInVlan(VlanID vlan) const {
+const std::shared_ptr<Interface> InterfaceMap::getInterfaceInVlan(
+    VlanID vlan) const {
   auto interface = getInterfaceInVlanIf(vlan);
   if (!interface) {
     throw FbossError("No interface in vlan : ", vlan);
@@ -64,7 +65,8 @@ InterfaceMap::getInterfaceInVlan(VlanID vlan) const {
 }
 
 InterfaceMap::IntfAddrToReach InterfaceMap::getIntfAddrToReach(
-    RouterID router, const folly::IPAddress& dest) const {
+    RouterID router,
+    const folly::IPAddress& dest) const {
   for (auto iter = begin(); iter != end(); iter++) {
     const auto& intf = *iter;
     if (intf->getRouterID() == router) {
@@ -83,16 +85,16 @@ void InterfaceMap::addInterface(const std::shared_ptr<Interface>& interface) {
 
 folly::dynamic InterfaceMap::toFollyDynamic() const {
   folly::dynamic intfs = folly::dynamic::array;
-  for (const auto& intf: *this) {
+  for (const auto& intf : *this) {
     intfs.push_back(intf->toFollyDynamic());
   }
   return intfs;
 }
 
-std::shared_ptr<InterfaceMap>
-InterfaceMap::fromFollyDynamic(const folly::dynamic& intfMapJson) {
+std::shared_ptr<InterfaceMap> InterfaceMap::fromFollyDynamic(
+    const folly::dynamic& intfMapJson) {
   auto intfMap = std::make_shared<InterfaceMap>();
-  for (const auto& intf: intfMapJson) {
+  for (const auto& intf : intfMapJson) {
     intfMap->addInterface(Interface::fromFollyDynamic(intf));
   }
   return intfMap;
@@ -100,4 +102,5 @@ InterfaceMap::fromFollyDynamic(const folly::dynamic& intfMapJson) {
 
 FBOSS_INSTANTIATE_NODE_MAP(InterfaceMap, InterfaceMapTraits);
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

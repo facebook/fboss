@@ -17,13 +17,14 @@ extern "C" {
 #include <opennsl/types.h>
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmSwitch;
 class PortQueue;
 
 class BcmControlPlane {
-public:
+ public:
   BcmControlPlane(BcmSwitch* hw);
 
   ~BcmControlPlane() {}
@@ -56,14 +57,15 @@ public:
     return queueManager_->getCurrentQueueSettings().multicast;
   }
 
-private:
+ private:
   // no copy or assignment
-  BcmControlPlane(BcmControlPlane const &) = delete;
-  BcmControlPlane& operator=(BcmControlPlane const &) = delete;
+  BcmControlPlane(BcmControlPlane const&) = delete;
+  BcmControlPlane& operator=(BcmControlPlane const&) = delete;
 
   BcmSwitch* hw_{nullptr};
   // Broadcom global port number
   const opennsl_gport_t gport_;
   std::unique_ptr<BcmCosQueueManager> queueManager_;
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

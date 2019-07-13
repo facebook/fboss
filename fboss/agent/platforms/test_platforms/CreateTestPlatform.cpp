@@ -11,13 +11,12 @@
 #include "fboss/agent/platforms/test_platforms/CreateTestPlatform.h"
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestWedge100Platform.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestWedge40Platform.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestGalaxyPlatform.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestMinipack16QPlatform.h"
+#include "fboss/agent/platforms/test_platforms/BcmTestWedge100Platform.h"
+#include "fboss/agent/platforms/test_platforms/BcmTestWedge40Platform.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestYamp16QPlatform.h"
 #include "fboss/agent/platforms/test_platforms/FakeBcmTestPlatform.h"
-
 
 namespace facebook {
 namespace fboss {

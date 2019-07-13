@@ -12,13 +12,14 @@
 
 using folly::IPAddress;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-  BmcRestClient::BmcRestClient(void) :
-    RestClient(IPAddress("fe80::1%usb0"), 8080)
-  {}
+BmcRestClient::BmcRestClient(void)
+    : RestClient(IPAddress("fe80::1%usb0"), 8080) {}
 
-  bool BmcRestClient::resetCP2112() {
-    return(RestClient::request("/api/sys/usb2i2c_reset"));
- }
-}} // namespace facebook::fboss
+bool BmcRestClient::resetCP2112() {
+  return (RestClient::request("/api/sys/usb2i2c_reset"));
+}
+} // namespace fboss
+} // namespace facebook

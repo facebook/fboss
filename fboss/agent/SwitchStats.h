@@ -17,12 +17,13 @@
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class PortStats;
 
-typedef boost::container::flat_map<PortID,
-          std::unique_ptr<PortStats>> PortStatsMap;
+typedef boost::container::flat_map<PortID, std::unique_ptr<PortStats>>
+    PortStatsMap;
 using AggregatePortStatsMap = boost::container::
     flat_map<AggregatePortID, std::unique_ptr<AggregatePortStats>>;
 
@@ -242,7 +243,7 @@ class SwitchStats : public boost::noncopyable {
     updHeartbeatDelay_.addValue(delay);
   }
 
-  void  packetTxHeartbeatDelay(int value) {
+  void packetTxHeartbeatDelay(int value) {
     packetTxHeartbeatDelay_.addValue(value);
   }
 
@@ -278,11 +279,11 @@ class SwitchStats : public boost::noncopyable {
     linkStateChange_.addValue(1);
   }
 
-  void pcapDistFailure(){
+  void pcapDistFailure() {
     pcapDistFailure_.incrementValue(1);
   }
 
-  void updateStatsException(){
+  void updateStatsException() {
     updateStatsExceptions_.addValue(1);
   }
 
@@ -302,16 +303,16 @@ class SwitchStats : public boost::noncopyable {
 
  private:
   // Forbidden copy constructor and assignment operator
-  SwitchStats(SwitchStats const &) = delete;
-  SwitchStats& operator=(SwitchStats const &) = delete;
+  SwitchStats(SwitchStats const&) = delete;
+  SwitchStats& operator=(SwitchStats const&) = delete;
 
-  typedef
-  stats::ThreadCachedServiceData::ThreadLocalStatsMap ThreadLocalStatsMap;
+  typedef stats::ThreadCachedServiceData::ThreadLocalStatsMap
+      ThreadLocalStatsMap;
   typedef stats::ThreadCachedServiceData::TLTimeseries TLTimeseries;
   typedef stats::ThreadCachedServiceData::TLHistogram TLHistogram;
   typedef stats::ThreadCachedServiceData::TLCounter TLCounter;
 
-  explicit SwitchStats(ThreadLocalStatsMap *map);
+  explicit SwitchStats(ThreadLocalStatsMap* map);
 
   // Total number of trapped packets
   TLTimeseries trapPkts_;
@@ -484,4 +485,5 @@ class SwitchStats : public boost::noncopyable {
   // Number of LLDP packets that did not match configured, expected values.
   TLTimeseries LldpValidateMisMatch_;
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

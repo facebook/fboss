@@ -20,7 +20,8 @@
 #include <memory>
 #include <vector>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 template <typename AddrT>
 class RouteLogger {
@@ -71,7 +72,6 @@ class GlogRouteLogger : public RouteLogger<AddrT> {
   }
 };
 
-
 /*
  * Log changes to the routes in SwitchState.
  * Allow subscription to a prefix. When a route to a subscribed prefix
@@ -107,12 +107,13 @@ class RouteUpdateLogger : public AutoRegisterStateObserver {
 
  private:
   static std::unique_ptr<RouteLogger<folly::IPAddressV4>>
-    getDefaultV4RouteLogger();
+  getDefaultV4RouteLogger();
   static std::unique_ptr<RouteLogger<folly::IPAddressV6>>
-    getDefaultV6RouteLogger();
+  getDefaultV6RouteLogger();
   RouteUpdateLoggingPrefixTracker prefixTracker_;
   std::unique_ptr<RouteLogger<folly::IPAddressV4>> routeLoggerV4_;
   std::unique_ptr<RouteLogger<folly::IPAddressV6>> routeLoggerV6_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

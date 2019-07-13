@@ -12,7 +12,8 @@
 
 #include <folly/String.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 auto constexpr kCpuPortName = "cpu";
 auto constexpr kEcmpEgressId = "ecmpEgressId";
@@ -45,4 +46,5 @@ inline folly::StringPiece constexpr kWeight() {
   return "weight";
 }
 
-}}
+} // namespace fboss
+} // namespace facebook

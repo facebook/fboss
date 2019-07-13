@@ -11,7 +11,8 @@
 
 #include "fboss/agent/TxPacket.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class MockTxPacket : public TxPacket {
  public:
@@ -20,4 +21,5 @@ class MockTxPacket : public TxPacket {
   std::unique_ptr<MockTxPacket> clone() const;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

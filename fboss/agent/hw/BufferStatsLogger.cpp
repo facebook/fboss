@@ -8,7 +8,6 @@
  *
  */
 
-
 #include "fboss/agent/hw/BufferStatsLogger.h"
 
 #include <folly/logging/xlog.h>
@@ -29,13 +28,15 @@ void GlogBufferStatsLogger::logDeviceBufferStat(
 
 void GlogBufferStatsLogger::logPortBufferStat(
     const std::string& portName,
-    Direction dir, unsigned int cosQ,
-    uint64_t bytesUsed, uint64_t pktsDropeed,
+    Direction dir,
+    unsigned int cosQ,
+    uint64_t bytesUsed,
+    uint64_t pktsDropeed,
     const XPEs& xpes) {
   XLOG(INFO) << " Port : " << portName << " " << dirStr(dir)
              << " cosQ: " << cosQ << " bytes used : " << bytesUsed
              << " Packets dropped: " << pktsDropeed
              << " XPEs: " << xpeStr(xpes);
 }
-}
-}
+} // namespace fboss
+} // namespace facebook

@@ -23,8 +23,8 @@
 #include <atomic>
 #include <unordered_map>
 
-using std::make_unique;
 using folly::StringPiece;
+using std::make_unique;
 using std::string;
 
 /*
@@ -39,10 +39,10 @@ extern "C" int bde_create() {
 /*
  * We don't set any default values.
  */
-extern "C" void sal_config_init_defaults() {
-}
+extern "C" void sal_config_init_defaults() {}
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 static std::atomic<bool> bcmInitialized{false};
 static BcmAPI::HwConfigMap bcmConfig;
@@ -51,8 +51,7 @@ extern std::atomic<BcmUnit*> bcmUnits[];
 
 std::unique_ptr<BcmAPI> BcmAPI::singleton_;
 
-void BcmAPI::initConfig(
-  const std::map<std::string, std::string>& config) {
+void BcmAPI::initConfig(const std::map<std::string, std::string>& config) {
   // Store the configuration settings
   bcmConfig.clear();
   for (const auto& entry : config) {
@@ -78,8 +77,8 @@ std::unique_ptr<BcmUnit> BcmAPI::initUnit(
   auto unitObj = make_unique<BcmUnit>(deviceIndex, platform);
   int unit = unitObj->getNumber();
   BcmUnit* expectedUnit{nullptr};
-  if (!bcmUnits[unit].compare_exchange_strong(expectedUnit, unitObj.get(),
-                                              std::memory_order_acq_rel)) {
+  if (!bcmUnits[unit].compare_exchange_strong(
+          expectedUnit, unitObj.get(), std::memory_order_acq_rel)) {
     throw FbossError("a BcmUnit already exists for unit number ", unit);
   }
   platform->onUnitCreate(unit);
@@ -93,16 +92,15 @@ std::unique_ptr<BcmUnit> BcmAPI::initUnit(
 }
 
 void BcmAPI::init(const std::map<std::string, std::string>& config) {
-    if (bcmInitialized.load(std::memory_order_acquire)) {
-      return;
-    }
+  if (bcmInitialized.load(std::memory_order_acquire)) {
+    return;
+  }
 
-    initConfig(config);
-    BcmAPI::initImpl();
+  initConfig(config);
+  BcmAPI::initImpl();
 
-    bcmInitialized.store(true, std::memory_order_release);
+  bcmInitialized.store(true, std::memory_order_release);
 }
-
 
 std::unique_ptr<BcmUnit> BcmAPI::initOnlyUnit(BcmPlatform* platform) {
   auto numDevices = BcmAPI::getNumSwitches();
@@ -117,8 +115,8 @@ std::unique_ptr<BcmUnit> BcmAPI::initOnlyUnit(BcmPlatform* platform) {
 void BcmAPI::unitDestroyed(BcmUnit* unit) {
   int num = unit->getNumber();
   BcmUnit* expectedUnit{unit};
-  if (!bcmUnits[num].compare_exchange_strong(expectedUnit, nullptr,
-                                             std::memory_order_acq_rel)) {
+  if (!bcmUnits[num].compare_exchange_strong(
+          expectedUnit, nullptr, std::memory_order_acq_rel)) {
     XLOG(FATAL) << "inconsistency in BCM unit array for unit " << num
                 << ": expected " << (void*)unit << " but found "
                 << (void*)expectedUnit;
@@ -137,4 +135,5 @@ BcmUnit* BcmAPI::getUnit(int unit) {
   return unitObj;
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

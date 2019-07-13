@@ -20,12 +20,12 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/NDP.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -44,10 +44,11 @@ using folly::IPAddressV6;
 using folly::MacAddress;
 using folly::io::Cursor;
 using folly::io::RWPrivateCursor;
-using std::unique_ptr;
 using std::shared_ptr;
+using std::unique_ptr;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 template <typename BodyFn>
 std::unique_ptr<TxPacket> createICMPv6Pkt(
@@ -73,8 +74,8 @@ std::unique_ptr<TxPacket> createICMPv6Pkt(
   uint32_t pktLen = icmp6.computeTotalLengthV6(bodyLength);
   auto pkt = sw->allocatePacket(pktLen);
   RWPrivateCursor cursor(pkt->buf());
-  icmp6.serializeFullPacket(&cursor, dstMac, srcMac, vlan,
-                               ipv6, bodyLength, serializeBody);
+  icmp6.serializeFullPacket(
+      &cursor, dstMac, srcMac, vlan, ipv6, bodyLength, serializeBody);
   return pkt;
 }
 
@@ -86,9 +87,7 @@ struct IPv6Handler::ICMPHeaders {
 };
 
 IPv6Handler::IPv6Handler(SwSwitch* sw)
-    : AutoRegisterStateObserver(sw, "IPv6Handler"),
-      sw_(sw) {
-}
+    : AutoRegisterStateObserver(sw, "IPv6Handler"), sw_(sw) {}
 
 void IPv6Handler::stateUpdated(const StateDelta& delta) {
   for (const auto& entry : delta.getIntfsDelta()) {
@@ -128,12 +127,13 @@ void IPv6Handler::intfDeleted(const Interface* intf) {
   CHECK_EQ(numErased, 1);
 }
 
-void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
-                               MacAddress dst,
-                               MacAddress src,
-                               Cursor cursor) {
+void IPv6Handler::handlePacket(
+    unique_ptr<RxPacket> pkt,
+    MacAddress dst,
+    MacAddress src,
+    Cursor cursor) {
   const uint32_t l3Len = pkt->getLength() - (cursor - Cursor(pkt->buf()));
-  IPv6Hdr ipv6(cursor);  // note: advances our cursor object
+  IPv6Hdr ipv6(cursor); // note: advances our cursor object
   XLOG(DBG4) << "IPv6 (" << l3Len
              << " bytes)"
                 " port: "
@@ -169,8 +169,8 @@ void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
     XLOG(DBG4) << "DHCP UDP packet, source port :" << udpHdr.srcPort
                << " destination port: " << udpHdr.dstPort;
     if (DHCPv6Handler::isForDHCPv6RelayOrServer(udpHdr)) {
-      DHCPv6Handler::handlePacket(sw_, std::move(pkt), src, dst, ipv6,
-          udpHdr, udpCursor);
+      DHCPv6Handler::handlePacket(
+          sw_, std::move(pkt), src, dst, ipv6, udpHdr, udpCursor);
       return;
     }
   }
@@ -192,7 +192,7 @@ void IPv6Handler::handlePacket(unique_ptr<RxPacket> pkt,
     // Forward link-local packet directly to corresponding host interface
     // provided desAddr is assigned to that interface.
     intf = interfaceMap->getInterfaceInVlanIf(pkt->getSrcVlan());
-    if (intf && ! (intf->hasAddress(ipv6.dstAddr))) {
+    if (intf && !(intf->hasAddress(ipv6.dstAddr))) {
       intf = nullptr;
     }
   } else {
@@ -294,9 +294,10 @@ unique_ptr<RxPacket> IPv6Handler::handleICMPv6Packet(
   return pkt;
 }
 
-void IPv6Handler::handleRouterSolicitation(unique_ptr<RxPacket> pkt,
-                                           const ICMPHeaders& hdr,
-                                           Cursor cursor) {
+void IPv6Handler::handleRouterSolicitation(
+    unique_ptr<RxPacket> pkt,
+    const ICMPHeaders& hdr,
+    Cursor cursor) {
   sw_->portStats(pkt)->ipv6NdpPkt();
   if (!checkNdpPacket(hdr, pkt.get())) {
     return;
@@ -342,14 +343,13 @@ void IPv6Handler::handleRouterSolicitation(unique_ptr<RxPacket> pkt,
   auto resp = sw_->allocatePacket(pktLen);
   RWPrivateCursor respCursor(resp->buf());
   IPv6RouteAdvertiser::createAdvertisementPacket(
-    intf.get(), &respCursor, dstMac, dstIP);
+      intf.get(), &respCursor, dstMac, dstIP);
   // Based on the router solicidtation and advertisement mechanism, the
   // advertisement should send back to who request such solicidation. Besides,
   // right now, only servers send RSW router solicidation. It's kinda safe to
   // send router advertisement back to the src port.
   sw_->sendNetworkControlPacketAsync(
-    std::move(resp),
-    PortDescriptor::fromRxPacket(*pkt.get()));
+      std::move(resp), PortDescriptor::fromRxPacket(*pkt.get()));
 }
 
 void IPv6Handler::handleRouterAdvertisement(
@@ -373,9 +373,10 @@ void IPv6Handler::handleRouterAdvertisement(
   sw_->portStats(pkt)->pktDropped();
 }
 
-void IPv6Handler::handleNeighborSolicitation(unique_ptr<RxPacket> pkt,
-                                             const ICMPHeaders& hdr,
-                                             Cursor cursor) {
+void IPv6Handler::handleNeighborSolicitation(
+    unique_ptr<RxPacket> pkt,
+    const ICMPHeaders& hdr,
+    Cursor cursor) {
   sw_->portStats(pkt)->ipv6NdpPkt();
   if (!checkNdpPacket(hdr, pkt.get())) {
     return;
@@ -478,9 +479,10 @@ void IPv6Handler::handleNeighborSolicitation(unique_ptr<RxPacket> pkt,
       srcPortDescriptor);
 }
 
-void IPv6Handler::handleNeighborAdvertisement(unique_ptr<RxPacket> pkt,
-                                              const ICMPHeaders& hdr,
-                                              Cursor cursor) {
+void IPv6Handler::handleNeighborAdvertisement(
+    unique_ptr<RxPacket> pkt,
+    const ICMPHeaders& hdr,
+    Cursor cursor) {
   sw_->portStats(pkt)->ipv6NdpPkt();
   if (!checkNdpPacket(hdr, pkt.get())) {
     return;
@@ -526,23 +528,31 @@ void IPv6Handler::handleNeighborAdvertisement(unique_ptr<RxPacket> pkt,
   // Check to see if this IP address is in our NDP response table.
   auto entry = vlan->getNdpResponseTable()->getEntry(hdr.ipv6->dstAddr);
   if (!entry) {
-    updater->receivedNdpNotMine(vlan->getID(), targetIP, hdr.src,
-                                PortDescriptor::fromRxPacket(*pkt.get()),
-                                type, flags);
+    updater->receivedNdpNotMine(
+        vlan->getID(),
+        targetIP,
+        hdr.src,
+        PortDescriptor::fromRxPacket(*pkt.get()),
+        type,
+        flags);
     return;
   }
 
-  updater->receivedNdpMine(vlan->getID(), targetIP, hdr.src,
-                           PortDescriptor::fromRxPacket(*pkt.get()),
-                           type, flags);
+  updater->receivedNdpMine(
+      vlan->getID(),
+      targetIP,
+      hdr.src,
+      PortDescriptor::fromRxPacket(*pkt.get()),
+      type,
+      flags);
 }
 
-
-void IPv6Handler::sendICMPv6TimeExceeded(VlanID srcVlan,
-                              MacAddress dst,
-                              MacAddress src,
-                              IPv6Hdr& v6Hdr,
-                              folly::io::Cursor cursor) {
+void IPv6Handler::sendICMPv6TimeExceeded(
+    VlanID srcVlan,
+    MacAddress dst,
+    MacAddress src,
+    IPv6Hdr& v6Hdr,
+    folly::io::Cursor cursor) {
   auto state = sw_->getState();
 
   /*
@@ -599,37 +609,41 @@ void IPv6Handler::sendICMPv6PacketTooBig(
   // this is upper limit of bodyLength
   uint32_t bodyLengthLimit = IPV6_MIN_MTU - ICMPHdr::computeTotalLengthV6(0);
   // this is when we add the whole input L3 packet
-  uint32_t fullPacketLength = ICMPHdr::ICMPV6_MTU_LEN + IPv6Hdr::SIZE
-                              + cursor.totalLength();
+  uint32_t fullPacketLength =
+      ICMPHdr::ICMPV6_MTU_LEN + IPv6Hdr::SIZE + cursor.totalLength();
   auto bodyLength = std::min(bodyLengthLimit, fullPacketLength);
 
   auto serializeBody = [&](RWPrivateCursor* sendCursor) {
     sendCursor->writeBE<uint32_t>(expectedMtu);
     v6Hdr.serialize(sendCursor);
-    auto remainingLength = bodyLength - IPv6Hdr::SIZE -
-                           ICMPHdr::ICMPV6_UNUSED_LEN;
+    auto remainingLength =
+        bodyLength - IPv6Hdr::SIZE - ICMPHdr::ICMPV6_UNUSED_LEN;
     sendCursor->push(cursor, remainingLength);
   };
 
   IPAddressV6 srcIp = getSwitchVlanIPv6(state, srcVlan);
-  auto icmpPkt = createICMPv6Pkt(sw_, dst, src, srcVlan,
-                             v6Hdr.srcAddr, srcIp,
-                             ICMPv6Type::ICMPV6_TYPE_PACKET_TOO_BIG,
-                             ICMPv6Code::ICMPV6_CODE_PACKET_TOO_BIG,
-                             bodyLength, serializeBody);
+  auto icmpPkt = createICMPv6Pkt(
+      sw_,
+      dst,
+      src,
+      srcVlan,
+      v6Hdr.srcAddr,
+      srcIp,
+      ICMPv6Type::ICMPV6_TYPE_PACKET_TOO_BIG,
+      ICMPv6Code::ICMPV6_CODE_PACKET_TOO_BIG,
+      bodyLength,
+      serializeBody);
 
   XLOG(DBG4) << "sending ICMPv6 Packet Too Big with srcMac  " << src
-          << " dstMac: " << dst
-          << " vlan: " << srcVlan
-          << " dstIp: " << v6Hdr.srcAddr.str()
-          << " srcIP: " << srcIp.str()
-          << " bodyLength: " << bodyLength;
+             << " dstMac: " << dst << " vlan: " << srcVlan
+             << " dstIp: " << v6Hdr.srcAddr.str() << " srcIP: " << srcIp.str()
+             << " bodyLength: " << bodyLength;
   sw_->sendPacketSwitchedAsync(std::move(icmpPkt));
   sw_->portStats(srcPort)->pktTooBig();
 }
 
-bool IPv6Handler::checkNdpPacket(const ICMPHeaders& hdr,
-                                 const RxPacket* pkt) const {
+bool IPv6Handler::checkNdpPacket(const ICMPHeaders& hdr, const RxPacket* pkt)
+    const {
   // Validation common for all NDP packets
   if (hdr.ipv6->hopLimit != 255) {
     XLOG(DBG3) << "bad IPv6 NDP request (" << hdr.icmp6->type
@@ -842,13 +856,17 @@ void IPv6Handler::sendMulticastNeighborSolicitations(
 }
 
 void IPv6Handler::floodNeighborAdvertisements() {
-  for (const auto& intf: *sw_->getState()->getInterfaces()) {
-    for (const auto& addrEntry: intf->getAddresses()) {
+  for (const auto& intf : *sw_->getState()->getInterfaces()) {
+    for (const auto& addrEntry : intf->getAddresses()) {
       if (!addrEntry.first.isV6()) {
         continue;
       }
-      sendNeighborAdvertisement(intf->getVlanID(), intf->getMac(),
-          addrEntry.first.asV6(), MacAddress::BROADCAST, IPAddressV6());
+      sendNeighborAdvertisement(
+          intf->getVlanID(),
+          intf->getMac(),
+          addrEntry.first.asV6(),
+          MacAddress::BROADCAST,
+          IPAddressV6());
     }
   }
 }
@@ -884,10 +902,17 @@ void IPv6Handler::sendNeighborAdvertisement(
     ndpOptions.serialize(cursor);
   };
 
-  auto pkt = createICMPv6Pkt(sw_, dstMac, srcMac, vlan, dstIP, srcIP,
-                             ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-                             ICMPv6Code::ICMPV6_CODE_NDP_MESSAGE_CODE,
-                             bodyLength, serializeBody);
+  auto pkt = createICMPv6Pkt(
+      sw_,
+      dstMac,
+      srcMac,
+      vlan,
+      dstIP,
+      srcIP,
+      ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+      ICMPv6Code::ICMPV6_CODE_NDP_MESSAGE_CODE,
+      bodyLength,
+      serializeBody);
   sw_->sendNetworkControlPacketAsync(std::move(pkt), portDescriptor);
 }
 
@@ -925,4 +950,5 @@ void IPv6Handler::sendNeighborSolicitation(
       serializeBody);
   sw->sendNetworkControlPacketAsync(std::move(pkt), portDescriptor);
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

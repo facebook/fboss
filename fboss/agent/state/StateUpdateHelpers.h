@@ -21,18 +21,20 @@
 #include <folly/logging/xlog.h>
 #include "fboss/agent/state/StateUpdate.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class FunctionStateUpdate : public StateUpdate {
  public:
-  typedef std::function<
-    std::shared_ptr<SwitchState>(const std::shared_ptr<SwitchState>&)>
-    StateUpdateFn;
+  typedef std::function<std::shared_ptr<SwitchState>(
+      const std::shared_ptr<SwitchState>&)>
+      StateUpdateFn;
 
-  FunctionStateUpdate(folly::StringPiece name, StateUpdateFn fn,
-                      bool allowCoalesce = true)
-    : StateUpdate(name, allowCoalesce),
-      function_(fn) {}
+  FunctionStateUpdate(
+      folly::StringPiece name,
+      StateUpdateFn fn,
+      bool allowCoalesce = true)
+      : StateUpdate(name, allowCoalesce), function_(fn) {}
 
   std::shared_ptr<SwitchState> applyUpdate(
       const std::shared_ptr<SwitchState>& origState) override {
@@ -95,17 +97,16 @@ class BlockingUpdateResult {
 
 class BlockingStateUpdate : public StateUpdate {
  public:
-  typedef std::function<
-    std::shared_ptr<SwitchState>(const std::shared_ptr<SwitchState>&)>
-    StateUpdateFn;
+  typedef std::function<std::shared_ptr<SwitchState>(
+      const std::shared_ptr<SwitchState>&)>
+      StateUpdateFn;
 
-  BlockingStateUpdate(folly::StringPiece name,
-                      StateUpdateFn fn,
-                      std::shared_ptr<BlockingUpdateResult> result,
-                      bool allowCoalesce = true)
-    : StateUpdate(name, allowCoalesce),
-      function_(fn),
-      result_(result) {}
+  BlockingStateUpdate(
+      folly::StringPiece name,
+      StateUpdateFn fn,
+      std::shared_ptr<BlockingUpdateResult> result,
+      bool allowCoalesce = true)
+      : StateUpdate(name, allowCoalesce), function_(fn), result_(result) {}
 
   std::shared_ptr<SwitchState> applyUpdate(
       const std::shared_ptr<SwitchState>& origState) override {
@@ -130,4 +131,5 @@ class BlockingStateUpdate : public StateUpdate {
   std::shared_ptr<BlockingUpdateResult> result_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -38,37 +38,38 @@ class BcmSflowExporter {
 
  private:
   // no copy or assignment
-  BcmSflowExporter(BcmSflowExporter const &) = delete;
-  BcmSflowExporter& operator=(BcmSflowExporter const &) = delete;
+  BcmSflowExporter(BcmSflowExporter const&) = delete;
+  BcmSflowExporter& operator=(BcmSflowExporter const&) = delete;
 
   const folly::SocketAddress address_;
   int socket_{-1};
 };
 
 class BcmSflowExporterTable {
-  public:
-    BcmSflowExporterTable() = default;
-    ~BcmSflowExporterTable() = default;
+ public:
+  BcmSflowExporterTable() = default;
+  ~BcmSflowExporterTable() = default;
 
-    bool contains(const std::shared_ptr<SflowCollector>& collector) const;
-    size_t size() const;
-    void addExporter(const std::shared_ptr<SflowCollector>& collector);
-    void removeExporter(const std::string& ID);
+  bool contains(const std::shared_ptr<SflowCollector>& collector) const;
+  size_t size() const;
+  void addExporter(const std::shared_ptr<SflowCollector>& collector);
+  void removeExporter(const std::string& ID);
 
-    void updateSamplingRates(PortID id, int64_t inRate, int64_t outRate);
+  void updateSamplingRates(PortID id, int64_t inRate, int64_t outRate);
 
-    void sendToAll(const SflowPacketInfo& info);
-  private:
-    // no copy or assignment
-    BcmSflowExporterTable(BcmSflowExporterTable const &) = delete;
-    BcmSflowExporterTable& operator=(BcmSflowExporterTable const &) = delete;
+  void sendToAll(const SflowPacketInfo& info);
 
-    std::unordered_map<std::string, std::unique_ptr<BcmSflowExporter>> map_;
-    std::unordered_map<
-        PortID,
-        std::pair<int64_t /* ingress rate */, int64_t /* egress rate */>>
-        port2samplingRates_;
-    folly::IPAddress localIP_;
+ private:
+  // no copy or assignment
+  BcmSflowExporterTable(BcmSflowExporterTable const&) = delete;
+  BcmSflowExporterTable& operator=(BcmSflowExporterTable const&) = delete;
+
+  std::unordered_map<std::string, std::unique_ptr<BcmSflowExporter>> map_;
+  std::unordered_map<
+      PortID,
+      std::pair<int64_t /* ingress rate */, int64_t /* egress rate */>>
+      port2samplingRates_;
+  folly::IPAddress localIP_;
 };
 
 } // namespace fboss

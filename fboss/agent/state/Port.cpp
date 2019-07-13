@@ -9,18 +9,18 @@
  */
 #include "Port.h"
 
+#include <folly/Conv.h>
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
-#include <folly/Conv.h>
 
 #include "fboss/agent/state/NodeBase-defs.h"
 
 using folly::to;
 using std::string;
 
-namespace facebook { namespace fboss {
-
+namespace facebook {
+namespace fboss {
 
 state::VlanInfo PortFields::VlanInfo::toThrift() const {
   state::VlanInfo vlanThrift;
@@ -29,8 +29,8 @@ state::VlanInfo PortFields::VlanInfo::toThrift() const {
 }
 
 // static
-PortFields::VlanInfo
-PortFields::VlanInfo::fromThrift(const state::VlanInfo& vlanThrift) {
+PortFields::VlanInfo PortFields::VlanInfo::fromThrift(
+    const state::VlanInfo& vlanThrift) {
   return VlanInfo(vlanThrift.tagged);
 }
 
@@ -78,7 +78,7 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
     auto itrPortLoopbackMode = cfg::_PortLoopbackMode_NAMES_TO_VALUES.find(
         portThrift.portLoopbackMode.c_str());
     CHECK(itrPortLoopbackMode != cfg::_PortLoopbackMode_NAMES_TO_VALUES.end())
-      << "Unexpected loopback mode value: " << portThrift.portLoopbackMode;
+        << "Unexpected loopback mode value: " << portThrift.portLoopbackMode;
     port.loopbackMode = cfg::PortLoopbackMode(itrPortLoopbackMode->second);
   }
 
@@ -118,7 +118,7 @@ state::PortFields PortFields::toThrift() const {
   port.portDescription = description;
 
   // TODO: store admin state as enum, not string?
-  auto itrAdminState  = cfg::_PortState_VALUES_TO_NAMES.find(adminState);
+  auto itrAdminState = cfg::_PortState_VALUES_TO_NAMES.find(adminState);
   CHECK(itrAdminState != cfg::_PortState_VALUES_TO_NAMES.end())
       << "Unexpected admin state: " << static_cast<int>(adminState);
   port.portState = itrAdminState->second;
@@ -127,7 +127,7 @@ state::PortFields PortFields::toThrift() const {
   port.ingressVlan = ingressVlan;
 
   // TODO: store speed as enum, not string?
-  auto itrSpeed  = cfg::_PortSpeed_VALUES_TO_NAMES.find(speed);
+  auto itrSpeed = cfg::_PortSpeed_VALUES_TO_NAMES.find(speed);
   CHECK(itrSpeed != cfg::_PortSpeed_VALUES_TO_NAMES.end())
       << "Unexpected port speed: " << static_cast<int>(speed);
   port.portSpeed = itrSpeed->second;
@@ -135,7 +135,7 @@ state::PortFields PortFields::toThrift() const {
   // TODO(aeckert): t24117229 remove this after next version is pushed
   port.portMaxSpeed = port.portSpeed;
 
-  auto itrPortFec  = cfg::_PortFEC_VALUES_TO_NAMES.find(fec);
+  auto itrPortFec = cfg::_PortFEC_VALUES_TO_NAMES.find(fec);
   CHECK(itrPortFec != cfg::_PortFEC_VALUES_TO_NAMES.end())
       << "Unexpected port FEC: " << static_cast<int>(fec);
   port.portFEC = itrPortFec->second;
@@ -149,7 +149,7 @@ state::PortFields PortFields::toThrift() const {
   port.txPause = pause.tx;
   port.rxPause = pause.rx;
 
-  for (const auto& vlan: vlans) {
+  for (const auto& vlan : vlans) {
     port.vlanMemberShips[to<string>(vlan.first)] = vlan.second.toThrift();
   }
 
@@ -172,9 +172,7 @@ state::PortFields PortFields::toThrift() const {
   return port;
 }
 
-Port::Port(PortID id, const std::string& name)
-  : ThriftyBaseT(id, name) {
-}
+Port::Port(PortID id, const std::string& name) : ThriftyBaseT(id, name) {}
 
 void Port::initDefaultConfigState(cfg::Port* config) const {
   // Copy over port identifiers and reset to (default)
@@ -199,4 +197,5 @@ Port* Port::modify(std::shared_ptr<SwitchState>* state) {
 
 template class NodeBaseT<Port, PortFields>;
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

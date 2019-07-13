@@ -237,8 +237,8 @@ bool TimeSeriesWithMinMax<ValueType>::Bucket::isTimeInBucket(Time time) {
 
 template <class ValueType>
 typename TimeSeriesWithMinMax<ValueType>::Time
-TimeSeriesWithMinMax<ValueType>::Bucket::getInstantiatedTime() const{
+TimeSeriesWithMinMax<ValueType>::Bucket::getInstantiatedTime() const {
   return startTime_;
 }
-}
-}
+} // namespace fboss
+} // namespace facebook

@@ -11,14 +11,15 @@
 
 #include <folly/Range.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 void macFromBcm(opennsl_mac_t mac, folly::MacAddress* result) {
   result->setFromBinary(folly::ByteRange(mac, folly::MacAddress::SIZE));
 }
 folly::MacAddress macFromBcm(const opennsl_mac_t mac) {
   return folly::MacAddress::fromBinary(
-    folly::ByteRange(mac, folly::MacAddress::SIZE));
+      folly::ByteRange(mac, folly::MacAddress::SIZE));
 }
 void macToBcm(folly::MacAddress mac, opennsl_mac_t* result) {
   memcpy(result, mac.bytes(), folly::MacAddress::SIZE);
@@ -29,17 +30,14 @@ void macToBcm(folly::MacAddress mac, opennsl_mac_t* result) {
 void ipToBcmIp6(const folly::IPAddress& ip, opennsl_ip6_t* bcmIp6) {
   memset(bcmIp6, 0, sizeof(opennsl_ip6_t));
   if (ip.isV6()) {
-  memcpy(bcmIp6, ip.bytes(), ip.byteCount());
+    memcpy(bcmIp6, ip.bytes(), ip.byteCount());
   } else {
-  memcpy(((uint8_t*) bcmIp6) + 16 - 4,
-        ip.bytes(),
-        ip.byteCount());
+    memcpy(((uint8_t*)bcmIp6) + 16 - 4, ip.bytes(), ip.byteCount());
   }
 }
 
 folly::IPAddress ipFromBcm(opennsl_ip6_t bcmIp6) {
-  return folly::IPAddress::fromBinary(
-      folly::ByteRange(bcmIp6, 16));
+  return folly::IPAddress::fromBinary(folly::ByteRange(bcmIp6, 16));
 }
 
 void networkToBcmIp6(
@@ -48,12 +46,15 @@ void networkToBcmIp6(
     opennsl_ip6_t* mask) {
   ipToBcmIp6(network.first, ip);
   if (network.first.isV4()) {
-    ipToBcmIp6(folly::IPAddressV4(folly::IPAddressV4::fetchMask(
-      network.second)), mask);
+    ipToBcmIp6(
+        folly::IPAddressV4(folly::IPAddressV4::fetchMask(network.second)),
+        mask);
   } else {
-    ipToBcmIp6(folly::IPAddressV6(folly::IPAddressV6::fetchMask(
-      network.second)), mask);
+    ipToBcmIp6(
+        folly::IPAddressV6(folly::IPAddressV6::fetchMask(network.second)),
+        mask);
   }
 }
 
-}} //faceboook::fboss
+} // namespace fboss
+} // namespace facebook

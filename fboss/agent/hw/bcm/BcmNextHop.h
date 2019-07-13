@@ -102,7 +102,7 @@ class BcmNextHopTable {
     return hw_;
   }
 
-private:
+ private:
   BcmSwitch* hw_;
   MapT nexthops_;
 };

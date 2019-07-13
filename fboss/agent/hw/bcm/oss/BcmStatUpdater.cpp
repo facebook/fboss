@@ -9,7 +9,8 @@
  */
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 using facebook::stats::MonotonicCounter;
 
@@ -19,4 +20,5 @@ void BcmStatUpdater::updateAclStat(
     cfg::CounterType /*counterType*/,
     std::chrono::seconds /*now*/,
     MonotonicCounter* /*counter*/) {}
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

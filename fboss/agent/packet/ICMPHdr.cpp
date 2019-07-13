@@ -21,12 +21,13 @@
 #include "fboss/agent/packet/NDP.h"
 #include "fboss/agent/packet/PktUtil.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
+using folly::IOBuf;
 using folly::IPAddress;
 using folly::IPAddressV6;
 using folly::MacAddress;
-using folly::IOBuf;
 using folly::io::Cursor;
 using folly::io::RWPrivateCursor;
 
@@ -46,8 +47,8 @@ void ICMPHdr::serialize(folly::io::RWPrivateCursor* cursor) const {
   cursor->writeBE<uint16_t>(csum);
 }
 
-uint16_t ICMPHdr::computeChecksum(const IPv6Hdr& ipv6Hdr,
-                                    const Cursor& cursor) const {
+uint16_t ICMPHdr::computeChecksum(const IPv6Hdr& ipv6Hdr, const Cursor& cursor)
+    const {
   // The checksum is computed over the IPv6 pseudo header,
   // our header with the checksum set to 0, followed by the body.
   uint32_t sum = ipv6Hdr.pseudoHdrPartialCsum();
@@ -59,8 +60,8 @@ uint16_t ICMPHdr::computeChecksum(const IPv6Hdr& ipv6Hdr,
   return PktUtil::finalizeChecksum(cursor, length, sum);
 }
 
-uint16_t ICMPHdr::computeChecksum(const Cursor& cursor,
-                                  uint32_t payloadLength) const {
+uint16_t ICMPHdr::computeChecksum(const Cursor& cursor, uint32_t payloadLength)
+    const {
   // Checksum our header
   uint32_t sum = 0;
   sum += ((type << 8) + code);
@@ -69,11 +70,12 @@ uint16_t ICMPHdr::computeChecksum(const Cursor& cursor,
   return PktUtil::finalizeChecksum(cursor, payloadLength, sum);
 }
 
-void ICMPHdr::serializePktHdr(folly::io::RWPrivateCursor* cursor,
-                                MacAddress dstMac,
-                                MacAddress srcMac,
-                                VlanID vlan,
-                                const IPv4Hdr& ipv4) {
+void ICMPHdr::serializePktHdr(
+    folly::io::RWPrivateCursor* cursor,
+    MacAddress dstMac,
+    MacAddress srcMac,
+    VlanID vlan,
+    const IPv4Hdr& ipv4) {
   cursor->push(dstMac.bytes(), folly::MacAddress::SIZE);
   cursor->push(srcMac.bytes(), folly::MacAddress::SIZE);
   cursor->writeBE<uint16_t>(static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN));
@@ -88,12 +90,13 @@ uint32_t ICMPHdr::computeTotalLengthV4(uint32_t payloadLength) {
   return payloadLength + IPv4Hdr::minSize() + ICMPHdr::SIZE + EthHdr::SIZE;
 }
 
-void ICMPHdr::serializePktHdr(folly::io::RWPrivateCursor* cursor,
-                                MacAddress dstMac,
-                                MacAddress srcMac,
-                                VlanID vlan,
-                                const IPv6Hdr& ipv6,
-                                uint32_t payloadLength) {
+void ICMPHdr::serializePktHdr(
+    folly::io::RWPrivateCursor* cursor,
+    MacAddress dstMac,
+    MacAddress srcMac,
+    VlanID vlan,
+    const IPv6Hdr& ipv6,
+    uint32_t payloadLength) {
   // TODO: clean up the EthHdr code and use EthHdr here
   cursor->push(dstMac.bytes(), folly::MacAddress::SIZE);
   cursor->push(srcMac.bytes(), folly::MacAddress::SIZE);
@@ -110,4 +113,5 @@ void ICMPHdr::serializePktHdr(folly::io::RWPrivateCursor* cursor,
 uint32_t ICMPHdr::computeTotalLengthV6(uint32_t payloadLength) {
   return payloadLength + ICMPHdr::SIZE + IPv6Hdr::SIZE + EthHdr::SIZE;
 }
-}}
+} // namespace fboss
+} // namespace facebook

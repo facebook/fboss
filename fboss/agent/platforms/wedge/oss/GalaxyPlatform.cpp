@@ -9,8 +9,8 @@
  */
 #include "fboss/agent/platforms/wedge/GalaxyPlatform.h"
 
-
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 folly::ByteRange GalaxyPlatform::defaultLed0Code() {
   return folly::ByteRange();
@@ -20,4 +20,5 @@ folly::ByteRange GalaxyPlatform::defaultLed1Code() {
   return defaultLed0Code();
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

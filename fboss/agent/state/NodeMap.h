@@ -14,7 +14,8 @@
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/NodeMapIterator.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * NodeMapFields defines the fields contained inside a NodeMapT instantiation
@@ -30,10 +31,9 @@ struct NodeMapFields {
   NodeMapFields() {}
   NodeMapFields(NodeContainer nodes) : nodes(std::move(nodes)) {}
   NodeMapFields(const NodeMapFields& other, NodeContainer nodes)
-    : nodes(std::move(nodes)),
-      extra(other.extra) {}
+      : nodes(std::move(nodes)), extra(other.extra) {}
 
-  template<typename Fn>
+  template <typename Fn>
   void forEachChild(Fn fn) {
     for (const auto& nodePtr : nodes) {
       fn(nodePtr.second.get());
@@ -58,7 +58,7 @@ struct NodeMapNoExtraFields {
   }
 };
 
-template<typename KeyT, typename NodeT, typename ExtraT = NodeMapNoExtraFields>
+template <typename KeyT, typename NodeT, typename ExtraT = NodeMapNoExtraFields>
 struct NodeMapTraits {
   using KeyType = KeyT;
   using Node = NodeT;
@@ -78,8 +78,7 @@ struct NodeMapTraits {
  * the Node.
  */
 template <typename MapTypeT, typename TraitsT>
-class NodeMapT : public NodeBaseT<MapTypeT,
-                                  NodeMapFields<TraitsT>> {
+class NodeMapT : public NodeBaseT<MapTypeT, NodeMapFields<TraitsT>> {
  public:
   using Traits = TraitsT;
   using KeyType = typename TraitsT::KeyType;
@@ -113,18 +112,17 @@ class NodeMapT : public NodeBaseT<MapTypeT,
   }
 
   Iterator begin() const {
-    return(Iterator(getAllNodes().begin()));
+    return (Iterator(getAllNodes().begin()));
   }
   Iterator end() const {
-    return(Iterator(getAllNodes().end()));
+    return (Iterator(getAllNodes().end()));
   }
   ReverseIterator rbegin() const {
-    return(ReverseIterator(getAllNodes().rbegin()));
+    return (ReverseIterator(getAllNodes().rbegin()));
   }
   ReverseIterator rend() const {
-    return(ReverseIterator(getAllNodes().rend()));
+    return (ReverseIterator(getAllNodes().rend()));
   }
-
 
   /*
    * The following functions modify the static state.
@@ -152,8 +150,7 @@ class NodeMapT : public NodeBaseT<MapTypeT,
   /*
    * Deserialize to folly::dynamic
    */
-  static std::shared_ptr<MapTypeT>
-    fromFollyDynamic(const folly::dynamic& json);
+  static std::shared_ptr<MapTypeT> fromFollyDynamic(const folly::dynamic& json);
 
   static constexpr char kExtraFields[] = "extraFields";
   static constexpr char kEntries[] = "entries";
@@ -164,4 +161,5 @@ class NodeMapT : public NodeBaseT<MapTypeT,
   friend class CloneAllocator;
 };
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

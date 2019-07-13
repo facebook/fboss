@@ -9,15 +9,16 @@
  */
 #pragma once
 
-#include "fboss/agent/Platform.h"
 #include <map>
 #include <string>
+#include "fboss/agent/Platform.h"
 
 extern "C" {
 #include <opennsl/types.h>
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmPlatformPort;
 class BcmWarmBootHelper;
@@ -85,11 +86,11 @@ class BcmPlatform : public Platform {
    */
   virtual uint32_t getMMUCellBytes() const = 0;
 
-  virtual const PortQueue&
-  getDefaultPortQueueSettings(cfg::StreamType streamType) const = 0;
+  virtual const PortQueue& getDefaultPortQueueSettings(
+      cfg::StreamType streamType) const = 0;
 
-  virtual const PortQueue&
-  getDefaultControlPlaneQueueSettings(cfg::StreamType streamType) const = 0;
+  virtual const PortQueue& getDefaultControlPlaneQueueSettings(
+      cfg::StreamType streamType) const = 0;
 
   virtual BcmWarmBootHelper* getWarmBootHelper() = 0;
 
@@ -108,17 +109,18 @@ class BcmPlatform : public Platform {
   virtual bool isMultiPathLabelSwitchActionSupported() const = 0;
 
  protected:
-
-/*
- * Dump map containing switch h/w config as a key, value pair
- * to a file. We dump in format that name, value pair format that
- * the SDK can read. Later this map is used to initialize the chip
- */
+  /*
+   * Dump map containing switch h/w config as a key, value pair
+   * to a file. We dump in format that name, value pair format that
+   * the SDK can read. Later this map is used to initialize the chip
+   */
   void dumpHwConfig() const;
+
  private:
   // Forbidden copy constructor and assignment operator
-  BcmPlatform(BcmPlatform const &) = delete;
-  BcmPlatform& operator=(BcmPlatform const &) = delete;
+  BcmPlatform(BcmPlatform const&) = delete;
+  BcmPlatform& operator=(BcmPlatform const&) = delete;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

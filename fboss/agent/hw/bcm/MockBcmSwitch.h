@@ -1,8 +1,8 @@
 #pragma once
 
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmTxPacket.h"
+#include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 
 #include <folly/Optional.h>
@@ -27,7 +27,11 @@ class MockBcmSwitch : public BcmSwitchIf {
       std::unique_ptr<TxPacket> pkt) noexcept override {
     return sendPacketSwitchedAsyncImpl(pkt.get());
   }
-  GMOCK_METHOD1_(, noexcept, , sendPacketSwitchedAsyncImpl,
+  GMOCK_METHOD1_(
+      ,
+      noexcept,
+      ,
+      sendPacketSwitchedAsyncImpl,
       bool(TxPacket* pkt));
   // ditto for the other method
   bool sendPacketOutOfPortAsync(

@@ -22,7 +22,7 @@ uint32_t ResourceCursor<uint32_t>::getId(uint32_t startId, uint32_t offset)
 }
 
 template <>
-ResourceCursor<IdV6>::ResourceCursor() : current_{0,0} {}
+ResourceCursor<IdV6>::ResourceCursor() : current_{0, 0} {}
 
 template <>
 IdV6 ResourceCursor<IdV6>::getNextId() {
@@ -81,8 +81,6 @@ folly::IPAddressV6 IPAddressGenerator<folly::IPAddressV6>::getIP(
   return folly::IPAddressV6::fromBinary(
       folly::ByteRange(buffer.begin(), buffer.end()));
 }
-
-
 
 template class IPAddressGenerator<folly::IPAddressV4>;
 template class IPAddressGenerator<folly::IPAddressV6>;

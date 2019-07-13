@@ -9,20 +9,20 @@
  */
 #pragma once
 
-#include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/SflowCollector.h"
+#include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-using SflowCollectorMapTraits = NodeMapTraits<std::string,
-                                              SflowCollector>;
+using SflowCollectorMapTraits = NodeMapTraits<std::string, SflowCollector>;
 
 /*
  * A container for the set of collectors.
  */
-class SflowCollectorMap : public NodeMapT<SflowCollectorMap,
-                                          SflowCollectorMapTraits> {
+class SflowCollectorMap
+    : public NodeMapT<SflowCollectorMap, SflowCollectorMapTraits> {
  public:
   SflowCollectorMap() = default;
   ~SflowCollectorMap() override = default;
@@ -33,4 +33,5 @@ class SflowCollectorMap : public NodeMapT<SflowCollectorMap,
   friend class CloneAllocator;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

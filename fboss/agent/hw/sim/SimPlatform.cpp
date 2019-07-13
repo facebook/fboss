@@ -10,27 +10,29 @@
 #include "fboss/agent/hw/sim/SimPlatform.h"
 
 #include <folly/Memory.h>
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/sim/SimHandler.h"
 #include "fboss/agent/hw/sim/SimSwitch.h"
-#include "fboss/agent/SwSwitch.h"
 
-DEFINE_string(volatile_state_dir, "/tmp/fboss_sim/volatile",
-              "Directory for storing volatile state");
-DEFINE_string(persistent_state_dir, "/tmp/fboss_sim/persistent",
-              "Directory for storing persistent state");
+DEFINE_string(
+    volatile_state_dir,
+    "/tmp/fboss_sim/volatile",
+    "Directory for storing volatile state");
+DEFINE_string(
+    persistent_state_dir,
+    "/tmp/fboss_sim/persistent",
+    "Directory for storing persistent state");
 
 using std::make_unique;
 using std::unique_ptr;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 SimPlatform::SimPlatform(folly::MacAddress mac, uint32_t numPorts)
-  : mac_(mac),
-    hw_(new SimSwitch(this, numPorts)) {
-}
+    : mac_(mac), hw_(new SimSwitch(this, numPorts)) {}
 
-SimPlatform::~SimPlatform() {
-}
+SimPlatform::~SimPlatform() {}
 
 HwSwitch* SimPlatform::getHwSwitch() const {
   return hw_.get();
@@ -53,4 +55,5 @@ std::string SimPlatform::getPersistentStateDir() const {
   return FLAGS_persistent_state_dir;
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -9,10 +9,11 @@
  */
 #pragma once
 
-#include "common/stats/ThreadCachedServiceData.h"
 #include <folly/ThreadLocal.h>
+#include "common/stats/ThreadCachedServiceData.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmStats {
  public:
@@ -69,19 +70,18 @@ class BcmStats {
 
  private:
   // Forbidden copy constructor and assignment operator
-  BcmStats(BcmStats const &) = delete;
-  BcmStats& operator=(BcmStats const &) = delete;
+  BcmStats(BcmStats const&) = delete;
+  BcmStats& operator=(BcmStats const&) = delete;
 
-  typedef
-  stats::ThreadCachedServiceData::ThreadLocalStatsMap ThreadLocalStatsMap;
+  typedef stats::ThreadCachedServiceData::ThreadLocalStatsMap
+      ThreadLocalStatsMap;
   typedef stats::ThreadCachedServiceData::TLTimeseries TLTimeseries;
   typedef stats::ThreadCachedServiceData::TLHistogram TLHistogram;
   typedef stats::ThreadCachedServiceData::TLCounter TLCounter;
 
-  explicit BcmStats(ThreadLocalStatsMap *map);
+  explicit BcmStats(ThreadLocalStatsMap* map);
 
   static BcmStats* createThreadStats();
-
 
   // Total number of Tx packet allocated right now
   TLTimeseries txPktAlloc_;
@@ -106,4 +106,5 @@ class BcmStats {
   static folly::ThreadLocalPtr<BcmStats> stats_;
 };
 
-}}
+} // namespace fboss
+} // namespace facebook

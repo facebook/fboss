@@ -23,5 +23,5 @@ class GalaxyI2CBus : public PCA9548MuxedBus<16> {
   void wireUpPorts(PortLeaves& leaves) override;
 };
 
-}
-} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

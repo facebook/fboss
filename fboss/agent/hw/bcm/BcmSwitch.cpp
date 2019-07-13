@@ -55,8 +55,8 @@
 #include "fboss/agent/hw/bcm/BcmTxPacket.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
-#include "fboss/agent/hw/bcm/BcmWarmBootState.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootState.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/bcmswitch_constants.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AggregatePort.h"
@@ -97,27 +97,25 @@ extern "C" {
 #include <opennsl/vlan.h>
 }
 
-using std::make_unique;
-using std::chrono::seconds;
-using std::chrono::duration_cast;
-using std::unique_ptr;
 using std::make_pair;
 using std::make_shared;
+using std::make_unique;
 using std::move;
 using std::shared_ptr;
 using std::string;
+using std::unique_ptr;
+using std::chrono::duration_cast;
+using std::chrono::seconds;
 
-using facebook::fboss::DeltaFunctions::forEachChanged;
 using facebook::fboss::DeltaFunctions::forEachAdded;
+using facebook::fboss::DeltaFunctions::forEachChanged;
 using facebook::fboss::DeltaFunctions::forEachRemoved;
 using folly::IPAddress;
 
 using namespace std::chrono;
 
-DEFINE_int32(linkscan_interval_us, 250000,
-             "The Broadcom linkscan interval");
-DEFINE_bool(flexports, false,
-            "Load the agent with flexport support enabled");
+DEFINE_int32(linkscan_interval_us, 250000, "The Broadcom linkscan interval");
+DEFINE_bool(flexports, false, "Load the agent with flexport support enabled");
 DEFINE_int32(
     update_bststats_interval_s,
     60,
@@ -158,9 +156,10 @@ bool bothStandAloneRibOrRouteTableRibUsed(
     const facebook::fboss::StateDelta& delta) {
   return routeTableModified(delta) && fibModified(delta);
 }
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 /*
  * Get current port speed from BCM SDK and convert to
  * cfg::PortSpeed
@@ -252,8 +251,7 @@ void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
   hostTable_ = std::make_unique<BcmHostTable>(this);
   egressManager_ = std::make_unique<BcmEgressManager>(this);
   neighborTable_ = std::make_unique<BcmNeighborTable>(this);
-  l3NextHopTable_ =
-      std::make_unique<BcmL3NextHopTable>(this);
+  l3NextHopTable_ = std::make_unique<BcmL3NextHopTable>(this);
   mplsNextHopTable_ = std::make_unique<BcmMplsNextHopTable>(this);
   multiPathNextHopTable_ = std::make_unique<BcmMultiPathNextHopTable>(this);
   labelMap_ = std::make_unique<BcmLabelMap>(this);
@@ -286,10 +284,10 @@ void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
 void BcmSwitch::unregisterCallbacks() {
   if (flags_ & RX_REGISTERED) {
     opennsl_rx_stop(unit_, nullptr);
-    auto rv = opennsl_rx_unregister(unit_, packetRxCallback,
-        kRxCallbackPriority);
-    CHECK(OPENNSL_SUCCESS(rv)) <<
-        "failed to unregister BcmSwitch rx callback: " << opennsl_errmsg(rv);
+    auto rv =
+        opennsl_rx_unregister(unit_, packetRxCallback, kRxCallbackPriority);
+    CHECK(OPENNSL_SUCCESS(rv))
+        << "failed to unregister BcmSwitch rx callback: " << opennsl_errmsg(rv);
     flags_ &= ~RX_REGISTERED;
   }
   // Note that we don't explicitly call opennsl_linkscan_detach() here--
@@ -299,7 +297,8 @@ void BcmSwitch::unregisterCallbacks() {
   if (flags_ & LINKSCAN_REGISTERED) {
     auto rv = opennsl_linkscan_unregister(unit_, linkscanCallback);
     CHECK(OPENNSL_SUCCESS(rv)) << "failed to unregister BcmSwitch linkscan "
-      "callback: " << opennsl_errmsg(rv);
+                                  "callback: "
+                               << opennsl_errmsg(rv);
 
     stopLinkscanThread();
     flags_ &= ~LINKSCAN_REGISTERED;
@@ -388,7 +387,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
 }
 
 std::shared_ptr<SwitchState> BcmSwitch::applyAndGetWarmBootSwitchState() {
-  auto warmBootState =  warmBootCache_->getDumpedSwSwitchState().clone();
+  auto warmBootState = warmBootCache_->getDumpedSwSwitchState().clone();
   warmBootState->publish();
   // Force port/queue stat counter creation by initializing currState to
   // carry empty port/queue names. This means there is a delta between
@@ -467,7 +466,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   runBcmScriptPreAsicInit();
 
   ret.initializedTime =
-    duration_cast<duration<float>>(steady_clock::now() - begin).count();
+      duration_cast<duration<float>>(steady_clock::now() - begin).count();
 
   XLOG(INFO) << "Initializing BcmSwitch for unit " << unit_;
 
@@ -490,22 +489,21 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   // Create bcmStatUpdater to cache the stat ids
   bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(this, isAlpmEnabled());
 
-  XLOG(INFO) <<" Is ALPM enabled: " << isAlpmEnabled();
+  XLOG(INFO) << " Is ALPM enabled: " << isAlpmEnabled();
   // Additional switch configuration
   auto state = make_shared<SwitchState>();
   opennsl_port_config_t pcfg;
   auto rv = opennsl_port_config_get(unit_, &pcfg);
   bcmCheckError(rv, "failed to get port configuration");
 
-
   if (!warmBoot) {
-    LOG (INFO) << " Performing cold boot ";
+    LOG(INFO) << " Performing cold boot ";
     /* initialize mirroring module */
     initMirrorModule();
     /* initialize MPLS */
     initMplsModule();
   } else {
-    LOG (INFO) << "Performing warm boot ";
+    LOG(INFO) << "Performing warm boot ";
     // This dumps debug info about initial sdk state. Useful after warm boot.
     dumpState(platform_->getWarmBootHelper()->startupSdkDumpFile());
   }
@@ -607,24 +605,24 @@ void BcmSwitch::setupToCpuEgress() {
 
 void BcmSwitch::setupPacketRx() {
   static opennsl_rx_cfg_t rxCfg = {
-    (16 * 1032),            // packet alloc size (12K packets plus spare)
-    16,                     // Packets per chain
-    0,                      // Default pkt rate, global (all COS, one unit)
-    0,                      // Burst
-    {                       // 1 RX channel
-      {0, 0, 0, 0},         // Channel 0 is usually TX
-      {                     // Channel 1, default RX
-        4,                  // DV count (number of chains)
-        0,                  // Default pkt rate, DEPRECATED
-        0,                  // No flags
-        0xff                // COS bitmap channel to receive
-      }
-    },
-    nullptr,                // Use default alloc function
-    nullptr,                // Use default free function
-    0,                      // flags
-    0,                      // Num CPU addrs
-    nullptr                 // cpu_addresses
+      (16 * 1032), // packet alloc size (12K packets plus spare)
+      16, // Packets per chain
+      0, // Default pkt rate, global (all COS, one unit)
+      0, // Burst
+      {// 1 RX channel
+       {0, 0, 0, 0}, // Channel 0 is usually TX
+       {
+           // Channel 1, default RX
+           4, // DV count (number of chains)
+           0, // Default pkt rate, DEPRECATED
+           0, // No flags
+           0xff // COS bitmap channel to receive
+       }},
+      nullptr, // Use default alloc function
+      nullptr, // Use default free function
+      0, // flags
+      0, // Num CPU addrs
+      nullptr // cpu_addresses
   };
 
   if (!(featuresDesired_ & PACKET_RX_DESIRED)) {
@@ -634,12 +632,12 @@ void BcmSwitch::setupPacketRx() {
   // Register our packet handler callback function.
   uint32_t rxFlags = OPENNSL_RCO_F_ALL_COS;
   auto rv = opennsl_rx_register(
-      unit_,            // int unit
-      "fboss_rx",       // const char *name
+      unit_, // int unit
+      "fboss_rx", // const char *name
       packetRxCallback, // opennsl_rx_cb_f callback
       kRxCallbackPriority, // uint8 priority
-      this,             // void *cookie
-      rxFlags);         // uint32 flags
+      this, // void *cookie
+      rxFlags); // uint32 flags
   bcmCheckError(rv, "failed to register packet rx callback");
   flags_ |= RX_REGISTERED;
 
@@ -694,11 +692,12 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   // We don't actually delete removed VLANs at this point, we simply remove
   // all members from the VLAN.  This way any ports that ingress packets to this
   // VLAN will still use this VLAN until we get the new VLAN fully configured.
-  forEachChanged(delta.getVlansDelta(),
-                 &BcmSwitch::processChangedVlan,
-                 &BcmSwitch::processAddedVlan,
-                 &BcmSwitch::preprocessRemovedVlan,
-                 this);
+  forEachChanged(
+      delta.getVlansDelta(),
+      &BcmSwitch::processChangedVlan,
+      &BcmSwitch::processAddedVlan,
+      &BcmSwitch::preprocessRemovedVlan,
+      this);
 
   // Broadcom requires a default VLAN to always exist.
   // This VLAN is used as the default ingress VLAN for ports that don't have a
@@ -799,14 +798,15 @@ unique_ptr<TxPacket> BcmSwitch::allocatePacket(uint32_t size) {
 }
 
 void BcmSwitch::processDisabledPorts(const StateDelta& delta) {
-  forEachChanged(delta.getPortsDelta(),
-    [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-      if (oldPort->isEnabled() && !newPort->isEnabled()) {
-        auto bcmPort = portTable_->getBcmPort(newPort->getID());
-        XLOG(INFO) << "Disabling port: " << newPort->getID();
-        bcmPort->disable(newPort);
-      }
-    });
+  forEachChanged(
+      delta.getPortsDelta(),
+      [&](const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+        if (oldPort->isEnabled() && !newPort->isEnabled()) {
+          auto bcmPort = portTable_->getBcmPort(newPort->getID());
+          XLOG(INFO) << "Disabling port: " << newPort->getID();
+          bcmPort->disable(newPort);
+        }
+      });
 }
 
 void BcmSwitch::processEnabledPortQueues(const shared_ptr<Port>& port) {
@@ -815,20 +815,21 @@ void BcmSwitch::processEnabledPortQueues(const shared_ptr<Port>& port) {
 
   for (const auto& queue : port->getPortQueues()) {
     XLOG(DBG1) << "Enable cos queue settings on port " << port->getID()
-              << " queue: " << static_cast<int>(queue->getID());
+               << " queue: " << static_cast<int>(queue->getID());
     bcmPort->setupQueue(*queue);
   }
 }
 
 void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
-  forEachChanged(delta.getPortsDelta(),
-    [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-      if (!oldPort->isEnabled() && newPort->isEnabled()) {
-        auto bcmPort = portTable_->getBcmPort(newPort->getID());
-        bcmPort->enable(newPort);
-        processEnabledPortQueues(newPort);
-      }
-    });
+  forEachChanged(
+      delta.getPortsDelta(),
+      [&](const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+        if (!oldPort->isEnabled() && newPort->isEnabled()) {
+          auto bcmPort = portTable_->getBcmPort(newPort->getID());
+          bcmPort->enable(newPort);
+          processEnabledPortQueues(newPort);
+        }
+      });
 }
 
 bool BcmSwitch::isPortQueueNameChanged(
@@ -869,71 +870,74 @@ void BcmSwitch::processChangedPortQueues(
 }
 
 void BcmSwitch::processChangedPorts(const StateDelta& delta) {
-  forEachChanged(delta.getPortsDelta(),
-    [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-      auto id = newPort->getID();
-      auto bcmPort = portTable_->getBcmPort(id);
-      if (oldPort->getName() != newPort->getName()) {
-        bcmPort->updateName(newPort->getName());
-      }
+  forEachChanged(
+      delta.getPortsDelta(),
+      [&](const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+        auto id = newPort->getID();
+        auto bcmPort = portTable_->getBcmPort(id);
+        if (oldPort->getName() != newPort->getName()) {
+          bcmPort->updateName(newPort->getName());
+        }
 
-      if (platform_->isCosSupported() &&
-          isPortQueueNameChanged(oldPort, newPort)) {
-        bcmPort->getQueueManager()->setupQueueCounters(
-            newPort->getPortQueues());
-      }
+        if (platform_->isCosSupported() &&
+            isPortQueueNameChanged(oldPort, newPort)) {
+          bcmPort->getQueueManager()->setupQueueCounters(
+              newPort->getPortQueues());
+        }
 
-      if (!oldPort->isEnabled() && !newPort->isEnabled()) {
-        // No need to process changes on disabled ports. We will pick up changes
-        // should the port ever become enabled.
-        return;
-      }
+        if (!oldPort->isEnabled() && !newPort->isEnabled()) {
+          // No need to process changes on disabled ports. We will pick up
+          // changes should the port ever become enabled.
+          return;
+        }
 
-      auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
-      XLOG_IF(DBG1, speedChanged) << "New speed on port " << id;
+        auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
+        XLOG_IF(DBG1, speedChanged) << "New speed on port " << id;
 
-      auto vlanChanged = oldPort->getIngressVlan() != newPort->getIngressVlan();
-      XLOG_IF(DBG1, vlanChanged) << "New ingress vlan on port " << id;
+        auto vlanChanged =
+            oldPort->getIngressVlan() != newPort->getIngressVlan();
+        XLOG_IF(DBG1, vlanChanged) << "New ingress vlan on port " << id;
 
-      auto pauseChanged = oldPort->getPause() != newPort->getPause();
-      XLOG_IF(DBG1, pauseChanged) << "New pause settings on port " << id;
+        auto pauseChanged = oldPort->getPause() != newPort->getPause();
+        XLOG_IF(DBG1, pauseChanged) << "New pause settings on port " << id;
 
-      auto sFlowChanged =
-          (oldPort->getSflowIngressRate() != newPort->getSflowIngressRate()) ||
-          (oldPort->getSflowEgressRate() != newPort->getSflowEgressRate());
-      XLOG_IF(DBG1, sFlowChanged) << "New sFlow settings on port " << id;
+        auto sFlowChanged = (oldPort->getSflowIngressRate() !=
+                             newPort->getSflowIngressRate()) ||
+            (oldPort->getSflowEgressRate() != newPort->getSflowEgressRate());
+        XLOG_IF(DBG1, sFlowChanged) << "New sFlow settings on port " << id;
 
-      auto fecChanged = oldPort->getFEC() != newPort->getFEC();
-      XLOG_IF(DBG1, fecChanged) << "New FEC settings on port " << id;
+        auto fecChanged = oldPort->getFEC() != newPort->getFEC();
+        XLOG_IF(DBG1, fecChanged) << "New FEC settings on port " << id;
 
-      auto loopbackChanged =
-          oldPort->getLoopbackMode() != newPort->getLoopbackMode();
-      XLOG_IF(DBG1, loopbackChanged)
-          << "New loopback mode settings on port " << id;
+        auto loopbackChanged =
+            oldPort->getLoopbackMode() != newPort->getLoopbackMode();
+        XLOG_IF(DBG1, loopbackChanged)
+            << "New loopback mode settings on port " << id;
 
-      auto mirrorChanged =
-          (oldPort->getIngressMirror() != newPort->getIngressMirror()) ||
-          (oldPort->getEgressMirror() != newPort->getEgressMirror());
-      XLOG_IF(DBG1, mirrorChanged) << "New mirror settings on port " << id;
+        auto mirrorChanged =
+            (oldPort->getIngressMirror() != newPort->getIngressMirror()) ||
+            (oldPort->getEgressMirror() != newPort->getEgressMirror());
+        XLOG_IF(DBG1, mirrorChanged) << "New mirror settings on port " << id;
 
-      auto qosPolicyChanged =
-          oldPort->getQosPolicy() != newPort->getQosPolicy();
-      XLOG_IF(DBG1, qosPolicyChanged) << "New Qos Policy on port " << id;
+        auto qosPolicyChanged =
+            oldPort->getQosPolicy() != newPort->getQosPolicy();
+        XLOG_IF(DBG1, qosPolicyChanged) << "New Qos Policy on port " << id;
 
-      if (speedChanged || vlanChanged || pauseChanged || sFlowChanged ||
-          fecChanged || loopbackChanged || mirrorChanged || qosPolicyChanged) {
-        bcmPort->program(newPort);
-      }
+        if (speedChanged || vlanChanged || pauseChanged || sFlowChanged ||
+            fecChanged || loopbackChanged || mirrorChanged ||
+            qosPolicyChanged) {
+          bcmPort->program(newPort);
+        }
 
-      if (newPort->getPortQueues().size() != 0 &&
-          !platform_->isCosSupported()) {
-        throw FbossError("Changing settings for cos queues not supported on ",
-            "this platform");
-      }
+        if (newPort->getPortQueues().size() != 0 &&
+            !platform_->isCosSupported()) {
+          throw FbossError(
+              "Changing settings for cos queues not supported on ",
+              "this platform");
+        }
 
-      processChangedPortQueues(oldPort, newPort);
-
-    });
+        processChangedPortQueues(oldPort, newPort);
+      });
 }
 
 void BcmSwitch::pickupLinkStatusChanges(const StateDelta& delta) {
@@ -947,7 +951,7 @@ void BcmSwitch::pickupLinkStatusChanges(const StateDelta& delta) {
         auto id = newPort->getID();
 
         auto adminStateChanged =
-          oldPort->getAdminState() != newPort->getAdminState();
+            oldPort->getAdminState() != newPort->getAdminState();
         if (adminStateChanged) {
           auto adminStr = (newPort->isEnabled()) ? "ENABLED" : "DISABLED";
           XLOG(DBG1) << "Admin state changed on port " << id << ": "
@@ -955,7 +959,7 @@ void BcmSwitch::pickupLinkStatusChanges(const StateDelta& delta) {
         }
 
         auto operStateChanged =
-          oldPort->getOperState() != newPort->getOperState();
+            oldPort->getOperState() != newPort->getOperState();
         if (operStateChanged) {
           auto operStr = (newPort->isUp()) ? "UP" : "DOWN";
           XLOG(DBG1) << "Oper state changed on port " << id << ": " << operStr;
@@ -983,29 +987,31 @@ void BcmSwitch::reconfigurePortGroups(const StateDelta& delta) {
   // changing the configuration of a port group.
 
   auto newState = delta.newState();
-  forEachChanged(delta.getPortsDelta(),
-    [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-      auto enabled = !oldPort->isEnabled() && newPort->isEnabled();
-      auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
-      auto sFlowChanged =
-          (oldPort->getSflowIngressRate() != newPort->getSflowIngressRate()) ||
-          (oldPort->getSflowEgressRate() != newPort->getSflowEgressRate());
+  forEachChanged(
+      delta.getPortsDelta(),
+      [&](const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+        auto enabled = !oldPort->isEnabled() && newPort->isEnabled();
+        auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
+        auto sFlowChanged = (oldPort->getSflowIngressRate() !=
+                             newPort->getSflowIngressRate()) ||
+            (oldPort->getSflowEgressRate() != newPort->getSflowEgressRate());
 
-      if (enabled || speedChanged || sFlowChanged) {
-        if (!isValidPortUpdate(oldPort, newPort, newState)) {
-          // Fail hard
-          throw FbossError("Invalid port configuration passed in ");
+        if (enabled || speedChanged || sFlowChanged) {
+          if (!isValidPortUpdate(oldPort, newPort, newState)) {
+            // Fail hard
+            throw FbossError("Invalid port configuration passed in ");
+          }
+          auto bcmPort = portTable_->getBcmPort(newPort->getID());
+          auto portGroup = bcmPort->getPortGroup();
+          if (portGroup) {
+            portGroup->reconfigureIfNeeded(newState);
+          }
         }
-        auto bcmPort = portTable_->getBcmPort(newPort->getID());
-        auto portGroup = bcmPort->getPortGroup();
-        if (portGroup) {
-          portGroup->reconfigureIfNeeded(newState);
-        }
-      }
-    });
+      });
 }
 
-bool BcmSwitch::isValidPortUpdate(const shared_ptr<Port>& oldPort,
+bool BcmSwitch::isValidPortUpdate(
+    const shared_ptr<Port>& oldPort,
     const shared_ptr<Port>& newPort,
     const shared_ptr<SwitchState>& newState) const {
   auto enabled = !oldPort->isEnabled() && newPort->isEnabled();
@@ -1073,12 +1079,13 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
   auto newState = delta.newState();
   auto isValid = true;
 
-  forEachChanged(delta.getPortsDelta(),
-      [&] (const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-      if (isValid && !isValidPortUpdate(oldPort, newPort, newState)) {
+  forEachChanged(
+      delta.getPortsDelta(),
+      [&](const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+        if (isValid && !isValidPortUpdate(oldPort, newPort, newState)) {
           isValid = false;
-      }
-  });
+        }
+      });
   isValid = isValid &&
       (newState->getMirrors()->size() <= bcmswitch_constants::MAX_MIRRORS_);
 
@@ -1121,8 +1128,9 @@ void BcmSwitch::changeDefaultVlan(VlanID id) {
   bcmCheckError(rv, "failed to set default VLAN to ", id);
 }
 
-void BcmSwitch::processChangedVlan(const shared_ptr<Vlan>& oldVlan,
-                                   const shared_ptr<Vlan>& newVlan) {
+void BcmSwitch::processChangedVlan(
+    const shared_ptr<Vlan>& oldVlan,
+    const shared_ptr<Vlan>& newVlan) {
   // Update port membership
   opennsl_pbmp_t addedPorts;
   OPENNSL_PBMP_CLEAR(addedPorts);
@@ -1149,7 +1157,8 @@ void BcmSwitch::processChangedVlan(const shared_ptr<Vlan>& oldVlan,
         OPENNSL_PBMP_PORT_ADD(addedUntaggedPorts, bcmPort);
       }
       ++newIter;
-    } else if (newIter == newPorts.end() ||
+    } else if (
+        newIter == newPorts.end() ||
         (oldIter != oldPorts.end() && oldIter->first < newIter->first)) {
       // This port was removed
       ++numRemoved;
@@ -1169,8 +1178,8 @@ void BcmSwitch::processChangedVlan(const shared_ptr<Vlan>& oldVlan,
     bcmCheckError(rv, "failed to remove ports from VLAN ", newVlan->getID());
   }
   if (numAdded) {
-    auto rv = opennsl_vlan_port_add(unit_, newVlan->getID(),
-                                addedPorts, addedUntaggedPorts);
+    auto rv = opennsl_vlan_port_add(
+        unit_, newVlan->getID(), addedPorts, addedUntaggedPorts);
     bcmCheckError(rv, "failed to add ports to VLAN ", newVlan->getID());
   }
 }
@@ -1200,7 +1209,7 @@ void BcmSwitch::processAddedVlan(const shared_ptr<Vlan>& vlan) {
     // Compare with existing vlan to determine if we need to reprogram
     auto equivalent = [](VlanInfo newVlan, VlanInfo existingVlan) {
       return OPENNSL_PBMP_EQ(newVlan.allPorts, existingVlan.allPorts) &&
-      OPENNSL_PBMP_EQ(newVlan.untagged, existingVlan.untagged);
+          OPENNSL_PBMP_EQ(newVlan.untagged, existingVlan.untagged);
     };
     const auto& existingVlan = vlanItr->second;
     if (!equivalent(VlanInfo(vlan->getID(), ubmp, pbmp), existingVlan)) {
@@ -1237,8 +1246,9 @@ void BcmSwitch::processRemovedVlan(const shared_ptr<Vlan>& vlan) {
   bcmCheckError(rv, "failed to remove VLAN ", vlan->getID());
 }
 
-void BcmSwitch::processChangedIntf(const shared_ptr<Interface>& oldIntf,
-                                   const shared_ptr<Interface>& newIntf) {
+void BcmSwitch::processChangedIntf(
+    const shared_ptr<Interface>& oldIntf,
+    const shared_ptr<Interface>& newIntf) {
   CHECK_EQ(oldIntf->getID(), newIntf->getID());
   XLOG(DBG2) << "changing interface " << oldIntf->getID();
   intfTable_->programIntf(newIntf);
@@ -1270,11 +1280,11 @@ void BcmSwitch::processAclChanges(const StateDelta& delta) {
   }
 
   forEachChanged(
-    delta.getAclsDelta(),
-    &BcmSwitch::processChangedAcl,
-    &BcmSwitch::processAddedAcl,
-    &BcmSwitch::processRemovedAcl,
-    this);
+      delta.getAclsDelta(),
+      &BcmSwitch::processChangedAcl,
+      &BcmSwitch::processAddedAcl,
+      &BcmSwitch::processRemovedAcl,
+      this);
 }
 
 void BcmSwitch::processAggregatePortChanges(const StateDelta& delta) {
@@ -1331,11 +1341,11 @@ void BcmSwitch::processSflowSamplingRateChanges(const StateDelta& delta) {
 
 void BcmSwitch::processSflowCollectorChanges(const StateDelta& delta) {
   forEachChanged(
-    delta.getSflowCollectorsDelta(),
-    &BcmSwitch::processChangedSflowCollector,
-    &BcmSwitch::processAddedSflowCollector,
-    &BcmSwitch::processRemovedSflowCollector,
-    this);
+      delta.getSflowCollectorsDelta(),
+      &BcmSwitch::processChangedSflowCollector,
+      &BcmSwitch::processAddedSflowCollector,
+      &BcmSwitch::processRemovedSflowCollector,
+      this);
 }
 
 template <typename DELTA, typename ParentClassT>
@@ -1489,8 +1499,8 @@ void BcmSwitch::processNeighborTableDelta(
     for (const auto& delta :
          vlanDelta.template getNeighborDelta<NeighborTableT>()) {
       try {
-        processNeighborEntryDelta<NeighborEntryDeltaT, NeighborTableT>(delta,
-            appliedState);
+        processNeighborEntryDelta<NeighborEntryDeltaT, NeighborTableT>(
+            delta, appliedState);
       } catch (const BcmError& error) {
         rethrowIfHwNotFull(error);
         discardedNeighborEntryDelta.push_back(delta);
@@ -1545,8 +1555,9 @@ void BcmSwitch::processAddedRoute(
 }
 
 template <typename RouteT>
-void BcmSwitch::processRemovedRoute(const RouterID id,
-                                    const shared_ptr<RouteT>& route) {
+void BcmSwitch::processRemovedRoute(
+    const RouterID id,
+    const shared_ptr<RouteT>& route) {
   XLOG(DBG3) << "removing route entry @ vrf " << id << " " << route->str();
   if (!route->isResolved()) {
     XLOG(DBG1) << "Non-resolved route HW programming is skipped";
@@ -1652,19 +1663,19 @@ void BcmSwitch::processRouteTableDelta(
   // discard  routes
   for (const auto& entry : discardedPrefixes) {
     const auto id = entry.first;
-    for(const auto& prefix : entry.second) {
+    for (const auto& prefix : entry.second) {
       const auto newRoute = delta.newState()
-                          ->getRouteTables()
-                          ->getRouteTable(id)
-                          ->template getRib<AddrT>()
-                          ->routes()
-                          ->getRouteIf(prefix);
+                                ->getRouteTables()
+                                ->getRouteTable(id)
+                                ->template getRib<AddrT>()
+                                ->routes()
+                                ->getRouteIf(prefix);
       const auto oldRoute = delta.oldState()
-                          ->getRouteTables()
-                          ->getRouteTable(id)
-                          ->template getRib<AddrT>()
-                          ->routes()
-                          ->getRouteIf(prefix);
+                                ->getRouteTables()
+                                ->getRouteTable(id)
+                                ->template getRib<AddrT>()
+                                ->routes()
+                                ->getRouteIf(prefix);
       SwitchState::revertNewRouteEntry(id, newRoute, oldRoute, appliedState);
     }
   }
@@ -1721,9 +1732,7 @@ void BcmSwitch::linkscanCallback(
   }
 }
 
-void BcmSwitch::linkStateChangedHwNotLocked(
-    opennsl_port_t bcmPortId,
-    bool up) {
+void BcmSwitch::linkStateChangedHwNotLocked(opennsl_port_t bcmPortId, bool up) {
   CHECK(linkScanBottomHalfEventBase_.inRunningEventBaseThread());
 
   if (!up) {
@@ -1741,8 +1750,8 @@ void BcmSwitch::linkStateChangedHwNotLocked(
   callback_->linkStateChanged(portTable_->getPortId(bcmPortId), up);
 }
 
-opennsl_rx_t BcmSwitch::packetRxCallback(int unit, opennsl_pkt_t* pkt,
-    void* cookie) {
+opennsl_rx_t
+BcmSwitch::packetRxCallback(int unit, opennsl_pkt_t* pkt, void* cookie) {
   auto* bcmSw = static_cast<BcmSwitch*>(cookie);
   DCHECK_EQ(bcmSw->getUnit(), unit);
   DCHECK_EQ(bcmSw->getUnit(), pkt->unit);
@@ -1798,8 +1807,9 @@ bool BcmSwitch::sendPacketSwitchedSync(unique_ptr<TxPacket> pkt) noexcept {
   return OPENNSL_SUCCESS(BcmTxPacket::sendSync(std::move(bcmPkt)));
 }
 
-bool BcmSwitch::sendPacketOutOfPortSync(unique_ptr<TxPacket> pkt,
-                                    PortID portID) noexcept {
+bool BcmSwitch::sendPacketOutOfPortSync(
+    unique_ptr<TxPacket> pkt,
+    PortID portID) noexcept {
   unique_ptr<BcmTxPacket> bcmPkt(
       boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
   bcmPkt->setDestModPort(getPortTable()->getBcmPortId(portID));
@@ -1808,9 +1818,10 @@ bool BcmSwitch::sendPacketOutOfPortSync(unique_ptr<TxPacket> pkt,
   return OPENNSL_SUCCESS(BcmTxPacket::sendSync(std::move(bcmPkt)));
 }
 
-bool BcmSwitch::sendPacketOutOfPortSync(unique_ptr<TxPacket> pkt,
-                                        PortID portID,
-                                       uint8_t cos) noexcept {
+bool BcmSwitch::sendPacketOutOfPortSync(
+    unique_ptr<TxPacket> pkt,
+    PortID portID,
+    uint8_t cos) noexcept {
   unique_ptr<BcmTxPacket> bcmPkt(
       boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
   bcmPkt->setCos(cos);
@@ -1818,14 +1829,14 @@ bool BcmSwitch::sendPacketOutOfPortSync(unique_ptr<TxPacket> pkt,
   return sendPacketOutOfPortSync(std::move(bcmPkt), portID);
 }
 
-void BcmSwitch::updateStats(SwitchStats *switchStats) {
+void BcmSwitch::updateStats(SwitchStats* switchStats) {
   // Update thread-local switch statistics.
   updateThreadLocalSwitchStats(switchStats);
   // Update thread-local per-port statistics.
   PortStatsMap* portStatsMap = switchStats->getPortStats();
   for (auto& it : *portStatsMap) {
     PortID portID = it.first;
-    PortStats *portStats = it.second.get();
+    PortStats* portStats = it.second.get();
     updateThreadLocalPortStats(portID, portStats);
   }
   // Update global statistics.
@@ -1837,8 +1848,8 @@ void BcmSwitch::updateStats(SwitchStats *switchStats) {
 shared_ptr<BcmSwitchEventCallback> BcmSwitch::registerSwitchEventCallback(
     opennsl_switch_event_t eventID,
     shared_ptr<BcmSwitchEventCallback> callback) {
-  return BcmSwitchEventUtils::registerSwitchEventCallback(unit_, eventID,
-                                                          callback);
+  return BcmSwitchEventUtils::registerSwitchEventCallback(
+      unit_, eventID, callback);
 }
 void BcmSwitch::unregisterSwitchEventCallback(opennsl_switch_event_t eventID) {
   return BcmSwitchEventUtils::unregisterSwitchEventCallback(unit_, eventID);
@@ -1969,7 +1980,7 @@ void BcmSwitch::processChangedControlPlaneQueues(
     const shared_ptr<ControlPlane>& oldCPU,
     const shared_ptr<ControlPlane>& newCPU) {
   // first make sure queue settings changes applied
-  for (const auto newQueue: newCPU->getQueues()) {
+  for (const auto newQueue : newCPU->getQueues()) {
     if (oldCPU->getQueues().size() > 0 &&
         *(oldCPU->getQueues().at(newQueue->getID())) == *newQueue) {
       continue;
@@ -2068,8 +2079,8 @@ BcmSwitch::MmuState BcmSwitch::queryMmuState() const {
   if (!lossless) {
     return MmuState::UNKNOWN;
   }
-  return std::string(lossless) == "0x1" ? MmuState::MMU_LOSSLESS :
-    MmuState::MMU_LOSSY;
+  return std::string(lossless) == "0x1" ? MmuState::MMU_LOSSLESS
+                                        : MmuState::MMU_LOSSY;
 }
 
 } // namespace fboss

@@ -9,13 +9,12 @@
  */
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-void PlatformProductInfo::initFromFbWhoAmI() {
-}
+void PlatformProductInfo::initFromFbWhoAmI() {}
 
-void PlatformProductInfo::setFBSerial() {
+void PlatformProductInfo::setFBSerial() {}
 
-}
-
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

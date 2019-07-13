@@ -10,16 +10,16 @@
 #pragma once
 
 #include "fboss/agent/AddressUtil.h"
-#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/types.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/NeighborEntry.h"
 #include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/types.h"
 
-#include <chrono>
-#include <folly/MacAddress.h>
 #include <folly/IPAddress.h>
+#include <folly/MacAddress.h>
 #include <folly/Random.h>
+#include <chrono>
 
 /**
  * This class implements much of the neighbor resolution and unreachable
@@ -62,8 +62,8 @@
  * not to call into NeighborCache functions multiple times, as this will likely
  * cause a deadlock.
  */
-namespace facebook { namespace fboss {
-
+namespace facebook {
+namespace fboss {
 
 enum class NeighborEntryState : uint8_t {
   UNINITIALIZED,
@@ -75,7 +75,8 @@ enum class NeighborEntryState : uint8_t {
   EXPIRED,
 };
 
-template <typename NTable> class NeighborCache;
+template <typename NTable>
+class NeighborCache;
 
 template <typename NTable>
 class NeighborCacheEntry : private folly::AsyncTimeout {
@@ -84,10 +85,11 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
   typedef NeighborCache<NTable> Cache;
   typedef NeighborCacheEntry<NTable> Entry;
   typedef NeighborEntryFields<AddressType> EntryFields;
-  NeighborCacheEntry(EntryFields fields,
-                     folly::EventBase* evb,
-                     Cache* cache,
-                     NeighborEntryState state)
+  NeighborCacheEntry(
+      EntryFields fields,
+      folly::EventBase* evb,
+      Cache* cache,
+      NeighborEntryState state)
       : AsyncTimeout(evb),
         fields_(fields),
         cache_(cache),
@@ -96,23 +98,31 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
     enter(state);
   }
 
-  NeighborCacheEntry(AddressType ip,
-                     folly::MacAddress mac,
-                     PortDescriptor port,
-                     InterfaceID intf,
-                     folly::EventBase* evb,
-                     Cache* cache,
-                     NeighborEntryState state)
-      : NeighborCacheEntry(EntryFields(ip, mac, port, intf),
-                           evb, cache, state) {}
+  NeighborCacheEntry(
+      AddressType ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      InterfaceID intf,
+      folly::EventBase* evb,
+      Cache* cache,
+      NeighborEntryState state)
+      : NeighborCacheEntry(
+            EntryFields(ip, mac, port, intf),
+            evb,
+            cache,
+            state) {}
 
-  NeighborCacheEntry(AddressType ip,
-                     InterfaceID intf,
-                     NeighborState ignored,
-                     folly::EventBase* evb,
-                     Cache* cache)
-      : NeighborCacheEntry(EntryFields(ip, intf, ignored),
-                           evb, cache, NeighborEntryState::INCOMPLETE) {}
+  NeighborCacheEntry(
+      AddressType ip,
+      InterfaceID intf,
+      NeighborState ignored,
+      folly::EventBase* evb,
+      Cache* cache)
+      : NeighborCacheEntry(
+            EntryFields(ip, intf, ignored),
+            evb,
+            cache,
+            NeighborEntryState::INCOMPLETE) {}
 
   ~NeighborCacheEntry() override {}
 
@@ -142,9 +152,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
   static folly::Future<folly::Unit> destroy(
       std::shared_ptr<Entry> entry,
       folly::EventBase* evb) {
-    return folly::via(evb, [entry]() {
-      entry->cancelTimeout();
-    });
+    return folly::via(evb, [entry]() { entry->cancelTimeout(); });
   }
 
   folly::MacAddress getMac() const {
@@ -180,11 +188,9 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
   }
 
   bool fieldsMatch(const EntryFields& fields) const {
-    return getIP() == fields.ip &&
-      getMac() == fields.mac &&
-      getIntfID() == fields.interfaceID &&
-      getPort() == fields.port &&
-      getProgrammedState() == fields.state;
+    return getIP() == fields.ip && getMac() == fields.mac &&
+        getIntfID() == fields.interfaceID && getPort() == fields.port &&
+        getProgrammedState() == fields.state;
   }
 
   NeighborEntryState getState() const {
@@ -201,7 +207,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
 
   bool isProbing() const {
     return state_ == NeighborEntryState::PROBE ||
-      state_ == NeighborEntryState::INCOMPLETE;
+        state_ == NeighborEntryState::INCOMPLETE;
   }
 
   template <typename NeighborEntryThrift>
@@ -269,7 +275,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
    */
   std::chrono::milliseconds calculateLifetime() const {
     auto base = cache_->getBaseTimeout().count() * 1000;
-    auto lifetime =  folly::Random::rand32(base) + (base / 2);
+    auto lifetime = folly::Random::rand32(base) + (base / 2);
     return std::chrono::milliseconds(lifetime);
   }
 
@@ -305,9 +311,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
         // We should never enter in any of these states
         throw FbossError("Tried to create entry with invalid state");
     }
-    evb_->runInEventBaseThread([this]() {
-      scheduleNextUpdate();
-    });
+    evb_->runInEventBaseThread([this]() { scheduleNextUpdate(); });
   }
 
   void probeIfProbesLeft() {
@@ -361,7 +365,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
   }
 
   std::string getStateName(NeighborEntryState state) const {
-    switch(state) {
+    switch (state) {
       case NeighborEntryState::REACHABLE:
         return "REACHABLE";
       case NeighborEntryState::STALE:
@@ -406,4 +410,5 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
   std::chrono::time_point<std::chrono::steady_clock> expireTime_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

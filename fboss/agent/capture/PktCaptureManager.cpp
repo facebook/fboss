@@ -22,7 +22,8 @@ using folly::StringPiece;
 using std::string;
 using std::unique_ptr;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 PktCaptureManager::PktCaptureManager(SwSwitch* sw) {
   auto persistDir = sw->getPlatform()->getPersistentStateDir();
@@ -30,14 +31,13 @@ PktCaptureManager::PktCaptureManager(SwSwitch* sw) {
   utilCreateDir(captureDir_);
 }
 
-PktCaptureManager::~PktCaptureManager() {
-}
+PktCaptureManager::~PktCaptureManager() {}
 
 void PktCaptureManager::startCapture(unique_ptr<PktCapture> capture) {
   checkCaptureName(capture->name());
 
-  auto path = folly::to<std::string>(captureDir_, "/",
-                                     capture->name(), ".pcap");
+  auto path =
+      folly::to<std::string>(captureDir_, "/", capture->name(), ".pcap");
 
   std::lock_guard<std::mutex> g(mutex_);
 
@@ -72,8 +72,7 @@ unique_ptr<PktCapture> PktCaptureManager::forgetCapture(StringPiece name) {
   if (activeIt != activeCaptures_.end()) {
     std::unique_ptr<PktCapture> capture = std::move(activeIt->second);
     activeCaptures_.erase(activeIt);
-    capturesRunning_.store(!activeCaptures_.empty(),
-                           std::memory_order_release);
+    capturesRunning_.store(!activeCaptures_.empty(), std::memory_order_release);
     capture->stop();
     return capture;
   }
@@ -100,12 +99,11 @@ void PktCaptureManager::forgetAllCaptures() {
   // FIXME
 }
 
-template<typename Fn>
+template <typename Fn>
 void PktCaptureManager::invokeCaptures(const Fn& fn) {
   std::lock_guard<std::mutex> g(mutex_);
 
-  for (auto it = activeCaptures_.begin();
-       it != activeCaptures_.end();
+  for (auto it = activeCaptures_.begin(); it != activeCaptures_.end();
        /* increment in loop */) {
     // Increment the iterator now, in case this capture deactivates itself and
     // we need to remove it from the active captures.
@@ -140,15 +138,12 @@ void PktCaptureManager::invokeCaptures(const Fn& fn) {
 }
 
 void PktCaptureManager::packetReceivedImpl(const RxPacket* pkt) {
-  invokeCaptures([&] (PktCapture* capture) {
-    return capture->packetReceived(pkt);
-  });
+  invokeCaptures(
+      [&](PktCapture* capture) { return capture->packetReceived(pkt); });
 }
 
 void PktCaptureManager::packetSentImpl(const TxPacket* pkt) {
-  invokeCaptures([&] (PktCapture* capture) {
-    return capture->packetSent(pkt);
-  });
+  invokeCaptures([&](PktCapture* capture) { return capture->packetSent(pkt); });
 }
 
 void PktCaptureManager::checkCaptureName(folly::StringPiece name) {
@@ -157,9 +152,10 @@ void PktCaptureManager::checkCaptureName(folly::StringPiece name) {
   std::string invalidChars("\0/", 2);
   size_t idx = name.find_first_of(invalidChars);
   if (idx != std::string::npos) {
-    throw FbossError("invalid capture name \"", name,
-                     "\": invalid character at byte ", idx);
+    throw FbossError(
+        "invalid capture name \"", name, "\": invalid character at byte ", idx);
   }
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

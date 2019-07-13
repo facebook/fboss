@@ -11,7 +11,8 @@
 
 #include <folly/Range.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 folly::ByteRange Wedge100Platform::defaultLed0Code() {
   return folly::ByteRange();
@@ -22,7 +23,8 @@ folly::ByteRange Wedge100Platform::defaultLed1Code() {
 }
 
 void Wedge100Platform::setPciPreemphasis(int /*unit*/) const {
-  //stubbed out
+  // stubbed out
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

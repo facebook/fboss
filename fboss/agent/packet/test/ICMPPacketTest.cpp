@@ -27,16 +27,16 @@
 #include "fboss/agent/test/CounterCache.h"
 
 using namespace facebook::fboss;
-using std::string;
-using std::vector;
 using folly::IOBuf;
-using folly::io::Appender;
-using folly::io::Cursor;
-using folly::io::RWPrivateCursor;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 using folly::MacAddress;
+using folly::io::Appender;
+using folly::io::Cursor;
+using folly::io::RWPrivateCursor;
+using std::string;
 using std::unique_ptr;
+using std::vector;
 
 auto emptyBody = [](RWPrivateCursor* /*cursor*/) {};
 
@@ -55,8 +55,21 @@ IPv4Hdr makeIPv4Hdr() {
   const uint16_t csum = 0;
   IPAddressV4 srcAddr("10.0.0.15");
   IPAddressV4 dstAddr("10.0.0.1");
-  IPv4Hdr ipv4(version, ihl, dscp, ecn, length, id, dontFragment, moreFragments,
-      fragmentOffset, ttl, protocol, csum, srcAddr, dstAddr);
+  IPv4Hdr ipv4(
+      version,
+      ihl,
+      dscp,
+      ecn,
+      length,
+      id,
+      dontFragment,
+      moreFragments,
+      fragmentOffset,
+      ttl,
+      protocol,
+      csum,
+      srcAddr,
+      dstAddr);
   ipv4.computeChecksum();
   return ipv4;
 }
@@ -85,38 +98,42 @@ TEST(ICMPv4Packet, serializeFullPacket) {
   auto buf = IOBuf(IOBuf::CREATE, totalLength);
   buf.append(totalLength);
   RWPrivateCursor cursor(&buf);
-  icmp4.serializeFullPacket(&cursor,
-                        MacAddress("33:33:00:00:00:01"),
-                        MacAddress("33:33:00:00:00:02"),
-                        VlanID(1), ipv4, 0, emptyBody);
+  icmp4.serializeFullPacket(
+      &cursor,
+      MacAddress("33:33:00:00:00:01"),
+      MacAddress("33:33:00:00:00:02"),
+      VlanID(1),
+      ipv4,
+      0,
+      emptyBody);
 
   XLOG(DBG1) << "ip csum: " << ipv4.csum << "icmp csum: " << icmp4.csum;
 
   auto pkt = MockRxPacket::fromHex(
-    // Ethernet Header
-    "33 33 00 00 00 01" // Destination MAC Address
-    "33 33 00 00 00 02" // Source MAC Address
-    "81 00 00 01"       // VLAN: 1
-    "08 00"             // EtherType: IPv4
-    // IPv4 Header
-    "4"            // version: 4
-    "5"            // IHL: 5
-    "00"           // DSCP, ECN
-    "00 14"        // length: 20
-    "00 00"        // id: 0
-    "00 00"        // flags and fragment offset
-    "01"           // TTL: 1
-    "01"           // protocol: ICMP
-    "a5 da"        // ip checksum
-    "0a 00 00 0f"  // Source Address: 10.0.0.15
-    "0a 00 00 01"  // Destination Address: 10.0.0.1
-    // ICMPHdr
-    "03 00"           // ICMP type, code
-    "fc ff"           // ICMP checksum
+      // Ethernet Header
+      "33 33 00 00 00 01" // Destination MAC Address
+      "33 33 00 00 00 02" // Source MAC Address
+      "81 00 00 01" // VLAN: 1
+      "08 00" // EtherType: IPv4
+      // IPv4 Header
+      "4" // version: 4
+      "5" // IHL: 5
+      "00" // DSCP, ECN
+      "00 14" // length: 20
+      "00 00" // id: 0
+      "00 00" // flags and fragment offset
+      "01" // TTL: 1
+      "01" // protocol: ICMP
+      "a5 da" // ip checksum
+      "0a 00 00 0f" // Source Address: 10.0.0.15
+      "0a 00 00 01" // Destination Address: 10.0.0.1
+      // ICMPHdr
+      "03 00" // ICMP type, code
+      "fc ff" // ICMP checksum
   );
   const uint8_t* serializedData = buf.data();
   const uint8_t* expectedData = pkt->buf()->data();
-  for(int i = 0; i < totalLength; i++) {
+  for (int i = 0; i < totalLength; i++) {
     EXPECT_EQ(serializedData[i], expectedData[i]);
   }
   // parse the data back
@@ -142,37 +159,41 @@ TEST(ICMPv6Packet, serializeFullPacket) {
   auto buf = IOBuf(IOBuf::CREATE, totalLength);
   buf.append(totalLength);
   RWPrivateCursor cursor(&buf);
-  icmp6.serializeFullPacket(&cursor,
-                            MacAddress("33:33:00:00:00:01"),
-                            MacAddress("33:33:00:00:00:02"),
-                            VlanID(1), ipv6, 0, emptyBody);
+  icmp6.serializeFullPacket(
+      &cursor,
+      MacAddress("33:33:00:00:00:01"),
+      MacAddress("33:33:00:00:00:02"),
+      VlanID(1),
+      ipv6,
+      0,
+      emptyBody);
   // check the serialized data
   auto pkt = MockRxPacket::fromHex(
-    // Ethernet Header
-    "33 33 00 00 00 01" // Destination MAC Address
-    "33 33 00 00 00 02" // Source MAC Address
-    "81 00 00 01"       // VLAN: 1
-    "86 dd"             // EtherType: IPv4
-    // IPv6 Header
-    "6"      // VERSION: 6
-    "e0"     // Traffic Class
-    "00000"  // Flow Label
-    "00 04"  // Payload Length
-    "3a"     // Next Header: IP_PROTO_IPV6_ICMP
-    "ff"     // Hop Limit: 255
-    // IPv6 Source Address
-    "26 20 00 00 1c fe fa ce"
-    "b0 0c 00 00 00 00 00 03"
-    // IPv6 Destination Address
-    "26 20 00 00 1c fe fa ce"
-    "b0 0c 00 00 00 00 00 04"
-    // ICMPHdr
-    "87 00"           // ICMP type, code
-    "9c c6"           // ICMP checksum
+      // Ethernet Header
+      "33 33 00 00 00 01" // Destination MAC Address
+      "33 33 00 00 00 02" // Source MAC Address
+      "81 00 00 01" // VLAN: 1
+      "86 dd" // EtherType: IPv4
+      // IPv6 Header
+      "6" // VERSION: 6
+      "e0" // Traffic Class
+      "00000" // Flow Label
+      "00 04" // Payload Length
+      "3a" // Next Header: IP_PROTO_IPV6_ICMP
+      "ff" // Hop Limit: 255
+      // IPv6 Source Address
+      "26 20 00 00 1c fe fa ce"
+      "b0 0c 00 00 00 00 00 03"
+      // IPv6 Destination Address
+      "26 20 00 00 1c fe fa ce"
+      "b0 0c 00 00 00 00 00 04"
+      // ICMPHdr
+      "87 00" // ICMP type, code
+      "9c c6" // ICMP checksum
   );
   const uint8_t* serializedData = buf.data();
   const uint8_t* expectedData = pkt->buf()->data();
-  for(int i = 0; i < totalLength; i++) {
+  for (int i = 0; i < totalLength; i++) {
     EXPECT_EQ(serializedData[i], expectedData[i]);
   }
 

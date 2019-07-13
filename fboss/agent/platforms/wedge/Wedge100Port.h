@@ -10,11 +10,12 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/platforms/wedge/WedgePort.h"
-#include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/bcm/BcmPortGroup.h"
+#include "fboss/agent/platforms/wedge/WedgePort.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class Wedge100Platform;
 
@@ -31,10 +32,11 @@ enum class LedColor : uint32_t {
 
 class Wedge100Port : public WedgePort {
  public:
-  Wedge100Port(PortID id,
-               WedgePlatform* platform,
-               folly::Optional<FrontPanelResources> frontPanel) :
-      WedgePort(id, platform, std::move(frontPanel)) {}
+  Wedge100Port(
+      PortID id,
+      WedgePlatform* platform,
+      folly::Optional<FrontPanelResources> frontPanel)
+      : WedgePort(id, platform, std::move(frontPanel)) {}
 
   LaneSpeeds supportedLaneSpeeds() const override {
     LaneSpeeds speeds;
@@ -75,4 +77,5 @@ class Wedge100Port : public WedgePort {
   void setPortLedColorMode(LedColor);
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

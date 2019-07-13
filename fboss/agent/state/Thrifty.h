@@ -6,7 +6,8 @@
 
 #include "fboss/agent/state/NodeBase.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 //
 // Special version of NodeBaseT that features methods to convert
@@ -20,14 +21,12 @@ class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
  public:
   using NodeBaseT<NodeT, FieldsT>::NodeBaseT;
 
-  static
-  std::shared_ptr<NodeT> fromFollyDynamic(folly::dynamic const& dyn) {
+  static std::shared_ptr<NodeT> fromFollyDynamic(folly::dynamic const& dyn) {
     auto const jsonStr = folly::toJson(dyn);
     return fromJson(jsonStr);
   }
 
-  static
-  std::shared_ptr<NodeT> fromJson(const folly::fbstring& jsonStr) {
+  static std::shared_ptr<NodeT> fromJson(const folly::fbstring& jsonStr) {
     auto inBuf =
         folly::IOBuf::wrapBufferAsValue(jsonStr.data(), jsonStr.size());
     auto obj = apache::thrift::SimpleJSONSerializer::deserialize<ThriftT>(
@@ -48,4 +47,5 @@ class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
   }
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

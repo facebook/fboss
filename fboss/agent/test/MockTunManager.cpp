@@ -11,16 +11,19 @@
 
 #include "fboss/agent/RxPacket.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-MockTunManager::MockTunManager(SwSwitch *sw, folly::EventBase *evb)
-  : TunManager(sw, evb) {}
+MockTunManager::MockTunManager(SwSwitch* sw, folly::EventBase* evb)
+    : TunManager(sw, evb) {}
 
 bool MockTunManager::sendPacketToHost(
-    InterfaceID dstIfID, std::unique_ptr<RxPacket> pkt) {
+    InterfaceID dstIfID,
+    std::unique_ptr<RxPacket> pkt) {
   std::shared_ptr<RxPacket> sp(pkt.release());
   sendPacketToHost_(std::make_tuple(dstIfID, sp));
   return true;
 }
 
-}}
+} // namespace fboss
+} // namespace facebook

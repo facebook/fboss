@@ -13,13 +13,12 @@
 
 #include <folly/experimental/TestUtil.h>
 
-
 namespace facebook {
 namespace fboss {
 
 class FakeWedge40Platform : public Wedge40Platform {
  public:
-   using Wedge40Platform::Wedge40Platform;
+  using Wedge40Platform::Wedge40Platform;
 
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;

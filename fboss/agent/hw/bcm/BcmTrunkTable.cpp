@@ -38,7 +38,7 @@ opennsl_trunk_t BcmTrunkTable::getBcmTrunkId(AggregatePortID id) const {
 }
 
 AggregatePortID BcmTrunkTable::getAggregatePortId(opennsl_trunk_t trunk) const {
-  for (const auto& idAndTrunk: trunks_) {
+  for (const auto& idAndTrunk : trunks_) {
     if (idAndTrunk.second->id() == trunk) {
       return idAndTrunk.first;
     }

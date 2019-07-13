@@ -43,8 +43,8 @@ class ForwardingInformationBaseUpdater {
   static facebook::fboss::RouteNextHopEntry toFibNextHop(
       const RouteNextHopEntry& ribNextHopEntry);
   template <typename AddrT>
-  static std::unique_ptr<facebook::fboss::Route<AddrT>>
-  toFibRoute(const Route<AddrT>& ribRoute);
+  static std::unique_ptr<facebook::fboss::Route<AddrT>> toFibRoute(
+      const Route<AddrT>& ribRoute);
 
  private:
   template <typename AddressT>

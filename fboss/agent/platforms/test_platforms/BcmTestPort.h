@@ -13,13 +13,16 @@
 
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmTestPort : public BcmPlatformPort {
  public:
   explicit BcmTestPort(PortID id);
 
-  PortID getPortID() const override { return id_; }
+  PortID getPortID() const override {
+    return id_;
+  }
 
   void setBcmPort(BcmPort* port) override;
   BcmPort* getBcmPort() const override {
@@ -40,11 +43,15 @@ class BcmTestPort : public BcmPlatformPort {
       folly::EventBase* evb) const override;
   folly::Optional<TransceiverID> getTransceiverID() const override;
   folly::Future<folly::Optional<TxSettings>> getTxSettings(
-    folly::EventBase* evb) const override;
+      folly::EventBase* evb) const override;
   bool supportsTransceiver() const override;
-  void statusIndication(bool enabled, bool link,
-                        bool ingress, bool egress,
-                        bool discards, bool errors) override;
+  void statusIndication(
+      bool enabled,
+      bool link,
+      bool ingress,
+      bool egress,
+      bool discards,
+      bool errors) override;
   void prepareForGracefulExit() override;
   void setShouldDisableFec() {
     shouldDisableFec_ = true;
@@ -67,9 +74,8 @@ class BcmTestPort : public BcmPlatformPort {
 
  private:
   // Forbidden copy constructor and assignment operator
-  BcmTestPort(BcmTestPort const &) = delete;
-  BcmTestPort& operator=(BcmTestPort const &) = delete;
-
+  BcmTestPort(BcmTestPort const&) = delete;
+  BcmTestPort& operator=(BcmTestPort const&) = delete;
 
   BcmTestPort::TxOverrides getTxOverrides() const override {
     return BcmTestPort::TxOverrides();
@@ -80,4 +86,5 @@ class BcmTestPort : public BcmPlatformPort {
   BcmPort* bcmPort_{nullptr};
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

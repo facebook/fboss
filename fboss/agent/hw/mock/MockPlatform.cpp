@@ -22,26 +22,23 @@ using std::make_unique;
 using std::string;
 using std::unique_ptr;
 using testing::_;
-using testing::WithArg;
 using testing::Invoke;
+using testing::WithArg;
 
+namespace facebook {
+namespace fboss {
 
-namespace facebook { namespace fboss {
-
-MockPlatform::MockPlatform(std::unique_ptr<MockHwSwitch> hw) :
-    tmpDir_("fboss_mock_state"),
-    hw_(std::move(hw)) {
-    ON_CALL(*hw_, stateChanged(_))
-      .WillByDefault(WithArg<0>(Invoke([=](const StateDelta& delta) {
-    return delta.newState();})));
+MockPlatform::MockPlatform(std::unique_ptr<MockHwSwitch> hw)
+    : tmpDir_("fboss_mock_state"), hw_(std::move(hw)) {
+  ON_CALL(*hw_, stateChanged(_))
+      .WillByDefault(WithArg<0>(
+          Invoke([=](const StateDelta& delta) { return delta.newState(); })));
 }
 
-MockPlatform::MockPlatform() :
-    MockPlatform(make_unique<::testing::NiceMock<MockHwSwitch>>(this)) {
-}
+MockPlatform::MockPlatform()
+    : MockPlatform(make_unique<::testing::NiceMock<MockHwSwitch>>(this)) {}
 
-MockPlatform::~MockPlatform() {
-}
+MockPlatform::~MockPlatform() {}
 
 HwSwitch* MockPlatform::getHwSwitch() const {
   return hw_.get();
@@ -60,5 +57,5 @@ std::unique_ptr<HwTestHandle> MockPlatform::createTestHandle(
   return make_unique<MockTestHandle>(std::move(sw), this);
 }
 
-
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -11,12 +11,13 @@
 
 #include "fboss/agent/hw/bcm/BcmCosQueueManager.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmSwitch;
 
 class BcmControlPlaneQueueManager : public BcmCosQueueManager {
-public:
+ public:
   BcmControlPlaneQueueManager(
       BcmSwitch* hw,
       const std::string& portName,
@@ -26,36 +27,39 @@ public:
 
   int getNumQueues(cfg::StreamType streamType) const override;
 
-  opennsl_gport_t getQueueGPort(cfg::StreamType streamType,
-                                opennsl_cos_queue_t cosQ) const override;
+  opennsl_gport_t getQueueGPort(
+      cfg::StreamType streamType,
+      opennsl_cos_queue_t cosQ) const override;
 
   BcmPortQueueConfig getCurrentQueueSettings() const override;
 
   std::unique_ptr<PortQueue> getCurrentQueueSettings(
-    cfg::StreamType streamType,
-    opennsl_cos_queue_t cosQ) const override;
+      cfg::StreamType streamType,
+      opennsl_cos_queue_t cosQ) const override;
 
   void program(const PortQueue& queue) override;
 
-  const std::vector<BcmCosQueueCounterType>&
-  getQueueCounterTypes() const override;
+  const std::vector<BcmCosQueueCounterType>& getQueueCounterTypes()
+      const override;
 
-protected:
+ protected:
   const PortQueue& getDefaultQueueSettings(
-    cfg::StreamType streamType) const override;
+      cfg::StreamType streamType) const override;
 
-private:
+ private:
   // Forbidden copy constructor and assignment operator
-  BcmControlPlaneQueueManager(BcmControlPlaneQueueManager const &) = delete;
-  BcmControlPlaneQueueManager& operator=(
-    BcmControlPlaneQueueManager const &) = delete;
+  BcmControlPlaneQueueManager(BcmControlPlaneQueueManager const&) = delete;
+  BcmControlPlaneQueueManager& operator=(BcmControlPlaneQueueManager const&) =
+      delete;
 
-  void updateQueueStat(opennsl_cos_queue_t cosQ,
-                       const BcmCosQueueCounterType& type,
-                       facebook::stats::MonotonicCounter* counter,
-                       std::chrono::seconds now,
-                       HwPortStats* portStats = nullptr) override;
+  void updateQueueStat(
+      opennsl_cos_queue_t cosQ,
+      const BcmCosQueueCounterType& type,
+      facebook::stats::MonotonicCounter* counter,
+      std::chrono::seconds now,
+      HwPortStats* portStats = nullptr) override;
 
   int maxCPUQueue_{0};
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

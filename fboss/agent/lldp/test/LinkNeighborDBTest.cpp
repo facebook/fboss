@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
-#include "fboss/agent/lldp/LinkNeighbor.h"
 #include "fboss/agent/lldp/LinkNeighborDB.h"
+#include "fboss/agent/lldp/LinkNeighbor.h"
 
 #include <gtest/gtest.h>
 
@@ -31,11 +31,12 @@ TEST(LinkNeighborDB, test) {
   EXPECT_EQ(PortID(1), neighbors[0].getLocalPort());
   EXPECT_EQ(VlanID(1), neighbors[0].getLocalVlan());
   EXPECT_EQ(n1mac, neighbors[0].getMac());
-  EXPECT_EQ((int)LldpChassisIdType::LOCALLY_ASSIGNED,
-            (int)neighbors[0].getChassisIdType());
+  EXPECT_EQ(
+      (int)LldpChassisIdType::LOCALLY_ASSIGNED,
+      (int)neighbors[0].getChassisIdType());
   EXPECT_EQ("neighbor1", neighbors[0].getChassisId());
-  EXPECT_EQ((int)LldpPortIdType::LOCALLY_ASSIGNED,
-            (int)neighbors[0].getPortIdType());
+  EXPECT_EQ(
+      (int)LldpPortIdType::LOCALLY_ASSIGNED, (int)neighbors[0].getPortIdType());
   EXPECT_EQ("1/1", neighbors[0].getPortId());
   EXPECT_EQ("neighbor1 name", neighbors[0].getSystemName());
   EXPECT_EQ(seconds(5), neighbors[0].getTTL());

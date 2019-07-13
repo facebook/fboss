@@ -18,7 +18,8 @@ namespace {
 constexpr auto kRoutes = "routes";
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 template <typename AddrT>
 void RouteTableRibNodeMap<AddrT>::addRoute(
@@ -48,7 +49,7 @@ FBOSS_INSTANTIATE_NODE_MAP(
 template <typename AddrT>
 folly::dynamic RouteTableRib<AddrT>::toFollyDynamic() const {
   folly::dynamic routesJson = folly::dynamic::array;
-  for (const auto& route: *nodeMap_) {
+  for (const auto& route : *nodeMap_) {
     routesJson.push_back(route->toFollyDynamic());
   }
   folly::dynamic routes = folly::dynamic::object;
@@ -57,11 +58,11 @@ folly::dynamic RouteTableRib<AddrT>::toFollyDynamic() const {
 }
 
 template <typename AddrT>
-std::shared_ptr<RouteTableRib<AddrT>>
-RouteTableRib<AddrT>::fromFollyDynamic(const folly::dynamic& routes) {
+std::shared_ptr<RouteTableRib<AddrT>> RouteTableRib<AddrT>::fromFollyDynamic(
+    const folly::dynamic& routes) {
   auto rib = std::make_shared<RouteTableRib<AddrT>>();
   auto routesJson = routes[kRoutes];
-  for (const auto& routeJson: routesJson) {
+  for (const auto& routeJson : routesJson) {
     auto route = Route<AddrT>::fromFollyDynamic(routeJson);
     rib->addRoute(route);
     rib->addRouteInRadixTree(route);
@@ -88,9 +89,9 @@ RouteTableRib<AddrT>* RouteTableRib<AddrT>::modify(
   // modify() is that we have a cloned RouteTableRib return if the current one
   // is published. To make sure the cloned RouteTableRib works, we need to
   // ensure radixTree_ and nodeMap_ in sync before we return a newly cloned rib.
-  for (const auto& node: nodeMap_->getAllNodes()) {
-    clonedRib->radixTree_.insert(node.first.network, node.first.mask,
-                                 node.second);
+  for (const auto& node : nodeMap_->getAllNodes()) {
+    clonedRib->radixTree_.insert(
+        node.first.network, node.first.mask, node.second);
   }
   CHECK_EQ(clonedRib->size(), clonedRib->radixTree_.size());
 
@@ -121,4 +122,5 @@ void RouteTableRib<AddrT>::removeRoute(
 template class RouteTableRib<folly::IPAddressV4>;
 template class RouteTableRib<folly::IPAddressV6>;
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

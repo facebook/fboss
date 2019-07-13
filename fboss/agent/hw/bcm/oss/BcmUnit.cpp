@@ -19,12 +19,13 @@ extern "C" {
 #include <sal/driver.h>
 } // extern "C"
 
-using folly::StringPiece;
 using facebook::fboss::BcmAPI;
+using folly::StringPiece;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-int BcmUnit::createHwUnit()  {
+int BcmUnit::createHwUnit() {
   // For now we assume that the unit number is 0. This will be changed once
   // opennsl exposes interfaces to determine which units are on the system
   return 0;
@@ -76,4 +77,5 @@ void BcmUnit::rawRegisterWrite(
 void BcmUnit::detachAndCleanupSDKUnit() {
   // not supported
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <glog/logging.h>
+#include <stdint.h>
 
 namespace facebook {
 namespace fboss {

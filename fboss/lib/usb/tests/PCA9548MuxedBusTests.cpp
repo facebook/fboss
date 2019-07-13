@@ -50,10 +50,10 @@ int constexpr pow(int base, int exponent) {
  */
 template <int LAYERS, int MUXES_PER_LAYER>
 class FakeMuxBus
-    : public PCA9548MuxedBus<pow(MUXES_PER_LAYER * PCA9548::WIDTH, LAYERS)> {
+    : public PCA9548MuxedBus<pow(MUXES_PER_LAYER* PCA9548::WIDTH, LAYERS)> {
  public:
   FakeMuxBus()
-      : PCA9548MuxedBus<pow(MUXES_PER_LAYER * PCA9548::WIDTH, LAYERS)>(
+      : PCA9548MuxedBus<pow(MUXES_PER_LAYER* PCA9548::WIDTH, LAYERS)>(
             std::make_unique<MockCP2112>()) {}
   MuxLayer createMuxes() override {
     MuxLayer roots;
@@ -67,7 +67,7 @@ class FakeMuxBus
   }
 
   void wireUpPorts(typename PCA9548MuxedBus<
-                   pow(MUXES_PER_LAYER * PCA9548::WIDTH, LAYERS)>::PortLeaves&
+                   pow(MUXES_PER_LAYER* PCA9548::WIDTH, LAYERS)>::PortLeaves&
                        leaves) override {
     for (const auto&& mux : folly::enumerate(leafMuxes_)) {
       auto start = mux.index * PCA9548::WIDTH;

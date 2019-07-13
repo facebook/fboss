@@ -25,8 +25,8 @@ using namespace facebook::fboss::rib;
 using facebook::fboss::AdminDistance;
 using facebook::fboss::InterfaceID;
 using facebook::fboss::IpPrefix;
-using facebook::fboss::NextHopThrift;
 using facebook::fboss::MplsAction;
+using facebook::fboss::NextHopThrift;
 using facebook::fboss::UnicastRoute;
 
 namespace {
@@ -72,7 +72,7 @@ facebook::network::thrift::BinaryAddress createV6LinkLocalNextHop(
 std::vector<NextHopThrift> nextHopsThrift() {
   std::vector<NextHopThrift> nexthops;
   std::vector<folly::IPAddress> addrs{nextHopAddr1, nextHopAddr2, nextHopAddr3};
-  for (const auto& addr: addrs) {
+  for (const auto& addr : addrs) {
     NextHopThrift nexthop;
     nexthop.address = createV6LinkLocalNextHop(addr);
     nexthop.weight = static_cast<int32_t>(ECMP_WEIGHT);

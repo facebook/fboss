@@ -9,20 +9,19 @@
  */
 #include "fboss/agent/state/RouteTableMap.h"
 
+#include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableRib.h"
-#include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-RouteTableMap::RouteTableMap() {
-}
+RouteTableMap::RouteTableMap() {}
 
-RouteTableMap::~RouteTableMap() {
-}
+RouteTableMap::~RouteTableMap() {}
 
-void RouteTableMap::getRouteCount(uint64_t *v4Count, uint64_t *v6Count) {
+void RouteTableMap::getRouteCount(uint64_t* v4Count, uint64_t* v6Count) {
   uint64_t v4 = 0;
   uint64_t v6 = 0;
   for (const auto& table : getAllNodes()) {
@@ -56,4 +55,5 @@ RouteTableMap* RouteTableMap::modify(std::shared_ptr<SwitchState>* state) {
 
 FBOSS_INSTANTIATE_NODE_MAP(RouteTableMap, RouteTableMapTraits);
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -12,7 +12,8 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmSwitch;
 
@@ -26,7 +27,7 @@ class BcmAclStat {
       int gid,
       const std::vector<cfg::CounterType>& counters);
   BcmAclStat(BcmSwitch* hw, BcmAclStatHandle statHandle)
-    : hw_(hw), handle_(statHandle) {}
+      : hw_(hw), handle_(statHandle) {}
   ~BcmAclStat();
 
   BcmAclStatHandle getHandle() const {
@@ -47,4 +48,5 @@ class BcmAclStat {
   BcmAclStatHandle handle_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

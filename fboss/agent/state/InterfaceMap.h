@@ -8,11 +8,12 @@
  *
  */
 #pragma once
-#include <vector>
 #include <folly/IPAddress.h>
-#include "fboss/agent/types.h"
+#include <vector>
 #include "fboss/agent/state/NodeMap.h"
-namespace facebook { namespace fboss {
+#include "fboss/agent/types.h"
+namespace facebook {
+namespace fboss {
 
 class Interface;
 typedef NodeMapTraits<InterfaceID, Interface> InterfaceMapTraits;
@@ -49,14 +50,16 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
    *  we return null.
    */
   std::shared_ptr<Interface> getInterfaceIf(
-      RouterID router, const folly::IPAddress& ip) const;
+      RouterID router,
+      const folly::IPAddress& ip) const;
 
   /*
    * Same as get interface by IP above, but throws a execption
    * instead of returning null
    */
   const std::shared_ptr<Interface>& getInterface(
-      RouterID router, const folly::IPAddress& ip) const;
+      RouterID router,
+      const folly::IPAddress& ip) const;
 
   typedef std::vector<std::shared_ptr<Interface>> Interfaces;
 
@@ -64,21 +67,22 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
    *  Get interface which has the given vlan. If multiple
    *  interfaces exist, this will return the default interface.
    */
-  std::shared_ptr<Interface> getInterfaceInVlanIf(
-      VlanID vlan) const;
+  std::shared_ptr<Interface> getInterfaceInVlanIf(VlanID vlan) const;
 
   /*
    * Same as getInterfaceInVlanIf but throws a execption
    * instead of returning null
    */
-  const std::shared_ptr<Interface> getInterfaceInVlan(
-      VlanID vlan) const;
+  const std::shared_ptr<Interface> getInterfaceInVlan(VlanID vlan) const;
 
   struct IntfAddrToReach {
-    IntfAddrToReach(const Interface* intf, const folly::IPAddress *addr,
-                    uint8_t mask) : intf(intf), addr(addr), mask(mask) {}
-    const Interface *intf{nullptr};
-    const folly::IPAddress *addr{nullptr};
+    IntfAddrToReach(
+        const Interface* intf,
+        const folly::IPAddress* addr,
+        uint8_t mask)
+        : intf(intf), addr(addr), mask(mask) {}
+    const Interface* intf{nullptr};
+    const folly::IPAddress* addr{nullptr};
     uint8_t mask{0};
   };
 
@@ -86,14 +90,14 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
    * Find an interface with its address to reach the given destination
    */
   IntfAddrToReach getIntfAddrToReach(
-      RouterID router, const folly::IPAddress& dest) const;
+      RouterID router,
+      const folly::IPAddress& dest) const;
 
   /*
    * The following functions modify the static state.
    * These should only be called on unpublished objects which are only visible
    * to a single thread.
    */
-
 
   void addInterface(const std::shared_ptr<Interface>& interface);
 
@@ -104,11 +108,11 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
   /*
    * Deserialize from a folly::dynamic object
    */
-  static std::shared_ptr<InterfaceMap>
-    fromFollyDynamic(const folly::dynamic& intfMapJson);
+  static std::shared_ptr<InterfaceMap> fromFollyDynamic(
+      const folly::dynamic& intfMapJson);
 
-  static std::shared_ptr<InterfaceMap>
-  fromJson(const folly::fbstring& jsonStr) {
+  static std::shared_ptr<InterfaceMap> fromJson(
+      const folly::fbstring& jsonStr) {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
@@ -118,4 +122,5 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
   friend class CloneAllocator;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

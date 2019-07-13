@@ -9,12 +9,13 @@
  */
 #pragma once
 
-#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include <folly/Range.h>
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 DECLARE_string(fruid_filepath);
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 enum class PlatformMode {
   WEDGE,
@@ -39,8 +40,8 @@ class PlatformProductInfo {
 
  private:
   // Forbidden copy constructor and assignment operator
-  PlatformProductInfo(PlatformProductInfo const &) = delete;
-  PlatformProductInfo& operator=(PlatformProductInfo const &) = delete;
+  PlatformProductInfo(PlatformProductInfo const&) = delete;
+  PlatformProductInfo& operator=(PlatformProductInfo const&) = delete;
 
   void setFBSerial();
   void initFromFbWhoAmI();
@@ -52,4 +53,5 @@ class PlatformProductInfo {
   PlatformMode mode_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

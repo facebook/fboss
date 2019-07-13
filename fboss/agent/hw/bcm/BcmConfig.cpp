@@ -9,22 +9,25 @@
  */
 #include "fboss/agent/hw/bcm/BcmConfig.h"
 
-#include "fboss/agent/hw/bcm/gen-cpp2/bcm_config_types.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/bcm/gen-cpp2/bcm_config_types.h"
 
 #include <folly/FileUtil.h>
 #include <folly/gen/String.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
-DEFINE_string(bcm_config, "",
-              "The location of the Broadcom JSON configuration file");
+DEFINE_string(
+    bcm_config,
+    "",
+    "The location of the Broadcom JSON configuration file");
 
 using folly::StringPiece;
 using std::string;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 BcmConfig::ConfigMap BcmConfig::loadDefaultConfig() {
   CHECK(!FLAGS_bcm_config.empty()) << "Must set bcm config";
@@ -70,7 +73,7 @@ void trimStr(StringPiece* value) {
     value->pop_back();
   }
 }
-}
+} // namespace
 
 BcmConfig::ConfigMap BcmConfig::parseBcmStyleConfig(StringPiece data) {
   ConfigMap results;
@@ -100,4 +103,5 @@ BcmConfig::ConfigMap BcmConfig::parseBcmStyleConfig(StringPiece data) {
   return results;
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

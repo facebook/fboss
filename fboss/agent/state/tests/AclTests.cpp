@@ -8,28 +8,28 @@
  *
  */
 #include "fboss/agent/ApplyThriftConfig.h"
-#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
-#include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AclEntry.h"
+#include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
+using folly::MacAddress;
 using std::make_pair;
 using std::make_shared;
 using std::shared_ptr;
-using folly::MacAddress;
 
 namespace {
 // We offset the start point in ApplyThriftConfig
 constexpr auto kAclStartPriority = 100000;
-}
+} // namespace
 
 TEST(Acl, applyConfig) {
   auto platform = createMockPlatform();
@@ -77,8 +77,9 @@ TEST(Acl, applyConfig) {
   EXPECT_FALSE(aclV1->isPublished());
 
   config.acls[0].dstIp_ref().value_unchecked() = "invalid address";
-  EXPECT_THROW(publishAndApplyConfig(
-    stateV1, &config, platform.get()), folly::IPAddressFormatException);
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV1, &config, platform.get()),
+      folly::IPAddressFormatException);
 
   config.acls[0].name = "acl2";
   config.acls[0].__isset.dstIp = false;
@@ -150,8 +151,8 @@ TEST(Acl, applyConfig) {
 
   // test max > 65535 case
   configV1.acls[0].l4SrcPort_ref() = 65536;
-  EXPECT_THROW(publishAndApplyConfig(stateV3, &configV1, platform.get()),
-    FbossError);
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV3, &configV1, platform.get()), FbossError);
 
   cfg::SwitchConfig configV2;
   configV2.ports.resize(1);
@@ -267,8 +268,9 @@ TEST(Acl, stateDelta) {
   StateDelta delta34(stateV3, stateV4);
   auto aclDelta34 = delta34.getAclsDelta();
   iter = aclDelta34.begin();
-  EXPECT_EQ(iter->getOld()->getSrcIp(), folly::CIDRNetwork(
-        folly::IPAddress("192.168.0.4"), 32));
+  EXPECT_EQ(
+      iter->getOld()->getSrcIp(),
+      folly::CIDRNetwork(folly::IPAddress("192.168.0.4"), 32));
   EXPECT_EQ(iter->getNew(), nullptr);
   ++iter;
   EXPECT_EQ(iter, aclDelta34.end());
@@ -316,15 +318,15 @@ TEST(Acl, Icmp) {
   // test config exceptions
   config.acls[0].proto_ref().value_unchecked() = 4;
   EXPECT_THROW(
-    publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
+      publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
   config.acls[0].__isset.proto = false;
   EXPECT_THROW(
-    publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
+      publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
   config.acls[0].proto_ref().value_unchecked() = 58;
   config.acls[0].__isset.proto = true;
   config.acls[0].__isset.icmpType = false;
   EXPECT_THROW(
-    publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
+      publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
 }
 
 TEST(Acl, aclModifyUnpublished) {
@@ -457,23 +459,16 @@ TEST(Acl, AclGeneration) {
 
   EXPECT_EQ(acls->getEntryIf("acl1")->getPriority(), kAclStartPriority);
   EXPECT_EQ(acls->getEntryIf("acl4")->getPriority(), kAclStartPriority + 1);
-  EXPECT_EQ(acls->getEntryIf("acl2")->getPriority(),
-      kAclStartPriority + 2);
-  EXPECT_EQ(acls->getEntryIf("acl3")->getPriority(),
-      kAclStartPriority + 3);
-  EXPECT_EQ(acls->getEntryIf("acl5")->getPriority(),
-      kAclStartPriority + 4);
+  EXPECT_EQ(acls->getEntryIf("acl2")->getPriority(), kAclStartPriority + 2);
+  EXPECT_EQ(acls->getEntryIf("acl3")->getPriority(), kAclStartPriority + 3);
+  EXPECT_EQ(acls->getEntryIf("acl5")->getPriority(), kAclStartPriority + 4);
 
   // Ensure that the global actions in global traffic policy has been added to
   // the ACL entries
   EXPECT_TRUE(acls->getEntryIf("acl5")->getAclAction().hasValue());
   EXPECT_EQ(
       8,
-      acls->getEntryIf("acl5")
-          ->getAclAction()
-          ->getSetDscp()
-          .value()
-          .dscpValue);
+      acls->getEntryIf("acl5")->getAclAction()->getSetDscp().value().dscpValue);
 }
 
 TEST(Acl, SerializeAclEntry) {
@@ -584,18 +579,18 @@ TEST(Acl, Ttl) {
 
   // check invalid configs
   config.acls[0].ttl_ref().value_unchecked().value = 256;
-  EXPECT_THROW(publishAndApplyConfig(stateV1, &config, platform.get()),
-    FbossError);
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
   config.acls[0].ttl_ref().value_unchecked().value = -1;
-  EXPECT_THROW(publishAndApplyConfig(stateV1, &config, platform.get()),
-    FbossError);
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
   config.acls[0].ttl_ref().value_unchecked().value = 42;
   config.acls[0].ttl_ref().value_unchecked().mask = 256;
-  EXPECT_THROW(publishAndApplyConfig(stateV1, &config, platform.get()),
-    FbossError);
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
   config.acls[0].ttl_ref().value_unchecked().mask = -1;
-  EXPECT_THROW(publishAndApplyConfig(stateV1, &config, platform.get()),
-    FbossError);
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
 }
 
 TEST(Acl, TtlSerialization) {

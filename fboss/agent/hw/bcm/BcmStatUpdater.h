@@ -14,11 +14,12 @@
 #include "fboss/agent/hw/bcm/types.h"
 #include "fboss/agent/types.h"
 
-#include <queue>
-#include <folly/Synchronized.h>
 #include <boost/container/flat_map.hpp>
+#include <folly/Synchronized.h>
+#include <queue>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 using facebook::stats::MonotonicCounter;
 
@@ -105,4 +106,5 @@ class BcmStatUpdater {
       aclStats_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -10,16 +10,17 @@
 #pragma once
 
 #include <boost/container/flat_map.hpp>
-#include "fboss/agent/StateObserver.h"
-#include "fboss/agent/types.h"
-#include "fboss/agent/ArpCache.h"
-#include "fboss/agent/NdpCache.h"
-#include "fboss/agent/state/PortDescriptor.h"
 #include <list>
 #include <mutex>
 #include <string>
+#include "fboss/agent/ArpCache.h"
+#include "fboss/agent/NdpCache.h"
+#include "fboss/agent/StateObserver.h"
+#include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class NeighborUpdaterImpl;
 class SwitchState;
@@ -49,11 +50,10 @@ class NeighborUpdater : public AutoRegisterStateObserver {
 
   void stateUpdated(const StateDelta& delta) override;
 
-  uint32_t flushEntry (VlanID vlan, folly::IPAddress ip);
+  uint32_t flushEntry(VlanID vlan, folly::IPAddress ip);
 
   // Ndp events
-  void sentNeighborSolicitation(VlanID vlan,
-                                folly::IPAddressV6 ip);
+  void sentNeighborSolicitation(VlanID vlan, folly::IPAddressV6 ip);
   void receivedNdpMine(
       VlanID vlan,
       folly::IPAddressV6 ip,
@@ -70,18 +70,19 @@ class NeighborUpdater : public AutoRegisterStateObserver {
       uint32_t flags);
 
   // Arp events
-  void sentArpRequest(VlanID vlan,
-                      folly::IPAddressV4 ip);
-  void receivedArpMine(VlanID vlan,
-                       folly::IPAddressV4 ip,
-                       folly::MacAddress mac,
-                       PortDescriptor port,
-                       ArpOpCode op);
-  void receivedArpNotMine(VlanID vlan,
-                          folly::IPAddressV4 ip,
-                          folly::MacAddress mac,
-                          PortDescriptor port,
-                          ArpOpCode op);
+  void sentArpRequest(VlanID vlan, folly::IPAddressV4 ip);
+  void receivedArpMine(
+      VlanID vlan,
+      folly::IPAddressV4 ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      ArpOpCode op);
+  void receivedArpNotMine(
+      VlanID vlan,
+      folly::IPAddressV4 ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      ArpOpCode op);
 
   void portDown(PortDescriptor port);
 
@@ -98,8 +99,8 @@ class NeighborUpdater : public AutoRegisterStateObserver {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
   void aggregatePortChanged(
-    const std::shared_ptr<AggregatePort>& oldAggPort,
-    const std::shared_ptr<AggregatePort>& newAggPort);
+      const std::shared_ptr<AggregatePort>& oldAggPort,
+      const std::shared_ptr<AggregatePort>& newAggPort);
 
   void sendNeighborUpdates(const VlanDelta& delta);
 
@@ -108,11 +109,11 @@ class NeighborUpdater : public AutoRegisterStateObserver {
   std::shared_ptr<NdpCache> getNdpCacheFor(VlanID vlan);
   std::shared_ptr<NdpCache> getNdpCacheInternal(VlanID vlan);
 
-  bool flushEntryImpl (VlanID vlan, folly::IPAddress ip);
+  bool flushEntryImpl(VlanID vlan, folly::IPAddress ip);
 
   // Forbidden copy constructor and assignment operator
-  NeighborUpdater(NeighborUpdater const &) = delete;
-  NeighborUpdater& operator=(NeighborUpdater const &) = delete;
+  NeighborUpdater(NeighborUpdater const&) = delete;
+  NeighborUpdater& operator=(NeighborUpdater const&) = delete;
 
   struct NeighborCaches {
     /* These are shared_ptrs for safety reasons as it lets callers
@@ -121,12 +122,17 @@ class NeighborUpdater : public AutoRegisterStateObserver {
     std::shared_ptr<ArpCache> arpCache;
     std::shared_ptr<NdpCache> ndpCache;
 
-    NeighborCaches(SwSwitch* sw, const SwitchState* state,
-                   VlanID vlanID, std::string vlanName, InterfaceID intfID) :
-        arpCache(
-            std::make_shared<ArpCache>(sw, state, vlanID, vlanName, intfID)),
-        ndpCache(
-            std::make_shared<NdpCache>(sw, state, vlanID, vlanName, intfID)) {}
+    NeighborCaches(
+        SwSwitch* sw,
+        const SwitchState* state,
+        VlanID vlanID,
+        std::string vlanName,
+        InterfaceID intfID)
+        : arpCache(
+              std::make_shared<ArpCache>(sw, state, vlanID, vlanName, intfID)),
+          ndpCache(
+              std::make_shared<NdpCache>(sw, state, vlanID, vlanName, intfID)) {
+    }
     void clearEntries() {
       arpCache->clearEntries();
       ndpCache->clearEntries();
@@ -144,4 +150,5 @@ class NeighborUpdater : public AutoRegisterStateObserver {
   SwSwitch* sw_{nullptr};
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

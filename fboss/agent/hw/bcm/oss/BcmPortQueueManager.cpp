@@ -9,15 +9,15 @@
  */
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 std::unique_ptr<PortQueue> BcmPortQueueManager::getCurrentQueueSettings(
     cfg::StreamType /*streamType*/,
     opennsl_cos_queue_t /*cosQ*/) const {
   return std::unique_ptr<PortQueue>{};
 }
 
-void BcmPortQueueManager::program(
-  const PortQueue& /*queue*/) {}
+void BcmPortQueueManager::program(const PortQueue& /*queue*/) {}
 
 void BcmPortQueueManager::updateQueueStat(
     opennsl_cos_queue_t /*cosQ*/,
@@ -51,4 +51,5 @@ void BcmPortQueueManager::programAqm(
     int /*queueIdx*/,
     cfg::QueueCongestionBehavior /*behavior*/,
     folly::Optional<cfg::QueueCongestionDetection> /*detection*/) {}
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

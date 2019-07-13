@@ -31,7 +31,7 @@ int BcmTrunk::rtag7() {
 }
 
 void BcmTrunk::suppressTrunkInternalFlood(
-  const std::shared_ptr<AggregatePort>& aggPort) {
+    const std::shared_ptr<AggregatePort>& aggPort) {
   return;
 }
 

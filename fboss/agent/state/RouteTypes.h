@@ -10,21 +10,22 @@
 // Copyright 2004-present Facebook.  All rights reserved.
 #pragma once
 
-#include <folly/dynamic.h>
 #include <folly/FBString.h>
-#include "fboss/agent/types.h"
 #include <folly/IPAddress.h>
+#include <folly/dynamic.h>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /**
  * Route forward actions
  */
 enum RouteForwardAction {
-  DROP,             // Drop the packets
-  TO_CPU,           // Punt the packets to the CPU
-  NEXTHOPS,         // Forward the packets to one or multiple nexthops
+  DROP, // Drop the packets
+  TO_CPU, // Punt the packets to the CPU
+  NEXTHOPS, // Forward the packets to one or multiple nexthops
 };
 
 std::string forwardActionStr(RouteForwardAction action);
@@ -33,7 +34,7 @@ RouteForwardAction str2ForwardAction(const std::string& action);
 /**
  * Route prefix
  */
-template<typename AddrT>
+template <typename AddrT>
 struct RoutePrefix {
   AddrT network;
   uint8_t mask;
@@ -65,7 +66,8 @@ struct RoutePrefix {
 typedef RoutePrefix<folly::IPAddressV4> RoutePrefixV4;
 typedef RoutePrefix<folly::IPAddressV6> RoutePrefixV6;
 
-void toAppend(const RoutePrefixV4& prefix, std::string *result);
-void toAppend(const RoutePrefixV6& prefix, std::string *result);
+void toAppend(const RoutePrefixV4& prefix, std::string* result);
+void toAppend(const RoutePrefixV6& prefix, std::string* result);
 
-}}
+} // namespace fboss
+} // namespace facebook

@@ -12,7 +12,8 @@
 #include <folly/IPAddressV4.h>
 #include "fboss/agent/state/NeighborEntry.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * ArpEntry represents an entry in our IPv4 neighbor table.
@@ -26,4 +27,5 @@ class ArpEntry : public NeighborEntry<folly::IPAddressV4, ArpEntry> {
   using NeighborEntry::NeighborEntry;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

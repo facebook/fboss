@@ -16,17 +16,18 @@
 #include <folly/io/Cursor.h>
 #include "fboss/agent/FbossError.h"
 
+using folly::ByteRange;
+using folly::IOBuf;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 using folly::MacAddress;
-using folly::ByteRange;
+using folly::StringPiece;
 using folly::io::Appender;
 using folly::io::Cursor;
-using folly::IOBuf;
-using folly::StringPiece;
 using std::string;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 MacAddress PktUtil::readMac(Cursor* cursor) {
   // Common case is that the MAC data is contiguous
@@ -76,11 +77,12 @@ uint16_t PktUtil::internetChecksum(const IOBuf* buf) {
   return finalizeChecksum(Cursor(buf), buf->computeChainDataLength(), 0);
 }
 
-uint32_t PktUtil::partialChecksumImpl(folly::io::Cursor cursor,
-                                      uint64_t length,
-                                      uint32_t value) {
+uint32_t PktUtil::partialChecksumImpl(
+    folly::io::Cursor cursor,
+    uint64_t length,
+    uint32_t value) {
   // Checksum all the pairs of bytes first
-  while  (length > 1) {
+  while (length > 1) {
     value += cursor.readBE<uint16_t>();
     length -= 2;
   }
@@ -95,16 +97,18 @@ uint32_t PktUtil::partialChecksumImpl(folly::io::Cursor cursor,
   return value;
 }
 
-uint32_t PktUtil::partialChecksum(folly::io::Cursor cursor,
-                                  uint64_t length,
-                                  uint32_t value) {
+uint32_t PktUtil::partialChecksum(
+    folly::io::Cursor cursor,
+    uint64_t length,
+    uint32_t value) {
   CHECK((length & 1) == 0);
   return partialChecksumImpl(cursor, length, value);
 }
 
-uint16_t PktUtil::finalizeChecksum(folly::io::Cursor start,
-                                   uint64_t length,
-                                   uint32_t value) {
+uint16_t PktUtil::finalizeChecksum(
+    folly::io::Cursor start,
+    uint64_t length,
+    uint32_t value) {
   auto sum = partialChecksumImpl(start, length, value);
   return finalizeChecksum(sum);
 }
@@ -129,9 +133,8 @@ string PktUtil::hexDump(Cursor start, Cursor end) {
 string PktUtil::hexDump(Cursor cursor, uint32_t length) {
   // Go ahead and reserve the required space
   size_t numLines = (length + 15) / 16;
-  size_t expectedLength =
-    (length * 3) + // 3 bytes for each character
-    (numLines * 6); // 5 bytes for each line prefix plus 1 for newline
+  size_t expectedLength = (length * 3) + // 3 bytes for each character
+      (numLines * 6); // 5 bytes for each line prefix plus 1 for newline
 
   string result;
   result.reserve(expectedLength);
@@ -159,10 +162,10 @@ IOBuf PktUtil::parseHexData(StringPiece hex) {
 
 void PktUtil::appendHexData(StringPiece hex, Appender* appender) {
   auto unhex = [](char c) -> int {
-    return c >= '0' && c <= '9' ? c - '0' :
-           c >= 'A' && c <= 'F' ? c - 'A' + 10 :
-           c >= 'a' && c <= 'f' ? c - 'a' + 10 :
-           -1;
+    return c >= '0' && c <= '9'
+        ? c - '0'
+        : c >= 'A' && c <= 'F' ? c - 'A' + 10
+                               : c >= 'a' && c <= 'f' ? c - 'a' + 10 : -1;
   };
 
   int prev = -1;
@@ -171,8 +174,8 @@ void PktUtil::appendHexData(StringPiece hex, Appender* appender) {
     // Skip over whitespace between bytes
     if (isspace(c, std::locale("C"))) {
       if (prev != -1) {
-        throw FbossError("invalid hex at offset ", idx,
-                         ": each hex byte must be 2 digits");
+        throw FbossError(
+            "invalid hex at offset ", idx, ": each hex byte must be 2 digits");
       }
       continue;
     }
@@ -204,4 +207,5 @@ void PktUtil::padToLength(folly::IOBuf* buf, uint32_t size, uint8_t pad) {
   app.append(toPad);
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

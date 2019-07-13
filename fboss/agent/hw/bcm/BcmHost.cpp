@@ -8,8 +8,8 @@
  *
  */
 #include "BcmHost.h"
-#include <string>
 #include <iostream>
+#include <string>
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/Constants.h"
@@ -34,9 +34,10 @@ std::string egressPortStr(
   }
   return port->str();
 }
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 std::ostream& operator<<(
     std::ostream& os,
@@ -44,18 +45,18 @@ std::ostream& operator<<(
   return os << "BcmMultiPathNextHop: " << key.second << "@vrf " << key.first;
 }
 
-using std::unique_ptr;
-using std::shared_ptr;
-using folly::MacAddress;
 using folly::IPAddress;
+using folly::MacAddress;
+using std::shared_ptr;
+using std::unique_ptr;
 
 std::string BcmHost::l3HostToString(const opennsl_l3_host_t& host) {
   std::ostringstream os;
   os << "is v6: " << (host.l3a_flags & OPENNSL_L3_IP6 ? "yes" : "no")
-    << ", is multipath: "
-    << (host.l3a_flags & OPENNSL_L3_MULTIPATH ? "yes": "no")
-    << ", vrf: " << host.l3a_vrf << ", intf: " << host.l3a_intf
-    << ", lookupClass: " << getLookupClassFromL3Host(host);
+     << ", is multipath: "
+     << (host.l3a_flags & OPENNSL_L3_MULTIPATH ? "yes" : "no")
+     << ", vrf: " << host.l3a_vrf << ", intf: " << host.l3a_intf
+     << ", lookupClass: " << getLookupClassFromL3Host(host);
   return os.str();
 }
 
@@ -72,22 +73,24 @@ void BcmHost::setEgressId(opennsl_if_t eid) {
     return;
   }
 
-  XLOG(DBG3) << "set host object for " << key_.str() << " to @egress "
-             << eid << " from @egress " << getEgressId();
+  XLOG(DBG3) << "set host object for " << key_.str() << " to @egress " << eid
+             << " from @egress " << getEgressId();
   egress_ = std::make_unique<BcmHostEgress>(eid);
   // in case if both neighbor & host route prefix end up using same host entry
   // next hops referring to it, can't refer to hostRouteEgress
   action_ = DROP;
 }
 
-void BcmHost::initHostCommon(opennsl_l3_host_t *host) const {
+void BcmHost::initHostCommon(opennsl_l3_host_t* host) const {
   opennsl_l3_host_t_init(host);
   const auto& addr = key_.addr();
   if (addr.isV4()) {
     host->l3a_ip_addr = addr.asV4().toLongHBO();
   } else {
-    memcpy(&host->l3a_ip6_addr, addr.asV6().toByteArray().data(),
-           sizeof(host->l3a_ip6_addr));
+    memcpy(
+        &host->l3a_ip6_addr,
+        addr.asV6().toByteArray().data(),
+        sizeof(host->l3a_ip6_addr));
     host->l3a_flags |= OPENNSL_L3_IP6;
   }
   host->l3a_vrf = key_.getVrf();
@@ -119,20 +122,19 @@ void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
   auto vrfIp2HostCitr = warmBootCache->findHost(key_.getVrf(), addr);
   if (vrfIp2HostCitr != warmBootCache->vrfAndIP2Host_end()) {
     // Lambda to compare if hosts are equivalent
-    auto equivalent =
-      [=] (const opennsl_l3_host_t& newHost,
-          const opennsl_l3_host_t& existingHost) {
+    auto equivalent = [=](const opennsl_l3_host_t& newHost,
+                          const opennsl_l3_host_t& existingHost) {
       // Compare the flags we care about, I have seen garbage
       // values set on actual non flag bits when reading entries
       // back on warm boot.
-      bool flagsEqual = ((existingHost.l3a_flags & OPENNSL_L3_IP6) ==
-          (newHost.l3a_flags & OPENNSL_L3_IP6) &&
-          (existingHost.l3a_flags & OPENNSL_L3_MULTIPATH) ==
-          (newHost.l3a_flags & OPENNSL_L3_MULTIPATH));
-      return flagsEqual &&
-             existingHost.l3a_vrf == newHost.l3a_vrf &&
-             existingHost.l3a_intf == newHost.l3a_intf &&
-             matchLookupClass(host, existingHost);
+      bool flagsEqual =
+          ((existingHost.l3a_flags & OPENNSL_L3_IP6) ==
+               (newHost.l3a_flags & OPENNSL_L3_IP6) &&
+           (existingHost.l3a_flags & OPENNSL_L3_MULTIPATH) ==
+               (newHost.l3a_flags & OPENNSL_L3_MULTIPATH));
+      return flagsEqual && existingHost.l3a_vrf == newHost.l3a_vrf &&
+          existingHost.l3a_intf == newHost.l3a_intf &&
+          matchLookupClass(host, existingHost);
     };
     const auto& existingHost = vrfIp2HostCitr->second;
     if (equivalent(host, existingHost)) {
@@ -152,8 +154,12 @@ void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
     XLOG(DBG3) << (host.l3a_flags & OPENNSL_L3_REPLACE ? "Replacing" : "Adding")
                << "host entry for : " << addr;
     auto rc = opennsl_l3_host_add(hw_->getUnit(), &host);
-    bcmCheckError(rc, "failed to program L3 host object for ", key_.str(),
-      " @egress ", getEgressId());
+    bcmCheckError(
+        rc,
+        "failed to program L3 host object for ",
+        key_.str(),
+        " @egress ",
+        getEgressId());
     XLOG(DBG3) << "Programmed L3 host object for " << key_.str() << " @egress "
                << getEgressId();
   }
@@ -164,8 +170,11 @@ void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
   addedInHW_ = true;
 }
 
-void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
-                      opennsl_port_t port, RouteForwardAction action) {
+void BcmHost::program(
+    opennsl_if_t intf,
+    const MacAddress* mac,
+    opennsl_port_t port,
+    RouteForwardAction action) {
   unique_ptr<BcmEgress> createdEgress{nullptr};
   BcmEgress* egressPtr{nullptr};
   const auto& addr = key_.addr();
@@ -262,8 +271,10 @@ void BcmHost::program(opennsl_if_t intf, const MacAddress* mac,
   action_ = action;
 }
 
-void BcmHost::programToTrunk(opennsl_if_t intf,
-                             const MacAddress mac, opennsl_trunk_t trunk) {
+void BcmHost::programToTrunk(
+    opennsl_if_t intf,
+    const MacAddress mac,
+    opennsl_trunk_t trunk) {
   BcmEgress* egress{nullptr};
   // get the egress object and then update it with the new MAC
   if (!egress_ || egress_->getEgressId() == BcmEgressBase::INVALID) {
@@ -331,8 +342,7 @@ folly::Optional<BcmPortDescriptor> BcmHost::getEgressPortDescriptor() const {
 
 BcmHostTable::BcmHostTable(const BcmSwitchIf* hw) : hw_(hw) {}
 
-BcmHostTable::~BcmHostTable() {
-}
+BcmHostTable::~BcmHostTable() {}
 
 uint32_t BcmHostTable::getReferenceCount(const BcmHostKey& key) const noexcept {
   return hosts_.referenceCount(key);
@@ -446,4 +456,5 @@ void BcmHostTable::programHostsToCPU(const BcmHostKey& key, opennsl_if_t intf) {
   // (TODO) program labeled next hops to the host
 }
 
-}}
+} // namespace fboss
+} // namespace facebook

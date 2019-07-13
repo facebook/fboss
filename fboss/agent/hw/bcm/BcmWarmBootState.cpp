@@ -63,8 +63,7 @@ folly::dynamic BcmWarmBootState::hostTableToFollyDynamic() const {
   auto& ecmpHosts = hw_->getMultiPathNextHopTable()->getNextHops();
   for (const auto& vrfNhopsAndHost : ecmpHosts) {
     auto ecmpHost = vrfNhopsAndHost.second.lock();
-    ecmpHostsJson.push_back(
-        toFollyDynamic(vrfNhopsAndHost.first, ecmpHost));
+    ecmpHostsJson.push_back(toFollyDynamic(vrfNhopsAndHost.first, ecmpHost));
   }
 
   folly::dynamic hostTable = folly::dynamic::object;

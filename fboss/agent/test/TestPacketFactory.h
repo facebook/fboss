@@ -42,5 +42,5 @@ folly::IOBuf createV6Packet(
  */
 std::unique_ptr<TxPacket> createTxPacket(SwSwitch* sw, const folly::IOBuf& buf);
 
+} // namespace fboss
 } // namespace facebook
-}

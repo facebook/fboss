@@ -9,15 +9,16 @@
  */
 #pragma once
 
-#include "fboss/agent/HwSwitch.h"
-#include "fboss/agent/state/StateDelta.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/state/StateDelta.h"
 
 #include <folly/Optional.h>
 #include <gmock/gmock.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class MockPlatform;
 
@@ -80,7 +81,8 @@ class MockHwSwitch : public HwSwitch {
   MockPlatform* platform_;
 
   // Forbidden copy constructor and assignment operator
-  MockHwSwitch(MockHwSwitch const &) = delete;
-  MockHwSwitch& operator=(MockHwSwitch const &) = delete;
+  MockHwSwitch(MockHwSwitch const&) = delete;
+  MockHwSwitch& operator=(MockHwSwitch const&) = delete;
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -9,8 +9,8 @@
  */
 #include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
 
-#include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/ThriftHandler.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 

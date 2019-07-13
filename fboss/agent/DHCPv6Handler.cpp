@@ -33,24 +33,31 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 
-using std::string;
-using std::unique_ptr;
+using folly::IOBuf;
 using folly::IPAddress;
 using folly::IPAddressV6;
 using folly::MacAddress;
 using folly::io::Cursor;
-using folly::IOBuf;
 using folly::io::RWPrivateCursor;
+using std::string;
+using std::unique_ptr;
 using namespace facebook::fboss;
 
 typedef EthHdr::VlanTags_t VlanTags_t;
 
 namespace {
 
-template<typename DHCPBodyFn>
-void sendDHCPv6Packet(SwSwitch* sw, MacAddress dstMac, MacAddress srcMac,
-    VlanID vlan, IPAddressV6 dstIp, IPAddressV6 srcIp,
-    uint16_t udpDstPort, uint16_t udpSrcPort, uint32_t dhcpLength,
+template <typename DHCPBodyFn>
+void sendDHCPv6Packet(
+    SwSwitch* sw,
+    MacAddress dstMac,
+    MacAddress srcMac,
+    VlanID vlan,
+    IPAddressV6 dstIp,
+    IPAddressV6 srcIp,
+    uint16_t udpDstPort,
+    uint16_t udpSrcPort,
+    uint32_t dhcpLength,
     DHCPBodyFn serializeDhcp) {
   // construct EthHdr,
   VlanTags_t vlanTags;
@@ -70,20 +77,21 @@ void sendDHCPv6Packet(SwSwitch* sw, MacAddress dstMac, MacAddress srcMac,
   ipHdr.hopLimit = 255;
 
   // UDPHeader
-  UDPHeader udpHdr(udpSrcPort, udpDstPort,
-                   UDPHeader::size() + dhcpLength);
+  UDPHeader udpHdr(udpSrcPort, udpDstPort, UDPHeader::size() + dhcpLength);
 
   // Allocate packet
   auto txPacket = sw->allocatePacket(
       18 + // ethernet header
-      IPv6Hdr::SIZE +
-      udpHdr.size() +
-      dhcpLength);
+      IPv6Hdr::SIZE + udpHdr.size() + dhcpLength);
 
   RWPrivateCursor rwCursor(txPacket->buf());
   // Write EthHdr
-  txPacket->writeEthHeader(&rwCursor, ethHdr.getDstMac(), ethHdr.getSrcMac(),
-                      VlanID(vlanTags[0].vid()), ethHdr.getEtherType());
+  txPacket->writeEthHeader(
+      &rwCursor,
+      ethHdr.getDstMac(),
+      ethHdr.getSrcMac(),
+      VlanID(vlanTags[0].vid()),
+      ethHdr.getEtherType());
   ipHdr.serialize(&rwCursor);
 
   // write UDP header, DHCP packet and compute checksum
@@ -106,9 +114,10 @@ void sendDHCPv6Packet(SwSwitch* sw, MacAddress dstMac, MacAddress srcMac,
   sw->sendPacketSwitchedAsync(std::move(txPacket));
 }
 
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 bool DHCPv6Handler::isForDHCPv6RelayOrServer(const UDPHeader& udpHdr) {
   // according to RFC 3315 section 5.2, packets to server or agent are
@@ -130,19 +139,19 @@ void DHCPv6Handler::handlePacket(
   try {
     dhcp6Pkt.parse(&cursor);
   } catch (const FbossError& err) {
-     sw->portStats(pkt->getSrcPort())->dhcpV6BadPkt();
-     throw; // Rethrow
+    sw->portStats(pkt->getSrcPort())->dhcpV6BadPkt();
+    throw; // Rethrow
   }
   if (dhcp6Pkt.type == static_cast<uint8_t>(DHCPv6Type::DHCPv6_RELAY_FORWARD)) {
     XLOG(DBG4) << "Received DHCPv6 relay forward packet: "
                << dhcp6Pkt.toString();
-    processDHCPv6RelayForward(sw, std::move(pkt), srcMac, dstMac,
-                             ipHdr, dhcp6Pkt);
+    processDHCPv6RelayForward(
+        sw, std::move(pkt), srcMac, dstMac, ipHdr, dhcp6Pkt);
   } else if (
       dhcp6Pkt.type == static_cast<uint8_t>(DHCPv6Type::DHCPv6_RELAY_REPLY)) {
     XLOG(DBG4) << "Received DHCPv6 relay reply packet: " << dhcp6Pkt.toString();
-    processDHCPv6RelayReply(sw, std::move(pkt), srcMac, dstMac,
-                             ipHdr, dhcp6Pkt);
+    processDHCPv6RelayReply(
+        sw, std::move(pkt), srcMac, dstMac, ipHdr, dhcp6Pkt);
   } else {
     XLOG(DBG4) << "Received DHCPv6 packet: " << dhcp6Pkt.toString();
     processDHCPv6Packet(sw, std::move(pkt), srcMac, dstMac, ipHdr, dhcp6Pkt);
@@ -203,8 +212,7 @@ void DHCPv6Handler::processDHCPv6Packet(
   // add relay message option
   relayFwdPkt.addRelayMessageOption(dhcpPacket);
 
-  if (relayFwdPkt.computePacketLength() >
-      DHCPv6Packet::MAX_DHCPV6_MSG_LENGTH) {
+  if (relayFwdPkt.computePacketLength() > DHCPv6Packet::MAX_DHCPV6_MSG_LENGTH) {
     XLOG(DBG2) << "DHCPv6 relay forward message exceeds max length, drop it.";
     sw->portStats(pkt->getSrcPort())->dhcpV6BadPkt();
     return;
@@ -217,15 +225,26 @@ void DHCPv6Handler::processDHCPv6Packet(
     relayFwdPkt.write(sendCursor);
   };
 
-  sendDHCPv6Packet(sw, cpuMac, cpuMac, vlanId, dhcp6ServerIp, switchIp,
+  sendDHCPv6Packet(
+      sw,
+      cpuMac,
+      cpuMac,
+      vlanId,
+      dhcp6ServerIp,
+      switchIp,
       DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT,
       DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT,
-      relayFwdPkt.computePacketLength(), serializeBody);
+      relayFwdPkt.computePacketLength(),
+      serializeBody);
 }
 
-void DHCPv6Handler::processDHCPv6RelayForward(SwSwitch* sw,
-    std::unique_ptr<RxPacket> pkt, MacAddress srcMac, MacAddress dstMac,
-    const IPv6Hdr& ipHdr, DHCPv6Packet& dhcpPacket) {
+void DHCPv6Handler::processDHCPv6RelayForward(
+    SwSwitch* sw,
+    std::unique_ptr<RxPacket> pkt,
+    MacAddress srcMac,
+    MacAddress dstMac,
+    const IPv6Hdr& ipHdr,
+    DHCPv6Packet& dhcpPacket) {
   /**
    * NOTE: relay forward packet handling is not tested thoroughly since we
    * don't have other relay agents running in the cluster;
@@ -237,15 +256,22 @@ void DHCPv6Handler::processDHCPv6RelayForward(SwSwitch* sw,
     return;
   }
   // increment the hopcount and forward it
-  dhcpPacket.hopCount ++;
+  dhcpPacket.hopCount++;
   auto vlan = pkt->getSrcVlan();
   auto serializeBody = [&](RWPrivateCursor* sendCursor) {
     dhcpPacket.write(sendCursor);
   };
-  sendDHCPv6Packet(sw, dstMac, srcMac, vlan, ipHdr.dstAddr,
-      ipHdr.srcAddr, DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT,
+  sendDHCPv6Packet(
+      sw,
+      dstMac,
+      srcMac,
+      vlan,
+      ipHdr.dstAddr,
+      ipHdr.srcAddr,
       DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT,
-      dhcpPacket.computePacketLength(), serializeBody);
+      DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT,
+      dhcpPacket.computePacketLength(),
+      serializeBody);
 }
 
 void DHCPv6Handler::processDHCPv6RelayReply(
@@ -259,10 +285,9 @@ void DHCPv6Handler::processDHCPv6RelayReply(
 
   auto switchIp = state->getDhcpV6ReplySrc();
   if (switchIp.isZero()) {
-     switchIp = ipHdr.dstAddr;
+    switchIp = ipHdr.dstAddr;
   }
-  auto intf = state->getInterfaces()->getInterface(RouterID(0),
-      switchIp);
+  auto intf = state->getInterfaces()->getInterface(RouterID(0), switchIp);
   if (!intf) {
     sw->portStats(pkt->getSrcPort())->dhcpV6DropPkt();
     XLOG(DBG2) << "Could not look up interface for " << switchIp
@@ -275,10 +300,10 @@ void DHCPv6Handler::processDHCPv6RelayReply(
   const uint8_t* relayData = nullptr;
   uint16_t relayLen = 0;
   std::unordered_set<uint16_t> selector = {
-    static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_INTERFACE_ID),
-    static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_RELAY_MSG) };
+      static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_INTERFACE_ID),
+      static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_RELAY_MSG)};
   auto dhcpOptions = dhcpPacket.extractOptions(selector);
-  for(int i = 0; i < dhcpOptions.size(); i++) {
+  for (int i = 0; i < dhcpOptions.size(); i++) {
     if (dhcpOptions[i].op ==
         static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_INTERFACE_ID)) {
       DCHECK(dhcpOptions[i].len == MacAddress::SIZE);
@@ -306,10 +331,18 @@ void DHCPv6Handler::processDHCPv6RelayReply(
   auto serializeBody = [&](RWPrivateCursor* sendCursor) {
     sendCursor->push(relayData, relayLen);
   };
-  sendDHCPv6Packet(sw, destMac, cpuMac, intf->getVlanID(),
-      dhcpPacket.peerAddr, switchIp, DHCPv6Packet::DHCP6_CLIENT_UDPPORT,
+  sendDHCPv6Packet(
+      sw,
+      destMac,
+      cpuMac,
+      intf->getVlanID(),
+      dhcpPacket.peerAddr,
+      switchIp,
+      DHCPv6Packet::DHCP6_CLIENT_UDPPORT,
       DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT,
-      relayLen, serializeBody);
+      relayLen,
+      serializeBody);
 }
 
-}} //facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -11,19 +11,20 @@
 
 #include <string>
 
-#include <folly/MacAddress.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
+#include <folly/MacAddress.h>
 
 namespace folly {
 class IOBuf;
 namespace io {
 class Appender;
 class Cursor;
-}
-}
+} // namespace io
+} // namespace folly
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class PktUtil {
  public:
@@ -77,12 +78,10 @@ class PktUtil {
    * Once all of the data has been passed to partialChecksum(),
    * finalizeChecksum() should be called to get the final checksum value.
    */
-  static uint32_t partialChecksum(folly::io::Cursor start,
-                                  uint64_t length,
-                                  uint32_t value = 0);
-  static uint16_t finalizeChecksum(folly::io::Cursor start,
-                                   uint64_t length,
-                                   uint32_t value);
+  static uint32_t
+  partialChecksum(folly::io::Cursor start, uint64_t length, uint32_t value = 0);
+  static uint16_t
+  finalizeChecksum(folly::io::Cursor start, uint64_t length, uint32_t value);
   static uint16_t finalizeChecksum(uint32_t value);
 
   /**
@@ -101,19 +100,20 @@ class PktUtil {
    * Parse an ASCII hex string, and write the binary data to the specified
    * Appender.
    */
-  static void appendHexData(folly::StringPiece hex,
-                            folly::io::Appender* appender);
+  static void appendHexData(
+      folly::StringPiece hex,
+      folly::io::Appender* appender);
 
   static void padToLength(folly::IOBuf* buf, uint32_t size, uint8_t pad = 0);
 
  private:
   // Forbidden copy constructor and assignment operator
-  PktUtil(PktUtil const &) = delete;
-  PktUtil& operator=(PktUtil const &) = delete;
+  PktUtil(PktUtil const&) = delete;
+  PktUtil& operator=(PktUtil const&) = delete;
 
-  static uint32_t partialChecksumImpl(folly::io::Cursor start,
-                                      uint64_t length,
-                                      uint32_t value);
+  static uint32_t
+  partialChecksumImpl(folly::io::Cursor start, uint64_t length, uint32_t value);
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

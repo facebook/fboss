@@ -9,11 +9,11 @@
  */
 #pragma once
 
-#include <folly/dynamic.h>
 #include <folly/IPAddress.h>
 #include <folly/Poly.h>
-#include <folly/poly/Regular.h>
 #include <folly/Range.h>
+#include <folly/dynamic.h>
+#include <folly/poly/Regular.h>
 
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/Constants.h"
@@ -22,7 +22,8 @@
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 inline folly::StringPiece constexpr kInterface() {
   return "interface";
@@ -119,10 +120,9 @@ struct INextHop {
       &T::labelForwardingAction);
 };
 
-
 using NextHop = folly::Poly<INextHop>;
 
-void toAppend(const NextHop& nhop, std::string *result);
+void toAppend(const NextHop& nhop, std::string* result);
 std::ostream& operator<<(std::ostream& os, const NextHop& nhop);
 
 bool operator<(const NextHop& a, const NextHop& b);
@@ -152,9 +152,15 @@ class ResolvedNextHop {
         intfID_(intfID),
         weight_(weight),
         labelForwardingAction_(std::move(action)) {}
-  folly::Optional<InterfaceID> intfID() const { return intfID_; }
-  folly::IPAddress addr() const { return addr_; }
-  NextHopWeight weight() const { return weight_; }
+  folly::Optional<InterfaceID> intfID() const {
+    return intfID_;
+  }
+  folly::IPAddress addr() const {
+    return addr_;
+  }
+  NextHopWeight weight() const {
+    return weight_;
+  }
   folly::Optional<LabelForwardingAction> labelForwardingAction() const {
     return labelForwardingAction_;
   }
@@ -178,9 +184,15 @@ class UnresolvedNextHop {
       folly::IPAddress&& addr,
       const NextHopWeight& weight,
       folly::Optional<LabelForwardingAction>&& action = folly::none);
-  folly::Optional<InterfaceID> intfID() const { return folly::none; }
-  folly::IPAddress addr() const { return addr_; }
-  NextHopWeight weight() const { return weight_; }
+  folly::Optional<InterfaceID> intfID() const {
+    return folly::none;
+  }
+  folly::IPAddress addr() const {
+    return addr_;
+  }
+  NextHopWeight weight() const {
+    return weight_;
+  }
   folly::Optional<LabelForwardingAction> labelForwardingAction() const {
     return labelForwardingAction_;
   }
@@ -196,5 +208,6 @@ bool operator==(const UnresolvedNextHop& a, const UnresolvedNextHop& b);
 namespace util {
 NextHop fromThrift(const NextHopThrift& nht);
 NextHop nextHopFromFollyDynamic(const folly::dynamic& nhopJson);
-}
-}}
+} // namespace util
+} // namespace fboss
+} // namespace facebook

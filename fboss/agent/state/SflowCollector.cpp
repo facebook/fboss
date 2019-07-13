@@ -15,9 +15,10 @@
 namespace {
 constexpr auto kIp = "ip";
 constexpr auto kPort = "port";
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 folly::dynamic SflowCollectorFields::toFollyDynamic() const {
   folly::dynamic collector = folly::dynamic::object;
@@ -36,9 +37,9 @@ SflowCollectorFields SflowCollectorFields::fromFollyDynamic(
 }
 
 SflowCollector::SflowCollector(const std::string& ip, const uint16_t port)
-    : NodeBaseT(ip, port) {
-}
+    : NodeBaseT(ip, port) {}
 
 template class NodeBaseT<SflowCollector, SflowCollectorFields>;
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

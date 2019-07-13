@@ -17,12 +17,13 @@
  *   https://en.wikipedia.org/wiki/IPv6_packet
  *   https://en.wikipedia.org/wiki/IPv6_address
  */
-#include <folly/io/Cursor.h>
 #include <folly/IPAddressV6.h>
-#include "fboss/agent/packet/IPProto.h"
+#include <folly/io/Cursor.h>
 #include "fboss/agent/packet/HdrParseError.h"
+#include "fboss/agent/packet/IPProto.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 enum : uint8_t {
   IPV6_VERSION = 6,
@@ -45,14 +46,14 @@ class IPv6Hdr {
    * copy constructor
    */
   IPv6Hdr(const IPv6Hdr& rhs)
-    : version(rhs.version),
-      trafficClass(rhs.trafficClass),
-      flowLabel(rhs.flowLabel),
-      payloadLength(rhs.payloadLength),
-      nextHeader(rhs.nextHeader),
-      hopLimit(rhs.hopLimit),
-      srcAddr(rhs.srcAddr),
-      dstAddr(rhs.dstAddr) {}
+      : version(rhs.version),
+        trafficClass(rhs.trafficClass),
+        flowLabel(rhs.flowLabel),
+        payloadLength(rhs.payloadLength),
+        nextHeader(rhs.nextHeader),
+        hopLimit(rhs.hopLimit),
+        srcAddr(rhs.srcAddr),
+        dstAddr(rhs.dstAddr) {}
   /*
    * parameterized data constructor
    */
@@ -65,19 +66,17 @@ class IPv6Hdr {
       uint8_t _hopLimit,
       const folly::IPAddressV6& _srcAddr,
       const folly::IPAddressV6& _dstAddr)
-    : version(_version),
-      trafficClass(_trafficClass),
-      flowLabel(_flowLabel),
-      payloadLength(_payloadLength),
-      nextHeader(_nextHeader),
-      hopLimit(_hopLimit),
-      srcAddr(_srcAddr),
-      dstAddr(_dstAddr) {}
+      : version(_version),
+        trafficClass(_trafficClass),
+        flowLabel(_flowLabel),
+        payloadLength(_payloadLength),
+        nextHeader(_nextHeader),
+        hopLimit(_hopLimit),
+        srcAddr(_srcAddr),
+        dstAddr(_dstAddr) {}
 
-  IPv6Hdr(folly::IPAddressV6 src,
-          folly::IPAddressV6 dst)
-    : srcAddr(src),
-      dstAddr(dst) {}
+  IPv6Hdr(folly::IPAddressV6 src, folly::IPAddressV6 dst)
+      : srcAddr(src), dstAddr(dst) {}
 
   /*
    * cursor data constructor
@@ -126,7 +125,9 @@ class IPv6Hdr {
   uint32_t pseudoHdrPartialCsum(uint32_t length) const;
   std::string toString() const;
 
-  size_t static size() { return SIZE; }
+  size_t static size() {
+    return SIZE;
+  }
 
  public:
   /*
@@ -169,18 +170,16 @@ class IPv6Hdr {
 };
 
 inline bool operator==(const IPv6Hdr& lhs, const IPv6Hdr& rhs) {
-  return lhs.version == rhs.version
-      && lhs.trafficClass == rhs.trafficClass
-      && lhs.flowLabel == rhs.flowLabel
-      && lhs.payloadLength == rhs.payloadLength
-      && lhs.nextHeader == rhs.nextHeader
-      && lhs.hopLimit == rhs.hopLimit
-      && lhs.srcAddr == rhs.srcAddr
-      && lhs.dstAddr == rhs.dstAddr;
+  return lhs.version == rhs.version && lhs.trafficClass == rhs.trafficClass &&
+      lhs.flowLabel == rhs.flowLabel &&
+      lhs.payloadLength == rhs.payloadLength &&
+      lhs.nextHeader == rhs.nextHeader && lhs.hopLimit == rhs.hopLimit &&
+      lhs.srcAddr == rhs.srcAddr && lhs.dstAddr == rhs.dstAddr;
 }
 
 inline bool operator!=(const IPv6Hdr& lhs, const IPv6Hdr& rhs) {
   return !operator==(lhs, rhs);
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

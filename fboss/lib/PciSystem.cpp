@@ -25,8 +25,7 @@ PciSystem::PciSystem() {
 
   retVal = pci_system_init();
   if (retVal != 0) {
-    folly::throwSystemErrorExplicit(retVal,
-                                    "Could not init PCI system");
+    folly::throwSystemErrorExplicit(retVal, "Could not init PCI system");
   }
 }
 

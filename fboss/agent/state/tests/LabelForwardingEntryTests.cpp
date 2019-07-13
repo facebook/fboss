@@ -46,30 +46,22 @@ TEST(LabelForwardingEntryTests, ToFromDynamic) {
 TEST(LabelForwardingEntryTests, getEntryForClient) {
   std::map<StdClientIds, std::function<LabelNextHopEntry(AdminDistance)>>
       clientNextHopsEntry{
-          {
-            StdClientIds::OPENR,
-            [](AdminDistance distance) {
-              return util::getSwapLabelNextHopEntry(distance);
-            }
-          },
-          {
-            StdClientIds::BGPD,
-            [](AdminDistance distance) {
-              return util::getPushLabelNextHopEntry(distance);
-            }
-          },
-          {
-            StdClientIds::STATIC_ROUTE,
-            [](AdminDistance distance) {
-              return util::getPhpLabelNextHopEntry(distance);
-            }
-          },
-          {
-            StdClientIds::INTERFACE_ROUTE,
-            [](AdminDistance distance) {
-              return util::getPopLabelNextHopEntry(distance);
-            }
-          },
+          {StdClientIds::OPENR,
+           [](AdminDistance distance) {
+             return util::getSwapLabelNextHopEntry(distance);
+           }},
+          {StdClientIds::BGPD,
+           [](AdminDistance distance) {
+             return util::getPushLabelNextHopEntry(distance);
+           }},
+          {StdClientIds::STATIC_ROUTE,
+           [](AdminDistance distance) {
+             return util::getPhpLabelNextHopEntry(distance);
+           }},
+          {StdClientIds::INTERFACE_ROUTE,
+           [](AdminDistance distance) {
+             return util::getPopLabelNextHopEntry(distance);
+           }},
       };
 
   auto entry = std::make_shared<LabelForwardingEntry>(
@@ -101,17 +93,14 @@ TEST(LabelForwardingEntryTests, getEntryForClient) {
 TEST(LabelForwardingEntryTests, delEntryForClient) {
   std::map<StdClientIds, std::function<LabelNextHopEntry(AdminDistance)>>
       clientNextHopsEntry{
-        {StdClientIds::OPENR,
-          [](AdminDistance distance) {
-            return util::getSwapLabelNextHopEntry(distance);
-          }
-        },
-        {
-          StdClientIds::BGPD,
-          [](AdminDistance distance) {
-            return util::getPushLabelNextHopEntry(distance);
-          }
-        },
+          {StdClientIds::OPENR,
+           [](AdminDistance distance) {
+             return util::getSwapLabelNextHopEntry(distance);
+           }},
+          {StdClientIds::BGPD,
+           [](AdminDistance distance) {
+             return util::getPushLabelNextHopEntry(distance);
+           }},
       };
 
   auto entry = std::make_shared<LabelForwardingEntry>(
@@ -137,30 +126,22 @@ TEST(LabelForwardingEntryTests, delEntryForClient) {
 TEST(LabelForwardingEntryTests, getBestEntry) {
   std::map<StdClientIds, std::function<LabelNextHopEntry(AdminDistance)>>
       clientNextHopsEntry{
-        {
-          StdClientIds::OPENR,
-          [](AdminDistance distance) {
-            return util::getSwapLabelNextHopEntry(distance);
-          }
-        },
-        {
-          StdClientIds::BGPD,
-          [](AdminDistance distance) {
-            return util::getPushLabelNextHopEntry(distance);
-          }
-        },
-        {
-          StdClientIds::STATIC_ROUTE,
-          [](AdminDistance distance) {
-            return util::getPhpLabelNextHopEntry(distance);
-          }
-        },
-        {
-          StdClientIds::INTERFACE_ROUTE,
-          [](AdminDistance distance) {
-            return util::getPopLabelNextHopEntry(distance);
-          }
-        },
+          {StdClientIds::OPENR,
+           [](AdminDistance distance) {
+             return util::getSwapLabelNextHopEntry(distance);
+           }},
+          {StdClientIds::BGPD,
+           [](AdminDistance distance) {
+             return util::getPushLabelNextHopEntry(distance);
+           }},
+          {StdClientIds::STATIC_ROUTE,
+           [](AdminDistance distance) {
+             return util::getPhpLabelNextHopEntry(distance);
+           }},
+          {StdClientIds::INTERFACE_ROUTE,
+           [](AdminDistance distance) {
+             return util::getPopLabelNextHopEntry(distance);
+           }},
       };
 
   auto entry = std::make_shared<LabelForwardingEntry>(
@@ -178,9 +159,9 @@ TEST(LabelForwardingEntryTests, getBestEntry) {
   }
 
   EXPECT_EQ(
-    clientNextHopsEntry[StdClientIds::OPENR](
-        AdminDistance::DIRECTLY_CONNECTED), entry->getLabelNextHop()
-      );
+      clientNextHopsEntry[StdClientIds::OPENR](
+          AdminDistance::DIRECTLY_CONNECTED),
+      entry->getLabelNextHop());
 
   entry->delEntryForClient(StdClientIds2ClientID(StdClientIds::OPENR));
   EXPECT_EQ(
@@ -192,14 +173,12 @@ TEST(LabelForwardingEntryTests, getBestEntry) {
       clientNextHopsEntry[StdClientIds::STATIC_ROUTE](
           AdminDistance::DIRECTLY_CONNECTED),
       entry->getLabelNextHop());
-  entry->delEntryForClient(
-      StdClientIds2ClientID(StdClientIds::STATIC_ROUTE));
+  entry->delEntryForClient(StdClientIds2ClientID(StdClientIds::STATIC_ROUTE));
   EXPECT_EQ(
       clientNextHopsEntry[StdClientIds::INTERFACE_ROUTE](
           AdminDistance::DIRECTLY_CONNECTED),
       entry->getLabelNextHop());
 }
-
 
 TEST(LabelForwardingEntryTests, modify) {
   auto oldState = testStateA();
@@ -240,11 +219,10 @@ TEST(LabelForwardingEntryTests, modify) {
 }
 
 TEST(LabelForwardingEntryTests, HasLabelNextHop) {
-  auto entry =
-      std::make_shared<LabelForwardingEntry>(
-          5001,
-          StdClientIds2ClientID(StdClientIds::OPENR),
-          util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+  auto entry = std::make_shared<LabelForwardingEntry>(
+      5001,
+      StdClientIds2ClientID(StdClientIds::OPENR),
+      util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
   const auto& nexthop = entry->getLabelNextHop();
   EXPECT_NE(nexthop.getNextHopSet().size(), 0);
 }

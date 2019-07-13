@@ -8,16 +8,17 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/bcm/types.h"
-#include "fboss/agent/FbossError.h"
 
 #include <folly/CppAttributes.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * Release all acl, stat entries.
@@ -30,23 +31,22 @@ void BcmAclTable::releaseAcls() {
 }
 
 void BcmAclTable::processAddedAcl(
-  const int groupId,
-  const std::shared_ptr<AclEntry>& acl) {
+    const int groupId,
+    const std::shared_ptr<AclEntry>& acl) {
   if (aclEntryMap_.find(acl->getPriority()) != aclEntryMap_.end()) {
     throw FbossError("ACL=", acl->getID(), " already exists");
   }
 
   std::unique_ptr<BcmAclEntry> bcmAcl =
-    std::make_unique<BcmAclEntry>(hw_, groupId, acl);
-  const auto& entry = aclEntryMap_.emplace(acl->getPriority(),
-      std::move(bcmAcl));
+      std::make_unique<BcmAclEntry>(hw_, groupId, acl);
+  const auto& entry =
+      aclEntryMap_.emplace(acl->getPriority(), std::move(bcmAcl));
   if (!entry.second) {
     throw FbossError("Failed to add an existing acl entry");
   }
 }
 
-void BcmAclTable::processRemovedAcl(
-  const std::shared_ptr<AclEntry>& acl) {
+void BcmAclTable::processRemovedAcl(const std::shared_ptr<AclEntry>& acl) {
   const auto numErasedAcl = aclEntryMap_.erase(acl->getPriority());
   if (numErasedAcl == 0) {
     throw FbossError("Failed to erase an existing bcm acl entry");
@@ -120,8 +120,8 @@ void BcmAclTable::derefBcmAclStat(const std::string& counterName) {
   }
 }
 
-BcmAclStat* FOLLY_NULLABLE BcmAclTable::getAclStatIf(
-  const std::string& name) const {
+BcmAclStat* FOLLY_NULLABLE
+BcmAclTable::getAclStatIf(const std::string& name) const {
   auto iter = aclStatMap_.find(name);
   if (iter == aclStatMap_.end()) {
     return nullptr;
@@ -155,4 +155,5 @@ void BcmAclTable::forFilteredEach(Filter predicate, FilterAction action) const {
   auto iterator = FilterIterator(aclEntryMap_, predicate);
   std::for_each(iterator.begin(), iterator.end(), action);
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

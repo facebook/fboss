@@ -24,35 +24,35 @@
 #include "fboss/agent/IPv4Handler.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/RxPacket.h"
-#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/TxPacket.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TunManager.h"
-#include "fboss/agent/packet/EthHdr.h"
-#include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/hw/mock/MockTxPacket.h"
+#include "fboss/agent/packet/EthHdr.h"
+#include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/CounterCache.h"
-#include "fboss/agent/test/MockTunManager.h"
-#include "fboss/agent/test/TestUtils.h"
-#include "fboss/agent/test/TestPacketFactory.h"
 #include "fboss/agent/test/HwTestHandle.h"
+#include "fboss/agent/test/MockTunManager.h"
+#include "fboss/agent/test/TestPacketFactory.h"
+#include "fboss/agent/test/TestUtils.h"
 
 using namespace facebook::fboss;
 
 using ::testing::_;
 
+using folly::IOBuf;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
-using folly::IOBuf;
 
 namespace {
 
 // Interface route client ID
-const auto kIntfRouteClient
-    = StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE);
+const auto kIntfRouteClient =
+    StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE);
 
 // Platform mac address
 const folly::MacAddress kPlatformMac("02:01:02:03:04:05");
@@ -60,7 +60,8 @@ const folly::MacAddress kEmptyMac("00:00:00:00:00:00");
 
 // Link-local addresses automatically assigned on all interfaces.
 const folly::IPAddressV6 kIPv6LinkLocalAddr(
-    IPAddressV6::LINK_LOCAL, kPlatformMac);
+    IPAddressV6::LINK_LOCAL,
+    kPlatformMac);
 
 // Interface addresses
 const folly::IPAddressV4 kIPv4IntfAddr1("10.0.0.11");
@@ -117,15 +118,11 @@ const IOBuf createV6UnicastPacket(
  * Utility function to create multicast packets with fixed destination
  * address.
  */
-const IOBuf createV4MulticastPacket(
-    const folly::IPAddressV4& srcAddr) {
-  return createV4Packet(
-      srcAddr, kIPv4McastAddr, kPlatformMac, kIPv4MacAddr);
+const IOBuf createV4MulticastPacket(const folly::IPAddressV4& srcAddr) {
+  return createV4Packet(srcAddr, kIPv4McastAddr, kPlatformMac, kIPv4MacAddr);
 }
-const IOBuf createV6MulticastPacket(
-    const folly::IPAddressV6& srcAddr) {
-  return createV6Packet(
-      srcAddr, kIPv6McastAddr, kPlatformMac, kIPv6MacAddr);
+const IOBuf createV6MulticastPacket(const folly::IPAddressV6& srcAddr) {
+  return createV6Packet(srcAddr, kIPv6McastAddr, kPlatformMac, kIPv6MacAddr);
 }
 
 /**
@@ -191,7 +188,7 @@ class RoutingFixture : public ::testing::Test {
 
     // Add some ARP/NDP entries so that link-local addresses can be routed
     // as well.
-    auto updateFn = [=] (const std::shared_ptr<SwitchState>& state) {
+    auto updateFn = [=](const std::shared_ptr<SwitchState>& state) {
       std::shared_ptr<SwitchState> newState{state};
       auto* vlan1 = newState->getVlans()->getVlanIf(VlanID(1)).get();
       auto* vlan2 = newState->getVlans()->getVlanIf(VlanID(2)).get();
@@ -278,10 +275,10 @@ class RoutingFixture : public ::testing::Test {
   }
 
   /**
-  * VLANs => 1, 2
-  * Interfaces => 1, 2 (corresponding to their vlans)
-  * Ports => 1, 2 (corresponding to their vlans and interfaces)
-  */
+   * VLANs => 1, 2
+   * Interfaces => 1, 2 (corresponding to their vlans)
+   * Ports => 1, 2 (corresponding to their vlans and interfaces)
+   */
   static cfg::SwitchConfig getSwitchConfig() {
     cfg::SwitchConfig config;
 
@@ -347,8 +344,7 @@ TEST_F(RoutingFixture, SwitchToHostUnicast) {
   {
     auto pkt = createV4UnicastPacket(kIPv4NbhAddr2, kIPv4IntfAddr1);
 
-    EXPECT_TUN_PKT(
-        tunMgr, "V4 UcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
+    EXPECT_TUN_PKT(tunMgr, "V4 UcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
 
     handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
 
@@ -362,8 +358,7 @@ TEST_F(RoutingFixture, SwitchToHostUnicast) {
     const folly::IPAddressV4 unknownDest("10.152.35.65");
     auto pkt = createV4UnicastPacket(kIPv4NbhAddr1, unknownDest);
 
-    EXPECT_TUN_PKT(
-        tunMgr, "V4 UcastPkt", ifID1, matchRxPacket(pkt)).Times(0);
+    EXPECT_TUN_PKT(tunMgr, "V4 UcastPkt", ifID1, matchRxPacket(pkt)).Times(0);
 
     handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
 
@@ -377,8 +372,7 @@ TEST_F(RoutingFixture, SwitchToHostUnicast) {
   {
     auto pkt = createV6UnicastPacket(kIPv6NbhAddr1, kIPv6IntfAddr1);
 
-    EXPECT_TUN_PKT(
-      tunMgr, "V6 UcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
+    EXPECT_TUN_PKT(tunMgr, "V6 UcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
 
     handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
 
@@ -392,8 +386,7 @@ TEST_F(RoutingFixture, SwitchToHostUnicast) {
     const folly::IPAddressV6 unknownDest("2803:6082:990:8c2d::1");
     auto pkt = createV6UnicastPacket(kIPv6NbhAddr2, unknownDest);
 
-    EXPECT_TUN_PKT(
-        tunMgr, "V6 UcastPkt", ifID2, matchRxPacket(pkt)).Times(0);
+    EXPECT_TUN_PKT(tunMgr, "V6 UcastPkt", ifID2, matchRxPacket(pkt)).Times(0);
 
     handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
 
@@ -422,8 +415,7 @@ TEST_F(RoutingFixture, SwitchToHostLinkLocalUnicast) {
   {
     auto pkt = createV4UnicastPacket(kllIPv4NbhAddr2, kllIPv4IntfAddr2);
 
-    EXPECT_TUN_PKT(
-        tunMgr, "V4 llUcastPkt", ifID2, matchRxPacket(pkt)).Times(1);
+    EXPECT_TUN_PKT(tunMgr, "V4 llUcastPkt", ifID2, matchRxPacket(pkt)).Times(1);
 
     handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
 
@@ -437,8 +429,7 @@ TEST_F(RoutingFixture, SwitchToHostLinkLocalUnicast) {
     const folly::IPAddressV4 llDstAddrUnknown("169.254.3.4");
     auto pkt = createV4UnicastPacket(kllIPv4NbhAddr1, llDstAddrUnknown);
 
-    EXPECT_TUN_PKT(
-        tunMgr, "V4 llUcastPkt", ifID1, matchRxPacket(pkt)).Times(0);
+    EXPECT_TUN_PKT(tunMgr, "V4 llUcastPkt", ifID1, matchRxPacket(pkt)).Times(0);
 
     handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
 
@@ -454,8 +445,7 @@ TEST_F(RoutingFixture, SwitchToHostLinkLocalUnicast) {
   {
     auto pkt = createV4UnicastPacket(kllIPv4NbhAddr2, kllIPv4IntfAddr1);
 
-    EXPECT_TUN_PKT(
-        tunMgr, "V4 llUcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
+    EXPECT_TUN_PKT(tunMgr, "V4 llUcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
     handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 1);
@@ -468,8 +458,7 @@ TEST_F(RoutingFixture, SwitchToHostLinkLocalUnicast) {
   {
     auto pkt = createV6UnicastPacket(kllIPv6NbhAddr, kIPv6LinkLocalAddr);
 
-    EXPECT_TUN_PKT(
-        tunMgr, "V6 llUcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
+    EXPECT_TUN_PKT(tunMgr, "V6 llUcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
 
     handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
 
@@ -483,8 +472,7 @@ TEST_F(RoutingFixture, SwitchToHostLinkLocalUnicast) {
     const folly::IPAddressV6 llDstAddrUnknown("fe80::202:c9ff:fe55:b7a4");
     auto pkt = createV6UnicastPacket(kllIPv6NbhAddr, llDstAddrUnknown);
 
-    EXPECT_TUN_PKT(
-        tunMgr, "V6 llUcastPkt", ifID2, matchRxPacket(pkt)).Times(0);
+    EXPECT_TUN_PKT(tunMgr, "V6 llUcastPkt", ifID2, matchRxPacket(pkt)).Times(0);
 
     handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
 
@@ -498,8 +486,7 @@ TEST_F(RoutingFixture, SwitchToHostLinkLocalUnicast) {
   {
     auto pkt = createV6UnicastPacket(kllIPv6NbhAddr, kllIPv6IntfAddr1);
 
-    EXPECT_TUN_PKT(
-        tunMgr, "V6 llUcastPkt", ifID2, matchRxPacket(pkt)).Times(0);
+    EXPECT_TUN_PKT(tunMgr, "V6 llUcastPkt", ifID2, matchRxPacket(pkt)).Times(0);
 
     handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
 
@@ -522,8 +509,7 @@ TEST_F(RoutingFixture, SwitchToHostMulticast) {
   {
     auto pkt = createV4MulticastPacket(kIPv4IntfAddr1);
 
-    EXPECT_TUN_PKT(
-        tunMgr, "V4 llMcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
+    EXPECT_TUN_PKT(tunMgr, "V4 llMcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
     handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
 
     counters.update();
@@ -536,8 +522,7 @@ TEST_F(RoutingFixture, SwitchToHostMulticast) {
   {
     auto pkt = createV6MulticastPacket(kIPv6IntfAddr1);
 
-    EXPECT_TUN_PKT(
-        tunMgr, "V6 llMcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
+    EXPECT_TUN_PKT(tunMgr, "V6 llMcastPkt", ifID1, matchRxPacket(pkt)).Times(1);
 
     handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
 
@@ -559,17 +544,23 @@ TEST_F(RoutingFixture, HostToSwitchUnicast) {
   // Any unicast packet (except link-local) is forwarded to CPU at L3 lookup
   // state by setting src/dst mac address to be the platform mac address.
   {
-    auto pkt = createTxPacket(sw, createV4UnicastPacket(
-        kIPv4IntfAddr1, kIPv4NbhAddr1, kEmptyMac, kEmptyMac));
+    auto pkt = createTxPacket(
+        sw,
+        createV4UnicastPacket(
+            kIPv4IntfAddr1, kIPv4NbhAddr1, kEmptyMac, kEmptyMac));
 
     auto bufCopy = IOBuf::copyBuffer(
-      pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
-    EXPECT_SWITCHED_PKT(sw, "V4 UcastPkt", matchTxPacket(
-        kPlatformMac,
-        kPlatformMac,
-        VlanID(1),
-        IPv4Handler::ETHERTYPE_IPV4,
-        std::move(bufCopy))).Times(1);
+        pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
+    EXPECT_SWITCHED_PKT(
+        sw,
+        "V4 UcastPkt",
+        matchTxPacket(
+            kPlatformMac,
+            kPlatformMac,
+            VlanID(1),
+            IPv4Handler::ETHERTYPE_IPV4,
+            std::move(bufCopy)))
+        .Times(1);
     sw->sendL3Packet(std::move(pkt), InterfaceID(1));
 
     counters.update();
@@ -578,17 +569,23 @@ TEST_F(RoutingFixture, HostToSwitchUnicast) {
 
   // Same as above test but for v6
   {
-    auto pkt = createTxPacket(sw, createV6UnicastPacket(
-        kIPv6IntfAddr2, kIPv6NbhAddr2, kEmptyMac, kEmptyMac));
+    auto pkt = createTxPacket(
+        sw,
+        createV6UnicastPacket(
+            kIPv6IntfAddr2, kIPv6NbhAddr2, kEmptyMac, kEmptyMac));
 
     auto bufCopy = IOBuf::copyBuffer(
-      pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
-    EXPECT_SWITCHED_PKT(sw, "V6 UcastPkt", matchTxPacket(
-        kPlatformMac,
-        kPlatformMac,
-        VlanID(2),
-        IPv6Handler::ETHERTYPE_IPV6,
-        std::move(bufCopy))).Times(1);
+        pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
+    EXPECT_SWITCHED_PKT(
+        sw,
+        "V6 UcastPkt",
+        matchTxPacket(
+            kPlatformMac,
+            kPlatformMac,
+            VlanID(2),
+            IPv6Handler::ETHERTYPE_IPV6,
+            std::move(bufCopy)))
+        .Times(1);
     sw->sendL3Packet(std::move(pkt), InterfaceID(2));
 
     counters.update();
@@ -606,17 +603,23 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
 
   // v4 link-local
   {
-    auto pkt = createTxPacket(sw, createV4UnicastPacket(
-        kllIPv4IntfAddr1, kllIPv4NbhAddr1, kEmptyMac, kEmptyMac));
+    auto pkt = createTxPacket(
+        sw,
+        createV4UnicastPacket(
+            kllIPv4IntfAddr1, kllIPv4NbhAddr1, kEmptyMac, kEmptyMac));
 
     auto bufCopy = IOBuf::copyBuffer(
-      pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
-    EXPECT_SWITCHED_PKT(sw, "V4 UcastPkt", matchTxPacket(
-        kPlatformMac,
-        kPlatformMac, // NOTE: no neighbor mac address resolution like v6
-        VlanID(1),
-        IPv4Handler::ETHERTYPE_IPV4,
-        std::move(bufCopy))).Times(1);
+        pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
+    EXPECT_SWITCHED_PKT(
+        sw,
+        "V4 UcastPkt",
+        matchTxPacket(
+            kPlatformMac,
+            kPlatformMac, // NOTE: no neighbor mac address resolution like v6
+            VlanID(1),
+            IPv4Handler::ETHERTYPE_IPV4,
+            std::move(bufCopy)))
+        .Times(1);
     sw->sendL3Packet(std::move(pkt), InterfaceID(1));
 
     counters.update();
@@ -625,17 +628,23 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
 
   // Same as above test but for v6
   {
-    auto pkt = createTxPacket(sw, createV6UnicastPacket(
-        kllIPv6IntfAddr2, kllIPv6NbhAddr, kEmptyMac, kEmptyMac));
+    auto pkt = createTxPacket(
+        sw,
+        createV6UnicastPacket(
+            kllIPv6IntfAddr2, kllIPv6NbhAddr, kEmptyMac, kEmptyMac));
 
     auto bufCopy = IOBuf::copyBuffer(
-      pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
-    EXPECT_SWITCHED_PKT(sw, "V6 UcastPkt", matchTxPacket(
-        kPlatformMac,
-        kNbhMacAddr2,   // because vlan-id = 2
-        VlanID(2),
-        IPv6Handler::ETHERTYPE_IPV6,
-        std::move(bufCopy))).Times(1);
+        pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
+    EXPECT_SWITCHED_PKT(
+        sw,
+        "V6 UcastPkt",
+        matchTxPacket(
+            kPlatformMac,
+            kNbhMacAddr2, // because vlan-id = 2
+            VlanID(2),
+            IPv6Handler::ETHERTYPE_IPV6,
+            std::move(bufCopy)))
+        .Times(1);
     sw->sendL3Packet(std::move(pkt), InterfaceID(2));
 
     counters.update();
@@ -646,8 +655,10 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
   // should trigger NDP request and packet gets dropped
   {
     const folly::IPAddressV6 llNbhAddrUnknown("fe80::face");
-    auto pkt = createTxPacket(sw, createV6UnicastPacket(
-        kllIPv6IntfAddr2, llNbhAddrUnknown, kEmptyMac, kEmptyMac));
+    auto pkt = createTxPacket(
+        sw,
+        createV6UnicastPacket(
+            kllIPv6IntfAddr2, llNbhAddrUnknown, kEmptyMac, kEmptyMac));
 
     // NDP Neighbor solicitation request will be sent and the actual packet
     // will be dropped.
@@ -662,17 +673,23 @@ TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
   // should be just routed out of the box like other v4 IP packets. (unlike v6)
   {
     const folly::IPAddressV4 llNbhAddrUnknown("169.254.13.95");
-    auto pkt = createTxPacket(sw, createV4UnicastPacket(
-        kllIPv4IntfAddr2, llNbhAddrUnknown, kEmptyMac, kEmptyMac));
+    auto pkt = createTxPacket(
+        sw,
+        createV4UnicastPacket(
+            kllIPv4IntfAddr2, llNbhAddrUnknown, kEmptyMac, kEmptyMac));
 
     auto bufCopy = IOBuf::copyBuffer(
-      pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
-    EXPECT_SWITCHED_PKT(sw, "V4 UcastPkt", matchTxPacket(
-        kPlatformMac,
-        kPlatformMac, // NOTE: no neighbor mac address resolution like v6
-        VlanID(1),
-        IPv4Handler::ETHERTYPE_IPV4,
-        std::move(bufCopy))).Times(1);
+        pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
+    EXPECT_SWITCHED_PKT(
+        sw,
+        "V4 UcastPkt",
+        matchTxPacket(
+            kPlatformMac,
+            kPlatformMac, // NOTE: no neighbor mac address resolution like v6
+            VlanID(1),
+            IPv4Handler::ETHERTYPE_IPV4,
+            std::move(bufCopy)))
+        .Times(1);
     sw->sendL3Packet(std::move(pkt), InterfaceID(1));
 
     counters.update();
@@ -693,17 +710,23 @@ TEST_F(RoutingFixture, HostToSwitchMulticast) {
   // set appropriately as per it's multicast IP address.
   // This test is for v4
   {
-    auto pkt = createTxPacket(sw, createV4UnicastPacket(
-        kIPv4IntfAddr1, kIPv4McastAddr, kEmptyMac, kEmptyMac));
+    auto pkt = createTxPacket(
+        sw,
+        createV4UnicastPacket(
+            kIPv4IntfAddr1, kIPv4McastAddr, kEmptyMac, kEmptyMac));
 
     auto bufCopy = IOBuf::copyBuffer(
-      pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
-    EXPECT_SWITCHED_PKT(sw, "V4 McastPkt", matchTxPacket(
-        kPlatformMac,
-        kIPv4MacAddr,
-        VlanID(1),
-        IPv4Handler::ETHERTYPE_IPV4,
-        std::move(bufCopy))).Times(1);
+        pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
+    EXPECT_SWITCHED_PKT(
+        sw,
+        "V4 McastPkt",
+        matchTxPacket(
+            kPlatformMac,
+            kIPv4MacAddr,
+            VlanID(1),
+            IPv4Handler::ETHERTYPE_IPV4,
+            std::move(bufCopy)))
+        .Times(1);
     sw->sendL3Packet(std::move(pkt), InterfaceID(1));
 
     counters.update();
@@ -712,17 +735,23 @@ TEST_F(RoutingFixture, HostToSwitchMulticast) {
 
   // Same as above test but for v6
   {
-    auto pkt = createTxPacket(sw, createV6UnicastPacket(
-        kIPv6IntfAddr2, kIPv6McastAddr, kEmptyMac, kEmptyMac));
+    auto pkt = createTxPacket(
+        sw,
+        createV6UnicastPacket(
+            kIPv6IntfAddr2, kIPv6McastAddr, kEmptyMac, kEmptyMac));
 
     auto bufCopy = IOBuf::copyBuffer(
-      pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
-    EXPECT_SWITCHED_PKT(sw, "V6 McastPkt", matchTxPacket(
-        kPlatformMac,
-        kIPv6MacAddr,
-        VlanID(2),
-        IPv6Handler::ETHERTYPE_IPV6,
-        std::move(bufCopy))).Times(1);
+        pkt->buf()->data(), pkt->buf()->length(), pkt->buf()->headroom(), 0);
+    EXPECT_SWITCHED_PKT(
+        sw,
+        "V6 McastPkt",
+        matchTxPacket(
+            kPlatformMac,
+            kIPv6MacAddr,
+            VlanID(2),
+            IPv6Handler::ETHERTYPE_IPV6,
+            std::move(bufCopy)))
+        .Times(1);
     sw->sendL3Packet(std::move(pkt), InterfaceID(2));
 
     counters.update();

@@ -158,7 +158,6 @@ class RestartTimeTracker {
   }
 
  private:
-
   std::string savePath(RestartEvent type) {
     return folly::to<std::string>(warmBootDir_, "/", to_string(type));
   }

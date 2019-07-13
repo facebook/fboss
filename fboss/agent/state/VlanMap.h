@@ -10,10 +10,11 @@
 #pragma once
 
 #include <string>
-#include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeMap.h"
+#include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwitchState;
 class Vlan;
@@ -49,7 +50,6 @@ class VlanMap : public NodeMapT<VlanMap, VlanMapTraits> {
    */
   const std::shared_ptr<Vlan>& getVlanSlow(const std::string& name) const;
 
-
   /*
    * Get the specified Vlan.
    *
@@ -68,7 +68,7 @@ class VlanMap : public NodeMapT<VlanMap, VlanMapTraits> {
    * handful of Vlans, so this traversal should be fairly cheap. We
    * may optimize it further in the future though.
    */
-   std::shared_ptr<Vlan> getVlanSlowIf(const std::string& name) const;
+  std::shared_ptr<Vlan> getVlanSlowIf(const std::string& name) const;
 
   /*
    * The following functions modify the static state.
@@ -79,10 +79,12 @@ class VlanMap : public NodeMapT<VlanMap, VlanMapTraits> {
   void addVlan(const std::shared_ptr<Vlan>& vlan);
 
   void updateVlan(const std::shared_ptr<Vlan>& vlan);
+
  private:
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;
   friend class CloneAllocator;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

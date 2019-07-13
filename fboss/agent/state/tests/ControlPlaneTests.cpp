@@ -9,10 +9,10 @@
  */
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
-#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <boost/container/flat_map.hpp>
 #include <gtest/gtest.h>
@@ -82,8 +82,8 @@ QueueConfig genCPUQueues() {
   mid->setWeight(2);
   queues.push_back(mid);
 
-  shared_ptr<PortQueue> defaultQ = make_shared<PortQueue>(
-    static_cast<uint8_t>(1));
+  shared_ptr<PortQueue> defaultQ =
+      make_shared<PortQueue>(static_cast<uint8_t>(1));
   defaultQ->setName("cpuQueue-default");
   defaultQ->setStreamType(cfg::StreamType::MULTICAST);
   defaultQ->setScheduling(cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
@@ -109,7 +109,7 @@ QueueConfig genCPUQueues() {
 boost::container::flat_map<int, shared_ptr<PortQueue>> getCPUQueuesMap() {
   QueueConfig queues = genCPUQueues();
   boost::container::flat_map<int, shared_ptr<PortQueue>> queueMap;
-  for (const auto& queue: queues) {
+  for (const auto& queue : queues) {
     queueMap.emplace(queue->getID(), queue);
   }
   return queueMap;
@@ -122,15 +122,14 @@ shared_ptr<ControlPlane> generateControlPlane() {
   controlPlane->resetQueues(cpuQueues);
 
   ControlPlane::RxReasonToQueue reasons = {
-   {cfg::PacketRxReason::ARP, 9},
-   {cfg::PacketRxReason::DHCP, 2},
-   {cfg::PacketRxReason::BPDU, 2},
-   {cfg::PacketRxReason::UNMATCHED, 1},
-   {cfg::PacketRxReason::L3_SLOW_PATH, 0},
-   {cfg::PacketRxReason::L3_DEST_MISS, 0},
-   {cfg::PacketRxReason::TTL_1, 0},
-   {cfg::PacketRxReason::CPU_IS_NHOP, 0}
-  };
+      {cfg::PacketRxReason::ARP, 9},
+      {cfg::PacketRxReason::DHCP, 2},
+      {cfg::PacketRxReason::BPDU, 2},
+      {cfg::PacketRxReason::UNMATCHED, 1},
+      {cfg::PacketRxReason::L3_SLOW_PATH, 0},
+      {cfg::PacketRxReason::L3_DEST_MISS, 0},
+      {cfg::PacketRxReason::TTL_1, 0},
+      {cfg::PacketRxReason::CPU_IS_NHOP, 0}};
   controlPlane->resetRxReasonToQueue(reasons);
 
   folly::Optional<std::string> qosPolicy("qp1");
@@ -154,8 +153,7 @@ shared_ptr<SwitchState> genCPUSwitchState() {
 
   return stateV0;
 }
-}
-
+} // namespace
 
 TEST(ControlPlane, serialize) {
   auto controlPlane = generateControlPlane();
@@ -198,7 +196,7 @@ TEST(ControlPlane, applyDefaultConfig) {
   // it should always generate all queues
   EXPECT_EQ(newQueues.size(), kNumCPUQueues);
   auto cpu4QueuesMap = getCPUQueuesMap();
-  for (const auto& queue: newQueues) {
+  for (const auto& queue : newQueues) {
     if (cpu4QueuesMap.find(queue->getID()) == cpu4QueuesMap.end()) {
       // if it's not one of those 4 queues, it should have default value
       auto unconfiguredQueue = std::make_shared<PortQueue>(queue->getID());
@@ -250,7 +248,7 @@ TEST(ControlPlane, resetLowPrioQueue) {
   auto cpu4QueuesMap = getCPUQueuesMap();
   // low-prio has been removed
   cpu4QueuesMap.erase(cpu4QueuesMap.find(0));
-  for (const auto& queue: newQueues) {
+  for (const auto& queue : newQueues) {
     if (cpu4QueuesMap.find(queue->getID()) == cpu4QueuesMap.end()) {
       // if it's not one of those 4 queues, it should have default value
       // also since low-prio has been removed, it should be checked in here.
@@ -290,7 +288,7 @@ TEST(ControlPlane, changeLowPrioQueue) {
   auto cpu4QueuesMap = getCPUQueuesMap();
   // low-prio has been changed(pps from 100->1000)
   cpu4QueuesMap.find(0)->second->setPacketsPerSec(1000);
-  for (const auto& queue: newQueues) {
+  for (const auto& queue : newQueues) {
     if (cpu4QueuesMap.find(queue->getID()) == cpu4QueuesMap.end()) {
       // if it's not one of those 4 queues, it should have default value
       auto unconfiguredQueue = std::make_shared<PortQueue>(queue->getID());
@@ -306,7 +304,7 @@ TEST(ControlPlane, changeLowPrioQueue) {
 TEST(ControlPlane, checkSwConfPortQueueMatch) {
   auto cfgCpuQueues = getConfigCPUQueues();
   auto swCpuQueuesMap = getCPUQueuesMap();
-  for (const auto& cfgQueue: cfgCpuQueues) {
+  for (const auto& cfgQueue : cfgCpuQueues) {
     auto swQueueItr = swCpuQueuesMap.find(cfgQueue.id);
     EXPECT_NE(swQueueItr, swCpuQueuesMap.end());
     EXPECT_TRUE(checkSwConfPortQueueMatch(swQueueItr->second, &cfgQueue));

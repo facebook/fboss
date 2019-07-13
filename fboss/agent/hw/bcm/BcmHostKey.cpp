@@ -13,7 +13,8 @@
 
 #include "fboss/agent/FbossError.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 BcmHostKey::BcmHostKey(
     opennsl_vrf_t vrf,
@@ -46,7 +47,7 @@ bool operator==(const BcmHostKey& a, const BcmHostKey& b) {
       a.intfID() == b.intfID());
 }
 
-bool operator< (const BcmHostKey& a, const BcmHostKey& b) {
+bool operator<(const BcmHostKey& a, const BcmHostKey& b) {
   if (a.getVrf() != b.getVrf()) {
     return a.getVrf() < b.getVrf();
   } else if (a.addr() != b.addr()) {
@@ -109,9 +110,9 @@ bool operator==(SelfType const& lhs, SelfType const& rhs) {
 HostKey getNextHopKey(opennsl_vrf_t vrf, const NextHop& nexthop) {
   if (!nexthop.labelForwardingAction() || !nexthop.isResolved() ||
       (nexthop.labelForwardingAction()->type() !=
-          LabelForwardingAction::LabelForwardingType::SWAP &&
-      nexthop.labelForwardingAction()->type() !=
-          LabelForwardingAction::LabelForwardingType::PUSH)) {
+           LabelForwardingAction::LabelForwardingType::SWAP &&
+       nexthop.labelForwardingAction()->type() !=
+           LabelForwardingAction::LabelForwardingType::PUSH)) {
     // unlabaled next hop
     return BcmHostKey(vrf, nexthop);
   }
@@ -131,4 +132,5 @@ HostKey getNextHopKey(opennsl_vrf_t vrf, const NextHop& nexthop) {
       nexthop.addr(),
       nexthop.intfID().value());
 }
-}}
+} // namespace fboss
+} // namespace facebook

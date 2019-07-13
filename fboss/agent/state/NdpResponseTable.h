@@ -12,12 +12,14 @@
 #include <folly/IPAddressV6.h>
 #include "fboss/agent/state/NeighborResponseTable.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class NdpResponseTable
-  : public NeighborResponseTable<folly::IPAddressV6, NdpResponseTable> {
+    : public NeighborResponseTable<folly::IPAddressV6, NdpResponseTable> {
  public:
   using NeighborResponseTable::NeighborResponseTable;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

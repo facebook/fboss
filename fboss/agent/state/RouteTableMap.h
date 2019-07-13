@@ -9,10 +9,11 @@
  */
 #pragma once
 
-#include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeMap.h"
+#include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwitchState;
 class RouteTable;
@@ -49,7 +50,7 @@ class RouteTableMap : public NodeMapT<RouteTableMap, RouteTableMapTraits> {
   /**
    * Get the v4 and v6 route count
    */
-  void getRouteCount(uint64_t *v4Count, uint64_t *v6Count);
+  void getRouteCount(uint64_t* v4Count, uint64_t* v6Count);
 
   /*
    * The following functions modify the static state.
@@ -69,4 +70,5 @@ class RouteTableMap : public NodeMapT<RouteTableMap, RouteTableMapTraits> {
   friend class CloneAllocator;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

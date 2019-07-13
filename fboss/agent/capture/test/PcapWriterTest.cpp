@@ -20,23 +20,22 @@ using namespace facebook::fboss;
 void addPackets(PcapWriter* writer, uint32_t count) {
   // Create a packet to add to the queue
   auto pkt = MockRxPacket::fromHex(
-    // dst mac, src mac
-    "02 00 01 00 00 01  02 00 02 01 02 03"
-    // 802.1q, VLAN 1
-    "81 00 00 01"
-    // IPv4
-    "08 00"
-    // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
-    "45  00  00 14"
-    // Identification(0), Flags(0), Fragment offset(0)
-    "00 00  00 00"
-    // TTL(31), Protocol(6), Checksum (0, fake)
-    "1F  06  00 00"
-    // Source IP (1.2.3.4)
-    "01 02 03 04"
-    // Destination IP (10.0.0.10)
-    "0a 00 00 0a"
-  );
+      // dst mac, src mac
+      "02 00 01 00 00 01  02 00 02 01 02 03"
+      // 802.1q, VLAN 1
+      "81 00 00 01"
+      // IPv4
+      "08 00"
+      // Version(4), IHL(5), DSCP(0), ECN(0), Total Length(20)
+      "45  00  00 14"
+      // Identification(0), Flags(0), Fragment offset(0)
+      "00 00  00 00"
+      // TTL(31), Protocol(6), Checksum (0, fake)
+      "1F  06  00 00"
+      // Source IP (1.2.3.4)
+      "01 02 03 04"
+      // Destination IP (10.0.0.10)
+      "0a 00 00 0a");
   pkt->padToLength(68);
   pkt->setSrcPort(PortID(1));
   pkt->setSrcVlan(VlanID(1));

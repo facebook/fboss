@@ -10,14 +10,15 @@
 // Copyright 2004-present Facebook.  All rights reserved.
 #pragma once
 
-#include "fboss/agent/types.h"
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include "fboss/agent/state/NodeBase.h"
-#include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/state/RouteTableRib.h"
+#include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwitchState;
 
@@ -52,14 +53,13 @@ class RouteTable : public NodeBaseT<RouteTable, RouteTableFields> {
   explicit RouteTable(RouterID id);
   ~RouteTable() override;
 
-  static std::shared_ptr<RouteTable>
-  fromFollyDynamic(const folly::dynamic& json) {
+  static std::shared_ptr<RouteTable> fromFollyDynamic(
+      const folly::dynamic& json) {
     const auto& fields = RouteTableFields::fromFollyDynamic(json);
     return std::make_shared<RouteTable>(fields);
   }
 
-  static std::shared_ptr<RouteTable>
-  fromJson(const folly::fbstring& jsonStr) {
+  static std::shared_ptr<RouteTable> fromJson(const folly::fbstring& jsonStr) {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
@@ -96,10 +96,11 @@ class RouteTable : public NodeBaseT<RouteTable, RouteTableFields> {
   void setRib(std::shared_ptr<RibTypeV6> rib) {
     writableFields()->ribV6.swap(rib);
   }
+
  private:
   // Forbidden copy constructor and assignment operator
-  RouteTable(RouteTable const &) = delete;
-  RouteTable& operator=(RouteTable const &) = delete;
+  RouteTable(RouteTable const&) = delete;
+  RouteTable& operator=(RouteTable const&) = delete;
 
   // Inherit the constructors required for clone()
   using NodeBaseT::NodeBaseT;
@@ -118,4 +119,5 @@ RouteTable::getRib() const {
   return getRibV6();
 }
 
-}}
+} // namespace fboss
+} // namespace facebook

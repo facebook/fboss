@@ -13,7 +13,8 @@
 
 using namespace std::chrono;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 void ThreadHeartbeat::timeoutExpired() noexcept {
   CHECK(evb_->inRunningEventBaseThread());
@@ -32,4 +33,5 @@ void ThreadHeartbeat::timeoutExpired() noexcept {
   scheduleTimeout(intervalMsecs_);
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

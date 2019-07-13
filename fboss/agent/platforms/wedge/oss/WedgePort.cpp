@@ -9,6 +9,6 @@
  */
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 
-namespace facebook { namespace fboss {
-
-}} // facebook::fboss
+namespace facebook {
+namespace fboss {}
+} // namespace facebook

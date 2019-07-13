@@ -10,19 +10,20 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/types.h>
 #include <opennsl/port.h>
+#include <opennsl/types.h>
 }
 
-#include "fboss/agent/types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/state/Port.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/types.h"
 
-#include <mutex>
 #include <boost/container/flat_map.hpp>
+#include <mutex>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmSwitch;
 class SwitchState;
@@ -45,15 +46,12 @@ class BcmPortGroup {
    * configurations as well. We can add those in the future should a
    * need arise.
    */
-  enum LaneMode : uint8_t {
-    SINGLE = 1,
-    DUAL = 2,
-    QUAD = 4
-  };
+  enum LaneMode : uint8_t { SINGLE = 1, DUAL = 2, QUAD = 4 };
 
-  BcmPortGroup(BcmSwitch *hw,
-               BcmPort* controllingPort,
-               std::vector<BcmPort*> allPorts);
+  BcmPortGroup(
+      BcmSwitch* hw,
+      BcmPort* controllingPort,
+      std::vector<BcmPort*> allPorts);
   ~BcmPortGroup();
 
   BcmPort* controllingPort() const {
@@ -73,7 +71,8 @@ class BcmPortGroup {
   bool validConfiguration(const std::shared_ptr<SwitchState>& state) const;
 
   static BcmPortGroup::LaneMode calculateDesiredLaneMode(
-    const std::vector<Port*>& ports, LaneSpeeds supportedLaneSpeeds);
+      const std::vector<Port*>& ports,
+      LaneSpeeds supportedLaneSpeeds);
 
   LaneMode laneMode() {
     return laneMode_;
@@ -81,14 +80,15 @@ class BcmPortGroup {
 
  private:
   std::vector<Port*> getSwPorts(
-    const std::shared_ptr<SwitchState>& state) const;
+      const std::shared_ptr<SwitchState>& state) const;
   LaneMode neededLaneMode(uint8_t lane, cfg::PortSpeed speed) const;
 
   uint8_t getLane(const BcmPort* bcmPort) const;
   int retrieveActiveLanes() const;
   void setActiveLanes(LaneMode desiredLaneMode);
-  void reconfigureLaneMode(const std::shared_ptr<SwitchState>& state,
-                   LaneMode newLaneMode);
+  void reconfigureLaneMode(
+      const std::shared_ptr<SwitchState>& state,
+      LaneMode newLaneMode);
 
   BcmSwitch* hw_;
   BcmPort* controllingPort_{nullptr};
@@ -97,4 +97,5 @@ class BcmPortGroup {
   cfg::PortSpeed portSpeed_;
 };
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

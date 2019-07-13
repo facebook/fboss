@@ -16,7 +16,8 @@ extern "C" {
 #include <opennsl/switch.h>
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /**
  * This abstract class defines the interface for a Bcm switch event callback.
@@ -29,9 +30,12 @@ class BcmSwitchEventCallback {
 
   // override this function in derived classes to specify error handling
   // behavior (eg. logging a fatal error and terminating the program).
-  virtual void callback(const int unit, const opennsl_switch_event_t eventID,
-                        const uint32_t arg1, const uint32_t arg2,
-                        const uint32_t arg3) = 0;
+  virtual void callback(
+      const int unit,
+      const opennsl_switch_event_t eventID,
+      const uint32_t arg1,
+      const uint32_t arg2,
+      const uint32_t arg3) = 0;
 
  private:
   // disable copy constructor and assignment operator
@@ -47,9 +51,12 @@ class BcmSwitchEventUnitFatalErrorCallback : public BcmSwitchEventCallback {
   BcmSwitchEventUnitFatalErrorCallback() {}
   ~BcmSwitchEventUnitFatalErrorCallback() override {}
 
-  void callback(const int unit, const opennsl_switch_event_t eventID,
-                const uint32_t arg1, const uint32_t arg2,
-                const uint32_t arg3) override;
+  void callback(
+      const int unit,
+      const opennsl_switch_event_t eventID,
+      const uint32_t arg1,
+      const uint32_t arg2,
+      const uint32_t arg3) override;
 };
 
 /**
@@ -61,9 +68,13 @@ class BcmSwitchEventUnitNonFatalErrorCallback : public BcmSwitchEventCallback {
   BcmSwitchEventUnitNonFatalErrorCallback() {}
   ~BcmSwitchEventUnitNonFatalErrorCallback() override {}
 
-  void callback(const int unit, const opennsl_switch_event_t eventID,
-                const uint32_t arg1, const uint32_t arg2,
-                const uint32_t arg3) override;
+  void callback(
+      const int unit,
+      const opennsl_switch_event_t eventID,
+      const uint32_t arg1,
+      const uint32_t arg2,
+      const uint32_t arg3) override;
+
  private:
   void logNonFatalError(
       int unit,
@@ -74,4 +85,5 @@ class BcmSwitchEventUnitNonFatalErrorCallback : public BcmSwitchEventCallback {
       uint32_t arg3);
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

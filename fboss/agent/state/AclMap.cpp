@@ -13,13 +13,12 @@
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-AclMap::AclMap() {
-}
+AclMap::AclMap() {}
 
-AclMap::~AclMap() {
-}
+AclMap::~AclMap() {}
 
 AclMap* AclMap::modify(std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {
@@ -37,6 +36,9 @@ AclMap* AclMap::modify(std::shared_ptr<SwitchState>* state) {
 FBOSS_INSTANTIATE_NODE_MAP(AclMap, AclMapTraits);
 FBOSS_INSTANTIATE_NODE_MAP(PrioAclMap, PrioAclMapTraits);
 
-template class NodeMapDelta<PrioAclMap, DeltaValue<PrioAclMap::Node>,
-                            MapUniquePointerTraits<PrioAclMap>>;
-}} // facebook::fboss
+template class NodeMapDelta<
+    PrioAclMap,
+    DeltaValue<PrioAclMap::Node>,
+    MapUniquePointerTraits<PrioAclMap>>;
+} // namespace fboss
+} // namespace facebook

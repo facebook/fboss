@@ -9,10 +9,10 @@
  */
 #include "fboss/agent/platforms/test_platforms/BcmTestWedge100Port.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-BcmTestWedge100Port::BcmTestWedge100Port(PortID id)
-  : BcmTestPort(id) {
-}
+BcmTestWedge100Port::BcmTestWedge100Port(PortID id) : BcmTestPort(id) {}
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

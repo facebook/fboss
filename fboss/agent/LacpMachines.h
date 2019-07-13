@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include <folly/io/async/AsyncTimeout.h>
 #include <folly/Optional.h>
+#include <folly/io/async/AsyncTimeout.h>
 
 #include <boost/container/flat_map.hpp>
 
@@ -209,10 +209,7 @@ std::ostream& operator<<(std::ostream& out, MuxMachine::MuxState s);
 
 class Selector {
  public:
-  enum class SelectionState {
-    SELECTED,
-    STANDBY
-  };
+  enum class SelectionState { SELECTED, STANDBY };
   struct Selection {
     Selection(LinkAggregationGroupID id, SelectionState s)
         : lagID(id), state(s) {}

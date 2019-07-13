@@ -15,13 +15,14 @@
  * References:
  *   https://en.wikipedia.org/wiki/IPv4
  */
-#include <ostream>
-#include <folly/io/Cursor.h>
 #include <folly/IPAddressV4.h>
-#include "fboss/agent/packet/IPProto.h"
+#include <folly/io/Cursor.h>
+#include <ostream>
 #include "fboss/agent/packet/HdrParseError.h"
+#include "fboss/agent/packet/IPProto.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 enum : uint8_t {
   IPV4_VERSION = 4,
@@ -40,21 +41,20 @@ class IPv4Hdr {
    * copy constructor
    */
   IPv4Hdr(const IPv4Hdr& rhs)
-    : version(rhs.version),
-      ihl(rhs.ihl),
-      dscp(rhs.dscp),
-      ecn(rhs.ecn),
-      length(rhs.length),
-      id(rhs.id),
-      dontFragment(rhs.dontFragment),
-      moreFragments(rhs.moreFragments),
-      fragmentOffset(rhs.fragmentOffset),
-      ttl(rhs.ttl),
-      protocol(rhs.protocol),
-      csum(rhs.csum),
-      srcAddr(rhs.srcAddr),
-      dstAddr(rhs.dstAddr) {}
-
+      : version(rhs.version),
+        ihl(rhs.ihl),
+        dscp(rhs.dscp),
+        ecn(rhs.ecn),
+        length(rhs.length),
+        id(rhs.id),
+        dontFragment(rhs.dontFragment),
+        moreFragments(rhs.moreFragments),
+        fragmentOffset(rhs.fragmentOffset),
+        ttl(rhs.ttl),
+        protocol(rhs.protocol),
+        csum(rhs.csum),
+        srcAddr(rhs.srcAddr),
+        dstAddr(rhs.dstAddr) {}
 
   /*
    * parameterized data constructor
@@ -74,25 +74,26 @@ class IPv4Hdr {
       uint16_t _csum,
       const folly::IPAddressV4& _srcAddr,
       const folly::IPAddressV4& _dstAddr)
-    : version(_version),
-      ihl(_ihl),
-      dscp(_dscp),
-      ecn(_ecn),
-      length(_length),
-      id(_id),
-      dontFragment(_dontFragment),
-      moreFragments(_moreFragments),
-      fragmentOffset(_fragmentOffset),
-      ttl(_ttl),
-      protocol(_protocol),
-      csum(_csum),
-      srcAddr(_srcAddr),
-      dstAddr(_dstAddr) {}
+      : version(_version),
+        ihl(_ihl),
+        dscp(_dscp),
+        ecn(_ecn),
+        length(_length),
+        id(_id),
+        dontFragment(_dontFragment),
+        moreFragments(_moreFragments),
+        fragmentOffset(_fragmentOffset),
+        ttl(_ttl),
+        protocol(_protocol),
+        csum(_csum),
+        srcAddr(_srcAddr),
+        dstAddr(_dstAddr) {}
 
-  IPv4Hdr(const folly::IPAddressV4& _srcAddr,
-          const folly::IPAddressV4& _dstAddr,
-          uint8_t _protocol,
-          uint16_t _bodyLength);
+  IPv4Hdr(
+      const folly::IPAddressV4& _srcAddr,
+      const folly::IPAddressV4& _dstAddr,
+      uint8_t _protocol,
+      uint16_t _bodyLength);
 
   /*
    * cursor data constructor
@@ -118,15 +119,16 @@ class IPv4Hdr {
     ttl = rhs.ttl;
     protocol = rhs.protocol;
     csum = rhs.csum;
-    srcAddr = rhs.srcAddr;;
+    srcAddr = rhs.srcAddr;
+    ;
     dstAddr = rhs.dstAddr;
     return *this;
   }
 
   void computeChecksum();
-  template<typename CursorType>
+  template <typename CursorType>
   void write(CursorType* cursor) const;
-  template<typename CursorType>
+  template <typename CursorType>
   void serialize(CursorType* cursor) const {
     write(cursor);
   }
@@ -151,8 +153,12 @@ class IPv4Hdr {
   /*
    * Accessors
    */
-  size_t static minSize() { return 20; }
-  size_t size() const { return ihl * 4; }
+  size_t static minSize() {
+    return 20;
+  }
+  size_t size() const {
+    return ihl * 4;
+  }
   /*
    * Always 0x4
    */
@@ -224,27 +230,20 @@ class IPv4Hdr {
 };
 
 inline bool operator==(const IPv4Hdr& lhs, const IPv4Hdr& rhs) {
-  return lhs.version == rhs.version
-      && lhs.ihl == rhs.ihl
-      && lhs.dscp == rhs.dscp
-      && lhs.ecn == rhs.ecn
-      && lhs.length == rhs.length
-      && lhs.id == rhs.id
-      && lhs.dontFragment == rhs.dontFragment
-      && lhs.moreFragments == rhs.moreFragments
-      && lhs.fragmentOffset == rhs.fragmentOffset
-      && lhs.ttl == rhs.ttl
-      && lhs.protocol == rhs.protocol
-      && lhs.csum == rhs.csum
-      && lhs.srcAddr == rhs.srcAddr
-      && lhs.dstAddr == rhs.dstAddr;
+  return lhs.version == rhs.version && lhs.ihl == rhs.ihl &&
+      lhs.dscp == rhs.dscp && lhs.ecn == rhs.ecn && lhs.length == rhs.length &&
+      lhs.id == rhs.id && lhs.dontFragment == rhs.dontFragment &&
+      lhs.moreFragments == rhs.moreFragments &&
+      lhs.fragmentOffset == rhs.fragmentOffset && lhs.ttl == rhs.ttl &&
+      lhs.protocol == rhs.protocol && lhs.csum == rhs.csum &&
+      lhs.srcAddr == rhs.srcAddr && lhs.dstAddr == rhs.dstAddr;
 }
 
 inline bool operator!=(const IPv4Hdr& lhs, const IPv4Hdr& rhs) {
   return !operator==(lhs, rhs);
 }
 
-template<typename CursorType>
+template <typename CursorType>
 void IPv4Hdr::write(CursorType* cursor) const {
   cursor->template write<uint8_t>(version << 4 | ihl);
   cursor->template write<uint8_t>(dscp << 2 | ecn);
@@ -267,7 +266,6 @@ void IPv4Hdr::write(CursorType* cursor) const {
   }
 }
 
-
 // toAppend to make folly::to<string> work with IPv4Hdr
 inline void toAppend(const IPv4Hdr& ipv4Hdr, std::string* result) {
   result->append(ipv4Hdr.toString());
@@ -282,4 +280,5 @@ inline std::ostream& operator<<(std::ostream& os, const IPv4Hdr& ipv4Hdr) {
   return os;
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

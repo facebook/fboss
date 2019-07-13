@@ -10,13 +10,13 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/types.h>
 #include <opennsl/l3.h>
+#include <opennsl/types.h>
 }
 
 #include <boost/container/flat_map.hpp>
-#include <folly/dynamic.h>
 #include <folly/IPAddress.h>
+#include <folly/dynamic.h>
 #include <set>
 
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
@@ -24,7 +24,8 @@ extern "C" {
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class Interface;
 class BcmSwitch;
@@ -82,12 +83,12 @@ class BcmIntf {
 
  private:
   // no copy or assignment
-  BcmIntf(BcmIntf const &) = delete;
-  BcmIntf& operator=(BcmIntf const &) = delete;
+  BcmIntf(BcmIntf const&) = delete;
+  BcmIntf& operator=(BcmIntf const&) = delete;
   enum : opennsl_if_t {
     INVALID = -1,
   };
-  BcmSwitch *hw_;
+  BcmSwitch* hw_;
   std::shared_ptr<Interface> intf_;
   opennsl_if_t bcmIfId_{INVALID};
   // TODO: we now generate one station entry per interface, even if all
@@ -102,7 +103,7 @@ class BcmIntf {
 
 class BcmIntfTable {
  public:
-  explicit BcmIntfTable(BcmSwitch *hw);
+  explicit BcmIntfTable(BcmSwitch* hw);
   virtual ~BcmIntfTable();
 
   // throw an error if not found
@@ -130,7 +131,8 @@ class BcmIntfTable {
   // Both are mapped to the BcmIntf. The BcmIntf object's life is
   // controlled by table with InterfaceID as the index (intfs_).
   boost::container::flat_map<InterfaceID, std::unique_ptr<BcmIntf>> intfs_;
-  boost::container::flat_map<opennsl_if_t, BcmIntf *> bcmIntfs_;
+  boost::container::flat_map<opennsl_if_t, BcmIntf*> bcmIntfs_;
 };
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

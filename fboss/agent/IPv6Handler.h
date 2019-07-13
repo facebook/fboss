@@ -15,15 +15,18 @@
 #include "fboss/agent/packet/NDP.h"
 #include "fboss/agent/types.h"
 
-#include <memory>
 #include <boost/container/flat_map.hpp>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
-namespace folly { namespace io {
+#include <memory>
+namespace folly {
+namespace io {
 class Cursor;
-}}
+}
+} // namespace folly
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class IPv6Hdr;
 class Interface;
@@ -41,14 +44,16 @@ class IPv6Handler : public AutoRegisterStateObserver {
 
   void stateUpdated(const StateDelta& delta) override;
 
-  void handlePacket(std::unique_ptr<RxPacket> pkt,
-                    folly::MacAddress dst,
-                    folly::MacAddress src,
-                    folly::io::Cursor cursor);
+  void handlePacket(
+      std::unique_ptr<RxPacket> pkt,
+      folly::MacAddress dst,
+      folly::MacAddress src,
+      folly::io::Cursor cursor);
 
   void floodNeighborAdvertisements();
-  void sendNeighborSolicitation(const folly::IPAddressV6& targetIP,
-                                const std::shared_ptr<Vlan> vlan);
+  void sendNeighborSolicitation(
+      const folly::IPAddressV6& targetIP,
+      const std::shared_ptr<Vlan> vlan);
 
   /*
    * TODO(aeckert): 17949183 unify packet handling pipeline and then
@@ -90,18 +95,19 @@ class IPv6Handler : public AutoRegisterStateObserver {
   typedef boost::container::flat_map<InterfaceID, IPv6RouteAdvertiser> RAMap;
 
   // Forbidden copy constructor and assignment operator
-  IPv6Handler(IPv6Handler const &) = delete;
-  IPv6Handler& operator=(IPv6Handler const &) = delete;
+  IPv6Handler(IPv6Handler const&) = delete;
+  IPv6Handler& operator=(IPv6Handler const&) = delete;
 
   bool raEnabled(const Interface* intf) const;
   void intfAdded(const SwitchState* state, const Interface* intf);
   void intfDeleted(const Interface* intf);
 
-  void sendICMPv6TimeExceeded(VlanID srcVlan,
-                              folly::MacAddress dst,
-                              folly::MacAddress src,
-                              IPv6Hdr& v6Hdr,
-                              folly::io::Cursor cursor);
+  void sendICMPv6TimeExceeded(
+      VlanID srcVlan,
+      folly::MacAddress dst,
+      folly::MacAddress src,
+      IPv6Hdr& v6Hdr,
+      folly::io::Cursor cursor);
 
   void sendICMPv6PacketTooBig(
       PortID srcPort,
@@ -123,26 +129,30 @@ class IPv6Handler : public AutoRegisterStateObserver {
    *                caller to decide what to do with the packet (i.e. forward
    *                the packet to host)
    */
-  std::unique_ptr<RxPacket> handleICMPv6Packet(std::unique_ptr<RxPacket> pkt,
-                                               folly::MacAddress dst,
-                                               folly::MacAddress src,
-                                               const IPv6Hdr& ipv6,
-                                               folly::io::Cursor cursor);
-  void handleRouterSolicitation(std::unique_ptr<RxPacket> pkt,
-                                const ICMPHeaders& hdr,
-                                folly::io::Cursor cursor);
-  void handleRouterAdvertisement(std::unique_ptr<RxPacket> pkt,
-                                 const ICMPHeaders& hdr,
-                                 folly::io::Cursor cursor);
-  void handleNeighborSolicitation(std::unique_ptr<RxPacket> pkt,
-                                  const ICMPHeaders& hdr,
-                                  folly::io::Cursor cursor);
-  void handleNeighborAdvertisement(std::unique_ptr<RxPacket> pkt,
-                                   const ICMPHeaders& hdr,
-                                   folly::io::Cursor cursor);
+  std::unique_ptr<RxPacket> handleICMPv6Packet(
+      std::unique_ptr<RxPacket> pkt,
+      folly::MacAddress dst,
+      folly::MacAddress src,
+      const IPv6Hdr& ipv6,
+      folly::io::Cursor cursor);
+  void handleRouterSolicitation(
+      std::unique_ptr<RxPacket> pkt,
+      const ICMPHeaders& hdr,
+      folly::io::Cursor cursor);
+  void handleRouterAdvertisement(
+      std::unique_ptr<RxPacket> pkt,
+      const ICMPHeaders& hdr,
+      folly::io::Cursor cursor);
+  void handleNeighborSolicitation(
+      std::unique_ptr<RxPacket> pkt,
+      const ICMPHeaders& hdr,
+      folly::io::Cursor cursor);
+  void handleNeighborAdvertisement(
+      std::unique_ptr<RxPacket> pkt,
+      const ICMPHeaders& hdr,
+      folly::io::Cursor cursor);
 
-  bool checkNdpPacket(const ICMPHeaders& hdr,
-                      const RxPacket* pkt) const;
+  bool checkNdpPacket(const ICMPHeaders& hdr, const RxPacket* pkt) const;
 
   void sendNeighborAdvertisement(
       VlanID vlan,
@@ -176,4 +186,5 @@ class IPv6Handler : public AutoRegisterStateObserver {
   RAMap routeAdvertisers_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

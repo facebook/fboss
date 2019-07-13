@@ -1,5 +1,5 @@
-#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
+#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 
 #include <folly/SocketAddress.h>
 #include <folly/io/async/EventBase.h>
@@ -37,7 +37,7 @@ class NeighborListenerClientInterface : public NeighborListenerClientSvIf {
   }
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   folly::EventBase base;
 
   gflags::ParseCommandLineFlags(&argc, &argv, true);

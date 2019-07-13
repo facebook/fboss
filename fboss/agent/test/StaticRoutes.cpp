@@ -8,24 +8,24 @@
  *
  */
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/hw/mock/MockPlatform.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/test/TestUtils.h"
 
+#include <folly/IPAddress.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
-#include <folly/IPAddress.h>
 
 #include <gtest/gtest.h>
 #include <memory>
 
 using namespace facebook::fboss;
-using std::make_shared;
+using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
-using folly::IPAddress;
+using std::make_shared;
 
 auto kStaticClient = StdClientIds2ClientID(StdClientIds::STATIC_ROUTE);
 
@@ -58,7 +58,6 @@ TEST(StaticRoutes, configureUnconfigure) {
   config.staticRoutesWithNhops[3].prefix = "2001::4/128";
   config.staticRoutesWithNhops[3].nexthops.resize(1);
   config.staticRoutesWithNhops[3].nexthops[0] = "2001::2";
-
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);

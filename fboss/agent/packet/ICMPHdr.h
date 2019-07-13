@@ -16,15 +16,16 @@
  *   ICMP: https://tools.ietf.org/html/rfc792
  *   ICMPv6: https://tools.ietf.org/html/rfc4443
  */
-#include <folly/io/Cursor.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
+#include <folly/io/Cursor.h>
 #include "fboss/agent/packet/IPProto.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /**
  * ICMPv4 type and code definition, RFC 792
@@ -38,7 +39,7 @@ enum class ICMPv4Type : uint8_t {
   ICMPV4_TYPE_PARAMETER_PROBLEM = 12,
   ICMPV4_TYPE_TIMESTAMP = 13,
   ICMPV4_TYPE_TIMESTAMP_REPLY = 14,
-  //NOTE: all deprecated type definitions are removed
+  // NOTE: all deprecated type definitions are removed
 };
 
 enum class ICMPv4Code : uint8_t {
@@ -185,19 +186,12 @@ class ICMPHdr {
    * copy constructor
    */
   ICMPHdr(const ICMPHdr& rhs)
-    : type(rhs.type),
-      code(rhs.code),
-      csum(rhs.csum) {}
+      : type(rhs.type), code(rhs.code), csum(rhs.csum) {}
   /*
    * parameterized data constructor
    */
-  ICMPHdr(
-      uint8_t _type,
-      uint8_t _code,
-      uint16_t _csum)
-    : type(_type),
-      code(_code),
-      csum(_csum) {}
+  ICMPHdr(uint8_t _type, uint8_t _code, uint16_t _csum)
+      : type(_type), code(_code), csum(_csum) {}
   /*
    * cursor data constructor
    */
@@ -230,11 +224,13 @@ class ICMPHdr {
    * ICMP header.
    */
   // compute checksum without including ip header, used for icmpv4
-  uint16_t computeChecksum(const folly::io::Cursor& cursor,
-                           uint32_t payloadLength) const;
+  uint16_t computeChecksum(
+      const folly::io::Cursor& cursor,
+      uint32_t payloadLength) const;
   // compute checksum with pseudo ip header, used for icmpv6
-  uint16_t computeChecksum(const IPv6Hdr& ipv6Hdr,
-                           const folly::io::Cursor& cursor) const;
+  uint16_t computeChecksum(
+      const IPv6Hdr& ipv6Hdr,
+      const folly::io::Cursor& cursor) const;
 
   /**
    * compute the total packet length for ICMPv4 and ICMPv6 given
@@ -246,8 +242,8 @@ class ICMPHdr {
   /*
    * Return true if and only if the header checksum is valid.
    */
-  bool validateChecksum(const IPv6Hdr& ipv6Hdr,
-                        const folly::io::Cursor& cursor) const {
+  bool validateChecksum(const IPv6Hdr& ipv6Hdr, const folly::io::Cursor& cursor)
+      const {
     return computeChecksum(ipv6Hdr, cursor) == csum;
   }
 
@@ -255,14 +251,15 @@ class ICMPHdr {
    * serialize the full packet including eth_hdr, ip hdr, icmp_hdr and payload
    */
   // for ICMPv6
-  template<typename BodyFn>
-  void serializeFullPacket(folly::io::RWPrivateCursor* cursor,
-                           folly::MacAddress dstMac,
-                           folly::MacAddress srcMac,
-                           VlanID vlan,
-                           const IPv6Hdr& ipv6,
-                           uint32_t payloadLength,
-                           BodyFn bodyFn) {
+  template <typename BodyFn>
+  void serializeFullPacket(
+      folly::io::RWPrivateCursor* cursor,
+      folly::MacAddress dstMac,
+      folly::MacAddress srcMac,
+      VlanID vlan,
+      const IPv6Hdr& ipv6,
+      uint32_t payloadLength,
+      BodyFn bodyFn) {
     // Write the ethernet and IPv6 header
     serializePktHdr(cursor, dstMac, srcMac, vlan, ipv6, payloadLength);
 
@@ -282,14 +279,15 @@ class ICMPHdr {
     csumCursor.writeBE<uint16_t>(csum);
   }
 
-  template<typename BodyFn>
-  void serializeFullPacket(folly::io::RWPrivateCursor* cursor,
-                           folly::MacAddress dstMac,
-                           folly::MacAddress srcMac,
-                           VlanID vlan,
-                           const IPv4Hdr& ipv4,
-                           uint32_t payloadLength,
-                           BodyFn bodyFn) {
+  template <typename BodyFn>
+  void serializeFullPacket(
+      folly::io::RWPrivateCursor* cursor,
+      folly::MacAddress dstMac,
+      folly::MacAddress srcMac,
+      VlanID vlan,
+      const IPv4Hdr& ipv4,
+      uint32_t payloadLength,
+      BodyFn bodyFn) {
     // Write the ethernet and IPv4 header
     serializePktHdr(cursor, dstMac, srcMac, vlan, ipv4);
 
@@ -314,18 +312,20 @@ class ICMPHdr {
    * helper function to serialize the eth_hdr and ip hdr
    */
   // IPv6 header
-  void serializePktHdr(folly::io::RWPrivateCursor* cursor,
-                       folly::MacAddress dstMac,
-                       folly::MacAddress srcMac,
-                       VlanID vlan,
-                       const IPv6Hdr& ipv6,
-                       uint32_t payloadLength);
+  void serializePktHdr(
+      folly::io::RWPrivateCursor* cursor,
+      folly::MacAddress dstMac,
+      folly::MacAddress srcMac,
+      VlanID vlan,
+      const IPv6Hdr& ipv6,
+      uint32_t payloadLength);
   // IPv4 header
-  void serializePktHdr(folly::io::RWPrivateCursor* cursor,
-                       folly::MacAddress dstMac,
-                       folly::MacAddress srcMac,
-                       VlanID vlan,
-                       const IPv4Hdr& ipv4);
+  void serializePktHdr(
+      folly::io::RWPrivateCursor* cursor,
+      folly::MacAddress dstMac,
+      folly::MacAddress srcMac,
+      VlanID vlan,
+      const IPv4Hdr& ipv4);
 
  public:
   /*
@@ -343,12 +343,11 @@ class ICMPHdr {
 };
 
 inline bool operator==(const ICMPHdr& lhs, const ICMPHdr& rhs) {
-  return lhs.type == rhs.type
-      && lhs.code == rhs.code
-      && lhs.csum == rhs.csum;
+  return lhs.type == rhs.type && lhs.code == rhs.code && lhs.csum == rhs.csum;
 }
 
 inline bool operator!=(const ICMPHdr& lhs, const ICMPHdr& rhs) {
   return !operator==(lhs, rhs);
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

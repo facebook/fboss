@@ -23,21 +23,20 @@
 
 #include <folly/IPAddress.h>
 
-
+using boost::container::flat_map;
+using boost::container::flat_set;
 using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 using folly::MacAddress;
-using boost::container::flat_map;
-using boost::container::flat_set;
 
 namespace {
 
 using namespace facebook::fboss;
 
 folly::Optional<AggregatePortID> getAggPortID(
-  const std::shared_ptr<SwitchState>& inputState,
-  const PortID& portId) {
+    const std::shared_ptr<SwitchState>& inputState,
+    const PortID& portId) {
   for (auto aggPort : *inputState->getAggregatePorts().get()) {
     if (aggPort->isMemberPort(portId)) {
       return aggPort->getID();
@@ -328,8 +327,8 @@ EcmpSetupTargetedPorts<IPAddrT>::setupIp2MplsECMPForwarding(
 }
 
 template <typename IPAddrT>
-flat_set<PortDescriptor>
-EcmpSetupAnyNPorts<IPAddrT>::getPortDescs(int width) const {
+flat_set<PortDescriptor> EcmpSetupAnyNPorts<IPAddrT>::getPortDescs(
+    int width) const {
   flat_set<PortDescriptor> portDescs;
   for (size_t w = 0; w < width; ++w) {
     portDescs.insert(getNextHops().at(w).portDesc);

@@ -11,8 +11,10 @@
 
 #include "fboss/agent/state/NeighborResponseTable-defs.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 template class NeighborResponseTable<folly::IPAddressV6, NdpResponseTable>;
 
-}} // facebook::fboss
+}
+} // namespace facebook

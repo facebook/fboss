@@ -17,13 +17,14 @@
 #include "fboss/agent/DHCPv4Handler.h"
 #include "fboss/agent/FbossError.h"
 
-using folly::io::Cursor;
-using std::vector;
-using std::copy;
-using std::back_inserter;
 using folly::IPAddressV4;
+using folly::io::Cursor;
+using std::back_inserter;
+using std::copy;
+using std::vector;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 class SwSwitch;
 const uint8_t DHCPv4Packet::kOptionsCookie[] = {99, 130, 83, 99};
 
@@ -52,7 +53,7 @@ void DHCPv4Packet::parse(Cursor* cursor) {
     if (memcmp(cookie, kOptionsCookie, kOptionsCookieSize)) {
       // BOOTP Packet copy bytes back to options
       copy(cookie, cookie + 4, back_inserter(options));
-    }  else {
+    } else {
       // DHCP Packet
       copy(cookie, cookie + kOptionsCookieSize, back_inserter(dhcpCookie));
       CHECK(dhcpCookie.size() == kOptionsCookieSize);
@@ -65,24 +66,24 @@ void DHCPv4Packet::parse(Cursor* cursor) {
       copy(optionsRaw, optionsRaw + optionsLen, back_inserter(options));
     }
   } catch (std::out_of_range& e) {
-    throw FbossError("Too small packet, "
-        "expected minimum ", minSize(), " bytes");
+    throw FbossError(
+        "Too small packet, "
+        "expected minimum ",
+        minSize(),
+        " bytes");
   }
 }
 
 bool DHCPv4Packet::operator==(const DHCPv4Packet& r) const {
-  return op == r.op && htype == r.htype &&
-    hlen == r.hlen && hops == r.hops &&
-    xid == r.xid && secs == r.secs &&
-    flags == r.flags && ciaddr == r.ciaddr &&
-    yiaddr == r.yiaddr && siaddr == r.siaddr &&
-    giaddr == r.giaddr && chaddr == r.chaddr &&
-    sname == r.sname && file == r.file &&
-    dhcpCookie == r.dhcpCookie && options == r.options;
+  return op == r.op && htype == r.htype && hlen == r.hlen && hops == r.hops &&
+      xid == r.xid && secs == r.secs && flags == r.flags &&
+      ciaddr == r.ciaddr && yiaddr == r.yiaddr && siaddr == r.siaddr &&
+      giaddr == r.giaddr && chaddr == r.chaddr && sname == r.sname &&
+      file == r.file && dhcpCookie == r.dhcpCookie && options == r.options;
 }
 
-size_t DHCPv4Packet::appendOption(uint8_t op, uint8_t len,
-    const uint8_t* bytes) {
+size_t
+DHCPv4Packet::appendOption(uint8_t op, uint8_t len, const uint8_t* bytes) {
   XLOG(DBG4) << "Appending option: " << (int)op << " of length: " << (int)len;
 
   if (isOptionWithoutLength(op)) {
@@ -109,16 +110,20 @@ void DHCPv4Packet::padToMinLength() {
   }
 }
 
-bool DHCPv4Packet::getOptionSlow(uint8_t op, const Options& options,
+bool DHCPv4Packet::getOptionSlow(
+    uint8_t op,
+    const Options& options,
     vector<uint8_t>& optionData) {
   auto optIndex = 0;
   while (optIndex < options.size()) {
     uint8_t curOp = options[optIndex];
-    uint8_t opDataLen = isOptionWithoutLength(curOp) ? 0 :
-      options[optIndex + 1];
+    uint8_t opDataLen =
+        isOptionWithoutLength(curOp) ? 0 : options[optIndex + 1];
     if (op == curOp) {
       if (opDataLen) {
-        copy(&options[optIndex + 2], &options[optIndex + 2 + opDataLen],
+        copy(
+            &options[optIndex + 2],
+            &options[optIndex + 2 + opDataLen],
             std::back_inserter(optionData));
       }
       return true;
@@ -128,4 +133,5 @@ bool DHCPv4Packet::getOptionSlow(uint8_t op, const Options& options,
   return false;
 }
 
-}}
+} // namespace fboss
+} // namespace facebook

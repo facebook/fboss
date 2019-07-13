@@ -49,8 +49,15 @@ TEST(IPv6HdrTest, copy_constructor) {
   uint8_t hopLimit = 1;
   IPAddressV6 srcAddr("2620:0:1cfe:face:b00c::3");
   IPAddressV6 dstAddr("2620:0:1cfe:face:b00c::4");
-  IPv6Hdr lhs(version, trafficClass, flowLabel, payloadLength, nextHeader,
-      hopLimit, srcAddr, dstAddr);
+  IPv6Hdr lhs(
+      version,
+      trafficClass,
+      flowLabel,
+      payloadLength,
+      nextHeader,
+      hopLimit,
+      srcAddr,
+      dstAddr);
   IPv6Hdr rhs(lhs);
   EXPECT_EQ(lhs, rhs);
 }
@@ -64,8 +71,15 @@ TEST(IPv6HdrTest, parameterized_data_constructor) {
   uint8_t hopLimit = 1;
   IPAddressV6 srcAddr("2620:0:1cfe:face:b00c::3");
   IPAddressV6 dstAddr("2620:0:1cfe:face:b00c::4");
-  IPv6Hdr ipv6Hdr(version, trafficClass, flowLabel, payloadLength, nextHeader,
-      hopLimit, srcAddr, dstAddr);
+  IPv6Hdr ipv6Hdr(
+      version,
+      trafficClass,
+      flowLabel,
+      payloadLength,
+      nextHeader,
+      hopLimit,
+      srcAddr,
+      dstAddr);
   EXPECT_EQ(version, ipv6Hdr.version);
   EXPECT_EQ(trafficClass, ipv6Hdr.trafficClass);
   EXPECT_EQ(flowLabel, ipv6Hdr.flowLabel);
@@ -86,20 +100,19 @@ TEST(IPv6HdrTest, cursor_data_constructor) {
   IPAddressV6 srcAddr("2620:0:1cfe:face:b00c::3");
   IPAddressV6 dstAddr("2620:0:1cfe:face:b00c::4");
   auto pkt = MockRxPacket::fromHex(
-    // IPv6 Header
-    "6"      // VERSION: 6
-    "ff"     // Traffic Class
-    "fffff"  // Flow Label
-    "00 00"  // Payload Length
-    "3B"     // Next Header: No Next Header
-    "01"     // Hop Limit: 1
-    // IPv6 Source Address
-    "26 20 00 00 1c fe fa ce"
-    "b0 0c 00 00 00 00 00 03"
-    // IPv6 Destination Address
-    "26 20 00 00 1c fe fa ce"
-    "b0 0c 00 00 00 00 00 04"
-  );
+      // IPv6 Header
+      "6" // VERSION: 6
+      "ff" // Traffic Class
+      "fffff" // Flow Label
+      "00 00" // Payload Length
+      "3B" // Next Header: No Next Header
+      "01" // Hop Limit: 1
+      // IPv6 Source Address
+      "26 20 00 00 1c fe fa ce"
+      "b0 0c 00 00 00 00 00 03"
+      // IPv6 Destination Address
+      "26 20 00 00 1c fe fa ce"
+      "b0 0c 00 00 00 00 00 04");
   Cursor cursor(pkt->buf());
   IPv6Hdr ipv6Hdr(cursor);
   EXPECT_EQ(version, ipv6Hdr.version);
@@ -115,20 +128,19 @@ TEST(IPv6HdrTest, cursor_data_constructor) {
 TEST(IPv6HdrTest, parseBroadcast) {
   // Test a broadcast packet from a node with no IP to all nodes
   auto pkt = MockRxPacket::fromHex(
-    // IPv6 Header
-    "6"      // VERSION: 6
-    "00"     // Traffic Class
-    "00000"  // Flow Label
-    "00 00"  // Payload Length
-    "3B"     // Next Header: No Next Header
-    "ff"     // Hop Limit
-    // IPv6 Source Address
-    "00 00 00 00 00 00 00 00"
-    "00 00 00 00 00 00 00 00"
-    // IPv6 Destination Address
-    "ff 02 00 00 00 00 00 00"
-    "00 00 00 00 00 00 00 01"
-  );
+      // IPv6 Header
+      "6" // VERSION: 6
+      "00" // Traffic Class
+      "00000" // Flow Label
+      "00 00" // Payload Length
+      "3B" // Next Header: No Next Header
+      "ff" // Hop Limit
+      // IPv6 Source Address
+      "00 00 00 00 00 00 00 00"
+      "00 00 00 00 00 00 00 00"
+      // IPv6 Destination Address
+      "ff 02 00 00 00 00 00 00"
+      "00 00 00 00 00 00 00 01");
   Cursor cursor(pkt->buf());
   IPv6Hdr hdr(cursor);
   EXPECT_EQ(IPV6_VERSION, hdr.version);
@@ -144,62 +156,60 @@ TEST(IPv6HdrTest, parseBroadcast) {
 
 TEST(IPv6HdrTest, cursor_data_constructor_too_small) {
   auto pkt = MockRxPacket::fromHex(
-    // IPv6 Header
-    "6"      // VERSION: 6
-    "00"     // Traffic Class
-    "00000"  // Flow Label
-    "00 00"  // Payload Length
-    "3B"     // Next Header: No Next Header
-    "01"     // Hop Limit: 1
-    // IPv6 Source Address
-    "26 20 00 00 1c fe fa ce"
-    "b0 0c 00 00 00 00 00 03"
-    // IPv6 Destination Address
-    "26 20 00 00 1c fe fa ce"
-    "b0 0c 00 00 00 00 00   "  // OOPS! One octet too small!
+      // IPv6 Header
+      "6" // VERSION: 6
+      "00" // Traffic Class
+      "00000" // Flow Label
+      "00 00" // Payload Length
+      "3B" // Next Header: No Next Header
+      "01" // Hop Limit: 1
+      // IPv6 Source Address
+      "26 20 00 00 1c fe fa ce"
+      "b0 0c 00 00 00 00 00 03"
+      // IPv6 Destination Address
+      "26 20 00 00 1c fe fa ce"
+      "b0 0c 00 00 00 00 00   " // OOPS! One octet too small!
   );
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({IPv6Hdr ipv6Hdr(cursor);}, HdrParseError);
+  EXPECT_THROW({ IPv6Hdr ipv6Hdr(cursor); }, HdrParseError);
 }
 
 TEST(IPv6HdrTest, cursor_data_constructor_bad_version) {
   auto pkt = MockRxPacket::fromHex(
-    // IPv6 Header
-    "4"      // VERSION: 4
-    "00"     // Traffic Class
-    "00000"  // Flow Label
-    "00 00"  // Payload Length
-    "3B"     // Next Header: No Next Header
-    "01"     // Hop Limit: 1
-    // IPv6 Source Address
-    "26 20 00 00 1c fe fa ce"
-    "b0 0c 00 00 00 00 00 03"
-    // IPv6 Destination Address
-    "26 20 00 00 1c fe fa ce"
-    "b0 0c 00 00 00 00 00 04"
-  );
+      // IPv6 Header
+      "4" // VERSION: 4
+      "00" // Traffic Class
+      "00000" // Flow Label
+      "00 00" // Payload Length
+      "3B" // Next Header: No Next Header
+      "01" // Hop Limit: 1
+      // IPv6 Source Address
+      "26 20 00 00 1c fe fa ce"
+      "b0 0c 00 00 00 00 00 03"
+      // IPv6 Destination Address
+      "26 20 00 00 1c fe fa ce"
+      "b0 0c 00 00 00 00 00 04");
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({IPv6Hdr ipv6Hdr(cursor);}, HdrParseError);
+  EXPECT_THROW({ IPv6Hdr ipv6Hdr(cursor); }, HdrParseError);
 }
 
 TEST(IPv6HdrTest, cursor_data_constructor_zero_hop_limit) {
   auto pkt = MockRxPacket::fromHex(
-    // IPv6 Header
-    "6"      // VERSION: 6
-    "00"     // Traffic Class
-    "00000"  // Flow Label
-    "00 00"  // Payload Length
-    "3B"     // Next Header: No Next Header
-    "00"     // Hop Limit: 0
-    // IPv6 Source Address
-    "26 20 00 00 1c fe fa ce"
-    "b0 0c 00 00 00 00 00 03"
-    // IPv6 Destination Address
-    "26 20 00 00 1c fe fa ce"
-    "b0 0c 00 00 00 00 00 04"
-  );
+      // IPv6 Header
+      "6" // VERSION: 6
+      "00" // Traffic Class
+      "00000" // Flow Label
+      "00 00" // Payload Length
+      "3B" // Next Header: No Next Header
+      "00" // Hop Limit: 0
+      // IPv6 Source Address
+      "26 20 00 00 1c fe fa ce"
+      "b0 0c 00 00 00 00 00 03"
+      // IPv6 Destination Address
+      "26 20 00 00 1c fe fa ce"
+      "b0 0c 00 00 00 00 00 04");
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({IPv6Hdr ipv6Hdr(cursor);}, HdrParseError);
+  EXPECT_THROW({ IPv6Hdr ipv6Hdr(cursor); }, HdrParseError);
 }
 
 TEST(IPv6HdrTest, assignment_operator) {
@@ -211,8 +221,15 @@ TEST(IPv6HdrTest, assignment_operator) {
   uint8_t hopLimit = 1;
   IPAddressV6 srcAddr("2620:0:1cfe:face:b00c::3");
   IPAddressV6 dstAddr("2620:0:1cfe:face:b00c::4");
-  IPv6Hdr lhs(version, trafficClass, flowLabel, payloadLength, nextHeader,
-      hopLimit, srcAddr, dstAddr);
+  IPv6Hdr lhs(
+      version,
+      trafficClass,
+      flowLabel,
+      payloadLength,
+      nextHeader,
+      hopLimit,
+      srcAddr,
+      dstAddr);
   IPv6Hdr rhs = lhs;
   EXPECT_EQ(lhs, rhs);
 }
@@ -226,10 +243,24 @@ TEST(IPv6HdrTest, equality_operator) {
   uint8_t hopLimit = 1;
   IPAddressV6 srcAddr("2620:0:1cfe:face:b00c::3");
   IPAddressV6 dstAddr("2620:0:1cfe:face:b00c::4");
-  IPv6Hdr lhs(version, trafficClass, flowLabel, payloadLength, nextHeader,
-      hopLimit, srcAddr, dstAddr);
-  IPv6Hdr rhs(version, trafficClass, flowLabel, payloadLength, nextHeader,
-      hopLimit, srcAddr, dstAddr);
+  IPv6Hdr lhs(
+      version,
+      trafficClass,
+      flowLabel,
+      payloadLength,
+      nextHeader,
+      hopLimit,
+      srcAddr,
+      dstAddr);
+  IPv6Hdr rhs(
+      version,
+      trafficClass,
+      flowLabel,
+      payloadLength,
+      nextHeader,
+      hopLimit,
+      srcAddr,
+      dstAddr);
   EXPECT_EQ(lhs, rhs);
 }
 
@@ -243,9 +274,23 @@ TEST(IPv6HdrTest, inequality_operator) {
   IPAddressV6 srcAddr("2620:0:1cfe:face:b00c::3");
   IPAddressV6 dstAddr1("2620:0:1cfe:face:b00c::4");
   IPAddressV6 dstAddr2("2620:0:1cfe:face:b00c::5");
-  IPv6Hdr lhs(version, trafficClass, flowLabel, payloadLength, nextHeader,
-      hopLimit, srcAddr, dstAddr1);
-  IPv6Hdr rhs(version, trafficClass, flowLabel, payloadLength, nextHeader,
-      hopLimit, srcAddr, dstAddr2);
+  IPv6Hdr lhs(
+      version,
+      trafficClass,
+      flowLabel,
+      payloadLength,
+      nextHeader,
+      hopLimit,
+      srcAddr,
+      dstAddr1);
+  IPv6Hdr rhs(
+      version,
+      trafficClass,
+      flowLabel,
+      payloadLength,
+      nextHeader,
+      hopLimit,
+      srcAddr,
+      dstAddr2);
   EXPECT_NE(lhs, rhs);
 }

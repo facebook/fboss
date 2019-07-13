@@ -161,11 +161,11 @@ TEST(ResourceLibUtilTest, GenerateNv6Prefix) {
   std::vector<RoutePrefixT> generatedPrefixes = generator.getNextN(5);
 
   std::array<RoutePrefixT, 5> prefixes = {
-    RoutePrefixT{IpT("0:0:0:1::"), 64},
-    RoutePrefixT{IpT("0:0:0:2::"), 64},
-    RoutePrefixT{IpT("0:0:0:3::"), 64},
-    RoutePrefixT{IpT("0:0:0:4::"), 64},
-    RoutePrefixT{IpT("0:0:0:5::"), 64},
+      RoutePrefixT{IpT("0:0:0:1::"), 64},
+      RoutePrefixT{IpT("0:0:0:2::"), 64},
+      RoutePrefixT{IpT("0:0:0:3::"), 64},
+      RoutePrefixT{IpT("0:0:0:4::"), 64},
+      RoutePrefixT{IpT("0:0:0:5::"), 64},
   };
 
   for (int i = 0; i < 5; i++) {
@@ -180,12 +180,12 @@ TEST(ResourceLibUtilTest, GenerateResetGenerateV6) {
   auto generator = utility::PrefixGenerator<IpT, 64>();
   generator.getNextN(5);
 
-  EXPECT_EQ(generator.getCursorPosition(), utility::IdV6(0,5));
-  generator.startOver(utility::IdV6(0,1));
-  EXPECT_EQ(generator.getCursorPosition(), utility::IdV6(0,1));
+  EXPECT_EQ(generator.getCursorPosition(), utility::IdV6(0, 5));
+  generator.startOver(utility::IdV6(0, 1));
+  EXPECT_EQ(generator.getCursorPosition(), utility::IdV6(0, 1));
   auto expectedPrefix = RoutePrefixT{IpT("0:0:0:2::"), 64};
   EXPECT_EQ(generator.getNext(), expectedPrefix);
-  EXPECT_EQ(generator.getCursorPosition(), utility::IdV6(0,2));
+  EXPECT_EQ(generator.getCursorPosition(), utility::IdV6(0, 2));
 }
 
 TEST(ResourceLibUtilTest, RouteV4Generator) {

@@ -15,10 +15,11 @@ namespace {
 std::atomic<uint64_t> nextNodeID;
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 NodeBase::NodeBase()
-  : nodeID_(nextNodeID.fetch_add(1, std::memory_order_relaxed)) {
-}
+    : nodeID_(nextNodeID.fetch_add(1, std::memory_order_relaxed)) {}
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

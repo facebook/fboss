@@ -15,7 +15,8 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * VlanMapDelta is a small wrapper on top of NodeMapDelta<VlanMap>.
@@ -31,12 +32,14 @@ class VlanDelta : public DeltaValue<Vlan> {
   using DeltaValue<Vlan>::DeltaValue;
 
   ArpTableDelta getArpDelta() const {
-    return ArpTableDelta(getOld() ? getOld()->getArpTable().get() : nullptr,
-                         getNew() ? getNew()->getArpTable().get() : nullptr);
+    return ArpTableDelta(
+        getOld() ? getOld()->getArpTable().get() : nullptr,
+        getNew() ? getNew()->getArpTable().get() : nullptr);
   }
   NdpTableDelta getNdpDelta() const {
-    return NdpTableDelta(getOld() ? getOld()->getNdpTable().get() : nullptr,
-                         getNew() ? getNew()->getNdpTable().get() : nullptr);
+    return NdpTableDelta(
+        getOld() ? getOld()->getNdpTable().get() : nullptr,
+        getNew() ? getNew()->getNdpTable().get() : nullptr);
   }
   template <typename NTableT>
   NodeMapDelta<NTableT> getNeighborDelta() const;
@@ -54,4 +57,5 @@ inline NodeMapDelta<NdpTable> VlanDelta::getNeighborDelta() const {
   return getNdpDelta();
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -12,24 +12,23 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
-#include "fboss/agent/state/NodeMap-defs.h"
-#include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/ArpResponseTable.h"
-#include "fboss/agent/state/NdpTable.h"
+#include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/NdpResponseTable.h"
+#include "fboss/agent/state/NdpTable.h"
+#include "fboss/agent/state/NodeMap-defs.h"
 
 #include <boost/container/flat_map.hpp>
 
 using std::shared_ptr;
 using std::string;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-VlanMap::VlanMap() {
-}
+VlanMap::VlanMap() {}
 
-VlanMap::~VlanMap() {
-}
+VlanMap::~VlanMap() {}
 
 VlanMap* VlanMap::modify(std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {
@@ -45,19 +44,19 @@ VlanMap* VlanMap::modify(std::shared_ptr<SwitchState>* state) {
 }
 
 const shared_ptr<Vlan>& VlanMap::getVlanSlow(const string& name) const {
-  for (const auto& vlan: *this) {
-      if (vlan->getName() == name) {
-        return vlan;
-      }
+  for (const auto& vlan : *this) {
+    if (vlan->getName() == name) {
+      return vlan;
+    }
   }
   throw FbossError("Cannot find Vlan : ", name);
 }
 
 shared_ptr<Vlan> VlanMap::getVlanSlowIf(const string& name) const {
-  for (const auto& vlan: *this) {
-      if (vlan->getName() == name) {
-        return vlan;
-      }
+  for (const auto& vlan : *this) {
+    if (vlan->getName() == name) {
+      return vlan;
+    }
   }
   return nullptr;
 }
@@ -72,4 +71,5 @@ void VlanMap::updateVlan(const std::shared_ptr<Vlan>& vlan) {
 
 FBOSS_INSTANTIATE_NODE_MAP(VlanMap, VlanMapTraits);
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

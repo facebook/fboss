@@ -16,12 +16,12 @@ using namespace facebook::fboss::utility;
 
 namespace {
 
-cfg::PortSpeed maxPortSpeed(const HwSwitch *hwSwitch, PortID port) {
+cfg::PortSpeed maxPortSpeed(const HwSwitch* hwSwitch, PortID port) {
   return hwSwitch->getPortMaxSpeed(port);
 }
 
 cfg::SwitchConfig genPortVlanCfg(
-    const HwSwitch *hwSwitch,
+    const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
     const std::map<PortID, VlanID>& port2vlan,
     const std::vector<VlanID>& vlans,
@@ -88,7 +88,7 @@ folly::MacAddress kLocalCpuMac() {
   return kLocalMac;
 }
 
-cfg::SwitchConfig onePortConfig(const HwSwitch *hwSwitch, PortID port) {
+cfg::SwitchConfig onePortConfig(const HwSwitch* hwSwitch, PortID port) {
   std::map<PortID, VlanID> port2vlan;
   std::vector<PortID> ports;
   port2vlan[port] = VlanID(kDefaultVlanId);
@@ -97,13 +97,15 @@ cfg::SwitchConfig onePortConfig(const HwSwitch *hwSwitch, PortID port) {
 }
 
 cfg::SwitchConfig oneL3IntfConfig(
-  const HwSwitch *hwSwitch, PortID port, cfg::PortLoopbackMode lbMode) {
+    const HwSwitch* hwSwitch,
+    PortID port,
+    cfg::PortLoopbackMode lbMode) {
   std::vector<PortID> ports{port};
   return oneL3IntfNPortConfig(hwSwitch, ports, lbMode);
 }
 
 cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
-    const HwSwitch *hwSwitch,
+    const HwSwitch* hwSwitch,
     PortID port,
     cfg::PortLoopbackMode lbMode) {
   std::vector<PortID> ports{port};
@@ -112,7 +114,7 @@ cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
 }
 
 cfg::SwitchConfig oneL3IntfTwoPortConfig(
-    const HwSwitch *hwSwitch,
+    const HwSwitch* hwSwitch,
     PortID port1,
     PortID port2,
     cfg::PortLoopbackMode lbMode) {
@@ -121,7 +123,7 @@ cfg::SwitchConfig oneL3IntfTwoPortConfig(
 }
 
 cfg::SwitchConfig oneL3IntfNPortConfig(
-    const HwSwitch *hwSwitch,
+    const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
     cfg::PortLoopbackMode lbMode,
     bool interfaceHasSubnet) {
@@ -149,7 +151,7 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
 }
 
 cfg::SwitchConfig onePortPerVlanConfig(
-    const HwSwitch *hwSwitch,
+    const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
     cfg::PortLoopbackMode lbMode,
     bool interfaceHasSubnet) {
@@ -183,8 +185,8 @@ cfg::SwitchConfig onePortPerVlanConfig(
   return config;
 }
 
-cfg::SwitchConfig twoL3IntfConfig(
-  const HwSwitch *hwSwitch, PortID port1, PortID port2) {
+cfg::SwitchConfig
+twoL3IntfConfig(const HwSwitch* hwSwitch, PortID port1, PortID port2) {
   std::map<PortID, VlanID> port2vlan;
   std::vector<PortID> ports;
   port2vlan[port1] = VlanID(kBaseVlanId);
@@ -217,7 +219,7 @@ cfg::SwitchConfig twoL3IntfConfig(
 }
 
 cfg::SwitchConfig multiplePortSingleVlanConfig(
-    const HwSwitch *hwSwitch,
+    const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports) {
   std::map<PortID, VlanID> port2vlan;
   auto portItr = ports.begin();

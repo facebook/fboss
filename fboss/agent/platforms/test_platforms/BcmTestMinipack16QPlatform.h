@@ -11,18 +11,20 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestWedgeTomahawk3Platform.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 class BcmTestMinipack16QPlatform : public BcmTestWedgeTomahawk3Platform {
-public:
+ public:
   BcmTestMinipack16QPlatform();
   ~BcmTestMinipack16QPlatform() override {}
 
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestMinipack16QPlatform(BcmTestMinipack16QPlatform const&) = delete;
-  BcmTestMinipack16QPlatform& operator=(
-    BcmTestMinipack16QPlatform const&) = delete;
+  BcmTestMinipack16QPlatform& operator=(BcmTestMinipack16QPlatform const&) =
+      delete;
 
   std::unique_ptr<BcmTestPort> createTestPort(PortID id) const override;
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

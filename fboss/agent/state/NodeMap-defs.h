@@ -12,16 +12,17 @@
 #include <vector>
 #include "fboss/agent/FbossError.h"
 
-#include "fboss/agent/state/NodeBase-defs.h"
 #include <folly/dynamic.h>
 #include <folly/json.h>
+#include "fboss/agent/state/NodeBase-defs.h"
 
 #define FBOSS_INSTANTIATE_NODE_MAP(MapType, TraitsType) \
-  template class \
-    ::facebook::fboss::NodeBaseT<MapType, NodeMapFields<TraitsType>>; \
+  template class ::facebook::fboss::                    \
+      NodeBaseT<MapType, NodeMapFields<TraitsType>>;    \
   template class ::facebook::fboss::NodeMapT<MapType, TraitsType>;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 template <typename MapTypeT, typename TraitsT>
 constexpr char NodeMapT<MapTypeT, TraitsT>::kExtraFields[];
@@ -41,8 +42,8 @@ NodeMapT<MapTypeT, TraitsT>::getNode(KeyType key) const {
 }
 
 template <typename MapTypeT, typename TraitsT>
-std::shared_ptr<typename TraitsT::Node>
-NodeMapT<MapTypeT, TraitsT>::getNodeIf(KeyType key) const {
+std::shared_ptr<typename TraitsT::Node> NodeMapT<MapTypeT, TraitsT>::getNodeIf(
+    KeyType key) const {
   const auto& nodes = getAllNodes();
   auto iter = nodes.find(key);
   if (iter == nodes.end()) {
@@ -61,8 +62,8 @@ void NodeMapT<MapTypeT, TraitsT>::addNode(const std::shared_ptr<Node>& node) {
 }
 
 template <typename MapTypeT, typename TraitsT>
-void
-NodeMapT<MapTypeT, TraitsT>::updateNode(const std::shared_ptr<Node>& node) {
+void NodeMapT<MapTypeT, TraitsT>::updateNode(
+    const std::shared_ptr<Node>& node) {
   auto& nodes = writableNodes();
   auto it = nodes.find(TraitsT::getKey(node));
   if (it == nodes.end()) {
@@ -83,8 +84,8 @@ void NodeMapT<MapTypeT, TraitsT>::removeNode(
 }
 
 template <typename MapTypeT, typename TraitsT>
-std::shared_ptr<typename TraitsT::Node>
-NodeMapT<MapTypeT, TraitsT>::removeNode(const KeyType& key) {
+std::shared_ptr<typename TraitsT::Node> NodeMapT<MapTypeT, TraitsT>::removeNode(
+    const KeyType& key) {
   auto node = removeNodeIf(key);
   if (!node) {
     throw FbossError("node ID ", key, " does not exist");
@@ -108,7 +109,7 @@ NodeMapT<MapTypeT, TraitsT>::removeNodeIf(const KeyType& key) {
 template <typename MapTypeT, typename TraitsT>
 folly::dynamic NodeMapT<MapTypeT, TraitsT>::toFollyDynamic() const {
   folly::dynamic nodesJson = folly::dynamic::array;
-  for (const auto& node: *this) {
+  for (const auto& node : *this) {
     nodesJson.push_back(node->toFollyDynamic());
   }
   folly::dynamic json = folly::dynamic::object;
@@ -118,16 +119,17 @@ folly::dynamic NodeMapT<MapTypeT, TraitsT>::toFollyDynamic() const {
 }
 
 template <typename MapTypeT, typename TraitsT>
-std::shared_ptr<MapTypeT>
-NodeMapT<MapTypeT, TraitsT>::fromFollyDynamic(const folly::dynamic& nodesJson) {
+std::shared_ptr<MapTypeT> NodeMapT<MapTypeT, TraitsT>::fromFollyDynamic(
+    const folly::dynamic& nodesJson) {
   auto nodeMap = std::make_shared<MapTypeT>();
   auto entries = nodesJson[kEntries];
-  for (const auto& entry: entries) {
+  for (const auto& entry : entries) {
     nodeMap->addNode(Node::fromFollyDynamic(entry));
   }
   nodeMap->writableExtraFields() =
-    ExtraFields::fromFollyDynamic(nodesJson[kExtraFields]);
+      ExtraFields::fromFollyDynamic(nodesJson[kExtraFields]);
   return nodeMap;
 }
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

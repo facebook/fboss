@@ -14,7 +14,8 @@
 #include <folly/Range.h>
 #include <memory>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmSwitch;
 class Wedge100Port;
@@ -22,16 +23,16 @@ class PlatformProductInfo;
 
 class Wedge100Platform : public WedgeTomahawkPlatform {
  public:
-  explicit Wedge100Platform(std::unique_ptr<PlatformProductInfo> productInfo) :
-      WedgeTomahawkPlatform(std::move(productInfo)) {}
+  explicit Wedge100Platform(std::unique_ptr<PlatformProductInfo> productInfo)
+      : WedgeTomahawkPlatform(std::move(productInfo)) {}
 
   std::unique_ptr<WedgePortMapping> createPortMapping() override;
   void onHwInitialized(SwSwitch* sw) override;
   void onUnitAttach(int unit) override;
 
  private:
-  Wedge100Platform(Wedge100Platform const &) = delete;
-  Wedge100Platform& operator=(Wedge100Platform const &) = delete;
+  Wedge100Platform(Wedge100Platform const&) = delete;
+  Wedge100Platform& operator=(Wedge100Platform const&) = delete;
 
   enum : uint8_t {
     ADDR_SYSCPLD = 0x32,
@@ -47,4 +48,5 @@ class Wedge100Platform : public WedgeTomahawkPlatform {
   void setPciPreemphasis(int unit) const;
 };
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

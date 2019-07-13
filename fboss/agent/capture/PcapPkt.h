@@ -9,13 +9,14 @@
  */
 #pragma once
 
+#include <folly/io/IOBuf.h>
 #include <chrono>
 #include <vector>
-#include <folly/io/IOBuf.h>
 #include "fboss/agent/types.h"
 #include "fboss/pcap_distribution_service/if/gen-cpp2/pcap_pubsub_types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class RxPacket;
 class TxPacket;
@@ -79,7 +80,7 @@ class PcapPkt {
   const folly::IOBuf* buf() const {
     return &buf_;
   }
-  std::vector<RxReason> getReasons(){
+  std::vector<RxReason> getReasons() {
     return reasons_;
   }
 
@@ -124,4 +125,5 @@ class PcapPkt {
   std::vector<RxReason> reasons_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

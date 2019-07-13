@@ -9,10 +9,11 @@
  */
 #pragma once
 
-#include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeMap.h"
+#include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwitchState;
 class Port;
@@ -51,11 +52,11 @@ class PortMap : public NodeMapT<PortMap, PortMapTraits> {
 
   PortMap* modify(std::shared_ptr<SwitchState>* state);
 
-
  private:
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;
   friend class CloneAllocator;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

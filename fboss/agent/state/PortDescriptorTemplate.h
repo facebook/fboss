@@ -122,8 +122,7 @@ class PortDescriptorTemplate {
 template <typename PortIdT, typename TrunkIdT>
 inline std::ostream& operator<<(
     std::ostream& out,
-    const PortDescriptorTemplate<PortIdT, TrunkIdT>&
-        pd) {
+    const PortDescriptorTemplate<PortIdT, TrunkIdT>& pd) {
   return out << pd.str();
 }
 

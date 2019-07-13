@@ -11,7 +11,8 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 bool operator==(
     const opennsl_l3_egress_t& lhs,
@@ -44,4 +45,5 @@ opennsl_mpls_label_t getLabel(const opennsl_l3_egress_t& /*egress*/) {
   return 0xffffffff;
 }
 
-}}
+} // namespace fboss
+} // namespace facebook

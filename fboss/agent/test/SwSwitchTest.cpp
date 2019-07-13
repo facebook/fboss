@@ -12,17 +12,17 @@
 
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/Main.h"
-#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PortStats.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
-#include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/test/TestUtils.h"
-#include "fboss/agent/test/HwTestHandle.h"
+#include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/CounterCache.h"
+#include "fboss/agent/test/HwTestHandle.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
@@ -30,17 +30,16 @@
 
 #include <algorithm>
 
-
 using namespace facebook::fboss;
-using std::string;
-using ::testing::_;
-using ::testing::Return;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 using folly::MacAddress;
+using std::string;
+using ::testing::_;
+using ::testing::Return;
 
-class SwSwitchTest: public ::testing::Test {
-public:
+class SwSwitchTest : public ::testing::Test {
+ public:
   void SetUp() override {
     // Setup a default state object
     auto state = testStateA();
@@ -64,38 +63,36 @@ TEST_F(SwSwitchTest, GetPortStats) {
   EXPECT_EQ(sw->stats()->getPortStats()->size(), 0);
   auto portStats = sw->portStats(PortID(5));
   EXPECT_EQ(sw->stats()->getPortStats()->size(), 1);
-  EXPECT_EQ(portStats->getPortName(),
-            sw->getState()->getPort(PortID(5))->getName());
+  EXPECT_EQ(
+      portStats->getPortName(), sw->getState()->getPort(PortID(5))->getName());
 
   // get port5 directly from PortStatsMap
   portStats = sw->portStats(PortID(5));
   EXPECT_EQ(sw->stats()->getPortStats()->size(), 1);
-  EXPECT_EQ(portStats->getPortName(),
-            sw->getState()->getPort(PortID(5))->getName());
+  EXPECT_EQ(
+      portStats->getPortName(), sw->getState()->getPort(PortID(5))->getName());
 
   // get port0
   portStats = sw->portStats(PortID(0));
   EXPECT_EQ(sw->stats()->getPortStats()->size(), 2);
   EXPECT_EQ(portStats->getPortName(), "port0");
 }
-ACTION(ThrowException)
-{
+ACTION(ThrowException) {
   throw std::exception();
 }
 
-TEST_F(SwSwitchTest, UpdateStatsExceptionCounter){
+TEST_F(SwSwitchTest, UpdateStatsExceptionCounter) {
   CounterCache counters(sw);
 
   MockHwSwitch* hw = static_cast<MockHwSwitch*>(sw->getHw());
   EXPECT_CALL(*hw, updateStats(sw->stats()))
-    .Times(1)
-    .WillRepeatedly(ThrowException());
+      .Times(1)
+      .WillRepeatedly(ThrowException());
   sw->updateStats();
 
   counters.update();
   counters.checkDelta(
-    SwitchStats::kCounterPrefix + "update_stats_exceptions.sum.60", 1);
-
+      SwitchStats::kCounterPrefix + "update_stats_exceptions.sum.60", 1);
 }
 
 TEST_F(SwSwitchTest, HwRejectsUpdateThenAccepts) {

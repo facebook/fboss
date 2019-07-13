@@ -14,29 +14,32 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
 
-namespace facebook { namespace fboss { namespace BcmSwitchEventUtils {
+namespace facebook {
+namespace fboss {
+namespace BcmSwitchEventUtils {
 
 // Functor to fix a quirk in pre-c++14 standards
 struct EnumClassHash {
-    template <typename T>
-    std::size_t operator()(T t) const {
-        return static_cast<std::size_t>(t);
-    }
+  template <typename T>
+  std::size_t operator()(T t) const {
+    return static_cast<std::size_t>(t);
+  }
 };
 
 // Map to store all the callbacks
-using PerUnitCallbackMap =
-    std::unordered_map<opennsl_switch_event_t,
-                       std::shared_ptr<BcmSwitchEventCallback>, EnumClassHash>;
+using PerUnitCallbackMap = std::unordered_map<
+    opennsl_switch_event_t,
+    std::shared_ptr<BcmSwitchEventCallback>,
+    EnumClassHash>;
 using CallbackMap = std::unordered_map<int, PerUnitCallbackMap>;
 folly::Synchronized<CallbackMap> callbacks;
 
 // Registers a callback with the BCM library to start callbacks
 void initUnit(const int unit) {
   SYNCHRONIZED(callbacks) {
-    if(callbacks.count(unit) > 0) {
-      auto rv = opennsl_switch_event_unregister(unit, callbackDispatch,
-                                                nullptr);
+    if (callbacks.count(unit) > 0) {
+      auto rv =
+          opennsl_switch_event_unregister(unit, callbackDispatch, nullptr);
       bcmCheckError(rv, "failed to unregister switch event");
     }
 
@@ -50,7 +53,7 @@ void initUnit(const int unit) {
 // Unregisters the callback and destroys existing callbacks
 void resetUnit(const int unit) {
   SYNCHRONIZED(callbacks) {
-    if(callbacks.count(unit) == 0) {
+    if (callbacks.count(unit) == 0) {
       return;
     }
 
@@ -66,9 +69,10 @@ void resetUnit(const int unit) {
 //
 // returns: std::shared_ptr to the old callback object
 //          nullptr if no callback for this event exists
-std::shared_ptr<BcmSwitchEventCallback>
-registerSwitchEventCallback(const int unit, opennsl_switch_event_t eventID,
-                            std::shared_ptr<BcmSwitchEventCallback> callback) {
+std::shared_ptr<BcmSwitchEventCallback> registerSwitchEventCallback(
+    const int unit,
+    opennsl_switch_event_t eventID,
+    std::shared_ptr<BcmSwitchEventCallback> callback) {
   std::shared_ptr<BcmSwitchEventCallback> result;
   SYNCHRONIZED(callbacks) {
     auto unitCallbacks = callbacks.find(unit);
@@ -86,8 +90,9 @@ registerSwitchEventCallback(const int unit, opennsl_switch_event_t eventID,
 
 // unregisters a switch event callback. reverts the handling of this switch
 // event to the default behavior, which is to log and ignore.
-void unregisterSwitchEventCallback(const int unit,
-                                   const opennsl_switch_event_t eventID) {
+void unregisterSwitchEventCallback(
+    const int unit,
+    const opennsl_switch_event_t eventID) {
   SYNCHRONIZED(callbacks) {
     auto unitCallbacks = callbacks.find(unit);
     if (unitCallbacks != callbacks.end()) {
@@ -118,7 +123,7 @@ void callbackDispatch(
   // perform user-specified callback if it exists
   if (callbackObj) {
     callbackObj->callback(unit, eventID, arg1, arg2, arg3);
-  // no callback found -- use default callback
+    // no callback found -- use default callback
   } else {
     defaultCallback(unit, eventID, arg1, arg2, arg3);
   }
@@ -143,12 +148,14 @@ std::string getAlarmName(const opennsl_switch_event_t eventID) {
   }
 }
 
-
 // default switch event behavior -- log warning and return
 // to preserve original system behavior, don't terminate the program
-void defaultCallback(const int unit, const opennsl_switch_event_t eventID,
-                     const uint32_t arg1, const uint32_t arg2,
-                     const uint32_t arg3) {
+void defaultCallback(
+    const int unit,
+    const opennsl_switch_event_t eventID,
+    const uint32_t arg1,
+    const uint32_t arg2,
+    const uint32_t arg3) {
   std::string alarm = getAlarmName(eventID);
   XLOG(ERR) << "BCM Unhandled switch event " << alarm << "(" << eventID
             << ") on hw unit " << unit << " with params: (" << arg1 << ", "
@@ -157,14 +164,16 @@ void defaultCallback(const int unit, const opennsl_switch_event_t eventID,
 
 void exportEventCounters(const opennsl_switch_event_t eventID, bool fatal) {
   if (eventID != OPENNSL_SWITCH_EVENT_PARITY_ERROR) {
-      BcmStats::get()->asicError();
+    BcmStats::get()->asicError();
   } else {
-      if (fatal) {
-          BcmStats::get()->uncorrParityError();
-      } else {
-          BcmStats::get()->corrParityError();
-      }
+    if (fatal) {
+      BcmStats::get()->uncorrParityError();
+    } else {
+      BcmStats::get()->corrParityError();
+    }
   }
 }
 
-}}}
+} // namespace BcmSwitchEventUtils
+} // namespace fboss
+} // namespace facebook

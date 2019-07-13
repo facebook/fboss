@@ -14,14 +14,15 @@
 #include <folly/Optional.h>
 #include <folly/futures/Future.h>
 
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/Port.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class WedgePlatform;
 
@@ -37,12 +38,15 @@ struct FrontPanelResources {
 
 class WedgePort : public BcmPlatformPort {
  protected:
-  WedgePort(PortID id,
-            WedgePlatform* platform,
-            folly::Optional<FrontPanelResources> frontPanel);
+  WedgePort(
+      PortID id,
+      WedgePlatform* platform,
+      folly::Optional<FrontPanelResources> frontPanel);
 
  public:
-  PortID getPortID() const override { return id_; }
+  PortID getPortID() const override {
+    return id_;
+  }
 
   void setBcmPort(BcmPort* port) override;
   BcmPort* getBcmPort() const override {
@@ -54,9 +58,13 @@ class WedgePort : public BcmPlatformPort {
   void preEnable() override;
   void postEnable() override;
   bool isMediaPresent() override;
-  void statusIndication(bool enabled, bool link,
-                        bool ingress, bool egress,
-                        bool discards, bool errors) override;
+  void statusIndication(
+      bool enabled,
+      bool link,
+      bool ingress,
+      bool egress,
+      bool discards,
+      bool errors) override;
   void linkSpeedChanged(const cfg::PortSpeed& speed) override;
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(ExternalState) override;
@@ -124,8 +132,9 @@ class WedgePort : public BcmPlatformPort {
 
   virtual TxOverrides getTxOverrides() const override {
     return TxOverrides();
-    }
+  }
 
-    folly::Future<TransceiverInfo> getTransceiverInfo() const;
-  };
-}} // facebook::fboss
+  folly::Future<TransceiverInfo> getTransceiverInfo() const;
+};
+} // namespace fboss
+} // namespace facebook

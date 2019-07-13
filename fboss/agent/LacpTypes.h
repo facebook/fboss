@@ -36,15 +36,15 @@ class LACPError : public FbossError {
 };
 
 enum LacpState : int {
-  NONE          = 0x00,
-  ACTIVE        = 0x01,
+  NONE = 0x00,
+  ACTIVE = 0x01,
   SHORT_TIMEOUT = 0x02,
-  AGGREGATABLE  = 0x04,
-  IN_SYNC       = 0x08,
-  COLLECTING    = 0x10,
-  DISTRIBUTING  = 0x20,
-  DEFAULTED     = 0x40,
-  EXPIRED       = 0x80
+  AGGREGATABLE = 0x04,
+  IN_SYNC = 0x08,
+  COLLECTING = 0x10,
+  DISTRIBUTING = 0x20,
+  DEFAULTED = 0x40,
+  EXPIRED = 0x80
 };
 
 inline LacpState operator|=(LacpState& lhs, const LacpState rhs) {

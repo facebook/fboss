@@ -145,13 +145,11 @@ bool Mirror::operator==(const Mirror& rhs) const {
       (configHasEgressPort() == rhs.configHasEgressPort() ||
        getEgressPort() == rhs.getEgressPort()) &&
       getDestinationIp() == rhs.getDestinationIp() &&
-      getMirrorTunnel() == rhs.getMirrorTunnel() &&
-      getDscp() == rhs.getDscp();
+      getMirrorTunnel() == rhs.getMirrorTunnel() && getDscp() == rhs.getDscp();
 }
 
 bool Mirror::isResolved() const {
-  return getMirrorTunnel().hasValue() ||
-      !getDestinationIp().hasValue();
+  return getMirrorTunnel().hasValue() || !getDestinationIp().hasValue();
 }
 
 bool Mirror::operator!=(const Mirror& rhs) const {

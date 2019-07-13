@@ -9,11 +9,10 @@
  */
 #include "fboss/agent/platforms/test_platforms/BcmTestPort.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-BcmTestPort::BcmTestPort(PortID id)
-  : id_(id) {
-}
+BcmTestPort::BcmTestPort(PortID id) : id_(id) {}
 
 void BcmTestPort::setBcmPort(BcmPort* port) {
   bcmPort_ = port;
@@ -23,11 +22,9 @@ void BcmTestPort::preDisable(bool /*temporary*/) {}
 
 void BcmTestPort::postDisable(bool /*temporary*/) {}
 
-void BcmTestPort::preEnable() {
-}
+void BcmTestPort::preEnable() {}
 
-void BcmTestPort::postEnable() {
-}
+void BcmTestPort::postEnable() {}
 
 bool BcmTestPort::isMediaPresent() {
   return false;
@@ -35,11 +32,9 @@ bool BcmTestPort::isMediaPresent() {
 
 void BcmTestPort::linkStatusChanged(bool /*up*/, bool /*adminUp*/) {}
 
-void BcmTestPort::linkSpeedChanged(const cfg::PortSpeed& /* unused */) {
-}
+void BcmTestPort::linkSpeedChanged(const cfg::PortSpeed& /* unused */) {}
 
-void BcmTestPort::externalState(
-  BcmPlatformPort::ExternalState /* unused */) {}
+void BcmTestPort::externalState(BcmPlatformPort::ExternalState /* unused */) {}
 
 folly::Future<TransmitterTechnology> BcmTestPort::getTransmitterTech(
     folly::EventBase* /*evb*/) const {
@@ -68,7 +63,7 @@ void BcmTestPort::statusIndication(
     bool /*discards*/,
     bool /*errors*/) {}
 
-void BcmTestPort::prepareForGracefulExit() {
-}
+void BcmTestPort::prepareForGracefulExit() {}
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

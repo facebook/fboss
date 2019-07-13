@@ -13,7 +13,8 @@
 
 #include "fboss/agent/FbossError.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 namespace util {
 NextHop fromThrift(const NextHopThrift& nht) {
@@ -75,9 +76,9 @@ NextHop nextHopFromFollyDynamic(const folly::dynamic& nhopJson) {
     return UnresolvedNextHop(std::move(address), weight, action);
   }
 }
-}
+} // namespace util
 
-void toAppend(const NextHop& nhop, std::string *result) {
+void toAppend(const NextHop& nhop, std::string* result) {
   folly::toAppend(nhop.str(), result);
 }
 

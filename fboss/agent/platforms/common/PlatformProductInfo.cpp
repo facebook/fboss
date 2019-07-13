@@ -40,24 +40,26 @@ constexpr auto kExtMacBase = "Extended MAC Base";
 constexpr auto kLocalMac = "Local MAC";
 constexpr auto kVersion = "Version";
 constexpr auto kFabricLocation = "Location on Fabric";
-}
+} // namespace
 
-DEFINE_string(mode, "",
-              "The mode the FBOSS controller is running as, wedge, lc, or fc");
-DEFINE_string(fruid_filepath,
-              "/var/facebook/fboss/fruid.json",
-              "File for storing the fruid data");
+DEFINE_string(
+    mode,
+    "",
+    "The mode the FBOSS controller is running as, wedge, lc, or fc");
+DEFINE_string(
+    fruid_filepath,
+    "/var/facebook/fboss/fruid.json",
+    "File for storing the fruid data");
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-using folly::MacAddress;
-using folly::StringPiece;
 using folly::dynamic;
+using folly::MacAddress;
 using folly::parseJson;
+using folly::StringPiece;
 
-PlatformProductInfo::PlatformProductInfo(StringPiece path)
-  : path_(path) {
-}
+PlatformProductInfo::PlatformProductInfo(StringPiece path) : path_(path) {}
 
 void PlatformProductInfo::initialize() {
   try {
@@ -156,25 +158,25 @@ void PlatformProductInfo::parse(std::string data) {
   productInfo_.serial = folly::to<std::string>(info[kSerialNum].asString());
   productInfo_.mfgDate = folly::to<std::string>(info[kSysMfgDate].asString());
   productInfo_.systemPartNumber =
-                      folly::to<std::string>(info[kSysAmbPartNum].asString());
+      folly::to<std::string>(info[kSysAmbPartNum].asString());
   productInfo_.assembledAt = folly::to<std::string>(info[kAmbAt].asString());
   productInfo_.pcbManufacturer =
-                              folly::to<std::string>(info[kPcbMfg].asString());
+      folly::to<std::string>(info[kPcbMfg].asString());
   productInfo_.assetTag =
-                        folly::to<std::string>(info[kProdAssetTag].asString());
+      folly::to<std::string>(info[kProdAssetTag].asString());
   productInfo_.partNumber =
-                          folly::to<std::string>(info[kProdPartNum].asString());
-  productInfo_.odmPcbaPartNumber = folly::to<std::string>
-                                    (info[kOdmPcbaPartNum].asString());
-  productInfo_.odmPcbaSerial = folly::to<std::string>
-                                  (info[kOdmPcbaSerialNum].asString());
-  productInfo_.fbPcbaPartNumber = folly::to<std::string>
-                                    (info[kFbPcbaPartNum].asString());
-  productInfo_.fbPcbPartNumber = folly::to<std::string>
-                                    (info[kFbPcbPartNum].asString());
+      folly::to<std::string>(info[kProdPartNum].asString());
+  productInfo_.odmPcbaPartNumber =
+      folly::to<std::string>(info[kOdmPcbaPartNum].asString());
+  productInfo_.odmPcbaSerial =
+      folly::to<std::string>(info[kOdmPcbaSerialNum].asString());
+  productInfo_.fbPcbaPartNumber =
+      folly::to<std::string>(info[kFbPcbaPartNum].asString());
+  productInfo_.fbPcbPartNumber =
+      folly::to<std::string>(info[kFbPcbPartNum].asString());
 
-  productInfo_.fabricLocation = folly::to<std::string>
-                                    (info[kFabricLocation].asString());
+  productInfo_.fabricLocation =
+      folly::to<std::string>(info[kFabricLocation].asString());
   // FB only - we apply custom logic to construct unique SN for
   // cases where we create multiple assets for a single physical
   // card in chassis.
@@ -190,4 +192,5 @@ void PlatformProductInfo::parse(std::string data) {
   productInfo_.macRangeSize = info[kExtMacSize].asInt() - 1;
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

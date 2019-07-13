@@ -13,11 +13,13 @@
 
 using folly::ByteRange;
 using folly::IOBuf;
-using std::make_unique;
 using folly::StringPiece;
+using std::make_unique;
 using std::unique_ptr;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 SimHandler::SimHandler(SwSwitch* sw, SimSwitch* /*hw*/) : ThriftHandler(sw) {}
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

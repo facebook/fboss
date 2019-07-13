@@ -13,24 +13,26 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/capture/PcapPkt.h"
 
-DEFINE_int32(fboss_pcap_queue_depth, 10240,
-             "When taking packet captures, the maximum number of packets "
-             "to buffer in memory while waiting them to be written to the "
-             "capture file");
+DEFINE_int32(
+    fboss_pcap_queue_depth,
+    10240,
+    "When taking packet captures, the maximum number of packets "
+    "to buffer in memory while waiting them to be written to the "
+    "capture file");
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 PcapQueue::PcapQueue(uint32_t pktCapacity, uint64_t bytesCapacity)
-  : pktCapacity_(pktCapacity == 0 ?
-                 FLAGS_fboss_pcap_queue_depth : pktCapacity),
-    bytesCapacity_(bytesCapacity) {
+    : pktCapacity_(
+          pktCapacity == 0 ? FLAGS_fboss_pcap_queue_depth : pktCapacity),
+      bytesCapacity_(bytesCapacity) {
   queue_.reserve(pktCapacity_);
 }
 
-PcapQueue::~PcapQueue() {
-}
+PcapQueue::~PcapQueue() {}
 
-template<typename PktType>
+template <typename PktType>
 void PcapQueue::addPktInternal(const PktType* pkt) {
   // Check to see if this would exceed the queue capacity.
   if (queue_.size() >= pktCapacity_) {
@@ -115,4 +117,5 @@ bool PcapQueue::wait(std::vector<PcapPkt>* swapQueue) {
   return true;
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

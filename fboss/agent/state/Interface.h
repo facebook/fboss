@@ -9,17 +9,18 @@
  */
 #pragma once
 
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/types.h"
-#include "fboss/agent/state/NodeBase.h"
-#include <folly/MacAddress.h>
 #include <folly/IPAddress.h>
-#include <folly/dynamic.h>
+#include <folly/MacAddress.h>
 #include <folly/Range.h>
+#include <folly/dynamic.h>
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwitchState;
 
@@ -84,17 +85,23 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
       int mtu,
       bool isVirtual,
       bool isStateSyncDisabled)
-      : NodeBaseT(id, router, vlan, name, mac, mtu, isVirtual,
-                  isStateSyncDisabled) {}
+      : NodeBaseT(
+            id,
+            router,
+            vlan,
+            name,
+            mac,
+            mtu,
+            isVirtual,
+            isStateSyncDisabled) {}
 
-  static std::shared_ptr<Interface>
-  fromFollyDynamic(const folly::dynamic& json) {
+  static std::shared_ptr<Interface> fromFollyDynamic(
+      const folly::dynamic& json) {
     const auto& fields = InterfaceFields::fromFollyDynamic(json);
     return std::make_shared<Interface>(fields);
   }
 
-  static std::shared_ptr<Interface>
-  fromJson(const folly::fbstring& jsonStr) {
+  static std::shared_ptr<Interface> fromJson(const folly::fbstring& jsonStr) {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
@@ -191,9 +198,10 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
    * This a generic helper function.  The Interface class simply seemed like
    * the best place to put it for now.
    */
-  static bool isIpAttached(folly::IPAddress ip,
-                           InterfaceID intfID,
-                           const std::shared_ptr<SwitchState>& state);
+  static bool isIpAttached(
+      folly::IPAddress ip,
+      InterfaceID intfID,
+      const std::shared_ptr<SwitchState>& state);
 
   /*
    * Inherit the constructors required for clone().
@@ -201,9 +209,11 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
    * operator new() to be available.
    */
   static const int kDefaultMtu{1500};
+
  private:
   using NodeBaseT::NodeBaseT;
   friend class CloneAllocator;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

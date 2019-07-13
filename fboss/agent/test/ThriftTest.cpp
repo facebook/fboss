@@ -8,29 +8,29 @@
  *
  */
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/ThriftHandler.h"
-#include "fboss/agent/test/TestUtils.h"
-#include "fboss/agent/test/HwTestHandle.h"
-#include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
-#include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/state/Route.h"
+#include "fboss/agent/state/RouteUpdater.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/HwTestHandle.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
+using cfg::PortSpeed;
+using facebook::network::toBinaryAddress;
 using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 using folly::StringPiece;
-using std::unique_ptr;
 using std::shared_ptr;
+using std::unique_ptr;
 using testing::UnorderedElementsAreArray;
-using facebook::network::toBinaryAddress;
-using cfg::PortSpeed;
 
 namespace {
 
@@ -65,9 +65,9 @@ TEST(ThriftTest, getInterfaceDetail) {
   EXPECT_EQ(0, info.routerId);
   EXPECT_EQ("00:02:00:00:00:01", info.mac);
   std::vector<IpPrefix> expectedAddrs = {
-    ipPrefix("10.0.0.1", 24),
-    ipPrefix("192.168.0.1", 24),
-    ipPrefix("2401:db00:2110:3001::0001", 64),
+      ipPrefix("10.0.0.1", 24),
+      ipPrefix("192.168.0.1", 24),
+      ipPrefix("2401:db00:2110:3001::0001", 64),
   };
   EXPECT_THAT(info.address, UnorderedElementsAreArray(expectedAddrs));
 
@@ -78,9 +78,9 @@ TEST(ThriftTest, getInterfaceDetail) {
   EXPECT_EQ(0, info.routerId);
   EXPECT_EQ("00:02:00:00:00:55", info.mac);
   expectedAddrs = {
-    ipPrefix("10.0.55.1", 24),
-    ipPrefix("192.168.55.1", 24),
-    ipPrefix("2401:db00:2110:3055::0001", 64),
+      ipPrefix("10.0.55.1", 24),
+      ipPrefix("192.168.55.1", 24),
+      ipPrefix("2401:db00:2110:3055::0001", 64),
   };
   EXPECT_THAT(info.address, UnorderedElementsAreArray(expectedAddrs));
 
@@ -88,7 +88,6 @@ TEST(ThriftTest, getInterfaceDetail) {
   // interface should throw an FbossError.
   EXPECT_THROW(handler.getInterfaceDetail(info, 123), FbossError);
 }
-
 
 TEST(ThriftTest, assertPortSpeeds) {
   // We rely on the exact value of the port speeds for some
@@ -128,8 +127,8 @@ TEST(ThriftTest, LinkLocalRoutes) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   stateV1->publish();
   // Verify that stateV1 contains the link local route
-  shared_ptr<RouteTable> rt = stateV1->getRouteTables()->
-                              getRouteTableIf(RouterID(0));
+  shared_ptr<RouteTable> rt =
+      stateV1->getRouteTables()->getRouteTableIf(RouterID(0));
   ASSERT_NE(nullptr, rt);
   // Link local addr.
   auto ip = IPAddressV6("fe80::");
@@ -141,9 +140,10 @@ TEST(ThriftTest, LinkLocalRoutes) {
   ASSERT_EQ(longestMatchRoute->prefix().network, ip);
 }
 
-std::unique_ptr<UnicastRoute>
-makeUnicastRoute(std::string prefixStr, std::string nxtHop,
-    AdminDistance distance=AdminDistance::MAX_ADMIN_DISTANCE) {
+std::unique_ptr<UnicastRoute> makeUnicastRoute(
+    std::string prefixStr,
+    std::string nxtHop,
+    AdminDistance distance = AdminDistance::MAX_ADMIN_DISTANCE) {
   std::vector<std::string> vec;
   folly::split("/", prefixStr, vec);
   EXPECT_EQ(2, vec.size());

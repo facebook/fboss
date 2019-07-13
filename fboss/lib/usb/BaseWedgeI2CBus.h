@@ -9,20 +9,20 @@
  */
 #pragma once
 
-#include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/lib/usb/CP2112.h"
+#include "fboss/lib/usb/TransceiverI2CApi.h"
 
-#include <mutex>
 #include <folly/Range.h>
+#include <mutex>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * A small wrapper around CP2112 which is aware of the topology of wedge's QSFP
  * I2C bus, and can select specific QSFPs to query.
  */
 class BaseWedgeI2CBus : public TransceiverI2CApi {
-
  public:
   explicit BaseWedgeI2CBus(std::unique_ptr<CP2112Intf> dev = nullptr) {
     dev_ = (dev) ? std::move(dev) : std::make_unique<CP2112>();
@@ -67,8 +67,9 @@ class BaseWedgeI2CBus : public TransceiverI2CApi {
   void unselectQsfp();
 
   // Forbidden copy constructor and assignment operator
-  BaseWedgeI2CBus(BaseWedgeI2CBus const &) = delete;
-  BaseWedgeI2CBus& operator=(BaseWedgeI2CBus const &) = delete;
+  BaseWedgeI2CBus(BaseWedgeI2CBus const&) = delete;
+  BaseWedgeI2CBus& operator=(BaseWedgeI2CBus const&) = delete;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

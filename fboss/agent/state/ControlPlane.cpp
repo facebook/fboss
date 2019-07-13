@@ -16,21 +16,22 @@ namespace {
 constexpr auto kQueues = "queues";
 constexpr auto kRxReasonToQueue = "rxReasonToQueue";
 constexpr auto kQosPolicy = "defaultQosPolicy";
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 folly::dynamic ControlPlaneFields::toFollyDynamic() const {
   folly::dynamic controlPlane = folly::dynamic::object;
   controlPlane[kQueues] = folly::dynamic::array;
-  for (const auto& queue: queues) {
+  for (const auto& queue : queues) {
     controlPlane[kQueues].push_back(queue->toFollyDynamic());
   }
   controlPlane[kRxReasonToQueue] = folly::dynamic::object;
 
-  for (const auto& reasonToQueue: rxReasonToQueue) {
-    auto reason = cfg::_PacketRxReason_VALUES_TO_NAMES.find(
-      reasonToQueue.first);
+  for (const auto& reasonToQueue : rxReasonToQueue) {
+    auto reason =
+        cfg::_PacketRxReason_VALUES_TO_NAMES.find(reasonToQueue.first);
     CHECK(reason != cfg::_PacketRxReason_VALUES_TO_NAMES.end());
     controlPlane[kRxReasonToQueue][reason->second] = reasonToQueue.second;
   }
@@ -46,18 +47,18 @@ ControlPlaneFields ControlPlaneFields::fromFollyDynamic(
     const folly::dynamic& json) {
   ControlPlaneFields controlPlane = ControlPlaneFields();
   if (json.find(kQueues) != json.items().end()) {
-    for (const auto& queueJson: json[kQueues]) {
+    for (const auto& queueJson : json[kQueues]) {
       auto queue = PortQueue::fromFollyDynamic(queueJson);
       controlPlane.queues.push_back(queue);
     }
   }
   if (json.find(kRxReasonToQueue) != json.items().end()) {
-    for (const auto& reasonToQueueJson: json[kRxReasonToQueue].items()) {
+    for (const auto& reasonToQueueJson : json[kRxReasonToQueue].items()) {
       auto reason = cfg::_PacketRxReason_NAMES_TO_VALUES.find(
-        reasonToQueueJson.first.asString().c_str());
+          reasonToQueueJson.first.asString().c_str());
       CHECK(reason != cfg::_PacketRxReason_NAMES_TO_VALUES.end());
-      controlPlane.rxReasonToQueue.emplace(reason->second,
-                                  reasonToQueueJson.second.asInt());
+      controlPlane.rxReasonToQueue.emplace(
+          reason->second, reasonToQueueJson.second.asInt());
     }
   }
   if (json.find(kQosPolicy) != json.items().end()) {
@@ -81,14 +82,13 @@ ControlPlane* ControlPlane::modify(std::shared_ptr<SwitchState>* state) {
 
 bool ControlPlane::operator==(const ControlPlane& controlPlane) const {
   // TODO(joseph5wu) Will add QueueConfig struct in the future diff.
-  auto compareQueues = [&] (const QueueConfig& queues1,
-                            const QueueConfig& queues2)
-                       -> bool {
+  auto compareQueues = [&](const QueueConfig& queues1,
+                           const QueueConfig& queues2) -> bool {
     if (queues1.size() != queues2.size()) {
       return false;
     }
     for (int i = 0; i < queues1.size(); i++) {
-      if(*(queues1.at(i)) != *(queues2.at(i))) {
+      if (*(queues1.at(i)) != *(queues2.at(i))) {
         return false;
       }
     }
@@ -101,4 +101,5 @@ bool ControlPlane::operator==(const ControlPlane& controlPlane) const {
 }
 
 template class NodeBaseT<ControlPlane, ControlPlaneFields>;
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

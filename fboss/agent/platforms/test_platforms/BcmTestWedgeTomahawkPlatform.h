@@ -11,13 +11,14 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestWedgePlatform.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 class BcmTestWedgeTomahawkPlatform : public BcmTestWedgePlatform {
-public:
+ public:
   BcmTestWedgeTomahawkPlatform(
-    std::vector<PortID> masterLogicalPortIds,
-    int numPortsPerTranceiver)
-    : BcmTestWedgePlatform(masterLogicalPortIds, numPortsPerTranceiver) {}
+      std::vector<PortID> masterLogicalPortIds,
+      int numPortsPerTranceiver)
+      : BcmTestWedgePlatform(masterLogicalPortIds, numPortsPerTranceiver) {}
   ~BcmTestWedgeTomahawkPlatform() override {}
 
   bool isCosSupported() const override {
@@ -28,9 +29,9 @@ public:
     return false;
   }
   const PortQueue& getDefaultPortQueueSettings(
-    cfg::StreamType streamType) const override;
+      cfg::StreamType streamType) const override;
   const PortQueue& getDefaultControlPlaneQueueSettings(
-    cfg::StreamType streamType) const override;
+      cfg::StreamType streamType) const override;
 
   uint32_t getMMUBufferBytes() const override {
     return 16 * 1024 * 1024;
@@ -51,10 +52,11 @@ public:
     return true;
   }
 
-private:
+ private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedgeTomahawkPlatform(BcmTestWedgeTomahawkPlatform const&) = delete;
-  BcmTestWedgeTomahawkPlatform& operator=(
-    BcmTestWedgeTomahawkPlatform const&) = delete;
+  BcmTestWedgeTomahawkPlatform& operator=(BcmTestWedgeTomahawkPlatform const&) =
+      delete;
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

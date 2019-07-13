@@ -7,15 +7,15 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/RouteUpdateLogger.h"
+#include <folly/IPAddress.h>
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/HwTestHandle.h"
-#include <folly/IPAddress.h>
+#include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>
 #include <memory>
@@ -62,14 +62,20 @@ class RouteUpdateLoggerTest : public ::testing::Test {
     RouteUpdater updater(initialStateA->getRouteTables());
 
     // Add default routes for consistency
-    updater.addRoute(RouterID(0), folly::IPAddressV4("0.0.0.0"), 0,
+    updater.addRoute(
+        RouterID(0),
+        folly::IPAddressV4("0.0.0.0"),
+        0,
         StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
-        RouteNextHopEntry(RouteForwardAction::DROP,
-          AdminDistance::MAX_ADMIN_DISTANCE));
-    updater.addRoute(RouterID(0), folly::IPAddressV6("::"), 0,
+        RouteNextHopEntry(
+            RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
+    updater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("::"),
+        0,
         StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
-        RouteNextHopEntry(RouteForwardAction::DROP,
-          AdminDistance::MAX_ADMIN_DISTANCE));
+        RouteNextHopEntry(
+            RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
     auto newRt = updater.updateDone();
     stateA = initialStateA->clone();
     stateA->resetRouteTables(newRt);
@@ -102,10 +108,8 @@ class RouteUpdateLoggerTest : public ::testing::Test {
     startLogging(addr, mask, "", false);
   }
 
-  void stopLogging(
-      const std::string& addr,
-      uint8_t mask,
-      const std::string& user) {
+  void
+  stopLogging(const std::string& addr, uint8_t mask, const std::string& user) {
     routeUpdateLogger->stopLoggingForPrefix(folly::IPAddress{addr}, mask, user);
   }
 
@@ -291,7 +295,6 @@ TEST_F(RouteUpdateLoggerTest, SwitchToAllowMoreSpecific) {
   expectNoRemoved();
 }
 
-
 // Two users can separately add logging
 TEST_F(RouteUpdateLoggerTest, StartLoggingFromDifferentUsers) {
   startLogging("192.168.0.0", 16, "foo", false);
@@ -336,4 +339,4 @@ TEST_F(RouteUpdateLoggerTest, ClearForOneUser) {
   EXPECT_EQ(4, mockRouteLoggerV6->added.size());
 }
 
-}
+} // namespace

@@ -9,25 +9,26 @@
  */
 #pragma once
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
-#include "fboss/agent/FbossError.h"
-#include "fboss/agent/types.h"
 #include "fboss/agent/state/Thrifty.h"
+#include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
+#include <folly/Optional.h>
 #include <string>
 #include <utility>
 #include <vector>
-#include <folly/Optional.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 struct PortQueueFields {
-  using AQMMap = boost::container::flat_map<cfg::QueueCongestionBehavior,
-                                            cfg::ActiveQueueManagement>;
+  using AQMMap = boost::container::
+      flat_map<cfg::QueueCongestionBehavior, cfg::ActiveQueueManagement>;
 
-  template<typename Fn>
+  template <typename Fn>
   void forEachChild(Fn) {}
 
   state::PortQueueFields toThrift() const;
@@ -49,8 +50,8 @@ struct PortQueueFields {
 /*
  * PortQueue defines the behaviour of the per port queues
  */
-class PortQueue :
-    public ThriftyBaseT<state::PortQueueFields, PortQueue, PortQueueFields> {
+class PortQueue
+    : public ThriftyBaseT<state::PortQueueFields, PortQueue, PortQueueFields> {
  public:
   using AQMMap = PortQueueFields::AQMMap;
 
@@ -61,14 +62,14 @@ class PortQueue :
   bool operator==(const PortQueue& queue) const {
     // TODO(joseph5wu) Add sharedBytes
     return getFields()->id == queue.getID() &&
-           getFields()->streamType == queue.getStreamType() &&
-           getFields()->weight == queue.getWeight() &&
-           getFields()->reservedBytes == queue.getReservedBytes() &&
-           getFields()->scalingFactor == queue.getScalingFactor() &&
-           getFields()->scheduling == queue.getScheduling() &&
-           getFields()->aqms == queue.getAqms() &&
-           getFields()->packetsPerSec == queue.getPacketsPerSec() &&
-           getFields()->name == queue.getName();
+        getFields()->streamType == queue.getStreamType() &&
+        getFields()->weight == queue.getWeight() &&
+        getFields()->reservedBytes == queue.getReservedBytes() &&
+        getFields()->scalingFactor == queue.getScalingFactor() &&
+        getFields()->scheduling == queue.getScheduling() &&
+        getFields()->aqms == queue.getAqms() &&
+        getFields()->packetsPerSec == queue.getPacketsPerSec() &&
+        getFields()->name == queue.getName();
   }
   bool operator!=(const PortQueue& queue) const {
     return !(*this == queue);
@@ -131,7 +132,7 @@ class PortQueue :
 
   void resetAqms(std::vector<cfg::ActiveQueueManagement> aqms) {
     writableFields()->aqms.clear();
-    for (auto& aqm: aqms) {
+    for (auto& aqm : aqms) {
       writableFields()->aqms.emplace(aqm.behavior, aqm);
     }
   }
@@ -167,6 +168,7 @@ class PortQueue :
 using QueueConfig = std::vector<std::shared_ptr<PortQueue>>;
 
 bool checkSwConfPortQueueMatch(
-  const std::shared_ptr<PortQueue>& swQueue,
-  const cfg::PortQueue* cfgQueue);
-}} // facebook::fboss
+    const std::shared_ptr<PortQueue>& swQueue,
+    const cfg::PortQueue* cfgQueue);
+} // namespace fboss
+} // namespace facebook

@@ -24,22 +24,21 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 
+using folly::IOBuf;
 using folly::IPAddressV6;
 using folly::MacAddress;
 using folly::io::Cursor;
-using folly::IOBuf;
 using folly::io::RWPrivateCursor;
 
 namespace {
 
-uint32_t getAdvertisementPacketBodySize(uint32_t items_count)  {
-  uint32_t bodyLength =
-    4 + // hop limit, flags, lifetime
-    4 + // reachable timer
-    4 + // retrans timer
-    8 + // src MAC option
-    8 + // MTU option
-    (32 * items_count); // prefix options
+uint32_t getAdvertisementPacketBodySize(uint32_t items_count) {
+  uint32_t bodyLength = 4 + // hop limit, flags, lifetime
+      4 + // reachable timer
+      4 + // retrans timer
+      8 + // src MAC option
+      8 + // MTU option
+      (32 * items_count); // prefix options
 
   return bodyLength;
 }
@@ -64,9 +63,10 @@ std::set<Prefix> getPrefixesToAdvertise(
   }
   return prefixes;
 }
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * IPv6RAImpl is the class that actually handles sending out the RA packets.
@@ -76,9 +76,7 @@ namespace facebook { namespace fboss {
  */
 class IPv6RAImpl : private folly::AsyncTimeout {
  public:
-  IPv6RAImpl(SwSwitch* sw,
-             const SwitchState* state,
-             const Interface* intf);
+  IPv6RAImpl(SwSwitch* sw, const SwitchState* state, const Interface* intf);
 
   SwSwitch* getSw() const {
     return sw_;
@@ -89,8 +87,8 @@ class IPv6RAImpl : private folly::AsyncTimeout {
 
  private:
   // Forbidden copy constructor and assignment operator
-  IPv6RAImpl(IPv6RAImpl const &) = delete;
-  IPv6RAImpl& operator=(IPv6RAImpl const &) = delete;
+  IPv6RAImpl(IPv6RAImpl const&) = delete;
+  IPv6RAImpl& operator=(IPv6RAImpl const&) = delete;
 
   void timeoutExpired() noexcept override {
     sendRouteAdvertisement();
@@ -136,7 +134,7 @@ void IPv6RAImpl::initPacket(const Interface* intf) {
   buf_.append(totalLength);
   RWPrivateCursor cursor(&buf_);
   IPv6RouteAdvertiser::createAdvertisementPacket(
-    intf, &cursor, MacAddress("33:33:00:00:00:01"), IPAddressV6("ff02::1"));
+      intf, &cursor, MacAddress("33:33:00:00:00:01"), IPAddressV6("ff02::1"));
 }
 
 void IPv6RAImpl::sendRouteAdvertisement() {
@@ -160,16 +158,17 @@ void IPv6RAImpl::sendRouteAdvertisement() {
   sw_->sendNetworkControlPacketAsync(std::move(pkt), folly::none);
 }
 
-IPv6RouteAdvertiser::IPv6RouteAdvertiser(SwSwitch* sw,
-                                         const SwitchState* state,
-                                         const Interface* intf) {
+IPv6RouteAdvertiser::IPv6RouteAdvertiser(
+    SwSwitch* sw,
+    const SwitchState* state,
+    const Interface* intf) {
   adv_ = new IPv6RAImpl(sw, state, intf);
   sw->getBackgroundEvb()->runInEventBaseThread(IPv6RAImpl::start, adv_);
 }
 
 IPv6RouteAdvertiser::IPv6RouteAdvertiser(IPv6RouteAdvertiser&& other) noexcept
-  : adv_(other.adv_) {
-    other.adv_ = nullptr;
+    : adv_(other.adv_) {
+  other.adv_ = nullptr;
 }
 
 IPv6RouteAdvertiser::~IPv6RouteAdvertiser() {
@@ -268,8 +267,15 @@ IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
       0,
       0);
 
-  icmp6.serializeFullPacket(cursor, dstMac, intf->getMac(), intf->getVlanID(),
-                            ipv6, bodyLength, serializeBody);
+  icmp6.serializeFullPacket(
+      cursor,
+      dstMac,
+      intf->getMac(),
+      intf->getVlanID(),
+      ipv6,
+      bodyLength,
+      serializeBody);
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

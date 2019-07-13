@@ -9,7 +9,8 @@
  */
 #include "fboss/agent/hw/bcm/BcmTableStats.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 bool BcmHwTableStatManager::refreshLPMOnlyStats(BcmHwTableStats*) {
   return false;
@@ -43,4 +44,5 @@ void BcmHwTableStatManager::publish(BcmHwTableStats) const {}
 void BcmHwTableStatManager::refresh(
     const StateDelta& /*delta*/,
     BcmHwTableStats* /*stats*/) {}
-}}
+} // namespace fboss
+} // namespace facebook

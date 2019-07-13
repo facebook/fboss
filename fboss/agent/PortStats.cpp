@@ -8,31 +8,31 @@
  *
  */
 
-#include "fboss/agent/SwitchStats.h"
-#include "common/stats/ThreadCachedServiceData.h"
 #include <folly/String.h>
+#include "common/stats/ThreadCachedServiceData.h"
+#include "fboss/agent/SwitchStats.h"
 
 using facebook::stats::SUM;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 const std::string kNameKeySeperator = ".";
 const std::string kUp = "up";
 const std::string kLinkStateFlap = "link_state.flap";
 
-PortStats::PortStats(PortID portID, std::string portName,
-                     SwitchStats *switchStats)
-  : portID_(portID),
-    portName_(portName),
-    switchStats_(switchStats) {
-}
+PortStats::PortStats(
+    PortID portID,
+    std::string portName,
+    SwitchStats* switchStats)
+    : portID_(portID), portName_(portName), switchStats_(switchStats) {}
 
 PortStats::~PortStats() {
   // clear counter
   clearPortStatusCounter();
 }
 
-void PortStats::setPortName(const std::string &portName) {
+void PortStats::setPortName(const std::string& portName) {
   // clear counter
   clearPortStatusCounter();
   portName_ = portName;
@@ -180,8 +180,9 @@ void PortStats::pktTooBig() {
   switchStats_->pktTooBig();
 }
 
-std::string PortStats::getCounterKey(const std::string &key) {
+std::string PortStats::getCounterKey(const std::string& key) {
   return folly::to<std::string>(portName_, kNameKeySeperator, key);
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

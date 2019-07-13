@@ -16,15 +16,19 @@ constexpr auto kMask = "mask";
 constexpr auto kDrop = "Drop";
 constexpr auto kToCpu = "ToCPU";
 constexpr auto kNexthops = "Nexthops";
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 std::string forwardActionStr(RouteForwardAction action) {
   switch (action) {
-  case DROP: return kDrop;
-  case TO_CPU: return kToCpu;
-  case NEXTHOPS: return kNexthops;
+    case DROP:
+      return kDrop;
+    case TO_CPU:
+      return kToCpu;
+    case NEXTHOPS:
+      return kNexthops;
   }
   CHECK(0);
 }
@@ -44,7 +48,7 @@ RouteForwardAction str2ForwardAction(const std::string& action) {
 // RoutePrefix<> Class
 //
 
-template<typename AddrT>
+template <typename AddrT>
 bool RoutePrefix<AddrT>::operator<(const RoutePrefix& p2) const {
   if (mask < p2.mask) {
     return true;
@@ -54,7 +58,7 @@ bool RoutePrefix<AddrT>::operator<(const RoutePrefix& p2) const {
   return network < p2.network;
 }
 
-template<typename AddrT>
+template <typename AddrT>
 bool RoutePrefix<AddrT>::operator>(const RoutePrefix& p2) const {
   if (mask > p2.mask) {
     return true;
@@ -64,7 +68,7 @@ bool RoutePrefix<AddrT>::operator>(const RoutePrefix& p2) const {
   return network > p2.network;
 }
 
-template<typename AddrT>
+template <typename AddrT>
 folly::dynamic RoutePrefix<AddrT>::toFollyDynamic() const {
   folly::dynamic pfx = folly::dynamic::object;
   pfx[kAddress] = network.str();
@@ -73,23 +77,24 @@ folly::dynamic RoutePrefix<AddrT>::toFollyDynamic() const {
 }
 
 template <typename AddrT>
-RoutePrefix<AddrT>
-RoutePrefix<AddrT>::fromFollyDynamic(const folly::dynamic& pfxJson) {
+RoutePrefix<AddrT> RoutePrefix<AddrT>::fromFollyDynamic(
+    const folly::dynamic& pfxJson) {
   RoutePrefix pfx;
   pfx.network = AddrT(pfxJson[kAddress].stringPiece());
   pfx.mask = pfxJson[kMask].asInt();
   return pfx;
 }
 
-void toAppend(const RoutePrefixV4& prefix, std::string *result) {
+void toAppend(const RoutePrefixV4& prefix, std::string* result) {
   result->append(prefix.str());
 }
 
-void toAppend(const RoutePrefixV6& prefix, std::string *result) {
+void toAppend(const RoutePrefixV6& prefix, std::string* result) {
   result->append(prefix.str());
 }
 
 template class RoutePrefix<folly::IPAddressV4>;
 template class RoutePrefix<folly::IPAddressV6>;
 
-}}
+} // namespace fboss
+} // namespace facebook

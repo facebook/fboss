@@ -11,7 +11,8 @@
 
 #include "fboss/lib/usb/BaseWedgeI2CBus.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 // Handle the intricacies of routing I2C requests to appropriate QSFPs,
 // based on the hardware.
@@ -39,10 +40,11 @@ class WedgeI2CBus : public BaseWedgeI2CBus {
   };
 
   // Forbidden copy constructor and assignment operator
-  WedgeI2CBus(WedgeI2CBus const &) = delete;
-  WedgeI2CBus& operator=(WedgeI2CBus const &) = delete;
+  WedgeI2CBus(WedgeI2CBus const&) = delete;
+  WedgeI2CBus& operator=(WedgeI2CBus const&) = delete;
 
   std::pair<uint8_t, uint8_t> getSwitchValues(unsigned int module) const;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -11,13 +11,14 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestWedgePlatform.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
-public:
+ public:
   BcmTestWedgeTomahawk3Platform(
-    std::vector<PortID> masterLogicalPortIds,
-    int numPortsPerTranceiver)
-    : BcmTestWedgePlatform(masterLogicalPortIds, numPortsPerTranceiver) {}
+      std::vector<PortID> masterLogicalPortIds,
+      int numPortsPerTranceiver)
+      : BcmTestWedgePlatform(masterLogicalPortIds, numPortsPerTranceiver) {}
   ~BcmTestWedgeTomahawk3Platform() override {}
 
   bool isCosSupported() const override {
@@ -28,14 +29,14 @@ public:
     return true;
   }
 
-  std::list<FlexPortMode> getSupportedFlexPortModes() const override  {
+  std::list<FlexPortMode> getSupportedFlexPortModes() const override {
     // TODO(joseph5wu) Right now, we don't fully support flexport for TH3
     return {};
   }
   const PortQueue& getDefaultPortQueueSettings(
-    cfg::StreamType streamType) const override;
+      cfg::StreamType streamType) const override;
   const PortQueue& getDefaultControlPlaneQueueSettings(
-    cfg::StreamType streamType) const override;
+      cfg::StreamType streamType) const override;
 
   uint32_t getMMUBufferBytes() const override {
     // All TH3 platforms have 64MB MMU buffer
@@ -58,10 +59,11 @@ public:
     return true;
   }
 
-private:
+ private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedgeTomahawk3Platform(BcmTestWedgeTomahawk3Platform const&) = delete;
   BcmTestWedgeTomahawk3Platform& operator=(
-    BcmTestWedgeTomahawk3Platform const&) = delete;
+      BcmTestWedgeTomahawk3Platform const&) = delete;
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -9,25 +9,26 @@
  */
 #pragma once
 
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "common/fb303/cpp/FacebookBase2.h"
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/types.h"
 
-#include <folly/Synchronized.h>
 #include <folly/String.h>
+#include <folly/Synchronized.h>
 #include <thrift/lib/cpp/server/TServerEventHandler.h>
 #include <thrift/lib/cpp2/async/DuplexChannel.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class AggregatePort;
 class Port;
@@ -61,15 +62,16 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   void flushCountersNow() override;
 
-  void addUnicastRoute(
-      int16_t client, std::unique_ptr<UnicastRoute> route) override;
-  void deleteUnicastRoute(
-      int16_t client, std::unique_ptr<IpPrefix> prefix) override;
+  void addUnicastRoute(int16_t client, std::unique_ptr<UnicastRoute> route)
+      override;
+  void deleteUnicastRoute(int16_t client, std::unique_ptr<IpPrefix> prefix)
+      override;
   void addUnicastRoutes(
       int16_t client,
       std::unique_ptr<std::vector<UnicastRoute>> routes) override;
   void deleteUnicastRoutes(
-      int16_t client, std::unique_ptr<std::vector<IpPrefix>> prefixes) override;
+      int16_t client,
+      std::unique_ptr<std::vector<IpPrefix>> prefixes) override;
   void syncFib(
       int16_t client,
       std::unique_ptr<std::vector<UnicastRoute>> routes) override;
@@ -94,8 +96,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       int16_t clientId) override;
 
   void getAllMplsRouteDetails(
-    std::vector<MplsRouteDetails>& mplsRouteDetails
-  ) override;
+      std::vector<MplsRouteDetails>& mplsRouteDetails) override;
 
   void getMplsRouteDetails(
       MplsRouteDetails& mplsRouteDetail,
@@ -108,44 +109,56 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void beginPacketDump(int32_t port) override;
   void killDistributionProcess() override;
 
-  void sendPkt(int32_t port, int32_t vlan,
+  void sendPkt(
+      int32_t port,
+      int32_t vlan,
       std::unique_ptr<folly::fbstring> data) override;
-  void sendPktHex(int32_t port, int32_t vlan,
+  void sendPktHex(
+      int32_t port,
+      int32_t vlan,
       std::unique_ptr<folly::fbstring> hex) override;
 
   void txPkt(int32_t port, std::unique_ptr<folly::fbstring> data) override;
   void txPktL2(std::unique_ptr<folly::fbstring> data) override;
   void txPktL3(std::unique_ptr<folly::fbstring> payload) override;
 
-  int32_t flushNeighborEntry(std::unique_ptr<BinaryAddress> ip,
-                             int32_t vlan) override;
+  int32_t flushNeighborEntry(std::unique_ptr<BinaryAddress> ip, int32_t vlan)
+      override;
 
   void getVlanAddresses(Addresses& addrs, int32_t vlan) override;
-  void getVlanAddressesByName(Addresses& addrs,
+  void getVlanAddressesByName(
+      Addresses& addrs,
       const std::unique_ptr<std::string> vlan) override;
   void getVlanBinaryAddresses(BinaryAddresses& addrs, int32_t vlan) override;
-  void getVlanBinaryAddressesByName(BinaryAddresses& addrs,
+  void getVlanBinaryAddressesByName(
+      BinaryAddresses& addrs,
       const std::unique_ptr<std::string> vlan) override;
   /* Returns the Ip Route for the address */
-  void getIpRoute(UnicastRoute& route,
-                  std::unique_ptr<Address> addr, int32_t vrfId) override;
-  void getIpRouteDetails(RouteDetails& route,
-                         std::unique_ptr<Address> addr, int32_t vrfId) override;
+  void getIpRoute(
+      UnicastRoute& route,
+      std::unique_ptr<Address> addr,
+      int32_t vrfId) override;
+  void getIpRouteDetails(
+      RouteDetails& route,
+      std::unique_ptr<Address> addr,
+      int32_t vrfId) override;
   void getAllInterfaces(
       std::map<int32_t, InterfaceDetail>& interfaces) override;
   void getInterfaceList(std::vector<std::string>& interfaceList) override;
 
   void getRouteTable(std::vector<UnicastRoute>& routeTable) override;
   void getRouteTableByClient(
-      std::vector<UnicastRoute>& routeTable, int16_t clientId) override;
+      std::vector<UnicastRoute>& routeTable,
+      int16_t clientId) override;
   void getRouteTableDetails(std::vector<RouteDetails>& routeTable) override;
 
-  void getPortStatus(std::map<int32_t, PortStatus>& status,
-                     std::unique_ptr<std::vector<int32_t>> ports)
-                     override;
+  void getPortStatus(
+      std::map<int32_t, PortStatus>& status,
+      std::unique_ptr<std::vector<int32_t>> ports) override;
   void setPortState(int32_t portId, bool enable) override;
-  void getInterfaceDetail(InterfaceDetail& interfaceDetails,
-                                          int32_t interfaceId) override;
+  void getInterfaceDetail(
+      InterfaceDetail& interfaceDetails,
+      int32_t interfaceId) override;
   void getPortInfo(PortInfoThrift& portInfo, int32_t portId) override;
   void getAllPortInfo(std::map<int32_t, PortInfoThrift>& portInfo) override;
   void clearPortStats(std::unique_ptr<std::vector<int32_t>> ports) override;
@@ -217,7 +230,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
    *
    * @param[in]   timeout      The idle timeout in seconds.
    */
-  void setIdleTimeout(const int32_t timeout) { thriftIdleTimeout_ = timeout; }
+  void setIdleTimeout(const int32_t timeout) {
+    thriftIdleTimeout_ = timeout;
+  }
 
   /*
    * Thrift call to get the server's idle timeout.  Used by duplex clients to
@@ -278,11 +293,13 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
     // This version of ensureFibSynced() won't log
     ensureFibSynced(folly::StringPiece(nullptr, nullptr));
   }
+
  private:
   struct ThreadLocalListener {
     EventBase* eventBase;
-    std::unordered_map<const apache::thrift::server::TConnectionContext*,
-                       std::shared_ptr<NeighborListenerClientAsyncClient>>
+    std::unordered_map<
+        const apache::thrift::server::TConnectionContext*,
+        std::shared_ptr<NeighborListenerClientAsyncClient>>
         clients;
 
     explicit ThreadLocalListener(EventBase* eb) : eventBase(eb){};
@@ -291,13 +308,16 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   void onPortStatusChanged(PortID id, PortStatus st);
 
-  void invokeNeighborListeners(ThreadLocalListener* info,
-                                std::vector<std::string> added,
-                                std::vector<std::string> deleted);
+  void invokeNeighborListeners(
+      ThreadLocalListener* info,
+      std::vector<std::string> added,
+      std::vector<std::string> deleted);
 
   void updateUnicastRoutesImpl(
-    int16_t client, const std::unique_ptr<std::vector<UnicastRoute>>& routes,
-    const std::string& updType, bool sync);
+      int16_t client,
+      const std::unique_ptr<std::vector<UnicastRoute>>& routes,
+      const std::string& updType,
+      bool sync);
 
   void getPortInfoHelper(
       PortInfoThrift& portInfo,
@@ -306,26 +326,26 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   Vlan* getVlan(int32_t vlanId);
   Vlan* getVlan(const std::string& vlanName);
-  template<typename ADDR_TYPE, typename ADDR_CONVERTER>
-  void getVlanAddresses(const Vlan* vlan, std::vector<ADDR_TYPE>& addrs,
+  template <typename ADDR_TYPE, typename ADDR_CONVERTER>
+  void getVlanAddresses(
+      const Vlan* vlan,
+      std::vector<ADDR_TYPE>& addrs,
       ADDR_CONVERTER& converter);
 
   static LacpPortRateThrift fromLacpPortRate(cfg::LacpPortRate rate);
   static LacpPortActivityThrift fromLacpPortActivity(
       cfg::LacpPortActivity activity);
   static void populateAggregatePortThrift(
-    const std::shared_ptr<AggregatePort>& aggregatePort,
-    AggregatePortThrift& aggregatePortThrift);
-  static AclEntryThrift populateAclEntryThrift(
-        const AclEntry& aclEntry);
+      const std::shared_ptr<AggregatePort>& aggregatePort,
+      AggregatePortThrift& aggregatePortThrift);
+  static AclEntryThrift populateAclEntryThrift(const AclEntry& aclEntry);
 
   // Forbidden copy constructor and assignment operator
-  ThriftHandler(ThriftHandler const &) = delete;
-  ThriftHandler& operator=(ThriftHandler const &) = delete;
+  ThriftHandler(ThriftHandler const&) = delete;
+  ThriftHandler& operator=(ThriftHandler const&) = delete;
 
-  template<typename Result>
-  void fail(const ThriftCallback<Result>& callback,
-            const std::exception& ex) {
+  template <typename Result>
+  void fail(const ThriftCallback<Result>& callback, const std::exception& ex) {
     FbossError error(folly::exceptionStr(ex));
     callback->exception(error);
   }
@@ -342,4 +362,5 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   apache::thrift::SSLPolicy sslPolicy_;
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

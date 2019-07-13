@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include <memory>
-#include <vector>
 #include <boost/container/flat_map.hpp>
 #include <boost/container/flat_set.hpp>
+#include <memory>
+#include <vector>
 
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
@@ -186,8 +186,8 @@ class MplsEcmpSetupTargetedPorts
       LabelForwardingEntry::Label topLabel,
       LabelForwardingAction::LabelForwardingType actionType)
       : topLabel_(topLabel), actionType_(actionType) {
-        computeNextHops(inputState, folly::none);
-      }
+    computeNextHops(inputState, folly::none);
+  }
 
   virtual EcmpMplsNextHop<IPAddrT> nhop(PortDescriptor portDesc) const override;
 
@@ -249,7 +249,6 @@ class EcmpSetupAnyNPorts {
     return ecmpPortDescs(index + 1)[index];
   }
 
-
   /*
    * resolveNextHops and unresolveNextHops resolves/unresolves the first
    * numNextHops stored in setup helper created during the setup.
@@ -269,8 +268,8 @@ class EcmpSetupAnyNPorts {
    * their ARP/NDP resolved
    */
   std::shared_ptr<SwitchState> resolveNextHops(
-          const std::shared_ptr<SwitchState>& inputState,
-          const boost::container::flat_set<PortDescriptor>& portDescs) const;
+      const std::shared_ptr<SwitchState>& inputState,
+      const boost::container::flat_set<PortDescriptor>& portDescs) const;
   /*
    * Setup ECMP group with next hops going over any N ports
    */

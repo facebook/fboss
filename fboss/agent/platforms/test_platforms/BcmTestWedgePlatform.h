@@ -24,7 +24,9 @@ class BcmTestWedgePlatform : public BcmTestPlatform {
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
 
-  bool hasLinkScanCapability() const  override { return true; }
+  bool hasLinkScanCapability() const override {
+    return true;
+  }
 
  private:
   // Forbidden copy constructor and assignment operator

@@ -16,14 +16,23 @@
 #include <folly/MacAddress.h>
 #include <folly/logging/xlog.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-ArpCache::ArpCache(SwSwitch* sw, const SwitchState* state,
-                   VlanID vlanID, std::string vlanName, InterfaceID intfID)
-    : NeighborCache<ArpTable>(sw, vlanID, vlanName, intfID,
-                              state->getArpTimeout(),
-                              state->getMaxNeighborProbes(),
-                              state->getStaleEntryInterval()) {}
+ArpCache::ArpCache(
+    SwSwitch* sw,
+    const SwitchState* state,
+    VlanID vlanID,
+    std::string vlanName,
+    InterfaceID intfID)
+    : NeighborCache<ArpTable>(
+          sw,
+          vlanID,
+          vlanName,
+          intfID,
+          state->getArpTimeout(),
+          state->getMaxNeighborProbes(),
+          state->getStaleEntryInterval()) {}
 
 void ArpCache::sentArpRequest(folly::IPAddressV4 ip) {
   setPendingEntry(ip);
@@ -69,4 +78,5 @@ std::list<ArpEntryThrift> ArpCache::getArpCacheData() {
   return getCacheData<ArpEntryThrift>();
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

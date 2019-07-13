@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 
-
 #include "common/stats/MonotonicCounter.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
@@ -24,21 +23,20 @@ extern "C" {
 #include <opennsl/port.h>
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
+using std::make_pair;
 using std::make_unique;
 using std::unique_ptr;
-using std::make_pair;
 
-BcmPortTable::BcmPortTable(BcmSwitch *hw)
-  : hw_(hw) {
-}
+BcmPortTable::BcmPortTable(BcmSwitch* hw) : hw_(hw) {}
 
-BcmPortTable::~BcmPortTable() {
-}
+BcmPortTable::~BcmPortTable() {}
 
-void BcmPortTable::initPorts(const opennsl_port_config_t* portConfig,
-                             bool warmBoot) {
+void BcmPortTable::initPorts(
+    const opennsl_port_config_t* portConfig,
+    bool warmBoot) {
   // Ask the platform for the list of ports on this platform,
   // and then associate the BcmPort and BcmPlatformPort objects.
   //
@@ -53,8 +51,10 @@ void BcmPortTable::initPorts(const opennsl_port_config_t* portConfig,
 
     // Make sure this port number actually exists on the switch hardware
     if (!OPENNSL_PBMP_MEMBER(portConfig->port, bcmPortNum)) {
-      throw FbossError("platform attempted to initialize BCM port ",
-                       bcmPortNum, " which does not exist");
+      throw FbossError(
+          "platform attempted to initialize BCM port ",
+          bcmPortNum,
+          " which does not exist");
     }
 
     // Create a BcmPort object
@@ -103,10 +103,10 @@ BcmPort* BcmPortTable::getBcmPortIf(PortID id) const {
 }
 
 void BcmPortTable::updatePortStats() {
- for (const auto& entry : bcmPhysicalPorts_) {
-   BcmPort* bcmPort = entry.second.get();
-   bcmPort->updateStats();
- }
+  for (const auto& entry : bcmPhysicalPorts_) {
+    BcmPort* bcmPort = entry.second.get();
+    bcmPort->updateStats();
+  }
 }
 
 void BcmPortTable::forFilteredEach(Filter predicate, FilterAction action)
@@ -114,4 +114,5 @@ void BcmPortTable::forFilteredEach(Filter predicate, FilterAction action)
   auto iterator = FilterIterator(fbossPhysicalPorts_, predicate);
   std::for_each(iterator.begin(), iterator.end(), action);
 }
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

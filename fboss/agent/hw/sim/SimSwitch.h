@@ -13,7 +13,8 @@
 
 #include <folly/Optional.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SimPlatform;
 class SwitchState;
@@ -49,8 +50,12 @@ class SimSwitch : public HwSwitch {
     return;
   }
 
-  void resetTxCount() { txCount_ = 0; }
-  uint64_t getTxCount() const { return txCount_; }
+  void resetTxCount() {
+    txCount_ = 0;
+  }
+  uint64_t getTxCount() const {
+    return txCount_;
+  }
   void exitFatal() const override {
     // TODO
   }
@@ -61,7 +66,7 @@ class SimSwitch : public HwSwitch {
 
   bool getAndClearNeighborHit(RouterID /*vrf*/, folly::IPAddress& /*ip*/)
       override {
-    //TODO
+    // TODO
     return false;
   }
 
@@ -85,10 +90,11 @@ class SimSwitch : public HwSwitch {
   virtual BootType getBootType() const override {
     return bootType_;
   }
+
  private:
   // Forbidden copy constructor and assignment operator
-  SimSwitch(SimSwitch const &) = delete;
-  SimSwitch& operator=(SimSwitch const &) = delete;
+  SimSwitch(SimSwitch const&) = delete;
+  SimSwitch& operator=(SimSwitch const&) = delete;
 
   HwSwitch::Callback* callback_{nullptr};
   uint32_t numPorts_{0};
@@ -96,4 +102,5 @@ class SimSwitch : public HwSwitch {
   BootType bootType_{BootType::UNINITIALIZED};
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -11,33 +11,35 @@
 
 #include "fboss/agent/state/NodeBase-defs.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-template<typename IPADDR>
+template <typename IPADDR>
 folly::dynamic NeighborResponseTableFields<IPADDR>::toFollyDynamic() const {
   folly::dynamic entries = folly::dynamic::object;
-  for (const auto& ipAndEntry: table) {
+  for (const auto& ipAndEntry : table) {
     folly::dynamic entry = folly::dynamic::object;
     entries[ipAndEntry.first.str()] = ipAndEntry.second.toFollyDynamic();
   }
   return entries;
 }
 
-template<typename IPADDR>
+template <typename IPADDR>
 NeighborResponseTableFields<IPADDR>
 NeighborResponseTableFields<IPADDR>::fromFollyDynamic(
     const folly::dynamic& entries) {
   NeighborResponseTableFields nbrTable;
-  for (const auto& entry: entries.items()) {
-    nbrTable.table.emplace(IPADDR(entry.first.stringPiece()),
-          NeighborResponseEntry::fromFollyDynamic(entry.second));
+  for (const auto& entry : entries.items()) {
+    nbrTable.table.emplace(
+        IPADDR(entry.first.stringPiece()),
+        NeighborResponseEntry::fromFollyDynamic(entry.second));
   }
   return nbrTable;
 }
 
-template<typename IPADDR, typename SUBCLASS>
+template <typename IPADDR, typename SUBCLASS>
 NeighborResponseTable<IPADDR, SUBCLASS>::NeighborResponseTable(Table table)
-  : Parent(std::move(table)) {
-}
+    : Parent(std::move(table)) {}
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

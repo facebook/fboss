@@ -9,11 +9,13 @@
  */
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 // stubbed out
 int BcmPortGroup::retrieveActiveLanes() const {
   return 0;
 }
 void BcmPortGroup::setActiveLanes(LaneMode /*laneMode*/) {}
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -9,7 +9,8 @@
  */
 #include "fboss/agent/hw/bcm/BcmHost.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 // This should be temporary for the oss build until the needed symbols are added
 // to opennsl. Always returning true should be the same as having no expiration.
@@ -32,4 +33,5 @@ int BcmHost::getLookupClassFromL3Host(const opennsl_l3_host_t& /*host*/) {
 std::unique_ptr<BcmEgress> BcmHost::createEgress() {
   return std::make_unique<BcmEgress>(hw_);
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

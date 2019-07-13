@@ -21,8 +21,8 @@
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/SwitchState.h"
 
-using facebook::fboss::SwitchState;
 using facebook::fboss::getMinimumAlpmState;
+using facebook::fboss::SwitchState;
 
 namespace {
 
@@ -38,19 +38,24 @@ namespace fboss {
 
 std::shared_ptr<SwitchState> setupAlpmState(
     std::shared_ptr<SwitchState> curState) {
-
   // In ALPM mode we need to make sure that the first route added is
   // the default route and that the route table always contains a default
   // route
   RouteUpdater updater(curState->getRouteTables());
-  updater.addRoute(RouterID(0), folly::IPAddressV4("0.0.0.0"), 0,
+  updater.addRoute(
+      RouterID(0),
+      folly::IPAddressV4("0.0.0.0"),
+      0,
       StdClientIds2ClientID(StdClientIds::STATIC_INTERNAL),
-      RouteNextHopEntry(RouteForwardAction::DROP,
-        AdminDistance::MAX_ADMIN_DISTANCE));
-  updater.addRoute(RouterID(0), folly::IPAddressV6("::"), 0,
+      RouteNextHopEntry(
+          RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
+  updater.addRoute(
+      RouterID(0),
+      folly::IPAddressV6("::"),
+      0,
       StdClientIds2ClientID(StdClientIds::STATIC_INTERNAL),
-      RouteNextHopEntry(RouteForwardAction::DROP,
-        AdminDistance::MAX_ADMIN_DISTANCE));
+      RouteNextHopEntry(
+          RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
   auto newRt = updater.updateDone();
   if (newRt) {
     // If null default routes from above got added,

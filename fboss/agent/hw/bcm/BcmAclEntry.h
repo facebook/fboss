@@ -13,7 +13,8 @@
 #include "fboss/agent/hw/bcm/BcmAclStat.h"
 #include "fboss/agent/hw/bcm/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmSwitch;
 class AclEntry;
@@ -24,7 +25,7 @@ enum class MirrorDirection;
  * BcmAclEntry is the class to abstract an acl's resources in BcmSwitch
  */
 class BcmAclEntry {
-public:
+ public:
   static constexpr int kLocalIp4DstClassL3Id = 1;
   static constexpr int kLocalIp6DstClassL3Id = 2;
 
@@ -38,8 +39,11 @@ public:
    * Check whether the acl details of handle in h/w matches the s/w acl and
    * ranges
    */
-  static bool isStateSame(BcmSwitch* hw, int gid, BcmAclEntryHandle handle,
-                          const std::shared_ptr<AclEntry>& acl);
+  static bool isStateSame(
+      BcmSwitch* hw,
+      int gid,
+      BcmAclEntryHandle handle,
+      const std::shared_ptr<AclEntry>& acl);
   folly::Optional<std::string> getIngressAclMirror();
   folly::Optional<std::string> getEgressAclMirror();
 
@@ -60,4 +64,5 @@ public:
   BcmAclEntryHandle handle_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -29,7 +29,8 @@ extern "C" {
 
 #include "fboss/agent/state/RouteTypes.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 namespace {
 auto constexpr kAction = "action";
@@ -41,7 +42,7 @@ auto constexpr kRoutes = "routes";
 
 // TODO: Assumes we have only one VRF
 auto constexpr kDefaultVrf = 0;
-}
+} // namespace
 
 BcmRoute::BcmRoute(
     BcmSwitch* hw,
@@ -50,10 +51,11 @@ BcmRoute::BcmRoute(
     uint8_t len)
     : hw_(hw), vrf_(vrf), prefix_(addr), len_(len) {}
 
-void BcmRoute::initL3RouteFromArgs(opennsl_l3_route_t* rt,
-                                   opennsl_vrf_t vrf,
-                                   const folly::IPAddress& prefix,
-                                   uint8_t prefixLength) {
+void BcmRoute::initL3RouteFromArgs(
+    opennsl_l3_route_t* rt,
+    opennsl_vrf_t vrf,
+    const folly::IPAddress& prefix,
+    uint8_t prefixLength) {
   opennsl_l3_route_t_init(rt);
   rt->l3a_vrf = vrf;
   if (prefix.isV4()) {
@@ -63,11 +65,14 @@ void BcmRoute::initL3RouteFromArgs(opennsl_l3_route_t* rt,
         folly::IPAddressV4(folly::IPAddressV4::fetchMask(prefixLength))
             .toLongHBO();
   } else {
-    memcpy(&rt->l3a_ip6_net, prefix.asV6().toByteArray().data(),
-           sizeof(rt->l3a_ip6_net));
-    memcpy(&rt->l3a_ip6_mask,
-           folly::IPAddressV6::fetchMask(prefixLength).data(),
-           sizeof(rt->l3a_ip6_mask));
+    memcpy(
+        &rt->l3a_ip6_net,
+        prefix.asV6().toByteArray().data(),
+        sizeof(rt->l3a_ip6_net));
+    memcpy(
+        &rt->l3a_ip6_mask,
+        folly::IPAddressV6::fetchMask(prefixLength).data(),
+        sizeof(rt->l3a_ip6_mask));
     rt->l3a_flags |= OPENNSL_L3_IP6;
   }
 }
@@ -122,12 +127,11 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
         vrfAndIP2RouteCitr != warmBootCache->vrfAndIP2Route_end();
     if (hostRouteEntry_) {
       XLOG(DBG3) << "Dereferencing host prefix for " << prefix_ << "/"
-                 << static_cast<int>(len_) << " host egress Id : "
-                 << hostRouteEntry_->getEgressId();
+                 << static_cast<int>(len_)
+                 << " host egress Id : " << hostRouteEntry_->getEgressId();
       hostRouteEntry_.reset();
     }
-    hostRouteEntry_ =
-        programHostRoute(egressId, fwd, entryExistsInRouteTable);
+    hostRouteEntry_ = programHostRoute(egressId, fwd, entryExistsInRouteTable);
     if (entryExistsInRouteTable) {
       // If the entry already exists in the route table, programHostRoute()
       // removes it as well.
@@ -159,12 +163,13 @@ std::shared_ptr<BcmHost> BcmRoute::programHostRoute(
   return prefixHost;
 }
 
-void BcmRoute::programLpmRoute(opennsl_if_t egressId,
+void BcmRoute::programLpmRoute(
+    opennsl_if_t egressId,
     const RouteNextHopEntry& fwd) {
   opennsl_l3_route_t rt;
   initL3RouteT(&rt);
   rt.l3a_intf = egressId;
-  if (fwd.getNextHopSet().size() > 1) {         // multipath
+  if (fwd.getNextHopSet().size() > 1) { // multipath
     rt.l3a_flags |= OPENNSL_L3_MULTIPATH;
   } else if (fwd.getAction() == RouteForwardAction::DROP) {
     rt.l3a_flags |= OPENNSL_L3_DST_DISCARD;
@@ -176,13 +181,12 @@ void BcmRoute::programLpmRoute(opennsl_if_t egressId,
   if (vrfAndPfx2RouteCitr != warmBootCache->vrfAndPrefix2Route_end()) {
     // Lambda to compare if the routes are equivalent and thus we need to
     // do nothing
-    auto equivalent =
-      [=] (const opennsl_l3_route_t& newRoute,
-           const opennsl_l3_route_t& existingRoute) {
+    auto equivalent = [=](const opennsl_l3_route_t& newRoute,
+                          const opennsl_l3_route_t& existingRoute) {
       // Compare flags (primarily MULTIPATH vs non MULTIPATH
       // and egress id.
       return existingRoute.l3a_flags == newRoute.l3a_flags &&
-      existingRoute.l3a_intf == newRoute.l3a_intf;
+          existingRoute.l3a_intf == newRoute.l3a_intf;
     };
     if (!equivalent(rt, vrfAndPfx2RouteCitr->second)) {
       XLOG(DBG3) << "Updating route for : " << prefix_ << "/"
@@ -206,8 +210,16 @@ void BcmRoute::programLpmRoute(opennsl_if_t egressId,
       rt.l3a_flags |= OPENNSL_L3_REPLACE;
     }
     auto rc = opennsl_l3_route_add(hw_->getUnit(), &rt);
-    bcmCheckError(rc, "failed to create a route entry for ", prefix_, "/",
-        static_cast<int>(len_), " @ ", fwd, " @egress ", egressId);
+    bcmCheckError(
+        rc,
+        "failed to create a route entry for ",
+        prefix_,
+        "/",
+        static_cast<int>(len_),
+        " @ ",
+        fwd,
+        " @egress ",
+        egressId);
     XLOG(DBG3) << "created a route entry for " << prefix_.str() << "/"
                << static_cast<int>(len_) << " @egress " << egressId << " with "
                << fwd;
@@ -217,10 +229,11 @@ void BcmRoute::programLpmRoute(opennsl_if_t egressId,
   }
 }
 
-bool BcmRoute::deleteLpmRoute(int unitNumber,
-                              opennsl_vrf_t vrf,
-                              const folly::IPAddress& prefix,
-                              uint8_t prefixLength) {
+bool BcmRoute::deleteLpmRoute(
+    int unitNumber,
+    opennsl_vrf_t vrf,
+    const folly::IPAddress& prefix,
+    uint8_t prefixLength) {
   opennsl_l3_route_t rt;
   initL3RouteFromArgs(&rt, vrf, prefix, prefixLength);
   auto rc = opennsl_l3_route_delete(unitNumber, &rt);
@@ -266,12 +279,12 @@ bool BcmRouteTable::Key::operator<(const Key& k2) const {
 
 BcmRouteTable::BcmRouteTable(BcmSwitch* hw) : hw_(hw) {}
 
-BcmRouteTable::~BcmRouteTable() {
-
-}
+BcmRouteTable::~BcmRouteTable() {}
 
 BcmRoute* BcmRouteTable::getBcmRouteIf(
-    opennsl_vrf_t vrf, const folly::IPAddress& network, uint8_t mask) const {
+    opennsl_vrf_t vrf,
+    const folly::IPAddress& network,
+    uint8_t mask) const {
   Key key{network, mask, vrf};
   auto iter = fib_.find(key);
   if (iter == fib_.end()) {
@@ -281,17 +294,24 @@ BcmRoute* BcmRouteTable::getBcmRouteIf(
 }
 
 BcmRoute* BcmRouteTable::getBcmRoute(
-    opennsl_vrf_t vrf, const folly::IPAddress& network, uint8_t mask) const {
+    opennsl_vrf_t vrf,
+    const folly::IPAddress& network,
+    uint8_t mask) const {
   auto rt = getBcmRouteIf(vrf, network, mask);
   if (!rt) {
-    throw FbossError("Cannot find route for ", network,
-                     "/", static_cast<uint32_t>(mask), " @ vrf ", vrf);
+    throw FbossError(
+        "Cannot find route for ",
+        network,
+        "/",
+        static_cast<uint32_t>(mask),
+        " @ vrf ",
+        vrf);
   }
   return rt;
 }
 
-template<typename RouteT>
-void BcmRouteTable::addRoute(opennsl_vrf_t vrf, const RouteT *route) {
+template <typename RouteT>
+void BcmRouteTable::addRoute(opennsl_vrf_t vrf, const RouteT* route) {
   const auto& prefix = route->prefix();
 
   Key key{folly::IPAddress(prefix.network), prefix.mask, vrf};
@@ -300,9 +320,8 @@ void BcmRouteTable::addRoute(opennsl_vrf_t vrf, const RouteT *route) {
     SCOPE_FAIL {
       fib_.erase(ret.first);
     };
-    ret.first->second.reset(new BcmRoute(hw_, vrf,
-                                        folly::IPAddress(prefix.network),
-                                        prefix.mask));
+    ret.first->second.reset(
+        new BcmRoute(hw_, vrf, folly::IPAddress(prefix.network), prefix.mask));
   }
   CHECK(route->isResolved());
   RouteNextHopEntry fwd(route->getForwardInfo());
@@ -312,8 +331,8 @@ void BcmRouteTable::addRoute(opennsl_vrf_t vrf, const RouteT *route) {
   ret.first->second->program(fwd);
 }
 
-template<typename RouteT>
-void BcmRouteTable::deleteRoute(opennsl_vrf_t vrf, const RouteT *route) {
+template <typename RouteT>
+void BcmRouteTable::deleteRoute(opennsl_vrf_t vrf, const RouteT* route) {
   const auto& prefix = route->prefix();
   Key key{folly::IPAddress(prefix.network), prefix.mask, vrf};
   auto iter = fib_.find(key);
@@ -323,8 +342,9 @@ void BcmRouteTable::deleteRoute(opennsl_vrf_t vrf, const RouteT *route) {
   fib_.erase(iter);
 }
 
-template void BcmRouteTable::addRoute(opennsl_vrf_t, const RouteV4 *);
-template void BcmRouteTable::addRoute(opennsl_vrf_t, const RouteV6 *);
-template void BcmRouteTable::deleteRoute(opennsl_vrf_t, const RouteV4 *);
-template void BcmRouteTable::deleteRoute(opennsl_vrf_t, const RouteV6 *);
-}}
+template void BcmRouteTable::addRoute(opennsl_vrf_t, const RouteV4*);
+template void BcmRouteTable::addRoute(opennsl_vrf_t, const RouteV6*);
+template void BcmRouteTable::deleteRoute(opennsl_vrf_t, const RouteV4*);
+template void BcmRouteTable::deleteRoute(opennsl_vrf_t, const RouteV6*);
+} // namespace fboss
+} // namespace facebook

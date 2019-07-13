@@ -23,5 +23,5 @@ class Wedge100I2CBus : public PCA9548MuxedBus<32> {
   void wireUpPorts(PortLeaves& leaves) override;
 };
 
-}
-} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

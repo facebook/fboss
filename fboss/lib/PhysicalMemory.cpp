@@ -69,8 +69,12 @@ void PhysicalMemory::mmap() {
 
   // map it now
   virtAddr_ = ::mmap(
-      nullptr, size_, PROT_READ | PROT_WRITE,
-      MAP_SHARED, memFile_.fd(), phyAddr_);
+      nullptr,
+      size_,
+      PROT_READ | PROT_WRITE,
+      MAP_SHARED,
+      memFile_.fd(),
+      phyAddr_);
   if (virtAddr_ == (void*)-1) {
     virtAddr_ = nullptr;
     auto errnoCopy = errno;

@@ -10,22 +10,31 @@
 
 #include "fboss/agent/NdpCache.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/types.h"
 #include "fboss/agent/packet/ICMPHdr.h"
+#include "fboss/agent/types.h"
 
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
 #include <folly/logging/xlog.h>
 #include <netinet/icmp6.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-NdpCache::NdpCache(SwSwitch* sw, const SwitchState* state,
-                   VlanID vlanID, std::string vlanName, InterfaceID intfID)
-    : NeighborCache<NdpTable>(sw, vlanID, vlanName, intfID,
-                              state->getNdpTimeout(),
-                              state->getMaxNeighborProbes(),
-                              state->getStaleEntryInterval()) {}
+NdpCache::NdpCache(
+    SwSwitch* sw,
+    const SwitchState* state,
+    VlanID vlanID,
+    std::string vlanName,
+    InterfaceID intfID)
+    : NeighborCache<NdpTable>(
+          sw,
+          vlanID,
+          vlanName,
+          intfID,
+          state->getNdpTimeout(),
+          state->getMaxNeighborProbes(),
+          state->getStaleEntryInterval()) {}
 
 void NdpCache::sentNeighborSolicitation(folly::IPAddressV6 ip) {
   setPendingEntry(ip);
@@ -167,4 +176,5 @@ std::list<NdpEntryThrift> NdpCache::getNdpCacheData() {
   return getCacheData<NdpEntryThrift>();
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

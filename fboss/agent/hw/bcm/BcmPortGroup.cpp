@@ -8,21 +8,22 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
-#include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/bcm/BcmPortTable.h"
-#include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmPort.h"
+#include "fboss/agent/hw/bcm/BcmPortTable.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/state/Port.h"
 
 namespace {
 using facebook::fboss::BcmPortGroup;
-using facebook::fboss::cfg::PortSpeed;
 using facebook::fboss::FbossError;
 using facebook::fboss::LaneSpeeds;
+using facebook::fboss::cfg::PortSpeed;
 BcmPortGroup::LaneMode neededLaneModeForSpeed(
-    PortSpeed speed, LaneSpeeds laneSpeeds) {
+    PortSpeed speed,
+    LaneSpeeds laneSpeeds) {
   if (speed == PortSpeed::DEFAULT) {
     throw FbossError("Speed cannot be DEFAULT if flexports are enabled");
   }
@@ -47,20 +48,21 @@ BcmPortGroup::LaneMode neededLaneModeForSpeed(
   throw FbossError("Cannot support speed ", speed);
 }
 
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-BcmPortGroup::BcmPortGroup(BcmSwitch* hw,
-                           BcmPort* controllingPort,
-                           std::vector<BcmPort*> allPorts)
+BcmPortGroup::BcmPortGroup(
+    BcmSwitch* hw,
+    BcmPort* controllingPort,
+    std::vector<BcmPort*> allPorts)
     : hw_(hw),
       controllingPort_(controllingPort),
       allPorts_(std::move(allPorts)) {
-
   if (allPorts_.size() != 4) {
-    throw FbossError("Port groups must have exactly four members. Found ",
-                     allPorts_.size());
+    throw FbossError(
+        "Port groups must have exactly four members. Found ", allPorts_.size());
   }
 
   // We expect all ports to run at the same speed and are passed in in
@@ -89,15 +91,17 @@ BcmPortGroup::BcmPortGroup(BcmSwitch* hw,
       laneMode_ = LaneMode::SINGLE;
       break;
     default:
-      throw FbossError("Unexpected number of lanes retrieved for bcm port ",
-                       controllingPort_->getBcmPortId());
+      throw FbossError(
+          "Unexpected number of lanes retrieved for bcm port ",
+          controllingPort_->getBcmPortId());
   }
 }
 
 BcmPortGroup::~BcmPortGroup() {}
 
 BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
-    const std::vector<Port*>& ports, LaneSpeeds laneSpeeds) {
+    const std::vector<Port*>& ports,
+    LaneSpeeds laneSpeeds) {
   auto desiredMode = LaneMode::QUAD;
 
   for (int lane = 0; lane < ports.size(); ++lane) {
@@ -134,8 +138,11 @@ std::vector<Port*> BcmPortGroup::getSwPorts(
     // Make sure the ports support the configured speed.
     // We check this even if the port is disabled.
     if (!bcmPort->supportsSpeed(swPort->getSpeed())) {
-      throw FbossError("Port ", swPort->getID(), " does not support speed ",
-                       static_cast<int>(swPort->getSpeed()));
+      throw FbossError(
+          "Port ",
+          swPort->getID(),
+          " does not support speed ",
+          static_cast<int>(swPort->getSpeed()));
     }
     ports.push_back(swPort);
   }
@@ -150,7 +157,7 @@ bool BcmPortGroup::validConfiguration(
     const std::shared_ptr<SwitchState>& state) const {
   try {
     calculateDesiredLaneMode(
-      getSwPorts(state), controllingPort_->supportedLaneSpeeds());
+        getSwPorts(state), controllingPort_->supportedLaneSpeeds());
   } catch (const std::exception& ex) {
     XLOG(DBG1) << "Received exception determining lane mode: " << ex.what();
     return false;
@@ -159,7 +166,7 @@ bool BcmPortGroup::validConfiguration(
 }
 
 void BcmPortGroup::reconfigureIfNeeded(
-  const std::shared_ptr<SwitchState>& state) {
+    const std::shared_ptr<SwitchState>& state) {
   // This logic is a bit messy. We could encode some notion of port
   // groups into the swith state somehow so it is easy to generate
   // deltas for these. For now, we need pass around the SwitchState
@@ -167,8 +174,8 @@ void BcmPortGroup::reconfigureIfNeeded(
   auto ports = getSwPorts(state);
   // ports is guaranteed to be the same size as allPorts_
   auto speedChanged = ports[0]->getSpeed() != portSpeed_;
-  auto desiredLaneMode = calculateDesiredLaneMode(
-    ports, controllingPort_->supportedLaneSpeeds());
+  auto desiredLaneMode =
+      calculateDesiredLaneMode(ports, controllingPort_->supportedLaneSpeeds());
   if (speedChanged) {
     controllingPort_->getPlatformPort()->linkSpeedChanged(ports[0]->getSpeed());
   }
@@ -178,9 +185,8 @@ void BcmPortGroup::reconfigureIfNeeded(
 }
 
 void BcmPortGroup::reconfigureLaneMode(
-  const std::shared_ptr<SwitchState>& state,
-  LaneMode newLaneMode
-) {
+    const std::shared_ptr<SwitchState>& state,
+    LaneMode newLaneMode) {
   // The logic for this follows the steps required for flex-port support
   // outlined in the sdk documentation.
   XLOG(DBG1) << "Reconfiguring port " << controllingPort_->getBcmPortId()
@@ -207,4 +213,5 @@ void BcmPortGroup::reconfigureLaneMode(
   }
 }
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -11,21 +11,23 @@
 
 #include "fboss/agent/platforms/wedge/GalaxyPlatform.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class WedgePortMapping;
 class PlatformProductInfo;
 
 class GalaxyFCPlatform : public GalaxyPlatform {
  public:
-  explicit GalaxyFCPlatform(std::unique_ptr<PlatformProductInfo> productInfo) :
-      GalaxyPlatform(std::move(productInfo)) {}
+  explicit GalaxyFCPlatform(std::unique_ptr<PlatformProductInfo> productInfo)
+      : GalaxyPlatform(std::move(productInfo)) {}
 
  private:
   std::unique_ptr<WedgePortMapping> createPortMapping() override;
 
-  GalaxyFCPlatform(GalaxyFCPlatform const &) = delete;
-  GalaxyFCPlatform& operator=(GalaxyFCPlatform const &) = delete;
+  GalaxyFCPlatform(GalaxyFCPlatform const&) = delete;
+  GalaxyFCPlatform& operator=(GalaxyFCPlatform const&) = delete;
 };
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

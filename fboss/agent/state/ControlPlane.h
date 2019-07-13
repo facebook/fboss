@@ -10,20 +10,21 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/PortQueue.h"
+#include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
 #include <vector>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwitchState;
 
 struct ControlPlaneFields {
   using RxReasonToQueue =
-    boost::container::flat_map<cfg::PacketRxReason, uint8_t>;
+      boost::container::flat_map<cfg::PacketRxReason, uint8_t>;
 
   ControlPlaneFields() {}
 
@@ -43,13 +44,13 @@ struct ControlPlaneFields {
  * on the switch.
  */
 class ControlPlane : public NodeBaseT<ControlPlane, ControlPlaneFields> {
-public:
+ public:
   using RxReasonToQueue = ControlPlaneFields::RxReasonToQueue;
 
   ControlPlane() {}
 
-  static std::shared_ptr<ControlPlane>
-  fromFollyDynamic(const folly::dynamic& json) {
+  static std::shared_ptr<ControlPlane> fromFollyDynamic(
+      const folly::dynamic& json) {
     const auto& fields = ControlPlaneFields::fromFollyDynamic(json);
     return std::make_shared<ControlPlane>(fields);
   }
@@ -86,9 +87,10 @@ public:
     return !(*this == controlPlane);
   }
 
-private:
+ private:
   // Inherit the constructors required for clone()
   using NodeBaseT::NodeBaseT;
   friend class CloneAllocator;
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

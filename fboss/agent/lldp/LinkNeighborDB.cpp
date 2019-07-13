@@ -1,19 +1,19 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #include "fboss/agent/lldp/LinkNeighborDB.h"
 
-using std::chrono::steady_clock;
 using std::lock_guard;
 using std::mutex;
 using std::vector;
+using std::chrono::steady_clock;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 LinkNeighborDB::NeighborKey::NeighborKey(const LinkNeighbor& neighbor)
-  : chassisIdType_(neighbor.getChassisIdType()),
-    portIdType_(neighbor.getPortIdType()),
-    chassisId_(neighbor.getChassisId()),
-    portId_(neighbor.getPortId()) {
-}
+    : chassisIdType_(neighbor.getChassisIdType()),
+      portIdType_(neighbor.getPortIdType()),
+      chassisId_(neighbor.getChassisId()),
+      portId_(neighbor.getPortId()) {}
 
 bool LinkNeighborDB::NeighborKey::operator<(const NeighborKey& other) const {
   if (chassisIdType_ < other.chassisIdType_) {
@@ -44,14 +44,13 @@ bool LinkNeighborDB::NeighborKey::operator<(const NeighborKey& other) const {
 }
 
 bool LinkNeighborDB::NeighborKey::operator==(const NeighborKey& other) const {
-  return (chassisIdType_ == other.chassisIdType_ &&
-          portIdType_ == other.portIdType_ &&
-          chassisId_ == other.chassisId_ &&
-          portId_ == other.portId_);
+  return (
+      chassisIdType_ == other.chassisIdType_ &&
+      portIdType_ == other.portIdType_ && chassisId_ == other.chassisId_ &&
+      portId_ == other.portId_);
 }
 
-LinkNeighborDB::LinkNeighborDB() {
-}
+LinkNeighborDB::LinkNeighborDB() {}
 
 void LinkNeighborDB::update(const LinkNeighbor& neighbor) {
   lock_guard<mutex> guard(mutex_);
@@ -62,8 +61,7 @@ void LinkNeighborDB::update(const LinkNeighbor& neighbor) {
   auto it = byLocalPort_.find(neighbor.getLocalPort());
   if (it == byLocalPort_.end()) {
     // This is the first time we have seen data for this port.
-    auto ret = byLocalPort_.emplace(neighbor.getLocalPort(),
-                                    NeighborMap());
+    auto ret = byLocalPort_.emplace(neighbor.getLocalPort(), NeighborMap());
     it = ret.first;
   }
 
@@ -138,4 +136,5 @@ void LinkNeighborDB::pruneLocked(steady_clock::time_point now) {
   }
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

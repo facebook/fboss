@@ -9,13 +9,14 @@
  */
 #pragma once
 
-#include <folly/dynamic.h>
 #include <folly/FBString.h>
 #include <folly/Optional.h>
+#include <folly/dynamic.h>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class MatchAction {
  public:
@@ -117,4 +118,5 @@ class MatchAction {
   folly::Optional<std::string> egressMirror_{folly::none};
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

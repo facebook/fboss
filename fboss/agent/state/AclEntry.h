@@ -9,22 +9,23 @@
  */
 #pragma once
 
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/types.h"
-#include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/MatchAction.h"
+#include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/types.h"
 
+#include <folly/IPAddress.h>
+#include <folly/MacAddress.h>
+#include <folly/Optional.h>
 #include <string>
 #include <utility>
-#include <folly/IPAddress.h>
-#include <folly/Optional.h>
-#include <folly/MacAddress.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class AclTtl {
-public:
+ public:
   AclTtl(const AclTtl& ttl) {
     setValue(ttl.value_);
     setMask(ttl.mask_);
@@ -73,7 +74,8 @@ public:
 
   folly::dynamic toFollyDynamic() const;
   static AclTtl fromFollyDynamic(const folly::dynamic& ttlJson);
-private:
+
+ private:
   uint16_t value_;
   uint16_t mask_;
 };
@@ -86,10 +88,9 @@ struct AclEntryFields {
   static const uint16_t kMaxL4Port = 65535;
 
   explicit AclEntryFields(int priority, const std::string& name)
-    : priority(priority),
-      name(name) {}
+      : priority(priority), name(name) {}
 
-  template<typename Fn>
+  template <typename Fn>
   void forEachChild(Fn) {}
 
   folly::dynamic toFollyDynamic() const;
@@ -122,18 +123,16 @@ struct AclEntryFields {
  * AclEntry stores state about one of the access control entries on
  * the switch.
  */
-class AclEntry :
-    public NodeBaseT<AclEntry, AclEntryFields> {
+class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
  public:
   explicit AclEntry(int priority, const std::string& name);
-  static std::shared_ptr<AclEntry>
-  fromFollyDynamic(const folly::dynamic& json) {
+  static std::shared_ptr<AclEntry> fromFollyDynamic(
+      const folly::dynamic& json) {
     const auto& fields = AclEntryFields::fromFollyDynamic(json);
     return std::make_shared<AclEntry>(fields);
   }
 
-  static std::shared_ptr<AclEntry>
-  fromJson(const folly::fbstring& jsonStr) {
+  static std::shared_ptr<AclEntry> fromJson(const folly::fbstring& jsonStr) {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
@@ -143,25 +142,25 @@ class AclEntry :
 
   bool operator==(const AclEntry& acl) const {
     return getFields()->priority == acl.getPriority() &&
-           getFields()->name == acl.getID() &&
-           getFields()->actionType == acl.getActionType() &&
-           getFields()->aclAction == acl.getAclAction() &&
-           getFields()->srcIp == acl.getSrcIp() &&
-           getFields()->dstIp == acl.getDstIp() &&
-           getFields()->proto == acl.getProto() &&
-           getFields()->tcpFlagsBitMap == acl.getTcpFlagsBitMap() &&
-           getFields()->srcPort == acl.getSrcPort() &&
-           getFields()->dstPort == acl.getDstPort() &&
-           getFields()->ipFrag == acl.getIpFrag() &&
-           getFields()->icmpType == acl.getIcmpType() &&
-           getFields()->icmpCode == acl.getIcmpCode() &&
-           getFields()->dscp == acl.getDscp() &&
-           getFields()->dstMac == acl.getDstMac() &&
-           getFields()->ipType == acl.getIpType() &&
-           getFields()->ttl == acl.getTtl() &&
-           getFields()->l4SrcPort == acl.getL4SrcPort() &&
-           getFields()->l4DstPort == acl.getL4DstPort() &&
-           getFields()->lookupClass == acl.getLookupClass();
+        getFields()->name == acl.getID() &&
+        getFields()->actionType == acl.getActionType() &&
+        getFields()->aclAction == acl.getAclAction() &&
+        getFields()->srcIp == acl.getSrcIp() &&
+        getFields()->dstIp == acl.getDstIp() &&
+        getFields()->proto == acl.getProto() &&
+        getFields()->tcpFlagsBitMap == acl.getTcpFlagsBitMap() &&
+        getFields()->srcPort == acl.getSrcPort() &&
+        getFields()->dstPort == acl.getDstPort() &&
+        getFields()->ipFrag == acl.getIpFrag() &&
+        getFields()->icmpType == acl.getIcmpType() &&
+        getFields()->icmpCode == acl.getIcmpCode() &&
+        getFields()->dscp == acl.getDscp() &&
+        getFields()->dstMac == acl.getDstMac() &&
+        getFields()->ipType == acl.getIpType() &&
+        getFields()->ttl == acl.getTtl() &&
+        getFields()->l4SrcPort == acl.getL4SrcPort() &&
+        getFields()->l4DstPort == acl.getL4DstPort() &&
+        getFields()->lookupClass == acl.getLookupClass();
   }
 
   int getPriority() const {
@@ -321,4 +320,5 @@ class AclEntry :
   friend class CloneAllocator;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

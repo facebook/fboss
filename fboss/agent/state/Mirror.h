@@ -7,12 +7,11 @@
 
 #include <folly/IPAddress.h>
 #include <folly/Optional.h>
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/types.h"
-#include "fboss/agent/gen-cpp2/switch_config_constants.h"
-
 
 namespace facebook {
 namespace fboss {
@@ -48,8 +47,8 @@ struct MirrorTunnel {
         greProtocol(proto) {}
 
   bool operator==(const MirrorTunnel& rhs) const {
-    return srcIp == rhs.srcIp && dstIp == rhs.dstIp &&
-        srcMac == rhs.srcMac && dstMac == rhs.dstMac && ttl == rhs.ttl &&
+    return srcIp == rhs.srcIp && dstIp == rhs.dstIp && srcMac == rhs.srcMac &&
+        dstMac == rhs.dstMac && ttl == rhs.ttl &&
         greProtocol == rhs.greProtocol;
   }
 
@@ -99,11 +98,11 @@ struct MirrorFields {
 
 class Mirror : public NodeBaseT<Mirror, MirrorFields> {
  public:
-   Mirror(
-       std::string name,
-       folly::Optional<PortID> egressPort,
-       folly::Optional<folly::IPAddress> destinationIp,
-       uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_);
+  Mirror(
+      std::string name,
+      folly::Optional<PortID> egressPort,
+      folly::Optional<folly::IPAddress> destinationIp,
+      uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_);
   std::string getID() const;
   folly::Optional<PortID> getEgressPort() const;
   folly::Optional<folly::IPAddress> getDestinationIp() const;

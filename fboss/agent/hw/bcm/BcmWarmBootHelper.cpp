@@ -4,8 +4,8 @@
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/Utils.h"
 
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 #include <folly/FileUtil.h>
 #include <folly/json.h>
@@ -14,9 +14,10 @@
 
 using std::string;
 
-DEFINE_bool(can_warm_boot, true,
-            "Enable/disable warm boot functionality");
-DEFINE_string(switch_state_file, "switch_state",
+DEFINE_bool(can_warm_boot, true, "Enable/disable warm boot functionality");
+DEFINE_string(
+    switch_state_file,
+    "switch_state",
     "File for dumping switch state JSON in on exit");
 
 namespace {
@@ -45,9 +46,10 @@ bool removeFile(const string& filename) {
       errno, "error while trying to remove warm boot file ", filename);
 }
 
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 DiscBackedBcmWarmBootHelper::DiscBackedBcmWarmBootHelper(
     int unit,
@@ -110,8 +112,7 @@ std::string DiscBackedBcmWarmBootHelper::shutdownSdkDumpFile() const {
 
 void DiscBackedBcmWarmBootHelper::setCanWarmBoot() {
   auto wbFlag = warmBootFlag();
-  auto updateFd = creat(wbFlag.c_str(),
-                        S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+  auto updateFd = creat(wbFlag.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
   if (updateFd < 0) {
     throw SysError(errno, "Unable to create ", wbFlag);
   }

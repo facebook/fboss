@@ -14,7 +14,8 @@
 
 #include <thread>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * PcapWriter listes to a PcapQueue and writes the packets it receives
@@ -25,9 +26,10 @@ namespace facebook { namespace fboss {
 class PcapWriter {
  public:
   explicit PcapWriter(uint32_t maxBufferedPkts = 0);
-  explicit PcapWriter(folly::StringPiece path,
-                      bool overwriteExisting = false,
-                      uint32_t maxBufferedPkts = 0);
+  explicit PcapWriter(
+      folly::StringPiece path,
+      bool overwriteExisting = false,
+      uint32_t maxBufferedPkts = 0);
   virtual ~PcapWriter();
 
   void start(folly::StringPiece path, bool overwriteExisting = false);
@@ -69,8 +71,8 @@ class PcapWriter {
 
  private:
   // Forbidden copy constructor and assignment operator
-  PcapWriter(PcapWriter const &) = delete;
-  PcapWriter& operator=(PcapWriter const &) = delete;
+  PcapWriter(PcapWriter const&) = delete;
+  PcapWriter& operator=(PcapWriter const&) = delete;
 
   void threadMain();
   void writeHeader();
@@ -82,4 +84,5 @@ class PcapWriter {
   std::thread thread_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -14,7 +14,8 @@
 struct libusb_context;
 struct libusb_device;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class UsbHandle;
 
@@ -55,9 +56,7 @@ class UsbDevice {
    *
    * This returns the first device with the specified vendor and product ID.
    */
-  static UsbDevice find(libusb_context* ctx,
-                        uint16_t vendor,
-                        uint16_t product);
+  static UsbDevice find(libusb_context* ctx, uint16_t vendor, uint16_t product);
 
  private:
   UsbDevice(const UsbDevice& other) = delete;
@@ -66,4 +65,5 @@ class UsbDevice {
   libusb_device* dev_{nullptr};
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -9,19 +9,20 @@
  */
 #pragma once
 
-#include "fboss/agent/types.h"
+#include <folly/io/async/EventBase.h>
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/state/Interface.h"
-#include <folly/io/async/EventBase.h>
+#include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
 
 extern "C" {
-#include <netlink/socket.h>
 #include <netlink/object.h>
+#include <netlink/socket.h>
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class InterfaceMap;
 class RxPacket;
@@ -30,7 +31,7 @@ class TunIntf;
 
 class TunManager : public StateObserver {
  public:
-  TunManager(SwSwitch *sw, folly::EventBase *evb);
+  TunManager(SwSwitch* sw, folly::EventBase* evb);
   ~TunManager() override;
 
   /**
@@ -48,7 +49,8 @@ class TunManager : public StateObserver {
    *         false The packet is dropped due to errors
    */
   virtual bool sendPacketToHost(
-      InterfaceID dstIfID, std::unique_ptr<RxPacket> pkt);
+      InterfaceID dstIfID,
+      std::unique_ptr<RxPacket> pkt);
 
   /**
    * Performs probe procedure to read existing TUN interface info from the host
@@ -80,8 +82,8 @@ class TunManager : public StateObserver {
 
  private:
   // no copy to assign
-  TunManager(const TunManager &) = delete;
-  TunManager& operator=(const TunManager &) = delete;
+  TunManager(const TunManager&) = delete;
+  TunManager& operator=(const TunManager&) = delete;
 
   /**
    * start/stop packet forwarding on all TUN interfaces
@@ -95,8 +97,8 @@ class TunManager : public StateObserver {
    * 2. When we want to create a new TUN interface in linux
    */
   void addExistingIntf(const std::string& name, int ifIndex);
-  void addNewIntf(
-      InterfaceID ifID, bool isUp, const Interface::Addresses& addrs);
+  void
+  addNewIntf(InterfaceID ifID, bool isUp, const Interface::Addresses& addrs);
 
   // Remove an existing TUN interface
   void removeIntf(InterfaceID ifID);
@@ -172,12 +174,12 @@ class TunManager : public StateObserver {
   /**
    * Netlink callback for processing and storing links
    */
-  static void linkProcessor(struct nl_object *obj, void *data);
+  static void linkProcessor(struct nl_object* obj, void* data);
 
   /**
    * Netlink callback for processing and storing addresses
    */
-  static void addressProcessor(struct nl_object *obj, void *data);
+  static void addressProcessor(struct nl_object* obj, void* data);
 
   /**
    * Lookup host for existing Tun interfaces and their addresses.
@@ -202,16 +204,23 @@ class TunManager : public StateObserver {
   static boost::container::flat_map<InterfaceID, bool> getInterfaceStatus(
       std::shared_ptr<SwitchState> state);
 
-  template<typename MAPNAME,
-           typename CHANGEFN, typename ADDFN, typename REMOVEFN>
-  void applyChanges(const MAPNAME& oldMap, const MAPNAME& newMap,
-                    CHANGEFN changeFn, ADDFN addFn, REMOVEFN removeFn);
+  template <
+      typename MAPNAME,
+      typename CHANGEFN,
+      typename ADDFN,
+      typename REMOVEFN>
+  void applyChanges(
+      const MAPNAME& oldMap,
+      const MAPNAME& newMap,
+      CHANGEFN changeFn,
+      ADDFN addFn,
+      REMOVEFN removeFn);
 
-  SwSwitch *sw_{nullptr};
-  folly::EventBase *evb_{nullptr};
+  SwSwitch* sw_{nullptr};
+  folly::EventBase* evb_{nullptr};
 
   // Netlink socket for managing interface/addresses in Host/Linux
-  nl_sock *sock_{nullptr};
+  nl_sock* sock_{nullptr};
 
   /**
    * The mutex used to protect `intfs_` which can be used by
@@ -240,4 +249,5 @@ class TunManager : public StateObserver {
   };
 };
 
-}}  // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

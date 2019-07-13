@@ -25,7 +25,8 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 namespace ncachehelpers {
 
@@ -58,7 +59,7 @@ bool checkVlanAndIntf(
   return true;
 }
 
-}
+} // namespace ncachehelpers
 
 template <typename NTable>
 void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
@@ -85,11 +86,9 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
                  << " on interface " << fields.interfaceID << " for vlan "
                  << vlanID;
     } else {
-      if (node->getMac() == fields.mac &&
-          node->getPort() == fields.port &&
+      if (node->getMac() == fields.mac && node->getPort() == fields.port &&
           node->getIntfID() == fields.interfaceID &&
-          node->getState() == fields.state &&
-          !node->isPending()) {
+          node->getState() == fields.state && !node->isPending()) {
         // This entry was already updated while we were waiting on the lock.
         return nullptr;
       }
@@ -102,10 +101,9 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
     return newState;
   };
 
-  sw_->updateState(folly::to<std::string>("add neighbor ", fields.ip),
-                   std::move(updateFn));
+  sw_->updateState(
+      folly::to<std::string>("add neighbor ", fields.ip), std::move(updateFn));
 }
-
 
 template <typename NTable>
 void NeighborCacheImpl<NTable>::programPendingEntry(Entry* entry, bool force) {
@@ -113,8 +111,8 @@ void NeighborCacheImpl<NTable>::programPendingEntry(Entry* entry, bool force) {
 
   auto fields = entry->getFields();
   auto vlanID = vlanID_;
-  auto updateFn = [fields, vlanID, force](
-    const std::shared_ptr<SwitchState>& state)
+  auto updateFn =
+      [fields, vlanID, force](const std::shared_ptr<SwitchState>& state)
       -> std::shared_ptr<SwitchState> {
     if (!ncachehelpers::checkVlanAndIntf<NTable>(state, fields, vlanID)) {
       // Either the vlan or intf is no longer valid.
@@ -143,8 +141,8 @@ void NeighborCacheImpl<NTable>::programPendingEntry(Entry* entry, bool force) {
   };
 
   sw_->updateStateNoCoalescing(
-    folly::to<std::string>("add pending entry ", fields.ip),
-    std::move(updateFn));
+      folly::to<std::string>("add pending entry ", fields.ip),
+      std::move(updateFn));
 }
 
 template <typename NTable>
@@ -202,31 +200,32 @@ template <typename NTable>
 void NeighborCacheImpl<NTable>::repopulate(std::shared_ptr<NTable> table) {
   for (auto it = table->begin(); it != table->end(); ++it) {
     auto entry = *it;
-    auto state = entry->isPending() ? NeighborEntryState::INCOMPLETE :
-      NeighborEntryState::STALE;
+    auto state = entry->isPending() ? NeighborEntryState::INCOMPLETE
+                                    : NeighborEntryState::STALE;
     setEntryInternal(*entry->getFields(), state);
   }
 }
 
 template <typename NTable>
-void NeighborCacheImpl<NTable>::setEntry(AddressType ip,
-                                         folly::MacAddress mac,
-                                         PortDescriptor port,
-                                         NeighborEntryState state) {
-  auto entry = setEntryInternal(
-    EntryFields(ip, mac, port, intfID_), state);
+void NeighborCacheImpl<NTable>::setEntry(
+    AddressType ip,
+    folly::MacAddress mac,
+    PortDescriptor port,
+    NeighborEntryState state) {
+  auto entry = setEntryInternal(EntryFields(ip, mac, port, intfID_), state);
   if (entry) {
     programEntry(entry);
   }
 }
 
 template <typename NTable>
-void NeighborCacheImpl<NTable>::setExistingEntry(AddressType ip,
-                                                 folly::MacAddress mac,
-                                                 PortDescriptor port,
-                                                 NeighborEntryState state) {
-  auto entry = setEntryInternal(
-    EntryFields(ip, mac, port, intfID_), state, false);
+void NeighborCacheImpl<NTable>::setExistingEntry(
+    AddressType ip,
+    folly::MacAddress mac,
+    PortDescriptor port,
+    NeighborEntryState state) {
+  auto entry =
+      setEntryInternal(EntryFields(ip, mac, port, intfID_), state, false);
   if (entry) {
     // only program an entry if one exists
     programEntry(entry);
@@ -234,8 +233,9 @@ void NeighborCacheImpl<NTable>::setExistingEntry(AddressType ip,
 }
 
 template <typename NTable>
-void NeighborCacheImpl<NTable>::updateEntryState(AddressType ip,
-                                                 NeighborEntryState state) {
+void NeighborCacheImpl<NTable>::updateEntryState(
+    AddressType ip,
+    NeighborEntryState state) {
   auto entry = getCacheEntry(ip);
   if (entry) {
     entry->updateState(state);
@@ -244,9 +244,9 @@ void NeighborCacheImpl<NTable>::updateEntryState(AddressType ip,
 
 template <typename NTable>
 NeighborCacheEntry<NTable>* NeighborCacheImpl<NTable>::setEntryInternal(
-  const EntryFields& fields,
-  NeighborEntryState state,
-  bool add) {
+    const EntryFields& fields,
+    NeighborEntryState state,
+    bool add) {
   auto entry = getCacheEntry(fields.ip);
   if (entry) {
     auto changed = !entry->fieldsMatch(fields);
@@ -265,8 +265,7 @@ NeighborCacheEntry<NTable>* NeighborCacheImpl<NTable>::setEntryInternal(
 }
 
 template <typename NTable>
-void NeighborCacheImpl<NTable>::setPendingEntry(AddressType ip,
-                                                bool force) {
+void NeighborCacheImpl<NTable>::setPendingEntry(AddressType ip, bool force) {
   if (!force && getCacheEntry(ip)) {
     // only overwrite an existing entry with a pending entry if we say it is
     // ok with the 'force' parameter
@@ -274,8 +273,9 @@ void NeighborCacheImpl<NTable>::setPendingEntry(AddressType ip,
   }
 
   auto entry = setEntryInternal(
-    EntryFields(ip, intfID_, NeighborState::PENDING),
-    NeighborEntryState::INCOMPLETE, true);
+      EntryFields(ip, intfID_, NeighborState::PENDING),
+      NeighborEntryState::INCOMPLETE,
+      true);
   if (entry) {
     programPendingEntry(entry, force);
   }
@@ -329,7 +329,8 @@ bool NeighborCacheImpl<NTable>::removeEntry(AddressType ip) {
 
 template <typename NTable>
 bool NeighborCacheImpl<NTable>::flushEntryFromSwitchState(
-    std::shared_ptr<SwitchState>* state, AddressType ip) {
+    std::shared_ptr<SwitchState>* state,
+    AddressType ip) {
   auto* vlan = (*state)->getVlans()->getVlan(vlanID_).get();
   auto* table = vlan->template getNeighborTable<NTable>().get();
   const auto& entry = table->getNodeIf(ip);
@@ -357,9 +358,8 @@ void NeighborCacheImpl<NTable>::flushEntry(AddressType ip, bool* flushed) {
   }
 
   // flush from SwitchState
-  auto updateFn =
-    [this, ip, flushed](const std::shared_ptr<SwitchState>& state)
-        -> std::shared_ptr<SwitchState> {
+  auto updateFn = [this, ip, flushed](const std::shared_ptr<SwitchState>& state)
+      -> std::shared_ptr<SwitchState> {
     std::shared_ptr<SwitchState> newState{state};
     if (flushEntryFromSwitchState(&newState, ip)) {
       if (flushed) {
@@ -433,4 +433,5 @@ folly::Optional<NeighborEntryThrift> NeighborCacheImpl<NTable>::getCacheData(
   }
   return cachedNeighborEntry;
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

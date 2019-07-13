@@ -9,45 +9,46 @@
  */
 #pragma once
 
+#include <cstddef>
 #include <functional>
 #include <memory>
 #include <type_traits>
-#include <cstddef>
 
 #include <folly/functional/ApplyTuple.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-template<typename NODE>
+template <typename NODE>
 class DeltaValue;
 
-template<typename MAP>
+template <typename MAP>
 class MapPointerTraits {
  public:
-   using RawConstPointerType = const MAP*;
-   // Embed const in MapPointerType for raw pointers.
-   // Since we want to use both raw and unique_ptr,
-   // we don't want to add const to the Map pointer type
-   // in function declarations, where we will want to move
-   // from unique_ptr (moving from const unique_ptr is not
-   // permitted since its a modifying operation).
-   using MapPointerType = const MAP*;
-   static RawConstPointerType getRawPointer(MapPointerType map) {
-      return map;
-   }
+  using RawConstPointerType = const MAP*;
+  // Embed const in MapPointerType for raw pointers.
+  // Since we want to use both raw and unique_ptr,
+  // we don't want to add const to the Map pointer type
+  // in function declarations, where we will want to move
+  // from unique_ptr (moving from const unique_ptr is not
+  // permitted since its a modifying operation).
+  using MapPointerType = const MAP*;
+  static RawConstPointerType getRawPointer(MapPointerType map) {
+    return map;
+  }
 };
 
 template <typename MAP>
 class MapUniquePointerTraits {
  public:
-   using RawConstPointerType = const MAP*;
-   // Non const MapPointer type, const unique_ptr is
-   // severly restrictive when received as a function
-   // argument, since it can't be moved from.
-   using MapPointerType = std::unique_ptr<MAP>;
-   static RawConstPointerType getRawPointer(const MapPointerType& map) {
-      return map.get();
-   }
+  using RawConstPointerType = const MAP*;
+  // Non const MapPointer type, const unique_ptr is
+  // severly restrictive when received as a function
+  // argument, since it can't be moved from.
+  using MapPointerType = std::unique_ptr<MAP>;
+  static RawConstPointerType getRawPointer(const MapPointerType& map) {
+    return map.get();
+  }
 };
 /*
  * NodeMapDelta contains code for examining the differences between two NodeMap
@@ -56,9 +57,10 @@ class MapUniquePointerTraits {
  * The main function of this class is the Iterator that it provides.  This
  * allows caller to walk over the changed, added, and removed nodes.
  */
-template<typename MAP,
-  typename VALUE = DeltaValue<typename MAP::Node>,
-  typename MAPPOINTERTRAITS = MapPointerTraits<MAP>>
+template <
+    typename MAP,
+    typename VALUE = DeltaValue<typename MAP::Node>,
+    typename MAPPOINTERTRAITS = MapPointerTraits<MAP>>
 class NodeMapDelta {
  public:
   using MapPointerType = typename MAPPOINTERTRAITS::MapPointerType;
@@ -67,8 +69,7 @@ class NodeMapDelta {
   class Iterator;
 
   NodeMapDelta(MapPointerType&& oldMap, MapPointerType&& newMap)
-    : old_(std::move(oldMap)),
-      new_(std::move(newMap)) {}
+      : old_(std::move(oldMap)), new_(std::move(newMap)) {}
 
   RawConstPointerType getOld() const {
     return MAPPOINTERTRAITS::getRawPointer(old_);
@@ -102,12 +103,12 @@ class NodeMapDelta {
   MapPointerType new_;
 };
 
-template<typename NODE>
+template <typename NODE>
 class DeltaValue {
  public:
   using Node = NODE;
   DeltaValue(const std::shared_ptr<Node>& o, const std::shared_ptr<Node>& n)
-    : old_(o), new_(n) {}
+      : old_(o), new_(n) {}
 
   void reset(const std::shared_ptr<Node>& o, const std::shared_ptr<Node>& n) {
     old_ = o;
@@ -138,7 +139,7 @@ class DeltaValue {
  * An iterator for walking over the Nodes that changed between the two
  * NodeMaps.
  */
-template<typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
+template <typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
 class NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator {
  public:
   using MapType = MAP;
@@ -151,10 +152,11 @@ class NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator {
   using pointer = VALUE*;
   using reference = VALUE&;
 
-  Iterator(const MapType* oldMap,
-           typename MapType::Iterator oldIt,
-           const MapType* newMap,
-           typename MapType::Iterator newIt);
+  Iterator(
+      const MapType* oldMap,
+      typename MapType::Iterator oldIt,
+      const MapType* newMap,
+      typename MapType::Iterator newIt);
   Iterator();
 
   const value_type& operator*() const {
@@ -197,7 +199,7 @@ class NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator {
   static std::shared_ptr<Node> nullNode_;
 };
 
-template<typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
+template <typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
 typename NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator
 NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::begin() const {
   if (old_ == new_) {
@@ -216,7 +218,7 @@ NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::begin() const {
   return Iterator(getOld(), old_->begin(), getNew(), new_->begin());
 }
 
-template<typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
+template <typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
 typename NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator
 NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::end() const {
   if (!old_) {
@@ -228,4 +230,5 @@ NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::end() const {
   return Iterator(getOld(), old_->end(), getNew(), new_->end());
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -17,7 +17,8 @@
 #include <mutex>
 #include <string>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class PktCapture;
 class RxPacket;
@@ -79,10 +80,10 @@ class PktCaptureManager {
 
  private:
   // Forbidden copy constructor and assignment operator
-  PktCaptureManager(PktCaptureManager const &) = delete;
-  PktCaptureManager& operator=(PktCaptureManager const &) = delete;
+  PktCaptureManager(PktCaptureManager const&) = delete;
+  PktCaptureManager& operator=(PktCaptureManager const&) = delete;
 
-  template<typename Fn>
+  template <typename Fn>
   void invokeCaptures(const Fn& fn);
   void packetReceivedImpl(const RxPacket* pkt);
   void packetSentImpl(const TxPacket* pkt);
@@ -95,4 +96,5 @@ class PktCaptureManager {
   std::map<std::string, std::unique_ptr<PktCapture>> inactiveCaptures_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

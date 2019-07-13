@@ -12,12 +12,13 @@
 #include <folly/experimental/TestUtil.h>
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/ThriftHandler.h"
-#include "fboss/agent/types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/types.h"
 
 #include <gmock/gmock.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class MockHwSwitch;
 class HwTestHandle;
@@ -36,8 +37,7 @@ class MockPlatform : public Platform {
   HwSwitch* getHwSwitch() const override;
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
-  std::unique_ptr<HwTestHandle> createTestHandle(
-    std::unique_ptr<SwSwitch> sw);
+  std::unique_ptr<HwTestHandle> createTestHandle(std::unique_ptr<SwSwitch> sw);
 
   MOCK_METHOD1(createHandler, std::unique_ptr<ThriftHandler>(SwSwitch* sw));
   MOCK_METHOD1(getProductInfo, void(ProductInfo& productInfo));
@@ -64,4 +64,5 @@ class MockPlatform : public Platform {
   std::unique_ptr<MockHwSwitch> hw_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

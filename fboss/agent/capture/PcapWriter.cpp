@@ -16,19 +16,18 @@
 
 using folly::StringPiece;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-PcapWriter::PcapWriter(uint32_t maxBufferedPkts)
-  : queue_(maxBufferedPkts) {
-}
+PcapWriter::PcapWriter(uint32_t maxBufferedPkts) : queue_(maxBufferedPkts) {}
 
-PcapWriter::PcapWriter(StringPiece path,
-                       bool overwriteExisting,
-                       uint32_t maxBufferedPkts)
-  : file_(path, overwriteExisting),
-    queue_(maxBufferedPkts),
-    thread_(&PcapWriter::threadMain, this) {
-}
+PcapWriter::PcapWriter(
+    StringPiece path,
+    bool overwriteExisting,
+    uint32_t maxBufferedPkts)
+    : file_(path, overwriteExisting),
+      queue_(maxBufferedPkts),
+      thread_(&PcapWriter::threadMain, this) {}
 
 PcapWriter::~PcapWriter() {
   try {
@@ -85,4 +84,5 @@ void PcapWriter::writeLoop() {
   }
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

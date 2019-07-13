@@ -9,9 +9,9 @@
  */
 #pragma once
 
-#include "fboss/agent/types.h"
-#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
 #include <folly/Optional.h>
@@ -19,11 +19,12 @@
 #include <memory>
 #include <utility>
 
-namespace folly{
+namespace folly {
 struct dynamic;
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwitchState;
 class SwitchStats;
@@ -109,7 +110,6 @@ class HwSwitch {
    */
   virtual HwInitResult init(Callback* callback) = 0;
 
-
   /*
    * Tells the hw switch to unregister the callback and to stop calling
    * packetReceived and linkStateChanged. This is mainly used during exit
@@ -174,16 +174,16 @@ class HwSwitch {
    *
    * @return If the packet is successfully sent to HW.
    */
-  virtual bool sendPacketOutOfPortSync(std::unique_ptr<TxPacket> pkt,
-                                   PortID portID) noexcept = 0;
+  virtual bool sendPacketOutOfPortSync(
+      std::unique_ptr<TxPacket> pkt,
+      PortID portID) noexcept = 0;
 
   /*
    * Allows hardware-specific code to record switch statistics.
    */
   virtual void updateStats(SwitchStats* switchStats) = 0;
 
-
-  virtual void fetchL2Table(std::vector<L2EntryThrift> *l2Table) = 0;
+  virtual void fetchL2Table(std::vector<L2EntryThrift>* l2Table) = 0;
 
   /*
    * Allow hardware to perform any warm boot related cleanup
@@ -229,14 +229,15 @@ class HwSwitch {
    * ports as first class citizens (hwPort?) and then move all of these
    * functions into the hwPort abstraction
    */
-   virtual bool getPortFECEnabled(PortID /* unused */ ) const { return false; }
+  virtual bool getPortFECEnabled(PortID /* unused */) const {
+    return false;
+  }
 
   /*
    * Returns true if the arp/ndp entry for the passed in ip/intf has been hit
    * since the last call to getAndClearNeighborHit.
    */
-  virtual bool getAndClearNeighborHit(RouterID vrf,
-                                      folly::IPAddress& ip) = 0;
+  virtual bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip) = 0;
 
   /*
    * Clear port stats for specified port
@@ -254,4 +255,5 @@ class HwSwitch {
   HwSwitch& operator=(HwSwitch const&) = delete;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

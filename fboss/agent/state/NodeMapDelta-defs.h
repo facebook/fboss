@@ -9,29 +9,29 @@
  */
 #pragma once
 
-#include "fboss/agent/state/NodeMapDelta.h"
 #include <glog/logging.h>
+#include "fboss/agent/state/NodeMapDelta.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-template<typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
+template <typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
 std::shared_ptr<typename MAP::Node>
-  NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator::nullNode_;
+    NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator::nullNode_;
 
-template<typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
+template <typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
 NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator::Iterator(
     const MapType* oldMap,
     typename MapType::Iterator oldIt,
     const MapType* newMap,
     typename MapType::Iterator newIt)
-  : oldIt_(oldIt),
-    newIt_(newIt),
-    oldMap_(oldMap),
-    newMap_(newMap),
-    value_(nullNode_, nullNode_) {
+    : oldIt_(oldIt),
+      newIt_(newIt),
+      oldMap_(oldMap),
+      newMap_(newMap),
+      value_(nullNode_, nullNode_) {
   // Advance to the first difference
-  while (oldIt_ != oldMap_->end() &&
-         newIt_ != newMap_->end() &&
+  while (oldIt_ != oldMap_->end() && newIt_ != newMap_->end() &&
          *oldIt_ == *newIt_) {
     ++oldIt_;
     ++newIt_;
@@ -39,16 +39,15 @@ NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator::Iterator(
   updateValue();
 }
 
-template<typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
+template <typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
 NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator::Iterator()
-  : oldIt_(),
-    newIt_(),
-    oldMap_(nullptr),
-    newMap_(nullptr),
-    value_(nullNode_, nullNode_) {
-}
+    : oldIt_(),
+      newIt_(),
+      oldMap_(nullptr),
+      newMap_(nullptr),
+      value_(nullNode_, nullNode_) {}
 
-template<typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
+template <typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
 void NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator::updateValue() {
   if (oldIt_ == oldMap_->end()) {
     if (newIt_ == newMap_->end()) {
@@ -73,7 +72,7 @@ void NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator::updateValue() {
   }
 }
 
-template<typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
+template <typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
 void NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator::advance() {
   // If we have already hit the end of one side, advance the other.
   // We are immediately done after this.
@@ -103,8 +102,7 @@ void NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator::advance() {
   }
 
   // Advance past any unchanged nodes.
-  while (oldIt_ != oldMap_->end() &&
-         newIt_ != newMap_->end() &&
+  while (oldIt_ != oldMap_->end() && newIt_ != newMap_->end() &&
          *oldIt_ == *newIt_) {
     ++oldIt_;
     ++newIt_;
@@ -112,4 +110,5 @@ void NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator::advance() {
   updateValue();
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -8,15 +8,16 @@
  *
  */
 #pragma once
-#include <stdint.h>
-#include <memory>
-#include <folly/io/Cursor.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
+#include <folly/io/Cursor.h>
+#include <stdint.h>
+#include <memory>
 #include "fboss/agent/packet/DHCPv6Packet.h"
 #include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 class SwSwitch;
 class RxPacket;
 class UDPHeader;
@@ -30,35 +31,46 @@ class DHCPv6Handler {
 
   static bool isForDHCPv6RelayOrServer(const UDPHeader& udpHdr);
 
-  static void handlePacket(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
+  static void handlePacket(
+      SwSwitch* sw,
+      std::unique_ptr<RxPacket> pkt,
       folly::MacAddress srcMac,
       folly::MacAddress dstMac,
-      const IPv6Hdr& ipHdr, const UDPHeader& udpHdr, folly::io::Cursor cursor);
+      const IPv6Hdr& ipHdr,
+      const UDPHeader& udpHdr,
+      folly::io::Cursor cursor);
 
  private:
   /**
    * process DHCPv6 packet from client and send relay forward
    */
-  static void processDHCPv6Packet(SwSwitch* sw, std::unique_ptr<RxPacket> pkt,
+  static void processDHCPv6Packet(
+      SwSwitch* sw,
+      std::unique_ptr<RxPacket> pkt,
       folly::MacAddress srcMac,
       folly::MacAddress dstMac,
-      const IPv6Hdr& ipHdr, const DHCPv6Packet& dhcpPacket);
+      const IPv6Hdr& ipHdr,
+      const DHCPv6Packet& dhcpPacket);
 
   /**
    * process relay reply from server or relay forward message from other agents
    */
-  static void processDHCPv6RelayForward(SwSwitch* sw,
+  static void processDHCPv6RelayForward(
+      SwSwitch* sw,
       std::unique_ptr<RxPacket> pkt,
       folly::MacAddress srcMac,
       folly::MacAddress dstMac,
-      const IPv6Hdr& ipHdr, DHCPv6Packet& dhcpPacket);
+      const IPv6Hdr& ipHdr,
+      DHCPv6Packet& dhcpPacket);
 
-  static void processDHCPv6RelayReply(SwSwitch* sw,
+  static void processDHCPv6RelayReply(
+      SwSwitch* sw,
       std::unique_ptr<RxPacket> pkt,
       folly::MacAddress srcMac,
       folly::MacAddress dstMac,
-      const IPv6Hdr& ipHdr, DHCPv6Packet& dhcpPacket);
-
+      const IPv6Hdr& ipHdr,
+      DHCPv6Packet& dhcpPacket);
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

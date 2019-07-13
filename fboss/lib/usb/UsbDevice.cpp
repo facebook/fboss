@@ -16,10 +16,10 @@
 #include "fboss/lib/usb/UsbError.h"
 #include "fboss/lib/usb/UsbHandle.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-UsbDevice::UsbDevice(libusb_device* dev, bool increment_ref)
-  : dev_(dev) {
+UsbDevice::UsbDevice(libusb_device* dev, bool increment_ref) : dev_(dev) {
   if (increment_ref) {
     libusb_ref_device(dev_);
   }
@@ -29,8 +29,7 @@ UsbDevice::~UsbDevice() {
   reset();
 }
 
-UsbDevice::UsbDevice(UsbDevice&& other) noexcept
-  : dev_(other.dev_) {
+UsbDevice::UsbDevice(UsbDevice&& other) noexcept : dev_(other.dev_) {
   other.dev_ = nullptr;
 }
 
@@ -53,9 +52,8 @@ UsbHandle UsbDevice::open() {
   return ret;
 }
 
-UsbDevice UsbDevice::find(libusb_context* ctx,
-                          uint16_t vendor,
-                          uint16_t product) {
+UsbDevice
+UsbDevice::find(libusb_context* ctx, uint16_t vendor, uint16_t product) {
   libusb_device** devList;
   ssize_t numDevices = libusb_get_device_list(ctx, &devList);
   if (numDevices < 0) {
@@ -71,8 +69,11 @@ UsbDevice UsbDevice::find(libusb_context* ctx,
     libusb_device_descriptor desc;
     int rc = libusb_get_device_descriptor(dev, &desc);
     if (rc != 0) {
-      fprintf(stderr, "failed to query device descriptor for device %zd: %s\n",
-              n, libusb_error_name(rc));
+      fprintf(
+          stderr,
+          "failed to query device descriptor for device %zd: %s\n",
+          n,
+          libusb_error_name(rc));
       continue;
     }
 
@@ -84,4 +85,5 @@ UsbDevice UsbDevice::find(libusb_context* ctx,
   throw UsbError("device not found");
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

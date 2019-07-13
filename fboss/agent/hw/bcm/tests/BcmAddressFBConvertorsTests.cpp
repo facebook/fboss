@@ -20,15 +20,15 @@ extern "C" {
 }
 
 extern "C" {
-  struct ibde_t;
-  ibde_t* bde;
+struct ibde_t;
+ibde_t* bde;
 }
 
 using namespace facebook::fboss;
-using folly::MacAddress;
 using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
+using folly::MacAddress;
 
 TEST(MacConversion, toFromBcm) {
   auto mac = MacAddress("11:22:33:44:55:66");
@@ -36,7 +36,7 @@ TEST(MacConversion, toFromBcm) {
   macToBcm(mac, &bcmMac);
   EXPECT_EQ(mac, macFromBcm(bcmMac));
   MacAddress newMac;
-  macFromBcm(bcmMac, & newMac);
+  macFromBcm(bcmMac, &newMac);
   EXPECT_EQ(mac, newMac);
 }
 

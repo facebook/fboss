@@ -12,12 +12,12 @@
 
 #include <folly/logging/xlog.h>
 
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/MockTunManager.h"
 #include "fboss/agent/test/TestUtils.h"
-#include "fboss/agent/test/HwTestHandle.h"
-#include "fboss/agent/hw/mock/MockPlatform.h"
-#include "fboss/agent/SwSwitch.h"
 
 using namespace facebook::fboss;
 

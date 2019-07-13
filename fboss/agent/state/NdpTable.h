@@ -12,12 +12,13 @@
 #include "fboss/agent/state/NdpEntry.h"
 #include "fboss/agent/state/NeighborTable.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-class NdpTable : public NeighborTable<folly::IPAddressV6, NdpEntry,
-                                      NdpTable> {
+class NdpTable : public NeighborTable<folly::IPAddressV6, NdpEntry, NdpTable> {
  public:
   using NeighborTable::NeighborTable;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

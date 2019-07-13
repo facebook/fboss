@@ -15,19 +15,24 @@
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/types.h"
 
-#include <folly/MacAddress.h>
 #include <folly/IPAddressV6.h>
+#include <folly/MacAddress.h>
 #include <list>
 #include <string>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 enum class ICMPv6Type : uint8_t;
 
 class NdpCache : public NeighborCache<NdpTable> {
  public:
-  NdpCache(SwSwitch* sw, const SwitchState* state,
-           VlanID vlanID, std::string vlanName, InterfaceID intfID);
+  NdpCache(
+      SwSwitch* sw,
+      const SwitchState* state,
+      VlanID vlanID,
+      std::string vlanName,
+      InterfaceID intfID);
 
   void sentNeighborSolicitation(folly::IPAddressV6 ip);
   void receivedNdpMine(
@@ -66,4 +71,5 @@ class NdpCache : public NeighborCache<NdpTable> {
       ICMPv6Type type);
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

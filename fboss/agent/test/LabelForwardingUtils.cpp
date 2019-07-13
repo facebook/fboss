@@ -37,8 +37,7 @@ LabelForwardingAction getPushAction(LabelForwardingAction::LabelStack stack) {
 LabelNextHopEntry getSwapLabelNextHopEntry(
     AdminDistance distance,
     InterfaceID intfId,
-    std::vector<folly::IPAddress> addrs
-) {
+    std::vector<folly::IPAddress> addrs) {
   LabelNextHopSet nexthops;
   auto& nexthopAddrs = addrs.size() > 0 ? addrs : kNextHopAddrs;
   for (auto i = 0; i < nexthopAddrs.size(); i++) {
@@ -54,8 +53,7 @@ LabelNextHopEntry getSwapLabelNextHopEntry(
 LabelNextHopEntry getPushLabelNextHopEntry(
     AdminDistance distance,
     InterfaceID intfId,
-    std::vector<folly::IPAddress> addrs
-  ) {
+    std::vector<folly::IPAddress> addrs) {
   LabelNextHopSet nexthops;
   auto& nexthopAddrs = addrs.size() > 0 ? addrs : kNextHopAddrs;
   for (auto i = 0; i < nexthopAddrs.size(); i++) {
@@ -83,7 +81,7 @@ LabelNextHopEntry getPopLabelNextHopEntry(
     InterfaceID intfId,
     std::vector<folly::IPAddress> addrs) {
   LabelNextHopSet nexthops;
-  std::vector<folly::IPAddress>  popAddrs{folly::IPAddress("::")};
+  std::vector<folly::IPAddress> popAddrs{folly::IPAddress("::")};
   auto& nexthopAddrs = addrs.size() > 0 ? addrs : popAddrs;
   for (auto i = 0; i < nexthopAddrs.size(); i++) {
     nexthops.emplace(ResolvedNextHop(

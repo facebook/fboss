@@ -19,14 +19,14 @@ namespace {
 constexpr auto kNexthops = "nexthops";
 constexpr auto kAction = "action";
 constexpr auto kAdminDistance = "adminDistance";
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 namespace util {
 
-RouteNextHopSet
-toRouteNextHopSet(std::vector<NextHopThrift> const& nhs) {
+RouteNextHopSet toRouteNextHopSet(std::vector<NextHopThrift> const& nhs) {
   RouteNextHopSet rnhs;
   rnhs.reserve(nhs.size());
   for (auto const& nh : nhs) {
@@ -35,8 +35,7 @@ toRouteNextHopSet(std::vector<NextHopThrift> const& nhs) {
   return rnhs;
 }
 
-std::vector<NextHopThrift>
-fromRouteNextHopSet(RouteNextHopSet const& nhs) {
+std::vector<NextHopThrift> fromRouteNextHopSet(RouteNextHopSet const& nhs) {
   std::vector<NextHopThrift> nhts;
   nhts.reserve(nhs.size());
   for (const auto& nh : nhs) {
@@ -63,41 +62,42 @@ NextHopWeight RouteNextHopEntry::getTotalWeight() const {
 std::string RouteNextHopEntry::str() const {
   std::string result;
   switch (action_) {
-  case Action::DROP:
-    result = "DROP";
-    break;
-  case Action::TO_CPU:
-    result = "To_CPU";
-    break;
-  case Action::NEXTHOPS:
-    toAppend(getNextHopSet(), &result);
-    break;
-  default:
-    CHECK(0);
-    break;
+    case Action::DROP:
+      result = "DROP";
+      break;
+    case Action::TO_CPU:
+      result = "To_CPU";
+      break;
+    case Action::NEXTHOPS:
+      toAppend(getNextHopSet(), &result);
+      break;
+    default:
+      CHECK(0);
+      break;
   }
-  result += folly::to<std::string>(";admin=",
-      static_cast<int32_t>(adminDistance_));
+  result +=
+      folly::to<std::string>(";admin=", static_cast<int32_t>(adminDistance_));
   return result;
 }
 
 bool operator==(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
-  return (a.getAction() == b.getAction()
-          and a.getNextHopSet() == b.getNextHopSet()
-          and a.getAdminDistance() == b.getAdminDistance());
+  return (
+      a.getAction() == b.getAction() and
+      a.getNextHopSet() == b.getNextHopSet() and
+      a.getAdminDistance() == b.getAdminDistance());
 }
 
-bool operator< (const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
+bool operator<(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
   if (a.getAdminDistance() != b.getAdminDistance()) {
     return a.getAdminDistance() < b.getAdminDistance();
   }
-  return ((a.getAction() == b.getAction())
-          ? (a.getNextHopSet() < b.getNextHopSet())
-          : a.getAction() < b.getAction());
+  return (
+      (a.getAction() == b.getAction()) ? (a.getNextHopSet() < b.getNextHopSet())
+                                       : a.getAction() < b.getAction());
 }
 
 // Methods for RouteNextHopEntry
-void toAppend(const RouteNextHopEntry& entry, std::string *result) {
+void toAppend(const RouteNextHopEntry& entry, std::string* result) {
   result->append(entry.str());
 }
 std::ostream& operator<<(std::ostream& os, const RouteNextHopEntry& entry) {
@@ -132,7 +132,7 @@ folly::dynamic RouteNextHopEntry::toFollyDynamic() const {
   folly::dynamic entry = folly::dynamic::object;
   entry[kAction] = forwardActionStr(action_);
   folly::dynamic nhops = folly::dynamic::array;
-  for (const auto& nhop: nhopSet_) {
+  for (const auto& nhop : nhopSet_) {
     nhops.push_back(nhop.toFollyDynamic());
   }
   entry[kNexthops] = std::move(nhops);
@@ -140,8 +140,8 @@ folly::dynamic RouteNextHopEntry::toFollyDynamic() const {
   return entry;
 }
 
-RouteNextHopEntry
-RouteNextHopEntry::fromFollyDynamic(const folly::dynamic& entryJson) {
+RouteNextHopEntry RouteNextHopEntry::fromFollyDynamic(
+    const folly::dynamic& entryJson) {
   Action action = str2ForwardAction(entryJson[kAction].asString());
   auto it = entryJson.find(kAdminDistance);
   AdminDistance adminDistance = (it == entryJson.items().end())
@@ -257,4 +257,5 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
   }
   return normalizedNextHops;
 }
-}}
+} // namespace fboss
+} // namespace facebook

@@ -16,7 +16,8 @@
  *   https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers
  */
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 enum class IP_PROTO : uint8_t {
 
@@ -54,7 +55,7 @@ enum class IP_PROTO : uint8_t {
   IP_PROTO_BBN_RCC_MON = 0x0A,
 
   // RFC 741: Network Voice Protocol
-  IP_PROTO_NVP2= 0x0B,
+  IP_PROTO_NVP2 = 0x0B,
 
   // Xerox PUP
   IP_PROTO_PUP = 0x0C,
@@ -201,7 +202,7 @@ enum class IP_PROTO : uint8_t {
   IP_PROTO_IPV6_NONXT = 0x3B,
 
   // RFC 2460: IPv6 Destination Options
-  IP_PROTO_IPV6_OPTS  = 0x3C,
+  IP_PROTO_IPV6_OPTS = 0x3C,
 
   // Any host internal protocol
   IP_PROTO_61 = 0x3D,
@@ -464,4 +465,5 @@ enum class IP_PROTO : uint8_t {
   IP_PROTO_255 = 0xFF,
 };
 
-}} // facebook::fboss
+}
+} // namespace facebook

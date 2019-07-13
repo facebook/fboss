@@ -27,19 +27,21 @@
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/RouteTableRib.h"
 
-using folly::IPAddress;
-using folly::IPAddressV4;
-using folly::IPAddressV6;
 using boost::container::flat_map;
 using boost::container::flat_set;
 using folly::CIDRNetwork;
+using folly::IPAddress;
+using folly::IPAddressV4;
+using folly::IPAddressV6;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-static const
-RouteUpdater::PrefixV6 kIPv6LinkLocalPrefix{folly::IPAddressV6("fe80::"), 64};
+static const RouteUpdater::PrefixV6 kIPv6LinkLocalPrefix{
+    folly::IPAddressV6("fe80::"),
+    64};
 static const auto kInterfaceRouteClientId =
-  StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE);
+    StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE);
 
 using std::make_shared;
 
@@ -66,7 +68,8 @@ RouteUpdater::ClonedRib* RouteUpdater::createNewRib(RouterID id) {
 }
 
 RouteUpdater::ClonedRib::RibV4* RouteUpdater::getRibV4(
-    RouterID id, bool createIfNotExist) {
+    RouterID id,
+    bool createIfNotExist) {
   auto iter = clonedRibs_.find(id);
   if (iter != clonedRibs_.end()) {
     return &iter->second.v4;
@@ -77,7 +80,8 @@ RouteUpdater::ClonedRib::RibV4* RouteUpdater::getRibV4(
 }
 
 RouteUpdater::ClonedRib::RibV6* RouteUpdater::getRibV6(
-    RouterID id, bool createIfNotExist) {
+    RouterID id,
+    bool createIfNotExist) {
   auto iter = clonedRibs_.find(id);
   if (iter != clonedRibs_.end()) {
     return &iter->second.v6;
@@ -87,7 +91,7 @@ RouteUpdater::ClonedRib::RibV6* RouteUpdater::getRibV6(
   return &createNewRib(id)->v6;
 }
 
-template<typename RibT>
+template <typename RibT>
 auto RouteUpdater::makeClone(RibT* rib) -> decltype(rib->rib.get()) {
   if (rib->cloned) {
     return rib->rib.get();
@@ -98,14 +102,17 @@ auto RouteUpdater::makeClone(RibT* rib) -> decltype(rib->rib.get()) {
   return rib->rib.get();
 }
 
-template<typename PrefixT, typename RibT>
-void RouteUpdater::addRouteImpl(const PrefixT& prefix, RibT *ribCloned,
-                                ClientID clientId, RouteNextHopEntry entry) {
+template <typename PrefixT, typename RibT>
+void RouteUpdater::addRouteImpl(
+    const PrefixT& prefix,
+    RibT* ribCloned,
+    ClientID clientId,
+    RouteNextHopEntry entry) {
   typedef Route<typename PrefixT::AddressT> RouteT;
   auto rib = ribCloned->rib.get();
   auto old = rib->exactMatch(prefix);
   if (old && old->has(clientId, entry)) {
-      return;
+    return;
   }
   rib = makeClone(ribCloned);
   // make sure rib is cloned before any change
@@ -132,8 +139,11 @@ void RouteUpdater::addRouteImpl(const PrefixT& prefix, RibT *ribCloned,
 }
 
 void RouteUpdater::addRoute(
-    RouterID id, const folly::IPAddress& network, uint8_t mask,
-    ClientID clientId, RouteNextHopEntry entry) {
+    RouterID id,
+    const folly::IPAddress& network,
+    uint8_t mask,
+    ClientID clientId,
+    RouteNextHopEntry entry) {
   if (network.isV4()) {
     PrefixV4 prefix{network.asV4().mask(mask), mask};
     addRouteImpl(prefix, getRibV4(id), clientId, std::move(entry));
@@ -168,9 +178,11 @@ void RouteUpdater::delLinkLocalRoutes(RouterID id) {
       StdClientIds2ClientID(StdClientIds::LINKLOCAL_ROUTE));
 }
 
-template<typename PrefixT, typename RibT>
+template <typename PrefixT, typename RibT>
 void RouteUpdater::delRouteImpl(
-    const PrefixT& prefix, RibT *ribCloned, ClientID clientId) {
+    const PrefixT& prefix,
+    RibT* ribCloned,
+    ClientID clientId) {
   if (!ribCloned) {
     XLOG(DBG3) << "Failed to delete non-existing route " << prefix.str();
     return;
@@ -203,8 +215,10 @@ void RouteUpdater::delRouteImpl(
 }
 
 void RouteUpdater::delRoute(
-    RouterID id, const folly::IPAddress& network,
-    uint8_t mask, ClientID clientId) {
+    RouterID id,
+    const folly::IPAddress& network,
+    uint8_t mask,
+    ClientID clientId) {
   if (network.isV4()) {
     PrefixV4 prefix{network.asV4().mask(mask), mask};
     delRouteImpl(prefix, getRibV4(id, false), clientId);
@@ -214,9 +228,10 @@ void RouteUpdater::delRoute(
   }
 }
 
-template<typename AddrT, typename RibT>
-void RouteUpdater::removeAllRoutesForClientImpl(RibT *ribCloned,
-                                                ClientID clientId) {
+template <typename AddrT, typename RibT>
+void RouteUpdater::removeAllRoutesForClientImpl(
+    RibT* ribCloned,
+    ClientID clientId) {
   auto rib = makeClone(ribCloned);
 
   std::vector<std::shared_ptr<Route<AddrT>>> routesToDelete;
@@ -509,7 +524,7 @@ void RouteUpdater::getFwdInfoFromNhop(
   }
 }
 
-template<typename RouteT>
+template <typename RouteT>
 void RouteUpdater::resolveOne(RouteT* route, ClonedRib* ribCloned) {
   // We need to guarantee that route is already cloned before resolve
   CHECK(!route->isPublished());
@@ -541,8 +556,9 @@ void RouteUpdater::resolveOne(RouteT* route, ClonedRib* ribCloned) {
       // In both cases, this nexthop is resolved.
       if (nh.intfID().hasValue()) {
         // It is either an interface route or v6 link-local
-        CHECK(clientId == kInterfaceRouteClientId
-              or (addr.isV6() and addr.isLinkLocal()));
+        CHECK(
+            clientId == kInterfaceRouteClientId or
+            (addr.isV6() and addr.isLinkLocal()));
         nhToFwds[nh].emplace(nh);
         continue;
       }
@@ -574,8 +590,8 @@ void RouteUpdater::resolveOne(RouteT* route, ClonedRib* ribCloned) {
   }
 
   if (!fwd.empty()) {
-    route->setResolved(RouteNextHopEntry(
-        std::move(fwd), AdminDistance::MAX_ADMIN_DISTANCE));
+    route->setResolved(
+        RouteNextHopEntry(std::move(fwd), AdminDistance::MAX_ADMIN_DISTANCE));
     if (clientId == kInterfaceRouteClientId) {
       route->setConnected();
     }
@@ -681,7 +697,7 @@ std::shared_ptr<RouteTableMap> RouteUpdater::updateDone() {
 void RouteUpdater::addInterfaceAndLinkLocalRoutes(
     const std::shared_ptr<InterfaceMap>& intfs) {
   boost::container::flat_set<RouterID> routers;
-  for (auto const& item: intfs->getAllNodes()) {
+  for (auto const& item : intfs->getAllNodes()) {
     const auto& intf = item.second;
     auto routerId = intf->getRouterID();
     routers.insert(routerId);
@@ -691,10 +707,13 @@ void RouteUpdater::addInterfaceAndLinkLocalRoutes(
       // describing mergeForwardInfos above.
       auto nhop =
           ResolvedNextHop(addr.first, intf->getID(), UCMP_DEFAULT_WEIGHT);
-      addRoute(routerId, addr.first, addr.second,
-               kInterfaceRouteClientId,
-               RouteNextHopEntry(std::move(nhop),
-                 AdminDistance::DIRECTLY_CONNECTED));
+      addRoute(
+          routerId,
+          addr.first,
+          addr.second,
+          kInterfaceRouteClientId,
+          RouteNextHopEntry(
+              std::move(nhop), AdminDistance::DIRECTLY_CONNECTED));
     }
   }
   for (auto id : routers) {
@@ -702,7 +721,7 @@ void RouteUpdater::addInterfaceAndLinkLocalRoutes(
   }
 }
 
-template<typename RibT>
+template <typename RibT>
 bool RouteUpdater::dedupRoutes(const RibT* oldRib, RibT* newRib) {
   bool isSame = true;
   if (oldRib == newRib) {
@@ -716,8 +735,8 @@ bool RouteUpdater::dedupRoutes(const RibT* oldRib, RibT* newRib) {
   // same. For matching prefixes, which don't have
   // same attributes inherit the generation number
   for (const auto& oldRoute : *oldRoutes) {
-    auto newIter = newRoutes.exactMatch(oldRoute->prefix().network,
-                                        oldRoute->prefix().mask);
+    auto newIter = newRoutes.exactMatch(
+        oldRoute->prefix().network, oldRoute->prefix().mask);
     if (newIter == newRoutes.end()) {
       isSame = false;
       continue;
@@ -809,4 +828,5 @@ std::shared_ptr<RouteTableMap> RouteUpdater::deduplicate(
   return orig_->clone(*newTables);
 }
 
-}}
+} // namespace fboss
+} // namespace facebook

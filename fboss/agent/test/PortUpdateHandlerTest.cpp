@@ -10,23 +10,23 @@
 
 #include <gtest/gtest.h>
 
-#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/PortUpdateHandler.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/CounterCache.h"
-#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/HwTestHandle.h"
+#include "fboss/agent/test/TestUtils.h"
 
 using namespace facebook::fboss;
 using std::string;
 
 namespace {
 
-class PortUpdateHandlerTest: public ::testing::Test {
-public:
+class PortUpdateHandlerTest : public ::testing::Test {
+ public:
   void SetUp() override {
     handle = createTestHandle();
     sw = handle->getSw();
@@ -42,7 +42,7 @@ public:
     // rename all port name fron portX to eth1/X/1
     initPorts = initState->getPorts();
     newPorts = std::make_shared<PortMap>();
-    for (const auto& origPort: *initPorts) {
+    for (const auto& origPort : *initPorts) {
       auto newPort = origPort->clone();
       newPort->setName(folly::to<string>("eth1/", origPort->getID(), "/1"));
       newPort->setOperState(true);
@@ -55,17 +55,19 @@ public:
     portUpdateHandler = std::make_unique<PortUpdateHandler>(sw);
   }
 
-  void expectPortCounterExist(CounterCache& counters,
-                              std::shared_ptr<PortMap> ports) {
-    for (const auto& port: *ports) {
+  void expectPortCounterExist(
+      CounterCache& counters,
+      std::shared_ptr<PortMap> ports) {
+    for (const auto& port : *ports) {
       EXPECT_TRUE(counters.checkExist(port->getName() + ".up"));
       EXPECT_EQ(counters.value(port->getName() + ".up"), port->isUp());
     }
   }
 
-  void expectPortCounterNotExist(CounterCache& counters,
-                                 std::shared_ptr<PortMap> ports) {
-    for (const auto& port: *ports) {
+  void expectPortCounterNotExist(
+      CounterCache& counters,
+      std::shared_ptr<PortMap> ports) {
+    for (const auto& port : *ports) {
       EXPECT_FALSE(counters.checkExist(port->getName() + ".up"));
     }
   }
@@ -86,14 +88,13 @@ public:
   std::unique_ptr<PortUpdateHandler> portUpdateHandler;
 };
 
-
 TEST_F(PortUpdateHandlerTest, PortAdded) {
   // // Cache the current stats
   CounterCache counters(sw);
   EXPECT_EQ(sw->stats()->getPortStats()->size(), 0);
 
   portUpdateHandler->stateUpdated(*std::make_shared<StateDelta>(
-    std::make_shared<SwitchState>(), initState));
+      std::make_shared<SwitchState>(), initState));
   EXPECT_EQ(sw->stats()->getPortStats()->size(), 20);
 
   portUpdateHandler->stateUpdated(*deltaAdd);
@@ -114,8 +115,8 @@ TEST_F(PortUpdateHandlerTest, PortRemoved) {
   CounterCache counters(sw);
   EXPECT_EQ(sw->stats()->getPortStats()->size(), 0);
 
-  portUpdateHandler->stateUpdated(*std::make_shared<StateDelta>(
-    std::make_shared<SwitchState>(), addState));
+  portUpdateHandler->stateUpdated(
+      *std::make_shared<StateDelta>(std::make_shared<SwitchState>(), addState));
   EXPECT_EQ(sw->stats()->getPortStats()->size(), 21);
 
   portUpdateHandler->stateUpdated(*deltaRemove);
@@ -135,7 +136,7 @@ TEST_F(PortUpdateHandlerTest, PortChanged) {
   EXPECT_EQ(sw->stats()->getPortStats()->size(), 0);
 
   portUpdateHandler->stateUpdated(*std::make_shared<StateDelta>(
-    std::make_shared<SwitchState>(), initState));
+      std::make_shared<SwitchState>(), initState));
   EXPECT_EQ(sw->stats()->getPortStats()->size(), 20);
 
   portUpdateHandler->stateUpdated(*deltaChange);

@@ -15,7 +15,8 @@ extern "C" {
 #include <opennsl/pkt.h>
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmRxPacket : public RxPacket {
  public:
@@ -33,4 +34,5 @@ class BcmRxPacket : public RxPacket {
   int unit_{-1};
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

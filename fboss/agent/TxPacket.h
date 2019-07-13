@@ -13,7 +13,8 @@
 #include "fboss/agent/Packet.h"
 #include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * TxPacket represents a packet that may be transmitted out via the switch.
@@ -30,12 +31,13 @@ class TxPacket : public Packet {
    * On return, the cursor will be updated to point just past the end of the
    * header, to the start of the payload data.
    */
-  template<typename CursorType>
-  static void writeEthHeader(CursorType* cursor,
-                             folly::MacAddress dst,
-                             folly::MacAddress src,
-                             VlanID vlan,
-                             uint16_t protocol);
+  template <typename CursorType>
+  static void writeEthHeader(
+      CursorType* cursor,
+      folly::MacAddress dst,
+      folly::MacAddress src,
+      VlanID vlan,
+      uint16_t protocol);
 
   /**
    * Write an ethernet header at the specified cursor location.
@@ -46,27 +48,29 @@ class TxPacket : public Packet {
    * On return, the cursor will be updated to point just past the end of the
    * header, to the start of the payload data.
    */
-  template<typename CursorType>
-  static void writeEthHeader(CursorType* cursor,
-                             folly::MacAddress dst,
-                             folly::MacAddress src,
-                             uint16_t protocol);
+  template <typename CursorType>
+  static void writeEthHeader(
+      CursorType* cursor,
+      folly::MacAddress dst,
+      folly::MacAddress src,
+      uint16_t protocol);
 
  protected:
   TxPacket() {}
 
  private:
   // Forbidden copy constructor and assignment operator
-  TxPacket(TxPacket const &) = delete;
-  TxPacket& operator=(TxPacket const &) = delete;
+  TxPacket(TxPacket const&) = delete;
+  TxPacket& operator=(TxPacket const&) = delete;
 };
 
-template<typename CursorType>
-void TxPacket::writeEthHeader(CursorType* cursor,
-                              folly::MacAddress dst,
-                              folly::MacAddress src,
-                              VlanID vlan,
-                              uint16_t protocol) {
+template <typename CursorType>
+void TxPacket::writeEthHeader(
+    CursorType* cursor,
+    folly::MacAddress dst,
+    folly::MacAddress src,
+    VlanID vlan,
+    uint16_t protocol) {
   cursor->push(dst.bytes(), folly::MacAddress::SIZE);
   cursor->push(src.bytes(), folly::MacAddress::SIZE);
   cursor->template writeBE<uint16_t>(0x8100); // 802.1Q
@@ -74,14 +78,16 @@ void TxPacket::writeEthHeader(CursorType* cursor,
   cursor->template writeBE<uint16_t>(protocol);
 }
 
-template<typename CursorType>
-void TxPacket::writeEthHeader(CursorType* cursor,
-                              folly::MacAddress dst,
-                              folly::MacAddress src,
-                              uint16_t protocol) {
+template <typename CursorType>
+void TxPacket::writeEthHeader(
+    CursorType* cursor,
+    folly::MacAddress dst,
+    folly::MacAddress src,
+    uint16_t protocol) {
   cursor->push(dst.bytes(), folly::MacAddress::SIZE);
   cursor->push(src.bytes(), folly::MacAddress::SIZE);
   cursor->template writeBE<uint16_t>(protocol);
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

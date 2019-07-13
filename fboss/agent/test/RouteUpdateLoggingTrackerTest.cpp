@@ -7,9 +7,9 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include <folly/IPAddress.h>
 #include "fboss/agent/RouteUpdateLoggingPrefixTracker.h"
 #include "fboss/agent/state/RouteTypes.h"
-#include <folly/IPAddress.h>
 
 #include <gtest/gtest.h>
 
@@ -26,8 +26,8 @@ class PrefixTrackerTest : public ::testing::Test {
       const std::string& identifier,
       bool exact) {
     RoutePrefix<folly::IPAddress> prefix{folly::IPAddress{addr}, mask};
-    auto req = std::make_unique<RouteUpdateLoggingInstance>(
-        prefix, identifier, exact);
+    auto req =
+        std::make_unique<RouteUpdateLoggingInstance>(prefix, identifier, exact);
     tracker.track(*req);
   }
   void stopTracking(
@@ -155,4 +155,4 @@ TEST_F(PrefixTrackerTest, DeleteLessSpecificUntracked) {
   checkNotTracking(p2);
 }
 
-}
+} // namespace

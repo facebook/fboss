@@ -13,13 +13,18 @@
 #include <string>
 #include "fboss/agent/AgentConfig.h"
 
-DEFINE_string(crash_switch_state_file, "crash_switch_state",
-              "File for dumping SwitchState state on crash");
+DEFINE_string(
+    crash_switch_state_file,
+    "crash_switch_state",
+    "File for dumping SwitchState state on crash");
 
-DEFINE_string(crash_hw_state_file, "crash_hw_state",
-              "File for dumping HW state on crash");
+DEFINE_string(
+    crash_hw_state_file,
+    "crash_hw_state",
+    "File for dumping HW state on crash");
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 Platform::Platform() {}
 Platform::~Platform() {}
@@ -40,8 +45,8 @@ const AgentConfig* Platform::config() {
 }
 
 const AgentConfig* Platform::reloadConfig() {
-    config_ = AgentConfig::fromDefaultFile();
-    return config_.get();
+  config_ = AgentConfig::fromDefaultFile();
+  return config_.get();
 }
 
 void Platform::init(std::unique_ptr<AgentConfig> config) {
@@ -50,4 +55,5 @@ void Platform::init(std::unique_ptr<AgentConfig> config) {
   initImpl();
 }
 
-}} //facebook::fboss
+} // namespace fboss
+} // namespace facebook

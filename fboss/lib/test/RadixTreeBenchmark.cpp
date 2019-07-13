@@ -1,26 +1,32 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include <set>
-#include <vector>
-#include "common/init/Init.h"
-#include "common/base/Random.h"
+#include <folly/Benchmark.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
-#include <folly/Benchmark.h>
-#include "fboss/lib/RadixTree.h"
+#include <set>
+#include <vector>
 #include "PyRadixWrapper.h"
+#include "common/base/Random.h"
+#include "common/init/Init.h"
+#include "fboss/lib/RadixTree.h"
 
 using namespace std;
 using namespace folly;
 using namespace facebook;
 using namespace facebook::network;
 
-DEFINE_int32(insert_count, 10000,
-             "The number of inserts to performed on each insert iteration");
-DEFINE_int32(erase_count, 1000,
-             "The number of elements to erase on each erase iteration");
-DEFINE_int32(lookup_count, 5000,
-             "The number of elements to look up on each lookup iteration");
+DEFINE_int32(
+    insert_count,
+    10000,
+    "The number of inserts to performed on each insert iteration");
+DEFINE_int32(
+    erase_count,
+    1000,
+    "The number of elements to erase on each erase iteration");
+DEFINE_int32(
+    lookup_count,
+    5000,
+    "The number of elements to look up on each lookup iteration");
 namespace {
 set<Prefix4> insertSet4;
 set<Prefix4> eraseSet4;
@@ -30,13 +36,13 @@ set<Prefix6> insertSet6;
 set<Prefix6> eraseSet6;
 set<Prefix6> exactMatchSet6;
 set<Prefix6> longestMatchSet6;
-vector<int>  valueSet;
+vector<int> valueSet;
 
 // V4 Benchmarks
-template<typename TREE>
+template <typename TREE>
 void setupTree4(TREE& tree) {
   auto count = 0;
-  for (auto pfx: insertSet4) {
+  for (auto pfx : insertSet4) {
     tree.insert(pfx.ip, pfx.mask, valueSet[count++]);
   }
 }
@@ -56,7 +62,7 @@ BENCHMARK(PyRadixErase4) {
   BENCHMARK_SUSPEND {
     setupTree4(pyrtree);
   }
-  for (auto pfx: eraseSet4) {
+  for (auto pfx : eraseSet4) {
     pyrtree.erase(pfx.ip, pfx.mask);
   }
 }
@@ -66,7 +72,7 @@ BENCHMARK_RELATIVE(RadixTreeErase4) {
   BENCHMARK_SUSPEND {
     setupTree4(rtree);
   }
-  for (auto pfx: eraseSet4) {
+  for (auto pfx : eraseSet4) {
     rtree.erase(pfx.ip, pfx.mask);
   }
 }
@@ -76,7 +82,7 @@ BENCHMARK(PyRadixExactMatch4) {
   BENCHMARK_SUSPEND {
     setupTree4(pyrtree);
   }
-  for (auto pfx: exactMatchSet4) {
+  for (auto pfx : exactMatchSet4) {
     pyrtree.exactMatch(pfx.ip, pfx.mask);
   }
 }
@@ -86,7 +92,7 @@ BENCHMARK_RELATIVE(RadixTreeExactMatch4) {
   BENCHMARK_SUSPEND {
     setupTree4(rtree);
   }
-  for (auto pfx: exactMatchSet4) {
+  for (auto pfx : exactMatchSet4) {
     rtree.exactMatch(pfx.ip, pfx.mask);
   }
 }
@@ -96,7 +102,7 @@ BENCHMARK(PyRadixLongestMatch4) {
   BENCHMARK_SUSPEND {
     setupTree4(pyrtree);
   }
-  for (auto pfx: longestMatchSet4) {
+  for (auto pfx : longestMatchSet4) {
     pyrtree.longestMatch(pfx.ip, pfx.mask);
   }
 }
@@ -106,17 +112,17 @@ BENCHMARK_RELATIVE(RadixTreeLongestMatch4) {
   BENCHMARK_SUSPEND {
     setupTree4(rtree);
   }
-  for (auto pfx: longestMatchSet4) {
+  for (auto pfx : longestMatchSet4) {
     rtree.longestMatch(pfx.ip, pfx.mask);
   }
 }
 
 // V6 benchmarks
 
-template<typename TREE>
+template <typename TREE>
 void setupTree6(TREE& tree) {
   auto count = 0;
-  for (auto pfx: insertSet6) {
+  for (auto pfx : insertSet6) {
     tree.insert(pfx.ip, pfx.mask, valueSet[count++]);
   }
 }
@@ -136,7 +142,7 @@ BENCHMARK(PyRadixErase6) {
   BENCHMARK_SUSPEND {
     setupTree6(pyrtree);
   }
-  for (auto pfx: eraseSet6) {
+  for (auto pfx : eraseSet6) {
     pyrtree.erase(pfx.ip, pfx.mask);
   }
 }
@@ -146,7 +152,7 @@ BENCHMARK_RELATIVE(RadixTreeErase6) {
   BENCHMARK_SUSPEND {
     setupTree6(rtree);
   }
-  for (auto pfx: eraseSet6) {
+  for (auto pfx : eraseSet6) {
     rtree.erase(pfx.ip, pfx.mask);
   }
 }
@@ -156,7 +162,7 @@ BENCHMARK(PyRadixExactMatch6) {
   BENCHMARK_SUSPEND {
     setupTree6(pyrtree);
   }
-  for (auto pfx: exactMatchSet6) {
+  for (auto pfx : exactMatchSet6) {
     pyrtree.exactMatch(pfx.ip, pfx.mask);
   }
 }
@@ -166,7 +172,7 @@ BENCHMARK_RELATIVE(RadixTreeExactMatch6) {
   BENCHMARK_SUSPEND {
     setupTree6(rtree);
   }
-  for (auto pfx: exactMatchSet6) {
+  for (auto pfx : exactMatchSet6) {
     rtree.exactMatch(pfx.ip, pfx.mask);
   }
 }
@@ -176,7 +182,7 @@ BENCHMARK(PyRadixLongestMatch6) {
   BENCHMARK_SUSPEND {
     setupTree6(pyrtree);
   }
-  for (auto pfx: longestMatchSet6) {
+  for (auto pfx : longestMatchSet6) {
     pyrtree.longestMatch(pfx.ip, pfx.mask);
   }
 }
@@ -186,12 +192,12 @@ BENCHMARK_RELATIVE(RadixTreeLongestMatch6) {
   BENCHMARK_SUSPEND {
     setupTree6(rtree);
   }
-  for (auto pfx: longestMatchSet6) {
+  for (auto pfx : longestMatchSet6) {
     rtree.longestMatch(pfx.ip, pfx.mask);
   }
 }
 
-}
+} // namespace
 
 int main(int /*argc*/, char* /*argv*/ []) {
   vector<Prefix4> inserted4;
@@ -213,7 +219,7 @@ int main(int /*argc*/, char* /*argv*/ []) {
     CHECK(index < FLAGS_insert_count);
     exactMatchSet4.insert(inserted4[index]);
   }
-  for (auto pfx: exactMatchSet4) {
+  for (auto pfx : exactMatchSet4) {
     auto newMask = pfx.mask ? folly::Random::rand32(pfx.mask) : pfx.mask;
     auto newIp = pfx.ip.mask(newMask);
     longestMatchSet4.insert(Prefix4(newIp, newMask));
@@ -241,11 +247,10 @@ int main(int /*argc*/, char* /*argv*/ []) {
     CHECK(index < FLAGS_insert_count);
     exactMatchSet6.insert(inserted6[index]);
   }
-  for (auto pfx: exactMatchSet6) {
+  for (auto pfx : exactMatchSet6) {
     auto newMask = pfx.mask ? folly::Random::rand32(pfx.mask) : pfx.mask;
     auto newIp = pfx.ip.mask(newMask);
     longestMatchSet6.insert(Prefix6(newIp, newMask));
   }
   runBenchmarks();
 }
-

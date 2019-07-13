@@ -17,15 +17,16 @@
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/types.h"
 
-
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 struct SflowCollectorFields {
   SflowCollectorFields(const std::string& ip, const uint16_t port)
-      : address(ip, port), id(address.getFullyQualified() + ':'
-                              + folly::to<std::string>(address.getPort())) {}
+      : address(ip, port),
+        id(address.getFullyQualified() + ':' +
+           folly::to<std::string>(address.getPort())) {}
 
-  template<typename Fn>
+  template <typename Fn>
   void forEachChild(Fn) {}
 
   folly::dynamic toFollyDynamic() const;
@@ -43,14 +44,14 @@ class SflowCollector : public NodeBaseT<SflowCollector, SflowCollectorFields> {
  public:
   SflowCollector(const std::string& ip, const uint16_t port);
 
-  static std::shared_ptr<SflowCollector>
-  fromFollyDynamic(const folly::dynamic& json) {
+  static std::shared_ptr<SflowCollector> fromFollyDynamic(
+      const folly::dynamic& json) {
     const auto& fields = SflowCollectorFields::fromFollyDynamic(json);
     return std::make_shared<SflowCollector>(fields);
   }
 
-  static std::shared_ptr<SflowCollector>
-  fromJson(const folly::fbstring& jsonStr) {
+  static std::shared_ptr<SflowCollector> fromJson(
+      const folly::fbstring& jsonStr) {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
@@ -72,4 +73,5 @@ class SflowCollector : public NodeBaseT<SflowCollector, SflowCollectorFields> {
   friend class CloneAllocator;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -38,7 +38,9 @@ class BcmTrunk {
   BcmTrunk(const BcmSwitchIf* hw, opennsl_trunk_t id);
   ~BcmTrunk();
 
-  opennsl_trunk_t id() const { return bcmTrunkID_; }
+  opennsl_trunk_t id() const {
+    return bcmTrunkID_;
+  }
 
   void init(const std::shared_ptr<AggregatePort>& aggPort);
   void program(
@@ -60,10 +62,10 @@ class BcmTrunk {
 
   BcmTrunkStats& stats();
 
-private:
+ private:
   static int rtag7();
   void suppressTrunkInternalFlood(
-    const std::shared_ptr<AggregatePort>& aggPort);
+      const std::shared_ptr<AggregatePort>& aggPort);
   void programForwardingState(
       AggregatePort::SubportAndForwardingStateConstRange oldRange,
       AggregatePort::SubportAndForwardingStateConstRange newRange);

@@ -31,9 +31,9 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
     return {FlexPortMode::ONEX40G, FlexPortMode::FOURX10G};
   }
   const PortQueue& getDefaultPortQueueSettings(
-    cfg::StreamType streamType) const override;
+      cfg::StreamType streamType) const override;
   const PortQueue& getDefaultControlPlaneQueueSettings(
-    cfg::StreamType streamType) const override;
+      cfg::StreamType streamType) const override;
 
   uint32_t getMMUBufferBytes() const override {
     return 16 * 1024 * 1024;

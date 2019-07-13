@@ -9,43 +9,46 @@
  */
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 
-#include <folly/logging/xlog.h>
 #include <folly/Memory.h>
 #include <folly/Subprocess.h>
+#include <folly/logging/xlog.h>
 
-#include "fboss/lib/usb/UsbError.h"
-#include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
+#include "fboss/agent/platforms/wedge/WedgePort.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/platforms/wedge/WedgePort.h"
+#include "fboss/lib/usb/UsbError.h"
+#include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include <future>
 
-DEFINE_string(volatile_state_dir, "/dev/shm/fboss",
-              "Directory for storing volatile state");
-DEFINE_string(persistent_state_dir, "/var/facebook/fboss",
-              "Directory for storing persistent state");
-DEFINE_string(mac, "",
-              "The local MAC address for this switch");
-DEFINE_string(mgmt_if, "eth0",
-              "name of management interface");
+DEFINE_string(
+    volatile_state_dir,
+    "/dev/shm/fboss",
+    "Directory for storing volatile state");
+DEFINE_string(
+    persistent_state_dir,
+    "/var/facebook/fboss",
+    "Directory for storing persistent state");
+DEFINE_string(mac, "", "The local MAC address for this switch");
+DEFINE_string(mgmt_if, "eth0", "name of management interface");
 
 using folly::MacAddress;
-using std::make_unique;
 using folly::Subprocess;
+using std::make_unique;
 using std::string;
 
 namespace {
 constexpr auto kNumWedge40Qsfps = 16;
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 WedgePlatform::WedgePlatform(std::unique_ptr<PlatformProductInfo> productInfo)
     : productInfo_(std::move(productInfo)),
@@ -63,7 +66,7 @@ WedgePlatform::InitPortMap WedgePlatform::initPorts() {
   portMapping_ = createPortMapping();
 
   InitPortMap mapping;
-  for (const auto& kv: *portMapping_) {
+  for (const auto& kv : *portMapping_) {
     opennsl_port_t id = kv.first;
     mapping[id] = kv.second.get();
   }
@@ -172,4 +175,5 @@ PlatformPort* WedgePlatform::getPlatformPort(const PortID port) const {
   return getPort(port);
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

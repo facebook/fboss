@@ -15,7 +15,6 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 
-
 namespace facebook {
 namespace fboss {
 

@@ -18,26 +18,22 @@ LabelForwardingAction getPushAction(LabelForwardingAction::LabelStack stack);
 LabelNextHopEntry getSwapLabelNextHopEntry(
     AdminDistance distance,
     InterfaceID intfId = InterfaceID(1),
-    std::vector<folly::IPAddress> addrs = {}
-);
+    std::vector<folly::IPAddress> addrs = {});
 
 LabelNextHopEntry getPushLabelNextHopEntry(
     AdminDistance distance,
     InterfaceID intfId = InterfaceID(1),
-    std::vector<folly::IPAddress> addrs = {}
-);
+    std::vector<folly::IPAddress> addrs = {});
 
 LabelNextHopEntry getPhpLabelNextHopEntry(
     AdminDistance distance,
     InterfaceID intfId = InterfaceID(1),
-    std::vector<folly::IPAddress> addrs = {}
-  );
+    std::vector<folly::IPAddress> addrs = {});
 
 LabelNextHopEntry getPopLabelNextHopEntry(
     AdminDistance distance,
     InterfaceID intfId = InterfaceID(1),
-    std::vector<folly::IPAddress> addrs = {}
-);
+    std::vector<folly::IPAddress> addrs = {});
 
 std::vector<MplsRoute> getTestRoutes(int base = 0, int count = 4);
 

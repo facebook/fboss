@@ -9,16 +9,16 @@
  */
 #pragma once
 
+#include <pcap/pcap.h>
 #include <string>
 #include <vector>
-#include <pcap/pcap.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 struct PcapPktInfo {
   PcapPktInfo(const struct pcap_pkthdr* h, const uint8_t* d)
-    : hdr(*h),
-      data(reinterpret_cast<const char*>(d), h->caplen) {}
+      : hdr(*h), data(reinterpret_cast<const char*>(d), h->caplen) {}
 
   struct pcap_pkthdr hdr;
   std::string data;
@@ -26,4 +26,5 @@ struct PcapPktInfo {
 
 std::vector<PcapPktInfo> readPcapFile(const char* path);
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

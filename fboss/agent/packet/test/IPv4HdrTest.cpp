@@ -23,10 +23,10 @@
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 
 using namespace facebook::fboss;
-using folly::IPAddressV4;
-using folly::io::Cursor;
-using folly::io::Appender;
 using folly::IOBuf;
+using folly::IPAddressV4;
+using folly::io::Appender;
+using folly::io::Cursor;
 
 TEST(IPv4HdrTest, default_constructor) {
   IPv4Hdr ipv4Hdr;
@@ -61,8 +61,21 @@ TEST(IPv4HdrTest, copy_constructor) {
   uint16_t csum = 0;
   IPAddressV4 srcAddr("10.0.0.15");
   IPAddressV4 dstAddr("10.0.0.1");
-  IPv4Hdr lhs(version, ihl, dscp, ecn, length, id, dontFragment, moreFragments,
-      fragmentOffset, ttl, protocol, csum, srcAddr, dstAddr);
+  IPv4Hdr lhs(
+      version,
+      ihl,
+      dscp,
+      ecn,
+      length,
+      id,
+      dontFragment,
+      moreFragments,
+      fragmentOffset,
+      ttl,
+      protocol,
+      csum,
+      srcAddr,
+      dstAddr);
   IPv4Hdr rhs(lhs);
   EXPECT_EQ(lhs, rhs);
 }
@@ -82,8 +95,21 @@ TEST(IPv4HdrTest, parameterized_data_constructor) {
   uint16_t csum = 0;
   IPAddressV4 srcAddr("10.0.0.15");
   IPAddressV4 dstAddr("10.0.0.1");
-  IPv4Hdr ipv4Hdr(version, ihl, dscp, ecn, length, id, dontFragment,
-      moreFragments, fragmentOffset, ttl, protocol, csum, srcAddr, dstAddr);
+  IPv4Hdr ipv4Hdr(
+      version,
+      ihl,
+      dscp,
+      ecn,
+      length,
+      id,
+      dontFragment,
+      moreFragments,
+      fragmentOffset,
+      ttl,
+      protocol,
+      csum,
+      srcAddr,
+      dstAddr);
   EXPECT_EQ(version, ipv4Hdr.version);
   EXPECT_EQ(ihl, ipv4Hdr.ihl);
   EXPECT_EQ(dscp, ipv4Hdr.dscp);
@@ -116,18 +142,18 @@ TEST(IPv4HdrTest, cursor_data_constructor) {
   IPAddressV4 srcAddr("10.0.0.15");
   IPAddressV4 dstAddr("10.0.0.1");
   auto pkt = MockRxPacket::fromHex(
-    // IPv4 Header
-    "4"            // version: 4
-    "5"            // IHL: 5
-    "00"           // DSCP, ECN
-    "00 14"        // length: 20
-    "00 00"        // id: 0
-    "00 00"        // flags and fragment offset
-    "01"           // TTL: 1
-    "06"           // protocol: TCP
-    "00 00"        // checksum
-    "0a 00 00 0f"  // Source Address: 10.0.0.15
-    "0a 00 00 01"  // Destination Address: 10.0.0.1
+      // IPv4 Header
+      "4" // version: 4
+      "5" // IHL: 5
+      "00" // DSCP, ECN
+      "00 14" // length: 20
+      "00 00" // id: 0
+      "00 00" // flags and fragment offset
+      "01" // TTL: 1
+      "06" // protocol: TCP
+      "00 00" // checksum
+      "0a 00 00 0f" // Source Address: 10.0.0.15
+      "0a 00 00 01" // Destination Address: 10.0.0.1
   );
   Cursor cursor(pkt->buf());
   IPv4Hdr ipv4Hdr(cursor);
@@ -149,99 +175,98 @@ TEST(IPv4HdrTest, cursor_data_constructor) {
 
 TEST(IPv4HdrTest, cursor_data_constructor_too_small) {
   auto pkt = MockRxPacket::fromHex(
-    // IPv4 Header
-    "4"            // version: 4
-    "5"            // IHL: 5
-    "00"           // DSCP, ECN
-    "00 14"        // length: 20
-    "00 00"        // id: 0
-    "00 00"        // flags and fragment offset
-    "01"           // TTL: 1
-    "06"           // protocol: TCP
-    "00 00"        // checksum
-    "0a 00 00 0f"  // Source Address: 10.0.0.15
-    "0a 00 00   "  // OOPS! One octet too small!
+      // IPv4 Header
+      "4" // version: 4
+      "5" // IHL: 5
+      "00" // DSCP, ECN
+      "00 14" // length: 20
+      "00 00" // id: 0
+      "00 00" // flags and fragment offset
+      "01" // TTL: 1
+      "06" // protocol: TCP
+      "00 00" // checksum
+      "0a 00 00 0f" // Source Address: 10.0.0.15
+      "0a 00 00   " // OOPS! One octet too small!
   );
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({IPv4Hdr ipv4Hdr(cursor);}, HdrParseError);
+  EXPECT_THROW({ IPv4Hdr ipv4Hdr(cursor); }, HdrParseError);
 }
 
 TEST(IPv4HdrTest, cursor_data_constructor_bad_version) {
   auto pkt = MockRxPacket::fromHex(
-    // IPv4 Header
-    "6"            // version: 6
-    "5"            // IHL: 5
-    "00"           // DSCP, ECN
-    "00 14"        // length: 20
-    "00 00"        // id: 0
-    "00 00"        // flags and fragment offset
-    "01"           // TTL: 1
-    "06"           // protocol: TCP
-    "00 00"        // checksum
-    "0a 00 00 0f"  // Source Address: 10.0.0.15
-    "0a 00 00 01"  // Destination Address: 10.0.0.1
+      // IPv4 Header
+      "6" // version: 6
+      "5" // IHL: 5
+      "00" // DSCP, ECN
+      "00 14" // length: 20
+      "00 00" // id: 0
+      "00 00" // flags and fragment offset
+      "01" // TTL: 1
+      "06" // protocol: TCP
+      "00 00" // checksum
+      "0a 00 00 0f" // Source Address: 10.0.0.15
+      "0a 00 00 01" // Destination Address: 10.0.0.1
   );
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({IPv4Hdr ipv4Hdr(cursor);}, HdrParseError);
+  EXPECT_THROW({ IPv4Hdr ipv4Hdr(cursor); }, HdrParseError);
 }
 
 TEST(IPv4HdrTest, cursor_data_constructor_bad_ihl) {
   auto pkt = MockRxPacket::fromHex(
-    // IPv4 Header
-    "4"            // version: 4
-    "4"            // IHL: 4
-    "00"           // DSCP, ECN
-    "00 14"        // length: 20
-    "00 00"        // id: 0
-    "00 00"        // flags and fragment offset
-    "01"           // TTL: 1
-    "06"           // protocol: TCP
-    "00 00"        // checksum
-    "0a 00 00 0f"  // Source Address: 10.0.0.15
-    "0a 00 00 01"  // Destination Address: 10.0.0.1
+      // IPv4 Header
+      "4" // version: 4
+      "4" // IHL: 4
+      "00" // DSCP, ECN
+      "00 14" // length: 20
+      "00 00" // id: 0
+      "00 00" // flags and fragment offset
+      "01" // TTL: 1
+      "06" // protocol: TCP
+      "00 00" // checksum
+      "0a 00 00 0f" // Source Address: 10.0.0.15
+      "0a 00 00 01" // Destination Address: 10.0.0.1
   );
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({IPv4Hdr ipv4Hdr(cursor);}, HdrParseError);
+  EXPECT_THROW({ IPv4Hdr ipv4Hdr(cursor); }, HdrParseError);
 }
 
 TEST(IPv4HdrTest, cursor_data_constructor_bad_length) {
   auto pkt = MockRxPacket::fromHex(
-    // IPv4 Header
-    "4"            // version: 4
-    "5"            // IHL: 5
-    "00"           // DSCP, ECN
-    "00 13"        // length: 19
-    "00 00"        // id: 0
-    "00 00"        // flags and fragment offset
-    "01"           // TTL: 1
-    "06"           // protocol: TCP
-    "00 00"        // checksum
-    "0a 00 00 0f"  // Source Address: 10.0.0.15
-    "0a 00 00 01"  // Destination Address: 10.0.0.1
+      // IPv4 Header
+      "4" // version: 4
+      "5" // IHL: 5
+      "00" // DSCP, ECN
+      "00 13" // length: 19
+      "00 00" // id: 0
+      "00 00" // flags and fragment offset
+      "01" // TTL: 1
+      "06" // protocol: TCP
+      "00 00" // checksum
+      "0a 00 00 0f" // Source Address: 10.0.0.15
+      "0a 00 00 01" // Destination Address: 10.0.0.1
   );
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({IPv4Hdr ipv4Hdr(cursor);}, HdrParseError);
+  EXPECT_THROW({ IPv4Hdr ipv4Hdr(cursor); }, HdrParseError);
 }
 
 TEST(IPv4HdrTest, cursor_data_constructor_zero_ttl) {
   auto pkt = MockRxPacket::fromHex(
-    // IPv4 Header
-    "4"            // version: 4
-    "5"            // IHL: 5
-    "00"           // DSCP, ECN
-    "00 14"        // length: 10
-    "00 00"        // id: 0
-    "00 00"        // flags and fragment offset
-    "00"           // TTL: 0
-    "06"           // protocol: TCP
-    "00 00"        // checksum
-    "0a 00 00 0f"  // Source Address: 10.0.0.15
-    "0a 00 00 01"  // Destination Address: 10.0.0.1
+      // IPv4 Header
+      "4" // version: 4
+      "5" // IHL: 5
+      "00" // DSCP, ECN
+      "00 14" // length: 10
+      "00 00" // id: 0
+      "00 00" // flags and fragment offset
+      "00" // TTL: 0
+      "06" // protocol: TCP
+      "00 00" // checksum
+      "0a 00 00 0f" // Source Address: 10.0.0.15
+      "0a 00 00 01" // Destination Address: 10.0.0.1
   );
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({IPv4Hdr ipv4Hdr(cursor);}, HdrParseError);
+  EXPECT_THROW({ IPv4Hdr ipv4Hdr(cursor); }, HdrParseError);
 }
-
 
 TEST(IPv4HdrTest, write_to_buffer) {
   uint8_t version = IPV4_VERSION;
@@ -258,8 +283,21 @@ TEST(IPv4HdrTest, write_to_buffer) {
   uint16_t csum = 0;
   IPAddressV4 srcAddr("10.0.0.15");
   IPAddressV4 dstAddr("10.0.0.1");
-  IPv4Hdr lhs(version, ihl, dscp, ecn, length, id, dontFragment, moreFragments,
-      fragmentOffset, ttl, protocol, csum, srcAddr, dstAddr);
+  IPv4Hdr lhs(
+      version,
+      ihl,
+      dscp,
+      ecn,
+      length,
+      id,
+      dontFragment,
+      moreFragments,
+      fragmentOffset,
+      ttl,
+      protocol,
+      csum,
+      srcAddr,
+      dstAddr);
   auto buf = IOBuf::create(IPv4Hdr::minSize());
   Appender appender(buf.get(), 100);
   lhs.write(&appender);
@@ -284,8 +322,21 @@ TEST(IPv4HdrTest, assignment_operator) {
   uint16_t csum = 0;
   IPAddressV4 srcAddr("10.0.0.15");
   IPAddressV4 dstAddr("10.0.0.1");
-  IPv4Hdr lhs(version, ihl, dscp, ecn, length, id, dontFragment, moreFragments,
-      fragmentOffset, ttl, protocol, csum, srcAddr, dstAddr);
+  IPv4Hdr lhs(
+      version,
+      ihl,
+      dscp,
+      ecn,
+      length,
+      id,
+      dontFragment,
+      moreFragments,
+      fragmentOffset,
+      ttl,
+      protocol,
+      csum,
+      srcAddr,
+      dstAddr);
   IPv4Hdr rhs = lhs;
   EXPECT_EQ(lhs, rhs);
 }
@@ -305,10 +356,36 @@ TEST(IPv4HdrTest, equality_operator) {
   uint16_t csum = 0;
   IPAddressV4 srcAddr("10.0.0.15");
   IPAddressV4 dstAddr("10.0.0.1");
-  IPv4Hdr lhs(version, ihl, dscp, ecn, length, id, dontFragment, moreFragments,
-      fragmentOffset, ttl, protocol, csum, srcAddr, dstAddr);
-  IPv4Hdr rhs(version, ihl, dscp, ecn, length, id, dontFragment, moreFragments,
-      fragmentOffset, ttl, protocol, csum, srcAddr, dstAddr);
+  IPv4Hdr lhs(
+      version,
+      ihl,
+      dscp,
+      ecn,
+      length,
+      id,
+      dontFragment,
+      moreFragments,
+      fragmentOffset,
+      ttl,
+      protocol,
+      csum,
+      srcAddr,
+      dstAddr);
+  IPv4Hdr rhs(
+      version,
+      ihl,
+      dscp,
+      ecn,
+      length,
+      id,
+      dontFragment,
+      moreFragments,
+      fragmentOffset,
+      ttl,
+      protocol,
+      csum,
+      srcAddr,
+      dstAddr);
   EXPECT_EQ(lhs, rhs);
 }
 
@@ -328,9 +405,35 @@ TEST(IPv4HdrTest, inequality_operator) {
   uint16_t csum = 0;
   IPAddressV4 srcAddr("10.0.0.15");
   IPAddressV4 dstAddr("10.0.0.1");
-  IPv4Hdr lhs(version, ihl, dscp, ecn, length, id, dontFragment, moreFragments,
-      fragmentOffset, ttl1, protocol, csum, srcAddr, dstAddr);
-  IPv4Hdr rhs(version, ihl, dscp, ecn, length, id, dontFragment, moreFragments,
-      fragmentOffset, ttl2, protocol, csum, srcAddr, dstAddr);
+  IPv4Hdr lhs(
+      version,
+      ihl,
+      dscp,
+      ecn,
+      length,
+      id,
+      dontFragment,
+      moreFragments,
+      fragmentOffset,
+      ttl1,
+      protocol,
+      csum,
+      srcAddr,
+      dstAddr);
+  IPv4Hdr rhs(
+      version,
+      ihl,
+      dscp,
+      ecn,
+      length,
+      id,
+      dontFragment,
+      moreFragments,
+      fragmentOffset,
+      ttl2,
+      protocol,
+      csum,
+      srcAddr,
+      dstAddr);
   EXPECT_NE(lhs, rhs);
 }

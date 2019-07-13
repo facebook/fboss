@@ -27,7 +27,8 @@
 #include <folly/io/Cursor.h>
 #include "fboss/agent/packet/HdrParseError.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * DSAP:
@@ -41,28 +42,28 @@ namespace facebook { namespace fboss {
  *   http://www.wildpackets.com/resources/compendium/reference/sap_numbers
  */
 enum class LLC_SAP_ADDR : uint8_t {
-  LLC_SAP_NULL                    = 0x00,
+  LLC_SAP_NULL = 0x00,
   LLC_SAP_LLC_SUBLAYER_MANAGEMENT = 0x02,
-  LLC_SAP_IBM_SNA_PATH_CONTROL    = 0x04,
-  LLC_SAP_IP                      = 0x06,  // Internet Protocol
-  LLC_SAP_PROWAY_NET_MGNT_INIT    = 0x0E,
-  LLC_SAP_TEXAS_INSTRUMENTS       = 0x18,
-  LLC_SAP_STP                     = 0x42,  // Spanning Tree Protocol
-  LLC_SAP_ISO_8208                = 0x7F,
-  LLC_SAP_XEROX_NETWORK_SYSTEMS   = 0x80,
-  LLC_SAP_NESTAR                  = 0x86,
+  LLC_SAP_IBM_SNA_PATH_CONTROL = 0x04,
+  LLC_SAP_IP = 0x06, // Internet Protocol
+  LLC_SAP_PROWAY_NET_MGNT_INIT = 0x0E,
+  LLC_SAP_TEXAS_INSTRUMENTS = 0x18,
+  LLC_SAP_STP = 0x42, // Spanning Tree Protocol
+  LLC_SAP_ISO_8208 = 0x7F,
+  LLC_SAP_XEROX_NETWORK_SYSTEMS = 0x80,
+  LLC_SAP_NESTAR = 0x86,
   LLC_SAP_PROWAY_ACT_STA_LIST_MNT = 0x8E,
-  LLC_SAP_ARP                     = 0x98,  // Address Resolution Protocol
-  LLC_SAP_RDE                     = 0xA6,  // Route Determination Entity
-  LLC_SAP_SNAP                    = 0xAA,  // Subnetwork Access Protocol
-  LLC_SAP_BANYAN_VINES            = 0xBC,
-  LLC_SAP_NOVELL_NETWARE          = 0xE0,
-  LLC_SAP_IBM_NETBIOS             = 0xF0,
-  LLC_SAP_IBM_LAN_MANAGEMENT      = 0xF4,
+  LLC_SAP_ARP = 0x98, // Address Resolution Protocol
+  LLC_SAP_RDE = 0xA6, // Route Determination Entity
+  LLC_SAP_SNAP = 0xAA, // Subnetwork Access Protocol
+  LLC_SAP_BANYAN_VINES = 0xBC,
+  LLC_SAP_NOVELL_NETWARE = 0xE0,
+  LLC_SAP_IBM_NETBIOS = 0xF0,
+  LLC_SAP_IBM_LAN_MANAGEMENT = 0xF4,
   LLC_SAP_IBM_REMOTE_PROGRAM_LOAD = 0xF8,
-  LLC_SAP_UNGERMANN_BASS          = 0xFA,
+  LLC_SAP_UNGERMANN_BASS = 0xFA,
   LLC_SAP_ISO_NETWORK_LAYER_PROTO = 0xFE,
-  LLC_SAP_GLOBAL                  = 0xFF,  // DSAP only
+  LLC_SAP_GLOBAL = 0xFF, // DSAP only
 };
 
 /*
@@ -71,9 +72,9 @@ enum class LLC_SAP_ADDR : uint8_t {
  */
 enum class LLC_CONTROL : uint16_t {
   // Type I: Connectionless/unreliable
-  LLC_CONTROL_UI    = 0x03,  // Unnumbered Information
-  LLC_CONTROL_XID   = 0xAF,  // Exchange Identification
-  LLC_CONTROL_TEST  = 0xE3,  // Test
+  LLC_CONTROL_UI = 0x03, // Unnumbered Information
+  LLC_CONTROL_XID = 0xAF, // Exchange Identification
+  LLC_CONTROL_TEST = 0xE3, // Test
 };
 
 /*
@@ -91,12 +92,12 @@ class LlcHdr {
    * copy constructor
    */
   LlcHdr(const LlcHdr& rhs)
-    : dsap(rhs.dsap), ssap(rhs.ssap), control(rhs.control) {}
+      : dsap(rhs.dsap), ssap(rhs.ssap), control(rhs.control) {}
   /*
    * parameterized data constructor
    */
   LlcHdr(uint8_t _dsap, uint8_t _ssap, uint8_t _control)
-    : dsap(_dsap), ssap(_ssap), control(_control) {}
+      : dsap(_dsap), ssap(_ssap), control(_control) {}
   /*
    * cursor data constructor
    */
@@ -114,6 +115,7 @@ class LlcHdr {
     control = rhs.control;
     return *this;
   }
+
  public:
   /*
    * Destination service access point address field
@@ -130,13 +132,13 @@ class LlcHdr {
 };
 
 inline bool operator==(const LlcHdr& lhs, const LlcHdr& rhs) {
-  return lhs.dsap == rhs.dsap
-      && lhs.ssap == rhs.ssap
-      && lhs.control == rhs.control;
+  return lhs.dsap == rhs.dsap && lhs.ssap == rhs.ssap &&
+      lhs.control == rhs.control;
 }
 
 inline bool operator!=(const LlcHdr& lhs, const LlcHdr& rhs) {
   return !operator==(lhs, rhs);
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

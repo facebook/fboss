@@ -21,16 +21,17 @@ constexpr auto kEgressMirror = "engressMirror";
 constexpr auto kCounter = "counter";
 constexpr auto kCounterName = "name";
 constexpr auto kCounterTypes = "types";
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 folly::dynamic MatchAction::toFollyDynamic() const {
   folly::dynamic matchAction = folly::dynamic::object;
   if (sendToQueue_) {
     matchAction[kQueueMatchAction] = folly::dynamic::object;
     matchAction[kQueueMatchAction][kQueueId] =
-      sendToQueue_.value().first.queueId;
+        sendToQueue_.value().first.queueId;
     matchAction[kQueueMatchAction][kSendToCPU] = sendToQueue_.value().second;
   }
   if (trafficCounter_) {
@@ -54,8 +55,7 @@ folly::dynamic MatchAction::toFollyDynamic() const {
   return matchAction;
 }
 
-MatchAction MatchAction::fromFollyDynamic(
-    const folly::dynamic& actionJson) {
+MatchAction MatchAction::fromFollyDynamic(const folly::dynamic& actionJson) {
   MatchAction matchAction = MatchAction();
   if (actionJson.find(kQueueMatchAction) != actionJson.items().end()) {
     cfg::QueueMatchAction queueAction = cfg::QueueMatchAction();
@@ -84,8 +84,8 @@ MatchAction MatchAction::fromFollyDynamic(
   }
 
   if (actionJson.find(kSetDscpMatchAction) != actionJson.items().end()) {
-    auto setDscpMatchAction= cfg::SetDscpMatchAction();
-    setDscpMatchAction.dscpValue=
+    auto setDscpMatchAction = cfg::SetDscpMatchAction();
+    setDscpMatchAction.dscpValue =
         actionJson[kSetDscpMatchAction][kDscpValue].asInt();
     matchAction.setSetDscp(setDscpMatchAction);
   }
@@ -97,4 +97,5 @@ MatchAction MatchAction::fromFollyDynamic(
   }
   return matchAction;
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

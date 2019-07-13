@@ -10,25 +10,25 @@
 // Copyright 2004-present Facebook.  All rights reserved.
 #include "RouteTable.h"
 
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTableRib.h"
-#include "fboss/agent/state/NodeBase-defs.h"
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace {
 constexpr auto kRouterId = "routerId";
 constexpr auto kRibV4 = "ribV4";
 constexpr auto kRibV6 = "ribV6";
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 RouteTableFields::RouteTableFields(RouterID id)
     : id(id),
       ribV4(std::make_shared<RibTypeV4>()),
-      ribV6(std::make_shared<RibTypeV6>()) {
-}
+      ribV6(std::make_shared<RibTypeV6>()) {}
 
 folly::dynamic RouteTableFields::toFollyDynamic() const {
   folly::dynamic rtable = folly::dynamic::object;
@@ -52,19 +52,17 @@ RouteTable* RouteTable::modify(std::shared_ptr<SwitchState>* state) {
   return clonedRT.get();
 }
 
-RouteTableFields
-RouteTableFields::fromFollyDynamic(const folly::dynamic& rtableJson) {
+RouteTableFields RouteTableFields::fromFollyDynamic(
+    const folly::dynamic& rtableJson) {
   RouteTableFields rtable(RouterID(rtableJson[kRouterId].asInt()));
   rtable.ribV4 = RibTypeV4::fromFollyDynamic(rtableJson[kRibV4]);
   rtable.ribV6 = RibTypeV6::fromFollyDynamic(rtableJson[kRibV6]);
   return rtable;
 }
 
-RouteTable::RouteTable(RouterID id) : NodeBaseT(id) {
-}
+RouteTable::RouteTable(RouterID id) : NodeBaseT(id) {}
 
-RouteTable::~RouteTable() {
-}
+RouteTable::~RouteTable() {}
 
 bool RouteTable::empty() const {
   return getRibV4()->empty() && getRibV6()->empty();
@@ -72,4 +70,5 @@ bool RouteTable::empty() const {
 
 template class NodeBaseT<RouteTable, RouteTableFields>;
 
-}}
+} // namespace fboss
+} // namespace facebook

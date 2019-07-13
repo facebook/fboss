@@ -36,5 +36,5 @@ void GalaxyI2CBus::wireUpPorts(GalaxyI2CBus::PortLeaves& leaves) {
   }
 }
 
-}
-} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

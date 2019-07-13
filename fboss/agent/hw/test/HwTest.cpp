@@ -9,9 +9,8 @@
  */
 #include "fboss/agent/hw/test/HwTest.h"
 
-#include <folly/logging/xlog.h>
 #include <folly/Singleton.h>
-
+#include <folly/logging/xlog.h>
 
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
@@ -40,7 +39,8 @@ DEFINE_int32(
     5908,
     "Port for thrift server to use (use with --setup_thrift");
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 void HwTest::SetUp() {
   // Reset any global state being tracked in singletons
@@ -103,7 +103,6 @@ std::shared_ptr<SwitchState> HwTest::initHwSwitch() {
   return programmedState_;
 }
 
-
 void HwTest::packetReceived(std::unique_ptr<RxPacket> /*pkt*/) noexcept {
   // We simply ignore trapped packets for now
 }
@@ -134,4 +133,5 @@ std::shared_ptr<SwitchState> HwTest::applyNewState(
 HwPortStats HwTest::getLatestPortStats(PortID port) {
   return getLatestPortStats(std::vector<PortID>{port})[port];
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -21,12 +21,14 @@ using folly::MacAddress;
 using std::make_unique;
 using std::unique_ptr;
 
-DEFINE_int32(num_ports, 64,
-             "The number of ports in the simulated switch");
-DEFINE_string(local_mac, "02:00:00:00:00:01",
-              "The local MAC address to use for the switch");
+DEFINE_int32(num_ports, 64, "The number of ports in the simulated switch");
+DEFINE_string(
+    local_mac,
+    "02:00:00:00:00:01",
+    "The local MAC address to use for the switch");
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 unique_ptr<Platform> initSimPlatform(
     std::unique_ptr<AgentConfig> config = nullptr) {
@@ -41,7 +43,8 @@ unique_ptr<Platform> initSimPlatform(
   platform->init(std::move(config));
   return std::move(platform);
 }
-}}
+} // namespace fboss
+} // namespace facebook
 
 int main(int argc, char* argv[]) {
   return facebook::fboss::fbossMain(argc, argv, initSimPlatform);

@@ -12,7 +12,8 @@
 struct libusb_device;
 struct libusb_device_handle;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * This is a thin wrapper around libusb_device_handle.
@@ -23,8 +24,7 @@ namespace facebook { namespace fboss {
 class UsbHandle {
  public:
   UsbHandle() {}
-  explicit UsbHandle(libusb_device_handle* handle)
-   : handle_(handle) {}
+  explicit UsbHandle(libusb_device_handle* handle) : handle_(handle) {}
   ~UsbHandle() {
     close();
   }
@@ -54,4 +54,5 @@ class UsbHandle {
   libusb_device_handle* handle_{nullptr};
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

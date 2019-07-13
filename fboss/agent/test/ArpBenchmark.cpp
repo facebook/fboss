@@ -26,8 +26,8 @@ using namespace facebook::fboss;
 using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::MacAddress;
-using std::make_unique;
 using std::make_shared;
+using std::make_unique;
 using std::shared_ptr;
 using std::unique_ptr;
 
@@ -61,7 +61,7 @@ unique_ptr<SwSwitch> setupSwitch() {
         MacAddress("02:00:01:00:00:01"),
         9000,
         false, /* is virtual */
-        false  /* is state_sync disabled*/);
+        false /* is state_sync disabled*/);
     Interface::Addresses addrs1;
     addrs1.emplace(IPAddress("10.0.0.1"), 24);
     addrs1.emplace(IPAddress("192.168.0.1"), 24);
@@ -71,12 +71,14 @@ unique_ptr<SwSwitch> setupSwitch() {
     // Set up an arp response table for VLAN 1 with entries for
     // 10.0.0.1 and 192.168.0.1
     auto respTable1 = make_shared<ArpResponseTable>();
-    respTable1->setEntry(IPAddressV4("10.0.0.1"),
-                         MacAddress("00:02:00:00:00:01"),
-                         InterfaceID(3));
-    respTable1->setEntry(IPAddressV4("192.168.0.1"),
-                         MacAddress("00:02:00:00:00:02"),
-                         InterfaceID(4));
+    respTable1->setEntry(
+        IPAddressV4("10.0.0.1"),
+        MacAddress("00:02:00:00:00:01"),
+        InterfaceID(3));
+    respTable1->setEntry(
+        IPAddressV4("192.168.0.1"),
+        MacAddress("00:02:00:00:00:02"),
+        InterfaceID(4));
     state->getVlans()->getVlan(VlanID(1))->setArpResponseTable(respTable1);
     return state;
   };
@@ -106,8 +108,7 @@ void init() {
       // Target MAC
       "00 00 00 00 00 00"
       // Target IP: 10.0.0.1
-      "0a 00 00 01"
-      );
+      "0a 00 00 01");
   arpRequest_10_0_0_1->padToLength(68);
   arpRequest_10_0_0_1->setSrcPort(PortID(1));
   arpRequest_10_0_0_1->setSrcVlan(VlanID(1));
@@ -129,8 +130,7 @@ void init() {
       // Target MAC
       "00 00 00 00 00 00"
       // Target IP: 10.0.0.5
-      "0a 00 00 05"
-      );
+      "0a 00 00 05");
   arpRequest_10_0_0_5->padToLength(68);
   arpRequest_10_0_0_5->setSrcPort(PortID(1));
   arpRequest_10_0_0_5->setSrcVlan(VlanID(1));

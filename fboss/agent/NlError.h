@@ -15,20 +15,19 @@ extern "C" {
 #include <netlink/errno.h>
 }
 
-
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /**
  * A class for errors from libnl
  */
 
 class NlError : public FbossError {
-public:
-  template<typename... Args>
+ public:
+  template <typename... Args>
   NlError(int nlerr, Args&&... args)
-  : FbossError(std::forward<Args>(args)..., ": ",
-                 nl_geterror(nlerr)),
-  nlerr_(nlerr) {}
+      : FbossError(std::forward<Args>(args)..., ": ", nl_geterror(nlerr)),
+        nlerr_(nlerr) {}
 
   ~NlError() throw() override {}
 
@@ -36,16 +35,16 @@ public:
     return nlerr_;
   }
 
-private:
+ private:
   int nlerr_;
 };
 
-template<typename... Args>
+template <typename... Args>
 void nlCheckError(int ret, Args&&... msgArgs) {
-  if(ret < 0) {
+  if (ret < 0) {
     throw NlError(ret, std::forward<Args>(msgArgs)...);
   }
 }
 
-}
-}
+} // namespace fboss
+} // namespace facebook

@@ -16,7 +16,8 @@
 #include <folly/Range.h>
 #include <folly/experimental/StringKeyedUnorderedMap.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmUnit;
 class BcmPlatform;
@@ -135,8 +136,8 @@ class BcmAPI {
       BcmPlatform* platform);
 
   // Forbidden copy constructor and assignment operator
-  BcmAPI(BcmAPI const &) = delete;
-  BcmAPI& operator=(BcmAPI const &) = delete;
+  BcmAPI(BcmAPI const&) = delete;
+  BcmAPI& operator=(BcmAPI const&) = delete;
 
   static void initImpl();
 
@@ -144,4 +145,5 @@ class BcmAPI {
   HwConfigMap bcmConfig_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

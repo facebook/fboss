@@ -10,8 +10,8 @@
 #include "fboss/agent/hw/bcm/BcmCosQueueManager.h"
 #include "fboss/agent/hw/bcm/CounterUtils.h"
 
-namespace facebook { namespace fboss {
-
+namespace facebook {
+namespace fboss {
 
 void BcmCosQueueManager::fillOrReplaceCounter(
     const BcmCosQueueCounterType& type,
@@ -46,11 +46,10 @@ void BcmCosQueueManager::fillOrReplaceCounter(
       // if counter already exists, swap it with a new counter with new name
       if (countersItr != counters.queues.end()) {
         facebook::stats::MonotonicCounter newCounter{
-          name, stats::SUM, stats::RATE};
+            name, stats::SUM, stats::RATE};
         countersItr->second->swap(newCounter);
         utility::deleteCounter(newCounter.getName());
-      }
-      else {
+      } else {
         counters.queues.emplace(
             queue,
             std::make_unique<facebook::stats::MonotonicCounter>(
@@ -91,9 +90,9 @@ void BcmCosQueueManager::setupQueueCounters(
 void BcmCosQueueManager::updateQueueStats(
     std::chrono::seconds now,
     HwPortStats* portStats) {
-  for (const auto& cntr: queueCounters_) {
+  for (const auto& cntr : queueCounters_) {
     if (cntr.first.isScopeQueues()) {
-      for (auto& countersItr: cntr.second.queues) {
+      for (auto& countersItr : cntr.second.queues) {
         updateQueueStat(
             countersItr.first,
             cntr.first,
@@ -108,4 +107,5 @@ void BcmCosQueueManager::updateQueueStats(
     }
   }
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

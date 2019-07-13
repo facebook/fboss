@@ -16,9 +16,8 @@ namespace facebook {
 namespace fboss {
 
 struct AgentConfig {
-  AgentConfig(cfg::AgentConfig thriftConfig, std::string rawConfig) :
-      thrift(std::move(thriftConfig)),
-      raw(std::move(rawConfig)) {}
+  AgentConfig(cfg::AgentConfig thriftConfig, std::string rawConfig)
+      : thrift(std::move(thriftConfig)), raw(std::move(rawConfig)) {}
 
   // creators
   static std::unique_ptr<AgentConfig> fromDefaultFile();

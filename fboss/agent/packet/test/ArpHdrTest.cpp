@@ -89,16 +89,16 @@ TEST(ArpHdrTest, cursor_data_constructor) {
   MacAddress tha("ff:ff:ff:ff:ff:ff");
   IPAddressV4 tpa("10.0.0.1");
   auto pkt = MockRxPacket::fromHex(
-    // ARP Header
-    "00 01"             // HTYPE: Ethernet (1)
-    "08 00"             // PTYPE: IPv4 (0x0800)
-    "06"                // HLEN:  6
-    "04"                // PLEN:  4
-    "00 01"             // OPER:  Request
-    "10 dd b1 bb 5a ef" // Sender Hardware Address
-    "0a 00 00 0f"       // Sender Protocol Address: 10.0.0.15
-    "ff ff ff ff ff ff" // Target Hardware Address
-    "0a 00 00 01"       // Target Protocol Address: 10.0.0.1
+      // ARP Header
+      "00 01" // HTYPE: Ethernet (1)
+      "08 00" // PTYPE: IPv4 (0x0800)
+      "06" // HLEN:  6
+      "04" // PLEN:  4
+      "00 01" // OPER:  Request
+      "10 dd b1 bb 5a ef" // Sender Hardware Address
+      "0a 00 00 0f" // Sender Protocol Address: 10.0.0.15
+      "ff ff ff ff ff ff" // Target Hardware Address
+      "0a 00 00 01" // Target Protocol Address: 10.0.0.1
   );
   Cursor cursor(pkt->buf());
   ArpHdr arpHdr(cursor);
@@ -115,19 +115,19 @@ TEST(ArpHdrTest, cursor_data_constructor) {
 
 TEST(ArpHdrTest, cursor_data_constructor_too_small) {
   auto pkt = MockRxPacket::fromHex(
-    // ARP Header
-    "00 01"             // HTYPE: Ethernet (1)
-    "08 00"             // PTYPE: IPv4 (0x0800)
-    "06"                // HLEN:  6
-    "04"                // PLEN:  4
-    "00 01"             // OPER:  Request
-    "10 dd b1 bb 5a ef" // Sender Hardware Address
-    "0a 00 00 0f"       // Sender Protocol Address: 10.0.0.15
-    "ff ff ff ff ff ff" // Target Hardware Address
-    "0a 00 00   "       // OOPS! One octet too small!
+      // ARP Header
+      "00 01" // HTYPE: Ethernet (1)
+      "08 00" // PTYPE: IPv4 (0x0800)
+      "06" // HLEN:  6
+      "04" // PLEN:  4
+      "00 01" // OPER:  Request
+      "10 dd b1 bb 5a ef" // Sender Hardware Address
+      "0a 00 00 0f" // Sender Protocol Address: 10.0.0.15
+      "ff ff ff ff ff ff" // Target Hardware Address
+      "0a 00 00   " // OOPS! One octet too small!
   );
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({ArpHdr arpHdr(cursor);}, HdrParseError);
+  EXPECT_THROW({ ArpHdr arpHdr(cursor); }, HdrParseError);
 }
 
 TEST(ArpHdrTest, assignment_operator) {

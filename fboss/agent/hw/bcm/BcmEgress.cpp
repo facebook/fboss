@@ -18,7 +18,8 @@
 #include <folly/logging/xlog.h>
 #include <string>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 using folly::IPAddress;
 using folly::MacAddress;
@@ -44,8 +45,12 @@ void BcmEgress::verifyDropEgress(int unit) {
   }
 }
 
-void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
-    const IPAddress& ip, const MacAddress* mac, opennsl_port_t port,
+void BcmEgress::program(
+    opennsl_if_t intfId,
+    opennsl_vrf_t vrf,
+    const IPAddress& ip,
+    const MacAddress* mac,
+    opennsl_port_t port,
     RouteForwardAction action) {
   opennsl_l3_egress_t eObj;
   auto failedToProgramMsg = folly::to<std::string>(
@@ -98,12 +103,12 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
   auto egressId2EgressCitr = findEgress(vrf, intfId, ip);
   if (egressId2EgressCitr != warmBootCache->egressId2Egress_end()) {
     // Lambda to compare with existing egress to know if should reprogram
-    auto equivalent = [] (const opennsl_l3_egress_t& newEgress,
-        const opennsl_l3_egress_t& existingEgress) {
-      auto puntToCPU = [=] (const opennsl_l3_egress_t& egress) {
+    auto equivalent = [](const opennsl_l3_egress_t& newEgress,
+                         const opennsl_l3_egress_t& existingEgress) {
+      auto puntToCPU = [=](const opennsl_l3_egress_t& egress) {
         // Check if both OPENNSL_L3_L2TOCPU and OPENNSL_L3_COPY_TO_CPU are set
         static const auto kCPUFlags =
-          OPENNSL_L3_L2TOCPU | OPENNSL_L3_COPY_TO_CPU;
+            OPENNSL_L3_L2TOCPU | OPENNSL_L3_COPY_TO_CPU;
         return (egress.flags & kCPUFlags) == kCPUFlags;
       };
       if (!puntToCPU(newEgress) && !puntToCPU(existingEgress)) {
@@ -149,7 +154,7 @@ void BcmEgress::program(opennsl_if_t intfId, opennsl_vrf_t vrf,
   if (addOrUpdateEgress) {
     uint32_t flags = 0;
     if (id_ != INVALID) {
-      flags |= OPENNSL_L3_REPLACE|OPENNSL_L3_WITH_ID;
+      flags |= OPENNSL_L3_REPLACE | OPENNSL_L3_WITH_ID;
     }
     if (!alreadyExists(eObj)) {
       /*
@@ -194,11 +199,15 @@ void BcmEgress::programToCPU() {
   // BCM does not care about interface ID for punt to CPU egress object
   uint32_t flags = 0;
   if (id_ != INVALID) {
-    flags |= OPENNSL_L3_REPLACE|OPENNSL_L3_WITH_ID;
+    flags |= OPENNSL_L3_REPLACE | OPENNSL_L3_WITH_ID;
   }
   auto rc = opennsl_l3_egress_create(hw_->getUnit(), flags, &eObj, &id_);
-  bcmCheckError(rc, "failed to program L3 egress object ", id_,
-                " to CPU on unit ", hw_->getUnit());
+  bcmCheckError(
+      rc,
+      "failed to program L3 egress object ",
+      id_,
+      " to CPU on unit ",
+      hw_->getUnit());
   XLOG(DBG2) << "programmed L3 egress object " << id_ << " to CPU on unit "
              << hw_->getUnit();
 }
@@ -236,8 +245,13 @@ BcmEgress::~BcmEgress() {
     return;
   }
   auto rc = opennsl_l3_egress_destroy(hw_->getUnit(), id_);
-  bcmLogFatal(rc, hw_, "failed to destroy L3 egress object ",
-      id_, " on unit ", hw_->getUnit());
+  bcmLogFatal(
+      rc,
+      hw_,
+      "failed to destroy L3 egress object ",
+      id_,
+      " on unit ",
+      hw_->getUnit());
   XLOG(DBG2) << "destroyed L3 egress object " << id_ << " on unit "
              << hw_->getUnit();
 }
@@ -272,7 +286,7 @@ void BcmEcmpEgress::program() {
     XLOG(DBG1) << "Adding ecmp egress with egress : "
                << BcmWarmBootCache::toEgressIdsStr(paths_);
     if (id_ != INVALID) {
-      obj.flags |= OPENNSL_L3_REPLACE|OPENNSL_L3_WITH_ID;
+      obj.flags |= OPENNSL_L3_REPLACE | OPENNSL_L3_WITH_ID;
       obj.ecmp_intf = id_;
     }
     opennsl_if_t pathsArray[paths_.size()];
@@ -287,18 +301,21 @@ void BcmEcmpEgress::program() {
     }
 
     XLOG(DBG2) << "Programming L3 ECMP egress object "
-               << ((id_ != INVALID) ? folly::to<std::string>(id_) :
-                   "(invalid id)")
-               << " for "
-               << paths_.size() << " paths"
-               << ((obj.flags & OPENNSL_L3_REPLACE) ? " replace" :
-                   " noreplace")
-               << ((obj.flags & OPENNSL_L3_WITH_ID) ? " with id" :
-                   " without id");
-    auto ret = opennsl_l3_egress_ecmp_create(hw_->getUnit(), &obj, index,
-                                             pathsArray);
-    bcmCheckError(ret, "failed to program L3 ECMP egress object ", id_,
-                " with ", paths_.size(), " paths");
+               << ((id_ != INVALID) ? folly::to<std::string>(id_)
+                                    : "(invalid id)")
+               << " for " << paths_.size() << " paths"
+               << ((obj.flags & OPENNSL_L3_REPLACE) ? " replace" : " noreplace")
+               << ((obj.flags & OPENNSL_L3_WITH_ID) ? " with id"
+                                                    : " without id");
+    auto ret =
+        opennsl_l3_egress_ecmp_create(hw_->getUnit(), &obj, index, pathsArray);
+    bcmCheckError(
+        ret,
+        "failed to program L3 ECMP egress object ",
+        id_,
+        " with ",
+        paths_.size(),
+        " paths");
     id_ = obj.ecmp_intf;
     XLOG(DBG2) << "Programmed L3 ECMP egress object " << id_ << " for "
                << paths_.size() << " paths";
@@ -314,8 +331,13 @@ BcmEcmpEgress::~BcmEcmpEgress() {
   opennsl_l3_egress_ecmp_t_init(&obj);
   obj.ecmp_intf = id_;
   auto ret = opennsl_l3_egress_ecmp_destroy(hw_->getUnit(), &obj);
-  bcmLogFatal(ret, hw_, "failed to destroy L3 ECMP egress object ",
-      id_, " on unit ", hw_->getUnit());
+  bcmLogFatal(
+      ret,
+      hw_,
+      "failed to destroy L3 ECMP egress object ",
+      id_,
+      " on unit ",
+      hw_->getUnit());
   XLOG(DBG2) << "Destroyed L3 ECMP egress object " << id_ << " on unit "
              << hw_->getUnit();
 }
@@ -337,9 +359,12 @@ bool BcmEcmpEgress::removeEgressIdHwLocked(
   return removeEgressIdHwNotLocked(unit, ecmpId, toRemove);
 }
 
-void BcmEgress::programToTrunk(opennsl_if_t intfId, opennsl_vrf_t /* vrf */,
-                               const folly::IPAddress& /* ip */,
-                               const MacAddress mac, opennsl_trunk_t trunk) {
+void BcmEgress::programToTrunk(
+    opennsl_if_t intfId,
+    opennsl_vrf_t /* vrf */,
+    const folly::IPAddress& /* ip */,
+    const MacAddress mac,
+    opennsl_trunk_t trunk) {
   opennsl_l3_egress_t egress;
   opennsl_l3_egress_t_init(&egress);
   egress.intf = intfId;
@@ -349,12 +374,12 @@ void BcmEgress::programToTrunk(opennsl_if_t intfId, opennsl_vrf_t /* vrf */,
 
   uint32_t creationFlags = 0;
   if (id_ != INVALID) {
-    creationFlags |= OPENNSL_L3_REPLACE|OPENNSL_L3_WITH_ID;
+    creationFlags |= OPENNSL_L3_REPLACE | OPENNSL_L3_WITH_ID;
   }
 
   if (!alreadyExists(egress)) {
-    auto rc = opennsl_l3_egress_create(hw_->getUnit(), creationFlags, &egress,
-                                       &id_);
+    auto rc =
+        opennsl_l3_egress_create(hw_->getUnit(), creationFlags, &egress, &id_);
 
     auto desc = folly::to<std::string>(
         "L3 egress object ",
@@ -375,4 +400,5 @@ void BcmEgress::programToTrunk(opennsl_if_t intfId, opennsl_vrf_t /* vrf */,
   CHECK_NE(id_, INVALID);
 }
 
-}}
+} // namespace fboss
+} // namespace facebook

@@ -8,13 +8,14 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
-#include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmAclStat.h"
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 #include <boost/container/flat_map.hpp>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 using std::chrono::duration_cast;
 using std::chrono::seconds;
@@ -94,7 +95,7 @@ void BcmStatUpdater::clearPortStats(
     auto ret = opennsl_stat_clear(hw_->getUnit(), port);
     if (OPENNSL_FAILURE(ret)) {
       XLOG(ERR) << "Clear Failed for port " << port << " :"
-        << opennsl_errmsg(ret);
+                << opennsl_errmsg(ret);
       return;
     }
   }
@@ -141,4 +142,5 @@ void BcmStatUpdater::refreshAclStats() {
     toBeAddedAclStats_.pop();
   }
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

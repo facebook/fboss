@@ -10,25 +10,26 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/types.h>
 #include <opennsl/port.h>
+#include <opennsl/types.h>
 }
 
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/types.h"
 
-#include <mutex>
 #include <boost/container/flat_map.hpp>
+#include <mutex>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmSwitch;
 class BcmPortGroup;
 
 class BcmPortTable {
  public:
-  explicit BcmPortTable(BcmSwitch *hw);
+  explicit BcmPortTable(BcmSwitch* hw);
   ~BcmPortTable();
 
   typedef boost::container::flat_map<PortID, BcmPort*> FbossPortMap;
@@ -98,11 +99,11 @@ class BcmPortTable {
   void initPortGroups();
 
   typedef boost::container::flat_map<opennsl_port_t, std::unique_ptr<BcmPort>>
-    BcmPortMap;
+      BcmPortMap;
 
   typedef std::vector<std::unique_ptr<BcmPortGroup>> BcmPortGroupList;
 
-  BcmSwitch *hw_{nullptr};
+  BcmSwitch* hw_{nullptr};
 
   // Mappings for the physical ports.
   // The set of physical ports is defined in initPorts(), and is read-only
@@ -123,4 +124,5 @@ class BcmPortTable {
   BcmPortGroupList bcmPortGroups_;
 };
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

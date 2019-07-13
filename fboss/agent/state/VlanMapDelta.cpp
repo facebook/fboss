@@ -11,10 +11,12 @@
 
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 template class NodeMapDelta<ArpTable>;
 template class NodeMapDelta<NdpTable>;
 template class NodeMapDelta<VlanMap, VlanDelta>;
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -11,13 +11,14 @@
 #include "RouteUpdateLoggingPrefixTracker.h"
 #include <folly/logging/xlog.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 RouteUpdateLoggingInstance::RouteUpdateLoggingInstance(
-      const RoutePrefix<folly::IPAddress>& prefix,
-      const std::string& identifier,
-      bool exact)
-      : prefix(prefix), identifier(identifier), exact(exact) {}
+    const RoutePrefix<folly::IPAddress>& prefix,
+    const std::string& identifier,
+    bool exact)
+    : prefix(prefix), identifier(identifier), exact(exact) {}
 
 std::string RouteUpdateLoggingInstance::str() const {
   return folly::sformat(
@@ -93,4 +94,5 @@ RouteUpdateLoggingPrefixTracker::getTrackedPrefixes() const {
   return allPrefixes;
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

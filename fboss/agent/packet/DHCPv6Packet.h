@@ -8,22 +8,25 @@
  *
  */
 #pragma once
+#include <folly/IPAddressV6.h>
+#include <folly/MacAddress.h>
 #include <array>
 #include <memory>
 #include <unordered_set>
 #include <vector>
-#include <folly/IPAddressV6.h>
-#include <folly/MacAddress.h>
 #include "fboss/agent/types.h"
 
 using folly::IPAddressV6;
 using folly::MacAddress;
 
-namespace folly { namespace io {
+namespace folly {
+namespace io {
 class Cursor;
-}}
+}
+} // namespace folly
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 enum class DHCPv6Type : uint8_t {
   DHCPv6_SOLICIT = 1,
@@ -64,23 +67,19 @@ struct DHCPv6Packet {
  public:
   DHCPv6Packet() {}
 
-  DHCPv6Packet(uint8_t _type,
-               uint8_t _hopCount,
-               IPAddressV6 _la,
-               IPAddressV6 _pa)
-             : type(_type),
-               hopCount(_hopCount),
-               linkAddr(_la),
-               peerAddr(_pa) {}
+  DHCPv6Packet(
+      uint8_t _type,
+      uint8_t _hopCount,
+      IPAddressV6 _la,
+      IPAddressV6 _pa)
+      : type(_type), hopCount(_hopCount), linkAddr(_la), peerAddr(_pa) {}
 
-  DHCPv6Packet(uint8_t _type,
-               uint32_t _tid)
-             : type(_type),
-               transactionId(_tid) {}
+  DHCPv6Packet(uint8_t _type, uint32_t _tid)
+      : type(_type), transactionId(_tid) {}
 
   void parse(folly::io::Cursor* cursor);
 
-  template<typename CursorType>
+  template <typename CursorType>
   void write(CursorType* cursor) const;
 
   void addRelayMessageOption(const DHCPv6Packet& dhcpPktIn);
@@ -95,37 +94,37 @@ struct DHCPv6Packet {
   std::string toString() const;
 
  public:
- /* From rfc 3315
-  * DHCPv6 packet:
-  * 0                   1                   2                   3
-   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |  type (1)     |             transactionid (3)                 |
-   +---------------+---------------+---------------+---------------+
-   |                          options (variable)                   |
-   +---------------------------------------------------------------+
-  *
-  * DHCPv6 relay packet:
-   0                   1                   2                   3
-   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |  type (1)     |   hopcnt (1)  |                               |
-   +---------------+---------------+---------------+---------------+
-   |                       Link-address (16)                       |
-   +-------------------------------+-------------------------------+
-   |                                                               |
-   +-------------------------------+-------------------------------+
-   |                               |                               |
-   +---------------------------------------------------------------+
-   |                      Peer-address (16)                        |
-   +---------------------------------------------------------------+
-   |                                                               |
-   +---------------------------------------------------------------+
-   |                               |                               |
-   +---------------------------------------------------------------+
-   |                          options (variable)                   |
-   +---------------------------------------------------------------+
-  */
+  /* From rfc 3315
+   * DHCPv6 packet:
+   * 0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  type (1)     |             transactionid (3)                 |
+    +---------------+---------------+---------------+---------------+
+    |                          options (variable)                   |
+    +---------------------------------------------------------------+
+   *
+   * DHCPv6 relay packet:
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  type (1)     |   hopcnt (1)  |                               |
+    +---------------+---------------+---------------+---------------+
+    |                       Link-address (16)                       |
+    +-------------------------------+-------------------------------+
+    |                                                               |
+    +-------------------------------+-------------------------------+
+    |                               |                               |
+    +---------------------------------------------------------------+
+    |                      Peer-address (16)                        |
+    +---------------------------------------------------------------+
+    |                                                               |
+    +---------------------------------------------------------------+
+    |                               |                               |
+    +---------------------------------------------------------------+
+    |                          options (variable)                   |
+    +---------------------------------------------------------------+
+   */
   uint8_t type;
   uint8_t hopCount;
   // this is an opaque value in host byte order, but when we read and write
@@ -136,7 +135,7 @@ struct DHCPv6Packet {
   Options options;
 };
 
-template<typename CursorType>
+template <typename CursorType>
 void DHCPv6Packet::write(CursorType* cursor) const {
   if (isDHCPv6Relay()) {
     // this is a DHCPv6 relay packet
@@ -156,12 +155,8 @@ void DHCPv6Packet::write(CursorType* cursor) const {
 struct DHCPv6Option {
  public:
   DHCPv6Option() {}
-  DHCPv6Option(uint16_t _op,
-               uint16_t _len,
-               const uint8_t* _data)
-             : op(_op),
-               len(_len),
-               data(_data) {}
+  DHCPv6Option(uint16_t _op, uint16_t _len, const uint8_t* _data)
+      : op(_op), len(_len), data(_data) {}
 
   void parse(DHCPv6Packet::Options& optionsIn, int index);
 
@@ -171,4 +166,5 @@ struct DHCPv6Option {
   const uint8_t* data;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

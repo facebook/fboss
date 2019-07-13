@@ -13,7 +13,8 @@
 
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 template class NodeMapDelta<RouteTableMap, RouteTablesDelta>;
 
@@ -25,13 +26,14 @@ template class NodeMapDelta<NodeMapRibV6>;
 
 template <>
 RouteTablesDelta::RoutesDeltaT<folly::IPAddressV4>
-    RouteTablesDelta::getRoutesDelta<folly::IPAddressV4>() const {
+RouteTablesDelta::getRoutesDelta<folly::IPAddressV4>() const {
   return getRoutesV4Delta();
 }
 
 template <>
 RouteTablesDelta::RoutesDeltaT<folly::IPAddressV6>
-    RouteTablesDelta::getRoutesDelta<folly::IPAddressV6>() const {
+RouteTablesDelta::getRoutesDelta<folly::IPAddressV6>() const {
   return getRoutesV6Delta();
 }
-}}
+} // namespace fboss
+} // namespace facebook

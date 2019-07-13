@@ -17,17 +17,20 @@ extern "C" {
 #include <string.h>
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /**
  * A class for errors from the Broadcom SDK.
  */
 class SysError : public FbossError {
  public:
-  template<typename... Args>
+  template <typename... Args>
   SysError(int err, Args&&... args)
-      : FbossError(std::forward<Args>(args)..., ": ",
-                   strerror_r(err, buf_, sizeof(buf_))),
+      : FbossError(
+            std::forward<Args>(args)...,
+            ": ",
+            strerror_r(err, buf_, sizeof(buf_))),
         err_(err) {}
 
   ~SysError() throw() override {}
@@ -41,7 +44,7 @@ class SysError : public FbossError {
   char buf_[256];
 };
 
-template<typename... Args>
+template <typename... Args>
 void sysCheckError(int ret, Args&&... msgArgs) {
   if (ret < 0) {
     auto err = errno;
@@ -49,7 +52,7 @@ void sysCheckError(int ret, Args&&... msgArgs) {
   }
 }
 
-template<typename... Args>
+template <typename... Args>
 void sysLogError(int ret, Args&&... msgArgs) {
   if (ret < 0) {
     auto err = errno;
@@ -59,7 +62,7 @@ void sysLogError(int ret, Args&&... msgArgs) {
   }
 }
 
-template<typename... Args>
+template <typename... Args>
 void sysLogFatal(int ret, Args&&... msgArgs) {
   if (ret < 0) {
     auto err = errno;
@@ -68,4 +71,5 @@ void sysLogFatal(int ret, Args&&... msgArgs) {
                 << ": " << strerror_r(err, buf, sizeof(buf));
   }
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

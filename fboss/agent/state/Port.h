@@ -17,11 +17,12 @@
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwitchState;
 
@@ -47,9 +48,7 @@ struct PortFields {
     UP = 1,
   };
 
-  PortFields(PortID id, std::string name)
-    : id(id),
-      name(name) {}
+  PortFields(PortID id, std::string name) : id(id), name(name) {}
 
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
@@ -72,7 +71,7 @@ struct PortFields {
   int64_t sFlowIngressRate{0};
   int64_t sFlowEgressRate{0};
   QueueConfig queues;
-  cfg::PortFEC fec{cfg::PortFEC::OFF};  // TODO: should this default to ON?
+  cfg::PortFEC fec{cfg::PortFEC::OFF}; // TODO: should this default to ON?
   cfg::PortLoopbackMode loopbackMode{cfg::PortLoopbackMode::NONE};
   folly::Optional<std::string> ingressMirror;
   folly::Optional<std::string> egressMirror;
@@ -262,4 +261,5 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
   friend class CloneAllocator;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

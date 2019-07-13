@@ -8,11 +8,11 @@
  *
  */
 #include "fboss/agent/state/AclEntry.h"
-#include "fboss/agent/state/NodeBase-defs.h"
-#include "fboss/agent/state/StateUtils.h"
 #include <folly/Conv.h>
 #include <folly/MacAddress.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/state/StateUtils.h"
 
 using folly::IPAddress;
 
@@ -40,9 +40,10 @@ constexpr auto kTtlValue = "value";
 constexpr auto kTtlMask = "mask";
 constexpr auto kLookupClass = "lookupClass";
 constexpr auto kAclAction = "aclAction";
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 folly::dynamic AclTtl::toFollyDynamic() const {
   folly::dynamic ttl = folly::dynamic::object;
@@ -128,24 +129,21 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
 
 AclEntryFields AclEntryFields::fromFollyDynamic(
     const folly::dynamic& aclEntryJson) {
-  AclEntryFields aclEntry(aclEntryJson[kPriority].asInt(),
-      aclEntryJson[kName].asString());
+  AclEntryFields aclEntry(
+      aclEntryJson[kPriority].asInt(), aclEntryJson[kName].asString());
   if (aclEntryJson.find(kSrcIp) != aclEntryJson.items().end()) {
-    aclEntry.srcIp = IPAddress::createNetwork(
-      aclEntryJson[kSrcIp].asString());
+    aclEntry.srcIp = IPAddress::createNetwork(aclEntryJson[kSrcIp].asString());
   }
   if (aclEntryJson.find(kDstIp) != aclEntryJson.items().end()) {
-    aclEntry.dstIp = IPAddress::createNetwork(
-      aclEntryJson[kDstIp].asString());
+    aclEntry.dstIp = IPAddress::createNetwork(aclEntryJson[kDstIp].asString());
   }
   if (aclEntry.srcIp.first && aclEntry.dstIp.first &&
       aclEntry.srcIp.first.isV4() != aclEntry.dstIp.first.isV4()) {
     throw FbossError(
-      "Unmatched ACL IP versions ",
-      aclEntryJson[kSrcIp].asString(),
-      " vs ",
-      aclEntryJson[kDstIp].asString()
-    );
+        "Unmatched ACL IP versions ",
+        aclEntryJson[kSrcIp].asString(),
+        " vs ",
+        aclEntryJson[kDstIp].asString());
   }
   if (aclEntryJson.find(kDstMac) != aclEntryJson.items().end()) {
     aclEntry.dstMac = folly::MacAddress(aclEntryJson[kDstMac].asString());
@@ -170,7 +168,7 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   }
   if (aclEntryJson.find(kIpFrag) != aclEntryJson.items().end()) {
     auto itr_ipFrag = cfg::_IpFragMatch_NAMES_TO_VALUES.find(
-      aclEntryJson[kIpFrag].asString().c_str());
+        aclEntryJson[kIpFrag].asString().c_str());
     aclEntry.ipFrag = cfg::IpFragMatch(itr_ipFrag->second);
   }
   if (aclEntryJson.find(kIcmpType) != aclEntryJson.items().end()) {
@@ -190,16 +188,15 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   }
   if (aclEntryJson.find(kLookupClass) != aclEntryJson.items().end()) {
     auto lookupClassItr = cfg::_AclLookupClass_NAMES_TO_VALUES.find(
-      aclEntryJson[kLookupClass].asString().c_str());
+        aclEntryJson[kLookupClass].asString().c_str());
     aclEntry.lookupClass = cfg::AclLookupClass(lookupClassItr->second);
   }
-  aclEntry.actionType =
-      cfg::_AclActionType_NAMES_TO_VALUES
-          .find(aclEntryJson[kActionType].asString().c_str())
-          ->second;
+  aclEntry.actionType = cfg::_AclActionType_NAMES_TO_VALUES
+                            .find(aclEntryJson[kActionType].asString().c_str())
+                            ->second;
   if (aclEntryJson.find(kAclAction) != aclEntryJson.items().end()) {
-    aclEntry.aclAction = MatchAction::fromFollyDynamic(
-      aclEntryJson[kAclAction]);
+    aclEntry.aclAction =
+        MatchAction::fromFollyDynamic(aclEntryJson[kAclAction]);
   }
 
   return aclEntry;
@@ -207,18 +204,17 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
 
 void AclEntryFields::checkFollyDynamic(const folly::dynamic& aclEntryJson) {
   // check src ip and dst ip are of the same type
-  if(aclEntryJson.find(kSrcIp) != aclEntryJson.items().end() &&
-     aclEntryJson.find(kDstIp) != aclEntryJson.items().end()) {
+  if (aclEntryJson.find(kSrcIp) != aclEntryJson.items().end() &&
+      aclEntryJson.find(kDstIp) != aclEntryJson.items().end()) {
     auto src = IPAddress::createNetwork(aclEntryJson[kSrcIp].asString());
     auto dst = IPAddress::createNetwork(aclEntryJson[kDstIp].asString());
     if (src.first.isV4() != dst.first.isV4()) {
       throw FbossError(
-        "Unmatched ACL IP versions ",
-        aclEntryJson[kSrcIp].asString(),
-        " vs ",
-        aclEntryJson[kDstIp].asString(),
-        "; source and destination IPs must be of the same type"
-      );
+          "Unmatched ACL IP versions ",
+          aclEntryJson[kSrcIp].asString(),
+          " vs ",
+          aclEntryJson[kDstIp].asString(),
+          "; source and destination IPs must be of the same type");
     }
   }
   // check ipFrag is valid
@@ -226,13 +222,14 @@ void AclEntryFields::checkFollyDynamic(const folly::dynamic& aclEntryJson) {
     const auto ipFragName = aclEntryJson[kIpFrag].asString();
     if (cfg::_IpFragMatch_NAMES_TO_VALUES.find(ipFragName.c_str()) ==
         cfg::_IpFragMatch_NAMES_TO_VALUES.end()) {
-      throw FbossError("Unsupported ACL IP fragmentation option ",
+      throw FbossError(
+          "Unsupported ACL IP fragmentation option ",
           aclEntryJson[kIpFrag].asString());
     }
   }
   // check action is valid
   if (cfg::_AclActionType_NAMES_TO_VALUES.find(
-        aclEntryJson[kActionType].asString().c_str()) ==
+          aclEntryJson[kActionType].asString().c_str()) ==
       cfg::_AclActionType_NAMES_TO_VALUES.end()) {
     throw FbossError(
         "Unsupported ACL action ", aclEntryJson[kActionType].asString());
@@ -246,44 +243,45 @@ void AclEntryFields::checkFollyDynamic(const folly::dynamic& aclEntryJson) {
   if (aclEntryJson.find(kIcmpType) != aclEntryJson.items().end() &&
       (aclEntryJson[kIcmpType].asInt() < 0 ||
        aclEntryJson[kIcmpType].asInt() > kMaxIcmpType)) {
-    throw FbossError("icmp type value must be between 0 and ",
-      std::to_string(kMaxIcmpType));
+    throw FbossError(
+        "icmp type value must be between 0 and ", std::to_string(kMaxIcmpType));
   }
   // the value of icmp code must be 0~255
   if (aclEntryJson.find(kIcmpCode) != aclEntryJson.items().end() &&
       (aclEntryJson[kIcmpCode].asInt() < 0 ||
        aclEntryJson[kIcmpCode].asInt() > kMaxIcmpCode)) {
-    throw FbossError("icmp code value must be between 0 and ",
-      std::to_string(kMaxIcmpCode));
+    throw FbossError(
+        "icmp code value must be between 0 and ", std::to_string(kMaxIcmpCode));
   }
   // check the "proto" is either "icmp" or "icmpv6" when icmptype is set
   if (aclEntryJson.find(kIcmpType) != aclEntryJson.items().end() &&
       (aclEntryJson.find(kProto) == aclEntryJson.items().end() ||
        !(aclEntryJson[kProto] == kProtoIcmp ||
          aclEntryJson[kProto] == kProtoIcmpv6))) {
-    throw FbossError("proto must be either icmp or icmpv6 ",
-      "if icmp type is set");
+    throw FbossError(
+        "proto must be either icmp or icmpv6 ", "if icmp type is set");
   }
 
   if (aclEntryJson.find(kL4SrcPort) != aclEntryJson.items().end() &&
       (aclEntryJson[kL4SrcPort].asInt() < 0 ||
        aclEntryJson[kL4SrcPort].asInt() > kMaxL4Port)) {
-    throw FbossError("L4 source port must be between 0 and ",
-      std::to_string(kMaxL4Port));
+    throw FbossError(
+        "L4 source port must be between 0 and ", std::to_string(kMaxL4Port));
   }
 
   if (aclEntryJson.find(kL4DstPort) != aclEntryJson.items().end() &&
       (aclEntryJson[kL4DstPort].asInt() < 0 ||
        aclEntryJson[kL4DstPort].asInt() > kMaxL4Port)) {
-    throw FbossError("L4 destination port must be between 0 and ",
-      std::to_string(kMaxL4Port));
+    throw FbossError(
+        "L4 destination port must be between 0 and ",
+        std::to_string(kMaxL4Port));
   }
 }
 
 AclEntry::AclEntry(int priority, const std::string& name)
-  : NodeBaseT(priority, name) {
-}
+    : NodeBaseT(priority, name) {}
 
 template class NodeBaseT<AclEntry, AclEntryFields>;
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

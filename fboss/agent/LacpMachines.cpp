@@ -9,8 +9,8 @@
  */
 
 #include "fboss/agent/LacpMachines.h"
-#include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/LacpController.h"
+#include "fboss/agent/LinkAggregationManager.h"
 
 #include <folly/Conv.h>
 #include <folly/ExceptionString.h>
@@ -597,7 +597,7 @@ void MuxMachine::matched() {
     case MuxState::WAITING:
     case MuxState::COLLECTING_DISTRIBUTING:
       XLOG(DBG4) << "MuxMachine[" << controller_.portID()
-                    << "]: Ignoring MATCHED in " << state_;
+                 << "]: Ignoring MATCHED in " << state_;
       break;
     case MuxState::ATTACHED:
       XLOG(DBG4) << "MuxMachine[" << controller_.portID() << "]: MATCHED in "

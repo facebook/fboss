@@ -10,8 +10,8 @@
 
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 
-#include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 namespace facebook {
 namespace fboss {

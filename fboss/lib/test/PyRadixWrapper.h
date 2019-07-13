@@ -6,15 +6,19 @@
 // C code implementation
 extern "C" {
 #include "radix.h"
-  void* PyMem_Malloc(size_t n) { return malloc(n); }
-  void PyMem_Free(void *p) { free(p); }
+void* PyMem_Malloc(size_t n) {
+  return malloc(n);
 }
-#include <memory>
+void PyMem_Free(void* p) {
+  free(p);
+}
+}
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
+#include <memory>
 
-#include "common/logging/logging.h"
 #include "Utils.h"
+#include "common/logging/logging.h"
 
 // Not implemented. Only exists so we can specialize
 // for v4 and v6
@@ -33,7 +37,7 @@ template <>
 struct PyRadixRootAdapter<folly::IPAddressV6> {
   template <typename PyTree>
   static const radix_node_t* getRoot(const PyTree& treePtr) {
-      return treePtr->head_ipv6;
+    return treePtr->head_ipv6;
   }
 };
 
@@ -42,25 +46,25 @@ struct PyRadixRootAdapter<folly::IPAddressV6> {
  * Sole purpose of this is to enable us to test by comparing against a widely
  * used radix tree implementation
  */
-template<typename IPAddrType, typename T>
+template <typename IPAddrType, typename T>
 class PyRadixWrapper {
  public:
-  explicit PyRadixWrapper(): tree_(New_Radix()) {}
+  explicit PyRadixWrapper() : tree_(New_Radix()) {}
 
   bool insert(const IPAddrType& ip, uint8_t mask, const T& value) {
     auto data = new std::shared_ptr<T>(new T(value));
     auto radixPfx = makePrefix(ip, mask);
     if (!radixPfx) {
-      VLOG(0) << "Unable to make prefix/find search tree for prefix " <<
-        ip.str() << "/" << mask;
+      VLOG(0) << "Unable to make prefix/find search tree for prefix "
+              << ip.str() << "/" << mask;
       return false;
     }
     // Look up radix node, fail if we find a non-empty one.
     auto radixNode = radix_search_exact(tree_.get(), radixPfx.get());
     if (radixNode) {
       if (radixNode->data) {
-        VLOG(0) << "Radix node data exists for " << ip.str() << "/"
-          << mask << ", no insertion performed.";
+        VLOG(0) << "Radix node data exists for " << ip.str() << "/" << mask
+                << ", no insertion performed.";
         return false;
       }
     }
@@ -82,7 +86,7 @@ class PyRadixWrapper {
     if (radixNode == nullptr) {
       return false;
     }
-    auto ptr = static_cast<std::shared_ptr<T> *>(radixNode->data);
+    auto ptr = static_cast<std::shared_ptr<T>*>(radixNode->data);
     if (ptr) {
       delete ptr;
       radixNode->data = nullptr;
@@ -93,23 +97,20 @@ class PyRadixWrapper {
 
   std::shared_ptr<T> longestMatch(const IPAddrType& addr, int prefix) {
     auto rawData = findClosestRaw(addr, prefix);
-    return rawData
-      ? *(static_cast<std::shared_ptr<T> *>(rawData))
-      : nullptr;
+    return rawData ? *(static_cast<std::shared_ptr<T>*>(rawData)) : nullptr;
   }
 
   std::shared_ptr<T> exactMatch(const IPAddrType& ip, int prefix) {
     auto rawData = findByPrefixRaw(ip, prefix);
-    return rawData
-      ? *(static_cast<std::shared_ptr<T> *>(rawData))
-      : nullptr;
+    return rawData ? *(static_cast<std::shared_ptr<T>*>(rawData)) : nullptr;
   }
 
   const radix_node_t* root() const {
     return PyRadixRootAdapter<IPAddrType>::getRoot(tree_);
   }
+
  private:
-   // Deleter for radix tree.
+  // Deleter for radix tree.
   class RadixDelete {
    public:
     static void node_delete_callback(radix_node_t* node, void* /*arg*/) {
@@ -117,19 +118,19 @@ class PyRadixWrapper {
       delete ptr;
       node->data = nullptr;
     }
-    void operator() (radix_tree_t *tree) {
+    void operator()(radix_tree_t* tree) {
       Destroy_Radix(tree, node_delete_callback, nullptr);
     }
   };
 
   class RadixPrefixDelete {
    public:
-    void operator() (prefix_t *pfx) {
+    void operator()(prefix_t* pfx) {
       Deref_Prefix(pfx);
     }
   };
 
-  void * findByPrefixRaw(const IPAddrType& ip, int prefix) {
+  void* findByPrefixRaw(const IPAddrType& ip, int prefix) {
     auto radixNode = findByPrefixNode(ip, prefix);
     if (!radixNode || !radixNode->data) {
       VLOG(0) << "No data found for " << ip.str() << "/" << prefix;
@@ -149,20 +150,20 @@ class PyRadixWrapper {
   }
 
   std::unique_ptr<prefix_t, RadixPrefixDelete> makePrefix(
-      const IPAddrType& ip, int prefix) {
-   std::unique_ptr<prefix_t, RadixPrefixDelete> radixPfx;
-   radixPfx.reset(prefix_from_blob(
-         ip.toByteArray().data(), // bytes
-         IPAddrType::byteCount(),
-         prefix));
+      const IPAddrType& ip,
+      int prefix) {
+    std::unique_ptr<prefix_t, RadixPrefixDelete> radixPfx;
+    radixPfx.reset(prefix_from_blob(
+        ip.toByteArray().data(), // bytes
+        IPAddrType::byteCount(),
+        prefix));
     return std::move(radixPfx);
   }
 
-  radix_node_t * findByPrefixNode(const IPAddrType& ip, int prefix) {
+  radix_node_t* findByPrefixNode(const IPAddrType& ip, int prefix) {
     auto radixPfx = makePrefix(ip, prefix);
     return radix_search_exact(tree_.get(), radixPfx.get());
   }
 
   std::unique_ptr<radix_tree_t, RadixDelete> tree_;
 };
-

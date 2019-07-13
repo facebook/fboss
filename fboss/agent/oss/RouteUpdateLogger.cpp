@@ -13,17 +13,17 @@
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 
-
 #include <memory>
 
 namespace {
-template<typename AddrT>
+template <typename AddrT>
 std::unique_ptr<facebook::fboss::RouteLogger<AddrT>> getRouteLogger() {
   return std::make_unique<facebook::fboss::GlogRouteLogger<AddrT>>();
 }
-}
+} // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 std::unique_ptr<RouteLogger<folly::IPAddressV4>>
 RouteUpdateLogger::getDefaultV4RouteLogger() {
@@ -35,4 +35,5 @@ RouteUpdateLogger::getDefaultV6RouteLogger() {
   return getRouteLogger<folly::IPAddressV6>();
 }
 
-}}
+} // namespace fboss
+} // namespace facebook

@@ -9,25 +9,24 @@
  */
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 
-#include <folly/logging/xlog.h>
 #include <folly/Singleton.h>
 #include <folly/io/async/EventBase.h>
-
+#include <folly/logging/xlog.h>
 
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
+#include "fboss/agent/hw/bcm/BcmConfig.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
-#include "fboss/agent/hw/bcm/BcmConfig.h"
+#include "fboss/agent/platforms/test_platforms/CreateTestPlatform.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/platforms/test_platforms/CreateTestPlatform.h"
 
 extern "C" {
 #include <opennsl/error.h>
@@ -40,8 +39,11 @@ DECLARE_string(bcm_config);
 DECLARE_int32(thrift_port);
 
 namespace {
-void addPort(BcmConfig::ConfigMap& cfg, int port,
-                      int speed, bool enabled=true) {
+void addPort(
+    BcmConfig::ConfigMap& cfg,
+    int port,
+    int speed,
+    bool enabled = true) {
   auto key = folly::to<std::string>("portmap_", port);
   auto value = folly::to<std::string>(port, ":", speed);
   if (!enabled) {
@@ -52,9 +54,9 @@ void addPort(BcmConfig::ConfigMap& cfg, int port,
 
 void addFlexPort(BcmConfig::ConfigMap& cfg, int start, int speed) {
   addPort(cfg, start, speed);
-  addPort(cfg, start + 1, speed/4, false);
-  addPort(cfg, start + 2, speed/2, false);
-  addPort(cfg, start + 3, speed/4, false);
+  addPort(cfg, start + 1, speed / 4, false);
+  addPort(cfg, start + 2, speed / 2, false);
+  addPort(cfg, start + 3, speed / 4, false);
 }
 } // namespace
 

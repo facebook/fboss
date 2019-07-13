@@ -13,7 +13,8 @@
 #include <folly/Range.h>
 #include <vector>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class PcapPkt;
 
@@ -50,12 +51,13 @@ class PcapFile {
   };
 
   // Forbidden copy constructor and assignment operator
-  PcapFile(PcapFile const &) = delete;
-  PcapFile& operator=(PcapFile const &) = delete;
+  PcapFile(PcapFile const&) = delete;
+  PcapFile& operator=(PcapFile const&) = delete;
 
   static int openFlags(bool overwriteExisting);
 
   folly::File file_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

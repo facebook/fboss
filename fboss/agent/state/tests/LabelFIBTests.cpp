@@ -305,7 +305,6 @@ TEST(LabelFIBTests, unprogramLabel) {
       stateA->getLabelForwardingInformationBase()->getLabelForwardingEntryIf(
           5002);
   EXPECT_EQ(nullptr, entry5002);
-
 }
 
 TEST(LabelFIBTests, purgeEntriesForClient) {

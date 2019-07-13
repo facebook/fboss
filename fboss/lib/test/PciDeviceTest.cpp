@@ -28,8 +28,8 @@ TEST(PciDevice, InitAnyDevice) {
   PciDevice pciDevice(PCI_MATCH_ANY, PCI_MATCH_ANY);
   ASSERT_NO_THROW(pciDevice.open());
   CHECK_EQ(pciDevice.isGood(), true);
-  ASSERT_NO_THROW({bar0 = pciDevice.getMemoryRegionAddress();});
-  ASSERT_NO_THROW({barSize0 = pciDevice.getMemoryRegionSize();});
+  ASSERT_NO_THROW({ bar0 = pciDevice.getMemoryRegionAddress(); });
+  ASSERT_NO_THROW({ barSize0 = pciDevice.getMemoryRegionSize(); });
   ASSERT_NO_THROW(pciDevice.close());
 }
 
@@ -43,10 +43,10 @@ TEST(PciDevice, StaleDevice) {
   pciDevice.open();
   CHECK_EQ(pciDevice.isGood(), true);
   pciDevice.close();
-  EXPECT_THROW({auto bar0 = pciDevice.getMemoryRegionAddress();},
-               std::exception);
-  EXPECT_THROW({auto barSize0 = pciDevice.getMemoryRegionSize();},
-               std::exception);
+  EXPECT_THROW(
+      { auto bar0 = pciDevice.getMemoryRegionAddress(); }, std::exception);
+  EXPECT_THROW(
+      { auto barSize0 = pciDevice.getMemoryRegionSize(); }, std::exception);
 }
 
 TEST(PciDevice, TwoDevices) {
@@ -62,12 +62,11 @@ TEST(PciDevice, TwoDevices) {
 
   // Close first device and access second
   pciDevice1.close();
-  ASSERT_NO_THROW({auto barSize0 = pciDevice2.getMemoryRegionSize();});
+  ASSERT_NO_THROW({ auto barSize0 = pciDevice2.getMemoryRegionSize(); });
 
   // Close second device
   ASSERT_NO_THROW(pciDevice2.close());
-
 }
 
-}
-}
+} // namespace fboss
+} // namespace facebook

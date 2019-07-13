@@ -8,9 +8,9 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmAPI.h"
+#include <folly/Memory.h>
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
-#include <folly/Memory.h>
 
 #include <stdlib.h>
 extern "C" {
@@ -26,7 +26,8 @@ struct ibde_t;
 ibde_t* bde;
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 #define NUM_UNITS 1
 
@@ -60,4 +61,5 @@ std::string BcmAPI::getThreadName() {
   return "";
 }
 
-}}
+} // namespace fboss
+} // namespace facebook

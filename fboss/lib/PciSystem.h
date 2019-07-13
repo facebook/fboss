@@ -22,7 +22,6 @@ namespace fboss {
  */
 class PciSystem {
  public:
-
   PciSystem();
   ~PciSystem();
   static std::shared_ptr<PciSystem> getInstance();

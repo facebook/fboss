@@ -60,7 +60,7 @@ bool ValidateEcmpWidth(const char* flagname, int32_t value) {
   }
   return true;
 }
-}
+} // namespace
 
 // TODO: it might be worth splitting up limits for ecmp/ucmp
 DEFINE_int32(
@@ -69,7 +69,8 @@ DEFINE_int32(
     "Max ecmp width. Also implies ucmp normalization factor");
 DEFINE_validator(ecmp_width, &ValidateEcmpWidth);
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 SwitchStateFields::SwitchStateFields()
     : ports(make_shared<PortMap>()),
@@ -103,19 +104,18 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   return switchState;
 }
 
-SwitchStateFields
-SwitchStateFields::fromFollyDynamic(const folly::dynamic& swJson) {
+SwitchStateFields SwitchStateFields::fromFollyDynamic(
+    const folly::dynamic& swJson) {
   SwitchStateFields switchState;
-  switchState.interfaces = InterfaceMap::fromFollyDynamic(
-        swJson[kInterfaces]);
+  switchState.interfaces = InterfaceMap::fromFollyDynamic(swJson[kInterfaces]);
   switchState.ports = PortMap::fromFollyDynamic(swJson[kPorts]);
   switchState.vlans = VlanMap::fromFollyDynamic(swJson[kVlans]);
-  switchState.routeTables = RouteTableMap::fromFollyDynamic(
-      swJson[kRouteTables]);
+  switchState.routeTables =
+      RouteTableMap::fromFollyDynamic(swJson[kRouteTables]);
   switchState.acls = AclMap::fromFollyDynamic(swJson[kAcls]);
   if (swJson.count(kSflowCollectors) > 0) {
-    switchState.sFlowCollectors = SflowCollectorMap::fromFollyDynamic(
-      swJson[kSflowCollectors]);
+    switchState.sFlowCollectors =
+        SflowCollectorMap::fromFollyDynamic(swJson[kSflowCollectors]);
   }
   switchState.defaultVlan = VlanID(swJson[kDefaultVlan].asInt());
   if (swJson.find(kQosPolicies) != swJson.items().end()) {
@@ -123,8 +123,8 @@ SwitchStateFields::fromFollyDynamic(const folly::dynamic& swJson) {
         QosPolicyMap::fromFollyDynamic(swJson[kQosPolicies]);
   }
   if (swJson.find(kControlPlane) != swJson.items().end()) {
-    switchState.controlPlane = ControlPlane::fromFollyDynamic(
-      swJson[kControlPlane]);
+    switchState.controlPlane =
+        ControlPlane::fromFollyDynamic(swJson[kControlPlane]);
   }
   if (swJson.find(kLoadBalancers) != swJson.items().end()) {
     switchState.loadBalancers =
@@ -137,15 +137,13 @@ SwitchStateFields::fromFollyDynamic(const folly::dynamic& swJson) {
     switchState.labelFib = LabelForwardingInformationBase::fromFollyDynamic(
         swJson[kLabelForwardingInformationBase]);
   }
-  //TODO verify that created state here is internally consistent t4155406
+  // TODO verify that created state here is internally consistent t4155406
   return switchState;
 }
 
-SwitchState::SwitchState() {
-}
+SwitchState::SwitchState() {}
 
-SwitchState::~SwitchState() {
-}
+SwitchState::~SwitchState() {}
 
 void SwitchState::modify(std::shared_ptr<SwitchState>* state) {
   if (!(*state)->isPublished()) {

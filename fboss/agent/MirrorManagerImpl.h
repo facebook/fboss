@@ -30,36 +30,36 @@ class MirrorManagerImpl {
 
   std::shared_ptr<Mirror> updateMirror(const std::shared_ptr<Mirror>& mirror);
 
-private:
- NextHopSet resolveMirrorNextHops(
-     const std::shared_ptr<SwitchState>& state,
-     const AddrT& destinationIp);
+ private:
+  NextHopSet resolveMirrorNextHops(
+      const std::shared_ptr<SwitchState>& state,
+      const AddrT& destinationIp);
 
- std::shared_ptr<NeighborEntryT> resolveMirrorNextHopNeighbor(
-     const std::shared_ptr<SwitchState>& state,
-     const std::shared_ptr<Mirror>& mirror,
-     const AddrT& destinationIp,
-     const NextHop& nexthop) const;
+  std::shared_ptr<NeighborEntryT> resolveMirrorNextHopNeighbor(
+      const std::shared_ptr<SwitchState>& state,
+      const std::shared_ptr<Mirror>& mirror,
+      const AddrT& destinationIp,
+      const NextHop& nexthop) const;
 
- MirrorTunnel resolveMirrorTunnel(
-     const std::shared_ptr<SwitchState>& state,
-     const AddrT& destinationIp,
-     const NextHop& nextHop,
-     const std::shared_ptr<NeighborEntryT>& neighbor);
+  MirrorTunnel resolveMirrorTunnel(
+      const std::shared_ptr<SwitchState>& state,
+      const AddrT& destinationIp,
+      const NextHop& nextHop,
+      const std::shared_ptr<NeighborEntryT>& neighbor);
 
- template <typename ADDRT = AddrT>
- typename std::
-     enable_if<std::is_same<ADDRT, folly::IPAddressV4>::value, ADDRT>::type
-     getIPAddress(const folly::IPAddress& ip) const {
-   return ip.asV4();
- }
+  template <typename ADDRT = AddrT>
+  typename std::
+      enable_if<std::is_same<ADDRT, folly::IPAddressV4>::value, ADDRT>::type
+      getIPAddress(const folly::IPAddress& ip) const {
+    return ip.asV4();
+  }
 
- template <typename ADDRT = AddrT>
- typename std::
-     enable_if<std::is_same<ADDRT, folly::IPAddressV6>::value, ADDRT>::type
-     getIPAddress(const folly::IPAddress& ip) const {
-   return ip.asV6();
- }
+  template <typename ADDRT = AddrT>
+  typename std::
+      enable_if<std::is_same<ADDRT, folly::IPAddressV6>::value, ADDRT>::type
+      getIPAddress(const folly::IPAddress& ip) const {
+    return ip.asV6();
+  }
 
   SwSwitch* sw_;
 };

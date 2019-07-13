@@ -14,12 +14,12 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class HwTestHandle {
  public:
-  explicit HwTestHandle(std::unique_ptr<SwSwitch> sw) :
-      sw_(std::move(sw)) {}
+  explicit HwTestHandle(std::unique_ptr<SwSwitch> sw) : sw_(std::move(sw)) {}
   virtual ~HwTestHandle() = default;
 
   SwSwitch* getSw() const {
@@ -30,8 +30,9 @@ class HwTestHandle {
 
   // Useful helpers for testing low level events
   virtual void rxPacket(
-    std::unique_ptr<folly::IOBuf> buf,
-    const PortID srcPort, const VlanID srcVlan) = 0;
+      std::unique_ptr<folly::IOBuf> buf,
+      const PortID srcPort,
+      const VlanID srcVlan) = 0;
   virtual void forcePortDown(const PortID port) = 0;
   virtual void forcePortUp(const PortID port) = 0;
   virtual void forcePortFlap(const PortID port) = 0;
@@ -40,4 +41,5 @@ class HwTestHandle {
   std::unique_ptr<SwSwitch> sw_{nullptr};
 };
 
-}}  // facebook::fboss
+} // namespace fboss
+} // namespace facebook

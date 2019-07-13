@@ -7,9 +7,10 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
- #include "fboss/agent/hw/bcm/BcmAclStat.h"
+#include "fboss/agent/hw/bcm/BcmAclStat.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 BcmAclStat::BcmAclStat(
     BcmSwitch* hw,
@@ -18,4 +19,5 @@ BcmAclStat::BcmAclStat(
     : hw_(hw) {}
 BcmAclStat::~BcmAclStat() {}
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -16,7 +16,6 @@
 
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
 
-
 namespace facebook {
 namespace fboss {
 

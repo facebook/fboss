@@ -9,15 +9,15 @@
  */
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/Port.h"
-#include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -117,7 +117,7 @@ TEST(Port, applyConfig) {
   // Attempting to apply a config with a non-existent PortID should fail.
   config.ports[0].logicalID = 2;
   EXPECT_THROW(
-    publishAndApplyConfig(stateV3, &config, platform.get()), FbossError);
+      publishAndApplyConfig(stateV3, &config, platform.get()), FbossError);
 }
 
 TEST(Port, ToFromJSON) {
@@ -320,7 +320,7 @@ TEST(Port, pauseConfig) {
     EXPECT_EQ(expectPause, pause);
   };
 
-  auto changePause =  [&](cfg::PortPause newPause) {
+  auto changePause = [&](cfg::PortPause newPause) {
     auto oldPause = state->getPort(PortID(1))->getPause();
     cfg::SwitchConfig config;
     config.ports.resize(1);
@@ -427,8 +427,7 @@ TEST(PortMap, registerPorts) {
   EXPECT_EQ("port4", port4->getName());
 
   // Attempting to register a duplicate port ID should fail
-  EXPECT_THROW(ports->registerPort(PortID(2), "anotherPort2"),
-               FbossError);
+  EXPECT_THROW(ports->registerPort(PortID(2), "anotherPort2"), FbossError);
 
   // Registering non-sequential IDs should work
   ports->registerPort(PortID(10), "port10");
@@ -453,17 +452,18 @@ TEST(PortMap, registerPorts) {
 
   // Attempting to register new ports after the PortMap has been published
   // should crash.
-  ASSERT_DEATH(ports->registerPort(PortID(5), "port5"),
-               "Check failed: !isPublished()");
+  ASSERT_DEATH(
+      ports->registerPort(PortID(5), "port5"), "Check failed: !isPublished()");
 }
 
 /*
  * Test that forEachChanged(StateDelta::getPortsDelta(), ...) invokes the
  * callback for the specified list of changed ports.
  */
-void checkChangedPorts(const shared_ptr<PortMap>& oldPorts,
-                       const shared_ptr<PortMap>& newPorts,
-                       const std::set<uint16_t> changedIDs) {
+void checkChangedPorts(
+    const shared_ptr<PortMap>& oldPorts,
+    const shared_ptr<PortMap>& newPorts,
+    const std::set<uint16_t> changedIDs) {
   auto oldState = make_shared<SwitchState>();
   oldState->resetPorts(oldPorts);
   auto newState = make_shared<SwitchState>();
@@ -471,15 +471,15 @@ void checkChangedPorts(const shared_ptr<PortMap>& oldPorts,
 
   std::set<uint16_t> invokedPorts;
   StateDelta delta(oldState, newState);
-  DeltaFunctions::forEachChanged(delta.getPortsDelta(),
-                                 [&] (const shared_ptr<Port>& oldPort,
-                                      const shared_ptr<Port>& newPort) {
-    EXPECT_EQ(oldPort->getID(), newPort->getID());
-    EXPECT_NE(oldPort, newPort);
+  DeltaFunctions::forEachChanged(
+      delta.getPortsDelta(),
+      [&](const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+        EXPECT_EQ(oldPort->getID(), newPort->getID());
+        EXPECT_NE(oldPort, newPort);
 
-    auto ret = invokedPorts.insert(oldPort->getID());
-    EXPECT_TRUE(ret.second);
-  });
+        auto ret = invokedPorts.insert(oldPort->getID());
+        EXPECT_TRUE(ret.second);
+      });
 
   EXPECT_EQ(changedIDs, invokedPorts);
 }
@@ -527,7 +527,7 @@ TEST(PortMap, applyConfig) {
   EXPECT_EQ(port4, portsV1->getPort(PortID(4)));
   checkChangedPorts(portsV0, portsV1, {2});
 
-  auto newPort2 =  portsV1->getPort(PortID(2));
+  auto newPort2 = portsV1->getPort(PortID(2));
   EXPECT_EQ(cfg::PortState::ENABLED, newPort2->getAdminState());
   EXPECT_EQ(cfg::PortState::DISABLED, port1->getAdminState());
   EXPECT_EQ(cfg::PortState::DISABLED, port3->getAdminState());
@@ -563,10 +563,14 @@ TEST(PortMap, applyConfig) {
   EXPECT_NE(port3, portsV2->getPort(PortID(3)));
   EXPECT_NE(port4, portsV2->getPort(PortID(4)));
 
-  EXPECT_EQ(cfg::PortState::ENABLED, portsV2->getPort(PortID(1))->getAdminState());
-  EXPECT_EQ(cfg::PortState::ENABLED, portsV2->getPort(PortID(2))->getAdminState());
-  EXPECT_EQ(cfg::PortState::ENABLED, portsV2->getPort(PortID(3))->getAdminState());
-  EXPECT_EQ(cfg::PortState::ENABLED, portsV2->getPort(PortID(4))->getAdminState());
+  EXPECT_EQ(
+      cfg::PortState::ENABLED, portsV2->getPort(PortID(1))->getAdminState());
+  EXPECT_EQ(
+      cfg::PortState::ENABLED, portsV2->getPort(PortID(2))->getAdminState());
+  EXPECT_EQ(
+      cfg::PortState::ENABLED, portsV2->getPort(PortID(3))->getAdminState());
+  EXPECT_EQ(
+      cfg::PortState::ENABLED, portsV2->getPort(PortID(4))->getAdminState());
   checkChangedPorts(portsV1, portsV2, {1, 3, 4});
 
   EXPECT_FALSE(portsV2->getPort(PortID(1))->isPublished());
@@ -583,7 +587,7 @@ TEST(PortMap, applyConfig) {
   config.ports[0].logicalID = 10;
   config.ports[0].state = cfg::PortState::ENABLED;
   EXPECT_THROW(
-    publishAndApplyConfig(stateV2, &config, platform.get()), FbossError);
+      publishAndApplyConfig(stateV2, &config, platform.get()), FbossError);
 
   // If we remove port3 from the config, it should be marked down
   config.ports.resize(3);
@@ -602,11 +606,14 @@ TEST(PortMap, applyConfig) {
   EXPECT_EQ(3, portsV3->getGeneration());
 
   EXPECT_EQ(4, portsV3->numPorts());
-  EXPECT_EQ(cfg::PortState::ENABLED, portsV3->getPort(PortID(1))->getAdminState());
-  EXPECT_EQ(cfg::PortState::ENABLED, portsV3->getPort(PortID(2))->getAdminState());
   EXPECT_EQ(
-    cfg::PortState::DISABLED, portsV3->getPort(PortID(3))->getAdminState());
-  EXPECT_EQ(cfg::PortState::ENABLED, portsV3->getPort(PortID(4))->getAdminState());
+      cfg::PortState::ENABLED, portsV3->getPort(PortID(1))->getAdminState());
+  EXPECT_EQ(
+      cfg::PortState::ENABLED, portsV3->getPort(PortID(2))->getAdminState());
+  EXPECT_EQ(
+      cfg::PortState::DISABLED, portsV3->getPort(PortID(3))->getAdminState());
+  EXPECT_EQ(
+      cfg::PortState::ENABLED, portsV3->getPort(PortID(4))->getAdminState());
   checkChangedPorts(portsV2, portsV3, {3});
 }
 

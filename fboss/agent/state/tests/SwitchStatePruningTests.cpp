@@ -14,29 +14,29 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableMap.h"
-#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/SwitchState-defs.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>
-#include <set>
 #include <map>
+#include <set>
 
 using namespace facebook::fboss;
-using std::shared_ptr;
-using std::make_shared;
+using facebook::fboss::cfg::SwitchConfig;
+using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 using folly::MacAddress;
-using std::string;
-using std::set;
-using std::pair;
-using std::tuple;
-using std::make_tuple;
-using folly::IPAddress;
 using std::make_pair;
-using facebook::fboss::cfg::SwitchConfig;
+using std::make_shared;
+using std::make_tuple;
+using std::pair;
+using std::set;
+using std::shared_ptr;
+using std::string;
+using std::tuple;
 
 #define PP(node) NN(folly::toPrettyJson(node->toFollyDynamic()))
 
@@ -352,8 +352,7 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
   auto arpTable21 =
       state3->getVlans()->getVlan(host2vlan)->getArpTable()->modify(
           host2vlan, &state3);
-  arpTable21->updateEntry(
-      host2ip, host2mac, host2port, host2interface);
+  arpTable21->updateEntry(host2ip, host2mac, host2port, host2interface);
 
   auto host3mac = MacAddress("fa:ce:b0:0c:22:03");
   auto host3port = PortDescriptor(PortID(4));
@@ -362,8 +361,7 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
   auto ndpTable22 =
       state3->getVlans()->getVlan(host3vlan)->getNdpTable()->modify(
           host3vlan, &state3);
-  ndpTable22->updateEntry(
-      host3ip, host3mac, host3port, host3interface);
+  ndpTable22->updateEntry(host3ip, host3mac, host3port, host3interface);
 
   state3->publish();
 
@@ -501,7 +499,7 @@ TEST(SwitchStatePruningTests, ModifyArpTableMultipleTimes) {
   // The empty state
   shared_ptr<SwitchState> state0 = make_shared<SwitchState>();
 
- // Add some ports and corresponding Vlans
+  // Add some ports and corresponding Vlans
   std::map<PortID, VlanID> port2VlanMap = {{PortID(1), VlanID(21)},
                                            {PortID(2), VlanID(21)},
                                            {PortID(3), VlanID(21)},

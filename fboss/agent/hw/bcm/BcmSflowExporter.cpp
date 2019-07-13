@@ -25,11 +25,10 @@
 
 #include "fboss/agent/FbossError.h"
 
-
 using namespace std;
 
 namespace {
-  folly::Optional<folly::IPAddress> getLocalIPv6FromWhoAmI() {
+folly::Optional<folly::IPAddress> getLocalIPv6FromWhoAmI() {
   const std::string whoAmIFn = "/etc/fbwhoami";
   const std::string key = "DEVICE_PRIMARY_IPV6";
 
@@ -45,7 +44,7 @@ namespace {
     if (kv[0] == key) {
       try {
         return folly::IPAddress(kv[1]);
-      } catch (std::exception const& e)  {
+      } catch (std::exception const& e) {
         XLOG(DBG2) << folly::exceptionStr(e);
         return folly::none;
       }
@@ -261,7 +260,7 @@ void BcmSflowExporterTable::sendToAll(const SflowPacketInfo& info) {
     iovec_len = 1;
   }
 
-  for (const auto& c: map_) {
+  for (const auto& c : map_) {
     // TODO: prob need to handle ret code?
     c.second->sendUDPDatagram(vec, iovec_len);
   }

@@ -1,14 +1,14 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include <folly/IPAddressV4.h>
+#include <folly/IPAddressV6.h>
 #include <array>
 #include <set>
 #include <vector>
-#include "common/init/Init.h"
-#include "common/base/Random.h"
-#include <folly/IPAddressV4.h>
-#include <folly/IPAddressV6.h>
-#include "fboss/lib/RadixTree.h"
 #include "Utils.h"
+#include "common/base/Random.h"
+#include "common/init/Init.h"
+#include "fboss/lib/RadixTree.h"
 
 using namespace std;
 using namespace folly;
@@ -32,7 +32,7 @@ vector<Prefix4> insertVec4;
 vector<Prefix4> matchVec4;
 vector<Prefix6> insertVec6;
 vector<Prefix6> matchVec6;
-vector<int>  valueSet;
+vector<int> valueSet;
 
 typedef array<RadixTree<IPAddressV4, int>, kTreeCount> V4Trees_t;
 typedef array<RadixTree<IPAddressV6, int>, kTreeCount> V6Trees_t;
@@ -42,10 +42,11 @@ V6Trees_t v6Trees;
 // V4
 void setupV4Trees(uint32_t numTrees = kTreeCount) {
   auto treeCount = 0;
-  for (auto ritr = v4Trees.begin(); treeCount < numTrees &&
-      ritr != v4Trees.end(); ++ritr, ++treeCount) {
+  for (auto ritr = v4Trees.begin();
+       treeCount < numTrees && ritr != v4Trees.end();
+       ++ritr, ++treeCount) {
     auto count = 0;
-    for (auto pfx: insertVec4) {
+    for (auto pfx : insertVec4) {
       ritr->insert(pfx.ip, pfx.mask, valueSet[count++]);
     }
   }
@@ -58,7 +59,7 @@ void radixTreeInsert4() {
 void radixTreeErase4() {
   setupV4Trees();
   for (auto& rtree : v4Trees) {
-    for (auto pfx: matchVec4) {
+    for (auto pfx : matchVec4) {
       rtree.erase(pfx.ip, pfx.mask);
     }
   }
@@ -68,7 +69,7 @@ void radixTreeExactMatch4() {
   setupV4Trees(1);
   auto& rtree = v4Trees[1];
   for (auto i = 0; i < kTreeCount; ++i) {
-    for (auto pfx: matchVec4) {
+    for (auto pfx : matchVec4) {
       auto itr = rtree.exactMatch(pfx.ip, pfx.mask);
       if (!itr.atEnd()) {
         itr->setValue(folly::Random::rand32());
@@ -81,7 +82,7 @@ void radixTreeLongestMatch4() {
   setupV4Trees(1);
   auto& rtree = v4Trees[1];
   for (auto i = 0; i < kTreeCount; ++i) {
-    for (auto pfx: matchVec4) {
+    for (auto pfx : matchVec4) {
       rtree.longestMatch(pfx.ip, pfx.mask);
       auto itr = rtree.longestMatch(pfx.ip, pfx.mask);
       if (!itr.atEnd()) {
@@ -93,10 +94,11 @@ void radixTreeLongestMatch4() {
 // V6
 void setupV6Trees(uint32_t numTrees = kTreeCount) {
   auto treeCount = 0;
-  for (auto ritr = v6Trees.begin(); treeCount < numTrees &&
-      ritr != v6Trees.end(); ++ritr, ++treeCount) {
+  for (auto ritr = v6Trees.begin();
+       treeCount < numTrees && ritr != v6Trees.end();
+       ++ritr, ++treeCount) {
     auto count = 0;
-    for (auto pfx: insertVec6) {
+    for (auto pfx : insertVec6) {
       ritr->insert(pfx.ip, pfx.mask, valueSet[count++]);
     }
   }
@@ -109,7 +111,7 @@ void radixTreeInsert6() {
 void radixTreeErase6() {
   setupV6Trees();
   for (auto& rtree : v6Trees) {
-    for (auto pfx: matchVec6) {
+    for (auto pfx : matchVec6) {
       rtree.erase(pfx.ip, pfx.mask);
     }
   }
@@ -118,8 +120,8 @@ void radixTreeErase6() {
 void radixTreeExactMatch6() {
   setupV6Trees(1);
   auto& rtree = v6Trees[1];
-  for (auto i = 0; i < 100000 ; ++i) {
-    for (auto pfx: matchVec6) {
+  for (auto i = 0; i < 100000; ++i) {
+    for (auto pfx : matchVec6) {
       auto itr = rtree.exactMatch(pfx.ip, pfx.mask);
       if (!itr.atEnd()) {
         itr->setValue(folly::Random::rand32());
@@ -132,7 +134,7 @@ void radixTreeLongestMatch6() {
   setupV6Trees(1);
   auto& rtree = v6Trees[1];
   for (auto i = 0; i < kTreeCount; ++i) {
-    for (auto pfx: matchVec6) {
+    for (auto pfx : matchVec6) {
       auto itr = rtree.longestMatch(pfx.ip, pfx.mask);
       if (!itr.atEnd()) {
         itr->setValue(folly::Random::rand32());
@@ -165,11 +167,10 @@ void fillV6MatchVec() {
   matchVec6 = {matchSet.begin(), matchSet.end()};
 }
 
-int main (int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   facebook::initFacebook(&argc, &argv);
   // V4 ops
-  if (FLAGS_v4Inserts || FLAGS_v4Deletes ||
-      FLAGS_v4Exact || FLAGS_v4Longest) {
+  if (FLAGS_v4Inserts || FLAGS_v4Deletes || FLAGS_v4Exact || FLAGS_v4Longest) {
     set<Prefix4> inserted4;
     while (inserted4.size() < kInsertCount) {
       auto mask = folly::Random::rand32(32);
@@ -198,8 +199,7 @@ int main (int argc, char *argv[]) {
   }
 
   // V6 ops
-  if (FLAGS_v6Inserts || FLAGS_v6Deletes ||
-      FLAGS_v6Exact || FLAGS_v6Longest) {
+  if (FLAGS_v6Inserts || FLAGS_v6Deletes || FLAGS_v6Exact || FLAGS_v6Longest) {
     set<Prefix6> inserted6;
     while (inserted6.size() < kInsertCount) {
       auto mask = folly::Random::rand32(128);
@@ -232,4 +232,3 @@ int main (int argc, char *argv[]) {
 
   return 0;
 }
-

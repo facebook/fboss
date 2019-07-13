@@ -11,7 +11,8 @@
 #include "fboss/agent/platforms/wedge/GalaxyPort.h"
 #include <folly/logging/xlog.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 void GalaxyPort::linkStatusChanged(bool up, bool adminUp) {
   WedgePort::linkStatusChanged(up, adminUp);
@@ -21,4 +22,5 @@ void GalaxyPort::externalState(ExternalState lfs) {
   XLOG(DBG1) << lfs;
 }
 
-}}
+} // namespace fboss
+} // namespace facebook

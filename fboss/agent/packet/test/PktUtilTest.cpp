@@ -19,26 +19,28 @@
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
-using folly::MacAddress;
+using folly::IOBuf;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
-using folly::io::Cursor;
-using folly::IOBuf;
+using folly::MacAddress;
 using folly::Random;
+using folly::io::Cursor;
 
 IOBuf setupBuf() {
   IOBuf buf1(IOBuf::CREATE, 20);
   auto buf2 = IOBuf::create(20);
   buf1.append(20);
   buf2->append(20);
-  memcpy(buf1.writableData(),
-         "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a"
-         "\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a",
-         20);
-  memcpy(buf2->writableData(),
-         "\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2a"
-         "\x31\x32\x33\x34\x35\x36\x37\x38\x39\x3a",
-         20);
+  memcpy(
+      buf1.writableData(),
+      "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a"
+      "\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a",
+      20);
+  memcpy(
+      buf2->writableData(),
+      "\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2a"
+      "\x31\x32\x33\x34\x35\x36\x37\x38\x39\x3a",
+      20);
   buf1.appendChain(std::move(buf2));
   return buf1;
 }
@@ -97,20 +99,23 @@ TEST(PktUtilTest, ReadIPv6) {
   // Test parsing at the start of the buffer,
   // where the IP is entirely contiguous
   Cursor c(&buf);
-  EXPECT_EQ(IPAddressV6("0102:0304:0506:0708:090a:1112:1314:1516"),
-            PktUtil::readIPv6(&c));
+  EXPECT_EQ(
+      IPAddressV6("0102:0304:0506:0708:090a:1112:1314:1516"),
+      PktUtil::readIPv6(&c));
   EXPECT_EQ(Cursor(&buf) + 16, c);
 
   // Test parsing an IP that ends at the end of a buffer.
   c = Cursor(&buf) + 4;
-  EXPECT_EQ(IPAddressV6("0506:0708:090a:1112:1314:1516:1718:191a"),
-            PktUtil::readIPv6(&c));
+  EXPECT_EQ(
+      IPAddressV6("0506:0708:090a:1112:1314:1516:1718:191a"),
+      PktUtil::readIPv6(&c));
   EXPECT_EQ(Cursor(&buf) + 20, c);
 
   // Test parsing a MAC that spans two buffers
   c = Cursor(&buf) + 12;
-  EXPECT_EQ(IPAddressV6("1314:1516:1718:191a:2122:2324:2526:2728"),
-            PktUtil::readIPv6(&c));
+  EXPECT_EQ(
+      IPAddressV6("1314:1516:1718:191a:2122:2324:2526:2728"),
+      PktUtil::readIPv6(&c));
   EXPECT_EQ(Cursor(&buf) + 28, c);
 
   // Test parsing when the buffer is too short to contain a MAC
@@ -130,24 +135,28 @@ TEST(PktUtilTest, HexDump) {
 
   Cursor start(&buf);
   EXPECT_EQ("0000: 00", PktUtil::hexDump(start, start + 1));
-  EXPECT_EQ("0000: 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e",
-            PktUtil::hexDump(start, start + 15));
-  EXPECT_EQ("0000: 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f",
-            PktUtil::hexDump(start, start + 16));
-  EXPECT_EQ("0000: 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f\n"
-            "0010: 10",
-            PktUtil::hexDump(start, start + 17));
-  EXPECT_EQ("0000: 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f\n"
-            "0010: 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f\n"
-            "0020: 20 21 22 23 24 25 26 27",
-            PktUtil::hexDump(start, start + 40));
+  EXPECT_EQ(
+      "0000: 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e",
+      PktUtil::hexDump(start, start + 15));
+  EXPECT_EQ(
+      "0000: 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f",
+      PktUtil::hexDump(start, start + 16));
+  EXPECT_EQ(
+      "0000: 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f\n"
+      "0010: 10",
+      PktUtil::hexDump(start, start + 17));
+  EXPECT_EQ(
+      "0000: 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f\n"
+      "0010: 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f\n"
+      "0020: 20 21 22 23 24 25 26 27",
+      PktUtil::hexDump(start, start + 40));
 }
 
 void testCsum(uint32_t toInsert) {
   auto size = toInsert + 2;
   uint8_t bytes[size];
   bytes[0] = bytes[1] = 0;
-  LOG (INFO) <<" Checksum buffer size: " << toInsert;
+  LOG(INFO) << " Checksum buffer size: " << toInsert;
   for (auto i = 2; i < size; ++i) {
     bytes[i] = Random::rand32(std::numeric_limits<uint8_t>::max());
   }

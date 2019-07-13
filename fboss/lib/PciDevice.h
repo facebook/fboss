@@ -24,7 +24,6 @@ class PciSystem;
  */
 class PciDevice {
  public:
-
   PciDevice(uint32_t vendorId, uint32_t deviceId)
       : vendorId_(vendorId), deviceId_(deviceId) {}
   ~PciDevice();
@@ -42,12 +41,12 @@ class PciDevice {
   /**
    * Get the BAR for a particular region (default = 0)
    */
-  uint64_t getMemoryRegionAddress (uint32_t region = 0) const;
+  uint64_t getMemoryRegionAddress(uint32_t region = 0) const;
 
   /**
    * Get the BAR size for a particular region (default = 0)
    */
-  uint64_t getMemoryRegionSize (uint32_t region = 0) const;
+  uint64_t getMemoryRegionSize(uint32_t region = 0) const;
 
   /**
    * Check if the PCI device was opened correctly
@@ -61,7 +60,6 @@ class PciDevice {
   uint32_t deviceId_;
   pci_device* pciDevice_{nullptr};
   std::shared_ptr<PciSystem> pciSystem_{nullptr};
-
 };
 
 } // namespace fboss

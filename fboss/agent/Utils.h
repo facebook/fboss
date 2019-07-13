@@ -15,10 +15,10 @@
 #include <boost/container/flat_map.hpp>
 #include <boost/iterator/filter_iterator.hpp>
 
-#include <folly/lang/Bits.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/Range.h>
+#include <folly/lang/Bits.h>
 
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
@@ -27,11 +27,12 @@ namespace folly {
 struct dynamic;
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwitchState;
 
-template<typename T>
+template <typename T>
 inline T readBuffer(const uint8_t* buffer, uint32_t pos, size_t buffSize) {
   CHECK_LE(pos + sizeof(T), buffSize);
   T tmp;
@@ -52,16 +53,18 @@ void utilCreateDir(folly::StringPiece path);
  * Used to set src IP address for DHCP and ICMP packets
  * throw an FbossError in case no IP address exists.
  */
-folly::IPAddressV4 getSwitchVlanIP(const std::shared_ptr<SwitchState>& state,
-                                   VlanID vlan);
+folly::IPAddressV4 getSwitchVlanIP(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlan);
 
 /**
  * Helper function to get an IPv6 address for a particular vlan
  * used to set src IP address for DHCPv6 and ICMPv6 packets
  * throw an FbossError in case no IPv6 address exists.
  */
-folly::IPAddressV6 getSwitchVlanIPv6(const std::shared_ptr<SwitchState>& state,
-                                     VlanID vlan);
+folly::IPAddressV6 getSwitchVlanIPv6(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlan);
 /*
  * Increases the nice value of the calling thread by increment. Note that this
  * code relies on the fact that Linux is not POSIX compliant. Otherwise, there
@@ -123,4 +126,5 @@ class MapFilter {
   const Map& map_;
   Predicate pred_;
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

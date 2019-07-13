@@ -16,7 +16,8 @@
 #include <tuple>
 #include <vector>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * RxPacket represents a packet that was received via one of the switch ports.
@@ -75,7 +76,9 @@ class RxPacket : public Packet {
    * Derived classes to override and provide CoS queue
    * info (if available)
    */
-  virtual int cosQueue() const { return -1; }
+  virtual int cosQueue() const {
+    return -1;
+  }
 
   /*
    * Struct to hold reason information
@@ -100,4 +103,5 @@ class RxPacket : public Packet {
   uint32_t len_{0};
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

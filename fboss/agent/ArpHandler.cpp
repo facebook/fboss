@@ -37,8 +37,8 @@ using folly::IPAddressV4;
 using folly::MacAddress;
 using folly::io::Cursor;
 using folly::io::RWPrivateCursor;
-using std::unique_ptr;
 using std::shared_ptr;
+using std::unique_ptr;
 
 enum : uint16_t {
   ARP_HTYPE_ETHERNET = 1,
@@ -50,11 +50,10 @@ enum : uint8_t {
   ARP_PLEN_IPV4 = 4,
 };
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-ArpHandler::ArpHandler(SwSwitch* sw)
-  : sw_(sw) {
-}
+ArpHandler::ArpHandler(SwSwitch* sw) : sw_(sw) {}
 
 void ArpHandler::handlePacket(
     unique_ptr<RxPacket> pkt,
@@ -122,8 +121,12 @@ void ArpHandler::handlePacket(
                << pkt->getSrcVlan();
     stats->port(port)->arpNotMine();
 
-    updater->receivedArpNotMine(vlan->getID(), senderIP, senderMac,
-                                PortDescriptor::fromRxPacket(*pkt.get()), op);
+    updater->receivedArpNotMine(
+        vlan->getID(),
+        senderIP,
+        senderMac,
+        PortDescriptor::fromRxPacket(*pkt.get()),
+        op);
     return;
   }
 
@@ -134,8 +137,7 @@ void ArpHandler::handlePacket(
     stats->port(port)->arpReplyRx();
   }
 
-  if (op == ARP_OP_REQUEST &&
-      !AggregatePort::isIngressValid(state, pkt)) {
+  if (op == ARP_OP_REQUEST && !AggregatePort::isIngressValid(state, pkt)) {
     XLOG(INFO) << "Dropping invalid ARP request ingressing on port "
                << pkt->getSrcPort() << " on vlan " << pkt->getSrcVlan()
                << " for " << targetIP;
@@ -144,21 +146,29 @@ void ArpHandler::handlePacket(
 
   // This ARP packet is destined to us.
   // Update the sender IP --> sender MAC entry in the ARP table.
-  updater->receivedArpMine(vlan->getID(), senderIP, senderMac,
-                           PortDescriptor::fromRxPacket(*pkt.get()), op);
+  updater->receivedArpMine(
+      vlan->getID(),
+      senderIP,
+      senderMac,
+      PortDescriptor::fromRxPacket(*pkt.get()),
+      op);
 
   // Send a reply if this is an ARP request.
   if (op == ARP_OP_REQUEST) {
-    sendArpReply(pkt->getSrcVlan(), pkt->getSrcPort(),
-                 entry.value().mac, targetIP,
-                 senderMac, senderIP);
+    sendArpReply(
+        pkt->getSrcVlan(),
+        pkt->getSrcPort(),
+        entry.value().mac,
+        targetIP,
+        senderMac,
+        senderIP);
   }
 
   (void)targetMac; // unused
 }
 
 static void sendArp(
-    SwSwitch *sw,
+    SwSwitch* sw,
     VlanID vlan,
     ArpOpCode op,
     MacAddress senderMac,
@@ -181,8 +191,8 @@ static void sendArp(
   auto pkt = sw->allocatePacket(pktLen);
   RWPrivateCursor cursor(pkt->buf());
 
-  pkt->writeEthHeader(&cursor, targetMac, senderMac, vlan,
-                     ArpHandler::ETHERTYPE_ARP);
+  pkt->writeEthHeader(
+      &cursor, targetMac, senderMac, vlan, ArpHandler::ETHERTYPE_ARP);
   cursor.writeBE<uint16_t>(ARP_HTYPE_ETHERNET);
   cursor.writeBE<uint16_t>(ARP_PTYPE_IPV4);
   cursor.writeBE<uint8_t>(ARP_HLEN_ETHERNET);
@@ -190,9 +200,9 @@ static void sendArp(
   cursor.writeBE<uint16_t>(op);
   cursor.push(senderMac.bytes(), MacAddress::SIZE);
   cursor.write<uint32_t>(senderIP.toLong());
-  cursor.push(((op == ARP_OP_REQUEST) ? MacAddress::ZERO.bytes() :
-                                        targetMac.bytes()),
-               MacAddress::SIZE);
+  cursor.push(
+      ((op == ARP_OP_REQUEST) ? MacAddress::ZERO.bytes() : targetMac.bytes()),
+      MacAddress::SIZE);
   cursor.write<uint32_t>(targetIP.toLong());
   // Fill the padding with 0s
   memset(cursor.writableData(), 0, cursor.length());
@@ -202,56 +212,69 @@ static void sendArp(
 
 void ArpHandler::floodGratuituousArp() {
   for (const auto& intf : *sw_->getState()->getInterfaces()) {
-    for (const auto& addrEntry: intf->getAddresses()) {
+    for (const auto& addrEntry : intf->getAddresses()) {
       if (!addrEntry.first.isV4()) {
         continue;
       }
       auto v4Addr = addrEntry.first.asV4();
       // Gratuitous arps have both source and destination IPs set to
       // originator's address
-      sendArp(sw_, intf->getVlanID(), ARP_OP_REQUEST, intf->getMac(), v4Addr,
-          MacAddress::BROADCAST, v4Addr);
+      sendArp(
+          sw_,
+          intf->getVlanID(),
+          ARP_OP_REQUEST,
+          intf->getMac(),
+          v4Addr,
+          MacAddress::BROADCAST,
+          v4Addr);
     }
   }
-
 }
 
-void ArpHandler::sendArpReply(VlanID vlan,
-                              PortID port,
-                              MacAddress senderMac,
-                              IPAddressV4 senderIP,
-                              MacAddress targetMac,
-                              IPAddressV4 targetIP) {
+void ArpHandler::sendArpReply(
+    VlanID vlan,
+    PortID port,
+    MacAddress senderMac,
+    IPAddressV4 senderIP,
+    MacAddress targetMac,
+    IPAddressV4 targetIP) {
   sw_->portStats(port)->arpReplyTx();
   // Before sending Arp reply, we've already programmed the IP to be reachable
   // over this port with the given mac by updater->receivedArpMine(). This is
   // what makes our assumption of sending ArpReply out of the same port
   // kind of safe.
   sendArp(
-    sw_,
-    vlan,
-    ARP_OP_REPLY,
-    senderMac,
-    senderIP,
-    targetMac,
-    targetIP,
-    PortDescriptor(port));
+      sw_,
+      vlan,
+      ARP_OP_REPLY,
+      senderMac,
+      senderIP,
+      targetMac,
+      targetIP,
+      PortDescriptor(port));
 }
 
-void ArpHandler::sendArpRequest(SwSwitch* sw,
-                                const VlanID vlanID,
-                                const MacAddress& srcMac,
-                                const IPAddressV4& senderIP,
-                                const IPAddressV4& targetIP) {
+void ArpHandler::sendArpRequest(
+    SwSwitch* sw,
+    const VlanID vlanID,
+    const MacAddress& srcMac,
+    const IPAddressV4& senderIP,
+    const IPAddressV4& targetIP) {
   sw->stats()->arpRequestTx();
-  sendArp(sw, vlanID, ARP_OP_REQUEST, srcMac, senderIP,
-          MacAddress::BROADCAST, targetIP);
+  sendArp(
+      sw,
+      vlanID,
+      ARP_OP_REQUEST,
+      srcMac,
+      senderIP,
+      MacAddress::BROADCAST,
+      targetIP);
 }
 
-
-void ArpHandler::sendArpRequest(SwSwitch* sw,
-                                const shared_ptr<Vlan>& vlan,
-                                const IPAddressV4& targetIP) {
+void ArpHandler::sendArpRequest(
+    SwSwitch* sw,
+    const shared_ptr<Vlan>& vlan,
+    const IPAddressV4& targetIP) {
   auto state = sw->getState();
   auto intfID = vlan->getInterfaceID();
 
@@ -267,8 +290,9 @@ void ArpHandler::sendArpRequest(SwSwitch* sw,
   }
   auto addrToReach = intf->getAddressToReach(targetIP);
 
-  sendArpRequest(sw, vlan->getID(), intf->getMac(),
-                 addrToReach->first.asV4(), targetIP);
+  sendArpRequest(
+      sw, vlan->getID(), intf->getMac(), addrToReach->first.asV4(), targetIP);
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

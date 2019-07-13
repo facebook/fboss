@@ -9,10 +9,10 @@
  */
 #pragma once
 
-#include <atomic>
 #include <folly/Range.h>
-#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include <atomic>
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
+#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 
 extern "C" {
 #include <opennsl/error.h>
@@ -22,13 +22,14 @@ namespace folly {
 struct dynamic;
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmWarmBootHelper;
 
 class BcmUnit {
  public:
-   BcmUnit(int deviceIndex, BcmPlatform* platform);
+  BcmUnit(int deviceIndex, BcmPlatform* platform);
   ~BcmUnit();
 
   /*
@@ -99,8 +100,8 @@ class BcmUnit {
   void attach(bool warmBoot);
   int createHwUnit();
   // Forbidden copy constructor and assignment operator
-  BcmUnit(BcmUnit const &) = delete;
-  BcmUnit& operator=(BcmUnit const &) = delete;
+  BcmUnit(BcmUnit const&) = delete;
+  BcmUnit& operator=(BcmUnit const&) = delete;
 
   void registerCallbackVector();
   void bcmInit();
@@ -112,4 +113,5 @@ class BcmUnit {
   void* cookie_{nullptr};
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

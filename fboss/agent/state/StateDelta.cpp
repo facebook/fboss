@@ -37,14 +37,13 @@
 
 using std::shared_ptr;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-StateDelta::~StateDelta() {
-}
+StateDelta::~StateDelta() {}
 
 NodeMapDelta<PortMap> StateDelta::getPortsDelta() const {
-  return NodeMapDelta<PortMap>(old_->getPorts().get(),
-                               new_->getPorts().get());
+  return NodeMapDelta<PortMap>(old_->getPorts().get(), new_->getPorts().get());
 }
 
 VlanMapDelta StateDelta::getVlansDelta() const {
@@ -52,13 +51,12 @@ VlanMapDelta StateDelta::getVlansDelta() const {
 }
 
 NodeMapDelta<InterfaceMap> StateDelta::getIntfsDelta() const {
-  return NodeMapDelta<InterfaceMap>(old_->getInterfaces().get(),
-                                    new_->getInterfaces().get());
+  return NodeMapDelta<InterfaceMap>(
+      old_->getInterfaces().get(), new_->getInterfaces().get());
 }
 
 RTMapDelta StateDelta::getRouteTablesDelta() const {
-  return RTMapDelta(old_->getRouteTables().get(),
-                    new_->getRouteTables().get());
+  return RTMapDelta(old_->getRouteTables().get(), new_->getRouteTables().get());
 }
 
 AclMapDelta StateDelta::getAclsDelta() const {
@@ -85,8 +83,8 @@ NodeMapDelta<AggregatePortMap> StateDelta::getAggregatePortsDelta() const {
 }
 
 NodeMapDelta<SflowCollectorMap> StateDelta::getSflowCollectorsDelta() const {
-  return NodeMapDelta<SflowCollectorMap>(old_->getSflowCollectors().get(),
-                                         new_->getSflowCollectors().get());
+  return NodeMapDelta<SflowCollectorMap>(
+      old_->getSflowCollectors().get(), new_->getSflowCollectors().get());
 }
 
 NodeMapDelta<LoadBalancerMap> StateDelta::getLoadBalancersDelta() const {
@@ -95,8 +93,8 @@ NodeMapDelta<LoadBalancerMap> StateDelta::getLoadBalancersDelta() const {
 }
 
 DeltaValue<ControlPlane> StateDelta::getControlPlaneDelta() const {
-  return DeltaValue<ControlPlane>(old_->getControlPlane(),
-                                  new_->getControlPlane());
+  return DeltaValue<ControlPlane>(
+      old_->getControlPlane(), new_->getControlPlane());
 }
 
 NodeMapDelta<MirrorMap> StateDelta::getMirrorsDelta() const {
@@ -126,21 +124,21 @@ std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
 
   for (const auto& vlanDelta : stateDelta.getVlansDelta()) {
     for (const auto& arpDelta : vlanDelta.getArpDelta()) {
-        const auto* oldArpEntry = arpDelta.getOld().get();
-        const auto* newArpEntry = arpDelta.getNew().get();
+      const auto* oldArpEntry = arpDelta.getOld().get();
+      const auto* newArpEntry = arpDelta.getNew().get();
 
-        if (!oldArpEntry /* added */) {
-          diff["added"].push_back(newArpEntry->toFollyDynamic());
-        } else if (!newArpEntry /* deleted */) {
-          diff["removed"].push_back(oldArpEntry->toFollyDynamic());
-        } else { /* modified */
-          CHECK(oldArpEntry);
-          CHECK(newArpEntry);
-          folly::dynamic modification = folly::dynamic::object;
-          modification["old"] = oldArpEntry->toFollyDynamic();
-          modification["new"] = newArpEntry->toFollyDynamic();
-          diff["removed"].push_back(modification);
-        }
+      if (!oldArpEntry /* added */) {
+        diff["added"].push_back(newArpEntry->toFollyDynamic());
+      } else if (!newArpEntry /* deleted */) {
+        diff["removed"].push_back(oldArpEntry->toFollyDynamic());
+      } else { /* modified */
+        CHECK(oldArpEntry);
+        CHECK(newArpEntry);
+        folly::dynamic modification = folly::dynamic::object;
+        modification["old"] = oldArpEntry->toFollyDynamic();
+        modification["new"] = newArpEntry->toFollyDynamic();
+        diff["removed"].push_back(modification);
+      }
     }
   }
 
@@ -167,4 +165,5 @@ template class NodeMapDelta<
 template class NodeMapDelta<ForwardingInformationBaseV4>;
 template class NodeMapDelta<ForwardingInformationBaseV6>;
 template class NodeMapDelta<LabelForwardingInformationBase>;
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

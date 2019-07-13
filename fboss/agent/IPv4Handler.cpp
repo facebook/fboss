@@ -26,10 +26,10 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
+#include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
@@ -49,21 +49,26 @@ using folly::io::Cursor;
 using folly::io::RWPrivateCursor;
 using std::unique_ptr;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-template<typename BodyFn>
-std::unique_ptr<TxPacket> createICMPv4Pkt(SwSwitch* sw,
-                                          folly::MacAddress dstMac,
-                                          folly::MacAddress srcMac,
-                                          VlanID vlan,
-                                          folly::IPAddressV4& dstIP,
-                                          folly::IPAddressV4& srcIP,
-                                          ICMPv4Type icmpType,
-                                          ICMPv4Code icmpCode,
-                                          uint32_t bodyLength,
-                                          BodyFn serializeBody) {
-  IPv4Hdr ipv4(srcIP, dstIP, static_cast<uint8_t>(IP_PROTO::IP_PROTO_ICMP),
-               ICMPHdr::SIZE + bodyLength);
+template <typename BodyFn>
+std::unique_ptr<TxPacket> createICMPv4Pkt(
+    SwSwitch* sw,
+    folly::MacAddress dstMac,
+    folly::MacAddress srcMac,
+    VlanID vlan,
+    folly::IPAddressV4& dstIP,
+    folly::IPAddressV4& srcIP,
+    ICMPv4Type icmpType,
+    ICMPv4Code icmpCode,
+    uint32_t bodyLength,
+    BodyFn serializeBody) {
+  IPv4Hdr ipv4(
+      srcIP,
+      dstIP,
+      static_cast<uint8_t>(IP_PROTO::IP_PROTO_ICMP),
+      ICMPHdr::SIZE + bodyLength);
   ipv4.computeChecksum();
 
   ICMPHdr icmp4(
@@ -72,26 +77,25 @@ std::unique_ptr<TxPacket> createICMPv4Pkt(SwSwitch* sw,
 
   auto pkt = sw->allocatePacket(pktLen);
   RWPrivateCursor cursor(pkt->buf());
-  icmp4.serializeFullPacket(&cursor, dstMac, srcMac, vlan, ipv4,
-                               bodyLength, serializeBody);
+  icmp4.serializeFullPacket(
+      &cursor, dstMac, srcMac, vlan, ipv4, bodyLength, serializeBody);
   return pkt;
 }
 
-IPv4Handler::IPv4Handler(SwSwitch* sw)
-  : sw_(sw) {
-}
+IPv4Handler::IPv4Handler(SwSwitch* sw) : sw_(sw) {}
 
-void IPv4Handler::sendICMPTimeExceeded(VlanID srcVlan,
-                                       MacAddress dst,
-                                       MacAddress src,
-                                       IPv4Hdr& v4Hdr,
-                                       Cursor cursor) {
+void IPv4Handler::sendICMPTimeExceeded(
+    VlanID srcVlan,
+    MacAddress dst,
+    MacAddress src,
+    IPv4Hdr& v4Hdr,
+    Cursor cursor) {
   auto state = sw_->getState();
 
   // payload serialization function
   // 4 bytes unused + ipv4 header + 8 bytes payload
-  auto bodyLength = ICMPHdr::ICMPV4_UNUSED_LEN + v4Hdr.size()
-                    + ICMPHdr::ICMPV4_SENDER_BYTES;
+  auto bodyLength =
+      ICMPHdr::ICMPV4_UNUSED_LEN + v4Hdr.size() + ICMPHdr::ICMPV4_SENDER_BYTES;
   auto serializeBody = [&](RWPrivateCursor* sendCursor) {
     sendCursor->writeBE<uint32_t>(0); // unused bytes
     v4Hdr.write(sendCursor);
@@ -99,11 +103,17 @@ void IPv4Handler::sendICMPTimeExceeded(VlanID srcVlan,
   };
 
   IPAddressV4 srcIp = getSwitchVlanIP(state, srcVlan);
-  auto icmpPkt = createICMPv4Pkt(sw_, dst, src, srcVlan,
-                             v4Hdr.srcAddr, srcIp,
-                             ICMPv4Type::ICMPV4_TYPE_TIME_EXCEEDED,
-                             ICMPv4Code::ICMPV4_CODE_TIME_EXCEEDED_TTL_EXCEEDED,
-                             bodyLength, serializeBody);
+  auto icmpPkt = createICMPv4Pkt(
+      sw_,
+      dst,
+      src,
+      srcVlan,
+      v4Hdr.srcAddr,
+      srcIp,
+      ICMPv4Type::ICMPV4_TYPE_TIME_EXCEEDED,
+      ICMPv4Code::ICMPV4_CODE_TIME_EXCEEDED_TTL_EXCEEDED,
+      bodyLength,
+      serializeBody);
   XLOG(DBG4) << "sending ICMP Time Exceeded with srcMac " << src
              << " dstMac: " << dst << " vlan: " << srcVlan
              << " dstIp: " << v4Hdr.srcAddr.str() << " srcIp: " << srcIp.str()
@@ -111,10 +121,11 @@ void IPv4Handler::sendICMPTimeExceeded(VlanID srcVlan,
   sw_->sendPacketSwitchedAsync(std::move(icmpPkt));
 }
 
-void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
-                               MacAddress dst,
-                               MacAddress src,
-                               Cursor cursor) {
+void IPv4Handler::handlePacket(
+    unique_ptr<RxPacket> pkt,
+    MacAddress dst,
+    MacAddress src,
+    Cursor cursor) {
   SwitchStats* stats = sw_->stats();
   PortID port = pkt->getSrcPort();
 
@@ -157,8 +168,8 @@ void IPv4Handler::handlePacket(unique_ptr<RxPacket> pkt,
     XLOG(DBG4) << "UDP packet, Source port :" << udpHdr.srcPort
                << " destination port: " << udpHdr.dstPort;
     if (DHCPv4Handler::isDHCPv4Packet(udpHdr)) {
-      DHCPv4Handler::handlePacket(sw_, std::move(pkt), src, dst, v4Hdr,
-          udpHdr, udpCursor);
+      DHCPv4Handler::handlePacket(
+          sw_, std::move(pkt), src, dst, v4Hdr, udpHdr, udpCursor);
       return;
     }
   }
@@ -294,4 +305,5 @@ bool IPv4Handler::resolveMac(
 
   return sent;
 }
-}}
+} // namespace fboss
+} // namespace facebook

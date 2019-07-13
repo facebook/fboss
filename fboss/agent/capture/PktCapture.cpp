@@ -15,22 +15,24 @@
 
 using folly::StringPiece;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-PktCapture::PktCapture(folly::StringPiece name, uint64_t maxPackets,
-                         CaptureDirection direction)
-    : PktCapture(name, maxPackets, direction, CaptureFilter()) {
-  }
+PktCapture::PktCapture(
+    folly::StringPiece name,
+    uint64_t maxPackets,
+    CaptureDirection direction)
+    : PktCapture(name, maxPackets, direction, CaptureFilter()) {}
 
-PktCapture::PktCapture(folly::StringPiece name, uint64_t maxPackets,
-                       CaptureDirection direction,
-                       const CaptureFilter& captureFilter)
-  : name_(name.str()),
-    maxPackets_(maxPackets),
-    direction_(direction),
-    packetFilter_(captureFilter) {
-
-}
+PktCapture::PktCapture(
+    folly::StringPiece name,
+    uint64_t maxPackets,
+    CaptureDirection direction,
+    const CaptureFilter& captureFilter)
+    : name_(name.str()),
+      maxPackets_(maxPackets),
+      direction_(direction),
+      packetFilter_(captureFilter) {}
 
 void PktCapture::start(StringPiece path) {
   XLOG(INFO) << "starting packet capture " << toString();
@@ -63,17 +65,16 @@ bool PktCapture::packetSent(const TxPacket* pkt) {
 
 std::string PktCapture::toString(bool withStats) const {
   std::stringstream ss;
-  ss << "Name:\"" << name_ << "\", maxPackets:" << maxPackets_
-     << ", Direction:"
+  ss << "Name:\"" << name_ << "\", maxPackets:" << maxPackets_ << ", Direction:"
      << ((direction_ == CaptureDirection::CAPTURE_TX_RX)
-         ? "Tx and Rx"
-         : ((direction_ == CaptureDirection::CAPTURE_ONLY_RX)
-            ? "RX only"
-            : "TX only"));
+             ? "Tx and Rx"
+             : ((direction_ == CaptureDirection::CAPTURE_ONLY_RX) ? "RX only"
+                                                                  : "TX only"));
   if (withStats) {
     ss << ", Packet received:" << numPacketsReceived_
        << ", Packet sent:" << numPacketsSent_;
   }
   return ss.str();
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

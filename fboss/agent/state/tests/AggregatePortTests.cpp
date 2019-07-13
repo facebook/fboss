@@ -21,8 +21,8 @@
 #include <algorithm>
 #include <vector>
 
-#include <folly/container/Enumerate.h>
 #include <folly/Range.h>
+#include <folly/container/Enumerate.h>
 
 using namespace facebook::fboss;
 using std::make_shared;

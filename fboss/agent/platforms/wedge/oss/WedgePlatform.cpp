@@ -8,12 +8,13 @@
  *
  */
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
-#include "fboss/agent/platforms/wedge/WedgePort.h"
 #include "fboss/agent/ThriftHandler.h"
+#include "fboss/agent/platforms/wedge/WedgePort.h"
 
 #include <folly/Memory.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 std::unique_ptr<ThriftHandler> WedgePlatform::createHandler(SwSwitch* sw) {
   return std::make_unique<ThriftHandler>(sw);
@@ -30,4 +31,5 @@ void WedgePlatform::initLEDs() {
   // but should be soon once we get approval for the required OpenNSL APIs.
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

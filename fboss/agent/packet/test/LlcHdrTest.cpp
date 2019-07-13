@@ -54,10 +54,10 @@ TEST(LlcHdrTest, cursor_data_constructor) {
   uint8_t ssap = static_cast<uint8_t>(LLC_SAP_ADDR::LLC_SAP_STP);
   uint8_t control = static_cast<uint8_t>(LLC_CONTROL::LLC_CONTROL_UI);
   auto pkt = MockRxPacket::fromHex(
-    // LLC Header
-    "42" // DSAP: STP
-    "42" // SSAP: STP
-    "03" // Control: UI
+      // LLC Header
+      "42" // DSAP: STP
+      "42" // SSAP: STP
+      "03" // Control: UI
   );
   Cursor cursor(pkt->buf());
   LlcHdr llcHdr(cursor);
@@ -68,35 +68,35 @@ TEST(LlcHdrTest, cursor_data_constructor) {
 
 TEST(LlcHdrTest, cursor_data_constructor_too_small) {
   auto pkt = MockRxPacket::fromHex(
-    // LLC Header
-    "42" // DSAP: STP
-    "42" // SSAP: STP
-    "  " // OOPS! One octet too small!
+      // LLC Header
+      "42" // DSAP: STP
+      "42" // SSAP: STP
+      "  " // OOPS! One octet too small!
   );
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({LlcHdr llcHdr(cursor);}, HdrParseError);
+  EXPECT_THROW({ LlcHdr llcHdr(cursor); }, HdrParseError);
 }
 
 TEST(LlcHdrTest, cursor_data_constructor_ssap_global) {
   auto pkt = MockRxPacket::fromHex(
-    // LLC Header
-    "42" // DSAP: STP
-    "FF" // SSAP: Global
-    "03" // Control: UI
+      // LLC Header
+      "42" // DSAP: STP
+      "FF" // SSAP: Global
+      "03" // Control: UI
   );
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({LlcHdr llcHdr(cursor);}, HdrParseError);
+  EXPECT_THROW({ LlcHdr llcHdr(cursor); }, HdrParseError);
 }
 
 TEST(LlcHdrTest, cursor_data_constructor_control_unsupported) {
   auto pkt = MockRxPacket::fromHex(
-    // LLC Header
-    "42" // DSAP: STP
-    "42" // SSAP: STP
-    "E3" // Control: Test
+      // LLC Header
+      "42" // DSAP: STP
+      "42" // SSAP: STP
+      "E3" // Control: Test
   );
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({LlcHdr llcHdr(cursor);}, HdrParseError);
+  EXPECT_THROW({ LlcHdr llcHdr(cursor); }, HdrParseError);
 }
 
 TEST(LlcHdrTest, assignment_operator) {

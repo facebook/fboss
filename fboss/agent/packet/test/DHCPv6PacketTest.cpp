@@ -7,31 +7,31 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include <algorithm>
-#include <memory>
-#include <string>
+#include "fboss/agent/packet/DHCPv6Packet.h"
 #include <folly/Conv.h>
+#include <folly/IPAddressV6.h>
+#include <folly/MacAddress.h>
 #include <folly/Memory.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
-#include <folly/IPAddressV6.h>
-#include <folly/MacAddress.h>
-#include "fboss/agent/DHCPv6Handler.h"
-#include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/FbossError.h"
-#include "fboss/agent/packet/DHCPv6Packet.h"
 #include <gtest/gtest.h>
+#include <algorithm>
+#include <memory>
+#include <string>
+#include "fboss/agent/DHCPv6Handler.h"
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/SwSwitch.h"
 
 using namespace facebook::fboss;
-using std::string;
-using std::vector;
 using folly::IOBuf;
+using folly::IPAddressV6;
+using folly::MacAddress;
 using folly::io::Appender;
 using folly::io::Cursor;
 using folly::io::RWPrivateCursor;
-using folly::IPAddressV6;
-using folly::MacAddress;
+using std::string;
 using std::unique_ptr;
+using std::vector;
 
 DHCPv6Packet makeDHCPv6Packet() {
   DHCPv6Packet dhcp(static_cast<uint8_t>(DHCPv6Type::DHCPv6_SOLICIT), 1000);
@@ -90,8 +90,7 @@ TEST(DHCPv6PacketTest, testRelayForward) {
       dhcpRelayFwd.type);
   EXPECT_EQ(0, dhcpRelayFwd.hopCount);
   // interface ID option + relay message option
-  auto optionLen = MacAddress::SIZE + 4 +
-                   dhcpPktIn.computePacketLength() + 4;
+  auto optionLen = MacAddress::SIZE + 4 + dhcpPktIn.computePacketLength() + 4;
   EXPECT_EQ(optionLen, dhcpRelayFwd.options.size());
 
   // serialize the relay forward packet

@@ -226,7 +226,7 @@ class MirrorManagerTest : public ::testing::Test {
   }
 
   void schedulePendingTestStateUpdates() {
-    runInUpdateEventBaseAndWait([](){});
+    runInUpdateEventBaseAndWait([]() {});
   }
 
   std::unique_ptr<HwTestHandle> handle_;

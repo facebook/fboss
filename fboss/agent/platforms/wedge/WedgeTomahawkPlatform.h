@@ -21,7 +21,7 @@ class PlatformProductInfo;
 class WedgeTomahawkPlatform : public WedgePlatform {
  public:
   explicit WedgeTomahawkPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo)
+      std::unique_ptr<PlatformProductInfo> productInfo)
       : WedgePlatform(std::move(productInfo)) {}
 
   uint32_t getMMUBufferBytes() const override {
@@ -42,9 +42,9 @@ class WedgeTomahawkPlatform : public WedgePlatform {
     return 3;
   }
   const PortQueue& getDefaultPortQueueSettings(
-    cfg::StreamType streamType) const override;
+      cfg::StreamType streamType) const override;
   const PortQueue& getDefaultControlPlaneQueueSettings(
-    cfg::StreamType streamType) const override;
+      cfg::StreamType streamType) const override;
 
   bool useQueueGportForCos() const override {
     return true;

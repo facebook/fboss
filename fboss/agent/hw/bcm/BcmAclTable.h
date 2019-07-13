@@ -15,7 +15,8 @@
 
 #include <boost/container/flat_map.hpp>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmSwitch;
 
@@ -24,12 +25,9 @@ class BcmSwitch;
  */
 class BcmAclTable {
  public:
-  using FilterIterator =
-      MapFilter<int, std::unique_ptr<BcmAclEntry>>;
-  using Filter =
-      MapFilter<int, std::unique_ptr<BcmAclEntry>>::Predicate;
-  using FilterEntry =
-      MapFilter<int, std::unique_ptr<BcmAclEntry>>::Entry;
+  using FilterIterator = MapFilter<int, std::unique_ptr<BcmAclEntry>>;
+  using Filter = MapFilter<int, std::unique_ptr<BcmAclEntry>>::Predicate;
+  using FilterEntry = MapFilter<int, std::unique_ptr<BcmAclEntry>>::Entry;
   using FilterAction = std::function<void(const FilterEntry&)>;
 
   explicit BcmAclTable(BcmSwitch* hw) : hw_(hw) {}
@@ -64,14 +62,15 @@ class BcmAclTable {
   void forFilteredEach(Filter predicate, FilterAction action) const;
 
  private:
-  using BcmAclEntryMap = boost::container::flat_map<int,
-    std::unique_ptr<BcmAclEntry>>;
-  using BcmAclStatMap = boost::container::flat_map<std::string,
-    std::pair<std::unique_ptr<BcmAclStat>, uint32_t>>;
+  using BcmAclEntryMap =
+      boost::container::flat_map<int, std::unique_ptr<BcmAclEntry>>;
+  using BcmAclStatMap = boost::container::
+      flat_map<std::string, std::pair<std::unique_ptr<BcmAclStat>, uint32_t>>;
 
   BcmSwitch* hw_;
   BcmAclEntryMap aclEntryMap_;
   BcmAclStatMap aclStatMap_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

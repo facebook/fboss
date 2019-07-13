@@ -12,7 +12,8 @@
 #include <folly/IPAddressV6.h>
 #include "fboss/agent/state/NeighborEntry.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * NdpEntry represents an entry in our IPv6 neighbor table.
@@ -26,4 +27,5 @@ class NdpEntry : public NeighborEntry<folly::IPAddressV6, NdpEntry> {
   using NeighborEntry::NeighborEntry;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

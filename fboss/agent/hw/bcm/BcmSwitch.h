@@ -9,18 +9,18 @@
  */
 #pragma once
 
-#include "fboss/agent/HwSwitch.h"
-#include "fboss/agent/types.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include <folly/Optional.h>
 #include <folly/dynamic.h>
 #include <folly/io/async/EventBase.h>
-#include <folly/Optional.h>
 #include <gtest/gtest_prod.h>
+#include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/types.h"
 
+#include <boost/container/flat_map.hpp>
 #include <memory>
 #include <mutex>
 #include <thread>
-#include <boost/container/flat_map.hpp>
 
 extern "C" {
 #include <opennsl/error.h>
@@ -29,7 +29,8 @@ extern "C" {
 #include <opennsl/types.h>
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class AclEntry;
 class AggregatePort;
@@ -172,15 +173,11 @@ class BcmSwitchIf : public HwSwitch {
  */
 class BcmSwitch : public BcmSwitchIf {
  public:
-   enum class MmuState {
-    UNKNOWN,
-    MMU_LOSSLESS,
-    MMU_LOSSY
-   };
-   enum FeaturesDesired : uint32_t {
-     PACKET_RX_DESIRED = 0x01,
-     LINKSCAN_DESIRED = 0x02
-   };
+  enum class MmuState { UNKNOWN, MMU_LOSSLESS, MMU_LOSSY };
+  enum FeaturesDesired : uint32_t {
+    PACKET_RX_DESIRED = 0x01,
+    LINKSCAN_DESIRED = 0x02
+  };
   /*
    * Construct a new BcmSwitch.
    *
@@ -188,40 +185,46 @@ class BcmSwitch : public BcmSwitchIf {
    * When init() is called, it will initialize the SDK, then find and
    * initialize the first switching ASIC.
    */
-   explicit BcmSwitch(
-       BcmPlatform* platform,
-       uint32_t featuresDesired = (PACKET_RX_DESIRED | LINKSCAN_DESIRED));
+  explicit BcmSwitch(
+      BcmPlatform* platform,
+      uint32_t featuresDesired = (PACKET_RX_DESIRED | LINKSCAN_DESIRED));
 
-   ~BcmSwitch() override;
+  ~BcmSwitch() override;
 
-   /*
-    * Flush tables tracking ASIC state. Without releasing the ASIC/unit for
-    * destruction/detaching. Primarily used for testing, where we flush state
-    * and then try to recreate it by mimicking a warmboot sequence
-    */
-   void resetTables() override;
-   /*
-    * Init tables using warm boot state (represented by passed in
-    * folly::dynamic). This mimics the warm boot init sequence, without having
-    * the ASIC go through a warm boot.
-    */
-   void initTables(const folly::dynamic& warmBootState) override;
+  /*
+   * Flush tables tracking ASIC state. Without releasing the ASIC/unit for
+   * destruction/detaching. Primarily used for testing, where we flush state
+   * and then try to recreate it by mimicking a warmboot sequence
+   */
+  void resetTables() override;
+  /*
+   * Init tables using warm boot state (represented by passed in
+   * folly::dynamic). This mimics the warm boot init sequence, without having
+   * the ASIC go through a warm boot.
+   */
+  void initTables(const folly::dynamic& warmBootState) override;
 
-   /*
-    * Initialize the BcmSwitch.
-    */
-   HwInitResult init(Callback* callback) override;
+  /*
+   * Initialize the BcmSwitch.
+   */
+  HwInitResult init(Callback* callback) override;
 
-   void runBcmScriptPreAsicInit() const;
+  void runBcmScriptPreAsicInit() const;
 
-   void unregisterCallbacks() override;
+  void unregisterCallbacks() override;
 
-   BcmPlatform* getPlatform() const override {
-     return platform_;
+  BcmPlatform* getPlatform() const override {
+    return platform_;
   }
-  MmuState getMmuState() const { return mmuState_; }
-  uint64_t getMMUCellBytes() const { return mmuCellBytes_; }
-  uint64_t getMMUBufferBytes() const { return mmuBufferBytes_; }
+  MmuState getMmuState() const {
+    return mmuState_;
+  }
+  uint64_t getMMUCellBytes() const {
+    return mmuCellBytes_;
+  }
+  uint64_t getMMUBufferBytes() const {
+    return mmuBufferBytes_;
+  }
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
@@ -248,15 +251,17 @@ class BcmSwitch : public BcmSwitchIf {
   }
 
   static opennsl_vrf_t getBcmVrfId(RouterID routerId) {
-    static_assert(sizeof(opennsl_vrf_t) == sizeof(RouterID),
-                  "Size of opennsl_vrf_t must equal to size of RouterID");
+    static_assert(
+        sizeof(opennsl_vrf_t) == sizeof(RouterID),
+        "Size of opennsl_vrf_t must equal to size of RouterID");
     return static_cast<opennsl_vrf_t>(routerId);
   }
   static RouterID getRouterId(opennsl_vrf_t vrf) {
     return RouterID(vrf);
   }
   static opennsl_if_t getBcmIntfId(InterfaceID intfId) {
-    static_assert(sizeof(opennsl_if_t) == sizeof(InterfaceID),
+    static_assert(
+        sizeof(opennsl_if_t) == sizeof(InterfaceID),
         "Size of opennsl_if_t must equal to size of InterfaceID");
     return static_cast<opennsl_if_t>(intfId);
   }
@@ -379,19 +384,27 @@ class BcmSwitch : public BcmSwitchIf {
     return cosManager_.get();
   };
 
-  void fetchL2Table(std::vector<L2EntryThrift> *l2Table) override;
+  void fetchL2Table(std::vector<L2EntryThrift>* l2Table) override;
 
-  BcmHostTable* writableHostTable() const override { return hostTable_.get(); }
+  BcmHostTable* writableHostTable() const override {
+    return hostTable_.get();
+  }
   BcmEgressManager* writableEgressManager() const override {
     return egressManager_.get();
   }
-  BcmAclTable* writableAclTable() const override { return aclTable_.get(); }
+  BcmAclTable* writableAclTable() const override {
+    return aclTable_.get();
+  }
   BcmWarmBootCache* getWarmBootCache() const override {
     return warmBootCache_.get();
   }
 
-  BcmRouteTable* writableRouteTable() const { return routeTable_.get(); }
-  const BcmRouteTable* routeTable() const { return routeTable_.get(); }
+  BcmRouteTable* writableRouteTable() const {
+    return routeTable_.get();
+  }
+  const BcmRouteTable* routeTable() const {
+    return routeTable_.get();
+  }
 
   const BcmMirrorTable* getBcmMirrorTable() const override {
     return mirrorTable_.get();
@@ -420,8 +433,7 @@ class BcmSwitch : public BcmSwitchIf {
    * Returns true if the neighbor entry for the passed in ip
    * has been hit.
    */
-  bool getAndClearNeighborHit(RouterID vrf,
-                              folly::IPAddress& ip) override;
+  bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip) override;
 
   bool getPortFECEnabled(PortID port) const override;
 
@@ -434,15 +446,14 @@ class BcmSwitch : public BcmSwitchIf {
    * Calls linkStateChanged. Invoked by linkscan thread
    * on BCM ASIC as well as explicitly by tests.
    */
-  static void linkscanCallback(int unit,
-                               opennsl_port_t port,
-                               opennsl_port_info_t* info);
+  static void
+  linkscanCallback(int unit, opennsl_port_t port, opennsl_port_info_t* info);
 
   BootType getBootType() const override {
     return bootType_;
   }
 
-  BcmBstStatsMgr *getBstStatsMgr() const {
+  BcmBstStatsMgr* getBstStatsMgr() const {
     return bstStatsMgr_.get();
   }
 
@@ -452,15 +463,12 @@ class BcmSwitch : public BcmSwitchIf {
    * To that end make tests friends, but no one else
    */
   FRIEND_TEST(BcmTest, fpNoMissingOrQsetChangedGrpsPostInit);
- private:
 
-  enum Flags : uint32_t {
-    RX_REGISTERED = 0x01,
-    LINKSCAN_REGISTERED = 0x02
-  };
+ private:
+  enum Flags : uint32_t { RX_REGISTERED = 0x01, LINKSCAN_REGISTERED = 0x02 };
   // Forbidden copy constructor and assignment operator
-  BcmSwitch(BcmSwitch const &) = delete;
-  BcmSwitch& operator=(BcmSwitch const &) = delete;
+  BcmSwitch(BcmSwitch const&) = delete;
+  BcmSwitch& operator=(BcmSwitch const&) = delete;
 
   /*
    * Get default state switch is in on a cold boot
@@ -473,14 +481,16 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmRxPacket> createRxPacket(opennsl_pkt_t* pkt);
   void changeDefaultVlan(VlanID id);
 
-  void processChangedVlan(const std::shared_ptr<Vlan>& oldVlan,
-                          const std::shared_ptr<Vlan>& newVlan);
+  void processChangedVlan(
+      const std::shared_ptr<Vlan>& oldVlan,
+      const std::shared_ptr<Vlan>& newVlan);
   void processAddedVlan(const std::shared_ptr<Vlan>& vlan);
   void preprocessRemovedVlan(const std::shared_ptr<Vlan>& vlan);
   void processRemovedVlan(const std::shared_ptr<Vlan>& vlan);
 
-  void processChangedIntf(const std::shared_ptr<Interface>& oldIntf,
-                          const std::shared_ptr<Interface>& newIntf);
+  void processChangedIntf(
+      const std::shared_ptr<Interface>& oldIntf,
+      const std::shared_ptr<Interface>& newIntf);
   void processAddedIntf(const std::shared_ptr<Interface>& intf);
   void processRemovedIntf(const std::shared_ptr<Interface>& intf);
 
@@ -528,7 +538,8 @@ class BcmSwitch : public BcmSwitchIf {
       const std::shared_ptr<RouteT>& route);
   template <typename RouteT>
   void processRemovedRoute(
-      const RouterID id, const std::shared_ptr<RouteT>& route);
+      const RouterID id,
+      const std::shared_ptr<RouteT>& route);
   void processRemovedRoutes(const StateDelta& delta);
   void processAddedChangedRoutes(
       const StateDelta& delta,
@@ -547,8 +558,9 @@ class BcmSwitch : public BcmSwitchIf {
   void processQosChanges(const StateDelta& delta);
 
   void processAclChanges(const StateDelta& delta);
-  void processChangedAcl(const std::shared_ptr<AclEntry>& oldAcl,
-                         const std::shared_ptr<AclEntry>& newAcl);
+  void processChangedAcl(
+      const std::shared_ptr<AclEntry>& oldAcl,
+      const std::shared_ptr<AclEntry>& newAcl);
   void processAddedAcl(const std::shared_ptr<AclEntry>& acl);
   void processRemovedAcl(const std::shared_ptr<AclEntry>& acl);
 
@@ -609,7 +621,8 @@ class BcmSwitch : public BcmSwitchIf {
    * thread holds that. Meanwhile BCM function called from update thread would
    * try to acquire BcmUnitLock and block since the link scan thread is
    * holding that lock.
-   * Back traces from deadlocked process here https://phabricator.fb.com/P20042479
+   * Back traces from deadlocked process here
+   * https://phabricator.fb.com/P20042479
    */
   void linkStateChangedHwNotLocked(opennsl_port_t port, bool up);
 
@@ -629,8 +642,8 @@ class BcmSwitch : public BcmSwitchIf {
    * Private callback called by the Broadcom API. Dispatches to
    * BcmSwitch::packetReceived.
    */
-  static opennsl_rx_t packetRxCallback(int unit, opennsl_pkt_t* pkt,
-      void* cookie);
+  static opennsl_rx_t
+  packetRxCallback(int unit, opennsl_pkt_t* pkt, void* cookie);
   /*
    * Private callback called by BcmSwitch::packetRxCallback. Dispatches to
    * callback_->packetReceived.
@@ -640,12 +653,12 @@ class BcmSwitch : public BcmSwitchIf {
   /*
    * Update thread-local switch statistics.
    */
-  void updateThreadLocalSwitchStats(SwitchStats *switchStats);
+  void updateThreadLocalSwitchStats(SwitchStats* switchStats);
 
   /*
    * Update thread-local per-port statistics.
    */
-  void updateThreadLocalPortStats(PortID portID, PortStats *portStats);
+  void updateThreadLocalPortStats(PortID portID, PortStats* portStats);
 
   /*
    * Update global statistics.
@@ -746,16 +759,17 @@ class BcmSwitch : public BcmSwitchIf {
    */
   void restorePortSettings(const std::shared_ptr<SwitchState>& state);
 
- /*
-  * Check if state, speed update for this port port would
-  * be permissible in the hardware.
-  * Right now we check for valid speed and port state update
-  * given the constraints of lanes on the physical
-  * port group/QSFP. More checks can be added as needed.
-  */
-  bool isValidPortUpdate(const std::shared_ptr<Port>& oldPort,
-    const std::shared_ptr<Port>& newPort,
-    const std::shared_ptr<SwitchState>& newState) const;
+  /*
+   * Check if state, speed update for this port port would
+   * be permissible in the hardware.
+   * Right now we check for valid speed and port state update
+   * given the constraints of lanes on the physical
+   * port group/QSFP. More checks can be added as needed.
+   */
+  bool isValidPortUpdate(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort,
+      const std::shared_ptr<SwitchState>& newState) const;
 
   // Returns whether ALPM has been enabled via the sdk
   bool isAlpmEnabled();
@@ -766,7 +780,8 @@ class BcmSwitch : public BcmSwitchIf {
   /*
    * Clear statistics for a list of ports.
    */
-  void clearPortStats(const std::unique_ptr<std::vector<int32_t>>& ports) override;
+  void clearPortStats(
+      const std::unique_ptr<std::vector<int32_t>>& ports) override;
 
   /*
    * Return true if any of the port's queue names changed, false otherwise.

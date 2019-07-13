@@ -10,19 +10,20 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/types.h>
 #include <opennsl/l3.h>
+#include <opennsl/types.h>
 }
 
-#include <folly/dynamic.h>
 #include <folly/IPAddress.h>
-#include "fboss/agent/types.h"
+#include <folly/dynamic.h>
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmSwitch;
 class BcmHost;
@@ -40,14 +41,16 @@ class BcmRoute {
       uint8_t len);
   ~BcmRoute();
   void program(const RouteNextHopEntry& fwd);
-  static bool deleteLpmRoute(int unit,
-                             opennsl_vrf_t vrf,
-                             const folly::IPAddress& prefix,
-                             uint8_t prefixLength);
-  static void initL3RouteFromArgs(opennsl_l3_route_t* rt,
-                                  opennsl_vrf_t vrf,
-                                  const folly::IPAddress& prefix,
-                                  uint8_t prefixLength);
+  static bool deleteLpmRoute(
+      int unit,
+      opennsl_vrf_t vrf,
+      const folly::IPAddress& prefix,
+      uint8_t prefixLength);
+  static void initL3RouteFromArgs(
+      opennsl_l3_route_t* rt,
+      opennsl_vrf_t vrf,
+      const folly::IPAddress& prefix,
+      uint8_t prefixLength);
 
   opennsl_if_t getEgressId() const {
     return egressId_;
@@ -71,8 +74,8 @@ class BcmRoute {
   bool isHostRoute() const;
   bool canUseHostTable() const;
   // no copy or assign
-  BcmRoute(const BcmRoute &) = delete;
-  BcmRoute& operator=(const BcmRoute &) = delete;
+  BcmRoute(const BcmRoute&) = delete;
+  BcmRoute& operator=(const BcmRoute&) = delete;
   BcmSwitch* hw_;
   opennsl_vrf_t vrf_;
   folly::IPAddress prefix_;
@@ -93,19 +96,24 @@ class BcmRouteTable {
   ~BcmRouteTable();
   // throw an error if not found
   BcmRoute* getBcmRoute(
-      opennsl_vrf_t vrf, const folly::IPAddress& prefix, uint8_t len) const;
+      opennsl_vrf_t vrf,
+      const folly::IPAddress& prefix,
+      uint8_t len) const;
   // return nullptr if not found
   BcmRoute* getBcmRouteIf(
-      opennsl_vrf_t vrf, const folly::IPAddress& prefix, uint8_t len) const;
+      opennsl_vrf_t vrf,
+      const folly::IPAddress& prefix,
+      uint8_t len) const;
 
   /*
    * The following functions will modify the object. They rely on the global
    * HW update lock in BcmSwitch::lock_ for the protection.
    */
-  template<typename RouteT>
-  void addRoute(opennsl_vrf_t vrf, const RouteT *route);
-  template<typename RouteT>
-  void deleteRoute(opennsl_vrf_t vrf, const RouteT *route);
+  template <typename RouteT>
+  void addRoute(opennsl_vrf_t vrf, const RouteT* route);
+  template <typename RouteT>
+  void deleteRoute(opennsl_vrf_t vrf, const RouteT* route);
+
  private:
   struct Key {
     folly::IPAddress network;
@@ -119,4 +127,5 @@ class BcmRouteTable {
   boost::container::flat_map<Key, std::unique_ptr<BcmRoute>> fib_;
 };
 
-}}
+} // namespace fboss
+} // namespace facebook

@@ -9,11 +9,12 @@
  */
 #pragma once
 
+#include <gtest/gtest.h>
 #include <map>
 #include <string>
-#include <gtest/gtest.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwSwitch;
 
@@ -52,8 +53,9 @@ class CounterCache {
   }
 
  private:
-  int64_t getValue(const std::string& counter,
-                   const std::map<std::string, int64_t>* map) const {
+  int64_t getValue(
+      const std::string& counter,
+      const std::map<std::string, int64_t>* map) const {
     auto it = map->find(counter);
     if (it == map->end()) {
       return 0;
@@ -66,4 +68,5 @@ class CounterCache {
   std::map<std::string, int64_t> current_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

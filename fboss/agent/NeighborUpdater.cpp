@@ -8,21 +8,21 @@
  *
  */
 #include "NeighborUpdater.h"
-#include "fboss/agent/FbossError.h"
-#include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/ArpHandler.h"
-#include "fboss/agent/IPv6Handler.h"
-#include "fboss/agent/state/AggregatePort.h"
-#include "fboss/agent/state/DeltaFunctions.h"
-#include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Port.h"
-#include "fboss/agent/state/VlanMap.h"
-#include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/ArpTable.h"
-#include "fboss/agent/state/NdpTable.h"
-#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/ArpCache.h"
+#include "fboss/agent/ArpHandler.h"
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/NdpCache.h"
+#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/state/ArpTable.h"
+#include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/NdpTable.h"
+#include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/state/VlanMap.h"
 
 #include <boost/container/flat_map.hpp>
 #include <folly/logging/xlog.h>
@@ -31,23 +31,23 @@
 #include <string>
 #include <vector>
 
-using std::shared_ptr;
 using boost::container::flat_map;
 using folly::IPAddress;
-using folly::MacAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
+using folly::MacAddress;
+using std::shared_ptr;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 using facebook::fboss::DeltaFunctions::forEachChanged;
 
 NeighborUpdater::NeighborUpdater(SwSwitch* sw)
-    : AutoRegisterStateObserver(sw, "NeighborUpdater"),
-      sw_(sw) {}
+    : AutoRegisterStateObserver(sw, "NeighborUpdater"), sw_(sw) {}
 
 NeighborUpdater::~NeighborUpdater() {
-  for (auto& vlanAndCache: caches_) {
+  for (auto& vlanAndCache : caches_) {
     // We want cache to clear entries
     // before we destroy the caches. Entries
     // hold a pointer to cache thus can call
@@ -85,9 +85,10 @@ void NeighborUpdater::getArpCacheData(std::vector<ArpEntryThrift>& arpTable) {
     }
   }
   arpTable.reserve(entries.size());
-  arpTable.insert(arpTable.begin(),
-                  std::make_move_iterator(std::begin(entries)),
-                  std::make_move_iterator(std::end(entries)));
+  arpTable.insert(
+      arpTable.begin(),
+      std::make_move_iterator(std::begin(entries)),
+      std::make_move_iterator(std::end(entries)));
 }
 
 void NeighborUpdater::getNdpCacheData(std::vector<NdpEntryThrift>& ndpTable) {
@@ -99,9 +100,10 @@ void NeighborUpdater::getNdpCacheData(std::vector<NdpEntryThrift>& ndpTable) {
     }
   }
   ndpTable.reserve(entries.size());
-  ndpTable.insert(ndpTable.begin(),
-                  std::make_move_iterator(std::begin(entries)),
-                  std::make_move_iterator(std::end(entries)));
+  ndpTable.insert(
+      ndpTable.begin(),
+      std::make_move_iterator(std::begin(entries)),
+      std::make_move_iterator(std::end(entries)));
 }
 
 shared_ptr<ArpCache> NeighborUpdater::getArpCacheInternal(VlanID vlan) {
@@ -119,8 +121,7 @@ shared_ptr<NdpCache> NeighborUpdater::getNdpCacheInternal(VlanID vlan) {
   return res->second->ndpCache;
 }
 
-void NeighborUpdater::sentNeighborSolicitation(VlanID vlan,
-                                               IPAddressV6 ip) {
+void NeighborUpdater::sentNeighborSolicitation(VlanID vlan, IPAddressV6 ip) {
   auto cache = getNdpCacheFor(vlan);
   cache->sentNeighborSolicitation(ip);
 }
@@ -147,26 +148,27 @@ void NeighborUpdater::receivedNdpNotMine(
   cache->receivedNdpNotMine(ip, mac, port, type, flags);
 }
 
-void NeighborUpdater::sentArpRequest(VlanID vlan,
-                                     IPAddressV4 ip) {
+void NeighborUpdater::sentArpRequest(VlanID vlan, IPAddressV4 ip) {
   auto cache = getArpCacheFor(vlan);
   cache->sentArpRequest(ip);
 }
 
-void NeighborUpdater::receivedArpMine(VlanID vlan,
-                                      IPAddressV4 ip,
-                                      MacAddress mac,
-                                      PortDescriptor port,
-                                      ArpOpCode op) {
+void NeighborUpdater::receivedArpMine(
+    VlanID vlan,
+    IPAddressV4 ip,
+    MacAddress mac,
+    PortDescriptor port,
+    ArpOpCode op) {
   auto cache = getArpCacheFor(vlan);
   cache->receivedArpMine(ip, mac, port, op);
 }
 
-void NeighborUpdater::receivedArpNotMine(VlanID vlan,
-                                         IPAddressV4 ip,
-                                         MacAddress mac,
-                                         PortDescriptor port,
-                                         ArpOpCode op) {
+void NeighborUpdater::receivedArpNotMine(
+    VlanID vlan,
+    IPAddressV4 ip,
+    MacAddress mac,
+    PortDescriptor port,
+    ArpOpCode op) {
   auto cache = getArpCacheFor(vlan);
   cache->receivedArpNotMine(ip, mac, port, op);
 }
@@ -256,10 +258,11 @@ void NeighborUpdater::stateUpdated(const StateDelta& delta) {
       this);
 }
 
-template<typename T>
-void collectPresenceChange(const T& delta,
-                          std::vector<std::string>* added,
-                          std::vector<std::string>* deleted) {
+template <typename T>
+void collectPresenceChange(
+    const T& delta,
+    std::vector<std::string>* added,
+    std::vector<std::string>* deleted) {
   for (const auto& entry : delta) {
     auto oldEntry = entry.getOld();
     auto newEntry = entry.getNew();
@@ -300,8 +303,8 @@ void NeighborUpdater::vlanAdded(const SwitchState* state, const Vlan* vlan) {
   auto vlanName = vlan->getName();
 
   auto intfID = vlan->getInterfaceID();
-  auto caches
-      = std::make_shared<NeighborCaches>(sw_, state, vlanID, vlanName, intfID);
+  auto caches =
+      std::make_shared<NeighborCaches>(sw_, state, vlanID, vlanName, intfID);
 
   // We need to populate the caches from the SwitchState when a vlan is added
   // After this, we no longer process Arp or Ndp deltas for this vlan.
@@ -399,4 +402,5 @@ void NeighborUpdater::aggregatePortChanged(
     });
   }
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

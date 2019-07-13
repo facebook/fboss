@@ -13,13 +13,14 @@
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/PortDescriptor.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 using folly::MacAddress;
 
 enum class NeighborState { UNVERIFIED, PENDING, REACHABLE };
 
-template<typename IPADDR>
+template <typename IPADDR>
 struct NeighborEntryFields {
   typedef IPADDR AddressType;
 
@@ -64,7 +65,7 @@ struct NeighborEntryFields {
   NeighborState state;
 };
 
-template<typename IPADDR, typename SUBCLASS>
+template <typename IPADDR, typename SUBCLASS>
 class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
  public:
   typedef IPADDR AddressType;
@@ -78,14 +79,13 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
 
   NeighborEntry(AddressType ip, InterfaceID intfID, NeighborState ignored);
 
-  static std::shared_ptr<SUBCLASS>
-  fromFollyDynamic(const folly::dynamic& json) {
+  static std::shared_ptr<SUBCLASS> fromFollyDynamic(
+      const folly::dynamic& json) {
     const auto& fields = NeighborEntryFields<IPADDR>::fromFollyDynamic(json);
     return std::make_shared<SUBCLASS>(fields);
   }
 
-  static std::shared_ptr<SUBCLASS>
-  fromJson(const folly::fbstring& jsonStr) {
+  static std::shared_ptr<SUBCLASS> fromJson(const folly::fbstring& jsonStr) {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
@@ -94,11 +94,9 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
   }
 
   bool operator==(const NeighborEntry& other) const {
-    return getIP() == other.getIP() &&
-           getMac() == other.getMac() &&
-           getPort() == other.getPort() &&
-           getIntfID() == other.getIntfID() &&
-           getState() == other.getState();
+    return getIP() == other.getIP() && getMac() == other.getMac() &&
+        getPort() == other.getPort() && getIntfID() == other.getIntfID() &&
+        getState() == other.getState();
   }
   bool operator!=(const NeighborEntry& other) const {
     return !operator==(other);
@@ -159,4 +157,5 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
   friend class CloneAllocator;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

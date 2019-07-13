@@ -2,11 +2,11 @@
 
 #pragma once
 
+#include <boost/circular_buffer.hpp>
 #include <folly/Synchronized.h>
 #include <chrono>
 #include <limits>
 #include <numeric>
-#include <boost/circular_buffer.hpp>
 
 namespace facebook {
 namespace fboss {
@@ -78,7 +78,6 @@ class TimeSeriesWithMinMax {
    */
   ValueType getMin(Time start, Time end);
 
-
  private:
   /*
    * Internal bucket class to keep granularity of data.
@@ -135,6 +134,6 @@ class TimeSeriesWithMinMax {
    */
   folly::Synchronized<boost::circular_buffer<Bucket>> buf_;
 };
-}
-}
+} // namespace fboss
+} // namespace facebook
 #include "TimeSeriesWithMinMax-inl.h"

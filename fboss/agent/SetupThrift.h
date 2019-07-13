@@ -8,13 +8,13 @@
  *
  */
 #pragma once
-#include <memory>
 #include <chrono>
+#include <memory>
 
-#include <folly/io/async/EventBase.h>
 #include <folly/SocketAddress.h>
-#include <thrift/lib/cpp2/server/ThriftServer.h>
+#include <folly/io/async/EventBase.h>
 #include <gflags/gflags.h>
+#include <thrift/lib/cpp2/server/ThriftServer.h>
 
 DECLARE_int32(thrift_idle_timeout);
 DECLARE_int32(thrift_task_expire_timeout);
@@ -24,15 +24,17 @@ namespace fboss {
 
 void serverSSLSetup(apache::thrift::ThriftServer& server);
 
-template<typename THRIFT_HANDLER>
+template <typename THRIFT_HANDLER>
 std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     folly::EventBase& eventBase,
     std::shared_ptr<THRIFT_HANDLER>& handler,
-    int port, bool isDuplex, bool setupSSL) {
+    int port,
+    bool isDuplex,
+    bool setupSSL) {
   // Start the thrift server
   auto server = std::make_unique<apache::thrift::ThriftServer>();
-  server->setTaskExpireTime(std::chrono::milliseconds(
-        FLAGS_thrift_task_expire_timeout * 1000));
+  server->setTaskExpireTime(
+      std::chrono::milliseconds(FLAGS_thrift_task_expire_timeout * 1000));
   server->getEventBaseManager()->setEventBase(&eventBase, false);
   server->setInterface(handler);
   if (isDuplex) {
@@ -56,5 +58,5 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
   server->setup();
   return server;
 }
-}
+} // namespace fboss
 } // namespace facebook

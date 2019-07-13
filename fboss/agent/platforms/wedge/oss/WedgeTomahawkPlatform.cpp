@@ -9,15 +9,16 @@
  */
 #include "fboss/agent/platforms/wedge/WedgeTomahawkPlatform.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 const PortQueue& WedgeTomahawkPlatform::getDefaultPortQueueSettings(
     cfg::StreamType /*streamType*/) const {
   throw FbossError("PortQueue setting is not supported");
 }
 
-const PortQueue&
-WedgeTomahawkPlatform::getDefaultControlPlaneQueueSettings(
+const PortQueue& WedgeTomahawkPlatform::getDefaultControlPlaneQueueSettings(
     cfg::StreamType /*streamType*/) const {
   throw FbossError("PortQueue setting is not supported");
 }
-}}
+} // namespace fboss
+} // namespace facebook

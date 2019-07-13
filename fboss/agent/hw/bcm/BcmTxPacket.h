@@ -10,8 +10,8 @@
 #pragma once
 
 #include <chrono>
-#include <mutex>
 #include <condition_variable>
+#include <mutex>
 
 #include "fboss/agent/TxPacket.h"
 
@@ -20,7 +20,8 @@ extern "C" {
 #include <opennsl/types.h>
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmTxPacket : public TxPacket {
  public:
@@ -79,8 +80,8 @@ class BcmTxPacket : public TxPacket {
   static void txCallbackSync(int unit, opennsl_pkt_t* pkt, void* cookie);
 
   // Forbidden copy constructor and assignment operator
-  BcmTxPacket(BcmTxPacket const &) = delete;
-  BcmTxPacket& operator=(BcmTxPacket const &) = delete;
+  BcmTxPacket(BcmTxPacket const&) = delete;
+  BcmTxPacket& operator=(BcmTxPacket const&) = delete;
   void enableHiGigHeader();
 
   // Synchronization around synchrnous packet sending
@@ -94,4 +95,5 @@ class BcmTxPacket : public TxPacket {
   TimePoint queued_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

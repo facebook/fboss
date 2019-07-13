@@ -7,9 +7,9 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/ApplyThriftConfig.h"
-#include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Interface.h"
@@ -17,7 +17,7 @@
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -130,7 +130,7 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(1, interface->getAddresses().size()); // 1 ipv6 link local address
   EXPECT_EQ(0, interface->getNdpConfig().routerAdvertisementSeconds);
   auto vlan1 = state->getVlans()->getVlanIf(VlanID(1));
-  EXPECT_EQ(InterfaceID(1),vlan1->getInterfaceID());
+  EXPECT_EQ(InterfaceID(1), vlan1->getInterfaceID());
   // same configuration cause nothing changed
   EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 
@@ -157,8 +157,8 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(oldInterface->getAddresses(), interface->getAddresses());
   auto vlan2 = state->getVlans()->getVlanIf(VlanID(2));
   auto newvlan1 = state->getVlans()->getVlanIf(VlanID(1));
-  EXPECT_EQ(InterfaceID(1),vlan2->getInterfaceID());
-  EXPECT_EQ(InterfaceID(5),newvlan1->getInterfaceID());
+  EXPECT_EQ(InterfaceID(1), vlan2->getInterfaceID());
+  EXPECT_EQ(InterfaceID(5), newvlan1->getInterfaceID());
 
   // routerID change
   config.interfaces[0].routerID = 1;
@@ -221,11 +221,11 @@ TEST(Interface, applyConfig) {
   // duplicate IP addresses causes throw
   config.interfaces[0].ipAddresses[1] = config.interfaces[0].ipAddresses[0];
   EXPECT_THROW(
-    publishAndApplyConfig(state, &config, platform.get()), FbossError);
+      publishAndApplyConfig(state, &config, platform.get()), FbossError);
   // Should still throw even if the mask is different
   config.interfaces[0].ipAddresses[1] = "10.1.1.1/16";
   EXPECT_THROW(
-    publishAndApplyConfig(state, &config, platform.get()), FbossError);
+      publishAndApplyConfig(state, &config, platform.get()), FbossError);
   config.interfaces[0].ipAddresses[1] = "::22:33:44/120";
 
   // Name change
@@ -299,11 +299,12 @@ TEST(Interface, applyConfig) {
  * Test that forEachChanged(StateDelta::getIntfsDelta(), ...) invokes the
  * callback for the specified list of changed interfaces.
  */
-void checkChangedIntfs(const shared_ptr<InterfaceMap>& oldIntfs,
-                       const shared_ptr<InterfaceMap>& newIntfs,
-                       const std::set<uint16_t> changedIDs,
-                       const std::set<uint16_t> addedIDs,
-                       const std::set<uint16_t> removedIDs) {
+void checkChangedIntfs(
+    const shared_ptr<InterfaceMap>& oldIntfs,
+    const shared_ptr<InterfaceMap>& newIntfs,
+    const std::set<uint16_t> changedIDs,
+    const std::set<uint16_t> addedIDs,
+    const std::set<uint16_t> removedIDs) {
   auto oldState = make_shared<SwitchState>();
   oldState->resetIntfs(oldIntfs);
   auto newState = make_shared<SwitchState>();
@@ -313,23 +314,24 @@ void checkChangedIntfs(const shared_ptr<InterfaceMap>& oldIntfs,
   std::set<uint16_t> foundAdded;
   std::set<uint16_t> foundRemoved;
   StateDelta delta(oldState, newState);
-  DeltaFunctions::forEachChanged(delta.getIntfsDelta(),
-    [&] (const shared_ptr<Interface>& oldIntf,
-         const shared_ptr<Interface>& newIntf) {
-      EXPECT_EQ(oldIntf->getID(), newIntf->getID());
-      EXPECT_NE(oldIntf, newIntf);
+  DeltaFunctions::forEachChanged(
+      delta.getIntfsDelta(),
+      [&](const shared_ptr<Interface>& oldIntf,
+          const shared_ptr<Interface>& newIntf) {
+        EXPECT_EQ(oldIntf->getID(), newIntf->getID());
+        EXPECT_NE(oldIntf, newIntf);
 
-      auto ret = foundChanged.insert(oldIntf->getID());
-      EXPECT_TRUE(ret.second);
-    },
-    [&] (const shared_ptr<Interface>& intf) {
-      auto ret = foundAdded.insert(intf->getID());
-      EXPECT_TRUE(ret.second);
-    },
-    [&] (const shared_ptr<Interface>& intf) {
-      auto ret = foundRemoved.insert(intf->getID());
-      EXPECT_TRUE(ret.second);
-    });
+        auto ret = foundChanged.insert(oldIntf->getID());
+        EXPECT_TRUE(ret.second);
+      },
+      [&](const shared_ptr<Interface>& intf) {
+        auto ret = foundAdded.insert(intf->getID());
+        EXPECT_TRUE(ret.second);
+      },
+      [&](const shared_ptr<Interface>& intf) {
+        auto ret = foundRemoved.insert(intf->getID());
+        EXPECT_TRUE(ret.second);
+      });
 
   EXPECT_EQ(changedIDs, foundChanged);
   EXPECT_EQ(addedIDs, foundAdded);
@@ -371,7 +373,7 @@ TEST(InterfaceMap, applyConfig) {
   EXPECT_EQ(VlanID(1), intf1->getVlanID());
   EXPECT_EQ("00:00:00:00:00:11", intf1->getMac().toString());
   EXPECT_EQ(0, intf1->getGeneration());
-  EXPECT_EQ(vlan1->getInterfaceID(),intf1->getID());
+  EXPECT_EQ(vlan1->getInterfaceID(), intf1->getID());
   checkChangedIntfs(intfsV0, intfsV1, {}, {1, 2}, {});
 
   // getInterface() should throw on a non-existent interface
@@ -393,7 +395,7 @@ TEST(InterfaceMap, applyConfig) {
   EXPECT_EQ(2, intfsV2->getGeneration());
   EXPECT_EQ(2, intfsV2->size());
   auto intf2 = intfsV2->getInterface(InterfaceID(2));
-  EXPECT_EQ(3, intf2->getAddresses().size());   // v6 link-local is added
+  EXPECT_EQ(3, intf2->getAddresses().size()); // v6 link-local is added
 
   checkChangedIntfs(intfsV1, intfsV2, {2}, {}, {});
 
@@ -430,7 +432,7 @@ TEST(InterfaceMap, applyConfig) {
   auto newvlan1 = stateV3->getVlans()->getVlanIf(VlanID(1));
   EXPECT_EQ(InterfaceID(5), newvlan1->getInterfaceID());
 
-  checkChangedIntfs(intfsV2, intfsV3, {}, {3,5}, {1});
+  checkChangedIntfs(intfsV2, intfsV3, {}, {3, 5}, {1});
 
   // change the MTU
   config.interfaces[0].mtu_ref().value_unchecked() = 1337;

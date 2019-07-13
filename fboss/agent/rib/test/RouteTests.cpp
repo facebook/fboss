@@ -1465,7 +1465,6 @@ TEST(Route, nextHopTest) {
 }
 
 TEST(Route, withLabelForwardingAction) {
-
   std::array<folly::IPAddressV4, 4> nextHopAddrs{
       folly::IPAddressV4("1.1.1.0"),
       folly::IPAddressV4("1.1.2.0"),
@@ -1647,7 +1646,7 @@ class UcmpTest : public ::testing::Test {
     RouteNextHopSet expFwd1;
     uint8_t i = 0;
     for (const auto& w : resolvedWeights) {
-      expFwd1.emplace(ResolvedNextHop(intfIps[i], InterfaceID(i+1), w));
+      expFwd1.emplace(ResolvedNextHop(intfIps[i], InterfaceID(i + 1), w));
       ++i;
     }
     EXPECT_EQ(expFwd1, resolvedRoutes[0].getForwardInfo().getNextHopSet());
@@ -1687,23 +1686,21 @@ class UcmpTest : public ::testing::Test {
   const folly::IPAddress intfIp2{"2.2.2.20"};
   const folly::IPAddress intfIp3{"3.3.3.30"};
   const folly::IPAddress intfIp4{"4.4.4.40"};
-  const std::array<folly::IPAddress, 4> intfIps{{intfIp1,
-                                                intfIp2,
-                                                intfIp3,
-                                                intfIp4}};
+  const std::array<folly::IPAddress, 4> intfIps{
+      {intfIp1, intfIp2, intfIp3, intfIp4}};
   const folly::IPAddress r2Nh{"42.42.42.42"};
   const folly::IPAddress r3Nh{"43.43.43.43"};
   std::array<folly::IPAddress, 2> r1Nhs{{r2Nh, r3Nh}};
   std::array<folly::IPAddress, 2> r2Nhs{{intfIp1, intfIp2}};
   std::array<folly::IPAddress, 2> r3Nhs{{intfIp3, intfIp4}};
-  const std::array<std::array<folly::IPAddress, 2>, 3> rnhs{{r1Nhs,
-                                                            r2Nhs,
-                                                            r3Nhs}};
+  const std::array<std::array<folly::IPAddress, 2>, 3> rnhs{
+      {r1Nhs, r2Nhs, r3Nhs}};
   const folly::IPAddress r1Net{"41.41.41.0"};
   const folly::IPAddress r2Net{"42.42.42.0"};
   const folly::IPAddress r3Net{"43.43.43.0"};
   const std::array<folly::IPAddress, 3> nets{{r1Net, r2Net, r3Net}};
   const uint8_t mask{24};
+
  private:
   IPv4NetworkToRouteMap v4Routes_;
   IPv6NetworkToRouteMap v6Routes_;
@@ -1819,8 +1816,10 @@ TEST_F(UcmpTest, separateEcmpUcmp) {
        {UnresolvedNextHop(intfIp1, 2), UnresolvedNextHop(intfIp2, 1)}},
       {ECMP_WEIGHT, ECMP_WEIGHT});
   RouteNextHopSet route2ExpFwd;
-  route2ExpFwd.emplace(ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), 2));
-  route2ExpFwd.emplace(ResolvedNextHop(IPAddress("2.2.2.20"), InterfaceID(2), 1));
+  route2ExpFwd.emplace(
+      ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), 2));
+  route2ExpFwd.emplace(
+      ResolvedNextHop(IPAddress("2.2.2.20"), InterfaceID(2), 1));
   EXPECT_EQ(route2ExpFwd, resolvedRoutes[1].getForwardInfo().getNextHopSet());
 }
 

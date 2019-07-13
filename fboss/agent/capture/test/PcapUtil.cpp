@@ -15,7 +15,8 @@
 
 using std::vector;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 vector<PcapPktInfo> readPcapFile(const char* path) {
   char errbuf[PCAP_ERRBUF_SIZE]{0};
@@ -49,4 +50,5 @@ vector<PcapPktInfo> readPcapFile(const char* path) {
   return pkts;
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

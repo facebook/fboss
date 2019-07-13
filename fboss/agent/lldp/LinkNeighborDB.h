@@ -1,15 +1,16 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #pragma once
 
-#include "fboss/agent/types.h"
 #include "fboss/agent/lldp/LinkNeighbor.h"
+#include "fboss/agent/types.h"
 
 #include <chrono>
 #include <map>
 #include <mutex>
 #include <vector>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class LinkNeighbor;
 
@@ -64,8 +65,8 @@ class LinkNeighborDB {
   typedef std::map<NeighborKey, LinkNeighbor> NeighborMap;
 
   // Forbidden copy constructor and assignment operator
-  LinkNeighborDB(LinkNeighborDB const &) = delete;
-  LinkNeighborDB& operator=(LinkNeighborDB const &) = delete;
+  LinkNeighborDB(LinkNeighborDB const&) = delete;
+  LinkNeighborDB& operator=(LinkNeighborDB const&) = delete;
 
   void pruneLocked(std::chrono::steady_clock::time_point now);
 
@@ -73,4 +74,5 @@ class LinkNeighborDB {
   std::map<PortID, NeighborMap> byLocalPort_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

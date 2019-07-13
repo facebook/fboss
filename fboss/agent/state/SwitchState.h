@@ -13,8 +13,8 @@
 #include <memory>
 
 #include <folly/FBString.h>
-#include <folly/dynamic.h>
 #include <folly/Memory.h>
+#include <folly/dynamic.h>
 
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AggregatePortMap.h"
@@ -32,18 +32,20 @@
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class ControlPlane;
 class Interface;
-template <typename AddressT> class Route;
+template <typename AddressT>
+class Route;
 class SflowCollector;
 class SflowCollectorMap;
 
 struct SwitchStateFields {
   SwitchStateFields();
 
-  template<typename Fn>
+  template <typename Fn>
   void forEachChild(Fn fn) {
     fn(ports.get());
     fn(aggPorts.get());
@@ -83,7 +85,6 @@ struct SwitchStateFields {
   std::shared_ptr<LabelForwardingInformationBase> labelFib;
 
   VlanID defaultVlan{0};
-
 
   // Timeout settings
   // TODO(aeckert): Figure out a nicer way to store these config fields
@@ -146,14 +147,13 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   SwitchState();
   ~SwitchState() override;
 
-  static std::shared_ptr<SwitchState>
-  fromFollyDynamic(const folly::dynamic& json) {
+  static std::shared_ptr<SwitchState> fromFollyDynamic(
+      const folly::dynamic& json) {
     const auto& fields = SwitchStateFields::fromFollyDynamic(json);
     return std::make_shared<SwitchState>(fields);
   }
 
-  static std::shared_ptr<SwitchState>
-  fromJson(const folly::fbstring& jsonStr) {
+  static std::shared_ptr<SwitchState> fromJson(const folly::fbstring& jsonStr) {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
@@ -269,28 +269,28 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return getFields()->dhcpV4RelaySrc;
   }
   void setDhcpV4RelaySrc(folly::IPAddressV4 v4RelaySrc) {
-     writableFields()->dhcpV4RelaySrc = v4RelaySrc;
+    writableFields()->dhcpV4RelaySrc = v4RelaySrc;
   }
 
   folly::IPAddressV6 getDhcpV6RelaySrc() const {
     return getFields()->dhcpV6RelaySrc;
   }
   void setDhcpV6RelaySrc(folly::IPAddressV6 v6RelaySrc) {
-     writableFields()->dhcpV6RelaySrc = v6RelaySrc;
+    writableFields()->dhcpV6RelaySrc = v6RelaySrc;
   }
 
   folly::IPAddressV4 getDhcpV4ReplySrc() const {
     return getFields()->dhcpV4ReplySrc;
   }
   void setDhcpV4ReplySrc(folly::IPAddressV4 v4ReplySrc) {
-     writableFields()->dhcpV4ReplySrc = v4ReplySrc;
+    writableFields()->dhcpV4ReplySrc = v4ReplySrc;
   }
 
   folly::IPAddressV6 getDhcpV6ReplySrc() const {
     return getFields()->dhcpV6ReplySrc;
   }
   void setDhcpV6ReplySrc(folly::IPAddressV6 v6ReplySrc) {
-     writableFields()->dhcpV6ReplySrc = v6ReplySrc;
+    writableFields()->dhcpV6ReplySrc = v6ReplySrc;
   }
 
   const std::shared_ptr<LoadBalancerMap>& getLoadBalancers() const;

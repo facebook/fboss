@@ -17,7 +17,8 @@ namespace {
 constexpr auto kNexthopDelim = "@";
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 //
 // RouteNextHop Class
@@ -34,12 +35,13 @@ folly::dynamic RouteNextHopsMulti::toFollyDynamic() const {
   return obj;
 }
 
-RouteNextHopsMulti
-RouteNextHopsMulti::fromFollyDynamic(const folly::dynamic& json) {
+RouteNextHopsMulti RouteNextHopsMulti::fromFollyDynamic(
+    const folly::dynamic& json) {
   RouteNextHopsMulti nh;
   for (const auto& pair : json.items()) {
-    nh.update(ClientID(pair.first.asInt()),
-              RouteNextHopEntry::fromFollyDynamic(pair.second));
+    nh.update(
+        ClientID(pair.first.asInt()),
+        RouteNextHopEntry::fromFollyDynamic(pair.second));
   }
   return nh;
 }
@@ -59,7 +61,7 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
 
 std::string RouteNextHopsMulti::str() const {
   std::string ret = "";
-  for (auto const & row : map_) {
+  for (auto const& row : map_) {
     int clientid = row.first;
     RouteNextHopSet const& nxtHps = row.second.getNextHopSet();
 
@@ -82,8 +84,8 @@ void RouteNextHopsMulti::update(ClientID clientId, RouteNextHopEntry nhe) {
 
   // Let's check whether this has a preferred admin distance
   if (map_.size() == 1) {
-     lowestAdminDistanceClientId_ = clientId;
-     return;
+    lowestAdminDistanceClientId_ = clientId;
+    return;
   }
   auto entry = getEntryForClient(lowestAdminDistanceClientId_);
   if (!entry) {
@@ -133,14 +135,14 @@ const RouteNextHopEntry* RouteNextHopsMulti::getEntryForClient(
   return &iter->second;
 }
 
-bool RouteNextHopsMulti::isSame(ClientID id,
-                                const RouteNextHopEntry& nhe) const {
+bool RouteNextHopsMulti::isSame(ClientID id, const RouteNextHopEntry& nhe)
+    const {
   auto entry = getEntryForClient(id);
   return entry && (*entry == nhe);
 }
 
-std::pair<ClientID, const RouteNextHopEntry *>
-RouteNextHopsMulti::getBestEntry() const {
+std::pair<ClientID, const RouteNextHopEntry*> RouteNextHopsMulti::getBestEntry()
+    const {
   auto entry = getEntryForClient(lowestAdminDistanceClientId_);
   if (entry) {
     return std::make_pair(lowestAdminDistanceClientId_, entry);
@@ -150,4 +152,5 @@ RouteNextHopsMulti::getBestEntry() const {
   }
 }
 
-}}
+} // namespace fboss
+} // namespace facebook

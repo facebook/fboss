@@ -15,7 +15,8 @@
 #include <stdexcept>
 #include <string>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class I2cError : public std::exception {
  public:
@@ -35,14 +36,22 @@ class I2cError : public std::exception {
  */
 class TransceiverI2CApi {
  public:
-  TransceiverI2CApi() {};
+  TransceiverI2CApi(){};
   virtual ~TransceiverI2CApi() {}
   virtual void open() = 0;
   virtual void close() = 0;
-  virtual void moduleRead(unsigned int module, uint8_t i2cAddress,
-                          int offset, int len, uint8_t* buf) = 0;
-  virtual void moduleWrite(unsigned int module, uint8_t i2cAddress,
-                           int offset, int len, const uint8_t* buf) = 0;
+  virtual void moduleRead(
+      unsigned int module,
+      uint8_t i2cAddress,
+      int offset,
+      int len,
+      uint8_t* buf) = 0;
+  virtual void moduleWrite(
+      unsigned int module,
+      uint8_t i2cAddress,
+      int offset,
+      int len,
+      const uint8_t* buf) = 0;
 
   virtual void verifyBus(bool autoReset) = 0;
 
@@ -52,7 +61,7 @@ class TransceiverI2CApi {
    * Function bring transceiver out of reset whenever a transceiver has been
    * detected plugging in.
    */
-  virtual void ensureOutOfReset(unsigned int module) {};
+  virtual void ensureOutOfReset(unsigned int module){};
 
   /*
    * Function that returns the eventbase that suppose to execute the I2C txn
@@ -71,4 +80,5 @@ class TransceiverI2CApi {
   };
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

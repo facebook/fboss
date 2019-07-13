@@ -11,16 +11,17 @@
 
 #include "fboss/lib/RestClient.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-class BmcRestClient: public RestClient {
+class BmcRestClient : public RestClient {
+ public:
+  BmcRestClient(void);
+  /*
+   * Endpoints for BMC Rest api
+   */
+  bool resetCP2112();
+};
 
-  public:
-    BmcRestClient(void);
-    /*
-    * Endpoints for BMC Rest api
-    */
-    bool resetCP2112();
- };
-
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -10,11 +10,11 @@
 #include "TunManager.h"
 
 extern "C" {
-#include <netlink/route/link.h>
+#include <linux/if.h>
 #include <netlink/route/addr.h>
+#include <netlink/route/link.h>
 #include <netlink/route/route.h>
 #include <netlink/route/rule.h>
-#include <linux/if.h>
 #include <sys/ioctl.h>
 }
 
@@ -34,15 +34,16 @@ extern "C" {
 #include <boost/container/flat_set.hpp>
 
 namespace {
-  const int kDefaultMtu = 1500;
+const int kDefaultMtu = 1500;
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-using folly::IPAddress;
 using folly::EventBase;
+using folly::IPAddress;
 
-TunManager::TunManager(SwSwitch *sw, EventBase *evb) : sw_(sw), evb_(evb) {
+TunManager::TunManager(SwSwitch* sw, EventBase* evb) : sw_(sw), evb_(evb) {
   DCHECK(sw) << "NULL pointer to SwSwitch.";
   DCHECK(evb) << "NULL pointer to EventBase";
 
@@ -82,9 +83,7 @@ void TunManager::stateUpdated(const StateDelta& delta) {
   // with that.
 
   auto state = delta.newState();
-  evb_->runInEventBaseThread([this, state]() {
-    this->sync(state);
-  });
+  evb_->runInEventBaseThread([this, state]() { this->sync(state); });
 }
 
 bool TunManager::sendPacketToHost(
@@ -100,9 +99,7 @@ bool TunManager::sendPacketToHost(
   return iter->second->sendPacketToHost(std::move(pkt));
 }
 
-void TunManager::addExistingIntf(
-    const std::string& ifName,
-    int ifIndex) {
+void TunManager::addExistingIntf(const std::string& ifName, int ifIndex) {
   InterfaceID ifID = util::getIDFromTunIntfName(ifName);
   auto ret = intfs_.emplace(ifID, nullptr);
   if (!ret.second) {
@@ -172,7 +169,9 @@ void TunManager::removeIntf(InterfaceID ifID) {
 }
 
 void TunManager::addProbedAddr(
-    int ifIndex, const IPAddress& addr, uint8_t mask) {
+    int ifIndex,
+    const IPAddress& addr,
+    uint8_t mask) {
   for (auto& intf : intfs_) {
     if (intf.second->getIfIndex() == ifIndex) {
       intf.second->addAddress(addr, mask);
@@ -240,12 +239,12 @@ int TunManager::getTableId(InterfaceID ifID) const {
   // Type-2: 4000, 4001, 4002, 4003, 4004, ...
   // Type-3: 10, 11, 12, 13 (Virtual Interfaces)
   int tableId = static_cast<int>(ifID);
-  if (ifID >= InterfaceID(4000)) {   // 4000, 4001, 4002, 4003 ...
-    tableId = ifID - 4000 + 201;  // 201, 202, 203, ...
-  } else if (ifID >= InterfaceID(2000)) {  // 2000, 2001, ...
-    tableId = ifID - 2000 + 1;    // 1, 2, 3, ....
-  } else {  // 10, 11, 12, 13 ...
-    tableId = 250 - (ifID - 10);  // 250, 249, 248, ...
+  if (ifID >= InterfaceID(4000)) { // 4000, 4001, 4002, 4003 ...
+    tableId = ifID - 4000 + 201; // 201, 202, 203, ...
+  } else if (ifID >= InterfaceID(2000)) { // 2000, 2001, ...
+    tableId = ifID - 2000 + 1; // 1, 2, 3, ....
+  } else { // 10, 11, 12, 13 ...
+    tableId = 250 - (ifID - 10); // 250, 249, 248, ...
   }
 
   // Sanity checks. Generated ID must be in range [1-253]
@@ -264,13 +263,15 @@ void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {
   // We just store default routes (one for IPv4 and one for IPv6) in each route
   // table.
   const folly::IPAddress addrs[] = {
-    IPAddress{"0.0.0.0"},       // v4 default
-    IPAddress{"::0"},           // v6 default
+      IPAddress{"0.0.0.0"}, // v4 default
+      IPAddress{"::0"}, // v6 default
   };
 
   for (const auto& addr : addrs) {
     auto route = rtnl_route_alloc();
-    SCOPE_EXIT { rtnl_route_put(route); };
+    SCOPE_EXIT {
+      rtnl_route_put(route);
+    };
 
     auto error = rtnl_route_set_family(route, addr.family());
     nlCheckError(error, "Failed to set family to", addr.family());
@@ -282,12 +283,16 @@ void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {
     error = rtnl_route_set_type(route, RTN_UNICAST);
     nlCheckError(error, "Failed to set type to ", RTN_UNICAST);
 
-    auto destaddr = nl_addr_build(addr.family(),
-       const_cast<unsigned char *>(addr.bytes()), addr.byteCount());
+    auto destaddr = nl_addr_build(
+        addr.family(),
+        const_cast<unsigned char*>(addr.bytes()),
+        addr.byteCount());
     if (!destaddr) {
-      throw FbossError("Failed to build destination address for ",  addr);
+      throw FbossError("Failed to build destination address for ", addr);
     }
-    SCOPE_EXIT { nl_addr_put(destaddr); };
+    SCOPE_EXIT {
+      nl_addr_put(destaddr);
+    };
 
     nl_addr_set_prefixlen(destaddr, 0);
     error = rtnl_route_set_dst(route, destaddr);
@@ -327,7 +332,9 @@ void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {
 }
 
 void TunManager::addRemoveSourceRouteRule(
-    InterfaceID ifID, const folly::IPAddress& addr, bool add) {
+    InterfaceID ifID,
+    const folly::IPAddress& addr,
+    bool add) {
   // We should not add source routing rule for link-local addresses because
   // they can be re-used across interfaces.
   if (addr.isLinkLocal()) {
@@ -337,18 +344,24 @@ void TunManager::addRemoveSourceRouteRule(
   }
 
   auto rule = rtnl_rule_alloc();
-  SCOPE_EXIT { rtnl_rule_put(rule); };
+  SCOPE_EXIT {
+    rtnl_rule_put(rule);
+  };
 
   rtnl_rule_set_family(rule, addr.family());
   rtnl_rule_set_table(rule, getTableId(ifID));
   rtnl_rule_set_action(rule, FR_ACT_TO_TBL);
 
-  auto sourceaddr = nl_addr_build(addr.family(),
-    const_cast<unsigned char *>(addr.bytes()), addr.byteCount());
+  auto sourceaddr = nl_addr_build(
+      addr.family(),
+      const_cast<unsigned char*>(addr.bytes()),
+      addr.byteCount());
   if (!sourceaddr) {
-    throw FbossError("Failed to build destination address for ",  addr);
+    throw FbossError("Failed to build destination address for ", addr);
   }
-  SCOPE_EXIT { nl_addr_put(sourceaddr); };
+  SCOPE_EXIT {
+    nl_addr_put(sourceaddr);
+  };
 
   nl_addr_set_prefixlen(sourceaddr, addr.bitCount());
   auto error = rtnl_rule_set_src(rule, sourceaddr);
@@ -359,10 +372,16 @@ void TunManager::addRemoveSourceRouteRule(
   } else {
     error = rtnl_rule_delete(sock_, rule, 0);
   }
-  nlCheckError(error, "Failed to ", add ? "add" : "remove",
-                " rule for address ", addr,
-                " to lookup table ", getTableId(ifID),
-                " for interface ", ifID);
+  nlCheckError(
+      error,
+      "Failed to ",
+      add ? "add" : "remove",
+      " rule for address ",
+      addr,
+      " to lookup table ",
+      getTableId(ifID),
+      " for interface ",
+      ifID);
   XLOG(INFO) << (add ? "Added" : "Removed") << " rule for address " << addr
              << " to lookup table " << getTableId(ifID) << " for interface "
              << ifID;
@@ -378,15 +397,21 @@ void TunManager::addRemoveTunAddress(
   if (!tunaddr) {
     throw FbossError("Failed to allocate address");
   }
-  SCOPE_EXIT { rtnl_addr_put(tunaddr); };
+  SCOPE_EXIT {
+    rtnl_addr_put(tunaddr);
+  };
 
   rtnl_addr_set_family(tunaddr, addr.family());
-  auto localaddr = nl_addr_build(addr.family(),
-    const_cast<unsigned char *>(addr.bytes()), addr.byteCount());
+  auto localaddr = nl_addr_build(
+      addr.family(),
+      const_cast<unsigned char*>(addr.bytes()),
+      addr.byteCount());
   if (!localaddr) {
-    throw FbossError("Failed to build destination address for ",  addr);
+    throw FbossError("Failed to build destination address for ", addr);
   }
-  SCOPE_EXIT { nl_addr_put(localaddr); };
+  SCOPE_EXIT {
+    nl_addr_put(localaddr);
+  };
 
   auto error = rtnl_addr_set_local(tunaddr, localaddr);
   nlCheckError(error, "Failed to set local address to ", addr);
@@ -406,9 +431,18 @@ void TunManager::addRemoveTunAddress(
   } else {
     error = rtnl_addr_delete(sock_, tunaddr, 0);
   }
-  nlCheckError(error, "Failed to ", add ? "add" : "remove",
-                " address ", addr, "/", static_cast<int>(mask),
-                " to interface ", ifName, " @ index ", ifIndex);
+  nlCheckError(
+      error,
+      "Failed to ",
+      add ? "add" : "remove",
+      " address ",
+      addr,
+      "/",
+      static_cast<int>(mask),
+      " to interface ",
+      ifName,
+      " @ index ",
+      ifIndex);
   XLOG(INFO) << (add ? "Added" : "Removed") << " address " << addr.str() << "/"
              << static_cast<int>(mask) << " on interface " << ifName
              << " @ index " << ifIndex;
@@ -462,14 +496,16 @@ void TunManager::stop() const {
   }
 }
 
-void TunManager::linkProcessor(struct nl_object *obj, void *data) {
-  struct rtnl_link * link = reinterpret_cast<struct rtnl_link *>(obj);
+void TunManager::linkProcessor(struct nl_object* obj, void* data) {
+  struct rtnl_link* link = reinterpret_cast<struct rtnl_link*>(obj);
 
   // Get name of an interface
   const auto name = rtnl_link_get_name(link);
   if (!name) {
-    throw FbossError("Device @ index ",
-                     rtnl_link_get_ifindex(link), " does not have a name");
+    throw FbossError(
+        "Device @ index ",
+        rtnl_link_get_ifindex(link),
+        " does not have a name");
   }
 
   // Only add interface if it is a Tun interface
@@ -480,12 +516,11 @@ void TunManager::linkProcessor(struct nl_object *obj, void *data) {
   }
 
   static_cast<TunManager*>(data)->addExistingIntf(
-      std::string(name),
-      rtnl_link_get_ifindex(link));
+      std::string(name), rtnl_link_get_ifindex(link));
 }
 
-void TunManager::addressProcessor(struct nl_object *obj, void *data) {
-  struct rtnl_addr *addr = reinterpret_cast<struct rtnl_addr *>(obj);
+void TunManager::addressProcessor(struct nl_object* obj, void* data) {
+  struct rtnl_addr* addr = reinterpret_cast<struct rtnl_addr*>(obj);
 
   // Validate family
   auto family = rtnl_addr_get_family(addr);
@@ -513,12 +548,9 @@ void TunManager::addressProcessor(struct nl_object *obj, void *data) {
                << " does not have an address at family " << family;
   }
 
-  auto ipaddr  = IPAddress::createNetwork(buf, -1, false).first;
-  static_cast<TunManager *>(data)->addProbedAddr(
-    rtnl_addr_get_ifindex(addr),
-    ipaddr,
-    nl_addr_get_prefixlen(localaddr)
-  );
+  auto ipaddr = IPAddress::createNetwork(buf, -1, false).first;
+  static_cast<TunManager*>(data)->addProbedAddr(
+      rtnl_addr_get_ifindex(addr), ipaddr, nl_addr_get_prefixlen(localaddr));
 }
 
 void TunManager::probe() {
@@ -530,35 +562,39 @@ void TunManager::doProbe(std::lock_guard<std::mutex>& /* lock */) {
   const auto startTs = std::chrono::steady_clock::now();
   SCOPE_EXIT {
     const auto endTs = std::chrono::steady_clock::now();
-    auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
-        endTs - startTs);
+    auto elapsedMs =
+        std::chrono::duration_cast<std::chrono::milliseconds>(endTs - startTs);
     XLOG(INFO) << "Probing of linux state took " << elapsedMs.count() << "ms.";
   };
 
-  CHECK(!probeDone_);  // Callers must check for probeDone before calling
-  stop();              // stop all interfaces
-  intfs_.clear();      // clear all interface info
+  CHECK(!probeDone_); // Callers must check for probeDone before calling
+  stop(); // stop all interfaces
+  intfs_.clear(); // clear all interface info
 
   // get links
-  struct nl_cache *cache;
+  struct nl_cache* cache;
   auto error = rtnl_link_alloc_cache(sock_, AF_UNSPEC, &cache);
   nlCheckError(error, "Cannot get links from Kernel");
-  SCOPE_EXIT { nl_cache_free(cache); };
+  SCOPE_EXIT {
+    nl_cache_free(cache);
+  };
   nl_cache_foreach(cache, &TunManager::linkProcessor, this);
 
   // get addresses
-  struct nl_cache *addressCache;
+  struct nl_cache* addressCache;
   error = rtnl_addr_alloc_cache(sock_, &addressCache);
   nlCheckError(error, "Cannot get addresses from Kernel");
-  SCOPE_EXIT { nl_cache_free(addressCache); };
+  SCOPE_EXIT {
+    nl_cache_free(addressCache);
+  };
   nl_cache_foreach(addressCache, &TunManager::addressProcessor, this);
 
   start();
   probeDone_ = true;
 }
 
-boost::container::flat_map<InterfaceID, bool>
-TunManager::getInterfaceStatus(std::shared_ptr<SwitchState> state) {
+boost::container::flat_map<InterfaceID, bool> TunManager::getInterfaceStatus(
+    std::shared_ptr<SwitchState> state) {
   boost::container::flat_map<InterfaceID, bool> statusMap;
 
   // Declare all virtual or state_sync disabled interfaces as up
@@ -583,7 +619,7 @@ TunManager::getInterfaceStatus(std::shared_ptr<SwitchState> state) {
       }
 
       auto intfID = vlan->getInterfaceID();
-      statusMap[intfID] |= isPortUp;  // NOTE: We are applying `OR` operator
+      statusMap[intfID] |= isPortUp; // NOTE: We are applying `OR` operator
     } // for vlanIDToInfo
   } // for portIDToObj
 
@@ -648,11 +684,15 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
   }
 
   // Callback function for updating addresses for a particular interface
-  auto applyInterfaceAddrChanges =
-    [this](InterfaceID ifID, const std::string& ifName, int ifIndex,
-           const Addresses& oldAddrs, const Addresses& newAddrs) {
+  auto applyInterfaceAddrChanges = [this](
+                                       InterfaceID ifID,
+                                       const std::string& ifName,
+                                       int ifIndex,
+                                       const Addresses& oldAddrs,
+                                       const Addresses& newAddrs) {
     applyChanges(
-        oldAddrs, newAddrs,
+        oldAddrs,
+        newAddrs,
         [&](ConstAddressesIter& oldIter, ConstAddressesIter& newIter) {
           if (oldIter->second == newIter->second) {
             // addresses and masks are both same
@@ -673,7 +713,8 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
 
   // Apply changes for all interfaces
   applyChanges(
-      oldIntfToInfo, newIntfToInfo,
+      oldIntfToInfo,
+      newIntfToInfo,
       [&](ConstIntfToAddrsMapIter& oldIter, ConstIntfToAddrsMapIter& newIter) {
         auto oldStatus = oldIter->second.first;
         auto newStatus = newIter->second.first;
@@ -691,7 +732,7 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
         intf->setAddresses(newAddrs);
 
         // Update interface status
-        if (oldStatus ^ newStatus) {  // old and new status is different
+        if (oldStatus ^ newStatus) { // old and new status is different
           setIntfStatus(ifName, ifIndex, newStatus);
         }
 
@@ -718,9 +759,7 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
         auto& statusAddr = newIter->second;
         addNewIntf(newIter->first, statusAddr.first, statusAddr.second);
       },
-      [&](ConstIntfToAddrsMapIter& oldIter) {
-        removeIntf(oldIter->first);
-      });
+      [&](ConstIntfToAddrsMapIter& oldIter) { removeIntf(oldIter->first); });
 
   start();
 
@@ -730,12 +769,17 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
 
 // TODO(aeckert): Find a way to reuse the iterator from NodeMapDelta here as
 // this basically duplicates that code.
-template<typename MAPNAME, typename CHANGEFN, typename ADDFN, typename REMOVEFN>
-void TunManager::applyChanges(const MAPNAME& oldMap,
-                              const MAPNAME& newMap,
-                              CHANGEFN changeFn,
-                              ADDFN addFn,
-                              REMOVEFN removeFn) {
+template <
+    typename MAPNAME,
+    typename CHANGEFN,
+    typename ADDFN,
+    typename REMOVEFN>
+void TunManager::applyChanges(
+    const MAPNAME& oldMap,
+    const MAPNAME& newMap,
+    CHANGEFN changeFn,
+    ADDFN addFn,
+    REMOVEFN removeFn) {
   auto oldIter = oldMap.begin();
   auto newIter = newMap.begin();
   while (oldIter != oldMap.end() && newIter != newMap.end()) {
@@ -759,4 +803,5 @@ void TunManager::applyChanges(const MAPNAME& oldMap,
   }
 }
 
-}}  // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

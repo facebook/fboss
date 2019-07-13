@@ -20,18 +20,18 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmMirrorTable.h"
+#include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmStatsConstants.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/bcm/CounterUtils.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 
 extern "C" {
 #include <opennsl/link.h>
@@ -39,88 +39,82 @@ extern "C" {
 #include <opennsl/stat.h>
 }
 
+using std::shared_ptr;
+using std::string;
 using std::chrono::duration_cast;
 using std::chrono::seconds;
 using std::chrono::system_clock;
-using std::string;
-using std::shared_ptr;
 
 using facebook::stats::MonotonicCounter;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 static const std::vector<opennsl_stat_val_t> kInPktLengthStats = {
-  snmpOpenNSLReceivedPkts64Octets,
-  snmpOpenNSLReceivedPkts65to127Octets,
-  snmpOpenNSLReceivedPkts128to255Octets,
-  snmpOpenNSLReceivedPkts256to511Octets,
-  snmpOpenNSLReceivedPkts512to1023Octets,
-  snmpOpenNSLReceivedPkts1024to1518Octets,
-  snmpOpenNSLReceivedPkts1519to2047Octets,
-  snmpOpenNSLReceivedPkts2048to4095Octets,
-  snmpOpenNSLReceivedPkts4095to9216Octets,
-  snmpOpenNSLReceivedPkts9217to16383Octets,
+    snmpOpenNSLReceivedPkts64Octets,
+    snmpOpenNSLReceivedPkts65to127Octets,
+    snmpOpenNSLReceivedPkts128to255Octets,
+    snmpOpenNSLReceivedPkts256to511Octets,
+    snmpOpenNSLReceivedPkts512to1023Octets,
+    snmpOpenNSLReceivedPkts1024to1518Octets,
+    snmpOpenNSLReceivedPkts1519to2047Octets,
+    snmpOpenNSLReceivedPkts2048to4095Octets,
+    snmpOpenNSLReceivedPkts4095to9216Octets,
+    snmpOpenNSLReceivedPkts9217to16383Octets,
 };
 static const std::vector<opennsl_stat_val_t> kOutPktLengthStats = {
-  snmpOpenNSLTransmittedPkts64Octets,
-  snmpOpenNSLTransmittedPkts65to127Octets,
-  snmpOpenNSLTransmittedPkts128to255Octets,
-  snmpOpenNSLTransmittedPkts256to511Octets,
-  snmpOpenNSLTransmittedPkts512to1023Octets,
-  snmpOpenNSLTransmittedPkts1024to1518Octets,
-  snmpOpenNSLTransmittedPkts1519to2047Octets,
-  snmpOpenNSLTransmittedPkts2048to4095Octets,
-  snmpOpenNSLTransmittedPkts4095to9216Octets,
-  snmpOpenNSLTransmittedPkts9217to16383Octets,
+    snmpOpenNSLTransmittedPkts64Octets,
+    snmpOpenNSLTransmittedPkts65to127Octets,
+    snmpOpenNSLTransmittedPkts128to255Octets,
+    snmpOpenNSLTransmittedPkts256to511Octets,
+    snmpOpenNSLTransmittedPkts512to1023Octets,
+    snmpOpenNSLTransmittedPkts1024to1518Octets,
+    snmpOpenNSLTransmittedPkts1519to2047Octets,
+    snmpOpenNSLTransmittedPkts2048to4095Octets,
+    snmpOpenNSLTransmittedPkts4095to9216Octets,
+    snmpOpenNSLTransmittedPkts9217to16383Octets,
 };
 
 // This allows mapping from a speed and port transmission technology
 // to a broadcom supported interface
-static const std::map<cfg::PortSpeed,
-  std::map<TransmitterTechnology, opennsl_port_if_t> > kPortTypeMapping = {
-    {cfg::PortSpeed::HUNDREDG, {
-      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR4},
-      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI},
-      // What to default to
-      {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CAUI}
-    }},
-    {cfg::PortSpeed::FIFTYG, {
-      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR2},
-      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI},
-      // What to default to
-      {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR2}
-    }},
-    {cfg::PortSpeed::FORTYG, {
-      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR4},
-      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_XLAUI},
-      // What to default to
-      {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_XLAUI}
-    }},
-    {cfg::PortSpeed::TWENTYFIVEG, {
-      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR},
-      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI},
-      // What to default to
-      {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR}
-    }},
-    {cfg::PortSpeed::TWENTYG, {
-      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR},
-      // We don't expect 20G optics
-      // What to default to
-      {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR}
-    }},
-    {cfg::PortSpeed::XG, {
-      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR},
-      {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_SFI},
-      // What to default to
-      {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR}
-    }},
-    {cfg::PortSpeed::GIGE, {
-      {TransmitterTechnology::COPPER, OPENNSL_PORT_IF_GMII},
-      // We don't expect 1G optics
-      // What to default to
-      {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_GMII}
-    }}
-};
+static const std::
+    map<cfg::PortSpeed, std::map<TransmitterTechnology, opennsl_port_if_t>>
+        kPortTypeMapping = {
+            {cfg::PortSpeed::HUNDREDG,
+             {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR4},
+              {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI},
+              // What to default to
+              {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CAUI}}},
+            {cfg::PortSpeed::FIFTYG,
+             {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR2},
+              {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI},
+              // What to default to
+              {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR2}}},
+            {cfg::PortSpeed::FORTYG,
+             {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR4},
+              {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_XLAUI},
+              // What to default to
+              {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_XLAUI}}},
+            {cfg::PortSpeed::TWENTYFIVEG,
+             {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR},
+              {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI},
+              // What to default to
+              {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR}}},
+            {cfg::PortSpeed::TWENTYG,
+             {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR},
+              // We don't expect 20G optics
+              // What to default to
+              {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR}}},
+            {cfg::PortSpeed::XG,
+             {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR},
+              {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_SFI},
+              // What to default to
+              {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR}}},
+            {cfg::PortSpeed::GIGE,
+             {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_GMII},
+              // We don't expect 1G optics
+              // What to default to
+              {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_GMII}}}};
 
 void BcmPort::updateName(const std::string& newName) {
   if (newName == portName_) {
@@ -179,8 +173,8 @@ void BcmPort::reinitPortStats() {
   // (re) init out queue length
   auto statMap = fbData->getStatMap();
   const auto expType = stats::AVG;
-  outQueueLen_ = statMap->getLockableStat(statName("out_queue_length"),
-                                          &expType);
+  outQueueLen_ =
+      statMap->getLockableStat(statName("out_queue_length"), &expType);
   // (re) init histograms
   auto histMap = fbData->getHistogramMap();
   stats::ExportedHistogram pktLenHist(1, 0, kInPktLengthStats.size());
@@ -191,8 +185,8 @@ void BcmPort::reinitPortStats() {
 
   {
     auto lockedPortStatsPtr = lastPortStats_.wlock();
-    *lockedPortStatsPtr = BcmPortStats(
-      queueManager_->getNumQueues(cfg::StreamType::UNICAST));
+    *lockedPortStatsPtr =
+        BcmPortStats(queueManager_->getNumQueues(cfg::StreamType::UNICAST));
   }
 }
 
@@ -206,13 +200,11 @@ BcmPort::BcmPort(
       unit_(hw->getUnit()),
       // we can only get the real name(ethX/Y/Z) after we first apply config
       portName_(folly::to<string>("port", platformPort_->getPortID())) {
-
   // Obtain the gport handle from the port handle.
   int rv = opennsl_port_gport_get(unit_, port_, &gport_);
   bcmCheckError(rv, "Failed to get gport for BCM port ", port_);
 
-  queueManager_ = std::make_unique<BcmPortQueueManager>(
-    hw_, portName_, gport_);
+  queueManager_ = std::make_unique<BcmPortQueueManager>(hw_, portName_, gport_);
 
   pipe_ = determinePipe();
 
@@ -286,8 +278,12 @@ void BcmPort::disable(const std::shared_ptr<Port>& swPort) {
   auto pbmp = getPbmp();
   for (auto entry : swPort->getVlans()) {
     auto rv = opennsl_vlan_port_remove(unit_, entry.first, pbmp);
-    bcmCheckError(rv, "failed to remove disabled port ",
-                  swPort->getID(), " from VLAN ", entry.first);
+    bcmCheckError(
+        rv,
+        "failed to remove disabled port ",
+        swPort->getID(),
+        " from VLAN ",
+        entry.first);
   }
 
   disableStatCollection();
@@ -337,17 +333,21 @@ void BcmPort::enable(const std::shared_ptr<Port>& swPort) {
     } else {
       rv = opennsl_vlan_port_add(unit_, entry.first, pbmp, emptyPortList);
     }
-    bcmCheckError(rv, "failed to add enabled port ",
-                  swPort->getID(), " to VLAN ", entry.first);
+    bcmCheckError(
+        rv,
+        "failed to add enabled port ",
+        swPort->getID(),
+        " to VLAN ",
+        entry.first);
   }
 
   // Drop packets to/from this port that are tagged with a VLAN that this
   // port isn't a member of.
-  rv = opennsl_port_vlan_member_set(unit_, port_,
-                                    OPENNSL_PORT_VLAN_MEMBER_INGRESS |
-                                    OPENNSL_PORT_VLAN_MEMBER_EGRESS);
-  bcmCheckError(rv, "failed to set VLAN filtering on port ",
-                swPort->getID());
+  rv = opennsl_port_vlan_member_set(
+      unit_,
+      port_,
+      OPENNSL_PORT_VLAN_MEMBER_INGRESS | OPENNSL_PORT_VLAN_MEMBER_EGRESS);
+  bcmCheckError(rv, "failed to set VLAN filtering on port ", swPort->getID());
 
   // Set the speed, ingress vlan, and sFlow rates before enabling
   program(swPort);
@@ -407,8 +407,12 @@ void BcmPort::setIngressVlan(const shared_ptr<Port>& swPort) {
   opennsl_vlan_t bcmVlan = swPort->getIngressVlan();
   if (bcmVlan != currVlan) {
     rv = opennsl_port_untagged_vlan_set(unit_, port_, bcmVlan);
-    bcmCheckError(rv, "failed to set ingress VLAN for port ",
-                  swPort->getID(), " to ", swPort->getIngressVlan());
+    bcmCheckError(
+        rv,
+        "failed to set ingress VLAN for port ",
+        swPort->getID(),
+        " to ",
+        swPort->getIngressVlan());
   }
 }
 
@@ -433,9 +437,10 @@ TransmitterTechnology BcmPort::getTransmitterTechnology(
   return transmitterTechnology_;
 }
 
-opennsl_port_if_t BcmPort::getDesiredInterfaceMode(cfg::PortSpeed speed,
-                                                   PortID id,
-                                                   const std::string& name) {
+opennsl_port_if_t BcmPort::getDesiredInterfaceMode(
+    cfg::PortSpeed speed,
+    PortID id,
+    const std::string& name) {
   TransmitterTechnology transmitterTech = getTransmitterTechnology(name);
 
   // If speed or transmitter type isn't in map
@@ -447,17 +452,20 @@ opennsl_port_if_t BcmPort::getDesiredInterfaceMode(cfg::PortSpeed speed,
                << "). RESULT=" << result;
     return result;
   } catch (const std::out_of_range& ex) {
-    throw FbossError("Unsupported speed (", speed,
-                     ") or transmitter technology (", transmitterTech,
-                     ") setting on port ", id);
+    throw FbossError(
+        "Unsupported speed (",
+        speed,
+        ") or transmitter technology (",
+        transmitterTech,
+        ") setting on port ",
+        id);
   }
 }
 
 cfg::PortSpeed BcmPort::getSpeed() const {
   int curSpeed{0};
   auto rv = opennsl_port_speed_get(unit_, port_, &curSpeed);
-  bcmCheckError(
-    rv, "Failed to get current speed for port ", port_);
+  bcmCheckError(rv, "Failed to get current speed for port ", port_);
   return cfg::PortSpeed(curSpeed);
 }
 
@@ -475,15 +483,16 @@ cfg::PortSpeed BcmPort::getDesiredPortSpeed(
 
 void BcmPort::setInterfaceMode(const shared_ptr<Port>& swPort) {
   auto desiredPortSpeed = getDesiredPortSpeed(swPort);
-  opennsl_port_if_t desiredMode = getDesiredInterfaceMode(desiredPortSpeed,
-                                                          swPort->getID(),
-                                                          swPort->getName());
+  opennsl_port_if_t desiredMode = getDesiredInterfaceMode(
+      desiredPortSpeed, swPort->getID(), swPort->getName());
 
   // Check whether we have the correct interface set
   opennsl_port_if_t curMode = opennsl_port_if_t(0);
   auto ret = opennsl_port_interface_get(unit_, port_, &curMode);
-  bcmCheckError(ret, "Failed to get current interface setting for port ",
-                     swPort->getID());
+  bcmCheckError(
+      ret,
+      "Failed to get current interface setting for port ",
+      swPort->getID());
 
   // HACK: we cannot call speed_set w/out also
   // calling interface_mode_set, otherwise the
@@ -499,8 +508,8 @@ void BcmPort::setInterfaceMode(const shared_ptr<Port>& swPort) {
     // Changes to the interface setting only seem to take effect on the next
     // call to opennsl_port_speed_set()
     ret = opennsl_port_interface_set(unit_, port_, desiredMode);
-    bcmCheckError(ret, "failed to set interface type for port ",
-                       swPort->getID());
+    bcmCheckError(
+        ret, "failed to set interface type for port ", swPort->getID());
   }
 }
 
@@ -557,13 +566,13 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
     // port flaps on ports where link is up.
     ret = opennsl_port_speed_set(unit_, port_, desiredSpeed);
     bcmCheckError(
-      ret,
-      "failed to set speed to ",
-      desiredSpeed,
-      " from ",
-      curSpeed,
-      ", on port ",
-      swPort->getID());
+        ret,
+        "failed to set speed to ",
+        desiredSpeed,
+        " from ",
+        curSpeed,
+        ", on port ",
+        swPort->getID());
     getPlatformPort()->linkSpeedChanged(desiredPortSpeed);
   }
 }
@@ -655,10 +664,7 @@ void BcmPort::updateStats() {
       &curPortStats.inPause_);
   // Egress Stats
   updateStat(
-      now,
-      kOutBytes(),
-      opennsl_spl_snmpIfHCOutOctets,
-      &curPortStats.outBytes_);
+      now, kOutBytes(), opennsl_spl_snmpIfHCOutOctets, &curPortStats.outBytes_);
   updateStat(
       now,
       kOutUnicastPkts(),
@@ -692,8 +698,7 @@ void BcmPort::updateStats() {
   setAdditionalStats(now, &curPortStats);
 
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
-      {lastPortStats.inDstNullDiscards_,
-       curPortStats.inDstNullDiscards_}};
+      {lastPortStats.inDstNullDiscards_, curPortStats.inDstNullDiscards_}};
   if (isMmuLossy()) {
     // If MMU setup as lossy, all incoming pause frames will be
     // discarded and will count towards in discards. This makes in discards
@@ -771,8 +776,8 @@ void BcmPort::updatePktLenHist(
   // it's stats arguments right now.
   opennsl_stat_val_t* statsArg =
       const_cast<opennsl_stat_val_t*>(&stats.front());
-  auto ret = opennsl_stat_multi_get(unit_, port_,
-                                stats.size(), statsArg, counters);
+  auto ret =
+      opennsl_stat_multi_get(unit_, port_, stats.size(), statsArg, counters);
   if (OPENNSL_FAILURE(ret)) {
     XLOG(ERR) << "Failed to get packet length stats for port " << port_ << " :"
               << opennsl_errmsg(ret);
@@ -880,4 +885,5 @@ void BcmPort::disableStatCollection() {
 
   statCollectionEnabled_.store(false);
 }
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

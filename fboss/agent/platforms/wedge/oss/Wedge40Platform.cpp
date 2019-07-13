@@ -11,7 +11,8 @@
 
 #include <folly/Range.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 folly::ByteRange Wedge40Platform::defaultLed0Code() {
   return folly::ByteRange();
@@ -30,4 +31,5 @@ const PortQueue& Wedge40Platform::getDefaultControlPlaneQueueSettings(
     cfg::StreamType /*streamType*/) const {
   throw FbossError("ControlPlaneQueue setting is not supported");
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

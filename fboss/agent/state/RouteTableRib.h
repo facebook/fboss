@@ -11,33 +11,35 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/types.h"
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/RouteTypes.h"
+#include "fboss/agent/types.h"
 #include "fboss/lib/RadixTree.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-template<typename AddrT>
+template <typename AddrT>
 class Route;
 class SwitchState;
 
 template <typename AddrT>
 class RouteTableRib;
 
-template<typename AddrT> using RouteTableRibNodeMapTraits
-  = NodeMapTraits<RoutePrefix<AddrT>, Route<AddrT>>;
+template <typename AddrT>
+using RouteTableRibNodeMapTraits =
+    NodeMapTraits<RoutePrefix<AddrT>, Route<AddrT>>;
 
-template<typename AddrT>
-class RouteTableRibNodeMap
-    : public NodeMapT<RouteTableRibNodeMap<AddrT>,
-                      RouteTableRibNodeMapTraits<AddrT>> {
+template <typename AddrT>
+class RouteTableRibNodeMap : public NodeMapT<
+                                 RouteTableRibNodeMap<AddrT>,
+                                 RouteTableRibNodeMapTraits<AddrT>> {
  public:
   RouteTableRibNodeMap() {}
   ~RouteTableRibNodeMap() override {}
 
-  using Base = NodeMapT<RouteTableRibNodeMap<AddrT>,
-                        RouteTableRibNodeMapTraits<AddrT>>;
+  using Base =
+      NodeMapT<RouteTableRibNodeMap<AddrT>, RouteTableRibNodeMapTraits<AddrT>>;
   using Prefix = RoutePrefix<AddrT>;
   using RouteType = typename Base::Node;
 
@@ -59,27 +61,25 @@ class RouteTableRibNodeMap
     return Base::getNodeIf(prefix);
   }
 
-
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
   friend class CloneAllocator;
 };
 
-template<typename AddrT>
+template <typename AddrT>
 class RouteTableRib : public NodeBase {
  public:
   using RoutesNodeMap = RouteTableRibNodeMap<AddrT>;
-  RouteTableRib(): nodeMap_(std::make_shared<RoutesNodeMap>()) {}
-  RouteTableRib(NodeID id, uint32_t generation):
-    NodeBase(id, generation),
-    nodeMap_(std::make_shared<RoutesNodeMap>()) {}
+  RouteTableRib() : nodeMap_(std::make_shared<RoutesNodeMap>()) {}
+  RouteTableRib(NodeID id, uint32_t generation)
+      : NodeBase(id, generation), nodeMap_(std::make_shared<RoutesNodeMap>()) {}
   ~RouteTableRib() override {}
 
-  using Prefix =  RoutePrefix<AddrT>;
+  using Prefix = RoutePrefix<AddrT>;
   using RouteType = Route<AddrT>;
-  using RoutesRadixTree = facebook::network::RadixTree<AddrT,
-        std::shared_ptr<Route<AddrT>>>;
+  using RoutesRadixTree =
+      facebook::network::RadixTree<AddrT, std::shared_ptr<Route<AddrT>>>;
 
   bool empty() const {
     return nodeMap_->empty();
@@ -114,8 +114,8 @@ class RouteTableRib : public NodeBase {
     // remove routes on nodeMap_ and then call
     // `cloneToRadixTreeWithForwardClear()` to build the whole radixTree_
     // after all the changes.
-    auto routeTableRib = std::make_shared<RouteTableRib>(getNodeID(),
-        getGeneration() + 1);
+    auto routeTableRib =
+        std::make_shared<RouteTableRib>(getNodeID(), getGeneration() + 1);
     // Note: this is the default NodeMap clone(), only the nodeMap pointer is
     // cloned, while all the routes are still the old route pointer.
     routeTableRib->nodeMap_ = nodeMap_->clone();
@@ -127,17 +127,17 @@ class RouteTableRib : public NodeBase {
    */
   folly::dynamic toFollyDynamic() const;
 
-   /*
-    * Deserialize from folly::dynamic
-    */
-   static std::shared_ptr<RouteTableRib>
-     fromFollyDynamic(const folly::dynamic& json);
+  /*
+   * Deserialize from folly::dynamic
+   */
+  static std::shared_ptr<RouteTableRib> fromFollyDynamic(
+      const folly::dynamic& json);
   /*
    * Serialize to json string
    */
-  static std::shared_ptr<RouteTableRib>
-    fromJson(const folly::fbstring& jsonStr) {
-       return fromFollyDynamic(folly::parseJson(jsonStr));
+  static std::shared_ptr<RouteTableRib> fromJson(
+      const folly::fbstring& jsonStr) {
+    return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
   /*
@@ -157,7 +157,7 @@ class RouteTableRib : public NodeBase {
     // We should expect this function is called only before we publish the rib
     CHECK(!isPublished());
     radixTree_.clear();
-    for (const auto& node: nodeMap_->getAllNodes()) {
+    for (const auto& node : nodeMap_->getAllNodes()) {
       auto route = node.second;
       if (route->isPublished()) {
         route = route->clone(RouteType::Fields::COPY_PREFIX_AND_NEXTHOPS);
@@ -171,7 +171,9 @@ class RouteTableRib : public NodeBase {
   // STRONGLY RECOMMEND to use routes() which returns the NodeMap
   // routesRadixTree() should only be used in the unit test to check whether
   // noddeMap_ and radixTree_ in sync
-  const RoutesRadixTree& routesRadixTree() const { return radixTree_; }
+  const RoutesRadixTree& routesRadixTree() const {
+    return radixTree_;
+  }
   RoutesRadixTree& writableRoutesRadixTree() {
     CHECK(!isPublished());
     return radixTree_;
@@ -183,28 +185,35 @@ class RouteTableRib : public NodeBase {
   }
 
   void addRouteInRadixTree(const std::shared_ptr<Route<AddrT>>& route) {
-    auto inserted = radixTree_.insert(route->prefix().network,
-      route->prefix().mask, route).second;
+    auto inserted =
+        radixTree_.insert(route->prefix().network, route->prefix().mask, route)
+            .second;
     if (!inserted) {
-    throw FbossError("Add failed, prefix for: ", route->str(),
-                     " already exists in RadixTree");
+      throw FbossError(
+          "Add failed, prefix for: ",
+          route->str(),
+          " already exists in RadixTree");
     }
   }
   void updateRouteInRadixTree(const std::shared_ptr<Route<AddrT>>& route) {
-    auto itr = radixTree_.exactMatch(route->prefix().network,
-                                    route->prefix().mask);
+    auto itr =
+        radixTree_.exactMatch(route->prefix().network, route->prefix().mask);
     if (itr == radixTree_.end()) {
-    throw FbossError("Update failed, prefix for: ", route->str(),
-                     " not present in RadixTree");
+      throw FbossError(
+          "Update failed, prefix for: ",
+          route->str(),
+          " not present in RadixTree");
     }
     itr->value() = route;
   }
   void removeRouteInRadixTree(const std::shared_ptr<Route<AddrT>>& route) {
-    auto erased = radixTree_.erase(route->prefix().network,
-                                  route->prefix().mask);
+    auto erased =
+        radixTree_.erase(route->prefix().network, route->prefix().mask);
     if (!erased) {
-     throw FbossError("Remove failed, prefix for: ", route->str(),
-                      " not present in RadixTree");
+      throw FbossError(
+          "Remove failed, prefix for: ",
+          route->str(),
+          " not present in RadixTree");
     }
   }
 
@@ -213,4 +222,5 @@ class RouteTableRib : public NodeBase {
   std::shared_ptr<RoutesNodeMap> nodeMap_;
 };
 
-}}
+} // namespace fboss
+} // namespace facebook

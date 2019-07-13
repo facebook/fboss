@@ -9,12 +9,13 @@
  */
 #pragma once
 
-#include "fboss/agent/types.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/NodeMapDelta.h"
+#include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 using AclMapTraits = NodeMapTraits<std::string, AclEntry>;
 /*
@@ -60,7 +61,6 @@ class AclMap : public NodeMapT<AclMap, AclMapTraits> {
   friend class CloneAllocator;
 };
 
-
 /**
  * This container is only used when stateChangedImpl() asks for aclsDelta
  * In S/W, we use `AclMap` which use acl name as key. However, SwitchState
@@ -80,22 +80,25 @@ struct PrioAclMapTraits {
   }
 };
 class PrioAclMap : public NodeMapT<PrioAclMap, PrioAclMapTraits> {
-public:
+ public:
   PrioAclMap() {}
   ~PrioAclMap() override {}
 
   void addAcls(const std::shared_ptr<AclMap>& acls) {
-    for (const auto& aclEntry: *acls) {
+    for (const auto& aclEntry : *acls) {
       addNode(aclEntry);
     }
   }
 
-private:
+ private:
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;
   friend class CloneAllocator;
 };
 
-using AclMapDelta = NodeMapDelta<PrioAclMap, DeltaValue<PrioAclMap::Node>,
-                                 MapUniquePointerTraits<PrioAclMap>>;
-}} // facebook::fboss
+using AclMapDelta = NodeMapDelta<
+    PrioAclMap,
+    DeltaValue<PrioAclMap::Node>,
+    MapUniquePointerTraits<PrioAclMap>>;
+} // namespace fboss
+} // namespace facebook

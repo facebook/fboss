@@ -17,7 +17,8 @@
 
 #include <vector>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmPort;
 
@@ -29,14 +30,15 @@ typedef boost::container::flat_set<cfg::PortSpeed> LaneSpeeds;
  */
 class TxSettings {
  public:
-  TxSettings(uint8_t _driveCurrent,
-             uint8_t _preTap,
-             uint8_t _mainTap,
-             uint8_t _postTap)
-    : driveCurrent(_driveCurrent),
-      preTap(_preTap),
-      mainTap(_mainTap),
-      postTap(_postTap) {}
+  TxSettings(
+      uint8_t _driveCurrent,
+      uint8_t _preTap,
+      uint8_t _mainTap,
+      uint8_t _postTap)
+      : driveCurrent(_driveCurrent),
+        preTap(_preTap),
+        mainTap(_mainTap),
+        postTap(_postTap) {}
 
   uint8_t driveCurrent{0};
   uint8_t preTap{0};
@@ -47,8 +49,8 @@ class TxSettings {
 class BcmPlatformPort : public PlatformPort {
  public:
   using XPEs = std::vector<unsigned int>;
-  using TxOverrides = boost::container::flat_map<
-    std::pair<TransmitterTechnology, double>, TxSettings>;
+  using TxOverrides = boost::container::
+      flat_map<std::pair<TransmitterTechnology, double>, TxSettings>;
 
   BcmPlatformPort() {}
   BcmPlatformPort(BcmPlatformPort&&) = default;
@@ -89,10 +91,11 @@ class BcmPlatformPort : public PlatformPort {
 
  private:
   // Forbidden copy constructor and assignment operator
-  BcmPlatformPort(BcmPlatformPort const &) = delete;
-  BcmPlatformPort& operator=(BcmPlatformPort const &) = delete;
+  BcmPlatformPort(BcmPlatformPort const&) = delete;
+  BcmPlatformPort& operator=(BcmPlatformPort const&) = delete;
 
   virtual TxOverrides getTxOverrides() const = 0;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

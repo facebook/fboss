@@ -18,7 +18,8 @@
 
 DECLARE_int32(ecmp_width);
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class RouteNextHopEntry {
  public:
@@ -95,14 +96,15 @@ class RouteNextHopEntry {
  * Comparision operators
  */
 bool operator==(const RouteNextHopEntry& a, const RouteNextHopEntry& b);
-bool operator< (const RouteNextHopEntry& a, const RouteNextHopEntry& b);
+bool operator<(const RouteNextHopEntry& a, const RouteNextHopEntry& b);
 
-void toAppend(const RouteNextHopEntry& entry, std::string *result);
+void toAppend(const RouteNextHopEntry& entry, std::string* result);
 std::ostream& operator<<(std::ostream& os, const RouteNextHopEntry& entry);
 
-void toAppend(const RouteNextHopEntry::NextHopSet& nhops, std::string *result);
+void toAppend(const RouteNextHopEntry::NextHopSet& nhops, std::string* result);
 std::ostream& operator<<(
-    std::ostream& os, const RouteNextHopEntry::NextHopSet& nhops);
+    std::ostream& os,
+    const RouteNextHopEntry::NextHopSet& nhops);
 NextHopWeight totalWeight(const RouteNextHopEntry::NextHopSet& nhops);
 
 using RouteNextHopSet = RouteNextHopEntry::NextHopSet;
@@ -112,14 +114,13 @@ namespace util {
 /**
  * Convert thrift representation of nexthops to RouteNextHops.
  */
-RouteNextHopSet
-toRouteNextHopSet(std::vector<NextHopThrift> const& nhts);
+RouteNextHopSet toRouteNextHopSet(std::vector<NextHopThrift> const& nhts);
 
 /**
  * Convert RouteNextHops to thrift representaion of nexthops
  */
-std::vector<NextHopThrift>
-fromRouteNextHopSet(RouteNextHopSet const& nhs);
-}
+std::vector<NextHopThrift> fromRouteNextHopSet(RouteNextHopSet const& nhs);
+} // namespace util
 
-}}
+} // namespace fboss
+} // namespace facebook

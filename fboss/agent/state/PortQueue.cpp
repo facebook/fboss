@@ -8,12 +8,12 @@
  *
  */
 #include "fboss/agent/state/PortQueue.h"
-#include "fboss/agent/state/NodeBase-defs.h"
 #include <folly/Conv.h>
 #include <sstream>
+#include "fboss/agent/state/NodeBase-defs.h"
 
 namespace {
-template<typename Param>
+template <typename Param>
 bool isPortQueueOptionalAttributeSame(
     const folly::Optional<Param>& swValue,
     bool isConfSet,
@@ -49,7 +49,8 @@ bool comparePortQueueAQMs(
 
 } // unnamed namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 state::PortQueueFields PortQueueFields::toThrift() const {
   state::PortQueueFields queue;
@@ -75,7 +76,7 @@ state::PortQueueFields PortQueueFields::toThrift() const {
   }
   if (!aqms.empty()) {
     std::vector<cfg::ActiveQueueManagement> aqmList;
-    for (const auto& aqm: aqms) {
+    for (const auto& aqm : aqms) {
       aqmList.push_back(aqm.second);
     }
     queue.aqms = aqmList;
@@ -89,8 +90,8 @@ PortQueueFields PortQueueFields::fromThrift(
   PortQueueFields queue;
   queue.id = static_cast<uint8_t>(queueThrift.id);
 
-  auto const itrStreamType = cfg::_StreamType_NAMES_TO_VALUES.find(
-      queueThrift.streamType.c_str());
+  auto const itrStreamType =
+      cfg::_StreamType_NAMES_TO_VALUES.find(queueThrift.streamType.c_str());
   CHECK(itrStreamType != cfg::_StreamType_NAMES_TO_VALUES.end());
   queue.streamType = itrStreamType->second;
 
@@ -119,7 +120,7 @@ PortQueueFields PortQueueFields::fromThrift(
     queue.sharedBytes = queueThrift.sharedBytes;
   }
   if (queueThrift.aqms) {
-    for (const auto& aqm: queueThrift.aqms.value()) {
+    for (const auto& aqm : queueThrift.aqms.value()) {
       queue.aqms.emplace(aqm.behavior, aqm);
     }
   }
@@ -149,7 +150,7 @@ std::string PortQueue::toString() const {
   }
   if (!getAqms().empty()) {
     ss << ", aqms=[";
-    for (const auto& aqm: getAqms()) {
+    for (const auto& aqm : getAqms()) {
       ss << "(behavior="
          << cfg::_QueueCongestionBehavior_VALUES_TO_NAMES.at(aqm.first)
          << ", detection=[min="
@@ -196,4 +197,5 @@ bool checkSwConfPortQueueMatch(
 
 template class NodeBaseT<PortQueue, PortQueueFields>;
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

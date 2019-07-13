@@ -65,14 +65,14 @@ void ParticipantInfo::populate(LacpEndpoint& endpoint) const {
   endpoint.portPriority = static_cast<int32_t>(portPriority);
   endpoint.port = static_cast<int32_t>(port);
 
-  endpoint.state.active       = state & LacpState::ACTIVE;
+  endpoint.state.active = state & LacpState::ACTIVE;
   endpoint.state.shortTimeout = state & LacpState::SHORT_TIMEOUT;
   endpoint.state.aggregatable = state & LacpState::AGGREGATABLE;
-  endpoint.state.inSync       = state & LacpState::IN_SYNC;
-  endpoint.state.collecting   = state & LacpState::COLLECTING;
+  endpoint.state.inSync = state & LacpState::IN_SYNC;
+  endpoint.state.collecting = state & LacpState::COLLECTING;
   endpoint.state.distributing = state & LacpState::DISTRIBUTING;
-  endpoint.state.defaulted    = state & LacpState::DEFAULTED;
-  endpoint.state.expired      = state & LacpState::EXPIRED;
+  endpoint.state.defaulted = state & LacpState::DEFAULTED;
+  endpoint.state.expired = state & LacpState::EXPIRED;
 }
 
 bool LACPDU::isValid() const {

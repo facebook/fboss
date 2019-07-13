@@ -10,28 +10,29 @@
 #pragma once
 
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/ThreadHeartbeat.h"
+#include "fboss/agent/Utils.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/types.h"
-#include "fboss/agent/ThreadHeartbeat.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/Utils.h"
 
 #include "fboss/agent/rib/RoutingInformationBase.h"
 
-#include <folly/SpinLock.h>
 #include <folly/IntrusiveList.h>
+#include <folly/Optional.h>
 #include <folly/Range.h>
+#include <folly/SpinLock.h>
 #include <folly/ThreadLocal.h>
 #include <folly/io/async/EventBase.h>
-#include <folly/Optional.h>
 
 #include <atomic>
 #include <memory>
 #include <mutex>
 #include <thread>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class ArpHandler;
 class ChannelCloser;
@@ -66,8 +67,8 @@ enum SwitchFlags : int {
 };
 
 inline SwitchFlags operator|=(SwitchFlags& a, const SwitchFlags b) {
-  return
-    (a = static_cast<SwitchFlags>(static_cast<int>(a) | static_cast<int>(b)));
+  return (
+      a = static_cast<SwitchFlags>(static_cast<int>(a) | static_cast<int>(b)));
 }
 
 /*
@@ -83,15 +84,14 @@ inline SwitchFlags operator|=(SwitchFlags& a, const SwitchFlags b) {
  */
 class SwSwitch : public HwSwitch::Callback {
  public:
-
-  typedef std::function<
-    std::shared_ptr<SwitchState>(const std::shared_ptr<SwitchState>&)>
-    StateUpdateFn;
+  typedef std::function<std::shared_ptr<SwitchState>(
+      const std::shared_ptr<SwitchState>&)>
+      StateUpdateFn;
 
   typedef std::function<void(const StateDelta&)> StateUpdatedCallback;
 
   using AllThreadsSwitchStats =
-    folly::ThreadLocalPtr<SwitchStats, SwSwitch>::Accessor;
+      folly::ThreadLocalPtr<SwitchStats, SwSwitch>::Accessor;
 
   explicit SwSwitch(std::unique_ptr<Platform> platform);
   ~SwSwitch() override;
@@ -100,8 +100,12 @@ class SwSwitch : public HwSwitch::Callback {
     return hw_;
   }
 
-  const Platform* getPlatform() const { return platform_.get(); }
-  Platform* getPlatform() { return platform_.get(); }
+  const Platform* getPlatform() const {
+    return platform_.get();
+  }
+  Platform* getPlatform() {
+    return platform_.get();
+  }
 
   TunManager* getTunManager() {
     return tunMgr_.get();
@@ -162,7 +166,6 @@ class SwSwitch : public HwSwitch::Callback {
 
   void updateStats();
 
-
   /*
    * Get a pointer to the current switch state.
    *
@@ -188,8 +191,7 @@ class SwSwitch : public HwSwitch::Callback {
    * This schedules the specified StateUpdate to be invoked in the update
    * thread in order to update the SwitchState.
    */
-  void updateState(
-      std::unique_ptr<StateUpdate> update);
+  void updateState(std::unique_ptr<StateUpdate> update);
 
   /**
    * Schedule an update to the switch state.
@@ -216,9 +218,7 @@ class SwSwitch : public HwSwitch::Callback {
    * subscribers.  Therefore the StateUpdateFn may be called with an
    * unpublished SwitchState in some cases.
    */
-  void updateState(
-      folly::StringPiece name,
-      StateUpdateFn fn);
+  void updateState(folly::StringPiece name, StateUpdateFn fn);
 
   /**
    * Schedule an update to the switch state.
@@ -333,7 +333,6 @@ class SwSwitch : public HwSwitch::Callback {
    * This could be extended as needed
    */
   bool isValidStateUpdate(const StateDelta& delta) const;
-
 
   /*
    * Get the PortStats for the specified port.
@@ -565,7 +564,9 @@ class SwSwitch : public HwSwitch::Callback {
    */
   void gracefulExit();
 
-  BootType getBootType() const { return bootType_; }
+  BootType getBootType() const {
+    return bootType_;
+  }
 
   /*
    * Helper function for enabling route update logging
@@ -581,19 +582,25 @@ class SwSwitch : public HwSwitch::Callback {
    * times will overwrite the current listener.
    */
   void registerNeighborListener(
-      std::function<void(const std::vector<std::string>& added,
-                         const std::vector<std::string>& deleted)> callback);
+      std::function<void(
+          const std::vector<std::string>& added,
+          const std::vector<std::string>& deleted)> callback);
 
-  void invokeNeighborListener(const std::vector<std::string>& added,
-                               const std::vector<std::string>& deleted);
+  void invokeNeighborListener(
+      const std::vector<std::string>& added,
+      const std::vector<std::string>& deleted);
 
   /*
    * Returns true if the arp/ndp entry for the passed in ip has been hit.
    */
   bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress ip);
 
-  const std::string& getConfigStr() const { return curConfigStr_; }
-  const cfg::SwitchConfig& getConfig() const { return curConfig_; }
+  const std::string& getConfigStr() const {
+    return curConfigStr_;
+  }
+  const cfg::SwitchConfig& getConfig() const {
+    return curConfig_;
+  }
   AdminDistance clientIdToAdminDistance(int clientId) const;
   /*
    * Applied state corresponds to what was successfully applied
@@ -648,11 +655,11 @@ class SwSwitch : public HwSwitch::Callback {
       StateUpdateFn fn);
 
   typedef folly::IntrusiveList<StateUpdate, &StateUpdate::listHook_>
-    StateUpdateList;
+      StateUpdateList;
 
   // Forbidden copy constructor and assignment operator
-  SwSwitch(SwSwitch const &) = delete;
-  SwSwitch& operator=(SwSwitch const &) = delete;
+  SwSwitch(SwSwitch const&) = delete;
+  SwSwitch& operator=(SwSwitch const&) = delete;
 
   std::pair<std::shared_ptr<SwitchState>, std::shared_ptr<SwitchState>>
   getStates() const {
@@ -821,9 +828,10 @@ class SwSwitch : public HwSwitch::Callback {
    * A callback for listening to neighbors coming and going.
    */
   std::mutex neighborListenerMutex_;
-  std::function<void(const std::vector<std::string>& added,
-                       const std::vector<std::string>& deleted)>
-    neighborListener_{nullptr};
+  std::function<void(
+      const std::vector<std::string>& added,
+      const std::vector<std::string>& deleted)>
+      neighborListener_{nullptr};
 
   /*
    * The list of classes to notify on a state update. This container should only
@@ -835,7 +843,6 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<ChannelCloser> closer_; // must be before pcapPusher_
   std::unique_ptr<PcapPushSubscriberAsyncClient> pcapPusher_;
   std::atomic<bool> distributionServiceReady_{false};
-
 
   std::unique_ptr<ArpHandler> arp_;
   std::unique_ptr<IPv4Handler> ipv4_;
@@ -853,4 +860,5 @@ class SwSwitch : public HwSwitch::Callback {
   SwitchFlags flags_{SwitchFlags::DEFAULT};
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

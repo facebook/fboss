@@ -8,23 +8,24 @@
  *
  */
 #include "UDPHeader.h"
-#include <sstream>
 #include <folly/io/Cursor.h>
 #include <folly/lang/Bits.h>
+#include <sstream>
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
 
-using folly::io::Cursor;
 using folly::Endian;
+using folly::io::Cursor;
 using std::string;
 using std::stringstream;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-template<typename IPHDR>
-uint16_t UDPHeader::computeChecksumImpl(const IPHDR& ip,
-                                        const Cursor& cursor) const {
+template <typename IPHDR>
+uint16_t UDPHeader::computeChecksumImpl(const IPHDR& ip, const Cursor& cursor)
+    const {
   // Checksum the IP pseudo-header
   uint32_t sum = ip.pseudoHdrPartialCsum();
   // Checksum the udp header
@@ -51,24 +52,23 @@ void UDPHeader::parse(Cursor* cursor) {
 }
 
 bool UDPHeader::operator==(const UDPHeader& r) const {
-  return length == r.length &&
-    csum == r.csum &&
-    srcPort == r.srcPort &&
-    dstPort == r.dstPort;
+  return length == r.length && csum == r.csum && srcPort == r.srcPort &&
+      dstPort == r.dstPort;
 }
 
-uint16_t UDPHeader::computeChecksum(const IPv4Hdr& ipv4Hdr,
-                                    const Cursor& cursor) const {
+uint16_t UDPHeader::computeChecksum(
+    const IPv4Hdr& ipv4Hdr,
+    const Cursor& cursor) const {
   return computeChecksumImpl(ipv4Hdr, cursor);
 }
 
-void UDPHeader::updateChecksum(const IPv4Hdr& ipv6Hdr,
-                               const Cursor& cursor) {
+void UDPHeader::updateChecksum(const IPv4Hdr& ipv6Hdr, const Cursor& cursor) {
   csum = computeChecksum(ipv6Hdr, cursor);
 }
 
-uint16_t UDPHeader::computeChecksum(const IPv6Hdr& ipv6Hdr,
-                                   const Cursor& cursor) const {
+uint16_t UDPHeader::computeChecksum(
+    const IPv6Hdr& ipv6Hdr,
+    const Cursor& cursor) const {
   return computeChecksumImpl(ipv6Hdr, cursor);
 }
 
@@ -78,10 +78,9 @@ void UDPHeader::updateChecksum(const IPv6Hdr& ipv6Hdr, const Cursor& cursor) {
 
 string UDPHeader::toString() const {
   stringstream ss;
-  ss << " Length: " << length
-     << " Checksum: " << csum
-     << " Source port: " << srcPort
-     << " Destination port: " << dstPort;
+  ss << " Length: " << length << " Checksum: " << csum
+     << " Source port: " << srcPort << " Destination port: " << dstPort;
   return ss.str();
 }
-}}
+} // namespace fboss
+} // namespace facebook

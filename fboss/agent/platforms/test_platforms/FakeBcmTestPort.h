@@ -9,9 +9,8 @@ class FakeBcmTestPort : public BcmTestPort {
   explicit FakeBcmTestPort(PortID id);
 
   LaneSpeeds supportedLaneSpeeds() const override {
-    return {cfg::PortSpeed::GIGE,
-            cfg::PortSpeed::XG,
-            cfg::PortSpeed::TWENTYFIVEG};
+    return {
+        cfg::PortSpeed::GIGE, cfg::PortSpeed::XG, cfg::PortSpeed::TWENTYFIVEG};
   }
 
  private:

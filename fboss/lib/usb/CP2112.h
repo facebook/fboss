@@ -19,7 +19,8 @@
 
 struct libusb_transfer;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class CP2112Intf {
   // Bare-bones virtual interface to the CP2112 class. Used for gmock
@@ -89,9 +90,7 @@ class CP2112 : public CP2112Intf {
 
   struct VersionInfo {
     VersionInfo() {}
-    VersionInfo(uint8_t pn, uint8_t vers)
-      : partNumber(pn),
-        version(vers) {}
+    VersionInfo(uint8_t pn, uint8_t vers) : partNumber(pn), version(vers) {}
 
     /*
      * The part number.  This should always be 0x0c.
@@ -121,10 +120,7 @@ class CP2112 : public CP2112Intf {
   struct GpioConfig {
     GpioConfig() {}
     GpioConfig(uint8_t d, uint8_t pp, uint8_t s, uint8_t cd)
-      : direction(d),
-        pushPull(pp),
-        special(s),
-        clockDivider(cd) {}
+        : direction(d), pushPull(pp), special(s), clockDivider(cd) {}
 
     /*
      * Pin direction: 0 for input, 1 for output
@@ -250,7 +246,7 @@ class CP2112 : public CP2112Intf {
   explicit CP2112(libusb_context* ctx);
   ~CP2112() override;
 
-  void open(bool setSmbusConfig=true) override;
+  void open(bool setSmbusConfig = true) override;
   void close() override;
   bool isOpen() const {
     return handle_.isOpen();
@@ -301,8 +297,10 @@ class CP2112 : public CP2112Intf {
    *
    * The length must be between 1 and 512 bytes.
    */
-  void read(uint8_t address, folly::MutableByteRange buf,
-            std::chrono::milliseconds timeout) override;
+  void read(
+      uint8_t address,
+      folly::MutableByteRange buf,
+      std::chrono::milliseconds timeout) override;
   using CP2112Intf::read;
 
   /*
@@ -310,8 +308,10 @@ class CP2112 : public CP2112Intf {
    *
    * The length must be between 1 and 61 bytes.
    */
-  void write(uint8_t address, folly::ByteRange buf,
-             std::chrono::milliseconds timeout) override;
+  void write(
+      uint8_t address,
+      folly::ByteRange buf,
+      std::chrono::milliseconds timeout) override;
   using CP2112Intf::write;
 
   /*
@@ -327,13 +327,15 @@ class CP2112 : public CP2112Intf {
    * up if it times out.  The only way to recover is to reset the chip using
    * the reset pin.  (A USB reset command is not sufficient.)
    */
-  void writeReadUnsafe(uint8_t address,
-                 folly::ByteRange writeBuf,
-                 folly::MutableByteRange readBuf,
-                 std::chrono::milliseconds timeout);
-  void writeReadUnsafe(uint8_t address,
-                 folly::ByteRange writeBuf,
-                 folly::MutableByteRange readBuf) {
+  void writeReadUnsafe(
+      uint8_t address,
+      folly::ByteRange writeBuf,
+      folly::MutableByteRange readBuf,
+      std::chrono::milliseconds timeout);
+  void writeReadUnsafe(
+      uint8_t address,
+      folly::ByteRange writeBuf,
+      folly::MutableByteRange readBuf) {
     writeReadUnsafe(address, writeBuf, readBuf, defaultTimeout_);
   }
 
@@ -386,8 +388,8 @@ class CP2112 : public CP2112Intf {
   };
 
   // Forbidden copy constructor and assignment operator
-  CP2112(CP2112 const &) = delete;
-  CP2112& operator=(CP2112 const &) = delete;
+  CP2112(CP2112 const&) = delete;
+  CP2112& operator=(CP2112 const&) = delete;
 
   void openDevice();
   void initSettings();
@@ -397,12 +399,14 @@ class CP2112 : public CP2112Intf {
 
   static std::string getBusyStatusMsg(uint8_t status1);
   static std::string getCompleteStatusMsg(uint8_t status1);
-  void processReadResponse(folly::MutableByteRange buf,
-                           std::chrono::milliseconds timeout);
-  void getTransferStatusImpl(uint8_t* usbBuf,
-                             std::chrono::milliseconds timeout,
-                             folly::StringPiece operation,
-                             uint32_t loopIter);
+  void processReadResponse(
+      folly::MutableByteRange buf,
+      std::chrono::milliseconds timeout);
+  void getTransferStatusImpl(
+      uint8_t* usbBuf,
+      std::chrono::milliseconds timeout,
+      folly::StringPiece operation,
+      uint32_t loopIter);
   std::chrono::milliseconds waitForTransfer(
       folly::StringPiece operation,
       std::chrono::steady_clock::time_point end);
@@ -413,10 +417,12 @@ class CP2112 : public CP2112Intf {
   uint16_t featureReportIn(ReportID report, uint8_t* buf, uint16_t length);
   void fullFeatureReportIn(ReportID report, uint8_t* buf, uint16_t length);
   void featureReportOut(ReportID report, const uint8_t* buf, uint16_t length);
-  void intrOut(folly::StringPiece name, const uint8_t* buf, uint16_t length,
-               std::chrono::milliseconds timeout);
-  void intrIn(uint8_t* buf, uint16_t length,
-              std::chrono::milliseconds timeout);
+  void intrOut(
+      folly::StringPiece name,
+      const uint8_t* buf,
+      uint16_t length,
+      std::chrono::milliseconds timeout);
+  void intrIn(uint8_t* buf, uint16_t length, std::chrono::milliseconds timeout);
 
   libusb_context* ctx_{nullptr};
   UsbDevice dev_;
@@ -428,4 +434,5 @@ class CP2112 : public CP2112Intf {
   std::chrono::milliseconds minResetInterval_{10000}; /* 10 seconds */
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

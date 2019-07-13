@@ -9,15 +9,16 @@
  */
 #pragma once
 
-#include "fboss/lib/RadixTree.h"
-#include "fboss/agent/state/RouteTypes.h"
 #include <folly/Synchronized.h>
+#include "fboss/agent/state/RouteTypes.h"
+#include "fboss/lib/RadixTree.h"
 
 #include <memory>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /* All the information regarding a prefix for which we have
  * subscribed for logging.
@@ -84,4 +85,5 @@ class RouteUpdateLoggingPrefixTracker {
       trackedPrefixes_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

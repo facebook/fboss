@@ -19,7 +19,8 @@ using std::string;
 
 static uint16_t ETHERTYPE_LLDP = 0x88cc;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 enum class LinkNeighbor::LldpTlvType : uint8_t {
   END = 0,
@@ -52,8 +53,7 @@ enum class LinkNeighbor::CdpTlvType : uint16_t {
   SPARE_PAIR_POE = 31,
 };
 
-LinkNeighbor::LinkNeighbor() {
-}
+LinkNeighbor::LinkNeighbor() {}
 
 void LinkNeighbor::setTTL(std::chrono::seconds seconds) {
   receivedTTL_ = seconds;
@@ -110,11 +110,12 @@ std::string LinkNeighbor::humanReadableNetAddr(const std::string& data) {
   return folly::humanify(data);
 }
 
-bool LinkNeighbor::parseLldpPdu(PortID srcPort,
-                                VlanID vlan,
-                                folly::MacAddress srcMac,
-                                uint16_t ethertype,
-                                folly::io::Cursor* cursor) {
+bool LinkNeighbor::parseLldpPdu(
+    PortID srcPort,
+    VlanID vlan,
+    folly::MacAddress srcMac,
+    uint16_t ethertype,
+    folly::io::Cursor* cursor) {
   if (ethertype != ETHERTYPE_LLDP) {
     return false;
   }
@@ -242,11 +243,12 @@ void LinkNeighbor::parseLldpSystemCaps(Cursor* cursor, uint16_t length) {
   enabledCapabilities_ = cursor->readBE<uint16_t>();
 }
 
-bool LinkNeighbor::parseCdpPdu(PortID srcPort,
-                               VlanID vlan,
-                               MacAddress srcMac,
-                               uint16_t ethertype,
-                               folly::io::Cursor* cursor) {
+bool LinkNeighbor::parseCdpPdu(
+    PortID srcPort,
+    VlanID vlan,
+    MacAddress srcMac,
+    uint16_t ethertype,
+    folly::io::Cursor* cursor) {
   if (ethertype >= 0x600) {
     // This looks like an ethertype field rather than a frame length.
     // We expect CDP packets to be Ethernet v2 frames rather than 802.3.
@@ -301,9 +303,10 @@ bool LinkNeighbor::parseCdpPdu(PortID srcPort,
   }
 }
 
-bool LinkNeighbor::parseCdpPayload(PortID srcPort,
-                                   MacAddress srcMac,
-                                   Cursor* cursor) {
+bool LinkNeighbor::parseCdpPayload(
+    PortID srcPort,
+    MacAddress srcMac,
+    Cursor* cursor) {
   bool chassisIdPresent{false};
   bool portIdPresent{false};
   while (!cursor->isAtEnd()) {
@@ -350,4 +353,5 @@ bool LinkNeighbor::parseCdpPayload(PortID srcPort,
   return true;
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

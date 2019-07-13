@@ -9,13 +9,15 @@
  */
 #pragma once
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmCosManager {
-public:
+ public:
   BcmCosManager() {}
   // This is to enable RTTI so that we can downcast.
   virtual ~BcmCosManager() {}
 };
 
-}}
+} // namespace fboss
+} // namespace facebook

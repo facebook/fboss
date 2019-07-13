@@ -11,21 +11,23 @@
 
 #include "fboss/agent/StateObserver.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class StateDelta;
 class SwSwitch;
 
 class PortUpdateHandler : public AutoRegisterStateObserver {
-  public:
-    explicit PortUpdateHandler(SwSwitch* sw);
-    void stateUpdated(const StateDelta& delta) override;
+ public:
+  explicit PortUpdateHandler(SwSwitch* sw);
+  void stateUpdated(const StateDelta& delta) override;
 
-  private:
-    // Forbidden copy constructor and assignment operator
-    PortUpdateHandler(PortUpdateHandler const &) = delete;
-    PortUpdateHandler& operator=(PortUpdateHandler const &) = delete;
+ private:
+  // Forbidden copy constructor and assignment operator
+  PortUpdateHandler(PortUpdateHandler const&) = delete;
+  PortUpdateHandler& operator=(PortUpdateHandler const&) = delete;
 
-    SwSwitch* sw_{nullptr};
+  SwSwitch* sw_{nullptr};
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

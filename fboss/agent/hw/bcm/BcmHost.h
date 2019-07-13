@@ -10,8 +10,8 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/types.h>
 #include <opennsl/l3.h>
+#include <opennsl/types.h>
 }
 
 #include <folly/IPAddress.h>
@@ -31,7 +31,8 @@ extern "C" {
 #include <boost/container/flat_map.hpp>
 #include <boost/container/flat_set.hpp>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmEcmpEgress;
 class BcmEgress;
@@ -58,8 +59,7 @@ class BcmHostEgress : public boost::noncopyable {
 
   opennsl_if_t getEgressId() const {
     CHECK_NE((ownedEgress_ != nullptr), (referencedEgressId_.hasValue()));
-    return ownedEgress_
-        ? ownedEgress_->getID() : referencedEgressId_.value();
+    return ownedEgress_ ? ownedEgress_->getID() : referencedEgressId_.value();
   }
 
  private:
@@ -88,8 +88,7 @@ class BcmHost {
    * For host routes, we only need to do b) since we use
    * a already created egress entry
    */
-  void program(opennsl_if_t intf, folly::MacAddress mac,
-      opennsl_port_t port) {
+  void program(opennsl_if_t intf, folly::MacAddress mac, opennsl_port_t port) {
     return program(intf, &mac, port, NEXTHOPS);
   }
   void programToCPU(opennsl_if_t intf) {
@@ -137,8 +136,8 @@ class BcmHost {
   static int getLookupClassFromL3Host(const opennsl_l3_host_t& host);
   static std::string l3HostToString(const opennsl_l3_host_t& host);
   static bool matchLookupClass(
-    const opennsl_l3_host_t& newHost,
-    const opennsl_l3_host_t& existingHost);
+      const opennsl_l3_host_t& newHost,
+      const opennsl_l3_host_t& existingHost);
   folly::Optional<BcmPortDescriptor> getEgressPortDescriptor() const;
 
   bool isProgrammedToDrop() const {
@@ -160,11 +159,14 @@ class BcmHost {
 
  private:
   // no copy or assignment
-  BcmHost(BcmHost const &) = delete;
-  BcmHost& operator=(BcmHost const &) = delete;
-  void program(opennsl_if_t intf, const folly::MacAddress *mac,
-               opennsl_port_t port, RouteForwardAction action);
-  void initHostCommon(opennsl_l3_host_t *host) const;
+  BcmHost(BcmHost const&) = delete;
+  BcmHost& operator=(BcmHost const&) = delete;
+  void program(
+      opennsl_if_t intf,
+      const folly::MacAddress* mac,
+      opennsl_port_t port,
+      RouteForwardAction action);
+  void initHostCommon(opennsl_l3_host_t* host) const;
 
   void setLookupClassToL3Host(opennsl_l3_host_t* host) const;
 
@@ -256,4 +258,5 @@ class BcmNeighborTable {
   boost::container::flat_map<BcmHostKey, std::shared_ptr<BcmHost>>
       neighborHosts_;
 };
-}}
+} // namespace fboss
+} // namespace facebook

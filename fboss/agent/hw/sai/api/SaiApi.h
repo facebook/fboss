@@ -135,8 +135,7 @@ class SaiApi {
         saiAttributeTs.data(),
         saiAttributeTs.size(),
         std::forward<Args>(args)...);
-    saiApiCheckError(
-        status, T::ApiType, "Failed to create2 sai entity member");
+    saiApiCheckError(status, T::ApiType, "Failed to create2 sai entity member");
     return id;
   }
 

@@ -37,13 +37,13 @@ using RefMapUMap = std::unordered_map<K, V>;
 
 template <typename K, typename V>
 using RefMapFlatMap = boost::container::flat_map<K, V>;
-};
+}; // namespace
 
 template <template <class, class> class M, typename K, typename V>
 class RefMap {
  public:
-  //using MapType = std::unordered_map<K, std::weak_ptr<V>>;
-  //using MapType = boost::container::flat_map<K, std::weak_ptr<V>>;
+  // using MapType = std::unordered_map<K, std::weak_ptr<V>>;
+  // using MapType = boost::container::flat_map<K, std::weak_ptr<V>>;
   using MapType = M<K, std::weak_ptr<V>>;
   using KeyType = K;
   using ValueType = std::weak_ptr<V>;
@@ -60,7 +60,7 @@ class RefMap {
       vsp = itr->second.lock();
       ins = false;
     } else {
-      auto del = [&m = map_, k](V* v) {
+      auto del = [& m = map_, k](V* v) {
         m.erase(k);
         std::default_delete<V>()(v);
       };

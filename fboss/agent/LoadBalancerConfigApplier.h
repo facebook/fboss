@@ -30,8 +30,8 @@ class LoadBalancerConfigParser {
       : platform_(platform) {}
   // The newly created LoadBalancer is returned via std::shared_ptr.
   // Caller is sole owner of the newly constructed LoadBalancer.
-  std::shared_ptr<LoadBalancer> parse(
-      const cfg::LoadBalancer& cfg) const;
+  std::shared_ptr<LoadBalancer> parse(const cfg::LoadBalancer& cfg) const;
+
  private:
   LoadBalancerID parseLoadBalancerID(
       const cfg::LoadBalancer& loadBalancerID) const;

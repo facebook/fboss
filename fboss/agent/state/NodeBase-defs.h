@@ -13,22 +13,22 @@
 
 #include <memory>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-template<typename NodeT, typename FieldsT>
+template <typename NodeT, typename FieldsT>
 std::shared_ptr<NodeT> NodeBaseT<NodeT, FieldsT>::clone() const {
   return std::allocate_shared<NodeT>(CloneAllocator(), self());
 }
 
-template<typename NodeT, typename FieldsT>
+template <typename NodeT, typename FieldsT>
 void NodeBaseT<NodeT, FieldsT>::publish() {
   if (isPublished()) {
     return;
   }
-  writableFields()->forEachChild([](NodeBase* child) {
-    child->publish();
-  });
+  writableFields()->forEachChild([](NodeBase* child) { child->publish(); });
   NodeBase::publish();
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

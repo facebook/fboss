@@ -71,13 +71,13 @@ TEST(EthHdrTest, cursor_data_constructor) {
   vlanTags.push_back(VlanTag(0x88A80003));
   uint16_t etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6);
   auto pkt = MockRxPacket::fromHex(
-    // Ethernet Header
-    "ff ff ff ff ff ff" // Destination MAC Address
-    "10 dd b1 bb 5a ef" // Source MAC Address
-    "81 00 00 01"       // VLAN: 1
-    "88 A8 00 02"       // VLAN: 2
-    "88 A8 00 03"       // VLAN: 3
-    "86 DD"             // EtherType: IPv6
+      // Ethernet Header
+      "ff ff ff ff ff ff" // Destination MAC Address
+      "10 dd b1 bb 5a ef" // Source MAC Address
+      "81 00 00 01" // VLAN: 1
+      "88 A8 00 02" // VLAN: 2
+      "88 A8 00 03" // VLAN: 3
+      "86 DD" // EtherType: IPv6
   );
   Cursor cursor(pkt->buf());
   EthHdr ethHdr(cursor);
@@ -89,27 +89,27 @@ TEST(EthHdrTest, cursor_data_constructor) {
 
 TEST(EthHdrTest, cursor_data_constructor_too_small_0) {
   auto pkt = MockRxPacket::fromHex(
-    // Ethernet Header
-    "ff ff ff ff ff ff" // Destination MAC Address
-    "10 dd b1 bb 5a ef" // Source MAC Address
-    "86   "             // OOPS! One octet too small!
+      // Ethernet Header
+      "ff ff ff ff ff ff" // Destination MAC Address
+      "10 dd b1 bb 5a ef" // Source MAC Address
+      "86   " // OOPS! One octet too small!
   );
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({EthHdr ethHdr(cursor);}, HdrParseError);
+  EXPECT_THROW({ EthHdr ethHdr(cursor); }, HdrParseError);
 }
 
 TEST(EthHdrTest, cursor_data_constructor_too_small_1) {
   auto pkt = MockRxPacket::fromHex(
-    // Ethernet Header
-    "ff ff ff ff ff ff" // Destination MAC Address
-    "10 dd b1 bb 5a ef" // Source MAC Address
-    "81 00 00 01"       // VLAN: 1
-    "88 A8 00 02"       // VLAN: 2
-    "88 A8 00 03"       // VLAN: 3
-    "86   "             // OOPS! One octet too small!
+      // Ethernet Header
+      "ff ff ff ff ff ff" // Destination MAC Address
+      "10 dd b1 bb 5a ef" // Source MAC Address
+      "81 00 00 01" // VLAN: 1
+      "88 A8 00 02" // VLAN: 2
+      "88 A8 00 03" // VLAN: 3
+      "86   " // OOPS! One octet too small!
   );
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({EthHdr ethHdr(cursor);}, HdrParseError);
+  EXPECT_THROW({ EthHdr ethHdr(cursor); }, HdrParseError);
 }
 
 TEST(EthHdrTest, assignment_operator) {

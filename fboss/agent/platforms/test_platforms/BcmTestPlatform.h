@@ -9,9 +9,9 @@
  */
 #pragma once
 
-#include "fboss/agent/types.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestPort.h"
+#include "fboss/agent/types.h"
 
 #include <folly/MacAddress.h>
 
@@ -54,7 +54,7 @@ class BcmTestPlatform : public BcmPlatform {
   bool canUseHostTableForHostRoutes() const override {
     return true;
   }
-  virtual bool hasLinkScanCapability() const  = 0;
+  virtual bool hasLinkScanCapability() const = 0;
   TransceiverIdxThrift getPortMapping(PortID /* unused */) const override {
     return TransceiverIdxThrift();
   }
@@ -86,8 +86,8 @@ class BcmTestPlatform : public BcmPlatform {
 
  private:
   // Forbidden copy constructor and assignment operator
-  BcmTestPlatform(BcmTestPlatform const &) = delete;
-  BcmTestPlatform& operator=(BcmTestPlatform const &) = delete;
+  BcmTestPlatform(BcmTestPlatform const&) = delete;
+  BcmTestPlatform& operator=(BcmTestPlatform const&) = delete;
 
   void initImpl() override {}
   virtual std::unique_ptr<BcmTestPort> createTestPort(PortID portID) const = 0;

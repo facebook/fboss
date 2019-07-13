@@ -10,8 +10,8 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/types.h>
 #include <opennsl/l3.h>
+#include <opennsl/types.h>
 }
 
 #include <folly/IPAddress.h>
@@ -22,10 +22,11 @@ extern "C" {
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/types.h"
 
-#include <boost/noncopyable.hpp>
 #include <boost/container/flat_set.hpp>
+#include <boost/noncopyable.hpp>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmSwitchIf;
 
@@ -61,22 +62,32 @@ class BcmEgress : public BcmEgressBase {
   BcmEgress(const BcmSwitchIf* hw, opennsl_if_t testId)
       : BcmEgressBase(hw, testId) {}
   ~BcmEgress() override;
-  void programToPort(opennsl_if_t intfId, opennsl_vrf_t vrf,
-      const folly::IPAddress& ip, folly::MacAddress mac,
-               opennsl_port_t port) {
+  void programToPort(
+      opennsl_if_t intfId,
+      opennsl_vrf_t vrf,
+      const folly::IPAddress& ip,
+      folly::MacAddress mac,
+      opennsl_port_t port) {
     return program(intfId, vrf, ip, &mac, port, NEXTHOPS);
   }
-  void programToCPU(opennsl_if_t intfId, opennsl_vrf_t vrf,
+  void programToCPU(
+      opennsl_if_t intfId,
+      opennsl_vrf_t vrf,
       const folly::IPAddress& ip) {
     return program(intfId, vrf, ip, nullptr, 0, TO_CPU);
   }
-  void programToDrop(opennsl_if_t intfId, opennsl_vrf_t vrf,
+  void programToDrop(
+      opennsl_if_t intfId,
+      opennsl_vrf_t vrf,
       const folly::IPAddress& ip) {
     return program(intfId, vrf, ip, nullptr, 0, DROP);
   }
-  void programToTrunk(opennsl_if_t intfId, opennsl_vrf_t /* vrf */,
-                      const folly::IPAddress& /* ip */, folly::MacAddress mac,
-                      opennsl_trunk_t trunk);
+  void programToTrunk(
+      opennsl_if_t intfId,
+      opennsl_vrf_t /* vrf */,
+      const folly::IPAddress& /* ip */,
+      folly::MacAddress mac,
+      opennsl_trunk_t trunk);
 
   bool isEcmp() const override {
     return false;
@@ -199,4 +210,5 @@ class BcmEcmpEgress : public BcmEgressBase {
 bool operator==(const opennsl_l3_egress_t& lhs, const opennsl_l3_egress_t& rhs);
 opennsl_mpls_label_t getLabel(const opennsl_l3_egress_t& egress);
 
-}}
+} // namespace fboss
+} // namespace facebook

@@ -11,9 +11,10 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestPort.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 class BcmTestYampPort : public BcmTestPort {
-public:
+ public:
   explicit BcmTestYampPort(PortID id) : BcmTestPort(id) {}
 
   LaneSpeeds supportedLaneSpeeds() const override {
@@ -35,9 +36,10 @@ public:
         TransmitterTechnology::BACKPLANE);
   }
 
-private:
+ private:
   // Forbidden copy constructor and assignment operator
   BcmTestYampPort(BcmTestYampPort const&) = delete;
   BcmTestYampPort& operator=(BcmTestYampPort const&) = delete;
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

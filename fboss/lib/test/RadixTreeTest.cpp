@@ -1,14 +1,14 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include <memory>
 #include <gtest/gtest.h>
+#include <memory>
 
-#include "common/base/Random.h"
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
+#include "common/base/Random.h"
 
-#include "fboss/lib/RadixTree.h"
 #include "PyRadixWrapper.h"
+#include "fboss/lib/RadixTree.h"
 
 using namespace facebook;
 using namespace facebook::network;
@@ -18,10 +18,10 @@ namespace {
 using IPAddress = folly::IPAddress;
 using IPAddressV4 = folly::IPAddressV4;
 using IPAddressV6 = folly::IPAddressV6;
-template<typename IPAddrType>
+template <typename IPAddrType>
 static IPAddrType getIP(const radix_node_t& n);
 
-template<>
+template <>
 IPAddressV4 getIP<IPAddressV4>(const radix_node_t& n) {
   if (n.prefix) {
     return IPAddressV4(n.prefix->add.sin);
@@ -41,10 +41,14 @@ IPAddressV6 getIP<IPAddressV6>(const radix_node_t& n) {
   return IPAddressV6("::");
 }*/
 
-template<typename IPAddrType, typename T>
+template <typename IPAddrType, typename T>
 struct PyRadixNodeAccessor {
-  static const radix_node_t* left(const radix_node_t& n) { return n.l; }
-  static const radix_node_t* right(const radix_node_t& n) { return n.r; }
+  static const radix_node_t* left(const radix_node_t& n) {
+    return n.l;
+  }
+  static const radix_node_t* right(const radix_node_t& n) {
+    return n.r;
+  }
   static const T& value(const radix_node_t& n) {
     return **(static_cast<std::shared_ptr<T>*>(n.data));
   }
@@ -57,50 +61,58 @@ struct PyRadixNodeAccessor {
     return n.bit;
   }
 
-  static bool  isNonValueNode(const radix_node_t& n) {
+  static bool isNonValueNode(const radix_node_t& n) {
     return n.prefix == nullptr;
   }
 };
 
 // Code to compare our radix tree and py-radix tree
-template<typename IPAddrType, typename T>
+template <typename IPAddrType, typename T>
 struct RadixTreeNodeAccessor {
-  typedef RadixTreeNode<IPAddrType, T>  TreeNode;
-  static IPAddrType ipAddress(const TreeNode& node) { return node.ipAddress(); }
-  static uint8_t masklen(const TreeNode& node) { return node.masklen(); }
-  static bool  isNonValueNode(const TreeNode& node){
+  typedef RadixTreeNode<IPAddrType, T> TreeNode;
+  static IPAddrType ipAddress(const TreeNode& node) {
+    return node.ipAddress();
+  }
+  static uint8_t masklen(const TreeNode& node) {
+    return node.masklen();
+  }
+  static bool isNonValueNode(const TreeNode& node) {
     return node.isNonValueNode();
   }
-  static const T&  value(const TreeNode& node) {
+  static const T& value(const TreeNode& node) {
     if (!node.isValueNode()) {
       throw logic_error("Can't access value on non value nodes");
     }
     return node.value();
   }
-  static const TreeNode* left(const TreeNode& node)  { return node.left();  }
-  static const TreeNode* right(const TreeNode& node) { return node.right(); }
+  static const TreeNode* left(const TreeNode& node) {
+    return node.left();
+  }
+  static const TreeNode* right(const TreeNode& node) {
+    return node.right();
+  }
 };
 
-template<typename IPAddrType, typename T>
+template <typename IPAddrType, typename T>
 struct RadixAndPyRadixNodeEqual {
-  bool operator()(const RadixTreeNode<IPAddrType, T>& l,
-      const radix_node_t& r) const {
-      if (RadixTreeNodeAccessor<IPAddrType, T>::isNonValueNode(l) &&
-          PyRadixNodeAccessor<IPAddrType, T>::isNonValueNode(r)) {
-        return RadixTreeNodeAccessor<IPAddrType, T>::masklen(l) ==
+  bool operator()(const RadixTreeNode<IPAddrType, T>& l, const radix_node_t& r)
+      const {
+    if (RadixTreeNodeAccessor<IPAddrType, T>::isNonValueNode(l) &&
+        PyRadixNodeAccessor<IPAddrType, T>::isNonValueNode(r)) {
+      return RadixTreeNodeAccessor<IPAddrType, T>::masklen(l) ==
           PyRadixNodeAccessor<IPAddrType, T>::masklen(r);
-      }
-      return
-         (RadixTreeNodeAccessor<IPAddrType, T>::ipAddress(l) ==
-          PyRadixNodeAccessor<IPAddrType, T>::ipAddress(r) &&
-          RadixTreeNodeAccessor<IPAddrType, T>::masklen(l) ==
-          PyRadixNodeAccessor<IPAddrType, T>::masklen(r) &&
-          RadixTreeNodeAccessor<IPAddrType, T>::isNonValueNode(l) ==
-          PyRadixNodeAccessor<IPAddrType, T>::isNonValueNode(r) &&
-          // Compare values on non internal nodes
-          (RadixTreeNodeAccessor<IPAddrType, T>::isNonValueNode(l) ||
-          RadixTreeNodeAccessor<IPAddrType, T>::value(l) ==
-          PyRadixNodeAccessor<IPAddrType, T>::value(r)));
+    }
+    return (
+        RadixTreeNodeAccessor<IPAddrType, T>::ipAddress(l) ==
+            PyRadixNodeAccessor<IPAddrType, T>::ipAddress(r) &&
+        RadixTreeNodeAccessor<IPAddrType, T>::masklen(l) ==
+            PyRadixNodeAccessor<IPAddrType, T>::masklen(r) &&
+        RadixTreeNodeAccessor<IPAddrType, T>::isNonValueNode(l) ==
+            PyRadixNodeAccessor<IPAddrType, T>::isNonValueNode(r) &&
+        // Compare values on non internal nodes
+        (RadixTreeNodeAccessor<IPAddrType, T>::isNonValueNode(l) ||
+         RadixTreeNodeAccessor<IPAddrType, T>::value(l) ==
+             PyRadixNodeAccessor<IPAddrType, T>::value(r)));
   }
 };
 
@@ -110,37 +122,61 @@ struct RadixAndPyRadixNodeEqual {
  * tree nodes of 2 different radix tree implementation (as long as both
  * nodes satisfy the interface).
  */
-template<typename IPAddrType, typename T, typename NodeA, typename NodeB,
-  typename NodeAAccessor = RadixTreeNodeAccessor<IPAddrType, T>,
-  typename NodeBAccessor = RadixTreeNodeAccessor<IPAddrType, T>>
+template <
+    typename IPAddrType,
+    typename T,
+    typename NodeA,
+    typename NodeB,
+    typename NodeAAccessor = RadixTreeNodeAccessor<IPAddrType, T>,
+    typename NodeBAccessor = RadixTreeNodeAccessor<IPAddrType, T>>
 struct RadixTreeNodeEqualSansLinks {
   bool operator()(const NodeA& nodeA, const NodeB& nodeB) const {
-    return
-      (NodeAAccessor::ipAddress(nodeA) == NodeBAccessor::ipAddress(nodeB) &&
-       NodeAAccessor::masklen(nodeA) == NodeBAccessor::masklen(nodeB) &&
-       NodeAAccessor::isNonValueNode(nodeA) ==
-       NodeBAccessor::isNonValueNode(nodeB) &&
-       // Compare values of nodes that contain values
-       (NodeAAccessor::isNonValueNode(nodeA) ||
-        NodeAAccessor::value(nodeA) == NodeBAccessor::value(nodeB)));
+    return (
+        NodeAAccessor::ipAddress(nodeA) == NodeBAccessor::ipAddress(nodeB) &&
+        NodeAAccessor::masklen(nodeA) == NodeBAccessor::masklen(nodeB) &&
+        NodeAAccessor::isNonValueNode(nodeA) ==
+            NodeBAccessor::isNonValueNode(nodeB) &&
+        // Compare values of nodes that contain values
+        (NodeAAccessor::isNonValueNode(nodeA) ||
+         NodeAAccessor::value(nodeA) == NodeBAccessor::value(nodeB)));
   }
 };
 
 // Compare 2 (sub) radix trees
-template<typename IPAddrType, typename T, typename NodeA, typename NodeB,
-  typename NodeAAccessor = RadixTreeNodeAccessor<IPAddrType, T>,
-  typename NodeBAccessor = RadixTreeNodeAccessor<IPAddrType, T>,
-  typename NodeEqual = RadixTreeNodeEqualSansLinks<T,
-  NodeA, NodeB, NodeAAccessor, NodeBAccessor>>
+template <
+    typename IPAddrType,
+    typename T,
+    typename NodeA,
+    typename NodeB,
+    typename NodeAAccessor = RadixTreeNodeAccessor<IPAddrType, T>,
+    typename NodeBAccessor = RadixTreeNodeAccessor<IPAddrType, T>,
+    typename NodeEqual = RadixTreeNodeEqualSansLinks<
+        T,
+        NodeA,
+        NodeB,
+        NodeAAccessor,
+        NodeBAccessor>>
 bool radixTreeEqual(const NodeA* nodeA, const NodeB* nodeB) {
   if (nodeA && nodeB) {
     if (NodeEqual()(*nodeA, *nodeB)) {
-      return radixTreeEqual<IPAddrType, T, NodeA, NodeB, NodeAAccessor,
-      NodeBAccessor, NodeEqual>(NodeAAccessor::left(*nodeA),
-          NodeBAccessor::left(*nodeB)) &&
-        radixTreeEqual<IPAddrType, T, NodeA, NodeB, NodeAAccessor,
-      NodeBAccessor, NodeEqual>(NodeAAccessor::right(*nodeA),
-          NodeBAccessor::right(*nodeB));
+      return radixTreeEqual<
+                 IPAddrType,
+                 T,
+                 NodeA,
+                 NodeB,
+                 NodeAAccessor,
+                 NodeBAccessor,
+                 NodeEqual>(
+                 NodeAAccessor::left(*nodeA), NodeBAccessor::left(*nodeB)) &&
+          radixTreeEqual<
+                 IPAddrType,
+                 T,
+                 NodeA,
+                 NodeB,
+                 NodeAAccessor,
+                 NodeBAccessor,
+                 NodeEqual>(
+                 NodeAAccessor::right(*nodeA), NodeBAccessor::right(*nodeB));
     } else {
       return false;
     }
@@ -196,7 +232,7 @@ vector<Prefix4> setupTestTree4(RadixTree<IPAddressV4, int>& rtree) {
   /// 0/1 should become the left child of root (0/0). Tests adding a
   // node b/w 2 existing nodes, again w/o needing to create a extra
   // internal node.
-  rtree.insert(ip0_0_0_0,1, 6);
+  rtree.insert(ip0_0_0_0, 1, 6);
   inserted.push_back({ip0_0_0_0, 1});
   // 72/6 should become the left child of 64/3. Tests adding a leaf
   rtree.insert(ip72_0_0_0, 6, 7);
@@ -255,7 +291,7 @@ vector<Prefix6> setupTestTree6(RadixTree<IPAddressV6, int>& rtree) {
   // ::/1 should become the left child of root (::/0). Tests adding a
   // node b/w 2 existing nodes, again w/o needing to create a extra
   // internal node.
-  rtree.insert(ip6_0,1, 6);
+  rtree.insert(ip6_0, 1, 6);
   inserted.push_back({ip6_0, 1});
   // 4800::/6 should become the left child of 4000::/3. Tests adding a leaf
   rtree.insert(ip6_72, 6, 7);
@@ -285,7 +321,7 @@ vector<Prefix6> setupTestTree6(RadixTree<IPAddressV6, int>& rtree) {
   return inserted;
 }
 
-} //Anon namespace end
+} // namespace
 
 TEST(RadixTree, Erase4) {
   // Erase has the following code paths
@@ -325,10 +361,10 @@ TEST(RadixTree, Erase4) {
   // and compare the trails before and after. The only
   // difference should be in the values held on the nodes
   // otherwise the trails should be the same.
-  auto matchItr = rtree.exactMatchWithTrail(ip48_0_0_0, 5, trail,
-      true/* include non value nodes*/);
+  auto matchItr = rtree.exactMatchWithTrail(
+      ip48_0_0_0, 5, trail, true /* include non value nodes*/);
   auto sizeBefore = rtree.size();
-  auto expectedTrail = trailStr(trail, false/*don't print values*/);
+  auto expectedTrail = trailStr(trail, false /*don't print values*/);
   EXPECT_TRUE(!matchItr.atEnd());
   beforeDeleteCount = deleteCount;
   EXPECT_TRUE(rtree.erase(ip0_0_0_0, 1));
@@ -350,8 +386,8 @@ TEST(RadixTree, Erase4) {
   // Trees diverged
   EXPECT_FALSE(rtree == rtreeOrig);
   trail.clear();
-  rtree.exactMatchWithTrail(ip48_0_0_0, 5, trail,
-      true /*include non value nodes*/);
+  rtree.exactMatchWithTrail(
+      ip48_0_0_0, 5, trail, true /*include non value nodes*/);
 
   // Try searching 0/3, this should go till 0/4 and then retreat
   // to the last non value node, which should be NULL.
@@ -361,7 +397,7 @@ TEST(RadixTree, Erase4) {
   auto node = rtree.longestMatch(ip64_0_0_0, 7).node();
   EXPECT_EQ(ip64_0_0_0, node->ipAddress());
   EXPECT_EQ(3, node->masklen());
-  EXPECT_EQ(expectedTrail, trailStr(trail, false/*don't print values*/));
+  EXPECT_EQ(expectedTrail, trailStr(trail, false /*don't print values*/));
   // Test 2 - Delete a node with 1 child. It does not really matter
   // whether the parent is a value node or not, but we test both.
   // Here parent is a value node.
@@ -386,8 +422,8 @@ TEST(RadixTree, Erase4) {
    * 0/4(9) 48/5(8)  72/6(7) 80/4(3)
    */
 
-  rtree.exactMatchWithTrail(ip160_0_0_0, 3, trail,
-      true /*include non value nodes*/);
+  rtree.exactMatchWithTrail(
+      ip160_0_0_0, 3, trail, true /*include non value nodes*/);
   expectedTrail = "0.0.0.0/0(*), 128.0.0.0/1(2), 160.0.0.0/3(5)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
 
@@ -411,8 +447,8 @@ TEST(RadixTree, Erase4) {
   EXPECT_EQ(sizeBefore - 1, rtree.size());
   EXPECT_EQ(sizeBefore - 1, accumulate(rtree.begin(), rtree.end(), 0, counter));
   EXPECT_EQ(beforeDeleteCount + 1, deleteCount);
-  rtree.exactMatchWithTrail(ip160_0_0_0, 3, trail,
-      true /*include non value nodes*/);
+  rtree.exactMatchWithTrail(
+      ip160_0_0_0, 3, trail, true /*include non value nodes*/);
   EXPECT_FALSE(rtree == rtreeOrig);
   expectedTrail = "0.0.0.0/0(*), 160.0.0.0/3(5)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
@@ -436,8 +472,8 @@ TEST(RadixTree, Erase4) {
   EXPECT_EQ(beforeDeleteCount + 2, deleteCount);
   EXPECT_EQ(sizeBefore - 1, rtree.size());
   EXPECT_EQ(sizeBefore - 1, accumulate(rtree.begin(), rtree.end(), 0, counter));
-  rtree.exactMatchWithTrail(ip0_0_0_0, 4, trail,
-      true /*include non value nodes*/);
+  rtree.exactMatchWithTrail(
+      ip0_0_0_0, 4, trail, true /*include non value nodes*/);
   expectedTrail = "0.0.0.0/0(*), 0.0.0.0/1(*), 0.0.0.0/4(9)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
   EXPECT_FALSE(rtree == rtreeOrig);
@@ -458,8 +494,8 @@ TEST(RadixTree, Erase4) {
   EXPECT_EQ(beforeDeleteCount + 2, deleteCount);
   EXPECT_EQ(sizeBefore - 1, rtree.size());
   EXPECT_EQ(sizeBefore - 1, accumulate(rtree.begin(), rtree.end(), 0, counter));
-  rtree.exactMatchWithTrail(ip72_0_0_0, 6, trail,
-      true /*include non value nodes*/);
+  rtree.exactMatchWithTrail(
+      ip72_0_0_0, 6, trail, true /*include non value nodes*/);
   expectedTrail = "0.0.0.0/1(*), 64.0.0.0/3(4), 72.0.0.0/6(7)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
   EXPECT_FALSE(rtree == rtreeOrig);
@@ -480,8 +516,8 @@ TEST(RadixTree, Erase4) {
   EXPECT_EQ(beforeDeleteCount + 1, deleteCount);
   EXPECT_EQ(sizeBefore - 1, rtree.size());
   EXPECT_EQ(sizeBefore - 1, accumulate(rtree.begin(), rtree.end(), 0, counter));
-  rtree.exactMatchWithTrail(ip72_0_0_0, 6, trail,
-      true /*include non value nodes*/);
+  rtree.exactMatchWithTrail(
+      ip72_0_0_0, 6, trail, true /*include non value nodes*/);
   expectedTrail = "0.0.0.0/1(*), 64.0.0.0/3(4), 72.0.0.0/6(7)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
   EXPECT_FALSE(rtree == rtreeOrig);
@@ -510,8 +546,8 @@ TEST(RadixTree, Erase4) {
   EXPECT_EQ(beforeDeleteCount + 1, deleteCount);
   EXPECT_EQ(sizeBefore - 1, rtree.size());
   EXPECT_EQ(sizeBefore - 1, accumulate(rtree.begin(), rtree.end(), 0, counter));
-  rtree.exactMatchWithTrail(ip72_0_0_0, 6, trail,
-      true /*include non value nodes*/);
+  rtree.exactMatchWithTrail(
+      ip72_0_0_0, 6, trail, true /*include non value nodes*/);
   expectedTrail = "72.0.0.0/6(7)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
   EXPECT_FALSE(rtree == rtreeOrig);
@@ -534,8 +570,7 @@ TEST(RadixTree, Erase4) {
 
 TEST(RadixTree, Inserts4) {
   auto valueNodesDeleted = 0;
-  auto valueNodeDeleteCounter = [&] (const
-      RadixTreeNode<IPAddressV4, int>& n) {
+  auto valueNodeDeleteCounter = [&](const RadixTreeNode<IPAddressV4, int>& n) {
     valueNodesDeleted += !n.isNonValueNode();
   };
   RadixTree<IPAddressV4, int> rtree(valueNodeDeleteCounter);
@@ -548,21 +583,24 @@ TEST(RadixTree, Inserts4) {
   trail.clear();
 
   matchItr = rtree.exactMatchWithTrail(ip160_0_0_0, 3, trail, true);
-  expectedTrail = "0.0.0.0/0(*), 128.0.0.0/1(2), 128.0.0.0/2(1), "
-    "160.0.0.0/3(5)";
+  expectedTrail =
+      "0.0.0.0/0(*), 128.0.0.0/1(2), 128.0.0.0/2(1), "
+      "160.0.0.0/3(5)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
   EXPECT_EQ(expectedTrail, trailStr(pathFromRoot(matchItr, true)));
   trail.clear();
 
   matchItr = rtree.exactMatchWithTrail(ip0_0_0_0, 4, trail, true);
-  expectedTrail = "0.0.0.0/0(*), 0.0.0.0/1(6), 0.0.0.0/2(*), "
+  expectedTrail =
+      "0.0.0.0/0(*), 0.0.0.0/1(6), 0.0.0.0/2(*), "
       "0.0.0.0/4(9)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
   EXPECT_EQ(expectedTrail, trailStr(pathFromRoot(matchItr, true)));
   trail.clear();
 
   matchItr = rtree.exactMatchWithTrail(ip48_0_0_0, 5, trail, true);
-  expectedTrail = "0.0.0.0/0(*), 0.0.0.0/1(6), 0.0.0.0/2(*), "
+  expectedTrail =
+      "0.0.0.0/0(*), 0.0.0.0/1(6), 0.0.0.0/2(*), "
       "48.0.0.0/5(8)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
   EXPECT_EQ(expectedTrail, trailStr(pathFromRoot(matchItr, true)));
@@ -600,28 +638,29 @@ TEST(RadixTree, Iterator4) {
   auto prefixesInserted = setupTestTree4(rtree);
   // Verify that we get the same nodes regardless of whether we
   // iterate using a iterator or const iterator.
-  const auto&  crtree = rtree;
+  const auto& crtree = rtree;
   typedef RadixTreeIterator<IPAddressV4, int>::ValueType IterValue;
   typedef RadixTreeConstIterator<IPAddressV4, int>::ValueType CIterValue;
   auto counter = [](int cnt, IterValue /*i*/) { return cnt + 1; };
   auto ccounter = [](int cnt, CIterValue /*i*/) { return cnt + 1; };
 
   EXPECT_EQ(rtree.size(), accumulate(rtree.begin(), rtree.end(), 0, counter));
-  EXPECT_EQ(crtree.size(), accumulate(crtree.begin(), crtree.end(), 0,
-        ccounter));
+  EXPECT_EQ(
+      crtree.size(), accumulate(crtree.begin(), crtree.end(), 0, ccounter));
   auto itr = rtree.begin();
   auto citr = crtree.begin();
-  for (; itr !=  rtree.end() && citr != crtree.end(); itr++, citr++) {
+  for (; itr != rtree.end() && citr != crtree.end(); itr++, citr++) {
     EXPECT_EQ(itr->value(), (*citr).value());
   }
   EXPECT_EQ(itr, rtree.end());
   EXPECT_EQ(citr, crtree.end());
   // Verify that iterator found via exact match is the same
   // as if we had encountered the node while traversing the tree.
-  for (auto pfx: prefixesInserted) {
+  for (auto pfx : prefixesInserted) {
     auto iitr = rtree.exactMatch(pfx.ip, pfx.mask);
     auto jitr = rtree.begin();
-    for (; jitr != rtree.end() && jitr != iitr; ++jitr) ;
+    for (; jitr != rtree.end() && jitr != iitr; ++jitr)
+      ;
     EXPECT_EQ(iitr, jitr);
     for (; iitr != rtree.end() && jitr != rtree.end(); ++iitr, ++jitr) {
       EXPECT_EQ(iitr, jitr);
@@ -634,7 +673,6 @@ TEST(RadixTree, Iterator4) {
   EXPECT_EQ(IterType(), rtree.end());
   EXPECT_EQ(CIterType(), crtree.end());
 }
-
 
 /*
  * V6 tests, these mirror the V4 tests above, with V4 prefixes
@@ -680,10 +718,10 @@ TEST(RadixTree, Erase6) {
   // and compare the trails before and after. The only
   // difference should be in the values held on the nodes
   // otherwise the trails should be the same.
-  auto matchItr = rtree.exactMatchWithTrail(ip6_48, 5, trail,
-      true/* include non value nodes*/);
+  auto matchItr = rtree.exactMatchWithTrail(
+      ip6_48, 5, trail, true /* include non value nodes*/);
   auto sizeBefore = rtree.size();
-  auto expectedTrail = trailStr(trail, false/*don't print values*/);
+  auto expectedTrail = trailStr(trail, false /*don't print values*/);
   EXPECT_FALSE(matchItr->atEnd());
   beforeDeleteCount = deleteCount;
   EXPECT_TRUE(rtree.erase(ip6_0, 1));
@@ -706,9 +744,8 @@ TEST(RadixTree, Erase6) {
   // Trees diverged
   EXPECT_FALSE(rtree == rtreeOrig);
   trail.clear();
-  rtree.exactMatchWithTrail(ip6_48, 5, trail,
-      true /*include non value nodes*/);
-  EXPECT_EQ(expectedTrail, trailStr(trail, false/*don't print values*/));
+  rtree.exactMatchWithTrail(ip6_48, 5, trail, true /*include non value nodes*/);
+  EXPECT_EQ(expectedTrail, trailStr(trail, false /*don't print values*/));
 
   // Try searching ::/3, this should go till ::/4 and then retreat
   // to the last non value node, which should be NULL.
@@ -744,8 +781,8 @@ TEST(RadixTree, Erase6) {
    * ::/4(9) 3000::/5(8)  4800::/6(7) 8::/4(3)
    */
 
-  rtree.exactMatchWithTrail(ip6_160, 3, trail,
-      true /*include non value nodes*/);
+  rtree.exactMatchWithTrail(
+      ip6_160, 3, trail, true /*include non value nodes*/);
   expectedTrail = "::/0(*), 8000::/1(2), a000::/3(5)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
 
@@ -770,8 +807,8 @@ TEST(RadixTree, Erase6) {
   EXPECT_EQ(sizeBefore - 1, rtree.size());
   EXPECT_EQ(sizeBefore - 1, accumulate(rtree.begin(), rtree.end(), 0, counter));
   EXPECT_EQ(beforeDeleteCount + 1, deleteCount);
-  rtree.exactMatchWithTrail(ip6_160, 3, trail,
-      true /*include non value nodes*/);
+  rtree.exactMatchWithTrail(
+      ip6_160, 3, trail, true /*include non value nodes*/);
   EXPECT_FALSE(rtree == rtreeOrig);
   expectedTrail = "::/0(*), a000::/3(5)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
@@ -797,8 +834,7 @@ TEST(RadixTree, Erase6) {
   EXPECT_EQ(beforeDeleteCount + 2, deleteCount);
   EXPECT_EQ(sizeBefore - 1, rtree.size());
   EXPECT_EQ(sizeBefore - 1, accumulate(rtree.begin(), rtree.end(), 0, counter));
-  rtree.exactMatchWithTrail(ip6_0, 4, trail,
-      true /*include non value nodes*/);
+  rtree.exactMatchWithTrail(ip6_0, 4, trail, true /*include non value nodes*/);
   expectedTrail = "::/0(*), ::/1(*), ::/4(9)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
   EXPECT_FALSE(rtree == rtreeOrig);
@@ -820,8 +856,7 @@ TEST(RadixTree, Erase6) {
   EXPECT_EQ(beforeDeleteCount + 2, deleteCount);
   EXPECT_EQ(sizeBefore - 1, rtree.size());
   EXPECT_EQ(sizeBefore - 1, accumulate(rtree.begin(), rtree.end(), 0, counter));
-  rtree.exactMatchWithTrail(ip6_72, 6, trail,
-      true /*include non value nodes*/);
+  rtree.exactMatchWithTrail(ip6_72, 6, trail, true /*include non value nodes*/);
   expectedTrail = "::/1(*), 4000::/3(4), 4800::/6(7)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
   EXPECT_FALSE(rtree == rtreeOrig);
@@ -843,8 +878,7 @@ TEST(RadixTree, Erase6) {
   EXPECT_EQ(beforeDeleteCount + 1, deleteCount);
   EXPECT_EQ(sizeBefore - 1, rtree.size());
   EXPECT_EQ(sizeBefore - 1, accumulate(rtree.begin(), rtree.end(), 0, counter));
-  rtree.exactMatchWithTrail(ip6_72, 6, trail,
-      true /*include non value nodes*/);
+  rtree.exactMatchWithTrail(ip6_72, 6, trail, true /*include non value nodes*/);
   expectedTrail = "::/1(*), 4000::/3(4), 4800::/6(7)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
   EXPECT_FALSE(rtree == rtreeOrig);
@@ -873,8 +907,7 @@ TEST(RadixTree, Erase6) {
   EXPECT_EQ(beforeDeleteCount + 1, deleteCount);
   EXPECT_EQ(sizeBefore - 1, rtree.size());
   EXPECT_EQ(sizeBefore - 1, accumulate(rtree.begin(), rtree.end(), 0, counter));
-  rtree.exactMatchWithTrail(ip6_72, 6, trail,
-      true /*include non value nodes*/);
+  rtree.exactMatchWithTrail(ip6_72, 6, trail, true /*include non value nodes*/);
   expectedTrail = "4800::/6(7)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
   EXPECT_FALSE(rtree == rtreeOrig);
@@ -898,8 +931,7 @@ TEST(RadixTree, Erase6) {
 
 TEST(RadixTree, Inserts6) {
   auto valueNodesDeleted = 0;
-  auto valueNodeDeleteCounter = [&] (
-      const RadixTreeNode<IPAddressV6, int>& n) {
+  auto valueNodeDeleteCounter = [&](const RadixTreeNode<IPAddressV6, int>& n) {
     valueNodesDeleted += !n.isNonValueNode();
   };
   RadixTree<IPAddressV6, int> rtree(valueNodeDeleteCounter);
@@ -911,20 +943,23 @@ TEST(RadixTree, Inserts6) {
   EXPECT_EQ(expectedTrail, trailStr(pathFromRoot(matchItr, true)));
   trail.clear();
   matchItr = rtree.exactMatchWithTrail(ip6_160, 3, trail, true);
-  expectedTrail = "::/0(*), 8000::/1(2), 8000::/2(1), "
-    "a000::/3(5)";
+  expectedTrail =
+      "::/0(*), 8000::/1(2), 8000::/2(1), "
+      "a000::/3(5)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
   EXPECT_EQ(expectedTrail, trailStr(pathFromRoot(matchItr, true)));
   trail.clear();
   matchItr = rtree.exactMatchWithTrail(ip6_0, 4, trail, true);
-  expectedTrail = "::/0(*), ::/1(6), ::/2(*), "
+  expectedTrail =
+      "::/0(*), ::/1(6), ::/2(*), "
       "::/4(9)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
   EXPECT_EQ(expectedTrail, trailStr(pathFromRoot(matchItr, true)));
   trail.clear();
 
   matchItr = rtree.exactMatchWithTrail(ip6_48, 5, trail, true);
-  expectedTrail = "::/0(*), ::/1(6), ::/2(*), "
+  expectedTrail =
+      "::/0(*), ::/1(6), ::/2(*), "
       "3000::/5(8)";
   EXPECT_EQ(expectedTrail, trailStr(trail));
   EXPECT_EQ(expectedTrail, trailStr(pathFromRoot(matchItr, true)));
@@ -962,28 +997,29 @@ TEST(RadixTree, Iterator6) {
   auto prefixesInserted = setupTestTree6(rtree);
   // Verify that we get the same nodes regardless of whether we
   // iterate using a iterator or const iterator.
-  const auto&  crtree = rtree;
+  const auto& crtree = rtree;
   typedef RadixTreeIterator<IPAddressV6, int>::ValueType IterValue;
   typedef RadixTreeConstIterator<IPAddressV6, int>::ValueType CIterValue;
   auto counter = [](int cnt, IterValue /*i*/) { return cnt + 1; };
   auto ccounter = [](int cnt, CIterValue /*i*/) { return cnt + 1; };
 
   EXPECT_EQ(rtree.size(), accumulate(rtree.begin(), rtree.end(), 0, counter));
-  EXPECT_EQ(crtree.size(), accumulate(crtree.begin(), crtree.end(), 0,
-        ccounter));
+  EXPECT_EQ(
+      crtree.size(), accumulate(crtree.begin(), crtree.end(), 0, ccounter));
   auto itr = rtree.begin();
   auto citr = crtree.begin();
-  for (; itr !=  rtree.end() && citr != crtree.end(); itr++, citr++) {
+  for (; itr != rtree.end() && citr != crtree.end(); itr++, citr++) {
     EXPECT_EQ(itr->value(), (*citr).value());
   }
   EXPECT_EQ(itr, rtree.end());
   EXPECT_EQ(citr, crtree.end());
   // Verify that iterator found via exact match is the same
   // as if we had encountered the node while traversing the tree.
-  for (auto pfx: prefixesInserted) {
+  for (auto pfx : prefixesInserted) {
     auto iitr = rtree.exactMatch(pfx.ip, pfx.mask);
     auto jitr = rtree.begin();
-    for (; jitr != rtree.end() && jitr != iitr; ++jitr) ;
+    for (; jitr != rtree.end() && jitr != iitr; ++jitr)
+      ;
     EXPECT_EQ(iitr, jitr);
     for (; iitr != rtree.end() && jitr != rtree.end(); ++iitr, ++jitr) {
       EXPECT_EQ(iitr, jitr);
@@ -1006,60 +1042,75 @@ TEST(RadixTree, CombinedV4AndV6) {
   vector<Prefix6> v6Prefixes;
   setupTestTree4(v4Tree);
   setupTestTree6(v6Tree);
-  for (auto v4itr: v4Tree) {
-    ipTree.insert(IPAddress::fromBinary(
-                    folly::ByteRange(v4itr->ipAddress().bytes(), 4)),
-        v4itr->masklen(), v4itr->value());
+  for (auto v4itr : v4Tree) {
+    ipTree.insert(
+        IPAddress::fromBinary(folly::ByteRange(v4itr->ipAddress().bytes(), 4)),
+        v4itr->masklen(),
+        v4itr->value());
     v4Prefixes.push_back(Prefix4(v4itr->ipAddress(), v4itr->masklen()));
   }
-  for (auto v6itr: v6Tree) {
-     ipTree.insert(IPAddress::fromBinary(
-                     folly::ByteRange(v6itr->ipAddress().bytes(), 16)),
-         v6itr->masklen(), v6itr->value());
-     v6Prefixes.push_back(Prefix6(v6itr->ipAddress(), v6itr->masklen()));
+  for (auto v6itr : v6Tree) {
+    ipTree.insert(
+        IPAddress::fromBinary(folly::ByteRange(v6itr->ipAddress().bytes(), 16)),
+        v6itr->masklen(),
+        v6itr->value());
+    v6Prefixes.push_back(Prefix6(v6itr->ipAddress(), v6itr->masklen()));
   }
   EXPECT_EQ(v4Tree.size() + v6Tree.size(), ipTree.size());
   const auto& ipCtree = ipTree;
   auto ipItr = ipTree.begin();
   auto ipCitr = ipCtree.begin();
   auto v4Itr = v4Tree.begin();
-  for (;ipItr != ipTree.end() && v4Itr != v4Tree.end();
-      ++ipItr, ++v4Itr, ++ipCitr) {
+  for (; ipItr != ipTree.end() && v4Itr != v4Tree.end();
+       ++ipItr, ++v4Itr, ++ipCitr) {
     v4Itr->node()->equalSansLinks(*(ipItr->node4()));
     // Compare with const iterator
     v4Itr->node()->equalSansLinks(*(ipCitr->node4()));
     // Check if exact match returns the same iterator
-    EXPECT_EQ(ipItr,
-              ipTree.exactMatch(
-                IPAddress::fromBinary(
-                  folly::ByteRange(v4Itr->ipAddress().bytes(), 4)),
-                v4Itr->masklen()));
-    EXPECT_EQ(ipCitr,
-              ipCtree.exactMatch(
-                IPAddress::fromBinary(
-                  folly::ByteRange(v4Itr->ipAddress().bytes(), 4)),
-                v4Itr->masklen()));
+    EXPECT_EQ(
+        ipItr,
+        ipTree.exactMatch(
+            IPAddress::fromBinary(
+                folly::ByteRange(v4Itr->ipAddress().bytes(), 4)),
+            v4Itr->masklen()));
+    EXPECT_EQ(
+        ipCitr,
+        ipCtree.exactMatch(
+            IPAddress::fromBinary(
+                folly::ByteRange(v4Itr->ipAddress().bytes(), 4)),
+            v4Itr->masklen()));
     // Check if longest match returns the same iterator
-    EXPECT_EQ(ipItr,
-              ipTree.longestMatch(
-                IPAddress::fromBinary(
-                  folly::ByteRange(v4Itr->ipAddress().bytes(), 4)),
-                v4Itr->masklen()));
-    EXPECT_EQ(ipCitr,
-              ipCtree.longestMatch(
-                IPAddress::fromBinary(
-                  folly::ByteRange(v4Itr->ipAddress().bytes(), 4)),
-                v4Itr->masklen()));
+    EXPECT_EQ(
+        ipItr,
+        ipTree.longestMatch(
+            IPAddress::fromBinary(
+                folly::ByteRange(v4Itr->ipAddress().bytes(), 4)),
+            v4Itr->masklen()));
+    EXPECT_EQ(
+        ipCitr,
+        ipCtree.longestMatch(
+            IPAddress::fromBinary(
+                folly::ByteRange(v4Itr->ipAddress().bytes(), 4)),
+            v4Itr->masklen()));
     // Compare the trails
     decltype(v4Tree)::VecConstIterators v4Trail;
     decltype(ipTree)::VecConstIterators ipTrail;
     decltype(ipTree)::VecConstIterators ipExactMatchTrail;
-    auto v4MatchItr = v4Tree.longestMatchWithTrail(v4Itr->ipAddress(),
-        v4Itr->masklen(), v4Trail, true /*include non value nodes*/);
-    auto ipMatchItr =  ipTree.longestMatchWithTrail(ipItr->ipAddress(),
-        ipItr->masklen(), ipTrail, true /*include non value nodes*/);
-    auto ipExactMatchItr = ipTree.exactMatchWithTrail(ipItr->ipAddress(),
-        ipItr->masklen(), ipExactMatchTrail, true /*include non value nodes*/);
+    auto v4MatchItr = v4Tree.longestMatchWithTrail(
+        v4Itr->ipAddress(),
+        v4Itr->masklen(),
+        v4Trail,
+        true /*include non value nodes*/);
+    auto ipMatchItr = ipTree.longestMatchWithTrail(
+        ipItr->ipAddress(),
+        ipItr->masklen(),
+        ipTrail,
+        true /*include non value nodes*/);
+    auto ipExactMatchItr = ipTree.exactMatchWithTrail(
+        ipItr->ipAddress(),
+        ipItr->masklen(),
+        ipExactMatchTrail,
+        true /*include non value nodes*/);
     EXPECT_TRUE(v4MatchItr->node()->equalSansLinks(*ipMatchItr->node4()));
     EXPECT_TRUE(ipMatchItr->node4()->equalSansLinks(*ipExactMatchItr->node4()));
     EXPECT_EQ(trailStr(ipTrail), trailStr(ipExactMatchTrail));
@@ -1069,41 +1120,60 @@ TEST(RadixTree, CombinedV4AndV6) {
   EXPECT_FALSE(ipItr.atEnd());
   EXPECT_FALSE(ipCitr.atEnd());
   auto v6Itr = v6Tree.begin();
-  for (;v6Itr != v6Tree.end() && ipItr != ipTree.end();
-      // Use of post increment deliberate - to invoke that part of the code
-      v6Itr++, ipItr++, ipCitr++) {
+  for (; v6Itr != v6Tree.end() && ipItr != ipTree.end();
+       // Use of post increment deliberate - to invoke that part of the code
+       v6Itr++,
+       ipItr++,
+       ipCitr++) {
     v6Itr->node()->equalSansLinks(*(ipItr->node6()));
     // Compare with const iterator
     v6Itr->node()->equalSansLinks(*(ipCitr->node6()));
     // Check if exact match returns the same iterator
-    EXPECT_EQ(ipItr, ipTree.exactMatch(
-                IPAddress::fromBinary(
-                  folly::ByteRange(v6Itr->ipAddress().bytes(), 16)),
-                v6Itr->masklen()));
-    EXPECT_EQ(ipCitr, ipCtree.exactMatch(
-                IPAddress::fromBinary(
-                  folly::ByteRange(v6Itr->ipAddress().bytes(), 16)),
-                v6Itr->masklen()));
+    EXPECT_EQ(
+        ipItr,
+        ipTree.exactMatch(
+            IPAddress::fromBinary(
+                folly::ByteRange(v6Itr->ipAddress().bytes(), 16)),
+            v6Itr->masklen()));
+    EXPECT_EQ(
+        ipCitr,
+        ipCtree.exactMatch(
+            IPAddress::fromBinary(
+                folly::ByteRange(v6Itr->ipAddress().bytes(), 16)),
+            v6Itr->masklen()));
     // Check if longest match returns the same iterator
-    EXPECT_EQ(ipItr, ipTree.longestMatch(
-                IPAddress::fromBinary(
-                  folly::ByteRange(v6Itr->ipAddress().bytes(), 16)),
-                v6Itr->masklen()));
-    EXPECT_EQ(ipCitr, ipCtree.longestMatch(
-                IPAddress::fromBinary(
-                  folly::ByteRange(v6Itr->ipAddress().bytes(), 16)),
-                v6Itr->masklen()));
+    EXPECT_EQ(
+        ipItr,
+        ipTree.longestMatch(
+            IPAddress::fromBinary(
+                folly::ByteRange(v6Itr->ipAddress().bytes(), 16)),
+            v6Itr->masklen()));
+    EXPECT_EQ(
+        ipCitr,
+        ipCtree.longestMatch(
+            IPAddress::fromBinary(
+                folly::ByteRange(v6Itr->ipAddress().bytes(), 16)),
+            v6Itr->masklen()));
 
     // Compare the trails
     decltype(v6Tree)::VecConstIterators v6Trail;
     decltype(ipTree)::VecConstIterators ipTrail;
     decltype(ipTree)::VecConstIterators ipExactMatchTrail;
-    auto v6MatchItr = v6Tree.longestMatchWithTrail(v6Itr->ipAddress(),
-        v6Itr->masklen(), v6Trail, true /*include non value nodes*/);
-    auto ipMatchItr =  ipTree.longestMatchWithTrail(ipItr->ipAddress(),
-        ipItr->masklen(), ipTrail, true /*include non value nodes*/);
-    auto ipExactMatchItr = ipTree.exactMatchWithTrail(ipItr->ipAddress(),
-        ipItr->masklen(), ipExactMatchTrail, true /*include non value nodes*/);
+    auto v6MatchItr = v6Tree.longestMatchWithTrail(
+        v6Itr->ipAddress(),
+        v6Itr->masklen(),
+        v6Trail,
+        true /*include non value nodes*/);
+    auto ipMatchItr = ipTree.longestMatchWithTrail(
+        ipItr->ipAddress(),
+        ipItr->masklen(),
+        ipTrail,
+        true /*include non value nodes*/);
+    auto ipExactMatchItr = ipTree.exactMatchWithTrail(
+        ipItr->ipAddress(),
+        ipItr->masklen(),
+        ipExactMatchTrail,
+        true /*include non value nodes*/);
     EXPECT_TRUE(v6MatchItr->node()->equalSansLinks(*ipMatchItr->node6()));
     EXPECT_TRUE(ipMatchItr->node6()->equalSansLinks(*ipExactMatchItr->node6()));
     EXPECT_EQ(trailStr(ipTrail), trailStr(ipExactMatchTrail));
@@ -1137,14 +1207,12 @@ TEST(RadixTree, CombinedV4AndV6) {
 
   // Delete a v4 prefix randomly and compare trees
   auto v4Delete = folly::Random::rand32(v4Prefixes.size() - 1);
-  ipTree.erase(IPAddress(v4Prefixes[v4Delete].ip),
-      v4Prefixes[v4Delete].mask);
+  ipTree.erase(IPAddress(v4Prefixes[v4Delete].ip), v4Prefixes[v4Delete].mask);
   v4Tree.erase(v4Prefixes[v4Delete].ip, v4Prefixes[v4Delete].mask);
 
   // Delete a v6 prefix randomly and compare trees
   auto v6Delete = folly::Random::rand32(v6Prefixes.size() - 1);
-  ipTree.erase(IPAddress(v6Prefixes[v6Delete].ip),
-      v6Prefixes[v6Delete].mask);
+  ipTree.erase(IPAddress(v6Prefixes[v6Delete].ip), v6Prefixes[v6Delete].mask);
   v6Tree.erase(v6Prefixes[v6Delete].ip, v6Prefixes[v6Delete].mask);
   // After erase size of the combined tree should be the same as the
   // sum of size of 2 underlying trees
@@ -1152,21 +1220,18 @@ TEST(RadixTree, CombinedV4AndV6) {
 
   ipItr = ipTree.begin();
   v4Itr = v4Tree.begin();
-  for (;ipItr != ipTree.end() && v4Itr != v4Tree.end();
-      ++ipItr, ++v4Itr) {
+  for (; ipItr != ipTree.end() && v4Itr != v4Tree.end(); ++ipItr, ++v4Itr) {
     v4Itr->node()->equalSansLinks(*(ipItr->node4()));
   }
   EXPECT_TRUE(v4Itr.atEnd());
   EXPECT_FALSE(ipItr.atEnd());
 
   v6Itr = v6Tree.begin();
-  for (;ipItr != ipTree.end() && v6Itr != v6Tree.end();
-      ++ipItr, ++v6Itr) {
+  for (; ipItr != ipTree.end() && v6Itr != v6Tree.end(); ++ipItr, ++v6Itr) {
     v6Itr->node()->equalSansLinks(*(ipItr->node6()));
   }
   EXPECT_TRUE(v6Itr.atEnd());
   EXPECT_TRUE(ipItr.atEnd());
-
 }
 
 /*
@@ -1177,11 +1242,12 @@ TEST(RadixTree, CompositeEmptyV6) {
   RadixTree<IPAddress, int> ipTree;
   vector<Prefix4> v4Prefixes;
   setupTestTree4(v4Tree);
-  for (auto v4itr: v4Tree) {
-     ipTree.insert(IPAddress::fromBinary(
-                     folly::ByteRange(v4itr->ipAddress().bytes(), 4)),
-         v4itr->masklen(), v4itr->value());
-     v4Prefixes.push_back(Prefix4(v4itr->ipAddress(), v4itr->masklen()));
+  for (auto v4itr : v4Tree) {
+    ipTree.insert(
+        IPAddress::fromBinary(folly::ByteRange(v4itr->ipAddress().bytes(), 4)),
+        v4itr->masklen(),
+        v4itr->value());
+    v4Prefixes.push_back(Prefix4(v4itr->ipAddress(), v4itr->masklen()));
   }
   EXPECT_EQ(v4Prefixes.size(), v4Tree.size());
   EXPECT_EQ(v4Tree.size(), ipTree.size());
@@ -1190,8 +1256,7 @@ TEST(RadixTree, CompositeEmptyV6) {
   // and composite tree nodes should be the same.
   auto v4Itr = v4Tree.begin();
   auto ipItr = ipTree.begin();
-  for (;ipItr != ipTree.end() && v4Itr != v4Tree.end();
-      ++ipItr, ++v4Itr) {
+  for (; ipItr != ipTree.end() && v4Itr != v4Tree.end(); ++ipItr, ++v4Itr) {
     v4Itr->node()->equalSansLinks(*(ipItr->node4()));
   }
 }
@@ -1204,11 +1269,12 @@ TEST(RadixTree, CompositeEmptyV4) {
   RadixTree<IPAddress, int> ipTree;
   vector<Prefix6> v6Prefixes;
   setupTestTree6(v6Tree);
-  for (auto v6itr: v6Tree) {
-     ipTree.insert(IPAddress::fromBinary(
-                     folly::ByteRange(v6itr->ipAddress().bytes(), 16)),
-         v6itr->masklen(), v6itr->value());
-     v6Prefixes.push_back(Prefix6(v6itr->ipAddress(), v6itr->masklen()));
+  for (auto v6itr : v6Tree) {
+    ipTree.insert(
+        IPAddress::fromBinary(folly::ByteRange(v6itr->ipAddress().bytes(), 16)),
+        v6itr->masklen(),
+        v6itr->value());
+    v6Prefixes.push_back(Prefix6(v6itr->ipAddress(), v6itr->masklen()));
   }
   EXPECT_EQ(v6Prefixes.size(), v6Tree.size());
   EXPECT_EQ(v6Tree.size(), ipTree.size());
@@ -1217,8 +1283,7 @@ TEST(RadixTree, CompositeEmptyV4) {
   // and composite tree nodes should be the same.
   auto v6Itr = v6Tree.begin();
   auto ipItr = ipTree.begin();
-  for (;ipItr != ipTree.end() && v6Itr != v6Tree.end();
-      ++ipItr, ++v6Itr) {
+  for (; ipItr != ipTree.end() && v6Itr != v6Tree.end(); ++ipItr, ++v6Itr) {
     v6Itr->node()->equalSansLinks(*(ipItr->node6()));
   }
 }
@@ -1240,15 +1305,15 @@ TEST(RadixTree, MoveConstructible) {
   RadixTree<IPAddress, std::unique_ptr<int>> ipRtree;
   std::vector<std::pair<IPAddressV4, uint8_t>> inserted;
   typedef RadixTreeIterator<IPAddressV4, std::unique_ptr<int>>::ValueType
-    IterValueIPv4;
+      IterValueIPv4;
   typedef RadixTreeIterator<IPAddress, std::unique_ptr<int>>::ValueType
-    IterValueIP;
+      IterValueIP;
   auto counterIPv4 = [](int cnt, IterValueIPv4 /*i*/) { return cnt + 1; };
   auto counterIP = [](int cnt, IterValueIP /*i*/) { return cnt + 1; };
   auto const kInsertCount = 100;
   set<Prefix4> prefixesSeen;
   // Insert a kInsertCount random prefixes
-  for (auto i = 0; i < kInsertCount; ) {
+  for (auto i = 0; i < kInsertCount;) {
     auto mask = folly::Random::rand32(32);
     auto ip = IPAddressV4::fromLongHBO(folly::Random::rand32());
     ip = ip.mask(mask);
@@ -1262,34 +1327,35 @@ TEST(RadixTree, MoveConstructible) {
     inserted.emplace_back(std::make_pair(ip, mask));
   }
   EXPECT_EQ(kInsertCount, rtree.size());
-  EXPECT_EQ(kInsertCount, accumulate(rtree.begin(), rtree.end(), 0,
-        counterIPv4));
+  EXPECT_EQ(
+      kInsertCount, accumulate(rtree.begin(), rtree.end(), 0, counterIPv4));
 
   // Set value via iterator
-  rtree.exactMatch(inserted[0].first, inserted[0].second)->setValue(
-      std::make_unique<int>(42));
+  rtree.exactMatch(inserted[0].first, inserted[0].second)
+      ->setValue(std::make_unique<int>(42));
   ipRtree.exactMatch(IPAddress(inserted[0].first), inserted[0].second)
-    ->setValue(std::make_unique<int>(42));
+      ->setValue(std::make_unique<int>(42));
 
   auto const kEraseCount = 20;
   // Delete kEraseCount (randomly selected) prefixes
   for (auto i = 0; i < kEraseCount;) {
     auto erase = folly::Random::rand32(inserted.size());
-    if (rtree.exactMatch(inserted[erase].first, inserted[erase].second)
-        != rtree.end()) {
+    if (rtree.exactMatch(inserted[erase].first, inserted[erase].second) !=
+        rtree.end()) {
       rtree.erase(inserted[erase].first, inserted[erase].second);
       ipRtree.erase(IPAddress(inserted[erase].first), inserted[erase].second);
       ++i;
     }
   }
-  EXPECT_EQ(kInsertCount - kEraseCount, accumulate(rtree.begin(),
-        rtree.end(), 0, counterIPv4));
-  EXPECT_EQ(kInsertCount - kEraseCount, accumulate(ipRtree.begin(),
-        ipRtree.end(), 0, counterIP));
+  EXPECT_EQ(
+      kInsertCount - kEraseCount,
+      accumulate(rtree.begin(), rtree.end(), 0, counterIPv4));
+  EXPECT_EQ(
+      kInsertCount - kEraseCount,
+      accumulate(ipRtree.begin(), ipRtree.end(), 0, counterIP));
 }
 
 TEST(RadixTree, Clone) {
-
   RadixTree<IPAddressV4, int> v4Tree;
   RadixTree<IPAddressV6, int> v6Tree;
   RadixTree<IPAddress, int> ipTree;
@@ -1303,17 +1369,19 @@ TEST(RadixTree, Clone) {
   vector<Prefix6> v6Prefixes;
   setupTestTree4(v4Tree);
   setupTestTree6(v6Tree);
-  for (auto v4itr: v4Tree) {
-    ipTree.insert(IPAddress::fromBinary(
-          folly::ByteRange(v4itr->ipAddress().bytes(), 4)),
-        v4itr->masklen(), v4itr->value());
+  for (auto v4itr : v4Tree) {
+    ipTree.insert(
+        IPAddress::fromBinary(folly::ByteRange(v4itr->ipAddress().bytes(), 4)),
+        v4itr->masklen(),
+        v4itr->value());
     v4Prefixes.push_back(Prefix4(v4itr->ipAddress(), v4itr->masklen()));
   }
-  for (auto v6itr: v6Tree) {
-     ipTree.insert(IPAddress::fromBinary(
-           folly::ByteRange(v6itr->ipAddress().bytes(), 16)),
-         v6itr->masklen(), v6itr->value());
-     v6Prefixes.push_back(Prefix6(v6itr->ipAddress(), v6itr->masklen()));
+  for (auto v6itr : v6Tree) {
+    ipTree.insert(
+        IPAddress::fromBinary(folly::ByteRange(v6itr->ipAddress().bytes(), 16)),
+        v6itr->masklen(),
+        v6itr->value());
+    v6Prefixes.push_back(Prefix6(v6itr->ipAddress(), v6itr->masklen()));
   }
   auto v4TreeCopy = v4Tree.clone();
   auto v6TreeCopy = v6Tree.clone();
@@ -1331,7 +1399,7 @@ TEST(RadixTree, Clone) {
  */
 TEST(RadixTree, PyRadixCompare) {
   struct NoDefaultConstructibleInt {
-    explicit NoDefaultConstructibleInt(int val): val_(val) {}
+    explicit NoDefaultConstructibleInt(int val) : val_(val) {}
     NoDefaultConstructibleInt() = delete;
     bool operator==(const NoDefaultConstructibleInt& r) const {
       return val_ == r.val_;
@@ -1342,12 +1410,12 @@ TEST(RadixTree, PyRadixCompare) {
   PyRadixWrapper<IPAddressV4, NoDefaultConstructibleInt> pyrtree;
   std::vector<std::pair<IPAddressV4, uint8_t>> inserted;
   typedef RadixTreeIterator<IPAddressV4, NoDefaultConstructibleInt>::ValueType
-    IterValue;
+      IterValue;
   auto counter = [](int cnt, IterValue /*i*/) { return cnt + 1; };
   auto const kInsertCount = 1000;
   set<Prefix4> prefixesSeen;
   // Insert a kInsertCount random prefixes
-  for (auto i = 0; i < kInsertCount; ) {
+  for (auto i = 0; i < kInsertCount;) {
     auto mask = folly::Random::rand32(32);
     auto ip = IPAddressV4::fromLongHBO(folly::Random::rand32());
     ip = ip.mask(mask);
@@ -1361,14 +1429,16 @@ TEST(RadixTree, PyRadixCompare) {
     inserted.emplace_back(std::make_pair(ip, mask));
   }
   EXPECT_EQ(kInsertCount, rtree.size());
-  //Compare the trees
-  bool ret = (radixTreeEqual<IPAddressV4, NoDefaultConstructibleInt,
-      RadixTreeNode<IPAddressV4, NoDefaultConstructibleInt>,
-      radix_node_t, RadixTreeNodeAccessor<IPAddressV4,
-      NoDefaultConstructibleInt>,
-      PyRadixNodeAccessor<IPAddressV4, NoDefaultConstructibleInt>,
-      RadixAndPyRadixNodeEqual<IPAddressV4, NoDefaultConstructibleInt>>(
-        rtree.root(), pyrtree.root()));
+  // Compare the trees
+  bool ret = (radixTreeEqual<
+              IPAddressV4,
+              NoDefaultConstructibleInt,
+              RadixTreeNode<IPAddressV4, NoDefaultConstructibleInt>,
+              radix_node_t,
+              RadixTreeNodeAccessor<IPAddressV4, NoDefaultConstructibleInt>,
+              PyRadixNodeAccessor<IPAddressV4, NoDefaultConstructibleInt>,
+              RadixAndPyRadixNodeEqual<IPAddressV4, NoDefaultConstructibleInt>>(
+      rtree.root(), pyrtree.root()));
   EXPECT_TRUE(ret);
   EXPECT_EQ(kInsertCount, accumulate(rtree.begin(), rtree.end(), 0, counter));
 
@@ -1376,24 +1446,27 @@ TEST(RadixTree, PyRadixCompare) {
   // Delete kEraseCount (randomly selected) prefixes
   for (auto i = 0; i < kEraseCount;) {
     auto erase = folly::Random::rand32(inserted.size());
-    if (rtree.exactMatch(inserted[erase].first, inserted[erase].second)
-        != rtree.end()) {
+    if (rtree.exactMatch(inserted[erase].first, inserted[erase].second) !=
+        rtree.end()) {
       rtree.erase(inserted[erase].first, inserted[erase].second);
       pyrtree.erase(inserted[erase].first, inserted[erase].second);
       ++i;
     }
   }
   // Compare the trees
-  ret = (radixTreeEqual<IPAddressV4, NoDefaultConstructibleInt,
-      RadixTreeNode<IPAddressV4, NoDefaultConstructibleInt>,
-      radix_node_t, RadixTreeNodeAccessor<IPAddressV4,
-      NoDefaultConstructibleInt>,
-      PyRadixNodeAccessor<IPAddressV4, NoDefaultConstructibleInt>,
-      RadixAndPyRadixNodeEqual<IPAddressV4, NoDefaultConstructibleInt>>(
-        rtree.root(), pyrtree.root()));
+  ret = (radixTreeEqual<
+         IPAddressV4,
+         NoDefaultConstructibleInt,
+         RadixTreeNode<IPAddressV4, NoDefaultConstructibleInt>,
+         radix_node_t,
+         RadixTreeNodeAccessor<IPAddressV4, NoDefaultConstructibleInt>,
+         PyRadixNodeAccessor<IPAddressV4, NoDefaultConstructibleInt>,
+         RadixAndPyRadixNodeEqual<IPAddressV4, NoDefaultConstructibleInt>>(
+      rtree.root(), pyrtree.root()));
   EXPECT_TRUE(ret);
-  EXPECT_EQ(kInsertCount - kEraseCount, accumulate(rtree.begin(),
-        rtree.end(), 0, counter));
+  EXPECT_EQ(
+      kInsertCount - kEraseCount,
+      accumulate(rtree.begin(), rtree.end(), 0, counter));
 }
 
 /*
@@ -1402,28 +1475,27 @@ TEST(RadixTree, PyRadixCompare) {
 TEST(RadixTree, SubTreeIterator) {
   RadixTree<IPAddress, int> rtree;
   vector<pair<string, pair<int, int>>> subnets = {
-    // { prefix, {begin, end} } - prefix should contain numbers [begin, end)
-    {"1.0.0.0/8", {0, 12}},
-    {"1.1.0.0/16", {1, 6}},
-    {"1.1.1.0/24", {2, 4}},
-    {"1.1.1.254/32", {3, 4}},
-    {"1.1.254.0/24", {4, 6}},
-    {"1.1.254.1/32", {5, 6}},
-    // "1.254.0.0/16", - non-value node
-    {"1.254.1.0/24", {6, 10}},
-    {"1.254.1.0/28", {7, 10}},
-    {"1.254.1.1/32", {8, 9}},
-    {"1.254.1.15/32", {9, 10}},
-    {"1.254.254.0/24", {10, 12}},
-    {"1.254.254.254/32", {11, 12}},
-    {"::/0", {12, 19}},
-    {"::/1", {13, 16}},
-    {"::/2", {14, 15}},
-    {"4000::/2", {15, 16}},
-    {"8000::/1", {16, 19}},
-    {"8000::/2", {17, 18}},
-    {"c000::/2", {18, 19}}
-  };
+      // { prefix, {begin, end} } - prefix should contain numbers [begin, end)
+      {"1.0.0.0/8", {0, 12}},
+      {"1.1.0.0/16", {1, 6}},
+      {"1.1.1.0/24", {2, 4}},
+      {"1.1.1.254/32", {3, 4}},
+      {"1.1.254.0/24", {4, 6}},
+      {"1.1.254.1/32", {5, 6}},
+      // "1.254.0.0/16", - non-value node
+      {"1.254.1.0/24", {6, 10}},
+      {"1.254.1.0/28", {7, 10}},
+      {"1.254.1.1/32", {8, 9}},
+      {"1.254.1.15/32", {9, 10}},
+      {"1.254.254.0/24", {10, 12}},
+      {"1.254.254.254/32", {11, 12}},
+      {"::/0", {12, 19}},
+      {"::/1", {13, 16}},
+      {"::/2", {14, 15}},
+      {"4000::/2", {15, 16}},
+      {"8000::/1", {16, 19}},
+      {"8000::/2", {17, 18}},
+      {"c000::/2", {18, 19}}};
   for (int i = 0; i < subnets.size(); ++i) {
     auto subnet = IPAddress::createNetwork(subnets[i].first);
     int value = subnets[i].second.first;

@@ -9,16 +9,19 @@
  */
 #pragma once
 
-#include <folly/lang/Bits.h>
 #include <folly/IPAddressV4.h>
-#include "fboss/agent/types.h"
+#include <folly/lang/Bits.h>
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/types.h"
 
-namespace folly { namespace io {
+namespace folly {
+namespace io {
 class Cursor;
-}}
+}
+} // namespace folly
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwSwitch;
 
@@ -27,7 +30,7 @@ class IPHeaderV4 {
   IPHeaderV4() {
     memset(&hdr_[0], 0, sizeof(hdr_));
   }
-  void parse(SwSwitch *sw, PortID port, folly::io::Cursor* cursor);
+  void parse(SwSwitch* sw, PortID port, folly::io::Cursor* cursor);
 
   uint8_t getVersion() const {
     return hdr_[0] >> 4;
@@ -68,8 +71,9 @@ class IPHeaderV4 {
   folly::IPAddressV4 getDstIP() const {
     return folly::IPAddressV4::fromLongHBO(read<uint32_t>(16));
   }
+
  private:
-  template<typename T>
+  template <typename T>
   T read(uint32_t pos) const {
     return readBuffer<T>(hdr_, pos, sizeof(hdr_));
   }
@@ -77,4 +81,5 @@ class IPHeaderV4 {
   // TODO. Options
 };
 
-}}
+} // namespace fboss
+} // namespace facebook

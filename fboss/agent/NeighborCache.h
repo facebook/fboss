@@ -9,9 +9,9 @@
  */
 #pragma once
 
-#include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/NeighborCacheImpl-defs.h"
 #include "fboss/agent/NeighborCacheEntry.h"
+#include "fboss/agent/NeighborCacheImpl-defs.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/PortDescriptor.h"
 
 #include <folly/IPAddress.h>
@@ -23,7 +23,8 @@
 #include <list>
 #include <string>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * This class manages the sw state of the neighbor tables. All of the
@@ -39,12 +40,13 @@ namespace facebook { namespace fboss {
 template <typename NTable>
 class NeighborCache {
   friend class NeighborCacheEntry<NTable>;
+
  public:
   typedef typename NTable::Entry::AddressType AddressType;
 
   virtual ~NeighborCache() {}
 
-  bool flushEntryBlocking (AddressType ip) {
+  bool flushEntryBlocking(AddressType ip) {
     std::lock_guard<std::mutex> g(cacheLock_);
     return impl_->flushEntryBlocking(ip);
   }
@@ -94,21 +96,27 @@ class NeighborCache {
   void clearEntries() {
     impl_->clearEntries();
   }
+
  protected:
   // protected constructor since this is only meant to be inherited from
-  NeighborCache(SwSwitch* sw,
-                VlanID vlanID,
-                std::string vlanName,
-                InterfaceID intfID,
-                std::chrono::seconds timeout,
-                uint32_t maxNeighborProbes,
-                std::chrono::seconds staleEntryInterval)
+  NeighborCache(
+      SwSwitch* sw,
+      VlanID vlanID,
+      std::string vlanName,
+      InterfaceID intfID,
+      std::chrono::seconds timeout,
+      uint32_t maxNeighborProbes,
+      std::chrono::seconds staleEntryInterval)
       : sw_(sw),
         timeout_(timeout),
         maxNeighborProbes_(maxNeighborProbes),
         staleEntryInterval_(staleEntryInterval),
         impl_(std::make_unique<NeighborCacheImpl<NTable>>(
-            this, sw, vlanID, vlanName, intfID)) {}
+            this,
+            sw,
+            vlanID,
+            vlanName,
+            intfID)) {}
 
   // Methods useful for subclasses
   void setPendingEntry(AddressType ip) {
@@ -116,24 +124,25 @@ class NeighborCache {
     impl_->setPendingEntry(ip);
   }
 
-  void setExistingEntry(AddressType ip,
-                        folly::MacAddress mac,
-                        PortDescriptor port,
-                        NeighborEntryState state) {
+  void setExistingEntry(
+      AddressType ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      NeighborEntryState state) {
     std::lock_guard<std::mutex> g(cacheLock_);
     impl_->setExistingEntry(ip, mac, port, state);
   }
 
-  void setEntry(AddressType ip,
-                folly::MacAddress mac,
-                PortDescriptor port,
-                NeighborEntryState state) {
+  void setEntry(
+      AddressType ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      NeighborEntryState state) {
     std::lock_guard<std::mutex> g(cacheLock_);
     impl_->setEntry(ip, mac, port, state);
   }
 
-  void updateEntryState(AddressType ip,
-                        NeighborEntryState state) {
+  void updateEntryState(AddressType ip, NeighborEntryState state) {
     std::lock_guard<std::mutex> g(cacheLock_);
     impl_->updateEntryState(ip, state);
   }
@@ -145,7 +154,6 @@ class NeighborCache {
     // reference to memory that could be deleted.
     return impl_->cloneEntryFields(ip);
   }
-
 
   SwSwitch* getSw() const {
     return sw_;
@@ -174,7 +182,6 @@ class NeighborCache {
   uint32_t getMaxNeighborProbes() const {
     return maxNeighborProbes_;
   }
-
 
  private:
   // This should only be called by a NeighborCacheEntry
@@ -208,8 +215,8 @@ class NeighborCache {
   }
 
   // Forbidden copy constructor and assignment operator
-  NeighborCache(NeighborCache const &) = delete;
-  NeighborCache& operator=(NeighborCache const &) = delete;
+  NeighborCache(NeighborCache const&) = delete;
+  NeighborCache& operator=(NeighborCache const&) = delete;
 
   SwSwitch* sw_;
   std::chrono::seconds timeout_;
@@ -219,4 +226,5 @@ class NeighborCache {
   std::mutex cacheLock_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

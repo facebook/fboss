@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include "fboss/lib/usb/BaseWedgeI2CBus.h"
 #include <array>
+#include "fboss/lib/usb/BaseWedgeI2CBus.h"
 
 namespace facebook {
 namespace fboss {
@@ -54,5 +54,5 @@ class PCA9548MultiplexedBus : public BaseWedgeI2CBus {
   const unsigned int numPorts_{0};
   const QsfpAddressMap_t qsfpAddressMap_;
 };
-}
-} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

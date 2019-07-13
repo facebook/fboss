@@ -14,9 +14,9 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SysError.h"
-#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/SwitchState.h"
 
 #include <folly/FileUtil.h>
 #include <folly/dynamic.h>
@@ -28,7 +28,8 @@
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 void utilCreateDir(folly::StringPiece path) {
   try {
@@ -38,12 +39,13 @@ void utilCreateDir(folly::StringPiece path) {
   }
 }
 
-IPAddressV4 getSwitchVlanIP(const std::shared_ptr<SwitchState>& state,
-                            VlanID vlan) {
+IPAddressV4 getSwitchVlanIP(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlan) {
   IPAddressV4 switchIp;
   auto vlanInterface = state->getInterfaces()->getInterfaceInVlan(vlan);
   auto& addresses = vlanInterface->getAddresses();
-  for (const auto& address: addresses) {
+  for (const auto& address : addresses) {
     if (address.first.isV4()) {
       switchIp = address.first.asV4();
       return switchIp;
@@ -52,12 +54,13 @@ IPAddressV4 getSwitchVlanIP(const std::shared_ptr<SwitchState>& state,
   throw FbossError("Cannot find IP address for vlan", vlan);
 }
 
-IPAddressV6 getSwitchVlanIPv6(const std::shared_ptr<SwitchState>& state,
-                              VlanID vlan) {
+IPAddressV6 getSwitchVlanIPv6(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlan) {
   IPAddressV6 switchIp;
   auto vlanInterface = state->getInterfaces()->getInterfaceInVlan(vlan);
   auto& addresses = vlanInterface->getAddresses();
-  for (const auto& address: addresses) {
+  for (const auto& address : addresses) {
     if (address.first.isV6()) {
       switchIp = address.first.asV6();
       return switchIp;
@@ -88,13 +91,12 @@ void incNiceValue(const uint32_t increment) {
   errno = oldErrno;
 }
 
-bool dumpStateToFile(const std::string& filename,
-    const folly::dynamic& json) {
+bool dumpStateToFile(const std::string& filename, const folly::dynamic& json) {
   return folly::writeFile(folly::toPrettyJson(json), filename.c_str());
 }
 
 std::string getLocalHostname() {
-  const size_t kHostnameMaxLen = 256;  // from gethostname man page
+  const size_t kHostnameMaxLen = 256; // from gethostname man page
   char hostname[kHostnameMaxLen];
   if (gethostname(hostname, sizeof(hostname)) != 0) {
     XLOG(ERR) << "gethostname() failed";
@@ -115,4 +117,5 @@ std::vector<ClientID> StdClientIds2AllClientIDs() {
       StdClientIds2ClientID(StdClientIds::OPENR),
   };
 }
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

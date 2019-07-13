@@ -144,8 +144,7 @@ BcmTrunkStats::accumulateMemberStats() const {
       cumulativeSum.inIpv4HdrErrors_ += memberStats.inIpv4HdrErrors_;
       cumulativeSum.inIpv6HdrErrors_ += memberStats.inIpv6HdrErrors_;
       cumulativeSum.inDiscardsRaw_ += memberStats.inDiscardsRaw_;
-      cumulativeSum.inDstNullDiscards_ +=
-          memberStats.inDstNullDiscards_;
+      cumulativeSum.inDstNullDiscards_ += memberStats.inDstNullDiscards_;
 
       cumulativeSum.outBytes_ += memberStats.outBytes_;
       cumulativeSum.outUnicastPkts_ += memberStats.outUnicastPkts_;
@@ -168,30 +167,30 @@ BcmTrunkStats::accumulateMemberStats() const {
 }
 
 void BcmTrunkStats::clearHwTrunkStats(HwTrunkStats& stats) {
-  stats.inBytes_            = 0;
-  stats.inUnicastPkts_      = 0;
-  stats.inMulticastPkts_    = 0;
-  stats.inBroadcastPkts_    = 0;
-  stats.inDiscards_         = 0;
-  stats.inErrors_           = 0;
-  stats.inPause_            = 0;
-  stats.inIpv4HdrErrors_    = 0;
-  stats.inIpv6HdrErrors_    = 0;
-  stats.inDiscardsRaw_      = 0;
+  stats.inBytes_ = 0;
+  stats.inUnicastPkts_ = 0;
+  stats.inMulticastPkts_ = 0;
+  stats.inBroadcastPkts_ = 0;
+  stats.inDiscards_ = 0;
+  stats.inErrors_ = 0;
+  stats.inPause_ = 0;
+  stats.inIpv4HdrErrors_ = 0;
+  stats.inIpv6HdrErrors_ = 0;
+  stats.inDiscardsRaw_ = 0;
   stats.inDstNullDiscards_ = 0;
 
-  stats.outBytes_                 = 0;
-  stats.outUnicastPkts_           = 0;
-  stats.outMulticastPkts_         = 0;
-  stats.outBroadcastPkts_         = 0;
-  stats.outDiscards_              = 0;
-  stats.outErrors_                = 0;
-  stats.outPause_                 = 0;
+  stats.outBytes_ = 0;
+  stats.outUnicastPkts_ = 0;
+  stats.outMulticastPkts_ = 0;
+  stats.outBroadcastPkts_ = 0;
+  stats.outDiscards_ = 0;
+  stats.outErrors_ = 0;
+  stats.outPause_ = 0;
   stats.outCongestionDiscardPkts_ = 0;
 }
 
-stats::MonotonicCounter* FOLLY_NULLABLE BcmTrunkStats::getCounterIf(
-    folly::StringPiece counterKey) {
+stats::MonotonicCounter* FOLLY_NULLABLE
+BcmTrunkStats::getCounterIf(folly::StringPiece counterKey) {
   auto it = counters_.find(counterKey.str());
   if (it == counters_.end()) {
     return nullptr;

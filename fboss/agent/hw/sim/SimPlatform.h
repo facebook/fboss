@@ -11,7 +11,8 @@
 
 #include "fboss/agent/Platform.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SimSwitch;
 
@@ -42,8 +43,8 @@ class SimPlatform : public Platform {
 
  private:
   // Forbidden copy constructor and assignment operator
-  SimPlatform(SimPlatform const &) = delete;
-  SimPlatform& operator=(SimPlatform const &) = delete;
+  SimPlatform(SimPlatform const&) = delete;
+  SimPlatform& operator=(SimPlatform const&) = delete;
 
   void initImpl() {}
 
@@ -51,4 +52,5 @@ class SimPlatform : public Platform {
   std::unique_ptr<SimSwitch> hw_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

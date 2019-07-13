@@ -11,26 +11,29 @@
 
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 void BcmWarmBootCache::populateAcls(
-  const int /*groupId*/,
-  AclEntry2AclStat& /*stats*/,
-  Priority2BcmAclEntryHandle& /*acls*/) {}
+    const int /*groupId*/,
+    AclEntry2AclStat& /*stats*/,
+    Priority2BcmAclEntryHandle& /*acls*/) {}
 
-void BcmWarmBootCache::populateAclStats(const BcmAclEntryHandle /*acl*/,
-  AclEntry2AclStat& /*stats*/) {}
+void BcmWarmBootCache::populateAclStats(
+    const BcmAclEntryHandle /*acl*/,
+    AclEntry2AclStat& /*stats*/) {}
 
 void BcmWarmBootCache::removeBcmAcl(BcmAclEntryHandle /*handle*/) {}
 
 void BcmWarmBootCache::removeBcmAclStat(BcmAclStatHandle /*handle*/) {}
 
-void BcmWarmBootCache::detachBcmAclStat(BcmAclEntryHandle /*acl handle*/,
-  BcmAclStatHandle /*stat handle*/) {}
+void BcmWarmBootCache::detachBcmAclStat(
+    BcmAclEntryHandle /*acl handle*/,
+    BcmAclStatHandle /*stat handle*/) {}
 
 void BcmWarmBootCache::populateMirrors() {}
 
-void BcmWarmBootCache:: populateMirroredPorts() {}
+void BcmWarmBootCache::populateMirroredPorts() {}
 
 void BcmWarmBootCache::populateMirroredPort(opennsl_gport_t /*port*/) {}
 void BcmWarmBootCache::populateMirroredAcl(BcmAclEntryHandle /*handle*/) {}
@@ -46,4 +49,5 @@ void BcmWarmBootCache::removeUnclaimedMirror(BcmMirrorHandle /*mirror*/) {}
 void BcmWarmBootCache::populateIngressQosMaps() {}
 void BcmWarmBootCache::populateLabelSwitchActions() {}
 void BcmWarmBootCache::removeUnclaimedLabelSwitchActions() {}
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

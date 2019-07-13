@@ -99,8 +99,7 @@ MirrorManagerImpl<AddrT>::resolveMirrorNextHopNeighbor(
   if (!neighbor || neighbor->zeroPort() ||
       !neighbor->getPort().isPhysicalPort() ||
       (mirror->configHasEgressPort() &&
-       neighbor->getPort().phyPortID() !=
-           mirror->getEgressPort().value())) {
+       neighbor->getPort().phyPortID() != mirror->getEgressPort().value())) {
     /* TODO: support mirroring over LAG port */
     return std::shared_ptr<NeighborEntryT>(nullptr);
   }
@@ -117,10 +116,7 @@ MirrorTunnel MirrorManagerImpl<AddrT>::resolveMirrorTunnel(
   const auto iter = interface->getAddressToReach(neighbor->getIP());
 
   return MirrorTunnel(
-      iter->first,
-      destinationIp,
-      interface->getMac(),
-      neighbor->getMac());
+      iter->first, destinationIp, interface->getMac(), neighbor->getMac());
 }
 
 template class MirrorManagerImpl<folly::IPAddressV4>;

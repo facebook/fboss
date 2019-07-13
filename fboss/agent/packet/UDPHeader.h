@@ -9,15 +9,18 @@
  */
 #pragma once
 
-#include "fboss/agent/types.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
+#include "fboss/agent/types.h"
 
-namespace folly { namespace io {
+namespace folly {
+namespace io {
 class Cursor;
-}}
+}
+} // namespace folly
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class IPv4Hdr;
 class IPv6Hdr;
@@ -26,15 +29,20 @@ class SwSwitch;
 struct UDPHeader {
  public:
   UDPHeader() : srcPort(0), dstPort(0), length(0), csum(0) {}
-  UDPHeader(uint16_t _srcPort, uint16_t _dstPort, uint16_t _length,
-      uint16_t _csum = 0) :  srcPort(_srcPort), dstPort(_dstPort),
-  length(_length), csum(_csum)  {}
+  UDPHeader(
+      uint16_t _srcPort,
+      uint16_t _dstPort,
+      uint16_t _length,
+      uint16_t _csum = 0)
+      : srcPort(_srcPort), dstPort(_dstPort), length(_length), csum(_csum) {}
 
   bool operator==(const UDPHeader& r) const;
   /*
    * Accessors
    */
-  static size_t size() { return 8; }
+  static size_t size() {
+    return 8;
+  }
   /*
    * Output as a string
    */
@@ -42,16 +50,18 @@ struct UDPHeader {
   /*
    * Write out to a buffer
    */
-  template<typename CursorType>
+  template <typename CursorType>
   void write(CursorType* cursor) const;
 
   void parse(folly::io::Cursor* cursor);
 
-  uint16_t computeChecksum(const IPv4Hdr& ipv4Hdr,
-                           const folly::io::Cursor& cursor) const;
+  uint16_t computeChecksum(
+      const IPv4Hdr& ipv4Hdr,
+      const folly::io::Cursor& cursor) const;
   void updateChecksum(const IPv4Hdr& ipv4Hdr, const folly::io::Cursor& cursor);
-  uint16_t computeChecksum(const IPv6Hdr& ipv6Hdr,
-                           const folly::io::Cursor& cursor) const;
+  uint16_t computeChecksum(
+      const IPv6Hdr& ipv6Hdr,
+      const folly::io::Cursor& cursor) const;
   void updateChecksum(const IPv6Hdr& ipv6Hdr, const folly::io::Cursor& cursor);
 
   uint16_t srcPort;
@@ -60,9 +70,9 @@ struct UDPHeader {
   uint16_t csum;
 
  private:
-  template<typename IPHDR>
-  uint16_t computeChecksumImpl(const IPHDR& ip,
-                               const folly::io::Cursor& cursor) const;
+  template <typename IPHDR>
+  uint16_t computeChecksumImpl(const IPHDR& ip, const folly::io::Cursor& cursor)
+      const;
 };
 
 // toAppend to make folly::to<string> work with UDP header
@@ -79,11 +89,12 @@ inline std::ostream& operator<<(std::ostream& os, const UDPHeader& udpHdr) {
   return os;
 }
 
-template<typename CursorType>
+template <typename CursorType>
 void UDPHeader::write(CursorType* cursor) const {
   cursor->template writeBE<uint16_t>(srcPort);
   cursor->template writeBE<uint16_t>(dstPort);
   cursor->template writeBE<uint16_t>(length);
   cursor->template writeBE<uint16_t>(csum);
 }
-}}
+} // namespace fboss
+} // namespace facebook

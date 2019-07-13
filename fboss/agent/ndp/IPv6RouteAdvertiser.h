@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include <folly/io/IOBuf.h>
 #include <folly/io/Cursor.h>
+#include <folly/io/IOBuf.h>
 #include <folly/io/async/AsyncTimeout.h>
 
 namespace folly {
@@ -18,9 +18,10 @@ namespace folly {
 class MacAddress;
 class IPAddressV6;
 
-}
+} // namespace folly
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class Interface;
 class IPv6RAImpl;
@@ -37,8 +38,10 @@ class SwSwitch;
  */
 class IPv6RouteAdvertiser {
  public:
-  IPv6RouteAdvertiser(SwSwitch* sw, const SwitchState* state,
-                      const Interface* intf);
+  IPv6RouteAdvertiser(
+      SwSwitch* sw,
+      const SwitchState* state,
+      const Interface* intf);
   ~IPv6RouteAdvertiser();
 
   // IPv6RouteAdvertiser objects are movable
@@ -46,10 +49,11 @@ class IPv6RouteAdvertiser {
   IPv6RouteAdvertiser& operator=(IPv6RouteAdvertiser&& other) noexcept;
 
   static uint32_t getPacketSize(const Interface* intf);
-  static void createAdvertisementPacket(const Interface* intf,
-                                        folly::io::RWPrivateCursor* cursor,
-                                        folly::MacAddress dstMac,
-                                        const folly::IPAddressV6& dstIP);
+  static void createAdvertisementPacket(
+      const Interface* intf,
+      folly::io::RWPrivateCursor* cursor,
+      folly::MacAddress dstMac,
+      const folly::IPAddressV6& dstIP);
 
  private:
   /*
@@ -64,4 +68,5 @@ class IPv6RouteAdvertiser {
   IPv6RAImpl* adv_{nullptr};
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

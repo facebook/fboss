@@ -9,24 +9,25 @@
  */
 #pragma once
 
-#include "fboss/agent/hw/bcm/BcmPlatform.h"
-#include "fboss/agent/types.h"
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/StateObserver.h"
+#include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
-#include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
+#include "fboss/agent/types.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
+#include <boost/container/flat_map.hpp>
 #include <folly/MacAddress.h>
 #include <folly/Range.h>
-#include <boost/container/flat_map.hpp>
 #include <memory>
 #include <unordered_map>
 
 DECLARE_bool(enable_routes_in_host_table);
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class BcmSwitch;
 class WedgePort;
@@ -77,8 +78,8 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
 
  private:
   // Forbidden copy constructor and assignment operator
-  WedgePlatform(WedgePlatform const &) = delete;
-  WedgePlatform& operator=(WedgePlatform const &) = delete;
+  WedgePlatform(WedgePlatform const&) = delete;
+  WedgePlatform& operator=(WedgePlatform const&) = delete;
 
   void initLocalMac();
   virtual void initLEDs();
@@ -97,4 +98,5 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   std::unique_ptr<BcmWarmBootHelper> warmBootHelper_;
 };
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

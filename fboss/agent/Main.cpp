@@ -31,42 +31,46 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
 
+#include <gflags/gflags.h>
 #include <chrono>
 #include <condition_variable>
 #include <csignal>
 #include <cstdio>
-#include <future>
 #include <functional>
-#include <string>
+#include <future>
 #include <mutex>
-#include <gflags/gflags.h>
+#include <string>
 
-using folly::FunctionScheduler;
 using apache::thrift::ThriftServer;
 using folly::AsyncSignalHandler;
 using folly::EventBase;
+using folly::FunctionScheduler;
 using folly::SocketAddress;
-using std::shared_ptr;
-using std::unique_ptr;
-using std::mutex;
-using std::chrono::seconds;
 using std::condition_variable;
+using std::mutex;
+using std::shared_ptr;
 using std::string;
+using std::unique_ptr;
+using std::chrono::seconds;
 using namespace std::chrono;
 
 DEFINE_int32(port, 5909, "The thrift server port");
-DEFINE_int32(stat_publish_interval_ms, 1000,
-             "How frequently to publish thread-local stats back to the "
-             "global store.  This should generally be less than 1 second.");
-DEFINE_bool(tun_intf, true,
-            "Create tun interfaces to allow other processes to "
-            "send and receive traffic via the switch ports");
+DEFINE_int32(
+    stat_publish_interval_ms,
+    1000,
+    "How frequently to publish thread-local stats back to the "
+    "global store.  This should generally be less than 1 second.");
+DEFINE_bool(
+    tun_intf,
+    true,
+    "Create tun interfaces to allow other processes to "
+    "send and receive traffic via the switch ports");
 DEFINE_bool(enable_lacp, false, "Run LACP in agent");
-DEFINE_bool(enable_lldp, true,
-            "Run LLDP protocol in agent");
-DEFINE_bool(publish_boot_type, true,
-            "Publish boot type on startup");
-DEFINE_int32(flush_warmboot_cache_secs, 60,
+DEFINE_bool(enable_lldp, true, "Run LLDP protocol in agent");
+DEFINE_bool(publish_boot_type, true, "Publish boot type on startup");
+DEFINE_int32(
+    flush_warmboot_cache_secs,
+    60,
     "Seconds to wait before flushing warm boot cache");
 DECLARE_int32(thrift_idle_timeout);
 DEFINE_bool(
@@ -82,20 +86,20 @@ namespace {
  * This function is executed periodically by the UpdateStats thread.
  * It calls the hardware-specific function of the same name.
  */
-void updateStats(SwSwitch *swSwitch) {
+void updateStats(SwSwitch* swSwitch) {
   swSwitch->updateStats();
 }
-}
+} // namespace
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class Initializer {
  public:
   Initializer(SwSwitch* sw, Platform* platform)
-    : sw_(sw),
-      platform_(platform) {}
+      : sw_(sw), platform_(platform) {}
 
   void start() {
     std::thread t(&Initializer::initThread, this);
@@ -104,7 +108,7 @@ class Initializer {
 
   void stopFunctionScheduler() {
     std::unique_lock<mutex> lk(initLock_);
-    initCondition_.wait(lk, [&] { return sw_->isFullyInitialized();});
+    initCondition_.wait(lk, [&] { return sw_->isFullyInitialized(); });
     if (fs_) {
       fs_->shutdown();
     }
@@ -129,7 +133,7 @@ class Initializer {
       flags |= SwitchFlags::ENABLE_TUN;
     }
     if (FLAGS_enable_lldp) {
-      flags |=  SwitchFlags::ENABLE_LLDP;
+      flags |= SwitchFlags::ENABLE_LLDP;
     }
     if (FLAGS_publish_boot_type) {
       flags |= SwitchFlags::PUBLISH_STATS;
@@ -146,8 +150,8 @@ class Initializer {
     // Determining the local MAC address can also take a few seconds the first
     // time it is called, so perform this operation asynchronously, in parallel
     // with the switch initialization.
-    auto ret = std::async(std::launch::async,
-                          &Platform::getLocalMac, platform_);
+    auto ret =
+        std::async(std::launch::async, &Platform::getLocalMac, platform_);
 
     // Initialize the switch.  This operation can take close to a minute
     // on some of our current platforms.
@@ -180,9 +184,9 @@ class Initializer {
     initCondition_.notify_all();
   }
 
-  SwSwitch *sw_;
-  Platform *platform_;
-  FunctionScheduler *fs_;
+  SwSwitch* sw_;
+  Platform* platform_;
+  FunctionScheduler* fs_;
   mutex initLock_;
   condition_variable initCondition_;
 };
@@ -191,10 +195,10 @@ class Initializer {
  */
 class SignalHandler : public AsyncSignalHandler {
   typedef std::function<void()> StopServices;
+
  public:
-  SignalHandler(EventBase* eventBase, SwSwitch* sw,
-      StopServices stopServices) :
-    AsyncSignalHandler(eventBase), sw_(sw), stopServices_(stopServices) {
+  SignalHandler(EventBase* eventBase, SwSwitch* sw, StopServices stopServices)
+      : AsyncSignalHandler(eventBase), sw_(sw), stopServices_(stopServices) {
     registerSignalHandler(SIGINT);
     registerSignalHandler(SIGTERM);
   }
@@ -222,6 +226,7 @@ class SignalHandler : public AsyncSignalHandler {
 
     exit(0);
   }
+
  private:
   SwSwitch* sw_;
   StopServices stopServices_;
@@ -305,7 +310,9 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   };
   SignalHandler signalHandler(&eventBase, &sw, stopServices);
 
-  SCOPE_EXIT { server->cleanUp(); };
+  SCOPE_EXIT {
+    server->cleanUp();
+  };
   XLOG(INFO) << "serving on localhost on port " << FLAGS_port;
 
   // Run the EventBase main loop
@@ -314,4 +321,5 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   return 0;
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

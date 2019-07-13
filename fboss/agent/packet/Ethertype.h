@@ -17,27 +17,28 @@
  *   https://en.wikipedia.org/wiki/EtherType
  */
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 enum class ETHERTYPE : uint16_t {
 
   // Internet Protocol (version 4)
-  ETHERTYPE_IPV4  = 0x0800,
+  ETHERTYPE_IPV4 = 0x0800,
 
   // Address Resolution Protocol
-  ETHERTYPE_ARP   = 0x0806,
+  ETHERTYPE_ARP = 0x0806,
 
   // Wake-on-LAN
-  ETHERTYPE_WOL   = 0x0842,
+  ETHERTYPE_WOL = 0x0842,
 
   // Reverse Address Resolution Protocol
-  ETHERTYPE_RARP  = 0x8035,
+  ETHERTYPE_RARP = 0x8035,
 
   // IEEE 802.1Q
-  ETHERTYPE_VLAN  = 0x8100,
+  ETHERTYPE_VLAN = 0x8100,
 
   // Internet Protocol (version 6)
-  ETHERTYPE_IPV6  = 0x86DD,
+  ETHERTYPE_IPV6 = 0x86DD,
 
   // Jumbo Frame (instead of actual length)
   ETHERTYPE_JUMBO = 0x8870,
@@ -46,10 +47,10 @@ enum class ETHERTYPE : uint16_t {
   ETHERRTPE_EAPOL = 0x888E,
 
   // IEEE 802.1ad (Q-in-Q)
-  ETHERTYPE_QINQ  = 0x88A8,
+  ETHERTYPE_QINQ = 0x88A8,
 
   // Link Layer Discovery Protocol
-  ETHERTYPE_LLDP  = 0x88CC,
+  ETHERTYPE_LLDP = 0x88CC,
 
   // Link Aggregation Control Protocol and Marker Protocol
   ETHERTYPE_SLOW_PROTOCOLS = 0x8809,
@@ -58,4 +59,5 @@ enum class ETHERTYPE : uint16_t {
   ETHERTYPE_EPON = 0x8808,
 };
 
-}} // facebook::fboss
+}
+} // namespace facebook

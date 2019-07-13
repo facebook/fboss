@@ -8,14 +8,14 @@
  *
  */
 #include "PciDevice.h"
-#include "PciSystem.h"
 #include <pciaccess.h>
+#include "PciSystem.h"
 
 #include <folly/Exception.h>
 #include <folly/Format.h>
-#include <folly/logging/xlog.h>
 #include <folly/Singleton.h>
 #include <folly/String.h>
+#include <folly/logging/xlog.h>
 
 namespace {
 constexpr auto kMaxPciRegions = 6;
@@ -24,13 +24,11 @@ constexpr auto kMaxPciRegions = 6;
 namespace facebook {
 namespace fboss {
 
-
 PciDevice::~PciDevice() {
   this->close();
 }
 
 void PciDevice::open() {
-
   pci_id_match deviceMask;
   pci_device_iterator* deviceIter;
   int32_t retVal;
@@ -38,9 +36,8 @@ void PciDevice::open() {
   // already open?
   if (pciDevice_ != nullptr) {
     // All is good, device created correctly
-    XLOG(INFO) << folly::format("PCI devie {:04x}:{:04x} already open",
-                                vendorId_,
-                                deviceId_);
+    XLOG(INFO) << folly::format(
+        "PCI devie {:04x}:{:04x} already open", vendorId_, deviceId_);
     return;
   }
 
@@ -57,8 +54,7 @@ void PciDevice::open() {
   // singleton instance of PciSystem before proceeding
   pciSystem_ = PciSystem::getInstance();
 
-  deviceIter = pci_id_match_iterator_create(
-    &deviceMask);
+  deviceIter = pci_id_match_iterator_create(&deviceMask);
 
   if (deviceIter == nullptr) {
     folly::throwSystemError("Could not create PCI iterator");
@@ -77,18 +73,18 @@ void PciDevice::open() {
   // This gets us all of the info we want
   retVal = pci_device_probe(pciDevice_);
   if (retVal != 0) {
-    folly::throwSystemErrorExplicit(retVal,
-                                    folly::format(
-                                      "Could not probe PCI device "
-                                      "{:04x}:{:04x}",
-                                      vendorId_,
-                                      deviceId_));
+    folly::throwSystemErrorExplicit(
+        retVal,
+        folly::format(
+            "Could not probe PCI device "
+            "{:04x}:{:04x}",
+            vendorId_,
+            deviceId_));
   }
 
   // All is good, device created correctly
-  XLOG(DBG1) << folly::format("Created PCI access for {:04x}:{:04x}",
-                              vendorId_,
-                              deviceId_);
+  XLOG(DBG1) << folly::format(
+      "Created PCI access for {:04x}:{:04x}", vendorId_, deviceId_);
 }
 
 void PciDevice::close() {

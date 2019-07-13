@@ -9,13 +9,14 @@
  */
 #pragma once
 
-#include "fboss/agent/types.h"
-#include "fboss/agent/state/Interface.h"
-#include "fboss/agent/state/StateUtils.h"
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventHandler.h>
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/StateUtils.h"
+#include "fboss/agent/types.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SwSwitch;
 class RxPacket;
@@ -29,8 +30,8 @@ class TunIntf : private folly::EventHandler {
    * their actual status will be reflected.
    */
   TunIntf(
-      SwSwitch *sw,
-      folly::EventBase *evb,
+      SwSwitch* sw,
+      folly::EventBase* evb,
       InterfaceID ifID,
       int ifIndex /* linux */,
       int mtu);
@@ -39,9 +40,9 @@ class TunIntf : private folly::EventHandler {
    * This version of constructor creates a Tun interface in Linux as well.
    */
   TunIntf(
-      SwSwitch *sw,
-      folly::EventBase *evb,
-      InterfaceID ifID,   // Switch interface ID
+      SwSwitch* sw,
+      folly::EventBase* evb,
+      InterfaceID ifID, // Switch interface ID
       bool status,
       const Interface::Addresses& addrs,
       int mtu);
@@ -146,16 +147,16 @@ class TunIntf : private folly::EventHandler {
    */
   static void disableIPv6AddrGenMode(int ifIndex);
 
-  SwSwitch *sw_{nullptr};
+  SwSwitch* sw_{nullptr};
 
-  const std::string name_{""};  // The name in the host
-  const InterfaceID ifID_{0};   // Switch interface ID
+  const std::string name_{""}; // The name in the host
+  const InterfaceID ifID_{0}; // Switch interface ID
 
-  int ifIndex_{-1};             // The ifIndex of the interface on host
-  bool toDelete_{false};        // Is the interface to be deleted from system
-  bool status_{false};          // Is interface UP(true)/DOWN(false)
+  int ifIndex_{-1}; // The ifIndex of the interface on host
+  bool toDelete_{false}; // Is the interface to be deleted from system
+  bool status_{false}; // Is interface UP(true)/DOWN(false)
 
-  Interface::Addresses addrs_;  // The IP addresses assigned to this intf
+  Interface::Addresses addrs_; // The IP addresses assigned to this intf
 
   /**
    * File descriptor for this interface through which packets can
@@ -165,4 +166,5 @@ class TunIntf : private folly::EventHandler {
   int mtu_{-1};
 };
 
-}}  // nanesoace facebook::fboss
+} // namespace fboss
+} // namespace facebook

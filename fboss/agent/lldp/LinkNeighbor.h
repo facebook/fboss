@@ -1,18 +1,21 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #pragma once
 
-#include "fboss/agent/types.h"
 #include "fboss/agent/lldp/Lldp.h"
+#include "fboss/agent/types.h"
 
-#include <chrono>
 #include <folly/MacAddress.h>
 #include <folly/Range.h>
+#include <chrono>
 
-namespace folly { namespace io {
+namespace folly {
+namespace io {
 class Cursor;
-}}
+}
+} // namespace folly
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 enum class LinkProtocol {
   UNKNOWN,
@@ -179,11 +182,12 @@ struct LinkNeighbor {
    * On error the LinkNeighbor object may be in an undefined state, and should
    * be destroyed or reset with reset().
    */
-  bool parseLldpPdu(PortID srcPort,
-                    VlanID vlan,
-                    folly::MacAddress srcMac,
-                    uint16_t ethertype,
-                    folly::io::Cursor* cursor);
+  bool parseLldpPdu(
+      PortID srcPort,
+      VlanID vlan,
+      folly::MacAddress srcMac,
+      uint16_t ethertype,
+      folly::io::Cursor* cursor);
 
   /*
    * Set neighbor fields based on a CDP packet.
@@ -198,11 +202,12 @@ struct LinkNeighbor {
    * On error the LinkNeighbor object may be in an undefined state, and should
    * be destroyed or reset with reset().
    */
-  bool parseCdpPdu(PortID srcPort,
-                   VlanID vlan,
-                   folly::MacAddress srcMac,
-                   uint16_t ethertype,
-                   folly::io::Cursor* cursor);
+  bool parseCdpPdu(
+      PortID srcPort,
+      VlanID vlan,
+      folly::MacAddress srcMac,
+      uint16_t ethertype,
+      folly::io::Cursor* cursor);
 
   /*
    * Functions for updating LinkNeighbor fields.
@@ -254,8 +259,9 @@ struct LinkNeighbor {
   /*
    * Set the TTL and also explicitly set the expiration time.
    */
-  void setTTL(std::chrono::seconds seconds,
-              std::chrono::steady_clock::time_point expiration) {
+  void setTTL(
+      std::chrono::seconds seconds,
+      std::chrono::steady_clock::time_point expiration) {
     receivedTTL_ = seconds;
     expirationTime_ = expiration;
   }
@@ -284,9 +290,10 @@ struct LinkNeighbor {
   void parseLldpTtl(folly::io::Cursor* cursor, uint16_t length);
   void parseLldpSystemCaps(folly::io::Cursor* cursor, uint16_t length);
 
-  bool parseCdpPayload(PortID srcPort,
-                       folly::MacAddress srcMac,
-                       folly::io::Cursor* cursor);
+  bool parseCdpPayload(
+      PortID srcPort,
+      folly::MacAddress srcMac,
+      folly::io::Cursor* cursor);
 
   // Data members
   LinkProtocol protocol_{LinkProtocol::UNKNOWN};
@@ -309,4 +316,5 @@ struct LinkNeighbor {
   std::chrono::steady_clock::time_point expirationTime_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

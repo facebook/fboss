@@ -12,13 +12,16 @@
 #include <folly/io/IOBuf.h>
 #include <gmock/gmock.h>
 
-#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
+#include "fboss/agent/test/TestUtils.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 void MockTestHandle::rxPacket(
-    std::unique_ptr<folly::IOBuf> buf, PortID srcPort, VlanID srcVlan) {
+    std::unique_ptr<folly::IOBuf> buf,
+    PortID srcPort,
+    VlanID srcVlan) {
   auto pkt = std::make_unique<MockRxPacket>(std::move(buf));
   pkt->padToLength(68);
   pkt->setSrcPort(srcPort);
@@ -39,4 +42,5 @@ void MockTestHandle::forcePortFlap(PortID port) {
   forcePortUp(port);
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

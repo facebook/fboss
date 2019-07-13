@@ -44,7 +44,9 @@ class BcmTrunkTable {
   opennsl_trunk_t getBcmTrunkId(AggregatePortID id) const;
   AggregatePortID getAggregatePortId(opennsl_trunk_t trunk) const;
 
-  size_t numTrunkPorts() const { return trunks_.size(); }
+  size_t numTrunkPorts() const {
+    return trunks_.size();
+  }
   // TODO(samank): Fill in method
   // Serialize to folly::dynamic
   folly::dynamic toFollyDynamic() const;
@@ -61,7 +63,6 @@ class BcmTrunkTable {
   boost::container::flat_map<AggregatePortID, std::unique_ptr<BcmTrunk>>
       trunks_;
   const BcmSwitch* const hw_{nullptr};
-
 
   TrunkToMinimumLinkCountMap trunkToMinLinkCount_;
 };

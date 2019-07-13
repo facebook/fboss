@@ -7,18 +7,17 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include <algorithm>
-#include <string>
-#include "common/stats/ServiceData.h"
+#include "fboss/agent/DHCPv4Handler.h"
 #include <folly/Memory.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
+#include <algorithm>
+#include <string>
+#include "common/stats/ServiceData.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/DHCPv4Handler.h"
-#include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
@@ -27,16 +26,17 @@
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/ArpTable.h"
+#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
-#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/test/CounterCache.h"
-#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/HwTestHandle.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <boost/cast.hpp>
 #include <gtest/gtest.h>
@@ -45,18 +45,17 @@ using namespace facebook::fboss;
 using folly::IPAddressV4;
 using folly::MacAddress;
 using folly::io::Cursor;
+using std::back_inserter;
 using std::make_shared;
 using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
-using std::string;
-using std::vector;
-using std::back_inserter;
 using std::replace;
+using std::shared_ptr;
+using std::string;
+using std::unique_ptr;
+using std::vector;
 
 using ::testing::_;
 using testing::Return;
-
 
 namespace {
 const IPAddressV4 kVlanInterfaceIP("10.0.0.1");
@@ -104,9 +103,14 @@ unique_ptr<HwTestHandle> setupTestHandleNAT() {
 
 void sendDHCPPacket(
     HwTestHandle* handle,
-    string srcMac, string dstMac, string vlan,
-    string srcIp, string dstIp, string srcPort,
-    string dstPort, string bootpOp,
+    string srcMac,
+    string dstMac,
+    string vlan,
+    string srcIp,
+    string dstIp,
+    string srcPort,
+    string dstPort,
+    string bootpOp,
     string dhcpMsgTypeOpt,
     string appendOptions = "",
     string yiaddr = "00 00 00 00") {
@@ -229,20 +233,29 @@ struct Option {
   bool checkPresent{false};
 };
 
-TxMatchFn checkDHCPPkt(MacAddress dstMac, VlanID vlan,
-    IPAddressV4 srcIp, IPAddressV4 dstIp, uint16_t srcPort,
-    uint16_t dstPort, IPAddressV4 giaddr, const vector<Option>& options) {
-  return [=] (const TxPacket* txPacket) {
+TxMatchFn checkDHCPPkt(
+    MacAddress dstMac,
+    VlanID vlan,
+    IPAddressV4 srcIp,
+    IPAddressV4 dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    IPAddressV4 giaddr,
+    const vector<Option>& options) {
+  return [=](const TxPacket* txPacket) {
     const auto* buf = txPacket->buf();
     Cursor c(buf);
     EthHdr ethHdr(c);
     if (ethHdr.dstAddr != dstMac) {
-      throw FbossError("expected dest MAC to be ", dstMac,
-          "; got ", ethHdr.dstAddr);
+      throw FbossError(
+          "expected dest MAC to be ", dstMac, "; got ", ethHdr.dstAddr);
     }
     if (VlanID(ethHdr.vlanTags[0].vid()) != vlan) {
-      throw FbossError("expected vlan to be ", vlan,
-          "; got ", VlanID(ethHdr.vlanTags[0].vid()));
+      throw FbossError(
+          "expected vlan to be ",
+          vlan,
+          "; got ",
+          VlanID(ethHdr.vlanTags[0].vid()));
     }
     if (ethHdr.etherType != static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4)) {
       throw FbossError(
@@ -253,42 +266,50 @@ TxMatchFn checkDHCPPkt(MacAddress dstMac, VlanID vlan,
     }
     IPv4Hdr ipHdr(c);
     if (ipHdr.srcAddr != srcIp) {
-      throw FbossError("expected source ip to be ", srcIp,
-          "; got ", ipHdr.srcAddr);
+      throw FbossError(
+          "expected source ip to be ", srcIp, "; got ", ipHdr.srcAddr);
     }
     if (ipHdr.dstAddr != dstIp) {
-      throw FbossError("expected destination ip to be ", dstIp,
-          "; got ", ipHdr.dstAddr);
+      throw FbossError(
+          "expected destination ip to be ", dstIp, "; got ", ipHdr.dstAddr);
     }
     if (ipHdr.protocol != IPPROTO_UDP) {
-      throw FbossError("expected protocol to be ", IPPROTO_UDP,
-          "; got ", ipHdr.protocol);
+      throw FbossError(
+          "expected protocol to be ", IPPROTO_UDP, "; got ", ipHdr.protocol);
     }
     UDPHeader udpHdr;
     udpHdr.parse(&c);
     if (udpHdr.srcPort != srcPort) {
-      throw FbossError("expected source port to be ", srcPort,
-          "; got ", udpHdr.srcPort);
+      throw FbossError(
+          "expected source port to be ", srcPort, "; got ", udpHdr.srcPort);
     }
     if (udpHdr.dstPort != dstPort) {
-      throw FbossError("expected destination port to be ", dstPort,
-          "; got ", udpHdr.dstPort);
+      throw FbossError(
+          "expected destination port to be ",
+          dstPort,
+          "; got ",
+          udpHdr.dstPort);
     }
     DHCPv4Packet dhcpPkt;
     dhcpPkt.parse(&c);
     if (!giaddr.isZero() && dhcpPkt.giaddr != giaddr) {
-      throw FbossError("expected giaddr to be ", kVlanInterfaceIP,
-          "; got ", dhcpPkt.giaddr);
+      throw FbossError(
+          "expected giaddr to be ", kVlanInterfaceIP, "; got ", dhcpPkt.giaddr);
     }
-    for (auto& option: options) {
+    for (auto& option : options) {
       vector<uint8_t> optData;
       if (option.checkPresent) {
         if (!DHCPv4Packet::getOptionSlow(option.op, dhcpPkt.options, optData)) {
-          throw FbossError("expected option ", (int)option.op, " to be "
+          throw FbossError(
+              "expected option ",
+              (int)option.op,
+              " to be "
               "present, but not found");
         }
-        if (!equal(option.optData.begin(), option.optData.end(),
-              optData.begin())) {
+        if (!equal(
+                option.optData.begin(),
+                option.optData.end(),
+                optData.begin())) {
           throw FbossError("unmatched data for option ", (int)option.op);
         }
       } else {
@@ -315,14 +336,15 @@ TxMatchFn checkDHCPReq(
   dhcpAgentOption.optLen = 2 + dhcpRelaySrc.byteCount();
   dhcpAgentOption.optData.push_back(DHCPv4Handler::AGENT_CIRCUIT_ID);
   dhcpAgentOption.optData.push_back(dhcpRelaySrc.byteCount());
-  copy(dhcpRelaySrc.bytes(), dhcpRelaySrc.bytes() +
-      kVlanInterfaceIP.byteCount(),
+  copy(
+      dhcpRelaySrc.bytes(),
+      dhcpRelaySrc.bytes() + kVlanInterfaceIP.byteCount(),
       back_inserter(dhcpAgentOption.optData));
   dhcpAgentOption.checkPresent = true;
   vector<Option> optionsToCheck;
   optionsToCheck.push_back(dhcpAgentOption);
-  return checkDHCPPkt(dstMac, vlan, srcIp, dstIp, srcPort, dstPort,
-      giaddr, optionsToCheck);
+  return checkDHCPPkt(
+      dstMac, vlan, srcIp, dstIp, srcPort, dstPort, giaddr, optionsToCheck);
 }
 
 TxMatchFn checkDHCPReply(
@@ -339,8 +361,8 @@ TxMatchFn checkDHCPReply(
   dhcpAgentOption.checkPresent = false;
   vector<Option> optionsToCheck;
   optionsToCheck.push_back(dhcpAgentOption);
-  return checkDHCPPkt(dstMac, vlan, srcIp, dstIp, srcPort, dstPort,
-      giaddr, optionsToCheck);
+  return checkDHCPPkt(
+      dstMac, vlan, srcIp, dstIp, srcPort, dstPort, giaddr, optionsToCheck);
 }
 
 } // unnamed   namespace
@@ -367,13 +389,21 @@ TEST(DHCPv4HandlerTest, DHCPRequest) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).
-    WillRepeatedly(Return(kPlatformMac));
+  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   EXPECT_SWITCHED_PKT(sw, "DHCP request", checkDHCPReq());
 
-  sendDHCPPacket(handle.get(), senderMac, targetMac, vlan,
-      senderIP, targetIP, srcPort, dstPort, bootpOp, dhcpMsgTypeOpt);
+  sendDHCPPacket(
+      handle.get(),
+      senderMac,
+      targetMac,
+      vlan,
+      senderIP,
+      targetIP,
+      srcPort,
+      dstPort,
+      bootpOp,
+      dhcpMsgTypeOpt);
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.pkt.sum", 1);
@@ -399,13 +429,21 @@ TEST(DHCPv4HandlerOverrideTest, DHCPRequest) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).
-    WillRepeatedly(Return(kPlatformMac));
+  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   EXPECT_SWITCHED_PKT(sw, "DHCP request", checkDHCPReq(kDhcpOverride));
 
-  sendDHCPPacket(handle.get(), senderMac, targetMac, vlan,
-      senderIP, targetIP, srcPort, dstPort, bootpOp, dhcpMsgTypeOpt);
+  sendDHCPPacket(
+      handle.get(),
+      senderMac,
+      targetMac,
+      vlan,
+      senderIP,
+      targetIP,
+      srcPort,
+      dstPort,
+      bootpOp,
+      dhcpMsgTypeOpt);
 }
 
 TEST(DHCPv4RelaySrcTest, DHCPRequest) {
@@ -427,14 +465,22 @@ TEST(DHCPv4RelaySrcTest, DHCPRequest) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).
-    WillRepeatedly(Return(kPlatformMac));
+  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
-  EXPECT_SWITCHED_PKT(sw, "DHCP request",
-             checkDHCPReq(kDhcpOverride, kDhcpV4RelaySrc));
+  EXPECT_SWITCHED_PKT(
+      sw, "DHCP request", checkDHCPReq(kDhcpOverride, kDhcpV4RelaySrc));
 
-  sendDHCPPacket(handle.get(), senderMac, targetMac, vlan,
-                 senderIP, targetIP, srcPort, dstPort, bootpOp, dhcpMsgTypeOpt);
+  sendDHCPPacket(
+      handle.get(),
+      senderMac,
+      targetMac,
+      vlan,
+      senderIP,
+      targetIP,
+      srcPort,
+      dstPort,
+      bootpOp,
+      dhcpMsgTypeOpt);
 }
 
 TEST(DHCPv4HandlerTest, DHCPReply) {
@@ -466,14 +512,23 @@ TEST(DHCPv4HandlerTest, DHCPReply) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).
-    WillRepeatedly(Return(kPlatformMac));
+  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   EXPECT_SWITCHED_PKT(sw, "DHCP reply", checkDHCPReply());
 
-  sendDHCPPacket(handle.get(), senderMac, targetMac, vlan,
-      senderIP, targetIP, srcPort, dstPort, bootpOp, dhcpMsgTypeOpt,
-      agentOption, yiaddr);
+  sendDHCPPacket(
+      handle.get(),
+      senderMac,
+      targetMac,
+      vlan,
+      senderIP,
+      targetIP,
+      srcPort,
+      dstPort,
+      bootpOp,
+      dhcpMsgTypeOpt,
+      agentOption,
+      yiaddr);
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.pkt.sum", 1);
@@ -509,16 +564,25 @@ TEST(DHCPv4ReplySrcTest, DHCPReply) {
 
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).
-    WillRepeatedly(Return(kPlatformMac));
+  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
   // DHCP reply source is override to interface55's address
   EXPECT_SWITCHED_PKT(
-    sw, "DHCP reply", checkDHCPReply(kDhcpV4ReplySrc, VlanID(55)));
+      sw, "DHCP reply", checkDHCPReply(kDhcpV4ReplySrc, VlanID(55)));
 
-  sendDHCPPacket(handle.get(), senderMac, targetMac, vlan,
-      senderIP, targetIP, srcPort, dstPort, bootpOp, dhcpMsgTypeOpt,
-      agentOption, yiaddr);
+  sendDHCPPacket(
+      handle.get(),
+      senderMac,
+      targetMac,
+      vlan,
+      senderIP,
+      targetIP,
+      srcPort,
+      dstPort,
+      bootpOp,
+      dhcpMsgTypeOpt,
+      agentOption,
+      yiaddr);
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.pkt.sum", 1);
@@ -545,11 +609,19 @@ TEST(DHCPv4HandlerTest, DHCPBadRequest) {
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
-  EXPECT_PLATFORM_CALL(sw, getLocalMac()).
-    WillRepeatedly(Return(kPlatformMac));
+  EXPECT_PLATFORM_CALL(sw, getLocalMac()).WillRepeatedly(Return(kPlatformMac));
 
-  sendDHCPPacket(handle.get(), senderMac, targetMac, vlan,
-      senderIP, targetIP, srcPort, dstPort, bootpOp, dhcpMsgTypeOpt);
+  sendDHCPPacket(
+      handle.get(),
+      senderMac,
+      targetMac,
+      vlan,
+      senderIP,
+      targetIP,
+      srcPort,
+      dstPort,
+      bootpOp,
+      dhcpMsgTypeOpt);
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.pkt.sum", 1);

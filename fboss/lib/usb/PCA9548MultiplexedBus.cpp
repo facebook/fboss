@@ -16,7 +16,8 @@
 using folly::MutableByteRange;
 using std::lock_guard;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 void PCA9548MultiplexedBus::initBus() {
   // We step through them all multiplexer, set them
@@ -35,14 +36,13 @@ void PCA9548MultiplexedBus::verifyBus(bool) {
   return;
 }
 
-
 void PCA9548MultiplexedBus::selectQsfpImpl(unsigned int port) {
   // If any of these writes throws, we'll be in an invalid state.
 
   VLOG(5) << "setting port to " << port << " from " << selectedPort_;
   CHECK_LE(port, numPorts_);
   if (port == NO_PORT) {
-    DCHECK_NE(selectedPort_, NO_PORT);  // Checked in BaseWedgeI2CBus
+    DCHECK_NE(selectedPort_, NO_PORT); // Checked in BaseWedgeI2CBus
     int offset = ((selectedPort_ - 1) / 8) * 2;
     VLOG(4) << "unsetting " << selectedPort_ << " via " << offset;
     dev_->writeByte(multiplexerStartAddr_ + offset, 0);
@@ -58,7 +58,7 @@ void PCA9548MultiplexedBus::selectQsfpImpl(unsigned int port) {
       if (offset != oldOffset) {
         LOG(INFO) << "clearing " << selectedPort_ << " via " << oldOffset;
         dev_->writeByte(multiplexerStartAddr_ + oldOffset, 0);
-        selectedPort_ = NO_PORT;  // In case the next write throws
+        selectedPort_ = NO_PORT; // In case the next write throws
       }
     }
     VLOG(4) << "setting " << port << " via " << offset << " bit " << bit;
@@ -68,4 +68,5 @@ void PCA9548MultiplexedBus::selectQsfpImpl(unsigned int port) {
   selectedPort_ = port;
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

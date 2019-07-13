@@ -15,21 +15,23 @@
 #include "fboss/agent/hw/mock/MockTxPacket.h"
 
 using std::make_unique;
-using ::testing::Invoke;
 using ::testing::_;
+using ::testing::Invoke;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-MockHwSwitch::MockHwSwitch(MockPlatform *platform) :
-    platform_(platform) {
+MockHwSwitch::MockHwSwitch(MockPlatform* platform) : platform_(platform) {
   // We need to delete the memory allocated by the packet. Ideally, we
   // could pass a smart pointer to these functions, but gmock does not
   // support move-only types and if we pass in a shared_ptr we cannot
   // delegate to a function that takes a unique_ptr. This is
   // definitely hacky, but it makes the interface more flexible.
   ON_CALL(*this, sendPacketSwitchedAsync_(_))
-    .WillByDefault(Invoke([=](TxPacket* pkt) -> bool {
-          delete pkt; return true; } ));
+      .WillByDefault(Invoke([=](TxPacket* pkt) -> bool {
+        delete pkt;
+        return true;
+      }));
   ON_CALL(*this, sendPacketOutOfPortAsync_(_, _, _))
       .WillByDefault(Invoke(
           [=](TxPacket* pkt,
@@ -39,8 +41,10 @@ MockHwSwitch::MockHwSwitch(MockPlatform *platform) :
             return true;
           }));
   ON_CALL(*this, sendPacketSwitchedSync_(_))
-    .WillByDefault(Invoke([=](TxPacket* pkt) -> bool {
-          delete pkt; return true; } ));
+      .WillByDefault(Invoke([=](TxPacket* pkt) -> bool {
+        delete pkt;
+        return true;
+      }));
   ON_CALL(*this, sendPacketOutOfPortSync_(_, _))
       .WillByDefault(Invoke([=](TxPacket* pkt, PortID /*port*/) -> bool {
         delete pkt;
@@ -83,4 +87,5 @@ bool MockHwSwitch::sendPacketOutOfPortSync(
   return true;
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

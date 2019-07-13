@@ -8,15 +8,16 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmControlPlaneQueueManager.h"
-#include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 BcmControlPlaneQueueManager::BcmControlPlaneQueueManager(
     BcmSwitch* hw,
     const std::string& portName,
     opennsl_gport_t portGport)
-  : BcmCosQueueManager(hw, portName, portGport) {}
+    : BcmCosQueueManager(hw, portName, portGport) {}
 
 std::unique_ptr<PortQueue> BcmControlPlaneQueueManager::getCurrentQueueSettings(
     cfg::StreamType /*streamType*/,
@@ -24,8 +25,7 @@ std::unique_ptr<PortQueue> BcmControlPlaneQueueManager::getCurrentQueueSettings(
   return std::unique_ptr<PortQueue>{};
 }
 
-void BcmControlPlaneQueueManager::program(
-    const PortQueue& /*queue*/) {}
+void BcmControlPlaneQueueManager::program(const PortQueue& /*queue*/) {}
 
 void BcmControlPlaneQueueManager::updateQueueStat(
     opennsl_cos_queue_t /*cosQ*/,
@@ -49,4 +49,5 @@ int BcmControlPlaneQueueManager::getNumQueues(
       cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second);
 }
 
-}} //facebook::fboss
+} // namespace fboss
+} // namespace facebook

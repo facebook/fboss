@@ -15,24 +15,23 @@
 
 #include <curl/curl.h>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 RestClient::RestClient(std::string hostname, int port)
-  : hostname_(hostname),
-    port_(port) {
+    : hostname_(hostname), port_(port) {
   createEndpoint();
 }
 
 RestClient::RestClient(folly::IPAddress ipAddress, int port)
-  : ipAddress_(ipAddress),
-    port_(port) {
+    : ipAddress_(ipAddress), port_(port) {
   createEndpoint();
 }
-RestClient::RestClient(folly::IPAddress ipAddress, int port,
-                                                    std::string interface)
-  : ipAddress_(ipAddress),
-    interface_(interface),
-    port_(port) {
+RestClient::RestClient(
+    folly::IPAddress ipAddress,
+    int port,
+    std::string interface)
+    : ipAddress_(ipAddress), interface_(interface), port_(port) {
   createEndpoint();
 }
 
@@ -65,7 +64,7 @@ std::string RestClient::requestWithOutput(std::string path) {
   if (curl) {
     /* Set the curl options */
     curl_easy_setopt(curl, CURLOPT_URL, endpoint_.c_str());
-    curl_easy_setopt(curl, CURLOPT_PROTOCOLS,CURLPROTO_HTTP);
+    curl_easy_setopt(curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP);
     curl_easy_setopt(curl, CURLOPT_PORT, port_);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, timeout_.count());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, RestClient::writer);
@@ -98,10 +97,14 @@ bool RestClient::request(std::string path) {
   return false;
 }
 
-size_t RestClient::writer(char *buffer, size_t size,
-                                size_t entries, std::stringbuf *writer_buffer) {
+size_t RestClient::writer(
+    char* buffer,
+    size_t size,
+    size_t entries,
+    std::stringbuf* writer_buffer) {
   std::streamsize data_put = writer_buffer->sputn(buffer, size * entries);
   return data_put;
 }
 
-}} // namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

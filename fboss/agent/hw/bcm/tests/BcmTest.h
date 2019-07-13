@@ -22,10 +22,10 @@
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -48,7 +48,7 @@ class BcmTest : public HwTest {
   BcmSwitch* getHwSwitch() const override {
     return static_cast<BcmSwitch*>(HwTest::getHwSwitch());
   }
-  BcmTestPlatform* getPlatform() const override  {
+  BcmTestPlatform* getPlatform() const override {
     return static_cast<BcmTestPlatform*>(HwTest::getPlatform());
   }
 
@@ -64,11 +64,14 @@ class BcmTest : public HwTest {
   virtual cfg::SwitchConfig initialConfig() const {
     return cfg::SwitchConfig();
   }
+
  private:
   std::pair<std::unique_ptr<Platform>, std::unique_ptr<HwSwitch>> createHw()
       const override;
   virtual std::unique_ptr<std::thread> createThriftThread() const override;
-  bool warmBootSupported() const override { return true; }
+  bool warmBootSupported() const override {
+    return true;
+  }
   void recreateHwSwitchFromWBState() override;
 
   /*
@@ -84,9 +87,8 @@ class BcmTest : public HwTest {
   folly::dynamic createWarmBootSwitchState();
 
   // Forbidden copy constructor and assignment operator
-  BcmTest(BcmTest const &) = delete;
-  BcmTest& operator=(BcmTest const &) = delete;
-
+  BcmTest(BcmTest const&) = delete;
+  BcmTest& operator=(BcmTest const&) = delete;
 };
 
 } // namespace fboss

@@ -9,23 +9,24 @@
  */
 #pragma once
 
-#include "fboss/agent/hw/sim/gen-cpp2/SimCtrl.h"
 #include "fboss/agent/ThriftHandler.h"
+#include "fboss/agent/hw/sim/gen-cpp2/SimCtrl.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class SimSwitch;
 class SwSwitch;
 
-class SimHandler : virtual public SimCtrlSvIf,
-                   public ThriftHandler {
+class SimHandler : virtual public SimCtrlSvIf, public ThriftHandler {
  public:
   SimHandler(SwSwitch* sw, SimSwitch* hw);
 
  private:
   // Forbidden copy constructor and assignment operator
-  SimHandler(SimHandler const &) = delete;
-  SimHandler& operator=(SimHandler const &) = delete;
+  SimHandler(SimHandler const&) = delete;
+  SimHandler& operator=(SimHandler const&) = delete;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

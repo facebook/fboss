@@ -169,7 +169,8 @@ class PCA9548MuxedBus : public BaseWedgeI2CBus {
     for (int i = 0; i < newPath.size(); ++i) {
       auto desired = newPath[i];
       auto current = existingPath[i];
-      if (current->mux == desired->mux && current->channel == desired->channel) {
+      if (current->mux == desired->mux &&
+          current->channel == desired->channel) {
         // matches currently selected mux at this layer
         continue;
       }

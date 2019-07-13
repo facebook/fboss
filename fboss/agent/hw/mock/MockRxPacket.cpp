@@ -17,12 +17,13 @@
 #include <locale>
 
 using folly::IOBuf;
+using folly::StringPiece;
 using folly::io::Appender;
 using std::make_unique;
-using folly::StringPiece;
 using std::unique_ptr;
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 MockRxPacket::MockRxPacket(std::unique_ptr<folly::IOBuf> buf) {
   buf_ = std::move(buf);
@@ -47,4 +48,5 @@ void MockRxPacket::padToLength(uint32_t size, uint8_t pad) {
   len_ = buf_->computeChainDataLength();
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

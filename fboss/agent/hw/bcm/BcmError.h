@@ -16,27 +16,28 @@
 #include <folly/logging/xlog.h>
 
 extern "C" {
-#include <opennsl/pkt.h>
 #include <opennsl/error.h>
+#include <opennsl/pkt.h>
 #include <shared/error.h>
 }
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /**
  * A class for errors from the Broadcom SDK.
  */
 class BcmError : public FbossError {
  public:
-  template<typename... Args>
+  template <typename... Args>
   BcmError(int err, Args&&... args)
-    : FbossError(std::forward<Args>(args)..., ": ", opennsl_errmsg(err)),
-      err_(static_cast<opennsl_error_t>(err)) {}
+      : FbossError(std::forward<Args>(args)..., ": ", opennsl_errmsg(err)),
+        err_(static_cast<opennsl_error_t>(err)) {}
 
-  template<typename... Args>
+  template <typename... Args>
   BcmError(opennsl_error_t err, Args&&... args)
-    : FbossError(std::forward<Args>(args)..., ": ", opennsl_errmsg(err)),
-      err_(err) {}
+      : FbossError(std::forward<Args>(args)..., ": ", opennsl_errmsg(err)),
+        err_(err) {}
 
   ~BcmError() throw() override {}
 
@@ -48,7 +49,7 @@ class BcmError : public FbossError {
   opennsl_error_t err_;
 };
 
-template<typename... Args>
+template <typename... Args>
 void bcmCheckError(int err, Args&&... msgArgs) {
   if (OPENNSL_FAILURE(err)) {
     XLOG(ERR) << folly::to<std::string>(std::forward<Args>(msgArgs)...) << ": "
@@ -57,7 +58,7 @@ void bcmCheckError(int err, Args&&... msgArgs) {
   }
 }
 
-template<typename... Args>
+template <typename... Args>
 void bcmLogError(int err, Args&&... msgArgs) {
   if (OPENNSL_FAILURE(err)) {
     XLOG(ERR) << folly::to<std::string>(std::forward<Args>(msgArgs)...) << ": "
@@ -65,12 +66,14 @@ void bcmLogError(int err, Args&&... msgArgs) {
   }
 }
 
-template<typename... Args>
+template <typename... Args>
 void bcmLogFatal(int err, const BcmSwitchIf* hw, Args&&... msgArgs) {
   if (OPENNSL_FAILURE(err)) {
     auto errMsg = folly::sformat(
-      "{}: {}, {}", folly::to<std::string>(std::forward<Args>(msgArgs)...),
-      opennsl_errmsg(err), err);
+        "{}: {}, {}",
+        folly::to<std::string>(std::forward<Args>(msgArgs)...),
+        opennsl_errmsg(err),
+        err);
 
     // Make sure we log the error message, in case hw->exitFatal throws.
     XLOG(ERR) << errMsg;
@@ -79,4 +82,5 @@ void bcmLogFatal(int err, const BcmSwitchIf* hw, Args&&... msgArgs) {
   }
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

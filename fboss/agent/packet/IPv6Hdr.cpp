@@ -9,19 +9,20 @@
  */
 #include "fboss/agent/packet/IPv6Hdr.h"
 
-#include <stdexcept>
-#include <sstream>
 #include <folly/IPAddress.h>
 #include <folly/IPAddressV6.h>
 #include <folly/lang/Bits.h>
+#include <sstream>
+#include <stdexcept>
 #include "fboss/agent/packet/PktUtil.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-using folly::IPAddress;
-using folly::IPAddressV6;
 using folly::Endian;
 using folly::IOBuf;
+using folly::IPAddress;
+using folly::IPAddressV6;
 using folly::io::Cursor;
 using std::string;
 using std::stringstream;
@@ -35,9 +36,8 @@ IPv6Hdr::IPv6Hdr(Cursor& cursor) {
       throw HdrParseError("IPv6: version != 6");
     }
     trafficClass = ((buf[0] & 0x0F) << 4) | ((buf[1] & 0xF0) >> 4);
-    flowLabel = (static_cast<uint32_t>(buf[1] & 0x0F) << 16)
-              | (static_cast<uint32_t>(buf[2]) << 8)
-              |  static_cast<uint32_t>(buf[3]);
+    flowLabel = (static_cast<uint32_t>(buf[1] & 0x0F) << 16) |
+        (static_cast<uint32_t>(buf[2]) << 8) | static_cast<uint32_t>(buf[3]);
     payloadLength = cursor.readBE<uint16_t>();
     nextHeader = cursor.read<uint8_t>();
     hopLimit = cursor.read<uint8_t>();
@@ -53,8 +53,8 @@ IPv6Hdr::IPv6Hdr(Cursor& cursor) {
 
 void IPv6Hdr::serialize(folly::io::RWPrivateCursor* cursor) const {
   cursor->write<uint8_t>((version << 4) | (trafficClass >> 4));
-  cursor->write<uint8_t>(((trafficClass & 0xf) << 4)
-                         | ((flowLabel >> 16) & 0xf));
+  cursor->write<uint8_t>(
+      ((trafficClass & 0xf) << 4) | ((flowLabel >> 16) & 0xf));
   cursor->writeBE<uint16_t>(flowLabel & 0xffff);
   cursor->writeBE<uint16_t>(payloadLength);
   cursor->write<uint8_t>(nextHeader);
@@ -89,12 +89,11 @@ uint32_t IPv6Hdr::addrPartialCsum(const IPAddressV6& addr) {
 
 string IPv6Hdr::toString() const {
   stringstream ss;
-  ss << "IPv6Hdr { srcAddr: " << srcAddr.str()
-     << " dstAddr: " << dstAddr.str()
+  ss << "IPv6Hdr { srcAddr: " << srcAddr.str() << " dstAddr: " << dstAddr.str()
      << " payloadLength: " << (int)payloadLength
-     << " nextHeader: " << (int)nextHeader
-     << " }";
+     << " nextHeader: " << (int)nextHeader << " }";
   return ss.str();
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

@@ -14,7 +14,8 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/StateDelta.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class StateObserver : public boost::noncopyable {
  public:
@@ -27,7 +28,9 @@ class AutoRegisterStateObserver : public StateObserver {
   AutoRegisterStateObserver(SwSwitch* sw, const std::string& name) : sw_(sw) {
     sw_->registerStateObserver(this, name);
   }
-  ~AutoRegisterStateObserver() override { sw_->unregisterStateObserver(this); }
+  ~AutoRegisterStateObserver() override {
+    sw_->unregisterStateObserver(this);
+  }
 
   // This empty implementation should be overridden by subclasses, but it is
   // needed during destruction in the case that the derived class has been
@@ -40,4 +43,5 @@ class AutoRegisterStateObserver : public StateObserver {
   SwSwitch* sw_{nullptr};
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

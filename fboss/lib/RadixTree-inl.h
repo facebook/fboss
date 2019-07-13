@@ -3,11 +3,13 @@
 #error "This should only be included by RadixTree.h"
 #endif
 
-namespace facebook { namespace network {
+namespace facebook {
+namespace network {
 
-template<typename IPADDRTYPE, typename T>
+template <typename IPADDRTYPE, typename T>
 typename RadixTreeNode<IPADDRTYPE, T>::TreeDirection
-RadixTreeNode<IPADDRTYPE, T>::searchDirection(const IPADDRTYPE& toSearch,
+RadixTreeNode<IPADDRTYPE, T>::searchDirection(
+    const IPADDRTYPE& toSearch,
     uint8_t toSearchMasklen) const {
   if (masklen_ < toSearchMasklen) {
     // My masklen is less than what is being searched, we are searching
@@ -15,8 +17,8 @@ RadixTreeNode<IPADDRTYPE, T>::searchDirection(const IPADDRTYPE& toSearch,
     if (toSearch.mask(masklen_) == ipAddress_) {
       // All the bits up to my bit length match, check the next bit
       // Note that bit lookup is 0 indexed.
-      return toSearch.getNthMSBit(masklen_) == 1 ? TreeDirection::RIGHT :
-        TreeDirection::LEFT;
+      return toSearch.getNthMSBit(masklen_) == 1 ? TreeDirection::RIGHT
+                                                 : TreeDirection::LEFT;
     } else {
       // Bits upto my mask len don't match. Go up towards the parent (i.e.
       // towards a less specific prefix) in the hope of getting a match).
@@ -24,7 +26,7 @@ RadixTreeNode<IPADDRTYPE, T>::searchDirection(const IPADDRTYPE& toSearch,
     }
   }
   if (masklen_ == toSearchMasklen && ipAddress_ == toSearch) {
-      return TreeDirection::THIS_NODE;
+    return TreeDirection::THIS_NODE;
   }
   // 2 cases remain.
   // a) Masklen were equal but the addresses did not match
@@ -33,10 +35,13 @@ RadixTreeNode<IPADDRTYPE, T>::searchDirection(const IPADDRTYPE& toSearch,
   return TreeDirection::PARENT;
 }
 
-template<typename IPADDRTYPE, typename T, typename TreeTraits>
+template <typename IPADDRTYPE, typename T, typename TreeTraits>
 const typename RadixTree<IPADDRTYPE, T, TreeTraits>::TreeNode*
-RadixTree<IPADDRTYPE, T, TreeTraits>::longestMatchImpl(const IPADDRTYPE& ipaddr,
-    uint8_t masklen, bool& foundExact, bool includeNonValueNodes,
+RadixTree<IPADDRTYPE, T, TreeTraits>::longestMatchImpl(
+    const IPADDRTYPE& ipaddr,
+    uint8_t masklen,
+    bool& foundExact,
+    bool includeNonValueNodes,
     VecConstIterators* trail) const {
   // Can't trust the clients to have 0s in all bits after mask length
   const auto toMatch = ipaddr.mask(masklen);
@@ -54,15 +59,15 @@ RadixTree<IPADDRTYPE, T, TreeTraits>::longestMatchImpl(const IPADDRTYPE& ipaddr,
     switch (searchDirection) {
       case TreeDirection::THIS_NODE:
         trailAppend(trail, includeNonValueNodes, curNode);
-        lastValueNodeSeen = curNode->isValueNode() ? curNode :
-          lastValueNodeSeen;
+        lastValueNodeSeen =
+            curNode->isValueNode() ? curNode : lastValueNodeSeen;
         foundExact = curNode->isValueNode() || includeNonValueNodes;
         done = true;
         break;
       case TreeDirection::LEFT:
         trailAppend(trail, includeNonValueNodes, curNode);
-        lastValueNodeSeen = curNode->isValueNode() ? curNode :
-          lastValueNodeSeen;
+        lastValueNodeSeen =
+            curNode->isValueNode() ? curNode : lastValueNodeSeen;
         if (curNode->left()) {
           parent = curNode;
           curNode = curNode->left();
@@ -72,8 +77,8 @@ RadixTree<IPADDRTYPE, T, TreeTraits>::longestMatchImpl(const IPADDRTYPE& ipaddr,
         break;
       case TreeDirection::RIGHT:
         trailAppend(trail, includeNonValueNodes, curNode);
-        lastValueNodeSeen = curNode->isValueNode() ? curNode :
-          lastValueNodeSeen;
+        lastValueNodeSeen =
+            curNode->isValueNode() ? curNode : lastValueNodeSeen;
         if (curNode->right()) {
           parent = curNode;
           curNode = curNode->right();
@@ -82,8 +87,8 @@ RadixTree<IPADDRTYPE, T, TreeTraits>::longestMatchImpl(const IPADDRTYPE& ipaddr,
         }
         break;
       case TreeDirection::PARENT:
-      // We took one extra step in the hope of getting a better
-      // match but this didn't succeed. So back up one step
+        // We took one extra step in the hope of getting a better
+        // match but this didn't succeed. So back up one step
         curNode = parent;
         done = true;
         break;
@@ -92,11 +97,11 @@ RadixTree<IPADDRTYPE, T, TreeTraits>::longestMatchImpl(const IPADDRTYPE& ipaddr,
   return includeNonValueNodes ? curNode : lastValueNodeSeen;
 }
 
-
-template<typename IPADDRTYPE, typename T, typename TreeTraits>
-inline void  RadixTree<IPADDRTYPE, T, TreeTraits>
-::trailAppend(VecConstIterators* trail,
-    bool includeNonValueNodes, const TreeNode* node) const {
+template <typename IPADDRTYPE, typename T, typename TreeTraits>
+inline void RadixTree<IPADDRTYPE, T, TreeTraits>::trailAppend(
+    VecConstIterators* trail,
+    bool includeNonValueNodes,
+    const TreeNode* node) const {
   if (trail) {
     if (includeNonValueNodes || !node->isNonValueNode()) {
       trail->push_back(traits_.makeCItr(node, includeNonValueNodes));
@@ -107,13 +112,15 @@ inline void  RadixTree<IPADDRTYPE, T, TreeTraits>
 template <typename IPADDRTYPE, typename T, typename TreeTraits>
 template <typename VALUE>
 std::pair<typename RadixTree<IPADDRTYPE, T, TreeTraits>::Iterator, bool>
-RadixTree<IPADDRTYPE, T, TreeTraits>::insert(const IPADDRTYPE& ipaddr,
-    uint8_t mask, VALUE&& value) {
+RadixTree<IPADDRTYPE, T, TreeTraits>::insert(
+    const IPADDRTYPE& ipaddr,
+    uint8_t mask,
+    VALUE&& value) {
   auto foundExact = false;
   // Can't trust the clients to have 0s in all bits after mask length
   auto toAdd = ipaddr.mask(mask);
-  auto bestMatch = longestMatchImpl(toAdd, mask, foundExact,
-      true /*include non value nodes*/);
+  auto bestMatch = longestMatchImpl(
+      toAdd, mask, foundExact, true /*include non value nodes*/);
   if (foundExact) {
     // Found exact match. Check if in use
     CHECK_NOTNULL(bestMatch);
@@ -139,7 +146,7 @@ RadixTree<IPADDRTYPE, T, TreeTraits>::insert(const IPADDRTYPE& ipaddr,
       // match even the root->ipaddr/mask. We need a less
       // specific root.
       auto prefix = IPADDRTYPE::longestCommonPrefix(
-        {root_->ipAddress(), root_->masklen()}, {toAdd, mask});
+          {root_->ipAddress(), root_->masklen()}, {toAdd, mask});
       std::unique_ptr<TreeNode> newRoot = nullptr;
       if (prefix.first == toAdd && prefix.second == mask) {
         // To be added node is the new root
@@ -149,8 +156,9 @@ RadixTree<IPADDRTYPE, T, TreeTraits>::insert(const IPADDRTYPE& ipaddr,
         newRoot = makeNode(prefix.first, prefix.second);
       }
       auto oldRootDirection = newRoot->searchDirection(root_.get());
-      CHECK(oldRootDirection == TreeDirection::LEFT ||
-         oldRootDirection == TreeDirection::RIGHT);
+      CHECK(
+          oldRootDirection == TreeDirection::LEFT ||
+          oldRootDirection == TreeDirection::RIGHT);
       if (oldRootDirection == TreeDirection::LEFT) {
         newRoot->resetLeft(std::move(root_));
         if (newNode) {
@@ -168,7 +176,8 @@ RadixTree<IPADDRTYPE, T, TreeTraits>::insert(const IPADDRTYPE& ipaddr,
   } else {
     auto toAddDirection = bestMatch->searchDirection(toAdd, mask);
     auto done = false;
-    CHECK(toAddDirection == TreeDirection::LEFT ||
+    CHECK(
+        toAddDirection == TreeDirection::LEFT ||
         toAddDirection == TreeDirection::RIGHT);
     if (toAddDirection == TreeDirection::LEFT) {
       if (!bestMatch->left()) {
@@ -189,8 +198,8 @@ RadixTree<IPADDRTYPE, T, TreeTraits>::insert(const IPADDRTYPE& ipaddr,
         bestMatchChild = bestMatch->right();
       }
       auto prefix = IPADDRTYPE::longestCommonPrefix(
-        {bestMatchChild->ipAddress(), bestMatchChild->masklen()},
-        {toAdd, mask});
+          {bestMatchChild->ipAddress(), bestMatchChild->masklen()},
+          {toAdd, mask});
       // Prefix should not already exist in the tree.
       // The reason for this is that the longest common prefix
       // should be a more specific than bestMatch but less specific
@@ -210,13 +219,14 @@ RadixTree<IPADDRTYPE, T, TreeTraits>::insert(const IPADDRTYPE& ipaddr,
         auto internalNode = makeNode(prefix.first, prefix.second);
         auto internalNodeRaw = internalNode.get();
         std::unique_ptr<TreeNode> oldBestMatchChild = nullptr;
-        if (toAddDirection ==  TreeDirection::LEFT) {
+        if (toAddDirection == TreeDirection::LEFT) {
           oldBestMatchChild = bestMatch->resetLeft(std::move(internalNode));
         } else {
           oldBestMatchChild = bestMatch->resetRight(std::move(internalNode));
         }
         auto newNodeDirection = internalNodeRaw->searchDirection(newNode.get());
-        CHECK(newNodeDirection == TreeDirection::LEFT ||
+        CHECK(
+            newNodeDirection == TreeDirection::LEFT ||
             newNodeDirection == TreeDirection::RIGHT);
         if (newNodeDirection == TreeDirection::LEFT) {
           internalNodeRaw->resetLeft(std::move(newNode));
@@ -229,14 +239,15 @@ RadixTree<IPADDRTYPE, T, TreeTraits>::insert(const IPADDRTYPE& ipaddr,
       } else {
         // New node needs to be inserted  b/w bestMatch and bestMatchChild
         std::unique_ptr<TreeNode> oldBestMatchChild = nullptr;
-        if (toAddDirection ==  TreeDirection::LEFT) {
+        if (toAddDirection == TreeDirection::LEFT) {
           oldBestMatchChild = bestMatch->resetLeft(std::move(newNode));
         } else {
           oldBestMatchChild = bestMatch->resetRight(std::move(newNode));
         }
         auto bestMatchChildDirection =
-          newNodeRaw->searchDirection(oldBestMatchChild.get());
-        DCHECK(bestMatchChildDirection == TreeDirection::LEFT ||
+            newNodeRaw->searchDirection(oldBestMatchChild.get());
+        DCHECK(
+            bestMatchChildDirection == TreeDirection::LEFT ||
             bestMatchChildDirection == TreeDirection::RIGHT);
         if (bestMatchChildDirection == TreeDirection::LEFT) {
           newNodeRaw->resetLeft(std::move(oldBestMatchChild));
@@ -262,7 +273,7 @@ RadixTree<IPADDRTYPE, T, TreeTraits>::insert(const IPADDRTYPE& ipaddr,
  * as well. Why this is true is explained below for each of the
  * different cases of erase.
  */
-template<typename IPADDRTYPE, typename T, typename TreeTraits>
+template <typename IPADDRTYPE, typename T, typename TreeTraits>
 bool RadixTree<IPADDRTYPE, T, TreeTraits>::erase(TreeNode* toDelete) {
   if (!toDelete) {
     return false;
@@ -287,19 +298,21 @@ bool RadixTree<IPADDRTYPE, T, TreeTraits>::erase(TreeNode* toDelete) {
     // toDelete has just one child, let the child's grandparent
     // adopt it since toDelete is about to got away.
     if (parent) {
-      //Note - toDelete gets freed here.
+      // Note - toDelete gets freed here.
       if (parent->left() == toDelete) {
-        parent->resetLeft(left ? toDelete->resetLeft(nullptr) :
-                          toDelete->resetRight(nullptr));
+        parent->resetLeft(
+            left ? toDelete->resetLeft(nullptr)
+                 : toDelete->resetRight(nullptr));
       } else {
-        parent->resetRight(left ? toDelete->resetLeft(nullptr) :
-                           toDelete->resetRight(nullptr));
+        parent->resetRight(
+            left ? toDelete->resetLeft(nullptr)
+                 : toDelete->resetRight(nullptr));
       }
     } else {
       CHECK(root_.get() == toDelete);
       // Update root, toDelete (old root) gets deleted as a result
-      makeRoot(left ? toDelete->resetLeft(nullptr) :
-               toDelete->resetRight(nullptr));
+      makeRoot(
+          left ? toDelete->resetLeft(nullptr) : toDelete->resetRight(nullptr));
     }
     // We just made toDelete's parent the parent of toDelete's only
     // child. There are 2 possibilities with regard to toDelete's parent
@@ -314,9 +327,9 @@ bool RadixTree<IPADDRTYPE, T, TreeTraits>::erase(TreeNode* toDelete) {
   } else {
     // toDelete has no children.
     if (parent) {
-      //Free toDelete
-      parent->left() == toDelete ? parent->resetLeft(nullptr):
-        parent->resetRight(nullptr);
+      // Free toDelete
+      parent->left() == toDelete ? parent->resetLeft(nullptr)
+                                 : parent->resetRight(nullptr);
       if (parent->isNonValueNode()) {
         // toDelete's parent is a non value node. Since we removed
         // toDelete, toDelete's parent needs to be deleted as well
@@ -325,14 +338,14 @@ bool RadixTree<IPADDRTYPE, T, TreeTraits>::erase(TreeNode* toDelete) {
         TreeNode* grandParent = parent->parent();
         // toDeleteSibling must be non null since toDelete's parent
         // was a non value node, which always has 2 children.
-        auto toDeleteSibling = parent->left() ? parent->resetLeft(nullptr):
-          parent->resetRight(nullptr);
+        auto toDeleteSibling = parent->left() ? parent->resetLeft(nullptr)
+                                              : parent->resetRight(nullptr);
         CHECK(toDeleteSibling);
         if (grandParent) {
-          //Free toDelete's parent
-          grandParent->left() == parent ?
-            grandParent->resetLeft(std::move(toDeleteSibling)):
-            grandParent->resetRight(std::move(toDeleteSibling));
+          // Free toDelete's parent
+          grandParent->left() == parent
+              ? grandParent->resetLeft(std::move(toDeleteSibling))
+              : grandParent->resetRight(std::move(toDeleteSibling));
           // Here we replaced one of grandparent's children with
           // another and removed parent, toDelete nodes. There are
           // 2 possibilities with regards to grand parent
@@ -356,11 +369,11 @@ bool RadixTree<IPADDRTYPE, T, TreeTraits>::erase(TreeNode* toDelete) {
           makeRoot(std::move(toDeleteSibling));
         }
       } else {
-         // toDelete's parent is a value node.
-         // Nothing to do. Parent node holds a user inserted value.
-         // Post condition holds since all we have done is delete a
-         // value node's child and this has no bearing on number of
-         // children non value nodes have.
+        // toDelete's parent is a value node.
+        // Nothing to do. Parent node holds a user inserted value.
+        // Post condition holds since all we have done is delete a
+        // value node's child and this has no bearing on number of
+        // children non value nodes have.
       }
     } else {
       // To be deleted node has no parent and no children.
@@ -374,14 +387,14 @@ bool RadixTree<IPADDRTYPE, T, TreeTraits>::erase(TreeNode* toDelete) {
   return true;
 }
 
-
-template<typename IPADDRTYPE, typename T, typename TreeTraits>
+template <typename IPADDRTYPE, typename T, typename TreeTraits>
 bool RadixTree<IPADDRTYPE, T, TreeTraits>::radixSubTreesEqual(
-    const TreeNode* nodeA, const TreeNode* nodeB) {
+    const TreeNode* nodeA,
+    const TreeNode* nodeB) {
   if (nodeA && nodeB) {
     if (nodeA->equalSansLinks(*nodeB)) {
       return radixSubTreesEqual(nodeA->left(), nodeB->left()) &&
-        radixSubTreesEqual(nodeA->right(), nodeB->right());
+          radixSubTreesEqual(nodeA->right(), nodeB->right());
     } else {
       return false;
     }
@@ -389,8 +402,7 @@ bool RadixTree<IPADDRTYPE, T, TreeTraits>::radixSubTreesEqual(
   return !nodeA && !nodeB;
 }
 
-
-template<typename IPADDRTYPE, typename T, typename TreeTraits>
+template <typename IPADDRTYPE, typename T, typename TreeTraits>
 std::unique_ptr<typename RadixTree<IPADDRTYPE, T, TreeTraits>::TreeNode>
 RadixTree<IPADDRTYPE, T, TreeTraits>::cloneSubTree(const TreeNode* node) {
   if (!node) {
@@ -398,19 +410,23 @@ RadixTree<IPADDRTYPE, T, TreeTraits>::cloneSubTree(const TreeNode* node) {
   }
   std::unique_ptr<TreeNode> copy;
   if (node->isValueNode()) {
-    copy = std::make_unique<TreeNode>(node->ipAddress(),
-      node->masklen(), node->value(), node->nodeDeleteCallback());
+    copy = std::make_unique<TreeNode>(
+        node->ipAddress(),
+        node->masklen(),
+        node->value(),
+        node->nodeDeleteCallback());
   } else {
-    copy = std::make_unique<TreeNode>(node->ipAddress(),
-      node->masklen(), node->nodeDeleteCallback());
+    copy = std::make_unique<TreeNode>(
+        node->ipAddress(), node->masklen(), node->nodeDeleteCallback());
   }
   copy->resetLeft(cloneSubTree(node->left()));
   copy->resetRight(cloneSubTree(node->right()));
   return copy;
 }
 
-template<typename IterType>
-typename std::vector<IterType> pathFromRoot(IterType itr,
+template <typename IterType>
+typename std::vector<IterType> pathFromRoot(
+    IterType itr,
     bool includeNonValueNodes) {
   typename std::vector<IterType> path;
   auto tmp = itr->node();
@@ -422,8 +438,9 @@ typename std::vector<IterType> pathFromRoot(IterType itr,
   return std::move(path);
 }
 
-template<typename IterType>
-std::string trailStr(const typename std::vector<IterType>& trail,
+template <typename IterType>
+std::string trailStr(
+    const typename std::vector<IterType>& trail,
     bool printValues) {
   std::string path;
   for (auto i = 0; i < trail.size(); ++i) {
@@ -435,10 +452,13 @@ std::string trailStr(const typename std::vector<IterType>& trail,
   return path;
 }
 
-template<typename IPADDRTYPE, typename T, typename CURSORNODE,
-typename DESIREDITERTYPE>
+template <
+    typename IPADDRTYPE,
+    typename T,
+    typename CURSORNODE,
+    typename DESIREDITERTYPE>
 void RadixTreeIteratorImpl<IPADDRTYPE, T, CURSORNODE, DESIREDITERTYPE>::
-radixTreeItrIncrement() {
+    radixTreeItrIncrement() {
   const TreeNode* previous = nullptr;
   auto done = false;
   while (!done && cursor_) {
@@ -464,17 +484,18 @@ radixTreeItrIncrement() {
       } else {
         cursor_ = cursor_->parent();
         continue;
-       }
+      }
     } else if (cursor_->right() == previous) {
       // Coming up the tree from right
       previous = cursor_;
       cursor_ = cursor_->parent();
       continue;
     }
-    done = (cursor_ == nullptr || includeNonValueNodes_ ||
-        cursor_->isValueNode());
+    done =
+        (cursor_ == nullptr || includeNonValueNodes_ || cursor_->isValueNode());
   }
   normalize();
 }
 
-}} //facebook::network
+} // namespace network
+} // namespace facebook
