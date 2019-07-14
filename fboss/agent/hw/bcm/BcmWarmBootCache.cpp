@@ -987,10 +987,5 @@ void BcmWarmBootCache::programmed(IngressQosMapsItr itr) {
   XLOG(DBG1) << "Programmed QosMap, removing from warm boot cache.";
   ingressQosMaps_.erase(itr);
 }
-
-void BcmWarmBootCache::populateLabelStack2TunnelId(
-    opennsl_l3_egress_t* /*egress*/) {
-  // TODO(pshaikh): implement this
-}
 } // namespace fboss
 } // namespace facebook
