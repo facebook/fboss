@@ -33,6 +33,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmTypes.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootState.h"
 #include "fboss/agent/hw/bcm/types.h"
+#include "fboss/agent/state/LabelForwardingAction.h"
 #include "fboss/agent/state/QosPolicy.h"
 #include "fboss/agent/state/RouteTypes.h"
 
@@ -134,6 +135,10 @@ class BcmWarmBootCache {
   using HostTableInWarmBootFile = boost::container::flat_map<HostKey, EgressId>;
   using MplsNextHop2EgressIdInWarmBootFile =
       boost::container::flat_map<BcmLabeledHostKey, EgressId>;
+  using LabelStackKey =
+      std::pair<opennsl_vlan_t, LabelForwardingAction::LabelStack>;
+  using LabelStackKey2TunnelId =
+      boost::container::flat_map<LabelStackKey, opennsl_if_t>;
 
   // current h/w acls: key = priority, value = BcmAclEntryHandle
   using Priority2BcmAclEntryHandle =
@@ -223,6 +228,8 @@ class BcmWarmBootCache {
 
   void populateLabelSwitchActions();
   void removeUnclaimedLabelSwitchActions();
+
+  void populateLabelStack2TunnelId(opennsl_l3_egress_t* egress);
 
  public:
   /*
@@ -315,6 +322,23 @@ class BcmWarmBootCache {
                << ". Removing from warmboot cache.";
     egressId2Egress_.erase(citr->first);
   }
+
+  using LabelStackKey2TunnelIdCitr = LabelStackKey2TunnelId::const_iterator;
+  LabelStackKey2TunnelIdCitr labelStack2TunnelId_begin() const {
+    return labelStackKey2TunnelId_.begin();
+  }
+  LabelStackKey2TunnelIdCitr labelStack2TunnelId_end() const {
+    return labelStackKey2TunnelId_.end();
+  }
+  LabelStackKey2TunnelIdCitr findTunnel(
+      opennsl_vlan_t vlan,
+      const LabelForwardingAction::LabelStack& stack) const {
+    return labelStackKey2TunnelId_.find(LabelStackKey(vlan, stack));
+  }
+  void programmed(LabelStackKey2TunnelIdCitr citr) {
+    labelStackKey2TunnelId_.erase(citr->first);
+  }
+
   /*
    * Iterators and find functions for finding opennsl_l3_host_t
    */
@@ -564,6 +588,7 @@ class BcmWarmBootCache {
   VrfAndIP2Route vrfAndIP2Route_;
   EgressId2Egress egressId2Egress_;
   EgressIds2Ecmp egressIds2Ecmp_;
+  LabelStackKey2TunnelId labelStackKey2TunnelId_;
   opennsl_if_t dropEgressId_;
   opennsl_if_t toCPUEgressId_;
   // hwSwitchEcmp2EgressIds_ represents what the mapping

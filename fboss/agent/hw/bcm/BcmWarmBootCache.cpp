@@ -502,6 +502,7 @@ int BcmWarmBootCache::egressTraversalCallback(
                   << " flags: " << std::hex << egress->flags << std::dec;
     }
   }
+  cache->populateLabelStack2TunnelId(egress);
   return 0;
 }
 
@@ -987,5 +988,9 @@ void BcmWarmBootCache::programmed(IngressQosMapsItr itr) {
   ingressQosMaps_.erase(itr);
 }
 
+void BcmWarmBootCache::populateLabelStack2TunnelId(
+    opennsl_l3_egress_t* /*egress*/) {
+  // TODO(pshaikh): implement this
+}
 } // namespace fboss
 } // namespace facebook
