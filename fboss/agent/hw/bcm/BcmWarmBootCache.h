@@ -230,6 +230,7 @@ class BcmWarmBootCache {
   void removeUnclaimedLabelSwitchActions();
 
   void populateLabelStack2TunnelId(opennsl_l3_egress_t* egress);
+  void removeUnclaimedLabeledTunnels();
 
  public:
   /*

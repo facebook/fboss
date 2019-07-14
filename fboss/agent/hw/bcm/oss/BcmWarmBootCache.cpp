@@ -51,5 +51,6 @@ void BcmWarmBootCache::populateLabelSwitchActions() {}
 void BcmWarmBootCache::removeUnclaimedLabelSwitchActions() {}
 void BcmWarmBootCache::populateLabelStack2TunnelId(
     opennsl_l3_egress_t* /*egress*/) {}
+void BcmWarmBootCache::removeUnclaimedLabeledTunnels() {}
 } // namespace fboss
 } // namespace facebook

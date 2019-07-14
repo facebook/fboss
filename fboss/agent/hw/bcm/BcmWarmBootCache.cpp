@@ -636,6 +636,9 @@ void BcmWarmBootCache::clear() {
   }
   vrfAndIP2Route_.clear();
 
+  // purge any lingering label FIB entries
+  removeUnclaimedLabelSwitchActions();
+
   // Delete bcm host entries. Nobody references bcm hosts, but
   // hosts reference egress objects
   for (auto vrfIpAndHost : vrfIp2Host_) {
@@ -682,6 +685,9 @@ void BcmWarmBootCache::clear() {
         rv, hw_, "failed to destroy egress object ", egressIdAndEgress.first);
   }
   egressId2Egress_.clear();
+
+  // delete any MPLS tunnels
+  removeUnclaimedLabeledTunnels();
 
   // Delete interfaces
   for (auto vlanMacAndIntf : vlanAndMac2Intf_) {
