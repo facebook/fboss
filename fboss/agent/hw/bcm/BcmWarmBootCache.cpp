@@ -258,6 +258,8 @@ void BcmWarmBootCache::populateFromWarmBootState(
   }
 
   // get l3 intfs for each known vlan in warmboot state file
+  // TODO(pshaikh): in earlier warm boot state file, kIntfTable could be
+  // absent after two pushes this condition can be removed
   const auto& intfTable = (warmBootState[kHwSwitch].find(kIntfTable) !=
                            warmBootState[kHwSwitch].items().end())
       ? warmBootState[kHwSwitch][kIntfTable]
@@ -314,7 +316,7 @@ void BcmWarmBootCache::populate(folly::Optional<folly::dynamic> warmBootState) {
   bcmCheckError(rv, "Unable to get vlan information");
   for (auto i = 0; i < vlanCount; ++i) {
     opennsl_vlan_data_t& vlanData = vlanList[i];
-    int portCount;
+    int portCount = 0;
     OPENNSL_PBMP_COUNT(vlanData.port_bitmap, portCount);
     XLOG(DBG1) << "Got vlan : " << vlanData.vlan_tag << " with : " << portCount
                << " ports";
@@ -328,14 +330,24 @@ void BcmWarmBootCache::populate(folly::Optional<folly::dynamic> warmBootState) {
             vlanData.port_bitmap)));
     opennsl_l3_intf_t l3Intf;
     opennsl_l3_intf_t_init(&l3Intf);
-    // Implicit here is the assumption that we have a interface
-    // per vlan (since we are looking up the inteface by vlan).
-    // If this changes we will have to store extra information
-    // somewhere (e.g. interface id or vlan, mac pairs for interfaces
-    // created) and then use that for lookup during warm boot.
+    // there can be more than one interfaces per vlan, such as one l3 intf
+    // and other MPLS tunnels. There is no clear way to identify which is
+    // which. so keeping track of l3 interfaces in warmboot state file
+    // look for l3 intf ID in warmboot state file and try to extract it.
     l3Intf.l3a_vid = vlanData.vlan_tag;
     bool intfFound = false;
-    rv = opennsl_l3_intf_find_vlan(hw_->getUnit(), &l3Intf);
+    auto iter = vlan2BcmIfIdInWarmBootFile_.find(VlanID(vlanData.vlan_tag));
+    if (iter != vlan2BcmIfIdInWarmBootFile_.end()) {
+      l3Intf.l3a_intf_id = iter->second;
+      l3Intf.l3a_flags = OPENNSL_L3_WITH_ID;
+      rv = opennsl_l3_intf_get(hw_->getUnit(), &l3Intf);
+    } else {
+      // this can happen for vlan id 1, a special vlan which is returned by
+      // opennsl_vlan_list, this vlan has all ports which has no vlan associated
+      // it also has port 0 if all front panel ports are associated with some
+      // vlan. this vlan won't be in vlan2BcmIfIdInWarmBootFile_
+      rv = opennsl_l3_intf_find_vlan(hw_->getUnit(), &l3Intf);
+    }
     if (rv != OPENNSL_E_NOT_FOUND) {
       bcmCheckError(rv, "failed to find interface for ", vlanData.vlan_tag);
       intfFound = true;
