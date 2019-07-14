@@ -47,6 +47,15 @@ opennsl_l3_intf_t BcmLabeledTunnel::getTunnelProperties(
 void BcmLabeledTunnel::program(opennsl_if_t l3Intf) {
   auto intfParams = getTunnelProperties(l3Intf);
 
+  auto* wbCache = hw_->getWarmBootCache();
+  auto citr = wbCache->findTunnel(intfParams.l3a_vid, stack_);
+  if (citr != wbCache->labelStack2TunnelId_end()) {
+    labeledTunnel_ = citr->second;
+    XLOG(DBG3) << "found tunnel interface:" << str() << " in warmboot cache";
+    wbCache->programmed(citr);
+    return;
+  }
+
   auto rv = opennsl_l3_intf_create(hw_->getUnit(), &intfParams);
   bcmCheckError(
       rv, "failed to create tunnel interface with ", strLabelStack(stack_));
