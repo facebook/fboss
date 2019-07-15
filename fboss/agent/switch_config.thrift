@@ -482,6 +482,12 @@ enum LLDPTag {
   SYSTEM_DESC = 6,
 }
 
+// Packets sampled on a port can be sent to CPU or a Mirror Destination
+enum SampleDestination {
+  CPU     = 0,
+  MIRROR  = 1
+}
+
 /**
  * Configuration for a single logical port
  */
@@ -571,7 +577,7 @@ struct Port {
   /*
    * Setup port in loopback mode
    */
-   17: PortLoopbackMode loopbackMode = PortLoopbackMode.NONE
+  17: PortLoopbackMode loopbackMode = PortLoopbackMode.NONE
   /**
    * if port is mirrored?
    */
@@ -589,6 +595,12 @@ struct Port {
    * is compared.
    */
   20: map<LLDPTag, string> expectedLLDPValues = {}
+  /**
+   * Specify the destination of sFlow sampling: CPU or Mirror.
+   * If sampleDest is specified as MIRROR, sFlowEgressRate must be 0 because
+   * egress sampling to mirror destinations is currently unsupported.
+   */
+  21: optional SampleDestination sampleDest
 }
 
 enum LacpPortRate {
