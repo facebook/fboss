@@ -306,25 +306,15 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
     explicit ThreadLocalListener(EventBase* eb) : eventBase(eb){};
   };
   folly::ThreadLocalPtr<ThreadLocalListener, int> listeners_;
-
-  void onPortStatusChanged(PortID id, PortStatus st);
-
   void invokeNeighborListeners(
       ThreadLocalListener* info,
       std::vector<std::string> added,
       std::vector<std::string> deleted);
-
   void updateUnicastRoutesImpl(
       int16_t client,
       const std::unique_ptr<std::vector<UnicastRoute>>& routes,
       const std::string& updType,
       bool sync);
-
-  void getPortInfoHelper(
-      PortInfoThrift& portInfo,
-      const std::shared_ptr<Port> port);
-  void fillPortStats(PortInfoThrift& portInfo, int numPortQs = 0);
-
   Vlan* getVlan(int32_t vlanId);
   Vlan* getVlan(const std::string& vlanName);
   template <typename ADDR_TYPE, typename ADDR_CONVERTER>
@@ -332,17 +322,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       const Vlan* vlan,
       std::vector<ADDR_TYPE>& addrs,
       ADDR_CONVERTER& converter);
-
-  static LacpPortRateThrift fromLacpPortRate(cfg::LacpPortRate rate);
-  static LacpPortActivityThrift fromLacpPortActivity(
-      cfg::LacpPortActivity activity);
-  static void populateAggregatePortThrift(
-      const std::shared_ptr<AggregatePort>& aggregatePort,
-      AggregatePortThrift& aggregatePortThrift);
-  static AclEntryThrift populateAclEntryThrift(const AclEntry& aclEntry);
-  LinkNeighborThrift thriftLinkNeighbor(
-      const LinkNeighbor& n,
-      std::chrono::steady_clock::time_point now);
   // Forbidden copy constructor and assignment operator
   ThriftHandler(ThriftHandler const&) = delete;
   ThriftHandler& operator=(ThriftHandler const&) = delete;
