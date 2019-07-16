@@ -36,6 +36,7 @@ class SwSwitch;
 class Vlan;
 class SwitchState;
 class AclEntry;
+struct LinkNeighbor;
 
 class ThriftHandler : virtual public FbossCtrlSvIf,
                       public fb303::FacebookBase2,
@@ -339,7 +340,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       const std::shared_ptr<AggregatePort>& aggregatePort,
       AggregatePortThrift& aggregatePortThrift);
   static AclEntryThrift populateAclEntryThrift(const AclEntry& aclEntry);
-
+  LinkNeighborThrift thriftLinkNeighbor(
+      const LinkNeighbor& n,
+      std::chrono::steady_clock::time_point now);
   // Forbidden copy constructor and assignment operator
   ThriftHandler(ThriftHandler const&) = delete;
   ThriftHandler& operator=(ThriftHandler const&) = delete;

@@ -999,7 +999,7 @@ void ThriftHandler::getIpRouteDetails(
   }
 }
 
-static LinkNeighborThrift thriftLinkNeighbor(
+LinkNeighborThrift ThriftHandler::thriftLinkNeighbor(
     const LinkNeighbor& n,
     steady_clock::time_point now) {
   LinkNeighborThrift tn;
@@ -1023,6 +1023,10 @@ static LinkNeighborThrift thriftLinkNeighbor(
   }
   if (!n.getPortDescription().empty()) {
     tn.portDescription_ref() = n.getPortDescription();
+  }
+  const auto port = sw_->getState()->getPorts()->getPortIf(n.getLocalPort());
+  if (port) {
+    tn.localPortName_ref() = port->getName();
   }
   return tn;
 }

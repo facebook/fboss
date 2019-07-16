@@ -408,6 +408,7 @@ struct LinkNeighborThrift {
   12: optional string systemName
   13: optional string systemDescription
   14: optional string portDescription
+  15: optional string localPortName
 }
 
 enum StdClientIds {
