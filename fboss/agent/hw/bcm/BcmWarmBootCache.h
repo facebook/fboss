@@ -547,7 +547,7 @@ class BcmWarmBootCache {
      * typically those pieces which are unavailable through SDK traversal APIs
      * or which are needed to be maintained for absence of some entries in ASIC
      * e.g. for correct egress association as link local host entries are not
-     * saved in ASIC but maintained in sofrware.
+     * saved in ASIC but maintained in software.
      */
     return bcmWarmBootState_.get();
   }
