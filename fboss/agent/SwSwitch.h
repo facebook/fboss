@@ -727,8 +727,6 @@ class SwSwitch : public HwSwitch::Callback {
 
   std::string switchRunStateStr(SwitchRunState runState) const;
 
-  void updateAclsForWarmboot(folly::dynamic& switchState) const;
-
   std::string curConfigStr_;
   cfg::SwitchConfig curConfig_;
 

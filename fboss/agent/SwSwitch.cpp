@@ -332,7 +332,6 @@ void SwSwitch::gracefulExit() {
     // then rely on a route/FIB sync on warm boot to recover
     // desired state.
     switchState[kSwSwitch] = getAppliedState()->toFollyDynamic();
-    updateAclsForWarmboot(switchState);
 
     steady_clock::time_point switchStateToFollyDone = steady_clock::now();
     XLOG(INFO) << "[Exit] Switch state to folly dynamic "
