@@ -488,6 +488,8 @@ enum SampleDestination {
   MIRROR  = 1
 }
 
+typedef string PortQueueConfigName
+
 /**
  * Configuration for a single logical port
  */
@@ -595,12 +597,23 @@ struct Port {
    * is compared.
    */
   20: map<LLDPTag, string> expectedLLDPValues = {}
+
   /**
    * Specify the destination of sFlow sampling: CPU or Mirror.
    * If sampleDest is specified as MIRROR, sFlowEgressRate must be 0 because
    * egress sampling to mirror destinations is currently unsupported.
    */
   21: optional SampleDestination sampleDest
+
+  /*
+   * Allows overriding default queue config on individual port.
+   *
+   * if portQueueConfigName is provided,
+   *     port queue config = SwitchConfig::portQueueConfigs[portQueueConfigName]
+   * else
+   *     port queue config = SwitchConfig::defaultPortQueues
+   */
+  22: optional PortQueueConfigName portQueueConfigName
 }
 
 enum LacpPortRate {
@@ -1000,4 +1013,7 @@ struct SwitchConfig {
   38: list<StaticMplsRouteNoNextHops> staticMplsRoutesToCPU = []
   // ingress LER routes
   39: list<StaticIp2MplsRoute> staticIp2MplsRoutes = []
+
+  // Map of named PortQueueConfigs.
+  40: map<PortQueueConfigName, list<PortQueue>> portQueueConfigs = {}
 }
