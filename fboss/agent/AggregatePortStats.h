@@ -29,12 +29,6 @@ class AggregatePortStats {
   void flapped();
   void aggregatePortNameChanged(const std::string& name);
 
-  // TODO(samank): use friend functionality
-  static void recordStatistics(
-      SwSwitch* sw,
-      const std::shared_ptr<AggregatePort>& oldAggPort,
-      const std::shared_ptr<AggregatePort>& newAggPort);
-
  private:
   std::string constructCounterName(
       const std::string& aggregatePortName,

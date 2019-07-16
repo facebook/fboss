@@ -34,6 +34,33 @@
 namespace facebook {
 namespace fboss {
 
+void LinkAggregationManager::recordStatistics(
+    facebook::fboss::SwSwitch* sw,
+    const std::shared_ptr<AggregatePort>& oldAggPort,
+    const std::shared_ptr<AggregatePort>& newAggPort) {
+  bool wasUpPreviously = oldAggPort->isUp();
+  bool isUpNow = newAggPort->isUp();
+
+  if (wasUpPreviously == isUpNow) {
+    return;
+  }
+
+  auto aggregatePortID = newAggPort->getID();
+
+  auto aggregatePortStats = sw->stats()->aggregatePort(aggregatePortID);
+  if (!aggregatePortStats) {
+    // Because AggregatePorts are only created by configuration, we can be
+    // sure that config application has already been completed at this
+    // point. It follows that the first time this code is executed,
+    // aggregatePortStats will be constructed with the desired name- that
+    // specified in the config.
+    aggregatePortStats = sw->stats()->createAggregatePortStats(
+        aggregatePortID, newAggPort->getName());
+  }
+
+  aggregatePortStats->flapped();
+}
+
 ProgramForwardingState::ProgramForwardingState(
     PortID portID,
     AggregatePortID aggPortID,
@@ -157,7 +184,7 @@ void LinkAggregationManager::aggregatePortChanged(
     const std::shared_ptr<AggregatePort>& newAggPort) {
   CHECK_EQ(oldAggPort->getID(), newAggPort->getID());
 
-  AggregatePortStats::recordStatistics(sw_, oldAggPort, newAggPort);
+  recordStatistics(sw_, oldAggPort, newAggPort);
 
   auto oldSubportRange = oldAggPort->sortedSubports();
   if (oldAggPort->getName() == newAggPort->getName() &&

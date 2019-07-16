@@ -77,6 +77,11 @@ class LinkAggregationManager : public AutoRegisterStateObserver,
   std::vector<std::shared_ptr<LacpController>> getControllersFor(
       folly::Range<std::vector<PortID>::const_iterator> ports) override;
 
+  static void recordStatistics(
+      SwSwitch* sw,
+      const std::shared_ptr<AggregatePort>& oldAggPort,
+      const std::shared_ptr<AggregatePort>& newAggPort);
+
  private:
   void aggregatePortRemoved(const std::shared_ptr<AggregatePort>& aggPort);
   void aggregatePortAdded(const std::shared_ptr<AggregatePort>& aggPort);

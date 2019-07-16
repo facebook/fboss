@@ -11,7 +11,6 @@
 #include <gtest/gtest.h>
 #include <string>
 
-#include "fboss/agent/AggregatePortStats.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/SwitchStats.h"
@@ -99,7 +98,7 @@ TEST(AggregatePortStats, FlapOnce) {
 
   waitForStateUpdates(sw);
   auto newAggPort = getAggregatePort(sw, aggregatePortID);
-  AggregatePortStats::recordStatistics(sw, oldAggPort, newAggPort);
+  LinkAggregationManager::recordStatistics(sw, oldAggPort, newAggPort);
 
   counters.update();
   EXPECT_TRUE(counters.checkExist(flapsCounterName));
@@ -131,7 +130,7 @@ TEST(AggregatePortStats, FlapTwice) {
 
   waitForStateUpdates(sw);
   auto initialAggPort = getAggregatePort(sw, aggregatePortID);
-  AggregatePortStats::recordStatistics(sw, baseAggPort, initialAggPort);
+  LinkAggregationManager::recordStatistics(sw, baseAggPort, initialAggPort);
 
   ProgramForwardingState removePort2FromAggregatePort(
       PortID(2), aggregatePortID, AggregatePort::Forwarding::DISABLED);
@@ -140,7 +139,7 @@ TEST(AggregatePortStats, FlapTwice) {
 
   waitForStateUpdates(sw);
   auto finalAggPort = getAggregatePort(sw, aggregatePortID);
-  AggregatePortStats::recordStatistics(sw, initialAggPort, finalAggPort);
+  LinkAggregationManager::recordStatistics(sw, initialAggPort, finalAggPort);
 
   counters.update();
   EXPECT_TRUE(counters.checkExist(flapsCounterName));
@@ -180,7 +179,7 @@ TEST(AggregatePortStats, UpdateAggregatePortName) {
   waitForStateUpdates(sw);
   initialAggPort = getAggregatePort(sw, aggregatePortID);
 
-  AggregatePortStats::recordStatistics(sw, baseAggPort, initialAggPort);
+  LinkAggregationManager::recordStatistics(sw, baseAggPort, initialAggPort);
   counters.update();
   EXPECT_TRUE(counters.checkExist(initialFlapsCounterName));
 
@@ -197,7 +196,7 @@ TEST(AggregatePortStats, UpdateAggregatePortName) {
   waitForStateUpdates(sw);
   updatedAggPort = getAggregatePort(sw, aggregatePortID);
 
-  AggregatePortStats::recordStatistics(sw, initialAggPort, updatedAggPort);
+  LinkAggregationManager::recordStatistics(sw, initialAggPort, updatedAggPort);
   counters.update();
   EXPECT_FALSE(counters.checkExist(initialFlapsCounterName));
   EXPECT_TRUE(counters.checkExist(updatedFlapsCounterName));
