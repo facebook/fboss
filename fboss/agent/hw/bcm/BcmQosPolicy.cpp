@@ -40,7 +40,7 @@ BcmQosPolicyHandle BcmQosPolicy::getHandle() const {
 void BcmQosPolicy::update(
     const std::shared_ptr<QosPolicy>& oldQosPolicy,
     const std::shared_ptr<QosPolicy>& newQosPolicy) {
-  CHECK(oldQosPolicy->getID() == oldQosPolicy->getID());
+  CHECK(oldQosPolicy->getID() == newQosPolicy->getID());
   const auto& oldRules = oldQosPolicy->getRules();
   const auto& newRules = newQosPolicy->getRules();
 
