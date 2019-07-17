@@ -310,3 +310,30 @@ TEST(PortQueue, checkSwConfPortQueueMatch) {
   auto& cfgQueue = config.portQueueConfigs["queue_config"][0];
   EXPECT_TRUE(checkSwConfPortQueueMatch(swQueues.at(0), &cfgQueue));
 }
+
+TEST(PortQueue, checkValidPortQueueConfigRef) {
+  auto platform = createMockPlatform();
+  auto stateV0 = applyInitConfig();
+
+  cfg::SwitchConfig config;
+  config.ports.resize(1);
+  config.ports[0].logicalID = 1;
+  config.ports[0].name_ref().value_unchecked() = "port1";
+  config.ports[0].state = cfg::PortState::ENABLED;
+
+  cfg::PortQueue queue0;
+  queue0.id = 0;
+  queue0.name_ref() = "queue0";
+  queue0.streamType = cfg::StreamType::UNICAST;
+  queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+
+  /*
+   * portQueueConfigs map has entry for "queue_config", but the port is
+   * referencing invalid entry "queue_config2"
+   */
+  config.portQueueConfigs["queue_config"].push_back(queue0);
+  config.ports[0].portQueueConfigName_ref() = "queue_config2";
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
