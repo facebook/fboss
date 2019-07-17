@@ -43,14 +43,18 @@ void HwLinkStateToggler::portStateChangeImpl(
     std::shared_ptr<SwitchState> switchState,
     const std::vector<PortID>& ports,
     bool up) {
+  auto desiredLoopbackMode =
+      up ? cfg::PortLoopbackMode::MAC : cfg::PortLoopbackMode::NONE;
   auto newState = switchState;
   for (auto port : ports) {
-    auto prevState = newState;
+    if (newState->getPorts()->getPort(port)->getLoopbackMode() ==
+        desiredLoopbackMode) {
+      continue;
+    }
     newState = newState->clone();
     auto newPort = newState->getPorts()->getPort(port)->modify(&newState);
     setPortIDAndStateToWaitFor(port, up);
-    newPort->setLoopbackMode(
-        up ? cfg::PortLoopbackMode::MAC : cfg::PortLoopbackMode::NONE);
+    newPort->setLoopbackMode(desiredLoopbackMode);
     stateUpdateFn_(newState);
     invokeLinkScanIfNeeded(port, up);
     std::unique_lock<std::mutex> lock{linkEventMutex_};
