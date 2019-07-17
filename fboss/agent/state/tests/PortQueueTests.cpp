@@ -64,7 +64,8 @@ cfg::SwitchConfig generateTestConfig() {
   queue0.aqms_ref().value_unchecked().push_back(getEarlyDropAqmConfig());
   queue0.__isset.aqms = true;
 
-  config.ports[0].queues.push_back(queue0);
+  config.portQueueConfigs["queue_config"].push_back(queue0);
+  config.ports[0].portQueueConfigName_ref() = "queue_config";
   return config;
 }
 
@@ -158,7 +159,8 @@ TEST(PortQueue, stateDelta) {
     cfg::PortQueue queue;
     queue.id = i;
     queue.weight_ref() = i;
-    config.ports[0].queues.push_back(queue);
+    config.portQueueConfigs["queue_config"].push_back(queue);
+    config.ports[0].portQueueConfigName_ref() = "queue_config";
   }
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
@@ -166,7 +168,7 @@ TEST(PortQueue, stateDelta) {
   auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(kStateTestDefaultNumPortQueues, queues1.size());
 
-  config.ports[0].queues[0].weight_ref().value_unchecked() = 5;
+  config.portQueueConfigs["queue_config"][0].weight_ref().value_unchecked() = 5;
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
@@ -174,7 +176,7 @@ TEST(PortQueue, stateDelta) {
   EXPECT_EQ(kStateTestDefaultNumPortQueues, queues2.size());
   EXPECT_EQ(5, queues2.at(0)->getWeight());
 
-  config.ports[0].queues.pop_back();
+  config.portQueueConfigs["queue_config"].pop_back();
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto queues3 = stateV3->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(kStateTestDefaultNumPortQueues, queues3.size());
@@ -183,7 +185,7 @@ TEST(PortQueue, stateDelta) {
   cfg::PortQueue queueExtra;
   queueExtra.id = 11;
   queueExtra.weight_ref() = 5;
-  config.ports[0].queues.push_back(queueExtra);
+  config.portQueueConfigs["queue_config"].push_back(queueExtra);
   EXPECT_THROW(
       publishAndApplyConfig(stateV3, &config, platform.get()), FbossError);
 }
@@ -202,7 +204,8 @@ TEST(PortQueue, aqmState) {
   queue.weight_ref().value_unchecked() = 1;
   queue.aqms_ref().value_unchecked().push_back(getEarlyDropAqmConfig());
   queue.__isset.aqms = true;
-  config.ports[0].queues.push_back(queue);
+  config.portQueueConfigs["queue_config"].push_back(queue);
+  config.ports[0].portQueueConfigName_ref() = "queue_config";
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
@@ -234,7 +237,8 @@ TEST(PortQueue, aqmBadState) {
   queue.aqms_ref().value_unchecked().push_back(ecnAQM);
   queue.__isset.aqms = true;
 
-  config.ports[0].queues.push_back(queue);
+  config.portQueueConfigs["queue_config"].push_back(queue);
+  config.ports[0].portQueueConfigName_ref() = "queue_config";
 
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
@@ -252,7 +256,7 @@ TEST(PortQueue, resetPartOfConfigs) {
     EXPECT_TRUE(queues1.at(0)->getReservedBytes().hasValue());
 
     // reset reservedBytes
-    config.ports[0].queues[0].__isset.reservedBytes = false;
+    config.portQueueConfigs["queue_config"][0].__isset.reservedBytes = false;
 
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_TRUE(stateV2 != nullptr);
@@ -267,7 +271,7 @@ TEST(PortQueue, resetPartOfConfigs) {
     EXPECT_TRUE(queues1.at(0)->getScalingFactor().hasValue());
 
     // reset scalingFactor
-    config.ports[0].queues[0].__isset.scalingFactor = false;
+    config.portQueueConfigs["queue_config"][0].__isset.scalingFactor = false;
 
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_TRUE(stateV2 != nullptr);
@@ -282,8 +286,11 @@ TEST(PortQueue, resetPartOfConfigs) {
     EXPECT_EQ(2, queues1.at(0)->getAqms().size());
 
     // reset aqm
-    config.ports[0].queues[0].aqms_ref().value_unchecked().clear();
-    config.ports[0].queues[0].__isset.aqms = false;
+    config.portQueueConfigs["queue_config"][0]
+        .aqms_ref()
+        .value_unchecked()
+        .clear();
+    config.portQueueConfigs["queue_config"][0].__isset.aqms = false;
 
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_TRUE(stateV2 != nullptr);
@@ -300,6 +307,6 @@ TEST(PortQueue, checkSwConfPortQueueMatch) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
   auto& swQueues = stateV1->getPort(PortID(1))->getPortQueues();
-  auto& cfgQueue = config.ports[0].queues[0];
+  auto& cfgQueue = config.portQueueConfigs["queue_config"][0];
   EXPECT_TRUE(checkSwConfPortQueueMatch(swQueues.at(0), &cfgQueue));
 }

@@ -771,7 +771,21 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
 
   auto vlans = portVlans_[orig->getID()];
 
-  auto portQueues = updatePortQueues(orig->getPortQueues(), portConf->queues);
+  std::vector<cfg::PortQueue> cfgPortQueues;
+  if (portConf->__isset.portQueueConfigName) {
+    auto it = cfg_->portQueueConfigs.find(
+        portConf->portQueueConfigName_ref().value_unchecked());
+    if (it == cfg_->portQueueConfigs.end()) {
+      throw FbossError(
+          "Port queue config name: ",
+          portConf->portQueueConfigName_ref().value_unchecked(),
+          " does not exist in PortQueueConfig map");
+    }
+
+    cfgPortQueues = it->second;
+  }
+
+  auto portQueues = updatePortQueues(orig->getPortQueues(), cfgPortQueues);
   bool queuesUnchanged = portQueues.size() == orig->getPortQueues().size();
   for (int i = 0; i < portQueues.size() && queuesUnchanged; i++) {
     if (*(portQueues.at(i)) != *(orig->getPortQueues().at(i))) {
