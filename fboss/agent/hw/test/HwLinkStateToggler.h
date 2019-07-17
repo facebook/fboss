@@ -1,0 +1,71 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#pragma once
+
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/SwitchState.h"
+
+#include <folly/Optional.h>
+#include <condition_variable>
+#include <functional>
+#include <memory>
+#include <mutex>
+
+namespace facebook {
+namespace fboss {
+
+class Platform;
+class SwitchState;
+
+class HwLinkStateToggler {
+ public:
+  using StateUpdateFn = std::function<void(std::shared_ptr<SwitchState>)>;
+
+  explicit HwLinkStateToggler(StateUpdateFn stateUpdateFn)
+      : stateUpdateFn_(stateUpdateFn) {}
+  virtual ~HwLinkStateToggler() {}
+
+  void applyInitialConfigAndBringUpPorts(
+      const std::shared_ptr<SwitchState>& curState,
+      const Platform* platform,
+      const cfg::SwitchConfig& initCfg);
+  void linkStateChanged(PortID port, bool up) noexcept;
+  void bringUpPorts(
+      std::shared_ptr<SwitchState> switchState,
+      const std::vector<PortID>& ports) {
+    portStateChangeImpl(switchState, ports, true);
+  }
+  void bringDownPorts(
+      std::shared_ptr<SwitchState> switchState,
+      const std::vector<PortID>& ports) {
+    portStateChangeImpl(switchState, ports, false);
+  }
+
+ private:
+  void portStateChangeImpl(
+      std::shared_ptr<SwitchState> switchState,
+      const std::vector<PortID>& ports,
+      bool up);
+  virtual void invokeLinkScanIfNeeded(PortID port, bool isUp) = 0;
+  virtual void setPortPreemphasis(PortID port, int preemphasis) = 0;
+
+  void setPortIDAndStateToWaitFor(PortID port, bool waitForUp);
+  mutable std::mutex linkEventMutex_;
+  folly::Optional<PortID> portIdToWaitFor_;
+  bool waitForPortUp_{false};
+  bool desiredPortEventOccurred_{false};
+  std::condition_variable linkEventCV_;
+
+  StateUpdateFn stateUpdateFn_;
+};
+} // namespace fboss
+} // namespace facebook
