@@ -545,12 +545,10 @@ struct Port {
   10: optional string description
 
   /**
-   * There are multiple queues per port
-   * This allows defining their attributes
-   *
-   * If defined, this overrides defaultPortQueues in SwitchConfig.
+   * Refer portQueueConfigName, which offers similar functionality without
+   * having to repeat identical queue config across ports.
    */
-  12: list<PortQueue> queues = []
+  12: list<PortQueue> queues_DEPRECATED = []
 
   /**
    * pause configuration
