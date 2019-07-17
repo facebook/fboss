@@ -32,10 +32,6 @@ class BcmTrunk {
   };
 
   explicit BcmTrunk(const BcmSwitchIf* hw);
-  // This constructor with an `opennsl_trunk_t` argument is used for
-  // warmboot to represent trunks already programmed in hardware and
-  // use their corresponding trunk IDs.
-  BcmTrunk(const BcmSwitchIf* hw, opennsl_trunk_t id);
   ~BcmTrunk();
 
   opennsl_trunk_t id() const {

@@ -30,10 +30,7 @@ using std::vector;
 namespace facebook {
 namespace fboss {
 
-BcmTrunk::BcmTrunk(const BcmSwitchIf* hw) : BcmTrunk(hw, INVALID) {}
-
-BcmTrunk::BcmTrunk(const BcmSwitchIf* hw, opennsl_trunk_t id)
-    : bcmTrunkID_(id), hw_(hw), trunkStats_(hw) {}
+BcmTrunk::BcmTrunk(const BcmSwitchIf* hw) : hw_(hw), trunkStats_(hw) {}
 
 BcmTrunk::~BcmTrunk() {
   if (bcmTrunkID_ == INVALID) {
