@@ -373,15 +373,16 @@ void BcmWarmBootCache::populate(folly::Optional<folly::dynamic> warmBootState) {
   opennsl_l3_info_t_init(&l3Info);
   opennsl_l3_info(hw_->getUnit(), &l3Info);
   // Traverse V4 hosts
-  opennsl_l3_host_traverse(
+  rv = opennsl_l3_host_traverse(
       hw_->getUnit(),
       0,
       0,
       l3Info.l3info_max_host,
       hostTraversalCallback,
       this);
+  bcmCheckError(rv, "Failed to traverse v4 hosts");
   // Traverse V6 hosts
-  opennsl_l3_host_traverse(
+  rv = opennsl_l3_host_traverse(
       hw_->getUnit(),
       OPENNSL_L3_IP6,
       0,
@@ -389,16 +390,18 @@ void BcmWarmBootCache::populate(folly::Optional<folly::dynamic> warmBootState) {
       l3Info.l3info_max_host / 2,
       hostTraversalCallback,
       this);
+  bcmCheckError(rv, "Failed to traverse v6 hosts");
   // Traverse V4 routes
-  opennsl_l3_route_traverse(
+  rv = opennsl_l3_route_traverse(
       hw_->getUnit(),
       0,
       0,
       l3Info.l3info_max_route,
       routeTraversalCallback,
       this);
+  bcmCheckError(rv, "Failed to traverse v4 routes");
   // Traverse V6 routes
-  opennsl_l3_route_traverse(
+  rv = opennsl_l3_route_traverse(
       hw_->getUnit(),
       OPENNSL_L3_IP6,
       0,
@@ -406,11 +409,15 @@ void BcmWarmBootCache::populate(folly::Optional<folly::dynamic> warmBootState) {
       l3Info.l3info_max_route / 2,
       routeTraversalCallback,
       this);
+  bcmCheckError(rv, "Failed to traverse v6 routes");
   // Get egress entries.
-  opennsl_l3_egress_traverse(hw_->getUnit(), egressTraversalCallback, this);
+  rv =
+      opennsl_l3_egress_traverse(hw_->getUnit(), egressTraversalCallback, this);
+  bcmCheckError(rv, "Failed to traverse egress");
   // Traverse ecmp egress entries
-  opennsl_l3_egress_ecmp_traverse(
+  rv = opennsl_l3_egress_ecmp_traverse(
       hw_->getUnit(), ecmpEgressTraversalCallback, this);
+  bcmCheckError(rv, "Failed to traverse ecmp egress");
 
   // populate acls, acl stats
   populateAcls(
