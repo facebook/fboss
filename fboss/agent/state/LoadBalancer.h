@@ -33,13 +33,17 @@ struct LoadBalancerFields {
   using TransportField = cfg::TransportField;
   using TransportFields = boost::container::flat_set<TransportField>;
 
+  using MPLSField = cfg::MPLSField;
+  using MPLSFields = boost::container::flat_set<MPLSField>;
+
   LoadBalancerFields(
       LoadBalancerID id,
       cfg::HashingAlgorithm algorithm,
       uint32_t seed,
       IPv4Fields v4Fields,
       IPv6Fields v6Fields,
-      TransportFields transportFields);
+      TransportFields transportFields,
+      MPLSFields mplsFields = MPLSFields{});
 
   template <typename Fn>
   void forEachChild(Fn /* unused */) {}
@@ -50,6 +54,7 @@ struct LoadBalancerFields {
   IPv4Fields v4Fields_;
   IPv6Fields v6Fields_;
   TransportFields transportFields_;
+  MPLSFields mplsFields_;
 };
 
 /* A LoadBalancer represents a logical point in the data-path which may
@@ -92,13 +97,19 @@ class LoadBalancer : public NodeBaseT<LoadBalancer, LoadBalancerFields> {
   using TransportFieldsRange =
       folly::Range<LoadBalancerFields::TransportFields::const_iterator>;
 
+  using MPLSField = LoadBalancerFields::MPLSField;
+  using MPLSFields = LoadBalancerFields::MPLSFields;
+  using MPLSFieldsRange =
+      folly::Range<LoadBalancerFields::MPLSFields::const_iterator>;
+
   LoadBalancer(
       LoadBalancerID id,
       cfg::HashingAlgorithm algorithm,
       uint32_t seed,
       IPv4Fields v4Fields,
       IPv6Fields v6Fields,
-      TransportFields transportFields);
+      TransportFields transportFields,
+      MPLSFields mplsFields);
 
   LoadBalancerID getID() const;
   uint32_t getSeed() const;
@@ -106,6 +117,7 @@ class LoadBalancer : public NodeBaseT<LoadBalancer, LoadBalancerFields> {
   IPv4FieldsRange getIPv4Fields() const;
   IPv6FieldsRange getIPv6Fields() const;
   TransportFieldsRange getTransportFields() const;
+  MPLSFieldsRange getMPLSFields() const;
 
   static std::shared_ptr<LoadBalancer> fromFollyDynamic(
       const folly::dynamic& json);

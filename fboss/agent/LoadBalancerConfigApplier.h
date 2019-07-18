@@ -38,7 +38,8 @@ class LoadBalancerConfigParser {
   std::tuple<
       LoadBalancer::IPv4Fields,
       LoadBalancer::IPv6Fields,
-      LoadBalancer::TransportFields>
+      LoadBalancer::TransportFields,
+      LoadBalancer::MPLSFields>
   parseFields(const cfg::LoadBalancer& cfg) const;
 
   const Platform* platform_;

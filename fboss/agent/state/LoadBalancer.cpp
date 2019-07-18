@@ -37,13 +37,15 @@ LoadBalancerFields::LoadBalancerFields(
     uint32_t seed,
     LoadBalancerFields::IPv4Fields v4Fields,
     LoadBalancerFields::IPv6Fields v6Fields,
-    LoadBalancerFields::TransportFields transportFields)
+    LoadBalancerFields::TransportFields transportFields,
+    LoadBalancerFields::MPLSFields mplsFields)
     : id_(id),
       algorithm_(algorithm),
       seed_(seed),
       v4Fields_(v4Fields),
       v6Fields_(v6Fields),
-      transportFields_(transportFields) {}
+      transportFields_(transportFields),
+      mplsFields_(mplsFields) {}
 
 LoadBalancer::LoadBalancer(
     LoadBalancerID id,
@@ -51,8 +53,16 @@ LoadBalancer::LoadBalancer(
     uint32_t seed,
     LoadBalancer::IPv4Fields v4Fields,
     LoadBalancer::IPv6Fields v6Fields,
-    LoadBalancer::TransportFields transportFields)
-    : NodeBaseT(id, algorithm, seed, v4Fields, v6Fields, transportFields) {}
+    LoadBalancer::TransportFields transportFields,
+    LoadBalancer::MPLSFields mplsFields)
+    : NodeBaseT(
+          id,
+          algorithm,
+          seed,
+          v4Fields,
+          v6Fields,
+          transportFields,
+          mplsFields) {}
 
 LoadBalancerID LoadBalancer::getID() const {
   return getFields()->id_;
@@ -80,6 +90,11 @@ LoadBalancer::TransportFieldsRange LoadBalancer::getTransportFields() const {
   return folly::range(
       getFields()->transportFields_.begin(),
       getFields()->transportFields_.end());
+}
+
+LoadBalancer::MPLSFieldsRange LoadBalancer::getMPLSFields() const {
+  return folly::range(
+      getFields()->mplsFields_.begin(), getFields()->mplsFields_.end());
 }
 
 std::shared_ptr<LoadBalancer> LoadBalancer::fromFollyDynamic(
@@ -157,7 +172,9 @@ std::shared_ptr<LoadBalancer> LoadBalancer::fromFollyDynamic(
       seed,
       std::move(ipv4Fields),
       std::move(ipv6Fields),
-      std::move(transportFields));
+      std::move(transportFields),
+      MPLSFields()); // TODO(pshaikh): support to/fromFollyDynamic for
+                     // MPLSFields
 }
 
 folly::dynamic LoadBalancer::toFollyDynamic() const {
@@ -228,7 +245,12 @@ bool LoadBalancer::operator==(const LoadBalancer& rhs) const {
              getTransportFields().begin(),
              getTransportFields().end(),
              rhs.getTransportFields().begin(),
-             rhs.getTransportFields().end());
+             rhs.getTransportFields().end()) &&
+      std::equal(
+             getMPLSFields().begin(),
+             getMPLSFields().end(),
+             rhs.getMPLSFields().begin(),
+             rhs.getMPLSFields().end());
 }
 
 bool LoadBalancer::operator!=(const LoadBalancer& rhs) const {

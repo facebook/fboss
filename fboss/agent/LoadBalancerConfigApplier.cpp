@@ -27,7 +27,8 @@ LoadBalancerID LoadBalancerConfigParser::parseLoadBalancerID(
 std::tuple<
     LoadBalancer::IPv4Fields,
     LoadBalancer::IPv6Fields,
-    LoadBalancer::TransportFields>
+    LoadBalancer::TransportFields,
+    LoadBalancer::MPLSFields>
 LoadBalancerConfigParser::parseFields(
     const cfg::LoadBalancer& loadBalancer) const {
   LoadBalancer::IPv4Fields v4Fields(
@@ -39,8 +40,11 @@ LoadBalancerConfigParser::parseFields(
   LoadBalancer::TransportFields transportFields(
       loadBalancer.fieldSelection.transportFields.begin(),
       loadBalancer.fieldSelection.transportFields.end());
+  LoadBalancer::MPLSFields mplsFields(
+      loadBalancer.fieldSelection.mplsFields.begin(),
+      loadBalancer.fieldSelection.mplsFields.end());
 
-  return std::make_tuple(v4Fields, v6Fields, transportFields);
+  return std::make_tuple(v4Fields, v6Fields, transportFields, mplsFields);
 }
 
 std::shared_ptr<LoadBalancer> LoadBalancerConfigParser::parse(
@@ -58,7 +62,8 @@ std::shared_ptr<LoadBalancer> LoadBalancerConfigParser::parse(
       seed,
       std::get<0>(fields),
       std::get<1>(fields),
-      std::get<2>(fields));
+      std::get<2>(fields),
+      std::get<3>(fields));
 }
 
 LoadBalancerConfigApplier::LoadBalancerConfigApplier(
