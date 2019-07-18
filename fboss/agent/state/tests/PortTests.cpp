@@ -113,7 +113,6 @@ TEST(Port, applyConfig) {
   ASSERT_NE(nullptr, portV3);
   EXPECT_NE(portV2, portV3);
   EXPECT_EQ(cfg::PortSpeed::GIGE, portV3->getSpeed());
-
   // Attempting to apply a config with a non-existent PortID should fail.
   config.ports[0].logicalID = 2;
   EXPECT_THROW(
@@ -588,7 +587,6 @@ TEST(PortMap, applyConfig) {
   config.ports[0].state = cfg::PortState::ENABLED;
   EXPECT_THROW(
       publishAndApplyConfig(stateV2, &config, platform.get()), FbossError);
-
   // If we remove port3 from the config, it should be marked down
   config.ports.resize(3);
   config.ports[0].logicalID = 1;

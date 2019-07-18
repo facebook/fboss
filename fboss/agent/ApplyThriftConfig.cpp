@@ -627,11 +627,14 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts() {
   for (const auto& portCfg : cfg_->ports) {
     PortID id(portCfg.logicalID);
     auto origPort = origPorts->getPortIf(id);
+    std::shared_ptr<Port> newPort;
     if (!origPort) {
-      throw FbossError("config listed for non-existent port ", id);
+      auto port = std::make_shared<Port>(
+        PortID(portCfg.logicalID), portCfg.name_ref().value_unchecked());
+      newPort = updatePort(port, &portCfg);
+    } else {
+      newPort = updatePort(origPort, &portCfg);
     }
-
-    auto newPort = updatePort(origPort, &portCfg);
     changed |= updateMap(&newPorts, origPort, newPort);
   }
 
