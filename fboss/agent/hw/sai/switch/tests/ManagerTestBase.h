@@ -59,6 +59,7 @@ class ManagerTestBase : public ::testing::Test {
   struct TestPort {
     int id{0};
     bool enabled{true};
+    cfg::PortSpeed portSpeed{cfg::PortSpeed::TWENTYFIVEG};
   };
   struct TestRemoteHost {
     int id{0};

@@ -75,7 +75,7 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
   if (testPort.enabled) {
     swPort->setAdminState(cfg::PortState::ENABLED);
   }
-  swPort->setSpeed(cfg::PortSpeed::TWENTYFIVEG);
+  swPort->setSpeed(testPort.portSpeed);
   return swPort;
 }
 
