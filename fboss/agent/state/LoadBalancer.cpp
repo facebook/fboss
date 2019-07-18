@@ -26,6 +26,7 @@ static constexpr folly::StringPiece kSeed{"seed"};
 static constexpr folly::StringPiece kIPv4Fields{"v4Fields"};
 static constexpr folly::StringPiece kIPv6Fields{"v6Fields"};
 static constexpr folly::StringPiece kTransportFields{"transportFields"};
+static constexpr folly::StringPiece kMPLSFields{"mplsFields"};
 }; // namespace
 
 namespace facebook {
@@ -166,6 +167,19 @@ std::shared_ptr<LoadBalancer> LoadBalancer::fromFollyDynamic(
     }
   }
 
+  const auto& serializedMPLSFields =
+      json.find(kMPLSFields) != json.items().end() ? json[kMPLSFields]
+                                                   : folly::dynamic::array();
+  MPLSFields mplsFields;
+  for (const auto& serializedMPLSField : serializedMPLSFields) {
+    auto rawMPLSField = serializedMPLSField.asInt();
+    auto positionAndSuccess =
+        mplsFields.insert(static_cast<MPLSField>(rawMPLSField));
+    if (!positionAndSuccess.second) {
+      throw FbossError("Duplicate MPLS serialized field ", rawMPLSField);
+    }
+  }
+
   return std::make_shared<LoadBalancer>(
       id,
       algorithm,
@@ -173,8 +187,7 @@ std::shared_ptr<LoadBalancer> LoadBalancer::fromFollyDynamic(
       std::move(ipv4Fields),
       std::move(ipv6Fields),
       std::move(transportFields),
-      MPLSFields()); // TODO(pshaikh): support to/fromFollyDynamic for
-                     // MPLSFields
+      mplsFields);
 }
 
 folly::dynamic LoadBalancer::toFollyDynamic() const {
@@ -204,6 +217,10 @@ folly::dynamic LoadBalancer::toFollyDynamic() const {
         static_cast<int64_t>(transportField));
   }
 
+  serialized[kMPLSFields] = folly::dynamic::array();
+  for (const auto& mplsField : getMPLSFields()) {
+    serialized[kMPLSFields].push_back(static_cast<uint8_t>(mplsField));
+  }
   return serialized;
 }
 
