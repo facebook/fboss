@@ -902,10 +902,17 @@ enum TransportField {
   DESTINATION_PORT = 2
 }
 
+enum MPLSField {
+  TOP_LABEL = 1,
+  SECOND_LABEL = 2,
+  THIRD_LABEL = 3
+}
+
 struct Fields {
   1: set<IPv4Field> ipv4Fields
   2: set<IPv6Field> ipv6Fields
   3: set<TransportField> transportFields
+  4: set<MPLSField> mplsFields
 }
 
 enum HashingAlgorithm {
