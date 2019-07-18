@@ -8,9 +8,13 @@
  *
  */
 #include "UDPHeader.h"
+
 #include <folly/io/Cursor.h>
 #include <folly/lang/Bits.h>
 #include <sstream>
+
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/PortStats.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
@@ -49,6 +53,20 @@ void UDPHeader::parse(Cursor* cursor) {
   dstPort = cursor->readBE<uint16_t>();
   length = cursor->readBE<uint16_t>();
   csum = cursor->readBE<uint16_t>();
+}
+
+void UDPHeader::parse(Cursor* cursor, PortStats* stats) {
+  try {
+    parse(cursor);
+  } catch (std::out_of_range&) {
+    stats->udpTooSmall();
+    throw FbossError(
+        "Too small packet. Got ",
+        cursor->length(),
+        " bytes. Minimum ",
+        size(),
+        " bytes");
+  }
 }
 
 bool UDPHeader::operator==(const UDPHeader& r) const {

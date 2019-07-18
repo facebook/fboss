@@ -25,6 +25,7 @@ namespace fboss {
 class IPv4Hdr;
 class IPv6Hdr;
 class SwSwitch;
+class PortStats;
 
 struct UDPHeader {
  public:
@@ -53,6 +54,7 @@ struct UDPHeader {
   template <typename CursorType>
   void write(CursorType* cursor) const;
 
+  void parse(folly::io::Cursor* cursor, PortStats* stats);
   void parse(folly::io::Cursor* cursor);
 
   uint16_t computeChecksum(

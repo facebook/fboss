@@ -154,17 +154,7 @@ void IPv4Handler::handlePacket(
   if (v4Hdr.protocol == static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
     Cursor udpCursor(cursor);
     UDPHeader udpHdr;
-    try {
-      udpHdr.parse(&udpCursor);
-    } catch (std::out_of_range& e) {
-      sw_->portStats(port)->udpTooSmall();
-      throw FbossError(
-          "Too small packet. Got ",
-          udpCursor.length(),
-          " bytes. Minimum ",
-          UDPHeader::size(),
-          " bytes");
-    }
+    udpHdr.parse(&udpCursor, sw_->portStats(port));
     XLOG(DBG4) << "UDP packet, Source port :" << udpHdr.srcPort
                << " destination port: " << udpHdr.dstPort;
     if (DHCPv4Handler::isDHCPv4Packet(udpHdr)) {

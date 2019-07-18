@@ -75,7 +75,9 @@ TEST(UDPTest, Parse) {
   pkt->setSrcVlan(vlanID);
 
   Cursor c2(pkt->buf());
-  EXPECT_THROW(hdr.parse(&c2), std::out_of_range);
+  EXPECT_THROW(hdr.parse(&c2, sw->portStats(portID)), FbossError);
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "udp.too_small.sum", 1);
 }
 
 TEST(UDPTest, Write) {
