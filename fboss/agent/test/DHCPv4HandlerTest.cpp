@@ -277,8 +277,11 @@ TxMatchFn checkDHCPPkt(
       throw FbossError(
           "expected protocol to be ", IPPROTO_UDP, "; got ", ipHdr.protocol);
     }
+
+    SwitchStats switchStats;
+    PortStats portStats(PortID(0), "foo", &switchStats);
     UDPHeader udpHdr;
-    udpHdr.parse(&c);
+    udpHdr.parse(&c, &portStats);
     if (udpHdr.srcPort != srcPort) {
       throw FbossError(
           "expected source port to be ", srcPort, "; got ", udpHdr.srcPort);

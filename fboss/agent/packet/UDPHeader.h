@@ -55,7 +55,6 @@ struct UDPHeader {
   void write(CursorType* cursor) const;
 
   void parse(folly::io::Cursor* cursor, PortStats* stats);
-  void parse(folly::io::Cursor* cursor);
 
   uint16_t computeChecksum(
       const IPv4Hdr& ipv4Hdr,
@@ -72,6 +71,7 @@ struct UDPHeader {
   uint16_t csum;
 
  private:
+  void parse(folly::io::Cursor* cursor);
   template <typename IPHDR>
   uint16_t computeChecksumImpl(const IPHDR& ip, const folly::io::Cursor& cursor)
       const;

@@ -59,7 +59,7 @@ TEST(UDPTest, Parse) {
 
   Cursor c(pkt->buf());
   UDPHeader hdr;
-  hdr.parse(&c);
+  hdr.parse(&c, sw->portStats(portID));
   EXPECT_EQ(67, hdr.srcPort);
   EXPECT_EQ(68, hdr.dstPort);
   EXPECT_EQ(8, hdr.length);
@@ -89,6 +89,8 @@ TEST(UDPTest, Write) {
 
   UDPHeader hdr2;
   Cursor cursor(buf.get());
-  hdr2.parse(&cursor);
+  SwitchStats switchStats;
+  PortStats portStats(PortID(0), "foo", &switchStats);
+  hdr2.parse(&cursor, &portStats);
   EXPECT_TRUE(hdr1 == hdr2);
 }
