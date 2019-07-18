@@ -91,7 +91,16 @@ class HwSwitch {
     virtual void exitFatal() const noexcept = 0;
   };
 
-  HwSwitch() {}
+  enum FeaturesDesired : uint32_t {
+    PACKET_RX_DESIRED = 0x01,
+    LINKSCAN_DESIRED = 0x02
+  };
+
+  HwSwitch(
+      uint32_t featuresDesired =
+          (FeaturesDesired::PACKET_RX_DESIRED |
+           FeaturesDesired::LINKSCAN_DESIRED))
+      : featuresDesired_(featuresDesired) {}
   virtual ~HwSwitch() {}
 
   /*
@@ -249,7 +258,13 @@ class HwSwitch {
 
   virtual cfg::PortSpeed getPortMaxSpeed(PortID /* port */) const = 0;
 
+  uint32_t getFeaturesDesired() const {
+    return featuresDesired_;
+  }
+
  private:
+  uint32_t featuresDesired_;
+
   // Forbidden copy constructor and assignment operator
   HwSwitch(HwSwitch const&) = delete;
   HwSwitch& operator=(HwSwitch const&) = delete;

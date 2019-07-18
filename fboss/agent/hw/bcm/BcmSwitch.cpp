@@ -175,8 +175,8 @@ cfg::PortSpeed BcmSwitch::getPortMaxSpeed(PortID port) const {
 }
 
 BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
-    : platform_(platform),
-      featuresDesired_(featuresDesired),
+    : BcmSwitchIf(featuresDesired),
+      platform_(platform),
       mmuBufferBytes_(platform->getMMUBufferBytes()),
       mmuCellBytes_(platform->getMMUCellBytes()),
       warmBootCache_(new BcmWarmBootCache(this)),
@@ -424,7 +424,7 @@ void BcmSwitch::runBcmScriptPreAsicInit() const {
 }
 
 void BcmSwitch::setupLinkscan() {
-  if (!(featuresDesired_ & LINKSCAN_DESIRED)) {
+  if (!(getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED)) {
     XLOG(DBG1) << " Skipping linkscan registeration as the feature is disabled";
     return;
   }
@@ -625,7 +625,7 @@ void BcmSwitch::setupPacketRx() {
       nullptr // cpu_addresses
   };
 
-  if (!(featuresDesired_ & PACKET_RX_DESIRED)) {
+  if (!(getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED)) {
     XLOG(DBG1) << " Skip settiing up packet RX since its explicitly disabled";
     return;
   }

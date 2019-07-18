@@ -87,6 +87,7 @@ class BcmLabelMap;
  */
 class BcmSwitchIf : public HwSwitch {
  public:
+  using HwSwitch::HwSwitch;
   /*
    * Flush internal tables w/o but remain attached to ASIC/Unit
    */
@@ -174,10 +175,7 @@ class BcmSwitchIf : public HwSwitch {
 class BcmSwitch : public BcmSwitchIf {
  public:
   enum class MmuState { UNKNOWN, MMU_LOSSLESS, MMU_LOSSY };
-  enum FeaturesDesired : uint32_t {
-    PACKET_RX_DESIRED = 0x01,
-    LINKSCAN_DESIRED = 0x02
-  };
+  using HwSwitch::FeaturesDesired;
   /*
    * Construct a new BcmSwitch.
    *
@@ -187,7 +185,9 @@ class BcmSwitch : public BcmSwitchIf {
    */
   explicit BcmSwitch(
       BcmPlatform* platform,
-      uint32_t featuresDesired = (PACKET_RX_DESIRED | LINKSCAN_DESIRED));
+      uint32_t featuresDesired =
+          (FeaturesDesired::PACKET_RX_DESIRED |
+           FeaturesDesired::LINKSCAN_DESIRED));
 
   ~BcmSwitch() override;
 
@@ -822,7 +822,6 @@ class BcmSwitch : public BcmSwitchIf {
   Callback* callback_{nullptr};
   int unit_{-1};
   uint32_t flags_{0};
-  uint32_t featuresDesired_{PACKET_RX_DESIRED | LINKSCAN_DESIRED};
   MmuState mmuState_{MmuState::UNKNOWN};
   uint64_t mmuBufferBytes_{0};
   uint64_t mmuCellBytes_{0};
