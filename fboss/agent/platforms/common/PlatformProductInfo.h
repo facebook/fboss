@@ -26,6 +26,8 @@ enum class PlatformMode {
   MINIPACK,
   YAMP,
   FAKE_WEDGE40,
+  WEDGE400C,
+  WEDGE400C_SIM,
 };
 
 class PlatformProductInfo {
