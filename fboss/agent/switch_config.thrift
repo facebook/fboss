@@ -129,9 +129,26 @@ enum IpFragMatch {
   MATCH_ANY_FRAGMENT = 4
 }
 
+struct GreTunnel {
+  1: string ip
+  2: optional Ttl ttl
+}
 
-// default DSCP marking for mirrored packets
-const byte DEFAULT_MIRROR_DSCP = 0
+struct SflowTunnel {
+  1: string ip
+  2: optional i32 udpSrcPort
+  3: optional i32 udpDstPort
+  4: optional Ttl ttl
+}
+
+/*
+ * Either greTunnel or sflowTunnel (but not both) must be set to specify
+ * destination IP and encapsulation type.
+ */
+struct MirrorTunnel {
+  1: optional GreTunnel greTunnel
+  2: optional SflowTunnel sflowTunnel
+}
 
 union MirrorEgressPort {
   1: string name
@@ -140,50 +157,57 @@ union MirrorEgressPort {
 
 /*
  * Mirror destination
- * At least one of egressPort and ip must be set
+ * At least one of egressPort and tunnel must be set
  *
  *  egressPort - name or ID of port from which mirror traffic egresses
  *               required for SPAN
  *               optional for ERSPAN port mirroring
- *  ip - mirror to remote (ipv4) destination
- *               required and used only for ERSPAN
- *
- *  dscp - mark the mirrored packets with a Differentiated Services Code Point
- *               (DSCP) for Quality of Service (QoS) classification. Note: DSCP
- *               marking is only 6 bits (0-63), and only a subset of those
- *               values are valid code points.
+ *  tunnel - configure the tunnel (sflow or gre) used to mirror the packet
+ *           to a remote (IPv4) destination.
  */
 struct MirrorDestination {
   1: optional MirrorEgressPort egressPort
+  // TODO tgriggs: ip to be DEPRECATED
   2: optional string ip
+  3: optional MirrorTunnel tunnel
 }
+
+ // default DSCP marking for mirrored packets
+ const byte DEFAULT_MIRROR_DSCP = 0
 
 /*
  * Mirror,
  *   - name, a logical identifier of mirror
  *   - destination, to deliver mirrored traffic
- *   - direction of a traffic to mirror
+ *   - dscp, mark the mirrored packets with a DSCP marking for QoS
+ *           classification. Note: DSCP marking is only 6 bits (0-63),
+ *           not a full byte.
  *
  * Mirroring allows replication of data plane traffic to another destination
  * This destination can be specified either as an egress port, an egress port
- * and a remote routable ip (v4) address, or only remote routable ip (v4)
- * address.
+ * and a tunnel type with remote routable ip (v4) address, or only a tunnel
+ * type with remote routable ip (v4) address.
  *
  * If only egress port is specified, then mirrored data-plane traffic egresses
  * the specified port.
  *
- * If egress port & remote ip are specified, then mirrored data-plane traffic
- * egresses the specified port and is delivered to destination ip address.
+ * If egress port & tunnel with remote ip are specified, then mirrored
+ * data-plane traffic egresses the specified port and is delivered to
+ * destination ip address.
  *
- * If only remote ip is specified, then mirrored data-plane traffic is delivered
- * to the destination ip address via any possible egress port.
+ * If only tunnel with remote ip is specified, then mirrored data-plane traffic
+ * is delivered to the destination ip address via any possible egress port.
  *
- * traffic delivered to remote ip address is ERSPAN (type 1) encapsulated.
- * this is basically a "gre" tunnel with protocol type 0x88be
- * L2 frame is encapsulated in gre tunnel and delivered to remote routable
- * destination.
+ * Traffic delivered to remote IP address can be either sFLow or ERSPAN (type 1)
+ * encapsulated.
+ * The source and destination UDP ports for sFLow can be specified
+ * however the header will be a shim header (rather than full v4/v5 header)
+ * whose format can be found in BCM DocSafe document 56960-PG104-RDS pg 595.
+ * ERSPAN is basically a "GRE" tunnel with protocol type 0x88be.
+ * L2 frame is encapsulated in the selected tunnel and delivered to remote
+ * routable destination.
  *
- * A traffic to mirror, can be selected using twowways
+ * A traffic to mirror, can be selected using two ways
  *    1) a traffic ingressing or egressing a particular port
  *    2) a traffic ingressing or egressing that meets "acl" criteria,
  *    (this mirrors a traffic ingressing/egressing switch's acl engine)
