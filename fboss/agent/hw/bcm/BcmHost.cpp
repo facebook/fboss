@@ -152,7 +152,7 @@ void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
 
   if (needToAddInHw) {
     XLOG(DBG3) << (host.l3a_flags & OPENNSL_L3_REPLACE ? "Replacing" : "Adding")
-               << "host entry for : " << addr;
+               << " host entry for : " << addr;
     auto rc = opennsl_l3_host_add(hw_->getUnit(), &host);
     bcmCheckError(
         rc,
