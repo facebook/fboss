@@ -42,6 +42,10 @@ cfg::Fields halfFlow() {
                                        cfg::IPv6Field::DESTINATION_ADDRESS};
   fields.set_ipv6Fields(std::move(v6Fields));
 
+  std::set<cfg::MPLSField> mplsFields = {LoadBalancer::MPLSField::TOP_LABEL,
+                                         LoadBalancer::MPLSField::SECOND_LABEL,
+                                         LoadBalancer::MPLSField::THIRD_LABEL};
+  fields.set_mplsFields(std::move(mplsFields));
   return fields;
 }
 
@@ -88,7 +92,8 @@ void checkLoadBalancer(
     uint32_t expectedSeed,
     LoadBalancer::IPv4FieldsRange expectedV4Fields,
     LoadBalancer::IPv6FieldsRange expectedV6Fields,
-    LoadBalancer::TransportFieldsRange expectedTransportFields) {
+    LoadBalancer::TransportFieldsRange expectedTransportFields,
+    LoadBalancer::MPLSFieldsRange expectedMPLSFieldsRange) {
   ASSERT_NE(nullptr, loadBalancer);
   EXPECT_EQ(expectedID, loadBalancer->getID());
   EXPECT_EQ(expectedAlgorithm, loadBalancer->getAlgorithm());
@@ -108,6 +113,11 @@ void checkLoadBalancer(
       expectedTransportFields.end(),
       loadBalancer->getTransportFields().begin(),
       loadBalancer->getTransportFields().end()));
+  EXPECT_TRUE(std::equal(
+      expectedMPLSFieldsRange.begin(),
+      expectedMPLSFieldsRange.end(),
+      loadBalancer->getMPLSFields().begin(),
+      loadBalancer->getMPLSFields().end()));
 }
 
 uint32_t generateDefaultEcmpSeed(const Platform* platform) {
@@ -139,6 +149,10 @@ TEST(LoadBalancer, defaultConfiguration) {
       {LoadBalancer::TransportField::SOURCE_PORT,
        LoadBalancer::TransportField::DESTINATION_PORT});
 
+  LoadBalancer::MPLSFields mplsFields{LoadBalancer::MPLSField::TOP_LABEL,
+                                      LoadBalancer::MPLSField::SECOND_LABEL,
+                                      LoadBalancer::MPLSField::THIRD_LABEL};
+
   auto platform = createMockPlatform();
   auto initialState = std::make_shared<SwitchState>();
 
@@ -159,7 +173,8 @@ TEST(LoadBalancer, defaultConfiguration) {
       generateDefaultEcmpSeed(platform.get()),
       folly::range(v4SrcAndDst.begin(), v4SrcAndDst.end()),
       folly::range(v6SrcAndDst.begin(), v6SrcAndDst.end()),
-      folly::range(transportSrcAndDst.begin(), transportSrcAndDst.end()));
+      folly::range(transportSrcAndDst.begin(), transportSrcAndDst.end()),
+      folly::range(mplsFields.begin(), mplsFields.end()));
 
   auto lagLoadBalancer = finalState->getLoadBalancers()->getLoadBalancerIf(
       LoadBalancerID::AGGREGATE_PORT);
@@ -171,7 +186,8 @@ TEST(LoadBalancer, defaultConfiguration) {
       generateDefaultLagSeed(platform.get()),
       folly::range(v4SrcAndDst.begin(), v4SrcAndDst.end()),
       folly::range(v6SrcAndDst.begin(), v6SrcAndDst.end()),
-      LoadBalancer::TransportFieldsRange());
+      LoadBalancer::TransportFieldsRange(),
+      folly::range(mplsFields.begin(), mplsFields.end()));
 }
 
 TEST(LoadBalancer, deserializationInverseOfSerlization) {
@@ -184,6 +200,9 @@ TEST(LoadBalancer, deserializationInverseOfSerlization) {
   LoadBalancer::TransportFields origTransportSrcAndDst(
       {LoadBalancer::TransportField::SOURCE_PORT,
        LoadBalancer::TransportField::DESTINATION_PORT});
+  LoadBalancer::MPLSFields mplsFields{LoadBalancer::MPLSField::TOP_LABEL,
+                                      LoadBalancer::MPLSField::SECOND_LABEL,
+                                      LoadBalancer::MPLSField::THIRD_LABEL};
 
   LoadBalancer loadBalancer(
       origLoadBalancerID,
@@ -191,7 +210,8 @@ TEST(LoadBalancer, deserializationInverseOfSerlization) {
       origSeed,
       origV4Src,
       origV6Dst,
-      origTransportSrcAndDst);
+      origTransportSrcAndDst,
+      mplsFields);
 
   auto serializedLoadBalancer = loadBalancer.toFollyDynamic();
   auto deserializedLoadBalancerPtr =
@@ -205,7 +225,8 @@ TEST(LoadBalancer, deserializationInverseOfSerlization) {
       folly::range(origV4Src.begin(), origV4Src.end()),
       folly::range(origV6Dst.begin(), origV6Dst.end()),
       folly::range(
-          origTransportSrcAndDst.begin(), origTransportSrcAndDst.end()));
+          origTransportSrcAndDst.begin(), origTransportSrcAndDst.end()),
+      folly::range(mplsFields.begin(), mplsFields.end()));
 }
 
 namespace {
@@ -270,6 +291,10 @@ TEST(LoadBalancerMap, idempotence) {
   LoadBalancer::TransportFields transportSrcAndDst(
       {LoadBalancer::TransportField::SOURCE_PORT,
        LoadBalancer::TransportField::DESTINATION_PORT});
+
+  LoadBalancer::MPLSFields mplsFields{LoadBalancer::MPLSField::TOP_LABEL,
+                                      LoadBalancer::MPLSField::SECOND_LABEL,
+                                      LoadBalancer::MPLSField::THIRD_LABEL};
 
   auto platform = createMockPlatform();
   auto baseState = std::make_shared<SwitchState>();
@@ -411,7 +436,8 @@ TEST(LoadBalancerMap, updateLoadBalancer) {
       startEcmpLoadBalancer->getSeed(),
       startEcmpLoadBalancer->getIPv4Fields(),
       startEcmpLoadBalancer->getIPv6Fields(),
-      LoadBalancer::TransportFieldsRange());
+      LoadBalancer::TransportFieldsRange(),
+      startEcmpLoadBalancer->getMPLSFields());
 }
 
 TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
@@ -425,6 +451,9 @@ TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
   LoadBalancer::TransportFields aggPortOrigTransportSrcAndDst(
       {LoadBalancer::TransportField::SOURCE_PORT,
        LoadBalancer::TransportField::DESTINATION_PORT});
+  LoadBalancer::MPLSFields aggMplsFields{LoadBalancer::MPLSField::TOP_LABEL,
+                                         LoadBalancer::MPLSField::SECOND_LABEL,
+                                         LoadBalancer::MPLSField::THIRD_LABEL};
 
   auto ecmpOrigLoadBalancerID = LoadBalancerID::ECMP;
   auto ecmpOrigHash = cfg::HashingAlgorithm::CRC16_CCITT;
@@ -436,6 +465,9 @@ TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
   LoadBalancer::TransportFields ecmpOrigTransportSrcAndDst(
       {LoadBalancer::TransportField::SOURCE_PORT,
        LoadBalancer::TransportField::DESTINATION_PORT});
+  LoadBalancer::MPLSFields ecmpMplsFields{LoadBalancer::MPLSField::TOP_LABEL,
+                                          LoadBalancer::MPLSField::SECOND_LABEL,
+                                          LoadBalancer::MPLSField::THIRD_LABEL};
 
   LoadBalancerMap loadBalancerMap;
   loadBalancerMap.addLoadBalancer(std::make_shared<LoadBalancer>(
@@ -444,14 +476,16 @@ TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
       aggPortOrigSeed,
       aggPortOrigV4Src,
       aggPortOrigV6Dst,
-      aggPortOrigTransportSrcAndDst));
+      aggPortOrigTransportSrcAndDst,
+      aggMplsFields));
   loadBalancerMap.addLoadBalancer(std::make_shared<LoadBalancer>(
       ecmpOrigLoadBalancerID,
       ecmpOrigHash,
       ecmpOrigSeed,
       ecmpOrigV4Dst,
       ecmpOrigV6Src,
-      ecmpOrigTransportSrcAndDst));
+      ecmpOrigTransportSrcAndDst,
+      ecmpMplsFields));
 
   auto serializedLoadBalancerMap = loadBalancerMap.toFollyDynamic();
   auto deserializedLoadBalancerMapPtr =
@@ -467,7 +501,8 @@ TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
       folly::range(aggPortOrigV6Dst.begin(), aggPortOrigV6Dst.end()),
       folly::range(
           aggPortOrigTransportSrcAndDst.begin(),
-          aggPortOrigTransportSrcAndDst.end()));
+          aggPortOrigTransportSrcAndDst.end()),
+      folly::range(aggMplsFields.begin(), aggMplsFields.end()));
   checkLoadBalancer(
       deserializedLoadBalancerMapPtr->getLoadBalancerIf(LoadBalancerID::ECMP),
       ecmpOrigLoadBalancerID,
@@ -476,6 +511,6 @@ TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
       folly::range(ecmpOrigV4Dst.begin(), ecmpOrigV4Dst.end()),
       folly::range(ecmpOrigV6Src.begin(), ecmpOrigV6Src.end()),
       folly::range(
-          ecmpOrigTransportSrcAndDst.begin(),
-          ecmpOrigTransportSrcAndDst.end()));
+          ecmpOrigTransportSrcAndDst.begin(), ecmpOrigTransportSrcAndDst.end()),
+      folly::range(ecmpMplsFields.begin(), ecmpMplsFields.end()));
 }
