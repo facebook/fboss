@@ -113,10 +113,6 @@ TEST(Port, applyConfig) {
   ASSERT_NE(nullptr, portV3);
   EXPECT_NE(portV2, portV3);
   EXPECT_EQ(cfg::PortSpeed::GIGE, portV3->getSpeed());
-  // Attempting to apply a config with a non-existent PortID should fail.
-  config.ports[0].logicalID = 2;
-  EXPECT_THROW(
-      publishAndApplyConfig(stateV3, &config, platform.get()), FbossError);
 }
 
 TEST(Port, ToFromJSON) {
@@ -582,11 +578,6 @@ TEST(PortMap, applyConfig) {
   EXPECT_TRUE(portsV2->getPort(PortID(3))->isPublished());
   EXPECT_TRUE(portsV2->getPort(PortID(4))->isPublished());
 
-  // Applying a config with ports that don't already exist should fail
-  config.ports[0].logicalID = 10;
-  config.ports[0].state = cfg::PortState::ENABLED;
-  EXPECT_THROW(
-      publishAndApplyConfig(stateV2, &config, platform.get()), FbossError);
   // If we remove port3 from the config, it should be marked down
   config.ports.resize(3);
   config.ports[0].logicalID = 1;
