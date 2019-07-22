@@ -28,6 +28,7 @@ enum class PlatformMode {
   FAKE_WEDGE40,
   WEDGE400C,
   WEDGE400C_SIM,
+  WEDGE400DQ,
 };
 
 class PlatformProductInfo {
