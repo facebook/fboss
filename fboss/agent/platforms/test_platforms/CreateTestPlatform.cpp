@@ -12,7 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestGalaxyPlatform.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestMinipack16QPlatform.h"
+#include "fboss/agent/platforms/test_platforms/BcmTestMinipackPlatform.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestWedge100Platform.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestWedge40Platform.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestYamp16QPlatform.h"
@@ -41,7 +41,7 @@ std::unique_ptr<Platform> createTestPlatform() {
       mode == PlatformMode::GALAXY_LC || mode == PlatformMode::GALAXY_FC) {
     return std::make_unique<BcmTestGalaxyPlatform>();
   } else if (mode == PlatformMode::MINIPACK) {
-    return std::make_unique<BcmTestMinipack16QPlatform>();
+    return std::make_unique<BcmTestMinipackPlatform>();
   } else if (mode == PlatformMode::YAMP) {
     return std::make_unique<BcmTestYamp16QPlatform>();
   } else if (mode == PlatformMode::FAKE_WEDGE) {

@@ -13,16 +13,15 @@
 
 namespace facebook {
 namespace fboss {
-class BcmTestMinipack16QPlatform : public BcmTestWedgeTomahawk3Platform {
+class BcmTestMinipackPlatform : public BcmTestWedgeTomahawk3Platform {
  public:
-  BcmTestMinipack16QPlatform();
-  ~BcmTestMinipack16QPlatform() override {}
+  BcmTestMinipackPlatform();
+  ~BcmTestMinipackPlatform() override {}
 
  private:
   // Forbidden copy constructor and assignment operator
-  BcmTestMinipack16QPlatform(BcmTestMinipack16QPlatform const&) = delete;
-  BcmTestMinipack16QPlatform& operator=(BcmTestMinipack16QPlatform const&) =
-      delete;
+  BcmTestMinipackPlatform(BcmTestMinipackPlatform const&) = delete;
+  BcmTestMinipackPlatform& operator=(BcmTestMinipackPlatform const&) = delete;
 
   std::unique_ptr<BcmTestPort> createTestPort(PortID id) const override;
 };
