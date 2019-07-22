@@ -7,11 +7,14 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/test_platforms/BcmTestYamp16QPlatform.h"
+#include "fboss/agent/platforms/test_platforms/BcmTestYampPlatform.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestYampPort.h"
 
 namespace {
 static const std::array<int, 128> kMasterLogicalPortIds = {
+    // TODO(joseph5wu) If in the future, we need to support both 16q and 4dd
+    // pims, we need to implement a function to decide what's the correct
+    // logical ports for each pims. For now, we can just use 16q pim.
     // pim1
     20,
     21,
@@ -154,14 +157,14 @@ constexpr uint8_t kNumPortsPerTransceiver = 1;
 
 namespace facebook {
 namespace fboss {
-BcmTestYamp16QPlatform::BcmTestYamp16QPlatform()
+BcmTestYampPlatform::BcmTestYampPlatform()
     : BcmTestWedgeTomahawk3Platform(
           std::vector<PortID>(
               kMasterLogicalPortIds.begin(),
               kMasterLogicalPortIds.end()),
           kNumPortsPerTransceiver) {}
 
-std::unique_ptr<BcmTestPort> BcmTestYamp16QPlatform::createTestPort(
+std::unique_ptr<BcmTestPort> BcmTestYampPlatform::createTestPort(
     PortID id) const {
   return std::make_unique<BcmTestYampPort>(id);
 }

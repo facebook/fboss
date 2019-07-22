@@ -289,7 +289,7 @@ add_executable(bcm_test
     fboss/agent/platforms/test_platforms/BcmTestGalaxyPlatform.cpp
     fboss/agent/platforms/test_platforms/BcmTestGalaxyPort.cpp
     fboss/agent/platforms/test_platforms/BcmTestMinipackPlatform.cpp
-    fboss/agent/platforms/test_platforms/BcmTestYamp16QPlatform.cpp
+    fboss/agent/platforms/test_platforms/BcmTestYampPlatform.cpp
     fboss/agent/platforms/test_platforms/FakeBcmTestPlatform.cpp
     fboss/agent/platforms/test_platforms/FakeBcmTestPort.cpp
     fboss/agent/platforms/test_platforms/BcmTestPlatform.cpp

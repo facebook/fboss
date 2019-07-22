@@ -15,7 +15,7 @@
 #include "fboss/agent/platforms/test_platforms/BcmTestMinipackPlatform.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestWedge100Platform.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestWedge40Platform.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestYamp16QPlatform.h"
+#include "fboss/agent/platforms/test_platforms/BcmTestYampPlatform.h"
 #include "fboss/agent/platforms/test_platforms/FakeBcmTestPlatform.h"
 
 namespace facebook {
@@ -43,7 +43,7 @@ std::unique_ptr<Platform> createTestPlatform() {
   } else if (mode == PlatformMode::MINIPACK) {
     return std::make_unique<BcmTestMinipackPlatform>();
   } else if (mode == PlatformMode::YAMP) {
-    return std::make_unique<BcmTestYamp16QPlatform>();
+    return std::make_unique<BcmTestYampPlatform>();
   } else if (mode == PlatformMode::FAKE_WEDGE) {
     return std::make_unique<FakeBcmTestPlatform>();
   } else {
