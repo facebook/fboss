@@ -49,7 +49,7 @@ std::shared_ptr<SwitchState> SimSwitch::stateChanged(const StateDelta& delta) {
   return delta.newState();
 }
 
-std::unique_ptr<TxPacket> SimSwitch::allocatePacket(uint32_t size) {
+std::unique_ptr<TxPacket> SimSwitch::allocatePacket(uint32_t size) const {
   return make_unique<MockTxPacket>(size);
 }
 

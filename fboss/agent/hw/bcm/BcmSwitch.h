@@ -101,9 +101,9 @@ class BcmSwitchIf : public HwSwitch {
   virtual BcmPlatform* getPlatform() const = 0;
 
   virtual std::unique_ptr<PacketTraceInfo> getPacketTrace(
-      std::unique_ptr<MockRxPacket> pkt) = 0;
+      std::unique_ptr<MockRxPacket> pkt) const = 0;
 
-  virtual bool isRxThreadRunning() = 0;
+  virtual bool isRxThreadRunning() const = 0;
 
   virtual int getUnit() const = 0;
 
@@ -226,7 +226,7 @@ class BcmSwitch : public BcmSwitchIf {
     return mmuBufferBytes_;
   }
 
-  std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
+  std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const override;
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
   bool sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
@@ -242,9 +242,9 @@ class BcmSwitch : public BcmSwitchIf {
       PortID portID,
       uint8_t queue) noexcept;
   std::unique_ptr<PacketTraceInfo> getPacketTrace(
-      std::unique_ptr<MockRxPacket> pkt) override;
+      std::unique_ptr<MockRxPacket> pkt) const override;
 
-  bool isRxThreadRunning() override;
+  bool isRxThreadRunning() const override;
 
   int getUnit() const override {
     return unit_;
@@ -384,7 +384,7 @@ class BcmSwitch : public BcmSwitchIf {
     return cosManager_.get();
   };
 
-  void fetchL2Table(std::vector<L2EntryThrift>* l2Table) override;
+  void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const override;
 
   BcmHostTable* writableHostTable() const override {
     return hostTable_.get();

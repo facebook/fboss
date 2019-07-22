@@ -80,7 +80,7 @@ bool SaiSwitch::isValidStateUpdate(const StateDelta& delta) const {
   return isValidStateUpdateLocked(lock, delta);
 }
 
-std::unique_ptr<TxPacket> SaiSwitch::allocatePacket(uint32_t size) {
+std::unique_ptr<TxPacket> SaiSwitch::allocatePacket(uint32_t size) const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return allocatePacketLocked(lock, size);
 }
@@ -116,7 +116,7 @@ void SaiSwitch::updateStats(SwitchStats* switchStats) {
   updateStatsLocked(lock, switchStats);
 }
 
-void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) {
+void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   fetchL2TableLocked(lock, l2Table);
 }
@@ -283,7 +283,7 @@ bool SaiSwitch::isValidStateUpdateLocked(
 
 std::unique_ptr<TxPacket> SaiSwitch::allocatePacketLocked(
     const std::lock_guard<std::mutex>& /* lock */,
-    uint32_t size) {
+    uint32_t size) const {
   return std::make_unique<SaiTxPacket>(size);
 }
 
@@ -342,7 +342,7 @@ void SaiSwitch::updateStatsLocked(
 
 void SaiSwitch::fetchL2TableLocked(
     const std::lock_guard<std::mutex>& /* lock */,
-    std::vector<L2EntryThrift>* /* l2Table */) {}
+    std::vector<L2EntryThrift>* /* l2Table */) const {}
 
 void SaiSwitch::gracefulExitLocked(
     const std::lock_guard<std::mutex>& /* lock */,

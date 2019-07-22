@@ -25,7 +25,7 @@ class SimSwitch : public HwSwitch {
 
   HwInitResult init(Callback* callback) override;
   std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta) override;
-  std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
+  std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const override;
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
   bool sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
@@ -46,7 +46,7 @@ class SimSwitch : public HwSwitch {
   // TODO
   void updateStats(SwitchStats* /*switchStats*/) override {}
 
-  void fetchL2Table(std::vector<L2EntryThrift>* /*l2Table*/) override {
+  void fetchL2Table(std::vector<L2EntryThrift>* /*l2Table*/) const override {
     return;
   }
 

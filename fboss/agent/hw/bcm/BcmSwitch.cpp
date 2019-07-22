@@ -783,7 +783,7 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   return appliedState;
 }
 
-unique_ptr<TxPacket> BcmSwitch::allocatePacket(uint32_t size) {
+unique_ptr<TxPacket> BcmSwitch::allocatePacket(uint32_t size) const {
   // For future reference: Allocating the packet data requires the unit number
   // of the unit that the packet will be used with.  Our allocatePacket() API
   // doesn't require the caller to specify which ports they plan to use the

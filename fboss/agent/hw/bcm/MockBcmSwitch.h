@@ -21,7 +21,7 @@ class MockBcmSwitch : public BcmSwitchIf {
   MOCK_CONST_METHOD0(getPlatform, BcmPlatform*());
   MOCK_METHOD1(init, HwInitResult(Callback* callback));
   MOCK_METHOD0(unregisterCallbacks, void());
-  MOCK_METHOD1(allocatePacket, std::unique_ptr<TxPacket>(uint32_t size));
+  MOCK_CONST_METHOD1(allocatePacket, std::unique_ptr<TxPacket>(uint32_t size));
   // hackery, since GMOCK does no support forwarding
   bool sendPacketSwitchedAsync(
       std::unique_ptr<TxPacket> pkt) noexcept override {
@@ -58,13 +58,13 @@ class MockBcmSwitch : public BcmSwitchIf {
       bool(TxPacket* pkt, PortID portID, folly::Optional<uint8_t> queue));
   // and another one
   std::unique_ptr<PacketTraceInfo> getPacketTrace(
-      std::unique_ptr<MockRxPacket> pkt) override {
+      std::unique_ptr<MockRxPacket> pkt) const override {
     return getPacketTraceImpl(pkt.get());
   }
-  MOCK_METHOD1(
+  MOCK_CONST_METHOD1(
       getPacketTraceImpl,
       std::unique_ptr<PacketTraceInfo>(MockRxPacket* pkt));
-  MOCK_METHOD0(isRxThreadRunning, bool());
+  MOCK_CONST_METHOD0(isRxThreadRunning, bool());
   MOCK_CONST_METHOD0(getUnit, int());
   MOCK_CONST_METHOD0(getPortTable, const BcmPortTable*());
   MOCK_CONST_METHOD0(getIntfTable, const BcmIntfTable*());
@@ -107,7 +107,7 @@ class MockBcmSwitch : public BcmSwitchIf {
   MOCK_METHOD1(switchRunStateChanged, void(SwitchRunState newState));
   MOCK_METHOD1(updateStats, void(SwitchStats* switchStats));
   MOCK_CONST_METHOD0(getCosMgr, BcmCosManager*());
-  MOCK_METHOD1(fetchL2Table, void(std::vector<L2EntryThrift>* l2Table));
+  MOCK_CONST_METHOD1(fetchL2Table, void(std::vector<L2EntryThrift>* l2Table));
   MOCK_CONST_METHOD0(writableHostTable, BcmHostTable*());
   MOCK_CONST_METHOD0(writableAclTable, BcmAclTable*());
   MOCK_CONST_METHOD0(getWarmBootCache, BcmWarmBootCache*());

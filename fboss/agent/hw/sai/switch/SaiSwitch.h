@@ -32,7 +32,7 @@ class SaiSwitch : public HwSwitch {
 
   bool isValidStateUpdate(const StateDelta& delta) const override;
 
-  std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
+  std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const override;
 
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
 
@@ -49,7 +49,7 @@ class SaiSwitch : public HwSwitch {
 
   void updateStats(SwitchStats* switchStats) override;
 
-  void fetchL2Table(std::vector<L2EntryThrift>* l2Table) override;
+  void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const override;
 
   void gracefulExit(folly::dynamic& switchState) override;
 
@@ -124,7 +124,7 @@ class SaiSwitch : public HwSwitch {
 
   std::unique_ptr<TxPacket> allocatePacketLocked(
       const std::lock_guard<std::mutex>& lock,
-      uint32_t size);
+      uint32_t size) const;
 
   bool sendPacketSwitchedAsyncLocked(
       const std::lock_guard<std::mutex>& lock,
@@ -151,7 +151,7 @@ class SaiSwitch : public HwSwitch {
 
   void fetchL2TableLocked(
       const std::lock_guard<std::mutex>& lock,
-      std::vector<L2EntryThrift>* l2Table);
+      std::vector<L2EntryThrift>* l2Table) const;
 
   void gracefulExitLocked(
       const std::lock_guard<std::mutex>& lock,

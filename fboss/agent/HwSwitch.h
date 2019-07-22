@@ -146,7 +146,7 @@ class HwSwitch {
   /*
    * Allocate a new TxPacket.
    */
-  virtual std::unique_ptr<TxPacket> allocatePacket(uint32_t size) = 0;
+  virtual std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const = 0;
 
   /*
    * Send a packet, use switching logic to send it out the correct port(s)
@@ -192,7 +192,7 @@ class HwSwitch {
    */
   virtual void updateStats(SwitchStats* switchStats) = 0;
 
-  virtual void fetchL2Table(std::vector<L2EntryThrift>* l2Table) = 0;
+  virtual void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const = 0;
 
   /*
    * Allow hardware to perform any warm boot related cleanup

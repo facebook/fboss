@@ -52,7 +52,7 @@ MockHwSwitch::MockHwSwitch(MockPlatform* platform) : platform_(platform) {
       }));
 }
 
-std::unique_ptr<TxPacket> MockHwSwitch::allocatePacket(uint32_t size) {
+std::unique_ptr<TxPacket> MockHwSwitch::allocatePacket(uint32_t size) const {
   return make_unique<MockTxPacket>(size);
 }
 

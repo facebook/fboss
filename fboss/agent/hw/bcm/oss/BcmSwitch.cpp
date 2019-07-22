@@ -63,7 +63,7 @@ void BcmSwitch::configureRxRateLimiting() {
   // so rate limiting settings must be baked into the binary driver.
 }
 
-bool BcmSwitch::isRxThreadRunning() {
+bool BcmSwitch::isRxThreadRunning() const {
   // FIXME(orib): Right now, the BCM calls to figure out if rx is active are not
   // exported. Since initializing the driver sets up the rx thread, it should
   // be safe to just return true here.
@@ -86,7 +86,7 @@ void BcmSwitch::stopLinkscanThread() {
 }
 
 std::unique_ptr<PacketTraceInfo> BcmSwitch::getPacketTrace(
-    std::unique_ptr<MockRxPacket> /*pkt*/) {
+    std::unique_ptr<MockRxPacket> /*pkt*/) const {
   return nullptr;
 }
 
@@ -136,7 +136,7 @@ _addL2Entry(int /*unit*/, opennsl_l2_addr_t* l2addr, void* user_data) {
   return 0;
 }
 
-void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) {
+void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
   int rv = opennsl_l2_traverse(unit_, _addL2Entry, l2Table);
   bcmCheckError(rv, "opennsl_l2_traverse failed");
 }

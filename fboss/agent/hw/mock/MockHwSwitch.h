@@ -37,7 +37,7 @@ class MockHwSwitch : public HwSwitch {
       std::shared_ptr<SwitchState>(const StateDelta& delta));
   MOCK_METHOD2(getAndClearNeighborHit, bool(RouterID, folly::IPAddress&));
 
-  std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
+  std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const override;
 
   // gmock currently doesn't support move-only types, so we have to
   // use some janky work-arounds.
@@ -62,7 +62,7 @@ class MockHwSwitch : public HwSwitch {
       facebook::fboss::PortID portID) noexcept override;
 
   MOCK_METHOD1(updateStats, void(SwitchStats* switchStats));
-  MOCK_METHOD1(fetchL2Table, void(std::vector<L2EntryThrift>* l2Table));
+  MOCK_CONST_METHOD1(fetchL2Table, void(std::vector<L2EntryThrift>* l2Table));
   MOCK_METHOD1(gracefulExit, void(folly::dynamic& switchState));
   MOCK_CONST_METHOD0(toFollyDynamic, folly::dynamic());
   MOCK_METHOD0(initialConfigApplied, void());
