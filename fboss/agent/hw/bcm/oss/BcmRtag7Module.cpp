@@ -74,5 +74,15 @@ BcmRtag7Module::OutputSelectionState BcmRtag7Module::retrieveRtag7OutputState(
   return OutputSelectionState();
 }
 
+TerminatedMPLSFieldSelectionControl
+BcmRtag7Module::getTerminatedMPLSFieldSelectionControl(char /*module*/) {
+  return TerminatedMPLSFieldSelectionControl();
+}
+
+NonTerminatedMPLSFieldSelectionControl
+BcmRtag7Module::getNonTerminatedMPLSFieldSelectionControl(char /*module*/) {
+  return NonTerminatedMPLSFieldSelectionControl();
+}
+
 } // namespace fboss
 } // namespace facebook

@@ -51,6 +51,12 @@ DECLARE_MODULE_CONTROL_STRONG_TYPE(
     IPv6TcpUdpPortsEqualFieldSelectionControl,
     opennsl_switch_control_t)
 DECLARE_MODULE_CONTROL_STRONG_TYPE(
+    TerminatedMPLSFieldSelectionControl,
+    opennsl_switch_control_t)
+DECLARE_MODULE_CONTROL_STRONG_TYPE(
+    NonTerminatedMPLSFieldSelectionControl,
+    opennsl_switch_control_t)
+DECLARE_MODULE_CONTROL_STRONG_TYPE(
     FirstOutputFunctionControl,
     opennsl_switch_control_t)
 DECLARE_MODULE_CONTROL_STRONG_TYPE(
@@ -140,6 +146,12 @@ class BcmRtag7Module {
         ipv4TcpUdpPortsEqualFieldSelection;
     IPv6TcpUdpPortsEqualFieldSelectionControl
         ipv6TcpUdpPortsEqualFieldSelection;
+
+    // Field selection for MPLS tunnel termination
+    TerminatedMPLSFieldSelectionControl terminatedMPLSFieldSelectionControl;
+    // Field selection for MPLS tunnel switching
+    NonTerminatedMPLSFieldSelectionControl
+        nonTerminatedMPLSFieldSelectionControl;
 
     FirstOutputFunctionControl hashFunction1;
     SecondOutputFunctionControl hashFunction2;
@@ -242,6 +254,11 @@ class BcmRtag7Module {
   template <typename ModuleControlType>
   int setUnitControl(ModuleControlType controlType, int arg);
   int setUnitControl(int controlType, int arg);
+
+  static TerminatedMPLSFieldSelectionControl
+  getTerminatedMPLSFieldSelectionControl(char module);
+  static NonTerminatedMPLSFieldSelectionControl
+  getNonTerminatedMPLSFieldSelectionControl(char module);
 
   ModuleControl moduleControl_;
   OutputSelectionControl outputControl_;

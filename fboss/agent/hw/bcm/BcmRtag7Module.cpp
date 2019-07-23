@@ -43,6 +43,8 @@ const BcmRtag7Module::ModuleControl BcmRtag7Module::kModuleAControl() {
           opennslSwitchHashIP4TcpUdpPortsEqualField0),
       IPv6TcpUdpPortsEqualFieldSelectionControl(
           opennslSwitchHashIP6TcpUdpPortsEqualField0),
+      getTerminatedMPLSFieldSelectionControl('A'),
+      getNonTerminatedMPLSFieldSelectionControl('A'),
       FirstOutputFunctionControl(opennslSwitchHashField0Config),
       SecondOutputFunctionControl(opennslSwitchHashField0Config1)};
   return moduleAControl;
@@ -63,6 +65,8 @@ const BcmRtag7Module::ModuleControl BcmRtag7Module::kModuleBControl() {
           opennslSwitchHashIP4TcpUdpPortsEqualField1),
       IPv6TcpUdpPortsEqualFieldSelectionControl(
           opennslSwitchHashIP6TcpUdpPortsEqualField1),
+      getTerminatedMPLSFieldSelectionControl('B'),
+      getNonTerminatedMPLSFieldSelectionControl('B'),
       FirstOutputFunctionControl(opennslSwitchHashField1Config),
       SecondOutputFunctionControl(opennslSwitchHashField1Config1)};
   return moduleBControl;
