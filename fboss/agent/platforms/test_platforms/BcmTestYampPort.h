@@ -31,9 +31,8 @@ class BcmTestYampPort : public BcmTestPort {
 
   folly::Future<TransmitterTechnology> getTransmitterTech(
       folly::EventBase* /*evb*/) const override {
-    // For Tomahawk3 port, we always use BACKPLANE
     return folly::makeFuture<TransmitterTechnology>(
-        TransmitterTechnology::BACKPLANE);
+        TransmitterTechnology::COPPER);
   }
 
  private:
