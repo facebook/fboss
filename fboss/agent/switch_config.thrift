@@ -162,6 +162,7 @@ union MirrorEgressPort {
  *  egressPort - name or ID of port from which mirror traffic egresses
  *               required for SPAN
  *               optional for ERSPAN port mirroring
+ *  ip - to be deprecated. ip address is now given in "tunnel"
  *  tunnel - configure the tunnel (sflow or gre) used to mirror the packet
  *           to a remote (IPv4) destination.
  */

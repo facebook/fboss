@@ -1,5 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/Port.h"
@@ -19,83 +20,49 @@ class MirrorTest : public ::testing::Test {
     platform_ = createMockPlatform();
     state_ = testState(config_);
   }
+  cfg::Mirror getMirrorConfigNoPort(
+      const std::string& name,
+      folly::IPAddress ip,
+      uint8_t dscp) {
+    cfg::MirrorDestination destination;
+    if (!ip.empty()) {
+      destination.ip_ref() = ip.str();
+    }
+    cfg::Mirror mirror;
+    mirror.name = name;
+    mirror.destination = destination;
+    mirror.dscp = dscp;
+    return mirror;
+  }
+
   void configureMirror(
       const std::string& name,
       folly::IPAddress ip,
-      const std::string& portName) {
-    cfg::MirrorDestination destination;
-    destination.ip_ref().value_unchecked() = ip.str();
-    destination.egressPort_ref().value_unchecked().set_name(portName);
-    destination.__isset.ip = true;
-    destination.__isset.egressPort = true;
-    auto mirrorCount = config_.mirrors.size() + 1;
-    config_.mirrors.resize(mirrorCount);
-    config_.mirrors[mirrorCount - 1].name = name;
-    config_.mirrors[mirrorCount - 1].destination = destination;
-    config_.mirrors[mirrorCount - 1].__isset.name = true;
-    config_.mirrors[mirrorCount - 1].__isset.destination = true;
+      const PortID& portID,
+      uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_) {
+    auto mirror = getMirrorConfigNoPort(name, ip, dscp);
+    mirror.destination.egressPort_ref().value_unchecked().set_logicalID(portID);
+    mirror.destination.__isset.egressPort = true;
+    config_.mirrors.push_back(mirror);
   }
 
   void configureMirror(
       const std::string& name,
       folly::IPAddress ip,
-      const PortID& portID) {
-    cfg::MirrorDestination destination;
-    destination.ip_ref().value_unchecked() = ip.str();
-    destination.egressPort_ref().value_unchecked().set_logicalID(portID);
-    destination.__isset.ip = true;
-    destination.__isset.egressPort = true;
-    auto mirrorCount = config_.mirrors.size() + 1;
-    config_.mirrors.resize(mirrorCount);
-    config_.mirrors[mirrorCount - 1].name = name;
-    config_.mirrors[mirrorCount - 1].destination = destination;
-    config_.mirrors[mirrorCount - 1].__isset.name = true;
-    config_.mirrors[mirrorCount - 1].__isset.destination = true;
+      const std::string& portName,
+      uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_) {
+    auto mirror = getMirrorConfigNoPort(name, ip, dscp);
+    mirror.destination.egressPort_ref().value_unchecked().set_name(portName);
+    mirror.destination.__isset.egressPort = true;
+    config_.mirrors.push_back(mirror);
   }
 
-  void configureMirror(const std::string& name, const std::string& portName) {
-    cfg::MirrorDestination destination;
-    destination.__isset.egressPort = true;
-    destination.egressPort_ref().value_unchecked().set_name(portName);
-
-    auto mirrorCount = config_.mirrors.size() + 1;
-    config_.mirrors.resize(mirrorCount);
-    config_.mirrors[mirrorCount - 1].name = name;
-    config_.mirrors[mirrorCount - 1].destination = destination;
-    config_.mirrors[mirrorCount - 1].__isset.name = true;
-    config_.mirrors[mirrorCount - 1].__isset.destination = true;
-  }
-
-  void configureMirror(const std::string& name, const PortID& portID) {
-    cfg::MirrorDestination destination;
-    destination.__isset.egressPort = true;
-    destination.egressPort_ref().value_unchecked().set_logicalID(portID);
-
-    auto mirrorCount = config_.mirrors.size() + 1;
-    config_.mirrors.resize(mirrorCount);
-    config_.mirrors[mirrorCount - 1].name = name;
-    config_.mirrors[mirrorCount - 1].destination = destination;
-    config_.mirrors[mirrorCount - 1].__isset.name = true;
-    config_.mirrors[mirrorCount - 1].__isset.destination = true;
-  }
-
-  void configureMirror(const std::string& name) {
-    auto mirrorCount = config_.mirrors.size() + 1;
-    config_.mirrors.resize(mirrorCount);
-    config_.mirrors[mirrorCount - 1].name = name;
-    config_.mirrors[mirrorCount - 1].__isset.name = true;
-  }
-
-  void configureMirror(const std::string& name, folly::IPAddress ip) {
-    cfg::MirrorDestination destination;
-    destination.ip_ref() = ip.str();
-
-    auto mirrorCount = config_.mirrors.size() + 1;
-    config_.mirrors.resize(mirrorCount);
-    config_.mirrors[mirrorCount - 1].name = name;
-    config_.mirrors[mirrorCount - 1].destination = destination;
-    config_.mirrors[mirrorCount - 1].__isset.name = true;
-    config_.mirrors[mirrorCount - 1].__isset.destination = true;
+  void configureMirror(
+      const std::string& name,
+      folly::IPAddress ip,
+      const uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_) {
+    auto mirror = getMirrorConfigNoPort(name, ip, dscp);
+    config_.mirrors.push_back(mirror);
   }
 
   void configureAcl(const std::string& name, uint16_t dstL4Port = 1234) {
@@ -153,15 +120,17 @@ class MirrorTest : public ::testing::Test {
   static const folly::IPAddress tunnelDestination;
   static const char* egressPortName;
   static const PortID egressPort;
+  static const uint8_t dscp;
 };
 
 const folly::IPAddress MirrorTest::tunnelDestination =
     folly::IPAddress("10.0.0.1");
 const char* MirrorTest::egressPortName = "port5";
 const PortID MirrorTest::egressPort = PortID(5);
+const uint8_t MirrorTest::dscp = 46;
 
 TEST_F(MirrorTest, MirrorWithPort) {
-  configureMirror("mirror0", MirrorTest::egressPortName);
+  configureMirror("mirror0", folly::IPAddress(), MirrorTest::egressPortName);
   publishWithStateUpdate();
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
@@ -170,10 +139,12 @@ TEST_F(MirrorTest, MirrorWithPort) {
   auto port = mirror->getEgressPort();
   EXPECT_EQ(port.hasValue(), true);
   EXPECT_EQ(port.value(), egressPort);
+  auto dscp = mirror->getDscp();
+  EXPECT_EQ(dscp, cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_);
 }
 
 TEST_F(MirrorTest, MirrorWithPortId) {
-  configureMirror("mirror0", MirrorTest::egressPort);
+  configureMirror("mirror0", folly::IPAddress(), MirrorTest::egressPort);
   publishWithStateUpdate();
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
@@ -182,6 +153,23 @@ TEST_F(MirrorTest, MirrorWithPortId) {
   auto port = mirror->getEgressPort();
   EXPECT_EQ(port.hasValue(), true);
   EXPECT_EQ(port.value(), egressPort);
+  auto dscp = mirror->getDscp();
+  EXPECT_EQ(dscp, cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_);
+}
+
+TEST_F(MirrorTest, MirrorWithPortIdAndDscp) {
+  configureMirror(
+      "mirror0", folly::IPAddress(), MirrorTest::egressPort, MirrorTest::dscp);
+  publishWithStateUpdate();
+  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  EXPECT_NE(mirror, nullptr);
+  EXPECT_EQ(mirror->getID(), "mirror0");
+  EXPECT_EQ(mirror->configHasEgressPort(), true);
+  auto port = mirror->getEgressPort();
+  EXPECT_EQ(port.hasValue(), true);
+  EXPECT_EQ(port.value(), egressPort);
+  auto dscp = mirror->getDscp();
+  EXPECT_EQ(dscp, MirrorTest::dscp);
 }
 
 TEST_F(MirrorTest, MirrorWithIp) {
@@ -197,6 +185,25 @@ TEST_F(MirrorTest, MirrorWithIp) {
   EXPECT_EQ(ip.hasValue(), true);
   EXPECT_EQ(ip.value(), MirrorTest::tunnelDestination);
   EXPECT_EQ(mirror->isResolved(), false);
+  auto dscp = mirror->getDscp();
+  EXPECT_EQ(dscp, cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_);
+}
+
+TEST_F(MirrorTest, MirrorWithIpAndDscp) {
+  configureMirror("mirror0", MirrorTest::tunnelDestination, MirrorTest::dscp);
+  publishWithStateUpdate();
+  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  EXPECT_NE(mirror, nullptr);
+  EXPECT_EQ(mirror->getID(), "mirror0");
+  EXPECT_EQ(mirror->configHasEgressPort(), false);
+  auto port = mirror->getEgressPort();
+  EXPECT_EQ(port.hasValue(), false);
+  auto ip = mirror->getDestinationIp();
+  EXPECT_EQ(ip.hasValue(), true);
+  EXPECT_EQ(ip.value(), MirrorTest::tunnelDestination);
+  EXPECT_EQ(mirror->isResolved(), false);
+  auto dscp = mirror->getDscp();
+  EXPECT_EQ(dscp, MirrorTest::dscp);
 }
 
 TEST_F(MirrorTest, MirrorWithPortAndIp) {
@@ -214,6 +221,8 @@ TEST_F(MirrorTest, MirrorWithPortAndIp) {
   EXPECT_EQ(ip.hasValue(), true);
   EXPECT_EQ(ip.value(), MirrorTest::tunnelDestination);
   EXPECT_EQ(mirror->isResolved(), false);
+  auto dscp = mirror->getDscp();
+  EXPECT_EQ(dscp, cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_);
 }
 
 TEST_F(MirrorTest, MirrorWithPortIdAndIp) {
@@ -231,10 +240,41 @@ TEST_F(MirrorTest, MirrorWithPortIdAndIp) {
   EXPECT_EQ(ip.hasValue(), true);
   EXPECT_EQ(ip.value(), MirrorTest::tunnelDestination);
   EXPECT_EQ(mirror->isResolved(), false);
+  auto dscp = mirror->getDscp();
+  EXPECT_EQ(dscp, cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_);
 }
 
-TEST_F(MirrorTest, MirrorWithNoPortNoIp) {
-  configureMirror("mirror0");
+TEST_F(MirrorTest, MirrorWithPortIdAndIpAndDscp) {
+  configureMirror(
+      "mirror0",
+      MirrorTest::tunnelDestination,
+      MirrorTest::egressPort,
+      MirrorTest::dscp);
+  publishWithStateUpdate();
+  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  EXPECT_NE(mirror, nullptr);
+  EXPECT_EQ(mirror->getID(), "mirror0");
+  EXPECT_EQ(mirror->configHasEgressPort(), true);
+  auto port = mirror->getEgressPort();
+  EXPECT_EQ(port.hasValue(), true);
+  EXPECT_EQ(port.value(), egressPort);
+  auto ip = mirror->getDestinationIp();
+  EXPECT_EQ(ip.hasValue(), true);
+  EXPECT_EQ(ip.value(), MirrorTest::tunnelDestination);
+  EXPECT_EQ(mirror->isResolved(), false);
+  auto dscp = mirror->getDscp();
+  EXPECT_EQ(dscp, MirrorTest::dscp);
+}
+
+TEST_F(MirrorTest, MirrorWithNameNoPortNoIp) {
+  configureMirror("mirror0", folly::IPAddress());
+  publishWithFbossError();
+  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  EXPECT_EQ(mirror, nullptr);
+}
+
+TEST_F(MirrorTest, MirrorWithNameAndDscpNoPortNoIp) {
+  configureMirror("mirror0", folly::IPAddress(), MirrorTest::dscp);
   publishWithFbossError();
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
   EXPECT_EQ(mirror, nullptr);
@@ -449,12 +489,14 @@ TEST_F(MirrorTest, MirrorMirrorEgressPort) {
 }
 
 TEST_F(MirrorTest, ToAndFromDynamic) {
-  configureMirror("span", MirrorTest::egressPort);
+  configureMirror("span", folly::IPAddress(), MirrorTest::egressPort);
   configureMirror("unresolved", MirrorTest::tunnelDestination);
   configureMirror("resolved", MirrorTest::tunnelDestination);
+  configureMirror("with_dscp", MirrorTest::tunnelDestination, 3);
   publishWithStateUpdate();
   auto span = state_->getMirrors()->getMirrorIf("span");
   auto unresolved = state_->getMirrors()->getMirrorIf("unresolved");
+  auto with_dscp = state_->getMirrors()->getMirrorIf("with_dscp");
   auto resolved = state_->getMirrors()->getMirrorIf("resolved");
   resolved->setEgressPort(MirrorTest::egressPort);
   resolved->setMirrorTunnel(MirrorTunnel(
@@ -474,6 +516,9 @@ TEST_F(MirrorTest, ToAndFromDynamic) {
   EXPECT_EQ(
       *(reconstructedState->getMirrors()->getMirrorIf("resolved")),
       *(state_->getMirrors()->getMirrorIf("resolved")));
+  EXPECT_EQ(
+      *(reconstructedState->getMirrors()->getMirrorIf("with_dscp")),
+      *(state_->getMirrors()->getMirrorIf("with_dscp")));
 }
 
 } // namespace fboss
