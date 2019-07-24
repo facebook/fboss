@@ -226,10 +226,9 @@ class BcmRtag7Module {
   void enableFlowBasedOutputSelection();
   void programMacroFlowIDSelection();
   void programFlowBasedHashTable();
-  void programFieldSelection(
-      LoadBalancer::IPv4FieldsRange v4FieldsRange,
-      LoadBalancer::IPv6FieldsRange v6FieldsRange,
-      LoadBalancer::TransportFieldsRange transportFieldsRange);
+  void programFieldSelection(const LoadBalancer& loadBalancer);
+  void programNonTerminatedMPLSFieldSelection(const LoadBalancer& loadBalancer);
+  void programTerminatedMPLSFieldSelection(const LoadBalancer& loadBalancer);
   void programSeed(uint32_t seed);
   void enableRtag7(LoadBalancerID);
   void programIPv4FieldSelection(
@@ -244,6 +243,19 @@ class BcmRtag7Module {
   int computeIPv6Subfields(LoadBalancer::IPv6FieldsRange v6FieldsRange) const;
   int computeTransportSubfields(
       LoadBalancer::TransportFieldsRange transportFieldsRange) const;
+
+  int computeL3MPLSPayloadSubfields(
+      const LoadBalancer& /*loadBalancer*/,
+      bool /*forTunnelTermination*/) {
+    // TODO (pshaikh) implement it
+    return 0;
+  }
+  int computeL3MPLSHeaderSubfields(
+      const LoadBalancer& /*loadBalancer*/,
+      bool /*forTunnelTermination*/) {
+    // TODO (pshaikh) implement it
+    return 0;
+  }
 
   void enableFlowLabelSelection();
   int getFlowLabelSubfields() const;

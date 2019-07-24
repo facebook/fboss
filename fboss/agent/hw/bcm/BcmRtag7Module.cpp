@@ -171,12 +171,13 @@ void BcmRtag7Module::programFlowBasedHashTable() {
   bcmCheckError(rv, "failed to program flow hash table barrel shift stride");
 }
 
-void BcmRtag7Module::programFieldSelection(
-    LoadBalancer::IPv4FieldsRange v4FieldsRange,
-    LoadBalancer::IPv6FieldsRange v6FieldsRange,
-    LoadBalancer::TransportFieldsRange transportFieldsRange) {
-  programIPv4FieldSelection(v4FieldsRange, transportFieldsRange);
-  programIPv6FieldSelection(v6FieldsRange, transportFieldsRange);
+void BcmRtag7Module::programFieldSelection(const LoadBalancer& loadBalancer) {
+  programIPv4FieldSelection(
+      loadBalancer.getIPv4Fields(), loadBalancer.getTransportFields());
+  programIPv6FieldSelection(
+      loadBalancer.getIPv6Fields(), loadBalancer.getTransportFields());
+  programTerminatedMPLSFieldSelection(loadBalancer);
+  programNonTerminatedMPLSFieldSelection(loadBalancer);
 }
 
 void BcmRtag7Module::programIPv4FieldSelection(
@@ -254,10 +255,7 @@ void BcmRtag7Module::init(const std::shared_ptr<LoadBalancer>& loadBalancer) {
 
   programSeed(loadBalancer->getSeed());
 
-  programFieldSelection(
-      loadBalancer->getIPv4Fields(),
-      loadBalancer->getIPv6Fields(),
-      loadBalancer->getTransportFields());
+  programFieldSelection(*loadBalancer);
 
   programAlgorithm(loadBalancer->getAlgorithm());
 
@@ -293,6 +291,11 @@ void BcmRtag7Module::program(
       oldLoadBalancer->getTransportFields().end(),
       newLoadBalancer->getTransportFields().begin(),
       newLoadBalancer->getTransportFields().end());
+  bool sameMPLSFields = std::equal(
+      oldLoadBalancer->getMPLSFields().begin(),
+      oldLoadBalancer->getMPLSFields().end(),
+      newLoadBalancer->getMPLSFields().begin(),
+      newLoadBalancer->getMPLSFields().end());
 
   if (!sameIPv4Fields || !sameTransportFields) {
     programIPv4FieldSelection(
@@ -304,6 +307,16 @@ void BcmRtag7Module::program(
     programIPv6FieldSelection(
         newLoadBalancer->getIPv6Fields(),
         newLoadBalancer->getTransportFields());
+  }
+
+  if (!sameMPLSFields || !sameIPv4Fields || !sameIPv6Fields) {
+    // program for tunnel switch
+    programNonTerminatedMPLSFieldSelection(*newLoadBalancer);
+  }
+
+  if (!sameIPv4Fields || !sameIPv6Fields || !sameTransportFields) {
+    // program for tunnel termination
+    programTerminatedMPLSFieldSelection(*newLoadBalancer);
   }
 
   if (oldLoadBalancer->getAlgorithm() != newLoadBalancer->getAlgorithm()) {
@@ -448,5 +461,30 @@ BcmRtag7Module::ModuleState BcmRtag7Module::retrieveRtag7ModuleState(
   return state;
 }
 
+void BcmRtag7Module::programTerminatedMPLSFieldSelection(
+    const LoadBalancer& loadBalancer) {
+  int fields = 0;
+  fields |=
+      computeL3MPLSPayloadSubfields(loadBalancer, true /* tunnel terminated*/);
+  fields |=
+      computeL3MPLSHeaderSubfields(loadBalancer, true /* tunnel terminated*/);
+
+  auto rv = setUnitControl(
+      moduleControl_.terminatedMPLSFieldSelectionControl, fields);
+  bcmCheckError(rv, "failed to config field selection");
+}
+
+void BcmRtag7Module::programNonTerminatedMPLSFieldSelection(
+    const LoadBalancer& loadBalancer) {
+  int fields = 0;
+  fields |= computeL3MPLSPayloadSubfields(
+      loadBalancer, false /* tunnel not terminated*/);
+  fields |= computeL3MPLSHeaderSubfields(
+      loadBalancer, false /* tunnel not terminated*/);
+
+  auto rv = setUnitControl(
+      moduleControl_.nonTerminatedMPLSFieldSelectionControl, fields);
+  bcmCheckError(rv, "failed to config field selection");
+}
 } // namespace fboss
 } // namespace facebook
