@@ -84,5 +84,14 @@ BcmRtag7Module::getNonTerminatedMPLSFieldSelectionControl(char /*module*/) {
   return NonTerminatedMPLSFieldSelectionControl();
 }
 
+int BcmRtag7Module::computeL3MPLSPayloadSubfields(
+    const LoadBalancer& /*loadBalancer*/,
+    bool /*forTunnelTermination*/) {
+  return 0;
+}
+int BcmRtag7Module::computeL3MPLSHeaderSubfields(
+    const LoadBalancer& /*loadBalancer*/) {
+  return 0;
+}
 } // namespace fboss
 } // namespace facebook

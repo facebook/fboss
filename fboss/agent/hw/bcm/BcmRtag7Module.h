@@ -245,17 +245,10 @@ class BcmRtag7Module {
       LoadBalancer::TransportFieldsRange transportFieldsRange) const;
 
   int computeL3MPLSPayloadSubfields(
-      const LoadBalancer& /*loadBalancer*/,
-      bool /*forTunnelTermination*/) {
-    // TODO (pshaikh) implement it
-    return 0;
-  }
-  int computeL3MPLSHeaderSubfields(
-      const LoadBalancer& /*loadBalancer*/,
-      bool /*forTunnelTermination*/) {
-    // TODO (pshaikh) implement it
-    return 0;
-  }
+      const LoadBalancer& loadBalancer,
+      bool forTunnelTermination);
+
+  int computeL3MPLSHeaderSubfields(const LoadBalancer& loadBalancer);
 
   void enableFlowLabelSelection();
   int getFlowLabelSubfields() const;

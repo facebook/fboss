@@ -466,8 +466,6 @@ void BcmRtag7Module::programTerminatedMPLSFieldSelection(
   int fields = 0;
   fields |=
       computeL3MPLSPayloadSubfields(loadBalancer, true /* tunnel terminated*/);
-  fields |=
-      computeL3MPLSHeaderSubfields(loadBalancer, true /* tunnel terminated*/);
 
   auto rv = setUnitControl(
       moduleControl_.terminatedMPLSFieldSelectionControl, fields);
@@ -479,8 +477,7 @@ void BcmRtag7Module::programNonTerminatedMPLSFieldSelection(
   int fields = 0;
   fields |= computeL3MPLSPayloadSubfields(
       loadBalancer, false /* tunnel not terminated*/);
-  fields |= computeL3MPLSHeaderSubfields(
-      loadBalancer, false /* tunnel not terminated*/);
+  fields |= computeL3MPLSHeaderSubfields(loadBalancer);
 
   auto rv = setUnitControl(
       moduleControl_.nonTerminatedMPLSFieldSelectionControl, fields);
