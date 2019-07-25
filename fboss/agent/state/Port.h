@@ -70,6 +70,9 @@ struct PortFields {
   // packets randomly based on those settings. Zero means no sampling.
   int64_t sFlowIngressRate{0};
   int64_t sFlowEgressRate{0};
+  // specifies whether sFlow sampled packets should be forwarded to the CPU or
+  // to remote Mirror destinations
+  folly::Optional<cfg::SampleDestination> sampleDest;
   QueueConfig queues;
   cfg::PortFEC fec{cfg::PortFEC::OFF}; // TODO: should this default to ON?
   cfg::PortLoopbackMode loopbackMode{cfg::PortLoopbackMode::NONE};
@@ -221,11 +224,20 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
     writableFields()->sFlowEgressRate = egressRate;
   }
 
+  folly::Optional<cfg::SampleDestination> getSampleDestination() const {
+    return getFields()->sampleDest;
+  }
+
+  void setSampleDestination(
+      const folly::Optional<cfg::SampleDestination>& sampleDest) {
+    writableFields()->sampleDest = sampleDest;
+  }
+
   folly::Optional<std::string> getIngressMirror() const {
     return getFields()->ingressMirror;
   }
 
-  void setIngressMirror(folly::Optional<std::string> mirror) {
+  void setIngressMirror(const folly::Optional<std::string>& mirror) {
     writableFields()->ingressMirror.assign(mirror);
   }
 
@@ -233,7 +245,7 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
     return getFields()->egressMirror;
   }
 
-  void setEgressMirror(folly::Optional<std::string> mirror) {
+  void setEgressMirror(const folly::Optional<std::string>& mirror) {
     writableFields()->egressMirror.assign(mirror);
   }
 
@@ -241,7 +253,7 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
     return getFields()->qosPolicy;
   }
 
-  void setQosPolicy(folly::Optional<std::string> qosPolicy) {
+  void setQosPolicy(const folly::Optional<std::string>& qosPolicy) {
     writableFields()->qosPolicy.assign(qosPolicy);
   }
 

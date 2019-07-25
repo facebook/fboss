@@ -824,6 +824,19 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     }
   }
 
+  auto newSampleDest = folly::Optional<cfg::SampleDestination>();
+  if (portConf->sampleDest_ref()) {
+    newSampleDest.assign(portConf->sampleDest_ref().value());
+
+    if (newSampleDest.value() == cfg::SampleDestination::MIRROR &&
+        portConf->sFlowEgressRate > 0) {
+      throw FbossError(
+          "Port ",
+          orig->getID(),
+          ": Egress sampling to mirror destination is unsupported");
+    }
+  }
+
   // Ensure portConf has actually changed, before applying
   if (portConf->state == orig->getAdminState() &&
       VlanID(portConf->ingressVlan) == orig->getIngressVlan() &&
@@ -831,6 +844,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portConf->pause == orig->getPause() &&
       portConf->sFlowIngressRate == orig->getSflowIngressRate() &&
       portConf->sFlowEgressRate == orig->getSflowEgressRate() &&
+      newSampleDest == orig->getSampleDestination() &&
       portConf->name_ref().value_unchecked() == orig->getName() &&
       portConf->description_ref().value_unchecked() == orig->getDescription() &&
       vlans == orig->getVlans() && portConf->fec == orig->getFEC() &&
@@ -854,6 +868,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setPause(portConf->pause);
   newPort->setSflowIngressRate(portConf->sFlowIngressRate);
   newPort->setSflowEgressRate(portConf->sFlowEgressRate);
+  newPort->setSampleDestination(newSampleDest);
   newPort->setName(portConf->name_ref().value_unchecked());
   newPort->setDescription(portConf->description_ref().value_unchecked());
   newPort->setFEC(portConf->fec);

@@ -15,6 +15,7 @@
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "thrift/lib/cpp/util/EnumUtils.h"
 
 using folly::to;
 using std::string;
@@ -80,6 +81,16 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
     CHECK(itrPortLoopbackMode != cfg::_PortLoopbackMode_NAMES_TO_VALUES.end())
         << "Unexpected loopback mode value: " << portThrift.portLoopbackMode;
     port.loopbackMode = cfg::PortLoopbackMode(itrPortLoopbackMode->second);
+  }
+
+  if (portThrift.sampleDest) {
+    auto itrSampleDestination = cfg::_SampleDestination_NAMES_TO_VALUES.find(
+        portThrift.sampleDest.value().c_str());
+    CHECK(itrSampleDestination != cfg::_SampleDestination_NAMES_TO_VALUES.end())
+        << "Unexpected sample destination value: "
+        << portThrift.sampleDest.value();
+    port.sampleDest.assign(
+        cfg::SampleDestination(itrSampleDestination->second));
   }
 
   port.pause.tx = portThrift.txPause;
@@ -169,6 +180,9 @@ state::PortFields PortFields::toThrift() const {
   }
   port.qosPolicy.assign(qosPolicy);
 
+  if (sampleDest) {
+    port.sampleDest = apache::thrift::util::enumName(sampleDest.value());
+  }
   return port;
 }
 
