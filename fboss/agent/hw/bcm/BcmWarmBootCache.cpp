@@ -162,7 +162,7 @@ void BcmWarmBootCache::populateFromWarmBootState(
       << "Was not able to recover software state after warmboot";
 
   // Extract ecmps for dumped host table
-  auto hostTable = warmBootState[kHwSwitch][kHostTable];
+  auto& hostTable = warmBootState[kHwSwitch][kHostTable];
   for (const auto& ecmpEntry : hostTable[kEcmpHosts]) {
     auto ecmpEgressId = ecmpEntry[kEcmpEgressId].asInt();
     if (ecmpEgressId == BcmEgressBase::INVALID) {
@@ -176,7 +176,7 @@ void BcmWarmBootCache::populateFromWarmBootState(
   }
   // Extract ecmps from dumped warm boot cache. We
   // may have shut down before a FIB sync
-  auto ecmpObjects = warmBootState[kHwSwitch][kWarmBootCache][kEcmpObjects];
+  auto& ecmpObjects = warmBootState[kHwSwitch][kWarmBootCache][kEcmpObjects];
   for (const auto& ecmpEntry : ecmpObjects) {
     auto ecmpEgressId = ecmpEntry[kEcmpEgressId].asInt();
     CHECK(ecmpEgressId != BcmEgressBase::INVALID);
