@@ -256,8 +256,7 @@ NeighborCacheEntry<NTable>* NeighborCacheImpl<NTable>::setEntryInternal(
     entry->updateState(state);
     return changed ? entry : nullptr;
   } else if (add) {
-    auto evb = evb_;
-    auto to_store = std::make_shared<Entry>(fields, evb, cache_, state);
+    auto to_store = std::make_shared<Entry>(fields, evb_, cache_, state);
     entry = to_store.get();
     setCacheEntry(std::move(to_store));
   }
