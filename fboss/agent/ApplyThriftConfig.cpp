@@ -2066,17 +2066,18 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
 
 std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
     const cfg::Mirror* mirrorConfig) {
-  if (!mirrorConfig->destination.__isset.egressPort &&
-      !mirrorConfig->destination.__isset.ip) {
+  if (!mirrorConfig->destination.egressPort_ref() &&
+      !mirrorConfig->destination.tunnel_ref()) {
     /*
-     * At least one of the egress port or remote ip is needed.
+     * At least one of the egress port or tunnel is needed.
      */
     throw FbossError(
-        "Must provide either egressPort or tunnel endpoint ip for mirror");
+        "Must provide either egressPort or tunnel with endpoint ip for mirror");
   }
 
   folly::Optional<PortID> mirrorEgressPort;
   folly::Optional<folly::IPAddress> destinationIp;
+  folly::Optional<TunnelUdpPorts> udpPorts;
 
   if (mirrorConfig->destination.__isset.egressPort) {
     std::shared_ptr<Port> mirrorToPort{nullptr};
@@ -2108,15 +2109,29 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
     }
   }
 
-  if (mirrorConfig->destination.__isset.ip) {
-    destinationIp.assign(
-        folly::IPAddress(mirrorConfig->destination.ip_ref().value_unchecked()));
+  if (mirrorConfig->destination.tunnel_ref()) {
+    cfg::MirrorTunnel tunnel = mirrorConfig->destination.tunnel_ref().value();
+    if (tunnel.sflowTunnel_ref()) {
+      destinationIp.assign(
+          folly::IPAddress(tunnel.sflowTunnel_ref().value().ip));
+      cfg::SflowTunnel sflowTunnel = tunnel.sflowTunnel_ref().value();
+      if (!sflowTunnel.udpSrcPort_ref() || !sflowTunnel.udpDstPort_ref()) {
+        throw FbossError(
+            "Both UDP source and UDP destination ports must be provided for \
+            sFlow tunneling.");
+      }
+      udpPorts.assign(TunnelUdpPorts(
+          sflowTunnel.udpSrcPort_ref().value(),
+          sflowTunnel.udpDstPort_ref().value()));
+    } else if (tunnel.greTunnel_ref()) {
+      destinationIp.assign(folly::IPAddress(tunnel.greTunnel_ref().value().ip));
+    }
   }
 
   uint8_t dscpMark = mirrorConfig->get_dscp();
 
   auto mirror = make_shared<Mirror>(
-      mirrorConfig->name, mirrorEgressPort, destinationIp, dscpMark);
+      mirrorConfig->name, mirrorEgressPort, destinationIp, udpPorts, dscpMark);
   return mirror;
 }
 

@@ -26,7 +26,11 @@ class MirrorTest : public ::testing::Test {
       uint8_t dscp) {
     cfg::MirrorDestination destination;
     if (!ip.empty()) {
-      destination.ip_ref() = ip.str();
+      cfg::GreTunnel greTunnel;
+      greTunnel.ip = ip.str();
+      cfg::MirrorTunnel tunnel;
+      tunnel.greTunnel_ref() = greTunnel;
+      destination.tunnel_ref() = tunnel;
     }
     cfg::Mirror mirror;
     mirror.name = name;
@@ -341,15 +345,23 @@ TEST_F(MirrorTest, MirrorWrongPortId) {
 TEST_F(MirrorTest, NoStateChange) {
   configureMirror("mirror0", MirrorTest::tunnelDestination);
   publishWithStateUpdate();
-  config_.mirrors[0].destination.ip_ref().value_unchecked() =
-      MirrorTest::tunnelDestination.str();
+  cfg::MirrorTunnel tunnel;
+  cfg::GreTunnel greTunnel;
+  greTunnel.ip = MirrorTest::tunnelDestination.str();
+  tunnel.greTunnel_ref() = greTunnel;
+  config_.mirrors[0].destination.tunnel_ref() = tunnel;
   publishWithNoStateUpdate();
 }
 
 TEST_F(MirrorTest, WithStateChange) {
   configureMirror("mirror0", MirrorTest::tunnelDestination);
   publishWithStateUpdate();
-  config_.mirrors[0].destination.ip_ref().value_unchecked() = "10.0.0.2";
+  config_.mirrors[0]
+      .destination.tunnel_ref()
+      .value()
+      .greTunnel_ref()
+      .value()
+      .ip = "10.0.0.2";
   publishWithStateUpdate();
 
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");

@@ -6,6 +6,7 @@
 #include <folly/IPAddressV6.h>
 
 #include "fboss/agent/state/ArpEntry.h"
+#include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/NdpEntry.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
@@ -45,7 +46,8 @@ class MirrorManagerImpl {
       const std::shared_ptr<SwitchState>& state,
       const AddrT& destinationIp,
       const NextHop& nextHop,
-      const std::shared_ptr<NeighborEntryT>& neighbor);
+      const std::shared_ptr<NeighborEntryT>& neighbor,
+      const folly::Optional<TunnelUdpPorts>& udpPorts);
 
   template <typename ADDRT = AddrT>
   typename std::

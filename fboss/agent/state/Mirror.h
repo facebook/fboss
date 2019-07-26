@@ -18,9 +18,17 @@ namespace fboss {
 
 using boost::container::flat_set;
 
+struct TunnelUdpPorts {
+  uint32_t udpSrcPort;
+  uint32_t udpDstPort;
+  TunnelUdpPorts(uint32_t src, uint32_t dst)
+      : udpSrcPort(src), udpDstPort(dst) {}
+};
+
 struct MirrorTunnel {
   folly::IPAddress srcIp, dstIp;
   folly::MacAddress srcMac, dstMac;
+  folly::Optional<TunnelUdpPorts> udpPorts;
   uint8_t ttl;
   uint16_t greProtocol;
   static constexpr auto kTTL = 255;
@@ -37,12 +45,14 @@ struct MirrorTunnel {
       const folly::IPAddress& dstIp,
       const folly::MacAddress& srcMac,
       const folly::MacAddress& dstMac,
+      const folly::Optional<TunnelUdpPorts>& udpPorts = folly::none,
       uint8_t ttl = kTTL,
       uint16_t proto = kProto)
       : srcIp(srcIp),
         dstIp(dstIp),
         srcMac(srcMac),
         dstMac(dstMac),
+        udpPorts(udpPorts),
         ttl(ttl),
         greProtocol(proto) {}
 
@@ -70,13 +80,15 @@ struct MirrorTunnel {
 
 struct MirrorFields {
   MirrorFields(
-      std::string name,
-      folly::Optional<PortID> egressPort,
-      folly::Optional<folly::IPAddress> destinationIp,
-      uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_)
+      const std::string& name,
+      const folly::Optional<PortID>& egressPort,
+      const folly::Optional<folly::IPAddress>& destinationIp,
+      const folly::Optional<TunnelUdpPorts>& udpPorts = folly::none,
+      const uint8_t& dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_)
       : name(name),
         egressPort(egressPort),
         destinationIp(destinationIp),
+        udpPorts(udpPorts),
         dscp(dscp) {
     if (egressPort.hasValue()) {
       configHasEgressPort = true;
@@ -89,6 +101,7 @@ struct MirrorFields {
   std::string name;
   folly::Optional<PortID> egressPort;
   folly::Optional<folly::IPAddress> destinationIp;
+  folly::Optional<TunnelUdpPorts> udpPorts;
   uint8_t dscp;
   folly::Optional<MirrorTunnel> resolvedTunnel;
   bool configHasEgressPort{false};
@@ -102,10 +115,12 @@ class Mirror : public NodeBaseT<Mirror, MirrorFields> {
       std::string name,
       folly::Optional<PortID> egressPort,
       folly::Optional<folly::IPAddress> destinationIp,
+      folly::Optional<TunnelUdpPorts> udpPorts = folly::none,
       uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_);
   std::string getID() const;
   folly::Optional<PortID> getEgressPort() const;
   folly::Optional<folly::IPAddress> getDestinationIp() const;
+  folly::Optional<TunnelUdpPorts> getTunnelUdpPorts() const;
   folly::Optional<MirrorTunnel> getMirrorTunnel() const;
   uint8_t getDscp() const;
   void setEgressPort(PortID egressPort);

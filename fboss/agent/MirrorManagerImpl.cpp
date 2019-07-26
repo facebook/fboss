@@ -34,6 +34,7 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
       mirror->getID(),
       mirror->getEgressPort(),
       mirror->getDestinationIp(),
+      mirror->getTunnelUdpPorts(),
       dscp);
 
   for (const auto& nexthop : nexthops) {
@@ -45,8 +46,8 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
     }
 
     const auto egressPort = entry->getPort().phyPortID();
-    newMirror->setMirrorTunnel(
-        resolveMirrorTunnel(state, destinationIp, nexthop, entry));
+    newMirror->setMirrorTunnel(resolveMirrorTunnel(
+        state, destinationIp, nexthop, entry, newMirror->getTunnelUdpPorts()));
     newMirror->setEgressPort(egressPort);
     break;
   }
@@ -111,12 +112,17 @@ MirrorTunnel MirrorManagerImpl<AddrT>::resolveMirrorTunnel(
     const std::shared_ptr<SwitchState>& state,
     const AddrT& destinationIp,
     const NextHop& nextHop,
-    const std::shared_ptr<NeighborEntryT>& neighbor) {
+    const std::shared_ptr<NeighborEntryT>& neighbor,
+    const folly::Optional<TunnelUdpPorts>& udpPorts) {
   const auto interface = state->getInterfaces()->getInterfaceIf(nextHop.intf());
   const auto iter = interface->getAddressToReach(neighbor->getIP());
 
   return MirrorTunnel(
-      iter->first, destinationIp, interface->getMac(), neighbor->getMac());
+      iter->first,
+      destinationIp,
+      interface->getMac(),
+      neighbor->getMac(),
+      udpPorts);
 }
 
 template class MirrorManagerImpl<folly::IPAddressV4>;

@@ -168,7 +168,7 @@ union MirrorEgressPort {
  */
 struct MirrorDestination {
   1: optional MirrorEgressPort egressPort
-  // TODO tgriggs: ip to be DEPRECATED
+  // ip to be deprecated
   2: optional string ip
   3: optional MirrorTunnel tunnel
 }
