@@ -38,6 +38,9 @@ class WedgeTomahawkPlatform : public WedgePlatform {
   bool v6MirrorTunnelSupported() const override {
     return false;
   }
+  bool sflowSamplingSupported() const override {
+    return true;
+  }
   uint32_t maxLabelStackDepth() const override {
     return 3;
   }

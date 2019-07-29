@@ -28,6 +28,10 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
     return true;
   }
 
+  bool sflowSamplingSupported() const override {
+    return true;
+  }
+
   std::list<FlexPortMode> getSupportedFlexPortModes() const override {
     return {FlexPortMode::ONEX100G,
             FlexPortMode::TWOX50G,

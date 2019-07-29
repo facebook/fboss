@@ -26,6 +26,9 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
   bool v6MirrorTunnelSupported() const override {
     return false;
   }
+  bool sflowSamplingSupported() const override {
+    return false;
+  }
 
   std::list<FlexPortMode> getSupportedFlexPortModes() const override {
     return {FlexPortMode::ONEX40G, FlexPortMode::FOURX10G};
