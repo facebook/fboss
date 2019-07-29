@@ -22,10 +22,10 @@ class Platform;
 class SwitchState;
 class HwLinkStateToggler;
 
-class HwSwitchBenchmarker : public HwSwitch::Callback {
+class HwSwitchEnsemble : public HwSwitch::Callback {
  public:
-  HwSwitchBenchmarker();
-  ~HwSwitchBenchmarker() override;
+  HwSwitchEnsemble();
+  ~HwSwitchEnsemble() override;
   /*
    * Setup and init platform switch
    */
@@ -60,9 +60,9 @@ class HwSwitchBenchmarker : public HwSwitch::Callback {
       HwSwitch* hwSwitch) = 0;
   std::shared_ptr<SwitchState> programmedState_;
   std::shared_ptr<SwitchState> initCfgState_;
+  std::unique_ptr<HwLinkStateToggler> linkToggler_;
   std::unique_ptr<Platform> platform_;
   std::unique_ptr<HwSwitch> hwSwitch_;
-  std::unique_ptr<HwLinkStateToggler> linkToggler_;
 };
 
 } // namespace fboss

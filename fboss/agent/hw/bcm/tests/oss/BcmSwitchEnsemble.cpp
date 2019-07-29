@@ -7,15 +7,18 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/benchmarks/BcmBenchmarker.h"
+#include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 
-#include "fboss/agent/hw/test/HwLinkStateToggler.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/tests/facebook/BcmLinkStateToggler.h"
+
+#include <memory>
 
 namespace facebook {
 namespace fboss {
 
-std::unique_ptr<HwLinkStateToggler> BcmBenchmarker::createLinkToggler(
-    HwSwitch* /*hwSwitch*/) {
+std::unique_ptr<HwLinkStateToggler> BcmSwitchEnsemble::createLinkToggler(
+    HwSwitch* hwSwitch) {
   return nullptr;
 }
 

@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/hw/benchmarks/HwSwitchBenchmarker.h"
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
@@ -21,11 +21,11 @@
 namespace facebook {
 namespace fboss {
 
-HwSwitchBenchmarker::HwSwitchBenchmarker() {}
+HwSwitchEnsemble::HwSwitchEnsemble() {}
 
-HwSwitchBenchmarker::~HwSwitchBenchmarker() {}
+HwSwitchEnsemble::~HwSwitchEnsemble() {}
 
-void HwSwitchBenchmarker::applyNewState(std::shared_ptr<SwitchState> newState) {
+void HwSwitchEnsemble::applyNewState(std::shared_ptr<SwitchState> newState) {
   if (!newState) {
     return;
   }
@@ -34,7 +34,7 @@ void HwSwitchBenchmarker::applyNewState(std::shared_ptr<SwitchState> newState) {
   programmedState_->publish();
 }
 
-void HwSwitchBenchmarker::applyInitialConfigAndBringUpPorts(
+void HwSwitchEnsemble::applyInitialConfigAndBringUpPorts(
     const cfg::SwitchConfig& initCfg) {
   CHECK(linkToggler_);
   linkToggler_->applyInitialConfigAndBringUpPorts(
@@ -42,13 +42,13 @@ void HwSwitchBenchmarker::applyInitialConfigAndBringUpPorts(
   initCfgState_ = getProgrammedState();
 }
 
-void HwSwitchBenchmarker::linkStateChanged(PortID port, bool up) {
+void HwSwitchEnsemble::linkStateChanged(PortID port, bool up) {
   if (linkToggler_) {
     linkToggler_->linkStateChanged(port, up);
   }
 }
 
-void HwSwitchBenchmarker::init() {
+void HwSwitchEnsemble::init() {
   platform_ = createTestPlatform();
   hwSwitch_ = createHwSwitch(platform_.get());
   linkToggler_ = createLinkToggler(getHwSwitch());
@@ -69,7 +69,7 @@ void HwSwitchBenchmarker::init() {
   hwSwitch_->switchRunStateChanged(SwitchRunState::INITIALIZED);
 }
 
-void HwSwitchBenchmarker::revertToInitCfgState() {
+void HwSwitchEnsemble::revertToInitCfgState() {
   CHECK(initCfgState_);
   applyNewState(initCfgState_);
 }

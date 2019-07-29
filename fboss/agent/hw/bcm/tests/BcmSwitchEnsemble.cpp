@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/benchmarks/BcmBenchmarker.h"
+#include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
@@ -23,14 +23,12 @@ DECLARE_string(bcm_config);
 namespace facebook {
 namespace fboss {
 
-std::unique_ptr<BcmBenchmarker> setupBenchmarker() {
+BcmSwitchEnsemble::BcmSwitchEnsemble() {
   BcmAPI::init(BcmConfig::loadFromFile(FLAGS_bcm_config));
-  auto benchmarker = std::make_unique<BcmBenchmarker>();
-  benchmarker->init();
-  return benchmarker;
 }
 
-std::unique_ptr<HwSwitch> BcmBenchmarker::createHwSwitch(Platform* platform) {
+std::unique_ptr<HwSwitch> BcmSwitchEnsemble::createHwSwitch(
+    Platform* platform) {
   return std::make_unique<BcmSwitch>(static_cast<BcmPlatform*>(platform));
 }
 

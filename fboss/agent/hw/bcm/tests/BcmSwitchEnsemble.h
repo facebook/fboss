@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "fboss/agent/hw/benchmarks/HwSwitchBenchmarker.h"
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
@@ -18,13 +18,14 @@
 namespace facebook {
 namespace fboss {
 
-class BcmBenchmarker : public HwSwitchBenchmarker {
+class BcmSwitchEnsemble : public HwSwitchEnsemble {
  public:
+  BcmSwitchEnsemble();
   BcmTestPlatform* getPlatform() override {
-    return static_cast<BcmTestPlatform*>(HwSwitchBenchmarker::getPlatform());
+    return static_cast<BcmTestPlatform*>(HwSwitchEnsemble::getPlatform());
   }
   BcmSwitch* getHwSwitch() override {
-    return static_cast<BcmSwitch*>(HwSwitchBenchmarker::getHwSwitch());
+    return static_cast<BcmSwitch*>(HwSwitchEnsemble::getHwSwitch());
   }
 
  private:
@@ -33,7 +34,7 @@ class BcmBenchmarker : public HwSwitchBenchmarker {
       HwSwitch* hwSwitch) override;
 };
 
-std::unique_ptr<BcmBenchmarker> setupBenchmarker();
+std::unique_ptr<BcmSwitchEnsemble> setupEnsemble();
 
 } // namespace fboss
 } // namespace facebook
