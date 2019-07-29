@@ -37,22 +37,24 @@ void HwSwitchEnsemble::applyNewState(std::shared_ptr<SwitchState> newState) {
 
 void HwSwitchEnsemble::applyInitialConfigAndBringUpPorts(
     const cfg::SwitchConfig& initCfg) {
-  CHECK(linkToggler_);
+  CHECK(featuresDesired_ & HwSwitch::LINKSCAN_DESIRED)
+      << "Link scan feature must be enabled for exercising "
+      << "applyInitialConfigAndBringUpPorts";
   linkToggler_->applyInitialConfigAndBringUpPorts(
       getProgrammedState(), getPlatform(), initCfg);
   initCfgState_ = getProgrammedState();
 }
 
 void HwSwitchEnsemble::linkStateChanged(PortID port, bool up) {
-  if (linkToggler_) {
-    linkToggler_->linkStateChanged(port, up);
-  }
+  linkToggler_->linkStateChanged(port, up);
 }
 
 void HwSwitchEnsemble::init() {
   platform_ = createTestPlatform();
   hwSwitch_ = createHwSwitch(platform_.get(), featuresDesired_);
-  linkToggler_ = createLinkToggler(getHwSwitch());
+  if (featuresDesired_ & HwSwitch::LINKSCAN_DESIRED) {
+    linkToggler_ = createLinkToggler(getHwSwitch());
+  }
   programmedState_ = hwSwitch_->init(this).switchState;
   // HwSwitch::init() returns an unpublished programmedState_.  SwSwitch is
   // normally responsible for publishing it.  Go ahead and call publish now.
