@@ -21,7 +21,8 @@
 namespace facebook {
 namespace fboss {
 
-HwSwitchEnsemble::HwSwitchEnsemble() {}
+HwSwitchEnsemble::HwSwitchEnsemble(uint32_t featuresDesired)
+    : featuresDesired_(featuresDesired) {}
 
 HwSwitchEnsemble::~HwSwitchEnsemble() {}
 
@@ -50,7 +51,7 @@ void HwSwitchEnsemble::linkStateChanged(PortID port, bool up) {
 
 void HwSwitchEnsemble::init() {
   platform_ = createTestPlatform();
-  hwSwitch_ = createHwSwitch(platform_.get());
+  hwSwitch_ = createHwSwitch(platform_.get(), featuresDesired_);
   linkToggler_ = createLinkToggler(getHwSwitch());
   programmedState_ = hwSwitch_->init(this).switchState;
   // HwSwitch::init() returns an unpublished programmedState_.  SwSwitch is

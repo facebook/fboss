@@ -28,8 +28,10 @@ BcmSwitchEnsemble::BcmSwitchEnsemble() {
 }
 
 std::unique_ptr<HwSwitch> BcmSwitchEnsemble::createHwSwitch(
-    Platform* platform) {
-  return std::make_unique<BcmSwitch>(static_cast<BcmPlatform*>(platform));
+    Platform* platform,
+    uint32_t featuresDesired) {
+  return std::make_unique<BcmSwitch>(
+      static_cast<BcmPlatform*>(platform), featuresDesired);
 }
 
 } // namespace fboss

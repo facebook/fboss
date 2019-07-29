@@ -29,7 +29,9 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
   }
 
  private:
-  std::unique_ptr<HwSwitch> createHwSwitch(Platform* platform) override;
+  std::unique_ptr<HwSwitch> createHwSwitch(
+      Platform* platform,
+      uint32_t featuresDesired) override;
   std::unique_ptr<HwLinkStateToggler> createLinkToggler(
       HwSwitch* hwSwitch) override;
 };

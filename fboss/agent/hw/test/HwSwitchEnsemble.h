@@ -24,7 +24,9 @@ class HwLinkStateToggler;
 
 class HwSwitchEnsemble : public HwSwitch::Callback {
  public:
-  HwSwitchEnsemble();
+  explicit HwSwitchEnsemble(
+      uint32_t featuresDesired =
+          (HwSwitch::PACKET_RX_DESIRED | HwSwitch::LINKSCAN_DESIRED));
   ~HwSwitchEnsemble() override;
   /*
    * Setup and init platform switch
@@ -55,7 +57,9 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   void exitFatal() const noexcept override {}
 
  private:
-  virtual std::unique_ptr<HwSwitch> createHwSwitch(Platform* platform) = 0;
+  virtual std::unique_ptr<HwSwitch> createHwSwitch(
+      Platform* platform,
+      uint32_t featuresDesired) = 0;
   virtual std::unique_ptr<HwLinkStateToggler> createLinkToggler(
       HwSwitch* hwSwitch) = 0;
   std::shared_ptr<SwitchState> programmedState_;
@@ -63,6 +67,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   std::unique_ptr<HwLinkStateToggler> linkToggler_;
   std::unique_ptr<Platform> platform_;
   std::unique_ptr<HwSwitch> hwSwitch_;
+  uint32_t featuresDesired_{0};
 };
 
 } // namespace fboss
