@@ -40,7 +40,8 @@ class BcmMirror {
   void applyPortMirrorAction(
       PortID port,
       MirrorAction action,
-      MirrorDirection direction);
+      MirrorDirection direction,
+      cfg::SampleDestination sampleDest);
   void applyAclMirrorAction(
       BcmAclEntryHandle aclEntryHandle,
       MirrorAction action,

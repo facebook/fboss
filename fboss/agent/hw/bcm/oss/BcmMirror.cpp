@@ -33,7 +33,8 @@ void BcmMirror::program(const std::shared_ptr<Mirror>& /*mirror*/) {}
 void BcmMirror::applyPortMirrorAction(
     PortID /*port*/,
     MirrorAction /*action*/,
-    MirrorDirection /*direction*/) {}
+    MirrorDirection /*direction*/,
+    cfg::SampleDestination /*sampleDest*/) {}
 void BcmMirror::applyAclMirrorAction(
     BcmAclEntryHandle /* aclEntryHandle*/,
     MirrorAction /*action*/,

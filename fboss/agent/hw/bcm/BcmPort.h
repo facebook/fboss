@@ -86,6 +86,9 @@ class BcmPort {
   uint8_t getPipe() const {
     return pipe_;
   }
+  cfg::SampleDestination getSampleDestination() const {
+    return sampleDest_;
+  }
   QueueConfig getCurrentQueueSettings();
 
   /*
@@ -129,6 +132,8 @@ class BcmPort {
   void setSpeed(const std::shared_ptr<Port>& swPort);
   void setSflowRates(const std::shared_ptr<Port>& swPort);
   void disableSflow();
+  int sampleDestinationToBcmDestFlag(cfg::SampleDestination dest);
+  void configureSampleDestination(cfg::SampleDestination sampleDest);
   void setPortResource(const std::shared_ptr<Port>& swPort);
 
   /*
@@ -260,6 +265,7 @@ class BcmPort {
   std::string portName_{""};
   folly::Optional<std::string> ingressMirror_;
   folly::Optional<std::string> egressMirror_;
+  cfg::SampleDestination sampleDest_;
   TransmitterTechnology transmitterTechnology_{TransmitterTechnology::UNKNOWN};
 
   // The port group this port is a part of

@@ -377,6 +377,14 @@ void BcmPort::program(const shared_ptr<Port>& port) {
     setFEC(port);
   }
 
+  // If no sample destination is provided, we configure it to be CPU, which is
+  // the switch's default sample destination configuration
+  if (port->getSampleDestination().hasValue()) {
+    configureSampleDestination(port->getSampleDestination().value());
+  } else {
+    configureSampleDestination(cfg::SampleDestination::CPU);
+  }
+
   /* update mirrors for port, mirror add/update must happen earlier than
    * updating mirrors for port */
   updateMirror(port->getIngressMirror(), MirrorDirection::INGRESS);
@@ -575,6 +583,37 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
         swPort->getID());
     getPlatformPort()->linkSpeedChanged(desiredPortSpeed);
   }
+}
+
+int BcmPort::sampleDestinationToBcmDestFlag(cfg::SampleDestination dest) {
+  switch (dest) {
+    case cfg::SampleDestination::CPU:
+      return OPENNSL_PORT_CONTROL_SAMPLE_DEST_CPU;
+    case cfg::SampleDestination::MIRROR:
+      return OPENNSL_PORT_CONTROL_SAMPLE_DEST_MIRROR;
+  }
+  throw FbossError("Invalid sample destination", dest);
+}
+
+void BcmPort::configureSampleDestination(cfg::SampleDestination sampleDest) {
+  sampleDest_ = sampleDest;
+
+  if (!getHW()->getPlatform()->sflowSamplingSupported()) {
+    return;
+  }
+
+  auto rv = opennsl_port_control_set(
+      unit_,
+      port_,
+      opennslPortControlSampleIngressDest,
+      sampleDestinationToBcmDestFlag(sampleDest_));
+  bcmCheckError(
+      rv,
+      folly::sformat(
+          "Failed to set sample destination for port {} : {}",
+          port_,
+          opennsl_errmsg(rv)));
+  return;
 }
 
 PortID BcmPort::getPortID() const {
@@ -833,7 +872,7 @@ void BcmPort::applyMirrorAction(
   }
   auto* bcmMirror = hw_->getBcmMirrorTable()->getMirrorIf(mirrorName.value());
   CHECK(bcmMirror != nullptr);
-  bcmMirror->applyPortMirrorAction(getPortID(), action, direction);
+  bcmMirror->applyPortMirrorAction(getPortID(), action, direction, sampleDest_);
 }
 
 void BcmPort::updateMirror(
