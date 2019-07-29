@@ -20,16 +20,25 @@ class MirrorTest : public ::testing::Test {
     platform_ = createMockPlatform();
     state_ = testState(config_);
   }
-  cfg::Mirror getMirrorConfigNoPort(
+  cfg::Mirror getMirrorConfigNoEgressPort(
       const std::string& name,
       folly::IPAddress ip,
-      uint8_t dscp) {
+      uint8_t dscp,
+      folly::Optional<TunnelUdpPorts> udpPorts) {
     cfg::MirrorDestination destination;
     if (!ip.empty()) {
-      cfg::GreTunnel greTunnel;
-      greTunnel.ip = ip.str();
       cfg::MirrorTunnel tunnel;
-      tunnel.greTunnel_ref() = greTunnel;
+      if (udpPorts.hasValue()) {
+        cfg::SflowTunnel sflowTunnel;
+        sflowTunnel.ip = ip.str();
+        sflowTunnel.udpSrcPort_ref() = udpPorts.value().udpSrcPort;
+        sflowTunnel.udpDstPort_ref() = udpPorts.value().udpDstPort;
+        tunnel.sflowTunnel_ref() = sflowTunnel;
+      } else {
+        cfg::GreTunnel greTunnel;
+        greTunnel.ip = ip.str();
+        tunnel.greTunnel_ref() = greTunnel;
+      }
       destination.tunnel_ref() = tunnel;
     }
     cfg::Mirror mirror;
@@ -43,8 +52,9 @@ class MirrorTest : public ::testing::Test {
       const std::string& name,
       folly::IPAddress ip,
       const PortID& portID,
-      uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_) {
-    auto mirror = getMirrorConfigNoPort(name, ip, dscp);
+      uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_,
+      folly::Optional<TunnelUdpPorts> udpPorts = folly::none) {
+    auto mirror = getMirrorConfigNoEgressPort(name, ip, dscp, udpPorts);
     mirror.destination.egressPort_ref().value_unchecked().set_logicalID(portID);
     mirror.destination.__isset.egressPort = true;
     config_.mirrors.push_back(mirror);
@@ -54,8 +64,9 @@ class MirrorTest : public ::testing::Test {
       const std::string& name,
       folly::IPAddress ip,
       const std::string& portName,
-      uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_) {
-    auto mirror = getMirrorConfigNoPort(name, ip, dscp);
+      uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_,
+      folly::Optional<TunnelUdpPorts> udpPorts = folly::none) {
+    auto mirror = getMirrorConfigNoEgressPort(name, ip, dscp, udpPorts);
     mirror.destination.egressPort_ref().value_unchecked().set_name(portName);
     mirror.destination.__isset.egressPort = true;
     config_.mirrors.push_back(mirror);
@@ -64,8 +75,9 @@ class MirrorTest : public ::testing::Test {
   void configureMirror(
       const std::string& name,
       folly::IPAddress ip,
-      const uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_) {
-    auto mirror = getMirrorConfigNoPort(name, ip, dscp);
+      const uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_,
+      folly::Optional<TunnelUdpPorts> udpPorts = folly::none) {
+    auto mirror = getMirrorConfigNoEgressPort(name, ip, dscp, udpPorts);
     config_.mirrors.push_back(mirror);
   }
 
@@ -125,6 +137,7 @@ class MirrorTest : public ::testing::Test {
   static const char* egressPortName;
   static const PortID egressPort;
   static const uint8_t dscp;
+  static const TunnelUdpPorts udpPorts;
 };
 
 const folly::IPAddress MirrorTest::tunnelDestination =
@@ -132,6 +145,7 @@ const folly::IPAddress MirrorTest::tunnelDestination =
 const char* MirrorTest::egressPortName = "port5";
 const PortID MirrorTest::egressPort = PortID(5);
 const uint8_t MirrorTest::dscp = 46;
+const TunnelUdpPorts MirrorTest::udpPorts = {6545, 5343};
 
 TEST_F(MirrorTest, MirrorWithPort) {
   configureMirror("mirror0", folly::IPAddress(), MirrorTest::egressPortName);
@@ -145,6 +159,7 @@ TEST_F(MirrorTest, MirrorWithPort) {
   EXPECT_EQ(port.value(), egressPort);
   auto dscp = mirror->getDscp();
   EXPECT_EQ(dscp, cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_);
+  EXPECT_FALSE(mirror->getTunnelUdpPorts().hasValue());
 }
 
 TEST_F(MirrorTest, MirrorWithPortId) {
@@ -174,6 +189,7 @@ TEST_F(MirrorTest, MirrorWithPortIdAndDscp) {
   EXPECT_EQ(port.value(), egressPort);
   auto dscp = mirror->getDscp();
   EXPECT_EQ(dscp, MirrorTest::dscp);
+  EXPECT_FALSE(mirror->getTunnelUdpPorts().hasValue());
 }
 
 TEST_F(MirrorTest, MirrorWithIp) {
@@ -208,6 +224,7 @@ TEST_F(MirrorTest, MirrorWithIpAndDscp) {
   EXPECT_EQ(mirror->isResolved(), false);
   auto dscp = mirror->getDscp();
   EXPECT_EQ(dscp, MirrorTest::dscp);
+  EXPECT_FALSE(mirror->getTunnelUdpPorts().hasValue());
 }
 
 TEST_F(MirrorTest, MirrorWithPortAndIp) {
@@ -227,6 +244,7 @@ TEST_F(MirrorTest, MirrorWithPortAndIp) {
   EXPECT_EQ(mirror->isResolved(), false);
   auto dscp = mirror->getDscp();
   EXPECT_EQ(dscp, cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_);
+  EXPECT_FALSE(mirror->getTunnelUdpPorts().hasValue());
 }
 
 TEST_F(MirrorTest, MirrorWithPortIdAndIp) {
@@ -268,6 +286,33 @@ TEST_F(MirrorTest, MirrorWithPortIdAndIpAndDscp) {
   EXPECT_EQ(mirror->isResolved(), false);
   auto dscp = mirror->getDscp();
   EXPECT_EQ(dscp, MirrorTest::dscp);
+  EXPECT_FALSE(mirror->getTunnelUdpPorts().hasValue());
+}
+
+TEST_F(MirrorTest, MirrorWithPortIdAndIpAndSflowTunnel) {
+  configureMirror(
+      "mirror0",
+      MirrorTest::tunnelDestination,
+      MirrorTest::egressPort,
+      MirrorTest::dscp,
+      folly::Optional<TunnelUdpPorts>(MirrorTest::udpPorts));
+  publishWithStateUpdate();
+
+  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  EXPECT_NE(mirror, nullptr);
+  EXPECT_EQ(mirror->getID(), "mirror0");
+  EXPECT_EQ(mirror->configHasEgressPort(), true);
+  auto port = mirror->getEgressPort();
+  EXPECT_EQ(port.hasValue(), true);
+  EXPECT_EQ(port.value(), egressPort);
+  auto ip = mirror->getDestinationIp();
+  EXPECT_EQ(ip.hasValue(), true);
+  EXPECT_EQ(ip.value(), MirrorTest::tunnelDestination);
+  EXPECT_EQ(mirror->isResolved(), false);
+  auto udpPorts = mirror->getTunnelUdpPorts();
+  EXPECT_TRUE(udpPorts.hasValue());
+  EXPECT_EQ(udpPorts.value().udpSrcPort, MirrorTest::udpPorts.udpSrcPort);
+  EXPECT_EQ(udpPorts.value().udpDstPort, MirrorTest::udpPorts.udpDstPort);
 }
 
 TEST_F(MirrorTest, MirrorWithNameNoPortNoIp) {
@@ -282,6 +327,16 @@ TEST_F(MirrorTest, MirrorWithNameAndDscpNoPortNoIp) {
   publishWithFbossError();
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
   EXPECT_EQ(mirror, nullptr);
+}
+
+TEST_F(MirrorTest, MirrorWithTunnelNoPortNoIp) {
+  configureMirror(
+      "mirror0",
+      folly::IPAddress(),
+      MirrorTest::dscp,
+      folly::Optional<TunnelUdpPorts>(MirrorTest::udpPorts));
+  publishWithFbossError();
+  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
 }
 
 TEST_F(MirrorTest, AclMirror) {
@@ -505,6 +560,11 @@ TEST_F(MirrorTest, ToAndFromDynamic) {
   configureMirror("unresolved", MirrorTest::tunnelDestination);
   configureMirror("resolved", MirrorTest::tunnelDestination);
   configureMirror("with_dscp", MirrorTest::tunnelDestination, 3);
+  configureMirror(
+      "with_tunnel_type",
+      MirrorTest::tunnelDestination,
+      MirrorTest::dscp,
+      folly::Optional<TunnelUdpPorts>(MirrorTest::udpPorts));
   publishWithStateUpdate();
   auto span = state_->getMirrors()->getMirrorIf("span");
   auto unresolved = state_->getMirrors()->getMirrorIf("unresolved");
@@ -516,7 +576,7 @@ TEST_F(MirrorTest, ToAndFromDynamic) {
       folly::IPAddress("2.2.2.2"),
       folly::MacAddress("1:1:1:1:1:1"),
       folly::MacAddress("2:2:2:2:2:2")));
-
+  auto withTunnelType = state_->getMirrors()->getMirrorIf("with_tunnel_type");
   auto reconstructedState =
       SwitchState::fromFollyDynamic(state_->toFollyDynamic());
   EXPECT_EQ(
@@ -531,6 +591,9 @@ TEST_F(MirrorTest, ToAndFromDynamic) {
   EXPECT_EQ(
       *(reconstructedState->getMirrors()->getMirrorIf("with_dscp")),
       *(state_->getMirrors()->getMirrorIf("with_dscp")));
+  EXPECT_EQ(
+      *(reconstructedState->getMirrors()->getMirrorIf("with_tunnel_type")),
+      *(state_->getMirrors()->getMirrorIf("with_tunnel_type")));
 }
 
 } // namespace fboss
