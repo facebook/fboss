@@ -42,17 +42,7 @@ NeighborEntryFields<IPADDR> NeighborEntryFields<IPADDR>::fromFollyDynamic(
   folly::MacAddress mac(entryJson[kMac].stringPiece());
   auto port = PortDescriptor::fromFollyDynamic(entryJson[kPort]);
   InterfaceID intf(entryJson[kInterface].asInt());
-
-  // TODO: deprecate this, after next agent push - when neighbor entry
-  // state serialization makes it everywhere. Before that start resolved
-  // entries as UNVERIFIFED and unreolved ones as PENDING
-  bool isResolved =
-      port.isPhysicalPort() && port.getPhysicalPortOrThrow() != PortID(0);
-  NeighborState state =
-      isResolved ? NeighborState::UNVERIFIED : NeighborState::PENDING;
-  if (entryJson.find(kNeighborEntryState) != entryJson.items().end()) {
-    state = NeighborState(entryJson[kNeighborEntryState].asInt());
-  }
+  auto state = NeighborState(entryJson[kNeighborEntryState].asInt());
   return NeighborEntryFields(ip, mac, port, intf, state);
 }
 
