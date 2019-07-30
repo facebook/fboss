@@ -268,15 +268,19 @@ add_executable(qsfp_service
 )
 
 add_executable(bcm_test
+    fboss/agent/hw/test/HwSwitchEnsemble.cpp
+    fboss/agent/hw/test/HwLinkStateToggler.cpp
     fboss/agent/hw/test/HwTest.cpp
     fboss/agent/hw/test/HwTestStatUtils.cpp
     fboss/agent/hw/test/ConfigFactory.cpp
+    fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.cpp
     fboss/agent/hw/bcm/tests/BcmTest.cpp
     fboss/agent/hw/bcm/tests/BcmPortUtils.cpp
     fboss/agent/hw/bcm/tests/BcmVlanTests.cpp
     fboss/agent/hw/bcm/tests/BcmColdBootStateTests.cpp
     fboss/agent/hw/bcm/tests/BcmQueueStatCollectionTests.cpp
     fboss/agent/hw/bcm/tests/Main.cpp
+    fboss/agent/hw/bcm/tests/oss/BcmSwitchEnsemble.cpp
     fboss/agent/hw/bcm/tests/oss/BcmTest.cpp
     fboss/agent/hw/bcm/tests/oss/BcmPortUtils.cpp
     fboss/agent/platforms/test_platforms/BcmTestPort.cpp

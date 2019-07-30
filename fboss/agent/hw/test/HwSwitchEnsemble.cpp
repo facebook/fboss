@@ -26,13 +26,16 @@ HwSwitchEnsemble::HwSwitchEnsemble(uint32_t featuresDesired)
 
 HwSwitchEnsemble::~HwSwitchEnsemble() {}
 
-void HwSwitchEnsemble::applyNewState(std::shared_ptr<SwitchState> newState) {
+std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewState(
+    std::shared_ptr<SwitchState> newState) {
   if (!newState) {
-    return;
+    return programmedState_;
   }
+  newState->publish();
   StateDelta delta(programmedState_, newState);
   programmedState_ = hwSwitch_->stateChanged(delta);
   programmedState_->publish();
+  return programmedState_;
 }
 
 void HwSwitchEnsemble::applyInitialConfigAndBringUpPorts(
@@ -42,6 +45,7 @@ void HwSwitchEnsemble::applyInitialConfigAndBringUpPorts(
       << "applyInitialConfigAndBringUpPorts";
   linkToggler_->applyInitialConfigAndBringUpPorts(
       getProgrammedState(), getPlatform(), initCfg);
+  hwSwitch_->initialConfigApplied();
   initCfgState_ = getProgrammedState();
 }
 

@@ -35,11 +35,12 @@ namespace fboss {
 class BcmSwitch;
 class BcmTestPlatform;
 class SwitchState;
+class HwSwitchEnsemble;
 
 class BcmTest : public HwTest {
  public:
   BcmTest();
-  ~BcmTest() override = default;
+  ~BcmTest() override;
 
   using HwTest::getLatestPortStats;
 
@@ -66,8 +67,7 @@ class BcmTest : public HwTest {
   }
 
  private:
-  std::pair<std::unique_ptr<Platform>, std::unique_ptr<HwSwitch>> createHw()
-      const override;
+  std::unique_ptr<HwSwitchEnsemble> createHw() const override;
   virtual std::unique_ptr<std::thread> createThriftThread() const override;
   bool warmBootSupported() const override {
     return true;

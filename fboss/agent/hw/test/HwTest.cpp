@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/hw/test/HwTest.h"
 
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
 
@@ -42,13 +44,25 @@ DEFINE_int32(
 namespace facebook {
 namespace fboss {
 
+HwSwitch* HwTest::getHwSwitch() const {
+  return hwSwitchEnsemble_->getHwSwitch();
+}
+
+Platform* HwTest::getPlatform() const {
+  return hwSwitchEnsemble_->getPlatform();
+}
+
+std::shared_ptr<SwitchState> HwTest::getProgrammedState() const {
+  return hwSwitchEnsemble_->getProgrammedState();
+}
+
 void HwTest::SetUp() {
   // Reset any global state being tracked in singletons
   // Each test then sets up its own state as needed.
   folly::SingletonVault::singleton()->destroyInstances();
   folly::SingletonVault::singleton()->reenableInstances();
-  std::tie(platform_, hwSwitch_) = createHw();
-  initHwSwitch();
+  hwSwitchEnsemble_ = createHw();
+  hwSwitchEnsemble_->init();
   if (FLAGS_setup_thrift) {
     thriftThread_ = createThriftThread();
   }
@@ -59,48 +73,26 @@ void HwTest::TearDown() {
     thriftThread_->join();
   }
   if (FLAGS_setup_for_warmboot) {
-    // Leak platform, unit, HwSwitch for warmboot, so that
+    // Leak HwSwitchEnsemble for warmboot, so that
     // we don't run destructors and unprogram h/w. We are
     // going to exit the process anyways.
     // TODO - use SdkBlackholer once we have these
     // SDK exit calls covered.
-    __attribute__((unused)) auto leakedHw = hwSwitch_.release();
-    __attribute__((unused)) auto leakedPlatform = platform_.release();
+    __attribute__((unused)) auto leakedHwEnsemble = hwSwitchEnsemble_.release();
   }
-  if (hwSwitch_ != nullptr) {
+  if (getHwSwitchEnsemble() != nullptr) {
     // ALPM requires that the default routes (always required to be
     // present for ALPM) be deleted last. When we destroy the HwSwitch
     // and the contained routeTable, there is no notion of a *order* of
     // destruction. So blow away all routes except the min required for ALPM
     // We are going to reset HwSwith anyways, so deleting routes does not
     // matter here.
-    auto rmRoutesState{programmedState_->clone()};
+    auto rmRoutesState{getProgrammedState()->clone()};
     auto routeTables = rmRoutesState->getRouteTables()->modify(&rmRoutesState);
     routeTables->removeRouteTable(routeTables->getRouteTable(RouterID(0)));
     applyNewState(setupAlpmState(rmRoutesState));
-    hwSwitch_.reset();
-    platform_.reset();
+    hwSwitchEnsemble_.reset();
   }
-}
-
-std::shared_ptr<SwitchState> HwTest::initHwSwitch() {
-  programmedState_ = hwSwitch_->init(this).switchState;
-  // HwSwitch::init() returns an unpublished programmedState_.  SwSwitch is
-  // normally responsible for publishing it.  Go ahead and call publish now.
-  // This will catch errors if test cases accidentally try to modify this
-  // programmedState_ without first cloning it.
-  programmedState_->publish();
-  // Handle ALPM state. ALPM requires that default routes be programmed
-  // before any other routes. We handle that setup here. Similarly ALPM
-  // requires that default routes be deleted last. That aspect is handled
-  // in TearDown
-  auto alpmState = setupAlpmState(programmedState_);
-  if (alpmState) {
-    applyNewState(alpmState);
-  }
-  hwSwitch_->switchRunStateChanged(SwitchRunState::INITIALIZED);
-  hwSwitch_->initialConfigApplied();
-  return programmedState_;
 }
 
 void HwTest::packetReceived(std::unique_ptr<RxPacket> /*pkt*/) noexcept {
@@ -117,17 +109,14 @@ void HwTest::exitFatal() const noexcept {
 
 std::shared_ptr<SwitchState> HwTest::applyNewConfig(
     const cfg::SwitchConfig& config) {
-  auto newState = applyThriftConfig(programmedState_, &config, getPlatform());
+  auto newState =
+      applyThriftConfig(getProgrammedState(), &config, getPlatform());
   return newState ? applyNewState(newState) : getProgrammedState();
 }
 
 std::shared_ptr<SwitchState> HwTest::applyNewState(
     std::shared_ptr<SwitchState> newState) {
-  // Call stateChanged()
-  newState->publish();
-  StateDelta delta(programmedState_, newState);
-  programmedState_ = getHwSwitch()->stateChanged(delta);
-  return programmedState_;
+  return hwSwitchEnsemble_->applyNewState(newState);
 }
 
 HwPortStats HwTest::getLatestPortStats(PortID port) {

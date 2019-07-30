@@ -35,7 +35,8 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
    * benchmark iteration to start with a clean slate.
    */
   void revertToInitCfgState();
-  void applyNewState(std::shared_ptr<SwitchState> newState);
+  std::shared_ptr<SwitchState> applyNewState(
+      std::shared_ptr<SwitchState> newState);
   void applyInitialConfigAndBringUpPorts(const cfg::SwitchConfig& cfg);
 
   std::shared_ptr<SwitchState> getProgrammedState() const {

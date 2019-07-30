@@ -23,7 +23,7 @@ namespace fboss {
 
 class BcmSwitchEnsemble : public HwSwitchEnsemble {
  public:
-  BcmSwitchEnsemble(
+  explicit BcmSwitchEnsemble(
       uint32_t featuresDesired =
           (HwSwitch::PACKET_RX_DESIRED | HwSwitch::LINKSCAN_DESIRED));
   BcmTestPlatform* getPlatform() override {

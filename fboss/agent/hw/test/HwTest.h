@@ -29,8 +29,9 @@ namespace facebook {
 namespace fboss {
 
 class HwSwitch;
-class Platform;
+class HwSwitchEnsemble;
 class SwitchState;
+class Platform;
 
 class HwTest : public ::testing::Test, public HwSwitch::Callback {
  public:
@@ -40,16 +41,16 @@ class HwTest : public ::testing::Test, public HwSwitch::Callback {
   void SetUp() override;
   void TearDown() override;
 
-  virtual HwSwitch* getHwSwitch() const {
-    return hwSwitch_.get();
-  }
-  virtual Platform* getPlatform() const {
-    return platform_.get();
-  }
+  virtual HwSwitch* getHwSwitch() const;
+  virtual Platform* getPlatform() const;
 
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
   void linkStateChanged(PortID port, bool up) noexcept override;
   void exitFatal() const noexcept override;
+
+  HwSwitchEnsemble* getHwSwitchEnsemble() const {
+    return hwSwitchEnsemble_.get();
+  }
 
   /*
    * Sync and get current stats for port(s)
@@ -60,12 +61,11 @@ class HwTest : public ::testing::Test, public HwSwitch::Callback {
 
  private:
   /*
-   * setupHw is a hook for each of the specific HW implementations to do the
-   * necessary platform/switch creation. Since this is likely to vary across
+   * createHw is a hook for each of the specific HW implementations to do the
+   * necessary hw creation. Since this is likely to vary across
    * different chips, provide a hook for derived test class to hook in.
    */
-  virtual std::pair<std::unique_ptr<Platform>, std::unique_ptr<HwSwitch>>
-  createHw() const = 0;
+  virtual std::unique_ptr<HwSwitchEnsemble> createHw() const = 0;
   /*
    * Create thrift server to handle thrift based interaction with the test
    */
@@ -87,22 +87,22 @@ class HwTest : public ::testing::Test, public HwSwitch::Callback {
       VERIFY_FN verify,
       SETUP_POSTWB_FN setupPostWarmboot,
       VERIFY_POSTWB_FN verifyPostWarmboot) {
-    if (hwSwitch_->getBootType() != BootType::WARM_BOOT) {
-      programmedState_ = setup();
+    if (getHwSwitch()->getBootType() != BootType::WARM_BOOT) {
+      setup();
     }
     verify();
-    if (hwSwitch_->getBootType() == BootType::WARM_BOOT) {
+    if (getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
       // If we did a warm boot, do post warmboot actions now
       setupPostWarmboot();
       verifyPostWarmboot();
     }
     if (FLAGS_setup_for_warmboot) {
       folly::dynamic switchState = folly::dynamic::object;
-      hwSwitch_->unregisterCallbacks();
-      switchState[kSwSwitch] = programmedState_->toFollyDynamic();
-      hwSwitch_->gracefulExit(switchState);
+      getHwSwitch()->unregisterCallbacks();
+      switchState[kSwSwitch] = getProgrammedState()->toFollyDynamic();
+      getHwSwitch()->gracefulExit(switchState);
     } else {
-      if (hwSwitch_->getBootType() != BootType::WARM_BOOT) {
+      if (getHwSwitch()->getBootType() != BootType::WARM_BOOT) {
         // Now do a Hw switch layer only warm boot and verify. This is
         // useful to verify integrity of reconstructing BCM layer data
         // structures using warm boot cache and pre warmboot switch state.
@@ -124,9 +124,7 @@ class HwTest : public ::testing::Test, public HwSwitch::Callback {
   std::shared_ptr<SwitchState> applyNewState(
       std::shared_ptr<SwitchState> newState);
 
-  std::shared_ptr<SwitchState> getProgrammedState() const {
-    return programmedState_;
-  }
+  std::shared_ptr<SwitchState> getProgrammedState() const;
 
  private:
   std::shared_ptr<SwitchState> initHwSwitch();
@@ -150,10 +148,8 @@ class HwTest : public ::testing::Test, public HwSwitch::Callback {
   HwTest& operator=(HwTest const&) = delete;
 
  private:
-  std::unique_ptr<HwSwitch> hwSwitch_;
-  std::unique_ptr<Platform> platform_;
+  std::unique_ptr<HwSwitchEnsemble> hwSwitchEnsemble_;
   std::unique_ptr<std::thread> thriftThread_;
-  std::shared_ptr<SwitchState> programmedState_{nullptr};
 };
 
 } // namespace fboss
