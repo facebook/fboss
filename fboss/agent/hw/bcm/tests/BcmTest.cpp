@@ -74,10 +74,8 @@ std::vector<PortID> BcmTest::getAllPortsinGroup(PortID portID) {
 
 std::map<PortID, HwPortStats> BcmTest::getLatestPortStats(
     const std::vector<PortID>& ports) {
-  auto err = opennsl_stat_sync(getHwSwitch()->getUnit());
-  if (OPENNSL_FAILURE(err)) {
-    XLOG(ERR) << "Unable to sync stats: " << opennsl_errmsg(err) << ", " << err;
-  }
+  auto rv = opennsl_stat_sync(getHwSwitch()->getUnit());
+  bcmCheckError(rv, "Unable to sync stats ");
   updateHwSwitchStats(getHwSwitch());
   std::map<PortID, HwPortStats> mapPortStats;
   for (const auto& port : ports) {
