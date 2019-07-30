@@ -29,10 +29,5 @@ int main(int argc, char* argv[]) {
 
   // Run the tests
   auto ret = RUN_ALL_TESTS();
-  if (FLAGS_setup_for_warmboot) {
-    // For warmboot we don't want destructors of static/global
-    // vars to run so exit early.
-    _exit(ret);
-  }
   return ret;
 }
