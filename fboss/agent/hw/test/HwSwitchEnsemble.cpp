@@ -26,6 +26,11 @@ HwSwitchEnsemble::HwSwitchEnsemble(uint32_t featuresDesired)
 
 HwSwitchEnsemble::~HwSwitchEnsemble() {}
 
+std::shared_ptr<SwitchState> HwSwitchEnsemble::getProgrammedState() const {
+  CHECK(programmedState_->isPublished());
+  return programmedState_;
+}
+
 std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewState(
     std::shared_ptr<SwitchState> newState) {
   if (!newState) {

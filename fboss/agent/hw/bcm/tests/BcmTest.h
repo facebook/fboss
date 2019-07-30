@@ -46,11 +46,17 @@ class BcmTest : public HwTest {
 
   std::list<FlexPortMode> getSupportedFlexPortModes();
 
-  BcmSwitch* getHwSwitch() const override {
+  BcmSwitch* getHwSwitch() override {
     return static_cast<BcmSwitch*>(HwTest::getHwSwitch());
   }
-  BcmTestPlatform* getPlatform() const override {
+  BcmTestPlatform* getPlatform() override {
     return static_cast<BcmTestPlatform*>(HwTest::getPlatform());
+  }
+  const BcmSwitch* getHwSwitch() const override {
+    return static_cast<const BcmSwitch*>(HwTest::getHwSwitch());
+  }
+  const BcmTestPlatform* getPlatform() const override {
+    return static_cast<const BcmTestPlatform*>(HwTest::getPlatform());
   }
 
   const std::vector<PortID>& logicalPortIds() const;

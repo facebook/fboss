@@ -49,7 +49,7 @@ namespace fboss {
 namespace utility {
 
 std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
-    HwSwitch* hw,
+    const HwSwitch* hw,
     VlanID vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
@@ -79,7 +79,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
 
 template <typename IPHDR>
 std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
-    HwSwitch* hw,
+    const HwSwitch* hw,
     const EthHdr& ethHdr,
     const IPHDR& ipHdr,
     const UDPHeader& udpHdr,
@@ -111,7 +111,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
 }
 
 std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
-    HwSwitch* hw,
+    const HwSwitch* hw,
     VlanID vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
@@ -143,7 +143,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
 }
 
 std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
-    HwSwitch* hw,
+    const HwSwitch* hw,
     VlanID vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
@@ -178,7 +178,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
 }
 
 std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
-    HwSwitch* hw,
+    const HwSwitch* hw,
     VlanID vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,

@@ -44,11 +44,11 @@ DEFINE_int32(
 namespace facebook {
 namespace fboss {
 
-HwSwitch* HwTest::getHwSwitch() const {
+HwSwitch* HwTest::getHwSwitch() {
   return hwSwitchEnsemble_->getHwSwitch();
 }
 
-Platform* HwTest::getPlatform() const {
+Platform* HwTest::getPlatform() {
   return hwSwitchEnsemble_->getPlatform();
 }
 

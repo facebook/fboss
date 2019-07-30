@@ -41,14 +41,20 @@ class HwTest : public ::testing::Test, public HwSwitch::Callback {
   void SetUp() override;
   void TearDown() override;
 
-  virtual HwSwitch* getHwSwitch() const;
-  virtual Platform* getPlatform() const;
+  virtual HwSwitch* getHwSwitch();
+  virtual Platform* getPlatform();
+  virtual const HwSwitch* getHwSwitch() const {
+    return const_cast<HwTest*>(this)->getHwSwitch();
+  }
+  virtual const Platform* getPlatform() const {
+    return const_cast<HwTest*>(this)->getPlatform();
+  }
 
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
   void linkStateChanged(PortID port, bool up) noexcept override;
   void exitFatal() const noexcept override;
 
-  HwSwitchEnsemble* getHwSwitchEnsemble() const {
+  HwSwitchEnsemble* getHwSwitchEnsemble() {
     return hwSwitchEnsemble_.get();
   }
 
