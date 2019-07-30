@@ -24,9 +24,7 @@ class HwLinkStateToggler;
 
 class HwSwitchEnsemble : public HwSwitch::Callback {
  public:
-  explicit HwSwitchEnsemble(
-      uint32_t featuresDesired =
-          (HwSwitch::PACKET_RX_DESIRED | HwSwitch::LINKSCAN_DESIRED));
+  explicit HwSwitchEnsemble(uint32_t featuresDesired);
   ~HwSwitchEnsemble() override;
   /*
    * Setup and init platform switch

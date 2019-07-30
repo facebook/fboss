@@ -15,12 +15,17 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
 
+DECLARE_bool(flexports);
+DECLARE_string(bcm_config);
+
 namespace facebook {
 namespace fboss {
 
 class BcmSwitchEnsemble : public HwSwitchEnsemble {
  public:
-  BcmSwitchEnsemble();
+  BcmSwitchEnsemble(
+      uint32_t featuresDesired =
+          (HwSwitch::PACKET_RX_DESIRED | HwSwitch::LINKSCAN_DESIRED));
   BcmTestPlatform* getPlatform() override {
     return static_cast<BcmTestPlatform*>(HwSwitchEnsemble::getPlatform());
   }

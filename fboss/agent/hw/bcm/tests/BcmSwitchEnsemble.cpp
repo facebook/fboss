@@ -9,22 +9,53 @@
  */
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 
-#include "fboss/agent/AlpmUtils.h"
+#include <memory>
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmConfig.h"
-#include "fboss/agent/hw/bcm/BcmPlatform.h"
-#include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/platforms/test_platforms/CreateTestPlatform.h"
 
-#include <memory>
+namespace {
+void addPort(
+    facebook::fboss::BcmConfig::ConfigMap& cfg,
+    int port,
+    int speed,
+    bool enabled = true) {
+  auto key = folly::to<std::string>("portmap_", port);
+  auto value = folly::to<std::string>(port, ":", speed);
+  if (!enabled) {
+    value = folly::to<std::string>(value, ":i");
+  }
+  cfg[key] = value;
+}
 
-DECLARE_string(bcm_config);
+void addFlexPort(
+    facebook::fboss::BcmConfig::ConfigMap& cfg,
+    int start,
+    int speed) {
+  addPort(cfg, start, speed);
+  addPort(cfg, start + 1, speed / 4, false);
+  addPort(cfg, start + 2, speed / 2, false);
+  addPort(cfg, start + 3, speed / 4, false);
+}
+} // namespace
 
 namespace facebook {
 namespace fboss {
 
-BcmSwitchEnsemble::BcmSwitchEnsemble() {
-  BcmAPI::init(BcmConfig::loadFromFile(FLAGS_bcm_config));
+BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
+    : HwSwitchEnsemble(featuresDesired) {
+  BcmConfig::ConfigMap cfg;
+  if (getPlatformMode() == PlatformMode::FAKE_WEDGE) {
+    FLAGS_flexports = true;
+    for (int n = 1; n <= 125; n += 4) {
+      addFlexPort(cfg, n, 40);
+    }
+    cfg["pbmp_xport_xe"] = "0x1fffffffffffffffffffffffe";
+  } else {
+    // Load from a local file
+    cfg = BcmConfig::loadFromFile(FLAGS_bcm_config);
+  }
+  BcmAPI::init(cfg);
 }
 
 std::unique_ptr<HwSwitch> BcmSwitchEnsemble::createHwSwitch(
