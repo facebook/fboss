@@ -81,19 +81,7 @@ void HwTest::TearDown() {
     // SDK exit calls covered.
     __attribute__((unused)) auto leakedHwEnsemble = hwSwitchEnsemble_.release();
   }
-  if (getHwSwitchEnsemble() != nullptr) {
-    // ALPM requires that the default routes (always required to be
-    // present for ALPM) be deleted last. When we destroy the HwSwitch
-    // and the contained routeTable, there is no notion of a *order* of
-    // destruction. So blow away all routes except the min required for ALPM
-    // We are going to reset HwSwith anyways, so deleting routes does not
-    // matter here.
-    auto rmRoutesState{getProgrammedState()->clone()};
-    auto routeTables = rmRoutesState->getRouteTables()->modify(&rmRoutesState);
-    routeTables->removeRouteTable(routeTables->getRouteTable(RouterID(0)));
-    applyNewState(setupAlpmState(rmRoutesState));
-    hwSwitchEnsemble_.reset();
-  }
+  hwSwitchEnsemble_.reset();
 }
 
 std::shared_ptr<SwitchState> HwTest::applyNewConfig(
