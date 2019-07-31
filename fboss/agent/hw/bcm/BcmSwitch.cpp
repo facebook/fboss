@@ -1720,11 +1720,11 @@ void BcmSwitch::linkscanCallback(
     opennsl_port_info_t* info) {
   try {
     BcmUnit* unitObj = BcmAPI::getUnit(unit);
-    BcmSwitch* sw = static_cast<BcmSwitch*>(unitObj->getCookie());
+    BcmSwitch* hw = static_cast<BcmSwitch*>(unitObj->getCookie());
     bool up = info->linkstatus == OPENNSL_PORT_LINK_STATUS_UP;
 
-    sw->linkScanBottomHalfEventBase_.runInEventBaseThread(
-        [sw, bcmPort, up]() { sw->linkStateChangedHwNotLocked(bcmPort, up); });
+    hw->linkScanBottomHalfEventBase_.runInEventBaseThread(
+        [hw, bcmPort, up]() { hw->linkStateChangedHwNotLocked(bcmPort, up); });
   } catch (const std::exception& ex) {
     XLOG(ERR) << "unhandled exception while processing linkscan callback "
               << "for unit " << unit << " port " << bcmPort << ": "
