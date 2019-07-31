@@ -453,6 +453,13 @@ BcmRtag7Module::ModuleState BcmRtag7Module::retrieveRtag7ModuleState(
   state[control.ipv6TcpUdpPortsEqualFieldSelection] =
       BcmRtag7Module::getUnitControl(
           unit, control.ipv6TcpUdpPortsEqualFieldSelection);
+  state[control.terminatedMPLSFieldSelectionControl] =
+      BcmRtag7Module::getUnitControl(
+          unit, control.terminatedMPLSFieldSelectionControl);
+  state[control.nonTerminatedMPLSFieldSelectionControl] =
+      BcmRtag7Module::getUnitControl(
+          unit, control.nonTerminatedMPLSFieldSelectionControl);
+
   state[control.hashFunction1] =
       BcmRtag7Module::getUnitControl(unit, control.hashFunction1);
   state[control.hashFunction2] =
