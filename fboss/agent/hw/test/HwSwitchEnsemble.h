@@ -33,10 +33,6 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   explicit HwSwitchEnsemble(uint32_t featuresDesired);
   ~HwSwitchEnsemble() override;
   /*
-   * Setup and init platform switch
-   */
-  void init();
-  /*
    * Revert back to post init state. Can be used by each
    * benchmark iteration to start with a clean slate.
    */
@@ -61,12 +57,16 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   void addHwEventObserver(HwSwitchEventObserverIf* observer);
   void removeHwEventObserver(HwSwitchEventObserverIf* observer);
 
+ protected:
+  /*
+   * Setup ensemble
+   */
+  void setupEnsemble(
+      std::unique_ptr<Platform> platform,
+      std::unique_ptr<HwSwitch> hwSwitch,
+      std::unique_ptr<HwLinkStateToggler> linkToggler);
+
  private:
-  virtual std::unique_ptr<HwSwitch> createHwSwitch(
-      Platform* platform,
-      uint32_t featuresDesired) = 0;
-  virtual std::unique_ptr<HwLinkStateToggler> createLinkToggler(
-      HwSwitch* hwSwitch) = 0;
   std::shared_ptr<SwitchState> programmedState_;
   std::shared_ptr<SwitchState> initCfgState_;
   std::unique_ptr<HwLinkStateToggler> linkToggler_;

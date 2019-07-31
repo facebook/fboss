@@ -34,14 +34,8 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
   }
 
  private:
-  std::unique_ptr<HwSwitch> createHwSwitch(
-      Platform* platform,
-      uint32_t featuresDesired) override;
-  std::unique_ptr<HwLinkStateToggler> createLinkToggler(
-      HwSwitch* hwSwitch) override;
+  std::unique_ptr<HwLinkStateToggler> createLinkToggler(HwSwitch* hwSwitch);
 };
-
-std::unique_ptr<BcmSwitchEnsemble> setupEnsemble();
 
 } // namespace fboss
 } // namespace facebook

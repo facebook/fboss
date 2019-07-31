@@ -63,7 +63,6 @@ void HwTest::SetUp() {
   folly::SingletonVault::singleton()->reenableInstances();
   hwSwitchEnsemble_ = createHw();
   hwSwitchEnsemble_->addHwEventObserver(this);
-  hwSwitchEnsemble_->init();
   if (FLAGS_setup_thrift) {
     thriftThread_ = createThriftThread();
   }

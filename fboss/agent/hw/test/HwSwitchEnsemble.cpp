@@ -82,12 +82,13 @@ void HwSwitchEnsemble::removeHwEventObserver(
   }
 }
 
-void HwSwitchEnsemble::init() {
-  platform_ = createTestPlatform();
-  hwSwitch_ = createHwSwitch(platform_.get(), featuresDesired_);
-  if (featuresDesired_ & HwSwitch::LINKSCAN_DESIRED) {
-    linkToggler_ = createLinkToggler(getHwSwitch());
-  }
+void HwSwitchEnsemble::setupEnsemble(
+    std::unique_ptr<Platform> platform,
+    std::unique_ptr<HwSwitch> hwSwitch,
+    std::unique_ptr<HwLinkStateToggler> linkToggler) {
+  platform_ = std::move(platform);
+  hwSwitch_ = std::move(hwSwitch);
+  linkToggler_ = std::move(linkToggler);
   programmedState_ = hwSwitch_->init(this).switchState;
   // HwSwitch::init() returns an unpublished programmedState_.  SwSwitch is
   // normally responsible for publishing it.  Go ahead and call publish now.

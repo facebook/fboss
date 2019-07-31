@@ -12,6 +12,7 @@
 #include <memory>
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmConfig.h"
+#include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/platforms/test_platforms/CreateTestPlatform.h"
 
 namespace {
@@ -56,13 +57,16 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
     cfg = BcmConfig::loadFromFile(FLAGS_bcm_config);
   }
   BcmAPI::init(cfg);
-}
+  auto platform = createTestPlatform();
+  auto hwSwitch = std::make_unique<BcmSwitch>(
+      static_cast<BcmPlatform*>(platform.get()), featuresDesired);
 
-std::unique_ptr<HwSwitch> BcmSwitchEnsemble::createHwSwitch(
-    Platform* platform,
-    uint32_t featuresDesired) {
-  return std::make_unique<BcmSwitch>(
-      static_cast<BcmPlatform*>(platform), featuresDesired);
+  std::unique_ptr<HwLinkStateToggler> linkToggler;
+  if (featuresDesired & HwSwitch::LINKSCAN_DESIRED) {
+    linkToggler = createLinkToggler(hwSwitch.get());
+  }
+  setupEnsemble(
+      std::move(platform), std::move(hwSwitch), std::move(linkToggler));
 }
 
 } // namespace fboss
