@@ -24,6 +24,12 @@ class HwLinkStateToggler;
 
 class HwSwitchEnsemble : public HwSwitch::Callback {
  public:
+  class HwSwitchEventObserverIf {
+   public:
+    virtual ~HwSwitchEventObserverIf() = default;
+    virtual void packetReceived(RxPacket* pkt) noexcept = 0;
+    virtual void linkStateChanged(PortID port, bool up) = 0;
+  };
   explicit HwSwitchEnsemble(uint32_t featuresDesired);
   ~HwSwitchEnsemble() override;
   /*
@@ -49,9 +55,11 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   virtual HwSwitch* getHwSwitch() {
     return hwSwitch_.get();
   }
-  void packetReceived(std::unique_ptr<RxPacket> /*pkt*/) noexcept override {}
+  void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
   void linkStateChanged(PortID port, bool up) override;
   void exitFatal() const noexcept override {}
+  void addHwEventObserver(HwSwitchEventObserverIf* observer);
+  void removeHwEventObserver(HwSwitchEventObserverIf* observer);
 
  private:
   virtual std::unique_ptr<HwSwitch> createHwSwitch(
@@ -65,6 +73,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   std::unique_ptr<Platform> platform_;
   std::unique_ptr<HwSwitch> hwSwitch_;
   uint32_t featuresDesired_{0};
+  std::set<HwSwitchEventObserverIf*> hwEventObservers_;
 };
 
 } // namespace fboss

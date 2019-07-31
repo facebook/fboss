@@ -62,6 +62,7 @@ void HwTest::SetUp() {
   folly::SingletonVault::singleton()->destroyInstances();
   folly::SingletonVault::singleton()->reenableInstances();
   hwSwitchEnsemble_ = createHw();
+  hwSwitchEnsemble_->addHwEventObserver(this);
   hwSwitchEnsemble_->init();
   if (FLAGS_setup_thrift) {
     thriftThread_ = createThriftThread();
@@ -72,6 +73,7 @@ void HwTest::TearDown() {
   if (thriftThread_) {
     thriftThread_->join();
   }
+  hwSwitchEnsemble_->removeHwEventObserver(this);
   if (FLAGS_setup_for_warmboot) {
     // Leak HwSwitchEnsemble for warmboot, so that
     // we don't run destructors and unprogram h/w. We are
@@ -93,18 +95,6 @@ void HwTest::TearDown() {
     applyNewState(setupAlpmState(rmRoutesState));
     hwSwitchEnsemble_.reset();
   }
-}
-
-void HwTest::packetReceived(std::unique_ptr<RxPacket> /*pkt*/) noexcept {
-  // We simply ignore trapped packets for now
-}
-
-void HwTest::linkStateChanged(PortID /*port*/, bool /*up*/) noexcept {
-  // We ignore link state changes for now
-}
-
-void HwTest::exitFatal() const noexcept {
-  // No special behavior on a fatal from HwTest
 }
 
 std::shared_ptr<SwitchState> HwTest::applyNewConfig(

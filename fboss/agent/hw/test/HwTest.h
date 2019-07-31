@@ -18,6 +18,7 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -33,7 +34,8 @@ class HwSwitchEnsemble;
 class SwitchState;
 class Platform;
 
-class HwTest : public ::testing::Test, public HwSwitch::Callback {
+class HwTest : public ::testing::Test,
+               public HwSwitchEnsemble::HwSwitchEventObserverIf {
  public:
   HwTest() = default;
   ~HwTest() override = default;
@@ -50,9 +52,8 @@ class HwTest : public ::testing::Test, public HwSwitch::Callback {
     return const_cast<HwTest*>(this)->getPlatform();
   }
 
-  void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
-  void linkStateChanged(PortID port, bool up) noexcept override;
-  void exitFatal() const noexcept override;
+  void packetReceived(RxPacket* /*pkt*/) noexcept override {}
+  void linkStateChanged(PortID /*port*/, bool /*up*/) override {}
 
   HwSwitchEnsemble* getHwSwitchEnsemble() {
     return hwSwitchEnsemble_.get();

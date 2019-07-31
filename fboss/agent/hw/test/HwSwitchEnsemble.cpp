@@ -56,6 +56,30 @@ void HwSwitchEnsemble::applyInitialConfigAndBringUpPorts(
 
 void HwSwitchEnsemble::linkStateChanged(PortID port, bool up) {
   linkToggler_->linkStateChanged(port, up);
+  std::for_each(
+      hwEventObservers_.begin(),
+      hwEventObservers_.end(),
+      [port, up](auto observer) { observer->linkStateChanged(port, up); });
+}
+
+void HwSwitchEnsemble::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {
+  std::for_each(
+      hwEventObservers_.begin(),
+      hwEventObservers_.end(),
+      [&pkt](auto observer) { observer->packetReceived(pkt.get()); });
+}
+
+void HwSwitchEnsemble::addHwEventObserver(HwSwitchEventObserverIf* observer) {
+  if (!hwEventObservers_.insert(observer).second) {
+    throw FbossError("Observer was already added");
+  }
+}
+
+void HwSwitchEnsemble::removeHwEventObserver(
+    HwSwitchEventObserverIf* observer) {
+  if (!hwEventObservers_.erase(observer)) {
+    throw FbossError("Observer erase failed");
+  }
 }
 
 void HwSwitchEnsemble::init() {
