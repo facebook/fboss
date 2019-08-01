@@ -47,6 +47,7 @@ class BcmTrunkTable {
   size_t numTrunkPorts() const {
     return trunks_.size();
   }
+
   // TODO(samank): Fill in method
   // Serialize to folly::dynamic
   folly::dynamic toFollyDynamic() const;
@@ -65,6 +66,28 @@ class BcmTrunkTable {
   const BcmSwitch* const hw_{nullptr};
 
   TrunkToMinimumLinkCountMap trunkToMinLinkCount_;
+
+ public:
+  using iterator = decltype(trunks_)::iterator;
+  using const_iterator = decltype(trunks_)::const_iterator;
+  iterator begin() {
+    return trunks_.begin();
+  }
+  iterator end() {
+    return trunks_.end();
+  }
+  const_iterator cbegin() const {
+    return trunks_.cbegin();
+  }
+  const_iterator cend() const {
+    return trunks_.cend();
+  }
+  const_iterator begin() const {
+    return cbegin();
+  }
+  const_iterator end() const {
+    return cend();
+  }
 };
 
 } // namespace fboss
