@@ -73,6 +73,8 @@ struct PhyPortSettings {
 struct PhyFwVersion {
   1: i32 version
   2: i32 crc
+  3: optional string versionStr
+  4: optional i32 dateCode
 }
 
 struct PhySettings {
