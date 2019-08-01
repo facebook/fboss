@@ -25,10 +25,17 @@ namespace phy {
  * structs should be represented in the SwitchState somehow.
  */
 
+struct ExternalPhyLaneStats {
+  float signalToNoiseRatio{0};
+  uint64_t numAdapt{0};
+  uint64_t numReadapt{0};
+  uint64_t numLinkLost{0};
+};
+
 struct ExternalPhyPortSideStats {
   uint64_t fecUncorrectableErrors{0};
   // This is per lane
-  std::unordered_map<uint16_t, float> signalToNoiseRatio;
+  std::unordered_map<uint16_t, ExternalPhyLaneStats> lanes;
 };
 
 struct ExternalPhyPortStats {
