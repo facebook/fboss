@@ -25,6 +25,35 @@ class RxPacket;
 class SwitchState;
 
 struct AggregatePortFields {
+  /* The SDK exposes much finer controls over the egress state of trunk member
+   * ports, both as compared to what we expose in SwSwitch and as compared to
+   * the ingress trunk member port control. I don't see a need for these more
+   * granular states at this time.
+   */
+  enum class Forwarding { ENABLED, DISABLED };
+
+  /* Instead of introducing a new data structure, we could have chosen to
+   * maintain the Forwarding state in the Subports structure by modifying
+   * Subports to hold pairs of type (PortID,Forwarding). This layout is less
+   * wasteful so I had initially chosen it. But becuse I wanted to avoid
+   * modifying callsites of AggregatePort::setSubports() and
+   * AggregatePort::getSubports(), I had modified these methods (and ctors) to
+   * use iterator transformations to hide the underlying layout of pairs.
+   * The fallout of that is here: P57596006. This turned out to be more painful
+   * than I had initially anticipated. So to avoid modifying AggregatePort
+   * callsites to take into Forwarding state (even when Forwarding state is
+   * strictly unrelated to the context of the callsite, like in
+   * ApplyThriftConfig), I split out Forwarding state into its own data
+   * structure. Because there's never a need to set the Forwarding state on
+   * member ports during initialization, having two separate data structures
+   * (ie. Subports and SubportToForwardingState) allows for keeping the
+   * callsites intact). As an added bonus, separate data structures feels more
+   * natural in BcmTrunk::program(...) when taking diffs between AggregatePort
+   * objects.
+   */
+  using SubportToForwardingState =
+      boost::container::flat_map<PortID, Forwarding>;
+
   struct subport {
     subport() {}
     subport(
@@ -48,8 +77,11 @@ struct AggregatePortFields {
       return portID < rhs.portID;
     }
 
-    folly::dynamic toFollyDynamic() const;
-    static struct subport fromFollyDynamic(const folly::dynamic& json);
+    folly::dynamic toFollyDynamic(
+        const AggregatePortFields::SubportToForwardingState& portStates) const;
+    static struct subport fromFollyDynamic(
+        const folly::dynamic& json,
+        AggregatePortFields::SubportToForwardingState& portStates);
 
     PortID portID{0};
     uint16_t priority{0};
@@ -59,33 +91,15 @@ struct AggregatePortFields {
   using Subport = struct subport;
   using Subports = boost::container::flat_set<Subport>;
 
-  /* The SDK exposes much finer controls over the egress state of trunk member
-   * ports, both as compared to what we expose in SwSwitch and as compared to
-   * the ingress trunk member port control. I don't see a need for these more
-   * granular states at this time.
-   */
-  enum class Forwarding { ENABLED, DISABLED };
-  /* Instead of introducing a new data structure, we could have chosen to
-   * maintain the Forwarding state in the Subports structure by modifying
-   * Subports to hold pairs of type (PortID,Forwarding). This layout is less
-   * wasteful so I had initially chosen it. But becuse I wanted to avoid
-   * modifying callsites of AggregatePort::setSubports() and
-   * AggregatePort::getSubports(), I had modified these methods (and ctors) to
-   * use iterator transformations to hide the underlying layout of pairs.
-   * The fallout of that is here: P57596006. This turned out to be more painful
-   * than I had initially anticipated. So to avoid modifying AggregatePort
-   * callsites to take into Forwarding state (even when Forwarding state is
-   * strictly unrelated to the context of the callsite, like in
-   * ApplyThriftConfig), I split out Forwarding state into its own data
-   * structure. Because there's never a need to set the Forwarding state on
-   * member ports during initialization, having two separate data structures
-   * (ie. Subports and SubportToForwardingState) allows for keeping the
-   * callsites intact). As an added bonus, separate data structures feels more
-   * natural in BcmTrunk::program(...) when taking diffs between AggregatePort
-   * objects.
-   */
-  using SubportToForwardingState =
-      boost::container::flat_map<PortID, Forwarding>;
+  AggregatePortFields(
+      AggregatePortID id,
+      const std::string& name,
+      const std::string& description,
+      uint16_t systemPriority,
+      folly::MacAddress systemID,
+      uint8_t minLinkCount,
+      Subports&& ports,
+      SubportToForwardingState&& portStates);
 
   AggregatePortFields(
       AggregatePortID id,

@@ -10,6 +10,7 @@
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/Port.h"
@@ -225,6 +226,72 @@ TEST(Port, ToFromJSON) {
   EXPECT_FALSE(queues[3]->getScalingFactor().hasValue());
 
   auto dyn1 = port->toFollyDynamic();
+  auto dyn2 = folly::parseJson(jsonStr);
+
+  EXPECT_EQ(dyn1, dyn2);
+}
+
+TEST(AggregatePort, ToFromJSON) {
+  std::string jsonStr = R"(
+        {
+          "id": 10,
+          "name": "tr0",
+          "description": "Some trunk port",
+          "systemPriority": 10,
+          "systemID": "12:42:00:22:53:01",
+          "minimumLinkCount": 2,
+          "subports": [
+            {
+              "portId": 42,
+              "priority": 1,
+              "rate": "fast",
+              "activity": "active",
+              "forwarding": "disabled"
+            },
+            {
+              "portId": 43,
+              "priority": 1,
+              "rate": "fast",
+              "activity": "passive",
+              "forwarding": "enabled"
+            },
+            {
+              "portId": 44,
+              "priority": 1,
+              "rate": "slow",
+              "activity": "active",
+              "forwarding": "enabled"
+            }
+          ]
+        }
+  )";
+  auto aggPort = AggregatePort::fromJson(jsonStr);
+
+  EXPECT_EQ(AggregatePortID(10), aggPort->getID());
+  EXPECT_EQ("tr0", aggPort->getName());
+  EXPECT_EQ("Some trunk port", aggPort->getDescription());
+  EXPECT_EQ(10, aggPort->getSystemPriority());
+  EXPECT_EQ(folly::MacAddress("12:42:00:22:53:01"), aggPort->getSystemID());
+  EXPECT_EQ(2, aggPort->getMinimumLinkCount());
+  EXPECT_EQ(3, aggPort->subportsCount());
+
+  for (const auto& subport : aggPort->sortedSubports()) {
+    EXPECT_EQ(1, subport.priority);
+    EXPECT_EQ(
+        subport.portID == 44 ? cfg::LacpPortRate::SLOW
+                             : cfg::LacpPortRate::FAST,
+        subport.rate);
+    EXPECT_EQ(
+        subport.portID == 43 ? cfg::LacpPortActivity::PASSIVE
+                             : cfg::LacpPortActivity::ACTIVE,
+        subport.activity);
+    EXPECT_EQ(
+        subport.portID == 42 ? AggregatePort::Forwarding::DISABLED
+                             : AggregatePort::Forwarding::ENABLED,
+        aggPort->getForwardingState(subport.portID));
+  }
+
+  auto dyn1 = aggPort->toFollyDynamic();
   auto dyn2 = folly::parseJson(jsonStr);
 
   EXPECT_EQ(dyn1, dyn2);

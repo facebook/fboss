@@ -710,9 +710,12 @@ TEST(Subport, serializationInverseOfDeserialization) {
       cfg::LacpPortRate::SLOW,
       cfg::LacpPortActivity::PASSIVE);
 
-  auto serializedSubport = subport.toFollyDynamic();
+  AggregatePortFields::SubportToForwardingState portStates;
+  portStates[PortID(1)] = AggregatePortFields::Forwarding::ENABLED;
+
+  auto serializedSubport = subport.toFollyDynamic(portStates);
   auto deserializedSubport =
-      AggregatePort::Subport::fromFollyDynamic(serializedSubport);
+      AggregatePort::Subport::fromFollyDynamic(serializedSubport, portStates);
 
   EXPECT_TRUE(subport == deserializedSubport);
 }

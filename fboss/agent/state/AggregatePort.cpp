@@ -30,23 +30,28 @@ constexpr auto kPortID = "portId";
 constexpr auto kRate = "rate";
 constexpr auto kActivity = "activity";
 constexpr auto kPriority = "priority";
+constexpr auto kForwarding = "forwarding";
 } // namespace
 
 namespace facebook {
 namespace fboss {
 
-folly::dynamic AggregatePortFields::Subport::toFollyDynamic() const {
+folly::dynamic AggregatePortFields::Subport::toFollyDynamic(
+    const AggregatePortFields::SubportToForwardingState& portStates) const {
   folly::dynamic subport = folly::dynamic::object;
   subport[kPortID] = static_cast<uint16_t>(portID);
   subport[kPriority] = static_cast<uint16_t>(priority);
   subport[kRate] = rate == cfg::LacpPortRate::FAST ? "fast" : "slow";
   subport[kActivity] =
       activity == cfg::LacpPortActivity::ACTIVE ? "active" : "passive";
+  subport[kForwarding] =
+      portStates.at(portID) == Forwarding::ENABLED ? "enabled" : "disabled";
   return subport;
 }
 
 AggregatePortFields::Subport AggregatePortFields::Subport::fromFollyDynamic(
-    const folly::dynamic& json) {
+    const folly::dynamic& json,
+    AggregatePortFields::SubportToForwardingState& portStates) {
   cfg::LacpPortRate rate;
   if (json[kRate] == "fast") {
     rate = cfg::LacpPortRate::FAST;
@@ -63,11 +68,39 @@ AggregatePortFields::Subport AggregatePortFields::Subport::fromFollyDynamic(
     activity = cfg::LacpPortActivity::PASSIVE;
   }
 
+  Forwarding forwarding;
+  if (json[kForwarding] == "enabled") {
+    forwarding = Forwarding::ENABLED;
+  } else {
+    CHECK_EQ(json[kForwarding], "disabled");
+    forwarding = Forwarding::DISABLED;
+  }
+
   // TODO(samank): check widths match up
   auto id = static_cast<PortID>(json[kPortID].asInt());
   auto priority = static_cast<uint16_t>(json[kPriority].asInt());
+
+  portStates[id] = forwarding;
   return Subport(id, priority, rate, activity);
 }
+
+AggregatePortFields::AggregatePortFields(
+    AggregatePortID id,
+    const std::string& name,
+    const std::string& description,
+    uint16_t systemPriority,
+    folly::MacAddress systemID,
+    uint8_t minimumLinkCount,
+    Subports&& ports,
+    SubportToForwardingState&& portStates)
+    : id_(id),
+      name_(name),
+      description_(description),
+      systemPriority_(systemPriority),
+      systemID_(systemID),
+      minimumLinkCount_(minimumLinkCount),
+      ports_(std::move(ports)),
+      portToFwdState_(std::move(portStates)) {}
 
 AggregatePortFields::AggregatePortFields(
     AggregatePortID id,
@@ -101,7 +134,7 @@ folly::dynamic AggregatePortFields::toFollyDynamic() const {
 
   folly::dynamic subports = folly::dynamic::array;
   for (const auto& subport : ports_) {
-    subports.push_back(subport.toFollyDynamic());
+    subports.push_back(subport.toFollyDynamic(portToFwdState_));
   }
   aggPortFields[kSubports] = std::move(subports);
   aggPortFields[kSystemID] = systemID_.toString();
@@ -115,8 +148,10 @@ AggregatePortFields AggregatePortFields::fromFollyDynamic(
 
   ports.reserve(json[kSubports].size());
 
+  SubportToForwardingState portStates;
   for (auto const& port : json[kSubports]) {
-    ports.emplace_hint(ports.cend(), Subport::fromFollyDynamic(port));
+    ports.emplace_hint(
+        ports.cend(), Subport::fromFollyDynamic(port, portStates));
   }
 
   return AggregatePortFields(
@@ -126,7 +161,8 @@ AggregatePortFields AggregatePortFields::fromFollyDynamic(
       json[kSystemPriority].getInt(),
       folly::MacAddress(json[kSystemID].getString()),
       json[kMinimumLinkCount].getInt(),
-      std::move(ports));
+      std::move(ports),
+      std::move(portStates));
 }
 
 AggregatePort::SubportsDifferenceType AggregatePort::subportsCount() const {

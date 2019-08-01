@@ -50,6 +50,7 @@ constexpr auto kMaxNeighborProbes = "maxNeighborProbes";
 constexpr auto kStaleEntryInterval = "staleEntryInterval";
 constexpr auto kLoadBalancers = "loadBalancers";
 constexpr auto kMirrors = "mirrors";
+constexpr auto kAggregatePorts = "aggregatePorts";
 constexpr auto kLabelForwardingInformationBase = "labelFib";
 
 // TODO: remove validator when oss gflags supports DEFINE_uint32 directly
@@ -100,6 +101,7 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kControlPlane] = controlPlane->toFollyDynamic();
   switchState[kLoadBalancers] = loadBalancers->toFollyDynamic();
   switchState[kMirrors] = mirrors->toFollyDynamic();
+  switchState[kAggregatePorts] = aggPorts->toFollyDynamic();
   switchState[kLabelForwardingInformationBase] = labelFib->toFollyDynamic();
   return switchState;
 }
@@ -132,6 +134,10 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
   }
   if (swJson.find(kMirrors) != swJson.items().end()) {
     switchState.mirrors = MirrorMap::fromFollyDynamic(swJson[kMirrors]);
+  }
+  if (swJson.find(kAggregatePorts) != swJson.items().end()) {
+    switchState.aggPorts =
+        AggregatePortMap::fromFollyDynamic(swJson[kAggregatePorts]);
   }
   if (swJson.find(kLabelForwardingInformationBase) != swJson.items().end()) {
     switchState.labelFib = LabelForwardingInformationBase::fromFollyDynamic(
