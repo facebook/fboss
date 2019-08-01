@@ -101,7 +101,7 @@ entry for that `IPAddress` was hit in hardware. This was used to make
 decisions about expiring entries, but also meant that I had to listen
 for added and deleted arp entries in `SwitchState`. Populating the map
 also meant periodically probing the `HwSwitch` and the map would also
-create state updates to expire entres. This led to a number of
+create state updates to expire entries. This led to a number of
 concurrency issues and was ultimately difficult to manage.
 
 My new draft (diffs pending) flips this around and creates a
