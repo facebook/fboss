@@ -82,6 +82,11 @@ class HwTest : public ::testing::Test,
    * Destroy and recreate HwSwitch from just the warm boot state
    */
   virtual void recreateHwSwitchFromWBState() = 0;
+  /*
+   * Hook to execute any necessary HW specific behavior between test setup
+   * and verify
+   */
+  virtual void postSetup() {}
 
  protected:
   template <
@@ -97,6 +102,7 @@ class HwTest : public ::testing::Test,
     if (getHwSwitch()->getBootType() != BootType::WARM_BOOT) {
       setup();
     }
+    postSetup();
     verify();
     if (getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
       // If we did a warm boot, do post warmboot actions now

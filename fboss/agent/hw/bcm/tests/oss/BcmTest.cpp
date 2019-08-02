@@ -21,5 +21,9 @@ std::unique_ptr<std::thread> BcmTest::createThriftThread() const {
   throw FbossError("Starting thrift server not supported");
 }
 
+void BcmTest::postSetup() {
+  // noop
+}
+
 } // namespace fboss
 } // namespace facebook

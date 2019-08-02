@@ -79,6 +79,7 @@ class BcmTest : public HwTest {
     return true;
   }
   void recreateHwSwitchFromWBState() override;
+  void postSetup() override;
 
   /*
    * Most tests don't want packet RX or link scan enabled while running. Other
