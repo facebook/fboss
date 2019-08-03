@@ -75,7 +75,7 @@ flat_map<VlanID, folly::CIDRNetwork> computeVlan2Subnet(
       auto subnet = folly::IPAddress::createNetwork(cidrStr.first.str());
       if (!v6 && subnet.first.isV4()) {
         vlan2Network[intf->getVlanID()] = subnet;
-      } else if (v6 && !subnet.first.isLinkLocal()) {
+      } else if (v6 && subnet.first.isV6() && !subnet.first.isLinkLocal()) {
         vlan2Network[intf->getVlanID()] = subnet;
       }
     }
