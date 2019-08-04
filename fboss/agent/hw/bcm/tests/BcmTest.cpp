@@ -85,5 +85,8 @@ std::map<PortID, HwPortStats> BcmTest::getLatestPortStats(
   return mapPortStats;
 }
 
+void BcmTest::collectTestFailureInfo() const {
+  getHwSwitch()->printDiagCmd("show c");
+}
 } // namespace fboss
 } // namespace facebook

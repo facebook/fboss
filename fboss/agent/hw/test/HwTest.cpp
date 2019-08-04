@@ -77,6 +77,9 @@ void HwTest::tearDownSwitchEnsemble(bool doWarmboot) {
     // hwSwitchEnsemble already torn down, nothing to do
     return;
   }
+  if (::testing::Test::HasFailure()) {
+    collectTestFailureInfo();
+  }
   if (thriftThread_) {
     // If thrift thread is running, don't tear down till thrift
     // thread is done, else thrift calls that depend on existence

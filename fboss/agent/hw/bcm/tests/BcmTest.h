@@ -74,7 +74,8 @@ class BcmTest : public HwTest {
 
  private:
   std::unique_ptr<HwSwitchEnsemble> createHw() const override;
-  virtual std::unique_ptr<std::thread> createThriftThread() const override;
+  void collectTestFailureInfo() const override;
+  std::unique_ptr<std::thread> createThriftThread() const override;
   bool warmBootSupported() const override {
     return true;
   }

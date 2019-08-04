@@ -456,6 +456,10 @@ class BcmSwitch : public BcmSwitchIf {
   BcmBstStatsMgr* getBstStatsMgr() const {
     return bstStatsMgr_.get();
   }
+  /**
+   * Runs a diag cmd on the corresponding unit
+   */
+  void printDiagCmd(const std::string& cmd) const;
 
   /*
    * Friend tests. We want the abilty to test private methods
@@ -724,10 +728,6 @@ class BcmSwitch : public BcmSwitchIf {
    */
   bool handleSflowPacket(opennsl_pkt_t* pkt) noexcept;
 
-  /**
-   * Runs a diag cmd on the corresponding unit
-   */
-  void printDiagCmd(const std::string& cmd) const;
 
   /**
    * Exports the sdk version we build against.

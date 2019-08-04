@@ -138,6 +138,7 @@ class HwTest : public ::testing::Test,
 
  private:
   void tearDownSwitchEnsemble(bool doWarmboot = false);
+  virtual void collectTestFailureInfo() const {}
 
   template <
       typename VERIFY_FN,
