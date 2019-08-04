@@ -110,10 +110,7 @@ class HwTest : public ::testing::Test,
       verifyPostWarmboot();
     }
     if (FLAGS_setup_for_warmboot) {
-      folly::dynamic switchState = folly::dynamic::object;
-      getHwSwitch()->unregisterCallbacks();
-      switchState[kSwSwitch] = getProgrammedState()->toFollyDynamic();
-      getHwSwitch()->gracefulExit(switchState);
+      tearDownSwitchEnsemble(true);
     } else {
       if (getHwSwitch()->getBootType() != BootType::WARM_BOOT) {
         // Now do a Hw switch layer only warm boot and verify. This is
@@ -140,7 +137,7 @@ class HwTest : public ::testing::Test,
   std::shared_ptr<SwitchState> getProgrammedState() const;
 
  private:
-  std::shared_ptr<SwitchState> initHwSwitch();
+  void tearDownSwitchEnsemble(bool doWarmboot = false);
 
   template <
       typename VERIFY_FN,

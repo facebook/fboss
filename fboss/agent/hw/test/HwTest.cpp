@@ -69,11 +69,27 @@ void HwTest::SetUp() {
 }
 
 void HwTest::TearDown() {
+  tearDownSwitchEnsemble();
+}
+
+void HwTest::tearDownSwitchEnsemble(bool doWarmboot) {
+  if (!hwSwitchEnsemble_) {
+    // hwSwitchEnsemble already torn down, nothing to do
+    return;
+  }
   if (thriftThread_) {
+    // If thrift thread is running, don't tear down till thrift
+    // thread is done, else thrift calls that depend on existence
+    // of hw switch ensemble will start failing
     thriftThread_->join();
   }
   hwSwitchEnsemble_->removeHwEventObserver(this);
-  if (FLAGS_setup_for_warmboot) {
+  if (doWarmboot) {
+    // Initiate warm boot
+    folly::dynamic switchState = folly::dynamic::object;
+    getHwSwitch()->unregisterCallbacks();
+    switchState[kSwSwitch] = getProgrammedState()->toFollyDynamic();
+    getHwSwitch()->gracefulExit(switchState);
     // Leak HwSwitchEnsemble for warmboot, so that
     // we don't run destructors and unprogram h/w. We are
     // going to exit the process anyways.
