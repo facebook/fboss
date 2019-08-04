@@ -63,7 +63,7 @@ class BcmVlanTest : public BcmTest {
 };
 
 TEST_F(BcmVlanTest, VlanInit) {
-  auto setup = [=]() { return getProgrammedState(); };
+  auto setup = [=]() {};
 
   auto verify = [=]() {
     // Make sure there are still no VLANs except the default VLAN
@@ -73,7 +73,7 @@ TEST_F(BcmVlanTest, VlanInit) {
 }
 
 TEST_F(BcmVlanTest, VlanApplyConfig) {
-  auto setup = [=]() { return applyNewConfig(initialConfig()); };
+  auto setup = [=]() { applyNewConfig(initialConfig()); };
 
   auto verify = [=]() {
     // There should be 2 VLANs

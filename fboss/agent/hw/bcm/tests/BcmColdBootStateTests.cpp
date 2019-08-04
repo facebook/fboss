@@ -17,7 +17,7 @@ namespace facebook {
 namespace fboss {
 
 TEST_F(BcmTest, allPortsDisabledOnColdBoot) {
-  auto setup = [this] { return getProgrammedState(); };
+  auto setup = [] {};
   auto verify = [this] {
     for (auto portIdAndPort : *getHwSwitch()->getPortTable()) {
       EXPECT_FALSE(portIdAndPort.second->isEnabled());

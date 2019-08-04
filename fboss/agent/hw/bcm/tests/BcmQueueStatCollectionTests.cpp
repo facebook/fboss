@@ -23,7 +23,7 @@ TEST_F(BcmTest, onlyExpectedQueueStatsSeen) {
   auto setup = [this] {
     applyNewConfig(utility::onePortPerVlanConfig(
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC));
-    return getProgrammedState();
+    
   };
   auto verify = [this] {
     for (auto i = 0; i < 10; ++i) {
