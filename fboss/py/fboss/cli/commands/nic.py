@@ -16,7 +16,7 @@ class NicCmd(cmds.PrintNeighborTableCmd):
     '''Class for host NIC related commands in fboss.'''
 
     _LENGTH_OF_OUI = 8
-    _NO_MAC_FOUND_MESSAGE = "No MAC address found in ARP/NDP tables found."
+    _NO_MAC_FOUND_MESSAGE = "No MAC address found in ARP/NDP tables!"
     _UNKNOWN_VENDOR_MESSAGE = "Unknown NIC Vendor."
 
     def run(self, detail, verbose):
