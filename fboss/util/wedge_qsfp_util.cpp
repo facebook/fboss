@@ -206,6 +206,7 @@ RawDOMData fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port) {
     if (rawDOMData.lower.data()[127] != page0) {
       bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP,
                        127, 1, &page0);
+      usleep(20000); // Delay required by Intel Transceiver.
     }
   }
   bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 128,
@@ -216,6 +217,7 @@ RawDOMData fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port) {
     rawDOMData.page3_ref().value_unchecked() = IOBuf(IOBuf::CREATE, 128);
     uint8_t page3 = 0x3;
     bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page3);
+    usleep(20000); // Delay required by Intel Transceiver.
 
     // read page 3
     bus->moduleRead(
