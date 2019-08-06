@@ -39,7 +39,7 @@ void BcmWarmBootCache::populateMirroredPort(opennsl_gport_t /*port*/) {}
 void BcmWarmBootCache::populateMirroredAcl(BcmAclEntryHandle /*handle*/) {}
 void BcmWarmBootCache::stopUnclaimedPortMirroring(
     opennsl_gport_t /*port*/,
-    MirrorDirection /*direction*/,
+    uint32_t /*flags*/,
     BcmMirrorHandle /*mirror*/) {}
 void BcmWarmBootCache::stopUnclaimedAclMirroring(
     BcmAclEntryHandle /*aclEntry*/,

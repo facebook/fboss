@@ -926,8 +926,8 @@ BcmWarmBootCache::MirroredPort2HandleCitr BcmWarmBootCache::mirroredPortsEnd()
 
 BcmWarmBootCache::MirroredPort2HandleCitr BcmWarmBootCache::findMirroredPort(
     opennsl_gport_t port,
-    MirrorDirection direction) const {
-  return mirroredPort2Handle_.find(std::make_pair(port, direction));
+    uint32_t flags) const {
+  return mirroredPort2Handle_.find(std::make_pair(port, flags));
 }
 
 void BcmWarmBootCache::programmedMirroredPort(MirroredPort2HandleCitr itr) {

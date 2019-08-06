@@ -147,7 +147,7 @@ class BcmWarmBootCache {
       std::pair<opennsl_gport_t, folly::Optional<MirrorTunnel>>,
       BcmMirrorHandle>;
   using MirroredPort2Handle = boost::container::
-      flat_map<std::pair<opennsl_gport_t, MirrorDirection>, BcmMirrorHandle>;
+      flat_map<std::pair<opennsl_gport_t, uint32_t>, BcmMirrorHandle>;
   using MirroredAcl2Handle = boost::container::
       flat_map<std::pair<BcmAclEntryHandle, MirrorDirection>, BcmMirrorHandle>;
   using IngressQosMaps = std::vector<std::unique_ptr<BcmQosMap>>;
@@ -218,7 +218,7 @@ class BcmWarmBootCache {
   void removeUnclaimedMirrors();
   void stopUnclaimedPortMirroring(
       opennsl_gport_t port,
-      MirrorDirection direction,
+      uint32_t flags,
       BcmMirrorHandle mirror);
   void stopUnclaimedAclMirroring(
       BcmAclEntryHandle aclEntry,
@@ -506,9 +506,8 @@ class BcmWarmBootCache {
   using MirroredPort2HandleCitr = typename MirroredPort2Handle::const_iterator;
   MirroredPort2HandleCitr mirroredPortsBegin() const;
   MirroredPort2HandleCitr mirroredPortsEnd() const;
-  MirroredPort2HandleCitr findMirroredPort(
-      opennsl_gport_t port,
-      MirrorDirection direction) const;
+  MirroredPort2HandleCitr findMirroredPort(opennsl_gport_t port, uint32_t flags)
+      const;
   void programmedMirroredPort(MirroredPort2HandleCitr itr);
 
   using MirroredAcl2HandleCitr = typename MirroredAcl2Handle::const_iterator;
