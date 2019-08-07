@@ -268,7 +268,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
   /*
    * Calculates the lifetime of a REACHABLE entry. The lifetime is
    * calculated as a uniform distribution between 0.5 * timeout & 1.5 * timeout.
-   * This is what RFC 4681 recommends.
+   * This is what RFC 4861 recommends.
    *
    * TODO(aeckert): we could actually store the timepoint it will go stale at
    * so we can report it in the cli
