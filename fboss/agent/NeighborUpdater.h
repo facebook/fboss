@@ -22,7 +22,6 @@
 namespace facebook {
 namespace fboss {
 
-class NeighborUpdaterImpl;
 class SwitchState;
 class StateDelta;
 class Vlan;
