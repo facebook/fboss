@@ -108,38 +108,39 @@ class IPAddressGenerator
   ResourceT getIP(IdT id) const;
 };
 
-template <typename AddrT, uint8_t mask>
+template <typename AddrT>
 class PrefixGenerator : public ResourceGenerator<
                             typename facebook::fboss::RoutePrefix<AddrT>,
                             typename IdT<AddrT>::type> {
  public:
+  explicit PrefixGenerator(uint8_t mask) : mask_(mask) {}
   using ResourceT = typename facebook::fboss::RoutePrefix<AddrT>;
   using IdT = typename IdT<AddrT>::type;
 
   /* simply generate a prefix at cursor position id, doesn't update cursor */
   ResourceT get(IdT id) const override {
-    return ResourceT{ipGenerator_.get(getPrefixId(id)), kMask};
+    return ResourceT{ipGenerator_.get(getPrefixId(id)), mask_};
   }
 
  private:
   template <typename IdT>
   std::enable_if_t<std::is_same<IdT, uint32_t>::value, uint32_t> getPrefixId(
       IdT id) const {
-    CHECK_LE(kMask, folly::IPAddressV4::bitCount());
-    return id << (folly::IPAddressV4::bitCount() - kMask);
+    CHECK_LE(mask_, folly::IPAddressV4::bitCount());
+    return id << (folly::IPAddressV4::bitCount() - mask_);
   }
 
   template <typename IdT>
   std::enable_if_t<std::is_same<IdT, IdV6>::value, IdV6> getPrefixId(
       IdT id) const {
-    CHECK_LE(kMask, folly::IPAddressV6::bitCount());
-    const auto kShift = folly::IPAddressV6::bitCount() - kMask;
+    CHECK_LE(mask_, folly::IPAddressV6::bitCount());
+    const auto kShift = folly::IPAddressV6::bitCount() - mask_;
     if (!kShift) {
       return id;
     }
     /* 128 bit id for IPv6 is represented as pair of 64 bit intgers,
       kShift >= 64,
-         - In this case, shift id.second by (kMask - 64) bits
+         - In this case, shift id.second by (mask_ - 64) bits
          - id.first = id.second & id.second becomes zero
       kShift < 64,
           - both id.first and id.second will shift by kShift
@@ -159,11 +160,11 @@ class PrefixGenerator : public ResourceGenerator<
     return id;
   }
 
-  static constexpr auto kMask{mask};
+  const uint8_t mask_;
   IPAddressGenerator<AddrT> ipGenerator_;
 };
 
-template <typename AddrT, uint8_t mask>
+template <typename AddrT>
 class RouteGenerator : public ResourceGenerator<
                            typename RouteResourceType<AddrT>::type,
                            typename IdT<AddrT>::type> {
@@ -177,9 +178,10 @@ class RouteGenerator : public ResourceGenerator<
       std::unordered_map<InterfaceID, std::unordered_set<AddrT>>;
   using NextHopSet = RouteNextHopEntry::NextHopSet;
   RouteGenerator(
+      uint8_t mask,
       const AdminDistance distance,
       const Interface2Nexthops& interface2Nexthops)
-      : distance_(distance) {
+      : distance_(distance), prefixGenerator_(mask) {
     for (const auto& interfaceAndNhops : interface2Nexthops) {
       auto& nhops = interfaceAndNhops.second;
       std::for_each(
@@ -205,13 +207,8 @@ class RouteGenerator : public ResourceGenerator<
  private:
   AdminDistance distance_;
   NextHopSet nextHopSet_;
-  PrefixGenerator<AddrT, mask> prefixGenerator_;
+  PrefixGenerator<AddrT> prefixGenerator_;
 };
-
-using HostPrefixV4Generator = PrefixGenerator<folly::IPAddressV4, 32>;
-using HostPrefixV6Generator = PrefixGenerator<folly::IPAddressV6, 128>;
-using HostRouteV4Generator = RouteGenerator<folly::IPAddressV4, 32>;
-using HostRouteV6Generator = RouteGenerator<folly::IPAddressV6, 128>;
 
 } // namespace utility
 } // namespace fboss

@@ -27,7 +27,7 @@ TEST(ResourceLibUtilTest, HostPrefixV4Generator) {
   using IpT = folly::IPAddressV4;
   using RoutePrefixT = RoutePrefix<folly::IPAddressV4>;
 
-  auto generator = utility::PrefixGenerator<IpT, 32>();
+  auto generator = utility::PrefixGenerator<IpT>(32);
   std::array<RoutePrefixT, 5> hostPrefixes = {
       RoutePrefixT{IpT("0.0.0.1"), 32},
       RoutePrefixT{IpT("0.0.0.2"), 32},
@@ -46,7 +46,7 @@ TEST(ResourceLibUtilTest, LpmPrefixV4Generator) {
   using IpT = folly::IPAddressV4;
   using RoutePrefixT = RoutePrefix<folly::IPAddressV4>;
 
-  auto generator = utility::PrefixGenerator<IpT, 24>();
+  auto generator = utility::PrefixGenerator<IpT>(24);
   std::array<RoutePrefixT, 5> prefixes = {
       RoutePrefixT{IpT("0.0.1.0"), 24},
       RoutePrefixT{IpT("0.0.2.0"), 24},
@@ -65,7 +65,7 @@ TEST(ResourceLibUtilTest, GenerateNv4Prefix) {
   using IpT = folly::IPAddressV4;
   using RoutePrefixT = RoutePrefix<folly::IPAddressV4>;
 
-  auto generator = utility::PrefixGenerator<IpT, 24>();
+  auto generator = utility::PrefixGenerator<IpT>(24);
   std::vector<RoutePrefixT> generatedPrefixes = generator.getNextN(5);
 
   std::array<RoutePrefixT, 5> prefixes = {
@@ -85,7 +85,7 @@ TEST(ResourceLibUtilTest, GenerateResetGenerateV4) {
   using IpT = folly::IPAddressV4;
   using RoutePrefixT = RoutePrefix<folly::IPAddressV4>;
 
-  auto generator = utility::PrefixGenerator<IpT, 24>();
+  auto generator = utility::PrefixGenerator<IpT>(24);
   generator.getNextN(5);
 
   EXPECT_EQ(generator.getCursorPosition(), 5);
@@ -119,7 +119,7 @@ TEST(ResourceLibUtilTest, HostPrefixV6Generator) {
   using IpT = folly::IPAddressV6;
   using RoutePrefixT = RoutePrefix<folly::IPAddressV6>;
 
-  auto generator = utility::PrefixGenerator<IpT, 128>();
+  auto generator = utility::PrefixGenerator<IpT>(128);
   std::array<RoutePrefixT, 5> hostPrefixes = {
       RoutePrefixT{IpT("::1"), 128},
       RoutePrefixT{IpT("::2"), 128},
@@ -138,7 +138,7 @@ TEST(ResourceLibUtilTest, LpmPrefixV6Generator) {
   using IpT = folly::IPAddressV6;
   using RoutePrefixT = RoutePrefix<folly::IPAddressV6>;
 
-  auto generator = utility::PrefixGenerator<IpT, 64>();
+  auto generator = utility::PrefixGenerator<IpT>(64);
   std::array<RoutePrefixT, 5> prefixes = {
       RoutePrefixT{IpT("0:0:0:1::"), 64},
       RoutePrefixT{IpT("0:0:0:2::"), 64},
@@ -157,7 +157,7 @@ TEST(ResourceLibUtilTest, GenerateNv6Prefix) {
   using IpT = folly::IPAddressV6;
   using RoutePrefixT = RoutePrefix<folly::IPAddressV6>;
 
-  auto generator = utility::PrefixGenerator<IpT, 64>();
+  auto generator = utility::PrefixGenerator<IpT>(64);
   std::vector<RoutePrefixT> generatedPrefixes = generator.getNextN(5);
 
   std::array<RoutePrefixT, 5> prefixes = {
@@ -177,7 +177,7 @@ TEST(ResourceLibUtilTest, GenerateResetGenerateV6) {
   using IpT = folly::IPAddressV6;
   using RoutePrefixT = RoutePrefix<folly::IPAddressV6>;
 
-  auto generator = utility::PrefixGenerator<IpT, 64>();
+  auto generator = utility::PrefixGenerator<IpT>(64);
   generator.getNextN(5);
 
   EXPECT_EQ(generator.getCursorPosition(), utility::IdV6(0, 5));
@@ -192,7 +192,8 @@ TEST(ResourceLibUtilTest, RouteV4Generator) {
   using IpT = folly::IPAddressV4;
   using RoutePrefixT = RoutePrefix<folly::IPAddressV4>;
 
-  auto generator = utility::RouteGenerator<folly::IPAddressV4, 24>(
+  auto generator = utility::RouteGenerator<folly::IPAddressV4>(
+      24,
       AdminDistance::STATIC_ROUTE,
       {{InterfaceID(7), {folly::IPAddressV4("252.252.252.252")}}});
   std::array<RoutePrefixT, 5> prefixes = {
@@ -212,7 +213,8 @@ TEST(ResourceLibUtilTest, RouteV6Generator) {
   using IpT = folly::IPAddressV6;
   using RoutePrefixT = RoutePrefix<folly::IPAddressV6>;
 
-  auto generator = utility::RouteGenerator<folly::IPAddressV6, 64>(
+  auto generator = utility::RouteGenerator<folly::IPAddressV6>(
+      64,
       AdminDistance::STATIC_ROUTE,
       {{InterfaceID(7), {folly::IPAddressV6("2401:2881::")}}});
   std::array<RoutePrefixT, 5> prefixes = {
