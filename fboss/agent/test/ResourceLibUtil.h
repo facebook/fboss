@@ -173,27 +173,38 @@ class RouteGenerator : public ResourceGenerator<
   using RouteT = typename RouteResourceType<AddrT>::entry;
   using ResourceT = typename RouteResourceType<AddrT>::type;
   using IdT = typename IdT<AddrT>::type;
+  using Interface2Nexthops =
+      std::unordered_map<InterfaceID, std::unordered_set<AddrT>>;
+  using NextHopSet = RouteNextHopEntry::NextHopSet;
   RouteGenerator(
       const AdminDistance distance,
-      const AddrT& nexthop,
-      InterfaceID intf)
-      : distance_(distance), nexthop_(nexthop), intf_(intf) {}
+      const Interface2Nexthops& interface2Nexthops)
+      : distance_(distance) {
+    for (const auto& interfaceAndNhops : interface2Nexthops) {
+      auto& nhops = interfaceAndNhops.second;
+      std::for_each(
+          nhops.begin(),
+          nhops.end(),
+          [this, &interfaceAndNhops](const auto& nhop) {
+            nextHopSet_.insert(
+                ResolvedNextHop(nhop, interfaceAndNhops.first, 1));
+          });
+    }
+  }
 
   ResourceT get(IdT id) const override {
     const typename RouteFields<AddrT>::Prefix prefix = prefixGenerator_.get(id);
     auto route = std::make_unique<RouteT>(
         prefix,
         ClientID(1), // static route
-        RouteNextHopEntry(ResolvedNextHop(nexthop_, intf_, 1), distance_));
-    route->setResolved(
-        RouteNextHopEntry(ResolvedNextHop(nexthop_, intf_, 1), distance_));
+        RouteNextHopEntry(nextHopSet_, distance_));
+    route->setResolved(RouteNextHopEntry(nextHopSet_, distance_));
     return route;
   }
 
  private:
   AdminDistance distance_;
-  AddrT nexthop_;
-  InterfaceID intf_;
+  NextHopSet nextHopSet_;
   PrefixGenerator<AddrT, mask> prefixGenerator_;
 };
 

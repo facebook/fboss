@@ -194,8 +194,7 @@ TEST(ResourceLibUtilTest, RouteV4Generator) {
 
   auto generator = utility::RouteGenerator<folly::IPAddressV4, 24>(
       AdminDistance::STATIC_ROUTE,
-      folly::IPAddressV4("252.252.252.252"),
-      InterfaceID(7));
+      {{InterfaceID(7), {folly::IPAddressV4("252.252.252.252")}}});
   std::array<RoutePrefixT, 5> prefixes = {
       RoutePrefixT{IpT("0.0.1.0"), 24},
       RoutePrefixT{IpT("0.0.2.0"), 24},
@@ -209,15 +208,13 @@ TEST(ResourceLibUtilTest, RouteV4Generator) {
     ASSERT_EQ(generatedRoute->prefix(), prefixes[i]);
   }
 }
-
 TEST(ResourceLibUtilTest, RouteV6Generator) {
   using IpT = folly::IPAddressV6;
   using RoutePrefixT = RoutePrefix<folly::IPAddressV6>;
 
   auto generator = utility::RouteGenerator<folly::IPAddressV6, 64>(
       AdminDistance::STATIC_ROUTE,
-      folly::IPAddressV6("2401:2801::"),
-      InterfaceID(7));
+      {{InterfaceID(7), {folly::IPAddressV6("2401:2881::")}}});
   std::array<RoutePrefixT, 5> prefixes = {
       RoutePrefixT{IpT("0:0:0:1::"), 64},
       RoutePrefixT{IpT("0:0:0:2::"), 64},
@@ -231,6 +228,5 @@ TEST(ResourceLibUtilTest, RouteV6Generator) {
     ASSERT_EQ(generatedRoute->prefix(), prefixes[i]);
   }
 }
-
 } // namespace fboss
 } // namespace facebook
