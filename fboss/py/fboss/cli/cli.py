@@ -487,6 +487,7 @@ class RouteCli(object):
         self.route.add_command(self._add, name='add')
         self.route.add_command(self._delete, name='delete')
         self.route.add_command(self._flush, name='flush')
+        self.route.add_command(self._summary, name='summary')
 
     @click.group(cls=AliasedGroup)
     def route():
@@ -564,6 +565,12 @@ class RouteCli(object):
     def _flush(cli_opt, client_id):
         '''Flush all existing non-interface routes'''
         route.RouteFlushCmd(cli_opt).run(client_id)
+
+    @click.command()
+    @click.pass_obj
+    def _summary(cli_opt):
+        ''' Print a summary of routing tables '''
+        route.RouteTableSummaryCmd(cli_opt).run()
 
 
 class VerbosityCli(object):

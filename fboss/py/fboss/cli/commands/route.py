@@ -193,6 +193,40 @@ class RouteTableCmd(cmds.FbossCmd):
                         )
 
 
+class RouteTableSummaryCmd(cmds.FbossCmd):
+    """ Print rough statistics of various route types
+        Useful for understanding HW table capacity/usage
+    """
+    def run(self):
+        with self._create_agent_client() as agent_client:
+            resp = agent_client.getRouteTable()
+        n_v4_routes = 0
+        n_v6_small = 0
+        n_v6_big = 0
+        for entry in resp:
+            if len(entry.dest.ip.addr) == 4:
+                n_v4_routes += 1
+            elif len(entry.dest.ip.addr) == 16:
+                # break ipv6 up into <64 and >64  as it affect ASIC mem usage
+                if entry.dest.prefixLength <= 64:
+                    n_v6_small += 1
+                else:
+                    n_v6_big += 1
+        # this is a very rough calculation and because of how the
+        # hashing and fragmentation works should be taken with a grain of
+        # salt rather than a fraction of available space
+        hw_entries_used = n_v4_routes + 2 * n_v6_small + 4 * n_v6_big
+        n_v6 = n_v6_big + n_v6_small
+        print(f"""Route Table Summary:
+
+{n_v4_routes:-10} v4 routes
+{n_v6_small:-10} v6 routes (/64 or smaller)
+{n_v6_big:-10} v6 routes (bigger than /64)
+{n_v6:-10} v6 routes (total)
+{hw_entries_used:-10} approximate hw entries used
+""")
+
+
 class RouteTableDetailsCmd(cmds.FbossCmd):
     def run(self, ipv4, ipv6):
         with self._create_agent_client() as client, \
