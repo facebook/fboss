@@ -377,6 +377,9 @@ void BcmPort::program(const shared_ptr<Port>& port) {
     setFEC(port);
   }
 
+  // setting sflow rates must come before setting sample destination.
+  setSflowRates(port);
+
   // If no sample destination is provided, we configure it to be CPU, which is
   // the switch's default sample destination configuration
   if (port->getSampleDestination().hasValue()) {
@@ -399,7 +402,6 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   setPause(port);
   // Update Tx Setting if needed.
   setTxSetting(port);
-  setSflowRates(port);
   setLoopbackMode(port);
 }
 
