@@ -50,6 +50,26 @@ void assertPortsLoopbackMode(
   }
 }
 
+void assertPortSampleDestination(
+    int unit,
+    PortID port,
+    int expectedSampleDestination) {
+  int sampleDestination;
+  auto rv = opennsl_port_control_get(
+      unit, port, opennslPortControlSampleIngressDest, &sampleDestination);
+  bcmCheckError(rv, "Failed to get sample destination for port:", port);
+  CHECK_EQ(expectedSampleDestination, sampleDestination);
+}
+
+void assertPortsSampleDestination(
+    int unit,
+    const std::map<PortID, int>& port2SampleDestination) {
+  for (auto portAndSampleDestination : port2SampleDestination) {
+    assertPortSampleDestination(
+        unit, portAndSampleDestination.first, portAndSampleDestination.second);
+  }
+}
+
 opennsl_gport_t getPortGport(int unit, int port) {
   opennsl_gport_t portGport;
   auto rv = opennsl_port_gport_get(unit, port, &portGport);

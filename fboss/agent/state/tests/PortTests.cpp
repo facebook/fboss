@@ -39,6 +39,7 @@ TEST(Port, applyConfig) {
   EXPECT_EQ(cfg::PortState::DISABLED, portV0->getAdminState());
   Port::VlanMembership emptyVlans;
   EXPECT_EQ(emptyVlans, portV0->getVlans());
+  EXPECT_FALSE(portV0->getSampleDestination().hasValue());
 
   portV0->publish();
   EXPECT_TRUE(portV0->isPublished());
@@ -48,6 +49,8 @@ TEST(Port, applyConfig) {
   config.ports[0].logicalID = 1;
   config.ports[0].name_ref().value_unchecked() = "port1";
   config.ports[0].state = cfg::PortState::ENABLED;
+  config.ports[0].sampleDest_ref() = cfg::SampleDestination::MIRROR;
+  config.ports[0].sFlowIngressRate = 10;
   config.vlans.resize(2);
   config.vlans[0].id = 2;
   config.vlans[1].id = 5;
@@ -82,6 +85,9 @@ TEST(Port, applyConfig) {
   expectedVlans.insert(make_pair(VlanID(2), Port::VlanInfo(false)));
   expectedVlans.insert(make_pair(VlanID(5), Port::VlanInfo(true)));
   EXPECT_EQ(expectedVlans, portV1->getVlans());
+  EXPECT_TRUE(portV1->getSampleDestination().hasValue());
+  EXPECT_EQ(
+      cfg::SampleDestination::MIRROR, portV1->getSampleDestination().value());
 
   // Applying the same config again should result in no changes
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
@@ -105,6 +111,9 @@ TEST(Port, applyConfig) {
   EXPECT_EQ(cfg::PortState::ENABLED, portV2->getAdminState());
   EXPECT_FALSE(portV2->isPublished());
   EXPECT_EQ(expectedVlansV2, portV2->getVlans());
+  EXPECT_TRUE(portV1->getSampleDestination().hasValue());
+  EXPECT_EQ(
+      cfg::SampleDestination::MIRROR, portV1->getSampleDestination().value());
 
   // Applying the same config with a different speed should result in changes
   config.ports[0].speed = cfg::PortSpeed::GIGE;
@@ -167,6 +176,7 @@ TEST(Port, ToFromJSON) {
           "portSpeed" : "XG",
           "portFEC" : "OFF",
           "txPause" : true,
+          "sampleDest" : "MIRROR",
           "portLoopbackMode" : "PHY"
         }
   )";
@@ -188,6 +198,9 @@ TEST(Port, ToFromJSON) {
   EXPECT_EQ(cfg::PortFEC::OFF, port->getFEC());
   EXPECT_TRUE(port->getPause().tx);
   EXPECT_EQ(cfg::PortLoopbackMode::PHY, port->getLoopbackMode());
+  EXPECT_TRUE(port->getSampleDestination().hasValue());
+  EXPECT_EQ(
+      cfg::SampleDestination::MIRROR, port->getSampleDestination().value());
 
   auto queues = port->getPortQueues();
   EXPECT_EQ(4, queues.size());
@@ -465,6 +478,47 @@ TEST(Port, loopbackModeConfig) {
 
   expected = cfg::PortLoopbackMode::NONE;
   changeAndVerifyLoopbackMode(expected);
+}
+
+TEST(Port, sampleDestinationConfig) {
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+  state->registerPort(PortID(1), "port1");
+  auto changeAndVerifySampleDestination =
+      [](std::unique_ptr<MockPlatform>& platform,
+         std::shared_ptr<SwitchState>& state,
+         folly::Optional<cfg::SampleDestination> newDestination) {
+        auto oldDestination = state->getPort(PortID(1))->getSampleDestination();
+        cfg::SwitchConfig config;
+        config.ports.resize(1);
+        config.ports[0].logicalID = 1;
+        config.ports[0].name_ref().value_unchecked() = "port1";
+        config.ports[0].state = cfg::PortState::DISABLED;
+        if (newDestination.hasValue()) {
+          config.ports[0].sampleDest_ref() = newDestination.value();
+        }
+        auto newState = publishAndApplyConfig(state, &config, platform.get());
+
+        if (oldDestination != newDestination) {
+          EXPECT_NE(nullptr, newState);
+          state = newState;
+          auto portSampleDest =
+              state->getPort(PortID(1))->getSampleDestination();
+          EXPECT_EQ(portSampleDest, newDestination);
+        } else {
+          EXPECT_EQ(nullptr, newState);
+        }
+      };
+
+  // Verify the default sample destination is NONE
+  EXPECT_EQ(folly::none, state->getPort(PortID(1))->getSampleDestination());
+
+  // Now change it and verify change is properly configured
+  changeAndVerifySampleDestination(
+      platform, state, cfg::SampleDestination::MIRROR);
+  changeAndVerifySampleDestination(
+      platform, state, cfg::SampleDestination::CPU);
+  changeAndVerifySampleDestination(platform, state, folly::none);
 }
 
 TEST(PortMap, registerPorts) {

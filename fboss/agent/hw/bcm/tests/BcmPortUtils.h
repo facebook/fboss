@@ -25,9 +25,16 @@ cfg::PortSpeed currentPortSpeed(int unit, opennsl_port_t port);
 void assertPort(int unit, int port, bool enabled, cfg::PortSpeed speed);
 void assertPortStatus(int unit, int port);
 void assertPortLoopbackMode(int unit, PortID port, int expectedLoopbackMode);
+void assertPortSampleDestination(
+    int unit,
+    PortID port,
+    int expectedSampleDestination);
 void assertPortsLoopbackMode(
     int unit,
     const std::map<PortID, int>& port2LoopbackMode);
+void assertPortsSampleDestination(
+    int unit,
+    const std::map<PortID, int>& port2SampleDestination);
 
 void assertPortsFECStatus(
     int unit,
