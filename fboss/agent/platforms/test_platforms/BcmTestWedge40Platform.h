@@ -30,6 +30,10 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
     return false;
   }
 
+  bool mirrorPktTruncationSupported() const override {
+    return false;
+  }
+
   std::list<FlexPortMode> getSupportedFlexPortModes() const override {
     return {FlexPortMode::ONEX40G, FlexPortMode::FOURX10G};
   }

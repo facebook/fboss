@@ -33,6 +33,10 @@ class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
     return true;
   }
 
+  bool mirrorPktTruncationSupported() const override {
+    return true;
+  }
+
   std::list<FlexPortMode> getSupportedFlexPortModes() const override {
     // TODO(joseph5wu) Right now, we don't fully support flexport for TH3
     return {};

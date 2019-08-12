@@ -41,6 +41,9 @@ class WedgeTomahawkPlatform : public WedgePlatform {
   bool sflowSamplingSupported() const override {
     return true;
   }
+  bool mirrorPktTruncationSupported() const override {
+    return false;
+  }
   uint32_t maxLabelStackDepth() const override {
     return 3;
   }

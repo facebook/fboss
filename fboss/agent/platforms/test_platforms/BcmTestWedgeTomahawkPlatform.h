@@ -32,6 +32,10 @@ class BcmTestWedgeTomahawkPlatform : public BcmTestWedgePlatform {
   bool sflowSamplingSupported() const override {
     return true;
   }
+
+  bool mirrorPktTruncationSupported() const override {
+    return false;
+  }
   const PortQueue& getDefaultPortQueueSettings(
       cfg::StreamType streamType) const override;
   const PortQueue& getDefaultControlPlaneQueueSettings(
