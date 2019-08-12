@@ -184,6 +184,8 @@ struct MirrorDestination {
  *   - dscp, mark the mirrored packets with a DSCP marking for QoS
  *           classification. Note: DSCP marking is only 6 bits (0-63),
  *           not a full byte.
+ *   - truncate, flag whether mirrored packets should be truncated (if supported
+ *               by platform)
  *
  * Mirroring allows replication of data plane traffic to another destination
  * This destination can be specified either as an egress port, an egress port
@@ -227,6 +229,7 @@ struct Mirror {
   1: string name
   2: MirrorDestination destination
   3: byte dscp = DEFAULT_MIRROR_DSCP
+  4: bool truncate = false
 }
 
 /**
