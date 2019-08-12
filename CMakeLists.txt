@@ -661,6 +661,7 @@ add_executable(agent_test
        fboss/agent/test/ArpTest.cpp
        fboss/agent/test/CounterCache.cpp
        fboss/agent/test/DHCPv4HandlerTest.cpp
+       fboss/agent/test/EcmpSetupHelper.cpp
        fboss/agent/test/ICMPTest.cpp
        fboss/agent/test/IPv4Test.cpp
        fboss/agent/test/LldpManagerTest.cpp

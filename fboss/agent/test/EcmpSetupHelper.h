@@ -119,7 +119,7 @@ class EcmpSetupTargetedPorts
   using BaseEcmpSetupHelperT =
       BaseEcmpSetupHelper<IPAddrT, EcmpNextHop<IPAddrT>>;
   using RouteT = typename Route<IPAddrT>::Prefix;
-  using EcmpNextHop = EcmpNextHop<IPAddrT>;
+  using EcmpNextHopT = EcmpNextHop<IPAddrT>;
   explicit EcmpSetupTargetedPorts(
       const std::shared_ptr<SwitchState>& inputState,
       RouterID routerId = RouterID(0),
@@ -134,7 +134,7 @@ class EcmpSetupTargetedPorts
       RouteT routePrefix = RouteT{IPAddrT(), 0});
 
   virtual ~EcmpSetupTargetedPorts() override {}
-  EcmpNextHop nhop(PortDescriptor portDesc) const;
+  EcmpNextHopT nhop(PortDescriptor portDesc) const;
 
   RouteT routePrefix() const {
     return routePrefix_;
@@ -212,7 +212,7 @@ template <typename IPAddrT>
 class EcmpSetupAnyNPorts {
  public:
   using RouteT = typename Route<IPAddrT>::Prefix;
-  using EcmpNextHop = EcmpNextHop<IPAddrT>;
+  using EcmpNextHopT = EcmpNextHop<IPAddrT>;
   explicit EcmpSetupAnyNPorts(
       const std::shared_ptr<SwitchState>& inputState,
       RouterID routerId = RouterID(0),
@@ -227,10 +227,10 @@ class EcmpSetupAnyNPorts {
       : ecmpSetupTargetedPorts_(inputState, nextHopMac, routerId, routePrefix) {
   }
 
-  EcmpNextHop nhop(size_t id) const {
+  EcmpNextHopT nhop(size_t id) const {
     return getNextHops()[id];
   }
-  const std::vector<EcmpNextHop>& getNextHops() const {
+  const std::vector<EcmpNextHopT>& getNextHops() const {
     return ecmpSetupTargetedPorts_.getNextHops();
   }
   IPAddrT ip(size_t id) const {

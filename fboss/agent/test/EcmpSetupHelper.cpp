@@ -183,7 +183,7 @@ EcmpSetupTargetedPorts<IPAddrT>::EcmpSetupTargetedPorts(
     folly::Optional<folly::MacAddress> nextHopMac,
     RouterID routerId,
     typename EcmpSetupTargetedPorts<IPAddrT>::RouteT routePrefix)
-    : BaseEcmpSetupHelper<IPAddrT, EcmpNextHop>(),
+    : BaseEcmpSetupHelper<IPAddrT, EcmpNextHopT>(),
       routerId_(routerId),
       routePrefix_(routePrefix) {
   computeNextHops(inputState, nextHopMac);
@@ -210,7 +210,7 @@ void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     // Fail if we goto 255 at the last oct
     CHECK_GT(255, lastOctet);
     bytes[bytes.size() - 1] = static_cast<uint8_t>(lastOctet);
-    BaseEcmpSetupHelperT::nhops_.push_back(EcmpNextHop(
+    BaseEcmpSetupHelperT::nhops_.push_back(EcmpNextHopT(
         IPAddrT(bytes),
         portDescAndVlan.first,
         nextHopMac ? MacAddress::fromHBO(nextHopMac.value().u64HBO())
@@ -219,12 +219,12 @@ void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
 }
 
 template <typename IPAddrT>
-EcmpNextHop<IPAddrT> EcmpSetupTargetedPorts<IPAddrT>::nhop(
-    PortDescriptor portDesc) const {
+typename EcmpSetupTargetedPorts<IPAddrT>::EcmpNextHopT
+EcmpSetupTargetedPorts<IPAddrT>::nhop(PortDescriptor portDesc) const {
   auto it = std::find_if(
       BaseEcmpSetupHelperT::nhops_.begin(),
       BaseEcmpSetupHelperT::nhops_.end(),
-      [portDesc](const EcmpNextHop& nh) { return nh.portDesc == portDesc; });
+      [portDesc](const EcmpNextHopT& nh) { return nh.portDesc == portDesc; });
   if (it == BaseEcmpSetupHelperT::nhops_.end()) {
     throw FbossError("Could not find a nhop for: ", portDesc);
   }
