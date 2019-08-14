@@ -194,8 +194,8 @@ void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     const std::shared_ptr<SwitchState>& inputState,
     folly::Optional<folly::MacAddress> nextHopMac) {
   BaseEcmpSetupHelperT::portDesc2Vlan_ = computePortDesc2Vlan(inputState);
-  auto vlan2Subnet = computeVlan2Subnet(
-      inputState, folly::IPAddress(routePrefix_.network).isV6());
+  auto vlan2Subnet =
+      computeVlan2Subnet(inputState, BaseEcmpSetupHelperT::kIsV6);
   int offset = 0;
   auto baseMac = folly::MacAddress("01:00:00:00:00:00").u64HBO();
   for (const auto& portDescAndVlan : BaseEcmpSetupHelperT::portDesc2Vlan_) {
