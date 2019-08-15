@@ -2129,9 +2129,15 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
   }
 
   uint8_t dscpMark = mirrorConfig->get_dscp();
+  bool truncate = mirrorConfig->get_truncate();
 
   auto mirror = make_shared<Mirror>(
-      mirrorConfig->name, mirrorEgressPort, destinationIp, udpPorts, dscpMark);
+      mirrorConfig->name,
+      mirrorEgressPort,
+      destinationIp,
+      udpPorts,
+      dscpMark,
+      truncate);
   return mirror;
 }
 
@@ -2147,6 +2153,7 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
   }
   if (newMirror->getDestinationIp() == orig->getDestinationIp() &&
       newMirror->getDscp() == orig->getDscp() &&
+      newMirror->getTruncate() == orig->getTruncate() &&
       (!newMirror->configHasEgressPort() ||
        newMirror->getEgressPort() == orig->getEgressPort())) {
     newMirror->setMirrorTunnel(orig->getMirrorTunnel().value());

@@ -1122,6 +1122,18 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
   isValid = isValid &&
       (newState->getMirrors()->size() <= bcmswitch_constants::MAX_MIRRORS_);
 
+  forEachChanged(
+      delta.getMirrorsDelta(),
+      [&](const shared_ptr<Mirror>& /* oldMirror */,
+          const shared_ptr<Mirror>& newMirror) {
+        if (newMirror->getTruncate() &&
+            !getPlatform()->mirrorPktTruncationSupported()) {
+          XLOG(ERR)
+              << "Mirror packet truncation is not supported on this platform";
+          isValid = false;
+        }
+      });
+
   forEachAdded(
       delta.getQosPoliciesDelta(),
       [&](const std::shared_ptr<QosPolicy>& qosPolicy) {
