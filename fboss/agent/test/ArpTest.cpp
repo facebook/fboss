@@ -216,7 +216,6 @@ getArpEntry(SwSwitch* sw, IPAddressV4 ip, VlanID vlanID = VlanID(1)) {
       ->getVlanIf(vlanID)
       ->getArpTable()
       ->getEntryIf(ip);
-  return nullptr;
 }
 
 /* This helper sends an arp request for targetIP and verifies it was correctly
