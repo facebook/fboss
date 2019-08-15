@@ -132,3 +132,21 @@ TEST_F(PortApiTest, removePort) {
     }
   }
 }
+
+TEST_F(PortApiTest, getLaneListPresized) {
+  std::vector<uint32_t> inLanes{0, 1, 2, 3};
+  auto portId = createPort(100000, inLanes, true);
+  std::vector<uint32_t> tempLanes;
+  tempLanes.resize(4);
+  PortApiParameters::Attributes::HwLaneList hwLaneListAttr{tempLanes};
+  auto gotLanes = portApi->getAttribute(hwLaneListAttr, portId);
+  EXPECT_EQ(gotLanes, inLanes);
+}
+
+TEST_F(PortApiTest, getLaneListUnsized) {
+  std::vector<uint32_t> inLanes{0, 1, 2, 3};
+  auto portId = createPort(100000, inLanes, true);
+  PortApiParameters::Attributes::HwLaneList hwLaneListAttr;
+  auto gotLanes = portApi->getAttribute(hwLaneListAttr, portId);
+  EXPECT_EQ(gotLanes, inLanes);
+}

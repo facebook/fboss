@@ -66,6 +66,10 @@ sai_status_t get_next_hop_group_attribute_fn(
       case SAI_NEXT_HOP_GROUP_ATTR_NEXT_HOP_MEMBER_LIST: {
         const auto& nextHopGroupMemberMap =
             fs->nhgm.get(next_hop_group_id).fm().map();
+        if (nextHopGroupMemberMap.size() > attr[i].value.objlist.count) {
+          attr[i].value.objlist.count = nextHopGroupMemberMap.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
         attr[i].value.objlist.count = nextHopGroupMemberMap.size();
         int j = 0;
         for (const auto& m : nextHopGroupMemberMap) {

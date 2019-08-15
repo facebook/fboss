@@ -91,6 +91,17 @@ class SaiApi {
       Args&&... args) {
     sai_status_t status =
         impl()._getAttr(attr.saiAttr(), std::forward<Args>(args)...);
+    /*
+     * If this is a list attribute and we have not allocated enough
+     * memory for the data coming from SAI, the Adapter will return
+     * SAI_STATUS_BUFFER_OVERFLOW and fill in `count` in the list object.
+     * We can take advantage of that to allocate a proper buffer and
+     * try the get again.
+     */
+    if (status == SAI_STATUS_BUFFER_OVERFLOW) {
+      attr.realloc();
+      status = impl()._getAttr(attr.saiAttr(), std::forward<Args>(args)...);
+    }
     saiApiCheckError(
         status, ApiParameters::ApiType, "Failed to get sai attribute");
     return attr.value();

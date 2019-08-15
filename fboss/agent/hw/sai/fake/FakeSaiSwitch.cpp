@@ -88,6 +88,10 @@ sai_status_t get_switch_attribute_fn(
         attr[i].value.u32 = fs->pm.map().size();
         break;
       case SAI_SWITCH_ATTR_PORT_LIST: {
+        if (fs->pm.map().size() > attr[i].value.objlist.count) {
+          attr[i].value.objlist.count = fs->pm.map().size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
         attr[i].value.objlist.count = fs->pm.map().size();
         int j = 0;
         for (const auto& p : fs->pm.map()) {

@@ -58,6 +58,10 @@ sai_status_t get_vlan_attribute_fn(
     switch (attr[i].id) {
       case SAI_VLAN_ATTR_MEMBER_LIST: {
         const auto& vlanMemberMap = fs->vm.get(vlan_id).fm().map();
+        if (vlanMemberMap.size() > attr[i].value.objlist.count) {
+          attr[i].value.objlist.count = vlanMemberMap.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
         attr[i].value.objlist.count = vlanMemberMap.size();
         int j = 0;
         for (const auto& m : vlanMemberMap) {

@@ -105,6 +105,10 @@ sai_status_t get_port_attribute_fn(
         attr[i].value.booldata = port.adminState;
         break;
       case SAI_PORT_ATTR_HW_LANE_LIST:
+        if (port.lanes.size() > attr[i].value.u32list.count) {
+          attr[i].value.u32list.count = port.lanes.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
         for (int j = 0; j < port.lanes.size(); ++j) {
           attr[i].value.u32list.list[j] = port.lanes[j];
         }

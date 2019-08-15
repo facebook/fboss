@@ -216,6 +216,20 @@ void _fill(const SaiListT& src, std::vector<T>& dst) {
   dst.resize(src.count);
   std::copy(src.list, src.list + src.count, std::begin(dst));
 }
+
+template <typename SrcT, typename DstT>
+void _realloc(const SrcT& src, DstT& dst) {
+  XLOG(FATAL) << "Unexpected call to fully generic _realloc";
+}
+
+template <typename SaiListT, typename T>
+void _realloc(const SaiListT& src, std::vector<T>& dst) {
+  static_assert(
+      std::is_same<decltype(src.list), T*>::value,
+      "pointer in sai list doesn't match vector type");
+  dst.resize(src.count);
+}
+
 } // namespace
 
 namespace facebook {
@@ -269,6 +283,10 @@ class SaiAttribute<
 
   std::vector<sai_attribute_t> saiAttrs() const {
     return {saiAttr_};
+  }
+
+  void realloc() {
+    XLOG(FATAL) << "Unexpected realloc on SaiAttribute with primitive DataT";
   }
 
   bool operator==(const SaiAttribute& other) const {
@@ -363,6 +381,19 @@ class SaiAttribute<
     ValueType v;
     _fill(data(), v);
     return v;
+  }
+
+  /*
+   * Value based Attributes will often require caller allocation. For
+   * example, we need to allocate an array for "list" attributes.
+   * However, in some get cases, we need to make an initial get call
+   * with an unallocated input, then do the actual allocation based on
+   * what the Adapter puts in the sai_attribute_t. In those cases, the Api
+   * class will call realloc() to trigger that reallocation.
+   */
+  void realloc() {
+    _realloc(data(), value_);
+    _fill(value_, data());
   }
 
   sai_attribute_t* saiAttr() {

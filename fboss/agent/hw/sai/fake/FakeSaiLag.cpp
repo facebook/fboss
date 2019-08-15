@@ -50,6 +50,10 @@ sai_status_t get_lag_attribute_fn(
     switch (attr[i].id) {
       case SAI_LAG_ATTR_PORT_LIST: {
         const auto& lagMemberMap = fs->lm.get(lag_id).fm().map();
+        if (lagMemberMap.size() > attr[i].value.objlist.count) {
+          attr[i].value.objlist.count = lagMemberMap.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
         attr[i].value.objlist.count = lagMemberMap.size();
         int j = 0;
         for (const auto& m : lagMemberMap) {
