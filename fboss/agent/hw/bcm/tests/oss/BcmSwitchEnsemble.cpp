@@ -8,9 +8,8 @@
  *
  */
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
-
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/bcm/tests/facebook/BcmLinkStateToggler.h"
+#include "fboss/agent/hw/test/HwLinkStateToggler.h"
 
 #include <memory>
 
