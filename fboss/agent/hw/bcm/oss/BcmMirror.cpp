@@ -8,13 +8,15 @@ namespace fboss {
 BcmMirrorDestination::BcmMirrorDestination(
     int /*unit*/,
     BcmPort* /*egressPort*/,
-    uint8_t /* dscp */) {}
+    uint8_t /* dscp */,
+    bool /*truncate*/) {}
 
 BcmMirrorDestination::BcmMirrorDestination(
     int /*unit*/,
     BcmPort* /*egressPort*/,
     const MirrorTunnel& /*mirrorTunnel*/,
-    uint8_t /*dscp*/) {}
+    uint8_t /*dscp*/,
+    bool /*truncate*/) {}
 
 BcmMirrorDestination::~BcmMirrorDestination() {}
 
