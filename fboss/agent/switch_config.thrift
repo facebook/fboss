@@ -175,7 +175,7 @@ struct MirrorDestination {
 }
 
  // default DSCP marking for mirrored packets
- const byte DEFAULT_MIRROR_DSCP = 0
+ const byte DEFAULT_MIRROR_DSCP = 11
 
 /*
  * Mirror,
