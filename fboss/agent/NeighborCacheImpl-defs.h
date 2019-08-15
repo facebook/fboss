@@ -353,6 +353,9 @@ template <typename NTable>
 void NeighborCacheImpl<NTable>::flushEntry(AddressType ip, bool* flushed) {
   // remove from cache
   if (!removeEntry(ip)) {
+    if (flushed) {
+      *flushed = false;
+    }
     return;
   }
 
