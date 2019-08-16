@@ -667,6 +667,10 @@ add_executable(agent_test
        fboss/agent/test/LldpManagerTest.cpp
        fboss/agent/test/MockTunManager.cpp
        fboss/agent/test/NDPTest.cpp
+       fboss/agent/test/ResourceLibUtil.cpp
+       fboss/agent/test/ResourceLibUtilTest.cpp
+       fboss/agent/test/RouteDistributionGenerator.cpp
+       fboss/agent/test/RouteDistributionGeneratorTest.cpp
        fboss/agent/test/RouteUpdateLoggerTest.cpp
        fboss/agent/test/RouteUpdateLoggingTrackerTest.cpp
        fboss/agent/test/StaticRoutes.cpp
