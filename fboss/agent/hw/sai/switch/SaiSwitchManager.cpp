@@ -22,7 +22,7 @@ namespace {
 using namespace facebook::fboss;
 
 std::vector<int8_t> getConnectionHandle() {
-  static const char connStr[] = "/dev/testdev/socket/0.0.0.0:40000";
+  static const char connStr[] = "/dev/testdev0/socket/0.0.0.0:40000";
   return std::vector<int8_t>{std::begin(connStr), std::end(connStr)};
 }
 
