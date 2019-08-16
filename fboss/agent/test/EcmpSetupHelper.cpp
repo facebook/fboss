@@ -364,9 +364,10 @@ template <typename IPAddrT>
 std::shared_ptr<SwitchState> EcmpSetupAnyNPorts<IPAddrT>::setupECMPForwarding(
     const std::shared_ptr<SwitchState>& inputState,
     size_t ecmpWidth,
+    const std::vector<RouteT>& prefixes,
     const std::vector<NextHopWeight>& weights) const {
   return ecmpSetupTargetedPorts_.setupECMPForwarding(
-      inputState, getPortDescs(ecmpWidth), {routePrefix_}, weights);
+      inputState, getPortDescs(ecmpWidth), prefixes, weights);
 }
 
 template <typename IPAddrT>

@@ -99,19 +99,23 @@ void RouteDistributionGenerator::genRouteDistribution(
     // Else last update was full or we are just staring.
     curState = generatedStates_->back()->clone();
   }
+  std::vector<typename PrefixGenerator<AddrT>::ResourceT> prefixChunk;
+  EcmpSetupAnyNPorts<AddrT> ecmpHelper(curState, routerId_);
   for (const auto& maskLenAndNumPrefixes : routeDistribution) {
     auto prefixGenerator = PrefixGenerator<AddrT>(maskLenAndNumPrefixes.first);
     for (auto i = 0; i < maskLenAndNumPrefixes.second; ++i) {
-      auto prefix = genNewPrefix(prefixGenerator, curState, routerId_);
-      EcmpSetupAnyNPorts<AddrT> ecmpHelper(curState, routerId_, prefix);
-      curState = ecmpHelper.setupECMPForwarding(curState, ecmpWidth_);
+      prefixChunk.emplace_back(
+          genNewPrefix(prefixGenerator, curState, routerId_));
       if (++*trailingUpdateSize % chunkSize_ == 0) {
+        curState =
+            ecmpHelper.setupECMPForwarding(curState, ecmpWidth_, prefixChunk);
         // If curState has added chunkSize routes, publish
         // it and start fillin in a new state
         curState->publish();
         generatedStates_->push_back(curState);
         curState = generatedStates_->back()->clone();
         *trailingUpdateSize = 0;
+        prefixChunk.clear();
       }
     }
   }
@@ -119,6 +123,8 @@ void RouteDistributionGenerator::genRouteDistribution(
     // We are done adding routes for this distribution. Add the
     // state update if we didn't add it in already (by reaching
     // chunk size)
+    curState =
+        ecmpHelper.setupECMPForwarding(curState, ecmpWidth_, prefixChunk);
     generatedStates_->push_back(curState);
   }
 }

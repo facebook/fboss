@@ -209,17 +209,14 @@ class EcmpSetupAnyNPorts {
   using EcmpNextHopT = EcmpNextHop<IPAddrT>;
   explicit EcmpSetupAnyNPorts(
       const std::shared_ptr<SwitchState>& inputState,
-      RouterID routerId = RouterID(0),
-      RouteT routePrefix = RouteT{IPAddrT(), 0})
-      : EcmpSetupAnyNPorts(inputState, folly::none, routerId, routePrefix) {}
+      RouterID routerId = RouterID(0))
+      : EcmpSetupAnyNPorts(inputState, folly::none, routerId) {}
 
   EcmpSetupAnyNPorts(
       const std::shared_ptr<SwitchState>& inputState,
       const folly::Optional<folly::MacAddress>& nextHopMac,
-      RouterID routerId = RouterID(0),
-      RouteT routePrefix = RouteT{IPAddrT(), 0})
-      : ecmpSetupTargetedPorts_(inputState, nextHopMac, routerId),
-        routePrefix_(routePrefix) {}
+      RouterID routerId = RouterID(0))
+      : ecmpSetupTargetedPorts_(inputState, nextHopMac, routerId) {}
 
   EcmpNextHopT nhop(size_t id) const {
     return getNextHops()[id];
@@ -229,10 +226,6 @@ class EcmpSetupAnyNPorts {
   }
   IPAddrT ip(size_t id) const {
     return nhop(id).ip;
-  }
-
-  RouteT routePrefix() const {
-    return routePrefix_;
   }
 
   RouterID getRouterId() const {
@@ -270,6 +263,7 @@ class EcmpSetupAnyNPorts {
   std::shared_ptr<SwitchState> setupECMPForwarding(
       const std::shared_ptr<SwitchState>& inputState,
       size_t width,
+      const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
       const std::vector<NextHopWeight>& weights =
           std::vector<NextHopWeight>()) const;
 
@@ -280,7 +274,6 @@ class EcmpSetupAnyNPorts {
  private:
   boost::container::flat_set<PortDescriptor> getPortDescs(int width) const;
   EcmpSetupTargetedPorts<IPAddrT> ecmpSetupTargetedPorts_;
-  RouteT routePrefix_;
 };
 
 using EcmpSetupAnyNPorts4 = EcmpSetupAnyNPorts<folly::IPAddressV4>;
