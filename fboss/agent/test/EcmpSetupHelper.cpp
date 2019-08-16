@@ -181,11 +181,8 @@ template <typename IPAddrT>
 EcmpSetupTargetedPorts<IPAddrT>::EcmpSetupTargetedPorts(
     const std::shared_ptr<SwitchState>& inputState,
     folly::Optional<folly::MacAddress> nextHopMac,
-    RouterID routerId,
-    typename EcmpSetupTargetedPorts<IPAddrT>::RouteT routePrefix)
-    : BaseEcmpSetupHelper<IPAddrT, EcmpNextHopT>(),
-      routerId_(routerId),
-      routePrefix_(routePrefix) {
+    RouterID routerId)
+    : BaseEcmpSetupHelper<IPAddrT, EcmpNextHopT>(), routerId_(routerId) {
   computeNextHops(inputState, nextHopMac);
 }
 
@@ -236,6 +233,7 @@ std::shared_ptr<SwitchState>
 EcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
     const std::shared_ptr<SwitchState>& inputState,
     const flat_set<PortDescriptor>& portDescriptors,
+    const std::vector<RouteT>& prefixes,
     const std::vector<NextHopWeight>& weights) const {
   std::vector<NextHopWeight> hopWeights;
   if (!weights.size()) {
@@ -258,12 +256,14 @@ EcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
   }
   const auto& tables1 = outputState->getRouteTables();
   RouteUpdater u2(tables1);
-  u2.addRoute(
-      routerId_,
-      folly::IPAddress(routePrefix_.network),
-      routePrefix_.mask,
-      ClientID(1001),
-      RouteNextHopEntry(nhops, AdminDistance::STATIC_ROUTE));
+  for (const auto& prefix : prefixes) {
+    u2.addRoute(
+        routerId_,
+        folly::IPAddress(prefix.network),
+        prefix.mask,
+        ClientID(1001),
+        RouteNextHopEntry(nhops, AdminDistance::STATIC_ROUTE));
+  }
 
   auto tables2 = u2.updateDone();
   tables2->publish();
@@ -278,6 +278,7 @@ EcmpSetupTargetedPorts<IPAddrT>::setupIp2MplsECMPForwarding(
     const std::shared_ptr<SwitchState>& inputState,
     const boost::container::flat_set<PortDescriptor>& portDescriptors,
     std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks,
+    const std::vector<RouteT>& prefixes,
     const std::vector<NextHopWeight>& weights) const {
   std::vector<NextHopWeight> hopWeights;
   std::vector<NextHopWeight> forwardingActions;
@@ -312,13 +313,14 @@ EcmpSetupTargetedPorts<IPAddrT>::setupIp2MplsECMPForwarding(
   }
   const auto& tables1 = outputState->getRouteTables();
   RouteUpdater u2(tables1);
-  u2.addRoute(
-      routerId_,
-      folly::IPAddress(routePrefix_.network),
-      routePrefix_.mask,
-      ClientID(1001),
-      RouteNextHopEntry(nhops, AdminDistance::STATIC_ROUTE));
-
+  for (const auto& prefix : prefixes) {
+    u2.addRoute(
+        routerId_,
+        folly::IPAddress(prefix.network),
+        prefix.mask,
+        ClientID(1001),
+        RouteNextHopEntry(nhops, AdminDistance::STATIC_ROUTE));
+  }
   auto tables2 = u2.updateDone();
   tables2->publish();
 
@@ -364,7 +366,7 @@ std::shared_ptr<SwitchState> EcmpSetupAnyNPorts<IPAddrT>::setupECMPForwarding(
     size_t ecmpWidth,
     const std::vector<NextHopWeight>& weights) const {
   return ecmpSetupTargetedPorts_.setupECMPForwarding(
-      inputState, getPortDescs(ecmpWidth), weights);
+      inputState, getPortDescs(ecmpWidth), {routePrefix_}, weights);
 }
 
 template <typename IPAddrT>
