@@ -73,6 +73,79 @@ THAlpmRouteScaleGenerator::THAlpmRouteScaleGenerator(
           chunkSize,
           ecmpWidth) {}
 
+HgridDuRouteScaleGenerator::HgridDuRouteScaleGenerator(
+    const std::shared_ptr<SwitchState>& startingState,
+    unsigned int chunkSize,
+    unsigned int ecmpWidth)
+    : routeDistributionGen_(
+          startingState,
+          // v6 distribution
+          {
+              {37, 8},
+              {47, 8},
+              {46, 768},
+              {52, 256},
+              {54, 1},
+              {56, 768},
+              {57, 2},
+              {59, 768},
+              {60, 768},
+              {64, 16344},
+              {127, 128},
+              {128, 1},
+          },
+          // v4 distribution
+          {
+
+              {19, 1},
+              {24, 99},
+              {26, 96},
+              {27, 384},
+              {31, 128},
+              {32, 16721},
+          },
+          chunkSize,
+          ecmpWidth) {}
+
+HgridUuRouteScaleGenerator::HgridUuRouteScaleGenerator(
+    const std::shared_ptr<SwitchState>& startingState,
+    unsigned int chunkSize,
+    unsigned int ecmpWidth)
+    : routeDistributionGen_(
+          startingState,
+          // v6 distribution
+          {
+              {127, 128},
+              {128, 1226},
+              {24, 1},
+              {37, 37},
+              {44, 18},
+              {46, 1048},
+              {47, 8},
+              {48, 25},
+              {52, 304},
+              {54, 16},
+              {56, 768},
+              {57, 136},
+              {59, 770},
+              {60, 783},
+              {61, 28},
+              {62, 240},
+              {63, 2091},
+              {64, 23393},
+          },
+          // v4 distribution
+          {
+
+              {19, 8},
+              {21, 1},
+              {24, 152},
+              {27, 416},
+              {31, 128},
+              {32, 16625},
+          },
+          chunkSize,
+          ecmpWidth) {}
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

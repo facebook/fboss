@@ -61,6 +61,33 @@ class THAlpmRouteScaleGenerator {
   RouteDistributionGenerator routeDistributionGen_;
 };
 
+class HgridDuRouteScaleGenerator {
+ public:
+  explicit HgridDuRouteScaleGenerator(
+      const std::shared_ptr<SwitchState>& startingState,
+      unsigned int chunkSize = kDefaultChunkSize,
+      unsigned int ecmpWidth = kDefaulEcmpWidth);
+  std::vector<std::shared_ptr<SwitchState>> get() {
+    return routeDistributionGen_.get();
+  }
+
+ private:
+  RouteDistributionGenerator routeDistributionGen_;
+};
+
+class HgridUuRouteScaleGenerator {
+ public:
+  explicit HgridUuRouteScaleGenerator(
+      const std::shared_ptr<SwitchState>& startingState,
+      unsigned int chunkSize = kDefaultChunkSize,
+      unsigned int ecmpWidth = kDefaulEcmpWidth);
+  std::vector<std::shared_ptr<SwitchState>> get() {
+    return routeDistributionGen_.get();
+  }
+
+ private:
+  RouteDistributionGenerator routeDistributionGen_;
+};
 } // namespace utility
 } // namespace fboss
 } // namespace facebook
