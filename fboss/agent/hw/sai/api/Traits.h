@@ -85,7 +85,7 @@ struct apiHasMembers<HostifApiParameters> : public std::true_type {};
  */
 template <typename T>
 struct WrappedSaiType {
-  using value = void;
+  using value = T;
 };
 
 template <>
@@ -149,11 +149,8 @@ struct WrappedSaiType<std::vector<sai_uint32_t>> {
 };
 
 template <typename T>
-struct IsSaiTypeWrapper {
-  // TODO(borisb): replace with std::negation when we can rely on c++17
-  static constexpr bool value =
-      !std::is_same<typename WrappedSaiType<T>::value, void>::value;
-};
+struct IsSaiTypeWrapper
+    : std::negation<std::is_same<typename WrappedSaiType<T>::value, T>> {};
 
 /*
  * Helper metafunctions for resolving two types in the SAI
@@ -183,11 +180,29 @@ struct DuplicateTypeFixer<folly::IPAddressV4> {
 };
 
 template <typename T>
-struct IsDuplicateSaiType {
-  // TODO(borisb): replace with std::negation when we can rely on c++17
-  static constexpr bool value =
-      !std::is_same<typename DuplicateTypeFixer<T>::value, T>::value;
-};
+struct IsDuplicateSaiType
+    : std::negation<std::is_same<typename DuplicateTypeFixer<T>::value, T>> {};
+
+template <typename T>
+struct IsSaiAttribute : public std::false_type {};
+
+template <typename T>
+struct IsSaiEntryStruct : public std::false_type {};
+
+template <typename SaiObjectTraits>
+struct AdapterKeyIsEntryStruct
+    : public IsSaiEntryStruct<typename SaiObjectTraits::AdapterHostKey> {};
+
+template <typename SaiObjectTraits>
+struct AdapterKeyIsObjectId
+    : std::negation<AdapterKeyIsEntryStruct<SaiObjectTraits>> {};
+
+template <typename T>
+struct IsTupleOfSaiAttributes : public std::false_type {};
+
+template <typename... AttrTs>
+struct IsTupleOfSaiAttributes<std::tuple<AttrTs...>>
+    : std::conjunction<IsSaiAttribute<AttrTs>...> {};
 
 } // namespace fboss
 } // namespace facebook

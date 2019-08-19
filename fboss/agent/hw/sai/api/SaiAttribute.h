@@ -434,5 +434,11 @@ class SaiAttribute<
   sai_attribute_t saiAttr_;
   ValueType value_;
 };
+
+// implement trait that detects SaiAttribute
+template <typename AttrEnumT, AttrEnumT AttrEnum, typename DataT>
+struct IsSaiAttribute<SaiAttribute<AttrEnumT, AttrEnum, DataT, void>>
+    : public std::true_type {};
+
 } // namespace fboss
 } // namespace facebook
