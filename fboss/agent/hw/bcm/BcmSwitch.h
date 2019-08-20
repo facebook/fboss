@@ -708,7 +708,6 @@ class BcmSwitch : public BcmSwitchIf {
    */
   bool haveMissingOrQSetChangedFPGroups() const;
   void setupFPGroups();
-  void enableMacAging(int seconds);
 
   /*
    * Forces a linkscan pass on the provided ports.
@@ -732,6 +731,7 @@ class BcmSwitch : public BcmSwitchIf {
    * Returns false if it is there for another reason as well.
    */
   bool handleSflowPacket(opennsl_pkt_t* pkt) noexcept;
+
 
   /**
    * Exports the sdk version we build against.

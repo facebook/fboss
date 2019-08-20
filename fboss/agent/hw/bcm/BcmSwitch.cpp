@@ -114,14 +114,6 @@ using folly::IPAddress;
 
 using namespace std::chrono;
 
-/**
- * Set L2 Aging to 5 mins by default, same as Arista -
- * https://www.arista.com/en/um-eos/eos-section-19-3-mac-address-table
- */
-DEFINE_int32(
-    l2AgeTimerSeconds,
-    300,
-    "Time to transition L2 from hit -> miss -> removed");
 DEFINE_int32(linkscan_interval_us, 250000, "The Broadcom linkscan interval");
 DEFINE_bool(flexports, false, "Load the agent with flexport support enabled");
 DEFINE_int32(
@@ -453,29 +445,6 @@ void BcmSwitch::setupLinkscan() {
   }
 }
 
-void BcmSwitch::enableMacAging(int seconds) {
-  /**
-   * Enable MAC aging on the ASIC.
-   * Every `seconds` seconds, all addresses
-   * that have not been updated/used since the last age timer interval
-   * are removed from the table.
-   *
-   * only set if timer is different than what's currently set
-   */
-  int current_seconds;
-  bcmCheckError(
-      opennsl_l2_age_timer_get(unit_, &current_seconds),
-      "failed to get l2_age_timer");
-  if (current_seconds != seconds) {
-    XLOG(DBG1) << "Changing MAC Aging timer from " << current_seconds
-      << " to " << seconds;
-    bcmCheckError(
-        opennsl_l2_age_timer_set(unit_, FLAGS_l2AgeTimerSeconds),
-        "failed to set l2_age_timer");
-  }
-
-}
-
 HwInitResult BcmSwitch::init(Callback* callback) {
   HwInitResult ret;
 
@@ -622,8 +591,6 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   } else {
     ret.switchState = getColdBootSwitchState();
   }
-
-  enableMacAging(FLAGS_l2AgeTimerSeconds);
 
   ret.bootTime =
       duration_cast<duration<float>>(steady_clock::now() - begin).count();
