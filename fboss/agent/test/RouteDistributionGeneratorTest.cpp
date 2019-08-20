@@ -17,7 +17,7 @@
 namespace facebook {
 namespace fboss {
 
-TEST(RouteScaleGeneratorsTest, v4AndV6DistributionSingleChunk) {
+TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionSingleChunk) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
   auto switchStates = utility::RouteDistributionGenerator(
                           createTestState(mockPlatform.get()),
@@ -37,7 +37,7 @@ TEST(RouteScaleGeneratorsTest, v4AndV6DistributionSingleChunk) {
   verifyChunking(switchStates, 20, 4000);
 }
 
-TEST(RouteScaleGeneratorsTest, v4AndV6DistributionMultipleChunks) {
+TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionMultipleChunks) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
   auto switchStates = utility::RouteDistributionGenerator(
                           createTestState(mockPlatform.get()),
@@ -57,7 +57,9 @@ TEST(RouteScaleGeneratorsTest, v4AndV6DistributionMultipleChunks) {
   verifyChunking(switchStates, 20, 10);
 }
 
-TEST(RouteScaleGeneratorsTest, v4AndV6DistributionChunksSpillOverMaskLens) {
+TEST(
+    RouteDistributionGeneratorsTest,
+    v4AndV6DistributionChunksSpillOverMaskLens) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
   auto switchStates = utility::RouteDistributionGenerator(
                           createTestState(mockPlatform.get()),
@@ -78,7 +80,7 @@ TEST(RouteScaleGeneratorsTest, v4AndV6DistributionChunksSpillOverMaskLens) {
 }
 
 TEST(
-    RouteScaleGeneratorsTest,
+    RouteDistributionGeneratorsTest,
     v4AndV6DistributionChunksSpillOverAddressFamilies) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
   auto switchStates = utility::RouteDistributionGenerator(

@@ -38,7 +38,7 @@ class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
   }
 
   bool canUseHostTableForHostRoutes() const override {
-    return false;
+    return true;
   }
   std::list<FlexPortMode> getSupportedFlexPortModes() const override {
     // TODO(joseph5wu) Right now, we don't fully support flexport for TH3
