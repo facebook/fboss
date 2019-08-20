@@ -100,5 +100,42 @@ TEST(
   EXPECT_EQ(getRouteCount(switchStates.back()), 20 + kExtraRoutes);
   verifyChunking(switchStates, 20, 5);
 }
+
+TEST(RouteDistributionGeneratorsTest, emptyV4Distribution) {
+  auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
+  auto switchStates = utility::RouteDistributionGenerator(
+                          createTestState(mockPlatform.get()),
+                          {
+                              {65, 5},
+                          },
+                          {},
+                          5,
+                          2)
+                          .get();
+
+  EXPECT_EQ(getRouteCount(switchStates.back()), 5 + kExtraRoutes);
+  verifyChunking(switchStates, 5, 5);
+}
+
+TEST(RouteDistributionGeneratorsTest, emptyV6Distribution) {
+  auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
+  auto switchStates =
+      utility::RouteDistributionGenerator(
+          createTestState(mockPlatform.get()), {}, {{24, 5}}, 5, 2)
+          .get();
+
+  EXPECT_EQ(getRouteCount(switchStates.back()), 5 + kExtraRoutes);
+  verifyChunking(switchStates, 5, 5);
+}
+
+TEST(RouteDistributionGeneratorsTest, emptyV4AndV6Distribution) {
+  auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
+  auto switchStates = utility::RouteDistributionGenerator(
+                          createTestState(mockPlatform.get()), {}, {}, 5, 2)
+                          .get();
+
+  EXPECT_EQ(getRouteCount(switchStates.back()), kExtraRoutes);
+  verifyChunking(switchStates, 0, 5);
+}
 } // namespace fboss
 } // namespace facebook
