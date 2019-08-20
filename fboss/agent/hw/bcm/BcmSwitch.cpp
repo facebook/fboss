@@ -2111,7 +2111,7 @@ void BcmSwitch::processChangedLabelForwardingEntry(
       newEntry->getID(), newEntry->getLabelNextHop());
 }
 
-bool BcmSwitch::isAlpmEnabled() {
+bool BcmSwitch::isAlpmEnabled() const {
   return BcmAPI::getConfigValue(kAlpmSetting);
 }
 

@@ -462,6 +462,10 @@ class BcmSwitch : public BcmSwitchIf {
   void printDiagCmd(const std::string& cmd) const;
 
   /*
+   * Returns whether ALPM has been enabled via the sdk
+   */
+  bool isAlpmEnabled() const;
+  /*
    * Friend tests. We want the abilty to test private methods
    * without comprimising encapsulation for code generally.
    * To that end make tests friends, but no one else
@@ -771,8 +775,6 @@ class BcmSwitch : public BcmSwitchIf {
       const std::shared_ptr<Port>& newPort,
       const std::shared_ptr<SwitchState>& newState) const;
 
-  // Returns whether ALPM has been enabled via the sdk
-  bool isAlpmEnabled();
 
   MmuState queryMmuState() const;
   void exportDeviceBufferUsage();
