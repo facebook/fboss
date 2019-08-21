@@ -27,7 +27,7 @@ SaiApiTable::SaiApiTable() {
   queueApi_ = std::make_unique<QueueApi>();
   routeApi_ = std::make_unique<RouteApi>();
   routerInterfaceApi_ = std::make_unique<RouterInterfaceApi>();
-  // schedulerApi_ = std::make_unique<SchedulerApi>();
+  schedulerApi_ = std::make_unique<SchedulerApi>();
   switchApi_ = std::make_unique<SwitchApi>();
   virtualRouterApi_ = std::make_unique<VirtualRouterApi>();
   vlanApi_ = std::make_unique<VlanApi>();
