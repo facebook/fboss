@@ -24,6 +24,7 @@ SaiApiTable::SaiApiTable() {
   nextHopGroupApi_ = std::make_unique<NextHopGroupApi>();
   neighborApi_ = std::make_unique<NeighborApi>();
   portApi_ = std::make_unique<PortApi>();
+  // queueApi_ = std::make_unique<QueueApi>();
   routeApi_ = std::make_unique<RouteApi>();
   routerInterfaceApi_ = std::make_unique<RouterInterfaceApi>();
   switchApi_ = std::make_unique<SwitchApi>();
