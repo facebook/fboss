@@ -23,6 +23,7 @@ namespace fboss {
 class SaiBridgePort;
 class SaiManagerTable;
 class SaiPlatform;
+class SaiQueue;
 
 class SaiPort {
  public:
@@ -54,6 +55,8 @@ class SaiPort {
   }
   void setPortVlan(VlanID vlanId);
   VlanID getPortVlan() const;
+  void updateQueue(const QueueConfig& portQueues) const;
+  void createQueue(const QueueConfig& portQueues);
 
  private:
   SaiApiTable* apiTable_;
@@ -62,6 +65,7 @@ class SaiPort {
   sai_object_id_t id_;
   VlanID vlanId_{0};
   std::unique_ptr<SaiBridgePort> bridgePort_;
+  std::unordered_map<uint8_t, std::unique_ptr<SaiQueue>> queues_;
 };
 
 class SaiPortManager {

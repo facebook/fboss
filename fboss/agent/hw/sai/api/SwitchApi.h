@@ -61,6 +61,12 @@ struct SwitchApiParameters {
         EnumType,
         SAI_SWITCH_ATTR_MAX_NUMBER_OF_SUPPORTED_PORTS,
         sai_uint32_t>;
+    using NumberOfQueues =
+        SaiAttribute<EnumType, SAI_SWITCH_ATTR_NUMBER_OF_QUEUES, sai_uint32_t>;
+    using NumberOfCpuQueues = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_NUMBER_OF_CPU_QUEUES,
+        sai_uint32_t>;
     using CreateAttributes = SaiAttributeTuple<
         InitSwitch,
         SaiAttributeOptional<HwInfo>,

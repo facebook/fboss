@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
@@ -38,6 +39,7 @@ SaiManagerTable::SaiManagerTable(
   fdbManager_ = std::make_unique<SaiFdbManager>(apiTable_, this, platform);
   hostifManager_ = std::make_unique<SaiHostifManager>(apiTable_, this);
   portManager_ = std::make_unique<SaiPortManager>(apiTable_, this, platform);
+  queueManager_ = std::make_unique<SaiQueueManager>(apiTable_, this, platform);
   virtualRouterManager_ =
       std::make_unique<SaiVirtualRouterManager>(apiTable_, this, platform);
   vlanManager_ = std::make_unique<SaiVlanManager>(apiTable_, this, platform);
@@ -110,6 +112,13 @@ SaiPortManager& SaiManagerTable::portManager() {
 }
 const SaiPortManager& SaiManagerTable::portManager() const {
   return *portManager_;
+}
+
+SaiQueueManager& SaiManagerTable::queueManager() {
+  return *queueManager_;
+}
+const SaiQueueManager& SaiManagerTable::queueManager() const {
+  return *queueManager_;
 }
 
 SaiRouteManager& SaiManagerTable::routeManager() {

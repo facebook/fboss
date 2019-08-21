@@ -13,6 +13,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 #include <folly/logging/xlog.h>
@@ -41,6 +42,8 @@ sai_object_id_t SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   sai_object_id_t saiId = saiPort->id();
   ports_.emplace(std::make_pair(swPort->getID(), std::move(saiPort)));
   portSaiIds_.emplace(std::make_pair(saiId, swPort->getID()));
+  SaiPort* newPort = getPort(swPort->getID());
+  newPort->createQueue(swPort->getPortQueues());
   return saiId;
 }
 
@@ -64,6 +67,7 @@ void SaiPortManager::changePort(const std::shared_ptr<Port>& swPort) {
     return;
   }
   existingPort->setAttributes(desiredAttributes);
+  existingPort->updateQueue(swPort->getPortQueues());
 }
 
 PortApiParameters::Attributes SaiPortManager::attributesFromSwPort(
@@ -184,5 +188,30 @@ VlanID SaiPort::getPortVlan() const {
   return vlanId_;
 }
 
+void SaiPort::createQueue(const QueueConfig& portQueues) {
+  PortApiParameters::Attributes::QosNumberOfQueues numQueuesAttr;
+  auto numQueues = apiTable_->portApi().getAttribute(numQueuesAttr, id());
+  for (const auto& portQueue : portQueues) {
+    auto queueIter = queues_.find(portQueue->getID());
+    if (queueIter != queues_.end()) {
+      throw FbossError("failed to find queue id ", portQueue->getID());
+    }
+    auto queue =
+        managerTable_->queueManager().createQueue(id(), numQueues, *portQueue);
+    queues_.emplace(std::make_pair(portQueue->getID(), std::move(queue)));
+  }
+}
+
+void SaiPort::updateQueue(const QueueConfig& portQueues) const {
+  for (const auto& portQueue : portQueues) {
+    auto queueIter = queues_.find(portQueue->getID());
+    if (queueIter == queues_.end()) {
+      // TOOD(srikrishnagopu): throw here instead ?
+      continue;
+    }
+    SaiQueue* queue = queueIter->second.get();
+    queue->updatePortQueue(*portQueue);
+  }
+}
 } // namespace fboss
 } // namespace facebook

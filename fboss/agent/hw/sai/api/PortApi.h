@@ -35,6 +35,14 @@ struct PortApiParameters {
         std::vector<uint32_t>>;
     using Speed = SaiAttribute<EnumType, SAI_PORT_ATTR_SPEED, sai_uint32_t>;
     using Type = SaiAttribute<EnumType, SAI_PORT_ATTR_TYPE, sai_int32_t>;
+    using QosNumberOfQueues = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_NUMBER_OF_QUEUES,
+        sai_uint32_t>;
+    using QosQueueList = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_QUEUE_LIST,
+        std::vector<sai_object_id_t>>;
 
     using CreateAttributes =
         SaiAttributeTuple<HwLaneList, Speed, SaiAttributeOptional<AdminState>>;
