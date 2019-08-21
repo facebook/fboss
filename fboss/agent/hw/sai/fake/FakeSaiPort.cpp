@@ -117,6 +117,12 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_SPEED:
         attr[i].value.u32 = port.speed;
         break;
+      case SAI_PORT_ATTR_QOS_NUMBER_OF_QUEUES:
+        attr[i].value.u32 = 0;
+        break;
+      case SAI_PORT_ATTR_QOS_QUEUE_LIST:
+        attr[i].value.objlist.count = 0;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiNextHop.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiNextHopGroup.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiPort.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiQueue.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiRoute.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiRouterInterface.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiSwitch.h"
@@ -43,6 +44,7 @@ struct FakeSai {
   FakeNextHopManager nhm;
   FakeNextHopGroupManager nhgm;
   FakePortManager pm;
+  FakeQueueManager qm;
   FakeRouteManager rm;
   FakeRouterInterfaceManager rim;
   FakeSwitchManager swm;
