@@ -138,7 +138,7 @@ void BcmPort::reinitPortStat(folly::StringPiece statKey) {
   if (!stat) {
     portCounters_.emplace(
         statKey.str(),
-        MonotonicCounter({statName(statKey), stats::SUM, stats::RATE}));
+        MonotonicCounter(statName(statKey), stats::SUM, stats::RATE));
   } else if (stat->getName() != statName(statKey)) {
     MonotonicCounter newStat{statName(statKey), stats::SUM, stats::RATE};
     stat->swap(newStat);
