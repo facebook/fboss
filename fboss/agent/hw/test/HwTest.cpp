@@ -112,7 +112,13 @@ std::shared_ptr<SwitchState> HwTest::applyNewConfig(
 
 std::shared_ptr<SwitchState> HwTest::applyNewState(
     std::shared_ptr<SwitchState> newState) {
-  return hwSwitchEnsemble_->applyNewState(newState);
+  if (!newState) {
+    return hwSwitchEnsemble_->getProgrammedState();
+  }
+  auto programmedState = hwSwitchEnsemble_->applyNewState(newState);
+  // Assert that our desired state was applied exactly
+  EXPECT_EQ(newState, programmedState);
+  return programmedState;
 }
 
 HwPortStats HwTest::getLatestPortStats(PortID port) {
