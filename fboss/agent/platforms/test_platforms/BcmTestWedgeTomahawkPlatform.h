@@ -59,6 +59,17 @@ class BcmTestWedgeTomahawkPlatform : public BcmTestWedgePlatform {
   bool isMultiPathLabelSwitchActionSupported() const override {
     return true;
   }
+  bool canUseHostTableForHostRoutes() const override {
+    /*
+     * We run some TH nodes with host route optimization enabled (wedge100,
+     * Galaxy) and others with this optimization disabled (FAv3). Ideally we
+     * would run tests with both variations. Since that is expensive, we just
+     * run tests with a more permissive (in terms of route scale) variation. If
+     * we care to run with both variations, we can make this a command line flag
+     * like we do in prod.
+     */
+    return false;
+  }
 
  private:
   // Forbidden copy constructor and assignment operator

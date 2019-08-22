@@ -39,8 +39,7 @@ class BcmRouteScaleTest : public BcmTest {
 };
 
 TEST_F(BcmRouteScaleTest, fswRouteScale) {
-  runTest<utility::FSWRouteScaleGenerator>({PlatformMode::WEDGE,
-                                            PlatformMode::WEDGE100,
+  runTest<utility::FSWRouteScaleGenerator>({PlatformMode::WEDGE100,
                                             PlatformMode::GALAXY_LC,
                                             PlatformMode::GALAXY_FC,
                                             PlatformMode::MINIPACK,
