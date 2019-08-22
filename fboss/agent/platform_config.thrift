@@ -9,6 +9,10 @@ include "fboss/agent/hw/bcm/bcm_config.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/switch_config.thrift"
 
+enum PlatformAttributes {
+  CONNECTION_HANDLE = 1,
+}
+
 union ChipConfig {
   1: bcm_config.BcmConfig bcm,
 }
@@ -42,4 +46,5 @@ struct PlatformPort {
 struct PlatformConfig {
   1: ChipConfig chip,
   2: map<i32, PlatformPort> ports,
+  3: map<PlatformAttributes, string> platformSettings,
 }

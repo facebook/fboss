@@ -25,7 +25,9 @@ namespace fboss {
 void ManagerTestBase::SetUp() {
   fs = FakeSai::getInstance();
   sai_api_initialize(0, nullptr);
-  saiPlatform = std::make_unique<SaiPlatform>();
+  auto productInfo =
+      std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
+  saiPlatform = std::make_unique<SaiPlatform>(std::move(productInfo));
   saiApiTable = std::make_unique<SaiApiTable>();
   saiManagerTable =
       std::make_unique<SaiManagerTable>(saiApiTable.get(), saiPlatform.get());

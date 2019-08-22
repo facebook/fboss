@@ -7,13 +7,20 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/Main.h"
+#pragma once
 
 #include <memory>
-#include "fboss/agent/platforms/sai/SaiPlatformInit.h"
 
-using namespace facebook::fboss;
+namespace facebook {
+namespace fboss {
 
-int main(int argc, char* argv[]) {
-  return facebook::fboss::fbossMain(argc, argv, initSaiPlatform);
-}
+class AgentConfig;
+class Platform;
+class SaiPlatform;
+class SaiProductInfo;
+
+std::unique_ptr<SaiPlatform> createSaiPlatform();
+std::unique_ptr<Platform> initSaiPlatform(
+    std::unique_ptr<AgentConfig> config = nullptr);
+} // namespace fboss
+} // namespace facebook

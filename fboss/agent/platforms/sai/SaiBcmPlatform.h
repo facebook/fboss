@@ -15,6 +15,8 @@ namespace fboss {
 
 class SaiBcmPlatform : public SaiPlatform {
  public:
+  explicit SaiBcmPlatform(std::unique_ptr<PlatformProductInfo> productInfo)
+      : SaiPlatform(std::move(productInfo)) {}
   sai_service_method_table_t* getServiceMethodTable() const override;
 };
 

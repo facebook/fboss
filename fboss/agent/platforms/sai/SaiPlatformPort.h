@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/PlatformPort.h"
+#include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
 
@@ -18,7 +19,12 @@
 namespace facebook {
 namespace fboss {
 
+class SaiPlatform;
+
 class SaiPlatformPort : public PlatformPort {
+ public:
+  explicit SaiPlatformPort(PortID id, SaiPlatform* platform)
+      : id_(id), platform_(platform) {}
   PortID getPortID() const override;
   void preDisable(bool temporary) override;
   void postDisable(bool temporary) override;
@@ -38,6 +44,15 @@ class SaiPlatformPort : public PlatformPort {
       bool errors) override;
   void prepareForGracefulExit() override;
   bool shouldDisableFEC() const override;
+  void externalState(ExternalState) override {}
+  virtual std::vector<uint32_t> getHwPortLanes(cfg::PortSpeed speed) const;
+  virtual std::vector<PortID> getSubsumedPorts(cfg::PortSpeed speed) const;
+
+ private:
+  PortID id_{0};
+  SaiPlatform* platform_{nullptr};
+  folly::Optional<cfg::PlatformPortSettings> getPlatformPortSettings(
+      cfg::PortSpeed speed) const;
 };
 
 } // namespace fboss

@@ -66,6 +66,5 @@ namespace fboss {
 sai_service_method_table_t* SaiBcmPlatform::getServiceMethodTable() const {
   return &kSaiServiceMethodTable;
 }
-
 } // namespace fboss
 } // namespace facebook

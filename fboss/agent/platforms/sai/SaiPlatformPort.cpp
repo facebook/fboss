@@ -9,12 +9,14 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 namespace facebook {
 namespace fboss {
 
 PortID SaiPlatformPort::getPortID() const {
-  return PortID(42);
+  return id_;
 }
 void SaiPlatformPort::preDisable(bool /* temporary */) {}
 void SaiPlatformPort::postDisable(bool /* temporary */) {}
@@ -41,6 +43,56 @@ void SaiPlatformPort::statusIndication(
 void SaiPlatformPort::prepareForGracefulExit() {}
 bool SaiPlatformPort::shouldDisableFEC() const {
   return true;
+}
+
+folly::Optional<cfg::PlatformPortSettings>
+SaiPlatformPort::getPlatformPortSettings(cfg::PortSpeed speed) const {
+  auto platformSettings = platform_->config()->thrift.get_platform();
+  if (!platformSettings) {
+    throw FbossError("platform config is empty");
+  }
+
+  auto portsIter = platformSettings->ports.find(id_);
+  if (portsIter == platformSettings->ports.end()) {
+    throw FbossError("platform port id ", id_, " not found");
+  }
+
+  auto& portConfig = portsIter->second;
+  auto speedIter = portConfig.supportedSpeeds.find(speed);
+  if (speedIter == portConfig.supportedSpeeds.end()) {
+    throw FbossError("Port ", id_, " does not support speed ", speed);
+  }
+
+  return speedIter->second;
+}
+
+std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
+    cfg::PortSpeed speed) const {
+  auto platformPortSettings = getPlatformPortSettings(speed);
+  if (!platformPortSettings) {
+    throw FbossError(
+        "platform port settings is empty for port ", id_, "speed ", speed);
+  }
+  auto& laneMap = platformPortSettings->iphy_ref()->lanes;
+  std::vector<uint32_t> hwLaneList;
+  for (auto lane : laneMap) {
+    hwLaneList.push_back(lane.first);
+  }
+  return hwLaneList;
+}
+
+std::vector<PortID> SaiPlatformPort::getSubsumedPorts(
+    cfg::PortSpeed speed) const {
+  auto platformPortSettings = getPlatformPortSettings(speed);
+  if (!platformPortSettings) {
+    throw FbossError(
+        "platform port settings is empty for port ", id_, "speed ", speed);
+  }
+  std::vector<PortID> subsumedPortList;
+  for (auto portId : platformPortSettings->subsumedPorts) {
+    subsumedPortList.push_back(PortID(portId));
+  }
+  return subsumedPortList;
 }
 
 } // namespace fboss
