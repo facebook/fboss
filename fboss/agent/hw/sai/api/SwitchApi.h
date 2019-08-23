@@ -92,11 +92,11 @@ struct SwitchApiParameters {
 
 class SwitchApi : public SaiApi<SwitchApi, SwitchApiParameters> {
  public:
+  static constexpr sai_api_t ApiType = SAI_API_SWITCH;
   SwitchApi() {
     sai_status_t status =
-        sai_api_query(SAI_API_SWITCH, reinterpret_cast<void**>(&api_));
-    saiApiCheckError(
-        status, SwitchApiParameters::ApiType, "Failed to query for switch api");
+        sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
+    saiApiCheckError(status, ApiType, "Failed to query for switch api");
   }
   const sai_switch_api_t* api() const {
     return api_;

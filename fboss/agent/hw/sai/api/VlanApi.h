@@ -12,10 +12,11 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/logging/xlog.h>
 
-#include <boost/variant.hpp>
+#include <tuple>
 
 extern "C" {
 #include <sai.h>
@@ -23,6 +24,44 @@ extern "C" {
 
 namespace facebook {
 namespace fboss {
+
+class VlanApi;
+
+struct SaiVlanTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_VLAN;
+  using SaiApiT = VlanApi;
+  struct Attributes {
+    using EnumType = sai_vlan_attr_t;
+    using VlanId = SaiAttribute<EnumType, SAI_VLAN_ATTR_VLAN_ID, sai_uint16_t>;
+    using MemberList = SaiAttribute<
+        EnumType,
+        SAI_VLAN_ATTR_MEMBER_LIST,
+        std::vector<sai_object_id_t>>;
+  };
+
+  using AdapterKey = VlanSaiId;
+  using AdapterHostKey = Attributes::VlanId;
+  using CreateAttributes = std::tuple<Attributes::VlanId>;
+};
+
+struct SaiVlanMemberTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_VLAN_MEMBER;
+  using SaiApiT = VlanApi;
+  struct Attributes {
+    using EnumType = sai_vlan_member_attr_t;
+    using BridgePortId = SaiAttribute<
+        EnumType,
+        SAI_VLAN_MEMBER_ATTR_BRIDGE_PORT_ID,
+        SaiObjectIdT>;
+    using VlanId =
+        SaiAttribute<EnumType, SAI_VLAN_MEMBER_ATTR_VLAN_ID, SaiObjectIdT>;
+  };
+
+  using AdapterKey = VlanMemberSaiId;
+  using AdapterHostKey = Attributes::BridgePortId;
+  using CreateAttributes =
+      std::tuple<Attributes::VlanId, Attributes::BridgePortId>;
+};
 
 struct VlanApiParameters {
   static constexpr sai_api_t ApiType = SAI_API_VLAN;
@@ -76,11 +115,11 @@ struct VlanApiParameters {
 
 class VlanApi : public SaiApi<VlanApi, VlanApiParameters> {
  public:
+  static constexpr sai_api_t ApiType = SAI_API_VLAN;
   VlanApi() {
     sai_status_t status =
-        sai_api_query(SAI_API_VLAN, reinterpret_cast<void**>(&api_));
-    saiApiCheckError(
-        status, VlanApiParameters::ApiType, "Failed to query for vlan api");
+        sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
+    saiApiCheckError(status, ApiType, "Failed to query for vlan api");
   }
   VlanApi(const VlanApi& other) = delete;
 
@@ -95,6 +134,7 @@ class VlanApi : public SaiApi<VlanApi, VlanApiParameters> {
   sai_status_t _remove(sai_object_id_t vlan_id) {
     return api_->remove_vlan(vlan_id);
   }
+
   sai_status_t _getAttr(sai_attribute_t* attr, sai_object_id_t handle) const {
     return api_->get_vlan_attribute(handle, 1, attr);
   }

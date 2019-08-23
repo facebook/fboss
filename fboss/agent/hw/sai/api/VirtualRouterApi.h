@@ -12,10 +12,13 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/logging/xlog.h>
 
-#include <boost/variant.hpp>
+#include <optional>
+#include <tuple>
+#include <variant>
 
 extern "C" {
 #include <sai.h>
@@ -23,6 +26,24 @@ extern "C" {
 
 namespace facebook {
 namespace fboss {
+
+class VirtualRouterApi;
+
+struct SaiVirtualRouterTraits {
+  static constexpr sai_object_type_t ObjectType =
+      SAI_OBJECT_TYPE_VIRTUAL_ROUTER;
+  using SaiApiT = VirtualRouterApi;
+  using AdapterKey = VirtualRouterSaiId;
+  using AdapterHostKey = std::monostate;
+  struct Attributes {
+    using EnumType = sai_virtual_router_attr_t;
+    using SrcMac = SaiAttribute<
+        EnumType,
+        SAI_VIRTUAL_ROUTER_ATTR_SRC_MAC_ADDRESS,
+        folly::MacAddress>;
+  };
+  using CreateAttributes = std::tuple<std::optional<Attributes::SrcMac>>;
+};
 
 struct VirtualRouterApiParameters {
   static constexpr sai_api_t ApiType = SAI_API_VIRTUAL_ROUTER;
@@ -49,13 +70,11 @@ struct VirtualRouterApiParameters {
 class VirtualRouterApi
     : public SaiApi<VirtualRouterApi, VirtualRouterApiParameters> {
  public:
+  static constexpr sai_api_t ApiType = SAI_API_VIRTUAL_ROUTER;
   VirtualRouterApi() {
     sai_status_t status =
-        sai_api_query(SAI_API_VIRTUAL_ROUTER, reinterpret_cast<void**>(&api_));
-    saiApiCheckError(
-        status,
-        VirtualRouterApiParameters::ApiType,
-        "Failed to query for virtual router api");
+        sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
+    saiApiCheckError(status, ApiType, "Failed to query for virtual router api");
   }
   VirtualRouterApi(const VirtualRouterApi& other) = delete;
 

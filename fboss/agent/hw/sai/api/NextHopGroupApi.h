@@ -9,13 +9,16 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/logging/xlog.h>
 
-#include <boost/variant.hpp>
+#include <set>
+#include <tuple>
 
 extern "C" {
 #include <sai.h>
@@ -23,6 +26,51 @@ extern "C" {
 
 namespace facebook {
 namespace fboss {
+
+class NextHopGroupApi;
+
+struct SaiNextHopGroupTraits {
+  static constexpr sai_object_type_t ObjectType =
+      SAI_OBJECT_TYPE_NEXT_HOP_GROUP;
+  using SaiApiT = NextHopGroupApi;
+  struct Attributes {
+    using EnumType = sai_next_hop_group_attr_t;
+    using NextHopMemberList = SaiAttribute<
+        EnumType,
+        SAI_NEXT_HOP_GROUP_ATTR_NEXT_HOP_MEMBER_LIST,
+        std::vector<sai_object_id_t>>;
+    using Type =
+        SaiAttribute<EnumType, SAI_NEXT_HOP_GROUP_ATTR_TYPE, sai_int32_t>;
+  };
+
+  using AdapterKey = NextHopGroupSaiId;
+  // vector of rifId, ip address pairs
+  using AdapterHostKey = std::set<typename SaiNextHopTraits::AdapterHostKey>;
+  using CreateAttributes = std::tuple<Attributes::Type>;
+};
+
+struct SaiNextHopGroupMemberTraits {
+  static constexpr sai_object_type_t ObjectType =
+      SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER;
+  using SaiApiT = NextHopGroupApi;
+  struct Attributes {
+    using EnumType = sai_next_hop_group_member_attr_t;
+    using NextHopId = SaiAttribute<
+        EnumType,
+        SAI_NEXT_HOP_GROUP_MEMBER_ATTR_NEXT_HOP_ID,
+        SaiObjectIdT>;
+    using NextHopGroupId = SaiAttribute<
+        EnumType,
+        SAI_NEXT_HOP_GROUP_MEMBER_ATTR_NEXT_HOP_GROUP_ID,
+        SaiObjectIdT>;
+  };
+
+  using AdapterKey = NextHopGroupMemberSaiId;
+  using AdapterHostKey =
+      std::tuple<Attributes::NextHopGroupId, Attributes::NextHopId>;
+  using CreateAttributes =
+      std::tuple<Attributes::NextHopGroupId, Attributes::NextHopId>;
+};
 
 struct NextHopGroupApiParameters {
   static constexpr sai_api_t ApiType = SAI_API_NEXT_HOP_GROUP;
@@ -80,13 +128,11 @@ struct NextHopGroupApiParameters {
 class NextHopGroupApi
     : public SaiApi<NextHopGroupApi, NextHopGroupApiParameters> {
  public:
+  static constexpr sai_api_t ApiType = SAI_API_NEXT_HOP_GROUP;
   NextHopGroupApi() {
     sai_status_t status =
-        sai_api_query(SAI_API_NEXT_HOP_GROUP, reinterpret_cast<void**>(&api_));
-    saiApiCheckError(
-        status,
-        NextHopGroupApiParameters::ApiType,
-        "Failed to query for next hop group api");
+        sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
+    saiApiCheckError(status, ApiType, "Failed to query for next hop group api");
   }
   NextHopGroupApi(const NextHopGroupApi& other) = delete;
 
@@ -134,3 +180,11 @@ class NextHopGroupApi
 
 } // namespace fboss
 } // namespace facebook
+
+namespace std {
+template <>
+struct hash<facebook::fboss::SaiNextHopGroupTraits::AdapterHostKey> {
+  size_t operator()(
+      const facebook::fboss::SaiNextHopGroupTraits::AdapterHostKey& k) const;
+};
+} // namespace std

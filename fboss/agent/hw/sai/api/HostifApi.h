@@ -12,10 +12,12 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/MacAddress.h>
 #include <folly/logging/xlog.h>
 
+#include <tuple>
 #include <vector>
 
 extern "C" {
@@ -24,6 +26,57 @@ extern "C" {
 
 namespace facebook {
 namespace fboss {
+
+class HostifApi;
+
+struct SaiHostifTrapGroupTraits {
+  static constexpr sai_object_type_t ObjectType =
+      SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP;
+  using SaiApiT = HostifApi;
+  struct Attributes {
+    using EnumType = sai_hostif_trap_group_attr_t;
+    using Queue =
+        SaiAttribute<EnumType, SAI_HOSTIF_TRAP_GROUP_ATTR_QUEUE, sai_uint32_t>;
+    using Policer = SaiAttribute<
+        EnumType,
+        SAI_HOSTIF_TRAP_GROUP_ATTR_POLICER,
+        SaiObjectIdT>;
+  };
+
+  using AdapterKey = HostifTrapGroupSaiId;
+  // Queue may not always uniquely identify a trap group the more general
+  // adapter host key type is the set of trap types in the trap group -- but
+  // this works for now, and is quite a bit simpler.
+  using AdapterHostKey = Attributes::Queue;
+  using CreateAttributes = std::tuple<
+      std::optional<Attributes::Queue>,
+      std::optional<Attributes::Policer>>;
+};
+
+struct SaiHostifTrapTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_HOSTIF_TRAP;
+  using SaiApiT = HostifApi;
+  struct Attributes {
+    using EnumType = sai_hostif_trap_attr_t;
+    using PacketAction =
+        SaiAttribute<EnumType, SAI_HOSTIF_TRAP_ATTR_PACKET_ACTION, sai_int32_t>;
+    using TrapGroup =
+        SaiAttribute<EnumType, SAI_HOSTIF_TRAP_ATTR_TRAP_GROUP, SaiObjectIdT>;
+    using TrapPriority = SaiAttribute<
+        EnumType,
+        SAI_HOSTIF_TRAP_ATTR_TRAP_PRIORITY,
+        sai_uint32_t>;
+    using TrapType =
+        SaiAttribute<EnumType, SAI_HOSTIF_TRAP_ATTR_TRAP_TYPE, sai_int32_t>;
+  };
+  using AdapterKey = HostifTrapSaiId;
+  using AdapterHostKey = Attributes::TrapType;
+  using CreateAttributes = std::tuple<
+      Attributes::TrapType,
+      Attributes::PacketAction,
+      std::optional<Attributes::TrapPriority>,
+      std::optional<Attributes::TrapGroup>>;
+};
 
 struct HostifApiParameters {
   static constexpr sai_api_t ApiType = SAI_API_HOSTIF;
@@ -147,11 +200,11 @@ struct HostifApiParameters {
 
 class HostifApi : public SaiApi<HostifApi, HostifApiParameters> {
  public:
+  static constexpr sai_api_t ApiType = SAI_API_HOSTIF;
   HostifApi() {
     sai_status_t status =
-        sai_api_query(SAI_API_HOSTIF, reinterpret_cast<void**>(&api_));
-    saiApiCheckError(
-        status, HostifApiParameters::ApiType, "Failed to query for switch api");
+        sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
+    saiApiCheckError(status, ApiType, "Failed to query for switch api");
   }
 
  private:

@@ -12,10 +12,12 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/logging/xlog.h>
 
-#include <boost/variant.hpp>
+#include <optional>
+#include <tuple>
 
 extern "C" {
 #include <sai.h>
@@ -23,6 +25,30 @@ extern "C" {
 
 namespace facebook {
 namespace fboss {
+
+class PortApi;
+
+struct SaiPortTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_PORT;
+  using SaiApiT = PortApi;
+  struct Attributes {
+    using EnumType = sai_port_attr_t;
+    using AdminState = SaiAttribute<EnumType, SAI_PORT_ATTR_ADMIN_STATE, bool>;
+    using HwLaneList = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_HW_LANE_LIST,
+        std::vector<uint32_t>>;
+    using Speed = SaiAttribute<EnumType, SAI_PORT_ATTR_SPEED, sai_uint32_t>;
+    using Type = SaiAttribute<EnumType, SAI_PORT_ATTR_TYPE, sai_int32_t>;
+  };
+  using AdapterKey = PortSaiId;
+  using AdapterHostKey = Attributes::HwLaneList;
+
+  using CreateAttributes = std::tuple<
+      Attributes::HwLaneList,
+      Attributes::Speed,
+      std::optional<Attributes::AdminState>>;
+};
 
 struct PortApiParameters {
   static constexpr sai_api_t ApiType = SAI_API_PORT;
@@ -60,19 +86,19 @@ struct PortApiParameters {
     bool operator!=(const Attributes& other) const {
       return !(*this == other);
     }
-    typename HwLaneList::ValueType hwLaneList;
-    typename Speed::ValueType speed;
+    HwLaneList::ValueType hwLaneList;
+    Speed::ValueType speed;
     folly::Optional<typename AdminState::ValueType> adminState;
   };
 };
 
 class PortApi : public SaiApi<PortApi, PortApiParameters> {
  public:
+  static constexpr sai_api_t ApiType = SAI_API_PORT;
   PortApi() {
     sai_status_t status =
-        sai_api_query(SAI_API_PORT, reinterpret_cast<void**>(&api_));
-    saiApiCheckError(
-        status, PortApiParameters::ApiType, "Failed to query for port api");
+        sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
+    saiApiCheckError(status, ApiType, "Failed to query for port api");
   }
 
  private:

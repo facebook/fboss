@@ -9,9 +9,11 @@
  */
 #pragma once
 
-#include "SaiApi.h"
+#include "fboss/agent/hw/sai/api/QueueApi.h"
+#include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/logging/xlog.h>
 
@@ -23,6 +25,44 @@ extern "C" {
 
 namespace facebook {
 namespace fboss {
+
+class SchedulerApi;
+
+struct SaiSchedulerTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_SCHEDULER;
+  using SaiApiT = SchedulerApi;
+  struct Attributes {
+    using EnumType = sai_scheduler_attr_t;
+    using SchedulingType =
+        SaiAttribute<EnumType, SAI_SCHEDULER_ATTR_SCHEDULING_TYPE, sai_int32_t>;
+    using SchedulingWeight = SaiAttribute<
+        EnumType,
+        SAI_SCHEDULER_ATTR_SCHEDULING_WEIGHT,
+        sai_uint8_t>;
+    using MinBandwidthRate = SaiAttribute<
+        EnumType,
+        SAI_SCHEDULER_ATTR_MIN_BANDWIDTH_RATE,
+        sai_uint64_t>;
+    using MinBandwidthBurstRate = SaiAttribute<
+        EnumType,
+        SAI_SCHEDULER_ATTR_MIN_BANDWIDTH_BURST_RATE,
+        sai_uint64_t>;
+    using MaxBandwidthRate = SaiAttribute<
+        EnumType,
+        SAI_SCHEDULER_ATTR_MAX_BANDWIDTH_RATE,
+        sai_uint64_t>;
+    using MaxBandwidthBurstRate = SaiAttribute<
+        EnumType,
+        SAI_SCHEDULER_ATTR_MAX_BANDWIDTH_BURST_RATE,
+        sai_uint64_t>;
+  };
+  using AdapterKey = SchedulerSaiId;
+  using AdapterHostKey = std::set<typename SaiQueueTraits::AdapterHostKey>;
+  using CreateAttributes = std::tuple<
+      std::optional<Attributes::SchedulingType>,
+      std::optional<Attributes::SchedulingWeight>,
+      std::optional<Attributes::MaxBandwidthRate>>;
+};
 
 struct SchedulerApiParameters {
   static constexpr sai_api_t ApiType = SAI_API_SCHEDULER;

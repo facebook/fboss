@@ -12,10 +12,11 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/logging/xlog.h>
 
-#include <boost/variant.hpp>
+#include <tuple>
 
 extern "C" {
 #include <sai.h>
@@ -23,6 +24,28 @@ extern "C" {
 
 namespace facebook {
 namespace fboss {
+
+class NextHopApi;
+
+struct SaiNextHopTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_NEXT_HOP;
+  using SaiApiT = NextHopApi;
+  struct Attributes {
+    using EnumType = sai_next_hop_attr_t;
+    using Ip = SaiAttribute<EnumType, SAI_NEXT_HOP_ATTR_IP, folly::IPAddress>;
+    using RouterInterfaceId = SaiAttribute<
+        EnumType,
+        SAI_NEXT_HOP_ATTR_ROUTER_INTERFACE_ID,
+        SaiObjectIdT>;
+    using Type = SaiAttribute<EnumType, SAI_NEXT_HOP_ATTR_TYPE, sai_int32_t>;
+  };
+
+  using AdapterKey = NextHopSaiId;
+  using AdapterHostKey =
+      std::tuple<Attributes::RouterInterfaceId, Attributes::Ip>;
+  using CreateAttributes = std::
+      tuple<Attributes::Type, Attributes::RouterInterfaceId, Attributes::Ip>;
+};
 
 struct NextHopApiParameters {
   static constexpr sai_api_t ApiType = SAI_API_NEXT_HOP;
@@ -55,13 +78,11 @@ struct NextHopApiParameters {
 
 class NextHopApi : public SaiApi<NextHopApi, NextHopApiParameters> {
  public:
+  static constexpr sai_api_t ApiType = SAI_API_NEXT_HOP;
   NextHopApi() {
     sai_status_t status =
-        sai_api_query(SAI_API_NEXT_HOP, reinterpret_cast<void**>(&api_));
-    saiApiCheckError(
-        status,
-        NextHopApiParameters::ApiType,
-        "Failed to query for next hop api");
+        sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
+    saiApiCheckError(status, ApiType, "Failed to query for next hop api");
   }
 
  private:

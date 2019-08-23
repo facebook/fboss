@@ -29,6 +29,61 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
+class FdbApi;
+
+struct SaiFdbTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_FDB_ENTRY;
+  using SaiApiT = FdbApi;
+  struct Attributes {
+    using EnumType = sai_fdb_entry_attr_t;
+    using Type = SaiAttribute<EnumType, SAI_FDB_ENTRY_ATTR_TYPE, sai_int32_t>;
+    using BridgePortId =
+        SaiAttribute<EnumType, SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID, SaiObjectIdT>;
+  };
+  class FdbEntry {
+   public:
+    FdbEntry() {}
+    FdbEntry(
+        sai_object_id_t switchId,
+        sai_object_id_t bridgeId,
+        const folly::MacAddress& mac) {
+      fdb_entry.switch_id = switchId;
+      fdb_entry.bv_id = bridgeId;
+      toSaiMacAddress(mac, fdb_entry.mac_address);
+    }
+    explicit FdbEntry(const sai_object_key_t& key) {
+      fdb_entry = key.key.fdb_entry;
+    }
+    folly::MacAddress mac() const {
+      return fromSaiMacAddress(fdb_entry.mac_address);
+    }
+    sai_object_id_t switchId() const {
+      return fdb_entry.switch_id;
+    }
+    sai_object_id_t bridgeId() const {
+      return fdb_entry.bv_id;
+    }
+    const sai_fdb_entry_t* entry() const {
+      return &fdb_entry;
+    }
+    bool operator==(const FdbEntry& other) const {
+      return (
+          switchId() == other.switchId() && bridgeId() == other.bridgeId() &&
+          mac() == other.mac());
+    }
+
+   private:
+    sai_fdb_entry_t fdb_entry{};
+  };
+
+  using CreateAttributes =
+      std::tuple<Attributes::Type, Attributes::BridgePortId>;
+  using AdapterKey = FdbEntry;
+  using AdapterHostKey = FdbEntry;
+};
+template <>
+struct IsSaiEntryStruct<SaiFdbTraits::FdbEntry> : public std::true_type {};
+
 struct FdbApiParameters {
   static constexpr sai_api_t ApiType = SAI_API_FDB;
   struct Attributes {
@@ -57,6 +112,7 @@ struct FdbApiParameters {
 
   class FdbEntry {
    public:
+    FdbEntry() {}
     FdbEntry(
         sai_object_id_t switchId,
         sai_object_id_t bridgeId,
@@ -65,7 +121,6 @@ struct FdbApiParameters {
       fdb_entry.bv_id = bridgeId;
       toSaiMacAddress(mac, fdb_entry.mac_address);
     }
-
     folly::MacAddress mac() const {
       return fromSaiMacAddress(fdb_entry.mac_address);
     }
@@ -85,18 +140,21 @@ struct FdbApiParameters {
     }
 
    private:
-    sai_fdb_entry_t fdb_entry;
+    sai_fdb_entry_t fdb_entry{};
   };
   using EntryType = FdbEntry;
 };
 
+template <>
+struct IsSaiEntryStruct<FdbApiParameters::FdbEntry> : public std::true_type {};
+
 class FdbApi : public SaiApi<FdbApi, FdbApiParameters> {
  public:
+  static constexpr sai_api_t ApiType = SAI_API_FDB;
   FdbApi() {
     sai_status_t status =
-        sai_api_query(SAI_API_FDB, reinterpret_cast<void**>(&api_));
-    saiApiCheckError(
-        status, FdbApiParameters::ApiType, "Failed to query for fdb api");
+        sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
+    saiApiCheckError(status, ApiType, "Failed to query for fdb api");
   }
 
  private:
@@ -127,6 +185,12 @@ class FdbApi : public SaiApi<FdbApi, FdbApiParameters> {
 } // namespace facebook
 
 namespace std {
+template <>
+struct hash<facebook::fboss::SaiFdbTraits::FdbEntry> {
+  size_t operator()(
+      const facebook::fboss::SaiFdbTraits::FdbEntry& FdbEntry) const;
+};
+
 template <>
 struct hash<facebook::fboss::FdbApiParameters::FdbEntry> {
   size_t operator()(

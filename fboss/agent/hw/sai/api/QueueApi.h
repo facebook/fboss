@@ -12,8 +12,12 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/logging/xlog.h>
+
+#include <optional>
+#include <tuple>
 
 extern "C" {
 #include <sai.h>
@@ -21,6 +25,39 @@ extern "C" {
 
 namespace facebook {
 namespace fboss {
+
+class QueueApi;
+
+struct SaiQueueTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_QUEUE;
+  using SaiApiT = QueueApi;
+  struct Attributes {
+    using EnumType = sai_queue_attr_t;
+    using Type = SaiAttribute<EnumType, SAI_QUEUE_ATTR_TYPE, sai_int32_t>;
+    using Port = SaiAttribute<EnumType, SAI_QUEUE_ATTR_PORT, SaiObjectIdT>;
+    using Index = SaiAttribute<EnumType, SAI_QUEUE_ATTR_INDEX, sai_uint8_t>;
+    using ParentSchedulerNode = SaiAttribute<
+        EnumType,
+        SAI_QUEUE_ATTR_PARENT_SCHEDULER_NODE,
+        SaiObjectIdT>;
+    using WredProfileId =
+        SaiAttribute<EnumType, SAI_QUEUE_ATTR_WRED_PROFILE_ID, SaiObjectIdT>;
+    using BufferProfileId =
+        SaiAttribute<EnumType, SAI_QUEUE_ATTR_BUFFER_PROFILE_ID, SaiObjectIdT>;
+    using SchedulerProfileId = SaiAttribute<
+        EnumType,
+        SAI_QUEUE_ATTR_SCHEDULER_PROFILE_ID,
+        SaiObjectIdT>;
+  };
+  using AdapterKey = QueueSaiId;
+  using AdapterHostKey =
+      std::tuple<Attributes::Type, Attributes::Port, Attributes::Index>;
+  using CreateAttributes = std::tuple<
+      Attributes::Type,
+      Attributes::Port,
+      Attributes::Index,
+      Attributes::ParentSchedulerNode>;
+};
 
 struct QueueApiParameters {
   static constexpr sai_api_t ApiType = SAI_API_QUEUE;
@@ -67,11 +104,11 @@ struct QueueApiParameters {
 
 class QueueApi : public SaiApi<QueueApi, QueueApiParameters> {
  public:
+  static constexpr sai_api_t ApiType = SAI_API_QUEUE;
   QueueApi() {
     sai_status_t status =
-        sai_api_query(SAI_API_QUEUE, reinterpret_cast<void**>(&api_));
-    saiApiCheckError(
-        status, QueueApiParameters::ApiType, "Failed to query for queue api");
+        sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
+    saiApiCheckError(status, ApiType, "Failed to query for queue api");
   }
 
  private:

@@ -12,10 +12,12 @@
 #include "SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/logging/xlog.h>
 
-#include <boost/variant.hpp>
+#include <tuple>
+#include <variant>
 
 extern "C" {
 #include <sai.h>
@@ -23,6 +25,41 @@ extern "C" {
 
 namespace facebook {
 namespace fboss {
+
+class BridgeApi;
+
+struct SaiBridgeTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_BRIDGE;
+  using SaiApiT = BridgeApi;
+  struct Attributes {
+    using EnumType = sai_bridge_attr_t;
+    using PortList = SaiAttribute<
+        EnumType,
+        SAI_BRIDGE_ATTR_PORT_LIST,
+        std::vector<sai_object_id_t>>;
+    using Type = SaiAttribute<EnumType, SAI_BRIDGE_ATTR_TYPE, sai_int32_t>;
+  };
+  using AdapterKey = BridgeSaiId;
+  using AdapterHostKey = std::monostate;
+  using CreateAttributes = std::tuple<Attributes::Type>;
+};
+
+struct SaiBridgePortTraits {
+  static constexpr sai_api_t ApiType = SAI_API_BRIDGE;
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_BRIDGE_PORT;
+  using SaiApiT = BridgeApi;
+  struct Attributes {
+    using EnumType = sai_bridge_port_attr_t;
+    using BridgeId =
+        SaiAttribute<EnumType, SAI_BRIDGE_PORT_ATTR_BRIDGE_ID, SaiObjectIdT>;
+    using PortId =
+        SaiAttribute<EnumType, SAI_BRIDGE_PORT_ATTR_PORT_ID, SaiObjectIdT>;
+    using Type = SaiAttribute<EnumType, SAI_BRIDGE_PORT_ATTR_TYPE, sai_int32_t>;
+  };
+  using AdapterKey = BridgePortSaiId;
+  using AdapterHostKey = Attributes::PortId;
+  using CreateAttributes = std::tuple<Attributes::Type, Attributes::PortId>;
+};
 
 struct BridgeApiParameters {
   static constexpr sai_api_t ApiType = SAI_API_BRIDGE;
@@ -72,11 +109,11 @@ struct BridgeApiParameters {
 
 class BridgeApi : public SaiApi<BridgeApi, BridgeApiParameters> {
  public:
+  static constexpr sai_api_t ApiType = SAI_API_BRIDGE;
   BridgeApi() {
     sai_status_t status =
-        sai_api_query(SAI_API_BRIDGE, reinterpret_cast<void**>(&api_));
-    saiApiCheckError(
-        status, BridgeApiParameters::ApiType, "Failed to query for bridge api");
+        sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
+    saiApiCheckError(status, ApiType, "Failed to query for bridge api");
   }
 
  private:

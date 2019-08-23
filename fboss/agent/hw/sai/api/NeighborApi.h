@@ -20,6 +20,7 @@
 #include <folly/logging/xlog.h>
 
 #include <iterator>
+#include <tuple>
 #include <vector>
 
 extern "C" {
@@ -28,6 +29,64 @@ extern "C" {
 
 namespace facebook {
 namespace fboss {
+
+class NeighborApi;
+
+struct SaiNeighborTraits {
+  static constexpr sai_object_type_t ObjectType =
+      SAI_OBJECT_TYPE_NEIGHBOR_ENTRY;
+  using SaiApiT = NeighborApi;
+  struct Attributes {
+    using EnumType = sai_neighbor_entry_attr_t;
+    using DstMac = SaiAttribute<
+        EnumType,
+        SAI_NEIGHBOR_ENTRY_ATTR_DST_MAC_ADDRESS,
+        folly::MacAddress>;
+  };
+  class NeighborEntry {
+   public:
+    NeighborEntry() {}
+    NeighborEntry(
+        sai_object_id_t switchId,
+        sai_object_id_t routerInterfaceId,
+        const folly::IPAddress& ip) {
+      neighbor_entry.switch_id = switchId;
+      neighbor_entry.rif_id = routerInterfaceId;
+      neighbor_entry.ip_address = toSaiIpAddress(ip);
+    }
+    explicit NeighborEntry(const sai_object_key_t& key) {
+      neighbor_entry = key.key.neighbor_entry;
+    }
+    // TODO MAYBE: parameterize (this? whole API?) by IP?
+    folly::IPAddress ip() const {
+      return fromSaiIpAddress(neighbor_entry.ip_address);
+    }
+    sai_object_id_t switchId() const {
+      return neighbor_entry.switch_id;
+    }
+    sai_object_id_t routerInterfaceId() const {
+      return neighbor_entry.rif_id;
+    }
+    const sai_neighbor_entry_t* entry() const {
+      return &neighbor_entry;
+    }
+    bool operator==(const NeighborEntry& other) const {
+      return (
+          switchId() == other.switchId() &&
+          routerInterfaceId() == other.routerInterfaceId() &&
+          ip() == other.ip());
+    }
+
+   private:
+    sai_neighbor_entry_t neighbor_entry{};
+  };
+  using CreateAttributes = std::tuple<Attributes::DstMac>;
+  using AdapterKey = NeighborEntry;
+  using AdapterHostKey = NeighborEntry;
+};
+template <>
+struct IsSaiEntryStruct<SaiNeighborTraits::NeighborEntry>
+    : public std::true_type {};
 
 struct NeighborApiParameters {
   static constexpr sai_api_t ApiType = SAI_API_NEIGHBOR;
@@ -55,6 +114,7 @@ struct NeighborApiParameters {
 
   class NeighborEntry {
    public:
+    NeighborEntry() {}
     NeighborEntry(
         sai_object_id_t switchId,
         sai_object_id_t routerInterfaceId,
@@ -84,20 +144,22 @@ struct NeighborApiParameters {
     }
 
    private:
-    sai_neighbor_entry_t neighbor_entry;
+    sai_neighbor_entry_t neighbor_entry{};
   };
   using EntryType = NeighborEntry;
 };
 
+template <>
+struct IsSaiEntryStruct<NeighborApiParameters::NeighborEntry>
+    : public std::true_type {};
+
 class NeighborApi : public SaiApi<NeighborApi, NeighborApiParameters> {
  public:
+  static constexpr sai_api_t ApiType = SAI_API_NEIGHBOR;
   NeighborApi() {
     sai_status_t status =
-        sai_api_query(SAI_API_NEIGHBOR, reinterpret_cast<void**>(&api_));
-    saiApiCheckError(
-        status,
-        NeighborApiParameters::ApiType,
-        "Failed to query for neighbor api");
+        sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
+    saiApiCheckError(status, ApiType, "Failed to query for neighbor api");
   }
 
  private:
@@ -111,6 +173,7 @@ class NeighborApi : public SaiApi<NeighborApi, NeighborApiParameters> {
       const NeighborApiParameters::NeighborEntry& neighborEntry) {
     return api_->remove_neighbor_entry(neighborEntry.entry());
   }
+
   sai_status_t _getAttr(
       sai_attribute_t* attr,
       const NeighborApiParameters::NeighborEntry& neighborEntry) const {
@@ -129,6 +192,12 @@ class NeighborApi : public SaiApi<NeighborApi, NeighborApiParameters> {
 } // namespace facebook
 
 namespace std {
+template <>
+struct hash<facebook::fboss::SaiNeighborTraits::NeighborEntry> {
+  size_t operator()(
+      const facebook::fboss::SaiNeighborTraits::NeighborEntry& n) const;
+};
+
 template <>
 struct hash<facebook::fboss::NeighborApiParameters::NeighborEntry> {
   size_t operator()(

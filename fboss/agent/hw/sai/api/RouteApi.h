@@ -27,6 +27,63 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
+class RouteApi;
+
+struct SaiRouteTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_ROUTE_ENTRY;
+  using SaiApiT = RouteApi;
+  struct Attributes {
+    using EnumType = sai_route_entry_attr_t;
+    using NextHopId =
+        SaiAttribute<EnumType, SAI_ROUTE_ENTRY_ATTR_NEXT_HOP_ID, SaiObjectIdT>;
+    using PacketAction =
+        SaiAttribute<EnumType, SAI_ROUTE_ENTRY_ATTR_PACKET_ACTION, sai_int32_t>;
+  };
+  class RouteEntry {
+   public:
+    RouteEntry() {}
+    RouteEntry(
+        sai_object_id_t switchId,
+        sai_object_id_t virtualRouterId,
+        const folly::CIDRNetwork& prefix) {
+      route_entry.switch_id = switchId;
+      route_entry.vr_id = virtualRouterId;
+      route_entry.destination = toSaiIpPrefix(prefix);
+    }
+    explicit RouteEntry(const sai_object_key_t& key) {
+      route_entry = key.key.route_entry;
+    }
+    folly::CIDRNetwork destination() const {
+      return fromSaiIpPrefix(route_entry.destination);
+    }
+    sai_object_id_t switchId() const {
+      return route_entry.switch_id;
+    }
+    sai_object_id_t virtualRouterId() const {
+      return route_entry.vr_id;
+    }
+    const sai_route_entry_t* entry() const {
+      return &route_entry;
+    }
+    bool operator==(const RouteEntry& other) const {
+      return (
+          switchId() == other.switchId() &&
+          virtualRouterId() == other.virtualRouterId() &&
+          destination() == other.destination());
+    }
+
+   private:
+    sai_route_entry_t route_entry{};
+  };
+
+  using AdapterKey = RouteEntry;
+  using AdapterHostKey = RouteEntry;
+  using CreateAttributes = std::
+      tuple<Attributes::PacketAction, std::optional<Attributes::NextHopId>>;
+};
+template <>
+struct IsSaiEntryStruct<SaiRouteTraits::RouteEntry> : public std::true_type {};
+
 struct RouteApiParameters {
   static constexpr sai_api_t ApiType = SAI_API_ROUTE;
   struct Attributes {
@@ -55,6 +112,7 @@ struct RouteApiParameters {
 
   class RouteEntry {
    public:
+    RouteEntry() {}
     RouteEntry(
         sai_object_id_t switchId,
         sai_object_id_t virtualRouterId,
@@ -83,18 +141,22 @@ struct RouteApiParameters {
     }
 
    private:
-    sai_route_entry_t route_entry;
+    sai_route_entry_t route_entry{};
   };
   using EntryType = RouteEntry;
 };
 
+template <>
+struct IsSaiEntryStruct<RouteApiParameters::RouteEntry>
+    : public std::true_type {};
+
 class RouteApi : public SaiApi<RouteApi, RouteApiParameters> {
  public:
+  static constexpr sai_api_t ApiType = SAI_API_ROUTE;
   RouteApi() {
     sai_status_t status =
-        sai_api_query(SAI_API_ROUTE, reinterpret_cast<void**>(&api_));
-    saiApiCheckError(
-        status, RouteApiParameters::ApiType, "Failed to query for route api");
+        sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
+    saiApiCheckError(status, ApiType, "Failed to query for route api");
   }
 
  private:
@@ -125,6 +187,11 @@ class RouteApi : public SaiApi<RouteApi, RouteApiParameters> {
 } // namespace facebook
 
 namespace std {
+template <>
+struct hash<facebook::fboss::SaiRouteTraits::RouteEntry> {
+  size_t operator()(const facebook::fboss::SaiRouteTraits::RouteEntry& n) const;
+};
+
 template <>
 struct hash<facebook::fboss::RouteApiParameters::RouteEntry> {
   size_t operator()(

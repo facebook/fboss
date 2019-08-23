@@ -12,10 +12,12 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/logging/xlog.h>
 
-#include <boost/variant.hpp>
+#include <optional>
+#include <tuple>
 
 extern "C" {
 #include <sai.h>
@@ -23,6 +25,37 @@ extern "C" {
 
 namespace facebook {
 namespace fboss {
+
+class RouterInterfaceApi;
+
+struct SaiRouterInterfaceTraits {
+  static constexpr sai_object_type_t ObjectType =
+      SAI_OBJECT_TYPE_ROUTER_INTERFACE;
+  using SaiApiT = RouterInterfaceApi;
+  struct Attributes {
+    using EnumType = sai_router_interface_attr_t;
+    using SrcMac = SaiAttribute<
+        EnumType,
+        SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS,
+        folly::MacAddress>;
+    using Type =
+        SaiAttribute<EnumType, SAI_ROUTER_INTERFACE_ATTR_TYPE, sai_int32_t>;
+    using VirtualRouterId = SaiAttribute<
+        EnumType,
+        SAI_ROUTER_INTERFACE_ATTR_VIRTUAL_ROUTER_ID,
+        SaiObjectIdT>;
+    using VlanId =
+        SaiAttribute<EnumType, SAI_ROUTER_INTERFACE_ATTR_VLAN_ID, SaiObjectIdT>;
+  };
+  using CreateAttributes = std::tuple<
+      Attributes::VirtualRouterId,
+      Attributes::Type,
+      Attributes::VlanId,
+      std::optional<Attributes::SrcMac>>;
+  using AdapterKey = RouterInterfaceSaiId;
+  using AdapterHostKey =
+      std::tuple<Attributes::VirtualRouterId, Attributes::VlanId>;
+};
 
 struct RouterInterfaceApiParameters {
   static constexpr sai_api_t ApiType = SAI_API_ROUTER_INTERFACE;
@@ -67,13 +100,12 @@ struct RouterInterfaceApiParameters {
 class RouterInterfaceApi
     : public SaiApi<RouterInterfaceApi, RouterInterfaceApiParameters> {
  public:
+  static constexpr sai_api_t ApiType = SAI_API_ROUTER_INTERFACE;
   RouterInterfaceApi() {
-    sai_status_t status = sai_api_query(
-        SAI_API_ROUTER_INTERFACE, reinterpret_cast<void**>(&api_));
+    sai_status_t status =
+        sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
     saiApiCheckError(
-        status,
-        RouterInterfaceApiParameters::ApiType,
-        "Failed to query for router interface api");
+        status, ApiType, "Failed to query for router interface api");
   }
   RouterInterfaceApi(const RouterInterfaceApi& other) = delete;
 
