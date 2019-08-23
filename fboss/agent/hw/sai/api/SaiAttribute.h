@@ -17,6 +17,8 @@
 #include <folly/MacAddress.h>
 #include <folly/logging/xlog.h>
 
+#include <boost/functional/hash.hpp>
+
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -227,6 +229,7 @@ void _realloc(const SaiListT& src, std::vector<T>& dst) {
   static_assert(
       std::is_same<decltype(src.list), T*>::value,
       "pointer in sai list doesn't match vector type");
+  auto tmpAddr = dst.data();
   dst.resize(src.count);
 }
 
@@ -281,6 +284,8 @@ class SaiAttribute<
     return &saiAttr_;
   }
 
+  // TODO(borisb): once we deprecate the old create() from SaiApi, we
+  // can delete this
   std::vector<sai_attribute_t> saiAttrs() const {
     return {saiAttr_};
   }
@@ -304,7 +309,7 @@ class SaiAttribute<
   const DataType& data() const {
     return _extract<SaiAttribute>(saiAttr_);
   }
-  sai_attribute_t saiAttr_;
+  sai_attribute_t saiAttr_{};
 };
 
 template <typename AttrEnumT, AttrEnumT AttrEnum, typename DataT>
@@ -404,6 +409,8 @@ class SaiAttribute<
     return &saiAttr_;
   }
 
+  // TODO(borisb): once we deprecate the old create() from SaiApi, we
+  // can delete this
   std::vector<sai_attribute_t> saiAttrs() const {
     return {saiAttr_};
   }
@@ -431,8 +438,8 @@ class SaiAttribute<
   const DataType& data() const {
     return _extract<SaiAttribute>(saiAttr_);
   }
-  sai_attribute_t saiAttr_;
-  ValueType value_;
+  sai_attribute_t saiAttr_{};
+  ValueType value_{};
 };
 
 // implement trait that detects SaiAttribute

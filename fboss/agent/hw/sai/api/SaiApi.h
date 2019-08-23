@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/api/SaiApiError.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
+#include "fboss/lib/TupleUtils.h"
 
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>
@@ -57,7 +58,7 @@ class SaiApi {
         saiAttributeTs.data(),
         saiAttributeTs.size(),
         std::forward<Args>(args)...);
-    saiApiCheckError(status, T::ApiType, "Failed to create2 sai entity");
+    saiApiCheckError(status, T::ApiType, "Failed to create sai entity");
     return id;
   }
 
@@ -75,7 +76,7 @@ class SaiApi {
         saiAttributeTs.data(),
         saiAttributeTs.size(),
         std::forward<Args>(args)...);
-    saiApiCheckError(status, T::ApiType, "Failed to create2 sai entity");
+    saiApiCheckError(status, T::ApiType, "Failed to create sai entity");
   }
 
   template <typename T>
@@ -146,7 +147,7 @@ class SaiApi {
         saiAttributeTs.data(),
         saiAttributeTs.size(),
         std::forward<Args>(args)...);
-    saiApiCheckError(status, T::ApiType, "Failed to create2 sai entity member");
+    saiApiCheckError(status, T::ApiType, "Failed to create sai entity member");
     return id;
   }
 
@@ -154,6 +155,126 @@ class SaiApi {
     sai_status_t status = impl()._removeMember(id);
     saiApiCheckError(
         status, ApiParameters::ApiType, "Failed to remove sai member entity");
+  }
+
+  /*
+   * NOTE:
+   * The following APIs constitute a re-write of the above APIs and are renamed
+   * with a '2' at the end to indicate that. Once the callsites are all ported
+   * to the new APIs, the old APIs and the '2' can be deleted.
+   *
+   * TODO(borisb): clean this up:
+   * delete ApiParameters class from CRTP base class
+   * delete old APIs
+   * delete SaiAttributeDataTypes
+   * rename these to no longer have the '2'
+   */
+
+  /*
+   * We can do getAttribute on top of more complicated types than just
+   * attributes. For example, if we overload on tuples and optionals, we
+   * can recursively call getAttribute on their internals to do more
+   * interesting gets. This is particularly useful when we want to load
+   * complicated aggregations of SaiAttributes for something like warm boot.
+   */
+
+  // Default "real attr". This is the base case of the recursion
+  template <typename AdapterKeyT, typename AttrT>
+  typename std::remove_reference<AttrT>::type::ValueType getAttribute2(
+      const AdapterKeyT& key,
+      AttrT&& attr) {
+    static_assert(
+        IsSaiAttribute<typename std::remove_reference<AttrT>::type>::value,
+        "getAttribute must be called on a SaiAttribute or supported "
+        "collection of SaiAttributes");
+    sai_status_t status;
+    status = impl()._getAttribute(key, attr.saiAttr());
+    /*
+     * If this is a list attribute and we have not allocated enough
+     * memory for the data coming from SAI, the Adapter will return
+     * SAI_STATUS_BUFFER_OVERFLOW and fill in `count` in the list object.
+     * We can take advantage of that to allocate a proper buffer and
+     * try the get again.
+     */
+    if (status == SAI_STATUS_BUFFER_OVERFLOW) {
+      attr.realloc();
+      status = impl()._getAttribute(key, attr.saiAttr());
+    }
+    saiApiCheckError(
+        status, ApiParameters::ApiType, "Failed to get sai attribute");
+    return attr.value();
+  }
+
+  // std::tuple of attributes
+  template <typename AdapterKeyT, typename... AttrTs>
+  auto getAttribute2(const AdapterKeyT& key, std::tuple<AttrTs...>& attrTuple) {
+    // TODO: assert on All<IsSaiAttribute>
+    auto recurse = [&key, this](auto&& attr) {
+      return getAttribute2(key, attr);
+    };
+    return tupleMap(recurse, attrTuple);
+  }
+
+  // std::optional of attribute
+  template <typename AdapterKeyT, typename AttrT>
+  auto getAttribute2(
+      const AdapterKeyT& key,
+      std::optional<AttrT>& attrOptional) {
+    AttrT attr = attrOptional.value_or(AttrT{});
+    return getAttribute2(key, attr);
+  }
+
+  // Currently, create2 is not clever enough to have totally deducible
+  // template parameters. It can be done, but I think it would reduce
+  // the value of the CreateAttributes pattern. That is something that
+  // may change in the future.
+  //
+  // It is also split up into two implementations:
+  // one for objects whose AdapterKey is a SAI object id, which needs to
+  // return the adapter key, and another for those objects whose AdapterKey
+  // is an entry struct, which must take an AdapterKey but don't return one.
+  // The distinction is drawn with traits from Traits.h and SFINAE
+
+  // sai_object_id_t case
+  template <typename SaiObjectTraits>
+  std::enable_if_t<
+      AdapterKeyIsObjectId<SaiObjectTraits>::value,
+      typename SaiObjectTraits::AdapterKey>
+  create2(
+      const typename SaiObjectTraits::CreateAttributes& createAttributes,
+      sai_object_id_t switch_id) {
+    sai_object_id_t id;
+    std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(createAttributes);
+    sai_status_t status = impl().template _create<SaiObjectTraits>(
+        &id, switch_id, saiAttributeTs.size(), saiAttributeTs.data());
+    saiApiCheckError(
+        status, ApiParameters::ApiType, "Failed to create sai entity");
+    return typename SaiObjectTraits::AdapterKey{id};
+  }
+
+  // entry struct case
+  template <typename SaiObjectTraits>
+  std::enable_if_t<AdapterKeyIsEntryStruct<SaiObjectTraits>::value, void>
+  create2(
+      const typename SaiObjectTraits::AdapterKey& entry,
+      const typename SaiObjectTraits::CreateAttributes& createAttributes) {
+    std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(createAttributes);
+    sai_status_t status = impl().template _create<SaiObjectTraits>(
+        entry, saiAttributeTs.size(), saiAttributeTs.data());
+    saiApiCheckError(
+        status, ApiParameters::ApiType, "Failed to create sai entity");
+  }
+
+  template <typename AdapterKeyT>
+  void remove2(const AdapterKeyT& key) {
+    sai_status_t status = impl()._remove(key);
+    saiApiCheckError(
+        status, ApiParameters::ApiType, "Failed to remove sai object");
+  }
+
+  template <typename AdapterKeyT, typename AttrT>
+  sai_status_t setAttribute2(const AdapterKeyT& key, const AttrT& attr) {
+    return impl()._setAttribute(key, attr.saiAttr());
   }
 
  private:

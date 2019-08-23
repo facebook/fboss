@@ -10,6 +10,8 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/SaiApiError.h"
+#include "fboss/agent/hw/sai/api/Traits.h"
+#include "fboss/lib/TupleUtils.h"
 
 #include <folly/Optional.h>
 #include <folly/logging/xlog.h>
@@ -198,6 +200,38 @@ class SaiAttributeOptional {
  private:
   folly::Optional<AttrT> optional_;
 };
+
+template <typename AttrT>
+const sai_attribute_t* saiAttr(const AttrT& attr) {
+  static_assert(
+      IsSaiAttribute<AttrT>::value,
+      "cannot call saiAttrs() directly on a non SaiAttribute type");
+  return attr.saiAttr();
+}
+
+template <typename AttrT>
+const sai_attribute_t* saiAttr(const std::optional<AttrT>& opt) {
+  if (opt) {
+    return opt.value().saiAttr();
+  }
+  return nullptr;
+}
+
+template <typename... AttrTs>
+std::vector<sai_attribute_t> saiAttrs(const std::tuple<AttrTs...>& tup) {
+  std::vector<sai_attribute_t> ret;
+  // tuple_size<std::tuple<Ts...>> may be too many, but certainly enough
+  ret.reserve(std::tuple_size_v<std::tuple<AttrTs...>>);
+  tupleForEach(
+      [&ret](const auto& attr) {
+        const sai_attribute_t* attrp = saiAttr(attr);
+        if (attrp) {
+          ret.push_back(*attrp);
+        }
+      },
+      tup);
+  return ret;
+}
 
 } // namespace fboss
 } // namespace facebook
