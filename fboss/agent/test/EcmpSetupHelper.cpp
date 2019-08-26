@@ -235,6 +235,10 @@ EcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
     const flat_set<PortDescriptor>& portDescriptors,
     const std::vector<RouteT>& prefixes,
     const std::vector<NextHopWeight>& weights) const {
+  auto outputState{inputState->clone()};
+  if (prefixes.empty()) {
+    return outputState;
+  }
   std::vector<NextHopWeight> hopWeights;
   if (!weights.size()) {
     for (auto i = 0; i < portDescriptors.size(); ++i) {
@@ -245,7 +249,6 @@ EcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
   }
 
   CHECK_EQ(portDescriptors.size(), hopWeights.size());
-  auto outputState{inputState->clone()};
   RouteNextHopSet nhops;
   {
     auto i = 0;
