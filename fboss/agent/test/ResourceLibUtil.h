@@ -119,6 +119,9 @@ class PrefixGenerator : public ResourceGenerator<
 
   /* simply generate a prefix at cursor position id, doesn't update cursor */
   ResourceT get(IdT id) const override {
+    if (!mask_) {
+      return ResourceT{AddrT(), mask_};
+    }
     return ResourceT{ipGenerator_.get(getPrefixId(id)), mask_};
   }
 

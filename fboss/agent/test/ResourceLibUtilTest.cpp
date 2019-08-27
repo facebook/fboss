@@ -81,6 +81,22 @@ TEST(ResourceLibUtilTest, GenerateNv4Prefix) {
   }
 }
 
+TEST(ResourceLibUtilTest, GenerateMask0V4) {
+  using IpT = folly::IPAddressV4;
+  using RoutePrefixT = RoutePrefix<folly::IPAddressV4>;
+
+  auto generator = utility::PrefixGenerator<IpT>(0);
+  EXPECT_EQ(generator.getNext(), (RoutePrefixT{IpT("0.0.0.0"), 0}));
+}
+
+TEST(ResourceLibUtilTest, GenerateMask0V6) {
+  using IpT = folly::IPAddressV6;
+  using RoutePrefixT = RoutePrefix<folly::IPAddressV6>;
+
+  auto generator = utility::PrefixGenerator<IpT>(0);
+  EXPECT_EQ(generator.getNext(), (RoutePrefixT{IpT("::"), 0}));
+}
+
 TEST(ResourceLibUtilTest, GenerateResetGenerateV4) {
   using IpT = folly::IPAddressV4;
   using RoutePrefixT = RoutePrefix<folly::IPAddressV4>;
