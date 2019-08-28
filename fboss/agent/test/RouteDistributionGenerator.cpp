@@ -61,8 +61,8 @@ RouteDistributionGenerator::RouteDistributionGenerator(
   CHECK_NE(0, ecmpWidth_);
 }
 
-const RouteDistributionGenerator::RouteChunks&
-RouteDistributionGenerator::get() {
+const RouteDistributionGenerator::RouteChunks& RouteDistributionGenerator::get()
+    const {
   if (generatedRouteChunks_) {
     return *generatedRouteChunks_;
   }
@@ -88,7 +88,7 @@ const std::vector<folly::IPAddress>& RouteDistributionGenerator::getNhops()
 
 template <typename AddrT>
 void RouteDistributionGenerator::genRouteDistribution(
-    const Masklen2NumPrefixes& routeDistribution) {
+    const Masklen2NumPrefixes& routeDistribution) const {
   for (const auto& maskLenAndNumPrefixes : routeDistribution) {
     auto prefixGenerator = PrefixGenerator<AddrT>(maskLenAndNumPrefixes.first);
     for (auto i = 0; i < maskLenAndNumPrefixes.second; ++i) {
@@ -121,7 +121,7 @@ RouteDistributionSwitchStatesGenerator::RouteDistributionSwitchStatesGenerator(
           routerId) {}
 
 RouteDistributionSwitchStatesGenerator::SwitchStates
-RouteDistributionSwitchStatesGenerator::get() {
+RouteDistributionSwitchStatesGenerator::get() const {
   if (generatedStates_) {
     return *generatedStates_;
   }

@@ -52,7 +52,7 @@ class RouteDistributionGenerator {
   /*
    * Compute, cache and return route distribution
    */
-  const RouteChunks& get();
+  const RouteChunks& get() const;
 
   std::shared_ptr<SwitchState> startingState() const {
     return startingState_;
@@ -68,15 +68,21 @@ class RouteDistributionGenerator {
   template <typename AddrT>
   const std::vector<folly::IPAddress>& getNhops() const;
   template <typename AddT>
-  void genRouteDistribution(const Masklen2NumPrefixes& routeDistribution);
+  void genRouteDistribution(const Masklen2NumPrefixes& routeDistribution) const;
 
-  std::shared_ptr<SwitchState> startingState_;
-  Masklen2NumPrefixes v6DistributionSpec_;
-  Masklen2NumPrefixes v4DistributionSpec_;
-  unsigned int chunkSize_;
-  unsigned int ecmpWidth_;
-  RouterID routerId_{0};
-  folly::Optional<RouteChunks> generatedRouteChunks_;
+  const std::shared_ptr<SwitchState> startingState_;
+  const Masklen2NumPrefixes v6DistributionSpec_;
+  const Masklen2NumPrefixes v4DistributionSpec_;
+  const unsigned int chunkSize_;
+  const unsigned int ecmpWidth_;
+  const RouterID routerId_{0};
+  /*
+   * Cache for genertated chunks. Mark mutable since
+   * caching is just a optimization doesn't and doesn't reflect
+   * the essential state of this class. So allow modifying from
+   * const methods.
+   */
+  mutable folly::Optional<RouteChunks> generatedRouteChunks_;
 };
 
 class RouteDistributionSwitchStatesGenerator {
@@ -89,14 +95,21 @@ class RouteDistributionSwitchStatesGenerator {
       unsigned int chunkSize,
       unsigned int ecmpWidth,
       RouterID routerId = RouterID(0));
+
   /*
    * Compute, cache and return route distribution
    */
-  SwitchStates get();
+  SwitchStates get() const;
 
  private:
-  RouteDistributionGenerator routeDistributionGen_;
-  folly::Optional<SwitchStates> generatedStates_;
+  const RouteDistributionGenerator routeDistributionGen_;
+  /*
+   * Cache for genertated states. Mark mutable since
+   * caching is just a optimization doesn't and doesn't reflect
+   * the essential state of this class. So allow modifying from
+   * const methods.
+   */
+  mutable folly::Optional<SwitchStates> generatedStates_;
 };
 
 } // namespace utility
