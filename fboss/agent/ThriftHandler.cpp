@@ -155,10 +155,11 @@ void fillPortStats(PortInfoThrift& portInfo, int numPortQs) {
         ? folly::to<std::string>("port", portId)
         : portInfo.name;
     auto statName = folly::to<std::string>(portName, ".", prefix, name);
-    auto statPtr = statMap->getLockedStatPtr(statName);
-    auto numLevels = statPtr->numLevels();
+    auto statPtr = statMap->getStatPtrNoExport(statName);
+    auto lockedStatPtr = statPtr->lock();
+    auto numLevels = lockedStatPtr->numLevels();
     // Cumulative (ALLTIME) counters are at (numLevels - 1)
-    return statPtr->sum(numLevels - 1);
+    return lockedStatPtr->sum(numLevels - 1);
   };
 
   auto fillPortCounters = [&](PortCounters& ctr, StringPiece prefix) {
