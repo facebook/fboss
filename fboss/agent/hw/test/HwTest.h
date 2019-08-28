@@ -13,6 +13,7 @@
 #include <memory>
 #include <utility>
 
+#include <folly/Range.h>
 #include <folly/dynamic.h>
 
 #include "fboss/agent/Constants.h"
@@ -100,16 +101,26 @@ class HwTest : public ::testing::Test,
       SETUP_POSTWB_FN setupPostWarmboot,
       VERIFY_POSTWB_FN verifyPostWarmboot) {
     if (getHwSwitch()->getBootType() != BootType::WARM_BOOT) {
+      logStage("cold boot setup()");
       setup();
     }
+
+    logStage("postSetup()");
     postSetup();
+
+    logStage("verify()");
     verify();
+
     if (getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
       // If we did a warm boot, do post warmboot actions now
+      logStage("setupPostWarmboot()");
       setupPostWarmboot();
+
+      logStage("verifyPostWarmboot()");
       verifyPostWarmboot();
     }
     if (FLAGS_setup_for_warmboot) {
+      logStage("tearDownSwitchEnsemble() for warmboot");
       tearDownSwitchEnsemble(true);
     } else {
       if (getHwSwitch()->getBootType() != BootType::WARM_BOOT) {
@@ -119,6 +130,7 @@ class HwTest : public ::testing::Test,
         // Skip is we already did a true ASIC level warm boot. Since that
         // already verified this code path
         if (warmBootSupported()) {
+          logStage("flushBcmAndVerifyUsingWarmbootCache()");
           flushBcmAndVerifyUsingWarmbootCache(
               verify, setupPostWarmboot, verifyPostWarmboot);
         }
@@ -140,6 +152,8 @@ class HwTest : public ::testing::Test,
   void tearDownSwitchEnsemble(bool doWarmboot = false);
   virtual void collectTestFailureInfo() const {}
 
+  void logStage(folly::StringPiece msg);
+
   template <
       typename VERIFY_FN,
       typename SETUP_POSTWB_FN,
@@ -148,9 +162,16 @@ class HwTest : public ::testing::Test,
       VERIFY_FN verify,
       SETUP_POSTWB_FN setupPostWarmboot,
       VERIFY_POSTWB_FN verifyPostWarmboot) {
+    logStage("recreateHwSwitchFromWBState() (in memory warmboot)");
     recreateHwSwitchFromWBState();
+
+    logStage("verify()");
     verify();
+
+    logStage("setupPostWarmboot()");
     setupPostWarmboot();
+
+    logStage("verifyPostWarmboot()");
     verifyPostWarmboot();
   }
 

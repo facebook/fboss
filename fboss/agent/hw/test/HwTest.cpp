@@ -41,6 +41,12 @@ DEFINE_int32(
     5908,
     "Port for thrift server to use (use with --setup_thrift");
 
+namespace {
+
+auto kStageLogPrefix = "RUNNING STAGE: ";
+
+}
+
 namespace facebook {
 namespace fboss {
 
@@ -70,6 +76,12 @@ void HwTest::SetUp() {
 
 void HwTest::TearDown() {
   tearDownSwitchEnsemble();
+}
+
+void HwTest::logStage(folly::StringPiece msg) {
+  XLOG(INFO);
+  XLOG(INFO) << kStageLogPrefix << msg;
+  XLOG(INFO);
 }
 
 void HwTest::tearDownSwitchEnsemble(bool doWarmboot) {

@@ -15,7 +15,7 @@
 #include <gtest/gtest.h>
 #include "fboss/agent/FbossError.h"
 
-FOLLY_INIT_LOGGING_CONFIG("fboss=DBG4; default:async=true");
+FOLLY_INIT_LOGGING_CONFIG("fboss=DBG4; default:async=false");
 
 DECLARE_bool(setup_for_warmboot);
 
