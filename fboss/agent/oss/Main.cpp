@@ -8,7 +8,7 @@
  *
  */
 #include "fboss/agent/Main.h"
-#include "common/stats/ServiceData.h"
+#include <fb303/ServiceData.h>
 
 #include <folly/init/Init.h>
 #include <gflags/gflags.h>

@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/Main.h"
 
+#include <fb303/ServiceData.h>
 #include <folly/MacAddress.h>
 #include <folly/ScopeGuard.h>
 #include <folly/SocketAddress.h>
@@ -19,7 +20,6 @@
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
-#include "common/stats/ServiceData.h"
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/HwSwitch.h"
@@ -261,7 +261,7 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   // Allow the fb303 setOption() call to update the command line flag
   // settings.  This allows us to change the log levels on the fly using
   // setOption().
-  fbData->setUseOptionsAsFlags(true);
+  fb303::fbData->setUseOptionsAsFlags(true);
 
   // Redirect stdin to /dev/null. This is really a extra precaution
   // we already disallow access to linux shell as a result of
@@ -301,7 +301,7 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
    * avoid this overhead, we use ThreadLocal version for updating stats, and
    * start a publish thread to aggregate the counters periodically.
    */
-  facebook::stats::ThreadCachedServiceData::get()->startPublishThread(
+  facebook::fb303::ThreadCachedServiceData::get()->startPublishThread(
       std::chrono::milliseconds(FLAGS_stat_publish_interval_ms));
 
   auto stopServices = [&]() {

@@ -11,8 +11,8 @@
 
 #include "fboss/agent/SwitchStats.h"
 
-using facebook::stats::RATE;
-using facebook::stats::SUM;
+using facebook::fb303::RATE;
+using facebook::fb303::SUM;
 
 namespace facebook {
 namespace fboss {
@@ -20,7 +20,7 @@ namespace fboss {
 folly::ThreadLocalPtr<BcmStats> BcmStats::stats_;
 
 BcmStats::BcmStats()
-    : BcmStats(stats::ThreadCachedServiceData::get()->getThreadStats()) {}
+    : BcmStats(fb303::ThreadCachedServiceData::get()->getThreadStats()) {}
 
 BcmStats::BcmStats(ThreadLocalStatsMap* map)
     : txPktAlloc_(

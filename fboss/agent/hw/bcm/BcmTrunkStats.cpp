@@ -57,7 +57,7 @@ void BcmTrunkStats::initializeCounter(folly::StringPiece counterKey) {
 
   auto externalCounterName = constructCounterName(counterKey);
   auto newCounter =
-      stats::MonotonicCounter({externalCounterName, stats::SUM, stats::RATE});
+      stats::MonotonicCounter({externalCounterName, fb303::SUM, fb303::RATE});
 
   if (oldCounter) {
     oldCounter->swap(newCounter);

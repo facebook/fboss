@@ -10,7 +10,7 @@
 
 #include "fboss/agent/hw/bcm/CounterUtils.h"
 
-#include "common/stats/ServiceData.h"
+#include <fb303/ServiceData.h>
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 
 #include <folly/logging/xlog.h>
@@ -63,8 +63,8 @@ int64_t subtractIncrements(
 
 void deleteCounter(const std::string& oldCounterName) {
   // Once deleted, the counter will no longer be reported (by fb303)
-  fbData->getStatMap()->unExportStatAll(oldCounterName);
-  fbData->clearCounter(oldCounterName);
+  fb303::fbData->getStatMap()->unExportStatAll(oldCounterName);
+  fb303::fbData->clearCounter(oldCounterName);
 }
 
 } // namespace utility

@@ -15,6 +15,7 @@ extern "C" {
 #include <opennsl/types.h>
 }
 
+#include <fb303/ThreadCachedServiceData.h>
 #include "common/stats/MonotonicCounter.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -216,7 +217,7 @@ class BcmPort {
   void updateBcmStats(std::chrono::seconds now, HwPortStats* curPortStats);
   void updatePktLenHist(
       std::chrono::seconds now,
-      stats::ExportedHistogramMapImpl::LockableHistogram* hist,
+      fb303::ExportedHistogramMapImpl::LockableHistogram* hist,
       const std::vector<opennsl_stat_val_t>& stats);
   void initCustomStats() const;
   // Set stats that are either FB specific, not available in
@@ -274,9 +275,9 @@ class BcmPort {
   std::map<std::string, stats::MonotonicCounter> portCounters_;
   std::unique_ptr<BcmCosQueueManager> queueManager_;
 
-  stats::ExportedStatMapImpl::LockableStat outQueueLen_;
-  stats::ExportedHistogramMapImpl::LockableHistogram inPktLengths_;
-  stats::ExportedHistogramMapImpl::LockableHistogram outPktLengths_;
+  fb303::ExportedStatMapImpl::LockableStat outQueueLen_;
+  fb303::ExportedHistogramMapImpl::LockableHistogram inPktLengths_;
+  fb303::ExportedHistogramMapImpl::LockableHistogram outPktLengths_;
 
   folly::Synchronized<BcmPortStats> lastPortStats_;
 

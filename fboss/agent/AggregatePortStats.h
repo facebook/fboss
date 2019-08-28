@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "common/stats/ThreadCachedServiceData.h"
+#include <fb303/ThreadCachedServiceData.h>
 #include "fboss/agent/types.h"
 
 #include <string>
@@ -41,7 +41,7 @@ class AggregatePortStats {
   AggregatePortID aggregatePortID_;
   std::string aggregatePortName_;
 
-  stats::ThreadCachedServiceData::TLTimeseries flaps_;
+  fb303::ThreadCachedServiceData::TLTimeseries flaps_;
 };
 
 } // namespace fboss

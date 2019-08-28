@@ -7,10 +7,10 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include <fb303/ServiceData.h>
 #include <folly/Memory.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
-#include "common/stats/ServiceData.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"

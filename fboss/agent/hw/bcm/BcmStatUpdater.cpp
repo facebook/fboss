@@ -131,7 +131,7 @@ void BcmStatUpdater::refreshAclStats() {
     auto aclCounterDescriptor = toBeAddedAclStats_.front().second;
     auto inserted = lockedAclStats->emplace(
         aclCounterDescriptor,
-        std::make_unique<MonotonicCounter>(name, stats::SUM, stats::RATE));
+        std::make_unique<MonotonicCounter>(name, fb303::SUM, fb303::RATE));
     if (!inserted.second) {
       throw FbossError(
           "Duplicate ACL stat handle, handle=",

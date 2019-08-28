@@ -9,7 +9,7 @@
  */
 #include "fboss/agent/RestartTimeTracker.h"
 
-#include "common/stats/ServiceData.h"
+#include <fb303/ServiceData.h>
 #include "fboss/agent/Utils.h"
 
 #include <folly/Conv.h>
@@ -111,7 +111,7 @@ void exportDurationCounter(
     TimePoint to,
     folly::StringPiece counterName) {
   auto stageDuration = duration_cast<milliseconds>(to - from);
-  fbData->setCounter(counterName, stageDuration.count());
+  fb303::fbData->setCounter(counterName, stageDuration.count());
 }
 
 class RestartTimeTracker {

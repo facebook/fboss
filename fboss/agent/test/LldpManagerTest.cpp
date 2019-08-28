@@ -8,12 +8,12 @@
  *
  */
 #include "fboss/agent/LldpManager.h"
+#include <fb303/ServiceData.h>
 #include <folly/Memory.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 #include <folly/logging/xlog.h>
 #include <limits.h>
-#include "common/stats/ServiceData.h"
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"

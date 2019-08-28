@@ -12,9 +12,9 @@
 #include <folly/Memory.h>
 #include "fboss/agent/PortStats.h"
 
-using facebook::stats::AVG;
-using facebook::stats::RATE;
-using facebook::stats::SUM;
+using facebook::fb303::AVG;
+using facebook::fb303::RATE;
+using facebook::fb303::SUM;
 
 namespace facebook {
 namespace fboss {
@@ -23,7 +23,7 @@ namespace fboss {
 std::string SwitchStats::kCounterPrefix = "";
 
 SwitchStats::SwitchStats()
-    : SwitchStats(stats::ThreadCachedServiceData::get()->getThreadStats()) {}
+    : SwitchStats(fb303::ThreadCachedServiceData::get()->getThreadStats()) {}
 
 SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
     : trapPkts_(map, kCounterPrefix + "trapped.pkts", SUM, RATE),

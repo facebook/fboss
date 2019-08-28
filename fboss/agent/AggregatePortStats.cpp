@@ -8,7 +8,7 @@
  *
  */
 #include "fboss/agent/AggregatePortStats.h"
-#include "common/stats/ServiceData.h"
+#include <fb303/ServiceData.h>
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/AggregatePort.h"
 
@@ -21,9 +21,9 @@ AggregatePortStats::AggregatePortStats(
     : aggregatePortID_(aggregatePortID),
       aggregatePortName_(aggregatePortName),
       flaps_(
-          stats::ThreadCachedServiceData::get()->getThreadStats(),
+          fb303::ThreadCachedServiceData::get()->getThreadStats(),
           constructCounterName(aggregatePortName_, "flaps"),
-          stats::SUM) {}
+          fb303::SUM) {}
 
 void AggregatePortStats::flapped() {
   flaps_.addValue(1);

@@ -9,8 +9,8 @@
  */
 #pragma once
 
+#include <fb303/ThreadCachedServiceData.h>
 #include <folly/ThreadLocal.h>
-#include "common/stats/ThreadCachedServiceData.h"
 
 namespace facebook {
 namespace fboss {
@@ -73,11 +73,11 @@ class BcmStats {
   BcmStats(BcmStats const&) = delete;
   BcmStats& operator=(BcmStats const&) = delete;
 
-  typedef stats::ThreadCachedServiceData::ThreadLocalStatsMap
+  typedef fb303::ThreadCachedServiceData::ThreadLocalStatsMap
       ThreadLocalStatsMap;
-  typedef stats::ThreadCachedServiceData::TLTimeseries TLTimeseries;
-  typedef stats::ThreadCachedServiceData::TLHistogram TLHistogram;
-  typedef stats::ThreadCachedServiceData::TLCounter TLCounter;
+  typedef fb303::ThreadCachedServiceData::TLTimeseries TLTimeseries;
+  typedef fb303::ThreadCachedServiceData::TLHistogram TLHistogram;
+  typedef fb303::ThreadCachedServiceData::TLCounter TLCounter;
 
   explicit BcmStats(ThreadLocalStatsMap* map);
 

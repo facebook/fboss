@@ -8,11 +8,11 @@
  *
  */
 
+#include <fb303/ThreadCachedServiceData.h>
 #include <folly/String.h>
-#include "common/stats/ThreadCachedServiceData.h"
 #include "fboss/agent/SwitchStats.h"
 
-using facebook::stats::SUM;
+using facebook::fb303::SUM;
 
 namespace facebook {
 namespace fboss {

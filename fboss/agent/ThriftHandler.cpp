@@ -9,10 +9,10 @@
  */
 #include "fboss/agent/ThriftHandler.h"
 
+#include <fb303/ServiceData.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include "common/logging/logging.h"
-#include "common/stats/ServiceData.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/IPv6Handler.h"
@@ -148,7 +148,7 @@ void dynamicFibUpdate(
 
 void fillPortStats(PortInfoThrift& portInfo, int numPortQs) {
   auto portId = portInfo.portId;
-  auto statMap = facebook::fbData->getStatMap();
+  auto statMap = facebook::fb303::fbData->getStatMap();
 
   auto getSumStat = [&](StringPiece prefix, StringPiece name) {
     auto portName = portInfo.name.empty()
@@ -442,7 +442,7 @@ void ThriftHandler::flushCountersNow() {
   // Depending on how we design the HW-specific stats interface,
   // we may also need to make a separate call to force immediate collection of
   // hardware stats.
-  stats::ThreadCachedServiceData::get()->publishStats();
+  fb303::ThreadCachedServiceData::get()->publishStats();
 }
 
 void ThriftHandler::addUnicastRoute(

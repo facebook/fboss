@@ -46,22 +46,22 @@ void BcmCosQueueManager::fillOrReplaceCounter(
       // if counter already exists, swap it with a new counter with new name
       if (countersItr != counters.queues.end()) {
         facebook::stats::MonotonicCounter newCounter{
-            name, stats::SUM, stats::RATE};
+            name, fb303::SUM, fb303::RATE};
         countersItr->second->swap(newCounter);
         utility::deleteCounter(newCounter.getName());
       } else {
         counters.queues.emplace(
             queue,
             std::make_unique<facebook::stats::MonotonicCounter>(
-                name, stats::SUM, stats::RATE));
+                name, fb303::SUM, fb303::RATE));
       }
     }
   }
   if (type.isScopeAggregated()) {
     counters.aggregated = std::make_unique<facebook::stats::MonotonicCounter>(
         folly::to<std::string>(portName_, ".", type.name),
-        stats::SUM,
-        stats::RATE);
+        fb303::SUM,
+        fb303::RATE);
   }
 }
 

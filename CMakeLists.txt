@@ -47,12 +47,14 @@ find_package(GMock MODULE REQUIRED)
 find_package(Gflags CONFIG REQUIRED)
 find_package(Glog REQUIRED)
 find_package(folly CONFIG REQUIRED)
+find_package(fb303 CONFIG REQUIRED)
 find_package(yarpl CONFIG REQUIRED)
 find_package(rsocket CONFIG)
 find_package(fizz CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(wangle CONFIG REQUIRED)
 find_package(FBThrift CONFIG REQUIRED)
+include_directories(${FB303_INCLUDE_DIR})
 
 find_library(OPENNSL opennsl)
 find_path(OPENNSL_INCLUDE_DIR NAMES opennsl/tx.h)
@@ -593,6 +595,7 @@ target_link_libraries(
     netlink_manager_service_cpp2
     Folly::folly
     wangle::wangle
+    fb303::fb303
     FBThrift::thriftcpp2
     ${OPENNSL}
     ${USB}

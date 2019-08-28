@@ -13,6 +13,7 @@
 #include <thrift/lib/cpp2/async/RequestChannel.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
+#include <fb303/ServiceData.h>
 #include <folly/Demangle.h>
 #include <folly/FileUtil.h>
 #include <folly/GLog.h>
@@ -27,7 +28,6 @@
 #include <condition_variable>
 #include <exception>
 #include <tuple>
-#include "common/stats/ServiceData.h"
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
@@ -808,7 +808,7 @@ void SwSwitch::handlePendingUpdates() {
     auto newAppliedState = applyUpdate(oldAppliedState, newDesiredState);
     // Stick the initial applied->desired in the beginning
     bool newOutOfSync = (newAppliedState != newDesiredState);
-    fbData->setCounter("hw_out_of_sync", newOutOfSync);
+    fb303::fbData->setCounter("hw_out_of_sync", newOutOfSync);
     if (newOutOfSync) {
       // If we could not apply the whole delta successfully, put the difference
       // as a state update at the beginning

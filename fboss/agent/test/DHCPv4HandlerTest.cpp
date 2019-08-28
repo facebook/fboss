@@ -8,12 +8,12 @@
  *
  */
 #include "fboss/agent/DHCPv4Handler.h"
+#include <fb303/ServiceData.h>
 #include <folly/Memory.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 #include <algorithm>
 #include <string>
-#include "common/stats/ServiceData.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"

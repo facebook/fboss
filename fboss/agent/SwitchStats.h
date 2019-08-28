@@ -11,8 +11,8 @@
 
 #include <boost/container/flat_map.hpp>
 #include <boost/noncopyable.hpp>
+#include <fb303/ThreadCachedServiceData.h>
 #include <chrono>
-#include "common/stats/ThreadCachedServiceData.h"
 #include "fboss/agent/AggregatePortStats.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/types.h"
@@ -306,11 +306,11 @@ class SwitchStats : public boost::noncopyable {
   SwitchStats(SwitchStats const&) = delete;
   SwitchStats& operator=(SwitchStats const&) = delete;
 
-  typedef stats::ThreadCachedServiceData::ThreadLocalStatsMap
+  typedef fb303::ThreadCachedServiceData::ThreadLocalStatsMap
       ThreadLocalStatsMap;
-  typedef stats::ThreadCachedServiceData::TLTimeseries TLTimeseries;
-  typedef stats::ThreadCachedServiceData::TLHistogram TLHistogram;
-  typedef stats::ThreadCachedServiceData::TLCounter TLCounter;
+  typedef fb303::ThreadCachedServiceData::TLTimeseries TLTimeseries;
+  typedef fb303::ThreadCachedServiceData::TLHistogram TLHistogram;
+  typedef fb303::ThreadCachedServiceData::TLCounter TLCounter;
 
   explicit SwitchStats(ThreadLocalStatsMap* map);
 

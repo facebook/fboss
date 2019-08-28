@@ -12,10 +12,10 @@
 #include <chrono>
 #include <map>
 
+#include <fb303/ServiceData.h>
 #include <folly/Conv.h>
 #include <folly/logging/xlog.h>
 #include "common/stats/MonotonicCounter.h"
-#include "common/stats/ServiceData.h"
 
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
@@ -138,9 +138,9 @@ void BcmPort::reinitPortStat(folly::StringPiece statKey) {
   if (!stat) {
     portCounters_.emplace(
         statKey.str(),
-        MonotonicCounter(statName(statKey), stats::SUM, stats::RATE));
+        MonotonicCounter(statName(statKey), fb303::SUM, fb303::RATE));
   } else if (stat->getName() != statName(statKey)) {
-    MonotonicCounter newStat{statName(statKey), stats::SUM, stats::RATE};
+    MonotonicCounter newStat{statName(statKey), fb303::SUM, fb303::RATE};
     stat->swap(newStat);
     utility::deleteCounter(newStat.getName());
   }
@@ -171,13 +171,13 @@ void BcmPort::reinitPortStats() {
   queueManager_->setupQueueCounters();
 
   // (re) init out queue length
-  auto statMap = fbData->getStatMap();
-  const auto expType = stats::AVG;
+  auto statMap = fb303::fbData->getStatMap();
+  const auto expType = fb303::AVG;
   outQueueLen_ =
       statMap->getLockableStat(statName("out_queue_length"), &expType);
   // (re) init histograms
-  auto histMap = fbData->getHistogramMap();
-  stats::ExportedHistogram pktLenHist(1, 0, kInPktLengthStats.size());
+  auto histMap = fb303::fbData->getHistogramMap();
+  fb303::ExportedHistogram pktLenHist(1, 0, kInPktLengthStats.size());
   inPktLengths_ = histMap->getOrCreateLockableHistogram(
       statName("in_pkt_lengths"), &pktLenHist);
   outPktLengths_ = histMap->getOrCreateLockableHistogram(
@@ -809,7 +809,7 @@ bool BcmPort::isMmuLossy() const {
 
 void BcmPort::updatePktLenHist(
     std::chrono::seconds now,
-    stats::ExportedHistogramMapImpl::LockableHistogram* hist,
+    fb303::ExportedHistogramMapImpl::LockableHistogram* hist,
     const std::vector<opennsl_stat_val_t>& stats) {
   // Get the counter values
   uint64_t counters[10];

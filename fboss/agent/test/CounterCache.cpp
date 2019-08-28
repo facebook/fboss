@@ -9,18 +9,18 @@
  */
 #include "fboss/agent/test/CounterCache.h"
 
-#include "common/stats/ServiceData.h"
-#include "common/stats/ThreadCachedServiceData.h"
+#include <fb303/ServiceData.h>
+#include <fb303/ThreadCachedServiceData.h>
 #include "fboss/agent/SwSwitch.h"
 
 namespace facebook {
 namespace fboss {
 
 void CounterCache::update() {
-  stats::ThreadCachedServiceData::get()->publishStats();
+  fb303::ThreadCachedServiceData::get()->publishStats();
   prev_.swap(current_);
   current_.clear();
-  fbData->getCounters(current_);
+  fb303::fbData->getCounters(current_);
 }
 
 } // namespace fboss
