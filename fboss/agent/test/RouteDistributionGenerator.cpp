@@ -120,7 +120,7 @@ RouteDistributionSwitchStatesGenerator::RouteDistributionSwitchStatesGenerator(
           ecmpWidth,
           routerId) {}
 
-RouteDistributionSwitchStatesGenerator::SwitchStates
+const RouteDistributionSwitchStatesGenerator::SwitchStates&
 RouteDistributionSwitchStatesGenerator::get() const {
   if (generatedStates_) {
     return *generatedStates_;

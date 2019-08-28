@@ -99,7 +99,7 @@ class RouteDistributionSwitchStatesGenerator {
   /*
    * Compute, cache and return route distribution
    */
-  SwitchStates get() const;
+  const SwitchStates& get() const;
   const RouteDistributionGenerator& routeDistributionGenerator() const {
     return routeDistributionGen_;
   }

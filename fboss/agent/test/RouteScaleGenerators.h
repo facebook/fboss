@@ -39,8 +39,12 @@ class FSWRouteScaleGenerator {
       const std::shared_ptr<SwitchState>& startingState,
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth);
-  std::vector<std::shared_ptr<SwitchState>> get() {
+  const std::vector<std::shared_ptr<SwitchState>>& get() {
     return routeDistributionGen_.get();
+  }
+  const RouteDistributionSwitchStatesGenerator& routeDistributionGenerator()
+      const {
+    return routeDistributionGen_;
   }
 
  private:
@@ -53,8 +57,12 @@ class THAlpmRouteScaleGenerator {
       const std::shared_ptr<SwitchState>& startingState,
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth);
-  std::vector<std::shared_ptr<SwitchState>> get() {
+  const std::vector<std::shared_ptr<SwitchState>>& get() {
     return routeDistributionGen_.get();
+  }
+  const RouteDistributionSwitchStatesGenerator& routeDistributionGenerator()
+      const {
+    return routeDistributionGen_;
   }
 
  private:
@@ -67,8 +75,13 @@ class HgridDuRouteScaleGenerator {
       const std::shared_ptr<SwitchState>& startingState,
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth);
-  std::vector<std::shared_ptr<SwitchState>> get() {
+
+  const std::vector<std::shared_ptr<SwitchState>>& get() {
     return routeDistributionGen_.get();
+  }
+  const RouteDistributionSwitchStatesGenerator& routeDistributionGenerator()
+      const {
+    return routeDistributionGen_;
   }
 
  private:
@@ -81,8 +94,12 @@ class HgridUuRouteScaleGenerator {
       const std::shared_ptr<SwitchState>& startingState,
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth);
-  std::vector<std::shared_ptr<SwitchState>> get() {
+  const std::vector<std::shared_ptr<SwitchState>>& get() {
     return routeDistributionGen_.get();
+  }
+  const RouteDistributionSwitchStatesGenerator& routeDistributionGenerator()
+      const {
+    return routeDistributionGen_;
   }
 
  private:
