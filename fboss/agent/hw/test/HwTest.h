@@ -90,6 +90,15 @@ class HwTest : public ::testing::Test,
   virtual void postSetup() {}
 
  protected:
+  /*
+   * Most tests don't want packet RX or link scan enabled while running. Other
+   * tests might (e.g. trunk tests watching for links going down). Provide
+   * a default setting for features desired and let individual tests override
+   * it.
+   */
+  virtual uint32_t featuresDesired() const {
+    return (~HwSwitch::LINKSCAN_DESIRED & ~HwSwitch::PACKET_RX_DESIRED);
+  }
   template <
       typename SETUP_FN,
       typename VERIFY_FN,

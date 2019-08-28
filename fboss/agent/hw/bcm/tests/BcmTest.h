@@ -82,16 +82,6 @@ class BcmTest : public HwTest {
   void recreateHwSwitchFromWBState() override;
   void postSetup() override;
 
-  /*
-   * Most tests don't want packet RX or link scan enabled while running. Other
-   * tests might (e.g. trunk tests watching for links going down). Provide
-   * a default setting for features desired and let individual tests override
-   * it.
-   */
-  virtual uint32_t featuresDesired() const {
-    return (~BcmSwitch::LINKSCAN_DESIRED & ~BcmSwitch::PACKET_RX_DESIRED);
-  }
-
   folly::dynamic createWarmBootSwitchState();
 
   // Forbidden copy constructor and assignment operator
