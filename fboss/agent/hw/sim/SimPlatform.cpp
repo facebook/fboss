@@ -42,6 +42,8 @@ void SimPlatform::onHwInitialized(SwSwitch* /*sw*/) {}
 
 void SimPlatform::onInitialConfigApplied(SwSwitch* /*sw*/) {}
 
+void SimPlatform::stop() {}
+
 unique_ptr<ThriftHandler> SimPlatform::createHandler(SwSwitch* sw) {
   SimSwitch* sim = static_cast<SimSwitch*>(sw->getHw());
   return std::make_unique<SimHandler>(sw, sim);

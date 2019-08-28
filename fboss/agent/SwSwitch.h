@@ -380,13 +380,6 @@ class SwSwitch : public HwSwitch::Callback {
   }
 
   /*
-   * Get the EventBase over which QsfpCache should execute
-   */
-  folly::EventBase* getQsfpCacheEvb() {
-    return &qsfpCacheEventBase_;
-  }
-
-  /*
    * Get the EventBase for the update thread
    */
   folly::EventBase* getUpdateEvb() {
@@ -794,12 +787,6 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::unique_ptr<std::thread> pcapDistributionThread_;
   folly::EventBase pcapDistributionEventBase_;
-
-  /*
-   * A thread for communicating with qsfp_service via QsfpCache
-   */
-  std::unique_ptr<std::thread> qsfpCacheThread_;
-  folly::EventBase qsfpCacheEventBase_;
 
   /*
    * A thread for processing SwitchState updates.

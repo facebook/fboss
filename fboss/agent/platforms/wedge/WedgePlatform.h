@@ -40,6 +40,8 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   void initImpl() override;
   InitPortMap initPorts() override;
 
+  void stop() override;
+
   void stateUpdated(const StateDelta& /*delta*/) override;
 
   virtual std::unique_ptr<WedgePortMapping> createPortMapping() = 0;
@@ -94,7 +96,7 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   std::unique_ptr<BcmSwitch> hw_;
 
   const std::unique_ptr<PlatformProductInfo> productInfo_;
-  const std::unique_ptr<QsfpCache> qsfpCache_;
+  std::unique_ptr<AutoInitQsfpCache> qsfpCache_;
   std::unique_ptr<BcmWarmBootHelper> warmBootHelper_;
 };
 

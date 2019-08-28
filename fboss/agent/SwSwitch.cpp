@@ -1112,8 +1112,6 @@ void SwSwitch::startThreads() {
     this->threadLoop(
         "fbossPcapDistributionThread", &pcapDistributionEventBase_);
   }));
-  qsfpCacheThread_.reset(new std::thread(
-      [=] { this->threadLoop("fbossQsfpCacheThread", &qsfpCacheEventBase_); }));
   lacpThread_.reset(new std::thread(
       [=] { this->threadLoop("fbossLacpThread", &lacpEventBase_); }));
   neighborCacheThread_.reset(new std::thread([=] {
@@ -1144,10 +1142,6 @@ void SwSwitch::stopThreads() {
     pcapDistributionEventBase_.runInEventBaseThread(
         [this] { pcapDistributionEventBase_.terminateLoopSoon(); });
   }
-  if (qsfpCacheThread_) {
-    qsfpCacheEventBase_.runInEventBaseThread(
-        [this] { qsfpCacheEventBase_.terminateLoopSoon(); });
-  }
   if (lacpThread_) {
     lacpEventBase_.runInEventBaseThread(
         [this] { lacpEventBase_.terminateLoopSoon(); });
@@ -1168,15 +1162,14 @@ void SwSwitch::stopThreads() {
   if (pcapDistributionThread_) {
     pcapDistributionThread_->join();
   }
-  if (qsfpCacheThread_) {
-    qsfpCacheThread_->join();
-  }
   if (lacpThread_) {
     lacpThread_->join();
   }
   if (neighborCacheThread_) {
     neighborCacheThread_->join();
   }
+
+  platform_->stop();
 }
 
 void SwSwitch::threadLoop(StringPiece name, EventBase* eventBase) {

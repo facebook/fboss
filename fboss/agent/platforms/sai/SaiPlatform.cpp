@@ -22,6 +22,8 @@ void SaiPlatform::onHwInitialized(SwSwitch* /* sw */) {}
 
 void SaiPlatform::onInitialConfigApplied(SwSwitch* /* sw */) {}
 
+void SaiPlatform::stop() {}
+
 std::unique_ptr<ThriftHandler> SaiPlatform::createHandler(SwSwitch* sw) {
   return std::make_unique<ThriftHandler>(sw);
 }

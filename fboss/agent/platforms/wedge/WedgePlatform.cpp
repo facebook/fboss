@@ -52,7 +52,7 @@ namespace fboss {
 
 WedgePlatform::WedgePlatform(std::unique_ptr<PlatformProductInfo> productInfo)
     : productInfo_(std::move(productInfo)),
-      qsfpCache_(std::make_unique<QsfpCache>()) {}
+      qsfpCache_(std::make_unique<AutoInitQsfpCache>()) {}
 
 void WedgePlatform::initImpl() {
   BcmAPI::init(loadConfig());
@@ -73,6 +73,11 @@ WedgePlatform::InitPortMap WedgePlatform::initPorts() {
   return mapping;
 }
 
+void WedgePlatform::stop() {
+  // destroying the cache will cause it to stop the QsfpCacheThread
+  qsfpCache_.reset();
+}
+
 void WedgePlatform::onHwInitialized(SwSwitch* sw) {
   // could populate with initial ports here, but should get taken care
   // of through state changes sent to the stateUpdated method.
@@ -83,7 +88,6 @@ void WedgePlatform::onHwInitialized(SwSwitch* sw) {
     bool up = hw_->isPortUp(entry.first);
     entry.second->linkStatusChanged(up, true);
   }
-  qsfpCache_->init(sw->getQsfpCacheEvb());
   sw->registerStateObserver(this, "WedgePlatform");
 }
 

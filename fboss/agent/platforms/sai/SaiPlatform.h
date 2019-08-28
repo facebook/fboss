@@ -34,6 +34,8 @@ class SaiPlatform : public Platform {
   void getProductInfo(ProductInfo& info) override;
   std::string getVolatileStateDir() const override;
   TransceiverIdxThrift getPortMapping(PortID port) const override;
+  void stop() override;
+
   virtual sai_service_method_table_t* getServiceMethodTable() const {
     return nullptr;
   }

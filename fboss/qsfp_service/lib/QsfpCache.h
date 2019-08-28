@@ -13,12 +13,13 @@
 #include <mutex>
 
 #include <boost/container/flat_map.hpp>
-#include <folly/futures/SharedPromise.h>
-#include <folly/futures/Future.h>
-#include <folly/io/async/AsyncTimeout.h>
 #include <folly/Optional.h>
 #include <folly/Synchronized.h>
 #include <folly/Unit.h>
+#include <folly/futures/Future.h>
+#include <folly/futures/SharedPromise.h>
+#include <folly/io/async/AsyncTimeout.h>
+#include <folly/io/async/EventBase.h>
 
 #include "fboss/agent/types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -66,11 +67,8 @@
  *
  */
 
-namespace folly {
-class EventBase;
-}
-
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 class QsfpCache : private folly::AsyncTimeout {
  public:
@@ -161,4 +159,15 @@ class QsfpCache : private folly::AsyncTimeout {
   std::atomic_bool initialized_{false};
 };
 
-}} // facebook::fboss
+class AutoInitQsfpCache : public QsfpCache {
+ public:
+  AutoInitQsfpCache();
+  ~AutoInitQsfpCache();
+
+ private:
+  std::unique_ptr<std::thread> thread_{nullptr};
+  folly::EventBase evb_;
+};
+
+} // namespace fboss
+} // namespace facebook

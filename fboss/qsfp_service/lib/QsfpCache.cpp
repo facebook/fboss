@@ -243,4 +243,16 @@ uint32_t QsfpCache::incrementGen() {
   return ++gen;
 }
 
-}} // facebook::fboss
+AutoInitQsfpCache::AutoInitQsfpCache() {
+  init(&evb_);
+  thread_.reset(new std::thread([=] { evb_.loopForever(); }));
+}
+
+AutoInitQsfpCache::~AutoInitQsfpCache() {
+  if (thread_) {
+    evb_.runInEventBaseThread([this] { evb_.terminateLoopSoon(); });
+    thread_->join();
+  }
+}
+} // namespace fboss
+} // namespace facebook

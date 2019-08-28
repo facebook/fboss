@@ -60,6 +60,12 @@ class Platform {
   void init(std::unique_ptr<AgentConfig> config);
 
   /*
+   * Allows the platorm to run any necessary cleanup steps like
+   * stopping threads.
+   */
+  virtual void stop() = 0;
+
+  /*
    * Two ways to get the configuration of the switch. config() will
    * pull current running config, reload( ) will also reload the
    * latest config from the default source for this platform before

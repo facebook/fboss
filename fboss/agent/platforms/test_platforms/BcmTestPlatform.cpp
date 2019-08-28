@@ -53,6 +53,8 @@ void BcmTestPlatform::onHwInitialized(SwSwitch* /*sw*/) {}
 
 void BcmTestPlatform::onInitialConfigApplied(SwSwitch* /*sw*/) {}
 
+void BcmTestPlatform::stop() {}
+
 std::unique_ptr<ThriftHandler> BcmTestPlatform::createHandler(
     SwSwitch* /*sw*/) {
   XLOG(FATAL) << "unexpected call to BcmTestPlatform::createHandler()";
