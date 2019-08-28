@@ -75,6 +75,33 @@ uint64_t getNewRouteCount(const StateDelta& delta) {
       getNewRouteCount<folly::IPAddressV4>(delta);
 }
 
+uint64_t getRouteCount(
+    const utility::RouteDistributionGenerator::RouteChunks& routeChunks) {
+  uint64_t routeCount = 0;
+  std::for_each(
+      routeChunks.begin(),
+      routeChunks.end(),
+      [&routeCount](const auto& routeChunk) {
+        routeCount += routeChunk.size();
+      });
+  return routeCount;
+}
+
+void verifyRouteCount(
+    const utility::RouteDistributionSwitchStatesGenerator&
+        routeDistributionSwitchStatesGen,
+    uint64_t alreadyExistingRoutes,
+    uint64_t expectedNewRoutes) {
+  const auto& switchStates = routeDistributionSwitchStatesGen.get();
+  const auto& routeChunks =
+      routeDistributionSwitchStatesGen.routeDistributionGenerator().get();
+
+  EXPECT_EQ(
+      getRouteCount(switchStates.back()),
+      expectedNewRoutes + alreadyExistingRoutes);
+  EXPECT_EQ(getRouteCount(routeChunks), expectedNewRoutes);
+}
+
 void verifyChunking(
     const utility::RouteDistributionSwitchStatesGenerator::SwitchStates&
         switchStates,
@@ -90,6 +117,31 @@ void verifyChunking(
     remainingRoutes -= routeCount;
   }
   EXPECT_EQ(remainingRoutes, 0);
+}
+
+void verifyChunking(
+    const utility::RouteDistributionGenerator::RouteChunks& routeChunks,
+    unsigned int totalRoutes,
+    unsigned int chunkSize) {
+  auto remainingRoutes = totalRoutes;
+  for (const auto& routeChunk : routeChunks) {
+    EXPECT_EQ(routeChunk.size(), std::min(remainingRoutes, chunkSize));
+    remainingRoutes -= routeChunk.size();
+  }
+  EXPECT_EQ(remainingRoutes, 0);
+}
+
+void verifyChunking(
+    const utility::RouteDistributionSwitchStatesGenerator&
+        routeDistributionSwitchStatesGen,
+    unsigned int totalRoutes,
+    unsigned int chunkSize) {
+  verifyChunking(
+      routeDistributionSwitchStatesGen.get(), totalRoutes, chunkSize);
+  verifyChunking(
+      routeDistributionSwitchStatesGen.routeDistributionGenerator().get(),
+      totalRoutes,
+      chunkSize);
 }
 } // namespace fboss
 } // namespace facebook

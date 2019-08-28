@@ -45,10 +45,29 @@ uint64_t getNewRouteCount(const StateDelta& delta) {
 }
 
 uint64_t getNewRouteCount(const StateDelta& delta);
+uint64_t getRouteCount(
+    const utility::RouteDistributionGenerator::RouteChunks& routeChunks);
+
+void verifyRouteCount(
+    const utility::RouteDistributionSwitchStatesGenerator&
+        routeDistributionSwitchStatesGen,
+    uint64_t alreadyExistingRoutes,
+    uint64_t expectedNewRoutes);
 
 void verifyChunking(
     const utility::RouteDistributionSwitchStatesGenerator::SwitchStates&
         switchStates,
+    unsigned int totalRoutes,
+    unsigned int chunkSize);
+
+void verifyChunking(
+    const utility::RouteDistributionGenerator::RouteChunks& routeChunks,
+    unsigned int totalRoutes,
+    unsigned int chunkSize);
+
+void verifyChunking(
+    const utility::RouteDistributionSwitchStatesGenerator&
+        routeDistributionSwitchStatesGen,
     unsigned int totalRoutes,
     unsigned int chunkSize);
 
