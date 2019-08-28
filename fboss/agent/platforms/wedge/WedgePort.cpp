@@ -180,13 +180,6 @@ bool WedgePort::isControllingPort() const {
   return bcmPort_->getPortGroup()->controllingPort() == bcmPort_;
 }
 
-bool WedgePort::isInSingleMode() const {
-  if (!bcmPort_ || !bcmPort_->getPortGroup()) {
-    return false;
-  }
-  return bcmPort_->getPortGroup()->laneMode() == BcmPortGroup::LaneMode::SINGLE;
-}
-
 folly::Optional<ChannelID> WedgePort::getChannel() const {
   if (!frontPanel_) {
     return folly::none;
@@ -208,7 +201,7 @@ std::vector<int32_t> WedgePort::getChannels() const {
   uint8_t numChannels = 1;
   if (bcmPort_ && bcmPort_->getPortGroup()) {
     auto pg = bcmPort_->getPortGroup();
-    if (pg->laneMode() == BcmPortGroup::LaneMode::SINGLE) {
+    if (pg->laneMode() == BcmPortGroup::LaneMode::QUAD) {
       if (base != 0) {
         return {};
       }

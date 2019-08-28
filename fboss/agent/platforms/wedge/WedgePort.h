@@ -112,7 +112,6 @@ class WedgePort : public BcmPlatformPort {
 
  protected:
   bool isControllingPort() const;
-  bool isInSingleMode() const;
 
   PortID id_{0};
   WedgePlatform* platform_{nullptr};

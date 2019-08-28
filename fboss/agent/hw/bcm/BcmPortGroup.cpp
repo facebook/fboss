@@ -37,11 +37,11 @@ BcmPortGroup::LaneMode neededLaneModeForSpeed(
 
     auto neededLanes = dv.quot;
     if (neededLanes == 1) {
-      return BcmPortGroup::LaneMode::QUAD;
+      return BcmPortGroup::LaneMode::SINGLE;
     } else if (neededLanes == 2) {
       return BcmPortGroup::LaneMode::DUAL;
     } else if (neededLanes > 2 && neededLanes <= 4) {
-      return BcmPortGroup::LaneMode::SINGLE;
+      return BcmPortGroup::LaneMode::QUAD;
     }
   }
 
@@ -82,13 +82,13 @@ BcmPortGroup::BcmPortGroup(
   auto activeLanes = retrieveActiveLanes();
   switch (activeLanes) {
     case 1:
-      laneMode_ = LaneMode::QUAD;
+      laneMode_ = LaneMode::SINGLE;
       break;
     case 2:
       laneMode_ = LaneMode::DUAL;
       break;
     case 4:
-      laneMode_ = LaneMode::SINGLE;
+      laneMode_ = LaneMode::QUAD;
       break;
     default:
       throw FbossError(
@@ -102,20 +102,19 @@ BcmPortGroup::~BcmPortGroup() {}
 BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
     const std::vector<Port*>& ports,
     LaneSpeeds laneSpeeds) {
-  auto desiredMode = LaneMode::QUAD;
+  auto desiredMode = LaneMode::SINGLE;
 
   for (int lane = 0; lane < ports.size(); ++lane) {
     auto port = ports[lane];
     if (port->isEnabled()) {
       auto neededMode = neededLaneModeForSpeed(port->getSpeed(), laneSpeeds);
-      if (neededMode < desiredMode) {
+      if (neededMode > desiredMode) {
         desiredMode = neededMode;
       }
 
-      // Check that the lane is expected for SINGLE/DUAL modes
-      if (desiredMode == LaneMode::SINGLE) {
+      if (desiredMode == LaneMode::QUAD) {
         if (lane != 0) {
-          throw FbossError("Only lane 0 can be enabled in SINGLE mode");
+          throw FbossError("Only lane 0 can be enabled in QUAD mode");
         }
       } else if (desiredMode == LaneMode::DUAL) {
         if (lane != 0 && lane != 2) {

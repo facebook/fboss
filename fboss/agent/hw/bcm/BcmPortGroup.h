@@ -41,6 +41,9 @@ class BcmPortGroup {
  public:
   /*
    * These are the different lane configurations supported for a port group.
+   * The LaneMode values correpond to the number of lanes used by each port.
+   * For example, for 4 active ports in a port group, each uses 1 lane, so
+   * LaneMode is single. For 1 active port that uses 4 lanes, LaneMode is quad.
    *
    * Note that the sdk actually supports asymmetric 3-port
    * configurations as well. We can add those in the future should a
