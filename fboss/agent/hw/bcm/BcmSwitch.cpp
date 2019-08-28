@@ -388,6 +388,18 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
 
 std::shared_ptr<SwitchState> BcmSwitch::applyAndGetWarmBootSwitchState() {
   auto warmBootState = warmBootCache_->getDumpedSwSwitchState().clone();
+
+  // Ensure we have the correct oper state set post warm boot. Since
+  // the SwSwitch Callback manages the oper state of a port, we want
+  // to ensure the port status is consistent with reality. This also
+  // enables warm boot testing to mirror reality w/out being attached
+  // to SwSwitch.
+  for (auto port : *warmBootState->getPorts()) {
+    auto bcmPort = portTable_->getBcmPort(port->getID());
+    auto newPort = port->modify(&warmBootState);
+    newPort->setOperState(bcmPort->isUp());
+  }
+
   warmBootState->publish();
   // Force port/queue stat counter creation by initializing currState to
   // carry empty port/queue names. This means there is a delta between
@@ -875,15 +887,6 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
       [&](const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
         auto id = newPort->getID();
         auto bcmPort = portTable_->getBcmPort(id);
-        if (oldPort->getName() != newPort->getName()) {
-          bcmPort->updateName(newPort->getName());
-        }
-
-        if (platform_->isCosSupported() &&
-            isPortQueueNameChanged(oldPort, newPort)) {
-          bcmPort->getQueueManager()->setupQueueCounters(
-              newPort->getPortQueues());
-        }
 
         if (!oldPort->isEnabled() && !newPort->isEnabled()) {
           // No need to process changes on disabled ports. We will pick up
@@ -923,9 +926,12 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
             oldPort->getQosPolicy() != newPort->getQosPolicy();
         XLOG_IF(DBG1, qosPolicyChanged) << "New Qos Policy on port " << id;
 
+        auto nameChanged = oldPort->getName() != newPort->getName();
+        XLOG_IF(DBG1, nameChanged) << "New name on port " << id;
+
         if (speedChanged || vlanChanged || pauseChanged || sFlowChanged ||
             fecChanged || loopbackChanged || mirrorChanged ||
-            qosPolicyChanged) {
+            qosPolicyChanged || nameChanged) {
           bcmPort->program(newPort);
         }
 

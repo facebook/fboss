@@ -47,6 +47,27 @@ using std::chrono::system_clock;
 
 using facebook::stats::MonotonicCounter;
 
+namespace {
+
+bool hasPortQueueChanges(
+    const shared_ptr<facebook::fboss::Port>& oldPort,
+    const shared_ptr<facebook::fboss::Port>& newPort) {
+  if (oldPort->getPortQueues().size() != newPort->getPortQueues().size()) {
+    return true;
+  }
+
+  for (const auto& newQueue : newPort->getPortQueues()) {
+    auto oldQueue = oldPort->getPortQueues().at(newQueue->getID());
+    if (oldQueue->getName() != newQueue->getName()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+} // namespace
+
 namespace facebook {
 namespace fboss {
 
@@ -116,17 +137,6 @@ static const std::
               // What to default to
               {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_GMII}}}};
 
-void BcmPort::updateName(const std::string& newName) {
-  if (newName == portName_) {
-    return;
-  }
-  portName_ = newName;
-  queueManager_->setPortName(newName);
-  if (statCollectionEnabled_.load()) {
-    reinitPortStats();
-  }
-}
-
 MonotonicCounter* BcmPort::getPortCounterIf(folly::StringPiece statKey) {
   auto pcitr = portCounters_.find(statKey.str());
   return pcitr != portCounters_.end() ? &pcitr->second : nullptr;
@@ -146,7 +156,9 @@ void BcmPort::reinitPortStat(folly::StringPiece statKey) {
   }
 }
 
-void BcmPort::reinitPortStats() {
+void BcmPort::reinitPortStats(const std::shared_ptr<Port>& swPort) {
+  XLOG(DBG2) << "Reinitializing stats for " << portName_;
+
   reinitPortStat(kInBytes());
   reinitPortStat(kInUnicastPkts());
   reinitPortStat(kInMulticastPkts());
@@ -168,7 +180,10 @@ void BcmPort::reinitPortStats() {
   reinitPortStat(kOutPause());
   reinitPortStat(kOutEcnCounter());
 
-  queueManager_->setupQueueCounters();
+  if (swPort) {
+    queueManager_->setPortName(portName_);
+    queueManager_->setupQueueCounters(swPort->getPortQueues());
+  }
 
   // (re) init out queue length
   auto statMap = fb303::fbData->getStatMap();
@@ -240,7 +255,7 @@ void BcmPort::init(bool warmBoot) {
 
   auto enabled = isEnabled();
   if (enabled) {
-    enableStatCollection();
+    enableStatCollection(nullptr);
   }
 
   // Notify platform port of initial state/speed
@@ -349,10 +364,10 @@ void BcmPort::enable(const std::shared_ptr<Port>& swPort) {
       OPENNSL_PORT_VLAN_MEMBER_INGRESS | OPENNSL_PORT_VLAN_MEMBER_EGRESS);
   bcmCheckError(rv, "failed to set VLAN filtering on port ", swPort->getID());
 
+  enableStatCollection(swPort);
+
   // Set the speed, ingress vlan, and sFlow rates before enabling
   program(swPort);
-
-  enableStatCollection();
 
   rv = opennsl_port_enable_set(unit_, port_, true);
   bcmCheckError(rv, "failed to enable port ", swPort->getID());
@@ -364,6 +379,10 @@ void BcmPort::enableLinkscan() {
 }
 
 void BcmPort::program(const shared_ptr<Port>& port) {
+  // This function must have two properties:
+  // 1) idempotency
+  // 2) no port flaps if called twice with same settings on a running port
+
   XLOG(DBG1) << "Reprogramming BcmPort for port " << port->getID();
   setIngressVlan(port);
   if (platformPort_->shouldUsePortResourceAPIs()) {
@@ -403,6 +422,16 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   // Update Tx Setting if needed.
   setTxSetting(port);
   setLoopbackMode(port);
+
+  portName_ = port->getName();
+
+  setupStatsIfNeeded(port);
+
+  {
+    XLOG(DBG3) << "Saving port stats for " << portName_;
+    auto lockedSettings = programmedSettings_.wlock();
+    *lockedSettings = port;
+  }
 }
 
 void BcmPort::linkStatusChanged(const std::shared_ptr<Port>& port) {
@@ -616,6 +645,23 @@ void BcmPort::configureSampleDestination(cfg::SampleDestination sampleDest) {
           port_,
           opennsl_errmsg(rv)));
   return;
+}
+
+void BcmPort::setupStatsIfNeeded(const std::shared_ptr<Port>& swPort) {
+  if (!shouldReportStats()) {
+    return;
+  }
+
+  std::shared_ptr<Port> savedPort;
+  {
+    auto savedSettings = programmedSettings_.rlock();
+    savedPort = *savedSettings;
+  }
+
+  if (!savedPort || swPort->getName() != savedPort->getName() ||
+      hasPortQueueChanges(savedPort, swPort)) {
+    reinitPortStats(swPort);
+  }
 }
 
 PortID BcmPort::getPortID() const {
@@ -907,7 +953,19 @@ bool BcmPort::shouldReportStats() const {
   return statCollectionEnabled_.load();
 }
 
-void BcmPort::enableStatCollection() {
+void BcmPort::destroyAllPortStats() {
+  std::map<std::string, stats::MonotonicCounter> swapTo;
+  portCounters_.swap(swapTo);
+
+  for (auto& item : swapTo) {
+    utility::deleteCounter(item.second.getName());
+  }
+  queueManager_->destroyQueueCounters();
+}
+
+void BcmPort::enableStatCollection(const std::shared_ptr<Port>& port) {
+  XLOG(DBG2) << "Enabling stat collection for " << portName_;
+
   // Enable packet and byte counter statistic collection.
   auto rv = opennsl_port_stat_enable_set(unit_, gport_, true);
   if (rv != OPENNSL_E_EXISTS) {
@@ -915,16 +973,21 @@ void BcmPort::enableStatCollection() {
     bcmCheckError(rv, "Unexpected error enabling counter DMA on port ", port_);
   }
 
-  reinitPortStats();
+  reinitPortStats(port);
+
   statCollectionEnabled_.store(true);
 }
 
 void BcmPort::disableStatCollection() {
+  XLOG(DBG2) << "Disabling stat collection for " << portName_;
+
   // Disable packet and byte counter statistic collection.
   auto rv = opennsl_port_stat_enable_set(unit_, gport_, false);
   bcmCheckError(rv, "Unexpected error disabling counter DMA on port ", port_);
 
   statCollectionEnabled_.store(false);
+
+  destroyAllPortStats();
 }
 } // namespace fboss
 } // namespace facebook

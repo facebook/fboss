@@ -136,6 +136,7 @@ class BcmPort {
   int sampleDestinationToBcmDestFlag(cfg::SampleDestination dest);
   void configureSampleDestination(cfg::SampleDestination sampleDest);
   void setPortResource(const std::shared_ptr<Port>& swPort);
+  void setupStatsIfNeeded(const std::shared_ptr<Port>& swPort);
 
   /*
    * Update this port's statistics.
@@ -155,8 +156,6 @@ class BcmPort {
    * enabled or if CL91 FEC is enabled
    */
   bool isFECEnabled();
-
-  void updateName(const std::string& newName);
 
   /*
    * Take the appropriate actions for reacting to the port's state changing.
@@ -207,8 +206,9 @@ class BcmPort {
 
   stats::MonotonicCounter* getPortCounterIf(folly::StringPiece statName);
   bool shouldReportStats() const;
-  void reinitPortStats();
+  void reinitPortStats(const std::shared_ptr<Port>& swPort);
   void reinitPortStat(folly::StringPiece newName);
+  void destroyAllPortStats();
   void updateStat(
       std::chrono::seconds now,
       folly::StringPiece statName,
@@ -244,7 +244,7 @@ class BcmPort {
   void setTxSetting(const std::shared_ptr<Port>& swPort);
   void setLoopbackMode(const std::shared_ptr<Port>& swPort);
 
-  void enableStatCollection();
+  void enableStatCollection(const std::shared_ptr<Port>& swPort);
   void disableStatCollection();
 
   bool isMmuLossy() const;
@@ -280,6 +280,7 @@ class BcmPort {
   fb303::ExportedHistogramMapImpl::LockableHistogram outPktLengths_;
 
   folly::Synchronized<BcmPortStats> lastPortStats_;
+  folly::Synchronized<std::shared_ptr<Port>> programmedSettings_;
 
   std::atomic<bool> statCollectionEnabled_{false};
 };

@@ -87,6 +87,25 @@ void BcmCosQueueManager::setupQueueCounters(
   }
 }
 
+void BcmCosQueueManager::destroyQueueCounters() {
+  std::map<BcmCosQueueCounterType, QueueStatCounters> swapTo;
+  queueCounters_.swap(swapTo);
+
+  for (const auto& type : getQueueCounterTypes()) {
+    auto it = swapTo.find(type);
+    if (it != swapTo.end()) {
+      for (auto& item : it->second.queues) {
+        if (item.second) {
+          utility::deleteCounter(item.second->getName());
+        }
+      }
+      if (it->second.aggregated) {
+        utility::deleteCounter(it->second.aggregated->getName());
+      }
+    }
+  }
+}
+
 void BcmCosQueueManager::updateQueueStats(
     std::chrono::seconds now,
     HwPortStats* portStats) {

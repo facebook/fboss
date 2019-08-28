@@ -100,6 +100,7 @@ class BcmCosQueueManager {
 
   void setupQueueCounters(
       const folly::Optional<QueueConfig>& queueConfig = folly::none);
+  void destroyQueueCounters();
   void updateQueueStats(
       std::chrono::seconds now,
       HwPortStats* portStats = nullptr);
