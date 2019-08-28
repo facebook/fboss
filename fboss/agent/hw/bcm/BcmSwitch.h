@@ -531,6 +531,7 @@ class BcmSwitch : public BcmSwitchIf {
 
   void processDisabledPorts(const StateDelta& delta);
   void processEnabledPorts(const StateDelta& delta);
+  void processAddedPorts(const StateDelta& delta);
   void processChangedPorts(const StateDelta& delta);
   void pickupLinkStatusChanges(const StateDelta& delta);
   void reconfigurePortGroups(const StateDelta& delta);
@@ -757,11 +758,6 @@ class BcmSwitch : public BcmSwitchIf {
    * Setup packet RX unless its explicitly disabled via featuresDesired_ flag
    */
   void setupPacketRx();
-
-  /*
-   * Setup port mirrors
-   */
-  void restorePortSettings(const std::shared_ptr<SwitchState>& state);
 
   /*
    * Check if state, speed update for this port port would

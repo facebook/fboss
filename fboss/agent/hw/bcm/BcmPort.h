@@ -61,6 +61,8 @@ class BcmPort {
   void disable(const std::shared_ptr<Port>& swPort);
   void disableLinkscan();
   void program(const std::shared_ptr<Port>& swPort);
+  void enableStatCollection(const std::shared_ptr<Port>& swPort);
+  void disableStatCollection();
   void setupQueue(const PortQueue& queue);
 
   void attachIngressQosPolicy(const std::string& name);
@@ -243,9 +245,6 @@ class BcmPort {
   void setPause(const std::shared_ptr<Port>& swPort);
   void setTxSetting(const std::shared_ptr<Port>& swPort);
   void setLoopbackMode(const std::shared_ptr<Port>& swPort);
-
-  void enableStatCollection(const std::shared_ptr<Port>& swPort);
-  void disableStatCollection();
 
   bool isMmuLossy() const;
   uint8_t determinePipe() const;

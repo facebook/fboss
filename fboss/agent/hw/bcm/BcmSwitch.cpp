@@ -401,26 +401,8 @@ std::shared_ptr<SwitchState> BcmSwitch::applyAndGetWarmBootSwitchState() {
   }
 
   warmBootState->publish();
-  // Force port/queue stat counter creation by initializing currState to
-  // carry empty port/queue names. This means there is a delta between
-  // currState and warmBootState (which has correct port/queue names), and
-  // thus port/queue stats get created. This is needed as setupCos
-  // (which figures out the number of queues) is called after
-  // portTable->initPorts, and thus initPorts does not create queue counters.
-  auto currState = make_shared<SwitchState>();
-  auto portMap = warmBootState->getPorts()->clone();
-  currState->resetPorts(std::move(portMap));
-  for (auto port : *currState->getPorts()) {
-    auto newPort = port->modify(&currState);
-    newPort->setName("");
-
-    for (auto queue : port->getPortQueues()) {
-      queue->setName("");
-    }
-  }
-  restorePortSettings(warmBootState);
-  warmBootState->publish();
-  return stateChangedImpl(StateDelta(currState, warmBootState));
+  return stateChangedImpl(
+      StateDelta(make_shared<SwitchState>(), warmBootState));
 }
 
 void BcmSwitch::runBcmScriptPreAsicInit() const {
@@ -774,6 +756,7 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
     reconfigurePortGroups(delta);
   }
 
+  processAddedPorts(delta);
   processChangedPorts(delta);
 
   // delete any removed mirrors after processing port and acl changes
@@ -844,23 +827,6 @@ void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
       });
 }
 
-bool BcmSwitch::isPortQueueNameChanged(
-    const shared_ptr<Port>& oldPort,
-    const shared_ptr<Port>& newPort) {
-  if (oldPort->getPortQueues().size() != newPort->getPortQueues().size()) {
-    return true;
-  }
-
-  for (const auto& newQueue : newPort->getPortQueues()) {
-    auto oldQueue = oldPort->getPortQueues().at(newQueue->getID());
-    if (oldQueue->getName() != newQueue->getName()) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 void BcmSwitch::processChangedPortQueues(
     const shared_ptr<Port>& oldPort,
     const shared_ptr<Port>& newPort) {
@@ -879,6 +845,23 @@ void BcmSwitch::processChangedPortQueues(
                << static_cast<int>(newQueue->getID());
     bcmPort->setupQueue(*newQueue);
   }
+}
+
+void BcmSwitch::processAddedPorts(const StateDelta& delta) {
+  // For now, this just enables stats on newly added ports
+  forEachAdded(delta.getPortsDelta(), [&](const shared_ptr<Port>& port) {
+    auto id = port->getID();
+    auto bcmPort = portTable_->getBcmPort(id);
+
+    if (port->isEnabled()) {
+      // This ensures all the settings are up to date. We need to
+      // be very careful that program() is both idempotent and
+      // does not cause port flaps if called with the same
+      // settings twice.
+      bcmPort->program(port);
+      bcmPort->enableStatCollection(port);
+    }
+  });
 }
 
 void BcmSwitch::processChangedPorts(const StateDelta& delta) {
@@ -2027,32 +2010,6 @@ void BcmSwitch::dumpState(const std::string& path) const {
   auto stateString = gatherSdkState();
   if (stateString.length() > 0) {
     folly::writeFile(stateString, path.c_str());
-  }
-}
-
-void BcmSwitch::restorePortSettings(const std::shared_ptr<SwitchState>& state) {
-  /*
-  Dumped Switch state(newState) already has ports. However, state delta
-  processing only handles enabled/disabled ports & changed ports. It does not
-  adds ports to oldState. That is what led to hack this function in.
-
-  After warmboot, there may be some settings of BcmPort which may never get
-  applied, because of above. In that case, restore those settings.
-
-  TODO - handle ports in state delta processing, do not not handle init/creating
-  BcmPort outside of state delta processing, instead incorporate processing of
-  added/removed ports in state delta handling. Doing this will render this
-  function unnecessary and can be removed.
-  */
-  for (auto port : *state->getPorts()) {
-    if (port->getIngressMirror()) {
-      portTable_->getBcmPort(port->getID())
-          ->setIngressPortMirror(port->getIngressMirror().value());
-    }
-    if (port->getEgressMirror()) {
-      portTable_->getBcmPort(port->getID())
-          ->setEgressPortMirror(port->getEgressMirror().value());
-    }
   }
 }
 
