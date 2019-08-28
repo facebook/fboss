@@ -60,10 +60,12 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
   auto platform = createTestPlatform();
   auto hwSwitch = std::make_unique<BcmSwitch>(
       static_cast<BcmPlatform*>(platform.get()), featuresDesired);
+  auto bcmTestPlatform = static_cast<BcmTestPlatform*>(platform.get());
 
   std::unique_ptr<HwLinkStateToggler> linkToggler;
   if (featuresDesired & HwSwitch::LINKSCAN_DESIRED) {
-    linkToggler = createLinkToggler(hwSwitch.get());
+    linkToggler = createLinkToggler(
+        hwSwitch.get(), bcmTestPlatform->desiredLoopbackMode());
   }
   setupEnsemble(
       std::move(platform), std::move(hwSwitch), std::move(linkToggler));

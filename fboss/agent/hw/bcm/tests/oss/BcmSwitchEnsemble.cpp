@@ -17,7 +17,8 @@ namespace facebook {
 namespace fboss {
 
 std::unique_ptr<HwLinkStateToggler> BcmSwitchEnsemble::createLinkToggler(
-    HwSwitch* hwSwitch) {
+    HwSwitch* /* hwSwitch */,
+    cfg::PortLoopbackMode /* desiredLoopbackMode */) {
   return nullptr;
 }
 

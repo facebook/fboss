@@ -34,7 +34,9 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
   }
 
  private:
-  std::unique_ptr<HwLinkStateToggler> createLinkToggler(HwSwitch* hwSwitch);
+  std::unique_ptr<HwLinkStateToggler> createLinkToggler(
+      HwSwitch* hwSwitch,
+      cfg::PortLoopbackMode desiredLoopbackMode);
 };
 
 } // namespace fboss

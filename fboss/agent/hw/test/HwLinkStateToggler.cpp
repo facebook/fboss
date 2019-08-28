@@ -43,9 +43,9 @@ void HwLinkStateToggler::portStateChangeImpl(
     std::shared_ptr<SwitchState> switchState,
     const std::vector<PortID>& ports,
     bool up) {
-  auto desiredLoopbackMode =
-      up ? cfg::PortLoopbackMode::PHY : cfg::PortLoopbackMode::NONE;
   auto newState = switchState;
+  auto desiredLoopbackMode =
+      up ? desiredLoopbackMode_ : cfg::PortLoopbackMode::NONE;
   for (auto port : ports) {
     if (newState->getPorts()->getPort(port)->getLoopbackMode() ==
         desiredLoopbackMode) {

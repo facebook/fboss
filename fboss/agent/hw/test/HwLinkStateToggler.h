@@ -30,8 +30,11 @@ class HwLinkStateToggler {
  public:
   using StateUpdateFn = std::function<void(std::shared_ptr<SwitchState>)>;
 
-  explicit HwLinkStateToggler(StateUpdateFn stateUpdateFn)
-      : stateUpdateFn_(stateUpdateFn) {}
+  explicit HwLinkStateToggler(
+      StateUpdateFn stateUpdateFn,
+      cfg::PortLoopbackMode desiredLoopbackMode = cfg::PortLoopbackMode::MAC)
+      : stateUpdateFn_(stateUpdateFn),
+        desiredLoopbackMode_(desiredLoopbackMode) {}
   virtual ~HwLinkStateToggler() {}
 
   void applyInitialConfigAndBringUpPorts(
@@ -66,6 +69,7 @@ class HwLinkStateToggler {
   std::condition_variable linkEventCV_;
 
   StateUpdateFn stateUpdateFn_;
+  const cfg::PortLoopbackMode desiredLoopbackMode_;
 };
 } // namespace fboss
 } // namespace facebook

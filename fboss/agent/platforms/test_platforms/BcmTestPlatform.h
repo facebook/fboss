@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestPort.h"
 #include "fboss/agent/types.h"
@@ -44,6 +45,10 @@ class BcmTestPlatform : public BcmPlatform {
 
   folly::MacAddress getLocalMac() const override;
   virtual std::list<FlexPortMode> getSupportedFlexPortModes() const = 0;
+
+  virtual cfg::PortLoopbackMode desiredLoopbackMode() const {
+    return cfg::PortLoopbackMode::MAC;
+  }
 
   void onUnitCreate(int unit) override;
   void onUnitAttach(int unit) override;
