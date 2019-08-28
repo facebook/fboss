@@ -33,7 +33,9 @@ void assertPort(int unit, int port, bool enabled, cfg::PortSpeed speed) {
   CHECK_EQ(enabled, portEnabled(unit, port));
   if (enabled) {
     // Only verify speed on enabled ports
-    CHECK(speed == utility::curPortSpeed(unit, port));
+    CHECK_EQ(
+        static_cast<int>(speed),
+        static_cast<int>(utility::curPortSpeed(unit, port)));
   }
 }
 

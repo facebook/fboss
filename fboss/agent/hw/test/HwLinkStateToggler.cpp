@@ -44,7 +44,7 @@ void HwLinkStateToggler::portStateChangeImpl(
     const std::vector<PortID>& ports,
     bool up) {
   auto desiredLoopbackMode =
-      up ? cfg::PortLoopbackMode::MAC : cfg::PortLoopbackMode::NONE;
+      up ? cfg::PortLoopbackMode::PHY : cfg::PortLoopbackMode::NONE;
   auto newState = switchState;
   for (auto port : ports) {
     if (newState->getPorts()->getPort(port)->getLoopbackMode() ==
@@ -69,7 +69,7 @@ void HwLinkStateToggler::applyInitialConfigAndBringUpPorts(
   auto cfg = initCfg;
   for (auto& port : cfg.ports) {
     // Set all port preemphasis values to 0 so that we can bring ports up and
-    // down by setting their loopback mode to MAC and NONE respectively.
+    // down by setting their loopback mode to PHY and NONE respectively.
     setPortPreemphasis(PortID(port.logicalID), 0);
     // Bring ports down by setting loopback mode to NONE
     port.loopbackMode = cfg::PortLoopbackMode::NONE;
