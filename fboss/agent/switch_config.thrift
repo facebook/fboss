@@ -80,6 +80,9 @@ const PortPause NO_PAUSE = {
 enum PortFEC {
   ON = 1,
   OFF = 2,
+  RS_544 = 3,
+  RS_528 = 4,
+  RS_544_2_N = 5,
 }
 
 /**
