@@ -25,7 +25,7 @@ namespace {
 using facebook::fboss::utility::PrefixGenerator;
 
 template <typename AddrT>
-typename PrefixGenerator<AddrT>::ResourceT genNewPrefix(
+folly::CIDRNetwork getNewPrefix(
     PrefixGenerator<AddrT>& prefixGenerator,
     const std::shared_ptr<facebook::fboss::SwitchState>& state,
     facebook::fboss::RouterID routerId) {
@@ -36,7 +36,7 @@ typename PrefixGenerator<AddrT>::ResourceT genNewPrefix(
   while (routeTableRib->exactMatch(prefix)) {
     prefix = prefixGenerator.getNext();
   }
-  return prefix;
+  return folly::CIDRNetwork{{prefix.network}, prefix.mask};
 }
 } // namespace
 
@@ -44,7 +44,7 @@ namespace facebook {
 namespace fboss {
 namespace utility {
 
-RouteDistributionGenerator::RouteDistributionGenerator(
+RouteDistributionGenerator2::RouteDistributionGenerator2(
     const std::shared_ptr<SwitchState>& startingState,
     const Masklen2NumPrefixes& v6DistributionSpec,
     const Masklen2NumPrefixes& v4DistributionSpec,
@@ -61,6 +61,65 @@ RouteDistributionGenerator::RouteDistributionGenerator(
   CHECK_NE(0, ecmpWidth_);
 }
 
+const RouteDistributionGenerator2::RouteChunks&
+RouteDistributionGenerator2::get() {
+  if (generatedRouteChunks_) {
+    return *generatedRouteChunks_;
+  }
+  generatedRouteChunks_ = RouteChunks();
+  genRouteDistribution<folly::IPAddressV6>(v6DistributionSpec_);
+  genRouteDistribution<folly::IPAddressV4>(v4DistributionSpec_);
+  return *generatedRouteChunks_;
+}
+
+template <typename AddrT>
+const std::vector<folly::IPAddress>& RouteDistributionGenerator2::getNhops()
+    const {
+  static std::vector<folly::IPAddress> nhops;
+  if (nhops.size()) {
+    return nhops;
+  }
+  EcmpSetupAnyNPorts<AddrT> ecmpHelper(startingState_, routerId_);
+  for (auto i = 0; i < ecmpWidth_; ++i) {
+    nhops.emplace_back(folly::IPAddress(ecmpHelper.nhop(i).ip));
+  }
+  return nhops;
+}
+
+template <typename AddrT>
+void RouteDistributionGenerator2::genRouteDistribution(
+    const Masklen2NumPrefixes& routeDistribution) {
+  for (const auto& maskLenAndNumPrefixes : routeDistribution) {
+    auto prefixGenerator = PrefixGenerator<AddrT>(maskLenAndNumPrefixes.first);
+    for (auto i = 0; i < maskLenAndNumPrefixes.second; ++i) {
+      if (generatedRouteChunks_->empty() ||
+          generatedRouteChunks_->back().size() == chunkSize_) {
+        // Last chunk was full or we are just staring.
+        // Start a new one
+        generatedRouteChunks_->emplace_back(RouteChunk{});
+      }
+      generatedRouteChunks_->back().emplace_back(
+          Route{getNewPrefix(prefixGenerator, startingState_, routerId_),
+                getNhops<AddrT>()});
+    }
+  }
+}
+
+RouteDistributionGenerator::RouteDistributionGenerator(
+    const std::shared_ptr<SwitchState>& startingState,
+    const Masklen2NumPrefixes& v6DistributionSpec,
+    const Masklen2NumPrefixes& v4DistributionSpec,
+    unsigned int chunkSize,
+    unsigned int ecmpWidth,
+    RouterID routerId)
+    : routeDistributionGen_(
+          startingState,
+          v6DistributionSpec,
+          v4DistributionSpec,
+          chunkSize,
+          ecmpWidth,
+          routerId) {}
+
 RouteDistributionGenerator::SwitchStates RouteDistributionGenerator::get() {
   if (generatedStates_) {
     return *generatedStates_;
@@ -69,65 +128,38 @@ RouteDistributionGenerator::SwitchStates RouteDistributionGenerator::get() {
   // Resolving next hops is not strictly necessary, since we will
   // program routes even when next hops don't have their ARP/NDP resolved.
   // But for mimicking a more common scenario, resolve these.
-  auto nhopsResolvedState = EcmpSetupAnyNPorts6(startingState_)
-                                .resolveNextHops(startingState_, ecmpWidth_);
-  nhopsResolvedState = EcmpSetupAnyNPorts4(nhopsResolvedState)
-                           .resolveNextHops(nhopsResolvedState, ecmpWidth_);
+  auto ecmpHelper6 = EcmpSetupAnyNPorts6(routeDistributionGen_.startingState());
+  auto ecmpHelper4 = EcmpSetupAnyNPorts4(routeDistributionGen_.startingState());
+  auto nhopsResolvedState = ecmpHelper6.resolveNextHops(
+      routeDistributionGen_.startingState(), routeDistributionGen_.ecmpWidth());
+  nhopsResolvedState = ecmpHelper4.resolveNextHops(
+      nhopsResolvedState, routeDistributionGen_.ecmpWidth());
   nhopsResolvedState->publish();
   generatedStates_->push_back(nhopsResolvedState);
-  int trailingUpdateSize = 0;
-  genRouteDistribution<folly::IPAddressV6>(
-      v6DistributionSpec_, &trailingUpdateSize);
-  genRouteDistribution<folly::IPAddressV4>(
-      v4DistributionSpec_, &trailingUpdateSize);
+  for (const auto& routeChunk : routeDistributionGen_.get()) {
+    std::vector<RoutePrefixV6> v6Prefixes;
+    std::vector<RoutePrefixV4> v4Prefixes;
+    for (const auto& route : routeChunk) {
+      const auto& cidrNetwork = route.prefix;
+      if (cidrNetwork.first.isV6()) {
+        v6Prefixes.emplace_back(
+            RoutePrefixV6{cidrNetwork.first.asV6(), cidrNetwork.second});
+      } else {
+        v4Prefixes.emplace_back(
+            RoutePrefixV4{cidrNetwork.first.asV4(), cidrNetwork.second});
+      }
+    }
+    auto newState = generatedStates_->back()->clone();
+    newState = ecmpHelper6.setupECMPForwarding(
+        newState, routeDistributionGen_.ecmpWidth(), v6Prefixes);
+    newState = ecmpHelper4.setupECMPForwarding(
+        newState, routeDistributionGen_.ecmpWidth(), v4Prefixes);
+    generatedStates_->push_back(newState);
+  }
+
   return *generatedStates_;
 }
 
-template <typename AddrT>
-void RouteDistributionGenerator::genRouteDistribution(
-    const Masklen2NumPrefixes& routeDistribution,
-    int* trailingUpdateSize) {
-  std::shared_ptr<SwitchState> curState;
-  CHECK(!generatedStates_->empty());
-  if (*trailingUpdateSize != 0) {
-    // If trailingUpdateSize was non zero, it means that the
-    // last update did not fillup to chunk size. Continue filling
-    // that one.
-    curState = generatedStates_->back();
-    generatedStates_->pop_back();
-  } else {
-    // Else last update was full or we are just staring.
-    curState = generatedStates_->back()->clone();
-  }
-  std::vector<typename PrefixGenerator<AddrT>::ResourceT> prefixChunk;
-  EcmpSetupAnyNPorts<AddrT> ecmpHelper(curState, routerId_);
-  for (const auto& maskLenAndNumPrefixes : routeDistribution) {
-    auto prefixGenerator = PrefixGenerator<AddrT>(maskLenAndNumPrefixes.first);
-    for (auto i = 0; i < maskLenAndNumPrefixes.second; ++i) {
-      prefixChunk.emplace_back(
-          genNewPrefix(prefixGenerator, curState, routerId_));
-      if (++*trailingUpdateSize % chunkSize_ == 0) {
-        curState =
-            ecmpHelper.setupECMPForwarding(curState, ecmpWidth_, prefixChunk);
-        // If curState has added chunkSize routes, publish
-        // it and start fillin in a new state
-        curState->publish();
-        generatedStates_->push_back(curState);
-        curState = generatedStates_->back()->clone();
-        *trailingUpdateSize = 0;
-        prefixChunk.clear();
-      }
-    }
-  }
-  if (*trailingUpdateSize % chunkSize_) {
-    // We are done adding routes for this distribution. Add the
-    // state update if we didn't add it in already (by reaching
-    // chunk size)
-    curState =
-        ecmpHelper.setupECMPForwarding(curState, ecmpWidth_, prefixChunk);
-    generatedStates_->push_back(curState);
-  }
-}
 } // namespace utility
 } // namespace fboss
 } // namespace facebook
