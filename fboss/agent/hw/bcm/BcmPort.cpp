@@ -142,61 +142,65 @@ MonotonicCounter* BcmPort::getPortCounterIf(folly::StringPiece statKey) {
   return pcitr != portCounters_.end() ? &pcitr->second : nullptr;
 }
 
-void BcmPort::reinitPortStat(folly::StringPiece statKey) {
+void BcmPort::reinitPortStat(
+    folly::StringPiece statKey,
+    folly::StringPiece portName) {
   auto stat = getPortCounterIf(statKey);
 
   if (!stat) {
     portCounters_.emplace(
         statKey.str(),
-        MonotonicCounter(statName(statKey), fb303::SUM, fb303::RATE));
-  } else if (stat->getName() != statName(statKey)) {
-    MonotonicCounter newStat{statName(statKey), fb303::SUM, fb303::RATE};
+        MonotonicCounter(statName(statKey, portName), fb303::SUM, fb303::RATE));
+  } else if (stat->getName() != statName(statKey, portName)) {
+    MonotonicCounter newStat{
+        statName(statKey, portName), fb303::SUM, fb303::RATE};
     stat->swap(newStat);
     utility::deleteCounter(newStat.getName());
   }
 }
 
 void BcmPort::reinitPortStats(const std::shared_ptr<Port>& swPort) {
-  XLOG(DBG2) << "Reinitializing stats for " << portName_;
+  auto& portName = swPort->getName();
+  XLOG(DBG2) << "Reinitializing stats for " << portName;
 
-  reinitPortStat(kInBytes());
-  reinitPortStat(kInUnicastPkts());
-  reinitPortStat(kInMulticastPkts());
-  reinitPortStat(kInBroadcastPkts());
-  reinitPortStat(kInDiscardsRaw());
-  reinitPortStat(kInDiscards());
-  reinitPortStat(kInErrors());
-  reinitPortStat(kInPause());
-  reinitPortStat(kInIpv4HdrErrors());
-  reinitPortStat(kInIpv6HdrErrors());
-  reinitPortStat(kInDstNullDiscards());
+  reinitPortStat(kInBytes(), portName);
+  reinitPortStat(kInUnicastPkts(), portName);
+  reinitPortStat(kInMulticastPkts(), portName);
+  reinitPortStat(kInBroadcastPkts(), portName);
+  reinitPortStat(kInDiscardsRaw(), portName);
+  reinitPortStat(kInDiscards(), portName);
+  reinitPortStat(kInErrors(), portName);
+  reinitPortStat(kInPause(), portName);
+  reinitPortStat(kInIpv4HdrErrors(), portName);
+  reinitPortStat(kInIpv6HdrErrors(), portName);
+  reinitPortStat(kInDstNullDiscards(), portName);
 
-  reinitPortStat(kOutBytes());
-  reinitPortStat(kOutUnicastPkts());
-  reinitPortStat(kOutMulticastPkts());
-  reinitPortStat(kOutBroadcastPkts());
-  reinitPortStat(kOutDiscards());
-  reinitPortStat(kOutErrors());
-  reinitPortStat(kOutPause());
-  reinitPortStat(kOutEcnCounter());
+  reinitPortStat(kOutBytes(), portName);
+  reinitPortStat(kOutUnicastPkts(), portName);
+  reinitPortStat(kOutMulticastPkts(), portName);
+  reinitPortStat(kOutBroadcastPkts(), portName);
+  reinitPortStat(kOutDiscards(), portName);
+  reinitPortStat(kOutErrors(), portName);
+  reinitPortStat(kOutPause(), portName);
+  reinitPortStat(kOutEcnCounter(), portName);
 
   if (swPort) {
-    queueManager_->setPortName(portName_);
+    queueManager_->setPortName(portName);
     queueManager_->setupQueueCounters(swPort->getPortQueues());
   }
 
   // (re) init out queue length
   auto statMap = fb303::fbData->getStatMap();
   const auto expType = fb303::AVG;
-  outQueueLen_ =
-      statMap->getLockableStat(statName("out_queue_length"), &expType);
+  outQueueLen_ = statMap->getLockableStat(
+      statName("out_queue_length", portName), &expType);
   // (re) init histograms
   auto histMap = fb303::fbData->getHistogramMap();
   fb303::ExportedHistogram pktLenHist(1, 0, kInPktLengthStats.size());
   inPktLengths_ = histMap->getOrCreateLockableHistogram(
-      statName("in_pkt_lengths"), &pktLenHist);
+      statName("in_pkt_lengths", portName), &pktLenHist);
   outPktLengths_ = histMap->getOrCreateLockableHistogram(
-      statName("out_pkt_lengths"), &pktLenHist);
+      statName("out_pkt_lengths", portName), &pktLenHist);
 
   {
     auto lockedPortStatsPtr = lastPortStats_.wlock();
@@ -209,17 +213,13 @@ BcmPort::BcmPort(
     BcmSwitch* hw,
     opennsl_port_t port,
     BcmPlatformPort* platformPort)
-    : hw_(hw),
-      port_(port),
-      platformPort_(platformPort),
-      unit_(hw->getUnit()),
-      // we can only get the real name(ethX/Y/Z) after we first apply config
-      portName_(folly::to<string>("port", platformPort_->getPortID())) {
+    : hw_(hw), port_(port), platformPort_(platformPort), unit_(hw->getUnit()) {
   // Obtain the gport handle from the port handle.
   int rv = opennsl_port_gport_get(unit_, port_, &gport_);
   bcmCheckError(rv, "Failed to get gport for BCM port ", port_);
 
-  queueManager_ = std::make_unique<BcmPortQueueManager>(hw_, portName_, gport_);
+  queueManager_ =
+      std::make_unique<BcmPortQueueManager>(hw_, getPortName(), gport_);
 
   pipe_ = determinePipe();
 
@@ -418,12 +418,10 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   setTxSetting(port);
   setLoopbackMode(port);
 
-  portName_ = port->getName();
-
   setupStatsIfNeeded(port);
 
   {
-    XLOG(DBG3) << "Saving port stats for " << portName_;
+    XLOG(DBG3) << "Saving port settings for " << port->getName();
     auto lockedSettings = programmedSettings_.wlock();
     *lockedSettings = port;
   }
@@ -663,6 +661,15 @@ PortID BcmPort::getPortID() const {
   return platformPort_->getPortID();
 }
 
+std::string BcmPort::getPortName() {
+  // TODO: replace with pulling name from platform port
+  auto prevSettings = programmedSettings_.rlock();
+  if (!*prevSettings) {
+    return folly::to<std::string>("port", getPortID());
+  }
+  return (*prevSettings)->getName();
+}
+
 LaneSpeeds BcmPort::supportedLaneSpeeds() const {
   return platformPort_->supportedLaneSpeeds();
 }
@@ -684,8 +691,10 @@ void BcmPort::registerInPortGroup(BcmPortGroup* portGroup) {
              << portGroup->controllingPort()->getPortID();
 }
 
-std::string BcmPort::statName(folly::StringPiece name) const {
-  return folly::to<string>(portName_, ".", name);
+std::string BcmPort::statName(
+    folly::StringPiece statName,
+    folly::StringPiece portName) const {
+  return folly::to<string>(portName, ".", statName);
 }
 
 void BcmPort::updateStats() {
@@ -959,7 +968,7 @@ void BcmPort::destroyAllPortStats() {
 }
 
 void BcmPort::enableStatCollection(const std::shared_ptr<Port>& port) {
-  XLOG(DBG2) << "Enabling stat collection for " << portName_;
+  XLOG(DBG2) << "Enabling stats for " << port->getName();
 
   // Enable packet and byte counter statistic collection.
   auto rv = opennsl_port_stat_enable_set(unit_, gport_, true);
@@ -974,7 +983,7 @@ void BcmPort::enableStatCollection(const std::shared_ptr<Port>& port) {
 }
 
 void BcmPort::disableStatCollection() {
-  XLOG(DBG2) << "Disabling stat collection for " << portName_;
+  XLOG(DBG2) << "disabling stats for " << getPortName();
 
   // Disable packet and byte counter statistic collection.
   auto rv = opennsl_port_stat_enable_set(unit_, gport_, false);

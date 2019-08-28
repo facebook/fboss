@@ -105,9 +105,7 @@ class BcmPort {
       const std::shared_ptr<SwitchState>& state) const;
 
   PortID getPortID() const;
-  std::string getPortName() const {
-    return portName_;
-  }
+  std::string getPortName();
   LaneSpeeds supportedLaneSpeeds() const;
 
   bool supportsSpeed(cfg::PortSpeed speed);
@@ -209,7 +207,7 @@ class BcmPort {
   stats::MonotonicCounter* getPortCounterIf(folly::StringPiece statName);
   bool shouldReportStats() const;
   void reinitPortStats(const std::shared_ptr<Port>& swPort);
-  void reinitPortStat(folly::StringPiece newName);
+  void reinitPortStat(folly::StringPiece newName, folly::StringPiece portName);
   void destroyAllPortStats();
   void updateStat(
       std::chrono::seconds now,
@@ -225,7 +223,8 @@ class BcmPort {
   // Set stats that are either FB specific, not available in
   // open source opennsl release.
   void setAdditionalStats(std::chrono::seconds now, HwPortStats* curPortStats);
-  std::string statName(folly::StringPiece name) const;
+  std::string statName(folly::StringPiece statName, folly::StringPiece portName)
+      const;
 
   cfg::PortSpeed getDesiredPortSpeed(const std::shared_ptr<Port>& swPort);
   opennsl_port_if_t getDesiredInterfaceMode(
@@ -262,7 +261,6 @@ class BcmPort {
   uint8_t pipe_;
   BcmPlatformPort* const platformPort_{nullptr};
   int unit_{-1};
-  std::string portName_{""};
   folly::Optional<std::string> ingressMirror_;
   folly::Optional<std::string> egressMirror_;
   cfg::SampleDestination sampleDest_;
