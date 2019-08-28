@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
 set(CMAKE_MODULE_PATH
-  # For in-fbsource builds on mac
-  "${CMAKE_CURRENT_SOURCE_DIR}/../opensource/fbcode_builder/CMake"
-  # For shipit-transformed builds
   "${CMAKE_CURRENT_SOURCE_DIR}/build/fbcode_builder/CMake"
   ${CMAKE_MODULE_PATH})
 
@@ -70,7 +67,7 @@ find_path(IPROUTE2_INCLUDE_DIR NAMES libnetlink.h)
 include_directories(${IPROUTE2_INCLUDE_DIR})
 
 # Generate thrift deps and libraries
-include(${CMAKE_SOURCE_DIR}/ThriftCppLibrary.cmake)
+include(ThriftCppLibrary)
 
 # Thrift libraries
 add_thrift_cpp2_library(
