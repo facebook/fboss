@@ -114,6 +114,14 @@ using folly::IPAddress;
 
 using namespace std::chrono;
 
+/**
+ * Set L2 Aging to 5 mins by default, same as Arista -
+ * https://www.arista.com/en/um-eos/eos-section-19-3-mac-address-table
+ */
+DEFINE_int32(
+    l2AgeTimerSeconds,
+    300,
+    "Time to transition L2 from hit -> miss -> removed");
 DEFINE_int32(linkscan_interval_us, 250000, "The Broadcom linkscan interval");
 DEFINE_bool(flexports, false, "Load the agent with flexport support enabled");
 DEFINE_int32(
@@ -316,6 +324,11 @@ void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
 
   std::lock_guard<std::mutex> g(lock_);
 
+  // Disable Mac Address aging cross warmboot to avoid SDK crash - CS8800124
+  // TODO{rsher} This doesn't 100% remove the race condition (in theory?)
+  // so come back and remove this once BRCM issues an SDK patch.
+  setMacAging(std::chrono::seconds(0));
+
   // This will run some common shell commands to give more info about
   // the underlying bcm sdk state
   dumpState(platform_->getWarmBootHelper()->shutdownSdkDumpFile());
@@ -436,6 +449,36 @@ void BcmSwitch::setupLinkscan() {
     rv = opennsl_port_config_get(unit_, &pcfg);
     bcmCheckError(rv, "failed to get port configuration");
     forceLinkscanOn(pcfg.port);
+  }
+}
+
+void BcmSwitch::setMacAging(std::chrono::seconds agingInterval) {
+  /**
+   * Enable MAC aging on the ASIC.
+   * Every `seconds` seconds, all addresses
+   * that have not been updated/used since the last age timer interval
+   * are removed from the table.
+   *
+   * This is implemented by tracking the 'hit' bit in the L2 table.
+   * On the aging timer, all MACs that have the hit bit set have it cleared,
+   * and all MACs without the hit bit set are removed from the table.
+   *
+   * The ASIC will automatically set the hit bit anytime that MAC address is
+   * looked up and used in a packet, either as a SRC lookup or DST lookup.
+   *
+   * Only set if timer is different than what's currently set.
+   */
+  int currentSeconds;
+  int targetSeconds = agingInterval.count(); // force to 32bit
+  bcmCheckError(
+      opennsl_l2_age_timer_get(unit_, &currentSeconds),
+      "failed to get l2_age_timer");
+  if (currentSeconds != targetSeconds) {
+    XLOG(DBG1) << "Changing MAC Aging timer from " << currentSeconds << " to "
+               << targetSeconds;
+    bcmCheckError(
+        opennsl_l2_age_timer_set(unit_, targetSeconds),
+        "failed to set l2_age_timer");
   }
 }
 
@@ -585,6 +628,8 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   } else {
     ret.switchState = getColdBootSwitchState();
   }
+
+  setMacAging(std::chrono::seconds(FLAGS_l2AgeTimerSeconds));
 
   ret.bootTime =
       duration_cast<duration<float>>(steady_clock::now() - begin).count();

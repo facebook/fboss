@@ -424,6 +424,11 @@ class BcmSwitch : public BcmSwitchIf {
    */
   void dumpState(const std::string& path) const override;
 
+  /**
+   * Set the aging timer for MAC address aging
+   */
+  void setMacAging(std::chrono::seconds agingInterval);
+
   /*
    * Handle a fatal crash.
    */
@@ -732,7 +737,6 @@ class BcmSwitch : public BcmSwitchIf {
    * Returns false if it is there for another reason as well.
    */
   bool handleSflowPacket(opennsl_pkt_t* pkt) noexcept;
-
 
   /**
    * Exports the sdk version we build against.
