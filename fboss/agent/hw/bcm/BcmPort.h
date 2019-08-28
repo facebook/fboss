@@ -195,7 +195,7 @@ class BcmPort {
 
    private:
     HwPortStats portStats_;
-    std::chrono::seconds timeRetrieved_;
+    std::chrono::seconds timeRetrieved_{0};
   };
 
   uint32_t getCL91FECStatus() const;
