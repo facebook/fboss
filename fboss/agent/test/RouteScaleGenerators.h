@@ -44,7 +44,7 @@ class FSWRouteScaleGenerator {
   }
 
  private:
-  RouteDistributionGenerator routeDistributionGen_;
+  RouteDistributionSwitchStatesGenerator routeDistributionGen_;
 };
 
 class THAlpmRouteScaleGenerator {
@@ -58,7 +58,7 @@ class THAlpmRouteScaleGenerator {
   }
 
  private:
-  RouteDistributionGenerator routeDistributionGen_;
+  RouteDistributionSwitchStatesGenerator routeDistributionGen_;
 };
 
 class HgridDuRouteScaleGenerator {
@@ -72,7 +72,7 @@ class HgridDuRouteScaleGenerator {
   }
 
  private:
-  RouteDistributionGenerator routeDistributionGen_;
+  RouteDistributionSwitchStatesGenerator routeDistributionGen_;
 };
 
 class HgridUuRouteScaleGenerator {
@@ -86,7 +86,7 @@ class HgridUuRouteScaleGenerator {
   }
 
  private:
-  RouteDistributionGenerator routeDistributionGen_;
+  RouteDistributionSwitchStatesGenerator routeDistributionGen_;
 };
 } // namespace utility
 } // namespace fboss

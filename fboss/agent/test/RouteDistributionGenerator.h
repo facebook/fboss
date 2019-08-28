@@ -34,7 +34,7 @@ using Masklen2NumPrefixes = std::map<uint8_t, uint32_t>;
  * chunk size to generate a vector of vector<Routes> (chunk) satisfying that
  * distribution spec and chunk size.
  */
-class RouteDistributionGenerator2 {
+class RouteDistributionGenerator {
  public:
   struct Route {
     folly::CIDRNetwork prefix;
@@ -42,7 +42,7 @@ class RouteDistributionGenerator2 {
   };
   using RouteChunk = std::vector<Route>;
   using RouteChunks = std::vector<RouteChunk>;
-  RouteDistributionGenerator2(
+  RouteDistributionGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       const Masklen2NumPrefixes& v6DistributionSpec,
       const Masklen2NumPrefixes& v4DistributionSpec,
@@ -79,10 +79,10 @@ class RouteDistributionGenerator2 {
   folly::Optional<RouteChunks> generatedRouteChunks_;
 };
 
-class RouteDistributionGenerator {
+class RouteDistributionSwitchStatesGenerator {
  public:
   using SwitchStates = std::vector<std::shared_ptr<SwitchState>>;
-  RouteDistributionGenerator(
+  RouteDistributionSwitchStatesGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       const Masklen2NumPrefixes& v6DistributionSpec,
       const Masklen2NumPrefixes& v4DistributionSpec,
@@ -95,7 +95,7 @@ class RouteDistributionGenerator {
   SwitchStates get();
 
  private:
-  RouteDistributionGenerator2 routeDistributionGen_;
+  RouteDistributionGenerator routeDistributionGen_;
   folly::Optional<SwitchStates> generatedStates_;
 };
 

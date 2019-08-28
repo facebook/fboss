@@ -76,7 +76,8 @@ uint64_t getNewRouteCount(const StateDelta& delta) {
 }
 
 void verifyChunking(
-    const utility::RouteDistributionGenerator::SwitchStates& switchStates,
+    const utility::RouteDistributionSwitchStatesGenerator::SwitchStates&
+        switchStates,
     unsigned int totalRoutes,
     unsigned int chunkSize) {
   auto remainingRoutes = totalRoutes;

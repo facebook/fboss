@@ -19,7 +19,7 @@ namespace fboss {
 
 TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionSingleChunk) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
-  auto switchStates = utility::RouteDistributionGenerator(
+  auto switchStates = utility::RouteDistributionSwitchStatesGenerator(
                           createTestState(mockPlatform.get()),
                           {
                               {65, 5},
@@ -39,7 +39,7 @@ TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionSingleChunk) {
 
 TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionMultipleChunks) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
-  auto switchStates = utility::RouteDistributionGenerator(
+  auto switchStates = utility::RouteDistributionSwitchStatesGenerator(
                           createTestState(mockPlatform.get()),
                           {
                               {65, 5},
@@ -61,7 +61,7 @@ TEST(
     RouteDistributionGeneratorsTest,
     v4AndV6DistributionChunksSpillOverMaskLens) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
-  auto switchStates = utility::RouteDistributionGenerator(
+  auto switchStates = utility::RouteDistributionSwitchStatesGenerator(
                           createTestState(mockPlatform.get()),
                           {
                               {65, 3},
@@ -83,7 +83,7 @@ TEST(
     RouteDistributionGeneratorsTest,
     v4AndV6DistributionChunksSpillOverAddressFamilies) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
-  auto switchStates = utility::RouteDistributionGenerator(
+  auto switchStates = utility::RouteDistributionSwitchStatesGenerator(
                           createTestState(mockPlatform.get()),
                           {
                               {65, 5},
@@ -103,7 +103,7 @@ TEST(
 
 TEST(RouteDistributionGeneratorsTest, emptyV4Distribution) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
-  auto switchStates = utility::RouteDistributionGenerator(
+  auto switchStates = utility::RouteDistributionSwitchStatesGenerator(
                           createTestState(mockPlatform.get()),
                           {
                               {65, 5},
@@ -120,7 +120,7 @@ TEST(RouteDistributionGeneratorsTest, emptyV4Distribution) {
 TEST(RouteDistributionGeneratorsTest, emptyV6Distribution) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
   auto switchStates =
-      utility::RouteDistributionGenerator(
+      utility::RouteDistributionSwitchStatesGenerator(
           createTestState(mockPlatform.get()), {}, {{24, 5}}, 5, 2)
           .get();
 
@@ -130,7 +130,7 @@ TEST(RouteDistributionGeneratorsTest, emptyV6Distribution) {
 
 TEST(RouteDistributionGeneratorsTest, emptyV4AndV6Distribution) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
-  auto switchStates = utility::RouteDistributionGenerator(
+  auto switchStates = utility::RouteDistributionSwitchStatesGenerator(
                           createTestState(mockPlatform.get()), {}, {}, 5, 2)
                           .get();
 

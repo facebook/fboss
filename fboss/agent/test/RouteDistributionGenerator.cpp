@@ -44,7 +44,7 @@ namespace facebook {
 namespace fboss {
 namespace utility {
 
-RouteDistributionGenerator2::RouteDistributionGenerator2(
+RouteDistributionGenerator::RouteDistributionGenerator(
     const std::shared_ptr<SwitchState>& startingState,
     const Masklen2NumPrefixes& v6DistributionSpec,
     const Masklen2NumPrefixes& v4DistributionSpec,
@@ -61,8 +61,8 @@ RouteDistributionGenerator2::RouteDistributionGenerator2(
   CHECK_NE(0, ecmpWidth_);
 }
 
-const RouteDistributionGenerator2::RouteChunks&
-RouteDistributionGenerator2::get() {
+const RouteDistributionGenerator::RouteChunks&
+RouteDistributionGenerator::get() {
   if (generatedRouteChunks_) {
     return *generatedRouteChunks_;
   }
@@ -73,7 +73,7 @@ RouteDistributionGenerator2::get() {
 }
 
 template <typename AddrT>
-const std::vector<folly::IPAddress>& RouteDistributionGenerator2::getNhops()
+const std::vector<folly::IPAddress>& RouteDistributionGenerator::getNhops()
     const {
   static std::vector<folly::IPAddress> nhops;
   if (nhops.size()) {
@@ -87,7 +87,7 @@ const std::vector<folly::IPAddress>& RouteDistributionGenerator2::getNhops()
 }
 
 template <typename AddrT>
-void RouteDistributionGenerator2::genRouteDistribution(
+void RouteDistributionGenerator::genRouteDistribution(
     const Masklen2NumPrefixes& routeDistribution) {
   for (const auto& maskLenAndNumPrefixes : routeDistribution) {
     auto prefixGenerator = PrefixGenerator<AddrT>(maskLenAndNumPrefixes.first);
@@ -105,7 +105,7 @@ void RouteDistributionGenerator2::genRouteDistribution(
   }
 }
 
-RouteDistributionGenerator::RouteDistributionGenerator(
+RouteDistributionSwitchStatesGenerator::RouteDistributionSwitchStatesGenerator(
     const std::shared_ptr<SwitchState>& startingState,
     const Masklen2NumPrefixes& v6DistributionSpec,
     const Masklen2NumPrefixes& v4DistributionSpec,
@@ -120,7 +120,8 @@ RouteDistributionGenerator::RouteDistributionGenerator(
           ecmpWidth,
           routerId) {}
 
-RouteDistributionGenerator::SwitchStates RouteDistributionGenerator::get() {
+RouteDistributionSwitchStatesGenerator::SwitchStates
+RouteDistributionSwitchStatesGenerator::get() {
   if (generatedStates_) {
     return *generatedStates_;
   }
