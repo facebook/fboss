@@ -82,7 +82,7 @@ BcmTestPlatform::InitPortMap BcmTestPlatform::initPorts() {
   return ports;
 }
 
-std::vector<PortID> BcmTestPlatform::getAllPortsinGroup(PortID portID) {
+std::vector<PortID> BcmTestPlatform::getAllPortsinGroup(PortID portID) const {
   std::vector<PortID> allPortsinGroup;
   auto portItr = std::find(
       masterLogicalPortIds_.begin(), masterLogicalPortIds_.end(), portID);

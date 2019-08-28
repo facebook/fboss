@@ -69,7 +69,7 @@ class BcmTestPlatform : public BcmPlatform {
   const std::vector<PortID>& masterLogicalPortIds() const {
     return masterLogicalPortIds_;
   }
-  std::vector<PortID> getAllPortsinGroup(PortID portID);
+  std::vector<PortID> getAllPortsinGroup(PortID portID) const;
 
   BcmWarmBootHelper* getWarmBootHelper() override {
     return warmBootHelper_.get();
